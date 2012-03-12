@@ -61,8 +61,9 @@
         <getter>
           <![CDATA[
             return this.bundle
-                       .GetStringFromName("glodaComplete.webSearch.label")
-                       .replace("#1", this.row.item.tag);
+                       .GetStringFromName("glodaComplete.webSearch1.label")
+                       .replace("#1", Services.search.currentEngine.name)
+                       .replace("#2", this.row.item.tag);
           ]]>
         </getter>
       </property>
@@ -71,8 +72,9 @@
         <body>
           <![CDATA[
             this._explanation.value =
-              this.bundle.GetStringFromName("glodaComplete.webSearch.label")
-                         .replace("#1", this.row.term);
+              this.bundle.GetStringFromName("glodaComplete.webSearch1.label")
+                         .replace("#1", Services.search.currentEngine.name)
+                         .replace("#2", this.row.term);
           ]]>
         </body>
       </method>

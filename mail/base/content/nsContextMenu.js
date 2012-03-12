@@ -202,7 +202,7 @@ nsContextMenu.prototype = {
         gGlodaBundle = Services.strings.createBundle(
           "chrome://messenger/locale/glodaComplete.properties");
 
-      let key = "glodaComplete.webSearch.label";
+      let key = "glodaComplete.webSearch1.label";
       let selString = selection.toString();
       if (selString.length > 15) {
         key += ".truncated";
@@ -210,7 +210,8 @@ nsContextMenu.prototype = {
       }
 
       searchTheWeb.label = gGlodaBundle.GetStringFromName(key)
-                                      .replace("#1", selString);
+                                      .replace("#1", Services.search.currentEngine.name)
+                                      .replace("#2", selString);
       searchTheWeb.value = selection.toString();
     }
   },
