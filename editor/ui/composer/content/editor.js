@@ -696,17 +696,13 @@ function CheckAndSaveDocument(command, allowDontSave)
     
   var reasonToSave = strID ? GetString(strID) : "";
 
-  var title = document.title;
-  if (!title)
-    title = gUntitledString;
+  var title = document.title || GetString("untitledDefaultFilename");
 
   var dialogTitle = GetString(doPublish ? "PublishPage" : "SaveDocument");
   var dialogMsg = GetString(doPublish ? "PublishPrompt" : "SaveFilePrompt");
   dialogMsg = (dialogMsg.replace(/%title%/,title)).replace(/%reason%/,reasonToSave);
 
   var promptService = GetPromptService();
-  if (!promptService)
-    return false;
 
   var result = {value:0};
   var promptFlags = promptService.BUTTON_TITLE_CANCEL * promptService.BUTTON_POS_1;

@@ -793,13 +793,12 @@ function GetSuggestedFileName(aDocumentURLString, aMIMEType)
     extension = "." + extension;
 
   // check for existing file name we can use
-  if (aDocumentURLString.length >= 0 && !IsUrlAboutBlank(aDocumentURLString))
+  if (aDocumentURLString && !IsUrlAboutBlank(aDocumentURLString))
   {
-    var docURI = null;
     try {
-
       var ioService = GetIOService();
-      docURI = ioService.newURI(aDocumentURLString, GetCurrentEditor().documentCharacterSet, null);
+      var docURI = ioService.newURI(aDocumentURLString,
+        GetCurrentEditor().documentCharacterSet, null);
       docURI = docURI.QueryInterface(Components.interfaces.nsIURL);
 
       // grab the file name
@@ -809,9 +808,10 @@ function GetSuggestedFileName(aDocumentURLString, aMIMEType)
     } catch(e) {}
   } 
 
-  // check if there is a title we can use to generate a valid filename,
-  // if we can't, just go with gUntitledString
-  var title = validateFileName(GetDocumentTitle()) || gUntitledString;
+  // Check if there is a title we can use to generate a valid filename,
+  // if we can't, use the default filename.
+  var title = validateFileName(GetDocumentTitle()) ||
+              GetString("untitledDefaultFilename");
   return title + extension;
 }
 
@@ -899,15 +899,18 @@ function PromptForSaveLocation(aDoSaveAsText, aEditorType, aMIMEType, aDocumentU
   return dialogResult;
 }
 
-// returns a boolean (whether to continue (true) or not (false) because user canceled)
+/**
+ * If needed, prompt for document title and set the document title to the
+ * preferred value.
+ * @return true if the title was set up successfully;
+ *         false if the user cancelled the title prompt
+ */
 function PromptAndSetTitleIfNone()
 {
   if (GetDocumentTitle()) // we have a title; no need to prompt!
     return true;
 
   var promptService = GetPromptService();
-  if (!promptService) return false;
-
   var result = {value:null};
   var captionStr = GetString("DocumentTitle");
   var msgStr = GetString("NeedDocTitle") + '\n' + GetString("DocTitleHelp");
@@ -1712,7 +1715,10 @@ function SaveDocument(aSaveAs, aSaveCopy, aMimeType)
       // update the new URL for the webshell unless we are saving a copy
       if (!aSaveCopy)
         doUpdateURI = true;
-   } catch (e) {  return false; }
+    } catch (e) {
+       Components.utils.reportError(e);
+       return false; 
+    }
   } // mustShowFileDialog
 
   var success = true;
@@ -2102,9 +2108,6 @@ var nsRevertCommand =
     {
       // Put the page title in the message string
       var title = GetDocumentTitle();
-      if (!title)
-        title = gUntitledString;
-
       var msg = GetString("AbandonChanges").replace(/%title%/,title);
 
       var result = promptService.confirmEx(window, GetString("RevertCaption"), msg,
