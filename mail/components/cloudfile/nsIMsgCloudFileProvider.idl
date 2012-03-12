@@ -1,0 +1,134 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsISupports.idl"
+
+interface nsILocalFile;
+interface nsIRequestObserver;
+interface nsIPrefBranch;
+[scriptable, uuid(c961919b-980b-4adc-bcfe-dabe916d1acc)]
+interface nsIMsgCloudFileProvider : nsISupports {
+  // The type is a unique string identifier used by various interface elements
+  // for styling. As such, the type should be an alphanumpheric string with
+  // no spaces.
+  readonly attribute ACString type;
+  // Unlike the type, the displayName is purely for rendering the name of
+  // a storage service provider.
+  readonly attribute ACString displayName;
+  // A link to the homepage of the service, if applicable.
+  readonly attribute ACString serviceURL;
+  /// Some providers might want to provide an icon for the menu
+  readonly attribute ACString iconClass;
+
+  readonly attribute ACString accountKey;
+
+  readonly attribute ACString settingsURL;
+
+  readonly attribute ACString managementURL;
+
+  void init(in ACString aAccountKey);
+
+  /**
+   * upload the file to the cloud provider. The callback's OnStopRequest
+   * method will be called when finished, with success or an error code.
+   *
+   * @param aFile file to upload
+   * @param aCallback callback when finished.
+   *
+   */
+  void uploadFile(in nsILocalFile aFile, in nsIRequestObserver aCallback);
+  ACString urlForFile(in nsILocalFile aFile);
+
+  /**
+   * Cancels the upload of the passed in file, if it hasn't finished yet.
+   * If it hasn't started yet, it will be removed from the upload queue.
+   *
+   * @param aFile file whose upload we should cancel.
+   */
+  void cancelFileUpload(in nsILocalFile aFile);
+
+  /**
+   * Refresh the user info for this account. This will fill in the quota info,
+   * if supported by the provider.
+   *
+   * @param aWithUI if true, we may prompt for a password, or bring up an auth
+   *                page. If false, we won't, and will fail if auth is required.
+   * @param aCallback callback when finished.
+   */
+  void refreshUserInfo(in boolean aWithUI, in nsIRequestObserver aCallback);
+
+  /**
+   * Delete a file that we've uploaded in this session and discarded. This
+   * operation is asynchronous.
+   *
+   * @param aFile File we previously uploaded in this session.
+   * @param aCallback callback when finished
+   *
+   * throws NS_ERROR_FAILURE if we don't know about the file.
+   */
+  void deleteFile(in nsILocalFile aFile, in nsIRequestObserver aCallback);
+
+  /**
+   * If the provider has an API for creating an account, this will start the
+   * process of creating one. There will probably have to be some sort of
+   * validation on the part of the user before the account is created.
+   * If not, this will throw NS_ERROR_NOT_IMPLEMENTED.
+   *
+   * If the REST call succeeds, aCallback.onStopRequest will get called back
+   * with an http status. Generally, status between 200 and 300 is OK,
+   * otherwise, an error occurred which is * probably specific to the provider.
+   * If the request fails completely, onStopRequest will get called with
+   * Components.results.NS_ERROR_FAILURE
+   */
+  void createNewAccount(in ACString aEmailAddress, in ACString aPassword,
+                        in ACString aFirstName, in ACString aLastName,
+                        in nsIRequestObserver aCallback);
+
+  void createExistingAccount(in nsIRequestObserver aCallback);
+
+  /**
+   * If the provider doesn't have an API for creating an account, perhaps
+   * there's a url we can load in a content tab that will allow the user
+   * to create an account.
+   */
+  readonly attribute ACString createNewAccountUrl;
+
+  /**
+   * For some errors, the provider may have an explanatory page, or have an
+   * option to upgrade an account to handle the error. This method returns a url
+   * to a page hosted by the provider which can help with the error.
+   *
+   * @param aError e.g. uploadWouldExceedQuota or uploadExceedsFileLimit
+   * @returns provider url, if any, for the error, empty string otherwise.
+   */
+  ACString providerUrlForError(in unsigned long aError);
+
+  /**
+   * If we don't know the limit, this will return -1.
+   */
+  readonly attribute long fileUploadSizeLimit;
+
+  /// -1 if we don't have this info
+  readonly attribute long long remainingFileSpace;
+
+  /// -1 if we don't have this info
+  readonly attribute long long fileSpaceUsed;
+
+  /// This is used by our test harness to override the urls the provider uses.
+  void overrideUrls(in PRUint32 aNumUrls, [array, size_is(aNumUrls)] in string aUrls);
+
+  // Error handling
+  // If the cloud provider gets textual errors back from the server,
+  // they can be retrieved here.
+  readonly attribute ACString lastError;
+  // I'm mapping these to real NS_MSG error codes where possible,
+  // but it really doesn't matter as long as we only return these
+  // errors.
+  const unsigned long offlineErr = 0x80550014; // NS_MSG_ERROR_OFFLINE
+  const unsigned long authErr = 0x8055001e; // NS_MSG_USER_NOT_AUTHENTICATED
+  const unsigned long uploadErr = 0x8055311a; // NS_MSG_ERROR_ATTACHING_FILE
+  const unsigned long uploadWouldExceedQuota = 0x8055311b;
+  const unsigned long uploadExceedsFileLimit = 0x8055311c;
+  const unsigned long uploadCanceled = 0x8055311d;
+};
