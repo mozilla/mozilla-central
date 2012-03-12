@@ -797,6 +797,14 @@ calCalendarManager.prototype = {
         }
     },
 
+    getCalendarById: function cmgr_getCalendarById(aId) {
+        if (aId in this.mCache) {
+            return this.mCache[aId];
+        } else {
+            return null;
+        }
+    },
+
     getCalendars: function cmgr_getCalendars(count) {
         this.assureCache();
         var calendars = [];

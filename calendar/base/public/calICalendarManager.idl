@@ -75,6 +75,9 @@ interface calICalendarManager : nsISupports
   /* delete a calendar for good */
   void deleteCalendar(in calICalendar aCalendar);
 
+  /* get a calendar by its id */
+  calICalendar getCalendarById(in AUTF8String aId);
+
   /* return a list of all calendars currently registered */
   void getCalendars(out PRUint32 count,
                     [array, size_is(count), retval] out calICalendar aCalendars);
