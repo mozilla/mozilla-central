@@ -39,6 +39,8 @@
 interface nsIVariant;
 interface nsISimpleEnumerator;
 
+interface calIAttachment;
+interface calIAttendee;
 interface calIDateTime;
 interface calIDuration;
 interface calIItemBase;
@@ -144,8 +146,11 @@ interface calIAlarm : nsISupports
     /**
      * Manage Attendee for this alarm. Not valid for AUDIO and DISPLAY alarms.
      */
-    // TODO void addAttendee(in AUTF8String aAttendee);
-    // TODO void deleteAttendee(in AUTF8String aAttendee);
+     void addAttendee(in calIAttendee aAttendee);
+     void deleteAttendee(in calIAttendee aAttendee);
+     void clearAttendees();
+     void getAttendees(out PRUint32 count,
+                       [array,size_is(count),retval] out calIAttendee attendees);
 
     /**
      * Manage Attachments for this alarm.
@@ -153,8 +158,11 @@ interface calIAlarm : nsISupports
      * For AUDIO alarms, one Attachment can be specified.
      * For DISPLAY alarms, attachments are invalid.
      */
-    // TODO void addAttachment(in AUTF8String aAttachment);
-    // TODO void deleteAttachment(in AUTF8String aAttachment);
+     void addAttachment(in calIAttachment aAttachment);
+     void deleteAttachment(in calIAttachment aAttachment);
+     void clearAttachments();
+     void getAttachments(out PRUint32 count,
+                         [array,size_is(count),retval] out calIAttachment attachments);
 
     /**
      * The human readable representation of this alarm. Uses locale strings.

@@ -158,7 +158,11 @@ calAlarm.prototype = {
         }
 
         for each (let member in arrayMembers) {
-            m[member] = this[member].slice(0);
+            let newArray = [];
+            for each (let oldElem in this[member]) {
+                newArray.push(oldElem.clone());
+            }
+            m[member] = newArray;
         }
 
         for each (let member in objectMembers) {
@@ -217,7 +221,6 @@ calAlarm.prototype = {
         return (this.mAction = aValue);
     },
 
-    // TODO Do we really need to expose this?
     get description() {
         if (this.action == "AUDIO") {
             return null;
@@ -319,27 +322,84 @@ calAlarm.prototype = {
         return alarmDate.addDuration(this.mDuration);
     },
 
-    get attendees() {
-        return this.mAttendees;
-    },
-    set attendees(aValue) {
-        this.ensureMutable();
-        // TODO Make add/update/deleteAttendee
-        return (this.mAttendees = aValue);
+    getAttendees: function getAttendees(aCount) {
+        let attendees;
+        if (this.action == "AUDIO" || this.action == "DISPLAY") {
+            attendees = [];
+        } else {
+            attendees = this.mAttendees.concat([]);
+        }
+        aCount.value = attendees.length;
+        return attendees;
     },
 
-    get attachments() {
-        if (this.action == "AUDIO") {
-            return this.mAttachments.splice(1);
-        } else if (this.action == "DISPLAY") {
-            return [];
+    addAttendee: function addAttendee(aAttendee) {
+        // Make sure its not duplicate
+        this.deleteAttendee(aAttendee);
+
+        // Now check if its valid
+        if (this.action == "AUDIO" || this.action == "DISPLAY") {
+            throw new Error("Alarm type AUDIO/DISPLAY may not have attendees");
         }
-        return this.mAttachments;
+
+        // And add it (again)
+        this.mAttendees.push(aAttendee);
     },
-    set attachments(aValue) {
-        this.ensureMutable();
-        // TODO Make add/update/deleteAttendee
-        return (this.mAttachments = aValue);
+
+    deleteAttendee: function deleteAttendee(aAttendee) {
+        let deleteId = aAttendee.id;
+        for (let i = 0; i < this.mAttendees.length; i++) {
+            if (this.mAttendees[i].id == deleteId) {
+                this.mAttendees.splice(i, 1);
+                break;
+            }
+        }
+    },
+
+    clearAttendees: function clearAttendees() {
+        this.mAttendees = [];
+    },
+
+    getAttachments: function getAttachments(aCount) {
+        let attachments;
+        if (this.action == "AUDIO") {
+            attachments = (this.mAttachments.length ? [this.mAttachments[0]] : []);
+        } else if (this.action == "DISPLAY") {
+            attachments = [];
+        } else {
+            attachments = this.mAttachments.concat([]);
+        }
+        aCount.value = attachments.length;
+        return attachments;
+    },
+
+    addAttachment: function addAttachment(aAttachment) {
+        // Make sure its not duplicate
+        this.deleteAttachment(aAttachment);
+
+        // Now check if its valid
+        if (this.action == "AUDIO" && this.mAttachments.length) {
+            throw new Error("Alarm type AUDIO may only have one attachment");
+        } else if (this.action == "DISPLAY") {
+            throw new Error("Alarm type DISPLAY may not have attachments");
+        }
+
+        // And add it (again)
+        this.mAttachments.push(aAttachment);
+    },
+
+    deleteAttachment: function deleteAttachment(aAttachment) {
+        let deleteHash = aAttachment.hashId;
+        for (let i = 0; i < this.mAttachments.length; i++) {
+            if (this.mAttachments[i].hashId == deleteHash) {
+                this.mAttachments.splice(i, 1);
+                break;
+            }
+        }
+    },
+
+    clearAttachments: function clearAttachments() {
+        this.mAttachments = [];
     },
 
     get icalString() {
@@ -402,28 +462,27 @@ calAlarm.prototype = {
         }
 
         // Set up attendees (REQUIRED for EMAIL action)
-        /* TODO add support for attendees
-        if (this.action == "EMAIL" && !this.attendees.length) {
+        /* TODO should we be strict here?
+        if (this.action == "EMAIL" && !this.getAttendees({}).length) {
             throw Components.results.NS_ERROR_NOT_INITIALIZED;
         } */
-        for each (let attendee in this.attendees) {
-            let attendeeProp = icssvc.createIcalProperty("ATTENDEE");
-            attendeeProp.value = attendee;
-            comp.addProperty(attendeeProp);
+        for each (let attendee in this.getAttendees({})) {
+            comp.addProperty(attendee.icalProperty);
         }
 
         // Set up attachments (REQUIRED for AUDIO and EMAIL types, there MUST
         // NOT be more than one for AUDIO.
-        /* TODO add support for attachments
-        if ((this.action == "EMAIL" || this.action == "AUDIO") &&
-            !this.attachments.length) {
+        if (this.action == "AUDIO" && this.getAttachments({}).length != 1) {
+            throw Components.results.NS_ERROR_NOT_INITIALIZED;
+        }
+
+        /* TODO should we be strict here?
+        if (this.action == "EMAIL" && !this.attachments.length) {
             throw Components.results.NS_ERROR_NOT_INITIALIZED;
         } */
 
-        for each (let attachment in this.attachments) {
-            let attachmentProp = icssvc.createIcalProperty("ATTACH");
-            attachmentProp.value = attachment;
-            comp.addProperty(attachmentProp);
+        for each (let attachment in this.getAttachments({})) {
+            comp.addProperty(attachment.icalProperty);
         }
 
         // Set up summary (REQUIRED for EMAIL)
@@ -522,15 +581,19 @@ calAlarm.prototype = {
         }
 
         // Set up attendees
-        this.attendees = [];
-        for (let attendee in cal.ical.propertyIterator(aComp, "ATTENDEE")) {
-            // XXX this.addAttendee(attendee);
+        this.clearAttendees();
+        for (let attendeeProp in cal.ical.propertyIterator(aComp, "ATTENDEE")) {
+            let attendee = cal.createAttendee();
+            attendee.icalProperty = attendeeProp;
+            this.addAttendee(attendee);
         }
 
         // Set up attachments
-        this.attachments = [];
-        for (let attach in cal.ical.propertyIterator(aComp, "ATTACH")) {
-            // XXX this.addAttachment(attach);
+        this.clearAttachments();
+        for (let attachProp in cal.ical.propertyIterator(aComp, "ATTACH")) {
+            let attach = cal.createAttachment();
+            attach.icalProperty = attachProp;
+            this.addAttachment(attach);
         }
 
         // Set up summary
