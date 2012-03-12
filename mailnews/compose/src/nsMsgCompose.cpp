@@ -547,6 +547,47 @@ nsMsgCompose::SetInsertingQuotedContent(bool aInsertingQuotedText)
   return NS_OK;
 }
 
+void
+nsMsgCompose::InsertDivWrappedTextAtSelection(const nsAString &aText,
+                                              const nsAString &classStr)
+{
+  NS_ASSERTION(m_editor, "InsertDivWrappedTextAtSelection called, but no editor exists\n");
+  if (!m_editor)
+    return;
+
+  nsCOMPtr<nsIDOMElement> divElem;
+  nsCOMPtr<nsIHTMLEditor> htmlEditor(do_QueryInterface(m_editor));
+  nsCOMPtr<nsIPlaintextEditor> textEditor(do_QueryInterface(m_editor));
+
+  nsresult rv = htmlEditor->CreateElementWithDefaults(NS_LITERAL_STRING("div"),
+                                                      getter_AddRefs(divElem));
+
+  NS_ENSURE_SUCCESS(rv,);
+
+  nsCOMPtr<nsIDOMNode> divNode (do_QueryInterface(divElem));
+  divNode->SetTextContent(aText);
+
+  textEditor->InsertLineBreak();
+  htmlEditor->InsertElementAtSelection(divElem, true);
+  nsCOMPtr<nsIDOMNode> parent;
+  PRInt32 offset;
+
+  rv = GetNodeLocation(divNode, address_of(parent), &offset);
+  if (NS_SUCCEEDED(rv))
+  {
+    nsCOMPtr<nsISelection> selection;
+    m_editor->GetSelection(getter_AddRefs(selection));
+
+    if (selection)
+    {
+      textEditor->InsertLineBreak();
+      selection->Collapse(parent, offset + 1);
+    }
+  }
+  if (divElem)
+    divElem->SetAttribute(NS_LITERAL_STRING("class"), classStr);
+}
+
 NS_IMETHODIMP
 nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
                                           nsString& aBuf,
@@ -600,8 +641,32 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
     {
       if (!aHTMLEditor)
         aPrefix.AppendLiteral("\n");
-      textEditor->InsertText(aPrefix);
-      m_editor->EndOfDocument();
+
+      PRInt32 reply_on_top = 0;
+      m_identity->GetReplyOnTop(&reply_on_top);
+      if (reply_on_top == 1)
+      {
+        // add one newline if a signature comes before the quote, two otherwise
+        bool includeSignature = true;
+        bool sig_bottom = true;
+        bool attachFile = false;
+        nsString prefSigText;
+
+        m_identity->GetSigOnReply(&includeSignature);
+        m_identity->GetSigBottom(&sig_bottom);
+        m_identity->GetHtmlSigText(prefSigText);
+        nsresult rv = m_identity->GetAttachSignature(&attachFile);
+        if (includeSignature && !sig_bottom &&
+            ((NS_SUCCEEDED(rv) && attachFile) || !prefSigText.IsEmpty()))
+          textEditor->InsertLineBreak();
+        else {
+          textEditor->InsertLineBreak();
+          textEditor->InsertLineBreak();
+        }
+      }
+
+      InsertDivWrappedTextAtSelection(aPrefix,
+                                      NS_LITERAL_STRING("moz-cite-prefix"));
     }
 
     if (!aBuf.IsEmpty() && mailEditor)
@@ -630,8 +695,9 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
 
       if (aHTMLEditor && htmlEditor)
         htmlEditor->InsertHTML(aSignature);
-      else if (textEditor)
-        textEditor->InsertText(aSignature);
+      else if (htmlEditor)
+        InsertDivWrappedTextAtSelection(aSignature,
+                                        NS_LITERAL_STRING("moz-signature"));
 
       if( sigOnTop )
         m_editor->EndOfDocument();
@@ -664,11 +730,12 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
       else
         m_editor->EndOfDocument();
     }
-    else if (textEditor)
+    else if (htmlEditor)
     {
       if (sigOnTop && !aSignature.IsEmpty())
       {
-        textEditor->InsertText(aSignature);
+        InsertDivWrappedTextAtSelection(aSignature,
+                                        NS_LITERAL_STRING("moz-signature"));
         m_editor->EndOfDocument();
       }
 
@@ -682,7 +749,8 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
       }
 
       if (!sigOnTop && !aSignature.IsEmpty())
-        textEditor->InsertText(aSignature);
+        InsertDivWrappedTextAtSelection(aSignature,
+                                        NS_LITERAL_STRING("moz-signature"));
     }
   }
 
@@ -2264,28 +2332,6 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
           mCiteReference.Append(NS_ConvertASCIItoUTF16(buf));
         }
       }
-
-      PRInt32 reply_on_top = 0;
-      mIdentity->GetReplyOnTop(&reply_on_top);
-      if (reply_on_top == 1)
-      {
-        // add one newline if a signature comes before the quote, two otherwise
-        bool includeSignature = true;
-        bool sig_bottom = true;
-        bool attachFile = false;
-        nsString prefSigText;
-
-        mIdentity->GetSigOnReply(&includeSignature);
-        mIdentity->GetSigBottom(&sig_bottom);
-        mIdentity->GetHtmlSigText(prefSigText);
-        rv = mIdentity->GetAttachSignature(&attachFile);
-        if (includeSignature && !sig_bottom &&
-            ((NS_SUCCEEDED(rv) && attachFile) || !prefSigText.IsEmpty()))
-          mCitePrefix.AppendLiteral("\n");
-        else
-          mCitePrefix.AppendLiteral("\n\n");
-      }
-
 
       bool header, headerDate;
       PRInt32 replyHeaderType;

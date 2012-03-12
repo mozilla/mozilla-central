@@ -125,7 +125,7 @@ interface nsIMsgAttachmentData : nsISupports
  * represents everything we learned about it (and did to it) in the
  * process.
  */
-[scriptable, uuid(156bad99-c5a1-425d-8319-3e79c02571d4)]
+[scriptable, uuid(c552345d-c74b-40b0-a673-79bb461e920b)]
 interface nsIMsgAttachedFile : nsISupports
 {
   /// Where it came from on the network (or even elsewhere on the local disk.)
@@ -145,6 +145,9 @@ interface nsIMsgAttachedFile : nsISupports
   attribute ACString encoding;
   /// For Content-Description header.
   attribute ACString description;
+
+  /// X-Mozilla-Cloud-Part, if any.
+  attribute ACString cloudPartInfo;
 
   attribute ACString xMacType;    // mac-specific info 
   attribute ACString xMacCreator; // mac-specific info 
@@ -203,6 +206,7 @@ public:
                             // nsMsgAttachmentData can very well have
                             // Content-Disposition: inline value, instead of
                             // "attachment".
+  nsCString m_cloudPartInfo; // For X-Mozilla-Cloud-Part header, if any
 
   // Mac-specific data that should show up as optional parameters
   // to the content-type header.
@@ -235,7 +239,8 @@ public:
                             // it's time to assemble a full MIME message of all parts.
 
 
-  nsCString m_description;    // For Content-Description header 
+  nsCString m_description;    // For Content-Description header
+  nsCString m_cloudPartInfo; // For X-Mozilla-Cloud-Part header, if any
   nsCString m_xMacType;    // mac-specific info 
   nsCString m_xMacCreator; // mac-specific info 
   nsCString m_realName;      // The real name of the file. 

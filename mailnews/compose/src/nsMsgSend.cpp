@@ -1120,6 +1120,9 @@ nsMsgComposeAndSend::PreProcessPart(nsMsgAttachmentHandler  *ma,
   if (NS_FAILED(status))
     return 0;
 
+  if (ma->mSendViaCloud)
+    ma->m_encoding = ENCODING_7BIT;
+
   nsCString turl;
   if (!ma->mURL)
   {
@@ -1153,6 +1156,29 @@ nsMsgComposeAndSend::PreProcessPart(nsMsgAttachmentHandler  *ma,
 
   status = part->SetOtherHeaders(hdrs);
   PR_FREEIF(hdrs);
+  if (ma->mSendViaCloud)
+  {
+    // here is where we'd insert the annotated html
+    part->SetBuffer(ma->mCloudUrl.get());
+    if (m_deliver_mode == nsMsgSaveAsDraft)
+    {
+      nsCString urlSpec;
+      ma->mURL->GetSpec(urlSpec);
+      // Need to add some headers so that libmime can restore the cloud info
+      // when loading a draft message.
+      nsCString draftInfo(HEADER_X_MOZILLA_CLOUD_PART": cloudFile; url=");
+      draftInfo.Append(ma->mCloudUrl.get());
+      draftInfo.Append("; provider=");
+      draftInfo.Append(ma->mCloudProviderKey.get());
+      draftInfo.Append("; file=");
+      draftInfo.Append(urlSpec.get());
+      draftInfo.Append("; name=");
+      draftInfo.Append(ma->m_realName.get());
+      draftInfo.Append(CRLF);
+      part->AppendOtherHeaders(draftInfo.get());
+    }
+    part->SetType("text/html");
+  }
   if (NS_FAILED(status))
     return 0;
   status = part->SetFile(ma->mTmpFile);
@@ -2066,14 +2092,14 @@ nsMsgComposeAndSend::CountCompFieldAttachments()
     {
       attachment->GetUrl(url);
       if (!url.IsEmpty())
-    {
-      // Check to see if this is a file URL, if so, don't retrieve
-      // like a remote URL...
+      {
+        // Check to see if this is a file URL, if so, don't retrieve
+        // like a remote URL...
         if (nsMsgIsLocalFile(url.get()))
           mCompFieldLocalAttachments++;
-      else    // This is a remote URL...
-        mCompFieldRemoteAttachments++;
-    }
+        else    // This is a remote URL...
+          mCompFieldRemoteAttachments++;
+      }
     }
   }
 
@@ -2110,9 +2136,25 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
     nsCOMPtr<nsIMsgAttachment> attachment = do_QueryInterface(element, &rv);
     if (NS_SUCCEEDED(rv) && attachment)
     {
+      bool sendViaCloud = false;
+      attachment->GetSendViaCloud(&sendViaCloud);
+      m_attachments[newLoc].mSendViaCloud = sendViaCloud;
       attachment->GetUrl(url);
       if (!url.IsEmpty())
       {
+        bool sendViaCloud;
+        attachment->GetSendViaCloud(&sendViaCloud);
+        if (sendViaCloud)
+        {
+          nsCString cloudProviderKey;
+          // We'd like to output a part for the attachment, just an html part
+          // with information about how to download the attachment.
+          // m_attachments[newLoc].m_done = true;
+          attachment->GetHtmlAnnotation(m_attachments[newLoc].mHtmlAnnotation);
+          m_attachments[newLoc].m_type = "text/html";
+          attachment->GetCloudProviderKey(m_attachments[newLoc].mCloudProviderKey);
+          attachment->GetContentLocation(m_attachments[newLoc].mCloudUrl);
+        }
         // Just look for local file:// attachments and do the right thing.
         if (nsMsgIsLocalFile(url.get()))
         {
@@ -2160,6 +2202,9 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
   #else
           bool mustSnarfAttachment = false;
   #endif
+          if (sendViaCloud)
+            mustSnarfAttachment = false;
+
           attachment->GetContentType(getter_Copies(m_attachments[newLoc].m_type));
           if (m_attachments[newLoc].m_type.IsEmpty())
           {
@@ -2278,7 +2323,7 @@ nsMsgComposeAndSend::AddCompFieldRemoteAttachments(PRUint32   aStartLocation,
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIMsgAttachment> attachment = do_QueryInterface(element, &rv);
-    if (NS_SUCCEEDED(rv) && attachment)
+     if (NS_SUCCEEDED(rv) && attachment)
     {
       attachment->GetUrl(url);
       if (!url.IsEmpty())
@@ -2319,7 +2364,7 @@ nsMsgComposeAndSend::AddCompFieldRemoteAttachments(PRUint32   aStartLocation,
           }
           else
             do_add_attachment = (nsnull != m_attachments[newLoc].mURL);
-
+          m_attachments[newLoc].mSendViaCloud = false;
           if (do_add_attachment)
           {
             nsAutoString proposedName;
@@ -2553,7 +2598,7 @@ nsMsgComposeAndSend::HackAttachments(nsIArray *attachments,
 
     for (i = 0; i < m_attachment_count; i++)
     {
-      if (m_attachments[i].m_done)
+      if (m_attachments[i].m_done || m_attachments[i].mSendViaCloud)
       {
         m_attachment_pending_count--;
         continue;
@@ -5193,6 +5238,18 @@ NS_IMETHODIMP nsMsgAttachedFile::GetDescription(nsACString &aDescription)
 NS_IMETHODIMP nsMsgAttachedFile::SetDescription(const nsACString &aDescription)
 {
   m_description = aDescription;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgAttachedFile::GetCloudPartInfo(nsACString &aCloudPartInfo)
+{
+  aCloudPartInfo = m_cloudPartInfo;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgAttachedFile::SetCloudPartInfo(const nsACString &aCloudPartInfo)
+{
+  m_cloudPartInfo = aCloudPartInfo;
   return NS_OK;
 }
 

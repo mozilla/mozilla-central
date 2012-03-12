@@ -37,7 +37,7 @@
 
 #include "nsISupports.idl"
 
-[scriptable, uuid(908a8090-cce4-11df-bd3b-0800200c9a66)]
+[scriptable, uuid(d17d2d60-ec3a-46de-8bd1-24c77dd9b87b)]
 interface nsIMsgAttachment : nsISupports {
 
   /**
@@ -46,14 +46,14 @@ interface nsIMsgAttachment : nsISupports {
    * @Attachment real name, will be sent with the attachment's header.
    * @If no name has been provided, a name will be generated using the url.
    */
- 	attribute AString   name;
-	
+  attribute AString   name;
+
   /**
    * url attribute
    *
    * @specify where the attachment live (localy or remotely)
    */
-	attribute AUTF8String  url;
+  attribute AUTF8String  url;
 
   /**
    * urlCharset attribute
@@ -61,7 +61,7 @@ interface nsIMsgAttachment : nsISupports {
    * @specify the Charset of url  (used to convert url to Unicode after 
    *  unescaping)
    */
-	attribute ACString    urlCharset;
+  attribute ACString    urlCharset;
 
 
   /**
@@ -70,14 +70,31 @@ interface nsIMsgAttachment : nsISupports {
    * @If set to true, the file pointed by the url will be destroyed when this object is destroyed.
    * @This is only for local attachment.
    */
-	attribute boolean   temporary;
+  attribute boolean temporary;
+
+  /**
+   * Are we storing this attachment via a cloud provider and linking to it?
+   */
+  attribute boolean sendViaCloud;
+
+  /**
+   * Cloud provider account key for this attachment, if any.
+   */
+  attribute ACString cloudProviderKey;
+
+  /**
+   * This allows the compose front end code to put whatever html annotation
+   * it wants for the cloud part, e.g., with expiration time, etc.
+   */
+  attribute AString htmlAnnotation;
 
   /**
    * contentLocation attribute
    *
-   * @Specify the origin url of the attachment, used normaly when attaching a locally saved html document.
+   * @Specify the origin url of the attachment, used normally when attaching
+   * a locally saved html document, but also used for cloud files.
    */
-  attribute string    contentLocation;
+  attribute ACString contentLocation;
   
   /**
    * contentType attribute

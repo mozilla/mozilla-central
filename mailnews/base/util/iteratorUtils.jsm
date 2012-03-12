@@ -80,6 +80,7 @@ function toArray(aObj, aUseKeys) {
  * iterators, return a JS iterator suitable for use in a for...in expression.
  *
  * Currently, we support the following types of xpcom iterators:
+ *   nsIArray
  *   nsISupportsArray
  *   nsIEnumerator
  *   nsISimpleEnumerator
@@ -110,6 +111,16 @@ function fixIterator(aEnum, aIface) {
 
   let face = aIface || Ci.nsISupports;
   // Figure out which kind of iterator we have
+  if (aEnum instanceof Ci.nsIArray) {
+    let iter = function() {
+      let count = aEnum.length;
+      for (let i = 0; i < count; i++)
+        yield aEnum.queryElementAt(i, face);
+    }
+    return { __iterator__: iter };
+  }
+
+  // Try an nsISupportsArray
   if (aEnum instanceof Ci.nsISupportsArray) {
     let iter = function() {
       let count = aEnum.Count();

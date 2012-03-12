@@ -152,6 +152,7 @@ nsMsgAttachmentHandler::nsMsgAttachmentHandler() :
   mMHTMLPart(false),
   mPartUserOmissionOverride(false),
   mMainBody(false),
+  mSendViaCloud(false),
   mNodeIndex(-1),
   // For analyzing the attachment file...
   m_size(0),
@@ -299,6 +300,11 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
   bool needsB64 = false;
   bool forceB64 = false;
 
+  if (mSendViaCloud)
+  {
+    m_encoding = ENCODING_7BIT;
+    return 0;
+  }
   if (m_already_encoded_p)
     goto DONE;
 

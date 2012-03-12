@@ -57,12 +57,15 @@ private:
   nsCString   mUrl;
   nsCString   mUrlCharset;
   bool        mTemporary;
+  bool        mSendViaCloud;
+  nsCString   mCloudProviderKey;
   nsCString   mContentLocation;
   nsCString   mContentType;
   nsCString   mContentTypeParam;
   nsCString   mCharset;
   nsCString   mMacType;
   nsCString   mMacCreator;
+  nsString    mHtmlAnnotation;
   PRInt64     mSize;
 };
 

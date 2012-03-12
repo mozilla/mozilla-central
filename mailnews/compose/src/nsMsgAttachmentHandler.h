@@ -176,6 +176,11 @@ public:
   bool                  mMHTMLPart;           // This is true if its an MHTML part, otherwise, false
   bool                  mPartUserOmissionOverride;  // This is true if the user send send the email without this part
   bool                  mMainBody;            // True if this is a main body.
+   // true if this should be sent as a link to a file.
+  bool                  mSendViaCloud;
+  nsString              mHtmlAnnotation;
+  nsCString             mCloudProviderKey;
+  nsCString             mCloudUrl;
   PRInt32 mNodeIndex; //If this is an embedded image, this is the index of the
                       // corresponding domNode in the editor's
                       //GetEmbeddedObjects. Otherwise, it will be -1.

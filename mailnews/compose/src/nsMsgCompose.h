@@ -52,6 +52,7 @@
 #include "nsIMimeConverter.h"
 #include "nsIUnicodeDecoder.h"
 #include "nsIMsgFolder.h"
+#include "nsIDOMNode.h"
 
 // Forward declares
 class QuotingOutputStreamListener;
@@ -103,6 +104,8 @@ private:
   bool                          CheckIncludeSignaturePrefs(nsIMsgIdentity *identity);
   //m_folderName to store the value of the saved drafts folder.
   nsCString                     m_folderName;
+  void InsertDivWrappedTextAtSelection(const nsAString &aText,
+                                       const nsAString &classStr);
 
  private:
   nsresult _SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *identity, const char *accountKey, bool entityConversionDone);

@@ -228,6 +228,20 @@ nsresult CreateComposeParams(nsCOMPtr<nsIMsgComposeParams> &pMsgComposeParams,
           attachment->SetMacType(curAttachment->m_xMacType.get());
           attachment->SetMacCreator(curAttachment->m_xMacCreator.get());
           attachment->SetSize(curAttachment->m_size);
+          if (!curAttachment->m_cloudPartInfo.IsEmpty())
+          {
+            nsCString provider;
+            nsCString cloudUrl;
+            attachment->SetSendViaCloud(true);
+            provider.Adopt(
+              MimeHeaders_get_parameter(curAttachment->m_cloudPartInfo.get(),
+                                        "provider", nsnull, nsnull));
+            cloudUrl.Adopt(
+              MimeHeaders_get_parameter(curAttachment->m_cloudPartInfo.get(),
+                                        "url", nsnull, nsnull));
+            attachment->SetCloudProviderKey(provider);
+            attachment->SetContentLocation(cloudUrl);
+          }
           compFields->AddAttachment(attachment);
         }
       }
@@ -563,6 +577,7 @@ mime_draft_process_attachments(mime_draft_data *mdd)
     tmp->m_realType = tmpFile->m_type;
     tmp->m_realEncoding = tmpFile->m_encoding;
     tmp->m_description = tmpFile->m_description;
+    tmp->m_cloudPartInfo = tmpFile->m_cloudPartInfo;
     tmp->m_xMacType = tmpFile->m_xMacType;
     tmp->m_xMacCreator = tmpFile->m_xMacCreator;
     tmp->m_size = tmpFile->m_size;
@@ -1811,9 +1826,10 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
     PR_FREEIF(boundary);
     PR_FREEIF(tmp_value);
   }
+
   newAttachment->m_size = 0;
   newAttachment->m_encoding.Adopt(MimeHeaders_get (headers, HEADER_CONTENT_TRANSFER_ENCODING,
-                                                   false, false ));
+                                                   false, false));
   newAttachment->m_description.Adopt(MimeHeaders_get(headers, HEADER_CONTENT_DESCRIPTION,
                                                      false, false ));
   //
@@ -1821,6 +1837,24 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
   //
   if (newAttachment->m_description.IsEmpty() && workURLSpec)
     newAttachment->m_description = workURLSpec;
+
+  newAttachment->m_cloudPartInfo.Adopt(MimeHeaders_get(headers,
+                                       HEADER_X_MOZILLA_CLOUD_PART,
+                                       false, false));
+
+  // There's no file in the message if it's a cloud part.
+  if (!newAttachment->m_cloudPartInfo.IsEmpty())
+  {
+    nsCAutoString fileURL;
+    fileURL.Adopt(
+      MimeHeaders_get_parameter(newAttachment->m_cloudPartInfo.get(), "file",
+                                nsnull, nsnull));
+    if (!fileURL.IsEmpty())
+      nsMimeNewURI(getter_AddRefs(newAttachment->m_origUrl), fileURL.get(),
+                   nsnull);
+    mdd->tmpFile = nsnull;
+    return 0;
+  }
 
   nsCOMPtr <nsIFile> tmpFile = nsnull;
   {
@@ -1960,7 +1994,7 @@ mime_decompose_file_close_fn ( void *stream_closure )
 {
   mime_draft_data *mdd = (mime_draft_data *) stream_closure;
 
-  if ( !mdd || !mdd->tmpFileStream )
+  if (!mdd)
     return -1;
 
   if ( --mdd->options->decompose_init_count > 0 )
@@ -1971,6 +2005,12 @@ mime_decompose_file_close_fn ( void *stream_closure )
     mdd->decoder_data = 0;
   }
 
+  if (!mdd->tmpFileStream) {
+    // it's ok to have a null tmpFileStream if there's no tmpFile.
+    // This happens for cloud file attachments.
+    NS_ASSERTION(!mdd->tmpFile, "shouldn't have a tmp file bu no stream");
+    return 0;
+  }
   mdd->tmpFileStream->Close();
 
   mdd->tmpFileStream = nsnull;

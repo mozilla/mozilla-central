@@ -44,12 +44,13 @@ NS_IMPL_ISUPPORTS1(nsMsgAttachment, nsIMsgAttachment)
 nsMsgAttachment::nsMsgAttachment()
 {
   mTemporary = false;
+  mSendViaCloud = false;
   mSize = -1;
 }
 
 nsMsgAttachment::~nsMsgAttachment()
 {
-  if (mTemporary)
+  if (mTemporary && !mSendViaCloud)
     (void)DeleteAttachment();
 }
 
@@ -105,21 +106,57 @@ NS_IMETHODIMP nsMsgAttachment::SetTemporary(bool aTemporary)
   return NS_OK;
 }
 
-/* attribute string contentLocation; */
-NS_IMETHODIMP nsMsgAttachment::GetContentLocation(char * *aContentLocation)
+NS_IMETHODIMP nsMsgAttachment::GetSendViaCloud(bool *aSendViaCloud)
 {
-  NS_ENSURE_ARG_POINTER(aContentLocation);
+  NS_ENSURE_ARG_POINTER(aSendViaCloud);
 
-  *aContentLocation = ToNewCString(mContentLocation);
-  return (*aContentLocation ? NS_OK : NS_ERROR_OUT_OF_MEMORY);
+  *aSendViaCloud = mSendViaCloud;
+  return NS_OK;
 }
-NS_IMETHODIMP nsMsgAttachment::SetContentLocation(const char * aContentLocation)
+NS_IMETHODIMP nsMsgAttachment::SetSendViaCloud(bool aSendViaCloud)
+{
+  mSendViaCloud = aSendViaCloud;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgAttachment::SetHtmlAnnotation(const nsAString &aAnnotation)
+{
+  mHtmlAnnotation = aAnnotation;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgAttachment::GetHtmlAnnotation(nsAString &aAnnotation)
+{
+  aAnnotation = mHtmlAnnotation;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgAttachment::SetCloudProviderKey(const nsACString &aCloudProviderKey)
+{
+  mCloudProviderKey = aCloudProviderKey;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgAttachment::GetCloudProviderKey(nsACString &aCloudProviderKey)
+{
+  aCloudProviderKey = mCloudProviderKey;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgAttachment::GetContentLocation(nsACString &aContentLocation)
+{
+  aContentLocation = mContentLocation;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgAttachment::SetContentLocation(const nsACString &aContentLocation)
 {
   mContentLocation = aContentLocation;
   return NS_OK;
 }
 
-/* attribute string contentType; */
 NS_IMETHODIMP nsMsgAttachment::GetContentType(char * *aContentType)
 {
   NS_ENSURE_ARG_POINTER(aContentType);
@@ -127,6 +164,7 @@ NS_IMETHODIMP nsMsgAttachment::GetContentType(char * *aContentType)
   *aContentType = ToNewCString(mContentType);
   return (*aContentType ? NS_OK : NS_ERROR_OUT_OF_MEMORY);
 }
+
 NS_IMETHODIMP nsMsgAttachment::SetContentType(const char * aContentType)
 {
   mContentType = aContentType;
@@ -140,7 +178,6 @@ NS_IMETHODIMP nsMsgAttachment::SetContentType(const char * aContentType)
   return NS_OK;
 }
 
-/* attribute string contentTypeParam; */
 NS_IMETHODIMP nsMsgAttachment::GetContentTypeParam(char * *aContentTypeParam)
 {
   NS_ENSURE_ARG_POINTER(aContentTypeParam);
@@ -148,6 +185,7 @@ NS_IMETHODIMP nsMsgAttachment::GetContentTypeParam(char * *aContentTypeParam)
   *aContentTypeParam = ToNewCString(mContentTypeParam);
   return (*aContentTypeParam ? NS_OK : NS_ERROR_OUT_OF_MEMORY);
 }
+
 NS_IMETHODIMP nsMsgAttachment::SetContentTypeParam(const char * aContentTypeParam)
 {
   if (aContentTypeParam)
