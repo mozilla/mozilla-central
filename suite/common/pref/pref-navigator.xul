@@ -68,6 +68,9 @@
       <preference id="pref.browser.disable_button.default_browser"
                   name="pref.browser.disable_button.default_browser"
                   type="bool"/>
+      <preference id="browser.sessionstore.max_concurrent_tabs"
+                  name="browser.sessionstore.max_concurrent_tabs"
+                  type="int"/>
       <preference id="pref.browser.homepage.disable_button.select_file"
                   name="pref.browser.homepage.disable_button.select_file"
                   type="bool"/>
@@ -156,15 +159,35 @@
       </groupbox>
     </hbox>
 
+    <!-- session restore background tabs -->
+    <groupbox>
+      <caption label="&restoreSessionIntro.label;"/>
+      <radiogroup align="start" onselect="ConcurrentTabsSelected(this.value);"
+                  preference="browser.sessionstore.max_concurrent_tabs">
+        <radio value="-1"
+               label="&restoreImmediately.label;"
+               accesskey="&restoreImmediately.accesskey;"/>
+        <hbox align="center">
+          <radio id="restoreTabs" value="3" selected="true"
+                 label="&restoreTabs.label;"
+                 accesskey="&restoreTabs.accesskey;"/>
+          <textbox id="maxConcurrentTabs" type="number" size="2" min="-1"
+                   onchange="ConcurrentTabsChanged(this.value);"
+                   preference="browser.sessionstore.max_concurrent_tabs"/>
+          <label value="&restoreTabsAtATime.label;"/>
+        </hbox>
+        <radio value="0"
+               label="&restoreDeferred.label;"
+               accesskey="&restoreDeferred.accesskey;"/>
+      </radiogroup>
+    </groupbox>
+
     <!-- homepage specification -->
-    <groupbox orient="horizontal">
-      <caption label="&header2.label;"/>
-      <vbox flex="1">
-        <description>&homePageIntro.label;</description>
-        <textbox id="browserStartupHomepage" class="uri-element" flex="1"
-                 multiline="true" wrap="off" timeout="500"
-                 oninput="UpdateHomePageListFromInput();"/>
-      </vbox>
+    <description>&homePageIntro.label;</description>
+    <hbox>
+      <textbox id="browserStartupHomepage" class="uri-element" flex="1"
+               multiline="true" wrap="off" timeout="500"
+               oninput="UpdateHomePageListFromInput();"/>
       <vbox>
         <button label="&browseFile.label;" accesskey="&browseFile.accesskey;"
                 oncommand="SelectFile();"
@@ -183,6 +206,6 @@
                 id="browserUseDefault"
                 preference="pref.browser.homepage.disable_button.default_page"/>
       </vbox>
-    </groupbox>
+    </hbox>
   </prefpane>
 </overlay>
