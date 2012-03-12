@@ -154,9 +154,9 @@
             <menuitem value="1"
                       label="&authorWroteOption.label;"/>
             <menuitem value="2"
-                      label="&onDateWroteOption.label;"/>
+                      label="&onDateAuthorWroteOption.label;"/>
             <menuitem value="3"
-                      label="&authorOnDateWroteOption.label;"/>
+                      label="&authorWroteOnDateOption.label;"/>
           </menupopup>
         </menulist>
       </hbox>
