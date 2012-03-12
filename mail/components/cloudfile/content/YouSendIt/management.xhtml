@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html [
+  <!ENTITY % htmlDTD PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd"> %htmlDTD;
+  <!ENTITY % managementDTD SYSTEM "chrome://messenger/locale/cloudfile/management.dtd"> %managementDTD;
+  <!ENTITY % ysiDTD SYSTEM "chrome://messenger/locale/cloudfile/YouSendIt/management.dtd"> %ysiDTD;
+]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <script type="application/javascript;version=1.8"
+            src="chrome://messenger/content/protovis-r2.6-modded.js"/>
+    <link rel="stylesheet"
+        type="text/css"
+        href="chrome://messenger/skin/preferences/preferences.css" />
+  </head>
+  <body id="provider-management">
+    <div id="provider-header">
+      <div id="provider-terms">
+      <a href="http://www.yousendit.com/aboutus/legal/privacy">&cloudfileMgmt.privacyPolicy;</a>
+      <a href="http://www.yousendit.com/aboutus/legal/terms-of-service">&cloudfileMgmt.termsOfService;</a>
+      </div>
+      <div id="provider-name">
+      <h1>YouSendIt</h1>
+      </div>
+    </div>
+
+    <div id="provider-spacebox">
+      <div id="provider-space-visuals"></div>
+      <div id="provider-space">
+        <div>&cloudfileMgmt.usedSpace;<span id="file-space-used"/><span id="file-space-used-swatch" class="space-swatch"/></div>
+        <div>&cloudfileMgmt.unusedSpace;<span id="remaining-file-space"/><span id="remaining-file-space-swatch" class="space-swatch"/></div>
+        <div id="upgrade"><a href="https://www.yousendit.com/compareaccounts">&cloudfileMgmt.upgradeOffer;</a></div>
+      </div>
+      </div>
+    <div id="provider-account-settings"><a href="https://www.yousendit.com/myaccount">&youSendItMgmt.viewSettings;</a></div>
+  </body>
+
+
+  <script type="text/javascript;version=1.8">
+
+    function onLoadProvider(provider) {
+    }
+
+  </script>
+</html>

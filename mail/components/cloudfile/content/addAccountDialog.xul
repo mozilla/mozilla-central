@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay [
+<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
+%brandDTD;
+<!ENTITY % addAccountDialogDTD SYSTEM "chrome://messenger/locale/cloudfile/addAccountDialog.dtd" >
+%addAccountDialogDTD;
+]>
+
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this file,
+   - You can obtain one at http://mozilla.org/MPL/2.0/.  -->
+<?xml-stylesheet href="chrome://global/skin/"?>
+<?xml-stylesheet href="chrome://messenger/skin/preferences/preferences.css" type="text/css"?>
+
+<dialog id="addCloudFileAccount"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        buttons="accept,cancel"
+        buttonlabelaccept="&addAccountDialog.acceptButton.label;"
+        buttondisabledaccept="true"
+        onload="return addAccountDialog.onInit();"
+        ondialogaccept="return addAccountDialog.onOK();"
+        title="&addAccountDialog.title;"
+        style="&addAccountDialog.style;"
+        persist="screenX screenY">
+
+  <script type="text/javascript;version=1.8"
+          src="chrome://messenger/content/cloudfile/addAccountDialog.js"/>
+
+#ifdef XP_MACOSX
+  <description id="createAccountTitle">&addAccountDialog.title;</description>
+#endif
+  <description id="createAccountText">&addAccountDialog.createAccountText;</description>
+  <description id="noAccountText" hidden="true">&addAccountDialog.noAccountText;</description>
+
+  <menulist id="accountType" onselect="return addAccountDialog.accountTypeSelected();">
+    <menupopup>
+      <menuitem label="&addAccountDialog.menuTitle;" value=""/>
+    </menupopup>
+  </menulist>
+
+  <iframe id="accountSettings" flex="1" hidden="true"/>
+  <deck id="messages" selectedIndex="-1">
+    <hbox id="authorizing">
+      <image src="chrome://global/skin/icons/loading_16.png"/>
+      <label>&addAccountDialog.authorizing;</label>
+    </hbox>
+    <hbox id="error">
+      <image src="chrome://global/skin/icons/warning-16.png"/>
+      <label>&addAccountDialog.error;</label>
+    </hbox>
+  </deck>
+</dialog>
