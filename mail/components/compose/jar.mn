@@ -4,6 +4,8 @@ messenger.jar:
 % overlay chrome://editor/content/EdLinkProps.xul chrome://messenger/content/messengercompose/mailComposeEditorOverlay.xul
 *   content/messenger/messengercompose/messengercompose.xul        (content/messengercompose.xul)
     content/messenger/messengercompose/MsgComposeCommands.js       (content/MsgComposeCommands.js)
+    content/messenger/messengercompose/bigFileObserver.js          (content/bigFileObserver.js)
+    content/messenger/messengercompose/cloudAttachmentLinkManager.js (content/cloudAttachmentLinkManager.js)
     content/messenger/messengercompose/EdImageOverlayOverlay.xul   (content/EdImageOverlayOverlay.xul)
 *   content/messenger/messengercompose/addressingWidgetOverlay.js  (content/addressingWidgetOverlay.js)
 

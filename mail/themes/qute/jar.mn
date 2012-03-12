@@ -53,6 +53,7 @@ classic.jar:
   skin/classic/messenger/accountCreation.css                  (mail/accountCreation.css)
   skin/classic/messenger/accountManage.css                    (mail/accountManage.css)
   skin/classic/messenger/accountWizard.css                    (mail/accountWizard.css)
+  skin/classic/messenger/browserRequest.css                   (mail/browserRequest.css)
   skin/classic/messenger/section_collapsed.png                (mail/section_collapsed.png)
   skin/classic/messenger/section_expanded.png                 (mail/section_expanded.png)
   skin/classic/messenger/messageHeader.css                    (mail/messageHeader.css)
@@ -134,6 +135,7 @@ classic.jar:
   skin/classic/messenger/preferences/background.png           (mail/preferences/background.png)
   skin/classic/messenger/preferences/hover.png                (mail/preferences/hover.png)
   skin/classic/messenger/preferences/selected.png             (mail/preferences/selected.png)
+  skin/classic/messenger/preferences/auth-error.png           (mail/preferences/auth-error.png)
   skin/classic/messenger/smime/msgCompSMIMEOverlay.css        (mail/smime/msgCompSMIMEOverlay.css)
   skin/classic/messenger/smime/msgHdrViewSMIMEOverlay.css     (mail/smime/msgHdrViewSMIMEOverlay.css)
   skin/classic/messenger/smime/msgReadSMIMEOverlay.css        (mail/smime/msgReadSMIMEOverlay.css)
@@ -203,6 +205,7 @@ classic.jar:
   skin/classic/messenger/icons/mainwindow-dropdown-arrow-inverted.png  (mail/icons/mainwindow-dropdown-arrow-inverted.png)
   skin/classic/messenger/icons/tabDragIndicator.png           (mail/icons/tabDragIndicator.png)
   skin/classic/messenger/icons/tab.png                        (mail/icons/tab.png)
+  skin/classic/messenger/icons/connecting.png                 (mail/icons/connecting.png)
   skin/classic/messenger/icons/loading.png                    (mail/icons/loading.png)
   skin/classic/messenger/accountcentral/read-messages.png     (mail/accountcentral/read-messages.png)
   skin/classic/messenger/accountcentral/write-message.png     (mail/accountcentral/write-message.png)
@@ -247,6 +250,8 @@ classic.jar:
   skin/classic/messenger/newmailaccount/success-compose.png             (mail/newmailaccount/success-compose.png)
   skin/classic/messenger/newmailaccount/success-signature.png           (mail/newmailaccount/success-signature.png)
   skin/classic/messenger/newmailaccount/search.png                      (mail/newmailaccount/search.png)
+ skin/classic/messenger/icons/dropbox.png                    (mail/icons/dropbox.png)
+ skin/classic/messenger/icons/yousendit.png                  (mail/icons/yousendit.png)
 #ifdef XP_WIN
 % skin communicator classic/1.0 %skin/classic/aero/communicator/ os=WINNT osversion>=6
   skin/classic/aero/communicator/communicator.css                       (mail/communicator.css)
@@ -362,6 +367,7 @@ classic.jar:
   skin/classic/aero/messenger/preferences/background.png           (mail/preferences/background.png)
   skin/classic/aero/messenger/preferences/hover.png                (mail/preferences/hover.png)
   skin/classic/aero/messenger/preferences/selected.png             (mail/preferences/selected.png)
+  skin/classic/aero/messenger/preferences/auth-error.png           (mail/preferences/auth-error.png)
   skin/classic/aero/messenger/smime/msgCompSMIMEOverlay.css        (mail/smime/msgCompSMIMEOverlay.css)
   skin/classic/aero/messenger/smime/msgHdrViewSMIMEOverlay.css     (mail/smime/msgHdrViewSMIMEOverlay.css)
   skin/classic/aero/messenger/smime/msgReadSMIMEOverlay.css        (mail/smime/msgReadSMIMEOverlay.css)
@@ -460,6 +466,7 @@ classic.jar:
   skin/classic/aero/messenger/icons/search-favorite.png            (mail/icons/search-favorite.png)
   skin/classic/aero/messenger/icons/xp-pin-grey.png                (mail/icons/xp-pin-grey.png)
   skin/classic/aero/messenger/icons/xp-pin-red.png                 (mail/icons/xp-pin-red.png)
+  skin/classic/aero/messenger/icons/connecting.png                 (mail/icons/connecting.png)
   skin/classic/aero/messenger/icons/loading.png                    (mail/icons/loading.png)
   skin/classic/aero/messenger/tagbg.png                            (mail/tagbg.png)
   skin/classic/aero/messenger/icons/download.png                   (mail/icons/download.png)
@@ -475,5 +482,6 @@ classic.jar:
   skin/classic/aero/messenger/newmailaccount/success-compose.png             (mail/newmailaccount/success-compose.png)
   skin/classic/aero/messenger/newmailaccount/success-signature.png           (mail/newmailaccount/success-signature.png)
   skin/classic/aero/messenger/newmailaccount/search.png                      (mail/newmailaccount/search.png)
-
+  skin/classic/aero/messenger/icons/dropbox.png                    (mail/icons/dropbox.png)
+  skin/classic/aero/messenger/icons/yousendit.png                  (mail/icons/yousendit.png)
 #endif

@@ -53,12 +53,12 @@
   margin: 0px 3px;
 }
 
-richlistitem label {
+#handlersView richlistitem label {
   -moz-margin-start: 1px;
   margin-top: 2px;
 }
 
-richlistitem {
+#handlersView richlistitem {
   min-height: 25px;
 }
 
@@ -97,6 +97,47 @@ menuitem[appHandlerIcon="plugin"] {
   color: GrayText;
 }
 
-richlistbox:focus .shortDetails.selected {
+#handlersView richlistbox:focus .shortDetails.selected {
   color: inherit;
+}
+
+/**
+ * Used by the outgoing attachment manager
+ */
+richlistitem.cloudfileAccount[state="connecting"],
+richlistitem.cloudfileAccount[state="waiting-to-connect"] {
+  list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
+}
+
+richlistitem.cloudfileAccount[state="auth-error"],
+richlistitem.cloudfileAccount[state="no-connection"] {
+  list-style-image: url("moz-icon://stock/gtk-dialog-error?size=menu")!important;
+}
+
+.cloudfileAccount .typeIcon {
+  max-height: 16px;
+  max-width: 16px;
+  margin-top: 3px;
+  margin-bottom: 3px;
+}
+
+#authMessage {
+  text-align: center;
+  padding: 0px 80px;
+}
+
+#authImage {
+  list-style-image: url("chrome://messenger/skin/preferences/auth-error.png");
+  width: 200px;
+  height: 200px;
+}
+
+#cloudFileToggleAndThreshold {
+  margin-bottom: 15px;
+}
+
+#cloudFileLoadingSpinner {
+  width: 16px;
+  height: 16px;
+  list-style-image: url("chrome://global/skin/icons/loading_16.png");
 }

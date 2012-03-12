@@ -76,6 +76,11 @@ const ICON_URL_APP      = "chrome://messenger/skin/preferences/application.png";
 // was set by us to a custom handler icon and CSS should not try to override it.
 const APP_ICON_ATTR_NAME = "appHandlerIcon";
 
+// CloudFile account tools used by gCloudFileTab.
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/cloudFileAccounts.js");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
 //****************************************************************************//
 // Utilities
 
@@ -439,6 +444,436 @@ HandlerInfoWrapper.prototype = {
     return null;
   }
 };
+
+var gApplicationsTabController = {
+  mInitialized: false,
+  // We default to displaying the Outgoing tab, which is the tab at index 1
+  // of the attachmentPrefs tabs.
+  mDefaultIndex: 1,
+
+  init: function() {
+    if (this.mInitialized)
+      return;
+
+    gApplicationsPane.init();
+
+    let tabbox = document.getElementById("attachmentPrefs");
+
+    // If BigFiles is disabled, hide the "Outgoing" tab, and the tab
+    // selectors, and bail out.
+    if (!Services.prefs.getBoolPref("mail.cloud_files.enabled")) {
+      // Default to the first tab, "Incoming"
+      tabbox.selectedIndex = 0;
+      // Hide the tab selector
+      let tabs = document.getElementById("attachmentPrefsTabs");
+      tabs.hidden = true;
+      this.mInitialized = true;
+      return;
+    }
+
+    gCloudFileTab.init();
+
+    let preference = document.getElementById("mail.preferences.applications.selectedTabIndex");
+    tabbox.selectedIndex = preference.value ? preference.value : this.mDefaultIndex;
+
+    this.mInitialized = true;
+  },
+
+  tabSelectionChanged: function() {
+    if (this.mInitialized)
+      document.getElementById("mail.preferences.applications.selectedTabIndex")
+              .valueFromPreferences = document.getElementById("attachmentPrefs")
+              .selectedIndex;
+  },
+
+}
+
+var gCloudFileController = {
+  commands: {
+    cmd_addCloudfileAccount: {
+      isEnabled: function() {
+        return true;
+      },
+      doCommand: function() {
+        gCloudFileTab.addCloudFileAccount();
+      },
+    },
+
+    cmd_removeCloudfileAccount: {
+      isEnabled: function() {
+        let listbox = document.getElementById("cloudFileView");
+        return listbox.selectedCount > 0;
+      },
+      doCommand: function() {
+        gCloudFileTab.removeCloudFileAccount();
+      },
+    },
+
+    cmd_reauthCloudfileAccount: {
+      isEnabled: function() {
+        return true;
+      },
+      doCommand: function() {
+        gCloudFileTab.authSelected();
+      },
+    },
+
+  },
+
+  supportsCommand: function(aCommand) {
+    return (aCommand in this.commands);
+  },
+
+  isCommandEnabled: function(aCommand) {
+    if (!this.supportsCommand(aCommand))
+      return false;
+    return this.commands[aCommand].isEnabled();
+  },
+
+  doCommand: function(aCommand) {
+    if (!this.supportsCommand(aCommand))
+      return;
+
+    let cmd = this.commands[aCommand];
+
+    if (!cmd.isEnabled())
+      return;
+
+    cmd.doCommand();
+  },
+  onEvent: function(event) {},
+}
+
+function CommandUpdate_CloudFile() {
+  goUpdateCommand("cmd_removeCloudfileAccount");
+  goUpdateCommand("cmd_addCloudfileAccount");
+}
+
+var gCloudFileTab = {
+  _initialized: false,
+  _list: null,
+  _settings: null,
+  _settingsDeck: null,
+  _tabpanel: null,
+  _accountCache: {},
+  _settingsPanelWrap: null,
+  _defaultPanel: null,
+  _loadingPanel: null,
+  _authErrorPanel: null,
+
+  get _strings() {
+    return Services.strings
+                   .createBundle("chrome://messenger/locale/preferences/applications.properties");
+  },
+
+  init: function() {
+    if (this._initialized)
+      return;
+
+    this._list = document.getElementById("cloudFileView");
+    this._settingsDeck = document.getElementById("cloudFileSettingsDeck");
+    this._defaultPanel = document.getElementById("cloudFileDefaultPanel");
+    this._settingsPanelWrap = document.getElementById("cloudFileSettingsWrapper");
+    this._loadingPanel = document.getElementById("cloudFileLoadingPanel");
+    this._authErrorPanel = document.getElementById("cloudFileAuthErrorPanel");
+
+    top.controllers.appendController(gCloudFileController);
+
+    this.rebuildView();
+
+    if (this._list.itemCount > 0)
+      this._list.selectedIndex = 0;
+
+    window.addEventListener("unload", this, false);
+    CommandUpdate_CloudFile();
+
+    this._initialized = true;
+  },
+
+  destroy: function CFT_destroy() {
+    // Remove any controllers or observers here.
+    top.controllers.removeController(gCloudFileController);
+    window.removeEventListener("unload", this, false);
+  },
+
+  makeRichListItemForAccount: function CFT_makeRichListItemForAccount(aAccount) {
+    let rli = document.createElement("richlistitem");
+    rli.value = aAccount.accountKey;
+    rli.setAttribute("value", aAccount.accountKey);
+    rli.setAttribute("class", "cloudfileAccount");
+    rli.setAttribute("state", "waiting-to-connect");
+
+    if (aAccount.iconClass)
+      rli.style.listStyleImage = "url('" + aAccount.iconClass + "')";
+
+    let displayName = cloudFileAccounts.getDisplayName(aAccount.accountKey);
+    // Quick and ugly - accountKey:displayName for now
+    let status = document.createElement("image");
+    status.setAttribute("class", "typeIcon");
+
+    rli.appendChild(status);
+    let descr = document.createElement("label");
+    descr.setAttribute("value", displayName);
+    rli.appendChild(descr);
+
+    // Set the state of the richlistitem, if applicable
+    if (aAccount.accountKey in this._accountCache) {
+      let result = this._accountCache[aAccount.accountKey].result;
+      this._mapResultToState(rli, result);
+      this._accountCache[aAccount.accountKey].listItem = rli;
+    }
+
+    return rli;
+  },
+
+  clearEntries: function CFT_clearEntries() {
+    // Clear the list of entries.
+    while (this._list.childNodes.length > 0)
+      this._list.removeChild(this._list.lastChild);
+  },
+
+  rebuildView: function CFT_rebuildView() {
+    this.clearEntries();
+    let accounts = cloudFileAccounts.accounts;
+
+    // Sort the accounts by displayName.
+    function sortAccounts(a, b) {
+      let aName = cloudFileAccounts.getDisplayName(a.accountKey)
+                                   .toLowerCase();
+      let bName = cloudFileAccounts.getDisplayName(b.accountKey)
+                                   .toLowerCase();
+
+      if (aName < bName)
+        return -1;
+      if (aName > bName)
+        return 1;
+      return 0;
+    }
+
+    accounts.sort(sortAccounts);
+
+    for (let [, account] in Iterator(accounts)) {
+      let rli = this.makeRichListItemForAccount(account);
+      this._list.appendChild(rli);
+      if (!(account.accountKey in this._accountCache))
+        this.requestUserInfoForItem(rli, false);
+    }
+  },
+
+  requestUserInfoForItem: function CFT_requestUserInfoForItem(aItem, aWithUI) {
+    let Cr = Components.results;
+    let accountKey = aItem.value;
+    let account = cloudFileAccounts.getAccount(accountKey);
+
+    let observer = {
+      onStopRequest: function(aRequest, aContext, aStatusCode) {
+        gCloudFileTab._accountCache[accountKey].result = aStatusCode;
+        gCloudFileTab.onUserInfoRequestDone(accountKey);
+      },
+      onStartRequest: function(aRequest, aContext) {
+        aItem.setAttribute("state", "connecting");
+      },
+    };
+
+    let accountInfo = {account: account,
+                       listItem: aItem,
+                       result: Cr.NS_ERROR_NOT_AVAILABLE}
+
+    this._accountCache[accountKey] = accountInfo;
+
+    this._settingsDeck.selectedPanel = this._loadingPanel;
+    account.refreshUserInfo(aWithUI, observer);
+  },
+
+  onUserInfoRequestDone: function CFT_onUserInfoRequestDone(aAccountKey) {
+    this.updateRichListItem(aAccountKey);
+
+    if (this._list.selectedItem &&
+        this._list.selectedItem.value == aAccountKey)
+      this._showAccountInfo(aAccountKey);
+  },
+
+  updateRichListItem: function CFT_updateRichListItem(aAccountKey) {
+    let accountInfo = this._accountCache[aAccountKey];
+    if (!accountInfo)
+      return;
+
+    let item = accountInfo.listItem;
+    let result = accountInfo.result;
+    this._mapResultToState(item, result);
+  },
+
+  _mapResultToState: function CFT__mapResultToState(aItem, aResult) {
+    let Cr = Components.results;
+    let Ci = Components.interfaces;
+    let itemState = "no-connection";
+
+    if (aResult == Cr.NS_OK)
+      itemState = "connected";
+    else if (aResult == Ci.nsIMsgCloudFileProvider.authErr)
+      itemState = "auth-error";
+    else if (aResult == Cr.NS_ERROR_NOT_AVAILABLE)
+      itemState = "no-connection";
+    // TODO: What other states are there?
+
+    aItem.setAttribute("state", itemState);
+  },
+
+
+  onSelectionChanged: function CFT_onSelectionChanged() {
+    // Get the selected item
+    let selection = this._list.selectedItem;
+    if (!selection)
+      return;
+
+    // The selection tells us the key.  We need the actual
+    // provider here.
+    let accountKey = selection.value;
+    this._showAccountInfo(accountKey);
+  },
+
+  _showAccountInfo: function CFT__showAccountInfo(aAccountKey) {
+    let Ci = Components.interfaces;
+    let Cr = Components.results;
+    let account = this._accountCache[aAccountKey].account;
+    let result = this._accountCache[aAccountKey].result;
+
+    if (result == Cr.NS_ERROR_NOT_AVAILABLE)
+      this._settingsDeck.selectedPanel = this._loadingPanel;
+    else if (result == Cr.NS_OK) {
+      this._settingsDeck.selectedPanel = this._settingsPanelWrap;
+      this._showAccountManagement(account);
+    }
+    else if (result == Ci.nsIMsgCloudFileProvider.authErr) {
+      this._settingsDeck.selectedPanel = this._authErrorPanel;
+    }
+    else {
+      // TODO Handle this case...
+      dump("\n\nSome other error...\n\n");
+    }
+  },
+
+  _showAccountManagement: function CFT__showAccountManagement(aProvider) {
+    let iframe = document.createElement('iframe');
+
+    iframe.setAttribute("src", aProvider.managementURL);
+    iframe.setAttribute("flex", "1");
+
+    // If we have a past iframe, we replace it.  Else, append
+    // to the wrapper.
+    if (this._settings && this._settings.parentNode)
+      this._settings.parentNode.removeChild(this._settings);
+
+    this._settingsPanelWrap.appendChild(iframe);
+    this._settings = iframe;
+
+    // When the iframe loads, populate it with the provider.
+    this._settings.contentWindow
+                  .addEventListener("load", function(e) {
+
+      iframe.contentWindow.removeEventListener("load",
+                                               arguments.callee,
+                                               false);
+      try {
+        iframe.contentWindow
+              .wrappedJSObject
+              .onLoadProvider(aProvider);
+      } catch(e) {
+        Components.utils.reportError(e);
+      }
+    }, false);
+
+    // When the iframe (or any subcontent) fires the DOMContentLoaded event,
+    // attach the _onClickLink handler to any anchor elements that we can find.
+    this._settings.contentWindow
+                  .addEventListener("DOMContentLoaded", function(e) {
+
+      iframe.contentWindow.removeEventListener("DOMContentLoaded",
+                                               arguments.callee,
+                                               false);
+
+      let doc = e.originalTarget;
+      let links = doc.getElementsByTagName("a");
+
+      for (let [, link] in Iterator(links))
+        link.addEventListener("click", gCloudFileTab._onClickLink);
+
+    }, false);
+
+    CommandUpdate_CloudFile();
+  },
+
+  _onClickLink: function CFT__onClickLink(aEvent) {
+    aEvent.preventDefault();
+    let href = aEvent.target.getAttribute("href");
+    openLinkExternally(href);
+  },
+
+  authSelected: function CFT_authSelected() {
+    let item = this._list.selectedItem;
+
+    if (!item)
+      return;
+
+    this.requestUserInfoForItem(item, true);
+  },
+
+  addCloudFileAccount: function CFT_addCloudFileAccount() {
+    let accountKey = cloudFileAccounts.addAccountDialog();
+    if (accountKey)
+      this.rebuildView();
+
+    let newItem = this._list.querySelector("richlistitem[value='" + accountKey + "']");
+    this._list.selectItem(newItem);
+  },
+
+  removeCloudFileAccount: function CFT_removeCloudFileAccount() {
+    // Get the selected account key
+    let selection = this._list.selectedItem;
+    if (!selection)
+      return;
+
+    let accountKey = selection.value;
+    let accountName = cloudFileAccounts.getDisplayName(accountKey);
+    // Does the user really want to remove this account?
+    let confirmMessage = this._strings
+                             .formatStringFromName("dialog_removeAccount",
+                                                   [accountName], 1);
+
+    if (confirm(confirmMessage)) {
+      this._list.clearSelection();
+      cloudFileAccounts.removeAccount(accountKey);
+      this.rebuildView();
+      this._settingsDeck.selectedPanel = this._defaultPanel;
+      delete this._accountCache[accountKey];
+      // For some reason, the focus event isn't fired, so I think
+      // we have to update the buttons manually...
+      CommandUpdate_CloudFile();
+    }
+  },
+
+  handleEvent: function CFT_handleEvent(aEvent) {
+    if (aEvent.type == "unload")
+      this.destroy();
+  },
+
+  readThreshold: function CFT_readThreshold() {
+    let pref = document.getElementById("mail.compose.big_attachments.threshold_kb");
+    return pref.value / 1024;
+  },
+
+  writeThreshold: function CFT_writeThreshold() {
+    let threshold = document.getElementById("cloudFileThreshold");
+    let intValue = parseInt(threshold.value, 10);
+    return isNaN(intValue) ? 0 : intValue * 1024;
+  },
+
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces
+                                                   .nsIObserver,
+                                         Components.interfaces
+                                                   .nsISupportsWeakReference]),
+
+}
 
 //****************************************************************************//
 // Prefpane Controller
@@ -918,6 +1353,10 @@ var gApplicationsPane = {
    */
   rebuildActionsMenu: function() {
     var typeItem = this._list.selectedItem;
+
+    if (!typeItem)
+      return;
+
     var handlerInfo = this._handledTypes[typeItem.type];
     var menu =
       document.getAnonymousElementByAttribute(typeItem, "class", "actionsMenu");

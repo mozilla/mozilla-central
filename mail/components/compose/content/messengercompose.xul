@@ -88,8 +88,11 @@
 <script type="application/javascript" src="chrome://messenger/content/accountUtils.js"/>
 <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
 <script type="application/javascript" src="chrome://messenger/content/mailCore.js"/>
+<script type="application/javascript" src="chrome://communicator/content/contentAreaClick.js"/>
 <script type="application/javascript" src="chrome://editor/content/editor.js"/>
 <script type="application/javascript" src="chrome://messenger/content/messengercompose/MsgComposeCommands.js"/>
+<script type="application/javascript" src="chrome://messenger/content/messengercompose/bigFileObserver.js"/>
+<script type="application/javascript" src="chrome://messenger/content/messengercompose/cloudAttachmentLinkManager.js"/>
 
 <!-- drag and drop -->
 <script type="application/javascript" src="chrome://messenger/content/addressbook/abDragDrop.js"/>
@@ -133,6 +136,7 @@
   <!-- File Menu -->
   <command id="cmd_new" oncommand="goDoCommand('cmd_newMessage')"/>
   <command id="cmd_attachFile" oncommand="goDoCommand('cmd_attachFile')"/>
+  <command id="cmd_attachCloud" oncommand="attachToCloud(event.target.cloudProvider); event.stopPropagation();"/>
   <command id="cmd_attachPage" oncommand="goDoCommand('cmd_attachPage')"/>
   <command id="cmd_attachVCard" checked="false" oncommand="ToggleAttachVCard(event.target)"/>
   <command id="cmd_close" oncommand="goDoCommand('cmd_close')"/>
@@ -180,6 +184,10 @@
 
   <command id="cmd_CustomizeComposeToolbar"
            oncommand="CustomizeMailToolbar('compose-toolbox', 'CustomizeComposeToolbar')"/>
+
+  <command id="cmd_convertCloud" oncommand="convertSelectedToCloudAttachment(event.target.cloudProvider); event.stopPropagation();"/>
+  <command id="cmd_convertAttachment" oncommand="goDoCommand('cmd_convertAttachment')"/>
+  <command id="cmd_cancelUpload" oncommand="goDoCommand('cmd_cancelUpload')"/>
 </commandset>
 
 <broadcasterset id="composeBroadcasters">
@@ -320,7 +328,7 @@
 </menupopup>
 
 <menupopup id="msgComposeAttachmentItemContext"
-           onpopupshowing="updateEditItems();">
+           onpopupshowing="updateAttachmentItems();">
   <menuitem label="&openAttachment.label;"
             accesskey="&openAttachment.accesskey;"
             command="cmd_openAttachment"/>
@@ -330,6 +338,22 @@
   <menuitem label="&renameAttachment.label;"
             accesskey="&renameAttachment.accesskey;"
             command="cmd_renameAttachment"/>
+  <menu label="&convertCloud.label;"
+        accesskey="&convertCloud.accesskey;"
+        command="cmd_convertCloud">
+    <menupopup onpopupshowing="addConvertCloudMenuItems(this, 'context_convertCloudSeparator', 'context_convertCloud');">
+      <menuitem id="context_convertAttachment"
+                type="radio" name="context_convertCloud"
+                label="&convertRegularAttachment.label;"
+                accesskey="&convertRegularAttachment.accesskey;"
+                command="cmd_convertAttachment"/>
+      <menuseparator id="context_convertCloudSeparator"/>
+    </menupopup>
+  </menu>
+  <menuitem id="context_cancelUpload"
+            label="&cancelUpload.label;"
+            accesskey="&cancelUpload.accesskey;"
+            command="cmd_cancelUpload"/>
   <menuseparator/>
   <menuitem label="&selectAll.label;"
             accesskey="&selectAll.accesskey;"
@@ -337,7 +361,7 @@
 </menupopup>
 
 <menupopup id="msgComposeAttachmentListContext"
-           onpopupshowing="updateEditItems();">
+           onpopupshowing="updateAttachmentItems();">
   <menuitem label="&selectAll.label;"
             accesskey="&selectAll.accesskey;"
             command="cmd_selectAll"/>
@@ -345,6 +369,11 @@
   <menuitem label="&attachFile.label;"
             accesskey="&attachFile.accesskey;"
             command="cmd_attachFile"/>
+  <menu label="&attachCloud.label;"
+        accesskey="&attachCloud.accesskey;"
+        command="cmd_attachCloud">
+    <menupopup onpopupshowing="addAttachCloudMenuItems(this);"/>
+  </menu>
   <menuitem label="&attachPage.label;"
             accesskey="&attachPage.accesskey;"
             command="cmd_attachPage"/>
@@ -400,9 +429,13 @@
             </menupopup>
           </menu>
           <menu id="menu_Attach" label="&attachMenu.label;" accesskey="&attachMenu.accesskey;">
-            <menupopup id="menu_AttachPopup">
+            <menupopup id="menu_AttachPopup" onpopupshowing="updateAttachmentItems();">
               <menuitem label="&attachFileCmd.label;" accesskey="&attachFileCmd.accesskey;"
                         key="key_attachFile" command="cmd_attachFile"/>
+              <menu label="&attachCloudCmd.label;" accesskey="&attachCloudCmd.accesskey;"
+                    command="cmd_attachCloud">
+                <menupopup onpopupshowing="addAttachCloudMenuItems(this);"/>
+              </menu>
               <menuitem label="&attachPageCmd.label;" accesskey="&attachPageCmd.accesskey;" command="cmd_attachPage"/>
               <menuseparator/>
               <menuitem type="checkbox" label="&attachVCardCmd.label;" accesskey="&attachVCardCmd.accesskey;" command="cmd_attachVCard"/>
@@ -630,12 +663,23 @@
                ondragover="nsDragAndDrop.dragOver(event, envelopeDragObserver);"
                ondragdrop="nsDragAndDrop.drop(event, envelopeDragObserver);"
                ondragexit="nsDragAndDrop.dragExit(event, envelopeDragObserver);">
-         <menupopup id="button-attachPopup">
-            <menuitem label="&attachFileCmd.label;" accesskey="&attachFileCmd.accesskey;" command="cmd_attachFile"/>
-            <menuitem label="&attachPageCmd.label;" accesskey="&attachPageCmd.accesskey;" command="cmd_attachPage"/>
-           <menuseparator/>
-           <menuitem type="checkbox" label="&attachVCardCmd.label;" accesskey="&attachVCardCmd.accesskey;" command="cmd_attachVCard"/>
-         </menupopup>
+      <menupopup id="button-attachPopup" onpopupshowing="updateAttachmentItems();">
+        <menuitem label="&attachFileCmd.label;"
+                  accesskey="&attachFileCmd.accesskey;"
+                  command="cmd_attachFile"/>
+        <menu label="&attachCloudCmd.label;"
+              accesskey="&attachCloudCmd.accesskey;"
+              command="cmd_attachCloud">
+          <menupopup onpopupshowing="addAttachCloudMenuItems(this);"/>
+        </menu>
+        <menuitem label="&attachPageCmd.label;"
+                  accesskey="&attachPageCmd.accesskey;"
+                  command="cmd_attachPage"/>
+        <menuseparator/>
+        <menuitem type="checkbox" label="&attachVCardCmd.label;"
+                  accesskey="&attachVCardCmd.accesskey;"
+                  command="cmd_attachVCard"/>
+      </menupopup>
     </toolbarbutton>
 
     <toolbarbutton class="toolbarbutton-1" type="menu-button"

@@ -628,7 +628,10 @@ function SanitizeAttachmentDisplayName(aAttachment)
  */
 function CreateAttachmentTransferData(aAttachment)
 {
-  if (aAttachment.contentType == "text/x-moz-deleted")
+  // For now, disallow drag-and-drop on cloud attachments. In the future, we
+  // should allow this.
+  if (aAttachment.contentType == "text/x-moz-deleted" ||
+      aAttachment.sendViaCloud)
     return;
 
   var name = aAttachment.name || aAttachment.displayName;

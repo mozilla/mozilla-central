@@ -1,0 +1,12 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this file,
+   - You can obtain one at http://mozilla.org/MPL/2.0/.  -->
+<!ENTITY addAccountDialog.title   "Set up Filelink">
+<!ENTITY addAccountDialog.menuTitle "Select an online storage service">
+<!ENTITY addAccountDialog.style "width: 40em; min-height: 20em;">
+<!ENTITY addAccountDialog.accountName.label "Account Name:">
+<!ENTITY addAccountDialog.noAccountText "We're sorry, but the current version of &brandShortName; only allows one account from each online storage service.">
+<!ENTITY addAccountDialog.createAccountText "This feature allows you to send large attachments using one of several online storage services. You can either connect to an existing account, or sign up for a new account.">
+<!ENTITY addAccountDialog.authorizing "Checking authorization...">
+<!ENTITY addAccountDialog.error "An error occurred while setting up the account!">
+<!ENTITY addAccountDialog.acceptButton.label "Set up Account">

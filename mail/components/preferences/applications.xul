@@ -51,8 +51,13 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <prefpane id="paneApplications"
-            onpaneload="gApplicationsPane.init();"
+            onpaneload="gApplicationsTabController.init();"
             flex="1">
+
+    <preferences id="applicationsPreferences">
+      <preference id="mail.preferences.applications.selectedTabIndex"
+                  name="mail.preferences.applications.selectedTabIndex" type="int"/>
+    </preferences>
 
     <preferences id="downloadDirPreferences">
       <preference id="browser.download.useDownloadDir"
@@ -73,12 +78,35 @@
                   type="bool"/>
     </preferences>
 
+    <preferences id="cloudFilePreferences">
+      <preference id="mail.compose.big_attachments.notify"
+                  name="mail.compose.big_attachments.notify"
+                  type="bool"/>
+      <preference id="mail.compose.big_attachments.threshold_kb"
+                  name="mail.compose.big_attachments.threshold_kb"
+                  type="int"/>
+    </preferences>
+
     <script type="application/javascript"
             src="chrome://messenger/content/preferences/applications.js"/>
 
     <commandset id="appPaneCommandSet">
       <command id="cmd_delete"
                oncommand="gApplicationsPane.onDelete();"/>
+    </commandset>
+
+    <commandset id="cloudFileCommandSet">
+      <commandset id="cloudFileCommandSetUpdate"
+                  commandupdater="true"
+                  events="focus"
+                  oncommandupdate="CommandUpdate_CloudFile()"/>
+      <command id="cmd_addCloudfileAccount"
+               oncommand="goDoCommand('cmd_addCloudfileAccount');"/>
+      <command id="cmd_removeCloudfileAccount"
+               oncommand="goDoCommand('cmd_removeCloudfileAccount');"/>
+      <command id="cmd_reauthCloudfileAccount"
+               oncommand="goDoCommand('cmd_reauthCloudfileAccount');"/>
+
     </commandset>
 
     <keyset id="appPaneKeyset">
@@ -93,64 +121,141 @@
            oncommand="gApplicationsPane.focusFilterBox();"/>
     </keyset>
 
-    <hbox>
-      <textbox id="filter" flex="1"
-               type="search"
-               placeholder="&filter.placeholder;"
-               aria-controls="handlersView"
-               oncommand="gApplicationsPane.rebuildView();"/>
-    </hbox>
 
-    <separator class="thin"/>
+    <tabbox id="attachmentPrefs" flex="1" onselect="gApplicationsTabController.tabSelectionChanged();">
+      <tabs id="attachmentPrefsTabs">
+        <tab label="&attachments.incoming.label;"/>
+        <tab label="&attachments.outgoing.label;"/>
+      </tabs>
 
-    <richlistbox id="handlersView" orient="vertical" persist="lastSelectedType"
-                 preference="pref.downloads.disable_button.edit_actions"
-                 onselect="gApplicationsPane.onSelectionChanged();">
-      <listheader equalsize="always" style="border: 0; padding: 0; -moz-appearance: none;">
-        <treecol id="typeColumn" label="&typeColumn.label;" value="type"
-                 accesskey="&typeColumn.accesskey;" persist="sortDirection"
-                 flex="1" onclick="gApplicationsPane.sort(event);"
-                 sortDirection="ascending" sort="typeDescription"/>
-        <treecol id="actionColumn" label="&actionColumn2.label;" value="action"
-                 accesskey="&actionColumn2.accesskey;" persist="sortDirection"
-                 flex="1" onclick="gApplicationsPane.sort(event);"/>
-      </listheader>
-    </richlistbox>
+      <tabpanels flex="1">
+        <tabpanel orient="vertical">
+          <hbox>
+            <textbox id="filter" flex="1"
+                     type="search"
+                     placeholder="&filter.placeholder;"
+                     aria-controls="handlersView"
+                     oncommand="gApplicationsPane.rebuildView();"/>
+          </hbox>
 
-    <separator class="thin"/>
+          <separator class="thin"/>
 
-    <script type="application/javascript"
-            src="chrome://messenger/content/preferences/downloads.js"/>
+          <richlistbox id="handlersView" orient="vertical" persist="lastSelectedType"
+                       preference="pref.downloads.disable_button.edit_actions"
+                       onselect="gApplicationsPane.onSelectionChanged();">
+            <listheader equalsize="always" style="border: 0; padding: 0; -moz-appearance: none;">
+              <treecol id="typeColumn" label="&typeColumn.label;" value="type"
+                       accesskey="&typeColumn.accesskey;" persist="sortDirection"
+                       flex="1" onclick="gApplicationsPane.sort(event);"
+                       sortDirection="ascending" sort="typeDescription"/>
+              <treecol id="actionColumn" label="&actionColumn2.label;" value="action"
+                       accesskey="&actionColumn2.accesskey;" persist="sortDirection"
+                       flex="1" onclick="gApplicationsPane.sort(event);"/>
+            </listheader>
+          </richlistbox>
 
-    <vbox align="start">
-      <radiogroup id="saveWhere" flex="1"
-                  preference="browser.download.useDownloadDir"
-                  onsyncfrompreference="return gDownloadDirSection.onReadUseDownloadDir();">
-      <hbox id="saveToRow">
-        <radio id="saveTo" value="true"
-               label="&saveTo.label;"
-               accesskey="&saveTo.accesskey;"
-               aria-labelledby="saveTo downloadFolder"/>
-        <filefield id="downloadFolder" flex="1"
-                   preference="browser.download.folderList"
-                   preference-editable="true"
-                   aria-labelledby="saveTo"
-                   onsyncfrompreference="return gDownloadDirSection.readDownloadDirPref();"
-                   onsynctopreference="return gDownloadDirSection.writeFolderList();"/>
-        <button id="chooseFolder" oncommand="gDownloadDirSection.chooseFolder();"
+          <separator class="thin"/>
+
+          <script type="application/javascript"
+                  src="chrome://messenger/content/preferences/downloads.js"/>
+
+          <vbox align="start">
+            <radiogroup id="saveWhere" flex="1"
+                        preference="browser.download.useDownloadDir"
+                        onsyncfrompreference="return gDownloadDirSection.onReadUseDownloadDir();">
+            <hbox id="saveToRow">
+              <radio id="saveTo" value="true"
+                     label="&saveTo.label;"
+                     accesskey="&saveTo.accesskey;"
+                     aria-labelledby="saveTo downloadFolder"/>
+              <filefield id="downloadFolder" flex="1"
+                         preference="browser.download.folderList"
+                         preference-editable="true"
+                         aria-labelledby="saveTo"
+                         onsyncfrompreference="return gDownloadDirSection.readDownloadDirPref();"
+                         onsynctopreference="return gDownloadDirSection.writeFolderList();"/>
+              <button id="chooseFolder" oncommand="gDownloadDirSection.chooseFolder();"
 #ifdef XP_MACOSX
-                accesskey="&chooseFolderMac.accesskey;"
-                label="&chooseFolderMac.label;"
+                      accesskey="&chooseFolderMac.accesskey;"
+                      label="&chooseFolderMac.label;"
 #else
-                accesskey="&chooseFolderWin.accesskey;"
-                label="&chooseFolderWin.label;"
+                      accesskey="&chooseFolderWin.accesskey;"
+                      label="&chooseFolderWin.label;"
 #endif
-                preference="browser.download.folderList"
-                onsynctopreference="return gDownloadDirSection.writeFolderList();"/>
-      </hbox>
-      <radio id="alwaysAsk" value="false"
-             label="&alwaysAsk.label;" accesskey="&alwaysAsk.accesskey;"/>
-      </radiogroup>
-    </vbox>
+                      preference="browser.download.folderList"
+                      onsynctopreference="return gDownloadDirSection.writeFolderList();"/>
+            </hbox>
+            <radio id="alwaysAsk" value="false"
+                   label="&alwaysAsk.label;" accesskey="&alwaysAsk.accesskey;"/>
+            </radiogroup>
+          </vbox>
+        </tabpanel>
+
+        <tabpanel orient="vertical">
+          <vbox flex="1">
+            <hbox id="cloudFileToggleAndThreshold" align="center">
+              <checkbox label="&enableCloudFileAccountOffer.label;"
+                        preference="mail.compose.big_attachments.notify"/>
+              <textbox id="cloudFileThreshold" type="number" increment="1"
+                       maxlength="4" size="1"
+                       preference="mail.compose.big_attachments.threshold_kb"
+                       onsyncfrompreference="return gCloudFileTab.readThreshold();"
+                       onsynctopreference="return gCloudFileTab.writeThreshold();"/>
+              <label control="cloudFileThreshold"
+                     value="&enableCloudFileAccountOffer.mb;"/>
+            </hbox>
+            <hbox flex="1">
+              <vbox flex="1" id="provider-listing">
+                <richlistbox id="cloudFileView" orient="vertical" flex="1"
+                             seltype="single"
+                             onselect="gCloudFileTab.onSelectionChanged();">
+                </richlistbox>
+                <separator class="thin"/>
+                <hbox>
+                  <button id="addCloudFileAccount" flex="1" label="&addCloudFileAccount.label;"
+                          accesskey="&addCloudFileAccount.accesskey;"
+                          command="cmd_addCloudfileAccount"/>
+                  <button id="removeCloudFileAccount" flex="1"
+                          label="&removeCloudFileAccount.label;"
+                          accesskey="&removeCloudFileAccount.accesskey;"
+                          command="cmd_removeCloudfileAccount"/>
+                </hbox>
+              </vbox>
+              <vbox flex="1">
+                <deck id="cloudFileSettingsDeck" flex="1">
+                  <vbox id="cloudFileDefaultPanel" flex="1">
+                    <description>&addCloudFileAccount.description;</description>
+                  </vbox>
+                  <vbox id="cloudFileSettingsWrapper" flex="1">
+                  </vbox>
+                  <vbox id="cloudFileLoadingPanel" flex="1">
+                    <hbox>
+                      <spring flex="1"/>
+                        <image id="cloudFileLoadingSpinner" />
+                      <spring flex="1"/>
+                    </hbox>
+                  </vbox>
+                  <vbox id="cloudFileAuthErrorPanel" flex="1">
+                    <spacer flex="1"/>
+                    <hbox>
+                      <spring flex="1"/>
+                        <image id="authImage"/>
+                      <spring flex="1"/>
+                    </hbox>
+                    <description id="authMessage">&authRequired.description;</description>
+                    <hbox>
+                      <spring flex="1"/>
+                        <button command="cmd_reauthCloudfileAccount" label="&authRequired.button.label;" accesskey="&authRequired.button.accesskey;"/>
+                      <spring flex="1"/>
+                     </hbox>
+                    <spacer flex="1"/>
+                  </vbox>
+                </deck>
+              </vbox>
+            </hbox>
+          </vbox>
+        </tabpanel>
+      </tabpanels>
+    </tabbox>
   </prefpane>
 </overlay>

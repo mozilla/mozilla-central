@@ -92,6 +92,9 @@
   <stringbundle id="bundlePreferences"
                 src="chrome://messenger/locale/preferences/preferences.properties"/>
 
+  <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
+  <script type="application/javascript" src="chrome://communicator/content/contentAreaClick.js"/>
+
   <prefpane id="paneGeneral" label="&paneGeneral.title;"
             src="chrome://messenger/content/preferences/general.xul"/>
   <prefpane id="paneDisplay" label="&paneDisplay.title;"

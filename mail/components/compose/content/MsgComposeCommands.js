@@ -48,6 +48,8 @@ Components.utils.import("resource:///modules/errUtils.js");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource://gre/modules/InlineSpellChecker.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm")
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource:///modules/cloudFileAccounts.js");
 
 /**
  * interfaces
@@ -105,6 +107,7 @@ var gMsgSubjectElement;
 var gMsgAttachmentElement;
 var gMsgHeadersToolbarElement;
 var gRemindLater;
+var gComposeType;
 
 // i18n globals
 var gSendDefaultCharset;
@@ -135,6 +138,7 @@ var gAutoSaveTimeout;
 var gAutoSaveKickedIn;
 var gEditingDraft;
 var gAttachmentsSize;
+var gNumUploadingAttachments;
 
 const kComposeAttachDirPrefName = "mail.compose.attach.dir";
 
@@ -171,6 +175,7 @@ function InitializeGlobalVariables()
   gDSNOptionChanged = false;
   gAttachVCardOptionChanged = false;
   gAttachmentsSize = 0;
+  gNumUploadingAttachments = 0;
 }
 InitializeGlobalVariables();
 
@@ -432,6 +437,21 @@ var defaultController = {
       }
     },
 
+    cmd_attachCloud: {
+      isEnabled: function() {
+        // Hide the command entirely if there are no cloud accounts or
+        // the feature is disbled.
+        let cmd = document.getElementById("cmd_attachCloud");
+        cmd.hidden = !Services.prefs.getBoolPref("mail.cloud_files.enabled")
+                     || (cloudFileAccounts.accounts.length == 0);
+        return !cmd.hidden;
+      },
+      doCommand: function() {
+        // We should never actually call this, since the <command> node calls
+        // a different function.
+      }
+    },
+
     cmd_attachPage: {
       isEnabled: function() {
         return !gWindowLocked;
@@ -488,7 +508,7 @@ var defaultController = {
 
     cmd_sendButton: {
       isEnabled: function() {
-        return !gWindowLocked;
+        return !gWindowLocked && !gNumUploadingAttachments;
       },
       doCommand: function() {
         if (gIOService && gIOService.offline)
@@ -500,7 +520,7 @@ var defaultController = {
 
     cmd_sendNow: {
       isEnabled: function() {
-        return !gWindowLocked && !gIsOffline;
+        return !gWindowLocked && !gIsOffline && !gNumUploadingAttachments;
       },
       doCommand: function() {
         SendMessage();
@@ -509,7 +529,7 @@ var defaultController = {
 
     cmd_sendLater: {
       isEnabled: function() {
-        return !gWindowLocked;
+        return !gWindowLocked && !gNumUploadingAttachments;
       },
       doCommand: function() {
         SendMessageLater();
@@ -518,7 +538,7 @@ var defaultController = {
 
     cmd_sendWithCheck: {
       isEnabled: function() {
-        return !gWindowLocked;
+        return !gWindowLocked && !gNumUploadingAttachments;
       },
       doCommand: function() {
         SendMessageWithCheck();
@@ -653,6 +673,71 @@ var attachmentBucketController = {
       doCommand: function() {
         RenameSelectedAttachment();
       }
+    },
+
+    cmd_convertCloud: {
+      isEnabled: function() {
+        // Hide the command entirely if there are no cloud accounts.
+        let cmd = document.getElementById("cmd_convertCloud");
+        cmd.hidden = (cloudFileAccounts.accounts.length == 0);
+        if (cmd.hidden)
+          return false;
+
+        let bucket = document.getElementById("attachmentBucket");
+        for (let [,item] in Iterator(bucket.selectedItems)) {
+          if (item.uploading)
+            return false;
+        }
+        return true;
+      },
+      doCommand: function() {
+        // We should never actually call this, since the <command> node calls
+        // a different function.
+      }
+    },
+
+    cmd_convertAttachment: {
+      isEnabled: function() {
+        let bucket = document.getElementById("attachmentBucket");
+        for (let [,item] in Iterator(bucket.selectedItems)) {
+          if (item.uploading)
+            return false;
+        }
+        return true;
+      },
+      doCommand: function() {
+        convertSelectedToRegularAttachment();
+      }
+    },
+
+    cmd_cancelUpload: {
+      isEnabled: function() {
+        let bucket = document.getElementById("attachmentBucket");
+        for (let [,item] in Iterator(bucket.selectedItems)) {
+          if (item.uploading)
+            return true;
+        }
+
+        // Hide the command entirely if the selected attachments aren't cloud
+        // files.
+        // FOr some reason, the hidden property isn't propagating from the cmd
+        // to the menuitem.
+        let menuitem = document.getElementById("context_cancelUpload");
+        menuitem.hidden = true;
+        return false;
+      },
+      doCommand: function() {
+        let fileHandler = Services.io.getProtocolHandler("file")
+                                  .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+
+        let bucket = document.getElementById("attachmentBucket");
+        for (let [,item] in Iterator(bucket.selectedItems)) {
+          if (item.uploading) {
+            let file = fileHandler.getFileFromURLSpec(item.attachment.url);
+            item.cloudProvider.cancelFileUpload(file);
+          }
+        }
+      },
     },
   },
 
@@ -825,6 +910,432 @@ function updateEditItems()
   goUpdateCommand("cmd_find");
   goUpdateCommand("cmd_findNext");
   goUpdateCommand("cmd_findPrev");
+}
+
+function updateAttachmentItems()
+{
+  goUpdateCommand("cmd_attachCloud");
+  goUpdateCommand("cmd_convertCloud");
+  goUpdateCommand("cmd_convertAttachment");
+  goUpdateCommand("cmd_cancelUpload");
+  goUpdateCommand("cmd_delete");
+  goUpdateCommand("cmd_renameAttachment");
+  goUpdateCommand("cmd_selectAll");
+  goUpdateCommand("cmd_openAttachment");
+}
+
+/**
+ * Update all the commands for sending a message to reflect their current state.
+ */
+function updateSendCommands()
+{
+  goUpdateCommand("cmd_sendButton");
+  goUpdateCommand("cmd_sendNow");
+  goUpdateCommand("cmd_sendLater");
+  goUpdateCommand("cmd_sendWithCheck");
+}
+
+function addAttachCloudMenuItems(aParentMenu)
+{
+  while (aParentMenu.hasChildNodes())
+    aParentMenu.removeChild(aParentMenu.lastChild);
+
+  for (let [,cloudProvider] in Iterator(cloudFileAccounts.accounts)) {
+    let item = document.createElement("menuitem");
+    let iconClass = cloudProvider.iconClass;
+    item.cloudProvider = cloudProvider;
+    item.setAttribute("label", cloudFileAccounts.getDisplayName(cloudProvider));
+
+    if (iconClass) {
+      item.setAttribute("class", "menu-iconic");
+      item.setAttribute("image", iconClass);
+    }
+    aParentMenu.appendChild(item);
+  }
+}
+
+function addConvertCloudMenuItems(aParentMenu, aAfterNodeId, aRadioGroup)
+{
+  let attachment = document.getElementById("attachmentBucket").selectedItem;
+  let afterNode = document.getElementById(aAfterNodeId);
+  while (afterNode.nextSibling)
+    aParentMenu.removeChild(afterNode.nextSibling);
+
+  if (!attachment.sendViaCloud) {
+    let item = document.getElementById("context_convertAttachment");
+    item.setAttribute("checked", "true");
+  }
+
+  for (let [,cloudProvider] in Iterator(cloudFileAccounts.accounts)) {
+    let item = document.createElement("menuitem");
+    let iconClass = cloudProvider.iconClass;
+    item.cloudProvider = cloudProvider;
+    item.setAttribute("label", cloudFileAccounts.getDisplayName(cloudProvider));
+    item.setAttribute("type", "radio");
+    item.setAttribute("name", aRadioGroup);
+
+    if (attachment.cloudProvider &&
+        attachment.cloudProvider.accountKey == cloudProvider.accountKey) {
+      item.setAttribute("checked", "true");
+    }
+    else if (iconClass) {
+      item.setAttribute("class", "menu-iconic");
+      item.setAttribute("image", iconClass);
+    }
+
+    aParentMenu.appendChild(item);
+  }
+}
+
+function uploadListener(aAttachment, aFile, aCloudProvider)
+{
+  this.attachment = aAttachment;
+  this.file = aFile;
+  this.cloudProvider = aCloudProvider;
+
+  // Notify the UI that we're starting the upload process: disable send commands
+  // and show a "connecting" icon for the attachment.
+  this.attachment.sendViaCloud = true;
+  gNumUploadingAttachments++;
+  updateSendCommands();
+
+  let bucket = document.getElementById("attachmentBucket");
+  let item = bucket.findItemForAttachment(this.attachment);
+  if (item) {
+    item.image = "chrome://messenger/skin/icons/connecting.png";
+    item.setAttribute("tooltiptext",
+      getComposeBundle().getFormattedString("cloudFileUploadingTooltip", [
+        cloudFileAccounts.getDisplayName(this.cloudProvider)
+      ]));
+    item.uploading = true;
+    item.cloudProvider = this.cloudProvider;
+  }
+}
+
+uploadListener.prototype = {
+  onStartRequest: function uploadListener_onStartRequest(aRequest, aContext) {
+    let bucket = document.getElementById("attachmentBucket");
+    let item = bucket.findItemForAttachment(this.attachment);
+    if (item)
+      item.image = "chrome://messenger/skin/icons/loading.png";
+  },
+
+  onStopRequest: function uploadListener_onStopRequest(aRequest, aContext,
+                                                       aStatusCode) {
+    let bucket = document.getElementById("attachmentBucket");
+    let attachmentItem = bucket.findItemForAttachment(this.attachment);
+
+    if (Components.isSuccessCode(aStatusCode)) {
+      let originalUrl = this.attachment.url;
+      this.attachment.contentLocation = this.cloudProvider.urlForFile(this.file);
+      this.attachment.cloudProviderKey = this.cloudProvider.accountKey;
+      if (attachmentItem) {
+        // Update relevant bits on the attachment list item.
+        if (!attachmentItem.originalUrl)
+          attachmentItem.originalUrl = originalUrl;
+        attachmentItem.setAttribute("tooltiptext",
+          getComposeBundle().getFormattedString("cloudFileUploadedTooltip", [
+            cloudFileAccounts.getDisplayName(this.cloudProvider)
+          ]));
+        attachmentItem.uploading = false;
+
+        // Set the icon for the attachment.
+        let iconClass = this.cloudProvider.iconClass;
+        if (iconClass)
+          attachmentItem.image = iconClass;
+        else {
+          // Should we use a generic "cloud" icon here? Or an overlay icon?
+          // I think the provider should provide an icon, end of story.
+          attachmentItem.image = null;
+        }
+      }
+
+      let event = document.createEvent("Events");
+      event.initEvent("attachment-uploaded", true, true);
+      attachmentItem.dispatchEvent(event);
+    }
+    else if (aStatusCode == this.cloudProvider.uploadCanceled) {
+      attachmentItem.setAttribute("tooltiptext", attachmentItem.attachment.url);
+      attachmentItem.image = null;
+    }
+    else {
+      let title;
+      let msg;
+      let displayName = cloudFileAccounts.getDisplayName(this.cloudProvider);
+      let bundle = getComposeBundle();
+
+      switch (aStatusCode) {
+      case this.cloudProvider.authErr:
+        title = bundle.getString("errorCloudFileAuth.title");
+        msg = bundle.getFormattedString("errorCloudFileAuth.message",
+                                        [displayName]);
+        break;
+      case this.cloudProvider.uploadErr:
+        title = bundle.getString("errorCloudFileUpload.title");
+        msg = bundle.getFormattedString("errorCloudFileUpload.message",
+                                        [displayName,
+                                         this.attachment.name]);
+        break;
+      case this.cloudProvider.uploadWouldExceedQuota:
+        title = bundle.getString("errorCloudFileQuota.title");
+        msg = bundle.getFormattedString("errorCloudFileQuota.message",
+                                        [displayName,
+                                         this.attachment.name]);
+        break;
+      case this.cloudProvider.uploadExceedsFileLimit:
+        title = bundle.getString("errorCloudFileLimit.title");
+        msg = bundle.getFormattedString("errorCloudFileLimit.message",
+                                        [displayName,
+                                         this.attachment.name]);
+        break;
+      default:
+        title = bundle.getString("errorCloudFileOther.title");
+        msg = bundle.getFormattedString("errorCloudFileOther.message",
+                                        [displayName]);
+        break;
+      }
+
+      // TODO: support actions other than "Upgrade"
+      const prompt = Services.prompt;
+      let url = this.cloudProvider.providerUrlForError(aStatusCode);
+      let flags = prompt.BUTTON_POS_0 * prompt.BUTTON_TITLE_OK;
+      if (url)
+        flags += prompt.BUTTON_POS_1 * prompt.BUTTON_TITLE_IS_STRING;
+      if (prompt.confirmEx(window, title, msg, flags, null,
+                           bundle.getString("errorCloudFileUpgrade.label"),
+                           null, null, {})) {
+        openLinkExternally(url);
+      }
+
+      if (attachmentItem) {
+        // Remove the loading throbber.
+        attachmentItem.image = null;
+      }
+    }
+
+    gNumUploadingAttachments--;
+    updateSendCommands();
+  },
+
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIRequestObserver,
+                                         Components.interfaces.nsISupportsWeakReference])
+};
+
+function deletionListener(aAttachment, aCloudProvider)
+{
+  this.attachment = aAttachment;
+  this.cloudProvider = aCloudProvider;
+}
+
+deletionListener.prototype = {
+  onStartRequest: function deletionListener_onStartRequest(aRequest, aContext) {
+  },
+
+  onStopRequest: function deletionListener_onStopRequest(aRequest, aContext,
+                                                         aStatusCode) {
+    if (!Components.isSuccessCode(aStatusCode)) {
+      let displayName = cloudFileAccounts.getDisplayName(this.cloudProvider);
+      Services.prompt.alert(window,
+        getComposeBundle().getString("errorCloudFileDeletion.title"),
+        getComposeBundle().getFormattedString("errorCloudFileDeletion.message",
+                                              [displayName,
+                                               this.attachment.name]));
+    }
+  },
+
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIRequestObserver,
+                                         Components.interfaces.nsISupportsWeakReference])
+};
+
+/**
+ * Prompt the user for a list of files to attach via a cloud provider.
+ *
+ * @param aProvider the cloud provider to upload the files to
+ */
+function attachToCloud(aProvider)
+{
+  // We need to let the user pick local file(s) to upload to the cloud and
+  // gather url(s) to those files.
+  var fp = Components.classes["@mozilla.org/filepicker;1"]
+                     .createInstance(nsIFilePicker);
+  fp.init(window, getComposeBundle().getFormattedString(
+            "chooseFileToAttachViaCloud",
+            [cloudFileAccounts.getDisplayName(aProvider)]),
+          nsIFilePicker.modeOpenMultiple);
+
+  var lastDirectory = GetLastAttachDirectory();
+  if (lastDirectory)
+    fp.displayDirectory = lastDirectory;
+
+  let files = [];
+
+  fp.appendFilters(nsIFilePicker.filterAll);
+  if (fp.show() == nsIFilePicker.returnOK)
+  {
+    if (!fp.files)
+      return;
+
+    let files = [f for (f in fixIterator(fp.files,
+                                         Components.interfaces.nsILocalFile))];
+    let attachments = [FileToAttachment(f) for each (f in files)];
+
+    let i = 0;
+    let items = AddAttachments(attachments, function(aItem) {
+      let listener = new uploadListener(attachments[i], files[i], aProvider);
+      aProvider.uploadFile(files[i], listener);
+      i++;
+    });
+
+    SetLastAttachDirectory(files[files.length-1]);
+  }
+}
+
+/**
+ * Convert an array of attachments to cloud attachments.
+ *
+ * @param aItems an array of <attachmentitem>s containing the attachments in
+ *        question
+ * @param aProvider the cloud provider to upload the files to
+ */
+function convertListItemsToCloudAttachment(aItems, aProvider)
+{
+  let fileHandler = Services.io.getProtocolHandler("file")
+                            .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+  let convertedAttachments = Components.classes["@mozilla.org/array;1"]
+                                       .createInstance(Components.interfaces.nsIMutableArray);
+
+  for (let [,item] in Iterator(aItems)) {
+    let url = item.attachment.url;
+
+    if (item.attachment.sendViaCloud) {
+      if (item.cloudProvider && item.cloudProvider == aProvider)
+        continue;
+      url = item.originalUrl;
+    }
+
+    let file = fileHandler.getFileFromURLSpec(url);
+    if (item.cloudProvider) {
+      item.cloudProvider.deleteFile(
+        file, new deletionListener(item.attachment, item.cloudProvider));
+    }
+
+    aProvider.uploadFile(file,
+                         new uploadListener(item.attachment, file, aProvider));
+    convertedAttachments.appendElement(item.attachment, false);
+  }
+
+  Services.obs.notifyObservers(convertedAttachments,
+                               "mail:attachmentsConverted",
+                               aProvider.accountKey);
+}
+
+/**
+ * Convert the selected attachments to cloud attachments.
+ *
+ * @param aProvider the cloud provider to upload the files to
+ */
+function convertSelectedToCloudAttachment(aProvider)
+{
+  let bucket = document.getElementById("attachmentBucket");
+  convertListItemsToCloudAttachment(bucket.selectedItems, aProvider);
+}
+
+/**
+ * Convert an array of nsIMsgAttachments to cloud attachments.
+ *
+ * @param aAttachments an array of nsIMsgAttachments
+ * @param aProvider the cloud provider to upload the files to
+ */
+function convertToCloudAttachment(aAttachments, aProvider)
+{
+  let bucket = document.getElementById("attachmentBucket");
+  let items = [];
+  for (let [,attachment] in Iterator(aAttachments)) {
+    let item = bucket.findItemForAttachment(attachment);
+    if (item)
+      items.push(item);
+  }
+
+  convertListItemsToCloudAttachment(items, aProvider);
+}
+
+/**
+ * Convert an array of attachments to regular (non-cloud) attachments.
+ *
+ * @param aItems an array of <attachmentitem>s containing the attachments in
+ *        question
+ */
+function convertListItemsToRegularAttachment(aItems)
+{
+  let fileHandler = Services.io.getProtocolHandler("file")
+                            .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+  let convertedAttachments = Components.classes["@mozilla.org/array;1"]
+                                       .createInstance(Components.interfaces.nsIMutableArray);
+
+  for (let [,item] in Iterator(aItems)) {
+    if (!item.attachment.sendViaCloud || !item.cloudProvider)
+      continue;
+
+    let file = fileHandler.getFileFromURLSpec(item.originalUrl);
+    try {
+      // This will fail for drafts, but we can still send the message
+      // with a normal attachment.
+      item.cloudProvider.deleteFile(
+        file, new deletionListener(item.attachment, item.cloudProvider));
+    }
+    catch (ex) {
+       Components.utils.reportError(ex);
+    }
+
+    item.attachment.url = item.originalUrl;
+    item.setAttribute("tooltiptext", item.attachment.url);
+    item.attachment.sendViaCloud = false;
+
+    delete item.cloudProvider;
+    delete item.originalUrl;
+    item.image = null;
+
+    convertedAttachments.appendElement(item.attachment, false);
+  }
+  let bucket = document.getElementById("attachmentBucket");
+  let event = document.createEvent("CustomEvent");
+  event.initCustomEvent("attachments-converted", true, true, convertedAttachments);
+  bucket.dispatchEvent(event);
+
+  Services.obs.notifyObservers(convertedAttachments,
+                               "mail:attachmentsConverted", null);
+                               
+  // We leave the content location in for the notifications because
+  // it may be needed to identify the attachment. But clear it out now.
+  for (let [,item] in Iterator(aItems))
+    delete item.attachment.contentLocation;
+}
+
+/**
+ * Convert the selected attachments to regular (non-cloud) attachments.
+ */
+function convertSelectedToRegularAttachment()
+{
+  let bucket = document.getElementById("attachmentBucket");
+  convertListItemsToRegularAttachment(bucket.selectedItems);
+}
+
+/**
+ * Convert an array of nsIMsgAttachments to regular (non-cloud) attachments.
+ *
+ * @param aAttachments an array of nsIMsgAttachments
+ */
+function convertToRegularAttachment(aAttachments)
+{
+  let bucket = document.getElementById("attachmentBucket");
+  let items = [];
+  for (let [,attachment] in Iterator(aAttachments)) {
+    let item = bucket.findItemForAttachment(attachment);
+    if (item)
+      items.push(item);
+  }
+
+  convertListItemsToRegularAttachment(items);
 }
 
 function updateOptionItems()
@@ -1687,6 +2198,8 @@ function ComposeStartup(recycled, aParams)
     }
   }
 
+  gComposeType = params.type;
+
   // " <>" is an empty identity, and most likely not valid
   if (!params.identity || params.identity.identityName == " <>") {
     // no pre selected identity, so use the default account
@@ -2080,9 +2593,10 @@ function GenericSendMessage(msgType)
   msgCompFields.subject = subject;
   Attachments2CompFields(msgCompFields);
 
-  if (msgType == nsIMsgCompDeliverMode.Now ||
+  let sending = msgType == nsIMsgCompDeliverMode.Now ||
       msgType == nsIMsgCompDeliverMode.Later ||
-      msgType == nsIMsgCompDeliverMode.Background)
+      msgType == nsIMsgCompDeliverMode.Background;
+  if (sending)
   {
     // Do we need to check the spelling?
     if (DoSpellCheckBeforeSend())
@@ -3004,10 +3518,8 @@ function AttachFile()
  */
 function FileToAttachment(file)
 {
-  let fileHandler = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService)
-                              .getProtocolHandler("file")
-                              .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+  let fileHandler = Services.io.getProtocolHandler("file")
+                            .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
   let attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"]
                              .createInstance(Components.interfaces.nsIMsgAttachment);
 
@@ -3022,12 +3534,16 @@ function FileToAttachment(file)
  *
  * @param aAttachments an iterable list of nsIMsgAttachment objects to add as
  *        attachments. Anything iterable with fixIterator is accepted.
+ * @param aCallback an optional callback function called immediately after
+ *        adding each attachment. Takes one argument: the newly-added
+ *        <attachmentitem> node.
  */
-function AddAttachments(aAttachments)
+function AddAttachments(aAttachments, aCallback)
 {
   let bucket = document.getElementById("attachmentBucket");
   let addedAttachments = Components.classes["@mozilla.org/array;1"]
                                    .createInstance(Components.interfaces.nsIMutableArray);
+  let items = [];
 
   for (let attachment in fixIterator(aAttachments,
                                      Components.interfaces.nsIMsgAttachment)) {
@@ -3061,19 +3577,34 @@ function AddAttachments(aAttachments)
     }
     item.addEventListener("command", OpenSelectedAttachment, false);
 
-    // For local file urls, we are better off using the full file url because
-    // moz-icon will actually resolve the file url and get the right icon from
-    // the file url. All other urls, we should try to extract the file name from
-    // them. This fixes issues where an icon wasn't showing up if you dragged a
-    // web url that had a query or reference string after the file name and for
-    // mailnews urls where the filename is hidden in the url as a &filename=
-    // part.
-    var url = gIOService.newURI(attachment.url, null, null);
-    if (url instanceof Components.interfaces.nsIURL &&
-        url.fileName && !url.schemeIs("file"))
-      item.setAttribute("image", "moz-icon://" + url.fileName);
-    else
-      item.setAttribute("image", "moz-icon:" + attachment.url);
+    if (attachment.sendViaCloud) {
+      try {
+        let cloudProvider = cloudFileAccounts.getAccount(attachment.cloudProviderKey);
+        item.cloudProvider = cloudProvider;
+        item.image = cloudProvider.iconClass;
+        item.originalUrl = attachment.url;
+      } catch (ex) {dump(ex);}
+    }
+    else {
+      // For local file urls, we are better off using the full file url because
+      // moz-icon will actually resolve the file url and get the right icon from
+      // the file url. All other urls, we should try to extract the file name from
+      // them. This fixes issues where an icon wasn't showing up if you dragged a
+      // web url that had a query or reference string after the file name and for
+      // mailnews urls where the filename is hidden in the url as a &filename=
+      // part.
+      var url = gIOService.newURI(attachment.url, null, null);
+      if (url instanceof Components.interfaces.nsIURL &&
+          url.fileName && !url.schemeIs("file"))
+        item.image = "moz-icon://" + url.fileName;
+      else
+        item.image = "moz-icon:" + attachment.url;
+      }
+
+    items.push(item);
+
+    if (aCallback)
+      aCallback(item);
 
     CheckForAttachmentNotification(null);
   }
@@ -3086,6 +3617,8 @@ function AddAttachments(aAttachments)
     event.initCustomEvent("attachments-added", true, true, addedAttachments);
     bucket.dispatchEvent(event);
   }
+
+  return items;
 }
 
 /**
@@ -3220,25 +3753,30 @@ function UpdateAttachmentBucket(aShowBucket)
 
 function RemoveSelectedAttachment()
 {
-  var child;
-  var bucket = document.getElementById("attachmentBucket");
+  let bucket = document.getElementById("attachmentBucket");
   if (bucket.selectedItems.length > 0) {
+    let fileHandler = Services.io.getProtocolHandler("file")
+                              .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
     let removedAttachments = Components.classes["@mozilla.org/array;1"]
                                        .createInstance(Components.interfaces.nsIMutableArray);
 
-    for (let i = bucket.selectedCount - 1; i >= 0; i--)
-    {
-      child = bucket.removeItemAt(bucket.getIndexOfItem(bucket.getSelectedItem(i)));
-      if (child.attachment.size != -1)
-      {
-        gAttachmentsSize -= child.attachment.size;
+    for (let i = bucket.selectedCount - 1; i >= 0; i--) {
+      let item = bucket.removeItemAt(bucket.getIndexOfItem(bucket.getSelectedItem(i)));
+      if (item.attachment.size != -1) {
+        gAttachmentsSize -= item.attachment.size;
         UpdateAttachmentBucket(true);
       }
 
-      removedAttachments.appendElement(child.attachment, false);
+      if (item.attachment.sendViaCloud && item.cloudProvider) {
+        let file = fileHandler.getFileFromURLSpec(item.originalUrl);
+        item.cloudProvider.deleteFile(
+          file, new deletionListener(item.attachment, item.cloudProvider));
+      }
+
+      removedAttachments.appendElement(item.attachment, false);
       // Let's release the attachment object held by the node else it won't go
       // away until the window is destroyed
-      child.attachment = null;
+      item.attachment = null;
     }
 
     gContentChanged = true;

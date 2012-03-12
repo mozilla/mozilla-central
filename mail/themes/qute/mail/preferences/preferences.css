@@ -134,3 +134,164 @@ radio[pane=paneAdvanced] {
   background-color: #88AAFF;
   opacity: .5;
 }
+
+/* Attachments */
+
+body {
+  font: message-box;
+}
+
+a {
+  color: -moz-nativehyperlinktext;
+  text-decoration: underline;
+}
+
+/* Setting margins so we can start lining things up */
+#accountNameBox label, #accountName, #accountType, #provider-settings {
+  margin: 0;
+}
+
+#providerForm #username, #provider-signup {
+  width: 250px;
+}
+
+#providerForm label{
+  width: 150px;
+  text-align: right;
+//  padding-right: 3px; ???
+}
+
+#provider-signup, #accountType {
+  margin-left: 150px;
+}
+
+#providerForm label {
+  display: inline-block;
+}
+
+#provider-signup {
+  display: block;
+}
+
+/* Making sure there is some spacing between elements */
+
+#createAccountText {
+  margin-bottom: 20px;
+  padding: 0px 15px;
+}
+
+#accountType {
+  margin-bottom: 5px;
+}
+
+/* I am a hack */
+#accountType {
+  margin-right: 62px;
+}
+
+#messages #authorizing image,
+#messages #error image {
+  max-width: 16px;
+  max-height: 16px;
+}
+
+#provider-header {
+  border-bottom: 1px solid #898c95;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+}
+
+#provider-name {
+  padding: 0;
+  margin: 0;
+  margin-right: 120px;
+}
+
+#provider-name h1 {
+  font-size: large;
+}
+
+#provider-name h2 {
+  font: message-box;
+}
+
+#provider-terms {
+  float: right;
+  width: 110px;
+}
+
+#provider-terms a {
+  display: block;
+  margin-bottom: 5px;
+  text-align: right;
+}
+
+#provider-listing {
+  max-width: 150px;
+}
+
+#provider-space {
+  text-align: right;
+  margin-right: 170px;
+  height: 100px;
+}
+
+#upgrade {
+  margin-top: 1em;
+}
+
+#provider-space-visuals {
+  float: right;
+}
+
+#provider-account-settings {
+  text-align: right;
+}
+
+.space-swatch {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 1px solid rgba(0,0,0,0.5);
+  border-radius: 2px;
+
+  vertical-align: middle;
+  -moz-margin-start: 0.5ch;
+  -moz-box-sizing: border-box;
+}
+
+/* Main pane padding */
+
+#provider-management {
+  margin: 0 10px;
+}
+
+#provider-name h1 {
+  margin: 0;
+}
+
+/* Loading panel */
+#cloudFileLoadingPanel, #cloudFileDefaultPanel {
+  text-align: center;
+  padding-top: 150px;
+}
+
+/* Flexing */
+#provider-management {
+  height: 270px; /* As far as I can see, the height and width values needs to be hardcoded :( */
+  width: 320px;
+  display: -moz-box;
+  -moz-box-orient: vertical;
+}
+
+#provider-header {
+  -moz-box-flex: 0;
+}
+
+#provider-spacebox {
+  -moz-box-flex: 1;
+}
+
+#provider-account-settings {
+  -moz-box-flex: 0;
+}

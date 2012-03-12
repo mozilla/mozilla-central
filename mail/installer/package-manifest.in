@@ -142,6 +142,8 @@
 @BINPATH@/components/aboutRedirector.js
 @BINPATH@/components/activity.xpt
 @BINPATH@/components/activityComponents.manifest
+@BINPATH@/components/cloudFileComponents.manifest
+@BINPATH@/components/cloudfile.xpt
 @BINPATH@/components/addrbook.xpt
 @BINPATH@/components/fts3tok.xpt
 ; interfaces.manifest doesn't get packaged because it is dynamically
@@ -167,6 +169,9 @@
 @BINPATH@/components/nsActivity.js
 @BINPATH@/components/nsActivityManager.js
 @BINPATH@/components/nsActivityManagerUI.js
+@BINPATH@/components/nsYouSendIt.js
+@BINPATH@/components/nsDropbox.js
+@BINPATH@/components/cloudFileAccounts.js
 @BINPATH@/components/nsAddrbook.manifest
 @BINPATH@/components/nsMailNewsCommandLineHandler.js
 @BINPATH@/components/services-crypto-component.xpt

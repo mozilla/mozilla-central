@@ -57,6 +57,8 @@ EXTRA_JS_MODULES = \
   mailMigrator.js \
   mailInstrumentation.js \
   glodaWebSearch.js \
+  oauth.jsm \
+  http.jsm \
   distribution.js \
   $(NULL)
 

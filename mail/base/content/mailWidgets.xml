@@ -226,6 +226,19 @@
       <property name="preferredHeight" readonly="true"
                 onget="return this.scrollbox.scrollHeight - this.scrollbox.clientHeight + this.boxObject.height;"/>
 
+      <!-- Find the attachmentitem node for the specified nsIMsgAttachment. -->
+      <method name="findItemForAttachment">
+        <parameter name="aAttachment"/>
+        <body><![CDATA[
+          for (let i = 0; i < this.itemCount; i++) {
+            let item = this.getItemAtIndex(i);
+            if (item.attachment == aAttachment)
+              return item;
+          }
+          return null;
+        ]]></body>
+      </method>
+
       <!-- ///////////////// private members ///////////////// -->
 
       <property name="children" readonly="true"
@@ -360,6 +373,20 @@
         ]]></getter>
         <setter><![CDATA[
           this.setAttribute("imagesize", val);
+          this._updateImage();
+          return val;
+        ]]></setter>
+      </property>
+
+      <property name="image">
+        <getter><![CDATA[
+          return this.getAttribute("image");
+        ]]></getter>
+        <setter><![CDATA[
+          if (val)
+            this.setAttribute("image", val);
+          else
+            this.removeAttribute("image");
           this._updateImage();
           return val;
         ]]></setter>

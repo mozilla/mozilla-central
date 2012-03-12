@@ -482,6 +482,12 @@ pref("mail.compose.attachment_reminder_keywords", "chrome://messenger/locale/mes
 // show an alert on send?
 pref("mail.compose.attachment_reminder_aggressive", true);
 
+// True if the user should be notified when attaching big files
+pref("mail.compose.big_attachments.notify", true);
+// Size (in kB) to automatically prompt for conversion of attachments to
+// cloud links
+pref("mail.compose.big_attachments.threshold_kb", 1024);
+
 // Set this to false to prevent instrumentation from happening, e.g., user
 // has opted out, or an enterprise wants to disable it from the git go.
 pref("mail.instrumentation.askUser", true);
@@ -767,3 +773,7 @@ pref("browser.search.update.interval", 21600);
 
 // Disable remote debugging protocol logging
 pref("devtools.debugger.log", false);
+
+// BigFiles
+pref("mail.cloud_files.enabled", true);
+pref("mail.cloud_files.inserted_urls.footer.link", "http://www.getthunderbird.com");
