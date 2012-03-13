@@ -1,6 +1,6 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
-  * You can obtain one at http://mozilla.org/MPL/2.0/. */
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /**
  * Tests the manager for attachment storage services
@@ -37,23 +37,11 @@ function test_persist_tabs() {
   open_pref_window("paneApplications", function(w) {
     let tabbox = w.e("attachmentPrefs");
 
-    // We should default to be viewing the first tab
-    assert_equals(0, tabbox.selectedIndex,
-                  "The first tab should have been selected");
-    // Switch to the second tab
-    tabbox.selectedIndex = 1;
-    close_window(w);
-  });
-
-  open_pref_window("paneApplications", function(w) {
-    let tabbox = w.e("attachmentPrefs");
-
-    // We should default to be viewing the second tab
-    // now
+    // We should default to be viewing the "Outgoing" tab, which is the
+    // second tab, with index 1.
     assert_equals(1, tabbox.selectedIndex,
-                  "The second tab selection should have been "
-                  + "persisted");
-    // Switch back to the first tab
+                  "The second tab should have been selected");
+    // Switch to the first tab
     tabbox.selectedIndex = 0;
     close_window(w);
   });
@@ -62,8 +50,21 @@ function test_persist_tabs() {
     let tabbox = w.e("attachmentPrefs");
 
     // We should default to be viewing the first tab
+    // now
     assert_equals(0, tabbox.selectedIndex,
                   "The first tab selection should have been "
+                  + "persisted");
+    // Switch back to the second tab
+    tabbox.selectedIndex = 1;
+    close_window(w);
+  });
+
+  open_pref_window("paneApplications", function(w) {
+    let tabbox = w.e("attachmentPrefs");
+
+    // We should default to be viewing the second tab
+    assert_equals(1, tabbox.selectedIndex,
+                  "The second tab selection should have been "
                   + "persisted");
     close_window(w);
   });

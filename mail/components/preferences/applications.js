@@ -474,7 +474,7 @@ var gApplicationsTabController = {
     gCloudFileTab.init();
 
     let preference = document.getElementById("mail.preferences.applications.selectedTabIndex");
-    tabbox.selectedIndex = preference.value ? preference.value : this.mDefaultIndex;
+    tabbox.selectedIndex = preference.value != null ? preference.value : this.mDefaultIndex;
 
     this.mInitialized = true;
   },
