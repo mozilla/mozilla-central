@@ -105,12 +105,20 @@ function plaintextComposeWindowSwitchSignatures(suppressSigSep) {
   node = node.previousSibling;
   assert_equals(node.localName, "br");
   node = node.previousSibling;
-  assert_equals(node.nodeValue, "Tinderbox is soo 90ies");
-  if (!suppressSigSep) {
-    // a <br> element, then the next text node
-    node = node.previousSibling.previousSibling;
-    assert_equals(node.nodeValue, "-- ");
-  }
+
+  // Now we should have the DIV node that contains the signature, with
+  // the class moz-signature.
+  assert_equals(node.localName, "div");
+
+  const sigClass = "moz-signature";
+  assert_equals(node.className, sigClass);
+
+  let expectedText = "Tinderbox is soo 90ies\n";
+
+  if (!suppressSigSep)
+    expectedText = "-- \n" + expectedText;
+
+  assert_equals(node.textContent, expectedText);
 
   // Now switch identities!
   let menuID = cwc.e("msgIdentity");
@@ -124,22 +132,28 @@ function plaintextComposeWindowSwitchSignatures(suppressSigSep) {
   node = node.previousSibling;
   assert_equals(node.localName, "br");
   node = node.previousSibling;
-  assert_equals(node.nodeValue, "Tinderboxpushlog is the new *hotness!*");
-  if (!suppressSigSep) {
-    // a <br> element, then the next text node
-    node = node.previousSibling.previousSibling;
-    assert_equals(node.nodeValue, "-- ");
-  }
 
-  // Now check that the original signature has been removed!
+  assert_equals(node.localName, "div");
+  assert_equals(node.className, sigClass);
+
+  expectedText = "Tinderboxpushlog is the new *hotness!*\n";
+
+  if (!suppressSigSep)
+    expectedText = "-- \n" + expectedText;
+
+  assert_equals(node.textContent, expectedText);
+
+  // Now check that the original signature has been removed by ensuring
+  // that there's only one node with class moz-signature.
+  let sigs = contentFrame.contentDocument.querySelectorAll("." + sigClass);
+  assert_equals(sigs.length, 1);
+
+  // And ensure that the text we wrote wasn't altered
   let bodyFirstChild =  contentFrame.contentDocument.body.firstChild;
-  while (node != bodyFirstChild) {
+
+  while (node != bodyFirstChild)
     node = node.previousSibling;
-    if (node) {
-      assert_not_equals(node.nodeValue, "Tinderbox is soo 90ies");
-      assert_not_equals(node.nodeValue, "-- ");
-    }
-  }
+
   assert_equals(node.nodeValue, "Body, first line.");
 
   composeHelper.close_compose_window(cwc);

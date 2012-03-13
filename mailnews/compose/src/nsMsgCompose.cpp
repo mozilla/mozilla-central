@@ -568,7 +568,6 @@ nsMsgCompose::InsertDivWrappedTextAtSelection(const nsAString &aText,
   nsCOMPtr<nsIDOMNode> divNode (do_QueryInterface(divElem));
   divNode->SetTextContent(aText);
 
-  textEditor->InsertLineBreak();
   htmlEditor->InsertElementAtSelection(divElem, true);
   nsCOMPtr<nsIDOMNode> parent;
   PRInt32 offset;
@@ -697,8 +696,11 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
       if (aHTMLEditor && htmlEditor)
         htmlEditor->InsertHTML(aSignature);
       else if (htmlEditor)
+      {
+        textEditor->InsertLineBreak();
         InsertDivWrappedTextAtSelection(aSignature,
                                         NS_LITERAL_STRING("moz-signature"));
+      }
 
       if( sigOnTop )
         m_editor->EndOfDocument();
@@ -750,6 +752,7 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
       }
 
       if (!sigOnTop && !aSignature.IsEmpty())
+        textEditor->InsertLineBreak();
         InsertDivWrappedTextAtSelection(aSignature,
                                         NS_LITERAL_STRING("moz-signature"));
     }
@@ -4334,8 +4337,6 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, bool aQuoted, nsString 
       else
         sigOutput.Append(NS_ConvertASCIItoUTF16(preopen));
     }
-    else
-      sigOutput.AppendLiteral(CRLF);
 
     if ((reply_on_top != 1 || sig_bottom || !aQuoted) &&
         sigData.Find("\r-- \r", true) < 0 &&
@@ -5394,117 +5395,56 @@ nsMsgCompose::SetIdentity(nsIMsgIdentity *aIdentity)
   if (NS_SUCCEEDED(rv) && nsnull != lastNode)
   {
     node = lastNode;
-    if (m_composeHTML)
+    // In html, the signature is inside an element with
+    // class="moz-signature"
+    bool signatureFound = false;
+    nsAutoString attributeName;
+    attributeName.AssignLiteral("class");
+
+    do
     {
-      /* In html, the signature is inside an element with
-         class="moz-signature", it's must be the last node */
       nsCOMPtr<nsIDOMElement> element = do_QueryInterface(node);
       if (element)
       {
-        nsAutoString attributeName;
         nsAutoString attributeValue;
-        attributeName.AssignLiteral("class");
 
         rv = element->GetAttribute(attributeName, attributeValue);
-        if (NS_SUCCEEDED(rv))
-        {
-          if (attributeValue.Find("moz-signature", true) != kNotFound)
-          {
-            //Now, I am sure I get the right node!
-            m_editor->BeginTransaction();
-            node->GetPreviousSibling(getter_AddRefs(tempNode));
-            rv = m_editor->DeleteNode(node);
-            if (NS_FAILED(rv))
-            {
-              m_editor->EndTransaction();
-              return rv;
-            }
 
-            //Also, remove the <br> right before the signature.
-            if (tempNode)
-            {
-              tempNode->GetLocalName(tagLocalName);
-              if (tagLocalName.EqualsLiteral("br"))
-                m_editor->DeleteNode(tempNode);
-            }
-            m_editor->EndTransaction();
-          }
+        if (attributeValue.Find("moz-signature", true) != kNotFound) {
+          signatureFound = true;
+          break;
         }
       }
-    }
-    else
+    } while (!signatureFound &&
+             node &&
+             NS_SUCCEEDED(node->GetPreviousSibling(getter_AddRefs(node))));
+
+    if (signatureFound)
     {
-      //In plain text, we have to walk back the dom look for the pattern <br>-- <br>
-      PRUint16 nodeType;
-      PRInt32 searchState = 0; //0=nothing, 1=br 2='-- '+br, 3=br+'-- '+br
-
-      do
+      m_editor->BeginTransaction();
+      node->GetPreviousSibling(getter_AddRefs(tempNode));
+      rv = m_editor->DeleteNode(node);
+      if (NS_FAILED(rv))
       {
-        node->GetNodeType(&nodeType);
-        node->GetLocalName(tagLocalName);
-        switch (searchState)
-        {
-          case 0:
-            if (nodeType == nsIDOMNode::ELEMENT_NODE && tagLocalName.EqualsLiteral("br"))
-              searchState = 1;
-            break;
-
-          case 1:
-            searchState = 0;
-            if (nodeType == nsIDOMNode::TEXT_NODE)
-            {
-              nsString nodeValue;
-              node->GetNodeValue(nodeValue);
-              if (nodeValue.EqualsLiteral("-- "))
-                searchState = 2;
-            }
-            else
-              if (nodeType == nsIDOMNode::ELEMENT_NODE && tagLocalName.EqualsLiteral("br"))
-              {
-                searchState = 1;
-                break;
-              }
-            break;
-
-          case 2:
-            if (nodeType == nsIDOMNode::ELEMENT_NODE && tagLocalName.EqualsLiteral("br"))
-              searchState = 3;
-            else
-              searchState = 0;
-            break;
-        }
-
-        tempNode = node;
-      } while (searchState != 3 && NS_SUCCEEDED(tempNode->GetPreviousSibling(getter_AddRefs(node))) && node);
-
-      if (searchState == 3)
-      {
-        //Now, I am sure I get the right node!
-        m_editor->BeginTransaction();
-
-        tempNode = lastNode;
-        lastNode = node;
-        do
-        {
-          node = tempNode;
-          node->GetPreviousSibling(getter_AddRefs(tempNode));
-          rv = m_editor->DeleteNode(node);
-          if (NS_FAILED(rv))
-          {
-            m_editor->EndTransaction();
-            return rv;
-          }
-
-        } while (node != lastNode && tempNode);
         m_editor->EndTransaction();
+        return rv;
       }
+
+      //Also, remove the <br> right before the signature.
+      if (tempNode)
+      {
+        tempNode->GetLocalName(tagLocalName);
+        if (tagLocalName.EqualsLiteral("br"))
+          m_editor->DeleteNode(tempNode);
+      }
+      m_editor->EndTransaction();
     }
   }
 
   if (!CheckIncludeSignaturePrefs(aIdentity))
     return NS_OK;
 
-  //Then add the new one if needed
+  // Then add the new one if needed
   nsAutoString aSignature;
 
   // No delimiter needed if not a compose window
@@ -5538,16 +5478,16 @@ nsMsgCompose::SetIdentity(nsIMsgIdentity *aIdentity)
       m_editor->BeginningOfDocument();
     else
       m_editor->EndOfDocument();
+
+    nsCOMPtr<nsIHTMLEditor> htmlEditor (do_QueryInterface(m_editor));
+
     if (m_composeHTML)
-    {
-      nsCOMPtr<nsIHTMLEditor> htmlEditor (do_QueryInterface(m_editor));
       rv = htmlEditor->InsertHTML(aSignature);
+    else {
+      rv = NS_OK;
+      InsertDivWrappedTextAtSelection(aSignature, NS_LITERAL_STRING("moz-signature"));
     }
-    else
-    {
-      nsCOMPtr<nsIPlaintextEditor> textEditor (do_QueryInterface(m_editor));
-      rv = textEditor->InsertText(aSignature);
-    }
+
     if (sigOnTop && noDelimiter)
       m_editor->EndOfDocument();
     m_editor->EndTransaction();
