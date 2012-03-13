@@ -139,7 +139,7 @@ OAuth.prototype = {
     let authorization =
       "OAuth " + params.map(function (p) p[0] + "=\"" + p[1] + "\"").join(", ");
     let headers = (aHeaders || []).concat([["Authorization", authorization]]);
-    return doXHRequest(url, headers, aMethod, aPOSTData, aOnLoad, aOnError, aThis);
+    return doXHRequest(url, headers, aPOSTData, aOnLoad, aOnError, aThis, aMethod);
   },
   _parseURLData: function(aData) {
     let result = {};

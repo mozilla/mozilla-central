@@ -6,11 +6,11 @@ var EXPORTED_SYMBOLS = ["doXHRequest"];
 
 const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
-function doXHRequest(aUrl, aHeaders, aMethod, aPOSTData, aOnLoad, aOnError, aThis) {
+function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis, aMethod) {
   var xhr = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
               .createInstance(Ci.nsIXMLHttpRequest);
   xhr.mozBackgroundRequest = true; // no error dialogs
-  xhr.open(aMethod, aUrl);
+  xhr.open(aMethod || (aPOSTData ? "POST" : "GET"), aUrl);
   xhr.channel.loadFlags = Ci.nsIChannel.LOAD_ANONYMOUS | // don't send cookies
                           Ci.nsIChannel.LOAD_BYPASS_CACHE |
                           Ci.nsIChannel.INHIBIT_CACHING;
@@ -56,6 +56,14 @@ function doXHRequest(aUrl, aHeaders, aMethod, aPOSTData, aOnLoad, aOnError, aThi
     });
   }
 
-  xhr.send(aPOSTData);
+  let POSTData = aPOSTData || "";
+  if (Array.isArray(POSTData)) {
+    xhr.setRequestHeader("Content-Type",
+                         "application/x-www-form-urlencoded; charset=utf-8");
+    POSTData = aPOSTData.map(function(p) p[0] + "=" + encodeURIComponent(p[1]))
+                        .join("&");
+  }
+
+  xhr.send(POSTData);
   return xhr;
 }

@@ -42,7 +42,6 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 EXTRA_JS_MODULES = \
-	http.jsm \
 	imContentSink.jsm \
 	imServices.jsm \
 	imSmileys.jsm \
@@ -52,6 +51,10 @@ EXTRA_JS_MODULES = \
 	jsProtoHelper.jsm \
 	socket.jsm \
 	$(NULL)
+
+ifndef MOZ_THUNDERBIRD
+EXTRA_JS_MODULES += http.jsm
+endif
 
 EXTRA_PP_JS_MODULES = \
 	hiddenWindow.jsm \
