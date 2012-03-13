@@ -185,7 +185,7 @@ void nsImapServerResponseParser::ParseIMAPServerResponse(const char *aCurrentCom
   
   NS_ASSERTION(aCurrentCommand && *aCurrentCommand != '\r' && 
     *aCurrentCommand != '\n' && *aCurrentCommand != ' ', "Invailid command string");
-  bool sendingIdleDone = !strcmp(aCurrentCommand, "DONE"CRLF);
+  bool sendingIdleDone = !strcmp(aCurrentCommand, "DONE" CRLF);
   if (sendingIdleDone)
     fWaitingForMoreClientInput = false;
 

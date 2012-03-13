@@ -758,7 +758,7 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
           }
         }
       }
-#define EXTRA_KEYWORD_HDR "                                                                                 "MSG_LINEBREAK
+#define EXTRA_KEYWORD_HDR "                                                                                 " MSG_LINEBREAK
 
        // if status offset isn't in the first block, this code won't work. There's no good reason
       // for the status offset not to be at the beginning of the message anyway.
@@ -1216,7 +1216,7 @@ nsOfflineStoreCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ct
         // check if there's an envelope header; if not, write one.
         if (strncmp(m_dataBuffer, "From ", 5))
         {
-          m_fileStream->Write("From "CRLF, 7, &bytesWritten);
+          m_fileStream->Write("From " CRLF, 7, &bytesWritten);
           m_offlineMsgSize += bytesWritten;
         }
       }

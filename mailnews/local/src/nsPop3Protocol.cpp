@@ -2485,7 +2485,7 @@ PRInt32 nsPop3Protocol::SendList()
         return(MK_OUT_OF_MEMORY);
     m_pop3ConData->next_state_after_response = POP3_GET_LIST;
     m_listpos = 0;
-    return SendData("LIST"CRLF);
+    return SendData("LIST" CRLF);
 }
 
 

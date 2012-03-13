@@ -8305,7 +8305,7 @@ nsImapMailFolder::CopyFileToOfflineStore(nsILocalFile *srcFile, nsMsgKey msgKey)
           bool needMoreData = false;
           char * newLine = nsnull;
           PRUint32 numBytesInLine = 0;
-          const char *envelope = "From "CRLF;
+          const char *envelope = "From " CRLF;
           offlineStore->Write(envelope, strlen(envelope), &bytesWritten);
           fileSize += bytesWritten;
           do

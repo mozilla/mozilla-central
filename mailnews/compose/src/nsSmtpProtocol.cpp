@@ -1710,7 +1710,7 @@ PRInt32 nsSmtpProtocol::SendMessageResponse()
 PRInt32 nsSmtpProtocol::SendQuit()
 {
   m_sendDone = true;
-  SendData("QUIT"CRLF); // send a quit command to close the connection with the server.
+  SendData("QUIT" CRLF); // send a quit command to close the connection with the server.
   m_nextState = SMTP_RESPONSE;
   m_nextStateAfterResponse = SMTP_DONE;
   return(0);
@@ -1956,7 +1956,7 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
     if(status < 0 && m_nextState != SMTP_FREE)
     {
       // send a quit command to close the connection with the server.
-      if (SendData("QUIT"CRLF) == NS_OK)
+      if (SendData("QUIT" CRLF) == NS_OK)
       {
         m_nextState = SMTP_RESPONSE;
         m_nextStateAfterResponse = SMTP_ERROR_DONE;

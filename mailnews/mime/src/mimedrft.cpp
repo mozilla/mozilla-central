@@ -1488,7 +1488,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
                 *newbody = 0;
                 PL_strcatn(newbody, newbodylen, "<PRE>");
                 PL_strcatn(newbody, newbodylen, body);
-                PL_strcatn(newbody, newbodylen, "</PRE>"CRLF);
+                PL_strcatn(newbody, newbodylen, "</PRE>" CRLF);
                 PR_Free(body);
                 body = newbody;
               }

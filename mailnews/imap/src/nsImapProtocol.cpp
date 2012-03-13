@@ -1409,7 +1409,7 @@ void nsImapProtocol::HandleIdleResponses()
 {
   // PRInt32 oldRecent = GetServerStateParser().NumberOfRecentMessages();
   nsCAutoString commandBuffer(GetServerCommandTag());
-  commandBuffer.Append(" IDLE"CRLF);
+  commandBuffer.Append(" IDLE" CRLF);
 
   do
   {
@@ -3289,7 +3289,7 @@ void nsImapProtocol::FetchMsgAttribute(const nsCString &messageIds, const nsCStr
     commandString.Append(messageIds);
     commandString.Append(" (");
     commandString.Append(attribute);
-    commandString.Append(")"CRLF);
+    commandString.Append(")" CRLF);
     nsresult rv = SendData(commandString.get());
 
     if (NS_SUCCEEDED(rv))
@@ -5285,7 +5285,7 @@ nsImapProtocol::Expunge()
 
   IncrementCommandTagNumber();
   nsCAutoString command(GetServerCommandTag());
-  command.Append(" expunge"CRLF);
+  command.Append(" expunge" CRLF);
 
   nsresult rv = SendData(command.get());
   if (NS_SUCCEEDED(rv))
@@ -5361,7 +5361,7 @@ void nsImapProtocol::ID()
   command.Append(gAppName);
   command.Append("\" \"version\" \"");
   command.Append(gAppVersion);
-  command.Append("\")"CRLF);
+  command.Append("\")" CRLF);
 
   nsresult rv = SendData(command.get());
   if (NS_SUCCEEDED(rv))
@@ -5818,7 +5818,7 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const nsCString &passwo
     nsCAutoString correctedPassword;
     EscapeUserNamePasswordString(password.get(), &correctedPassword);
     command.Append(correctedPassword);
-    command.Append("\""CRLF);
+    command.Append("\"" CRLF);
     rv = SendData(command.get(), true /* suppress logging */);
     NS_ENSURE_SUCCESS(rv, rv);
     ParseIMAPandCheckForNewMail();
@@ -7458,7 +7458,7 @@ void nsImapProtocol::CreateMailbox(const char *mailboxName)
   nsCString command(GetServerCommandTag());
   command += " create \"";
   command += escapedName;
-  command += "\""CRLF;
+  command += "\"" CRLF;
 
   nsresult rv = SendData(command.get());
   if(NS_SUCCEEDED(rv))
@@ -7561,7 +7561,7 @@ void nsImapProtocol::Lsub(const char *mailboxPattern, bool addDirectoryIfNecessa
   nsCString command (GetServerCommandTag());
   command += " lsub \"\" \"";
   command += escapedPattern;
-  command += "\""CRLF;
+  command += "\"" CRLF;
 
   PR_Free(boxnameWithOnlineDirectory);
 
@@ -7590,7 +7590,7 @@ void nsImapProtocol::List(const char *mailboxPattern, bool addDirectoryIfNecessa
   command += useXLIST ?
     " xlist \"\" \"" : " list \"\" \"";
   command += escapedPattern;
-  command += "\""CRLF;
+  command += "\"" CRLF;
 
   PR_Free(boxnameWithOnlineDirectory);
 
@@ -7611,7 +7611,7 @@ void nsImapProtocol::Subscribe(const char *mailboxName)
   nsCString command (GetServerCommandTag());
   command += " subscribe \"";
   command += escapedName;
-  command += "\""CRLF;
+  command += "\"" CRLF;
 
   nsresult rv = SendData(command.get());
   if (NS_SUCCEEDED(rv))
@@ -7629,7 +7629,7 @@ void nsImapProtocol::Unsubscribe(const char *mailboxName)
   nsCString command (GetServerCommandTag());
   command += " unsubscribe \"";
   command += escapedName;
-  command += "\""CRLF;
+  command += "\"" CRLF;
 
   nsresult rv = SendData(command.get());
   if (NS_SUCCEEDED(rv))
@@ -7643,7 +7643,7 @@ void nsImapProtocol::Idle()
   if (m_urlInProgress)
     return;
   nsCAutoString command (GetServerCommandTag());
-  command += " IDLE"CRLF;
+  command += " IDLE" CRLF;
   nsresult rv = SendData(command.get());
   if (NS_SUCCEEDED(rv))
   {
@@ -7670,7 +7670,7 @@ void nsImapProtocol::EndIdle(bool waitForResponse /* = true */)
   nsCOMPtr <nsIAsyncInputStream> asyncInputStream = do_QueryInterface(m_inputStream);
   if (asyncInputStream)
     asyncInputStream->AsyncWait(nsnull, 0, 0, nsnull);
-  nsresult rv = SendData("DONE"CRLF);
+  nsresult rv = SendData("DONE" CRLF);
   // set a short timeout if we don't want to wait for a response
   if (m_transport && !waitForResponse)
     m_transport->SetTimeout(nsISocketTransport::TIMEOUT_READ_WRITE, 5);
@@ -7739,8 +7739,8 @@ void nsImapProtocol::Copy(const char * messageList,
   PRUint32 msgsHandled = 0;
   const char *formatString;
   formatString = (idsAreUid)
-      ? "%s uid store %s %s"CRLF
-      : "%s store %s %s"CRLF;
+      ? "%s uid store %s %s" CRLF
+      : "%s store %s %s" CRLF;
 
   do
   {
