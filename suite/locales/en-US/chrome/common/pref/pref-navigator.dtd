@@ -24,7 +24,7 @@
 <!ENTITY restoreTabs.label              "Restore">
 <!ENTITY restoreTabs.accesskey          "s">
 <!ENTITY restoreTabsAtATime.label       "tab(s) at a time">
-<!ENTITY restoreDeferred.label          "Only restore tabs when I need then">
+<!ENTITY restoreDeferred.label          "Only restore tabs when I need them">
 <!ENTITY restoreDeferred.accesskey      "O">
 
 <!ENTITY homePageIntro.label            "Clicking the Home button takes you to this group of pages:">
