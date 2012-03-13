@@ -54,8 +54,6 @@ let bs = Cc["@mozilla.org/browser/nav-bookmarks-service;1"].
          getService(Ci.nsINavBookmarksService);
 
 // Get other services.
-let ps = Cc["@mozilla.org/preferences-service;1"].
-         getService(Ci.nsIPrefBranch);
 let os = Cc["@mozilla.org/observer-service;1"].
          getService(Ci.nsIObserverService);
 
@@ -74,7 +72,7 @@ tests.push({
     do_check_eq(bs.getIdForItemAt(bs.toolbarFolder, 0), -1);
 
     // Set preferences.
-    ps.setBoolPref(PREF_IMPORT_BOOKMARKS_HTML, true);
+    Services.prefs.setBoolPref(PREF_IMPORT_BOOKMARKS_HTML, true);
 
     // Force nsSuiteGlue::_initPlaces().
     print("Simulate Places init");
@@ -87,7 +85,7 @@ tests.push({
                                    SMART_BOOKMARKS_ON_TOOLBAR);
     do_check_eq(bs.getItemTitle(itemId), "example");
     // Check preferences have been reverted.
-    do_check_false(ps.getBoolPref(PREF_IMPORT_BOOKMARKS_HTML));
+    do_check_false(Services.prefs.getBoolPref(PREF_IMPORT_BOOKMARKS_HTML));
 
     next_test();
   }
@@ -102,8 +100,8 @@ tests.push({
     do_check_eq(bs.getIdForItemAt(bs.toolbarFolder, 0), -1);
 
     // Set preferences.
-    ps.setIntPref(PREF_SMART_BOOKMARKS_VERSION, -1);
-    ps.setBoolPref(PREF_IMPORT_BOOKMARKS_HTML, true);
+    Services.prefs.setIntPref(PREF_SMART_BOOKMARKS_VERSION, -1);
+    Services.prefs.setBoolPref(PREF_IMPORT_BOOKMARKS_HTML, true);
 
     // Force nsSuiteGlue::_initPlaces().
     print("Simulate Places init");
@@ -115,7 +113,7 @@ tests.push({
     let itemId = bs.getIdForItemAt(bs.toolbarFolder, 0);
     do_check_eq(bs.getItemTitle(itemId), "example");
     // Check preferences have been reverted.
-    do_check_false(ps.getBoolPref(PREF_IMPORT_BOOKMARKS_HTML));
+    do_check_false(Services.prefs.getBoolPref(PREF_IMPORT_BOOKMARKS_HTML));
 
     next_test();
   }
@@ -129,9 +127,9 @@ tests.push({
     // Sanity check: we should not have any bookmark on the toolbar.
     do_check_eq(bs.getIdForItemAt(bs.toolbarFolder, 0), -1);
     // Set preferences.
-    ps.setIntPref(PREF_SMART_BOOKMARKS_VERSION, 999);
-    ps.setBoolPref(PREF_AUTO_EXPORT_HTML, true);
-    ps.setBoolPref(PREF_IMPORT_BOOKMARKS_HTML, true);
+    Services.prefs.setIntPref(PREF_SMART_BOOKMARKS_VERSION, 999);
+    Services.prefs.setBoolPref(PREF_AUTO_EXPORT_HTML, true);
+    Services.prefs.setBoolPref(PREF_IMPORT_BOOKMARKS_HTML, true);
 
     // Force nsSuiteGlue::_initPlaces()
     print("Simulate Places init");
@@ -142,9 +140,9 @@ tests.push({
     // been created.
     let itemId = bs.getIdForItemAt(bs.toolbarFolder, 0);
     do_check_eq(bs.getItemTitle(itemId), "example");
-    do_check_false(ps.getBoolPref(PREF_IMPORT_BOOKMARKS_HTML));
+    do_check_false(Services.prefs.getBoolPref(PREF_IMPORT_BOOKMARKS_HTML));
     // Check preferences have been reverted.
-    ps.setBoolPref(PREF_AUTO_EXPORT_HTML, false);
+    Services.prefs.setBoolPref(PREF_AUTO_EXPORT_HTML, false);
 
     next_test();
   }
@@ -158,9 +156,9 @@ tests.push({
     // Sanity check: we should not have any bookmark on the toolbar.
     do_check_eq(bs.getIdForItemAt(bs.toolbarFolder, 0), -1);
     // Set preferences.
-    ps.setIntPref(PREF_SMART_BOOKMARKS_VERSION, 0);
-    ps.setBoolPref(PREF_AUTO_EXPORT_HTML, true);
-    ps.setBoolPref(PREF_IMPORT_BOOKMARKS_HTML, true);
+    Services.prefs.setIntPref(PREF_SMART_BOOKMARKS_VERSION, 0);
+    Services.prefs.setBoolPref(PREF_AUTO_EXPORT_HTML, true);
+    Services.prefs.setBoolPref(PREF_IMPORT_BOOKMARKS_HTML, true);
 
     // Force nsSuiteGlue::_initPlaces()
     print("Simulate Places init");
@@ -171,9 +169,9 @@ tests.push({
     // been created.
     let itemId = bs.getIdForItemAt(bs.toolbarFolder, SMART_BOOKMARKS_ON_TOOLBAR);
     do_check_eq(bs.getItemTitle(itemId), "example");
-    do_check_false(ps.getBoolPref(PREF_IMPORT_BOOKMARKS_HTML));
+    do_check_false(Services.prefs.getBoolPref(PREF_IMPORT_BOOKMARKS_HTML));
     // Check preferences have been reverted.
-    ps.setBoolPref(PREF_AUTO_EXPORT_HTML, false);
+    Services.prefs.setBoolPref(PREF_AUTO_EXPORT_HTML, false);
 
     next_test();
   }
@@ -186,7 +184,7 @@ tests.push({
     // Sanity check: we should not have any bookmark on the toolbar.
     do_check_eq(bs.getIdForItemAt(bs.toolbarFolder, 0), -1);
     // Set preferences.
-    ps.setBoolPref(PREF_RESTORE_DEFAULT_BOOKMARKS, true);
+    Services.prefs.setBoolPref(PREF_RESTORE_DEFAULT_BOOKMARKS, true);
 
     // Force nsSuiteGlue::_initPlaces()
     print("Simulate Places init");
@@ -197,7 +195,7 @@ tests.push({
     let itemId = bs.getIdForItemAt(bs.toolbarFolder, SMART_BOOKMARKS_ON_TOOLBAR + 1);
     do_check_true(itemId > 0);
     // Check preferences have been reverted.
-    do_check_false(ps.getBoolPref(PREF_RESTORE_DEFAULT_BOOKMARKS));
+    do_check_false(Services.prefs.getBoolPref(PREF_RESTORE_DEFAULT_BOOKMARKS));
 
     next_test();
   }
@@ -211,8 +209,8 @@ tests.push({
     // Sanity check: we should not have any bookmark on the toolbar.
     do_check_eq(bs.getIdForItemAt(bs.toolbarFolder, 0), -1);
     // Set preferences.
-    ps.setBoolPref(PREF_IMPORT_BOOKMARKS_HTML, true);
-    ps.setBoolPref(PREF_RESTORE_DEFAULT_BOOKMARKS, true);
+    Services.prefs.setBoolPref(PREF_IMPORT_BOOKMARKS_HTML, true);
+    Services.prefs.setBoolPref(PREF_RESTORE_DEFAULT_BOOKMARKS, true);
 
     // Force nsSuiteGlue::_initPlaces()
     print("Simulate Places init");
@@ -223,8 +221,8 @@ tests.push({
     let itemId = bs.getIdForItemAt(bs.toolbarFolder, SMART_BOOKMARKS_ON_TOOLBAR + 1);
     do_check_true(itemId > 0);
     // Check preferences have been reverted.
-    do_check_false(ps.getBoolPref(PREF_RESTORE_DEFAULT_BOOKMARKS));
-    do_check_false(ps.getBoolPref(PREF_IMPORT_BOOKMARKS_HTML));
+    do_check_false(Services.prefs.getBoolPref(PREF_RESTORE_DEFAULT_BOOKMARKS));
+    do_check_false(Services.prefs.getBoolPref(PREF_IMPORT_BOOKMARKS_HTML));
 
     do_test_finished();
   }
@@ -270,13 +268,13 @@ function start_tests() {
   remove_all_bookmarks();
 
   // Ensure preferences status.
-  do_check_false(ps.getBoolPref(PREF_AUTO_EXPORT_HTML));
+  do_check_false(Services.prefs.getBoolPref(PREF_AUTO_EXPORT_HTML));
   try {
-    do_check_false(ps.getBoolPref(PREF_IMPORT_BOOKMARKS_HTML));
+    do_check_false(Services.prefs.getBoolPref(PREF_IMPORT_BOOKMARKS_HTML));
     do_throw("importBookmarksHTML pref should not exist");
   }
   catch(ex) {}
-  do_check_false(ps.getBoolPref(PREF_RESTORE_DEFAULT_BOOKMARKS));
+  do_check_false(Services.prefs.getBoolPref(PREF_RESTORE_DEFAULT_BOOKMARKS));
 
   // Create our bookmarks.html from bookmarks.glue.html.
   create_bookmarks_html("bookmarks.glue.html");
