@@ -61,8 +61,8 @@ nsYouSendIt.prototype = {
   _lastErrorText : "",
   _uploadingFile : null,
   _uploader : null,
-  _urlsForFiles : [],
-  _uploadInfo : [],
+  _urlsForFiles : {},
+  _uploadInfo : {},
   _uploads: [],
 
   /**
@@ -303,7 +303,7 @@ nsYouSendIt.prototype = {
    * @param aFile the nsILocalFile to get the URL for.
    */
   urlForFile: function nsYouSendIt_urlForFile(aFile) {
-    return this._urlsForFiles[aFile];
+    return this._urlsForFiles[aFile.path];
   },
 
   /**
@@ -881,7 +881,7 @@ nsYouSendItFileUploader.prototype = {
       let uploadInfo = JSON.parse(response);
 
       if (uploadInfo.downloadUrl != null) {
-        this.youSendIt._urlsForFiles[this.file] = uploadInfo.downloadUrl;
+        this.youSendIt._urlsForFiles[this.file.path] = uploadInfo.downloadUrl;
         // Success!
         this.callback(this.requestObserver, Cr.NS_OK);
         return;

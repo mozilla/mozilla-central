@@ -80,8 +80,8 @@ nsDropbox.prototype = {
   _availableStorage : -1,
   _fileSpaceUsed : -1,
   _uploads: [],
-  _urlsForFiles : [],
-  _uploadInfo : [], // upload info keyed on aFiles.
+  _urlsForFiles : {},
+  _uploadInfo : {}, // upload info keyed on aFiles.
 
   /**
    * Initialize this instance of nsDropbox, setting the accountKey.
@@ -289,7 +289,7 @@ nsDropbox.prototype = {
    * @param aFile the nsILocalFile to retrieve the URL for
    */
   urlForFile: function nsDropbox_urlForFile(aFile) {
-    return this._urlsForFiles[aFile];
+    return this._urlsForFiles[aFile.path];
   },
 
   /**
@@ -575,7 +575,7 @@ nsDropboxFileUploader.prototype = {
         this.log.info("Getting share URL successful with response text: "
                       + aResponseText);
         let shareInfo = JSON.parse(aResponseText);
-        this.dropbox._urlsForFiles[this.file] = shareInfo.url;
+        this.dropbox._urlsForFiles[this.file.path] = shareInfo.url;
         aCallback(this.requestObserver, Cr.NS_OK);
       }.bind(this),
       function(aException, aResponseText, aRequest) {
