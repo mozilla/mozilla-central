@@ -659,9 +659,9 @@ var gDomains = {
     // compare function for two domain items
     let compfunc = function domain_sort_compare(aOne, aTwo) {
       // Make sure "*" is always first.
-      if (aOne == "*")
+      if (aOne.displayTitle == "*")
         return -1;
-      if (aTwo == "*")
+      if (aTwo.displayTitle == "*")
         return 1;
       return aOne.displayTitle.localeCompare(aTwo.displayTitle);
     };
