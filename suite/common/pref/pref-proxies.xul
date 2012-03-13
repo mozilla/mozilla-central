@@ -175,7 +175,8 @@
               <textbox id="networkProxyNone"
                        multiline="true"
                        preference="network.proxy.no_proxies_on"
-                       class="uri-element"/>
+                       class="uri-element"
+                       onchange="UpdateProxies();"/>
             </row>
             <row>
               <spacer/>
