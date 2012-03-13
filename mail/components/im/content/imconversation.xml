@@ -252,11 +252,7 @@
                             .scanTXT(aMsg, 0);
 
         var account = this._conv.account;
-        if (account.noNewlines)
-          // 'Illegal operation on WrappedNative prototype object' if the this
-          // object is not specified (since nsIClassInfo was added to this._conv)
-          msg.split("\n").forEach(this._conv.sendMsg, this._conv);
-        else if (account.HTMLEnabled) {
+        if (account.HTMLEnabled) {
           msg = msg.replace(/\n/g, "<br/>");
           if (Services.prefs.getBoolPref("messenger.conversations.sendFormat")) {
             let style = MessageFormat.getMessageStyle();
@@ -312,8 +308,17 @@
           }
           this._conv.sendMsg(msg);
         }
-        else
-          this._conv.sendMsg(account.HTMLEscapePlainText ? msg : aMsg);
+        else {
+          msg = account.HTMLEscapePlainText ? msg : aMsg;
+
+          if (account.noNewlines) {
+            // 'Illegal operation on WrappedNative prototype object' if the this
+            // object is not specified (since this._conv implements nsIClassInfo)
+            msg.split("\n").forEach(this._conv.sendMsg, this._conv);
+          }
+          else
+            this._conv.sendMsg(msg);
+        }
         // reset the textbox to its original size
         this.resetInput();
       ]]>
