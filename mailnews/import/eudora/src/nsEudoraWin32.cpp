@@ -56,6 +56,7 @@
 #include "nsEudoraStringBundle.h"
 #include "nsEudoraImport.h"
 #include "nsUnicharUtils.h"
+#include "nsCRT.h"
 #include "nsNetUtil.h"
 #include "nsILineInputStream.h"
 #include "EudoraDebugLog.h"
