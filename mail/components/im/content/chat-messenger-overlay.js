@@ -170,7 +170,8 @@ var chatHandler = {
     if (unreadCount)
       title += " (" + unreadCount + ")";
     let selectedItem = document.getElementById("contactlistbox").selectedItem;
-    if (selectedItem && selectedItem.localName == "imconv")
+    if (selectedItem && selectedItem.localName == "imconv" &&
+        !selectedItem.hidden)
       title += " - " + selectedItem.getAttribute("displayname");
     gChatTab.title = title;
     document.getElementById("tabmail").setTabTitle(gChatTab);
@@ -336,7 +337,7 @@ var chatHandler = {
   },
   onListItemSelected: function() {
     let item = document.getElementById("contactlistbox").selectedItem;
-    if (!item || item.localName == "imgroup") {
+    if (!item || item.hidden || item.localName == "imgroup") {
       this._hideContextPane(true);
       document.getElementById("conversationsDeck").selectedPanel =
         document.getElementById("noConvScreen");
