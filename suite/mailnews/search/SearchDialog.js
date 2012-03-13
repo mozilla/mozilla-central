@@ -277,7 +277,11 @@ function searchOnLoad()
   setupSearchListener();
 
   if (window.arguments && window.arguments[0])
-      selectFolder(window.arguments[0].folder);
+  {
+    var winArgFolder = window.arguments[0].folder;
+    selectFolder(winArgFolder);
+    UpdateSubFolder(winArgFolder);
+  }
 
   onMore(null);
   UpdateMailSearch("onload");
@@ -367,7 +371,7 @@ function selectFolder(folder)
 function updateSearchFolderPicker(folderURI) 
 { 
     SetFolderPicker(folderURI, gFolderPicker.id);
-
+    UpdateSubFolder(folderURI);
     // use the URI to get the real folder
     gMsgFolderSelected = GetMsgFolderFromUri(folderURI);
 
@@ -785,4 +789,10 @@ function saveAsVirtualFolder()
 function OnTagsChange()
 {
   // Dummy, called by RemoveAllMessageTags and ToggleMessageTag
+}
+
+function UpdateSubFolder(aFolderSelect)
+{
+  var folder = GetMsgFolderFromUri(aFolderSelect, true);
+  document.getElementById("checkSearchSubFolders").disabled = (!folder || !folder.hasSubFolders);
 }
