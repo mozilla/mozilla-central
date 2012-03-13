@@ -222,6 +222,61 @@ function calendarDefaultTimezone() {
 }
 
 /**
+ * Makes sure the given timezone id is part of the list of recent timezones.
+ *
+ * @param aTzid     The timezone id to add
+ */
+function saveRecentTimezone(aTzid) {
+    let recentTimezones = getRecentTimezones();
+    const MAX_RECENT_TIMEZONES = 5; // We don't need a pref for *everything*.
+
+    if (aTzid != calendarDefaultTimezone().tzid &&
+        recentTimezones.indexOf(aTzid) < 0) {
+        // Add the timezone if its not already the default timezone
+        recentTimezones.unshift(aTzid);
+        recentTimezones.splice(MAX_RECENT_TIMEZONES);
+        cal.setPref("calendar.timezone.recent", JSON.stringify(recentTimezones));
+    }
+}
+
+/**
+ * Gets the list of recent timezones. Optionally retuns the list as
+ * calITimezones.
+ *
+ * @param aConvertZones     (optional) If true, return calITimezones instead
+ * @return                  An array of timezone ids or calITimezones.
+ */
+function getRecentTimezones(aConvertZones) {
+    let recentTimezones = JSON.parse(cal.getPrefSafe("calendar.timezone.recent", "[]") || "[]");
+    if (!Array.isArray(recentTimezones)) {
+        recentTimezones = [];
+    }
+
+    let tzService = cal.getTimezoneService();
+    if (aConvertZones) {
+        let oldZonesLength = recentTimezones.length;
+        for (let i = 0; i < recentTimezones.length; i++) {
+            let tz = tzService.getTimezone(recentTimezones[i]);
+            if (!tz) {
+                // Looks like the timezone doesn't longer exist, remove it
+                recentTimezones.splice(i, 1);
+                i--;
+            } else {
+                // Replace id with found timezone
+                recentTimezones[i] = tz;
+            }
+        }
+
+        if (oldZonesLength != recentTimezones.length) {
+            // Looks like the one or other timezone dropped out. Go ahead and
+            // modify the pref.
+            cal.setPref("calendar.timezone.recent", JSON.stringify(recentTimezones));
+        }
+    }
+    return recentTimezones;
+}
+
+/**
  * Format the given string to work inside a CSS rule selector
  * (and as part of a non-unicode preference key).
  *

@@ -131,6 +131,9 @@ pref("calendar.view.mousescroll", true);
 // Do not set this!  If it's not there, then we guess the system timezone
 //pref("calendar.timezone.local", "");
 
+// Recent timezone list
+pref("calendar.timezone.recent", "[]");
+
 // categories settings
 // XXX One day we might want to move this to a locale specific file
 //     and include a list of locale specific default categories

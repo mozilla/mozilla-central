@@ -463,8 +463,8 @@
                             accesskey="&event.menu.options.attachments.accesskey;"
                             command="cmd_attach_url"/>
                   <menuitem id="options-timezone-menuitem"
-                            label="&event.menu.options.timezone.label;"
-                            accesskey="&event.menu.options.timezone.accesskey;"
+                            label="&event.menu.options.timezone2.label;"
+                            accesskey="&event.menu.options.timezone2.accesskey;"
                             checked="false"
                             type="checkbox"
                             persist="checked"
@@ -787,7 +787,7 @@
                                disable-on-readonly="true"
                                flex="1"
                                hyperlink="true"
-                               onclick="editStartTimezone()"/>
+                               onclick="showTimezonePopup(event, gStartTime.getInTimezone(gStartTimezone), editStartTimezone)"/>
                     </hbox>
                 </hbox>
             </row>
@@ -832,7 +832,7 @@
                                    disable-on-readonly="true"
                                    flex="1"
                                    hyperlink="true"
-                                   onclick="editEndTimezone()"/>
+                                   onclick="showTimezonePopup(event, gEndTime.getInTimezone(gEndTimezone), editEndTimezone)"/>
                         </hbox>
                     </hbox>
                 </vbox>
@@ -1190,6 +1190,14 @@
                       label="&event.attachments.popup.attachPage.label;"
                       accesskey="&event.attachments.popup.attachPage.accesskey;"
                       command="cmd_attach_url"/>
+      </menupopup>
+      <menupopup id="timezone-popup" position="after_start" oncommand="chooseRecentTimezone(event)">
+        <menuitem id="timezone-popup-defaulttz"/>
+        <menuseparator id="timezone-popup-menuseparator"/>
+        <menuitem id="timezone-custom-menuitem"
+                  label="&event.timezone.custom.label;"
+                  value="custom"
+                  oncommand="this.parentNode.editTimezone()"/>
       </menupopup>
     </popupset>
 </dialog>

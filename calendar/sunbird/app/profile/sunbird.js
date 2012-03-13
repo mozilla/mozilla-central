@@ -64,6 +64,9 @@ pref("calendar.event.defaultlength", 60);
 // Do NOT set this.  If it is unset, we guess the timezone from the system
 //pref("calendar.timezone.local", "America/New_York);
 
+// Recent timezone list
+pref("calendar.timezone.recent", "[]");
+
 // start and end work hour for day and week views
 pref("calendar.view.daystarthour", 8);
 pref("calendar.view.dayendhour", 17);
