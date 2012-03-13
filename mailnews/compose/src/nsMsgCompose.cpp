@@ -114,6 +114,7 @@
 #include "nsIMsgWindow.h"
 #include "nsITextToSubURI.h"
 #include "nsIAbManager.h"
+#include "nsCRT.h"
 #include "mozilla/Services.h"
 
 static void GetReplyHeaderInfo(PRInt32* reply_header_type,

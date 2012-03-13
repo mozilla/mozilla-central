@@ -67,6 +67,7 @@
 #include "EudoraDebugLog.h"
 
 #include "nsMimeTypes.h"
+#include "nsCRT.h"
 #include "nsNetUtil.h"
 #include "nsAutoPtr.h"
 #include "nsIMutableArray.h"

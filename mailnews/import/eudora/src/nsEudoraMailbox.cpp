@@ -48,6 +48,7 @@
 #include "nsMsgLocalFolderHdrs.h"
 
 #include "nsMsgUtils.h"
+#include "nsCRT.h"
 #include "nsNetUtil.h"
 #include "EudoraDebugLog.h"
 #include "nsISeekableStream.h"
