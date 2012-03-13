@@ -58,7 +58,7 @@
 #include "nsIMsgAccountManager.h"
 
 #include "nsNetCID.h"
-
+#include "nsCRT.h"
 #include "nsOutlookCompose.h"
 
 #include "OutlookDebugLog.h"

@@ -41,6 +41,7 @@
 #include "msgCore.h"
 #include "prprf.h"
 #include "nsMsgLocalFolderHdrs.h"
+#include "nsCRT.h"
 #include "nsNetUtil.h"
 #include "nsISeekableStream.h"
 #include "nsMsgUtils.h"

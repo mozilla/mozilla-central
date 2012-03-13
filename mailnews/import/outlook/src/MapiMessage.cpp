@@ -60,7 +60,7 @@
 #include <algorithm>
 #include "nsMsgI18N.h"
 #include "nsICharsetConverterManager.h"
-
+#include "nsCRT.h"
 #include "nsNetUtil.h"
 #include "MapiMessage.h"
 
