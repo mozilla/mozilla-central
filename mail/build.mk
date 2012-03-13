@@ -71,8 +71,10 @@ tier_app_dirs += calendar/lightning
 endif
 
 tier_app_dirs += \
+	chat \
 	mail \
 	$(NULL)
+#	purple instantbird
 
 installer:
 	@$(MAKE) -C mail/installer installer

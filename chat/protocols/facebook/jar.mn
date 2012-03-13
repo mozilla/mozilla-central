@@ -1,0 +1,5 @@
+chat.jar:
+% skin prpl-facebook classic/1.0 %skin/classic/prpl/facebook/
+	skin/classic/prpl/facebook/icon32.png	(icons/prpl-facebook-32.png)
+	skin/classic/prpl/facebook/icon48.png	(icons/prpl-facebook-48.png)
+	skin/classic/prpl/facebook/icon.png	(icons/prpl-facebook.png)

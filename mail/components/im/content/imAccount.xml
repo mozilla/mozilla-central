@@ -1,0 +1,366 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is the Instantbird messenging client, released
+   - 2007.
+   -
+   - The Initial Developer of the Original Code is
+   - Florian QUEZE <florian@instantbird.org>.
+   - Portions created by the Initial Developer are Copyright (C) 2007
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Romain Bezut <romain@bezut.info>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+
+<!DOCTYPE bindings [
+  <!ENTITY % accountsDTD SYSTEM "chrome://messenger/locale/imAccounts.dtd">
+  %accountsDTD;
+]>
+
+<bindings id="accountBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="account" extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
+    <content>
+      <xul:vbox flex="1">
+        <xul:hbox flex="1" align="top">
+          <xul:vbox>
+            <xul:stack xbl:inherits="tooltiptext=protocol">
+              <xul:image xbl:inherits="src=prplicon" class="accountIcon"/>
+              <xul:image class="accountStateIcon"/>
+            </xul:stack>
+            <xul:spacer flex="1"/>
+          </xul:vbox>
+          <xul:vbox flex="1">
+           <xul:label xbl:inherits="value=name" crop="end" class="accountName"/>
+           <xul:label class="connecting" crop="end" anonid="connecting" value="&account.connecting;"/>
+           <xul:label class="connected" crop="end" anonid="connected"/>
+           <xul:label class="disconnecting" crop="end" value="&account.disconnecting;"/>
+           <xul:label class="disconnected" crop="end" value="&account.disconnected;"/>
+           <xul:description class="error" anonid="error"/>
+           <xul:description class="error" anonid="reconnect"/>
+           <xul:spacer flex="1"/>
+          </xul:vbox>
+          <xul:checkbox label="&account.autoSignOn.label;" dir="reverse"
+                        xbl:inherits="checked=autologin" class="autoSignOn"
+                        accesskey="&account.autoSignOn.accesskey;"
+                        oncommand="gAccountManager.autologin()"/>
+        </xul:hbox>
+        <xul:hbox flex="1" class="account-buttons" anonid="buttons"
+                  xbl:inherits="autologin"/>
+      </xul:vbox>
+    </content>
+    <implementation>
+     <method name="build">
+      <parameter name="aAccount"/>
+      <body>
+      <![CDATA[
+        this._account = aAccount;
+        this.setAttribute("name", aAccount.name);
+        this.setAttribute("id", aAccount.id);
+        var proto = aAccount.protocol;
+        this.setAttribute("protocol", proto.name);
+        this.setAttribute("prplicon", proto.iconBaseURI + "icon32.png");
+        var state = "Unknown";
+        if (this._account.connected) {
+          state = "connected";
+          this.refreshConnectedLabel();
+        } else if (this._account.disconnected) {
+          state = "disconnected";
+          if (this._account.connectionErrorReason != Ci.prplIAccount.NO_ERROR)
+            this.updateConnectionError();
+          else
+            this.removeAttribute("error");
+        } else if (this._account.connecting) {
+          state = "connecting";
+          this.updateConnectionState();
+        } else if (this._account.disconnecting) {
+          state = "connected";
+        }
+        this.setAttribute("state", state);
+        this.autoLogin = aAccount.autoLogin;
+      ]]>
+      </body>
+     </method>
+
+     <method name="updateConnectionState">
+      <body>
+      <![CDATA[
+        var bundle = document.getElementById("accountsBundle");
+        const key = "account.connection.progress";
+        var text = this._account.connectionStateMsg;
+        text = text ? bundle.getFormattedString(key, [text])
+                    : bundle.getString("account.connecting");
+
+        var progress = document.getAnonymousElementByAttribute(this, "anonid",
+                                                               "connecting");
+        progress.setAttribute("value", text);
+        if (this.reconnectUpdateInterval)
+          this._cancelReconnectTimer();
+      ]]>
+      </body>
+     </method>
+
+     <method name="updateConnectionError">
+      <body>
+      <![CDATA[
+        var bundle = document.getElementById("accountsBundle");
+        const key = "account.connection.error";
+        var account = this._account;
+        var text;
+        let errorReason = account.connectionErrorReason;
+        if (errorReason == Ci.imIAccount.ERROR_UNKNOWN_PRPL)
+          text = bundle.getFormattedString(key + "UnknownPrpl",
+                                           [account.protocol.id]);
+        else if (errorReason == Ci.imIAccount.ERROR_MISSING_PASSWORD)
+          text = bundle.getString(key + "EnteringPasswordRequired");
+        else if (errorReason == Ci.imIAccount.ERROR_CRASHED)
+          text = bundle.getString(key + "CrashedAccount");
+        else
+          text = account.connectionErrorMessage;
+
+        if (errorReason != Ci.imIAccount.ERROR_MISSING_PASSWORD)
+          text = bundle.getFormattedString(key, [text]);
+
+        this.setAttribute("error", "true");
+        var error = document.getAnonymousElementByAttribute(this, "anonid",
+                                                            "error");
+        error.textContent = text;
+
+        var updateReconnect = (function() {
+          var date = Math.round((account.timeOfNextReconnect - Date.now()) / 1000);
+          let reconnect = "";
+          if (date > 0) {
+            let [val1, unit1, val2, unit2] = DownloadUtils.convertTimeUnits(date);
+            if (!val2)
+              reconnect = bundle.getFormattedString("account.reconnectInSingle",
+                                                    [val1, unit1])
+            else
+              reconnect = bundle.getFormattedString("account.reconnectInDouble",
+                                                    [val1, unit1, val2, unit2])
+          }
+          document.getAnonymousElementByAttribute(this, "anonid", "reconnect")
+                  .textContent = reconnect;
+          return reconnect;
+        }).bind(this);
+        if (updateReconnect() && !this.reconnectUpdateInterval) {
+          this.setAttribute("reconnectPending", "true");
+          this.reconnectUpdateInterval = setInterval(updateReconnect, 1000);
+          gAccountManager.disableCommandItems();
+        }
+      ]]>
+      </body>
+     </method>
+
+     <method name="refreshConnectedLabel">
+       <body>
+       <![CDATA[
+         var bundle = document.getElementById("accountsBundle");
+         var date =
+           60 * Math.floor((Date.now() - this._account.timeOfLastConnect) / 60000);
+         let value;
+         if (date > 0) {
+           let [val1, unit1, val2, unit2] = DownloadUtils.convertTimeUnits(date);
+           if (!val2)
+             value = bundle.getFormattedString("account.connectedForSingle",
+                                               [val1, unit1])
+           else
+             value = bundle.getFormattedString("account.connectedForDouble",
+                                               [val1, unit1, val2, unit2])
+         }
+         else
+           value = bundle.getString("account.connectedForSeconds");
+         this.connectedLabel.value = value;
+       ]]>
+       </body>
+     </method>
+
+     <method name="_cancelReconnectTimer">
+       <body>
+       <![CDATA[
+         this.removeAttribute("reconnectPending");
+         clearInterval(this.reconnectUpdateInterval);
+         delete this.reconnectUpdateInterval;
+         gAccountManager.disableCommandItems();
+       ]]>
+       </body>
+     </method>
+
+     <method name="cancelReconnection">
+       <body>
+       <![CDATA[
+         if (this.reconnectUpdateInterval) {
+           this._cancelReconnectTimer();
+           this._account.cancelReconnection();
+         }
+       ]]>
+       </body>
+     </method>
+
+     <method name="restoreItems">
+       <body>
+       <![CDATA[
+         // Called after a removal and reinsertion of the binding
+         this._buttons = null;
+         this._connectedLabel = null;
+         if (this._account.connected)
+           this.refreshConnectedLabel();
+         if (this._account.connectionErrorReason == Ci.prplIAccount.NO_ERROR)
+           this.updateConnectionState();
+         else
+           this.updateConnectionError();
+       ]]>
+       </body>
+     </method>
+
+     <method name="destroy">
+       <body>
+       <![CDATA[
+         // If we have a reconnect timer, stop it:
+         // it will throw errors otherwise (see bug 480).
+         // clearInterval is harmless if the timer doesn't exist.
+         clearInterval(this.reconnectUpdateInterval);
+         delete this.reconnectUpdateInterval;
+       ]]>
+       </body>
+     </method>
+
+     <property name="autoLogin">
+       <getter>
+         <![CDATA[
+           return this.hasAttribute("autologin");
+         ]]>
+       </getter>
+       <setter>
+         <![CDATA[
+           if (val)
+             this.setAttribute("autologin", "true");
+           else
+             this.removeAttribute("autologin");
+           if (this._account.autoLogin != val)
+             this._account.autoLogin = val;
+           return val;
+         ]]>
+       </setter>
+     </property>
+
+     <!-- override the default accessible name -->
+     <property name="label" onget="return this.getAttribute('name');"/>
+
+     <property name="account" onget="return this._account;"/>
+
+     <property name="connectedLabel">
+       <getter>
+         <![CDATA[
+           if (!this._connectedLabel)
+             this._connectedLabel =
+               document.getAnonymousElementByAttribute(this, "anonid", "connected");
+           return this._connectedLabel;
+         ]]>
+       </getter>
+     </property>
+
+     <property name="buttons">
+       <getter>
+         <![CDATA[
+           if (!this._buttons)
+             this._buttons =
+               document.getAnonymousElementByAttribute(this, "anonid", "buttons");
+           return this._buttons;
+         ]]>
+       </getter>
+     </property>
+
+    </implementation>
+    <handlers>
+      <handler event="dblclick">
+        <![CDATA[
+          if (event.button == 0) {
+            // If we double clicked on a widget that has already done
+            // something with the first click, we should ignore the event
+            var localName = event.originalTarget.localName;
+            if (localName != "button" && localName != "checkbox")
+              this.buttons.proceedDefaultAction();
+          }
+
+          // Prevent from loading an account wizzard
+          event.stopPropagation();
+        ]]>
+      </handler>
+    </handlers>
+  </binding>
+
+  <binding id="buttons" extends="xul:hbox">
+    <content>
+      <xul:button class="disconnectButton"
+                  command="cmd_disconnect"
+                  anonid="disconnect"/>
+      <xul:button class="connectButton"
+                  command="cmd_connect"
+                  anonid="connect"/>
+      <xul:spacer flex="1"/>
+      <xul:button command="cmd_edit"/>
+    </content>
+    <implementation>
+     <property name="activeButton" readonly="true">
+       <getter>
+       <![CDATA[
+         let action =
+           document.getBindingParent(this).account.disconnected ? "connect"
+                                                                : "disconnect";
+         return document.getAnonymousElementByAttribute(this, "anonid", action);
+       ]]>
+       </getter>
+     </property>
+
+     <method name="setFocus">
+      <body>
+      <![CDATA[
+        let focusTarget = this.activeButton;
+        if (focusTarget.disabled)
+          focusTarget = document.getElementById("accountlist");
+        focusTarget.focus();
+      ]]>
+      </body>
+     </method>
+
+     <method name="proceedDefaultAction">
+      <body>
+      <![CDATA[
+        this.activeButton.click();
+      ]]>
+      </body>
+     </method>
+    </implementation>
+  </binding>
+
+  <binding id="nobuttons" extends="xul:hbox"/>
+</bindings>

@@ -133,7 +133,7 @@ var MailMigrator = {
   _migrateUI: function MailMigrator__migrateUI() {
     // The code for this was ported from
     // mozilla/browser/components/nsBrowserGlue.js
-    const UI_VERSION = 3;
+    const UI_VERSION = 4;
     const MESSENGER_DOCURL = "chrome://messenger/content/messenger.xul#";
     const UI_VERSION_PREF = "mail.ui-rdf.version";
     let currentUIVersion = 0;
@@ -227,6 +227,34 @@ var MailMigrator = {
             } else {
               // If there's no gloda-search, just put the QFB toggle at the end
               currentSet = currentSet + ",qfb-show-filter-bar";
+            }
+            this._setPersist(barResource, currentSetResource, currentSet);
+          }
+        }
+      }
+
+      // In UI version 4, we add the chat button to the mail toolbar.
+      if (currentUIVersion < 4) {
+        let currentSetResource = this._rdf.GetResource("currentset");
+        let barResource = this._rdf.GetResource(MESSENGER_DOCURL + "mail-bar3");
+        if (barResource !== null) {
+          let currentSet = this._getPersist(barResource, currentSetResource);
+
+          if (currentSet
+              && currentSet.indexOf("button-chat") == -1) {
+
+            dirty = true;
+            if (currentSet.indexOf("button-newmsg") != -1) {
+              // Put the chat button after the newmsg button.
+              currentSet = currentSet.replace(/(^|,)button-newmsg($|,)/,
+                                              "$1button-newmsg,button-chat$2");
+            } else if (currentSet.indexOf("button-address") != -1) {
+              // If there's no newmsg button, put the chat button before the address book button.
+              currentSet = currentSet.replace(/(^|,)button-address($|,)/,
+                                              "$1button-chat,button-address$2");
+            } else {
+              // Otherwise, just put the chat button at the end.
+              currentSet = currentSet + ",button-chat";
             }
             this._setPersist(barResource, currentSetResource, currentSet);
           }

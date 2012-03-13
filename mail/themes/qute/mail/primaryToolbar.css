@@ -376,6 +376,19 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-image-region: rect(48px 480px 72px 456px) !important;
 }
 
+#button-chat {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 528px 24px 504px);
+}
+
+#button-chat:hover {
+  -moz-image-region: rect(24px 528px 48px 504px);
+}
+
+#button-chat[disabled] {
+  -moz-image-region: rect(48px 528px 72px 504px) !important;
+}
+
 /* ::::: small primary toolbar buttons ::::: */
 
 toolbar[iconsize="small"] #button-getmsg {
@@ -673,6 +686,19 @@ toolbar[iconsize="small"] #button-archive:hover {
 
 toolbar[iconsize="small"] #button-archive[disabled] {
   -moz-image-region: rect(32px 320px 48px 304px) !important;
+}
+
+toolbar[iconsize="small"] #button-chat {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 352px 16px 336px);
+}
+
+toolbar[iconsize="small"] #button-chat:hover {
+  -moz-image-region: rect(16px 352px 32px 336px);
+}
+
+toolbar[iconsize="small"] #button-chat[disabled] {
+  -moz-image-region: rect(32px 352px 48px 336px) !important;
 }
 
 /* ::::: end small primary toolbar buttons ::::: */

@@ -244,6 +244,45 @@
 @BINPATH@/components/msgsmime.xpt
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; instant messaging
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; shared with Instantbird
+@BINPATH@/@PREF_DIR@/chat-prefs.js
+@BINPATH@/chrome/chat@JAREXT@
+@BINPATH@/chrome/chat.manifest
+@BINPATH@/components/chat.xpt
+@BINPATH@/components/imAccounts.js
+@BINPATH@/components/imAccounts.manifest
+@BINPATH@/components/imCommands.js
+@BINPATH@/components/imCommands.manifest
+@BINPATH@/components/imContacts.js
+@BINPATH@/components/imContacts.manifest
+@BINPATH@/components/imConversations.js
+@BINPATH@/components/imConversations.manifest
+@BINPATH@/components/imCore.js
+@BINPATH@/components/imCore.manifest
+@BINPATH@/components/facebook.js
+@BINPATH@/components/facebook.manifest
+@BINPATH@/components/gtalk.js
+@BINPATH@/components/gtalk.manifest
+@BINPATH@/components/twitter.js
+@BINPATH@/components/twitter.manifest
+@BINPATH@/components/irc.js
+@BINPATH@/components/irc.manifest
+@BINPATH@/components/xmpp.js
+@BINPATH@/components/xmpp.manifest
+@BINPATH@/components/smileProtocolHandler.js
+@BINPATH@/components/smileProtocolHandler.manifest
+@BINPATH@/components/logger.js
+@BINPATH@/components/logger.manifest
+
+; Thunderbird specific
+@BINPATH@/@PREF_DIR@/all-im.js
+@BINPATH@/components/im.manifest
+@BINPATH@/components/imIncomingServer.js
+@BINPATH@/components/imProtocolInfo.js
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Chrome Files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

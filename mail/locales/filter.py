@@ -1,8 +1,8 @@
 def test(mod, path, entity = None):
   import re
-  # ignore anyhting but Thunderbird
+  # ignore anything but Thunderbird
   if mod not in ("netwerk", "dom", "toolkit", "security/manager",
-                 "mail", "editor/ui", "extensions/spellcheck",
+                 "mail", "chat", "editor/ui", "extensions/spellcheck",
                  "other-licenses/branding/thunderbird"):
     return False
 

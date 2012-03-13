@@ -1,0 +1,179 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is the Instantbird messenging client, released
+ * 2007.
+ *
+ * The Initial Developer of the Original Code is
+ * Florian QUEZE <florian@instantbird.org>.
+ * Portions created by the Initial Developer are Copyright (C) 2007
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+
+#include "nsISupports.idl"
+#include "nsISimpleEnumerator.idl"
+#include "nsIObserver.idl"
+
+interface imIAccountBuddy;
+interface imIAccount;
+interface nsIURI;
+interface nsIDOMDocument;
+
+/*
+ * This is the XPCOM purple conversation component, a proxy for PurpleConversation.
+ */
+
+[scriptable, uuid(74fca337-b8e7-4e5d-81cd-8aba3dba9208)]
+interface prplIConversation: nsISupports {
+
+  /* Indicate if this conversation implements prplIConvIM or prplIConvChat */
+  readonly attribute boolean isChat;
+
+  /* The account used for this conversation */
+  readonly attribute imIAccount account;
+
+  /* The name of the conversation, typically in English */
+  readonly attribute AUTF8String name;
+
+  /* The normalized name of the conversation (suitable for a log file name) */
+  readonly attribute AUTF8String normalizedName;
+
+  /* The title of the conversation, typically localized */
+  readonly attribute AUTF8String title;
+
+  /* Unique identifier of the conversation */
+  /* Setable only once by purpleCoreService while calling addConversation. */
+           attribute unsigned long id;
+
+  /* Send a message in the conversation */
+  void sendMsg(in AUTF8String aMsg);
+
+  /* Send information about the current typing state to the server.
+     aLength should contain the length of the content currently in the text field.
+     A length value of 0 will make the method send a NOT_TYPING message. */
+  void sendTyping(in unsigned long aLength);
+
+  /* Un-initialize the conversation. Will be called by
+     purpleCoreService::RemoveConversation when the conversation is
+     closed or by purpleCoreService::Quit while exiting. */
+  void unInit();
+
+  /* When the conversation is closed from the UI. */
+  void close();
+
+  /* Method to add or remove an observer */
+  void addObserver(in nsIObserver aObserver);
+  void removeObserver(in nsIObserver aObserver);
+
+  /* Observers will be all receive new-text notifications.
+     aSubject will contain the message (prplIMessage) */
+};
+
+[scriptable, uuid(0c072a80-103a-4992-b249-8e442b5f0d46)]
+interface prplIConvIM: prplIConversation {
+
+  /* The buddy at the remote end of the conversation */
+  readonly attribute imIAccountBuddy buddy;
+
+  /* The remote buddy is not currently typing */
+  const short NOT_TYPING = 0;
+
+  /* The remote buddy is currently typing */
+  const short TYPING = 1;
+
+  /* The remote buddy started typing, but has stopped typing */
+  const short TYPED = 2;
+
+  /* The typing state of the remote buddy.
+     The value is NOT_TYPING, TYPING or TYPED. */
+  readonly attribute short typingState;
+};
+
+[scriptable, uuid(c7f11466-f479-4f12-a581-b99713b8ecc0)]
+interface prplIConvChat: prplIConversation {
+
+  /* Get an nsISimpleEnumerator of prplIConvChatBuddy objects:
+     The list of people participating in this chat */
+  nsISimpleEnumerator getParticipants();
+
+  /* The normalized chat buddy name will be suitable for starting a
+     private conversation or calling requestBuddyInfo. */
+  AUTF8String getNormalizedChatBuddyName(in AUTF8String aChatBuddyName);
+
+  /* The topic of this chat room */
+           attribute AUTF8String topic;
+
+  /* The name/nick of the person who set the topic */
+  readonly attribute AUTF8String topicSetter;
+
+  /* Whether the protocol plugin can set a topic. Doesn't check that
+     the user has the necessary rights in the current conversation. */
+  readonly attribute boolean topicSettable;
+
+  /* The nick seen by other people in the room */
+  readonly attribute AUTF8String nick;
+
+  /* This is true when we left the chat but kept the conversation open */
+  readonly attribute boolean left;
+
+  /* Observers will receive chat-buddy-add, chat-buddy-update,
+     chat-buddy-remove and chat-update-topic notifications.
+
+     aSubject will be of type:
+       nsISimpleEnumerator of prplIConvChatBuddy for chat-buddy-add,
+       nsISimpleEnumerator of nsISupportsString for chat-buddy-remove,
+       prplIConvChatBuddy for chat-buddy-update,
+       null for chat-update-topic.
+
+     aData will contain the old nick for chat-buddy-update if the name
+     has changed.
+   */
+};
+
+/* This represents a participant in a chat room */
+[scriptable, uuid(33f6ef81-1d23-484e-b4e0-14fffa0c4392)]
+interface prplIConvChatBuddy: nsISupports {
+
+  /* The name of the buddy */
+  readonly attribute AUTF8String name;
+
+  /* The alias (FIXME: can this be non-null if buddy is null?) */
+  readonly attribute AUTF8String alias;
+
+  /* Indicates if this chat buddy corresponds to a buddy in our buddy list */
+  readonly attribute boolean buddy;
+
+  /* PurpleConvChatBuddyFlags flags; (ops, voice etc.) */
+  readonly attribute boolean noFlags;
+  readonly attribute boolean voiced;
+  readonly attribute boolean halfOp;
+  readonly attribute boolean op;
+  readonly attribute boolean founder;
+  readonly attribute boolean typing;
+};

@@ -1,0 +1,3 @@
+component {1d1d0bc5-610c-472f-b2cb-4b89857d80dc} facebook.js
+contract @mozilla.org/chat/facebook;1 {1d1d0bc5-610c-472f-b2cb-4b89857d80dc}
+category im-protocol-plugin prpl-facebook @mozilla.org/chat/facebook;1

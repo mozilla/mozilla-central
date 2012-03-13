@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>ActionMessageTemplate</key>
+  <string>%sender% %message%</string>
+  
+  <key>CFBundleDevelopmentRegion</key>
+  <string>English</string>
+  
+  <key>CFBundleGetInfoString</key>
+  <string>Instantbird Bubbles Message Style</string>
+  
+  <key>CFBundleIdentifier</key>
+  <string>org.instantbird.bubbles.message.style</string>
+  
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>1.0</string>
+  
+  <key>CFBundleName</key>
+  <string>Bubbles</string>
+  
+  <key>CFBundlePackageType</key>
+  <string>AdIM</string>
+  
+  <key>DefaultBackgroundColor</key>
+  <string>FFFFFF</string>
+  
+  <key>DisableCustomBackground</key>
+  <false/>
+  
+  <key>MessageViewVersion</key>
+  <integer>4</integer>
+  
+  <key>ShowsUserIcons</key>
+  <true/>
+</dict>
+</plist>

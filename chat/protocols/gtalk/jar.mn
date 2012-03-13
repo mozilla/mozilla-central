@@ -1,0 +1,5 @@
+chat.jar:
+% skin prpl-gtalk classic/1.0 %skin/classic/prpl/gtalk/
+	skin/classic/prpl/gtalk/icon32.png	(icons/prpl-gtalk-32.png)
+	skin/classic/prpl/gtalk/icon48.png	(icons/prpl-gtalk-48.png)
+	skin/classic/prpl/gtalk/icon.png	(icons/prpl-gtalk.png)

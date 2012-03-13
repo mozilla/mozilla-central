@@ -1,0 +1,418 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is the Instantbird messenging client, released
+   - 2007.
+   -
+   - The Initial Developer of the Original Code is
+   - Florian QUEZE <florian@instantbird.org>.
+   - Portions created by the Initial Developer are Copyright (C) 2007
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE bindings>
+
+<bindings id="buddyTooltipBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:html="http://www.w3.org/1999/xhtml">
+
+  <binding id="tooltip" extends="chrome://global/content/bindings/popup.xml#tooltip">
+    <resources>
+      <stylesheet src="chrome://messenger/skin/imBuddytooltip.css"/>
+    </resources>
+    <content noautohide="true" orient="horizontal">
+      <xul:vbox flex="1">
+        <xul:hbox crop="end" align="center" flex="1">
+          <xul:stack class="prplTooltipBuddyIcon">
+            <xul:image class="protoIcon" xbl:inherits="src=iconPrpl,status"/>
+            <xul:image class="statusIcon" xbl:inherits="status"/>
+          </xul:stack>
+          <xul:description xbl:inherits="value=displayname" class="tooltip-header"/>
+        </xul:hbox>
+
+        <xul:grid>
+          <xul:columns>
+            <xul:column/>
+            <xul:column flex="1"/>
+          </xul:columns>
+          <xul:rows anonid="tooltiprows"/>
+        </xul:grid>
+      </xul:vbox>
+
+      <xul:vbox align="end" pack="start" flex="1" style="margin: 0 0; display:block;">
+        <html:img anonid="userIcon"/>
+      </xul:vbox>
+    </content>
+    <implementation implements="nsIObserver, nsIDOMEventListener">
+     <property name="bundle">
+       <getter>
+         <![CDATA[
+          if (!this._bundle)
+            this._bundle = document.getElementById("chatBundle");
+          return this._bundle;
+         ]]>
+       </getter>
+     </property>
+
+     <field name="_buddy">null</field>
+     <property name="buddy" onget="return this._buddy;">
+       <setter>
+         <![CDATA[
+           if (val == this._buddy)
+             return val;
+
+           if (!val)
+             this._buddy.buddy.removeObserver(this);
+           else
+             val.buddy.addObserver(this);
+
+           return (this._buddy = val);
+         ]]>
+       </setter>
+     </property>
+
+     <field name="_contact">null</field>
+     <property name="contact" onget="return this._contact;">
+       <setter>
+         <![CDATA[
+           if (val == this._contact)
+             return val;
+
+           if (!val)
+             this._contact.removeObserver(this);
+           else
+             val.addObserver(this);
+
+           return (this._contact = val);
+         ]]>
+       </setter>
+     </property>
+
+     <method name="handleEvent">
+       <parameter name="aEvent"/>
+       <body>
+       <![CDATA[
+         if (aEvent.type == "DOMAttrModified" && aEvent.attrName == "status") {
+           if (aEvent.attrChange == aEvent.REMOVAL)
+             this.removeAttribute("status");
+           else
+             this.setAttribute("status", aEvent.newValue);
+         }
+        ]]></body>
+      </method>
+
+     <field name="_elt">null</field>
+     <property name="elt">
+       <getter>
+         <![CDATA[
+           return this._elt;
+         ]]>
+       </getter>
+       <setter>
+         <![CDATA[
+           if (val == this._elt)
+             return val;
+
+           if (this._elt)
+             this._elt.removeEventListener("DOMAttrModified", this, false);
+           else
+             val.addEventListener("DOMAttrModified", this);
+           return (this._elt = val);
+         ]]>
+       </setter>
+     </property>
+
+     <property name="rows">
+       <getter>
+         <![CDATA[
+           if (!("_rows" in this)) {
+             this._rows =
+               document.getAnonymousElementByAttribute(this, "anonid",
+                                                       "tooltiprows");
+           }
+           return this._rows;
+         ]]>
+       </getter>
+     </property>
+
+     <method name="setBuddyIcon">
+       <parameter name="aSrc"/>
+       <body>
+       <![CDATA[
+         var img = document.getAnonymousElementByAttribute(this, "anonid",
+                                                           "userIcon");
+         if (aSrc) {
+           const maxSize = 48;
+           img.src = aSrc;
+           var height = img.naturalHeight || maxSize;
+           var width = img.naturalWidth || maxSize;
+           if (height > maxSize || width > maxSize) {
+             var ratio = Math.max(height, width);
+             height = height / ratio * maxSize;
+             width  = width  / ratio * maxSize;
+           }
+           img.parentNode.width = width; //XXXFLo hack to workaround a bug
+           img.height = height;
+           img.parentNode.collapsed = false;
+         }
+         else
+           img.parentNode.collapsed = true;
+       ]]>
+       </body>
+     </method>
+
+     <method name="reset">
+       <body>
+       <![CDATA[
+         var row;
+         while ((row = this.rows.firstChild))
+           this.rows.removeChild(row);
+       ]]>
+       </body>
+     </method>
+
+     <method name="addRow">
+       <parameter name="aLabel"/>
+       <parameter name="aValue"/>
+       <body>
+       <![CDATA[
+         const XULNS =
+           "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+
+         var row = document.createElementNS(XULNS, "row");
+         var label = document.createElementNS(XULNS, "label");
+         label.className = "header";
+         label.setAttribute("value", aLabel);
+         row.appendChild(label);
+         label = document.createElementNS(XULNS, "description");
+         label.textContent = aValue;
+         row.appendChild(label);
+         row.setAttribute("align", "baseline");
+         this.rows.appendChild(row);
+       ]]>
+       </body>
+     </method>
+
+     <method name="addSeparator">
+       <body>
+       <![CDATA[
+         const XULNS =
+           "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+
+         var row = document.createElementNS(XULNS, "row");
+         var separator = document.createElementNS(XULNS, "separator");
+         separator.className = "thin";
+         row.appendChild(separator);
+         this.rows.appendChild(row);
+       ]]>
+       </body>
+     </method>
+
+     <method name="updateTooltipFromBuddy">
+       <parameter name="aBuddy"/>
+       <parameter name="aElt"/>
+       <body>
+       <![CDATA[
+         this.buddy = aBuddy;
+         this.elt = aElt;
+
+         this.reset();
+         let name = aBuddy.userName;
+         let displayName = aBuddy.displayName;
+         this.setAttribute("displayname", displayName);
+         let account = aBuddy.account;
+         this.setAttribute("iconPrpl", account.protocol.iconBaseURI + "icon.png");
+         if (aElt.hasAttribute("status"))
+           this.setAttribute("status", aElt.getAttribute("status"));
+         else
+           this.removeAttribute("status");
+         this.setBuddyIcon(aBuddy.buddyIconFilename);
+
+         if (displayName != name)
+           this.addRow(this.bundle.getString("buddytooltip.username"), name);
+
+         this.addRow(this.bundle.getString("buddytooltip.account"), account.name);
+
+         var tooltipInfo = aBuddy.getTooltipInfo();
+         if (tooltipInfo)
+           this.appendTooltipInfo(tooltipInfo);
+         return true;
+       ]]>
+       </body>
+     </method>
+
+     <method name="appendTooltipInfo">
+       <parameter name="aTooltipInfo"/>
+       <body>
+       <![CDATA[
+         while (aTooltipInfo.hasMoreElements()) {
+           var elt =
+             aTooltipInfo.getNext().QueryInterface(Ci.prplITooltipInfo);
+           switch (elt.type) {
+             case Ci.prplITooltipInfo.pair:
+             case Ci.prplITooltipInfo.sectionHeader:
+               this.addRow(elt.label, elt.value);
+               break;
+             case Ci.prplITooltipInfo.sectionBreak:
+               this.addSeparator();
+               break;
+           }
+         }
+       ]]>
+       </body>
+     </method>
+
+     <method name="updateTooltipFromContact">
+       <parameter name="aContact"/>
+       <parameter name="aElt"/>
+       <body>
+       <![CDATA[
+         this.contact = aContact;
+         this.elt = aElt;
+
+         this.updateTooltipFromBuddy(aContact.preferredBuddy.preferredAccountBuddy, aElt);
+
+         return true;
+       ]]>
+       </body>
+     </method>
+
+     <method name="updateTooltipFromConversation">
+       <parameter name="aConv"/>
+       <parameter name="aElt"/>
+       <body>
+       <![CDATA[
+         if (!aConv.isChat && aConv.buddy)
+           return this.updateTooltipFromBuddy(aConv.buddy, aElt);
+
+         this.elt = aElt;
+         this.reset();
+         this.setAttribute("displayname", aConv.name);
+         let account = aConv.account;
+         this.setAttribute("iconPrpl", account.protocol.iconBaseURI + "icon.png");
+         this.removeAttribute("status");
+         this.setBuddyIcon(null);
+         this.addRow(this.bundle.getString("buddytooltip.account"), account.name);
+         return true;
+       ]]>
+       </body>
+     </method>
+
+     <method name="updateTooltipFromParticipant">
+       <parameter name="aChatBuddy"/>
+       <parameter name="aConv"/>
+       <body>
+       <![CDATA[
+         this.reset();
+         let name = aChatBuddy.name;
+         this.setAttribute("displayname", name);
+         let account = aConv.account;
+         this.setAttribute("iconPrpl",
+                           account.protocol.iconBaseURI + "icon.png");
+         this.removeAttribute("status");
+         this.setBuddyIcon(null);
+         this.addRow(this.bundle.getString("buddytooltip.account"),
+                     account.name);
+         this.observedUserInfo = aConv.target.getNormalizedChatBuddyName(name);
+         Services.obs.addObserver(this, "user-info-received", false);
+         account.requestBuddyInfo(this.observedUserInfo);
+         return true;
+       ]]>
+       </body>
+     </method>
+
+     <!-- nsIObserver implementation -->
+     <method name="observe">
+       <parameter name="aSubject"/>
+       <parameter name="aTopic"/>
+       <parameter name="aData"/>
+       <body>
+       <![CDATA[
+         if (aSubject == this.buddy &&
+             (aTopic == "account-buddy-status-changed" ||
+              aTopic == "account-buddy-status-detail-changed" ||
+              aTopic == "account-buddy-display-name-changed" ||
+              aTopic == "account-buddy-icon-changed"))
+           this.updateTooltipFromBuddy(this.buddy, this.elt);
+         else if (aTopic == "contact-preferred-buddy-changed" &&
+                  aSubject.id == this.contact.id) {
+           let buddy = this.contact.preferredBuddy;
+           this.updateTooltipFromBuddy(buddy.preferredAccountBuddy, this.elt);
+         }
+         else if (aTopic == "user-info-received" &&
+                  aData == this.observedUserInfo) {
+           this.appendTooltipInfo(aSubject.QueryInterface(Ci.nsISimpleEnumerator));
+           Services.obs.removeObserver(this, "user-info-received");
+           delete this.observedUserInfo;
+         }
+       ]]>
+       </body>
+     </method>
+    </implementation>
+    <handlers>
+     <handler event="popupshowing">
+       <![CDATA[
+         // No tooltip above the context menu.
+         if (document.popupNode)
+           return false;
+
+         let elt = document.tooltipNode;
+         // No tooltip for elements that have already been removed.
+         if (!elt.parentNode)
+           return false;
+
+         let localName = elt.localName;
+         if (localName == "imconv" && elt.conv)
+           return updateTooltipFromConversation(elt.conv, elt);
+         if (localName == "imcontact")
+           return updateTooltipFromContact(elt.contact, elt);
+         if (localName == "listitem") {
+           let conv = document.getBindingParent(elt).conv;
+           return updateTooltipFromParticipant(elt.chatBuddy, conv);
+         }
+
+         return false;
+       ]]>
+     </handler>
+     <handler event="popuphiding">
+       <![CDATA[
+       this.buddy = null;
+       this.contact = null;
+       this.elt = null;
+       if ("observedUserInfo" in this && this.observedUserInfo) {
+         Services.obs.removeObserver(this, "user-info-received");
+         delete this.observedUserInfo;
+       }
+       ]]>
+     </handler>
+    </handlers>
+  </binding>
+</bindings>

@@ -1,0 +1,511 @@
+@import url("chrome://messenger/skin/imStatus.css");
+
+.im-placeholder-screen {
+  background-color: -moz-Dialog;
+  overflow: auto;
+}
+.im-placeholder-box {
+  background-color: -moz-Field;
+  color: -moz-FieldText;
+  border: 1px solid ThreeDShadow;
+  border-radius: 10px;
+  padding: 1.1em;
+  -moz-padding-start: 20px;
+  margin-left: 1em;
+  margin-right: 1em;
+}
+.im-placeholder-image {
+  list-style-image: url("chrome://global/skin/icons/information-64.png");
+  -moz-margin-end: 1.2em;
+}
+.im-placeholder-innerbox {
+  max-width: 25em;
+}
+.im-placeholder-title {
+  margin: 0 1em 0.6em 0;
+  font-size: 160%;
+  border-bottom: 1px solid ThreeDLightShadow
+}
+.im-placeholder-desc {
+  font-size: 110%;
+}
+
+#contactlistbox {
+  margin: 0 0;
+}
+
+imgroup {
+  font-weight: bold;
+}
+
+/* From instantbird/themes/blist.css */
+.contactStatusText,
+.convStatusText {
+  color: GrayText;
+}
+
+.contactDisplayName,
+.convDisplayName {
+  -moz-margin-end: 0;
+}
+
+.contactStatusText,
+.convStatusText {
+  -moz-margin-start: 0;
+}
+
+/* Avoid a strange jumping bug when hovering and the startChatBubble appears */
+.contact-vbox {
+  min-height: 40px;
+}
+
+.startChatBubble,
+.closeConversationButton {
+  margin: 0 3px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  -moz-binding: url('chrome://global/content/bindings/button.xml#button-image');
+  -moz-appearance: none;
+  width: 16px;
+  height: 16px;
+  min-height: 16px;
+  min-width: 16px;
+}
+
+.startChatBubble {
+  list-style-image: url('chrome://chat/skin/prpl-generic/icon.png');
+}
+
+.closeConversationButton {
+  -moz-margin-end: 0;
+  -moz-stack-sizing: ignore;
+%ifdef UNIX_BUT_NOT_MAC
+  list-style-image: url("moz-icon://stock/gtk-close?size=menu");
+%else
+  list-style-image: url("chrome://global/skin/icons/close.png");
+  -moz-image-region: rect(0, 16px, 16px, 0);
+}
+.closeConversationButton:hover {
+  -moz-image-region: rect(0, 32px, 16px, 16px);
+}
+.closeConversationButton:hover:active {
+  -moz-image-region: rect(0, 48px, 16px, 32px);
+%endif
+}
+
+
+/* From instantbird/themes/conversation.css */
+.browser {
+  margin: 0 0;
+}
+
+.conv-bottom, .conv-nicklist {
+  margin: 0 0;
+}
+
+.conv-top {
+  min-height: 115px;
+}
+
+.conv-top-info {
+  margin: 0 0;
+  padding: 0 0;
+  border-style: none;
+  -moz-appearance: none;
+%ifdef XP_MACOSX
+  /* Copy of .main-header-area from pinstripe/mail/messageHeader.css */
+  color: #2E3436; /* Aluminium 6 */
+  background: -moz-linear-gradient(top, #909090, #FFFFFF 5px);
+  border-bottom:1px solid #BFBFBF;
+  padding: 0.6ex;
+}
+
+.conv-top-info:-moz-window-inactive {
+  background: -moz-linear-gradient(top, #CDCDCD, #FFFFFF 5px);
+%else
+  background-color: -moz-Dialog;
+%ifdef XP_WIN
+  background-image: -moz-linear-gradient(rgba(255,255,255,.5), rgba(255,255,255,0));
+%else
+  background-image: -moz-linear-gradient(rgba(255,255,255,.3), rgba(255,255,255,0));
+%endif
+%ifndef XP_WIN
+  border-bottom: 1px solid ThreeDShadow;
+%else
+  border-bottom: none;
+%endif
+%endif
+}
+
+.userIcon {
+  border: 2px solid rgba(0,0,0,0.15);
+  border-radius: 5px;
+  max-width: 48px;
+  max-height: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.userIcon:not([src]) {
+  display: none;
+}
+
+.userIcon[src=""] {
+  background-image: url("chrome://messenger/skin/userIcon.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.statusTypeIcon {
+  margin: 0 0;
+  width: 16px;
+  height: 16px;
+  min-height: 16px;
+  min-width: 16px;
+  -moz-appearance: none;
+  background-color: transparent;
+  border: none;
+}
+
+.statusTypeIcon[status="unknown"] {
+  list-style-image: url('chrome://chat/skin/unknown-16.png');
+}
+
+.statusTypeIcon[status="chat"] {
+  list-style-image: url('chrome://chat/skin/chat-16.png');
+}
+
+.statusTypeIcon[status="idle"] {
+  list-style-image: url('chrome://chat/skin/idle-16.png');
+}
+
+.statusTypeIcon[typing] {
+  list-style-image: url('chrome://chat/skin/typing-16.png');
+}
+
+.statusTypeIcon[typed] {
+  list-style-image: url('chrome://chat/skin/typed-16.png');
+}
+
+
+.statusMessage {
+  margin: 0 0 !important;
+%ifdef XP_MACOSX
+  min-height: 16px;
+%endif
+}
+
+.statusMessage[noTopic]:not([editing]),
+.statusMessageWithDash[noTopic] {
+  font-style: italic;
+}
+
+.status-overlay-icon[status="away"],
+.status-overlay-icon[status="unavailable"] {
+  list-style-image: url('chrome://chat/skin/away.png');
+}
+
+.status-overlay-icon[status="idle"] {
+  list-style-image: url('chrome://chat/skin/idle.png');
+}
+
+.status-overlay-icon[status="mobile"] {
+  list-style-image: url('chrome://chat/skin/mobile.png');
+}
+
+.status-overlay-icon[status="offline"] {
+  list-style-image: url('chrome://chat/skin/offline.png');
+}
+
+.status-overlay-icon[status="unknown"] {
+  list-style-image: url('chrome://chat/skin/unknown.png');
+}
+
+.statusImageStack,
+.displayNameAndstatusMessageStack {
+  margin: 2px 2px;
+}
+
+.statusMessage {
+  margin-top: 32px !important;
+}
+
+.statusMessage[editing] {
+%ifdef XP_MACOSX
+  margin: 29px 0 -1px -4px !important;
+%else
+%ifdef XP_WIN
+  margin: 28px 0 -1px -2px !important;
+%else
+  margin: 29px 0 -3px -4px !important;
+%endif
+%endif
+}
+
+.displayName {
+  font-size: large;
+  border-bottom: 1px solid rgba(0,0,0,0.25);
+  margin: 0 0 16px !important;
+  padding-right: 20px;
+}
+
+.prplIcon {
+  margin: 0 1px 16px -16px !important;
+}
+
+.statusTypeIcon {
+  margin: 32px 0 0;
+}
+
+.userIcon[src] + .statusTypeIcon {
+  margin-left: 32px;
+}
+
+.conv-messages {
+  min-width: 150px;
+%ifndef XP_MACOSX
+%ifndef XP_WIN
+  border-bottom: solid 1px GrayText;
+%else
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-left: none;
+  border-right: none !important;
+%endif
+%endif
+}
+
+%ifndef XP_MACOSX
+.conv-messages[chat] {
+  border-right: solid 1px GrayText;
+}
+%endif
+
+.conv-textbox {
+  margin: 0 0;
+  padding: 0 0;
+  -moz-box-sizing: content-box;
+}
+%ifndef XP_MACOSX
+
+.conv-textbox > .textbox-input-box {
+  background: inherit;
+}
+%endif
+
+.textbox-textarea,
+notificationbox {
+  overflow-x: hidden;
+}
+
+%ifdef XP_MACOSX
+grippy {
+  display: none;
+}
+%endif
+
+.splitter {
+  margin: 0;
+  border-style: none;
+%ifdef XP_MACOSX
+  min-height: 2px;
+  background: -moz-linear-gradient(top, rgba(0,0,0,0.35), transparent);
+%else
+  height: 3px;
+  background: transparent;
+%endif
+}
+
+#conv-toolbar {
+  border-style: none;
+}
+
+#logList {
+  margin: 0 0;
+}
+
+.conv-nicklist > .listitem-iconic > .listcell-iconic > .listcell-label {
+  font-weight: bold;
+  -moz-padding-start: 1px;
+%ifdef XP_MACOSX
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+%endif
+}
+
+.conv-nicklist > .listitem-iconic > .listcell-iconic > .listcell-icon {
+  min-width: 16px;
+  margin: 0 2px;
+}
+
+.conv-logs-header-label {
+  -moz-appearance: treeheadercell;
+  margin: 0 -1px 0 0;
+  padding-left: 3px;
+}
+
+%ifdef XP_MACOSX
+.conv-nicklist-header {
+  -moz-appearance: treeheadercell;
+  margin-right: -1px;
+}
+
+%endif
+.conv-nicklist-header-label {
+%ifdef XP_MACOSX
+  -moz-margin-start: 3px !important;
+  margin-top: 1px !important;
+  margin-bottom: 0 !important;
+%else
+  font-weight: bold;
+  -moz-margin-start: 0 !important;
+%endif
+  -moz-margin-end: 2px !important;
+}
+
+%ifdef XP_MACOSX
+.conv-textbox {
+  padding: 3px;
+  border: none;
+  -moz-appearance: none;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.conv-textbox[focused="true"] {
+  box-shadow: inset 0 0 2px 1px rgba(40, 120, 212, 0.7),
+                    0 0 4px 1px rgb(40, 120, 212),
+              inset 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.conv-nicklist, #logList {
+  -moz-appearance: none;
+  width: 250px;
+  border: 0px;
+}
+%endif
+%ifdef XP_WIN
+.splitter.conv-chat {
+  border-left: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+/* Splitter style change above somehow made it smaller, fix this here: */
+grippy {
+  margin: 0 1px;
+}
+%endif
+
+.listitem-iconic[inactive] > .listcell-iconic > .listcell-icon {
+  opacity: 0.45;
+}
+
+.listitem-iconic[inactive][selected] > .listcell-iconic > .listcell-icon {
+  opacity: 0.7;
+}
+
+.listitem-iconic[inactive] > .listcell-iconic > .listcell-label {
+  color: GrayText !important;
+  font-weight: normal;
+}
+
+.listitem-iconic[inactive][selected] > .listcell-iconic > .listcell-label {
+%ifdef MACOSX
+  color: -moz-DialogText !important;
+%else
+  color: -moz-cellhighlighttext !important;
+%endif
+}
+
+.conv-nicklist:focus > .listitem-iconic[inactive][selected] > .listcell-iconic > .listcell-label {
+  color: HighlightText !important;
+}
+
+
+/* from instantbird/themes/blist.css */
+%ifdef XP_WIN
+imgroup .twisty {
+  padding-top: 1px;
+  width: 9px; /* The image's width is 9 pixels */
+  height: 9px;
+  -moz-margin-end: 3px;
+  -moz-margin-start: 3px;
+  background: url("chrome://global/skin/tree/twisty-open.png") no-repeat center;
+}
+
+imgroup[closed] .twisty {
+  background: url("chrome://global/skin/tree/twisty-clsd.png") no-repeat center;
+}
+%else
+%ifdef XP_MACOSX
+imgroup .twisty {
+  width: 9px;
+  height: 9px;
+  -moz-margin-end: 3px;
+  -moz-margin-start: 3px;
+  background: url("chrome://global/skin/arrow/arrow-dn-sharp.gif") no-repeat center;
+}
+
+imgroup[closed] .twisty {
+  background: url("chrome://global/skin/arrow/arrow-rit-sharp.gif") no-repeat center;
+}
+%else
+imgroup .twisty {
+  -moz-appearance: treetwistyopen;
+}
+
+imgroup[closed] .twisty {
+  -moz-appearance: treetwisty;
+}
+%endif
+%endif
+
+#searchResultConv > .prplBuddyIcon > .protoIcon {
+%ifdef XP_MACOSX
+  list-style-image: url("chrome://global/skin/icons/search-textbox.png");
+%else
+%ifdef XP_WIN
+  list-style-image: url(chrome://global/skin/icons/Search-glass.png);
+  -moz-image-region: rect(0, 16px, 16px, 0);
+%else
+  list-style-image: url(moz-icon://stock/gtk-find?size=menu);
+%endif
+%endif
+}
+
+#imStatusAvailable {
+  list-style-image: url('chrome://chat/skin/available-16.png');
+}
+
+#imStatusUnavailable {
+  list-style-image: url('chrome://chat/skin/away-16.png');
+}
+
+#imStatusOffline {
+  list-style-image: url('chrome://chat/skin/offline-16.png');
+}
+
+
+#statusTypeIcon {
+  margin: 0 0;
+  width: 16px;
+  height: 16px;
+  min-height: 16px;
+  min-width: 16px;
+  -moz-appearance: none;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+}
+
+#statusTypeIcon dropmarker {
+  display: none;
+}
+
+%ifdef XP_WIN
+#statusTypeIcon .button-box {
+  padding: 0 0;
+  border: none;
+}
+%endif
+
+#statusMessage {
+  margin: 0 8px;
+}

@@ -1,0 +1,28 @@
+chat.jar:
+% skin chat classic/1.0 %skin/classic/chat/
+	skin/classic/chat/available-16.png
+	skin/classic/chat/available.png
+	skin/classic/chat/away-16.png
+	skin/classic/chat/away.png
+	skin/classic/chat/idle-16.png
+	skin/classic/chat/idle.png
+	skin/classic/chat/mobile-16.png
+	skin/classic/chat/mobile.png
+	skin/classic/chat/offline-16.png
+	skin/classic/chat/offline.png
+	skin/classic/chat/typing-16.png
+	skin/classic/chat/typed-16.png
+	skin/classic/chat/unknown.png
+	skin/classic/chat/unknown-16.png
+	skin/classic/chat/chat-16.png
+	skin/classic/chat/chat-left-16.png
+	skin/classic/chat/conv.css
+	skin/classic/chat/browserRequest.css
+	skin/classic/chat/prpl-generic/icon32.png	(icons/prpl-generic-32.png)
+	skin/classic/chat/prpl-generic/icon48.png	(icons/prpl-generic-48.png)
+	skin/classic/chat/prpl-generic/icon.png		(icons/prpl-generic.png)
+	skin/classic/chat/prpl-unknown/icon32.png	(icons/prpl-unknown-32.png)
+	skin/classic/chat/prpl-unknown/icon48.png	(icons/prpl-unknown-48.png)
+	skin/classic/chat/prpl-unknown/icon.png		(icons/prpl-unknown.png)
+	skin/classic/chat/icons/secure.png		(icons/secure.png)
+	skin/classic/chat/icons/insecure.png		(icons/insecure.png)

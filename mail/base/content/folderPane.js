@@ -1241,6 +1241,9 @@ let gFolderTreeView = {
                  server.deferredToAccount);
       });
 
+      // Don't show IM accounts
+      accounts = accounts.filter(function(a) a.incomingServer.type != "im");
+
       function sortAccounts(a, b) {
         if (a.key == acctMgr.defaultAccount.key)
           return -1;
@@ -1718,6 +1721,11 @@ let gFolderTreeView = {
       if (acct.incomingServer instanceof Ci.nsIPop3IncomingServer &&
           acct.incomingServer.deferredToAccount)
         continue;
+
+      // Skip IM accounts
+      if (acct.incomingServer.type == "im")
+        continue;
+
       folders.push(acct.incomingServer.rootFolder);
       this.addSubFolders(acct.incomingServer.rootFolder, folders);
     }

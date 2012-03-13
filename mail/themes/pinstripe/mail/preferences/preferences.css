@@ -79,6 +79,10 @@ radio[pane=paneCompose] {
   -moz-image-region: rect(0px, 96px, 32px, 64px)
 }
 
+radio[pane=paneChat] {
+  -moz-image-region: rect(0px, 288px, 32px, 256px);
+}
+
 radio[pane=paneSecurity] {
   -moz-image-region: rect(0px 128px 32px 96px);
 }

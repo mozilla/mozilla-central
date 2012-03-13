@@ -1,0 +1,111 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is the Instantbird messenging client, released
+ * 2007.
+ *
+ * The Initial Developer of the Original Code is
+ * Florian QUEZE <florian@instantbird.org>.
+ * Portions created by the Initial Developer are Copyright (C) 2007
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+#include "nsIRunnable.idl"
+#include "prplIConversation.idl"
+
+/*
+ * An action that the user may perform in relation to a particular message.
+ */
+[scriptable, uuid(7e470f0e-d948-4d9a-b8dc-4beecf6554b9)]
+interface prplIMessageAction: nsIRunnable
+{
+  /* The protocol plugins need to provide a localized label suitable
+     for being shown in the user interface (for example as a context
+     menu item). */
+  readonly attribute ACString label;
+};
+
+[scriptable, uuid(d9f0ca7f-ee59-4657-a3dd-f458c204ca45)]
+interface prplIMessage: nsISupports {
+  /* The uniqueness of the message id is only guaranteed across
+     messages of a conversation, not across all messages created
+     during the execution of the application. */
+  readonly attribute unsigned long id;
+  readonly attribute AUTF8String who;
+  readonly attribute AUTF8String alias;
+  readonly attribute AUTF8String originalMessage;
+           attribute AUTF8String message;
+  readonly attribute AUTF8String iconURL;
+  readonly attribute PRTime time;
+  readonly attribute prplIConversation conversation;
+
+  /* Holds the sender color for Chats.
+     Empty string by default, it is set by the conversation binding. */
+  attribute AUTF8String color;
+
+  /*  PURPLE_MESSAGE_SEND        = 0x0001, /**< Outgoing message. */
+  readonly attribute boolean outgoing;
+  /*  PURPLE_MESSAGE_RECV        = 0x0002, /**< Incoming message. */
+  readonly attribute boolean incoming;
+  /*  PURPLE_MESSAGE_SYSTEM      = 0x0004, /**< System message.   */
+  readonly attribute boolean system;
+  /*  PURPLE_MESSAGE_AUTO_RESP   = 0x0008, /**< Auto response.    */
+  readonly attribute boolean autoResponse;
+  /*  PURPLE_MESSAGE_ACTIVE_ONLY = 0x0010, /**< Hint to the UI that this
+                                                message should not be
+                                                shown in conversations
+                                                which are only open for
+                                                internal UI purposes
+                                                (e.g. for contact-aware
+                                                 conversions).           */
+  /*  PURPLE_MESSAGE_NICK        = 0x0020, /**< Contains your nick.      */
+  readonly attribute boolean containsNick;
+  /*  PURPLE_MESSAGE_NO_LOG      = 0x0040, /**< Do not log.              */
+  readonly attribute boolean noLog;
+  /*  PURPLE_MESSAGE_ERROR       = 0x0200, /**< Error message.           */
+  readonly attribute boolean error;
+  /*  PURPLE_MESSAGE_DELAYED     = 0x0400, /**< Delayed message.         */
+  readonly attribute boolean delayed;
+  /*  PURPLE_MESSAGE_RAW         = 0x0800, /**< "Raw" message - don't
+                                                apply formatting         */
+  readonly attribute boolean noFormat;
+  /*  PURPLE_MESSAGE_IMAGES      = 0x1000, /**< Message contains images  */
+  readonly attribute boolean containsImages;
+  /*  PURPLE_MESSAGE_NOTIFY      = 0x2000, /**< Message is a notification */
+  readonly attribute boolean notification;
+  /*  PURPLE_MESSAGE_NO_LINKIFY  = 0x4000  /**< Message should not be auto-linkified */
+  readonly attribute boolean noLinkification;
+
+  /* An array of actions the user may perform on this message.
+     The first action will be the 'default' and may be performed
+     automatically when the message is double clicked.
+     'Reply' is usually a good default action. */
+  void getActions([optional] out unsigned long actionCount,
+                  [retval, array, size_is(actionCount)] out prplIMessageAction actions);
+};

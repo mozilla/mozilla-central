@@ -44,9 +44,9 @@ MDNService.prototype = {
   name: "mdn",
   chromePackageName: "messenger",
   showPanel: function(server) {
-    // don't show the panel for news, rss, or local accounts
+    // don't show the panel for news, rss, im or local accounts
     return (server.type != "nntp" && server.type != "rss" &&
-            server.type != "none");
+            server.type != "im" && server.type != "none");
   },
 
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIMsgAccountManagerExtension]),

@@ -1,0 +1,3 @@
+component {31082ff6-1de8-422b-ab60-ca0ac0b2af13} twitter.js
+contract @mozilla.org/chat/twitter;1 {31082ff6-1de8-422b-ab60-ca0ac0b2af13}
+category im-protocol-plugin prpl-twitter @mozilla.org/chat/twitter;1

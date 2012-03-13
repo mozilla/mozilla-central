@@ -483,6 +483,11 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-image-region: rect(0px, 360px, 18px, 342px);
 }
 
+#button-chat {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 396px, 18px, 378px);
+}
+
 #palette-box .toolbarbutton-1 {
   border: none;
   background: none;

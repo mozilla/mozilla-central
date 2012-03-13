@@ -1547,14 +1547,27 @@
         }
         let subject = anonElem("subject");
         // -- eventify
-        subject.onclick = function(aEvent) {
-          FacetContext.showConversationInTab(message,
-                                             aEvent.button == 1);
+        if (FacetContext.searcher instanceof GlodaIMSearcher) {
+          subject.onclick = function(aEvent) {
+            FacetContext.showIMConversationInTab(message,
+                                                 aEvent.button == 1);
+          }
+          subject.onkeypress = function(aEvent) {
+            if (aEvent.keyCode == aEvent.DOM_VK_RETURN)
+              FacetContext.showIMConversationInTab(message,
+                                                   aEvent.shiftKey == true);
+          }
         }
-        subject.onkeypress = function(aEvent) {
-          if (aEvent.keyCode == aEvent.DOM_VK_RETURN)
+        else {
+          subject.onclick = function(aEvent) {
             FacetContext.showConversationInTab(message,
-                                               aEvent.shiftKey == true);
+                                               aEvent.button == 1);
+          }
+          subject.onkeypress = function(aEvent) {
+            if (aEvent.keyCode == aEvent.DOM_VK_RETURN)
+              FacetContext.showConversationInTab(message,
+                                                 aEvent.shiftKey == true);
+          }
         }
 
         // -- Content Poking

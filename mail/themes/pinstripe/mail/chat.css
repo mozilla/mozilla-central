@@ -1,0 +1,156 @@
+%include ../../../components/im/themes/chat.css
+
+/* Adaptation of #folderpane_splitter */
+#listSplitter {
+  background-image: none;
+  width: 3px;
+  min-width: 3px;
+}
+
+/* Adaptation of #threadpane-splitter */
+#contextSplitter {
+  background-image: url("chrome://messenger/skin/icons/vertical-threadpane-splitter-bg.gif");
+  background-repeat: repeat-y;
+  -moz-border-start: 1px solid #A6A6A6;
+  -moz-border-end: 1px solid #8C8C8C;
+}
+
+#contextSplitter[state="collapsed"] {
+  -moz-border-end: 0;
+}
+
+/* Adaptation of #folderPaneBox/#folderPaneTree from pinstripe/mail/mailWindow1.css */
+#listPaneBox {
+  border-right: 1px solid #8B8B8B;
+  -moz-margin-end: -3px !important;
+  background-color: #DEE4EA !important;
+}
+#listPaneBox:-moz-window-inactive {
+  background-color: #E8E8E8 !important;
+}
+
+#listPaneBox > * {
+  background: transparent !important;
+  -moz-appearance: none !important;
+  border: none;
+}
+
+/* Adaptation of #searchInput from pinstripe/mail/searchBox.css */
+/* it looks like appearance: searchfield gets us our search icon... */
+#IMSearchInput {
+  margin: 3px 4px 4px !important;
+  -moz-appearance: searchfield;
+  font: icon;
+  height: 22px !important;
+}
+
+#IMSearchInput > .textbox-input-box {
+  border: none;
+  padding-top: 1px;
+  height: 21px !important;
+  margin: 0 !important;
+}
+
+#IMSearchInput:-moz-lwtheme:not([focused="true"]) {
+  opacity: .9;
+}
+
+#button-add-buddy {
+  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
+  -moz-image-region: rect(0px 32px 32px 0px);
+}
+
+#button-add-buddy[disabled] {
+  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
+  -moz-image-region: rect(32px 32px 64px 0px);
+}
+
+#button-join-chat {
+  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
+  -moz-image-region: rect(0px 64px 32px 32px);
+}
+
+#button-join-chat[disabled] {
+  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
+  -moz-image-region: rect(32px 64px 64px 32px);
+}
+
+toolbar[iconsize="small"] #button-add-buddy {
+  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar-small.png");
+  -moz-image-region: rect(0px 24px 24px 0px);
+}
+
+
+toolbar[iconsize="small"] #button-add-buddy[disabled] {
+  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar-small.png");
+  -moz-image-region: rect(24px 24px 48px 0px);
+}
+
+toolbar[iconsize="small"] #button-join-chat {
+  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar-small.png");
+  -moz-image-region: rect(0px 48px 24px 24px);
+}
+
+toolbar[iconsize="small"] #button-join-chat[disabled] {
+  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar-small.png");
+  -moz-image-region: rect(24px 48px 48px 24px);
+}
+
+
+#statusTypeIcon[status="available"],
+#statusTypeAvailable,
+.statusTypeIcon[status="available"],
+#imStatusAvailable {
+  list-style-image: url("chrome://messenger/skin/icons/status.png");
+  -moz-image-region: rect(0px 16px 16px 0px);
+}
+
+#statusTypeIcon[status="idle"],
+.statusTypeIcon[status="idle"] {
+  list-style-image: url("chrome://messenger/skin/icons/status.png");
+  -moz-image-region: rect(0px 32px 16px 16px);
+}
+
+#statusTypeIcon[status="offline"],
+#statusTypeIcon[status="invisible"],
+#statusTypeOffline,
+.statusTypeIcon[status="offline"],
+.statusTypeIcon[status="invisible"],
+#imStatusOffline {
+  list-style-image: url("chrome://messenger/skin/icons/status.png");
+  -moz-image-region: rect(0px 48px 16px 32px);
+}
+
+#statusTypeIcon[status="unavailable"],
+#statusTypeIcon[status="away"],
+#statusTypeUnavailable,
+.statusTypeIcon[status="unavailable"],
+.statusTypeIcon[status="away"] {
+  list-style-image: url("chrome://messenger/skin/icons/status.png");
+  -moz-image-region: rect(0px 64px 16px 48px);
+}
+
+imconv, imcontact, imgroup {
+  padding-left: 4px;
+}
+
+:-moz-any(imconv, imcontact, imgroup)[selected] {
+  background: url("chrome://messenger/skin/icons/sidebar-item.png") 0 0 repeat-x #90A0C0;
+  color: HighlightText;
+}
+
+#contactlistbox:focus > :-moz-any(imconv, imcontact, imgroup)[selected] {
+  background-position: 0 -18px;
+}
+
+:-moz-any(imconv, imcontact, imgroup)[selected]:-moz-system-metric(mac-graphite-theme) {
+  background-position: 0 -36px;
+}
+
+#contactlistbox:focus > :-moz-any(imconv, imcontact, imgroup)[selected]:-moz-system-metric(mac-graphite-theme) {
+  background-position: 0 -54px;
+}
+
+:-moz-any(imconv, imcontact, imgroup)[selected]:-moz-window-inactive {
+  background-position: 0 -72px;
+}

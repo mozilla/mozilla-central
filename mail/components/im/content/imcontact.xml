@@ -1,0 +1,276 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is the Instantbird messenging client, released
+   - 2007.
+   -
+   - The Initial Developer of the Original Code is
+   - Florian QUEZE <florian@instantbird.org>.
+   - Portions created by the Initial Developer are Copyright (C) 2007
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE bindings [
+  <!ENTITY % chatDTD SYSTEM "chrome://messenger/locale/chat.dtd" >
+  %chatDTD;
+]>
+
+<bindings id="contactBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:html="http://www.w3.org/1999/xhtml">
+
+  <binding id="contact" extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
+    <content>
+      <xul:stack class="prplBuddyIcon" mousethrough="always">
+        <xul:image class="protoIcon" xbl:inherits="src=iconPrpl,status"/>
+        <xul:image class="statusIcon" xbl:inherits="status"/>
+      </xul:stack>
+      <xul:hbox flex="1" class="contact-hbox" mousethrough="always">
+        <xul:label crop="end" flex="1" mousethrough="always"
+                   anonid="displayname" class="contactDisplayName blistDisplayName"
+                   xbl:inherits="value=displayname,status"/>
+        <xul:label crop="end" flex="100000" mousethrough="always"
+                   anonid="statusText" class="contactStatusText"
+                   xbl:inherits="value=statusTextWithDash"/>
+        <xul:button anonid="startChatBubble" class="startChatBubble"
+                    tooltiptext="&openConversationButton.tooltip;"/>
+      </xul:hbox>
+    </content>
+    <implementation implements="nsIObserver">
+
+     <destructor>
+      <![CDATA[
+        if (this.contact) {
+          this.contact.removeObserver(this);
+          delete this.contact;
+        }
+      ]]>
+     </destructor>
+
+     <method name="build">
+      <parameter name="aContact"/>
+      <body>
+      <![CDATA[
+        this.contact = aContact;
+        this.contact.addObserver(this);
+        if (!("Status" in window))
+          Components.utils.import("resource:///modules/imStatusUtils.jsm");
+        this.update();
+      ]]>
+      </body>
+     </method>
+
+     <property name="displayName"
+               onget="return this.contact.displayName;"/>
+
+     <!-- nsIObserver implementation -->
+     <method name="observe">
+       <parameter name="aSubject"/>
+       <parameter name="aTopic"/>
+       <parameter name="aData"/>
+       <body>
+       <![CDATA[
+         if (aTopic == "contact-preferred-buddy-changed" ||
+             aTopic == "contact-display-name-changed" ||
+             aTopic == "contact-status-changed")
+           this.update();
+
+         if (aTopic == "contact-availability-changed" ||
+             aTopic == "contact-display-name-changed")
+           this.group.updateContactPosition(aSubject);
+       ]]>
+       </body>
+     </method>
+
+     <method name="destroy">
+      <body>
+      <![CDATA[
+        this.contact.removeObserver(this);
+        delete this.contact;
+        this.parentNode.removeChild(this);
+      ]]>
+      </body>
+     </method>
+
+     <method name="update">
+      <body>
+      <![CDATA[
+        this.setAttribute("displayname", this.contact.displayName);
+
+        let statusText = this.contact.statusText;
+        if (statusText)
+          statusText = " - " + statusText;
+        this.setAttribute("statusTextWithDash", statusText);
+        let statusType = this.contact.statusType;
+        this.setAttribute("statusText", Status.toLabel(statusType) + statusText);
+        this.setAttribute("status", Status.toAttribute(statusType));
+
+        if (this.contact.canSendMessage)
+          this.setAttribute("cansend", "true");
+        else
+          this.removeAttribute("cansend");
+
+        let proto = this.contact.preferredBuddy.protocol;
+        this.setAttribute("iconPrpl", proto.iconBaseURI + "icon.png");
+      ]]>
+      </body>
+     </method>
+
+     <method name="startAliasing">
+      <body>
+      <![CDATA[
+        if (this.hasAttribute("aliasing"))
+          return; // prevent re-entry.
+
+        this.setAttribute("aliasing", "true");
+        let textbox =
+          document.getAnonymousElementByAttribute(this, "anonid", "displayname");
+        textbox.getBoundingClientRect(); // force binding attachmant by forcing layout
+        textbox.select();
+
+        // Some keys (home/end for example) can make the selected item
+        // of the richlistbox change without producing a blur event on
+        // our textbox. Make sure we watch richlistbox selection changes.
+        this._parentSelectListener = (function(aEvent) {
+          if (aEvent.target == this.parentNode)
+            this.finishAliasing(true);
+        }).bind(this);
+        this.parentNode.addEventListener("select", this._parentSelectListener);
+      ]]>
+      </body>
+     </method>
+
+     <method name="finishAliasing">
+      <parameter name="aSave"/>
+      <body>
+      <![CDATA[
+        if (aSave) {
+          this.contact.alias =
+            document.getAnonymousElementByAttribute(this, "anonid", "displayname").value;
+        }
+        this.removeAttribute("aliasing");
+        this.parentNode.removeEventListener("select", this._parentSelectListener, false);
+        delete this._parentSelectListener;
+        this.parentNode.focus();
+      ]]>
+      </body>
+     </method>
+
+     <method name="remove">
+      <body>
+      <![CDATA[
+        this.contact.remove();
+      ]]>
+      </body>
+     </method>
+
+     <method name="canOpenConversation">
+      <body>
+       <![CDATA[
+         return this.contact.canSendMessage;
+       ]]>
+      </body>
+     </method>
+
+     <method name="openConversation">
+      <body>
+       <![CDATA[
+         this.contact.createConversation();
+       ]]>
+      </body>
+     </method>
+
+     <method name="keyPress">
+      <parameter name="aEvent"/>
+      <body>this._keyPress(aEvent);</body>
+     </method>
+     <method name="_keyPress">
+      <parameter name="aEvent"/>
+      <body>
+      <![CDATA[
+        switch (aEvent.keyCode) {
+          // If Enter or Return is pressed, open a new conversation
+          case aEvent.DOM_VK_RETURN:
+          case aEvent.DOM_VK_ENTER:
+            if (this.hasAttribute("aliasing"))
+              this.finishAliasing(true);
+            else if (this.canOpenConversation())
+              this.openConversation();
+            break;
+
+          case aEvent.DOM_VK_F2:
+            if (!this.hasAttribute("aliasing"))
+              this.startAliasing();
+            break;
+
+          case aEvent.DOM_VK_ESCAPE:
+            if (this.hasAttribute("aliasing"))
+              this.finishAliasing(false);
+            break;
+        }
+      ]]>
+      </body>
+     </method>
+    </implementation>
+    <handlers>
+     <handler event="blur">
+       <![CDATA[
+         if (!this.hasAttribute("aliasing"))
+           return;
+
+         let win =
+           Components.classes["@mozilla.org/focus-manager;1"]
+                     .getService(Components.interfaces.nsIFocusManager)
+                     .activeWindow;
+         if (win == document.defaultView)
+           finishAliasing(true);
+       ]]>
+     </handler>
+
+     <handler event="mousedown">
+       <![CDATA[
+         if (!this.hasAttribute("aliasing") && canOpenConversation() &&
+             event.originalTarget.getAttribute("anonid") == "startChatBubble")
+           openConversation();
+       ]]>
+     </handler>
+
+     <handler event="click">
+       <![CDATA[
+         if (!this.hasAttribute("aliasing") && canOpenConversation() &&
+             event.detail == 2 &&
+             event.originalTarget.getAttribute("anonid") != "expander")
+           openConversation();
+       ]]>
+     </handler>
+    </handlers>
+  </binding>
+</bindings>

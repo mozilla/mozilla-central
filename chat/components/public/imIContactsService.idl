@@ -1,0 +1,269 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is the Instantbird messenging client, released
+ * 2010.
+ *
+ * The Initial Developer of the Original Code is
+ * Florian QUEZE <florian@instantbird.org>.
+ * Portions created by the Initial Developer are Copyright (C) 2010
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "imIStatusInfo.idl"
+#include "imITagsService.idl"
+#include "nsISupports.idl"
+#include "nsIObserver.idl"
+#include "nsISimpleEnumerator.idl"
+
+interface imIContact;
+interface imIBuddy;
+interface imIAccountBuddy;
+interface imIAccount;
+interface prplIProtocol;
+
+[scriptable, uuid(f1619b49-310b-47aa-ab1c-238aba084c62)]
+interface imIContactsService: nsISupports {
+  void initContacts();
+  void unInitContacts();
+
+  imIContact getContactById(in long aId);
+  imIBuddy getBuddyById(in long aId);
+  imIBuddy getBuddyByNameAndProtocol(in AUTF8String aNormalizedName,
+                                     in prplIProtocol aPrpl);
+
+  // These 3 functions are called by the protocol plugins when
+  // synchronizing the buddy list with the server stored list,
+  // or after user operations have been performed.
+  void accountBuddyAdded(in imIAccountBuddy aAccountBuddy);
+  void accountBuddyRemoved(in imIAccountBuddy aAccountBuddy);
+  void accountBuddyMoved(in imIAccountBuddy aAccountBuddy,
+                         in imITag aOldTag, in imITag aNewTag);
+
+  // These methods are called by the imIAccountsService implementation
+  // to keep the accounts table in sync with accounts stored in the
+  // preferences.
+
+  // Called when an account is created or loaded to store the new
+  // account or ensure it doesn't conflict with an existing account
+  // (to detect database corruption).
+  // Will throw if a stored account has the id aId but a different
+  // username or prplId.
+  void storeAccount(in unsigned long aId, in AUTF8String aUserName,
+                    in AUTF8String aPrplId);
+  // Check if an account id already exists in the database.
+  boolean accountIdExists(in unsigned long aId);
+  // Called when deleting an account to remove it from blist.sqlite.
+  void forgetAccount(in unsigned long aId);
+};
+
+[scriptable, uuid(f585b0df-f6ad-40d5-9de4-c58b14af13e4)]
+interface imIContact: imIStatusInfo {
+  // The id will be positive if the contact is real (stored in the
+  // SQLite database) and negative if the instance is a dummy contact
+  // holding only a single buddy without aliases or additional tags.
+  readonly attribute long id;
+  attribute AUTF8String alias;
+
+  void getTags([optional] out unsigned long tagCount,
+               [retval, array, size_is(tagCount)] out imITag tags);
+
+  // Will do nothing if the contact already has aTag.
+  void addTag(in imITag aTag);
+  // Will throw if the contact doesn't have aTag or doesn't have any other tag.
+  void removeTag(in imITag aTag);
+
+  readonly attribute imIBuddy preferredBuddy;
+  void getBuddies([optional] out unsigned long buddyCount,
+                  [retval, array, size_is(buddyCount)] out imIBuddy buddies);
+
+  // Move all the buddies of aContact into the current contact,
+  // and copy all its tags.
+  void mergeContact(in imIContact aContact);
+
+  // Change the position of aBuddy in the current contact.
+  // The new position is the current position of aBeforeBuddy if it is
+  // specified, or at the end otherwise.
+  void moveBuddyBefore(in imIBuddy aBuddy, [optional] in imIBuddy aBeforeBuddy);
+
+  // Remove aBuddy from its current contact and append it to the list
+  // of buddies of the current contact.
+  // aBuddy should not already be attached to the current contact.
+  void adoptBuddy(in imIBuddy aBuddy);
+
+  // Returns a new contact that contains only aBuddy, and has the same
+  // list of tags.
+  // Will throw if aBuddy is not a buddy of the contact.
+  imIContact detachBuddy(in imIBuddy aBuddy);
+
+  // remove the contact from the buddy list. Will also remove the
+  // associated buddies.
+  void remove();
+
+  void addObserver(in nsIObserver aObserver);
+  void removeObserver(in nsIObserver aObserver);
+  /* Observers will be notified of changes related to the contact.
+   *  aSubject will point to the imIContact object
+   *  (with some exceptions for contact-moved-* notifications).
+   *
+   *  Fired notifications:
+   *   contact-availability-changed
+   *     when either statusType or availabilityDetails has changed.
+   *   contact-signed-on
+   *   contact-signed-off
+   *   contact-status-changed
+   *     when either statusType or statusText has changed.
+   *   contact-display-name-changed
+   *     when the alias (or serverAlias of the most available buddy if
+   *     no alias is set) has changed.
+   *     The old display name is provided in aData.
+   *   contact-preferred-buddy-changed
+   *     The buddy that would be favored to start a conversation has changed.
+   *   contact-moved, contact-moved-in, contact-moved-out
+   *     contact-moved     is notified through the observer service
+   *     contact-moved-in  is notified to
+   *      - the contact observers (aSubject is the new tag)
+   *      - the new tag           (aSubject is the contact instance)
+   *     contact-moved-out is notified to
+   *      - the contact observers (aSubject is the old tag)
+   *      - the old tag           (aSubject is the contact instance)
+   *   contact-no-longer-dummy
+   *     When a real contact is created to replace a dummy contact.
+   *     The old (negative) id will be given in aData.
+   *     See also the comment above the 'id' attribute.
+   *   contact-icon-changed
+   *
+   * Observers will also receive all the (forwarded) notifications
+   * from the linked buddies (imIBuddy instances) and their account
+   * buddies (imIAccountBuddy instances).
+   */
+
+  // Exposed for add-on authors. All internal calls will come from the
+  // imIContact implementation itself so it wasn't required to expose this.
+  // This can be used to dispatch custom notifications to the
+  // observers of the contact and its tags.
+  // The notification will also be forwarded to the observer service.
+  void notifyObservers(in nsISupports aObj, in string aEvent,
+                       [optional] in wstring aData);
+};
+
+
+[scriptable, uuid(fea582a0-3839-4d80-bcab-0ff82ae8f97f)]
+interface imIBuddy: imIStatusInfo {
+  readonly attribute long id;
+  readonly attribute prplIProtocol protocol;
+  readonly attribute AUTF8String userName; // may be formatted
+  readonly attribute AUTF8String normalizedName; // normalized userName
+  // The optional server alias is in displayName (inherited from imIStatusInfo)
+  // displayName = serverAlias || userName.
+
+  readonly attribute imIContact contact;
+  readonly attribute imIAccountBuddy preferredAccountBuddy;
+  void getAccountBuddies([optional] out unsigned long accountBuddyCount,
+                         [retval, array, size_is(accountBuddyCount)] out imIAccountBuddy accountBuddies);
+
+  // remove the buddy from the buddy list. If the contact becomes empty, it will be removed too.
+  void remove();
+
+  void addObserver(in nsIObserver aObserver);
+  void removeObserver(in nsIObserver aObserver);
+  /* Observers will be notified of changes related to the buddy.
+   *  aSubject will point to the imIBuddy object.
+   *  Fired notifications:
+   *   buddy-availability-changed
+   *     when either statusType or availabilityDetails has changed.
+   *   buddy-signed-on
+   *   buddy-signed-off
+   *   buddy-status-changed
+   *     when either statusType or statusText has changed.
+   *   buddy-display-name-changed
+   *     when the serverAlias has changed.
+   *     The old display name is provided in aData.
+   *   buddy-preferred-account-changed
+   *     The account that would be favored to start a conversation has changed.
+   *   buddy-icon-changed
+   *
+   * Observers will also receive all the (forwarded) notifications
+   * from the linked account buddies (imIAccountBuddy instances).
+   */
+
+  // Exposed for add-on authors. All internal calls will come from the
+  // imIBuddy implementation itself so it wasn't required to expose this.
+  // This can be used to dispatch custom notifications to the
+  // observers of the buddy, its contact and its tags.
+  // The contact will forward the notifications to the observer service.
+  void notifyObservers(in nsISupports aObj, in string aEvent,
+                       [optional] in wstring aData);
+
+  // observe should only be called by the imIAccountBuddy
+  // implementations to report changes.
+  void observe(in nsISupports aObj, in string aEvent,
+               [optional] in wstring aData);
+};
+
+/* imIAccountBuddy implementations can send notifications to their buddy:
+ *
+ * For all of them, aSubject points to the imIAccountBuddy object.
+ *
+ * Supported notifications:
+ *  account-buddy-availability-changed
+ *    when either statusType or availabilityDetails has changed.
+ *  account-buddy-signed-on
+ *  account-buddy-signed-off
+ *  account-buddy-status-changed
+ *    when either statusType or statusText has changed.
+ *  account-buddy-display-name-changed
+ *    when the serverAlias has changed.
+ *    The old display name is provided in aData.
+ *  account-buddy-icon-changed
+ *
+ * All notifications (even unsupported ones) will be forwarded to the contact,
+ * its tags and nsObserverService.
+ */
+[scriptable, uuid(114d24ff-56a1-4fd6-9822-4992efb6e036)]
+interface imIAccountBuddy: imIStatusInfo {
+  // The setter is for internal use only. buddy will be set by the
+  // Contacts service when accountBuddyAdded is called on this
+  // instance of imIAccountBuddy.
+           attribute imIBuddy buddy;
+  readonly attribute imIAccount account;
+  // Setting the tag will move the buddy to a different group on the
+  // server-stored buddy list.
+           attribute imITag tag;
+  readonly attribute AUTF8String userName;
+  readonly attribute AUTF8String normalizedName;
+           attribute AUTF8String serverAlias;
+
+  // remove the buddy from the buddy list of this account.
+  void remove();
+
+  // Called by the contacts service during its uninitialization to
+  // notify that all references kept to imIBuddy or imIAccount
+  // instances should be released now.
+  void unInit();
+};

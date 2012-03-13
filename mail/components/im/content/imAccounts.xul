@@ -1,0 +1,183 @@
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is the Instantbird messenging client, released
+   - 2007.
+   -
+   - The Initial Developer of the Original Code is
+   - Florian QUEZE <florian@instantbird.org>.
+   - Portions created by the Initial Developer are Copyright (C) 2007
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Romain Bezut <romain@bezut.info>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://messenger/content/chat/imAccounts.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/imRichlistbox.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/imAccounts.css" type="text/css"?>
+
+<!DOCTYPE window [
+ <!ENTITY % accountsDTD SYSTEM "chrome://messenger/locale/imAccounts.dtd">
+ <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
+ <!ENTITY % chatDTD SYSTEM "chrome://messenger/locale/chat.dtd">
+ %accountsDTD;
+ %brandDTD;
+ %chatDTD;
+]>
+
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        id="accountManager"
+        windowtype="Messenger:Accounts"
+        onload="gAccountManager.load()"
+        title="&accountsWindow.title;"
+        style="&accountsWindow.style;"
+        persist="width height screenX screenY">
+ <script type="application/javascript" src="chrome://messenger/content/chat/imAccounts.js"/>
+ <script type="application/javascript" src="chrome://messenger/content/chat/imStatusSelector.js"/>
+ <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js" />
+ <script type="application/javascript" src="chrome://global/content/nsTransferable.js" />
+
+ <stringbundle id="accountsBundle" src="chrome://messenger/locale/imAccounts.properties"/>
+ <stringbundle id="chatBundle" src="chrome://messenger/locale/chat.properties"/>
+
+ <commandset id="accountsCommands">
+   <command id="cmd_connect"
+            accesskey="&account.connect.accesskey;"
+            label="&account.connect.label;"
+            oncommand="gAccountManager.connect()"/>
+   <command id="cmd_disconnect"
+            label="&account.disconnect.label;"
+            accesskey="&account.disconnect.accesskey;"
+            oncommand="gAccountManager.disconnect()"/>
+   <command id="cmd_cancelReconnection"
+            label="&account.cancelReconnection.label;"
+            accesskey="&account.cancelReconnection.accesskey;"
+            oncommand="gAccountManager.cancelReconnection()"/>
+   <command id="cmd_moveup"
+            label="&account.moveup.label;"
+            oncommand="gAccountManager.moveCurrentItem(-1)"/>
+   <command id="cmd_movedown"
+            label="&account.movedown.label;"
+            oncommand="gAccountManager.moveCurrentItem(1)"/>
+   <command id="cmd_edit"
+            label="&account.edit.label;"
+            accesskey="&account.edit.accesskey;"
+            oncommand="gAccountManager.edit()"/>
+   <command id="cmd_new"
+            label="&accountManager.newAccount.label;"
+            accesskey="&accountManager.newAccount.accesskey;"
+            oncommand="gAccountManager.new()"/>
+   <command id="cmd_close"
+            label="&accountManager.close.label;"
+            accesskey="&accountManager.close.accesskey;"
+            oncommand="gAccountManager.close()"/>
+ </commandset>
+
+ <keyset id="accountsKeys">
+   <key id="key_close1" key="w" modifiers="accel" command="cmd_close"/>
+   <key id="key_close2" keycode="VK_ESCAPE" command="cmd_close"/>
+   <key id="key_close3" command="cmd_close"
+        key="&accountManager.close.commandkey;" modifiers="accel,shift"/>
+ </keyset>
+
+ <broadcasterset>
+   <broadcaster id="contextAccountsItems"/>
+ </broadcasterset>
+
+ <menupopup id="accountsContextMenu"
+            onpopupshowing="gAccountManager.onContextMenuShowing()">
+   <menuitem id="context_connect"
+             command="cmd_connect"
+             observes="contextAccountsItems"/>
+   <menuitem id="context_disconnect"
+             command="cmd_disconnect"
+             observes="contextAccountsItems"/>
+   <menuitem id="context_cancelReconnection"
+             command="cmd_cancelReconnection"
+             observes="contextAccountsItems"/>
+   <menuseparator observes="contextAccountsItems"/>
+   <menuitem command="cmd_new"/>
+   <menuseparator observes="contextAccountsItems"/>
+   <menuitem command="cmd_moveup" observes="contextAccountsItems"/>
+   <menuitem command="cmd_movedown" observes="contextAccountsItems"/>
+   <menuseparator observes="contextAccountsItems"/>
+   <menuitem command="cmd_edit" observes="contextAccountsItems"/>
+ </menupopup>
+
+ <toolbox id="mainToolbox">
+   <toolbar id="statusArea">
+     <stack id="statusImageStack">
+       <image id="userIcon" onclick="statusSelector.userIconClick();"/>
+       <button type="menu" id="statusTypeIcon" status="available">
+         <menupopup id="setStatusTypeMenupopup"
+                    oncommand="statusSelector.editStatus(event);">
+           <menuitem id="statusTypeAvailable" label="&status.available;"
+                     status="available" class="menuitem-iconic"/>
+           <menuitem id="statusTypeUnavailable" label="&status.unavailable;"
+                     status="unavailable" class="menuitem-iconic"/>
+           <menuseparator id="statusTypeOfflineSeparator"/>
+           <menuitem id="statusTypeOffline" label="&status.offline;"
+                     status="offline" class="menuitem-iconic"/>
+         </menupopup>
+       </button>
+     </stack>
+     <stack id="displayNameAndstatusMessageStack" flex="1">
+       <vbox flex="1" pack="center">
+         <label id="displayName" onclick="statusSelector.displayNameClick();"/>
+       </vbox>
+       <label id="statusMessage" crop="end" value=""
+              onclick="statusSelector.statusMessageClick();"/>
+     </stack>
+   </toolbar>
+ </toolbox>
+
+ <deck flex="1" id="accountsDesk" ondblclick="gAccountManager.new();">
+   <vbox flex="1" id="noAccountScreen" align="center" pack="center">
+     <hbox id="noAccountBox" align="top">
+       <image id="noAccountImage"/>
+       <vbox id="noAccountInnerBox" flex="1">
+         <label id="noAccountTitle" value="&accountManager.noAccount.title;"/>
+         <description id="noAccountDesc">&accountManager.noAccount.description;</description>
+       </vbox>
+     </hbox>
+   </vbox>
+   <notificationbox id="accountsNotificationBox" flex="1">
+     <richlistbox id="accountlist" flex="1" context="accountsContextMenu"
+                  onselect="gAccountManager.onAccountSelect();"
+                  ondragstart="nsDragAndDrop.startDrag(event, gAMDragAndDrop);"
+                  ondragover="nsDragAndDrop.dragOver(event, gAMDragAndDrop);"
+                  ondragend="gAMDragAndDrop.cleanBorders(true);"
+                  ondragdrop="nsDragAndDrop.drop(event, gAMDragAndDrop);"/>
+   </notificationbox>
+ </deck>
+ <windowdragbox id="bottombuttons" align="center">
+  <button id="newaccount" command="cmd_new"/>
+  <spacer flex="1"/>
+  <button id="close" command="cmd_close"/>
+ </windowdragbox>
+</window>

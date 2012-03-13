@@ -1,0 +1,242 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is the Instantbird messenging client, released
+   - 2007.
+   -
+   - The Initial Developer of the Original Code is
+   - Florian QUEZE <florian@instantbird.org>.
+   - Portions created by the Initial Developer are Copyright (C) 2007
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE bindings>
+
+<bindings id="groupBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="group" extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
+    <content persist="closed" collapsed="true">
+      <xul:image class="twisty"/>
+      <xul:label flex="1" crop="end" xbl:inherits="value=name"/>
+    </content>
+    <implementation>
+     <!-- Takes as input two contact elements (imIContact type) and compares
+          - their nicknames alphabetically (case insensitive). This method
+          - behaves as a callback that Array.sort accepts as a parameter.
+          -->
+     <method name="sortComparator">
+      <parameter name="aContactA"/>
+      <parameter name="aContactB"/>
+      <body>
+      <![CDATA[
+        if (aContactA.statusType != aContactB.statusType)
+          return aContactB.statusType - aContactA.statusType;
+        let a = aContactA.displayName.toLowerCase();
+        let b = aContactB.displayName.toLowerCase();
+        return a.localeCompare(b);
+      ]]>
+      </body>
+     </method>
+
+     <field name="contacts">[]</field>
+     <field name="contactsById">({})</field>
+
+     <method name="addContact">
+      <parameter name="aContact"/>
+      <parameter name="aTagName"/>
+      <body>
+      <![CDATA[
+        if (this.contactsById.hasOwnProperty(aContact.id))
+          return;
+
+        let contactElt = document.createElement(aTagName || "imcontact");
+        if (this.hasAttribute("closed"))
+          contactElt.setAttribute("collapsed", "true");
+
+        let end = this.contacts.length;
+        // Avoid the binary search loop if the contacts were already sorted.
+        if (end != 0 &&
+            this.sortComparator(aContact, this.contacts[end - 1].contact) < 0) {
+          let start = 0;
+          while (start < end) {
+            let middle = start + Math.floor((end - start) / 2);
+            if (this.sortComparator(aContact, this.contacts[middle].contact) < 0)
+              end = middle;
+            else
+              start = middle + 1;
+          }
+        }
+        let last = end == 0 ? this : this.contacts[end - 1];
+        this.parentNode.insertBefore(contactElt, last.nextSibling);
+        contactElt.build(aContact);//, this);
+        contactElt.group = this;
+        this.contacts.splice(end, 0, contactElt);
+        this.contactsById[aContact.id] = contactElt;
+        this.removeAttribute("collapsed");
+        this._updateGroupLabel();
+        return contactElt;
+      ]]>
+      </body>
+     </method>
+
+     <method name="updateContactPosition">
+      <parameter name="aSubject"/>
+      <body>
+      <![CDATA[
+        let contactElt = this.contactsById[aSubject.id];
+        let index = this.contacts.indexOf(contactElt);
+        if (index == -1) {
+          // Sometimes we get a display-name-changed notification for
+          // an offline contact, if it's not in the list, just ignore it.
+          return;
+        }
+        // See if the position of the contact should be changed.
+        if (index != 0 &&
+            this.sortComparator(contactElt.contact, this.contacts[index - 1].contact) < 0 ||
+            index != this.contacts.length - 1 &&
+            this.sortComparator(contactElt.contact, this.contacts[index + 1].contact) > 0) {
+          let oldItem = this.removeContact(aSubject);
+          let newItem = this.addContact(aSubject);
+          let list = this.parentNode;
+          if (list.selectedItem == oldItem)
+            list.selectedItem = newItem;
+        }
+      ]]>
+      </body>
+     </method>
+
+     <method name="removeContact">
+      <parameter name="aContact"/>
+      <body>
+      <![CDATA[
+        let contact = this.contactsById[aContact.id];
+        if (!contact)
+          throw "Removing a contact that isn't here?";
+
+        // create a new array to remove without breaking for each loops.
+        this.contacts = this.contacts.filter(function(c) c !== contact);
+        delete this.contactsById[contact.contact.id];
+
+        contact.destroy();
+
+        // Check if some contacts remain in the group, if empty hide it.
+        if (!this.contacts.length)
+          this.setAttribute("collapsed", "true");
+        else
+          this._updateGroupLabel();
+
+        return contact;
+      ]]>
+      </body>
+     </method>
+
+     <method name="_updateClosedState">
+      <parameter name="aClosed"/>
+      <body>
+      <![CDATA[
+        for each (let contact in this.contacts)
+          contact.collapsed = aClosed;
+      ]]>
+      </body>
+     </method>
+
+     <method name="close">
+      <body>
+      <![CDATA[
+        if (this.hasAttribute("closed")) {
+          this.removeAttribute("closed");
+          this._updateClosedState(false);
+        }
+        else {
+          this.setAttribute("closed", "true");
+          this._updateClosedState(true);
+        }
+
+        this._updateGroupLabel();
+      ]]>
+      </body>
+     </method>
+
+     <field name="displayName"></field>
+     <method name="_updateGroupLabel">
+      <body>
+      <![CDATA[
+        if (!this.displayName)
+          this.displayName = this.getAttribute("name");
+        let name = this.displayName;
+        if (this.hasAttribute("closed"))
+          name += " (" + this.contacts.length + ")";
+
+        this.setAttribute("name", name);
+      ]]>
+      </body>
+     </method>
+
+     <method name="keyPress">
+      <parameter name="aEvent"/>
+      <body>
+      <![CDATA[
+        switch (aEvent.keyCode) {
+          case aEvent.DOM_VK_RETURN:
+          case aEvent.DOM_VK_ENTER:
+            this.close();
+            break;
+
+          case aEvent.DOM_VK_LEFT:
+            if (!this.hasAttribute("closed"))
+              this.close();
+            break;
+
+          case aEvent.DOM_VK_RIGHT:
+            if (this.hasAttribute("closed"))
+              this.close();
+            break;
+        }
+      ]]>
+      </body>
+     </method>
+    </implementation>
+    <handlers>
+     <handler event="click">
+     <![CDATA[
+        // Check if there was 1 click on the image or 2 clicks on the label
+        if ((event.detail == 1 && event.originalTarget.localName == "image") ||
+            (event.detail == 2 && event.originalTarget.localName == "label"))
+          this.close();
+
+        if (event.originalTarget.localName == "button")
+          this.hide();
+     ]]>
+     </handler>
+    </handlers>
+  </binding>
+</bindings>

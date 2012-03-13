@@ -270,6 +270,16 @@ toolbox[labelalign="end"] .toolbarbutton-1[type="menu"] {
   list-style-image: url("moz-icon://stock/gtk-go-forward-rtl?size=toolbar&state=disabled");
 }
 
+#button-chat {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 360px 24px 338px);
+}
+
+#button-chat[disabled] {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(24px 360px 48px 338px);
+}
+
 /* ::::: small primary toolbar buttons ::::: */
 
 toolbar[iconsize="small"] #button-getmsg {
@@ -470,6 +480,16 @@ toolbar[iconsize="small"] #button-archive {
 
 toolbar[iconsize="small"] #button-archive[disabled] {
   -moz-image-region: rect(16px 224px 32px 208px);
+}
+
+toolbar[iconsize="small"] #button-chat {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 240px 16px 224px);
+}
+
+toolbar[iconsize="small"] #button-chat[disabled] {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(16px 240px 32px 224px);
 }
 
 /* ::::: end small primary toolbar buttons ::::: */

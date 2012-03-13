@@ -1,0 +1,21 @@
+%include chat.css
+
+#button-add-buddy {
+  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
+  -moz-image-region: rect(0px 18px 18px 0px);
+}
+
+#button-join-buddy[disabled] {
+  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
+  -moz-image-region: rect(18px 18px 36px 0px);
+}
+
+#button-join-chat {
+  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
+  -moz-image-region: rect(0px 36px 18px 18px);
+}
+
+#button-join-chat[disabled] {
+  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
+  -moz-image-region: rect(18px 36px 36px 18px);
+}

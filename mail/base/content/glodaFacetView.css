@@ -206,7 +206,7 @@ h1, h2, h3 {
 }
 
 .facetious[uninitialized] {
-  display: none;
+  display: none !important;
 }
 
 .facetious {

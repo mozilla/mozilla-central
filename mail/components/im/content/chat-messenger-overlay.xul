@@ -1,0 +1,299 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Mozilla Thunderbird.
+   -
+   - The Initial Developer of the Original Code is
+   - Florian QUEZE <florian@queze.net>.
+   - Portions created by the Initial Developer are Copyright (C) 2011
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/content/chat/chat.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/chat.css" type="text/css"?>
+
+<!DOCTYPE overlay [
+  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
+  %brandDTD;
+  <!ENTITY % chatDTD SYSTEM "chrome://messenger/locale/chat.dtd">
+  %chatDTD;
+  <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd">
+  %messengerDTD;
+  <!ENTITY % textcontextDTD SYSTEM "chrome://global/locale/textcontext.dtd">
+  %textcontextDTD;
+]>
+
+<overlay id="chat-messenger-overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <script type="application/javascript"
+          src="chrome://messenger/content/chat/chat-messenger-overlay.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/chat/imStatusSelector.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/chat/imContextMenu.js"/>
+
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="chatBundle" src="chrome://messenger/locale/chat.properties"/>
+  </stringbundleset>
+
+  <popupset id="mainPopupSet">
+    <tooltip id="buddyTooltip" type="buddy"/>
+
+    <menupopup id="buddyListContextMenu"
+               onpopupshowing="if (event.target != this) return true; gBuddyListContextMenu = new buddyListContextMenu(this); return gBuddyListContextMenu.shouldDisplay;"
+               onpopuphiding="if (event.target == this) { gBuddyListContextMenu = null; }">
+      <menuitem id="context-openconversation"
+                label="&openConversationCmd.label;"
+                accesskey="&openConversationCmd.accesskey;"
+                oncommand="gBuddyListContextMenu.openConversation();"/>
+      <menuitem id="context-close-conversation"
+                label="&closeConversationCmd.label;"
+                accesskey="&closeConversationCmd.accesskey;"
+                oncommand="gBuddyListContextMenu.closeConversation();"/>
+      <menuseparator id="context-edit-buddy-separator"/>
+      <menuitem id="context-alias"
+                label="&aliasCmd.label;"
+                accesskey="&aliasCmd.accesskey;"
+                oncommand="gBuddyListContextMenu.alias();"/>
+      <menuitem id="context-delete"
+                label="&deleteCmd.label;"
+                accesskey="&deleteCmd.accesskey;"
+                oncommand="gBuddyListContextMenu.delete();"/>
+    </menupopup>
+
+    <menupopup id="chatConversationContextMenu"
+               onpopupshowing="if (event.target != this) return true; gChatContextMenu = new imContextMenu(this); return gChatContextMenu.shouldDisplay;"
+               onpopuphiding="if (event.target == this &amp;&amp; gChatContextMenu) { gChatContextMenu.cleanup(); gChatContextMenu = null; }">
+      <menuitem id="context-openlink"
+                label="&openLinkCmd.label;"
+                accesskey="&openLinkCmd.accesskey;"
+                oncommand="gChatContextMenu.openLink();"/>
+      <menuitem id="context-copyemail"
+                label="&copyEmailCmd.label;"
+                accesskey="&copyEmailCmd.accesskey;"
+                oncommand="gChatContextMenu.copyEmail();"/>
+      <menuitem id="context-copylink"
+                label="&copyLinkCmd.label;"
+                accesskey="&copyLinkCmd.accesskey;"
+                oncommand="goDoCommand('cmd_copyLink');"/>
+      <menuseparator id="context-sep-copylink"/>
+
+      <menuitem id="context-copy"
+                label="&copyCmd.label;"
+                accesskey="&copyCmd.accesskey;"
+                command="cmd_copy"/>
+      <menuitem id="context-selectall"
+                label="&selectAllCmd.label;"
+                accesskey="&selectAllCmd.accesskey;"
+                command="cmd_selectAll"/>
+      <menuseparator id="context-sep-messageactions"/>
+    </menupopup>
+
+    <menupopup id="chat-toolbar-context-menu">
+      <menuitem id="CustomizeChatToolbar"
+                oncommand="CustomizeMailToolbar('chat-view-toolbox', 'CustomizeChatToolbar')"
+                label="&customizeToolbar.label;"
+                accesskey="&customizeToolbar.accesskey;"/>
+    </menupopup>
+  </popupset>
+
+  <tabpanels id="tabpanelcontainer">
+    <vbox>
+      <toolbox id="chat-view-toolbox" class="mail-toolbox"
+               labelalign="end" defaultlabelalign="end">
+        <toolbar class="inline-toolbar chromeclass-toolbar"
+                 id="chat-toobar"
+                 fullscreentoolbar="true"
+                 mode="full"
+                 defaultmode="full"
+                 customizable="true"
+                 context="chat-toolbar-context-menu"
+#ifdef XP_MACOSX
+                 iconsize="small"
+#endif
+                 defaultset="button-add-buddy,button-join-chat,spacer,chat-status-selector,button-chat-accounts,spacer,gloda-im-search"/>
+
+        <toolbarpalette id="ChatToolbarPalette">
+          <toolbarbutton id="button-add-buddy"
+                         class="toolbarbutton-1"
+                         label="&addBuddyButton.label;"
+                         oncommand="chatHandler.addBuddy()"/>
+          <toolbarbutton id="button-join-chat"
+                         class="toolbarbutton-1"
+                         label="&joinChatButton.label;"
+                         oncommand="chatHandler.joinChat()"/>
+          <toolbaritem id="chat-status-selector"
+                       orient="horizontal"
+                       class="toolbarbutton-1"
+                       align="center" flex="1">
+            <button type="menu" id="statusTypeIcon" status="available">
+              <menupopup id="setStatusTypeMenupopup"
+                         oncommand="statusSelector.editStatus(event);">
+                <menuitem id="statusTypeAvailable" label="&status.available;"
+                          status="available" class="menuitem-iconic"/>
+                <menuitem id="statusTypeUnavailable" label="&status.unavailable;"
+                          status="unavailable" class="menuitem-iconic"/>
+                <menuseparator id="statusTypeOfflineSeparator"/>
+                <menuitem id="statusTypeOffline" label="&status.offline;"
+                          status="offline" class="menuitem-iconic"/>
+              </menupopup>
+            </button>
+            <label id="statusMessage" crop="end" flex="1" value=""
+                   onclick="statusSelector.statusMessageClick();"/>
+          </toolbaritem>
+          <toolbarbutton id="button-chat-accounts"
+                         class="toolbarbutton-1"
+                         label="&chatAccountsButton.label;"
+                         oncommand="openIMAccountMgr()"/>
+
+          <toolbaritem id="gloda-im-search" insertafter="button-stop"
+                       title="&amp;glodaSearch.title;"
+                       align="center"
+                       flex="1"
+                       class="chromeclass-toolbar-additional">
+            <textbox id="IMSearchInput" 
+                     flex="1"
+                     type="glodacomplete"
+                     searchbutton="true"
+                     enablehistory="false"
+                     timeout="200"
+                     maxlength="192"
+                     placeholder=""
+                     emptytextbase="&searchAllChatMessages.label.base;"
+                     keyLabelNonMac="&search.keyLabel.nonmac;"
+                     keyLabelMac="&search.keyLabel.mac;"
+                     >
+              <!-- Mimic the search/clear buttons of the standard search textbox,
+                   but adjust for the reality that clear doesn't make much sense
+                   since gloda results only show in a tab and the idiom for closing
+                   tabs is closing the tab.  Our binding does process escape to
+                   clear the box, if people want to clear it that way...
+                -->
+              <hbox>
+                <image class="gloda-search-icon"
+                       onclick="document.getElementById('IMSearchInput').doSearch();"
+                       />
+              </hbox>
+            </textbox>
+          </toolbaritem>
+        </toolbarpalette>
+        <toolbarset id="customChatToolbars" context="chat-toolbar-context-menu"/>
+      </toolbox>
+
+      <notificationbox id="chatTabPanel" flex="1">
+        <hbox flex="1">
+          <vbox id="listPaneBox" minwidth="125" width="200" persist="width">
+            <richlistbox id="contactlistbox"
+                         context="buddyListContextMenu"
+                         tooltip="buddyTooltip" flex="1">
+              <imgroup id="conversationsGroup" name="&conversationsHeader.label;"/>
+              <imconv id="searchResultConv" displayname="&searchResultConversation.label;" hidden="true"/>
+              <imgroup id="onlinecontactsGroup" name="&onlineContactsHeader.label;"/>
+              <imgroup id="offlinecontactsGroup" name="&offlineContactsHeader.label;" closed="true"/>
+            </richlistbox>
+          </vbox>
+          <splitter id="listSplitter" collapse="before"/>
+          <deck id="conversationsDeck" flex="1">
+            <vbox flex="1" id="noConvScreen" class="im-placeholder-screen" align="center" pack="center">
+              <hbox id="noConvBox" class="im-placeholder-box" align="top">
+                <image id="noConvImage" class="im-placeholder-image"/>
+                <vbox id="noConvInnerBox" class="im-placeholder-innerbox" flex="1">
+                  <label id="noConvTitle" class="im-placeholder-title" value="&chat.noConv.title;"/>
+                  <description id="noConvDesc" class="im-placeholder-desc">&chat.noConv.description;</description>
+                </vbox>
+                <vbox id="noAccountInnerBox" hidden="true">
+                  <label id="noAccountTitle" class="im-placeholder-title" value="&chat.noAccount.title;"/>
+                  <description id="noAccountDesc" class="im-placeholder-desc">&chat.noAccount.description;</description>
+                  <hbox flex="1">
+                    <spacer flex="1"/>
+                    <button id="openIMAccountWizardButton" label="&chat.accountWizard.button;"
+                            oncommand="openIMAccountWizard();"/>
+                  </hbox>
+                </vbox>
+                <vbox id="noConnectedAccountInnerBox" hidden="true">
+                  <label id="noConnectedAccountTitle" class="im-placeholder-title" value="&chat.noConnectedAccount.title;"/>
+                  <description id="noConnectedAccountDesc" class="im-placeholder-desc">&chat.noConnectedAccount.description;</description>
+                  <hbox flex="1">
+                    <spacer flex="1"/>
+                    <button id="openIMAccountManagerButton" label="&chat.showAccountManager.button;"
+                            oncommand="openIMAccountMgr();"/>
+                  </hbox>
+                </vbox>
+              </hbox>
+            </vbox>
+            <vbox id="logDisplay" flex="1">
+              <deck id="logDisplayDeck" flex="1">
+                <vbox flex="1" id="noPreviousConvScreen" class="im-placeholder-screen" align="center" pack="center">
+                  <hbox id="noPreviousConvBox" class="im-placeholder-box" align="top">
+                    <vbox id="noPreviousConvInnerBox" class="im-placeholder-innerbox" flex="1">
+                      <description id="noPreviousConvDesc" class="im-placeholder-desc">&chat.noPreviousConv.description;</description>
+                    </vbox>
+                  </hbox>
+                </vbox>
+                <vbox flex="1" id="logDisplayBrowserBox">
+                  <browser id="conv-log-browser" type="content-conversation" contextmenu="chatConversationContextMenu" flex="1"/>
+                  <progressmeter id="log-browserProgress" hidden="true"/>
+                  <findbar id="log-findbar" browserid="conv-log-browser"/>
+                </vbox>
+              </deck>
+              <button id="goToConversation" hidden="true"
+                      oncommand="chatHandler.showCurrentConversation();"/>
+            </vbox>
+          </deck>
+          <splitter id="contextSplitter" hidden="true" collapse="after"/>
+          <vbox id="contextPane" hidden="true" width="250" persist="width">
+            <toolbar class="conv-top-info" id="conv-top-info"/>
+            <vbox flex="1" class="conv-chat" width="150">
+              <hbox align="baseline" class="conv-nicklist-header">
+                <label class="conv-nicklist-header-label"
+                       id="participantLabel" control="participantCount"
+                       value="&chat.participants;"/>
+                <textbox flex="1" readonly="true" class="plain" id="participantCount"/>
+              </hbox>
+              <listbox id="nicklist" class="conv-nicklist"
+                       flex="1" seltype="multiple"
+                       tooltip="buddyTooltip"
+                       onclick="onNickClick(event);"
+                       onkeypress="onNicklistKeyPress(event);"/><!-- FIXME event handler -->
+            </vbox>
+            <splitter id="logsSplitter" class="conv-chat"/>
+            <vbox flex="1" id="previousConversations">
+              <label class="conv-logs-header-label"
+                     id="participantLabel"
+                     value="&chat.previousConversations;"/>
+              <listbox flex="1" id="logList" onselect="chatHandler.onLogSelect();"/>
+            </vbox>
+          </vbox>
+        </hbox>
+      </notificationbox>
+    </vbox>
+  </tabpanels>
+</overlay>

@@ -104,7 +104,9 @@
   -->
 
 <toolbox id="navigation-toolbox" class="toolbox-top"/>
-  
+
+<browser id="hiddenBrowser" disablehistory="true"/>
+
 </window>
 
 #endif

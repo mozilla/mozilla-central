@@ -26,6 +26,8 @@
 <!ENTITY newCreateEmailAccountCmd.accesskey "G">
 <!ENTITY newExistingEmailAccountCmd.label "Existing Mail Account…">
 <!ENTITY newExistingEmailAccountCmd.accesskey "E">
+<!ENTITY newIMAccountCmd.label "Chat Account…">
+<!ENTITY newIMAccountCmd.accesskey "C">
 <!ENTITY openMessageFileCmd.label "Open Saved Message…">
 <!ENTITY openMessageFileCmd.accesskey "O">
 <!ENTITY openAttachmentCmd.label "Attachments">
@@ -325,6 +327,9 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY goBackCmd.label "Back">
 <!ENTITY goBackCmd.accesskey "B">
 <!ENTITY goBackCmd.commandKey "[">
+<!ENTITY goChatCmd.label "Chat">
+<!ENTITY goChatCmd.accesskey "c">
+<!ENTITY goChatCmd.commandKey "C">
 <!ENTITY prevStarredMsgCmd.label "Starred Message">
 <!ENTITY prevStarredMsgCmd.accesskey "S">
 <!ENTITY folderMenu.label "Folder">
@@ -468,6 +473,12 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY addons.accesskey "A">
 <!ENTITY activitymanager.label "Activity Manager">
 <!ENTITY activitymanager.accesskey "v">
+<!ENTITY imAccountsStatus.label "Chat status">
+<!ENTITY imAccountsStatus.accesskey "C">
+<!ENTITY imStatus.available          "Available">
+<!ENTITY imStatus.unavailable        "Unavailable">
+<!ENTITY imStatus.offline            "Offline">
+<!ENTITY imStatus.showAccounts       "Show Accounts…">
 <!ENTITY savedFiles.label "Saved Files">
 <!ENTITY savedFiles.accesskey "l">
 <!ENTITY savedFiles.key "j">
@@ -521,6 +532,7 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY junkButton.label "Junk">
 <!ENTITY notJunkButton.label "Not Junk">
 <!ENTITY addressBookButton.label "Address Book">
+<!ENTITY chatButton.label "Chat">
 <!ENTITY glodaSearch.title "Global Search">
 <!ENTITY searchItem.title "Quick Search">
 <!ENTITY mailViewsToolbarItem.title "Mail Views">
@@ -554,6 +566,7 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY junkButton.tooltip "Mark the selected messages as junk">
 <!ENTITY notJunkButton.tooltip "Mark the selected messages as not junk">
 <!ENTITY addressBookButton.tooltip "Go to the address book">
+<!ENTITY chatButton.tooltip "Show the Chat tab">
 <!ENTITY tagButton.tooltip "Tag messages">
 <!ENTITY compactButton.tooltip "Remove deleted messages from selected folder">
 

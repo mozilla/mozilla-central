@@ -49,6 +49,9 @@ radio[pane=paneDisplay] {
 radio[pane=paneCompose] {
   list-style-image: url("chrome://messenger/skin/preferences/composition.png");
 }
+radio[pane=paneChat] {
+  list-style-image: url("chrome://messenger/skin/preferences/chat.png"); /*FIXME*/
+}
 radio[pane=paneSecurity] {
   list-style-image: url("chrome://messenger/skin/preferences/security.png");
 }

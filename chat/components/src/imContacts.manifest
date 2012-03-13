@@ -1,0 +1,4 @@
+component {8c3725dd-ee26-489d-8135-736015af8c7f} imContacts.js
+contract @mozilla.org/chat/contacts-service;1 {8c3725dd-ee26-489d-8135-736015af8c7f}
+component {1fa92237-4303-4384-b8ac-4e65b50810a5} imContacts.js
+contract @mozilla.org/chat/tags-service;1 {1fa92237-4303-4384-b8ac-4e65b50810a5}

@@ -417,6 +417,7 @@
   <key id="key_archive" key="&archiveMsgCmd.key;"                    oncommand="goDoCommand('cmd_archive')"/>
   <key id="key_goForward" key="&goForwardCmd.commandKey;"            oncommand="goDoCommand('cmd_goForward')"/>
   <key id="key_goBack" key="&goBackCmd.commandKey;"                  oncommand="goDoCommand('cmd_goBack')"/>
+  <key id="key_goChat" key="&goChatCmd.commandKey;"                  modifiers="accel,shift"/>
   <key id="key_goStartPage" keycode="VK_HOME"                        oncommand="goDoCommand('cmd_goStartPage')" modifiers="alt"/>
   <key id="key_undoCloseTab" key="&undoCloseTabCmd.commandkey;"      oncommand="goDoCommand('cmd_undoCloseTab')" modifiers="accel, shift"/> 
   <key id="key_reply" key="&replyMsgCmd.key;"                        oncommand="goDoCommand('cmd_reply')" modifiers="accel"/>
@@ -1003,6 +1004,10 @@
                         label="&newExistingEmailAccountCmd.label;"
                         accesskey="&newExistingEmailAccountCmd.accesskey;"
                         oncommand="NewMailAccount(msgWindow);"/>
+              <menuitem id="newIMAccountMenuItem"
+                        label="&newIMAccountCmd.label;"
+                        accesskey="&newIMAccountCmd.accesskey;"
+                        oncommand="openIMAccountWizard();"/>
               <menuitem id="newAccountMenuItem"
                         label="&newOtherAccountsCmd.label;"
                         accesskey="&newOtherAccountsCmd.accesskey;"
@@ -1419,6 +1424,10 @@
                     accesskey="&goBackCmd.accesskey;" command="cmd_goBack"
                     key="key_goBack"/>
           <menuseparator id="goNextSeparator"/>
+          <menuitem id="menu_goChat" label="&goChatCmd.label;"
+                    accesskey="&goChatCmd.accesskey;" oncommand="showChatTab();"
+                    key="key_goChat"/>
+          <menuseparator id="goChatSeparator"/>
           <menu id="goFolderMenu"
                 label="&folderMenu.label;"
                 accesskey="&folderMenu.accesskey;"
@@ -1649,6 +1658,19 @@
         <menuitem id="activityManager" label="&activitymanager.label;"
                   accesskey="&activitymanager.accesskey;"
                   oncommand="openActivityMgr();"/>
+        <menu id="imAccountsStatus" label="&imAccountsStatus.label;"
+              accesskey="&imAccountsStatus.accesskey;"
+              oncommand="chatHandler.setStatusMenupopupCommand(event);">
+          <menupopup id="imStatusMenupopup">
+            <menuitem id="imStatusAvailable" status="available" label="&imStatus.available;" class="menuitem-iconic"/>
+            <menuitem id="imStatusUnavailable" status="unavailable" label="&imStatus.unavailable;" class="menuitem-iconic"/>
+            <menuseparator id="imStatusOfflineSeparator"/>
+            <menuitem id="imStatusOffline" status="offline" label="&imStatus.offline;" class="menuitem-iconic"/>
+            <menuseparator id="imStatusShowAccountsSeparator"/>
+            <menuitem id="imStatusShowAccounts" label="&imStatus.showAccounts;"/>
+          </menupopup>
+        </menu>
+
         <menuseparator id="devToolsSeparator"/>
         <menuitem id="filtersCmd" label="&filtersCmd.label;"
                   accesskey="&filtersCmd.accesskey;"
@@ -1970,6 +1992,11 @@
                    label="&addressBookButton.label;"
                    oncommand="toAddressBook();"
                    tooltiptext="&addressBookButton.tooltip;"/>
+    <toolbarbutton id="button-chat"
+                   class="toolbarbutton-1"
+                   label="&chatButton.label;"
+                   oncommand="showChatTab();"
+                   tooltiptext="&chatButton.tooltip;"/>
     <toolbaritem id="throbber-box" title="&throbberItem.title;" align="center" pack="center"
                  mousethrough="always">
        <image/>
@@ -1995,9 +2022,9 @@
            context="toolbar-context-menu"
 #ifdef XP_MACOSX
            iconsize="small"
-           defaultset="button-getmsg,button-newmsg,button-address,spacer,button-tag,qfb-show-filter-bar,spring,gloda-search">
+           defaultset="button-getmsg,button-newmsg,button-chat,button-address,spacer,button-tag,qfb-show-filter-bar,spring,gloda-search">
 #else
-           defaultset="button-getmsg,button-newmsg,button-address,separator,button-tag,qfb-show-filter-bar,spring,gloda-search">
+           defaultset="button-getmsg,button-newmsg,button-chat,button-address,separator,button-tag,qfb-show-filter-bar,spring,gloda-search">
 #endif
   </toolbar>
 

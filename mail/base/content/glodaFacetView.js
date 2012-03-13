@@ -329,8 +329,15 @@ ActiveNonSingularConstraint.prototype = {
 };
 
 var FacetContext = {
-  facetDriver: new FacetDriver(Gloda.lookupNounDef("message"),
-                               window),
+  get facetDriver() {
+    if (!("GlodaIMSearcher" in window))
+      Cu.import("resource:///modules/search_im.js");
+    let nounName =
+      this.searcher instanceof GlodaIMSearcher ? "im-conversation" : "message";
+    delete this.facetDriver;
+    this.facetDriver = new FacetDriver(Gloda.lookupNounDef(nounName), window);
+    return this.facetDriver;
+  },
 
   /**
    * The root collection which our active set is a subset of.  We hold onto this
@@ -840,6 +847,21 @@ var FacetContext = {
       conversation: aMessage.conversation,
       message: aMessage,
       title: aMessage.conversation.subject,
+      background: aBackground
+    });
+  },
+
+  /**
+   * Show the conversation in a new glodaList tab.
+   *
+   * @param {GlodaIMConversation} aConversation The conversation to show.
+   * @param {Boolean} [aBackground] Whether it should be in the background.
+   */
+  showIMConversationInTab: function(aConversation, aBackground) {
+    let tabmail = this.rootWin.document.getElementById("tabmail");
+    tabmail.openTab("chat", {
+      convType: "log",
+      conv: aConversation,
       background: aBackground
     });
   },

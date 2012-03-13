@@ -1,0 +1,4 @@
+component {13118758-dad2-418c-a03d-1acbfed0cd01} imProtocolInfo.js
+contract @mozilla.org/messenger/protocol/info;1?type=im {13118758-dad2-418c-a03d-1acbfed0cd01}
+component {9dd7f36b-5960-4f0a-8789-f5f516bd083d} imIncomingServer.js
+contract @mozilla.org/messenger/server;1?type=im {9dd7f36b-5960-4f0a-8789-f5f516bd083d}

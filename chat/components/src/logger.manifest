@@ -1,0 +1,3 @@
+component {fb0dc220-2c7a-4216-9f19-6b8f3480eae9} logger.js
+contract @mozilla.org/chat/logger;1 {fb0dc220-2c7a-4216-9f19-6b8f3480eae9}
+category profile-after-change Logger @mozilla.org/chat/logger;1

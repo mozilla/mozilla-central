@@ -42,6 +42,11 @@
                     accesskey="&addMailAccountButton.accesskey;"
                     prefstring="mail.disable_new_account_addition"
                     oncommand="AddMailAccount(event); event.stopPropagation();"/>
+          <menuitem id="accountActionsAddIMAccount"
+                    label="&addIMAccountButton.label;"
+                    accesskey="&addIMAccountButton.accesskey;"
+                    prefstring="mail.disable_new_account_addition"
+                    oncommand="AddIMAccount(event); event.stopPropagation();"/>
           <menuitem id="accountActionsAddOtherAccount"
                     label="&addOtherAccountButton.label;"
                     accesskey="&addOtherAccountButton.accesskey;"

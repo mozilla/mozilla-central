@@ -1,0 +1,2 @@
+component {04e58eae-dfbc-4c9e-8130-6d9ef19cbff4} smileProtocolHandler.js
+contract @mozilla.org/network/protocol;1?name=smile {04e58eae-dfbc-4c9e-8130-6d9ef19cbff4}

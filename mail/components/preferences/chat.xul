@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+# -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+# ***** BEGIN LICENSE BLOCK *****
+# Version: MPL 1.1/GPL 2.0/LGPL 2.1
+#
+# The contents of this file are subject to the Mozilla Public License Version
+# 1.1 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS" basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# The Original Code is the Instantbird Preferences Window.
+#
+# The Initial Developer of the Original Code is
+#   Florian Queze <florian@instantbird.org>.
+# Portions created by the Initial Developer are Copyright (C) 2009
+# the Initial Developer. All Rights Reserved.
+#
+# Contributor(s):
+#
+# Alternatively, the contents of this file may be used under the terms of
+# either the GNU General Public License Version 2 or later (the "GPL"), or
+# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+# in which case the provisions of the GPL or the LGPL are applicable instead
+# of those above. If you wish to allow use of your version of this file only
+# under the terms of either the GPL or the LGPL, and not to allow others to
+# use your version of this file under the terms of the MPL, indicate your
+# decision by deleting the provisions above and replace them with the notice
+# and other provisions required by the GPL or the LGPL. If you do not delete
+# the provisions above, a recipient may use your version of this file under
+# the terms of any one of the MPL, the GPL or the LGPL.
+#
+# ***** END LICENSE BLOCK *****
+
+<!DOCTYPE overlay [
+<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
+<!ENTITY % chatDTD SYSTEM "chrome://messenger/locale/preferences/chat.dtd">
+%brandDTD;
+%chatDTD;
+]>
+
+<overlay id="ChatPaneOverlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <prefpane id="paneChat" onpaneload="gChatPane.init();">
+    <script type="application/javascript" src="chrome://messenger/content/preferences/chat.js"/>
+
+    <preferences id="chatPreferences">
+      <preference id="messenger.startup.action"            name="messenger.startup.action"     type="int"/>
+      <preference id="purple.conversations.im.send_typing" name="purple.conversations.im.send_typing" type="bool"/>
+      <preference id="messenger.status.reportIdle"         name="messenger.status.reportIdle"         type="bool"
+                  onchange="gChatPane.updateDisabledState();"/>
+      <preference id="messenger.status.timeBeforeIdle"     name="messenger.status.timeBeforeIdle"     type="int"/>
+      <preference id="messenger.status.awayWhenIdle"       name="messenger.status.awayWhenIdle"       type="bool"
+                  onchange="gChatPane.updateMessageDisabledState();"/>
+      <preference id="messenger.status.defaultIdleAwayMessage" name="messenger.status.defaultIdleAwayMessage" type="wstring"/>
+      <preference id="purple.logging.log_chats"            name="purple.logging.log_chats"            type="bool"/>
+      <preference id="purple.logging.log_ims"              name="purple.logging.log_ims"              type="bool"/>
+      <preference id="purple.logging.log_system"           name="purple.logging.log_system"           type="bool"/>
+      <preference id="pref.privacy.disable_button.view_passwords" name="pref.privacy.disable_button.view_passwords" type="bool"/>
+    </preferences>
+
+    <broadcaster id="idleReportingEnabled"/>
+
+    <!-- Startup -->
+    <hbox align="center">
+      <label value="&startupAction.label;" accesskey="&startupAction.accesskey;"
+             control="messengerStartupAction"/>
+      <menulist id="messengerStartupAction" preference="messenger.startup.action">
+        <menupopup>
+          <menuitem label="&startupOffline.label;"     value="0"/>
+          <menuitem label="&startupConnectAuto.label;" value="1"/>
+        </menupopup>
+      </menulist>
+    </hbox>
+    <separator/>
+
+    <!-- Status -->
+    <hbox align="center">
+      <checkbox id="reportIdle" label="&reportIdleAfter.label;"
+                accesskey="&reportIdleAfter.accesskey;"
+                preference="messenger.status.reportIdle"/>
+      <textbox id="timeBeforeAway" type="number" min="1"
+               observes="idleReportingEnabled"
+               preference="messenger.status.timeBeforeIdle"
+               onsyncfrompreference="var elt = document.getElementById(this.getAttribute('preference'));
+                                     return (elt.instantApply ? elt.valueFromPreferences : elt.value) / 60;"
+               onsynctopreference="return this.value * 60;"/>
+      <label value="&idleTime;" control="timeBeforeAway"/>
+    </hbox>
+    <vbox class="indent">
+      <checkbox id="autoAway" label="&andSetStatusToAway.label;"
+                observes="idleReportingEnabled"
+                accesskey="&andSetStatusToAway.accesskey;"
+                preference="messenger.status.awayWhenIdle"/>
+      <textbox id="defaultIdleAwayMessage" class="indent"
+               observes="idleReportingEnabled"
+               preference="messenger.status.defaultIdleAwayMessage"/>
+    </vbox>
+    <separator/>
+    <checkbox id="sendTyping" label="&sendTyping.label;"
+              accesskey="&sendTyping.accesskey;"
+              preference="purple.conversations.im.send_typing"/>
+  </prefpane>
+</overlay>

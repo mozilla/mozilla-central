@@ -1,0 +1,3 @@
+component {38a224c1-6748-49a9-8ab2-efc362b1000d} gtalk.js
+contract @mozilla.org/chat/gtalk;1 {38a224c1-6748-49a9-8ab2-efc362b1000d}
+category im-protocol-plugin prpl-gtalk @mozilla.org/chat/gtalk;1

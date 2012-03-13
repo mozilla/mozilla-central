@@ -388,6 +388,12 @@ function AddMailAccount()
   NewMailAccount(msgWindow);
 }
 
+function AddIMAccount()
+{
+  window.openDialog("chrome://messenger/content/chat/imAccountWizard.xul",
+                    "", "chrome,modal,titlebar,centerscreen");
+}
+
 function onSetDefault(event) {
   if (event.target.getAttribute("disabled") == "true") return;
 
@@ -631,6 +637,8 @@ function initAcountActionsButton(menupopup) {
 
   let prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
                              .getService(Components.interfaces.nsIPrefBranch);
+  if (!prefBranch.getBoolPref("mail.chat.enabled"))
+    document.getElementById("accountActionsAddIMAccount").hidden = true;
 
   let children = menupopup.childNodes;
   for (let i = 0; i < children.length; i++) {
@@ -867,12 +875,12 @@ function restorePage(pageId, account)
   if (!accountValues) 
     return;
 
+  if ("onPreInit" in top.frames["contentFrame"])
+    top.frames["contentFrame"].onPreInit(account, accountValues);
+
   var pageElements = getPageFormElements();
   if (!pageElements) 
     return;
-
-  if ("onPreInit" in top.frames["contentFrame"])
-    top.frames["contentFrame"].onPreInit(account, accountValues);
 
   // restore the value from the account
   for (var i=0; i<pageElements.length; i++) {
@@ -1116,8 +1124,14 @@ var gAccountTree = {
     while (mainTree.firstChild)
       mainTree.removeChild(mainTree.firstChild);
 
+    var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
+                               .getService(Components.interfaces.nsIPrefBranch);
     for each (var account in accounts) {
       let server = account.incomingServer;
+
+      if (server.type == "im" && !prefBranch.getBoolPref("mail.chat.enabled"))
+        continue;
+
       // Create the top level tree-item
       var treeitem = document.createElement("treeitem");
       mainTree.appendChild(treeitem);
@@ -1128,9 +1142,6 @@ var gAccountTree = {
       treecell.setAttribute("label", server.rootFolder.prettyName);
 
       // Now add our panels
-      var treekids = document.createElement("treechildren");
-      treeitem.appendChild(treekids);
-
       var panelsToKeep = [];
       var idents = mgr.GetIdentitiesForServer(server);
       if (idents.Count()) {
@@ -1141,7 +1152,7 @@ var gAccountTree = {
 
       // Everyone except news and RSS has a junk panel
       // XXX: unextensible!
-      if (server.type != "nntp" && server.type != "rss")
+      if (server.type != "nntp" && server.type != "rss" && server.type != "im")
         panelsToKeep.push(panels[5]);
 
       // Check offline/diskspace support level
@@ -1162,8 +1173,7 @@ var gAccountTree = {
         var entryName = catEnum.getNext().QueryInterface(string).data;
         var svc = Components.classes[catMan.getCategoryEntry(CATEGORY, entryName)]
                             .getService(Ci.nsIMsgAccountManagerExtension);
-        if (svc.showPanel(server))
-{
+        if (svc.showPanel(server)) {
           var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
                               .getService(Ci.nsIStringBundleService);
 
@@ -1172,26 +1182,29 @@ var gAccountTree = {
           let bundle = sbs.createBundle(bundleName);
           let title = bundle.GetStringFromName("prefPanel-" + svc.name);
           panelsToKeep.push({string: title, src: "am-" + svc.name + ".xul"});
-  }
-}
-
-      for each (panel in panelsToKeep) {
-        var kidtreeitem = document.createElement("treeitem");
-        treekids.appendChild(kidtreeitem);
-        var kidtreerow = document.createElement("treerow");
-        kidtreeitem.appendChild(kidtreerow);
-        var kidtreecell = document.createElement("treecell");
-        kidtreerow.appendChild(kidtreecell);
-        kidtreecell.setAttribute("label", panel.string);
-        kidtreeitem.setAttribute("PageTag", panel.src);
-        kidtreeitem._account = account;
+        }
       }
 
+      if (panelsToKeep.length > 0) {
+        var treekids = document.createElement("treechildren");
+        treeitem.appendChild(treekids);
+        for each (panel in panelsToKeep) {
+          var kidtreeitem = document.createElement("treeitem");
+          treekids.appendChild(kidtreeitem);
+          var kidtreerow = document.createElement("treerow");
+          kidtreeitem.appendChild(kidtreerow);
+          var kidtreecell = document.createElement("treecell");
+          kidtreerow.appendChild(kidtreecell);
+          kidtreecell.setAttribute("label", panel.string);
+          kidtreeitem.setAttribute("PageTag", panel.src);
+          kidtreeitem._account = account;
+        }
+        treeitem.setAttribute("container", "true");
+        treeitem.setAttribute("open", "true");
+      }
       treeitem.setAttribute("PageTag", server ? server.accountManagerChrome
                                               : "am-main.xul");
       treeitem._account = account;
-      treeitem.setAttribute("container", "true");
-      treeitem.setAttribute("open", "true");
     }
 
     // Now add the outgoing server node

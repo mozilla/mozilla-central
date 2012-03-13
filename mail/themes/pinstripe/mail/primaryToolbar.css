@@ -417,6 +417,18 @@ toolbar[mode="text"] > .toolbarbutton-menubutton-button > .toolbarbutton-text {
   -moz-image-region: rect(64px 640px 96px 608px) !important;
 }
 
+#button-chat {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 704px 32px 672px);
+}
+
+#button-chat:hover:active {
+  -moz-image-region: rect(32px 704px 64px 672px);
+}
+
+#button-chat[disabled] {
+  -moz-image-region: rect(64px 704px 32px 96px);
+}
 
 /* ::::: small primary toolbar buttons ::::: */
 
@@ -691,6 +703,19 @@ toolbar[iconsize="small"] #button-archive:hover:active {
 
 toolbar[iconsize="small"] #button-archive[disabled] {
   -moz-image-region: rect(48px 480px 72px 456px) !important;
+}
+
+toolbar[iconsize="small"] #button-chat {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 528px 24px 504px);
+}
+
+toolbar[iconsize="small"] #button-chat:hover:active {
+  -moz-image-region: rect(24px 528px 48px 504px);
+}
+
+toolbar[iconsize="small"] #button-chat[disabled] {
+  -moz-image-region: rect(48px 528px 72px 504px);
 }
 
 /* ::::: end small primary toolbar buttons ::::: */

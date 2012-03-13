@@ -45,6 +45,7 @@ mail/components/Makefile
 mail/components/addrbook/Makefile
 mail/components/build/Makefile
 mail/components/compose/Makefile
+mail/components/im/Makefile
 mail/components/phishing/Makefile
 mail/components/preferences/Makefile
 mail/components/shell/Makefile
@@ -63,4 +64,6 @@ mail/themes/qute/Makefile
 $MOZ_BRANDING_DIRECTORY/Makefile
 $MOZ_BRANDING_DIRECTORY/locales/Makefile
 "
+
+. "${srcdir}/chat/makefiles.sh"
 fi

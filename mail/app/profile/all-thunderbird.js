@@ -774,6 +774,10 @@ pref("browser.search.update.interval", 21600);
 // Disable remote debugging protocol logging
 pref("devtools.debugger.log", false);
 
+pref("mail.chat.enabled", true);
+// Send typing notification in private conversations
+pref("purple.conversations.im.send_typing", true);
+
 // BigFiles
 pref("mail.cloud_files.enabled", true);
 pref("mail.cloud_files.inserted_urls.footer.link", "http://www.getthunderbird.com");

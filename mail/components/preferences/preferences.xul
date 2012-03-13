@@ -101,6 +101,8 @@
             src="chrome://messenger/content/preferences/display.xul"/>
   <prefpane id="paneCompose" label="&paneComposition.title;"
             src="chrome://messenger/content/preferences/compose.xul"/>
+  <prefpane id="paneChat" label="&paneChat.title;"
+            src="chrome://messenger/content/preferences/chat.xul"/>
   <prefpane id="paneSecurity" label="&paneSecurity.title;"
             src="chrome://messenger/content/preferences/security.xul"/>
   <prefpane id="paneApplications" label="&paneAttachments.title;"

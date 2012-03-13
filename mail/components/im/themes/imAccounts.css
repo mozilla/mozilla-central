@@ -1,0 +1,381 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is the Instantbird messenging client, released
+ * 2007.
+ *
+ * The Initial Developer of the Original Code is
+ * Florian QUEZE <florian@instantbird.org>.
+ * Portions created by the Initial Developer are Copyright (C) 2007
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Benedikt Pfeifer <benediktp@ymail.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+/* large parts copied from the addon manager */
+
+#accountManager {
+  background-color: ThreeDFace;
+  padding: 0 0;
+  margin: 0 0;
+}
+
+%ifndef XP_MACOSX
+notification > hbox {
+  border: none !important;
+  border-bottom: 1px solid ThreeDShadow !important;
+}
+%endif
+
+#accountsNotificationBox {
+  margin: 0 0;
+  -moz-appearance: none;
+}
+
+#noAccountScreen {
+  background-color: -moz-Dialog;
+  overflow: auto;
+}
+#noAccountBox {
+  background-color: -moz-Field;
+  color: -moz-FieldText;
+  border: 1px solid ThreeDShadow;
+  border-radius: 10px;
+  padding: 1.1em;
+  -moz-padding-start: 20px;
+  margin-left: 1em;
+  margin-right: 1em;
+}
+#noAccountImage {
+  list-style-image: url("chrome://global/skin/icons/information-64.png");
+  -moz-margin-end: 1.2em;
+}
+#noAccountInnerBox {
+  max-width: 25em;
+}
+#noAccountTitle {
+  margin: 0 1em 0.6em 0;
+  font-size: 160%;
+  border-bottom: 1px solid ThreeDLightShadow
+}
+#noAccountDesc {
+  font-size: 110%;
+}
+
+#accountlist {
+  margin: 0 0;
+  -moz-appearance: none;
+%ifdef WINCE
+  border: 2px solid;
+  -moz-border-top-colors: ThreeDShadow ThreeDDarkShadow;
+  -moz-border-right-colors: ThreeDHighlight ThreeDLightShadow;
+  -moz-border-bottom-colors: ThreeDHighlight ThreeDLightShadow;
+  -moz-border-left-colors: ThreeDShadow ThreeDDarkShadow;
+%else
+%ifndef XP_MACOSX
+  border-bottom: 2px solid;
+  -moz-border-bottom-colors: ThreeDHighlight ThreeDLightShadow;
+%endif
+}
+
+#bottombuttons {
+%ifdef XP_MACOSX
+  -moz-box-pack: end;
+  -moz-padding-start: 2px;
+  -moz-padding-end: 11px;
+  -moz-appearance: statusbar;
+  min-height: 28px;
+%else
+  margin: 0 0;
+%endif
+}
+
+%ifdef XP_MACOSX
+
+%filter substitution
+%define loweredShadow 0 1px rgba(255, 255, 255, .4)
+%define focusRingShadow 0 0 1px -moz-mac-focusring inset, 0 0 4px 1px -moz-mac-focusring, 0 0 1.5px 1px -moz-mac-focusring
+
+%define roundButtonShadow 0 1px rgba(255, 255, 255, .4)
+%define roundButtonPressedShadow inset 0 1px 3px rgba(0, 0, 0, .2), 0 1px rgba(255, 255, 255, .4)
+
+%define toolbarbuttonBorderColor rgba(59, 59, 59, 0.9)
+%define toolbarbuttonCornerRadius 3px
+%define toolbarbuttonBackground -moz-linear-gradient(top, #FFF, #ADADAD) repeat-x
+%define toolbarbuttonPressedInnerShadow inset rgba(0, 0, 0, 0.3) 0 -6px 10px, inset #000 0 1px 3px, inset rgba(0, 0, 0, 0.2) 0 1px 3px
+%define toolbarbuttonPressedBackgroundColor #B5B5B5
+%define toolbarbuttonInactiveBorderColor rgba(146, 146, 146, 0.84)
+%define toolbarbuttonInactiveFontColor #7C7C7C
+%define toolbarbuttonInactiveBackgroundImage -moz-linear-gradient(top, #FFF, #CCC)
+
+button {
+  -moz-appearance: none;
+  min-height: 18px;
+  min-width: 0;
+  margin: 0 3px;
+  padding: 0 2px;
+  text-shadow: @loweredShadow@;
+  border: 1px solid @toolbarbuttonBorderColor@;
+  border-radius: @toolbarbuttonCornerRadius@;
+  box-shadow: @loweredShadow@;
+  background: @toolbarbuttonBackground@;
+  background-origin: border-box;
+}
+
+button:focus {
+  box-shadow: @focusRingShadow@, @roundButtonShadow@;
+}
+
+button:active:hover:focus {
+  box-shadow: @focusRingShadow@, @roundButtonPressedShadow@;
+}
+ 
+button:hover:active:not([disabled="true"]) {
+  background: @toolbarbuttonPressedBackgroundColor@;
+  text-shadow: @loweredShadow@;
+  box-shadow: @toolbarbuttonPressedInnerShadow@, @loweredShadow@;
+}
+
+#bottombuttons button:-moz-window-inactive {
+  color: @toolbarbuttonInactiveFontColor@ !important; /* remove this when we support click-through, bug 392188 */
+  border-color: @toolbarbuttonInactiveBorderColor@;
+  background-image: @toolbarbuttonInactiveBackgroundImage@;
+  opacity: 0.7;
+}
+%else
+%ifndef XP_WIN
+#newaccount {
+  margin-left: 0;
+}
+
+#close {
+  margin-right: 0;
+}
+%else
+#newaccount,
+#close {
+  margin: 3px;
+}
+%endif
+%endif
+
+/* List Items */
+richlistitem[state="disconnected"] .accountIcon {
+  opacity: 0.3;
+}
+richlistitem[state="connecting"] .accountIcon,
+richlistitem[state="disconnected"][selected="true"] .accountIcon {
+  opacity: 0.7;
+}
+richlistitem[state="disconnected"]:not([selected="true"]) {
+  color: GrayText;
+}
+
+richlistitem[error="true"] .accountName {
+  color: rgb(150, 0, 0);
+}
+
+%ifndef XP_MACOSX
+/* When the error message was too long, the buttons were too small */
+richlistitem .account-buttons button {
+  min-height: 2em;
+}
+%endif
+
+richlistitem .account-buttons {
+  margin-top: 2px;
+%ifdef XP_MACOSX
+  margin-left: 35px;
+%else
+  margin-left: 32px;
+%endif
+}
+
+richlistitem[dragover="down"] {
+  border-bottom: 3px solid HighLight;
+}
+richlistitem[dragover="up"] {
+  border-top: 3px solid HighLight;
+}
+
+.error {
+  color: rgb(200, 0, 0);
+  margin-left: 6px;
+}
+.accountName {
+  font-weight: bold;
+}
+
+.accountIcon {
+  width: 32px;
+  max-width: 32px;
+  height: 32px;
+  max-height: 32px;
+}
+
+.accountStateIcon {
+  -moz-margin-start: 16px;
+  margin-top: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+richlistitem[state="connected"] .accountStateIcon {
+  list-style-image: url("chrome://chat/skin/available-16.png");
+}
+richlistitem[state="disconnected"] .accountStateIcon {
+  list-style-image: url("chrome://chat/skin/offline-16.png");
+}
+richlistitem[state="connecting"] .accountStateIcon {
+  list-style-image: url("chrome://global/skin/icons/loading_16.png");
+}
+richlistitem[error="true"] .accountStateIcon {
+  list-style-image: url("chrome://global/skin/icons/warning-16.png");
+}
+
+
+#statusArea {
+  margin: 0 0;
+  padding: 0 0;
+}
+
+#displayName {
+  font-size: large;
+  border-bottom: 1px solid rgba(0,0,0,0.25);
+  margin: 0 0 16px;
+}
+
+#displayName[usingDefault]:not([editing]) {
+  color: GrayText;
+}
+
+#userIcon {
+  border: 2px solid rgba(0,0,0,0.15);
+  border-radius: 5px;
+  max-width: 48px;
+  max-height: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+#userIcon[src=""] {
+  background-image: url("chrome://messenger/skin/userIcon.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+#userIcon:hover {
+  border-color: rgba(0,0,0,0.35);
+  background-color: rgba(0,0,0,0.35);
+  opacity: .4;
+}
+
+#statusTypeIcon {
+  margin: 32px 0 0 32px;
+  width: 16px;
+  height: 16px;
+  min-height: 16px;
+  min-width: 16px;
+  -moz-appearance: none;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+}
+
+#statusImageStack,
+#displayNameAndstatusMessageStack {
+  margin: 3px 2px;
+}
+
+#statusTypeIcon dropmarker {
+  display: none;
+}
+
+%ifdef XP_WIN
+#statusTypeIcon .button-box {
+  padding: 0 0;
+  border: none;
+}
+%endif
+
+#statusTypeIcon[status="available"],
+#statusTypeAvailable {
+  list-style-image: url('chrome://chat/skin/available-16.png');
+}
+
+#statusTypeIcon[status="unavailable"],
+#statusTypeIcon[status="away"],
+#statusTypeUnavailable {
+  list-style-image: url('chrome://chat/skin/away-16.png');
+}
+
+#statusTypeIcon[status="offline"],
+#statusTypeIcon[status="invisible"],
+#statusTypeOffline {
+  list-style-image: url('chrome://chat/skin/offline-16.png');
+}
+
+#statusTypeIcon[status="idle"] {
+  list-style-image: url('chrome://chat/skin/idle-16.png');
+}
+
+%ifdef XP_MACOSX
+#statusMessage {
+  margin: 32px 0 0;
+  min-height: 16px;
+}
+
+#statusMessage[editing] {
+  margin: 29px 2px 0 -4px;
+}
+
+#displayName[editing] {
+  margin-left: -4px;
+}
+%else
+#statusMessage {
+  margin: 32px 0 0;
+}
+
+#statusMessage[editing] {
+%ifdef XP_WIN
+  margin: 30px 0 1px -2px;
+%else
+  margin: 30px -2px -2px -4px;
+%endif
+}
+
+#displayName[editing] {
+%ifdef XP_WIN
+  margin-left: -2px;
+%else
+  margin-left: -4px;
+  margin-right: -2px;
+%endif
+  margin-bottom: 18px;
+}
+%endif

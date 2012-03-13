@@ -1,0 +1,3 @@
+component {dde786d1-6f59-43d0-9bc8-b505a757fb30} xmpp.js
+contract @mozilla.org/chat/xmpp;1 {dde786d1-6f59-43d0-9bc8-b505a757fb30}
+#category im-protocol-plugin prpl-jabber @mozilla.org/chat/xmpp;1
