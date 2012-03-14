@@ -40,7 +40,8 @@ public:
   void SetAt(PRInt64 aTime, const T& aValue)
   {
     for (PRInt32 i = mChanges.Length() - 1; i >= 0; --i) {
-      NS_ASSERTION(i == mChanges.Length() - 1, "Always considering last element of array");
+      NS_ASSERTION(i == (PRInt32) mChanges.Length() - 1, 
+                   "Always considering last element of array");
       if (aTime > mChanges[i].mTime) {
         if (mChanges[i].mValue != aValue) {
           mChanges.AppendElement(Entry(aTime, aValue));
