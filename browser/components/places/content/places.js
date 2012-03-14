@@ -600,9 +600,7 @@ var PlacesOrganizer = {
       return;
     }
     if (aNode.itemId != -1 &&
-        ((PlacesUtils.nodeIsFolder(aNode) &&
-          !PlacesUtils.nodeIsLivemarkContainer(aNode)) ||
-         PlacesUtils.nodeIsLivemarkItem(aNode))) {
+        PlacesUtils.nodeIsFolder(aNode) && !aNode._feedURI) {
       if (infoBox.getAttribute("minimal") == "true")
         infoBox.setAttribute("wasminimal", "true");
       infoBox.removeAttribute("minimal");
@@ -688,8 +686,10 @@ var PlacesOrganizer = {
       else
         itemId = PlacesUtils._uri(aSelectedNode.uri);
 
-      gEditItemOverlay.initPanel(itemId, { hiddenRows: ["folderPicker"],
-                                           forceReadOnly: readOnly });
+      gEditItemOverlay.initPanel(itemId, { hiddenRows: ["folderPicker"]
+                                         , forceReadOnly: readOnly
+                                         , titleOverride: aSelectedNode.title
+                                         });
 
       // Dynamically generated queries, like history date containers, have
       // itemId !=0 and do not exist in history.  For them the panel is
@@ -828,11 +828,11 @@ var PlacesOrganizer = {
      return;
 
     // Add the place: uri as a bookmark under the bookmarks root.
-    var txn = PlacesUIUtils.ptm.createItem(placeURI,
-                                           PlacesUtils.bookmarksMenuFolderId,
-                                           PlacesUtils.bookmarks.DEFAULT_INDEX,
-                                           input.value);
-    PlacesUIUtils.ptm.doTransaction(txn);
+    var txn = new PlacesCreateBookmarkTransaction(placeURI,
+                                                  PlacesUtils.bookmarksMenuFolderId,
+                                                  PlacesUtils.bookmarks.DEFAULT_INDEX,
+                                                  input.value);
+    PlacesUtils.transactionManager.doTransaction(txn);
 
     // select and load the new query
     this._places.selectPlaceURI(placeSpec);

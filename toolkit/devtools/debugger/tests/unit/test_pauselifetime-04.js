@@ -27,12 +27,11 @@ function run_test()
 function test_pause_frame()
 {
   gThreadClient.addOneTimeListener("paused", function(aEvent, aPacket) {
-    let args = aPacket.frame["arguments"];
+    let args = aPacket.frame.arguments;
     let objActor1 = args[0].actor;
 
     gThreadClient.getFrames(0, 1, function(aResponse) {
       let frame = aResponse.frames[0];
-      dump(JSON.stringify(frame));
       do_check_eq(objActor1, frame.arguments[0].actor);
       gThreadClient.resume(function () {
         finishClient(gClient);

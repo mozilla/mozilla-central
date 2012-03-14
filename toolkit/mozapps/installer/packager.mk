@@ -78,6 +78,8 @@ PACKAGE       = $(PKG_PATH)$(PKG_BASENAME)$(PKG_SUFFIX)
 SDK_PATH      = $(PKG_PATH)
 ifeq ($(MOZ_APP_NAME),xulrunner)
 SDK_PATH = sdk/
+# Don't codesign xulrunner internally
+MOZ_INTERNAL_SIGNING_FORMAT =
 endif
 SDK_SUFFIX    = $(PKG_SUFFIX)
 SDK           = $(SDK_PATH)$(PKG_BASENAME).sdk$(SDK_SUFFIX)
@@ -86,14 +88,11 @@ SDK           = $(SDK_PATH)$(PKG_BASENAME).sdk$(SDK_SUFFIX)
 ifndef LIBXUL_SDK
 JSSHELL_BINS  = \
   $(DIST)/bin/js$(BIN_SUFFIX) \
-  $(DIST)/bin/mozglue$(DLL_SUFFIX) \
+  $(DIST)/bin/$(DLL_PREFIX)mozglue$(DLL_SUFFIX) \
   $(NULL)
 ifndef MOZ_NATIVE_NSPR
-JSSHELL_BINS += $(DIST)/bin/$(LIB_PREFIX)nspr4$(DLL_SUFFIX)
+JSSHELL_BINS += $(DIST)/bin/$(DLL_PREFIX)nspr4$(DLL_SUFFIX)
 ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_MEMORY
-JSSHELL_BINS += $(DIST)/bin/jemalloc$(DLL_SUFFIX)
-endif
 ifeq ($(_MSC_VER),1400)
 JSSHELL_BINS += $(DIST)/bin/Microsoft.VC80.CRT.manifest
 JSSHELL_BINS += $(DIST)/bin/msvcr80.dll
@@ -110,8 +109,8 @@ JSSHELL_BINS += $(DIST)/bin/msvcr110.dll
 endif
 else
 JSSHELL_BINS += \
-  $(DIST)/bin/$(LIB_PREFIX)plds4$(DLL_SUFFIX) \
-  $(DIST)/bin/$(LIB_PREFIX)plc4$(DLL_SUFFIX) \
+  $(DIST)/bin/$(DLL_PREFIX)plds4$(DLL_SUFFIX) \
+  $(DIST)/bin/$(DLL_PREFIX)plc4$(DLL_SUFFIX) \
   $(NULL)
 endif
 endif # MOZ_NATIVE_NSPR
@@ -309,6 +308,12 @@ DIST_FILES += \
   recommended-addons.json \
   $(NULL)
 
+ifdef MOZ_ENABLE_SZIP
+SZIP_LIBRARIES = \
+  libxul.so \
+  $(NULL)
+endif
+
 NON_DIST_FILES = \
   classes.dex \
   $(NULL)
@@ -354,6 +359,7 @@ endif
 
 PKG_SUFFIX      = .apk
 INNER_MAKE_PACKAGE	= \
+  $(foreach lib,$(SZIP_LIBRARIES),host/bin/szip $(STAGEPATH)$(MOZ_PKG_DIR)$(_BINPATH)/$(lib) $(STAGEPATH)$(MOZ_PKG_DIR)$(_BINPATH)/$(lib:.so=.sz) && mv $(STAGEPATH)$(MOZ_PKG_DIR)$(_BINPATH)/$(lib:.so=.sz) $(STAGEPATH)$(MOZ_PKG_DIR)$(_BINPATH)/$(lib) && ) \
   make -C $(GECKO_APP_AP_PATH) gecko.ap_ && \
   cp $(GECKO_APP_AP_PATH)/gecko.ap_ $(_ABS_DIST) && \
   ( cd $(STAGEPATH)$(MOZ_PKG_DIR)$(_BINPATH) && \
@@ -366,7 +372,8 @@ INNER_MAKE_PACKAGE	= \
     done && \
     unzip -o $(_ABS_DIST)/gecko.ap_ && \
     rm $(_ABS_DIST)/gecko.ap_ && \
-    $(ZIP) -r9D $(_ABS_DIST)/gecko.ap_ $(DIST_FILES) -x $(NON_DIST_FILES) && \
+    $(if $(SZIP_LIBRARIES),$(ZIP) -0 $(_ABS_DIST)/gecko.ap_ $(SZIP_LIBRARIES) && ) \
+    $(ZIP) -r9D $(_ABS_DIST)/gecko.ap_ $(DIST_FILES) -x $(NON_DIST_FILES) $(SZIP_LIBRARIES) && \
     $(ZIP) -0 $(_ABS_DIST)/gecko.ap_ $(OMNIJAR_NAME)) && \
   rm -f $(_ABS_DIST)/gecko.apk && \
   $(APKBUILDER) $(_ABS_DIST)/gecko.apk -v $(APKBUILDER_FLAGS) -z $(_ABS_DIST)/gecko.ap_ -f $(STAGEPATH)$(MOZ_PKG_DIR)$(_BINPATH)/classes.dex && \
@@ -560,6 +567,11 @@ endif
 
 ifdef MOZ_SIGN_PACKAGE_CMD
 MAKE_PACKAGE    += && $(MOZ_SIGN_PACKAGE_CMD) "$(PACKAGE)"
+endif
+
+ifdef MOZ_SIGN_CMD
+MAKE_SDK           += && $(MOZ_SIGN_CMD) -f gpg $(SDK)
+UPLOAD_EXTRA_FILES += $(SDK).asc
 endif
 
 # dummy macro if we don't have PSM built
@@ -822,10 +834,12 @@ ifdef MOZ_POST_STAGING_CMD
 	cd $(DIST)/$(STAGEPATH)$(MOZ_PKG_DIR)$(_BINPATH) && $(MOZ_POST_STAGING_CMD)
 endif # MOZ_POST_STAGING_CMD
 ifndef LIBXUL_SDK
+ifdef MOZ_PACKAGE_JSSHELL
 # Package JavaScript Shell
 	@echo "Packaging JavaScript Shell..."
 	$(RM) $(PKG_JSSHELL)
 	$(MAKE_JSSHELL)
+endif # MOZ_PACKAGE_JSSHELL
 endif # LIBXUL_SDK
 
 make-package: stage-package $(PACKAGE_XULRUNNER) make-sourcestamp-file
@@ -1002,9 +1016,42 @@ endif
 CREATE_SOURCE_TAR = $(TAR) -c --owner=0 --group=0 --numeric-owner \
   --mode="go-w" $(SRC_TAR_EXCLUDE_PATHS) -f
 
+SOURCE_TAR = $(DIST)/$(PKG_SRCPACK_PATH)$(PKG_SRCPACK_BASENAME).tar.bz2
+HG_BUNDLE_FILE = $(DIST)/$(PKG_SRCPACK_PATH)$(PKG_BUNDLE_BASENAME).bundle
+SOURCE_CHECKSUM_FILE = $(DIST)/$(PKG_SRCPACK_PATH)$(PKG_SRCPACK_BASENAME).checksums
+SOURCE_UPLOAD_FILES = $(SOURCE_TAR)
+
+HG ?= hg
+CREATE_HG_BUNDLE_CMD  = $(HG) -v -R $(topsrcdir) bundle --base null
+ifdef HG_BUNDLE_REVISION
+CREATE_HG_BUNDLE_CMD += -r $(HG_BUNDLE_REVISION)
+endif
+CREATE_HG_BUNDLE_CMD += $(HG_BUNDLE_FILE)
+ifdef UPLOAD_HG_BUNDLE
+SOURCE_UPLOAD_FILES  += $(HG_BUNDLE_FILE)
+endif
+
+ifdef MOZ_SIGN_CMD
+SIGN_SOURCE_TAR_CMD  = $(MOZ_SIGN_CMD) -f gpg $(SOURCE_TAR)
+SOURCE_UPLOAD_FILES += $(SOURCE_TAR).asc
+SIGN_HG_BUNDLE_CMD   = $(MOZ_SIGN_CMD) -f gpg $(HG_BUNDLE_FILE)
+ifdef UPLOAD_HG_BUNDLE
+SOURCE_UPLOAD_FILES += $(HG_BUNDLE_FILE).asc
+endif
+endif
+
 # source-package creates a source tarball from the files in MOZ_PKG_SRCDIR,
 # which is either set to a clean checkout or defaults to $topsrcdir
 source-package:
 	@echo "Packaging source tarball..."
-	mkdir -p $(DIST)/$(PKG_SRCPACK_PATH)
-	(cd $(MOZ_PKG_SRCDIR) && $(CREATE_SOURCE_TAR) - $(DIR_TO_BE_PACKAGED)) | bzip2 -vf > $(DIST)/$(PKG_SRCPACK_PATH)$(PKG_SRCPACK_BASENAME).tar.bz2
+	$(MKDIR) -p $(DIST)/$(PKG_SRCPACK_PATH)
+	(cd $(MOZ_PKG_SRCDIR) && $(CREATE_SOURCE_TAR) - $(DIR_TO_BE_PACKAGED)) | bzip2 -vf > $(SOURCE_TAR)
+	$(SIGN_SOURCE_TAR_CMD)
+
+hg-bundle:
+	$(MKDIR) -p $(DIST)/$(PKG_SRCPACK_PATH)
+	$(CREATE_HG_BUNDLE_CMD)
+	$(SIGN_HG_BUNDLE_CMD)
+
+upload-source:
+	$(MAKE) upload UPLOAD_FILES="$(SOURCE_UPLOAD_FILES)" CHECKSUM_FILE="$(SOURCE_CHECKSUM_FILE)"

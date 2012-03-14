@@ -48,7 +48,6 @@
 
 #include "nsString.h"
 #include "nsGenericElement.h"
-#include "nsDOMMemoryReporter.h"
 
 namespace mozilla {
 namespace css {
@@ -68,10 +67,6 @@ protected:
   {}
 
 public:
-
-  NS_DECL_AND_IMPL_DOM_MEMORY_REPORTER_SIZEOF(nsStyledElementNotElementCSSInlineStyle,
-                                              nsStyledElementBase)
-
   // nsIContent interface methods
   virtual nsIAtom* GetClassAttributeName() const;
   virtual nsIAtom* GetIDAttributeName() const;
@@ -119,10 +114,6 @@ protected:
 };
 
 class nsStyledElement : public nsStyledElementNotElementCSSInlineStyle {
-public:
-  NS_DECL_AND_IMPL_DOM_MEMORY_REPORTER_SIZEOF(nsStyledElement,
-                                              nsStyledElementNotElementCSSInlineStyle)
-
 protected:
   inline nsStyledElement(already_AddRefed<nsINodeInfo> aNodeInfo)
     : nsStyledElementNotElementCSSInlineStyle(aNodeInfo)

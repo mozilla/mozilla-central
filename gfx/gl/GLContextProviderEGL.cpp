@@ -40,6 +40,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "mozilla/Util.h"
+// please add new includes below Qt, otherwise it break Qt build due malloc wrapper conflicts
 
 #if defined(XP_UNIX)
 
@@ -69,6 +70,12 @@
 #include "AndroidBridge.h"
 #endif
 #include <android/log.h>
+
+// We only need to explicitly dlopen egltrace
+// on android as we can use LD_PRELOAD or other tricks
+// on other platforms. We look for it in /data/local
+// as that's writeable by all users
+#define APITRACE_LIB "/data/local/egltrace.so"
 #endif
 
 #define EGL_LIB "libEGL.so"
@@ -82,7 +89,6 @@ typedef void *EGLNativeWindowType;
 
 #elif defined(XP_WIN)
 
-#include "mozilla/Preferences.h"
 #include "nsILocalFile.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
@@ -141,6 +147,9 @@ public:
 
 #endif
 
+#include "mozilla/Preferences.h"
+#include "nsIScreen.h"
+#include "nsIScreenManager.h"
 #include "gfxUtils.h"
 #include "gfxFailure.h"
 #include "gfxASurface.h"
@@ -227,6 +236,38 @@ static EGLint gContextAttribsRobustness[] = {
     LOCAL_EGL_NONE
 };
 
+static PRLibrary* LoadApitraceLibrary()
+{
+    static PRLibrary* sApitraceLibrary = NULL;
+
+    if (sApitraceLibrary)
+        return sApitraceLibrary;
+
+#if defined(ANDROID)
+    nsCString logFile = Preferences::GetCString("gfx.apitrace.logfile");
+
+    if (logFile.IsEmpty()) {
+        logFile = "firefox.trace";
+    }
+
+    // The firefox process can't write to /data/local, but it can write
+    // to $GRE_HOME/
+    nsCAutoString logPath;
+    logPath.AppendPrintf("%s/%s", getenv("GRE_HOME"), logFile.get());
+
+    // apitrace uses the TRACE_FILE environment variable to determine where
+    // to log trace output to
+    printf_stderr("Logging GL tracing output to %s", logPath.get());
+    setenv("TRACE_FILE", logPath.get(), false);
+
+    printf_stderr("Attempting load of %s\n", APITRACE_LIB);
+
+    sApitraceLibrary = PR_LoadLibrary(APITRACE_LIB);
+#endif
+
+    return sApitraceLibrary;
+}
+
 static int
 next_power_of_two(int v)
 {
@@ -267,15 +308,6 @@ is_power_of_two(int v)
 static void BeforeGLCall(const char* glFunction)
 {
     if (GLContext::DebugMode()) {
-        // since the static member variable sCurrentGLContext is not thread-local as it should,
-        // we have to assert that we're in the main thread. Note that sCurrentGLContext is only used
-        // for the OpenGL debug mode.
-        if (!NS_IsMainThread()) {
-            NS_ERROR("OpenGL call from non-main thread. While this is fine in itself, "
-                     "the OpenGL debug mode, which is currently enabled, doesn't support this. "
-                     "It needs to be patched by making GLContext::sCurrentGLContext be thread-local.\n");
-            NS_ABORT();
-        }
         if (GLContext::DebugMode() & GLContext::DebugTrace)
             printf_stderr("[egl] > %s\n", glFunction);
     }
@@ -659,12 +691,17 @@ public:
 #endif
 
         if (!mEGLLibrary) {
-            mEGLLibrary = PR_LoadLibrary(EGL_LIB);
-#if defined(XP_UNIX)
+            mEGLLibrary = LoadApitraceLibrary();
+
             if (!mEGLLibrary) {
-                mEGLLibrary = PR_LoadLibrary(EGL_LIB1);
-            }
+                printf_stderr("Attempting load of %s\n", EGL_LIB);
+                mEGLLibrary = PR_LoadLibrary(EGL_LIB);
+#if defined(XP_UNIX)
+                if (!mEGLLibrary) {
+                    mEGLLibrary = PR_LoadLibrary(EGL_LIB1);
+                }
 #endif
+            }
         }
 
         if (!mEGLLibrary) {
@@ -1028,14 +1065,19 @@ public:
 
     bool Init()
     {
-        if (!OpenLibrary(GLES2_LIB)) {
-#if defined(XP_UNIX)
-            if (!OpenLibrary(GLES2_LIB2)) {
-                NS_WARNING("Couldn't load EGL LIB.");
-            }
+#if defined(ANDROID)
+        // We can't use LoadApitraceLibrary here because the GLContext
+        // expects its own handle to the GL library
+        if (!OpenLibrary(APITRACE_LIB))
 #endif
-            return false;
-        }
+            if (!OpenLibrary(GLES2_LIB)) {
+#if defined(XP_UNIX)
+                if (!OpenLibrary(GLES2_LIB2)) {
+                    NS_WARNING("Couldn't load GLES2 LIB.");
+                    return false;
+                }
+#endif
+            }
 
         bool current = MakeCurrent();
         if (!current) {
@@ -1056,6 +1098,9 @@ public:
                 mIsDoubleBuffered = true;
         }
 #endif
+
+        if (ok)
+            InitFramebuffers();
 
         return ok;
     }
@@ -1274,9 +1319,6 @@ public:
     }
 
     void *GetD3DShareHandle() {
-        if (!mPBufferCanBindToTexture)
-            return nsnull;
-
         if (!sEGLLibrary.HasANGLESurfaceD3DTexture2DShareHandle()) {
             return nsnull;
         }
@@ -2044,7 +2086,7 @@ GLContextEGL::CreateTextureImage(const nsIntSize& aSize,
 {
     nsRefPtr<TextureImage> t = new gl::TiledTextureImage(this, aSize, aContentType, aUseNearestFilter);
     return t.forget();
-};
+}
 
 already_AddRefed<TextureImage>
 GLContextEGL::TileGenFunc(const nsIntSize& aSize,
@@ -2150,13 +2192,6 @@ static const EGLint kEGLConfigAttribsRGBA32[] = {
     LOCAL_EGL_NONE
 };
 
-// This struct is used only by CreateConfig below, but ISO C++98 forbids
-// instantiating a template dependent on a locally-defined type.  Boo-urns!
-struct EGLAttribs {
-    gfxASurface::gfxImageFormat mFormat;
-    const EGLint* mAttribs;
-};
-
 // Return true if a suitable EGLConfig was found and pass it out
 // through aConfig.  Return false otherwise.
 //
@@ -2165,47 +2200,41 @@ struct EGLAttribs {
 static bool
 CreateConfig(EGLConfig* aConfig)
 {
-    EGLAttribs attribsToTry[] = {
-#ifdef MOZ_GFX_OPTIMIZE_MOBILE
-        // Prefer r5g6b5 for potential savings in memory bandwidth.
-        // This needs to be reevaluated for newer devices.
-        { gfxASurface::ImageFormatRGB16_565, kEGLConfigAttribsRGB16 },
-#endif
-        { gfxASurface::ImageFormatARGB32, kEGLConfigAttribsRGBA32 },
-    };
+    nsCOMPtr<nsIScreenManager> screenMgr = do_GetService("@mozilla.org/gfx/screenmanager;1");
+    nsCOMPtr<nsIScreen> screen;
+    screenMgr->GetPrimaryScreen(getter_AddRefs(screen));
+    PRInt32 depth = 24;
+    screen->GetColorDepth(&depth);
 
     EGLConfig configs[64];
-    for (unsigned i = 0; i < ArrayLength(attribsToTry); ++i) {
-        const EGLAttribs& attribs = attribsToTry[i];
-        EGLint ncfg = ArrayLength(configs);
+    gfxASurface::gfxImageFormat format;
+    const EGLint* attribs = depth == 16 ? kEGLConfigAttribsRGB16 :
+                                          kEGLConfigAttribsRGBA32;
+    EGLint ncfg = ArrayLength(configs);
 
-        if (!sEGLLibrary.fChooseConfig(EGL_DISPLAY(), attribs.mAttribs,
-                                       configs, ncfg, &ncfg) ||
-            ncfg < 1)
+    if (!sEGLLibrary.fChooseConfig(EGL_DISPLAY(), attribs,
+                                   configs, ncfg, &ncfg) ||
+        ncfg < 1) {
+        return false;
+    }
+
+    for (int j = 0; j < ncfg; ++j) {
+        EGLConfig config = configs[j];
+        EGLint r, g, b, a;
+
+        if (sEGLLibrary.fGetConfigAttrib(EGL_DISPLAY(), config,
+                                         LOCAL_EGL_RED_SIZE, &r) &&
+            sEGLLibrary.fGetConfigAttrib(EGL_DISPLAY(), config,
+                                         LOCAL_EGL_GREEN_SIZE, &g) &&
+            sEGLLibrary.fGetConfigAttrib(EGL_DISPLAY(), config,
+                                         LOCAL_EGL_BLUE_SIZE, &b) &&
+            sEGLLibrary.fGetConfigAttrib(EGL_DISPLAY(), config,
+                                         LOCAL_EGL_ALPHA_SIZE, &a) &&
+            ((depth == 16 && r == 5 && g == 6 && b == 5) ||
+             (depth == 24 && r == 8 && g == 8 && b == 8 && a == 8)))
         {
-            continue;
-        }
-
-        for (int j = 0; j < ncfg; ++j) {
-            EGLConfig config = configs[j];
-            EGLint r, g, b, a;
-
-            if (sEGLLibrary.fGetConfigAttrib(EGL_DISPLAY(), config,
-                                             LOCAL_EGL_RED_SIZE, &r) &&
-                sEGLLibrary.fGetConfigAttrib(EGL_DISPLAY(), config,
-                                             LOCAL_EGL_GREEN_SIZE, &g) &&
-                sEGLLibrary.fGetConfigAttrib(EGL_DISPLAY(), config,
-                                             LOCAL_EGL_BLUE_SIZE, &b) &&
-                sEGLLibrary.fGetConfigAttrib(EGL_DISPLAY(), config,
-                                             LOCAL_EGL_ALPHA_SIZE, &a) &&
-                ((gfxASurface::ImageFormatRGB16_565 == attribs.mFormat &&
-                  r == 5 && g == 6 && b == 5) ||
-                 (gfxASurface::ImageFormatARGB32 == attribs.mFormat &&
-                  r == 8 && g == 8 && b == 8 && a == 8)))
-            {
-                *aConfig = config;
-                return true;
-            }
+            *aConfig = config;
+            return true;
         }
     }
     return false;
@@ -2363,7 +2392,7 @@ GLContextEGL::CreateEGLPBufferOffscreenContext(const gfxIntSize& aSize,
 
     // if we're running under ANGLE, we can't set BIND_TO_TEXTURE --
     // it's not supported, and we have dx interop pbuffers anyway
-    if (sEGLLibrary.IsANGLE())
+    if (sEGLLibrary.IsANGLE() || bufferUnused)
         configCanBindToTexture = false;
 
     nsTArray<EGLint> attribs(32);
@@ -2403,6 +2432,7 @@ TRY_ATTRIBS_AGAIN:
         }
 
         // no configs? no pbuffers!
+        NS_WARNING("Failed to select acceptable config for PBuffer creation!");
         return nsnull;
     }
 
@@ -2421,8 +2451,10 @@ TRY_ATTRIBS_AGAIN:
                                                                     : LOCAL_EGL_TEXTURE_RGB)
                                                                  : LOCAL_EGL_NONE,
                                                                  pbsize);
-    if (!surface)
+    if (!surface) {
+        NS_WARNING("Failed to create PBuffer for context!");
         return nsnull;
+    }
 
     sEGLLibrary.fBindAPI(LOCAL_EGL_OPENGL_ES_API);
 
@@ -2434,7 +2466,7 @@ TRY_ATTRIBS_AGAIN:
                                          sEGLLibrary.HasRobustness() ? gContextAttribsRobustness
                                                                      : gContextAttribs);
     if (!context) { 
-        NS_WARNING("Failed to create context");
+        NS_WARNING("Failed to create GLContext from PBuffer");
         sEGLLibrary.fDestroySurface(EGL_DISPLAY(), surface);
         return nsnull;
     }
@@ -2444,13 +2476,15 @@ TRY_ATTRIBS_AGAIN:
                                                         true);
 
     if (!glContext->Init()) {
+        NS_WARNING("Failed to initialize GLContext!");
         return nsnull;
     }
 
-    if (!bufferUnused) {
+    glContext->mPBufferCanBindToTexture = configCanBindToTexture;
+
+    if (!bufferUnused) {  // We *are* using the buffer
       glContext->SetOffscreenSize(aSize, pbsize);
       glContext->mIsPBuffer = true;
-      glContext->mPBufferCanBindToTexture = configCanBindToTexture;
     }
 
     return glContext.forget();
@@ -2611,13 +2645,20 @@ GLContextProviderEGL::CreateOffscreen(const gfxIntSize& aSize,
     }
 
 #if defined(ANDROID) || defined(XP_WIN)
+    bool usePBuffers = false; // Generally, prefer FBOs to PBuffers
+
+    if (sEGLLibrary.IsANGLE())
+      usePBuffers = true; // For d3d share handle, we need an EGL surface
+
+    gfxIntSize pbufferSize = usePBuffers ? aSize : gfxIntSize(16, 16);
     nsRefPtr<GLContextEGL> glContext =
-        GLContextEGL::CreateEGLPBufferOffscreenContext(gfxIntSize(16, 16), aFormat, true);
+        GLContextEGL::CreateEGLPBufferOffscreenContext(pbufferSize, aFormat, !usePBuffers);
 
     if (!glContext)
         return nsnull;
 
-    if (!glContext->ResizeOffscreenFBO(aSize, true))
+    gfxIntSize fboSize = usePBuffers ? glContext->OffscreenActualSize() : aSize;
+    if (!glContext->ResizeOffscreenFBO(fboSize, !usePBuffers))
         return nsnull;
 
     return glContext.forget();
@@ -2639,11 +2680,7 @@ GLContextProviderEGL::CreateOffscreen(const gfxIntSize& aSize,
     if (!glContext) {
         return nsnull;
     }
-    if (!glContext->GetSharedContext()) {
-        // no point in returning anything if sharing failed, we can't
-        // render from this
-        return nsnull;
-    }
+
     if (!gUseBackingSurface && !glContext->ResizeOffscreenFBO(glContext->OffscreenActualSize(), true)) {
         // we weren't able to create the initial
         // offscreen FBO, so this is dead

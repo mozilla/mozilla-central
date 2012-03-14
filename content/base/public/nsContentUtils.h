@@ -131,7 +131,6 @@ class nsIInterfaceRequestor;
 template<class E> class nsCOMArray;
 template<class K, class V> class nsRefPtrHashtable;
 struct JSRuntime;
-class nsIUGenCategory;
 class nsIWidget;
 class nsIDragSession;
 class nsIPresShell;
@@ -423,8 +422,8 @@ public:
   /**
    * Returns true if aChar is of class Ps, Pi, Po, Pf, or Pe.
    */
-  static bool IsPunctuationMark(PRUint32 aChar);
-  static bool IsPunctuationMarkAt(const nsTextFragment* aFrag, PRUint32 aOffset);
+  static bool IsFirstLetterPunctuation(PRUint32 aChar);
+  static bool IsFirstLetterPunctuationAt(const nsTextFragment* aFrag, PRUint32 aOffset);
  
   /**
    * Returns true if aChar is of class Lu, Ll, Lt, Lm, Lo, Nd, Nl or No
@@ -441,6 +440,16 @@ public:
    * HTML 4.01 also lists U+200B (zero-width space).
    */
   static bool IsHTMLWhitespace(PRUnichar aChar);
+
+  /**
+   * Is the HTML local name a block element?
+   */
+  static bool IsHTMLBlock(nsIAtom* aLocalName);
+
+  /**
+   * Is the HTML local name a void element?
+   */
+  static bool IsHTMLVoid(nsIAtom* aLocalName);
 
   /**
    * Parse a margin string of format 'top, right, bottom, left' into
@@ -623,11 +632,6 @@ public:
   static nsIWordBreaker* WordBreaker()
   {
     return sWordBreaker;
-  }
-
-  static nsIUGenCategory* GetGenCat()
-  {
-    return sGenCat;
   }
 
   /**
@@ -844,11 +848,22 @@ public:
    * Fill (with the parameters given) the localized string named |aKey| in
    * properties file |aFile|.
    */
+private:
   static nsresult FormatLocalizedString(PropertiesFile aFile,
                                         const char* aKey,
-                                        const PRUnichar **aParams,
+                                        const PRUnichar** aParams,
                                         PRUint32 aParamsLength,
                                         nsXPIDLString& aResult);
+  
+public:
+  template<PRUint32 N>
+  static nsresult FormatLocalizedString(PropertiesFile aFile,
+                                        const char* aKey,
+                                        const PRUnichar* (&aParams)[N],
+                                        nsXPIDLString& aResult)
+  {
+    return FormatLocalizedString(aFile, aKey, aParams, N, aResult);
+  }
 
   /**
    * Returns true if aDocument is a chrome document
@@ -1150,12 +1165,34 @@ public:
    * @param aSourceBuffer the string to parse as an HTML document
    * @param aTargetDocument the document object to parse into. Must not have
    *                        child nodes.
+   * @param aScriptingEnabledForNoscriptParsing whether <noscript> is parsed
+   *                                            as if scripting was enabled
    * @return NS_ERROR_DOM_INVALID_STATE_ERR if a re-entrant attempt to parse
    *         fragments is made, NS_ERROR_OUT_OF_MEMORY if aSourceBuffer is too
    *         long and NS_OK otherwise.
    */
   static nsresult ParseDocumentHTML(const nsAString& aSourceBuffer,
-                                    nsIDocument* aTargetDocument);
+                                    nsIDocument* aTargetDocument,
+                                    bool aScriptingEnabledForNoscriptParsing);
+
+  /**
+   * Converts HTML source to plain text by parsing the source and using the
+   * plain text serializer on the resulting tree.
+   *
+   * @param aSourceBuffer the string to parse as an HTML document
+   * @param aResultBuffer the string where the plain text result appears;
+   *                      may be the same string as aSourceBuffer
+   * @param aFlags Flags from nsIDocumentEncoder.
+   * @param aWrapCol Number of columns after which to line wrap; 0 for no
+   *                 auto-wrapping
+   * @return NS_ERROR_DOM_INVALID_STATE_ERR if a re-entrant attempt to parse
+   *         fragments is made, NS_ERROR_OUT_OF_MEMORY if aSourceBuffer is too
+   *         long and NS_OK otherwise.
+   */
+  static nsresult ConvertToPlainText(const nsAString& aSourceBuffer,
+                                     nsAString& aResultBuffer,
+                                     PRUint32 aFlags,
+                                     PRUint32 aWrapCol);
 
   /**
    * Creates a new XML document, which is marked to be loaded as data.
@@ -1582,7 +1619,43 @@ public:
    * case for ASCII characters a-z.
    */
   static bool EqualsIgnoreASCIICase(const nsAString& aStr1,
-                                      const nsAString& aStr2);
+                                    const nsAString& aStr2);
+
+  /**
+   * Case insensitive comparison between a string and an ASCII literal.
+   * This must ONLY be applied to an actual literal string. Do not attempt
+   * to use it with a regular char* pointer, or with a char array variable.
+   * The template trick to acquire the array length at compile time without
+   * using a macro is due to Corey Kosak, which much thanks.
+   */
+  static bool EqualsLiteralIgnoreASCIICase(const nsAString& aStr1,
+                                           const char* aStr2,
+                                           const PRUint32 len);
+#ifdef NS_DISABLE_LITERAL_TEMPLATE
+  static inline bool
+  EqualsLiteralIgnoreASCIICase(const nsAString& aStr1,
+                               const char* aStr2)
+  {
+    PRUint32 len = strlen(aStr2);
+    return EqualsLiteralIgnoreASCIICase(aStr1, aStr2, len);
+  }
+#else
+  template<int N>
+  static inline bool
+  EqualsLiteralIgnoreASCIICase(const nsAString& aStr1,
+                               const char (&aStr2)[N])
+  {
+    return EqualsLiteralIgnoreASCIICase(aStr1, aStr2, N-1);
+  }
+  template<int N>
+  static inline bool
+  EqualsLiteralIgnoreASCIICase(const nsAString& aStr1,
+                               char (&aStr2)[N])
+  {
+    const char* s = aStr2;
+    return EqualsLiteralIgnoreASCIICase(aStr1, s, N-1);
+  }
+#endif
 
   /**
    * Convert ASCII A-Z to a-z.
@@ -1947,6 +2020,32 @@ public:
    */
   static bool URIIsChromeOrInPref(nsIURI *aURI, const char *aPref);
 
+  /**
+   * This will parse aSource, to extract the value of the pseudo attribute
+   * with the name specified in aName. See
+   * http://www.w3.org/TR/xml-stylesheet/#NT-StyleSheetPI for the specification
+   * which is used to parse aSource.
+   *
+   * @param aSource the string to parse
+   * @param aName the name of the attribute to get the value for
+   * @param aValue [out] the value for the attribute with name specified in
+   *                     aAttribute. Empty if the attribute isn't present.
+   * @return true     if the attribute exists and was successfully parsed.
+   *         false if the attribute doesn't exist, or has a malformed
+   *                  value, such as an unknown or unterminated entity.
+   */
+  static bool GetPseudoAttributeValue(const nsString& aSource, nsIAtom *aName,
+                                      nsAString& aValue);
+
+  /**
+   * Returns true if the language name is a version of JavaScript and
+   * false otherwise
+   */
+  static bool IsJavaScriptLanguage(const nsString& aName, PRUint32 *aVerFlags);
+
+  static void SplitMimeType(const nsAString& aValue, nsString& aType,
+                            nsString& aParams);
+
 private:
   static bool InitializeEventTable();
 
@@ -2017,7 +2116,6 @@ private:
 
   static nsILineBreaker* sLineBreaker;
   static nsIWordBreaker* sWordBreaker;
-  static nsIUGenCategory* sGenCat;
 
   static nsIScriptRuntime* sScriptRuntimes[NS_STID_ARRAY_UBOUND];
   static PRInt32 sScriptRootCount[NS_STID_ARRAY_UBOUND];

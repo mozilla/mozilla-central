@@ -2007,6 +2007,11 @@ nsDisplayScrollLayer::TryMerge(nsDisplayListBuilder* aBuilder,
     reinterpret_cast<void*>(GetScrollLayerCount() - 1));
 
   mList.AppendToBottom(&other->mList);
+  // XXX - This ensures that the frame associated with a scroll layer after
+  // merging is the first, rather than the last. This tends to change less,
+  // ensuring we're more likely to retain the associated gfx layer.
+  // See Bug 729534 and Bug 731641.
+  mFrame = other->mFrame;
   return true;
 }
 
@@ -2446,8 +2451,7 @@ gfxPoint3D GetDeltaToMozTransformOrigin(const nsIFrame* aFrame,
  */
 static
 gfxPoint3D GetDeltaToMozPerspectiveOrigin(const nsIFrame* aFrame,
-                                          float aAppUnitsPerPixel,
-                                          const nsRect* aBoundsOverride)
+                                          float aAppUnitsPerPixel)
 {
   NS_PRECONDITION(aFrame, "Can't get delta for a null frame!");
   NS_PRECONDITION(aFrame->GetStyleDisplay()->HasTransform(),
@@ -2464,8 +2468,7 @@ gfxPoint3D GetDeltaToMozPerspectiveOrigin(const nsIFrame* aFrame,
   // How do we handle aBoundsOverride in the latter case?
   nsIFrame* parent = aFrame->GetParentStyleContextFrame();
   const nsStyleDisplay* display = aFrame->GetParent()->GetStyleDisplay();
-  nsRect boundingRect = (aBoundsOverride ? *aBoundsOverride :
-                         nsDisplayTransform::GetFrameBoundsForTransform(parent));
+  nsRect boundingRect = nsDisplayTransform::GetFrameBoundsForTransform(parent);
 
   /* Allows us to access named variables by index. */
   gfxPoint3D result;
@@ -2549,8 +2552,9 @@ nsDisplayTransform::GetResultingTransformMatrix(const nsIFrame* aFrame,
                                                     aFrame->PresContext(),
                                                     dummy, bounds, aAppUnitsPerPixel);
   } else {
-     NS_ASSERTION(aFrame->GetStyleDisplay()->mTransformStyle == NS_STYLE_TRANSFORM_STYLE_PRESERVE_3D,
-                  "If we don't have a transform, then we must be at least attempting to preserve the transforms of our children");
+     NS_ASSERTION(aFrame->GetStyleDisplay()->mTransformStyle == NS_STYLE_TRANSFORM_STYLE_PRESERVE_3D ||
+                  aFrame->GetStyleDisplay()->mBackfaceVisibility == NS_STYLE_BACKFACE_VISIBILITY_HIDDEN,
+                  "If we don't have a transform, then we must have another reason to have an nsDisplayTransform created");
   }
 
   const nsStyleDisplay* parentDisp = nsnull;
@@ -2568,7 +2572,7 @@ nsDisplayTransform::GetResultingTransformMatrix(const nsIFrame* aFrame,
     /* At the point when perspective is applied, we have been translated to the transform origin.
      * The translation to the perspective origin is the difference between these values.
      */
-    gfxPoint3D toPerspectiveOrigin = GetDeltaToMozPerspectiveOrigin(aFrame, aAppUnitsPerPixel, aBoundsOverride);
+    gfxPoint3D toPerspectiveOrigin = GetDeltaToMozPerspectiveOrigin(aFrame, aAppUnitsPerPixel);
     result = result * nsLayoutUtils::ChangeMatrixBasis(toPerspectiveOrigin - toMozOrigin, perspective);
   }
 
@@ -2597,7 +2601,14 @@ nsDisplayTransform::ShouldPrerenderTransformedContent(nsDisplayListBuilder* aBui
     // reference frame size (~viewport), allowing a 1/8th fuzz factor
     // for shadows, borders, etc.
     refSize += nsSize(refSize.width / 8, refSize.height / 8);
-    return aFrame->GetVisualOverflowRectRelativeToSelf().Size() <= refSize;
+    if (aFrame->GetVisualOverflowRectRelativeToSelf().Size() <= refSize) {
+      // Bug 717521 - pre-render max 4096 x 4096 device pixels.
+      nscoord max = aFrame->PresContext()->DevPixelsToAppUnits(4096);
+      nsRect visual = aFrame->GetVisualOverflowRect();
+      if (visual.width <= max && visual.height <= max) {
+        return true;
+      }
+    }
   }
   return false;
 }

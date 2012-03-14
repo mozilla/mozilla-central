@@ -64,7 +64,7 @@
 #include "nsIDocumentTransformer.h"
 #include "mozilla/css/Loader.h"
 #include "mozilla/dom/Element.h"
-#include "nsICharsetAlias.h"
+#include "nsCharsetAlias.h"
 #include "nsIHTMLContentSink.h"
 #include "nsContentUtils.h"
 #include "txXMLUtils.h"
@@ -160,7 +160,7 @@ txMozillaXMLOutput::attribute(nsIAtom* aPrefix,
 
     if (mOpenedElementIsHTML && aNsID == kNameSpaceID_None) {
         nsAutoString lnameStr;
-        ToLowerCase(aLocalName, lnameStr);
+        nsContentUtils::ASCIIToLower(aLocalName, lnameStr);
         lname = do_GetAtom(lnameStr);
     }
     else {
@@ -499,7 +499,7 @@ txMozillaXMLOutput::startElement(nsIAtom* aPrefix,
         nsId = kNameSpaceID_XHTML;
 
         nsAutoString lnameStr;
-        ToLowerCase(aLocalName, lnameStr);
+        nsContentUtils::ASCIIToLower(aLocalName, lnameStr);
         lname = do_GetAtom(lnameStr);
     }
     else {
@@ -802,7 +802,7 @@ txMozillaXMLOutput::endHTMLElement(nsIContent* aElement)
             nsAutoString value;
             aElement->GetAttr(kNameSpaceID_None, nsGkAtoms::content, value);
             if (!value.IsEmpty()) {
-                ToLowerCase(httpEquiv);
+                nsContentUtils::ASCIIToLower(httpEquiv);
                 nsCOMPtr<nsIAtom> header = do_GetAtom(httpEquiv);
                 processHTTPEquiv(header, value);
             }
@@ -857,11 +857,7 @@ txMozillaXMLOutput::createResultDocument(const nsSubstring& aName, PRInt32 aNsID
     if (!mOutputFormat.mEncoding.IsEmpty()) {
         NS_LossyConvertUTF16toASCII charset(mOutputFormat.mEncoding);
         nsCAutoString canonicalCharset;
-        nsCOMPtr<nsICharsetAlias> calias =
-            do_GetService("@mozilla.org/intl/charsetalias;1");
-
-        if (calias &&
-            NS_SUCCEEDED(calias->GetPreferred(charset, canonicalCharset))) {
+        if (NS_SUCCEEDED(nsCharsetAlias::GetPreferred(charset, canonicalCharset))) {
             mDocument->SetDocumentCharacterSetSource(kCharsetFromOtherComponent);
             mDocument->SetDocumentCharacterSet(canonicalCharset);
         }

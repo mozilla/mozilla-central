@@ -84,6 +84,18 @@ XPCOMUtils.defineLazyGetter(Services, 'fm', function() {
     content.dispatchEvent(event);
   }
 
+  function maybeShowIme(targetElement) {
+    // FIXME/bug 729623: work around apparent bug in the IME manager
+    // in gecko.
+    let readonly = targetElement.getAttribute('readonly');
+    if (readonly)
+      return false;
+
+    let type = targetElement.type;
+    fireEvent('showime', { type: type });
+    return true;
+  }
+
   let constructor = {
     handleEvent: function vkm_handleEvent(evt) {
       switch (evt.type) {
@@ -102,9 +114,7 @@ XPCOMUtils.defineLazyGetter(Services, 'fm', function() {
           if (evt.target != activeElement || isKeyboardOpened)
             return;
 
-          let type = activeElement.type;
-          fireEvent('showime', { type: type });
-          isKeyboardOpened = true;
+          isKeyboardOpened = maybeShowIme(activeElement);
           break;
       }
     },
@@ -112,11 +122,10 @@ XPCOMUtils.defineLazyGetter(Services, 'fm', function() {
       let shouldOpen = parseInt(data);
       if (shouldOpen && !isKeyboardOpened) {
         activeElement = Services.fm.focusedElement;
-        if (!activeElement)
+        if (!activeElement || !maybeShowIme(activeElement)) {
+          activeElement = null;
           return;
-
-        let type = activeElement.type;
-        fireEvent('showime', { type: type });
+        }
       } else if (!shouldOpen && isKeyboardOpened) {
         fireEvent('hideime');
       }
@@ -172,7 +181,11 @@ const ContentPanning = {
       case 'click':
         evt.stopPropagation();
         evt.preventDefault();
-        evt.target.removeEventListener('click', this, true);
+        
+        let target = evt.target;
+        let view = target.ownerDocument ? target.ownerDocument.defaultView
+                                        : target;
+        view.removeEventListener('click', this, true, true);
         break;
     }
   },
@@ -181,16 +194,24 @@ const ContentPanning = {
 
   onTouchStart: function cp_onTouchStart(evt) {
     this.dragging = true;
+    this.panning = false;
+
+    let oldTarget = this.target;
+    [this.target, this.scrollCallback] = this.getPannable(evt.target);
 
     // If there is a pan animation running (from a previous pan gesture) and
     // the user touch back the screen, stop this animation immediatly and
-    // prevent the possible click action.
+    // prevent the possible click action if the touch happens on the same
+    // target.
+    this.preventNextClick = false;
     if (KineticPanning.active) {
       KineticPanning.stop();
-      this.preventNextClick = true;
+
+      if (oldTarget && oldTarget == this.target)
+        this.preventNextClick = true;
     }
 
-    this.scrollCallback = this.getPannable(evt.originalTarget);
+
     this.position.set(evt.screenX, evt.screenY);
     KineticPanning.record(new Point(0, 0), evt.timeStamp);
   },
@@ -202,14 +223,15 @@ const ContentPanning = {
 
     this.onTouchMove(evt);
 
-    let pan = KineticPanning.isPan();
     let click = evt.detail;
-    if (click && (pan || this.preventNextClick))
-      evt.target.addEventListener('click', this, true);
+    if (this.target && click && (this.panning || this.preventNextClick)) {
+      let target = this.target;
+      let view = target.ownerDocument ? target.ownerDocument.defaultView
+                                      : target;
+      view.addEventListener('click', this, true, true);
+    }
 
-    this.preventNextClick = false;
-
-    if (pan)
+    if (this.panning)
       KineticPanning.start(this);
   },
 
@@ -223,6 +245,13 @@ const ContentPanning = {
 
     KineticPanning.record(delta, evt.timeStamp);
     this.scrollCallback(delta.scale(-1));
+
+    // If a pan action happens, cancel the active state of the
+    // current target.
+    if (!this.panning && KineticPanning.isPan()) {
+      this.panning = true;
+      this._resetActive();
+    }
   },
 
 
@@ -240,7 +269,7 @@ const ContentPanning = {
 
   getPannable: function cp_getPannable(node) {
     if (!(node instanceof Ci.nsIDOMHTMLElement) || node.tagName == 'HTML')
-      return null;
+      return [null, null];
 
     let content = node.ownerDocument.defaultView;
     while (!(node instanceof Ci.nsIDOMHTMLBodyElement)) {
@@ -257,12 +286,12 @@ const ContentPanning = {
 
       let isScroll = (overflow.indexOf('scroll') != -1);
       if (isScroll || isAuto)
-        return this._generateCallback(node);
+        return [node, this._generateCallback(node)];
 
       node = node.parentNode;
     }
 
-    return this._generateCallback(content);
+    return [content, this._generateCallback(content)];
   },
 
   _generateCallback: function cp_generateCallback(content) {
@@ -281,6 +310,19 @@ const ContentPanning = {
       }
     }
     return scroll;
+  },
+
+  get _domUtils() {
+    delete this._domUtils;
+    return this._domUtils = Cc['@mozilla.org/inspector/dom-utils;1']
+                              .getService(Ci.inIDOMUtils);
+  },
+
+  _resetActive: function cp_resetActive() {
+    let root = this.target.ownerDocument || this.target.document;
+
+    const kStateActive = 0x00000001;
+    this._domUtils.setContentState(root.documentElement, kStateActive);
   }
 };
 
@@ -313,7 +355,7 @@ const KineticPanning = {
     return this.target !== null;
   },
 
-  _target: null,
+  target: null,
   start: function kp_start(target) {
     this.target = target;
 
@@ -361,6 +403,7 @@ const KineticPanning = {
       return;
 
     this.momentums = [];
+    this.distance.set(0, 0);
 
     this.target.onKineticEnd();
     this.target = null;
@@ -369,23 +412,24 @@ const KineticPanning = {
   momentums: [],
   record: function kp_record(delta, timestamp) {
     this.momentums.push({ 'time': timestamp, 'dx' : delta.x, 'dy' : delta.y });
+    this.distance.add(delta.x, delta.y);
   },
 
-  isPan: function cp_isPan() {
+  get threshold() {
     let dpi = content.QueryInterface(Ci.nsIInterfaceRequestor)
                      .getInterface(Ci.nsIDOMWindowUtils)
                      .displayDPI;
 
     let threshold = Services.prefs.getIntPref('ui.dragThresholdX') / 240 * dpi;
 
-    let deltaX = 0;
-    let deltaY = 0;
-    let start = this.momentums[0].time;
-    return this.momentums.slice(1).some(function(momentum) {
-      deltaX += momentum.dx;
-      deltaY += momentum.dy;
-      return (Math.abs(deltaX) > threshold) || (Math.abs(deltaY) > threshold);
-    });
+    delete this.threshold;
+    return this.threshold = threshold;
+  },
+
+  distance: new Point(0, 0),
+  isPan: function cp_isPan() {
+    return (Math.abs(this.distance.x) > this.threshold ||
+            Math.abs(this.distance.y) > this.threshold);
   },
 
   _startAnimation: function kp_startAnimation() {

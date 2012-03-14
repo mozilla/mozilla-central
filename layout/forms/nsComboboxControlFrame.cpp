@@ -77,7 +77,6 @@
 #include "nsAccessibilityService.h"
 #endif
 #include "nsIServiceManager.h"
-#include "nsIDOMNode.h"
 #include "nsGUIEvent.h"
 #include "nsAutoPtr.h"
 #include "nsStyleSet.h"
@@ -1325,7 +1324,7 @@ nsComboboxControlFrame::DestroyFrom(nsIFrame* aDestructRoot)
   nsBlockFrame::DestroyFrom(aDestructRoot);
 }
 
-nsFrameList
+const nsFrameList&
 nsComboboxControlFrame::GetChildList(ChildListID aListID) const
 {
   if (kSelectPopupList == aListID) {

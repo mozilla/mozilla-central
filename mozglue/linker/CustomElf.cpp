@@ -84,12 +84,17 @@ public:
   : GenericMappedPtr<Mappable1stPagePtr>(
       mappable->mmap(NULL, PAGE_SIZE, PROT_READ, MAP_PRIVATE, 0), PAGE_SIZE)
   , mappable(mappable)
-  { }
+  {
+    /* Ensure the content of this page */
+    mappable->ensure(*this);
+  }
 
+private:
+  friend class GenericMappedPtr<Mappable1stPagePtr>;
   void munmap(void *buf, size_t length) {
     mappable->munmap(buf, length);
   }
-private:
+
   Mappable *mappable;
 };
 
@@ -213,6 +218,7 @@ CustomElf::Load(Mappable *mappable, const char *path, int flags)
   if (!elf->InitDyn(dyn))
     return NULL;
 
+  elf->stats("oneLibLoaded");
   debug("CustomElf::Load(\"%s\", %x) = %p", path, flags,
         static_cast<void *>(elf));
   return elf;
@@ -298,6 +304,13 @@ CustomElf::GetSymbolPtrInDeps(const char *symbol) const
       return FunctionPtr(&ElfLoader::__wrap_cxa_finalize);
     if (strcmp(symbol + 2, "dso_handle") == 0)
       return const_cast<CustomElf *>(this);
+    if (strcmp(symbol + 2, "moz_linker_stats") == 0)
+      return FunctionPtr(&ElfLoader::stats);
+  } else if (symbol[0] == 's' && symbol[1] == 'i') {
+    if (strcmp(symbol + 2, "gnal") == 0)
+      return FunctionPtr(__wrap_signal);
+    if (strcmp(symbol + 2, "gaction") == 0)
+      return FunctionPtr(__wrap_sigaction);
   }
 
   void *sym;
@@ -358,6 +371,12 @@ bool
 CustomElf::Contains(void *addr) const
 {
   return base.Contains(addr);
+}
+
+void
+CustomElf::stats(const char *when) const
+{
+  mappable->stats(when, GetPath());
 }
 
 bool
@@ -522,6 +541,43 @@ CustomElf::InitDyn(const Phdr *pt_dyn)
         debug_dyn("DT_FINI_ARRAYSZ", dyn);
         fini_array.InitSize(dyn->d_un.d_val);
         break;
+      case DT_PLTREL:
+        if (dyn->d_un.d_val != RELOC()) {
+          log("%s: Error: DT_PLTREL is not " STR_RELOC(), GetPath());
+          return false;
+        }
+        break;
+      case DT_FLAGS:
+        {
+           Word flags = dyn->d_un.d_val;
+           /* Treat as a DT_TEXTREL tag */
+           if (flags & DF_TEXTREL) {
+             log("%s: Text relocations are not supported", GetPath());
+             return false;
+           }
+           /* we can treat this like having a DT_SYMBOLIC tag */
+           flags &= ~DF_SYMBOLIC;
+           if (flags)
+             log("%s: Warning: unhandled flags #%" PRIxAddr" not handled",
+                 GetPath(), flags);
+        }
+        break;
+      case DT_SONAME: /* Should match GetName(), but doesn't matter */
+      case DT_SYMBOLIC: /* Indicates internal symbols should be looked up in
+                         * the library itself first instead of the executable,
+                         * which is actually what this linker does by default */
+      case RELOC(COUNT): /* Indicates how many relocations are relative, which
+                          * is usually used to skip relocations on prelinked
+                          * libraries. They are not supported anyways. */
+      case UNSUPPORTED_RELOC(COUNT): /* This should error out, but it doesn't
+                                      * really matter. */
+      case DT_VERSYM: /* DT_VER* entries are used for symbol versioning, which */
+      case DT_VERDEF: /* this linker doesn't support yet. */
+      case DT_VERDEFNUM:
+      case DT_VERNEED:
+      case DT_VERNEEDNUM:
+        /* Ignored */
+        break;
       default:
         log("%s: Warning: dynamic header type #%" PRIxAddr" not handled",
             GetPath(), dyn->d_tag);
@@ -628,8 +684,12 @@ CustomElf::RelocateJumps()
       symptr = GetSymbolPtrInDeps(strtab.GetStringAt(sym.st_name));
 
     if (symptr == NULL) {
-      log("%s: Error: relocation to NULL @0x%08" PRIxAddr, GetPath(), rel->r_offset);
-      return false;
+      log("%s: %s: relocation to NULL @0x%08" PRIxAddr " for symbol \"%s\"",
+          GetPath(),
+          (ELF_ST_BIND(sym.st_info) == STB_WEAK) ? "Warning" : "Error",
+          rel->r_offset, strtab.GetStringAt(sym.st_name));
+      if (ELF_ST_BIND(sym.st_info) != STB_WEAK)
+        return false;
     }
     /* Apply relocation */
     *(void **) ptr = symptr;

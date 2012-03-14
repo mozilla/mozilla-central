@@ -82,6 +82,8 @@
 #include "SpecialSystemDirectory.h"
 
 #include "nsTraceRefcntImpl.h"
+#include "nsXPCOMCIDInternal.h"
+#include "nsThreadUtils.h"
 
 using namespace mozilla;
 
@@ -110,8 +112,200 @@ unsigned char *_mbsstr( const unsigned char *str,
 #define DRIVE_REMOTE 4
 #endif
 
-ILCreateFromPathWPtr nsLocalFile::sILCreateFromPathW = NULL;
-SHOpenFolderAndSelectItemsPtr nsLocalFile::sSHOpenFolderAndSelectItems = NULL;
+/**
+ * A runnable to dispatch back to the main thread when 
+ * AsyncLocalFileWinOperation completes.
+*/
+class AsyncLocalFileWinDone : public nsRunnable
+{
+public:
+    AsyncLocalFileWinDone() :
+        mWorkerThread(do_GetCurrentThread())
+    {
+        // Objects of this type must only be created on worker threads
+        MOZ_ASSERT(!NS_IsMainThread()); 
+    }
+
+    NS_IMETHOD Run() {
+        // This event shuts down the worker thread and so must be main thread.
+        MOZ_ASSERT(NS_IsMainThread());
+
+        // If we don't destroy the thread when we're done with it, it will hang
+        // around forever... and that is bad!
+        mWorkerThread->Shutdown();
+        return NS_OK;
+    }
+
+private:
+    nsCOMPtr<nsIThread> mWorkerThread;
+};
+
+/**
+ * A runnable to dispatch from the main thread when an async operation should
+ * be performed. 
+*/
+class AsyncLocalFileWinOperation : public nsRunnable
+{
+public:
+    enum FileOp { RevealOp, LaunchOp };
+
+    AsyncLocalFileWinOperation(AsyncLocalFileWinOperation::FileOp aOperation,
+                               const nsAString &aResolvedPath) : 
+        mOperation(aOperation),
+        mResolvedPath(aResolvedPath)
+    {
+    }
+
+    NS_IMETHOD Run() {
+        NS_ASSERTION(!NS_IsMainThread(),
+            "AsyncLocalFileWinOperation should not be run on the main thread!");
+
+        CoInitialize(NULL);
+        switch(mOperation) {
+        case RevealOp: {
+            Reveal();
+        }
+        break;
+        case LaunchOp: {
+            Launch();
+        }
+        break;
+        }
+        CoUninitialize();
+
+        // Send the result back to the main thread so that it can shutdown
+        nsCOMPtr<nsIRunnable> resultrunnable = new AsyncLocalFileWinDone();
+        NS_DispatchToMainThread(resultrunnable);
+        return NS_OK;
+    }
+
+private:
+    // Reveals the path in explorer.
+    nsresult Reveal() 
+    {
+        DWORD attributes = GetFileAttributesW(mResolvedPath.get());
+        if (INVALID_FILE_ATTRIBUTES == attributes) {
+            return NS_ERROR_FILE_INVALID_PATH;
+        }
+
+        HRESULT hr;
+        if (attributes & FILE_ATTRIBUTE_DIRECTORY) {
+            // We have a directory so we should open the directory itself.
+            ITEMIDLIST *dir = ILCreateFromPathW(mResolvedPath.get());
+            if (!dir) {
+              return NS_ERROR_FAILURE;
+            }
+
+            const ITEMIDLIST* selection[] = { dir };
+            UINT count = ArrayLength(selection);
+
+            //Perform the open of the directory.
+            hr = SHOpenFolderAndSelectItems(dir, count, selection, 0);
+            CoTaskMemFree(dir);
+        } else {
+            PRInt32 len = mResolvedPath.Length();
+            // We don't currently handle UNC long paths of the form \\?\ anywhere so
+            // this should be fine.
+            if (len > MAX_PATH) {
+                return NS_ERROR_FILE_INVALID_PATH;
+            }
+            WCHAR parentDirectoryPath[MAX_PATH + 1] = { 0 };
+            wcsncpy(parentDirectoryPath, mResolvedPath.get(), MAX_PATH);
+            PathRemoveFileSpecW(parentDirectoryPath);
+
+            // We have a file so we should open the parent directory.
+            ITEMIDLIST *dir = ILCreateFromPathW(parentDirectoryPath);
+            if (!dir) {
+                return NS_ERROR_FAILURE;
+            }
+
+            // Set the item in the directory to select to the file we want to reveal.
+            ITEMIDLIST *item = ILCreateFromPathW(mResolvedPath.get());
+            if (!item) {
+                CoTaskMemFree(dir);
+                return NS_ERROR_FAILURE;
+            }
+            
+            const ITEMIDLIST* selection[] = { item };
+            UINT count = ArrayLength(selection);
+
+            //Perform the selection of the file.
+            hr = SHOpenFolderAndSelectItems(dir, count, selection, 0);
+
+            CoTaskMemFree(dir);
+            CoTaskMemFree(item);
+        }
+        
+        return SUCCEEDED(hr) ? NS_OK : NS_ERROR_FAILURE;
+    }
+    
+    // Launches the default shell operation for the file path
+    nsresult Launch()
+    {
+        // use the app registry name to launch a shell execute....
+        SHELLEXECUTEINFOW seinfo;
+        memset(&seinfo, 0, sizeof(seinfo));
+        seinfo.cbSize = sizeof(SHELLEXECUTEINFOW);
+        seinfo.fMask  = NULL;
+        seinfo.hwnd   = NULL;
+        seinfo.lpVerb = NULL;
+        seinfo.lpFile = mResolvedPath.get();
+        seinfo.lpParameters =  NULL;
+        seinfo.lpDirectory  = NULL;
+        seinfo.nShow  = SW_SHOWNORMAL;
+        
+        if (ShellExecuteExW(&seinfo))
+            return NS_OK;
+        DWORD r = GetLastError();
+        // if the file has no association, we launch windows' 
+        // "what do you want to do" dialog
+        if (r == SE_ERR_NOASSOC) {
+            nsAutoString shellArg;
+            shellArg.Assign(NS_LITERAL_STRING("shell32.dll,OpenAs_RunDLL ") + 
+                            mResolvedPath);
+            seinfo.lpFile = L"RUNDLL32.EXE";
+            seinfo.lpParameters = shellArg.get();
+            if (ShellExecuteExW(&seinfo))
+                return NS_OK;
+            r = GetLastError();
+        }
+        if (r < 32) {
+            switch (r) {
+              case 0:
+              case SE_ERR_OOM:
+                  return NS_ERROR_OUT_OF_MEMORY;
+              case ERROR_FILE_NOT_FOUND:
+                  return NS_ERROR_FILE_NOT_FOUND;
+              case ERROR_PATH_NOT_FOUND:
+                  return NS_ERROR_FILE_UNRECOGNIZED_PATH;
+              case ERROR_BAD_FORMAT:
+                  return NS_ERROR_FILE_CORRUPTED;
+              case SE_ERR_ACCESSDENIED:
+                  return NS_ERROR_FILE_ACCESS_DENIED;
+              case SE_ERR_ASSOCINCOMPLETE:
+              case SE_ERR_NOASSOC:
+                  return NS_ERROR_UNEXPECTED;
+              case SE_ERR_DDEBUSY:
+              case SE_ERR_DDEFAIL:
+              case SE_ERR_DDETIMEOUT:
+                  return NS_ERROR_NOT_AVAILABLE;
+              case SE_ERR_DLLNOTFOUND:
+                  return NS_ERROR_FAILURE;
+              case SE_ERR_SHARE:
+                  return NS_ERROR_FILE_IS_LOCKED;
+              default:
+                  return NS_ERROR_FILE_EXECUTION_FAILED;
+            }
+        }
+        return NS_OK;
+    }
+
+    // Stores the path to perform the operation on
+    nsString mResolvedPath;
+
+    // Stores the operation that will be performed on the thread
+    AsyncLocalFileWinOperation::FileOp mOperation;
+};
 
 class nsDriveEnumerator : public nsISimpleEnumerator
 {
@@ -2763,19 +2957,6 @@ nsLocalFile::SetPersistentDescriptor(const nsACString &aPersistentDescriptor)
 }   
 
 /* attrib unsigned long fileAttributesWin; */
-static bool IsXPOrGreater()
-{
-    OSVERSIONINFO osvi;
-
-    ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
-    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-
-    GetVersionEx(&osvi);
-
-    return ((osvi.dwMajorVersion > 5) ||
-       ((osvi.dwMajorVersion == 5) && (osvi.dwMinorVersion >= 1)));
-}
-
 NS_IMETHODIMP
 nsLocalFile::GetFileAttributesWin(PRUint32 *aAttribs)
 {
@@ -2797,197 +2978,76 @@ nsLocalFile::SetFileAttributesWin(PRUint32 aAttribs)
     if (dwAttrs == INVALID_FILE_ATTRIBUTES)
       return NS_ERROR_FILE_INVALID_PATH;
 
-    if (IsXPOrGreater()) {
-      if (aAttribs & WFA_SEARCH_INDEXED) {
-          dwAttrs &= ~FILE_ATTRIBUTE_NOT_CONTENT_INDEXED;
-      } else {
-          dwAttrs |= FILE_ATTRIBUTE_NOT_CONTENT_INDEXED;
-      }
+    if (aAttribs & WFA_SEARCH_INDEXED) {
+        dwAttrs &= ~FILE_ATTRIBUTE_NOT_CONTENT_INDEXED;
+    } else {
+        dwAttrs |= FILE_ATTRIBUTE_NOT_CONTENT_INDEXED;
     }
 
     if (SetFileAttributesW(mWorkingPath.get(), dwAttrs) == 0)
       return NS_ERROR_FAILURE;
     return NS_OK;
-}   
+}
 
 
 NS_IMETHODIMP
 nsLocalFile::Reveal()
 {
+    // This API should be main thread only
+    MOZ_ASSERT(NS_IsMainThread()); 
+
     // make sure mResolvedPath is set
-    nsresult rv = ResolveAndStat();
-    if (NS_FAILED(rv) && rv != NS_ERROR_FILE_NOT_FOUND)
+    nsresult rv = Resolve();
+    if (NS_FAILED(rv) && rv != NS_ERROR_FILE_NOT_FOUND) {
         return rv;
+    }
 
-    // First try revealing with the shell, and if that fails fall back
-    // to the classic way using explorer.exe command line parameters
-    rv = RevealUsingShell();
+    // To create a new thread, get the thread manager
+    nsCOMPtr<nsIThreadManager> tm = do_GetService(NS_THREADMANAGER_CONTRACTID);
+    nsCOMPtr<nsIThread> mythread;
+    rv = tm->NewThread(0, 0, getter_AddRefs(mythread));
     if (NS_FAILED(rv)) {
-      rv = RevealClassic();
+        return rv;
     }
 
-    return rv;
-}
+    nsCOMPtr<nsIRunnable> runnable = 
+        new AsyncLocalFileWinOperation(AsyncLocalFileWinOperation::RevealOp,
+                                       mResolvedPath);
 
-nsresult
-nsLocalFile::RevealClassic()
-{
-  // use the full path to explorer for security
-  nsCOMPtr<nsILocalFile> winDir;
-  nsresult rv = GetSpecialSystemDirectory(Win_WindowsDirectory, getter_AddRefs(winDir));
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsAutoString explorerPath;
-  rv = winDir->GetPath(explorerPath);  
-  NS_ENSURE_SUCCESS(rv, rv);
-  explorerPath.AppendLiteral("\\explorer.exe");
-
-  // Always open a new window for files because Win2K doesn't appear to select
-  // the file if a window showing that folder was already open. If the resolved 
-  // path is a directory then instead of opening the parent and selecting it, 
-  // we open the directory itself.
-  nsAutoString explorerParams;
-  if (mFileInfo64.type != PR_FILE_DIRECTORY) // valid because we ResolveAndStat above
-    explorerParams.AppendLiteral("/n,/select,");
-  explorerParams.Append(L'\"');
-  explorerParams.Append(mResolvedPath);
-  explorerParams.Append(L'\"');
-
-  if (::ShellExecuteW(NULL, L"open", explorerPath.get(), explorerParams.get(),
-    NULL, SW_SHOWNORMAL) <= (HINSTANCE) 32)
-    return NS_ERROR_FAILURE;
-
-  return NS_OK;
-}
-
-nsresult 
-nsLocalFile::RevealUsingShell()
-{
-  // All of these shell32.dll related pointers should be non NULL 
-  // on XP and later.
-  if (!sILCreateFromPathW || !sSHOpenFolderAndSelectItems) {
-    return NS_ERROR_FAILURE;
-  }
-
-  bool isDirectory;
-  nsresult rv = IsDirectory(&isDirectory);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  HRESULT hr;
-  if (isDirectory) {
-    // We have a directory so we should open the directory itself.
-    ITEMIDLIST *dir = sILCreateFromPathW(mResolvedPath.get());
-    if (!dir) {
-      return NS_ERROR_FAILURE;
-    }
-
-    const ITEMIDLIST* selection[] = { dir };
-    UINT count = ArrayLength(selection);
-
-    //Perform the open of the directory.
-    hr = sSHOpenFolderAndSelectItems(dir, count, selection, 0);
-    CoTaskMemFree(dir);
-  }
-  else {
-    // Obtain the parent path of the item we are revealing.
-    nsCOMPtr<nsIFile> parentDirectory;
-    rv = GetParent(getter_AddRefs(parentDirectory));
-    NS_ENSURE_SUCCESS(rv, rv);
-    nsAutoString parentDirectoryPath;
-    rv = parentDirectory->GetPath(parentDirectoryPath);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // We have a file so we should open the parent directory.
-    ITEMIDLIST *dir = sILCreateFromPathW(parentDirectoryPath.get());
-    if (!dir) {
-      return NS_ERROR_FAILURE;
-    }
-
-    // Set the item in the directory to select to the file we want to reveal.
-    ITEMIDLIST *item = sILCreateFromPathW(mResolvedPath.get());
-    if (!item) {
-      CoTaskMemFree(dir);
-      return NS_ERROR_FAILURE;
-    }
-    
-    const ITEMIDLIST* selection[] = { item };
-    UINT count = ArrayLength(selection);
-
-    //Perform the selection of the file.
-    hr = sSHOpenFolderAndSelectItems(dir, count, selection, 0);
-
-    CoTaskMemFree(dir);
-    CoTaskMemFree(item);
-  }
-  
-  if (SUCCEEDED(hr)) {
+    // After the dispatch, the result runnable will shut down the worker
+    // thread, so we can let it go.
+    mythread->Dispatch(runnable, NS_DISPATCH_NORMAL);
     return NS_OK;
-  }
-  else {
-    return NS_ERROR_FAILURE;
-  }
 }
 
 NS_IMETHODIMP
 nsLocalFile::Launch()
 {
-    const nsString &path = mWorkingPath;
-    
-    // use the app registry name to launch a shell execute....
-    SHELLEXECUTEINFOW seinfo;
-    memset(&seinfo, 0, sizeof(seinfo));
-    seinfo.cbSize = sizeof(SHELLEXECUTEINFOW);
-    seinfo.fMask  = NULL;
-    seinfo.hwnd   = NULL;
-    seinfo.lpVerb = NULL;
-    seinfo.lpFile = path.get();
-    seinfo.lpParameters =  NULL;
-    seinfo.lpDirectory  = NULL;
-    seinfo.nShow  = SW_SHOWNORMAL;
-    
-    if (ShellExecuteExW(&seinfo))
-        return NS_OK;
-    DWORD r = GetLastError();
-    // if the file has no association, we launch windows' "what do you want to do" dialog
-    if (r == SE_ERR_NOASSOC) {
-        nsAutoString shellArg;
-        shellArg.Assign(NS_LITERAL_STRING("shell32.dll,OpenAs_RunDLL ") + path);
-        seinfo.lpFile = L"RUNDLL32.EXE";
-        seinfo.lpParameters = shellArg.get();
-        if (ShellExecuteExW(&seinfo))
-            return NS_OK;
-        r = GetLastError();
+    // This API should be main thread only
+    MOZ_ASSERT(NS_IsMainThread()); 
+
+    // make sure mResolvedPath is set
+    nsresult rv = Resolve();
+    if (NS_FAILED(rv))
+        return rv;
+
+    // To create a new thread, get the thread manager
+    nsCOMPtr<nsIThreadManager> tm = do_GetService(NS_THREADMANAGER_CONTRACTID);
+    nsCOMPtr<nsIThread> mythread;
+    rv = tm->NewThread(0, 0, getter_AddRefs(mythread));
+    if (NS_FAILED(rv)) {
+        return rv;
     }
-    if (r < 32) {
-        switch (r) {
-          case 0:
-          case SE_ERR_OOM:
-              return NS_ERROR_OUT_OF_MEMORY;
-          case ERROR_FILE_NOT_FOUND:
-              return NS_ERROR_FILE_NOT_FOUND;
-          case ERROR_PATH_NOT_FOUND:
-              return NS_ERROR_FILE_UNRECOGNIZED_PATH;
-          case ERROR_BAD_FORMAT:
-              return NS_ERROR_FILE_CORRUPTED;
-          case SE_ERR_ACCESSDENIED:
-              return NS_ERROR_FILE_ACCESS_DENIED;
-          case SE_ERR_ASSOCINCOMPLETE:
-          case SE_ERR_NOASSOC:
-              return NS_ERROR_UNEXPECTED;
-          case SE_ERR_DDEBUSY:
-          case SE_ERR_DDEFAIL:
-          case SE_ERR_DDETIMEOUT:
-              return NS_ERROR_NOT_AVAILABLE;
-          case SE_ERR_DLLNOTFOUND:
-              return NS_ERROR_FAILURE;
-          case SE_ERR_SHARE:
-              return NS_ERROR_FILE_IS_LOCKED;
-          default:
-              return NS_ERROR_FILE_EXECUTION_FAILED;
-        }
-    }
+
+    nsCOMPtr<nsIRunnable> runnable = 
+        new AsyncLocalFileWinOperation(AsyncLocalFileWinOperation::LaunchOp,
+                                       mResolvedPath);
+
+    // After the dispatch, the result runnable will shut down the worker
+    // thread, so we can let it go.
+    mythread->Dispatch(runnable, NS_DISPATCH_NORMAL);
     return NS_OK;
 }
-
 
 nsresult
 NS_NewLocalFile(const nsAString &path, bool followLinks, nsILocalFile* *result)
@@ -3222,21 +3282,6 @@ nsLocalFile::GlobalInit()
 {
     nsresult rv = NS_CreateShortcutResolver();
     NS_ASSERTION(NS_SUCCEEDED(rv), "Shortcut resolver could not be created");
-
-    // shell32.dll should be loaded already, so we are not actually 
-    // loading the library here.
-    HMODULE hLibShell = GetModuleHandleW(L"shell32.dll");
-    if (hLibShell) {
-      // ILCreateFromPathW is available in XP and up.
-      sILCreateFromPathW = (ILCreateFromPathWPtr) 
-                            GetProcAddress(hLibShell, 
-                                           "ILCreateFromPathW");
-
-      // SHOpenFolderAndSelectItems is available in XP and up.
-      sSHOpenFolderAndSelectItems = (SHOpenFolderAndSelectItemsPtr) 
-                                     GetProcAddress(hLibShell, 
-                                                    "SHOpenFolderAndSelectItems");
-    }
 }
 
 void

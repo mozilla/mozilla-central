@@ -80,13 +80,7 @@ NS_IMPL_THREADSAFE_ISUPPORTS0(nsNPAPIPluginInstance)
 
 nsNPAPIPluginInstance::nsNPAPIPluginInstance(nsNPAPIPlugin* plugin)
   :
-#ifdef XP_MACOSX
-#ifdef NP_NO_QUICKDRAW
-    mDrawingModel(NPDrawingModelCoreGraphics),
-#else
-    mDrawingModel(NPDrawingModelQuickDraw),
-#endif
-#endif
+    mDrawingModel(kDefaultDrawingModel),
 #ifdef MOZ_WIDGET_ANDROID
     mSurface(nsnull),
     mANPDrawingModel(0),
@@ -498,13 +492,6 @@ nsresult nsNPAPIPluginInstance::SetWindow(NPWindow* window)
 }
 
 nsresult
-nsNPAPIPluginInstance::NewStreamToPlugin(nsIPluginStreamListener** listener)
-{
-  // This method can be removed at the next opportunity.
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-nsresult
 nsNPAPIPluginInstance::NewStreamFromPlugin(const char* type, const char* target,
                                            nsIOutputStream* *result)
 {
@@ -654,18 +641,6 @@ nsresult nsNPAPIPluginInstance::GetNPP(NPP* aNPP)
   return NS_OK;
 }
 
-void
-nsNPAPIPluginInstance::SetURI(nsIURI* uri)
-{
-  mURI = uri;
-}
-
-nsIURI*
-nsNPAPIPluginInstance::GetURI()
-{
-  return mURI.get();
-}
-
 NPError nsNPAPIPluginInstance::SetWindowless(bool aWindowless)
 {
   mWindowless = aWindowless;
@@ -704,12 +679,17 @@ nsNPAPIPluginInstance::UsesDOMForCursor()
   return mUsesDOMForCursor;
 }
 
-#if defined(XP_MACOSX)
 void nsNPAPIPluginInstance::SetDrawingModel(NPDrawingModel aModel)
 {
   mDrawingModel = aModel;
 }
 
+void nsNPAPIPluginInstance::RedrawPlugin()
+{
+  mOwner->RedrawPlugin();
+}
+
+#if defined(XP_MACOSX)
 void nsNPAPIPluginInstance::SetEventModel(NPEventModel aModel)
 {
   // the event model needs to be set for the object frame immediately
@@ -1480,6 +1460,32 @@ nsNPAPIPluginInstance::URLRedirectResponse(void* notifyData, NPBool allow)
       currentListener->URLRedirectResponse(allow);
     }
   }
+}
+
+NPError
+nsNPAPIPluginInstance::InitAsyncSurface(NPSize *size, NPImageFormat format,
+                                        void *initData, NPAsyncSurface *surface)
+{
+  if (mOwner)
+    return mOwner->InitAsyncSurface(size, format, initData, surface);
+
+  return NPERR_GENERIC_ERROR;
+}
+
+NPError
+nsNPAPIPluginInstance::FinalizeAsyncSurface(NPAsyncSurface *surface)
+{
+  if (mOwner)
+    return mOwner->FinalizeAsyncSurface(surface);
+
+  return NPERR_GENERIC_ERROR;
+}
+
+void
+nsNPAPIPluginInstance::SetCurrentAsyncSurface(NPAsyncSurface *surface, NPRect *changed)
+{
+  if (mOwner)
+    mOwner->SetCurrentAsyncSurface(surface, changed);
 }
 
 class CarbonEventModelFailureEvent : public nsRunnable {

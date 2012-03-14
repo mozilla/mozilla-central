@@ -62,7 +62,6 @@
 #include "nsIFactory.h"
 #include "nsIFrameUtil.h"
 #include "nsHTMLStyleSheet.h"
-#include "nsIHTMLToTextSink.h"
 #include "nsILayoutDebugger.h"
 #include "nsINameSpaceManager.h"
 #include "nsINodeInfo.h"
@@ -123,8 +122,10 @@
 #include "nsDOMStorage.h"
 #include "nsJSON.h"
 #include "mozilla/dom/indexedDB/IndexedDatabaseManager.h"
+#include "mozilla/dom/DOMRequest.h"
 
 using mozilla::dom::indexedDB::IndexedDatabaseManager;
+using mozilla::dom::DOMRequestService;
 
 #ifdef MOZ_B2G_RIL
 #include "SystemWorkerManager.h"
@@ -145,9 +146,6 @@ using mozilla::dom::telephony::AudioManager;
 #include "nsEditor.h"
 #include "nsPlaintextEditor.h"
 #include "nsEditorController.h" //CID
-#include "nsIController.h"
-#include "nsIControllerContext.h"
-#include "nsIControllerCommandTable.h"
 
 #include "nsHTMLEditor.h"
 #include "nsTextServicesDocument.h"
@@ -158,10 +156,10 @@ using mozilla::dom::telephony::AudioManager;
 #include "nsSystemPrincipal.h"
 #include "nsNullPrincipal.h"
 #include "nsNetCID.h"
-#include "nsINodeInfo.h"
 #if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_PLATFORM_MAEMO)
 #include "nsHapticFeedback.h"
 #endif
+#include "nsParserUtils.h"
 
 #define NS_EDITORCOMMANDTABLE_CID \
 { 0x4f5e62b8, 0xd659, 0x4156, { 0x84, 0xfc, 0x2f, 0x60, 0x99, 0x40, 0x03, 0x69 }}
@@ -174,6 +172,8 @@ using mozilla::dom::telephony::AudioManager;
 { 0x8a, 0x46, 0x08, 0xe2, 0xe2, 0x63, 0x26, 0xb0 } }
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsPlaintextEditor)
+
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsParserUtils)
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsTextServicesDocument)
 #ifdef ENABLE_EDITOR_API_LOG
@@ -287,6 +287,8 @@ NS_GENERIC_FACTORY_SINGLETON_CONSTRUCTOR(nsDOMStorageManager,
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsChannelPolicy)
 NS_GENERIC_FACTORY_SINGLETON_CONSTRUCTOR(IndexedDatabaseManager,
                                          IndexedDatabaseManager::FactoryCreate)
+NS_GENERIC_FACTORY_SINGLETON_CONSTRUCTOR(DOMRequestService,
+                                         DOMRequestService::FactoryCreate)
 #ifdef MOZ_B2G_RIL
 NS_GENERIC_FACTORY_SINGLETON_CONSTRUCTOR(SystemWorkerManager,
                                          SystemWorkerManager::FactoryCreate)
@@ -710,6 +712,8 @@ NS_DEFINE_NAMED_CID(NS_XHTMLCONTENTSERIALIZER_CID);
 NS_DEFINE_NAMED_CID(NS_HTMLCONTENTSERIALIZER_CID);
 NS_DEFINE_NAMED_CID(NS_PLAINTEXTSERIALIZER_CID);
 NS_DEFINE_NAMED_CID(MOZ_SANITIZINGHTMLSERIALIZER_CID);
+NS_DEFINE_NAMED_CID(NS_PARSERUTILS_CID);
+NS_DEFINE_NAMED_CID(NS_SCRIPTABLEUNESCAPEHTML_CID);
 NS_DEFINE_NAMED_CID(NS_XBLSERVICE_CID);
 NS_DEFINE_NAMED_CID(NS_CONTENTPOLICY_CID);
 NS_DEFINE_NAMED_CID(NS_DATADOCUMENTCONTENTPOLICY_CID);
@@ -756,6 +760,7 @@ NS_DEFINE_NAMED_CID(NS_DOMSTORAGEMANAGER_CID);
 NS_DEFINE_NAMED_CID(NS_DOMJSON_CID);
 NS_DEFINE_NAMED_CID(NS_TEXTEDITOR_CID);
 NS_DEFINE_NAMED_CID(INDEXEDDB_MANAGER_CID);
+NS_DEFINE_NAMED_CID(DOMREQUEST_SERVICE_CID);
 #ifdef MOZ_B2G_RIL
 NS_DEFINE_NAMED_CID(SYSTEMWORKERMANAGER_CID);
 #endif
@@ -983,6 +988,8 @@ static const mozilla::Module::CIDEntry kLayoutCIDs[] = {
   { &kNS_XHTMLCONTENTSERIALIZER_CID, false, NULL, CreateXHTMLContentSerializer },
   { &kNS_PLAINTEXTSERIALIZER_CID, false, NULL, CreatePlainTextSerializer },
   { &kMOZ_SANITIZINGHTMLSERIALIZER_CID, false, NULL, CreateSanitizingHTMLSerializer },
+  { &kNS_PARSERUTILS_CID, false, NULL, nsParserUtilsConstructor },
+  { &kNS_SCRIPTABLEUNESCAPEHTML_CID, false, NULL, nsParserUtilsConstructor },
   { &kNS_XBLSERVICE_CID, false, NULL, CreateXBLService },
   { &kNS_CONTENTPOLICY_CID, false, NULL, CreateContentPolicy },
   { &kNS_DATADOCUMENTCONTENTPOLICY_CID, false, NULL, nsDataDocumentContentPolicyConstructor },
@@ -1029,6 +1036,7 @@ static const mozilla::Module::CIDEntry kLayoutCIDs[] = {
   { &kNS_DOMJSON_CID, false, NULL, NS_NewJSON },
   { &kNS_TEXTEDITOR_CID, false, NULL, nsPlaintextEditorConstructor },
   { &kINDEXEDDB_MANAGER_CID, false, NULL, IndexedDatabaseManagerConstructor },
+  { &kDOMREQUEST_SERVICE_CID, false, NULL, DOMRequestServiceConstructor },
 #ifdef MOZ_B2G_RIL
   { &kSYSTEMWORKERMANAGER_CID, true, NULL, SystemWorkerManagerConstructor },
 #endif
@@ -1127,8 +1135,9 @@ static const mozilla::Module::ContractIDEntry kLayoutContracts[] = {
   { NS_CONTENTSERIALIZER_CONTRACTID_PREFIX "text/html", &kNS_HTMLCONTENTSERIALIZER_CID },
   { NS_CONTENTSERIALIZER_CONTRACTID_PREFIX "application/vnd.mozilla.xul+xml", &kNS_XMLCONTENTSERIALIZER_CID },
   { NS_CONTENTSERIALIZER_CONTRACTID_PREFIX "text/plain", &kNS_PLAINTEXTSERIALIZER_CID },
-  { NS_PLAINTEXTSINK_CONTRACTID, &kNS_PLAINTEXTSERIALIZER_CID },
   { MOZ_SANITIZINGHTMLSERIALIZER_CONTRACTID, &kMOZ_SANITIZINGHTMLSERIALIZER_CID },
+  { NS_PARSERUTILS_CONTRACTID, &kNS_PARSERUTILS_CID },
+  { NS_SCRIPTABLEUNESCAPEHTML_CONTRACTID, &kNS_SCRIPTABLEUNESCAPEHTML_CID },
   { "@mozilla.org/xbl;1", &kNS_XBLSERVICE_CID },
   { NS_CONTENTPOLICY_CONTRACTID, &kNS_CONTENTPOLICY_CID },
   { NS_DATADOCUMENTCONTENTPOLICY_CONTRACTID, &kNS_DATADOCUMENTCONTENTPOLICY_CID },
@@ -1167,6 +1176,7 @@ static const mozilla::Module::ContractIDEntry kLayoutContracts[] = {
   { "@mozilla.org/dom/json;1", &kNS_DOMJSON_CID },
   { "@mozilla.org/editor/texteditor;1", &kNS_TEXTEDITOR_CID },
   { INDEXEDDB_MANAGER_CONTRACTID, &kINDEXEDDB_MANAGER_CID },
+  { DOMREQUEST_SERVICE_CONTRACTID, &kDOMREQUEST_SERVICE_CID },
 #ifdef MOZ_B2G_RIL  
   { SYSTEMWORKERMANAGER_CONTRACTID, &kSYSTEMWORKERMANAGER_CID },
 #endif

@@ -36,14 +36,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "nsError.h"
-#include "nsBuiltinDecoderStateMachine.h"
 #include "nsBuiltinDecoder.h"
 #include "MediaResource.h"
 #include "nsWaveReader.h"
 #include "nsTimeRanges.h"
 #include "VideoUtils.h"
 
-#include "mozilla/StdInt.h"
+#include "mozilla/StandardInteger.h"
 
 using namespace mozilla;
 

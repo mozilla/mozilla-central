@@ -118,7 +118,8 @@ static const PRUint8 gLexTable[] = {
    SI, SI, SI, SI, SI, SI, SI, SI, SI, SI, SI, SI, SI, SI, SI, SI,
 };
 
-PR_STATIC_ASSERT(NS_ARRAY_LENGTH(gLexTable) == 256);
+MOZ_STATIC_ASSERT(NS_ARRAY_LENGTH(gLexTable) == 256,
+                  "gLexTable expected to cover all 2^8 possible PRUint8s");
 
 #undef W
 #undef S
@@ -546,7 +547,7 @@ nsCSSScanner::ReportUnexpectedToken(nsCSSToken& tok,
     tokenString.get()
   };
 
-  ReportUnexpectedParams(aMessage, params, ArrayLength(params));
+  ReportUnexpectedParams(aMessage, params);
 }
 
 // aParams's first entry must be null, and we'll fill in the token

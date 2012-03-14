@@ -112,3 +112,5 @@ ShConstructCompiler
 ?Create@VideoEngine@webrtc@@SAPAV12@XZ
 ?Delete@VideoEngine@webrtc@@SA_NAAPAV12@@Z
 #endif
+ShGetActiveAttrib
+ShGetActiveUniform

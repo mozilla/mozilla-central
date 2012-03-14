@@ -199,11 +199,6 @@ LOCAL_INCLUDES += \
   -I$(topsrcdir)/config \
   $(NULL)
 
-ifdef MOZ_APP_STATIC_INI
-LOCAL_INCLUDES += -I$(DEPTH)/build
-DEFINES += -DMOZ_APP_STATIC_INI
-endif
-
 CXXFLAGS += $(TK_CFLAGS) $(MOZ_DBUS_CFLAGS) $(MOZ_DBUS_GLIB_CFLAGS)
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
@@ -264,10 +259,6 @@ DEFINES += -DAPP_VERSION=$(MOZ_APP_VERSION)
 DEFINES += -DAPP_ID=$(MOZ_APP_ID)
 
 $(srcdir)/nsAppRunner.cpp: $(DEPTH)/config/buildid $(topsrcdir)/config/milestone.txt
-
-ifeq ($(OS_TARGET),Android)
-nsAndroidStartup.o: $(DEPTH)/config/buildid $(topsrcdir)/config/milestone.txt
-endif
 
 platform.ini: FORCE
 	$(PYTHON) $(srcdir)/make-platformini.py --buildid=$(shell cat $(DEPTH)/config/buildid) $(INIARGS) $(topsrcdir)/config/milestone.txt > $@

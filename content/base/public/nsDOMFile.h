@@ -43,7 +43,6 @@
 #include "nsIFile.h"
 #include "nsIDOMFile.h"
 #include "nsIDOMFileList.h"
-#include "nsIDOMFileError.h"
 #include "nsIInputStream.h"
 #include "nsIJSNativeInitializer.h"
 #include "nsIMutable.h"
@@ -53,12 +52,15 @@
 #include "nsIXMLHttpRequest.h"
 #include "prmem.h"
 #include "nsAutoPtr.h"
+
+#include "mozilla/GuardObjects.h"
+#include "mozilla/StandardInteger.h"
+#include "mozilla/dom/DOMError.h"
 #include "mozilla/dom/indexedDB/FileInfo.h"
 #include "mozilla/dom/indexedDB/FileManager.h"
 #include "mozilla/dom/indexedDB/IndexedDatabaseManager.h"
-
-#include "mozilla/GuardObjects.h"
-#include "mozilla/StdInt.h"
+#include "nsWrapperCache.h"
+#include "nsCycleCollectionParticipant.h"
 
 class nsIFile;
 class nsIInputStream;
@@ -107,6 +109,9 @@ public:
   virtual already_AddRefed<nsIDOMBlob>
   CreateSlice(PRUint64 aStart, PRUint64 aLength,
               const nsAString& aContentType) = 0;
+
+  virtual const nsTArray<nsCOMPtr<nsIDOMBlob> >*
+  GetSubBlobs() const { return nsnull; }
 
   NS_DECL_ISUPPORTS
   NS_DECL_NSIDOMBLOB
@@ -326,21 +331,37 @@ protected:
   nsRefPtr<DataOwner> mDataOwner;
 };
 
-class nsDOMFileList : public nsIDOMFileList
+class nsDOMFileList MOZ_FINAL : public nsIDOMFileList,
+                                public nsWrapperCache
 {
 public:
-  NS_DECL_ISUPPORTS
+  nsDOMFileList(nsISupports *aParent) : mParent(aParent)
+  {
+    SetIsProxy();
+  }
+
+  NS_DECL_CYCLE_COLLECTING_ISUPPORTS
+  NS_DECL_CYCLE_COLLECTION_SCRIPT_HOLDER_CLASS(nsDOMFileList)
+
   NS_DECL_NSIDOMFILELIST
+
+  virtual JSObject* WrapObject(JSContext *cx, XPCWrappedNativeScope *scope,
+                               bool *triedToWrap);
+
+  nsISupports* GetParentObject()
+  {
+    return mParent;
+  }
+
+  void Disconnect()
+  {
+    mParent = nsnull;
+  }
 
   bool Append(nsIDOMFile *aFile) { return mFiles.AppendObject(aFile); }
 
   bool Remove(PRUint32 aIndex) { return mFiles.RemoveObjectAt(aIndex); }
   void Clear() { return mFiles.Clear(); }
-
-  nsIDOMFile* GetItemAt(PRUint32 aIndex)
-  {
-    return mFiles.SafeObjectAt(aIndex);
-  }
 
   static nsDOMFileList* FromSupports(nsISupports* aSupports)
   {
@@ -361,18 +382,7 @@ public:
 
 private:
   nsCOMArray<nsIDOMFile> mFiles;
-};
-
-class nsDOMFileError : public nsIDOMFileError
-{
-public:
-  NS_DECL_ISUPPORTS
-  NS_DECL_NSIDOMFILEERROR
-
-  nsDOMFileError(PRUint16 aErrorCode) : mCode(aErrorCode) {}
-
-private:
-  PRUint16 mCode;
+  nsISupports *mParent;
 };
 
 class NS_STACK_CLASS nsDOMFileInternalUrlHolder {

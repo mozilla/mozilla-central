@@ -60,14 +60,12 @@ const PRUnichar* kTaskbarButtonEventId = L"TaskbarButtonCreated";
 
 static UINT sMsgId;
 
-#if MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_WIN7
 static UINT sTaskbarButtonCreatedMsg;
 
 /* static */
 UINT nsAppShell::GetTaskbarButtonCreatedMessage() {
 	return sTaskbarButtonCreatedMsg;
 }
-#endif
 
 namespace mozilla {
 namespace crashreporter {
@@ -144,10 +142,8 @@ nsAppShell::Init()
   if (!sMsgId)
     sMsgId = RegisterWindowMessageW(kAppShellEventId);
 
-#if MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_WIN7
   sTaskbarButtonCreatedMsg = ::RegisterWindowMessageW(kTaskbarButtonEventId);
   NS_ASSERTION(sTaskbarButtonCreatedMsg, "Could not register taskbar button creation message");
-#endif
 
   WNDCLASSW wc;
   HINSTANCE module = GetModuleHandle(NULL);
@@ -249,17 +245,13 @@ nsAppShell::Run(void)
   memset(modules, 0, sizeof(modules));
   sLoadedModules = modules;	
 
-#if MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
   // Ignore failure; failing to start the application is not exactly an
   // appropriate response to failing to start an audio session.
   mozilla::widget::StartAudioSession();
-#endif
 
   nsresult rv = nsBaseAppShell::Run();
 
-#if MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
   mozilla::widget::StopAudioSession();
-#endif
 
   // Don't forget to null this out!
   sLoadedModules = nsnull;

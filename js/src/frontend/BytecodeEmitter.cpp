@@ -89,14 +89,11 @@ using namespace js::gc;
 using namespace js::frontend;
 
 static JSBool
-NewTryNote(JSContext *cx, BytecodeEmitter *bce, JSTryNoteKind kind, uintN stackDepth,
+NewTryNote(JSContext *cx, BytecodeEmitter *bce, JSTryNoteKind kind, unsigned stackDepth,
            size_t start, size_t end);
 
-static bool
-EmitIndexOp(JSContext *cx, JSOp op, uintN index, BytecodeEmitter *bce, JSOp *psuffix = NULL);
-
 static JSBool
-SetSrcNoteOffset(JSContext *cx, BytecodeEmitter *bce, uintN index, uintN which, ptrdiff_t offset);
+SetSrcNoteOffset(JSContext *cx, BytecodeEmitter *bce, unsigned index, unsigned which, ptrdiff_t offset);
 
 void
 TreeContext::trace(JSTracer *trc)
@@ -104,7 +101,7 @@ TreeContext::trace(JSTracer *trc)
     bindings.trace(trc);
 }
 
-BytecodeEmitter::BytecodeEmitter(Parser *parser, uintN lineno)
+BytecodeEmitter::BytecodeEmitter(Parser *parser, unsigned lineno)
   : TreeContext(parser),
     atomIndices(parser->context),
     stackDepth(0), maxStackDepth(0),
@@ -204,7 +201,7 @@ UpdateDepth(JSContext *cx, BytecodeEmitter *bce, ptrdiff_t target)
          * An opcode may temporarily consume stack space during execution.
          * Account for this in maxStackDepth separately from uses/defs here.
          */
-        uintN depth = (uintN) bce->stackDepth +
+        unsigned depth = (unsigned) bce->stackDepth +
                       ((cs->format & JOF_TMPSLOT_MASK) >> JOF_TMPSLOT_SHIFT);
         if (depth > bce->maxStackDepth)
             bce->maxStackDepth = depth;
@@ -215,7 +212,7 @@ UpdateDepth(JSContext *cx, BytecodeEmitter *bce, ptrdiff_t target)
      * it requires a well-formed script. This allows us to safely pass NULL as
      * the 'script' parameter.
      */
-    intN nuses, ndefs;
+    int nuses, ndefs;
     if (op == JSOP_ENTERBLOCK) {
         nuses = 0;
         ndefs = CurrentBlock(bce).slotCount();
@@ -231,21 +228,23 @@ UpdateDepth(JSContext *cx, BytecodeEmitter *bce, ptrdiff_t target)
     bce->stackDepth -= nuses;
     JS_ASSERT(bce->stackDepth >= 0);
     bce->stackDepth += ndefs;
-    if ((uintN)bce->stackDepth > bce->maxStackDepth)
+    if ((unsigned)bce->stackDepth > bce->maxStackDepth)
         bce->maxStackDepth = bce->stackDepth;
 }
 
 static inline void
-UpdateDecomposeLength(BytecodeEmitter *bce, uintN start)
+UpdateDecomposeLength(BytecodeEmitter *bce, unsigned start)
 {
-    uintN end = bce->offset();
-    JS_ASSERT(uintN(end - start) < 256);
+    unsigned end = bce->offset();
+    JS_ASSERT(unsigned(end - start) < 256);
     bce->code(start)[-1] = end - start;
 }
 
 ptrdiff_t
 frontend::Emit1(JSContext *cx, BytecodeEmitter *bce, JSOp op)
 {
+    JS_ASSERT_IF(op == JSOP_ARGUMENTS, !bce->mayOverwriteArguments());
+
     ptrdiff_t offset = EmitCheck(cx, bce, 1);
 
     if (offset >= 0) {
@@ -388,7 +387,7 @@ TreeContext::skipSpansGenerator(unsigned skip)
 }
 
 bool
-frontend::SetStaticLevel(TreeContext *tc, uintN staticLevel)
+frontend::SetStaticLevel(TreeContext *tc, unsigned staticLevel)
 {
     /*
      * This is a lot simpler than error-checking every UpvarCookie::set, and
@@ -465,8 +464,8 @@ EmitBackPatchOp(JSContext *cx, BytecodeEmitter *bce, JSOp op, ptrdiff_t *lastp)
 /* A macro for inlining at the top of EmitTree (whence it came). */
 #define UPDATE_LINE_NUMBER_NOTES(cx, bce, line)                               \
     JS_BEGIN_MACRO                                                            \
-        uintN line_ = (line);                                                 \
-        uintN delta_ = line_ - bce->currentLine();                            \
+        unsigned line_ = (line);                                                 \
+        unsigned delta_ = line_ - bce->currentLine();                            \
         if (delta_ != 0) {                                                    \
             /*                                                                \
              * Encode any change in the current source line number by using   \
@@ -480,7 +479,7 @@ EmitBackPatchOp(JSContext *cx, BytecodeEmitter *bce, JSOp op, ptrdiff_t *lastp)
              * SRC_SETLINE.                                                   \
              */                                                               \
             bce->current->currentLine = line_;                                \
-            if (delta_ >= (uintN)(2 + ((line_ > SN_3BYTE_OFFSET_MASK)<<1))) { \
+            if (delta_ >= (unsigned)(2 + ((line_ > SN_3BYTE_OFFSET_MASK)<<1))) { \
                 if (NewSrcNote2(cx, bce, SRC_SETLINE, (ptrdiff_t)line_) < 0)  \
                     return JS_FALSE;                                          \
             } else {                                                          \
@@ -494,7 +493,7 @@ EmitBackPatchOp(JSContext *cx, BytecodeEmitter *bce, JSOp op, ptrdiff_t *lastp)
 
 /* A function, so that we avoid macro-bloating all the other callsites. */
 static JSBool
-UpdateLineNumberNotes(JSContext *cx, BytecodeEmitter *bce, uintN line)
+UpdateLineNumberNotes(JSContext *cx, BytecodeEmitter *bce, unsigned line)
 {
     UPDATE_LINE_NUMBER_NOTES(cx, bce, line);
     return JS_TRUE;
@@ -588,7 +587,7 @@ CheckTypeSet(JSContext *cx, BytecodeEmitter *bce, JSOp op)
     JS_END_MACRO
 
 static JSBool
-FlushPops(JSContext *cx, BytecodeEmitter *bce, intN *npops)
+FlushPops(JSContext *cx, BytecodeEmitter *bce, int *npops)
 {
     JS_ASSERT(*npops != 0);
     if (NewSrcNote(cx, bce, SRC_HIDDEN) < 0)
@@ -620,8 +619,8 @@ EmitNonLocalJumpFixup(JSContext *cx, BytecodeEmitter *bce, StmtInfo *toStmt)
      * end of a with statement, so we save bce->stackDepth here and restore it
      * just before a successful return.
      */
-    intN depth = bce->stackDepth;
-    intN npops = 0;
+    int depth = bce->stackDepth;
+    int npops = 0;
 
 #define FLUSH_POPS() if (npops && !FlushPops(cx, bce, &npops)) return JS_FALSE
 
@@ -663,7 +662,7 @@ EmitNonLocalJumpFixup(JSContext *cx, BytecodeEmitter *bce, StmtInfo *toStmt)
 
         if (stmt->flags & SIF_SCOPE) {
             FLUSH_POPS();
-            uintN blockObjCount = stmt->blockObj->slotCount();
+            unsigned blockObjCount = stmt->blockObj->slotCount();
             if (stmt->flags & SIF_FOR_BLOCK) {
                 /*
                  * For a for-let-in statement, pushing/popping the block is
@@ -703,7 +702,7 @@ static ptrdiff_t
 EmitGoto(JSContext *cx, BytecodeEmitter *bce, StmtInfo *toStmt, ptrdiff_t *lastp,
          jsatomid labelIndex = INVALID_ATOMID, SrcNoteType noteType = SRC_NULL)
 {
-    intN index;
+    int index;
 
     if (!EmitNonLocalJumpFixup(cx, bce, toStmt))
         return -1;
@@ -776,7 +775,7 @@ frontend::DefineCompileTimeConstant(JSContext *cx, BytecodeEmitter *bce, JSAtom 
 }
 
 StmtInfo *
-frontend::LexicalLookup(TreeContext *tc, JSAtom *atom, jsint *slotp, StmtInfo *stmt)
+frontend::LexicalLookup(TreeContext *tc, JSAtom *atom, int *slotp, StmtInfo *stmt)
 {
     if (!stmt)
         stmt = tc->topScopeStmt;
@@ -866,97 +865,44 @@ LookupCompileTimeConstant(JSContext *cx, BytecodeEmitter *bce, JSAtom *atom, Val
     return JS_TRUE;
 }
 
-static inline bool
-FitsWithoutBigIndex(uintN index)
-{
-    return index < JS_BIT(16);
-}
-
-/*
- * Return JSOP_NOP to indicate that index fits 2 bytes and no index segment
- * reset instruction is necessary, JSOP_FALSE to indicate an error or either
- * JSOP_RESETBASE0 or JSOP_RESETBASE1 to indicate the reset bytecode to issue
- * after the main bytecode sequence.
- */
-static JSOp
-EmitBigIndexPrefix(JSContext *cx, BytecodeEmitter *bce, uintN index)
-{
-    uintN indexBase;
-
-    /*
-     * We have max 3 bytes for indexes and check for INDEX_LIMIT overflow only
-     * for big indexes.
-     */
-    JS_STATIC_ASSERT(INDEX_LIMIT <= JS_BIT(24));
-    JS_STATIC_ASSERT(INDEX_LIMIT >=
-                     (JSOP_INDEXBASE3 - JSOP_INDEXBASE1 + 2) << 16);
-
-    if (FitsWithoutBigIndex(index))
-        return JSOP_NOP;
-    indexBase = index >> 16;
-    if (indexBase <= JSOP_INDEXBASE3 - JSOP_INDEXBASE1 + 1) {
-        if (Emit1(cx, bce, (JSOp)(JSOP_INDEXBASE1 + indexBase - 1)) < 0)
-            return JSOP_FALSE;
-        return JSOP_RESETBASE0;
-    }
-
-    if (index >= INDEX_LIMIT) {
-        JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL,
-                             JSMSG_TOO_MANY_LITERALS);
-        return JSOP_FALSE;
-    }
-
-    if (Emit2(cx, bce, JSOP_INDEXBASE, (JSOp)indexBase) < 0)
-        return JSOP_FALSE;
-    return JSOP_RESETBASE;
-}
-
-/*
- * Emit a bytecode and its 2-byte constant index immediate operand. If the
- * index requires more than 2 bytes, emit a prefix op whose 8-bit immediate
- * operand effectively extends the 16-bit immediate of the prefixed opcode,
- * by changing index "segment" (see jsinterp.c). We optimize segments 1-3
- * with single-byte JSOP_INDEXBASE[123] codes.
- *
- * Such prefixing currently requires a suffix to restore the "zero segment"
- * register setting, but this could be optimized further.
- */
 static bool
-EmitIndexOp(JSContext *cx, JSOp op, uintN index, BytecodeEmitter *bce, JSOp *psuffix)
+EmitIndex32(JSContext *cx, JSOp op, uint32_t index, BytecodeEmitter *bce)
 {
-    JSOp bigSuffix;
-
-    bigSuffix = EmitBigIndexPrefix(cx, bce, index);
-    if (bigSuffix == JSOP_FALSE)
+    const size_t len = 1 + UINT32_INDEX_LEN;
+    JS_ASSERT(len == size_t(js_CodeSpec[op].length));
+    ptrdiff_t offset = EmitCheck(cx, bce, len);
+    if (offset < 0)
         return false;
-    EMIT_UINT16_IMM_OP(op, index);
 
-    /*
-     * For decomposed ops, the suffix needs to go after the decomposed version.
-     * This means the suffix will run in the interpreter in both the base
-     * and decomposed paths, which works as suffix ops are idempotent.
-     */
-    JS_ASSERT(!!(js_CodeSpec[op].format & JOF_DECOMPOSE) == (psuffix != NULL));
-    if (psuffix) {
-        *psuffix = bigSuffix;
-        return true;
-    }
-
-    return bigSuffix == JSOP_NOP || Emit1(cx, bce, bigSuffix) >= 0;
+    jsbytecode *next = bce->next();
+    next[0] = jsbytecode(op);
+    SET_UINT32_INDEX(next, index);
+    bce->current->next = next + len;
+    UpdateDepth(cx, bce, offset);
+    CheckTypeSet(cx, bce, op);
+    return true;
 }
 
-/*
- * Slight sugar for EmitIndexOp, again accessing cx and bce from the macro
- * caller's lexical environment, and embedding a false return on error.
- */
-#define EMIT_INDEX_OP(op, index)                                              \
-    JS_BEGIN_MACRO                                                            \
-        if (!EmitIndexOp(cx, op, index, bce))                                 \
-            return JS_FALSE;                                                  \
-    JS_END_MACRO
+static bool
+EmitIndexOp(JSContext *cx, JSOp op, uint32_t index, BytecodeEmitter *bce)
+{
+    const size_t len = js_CodeSpec[op].length;
+    JS_ASSERT(len >= 1 + UINT32_INDEX_LEN);
+    ptrdiff_t offset = EmitCheck(cx, bce, len);
+    if (offset < 0)
+        return false;
+
+    jsbytecode *next = bce->next();
+    next[0] = jsbytecode(op);
+    SET_UINT32_INDEX(next, index);
+    bce->current->next = next + len;
+    UpdateDepth(cx, bce, offset);
+    CheckTypeSet(cx, bce, op);
+    return true;
+}
 
 static bool
-EmitAtomOp(JSContext *cx, JSAtom *atom, JSOp op, BytecodeEmitter *bce, JSOp *psuffix = NULL)
+EmitAtomOp(JSContext *cx, JSAtom *atom, JSOp op, BytecodeEmitter *bce)
 {
     JS_ASSERT(JOF_OPTYPE(op) == JOF_ATOM);
 
@@ -969,20 +915,27 @@ EmitAtomOp(JSContext *cx, JSAtom *atom, JSOp op, BytecodeEmitter *bce, JSOp *psu
     if (!bce->makeAtomIndex(atom, &index))
         return false;
 
-    return EmitIndexOp(cx, op, index, bce, psuffix);
+    return EmitIndexOp(cx, op, index, bce);
 }
 
 static bool
-EmitAtomOp(JSContext *cx, ParseNode *pn, JSOp op, BytecodeEmitter *bce, JSOp *psuffix = NULL)
+EmitAtomOp(JSContext *cx, ParseNode *pn, JSOp op, BytecodeEmitter *bce)
 {
     JS_ASSERT(pn->pn_atom != NULL);
-    return EmitAtomOp(cx, pn->pn_atom, op, bce, psuffix);
+    return EmitAtomOp(cx, pn->pn_atom, op, bce);
 }
 
 static bool
-EmitIndex32(JSContext *cx, JSOp op, uint32_t index, BytecodeEmitter *bce)
+EmitAtomIncDec(JSContext *cx, JSAtom *atom, JSOp op, BytecodeEmitter *bce)
 {
-    const size_t len = 1 + UINT32_INDEX_LEN;
+    JS_ASSERT(JOF_OPTYPE(op) == JOF_ATOM);
+    JS_ASSERT(js_CodeSpec[op].format & (JOF_INC | JOF_DEC));
+
+    jsatomid index;
+    if (!bce->makeAtomIndex(atom, &index))
+        return false;
+
+    const size_t len = 1 + UINT32_INDEX_LEN + 1;
     JS_ASSERT(size_t(js_CodeSpec[op].length) == len);
     ptrdiff_t offset = EmitCheck(cx, bce, len);
     if (offset < 0)
@@ -1017,7 +970,7 @@ EmitRegExp(JSContext *cx, uint32_t index, BytecodeEmitter *bce)
 }
 
 static bool
-EmitSlotObjectOp(JSContext *cx, JSOp op, uintN slot, uint32_t index, BytecodeEmitter *bce)
+EmitSlotObjectOp(JSContext *cx, JSOp op, unsigned slot, uint32_t index, BytecodeEmitter *bce)
 {
     JS_ASSERT(JOF_OPTYPE(op) == JOF_SLOTOBJECT);
 
@@ -1026,10 +979,18 @@ EmitSlotObjectOp(JSContext *cx, JSOp op, uintN slot, uint32_t index, BytecodeEmi
         return false;
 
     jsbytecode *pc = bce->code(off);
-    SET_UINT16(pc, slot);
+    SET_SLOTNO(pc, slot);
     pc += SLOTNO_LEN;
     SET_UINT32_INDEX(pc, index);
     return true;
+}
+
+static bool
+EmitArguments(JSContext *cx, BytecodeEmitter *bce)
+{
+    if (!bce->mayOverwriteArguments())
+        return Emit1(cx, bce, JSOP_ARGUMENTS) >= 0;
+    return EmitAtomOp(cx, cx->runtime->atomState.argumentsAtom, JSOP_NAME, bce);
 }
 
 bool
@@ -1046,13 +1007,13 @@ BytecodeEmitter::shouldNoteClosedName(ParseNode *pn)
  *
  * The function returns -1 on failures.
  */
-static jsint
-AdjustBlockSlot(JSContext *cx, BytecodeEmitter *bce, jsint slot)
+static int
+AdjustBlockSlot(JSContext *cx, BytecodeEmitter *bce, int slot)
 {
-    JS_ASSERT((jsuint) slot < bce->maxStackDepth);
+    JS_ASSERT((unsigned) slot < bce->maxStackDepth);
     if (bce->inFunction()) {
         slot += bce->bindings.countVars();
-        if ((uintN) slot >= SLOTNO_LIMIT) {
+        if ((unsigned) slot >= SLOTNO_LIMIT) {
             ReportCompileErrorNumber(cx, bce->tokenStream(), NULL, JSREPORT_ERROR,
                                      JSMSG_TOO_MANY_LOCALS);
             slot = -1;
@@ -1091,7 +1052,7 @@ EmitEnterBlock(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn, JSOp op)
         }
 
         JS_ASSERT(dn->isDefn());
-        JS_ASSERT(uintN(dn->frameSlot() + depthPlusFixed) < JS_BIT(16));
+        JS_ASSERT(unsigned(dn->frameSlot() + depthPlusFixed) < JS_BIT(16));
         dn->pn_cookie.set(dn->pn_cookie.level(), uint16_t(dn->frameSlot() + depthPlusFixed));
 #ifdef DEBUG
         for (ParseNode *pnu = dn->dn_uses; pnu; pnu = pnu->pn_link) {
@@ -1199,7 +1160,7 @@ BindKnownGlobal(JSContext *cx, BytecodeEmitter *bce, ParseNode *dn, ParseNode *p
 
         // Otherwise, find the atom's index by using the originating bce's
         // global use table.
-        index = globalbce->globalUses[dn->pn_cookie.asInteger()].slot;
+        index = globalbce->globalUses[dn->pn_cookie.slot()].slot;
     }
 
     if (!bce->addGlobalUse(atom, index, &pn->pn_cookie))
@@ -1389,7 +1350,7 @@ BindNameToSlot(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
         }
 
         /* Optimize accesses to undeclared globals. */
-        if (!bce->mightAliasLocals() && !TryConvertToGname(bce, pn, &op))
+        if (!TryConvertToGname(bce, pn, &op))
             return JS_TRUE;
 
         jsatomid _;
@@ -1405,7 +1366,7 @@ BindNameToSlot(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
     uint16_t level = cookie.level();
     JS_ASSERT(bce->staticLevel >= level);
 
-    const uintN skip = bce->staticLevel - level;
+    const unsigned skip = bce->staticLevel - level;
     if (skip != 0) {
         JS_ASSERT(bce->inFunction());
         JS_ASSERT_IF(cookie.slot() != UpvarCookie::CALLEE_SLOT, bce->roLexdeps->lookup(atom));
@@ -1459,7 +1420,7 @@ BindNameToSlot(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
                     upvarMap[i] = UpvarCookie();
             }
 
-            uintN slot = cookie.slot();
+            unsigned slot = cookie.slot();
             if (slot != UpvarCookie::CALLEE_SLOT && dn_kind != Definition::ARG) {
                 TreeContext *tc = bce;
                 do {
@@ -1882,12 +1843,16 @@ EmitNameOp(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn, JSBool callContex
         }
     }
 
-    if (op == JSOP_ARGUMENTS || op == JSOP_CALLEE) {
+    if (op == JSOP_ARGUMENTS) {
+        if (!EmitArguments(cx, bce))
+            return JS_FALSE;
+    } else if (op == JSOP_CALLEE) {
         if (Emit1(cx, bce, op) < 0)
             return JS_FALSE;
     } else {
         if (!pn->pn_cookie.isFree()) {
-            EMIT_UINT16_IMM_OP(op, pn->pn_cookie.asInteger());
+            JS_ASSERT(JOF_OPTYPE(op) != JOF_ATOM);
+            EMIT_UINT16_IMM_OP(op, pn->pn_cookie.slot());
         } else {
             if (!EmitAtomOp(cx, pn, op, bce))
                 return JS_FALSE;
@@ -1918,7 +1883,7 @@ EmitXMLName(JSContext *cx, ParseNode *pn, JSOp op, BytecodeEmitter *bce)
     JS_ASSERT(op == JSOP_XMLNAME || op == JSOP_CALLXMLNAME);
 
     ParseNode *pn2 = pn->pn_kid;
-    uintN oldflags = bce->flags;
+    unsigned oldflags = bce->flags;
     bce->flags &= ~TCF_IN_FOR_INIT;
     if (!EmitTree(cx, bce, pn2))
         return false;
@@ -1952,27 +1917,21 @@ EmitSpecialPropOp(JSContext *cx, ParseNode *pn, JSOp op, BytecodeEmitter *bce)
      * interpreter and trace recorder, which skip dense array instances by
      * going up to Array.prototype before looking up the property name.
      */
-    jsatomid index;
-    if (!bce->makeAtomIndex(pn->pn_atom, &index))
-        return false;
-    if (!EmitIndexOp(cx, JSOP_QNAMEPART, index, bce))
-        return false;
-
     if (op == JSOP_CALLELEM && Emit1(cx, bce, JSOP_DUP) < 0)
         return false;
 
-    if (!EmitElemOpBase(cx, bce, op))
+    jsatomid index;
+    if (!bce->makeAtomIndex(pn->pn_atom, &index))
+        return false;
+    if (!EmitIndex32(cx, JSOP_QNAMEPART, index, bce))
         return false;
 
-    if (op == JSOP_CALLELEM && Emit1(cx, bce, JSOP_SWAP) < 0)
-        return false;
-
-    return true;
+    return EmitElemOpBase(cx, bce, op);
 }
 
 static bool
 EmitPropOp(JSContext *cx, ParseNode *pn, JSOp op, BytecodeEmitter *bce,
-           JSBool callContext, JSOp *psuffix = NULL)
+           JSBool callContext)
 {
     ParseNode *pn2, *pndot, *pnup, *pndown;
     ptrdiff_t top;
@@ -2053,7 +2012,7 @@ EmitPropOp(JSContext *cx, ParseNode *pn, JSOp op, BytecodeEmitter *bce,
     if (NewSrcNote2(cx, bce, SRC_PCBASE, bce->offset() - pn2->pn_offset) < 0)
         return false;
 
-    if (!EmitAtomOp(cx, pn, op, bce, psuffix))
+    if (!EmitAtomOp(cx, pn, op, bce))
         return false;
 
     if (op == JSOP_CALLPROP && Emit1(cx, bce, JSOP_SWAP) < 0)
@@ -2065,10 +2024,7 @@ EmitPropOp(JSContext *cx, ParseNode *pn, JSOp op, BytecodeEmitter *bce,
 static bool
 EmitPropIncDec(JSContext *cx, ParseNode *pn, JSOp op, BytecodeEmitter *bce)
 {
-    JSOp suffix = JSOP_NOP;
-    if (!EmitPropOp(cx, pn, op, bce, false, &suffix))
-        return false;
-    if (Emit1(cx, bce, JSOP_NOP) < 0)
+    if (!EmitPropOp(cx, pn, op, bce, false))
         return false;
 
     /*
@@ -2076,9 +2032,6 @@ EmitPropIncDec(JSContext *cx, ParseNode *pn, JSOp op, BytecodeEmitter *bce)
      * before the decomposed version.
      */
     int start = bce->offset();
-
-    if (suffix != JSOP_NOP && Emit1(cx, bce, suffix) < 0)
-        return false;
 
     const JSCodeSpec *cs = &js_CodeSpec[op];
     JS_ASSERT(cs->format & JOF_PROP);
@@ -2115,28 +2068,20 @@ EmitPropIncDec(JSContext *cx, ParseNode *pn, JSOp op, BytecodeEmitter *bce)
 
     UpdateDecomposeLength(bce, start);
 
-    if (suffix != JSOP_NOP && Emit1(cx, bce, suffix) < 0)
-        return false;
-
     return true;
 }
 
 static bool
 EmitNameIncDec(JSContext *cx, ParseNode *pn, JSOp op, BytecodeEmitter *bce)
 {
-    JSOp suffix = JSOP_NOP;
-    if (!EmitAtomOp(cx, pn, op, bce, &suffix))
-        return false;
-    if (Emit1(cx, bce, JSOP_NOP) < 0)
+    /* Emit the composite op, including the slack byte at the end. */
+    if (!EmitAtomIncDec(cx, pn->pn_atom, op, bce))
         return false;
 
     /* Remove the result to restore the stack depth before the INCNAME. */
     bce->stackDepth--;
 
     int start = bce->offset();
-
-    if (suffix != JSOP_NOP && Emit1(cx, bce, suffix) < 0)
-        return false;
 
     const JSCodeSpec *cs = &js_CodeSpec[op];
     JS_ASSERT((cs->format & JOF_NAME) || (cs->format & JOF_GNAME));
@@ -2172,9 +2117,6 @@ EmitNameIncDec(JSContext *cx, ParseNode *pn, JSOp op, BytecodeEmitter *bce)
         return false;
 
     UpdateDecomposeLength(bce, start);
-
-    if (suffix != JSOP_NOP && Emit1(cx, bce, suffix) < 0)
-        return false;
 
     return true;
 }
@@ -2301,7 +2243,7 @@ EmitElemIncDec(JSContext *cx, ParseNode *pn, JSOp op, BytecodeEmitter *bce)
 }
 
 static JSBool
-EmitNumberOp(JSContext *cx, jsdouble dval, BytecodeEmitter *bce)
+EmitNumberOp(JSContext *cx, double dval, BytecodeEmitter *bce)
 {
     int32_t ival;
     uint32_t u;
@@ -2313,7 +2255,7 @@ EmitNumberOp(JSContext *cx, jsdouble dval, BytecodeEmitter *bce)
             return Emit1(cx, bce, JSOP_ZERO) >= 0;
         if (ival == 1)
             return Emit1(cx, bce, JSOP_ONE) >= 0;
-        if ((jsint)(int8_t)ival == ival)
+        if ((int)(int8_t)ival == ival)
             return Emit2(cx, bce, JSOP_INT8, (jsbytecode)(int8_t)ival) >= 0;
 
         u = (uint32_t)ival;
@@ -2338,7 +2280,7 @@ EmitNumberOp(JSContext *cx, jsdouble dval, BytecodeEmitter *bce)
     if (!bce->constList.append(DoubleValue(dval)))
         return JS_FALSE;
 
-    return EmitIndexOp(cx, JSOP_DOUBLE, bce->constList.length() - 1, bce);
+    return EmitIndex32(cx, JSOP_DOUBLE, bce->constList.length() - 1, bce);
 }
 
 /*
@@ -2361,7 +2303,12 @@ SetJumpOffsetAt(BytecodeEmitter *bce, ptrdiff_t off)
     SET_JUMP_OFFSET(bce->code(off), bce->offset() - off);
 }
 
-static JSBool
+/*
+ * Using MOZ_NEVER_INLINE in here is a workaround for llvm.org/pr12127.
+ * LLVM is deciding to inline this function which uses a lot of stack space
+ * into EmitTree which is recursive and uses relatively little stack space.
+ */
+MOZ_NEVER_INLINE static JSBool
 EmitSwitch(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
 {
     JSOp switchOp;
@@ -2371,7 +2318,7 @@ EmitSwitch(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
     uint32_t caseCount, tableLength;
     ParseNode **table;
     int32_t i, low, high;
-    intN noteIndex;
+    int noteIndex;
     size_t switchSize, tableSize;
     jsbytecode *pc, *savepc;
     StmtInfo stmtInfo;
@@ -2521,7 +2468,7 @@ EmitSwitch(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
                 continue;
             }
             i = pn3->pn_pval->toInt32();
-            if ((jsuint)(i + (jsint)JS_BIT(15)) >= (jsuint)JS_BIT(16)) {
+            if ((unsigned)(i + (int)JS_BIT(15)) >= (unsigned)JS_BIT(16)) {
                 switchOp = JSOP_LOOKUPSWITCH;
                 continue;
             }
@@ -2612,8 +2559,8 @@ EmitSwitch(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
          * 1 offset (len) and 1 atom index (npairs) before the table,
          * 1 atom index and 1 jump offset per entry.
          */
-        switchSize = (size_t)(JUMP_OFFSET_LEN + INDEX_LEN +
-                              (INDEX_LEN + JUMP_OFFSET_LEN) * caseCount);
+        switchSize = (size_t)(JUMP_OFFSET_LEN + UINT16_LEN +
+                              (UINT32_INDEX_LEN + JUMP_OFFSET_LEN) * caseCount);
     }
 
     /* Emit switchOp followed by switchSize bytes of jump or lookup table. */
@@ -2622,7 +2569,7 @@ EmitSwitch(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
 
     off = -1;
     if (switchOp == JSOP_CONDSWITCH) {
-        intN caseNoteIndex = -1;
+        int caseNoteIndex = -1;
         JSBool beforeCases = JS_TRUE;
 
         /* Emit code for evaluating cases and jumping to case statements. */
@@ -2632,7 +2579,7 @@ EmitSwitch(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
                 return JS_FALSE;
             if (caseNoteIndex >= 0) {
                 /* off is the previous JSOP_CASE's bytecode offset. */
-                if (!SetSrcNoteOffset(cx, bce, (uintN)caseNoteIndex, 0, bce->offset() - off))
+                if (!SetSrcNoteOffset(cx, bce, (unsigned)caseNoteIndex, 0, bce->offset() - off))
                     return JS_FALSE;
             }
             if (!pn4) {
@@ -2647,11 +2594,11 @@ EmitSwitch(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
                 return JS_FALSE;
             pn3->pn_offset = off;
             if (beforeCases) {
-                uintN noteCount, noteCountDelta;
+                unsigned noteCount, noteCountDelta;
 
                 /* Switch note's second offset is to first JSOP_CASE. */
                 noteCount = bce->noteCount();
-                if (!SetSrcNoteOffset(cx, bce, (uintN)noteIndex, 1, off - top))
+                if (!SetSrcNoteOffset(cx, bce, (unsigned)noteIndex, 1, off - top))
                     return JS_FALSE;
                 noteCountDelta = bce->noteCount() - noteCount;
                 if (noteCountDelta != 0)
@@ -2668,7 +2615,7 @@ EmitSwitch(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
          */
         if (!hasDefault &&
             caseNoteIndex >= 0 &&
-            !SetSrcNoteOffset(cx, bce, (uintN)caseNoteIndex, 0, bce->offset() - off))
+            !SetSrcNoteOffset(cx, bce, (unsigned)caseNoteIndex, 0, bce->offset() - off))
         {
             return JS_FALSE;
         }
@@ -2711,8 +2658,8 @@ EmitSwitch(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
             JS_ASSERT(switchOp == JSOP_LOOKUPSWITCH);
 
             /* Fill in the number of cases. */
-            SET_INDEX(pc, caseCount);
-            pc += INDEX_LEN;
+            SET_UINT16(pc, caseCount);
+            pc += UINT16_LEN;
         }
 
         /*
@@ -2731,7 +2678,7 @@ EmitSwitch(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
             savepc = bce->next();
             bce->current->next = pc + 1;
             if (switchOp == JSOP_TABLESWITCH) {
-                for (i = 0; i < (jsint)tableLength; i++) {
+                for (i = 0; i < (int)tableLength; i++) {
                     pn3 = table[i];
                     if (pn3 &&
                         (pn4 = pn3->pn_left) != NULL &&
@@ -2761,7 +2708,7 @@ EmitSwitch(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
                         if (NewSrcNote2(cx, bce, SRC_LABEL, ptrdiff_t(index)) < 0)
                             goto bad;
                     }
-                    pc += INDEX_LEN + JUMP_OFFSET_LEN;
+                    pc += UINT32_INDEX_LEN + JUMP_OFFSET_LEN;
                 }
             }
             bce->current->next = savepc;
@@ -2802,7 +2749,7 @@ EmitSwitch(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
 
     /* Set the SRC_SWITCH note's offset operand to tell end of switch. */
     off = bce->offset() - top;
-    ok = SetSrcNoteOffset(cx, bce, (uintN)noteIndex, 0, off);
+    ok = SetSrcNoteOffset(cx, bce, (unsigned)noteIndex, 0, off);
     if (!ok)
         goto out;
 
@@ -2811,7 +2758,7 @@ EmitSwitch(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
         pc += 2 * JUMP_OFFSET_LEN;
 
         /* Fill in the jump table, if there is one. */
-        for (i = 0; i < (jsint)tableLength; i++) {
+        for (i = 0; i < (int)tableLength; i++) {
             pn3 = table[i];
             off = pn3 ? pn3->pn_offset - top : 0;
             SET_JUMP_OFFSET(pc, off);
@@ -2819,15 +2766,15 @@ EmitSwitch(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
         }
     } else if (switchOp == JSOP_LOOKUPSWITCH) {
         /* Skip over the already-initialized number of cases. */
-        pc += INDEX_LEN;
+        pc += UINT16_LEN;
 
         for (pn3 = pn2->pn_head; pn3; pn3 = pn3->pn_next) {
             if (pn3->isKind(PNK_DEFAULT))
                 continue;
             if (!bce->constList.append(*pn3->pn_pval))
                 goto bad;
-            SET_INDEX(pc, bce->constList.length() - 1);
-            pc += INDEX_LEN;
+            SET_UINT32_INDEX(pc, bce->constList.length() - 1);
+            pc += UINT32_INDEX_LEN;
 
             off = pn3->pn_offset - top;
             SET_JUMP_OFFSET(pc, off);
@@ -2911,7 +2858,8 @@ MaybeEmitVarDecl(JSContext *cx, BytecodeEmitter *bce, JSOp prologOp, ParseNode *
         bce->switchToProlog();
         if (!UpdateLineNumberNotes(cx, bce, pn->pn_pos.begin.lineno))
             return false;
-        EMIT_INDEX_OP(prologOp, atomIndex);
+        if (!EmitIndexOp(cx, prologOp, atomIndex, bce))
+            return false;
         bce->switchToMain();
     }
 
@@ -3065,14 +3013,14 @@ EmitDestructuringLHS(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn, VarEmit
 
           case JSOP_SETLOCAL:
           {
-            jsuint slot = pn->pn_cookie.asInteger();
+            uint16_t slot = pn->pn_cookie.slot();
             EMIT_UINT16_IMM_OP(JSOP_SETLOCALPOP, slot);
             break;
           }
 
           case JSOP_SETARG:
           {
-            jsuint slot = pn->pn_cookie.asInteger();
+            uint16_t slot = pn->pn_cookie.slot();
             EMIT_UINT16_IMM_OP(pn->getOp(), slot);
             if (Emit1(cx, bce, JSOP_POP) < 0)
                 return JS_FALSE;
@@ -3120,12 +3068,12 @@ EmitDestructuringOpsHelper(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn,
 {
     JS_ASSERT(emitOption != DefineVars);
 
-    jsuint index;
+    unsigned index;
     ParseNode *pn2, *pn3;
     JSBool doElemOp;
 
 #ifdef DEBUG
-    intN stackDepth = bce->stackDepth;
+    int stackDepth = bce->stackDepth;
     JS_ASSERT(stackDepth != 0);
     JS_ASSERT(pn->isArity(PN_LIST));
     JS_ASSERT(pn->isKind(PNK_RB) || pn->isKind(PNK_RC));
@@ -3200,7 +3148,7 @@ EmitDestructuringOpsHelper(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn,
             if (Emit1(cx, bce, JSOP_POP) < 0)
                 return JS_FALSE;
         } else {
-            intN depthBefore = bce->stackDepth;
+            int depthBefore = bce->stackDepth;
             if (!EmitDestructuringLHS(cx, bce, pn3, emitOption))
                 return JS_FALSE;
 
@@ -3216,7 +3164,7 @@ EmitDestructuringOpsHelper(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn,
                  * the to-be-compiled-value is always on top of the stack.
                  */
                 JS_ASSERT((bce->stackDepth - bce->stackDepth) >= -1);
-                uintN pickDistance = (uintN)((bce->stackDepth + 1) - depthBefore);
+                unsigned pickDistance = (unsigned)((bce->stackDepth + 1) - depthBefore);
                 if (pickDistance > 0) {
                     if (pickDistance > UINT8_MAX) {
                         ReportCompileErrorNumber(cx, bce->tokenStream(), pn3, JSREPORT_ERROR,
@@ -3270,8 +3218,8 @@ class LetNotes
 {
     struct Pair {
         ptrdiff_t dup;
-        uintN index;
-        Pair(ptrdiff_t dup, uintN index) : dup(dup), index(index) {}
+        unsigned index;
+        Pair(ptrdiff_t dup, unsigned index) : dup(dup), index(index) {}
     };
     Vector<Pair> notes;
     bool groupAssign;
@@ -3293,7 +3241,7 @@ class LetNotes
         return groupAssign;
     }
 
-    bool append(JSContext *cx, BytecodeEmitter *bce, ptrdiff_t dup, uintN index) {
+    bool append(JSContext *cx, BytecodeEmitter *bce, ptrdiff_t dup, unsigned index) {
         JS_ASSERT(!groupAssign);
         JS_ASSERT(SN_TYPE(bce->notes() + index) == SRC_DESTRUCTLET);
         if (!notes.append(Pair(dup, index)))
@@ -3336,7 +3284,7 @@ EmitDestructuringOps(JSContext *cx, BytecodeEmitter *bce, ptrdiff_t declType, Pa
      */
     if (letNotes) {
         ptrdiff_t index = NewSrcNote2(cx, bce, SRC_DESTRUCTLET, 0);
-        if (index < 0 || !letNotes->append(cx, bce, bce->offset(), (uintN)index))
+        if (index < 0 || !letNotes->append(cx, bce, bce->offset(), (unsigned)index))
             return JS_FALSE;
     } else {
         if (NewSrcNote2(cx, bce, SRC_DESTRUCT, declType) < 0)
@@ -3355,10 +3303,10 @@ static JSBool
 EmitGroupAssignment(JSContext *cx, BytecodeEmitter *bce, JSOp prologOp,
                     ParseNode *lhs, ParseNode *rhs)
 {
-    jsuint depth, limit, i, nslots;
+    unsigned depth, limit, i, nslots;
     ParseNode *pn;
 
-    depth = limit = (uintN) bce->stackDepth;
+    depth = limit = (unsigned) bce->stackDepth;
     for (pn = rhs->pn_head; pn; pn = pn->pn_next) {
         if (limit == JS_BIT(16)) {
             ReportCompileErrorNumber(cx, bce->tokenStream(), rhs, JSREPORT_ERROR,
@@ -3380,7 +3328,7 @@ EmitGroupAssignment(JSContext *cx, BytecodeEmitter *bce, JSOp prologOp,
     for (pn = lhs->pn_head; pn; pn = pn->pn_next, ++i) {
         /* MaybeEmitGroupAssignment requires lhs->pn_count <= rhs->pn_count. */
         JS_ASSERT(i < limit);
-        jsint slot = AdjustBlockSlot(cx, bce, i);
+        int slot = AdjustBlockSlot(cx, bce, i);
         if (slot < 0)
             return JS_FALSE;
         EMIT_UINT16_IMM_OP(JSOP_GETLOCAL, slot);
@@ -3396,7 +3344,7 @@ EmitGroupAssignment(JSContext *cx, BytecodeEmitter *bce, JSOp prologOp,
 
     nslots = limit - depth;
     EMIT_UINT16_IMM_OP(JSOP_POPN, nslots);
-    bce->stackDepth = (uintN) depth;
+    bce->stackDepth = (unsigned) depth;
     return JS_TRUE;
 }
 
@@ -3613,17 +3561,18 @@ EmitVariables(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn, VarEmitOption 
             if (pn3) {
                 JS_ASSERT(emitOption != DefineVars);
                 JS_ASSERT_IF(emitOption == PushInitialValues, op == JSOP_SETLOCAL);
-                if (op == JSOP_SETNAME)
-                    EMIT_INDEX_OP(JSOP_BINDNAME, atomIndex);
-                else if (op == JSOP_SETGNAME)
-                    EMIT_INDEX_OP(JSOP_BINDGNAME, atomIndex);
+                if (op == JSOP_SETNAME || op == JSOP_SETGNAME) {
+                    JSOp bindOp = (op == JSOP_SETNAME) ? JSOP_BINDNAME : JSOP_BINDGNAME;
+                    if (!EmitIndex32(cx, bindOp, atomIndex, bce))
+                        return false;
+                }
                 if (pn->isOp(JSOP_DEFCONST) &&
                     !DefineCompileTimeConstant(cx, bce, pn2->pn_atom, pn3))
                 {
                     return JS_FALSE;
                 }
 
-                uintN oldflags = bce->flags;
+                unsigned oldflags = bce->flags;
                 bce->flags &= ~TCF_IN_FOR_INIT;
                 if (!EmitTree(cx, bce, pn3))
                     return JS_FALSE;
@@ -3652,12 +3601,13 @@ EmitVariables(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn, VarEmitOption 
             return JS_FALSE;
         }
         if (op == JSOP_ARGUMENTS) {
-            if (Emit1(cx, bce, op) < 0)
+            if (!EmitArguments(cx, bce))
                 return JS_FALSE;
         } else if (!pn2->pn_cookie.isFree()) {
             EMIT_UINT16_IMM_OP(op, atomIndex);
         } else {
-            EMIT_INDEX_OP(op, atomIndex);
+            if (!EmitIndexOp(cx, op, atomIndex, bce))
+                return false;
         }
 
 #if JS_HAS_DESTRUCTURING
@@ -3665,7 +3615,7 @@ EmitVariables(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn, VarEmitOption 
 #endif
         ptrdiff_t tmp = bce->offset();
         if (noteIndex >= 0) {
-            if (!SetSrcNoteOffset(cx, bce, (uintN)noteIndex, 0, tmp-off))
+            if (!SetSrcNoteOffset(cx, bce, (unsigned)noteIndex, 0, tmp-off))
                 return JS_FALSE;
         }
         if (!next)
@@ -3702,13 +3652,15 @@ EmitAssignment(JSContext *cx, BytecodeEmitter *bce, ParseNode *lhs, JSOp op, Par
         if (!BindNameToSlot(cx, bce, lhs))
             return false;
         if (!lhs->pn_cookie.isFree()) {
-            atomIndex = lhs->pn_cookie.asInteger();
+            JS_ASSERT(lhs->pn_cookie.level() == 0);
+            atomIndex = lhs->pn_cookie.slot();
         } else {
             if (!bce->makeAtomIndex(lhs->pn_atom, &atomIndex))
                 return false;
             if (!lhs->isConst()) {
                 JSOp op = lhs->isOp(JSOP_SETGNAME) ? JSOP_BINDGNAME : JSOP_BINDNAME;
-                EMIT_INDEX_OP(op, atomIndex);
+                if (!EmitIndex32(cx, op, atomIndex, bce))
+                    return false;
                 offset++;
             }
         }
@@ -3761,17 +3713,23 @@ EmitAssignment(JSContext *cx, BytecodeEmitter *bce, ParseNode *lhs, JSOp op, Par
                 if (lhs->isOp(JSOP_CALLEE)) {
                     if (Emit1(cx, bce, JSOP_CALLEE) < 0)
                         return false;
+                } else if (lhs->isOp(JSOP_NAME) || lhs->isOp(JSOP_GETGNAME)) {
+                    if (!EmitIndex32(cx, lhs->getOp(), atomIndex, bce))
+                        return false;
                 } else {
-                    EMIT_INDEX_OP(lhs->getOp(), atomIndex);
+                    JS_ASSERT(JOF_OPTYPE(lhs->getOp()) != JOF_ATOM);
+                    EMIT_UINT16_IMM_OP(lhs->getOp(), atomIndex);
                 }
             } else if (lhs->isOp(JSOP_SETNAME)) {
                 if (Emit1(cx, bce, JSOP_DUP) < 0)
                     return false;
-                EMIT_INDEX_OP(JSOP_GETXPROP, atomIndex);
+                if (!EmitIndex32(cx, JSOP_GETXPROP, atomIndex, bce))
+                    return false;
             } else if (lhs->isOp(JSOP_SETGNAME)) {
                 if (!BindGlobal(cx, bce, lhs, lhs->pn_atom))
                     return false;
-                EmitAtomOp(cx, lhs, JSOP_GETGNAME, bce);
+                if (!EmitAtomOp(cx, lhs, JSOP_GETGNAME, bce))
+                    return false;
             } else {
                 EMIT_UINT16_IMM_OP(lhs->isOp(JSOP_SETARG) ? JSOP_GETARG : JSOP_GETLOCAL, atomIndex);
             }
@@ -3780,13 +3738,14 @@ EmitAssignment(JSContext *cx, BytecodeEmitter *bce, ParseNode *lhs, JSOp op, Par
             if (Emit1(cx, bce, JSOP_DUP) < 0)
                 return false;
             if (lhs->pn_atom == cx->runtime->atomState.protoAtom) {
-                if (!EmitIndexOp(cx, JSOP_QNAMEPART, atomIndex, bce))
+                if (!EmitIndex32(cx, JSOP_QNAMEPART, atomIndex, bce))
                     return false;
                 if (!EmitElemOpBase(cx, bce, JSOP_GETELEM))
                     return false;
             } else {
                 bool isLength = (lhs->pn_atom == cx->runtime->atomState.lengthAtom);
-                EMIT_INDEX_OP(isLength ? JSOP_LENGTH : JSOP_GETPROP, atomIndex);
+                if (!EmitIndex32(cx, isLength ? JSOP_LENGTH : JSOP_GETPROP, atomIndex, bce))
+                    return false;
             }
             break;
           case PNK_LB:
@@ -3850,9 +3809,17 @@ EmitAssignment(JSContext *cx, BytecodeEmitter *bce, ParseNode *lhs, JSOp op, Par
             }
             break;
         }
-        /* FALL THROUGH */
+        if (lhs->isOp(JSOP_SETARG) || lhs->isOp(JSOP_SETLOCAL)) {
+            JS_ASSERT(atomIndex < UINT16_MAX);
+            EMIT_UINT16_IMM_OP(lhs->getOp(), atomIndex);
+        } else {
+            if (!EmitIndexOp(cx, lhs->getOp(), atomIndex, bce))
+                return false;
+        }
+        break;
       case PNK_DOT:
-        EMIT_INDEX_OP(lhs->getOp(), atomIndex);
+        if (!EmitIndexOp(cx, lhs->getOp(), atomIndex, bce))
+            return false;
         break;
       case PNK_LB:
       case PNK_LP:
@@ -3900,7 +3867,7 @@ GettableNoteForNextOp(BytecodeEmitter *bce)
 
 /* Top-level named functions need a nop for decompilation. */
 static JSBool
-EmitFunctionDefNop(JSContext *cx, BytecodeEmitter *bce, uintN index)
+EmitFunctionDefNop(JSContext *cx, BytecodeEmitter *bce, unsigned index)
 {
     return NewSrcNote2(cx, bce, SRC_FUNCDEF, (ptrdiff_t)index) >= 0 &&
            Emit1(cx, bce, JSOP_NOP) >= 0;
@@ -4119,7 +4086,11 @@ EmitCatch(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
     return true;
 }
 
-static bool
+/*
+ * Using MOZ_NEVER_INLINE in here is a workaround for llvm.org/pr12127. See
+ * the comment on EmitSwitch.
+ */
+MOZ_NEVER_INLINE static bool
 EmitTry(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
 {
     StmtInfo stmtInfo;
@@ -4145,7 +4116,7 @@ EmitTry(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
      * finally block the stack depth upon the try entry. The interpreter
      * uses this depth to properly unwind the stack and the scope chain.
      */
-    intN depth = bce->stackDepth;
+    int depth = bce->stackDepth;
 
     /* Mark try location for decompilation, then emit try block. */
     if (Emit1(cx, bce, JSOP_TRY) < 0)
@@ -4174,7 +4145,7 @@ EmitTry(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
     /* If this try has a catch block, emit it. */
     ParseNode *lastCatch = NULL;
     if (ParseNode *pn2 = pn->pn_kid2) {
-        uintN count = 0;    /* previous catch block's population */
+        unsigned count = 0;    /* previous catch block's population */
 
         /*
          * The emitted code for a catch block looks like:
@@ -4479,7 +4450,11 @@ EmitIf(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
  * JSOP_LEAVEBLOCKEXPR to the beginning of the let and is only needed for
  * let-expressions.
  */
-static bool
+/*
+ * Using MOZ_NEVER_INLINE in here is a workaround for llvm.org/pr12127. See
+ * the comment on EmitSwitch.
+ */
+MOZ_NEVER_INLINE static bool
 EmitLet(JSContext *cx, BytecodeEmitter *bce, ParseNode *pnLet)
 {
     JS_ASSERT(pnLet->isArity(PN_BINARY));
@@ -4490,14 +4465,14 @@ EmitLet(JSContext *cx, BytecodeEmitter *bce, ParseNode *pnLet)
     StaticBlockObject &blockObj = letBody->pn_objbox->object->asStaticBlock();
 
     ptrdiff_t letHeadOffset = bce->offset();
-    intN letHeadDepth = bce->stackDepth;
+    int letHeadDepth = bce->stackDepth;
 
     LetNotes letNotes(cx);
     if (!EmitVariables(cx, bce, varList, PushInitialValues, &letNotes))
         return false;
 
     /* Push storage for hoisted let decls (e.g. 'let (x) { let y }'). */
-    uint32_t alreadyPushed = uintN(bce->stackDepth - letHeadDepth);
+    uint32_t alreadyPushed = unsigned(bce->stackDepth - letHeadDepth);
     uint32_t blockObjCount = blockObj.slotCount();
     for (uint32_t i = alreadyPushed; i < blockObjCount; ++i) {
         /* Tell the decompiler not to print the decl in the let head. */
@@ -4562,7 +4537,8 @@ EmitXMLTag(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
                           : cx->runtime->atomState.stagoAtom;
         if (!bce->makeAtomIndex(tagAtom, &index))
             return false;
-        EMIT_INDEX_OP(JSOP_STRING, index);
+        if (!EmitIndex32(cx, JSOP_STRING, index, bce))
+            return false;
     }
 
     JS_ASSERT(pn->pn_count != 0);
@@ -4594,7 +4570,8 @@ EmitXMLTag(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
                                                  : cx->runtime->atomState.tagcAtom;
         if (!bce->makeAtomIndex(tmp, &index))
             return false;
-        EMIT_INDEX_OP(JSOP_STRING, index);
+        if (!EmitIndex32(cx, JSOP_STRING, index, bce))
+            return false;
     }
     if (Emit1(cx, bce, JSOP_ADD) < 0)
         return false;
@@ -4613,7 +4590,7 @@ EmitXMLProcessingInstruction(JSContext *cx, BytecodeEmitter *bce, XMLProcessingI
     jsatomid index;
     if (!bce->makeAtomIndex(pi.data(), &index))
         return false;
-    if (!EmitIndexOp(cx, JSOP_QNAMEPART, index, bce))
+    if (!EmitIndex32(cx, JSOP_QNAMEPART, index, bce))
         return false;
     if (!EmitAtomOp(cx, pi.target(), JSOP_XMLPI, bce))
         return false;
@@ -4621,7 +4598,11 @@ EmitXMLProcessingInstruction(JSContext *cx, BytecodeEmitter *bce, XMLProcessingI
 }
 #endif
 
-static bool
+/*
+ * Using MOZ_NEVER_INLINE in here is a workaround for llvm.org/pr12127. See
+ * the comment on EmitSwitch.
+ */
+MOZ_NEVER_INLINE static bool
 EmitLexicalScope(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
 {
     JS_ASSERT(pn->isKind(PNK_LEXICALSCOPE));
@@ -4664,7 +4645,7 @@ EmitLexicalScope(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
         return false;
 
     if (noteIndex >= 0) {
-        if (!SetSrcNoteOffset(cx, bce, (uintN)noteIndex, 0, bce->offset() - bodyBegin))
+        if (!SetSrcNoteOffset(cx, bce, (unsigned)noteIndex, 0, bce->offset() - bodyBegin))
             return false;
     }
 
@@ -4805,7 +4786,7 @@ EmitForIn(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn, ptrdiff_t top)
     }
 
     /* Annotate so the decompiler can find the loop-closing jump. */
-    intN noteIndex = NewSrcNote(cx, bce, SRC_FOR_IN);
+    int noteIndex = NewSrcNote(cx, bce, SRC_FOR_IN);
     if (noteIndex < 0)
         return false;
 
@@ -4823,7 +4804,7 @@ EmitForIn(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn, ptrdiff_t top)
         return false;
 
 #ifdef DEBUG
-    intN loopDepth = bce->stackDepth;
+    int loopDepth = bce->stackDepth;
 #endif
 
     /*
@@ -4871,10 +4852,10 @@ EmitForIn(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn, ptrdiff_t top)
         return false;
 
     /* Set the first srcnote offset so we can find the start of the loop body. */
-    if (!SetSrcNoteOffset(cx, bce, (uintN)noteIndex, 0, tmp2 - jmp))
+    if (!SetSrcNoteOffset(cx, bce, (unsigned)noteIndex, 0, tmp2 - jmp))
         return false;
     /* Set the second srcnote offset so we can find the closing jump. */
-    if (!SetSrcNoteOffset(cx, bce, (uintN)noteIndex, 1, beq - jmp))
+    if (!SetSrcNoteOffset(cx, bce, (unsigned)noteIndex, 1, beq - jmp))
         return false;
 
     /* Fixup breaks and continues before JSOP_ITER (and JSOP_LEAVEFORINLET). */
@@ -4951,7 +4932,7 @@ EmitNormalFor(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn, ptrdiff_t top)
      * from the top local variable by the length of the JSOP_GOTO
      * emitted in between tmp and top if this loop has a condition.
      */
-    intN noteIndex = NewSrcNote(cx, bce, SRC_FOR);
+    int noteIndex = NewSrcNote(cx, bce, SRC_FOR);
     if (noteIndex < 0 || Emit1(cx, bce, op) < 0)
         return false;
     ptrdiff_t tmp = bce->offset();
@@ -4961,6 +4942,9 @@ EmitNormalFor(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn, ptrdiff_t top)
         /* Goto the loop condition, which branches back to iterate. */
         jmp = EmitJump(cx, bce, JSOP_GOTO, 0);
         if (jmp < 0)
+            return false;
+    } else {
+        if (op != JSOP_NOP && Emit1(cx, bce, JSOP_NOP) < 0)
             return false;
     }
 
@@ -5005,10 +4989,10 @@ EmitNormalFor(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn, ptrdiff_t top)
 
         /* Restore the absolute line number for source note readers. */
         ptrdiff_t lineno = pn->pn_pos.end.lineno;
-        if (bce->currentLine() != (uintN) lineno) {
+        if (bce->currentLine() != (unsigned) lineno) {
             if (NewSrcNote2(cx, bce, SRC_SETLINE, lineno) < 0)
                 return false;
-            bce->current->currentLine = (uintN) lineno;
+            bce->current->currentLine = (unsigned) lineno;
         }
     }
 
@@ -5026,12 +5010,12 @@ EmitNormalFor(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn, ptrdiff_t top)
     }
 
     /* Set the first note offset so we can find the loop condition. */
-    if (!SetSrcNoteOffset(cx, bce, (uintN)noteIndex, 0, tmp3 - tmp))
+    if (!SetSrcNoteOffset(cx, bce, (unsigned)noteIndex, 0, tmp3 - tmp))
         return false;
-    if (!SetSrcNoteOffset(cx, bce, (uintN)noteIndex, 1, tmp2 - tmp))
+    if (!SetSrcNoteOffset(cx, bce, (unsigned)noteIndex, 1, tmp2 - tmp))
         return false;
     /* The third note offset helps us find the loop-closing jump. */
-    if (!SetSrcNoteOffset(cx, bce, (uintN)noteIndex, 2, bce->offset() - tmp))
+    if (!SetSrcNoteOffset(cx, bce, (unsigned)noteIndex, 2, bce->offset() - tmp))
         return false;
 
     /* If no loop condition, just emit a loop-closing jump. */
@@ -5110,7 +5094,7 @@ EmitFunc(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
     }
 
     /* Make the function object a literal in the outer script's pool. */
-    uintN index = bce->objectList.index(pn->pn_funbox);
+    unsigned index = bce->objectList.index(pn->pn_funbox);
 
     /* Emit a bytecode pointing to the closure object in its immediate. */
     if (pn->getOp() != JSOP_NOP) {
@@ -5142,6 +5126,8 @@ EmitFunc(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
                        "global functions can't have upvars, so they are never flat");
             if (!EmitFunctionOp(cx, JSOP_DEFFUN, index, bce))
                 return false;
+            if (!UpdateLineNumberNotes(cx, bce, pn->pn_pos.begin.lineno))
+                return false;
             bce->switchToMain();
         }
 
@@ -5149,7 +5135,7 @@ EmitFunc(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
         if (!EmitFunctionDefNop(cx, bce, index))
             return false;
     } else {
-        uintN slot;
+        unsigned slot;
         DebugOnly<BindingKind> kind = bce->bindings.lookup(cx, fun->atom, &slot);
         JS_ASSERT(kind == VARIABLE || kind == CONSTANT);
         JS_ASSERT(index < JS_BIT(20));
@@ -5429,7 +5415,7 @@ EmitStatementList(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn, ptrdiff_t 
             return false;
     }
 
-    if (noteIndex >= 0 && !SetSrcNoteOffset(cx, bce, (uintN)noteIndex, 0, bce->offset() - tmp))
+    if (noteIndex >= 0 && !SetSrcNoteOffset(cx, bce, (unsigned)noteIndex, 0, bce->offset() - tmp))
         return false;
 
     return PopStatementBCE(cx, bce);
@@ -5587,7 +5573,7 @@ EmitDelete(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
             return false;
         if (noteIndex >= 0) {
             ptrdiff_t tmp = bce->offset();
-            if (!SetSrcNoteOffset(cx, bce, uintN(noteIndex), 0, tmp - off))
+            if (!SetSrcNoteOffset(cx, bce, unsigned(noteIndex), 0, tmp - off))
                 return false;
         }
       }
@@ -5656,7 +5642,7 @@ EmitCallOrNew(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn, ptrdiff_t top)
      * JSOP_NEW bytecode with a two-byte immediate telling how many args
      * were pushed on the operand stack.
      */
-    uintN oldflags = bce->flags;
+    unsigned oldflags = bce->flags;
     bce->flags &= ~TCF_IN_FOR_INIT;
     for (ParseNode *pn3 = pn2->pn_next; pn3; pn3 = pn3->pn_next) {
         if (!EmitTree(cx, bce, pn3))
@@ -5837,7 +5823,11 @@ EmitIncOrDec(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
     return true;
 }
 
-static bool
+/*
+ * Using MOZ_NEVER_INLINE in here is a workaround for llvm.org/pr12127. See
+ * the comment on EmitSwitch.
+ */
+MOZ_NEVER_INLINE static bool
 EmitLabel(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
 {
     /*
@@ -5974,7 +5964,7 @@ EmitObject(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
             return false;
     }
 
-    uintN methodInits = 0, slowMethodInits = 0;
+    unsigned methodInits = 0, slowMethodInits = 0;
     for (ParseNode *pn2 = pn->pn_head; pn2; pn2 = pn2->pn_next) {
         /* Emit an index for t[2] for later consumption by JSOP_INITELEM. */
         ParseNode *pn3 = pn2->pn_left;
@@ -6042,7 +6032,8 @@ EmitObject(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
                     obj = NULL;
             }
 
-            EMIT_INDEX_OP(op, index);
+            if (!EmitIndex32(cx, op, index, bce))
+                return false;
         }
     }
 
@@ -6051,18 +6042,16 @@ EmitObject(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
 
     if (obj) {
         /*
-         * The object survived and has a predictable shape.  Update the original bytecode,
-         * as long as we can do so without using a big index prefix/suffix.
+         * The object survived and has a predictable shape: update the original
+         * bytecode.
          */
         ObjectBox *objbox = bce->parser->newObjectBox(obj);
         if (!objbox)
             return false;
-        uintN index = bce->objectList.index(objbox);
-        if (FitsWithoutBigIndex(index)) {
-            MOZ_STATIC_ASSERT(JSOP_NEWINIT_LENGTH == JSOP_NEWOBJECT_LENGTH,
-                              "newinit and newobject must have equal length to edit in-place");
-            EMIT_UINT32_IN_PLACE(offset, JSOP_NEWOBJECT, uint32_t(index));
-        }
+        unsigned index = bce->objectList.index(objbox);
+        MOZ_STATIC_ASSERT(JSOP_NEWINIT_LENGTH == JSOP_NEWOBJECT_LENGTH,
+                          "newinit and newobject must have equal length to edit in-place");
+        EMIT_UINT32_IN_PLACE(offset, JSOP_NEWOBJECT, uint32_t(index));
     }
 
     return true;
@@ -6091,7 +6080,7 @@ EmitArray(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
          * its kids under pn2 to generate this comprehension.
          */
         JS_ASSERT(bce->stackDepth > 0);
-        uintN saveDepth = bce->arrayCompDepth;
+        unsigned saveDepth = bce->arrayCompDepth;
         bce->arrayCompDepth = (uint32_t) (bce->stackDepth - 1);
         if (!EmitTree(cx, bce, pn->pn_head))
             return false;
@@ -6150,7 +6139,7 @@ EmitUnary(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
     if (op == JSOP_TYPEOF && !pn2->isKind(PNK_NAME))
         op = JSOP_TYPEOFEXPR;
 
-    uintN oldflags = bce->flags;
+    unsigned oldflags = bce->flags;
     bce->flags &= ~TCF_IN_FOR_INIT;
     if (!EmitTree(cx, bce, pn2))
         return false;
@@ -6311,7 +6300,7 @@ frontend::EmitTree(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
                 return JS_FALSE;
             ptrdiff_t tmp = bce->offset();
             if (noteIndex >= 0) {
-                if (!SetSrcNoteOffset(cx, bce, (uintN)noteIndex, 0, tmp-off))
+                if (!SetSrcNoteOffset(cx, bce, (unsigned)noteIndex, 0, tmp-off))
                     return JS_FALSE;
             }
             if (!pn2->pn_next)
@@ -6386,7 +6375,7 @@ frontend::EmitTree(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
             }
         } else {
 #if JS_HAS_XML_SUPPORT
-            uintN oldflags;
+            unsigned oldflags;
 
       case PNK_DBLCOLON:
             JS_ASSERT(pn->getOp() != JSOP_XMLNAME);
@@ -6428,7 +6417,7 @@ frontend::EmitTree(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
         } else {
             JSOp op = pn->getOp();
             JS_ASSERT(op == JSOP_BINDXMLNAME || op == JSOP_SETXMLNAME);
-            uintN oldflags = bce->flags;
+            unsigned oldflags = bce->flags;
             bce->flags &= ~TCF_IN_FOR_INIT;
             if (!EmitTree(cx, bce, pn->pn_kid))
                 return false;
@@ -6532,7 +6521,7 @@ frontend::EmitTree(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
 #endif /* JS_HAS_BLOCK_SCOPE */
 #if JS_HAS_GENERATORS
       case PNK_ARRAYPUSH: {
-        jsint slot;
+        int slot;
 
         /*
          * The array object's stack index is in bce->arrayCompDepth. See below
@@ -6644,7 +6633,8 @@ frontend::EmitTree(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
                 jsatomid index;
                 if (!bce->makeAtomIndex(atom, &index))
                     return JS_FALSE;
-                EMIT_INDEX_OP(JSOP_STRING, index);
+                if (!EmitIndex32(cx, JSOP_STRING, index, bce))
+                    return false;
             }
             if (Emit1(cx, bce, pn->getOp()) < 0)
                 return JS_FALSE;
@@ -6702,13 +6692,13 @@ frontend::EmitTree(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
     return ok;
 }
 
-static intN
+static int
 AllocSrcNote(JSContext *cx, BytecodeEmitter *bce)
 {
     jssrcnote *notes = bce->notes();
     jssrcnote *newnotes;
-    uintN index = bce->noteCount();
-    uintN max = bce->noteLimit();
+    unsigned index = bce->noteCount();
+    unsigned max = bce->noteLimit();
 
     if (index == max) {
         size_t newlength;
@@ -6730,13 +6720,13 @@ AllocSrcNote(JSContext *cx, BytecodeEmitter *bce)
     }
 
     bce->current->noteCount = index + 1;
-    return (intN)index;
+    return (int)index;
 }
 
-intN
+int
 frontend::NewSrcNote(JSContext *cx, BytecodeEmitter *bce, SrcNoteType type)
 {
-    intN index, n;
+    int index, n;
     jssrcnote *sn;
     ptrdiff_t offset, delta, xdelta;
 
@@ -6774,17 +6764,17 @@ frontend::NewSrcNote(JSContext *cx, BytecodeEmitter *bce, SrcNoteType type)
      * does take two bytes, SetSrcNoteOffset will grow bce->notes().
      */
     SN_MAKE_NOTE(sn, type, delta);
-    for (n = (intN)js_SrcNoteSpec[type].arity; n > 0; n--) {
+    for (n = (int)js_SrcNoteSpec[type].arity; n > 0; n--) {
         if (NewSrcNote(cx, bce, SRC_NULL) < 0)
             return -1;
     }
     return index;
 }
 
-intN
+int
 frontend::NewSrcNote2(JSContext *cx, BytecodeEmitter *bce, SrcNoteType type, ptrdiff_t offset)
 {
-    intN index;
+    int index;
 
     index = NewSrcNote(cx, bce, type);
     if (index >= 0) {
@@ -6794,11 +6784,11 @@ frontend::NewSrcNote2(JSContext *cx, BytecodeEmitter *bce, SrcNoteType type, ptr
     return index;
 }
 
-intN
+int
 frontend::NewSrcNote3(JSContext *cx, BytecodeEmitter *bce, SrcNoteType type, ptrdiff_t offset1,
             ptrdiff_t offset2)
 {
-    intN index;
+    int index;
 
     index = NewSrcNote(cx, bce, type);
     if (index >= 0) {
@@ -6828,7 +6818,7 @@ jssrcnote *
 frontend::AddToSrcNoteDelta(JSContext *cx, BytecodeEmitter *bce, jssrcnote *sn, ptrdiff_t delta)
 {
     ptrdiff_t base, limit, newdelta, diff;
-    intN index;
+    int index;
 
     /*
      * Called only from OptimizeSpanDeps and FinishTakingSrcNotes to add to
@@ -6859,7 +6849,7 @@ frontend::AddToSrcNoteDelta(JSContext *cx, BytecodeEmitter *bce, jssrcnote *sn, 
 }
 
 static JSBool
-SetSrcNoteOffset(JSContext *cx, BytecodeEmitter *bce, uintN index, uintN which, ptrdiff_t offset)
+SetSrcNoteOffset(JSContext *cx, BytecodeEmitter *bce, unsigned index, unsigned which, ptrdiff_t offset)
 {
     jssrcnote *sn;
     ptrdiff_t diff;
@@ -6872,7 +6862,7 @@ SetSrcNoteOffset(JSContext *cx, BytecodeEmitter *bce, uintN index, uintN which, 
     /* Find the offset numbered which (i.e., skip exactly which offsets). */
     sn = &bce->notes()[index];
     JS_ASSERT(SN_TYPE(sn) != SRC_XDELTA);
-    JS_ASSERT((intN) which < js_SrcNoteSpec[SN_TYPE(sn)].arity);
+    JS_ASSERT((int) which < js_SrcNoteSpec[SN_TYPE(sn)].arity);
     for (sn++; which; sn++, which--) {
         if (*sn & SN_3BYTE_OFFSET_FLAG)
             sn += 2;
@@ -6954,7 +6944,7 @@ DumpSrcNoteSizeHist()
 JSBool
 frontend::FinishTakingSrcNotes(JSContext *cx, BytecodeEmitter *bce, jssrcnote *notes)
 {
-    uintN prologCount, mainCount, totalCount;
+    unsigned prologCount, mainCount, totalCount;
     ptrdiff_t offset, delta;
     jssrcnote *sn;
 
@@ -7008,10 +6998,10 @@ frontend::FinishTakingSrcNotes(JSContext *cx, BytecodeEmitter *bce, jssrcnote *n
 }
 
 static JSBool
-NewTryNote(JSContext *cx, BytecodeEmitter *bce, JSTryNoteKind kind, uintN stackDepth, size_t start,
+NewTryNote(JSContext *cx, BytecodeEmitter *bce, JSTryNoteKind kind, unsigned stackDepth, size_t start,
            size_t end)
 {
-    JS_ASSERT((uintN)(uint16_t)stackDepth == stackDepth);
+    JS_ASSERT((unsigned)(uint16_t)stackDepth == stackDepth);
     JS_ASSERT(start <= end);
     JS_ASSERT((size_t)(uint32_t)start == start);
     JS_ASSERT((size_t)(uint32_t)end == end);
@@ -7089,7 +7079,7 @@ frontend::FinishTakingTryNotes(BytecodeEmitter *bce, JSTryNoteArray *array)
  * for global regexps) and on any ad-hoc properties.  Also, __proto__ refers to
  * the pre-compilation prototype, a pigeon-hole problem for instanceof tests.
  */
-uintN
+unsigned
 CGObjectList::index(ObjectBox *objbox)
 {
     JS_ASSERT(!objbox->emitLink);
@@ -7156,13 +7146,13 @@ JS_FRIEND_DATA(JSSrcNoteSpec) js_SrcNoteSpec[] = {
     {"xdelta",          0},
 };
 
-JS_FRIEND_API(uintN)
+JS_FRIEND_API(unsigned)
 js_SrcNoteLength(jssrcnote *sn)
 {
-    uintN arity;
+    unsigned arity;
     jssrcnote *base;
 
-    arity = (intN)js_SrcNoteSpec[SN_TYPE(sn)].arity;
+    arity = (int)js_SrcNoteSpec[SN_TYPE(sn)].arity;
     for (base = sn++; arity; sn++, arity--) {
         if (*sn & SN_3BYTE_OFFSET_FLAG)
             sn += 2;
@@ -7171,11 +7161,11 @@ js_SrcNoteLength(jssrcnote *sn)
 }
 
 JS_FRIEND_API(ptrdiff_t)
-js_GetSrcNoteOffset(jssrcnote *sn, uintN which)
+js_GetSrcNoteOffset(jssrcnote *sn, unsigned which)
 {
     /* Find the offset numbered which (i.e., skip exactly which offsets). */
     JS_ASSERT(SN_TYPE(sn) != SRC_XDELTA);
-    JS_ASSERT((intN) which < js_SrcNoteSpec[SN_TYPE(sn)].arity);
+    JS_ASSERT((int) which < js_SrcNoteSpec[SN_TYPE(sn)].arity);
     for (sn++; which; sn++, which--) {
         if (*sn & SN_3BYTE_OFFSET_FLAG)
             sn += 2;

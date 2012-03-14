@@ -61,7 +61,6 @@ class DMError(Exception):
   def __str__(self):
     return self.msg
 
-
 def abstractmethod(method):
   line = method.func_code.co_firstlineno
   filename = method.func_code.co_filename
@@ -70,9 +69,18 @@ def abstractmethod(method):
                               'should be implemented by a concrete class' %
                               (repr(method), filename,line))
   return not_implemented
-  
+
 class DeviceManager:
-  
+
+  @abstractmethod
+  def shell(self, cmd, outputfile, env=None, cwd=None):
+    """
+    executes shell command on device
+    returns:
+    success: Return code from command
+    failure: None
+    """
+
   @abstractmethod
   def pushFile(self, localname, destname):
     """
@@ -168,49 +176,26 @@ class DeviceManager:
     success: array of process tuples
     failure: None
     """
-    
+
   @abstractmethod
   def fireProcess(self, appname, failIfRunning=False):
     """
     external function
+    DEPRECATED: Use shell() or launchApplication() for new code
     returns:
     success: pid
     failure: None
     """
-    
+
   @abstractmethod
   def launchProcess(self, cmd, outputFile = "process.txt", cwd = '', env = '', failIfRunning=False):
     """
     external function
+    DEPRECATED: Use shell() or launchApplication() for new code
     returns:
     success: output filename
     failure: None
     """
-    
-  def communicate(self, process, timeout = 600, interval = 5):
-    """
-    loops until 'process' has exited or 'timeout' seconds is reached
-    loop sleeps for 'interval' seconds between iterations
-    external function
-    returns:
-    success: [file contents, None]
-    failure: [None, None]
-    """
-    
-    timed_out = True
-    if (timeout > 0):
-      total_time = 0
-      while total_time < timeout:
-        time.sleep(interval)
-        if self.processExist(process) == None:
-          timed_out = False
-          break
-        total_time += interval
-
-    if (timed_out == True):
-      return [None, None]
-
-    return [self.getFile(process, "temp.txt"), None]
 
   def processExist(self, appname):
     """
@@ -581,3 +566,35 @@ class NetworkTools:
       print "Socket error trying to find open port"
         
     return seed
+
+def _pop_last_line(file):
+  '''
+  Utility function to get the last line from a file (shared between ADB and
+  SUT device managers). Function also removes it from the file. Intended to
+  strip off the return code from a shell command.
+  '''
+  bytes_from_end = 1
+  file.seek(0, 2)
+  length = file.tell() + 1
+  while bytes_from_end < length:
+    file.seek((-1)*bytes_from_end, 2)
+    data = file.read()
+
+    if bytes_from_end == length-1 and len(data) == 0: # no data, return None
+      return None
+
+    if data[0] == '\n' or bytes_from_end == length-1:
+      # found the last line, which should have the return value
+      if data[0] == '\n':
+        data = data[1:]
+
+      # truncate off the return code line
+      file.truncate(length - bytes_from_end)
+      file.seek(0,2)
+      file.write('\0')
+
+      return data
+
+    bytes_from_end += 1
+
+  return None

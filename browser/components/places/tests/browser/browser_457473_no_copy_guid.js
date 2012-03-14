@@ -41,7 +41,7 @@ function test() {
   ok(PlacesUIUtils, "checking PlacesUIUtils, running in chrome context?");
 
   /*
-  - create, a test folder, add bookmark, separator, livemark to it
+  - create, a test folder, add bookmark, separator to it
   - fetch guids for all
   - copy the folder
   - test that guids are all different
@@ -66,10 +66,6 @@ function test() {
   PlacesUtils.bookmarks.insertBookmark(folderAId, PlacesUtils._uri("http://foo"),
                                        -1, "test bookmark");
   PlacesUtils.bookmarks.insertSeparator(folderAId, -1);
-  PlacesUtils.livemarks.createLivemarkFolderOnly(folderAId, "test livemark",
-                                                 PlacesUtils._uri("http://test"),
-                                                 PlacesUtils._uri("http://test"), -1);
-
   var folderANode = testRootNode.getChild(0);
   var folderAGUIDs = getGUIDs(folderANode);
 
@@ -89,7 +85,7 @@ function test() {
   ok(transaction, "create transaction");
 
   // execute it, copying to the test root folder
-  PlacesUIUtils.ptm.doTransaction(transaction);
+  PlacesUtils.transactionManager.doTransaction(transaction);
   is(testRootNode.childCount, 2, "create test folder via copy");
 
   // check GUIDs are different
@@ -99,12 +95,12 @@ function test() {
   ok(checkGUIDs(folderBNode, folderBGUIDs, true), "confirm test of new GUIDs");
 
   // undo the transaction, confirm the removal
-  PlacesUIUtils.ptm.undoTransaction();
+  PlacesUtils.transactionManager.undoTransaction();
   is(testRootNode.childCount, 1, "confirm undo removed the copied folder");
 
   // redo the transaction
   // confirming GUIDs persist through undo/redo
-  PlacesUIUtils.ptm.redoTransaction();
+  PlacesUtils.transactionManager.redoTransaction();
   is(testRootNode.childCount, 2, "confirm redo re-copied the folder");
   folderBNode = testRootNode.getChild(1);
   ok(checkGUIDs(folderBNode, folderAGUIDs, false), "folder B GUIDs after undo/redo don't match folder A GUIDs"); // sanity check
@@ -115,7 +111,7 @@ function test() {
   toolbarNode.containerOpen = false;
 
   // clean up
-  PlacesUIUtils.ptm.undoTransaction();
+  PlacesUtils.transactionManager.undoTransaction();
   PlacesUtils.bookmarks.removeItem(testRootId);
 }
 
@@ -125,8 +121,7 @@ function getGUIDs(aNode) {
   var GUIDs = {
     folder: PlacesUtils.bookmarks.getItemGUID(aNode.itemId),
     bookmark: PlacesUtils.bookmarks.getItemGUID(aNode.getChild(0).itemId),
-    separator: PlacesUtils.bookmarks.getItemGUID(aNode.getChild(1).itemId),
-    livemark: PlacesUtils.bookmarks.getItemGUID(aNode.getChild(2).itemId)
+    separator: PlacesUtils.bookmarks.getItemGUID(aNode.getChild(1).itemId)
   };
   aNode.containerOpen = false;
   return GUIDs;
@@ -144,8 +139,7 @@ function checkGUIDs(aFolderNode, aGUIDs, aShouldMatch) {
 
   var allMatch = check(aFolderNode, aGUIDs.folder, aShouldMatch) &&
                  check(aFolderNode.getChild(0), aGUIDs.bookmark, aShouldMatch) &&
-                 check(aFolderNode.getChild(1), aGUIDs.separator, aShouldMatch) &&
-                 check(aFolderNode.getChild(2), aGUIDs.livemark, aShouldMatch);
+                 check(aFolderNode.getChild(1), aGUIDs.separator, aShouldMatch)
 
   aFolderNode.containerOpen = false;
   return allMatch;

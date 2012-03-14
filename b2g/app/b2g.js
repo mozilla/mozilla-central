@@ -46,7 +46,7 @@ pref("browser.homescreenURL", "file:///data/local/homescreen.html,file:///system
 #endif
 
 // URL for the dialer application.
-pref("dom.telephony.app.phone.url", "http://localhost:7777/data/local/apps/dialer/dialer.html");
+pref("dom.telephony.app.phone.url", "http://localhost:7777/data/local/apps/dialer/dialer.html,http://localhost:7777/data/local/apps/homescreen/homescreen.html,http://localhost:7777/apps/dialer/dialer.html,http://localhost:7777/apps/homescreen/homescreen.html");
 
 // Device pixel to CSS px ratio, in percent. Set to -1 to calculate based on display density.
 pref("browser.viewport.scaleRatio", -1);
@@ -55,8 +55,9 @@ pref("browser.viewport.scaleRatio", -1);
 pref("browser.ignoreNativeFrameTextSelection", true);
 
 /* cache prefs */
-pref("browser.cache.disk.enable", false);
-pref("browser.cache.disk.capacity", 0); // kilobytes
+pref("browser.cache.disk.enable", true);
+pref("browser.cache.disk.capacity", 55000); // kilobytes
+pref("browser.cache.disk.parent_directory", "/cache");
 pref("browser.cache.disk.smart_size.enabled", false);
 pref("browser.cache.disk.smart_size.first_run", false);
 
@@ -106,6 +107,7 @@ pref("mozilla.widget.force-24bpp", true);
 pref("mozilla.widget.use-buffer-pixmap", true);
 pref("mozilla.widget.disable-native-theme", true);
 pref("layout.reflow.synthMouseMove", false);
+pref("dom.send_after_paint_to_content", true);
 
 /* download manager (don't show the window or alert) */
 pref("browser.download.useDownloadDir", true);
@@ -353,9 +355,6 @@ pref("urlclassifier.gethashtables", "goog-phish-shavar,goog-malware-shavar");
 // the database.
 pref("urlclassifier.confirm-age", 2700);
 
-// Maximum size of the sqlite3 cache during an update, in bytes
-pref("urlclassifier.updatecachemax", 4194304);
-
 // URL for checking the reason for a malware warning.
 pref("browser.safebrowsing.malware.reportURL", "http://safebrowsing.clients.google.com/safebrowsing/diagnostic?client=%NAME%&hl=%LOCALE%&site=");
 #endif
@@ -392,6 +391,7 @@ pref("layers.acceleration.force-enabled", true);
 // screen.enabled and screen.brightness properties.
 pref("dom.screenEnabledProperty.enabled", true);
 pref("dom.screenBrightnessProperty.enabled", true);
+pref("dom.mozScreenWhitelist", "http://localhost:7777");
 
 // handle links targeting new windows
 // 1=current window/tab, 2=new window, 3=new tab in most recent window
@@ -409,6 +409,10 @@ pref("dom.mozBrowserFramesWhitelist", "http://localhost:7777");
 // Temporary permission hack for WebSMS
 pref("dom.sms.enabled", true);
 pref("dom.sms.whitelist", "file://,http://localhost:7777");
+
+// Temporary permission hack for WebContacts
+pref("dom.mozContacts.enabled", true);
+pref("dom.mozContacts.whitelist", "http://localhost:7777");
 
 // Ignore X-Frame-Options headers.
 pref("b2g.ignoreXFrameOptions", true);
@@ -430,9 +434,22 @@ pref("layout.frame_rate.precise", true);
 pref("b2g.remote-js.enabled", true);
 pref("b2g.remote-js.port", 9999);
 
+// Handle hardware buttons in the b2g chrome package
+pref("b2g.keys.menu.enabled", true);
+pref("b2g.keys.search.enabled", false);
+
 // Screen timeout in minutes
 pref("power.screen.timeout", 60);
 
 pref("full-screen-api.enabled", true);
 
 pref("media.volume.steps", 10);
+
+// Data connection settings. These will eventually live in the
+// navigator.settings API, or even in a database where we can look
+// it up automatically (bug 729440), but for this will have to do.
+pref("ril.data.enabled", false);
+pref("ril.data.roaming.enabled", false);
+pref("ril.data.apn", "");
+pref("ril.data.user", "");
+pref("ril.data.passwd", "");

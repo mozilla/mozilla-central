@@ -50,7 +50,6 @@
 #include "nsEventListenerManager.h"
 #include "nsGenericElement.h"
 #include "nsCycleCollectionParticipant.h"
-#include "nsDOMMemoryReporter.h"
 
 #include "nsISMILAttr.h"
 
@@ -79,7 +78,7 @@ class nsGenericDOMDataNode : public nsIContent
 public:
   NS_DECL_CYCLE_COLLECTING_ISUPPORTS
 
-  NS_DECL_DOM_MEMORY_REPORTER_SIZEOF
+  NS_DECL_SIZEOF_EXCLUDING_THIS
 
   nsGenericDOMDataNode(already_AddRefed<nsINodeInfo> aNodeInfo);
   virtual ~nsGenericDOMDataNode();
@@ -143,8 +142,12 @@ public:
   nsresult IsSupported(const nsAString& aFeature,
                        const nsAString& aVersion,
                        bool* aReturn);
-  nsresult CloneNode(bool aDeep, nsIDOMNode** aReturn)
+  nsresult CloneNode(bool aDeep, PRUint8 aOptionalArgc, nsIDOMNode** aReturn)
   {
+    if (!aOptionalArgc) {
+      aDeep = true;
+    }
+    
     return nsNodeUtils::CloneNodeImpl(this, aDeep, true, aReturn);
   }
 

@@ -128,6 +128,8 @@ static NS_DEFINE_CID(kSocketProviderServiceCID, NS_SOCKETPROVIDERSERVICE_CID);
 #define NETWORK_ENABLEIDN       "network.enableIDN"
 #define BROWSER_PREF_PREFIX     "browser.cache."
 #define DONOTTRACK_HEADER_ENABLED "privacy.donottrackheader.enabled"
+#define TELEMETRY_ENABLED        "toolkit.telemetry.enabled"
+#define ALLOW_EXPERIMENTS        "network.allow-experiments"
 
 #define UA_PREF(_pref) UA_PREF_PREFIX _pref
 #define HTTP_PREF(_pref) HTTP_PREF_PREFIX _pref
@@ -174,8 +176,8 @@ nsHttpHandler::nsHttpHandler()
     , mProxyCapabilities(NS_HTTP_ALLOW_KEEPALIVE)
     , mReferrerLevel(0xff) // by default we always send a referrer
     , mFastFallbackToIPv4(false)
-    , mIdleTimeout(10)
-    , mSpdyTimeout(180)
+    , mIdleTimeout(PR_SecondsToInterval(10))
+    , mSpdyTimeout(PR_SecondsToInterval(180))
     , mMaxRequestAttempts(10)
     , mMaxRequestDelay(10)
     , mIdleSynTimeout(250)
@@ -200,10 +202,14 @@ nsHttpHandler::nsHttpHandler()
     , mSendSecureXSiteReferrer(true)
     , mEnablePersistentHttpsCaching(false)
     , mDoNotTrackEnabled(false)
+    , mTelemetryEnabled(false)
+    , mAllowExperiments(true)
     , mEnableSpdy(false)
     , mCoalesceSpdy(true)
     , mUseAlternateProtocol(false)
     , mSpdySendingChunkSize(SpdySession::kSendingChunkSize)
+    , mSpdyPingThreshold(PR_SecondsToInterval(44))
+    , mSpdyPingTimeout(PR_SecondsToInterval(8))
 {
 #if defined(PR_LOGGING)
     gHttpLog = PR_NewLogModule("nsHttp");
@@ -266,6 +272,7 @@ nsHttpHandler::Init()
         prefBranch->AddObserver(NETWORK_ENABLEIDN, this, true);
         prefBranch->AddObserver(BROWSER_PREF("disk_cache_ssl"), this, true);
         prefBranch->AddObserver(DONOTTRACK_HEADER_ENABLED, this, true);
+        prefBranch->AddObserver(TELEMETRY_ENABLED, this, true);
 
         PrefsChanged(prefBranch, nsnull);
     }
@@ -534,6 +541,27 @@ nsHttpHandler::GetIOService(nsIIOService** result)
     return NS_OK;
 }
 
+PRUint32
+nsHttpHandler::Get32BitsOfPseudoRandom()
+{
+    // only confirm rand seeding on socket thread
+    NS_ABORT_IF_FALSE(PR_GetCurrentThread() == gSocketThread, "wrong thread");
+
+    // rand() provides different amounts of PRNG on different platforms.
+    // 15 or 31 bits are common amounts.
+
+    PR_STATIC_ASSERT(RAND_MAX >= 0xfff);
+    
+#if RAND_MAX < 0xffffU
+    return ((PRUint16) rand() << 20) |
+            (((PRUint16) rand() & 0xfff) << 8) |
+            ((PRUint16) rand() & 0xff);
+#elif RAND_MAX < 0xffffffffU
+    return ((PRUint16) rand() << 16) | ((PRUint16) rand() & 0xffff);
+#else
+    return (PRUint32) rand();
+#endif
+}
 
 void
 nsHttpHandler::NotifyObservers(nsIHttpChannel *chan, const char *event)
@@ -653,8 +681,6 @@ nsHttpHandler::BuildUserAgent()
 }
 
 #ifdef XP_WIN
-typedef BOOL (WINAPI *IsWow64ProcessP) (HANDLE, PBOOL);
-
 #define WNT_BASE "Windows NT %ld.%ld"
 #define W64_PREFIX "; Win64"
 #endif
@@ -717,10 +743,7 @@ nsHttpHandler::InitUserAgentComponents()
         format = WNT_BASE W64_PREFIX "; x64";
 #else
         BOOL isWow64 = FALSE;
-        IsWow64ProcessP fnIsWow64Process = (IsWow64ProcessP)
-          GetProcAddress(GetModuleHandleW(L"kernel32"), "IsWow64Process");
-        if (fnIsWow64Process &&
-            !fnIsWow64Process(GetCurrentProcess(), &isWow64)) {
+        if (!IsWow64Process(GetCurrentProcess(), &isWow64)) {
             isWow64 = FALSE;
         }
         format = isWow64
@@ -845,7 +868,7 @@ nsHttpHandler::PrefsChanged(nsIPrefBranch *prefs, const char *pref)
     if (PREF_CHANGED(HTTP_PREF("keep-alive.timeout"))) {
         rv = prefs->GetIntPref(HTTP_PREF("keep-alive.timeout"), &val);
         if (NS_SUCCEEDED(rv))
-            mIdleTimeout = (PRUint16) clamped(val, 1, 0xffff);
+            mIdleTimeout = PR_SecondsToInterval(clamped(val, 1, 0xffff));
     }
 
     if (PREF_CHANGED(HTTP_PREF("request.max-attempts"))) {
@@ -1116,13 +1139,31 @@ nsHttpHandler::PrefsChanged(nsIPrefBranch *prefs, const char *pref)
     if (PREF_CHANGED(HTTP_PREF("spdy.timeout"))) {
         rv = prefs->GetIntPref(HTTP_PREF("spdy.timeout"), &val);
         if (NS_SUCCEEDED(rv))
-            mSpdyTimeout = (PRUint16) clamped(val, 1, 0xffff);
+            mSpdyTimeout = PR_SecondsToInterval(clamped(val, 1, 0xffff));
     }
 
     if (PREF_CHANGED(HTTP_PREF("spdy.chunk-size"))) {
         rv = prefs->GetIntPref(HTTP_PREF("spdy.chunk-size"), &val);
         if (NS_SUCCEEDED(rv))
             mSpdySendingChunkSize = (PRUint32) clamped(val, 1, 0x7fffffff);
+    }
+
+    // The amount of idle seconds on a spdy connection before initiating a
+    // server ping. 0 will disable.
+    if (PREF_CHANGED(HTTP_PREF("spdy.ping-threshold"))) {
+        rv = prefs->GetIntPref(HTTP_PREF("spdy.ping-threshold"), &val);
+        if (NS_SUCCEEDED(rv))
+            mSpdyPingThreshold =
+                PR_SecondsToInterval((PRUint16) clamped(val, 0, 0x7fffffff));
+    }
+
+    // The amount of seconds to wait for a spdy ping response before
+    // closing the session.
+    if (PREF_CHANGED(HTTP_PREF("spdy.ping-timeout"))) {
+        rv = prefs->GetIntPref(HTTP_PREF("spdy.ping-timeout"), &val);
+        if (NS_SUCCEEDED(rv))
+            mSpdyPingTimeout =
+                PR_SecondsToInterval((PRUint16) clamped(val, 0, 0x7fffffff));
     }
 
     //
@@ -1169,6 +1210,30 @@ nsHttpHandler::PrefsChanged(nsIPrefBranch *prefs, const char *pref)
         rv = prefs->GetBoolPref(DONOTTRACK_HEADER_ENABLED, &cVar);
         if (NS_SUCCEEDED(rv)) {
             mDoNotTrackEnabled = cVar;
+        }
+    }
+
+    //
+    // Telemetry
+    //
+
+    if (PREF_CHANGED(TELEMETRY_ENABLED)) {
+        cVar = false;
+        rv = prefs->GetBoolPref(TELEMETRY_ENABLED, &cVar);
+        if (NS_SUCCEEDED(rv)) {
+            mTelemetryEnabled = cVar;
+        }
+    }
+
+    //
+    // network.allow-experiments
+    //
+
+    if (PREF_CHANGED(ALLOW_EXPERIMENTS)) {
+        cVar = true;
+        rv = prefs->GetBoolPref(ALLOW_EXPERIMENTS, &cVar);
+        if (NS_SUCCEEDED(rv)) {
+            mAllowExperiments = cVar;
         }
     }
 

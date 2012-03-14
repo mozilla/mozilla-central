@@ -48,7 +48,7 @@
 #include "nsDeque.h"
 
 #include "mozilla/Preferences.h"
-#include "mozilla/StdInt.h"
+#include "mozilla/StandardInteger.h"
 #include "mozilla/Util.h"
 
 using namespace mozilla;
@@ -1080,55 +1080,40 @@ void nsBuiltinDecoderStateMachine::AudioLoop()
 
     // Calculate the number of frames that have been pushed onto the audio
     // hardware.
-    PRInt64 playedFrames = 0;
-    if (!UsecsToFrames(audioStartTime, rate, playedFrames)) {
-      NS_WARNING("Int overflow converting playedFrames");
-      break;
-    }
-    if (!AddOverflow(playedFrames, audioDuration, playedFrames)) {
-      NS_WARNING("Int overflow adding playedFrames");
-      break;
-    }
-
+    CheckedInt64 playedFrames = UsecsToFrames(audioStartTime, rate) +
+                                              audioDuration;
     // Calculate the timestamp of the next chunk of audio in numbers of
     // samples.
-    PRInt64 sampleTime = 0;
-    if (!UsecsToFrames(s->mTime, rate, sampleTime)) {
-      NS_WARNING("Int overflow converting sampleTime");
-      break;
-    }
-    PRInt64 missingFrames = 0;
-    if (!AddOverflow(sampleTime, -playedFrames, missingFrames)) {
-      NS_WARNING("Int overflow adding missingFrames");
+    CheckedInt64 sampleTime = UsecsToFrames(s->mTime, rate);
+    CheckedInt64 missingFrames = sampleTime - playedFrames;
+    if (!missingFrames.valid() || !sampleTime.valid()) {
+      NS_WARNING("Int overflow adding in AudioLoop()");
       break;
     }
 
     PRInt64 framesWritten = 0;
-    if (missingFrames > 0) {
+    if (missingFrames.value() > 0) {
       // The next audio chunk begins some time after the end of the last chunk
       // we pushed to the audio hardware. We must push silence into the audio
       // hardware so that the next audio chunk begins playback at the correct
       // time.
-      missingFrames = NS_MIN(static_cast<PRInt64>(PR_UINT32_MAX), missingFrames);
+      missingFrames = NS_MIN(static_cast<PRInt64>(PR_UINT32_MAX), missingFrames.value());
       LOG(PR_LOG_DEBUG, ("%p Decoder playing %d frames of silence",
-                         mDecoder.get(), PRInt32(missingFrames)));
-      framesWritten = PlaySilence(static_cast<PRUint32>(missingFrames),
-                                  channels, playedFrames);
+                         mDecoder.get(), PRInt32(missingFrames.value())));
+      framesWritten = PlaySilence(static_cast<PRUint32>(missingFrames.value()),
+                                  channels, playedFrames.value());
     } else {
-      framesWritten = PlayFromAudioQueue(sampleTime, channels);
+      framesWritten = PlayFromAudioQueue(sampleTime.value(), channels);
     }
     audioDuration += framesWritten;
     {
       ReentrantMonitorAutoEnter mon(mDecoder->GetReentrantMonitor());
-      PRInt64 playedUsecs;
-      if (!FramesToUsecs(audioDuration, rate, playedUsecs)) {
-        NS_WARNING("Int overflow calculating playedUsecs");
-        break;
-      }
-      if (!AddOverflow(audioStartTime, playedUsecs, mAudioEndTime)) {
+      CheckedInt64 playedUsecs = FramesToUsecs(audioDuration, rate) + audioStartTime;
+      if (!playedUsecs.valid()) {
         NS_WARNING("Int overflow calculating audio end time");
         break;
       }
+      mAudioEndTime = playedUsecs.value();
     }
   }
   if (mReader->mAudioQueue.AtEndOfStream() &&
@@ -2323,6 +2308,13 @@ void nsBuiltinDecoderStateMachine::AdvanceFrame()
       // If we have video, we want to increment the clock in steps of the frame
       // duration.
       RenderVideoFrame(currentFrame, presTime);
+    }
+    // If we're no longer playing after dropping and reacquiring the lock,
+    // playback must've been stopped on the decode thread (by a seek, for
+    // example).  In that case, the current frame is probably out of date.
+    if (!IsPlaying()) {
+      ScheduleStateMachine();
+      return;
     }
     mDecoder->GetFrameStatistics().NotifyPresentedFrame();
     PRInt64 now = DurationToUsecs(TimeStamp::Now() - mPlayStartTime) + mPlayDuration;

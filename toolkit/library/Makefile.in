@@ -56,7 +56,6 @@ CPPSRCS += \
   $(NULL)
 
 ifeq ($(OS_ARCH),WINNT)
-REQUIRES += widget gfx
 CPPSRCS += \
   nsDllMain.cpp \
   $(NULL)
@@ -82,7 +81,6 @@ DEFINES += -DZLIB_DLL=1
 endif
 
 ifeq ($(OS_ARCH),OS2)
-REQUIRES += widget gfx
 
 CPPSRCS += \
   nsGFXDeps.cpp \
@@ -282,7 +280,9 @@ endif
 
 STATIC_LIBS += thebes gl ycbcr
 
+ifdef MOZ_ENABLE_PROFILER_SPS
 COMPONENT_LIBS += profiler
+endif
 
 ifeq (windows,$(MOZ_WIDGET_TOOLKIT))
 COMPONENT_LIBS += widget_windows
@@ -398,9 +398,6 @@ OS_LIBS += \
   -lbinder \
   -lsensorservice \
   $(NULL)
-ifdef MOZ_B2G_BT
-OS_LIBS += -lbluedroid
-endif
 endif
 
 EXTRA_DEPS += \
@@ -524,10 +521,7 @@ endif
 endif
 
 ifeq ($(OS_ARCH),WINNT)
-OS_LIBS += $(call EXPAND_LIBNAME,shell32 ole32 uuid version winspool comdlg32 imm32 winmm wsock32 msimg32 shlwapi psapi ws2_32 dbghelp rasapi32 rasdlg)
-ifneq (,$(MOZ_DEBUG)$(NS_TRACE_MALLOC))
-OS_LIBS += $(call EXPAND_LIBNAME,imagehlp)
-endif
+OS_LIBS += $(call EXPAND_LIBNAME,shell32 ole32 version winspool comdlg32 imm32 msimg32 shlwapi psapi ws2_32 dbghelp rasapi32 rasdlg iphlpapi uxtheme setupapi t2embed secur32)
 ifdef MOZ_CRASHREPORTER
 OS_LIBS += $(call EXPAND_LIBNAME,wininet)
 endif
@@ -538,10 +532,14 @@ ifdef _MSC_VER
 OS_LIBS += $(call EXPAND_LIBNAME,delayimp)
 EXTRA_DSO_LDOPTS += \
   -DELAYLOAD:gkmedias.dll \
+  -DELAYLOAD:psapi.dll \
+  -DELAYLOAD:dbghelp.dll \
   -DELAYLOAD:rasapi32.dll \
   -DELAYLOAD:rasdlg.dll \
   -DELAYLOAD:comdlg32.dll \
   -DELAYLOAD:winspool.drv \
+  -DELAYLOAD:t2embed.dll \
+  -DELAYLOAD:secur32.dll \
   $(NULL)
 ifdef ACCESSIBILITY
 EXTRA_DSO_LDOPTS += -DELAYLOAD:oleacc.dll

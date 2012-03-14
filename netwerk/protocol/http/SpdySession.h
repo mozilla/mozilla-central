@@ -77,6 +77,13 @@ public:
   bool CanReuse() { return !mShouldGoAway && !mClosed; }
   void DontReuse();
   bool RoomForMoreStreams();
+
+  // When the connection is active this is called every 15 seconds
+  void ReadTimeoutTick(PRIntervalTime now);
+  
+  // Idle time represents time since "goodput".. e.g. a data or header frame
+  PRIntervalTime IdleTime();
+
   PRUint32 RegisterStreamID(SpdyStream *);
 
   const static PRUint8 kFlag_Control   = 0x80;
@@ -181,6 +188,7 @@ private:
     PROCESSING_CONTROL_RST_STREAM
   };
 
+  void        DeterminePingThreshold();
   nsresult    HandleSynReplyForValidStream();
   PRUint32    GetWriteQueueSize();
   void        ChangeDownstreamState(enum stateType);
@@ -191,6 +199,7 @@ private:
   nsresult    ConvertHeaders(nsDependentCSubstring &,
                              nsDependentCSubstring &);
   void        GeneratePing(PRUint32);
+  void        ClearPing(bool);
   void        GenerateRstStream(PRUint32, PRUint32);
   void        GenerateGoAway();
   void        CleanupStream(SpdyStream *, nsresult, rstReason);
@@ -202,6 +211,10 @@ private:
   void        ActivateStream(SpdyStream *);
   void        ProcessPending();
 
+  // a wrapper for all calls to the nshttpconnection level segment writer. Used
+  // to track network I/O for timeout purposes
+  nsresult   NetworkRead(nsAHttpSegmentWriter *, char *, PRUint32, PRUint32 *);
+  
   static PLDHashOperator ShutdownEnumerator(nsAHttpTransaction *,
                                             nsAutoPtr<SpdyStream> &,
                                             void *);
@@ -333,6 +346,13 @@ private:
   PRUint32             mOutputQueueUsed;
   PRUint32             mOutputQueueSent;
   nsAutoArrayPtr<char> mOutputQueueBuffer;
+
+  PRIntervalTime       mPingThreshold;
+  PRIntervalTime       mLastReadEpoch;     // used for ping timeouts
+  PRIntervalTime       mLastDataReadEpoch; // used for IdleTime()
+  PRIntervalTime       mPingSentEpoch;
+  PRUint32             mNextPingID;
+  bool                 mPingThresholdExperiment;
 };
 
 }} // namespace mozilla::net

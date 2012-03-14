@@ -125,17 +125,17 @@ class MathCache;
  */
 class DtoaCache {
     double        d;
-    jsint         base;
+    int         base;
     JSFixedString *s;      // if s==NULL, d and base are not valid
   public:
     DtoaCache() : s(NULL) {}
     void purge() { s = NULL; }
 
-    JSFixedString *lookup(jsint base, double d) {
+    JSFixedString *lookup(int base, double d) {
         return this->s && base == this->base && d == this->d ? this->s : NULL;
     }
 
-    void cache(jsint base, double d, JSFixedString *s) {
+    void cache(int base, double d, JSFixedString *s) {
         this->base = base;
         this->d = d;
         this->s = s;
@@ -193,7 +193,6 @@ struct JSCompartment
     js::gc::ArenaLists           arenas;
 
     bool                         needsBarrier_;
-    js::BarrierGCMarker          barrierMarker_;
 
     bool needsBarrier() {
         return needsBarrier_;
@@ -201,12 +200,11 @@ struct JSCompartment
 
     js::GCMarker *barrierTracer() {
         JS_ASSERT(needsBarrier_);
-        return &barrierMarker_;
+        return &rt->gcMarker;
     }
 
     size_t                       gcBytes;
     size_t                       gcTriggerBytes;
-    size_t                       gcLastBytes;
     size_t                       gcMaxMallocBytes;
 
     bool                         hold;
@@ -231,7 +229,6 @@ struct JSCompartment
 
     void                         *data;
     bool                         active;  // GC flag, whether there are active frames
-    bool                         hasDebugModeCodeToDrop;
     js::WrapperMap               crossCompartmentWrappers;
 
 #ifdef JS_METHODJIT
@@ -262,21 +259,12 @@ struct JSCompartment
     js::RegExpCompartment        regExps;
 
     size_t sizeOfShapeTable(JSMallocSizeOfFun mallocSizeOf);
-    void sizeOfTypeInferenceData(JSContext *cx, JS::TypeInferenceSizes *stats,
-                                 JSMallocSizeOfFun mallocSizeOf);
+    void sizeOfTypeInferenceData(JS::TypeInferenceSizes *stats, JSMallocSizeOfFun mallocSizeOf);
 
     /*
      * Shared scope property tree, and arena-pool for allocating its nodes.
      */
     js::PropertyTree             propertyTree;
-
-#ifdef DEBUG
-    /* Property metering. */
-    jsrefcount                   livePropTreeNodes;
-    jsrefcount                   totalPropTreeNodes;
-    jsrefcount                   propTreeKidsChunks;
-    jsrefcount                   liveDictModeNodes;
-#endif
 
     /* Set of all unowned base shapes in the compartment. */
     js::BaseShapeSet             baseShapes;
@@ -301,16 +289,26 @@ struct JSCompartment
     /* Cache to speed up object creation. */
     js::NewObjectCache           newObjectCache;
 
+    /*
+     * Keeps track of the total number of malloc bytes connected to a
+     * compartment's GC things. This counter should be used in preference to
+     * gcMallocBytes. These counters affect collection in the same way as
+     * gcBytes and gcTriggerBytes.
+     */
+    size_t                       gcMallocAndFreeBytes;
+    size_t                       gcTriggerMallocAndFreeBytes;
+
   private:
+    /*
+     * Malloc counter to measure memory pressure for GC scheduling. It runs from
+     * gcMaxMallocBytes down to zero. This counter should be used only when it's
+     * not possible to know the size of a free.
+     */
+    ptrdiff_t                    gcMallocBytes;
+
     enum { DebugFromC = 1, DebugFromJS = 2 };
 
-    uintN                        debugModeBits;  // see debugMode() below
-    
-    /*
-     * Malloc counter to measure memory pressure for GC scheduling. It runs
-     * from gcMaxMallocBytes down to zero.
-     */
-    volatile ptrdiff_t           gcMallocBytes;
+    unsigned                     debugModeBits;  // see debugMode() below
 
   public:
     js::NativeIterCache          nativeIterCache;
@@ -341,11 +339,11 @@ struct JSCompartment
     void markTypes(JSTracer *trc);
     void discardJitCode(JSContext *cx);
     void sweep(JSContext *cx, bool releaseTypes);
-    void purge(JSContext *cx);
+    void purge();
 
-    void setGCLastBytes(size_t lastBytes, js::JSGCInvocationKind gckind);
+    void setGCLastBytes(size_t lastBytes, size_t lastMallocBytes, js::JSGCInvocationKind gckind);
     void reduceGCTriggerBytes(size_t amount);
-    
+
     void resetGCMallocBytes();
     void setGCMaxMallocBytes(size_t value);
     void updateMallocCounter(size_t nbytes) {
@@ -355,8 +353,17 @@ struct JSCompartment
         if (JS_UNLIKELY(newCount <= 0 && oldCount > 0))
             onTooMuchMalloc();
     }
-    
+
     void onTooMuchMalloc();
+
+    void mallocInCompartment(size_t nbytes) {
+        gcMallocAndFreeBytes += nbytes;
+    }
+
+    void freeInCompartment(size_t nbytes) {
+        JS_ASSERT(gcMallocAndFreeBytes >= nbytes);
+        gcMallocAndFreeBytes -= nbytes;
+    }
 
     js::DtoaCache dtoaCache;
 
@@ -388,12 +395,8 @@ struct JSCompartment
      */
     bool debugMode() const { return !!debugModeBits; }
 
-    /*
-     * True if any scripts from this compartment are on the JS stack in the
-     * calling thread. cx is a context in the calling thread, and it is assumed
-     * that no other thread is using this compartment.
-     */
-    bool hasScriptsOnStack(JSContext *cx);
+    /* True if any scripts from this compartment are on the JS stack. */
+    bool hasScriptsOnStack();
 
   private:
     /* This is called only when debugMode() has just toggled. */

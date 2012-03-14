@@ -95,6 +95,7 @@ using mozilla::DefaultXDisplay;
 #include "nsIDOMDragEvent.h"
 #include "nsIScrollableFrame.h"
 #include "nsIImageLoadingContent.h"
+#include "nsIObjectLoadingContent.h"
 
 #include "nsContentCID.h"
 #include "nsWidgetsCID.h"
@@ -211,9 +212,10 @@ nsPluginInstanceOwner::GetImageContainer()
     mInstance->GetImageContainer(getter_AddRefs(container));
     if (container) {
 #ifdef XP_MACOSX
-      nsRefPtr<Image> image = container->GetCurrentImage();
+      AutoLockImage autoLock(container);
+      Image* image = autoLock.GetImage();
       if (image && image->GetFormat() == Image::MAC_IO_SURFACE && mObjectFrame) {
-        MacIOSurfaceImage *oglImage = static_cast<MacIOSurfaceImage*>(image.get());
+        MacIOSurfaceImage *oglImage = static_cast<MacIOSurfaceImage*>(image);
         NS_ADDREF_THIS();
         oglImage->SetUpdateCallback(&DrawPlugin, this);
         oglImage->SetDestroyCallback(&OnDestroyImage);
@@ -669,6 +671,15 @@ NS_IMETHODIMP nsPluginInstanceOwner::InvalidateRegion(NPRegion invalidRegion)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
+ 
+NS_IMETHODIMP
+nsPluginInstanceOwner::RedrawPlugin()
+{
+  if (mObjectFrame) {
+    mObjectFrame->InvalidateLayer(mObjectFrame->GetContentRectRelativeToSelf(), nsDisplayItem::TYPE_PLUGIN);
+  }
+  return NS_OK;
+}
 
 NS_IMETHODIMP nsPluginInstanceOwner::GetNetscapeWindow(void *value)
 {
@@ -788,6 +799,21 @@ NPBool nsPluginInstanceOwner::ConvertPoint(double sourceX, double sourceY, NPCoo
   // we should implement this for all platforms
   return false;
 #endif
+}
+
+NPError nsPluginInstanceOwner::InitAsyncSurface(NPSize *size, NPImageFormat format,
+                                                void *initData, NPAsyncSurface *surface)
+{
+  return NPERR_INCOMPATIBLE_VERSION_ERROR;
+}
+
+NPError nsPluginInstanceOwner::FinalizeAsyncSurface(NPAsyncSurface *)
+{
+  return NPERR_INCOMPATIBLE_VERSION_ERROR;
+}
+
+void nsPluginInstanceOwner::SetCurrentAsyncSurface(NPAsyncSurface *, NPRect*)
+{
 }
 
 NS_IMETHODIMP nsPluginInstanceOwner::GetTagType(nsPluginTagType *result)
@@ -1195,6 +1221,31 @@ nsresult nsPluginInstanceOwner::EnsureCachedAttrParamArrays()
     mNumCachedAttrs++;
   }
 
+  // Some plugins (java, bug 406541) don't canonicalize the 'codebase' attribute
+  // in a standard way - codebase="" results in / (domain root), but
+  // codebase="blah" results in ./blah; codebase="file:" results in "file:///".
+  // We canonicalize codebase here to ensure the codebase we run security checks
+  // against is the same codebase java uses.
+  // Note that GetObjectBaseURI mimics some of java's quirks for maximal
+  // compatibility.
+  const char* mime = nsnull;
+  bool addCodebase = false;
+  nsCAutoString codebaseSpec;
+  if (mInstance && NS_SUCCEEDED(mInstance->GetMIMEType(&mime)) && mime &&
+      strcmp(mime, "application/x-java-vm") == 0) {
+    addCodebase = true;
+    nsCOMPtr<nsIObjectLoadingContent> objlContent = do_QueryInterface(mContent);
+    nsCOMPtr<nsIURI> codebaseURI;
+    objlContent->GetObjectBaseURI(nsCString(mime), getter_AddRefs(codebaseURI));
+    nsresult rv = codebaseURI->GetSpec(codebaseSpec);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // Make space if codebase isn't already set
+    if (!mContent->HasAttr(kNameSpaceID_None, nsGkAtoms::codebase)) {
+      mNumCachedAttrs++;
+    }
+  }
+
   mCachedAttrParamNames  = (char**)NS_Alloc(sizeof(char*) * (mNumCachedAttrs + 1 + mNumCachedParams));
   NS_ENSURE_TRUE(mCachedAttrParamNames,  NS_ERROR_OUT_OF_MEMORY);
   mCachedAttrParamValues = (char**)NS_Alloc(sizeof(char*) * (mNumCachedAttrs + 1 + mNumCachedParams));
@@ -1248,9 +1299,19 @@ nsresult nsPluginInstanceOwner::EnsureCachedAttrParamArrays()
         mNumCachedAttrs--;
         wmodeSet = true;
       }
+    } else if (addCodebase && 0 == PL_strcasecmp(mCachedAttrParamNames[nextAttrParamIndex], "codebase")) {
+      mCachedAttrParamValues[nextAttrParamIndex] = ToNewUTF8String(NS_ConvertUTF8toUTF16(codebaseSpec));
+      addCodebase = false;
     } else {
       mCachedAttrParamValues[nextAttrParamIndex] = ToNewUTF8String(value);
     }
+    nextAttrParamIndex++;
+  }
+
+  // Pontentially add CODEBASE attribute
+  if (addCodebase) {
+    mCachedAttrParamNames [nextAttrParamIndex] = ToNewUTF8String(NS_LITERAL_STRING("codebase"));
+    mCachedAttrParamValues[nextAttrParamIndex] = ToNewUTF8String(NS_ConvertUTF8toUTF16(codebaseSpec));
     nextAttrParamIndex++;
   }
 
@@ -3661,17 +3722,18 @@ void nsPluginInstanceOwner::SetFrame(nsObjectFrame *aFrame)
     return;
   }
 
-  // Deal with things that depend on whether or not we used to have a frame.
+  // If we already have a frame that is changing or going away...
   if (mObjectFrame) {
     // We have an old frame.
     // Drop image reference because the child may destroy the surface after we return.
     nsRefPtr<ImageContainer> container = mObjectFrame->GetImageContainer();
     if (container) {
 #ifdef XP_MACOSX
-      nsRefPtr<Image> image = container->GetCurrentImage();
+      AutoLockImage autoLock(container);
+      Image *image = autoLock.GetImage();
       if (image && (image->GetFormat() == Image::MAC_IO_SURFACE) && mObjectFrame) {
         // Undo what we did to the current image in SetCurrentImage().
-        MacIOSurfaceImage *oglImage = static_cast<MacIOSurfaceImage*>(image.get());
+        MacIOSurfaceImage *oglImage = static_cast<MacIOSurfaceImage*>(image);
         oglImage->SetUpdateCallback(nsnull, nsnull);
         oglImage->SetDestroyCallback(nsnull);
         // If we have a current image here, its destructor hasn't yet been
@@ -3679,46 +3741,28 @@ void nsPluginInstanceOwner::SetFrame(nsObjectFrame *aFrame)
         // to do ourselves what OnDestroyImage() would have done.
         NS_RELEASE_THIS();
       }
+      // Important! Unlock here otherwise SetCurrentImage will deadlock with
+      // our lock if we have a RemoteImage.
+      autoLock.Unlock();
 #endif
       container->SetCurrentImage(nsnull);
     }
 
+    // Scroll position listening is only required for Carbon event model plugins on Mac OS X.
 #if defined(XP_MACOSX) && !defined(NP_NO_QUICKDRAW)
-    if (!aFrame) {
-      // At this point we had a frame but it is going away and we're not getting a new one.
-      // Unregister for a scroll position listening, which is only required for Carbon
-      // event model plugins on Mac OS X. It's OK to unregister when we didn't register,
-      // so don't be strict about unregistering. Better to unregister when we didn't have to
-      // than to not unregister when we should.
-      for (nsIFrame* f = mObjectFrame; f; f = nsLayoutUtils::GetCrossDocParentFrame(f)) {
-        nsIScrollableFrame* sf = do_QueryFrame(f);
-        if (sf) {
-          sf->RemoveScrollPositionListener(this);
-        }
+    // Our frame is changing or going away, unregister for a scroll position listening.
+    // It's OK to unregister when we didn't register, so don't be strict about unregistering.
+    // Better to unregister when we didn't have to than to not unregister when we should.
+    for (nsIFrame* f = mObjectFrame; f; f = nsLayoutUtils::GetCrossDocParentFrame(f)) {
+      nsIScrollableFrame* sf = do_QueryFrame(f);
+      if (sf) {
+        sf->RemoveScrollPositionListener(this);
       }
     }
 #endif
 
     // Make sure the old frame isn't holding a reference to us.
     mObjectFrame->SetInstanceOwner(nsnull);
-  } else {
-    // Scroll position listening is only required for Carbon event model plugins on Mac OS X.
-    // Note that we probably have a crash bug in the way we register/unregister, bug 723190.
-    // Bug 723190 is mitigated by limiting registration to Carbon event model plugins.
-#if defined(XP_MACOSX) && !defined(NP_NO_QUICKDRAW)
-    if (aFrame) {
-      // We didn't have an object frame before but we do now. We need to register a scroll
-      // position listener on every scrollable frame up to the top.
-      if (GetEventModel() == NPEventModelCarbon) {
-        for (nsIFrame* f = aFrame; f; f = nsLayoutUtils::GetCrossDocParentFrame(f)) {
-          nsIScrollableFrame* sf = do_QueryFrame(f);
-          if (sf) {
-            sf->AddScrollPositionListener(this);
-          }
-        }
-      }
-    }
-#endif
   }
 
   // Swap in the new frame (or no frame)
@@ -3734,6 +3778,19 @@ void nsPluginInstanceOwner::SetFrame(nsObjectFrame *aFrame)
     }
     mObjectFrame->FixupWindow(mObjectFrame->GetContentRectRelativeToSelf().Size());
     mObjectFrame->Invalidate(mObjectFrame->GetContentRectRelativeToSelf());
+
+    // Scroll position listening is only required for Carbon event model plugins on Mac OS X.
+#if defined(XP_MACOSX) && !defined(NP_NO_QUICKDRAW)
+    // We need to register as a scroll position listener on every scrollable frame up to the top.
+    if (GetEventModel() == NPEventModelCarbon) {
+      for (nsIFrame* f = aFrame; f; f = nsLayoutUtils::GetCrossDocParentFrame(f)) {
+        nsIScrollableFrame* sf = do_QueryFrame(f);
+        if (sf) {
+          sf->AddScrollPositionListener(this);
+        }
+      }
+    }
+#endif
   }
 }
 

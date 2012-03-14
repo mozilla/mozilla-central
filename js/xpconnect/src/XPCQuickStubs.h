@@ -158,7 +158,7 @@ public:
 };
 
 JSBool
-xpc_qsDefineQuickStubs(JSContext *cx, JSObject *proto, uintN extraFlags,
+xpc_qsDefineQuickStubs(JSContext *cx, JSObject *proto, unsigned extraFlags,
                        PRUint32 ifacec, const nsIID **interfaces,
                        PRUint32 tableSize, const xpc_qsHashEntry *table,
                        const xpc_qsPropertySpec *propspecs,
@@ -208,13 +208,13 @@ xpc_qsThrowMethodFailedWithDetails(JSContext *cx, nsresult rv,
  * See NOTE at xpc_qsThrowGetterSetterFailed.
  */
 void
-xpc_qsThrowBadArg(JSContext *cx, nsresult rv, jsval *vp, uintN paramnum);
+xpc_qsThrowBadArg(JSContext *cx, nsresult rv, jsval *vp, unsigned paramnum);
 
 void
-xpc_qsThrowBadArgWithCcx(XPCCallContext &ccx, nsresult rv, uintN paramnum);
+xpc_qsThrowBadArgWithCcx(XPCCallContext &ccx, nsresult rv, unsigned paramnum);
 
 void
-xpc_qsThrowBadArgWithDetails(JSContext *cx, nsresult rv, uintN paramnum,
+xpc_qsThrowBadArgWithDetails(JSContext *cx, nsresult rv, unsigned paramnum,
                              const char *ifaceName, const char *memberName);
 
 /**
@@ -235,13 +235,13 @@ xpc_qsGetterOnlyPropertyStub(JSContext *cx, JSObject *obj, jsid id, JSBool stric
 inline JSBool
 xpc_qsInt64ToJsval(JSContext *cx, PRInt64 i, jsval *rv)
 {
-    return JS_NewNumberValue(cx, static_cast<jsdouble>(i), rv);
+    return JS_NewNumberValue(cx, static_cast<double>(i), rv);
 }
 
 inline JSBool
 xpc_qsUint64ToJsval(JSContext *cx, PRUint64 u, jsval *rv)
 {
-    return JS_NewNumberValue(cx, static_cast<jsdouble>(u), rv);
+    return JS_NewNumberValue(cx, static_cast<double>(u), rv);
 }
 
 
@@ -667,7 +667,7 @@ xpc_qsValueToInt64(JSContext *cx,
             return false;
         *result = static_cast<PRInt64>(intval);
     } else {
-        jsdouble doubleval;
+        double doubleval;
         if (!JS_ValueToNumber(cx, v, &doubleval))
             return false;
         *result = static_cast<PRInt64>(doubleval);
@@ -689,7 +689,7 @@ xpc_qsValueToUint64(JSContext *cx,
             return false;
         *result = static_cast<PRUint64>(intval);
     } else {
-        jsdouble doubleval;
+        double doubleval;
         if (!JS_ValueToNumber(cx, v, &doubleval))
             return false;
         *result = static_cast<PRUint64>(doubleval);

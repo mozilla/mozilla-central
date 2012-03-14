@@ -314,7 +314,7 @@ nsresult
 nsHTMLButtonAccessible::GetNameInternal(nsAString& aName)
 {
   nsAccessible::GetNameInternal(aName);
-  if (!aName.IsEmpty())
+  if (!aName.IsEmpty() || mContent->Tag() != nsGkAtoms::input)
     return NS_OK;
 
   // No name from HTML or ARIA
@@ -348,71 +348,6 @@ nsHTMLButtonAccessible::GetNameInternal(nsAString& aName)
 
 bool
 nsHTMLButtonAccessible::IsWidget() const
-{
-  return true;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-// nsHTML4ButtonAccessible
-////////////////////////////////////////////////////////////////////////////////
-
-nsHTML4ButtonAccessible::
-  nsHTML4ButtonAccessible(nsIContent* aContent, nsDocAccessible* aDoc) :
-  nsHyperTextAccessibleWrap(aContent, aDoc)
-{
-}
-
-PRUint8
-nsHTML4ButtonAccessible::ActionCount()
-{
-  return 1;
-}
-
-NS_IMETHODIMP nsHTML4ButtonAccessible::GetActionName(PRUint8 aIndex, nsAString& aName)
-{
-  if (aIndex == eAction_Click) {
-    aName.AssignLiteral("press"); 
-    return NS_OK;
-  }
-  return NS_ERROR_INVALID_ARG;
-}
-
-NS_IMETHODIMP
-nsHTML4ButtonAccessible::DoAction(PRUint8 aIndex)
-{
-  if (aIndex != 0)
-    return NS_ERROR_INVALID_ARG;
-
-  DoCommand();
-  return NS_OK;
-}
-
-role
-nsHTML4ButtonAccessible::NativeRole()
-{
-  return roles::PUSHBUTTON;
-}
-
-PRUint64
-nsHTML4ButtonAccessible::NativeState()
-{
-  PRUint64 state = nsHyperTextAccessibleWrap::NativeState();
-
-  state |= states::FOCUSABLE;
-
-  nsEventStates elmState = mContent->AsElement()->State();
-  if (elmState.HasState(NS_EVENT_STATE_DEFAULT))
-    state |= states::DEFAULT;
-
-  return state;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// nsHTML4ButtonAccessible: Widgets
-
-bool
-nsHTML4ButtonAccessible::IsWidget() const
 {
   return true;
 }
@@ -609,11 +544,12 @@ NS_IMETHODIMP nsHTMLTextFieldAccessible::DoAction(PRUint8 index)
   return NS_ERROR_INVALID_ARG;
 }
 
-NS_IMETHODIMP nsHTMLTextFieldAccessible::GetAssociatedEditor(nsIEditor **aEditor)
+already_AddRefed<nsIEditor>
+nsHTMLTextFieldAccessible::GetEditor() const
 {
-  *aEditor = nsnull;
   nsCOMPtr<nsIDOMNSEditableElement> editableElt(do_QueryInterface(mContent));
-  NS_ENSURE_TRUE(editableElt, NS_ERROR_FAILURE);
+  if (!editableElt)
+    return nsnull;
 
   // nsGenericHTMLElement::GetEditor has a security check.
   // Make sure we're not restricted by the permissions of
@@ -623,7 +559,7 @@ NS_IMETHODIMP nsHTMLTextFieldAccessible::GetAssociatedEditor(nsIEditor **aEditor
   bool pushed = stack && NS_SUCCEEDED(stack->Push(nsnull));
 
   nsCOMPtr<nsIEditor> editor;
-  nsresult rv = editableElt->GetEditor(aEditor);
+  editableElt->GetEditor(getter_AddRefs(editor));
 
   if (pushed) {
     JSContext* cx;
@@ -631,7 +567,7 @@ NS_IMETHODIMP nsHTMLTextFieldAccessible::GetAssociatedEditor(nsIEditor **aEditor
     NS_ASSERTION(!cx, "context should be null");
   }
 
-  return rv;
+  return editor.forget();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

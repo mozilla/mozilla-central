@@ -67,7 +67,6 @@
 #include "nsTArray.h"
 #include "nsIScrollableFrame.h"
 #include "nsCCUncollectableMarker.h"
-#include "nsISelectionListener.h"
 #include "nsIContentIterator.h"
 #include "nsIDocumentEncoder.h"
 
@@ -97,7 +96,6 @@ static NS_DEFINE_CID(kFrameTraversalCID, NS_FRAMETRAVERSAL_CID);
 #include "nsITimer.h"
 #include "nsIServiceManager.h"
 #include "nsFrameManager.h"
-#include "nsIScrollableFrame.h"
 // notifications
 #include "nsIDOMDocument.h"
 #include "nsIDocument.h"
@@ -3296,9 +3294,7 @@ nsFrameSelection::DeleteFromDocument()
 {
   nsresult res;
 
-  // If we're already collapsed, then set ourselves to include the
-  // last item BEFORE the current range, rather than the range itself,
-  // before we do the delete.
+  // If we're already collapsed, then we do nothing (bug 719503).
   bool isCollapsed;
   PRInt8 index = GetIndexFromSelectionType(nsISelectionController::SELECTION_NORMAL);
   if (!mDomSelections[index])
@@ -3307,17 +3303,7 @@ nsFrameSelection::DeleteFromDocument()
   mDomSelections[index]->GetIsCollapsed( &isCollapsed);
   if (isCollapsed)
   {
-    // If the offset is positive, then it's easy:
-    if (mDomSelections[index]->GetFocusOffset() > 0)
-    {
-      mDomSelections[index]->Extend(mDomSelections[index]->GetFocusNode(), mDomSelections[index]->GetFocusOffset() - 1);
-    }
-    else
-    {
-      // Otherwise it's harder, have to find the previous node
-      printf("Sorry, don't know how to delete across frame boundaries yet\n");
-      return NS_ERROR_NOT_IMPLEMENTED;
-    }
+    return NS_OK;
   }
 
   // Get an iterator
@@ -5706,24 +5692,23 @@ nsTypedSelection::NotifySelectionListeners()
   if (!mFrameSelection)
     return NS_OK;//nothing to do
  
-  if (mFrameSelection->GetBatching()){
+  if (mFrameSelection->GetBatching()) {
     mFrameSelection->SetDirty();
     return NS_OK;
   }
-  PRInt32 cnt = mSelectionListeners.Count();
   nsCOMArray<nsISelectionListener> selectionListeners(mSelectionListeners);
-  
+  PRInt32 cnt = selectionListeners.Count();
+  if (cnt != mSelectionListeners.Count()) {
+    return NS_ERROR_OUT_OF_MEMORY;  // nsCOMArray is fallible
+  }
   nsCOMPtr<nsIDOMDocument> domdoc;
   nsCOMPtr<nsIPresShell> shell;
   nsresult rv = GetPresShell(getter_AddRefs(shell));
   if (NS_SUCCEEDED(rv) && shell)
     domdoc = do_QueryInterface(shell->GetDocument());
   short reason = mFrameSelection->PopReason();
-  for (PRInt32 i = 0; i < cnt; i++)
-  {
-    nsISelectionListener* thisListener = selectionListeners[i];
-    if (thisListener)
-      thisListener->NotifySelectionChanged(domdoc, this, reason);
+  for (PRInt32 i = 0; i < cnt; i++) {
+    selectionListeners[i]->NotifySelectionChanged(domdoc, this, reason);
   }
   return NS_OK;
 }

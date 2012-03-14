@@ -4,14 +4,16 @@ browser.jar:
 * skin/classic/browser/aboutPrivateBrowsing.css             (aboutPrivateBrowsing.css)
 * skin/classic/browser/aboutSessionRestore.css              (aboutSessionRestore.css)
   skin/classic/browser/aboutSessionRestore-window-icon.png
-  skin/classic/browser/aboutCertError.css                   (aboutCertError.css)
+  skin/classic/browser/aboutCertError.css
+  skin/classic/browser/aboutCertError_sectionCollapsed.png
+  skin/classic/browser/aboutCertError_sectionCollapsed-rtl.png
+  skin/classic/browser/aboutCertError_sectionExpanded.png
 #ifdef MOZ_SERVICES_SYNC
   skin/classic/browser/aboutSyncTabs.css
 #endif
   skin/classic/browser/actionicon-tab.png
 * skin/classic/browser/browser.css                          (browser.css)
 * skin/classic/browser/engineManager.css                    (engineManager.css)
-  skin/classic/browser/fullscreen-video.css
   skin/classic/browser/Geolocation-16.png
   skin/classic/browser/Geolocation-64.png
   skin/classic/browser/home.png
@@ -29,7 +31,6 @@ browser.jar:
   skin/classic/browser/menu-back.png
   skin/classic/browser/menu-forward.png
   skin/classic/browser/page-livemarks.png
-  skin/classic/browser/livemark-item.png
   skin/classic/browser/pageInfo.css
   skin/classic/browser/Privacy-16.png
   skin/classic/browser/Privacy-48.png
@@ -37,9 +38,6 @@ browser.jar:
   skin/classic/browser/searchbar-dropmarker.png
   skin/classic/browser/searchbar.css
   skin/classic/browser/Search.png
-  skin/classic/browser/section_collapsed.png
-  skin/classic/browser/section_collapsed-rtl.png
-  skin/classic/browser/section_expanded.png
   skin/classic/browser/Secure-Glyph-White.png
   skin/classic/browser/keyhole-circle.png
   skin/classic/browser/Toolbar.png
@@ -56,10 +54,9 @@ browser.jar:
   skin/classic/browser/feeds/audioFeedIcon.png              (feeds/feedIcon.png)
   skin/classic/browser/feeds/audioFeedIcon16.png            (feeds/feedIcon16.png)
   skin/classic/browser/newtab/newTab.css                    (newtab/newTab.css)
-  skin/classic/browser/newtab/strip.png                     (newtab/strip.png)
-  skin/classic/browser/newtab/toolbar.png                   (newtab/toolbar.png)
+  skin/classic/browser/newtab/controls.png                  (newtab/controls.png)
+  skin/classic/browser/newtab/noise.png                     (newtab/noise.png)
   skin/classic/browser/setDesktopBackground.css
-  skin/classic/browser/inspector.css
   skin/classic/browser/monitor.png
   skin/classic/browser/monitor_16-10.png
   skin/classic/browser/places/allBookmarks.png              (places/allBookmarks.png)
@@ -90,6 +87,7 @@ browser.jar:
   skin/classic/browser/places/expander-closed.png           (places/expander-closed.png)
   skin/classic/browser/places/expander-open-active.png      (places/expander-open-active.png)
   skin/classic/browser/places/expander-open.png             (places/expander-open.png)
+  skin/classic/browser/places/livemark-item.png             (places/livemark-item.png)
   skin/classic/browser/preferences/alwaysAsk.png            (preferences/alwaysAsk.png)
   skin/classic/browser/preferences/application.png          (preferences/application.png)
   skin/classic/browser/preferences/Options.png              (preferences/Options.png)
@@ -127,10 +125,15 @@ browser.jar:
 * skin/classic/browser/devtools/common.css                  (devtools/common.css)
   skin/classic/browser/devtools/arrows.png                  (devtools/arrows.png)
   skin/classic/browser/devtools/commandline.png             (devtools/commandline.png)
+  skin/classic/browser/devtools/alerticon-warning.png       (devtools/alerticon-warning.png)
   skin/classic/browser/devtools/goto-mdn.png                (devtools/goto-mdn.png)
   skin/classic/browser/devtools/csshtmltree.css             (devtools/csshtmltree.css)
   skin/classic/browser/devtools/gcli.css                    (devtools/gcli.css)
+  skin/classic/browser/devtools/htmlpanel.css               (devtools/htmlpanel.css)
   skin/classic/browser/devtools/orion.css                   (devtools/orion.css)
+  skin/classic/browser/devtools/orion-container.css         (devtools/orion-container.css)
+  skin/classic/browser/devtools/orion-task.png              (devtools/orion-task.png)
+  skin/classic/browser/devtools/orion-breakpoint.png        (devtools/orion-breakpoint.png)
   skin/classic/browser/devtools/toolbarbutton-close.png     (devtools/toolbarbutton-close.png)
 * skin/classic/browser/devtools/webconsole.css                  (devtools/webconsole.css)
   skin/classic/browser/devtools/webconsole_networkpanel.css     (devtools/webconsole_networkpanel.css)
@@ -162,11 +165,12 @@ browser.jar:
   skin/classic/browser/devtools/splitview.css               (devtools/splitview.css)
   skin/classic/browser/devtools/styleeditor.css             (devtools/styleeditor.css)
   skin/classic/browser/devtools/debugger.css                (devtools/debugger.css)
-  skin/classic/browser/devtools/magnifying-glass.png	    (devtools/magnifying-glass.png)
-  skin/classic/browser/devtools/itemToggle.png		    (devtools/itemToggle.png)
-  skin/classic/browser/devtools/itemArrow-rtl.png	    (devtools/itemArrow-rtl.png)
-  skin/classic/browser/devtools/itemArrow-ltr.png	    (devtools/itemArrow-ltr.png)
+  skin/classic/browser/devtools/magnifying-glass.png        (devtools/magnifying-glass.png)
+  skin/classic/browser/devtools/itemToggle.png              (devtools/itemToggle.png)
+  skin/classic/browser/devtools/itemArrow-rtl.png           (devtools/itemArrow-rtl.png)
+  skin/classic/browser/devtools/itemArrow-ltr.png           (devtools/itemArrow-ltr.png)
   skin/classic/browser/devtools/background-noise-toolbar.png (devtools/background-noise-toolbar.png)
+  skin/classic/browser/devtools/inspect-button.png          (devtools/inspect-button.png)
 #ifdef MOZ_SERVICES_SYNC
   skin/classic/browser/sync-throbber.png
   skin/classic/browser/sync-16.png
@@ -187,6 +191,8 @@ browser.jar:
   skin/classic/browser/lion/tabbrowser/alltabs-box-bkgnd-icon.png      (tabbrowser/alltabs-box-bkgnd-icon-lion.png)
   skin/classic/browser/lion/tabview/tabview.png                        (tabview/tabview-lion.png)
   skin/classic/browser/lion/places/toolbar.png              (places/toolbar-lion.png)
+  skin/classic/browser/webapps-16.png
+  skin/classic/browser/webapps-64.png
 
 % override chrome://browser/skin/keyhole-circle.png                        chrome://browser/skin/lion/keyhole-circle.png                           os=Darwin osversion>=10.7
 % override chrome://browser/skin/Toolbar.png                               chrome://browser/skin/lion/Toolbar.png                                  os=Darwin osversion>=10.7

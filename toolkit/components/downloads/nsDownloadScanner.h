@@ -1,6 +1,5 @@
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* vim: se cin sw=2 ts=2 et : */
-#if MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
 
 #ifndef nsDownloadScanner_h_
 #define nsDownloadScanner_h_
@@ -12,11 +11,6 @@
 #include <windows.h>
 #define AVVENDOR
 #include <msoav.h>
-// To cope with both msvs8 header and sdk6 header
-#ifdef _WIN32_IE_IE60SP2
-#undef _WIN32_IE
-#define _WIN32_IE _WIN32_IE_IE60SP2
-#endif
 #include <shlobj.h>
 
 #include "nsAutoPtr.h"
@@ -121,4 +115,3 @@ private:
 };
 #endif
 
-#endif // MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN

@@ -333,8 +333,7 @@ nsDocAccessible::NativeState()
     state |= states::INVISIBLE | states::OFFSCREEN;
   }
 
-  nsCOMPtr<nsIEditor> editor;
-  GetAssociatedEditor(getter_AddRefs(editor));
+  nsCOMPtr<nsIEditor> editor = GetEditor();
   state |= editor ? states::EDITABLE : states::READONLY;
 
   return state;
@@ -553,37 +552,32 @@ nsDocAccessible::GetVirtualCursor(nsIAccessiblePivot** aVirtualCursor)
   return NS_OK;
 }
 
-// nsIAccessibleHyperText method
-NS_IMETHODIMP nsDocAccessible::GetAssociatedEditor(nsIEditor **aEditor)
+// nsHyperTextAccessible method
+already_AddRefed<nsIEditor>
+nsDocAccessible::GetEditor() const
 {
-  NS_ENSURE_ARG_POINTER(aEditor);
-  *aEditor = nsnull;
-
-  if (IsDefunct())
-    return NS_ERROR_FAILURE;
-
   // Check if document is editable (designMode="on" case). Otherwise check if
   // the html:body (for HTML document case) or document element is editable.
   if (!mDocument->HasFlag(NODE_IS_EDITABLE) &&
       !mContent->HasFlag(NODE_IS_EDITABLE))
-    return NS_OK;
+    return nsnull;
 
   nsCOMPtr<nsISupports> container = mDocument->GetContainer();
   nsCOMPtr<nsIEditingSession> editingSession(do_GetInterface(container));
   if (!editingSession)
-    return NS_OK; // No editing session interface
+    return nsnull; // No editing session interface
 
   nsCOMPtr<nsIEditor> editor;
   editingSession->GetEditorForWindow(mDocument->GetWindow(), getter_AddRefs(editor));
-  if (!editor) {
-    return NS_OK;
-  }
-  bool isEditable;
+  if (!editor)
+    return nsnull;
+
+  bool isEditable = false;
   editor->GetIsDocumentEditable(&isEditable);
-  if (isEditable) {
-    NS_ADDREF(*aEditor = editor);
-  }
-  return NS_OK;
+  if (isEditable)
+    return editor.forget();
+
+  return nsnull;
 }
 
 // nsDocAccessible public method
@@ -929,7 +923,8 @@ nsDocAccessible::OnPivotChanged(nsIAccessiblePivot* aPivot,
                                 nsIAccessible* aOldAccessible,
                                 PRInt32 aOldStart, PRInt32 aOldEnd)
 {
-  nsRefPtr<AccEvent> event = new AccEvent(nsIAccessibleEvent::EVENT_VIRTUALCURSOR_CHANGED, this);
+  nsRefPtr<AccEvent> event = new AccVCChangeEvent(this, aOldAccessible,
+                                                  aOldStart, aOldEnd);
   nsEventShell::FireEvent(event);
 
   return NS_OK;

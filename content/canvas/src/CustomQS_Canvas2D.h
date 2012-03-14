@@ -246,7 +246,7 @@ GetImageDataDimensions(JSContext *cx, JSObject *dataObject, uint32_t *width, uin
 }
 
 static JSBool
-nsIDOMCanvasRenderingContext2D_CreateImageData(JSContext *cx, uintN argc, jsval *vp)
+nsIDOMCanvasRenderingContext2D_CreateImageData(JSContext *cx, unsigned argc, jsval *vp)
 {
     XPC_QS_ASSERT_CONTEXT_OK(cx);
 
@@ -272,7 +272,7 @@ nsIDOMCanvasRenderingContext2D_CreateImageData(JSContext *cx, uintN argc, jsval 
         return CreateImageData(cx, data_width, data_height, NULL, 0, 0, vp);
     }
 
-    jsdouble width, height;
+    double width, height;
     if (!JS_ValueToNumber(cx, argv[0], &width) ||
         !JS_ValueToNumber(cx, argv[1], &height))
         return false;
@@ -292,7 +292,7 @@ nsIDOMCanvasRenderingContext2D_CreateImageData(JSContext *cx, uintN argc, jsval 
 }
 
 static JSBool
-nsIDOMCanvasRenderingContext2D_GetImageData(JSContext *cx, uintN argc, jsval *vp)
+nsIDOMCanvasRenderingContext2D_GetImageData(JSContext *cx, unsigned argc, jsval *vp)
 {
     XPC_QS_ASSERT_CONTEXT_OK(cx);
 
@@ -311,7 +311,7 @@ nsIDOMCanvasRenderingContext2D_GetImageData(JSContext *cx, uintN argc, jsval *vp
 
     jsval *argv = JS_ARGV(cx, vp);
 
-    jsdouble xd, yd, width, height;
+    double xd, yd, width, height;
     if (!JS_ValueToNumber(cx, argv[0], &xd) ||
         !JS_ValueToNumber(cx, argv[1], &yd) ||
         !JS_ValueToNumber(cx, argv[2], &width) ||
@@ -349,7 +349,7 @@ nsIDOMCanvasRenderingContext2D_GetImageData(JSContext *cx, uintN argc, jsval *vp
 }
 
 static JSBool
-nsIDOMCanvasRenderingContext2D_PutImageData(JSContext *cx, uintN argc, jsval *vp)
+nsIDOMCanvasRenderingContext2D_PutImageData(JSContext *cx, unsigned argc, jsval *vp)
 {
     XPC_QS_ASSERT_CONTEXT_OK(cx);
 

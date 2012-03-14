@@ -62,7 +62,7 @@
 #include "gfxUserFontSet.h"
 #include "gfxPlatformFontList.h"
 #include "gfxScriptItemizer.h"
-#include "gfxUnicodeProperties.h"
+#include "nsUnicodeProperties.h"
 #include "nsMathUtils.h"
 #include "nsBidiUtils.h"
 #include "nsUnicodeRange.h"
@@ -83,6 +83,7 @@
 
 using namespace mozilla;
 using namespace mozilla::gfx;
+using namespace mozilla::unicode;
 using mozilla::services::GetObserverService;
 
 gfxFontCache *gfxFontCache::gGlobalCache = nsnull;
@@ -689,41 +690,64 @@ void gfxFontFamily::LocalizedName(nsAString& aLocalizedName)
     aLocalizedName = mName;
 }
 
-
-void
-gfxFontFamily::FindFontForChar(FontSearch *aMatchData)
+// metric for how close a given font matches a style
+static PRInt32
+CalcStyleMatch(gfxFontEntry *aFontEntry, const gfxFontStyle *aStyle)
 {
-    if (!mHasStyles) {
-        FindStyleVariations();
+    PRInt32 rank = 0;
+    if (aStyle) {
+         // italics
+         bool wantItalic =
+             ((aStyle->style & (FONT_STYLE_ITALIC | FONT_STYLE_OBLIQUE)) != 0);
+         if (aFontEntry->IsItalic() == wantItalic) {
+             rank += 10;
+         }
+
+        // measure of closeness of weight to the desired value
+        rank += 9 - abs(aFontEntry->Weight() / 100 - aStyle->ComputeWeight());
+    } else {
+        // if no font to match, prefer non-bold, non-italic fonts
+        if (!aFontEntry->IsItalic()) {
+            rank += 3;
+        }
+        if (!aFontEntry->IsBold()) {
+            rank += 2;
+        }
     }
 
-    if (!TestCharacterMap(aMatchData->mCh)) {
+    return rank;
+}
+
+#define RANK_MATCHED_CMAP   20
+
+void
+gfxFontFamily::FindFontForChar(GlobalFontMatch *aMatchData)
+{
+    if (mCharacterMapInitialized && !TestCharacterMap(aMatchData->mCh)) {
         // none of the faces in the family support the required char,
         // so bail out immediately
         return;
     }
 
-    // iterate over fonts
-    PRUint32 numFonts = mAvailableFonts.Length();
-    for (PRUint32 i = 0; i < numFonts; i++) {
-        gfxFontEntry *fe = mAvailableFonts[i];
+    bool needsBold;
+    gfxFontStyle normal;
+    gfxFontEntry *fe = FindFontForStyle(
+                  (aMatchData->mStyle == nsnull) ? *aMatchData->mStyle : normal,
+                  needsBold);
 
-        // skip certain fonts during system fallback
-        if (!fe || fe->SkipDuringSystemFallback())
-            continue;
-
+    if (fe && !fe->SkipDuringSystemFallback()) {
         PRInt32 rank = 0;
 
         if (fe->TestCharacterMap(aMatchData->mCh)) {
-            rank += 20;
+            rank += RANK_MATCHED_CMAP;
             aMatchData->mCount++;
 #ifdef PR_LOGGING
             PRLogModuleInfo *log = gfxPlatform::GetLog(eGfxLog_textrun);
-        
+
             if (NS_UNLIKELY(log)) {
                 PRUint32 charRange = gfxFontUtils::CharRangeBit(aMatchData->mCh);
                 PRUint32 unicodeRange = FindCharUnicodeRange(aMatchData->mCh);
-                PRUint32 script = gfxUnicodeProperties::GetScriptCode(aMatchData->mCh);
+                PRUint32 script = GetScriptCode(aMatchData->mCh);
                 PR_LOG(log, PR_LOG_DEBUG,\
                        ("(textrun-systemfallback-fonts) char: u+%6.6x "
                         "char-range: %d unicode-range: %d script: %d match: [%s]\n",
@@ -734,43 +758,43 @@ gfxFontFamily::FindFontForChar(FontSearch *aMatchData)
 #endif
         }
 
-        // if we didn't match any characters don't bother wasting more time with this face.
-        if (rank == 0)
-            continue;
-            
-        // omitting from original windows code -- family name, lang group, pitch
-        // not available in current FontEntry implementation
-
-        if (aMatchData->mFontToMatch) { 
-            const gfxFontStyle *style = aMatchData->mFontToMatch->GetStyle();
-
-            // matching italics takes precedence over weight
-            bool wantItalic =
-                ((style->style & (FONT_STYLE_ITALIC | FONT_STYLE_OBLIQUE)) != 0);
-            if (fe->IsItalic() == wantItalic) {
-                rank += 10;
-            }
-
-            // measure of closeness of weight to the desired value
-            rank += 9 - abs(fe->Weight() / 100 - style->ComputeWeight());
-        } else {
-            // if no font to match, prefer non-bold, non-italic fonts
-            if (!fe->IsItalic()) {
-                rank += 3;
-            }
-            if (!fe->IsBold()) {
-                rank += 2;
-            }
+        aMatchData->mCmapsTested++;
+        if (rank == 0) {
+            return;
         }
-        
+
+         // omitting from original windows code -- family name, lang group, pitch
+         // not available in current FontEntry implementation
+        rank += CalcStyleMatch(fe, aMatchData->mStyle);
+
         // xxx - add whether AAT font with morphing info for specific lang groups
-        
+
         if (rank > aMatchData->mMatchRank
             || (rank == aMatchData->mMatchRank &&
-                Compare(fe->Name(), aMatchData->mBestMatch->Name()) > 0)) 
+                Compare(fe->Name(), aMatchData->mBestMatch->Name()) > 0))
         {
             aMatchData->mBestMatch = fe;
             aMatchData->mMatchRank = rank;
+        }
+    }
+}
+
+void
+gfxFontFamily::SearchAllFontsForChar(GlobalFontMatch *aMatchData)
+{
+    PRUint32 i, numFonts = mAvailableFonts.Length();
+    for (i = 0; i < numFonts; i++) {
+        gfxFontEntry *fe = mAvailableFonts[i];
+        if (fe && fe->TestCharacterMap(aMatchData->mCh)) {
+            PRInt32 rank = RANK_MATCHED_CMAP;
+            rank += CalcStyleMatch(fe, aMatchData->mStyle);
+            if (rank > aMatchData->mMatchRank
+                || (rank == aMatchData->mMatchRank &&
+                    Compare(fe->Name(), aMatchData->mBestMatch->Name()) > 0))
+            {
+                aMatchData->mBestMatch = fe;
+                aMatchData->mMatchRank = rank;
+            }
         }
     }
 }
@@ -1874,16 +1898,6 @@ gfxFont::Measure(gfxTextRun *aTextRun,
                               // within 1K chars, just chop arbitrarily.
                               // Limiting backtrack here avoids pathological
                               // behavior on long runs with no whitespace.
-
-static bool
-IsClusterExtender(PRUint32 aUSV)
-{
-    PRUint8 category = gfxUnicodeProperties::GetGeneralCategory(aUSV);
-    return ((category >= HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK &&
-             category <= HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK) ||
-            (aUSV >= 0x200c && aUSV <= 0x200d) || // ZWJ, ZWNJ
-            (aUSV >= 0xff9e && aUSV <= 0xff9f));  // katakana sound marks
-}
 
 static bool
 IsBoundarySpace(PRUnichar aChar, PRUnichar aNextChar)
@@ -3162,7 +3176,7 @@ gfxFontGroup::InitTextRun(gfxContext *aContext,
                 nsCAutoString lang;
                 mStyle.language->ToUTF8String(lang);
                 PRUint32 runLen = runLimit - runStart;
-                PR_LOG(log, PR_LOG_DEBUG,\
+                PR_LOG(log, PR_LOG_WARNING,\
                        ("(%s) fontgroup: [%s] lang: %s script: %d len %d "
                         "weight: %d width: %d style: %s "
                         "TEXTRUN [%s] ENDTEXTRUN\n",
@@ -3332,7 +3346,7 @@ gfxFontGroup::FindFontForChar(PRUint32 aCh, PRUint32 aPrevCh,
         // Don't switch fonts for control characters, regardless of
         // whether they are present in the current font, as they won't
         // actually be rendered (see bug 716229)
-        PRUint8 category = gfxUnicodeProperties::GetGeneralCategory(aCh);
+        PRUint8 category = GetGeneralCategory(aCh);
         if (category == HB_UNICODE_GENERAL_CATEGORY_CONTROL) {
             selectedFont = aPrevMatchedFont;
             return selectedFont.forget();
@@ -3368,11 +3382,12 @@ gfxFontGroup::FindFontForChar(PRUint32 aCh, PRUint32 aPrevCh,
             *aMatchType = gfxTextRange::kFontGroup;
             return font.forget();
         }
+
         // check other faces of the family
         gfxFontFamily *family = font->GetFontEntry()->Family();
         if (family && family->TestCharacterMap(aCh)) {
-            FontSearch matchData(aCh, font);
-            family->FindFontForChar(&matchData);
+            GlobalFontMatch matchData(aCh, aRunScript, &mStyle);
+            family->SearchAllFontsForChar(&matchData);
             gfxFontEntry *fe = matchData.mBestMatch;
             if (fe) {
                 bool needsBold =
@@ -3404,9 +3419,14 @@ gfxFontGroup::FindFontForChar(PRUint32 aCh, PRUint32 aPrevCh,
         return selectedFont.forget();
     }
 
+    // never fall back for characters from unknown scripts
+    if (aRunScript == HB_SCRIPT_UNKNOWN) {
+        return nsnull;
+    }
+
     // for known "space" characters, don't do a full system-fallback search;
     // we'll synthesize appropriate-width spaces instead of missing-glyph boxes
-    if (gfxUnicodeProperties::GetGeneralCategory(aCh) ==
+    if (GetGeneralCategory(aCh) ==
             HB_UNICODE_GENERAL_CATEGORY_SPACE_SEPARATOR &&
         GetFontAt(0)->SynthesizeSpaceWidth(aCh) >= 0.0)
     {
@@ -3416,7 +3436,7 @@ gfxFontGroup::FindFontForChar(PRUint32 aCh, PRUint32 aPrevCh,
     // -- otherwise look for other stuff
     if (!selectedFont) {
         *aMatchType = gfxTextRange::kSystemFallback;
-        selectedFont = WhichSystemFontSupportsChar(aCh);
+        selectedFont = WhichSystemFontSupportsChar(aCh, aRunScript);
         return selectedFont.forget();
     }
 
@@ -3561,10 +3581,6 @@ gfxFontGroup::WhichPrefFontSupportsChar(PRUint32 aCh)
 {
     gfxFont *font;
 
-    // FindCharUnicodeRange only supports BMP character points and there are no non-BMP fonts in prefs
-    if (aCh > 0xFFFF)
-        return nsnull;
-
     // get the pref font list if it hasn't been set up already
     PRUint32 unicodeRange = FindCharUnicodeRange(aCh);
     eFontPrefLang charLang = gfxPlatform::GetPlatform()->GetFontPrefLangFor(unicodeRange);
@@ -3636,12 +3652,14 @@ gfxFontGroup::WhichPrefFontSupportsChar(PRUint32 aCh)
 }
 
 already_AddRefed<gfxFont>
-gfxFontGroup::WhichSystemFontSupportsChar(PRUint32 aCh)
+gfxFontGroup::WhichSystemFontSupportsChar(PRUint32 aCh, PRInt32 aRunScript)
 {
     gfxFontEntry *fe = 
-        gfxPlatformFontList::PlatformFontList()->FindFontForChar(aCh, GetFontAt(0));
+        gfxPlatformFontList::PlatformFontList()->
+            SystemFindFontForChar(aCh, aRunScript, &mStyle);
     if (fe) {
-        nsRefPtr<gfxFont> font = fe->FindOrMakeFont(&mStyle, false); // ignore bolder considerations in system fallback case...
+        // ignore bolder considerations in system fallback case...
+        nsRefPtr<gfxFont> font = fe->FindOrMakeFont(&mStyle, false);
         return font.forget();
     }
 
@@ -3690,9 +3708,20 @@ gfxFontStyle::ParseFontFeatureSettings(const nsString& aFeatureString,
       PRInt32 rv;
       setting.mValue = valString.ToInteger(&rv);
       if (rv == NS_OK) {
-        // we keep the features array sorted so that we can
-        // use nsTArray<>::Equals() to compare feature lists
-        aFeatures.InsertElementSorted(setting);
+        PRUint32 i;
+        // could optimize this based on the fact that the features array
+        // is sorted, but it's unlikely to be more than a few entries
+        for (i = 0; i < aFeatures.Length(); i++) {
+          if (aFeatures[i].mTag == setting.mTag) {
+            aFeatures[i].mValue = setting.mValue;
+            break;
+          }
+        }
+        if (i == aFeatures.Length()) {
+          // we keep the features array sorted so that we can
+          // use nsTArray<>::Equals() to compare feature lists
+          aFeatures.InsertElementSorted(setting);
+        }
       }
     }
     offset = limit + 1;
@@ -3796,95 +3825,25 @@ gfxShapedWord::SetupClusterBoundaries(CompressedGlyph *aGlyphs,
     gfxTextRun::CompressedGlyph extendCluster;
     extendCluster.SetComplex(false, true, 0);
 
-    gfxUnicodeProperties::HSType hangulState = gfxUnicodeProperties::HST_NONE;
+    ClusterIterator iter(aString, aLength);
 
-    for (PRUint32 i = 0; i < aLength; ++i) {
-        bool surrogatePair = false;
-        PRUint32 ch = aString[i];
-        if (NS_IS_HIGH_SURROGATE(ch) &&
-            i < aLength - 1 && NS_IS_LOW_SURROGATE(aString[i+1]))
-        {
-            ch = SURROGATE_TO_UCS4(ch, aString[i+1]);
-            surrogatePair = true;
+    // the ClusterIterator won't be able to tell us if the string
+    // _begins_ with a cluster-extender, so we handle that here
+    if (aLength && IsClusterExtender(*aString)) {
+        *aGlyphs = extendCluster;
+    }
+
+    while (!iter.AtEnd()) {
+        // advance iter to the next cluster-start (or end of text)
+        iter.Next();
+        // step past the first char of the cluster
+        aString++;
+        aGlyphs++;
+        // mark all the rest as cluster-continuations
+        while (aString < iter) {
+            *aGlyphs++ = extendCluster;
+            aString++;
         }
-
-        PRUint8 category = gfxUnicodeProperties::GetGeneralCategory(ch);
-        gfxUnicodeProperties::HSType hangulType = gfxUnicodeProperties::HST_NONE;
-
-        // combining marks extend the cluster
-        if (IsClusterExtender(ch)) {
-            aGlyphs[i] = extendCluster;
-        } else if (category == HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER) {
-            // handle special cases in Letter_Other category
-#if 0
-            // Currently disabled. This would follow the UAX#29 specification
-            // for extended grapheme clusters, but this is not favored by
-            // Thai users, at least for editing behavior.
-            // See discussion of equivalent Pango issue in bug 474068 and
-            // upstream at https://bugzilla.gnome.org/show_bug.cgi?id=576156.
-
-            if ((ch & ~0xff) == 0x0e00) {
-                // specific Thai & Lao (U+0Exx) chars that extend the cluster
-                if ( ch == 0x0e30 ||
-                    (ch >= 0x0e32 && ch <= 0x0e33) ||
-                     ch == 0x0e45 ||
-                     ch == 0x0eb0 ||
-                    (ch >= 0x0eb2 && ch <= 0x0eb3))
-                {
-                    if (i > 0) {
-                        aTextRun->SetGlyphs(i, extendCluster, nsnull);
-                    }
-                }
-                else if ((ch >= 0x0e40 && ch <= 0x0e44) ||
-                         (ch >= 0x0ec0 && ch <= 0x0ec4))
-                {
-                    // characters that are prepended to the following cluster
-                    if (i < length - 1) {
-                        aTextRun->SetGlyphs(i+1, extendCluster, nsnull);
-                    }
-                }
-            } else
-#endif
-            if ((ch & ~0xff) == 0x1100 ||
-                (ch >= 0xa960 && ch <= 0xa97f) ||
-                (ch >= 0xac00 && ch <= 0xd7ff))
-            {
-                // no break within Hangul syllables
-                hangulType = gfxUnicodeProperties::GetHangulSyllableType(ch);
-                switch (hangulType) {
-                case gfxUnicodeProperties::HST_L:
-                case gfxUnicodeProperties::HST_LV:
-                case gfxUnicodeProperties::HST_LVT:
-                    if (hangulState == gfxUnicodeProperties::HST_L) {
-                        aGlyphs[i] = extendCluster;
-                    }
-                    break;
-                case gfxUnicodeProperties::HST_V:
-                    if ( (hangulState != gfxUnicodeProperties::HST_NONE) &&
-                        !(hangulState & gfxUnicodeProperties::HST_T))
-                    {
-                        aGlyphs[i] = extendCluster;
-                    }
-                    break;
-                case gfxUnicodeProperties::HST_T:
-                    if (hangulState & (gfxUnicodeProperties::HST_V |
-                                       gfxUnicodeProperties::HST_T))
-                    {
-                        aGlyphs[i] = extendCluster;
-                    }
-                    break;
-                default:
-                    break;
-                }
-            }
-        }
-
-        if (surrogatePair) {
-            ++i;
-            aGlyphs[i] = extendCluster;
-        }
-
-        hangulState = hangulType;
     }
 }
 
@@ -5021,7 +4980,7 @@ gfxTextRun::SetGlyphs(PRUint32 aIndex, CompressedGlyph aGlyph,
 void
 gfxTextRun::SetMissingGlyph(PRUint32 aIndex, PRUint32 aChar)
 {
-    PRUint8 category = gfxUnicodeProperties::GetGeneralCategory(aChar);
+    PRUint8 category = GetGeneralCategory(aChar);
     if (category >= HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK &&
         category <= HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
     {

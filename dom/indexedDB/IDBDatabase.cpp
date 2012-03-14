@@ -162,9 +162,10 @@ IDBDatabase::Create(IDBWrapperCache* aOwnerCache,
 
   nsRefPtr<IDBDatabase> db(new IDBDatabase());
 
-  db->mScriptContext = aOwnerCache->GetScriptContext();
-  db->mOwner = aOwnerCache->GetOwner();
-  db->mScriptOwner = aOwnerCache->GetScriptOwner();
+  db->BindToOwner(aOwnerCache);
+  if (!db->SetScriptOwner(aOwnerCache->GetScriptOwner())) {
+    return nsnull;
+  }
 
   db->mDatabaseId = databaseInfo->id;
   db->mName = databaseInfo->name;
@@ -385,7 +386,7 @@ IDBDatabase::CreateObjectStore(const nsAString& aName,
   IDBTransaction* transaction = AsyncConnectionHelper::GetCurrentTransaction();
 
   if (!transaction ||
-      transaction->Mode() != nsIIDBTransaction::VERSION_CHANGE) {
+      transaction->GetMode() != IDBTransaction::VERSION_CHANGE) {
     return NS_ERROR_DOM_INDEXEDDB_NOT_ALLOWED_ERR;
   }
 
@@ -408,7 +409,7 @@ IDBDatabase::CreateObjectStore(const nsAString& aName,
     
         JSObject* obj = JSVAL_TO_OBJECT(val);
     
-        jsuint length;
+        uint32_t length;
         if (!JS_GetArrayLength(aCx, obj, &length)) {
           return NS_ERROR_DOM_INDEXEDDB_UNKNOWN_ERR;
         }
@@ -419,7 +420,7 @@ IDBDatabase::CreateObjectStore(const nsAString& aName,
     
         keyPathArray.SetCapacity(length);
     
-        for (jsuint index = 0; index < length; index++) {
+        for (uint32_t index = 0; index < length; index++) {
           jsval val;
           JSString* jsstr;
           nsDependentJSString str;
@@ -505,7 +506,7 @@ IDBDatabase::DeleteObjectStore(const nsAString& aName)
   IDBTransaction* transaction = AsyncConnectionHelper::GetCurrentTransaction();
 
   if (!transaction ||
-      transaction->Mode() != nsIIDBTransaction::VERSION_CHANGE) {
+      transaction->GetMode() != IDBTransaction::VERSION_CHANGE) {
     return NS_ERROR_DOM_INDEXEDDB_NOT_ALLOWED_ERR;
   }
 
@@ -527,7 +528,7 @@ IDBDatabase::DeleteObjectStore(const nsAString& aName)
 
 NS_IMETHODIMP
 IDBDatabase::Transaction(const jsval& aStoreNames,
-                         PRUint16 aMode,
+                         const nsAString& aMode,
                          JSContext* aCx,
                          PRUint8 aOptionalArgCount,
                          nsIIDBTransaction** _retval)
@@ -546,14 +547,14 @@ IDBDatabase::Transaction(const jsval& aStoreNames,
     return NS_ERROR_DOM_INDEXEDDB_NOT_ALLOWED_ERR;
   }
 
+  IDBTransaction::Mode transactionMode = IDBTransaction::READ_ONLY;
   if (aOptionalArgCount) {
-    if (aMode != nsIIDBTransaction::READ_WRITE &&
-        aMode != nsIIDBTransaction::READ_ONLY) {
+    if (aMode.EqualsLiteral("readwrite")) {
+      transactionMode = IDBTransaction::READ_WRITE;
+    }
+    else if (!aMode.EqualsLiteral("readonly")) {
       return NS_ERROR_DOM_INDEXEDDB_NON_TRANSIENT_ERR;
     }
-  }
-  else {
-    aMode = nsIIDBTransaction::READ_ONLY;
   }
 
   nsresult rv;
@@ -564,7 +565,7 @@ IDBDatabase::Transaction(const jsval& aStoreNames,
 
     // See if this is a JS array.
     if (JS_IsArrayObject(aCx, obj)) {
-      jsuint length;
+      uint32_t length;
       if (!JS_GetArrayLength(aCx, obj, &length)) {
         return NS_ERROR_DOM_INDEXEDDB_UNKNOWN_ERR;
       }
@@ -575,7 +576,7 @@ IDBDatabase::Transaction(const jsval& aStoreNames,
 
       storesToOpen.SetCapacity(length);
 
-      for (jsuint index = 0; index < length; index++) {
+      for (uint32_t index = 0; index < length; index++) {
         jsval val;
         JSString* jsstr;
         nsDependentJSString str;
@@ -656,7 +657,7 @@ IDBDatabase::Transaction(const jsval& aStoreNames,
   }
 
   nsRefPtr<IDBTransaction> transaction =
-    IDBTransaction::Create(this, storesToOpen, aMode, false);
+    IDBTransaction::Create(this, storesToOpen, transactionMode, false);
   NS_ENSURE_TRUE(transaction, NS_ERROR_DOM_INDEXEDDB_UNKNOWN_ERR);
 
   transaction.forget(_retval);
@@ -679,7 +680,7 @@ IDBDatabase::PostHandleEvent(nsEventChainPostVisitor& aVisitor)
 {
   NS_ENSURE_TRUE(aVisitor.mDOMEvent, NS_ERROR_UNEXPECTED);
 
-  if (!mOwner) {
+  if (!GetOwner()) {
     return NS_OK;
   }
 
@@ -693,7 +694,7 @@ IDBDatabase::PostHandleEvent(nsEventChainPostVisitor& aVisitor)
         CreateGenericEvent(type, eDoesNotBubble, eNotCancelable);
       NS_ENSURE_STATE(duplicateEvent);
 
-      nsCOMPtr<nsIDOMEventTarget> target(do_QueryInterface(mOwner));
+      nsCOMPtr<nsIDOMEventTarget> target(do_QueryInterface(GetOwner()));
       NS_ASSERTION(target, "How can this happen?!");
 
       bool dummy;

@@ -92,7 +92,7 @@ public:
 
 /**
  * Accessible for HTML input@type="button", @type="submit", @type="image"
- * elements.
+ * and HTML button elements.
  */
 class nsHTMLButtonAccessible : public nsHyperTextAccessibleWrap
 {
@@ -121,33 +121,6 @@ public:
 
 
 /**
- * Accessible for HTML button element.
- */
-class nsHTML4ButtonAccessible : public nsHyperTextAccessibleWrap
-{
-
-public:
-  enum { eAction_Click = 0 };
-
-  nsHTML4ButtonAccessible(nsIContent* aContent, nsDocAccessible* aDoc);
-
-  // nsIAccessible
-  NS_IMETHOD GetActionName(PRUint8 aIndex, nsAString& aName);
-  NS_IMETHOD DoAction(PRUint8 index);
-
-  // nsAccessible
-  virtual mozilla::a11y::role NativeRole();
-  virtual PRUint64 NativeState();
-
-  // ActionAccessible
-  virtual PRUint8 ActionCount();
-
-  // Widgets
-  virtual bool IsWidget() const;
-};
-
-
-/**
  * Accessible for HTML input@type="text" element.
  */
 class nsHTMLTextFieldAccessible : public nsHyperTextAccessibleWrap
@@ -165,8 +138,8 @@ public:
   NS_IMETHOD GetActionName(PRUint8 aIndex, nsAString& aName);
   NS_IMETHOD DoAction(PRUint8 index);
 
-  // nsIAccessibleEditableText
-  NS_IMETHOD GetAssociatedEditor(nsIEditor **aEditor);
+  // nsHyperTextAccessible
+  virtual already_AddRefed<nsIEditor> GetEditor() const;
 
   // nsAccessible
   virtual void ApplyARIAState(PRUint64* aState);

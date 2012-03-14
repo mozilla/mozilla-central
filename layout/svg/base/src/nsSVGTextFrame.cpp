@@ -181,6 +181,13 @@ nsSVGTextFrame::GetRotationOfChar(PRUint32 charnum, float *_retval)
 void
 nsSVGTextFrame::NotifySVGChanged(PRUint32 aFlags)
 {
+  NS_ABORT_IF_FALSE(!(aFlags & DO_NOT_NOTIFY_RENDERING_OBSERVERS) ||
+                    (GetStateBits() & NS_STATE_SVG_NONDISPLAY_CHILD),
+                    "Must be NS_STATE_SVG_NONDISPLAY_CHILD!");
+
+  NS_ABORT_IF_FALSE(aFlags & (TRANSFORM_CHANGED | COORD_CONTEXT_CHANGED),
+                    "Invalidation logic may need adjusting");
+
   bool updateGlyphMetrics = false;
   
   if (aFlags & COORD_CONTEXT_CHANGED) {
@@ -219,7 +226,7 @@ nsSVGTextFrame::NotifyRedrawUnsuspended()
 }
 
 NS_IMETHODIMP
-nsSVGTextFrame::PaintSVG(nsSVGRenderState* aContext,
+nsSVGTextFrame::PaintSVG(nsRenderingContext* aContext,
                          const nsIntRect *aDirtyRect)
 {
   UpdateGlyphPositioning(true);
@@ -325,7 +332,13 @@ nsSVGTextFrame::SetWhitespaceHandling(nsSVGGlyphFrame *aFrame)
     aFrame = aFrame->GetNextGlyphFrame();
   }
 
-  lastNonWhitespaceFrame->SetTrimTrailingWhitespace(true);
+  // We're at the last non-whitespace frame so trim off the end
+  // and make sure we set one of the trim bits so that any
+  // further whitespace is compressed to nothing
+  while (aFrame) {
+    aFrame->SetTrimTrailingWhitespace(true);
+    aFrame = aFrame->GetNextGlyphFrame();
+  }
 }
 
 void

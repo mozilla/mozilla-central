@@ -1441,9 +1441,26 @@ nsHTMLTableAccessible::IsProbablyForLayout(bool *aIsProbablyForLayout)
         if (rowElm->IsHTML() && rowElm->Tag() == nsGkAtoms::tr) {
           for (nsIContent* cellElm = rowElm->GetFirstChild(); cellElm;
                cellElm = cellElm->GetNextSibling()) {
-            if (cellElm->IsHTML() && cellElm->Tag() == nsGkAtoms::th) {
-              RETURN_LAYOUT_ANSWER(false,
-                                   "Has th -- legitimate table structures");
+            if (cellElm->IsHTML()) {
+              
+              if (cellElm->NodeInfo()->Equals(nsGkAtoms::th)) {
+                RETURN_LAYOUT_ANSWER(false,
+                                     "Has th -- legitimate table structures");
+              }
+
+              if (cellElm->HasAttr(kNameSpaceID_None, nsGkAtoms::headers) ||
+                  cellElm->HasAttr(kNameSpaceID_None, nsGkAtoms::scope) ||
+                  cellElm->HasAttr(kNameSpaceID_None, nsGkAtoms::abbr)) {
+                RETURN_LAYOUT_ANSWER(false,
+                                     "Has headers, scope, or abbr attribute -- legitimate table structures");
+              }
+
+              nsAccessible* cell = mDoc->GetAccessible(cellElm);
+              if (cell && cell->GetChildCount() == 1 &&
+                  cell->FirstChild()->IsAbbreviation()) {
+                RETURN_LAYOUT_ANSWER(false,
+                                     "has abbr -- legitimate table structures");
+              }
             }
           }
         }
@@ -1497,21 +1514,16 @@ nsHTMLTableAccessible::IsProbablyForLayout(bool *aIsProbablyForLayout)
   // Check for styled background color across rows (alternating background
   // color is a common feature for data tables).
   PRUint32 childCount = GetChildCount();
-  nsAutoString rowColor, prevRowColor;
+  nscolor rowColor, prevRowColor;
   for (PRUint32 childIdx = 0; childIdx < childCount; childIdx++) {
     nsAccessible* child = GetChildAt(childIdx);
     if (child->Role() == roles::ROW) {
-      nsCOMPtr<nsIDOMCSSStyleDeclaration> styleDecl =
-        nsCoreUtils::GetComputedStyleDeclaration(EmptyString(),
-                                                 child->GetContent());
-      if (styleDecl) {
-        prevRowColor = rowColor;
-        styleDecl->GetPropertyValue(NS_LITERAL_STRING("background-color"),
-                                    rowColor);
-        if (childIdx > 0 && !prevRowColor.Equals(rowColor)) {
-          RETURN_LAYOUT_ANSWER(false, "2 styles of row background color, non-bordered");
-        }
-      }
+      prevRowColor = rowColor;
+      nsIFrame* rowFrame = child->GetFrame();
+      rowColor = rowFrame->GetStyleBackground()->mBackgroundColor;
+
+      if (childIdx > 0 && prevRowColor != rowColor)
+        RETURN_LAYOUT_ANSWER(false, "2 styles of row background color, non-bordered");
     }
   }
 

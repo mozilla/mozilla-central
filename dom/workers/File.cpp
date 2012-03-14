@@ -53,7 +53,7 @@
 #include "WorkerPrivate.h"
 
 #define PROPERTY_FLAGS \
-  JSPROP_ENUMERATE | JSPROP_SHARED
+  (JSPROP_ENUMERATE | JSPROP_SHARED)
 
 USING_WORKERS_NAMESPACE
 
@@ -111,7 +111,7 @@ private:
   }
 
   static JSBool
-  Construct(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Construct(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JS_ReportErrorNumber(aCx, js_GetErrorMessage, NULL, JSMSG_WRONG_CONSTRUCTOR,
                          sClass.name);
@@ -140,7 +140,7 @@ private:
       ThrowFileExceptionForCode(aCx, FILE_NOT_READABLE_ERR);
     }
 
-    if (!JS_NewNumberValue(aCx, jsdouble(size), aVp)) {
+    if (!JS_NewNumberValue(aCx, double(size), aVp)) {
       return false;
     }
 
@@ -171,7 +171,7 @@ private:
   }
 
   static JSBool
-  Slice(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Slice(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -183,7 +183,7 @@ private:
       return false;
     }
 
-    jsdouble start = 0, end = 0;
+    double start = 0, end = 0;
     JSString* jsContentType = JS_GetEmptyString(JS_GetRuntime(aCx));
     if (!JS_ConvertArguments(aCx, aArgc, JS_ARGV(aCx, aVp), "/IIS", &start,
                              &end, &jsContentType)) {
@@ -301,7 +301,7 @@ private:
   }
 
   static JSBool
-  Construct(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Construct(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JS_ReportErrorNumber(aCx, js_GetErrorMessage, NULL, JSMSG_WRONG_CONSTRUCTOR,
                          sClass.name);

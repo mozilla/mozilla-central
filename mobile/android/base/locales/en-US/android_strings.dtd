@@ -27,9 +27,13 @@
 
 <!ENTITY awesomebar_default_text "Enter Search or Address">
 
+<!ENTITY remote_tabs "Synced Tabs">
+<!ENTITY remote_tabs_show_all "Show all tabs">
+
 <!ENTITY bookmark "Bookmark">
 <!ENTITY bookmark_added "Bookmark added">
 <!ENTITY bookmark_removed "Bookmark removed">
+<!ENTITY bookmark_updated "Bookmark updated">
 
 <!ENTITY history_today_section "Today">
 <!ENTITY history_yesterday_section "Yesterday">
@@ -79,12 +83,19 @@
 <!ENTITY char_encoding "Character Encoding">
 
 <!ENTITY share "Share">
+<!ENTITY share_title "Share via">
 <!ENTITY save_as_pdf "Save as PDF">
 
 <!ENTITY contextmenu_open_new_tab "Open in New Tab">
 <!ENTITY contextmenu_remove_bookmark "Remove">
 <!ENTITY contextmenu_add_to_launcher "Add to Home Screen">
 <!ENTITY contextmenu_share "Share">
+<!ENTITY contextmenu_edit_bookmark "Edit">
+
+<!ENTITY bookmark_edit_title "Edit Bookmark">
+<!ENTITY bookmark_edit_name "Name">
+<!ENTITY bookmark_edit_location "Location">
+<!ENTITY bookmark_edit_keyword "Keyword">
 
 <!ENTITY site_settings_title        "Clear Site Settings">
 <!ENTITY site_settings_cancel       "Cancel">

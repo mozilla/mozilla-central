@@ -48,13 +48,13 @@
 #include "WorkerInlines.h"
 
 #define PROPERTY_FLAGS \
-  JSPROP_ENUMERATE | JSPROP_SHARED
+  (JSPROP_ENUMERATE | JSPROP_SHARED)
 
 #define FUNCTION_FLAGS \
   JSPROP_ENUMERATE
 
 #define CONSTANT_FLAGS \
-  JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_PERMANENT | JSPROP_READONLY
+  (JSPROP_ENUMERATE | JSPROP_SHARED | JSPROP_PERMANENT | JSPROP_READONLY)
 
 USING_WORKERS_NAMESPACE
 
@@ -75,6 +75,7 @@ class XMLHttpRequestUpload : public events::EventTarget
     STRING_onloadstart,
     STRING_onprogress,
     STRING_onloadend,
+    STRING_ontimeout,
 
     STRING_COUNT
   };
@@ -156,7 +157,7 @@ private:
   }
 
   static JSBool
-  Construct(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Construct(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JS_ReportErrorNumber(aCx, js_GetErrorMessage, NULL, JSMSG_WRONG_CONSTRUCTOR,
                          sClass.name);
@@ -223,7 +224,7 @@ JSClass XMLHttpRequestUpload::sClass = {
   JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS | JSCLASS_HAS_RESERVED_SLOTS(SLOT_COUNT),
   JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
   JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Finalize,
-  NULL, NULL, NULL, NULL, NULL, NULL, Trace, NULL
+  NULL, NULL, NULL, NULL, Trace
 };
 
 JSPropertySpec XMLHttpRequestUpload::sProperties[] = {
@@ -239,6 +240,8 @@ JSPropertySpec XMLHttpRequestUpload::sProperties[] = {
     GetEventListener, SetEventListener },
   { sEventStrings[STRING_onloadend], STRING_onloadend, PROPERTY_FLAGS,
     GetEventListener, SetEventListener },
+  { sEventStrings[STRING_ontimeout], STRING_ontimeout, PROPERTY_FLAGS,
+    GetEventListener, SetEventListener },
   { 0, 0, 0, NULL, NULL }
 };
 
@@ -248,7 +251,8 @@ const char* const XMLHttpRequestUpload::sEventStrings[STRING_COUNT] = {
   "onload",
   "onloadstart",
   "onprogress",
-  "onloadend"
+  "onloadend",
+  "ontimeout"
 };
 
 class XMLHttpRequest
@@ -271,6 +275,7 @@ class XMLHttpRequest
     SLOT_withCredentials,
     SLOT_upload,
     SLOT_responseType,
+    SLOT_timeout,
 
     SLOT_COUNT
   };
@@ -292,6 +297,7 @@ class XMLHttpRequest
     STRING_onloadstart,
     STRING_onprogress,
     STRING_onloadend,
+    STRING_ontimeout,
 
     STRING_COUNT
   };
@@ -373,7 +379,7 @@ private:
   }
 
   static JSBool
-  Construct(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Construct(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_NewObject(aCx, &sClass, NULL, NULL);
     if (!obj) {
@@ -399,6 +405,7 @@ private:
     JS_SetReservedSlot(obj, SLOT_withCredentials, JSVAL_FALSE);
     JS_SetReservedSlot(obj, SLOT_upload, JSVAL_NULL);
     JS_SetReservedSlot(obj, SLOT_responseType, STRING_TO_JSVAL(textStr));
+    JS_SetReservedSlot(obj, SLOT_timeout, zero);
 
     WorkerPrivate* workerPrivate = GetWorkerPrivateFromContext(aCx);
     XMLHttpRequestPrivate* priv = new XMLHttpRequestPrivate(obj, workerPrivate);
@@ -528,6 +535,7 @@ private:
   IMPL_SETTER(MozBackgroundRequest)
   IMPL_SETTER(WithCredentials)
   IMPL_SETTER(ResponseType)
+  IMPL_SETTER(Timeout)
 
 #undef IMPL_SETTER
 
@@ -565,7 +573,7 @@ private:
   }
 
   static JSBool
-  Abort(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Abort(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -582,7 +590,7 @@ private:
   }
 
   static JSBool
-  GetAllResponseHeaders(JSContext* aCx, uintN aArgc, jsval* aVp)
+  GetAllResponseHeaders(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -605,7 +613,7 @@ private:
   }
 
   static JSBool
-  GetResponseHeader(JSContext* aCx, uintN aArgc, jsval* aVp)
+  GetResponseHeader(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -644,7 +652,7 @@ private:
   }
 
   static JSBool
-  Open(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Open(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -670,7 +678,7 @@ private:
   }
 
   static JSBool
-  Send(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Send(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -689,7 +697,7 @@ private:
   }
 
   static JSBool
-  SendAsBinary(JSContext* aCx, uintN aArgc, jsval* aVp)
+  SendAsBinary(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -722,7 +730,7 @@ private:
   }
 
   static JSBool
-  SetRequestHeader(JSContext* aCx, uintN aArgc, jsval* aVp)
+  SetRequestHeader(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -745,7 +753,7 @@ private:
   }
 
   static JSBool
-  OverrideMimeType(JSContext* aCx, uintN aArgc, jsval* aVp)
+  OverrideMimeType(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -772,7 +780,7 @@ JSClass XMLHttpRequest::sClass = {
   JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS | JSCLASS_HAS_RESERVED_SLOTS(SLOT_COUNT),
   JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
   JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Finalize,
-  NULL, NULL, NULL, NULL, NULL, NULL, Trace, NULL
+  NULL, NULL, NULL, NULL, Trace
 };
 
 JSPropertySpec XMLHttpRequest::sProperties[] = {
@@ -798,6 +806,8 @@ JSPropertySpec XMLHttpRequest::sProperties[] = {
     js_GetterOnlyPropertyStub },
   { "responseType", SLOT_responseType, PROPERTY_FLAGS, GetProperty,
     SetResponseType },
+  { "timeout", SLOT_timeout, PROPERTY_FLAGS, GetProperty,
+    SetTimeout },
   { sEventStrings[STRING_onreadystatechange], STRING_onreadystatechange,
     PROPERTY_FLAGS, GetEventListener, SetEventListener },
   { sEventStrings[STRING_onabort], STRING_onabort, PROPERTY_FLAGS,
@@ -811,6 +821,8 @@ JSPropertySpec XMLHttpRequest::sProperties[] = {
   { sEventStrings[STRING_onprogress], STRING_onprogress, PROPERTY_FLAGS,
     GetEventListener, SetEventListener },
   { sEventStrings[STRING_onloadend], STRING_onloadend, PROPERTY_FLAGS,
+    GetEventListener, SetEventListener },
+  { sEventStrings[STRING_ontimeout], STRING_ontimeout, PROPERTY_FLAGS,
     GetEventListener, SetEventListener },
 
 #undef GENERIC_READONLY_PROPERTY
@@ -846,7 +858,8 @@ const char* const XMLHttpRequest::sEventStrings[STRING_COUNT] = {
   "onload",
   "onloadstart",
   "onprogress",
-  "onloadend"
+  "onloadend",
+  "ontimeout"
 };
 
 // static

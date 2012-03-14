@@ -51,10 +51,9 @@
 #include "nsContentUtils.h"
 #include "nsReadableUtils.h"
 #include "prprf.h"
+#include "mozilla/HashFunctions.h"
 
-namespace css = mozilla::css;
-
-using mozilla::SVGAttrValueWrapper;
+using namespace mozilla;
 
 #define MISC_STR_PTR(_cont) \
   reinterpret_cast<void*>((_cont)->mStringBits & NS_ATTRVALUE_POINTERVALUE_MASK)
@@ -392,7 +391,7 @@ nsAttrValue::SetTo(const nsSVGLength2& aValue, const nsAString* aSerialized)
 }
 
 void
-nsAttrValue::SetTo(const mozilla::SVGLengthList& aValue,
+nsAttrValue::SetTo(const SVGLengthList& aValue,
                    const nsAString* aSerialized)
 {
   // While an empty string will parse as a length list, there's no need to store
@@ -404,7 +403,7 @@ nsAttrValue::SetTo(const mozilla::SVGLengthList& aValue,
 }
 
 void
-nsAttrValue::SetTo(const mozilla::SVGNumberList& aValue,
+nsAttrValue::SetTo(const SVGNumberList& aValue,
                    const nsAString* aSerialized)
 {
   // While an empty string will parse as a number list, there's no need to store
@@ -422,7 +421,7 @@ nsAttrValue::SetTo(const nsSVGNumberPair& aValue, const nsAString* aSerialized)
 }
 
 void
-nsAttrValue::SetTo(const mozilla::SVGPathData& aValue,
+nsAttrValue::SetTo(const SVGPathData& aValue,
                    const nsAString* aSerialized)
 {
   // While an empty string will parse as path data, there's no need to store it
@@ -434,7 +433,7 @@ nsAttrValue::SetTo(const mozilla::SVGPathData& aValue,
 }
 
 void
-nsAttrValue::SetTo(const mozilla::SVGPointList& aValue,
+nsAttrValue::SetTo(const SVGPointList& aValue,
                    const nsAString* aSerialized)
 {
   // While an empty string will parse as a point list, there's no need to store
@@ -446,14 +445,14 @@ nsAttrValue::SetTo(const mozilla::SVGPointList& aValue,
 }
 
 void
-nsAttrValue::SetTo(const mozilla::SVGAnimatedPreserveAspectRatio& aValue,
+nsAttrValue::SetTo(const SVGAnimatedPreserveAspectRatio& aValue,
                    const nsAString* aSerialized)
 {
   SetSVGType(eSVGPreserveAspectRatio, &aValue, aSerialized);
 }
 
 void
-nsAttrValue::SetTo(const mozilla::SVGStringList& aValue,
+nsAttrValue::SetTo(const SVGStringList& aValue,
                    const nsAString* aSerialized)
 {
   // While an empty string will parse as a string list, there's no need to store
@@ -465,7 +464,7 @@ nsAttrValue::SetTo(const mozilla::SVGStringList& aValue,
 }
 
 void
-nsAttrValue::SetTo(const mozilla::SVGTransformList& aValue,
+nsAttrValue::SetTo(const SVGTransformList& aValue,
                    const nsAString* aSerialized)
 {
   // While an empty string will parse as a transform list, there's no need to
@@ -714,7 +713,7 @@ nsAttrValue::GetEnumString(nsAString& aResult, bool aRealTag) const
     if (table->value == val) {
       aResult.AssignASCII(table->tag);
       if (!aRealTag && allEnumBits & NS_ATTRVALUE_ENUMTABLE_VALUE_NEEDS_TO_UPPER) {
-        ToUpperCase(aResult);
+        nsContentUtils::ASCIIToUpper(aResult);
       }
       return;
     }
@@ -764,7 +763,7 @@ nsAttrValue::HashValue() const
       nsStringBuffer* str = static_cast<nsStringBuffer*>(GetPtr());
       if (str) {
         PRUint32 len = str->StorageSize()/sizeof(PRUnichar) - 1;
-        return nsCRT::HashCode(static_cast<PRUnichar*>(str->Data()), len);
+        return HashString(static_cast<PRUnichar*>(str->Data()), len);
       }
 
       return 0;
@@ -812,14 +811,14 @@ nsAttrValue::HashValue() const
     }
     case eAtomArray:
     {
-      PRUint32 retval = 0;
+      PRUint32 hash = 0;
       PRUint32 count = cont->mAtomArray->Length();
       for (nsCOMPtr<nsIAtom> *cur = cont->mAtomArray->Elements(),
                              *end = cur + count;
            cur != end; ++cur) {
-        retval ^= NS_PTR_TO_INT32(cur->get());
+        hash = AddToHash(hash, cur->get());
       }
-      return retval;
+      return hash;
     }
     case eDoubleValue:
     {
@@ -1316,7 +1315,7 @@ nsAttrValue::ParseEnumValue(const nsAString& aValue,
       if (!equals) {
         nsAutoString tag;
         tag.AssignASCII(tableEntry->tag);
-        ToUpperCase(tag);
+        nsContentUtils::ASCIIToUpper(tag);
         if ((equals = tag.Equals(aValue))) {
           value |= NS_ATTRVALUE_ENUMTABLE_VALUE_NEEDS_TO_UPPER;
         }
@@ -1767,59 +1766,50 @@ nsAttrValue::StringToInteger(const nsAString& aValue, bool* aStrict,
   return value;
 }
 
-PRInt64
-nsAttrValue::SizeOf() const
+size_t
+nsAttrValue::SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOf) const
 {
-  PRInt64 size = sizeof(*this);
+  size_t n = 0;
 
   switch (BaseType()) {
     case eStringBase:
     {
-      // TODO: we might be counting the string size more than once.
-      // This should be fixed with bug 677487.
       nsStringBuffer* str = static_cast<nsStringBuffer*>(GetPtr());
-      size += str ? str->StorageSize() : 0;
+      n += str ? str->SizeOfIncludingThisIfUnshared(aMallocSizeOf) : 0;
       break;
     }
     case eOtherBase:
     {
       MiscContainer* container = GetMiscContainer();
-
       if (!container) {
         break;
       }
-
-      size += sizeof(*container);
+      n += aMallocSizeOf(container);
 
       void* otherPtr = MISC_STR_PTR(container);
       // We only count the size of the object pointed by otherPtr if it's a
       // string. When it's an atom, it's counted separatly.
       if (otherPtr &&
           static_cast<ValueBaseType>(container->mStringBits & NS_ATTRVALUE_BASETYPE_MASK) == eStringBase) {
-        // TODO: we might be counting the string size more than once.
-        // This should be fixed with bug 677487.
         nsStringBuffer* str = static_cast<nsStringBuffer*>(otherPtr);
-        size += str ? str->StorageSize() : 0;
+        n += str ? str->SizeOfIncludingThisIfUnshared(aMallocSizeOf) : 0;
       }
 
-      // TODO: mCSSStyleRule might be owned by another object
-      // which would make us count them twice, bug 677493.
       if (Type() == eCSSStyleRule && container->mCSSStyleRule) {
-        // TODO: Add SizeOf() to StyleRule, bug 677503.
-        size += sizeof(*container->mCSSStyleRule);
+        // TODO: mCSSStyleRule might be owned by another object which would
+        //       make us count them twice, bug 677493.
+        //n += container->mCSSStyleRule->SizeOfIncludingThis(aMallocSizeOf);
       } else if (Type() == eAtomArray && container->mAtomArray) {
-        size += sizeof(container->mAtomArray) + sizeof(nsTArrayHeader);
-        size += container->mAtomArray->Capacity() * sizeof(nsCOMPtr<nsIAtom>);
-        // Don't count the size of each nsIAtom, they are counted separatly.
+        // Don't measure each nsIAtom, they are measured separatly.
+        n += container->mAtomArray->SizeOfIncludingThis(aMallocSizeOf);
       }
-
       break;
     }
-    case eAtomBase:    // Atoms are counted separatly.
+    case eAtomBase:    // Atoms are counted separately.
     case eIntegerBase: // The value is in mBits, nothing to do.
       break;
   }
 
-  return size;
+  return n;
 }
 

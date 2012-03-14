@@ -47,6 +47,10 @@ LIBRARY_NAME	= jsdombase_s
 LIBXUL_LIBRARY	= 1
 FORCE_STATIC_LIB = 1
 
+DIRS = \
+  test \
+  $(NULL)
+
 EXTRA_PP_COMPONENTS = \
 		ConsoleAPI.js \
 		ConsoleAPI.manifest \
@@ -55,7 +59,6 @@ EXTRA_PP_COMPONENTS = \
 EXTRA_JS_MODULES = ConsoleAPIStorage.jsm \
 		$(NULL)
 
-ifeq (gonk,$(MOZ_WIDGET_TOOLKIT))
 EXTRA_COMPONENTS = \
 	        Webapps.js \
 	        Webapps.manifest \
@@ -63,10 +66,13 @@ EXTRA_COMPONENTS = \
 
 EXTRA_JS_MODULES += Webapps.jsm \
 		$(NULL)
-endif
+
+EXTRA_JS_MODULES += DOMRequestHelper.jsm \
+		$(NULL)
 
 XPIDLSRCS = \
   nsIDOMDOMError.idl \
+  nsIDOMDOMRequest.idl \
   nsIEntropyCollector.idl \
   nsIScriptChannel.idl \
   $(NULL)
@@ -99,12 +105,13 @@ EXPORTS = \
   nsWrapperCache.h \
   nsContentPermissionHelper.h \
   nsStructuredCloneContainer.h \
-  nsDOMMemoryReporter.h \
+  nsWindowMemoryReporter.h \
   $(NULL)
 
 EXPORTS_NAMESPACES = mozilla/dom
 EXPORTS_mozilla/dom = \
   DOMError.h \
+  DOMRequest.h \
   StructuredCloneTags.h \
   $(NULL)
 
@@ -133,8 +140,9 @@ CPPSRCS =			\
 	nsStructuredCloneContainer.cpp \
 	nsDOMNavigationTiming.cpp \
 	nsPerformance.cpp	\
-	nsDOMMemoryReporter.cpp \
+	nsWindowMemoryReporter.cpp \
 	DOMError.cpp \
+	DOMRequest.cpp \
 	Navigator.cpp \
 	$(NULL)
 

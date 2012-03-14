@@ -43,6 +43,7 @@
 #include "nsIXPConnect.h"
 #include "jsapi.h"
 #include "nsJSUtils.h"
+#include "nsJSPrincipals.h"
 #include "nsNetUtil.h"
 #include "nsScriptLoader.h"
 #include "nsIJSContextStack.h"
@@ -811,15 +812,13 @@ nsFrameScriptExecutor::LoadFrameScriptInternal(const nsAString& aURL)
       JSObject* global = nsnull;
       mGlobal->GetJSObject(&global);
       if (global) {
-        JSPrincipals* jsprin = nsnull;
-        mPrincipal->GetJSPrincipals(mCx, &jsprin);
-
         uint32 oldopts = JS_GetOptions(mCx);
         JS_SetOptions(mCx, oldopts | JSOPTION_NO_SCRIPT_RVAL);
 
         JSScript* script =
-          JS_CompileUCScriptForPrincipals(mCx, nsnull, jsprin,
-                                         (jschar*)dataString.get(),
+          JS_CompileUCScriptForPrincipals(mCx, nsnull,
+                                          nsJSPrincipals::get(mPrincipal),
+                                          static_cast<const jschar*>(dataString.get()),
                                           dataString.Length(),
                                           url.get(), 1);
 
@@ -839,8 +838,6 @@ nsFrameScriptExecutor::LoadFrameScriptInternal(const nsAString& aURL)
           }
           (void) JS_ExecuteScript(mCx, global, script, nsnull);
         }
-        //XXX Argh, JSPrincipals are manually refcounted!
-        JSPRINCIPALS_DROP(mCx, jsprin);
       }
     } 
     JSContext* unused;
@@ -882,9 +879,7 @@ nsFrameScriptExecutor::InitTabChildGlobalInternal(nsISupports* aScope)
   JS_SetContextPrivate(cx, aScope);
 
   nsresult rv =
-    xpc->InitClassesWithNewWrappedGlobal(cx, aScope,
-                                         NS_GET_IID(nsISupports),
-                                         mPrincipal, nsnull,
+    xpc->InitClassesWithNewWrappedGlobal(cx, aScope, mPrincipal,
                                          flags, getter_AddRefs(mGlobal));
   NS_ENSURE_SUCCESS(rv, false);
 

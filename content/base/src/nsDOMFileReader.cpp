@@ -42,7 +42,7 @@
 #include "nsDOMClassInfoID.h"
 #include "nsDOMFile.h"
 #include "nsDOMError.h"
-#include "nsICharsetAlias.h"
+#include "nsCharsetAlias.h"
 #include "nsICharsetDetector.h"
 #include "nsICharsetConverterManager.h"
 #include "nsIConverterInputStream.h"
@@ -199,21 +199,19 @@ NS_IMETHODIMP
 nsDOMFileReader::Initialize(nsISupports* aOwner, JSContext* cx, JSObject* obj,
                             PRUint32 argc, jsval *argv)
 {
-  mOwner = do_QueryInterface(aOwner);
-  if (!mOwner) {
+  nsCOMPtr<nsPIDOMWindow> owner = do_QueryInterface(aOwner);
+  if (!owner) {
     NS_WARNING("Unexpected nsIJSNativeInitializer owner");
     return NS_OK;
   }
 
+  BindToOwner(owner);
+
   // This object is bound to a |window|,
-  // so reset the principal and script context.
+  // so reset the principal.
   nsCOMPtr<nsIScriptObjectPrincipal> scriptPrincipal = do_QueryInterface(aOwner);
   NS_ENSURE_STATE(scriptPrincipal);
   mPrincipal = scriptPrincipal->GetPrincipal();
-  nsCOMPtr<nsIScriptGlobalObject> sgo = do_QueryInterface(aOwner);
-  NS_ENSURE_STATE(sgo);
-  mScriptContext = sgo->GetContext();
-  NS_ENSURE_STATE(mScriptContext);
 
   return NS_OK; 
 }
@@ -255,7 +253,7 @@ nsDOMFileReader::GetResult(JSContext* aCx, jsval* aResult)
 }
 
 NS_IMETHODIMP
-nsDOMFileReader::GetError(nsIDOMFileError** aError)
+nsDOMFileReader::GetError(nsIDOMDOMError** aError)
 {
   return FileIOObject::GetError(aError);
 }
@@ -495,10 +493,7 @@ nsDOMFileReader::GetAsText(const nsACString &aCharset,
   }
 
   nsCAutoString charset;
-  nsCOMPtr<nsICharsetAlias> alias = do_GetService(NS_CHARSETALIAS_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = alias->GetPreferred(charsetGuess, charset);
+  rv = nsCharsetAlias::GetPreferred(charsetGuess, charset);
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = ConvertStream(aFileData, aDataLen, charset.get(), aResult);

@@ -104,7 +104,8 @@ enum {
     JS_TELEMETRY_GC_SLICE_MS,
     JS_TELEMETRY_GC_MMU_50,
     JS_TELEMETRY_GC_RESET,
-    JS_TELEMETRY_GC_INCREMENTAL_DISABLED
+    JS_TELEMETRY_GC_INCREMENTAL_DISABLED,
+    JS_TELEMETRY_GC_NON_INCREMENTAL
 };
 
 typedef void
@@ -165,13 +166,26 @@ JS_WrapPropertyDescriptor(JSContext *cx, js::PropertyDescriptor *desc);
 extern JS_FRIEND_API(JSBool)
 JS_EnumerateState(JSContext *cx, JSObject *obj, JSIterateOp enum_op, js::Value *statep, jsid *idp);
 
+struct JSFunctionSpecWithHelp {
+    const char      *name;
+    JSNative        call;
+    uint16_t        nargs;
+    uint16_t        flags;
+    const char      *usage;
+    const char      *help;
+};
+
+#define JS_FN_HELP(name,call,nargs,flags,usage,help)                          \
+    {name, call, nargs, (flags) | JSPROP_ENUMERATE | JSFUN_STUB_GSOPS, usage, help}
+
+extern JS_FRIEND_API(bool)
+JS_DefineFunctionsWithHelp(JSContext *cx, JSObject *obj, const JSFunctionSpecWithHelp *fs);
+
 #endif
 
 JS_END_EXTERN_C
 
 #ifdef __cplusplus
-
-struct PRLock;
 
 namespace js {
 
@@ -220,7 +234,7 @@ typedef bool
   * fp is the file for the dump output.
   */
 extern JS_FRIEND_API(void)
-DumpHeapComplete(JSContext *cx, FILE *fp);
+DumpHeapComplete(JSRuntime *rt, FILE *fp);
 
 #endif
 
@@ -247,15 +261,15 @@ class JS_FRIEND_API(AutoSwitchCompartment) {
 };
 
 #ifdef OLD_GETTER_SETTER_METHODS
-JS_FRIEND_API(JSBool) obj_defineGetter(JSContext *cx, uintN argc, js::Value *vp);
-JS_FRIEND_API(JSBool) obj_defineSetter(JSContext *cx, uintN argc, js::Value *vp);
+JS_FRIEND_API(JSBool) obj_defineGetter(JSContext *cx, unsigned argc, js::Value *vp);
+JS_FRIEND_API(JSBool) obj_defineSetter(JSContext *cx, unsigned argc, js::Value *vp);
 #endif
 
 extern JS_FRIEND_API(bool)
 IsSystemCompartment(const JSCompartment *compartment);
 
 extern JS_FRIEND_API(bool)
-IsAtomsCompartmentFor(const JSContext *cx, const JSCompartment *c);
+IsAtomsCompartment(const JSCompartment *c);
 
 /*
  * Check whether it is OK to assign an undeclared property with name
@@ -391,19 +405,19 @@ IsOriginalScriptFunction(JSFunction *fun);
 
 JS_FRIEND_API(JSFunction *)
 DefineFunctionWithReserved(JSContext *cx, JSObject *obj, const char *name, JSNative call,
-                           uintN nargs, uintN attrs);
+                           unsigned nargs, unsigned attrs);
 
 JS_FRIEND_API(JSFunction *)
-NewFunctionWithReserved(JSContext *cx, JSNative call, uintN nargs, uintN flags,
+NewFunctionWithReserved(JSContext *cx, JSNative call, unsigned nargs, unsigned flags,
                         JSObject *parent, const char *name);
 
 JS_FRIEND_API(JSFunction *)
-NewFunctionByIdWithReserved(JSContext *cx, JSNative native, uintN nargs, uintN flags,
+NewFunctionByIdWithReserved(JSContext *cx, JSNative native, unsigned nargs, unsigned flags,
                             JSObject *parent, jsid id);
 
 JS_FRIEND_API(JSObject *)
 InitClassWithReserved(JSContext *cx, JSObject *obj, JSObject *parent_proto,
-                      JSClass *clasp, JSNative constructor, uintN nargs,
+                      JSClass *clasp, JSNative constructor, unsigned nargs,
                       JSPropertySpec *ps, JSFunctionSpec *fs,
                       JSPropertySpec *static_ps, JSFunctionSpec *static_fs);
 
@@ -494,10 +508,10 @@ CastAsJSStrictPropertyOp(JSObject *object)
 }
 
 JS_FRIEND_API(bool)
-GetPropertyNames(JSContext *cx, JSObject *obj, uintN flags, js::AutoIdVector *props);
+GetPropertyNames(JSContext *cx, JSObject *obj, unsigned flags, js::AutoIdVector *props);
 
 JS_FRIEND_API(bool)
-StringIsArrayIndex(JSLinearString *str, jsuint *indexp);
+StringIsArrayIndex(JSLinearString *str, uint32_t *indexp);
 
 JS_FRIEND_API(void)
 SetPreserveWrapperCallback(JSRuntime *rt, PreserveWrapperCallback callback);
@@ -518,15 +532,15 @@ IsObjectInContextCompartment(const JSObject *obj, const JSContext *cx);
 #define JSITER_FOR_OF     0x20  /* harmony for-of loop */
 
 inline uintptr_t
-GetContextStackLimit(const JSContext *cx)
+GetNativeStackLimit(const JSRuntime *rt)
 {
-    return RuntimeFriendFields::get(GetRuntime(cx))->nativeStackLimit;
+    return RuntimeFriendFields::get(rt)->nativeStackLimit;
 }
 
 #define JS_CHECK_RECURSION(cx, onerror)                                         \
     JS_BEGIN_MACRO                                                              \
         int stackDummy_;                                                        \
-        if (!JS_CHECK_STACK_SIZE(js::GetContextStackLimit(cx), &stackDummy_)) { \
+        if (!JS_CHECK_STACK_SIZE(js::GetNativeStackLimit(js::GetRuntime(cx)), &stackDummy_)) { \
             js_ReportOverRecursed(cx);                                          \
             onerror;                                                            \
         }                                                                       \
@@ -557,9 +571,6 @@ GetOwnerThread(const JSContext *cx);
 JS_FRIEND_API(unsigned)
 GetContextOutstandingRequests(const JSContext *cx);
 
-JS_FRIEND_API(PRLock *)
-GetRuntimeGCLock(const JSRuntime *rt);
-
 class JS_FRIEND_API(AutoSkipConservativeScan)
 {
   public:
@@ -584,42 +595,10 @@ typedef void
 /*
  * Sets a callback that is run whenever the runtime goes idle - the
  * last active request ceases - and begins activity - when it was
- * idle and a request begins. Note: The callback is called under the
- * GC lock.
+ * idle and a request begins.
  */
 JS_FRIEND_API(void)
 SetActivityCallback(JSRuntime *rt, ActivityCallback cb, void *arg);
-
-class JS_FRIEND_API(AutoLockGC)
-{
-  public:
-    explicit AutoLockGC(JSRuntime *rt = NULL
-                        MOZ_GUARD_OBJECT_NOTIFIER_PARAM)
-      : runtime(rt)
-    {
-        MOZ_GUARD_OBJECT_NOTIFIER_INIT;
-        if (rt)
-            LockGC(rt);
-    }
-
-    ~AutoLockGC()
-    {
-        if (runtime)
-            UnlockGC(runtime);
-    }
-
-    bool locked() const {
-        return !!runtime;
-    }
-    void lock(JSRuntime *rt);
-
-  private:
-    static void LockGC(JSRuntime *rt);
-    static void UnlockGC(JSRuntime *rt);
-
-    JSRuntime *runtime;
-    MOZ_DECL_USE_GUARD_OBJECT_NOTIFIER
-};
 
 extern JS_FRIEND_API(const JSStructuredCloneCallbacks *)
 GetContextStructuredCloneCallbacks(JSContext *cx);
@@ -635,10 +614,6 @@ CallContextDebugHandler(JSContext *cx, JSScript *script, jsbytecode *bc, Value *
 
 extern JS_FRIEND_API(bool)
 IsContextRunningJS(JSContext *cx);
-
-/* Must be called with GC lock taken. */
-extern JS_FRIEND_API(void)
-TriggerOperationCallback(JSRuntime *rt);
 
 class SystemAllocPolicy;
 typedef Vector<JSCompartment*, 0, SystemAllocPolicy> CompartmentVector;
@@ -657,7 +632,7 @@ SizeOfJSContext();
     D(LAST_DITCH)                               \
     D(TOO_MUCH_MALLOC)                          \
     D(ALLOC_TRIGGER)                            \
-    D(UNUSED1) /* was CHUNK */                  \
+    D(DEBUG_GC)                                 \
     D(UNUSED2) /* was SHAPE */                  \
     D(UNUSED3) /* was REFILL */                 \
                                                 \
@@ -751,6 +726,9 @@ NotifyDidPaint(JSContext *cx);
 extern JS_FRIEND_API(bool)
 IsIncrementalGCEnabled(JSRuntime *rt);
 
+extern JS_FRIEND_API(void)
+DisableIncrementalGC(JSRuntime *rt);
+
 extern JS_FRIEND_API(bool)
 IsIncrementalBarrierNeeded(JSRuntime *rt);
 
@@ -804,6 +782,9 @@ class ObjectPtr
     operator JSObject *() const { return value; }
 };
 
+extern JS_FRIEND_API(JSObject *)
+GetTestingFunctions(JSContext *cx);
+
 } /* namespace js */
 
 #endif
@@ -835,7 +816,7 @@ typedef enum JSErrNum {
 } JSErrNum;
 
 extern JS_FRIEND_API(const JSErrorFormatString *)
-js_GetErrorMessage(void *userRef, const char *locale, const uintN errorNumber);
+js_GetErrorMessage(void *userRef, const char *locale, const unsigned errorNumber);
 
 /* Implemented in jsclone.cpp. */
 

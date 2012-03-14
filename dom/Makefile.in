@@ -47,6 +47,7 @@ MODULE		= dom
 DIRS = \
   interfaces/base \
   interfaces/canvas \
+  interfaces/contacts \
   interfaces/core \
   interfaces/html \
   interfaces/events \
@@ -68,15 +69,14 @@ DIRS = \
   interfaces/smil \
   $(NULL)
 
-ifeq (gonk,$(MOZ_WIDGET_TOOLKIT))
 DIRS += \
   interfaces/apps \
   $(NULL)
-endif
 
 DIRS += \
   base \
   battery \
+  contacts \
   power \
   sms \
   src \

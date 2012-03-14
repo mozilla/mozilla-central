@@ -451,8 +451,10 @@ JSObject::toDictionaryMode(JSContext *cx)
         JS_ASSERT(!shape->inDictionary());
 
         Shape *dprop = js_NewGCShape(cx);
-        if (!dprop)
+        if (!dprop) {
+            js_ReportOutOfMemory(cx);
             return false;
+        }
 
         HeapPtrShape *listp = dictionaryShape
                               ? &dictionaryShape->parent
@@ -466,8 +468,10 @@ JSObject::toDictionaryMode(JSContext *cx)
         shape = shape->previous();
     }
 
-    if (!root->hashify(cx))
+    if (!root->hashify(cx)) {
+        js_ReportOutOfMemory(cx);
         return false;
+    }
 
     JS_ASSERT((Shape **) root->listp == root.address());
     root->listp = &self->shape_;
@@ -485,7 +489,7 @@ JSObject::toDictionaryMode(JSContext *cx)
  */
 static inline bool
 NormalizeGetterAndSetter(JSContext *cx, JSObject *obj,
-                         jsid id, uintN attrs, uintN flags,
+                         jsid id, unsigned attrs, unsigned flags,
                          PropertyOp &getter,
                          StrictPropertyOp &setter)
 {
@@ -581,8 +585,8 @@ JSObject::checkShapeConsistency()
 Shape *
 JSObject::addProperty(JSContext *cx, jsid id,
                       PropertyOp getter, StrictPropertyOp setter,
-                      uint32_t slot, uintN attrs,
-                      uintN flags, intN shortid, bool allowDictionary)
+                      uint32_t slot, unsigned attrs,
+                      unsigned flags, int shortid, bool allowDictionary)
 {
     JS_ASSERT(!JSID_IS_VOID(id));
 
@@ -604,8 +608,8 @@ JSObject::addProperty(JSContext *cx, jsid id,
 Shape *
 JSObject::addPropertyInternal(JSContext *cx, jsid id,
                               PropertyOp getter, StrictPropertyOp setter,
-                              uint32_t slot, uintN attrs,
-                              uintN flags, intN shortid, Shape **spp,
+                              uint32_t slot, unsigned attrs,
+                              unsigned flags, int shortid, Shape **spp,
                               bool allowDictionary)
 {
     JS_ASSERT_IF(!allowDictionary, !inDictionaryMode());
@@ -644,7 +648,7 @@ JSObject::addPropertyInternal(JSContext *cx, jsid id,
     {
         shape = self->lastProperty();
 
-        jsuint index;
+        uint32_t index;
         bool indexed = js_IdIsIndex(id, &index);
         UnownedBaseShape *nbase;
         if (shape->base()->matchesGetterSetter(getter, setter) && !indexed) {
@@ -690,7 +694,7 @@ JSObject::addPropertyInternal(JSContext *cx, jsid id,
  * enforce all restrictions from ECMA-262 v5 8.12.9 [[DefineOwnProperty]].
  */
 inline bool
-CheckCanChangeAttrs(JSContext *cx, JSObject *obj, const Shape *shape, uintN *attrsp)
+CheckCanChangeAttrs(JSContext *cx, JSObject *obj, const Shape *shape, unsigned *attrsp)
 {
     if (shape->configurable())
         return true;
@@ -711,8 +715,8 @@ CheckCanChangeAttrs(JSContext *cx, JSObject *obj, const Shape *shape, uintN *att
 Shape *
 JSObject::putProperty(JSContext *cx, jsid id,
                       PropertyOp getter, StrictPropertyOp setter,
-                      uint32_t slot, uintN attrs,
-                      uintN flags, intN shortid)
+                      uint32_t slot, unsigned attrs,
+                      unsigned flags, int shortid)
 {
     JS_ASSERT(!JSID_IS_VOID(id));
 
@@ -758,7 +762,7 @@ JSObject::putProperty(JSContext *cx, jsid id,
 
     RootedVar<UnownedBaseShape*> nbase(cx);
     {
-        jsuint index;
+        uint32_t index;
         bool indexed = js_IdIsIndex(id, &index);
         StackBaseShape base(self->lastProperty()->base());
         base.updateGetterSetter(attrs, getter, setter);
@@ -862,7 +866,7 @@ JSObject::putProperty(JSContext *cx, jsid id,
 }
 
 Shape *
-JSObject::changeProperty(JSContext *cx, Shape *shape, uintN attrs, uintN mask,
+JSObject::changeProperty(JSContext *cx, Shape *shape, unsigned attrs, unsigned mask,
                          PropertyOp getter, StrictPropertyOp setter)
 {
     JS_ASSERT(nativeContains(cx, *shape));

@@ -1,0 +1,17 @@
+#filter substitution
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+package org.mozilla.gecko.sync;
+
+/**
+ * Preprocessed class for storing preprocessed values.
+ */
+public class GlobalConstants {
+  public static final String PRODUCT_NAME = "@MOZ_APP_DISPLAYNAME@";
+  public static final String SYNC_VERSION_STRING = "0.6";
+
+  public static final String USER_AGENT = "Firefox AndroidSync " + SYNC_VERSION_STRING +
+                                          " (" + PRODUCT_NAME + ")";
+}

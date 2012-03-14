@@ -34,14 +34,6 @@
   direction: ltr;
 }
 
-#inspector-top-resizer {
-  display: none;
-}
-
-#inspector-toolbar[treepanel-open] > vbox > #inspector-top-resizer {
-  display: -moz-box;
-}
-
 /*
  * Node Infobar
  */
@@ -94,4 +86,8 @@ html|*#highlighter-nodeinfobar-tagname {
 
 html|*#highlighter-nodeinfobar-tagname {
   text-transform: lowercase;
+}
+
+.devtools-toolbarbutton:not([label]) > .toolbarbutton-text {
+  display: none;
 }

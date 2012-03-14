@@ -209,7 +209,7 @@ ToCanvasBounds(const gfxRect &aUserspaceRect,
 }
 
 NS_IMETHODIMP
-nsSVGForeignObjectFrame::PaintSVG(nsSVGRenderState *aContext,
+nsSVGForeignObjectFrame::PaintSVG(nsRenderingContext *aContext,
                                   const nsIntRect *aDirtyRect)
 {
   if (IsDisabled())
@@ -222,9 +222,7 @@ nsSVGForeignObjectFrame::PaintSVG(nsSVGRenderState *aContext,
   gfxMatrix matrixForChildren = GetCanvasTMForChildren();
   gfxMatrix matrix = GetCanvasTM();
 
-  nsRenderingContext *ctx = aContext->GetRenderingContext(this);
-
-  if (!ctx || matrixForChildren.IsSingular()) {
+  if (matrixForChildren.IsSingular()) {
     NS_WARNING("Can't render foreignObject element!");
     return NS_ERROR_FAILURE;
   }
@@ -255,7 +253,7 @@ nsSVGForeignObjectFrame::PaintSVG(nsSVGRenderState *aContext,
       return NS_OK;
   }
 
-  gfxContext *gfx = aContext->GetGfxContext();
+  gfxContext *gfx = aContext->ThebesContext();
 
   gfx->Save();
 
@@ -272,10 +270,10 @@ nsSVGForeignObjectFrame::PaintSVG(nsSVGRenderState *aContext,
   gfx->Multiply(matrixForChildren);
 
   PRUint32 flags = nsLayoutUtils::PAINT_IN_TRANSFORM;
-  if (aContext->IsPaintingToWindow()) {
+  if (SVGAutoRenderState::IsPaintingToWindow(aContext)) {
     flags |= nsLayoutUtils::PAINT_TO_WINDOW;
   }
-  nsresult rv = nsLayoutUtils::PaintFrame(ctx, kid, nsRegion(kidDirtyRect),
+  nsresult rv = nsLayoutUtils::PaintFrame(aContext, kid, nsRegion(kidDirtyRect),
                                           NS_RGBA(0,0,0,0), flags);
 
   gfx->Restore();
@@ -396,6 +394,13 @@ nsSVGForeignObjectFrame::InitialUpdate()
 void
 nsSVGForeignObjectFrame::NotifySVGChanged(PRUint32 aFlags)
 {
+  NS_ABORT_IF_FALSE(!(aFlags & DO_NOT_NOTIFY_RENDERING_OBSERVERS) ||
+                    (GetStateBits() & NS_STATE_SVG_NONDISPLAY_CHILD),
+                    "Must be NS_STATE_SVG_NONDISPLAY_CHILD!");
+
+  NS_ABORT_IF_FALSE(aFlags & (TRANSFORM_CHANGED | COORD_CONTEXT_CHANGED),
+                    "Invalidation logic may need adjusting");
+
   bool reflow = false;
 
   if (aFlags & TRANSFORM_CHANGED) {
@@ -407,7 +412,7 @@ nsSVGForeignObjectFrame::NotifySVGChanged(PRUint32 aFlags)
     // We also seem to get some sort of infinite loop post bug 421584 if we
     // reflow.
     mCanvasTM = nsnull;
-    if (!(aFlags & SUPPRESS_INVALIDATION)) {
+    if (!(aFlags & DO_NOT_NOTIFY_RENDERING_OBSERVERS)) {
       UpdateGraphic();
     }
 

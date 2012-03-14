@@ -47,6 +47,7 @@
 #include "nsCOMArray.h"
 #include "nsAutoPtr.h"
 #include "nsString.h"
+#include "nsUnicharUtils.h"
 #include "mozilla/Services.h"
 #include "mozilla/Observer.h"
 #include "nsIObserver.h"
@@ -287,9 +288,7 @@ BlacklistNodeToTextValue(nsIDOMNode *aBlacklistNode, nsAString& aValue)
 static OperatingSystem
 BlacklistOSToOperatingSystem(const nsAString& os)
 {
-  if (os == NS_LITERAL_STRING("WINNT 5.0"))
-    return DRIVER_OS_WINDOWS_2000;
-  else if (os == NS_LITERAL_STRING("WINNT 5.1"))
+  if (os == NS_LITERAL_STRING("WINNT 5.1"))
     return DRIVER_OS_WINDOWS_XP;
   else if (os == NS_LITERAL_STRING("WINNT 5.2"))
     return DRIVER_OS_WINDOWS_SERVER_2003;
@@ -643,15 +642,15 @@ GfxInfoBase::FindBlocklistedDeviceInList(const nsTArray<GfxDriverInfo>& info,
       continue;
     }
 
-    if (info[i].mAdapterVendor != GfxDriverInfo::GetDeviceVendor(VendorAll) &&
-        info[i].mAdapterVendor != adapterVendorID) {
+    if (!info[i].mAdapterVendor.Equals(GfxDriverInfo::GetDeviceVendor(VendorAll), nsCaseInsensitiveStringComparator()) &&
+        !info[i].mAdapterVendor.Equals(adapterVendorID, nsCaseInsensitiveStringComparator())) {
       continue;
     }
 
     if (info[i].mDevices != GfxDriverInfo::allDevices && info[i].mDevices->Length()) {
         bool deviceMatches = false;
         for (PRUint32 j = 0; j < info[i].mDevices->Length(); j++) {
-            if ((*info[i].mDevices)[j] == adapterDeviceID) {
+            if ((*info[i].mDevices)[j].Equals(adapterDeviceID, nsCaseInsensitiveStringComparator())) {
                 deviceMatches = true;
                 break;
             }

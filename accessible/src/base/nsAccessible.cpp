@@ -232,42 +232,6 @@ nsAccessible::SetRoleMapEntry(nsRoleMapEntry* aRoleMapEntry)
 }
 
 NS_IMETHODIMP
-nsAccessible::GetComputedStyleValue(const nsAString& aPseudoElt,
-                                    const nsAString& aPropertyName,
-                                    nsAString& aValue)
-{
-  if (IsDefunct())
-    return NS_ERROR_FAILURE;
-
-  nsCOMPtr<nsIDOMCSSStyleDeclaration> styleDecl =
-    nsCoreUtils::GetComputedStyleDeclaration(aPseudoElt, mContent);
-  NS_ENSURE_TRUE(styleDecl, NS_ERROR_FAILURE);
-
-  return styleDecl->GetPropertyValue(aPropertyName, aValue);
-}
-
-NS_IMETHODIMP
-nsAccessible::GetComputedStyleCSSValue(const nsAString& aPseudoElt,
-                                       const nsAString& aPropertyName,
-                                       nsIDOMCSSPrimitiveValue **aCSSValue) {
-  NS_ENSURE_ARG_POINTER(aCSSValue);
-  *aCSSValue = nsnull;
-
-  if (IsDefunct())
-    return NS_ERROR_FAILURE;
-
-  nsCOMPtr<nsIDOMCSSStyleDeclaration> styleDecl =
-    nsCoreUtils::GetComputedStyleDeclaration(aPseudoElt, mContent);
-  NS_ENSURE_STATE(styleDecl);
-
-  nsCOMPtr<nsIDOMCSSValue> cssValue;
-  styleDecl->GetPropertyCSSValue(aPropertyName, getter_AddRefs(cssValue));
-  NS_ENSURE_TRUE(cssValue, NS_ERROR_FAILURE);
-
-  return CallQueryInterface(cssValue, aCSSValue);
-}
-
-NS_IMETHODIMP
 nsAccessible::GetDocument(nsIAccessibleDocument **aDocument)
 {
   NS_ENSURE_ARG_POINTER(aDocument);
@@ -838,9 +802,9 @@ nsAccessible::ChildAtPoint(PRInt32 aX, PRInt32 aY,
 
   nsPresContext *presContext = frame->PresContext();
 
-  nsIntRect screenRect = frame->GetScreenRectExternal();
-  nsPoint offset(presContext->DevPixelsToAppUnits(aX - screenRect.x),
-                 presContext->DevPixelsToAppUnits(aY - screenRect.y));
+  nsRect screenRect = frame->GetScreenRectInAppUnits();
+  nsPoint offset(presContext->DevPixelsToAppUnits(aX) - screenRect.x,
+                 presContext->DevPixelsToAppUnits(aY) - screenRect.y);
 
   nsCOMPtr<nsIPresShell> presShell = presContext->PresShell();
   nsIFrame *foundFrame = presShell->GetFrameForPoint(frame, offset);
@@ -851,7 +815,15 @@ nsAccessible::ChildAtPoint(PRInt32 aX, PRInt32 aY,
 
   // Get accessible for the node with the point or the first accessible in
   // the DOM parent chain.
-  nsAccessible* accessible = accDocument->GetAccessibleOrContainer(content);
+  nsDocAccessible* contentDocAcc = GetAccService()->
+    GetDocAccessible(content->OwnerDoc());
+
+  // contentDocAcc in some circumstances can be NULL. See bug 729861
+  NS_ASSERTION(contentDocAcc, "could not get the document accessible");
+  if (!contentDocAcc)
+    return fallbackAnswer;
+
+  nsAccessible* accessible = contentDocAcc->GetAccessibleOrContainer(content);
   if (!accessible)
     return fallbackAnswer;
 
@@ -961,10 +933,8 @@ void nsAccessible::GetBoundsRect(nsRect& aTotalBounds, nsIFrame** aBoundingFrame
     *aBoundingFrame = ancestorFrame;
     // If any other frame type, we only need to deal with the primary frame
     // Otherwise, there may be more frames attached to the same content node
-    if (!nsCoreUtils::IsCorrectFrameType(ancestorFrame,
-                                         nsGkAtoms::inlineFrame) &&
-        !nsCoreUtils::IsCorrectFrameType(ancestorFrame,
-                                         nsGkAtoms::textFrame))
+    if (ancestorFrame->GetType() != nsGkAtoms::inlineFrame &&
+        ancestorFrame->GetType() != nsGkAtoms::textFrame)
       break;
     ancestorFrame = ancestorFrame->GetParent();
   }
@@ -988,8 +958,7 @@ void nsAccessible::GetBoundsRect(nsRect& aTotalBounds, nsIFrame** aBoundingFrame
 
     nsIFrame *iterNextFrame = nsnull;
 
-    if (nsCoreUtils::IsCorrectFrameType(iterFrame,
-                                        nsGkAtoms::inlineFrame)) {
+    if (iterFrame->GetType() == nsGkAtoms::inlineFrame) {
       // Only do deeper bounds search if we're on an inline frame
       // Inline frames can contain larger frames inside of them
       iterNextFrame = iterFrame->GetFirstPrincipalChild();
@@ -1058,7 +1027,8 @@ nsAccessible::GetBounds(PRInt32* aX, PRInt32* aY,
   *aHeight = presContext->AppUnitsToDevPixels(unionRectTwips.height);
 
   // We have the union of the rectangle, now we need to put it in absolute screen coords
-  nsIntRect orgRectPixels = boundingFrame->GetScreenRectExternal();
+  nsIntRect orgRectPixels = boundingFrame->GetScreenRectInAppUnits().
+    ToNearestPixels(presContext->AppUnitsPerDevPixel());
   *aX += orgRectPixels.x;
   *aY += orgRectPixels.y;
 
@@ -1444,6 +1414,23 @@ nsAccessible::GetAttributesInternal(nsIPersistentProperties *aAttributes)
   if (!mContent->IsElement())
     return NS_OK;
 
+  // Expose draggable object attribute?
+  nsCOMPtr<nsIDOMHTMLElement> htmlElement = do_QueryInterface(mContent);
+  if (htmlElement) {
+    bool draggable = false;
+    htmlElement->GetDraggable(&draggable);
+    if (draggable) {
+      nsAccUtils::SetAccAttr(aAttributes, nsGkAtoms::draggable,
+                             NS_LITERAL_STRING("true"));
+    }
+  }
+
+  // Don't calculate CSS-based object attributes when no frame (i.e.
+  // the accessible is not unattached form three) or when the accessible is not
+  // primary for node (like list bullet or XUL tree items).
+  if (!mContent->GetPrimaryFrame() || !IsPrimaryForNode())
+    return NS_OK;
+
   // CSS style based object attributes.
   nsAutoString value;
   StyleInfo styleInfo(mContent->AsElement(), mDoc->PresShell());
@@ -1475,17 +1462,6 @@ nsAccessible::GetAttributesInternal(nsIPersistentProperties *aAttributes)
   // Expose 'margin-bottom' attribute.
   styleInfo.MarginBottom(value);
   nsAccUtils::SetAccAttr(aAttributes, nsGkAtoms::marginBottom, value);
-
-  // Expose draggable object attribute?
-  nsCOMPtr<nsIDOMHTMLElement> htmlElement = do_QueryInterface(mContent);
-  if (htmlElement) {
-    bool draggable = false;
-    htmlElement->GetDraggable(&draggable);
-    if (draggable) {
-      nsAccUtils::SetAccAttr(aAttributes, nsGkAtoms::draggable,
-                             NS_LITERAL_STRING("true"));
-    }
-  }
 
   return NS_OK;
 }

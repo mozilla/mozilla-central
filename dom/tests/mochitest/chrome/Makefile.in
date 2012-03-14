@@ -51,9 +51,6 @@ _TEST_FILES = \
 		fullscreen.xul \
 		test_fullscreen_preventdefault.xul \
 		fullscreen_preventdefault.xul \
-		test_domstorage.xul \
-		domstorage_global.xul \
-		domstorage_global.js \
 		focus_window2.xul \
 		focus_frameset.html \
 		child_focus_frame.html \
@@ -74,6 +71,8 @@ _TEST_FILES = \
 		test_moving_xhr.xul \
 		test_nodesFromRect.html \
 		489127.html \
+		test_focus_docnav.xul \
+		window_focus_docnav.xul \
 		$(NULL)
 
 ifeq (WINNT,$(OS_ARCH))

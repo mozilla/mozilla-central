@@ -10,6 +10,8 @@ const nsIAccessibleCaretMoveEvent =
   Components.interfaces.nsIAccessibleCaretMoveEvent;
 const nsIAccessibleTextChangeEvent =
   Components.interfaces.nsIAccessibleTextChangeEvent;
+const nsIAccessibleVirtualCursorChangeEvent =
+  Components.interfaces.nsIAccessibleVirtualCursorChangeEvent;
 
 const nsIAccessibleStates = Components.interfaces.nsIAccessibleStates;
 const nsIAccessibleRole = Components.interfaces.nsIAccessibleRole;
@@ -613,9 +615,9 @@ function getNodePrettyName(aNode)
 function getObjAddress(aObj)
 {
   var exp = /native\s*@\s*(0x[a-f0-9]+)/g;
-  var match = exp.exec(aObj.valueOf());
+  var match = exp.exec(aObj.toString());
   if (match)
     return match[1];
 
-  return aObj.valueOf();
+  return aObj.toString();
 }

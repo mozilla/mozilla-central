@@ -4,6 +4,7 @@ mk_add_options PROFILE_GEN_SCRIPT='$(PYTHON) $(MOZ_OBJDIR)/_profile/pgo/profiles
 ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
 ac_add_options --enable-update-packaging
 ac_add_options --enable-jemalloc
+ac_add_options --enable-signmar
 
 # Nightlies only since this has a cost in performance
 ac_add_options --enable-js-diagnostics
@@ -16,3 +17,6 @@ export MOZ_TELEMETRY_REPORTING=1
 mk_add_options MOZ_MAKE_FLAGS=-j1
 
 . $topsrcdir/browser/config/mozconfigs/win32/vs2010-mozconfig
+
+# Package js shell.
+export MOZ_PACKAGE_JSSHELL=1

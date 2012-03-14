@@ -323,14 +323,14 @@ nsSVGGlyphFrame::GetType() const
 // nsISVGChildFrame methods
 
 NS_IMETHODIMP
-nsSVGGlyphFrame::PaintSVG(nsSVGRenderState *aContext,
+nsSVGGlyphFrame::PaintSVG(nsRenderingContext *aContext,
                           const nsIntRect *aDirtyRect)
 {
   if (!GetStyleVisibility()->IsVisible())
     return NS_OK;
 
-  gfxContext *gfx = aContext->GetGfxContext();
-  PRUint16 renderMode = aContext->GetRenderMode();
+  gfxContext *gfx = aContext->ThebesContext();
+  PRUint16 renderMode = SVGAutoRenderState::GetRenderMode(aContext);
 
   switch (GetStyleSVG()->mTextRendering) {
   case NS_STYLE_TEXT_RENDERING_OPTIMIZESPEED:
@@ -341,7 +341,7 @@ nsSVGGlyphFrame::PaintSVG(nsSVGRenderState *aContext,
     break;
   }
 
-  if (renderMode != nsSVGRenderState::NORMAL) {
+  if (renderMode != SVGAutoRenderState::NORMAL) {
 
     gfxMatrix matrix = gfx->CurrentMatrix();
     SetupGlobalTransform(gfx);
@@ -354,7 +354,7 @@ nsSVGGlyphFrame::PaintSVG(nsSVGRenderState *aContext,
     else
       gfx->SetFillRule(gfxContext::FILL_RULE_WINDING);
 
-    if (renderMode == nsSVGRenderState::CLIP_MASK) {
+    if (renderMode == SVGAutoRenderState::CLIP_MASK) {
       gfx->SetColor(gfxRGBA(1.0f, 1.0f, 1.0f, 1.0f));
       DrawCharacters(&iter, gfx, gfxFont::GLYPH_FILL);
     } else {
@@ -521,10 +521,17 @@ nsSVGGlyphFrame::InitialUpdate()
 void
 nsSVGGlyphFrame::NotifySVGChanged(PRUint32 aFlags)
 {
+  NS_ABORT_IF_FALSE(!(aFlags & DO_NOT_NOTIFY_RENDERING_OBSERVERS) ||
+                    (GetStateBits() & NS_STATE_SVG_NONDISPLAY_CHILD),
+                    "Must be NS_STATE_SVG_NONDISPLAY_CHILD!");
+
+  NS_ABORT_IF_FALSE(aFlags & (TRANSFORM_CHANGED | COORD_CONTEXT_CHANGED),
+                    "Invalidation logic may need adjusting");
+
   if (aFlags & TRANSFORM_CHANGED) {
     ClearTextRun();
   }
-  if (!(aFlags & SUPPRESS_INVALIDATION)) {
+  if (!(aFlags & DO_NOT_NOTIFY_RENDERING_OBSERVERS)) {
     nsSVGUtils::UpdateGraphic(this);
   }
 }

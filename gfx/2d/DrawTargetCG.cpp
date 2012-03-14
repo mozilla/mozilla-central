@@ -663,15 +663,26 @@ DrawTargetCG::Fill(const Path *aPath, const Pattern &aPattern, const DrawOptions
 
   CGContextConcatCTM(cg, GfxMatrixToCGAffineTransform(mTransform));
 
+  CGContextBeginPath(cg);
+  // XXX: we could put fill mode into the path fill rule if we wanted
+  const PathCG *cgPath = static_cast<const PathCG*>(aPath);
+
   if (isGradient(aPattern)) {
-    // XXX: we should be able to avoid the extra SaveState that PushClip does
-    PushClip(aPath);
+    // setup a clip to draw the gradient through
+    if (CGPathIsEmpty(cgPath->GetPath())) {
+      // Adding an empty path will cause us not to clip
+      // so clip everything explicitly
+      CGContextClipToRect(mCg, CGRectZero);
+    } else {
+      CGContextAddPath(cg, cgPath->GetPath());
+      if (cgPath->GetFillRule() == FILL_EVEN_ODD)
+        CGContextEOClip(mCg);
+      else
+        CGContextClip(mCg);
+    }
+
     DrawGradient(cg, aPattern);
-    PopClip();
   } else {
-    CGContextBeginPath(cg);
-    // XXX: we could put fill mode into the path fill rule if we wanted
-    const PathCG *cgPath = static_cast<const PathCG*>(aPath);
     CGContextAddPath(cg, cgPath->GetPath());
 
     SetFillFromPattern(cg, mColorSpace, aPattern);
@@ -861,7 +872,10 @@ DrawTargetCG::Init(const IntSize &aSize, SurfaceFormat &)
 {
   // XXX: we should come up with some consistent semantics for dealing
   // with zero area drawtargets
-  if (aSize.width == 0 || aSize.height == 0) {
+  if (aSize.width == 0 || aSize.height == 0 ||
+      // 32767 is the maximum size supported by cairo
+      // we clamp to that to make it easier to interoperate
+      aSize.width > 32767 || aSize.height > 32767) {
     mColorSpace = NULL;
     mCg = NULL;
     mData = NULL;

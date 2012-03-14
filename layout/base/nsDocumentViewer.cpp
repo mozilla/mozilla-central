@@ -166,13 +166,9 @@ static const char sPrintOptionsContractID[]         = "@mozilla.org/gfx/printset
 #include "nsIWindowWatcher.h"
 
 // Printing 
-#include "nsPrintEngine.h"
 #include "nsPagePrintTimer.h"
 
 #endif // NS_PRINTING
-
-// FrameSet
-#include "nsIDocument.h"
 
 //focus
 #include "nsIDOMEventTarget.h"
@@ -190,9 +186,6 @@ static const char sPrintOptionsContractID[]         = "@mozilla.org/gfx/printset
 //paint forcing
 #include "prenv.h"
 #include <stdio.h>
-
-//switch to page layout
-#include "nsGfxCIID.h"
 
 #include "nsObserverService.h"
 
@@ -1289,7 +1282,7 @@ DocumentViewerImpl::PageHide(bool aIsUnload)
 
   if (aIsUnload) {
     // Poke the GC. The window might be collectable garbage now.
-    nsJSContext::PokeGC(js::gcreason::PAGE_HIDE);
+    nsJSContext::PokeGC(js::gcreason::PAGE_HIDE, NS_GC_DELAY * 2);
 
     // if Destroy() was called during OnPageHide(), mDocument is nsnull.
     NS_ENSURE_STATE(mDocument);

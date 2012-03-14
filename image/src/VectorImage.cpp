@@ -248,31 +248,31 @@ VectorImage::GetCurrentFrameRect(nsIntRect& aRect)
   aRect = nsIntRect::GetMaxSizedIntRect();
 }
 
-PRUint32
-VectorImage::GetDecodedHeapSize()
-{
-  // XXXdholbert TODO: return num bytes used by helper SVG doc. (bug 590790)
-  return sizeof(*this);
-}
-
-PRUint32
-VectorImage::GetDecodedNonheapSize()
-{
-  return 0;
-}
-
-PRUint32
-VectorImage::GetDecodedOutOfProcessSize()
-{
-  return 0;
-}
-
-PRUint32
-VectorImage::GetSourceHeapSize()
+size_t
+VectorImage::HeapSizeOfSourceWithComputedFallback(nsMallocSizeOfFun aMallocSizeOf) const
 {
   // We're not storing the source data -- we just feed that directly to
   // our helper SVG document as we receive it, for it to parse.
   // So 0 is an appropriate return value here.
+  return 0;
+}
+
+size_t
+VectorImage::HeapSizeOfDecodedWithComputedFallback(nsMallocSizeOfFun aMallocSizeOf) const
+{
+  // XXXdholbert TODO: return num bytes used by helper SVG doc. (bug 590790)
+  return 0;
+}
+
+size_t
+VectorImage::NonHeapSizeOfDecoded() const
+{
+  return 0;
+}
+
+size_t
+VectorImage::OutOfProcessSizeOfDecoded() const
+{
   return 0;
 }
 
@@ -621,6 +621,15 @@ VectorImage::LockImage()
 /* void unlockImage() */
 NS_IMETHODIMP
 VectorImage::UnlockImage()
+{
+  // This method is for image-discarding, which only applies to RasterImages.
+  return NS_OK;
+}
+
+//******************************************************************************
+/* void requestDiscard() */
+NS_IMETHODIMP
+VectorImage::RequestDiscard()
 {
   // This method is for image-discarding, which only applies to RasterImages.
   return NS_OK;

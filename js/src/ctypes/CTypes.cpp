@@ -65,11 +65,11 @@ namespace ctypes {
 ** JSAPI function prototypes
 *******************************************************************************/
 
-static JSBool ConstructAbstract(JSContext* cx, uintN argc, jsval* vp);
+static JSBool ConstructAbstract(JSContext* cx, unsigned argc, jsval* vp);
 
 namespace CType {
-  static JSBool ConstructData(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool ConstructBasic(JSContext* cx, JSObject* obj, uintN argc, jsval* vp);
+  static JSBool ConstructData(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool ConstructBasic(JSContext* cx, JSObject* obj, unsigned argc, jsval* vp);
 
   static void Trace(JSTracer* trc, JSObject* obj);
   static void Finalize(JSContext* cx, JSObject* obj);
@@ -82,15 +82,15 @@ namespace CType {
   static JSBool SizeGetter(JSContext* cx, JSObject* obj, jsid idval,
     jsval* vp);
   static JSBool PtrGetter(JSContext* cx, JSObject* obj, jsid idval, jsval* vp);
-  static JSBool CreateArray(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool ToString(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool ToSource(JSContext* cx, uintN argc, jsval* vp);
+  static JSBool CreateArray(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool ToString(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool ToSource(JSContext* cx, unsigned argc, jsval* vp);
   static JSBool HasInstance(JSContext* cx, JSObject* obj, const jsval* v, JSBool* bp);
 }
 
 namespace PointerType {
-  static JSBool Create(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool ConstructData(JSContext* cx, JSObject* obj, uintN argc, jsval* vp);
+  static JSBool Create(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool ConstructData(JSContext* cx, JSObject* obj, unsigned argc, jsval* vp);
 
   static JSBool TargetTypeGetter(JSContext* cx, JSObject* obj, jsid idval,
     jsval* vp);
@@ -98,17 +98,17 @@ namespace PointerType {
     jsval* vp);
   static JSBool ContentsSetter(JSContext* cx, JSObject* obj, jsid idval, JSBool strict,
     jsval* vp);
-  static JSBool IsNull(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool Increment(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool Decrement(JSContext* cx, uintN argc, jsval* vp);
+  static JSBool IsNull(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool Increment(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool Decrement(JSContext* cx, unsigned argc, jsval* vp);
   // The following is not an instance function, since we don't want to expose arbitrary
   // pointer arithmetic at this moment.
-  static JSBool OffsetBy(JSContext* cx, intN offset, jsval* vp);
+  static JSBool OffsetBy(JSContext* cx, int offset, jsval* vp);
 }
 
 namespace ArrayType {
-  static JSBool Create(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool ConstructData(JSContext* cx, JSObject* obj, uintN argc, jsval* vp);
+  static JSBool Create(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool ConstructData(JSContext* cx, JSObject* obj, unsigned argc, jsval* vp);
 
   static JSBool ElementTypeGetter(JSContext* cx, JSObject* obj, jsid idval,
     jsval* vp);
@@ -116,12 +116,12 @@ namespace ArrayType {
     jsval* vp);
   static JSBool Getter(JSContext* cx, JSObject* obj, jsid idval, jsval* vp);
   static JSBool Setter(JSContext* cx, JSObject* obj, jsid idval, JSBool strict, jsval* vp);
-  static JSBool AddressOfElement(JSContext* cx, uintN argc, jsval* vp);
+  static JSBool AddressOfElement(JSContext* cx, unsigned argc, jsval* vp);
 }
 
 namespace StructType {
-  static JSBool Create(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool ConstructData(JSContext* cx, JSObject* obj, uintN argc, jsval* vp);
+  static JSBool Create(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool ConstructData(JSContext* cx, JSObject* obj, unsigned argc, jsval* vp);
 
   static JSBool FieldsArrayGetter(JSContext* cx, JSObject* obj, jsid idval,
     jsval* vp);
@@ -129,16 +129,16 @@ namespace StructType {
     jsval* vp);
   static JSBool FieldSetter(JSContext* cx, JSObject* obj, jsid idval, JSBool strict,
                             jsval* vp);
-  static JSBool AddressOfField(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool Define(JSContext* cx, uintN argc, jsval* vp);
+  static JSBool AddressOfField(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool Define(JSContext* cx, unsigned argc, jsval* vp);
 }
 
 namespace FunctionType {
-  static JSBool Create(JSContext* cx, uintN argc, jsval* vp);
+  static JSBool Create(JSContext* cx, unsigned argc, jsval* vp);
   static JSBool ConstructData(JSContext* cx, JSObject* typeObj,
     JSObject* dataObj, JSObject* fnObj, JSObject* thisObj, jsval errVal);
 
-  static JSBool Call(JSContext* cx, uintN argc, jsval* vp);
+  static JSBool Call(JSContext* cx, unsigned argc, jsval* vp);
 
   static JSBool ArgTypesGetter(JSContext* cx, JSObject* obj, jsid idval,
     jsval* vp);
@@ -165,9 +165,9 @@ namespace CData {
                             jsval* vp);
   static JSBool ValueSetter(JSContext* cx, JSObject* obj, jsid idval,
                             JSBool strict, jsval* vp);
-  static JSBool Address(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool ReadString(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool ToSource(JSContext* cx, uintN argc, jsval* vp);
+  static JSBool Address(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool ReadString(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool ToSource(JSContext* cx, unsigned argc, jsval* vp);
 }
 
 // Int64Base provides functions common to Int64 and UInt64.
@@ -177,37 +177,37 @@ namespace Int64Base {
 
   uint64_t GetInt(JSObject* obj);
 
-  JSBool ToString(JSContext* cx, JSObject* obj, uintN argc, jsval* vp,
+  JSBool ToString(JSContext* cx, JSObject* obj, unsigned argc, jsval* vp,
     bool isUnsigned);
 
-  JSBool ToSource(JSContext* cx, JSObject* obj, uintN argc, jsval* vp,
+  JSBool ToSource(JSContext* cx, JSObject* obj, unsigned argc, jsval* vp,
     bool isUnsigned);
 
   static void Finalize(JSContext* cx, JSObject* obj);
 }
 
 namespace Int64 {
-  static JSBool Construct(JSContext* cx, uintN argc, jsval* vp);
+  static JSBool Construct(JSContext* cx, unsigned argc, jsval* vp);
 
-  static JSBool ToString(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool ToSource(JSContext* cx, uintN argc, jsval* vp);
+  static JSBool ToString(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool ToSource(JSContext* cx, unsigned argc, jsval* vp);
 
-  static JSBool Compare(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool Lo(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool Hi(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool Join(JSContext* cx, uintN argc, jsval* vp);
+  static JSBool Compare(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool Lo(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool Hi(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool Join(JSContext* cx, unsigned argc, jsval* vp);
 }
 
 namespace UInt64 {
-  static JSBool Construct(JSContext* cx, uintN argc, jsval* vp);
+  static JSBool Construct(JSContext* cx, unsigned argc, jsval* vp);
 
-  static JSBool ToString(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool ToSource(JSContext* cx, uintN argc, jsval* vp);
+  static JSBool ToString(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool ToSource(JSContext* cx, unsigned argc, jsval* vp);
 
-  static JSBool Compare(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool Lo(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool Hi(JSContext* cx, uintN argc, jsval* vp);
-  static JSBool Join(JSContext* cx, uintN argc, jsval* vp);
+  static JSBool Compare(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool Lo(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool Hi(JSContext* cx, unsigned argc, jsval* vp);
+  static JSBool Join(JSContext* cx, unsigned argc, jsval* vp);
 }
 
 /*******************************************************************************
@@ -240,7 +240,7 @@ static JSClass sCTypeProtoClass = {
   JSCLASS_HAS_RESERVED_SLOTS(CTYPEPROTO_SLOTS),
   JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
   JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, CType::FinalizeProtoClass,
-  NULL, NULL, ConstructAbstract, ConstructAbstract, NULL, NULL, NULL, NULL
+  NULL, ConstructAbstract, ConstructAbstract
 };
 
 // Class representing ctypes.CData.prototype and the 'prototype' properties
@@ -258,8 +258,8 @@ static JSClass sCTypeClass = {
   JSCLASS_IMPLEMENTS_BARRIERS | JSCLASS_HAS_RESERVED_SLOTS(CTYPE_SLOTS),
   JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
   JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, CType::Finalize,
-  NULL, NULL, CType::ConstructData, CType::ConstructData, NULL,
-  CType::HasInstance, CType::Trace, NULL
+  NULL, CType::ConstructData, CType::ConstructData,
+  CType::HasInstance, CType::Trace
 };
 
 static JSClass sCDataClass = {
@@ -267,7 +267,7 @@ static JSClass sCDataClass = {
   JSCLASS_HAS_RESERVED_SLOTS(CDATA_SLOTS),
   JS_PropertyStub, JS_PropertyStub, ArrayType::Getter, ArrayType::Setter,
   JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, CData::Finalize,
-  NULL, NULL, FunctionType::Call, FunctionType::Call, NULL, NULL, NULL, NULL
+  NULL, FunctionType::Call, FunctionType::Call
 };
 
 static JSClass sCClosureClass = {
@@ -275,7 +275,7 @@ static JSClass sCClosureClass = {
   JSCLASS_IMPLEMENTS_BARRIERS | JSCLASS_HAS_RESERVED_SLOTS(CCLOSURE_SLOTS),
   JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
   JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, CClosure::Finalize,
-  NULL, NULL, NULL, NULL, NULL, NULL, CClosure::Trace, NULL
+  NULL, NULL, NULL, NULL, CClosure::Trace
 };
 
 #define CTYPESFN_FLAGS \
@@ -457,7 +457,7 @@ static JSFunctionSpec sModuleFunctions[] = {
   JS_FS_END
 };
 
-static inline bool FloatIsFinite(jsdouble f) {
+static inline bool FloatIsFinite(double f) {
 #ifdef WIN32
   return _finite(f) != 0;
 #else
@@ -497,7 +497,7 @@ JSErrorFormatString ErrorFormatString[CTYPESERR_LIMIT] = {
 };
 
 const JSErrorFormatString*
-GetErrorMessage(void* userRef, const char* locale, const uintN errorNumber)
+GetErrorMessage(void* userRef, const char* locale, const unsigned errorNumber)
 {
   if (0 < errorNumber && errorNumber < CTYPESERR_LIMIT)
     return &ErrorFormatString[errorNumber];
@@ -1004,8 +1004,8 @@ struct ConvertImpl {
 // MSVC can't perform double to unsigned __int64 conversion when the
 // double is greater than 2^63 - 1. Help it along a little.
 template<>
-struct ConvertImpl<uint64_t, jsdouble> {
-  static JS_ALWAYS_INLINE uint64_t Convert(jsdouble d) {
+struct ConvertImpl<uint64_t, double> {
+  static JS_ALWAYS_INLINE uint64_t Convert(double d) {
     return d > 0x7fffffffffffffffui64 ?
            uint64_t(d - 0x8000000000000000ui64) + 0x8000000000000000ui64 :
            uint64_t(d);
@@ -1020,16 +1020,16 @@ struct ConvertImpl<uint64_t, jsdouble> {
 #ifdef SPARC
 // Simulate x86 overflow behavior
 template<>
-struct ConvertImpl<uint64_t, jsdouble> {
-  static JS_ALWAYS_INLINE uint64_t Convert(jsdouble d) {
+struct ConvertImpl<uint64_t, double> {
+  static JS_ALWAYS_INLINE uint64_t Convert(double d) {
     return d >= 0xffffffffffffffff ?
            0x8000000000000000 : uint64_t(d);
   }
 };
 
 template<>
-struct ConvertImpl<int64_t, jsdouble> {
-  static JS_ALWAYS_INLINE int64_t Convert(jsdouble d) {
+struct ConvertImpl<int64_t, double> {
+  static JS_ALWAYS_INLINE int64_t Convert(double d) {
     return d >= 0x7fffffffffffffff ?
            0x8000000000000000 : int64_t(d);
   }
@@ -1141,7 +1141,7 @@ static JS_ALWAYS_INLINE bool IsNegative(Type i)
   return IsNegativeImpl<Type, numeric_limits<Type>::is_signed>::Test(i);
 }
 
-// Implicitly convert val to bool, allowing JSBool, jsint, and jsdouble
+// Implicitly convert val to bool, allowing JSBool, int, and double
 // arguments numerically equal to 0 or 1.
 static bool
 jsvalToBool(JSContext* cx, jsval val, bool* result)
@@ -1151,12 +1151,12 @@ jsvalToBool(JSContext* cx, jsval val, bool* result)
     return true;
   }
   if (JSVAL_IS_INT(val)) {
-    jsint i = JSVAL_TO_INT(val);
+    int32_t i = JSVAL_TO_INT(val);
     *result = i != 0;
     return i == 0 || i == 1;
   }
   if (JSVAL_IS_DOUBLE(val)) {
-    jsdouble d = JSVAL_TO_DOUBLE(val);
+    double d = JSVAL_TO_DOUBLE(val);
     *result = d != 0;
     // Allow -0.
     return d == 1 || d == 0;
@@ -1165,7 +1165,7 @@ jsvalToBool(JSContext* cx, jsval val, bool* result)
   return false;
 }
 
-// Implicitly convert val to IntegerType, allowing JSBool, jsint, jsdouble,
+// Implicitly convert val to IntegerType, allowing JSBool, int, double,
 // Int64, UInt64, and CData integer types 't' where all values of 't' are
 // representable by IntegerType.
 template<class IntegerType>
@@ -1177,13 +1177,13 @@ jsvalToInteger(JSContext* cx, jsval val, IntegerType* result)
   if (JSVAL_IS_INT(val)) {
     // Make sure the integer fits in the alotted precision, and has the right
     // sign.
-    jsint i = JSVAL_TO_INT(val);
+    int32_t i = JSVAL_TO_INT(val);
     return ConvertExact(i, result);
   }
   if (JSVAL_IS_DOUBLE(val)) {
     // Don't silently lose bits here -- check that val really is an
     // integer value, and has the right sign.
-    jsdouble d = JSVAL_TO_DOUBLE(val);
+    double d = JSVAL_TO_DOUBLE(val);
     return ConvertExact(d, result);
   }
   if (!JSVAL_IS_PRIMITIVE(val)) {
@@ -1246,7 +1246,7 @@ jsvalToInteger(JSContext* cx, jsval val, IntegerType* result)
   return false;
 }
 
-// Implicitly convert val to FloatType, allowing jsint, jsdouble,
+// Implicitly convert val to FloatType, allowing int, double,
 // Int64, UInt64, and CData numeric types 't' where all values of 't' are
 // representable by FloatType.
 template<class FloatType>
@@ -1359,7 +1359,7 @@ StringToInteger(JSContext* cx, JSString* string, IntegerType* result)
   return true;
 }
 
-// Implicitly convert val to IntegerType, allowing jsint, jsdouble,
+// Implicitly convert val to IntegerType, allowing int, double,
 // Int64, UInt64, and optionally a decimal or hexadecimal string argument.
 // (This is common code shared by jsvalToSize and the Int64/UInt64 constructors.)
 template<class IntegerType>
@@ -1374,13 +1374,13 @@ jsvalToBigInteger(JSContext* cx,
   if (JSVAL_IS_INT(val)) {
     // Make sure the integer fits in the alotted precision, and has the right
     // sign.
-    jsint i = JSVAL_TO_INT(val);
+    int32_t i = JSVAL_TO_INT(val);
     return ConvertExact(i, result);
   }
   if (JSVAL_IS_DOUBLE(val)) {
     // Don't silently lose bits here -- check that val really is an
     // integer value, and has the right sign.
-    jsdouble d = JSVAL_TO_DOUBLE(val);
+    double d = JSVAL_TO_DOUBLE(val);
     return ConvertExact(d, result);
   }
   if (allowString && JSVAL_IS_STRING(val)) {
@@ -1410,18 +1410,18 @@ jsvalToBigInteger(JSContext* cx,
 }
 
 // Implicitly convert val to a size value, where the size value is represented
-// by size_t but must also fit in a jsdouble.
+// by size_t but must also fit in a double.
 static bool
 jsvalToSize(JSContext* cx, jsval val, bool allowString, size_t* result)
 {
   if (!jsvalToBigInteger(cx, val, allowString, result))
     return false;
 
-  // Also check that the result fits in a jsdouble.
-  return Convert<size_t>(jsdouble(*result)) == *result;
+  // Also check that the result fits in a double.
+  return Convert<size_t>(double(*result)) == *result;
 }
 
-// Implicitly convert val to IntegerType, allowing jsint, jsdouble,
+// Implicitly convert val to IntegerType, allowing int, double,
 // Int64, UInt64, and optionally a decimal or hexadecimal string argument.
 // (This is common code shared by jsvalToSize and the Int64/UInt64 constructors.)
 template<class IntegerType>
@@ -1436,7 +1436,7 @@ jsidToBigInteger(JSContext* cx,
   if (JSID_IS_INT(val)) {
     // Make sure the integer fits in the alotted precision, and has the right
     // sign.
-    jsint i = JSID_TO_INT(val);
+    int32_t i = JSID_TO_INT(val);
     return ConvertExact(i, result);
   }
   if (allowString && JSID_IS_STRING(val)) {
@@ -1466,28 +1466,28 @@ jsidToBigInteger(JSContext* cx,
 }
 
 // Implicitly convert val to a size value, where the size value is represented
-// by size_t but must also fit in a jsdouble.
+// by size_t but must also fit in a double.
 static bool
 jsidToSize(JSContext* cx, jsid val, bool allowString, size_t* result)
 {
   if (!jsidToBigInteger(cx, val, allowString, result))
     return false;
 
-  // Also check that the result fits in a jsdouble.
-  return Convert<size_t>(jsdouble(*result)) == *result;
+  // Also check that the result fits in a double.
+  return Convert<size_t>(double(*result)) == *result;
 }
 
 // Implicitly convert a size value to a jsval, ensuring that the size_t value
-// fits in a jsdouble.
+// fits in a double.
 static JSBool
 SizeTojsval(JSContext* cx, size_t size, jsval* result)
 {
-  if (Convert<size_t>(jsdouble(size)) != size) {
+  if (Convert<size_t>(double(size)) != size) {
     JS_ReportError(cx, "size overflow");
     return false;
   }
 
-  return JS_NewNumberValue(cx, jsdouble(size), result);
+  return JS_NewNumberValue(cx, double(size), result);
 }
 
 // Forcefully convert val to IntegerType when explicitly requested.
@@ -1499,7 +1499,7 @@ jsvalToIntegerExplicit(jsval val, IntegerType* result)
 
   if (JSVAL_IS_DOUBLE(val)) {
     // Convert -Inf, Inf, and NaN to 0; otherwise, convert by C-style cast.
-    jsdouble d = JSVAL_TO_DOUBLE(val);
+    double d = JSVAL_TO_DOUBLE(val);
     *result = FloatIsFinite(d) ? IntegerType(d) : 0;
     return true;
   }
@@ -1525,18 +1525,18 @@ static bool
 jsvalToPtrExplicit(JSContext* cx, jsval val, uintptr_t* result)
 {
   if (JSVAL_IS_INT(val)) {
-    // jsint always fits in intptr_t. If the integer is negative, cast through
+    // int32_t always fits in intptr_t. If the integer is negative, cast through
     // an intptr_t intermediate to sign-extend.
-    jsint i = JSVAL_TO_INT(val);
+    int32_t i = JSVAL_TO_INT(val);
     *result = i < 0 ? uintptr_t(intptr_t(i)) : uintptr_t(i);
     return true;
   }
   if (JSVAL_IS_DOUBLE(val)) {
-    jsdouble d = JSVAL_TO_DOUBLE(val);
+    double d = JSVAL_TO_DOUBLE(val);
     if (d < 0) {
       // Cast through an intptr_t intermediate to sign-extend.
       intptr_t i = Convert<intptr_t>(d);
-      if (jsdouble(i) != d)
+      if (double(i) != d)
         return false;
 
       *result = uintptr_t(i);
@@ -1546,7 +1546,7 @@ jsvalToPtrExplicit(JSContext* cx, jsval val, uintptr_t* result)
     // Don't silently lose bits here -- check that val really is an
     // integer value, and has the right sign.
     *result = Convert<uintptr_t>(d);
-    return jsdouble(*result) == d;
+    return double(*result) == d;
   }
   if (!JSVAL_IS_PRIMITIVE(val)) {
     JSObject* obj = JSVAL_TO_OBJECT(val);
@@ -1574,7 +1574,7 @@ jsvalToPtrExplicit(JSContext* cx, jsval val, uintptr_t* result)
 
 template<class IntegerType, class CharType, size_t N, class AP>
 void
-IntegerToString(IntegerType i, jsuint radix, Vector<CharType, N, AP>& result)
+IntegerToString(IntegerType i, int radix, Vector<CharType, N, AP>& result)
 {
   JS_STATIC_ASSERT(numeric_limits<IntegerType>::is_exact);
 
@@ -1650,8 +1650,8 @@ ConvertToJS(JSContext* cx,
   case TYPE_##name: {                                                          \
     type value = *static_cast<type*>(data);                                    \
     if (sizeof(type) < 4)                                                      \
-      *result = INT_TO_JSVAL(jsint(value));                                    \
-    else if (!JS_NewNumberValue(cx, jsdouble(value), result))                  \
+      *result = INT_TO_JSVAL(int32_t(value));                                    \
+    else if (!JS_NewNumberValue(cx, double(value), result))                    \
       return false;                                                            \
     break;                                                                     \
   }
@@ -1680,7 +1680,7 @@ ConvertToJS(JSContext* cx,
 #define DEFINE_FLOAT_TYPE(name, type, ffiType)                                 \
   case TYPE_##name: {                                                          \
     type value = *static_cast<type*>(data);                                    \
-    if (!JS_NewNumberValue(cx, jsdouble(value), result))                       \
+    if (!JS_NewNumberValue(cx, double(value), result))                         \
       return false;                                                            \
     break;                                                                     \
   }
@@ -1955,7 +1955,7 @@ ImplicitConvert(JSContext* cx,
                JS_IsArrayObject(cx, JSVAL_TO_OBJECT(val))) {
       // Convert each element of the array by calling ImplicitConvert.
       JSObject* sourceArray = JSVAL_TO_OBJECT(val);
-      jsuint sourceLength;
+      uint32_t sourceLength;
       if (!JS_GetArrayLength(cx, sourceArray, &sourceLength) ||
           targetLength != size_t(sourceLength)) {
         JS_ReportError(cx, "ArrayType length does not match source array length");
@@ -1971,7 +1971,7 @@ ImplicitConvert(JSContext* cx,
         return false;
       }
 
-      for (jsuint i = 0; i < sourceLength; ++i) {
+      for (uint32_t i = 0; i < sourceLength; ++i) {
         js::AutoValueRooter item(cx);
         if (!JS_GetElement(cx, sourceArray, i, item.jsval_addr()))
           return false;
@@ -2551,7 +2551,7 @@ BuildDataSource(JSContext* cx,
 
 JSBool
 ConstructAbstract(JSContext* cx,
-                  uintN argc,
+                  unsigned argc,
                   jsval* vp)
 {
   // Calling an abstract base class constructor is disallowed.
@@ -2565,7 +2565,7 @@ ConstructAbstract(JSContext* cx,
 
 JSBool
 CType::ConstructData(JSContext* cx,
-                     uintN argc,
+                     unsigned argc,
                      jsval* vp)
 {
   // get the callee object...
@@ -2600,7 +2600,7 @@ CType::ConstructData(JSContext* cx,
 JSBool
 CType::ConstructBasic(JSContext* cx,
                       JSObject* obj,
-                      uintN argc,
+                      unsigned argc,
                       jsval* vp)
 {
   if (argc > 1) {
@@ -2929,7 +2929,7 @@ CType::GetSafeSize(JSObject* obj, size_t* result)
 
   jsval size = JS_GetReservedSlot(obj, SLOT_SIZE);
 
-  // The "size" property can be a jsint, a jsdouble, or JSVAL_VOID
+  // The "size" property can be an int, a double, or JSVAL_VOID
   // (for arrays of undefined length), and must always fit in a size_t.
   if (JSVAL_IS_INT(size)) {
     *result = JSVAL_TO_INT(size);
@@ -2953,7 +2953,7 @@ CType::GetSize(JSObject* obj)
 
   JS_ASSERT(!JSVAL_IS_VOID(size));
 
-  // The "size" property can be a jsint, a jsdouble, or JSVAL_VOID
+  // The "size" property can be an int, a double, or JSVAL_VOID
   // (for arrays of undefined length), and must always fit in a size_t.
   // For callers who know it can never be JSVAL_VOID, return a size_t directly.
   if (JSVAL_IS_INT(size))
@@ -2968,7 +2968,7 @@ CType::IsSizeDefined(JSObject* obj)
 
   jsval size = JS_GetReservedSlot(obj, SLOT_SIZE);
 
-  // The "size" property can be a jsint, a jsdouble, or JSVAL_VOID
+  // The "size" property can be an int, a double, or JSVAL_VOID
   // (for arrays of undefined length), and must always fit in a size_t.
   JS_ASSERT(JSVAL_IS_INT(size) || JSVAL_IS_DOUBLE(size) || JSVAL_IS_VOID(size));
   return !JSVAL_IS_VOID(size);
@@ -3123,7 +3123,7 @@ CType::PtrGetter(JSContext* cx, JSObject* obj, jsid idval, jsval* vp)
 }
 
 JSBool
-CType::CreateArray(JSContext* cx, uintN argc, jsval* vp)
+CType::CreateArray(JSContext* cx, unsigned argc, jsval* vp)
 {
   JSObject* baseType = JS_THIS_OBJECT(cx, vp);
   if (!baseType || !CType::IsCType(baseType)) {
@@ -3154,7 +3154,7 @@ CType::CreateArray(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-CType::ToString(JSContext* cx, uintN argc, jsval* vp)
+CType::ToString(JSContext* cx, unsigned argc, jsval* vp)
 {
   JSObject* obj = JS_THIS_OBJECT(cx, vp);
   if (!obj || !(CType::IsCType(obj) || CType::IsCTypeProto(obj))) {
@@ -3182,7 +3182,7 @@ CType::ToString(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-CType::ToSource(JSContext* cx, uintN argc, jsval* vp)
+CType::ToSource(JSContext* cx, unsigned argc, jsval* vp)
 {
   JSObject* obj = JS_THIS_OBJECT(cx, vp);
   if (!obj ||
@@ -3238,7 +3238,7 @@ CType::HasInstance(JSContext* cx, JSObject* obj, const jsval* v, JSBool* bp)
 *******************************************************************************/
 
 JSBool
-PointerType::Create(JSContext* cx, uintN argc, jsval* vp)
+PointerType::Create(JSContext* cx, unsigned argc, jsval* vp)
 {
   // Construct and return a new PointerType object.
   if (argc != 1) {
@@ -3295,7 +3295,7 @@ PointerType::CreateInternal(JSContext* cx, JSObject* baseType)
 JSBool
 PointerType::ConstructData(JSContext* cx,
                            JSObject* obj,
-                           uintN argc,
+                           unsigned argc,
                            jsval* vp)
 {
   if (!CType::IsCType(obj) || CType::GetTypeCode(obj) != TYPE_pointer) {
@@ -3401,7 +3401,7 @@ PointerType::TargetTypeGetter(JSContext* cx,
 }
 
 JSBool
-PointerType::IsNull(JSContext* cx, uintN argc, jsval* vp)
+PointerType::IsNull(JSContext* cx, unsigned argc, jsval* vp)
 {
   JSObject* obj = JS_THIS_OBJECT(cx, vp);
   if (!obj || !CData::IsCData(obj)) {
@@ -3423,7 +3423,7 @@ PointerType::IsNull(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-PointerType::OffsetBy(JSContext* cx, intN offset, jsval* vp)
+PointerType::OffsetBy(JSContext* cx, int offset, jsval* vp)
 {
   JSObject* obj = JS_THIS_OBJECT(cx, vp);
   if (!obj || !CData::IsCData(obj)) {
@@ -3457,13 +3457,13 @@ PointerType::OffsetBy(JSContext* cx, intN offset, jsval* vp)
 }
 
 JSBool
-PointerType::Increment(JSContext* cx, uintN argc, jsval* vp)
+PointerType::Increment(JSContext* cx, unsigned argc, jsval* vp)
 {
   return OffsetBy(cx, 1, vp);
 }
 
 JSBool
-PointerType::Decrement(JSContext* cx, uintN argc, jsval* vp)
+PointerType::Decrement(JSContext* cx, unsigned argc, jsval* vp)
 {
   return OffsetBy(cx, -1, vp);
 }
@@ -3545,7 +3545,7 @@ PointerType::ContentsSetter(JSContext* cx,
 *******************************************************************************/
 
 JSBool
-ArrayType::Create(JSContext* cx, uintN argc, jsval* vp)
+ArrayType::Create(JSContext* cx, unsigned argc, jsval* vp)
 {
   // Construct and return a new ArrayType object.
   if (argc < 1 || argc > 2) {
@@ -3599,7 +3599,7 @@ ArrayType::CreateInternal(JSContext* cx,
   jsval sizeVal = JSVAL_VOID;
   jsval lengthVal = JSVAL_VOID;
   if (lengthDefined) {
-    // Check for overflow, and convert to a jsint or jsdouble as required.
+    // Check for overflow, and convert to an int or double as required.
     size_t size = length * baseSize;
     if (length > 0 && size / length != baseSize) {
       JS_ReportError(cx, "size overflow");
@@ -3630,7 +3630,7 @@ ArrayType::CreateInternal(JSContext* cx,
 JSBool
 ArrayType::ConstructData(JSContext* cx,
                          JSObject* obj,
-                         uintN argc,
+                         unsigned argc,
                          jsval* vp)
 {
   if (!CType::IsCType(obj) || CType::GetTypeCode(obj) != TYPE_array) {
@@ -3750,7 +3750,7 @@ ArrayType::GetSafeLength(JSObject* obj, size_t* result)
 
   jsval length = JS_GetReservedSlot(obj, SLOT_LENGTH);
 
-  // The "length" property can be a jsint, a jsdouble, or JSVAL_VOID
+  // The "length" property can be an int, a double, or JSVAL_VOID
   // (for arrays of undefined length), and must always fit in a size_t.
   if (JSVAL_IS_INT(length)) {
     *result = JSVAL_TO_INT(length);
@@ -3775,7 +3775,7 @@ ArrayType::GetLength(JSObject* obj)
 
   JS_ASSERT(!JSVAL_IS_VOID(length));
 
-  // The "length" property can be a jsint, a jsdouble, or JSVAL_VOID
+  // The "length" property can be an int, a double, or JSVAL_VOID
   // (for arrays of undefined length), and must always fit in a size_t.
   // For callers who know it can never be JSVAL_VOID, return a size_t directly.
   if (JSVAL_IS_INT(length))
@@ -3928,7 +3928,7 @@ ArrayType::Setter(JSContext* cx, JSObject* obj, jsid idval, JSBool strict, jsval
 }
 
 JSBool
-ArrayType::AddressOfElement(JSContext* cx, uintN argc, jsval* vp)
+ArrayType::AddressOfElement(JSContext* cx, unsigned argc, jsval* vp)
 {
   JSObject* obj = JS_THIS_OBJECT(cx, vp);
   if (!obj || !CData::IsCData(obj)) {
@@ -4065,7 +4065,7 @@ AddFieldToArray(JSContext* cx,
 }
 
 JSBool
-StructType::Create(JSContext* cx, uintN argc, jsval* vp)
+StructType::Create(JSContext* cx, unsigned argc, jsval* vp)
 {
   // Construct and return a new StructType object.
   if (argc < 1 || argc > 2) {
@@ -4112,7 +4112,7 @@ StructType::Create(JSContext* cx, uintN argc, jsval* vp)
 JSBool
 StructType::DefineInternal(JSContext* cx, JSObject* typeObj, JSObject* fieldsObj)
 {
-  jsuint len;
+  uint32_t len;
   ASSERT_OK(JS_GetArrayLength(cx, fieldsObj, &len));
 
   // Get the common prototype for CData objects of this type from
@@ -4150,7 +4150,7 @@ StructType::DefineInternal(JSContext* cx, JSObject* typeObj, JSObject* fieldsObj
     structSize = 0;
     structAlign = 0;
 
-    for (jsuint i = 0; i < len; ++i) {
+    for (uint32_t i = 0; i < len; ++i) {
       js::AutoValueRooter item(cx);
       if (!JS_GetElement(cx, fieldsObj, i, item.jsval_addr()))
         return JS_FALSE;
@@ -4304,7 +4304,7 @@ StructType::BuildFFIType(JSContext* cx, JSObject* obj)
 }
 
 JSBool
-StructType::Define(JSContext* cx, uintN argc, jsval* vp)
+StructType::Define(JSContext* cx, unsigned argc, jsval* vp)
 {
   JSObject* obj = JS_THIS_OBJECT(cx, vp);
   if (!obj ||
@@ -4337,7 +4337,7 @@ StructType::Define(JSContext* cx, uintN argc, jsval* vp)
 JSBool
 StructType::ConstructData(JSContext* cx,
                           JSObject* obj,
-                          uintN argc,
+                          unsigned argc,
                           jsval* vp)
 {
   if (!CType::IsCType(obj) || CType::GetTypeCode(obj) != TYPE_struct) {
@@ -4551,7 +4551,7 @@ StructType::FieldSetter(JSContext* cx, JSObject* obj, jsid idval, JSBool strict,
 }
 
 JSBool
-StructType::AddressOfField(JSContext* cx, uintN argc, jsval* vp)
+StructType::AddressOfField(JSContext* cx, unsigned argc, jsval* vp)
 {
   JSObject* obj = JS_THIS_OBJECT(cx, vp);
   if (!obj || !CData::IsCData(obj)) {
@@ -4828,7 +4828,7 @@ NewFunctionInfo(JSContext* cx,
                 jsval abiType,
                 jsval returnType,
                 jsval* argTypes,
-                uintN argLength)
+                unsigned argLength)
 {
   AutoPtr<FunctionInfo> fninfo(cx->new_<FunctionInfo>());
   if (!fninfo) {
@@ -4904,7 +4904,7 @@ NewFunctionInfo(JSContext* cx,
 }
 
 JSBool
-FunctionType::Create(JSContext* cx, uintN argc, jsval* vp)
+FunctionType::Create(JSContext* cx, unsigned argc, jsval* vp)
 {
   // Construct and return a new FunctionType object.
   if (argc < 2 || argc > 3) {
@@ -4925,7 +4925,7 @@ FunctionType::Create(JSContext* cx, uintN argc, jsval* vp)
     }
 
     arrayObj = JSVAL_TO_OBJECT(argv[2]);
-    jsuint len;
+    uint32_t len;
     ASSERT_OK(JS_GetArrayLength(cx, arrayObj, &len));
 
     if (!argTypes.appendN(JSVAL_VOID, len)) {
@@ -4937,7 +4937,7 @@ FunctionType::Create(JSContext* cx, uintN argc, jsval* vp)
   // Pull out the argument types from the array, if any.
   JS_ASSERT(!argTypes.length() || arrayObj);
   js::AutoArrayRooter items(cx, argTypes.length(), argTypes.begin());
-  for (jsuint i = 0; i < argTypes.length(); ++i) {
+  for (uint32_t i = 0; i < argTypes.length(); ++i) {
     if (!JS_GetElement(cx, arrayObj, i, &argTypes[i]))
       return JS_FALSE;
   }
@@ -4956,7 +4956,7 @@ FunctionType::CreateInternal(JSContext* cx,
                              jsval abi,
                              jsval rtype,
                              jsval* argtypes,
-                             jsuint arglen)
+                             unsigned arglen)
 {
   // Determine and check the types, and prepare the function CIF.
   AutoPtr<FunctionInfo> fninfo(NewFunctionInfo(cx, abi, rtype, argtypes, arglen));
@@ -5059,7 +5059,7 @@ ConvertArgument(JSContext* cx,
 
 JSBool
 FunctionType::Call(JSContext* cx,
-                   uintN argc,
+                   unsigned argc,
                    jsval* vp)
 {
   // get the callee object...
@@ -5109,7 +5109,7 @@ FunctionType::Call(JSContext* cx,
   }
 
   jsval* argv = JS_ARGV(cx, vp);
-  for (jsuint i = 0; i < argcFixed; ++i)
+  for (unsigned i = 0; i < argcFixed; ++i)
     if (!ConvertArgument(cx, argv[i], fninfo->mArgTypes[i], &values[i], &strings))
       return false;
 
@@ -5740,7 +5740,7 @@ CData::ValueSetter(JSContext* cx, JSObject* obj, jsid idval, JSBool strict, jsva
 }
 
 JSBool
-CData::Address(JSContext* cx, uintN argc, jsval* vp)
+CData::Address(JSContext* cx, unsigned argc, jsval* vp)
 {
   if (argc != 0) {
     JS_ReportError(cx, "address takes zero arguments");
@@ -5773,7 +5773,7 @@ CData::Address(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-CData::Cast(JSContext* cx, uintN argc, jsval* vp)
+CData::Cast(JSContext* cx, unsigned argc, jsval* vp)
 {
   if (argc != 2) {
     JS_ReportError(cx, "cast takes two arguments");
@@ -5816,7 +5816,7 @@ CData::Cast(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-CData::GetRuntime(JSContext* cx, uintN argc, jsval* vp)
+CData::GetRuntime(JSContext* cx, unsigned argc, jsval* vp)
 {
   if (argc != 1) {
     JS_ReportError(cx, "getRuntime takes one argument");
@@ -5848,7 +5848,7 @@ CData::GetRuntime(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-CData::ReadString(JSContext* cx, uintN argc, jsval* vp)
+CData::ReadString(JSContext* cx, unsigned argc, jsval* vp)
 {
   if (argc != 0) {
     JS_ReportError(cx, "readString takes zero arguments");
@@ -5939,7 +5939,7 @@ CData::ReadString(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-CData::ToSource(JSContext* cx, uintN argc, jsval* vp)
+CData::ToSource(JSContext* cx, unsigned argc, jsval* vp)
 {
   if (argc != 0) {
     JS_ReportError(cx, "toSource takes zero arguments");
@@ -6035,7 +6035,7 @@ Int64Base::GetInt(JSObject* obj) {
 JSBool
 Int64Base::ToString(JSContext* cx,
                     JSObject* obj,
-                    uintN argc,
+                    unsigned argc,
                     jsval* vp,
                     bool isUnsigned)
 {
@@ -6044,7 +6044,7 @@ Int64Base::ToString(JSContext* cx,
     return JS_FALSE;
   }
 
-  jsuint radix = 10;
+  int radix = 10;
   if (argc == 1) {
     jsval arg = JS_ARGV(cx, vp)[0];
     if (JSVAL_IS_INT(arg))
@@ -6073,7 +6073,7 @@ Int64Base::ToString(JSContext* cx,
 JSBool
 Int64Base::ToSource(JSContext* cx,
                     JSObject* obj,
-                    uintN argc,
+                    unsigned argc,
                     jsval* vp,
                     bool isUnsigned)
 {
@@ -6103,7 +6103,7 @@ Int64Base::ToSource(JSContext* cx,
 
 JSBool
 Int64::Construct(JSContext* cx,
-                 uintN argc,
+                 unsigned argc,
                  jsval* vp)
 {
   // Construct and return a new Int64 object.
@@ -6139,7 +6139,7 @@ Int64::IsInt64(JSObject* obj)
 }
 
 JSBool
-Int64::ToString(JSContext* cx, uintN argc, jsval* vp)
+Int64::ToString(JSContext* cx, unsigned argc, jsval* vp)
 {
   JSObject* obj = JS_THIS_OBJECT(cx, vp);
   if (!obj || !Int64::IsInt64(obj)) {
@@ -6151,7 +6151,7 @@ Int64::ToString(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-Int64::ToSource(JSContext* cx, uintN argc, jsval* vp)
+Int64::ToSource(JSContext* cx, unsigned argc, jsval* vp)
 {
   JSObject* obj = JS_THIS_OBJECT(cx, vp);
   if (!obj || !Int64::IsInt64(obj)) {
@@ -6163,7 +6163,7 @@ Int64::ToSource(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-Int64::Compare(JSContext* cx, uintN argc, jsval* vp)
+Int64::Compare(JSContext* cx, unsigned argc, jsval* vp)
 {
   jsval* argv = JS_ARGV(cx, vp);
   if (argc != 2 ||
@@ -6196,7 +6196,7 @@ Int64::Compare(JSContext* cx, uintN argc, jsval* vp)
 #define INT64_HI(i) ((i) >> 32)
 
 JSBool
-Int64::Lo(JSContext* cx, uintN argc, jsval* vp)
+Int64::Lo(JSContext* cx, unsigned argc, jsval* vp)
 {
   jsval* argv = JS_ARGV(cx, vp);
   if (argc != 1 || JSVAL_IS_PRIMITIVE(argv[0]) ||
@@ -6207,7 +6207,7 @@ Int64::Lo(JSContext* cx, uintN argc, jsval* vp)
 
   JSObject* obj = JSVAL_TO_OBJECT(argv[0]);
   int64_t u = Int64Base::GetInt(obj);
-  jsdouble d = uint32_t(INT64_LO(u));
+  double d = uint32_t(INT64_LO(u));
 
   jsval result;
   if (!JS_NewNumberValue(cx, d, &result))
@@ -6218,7 +6218,7 @@ Int64::Lo(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-Int64::Hi(JSContext* cx, uintN argc, jsval* vp)
+Int64::Hi(JSContext* cx, unsigned argc, jsval* vp)
 {
   jsval* argv = JS_ARGV(cx, vp);
   if (argc != 1 || JSVAL_IS_PRIMITIVE(argv[0]) ||
@@ -6229,7 +6229,7 @@ Int64::Hi(JSContext* cx, uintN argc, jsval* vp)
 
   JSObject* obj = JSVAL_TO_OBJECT(argv[0]);
   int64_t u = Int64Base::GetInt(obj);
-  jsdouble d = int32_t(INT64_HI(u));
+  double d = int32_t(INT64_HI(u));
 
   jsval result;
   if (!JS_NewNumberValue(cx, d, &result))
@@ -6240,7 +6240,7 @@ Int64::Hi(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-Int64::Join(JSContext* cx, uintN argc, jsval* vp)
+Int64::Join(JSContext* cx, unsigned argc, jsval* vp)
 {
   if (argc != 2) {
     JS_ReportError(cx, "join takes two arguments");
@@ -6274,7 +6274,7 @@ Int64::Join(JSContext* cx, uintN argc, jsval* vp)
 
 JSBool
 UInt64::Construct(JSContext* cx,
-                  uintN argc,
+                  unsigned argc,
                   jsval* vp)
 {
   // Construct and return a new UInt64 object.
@@ -6310,7 +6310,7 @@ UInt64::IsUInt64(JSObject* obj)
 }
 
 JSBool
-UInt64::ToString(JSContext* cx, uintN argc, jsval* vp)
+UInt64::ToString(JSContext* cx, unsigned argc, jsval* vp)
 {
   JSObject* obj = JS_THIS_OBJECT(cx, vp);
   if (!obj || !UInt64::IsUInt64(obj)) {
@@ -6322,7 +6322,7 @@ UInt64::ToString(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-UInt64::ToSource(JSContext* cx, uintN argc, jsval* vp)
+UInt64::ToSource(JSContext* cx, unsigned argc, jsval* vp)
 {
   JSObject* obj = JS_THIS_OBJECT(cx, vp);
   if (!obj || !UInt64::IsUInt64(obj)) {
@@ -6334,7 +6334,7 @@ UInt64::ToSource(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-UInt64::Compare(JSContext* cx, uintN argc, jsval* vp)
+UInt64::Compare(JSContext* cx, unsigned argc, jsval* vp)
 {
   jsval* argv = JS_ARGV(cx, vp);
   if (argc != 2 ||
@@ -6363,7 +6363,7 @@ UInt64::Compare(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-UInt64::Lo(JSContext* cx, uintN argc, jsval* vp)
+UInt64::Lo(JSContext* cx, unsigned argc, jsval* vp)
 {
   jsval* argv = JS_ARGV(cx, vp);
   if (argc != 1 || JSVAL_IS_PRIMITIVE(argv[0]) ||
@@ -6374,7 +6374,7 @@ UInt64::Lo(JSContext* cx, uintN argc, jsval* vp)
 
   JSObject* obj = JSVAL_TO_OBJECT(argv[0]);
   uint64_t u = Int64Base::GetInt(obj);
-  jsdouble d = uint32_t(INT64_LO(u));
+  double d = uint32_t(INT64_LO(u));
 
   jsval result;
   if (!JS_NewNumberValue(cx, d, &result))
@@ -6385,7 +6385,7 @@ UInt64::Lo(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-UInt64::Hi(JSContext* cx, uintN argc, jsval* vp)
+UInt64::Hi(JSContext* cx, unsigned argc, jsval* vp)
 {
   jsval* argv = JS_ARGV(cx, vp);
   if (argc != 1 || JSVAL_IS_PRIMITIVE(argv[0]) ||
@@ -6396,7 +6396,7 @@ UInt64::Hi(JSContext* cx, uintN argc, jsval* vp)
 
   JSObject* obj = JSVAL_TO_OBJECT(argv[0]);
   uint64_t u = Int64Base::GetInt(obj);
-  jsdouble d = uint32_t(INT64_HI(u));
+  double d = uint32_t(INT64_HI(u));
 
   jsval result;
   if (!JS_NewNumberValue(cx, d, &result))
@@ -6407,7 +6407,7 @@ UInt64::Hi(JSContext* cx, uintN argc, jsval* vp)
 }
 
 JSBool
-UInt64::Join(JSContext* cx, uintN argc, jsval* vp)
+UInt64::Join(JSContext* cx, unsigned argc, jsval* vp)
 {
   if (argc != 2) {
     JS_ReportError(cx, "join takes two arguments");

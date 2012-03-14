@@ -23,6 +23,7 @@
 
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="@ANDROID_PACKAGE_NAME@.permissions.PASSWORD_PROVIDER"/>
 
 #ifdef MOZ_WEBSMS_BACKEND
     <!-- WebSMS -->
@@ -103,10 +104,23 @@
             </intent-filter>
         </activity>
 
+        <!-- Masquerade as the Resolver so that we can be opened from the Marketplace. -->
+        <activity-alias
+            android:name="com.android.internal.app.ResolverActivity"
+            android:targetActivity=".App"
+            android:exported="true" />
+
         <receiver android:name="NotificationHandler">
             <intent-filter>
                 <action android:name="org.mozilla.gecko.ACTION_ALERT_CLICK" />
                 <action android:name="org.mozilla.gecko.ACTION_ALERT_CLEAR" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name="org.mozilla.gecko.GeckoMessageReceiver"
+                  android:permission="@ANDROID_PACKAGE_NAME@.permissions.PASSWORD_PROVIDER">
+            <intent-filter>
+                  <action android:name="org.mozilla.gecko.INIT_PW"></action>
             </intent-filter>
         </receiver>
 
@@ -154,6 +168,10 @@
                   android:theme="@style/Gecko.Translucent.TabsTray"
                   android:launchMode="singleTask"/>
 
+        <activity android:name="org.mozilla.gecko.RemoteTabs"
+                  android:theme="@style/Gecko.Translucent.TabsTray"
+                  android:launchMode="singleTask"/>
+
         <activity android:name="org.mozilla.gecko.GeckoPreferences"
                   android:theme="@style/Gecko.TitleBar.Preferences"
                   android:label="@string/settings_title"
@@ -165,14 +183,28 @@
 
         <provider android:name="@ANDROID_PACKAGE_NAME@.db.PasswordsProvider"
                   android:authorities="@ANDROID_PACKAGE_NAME@.db.passwords"
-                  android:permission="@ANDROID_PACKAGE_NAME@.permissions.BROWSER_PROVIDER"
-									android:protectionLevel="signature"/>
+                  android:permission="@ANDROID_PACKAGE_NAME@.permissions.PASSWORD_PROVIDER"
+                  android:process="org.mozilla.gecko.PasswordsProvider"/>
 
+        <provider android:name="@ANDROID_PACKAGE_NAME@.db.FormHistoryProvider"
+                  android:authorities="@ANDROID_PACKAGE_NAME@.db.formhistory"
+                  android:permission="@ANDROID_PACKAGE_NAME@.permissions.FORMHISTORY_PROVIDER"
+                  android:protectionLevel="signature"/>
+
+        <provider android:name="@ANDROID_PACKAGE_NAME@.db.TabsProvider"
+                  android:authorities="@ANDROID_PACKAGE_NAME@.db.tabs"
+                  android:permission="@ANDROID_PACKAGE_NAME@.permissions.BROWSER_PROVIDER"/>
 
 #include ../sync/manifests/SyncAndroidManifest_services.xml.in
     </application>
 
     <permission android:name="@ANDROID_PACKAGE_NAME@.permissions.BROWSER_PROVIDER"
+                android:protectionLevel="signature"/>
+
+    <permission android:name="@ANDROID_PACKAGE_NAME@.permissions.PASSWORD_PROVIDER"
+                android:protectionLevel="signature"/>
+
+    <permission android:name="@ANDROID_PACKAGE_NAME@.permissions.FORMHISTORY_PROVIDER"
                 android:protectionLevel="signature"/>
 
 </manifest> 

@@ -54,6 +54,8 @@
 #include "LayerManagerOGLShaders.h"
 
 #include "gfxContext.h"
+#include "gfxUtils.h"
+#include "gfxPlatform.h"
 #include "nsIWidget.h"
 
 #include "GLContext.h"
@@ -171,9 +173,9 @@ LayerManagerOGL::CreateContext()
 }
 
 bool
-LayerManagerOGL::Initialize(nsRefPtr<GLContext> aContext)
+LayerManagerOGL::Initialize(nsRefPtr<GLContext> aContext, bool force)
 {
-  ScopedGfxFeatureReporter reporter("GL Layers");
+  ScopedGfxFeatureReporter reporter("GL Layers", force);
 
   // Do not allow double intiailization
   NS_ABORT_IF_FALSE(mGLContext == nsnull, "Don't reiniailize layer managers");
@@ -365,7 +367,20 @@ LayerManagerOGL::Initialize(nsRefPtr<GLContext> aContext)
     console->LogStringMessage(msg.get());
   }
 
-  Preferences::AddBoolVarCache(&sDrawFPS, "layers.acceleration.draw-fps");
+  if (NS_IsMainThread()) {
+    Preferences::AddBoolVarCache(&sDrawFPS, "layers.acceleration.draw-fps");
+  } else {
+    // We have to dispatch an event to the main thread to read the pref.
+    class ReadDrawFPSPref : public nsRunnable {
+    public:
+      NS_IMETHOD Run()
+      {
+        Preferences::AddBoolVarCache(&sDrawFPS, "layers.acceleration.draw-fps");
+        return NS_OK;
+      }
+    };
+    NS_DispatchToMainThread(new ReadDrawFPSPref());
+  }
 
   reporter.SetSuccessful();
   return true;
@@ -779,8 +794,20 @@ LayerManagerOGL::Render()
 
   mWidget->DrawWindowOverlay(this, rect);
 
+#ifdef MOZ_DUMP_PAINTING
+  if (gfxUtils::sDumpPainting) {
+    nsIntRect rect;
+    mWidget->GetBounds(rect);
+    nsRefPtr<gfxASurface> surf = gfxPlatform::GetPlatform()->CreateOffscreenSurface(rect.Size(), gfxASurface::CONTENT_COLOR_ALPHA);
+    nsRefPtr<gfxContext> ctx = new gfxContext(surf);
+    CopyToTarget(ctx);
+
+    WriteSnapshotToDumpFile(this, surf);
+  }
+#endif
+
   if (mTarget) {
-    CopyToTarget();
+    CopyToTarget(mTarget);
     mGLContext->fBindBuffer(LOCAL_GL_ARRAY_BUFFER, 0);
     return;
   }
@@ -986,7 +1013,7 @@ LayerManagerOGL::SetupBackBuffer(int aWidth, int aHeight)
 }
 
 void
-LayerManagerOGL::CopyToTarget()
+LayerManagerOGL::CopyToTarget(gfxContext *aTarget)
 {
   nsIntRect rect;
   mWidget->GetBounds(rect);
@@ -1016,45 +1043,16 @@ LayerManagerOGL::CopyToTarget()
   }
 #endif
 
-  GLenum format = LOCAL_GL_RGBA;
-  if (mHasBGRA)
-    format = LOCAL_GL_BGRA;
-
   NS_ASSERTION(imageSurface->Stride() == width * 4,
                "Image Surfaces being created with weird stride!");
 
-  PRUint32 currentPackAlignment = 0;
-  mGLContext->fGetIntegerv(LOCAL_GL_PACK_ALIGNMENT, (GLint*)&currentPackAlignment);
-  if (currentPackAlignment != 4) {
-    mGLContext->fPixelStorei(LOCAL_GL_PACK_ALIGNMENT, 4);
-  }
+  mGLContext->ReadPixelsIntoImageSurface(0, 0, width, height, imageSurface);
 
-  mGLContext->fReadPixels(0, 0,
-                          width, height,
-                          format,
-                          LOCAL_GL_UNSIGNED_BYTE,
-                          imageSurface->Data());
-
-  if (currentPackAlignment != 4) {
-    mGLContext->fPixelStorei(LOCAL_GL_PACK_ALIGNMENT, currentPackAlignment);
-  }
-
-  if (!mHasBGRA) {
-    // need to swap B and R bytes
-    for (int j = 0; j < height; ++j) {
-      PRUint32 *row = (PRUint32*) (imageSurface->Data() + imageSurface->Stride() * j);
-      for (int i = 0; i < width; ++i) {
-        *row = (*row & 0xff00ff00) | ((*row & 0xff) << 16) | ((*row & 0xff0000) >> 16);
-        row++;
-      }
-    }
-  }
-
-  mTarget->SetOperator(gfxContext::OPERATOR_SOURCE);
-  mTarget->Scale(1.0, -1.0);
-  mTarget->Translate(-gfxPoint(0.0, height));
-  mTarget->SetSource(imageSurface);
-  mTarget->Paint();
+  aTarget->SetOperator(gfxContext::OPERATOR_SOURCE);
+  aTarget->Scale(1.0, -1.0);
+  aTarget->Translate(-gfxPoint(0.0, height));
+  aTarget->SetSource(imageSurface);
+  aTarget->Paint();
 }
 
 LayerManagerOGL::ProgramType LayerManagerOGL::sLayerProgramTypes[] = {

@@ -834,7 +834,6 @@ if [ "$ENABLE_TESTS" ]; then
     layout/style/test/Makefile
     layout/style/test/chrome/Makefile
     layout/tables/test/Makefile
-    layout/tools/pageloader/Makefile
     layout/tools/reftest/Makefile
     layout/xul/base/test/Makefile
     layout/xul/test/Makefile
@@ -1374,17 +1373,6 @@ if [ "$MOZ_UPDATER" ]; then
   if [ "$OS_TARGET" != "Android" ]; then
     add_makefiles "
       toolkit/mozapps/update/updater/Makefile
-    "
-  fi
-fi
-
-if [ "$MOZ_UPDATER" -o "$MOZ_MAINTENANCE_SERVICE" ]; then
-  add_makefiles "
-    toolkit/mozapps/readstrings/Makefile
-  "
-  if [ "$OS_TARGET" != "Android" ]; then
-    add_makefiles "
-      toolkit/mozapps/update/common/Makefile
     "
   fi
 fi

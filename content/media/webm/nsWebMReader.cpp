@@ -41,9 +41,14 @@
 #include "nsBuiltinDecoder.h"
 #include "MediaResource.h"
 #include "nsWebMReader.h"
+#include "nsWebMBufferedParser.h"
 #include "VideoUtils.h"
 #include "nsTimeRanges.h"
 #include "mozilla/Preferences.h"
+
+#define VPX_DONT_DEFINE_STDINT_TYPES
+#include "vpx/vp8dx.h"
+#include "vpx/vpx_decoder.h"
 
 using namespace mozilla;
 using namespace mozilla::layers;
@@ -441,26 +446,23 @@ bool nsWebMReader::DecodeAudioPacket(nestegg_packet* aPacket, PRInt64 aOffset)
   // the previous audio chunk, we need to increment the packet count so that
   // the vorbis decode doesn't use data from before the gap to help decode
   // from after the gap.
-  PRInt64 tstamp_frames = 0;
-  if (!UsecsToFrames(tstamp_usecs, rate, tstamp_frames)) {
-    NS_WARNING("Int overflow converting WebM timestamp to frames");
+  CheckedInt64 tstamp_frames = UsecsToFrames(tstamp_usecs, rate);
+  CheckedInt64 decoded_frames = UsecsToFrames(mAudioStartUsec, rate);
+  if (!tstamp_frames.valid() || !decoded_frames.valid()) {
+    NS_WARNING("Int overflow converting WebM times to frames");
     return false;
   }
-  PRInt64 decoded_frames = 0;
-  if (!UsecsToFrames(mAudioStartUsec, rate, decoded_frames)) {
-    NS_WARNING("Int overflow converting WebM start time to frames");
-    return false;
-  }
-  if (!AddOverflow(decoded_frames, mAudioFrames, decoded_frames)) {
+  decoded_frames += mAudioFrames;
+  if (!decoded_frames.valid()) {
     NS_WARNING("Int overflow adding decoded_frames");
     return false;
   }
-  if (tstamp_frames > decoded_frames) {
+  if (tstamp_frames.value() > decoded_frames.value()) {
 #ifdef DEBUG
-    PRInt64 usecs = 0;
+    CheckedInt64 usecs = FramesToUsecs(tstamp_frames.value() - decoded_frames.value(), rate);
     LOG(PR_LOG_DEBUG, ("WebMReader detected gap of %lld, %lld frames, in audio stream\n",
-      FramesToUsecs(tstamp_frames - decoded_frames, rate, usecs) ? usecs: -1,
-      tstamp_frames - decoded_frames));
+      usecs.valid() ? usecs.value(): -1,
+      tstamp_frames.value() - decoded_frames.value()));
 #endif
     mPacketCount++;
     mAudioStartUsec = tstamp_usecs;
@@ -490,21 +492,27 @@ bool nsWebMReader::DecodeAudioPacket(nestegg_packet* aPacket, PRInt64 aOffset)
     VorbisPCMValue** pcm = 0;
     PRInt32 frames = 0;
     while ((frames = vorbis_synthesis_pcmout(&mVorbisDsp, &pcm)) > 0) {
-      PRInt64 duration = 0;
-      if (!FramesToUsecs(frames, rate, duration)) {
+      CheckedInt64 duration = FramesToUsecs(frames, rate);
+      if (!duration.valid()) {
         NS_WARNING("Int overflow converting WebM audio duration");
         return false;
       }
-      PRInt64 total_duration = 0;
-      if (!FramesToUsecs(total_frames, rate, total_duration)) {
+      CheckedInt64 total_duration = FramesToUsecs(total_frames, rate);
+      if (!total_duration.valid()) {
         NS_WARNING("Int overflow converting WebM audio total_duration");
         return false;
       }
       
-      PRInt64 time = tstamp_usecs + total_duration;
+      CheckedInt64 time = total_duration + tstamp_usecs;
+      if (!time.valid()) {
+        NS_WARNING("Int overflow adding total_duration and tstamp_usecs");
+        nestegg_free_packet(aPacket);
+        return PR_FALSE;
+      };
+
       total_frames += frames;
 
-      PushAudioData(aOffset, time, duration, frames, mChannels, pcm);
+      PushAudioData(aOffset, time.value(), duration.value(), frames, mChannels, pcm);
 
       mAudioFrames += frames;
       if (vorbis_synthesis_read(&mVorbisDsp, frames) != 0) {

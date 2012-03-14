@@ -78,13 +78,6 @@ _TEST_FILES	= \
 		test_bug397571.html \
 		test_bug400204.html \
 		test_bug404748.html \
-		test_bug407839.html \
-		iframe_bug407839-1.html \
-		iframe_bug407839-2.html \
-		test_bug424093.html \
-		iframe_bug424093.html \
-		test_bug409349.html \
-		iframe_bug409349.html \
 		test_bug411103.html \
 		test_bug414291.html \
 		test_bug430276.html \
@@ -96,8 +89,6 @@ _TEST_FILES	= \
 		test_bug458091.html \
 		bug458091_child.html \
 		test_bug459848.html \
-		test_bug463000.html \
-		iframe_bug463000.html \
 		test_bug465263.html \
 		test_bug479143.html \
 		test_bug484775.html \
@@ -155,6 +146,13 @@ _TEST_FILES	= \
 		devicemotion_inner.html \
 		test_bug698061.html \
 		test_bug707749.html \
+		test_bug691707.html \
+		test_bug304459.html \
+		iframe_bug304459-1.html \
+		iframe_bug304459-2.html \
+		test_bug38959.html \
+		iframe_bug38959-1.html \
+		iframe_bug38959-2.html \
 		$(NULL)
 
 libs:: 	$(_TEST_FILES)

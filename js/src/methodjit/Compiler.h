@@ -398,13 +398,13 @@ class Compiler : public BaseCompiler
     JSScript *outerScript;
     unsigned chunkIndex;
     bool isConstructing;
-    ChunkDescriptor &outerChunk;
+    ChunkDescriptor outerChunk;
 
     /* SSA information for the outer script and all frames we will be inlining. */
     analyze::CrossScriptSSA ssa;
 
     GlobalObject *globalObj;
-    const HeapValue *globalSlots;  /* Original slots pointer. */
+    const HeapSlot *globalSlots;  /* Original slots pointer. */
 
     Assembler masm;
     FrameState frame;
@@ -525,6 +525,10 @@ private:
         return outerScript->getJIT(isConstructing);
     }
 
+    ChunkDescriptor &outerChunkRef() {
+        return outerJIT()->chunkDescriptor(chunkIndex);
+    }
+
     bool bytecodeInChunk(jsbytecode *pc) {
         return (unsigned(pc - outerScript->code) >= outerChunk.begin)
             && (unsigned(pc - outerScript->code) < outerChunk.end);
@@ -570,6 +574,7 @@ private:
     /* Analysis helpers. */
     CompileStatus prepareInferenceTypes(JSScript *script, ActiveFrame *a);
     void ensureDoubleArguments();
+    void markUndefinedLocal(uint32_t offset, uint32_t i);
     void markUndefinedLocals();
     void fixDoubleTypes(jsbytecode *target);
     void watchGlobalReallocation();
@@ -606,7 +611,6 @@ private:
 
     /* Non-emitting helpers. */
     void pushSyncedEntry(uint32_t pushed);
-    uint32_t fullAtomIndex(jsbytecode *pc);
     bool jumpInScript(Jump j, jsbytecode *pc);
     bool compareTwoValues(JSContext *cx, JSOp op, const Value &lhs, const Value &rhs);
     bool canUseApplyTricks();
@@ -614,7 +618,7 @@ private:
     /* Emitting helpers. */
     bool constantFoldBranch(jsbytecode *target, bool taken);
     bool emitStubCmpOp(BoolStub stub, jsbytecode *target, JSOp fused);
-    bool iter(uintN flags);
+    bool iter(unsigned flags);
     void iterNext(ptrdiff_t offset);
     bool iterMore(jsbytecode *target);
     void iterEnd();

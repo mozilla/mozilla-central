@@ -444,6 +444,8 @@ class JSRope : public JSString
         JS_ASSERT(isRope());
         return d.s.u2.right;
     }
+
+    inline void markChildren(JSTracer *trc);
 };
 
 JS_STATIC_ASSERT(sizeof(JSRope) == sizeof(JSString));
@@ -486,6 +488,8 @@ class JSDependentString : public JSLinearString
         JS_ASSERT(JSString::isDependent());
         return d.s.u2.base;
     }
+
+    inline void markChildren(JSTracer *trc);
 };
 
 JS_STATIC_ASSERT(sizeof(JSDependentString) == sizeof(JSString));
@@ -696,8 +700,6 @@ namespace js {
 class StaticStrings
 {
   private:
-    bool initialized;
-
     /* Bigger chars cannot be in a length-2 string. */
     static const size_t SMALL_CHAR_LIMIT    = 128U;
     static const size_t NUM_SMALL_CHARS     = 64U;
@@ -712,7 +714,11 @@ class StaticStrings
     static const size_t UNIT_STATIC_LIMIT   = 256U;
     JSAtom *unitStaticTable[UNIT_STATIC_LIMIT];
 
-    StaticStrings() : initialized(false) {}
+    StaticStrings() {
+        PodArrayZero(unitStaticTable);
+        PodArrayZero(length2StaticTable);
+        PodArrayZero(intStaticTable);
+    }
 
     bool init(JSContext *cx);
     void trace(JSTracer *trc);
@@ -721,7 +727,7 @@ class StaticStrings
     inline JSAtom *getUint(uint32_t u);
 
     static inline bool hasInt(int32_t i);
-    inline JSAtom *getInt(jsint i);
+    inline JSAtom *getInt(int32_t i);
 
     static inline bool hasUnit(jschar c);
     JSAtom *getUnit(jschar c);

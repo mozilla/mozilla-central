@@ -26,12 +26,18 @@
 #define ELFCLASS ELFCLASS64
 #define ELF_R_TYPE ELF64_R_TYPE
 #define ELF_R_SYM ELF64_R_SYM
+#ifndef ELF_ST_BIND
+#define ELF_ST_BIND ELF64_ST_BIND
+#endif
 #define PRIxAddr "lx"
 #else
 #define Elf_(type) Elf32_ ## type
 #define ELFCLASS ELFCLASS32
 #define ELF_R_TYPE ELF32_R_TYPE
 #define ELF_R_SYM ELF32_R_SYM
+#ifndef ELF_ST_BIND
+#define ELF_ST_BIND ELF32_ST_BIND
+#endif
 #define PRIxAddr "x"
 #endif
 
@@ -114,21 +120,47 @@
 #ifndef STN_UNDEF
 #define STN_UNDEF 0
 #endif
-
 #ifndef DT_INIT_ARRAY
 #define DT_INIT_ARRAY 25
 #endif
-
 #ifndef DT_FINI_ARRAY
 #define DT_FINI_ARRAY 26
 #endif
-
 #ifndef DT_INIT_ARRAYSZ
 #define DT_INIT_ARRAYSZ 27
 #endif
-
 #ifndef DT_FINI_ARRAYSZ
 #define DT_FINI_ARRAYSZ 28
+#endif
+#ifndef DT_RELACOUNT
+#define DT_RELACOUNT 0x6ffffff9
+#endif
+#ifndef DT_RELCOUNT
+#define DT_RELCOUNT 0x6ffffffa
+#endif
+#ifndef DT_VERSYM
+#define DT_VERSYM 0x6ffffff0
+#endif
+#ifndef DT_VERDEF
+#define DT_VERDEF 0x6ffffffc
+#endif
+#ifndef DT_VERDEFNUM
+#define DT_VERDEFNUM 0x6ffffffd
+#endif
+#ifndef DT_VERNEED
+#define DT_VERNEED 0x6ffffffe
+#endif
+#ifndef DT_VERNEEDNUM
+#define DT_VERNEEDNUM 0x6fffffff
+#endif
+#ifndef DT_FLAGS
+#define DT_FLAGS 30
+#endif
+#ifndef DF_SYMBOLIC
+#define DF_SYMBOLIC 0x00000002
+#endif
+#ifndef DF_TEXTREL
+#define DF_TEXTREL 0x00000004
 #endif
 
 namespace Elf {
@@ -211,6 +243,7 @@ class Mappable;
 class CustomElf: public LibHandle, private ElfLoader::link_map
 {
   friend class ElfLoader;
+  friend class SEGVHandler;
 public:
   /**
    * Returns a new CustomElf using the given file descriptor to map ELF
@@ -230,6 +263,13 @@ public:
   virtual ~CustomElf();
   virtual void *GetSymbolPtr(const char *symbol) const;
   virtual bool Contains(void *addr) const;
+
+  /**
+   * Shows some stats about the Mappable instance. The when argument is to be
+   * used by the caller to give an identifier of the when the stats call is
+   * made.
+   */
+  void stats(const char *when) const;
 
 private:
   /**
@@ -325,6 +365,7 @@ private:
       void (*func)(void);
     } f;
     f.ptr = ptr;
+    debug("%s: Calling function @%p", GetPath(), ptr);
     f.func();
   }
 

@@ -190,7 +190,7 @@ public:
                                          nsStyleContext* aStyleContext);
   virtual void SetParent(nsIFrame* aParent);
   virtual nscoord GetBaseline() const;
-  virtual nsFrameList GetChildList(ChildListID aListID) const;
+  virtual const nsFrameList& GetChildList(ChildListID aListID) const;
   virtual void GetChildLists(nsTArray<ChildList>* aLists) const;
 
   NS_IMETHOD  HandleEvent(nsPresContext* aPresContext, 
@@ -728,7 +728,8 @@ public:
 public:
 
   static void PrintDisplayList(nsDisplayListBuilder* aBuilder,
-                               const nsDisplayList& aList);
+                               const nsDisplayList& aList,
+                               FILE* aFile = stdout);
 
 #endif
 };

@@ -144,12 +144,12 @@ nsSVGFE::SetupScalingFilter(nsSVGFilterInstance *aInstance,
     return result;
   }
 
-  float kernelX = aInstance->GetPrimitiveNumber(nsSVGUtils::X,
-                                                aKernelUnitLength,
-                                                nsSVGNumberPair::eFirst);
-  float kernelY = aInstance->GetPrimitiveNumber(nsSVGUtils::Y,
-                                                aKernelUnitLength,
-                                                nsSVGNumberPair::eSecond);
+  gfxFloat kernelX = aInstance->GetPrimitiveNumber(nsSVGUtils::X,
+                                                   aKernelUnitLength,
+                                                   nsSVGNumberPair::eFirst);
+  gfxFloat kernelY = aInstance->GetPrimitiveNumber(nsSVGUtils::Y,
+                                                   aKernelUnitLength,
+                                                   nsSVGNumberPair::eSecond);
   if (kernelX <= 0 || kernelY <= 0)
     return result;
 
@@ -309,6 +309,15 @@ nsSVGFE::IsAttributeMapped(const nsIAtom* name) const
 
 //----------------------------------------------------------------------
 // nsSVGElement methods
+
+/* virtual */ bool
+nsSVGFE::HasValidDimensions() const
+{
+  return (!mLengthAttributes[WIDTH].IsExplicitlySet() ||
+           mLengthAttributes[WIDTH].GetAnimValInSpecifiedUnits() > 0) &&
+         (!mLengthAttributes[HEIGHT].IsExplicitlySet() || 
+           mLengthAttributes[HEIGHT].GetAnimValInSpecifiedUnits() > 0);
+}
 
 nsSVGElement::LengthAttributesInfo
 nsSVGFE::GetLengthInfo()

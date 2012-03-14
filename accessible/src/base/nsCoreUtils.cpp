@@ -503,17 +503,6 @@ nsCoreUtils::IsErrorPage(nsIDocument *aDocument)
   return StringBeginsWith(path, neterror) || StringBeginsWith(path, certerror);
 }
 
-bool
-nsCoreUtils::IsCorrectFrameType(nsIFrame *aFrame, nsIAtom *aAtom)
-{
-  NS_ASSERTION(aFrame != nsnull,
-               "aFrame is null in call to IsCorrectFrameType!");
-  NS_ASSERTION(aAtom != nsnull,
-               "aAtom is null in call to IsCorrectFrameType!");
-  
-  return aFrame->GetType() == aAtom;
-}
-
 already_AddRefed<nsIDOMNode>
 nsCoreUtils::GetDOMNodeForContainer(nsIDocShellTreeItem *aContainer)
 {
@@ -579,26 +568,6 @@ nsCoreUtils::GetLanguageFor(nsIContent *aContent, nsIContent *aRootContent,
   while (walkUp && walkUp != aRootContent &&
          !walkUp->GetAttr(kNameSpaceID_None, nsGkAtoms::lang, aLanguage))
     walkUp = walkUp->GetParent();
-}
-
-already_AddRefed<nsIDOMCSSStyleDeclaration>
-nsCoreUtils::GetComputedStyleDeclaration(const nsAString& aPseudoElt,
-                                         nsIContent *aContent)
-{
-  nsIContent* content = GetDOMElementFor(aContent);
-  if (!content)
-    return nsnull;
-
-  // Returns number of items in style declaration
-  nsCOMPtr<nsIDOMWindow> window =
-    do_QueryInterface(content->OwnerDoc()->GetWindow());
-  if (!window)
-    return nsnull;
-
-  nsCOMPtr<nsIDOMCSSStyleDeclaration> cssDecl;
-  nsCOMPtr<nsIDOMElement> domElement(do_QueryInterface(content));
-  window->GetComputedStyle(domElement, aPseudoElt, getter_AddRefs(cssDecl));
-  return cssDecl.forget();
 }
 
 already_AddRefed<nsIBoxObject>

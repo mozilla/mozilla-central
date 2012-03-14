@@ -257,7 +257,6 @@ static PRInt64 GetVsize()
   return s.ullTotalVirtual - s.ullAvailVirtual;
 }
 
-#if MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
 static PRInt64 GetPrivate()
 {
     PROCESS_MEMORY_COUNTERS_EX pmcex;
@@ -278,7 +277,6 @@ NS_MEMORY_REPORTER_IMPLEMENT(Private,
     "Memory that cannot be shared with other processes, including memory that "
     "is committed and marked MEM_PRIVATE, data that is not mapped, and "
     "executable pages that have been written to.")
-#endif
 
 static PRInt64 GetResident()
 {
@@ -582,7 +580,7 @@ nsMemoryReporterManager::Init()
     REGISTER(PageFaultsHard);
 #endif
 
-#if defined(XP_WIN) && MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
+#if defined(XP_WIN)
     REGISTER(Private);
 #endif
 
@@ -823,9 +821,17 @@ nsMemoryReporterManager::GetExplicit(PRInt64 *aExplicit)
     }
     PRInt64 explicitNonHeapMultiSize2 = wrappedExplicitNonHeapMultiSize2->mValue;
 
-    // Check the two measurements give the same result.
-    NS_ASSERTION(explicitNonHeapMultiSize == explicitNonHeapMultiSize2,
-                 "The two measurements of 'explicit' memory usage don't match");
+    // Check the two measurements give the same result.  This was an
+    // NS_ASSERTION but they occasionally don't match due to races (bug
+    // 728990).
+    if (explicitNonHeapMultiSize != explicitNonHeapMultiSize2) {
+        char *msg = PR_smprintf("The two measurements of 'explicit' memory "
+                                "usage don't match (%lld vs %lld)",
+                                explicitNonHeapMultiSize,
+                                explicitNonHeapMultiSize2);
+        NS_WARNING(msg);
+        PR_smprintf_free(msg);
+    }
 #endif
 
     *aExplicit = heapAllocated + explicitNonHeapNormalSize + explicitNonHeapMultiSize;

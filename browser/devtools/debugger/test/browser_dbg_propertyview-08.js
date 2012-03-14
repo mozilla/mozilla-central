@@ -6,19 +6,16 @@
  * Make sure that the property view displays the properties of objects.
  */
 
-const TAB_URL = "http://example.com/browser/browser/devtools/debugger/test/" +
-                "browser_dbg_frame-parameters.html";
+const TAB_URL = EXAMPLE_URL + "browser_dbg_frame-parameters.html";
 
 var gPane = null;
 var gTab = null;
-var gDebuggee = null;
 var gDebugger = null;
 
 function test()
 {
   debug_tab_pane(TAB_URL, function(aTab, aDebuggee, aPane) {
     gTab = aTab;
-    gDebuggee = aDebuggee;
     gPane = aPane;
     gDebugger = gPane.debuggerWindow;
 
@@ -104,10 +101,16 @@ function resumeAndFinish() {
       is(frames.querySelectorAll(".dbg-stackframe").length, 0,
         "Should have no frames.");
 
-      removeTab(gTab);
-      finish();
+      closeDebuggerAndFinish(gTab);
     }}, 0);
   });
 
   gDebugger.StackFrames.activeThread.resume();
 }
+
+registerCleanupFunction(function() {
+  removeTab(gTab);
+  gPane = null;
+  gTab = null;
+  gDebugger = null;
+});

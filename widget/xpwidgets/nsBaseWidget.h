@@ -237,6 +237,8 @@ public:
 
   bool                    Destroyed() { return mOnDestroyCalled; }
 
+  nsWindowType            GetWindowType() { return mWindowType; }
+
 protected:
 
   virtual void            ResolveIconName(const nsAString &aIconName,
@@ -298,6 +300,7 @@ protected:
   nsBorderStyle     mBorderStyle;
   bool              mOnDestroyCalled;
   bool              mUseAcceleratedRendering;
+  bool              mForceLayersAcceleration;
   bool              mTemporarilyUseBasicLayerManager;
   nsIntRect         mBounds;
   nsIntRect*        mOriginalBounds;

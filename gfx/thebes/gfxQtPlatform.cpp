@@ -50,6 +50,7 @@
 
 #include "gfxImageSurface.h"
 #include "gfxQPainterSurface.h"
+#include "nsUnicodeProperties.h"
 
 #ifdef MOZ_PANGO
 #include "gfxPangoFonts.h"
@@ -79,6 +80,7 @@
 #include "mozilla/Preferences.h"
 
 using namespace mozilla;
+using namespace mozilla::unicode;
 
 #define DEFAULT_RENDER_MODE RENDER_DIRECT
 
@@ -90,6 +92,8 @@ static void do_qt_pixmap_unref (void *data)
     QPixmap *pmap = (QPixmap*)data;
     delete pmap;
 }
+
+static gfxImageFormat sOffscreenFormat = gfxASurface::ImageFormatRGB24;
 
 #ifndef MOZ_PANGO
 typedef nsDataHashtable<nsStringHashKey, nsRefPtr<FontFamily> > FontTable;
@@ -149,6 +153,9 @@ gfxQtPlatform::gfxQtPlatform()
     // Qt doesn't provide a public API to detect the graphicssystem type. We hack
     // around this by checking what type of graphicssystem a test QPixmap uses.
     QPixmap pixmap(1, 1);
+    if (pixmap.depth() == 16) {
+        sOffscreenFormat = gfxASurface::ImageFormatRGB16_565;
+    }
 #if (QT_VERSION < QT_VERSION_CHECK(4,8,0))
     if (pixmap.paintEngine())
         sDefaultQtPaintEngineType = pixmap.paintEngine()->type();
@@ -526,7 +533,7 @@ FindFontForCharProc(nsStringHashKey::KeyType aKey,
                     nsRefPtr<FontFamily>& aFontFamily,
                     void* aUserArg)
 {
-    FontSearch *data = (FontSearch*)aUserArg;
+    GlobalFontMatch *data = (GlobalFontMatch*)aUserArg;
     aFontFamily->FindFontForChar(data);
     return PL_DHASH_NEXT;
 }
@@ -542,7 +549,8 @@ gfxQtPlatform::FindFontForChar(PRUint32 aCh, gfxFont *aFont)
         return nsnull;
     }
 
-    FontSearch data(aCh, aFont);
+    GlobalFontMatch data(aCh, GetScriptCode(aCh),
+                         (aFont ? aFont->GetStyle() : nsnull));
 
     // find fonts that support the character
     gPlatformFonts->Enumerate(FindFontForCharProc, &data);
@@ -586,9 +594,5 @@ gfxQtPlatform::GetDPI()
 gfxImageFormat
 gfxQtPlatform::GetOffscreenFormat()
 {
-    if (qApp->desktop()->depth() == 16) {
-        return gfxASurface::ImageFormatRGB16_565;
-    }
-
-    return gfxASurface::ImageFormatRGB24;
+    return sOffscreenFormat;
 }

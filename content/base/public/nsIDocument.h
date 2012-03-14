@@ -68,7 +68,6 @@
 #include "nsEventStates.h"
 #include "nsIStructuredCloneContainer.h"
 #include "nsIBFCacheEntry.h"
-#include "nsDOMMemoryReporter.h"
 
 class nsIContent;
 class nsPresContext;
@@ -111,6 +110,7 @@ class nsIBoxObject;
 class imgIRequest;
 class nsISHEntry;
 class nsDOMNavigationTiming;
+class nsWindowSizes;
 
 namespace mozilla {
 namespace css {
@@ -156,7 +156,6 @@ public:
 
   NS_DECLARE_STATIC_IID_ACCESSOR(NS_IDOCUMENT_IID)
   NS_DECL_AND_IMPL_ZEROING_OPERATOR_NEW
-  NS_DECL_DOM_MEMORY_REPORTER_SIZEOF
 
 #ifdef MOZILLA_INTERNAL_API
   nsIDocument()
@@ -1425,7 +1424,8 @@ public:
   /**
    * Called by nsParser to preload images. Can be removed and code moved
    * to nsPreloadURIs::PreloadURIs() in file nsParser.cpp whenever the
-   * parser-module is linked with gklayout-module.
+   * parser-module is linked with gklayout-module.  aCrossOriginAttr should
+   * be a void string if the attr is not present.
    */
   virtual void MaybePreLoadImage(nsIURI* uri,
                                  const nsAString& aCrossOriginAttr) = 0;
@@ -1617,7 +1617,15 @@ public:
     }
   }
 
-  virtual size_t SizeOfStyleSheets(nsMallocSizeOfFun aMallocSizeOf) const = 0;
+  // Note: nsIDocument is a sub-class of nsINode, which has a
+  // SizeOfExcludingThis function.  However, because nsIDocument objects can
+  // only appear at the top of the DOM tree, we have a specialized measurement
+  // function which returns multiple sizes.
+  virtual void DocSizeOfExcludingThis(nsWindowSizes* aWindowSizes) const;
+  // DocSizeOfIncludingThis doesn't need to be overridden by sub-classes
+  // because nsIDocument inherits from nsINode;  see the comment above the
+  // declaration of nsINode::SizeOfIncludingThis.
+  virtual void DocSizeOfIncludingThis(nsWindowSizes* aWindowSizes) const;
 
 private:
   PRUint64 mWarnedAbout;

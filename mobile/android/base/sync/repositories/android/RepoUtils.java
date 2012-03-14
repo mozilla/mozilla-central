@@ -1,54 +1,16 @@
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Android Sync Client.
- *
- * The Initial Developer of the Original Code is
- * the Mozilla Foundation.
- * Portions created by the Initial Developer are Copyright (C) 2011
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Jason Voll <jvoll@mozilla.com>
- *   Richard Newman <rnewman@mozilla.com>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 package org.mozilla.gecko.sync.repositories.android;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.mozilla.gecko.R;
+import org.mozilla.gecko.db.BrowserContract;
 import org.mozilla.gecko.sync.Logger;
 import org.mozilla.gecko.sync.repositories.NullCursorException;
-import org.mozilla.gecko.sync.repositories.domain.BookmarkRecord;
+import org.mozilla.gecko.sync.repositories.domain.ClientRecord;
 import org.mozilla.gecko.sync.repositories.domain.HistoryRecord;
 import org.mozilla.gecko.sync.repositories.domain.PasswordRecord;
 
@@ -59,90 +21,7 @@ import android.net.Uri;
 
 public class RepoUtils {
 
-  private static final String LOG_TAG = "DBUtils";
-
-  /**
-   * An array of known-special GUIDs.
-   */
-  public static String[] SPECIAL_GUIDS = new String[] {
-    // Mobile and desktop places roots have to come first.
-    "mobile",
-    "places",
-    "toolbar",
-    "menu",
-    "unfiled"
-  };
-
-  /**
-   * = A note about folder mapping =
-   *
-   * Note that _none_ of Places's folders actually have a special GUID. They're all
-   * randomly generated. Special folders are indicated by membership in the
-   * moz_bookmarks_roots table, and by having the parent `1`.
-   *
-   * Additionally, the mobile root is annotated. In Firefox Sync, PlacesUtils is
-   * used to find the IDs of these special folders.
-   *
-   * Sync skips over `places` and `tags` when finding IDs.
-   *
-   * We need to consume records with these various guids, producing a local
-   * representation which we are able to stably map upstream.
-   *
-   * That is:
-   *
-   * * We should not upload a `places` record or a `tags` record.
-   * * We can stably _store_ menu/toolbar/unfiled/mobile as special GUIDs, and set
-     * their parent ID as appropriate on upload.
-   *
-   *
-   * = Places folders =
-   *
-   * guid        root_name   folder_id   parent
-   * ----------  ----------  ----------  ----------
-   * ?           places      1           0
-   * ?           menu        2           1
-   * ?           toolbar     3           1
-   * ?           tags        4           1
-   * ?           unfiled     5           1
-   *
-   * ?           mobile*     474         1
-   *
-   *
-   * = Fennec folders =
-   *
-   * guid        folder_id   parent
-   * ----------  ----------  ----------
-   * mobile      ?           0
-   *
-  */
-  public static final Map<String, String> SPECIAL_GUID_PARENTS;
-  static {
-    HashMap<String, String> m = new HashMap<String, String>();
-    m.put("places",  null);
-    m.put("menu",    "places");
-    m.put("toolbar", "places");
-    m.put("tags",    "places");
-    m.put("unfiled", "places");
-    m.put("mobile",  "places");
-    SPECIAL_GUID_PARENTS = Collections.unmodifiableMap(m);
-  }
-
-  /**
-   * A map of guids to their localized name strings.
-   */
-  // Oh, if only we could make this final and initialize it in the static initializer.
-  public static Map<String, String> SPECIAL_GUIDS_MAP;
-  public static void initialize(Context context) {
-    if (SPECIAL_GUIDS_MAP == null) {
-      HashMap<String, String> m = new HashMap<String, String>();
-      m.put("menu",    context.getString(R.string.bookmarks_folder_menu));
-      m.put("places",  context.getString(R.string.bookmarks_folder_places));
-      m.put("toolbar", context.getString(R.string.bookmarks_folder_toolbar));
-      m.put("unfiled", context.getString(R.string.bookmarks_folder_unfiled));
-      m.put("mobile",  context.getString(R.string.bookmarks_folder_mobile));
-      SPECIAL_GUIDS_MAP = Collections.unmodifiableMap(m);
-    }
-  }
+  private static final String LOG_TAG = "RepoUtils";
 
   /**
    * A helper class for monotonous SQL querying. Does timing and logging,
@@ -162,49 +41,45 @@ public class RepoUtils {
       this.tag     = tag;
     }
 
-    public Cursor query(String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-      return this.query(null, projection, selection, selectionArgs, sortOrder);
-    }
-
     // For ContentProvider queries.
-    public Cursor query(String label, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-      String logLabel = (label == null) ? this.tag : this.tag + label;
+    public Cursor safeQuery(String label, String[] projection,
+                            String selection, String[] selectionArgs, String sortOrder) throws NullCursorException {
       long queryStart = android.os.SystemClock.uptimeMillis();
       Cursor c = context.getContentResolver().query(uri, projection, selection, selectionArgs, sortOrder);
-      long queryEnd   = android.os.SystemClock.uptimeMillis();
-      RepoUtils.queryTimeLogger(logLabel, queryStart, queryEnd);
-      return c;
+      return checkAndLogCursor(label, queryStart, c);
+    }
+
+    public Cursor safeQuery(String[] projection, String selection, String[] selectionArgs, String sortOrder) throws NullCursorException {
+      return this.safeQuery(null, projection, selection, selectionArgs, sortOrder);
     }
 
     // For SQLiteOpenHelper queries.
-    public Cursor query(SQLiteDatabase db, String label, String table, String[] columns,
-        String selection, String[] selectionArgs, String groupBy, String having, String orderBy, String limit) {
-      String logLabel = (label == null) ? this.tag : this.tag + label;
+    public Cursor safeQuery(SQLiteDatabase db, String label, String table, String[] columns,
+                            String selection, String[] selectionArgs,
+                            String groupBy, String having, String orderBy, String limit) throws NullCursorException {
       long queryStart = android.os.SystemClock.uptimeMillis();
       Cursor c = db.query(table, columns, selection, selectionArgs, groupBy, having, orderBy, limit);
-      long queryEnd   = android.os.SystemClock.uptimeMillis();
-      RepoUtils.queryTimeLogger(logLabel, queryStart, queryEnd);
-      return c;
-    }
-
-    public Cursor safeQuery(String label, String[] projection, String selection, String[] selectionArgs, String sortOrder) throws NullCursorException {
-      Cursor c = this.query(label, projection, selection, selectionArgs, sortOrder);
-      if (c == null) {
-        Logger.error(tag, "Got null cursor exception in " + tag + ((label == null) ? "" : label));
-        throw new NullCursorException(null);
-      }
-      return c;
+      return checkAndLogCursor(label, queryStart, c);
     }
 
     public Cursor safeQuery(SQLiteDatabase db, String label, String table, String[] columns,
-        String selection, String[] selectionArgs, String groupBy, String having, String orderBy, String limit) throws NullCursorException  {
-      Cursor c = this.query(db, label, table, columns, selection, selectionArgs,
-          groupBy, having, orderBy, limit);
-      if (c == null) {
-        Logger.error(tag, "Got null cursor exception in " + tag + ((label == null) ? "" : label));
+                            String selection, String[] selectionArgs) throws NullCursorException {
+      return safeQuery(db, label, table, columns, selection, selectionArgs, null, null, null, null);
+    }
+
+    private Cursor checkAndLogCursor(String label, long queryStart, Cursor c) throws NullCursorException {
+      long queryEnd = android.os.SystemClock.uptimeMillis();
+      String logLabel = (label == null) ? tag : (tag + label);
+      RepoUtils.queryTimeLogger(logLabel, queryStart, queryEnd);
+      return checkNullCursor(logLabel, c);
+    }
+
+    public Cursor checkNullCursor(String logLabel, Cursor cursor) throws NullCursorException {
+      if (cursor == null) {
+        Logger.error(tag, "Got null cursor exception in " + logLabel);
         throw new NullCursorException(null);
       }
-      return c;
+      return cursor;
     }
   }
 
@@ -243,92 +118,6 @@ public class RepoUtils {
     return Long.parseLong(path.substring(lastSlash + 1));
   }
 
-  public static BookmarkRecord computeParentFields(BookmarkRecord rec, String suggestedParentID, String suggestedParentName) {
-    final String guid = rec.guid;
-    if (guid == null) {
-      // Oh dear.
-      Logger.error(LOG_TAG, "No guid in computeParentFields!");
-      return null;
-    }
-
-    String realParent = SPECIAL_GUID_PARENTS.get(guid);
-    if (realParent == null) {
-      // No magic parent. Use whatever the caller suggests.
-      realParent = suggestedParentID;
-    } else {
-      Logger.debug(LOG_TAG, "Ignoring suggested parent ID " + suggestedParentID +
-                           " for " + guid + "; using " + realParent);
-    }
-
-    if (realParent == null) {
-      // Oh dear.
-      Logger.error(LOG_TAG, "No parent for record " + guid);
-      return null;
-    }
-
-    // Always set the parent name for special folders back to default.
-    String parentName = SPECIAL_GUIDS_MAP.get(realParent);
-    if (parentName == null) {
-      parentName = suggestedParentName;
-    }
-
-    rec.parentID = realParent;
-    rec.parentName = parentName;
-    return rec;
-  }
-
-  // Create a BookmarkRecord object from a cursor on a row containing a Fennec bookmark.
-  public static BookmarkRecord bookmarkFromMirrorCursor(Cursor cur, String parentId, String parentName, JSONArray children) {
-
-    String guid = getStringFromCursor(cur, BrowserContract.SyncColumns.GUID);
-    String collection = "bookmarks";
-    long lastModified = getLongFromCursor(cur, BrowserContract.SyncColumns.DATE_MODIFIED);
-    boolean deleted   = getLongFromCursor(cur, BrowserContract.SyncColumns.IS_DELETED) == 1 ? true : false;
-    boolean isFolder  = getIntFromCursor(cur, BrowserContract.Bookmarks.IS_FOLDER) == 1;
-    BookmarkRecord rec = new BookmarkRecord(guid, collection, lastModified, deleted);
-
-    rec.title = getStringFromCursor(cur, BrowserContract.Bookmarks.TITLE);
-    rec.bookmarkURI = getStringFromCursor(cur, BrowserContract.Bookmarks.URL);
-    rec.description = getStringFromCursor(cur, BrowserContract.Bookmarks.DESCRIPTION);
-    rec.tags = getJSONArrayFromCursor(cur, BrowserContract.Bookmarks.TAGS);
-    rec.keyword = getStringFromCursor(cur, BrowserContract.Bookmarks.KEYWORD);
-    rec.type = isFolder ? AndroidBrowserBookmarksDataAccessor.TYPE_FOLDER :
-                          AndroidBrowserBookmarksDataAccessor.TYPE_BOOKMARK;
-
-    rec.androidID = getLongFromCursor(cur, BrowserContract.Bookmarks._ID);
-    rec.androidPosition = getLongFromCursor(cur, BrowserContract.Bookmarks.POSITION);
-    rec.children = children;
-
-    // Need to restore the parentId since it isn't stored in content provider.
-    // We also take this opportunity to fix up parents for special folders,
-    // allowing us to map between the hierarchies used by Fennec and Places.
-    return logBookmark(computeParentFields(rec, parentId, parentName));
-  }
-
-  private static BookmarkRecord logBookmark(BookmarkRecord rec) {
-    try {
-      Logger.debug(LOG_TAG, "Returning bookmark record " + rec.guid + " (" + rec.androidID +
-                           ", parent " + rec.parentID + ")");
-      if (Logger.LOG_PERSONAL_INFORMATION) {
-        Logger.pii(LOG_TAG, "> Parent name:      " + rec.parentName);
-        Logger.pii(LOG_TAG, "> Title:            " + rec.title);
-        Logger.pii(LOG_TAG, "> Type:             " + rec.type);
-        Logger.pii(LOG_TAG, "> URI:              " + rec.bookmarkURI);
-        Logger.pii(LOG_TAG, "> Android position: " + rec.androidPosition);
-        Logger.pii(LOG_TAG, "> Position:         " + rec.pos);
-        if (rec.isFolder()) {
-          Logger.pii(LOG_TAG, "FOLDER: Children are " +
-                             (rec.children == null ?
-                                 "null" :
-                                 rec.children.toJSONString()));
-        }
-      }
-    } catch (Exception e) {
-      Logger.debug(LOG_TAG, "Exception logging bookmark record " + rec, e);
-    }
-    return rec;
-  }
-
   //Create a HistoryRecord object from a cursor on a row with a Moz History record in it
   public static HistoryRecord historyFromMirrorCursor(Cursor cur) {
 
@@ -360,6 +149,16 @@ public class RepoUtils {
       Logger.debug(LOG_TAG, "Exception logging bookmark record " + rec, e);
     }
     return rec;
+  }
+
+  public static void logClient(ClientRecord rec) {
+    if (Logger.logVerbose(LOG_TAG)) {
+      Logger.trace(LOG_TAG, "Returning client record " + rec.guid + " (" + rec.androidID + ")");
+      Logger.trace(LOG_TAG, "Client Name: " + rec.name);
+      Logger.trace(LOG_TAG, "Client Type: " + rec.type);
+      Logger.trace(LOG_TAG, "Last Modified: " + rec.lastModified);
+      Logger.trace(LOG_TAG, "Deleted: " + rec.deleted);
+    }
   }
 
   public static PasswordRecord passwordFromMirrorCursor(Cursor cur) {
@@ -398,5 +197,59 @@ public class RepoUtils {
     if (a != null && b == null) return false;
     
     return a.equals(b);
+  }
+
+  private static String fixedWidth(int width, String s) {
+    if (s == null) {
+      return spaces(width);
+    }
+    int length = s.length();
+    if (width == length) {
+      return s;
+    }
+    if (width > length) {
+      return s + spaces(width - length);
+    }
+    return s.substring(0, width);
+  }
+
+  private static String spaces(int i) {
+    return "                                     ".substring(0, i);
+  }
+
+  public static void dumpCursor(Cursor cur) {
+    int originalPosition = cur.getPosition();
+    try {
+      String[] columnNames = cur.getColumnNames();
+      int columnCount      = cur.getColumnCount();
+
+      // 12 chars each column.
+      for (int i = 0; i < columnCount; ++i) {
+        System.out.print(fixedWidth(12, columnNames[i]) + " | ");
+      }
+      System.out.println("");
+      for (int i = 0; i < columnCount; ++i) {
+        System.out.print("------------" + " | ");
+      }
+      System.out.println("");
+      if (!cur.moveToFirst()) {
+        System.out.println("EMPTY");
+        return;
+      }
+
+      cur.moveToFirst();
+      while (cur.moveToNext()) {
+        for (int i = 0; i < columnCount; ++i) {
+          System.out.print(fixedWidth(12, cur.getString(i)) + " | ");
+        }
+        System.out.println("");
+      }
+      for (int i = 0; i < columnCount; ++i) {
+        System.out.print("---------------");
+      }
+      System.out.println("");
+    } finally {
+      cur.moveToPosition(originalPosition);
+    }
   }
 }

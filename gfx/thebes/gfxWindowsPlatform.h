@@ -179,6 +179,10 @@ public:
 
     nsresult UpdateFontList();
 
+    virtual void GetCommonFallbackFonts(const PRUint32 aCh,
+                                        PRInt32 aRunScript,
+                                        nsTArray<const char*>& aFontList);
+
     nsresult ResolveFontName(const nsAString& aFontName,
                              FontResolverCallback aCallback,
                              void *aClosure, bool& aAborted);
@@ -225,7 +229,6 @@ public:
     // based on http://msdn.microsoft.com/en-us/library/ms724834(VS.85).aspx
     enum {
         kWindowsUnknown = 0,
-        kWindows2000 = 0x50000,
         kWindowsXP = 0x50001,
         kWindowsServer2003 = 0x50002,
         kWindowsVista = 0x60000,

@@ -156,6 +156,9 @@ Prompt.prototype = {
     if (aCheckMsg)
       aInputs.push({ type: "checkbox", label: PromptUtils.cleanUpLabel(aCheckMsg), checked: aCheckState.value });
 
+    if (this._domWin)
+      PromptUtils.fireDialogEvent(this._domWin, "DOMWillOpenModalDialog");
+
     let msg = { type: "Prompt:Show" };
     if (aTitle) msg.title = aTitle;
     if (aText) msg.text = aText;
@@ -765,9 +768,16 @@ let PromptUtils = {
     }
     return hostname;
   },
+
   sendMessageToJava: function(aMsg) {
     let data = Cc["@mozilla.org/android/bridge;1"].getService(Ci.nsIAndroidBridge).handleGeckoMessage(JSON.stringify({ gecko: aMsg }));
     return JSON.parse(data);
+  },
+
+  fireDialogEvent: function(aDomWin, aEventName) {
+    let event = aDomWin.document.createEvent("Events");
+    event.initEvent(aEventName, true, true);
+    aDomWin.dispatchEvent(event);
   }
 };
 

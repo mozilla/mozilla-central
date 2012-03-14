@@ -90,7 +90,11 @@ SpdySession::SpdySession(nsAHttpTransaction *aHttpTransaction,
     mServerPushedResources(0),
     mOutputQueueSize(kDefaultQueueSize),
     mOutputQueueUsed(0),
-    mOutputQueueSent(0)
+    mOutputQueueSent(0),
+    mLastReadEpoch(PR_IntervalNow()),
+    mPingSentEpoch(0),
+    mNextPingID(1),
+    mPingThresholdExperiment(false)
 {
   NS_ABORT_IF_FALSE(PR_GetCurrentThread() == gSocketThread, "wrong thread");
 
@@ -107,6 +111,42 @@ SpdySession::SpdySession(nsAHttpTransaction *aHttpTransaction,
   
   mSendingChunkSize = gHttpHandler->SpdySendingChunkSize();
   AddStream(aHttpTransaction, firstPriority);
+  mLastDataReadEpoch = mLastReadEpoch;
+  
+  DeterminePingThreshold();
+}
+
+void
+SpdySession::DeterminePingThreshold()
+{
+  mPingThreshold = gHttpHandler->SpdyPingThreshold();
+
+  if (!mPingThreshold || !gHttpHandler->AllowExperiments())
+    return;
+
+  PRUint32 randomVal = gHttpHandler->Get32BitsOfPseudoRandom();
+  
+  // Use the lower 10 bits to select 1 in 1024 sessions for the
+  // ping threshold experiment. Somewhat less than that will actually be
+  // used because random values greater than the total http idle timeout
+  // for the session are discarded.
+  if ((randomVal & 0x3ff) != 1)  // lottery
+    return;
+  
+  randomVal = randomVal >> 10; // those bits are used up
+
+  // This session has been selected - use a random ping threshold of 10 +
+  // a random number from 0 to 255, based on the next 8 bits of the
+  // random buffer
+  PRIntervalTime randomThreshold =
+    PR_SecondsToInterval((randomVal & 0xff) + 10);
+  if (randomThreshold > gHttpHandler->IdleTimeout())
+    return;
+  
+  mPingThreshold = randomThreshold;
+  mPingThresholdExperiment = true;
+  LOG3(("SpdySession %p Ping Threshold Experimental Selection : %dsec\n",
+        this, PR_IntervalToSeconds(mPingThreshold)));
 }
 
 PLDHashOperator
@@ -212,6 +252,85 @@ SpdySession::RoomForMoreStreams()
   return !mShouldGoAway;
 }
 
+PRIntervalTime
+SpdySession::IdleTime()
+{
+  return PR_IntervalNow() - mLastDataReadEpoch;
+}
+
+void
+SpdySession::ReadTimeoutTick(PRIntervalTime now)
+{
+    NS_ABORT_IF_FALSE(PR_GetCurrentThread() == gSocketThread, "wrong thread");
+    NS_ABORT_IF_FALSE(mNextPingID & 1, "Ping Counter Not Odd");
+
+    if (!mPingThreshold)
+      return;
+
+    LOG(("SpdySession::ReadTimeoutTick %p delta since last read %ds\n",
+         this, PR_IntervalToSeconds(now - mLastReadEpoch)));
+
+    if ((now - mLastReadEpoch) < mPingThreshold) {
+      // recent activity means ping is not an issue
+      if (mPingSentEpoch)
+        ClearPing(true);
+      return;
+    }
+
+    if (mPingSentEpoch) {
+      LOG(("SpdySession::ReadTimeoutTick %p handle outstanding ping\n"));
+      if ((now - mPingSentEpoch) >= gHttpHandler->SpdyPingTimeout()) {
+        LOG(("SpdySession::ReadTimeoutTick %p Ping Timer Exhaustion\n",
+             this));
+        ClearPing(false);
+        Close(NS_ERROR_NET_TIMEOUT);
+      }
+      return;
+    }
+    
+    LOG(("SpdySession::ReadTimeoutTick %p generating ping 0x%x\n",
+         this, mNextPingID));
+
+    if (mNextPingID == 0xffffffff) {
+      LOG(("SpdySession::ReadTimeoutTick %p cannot form ping - ids exhausted\n",
+           this));
+      return;
+    }
+
+    mPingSentEpoch = PR_IntervalNow();
+    if (!mPingSentEpoch)
+      mPingSentEpoch = 1; // avoid the 0 sentinel value
+    GeneratePing(mNextPingID);
+    mNextPingID += 2;
+
+    if (mNextPingID == 0xffffffff) {
+      LOG(("SpdySession::ReadTimeoutTick %p "
+           "ping ids exhausted marking goaway\n", this));
+      mShouldGoAway = true;
+    }
+}
+
+void
+SpdySession::ClearPing(bool pingOK)
+{
+  mPingSentEpoch = 0;
+
+  if (mPingThresholdExperiment) {
+    LOG3(("SpdySession::ClearPing %p mPingThresholdExperiment %dsec %s\n",
+          this, PR_IntervalToSeconds(mPingThreshold),
+          pingOK ? "pass" :"fail"));
+
+    if (pingOK)
+      Telemetry::Accumulate(Telemetry::SPDY_PING_EXPERIMENT_PASS,
+                            PR_IntervalToSeconds(mPingThreshold));
+    else
+      Telemetry::Accumulate(Telemetry::SPDY_PING_EXPERIMENT_FAIL,
+                            PR_IntervalToSeconds(mPingThreshold));
+    mPingThreshold = gHttpHandler->SpdyPingThreshold();
+    mPingThresholdExperiment = false;
+  }
+}
+
 PRUint32
 SpdySession::RegisterStreamID(SpdyStream *stream)
 {
@@ -305,6 +424,18 @@ SpdySession::ProcessPending()
           this, stream));
     ActivateStream(stream);
   }
+}
+
+nsresult
+SpdySession::NetworkRead(nsAHttpSegmentWriter *writer, char *buf,
+                         PRUint32 count, PRUint32 *countWritten)
+{
+  NS_ABORT_IF_FALSE(PR_GetCurrentThread() == gSocketThread, "wrong thread");
+
+  nsresult rv = writer->OnWriteSegment(buf, count, countWritten);
+  if (NS_SUCCEEDED(rv) && *countWritten > 0)
+    mLastReadEpoch = PR_IntervalNow();
+  return rv;
 }
 
 void
@@ -942,6 +1073,7 @@ SpdySession::HandleSynReplyForValidStream()
     return rv;
 
   mInputFrameDataStream->UpdateTransportReadEvents(mInputFrameDataSize);
+  mLastDataReadEpoch = mLastReadEpoch;
   ChangeDownstreamState(PROCESSING_CONTROL_SYN_REPLY);
   return NS_OK;
 }
@@ -1112,12 +1244,11 @@ SpdySession::HandlePing(SpdySession *self)
   LOG3(("SpdySession::HandlePing %p PING ID 0x%X.", self, pingID));
 
   if (pingID & 0x01) {
-    // We never expect to see an odd PING beacuse we never generate PING.
-    // The spec mandates ignoring this
-    LOG3(("SpdySession::HandlePing %p PING ID from server was odd.",
-          self));
+    // presumably a reply to our timeout ping
+    self->ClearPing(true);
   }
   else {
+    // Servers initiate even numbered pings, go ahead and echo it back
     self->GeneratePing(pingID);
   }
     
@@ -1173,6 +1304,7 @@ SpdySession::HandleHeaders(SpdySession *self)
   LOG3(("SpdySession::HandleHeaders %p HEADERS for Stream 0x%X. "
         "They are ignored in the HTTP/SPDY mapping.",
         self, streamID));
+  self->mLastDataReadEpoch = self->mLastReadEpoch;
   self->ResetDownstreamState();
   return NS_OK;
 }
@@ -1348,8 +1480,8 @@ SpdySession::ReadSegments(nsAHttpSegmentReader *reader,
 // OnWriteSegment(). That function will gateway it into http and feed
 // it to the appropriate transaction.
 
-// we call writer->OnWriteSegment to get a spdy header.. and decide if it is
-// data or control.. if it is control, just deal with it.
+// we call writer->OnWriteSegment via NetworkRead() to get a spdy header.. 
+// and decide if it is data or control.. if it is control, just deal with it.
 // if it is data, identify the spdy stream
 // call stream->WriteSegemnts which can call this::OnWriteSegment to get the
 // data. It always gets full frames if they are part of the stream
@@ -1381,9 +1513,9 @@ SpdySession::WriteSegments(nsAHttpSegmentWriter *writer,
     NS_ABORT_IF_FALSE(mInputFrameBufferUsed < 8,
                       "Frame Buffer Used Too Large for State");
 
-    rv = writer->OnWriteSegment(mInputFrameBuffer + mInputFrameBufferUsed,
-                                8 - mInputFrameBufferUsed,
-                                countWritten);
+    rv = NetworkRead(writer, mInputFrameBuffer + mInputFrameBufferUsed,
+                     8 - mInputFrameBufferUsed, countWritten);
+
     if (NS_FAILED(rv)) {
       LOG3(("SpdySession %p buffering frame header read failure %x\n",
             this, rv));
@@ -1462,6 +1594,7 @@ SpdySession::WriteSegments(nsAHttpSegmentWriter *writer,
             "Session=%p Stream ID 0x%x Stream Ptr %p Fin=%d Len=%d",
             this, streamID, mInputFrameDataStream, mInputFrameDataLast,
             mInputFrameDataSize));
+      mLastDataReadEpoch = mLastReadEpoch;
 
       if (mInputFrameBuffer[4] & kFlag_Data_ZLIB) {
         LOG3(("Data flag has ZLIB flag set which is not valid >=2 spdy"));
@@ -1499,6 +1632,8 @@ SpdySession::WriteSegments(nsAHttpSegmentWriter *writer,
     rv = mInputFrameDataStream->WriteSegments(this, count, countWritten);
     mSegmentWriter = nsnull;
 
+    mLastDataReadEpoch = mLastReadEpoch;
+
     if (rv == NS_BASE_STREAM_CLOSED) {
       // This will happen when the transaction figures out it is EOF, generally
       // due to a content-length match being made
@@ -1530,7 +1665,7 @@ SpdySession::WriteSegments(nsAHttpSegmentWriter *writer,
       return NS_BASE_STREAM_WOULD_BLOCK;
     }
 
-    rv = writer->OnWriteSegment(trash, count, countWritten);
+    rv = NetworkRead(writer, trash, count, countWritten);
 
     if (NS_FAILED(rv)) {
       LOG3(("SpdySession %p discard frame read failure %x\n", this, rv));
@@ -1558,9 +1693,9 @@ SpdySession::WriteSegments(nsAHttpSegmentWriter *writer,
   NS_ABORT_IF_FALSE(mInputFrameBufferUsed == 8,
                     "Frame Buffer Header Not Present");
 
-  rv = writer->OnWriteSegment(mInputFrameBuffer + 8 + mInputFrameDataRead,
-                              mInputFrameDataSize - mInputFrameDataRead,
-                              countWritten);
+  rv = NetworkRead(writer, mInputFrameBuffer + 8 + mInputFrameDataRead,
+                   mInputFrameDataSize - mInputFrameDataRead, countWritten);
+
   if (NS_FAILED(rv)) {
     LOG3(("SpdySession %p buffering control frame read failure %x\n",
           this, rv));
@@ -1768,7 +1903,7 @@ SpdySession::OnWriteSegment(char *buf,
     }
     
     count = NS_MIN(count, mInputFrameDataSize - mInputFrameDataRead);
-    rv = mSegmentWriter->OnWriteSegment(buf, count, countWritten);
+    rv = NetworkRead(mSegmentWriter, buf, count, countWritten);
     if (NS_FAILED(rv))
       return rv;
 

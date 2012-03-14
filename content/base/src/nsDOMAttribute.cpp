@@ -210,11 +210,11 @@ nsDOMAttribute::GetNameAtom(nsIContent* aContent)
       mNodeInfo->NamespaceID() == kNameSpaceID_None &&
       aContent->IsInHTMLDocument() &&
       aContent->IsHTML()) {
-    nsAutoString name;
-    mNodeInfo->NameAtom()->ToString(name);
-    nsAutoString lower;
-    ToLowerCase(name, lower);
-    nsCOMPtr<nsIAtom> nameAtom = do_GetAtom(lower);
+    nsString name;
+    mNodeInfo->GetName(name);
+    nsAutoString lowercaseName;
+    nsContentUtils::ASCIIToLower(name, lowercaseName);
+    nsCOMPtr<nsIAtom> nameAtom = do_GetAtom(lowercaseName);
     nameAtom.swap(result);
   } else {
     nsCOMPtr<nsIAtom> nameAtom = mNodeInfo->NameAtom();
@@ -480,9 +480,13 @@ nsDOMAttribute::Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const
 }
 
 NS_IMETHODIMP
-nsDOMAttribute::CloneNode(bool aDeep, nsIDOMNode** aResult)
+nsDOMAttribute::CloneNode(bool aDeep, PRUint8 aOptionalArgc, nsIDOMNode** aResult)
 {
   OwnerDoc()->WarnOnceAbout(nsIDocument::eCloneNode);
+
+  if (!aOptionalArgc) {
+    aDeep = true;
+  }
 
   return nsNodeUtils::CloneNodeImpl(this, aDeep, true, aResult);
 }

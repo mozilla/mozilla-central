@@ -58,8 +58,13 @@ const UNITS_PERCENTAGE       = Ci.nsIMemoryReporter.UNITS_PERCENTAGE;
 
 // Because about:memory and about:compartments are non-standard URLs,
 // location.search is undefined, so we have to use location.href here.
-const gVerbose = location.href === "about:memory?verbose" ||
-                 location.href === "about:compartments?verbose";
+// The toLowerCase() calls ensure that addresses like "ABOUT:MEMORY" work.
+let gVerbose;
+{
+  let split = document.location.href.split('?');
+  document.title = split[0].toLowerCase();
+  gVerbose = split.length == 2 && split[1].toLowerCase() == 'verbose';
+}
 
 let gChildMemoryListener = undefined;
 
@@ -80,7 +85,16 @@ function flipBackslashes(aUnsafeStr)
 function assert(aCond, aMsg)
 {
   if (!aCond) {
-    throw("assertion failed: " + aMsg);
+    reportAssertionFailure(aMsg)
+    throw("aboutMemory.js assertion failed: " + aMsg);
+  }
+}
+
+function reportAssertionFailure(aMsg)
+{
+  var debug = Cc["@mozilla.org/xpcom/debug;1"].getService(Ci.nsIDebug2);
+  if (debug.isDebugBuild) {
+    debug.assertion(aMsg, "false", "aboutMemory.js", 0);
   }
 }
 
@@ -105,14 +119,12 @@ function addChildObserversAndUpdate(aUpdateFn)
 
 function onLoad()
 {
-  if (location.href.startsWith("about:memory")) {
-    document.title = "about:memory";
+  if (document.title === "about:memory") {
     onLoadAboutMemory();
-  } else if (location.href.startsWith("about:compartment")) {
-    document.title = "about:compartments";
+  } else if (document.title === "about:compartments") {
     onLoadAboutCompartments();
   } else {
-    assert(false, "Unknown location");
+    assert(false, "Unknown location: " + document.title);
   }
 }
 
@@ -576,7 +588,7 @@ function buildTree(aReports, aTreeName)
     }
   }
   if (!foundReport) {
-    assert(aTreeName !== 'explicit');
+    assert(aTreeName !== 'explicit', "aTreeName !== 'explicit'");
     return null;
   }
 
@@ -1254,10 +1266,11 @@ function appendTreeElements(aPOuter, aT, aProcess)
     if (aT._amount === treeBytes) {
       percText = "100.0";
     } else {
-      let perc = (100 * aT._amount / treeBytes);
-      if (!(0 <= perc && perc <= 100)) {
+      if (!(0 <= aT._amount && aT._amount <= treeBytes)) {
         tIsInvalid = true;
         gUnsafePathsWithInvalidValuesForThisProcess.push(unsafePath);
+        reportAssertionFailure("Invalid value for " +
+                               flipBackslashes(unsafePath));
       }
       percText = (100 * aT._amount / treeBytes).toFixed(2);
       percText = pad(percText, 5, '0');
@@ -1416,7 +1429,7 @@ function appendOtherElements(aP, aReportsByProcess)
     if (!r._done) {
       assert(r._kind === KIND_OTHER,
              "_kind !== KIND_OTHER for " + flipBackslashes(r._unsafePath));
-      assert(r._nMerged === undefined);  // we don't allow dup'd OTHER Reports
+      assert(r._nMerged === undefined, "dup'd OTHER report");
       let o = new OtherReport(r._unsafePath, r._units, r._amount,
                               r._description);
       otherReports.push(o);
@@ -1434,6 +1447,8 @@ function appendOtherElements(aP, aReportsByProcess)
     let oIsInvalid = o.isInvalid();
     if (oIsInvalid) {
       gUnsafePathsWithInvalidValuesForThisProcess.push(o._unsafePath);
+      reportAssertionFailure("Invalid value for " +
+                             flipBackslashes(o._unsafePath));
     }
     appendMrValueSpan(pre, pad(o._asString, maxStringLength, ' '), oIsInvalid);
     appendMrNameSpan(pre, KIND_OTHER, kNoKids, o._description, o._unsafePath,
@@ -1456,8 +1471,12 @@ function appendSectionHeader(aP, aText)
 
 function onLoadAboutCompartments()
 {
-  // Minimize memory usage before generating the page in an attempt to collect
-  // any dead compartments.
+  // First generate the page, then minimize memory usage to collect any dead
+  // compartments, then update the page.  The first generation step may sound
+  // unnecessary, but it avoids a short delay in showing content when the page
+  // is loaded, which makes test_aboutcompartments.xul more reliable (see bug
+  // 729018 for details).
+  updateAboutCompartments();
   minimizeMemoryUsage3x(
     function() { addChildObserversAndUpdate(updateAboutCompartments); });
 }
@@ -1498,12 +1517,6 @@ function updateAboutCompartments()
     let a = appendElementWithText(div1, "a", "option", "More verbose");
     a.href = "about:compartments?verbose";
   }
-
-  // Dispatch a "bodygenerated" event to indicate that the DOM has finished
-  // generating.  This is used by tests.
-  let e = document.createEvent("Event");
-  e.initEvent("bodygenerated", false, false);
-  document.dispatchEvent(e);
 }
 
 //---------------------------------------------------------------------------

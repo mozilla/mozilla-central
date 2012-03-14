@@ -118,8 +118,8 @@ GetGCObjectFixedSlotsKind(size_t numFixedSlots)
 static inline bool
 IsBackgroundAllocKind(AllocKind kind)
 {
-    JS_ASSERT(kind <= FINALIZE_OBJECT_LAST);
-    return kind % 2 == 1;
+    JS_ASSERT(kind <= FINALIZE_LAST);
+    return kind <= FINALIZE_OBJECT_LAST && kind % 2 == 1;
 }
 
 static inline AllocKind
@@ -349,13 +349,17 @@ class CellIter : public CellIterImpl
     size_t *counter;
 #endif
   public:
-    CellIter(JSContext *cx, JSCompartment *comp, AllocKind kind)
+    CellIter(JSCompartment *comp, AllocKind kind)
       : lists(&comp->arenas),
         kind(kind)
     {
-#ifdef JS_THREADSAFE
-        JS_ASSERT(comp->arenas.doneBackgroundFinalize(kind));
-#endif
+        /*
+         * We have a single-threaded runtime, so there's no need to protect
+         * against other threads iterating or allocating. However, we do have
+         * background finalization; make sure people aren't using CellIter to
+         * walk such allocation kinds.
+         */
+        JS_ASSERT(!IsBackgroundAllocKind(kind));
         if (lists->isSynchronizedFreeList(kind)) {
             lists = NULL;
         } else {
@@ -363,7 +367,7 @@ class CellIter : public CellIterImpl
             lists->copyFreeListToArena(kind);
         }
 #ifdef DEBUG
-        counter = &cx->runtime->noGCOrAllocationCheck;
+        counter = &comp->rt->noGCOrAllocationCheck;
         ++*counter;
 #endif
         init(comp, kind);
@@ -402,6 +406,9 @@ NewGCThing(JSContext *cx, js::gc::AllocKind kind, size_t thingSize)
 #endif
     JS_ASSERT(!cx->runtime->gcRunning);
     JS_ASSERT(!cx->runtime->noGCOrAllocationCheck);
+
+    /* For testing out of memory conditions */
+    JS_OOM_POSSIBLY_FAIL();
 
 #ifdef JS_GC_ZEAL
     if (cx->runtime->needZealousGC())

@@ -59,8 +59,6 @@
 #include "nsIHttpChannel.h"
 #include "nsIURI.h"
 #include "nsIServiceManager.h"
-#include "nsICharsetAlias.h"
-#include "nsICharsetAlias.h"
 #include "nsNetUtil.h"
 #include "nsDOMError.h"
 #include "nsIScriptSecurityManager.h"
@@ -595,6 +593,12 @@ nsXMLDocument::EndLoad()
   }    
 }
  
+/* virtual */ void
+nsXMLDocument::DocSizeOfExcludingThis(nsWindowSizes* aWindowSizes) const
+{
+  nsDocument::DocSizeOfExcludingThis(aWindowSizes);
+}
+
 // nsIDOMDocument interface
 
 nsresult

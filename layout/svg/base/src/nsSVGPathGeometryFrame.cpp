@@ -108,7 +108,7 @@ nsSVGPathGeometryFrame::GetType() const
 // nsISVGChildFrame methods
 
 NS_IMETHODIMP
-nsSVGPathGeometryFrame::PaintSVG(nsSVGRenderState *aContext,
+nsSVGPathGeometryFrame::PaintSVG(nsRenderingContext *aContext,
                                  const nsIntRect *aDirtyRect)
 {
   if (!GetStyleVisibility()->IsVisible())
@@ -247,7 +247,14 @@ nsSVGPathGeometryFrame::InitialUpdate()
 void
 nsSVGPathGeometryFrame::NotifySVGChanged(PRUint32 aFlags)
 {
-  if (!(aFlags & SUPPRESS_INVALIDATION)) {
+  NS_ABORT_IF_FALSE(!(aFlags & DO_NOT_NOTIFY_RENDERING_OBSERVERS) ||
+                    (GetStateBits() & NS_STATE_SVG_NONDISPLAY_CHILD),
+                    "Must be NS_STATE_SVG_NONDISPLAY_CHILD!");
+
+  NS_ABORT_IF_FALSE(aFlags & (TRANSFORM_CHANGED | COORD_CONTEXT_CHANGED),
+                    "Invalidation logic may need adjusting");
+
+  if (!(aFlags & DO_NOT_NOTIFY_RENDERING_OBSERVERS)) {
     nsSVGUtils::UpdateGraphic(this);
   }
 }
@@ -437,11 +444,11 @@ nsSVGPathGeometryFrame::MarkerProperties::GetMarkerEndFrame()
 }
 
 void
-nsSVGPathGeometryFrame::Render(nsSVGRenderState *aContext)
+nsSVGPathGeometryFrame::Render(nsRenderingContext *aContext)
 {
-  gfxContext *gfx = aContext->GetGfxContext();
+  gfxContext *gfx = aContext->ThebesContext();
 
-  PRUint16 renderMode = aContext->GetRenderMode();
+  PRUint16 renderMode = SVGAutoRenderState::GetRenderMode(aContext);
 
   switch (GetStyleSVG()->mShapeRendering) {
   case NS_STYLE_SHAPE_RENDERING_OPTIMIZESPEED:
@@ -458,7 +465,7 @@ nsSVGPathGeometryFrame::Render(nsSVGRenderState *aContext)
 
   GeneratePath(gfx);
 
-  if (renderMode != nsSVGRenderState::NORMAL) {
+  if (renderMode != SVGAutoRenderState::NORMAL) {
     gfx->Restore();
 
     if (GetClipRule() == NS_STYLE_FILL_RULE_EVENODD)
@@ -466,7 +473,7 @@ nsSVGPathGeometryFrame::Render(nsSVGRenderState *aContext)
     else
       gfx->SetFillRule(gfxContext::FILL_RULE_WINDING);
 
-    if (renderMode == nsSVGRenderState::CLIP_MASK) {
+    if (renderMode == SVGAutoRenderState::CLIP_MASK) {
       gfx->SetColor(gfxRGBA(1.0f, 1.0f, 1.0f, 1.0f));
       gfx->Fill();
       gfx->NewPath();

@@ -71,8 +71,7 @@ PathBuilderCG::BezierTo(const Point &aCP1,
 
   if (CGPathIsEmpty(mCGPath))
     MoveTo(aCP1);
-  else
-    CGPathAddCurveToPoint(mCGPath, NULL,
+  CGPathAddCurveToPoint(mCGPath, NULL,
                           aCP1.x, aCP1.y,
                           aCP2.x, aCP2.y,
                           aCP3.x, aCP3.y);
@@ -85,8 +84,7 @@ PathBuilderCG::QuadraticBezierTo(const Point &aCP1,
 {
   if (CGPathIsEmpty(mCGPath))
     MoveTo(aCP1);
-  else
-    CGPathAddQuadCurveToPoint(mCGPath, NULL,
+  CGPathAddQuadCurveToPoint(mCGPath, NULL,
                               aCP1.x, aCP1.y,
                               aCP2.x, aCP2.y);
 }
@@ -162,16 +160,16 @@ PathCG::TransformedCopyToBuilder(const Matrix &aTransform, FillRule aFillRule) c
           }
         case kCGPathElementAddQuadCurveToPoint:
           {
-            CGPoint pt  = element->points[0];
-            CGPoint cpt = element->points[1];
+            CGPoint cpt = element->points[0];
+            CGPoint pt  = element->points[1];
             CGPathAddQuadCurveToPoint(info->path, &info->transform, cpt.x, cpt.y, pt.x, pt.y);
             break;
           }
         case kCGPathElementAddCurveToPoint:
           {
-            CGPoint pt   = element->points[0];
-            CGPoint cpt1 = element->points[1];
-            CGPoint cpt2 = element->points[2];
+            CGPoint cpt1 = element->points[0];
+            CGPoint cpt2 = element->points[1];
+            CGPoint pt   = element->points[2];
             CGPathAddCurveToPoint(info->path, &info->transform, cpt1.x, cpt1.y, cpt2.x, cpt2.y, pt.x, pt.y);
             break;
           }

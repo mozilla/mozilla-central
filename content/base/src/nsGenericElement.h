@@ -65,6 +65,7 @@
 #include "nsDOMClassInfoID.h" // DOMCI_DATA
 #include "nsIDOMTouchEvent.h"
 #include "nsIInlineEventHandlers.h"
+#include "mozilla/CORSMode.h"
 
 #include "nsISMILAttr.h"
 
@@ -82,6 +83,7 @@ class nsIScrollableFrame;
 class nsAttrValueOrString;
 class nsContentList;
 class nsDOMTokenList;
+class ContentUnbinder;
 struct nsRect;
 
 typedef PRUptrdiff PtrBits;
@@ -246,7 +248,7 @@ public:
 
   NS_DECL_CYCLE_COLLECTING_ISUPPORTS
 
-  NS_DECL_DOM_MEMORY_REPORTER_SIZEOF
+  NS_DECL_SIZEOF_EXCLUDING_THIS
 
   /**
    * Called during QueryInterface to give the binding manager a chance to
@@ -437,8 +439,12 @@ public:
   // nsIDOMElement method implementation
   NS_DECL_NSIDOMELEMENT
 
-  nsresult CloneNode(bool aDeep, nsIDOMNode **aResult)
+  nsresult CloneNode(bool aDeep, PRUint8 aOptionalArgc, nsIDOMNode **aResult)
   {
+    if (!aOptionalArgc) {
+      aDeep = true;
+    }
+    
     return nsNodeUtils::CloneNodeImpl(this, aDeep, true, aResult);
   }
 
@@ -592,7 +598,7 @@ public:
   nsIContent* GetLastElementChild();
   nsIContent* GetPreviousElementSibling();
   nsIContent* GetNextElementSibling();
-  nsIDOMDOMTokenList* GetClassList(nsresult *aResult);
+  nsDOMTokenList* GetClassList(nsresult *aResult);
   bool MozMatchesSelector(const nsAString& aSelector, nsresult* aResult);
 
   /**
@@ -635,6 +641,25 @@ public:
                            void *aData);
   static void MarkUserDataHandler(void* aObject, nsIAtom* aKey, void* aChild,
                                   void* aData);
+
+  /**
+   * Parse a string into an nsAttrValue for a CORS attribute.  This
+   * never fails.  The resulting value is an enumerated value whose
+   * GetEnumValue() returns one of the above constants.
+   */
+  static void ParseCORSValue(const nsAString& aValue, nsAttrValue& aResult);
+
+  /**
+   * Return the CORS mode for a given string
+   */
+  static mozilla::CORSMode StringToCORSMode(const nsAString& aValue);
+  
+  /**
+   * Return the CORS mode for a given nsAttrValue (which may be null,
+   * but if not should have been parsed via ParseCORSValue).
+   */
+  static mozilla::CORSMode AttrValueToCORSMode(const nsAttrValue* aValue);
+
 protected:
   /*
    * Named-bools for use with SetAttrAndNotify to make call sites easier to
@@ -789,6 +814,10 @@ protected:
   {
     return this;
   }
+
+  nsresult GetAttributeNodeNSInternal(const nsAString& aNamespaceURI,
+                                      const nsAString& aLocalName,
+                                      nsIDOMAttr** aReturn);
 
 public:
   // Because of a bug in MS C++ compiler nsDOMSlots must be declared public,
@@ -948,6 +977,7 @@ protected:
    */
   virtual void GetLinkTarget(nsAString& aTarget);
 
+  friend class ContentUnbinder;
   /**
    * Array containing all attributes and children for this element
    */

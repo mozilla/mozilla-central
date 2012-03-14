@@ -83,7 +83,7 @@
 #define SAMPLER_H
 
 // Redefine the macros for platforms where SPS is supported.
-#if defined(ANDROID) || defined(__linux__) || defined(XP_MACOSX) || defined(XP_WIN)
+#ifdef MOZ_ENABLE_PROFILER_SPS
 
 #include "sps_sampler.h"
 
@@ -99,6 +99,7 @@
 #define SAMPLER_SAVE()
 // Returned string must be free'ed
 #define SAMPLER_GET_PROFILE() NULL
+#define SAMPLER_GET_PROFILE_DATA(ctx) NULL
 #define SAMPLER_RESPONSIVENESS(time) NULL
 #define SAMPLER_GET_RESPONSIVENESS() NULL
 #define SAMPLER_GET_FEATURES() NULL

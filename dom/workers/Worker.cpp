@@ -48,7 +48,7 @@
 #include "WorkerInlines.h"
 
 #define PROPERTY_FLAGS \
-  JSPROP_ENUMERATE | JSPROP_SHARED
+  (JSPROP_ENUMERATE | JSPROP_SHARED)
 
 #define FUNCTION_FLAGS \
   JSPROP_ENUMERATE
@@ -139,7 +139,7 @@ public:
 
 protected:
   static JSBool
-  ConstructInternal(JSContext* aCx, uintN aArgc, jsval* aVp,
+  ConstructInternal(JSContext* aCx, unsigned aArgc, jsval* aVp,
                     bool aIsChromeWorker)
   {
     if (!aArgc) {
@@ -233,7 +233,7 @@ private:
   }
 
   static JSBool
-  Construct(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Construct(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     return ConstructInternal(aCx, aArgc, aVp, false);
   }
@@ -259,7 +259,7 @@ private:
   }
 
   static JSBool
-  Terminate(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Terminate(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -276,7 +276,7 @@ private:
   }
 
   static JSBool
-  PostMessage(JSContext* aCx, uintN aArgc, jsval* aVp)
+  PostMessage(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -302,8 +302,8 @@ JSClass Worker::sClass = {
   "Worker",
   JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS,
   JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-  JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Finalize, NULL, NULL, NULL,
-  NULL, NULL, NULL, Trace, NULL
+  JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Finalize,
+  NULL, NULL, NULL, NULL, Trace,
 };
 
 JSPropertySpec Worker::sProperties[] = {
@@ -387,7 +387,7 @@ private:
   }
 
   static JSBool
-  Construct(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Construct(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     return ConstructInternal(aCx, aArgc, aVp, true);
   }
@@ -417,8 +417,8 @@ JSClass ChromeWorker::sClass = {
   "ChromeWorker",
   JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS,
   JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-  JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Finalize, NULL, NULL, NULL,
-  NULL, NULL, NULL, Trace, NULL
+  JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Finalize,
+  NULL, NULL, NULL, NULL, Trace
 };
 
 WorkerPrivate*

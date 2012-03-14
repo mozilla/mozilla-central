@@ -96,16 +96,27 @@ public abstract class AndroidBrowserRepositorySession extends StoreTrackingRepos
   }
 
   /**
-   * Override this.
+   * Retrieve a record from a cursor. Act as if we don't know the final contents of
+   * the record: for example, a folder's child array might change.
+   *
    * Return null if this record should not be processed.
    *
-   * @param cur
-   * @return
    * @throws NoGuidForIdException
    * @throws NullCursorException
    * @throws ParentNotFoundException
    */
-  protected abstract Record recordFromMirrorCursor(Cursor cur) throws NoGuidForIdException, NullCursorException, ParentNotFoundException;
+  protected abstract Record retrieveDuringStore(Cursor cur) throws NoGuidForIdException, NullCursorException, ParentNotFoundException;
+
+  /**
+   * Retrieve a record from a cursor. Ensure that the contents of the database are
+   * updated to match the record that we're constructing: for example, the children
+   * of a folder might be repositioned as we generate the folder's record.
+   *
+   * @throws NoGuidForIdException
+   * @throws NullCursorException
+   * @throws ParentNotFoundException
+   */
+  protected abstract Record retrieveDuringFetch(Cursor cur) throws NoGuidForIdException, NullCursorException, ParentNotFoundException;
 
   // Must be overriden by AndroidBookmarkRepositorySession.
   protected boolean checkRecordType(Record record) {
@@ -126,14 +137,9 @@ public abstract class AndroidBrowserRepositorySession extends StoreTrackingRepos
   }
 
   @Override
-  public void begin(RepositorySessionBeginDelegate delegate) {
+  public void begin(RepositorySessionBeginDelegate delegate) throws InvalidSessionTransitionException {
     RepositorySessionBeginDelegate deferredDelegate = delegate.deferredBeginDelegate(delegateQueue);
-    try {
-      super.sharedBegin();
-    } catch (InvalidSessionTransitionException e) {
-      deferredDelegate.onBeginFailed(e);
-      return;
-    }
+    super.sharedBegin();
 
     try {
       // We do this check here even though it results in one extra call to the DB
@@ -226,9 +232,9 @@ public abstract class AndroidBrowserRepositorySession extends StoreTrackingRepos
 
   @Override
   public void fetch(String[] guids,
-                    RepositorySessionFetchRecordsDelegate delegate) {
+                    RepositorySessionFetchRecordsDelegate delegate) throws InactiveSessionException {
     FetchRunnable command = new FetchRunnable(guids, now(), null, delegate);
-    delegateQueue.execute(command);
+    executeDelegateCommand(command);
   }
 
   abstract class FetchingRunnable implements Runnable {
@@ -247,7 +253,7 @@ public abstract class AndroidBrowserRepositorySession extends StoreTrackingRepos
             return;
           }
           while (!cursor.isAfterLast()) {
-            Record r = recordFromMirrorCursor(cursor);
+            Record r = retrieveDuringFetch(cursor);
             if (r != null) {
               if (filter == null || !filter.excludeRecord(r)) {
                 Logger.trace(LOG_TAG, "Processing record " + r.guid);
@@ -274,7 +280,7 @@ public abstract class AndroidBrowserRepositorySession extends StoreTrackingRepos
     }
   }
 
-  class FetchRunnable extends FetchingRunnable {
+  public class FetchRunnable extends FetchingRunnable {
     private String[] guids;
     private long     end;
     private RecordFilter filter;
@@ -377,6 +383,7 @@ public abstract class AndroidBrowserRepositorySession extends StoreTrackingRepos
       @Override
       public void run() {
         if (!isActive()) {
+          Logger.warn(LOG_TAG, "AndroidBrowserRepositorySession is inactive. Store failing.");
           delegate.onRecordStoreFailed(new InactiveSessionException(null));
           return;
         }
@@ -408,7 +415,7 @@ public abstract class AndroidBrowserRepositorySession extends StoreTrackingRepos
         Record existingRecord;
         try {
           // GUID matching only: deleted records don't have a payload with which to search.
-          existingRecord = recordForGUID(record.guid);
+          existingRecord = retrieveByGUIDDuringStore(record.guid);
           if (record.deleted) {
             if (existingRecord == null) {
               // We're done. Don't bother with a callback. That can change later
@@ -540,7 +547,16 @@ public abstract class AndroidBrowserRepositorySession extends StoreTrackingRepos
     return toStore;
   }
 
-  protected Record recordForGUID(String guid) throws
+  /**
+   * Retrieve a record from the store by GUID, without writing unnecessarily to the
+   * database.
+   *
+   * @throws NoGuidForIdException
+   * @throws NullCursorException
+   * @throws ParentNotFoundException
+   * @throws MultipleRecordsForGuidException
+   */
+  protected Record retrieveByGUIDDuringStore(String guid) throws
                                              NoGuidForIdException,
                                              NullCursorException,
                                              ParentNotFoundException,
@@ -551,7 +567,7 @@ public abstract class AndroidBrowserRepositorySession extends StoreTrackingRepos
         return null;
       }
 
-      Record r = recordFromMirrorCursor(cursor);
+      Record r = retrieveDuringStore(cursor);
 
       cursor.moveToNext();
       if (cursor.isAfterLast()) {
@@ -588,7 +604,7 @@ public abstract class AndroidBrowserRepositorySession extends StoreTrackingRepos
     String guid = getRecordToGuidMap().get(recordString);
     if (guid != null) {
       Logger.debug(LOG_TAG, "Found one. Returning computed record.");
-      return recordForGUID(guid);
+      return retrieveByGUIDDuringStore(guid);
     }
     Logger.debug(LOG_TAG, "findExistingRecord failed to find one for " + record.guid);
     return null;
@@ -604,13 +620,17 @@ public abstract class AndroidBrowserRepositorySession extends StoreTrackingRepos
   private void createRecordToGuidMap() throws NoGuidForIdException, NullCursorException, ParentNotFoundException {
     Logger.info(LOG_TAG, "BEGIN: creating record -> GUID map.");
     recordToGuid = new HashMap<String, String>();
+
+    // TODO: we should be able to do this entire thing with string concatenations within SQL.
+    // Also consider whether it's better to fetch and process every record in the DB into
+    // memory, or run a query per record to do the same thing.
     Cursor cur = dbHelper.fetchAll();
     try {
       if (!cur.moveToFirst()) {
         return;
       }
       while (!cur.isAfterLast()) {
-        Record record = recordFromMirrorCursor(cur);
+        Record record = retrieveDuringStore(cur);
         if (record != null) {
           recordToGuid.put(buildRecordString(record), record.guid);
         }

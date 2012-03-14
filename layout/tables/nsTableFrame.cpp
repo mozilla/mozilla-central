@@ -58,7 +58,6 @@
 
 #include "nsPresContext.h"
 #include "nsCSSRendering.h"
-#include "nsStyleConsts.h"
 #include "nsGkAtoms.h"
 #include "nsCSSAnonBoxes.h"
 #include "nsIPresShell.h"
@@ -66,7 +65,6 @@
 #include "nsIDOMHTMLElement.h"
 #include "nsIDOMHTMLBodyElement.h"
 #include "nsFrameManager.h"
-#include "nsCSSRendering.h"
 #include "nsLayoutErrors.h"
 #include "nsAutoPtr.h"
 #include "nsCSSFrameConstructor.h"
@@ -1047,7 +1045,7 @@ nsTableFrame::InsertRowGroups(const nsFrameList::Slice& aRowGroups)
 /////////////////////////////////////////////////////////////////////////////
 // Child frame enumeration
 
-nsFrameList
+const nsFrameList&
 nsTableFrame::GetChildList(ChildListID aListID) const
 {
   if (aListID == kColGroupList) {

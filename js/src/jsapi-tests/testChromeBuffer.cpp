@@ -1,17 +1,8 @@
 #include "tests.h"
 
-static void
-Destroy(JSContext *cx, JSPrincipals *prin);
-
 JSPrincipals system_principals = {
-    (char *)"", 1, Destroy, NULL
+    1
 };
-
-static void
-Destroy(JSContext *cx, JSPrincipals *prin)
-{
-    JS_ASSERT(prin == &system_principals);
-}
 
 JSClass global_class = {
     "global",
@@ -30,7 +21,7 @@ JSClass global_class = {
 JS::Anchor<JSObject *> trusted_glob, trusted_fun;
 
 JSBool
-CallTrusted(JSContext *cx, uintN argc, jsval *vp)
+CallTrusted(JSContext *cx, unsigned argc, jsval *vp)
 {
     if (!JS_SaveFrameChain(cx))
         return JS_FALSE;

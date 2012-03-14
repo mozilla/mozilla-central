@@ -45,9 +45,11 @@
 
 interface nsIDOMMozSmsFilter;
 
-[scriptable, function, uuid(3ddf7dc3-626c-47ee-8b41-3f55d5af49c9)]
+[scriptable, uuid(74d6ff05-818a-4179-a745-6258e1c3cd08)]
 interface nsISmsDatabaseService : nsISupports
 {
+  // Takes some information required to save the message and returns its id.
+  long saveReceivedMessage(in DOMString aSender, in DOMString aBody, in unsigned long long aDate);
   // Takes some information required to save the message and returns its id.
   long saveSentMessage(in DOMString aReceiver, in DOMString aBody, in unsigned long long aDate);
 
@@ -55,6 +57,6 @@ interface nsISmsDatabaseService : nsISupports
   void deleteMessage(in long messageId, in long requestId, [optional] in unsigned long long processId);
 
   void createMessageList(in nsIDOMMozSmsFilter filter, in boolean reverse, in long requestId, [optional] in unsigned long long processId);
-  void getNextMessageInList(in long listId, in long requestId, in unsigned long long processId);
+  void getNextMessageInList(in long listId, in long requestId, [optional] in unsigned long long processId);
   void clearMessageList(in long listId);
 };

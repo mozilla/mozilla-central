@@ -8,7 +8,7 @@ const size_t N = 1000;
 static jsval argv[N];
 
 static JSBool
-constructHook(JSContext *cx, uintN argc, jsval *vp)
+constructHook(JSContext *cx, unsigned argc, jsval *vp)
 {
     // Check that arguments were passed properly from JS_New.
     JSObject *callee = JSVAL_TO_OBJECT(JS_CALLEE(cx, vp));
@@ -55,7 +55,7 @@ BEGIN_TEST(testNewObject_1)
     CHECK(obj);
     jsvalRoot rt(cx, OBJECT_TO_JSVAL(obj));
     CHECK(JS_IsArrayObject(cx, obj));
-    jsuint len;
+    uint32_t len;
     CHECK(JS_GetArrayLength(cx, obj, &len));
     CHECK_EQUAL(len, 0);
 
@@ -86,7 +86,7 @@ BEGIN_TEST(testNewObject_1)
         0,
         JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
         JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-        NULL, NULL, NULL, constructHook, NULL, NULL, NULL, NULL
+        NULL, NULL, constructHook
     };
     JSObject *ctor = JS_NewObject(cx, &cls, NULL, NULL);
     CHECK(ctor);

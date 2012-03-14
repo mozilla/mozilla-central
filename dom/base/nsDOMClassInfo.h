@@ -61,7 +61,6 @@ class DOMSVGTransformList;
 class nsGlobalWindow;
 class nsIDOMDocument;
 class nsIDOMHTMLOptionsCollection;
-class nsIDOMNodeList;
 class nsIDOMSVGLength;
 class nsIDOMSVGLengthList;
 class nsIDOMSVGNumber;
@@ -425,7 +424,7 @@ public:
                          JSObject * obj, JSObject * *_retval);
 
   static JSBool GlobalScopePolluterNewResolve(JSContext *cx, JSObject *obj,
-                                              jsid id, uintN flags,
+                                              jsid id, unsigned flags,
                                               JSObject **objp);
   static JSBool GlobalScopePolluterGetProperty(JSContext *cx, JSObject *obj,
                                                jsid id, jsval *vp);
@@ -624,31 +623,6 @@ private:
 };
 
 
-// NodeList scriptable helper
- 
-class nsNodeListSH : public nsArraySH
-{
-protected:
-  nsNodeListSH(nsDOMClassInfoData* aData) : nsArraySH(aData)
-  {
-  }
-
-public:
-  NS_IMETHOD PreCreate(nsISupports *nativeObj, JSContext *cx,
-                       JSObject *globalObj, JSObject **parentObj);
-
-  virtual nsresult GetLength(nsIXPConnectWrappedNative *wrapper, JSContext *cx,
-                             JSObject *obj, PRUint32 *length);
-  virtual nsISupports* GetItemAt(nsISupports *aNative, PRUint32 aIndex,
-                                 nsWrapperCache **aCache, nsresult *aResult);
- 
-  static nsIClassInfo *doCreate(nsDOMClassInfoData* aData)
-  {
-    return new nsNodeListSH(aData);
-  }
-};
-
-
 // NamedArray helper
 
 class nsNamedArraySH : public nsArraySH
@@ -707,70 +681,6 @@ public:
   static nsIClassInfo *doCreate(nsDOMClassInfoData* aData)
   {
     return new nsNamedNodeMapSH(aData);
-  }
-};
-
-
-// HTMLCollection helper
-
-class nsHTMLCollectionSH : public nsNamedArraySH
-{
-protected:
-  nsHTMLCollectionSH(nsDOMClassInfoData* aData) : nsNamedArraySH(aData)
-  {
-  }
-
-  virtual ~nsHTMLCollectionSH()
-  {
-  }
-
-  virtual nsresult GetLength(nsIXPConnectWrappedNative *wrapper, JSContext *cx,
-                             JSObject *obj, PRUint32 *length);
-  virtual nsISupports* GetItemAt(nsISupports *aNative, PRUint32 aIndex,
-                                 nsWrapperCache **aCache, nsresult *aResult);
-
-  // Override nsNamedArraySH::GetNamedItem()
-  virtual nsISupports* GetNamedItem(nsISupports *aNative,
-                                    const nsAString& aName,
-                                    nsWrapperCache **cache,
-                                    nsresult *aResult);
-
-public:
-  NS_IMETHOD PreCreate(nsISupports *nativeObj, JSContext *cx,
-                       JSObject *globalObj, JSObject **parentObj);
-
-  static nsIClassInfo *doCreate(nsDOMClassInfoData* aData)
-  {
-    return new nsHTMLCollectionSH(aData);
-  }
-};
-
-
-// ContentList helper
-
-class nsContentListSH : public nsNamedArraySH
-{
-protected:
-  nsContentListSH(nsDOMClassInfoData* aData) : nsNamedArraySH(aData)
-  {
-  }
-
-public:
-  NS_IMETHOD PreCreate(nsISupports *nativeObj, JSContext *cx,
-                       JSObject *globalObj, JSObject **parentObj);
-
-  virtual nsresult GetLength(nsIXPConnectWrappedNative *wrapper, JSContext *cx,
-                             JSObject *obj, PRUint32 *length);
-  virtual nsISupports* GetItemAt(nsISupports *aNative, PRUint32 aIndex,
-                                 nsWrapperCache **aCache, nsresult *aResult);
-  virtual nsISupports* GetNamedItem(nsISupports *aNative,
-                                    const nsAString& aName,
-                                    nsWrapperCache **cache,
-                                    nsresult *aResult);
-
-  static nsIClassInfo *doCreate(nsDOMClassInfoData* aData)
-  {
-    return new nsContentListSH(aData);
   }
 };
 
@@ -863,16 +773,16 @@ public:
   static JSBool DocumentAllGetProperty(JSContext *cx, JSObject *obj, jsid id,
                                        jsval *vp);
   static JSBool DocumentAllNewResolve(JSContext *cx, JSObject *obj, jsid id,
-                                      uintN flags, JSObject **objp);
+                                      unsigned flags, JSObject **objp);
   static void ReleaseDocument(JSContext *cx, JSObject *obj);
-  static JSBool CallToGetPropMapper(JSContext *cx, uintN argc, jsval *vp);
+  static JSBool CallToGetPropMapper(JSContext *cx, unsigned argc, jsval *vp);
   static JSBool DocumentAllHelperGetProperty(JSContext *cx, JSObject *obj,
                                              jsid id, jsval *vp);
   static JSBool DocumentAllHelperNewResolve(JSContext *cx, JSObject *obj,
-                                            jsid id, uintN flags,
+                                            jsid id, unsigned flags,
                                             JSObject **objp);
   static JSBool DocumentAllTagsNewResolve(JSContext *cx, JSObject *obj,
-                                          jsid id, uintN flags,
+                                          jsid id, unsigned flags,
                                           JSObject **objp);
 
   NS_IMETHOD NewResolve(nsIXPConnectWrappedNative *wrapper, JSContext *cx,
@@ -1003,31 +913,6 @@ public:
   static nsIClassInfo *doCreate(nsDOMClassInfoData* aData)
   {
     return new nsHTMLPluginObjElementSH(aData);
-  }
-};
-
-
-// HTMLOptionsCollection helper
-
-class nsHTMLOptionsCollectionSH : public nsHTMLCollectionSH
-{
-protected:
-  nsHTMLOptionsCollectionSH(nsDOMClassInfoData* aData)
-    : nsHTMLCollectionSH(aData)
-  {
-  }
-
-  virtual ~nsHTMLOptionsCollectionSH()
-  {
-  }
-
-public:
-  NS_IMETHOD SetProperty(nsIXPConnectWrappedNative *wrapper, JSContext *cx,
-                         JSObject *obj, jsid id, jsval *vp, bool *_retval);
-  
-  static nsIClassInfo *doCreate(nsDOMClassInfoData* aData)
-  {
-    return new nsHTMLOptionsCollectionSH(aData);
   }
 };
 

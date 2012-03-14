@@ -129,10 +129,11 @@ function addNewTabPageTab() {
     cw = browser.contentWindow;
 
     if (NewTabUtils.allPages.enabled) {
-      cells = cw.gGrid.cells;
-
       // Continue when the link cache has been populated.
-      NewTabUtils.links.populateCache(TestRunner.next);
+      NewTabUtils.links.populateCache(function () {
+        cells = cw.gGrid.cells;
+        executeSoon(TestRunner.next);
+      });
     } else {
       TestRunner.next();
     }
@@ -187,7 +188,7 @@ function checkGrid(aSitesPattern, aSites) {
 
     let shouldBePinned = /p$/.test(id);
     let cellContainsPinned = site.isPinned();
-    let cssClassPinned = site.node && site.node.hasAttribute("pinned");
+    let cssClassPinned = site.node && site.node.querySelector(".newtab-control-pin").hasAttribute("pinned");
 
     // Check if the site should be and is pinned.
     if (shouldBePinned) {
@@ -246,6 +247,8 @@ function unpinCell(aCell) {
  */
 function simulateDrop(aDropTarget, aDragSource) {
   let event = {
+    clientX: 0,
+    clientY: 0,
     dataTransfer: {
       mozUserCancelled: false,
       setData: function () null,
@@ -261,4 +264,21 @@ function simulateDrop(aDropTarget, aDragSource) {
 
   if (aDragSource)
     cw.gDrag.end(aDragSource.site);
+}
+
+/**
+ * Resumes testing when all pages have been updated.
+ */
+function whenPagesUpdated() {
+  let page = {
+    update: function () {
+      NewTabUtils.allPages.unregister(this);
+      executeSoon(TestRunner.next);
+    }
+  };
+
+  NewTabUtils.allPages.register(page);
+  registerCleanupFunction(function () {
+    NewTabUtils.allPages.unregister(page);
+  });
 }

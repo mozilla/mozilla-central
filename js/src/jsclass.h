@@ -190,16 +190,16 @@ typedef JSBool
                     JSProperty **propp);
 typedef JSBool
 (* DefineGenericOp)(JSContext *cx, JSObject *obj, jsid id, const Value *value,
-                    PropertyOp getter, StrictPropertyOp setter, uintN attrs);
+                    PropertyOp getter, StrictPropertyOp setter, unsigned attrs);
 typedef JSBool
 (* DefinePropOp)(JSContext *cx, JSObject *obj, PropertyName *name, const Value *value,
-                 PropertyOp getter, StrictPropertyOp setter, uintN attrs);
+                 PropertyOp getter, StrictPropertyOp setter, unsigned attrs);
 typedef JSBool
 (* DefineElementOp)(JSContext *cx, JSObject *obj, uint32_t index, const Value *value,
-                    PropertyOp getter, StrictPropertyOp setter, uintN attrs);
+                    PropertyOp getter, StrictPropertyOp setter, unsigned attrs);
 typedef JSBool
 (* DefineSpecialOp)(JSContext *cx, JSObject *obj, SpecialId sid, const Value *value,
-                    PropertyOp getter, StrictPropertyOp setter, uintN attrs);
+                    PropertyOp getter, StrictPropertyOp setter, unsigned attrs);
 typedef JSBool
 (* GenericIdOp)(JSContext *cx, JSObject *obj, JSObject *receiver, jsid id, Value *vp);
 typedef JSBool
@@ -219,13 +219,13 @@ typedef JSBool
 typedef JSBool
 (* StrictSpecialIdOp)(JSContext *cx, JSObject *obj, SpecialId sid, Value *vp, JSBool strict);
 typedef JSBool
-(* GenericAttributesOp)(JSContext *cx, JSObject *obj, jsid id, uintN *attrsp);
+(* GenericAttributesOp)(JSContext *cx, JSObject *obj, jsid id, unsigned *attrsp);
 typedef JSBool
-(* PropertyAttributesOp)(JSContext *cx, JSObject *obj, PropertyName *name, uintN *attrsp);
+(* PropertyAttributesOp)(JSContext *cx, JSObject *obj, PropertyName *name, unsigned *attrsp);
 typedef JSBool
-(* ElementAttributesOp)(JSContext *cx, JSObject *obj, uint32_t index, uintN *attrsp);
+(* ElementAttributesOp)(JSContext *cx, JSObject *obj, uint32_t index, unsigned *attrsp);
 typedef JSBool
-(* SpecialAttributesOp)(JSContext *cx, JSObject *obj, SpecialId sid, uintN *attrsp);
+(* SpecialAttributesOp)(JSContext *cx, JSObject *obj, SpecialId sid, unsigned *attrsp);
 typedef JSBool
 (* DeletePropertyOp)(JSContext *cx, JSObject *obj, PropertyName *name, Value *vp, JSBool strict);
 typedef JSBool
@@ -265,11 +265,9 @@ typedef void
     JSFinalizeOp        finalize;                                             \
                                                                               \
     /* Optionally non-null members start here. */                             \
-    JSClassInternal     reserved0;                                            \
     JSCheckAccessOp     checkAccess;                                          \
     JSNative            call;                                                 \
     JSNative            construct;                                            \
-    JSXDRObjectOp       xdrObject;                                            \
     JSHasInstanceOp     hasInstance;                                          \
     JSTraceOp           trace
 
@@ -372,11 +370,9 @@ JS_STATIC_ASSERT(offsetof(JSClass, enumerate) == offsetof(Class, enumerate));
 JS_STATIC_ASSERT(offsetof(JSClass, resolve) == offsetof(Class, resolve));
 JS_STATIC_ASSERT(offsetof(JSClass, convert) == offsetof(Class, convert));
 JS_STATIC_ASSERT(offsetof(JSClass, finalize) == offsetof(Class, finalize));
-JS_STATIC_ASSERT(offsetof(JSClass, reserved0) == offsetof(Class, reserved0));
 JS_STATIC_ASSERT(offsetof(JSClass, checkAccess) == offsetof(Class, checkAccess));
 JS_STATIC_ASSERT(offsetof(JSClass, call) == offsetof(Class, call));
 JS_STATIC_ASSERT(offsetof(JSClass, construct) == offsetof(Class, construct));
-JS_STATIC_ASSERT(offsetof(JSClass, xdrObject) == offsetof(Class, xdrObject));
 JS_STATIC_ASSERT(offsetof(JSClass, hasInstance) == offsetof(Class, hasInstance));
 JS_STATIC_ASSERT(offsetof(JSClass, trace) == offsetof(Class, trace));
 JS_STATIC_ASSERT(sizeof(JSClass) == sizeof(Class));

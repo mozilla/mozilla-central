@@ -56,7 +56,7 @@ NS_NewSVGClipPathFrame(nsIPresShell* aPresShell, nsStyleContext* aContext)
 NS_IMPL_FRAMEARENA_HELPERS(nsSVGClipPathFrame)
 
 nsresult
-nsSVGClipPathFrame::ClipPaint(nsSVGRenderState* aContext,
+nsSVGClipPathFrame::ClipPaint(nsRenderingContext* aContext,
                               nsIFrame* aParent,
                               const gfxMatrix &aMatrix)
 {
@@ -78,12 +78,11 @@ nsSVGClipPathFrame::ClipPaint(nsSVGRenderState* aContext,
 
   bool isTrivial = IsTrivial();
 
-  nsAutoSVGRenderMode mode(aContext,
-                           isTrivial ? nsSVGRenderState::CLIP
-                                     : nsSVGRenderState::CLIP_MASK);
+  SVGAutoRenderState mode(aContext,
+                          isTrivial ? SVGAutoRenderState::CLIP
+                                    : SVGAutoRenderState::CLIP_MASK);
 
-
-  gfxContext *gfx = aContext->GetGfxContext();
+  gfxContext *gfx = aContext->ThebesContext();
 
   nsSVGClipPathFrame *clipPathFrame =
     nsSVGEffects::GetEffectProperties(this).GetClipPathFrame(nsnull);
@@ -103,8 +102,9 @@ nsSVGClipPathFrame::ClipPaint(nsSVGRenderState* aContext,
     nsISVGChildFrame* SVGFrame = do_QueryFrame(kid);
     if (SVGFrame) {
       // The CTM of each frame referencing us can be different.
-      SVGFrame->NotifySVGChanged(nsISVGChildFrame::SUPPRESS_INVALIDATION | 
-                                 nsISVGChildFrame::TRANSFORM_CHANGED);
+      SVGFrame->NotifySVGChanged(
+                          nsISVGChildFrame::DO_NOT_NOTIFY_RENDERING_OBSERVERS | 
+                          nsISVGChildFrame::TRANSFORM_CHANGED);
 
       bool isOK = true;
       nsSVGClipPathFrame *clipPathFrame =

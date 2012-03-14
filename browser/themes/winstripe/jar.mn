@@ -7,7 +7,10 @@ browser.jar:
 *       skin/classic/browser/aboutPrivateBrowsing.css                (aboutPrivateBrowsing.css)
 *       skin/classic/browser/aboutSessionRestore.css                 (aboutSessionRestore.css)
         skin/classic/browser/aboutSessionRestore-window-icon.png     (preferences/application.png)
-        skin/classic/browser/aboutCertError.css                      (aboutCertError.css)
+        skin/classic/browser/aboutCertError.css
+        skin/classic/browser/aboutCertError_sectionCollapsed.png
+        skin/classic/browser/aboutCertError_sectionCollapsed-rtl.png
+        skin/classic/browser/aboutCertError_sectionExpanded.png
 #ifdef MOZ_SERVICES_SYNC
         skin/classic/browser/aboutSyncTabs.css
 #endif
@@ -16,9 +19,10 @@ browser.jar:
         skin/classic/browser/appmenu-dropmarker.png
 *       skin/classic/browser/browser.css                             (browser.css)
 *       skin/classic/browser/engineManager.css                       (engineManager.css)
-        skin/classic/browser/fullscreen-video.css
         skin/classic/browser/Geolocation-16.png
         skin/classic/browser/Geolocation-64.png
+        skin/classic/browser/webapps-16.png
+        skin/classic/browser/webapps-64.png
         skin/classic/browser/Info.png                                (Info.png)
         skin/classic/browser/identity.png                            (identity.png)
         skin/classic/browser/keyhole-forward-mask.svg
@@ -27,7 +31,6 @@ browser.jar:
         skin/classic/browser/pageInfo.css
         skin/classic/browser/pageInfo.png                            (pageInfo.png)
         skin/classic/browser/page-livemarks.png                      (feeds/feedIcon16.png)
-        skin/classic/browser/livemark-item.png                       (livemark-item.png)
         skin/classic/browser/livemark-folder.png                     (livemark-folder.png)
         skin/classic/browser/Privacy-16.png
         skin/classic/browser/Privacy-48.png
@@ -39,9 +42,6 @@ browser.jar:
         skin/classic/browser/toolbarbutton-dropdown-arrow-inverted.png
 *       skin/classic/browser/searchbar.css                           (searchbar.css)
         skin/classic/browser/searchbar-dropdown-arrow.png
-        skin/classic/browser/section_collapsed.png
-        skin/classic/browser/section_collapsed-rtl.png
-        skin/classic/browser/section_expanded.png
         skin/classic/browser/setDesktopBackground.css
         skin/classic/browser/menu-back.png                           (menu-back.png)
         skin/classic/browser/menu-forward.png                        (menu-forward.png)
@@ -59,9 +59,8 @@ browser.jar:
         skin/classic/browser/feeds/subscribe.css                     (feeds/subscribe.css)
         skin/classic/browser/feeds/subscribe-ui.css                  (feeds/subscribe-ui.css)
         skin/classic/browser/newtab/newTab.css                       (newtab/newTab.css)
-        skin/classic/browser/newtab/strip.png                        (newtab/strip.png)
-        skin/classic/browser/newtab/toolbar.png                      (newtab/toolbar.png)
-        skin/classic/browser/inspector.css
+        skin/classic/browser/newtab/controls.png                     (newtab/controls.png)
+        skin/classic/browser/newtab/noise.png                        (newtab/noise.png)
         skin/classic/browser/places/places.css                       (places/places.css)
 *       skin/classic/browser/places/organizer.css                    (places/organizer.css)
         skin/classic/browser/places/bookmark.png                     (places/bookmark.png)
@@ -80,6 +79,7 @@ browser.jar:
         skin/classic/browser/places/allBookmarks.png                 (places/allBookmarks.png)
         skin/classic/browser/places/unsortedBookmarks.png            (places/unsortedBookmarks.png)
         skin/classic/browser/places/downloads.png                    (places/downloads.png)
+        skin/classic/browser/places/livemark-item.png                (places/livemark-item.png)
         skin/classic/browser/preferences/alwaysAsk.png               (preferences/alwaysAsk.png)
         skin/classic/browser/preferences/application.png             (preferences/application.png)
         skin/classic/browser/preferences/mail.png                    (preferences/mail.png)
@@ -112,10 +112,15 @@ browser.jar:
         skin/classic/browser/devtools/common.css                    (devtools/common.css)
         skin/classic/browser/devtools/arrows.png                    (devtools/arrows.png)
         skin/classic/browser/devtools/commandline.png               (devtools/commandline.png)
+        skin/classic/browser/devtools/alerticon-warning.png         (devtools/alerticon-warning.png)
         skin/classic/browser/devtools/goto-mdn.png                  (devtools/goto-mdn.png)
         skin/classic/browser/devtools/csshtmltree.css               (devtools/csshtmltree.css)
         skin/classic/browser/devtools/gcli.css                      (devtools/gcli.css)
+        skin/classic/browser/devtools/htmlpanel.css                 (devtools/htmlpanel.css)
         skin/classic/browser/devtools/orion.css                     (devtools/orion.css)
+        skin/classic/browser/devtools/orion-container.css           (devtools/orion-container.css)
+        skin/classic/browser/devtools/orion-task.png                (devtools/orion-task.png)
+        skin/classic/browser/devtools/orion-breakpoint.png          (devtools/orion-breakpoint.png)
         skin/classic/browser/devtools/toolbarbutton-close.png       (devtools/toolbarbutton-close.png)
         skin/classic/browser/devtools/webconsole.css                  (devtools/webconsole.css)
         skin/classic/browser/devtools/webconsole_networkpanel.css     (devtools/webconsole_networkpanel.css)
@@ -151,6 +156,7 @@ browser.jar:
         skin/classic/browser/devtools/itemToggle.png                (devtools/itemToggle.png)
         skin/classic/browser/devtools/itemArrow-rtl.png             (devtools/itemArrow-rtl.png)
         skin/classic/browser/devtools/itemArrow-ltr.png             (devtools/itemArrow-ltr.png)
+        skin/classic/browser/devtools/inspect-button.png            (devtools/inspect-button.png)
 #ifdef MOZ_SERVICES_SYNC
         skin/classic/browser/sync-throbber.png
         skin/classic/browser/sync-16.png
@@ -173,7 +179,10 @@ browser.jar:
 *       skin/classic/aero/browser/aboutPrivateBrowsing.css           (aboutPrivateBrowsing.css)
 *       skin/classic/aero/browser/aboutSessionRestore.css            (aboutSessionRestore.css)
         skin/classic/aero/browser/aboutSessionRestore-window-icon.png (aboutSessionRestore-window-icon-aero.png)
-        skin/classic/aero/browser/aboutCertError.css                 (aboutCertError.css)
+        skin/classic/aero/browser/aboutCertError.css
+        skin/classic/aero/browser/aboutCertError_sectionCollapsed.png
+        skin/classic/aero/browser/aboutCertError_sectionCollapsed-rtl.png
+        skin/classic/aero/browser/aboutCertError_sectionExpanded.png
 #ifdef MOZ_SERVICES_SYNC
         skin/classic/aero/browser/aboutSyncTabs.css
 #endif
@@ -182,9 +191,10 @@ browser.jar:
         skin/classic/aero/browser/appmenu-icons.png
 *       skin/classic/aero/browser/browser.css                        (browser-aero.css)
 *       skin/classic/aero/browser/engineManager.css                  (engineManager.css)
-        skin/classic/aero/browser/fullscreen-video.css
         skin/classic/aero/browser/Geolocation-16.png
         skin/classic/aero/browser/Geolocation-64.png
+        skin/classic/aero/browser/webapps-16.png
+        skin/classic/aero/browser/webapps-64.png
         skin/classic/aero/browser/Info.png                           (Info-aero.png)
         skin/classic/aero/browser/identity.png                       (identity-aero.png)
         skin/classic/aero/browser/keyhole-forward-mask.svg
@@ -193,7 +203,6 @@ browser.jar:
         skin/classic/aero/browser/pageInfo.css
         skin/classic/aero/browser/pageInfo.png                       (pageInfo-aero.png)
         skin/classic/aero/browser/page-livemarks.png                 (feeds/feedIcon16-aero.png)
-        skin/classic/aero/browser/livemark-item.png                  (livemark-item-aero.png)
         skin/classic/aero/browser/livemark-folder.png                (livemark-folder-aero.png)
         skin/classic/aero/browser/Privacy-16.png                     (Privacy-16-aero.png)
         skin/classic/aero/browser/Privacy-48.png                     (Privacy-48-aero.png)
@@ -205,9 +214,6 @@ browser.jar:
         skin/classic/aero/browser/toolbarbutton-dropdown-arrow-inverted.png
 *       skin/classic/aero/browser/searchbar.css                      (searchbar.css)
         skin/classic/aero/browser/searchbar-dropdown-arrow.png       (searchbar-dropdown-arrow-aero.png)
-        skin/classic/aero/browser/section_collapsed.png
-        skin/classic/aero/browser/section_collapsed-rtl.png
-        skin/classic/aero/browser/section_expanded.png
         skin/classic/aero/browser/setDesktopBackground.css
         skin/classic/aero/browser/menu-back.png                      (menu-back-aero.png)
         skin/classic/aero/browser/menu-forward.png                   (menu-forward-aero.png)
@@ -225,9 +231,8 @@ browser.jar:
         skin/classic/aero/browser/feeds/subscribe.css                (feeds/subscribe.css)
         skin/classic/aero/browser/feeds/subscribe-ui.css             (feeds/subscribe-ui.css)
         skin/classic/aero/browser/newtab/newTab.css                  (newtab/newTab.css)
-        skin/classic/aero/browser/newtab/strip.png                   (newtab/strip.png)
-        skin/classic/aero/browser/newtab/toolbar.png                 (newtab/toolbar.png)
-        skin/classic/aero/browser/inspector.css
+        skin/classic/aero/browser/newtab/controls.png                (newtab/controls.png)
+        skin/classic/aero/browser/newtab/noise.png                   (newtab/noise.png)
 *       skin/classic/aero/browser/places/places.css                  (places/places-aero.css)
 *       skin/classic/aero/browser/places/organizer.css               (places/organizer-aero.css)
         skin/classic/aero/browser/places/bookmark.png                (places/bookmark.png)
@@ -246,6 +251,7 @@ browser.jar:
         skin/classic/aero/browser/places/allBookmarks.png            (places/allBookmarks-aero.png)
         skin/classic/aero/browser/places/unsortedBookmarks.png       (places/unsortedBookmarks-aero.png)
         skin/classic/aero/browser/places/downloads.png               (places/downloads.png)
+        skin/classic/aero/browser/places/livemark-item.png           (places/livemark-item.png)
         skin/classic/aero/browser/preferences/alwaysAsk.png          (preferences/alwaysAsk-aero.png)
         skin/classic/aero/browser/preferences/application.png        (preferences/application-aero.png)
         skin/classic/aero/browser/preferences/mail.png               (preferences/mail-aero.png)
@@ -278,10 +284,15 @@ browser.jar:
         skin/classic/aero/browser/devtools/common.css                (devtools/common.css)
         skin/classic/aero/browser/devtools/arrows.png                (devtools/arrows.png)
         skin/classic/aero/browser/devtools/commandline.png           (devtools/commandline.png)
+        skin/classic/aero/browser/devtools/alerticon-warning.png     (devtools/alerticon-warning.png)
         skin/classic/aero/browser/devtools/goto-mdn.png              (devtools/goto-mdn.png)
         skin/classic/aero/browser/devtools/csshtmltree.css           (devtools/csshtmltree.css)
         skin/classic/aero/browser/devtools/gcli.css                  (devtools/gcli.css)
+        skin/classic/aero/browser/devtools/htmlpanel.css             (devtools/htmlpanel.css)
         skin/classic/aero/browser/devtools/orion.css                 (devtools/orion.css)
+        skin/classic/aero/browser/devtools/orion-container.css       (devtools/orion-container.css)
+        skin/classic/aero/browser/devtools/orion-task.png            (devtools/orion-task.png)
+        skin/classic/aero/browser/devtools/orion-breakpoint.png      (devtools/orion-breakpoint.png)
         skin/classic/aero/browser/devtools/toolbarbutton-close.png   (devtools/toolbarbutton-close.png)
         skin/classic/aero/browser/devtools/webconsole.css                  (devtools/webconsole.css)
         skin/classic/aero/browser/devtools/webconsole_networkpanel.css     (devtools/webconsole_networkpanel.css)
@@ -317,6 +328,7 @@ browser.jar:
         skin/classic/aero/browser/devtools/itemToggle.png            (devtools/itemToggle.png)
         skin/classic/aero/browser/devtools/itemArrow-rtl.png         (devtools/itemArrow-rtl.png)
         skin/classic/aero/browser/devtools/itemArrow-ltr.png         (devtools/itemArrow-ltr.png)
+        skin/classic/aero/browser/devtools/inspect-button.png        (devtools/inspect-button.png)
 #ifdef MOZ_SERVICES_SYNC
         skin/classic/aero/browser/sync-throbber.png
         skin/classic/aero/browser/sync-16.png

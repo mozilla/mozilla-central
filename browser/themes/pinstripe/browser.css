@@ -229,15 +229,20 @@ toolbarbutton.bookmark-item > menupopup {
   list-style-image: url("chrome://global/skin/tree/folder.png");
 }
 
-.query-item[container] {
-  list-style-image: url("chrome://browser/skin/places/history.png");
-}
-
-.bookmark-item[livemark] {
+.bookmark-item[container][livemark] {
   list-style-image: url("chrome://browser/skin/page-livemarks.png");
 }
 
-.bookmark-item[query] {
+.bookmark-item[container][livemark] .bookmark-item {
+  list-style-image: url("chrome://browser/skin/places/livemark-item.png");
+  -moz-image-region: rect(0px, 16px, 16px, 0px);
+}
+
+.bookmark-item[container][livemark] .bookmark-item[visited] {
+  -moz-image-region: rect(0px, 32px, 16px, 16px);
+}
+
+.bookmark-item[container][query] {
   list-style-image: url("chrome://browser/skin/places/query.png");
 }
 
@@ -257,13 +262,21 @@ toolbarbutton.bookmark-item > menupopup {
   list-style-image: url("chrome://global/skin/tree/folder.png");
 }
 
-.bookmark-item[livemark] .menuitem-iconic {
-  list-style-image: url("chrome://browser/skin/livemark-item.png");
+/* Workaround for native menubar inheritance */
+.openintabs-menuitem,
+.openlivemarksite-menuitem,
+.livemarkstatus-menuitem {
+  list-style-image: none;
 }
 
-.bookmark-item menuitem[openInTabs],
-.bookmark-item menuitem[siteURI] {
-  list-style-image: none;
+.bookmark-item[cutting] > .toolbarbutton-icon,
+.bookmark-item[cutting] > .menu-iconic-left > .menu-iconic-icon {
+  opacity: 0.5;
+}
+
+.bookmark-item[cutting] > .toolbarbutton-text,
+.bookmark-item[cutting] > .menu-iconic-left > .menu-iconic-text {
+  opacity: 0.7;
 }
 
 #wrapper-personal-bookmarks[place="palette"] > .toolbarpaletteitem-box {
@@ -280,16 +293,6 @@ toolbarbutton.bookmark-item > menupopup {
 .bookmark-item > .menu-iconic-left > .menu-iconic-icon {
   width: 16px;
   height: 16px;
-}
-
-.bookmark-item[cutting] > .toolbarbutton-icon,
-.bookmark-item[cutting] > .menu-iconic-left > .menu-iconic-icon {
-  opacity: 0.5;
-}
-
-.bookmark-item[cutting] > .toolbarbutton-text,
-.bookmark-item[cutting] > .menu-iconic-left > .menu-iconic-text {
-  opacity: 0.7;
 }
 
 #bookmarksToolbarFolderMenu,
@@ -2356,6 +2359,10 @@ toolbarbutton.chevron > .toolbarbutton-menu-dropmarker {
   list-style-image: url(chrome://mozapps/skin/passwordmgr/key-16.png);
 }
 
+#webapps-notification-icon {
+  list-style-image: url(chrome://browser/skin/webapps-16.png);
+}
+
 .popup-notification-icon {
   width: 64px;
   height: 64px;
@@ -2420,6 +2427,10 @@ toolbarbutton.chevron > .toolbarbutton-menu-dropmarker {
 .popup-notification-icon[popupid="password-save"],
 .popup-notification-icon[popupid="password-change"] {
   list-style-image: url(chrome://mozapps/skin/passwordmgr/key-64.png);
+}
+
+.popup-notification-icon[popupid="webapps-install"] {
+  list-style-image: url(chrome://browser/skin/webapps-64.png);
 }
 
 /* Popup Buttons */
@@ -2718,6 +2729,15 @@ panel[dimmed="true"] {
 
 /* Highlighter toolbar */
 
+#inspector-inspect-toolbutton {
+  list-style-image: url("chrome://browser/skin/devtools/inspect-button.png");
+  -moz-image-region: rect(0px 16px 16px 0px);
+}
+
+#inspector-inspect-toolbutton[checked] {
+  -moz-image-region: rect(0px 32px 16px 16px);
+}
+
 #inspector-toolbar {
   border-top: 1px solid hsla(210, 8%, 5%, .65);
   padding-top: 4px;
@@ -2732,12 +2752,6 @@ panel[dimmed="true"] {
 #inspector-toolbar:-moz-locale-dir(rtl) {
   padding-left: 4px;
   padding-right: 18px; /* use -moz-padding-end when/if bug 631729 gets fixed */
-}
-
-#inspector-toolbar[treepanel-open] {
-  padding-top: 0;
-  padding-right: 0;
-  -moz-padding-end: 4px;
 }
 
 #devtools-side-splitter {
@@ -2755,15 +2769,6 @@ panel[dimmed="true"] {
   background-color: -moz-Field;
 }
 
-/* Highlighter - toolbar resizer */
-
-#inspector-top-resizer {
-  -moz-appearance: none;
-  cursor: n-resize;
-  background: none;
-  height: 4px;
-}
-
 /* Highlighter - Node Infobar */
 
 /* Highlighter - Node Infobar - text */
@@ -2774,6 +2779,10 @@ html|*#highlighter-nodeinfobar-tagname {
 
 html|*#highlighter-nodeinfobar-id {
   color: hsl(90, 79%, 52%);
+}
+
+html|*#highlighter-nodeinfobar-pseudo-classes {
+  color: hsl(20, 100%, 70%);
 }
 
 /* Highlighter - Node Infobar - box & arrow */
@@ -2874,9 +2883,17 @@ html|*#highlighter-nodeinfobar-id {
   color: hsl(205,100%,70%);
 }
 
+.inspector-breadcrumbs-button[checked] > .inspector-breadcrumbs-pseudo-classes {
+  color: hsl(20, 100%, 70%);
+}
+
 .inspector-breadcrumbs-id,
 .inspector-breadcrumbs-classes {
   color: #8d99a6;
+}
+
+.inspector-breadcrumbs-pseudo-classes {
+  color: hsl(20, 100%, 85%);
 }
 
 /* Highlighter toolbar - breadcrumbs - LTR */
@@ -2997,4 +3014,16 @@ html|*#highlighter-nodeinfobar-id {
 .inspector-breadcrumbs-button[siblings-menu-open]:last-of-type[checked]:-moz-locale-dir(rtl),
 .inspector-breadcrumbs-button:last-of-type[checked]:hover:active:-moz-locale-dir(rtl) {
   -moz-border-image: url("chrome://browser/skin/devtools/breadcrumbs/rtl-end-selected-pressed.png") 1 13 2 13 fill stretch;
+}
+
+/* Highlighter toolbar - HTML Tree */
+
+#inspector-tree-splitter {
+  -moz-appearance: none;
+  border-top: 1px solid black;
+  border-bottom-width: 0;
+  min-height: 3px;
+  height: 3px;
+  margin-bottom: -3px;
+  position: relative;
 }

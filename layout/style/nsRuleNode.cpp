@@ -82,8 +82,6 @@
 #include "nsPrintfCString.h"
 #include "mozilla/Util.h"
 
-#include "mozilla/Util.h"
-
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #include <malloc.h>
 #ifdef _MSC_VER
@@ -2681,7 +2679,7 @@ nsRuleNode::SetFont(nsPresContext* aPresContext, nsStyleContext* aContext,
                                  aFont->mLanguage);
 
   // -moz-system-font: enum (never inherit!)
-  PR_STATIC_ASSERT(
+  MOZ_STATIC_ASSERT(
     NS_STYLE_FONT_CAPTION        == LookAndFeel::eFont_Caption &&
     NS_STYLE_FONT_ICON           == LookAndFeel::eFont_Icon &&
     NS_STYLE_FONT_MENU           == LookAndFeel::eFont_Menu &&
@@ -2697,7 +2695,8 @@ nsRuleNode::SetFont(nsPresContext* aPresContext, nsStyleContext* aContext,
     NS_STYLE_FONT_BUTTON         == LookAndFeel::eFont_Button &&
     NS_STYLE_FONT_PULL_DOWN_MENU == LookAndFeel::eFont_PullDownMenu &&
     NS_STYLE_FONT_LIST           == LookAndFeel::eFont_List &&
-    NS_STYLE_FONT_FIELD          == LookAndFeel::eFont_Field);
+    NS_STYLE_FONT_FIELD          == LookAndFeel::eFont_Field,
+    "LookAndFeel.h system-font constants out of sync with nsStyleConsts.h");
 
   // Fall back to defaultVariableFont.
   nsFont systemFont = *defaultVariableFont;
@@ -4785,6 +4784,59 @@ struct BackgroundItemComputer<nsCSSValueList, PRUint8>
 };
 
 template <>
+struct BackgroundItemComputer<nsCSSValuePairList, nsStyleBackground::Repeat>
+{
+  static void ComputeValue(nsStyleContext* aStyleContext,
+                           const nsCSSValuePairList* aSpecifiedValue,
+                           nsStyleBackground::Repeat& aComputedValue,
+                           bool& aCanStoreInRuleTree)
+  {
+    NS_ASSERTION(aSpecifiedValue->mXValue.GetUnit() == eCSSUnit_Enumerated &&
+                 (aSpecifiedValue->mYValue.GetUnit() == eCSSUnit_Enumerated ||
+                  aSpecifiedValue->mYValue.GetUnit() == eCSSUnit_Null),
+                 "Invalid unit");
+    
+    bool hasContraction = true;
+    PRUint8 value = aSpecifiedValue->mXValue.GetIntValue();
+    switch (value) {
+    case NS_STYLE_BG_REPEAT_REPEAT_X:
+      aComputedValue.mXRepeat = NS_STYLE_BG_REPEAT_REPEAT;
+      aComputedValue.mYRepeat = NS_STYLE_BG_REPEAT_NO_REPEAT;
+      break;
+    case NS_STYLE_BG_REPEAT_REPEAT_Y:
+      aComputedValue.mXRepeat = NS_STYLE_BG_REPEAT_NO_REPEAT;
+      aComputedValue.mYRepeat = NS_STYLE_BG_REPEAT_REPEAT;
+      break;
+    default:
+      aComputedValue.mXRepeat = value;
+      hasContraction = false;
+      break;
+    }
+    
+    if (hasContraction) {
+      NS_ASSERTION(aSpecifiedValue->mYValue.GetUnit() == eCSSUnit_Null,
+                   "Invalid unit.");
+      return;
+    }
+    
+    switch (aSpecifiedValue->mYValue.GetUnit()) {
+    case eCSSUnit_Null:
+      aComputedValue.mYRepeat = aComputedValue.mXRepeat;
+      break;
+    case eCSSUnit_Enumerated:
+      value = aSpecifiedValue->mYValue.GetIntValue();
+      NS_ASSERTION(value == NS_STYLE_BG_REPEAT_NO_REPEAT ||
+                   value == NS_STYLE_BG_REPEAT_REPEAT, "Unexpected value");
+      aComputedValue.mYRepeat = value;
+      break;
+    default:
+      NS_NOTREACHED("Unexpected CSS value");
+      break;
+    }
+  }
+};
+
+template <>
 struct BackgroundItemComputer<nsCSSValueList, nsStyleImage>
 {
   static void ComputeValue(nsStyleContext* aStyleContext,
@@ -4920,10 +4972,11 @@ struct BackgroundItemComputer<nsCSSValuePairList, nsStyleBackground::Size>
         size.*(axis->type) = nsStyleBackground::Size::eAuto;
       }
       else if (eCSSUnit_Enumerated == specified.GetUnit()) {
-        PR_STATIC_ASSERT(nsStyleBackground::Size::eContain ==
-                         NS_STYLE_BG_SIZE_CONTAIN);
-        PR_STATIC_ASSERT(nsStyleBackground::Size::eCover ==
-                         NS_STYLE_BG_SIZE_COVER);
+        MOZ_STATIC_ASSERT(nsStyleBackground::Size::eContain ==
+                          NS_STYLE_BG_SIZE_CONTAIN &&
+                          nsStyleBackground::Size::eCover ==
+                          NS_STYLE_BG_SIZE_COVER,
+                          "background size constants out of sync");
         NS_ABORT_IF_FALSE(specified.GetIntValue() == NS_STYLE_BG_SIZE_CONTAIN ||
                           specified.GetIntValue() == NS_STYLE_BG_SIZE_COVER,
                           "invalid enumerated value for size coordinate");
@@ -5179,12 +5232,15 @@ nsRuleNode::ComputeBackgroundData(void* aStartStruct,
                     initialImage, parentBG->mImageCount, bg->mImageCount,
                     maxItemCount, rebuild, canStoreInRuleTree);
 
-  // background-repeat: enum, inherit, initial [list]
-  SetBackgroundList(aContext, *aRuleData->ValueForBackgroundRepeat(),
-                    bg->mLayers,
-                    parentBG->mLayers, &nsStyleBackground::Layer::mRepeat,
-                    PRUint8(NS_STYLE_BG_REPEAT_XY), parentBG->mRepeatCount,
-                    bg->mRepeatCount, maxItemCount, rebuild, canStoreInRuleTree);
+  // background-repeat: enum, inherit, initial [pair list]
+  nsStyleBackground::Repeat initialRepeat;
+  initialRepeat.SetInitialValues();
+  SetBackgroundPairList(aContext, *aRuleData->ValueForBackgroundRepeat(),
+                        bg->mLayers,
+                        parentBG->mLayers, &nsStyleBackground::Layer::mRepeat,
+                        initialRepeat, parentBG->mRepeatCount,
+                        bg->mRepeatCount, maxItemCount, rebuild, 
+                        canStoreInRuleTree);
 
   // background-attachment: enum, inherit, initial [list]
   SetBackgroundList(aContext, *aRuleData->ValueForBackgroundAttachment(),

@@ -261,17 +261,18 @@ StackFrame::mark(JSTracer *trc)
      * this path. However, generators use a special write barrier when the stack
      * frame is copied to the floating frame. Therefore, no barrier is needed.
      */
-    gc::MarkObjectUnbarriered(trc, &scopeChain(), "scope chain");
+    if (flags_ & HAS_SCOPECHAIN)
+        gc::MarkObjectUnbarriered(trc, &scopeChain_, "scope chain");
     if (isDummyFrame())
         return;
     if (hasArgsObj())
-        gc::MarkObjectUnbarriered(trc, &argsObj(), "arguments");
+        gc::MarkObjectUnbarriered(trc, &argsObj_, "arguments");
     if (isFunctionFrame()) {
-        gc::MarkObjectUnbarriered(trc, fun(), "fun");
+        gc::MarkObjectUnbarriered(trc, &exec.fun, "fun");
         if (isEvalFrame())
-            gc::MarkScriptUnbarriered(trc, script(), "eval script");
+            gc::MarkScriptUnbarriered(trc, &u.evalScript, "eval script");
     } else {
-        gc::MarkScriptUnbarriered(trc, script(), "script");
+        gc::MarkScriptUnbarriered(trc, &exec.script, "script");
     }
     if (IS_GC_MARKING_TRACER(trc))
         script()->compartment()->active = true;
@@ -597,7 +598,7 @@ StackSpace::ensureSpaceSlow(JSContext *cx, MaybeReportError report, Value *from,
 }
 
 bool
-StackSpace::tryBumpLimit(JSContext *cx, Value *from, uintN nvals, Value **limit)
+StackSpace::tryBumpLimit(JSContext *cx, Value *from, unsigned nvals, Value **limit)
 {
     if (!ensureSpace(cx, REPORT_ERROR, from, nvals))
         return false;
@@ -654,7 +655,7 @@ ContextStack::containsSlow(const StackFrame *target) const
  * there is space for nvars slots on top of the stack.
  */
 Value *
-ContextStack::ensureOnTop(JSContext *cx, MaybeReportError report, uintN nvars,
+ContextStack::ensureOnTop(JSContext *cx, MaybeReportError report, unsigned nvars,
                           MaybeExtend extend, bool *pushedSeg, JSCompartment *dest)
 {
     Value *firstUnused = space().firstUnused();
@@ -727,14 +728,16 @@ ContextStack::popSegment()
 }
 
 bool
-ContextStack::pushInvokeArgs(JSContext *cx, uintN argc, InvokeArgsGuard *iag)
+ContextStack::pushInvokeArgs(JSContext *cx, unsigned argc, InvokeArgsGuard *iag)
 {
     JS_ASSERT(argc <= StackSpace::ARGS_LENGTH_MAX);
 
-    uintN nvars = 2 + argc;
+    unsigned nvars = 2 + argc;
     Value *firstUnused = ensureOnTop(cx, REPORT_ERROR, nvars, CAN_EXTEND, &iag->pushedSeg_);
     if (!firstUnused)
         return false;
+
+    MakeRangeGCSafe(firstUnused, nvars);
 
     ImplicitCast<CallArgs>(*iag) = CallArgsFromVp(argc, firstUnused);
 
@@ -814,7 +817,7 @@ ContextStack::pushExecuteFrame(JSContext *cx, JSScript *script, const Value &thi
         extend = CAN_EXTEND;
     }
 
-    uintN nvars = 2 /* callee, this */ + VALUES_PER_STACK_FRAME + script->nslots;
+    unsigned nvars = 2 /* callee, this */ + VALUES_PER_STACK_FRAME + script->nslots;
     Value *firstUnused = ensureOnTop(cx, REPORT_ERROR, nvars, extend, &efg->pushedSeg_);
     if (!firstUnused)
         return NULL;
@@ -839,7 +842,7 @@ ContextStack::pushDummyFrame(JSContext *cx, JSCompartment *dest, JSObject &scope
 {
     JS_ASSERT(dest == scopeChain.compartment());
 
-    uintN nvars = VALUES_PER_STACK_FRAME;
+    unsigned nvars = VALUES_PER_STACK_FRAME;
     Value *firstUnused = ensureOnTop(cx, REPORT_ERROR, nvars, CAN_EXTEND, &dfg->pushedSeg_, dest);
     if (!firstUnused)
         return false;
@@ -883,9 +886,9 @@ ContextStack::pushGeneratorFrame(JSContext *cx, JSGenerator *gen, GeneratorFrame
 {
     StackFrame *genfp = gen->floatingFrame();
     HeapValue *genvp = gen->floatingStack;
-    uintN vplen = (HeapValue *)genfp - genvp;
+    unsigned vplen = (HeapValue *)genfp - genvp;
 
-    uintN nvars = vplen + VALUES_PER_STACK_FRAME + genfp->numSlots();
+    unsigned nvars = vplen + VALUES_PER_STACK_FRAME + genfp->numSlots();
     Value *firstUnused = ensureOnTop(cx, REPORT_ERROR, nvars, CAN_EXTEND, &gfg->pushedSeg_);
     if (!firstUnused)
         return false;
@@ -975,6 +978,7 @@ StackIter::poisonRegs()
 {
     sp_ = (Value *)0xbad;
     pc_ = (jsbytecode *)0xbad;
+    script_ = (JSScript *)0xbad;
 }
 
 void
@@ -1016,6 +1020,8 @@ StackIter::popFrame()
             JS_ASSERT(oldfp->isDummyFrame());
             sp_ = (Value *)oldfp;
         }
+
+        script_ = fp_->maybeScript();
     } else {
         poisonRegs();
     }
@@ -1041,6 +1047,8 @@ StackIter::settleOnNewSegment()
     if (FrameRegs *regs = seg_->maybeRegs()) {
         sp_ = regs->sp;
         pc_ = regs->pc;
+        if (fp_)
+            script_ = fp_->maybeScript();
     } else {
         poisonRegs();
     }
@@ -1142,8 +1150,8 @@ StackIter::settleOnNewState()
              */
             JSOp op = JSOp(*pc_);
             if (op == JSOP_CALL || op == JSOP_FUNCALL) {
-                uintN argc = GET_ARGC(pc_);
-                DebugOnly<uintN> spoff = sp_ - fp_->base();
+                unsigned argc = GET_ARGC(pc_);
+                DebugOnly<unsigned> spoff = sp_ - fp_->base();
                 JS_ASSERT_IF(cx_->stackIterAssertionEnabled,
                              spoff == js_ReconstructStackDepth(cx_, fp_->script(), pc_));
                 Value *vp = sp_ - (2 + argc);

@@ -49,7 +49,7 @@
 #include "jsobj.h"
 
 /* Small arrays are dense, no matter what. */
-const uintN MIN_SPARSE_INDEX = 256;
+const unsigned MIN_SPARSE_INDEX = 256;
 
 namespace js {
 /* 2^32-2, inclusive */
@@ -57,14 +57,13 @@ const uint32_t MAX_ARRAY_INDEX = 4294967294u;
 }
 
 inline JSBool
-js_IdIsIndex(jsid id, jsuint *indexp)
+js_IdIsIndex(jsid id, uint32_t *indexp)
 {
     if (JSID_IS_INT(id)) {
-        jsint i;
-        i = JSID_TO_INT(id);
+        int32_t i = JSID_TO_INT(id);
         if (i < 0)
             return JS_FALSE;
-        *indexp = (jsuint)i;
+        *indexp = (uint32_t)i;
         return JS_TRUE;
     }
 
@@ -138,16 +137,16 @@ NewSlowEmptyArray(JSContext *cx);
 } /* namespace js */
 
 extern JSBool
-js_GetLengthProperty(JSContext *cx, JSObject *obj, jsuint *lengthp);
+js_GetLengthProperty(JSContext *cx, JSObject *obj, uint32_t *lengthp);
 
 extern JSBool
-js_SetLengthProperty(JSContext *cx, JSObject *obj, jsdouble length);
+js_SetLengthProperty(JSContext *cx, JSObject *obj, double length);
 
 namespace js {
 
 extern JSBool
 array_defineElement(JSContext *cx, JSObject *obj, uint32_t index, const Value *value,
-                    PropertyOp getter, StrictPropertyOp setter, uintN attrs);
+                    PropertyOp getter, StrictPropertyOp setter, unsigned attrs);
 
 extern JSBool
 array_deleteElement(JSContext *cx, JSObject *obj, uint32_t index, Value *rval, JSBool strict);
@@ -159,30 +158,30 @@ array_deleteElement(JSContext *cx, JSObject *obj, uint32_t index, Value *rval, J
  * js_GetLengthProperty on aobj.
  */
 extern bool
-GetElements(JSContext *cx, JSObject *aobj, jsuint length, js::Value *vp);
+GetElements(JSContext *cx, JSObject *aobj, uint32_t length, js::Value *vp);
 
 /* Natives exposed for optimization by the interpreter and JITs. */
 
 extern JSBool
-array_sort(JSContext *cx, uintN argc, js::Value *vp);
+array_sort(JSContext *cx, unsigned argc, js::Value *vp);
 
 extern JSBool
-array_push(JSContext *cx, uintN argc, js::Value *vp);
+array_push(JSContext *cx, unsigned argc, js::Value *vp);
 
 extern JSBool
-array_pop(JSContext *cx, uintN argc, js::Value *vp);
+array_pop(JSContext *cx, unsigned argc, js::Value *vp);
 
 extern JSBool
-array_concat(JSContext *cx, uintN argc, js::Value *vp);
+array_concat(JSContext *cx, unsigned argc, js::Value *vp);
 
 extern JSBool
-array_shift(JSContext *cx, uintN argc, js::Value *vp);
+array_shift(JSContext *cx, unsigned argc, js::Value *vp);
 
 } /* namespace js */
 
 #ifdef DEBUG
 extern JSBool
-js_ArrayInfo(JSContext *cx, uintN argc, jsval *vp);
+js_ArrayInfo(JSContext *cx, unsigned argc, jsval *vp);
 #endif
 
 /*
@@ -207,6 +206,6 @@ js_GetDenseArrayElementValue(JSContext *cx, JSObject *obj, jsid id,
 
 /* Array constructor native. Exposed only so the JIT can know its address. */
 JSBool
-js_Array(JSContext *cx, uintN argc, js::Value *vp);
+js_Array(JSContext *cx, unsigned argc, js::Value *vp);
 
 #endif /* jsarray_h___ */

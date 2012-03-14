@@ -45,7 +45,6 @@
 
 #include "nsError.h"
 #include "nsIMutableArray.h"
-#include "nsHashSets.h"
 #include "nsAutoPtr.h"
 #include "nsIMemoryReporter.h"
 #include "nsThreadUtils.h"
@@ -877,6 +876,16 @@ Connection::stepStatement(sqlite3_stmt *aStatement)
 {
   bool checkedMainThread = false;
   TimeStamp startTime = TimeStamp::Now();
+
+  // mDBConn may be null if the executing statement has been created and cached
+  // after a call to asyncClose() but before the connection has been nullified
+  // by internalClose().  In such a case closing the connection fails due to
+  // the existence of prepared statements, but mDBConn is set to null
+  // regardless. This usually happens when other tasks using cached statements
+  // are asynchronously scheduled for execution and any of them ends up after
+  // asyncClose. See bug 728653 for details.
+  if (!mDBConn)
+    return SQLITE_MISUSE;
 
   (void)::sqlite3_extended_result_codes(mDBConn, 1);
 

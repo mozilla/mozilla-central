@@ -14,7 +14,6 @@
 #include "nsWeakPtr.h"
 #include "nsVariant.h"
 #include "nsContentUtils.h"
-#include "nsDOMMemoryReporter.h"
 #include "nsEventDispatcher.h"
 #include "nsContentUtils.h"
 #include "nsAsyncDOMEvent.h"
@@ -30,9 +29,10 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(nsGenericHTMLFrameElement,
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
 NS_INTERFACE_TABLE_HEAD(nsGenericHTMLFrameElement)
-  NS_INTERFACE_TABLE_INHERITED3(nsGenericHTMLFrameElement,
+  NS_INTERFACE_TABLE_INHERITED4(nsGenericHTMLFrameElement,
                                 nsIFrameLoaderOwner,
                                 nsIDOMMozBrowserFrame,
+                                nsIMozBrowserFrame,
                                 nsIWebProgressListener)
   NS_INTERFACE_TABLE_TO_MAP_SEGUE_CYCLE_COLLECTION(nsGenericHTMLFrameElement)
 NS_INTERFACE_MAP_END_INHERITING(nsGenericHTMLElement)
@@ -269,16 +269,6 @@ nsGenericHTMLFrameElement::IsHTMLFocusable(bool aWithMouse,
   return false;
 }
 
-PRInt64
-nsGenericHTMLFrameElement::SizeOf() const
-{
-  PRInt64 size = MemoryReporter::GetBasicSize<nsGenericHTMLFrameElement,
-                                              nsGenericHTMLElement>(this);
-  // TODO: need to implement SizeOf() in nsFrameLoader, bug 672539.
-  size += mFrameLoader ? sizeof(*mFrameLoader.get()) : 0;
-  return size;
-}
-
 NS_IMETHODIMP
 nsGenericHTMLFrameElement::GetMozbrowser(bool *aValue)
 {
@@ -296,8 +286,8 @@ nsGenericHTMLFrameElement::SetMozbrowser(bool aValue)
 }
 
 /*
- * If this frame element is allowed to be a browser frame (because it passes
- * BrowserFrameSecurityCheck()), then make sure that it has the appropriate
+ * If this frame element is allowed to be a browser frame (i.e.,
+ * GetReallyIsBrowser returns true), then make sure that it has the appropriate
  * event listeners enabled.
  */
 void
@@ -309,7 +299,7 @@ nsGenericHTMLFrameElement::MaybeEnsureBrowserFrameListenersRegistered()
 
   // If this frame passes the browser frame security check, ensure that its
   // listeners are active.
-  if (!BrowserFrameSecurityCheck()) {
+  if (!GetReallyIsBrowser()) {
     return;
   }
 
@@ -362,7 +352,7 @@ nsGenericHTMLFrameElement::MaybeEnsureBrowserFrameListenersRegistered()
  * events, and false otherwise.
  */
 bool
-nsGenericHTMLFrameElement::BrowserFrameSecurityCheck()
+nsGenericHTMLFrameElement::GetReallyIsBrowser()
 {
   // Fail if browser frames are globally disabled.
   if (!Preferences::GetBool("dom.mozBrowserFramesEnabled")) {
@@ -389,6 +379,13 @@ nsGenericHTMLFrameElement::BrowserFrameSecurityCheck()
   return true;
 }
 
+NS_IMETHODIMP
+nsGenericHTMLFrameElement::GetReallyIsBrowser(bool *aResult)
+{
+  *aResult = GetReallyIsBrowser();
+  return NS_OK;
+}
+
 /**
  * Fire a mozbrowser event, if we have permission.
  *
@@ -410,7 +407,7 @@ nsGenericHTMLFrameElement::MaybeFireBrowserEvent(
   MOZ_ASSERT_IF(aEventType.EqualsLiteral("event"),
                 aValue.IsEmpty());
 
-  if (!BrowserFrameSecurityCheck()) {
+  if (!GetReallyIsBrowser()) {
     return NS_OK;
   }
 

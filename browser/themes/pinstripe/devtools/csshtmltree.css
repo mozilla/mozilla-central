@@ -45,11 +45,6 @@
   color: -moz-FieldText;
 }
 
-#root {
-  display: -moz-box;
-}
-
-
 .property-header {
   padding: 5px 0;
   white-space: nowrap;
@@ -73,7 +68,6 @@
 }
 
 .helplink {
-  display: block;
   height: 14px;
   width: 0;
   overflow: hidden;
@@ -99,7 +93,6 @@
   padding-top: 12px;
   -moz-margin-start: 5px;
   -moz-margin-end: 5px;
-  display: inline-block;
   vertical-align: middle;
 }
 
@@ -107,22 +100,18 @@
   -moz-appearance: treetwistyopen;
 }
 
-.expandable {
-  cursor: pointer;
-}
-
 .match {
   visibility: hidden;
 }
 
-.expandable > .property-header > .match {
+.expandable {
+  cursor: pointer;
   visibility: visible;
 }
 
 .property-name {
   font-size: 12px;
   color: -moz-FieldText;
-  display: inline-block;
 }
 .property-value {
   padding: 0;
@@ -130,11 +119,6 @@
   color: grey;
   vertical-align: text-top;
   width: 100%;
-}
-
-.property-view-hidden,
-.property-content-hidden {
-  display: none;
 }
 
 .rule-link {
@@ -148,6 +132,7 @@
   direction: ltr;
   padding: 0;
   -moz-padding-start: 20px;
+  vertical-align: text-bottom;
 }
 
 .bestmatch {
@@ -161,10 +146,6 @@
 }
 
 #propertyContainer {
-  display: -moz-box;
-  -moz-box-orient: vertical;
-  -moz-box-flex: 1;
-  overflow-y: auto;
   border-collapse: collapse;
 }
 
@@ -206,7 +187,7 @@
 
 .ruleview-rule-source {
   background-color: -moz-dialog;
-  color: #0091ff;
+  color: -moz-dialogText;
   padding: 2px 5px;
   cursor: pointer;
 }
@@ -219,8 +200,21 @@
   padding: 2px 5px;
 }
 
+.ruleview-warning {
+  background: url("chrome://browser/skin/devtools/alerticon-warning.png");
+  -moz-margin-start: 5px;
+  vertical-align: middle;
+  width: 13px;
+  height: 12px;
+}
+
 .ruleview-ruleopen {
   -moz-padding-end: 5px;
+}
+
+.ruleview-ruleclose {
+  width: -moz-min-content;
+  padding-right: 20px;
 }
 
 .ruleview-propertylist {
@@ -237,7 +231,6 @@
 }
 
 .ruleview-expander {
-  display: inline-block;
   width: 8px;
   height: 8px;
   background: url("chrome://browser/skin/devtools/arrows.png") 24px 0;
@@ -256,7 +249,6 @@
 }
 
 .ruleview-propertyname {
-  display: inline-block;
   padding: 1px 0;
   cursor: text;
   color: #0060C0;
@@ -284,5 +276,5 @@
 .styleinspector-propertyeditor {
   border: 1px solid #CCC;
   padding: 0;
-  -moz-box-shadow: 2px 2px 2px #CCC;
+  box-shadow: 2px 2px 2px #CCC;
 }

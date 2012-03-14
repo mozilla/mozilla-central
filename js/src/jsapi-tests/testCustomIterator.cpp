@@ -5,7 +5,7 @@
 int count = 0;
 
 static JSBool
-IterNext(JSContext *cx, uintN argc, jsval *vp)
+IterNext(JSContext *cx, unsigned argc, jsval *vp)
 {
     if (count++ == 100)
         return JS_ThrowStopIteration(cx);
@@ -35,11 +35,9 @@ js::Class HasCustomIterClass = {
     JS_ResolveStub,
     JS_ConvertStub,
     NULL,
-    NULL, /* reserved0 */
     NULL, /* checkAccess */
     NULL, /* call */
     NULL, /* construct */
-    NULL, /* xdrObject */
     NULL, /* hasInstance */
     NULL, /* mark */
     {
@@ -52,7 +50,7 @@ js::Class HasCustomIterClass = {
 };
 
 JSBool
-IterClassConstructor(JSContext *cx, uintN argc, jsval *vp)
+IterClassConstructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *obj = JS_NewObjectForConstructor(cx, vp);
     if (!obj)

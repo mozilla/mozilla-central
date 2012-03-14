@@ -1,41 +1,7 @@
-/* -*- Mode: Java; c-basic-offset: 4; tab-width: 20; indent-tabs-mode: nil; -*-
- * ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Mozilla Android code.
- *
- * The Initial Developer of the Original Code is Mozilla Foundation.
- * Portions created by the Initial Developer are Copyright (C) 2011
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Lucas Rocha <lucasr@mozilla.com>
- *   Jason Voll <jvoll@mozilla.com>
- *   Richard Newman <rnewman@mozilla.com>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+/* -*- Mode: Java; c-basic-offset: 4; tab-width: 20; indent-tabs-mode: nil; -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #filter substitution
 package @ANDROID_PACKAGE_NAME@.db;
@@ -43,12 +9,14 @@ package @ANDROID_PACKAGE_NAME@.db;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
-import org.mozilla.gecko.GeckoAppShell;
-import org.mozilla.gecko.GeckoDirProvider;
+import org.mozilla.gecko.GeckoBackgroundThread;
+import org.mozilla.gecko.GeckoProfile;
 import org.mozilla.gecko.R;
 import org.mozilla.gecko.db.BrowserContract.Bookmarks;
 import org.mozilla.gecko.db.BrowserContract.CommonColumns;
@@ -64,11 +32,15 @@ import org.mozilla.gecko.sync.Utils;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.ContentProviderResult;
+import android.content.ContentProviderOperation;
+import android.content.OperationApplicationException;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.MatrixCursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
@@ -105,6 +77,7 @@ public class BrowserProvider extends ContentProvider {
     static final int BOOKMARKS_ID = 101;
     static final int BOOKMARKS_FOLDER_ID = 102;
     static final int BOOKMARKS_PARENT = 103;
+    static final int BOOKMARKS_POSITIONS = 104;
 
     // History matches
     static final int HISTORY = 200;
@@ -124,38 +97,32 @@ public class BrowserProvider extends ContentProvider {
     static final String DEFAULT_HISTORY_SORT_ORDER = History.DATE_LAST_VISITED + " DESC";
 
     static final String TABLE_BOOKMARKS_JOIN_IMAGES = TABLE_BOOKMARKS + " LEFT OUTER JOIN " +
-            "(SELECT " + Images.URL + ", " + Images.FAVICON + ", " + Images.THUMBNAIL + " FROM " +
-            TABLE_IMAGES + ", " + TABLE_BOOKMARKS + " WHERE " +
-            qualifyColumn(TABLE_BOOKMARKS, Bookmarks.URL) + " = " +
-            qualifyColumn(TABLE_IMAGES, Images.URL) + ") AS bookmark_images ON " +
-            qualifyColumn(TABLE_BOOKMARKS, Bookmarks.URL) + " = " +
-            qualifyColumn("bookmark_images", Images.URL);
+            TABLE_IMAGES + " ON " + qualifyColumn(TABLE_BOOKMARKS, Bookmarks.URL) + " = " +
+            qualifyColumn(TABLE_IMAGES, Images.URL);
 
     static final String TABLE_HISTORY_JOIN_IMAGES = TABLE_HISTORY + " LEFT OUTER JOIN " +
-            "(SELECT " + Images.URL + ", " + Images.FAVICON + ", " + Images.THUMBNAIL + " FROM " +
-            TABLE_IMAGES + ", " + TABLE_HISTORY + " WHERE " +
-            qualifyColumn(TABLE_HISTORY, History.URL) + " = " +
-            qualifyColumn(TABLE_IMAGES, Images.URL) + ") AS history_images ON " +
-            qualifyColumn(TABLE_HISTORY, History.URL) + " = " +
-            qualifyColumn("history_images", Images.URL);
+            TABLE_IMAGES + " ON " + qualifyColumn(TABLE_HISTORY, History.URL) + " = " +
+            qualifyColumn(TABLE_IMAGES, Images.URL);
 
     static final UriMatcher URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 
-    static final HashMap<String, String> BOOKMARKS_PROJECTION_MAP = new HashMap<String, String>();
-    static final HashMap<String, String> HISTORY_PROJECTION_MAP = new HashMap<String, String>();
-    static final HashMap<String, String> IMAGES_PROJECTION_MAP = new HashMap<String, String>();
-    static final HashMap<String, String> SCHEMA_PROJECTION_MAP = new HashMap<String, String>();
+    static final Map<String, String> BOOKMARKS_PROJECTION_MAP;
+    static final Map<String, String> HISTORY_PROJECTION_MAP;
+    static final Map<String, String> IMAGES_PROJECTION_MAP;
+    static final Map<String, String> SCHEMA_PROJECTION_MAP;
 
     static {
+        // We will reuse this.
         HashMap<String, String> map;
 
         // Bookmarks
         URI_MATCHER.addURI(BrowserContract.AUTHORITY, "bookmarks", BOOKMARKS);
         URI_MATCHER.addURI(BrowserContract.AUTHORITY, "bookmarks/#", BOOKMARKS_ID);
         URI_MATCHER.addURI(BrowserContract.AUTHORITY, "bookmarks/parents", BOOKMARKS_PARENT);
+        URI_MATCHER.addURI(BrowserContract.AUTHORITY, "bookmarks/positions", BOOKMARKS_POSITIONS);
         URI_MATCHER.addURI(BrowserContract.AUTHORITY, "bookmarks/folder/#", BOOKMARKS_FOLDER_ID);
 
-        map = BOOKMARKS_PROJECTION_MAP;
+        map = new HashMap<String, String>();
         map.put(Bookmarks._ID, Bookmarks._ID);
         map.put(Bookmarks.TITLE, Bookmarks.TITLE);
         map.put(Bookmarks.URL, Bookmarks.URL);
@@ -171,12 +138,13 @@ public class BrowserProvider extends ContentProvider {
         map.put(Bookmarks.DATE_MODIFIED, Bookmarks.DATE_MODIFIED);
         map.put(Bookmarks.GUID, Bookmarks.GUID);
         map.put(Bookmarks.IS_DELETED, Bookmarks.IS_DELETED);
+        BOOKMARKS_PROJECTION_MAP = Collections.unmodifiableMap(map);
 
         // History
         URI_MATCHER.addURI(BrowserContract.AUTHORITY, "history", HISTORY);
         URI_MATCHER.addURI(BrowserContract.AUTHORITY, "history/#", HISTORY_ID);
 
-        map = HISTORY_PROJECTION_MAP;
+        map = new HashMap<String, String>();
         map.put(History._ID, History._ID);
         map.put(History.TITLE, History.TITLE);
         map.put(History.URL, History.URL);
@@ -188,12 +156,13 @@ public class BrowserProvider extends ContentProvider {
         map.put(History.DATE_MODIFIED, History.DATE_MODIFIED);
         map.put(History.GUID, History.GUID);
         map.put(History.IS_DELETED, History.IS_DELETED);
+        HISTORY_PROJECTION_MAP = Collections.unmodifiableMap(map);
 
         // Images
         URI_MATCHER.addURI(BrowserContract.AUTHORITY, "images", IMAGES);
         URI_MATCHER.addURI(BrowserContract.AUTHORITY, "images/#", IMAGES_ID);
 
-        map = IMAGES_PROJECTION_MAP;
+        map = new HashMap<String, String>();
         map.put(Images._ID, Images._ID);
         map.put(Images.URL, Images.URL);
         map.put(Images.FAVICON, Images.FAVICON);
@@ -203,12 +172,14 @@ public class BrowserProvider extends ContentProvider {
         map.put(Images.DATE_MODIFIED, Images.DATE_MODIFIED);
         map.put(Images.GUID, Images.GUID);
         map.put(Images.IS_DELETED, Images.IS_DELETED);
+        IMAGES_PROJECTION_MAP = Collections.unmodifiableMap(map);
 
         // Schema
         URI_MATCHER.addURI(BrowserContract.AUTHORITY, "schema", SCHEMA);
 
-        map = SCHEMA_PROJECTION_MAP;
+        map = new HashMap<String, String>();
         map.put(Schema.VERSION, Schema.VERSION);
+        SCHEMA_PROJECTION_MAP = Collections.unmodifiableMap(map);
     }
 
     private HashMap<String, DatabaseHelper> mDatabasePerProfile;
@@ -332,6 +303,8 @@ public class BrowserProvider extends ContentProvider {
         }
 
         private void createBookmarksWithImagesView(SQLiteDatabase db) {
+            debug("Creating " + VIEW_BOOKMARKS_WITH_IMAGES + " view");
+
             db.execSQL("CREATE VIEW IF NOT EXISTS " + VIEW_BOOKMARKS_WITH_IMAGES + " AS " +
                     "SELECT " + qualifyColumn(TABLE_BOOKMARKS, "*") +
                     ", " + Images.FAVICON + ", " + Images.THUMBNAIL + " FROM " +
@@ -339,6 +312,8 @@ public class BrowserProvider extends ContentProvider {
         }
 
         private void createHistoryWithImagesView(SQLiteDatabase db) {
+            debug("Creating " + VIEW_HISTORY_WITH_IMAGES + " view");
+
             db.execSQL("CREATE VIEW IF NOT EXISTS " + VIEW_HISTORY_WITH_IMAGES + " AS " +
                     "SELECT " + qualifyColumn(TABLE_HISTORY, "*") +
                     ", " + Images.FAVICON + ", " + Images.THUMBNAIL + " FROM " +
@@ -538,6 +513,18 @@ public class BrowserProvider extends ContentProvider {
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_BOOKMARKS_TMP);
         }
 
+        private void upgradeDatabaseFrom2to3(SQLiteDatabase db) {
+            debug("Dropping view: " + VIEW_BOOKMARKS_WITH_IMAGES);
+            db.execSQL("DROP VIEW IF EXISTS " + VIEW_BOOKMARKS_WITH_IMAGES);
+
+            createBookmarksWithImagesView(db);
+
+            debug("Dropping view: " + VIEW_HISTORY_WITH_IMAGES);
+            db.execSQL("DROP VIEW IF EXISTS " + VIEW_HISTORY_WITH_IMAGES);
+
+            createHistoryWithImagesView(db);
+        }
+
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             debug("Upgrading browser.db: " + db.getPath() + " from " +
@@ -551,6 +538,10 @@ public class BrowserProvider extends ContentProvider {
                 switch(v) {
                     case 2:
                         upgradeDatabaseFrom1to2(db);
+                        break;
+
+                    case 3:
+                        upgradeDatabaseFrom2to3(db);
                         break;
                  }
              }
@@ -640,13 +631,7 @@ public class BrowserProvider extends ContentProvider {
             return "browser-" + profile + ".db";
         }
 
-        File profileDir = null;
-        try {
-            profileDir = GeckoDirProvider.getProfileDir(mContext, profile);
-        } catch (IOException ex) {
-            Log.e(LOGTAG, "Error getting profile dir", ex);
-        }
-
+        File profileDir = GeckoProfile.get(mContext, profile).getDir();
         if (profileDir == null) {
             debug("Couldn't find directory for profile: " + profile);
             return null;
@@ -736,11 +721,12 @@ public class BrowserProvider extends ContentProvider {
     public boolean onCreate() {
         debug("Creating BrowserProvider");
 
-        GeckoAppShell.getHandler().post(new Runnable() {
+        GeckoBackgroundThread.post(new Runnable() {
+            @Override
             public void run() {
                 // Kick this off early. It is synchronized so that other callers will wait
                 try {
-                    GeckoDirProvider.getProfileDir(getContext());
+                    GeckoProfile.get(getContext()).getDir();
                 } catch (Exception ex) {
                     Log.e(LOGTAG, "Error getting profile dir", ex);
                 }
@@ -903,11 +889,17 @@ public class BrowserProvider extends ContentProvider {
             case BOOKMARKS: {
                 trace("Insert on BOOKMARKS: " + uri);
 
+                // Generate values if not specified. Don't overwrite
+                // if specified by caller.
                 long now = System.currentTimeMillis();
-                values.put(Bookmarks.DATE_CREATED, now);
-                values.put(Bookmarks.DATE_MODIFIED, now);
+                if (!values.containsKey(Bookmarks.DATE_CREATED)) {
+                    values.put(Bookmarks.DATE_CREATED, now);
+                }
 
-                // Generate GUID for new bookmark. Don't override specified GUIDs.
+                if (!values.containsKey(Bookmarks.DATE_MODIFIED)) {
+                    values.put(Bookmarks.DATE_MODIFIED, now);
+                }
+
                 if (!values.containsKey(Bookmarks.GUID)) {
                   values.put(Bookmarks.GUID, Utils.generateGuid());
                 }
@@ -1027,6 +1019,21 @@ public class BrowserProvider extends ContentProvider {
         int updated = 0;
 
         switch (match) {
+            // We provide a dedicated (hacky) API for callers to bulk-update the positions of
+            // folder children by passing an array of GUID strings as `selectionArgs`.
+            // Each child will have its position column set to its index in the provided array.
+            //
+            // This avoids callers having to issue a large number of UPDATE queries through
+            // the usual channels. See Bug 728783.
+            //
+            // Note that this is decidedly not a general-purpose API; use at your own risk.
+            // `values` and `selection` are ignored.
+            case BOOKMARKS_POSITIONS: {
+                debug("Update on BOOKMARKS_POSITIONS: " + uri);
+                updated = updateBookmarkPositions(uri, selectionArgs);
+                break;
+            }
+
             case BOOKMARKS_PARENT: {
                 debug("Update on BOOKMARKS_PARENT: " + uri);
                 updated = updateBookmarkParents(uri, values, selection, selectionArgs);
@@ -1241,6 +1248,50 @@ public class BrowserProvider extends ContentProvider {
     }
 
     /**
+     * Construct an update expression that will modify the positions of
+     * records in-place.
+     *
+     * The provided selectionArgs is expected to be an implicit mapping from
+     * GUID to new position.
+     */
+    int updateBookmarkPositions(Uri uri, String[] guids) {
+        if (guids == null)
+            return 0;
+
+        int guidsCount = guids.length;
+        if (guidsCount == 0)
+            return 0;
+
+        // Each must appear twice: once in a CASE, and once in the IN clause.
+        String[] args = new String[guidsCount * 2];
+        System.arraycopy(guids, 0, args, 0, guidsCount);
+        System.arraycopy(guids, 0, args, guidsCount, guidsCount);
+
+        StringBuilder b = new StringBuilder("UPDATE " + TABLE_BOOKMARKS +
+                                            " SET " + Bookmarks.POSITION + " = CASE guid");
+
+        int i = 0;
+        for (; i < guids.length; ++i) {
+            if (guids[i] == null) {
+                // We don't want to issue the query if not every GUID is specified.
+                debug("updateBookmarkPositions called with null GUID at index " + i);
+                return 0;
+            }
+            b.append(" WHEN ? THEN " + i);
+        }
+        b.append(" END WHERE " + Bookmarks.GUID + " IN (");
+        i = 1;
+        while (i++ < guidsCount) {
+            b.append("?, ");
+        }
+        b.append("?)");
+        getWritableDatabase(uri).execSQL(b.toString(), args);
+
+        // We can't easily get a modified count without calling something like changes().
+        return guidsCount;
+    }
+
+    /**
      * Construct an update expression that will modify the parents of any records
      * that match.
      */
@@ -1427,15 +1478,22 @@ public class BrowserProvider extends ContentProvider {
 
         if (isCallerSync(uri)) {
             return db.delete(TABLE_HISTORY, selection, selectionArgs);
-        } else {
-            debug("Marking history entry as deleted for URI: " + uri);
-
-            ContentValues values = new ContentValues();
-            values.put(History.IS_DELETED, 1);
-
-            cleanupSomeDeletedRecords(uri, History.CONTENT_URI, TABLE_HISTORY);
-            return updateHistory(uri, values, selection, selectionArgs);
         }
+
+        debug("Marking history entry as deleted for URI: " + uri);
+
+        ContentValues values = new ContentValues();
+        values.put(History.IS_DELETED, 1);
+
+        // Wipe sensitive data.
+        values.putNull(History.TITLE);
+        values.put(History.URL, "");          // Column is NOT NULL.
+        values.put(History.DATE_CREATED, 0);
+        values.put(History.DATE_LAST_VISITED, 0);
+        values.put(History.VISITS, 0);
+
+        cleanupSomeDeletedRecords(uri, History.CONTENT_URI, TABLE_HISTORY);
+        return updateHistory(uri, values, selection, selectionArgs);
     }
 
     int deleteBookmarks(Uri uri, String selection, String[] selectionArgs) {
@@ -1445,15 +1503,15 @@ public class BrowserProvider extends ContentProvider {
 
         if (isCallerSync(uri)) {
             return db.delete(TABLE_BOOKMARKS, selection, selectionArgs);
-        } else {
-            debug("Marking bookmarks as deleted for URI: " + uri);
-
-            ContentValues values = new ContentValues();
-            values.put(Bookmarks.IS_DELETED, 1);
-
-            cleanupSomeDeletedRecords(uri, Bookmarks.CONTENT_URI, TABLE_BOOKMARKS);
-            return updateBookmarks(uri, values, selection, selectionArgs);
         }
+
+        debug("Marking bookmarks as deleted for URI: " + uri);
+
+        ContentValues values = new ContentValues();
+        values.put(Bookmarks.IS_DELETED, 1);
+
+        cleanupSomeDeletedRecords(uri, Bookmarks.CONTENT_URI, TABLE_BOOKMARKS);
+        return updateBookmarks(uri, values, selection, selectionArgs);
     }
 
     int deleteImages(Uri uri, String selection, String[] selectionArgs) {
@@ -1463,15 +1521,15 @@ public class BrowserProvider extends ContentProvider {
 
         if (isCallerSync(uri)) {
             return db.delete(TABLE_IMAGES, selection, null);
-        } else {
-            debug("Marking images as deleted for URI: " + uri);
-
-            ContentValues values = new ContentValues();
-            values.put(History.IS_DELETED, 1);
-
-            cleanupSomeDeletedRecords(uri, Images.CONTENT_URI, TABLE_IMAGES);
-            return updateExistingImage(uri, values, selection, null);
         }
+
+        debug("Marking images as deleted for URI: " + uri);
+
+        ContentValues values = new ContentValues();
+        values.put(History.IS_DELETED, 1);
+
+        cleanupSomeDeletedRecords(uri, Images.CONTENT_URI, TABLE_IMAGES);
+        return updateExistingImage(uri, values, selection, null);
     }
 
     int deleteUnusedImages(Uri uri) {
@@ -1485,5 +1543,94 @@ public class BrowserProvider extends ContentProvider {
                 qualifyColumn(TABLE_HISTORY, History.IS_DELETED) + " = 0)";
 
         return deleteImages(uri, selection, null);
+    }
+
+    @Override
+    public ContentProviderResult[] applyBatch (ArrayList<ContentProviderOperation> operations)
+        throws OperationApplicationException {
+        final int numOperations = operations.size();
+        final ContentProviderResult[] results = new ContentProviderResult[numOperations];
+        boolean failures = false;
+        SQLiteDatabase db = null;
+
+        if (numOperations >= 1) {
+            // We only have 1 database for all Uri's that we can get
+            db = getWritableDatabase(operations.get(0).getUri());
+        } else {
+            // The original Android implementation returns a zero-length
+            // array in this case, we do the same.
+            return results;
+        }
+
+        // Note that the apply() call may cause us to generate
+        // additional transactions for the invidual operations.
+        // But Android's wrapper for SQLite supports nested transactions,
+        // so this will do the right thing.
+        db.beginTransaction();
+
+        for (int i = 0; i < numOperations; i++) {
+            try {
+                results[i] = operations.get(i).apply(this, results, i);
+            } catch (SQLException e) {
+                Log.w(LOGTAG, "SQLite Exception during applyBatch: ", e);
+                // The Android API makes it implementation-defined whether
+                // the failure of a single operation makes all others abort
+                // or not. For our use cases, best-effort operation makes
+                // more sense. Rolling back and forcing the caller to retry
+                // after it figures out what went wrong isn't very convenient
+                // anyway.
+                // Signal failed operation back, so the caller knows what
+                // went through and what didn't.
+                results[i] = new ContentProviderResult(0);
+                failures = true;
+                // http://www.sqlite.org/lang_conflict.html
+                // Note that we need a new transaction, subsequent operations
+                // on this one will fail (we're in ABORT by default, which
+                // isn't IGNORE). We still need to set it as successful to let
+                // everything before the failed op go through.
+                // We can't set conflict resolution on API level < 8, and even
+                // above 8 it requires splitting the call per operation
+                // (insert/update/delete).
+                db.setTransactionSuccessful();
+                db.endTransaction();
+                db.beginTransaction();
+            }
+        }
+
+        trace("Flushing DB applyBatch...");
+        db.setTransactionSuccessful();
+        db.endTransaction();
+
+        if (failures) {
+            throw new OperationApplicationException();
+        }
+
+        return results;
+    }
+
+    @Override
+    public int bulkInsert(Uri uri, ContentValues[] values) {
+        if (values == null)
+            return 0;
+
+        int numValues = values.length;
+        int successes = 0;
+
+        final SQLiteDatabase db = getWritableDatabase(uri);
+
+        db.beginTransaction();
+
+        try {
+            for (int i = 0; i < numValues; i++) {
+                insertInTransaction(uri, values[i]);
+                successes++;
+            }
+            trace("Flushing DB bulkinsert...");
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+
+        return successes;
     }
 }

@@ -48,6 +48,7 @@
 #include <string.h>
 #include "prbit.h"
 #include "pldhash.h"
+#include "mozilla/HashFunctions.h"
 #include "nsDebug.h"     /* for PR_ASSERT */
 
 #ifdef PL_DHASHMETER
@@ -108,6 +109,8 @@
 
 #endif /* defined(DEBUG) */
 
+using namespace mozilla;
+
 void *
 PL_DHashAllocTable(PLDHashTable *table, PRUint32 nbytes)
 {
@@ -123,13 +126,7 @@ PL_DHashFreeTable(PLDHashTable *table, void *ptr)
 PLDHashNumber
 PL_DHashStringKey(PLDHashTable *table, const void *key)
 {
-    PLDHashNumber h;
-    const unsigned char *s;
-
-    h = 0;
-    for (s = (const unsigned char *) key; *s != '\0'; s++)
-        h = PR_ROTATE_LEFT32(h, 4) ^ *s;
-    return h;
+    return HashString(static_cast<const char*>(key));
 }
 
 PLDHashNumber

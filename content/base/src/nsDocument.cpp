@@ -147,7 +147,7 @@
 #include "nsILink.h"
 #include "nsBlobProtocolHandler.h"
 
-#include "nsICharsetAlias.h"
+#include "nsCharsetAlias.h"
 #include "nsIParser.h"
 #include "nsIContentSink.h"
 
@@ -1636,6 +1636,7 @@ nsDocument::~nsDocument()
 
   if (mListenerManager) {
     mListenerManager->Disconnect();
+    UnsetFlags(NODE_HAS_LISTENERMANAGER);
   }
 
   if (mScriptLoader) {
@@ -1950,6 +1951,7 @@ NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(nsDocument)
 
   if (tmp->mListenerManager) {
     tmp->mListenerManager->Disconnect();
+    tmp->UnsetFlags(NODE_HAS_LISTENERMANAGER);
     tmp->mListenerManager = nsnull;
   }
 
@@ -3010,13 +3012,10 @@ nsDocument::SetDocumentCharacterSet(const nsACString& aCharSetID)
     mCharacterSet = aCharSetID;
 
 #ifdef DEBUG
-    nsCOMPtr<nsICharsetAlias> calias(do_GetService(NS_CHARSETALIAS_CONTRACTID));
-    if (calias) {
-      nsCAutoString canonicalName;
-      calias->GetPreferred(aCharSetID, canonicalName);
-      NS_ASSERTION(canonicalName.Equals(aCharSetID),
-                   "charset name must be canonical");
-    }
+    nsCAutoString canonicalName;
+    nsCharsetAlias::GetPreferred(aCharSetID, canonicalName);
+    NS_ASSERTION(canonicalName.Equals(aCharSetID),
+                 "charset name must be canonical");
 #endif
 
     PRInt32 n = mCharSetObservers.Length();
@@ -3170,16 +3169,10 @@ nsDocument::TryChannelCharset(nsIChannel *aChannel,
     nsCAutoString charsetVal;
     nsresult rv = aChannel->GetContentCharset(charsetVal);
     if (NS_SUCCEEDED(rv)) {
-      nsCOMPtr<nsICharsetAlias> calias(do_GetService(NS_CHARSETALIAS_CONTRACTID));
-      if (calias) {
-        nsCAutoString preferred;
-        rv = calias->GetPreferred(charsetVal,
-                                  preferred);
-        if(NS_SUCCEEDED(rv)) {
-          aCharset = preferred;
-          aCharsetSource = kCharsetFromChannel;
-          return true;
-        }
+      rv = nsCharsetAlias::GetPreferred(charsetVal, aCharset);
+      if(NS_SUCCEEDED(rv)) {
+        aCharsetSource = kCharsetFromChannel;
+        return true;
       }
     }
   }
@@ -3254,6 +3247,14 @@ nsIDocument::TakeFrameRequestCallbacks(FrameRequestCallbackList& aCallbacks)
   mFrameRequestCallbacks.Clear();
 }
 
+PLDHashOperator RequestDiscardEnumerator(imgIRequest* aKey,
+                                         PRUint32 aData,
+                                         void* userArg)
+{
+  aKey->RequestDiscard();
+  return PL_DHASH_NEXT;
+}
+
 void
 nsDocument::DeleteShell()
 {
@@ -3261,6 +3262,11 @@ nsDocument::DeleteShell()
   if (IsEventHandlingEnabled()) {
     RevokeAnimationFrameNotifications();
   }
+
+  // When our shell goes away, request that all our images be immediately
+  // discarded, so we don't carry around decoded image data for a document we
+  // no longer intend to paint.
+  mImageTracker.EnumerateRead(RequestDiscardEnumerator, nsnull);
 
   mPresShell = nsnull;
 }
@@ -4421,7 +4427,7 @@ nsDocument::CreateElement(const nsAString& aTagName,
   bool needsLowercase = IsHTML() && !IsLowercaseASCII(aTagName);
   nsAutoString lcTagName;
   if (needsLowercase) {
-    ToLowerCase(aTagName, lcTagName);
+    nsContentUtils::ASCIIToLower(aTagName, lcTagName);
   }
 
   rv = CreateElem(needsLowercase ? lcTagName : aTagName,
@@ -5830,8 +5836,12 @@ nsDocument::AppendChild(nsIDOMNode* aNewChild, nsIDOMNode** aReturn)
 }
 
 NS_IMETHODIMP
-nsDocument::CloneNode(bool aDeep, nsIDOMNode** aReturn)
+nsDocument::CloneNode(bool aDeep, PRUint8 aOptionalArgc, nsIDOMNode** aReturn)
 {
+  if (!aOptionalArgc) {
+    aDeep = true;
+  }
+  
   return nsNodeUtils::CloneNodeImpl(this, aDeep, !mCreatingStaticClone, aReturn);
 }
 
@@ -6211,6 +6221,7 @@ nsDocument::GetListenerManager(bool aCreateIfNotFound)
   if (!mListenerManager && aCreateIfNotFound) {
     mListenerManager =
       new nsEventListenerManager(static_cast<nsIDOMEventTarget*>(this));
+    SetFlags(NODE_HAS_LISTENERMANAGER);
   }
 
   return mListenerManager;
@@ -7726,14 +7737,20 @@ nsDocument::MaybePreLoadImage(nsIURI* uri, const nsAString &aCrossOriginAttr)
   }
 
   nsLoadFlags loadFlags = nsIRequest::LOAD_NORMAL;
-  if (aCrossOriginAttr.LowerCaseEqualsLiteral("anonymous")) {
+  switch (nsGenericElement::StringToCORSMode(aCrossOriginAttr)) {
+  case CORS_NONE:
+    // Nothing to do
+    break;
+  case CORS_ANONYMOUS:
     loadFlags |= imgILoader::LOAD_CORS_ANONYMOUS;
-  } else if (aCrossOriginAttr.LowerCaseEqualsLiteral("use-credentials")) {
+    break;
+  case CORS_USE_CREDENTIALS:
     loadFlags |= imgILoader::LOAD_CORS_USE_CREDENTIALS;
+    break;
+  default:
+    /* should never happen */
+    MOZ_NOT_REACHED("Unknown CORS mode!");
   }
-  // else should we err on the side of not doing the preload if
-  // aCrossOriginAttr is nonempty?  Let's err on the side of doing the
-  // preload as CORS_NONE.
 
   // Image not in cache - trigger preload
   nsCOMPtr<imgIRequest> request;
@@ -8062,7 +8079,7 @@ nsIDocument::CreateStaticClone(nsISupports* aCloneContainer)
   nsCOMPtr<nsISupports> originalContainer = GetContainer();
   SetContainer(aCloneContainer);
   nsCOMPtr<nsIDOMNode> clonedNode;
-  nsresult rv = domDoc->CloneNode(true, getter_AddRefs(clonedNode));
+  nsresult rv = domDoc->CloneNode(true, 1, getter_AddRefs(clonedNode));
   SetContainer(originalContainer);
 
   nsCOMPtr<nsIDocument> clonedDoc;
@@ -8311,25 +8328,31 @@ nsDocument::RemoveImage(imgIRequest* aImage)
 
   // If the count is now zero, remove from the tracker.
   // Otherwise, set the new value.
-  if (count == 0) {
-    mImageTracker.Remove(aImage);
-  } else {
+  if (count != 0) {
     mImageTracker.Put(aImage, count);
+    return NS_OK;
   }
+
+  mImageTracker.Remove(aImage);
 
   nsresult rv = NS_OK;
 
-  // If we removed the image from the tracker and we're locking images, unlock
-  // this image.
-  if (count == 0 && mLockingImages)
+  // Now that we're no longer tracking this image, unlock it if we'd
+  // previously locked it.
+  if (mLockingImages) {
     rv = aImage->UnlockImage();
+  }
 
-  // If we removed the image from the tracker and we're animating images,
-  // remove our request to animate this image.
-  if (count == 0 && mAnimatingImages) {
+  // If we're animating images, remove our request to animate this one.
+  if (mAnimatingImages) {
     nsresult rv2 = aImage->DecrementAnimationConsumers();
     rv = NS_SUCCEEDED(rv) ? rv2 : rv;
   }
+
+  // Request that the image be discarded if nobody else holds a lock on it.
+  // Do this even if !mLockingImages, because even if we didn't just unlock
+  // this image, it might still be a candidate for discarding.
+  aImage->RequestDiscard();
 
   return rv;
 }
@@ -8442,7 +8465,8 @@ NS_IMETHODIMP
 nsDocument::CreateTouchList(nsIVariant* aPoints,
                             nsIDOMTouchList** aRetVal)
 {
-  nsRefPtr<nsDOMTouchList> retval = new nsDOMTouchList();
+  nsRefPtr<nsDOMTouchList> retval =
+    new nsDOMTouchList(static_cast<nsIDocument*>(this));
   if (aPoints) {
     PRUint16 type;
     aPoints->GetDataType(&type);
@@ -8477,19 +8501,6 @@ nsDocument::CreateTouchList(nsIVariant* aPoints,
 
   *aRetVal = retval.forget().get();
   return NS_OK;
-}
-
-PRInt64
-nsIDocument::SizeOf() const
-{
-  PRInt64 size = MemoryReporter::GetBasicSize<nsIDocument, nsINode>(this);
-
-  for (nsIContent* node = GetFirstChild(); node;
-       node = node->GetNextNode(this)) {
-    size += node->SizeOf();
-  }
-
-  return size;
 }
 
 static void
@@ -9077,14 +9088,6 @@ nsDocument::IsFullScreenEnabled(bool aCallerIsChrome, bool aLogFailure)
   return true;
 }
 
-PRInt64
-nsDocument::SizeOf() const
-{
-  PRInt64 size = MemoryReporter::GetBasicSize<nsDocument, nsIDocument>(this);
-  size += mAttrStyleSheet ? mAttrStyleSheet->DOMSizeOf() : 0;
-  return size;
-}
-
 #define EVENT(name_, id_, type_, struct_)                                 \
   NS_IMETHODIMP nsDocument::GetOn##name_(JSContext *cx, jsval *vp) {      \
     return nsINode::GetOn##name_(cx, vp);                                 \
@@ -9157,6 +9160,31 @@ nsDocument::GetMozVisibilityState(nsAString& aState)
   return NS_OK;
 }
 
+/* virtual */ void
+nsIDocument::DocSizeOfExcludingThis(nsWindowSizes* aWindowSizes) const
+{
+  aWindowSizes->mDOM +=
+    nsINode::SizeOfExcludingThis(aWindowSizes->mMallocSizeOf);
+
+  if (mPresShell) {
+    mPresShell->SizeOfIncludingThis(aWindowSizes->mMallocSizeOf,
+                                    &aWindowSizes->mLayoutArenas,
+                                    &aWindowSizes->mLayoutStyleSets,
+                                    &aWindowSizes->mLayoutTextRuns);
+  }
+
+  // Measurement of the following members may be added later if DMD finds it
+  // is worthwhile:
+  // - many!
+}
+
+void
+nsIDocument::DocSizeOfIncludingThis(nsWindowSizes* aWindowSizes) const
+{
+  aWindowSizes->mDOM += aWindowSizes->mMallocSizeOf(this);
+  DocSizeOfExcludingThis(aWindowSizes);
+}
+
 static size_t
 SizeOfStyleSheetsElementIncludingThis(nsIStyleSheet* aStyleSheet,
                                       nsMallocSizeOfFun aMallocSizeOf,
@@ -9165,9 +9193,39 @@ SizeOfStyleSheetsElementIncludingThis(nsIStyleSheet* aStyleSheet,
   return aStyleSheet->SizeOfIncludingThis(aMallocSizeOf);
 }
 
-/* virtual */ size_t
-nsDocument::SizeOfStyleSheets(nsMallocSizeOfFun aMallocSizeOf) const
+size_t
+nsDocument::SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOf) const
 {
-  return mStyleSheets.SizeOfExcludingThis(SizeOfStyleSheetsElementIncludingThis,
-                                          aMallocSizeOf); 
+  // This SizeOfExcludingThis() overrides the one from nsINode.  But
+  // nsDocuments can only appear at the top of the DOM tree, and we use the
+  // specialized DocSizeOfExcludingThis() in that case.  So this should never
+  // be called.
+  MOZ_NOT_REACHED("nsDocument::SizeOfExcludingThis");
+  return 0;
+}
+
+void
+nsDocument::DocSizeOfExcludingThis(nsWindowSizes* aWindowSizes) const
+{
+  nsIDocument::DocSizeOfExcludingThis(aWindowSizes);
+
+  for (nsIContent* node = nsINode::GetFirstChild();
+       node;
+       node = node->GetNextNode(this))
+  {
+    aWindowSizes->mDOM +=
+      node->SizeOfIncludingThis(aWindowSizes->mMallocSizeOf);
+  }
+
+  aWindowSizes->mStyleSheets +=
+    mStyleSheets.SizeOfExcludingThis(SizeOfStyleSheetsElementIncludingThis,
+                                     aWindowSizes->mMallocSizeOf); 
+  aWindowSizes->mDOM +=
+    mAttrStyleSheet ?
+    mAttrStyleSheet->DOMSizeOfIncludingThis(aWindowSizes->mMallocSizeOf) :
+    0;
+
+  // Measurement of the following members may be added later if DMD finds it
+  // is worthwhile:
+  // - many!
 }

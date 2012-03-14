@@ -106,13 +106,116 @@ SourceEditor.THEMES = {
 
 /**
  * Source editor configuration defaults.
+ * @see SourceEditor.init
  */
 SourceEditor.DEFAULTS = {
-  MODE: SourceEditor.MODES.TEXT,
-  THEME: SourceEditor.THEMES.MOZILLA,
-  UNDO_LIMIT: 200,
-  TAB_SIZE: 4, // overriden by pref
-  EXPAND_TAB: true, // overriden by pref
+  /**
+   * The text you want shown when the editor opens up.
+   * @type string
+   */
+  initialText: "",
+
+  /**
+   * The editor mode, based on the file type you want to edit. You can use one of
+   * the predefined modes.
+   *
+   * @see SourceEditor.MODES
+   * @type string
+   */
+  mode: SourceEditor.MODES.TEXT,
+
+  /**
+   * The syntax highlighting theme you want. You can use one of the predefined
+   * themes, or you can point to your CSS file.
+   *
+   * @see SourceEditor.THEMES.
+   * @type string
+   */
+  theme: SourceEditor.THEMES.MOZILLA,
+
+  /**
+   * How many steps should the undo stack hold.
+   * @type number
+   */
+  undoLimit: 200,
+
+  /**
+   * Define how many spaces to use for a tab character. This value is overridden
+   * by a user preference, see SourceEditor.PREFS.TAB_SIZE.
+   *
+   * @type number
+   */
+  tabSize: 4,
+
+  /**
+   * Tells if you want tab characters to be expanded to spaces. This value is
+   * overridden by a user preference, see SourceEditor.PREFS.EXPAND_TAB.
+   * @type boolean
+   */
+  expandTab: true,
+
+  /**
+   * Tells if you want the editor to be read only or not.
+   * @type boolean
+   */
+  readOnly: false,
+
+  /**
+   * Display the line numbers gutter.
+   * @type boolean
+   */
+  showLineNumbers: false,
+
+  /**
+   * Display the annotations gutter/ruler. This gutter currently supports
+   * annotations of breakpoint type.
+   * @type boolean
+   */
+  showAnnotationRuler: false,
+
+  /**
+   * Display the overview gutter/ruler. This gutter presents an overview of the
+   * current annotations in the editor, for example the breakpoints.
+   * @type boolean
+   */
+  showOverviewRuler: false,
+
+  /**
+   * Highlight the current line.
+   * @type boolean
+   */
+  highlightCurrentLine: true,
+
+  /**
+   * An array of objects that allows you to define custom editor keyboard
+   * bindings. Each object can have:
+   *   - action - name of the editor action to invoke.
+   *   - code - keyCode for the shortcut.
+   *   - accel - boolean for the Accel key (Cmd on Macs, Ctrl on Linux/Windows).
+   *   - ctrl - boolean for the Control key
+   *   - shift - boolean for the Shift key.
+   *   - alt - boolean for the Alt key.
+   *   - callback - optional function to invoke, if the action is not predefined
+   *   in the editor.
+   * @type array
+   */
+  keys: null,
+
+  /**
+   * The editor context menu you want to display when the user right-clicks
+   * within the editor. This property can be:
+   *   - a string that tells the ID of the xul:menupopup you want. This needs to
+   *   be available within the editor parentElement.ownerDocument.
+   *   - an nsIDOMElement object reference pointing to the xul:menupopup you
+   *   want to open when the contextmenu event is fired.
+   *
+   * Set this property to a falsey value to disable the default context menu.
+   *
+   * @see SourceEditor.EVENTS.CONTEXT_MENU for more control over the contextmenu
+   * event.
+   * @type string|nsIDOMElement
+   */
+  contextMenu: "sourceEditorContextMenu",
 };
 
 /**
@@ -130,6 +233,8 @@ SourceEditor.EVENTS = {
    *   This value comes from the DOM contextmenu event.screenX property.
    *   - screenY - the pointer location on the y axis, relative to the screen.
    *   This value comes from the DOM contextmenu event.screenY property.
+   *
+   * @see SourceEditor.DEFAULTS.contextMenu
    */
   CONTEXT_MENU: "ContextMenu",
 
@@ -163,28 +268,58 @@ SourceEditor.EVENTS = {
   BLUR: "Blur",
 
   /**
-   * The MouseMove event is sent when the user moves the mouse over a line
-   * annotation. The event object properties:
+   * The MouseMove event is sent when the user moves the mouse over a line.
+   * The event object properties:
    *   - event - the DOM mousemove event object.
    *   - x and y - the mouse coordinates relative to the document being edited.
    */
   MOUSE_MOVE: "MouseMove",
 
   /**
-   * The MouseOver event is sent when the mouse pointer enters a line
-   * annotation. The event object properties:
+   * The MouseOver event is sent when the mouse pointer enters a line.
+   * The event object properties:
    *   - event - the DOM mouseover event object.
    *   - x and y - the mouse coordinates relative to the document being edited.
    */
   MOUSE_OVER: "MouseOver",
 
   /**
-   * This MouseOut event is sent when the mouse pointer exits a line
-   * annotation. The event object properties:
+   * This MouseOut event is sent when the mouse pointer exits a line.
+   * The event object properties:
    *   - event - the DOM mouseout event object.
    *   - x and y - the mouse coordinates relative to the document being edited.
    */
   MOUSE_OUT: "MouseOut",
+
+  /**
+   * The BreakpointChange event is fired when a new breakpoint is added or when
+   * a breakpoint is removed - either through API use or through the editor UI.
+   * Event object properties:
+   *   - added - array that holds the new breakpoints.
+   *   - removed - array that holds the breakpoints that have been removed.
+   * Each object in the added/removed arrays holds two properties: line and
+   * condition.
+   */
+  BREAKPOINT_CHANGE: "BreakpointChange",
+
+  /**
+   * The DirtyChanged event is fired when the dirty state of the editor is
+   * changed. The dirty state of the editor tells if the are text changes that
+   * have not been saved yet. Event object properties: oldValue and newValue.
+   * Both are booleans telling the old dirty state and the new state,
+   * respectively.
+   */
+  DIRTY_CHANGED: "DirtyChanged",
+};
+
+/**
+ * Allowed vertical alignment options for the line index
+ * when you call SourceEditor.setCaretPosition().
+ */
+SourceEditor.VERTICAL_ALIGN = {
+  TOP: 0,
+  CENTER: 1,
+  BOTTOM: 2,
 };
 
 /**
@@ -206,6 +341,13 @@ function extend(aDestination, aSource)
  * Add methods common to all components.
  */
 extend(SourceEditor.prototype, {
+  // Expose the static constants on the SourceEditor instances.
+  EVENTS: SourceEditor.EVENTS,
+  MODES: SourceEditor.MODES,
+  THEMES: SourceEditor.THEMES,
+  DEFAULTS: SourceEditor.DEFAULTS,
+  VERTICAL_ALIGN: SourceEditor.VERTICAL_ALIGN,
+
   _lastFind: null,
 
   /**

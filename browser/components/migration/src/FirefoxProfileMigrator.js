@@ -224,8 +224,13 @@ FirefoxProfileMigrator.prototype = {
   migrate : function Firefox_migrate(aItems, aStartup, aProfile)
   {
     if (aStartup) {
-      aStartup.doStartup();
       this._replaceBookmarks = true;
+    }
+
+    // Ensure that aProfile is not the current profile.
+    if (this._paths.currentProfile.path === this._sourceProfile.path) {
+      throw new Exception("Source and destination profiles are the same");
+      return;
     }
 
     Services.obs.notifyObservers(null, "Migration:Started", null);
@@ -245,6 +250,11 @@ FirefoxProfileMigrator.prototype = {
 
     if (aItems & MIGRATOR.PASSWORDS)
       this._migratePasswords();
+
+    // The password manager encryption key must be copied before startup.
+    if (aStartup) {
+      aStartup.doStartup();
+    }
 
     if (aItems & MIGRATOR.FORMDATA)
       this._migrateFormData();
@@ -274,6 +284,11 @@ FirefoxProfileMigrator.prototype = {
     this._sourceProfile.initWithPath(aProfile);
 
     let result = 0;
+
+    // Ensure that aProfile is not the current profile.
+    if (this._paths.currentProfile.path === this._sourceProfile.path)
+      return result;
+
     if (!this._sourceProfile.exists() || !this._sourceProfile.isReadable()) {
       Cu.reportError("source profile directory doesn't exist or is not readable");
       return result;

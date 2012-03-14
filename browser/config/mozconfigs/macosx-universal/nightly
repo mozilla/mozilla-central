@@ -7,6 +7,7 @@ ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
 ac_add_options --enable-update-packaging
 ac_add_options --enable-codesighs
 ac_add_options --disable-install-strip
+ac_add_options --enable-signmar
 
 # Nightlies only since this has a cost in performance
 ac_add_options --enable-js-diagnostics
@@ -21,3 +22,6 @@ ac_add_options --with-macbundlename-prefix=Firefox
 
 # Treat warnings as errors in directories with FAIL_ON_WARNINGS.
 ac_add_options --enable-warnings-as-errors
+
+# Package js shell.
+export MOZ_PACKAGE_JSSHELL=1

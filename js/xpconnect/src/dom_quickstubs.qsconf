@@ -75,7 +75,6 @@ members = [
     'nsIDOMWindow.getComputedStyle',
     'nsIDOMWindow.sessionStorage',
     'nsIDOMWindow.localStorage',
-    'nsIDOMWindow.globalStorage',
     'nsIDOMWindow.onmouseenter',
     'nsIDOMWindow.onmouseleave',
     'nsIDOMJSWindow.dump',
@@ -500,6 +499,7 @@ irregularFilenames = {
     'nsIWebGLUniformLocation': 'nsIDOMWebGLRenderingContext',
     'nsIWebGLExtension': 'nsIDOMWebGLRenderingContext',
     'nsIWebGLExtensionStandardDerivatives' : 'nsIDOMWebGLRenderingContext',
+    'nsIWebGLExtensionTextureFilterAnisotropic' : 'nsIDOMWebGLRenderingContext',
     'nsIWebGLExtensionLoseContext' : 'nsIDOMWebGLRenderingContext',
 
     'nsIIndexedDatabaseUsageCallback': 'nsIIndexedDatabaseManager',
@@ -517,6 +517,7 @@ customIncludes = [
     'nsINodeList.h',
     'nsCSSPropertiesQS.h',
     'nsDocument.h',
+    'nsDOMTokenList.h',
     'nsGenericDOMDataNode.h',
     'nsGenericElement.h',
     'nsGenericHTMLElement.h',
@@ -542,7 +543,7 @@ nsIDOMNode_GetChildNodes_customMethodCallCode = """
 
 nsIDOMHTMLDocument_Write_customMethodCallCode = """
     nsAString &str = arg0;
-    for (uintN i = 1; i < argc; ++i) {
+    for (unsigned i = 1; i < argc; ++i) {
       xpc_qsDOMString next_arg(cx, argv[i], &argv[i],
                                xpc_qsDOMString::eStringify,
                                xpc_qsDOMString::eStringify);
@@ -784,7 +785,7 @@ customMethodCalls = {
         },
     'nsIDOMElement_GetClassList': {
         'thisType': 'nsGenericElement',
-        'code': '    nsIDOMDOMTokenList *result = self->GetClassList(&rv);'
+        'code': '    nsDOMTokenList *result = self->GetClassList(&rv);'
         },
     'nsIDOMElement_SetCapture': {
         'thisType': 'nsGenericElement',

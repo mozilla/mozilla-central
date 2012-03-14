@@ -45,6 +45,9 @@
 #include "nsHTMLStyleSheet.h"
 #include "nsRuleWalker.h"
 #include "prmem.h"
+#include "mozilla/HashFunctions.h"
+
+using namespace mozilla;
 
 nsMappedAttributes::nsMappedAttributes(nsHTMLStyleSheet* aSheet,
                                        nsMapRuleToAttributesFunc aMapRuleFunc)
@@ -176,14 +179,16 @@ nsMappedAttributes::Equals(const nsMappedAttributes* aOther) const
 PRUint32
 nsMappedAttributes::HashValue() const
 {
-  PRUint32 value = NS_PTR_TO_INT32(mRuleMapper);
+  PRUint32 hash = HashGeneric(mRuleMapper);
 
   PRUint32 i;
   for (i = 0; i < mAttrCount; ++i) {
-    value ^= Attrs()[i].mName.HashValue() ^ Attrs()[i].mValue.HashValue();
+    hash = AddToHash(hash,
+                     Attrs()[i].mName.HashValue(),
+                     Attrs()[i].mValue.HashValue());
   }
 
-  return value;
+  return hash;
 }
 
 void
@@ -278,18 +283,16 @@ nsMappedAttributes::IndexOfAttr(nsIAtom* aLocalName, PRInt32 aNamespaceID) const
   return -1;
 }
 
-PRInt64
-nsMappedAttributes::SizeOf() const
+size_t
+nsMappedAttributes::SizeOfIncludingThis(nsMallocSizeOfFun aMallocSizeOf) const
 {
   NS_ASSERTION(mAttrCount == mBufferSize,
                "mBufferSize and mAttrCount are expected to be the same.");
 
-  PRInt64 size = sizeof(*this) - sizeof(void*) + mAttrCount * sizeof(InternalAttr);
-
+  size_t n = aMallocSizeOf(this);
   for (PRUint16 i = 0; i < mAttrCount; ++i) {
-    size += Attrs()[i].mValue.SizeOf() - sizeof(Attrs()[i].mValue);
+    n += Attrs()[i].mValue.SizeOfExcludingThis(aMallocSizeOf);
   }
-
-  return size;
+  return n;
 }
 

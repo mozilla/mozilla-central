@@ -105,8 +105,9 @@
 
 // See CSSParserImpl::ParseSingleValueProperty
 #define CSS_PROPERTY_VALUE_PARSER_FUNCTION        (1<<12)
-PR_STATIC_ASSERT((CSS_PROPERTY_PARSE_PROPERTY_MASK &
-                  CSS_PROPERTY_VALUE_PARSER_FUNCTION) == 0);
+MOZ_STATIC_ASSERT((CSS_PROPERTY_PARSE_PROPERTY_MASK &
+                   CSS_PROPERTY_VALUE_PARSER_FUNCTION) == 0,
+                  "didn't leave enough room for the parse property constants");
 
 #define CSS_PROPERTY_VALUE_RESTRICTION_MASK       (3<<13)
 // The parser (in particular, CSSParserImpl::ParseSingleValueProperty)
@@ -340,6 +341,7 @@ public:
   static const PRInt32 kBackgroundOriginKTable[];
   static const PRInt32 kBackgroundPositionKTable[];
   static const PRInt32 kBackgroundRepeatKTable[];
+  static const PRInt32 kBackgroundRepeatPartKTable[];
   static const PRInt32 kBackgroundSizeKTable[];
   static const PRInt32 kBorderCollapseKTable[];
   static const PRInt32 kBorderColorKTable[];

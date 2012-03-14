@@ -22,6 +22,7 @@
  *
  * Contributor(s):
  *   Victor Porof <vporof@mozilla.com> (original author)
+ *   Mihai Sucan <mihai.sucan@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -150,35 +151,35 @@ DebuggerView.Stackframes = {
    *
    * @param number aDepth
    *        The frame depth specified by the debugger.
-   * @param string aFrameIdText
-   *        The id to be displayed in the list.
    * @param string aFrameNameText
    *        The name to be displayed in the list.
+   * @param string aFrameDetailsText
+   *        The details to be displayed in the list.
    * @return object
    *         The newly created html node representing the added frame.
    */
-  addFrame: function DVF_addFrame(aDepth, aFrameIdText, aFrameNameText) {
+  addFrame: function DVF_addFrame(aDepth, aFrameNameText, aFrameDetailsText) {
     // make sure we don't duplicate anything
     if (document.getElementById("stackframe-" + aDepth)) {
       return null;
     }
 
     let frame = document.createElement("div");
-    let frameId = document.createElement("span");
     let frameName = document.createElement("span");
+    let frameDetails = document.createElement("span");
 
     // create a list item to be added to the stackframes container
     frame.id = "stackframe-" + aDepth;
     frame.className = "dbg-stackframe list-item";
 
-    // this list should display the id and name of the frame
-    frameId.className = "dbg-stackframe-id";
+    // this list should display the name and details for the frame
     frameName.className = "dbg-stackframe-name";
-    frameId.appendChild(document.createTextNode(aFrameIdText));
+    frameDetails.className = "dbg-stackframe-details";
     frameName.appendChild(document.createTextNode(aFrameNameText));
+    frameDetails.appendChild(document.createTextNode(aFrameDetailsText));
 
-    frame.appendChild(frameId);
     frame.appendChild(frameName);
+    frame.appendChild(frameDetails);
 
     this._frames.appendChild(frame);
 
@@ -199,7 +200,6 @@ DebuggerView.Stackframes = {
 
     // the list item wasn't found in the stackframe container
     if (!frame) {
-      dump("The frame list item wasn't found in the stackframes container.");
       return;
     }
 
@@ -349,14 +349,13 @@ DebuggerView.Properties = {
     }
 
     // compute the id of the element if not specified
-    aId = aId || (aName + "-scope");
+    aId = aId || (aName.toLowerCase().trim().replace(" ", "-") + "-scope");
 
     // contains generic nodes and functionality
     let element = this._createPropertyElement(aName, aId, "scope", this._vars);
 
     // make sure the element was created successfully
     if (!element) {
-      dump("The debugger scope container wasn't created properly: " + aId);
       return null;
     }
 
@@ -398,7 +397,6 @@ DebuggerView.Properties = {
 
     // make sure the element was created successfully
     if (!element) {
-      dump("The debugger variable container wasn't created properly: " + aId);
       return null;
     }
 
@@ -466,7 +464,6 @@ DebuggerView.Properties = {
 
     // make sure the info node exists
     if (!info) {
-      dump("Could not set the grip for the corresponding variable: " + aVar.id);
       return null;
     }
 
@@ -541,12 +538,12 @@ DebuggerView.Properties = {
    *        An array containing the key and grip properties, specifying
    *        the value and/or type & class of the variable (if the type
    *        is not specified, it will be inferred from the value).
-   *        e.g. ["someProp0": 42]
-   *             ["someProp1": true]
-   *             ["someProp2": "nasu"]
-   *             ["someProp3": { type: "undefined" }]
-   *             ["someProp4": { type: "null" }]
-   *             ["someProp5": { type: "object", class: "Object" }]
+   *        e.g. ["someProp0", 42]
+   *             ["someProp1", true]
+   *             ["someProp2", "nasu"]
+   *             ["someProp3", { type: "undefined" }]
+   *             ["someProp4", { type: "null" }]
+   *             ["someProp5", { type: "object", class: "Object" }]
    * @param string aName
    *        Optional, the property name.
    * @paarm string aId
@@ -569,7 +566,6 @@ DebuggerView.Properties = {
 
     // make sure the element was created successfully
     if (!element) {
-      dump("The debugger property container wasn't created properly.");
       return null;
     }
 
@@ -710,11 +706,9 @@ DebuggerView.Properties = {
   _createPropertyElement: function DVP__createPropertyElement(aName, aId, aClass, aParent) {
     // make sure we don't duplicate anything and the parent exists
     if (document.getElementById(aId)) {
-      dump("Duplicating a property element id is not allowed.");
       return null;
     }
     if (!aParent) {
-      dump("A property element must have a valid parent node specified.");
       return null;
     }
 
@@ -1074,9 +1068,25 @@ DebuggerView.Scripts = {
    *
    * @param string aUrl
    *        The script URL.
+   * @return boolean
    */
   contains: function DVS_contains(aUrl) {
     if (this._scripts.getElementsByAttribute("value", aUrl).length > 0) {
+      return true;
+    }
+    return false;
+  },
+
+  /**
+   * Checks whether the script with the specified label is among the scripts
+   * known to the debugger and shown in the list.
+   *
+   * @param string aLabel
+   *        The script label.
+   * @return boolean
+   */
+  containsLabel: function DVS_containsLabel(aLabel) {
+    if (this._scripts.getElementsByAttribute("label", aLabel).length > 0) {
       return true;
     }
     return false;
@@ -1109,6 +1119,15 @@ DebuggerView.Scripts = {
         break;
       }
     }
+  },
+
+   /**
+   	* Retrieve the URL of the selected script.
+   	* @return string|null
+   	*/
+   get selected() {
+    return this._scripts.selectedItem ?
+           this._scripts.selectedItem.value : null;
    },
 
   /**
@@ -1116,23 +1135,23 @@ DebuggerView.Scripts = {
    * If the script already exists (was previously added), null is returned.
    * Otherwise, the newly created element is returned.
    *
-   * @param string aUrl
-   *        The script url.
+   * @param string aLabel
+   *        The simplified script location to be shown.
    * @param string aScript
    *        The source script.
-   * @param string aScriptNameText
-   *        Optional, title displayed instead of url.
    * @return object
    *         The newly created html node representing the added script.
    */
-  addScript: function DVS_addScript(aUrl, aSource, aScriptNameText) {
+  addScript: function DVS_addScript(aLabel, aScript) {
     // make sure we don't duplicate anything
-    if (this.contains(aUrl)) {
+    if (this.containsLabel(aLabel)) {
       return null;
     }
 
-    let script = this._scripts.appendItem(aScriptNameText || aUrl, aUrl);
-    script.setUserData("sourceScript", aSource, null);
+    let script = this._scripts.appendItem(aLabel, aScript.url);
+    script.setAttribute("tooltiptext", aScript.url);
+    script.setUserData("sourceScript", aScript, null);
+
     this._scripts.selectedItem = script;
     return script;
   },

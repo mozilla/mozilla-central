@@ -61,7 +61,9 @@
 using namespace js;
 using namespace js::gc;
 
-static int sWrapperFamily;
+namespace js {
+int sWrapperFamily;
+}
 
 void *
 Wrapper::getWrapperFamily()
@@ -69,16 +71,10 @@ Wrapper::getWrapperFamily()
     return &sWrapperFamily;
 }
 
-JS_FRIEND_API(bool)
-js::IsWrapper(const JSObject *wrapper)
-{
-    return wrapper->isProxy() && GetProxyHandler(wrapper)->family() == &sWrapperFamily;
-}
-
 JS_FRIEND_API(JSObject *)
-js::UnwrapObject(JSObject *wrapped, bool stopAtOuter, uintN *flagsp)
+js::UnwrapObject(JSObject *wrapped, bool stopAtOuter, unsigned *flagsp)
 {
-    uintN flags = 0;
+    unsigned flags = 0;
     while (wrapped->isWrapper()) {
         flags |= static_cast<Wrapper *>(GetProxyHandler(wrapped))->flags();
         wrapped = GetProxyPrivate(wrapped).toObjectOrNull();
@@ -97,7 +93,7 @@ js::IsCrossCompartmentWrapper(const JSObject *wrapper)
            !!(Wrapper::wrapperHandler(wrapper)->flags() & Wrapper::CROSS_COMPARTMENT);
 }
 
-Wrapper::Wrapper(uintN flags) : ProxyHandler(&sWrapperFamily), mFlags(flags)
+Wrapper::Wrapper(unsigned flags) : ProxyHandler(&sWrapperFamily), mFlags(flags)
 {
 }
 
@@ -128,7 +124,7 @@ Wrapper::getPropertyDescriptor(JSContext *cx, JSObject *wrapper, jsid id, bool s
 }
 
 static bool
-GetOwnPropertyDescriptor(JSContext *cx, JSObject *obj, jsid id, uintN flags, JSPropertyDescriptor *desc)
+GetOwnPropertyDescriptor(JSContext *cx, JSObject *obj, jsid id, unsigned flags, JSPropertyDescriptor *desc)
 {
     // If obj is a proxy, we can do better than just guessing. This is
     // important for certain types of wrappers that wrap other wrappers.
@@ -247,7 +243,7 @@ Wrapper::keys(JSContext *cx, JSObject *wrapper, AutoIdVector &props)
 }
 
 bool
-Wrapper::iterate(JSContext *cx, JSObject *wrapper, uintN flags, Value *vp)
+Wrapper::iterate(JSContext *cx, JSObject *wrapper, unsigned flags, Value *vp)
 {
     vp->setUndefined(); // default result if we refuse to perform this action
     const jsid id = JSID_VOID;
@@ -255,7 +251,7 @@ Wrapper::iterate(JSContext *cx, JSObject *wrapper, uintN flags, Value *vp)
 }
 
 bool
-Wrapper::call(JSContext *cx, JSObject *wrapper, uintN argc, Value *vp)
+Wrapper::call(JSContext *cx, JSObject *wrapper, unsigned argc, Value *vp)
 {
     vp->setUndefined(); // default result if we refuse to perform this action
     const jsid id = JSID_VOID;
@@ -263,7 +259,7 @@ Wrapper::call(JSContext *cx, JSObject *wrapper, uintN argc, Value *vp)
 }
 
 bool
-Wrapper::construct(JSContext *cx, JSObject *wrapper, uintN argc, Value *argv, Value *vp)
+Wrapper::construct(JSContext *cx, JSObject *wrapper, unsigned argc, Value *argv, Value *vp)
 {
     vp->setUndefined(); // default result if we refuse to perform this action
     const jsid id = JSID_VOID;
@@ -315,7 +311,7 @@ Wrapper::obj_toString(JSContext *cx, JSObject *wrapper)
 }
 
 JSString *
-Wrapper::fun_toString(JSContext *cx, JSObject *wrapper, uintN indent)
+Wrapper::fun_toString(JSContext *cx, JSObject *wrapper, unsigned indent)
 {
     bool status;
     if (!enter(cx, wrapper, JSID_VOID, GET, &status)) {
@@ -334,10 +330,10 @@ Wrapper::fun_toString(JSContext *cx, JSObject *wrapper, uintN indent)
     return str;
 }
 
-RegExpShared *
-Wrapper::regexp_toShared(JSContext *cx, JSObject *wrapper)
+bool
+Wrapper::regexp_toShared(JSContext *cx, JSObject *wrapper, RegExpGuard *g)
 {
-    return wrappedObject(wrapper)->asRegExp().getShared(cx);
+    return wrappedObject(wrapper)->asRegExp().getShared(cx, g);
 }
 
 bool
@@ -367,7 +363,7 @@ Wrapper::iteratorNext(JSContext *cx, JSObject *wrapper, Value *vp)
 void
 Wrapper::trace(JSTracer *trc, JSObject *wrapper)
 {
-    MarkValue(trc, &wrapper->getReservedSlotRef(JSSLOT_PROXY_PRIVATE), "wrappedObject");
+    MarkSlot(trc, &wrapper->getReservedSlotRef(JSSLOT_PROXY_PRIVATE), "wrappedObject");
 }
 
 JSObject *
@@ -394,7 +390,7 @@ Wrapper::leave(JSContext *cx, JSObject *wrapper)
 {
 }
 
-Wrapper Wrapper::singleton((uintN)0);
+Wrapper Wrapper::singleton((unsigned)0);
 
 JSObject *
 Wrapper::New(JSContext *cx, JSObject *obj, JSObject *proto, JSObject *parent, Wrapper *handler)
@@ -414,7 +410,7 @@ namespace js {
 
 extern JSObject *
 TransparentObjectWrapper(JSContext *cx, JSObject *obj, JSObject *wrappedProto, JSObject *parent,
-                         uintN flags)
+                         unsigned flags)
 {
     // Allow wrapping outer window proxies.
     JS_ASSERT(!obj->isWrapper() || obj->getClass()->ext.innerObject);
@@ -516,7 +512,7 @@ ErrorCopier::~ErrorCopier()
 
 /* Cross compartment wrappers. */
 
-CrossCompartmentWrapper::CrossCompartmentWrapper(uintN flags)
+CrossCompartmentWrapper::CrossCompartmentWrapper(unsigned flags)
   : Wrapper(CROSS_COMPARTMENT | flags)
 {
 }
@@ -660,7 +656,7 @@ struct AutoCloseIterator
 {
     AutoCloseIterator(JSContext *cx, JSObject *obj) : cx(cx), obj(obj) {}
 
-    ~AutoCloseIterator() { if (obj) js_CloseIterator(cx, obj); }
+    ~AutoCloseIterator() { if (obj) CloseIterator(cx, obj); }
 
     void clear() { obj = NULL; }
 
@@ -705,7 +701,7 @@ Reify(JSContext *cx, JSCompartment *origin, Value *vp)
     }
 
     close.clear();
-    if (!js_CloseIterator(cx, iterObj))
+    if (!CloseIterator(cx, iterObj))
         return false;
 
     if (isKeyIter)
@@ -714,7 +710,7 @@ Reify(JSContext *cx, JSCompartment *origin, Value *vp)
 }
 
 bool
-CrossCompartmentWrapper::iterate(JSContext *cx, JSObject *wrapper, uintN flags, Value *vp)
+CrossCompartmentWrapper::iterate(JSContext *cx, JSObject *wrapper, unsigned flags, Value *vp)
 {
     PIERCE(cx, wrapper, GET,
            NOTHING,
@@ -723,7 +719,7 @@ CrossCompartmentWrapper::iterate(JSContext *cx, JSObject *wrapper, uintN flags, 
 }
 
 bool
-CrossCompartmentWrapper::call(JSContext *cx, JSObject *wrapper, uintN argc, Value *vp)
+CrossCompartmentWrapper::call(JSContext *cx, JSObject *wrapper, unsigned argc, Value *vp)
 {
     AutoCompartment call(cx, wrappedObject(wrapper));
     if (!call.enter())
@@ -745,7 +741,7 @@ CrossCompartmentWrapper::call(JSContext *cx, JSObject *wrapper, uintN argc, Valu
 }
 
 bool
-CrossCompartmentWrapper::construct(JSContext *cx, JSObject *wrapper, uintN argc, Value *argv,
+CrossCompartmentWrapper::construct(JSContext *cx, JSObject *wrapper, unsigned argc, Value *argv,
                                    Value *rval)
 {
     AutoCompartment call(cx, wrappedObject(wrapper));
@@ -764,7 +760,7 @@ CrossCompartmentWrapper::construct(JSContext *cx, JSObject *wrapper, uintN argc,
 }
 
 extern JSBool
-js_generic_native_method_dispatcher(JSContext *cx, uintN argc, Value *vp);
+js_generic_native_method_dispatcher(JSContext *cx, unsigned argc, Value *vp);
 
 bool
 CrossCompartmentWrapper::nativeCall(JSContext *cx, JSObject *wrapper, Class *clasp, Native native, CallArgs srcArgs)
@@ -796,9 +792,9 @@ CrossCompartmentWrapper::nativeCall(JSContext *cx, JSObject *wrapper, Class *cla
     if (!Wrapper::nativeCall(cx, wrapper, clasp, native, dstArgs))
         return false;
 
+    srcArgs.rval() = dstArgs.rval();
     dstArgs.pop();
     call.leave();
-    srcArgs.rval() = dstArgs.rval();
     return call.origin->wrap(cx, &srcArgs.rval());
 }
 
@@ -833,7 +829,7 @@ CrossCompartmentWrapper::obj_toString(JSContext *cx, JSObject *wrapper)
 }
 
 JSString *
-CrossCompartmentWrapper::fun_toString(JSContext *cx, JSObject *wrapper, uintN indent)
+CrossCompartmentWrapper::fun_toString(JSContext *cx, JSObject *wrapper, unsigned indent)
 {
     AutoCompartment call(cx, wrappedObject(wrapper));
     if (!call.enter())
@@ -875,8 +871,8 @@ CrossCompartmentWrapper::iteratorNext(JSContext *cx, JSObject *wrapper, Value *v
 void
 CrossCompartmentWrapper::trace(JSTracer *trc, JSObject *wrapper)
 {
-    MarkCrossCompartmentValue(trc, &wrapper->getReservedSlotRef(JSSLOT_PROXY_PRIVATE),
-                              "wrappedObject");
+    MarkCrossCompartmentSlot(trc, &wrapper->getReservedSlotRef(JSSLOT_PROXY_PRIVATE),
+                             "wrappedObject");
 }
 
 CrossCompartmentWrapper CrossCompartmentWrapper::singleton(0u);
@@ -884,7 +880,7 @@ CrossCompartmentWrapper CrossCompartmentWrapper::singleton(0u);
 /* Security wrappers. */
 
 template <class Base>
-SecurityWrapper<Base>::SecurityWrapper(uintN flags)
+SecurityWrapper<Base>::SecurityWrapper(unsigned flags)
   : Base(flags)
 {}
 
@@ -912,10 +908,10 @@ SecurityWrapper<Base>::objectClassIs(JSObject *obj, ESClassValue classValue, JSC
 }
 
 template <class Base>
-RegExpShared *
-SecurityWrapper<Base>::regexp_toShared(JSContext *cx, JSObject *obj)
+bool
+SecurityWrapper<Base>::regexp_toShared(JSContext *cx, JSObject *obj, RegExpGuard *g)
 {
-    return Base::regexp_toShared(cx, obj);
+    return Base::regexp_toShared(cx, obj, g);
 }
 
 

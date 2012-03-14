@@ -49,7 +49,6 @@
 #include "nsAutoPtr.h"
 #include "mozilla/ReentrantMonitor.h"
 #include "nsISocketTransportService.h"
-#include "nsHashSets.h"
 
 #include "nsIObserver.h"
 #include "nsITimer.h"
@@ -410,6 +409,12 @@ private:
     // Timer for next pruning of dead connections.
     nsCOMPtr<nsITimer> mTimer;
 
+    // A 1s tick to call nsHttpConnection::ReadTimeoutTick on
+    // active http/1 connections. Disabled when there are no
+    // active connections.
+    nsCOMPtr<nsITimer> mReadTimeoutTick;
+    bool mReadTimeoutTickArmed;
+
     //
     // the connection table
     //
@@ -419,11 +424,16 @@ private:
     nsClassHashtable<nsCStringHashKey, nsConnectionEntry> mCT;
 
     // mAlternateProtocolHash is used only for spdy/2 upgrades for now
-    nsCStringHashSet mAlternateProtocolHash; // protected by the monitor
-    static PLDHashOperator TrimAlternateProtocolHash(PLDHashTable *table,
-                                                     PLDHashEntryHdr *hdr,
-                                                     PRUint32 number,
+    // protected by the monitor
+    nsTHashtable<nsCStringHashKey> mAlternateProtocolHash;
+    static PLDHashOperator TrimAlternateProtocolHash(nsCStringHashKey *entry,
                                                      void *closure);
+    // Read Timeout Tick handlers
+    void ActivateTimeoutTick();
+    void ReadTimeoutTick();
+    static PLDHashOperator ReadTimeoutTickCB(const nsACString &key,
+                                             nsAutoPtr<nsConnectionEntry> &ent,
+                                             void *closure);
 };
 
 #endif // !nsHttpConnectionMgr_h__

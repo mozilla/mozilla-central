@@ -182,8 +182,8 @@ nsTArray_base<Alloc>::EnsureCapacity(size_type capacity, size_type elemSize) {
     bytesToAlloc |= bytesToAlloc >> 16;
     bytesToAlloc++;
 
-    NS_ASSERTION((bytesToAlloc & (bytesToAlloc - 1)) == 0,
-                 "nsTArray's allocation size should be a power of two!");
+    MOZ_ASSERT((bytesToAlloc & (bytesToAlloc - 1)) == 0,
+               "nsTArray's allocation size should be a power of two!");
   }
 
   Header *header;
@@ -203,7 +203,7 @@ nsTArray_base<Alloc>::EnsureCapacity(size_type capacity, size_type elemSize) {
 
   // How many elements can we fit in bytesToAlloc?
   PRUint32 newCapacity = (bytesToAlloc - sizeof(Header)) / elemSize;
-  NS_ASSERTION(newCapacity >= capacity, "Didn't enlarge the array enough!");
+  MOZ_ASSERT(newCapacity >= capacity, "Didn't enlarge the array enough!");
   header->mCapacity = newCapacity;
 
   mHdr = header;
@@ -235,7 +235,7 @@ nsTArray_base<Alloc>::ShrinkCapacity(size_type elemSize, size_t elemAlign) {
   }
 
   if (length == 0) {
-    NS_ASSERTION(!IsAutoArray(), "autoarray should have fit 0 elements");
+    MOZ_ASSERT(!IsAutoArray(), "autoarray should have fit 0 elements");
     Alloc::Free(mHdr);
     mHdr = EmptyHdr();
     return;
@@ -282,7 +282,7 @@ template<class Alloc>
 bool
 nsTArray_base<Alloc>::InsertSlotsAt(index_type index, size_type count,
                                     size_type elementSize, size_t elemAlign)  {
-  NS_ASSERTION(index <= Length(), "Bogus insertion index");
+  MOZ_ASSERT(index <= Length(), "Bogus insertion index");
   size_type newLen = Length() + count;
 
   EnsureCapacity(newLen, elementSize);
@@ -398,11 +398,11 @@ nsTArray_base<Alloc>::SwapArrayElements(nsTArray_base<Allocator>& other,
   }
 
   // Allocate temporary storage for the smaller of the two arrays.  We want to
-  // allocate this space on the stack, unless it's very large.  Sounds like a
+  // allocate this space on the stack, if it's not too large.  Sounds like a
   // job for AutoTArray!  (One of the two arrays we're swapping is using an
   // auto buffer, so we're likely not allocating a lot of space here.  But one
   // could, in theory, allocate a huge AutoTArray on the heap.)
-  nsAutoTArray<PRUint8, 8192, Alloc> temp;
+  nsAutoTArray<PRUint8, 64, Alloc> temp;
   if (!temp.SetCapacity(smallerLength * elemSize)) {
     return false;
   }

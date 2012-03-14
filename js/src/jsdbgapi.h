@@ -96,7 +96,7 @@ JS_BEGIN_EXTERN_C
 #endif
 
 extern JS_PUBLIC_API(JSString *)
-JS_DecompileScript(JSContext *cx, JSScript *script, const char *name, uintN indent);
+JS_DecompileScript(JSContext *cx, JSScript *script, const char *name, unsigned indent);
 
 /*
  * Currently, we only support runtime-wide debugging. In the future, we should
@@ -176,21 +176,21 @@ JS_ClearAllWatchPoints(JSContext *cx);
 
 /************************************************************************/
 
-extern JS_PUBLIC_API(uintN)
+extern JS_PUBLIC_API(unsigned)
 JS_PCToLineNumber(JSContext *cx, JSScript *script, jsbytecode *pc);
 
 extern JS_PUBLIC_API(jsbytecode *)
-JS_LineNumberToPC(JSContext *cx, JSScript *script, uintN lineno);
+JS_LineNumberToPC(JSContext *cx, JSScript *script, unsigned lineno);
 
 extern JS_PUBLIC_API(jsbytecode *)
 JS_EndPC(JSContext *cx, JSScript *script);
 
 extern JS_PUBLIC_API(JSBool)
 JS_GetLinePCs(JSContext *cx, JSScript *script,
-              uintN startLine, uintN maxLines,
-              uintN* count, uintN** lines, jsbytecode*** pcs);
+              unsigned startLine, unsigned maxLines,
+              unsigned* count, unsigned** lines, jsbytecode*** pcs);
 
-extern JS_PUBLIC_API(uintN)
+extern JS_PUBLIC_API(unsigned)
 JS_GetFunctionArgumentCount(JSContext *cx, JSFunction *fun);
 
 extern JS_PUBLIC_API(JSBool)
@@ -240,12 +240,6 @@ JS_GetFrameScript(JSContext *cx, JSStackFrame *fp);
 
 extern JS_PUBLIC_API(jsbytecode *)
 JS_GetFramePC(JSContext *cx, JSStackFrame *fp);
-
-/*
- * Get the closest scripted frame below fp.  If fp is null, start from cx->fp.
- */
-extern JS_PUBLIC_API(JSStackFrame *)
-JS_GetScriptedCaller(JSContext *cx, JSStackFrame *fp);
 
 extern JS_PUBLIC_API(void *)
 JS_GetFrameAnnotation(JSContext *cx, JSStackFrame *fp);
@@ -339,10 +333,10 @@ JS_GetScriptFilename(JSContext *cx, JSScript *script);
 extern JS_PUBLIC_API(const jschar *)
 JS_GetScriptSourceMap(JSContext *cx, JSScript *script);
 
-extern JS_PUBLIC_API(uintN)
+extern JS_PUBLIC_API(unsigned)
 JS_GetScriptBaseLineNumber(JSContext *cx, JSScript *script);
 
-extern JS_PUBLIC_API(uintN)
+extern JS_PUBLIC_API(unsigned)
 JS_GetScriptLineExtent(JSContext *cx, JSScript *script);
 
 extern JS_PUBLIC_API(JSVersion)
@@ -369,14 +363,14 @@ JS_SetDestroyScriptHook(JSRuntime *rt, JSDestroyScriptHook hook,
 
 extern JS_PUBLIC_API(JSBool)
 JS_EvaluateUCInStackFrame(JSContext *cx, JSStackFrame *fp,
-                          const jschar *chars, uintN length,
-                          const char *filename, uintN lineno,
+                          const jschar *chars, unsigned length,
+                          const char *filename, unsigned lineno,
                           jsval *rval);
 
 extern JS_PUBLIC_API(JSBool)
 JS_EvaluateInStackFrame(JSContext *cx, JSStackFrame *fp,
-                        const char *bytes, uintN length,
-                        const char *filename, uintN lineno,
+                        const char *bytes, unsigned length,
+                        const char *filename, unsigned lineno,
                         jsval *rval);
 
 /************************************************************************/
@@ -476,13 +470,6 @@ js_RevertVersion(JSContext *cx);
 
 extern JS_PUBLIC_API(const JSDebugHooks *)
 JS_GetGlobalDebugHooks(JSRuntime *rt);
-
-extern JS_PUBLIC_API(JSDebugHooks *)
-JS_SetContextDebugHooks(JSContext *cx, const JSDebugHooks *hooks);
-
-/* Disable debug hooks for this context. */
-extern JS_PUBLIC_API(JSDebugHooks *)
-JS_ClearContextDebugHooks(JSContext *cx);
 
 /**
  * Start any profilers that are available and have been configured on for this
@@ -587,6 +574,10 @@ JS_DumpCompartmentPCCounts(JSContext *cx);
 
 extern JS_PUBLIC_API(JSObject *)
 JS_UnwrapObject(JSObject *obj);
+
+/* Call the context debug handler on the topmost scripted frame. */
+extern JS_FRIEND_API(JSBool)
+js_CallContextDebugHandler(JSContext *cx);
 
 JS_END_EXTERN_C
 

@@ -847,7 +847,7 @@ class ScriptAnalysis
     bool outOfMemory;
     bool hadFailure;
 
-    JSPackedBool *escapedSlots;
+    bool *escapedSlots;
 
     /* Which analyses have been performed. */
     bool ranBytecode_;
@@ -871,6 +871,7 @@ class ScriptAnalysis
     bool addsScopeObjects_:1;
     bool localsAliasStack_:1;
     bool isInlineable:1;
+    bool isCompileable:1;
     bool canTrackVars:1;
 
     uint32_t numReturnSites_;
@@ -905,6 +906,7 @@ class ScriptAnalysis
     bool OOM() { return outOfMemory; }
     bool failed() { return hadFailure; }
     bool inlineable(uint32_t argc) { return isInlineable && argc == script->function()->nargs; }
+    bool compileable() { return isCompileable; }
 
     /* Whether there are POPV/SETRVAL bytecodes which can write to the frame's rval. */
     bool usesReturnValue() const { return usesReturnValue_; }
@@ -1105,10 +1107,7 @@ class ScriptAnalysis
     {
         SSAUseChain *uses = useChain(SSAValue::PushedValue(pc - script->code, 0));
         JS_ASSERT(uses && uses->popped);
-        JS_ASSERT_IF(uses->next,
-                     !uses->next->next &&
-                     uses->next->popped &&
-                     script->code[uses->next->offset] == JSOP_SWAP);
+        JS_ASSERT(js_CodeSpec[script->code[uses->offset]].format & JOF_INVOKE);
         return script->code + uses->offset;
     }
 
@@ -1188,6 +1187,19 @@ class ScriptAnalysis
     inline void extendVariable(JSContext *cx, LifetimeVariable &var, unsigned start, unsigned end);
     inline void ensureVariable(LifetimeVariable &var, unsigned until);
 
+    /* Current value for a variable or stack value, as tracked during SSA. */
+    struct SSAValueInfo
+    {
+        SSAValue v;
+
+        /*
+         * Sizes of branchTargets the last time this slot was written. Branches less
+         * than this threshold do not need to be inspected if the slot is written
+         * again, as they will already reflect the slot's value at the branch.
+         */
+        int32_t branchSize;
+    };
+
     /* SSA helpers */
     bool makePhi(JSContext *cx, uint32_t slot, uint32_t offset, SSAValue *pv);
     void insertPhi(JSContext *cx, SSAValue &phi, const SSAValue &v);
@@ -1195,18 +1207,15 @@ class ScriptAnalysis
     void checkPendingValue(JSContext *cx, const SSAValue &v, uint32_t slot,
                            Vector<SlotValue> *pending);
     void checkBranchTarget(JSContext *cx, uint32_t targetOffset, Vector<uint32_t> &branchTargets,
-                           SSAValue *values, uint32_t stackDepth);
+                           SSAValueInfo *values, uint32_t stackDepth);
     void checkExceptionTarget(JSContext *cx, uint32_t catchOffset,
                               Vector<uint32_t> &exceptionTargets);
-    void mergeBranchTarget(JSContext *cx, const SSAValue &value, uint32_t slot,
-                           const Vector<uint32_t> &branchTargets);
+    void mergeBranchTarget(JSContext *cx, SSAValueInfo &value, uint32_t slot,
+                           const Vector<uint32_t> &branchTargets, uint32_t currentOffset);
     void mergeExceptionTarget(JSContext *cx, const SSAValue &value, uint32_t slot,
                               const Vector<uint32_t> &exceptionTargets);
-    void mergeAllExceptionTargets(JSContext *cx, SSAValue *values,
+    void mergeAllExceptionTargets(JSContext *cx, SSAValueInfo *values,
                                   const Vector<uint32_t> &exceptionTargets);
-    bool removeBranchTarget(Vector<uint32_t> &branchTargets,
-                            Vector<uint32_t> &exceptionTargets,
-                            uint32_t offset);
     void freezeNewValues(JSContext *cx, uint32_t offset);
 
     struct TypeInferenceState {

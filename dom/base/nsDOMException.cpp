@@ -42,7 +42,6 @@
 #include "nsDOMError.h"
 #include "nsDOMException.h"
 #include "nsIDOMDOMException.h"
-#include "nsIDOMRangeException.h"
 #include "nsIDOMFileException.h"
 #include "nsIDOMSVGException.h"
 #include "nsIDOMXPathException.h"
@@ -51,6 +50,7 @@
 #include "prprf.h"
 
 #define DOM_MSG_DEF(val, message) {(val), #val, message},
+#define DOM_MSG_DEF_(val, name, message) {(NS_ERROR_DOM_##val), name, message},
 
 #define IMPL_INTERNAL_DOM_EXCEPTION_HEAD(classname, ifname)                  \
 class classname : public nsBaseDOMException,                                 \
@@ -108,6 +108,7 @@ static struct ResultStruct
 };
 
 #undef DOM_MSG_DEF
+#undef DOM_MSG_DEF_
 
 static void
 NSResultToNameAndMessage(nsresult aNSResult,
@@ -157,24 +158,7 @@ IMPL_INTERNAL_DOM_EXCEPTION_TAIL(nsDOMException, nsIDOMDOMException,
                                  NSResultToNameAndMessage)
 
 NS_IMETHODIMP
-nsDOMException::GetCode(PRUint32* aCode)
-{
-  NS_ENSURE_ARG_POINTER(aCode);
-  nsresult result;
-  GetResult(&result);
-  *aCode = NS_ERROR_GET_CODE(result);
-
-  return NS_OK;
-}
-
-IMPL_INTERNAL_DOM_EXCEPTION_HEAD(nsRangeException, nsIDOMRangeException)
-  NS_DECL_NSIDOMRANGEEXCEPTION
-IMPL_INTERNAL_DOM_EXCEPTION_TAIL(nsRangeException, nsIDOMRangeException,
-                                 RangeException, NS_ERROR_MODULE_DOM_RANGE,
-                                 NSResultToNameAndMessage)
-
-NS_IMETHODIMP
-nsRangeException::GetCode(PRUint16* aCode)
+nsDOMException::GetCode(PRUint16* aCode)
 {
   NS_ENSURE_ARG_POINTER(aCode);
   nsresult result;

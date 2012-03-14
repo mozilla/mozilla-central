@@ -206,7 +206,7 @@ PluginModuleParent::TimeoutChanged(const char* aPref, void* aModule)
     } else if (!strcmp(aPref, kParentTimeoutPref)) {
       // The timeout value used by the child for its parent
       PRInt32 timeoutSecs = Preferences::GetInt(kParentTimeoutPref, 0);
-      static_cast<PluginModuleParent*>(aModule)->SendSetParentHangTimeout(timeoutSecs);
+      unused << static_cast<PluginModuleParent*>(aModule)->SendSetParentHangTimeout(timeoutSecs);
     }
     return 0;
 }
@@ -749,7 +749,12 @@ PluginModuleParent::NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs
         return NS_ERROR_FAILURE;
     }
 
-    if (!CallNP_Initialize(error)) {
+    uint32_t flags = 0;
+    if (mozilla::Preferences::GetBool("plugin.allow.asyncdrawing", false)) {
+      flags |= kAllowAsyncDrawing;
+    }
+
+    if (!CallNP_Initialize(flags, error)) {
         return NS_ERROR_FAILURE;
     }
     else if (*error != NPERR_NO_ERROR) {
@@ -773,10 +778,15 @@ PluginModuleParent::NP_Initialize(NPNetscapeFuncs* bFuncs, NPError* error)
         return NS_ERROR_FAILURE;
     }
 
-    if (!CallNP_Initialize(error))
+    uint32_t flags = 0;
+    if (mozilla::Preferences::GetBool("plugin.allow.asyncdrawing", false)) {
+      flags |= kAllowAsyncDrawing;
+    }
+
+    if (!CallNP_Initialize(flags, error))
         return NS_ERROR_FAILURE;
 
-#if defined XP_WIN && MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
+#if defined XP_WIN
     // Send the info needed to join the chrome process's audio session to the
     // plugin process
     nsID id;

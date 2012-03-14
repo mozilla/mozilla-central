@@ -157,6 +157,22 @@ SwapToISupportsArray(SmartPtr<T>& aSrc,
 
 NS_MEMORY_REPORTER_MALLOC_SIZEOF_FUN(JsWorkerMallocSizeOf, "js-worker")
 
+struct WorkerJSRuntimeStats : public JS::RuntimeStats
+{
+  WorkerJSRuntimeStats()
+   : JS::RuntimeStats(JsWorkerMallocSizeOf) { }
+
+  virtual void initExtraCompartmentStats(JSCompartment *c,
+                                         JS::CompartmentStats *cstats) MOZ_OVERRIDE
+  {
+    MOZ_ASSERT(!cstats->extra);
+    
+    // ReportJSRuntimeExplicitTreeStats expects that cstats->extra is a char pointer
+    const char *name = js::IsAtomsCompartment(c) ? "Web Worker Atoms" : "Web Worker";
+    cstats->extra = const_cast<char *>(name);
+  }
+};
+  
 class WorkerMemoryReporter : public nsIMemoryMultiReporter
 {
   WorkerPrivate* mWorkerPrivate;
@@ -240,8 +256,7 @@ public:
   {
     AssertIsOnMainThread();
 
-    JS::RuntimeStats rtStats(JsWorkerMallocSizeOf, xpc::GetCompartmentName,
-                             xpc::DestroyCompartmentName);
+    WorkerJSRuntimeStats rtStats;
     nsresult rv = CollectForRuntime(/* isQuick = */false, &rtStats);
     if (NS_FAILED(rv)) {
       return rv;
@@ -249,7 +264,10 @@ public:
 
     // Always report, even if we're disabled, so that we at least get an entry
     // in about::memory.
-    ReportJSRuntimeExplicitTreeStats(rtStats, mPathPrefix, aCallback, aClosure);
+    rv = ReportJSRuntimeExplicitTreeStats(rtStats, mPathPrefix, aCallback, aClosure);
+    if (NS_FAILED(rv)) {
+      return rv;
+    }
 
     return NS_OK;
   }
@@ -1534,11 +1552,13 @@ public:
   bool
   WorkerRun(JSContext* aCx, WorkerPrivate* aWorkerPrivate)
   {
-    JSAutoSuspendRequest asr(aCx);
-
-    *mSucceeded = mIsQuick
-      ? JS::GetExplicitNonHeapForRuntime(JS_GetRuntime(aCx), static_cast<int64_t*>(mData), JsWorkerMallocSizeOf)
-      : JS::CollectRuntimeStats(JS_GetRuntime(aCx), static_cast<JS::RuntimeStats*>(mData));
+    JSRuntime *rt = JS_GetRuntime(aCx);
+    if (mIsQuick) {
+      *static_cast<int64_t*>(mData) = JS::GetExplicitNonHeapForRuntime(rt, JsWorkerMallocSizeOf);
+      *mSucceeded = true;
+    } else {
+      *mSucceeded = JS::CollectRuntimeStats(rt, static_cast<JS::RuntimeStats*>(mData));
+    }
 
     {
       MutexAutoLock lock(mMutex);
@@ -2508,13 +2528,8 @@ WorkerPrivate::Create(JSContext* aCx, JSObject* aObj, WorkerPrivate* aParent,
 
       // We're being created outside of a window. Need to figure out the script
       // that is creating us in order for us to use relative URIs later on.
-      JSStackFrame* frame = JS_GetScriptedCaller(aCx, nsnull);
-      if (frame) {
-        JSScript* script = JS_GetFrameScript(aCx, frame);
-        if (!script) {
-          JS_ReportError(aCx, "Could not get frame script!");
-          return nsnull;
-        }
+      JSScript *script;
+      if (JS_DescribeScriptedCaller(aCx, &script, nsnull)) {
         if (NS_FAILED(NS_NewURI(getter_AddRefs(baseURI),
                                 JS_GetScriptFilename(aCx, script)))) {
           JS_ReportError(aCx, "Failed to construct base URI!");
@@ -2923,7 +2938,7 @@ WorkerPrivate::Dispatch(WorkerRunnable* aEvent, EventQueue* aQueue)
     }
 
     if (aQueue == &mControlQueue && mJSContext) {
-      JS_TriggerOperationCallback(mJSContext);
+      JS_TriggerOperationCallback(JS_GetRuntime(mJSContext));
     }
 
     mCondVar.Notify();
@@ -3479,7 +3494,7 @@ WorkerPrivate::ReportError(JSContext* aCx, const char* aMessage,
 }
 
 bool
-WorkerPrivate::SetTimeout(JSContext* aCx, uintN aArgc, jsval* aVp,
+WorkerPrivate::SetTimeout(JSContext* aCx, unsigned aArgc, jsval* aVp,
                           bool aIsInterval)
 {
   AssertIsOnWorkerThread();
@@ -3533,7 +3548,7 @@ WorkerPrivate::SetTimeout(JSContext* aCx, uintN aArgc, jsval* aVp,
 
   // See if any of the optional arguments were passed.
   if (aArgc > 1) {
-    jsdouble intervalMS = 0;
+    double intervalMS = 0;
     if (!JS_ValueToNumber(aCx, argv[1], &intervalMS)) {
       return false;
     }
@@ -3541,7 +3556,7 @@ WorkerPrivate::SetTimeout(JSContext* aCx, uintN aArgc, jsval* aVp,
 
     if (aArgc > 2 && JSVAL_IS_OBJECT(newInfo->mTimeoutVal)) {
       nsTArray<jsval> extraArgVals(aArgc - 2);
-      for (uintN index = 2; index < aArgc; index++) {
+      for (unsigned index = 2; index < aArgc; index++) {
         extraArgVals.AppendElement(argv[index]);
       }
       newInfo->mExtraArgVals.SwapElements(extraArgVals);

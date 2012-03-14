@@ -47,7 +47,18 @@ import subprocess
 from threading import Thread
 import traceback
 import sys
-from devicemanager import DeviceManager, DMError, FileError, NetworkTools
+import StringIO
+from devicemanager import DeviceManager, DMError, FileError, NetworkTools, _pop_last_line
+
+class AgentError(Exception):
+  "SUTAgent-specific exception."
+
+  def __init__(self, msg= '', fatal = False):
+    self.msg = msg
+    self.fatal = fatal
+
+  def __str__(self):
+    return self.msg
 
 class DeviceManagerSUT(DeviceManager):
   host = ''
@@ -76,7 +87,7 @@ class DeviceManagerSUT(DeviceManager):
     self._sock = None
     self.getDeviceRoot()
 
-  def cmdNeedsResponse(self, cmd):
+  def _cmdNeedsResponse(self, cmd):
     """ Not all commands need a response from the agent:
         * if the cmd matches the pushRE then it is the first half of push
           and therefore we want to wait until the second half before looking
@@ -93,18 +104,44 @@ class DeviceManagerSUT(DeviceManager):
     for c in noResponseCmds:
       if (c.match(cmd)):
         return False
-    
+
     # If the command is not in our list, then it gets a response
     return True
 
-  def shouldCmdCloseSocket(self, cmd):
+  def _stripPrompt(self, data):
+    '''
+    internal function
+    take a data blob and strip instances of the prompt '$>\x00'
+    '''
+    promptre = re.compile(self.prompt_regex + '.*')
+    retVal = []
+    lines = data.split('\n')
+    for line in lines:
+      foundPrompt = False
+      try:
+        while (promptre.match(line)):
+          foundPrompt = True
+          pieces = line.split(self.prompt_sep)
+          index = pieces.index('$>')
+          pieces.pop(index)
+          line = self.prompt_sep.join(pieces)
+      except(ValueError):
+        pass
+
+      # we don't want to append lines that are blank after stripping the
+      # prompt (those are basically "prompts")
+      if not foundPrompt or line:
+        retVal.append(line)
+
+    return '\n'.join(retVal)
+
+  def _shouldCmdCloseSocket(self, cmd):
     """ Some commands need to close the socket after they are sent:
     * push
     * rebt
     * uninst
     * quit
     """
-    
     socketClosingCmds = [re.compile('^push .*$'),
                          re.compile('^quit.*'),
                          re.compile('^rebt.*'),
@@ -116,85 +153,86 @@ class DeviceManagerSUT(DeviceManager):
 
     return False
 
-  # convenience function to enable checks for agent errors
-  def verifySendCMD(self, cmdline, newline = True):
-    return self.sendCMD(cmdline, newline, False)
-
-
-  #
-  # create a wrapper for sendCMD that loops up to self.retrylimit iterations.
-  # this allows us to move the retry logic outside of the _doCMD() to make it 
-  # easier for debugging in the future.
-  # note that since cmdline is a list of commands, they will all be retried if
-  # one fails.  this is necessary in particular for pushFile(), where we don't want
-  # to accidentally send extra data if a failure occurs during data transmission.
-  #
-  def sendCMD(self, cmdline, newline = True, ignoreAgentErrors = True):
+  def sendCmds(self, cmdlist, outputfile, timeout = None, newline = True):
+    '''
+    a wrapper for _doCmds that loops up to self.retrylimit iterations.
+    this allows us to move the retry logic outside of the _doCmds() to make it
+    easier for debugging in the future.
+    note that since cmdlist is a list of commands, they will all be retried if
+    one fails.  this is necessary in particular for pushFile(), where we don't want
+    to accidentally send extra data if a failure occurs during data transmission.
+    '''
     done = False
-    while (not done):
-      retVal = self._doCMD(cmdline, newline)
-      if (retVal is None):
+    while self.retries < self.retrylimit:
+      try:
+        self._doCmds(cmdlist, outputfile, timeout, newline)
+        return
+      except AgentError, err:
+        # re-raise error if it's fatal (i.e. the device got the command but
+        # couldn't execute it). retry otherwise
+        if err.fatal:
+          raise err
+        if self.debug >= 2:
+          print err
         self.retries += 1
-      else:
-        self.retries = 0
-        if ignoreAgentErrors == False:
-          if (self.agentErrorRE.match(retVal)):
-            raise DMError("error on the agent executing '%s'" % cmdline)
-        return retVal
 
-      if (self.retries >= self.retrylimit):
-        done = True
+    raise AgentError("unable to connect to %s after %s attempts" % (self.host, self.retrylimit))
 
-    raise DMError("unable to connect to %s after %s attempts" % (self.host, self.retrylimit))        
+  def runCmds(self, cmdlist, timeout = None, newline = True):
+    '''
+    similar to sendCmds, but just returns any output as a string instead of
+    writing to a file. this is normally what you want to call to send a set
+    of commands to the agent
+    '''
+    outputfile = StringIO.StringIO()
+    self.sendCmds(cmdlist, outputfile, timeout, newline)
+    outputfile.seek(0)
+    return outputfile.read()
 
-  def _doCMD(self, cmdline, newline = True):
+  def _doCmds(self, cmdlist, outputfile, timeout, newline):
     promptre = re.compile(self.prompt_regex + '$')
-    data = ""
     shouldCloseSocket = False
     recvGuard = 1000
 
-    if (self._sock == None):
+    if not self._sock:
       try:
-        if (self.debug >= 1):
+        if self.debug >= 1:
           print "reconnecting socket"
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       except:
         self._sock = None
-        if (self.debug >= 2):
-          print "unable to create socket"
-        return None
-      
+        raise AgentError("unable to create socket")
+
       try:
         self._sock.connect((self.host, int(self.port)))
         self._sock.recv(1024)
       except:
         self._sock.close()
         self._sock = None
-        if (self.debug >= 2):
-          print "unable to connect socket"
-        return None
-    
-    for cmd in cmdline:
+        raise AgentError("unable to connect socket")
+
+    for cmd in cmdlist:
       if newline: cmd += '\r\n'
-      
+
       try:
         numbytes = self._sock.send(cmd)
         if (numbytes != len(cmd)):
-          print "ERROR: our cmd was " + str(len(cmd)) + " bytes and we only sent " + str(numbytes)
-          return None
+          raise AgentError("ERROR: our cmd was %s bytes and we only sent %s" % (len(cmd),
+                                                                                numbytes))
         if (self.debug >= 4): print "send cmd: " + str(cmd)
       except:
         self._sock.close()
         self._sock = None
-        return None
-      
+        return False
+
       # Check if the command should close the socket
-      shouldCloseSocket = self.shouldCmdCloseSocket(cmd)
+      shouldCloseSocket = self._shouldCmdCloseSocket(cmd)
 
       # Handle responses from commands
-      if (self.cmdNeedsResponse(cmd)):
+      if (self._cmdNeedsResponse(cmd)):
         found = False
         loopguard = 0
+        data = ""
 
         while (found == False and (loopguard < recvGuard)):
           temp = ''
@@ -207,54 +245,69 @@ class DeviceManagerSUT(DeviceManager):
           except:
             self._sock.close()
             self._sock = None
-            return None
-
-          # If something goes wrong in the agent it will send back a string that
-          # starts with '##AGENT-ERROR##'
-          if (self.agentErrorRE.match(temp)):
-            data = temp
-            break
+            raise AgentError("Error receiving data from socket")
 
           data += temp
 
+          # If something goes wrong in the agent it will send back a string that
+          # starts with '##AGENT-ERROR##'
+          if self.agentErrorRE.match(data):
+            raise AgentError("Agent Error processing command: %s" % cmd, fatal=True)
+
           for line in data.splitlines():
-            if (promptre.match(line)):
+            if promptre.match(line):
               found = True
+              data = self._stripPrompt(data)
+              break
+
+          # periodically flush data to output file to make sure it doesn't get
+          # too big/unwieldly
+          if len(data) > 1024:
+              outputfile.write(data[0:1024])
+              data = data[1024:]
 
           # If we violently lose the connection to the device, this loop tends to spin,
           # this guard prevents that
           if (temp == ''):
             loopguard += 1
 
-    if (shouldCloseSocket == True):
+        # Write any remaining data to outputfile
+        outputfile.write(data)
+
+    if shouldCloseSocket:
       try:
         self._sock.close()
         self._sock = None
       except:
         self._sock = None
-        return None
+        raise AgentError("Error closing socket")
 
-    return data
-  
-  # internal function
-  # take a data blob and strip instances of the prompt '$>\x00'
-  def stripPrompt(self, data):
-    promptre = re.compile(self.prompt_regex + '.*')
-    retVal = []
-    lines = data.split('\n')
-    for line in lines:
-      try:
-        while (promptre.match(line)):
-          pieces = line.split(self.prompt_sep)
-          index = pieces.index('$>')
-          pieces.pop(index)
-          line = self.prompt_sep.join(pieces)
-      except(ValueError):
-        pass
-      retVal.append(line)
+  # external function: executes shell command on device
+  # returns:
+  # success: <return code>
+  # failure: None
+  def shell(self, cmd, outputfile, env=None, cwd=None):
+    cmdline = subprocess.list2cmdline(cmd)
+    if env:
+      cmdline = '%s %s' % (self.formatEnvString(env), cmdline)
 
-    return '\n'.join(retVal)
-  
+    try:
+      if cwd:
+        self.sendCmds(['execcwd %s %s' % (cwd, cmdline)], outputfile)
+      else:
+        self.sendCmds(['exec %s' % cmdline], outputfile)
+    except AgentError:
+      return None
+
+    # dig through the output to get the return code
+    lastline = _pop_last_line(outputfile)
+    if lastline:
+      m = re.search('return code \[([0-9]+)\]', lastline)
+      if m:
+        return m.group(1)
+
+    # woops, we couldn't find an end of line/return value
+    return None
 
   # external function
   # returns:
@@ -285,15 +338,15 @@ class DeviceManagerSUT(DeviceManager):
     f.close()
 
     try:
-      retVal = self.verifySendCMD(['push ' + destname + ' ' + str(filesize) + '\r\n', data], newline = False)
-    except(DMError):
+      retVal = self.runCmds(['push ' + destname + ' ' + str(filesize) + '\r\n', data], newline = False)
+    except AgentError:
       retVal = False
   
     if (self.debug >= 3): print "push returned: " + str(retVal)
 
     validated = False
     if (retVal):
-      retline = self.stripPrompt(retVal).strip() 
+      retline = retVal.strip()
       if (retline == None):
         # Then we failed to get back a hash from agent, try manual validation
         validated = self.validateFile(destname, localname)
@@ -322,8 +375,8 @@ class DeviceManagerSUT(DeviceManager):
       return name
     else:
       try:
-        retVal = self.verifySendCMD(['mkdr ' + name])
-      except(DMError):
+        retVal = self.runCmds(['mkdr ' + name])
+      except AgentError:
         retVal = None
       return retVal
 
@@ -375,15 +428,13 @@ class DeviceManagerSUT(DeviceManager):
     match = ".*" + dirname + "$"
     dirre = re.compile(match)
     try:
-      data = self.verifySendCMD(['cd ' + dirname, 'cwd'])
-    except(DMError):
+      data = self.runCmds(['cd ' + dirname, 'cwd'])
+    except AgentError:
       return False
 
-    retVal = self.stripPrompt(data)
-    data = retVal.split('\n')
     found = False
-    for d in data:
-      if (dirre.match(d)): 
+    for d in data.splitlines():
+      if (dirre.match(d)):
         found = True
 
     return found
@@ -413,12 +464,11 @@ class DeviceManagerSUT(DeviceManager):
     if (self.dirExists(rootdir) == False):
       return []
     try:
-      data = self.verifySendCMD(['cd ' + rootdir, 'ls'])
-    except(DMError):
+      data = self.runCmds(['cd ' + rootdir, 'ls'])
+    except AgentError:
       return []
 
-    retVal = self.stripPrompt(data)
-    files = filter(lambda x: x, retVal.split('\n'))
+    files = filter(lambda x: x, data.splitlines())
     if len(files) == 1 and files[0] == '<empty>':
       # special case on the agent: empty directories return just the string "<empty>"
       return []
@@ -431,8 +481,8 @@ class DeviceManagerSUT(DeviceManager):
   def removeFile(self, filename):
     if (self.debug>= 2): print "removing file: " + filename
     try:
-      retVal = self.verifySendCMD(['rm ' + filename])
-    except(DMError):
+      retVal = self.runCmds(['rm ' + filename])
+    except AgentError:
       return None
 
     return retVal
@@ -444,8 +494,8 @@ class DeviceManagerSUT(DeviceManager):
   #  failure: None
   def removeDir(self, remoteDir):
     try:
-      retVal = self.verifySendCMD(['rmdr ' + remoteDir])
-    except(DMError):
+      retVal = self.runCmds(['rmdr ' + remoteDir])
+    except AgentError:
       return None
 
     return retVal
@@ -456,15 +506,13 @@ class DeviceManagerSUT(DeviceManager):
   #  failure: []
   def getProcessList(self):
     try:
-      data = self.verifySendCMD(['ps'])
-    except DMError:
+      data = self.runCmds(['ps'])
+    except AgentError:
       return []
 
-    retVal = self.stripPrompt(data)
-    lines = retVal.split('\n')
     files = []
-    for line in lines:
-      if (line.strip() != ''):
+    for line in data.splitlines():
+      if line:
         pidproc = line.strip().split()
         if (len(pidproc) == 2):
           files += [[pidproc[0], pidproc[1]]]
@@ -474,6 +522,7 @@ class DeviceManagerSUT(DeviceManager):
     return files
 
   # external function
+  # DEPRECATED: Use shell() or launchApplication() for new code
   # returns:
   #  success: pid
   #  failure: None
@@ -490,8 +539,8 @@ class DeviceManagerSUT(DeviceManager):
         return None
     
     try:
-      data = self.verifySendCMD(['exec ' + appname])
-    except(DMError):
+      data = self.runCmds(['exec ' + appname])
+    except AgentError:
       return None
 
     # wait up to 30 seconds for process to start up
@@ -507,6 +556,7 @@ class DeviceManagerSUT(DeviceManager):
     return process
 
   # external function
+  # DEPRECATED: Use shell() or launchApplication() for new code
   # returns:
   #  success: output filename
   #  failure: None
@@ -536,8 +586,8 @@ class DeviceManagerSUT(DeviceManager):
   #  failure: None
   def killProcess(self, appname):
     try:
-      data = self.verifySendCMD(['kill ' + appname])
-    except(DMError):
+      data = self.runCmds(['kill ' + appname])
+    except AgentError:
       return None
 
     return data
@@ -548,11 +598,11 @@ class DeviceManagerSUT(DeviceManager):
   #  failure: None
   def getTempDir(self):
     try:
-      data = self.verifySendCMD(['tmpd'])
-    except(DMError):
+      data = self.runCmds(['tmpd'])
+    except AgentError:
       return None
 
-    return self.stripPrompt(data).strip('\n')
+    return data.strip()
 
   # external function
   # returns:
@@ -560,12 +610,12 @@ class DeviceManagerSUT(DeviceManager):
   #  failure: None
   def catFile(self, remoteFile):
     try:
-      data = self.verifySendCMD(['cat ' + remoteFile])
-    except(DMError):
+      data = self.runCmds(['cat ' + remoteFile])
+    except AgentError:
       return None
 
-    return self.stripPrompt(data)
-  
+    return data
+
   # external function
   # returns:
   #  success: output of pullfile, string
@@ -629,8 +679,8 @@ class DeviceManagerSUT(DeviceManager):
     # or, if error,
     # <filename>,-1\n<error message>
     try:
-      data = self.verifySendCMD(['pull ' + remoteFile])
-    except(DMError):
+      data = self.runCmds(['pull ' + remoteFile])
+    except AgentError:
       return None
 
     # read metadata; buffer the rest
@@ -748,13 +798,14 @@ class DeviceManagerSUT(DeviceManager):
   #  Throws a FileError exception when null (invalid dir/filename)
   def isDir(self, remotePath):
     try:
-      data = self.verifySendCMD(['isdir ' + remotePath])
-    except(DMError):
+      data = self.runCmds(['isdir ' + remotePath])
+    except AgentError:
       # normally there should be no error here; a nonexistent file/directory will
       # return the string "<filename>: No such file or directory".
       # However, I've seen AGENT-WARNING returned before. 
       return False
-    retVal = self.stripPrompt(data).strip()
+
+    retVal = data.strip()
     if not retVal:
       raise FileError('isdir returned null')
     return retVal == 'TRUE'
@@ -783,13 +834,13 @@ class DeviceManagerSUT(DeviceManager):
   #  failure: None
   def getRemoteHash(self, filename):
     try:
-      data = self.verifySendCMD(['hash ' + filename])
-    except(DMError):
+      data = self.runCmds(['hash ' + filename])
+    except AgentError:
       return None
 
-    retVal = self.stripPrompt(data)
-    if (retVal != None):
-      retVal = retVal.strip('\n')
+    retVal = None
+    if data:
+      retVal = data.strip()
     if (self.debug >= 3): print "remote hash returned: '" + retVal + "'"
     return retVal
     
@@ -812,11 +863,11 @@ class DeviceManagerSUT(DeviceManager):
   #  failure: None
   def getDeviceRoot(self):
     try:
-      data = self.verifySendCMD(['testroot'])
+      data = self.runCmds(['testroot'])
     except:
       return None
-  
-    deviceRoot = self.stripPrompt(data).strip('\n') + '/tests'
+
+    deviceRoot = data.strip() + '/tests'
 
     if (not self.dirExists(deviceRoot)):
       if (self.mkDir(deviceRoot) == None):
@@ -826,12 +877,11 @@ class DeviceManagerSUT(DeviceManager):
 
   def getAppRoot(self, packageName):
     try:
-      data = self.verifySendCMD(['getapproot '+packageName])
+      data = self.runCmds(['getapproot '+packageName])
     except:
       return None
-  
-    appRoot = self.stripPrompt(data).strip('\n')
-    return appRoot
+
+    return data.strip()
 
   # external function
   # returns:
@@ -855,8 +905,8 @@ class DeviceManagerSUT(DeviceManager):
       return None
 
     try:
-      data = self.verifySendCMD(['cd ' + dir, 'unzp ' + filename])
-    except(DMError):
+      data = self.runCmds(['cd ' + dir, 'unzp ' + filename])
+    except AgentError:
       return None
 
     return data
@@ -876,8 +926,8 @@ class DeviceManagerSUT(DeviceManager):
       try:
         destname = '/data/data/com.mozilla.SUTAgentAndroid/files/update.info'
         data = "%s,%s\rrebooting\r" % (ipAddr, port)
-        self.verifySendCMD(['push ' + destname + ' ' + str(len(data)) + '\r\n', data], newline = False)
-      except(DMError):
+        self.runCmds(['push ' + destname + ' ' + str(len(data)) + '\r\n', data], newline = False)
+      except AgentError:
         return None
 
       ip, port = self.getCallbackIpAndPort(ipAddr, port)
@@ -886,8 +936,8 @@ class DeviceManagerSUT(DeviceManager):
       callbacksvr = callbackServer(ip, port, self.debug)
 
     try:
-      status = self.verifySendCMD([cmd])
-    except(DMError):
+      status = self.runCmds([cmd])
+    except AgentError:
       return None
 
     if (ipAddr is not None):
@@ -922,10 +972,9 @@ class DeviceManagerSUT(DeviceManager):
       directives = [directive]
 
     for d in directives:
-      data = self.verifySendCMD(['info ' + d])
+      data = self.runCmds(['info ' + d])
       if (data is None):
         continue
-      data = self.stripPrompt(data)
       data = collapseSpaces.sub(' ', data)
       result[d] = data.split('\n')
 
@@ -960,8 +1009,8 @@ class DeviceManagerSUT(DeviceManager):
     if destPath:
       cmd += ' ' + destPath
     try:
-      data = self.verifySendCMD([cmd])
-    except(DMError):
+      data = self.runCmds([cmd])
+    except AgentError:
       return None
 
     f = re.compile('Failure')
@@ -986,8 +1035,8 @@ class DeviceManagerSUT(DeviceManager):
     if installPath:
       cmd += ' ' + installPath
     try:
-      data = self.verifySendCMD([cmd])
-    except(DMError):
+      data = self.runCmds([cmd])
+    except AgentError:
       return None
 
     if (self.debug > 3): print "uninstallAppAndReboot: " + str(data)
@@ -1031,8 +1080,8 @@ class DeviceManagerSUT(DeviceManager):
     if (self.debug >= 3): print "INFO: updateApp using command: " + str(cmd)
 
     try:
-      status = self.verifySendCMD([cmd])
-    except(DMError):
+      status = self.runCmds([cmd])
+    except AgentError:
       return None
 
     if ipAddr is not None:
@@ -1051,11 +1100,11 @@ class DeviceManagerSUT(DeviceManager):
   #  failure: None
   def getCurrentTime(self):
     try:
-      data = self.verifySendCMD(['clok'])
-    except(DMError):
+      data = self.runCmds(['clok'])
+    except AgentError:
       return None
 
-    return self.stripPrompt(data).strip('\n')
+    return data.strip()
 
   """
     Connect the ipaddress and port for a callback ping.  Defaults to current IP address
@@ -1084,8 +1133,8 @@ class DeviceManagerSUT(DeviceManager):
       return None
 
     try:
-      data = self.verifySendCMD(['cd ' + dir, 'unzp ' + filename])
-    except(DMError):
+      data = self.runCmds(['cd ' + dir, 'unzp ' + filename])
+    except AgentError:
       return None
 
     return data
@@ -1155,9 +1204,9 @@ class DeviceManagerSUT(DeviceManager):
 
     if (self.debug >= 3): print "INFO: adjusting screen resolution to %s, %s and rebooting" % (width, height)
     try:
-      self.verifySendCMD(["exec setprop persist.tegra.dpy%s.mode.width %s" % (screentype, width)])
-      self.verifySendCMD(["exec setprop persist.tegra.dpy%s.mode.height %s" % (screentype, height)])
-    except(DMError):
+      self.runCmds(["exec setprop persist.tegra.dpy%s.mode.width %s" % (screentype, width)])
+      self.runCmds(["exec setprop persist.tegra.dpy%s.mode.height %s" % (screentype, height)])
+    except AgentError:
       return False
 
     return True

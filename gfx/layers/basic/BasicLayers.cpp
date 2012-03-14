@@ -49,6 +49,7 @@
 
 #include "BasicLayers.h"
 #include "ImageLayers.h"
+#include "RenderTrace.h"
 
 #include "prprf.h"
 #include "nsTArray.h"
@@ -688,6 +689,11 @@ BasicThebesLayer::PaintThebes(gfxContext* aContext,
     mBuffer.Clear();
 
     nsIntRegion toDraw = IntersectWithClip(GetEffectiveVisibleRegion(), aContext);
+
+#ifdef MOZ_RENDERTRACE
+    RenderTraceInvalidateStart(this, "FFFF00", toDraw.GetBounds());
+#endif
+
     if (!toDraw.IsEmpty() && !IsHidden()) {
       if (!aCallback) {
         BasicManager()->SetTransactionIncomplete();
@@ -723,6 +729,10 @@ BasicThebesLayer::PaintThebes(gfxContext* aContext,
 
       aContext->Restore();
     }
+
+#ifdef MOZ_RENDERTRACE
+    RenderTraceInvalidateEnd(this, "FFFF00");
+#endif
     return;
   }
 
@@ -748,11 +758,20 @@ BasicThebesLayer::PaintThebes(gfxContext* aContext,
                                     GetEffectiveVisibleRegion());
       nsIntRegion extendedDrawRegion = state.mRegionToDraw;
       SetAntialiasingFlags(this, state.mContext);
+
+#ifdef MOZ_RENDERTRACE
+      RenderTraceInvalidateStart(this, "FFFF00", state.mRegionToDraw.GetBounds());
+#endif
+
       PaintBuffer(state.mContext,
                   state.mRegionToDraw, extendedDrawRegion, state.mRegionToInvalidate,
                   state.mDidSelfCopy,
                   aCallback, aCallbackData);
       Mutated();
+
+#ifdef MOZ_RENDERTRACE
+      RenderTraceInvalidateEnd(this, "FFFF00");
+#endif
     } else {
       // It's possible that state.mRegionToInvalidate is nonempty here,
       // if we are shrinking the valid region to nothing.
@@ -904,9 +923,11 @@ BasicImageLayer::GetAndPaintCurrentImage(gfxContext* aContext,
 
   mContainer->SetImageFactory(mManager->IsCompositingCheap() ? nsnull : BasicManager()->GetImageFactory());
 
-  nsRefPtr<Image> image = mContainer->GetCurrentImage();
+  nsRefPtr<gfxASurface> surface;
+  AutoLockImage autoLock(mContainer, getter_AddRefs(surface));
+  Image *image = autoLock.GetImage();
+  gfxIntSize size = mSize = autoLock.GetSize();
 
-  nsRefPtr<gfxASurface> surface = mContainer->GetCurrentAsSurface(&mSize);
   if (!surface || surface->CairoStatus()) {
     return nsnull;
   }
@@ -917,6 +938,15 @@ BasicImageLayer::GetAndPaintCurrentImage(gfxContext* aContext,
   }
 
   pat->SetFilter(mFilter);
+  gfxIntSize sourceSize = surface->GetSize();
+  if (mScaleMode != SCALE_NONE) {
+    NS_ASSERTION(mScaleMode == SCALE_STRETCH,
+      "No other scalemodes than stretch and none supported yet.");
+    gfxMatrix mat = pat->GetMatrix();
+    mat.Scale(float(sourceSize.width) / mScaleToSize.width, float(sourceSize.height) / mScaleToSize.height);
+    pat->SetMatrix(mat);
+    size = mScaleToSize;
+  }
 
   // The visible region can extend outside the image.  If we're not
   // tiling, we don't want to draw into that area, so just draw within
@@ -924,7 +954,7 @@ BasicImageLayer::GetAndPaintCurrentImage(gfxContext* aContext,
   const nsIntRect* tileSrcRect = GetTileSourceRect();
   AutoSetOperator setOperator(aContext, GetOperator());
   PaintContext(pat,
-               tileSrcRect ? GetVisibleRegion() : nsIntRegion(nsIntRect(0, 0, mSize.width, mSize.height)),
+               tileSrcRect ? GetVisibleRegion() : nsIntRegion(nsIntRect(0, 0, size.width, size.height)),
                tileSrcRect,
                aOpacity, aContext);
 
@@ -1598,6 +1628,11 @@ BasicLayerManager::EndTransactionInternal(DrawThebesLayerCallback aCallback,
   mPhase = PHASE_DRAWING;
 #endif
 
+#ifdef MOZ_RENDERTRACE
+  Layer* aLayer = GetRoot();
+  RenderTraceLayers(aLayer, "FF00");
+#endif
+
   mTransactionIncomplete = false;
 
   if (mTarget && mRoot && !(aFlags & END_NO_IMMEDIATE_REDRAW)) {
@@ -1817,6 +1852,8 @@ Transform3D(gfxASurface* aSource, gfxContext* aDest,
   aDrawOffset = destRect.TopLeft();
   return destImage.forget(); 
 }
+
+
 
 void
 BasicLayerManager::PaintLayer(gfxContext* aTarget,
@@ -2522,13 +2559,16 @@ BasicShadowableImageLayer::Paint(gfxContext* aContext)
     return;
   }
 
-  nsRefPtr<Image> image = mContainer->GetCurrentImage();
+  AutoLockImage autoLock(mContainer);
+
+  Image *image = autoLock.GetImage();
+
   if (!image) {
     return;
   }
 
   if (image->GetFormat() == Image::PLANAR_YCBCR && BasicManager()->IsCompositingCheap()) {
-    PlanarYCbCrImage *YCbCrImage = static_cast<PlanarYCbCrImage*>(image.get());
+    PlanarYCbCrImage *YCbCrImage = static_cast<PlanarYCbCrImage*>(image);
     const PlanarYCbCrImage::Data *data = YCbCrImage->GetData();
     NS_ASSERTION(data, "Must be able to retrieve yuv data from image!");
 

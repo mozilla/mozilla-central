@@ -50,7 +50,7 @@
 #include "WorkerPrivate.h"
 
 #define PROPERTY_FLAGS \
-  JSPROP_ENUMERATE | JSPROP_SHARED
+  (JSPROP_ENUMERATE | JSPROP_SHARED)
 
 #define FUNCTION_FLAGS \
   JSPROP_ENUMERATE
@@ -238,7 +238,7 @@ protected:
 
 private:
   static JSBool
-  Construct(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Construct(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JS_ReportErrorNumber(aCx, js_GetErrorMessage, NULL, JSMSG_WRONG_CONSTRUCTOR,
                          sClass.name);
@@ -280,7 +280,7 @@ private:
   }
 
   static JSBool
-  StopPropagation(JSContext* aCx, uintN aArgc, jsval* aVp)
+  StopPropagation(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -298,7 +298,7 @@ private:
   }
 
   static JSBool
-  StopImmediatePropagation(JSContext* aCx, uintN aArgc, jsval* aVp)
+  StopImmediatePropagation(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -316,7 +316,7 @@ private:
   }
   
   static JSBool
-  PreventDefault(JSContext* aCx, uintN aArgc, jsval* aVp)
+  PreventDefault(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -336,7 +336,7 @@ private:
   }
 
   static JSBool
-  InitEvent(JSContext* aCx, uintN aArgc, jsval* aVp)
+  InitEvent(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -522,7 +522,7 @@ private:
   }
 
   static JSBool
-  Construct(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Construct(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JS_ReportErrorNumber(aCx, js_GetErrorMessage, NULL, JSMSG_WRONG_CONSTRUCTOR,
                          sClass.name);
@@ -587,7 +587,7 @@ private:
   }
 
   static JSBool
-  InitMessageEvent(JSContext* aCx, uintN aArgc, jsval* aVp)
+  InitMessageEvent(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -738,7 +738,7 @@ private:
   }
 
   static JSBool
-  Construct(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Construct(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JS_ReportErrorNumber(aCx, js_GetErrorMessage, NULL, JSMSG_WRONG_CONSTRUCTOR,
                          sClass.name);
@@ -772,7 +772,7 @@ private:
   }
 
   static JSBool
-  InitErrorEvent(JSContext* aCx, uintN aArgc, jsval* aVp)
+  InitErrorEvent(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -850,7 +850,7 @@ public:
 
   static JSObject*
   Create(JSContext* aCx, JSObject* aParent, JSString* aType,
-         bool aLengthComputable, jsdouble aLoaded, jsdouble aTotal)
+         bool aLengthComputable, double aLoaded, double aTotal)
   {
     JSString* type = JS_InternJSString(aCx, aType);
     if (!type) {
@@ -907,8 +907,8 @@ private:
   static void
   InitProgressEventCommon(JSObject* aObj, Event* aEvent, JSString* aType,
                           JSBool aBubbles, JSBool aCancelable,
-                          JSBool aLengthComputable, jsdouble aLoaded,
-                          jsdouble aTotal, bool aIsTrusted)
+                          JSBool aLengthComputable, double aLoaded,
+                          double aTotal, bool aIsTrusted)
   {
     Event::InitEventCommon(aObj, aEvent, aType, aBubbles, aCancelable,
                            aIsTrusted);
@@ -919,7 +919,7 @@ private:
   }
 
   static JSBool
-  Construct(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Construct(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JS_ReportErrorNumber(aCx, js_GetErrorMessage, NULL, JSMSG_WRONG_CONSTRUCTOR,
                          sClass.name);
@@ -953,7 +953,7 @@ private:
   }
 
   static JSBool
-  InitProgressEvent(JSContext* aCx, uintN aArgc, jsval* aVp)
+  InitProgressEvent(JSContext* aCx, unsigned aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
@@ -967,7 +967,7 @@ private:
 
     JSString* type;
     JSBool bubbles, cancelable, lengthComputable;
-    jsdouble loaded, total;
+    double loaded, total;
     if (!JS_ConvertArguments(aCx, aArgc, JS_ARGV(aCx, aVp), "Sbbbdd", &type,
                              &bubbles, &cancelable, &lengthComputable, &loaded,
                              &total)) {
@@ -1065,7 +1065,7 @@ CreateErrorEvent(JSContext* aCx, JSString* aMessage, JSString* aFilename,
 
 JSObject*
 CreateProgressEvent(JSContext* aCx, JSString* aType, bool aLengthComputable,
-                    jsdouble aLoaded, jsdouble aTotal)
+                    double aLoaded, double aTotal)
 {
   JSObject* global = JS_GetGlobalForScopeChain(aCx);
   return ProgressEvent::Create(aCx, global, aType, aLengthComputable, aLoaded,

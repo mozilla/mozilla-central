@@ -39,8 +39,10 @@ package org.mozilla.gecko;
 
 import java.util.ArrayList;
 
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Build;
@@ -58,7 +60,7 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class TabsTray extends Activity implements GeckoApp.OnTabsChangedListener {
+public class TabsTray extends Activity implements Tabs.OnTabsChangedListener {
 
     private static int sPreferredHeight;
     private static int sMaxHeight;
@@ -66,6 +68,7 @@ public class TabsTray extends Activity implements GeckoApp.OnTabsChangedListener
     private static int sAddTabHeight;
     private static ListView mList;
     private static TabsListContainer mListContainer;
+    private static LinkTextView mRemoteTabs;
     private TabsAdapter mTabsAdapter;
     private boolean mWaitingForClose;
 
@@ -84,14 +87,21 @@ public class TabsTray extends Activity implements GeckoApp.OnTabsChangedListener
         mList = (ListView) findViewById(R.id.list);
         mListContainer = (TabsListContainer) findViewById(R.id.list_container);
 
-        LinearLayout addTab = (LinearLayout) findViewById(R.id.add_tab);
+        ImageButton addTab = (ImageButton) findViewById(R.id.add_tab);
         addTab.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
                 GeckoApp.mAppContext.addTab();
                 finishActivity();
             }
         });
-        
+
+        mRemoteTabs = (LinkTextView) findViewById(R.id.remote_tabs);
+        mRemoteTabs.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+                showRemoteTabs();
+            }
+        });
+
         LinearLayout container = (LinearLayout) findViewById(R.id.container);
         container.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
@@ -103,22 +113,37 @@ public class TabsTray extends Activity implements GeckoApp.OnTabsChangedListener
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
         sListItemHeight = (int) (TABS_LIST_ITEM_HEIGHT * metrics.density);
-        sAddTabHeight = (int) (TABS_ADD_TAB_HEIGHT * metrics.density); 
+        sAddTabHeight = (int) (TABS_ADD_TAB_HEIGHT * metrics.density);
         sPreferredHeight = (int) (0.67 * metrics.heightPixels);
         sMaxHeight = (int) (sPreferredHeight + (0.33 * sListItemHeight));
 
-        GeckoApp.registerOnTabsChangedListener(this);
-        Tabs.getInstance().refreshThumbnails();
-        onTabsChanged(null);
+        Tabs tabs = Tabs.getInstance();
+        tabs.registerOnTabsChangedListener(this);
+        tabs.refreshThumbnails();
+        onTabChanged(null, null);
+
+         // If sync is set up, query the database for remote clients
+         // Cleanup after Bug: 734211 is fixed
+         if (AccountManager.get(getApplicationContext()).getAccountsByType("org.mozilla.firefox_sync").length > 0) {
+             TabsAccessor.areClientsAvailable(getApplicationContext(), new TabsAccessor.OnClientsAvailableListener() {
+                 @Override
+                 public void areAvailable(boolean available) {
+                     if (available)
+                         mRemoteTabs.setVisibility(View.VISIBLE);
+                     else
+                         mRemoteTabs.setVisibility(View.GONE);
+                 }
+             });
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        GeckoApp.unregisterOnTabsChangedListener(this);
+        Tabs.getInstance().unregisterOnTabsChangedListener(this);
     }
-   
-    public void onTabsChanged(Tab tab) {
+
+    public void onTabChanged(Tab tab, Tabs.TabEvents msg) {
         if (Tabs.getInstance().getCount() == 1)
             finishActivity();
 
@@ -134,7 +159,7 @@ public class TabsTray extends Activity implements GeckoApp.OnTabsChangedListener
             mList.setSelection(selected);
             return;
         }
-        
+
         int position = mTabsAdapter.getPositionForTab(tab);
         if (position == -1)
             return;
@@ -156,6 +181,14 @@ public class TabsTray extends Activity implements GeckoApp.OnTabsChangedListener
         GeckoAppShell.sendEventToGecko(GeckoEvent.createBroadcastEvent("Tab:Screenshot:Cancel",""));
     }
 
+    void showRemoteTabs() {
+        Intent intent = new Intent(this, RemoteTabs.class);
+        intent.putExtra("exit-to-tabs-tray", true);
+        startActivity(intent);
+        overridePendingTransition(R.anim.grow_fade_in, R.anim.shrink_fade_out);
+        finishActivity();
+    }
+
     // Tabs List Container holds the ListView and the New Tab button
     public static class TabsListContainer extends LinearLayout {
         public TabsListContainer(Context context, AttributeSet attrs) {
@@ -175,7 +208,7 @@ public class TabsTray extends Activity implements GeckoApp.OnTabsChangedListener
             if (childrenHeight <= sPreferredHeight) {
                 restrictedHeightSpec = MeasureSpec.makeMeasureSpec(childrenHeight, MeasureSpec.EXACTLY);
             } else {
-                if ((childrenHeight - sAddTabHeight) % sListItemHeight == 0)
+                if (((childrenHeight - sAddTabHeight) % sListItemHeight == 0) && (childrenHeight >= sMaxHeight))
                     restrictedHeightSpec = MeasureSpec.makeMeasureSpec(sMaxHeight, MeasureSpec.EXACTLY);
                 else
                     restrictedHeightSpec = MeasureSpec.makeMeasureSpec(sPreferredHeight, MeasureSpec.EXACTLY);
@@ -185,7 +218,7 @@ public class TabsTray extends Activity implements GeckoApp.OnTabsChangedListener
         }
     }
 
-    // Adapter to bind tabs into a list 
+    // Adapter to bind tabs into a list
     private class TabsAdapter extends BaseAdapter {
         public TabsAdapter(Context context, ArrayList<Tab> tabs) {
             mContext = context;
@@ -198,7 +231,7 @@ public class TabsTray extends Activity implements GeckoApp.OnTabsChangedListener
             for (int i = 0; i < tabs.size(); i++) {
                 mTabs.add(tabs.get(i));
             }
-            
+
             mOnInfoClickListener = new View.OnClickListener() {
                 public void onClick(View v) {
                     Tabs.getInstance().selectTab(Integer.parseInt((String) v.getTag()));
@@ -224,7 +257,7 @@ public class TabsTray extends Activity implements GeckoApp.OnTabsChangedListener
         public int getCount() {
             return mTabs.size();
         }
-    
+
         public Tab getItem(int position) {
             return mTabs.get(position);
         }
@@ -273,7 +306,7 @@ public class TabsTray extends Activity implements GeckoApp.OnTabsChangedListener
             info.setOnClickListener(mOnInfoClickListener);
 
             assignValues(convertView, tab);
-            
+
             ImageButton close = (ImageButton) convertView.findViewById(R.id.close);
             if (mTabs.size() > 1) {
                 close.setTag(String.valueOf(tab.getId()));
@@ -292,7 +325,7 @@ public class TabsTray extends Activity implements GeckoApp.OnTabsChangedListener
         @Override
         public void notifyDataSetInvalidated() {
         }
-    
+
         private Context mContext;
         private ArrayList<Tab> mTabs;
         private LayoutInflater mInflater;

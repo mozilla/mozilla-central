@@ -51,7 +51,6 @@
 #include "jsapi.h"
 #include "jscntxt.h"
 #include "jsnum.h"
-#include "jsobj.h"              /* js_XDRObject */
 #include "jsscript.h"           /* js_XDRScript */
 #include "jsstr.h"
 #include "jsxdrapi.h"
@@ -237,12 +236,10 @@ JS_XDRInitBase(JSXDRState *xdr, JSXDRMode mode, JSContext *cx)
 {
     xdr->mode = mode;
     xdr->cx = cx;
-    xdr->registry = NULL;
-    xdr->numclasses = xdr->maxclasses = 0;
-    xdr->reghash = NULL;
     xdr->userdata = NULL;
-    xdr->script = NULL;
-    xdr->state = NULL;
+    xdr->sharedFilename = NULL;
+    xdr->principals = NULL;
+    xdr->originPrincipals = NULL;
 }
 
 JS_PUBLIC_API(JSXDRState *)
@@ -307,11 +304,6 @@ JS_XDRDestroy(JSXDRState *xdr)
 {
     JSContext *cx = xdr->cx;
     xdr->ops->finalize(xdr);
-    if (xdr->registry) {
-        cx->free_(xdr->registry);
-        if (xdr->reghash)
-            JS_DHashTableDestroy((JSDHashTable *) xdr->reghash);
-    }
     cx->free_(xdr);
 }
 
@@ -404,19 +396,6 @@ JS_XDRCString(JSXDRState *xdr, char **sp)
     return JS_TRUE;
 }
 
-JS_PUBLIC_API(JSBool)
-JS_XDRCStringOrNull(JSXDRState *xdr, char **sp)
-{
-    uint32_t null = (*sp == NULL);
-    if (!JS_XDRUint32(xdr, &null))
-        return JS_FALSE;
-    if (null) {
-        *sp = NULL;
-        return JS_TRUE;
-    }
-    return JS_XDRCString(xdr, sp);
-}
-
 static JSBool
 XDRChars(JSXDRState *xdr, jschar *chars, uint32_t nchars)
 {
@@ -493,131 +472,17 @@ JS_XDRStringOrNull(JSXDRState *xdr, JSString **strp)
     return JS_XDRString(xdr, strp);
 }
 
-static JSBool
-XDRDoubleValue(JSXDRState *xdr, jsdouble *dp)
+JS_PUBLIC_API(JSBool)
+JS_XDRDouble(JSXDRState *xdr, double *dp)
 {
     jsdpun u;
 
     u.d = (xdr->mode == JSXDR_ENCODE) ? *dp : 0.0;
     if (!JS_XDRUint32(xdr, &u.s.lo) || !JS_XDRUint32(xdr, &u.s.hi))
-        return JS_FALSE;
+        return false;
     if (xdr->mode == JSXDR_DECODE)
         *dp = u.d;
-    return JS_TRUE;
-}
-
-JS_PUBLIC_API(JSBool)
-JS_XDRDouble(JSXDRState *xdr, jsdouble *dp)
-{
-    jsdouble d = (xdr->mode == JSXDR_ENCODE) ? *dp : 0.0;
-    if (!XDRDoubleValue(xdr, &d))
-        return JS_FALSE;
-    if (xdr->mode == JSXDR_DECODE)
-        *dp = d;
-    return JS_TRUE;
-}
-
-enum XDRValueTag {
-    XDRTAG_OBJECT  = 0,
-    XDRTAG_INT     = 1,
-    XDRTAG_DOUBLE  = 2,
-    XDRTAG_STRING  = 3,
-    XDRTAG_SPECIAL = 4,
-    XDRTAG_XDRNULL = 5,
-    XDRTAG_XDRVOID = 6
-};
-
-static XDRValueTag
-GetXDRTag(jsval v)
-{
-    if (JSVAL_IS_NULL(v))
-        return XDRTAG_XDRNULL;
-    if (JSVAL_IS_VOID(v))
-        return XDRTAG_XDRVOID;
-    if (JSVAL_IS_OBJECT(v))
-        return XDRTAG_OBJECT;
-    if (JSVAL_IS_INT(v))
-        return XDRTAG_INT;
-    if (JSVAL_IS_DOUBLE(v))
-        return XDRTAG_DOUBLE;
-    if (JSVAL_IS_STRING(v))
-        return XDRTAG_STRING;
-    JS_ASSERT(JSVAL_IS_BOOLEAN(v));
-    return XDRTAG_SPECIAL;
-}
-
-static JSBool
-XDRValueBody(JSXDRState *xdr, uint32_t type, jsval *vp)
-{
-    switch (type) {
-      case XDRTAG_XDRNULL:
-        *vp = JSVAL_NULL;
-        break;
-      case XDRTAG_XDRVOID:
-        *vp = JSVAL_VOID;
-        break;
-      case XDRTAG_STRING: {
-        JSString *str;
-        if (xdr->mode == JSXDR_ENCODE)
-            str = JSVAL_TO_STRING(*vp);
-        if (!JS_XDRString(xdr, &str))
-            return JS_FALSE;
-        if (xdr->mode == JSXDR_DECODE)
-            *vp = STRING_TO_JSVAL(str);
-        break;
-      }
-      case XDRTAG_DOUBLE: {
-        double d = xdr->mode == JSXDR_ENCODE ? JSVAL_TO_DOUBLE(*vp) : 0;
-        if (!JS_XDRDouble(xdr, &d))
-            return JS_FALSE;
-        if (xdr->mode == JSXDR_DECODE)
-            *vp = DOUBLE_TO_JSVAL(d);
-        break;
-      }
-      case XDRTAG_OBJECT: {
-        JSObject *obj;
-        if (xdr->mode == JSXDR_ENCODE)
-            obj = JSVAL_TO_OBJECT(*vp);
-        if (!js_XDRObject(xdr, &obj))
-            return JS_FALSE;
-        if (xdr->mode == JSXDR_DECODE)
-            *vp = OBJECT_TO_JSVAL(obj);
-        break;
-      }
-      case XDRTAG_SPECIAL: {
-        uint32_t b;
-        if (xdr->mode == JSXDR_ENCODE)
-            b = (uint32_t) JSVAL_TO_BOOLEAN(*vp);
-        if (!JS_XDRUint32(xdr, &b))
-            return JS_FALSE;
-        if (xdr->mode == JSXDR_DECODE)
-            *vp = BOOLEAN_TO_JSVAL(!!b);
-        break;
-      }
-      default: {
-        uint32_t i;
-
-        JS_ASSERT(type == XDRTAG_INT);
-        if (xdr->mode == JSXDR_ENCODE)
-            i = (uint32_t) JSVAL_TO_INT(*vp);
-        if (!JS_XDRUint32(xdr, &i))
-            return JS_FALSE;
-        if (xdr->mode == JSXDR_DECODE)
-            *vp = INT_TO_JSVAL((int32_t) i);
-        break;
-      }
-    }
-    return JS_TRUE;
-}
-
-JS_PUBLIC_API(JSBool)
-JS_XDRValue(JSXDRState *xdr, jsval *vp)
-{
-    uint32_t type;
-
-    if (xdr->mode == JSXDR_ENCODE)
-        type = GetXDRTag(*vp);
-    return JS_XDRUint32(xdr, &type) && XDRValueBody(xdr, type, vp);
+    return true;
 }
 
 extern JSBool
@@ -667,44 +532,100 @@ js_XDRAtom(JSXDRState *xdr, JSAtom **atomp)
     return JS_TRUE;
 }
 
-XDRScriptState::XDRScriptState(JSXDRState *x)
-    : xdr(x)
-    , filename(NULL)
-    , filenameSaved(false)
+static bool
+XDRPrincipals(JSXDRState *xdr)
 {
-    JS_ASSERT(!xdr->state);
+    const uint8_t HAS_PRINCIPALS   = 1;
+    const uint8_t HAS_ORIGIN       = 2;
 
-    xdr->state = this;
+    uint8_t flags = 0;
+    if (xdr->mode == JSXDR_ENCODE) {
+        if (xdr->principals)
+            flags |= HAS_PRINCIPALS;
+
+        /*
+         * For the common case when principals == originPrincipals we want to
+         * avoid serializing the same principal twice. As originPrincipals are
+         * normalized and principals imply originPrincipals we simply set
+         * HAS_ORIGIN only if originPrincipals is set and different from
+         * principals. During decoding we re-normalize originPrincipals.
+         */
+        JS_ASSERT_IF(xdr->principals, xdr->originPrincipals);
+        if (xdr->originPrincipals && xdr->originPrincipals != xdr->principals)
+            flags |= HAS_ORIGIN;
+    }
+
+    if (!JS_XDRUint8(xdr, &flags))
+        return false;
+
+    if (flags & (HAS_PRINCIPALS | HAS_ORIGIN)) {
+        const JSSecurityCallbacks *scb = JS_GetSecurityCallbacks(xdr->cx->runtime);
+        if (xdr->mode == JSXDR_DECODE) {
+            if (!scb || !scb->principalsTranscoder) {
+                JS_ReportErrorNumber(xdr->cx, js_GetErrorMessage, NULL,
+                                     JSMSG_CANT_DECODE_PRINCIPALS);
+                return false;
+            }
+        } else {
+            JS_ASSERT(scb);
+            JS_ASSERT(scb->principalsTranscoder);
+        }
+
+        if (flags & HAS_PRINCIPALS) {
+            if (!scb->principalsTranscoder(xdr, &xdr->principals))
+                return false;
+        }
+
+        if (flags & HAS_ORIGIN) {
+            if (!scb->principalsTranscoder(xdr, &xdr->originPrincipals))
+                return false;
+        } else if (xdr->mode == JSXDR_DECODE && xdr->principals) {
+            xdr->originPrincipals = xdr->principals;
+            JS_HoldPrincipals(xdr->principals);
+        }
+    }
+
+    return true;
 }
 
-XDRScriptState::~XDRScriptState()
-{
-    xdr->state = NULL;
-    if (xdr->mode == JSXDR_DECODE && filename && !filenameSaved)
-        xdr->cx->free_((void *)filename);
-}
+namespace {
+
+struct AutoDropXDRPrincipals {
+    JSXDRState *const xdr;
+
+    AutoDropXDRPrincipals(JSXDRState *xdr)
+      : xdr(xdr) { }
+
+    ~AutoDropXDRPrincipals() {
+        if (xdr->mode == JSXDR_DECODE) {
+            if (xdr->principals)
+                JS_DropPrincipals(xdr->cx->runtime, xdr->principals);
+            if (xdr->originPrincipals)
+                JS_DropPrincipals(xdr->cx->runtime, xdr->originPrincipals);
+        }
+        xdr->principals = NULL;
+        xdr->originPrincipals = NULL;
+    }
+};
+
+} /* namespace anonymous */
 
 JS_PUBLIC_API(JSBool)
 JS_XDRFunctionObject(JSXDRState *xdr, JSObject **objp)
 {
-    XDRScriptState fstate(xdr);
-
+    AutoDropXDRPrincipals drop(xdr);
     if (xdr->mode == JSXDR_ENCODE) {
-        JSFunction* fun = (*objp)->toFunction();
-        fstate.filename = fun->script()->filename;
+        JSScript *script = (*objp)->toFunction()->script();
+        xdr->principals = script->principals;
+        xdr->originPrincipals = script->originPrincipals;
     }
 
-    if (!JS_XDRCStringOrNull(xdr, (char **) &fstate.filename))
-        return false;
-
-    return js_XDRFunctionObject(xdr, objp);
+    return XDRPrincipals(xdr) && XDRFunctionObject(xdr, objp);
 }
 
 JS_PUBLIC_API(JSBool)
 JS_XDRScript(JSXDRState *xdr, JSScript **scriptp)
 {
-    JS_ASSERT(!xdr->state);
-
     JSScript *script;
     uint32_t magic;
     uint32_t bytecodeVer;
@@ -729,17 +650,16 @@ JS_XDRScript(JSXDRState *xdr, JSScript **scriptp)
         return false;
     }
 
-    XDRScriptState state(xdr);
-    if (!xdr->state)
-        return false;
-
-    if (xdr->mode == JSXDR_ENCODE)
-        state.filename = script->filename;
-    if (!JS_XDRCStringOrNull(xdr, (char **) &state.filename))
-        return false;
-
-    if (!js_XDRScript(xdr, &script))
-        return false;
+    {
+        AutoDropXDRPrincipals drop(xdr);
+        if (xdr->mode == JSXDR_ENCODE) {
+            xdr->principals = script->principals;
+            xdr->originPrincipals = script->originPrincipals;
+        }
+        
+        if (!XDRPrincipals(xdr) || !XDRScript(xdr, &script))
+            return false;
+    }
 
     if (xdr->mode == JSXDR_DECODE) {
         JS_ASSERT(!script->compileAndGo);
@@ -750,109 +670,6 @@ JS_XDRScript(JSXDRState *xdr, JSScript **scriptp)
     }
 
     return true;
-}
-
-#define CLASS_REGISTRY_MIN      8
-#define CLASS_INDEX_TO_ID(i)    ((i)+1)
-#define CLASS_ID_TO_INDEX(id)   ((id)-1)
-
-typedef struct JSRegHashEntry {
-    JSDHashEntryHdr hdr;
-    const char      *name;
-    uint32_t        index;
-} JSRegHashEntry;
-
-JS_PUBLIC_API(JSBool)
-JS_XDRRegisterClass(JSXDRState *xdr, JSClass *clasp, uint32_t *idp)
-{
-    uintN numclasses, maxclasses;
-    JSClass **registry;
-
-    numclasses = xdr->numclasses;
-    maxclasses = xdr->maxclasses;
-    if (numclasses == maxclasses) {
-        maxclasses = (maxclasses == 0) ? CLASS_REGISTRY_MIN : maxclasses << 1;
-        registry = (JSClass **)
-            xdr->cx->realloc_(xdr->registry, maxclasses * sizeof(JSClass *));
-        if (!registry)
-            return JS_FALSE;
-        xdr->registry = registry;
-        xdr->maxclasses = maxclasses;
-    } else {
-        JS_ASSERT(numclasses && numclasses < maxclasses);
-        registry = xdr->registry;
-    }
-
-    registry[numclasses] = clasp;
-    if (xdr->reghash) {
-        JSRegHashEntry *entry = (JSRegHashEntry *)
-            JS_DHashTableOperate((JSDHashTable *) xdr->reghash,
-                                 clasp->name, JS_DHASH_ADD);
-        if (!entry) {
-            JS_ReportOutOfMemory(xdr->cx);
-            return JS_FALSE;
-        }
-        entry->name = clasp->name;
-        entry->index = numclasses;
-    }
-    *idp = CLASS_INDEX_TO_ID(numclasses);
-    xdr->numclasses = ++numclasses;
-    return JS_TRUE;
-}
-
-JS_PUBLIC_API(uint32_t)
-JS_XDRFindClassIdByName(JSXDRState *xdr, const char *name)
-{
-    uintN i, numclasses;
-
-    numclasses = xdr->numclasses;
-    if (numclasses >= 10) {
-        JSRegHashEntry *entry;
-
-        /* Bootstrap reghash from registry on first overpopulated Find. */
-        if (!xdr->reghash) {
-            xdr->reghash =
-                JS_NewDHashTable(JS_DHashGetStubOps(), NULL,
-                                 sizeof(JSRegHashEntry),
-                                 JS_DHASH_DEFAULT_CAPACITY(numclasses));
-            if (xdr->reghash) {
-                for (i = 0; i < numclasses; i++) {
-                    JSClass *clasp = xdr->registry[i];
-                    entry = (JSRegHashEntry *)
-                        JS_DHashTableOperate((JSDHashTable *) xdr->reghash,
-                                             clasp->name, JS_DHASH_ADD);
-                    entry->name = clasp->name;
-                    entry->index = i;
-                }
-            }
-        }
-
-        /* If we managed to create reghash, use it for O(1) Find. */
-        if (xdr->reghash) {
-            entry = (JSRegHashEntry *)
-                JS_DHashTableOperate((JSDHashTable *) xdr->reghash,
-                                     name, JS_DHASH_LOOKUP);
-            if (JS_DHASH_ENTRY_IS_BUSY(&entry->hdr))
-                return CLASS_INDEX_TO_ID(entry->index);
-        }
-    }
-
-    /* Only a few classes, or we couldn't malloc reghash: use linear search. */
-    for (i = 0; i < numclasses; i++) {
-        if (!strcmp(name, xdr->registry[i]->name))
-            return CLASS_INDEX_TO_ID(i);
-    }
-    return 0;
-}
-
-JS_PUBLIC_API(JSClass *)
-JS_XDRFindClassById(JSXDRState *xdr, uint32_t id)
-{
-    uintN i = CLASS_ID_TO_INDEX(id);
-
-    if (i >= xdr->numclasses)
-        return NULL;
-    return xdr->registry[i];
 }
 
 #endif /* JS_HAS_XDR */

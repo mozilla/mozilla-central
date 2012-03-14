@@ -693,8 +693,8 @@
             if (aURI && this.mFaviconService) {
               if (!(aURI instanceof Ci.nsIURI))
                 aURI = makeURI(aURI);
-              this.mFaviconService.setAndLoadFaviconForPage(browser.currentURI,
-                                                            aURI, false);
+              this.mFaviconService.setAndFetchFaviconForPage(browser.currentURI,
+                                                             aURI, false);
             }
 
             if ((browser.mIconURL || "") != aTab.getAttribute("image")) {
@@ -1418,7 +1418,9 @@
       <parameter name="aAll"/>
       <body>
         <![CDATA[
-          var tabsToClose = (aAll ? this.tabs.length : this.visibleTabs.length - 1)
+          var tabsToClose = (aAll ?
+                               this.tabs.length - this._removingTabs.length :
+                               this.visibleTabs.length - 1)
                             - gBrowser._numPinnedTabs;
           if (tabsToClose <= 1)
             return true;
@@ -1526,6 +1528,7 @@
             if (!animate /* the caller didn't opt in */ ||
                 isLastTab ||
                 aTab.pinned ||
+                aTab.hidden ||
                 this._removingTabs.length > 3 /* don't want lots of concurrent animations */ ||
                 aTab.getAttribute("fadein") != "true" /* fade-in transition hasn't been triggered yet */ ||
                 window.getComputedStyle(aTab).maxWidth == "0.1px" /* fade-in transition hasn't moved yet */ ||
@@ -2776,9 +2779,7 @@
 
           Services.prefs.addObserver("browser.tabs.", this._prefObserver, false);
           window.addEventListener("resize", this, false);
-
-          this.updateVisibility();
-          this._propagateVisibility();
+          window.addEventListener("load", this, false);
         ]]>
       </constructor>
 
@@ -2838,15 +2839,19 @@
         this.parentNode && this.parentNode.localName == "toolbar" ? this.parentNode : this;
       ]]></field>
 
+      <field name="_propagatedVisibilityOnce">false</field>
+
       <property name="visible"
                 onget="return !this._container.collapsed;">
         <setter><![CDATA[
-          if (val == this.visible)
+          if (val == this.visible &&
+              this._propagatedVisibilityOnce)
             return val;
 
           this._container.collapsed = !val;
 
           this._propagateVisibility();
+          this._propagatedVisibilityOnce = true;
 
           return val;
         ]]></setter>
@@ -3077,6 +3082,9 @@
         <parameter name="aEvent"/>
         <body><![CDATA[
           switch (aEvent.type) {
+            case "load":
+              this.updateVisibility();
+              break;
             case "resize":
               if (aEvent.target != window)
                 break;

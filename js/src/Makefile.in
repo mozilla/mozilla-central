@@ -154,6 +154,7 @@ CPPSRCS		= \
 		Debugger.cpp \
 		GlobalObject.cpp \
 		MethodGuard.cpp \
+		ObjectImpl.cpp \
 		Stack.cpp \
 		String.cpp \
 		BytecodeCompiler.cpp \
@@ -164,6 +165,7 @@ CPPSRCS		= \
 		Parser.cpp \
 		SemanticAnalysis.cpp \
 		TokenStream.cpp \
+		TestingFunctions.cpp \
 		LifoAlloc.cpp \
 		MapObject.cpp \
 		MemoryMetrics.cpp \
@@ -172,6 +174,7 @@ CPPSRCS		= \
 		RegExp.cpp \
 		Memory.cpp \
 		Statistics.cpp \
+		StringBuffer.cpp \
 		Unicode.cpp \
 		$(NULL)
 
@@ -187,7 +190,6 @@ INSTALLED_HEADERS = \
 		jsatom.h \
 		jsclass.h \
 		jsclist.h \
-		jscompat.h \
 		jsdbgapi.h \
 		jsdhash.h \
 		jsfriendapi.h \

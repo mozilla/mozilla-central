@@ -198,7 +198,7 @@ public:
                    IDBRequest* aRequest,
                    IDBObjectStore* aObjectStore,
                    IDBKeyRange* aKeyRange,
-                   PRUint16 aDirection)
+                   IDBCursor::Direction aDirection)
   : AsyncConnectionHelper(aTransaction, aRequest), mObjectStore(aObjectStore),
     mKeyRange(aKeyRange), mDirection(aDirection)
   { }
@@ -224,7 +224,7 @@ private:
   // In-params.
   nsRefPtr<IDBObjectStore> mObjectStore;
   nsRefPtr<IDBKeyRange> mKeyRange;
-  const PRUint16 mDirection;
+  const IDBCursor::Direction mDirection;
 
   // Out-params.
   Key mKey;
@@ -618,12 +618,12 @@ IDBObjectStore::AppendIndexUpdateInfo(PRInt64 aIndexID,
   if (aMultiEntry && !JSVAL_IS_PRIMITIVE(key) &&
       JS_IsArrayObject(aCx, JSVAL_TO_OBJECT(key))) {
     JSObject* array = JSVAL_TO_OBJECT(key);
-    jsuint arrayLength;
+    uint32_t arrayLength;
     if (!JS_GetArrayLength(aCx, array, &arrayLength)) {
       return NS_ERROR_DOM_INDEXEDDB_UNKNOWN_ERR;
     }
 
-    for (jsuint arrayIndex = 0; arrayIndex < arrayLength; arrayIndex++) {
+    for (uint32_t arrayIndex = 0; arrayIndex < arrayLength; arrayIndex++) {
       jsval arrayItem;
       if (!JS_GetElement(aCx, array, arrayIndex, &arrayItem)) {
         return NS_ERROR_DOM_INDEXEDDB_UNKNOWN_ERR;
@@ -900,7 +900,7 @@ SwapBytes(PRUint32 u)
 #endif
 }
 
-static inline jsdouble
+static inline double
 SwapBytes(PRUint64 u)
 {
 #ifdef IS_BIG_ENDIAN
@@ -913,7 +913,7 @@ SwapBytes(PRUint64 u)
          ((u & 0x00ff000000000000LLU) >> 40) |
          ((u & 0xff00000000000000LLU) >> 56);
 #else
-  return jsdouble(u);
+  return double(u);
 #endif
 }
 
@@ -1637,7 +1637,7 @@ IDBObjectStore::Clear(nsIIDBRequest** _retval)
 
 NS_IMETHODIMP
 IDBObjectStore::OpenCursor(const jsval& aKey,
-                           PRUint16 aDirection,
+                           const nsAString& aDirection,
                            JSContext* aCx,
                            PRUint8 aOptionalArgCount,
                            nsIIDBRequest** _retval)
@@ -1650,21 +1650,16 @@ IDBObjectStore::OpenCursor(const jsval& aKey,
 
   nsresult rv;
 
+  IDBCursor::Direction direction = IDBCursor::NEXT;
+
   nsRefPtr<IDBKeyRange> keyRange;
   if (aOptionalArgCount) {
     rv = IDBKeyRange::FromJSVal(aCx, aKey, getter_AddRefs(keyRange));
     NS_ENSURE_SUCCESS(rv, rv);
 
     if (aOptionalArgCount >= 2) {
-      if (aDirection != nsIIDBCursor::NEXT &&
-          aDirection != nsIIDBCursor::NEXT_NO_DUPLICATE &&
-          aDirection != nsIIDBCursor::PREV &&
-          aDirection != nsIIDBCursor::PREV_NO_DUPLICATE) {
-        return NS_ERROR_DOM_INDEXEDDB_NON_TRANSIENT_ERR;
-      }
-    }
-    else {
-      aDirection = nsIIDBCursor::NEXT;
+      rv = IDBCursor::ParseDirection(aDirection, &direction);
+      NS_ENSURE_SUCCESS(rv, rv);
     }
   }
 
@@ -1672,7 +1667,7 @@ IDBObjectStore::OpenCursor(const jsval& aKey,
   NS_ENSURE_TRUE(request, NS_ERROR_DOM_INDEXEDDB_UNKNOWN_ERR);
 
   nsRefPtr<OpenCursorHelper> helper =
-    new OpenCursorHelper(mTransaction, request, this, keyRange, aDirection);
+    new OpenCursorHelper(mTransaction, request, this, keyRange, direction);
 
   rv = helper->DispatchToTransactionPool();
   NS_ENSURE_SUCCESS(rv, NS_ERROR_DOM_INDEXEDDB_UNKNOWN_ERR);
@@ -1700,7 +1695,7 @@ IDBObjectStore::CreateIndex(const nsAString& aName,
 
     JSObject* obj = JSVAL_TO_OBJECT(aKeyPath);
 
-    jsuint length;
+    uint32_t length;
     if (!JS_GetArrayLength(aCx, obj, &length)) {
       return NS_ERROR_DOM_INDEXEDDB_UNKNOWN_ERR;
     }
@@ -1711,7 +1706,7 @@ IDBObjectStore::CreateIndex(const nsAString& aName,
 
     keyPathArray.SetCapacity(length);
 
-    for (jsuint index = 0; index < length; index++) {
+    for (uint32_t index = 0; index < length; index++) {
       jsval val;
       JSString* jsstr;
       nsDependentJSString str;
@@ -1750,7 +1745,7 @@ IDBObjectStore::CreateIndex(const nsAString& aName,
 
   if (!transaction ||
       transaction != mTransaction ||
-      mTransaction->Mode() != nsIIDBTransaction::VERSION_CHANGE) {
+      mTransaction->GetMode() != IDBTransaction::VERSION_CHANGE) {
     return NS_ERROR_DOM_INDEXEDDB_NOT_ALLOWED_ERR;
   }
 
@@ -1876,7 +1871,7 @@ IDBObjectStore::DeleteIndex(const nsAString& aName)
 
   if (!transaction ||
       transaction != mTransaction ||
-      mTransaction->Mode() != nsIIDBTransaction::VERSION_CHANGE) {
+      mTransaction->GetMode() != IDBTransaction::VERSION_CHANGE) {
     return NS_ERROR_DOM_INDEXEDDB_NOT_ALLOWED_ERR;
   }
 
@@ -2019,7 +2014,7 @@ AddHelper::DoDatabaseWork(mozIStorageConnection* aConnection)
 
       // This is a duplicate of the js engine's byte munging here
       union {
-        jsdouble d;
+        double d;
         PRUint64 u;
       } pun;
     
@@ -2285,13 +2280,13 @@ OpenCursorHelper::DoDatabaseWork(mozIStorageConnection* aConnection)
 
   nsCAutoString directionClause;
   switch (mDirection) {
-    case nsIIDBCursor::NEXT:
-    case nsIIDBCursor::NEXT_NO_DUPLICATE:
+    case IDBCursor::NEXT:
+    case IDBCursor::NEXT_UNIQUE:
       directionClause.AssignLiteral(" ORDER BY key_value ASC");
       break;
 
-    case nsIIDBCursor::PREV:
-    case nsIIDBCursor::PREV_NO_DUPLICATE:
+    case IDBCursor::PREV:
+    case IDBCursor::PREV_UNIQUE:
       directionClause.AssignLiteral(" ORDER BY key_value DESC");
       break;
 
@@ -2344,8 +2339,8 @@ OpenCursorHelper::DoDatabaseWork(mozIStorageConnection* aConnection)
   NS_NAMED_LITERAL_CSTRING(rangeKey, "range_key");
 
   switch (mDirection) {
-    case nsIIDBCursor::NEXT:
-    case nsIIDBCursor::NEXT_NO_DUPLICATE:
+    case IDBCursor::NEXT:
+    case IDBCursor::NEXT_UNIQUE:
       AppendConditionClause(keyValue, currentKey, false, false,
                             keyRangeClause);
       AppendConditionClause(keyValue, currentKey, false, true,
@@ -2360,8 +2355,8 @@ OpenCursorHelper::DoDatabaseWork(mozIStorageConnection* aConnection)
       }
       break;
 
-    case nsIIDBCursor::PREV:
-    case nsIIDBCursor::PREV_NO_DUPLICATE:
+    case IDBCursor::PREV:
+    case IDBCursor::PREV_UNIQUE:
       AppendConditionClause(keyValue, currentKey, true, false, keyRangeClause);
       AppendConditionClause(keyValue, currentKey, true, true,
                            continueToKeyRangeClause);
@@ -2851,5 +2846,5 @@ nsresult
 CountHelper::GetSuccessResult(JSContext* aCx,
                               jsval* aVal)
 {
-  return JS_NewNumberValue(aCx, static_cast<jsdouble>(mCount), aVal);
+  return JS_NewNumberValue(aCx, static_cast<double>(mCount), aVal);
 }

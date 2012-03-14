@@ -36,11 +36,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "mozEnglishWordUtils.h"
-#include "nsICharsetAlias.h"
 #include "nsReadableUtils.h"
 #include "nsIServiceManager.h"
 #include "nsUnicharUtils.h"
 #include "nsUnicharUtilCIID.h"
+#include "nsUnicodeProperties.h"
 #include "nsCRT.h"
 
 NS_IMPL_CYCLE_COLLECTING_ADDREF(mozEnglishWordUtils)
@@ -52,8 +52,7 @@ NS_INTERFACE_MAP_BEGIN(mozEnglishWordUtils)
   NS_INTERFACE_MAP_ENTRIES_CYCLE_COLLECTION(mozEnglishWordUtils)
 NS_INTERFACE_MAP_END
 
-NS_IMPL_CYCLE_COLLECTION_2(mozEnglishWordUtils,
-                           mCategories,
+NS_IMPL_CYCLE_COLLECTION_1(mozEnglishWordUtils,
                            mURLDetector)
 
 mozEnglishWordUtils::mozEnglishWordUtils()
@@ -62,7 +61,6 @@ mozEnglishWordUtils::mozEnglishWordUtils()
 
   nsresult rv;
   mURLDetector = do_CreateInstance(MOZ_TXTTOHTMLCONV_CONTRACTID, &rv);
-  mCategories = do_GetService(NS_UNICHARCATEGORY_CONTRACTID);
 }
 
 mozEnglishWordUtils::~mozEnglishWordUtils()
@@ -168,7 +166,7 @@ NS_IMETHODIMP mozEnglishWordUtils::GetRootForm(const PRUnichar *aWord, PRUint32 
 bool mozEnglishWordUtils::ucIsAlpha(PRUnichar aChar)
 {
   // XXX we have to fix callers to handle the full Unicode range
-  return nsIUGenCategory::kLetter == mCategories->Get(PRUint32(aChar));
+  return nsIUGenCategory::kLetter == mozilla::unicode::GetGenCategory(aChar);
 }
 
 /* void FindNextWord (in wstring word, in PRUint32 length, in PRUint32 offset, out PRUint32 begin, out PRUint32 end); */

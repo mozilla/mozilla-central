@@ -27,6 +27,7 @@
  *   Paul Rouget <paul@mozilla.com>
  *   Kyle Simpson <ksimpson@mozilla.com>
  *   Johan Charlez <johan.charlez@gmail.com>
+ *   Mike Ratcliffe <mratcliffe@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -42,6 +43,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+const Cc = Components.classes;
 const Cu = Components.utils;
 const Ci = Components.interfaces;
 const Cr = Components.results;
@@ -82,6 +84,8 @@ const INSPECTOR_NOTIFICATIONS = {
   EDITOR_SAVED: "inspector-editor-saved",
 };
 
+const PSEUDO_CLASSES = [":hover", ":active", ":focus"];
+
 ///////////////////////////////////////////////////////////////////////////
 //// InspectorUI
 
@@ -101,6 +105,15 @@ function InspectorUI(aWindow)
   this.toolEvents = {};
   this.store = new InspectorStore();
   this.INSPECTOR_NOTIFICATIONS = INSPECTOR_NOTIFICATIONS;
+
+  // Set the tooltip of the inspect button.
+  let keysbundle = Services.strings.createBundle(
+    "chrome://global/locale/keys.properties");
+  let returnString = keysbundle.GetStringFromName("VK_RETURN");
+  let tooltip = this.strings.formatStringFromName("inspectButton.tooltiptext",
+    [returnString], 1);
+  let button = this.chromeDoc.getElementById("inspector-inspect-toolbutton");
+  button.setAttribute("tooltiptext", tooltip);
 }
 
 InspectorUI.prototype = {
@@ -108,7 +121,6 @@ InspectorUI.prototype = {
   tools: null,
   toolEvents: null,
   inspecting: false,
-  treePanelEnabled: true,
   ruleViewEnabled: true,
   isDirty: false,
   store: null,
@@ -137,23 +149,42 @@ InspectorUI.prototype = {
     this.sidebarSplitter.removeAttribute("hidden");
     this.stylingButton.checked = true;
 
-    // Activate the first tool in the sidebar, only if none previously-
-    // selected. We'll want to do a followup to remember selected tool-states.
+    // If no tool is already selected, show the last-used sidebar if available,
+    // otherwise just show the first.
+
     if (!Array.some(this.sidebarToolbar.children,
       function(btn) btn.hasAttribute("checked"))) {
-        let firstButtonId = this.getToolbarButtonId(this.sidebarTools[0].id);
-        this.chromeDoc.getElementById(firstButtonId).click();
+
+      let activePanel = this.sidebarTools[0];
+      let activeId = this.store.getValue(this.winID, "activeSidebar");
+      if (activeId && this.tools[activeId]) {
+        activePanel = this.tools[activeId];
+      }
+      this.activateSidebarPanel(activePanel.id);
     }
+
+    this.store.setValue(this.winID, "sidebarOpen", true);
+    Services.prefs.setBoolPref("devtools.inspector.sidebarOpen", true);
   },
 
   /**
-   * Hide the Sidebar.
+   * Tear down the sidebar.
    */
-  hideSidebar: function IUI_hideSidebar()
+  _destroySidebar: function IUI_destroySidebar()
   {
     this.sidebarBox.setAttribute("hidden", "true");
     this.sidebarSplitter.setAttribute("hidden", "true");
     this.stylingButton.checked = false;
+  },
+
+  /**
+   * Hide the sidebar.
+   */
+  hideSidebar: function IUI_hideSidebar()
+  {
+    this._destroySidebar();
+    this.store.setValue(this.winID, "sidebarOpen", false);
+    Services.prefs.setBoolPref("devtools.inspector.sidebarOpen", false);
   },
 
   /**
@@ -167,6 +198,25 @@ InspectorUI.prototype = {
     } else {
       this.hideSidebar();
     }
+  },
+
+  /**
+   * Activate a sidebar panel by id.
+   */
+  activateSidebarPanel: function IUI_activateSidebarPanel(aID)
+  {
+    let buttonId = this.getToolbarButtonId(aID);
+    this.chromeDoc.getElementById(buttonId).click();
+  },
+
+  get activeSidebarPanel()
+  {
+    for each (let tool in this.sidebarTools) {
+      if (this.sidebarDeck.selectedPanel == this.getToolIframe(tool)) {
+        return tool.id;
+      }
+    }
+    return null;
   },
 
   /**
@@ -189,6 +239,22 @@ InspectorUI.prototype = {
       this.stopInspecting();
     } else {
       this.startInspecting();
+    }
+  },
+
+  /**
+   * Toggle the TreePanel.
+   */
+  toggleHTMLPanel: function TP_toggle()
+  {
+    if (this.treePanel.isOpen()) {
+      this.treePanel.close();
+      Services.prefs.setBoolPref("devtools.inspector.htmlPanelOpen", false);
+      this.store.setValue(this.winID, "htmlPanelOpen", false);
+    } else {
+      this.treePanel.open();
+      Services.prefs.setBoolPref("devtools.inspector.htmlPanelOpen", true);
+      this.store.setValue(this.winID, "htmlPanelOpen", true);
     }
   },
 
@@ -260,9 +326,7 @@ InspectorUI.prototype = {
     this.initTools();
     this.chromeWin.Tilt.setup();
 
-    if (this.treePanelEnabled) {
-      this.treePanel = new TreePanel(this.chromeWin, this);
-    }
+    this.treePanel = new TreePanel(this.chromeWin, this);
 
     if (Services.prefs.getBoolPref("devtools.ruleview.enabled") &&
         !this.toolRegistered("ruleview")) {
@@ -310,6 +374,7 @@ InspectorUI.prototype = {
       show: this.openRuleView,
       hide: this.closeRuleView,
       onSelect: this.selectInRuleView,
+      onChanged: this.changeInRuleView,
       panel: null,
       unregister: this.destroyRuleView,
       sidebar: true,
@@ -349,6 +414,16 @@ InspectorUI.prototype = {
       this.store.setValue(this.winID, "selectedNode", null);
       this.store.setValue(this.winID, "inspecting", true);
       this.store.setValue(this.winID, "isDirty", this.isDirty);
+
+      this.store.setValue(this.winID, "htmlPanelOpen",
+        Services.prefs.getBoolPref("devtools.inspector.htmlPanelOpen"));
+
+      this.store.setValue(this.winID, "sidebarOpen",
+        Services.prefs.getBoolPref("devtools.inspector.sidebarOpen"));
+
+      this.store.setValue(this.winID, "activeSidebar",
+        Services.prefs.getCharPref("devtools.inspector.activeSidebar"));
+
       this.win.addEventListener("pagehide", this, true);
     }
   },
@@ -400,6 +475,8 @@ InspectorUI.prototype = {
     if (this.treePanel && this.treePanel.editingContext)
       this.treePanel.closeEditor();
 
+    this.treePanel.destroy();
+
     if (this.closing || !this.win || !this.browser) {
       return;
     }
@@ -417,6 +494,7 @@ InspectorUI.prototype = {
     if (!aKeepStore) {
       this.store.deleteStore(this.winID);
       this.win.removeEventListener("pagehide", this, true);
+      this.clearPseudoClassLocks();
     } else {
       // Update the store before closing.
       if (this.selection) {
@@ -435,13 +513,12 @@ InspectorUI.prototype = {
 
     this.stopInspecting();
 
-    this.saveToolState(this.winID);
     this.toolsDo(function IUI_toolsHide(aTool) {
       this.unregisterTool(aTool);
     }.bind(this));
 
     // close the sidebar
-    this.hideSidebar();
+    this._destroySidebar();
 
     if (this.highlighter) {
       this.highlighter.destroy();
@@ -503,7 +580,7 @@ InspectorUI.prototype = {
     this.inspecting = false;
     this.toolsDim(false);
     if (this.highlighter.getNode()) {
-      this.select(this.highlighter.getNode(), true, true, !aPreventScroll);
+      this.select(this.highlighter.getNode(), true, !aPreventScroll);
     } else {
       this.select(null, true, true);
     }
@@ -511,15 +588,17 @@ InspectorUI.prototype = {
   },
 
   /**
-   * Select an object in the tree view.
+   * Select an object in the inspector.
    * @param aNode
    *        node to inspect
    * @param forceUpdate
    *        force an update?
    * @param aScroll boolean
    *        scroll the tree panel?
+   * @param aFrom [optional] string
+   *        which part of the UI the selection occured from
    */
-  select: function IUI_select(aNode, forceUpdate, aScroll)
+  select: function IUI_select(aNode, forceUpdate, aScroll, aFrom)
   {
     // if currently editing an attribute value, using the
     // highlighter dismisses the editor
@@ -530,6 +609,10 @@ InspectorUI.prototype = {
       aNode = this.defaultSelection;
 
     if (forceUpdate || aNode != this.selection) {
+      if (aFrom != "breadcrumbs") {
+        this.clearPseudoClassLocks();
+      }
+      
       this.selection = aNode;
       if (!this.inspecting) {
         this.highlighter.highlight(this.selection);
@@ -538,8 +621,44 @@ InspectorUI.prototype = {
 
     this.breadcrumbs.update();
     this.chromeWin.Tilt.update(aNode);
+    this.treePanel.select(aNode, aScroll);
 
     this.toolsSelect(aScroll);
+  },
+  
+  /**
+   * Toggle the pseudo-class lock on the currently inspected element. If the
+   * pseudo-class is :hover or :active, that pseudo-class will also be toggled
+   * on every ancestor of the element, mirroring real :hover and :active
+   * behavior.
+   * 
+   * @param aPseudo the pseudo-class lock to toggle, e.g. ":hover"
+   */
+  togglePseudoClassLock: function IUI_togglePseudoClassLock(aPseudo)
+  {
+    if (DOMUtils.hasPseudoClassLock(this.selection, aPseudo)) {
+      this.breadcrumbs.nodeHierarchy.forEach(function(crumb) {
+        DOMUtils.removePseudoClassLock(crumb.node, aPseudo);
+      });
+    } else {
+      let hierarchical = aPseudo == ":hover" || aPseudo == ":active";
+      let node = this.selection;
+      do {
+        DOMUtils.addPseudoClassLock(node, aPseudo);
+        node = node.parentNode;
+      } while (hierarchical && node.parentNode)
+    }
+    this.nodeChanged();
+  },
+
+  /**
+   * Clear all pseudo-class locks applied to elements in the node hierarchy
+   */
+  clearPseudoClassLocks: function IUI_clearPseudoClassLocks()
+  {
+    this.breadcrumbs.nodeHierarchy.forEach(function(crumb) {
+      DOMUtils.clearPseudoClassLocks(crumb.node);
+    });
   },
 
   /**
@@ -552,6 +671,7 @@ InspectorUI.prototype = {
   nodeChanged: function IUI_nodeChanged(aUpdater)
   {
     this.highlighter.invalidateSize();
+    this.breadcrumbs.updateSelectors();
     this.toolsOnChanged(aUpdater);
   },
 
@@ -577,17 +697,32 @@ InspectorUI.prototype = {
       self.select(self.highlighter.getNode(), false, false);
     });
 
+    this.highlighter.addListener("pseudoclasstoggled", function(aPseudo) {
+      self.togglePseudoClassLock(aPseudo);
+    });
+
     if (this.store.getValue(this.winID, "inspecting")) {
       this.startInspecting();
+      this.highlighter.unlock();
+    } else {
+      this.highlighter.lock();
     }
 
-    this.restoreToolState(this.winID);
+    Services.obs.notifyObservers(null, INSPECTOR_NOTIFICATIONS.STATE_RESTORED, null);
 
     this.win.focus();
+    this.highlighter.highlight();
+
+    if (this.store.getValue(this.winID, "htmlPanelOpen")) {
+      this.treePanel.open();
+    }
+
+    if (this.store.getValue(this.winID, "sidebarOpen")) {
+      this.showSidebar();
+    }
+
     Services.obs.notifyObservers({wrappedJSObject: this},
                                  INSPECTOR_NOTIFICATIONS.OPENED, null);
-
-    this.highlighter.highlight();
   },
 
   /**
@@ -714,6 +849,43 @@ InspectorUI.prototype = {
     }
   },
 
+  /**
+   * Copy the innerHTML of the selected Node to the clipboard. Called via the
+   * Inspector:CopyInner command.
+   */
+  copyInnerHTML: function IUI_copyInnerHTML()
+  {
+    clipboardHelper.copyString(this.selection.innerHTML);
+  },
+
+  /**
+   * Copy the outerHTML of the selected Node to the clipboard. Called via the
+   * Inspector:CopyOuter command.
+   */
+  copyOuterHTML: function IUI_copyOuterHTML()
+  {
+    clipboardHelper.copyString(this.selection.outerHTML);
+  },
+
+  /**
+   * Delete the selected node. Called via the Inspector:DeleteNode command.
+   */
+  deleteNode: function IUI_deleteNode()
+  {
+    let selection = this.selection;
+    let parent = this.selection.parentNode;
+
+    // remove the node from the treepanel
+    if (this.treePanel.isOpen())
+      this.treePanel.deleteChildBox(selection);
+
+    // remove the node from content
+    parent.removeChild(selection);
+    this.breadcrumbs.invalidateHierarchy();
+
+    // select the parent node in the highlighter, treepanel, breadcrumbs
+    this.inspectNode(parent);
+  },
 
   /////////////////////////////////////////////////////////////////////////
   //// CssRuleView methods
@@ -760,12 +932,34 @@ InspectorUI.prototype = {
 
       this.ruleView = new CssRuleView(doc, ruleViewStore);
 
+      // Add event handlers bound to this.
       this.boundRuleViewChanged = this.ruleViewChanged.bind(this);
       this.ruleView.element.addEventListener("CssRuleViewChanged",
                                              this.boundRuleViewChanged);
       this.cssRuleViewBoundCSSLinkClicked = this.ruleViewCSSLinkClicked.bind(this);
       this.ruleView.element.addEventListener("CssRuleViewCSSLinkClicked",
                                              this.cssRuleViewBoundCSSLinkClicked);
+      this.cssRuleViewBoundMouseDown = this.ruleViewMouseDown.bind(this);
+      this.ruleView.element.addEventListener("mousedown",
+                                             this.cssRuleViewBoundMouseDown);
+      this.cssRuleViewBoundMouseUp = this.ruleViewMouseUp.bind(this);
+      this.ruleView.element.addEventListener("mouseup",
+                                             this.cssRuleViewBoundMouseUp);
+      this.cssRuleViewBoundMouseMove = this.ruleViewMouseMove.bind(this);
+      this.cssRuleViewBoundMenuUpdate = this.ruleViewMenuUpdate.bind(this);
+
+      this.cssRuleViewBoundCopy = this.ruleViewCopy.bind(this);
+      iframe.addEventListener("copy", this.cssRuleViewBoundCopy);
+
+      this.cssRuleViewBoundCopyRule = this.ruleViewCopyRule.bind(this);
+      this.cssRuleViewBoundCopyDeclaration =
+        this.ruleViewCopyDeclaration.bind(this);
+      this.cssRuleViewBoundCopyProperty = this.ruleViewCopyProperty.bind(this);
+      this.cssRuleViewBoundCopyPropertyValue =
+        this.ruleViewCopyPropertyValue.bind(this);
+
+      // Add the rule view's context menu.
+      this.ruleViewAddContextMenu();
 
       doc.documentElement.appendChild(this.ruleView.element);
       this.ruleView.highlight(this.selection);
@@ -795,6 +989,15 @@ InspectorUI.prototype = {
   {
     if (this.ruleView)
       this.ruleView.highlight(aNode);
+  },
+  
+  /**
+   * Update the rules for the current node in the Css Rule View.
+   */
+  changeInRuleView: function IUI_selectInRuleView()
+  {
+    if (this.ruleView)
+      this.ruleView.nodeChanged();
   },
 
   ruleViewChanged: function IUI_ruleViewChanged()
@@ -828,18 +1031,355 @@ InspectorUI.prototype = {
   },
 
   /**
+   * This is the mousedown handler for the rule view. We use it to track whether
+   * text is currently getting selected.
+   * .
+   * @param aEvent The event object
+   */
+  ruleViewMouseDown: function IUI_ruleViewMouseDown(aEvent)
+  {
+    this.ruleView.element.addEventListener("mousemove",
+      this.cssRuleViewBoundMouseMove);
+  },
+
+  /**
+   * This is the mouseup handler for the rule view. We use it to track whether
+   * text is currently getting selected.
+   * .
+   * @param aEvent The event object
+   */
+  ruleViewMouseUp: function IUI_ruleViewMouseUp(aEvent)
+  {
+    this.ruleView.element.removeEventListener("mousemove",
+      this.cssRuleViewBoundMouseMove);
+    this.ruleView._selectionMode = false;
+  },
+
+  /**
+   * This is the mousemove handler for the rule view. We use it to track whether
+   * text is currently getting selected.
+   * .
+   * @param aEvent The event object
+   */
+  ruleViewMouseMove: function IUI_ruleViewMouseMove(aEvent)
+  {
+    this.ruleView._selectionMode = true;
+  },
+
+  /**
+   * Add a context menu to the rule view.
+   */
+  ruleViewAddContextMenu: function IUI_ruleViewAddContextMenu()
+  {
+    let iframe = this.getToolIframe(this.ruleViewObject);
+    let popupSet = this.chromeDoc.getElementById("mainPopupSet");
+    let menu = this.chromeDoc.createElement("menupopup");
+    menu.addEventListener("popupshowing", this.cssRuleViewBoundMenuUpdate);
+    menu.id = "rule-view-context-menu";
+
+    // Copy selection
+    let label = styleInspectorStrings
+      .GetStringFromName("rule.contextmenu.copyselection");
+    let accessKey = styleInspectorStrings
+      .GetStringFromName("rule.contextmenu.copyselection.accesskey");
+    let item = this.chromeDoc.createElement("menuitem");
+    item.id = "rule-view-copy";
+    item.setAttribute("label", label);
+    item.setAttribute("accesskey", accessKey);
+    item.addEventListener("command", this.cssRuleViewBoundCopy);
+    menu.appendChild(item);
+
+    // Copy rule
+    label = styleInspectorStrings.
+      GetStringFromName("rule.contextmenu.copyrule");
+    accessKey = styleInspectorStrings.
+      GetStringFromName("rule.contextmenu.copyrule.accesskey");
+    item = this.chromeDoc.createElement("menuitem");
+    item.id = "rule-view-copy-rule";
+    item.setAttribute("label", label);
+    item.setAttribute("accesskey", accessKey);
+    item.addEventListener("command", this.cssRuleViewBoundCopyRule);
+    menu.appendChild(item);
+
+    // Copy declaration
+    label = styleInspectorStrings.
+      GetStringFromName("rule.contextmenu.copydeclaration");
+    accessKey = styleInspectorStrings.
+      GetStringFromName("rule.contextmenu.copydeclaration.accesskey");
+    item = this.chromeDoc.createElement("menuitem");
+    item.id = "rule-view-copy-declaration";
+    item.setAttribute("label", label);
+    item.setAttribute("accesskey", accessKey);
+    item.addEventListener("command", this.cssRuleViewBoundCopyDeclaration);
+    menu.appendChild(item);
+
+    // Copy property name
+    label = styleInspectorStrings.
+      GetStringFromName("rule.contextmenu.copyproperty");
+    accessKey = styleInspectorStrings.
+      GetStringFromName("rule.contextmenu.copyproperty.accesskey");
+    item = this.chromeDoc.createElement("menuitem");
+    item.id = "rule-view-copy-property";
+    item.setAttribute("label", label);
+    item.setAttribute("accesskey", accessKey);
+    item.addEventListener("command", this.cssRuleViewBoundCopyProperty);
+    menu.appendChild(item);
+
+    // Copy property value
+    label = styleInspectorStrings.
+      GetStringFromName("rule.contextmenu.copypropertyvalue");
+    accessKey = styleInspectorStrings.
+      GetStringFromName("rule.contextmenu.copypropertyvalue.accesskey");
+    item = this.chromeDoc.createElement("menuitem");
+    item.id = "rule-view-copy-property-value";
+    item.setAttribute("label", label);
+    item.setAttribute("accesskey", accessKey);
+    item.addEventListener("command", this.cssRuleViewBoundCopyPropertyValue);
+    menu.appendChild(item);
+
+    popupSet.appendChild(menu);
+
+    iframe.setAttribute("context", menu.id);
+  },
+
+  /**
+   * Update the rule view's context menu by disabling irrelevant menuitems and
+   * enabling relevant ones.
+   *
+   * @param aEvent The event object
+   */
+  ruleViewMenuUpdate: function IUI_ruleViewMenuUpdate(aEvent)
+  {
+    let iframe = this.getToolIframe(this.ruleViewObject);
+    let win = iframe.contentWindow;
+
+    // Copy selection.
+    let disable = win.getSelection().isCollapsed;
+    let menuitem = this.chromeDoc.getElementById("rule-view-copy");
+    menuitem.disabled = disable;
+
+    // Copy property, copy property name & copy property value.
+    let node = this.chromeDoc.popupNode;
+    if (!node.classList.contains("ruleview-property") &&
+        !node.classList.contains("ruleview-computed")) {
+      while (node = node.parentElement) {
+        if (node.classList.contains("ruleview-property") ||
+          node.classList.contains("ruleview-computed")) {
+          break;
+        }
+      }
+    }
+    let disablePropertyItems = !node || (node &&
+      !node.classList.contains("ruleview-property") &&
+      !node.classList.contains("ruleview-computed"));
+
+    menuitem = this.chromeDoc.querySelector("#rule-view-copy-declaration");
+    menuitem.disabled = disablePropertyItems;
+    menuitem = this.chromeDoc.querySelector("#rule-view-copy-property");
+    menuitem.disabled = disablePropertyItems;
+    menuitem = this.chromeDoc.querySelector("#rule-view-copy-property-value");
+    menuitem.disabled = disablePropertyItems;
+  },
+
+  /**
+   * Copy selected text from the rule view.
+   *
+   * @param aEvent The event object
+   */
+  ruleViewCopy: function IUI_ruleViewCopy(aEvent)
+  {
+    let iframe = this.getToolIframe(this.ruleViewObject);
+    let win = iframe.contentWindow;
+    let text = win.getSelection().toString();
+
+    // Remove any double newlines.
+    text = text.replace(/(\r?\n)\r?\n/g, "$1");
+
+    // Remove "inline"
+    let inline = styleInspectorStrings.GetStringFromName("rule.sourceInline");
+    let rx = new RegExp("^" + inline + "\\r?\\n?", "g");
+    text = text.replace(rx, "");
+
+    // Remove file:line
+    text = text.replace(/[\w\.]+:\d+(\r?\n)/g, "$1");
+
+    // Remove inherited from: line
+    let inheritedFrom = styleInspectorStrings
+      .GetStringFromName("rule.inheritedSource");
+    inheritedFrom = inheritedFrom.replace(/\s%S\s\(%S\)/g, "");
+    rx = new RegExp("(\r?\n)" + inheritedFrom + ".*", "g");
+    text = text.replace(rx, "$1");
+
+    clipboardHelper.copyString(text);
+
+    if (aEvent) {
+      aEvent.preventDefault();
+    }
+  },
+
+  /**
+   * Copy a rule from the rule view.
+   *
+   * @param aEvent The event object
+   */
+  ruleViewCopyRule: function IUI_ruleViewCopyRule(aEvent)
+  {
+    let node = this.chromeDoc.popupNode;
+    if (node.className != "ruleview-code") {
+      if (node.className == "ruleview-rule-source") {
+        node = node.nextElementSibling;
+      } else {
+        while (node = node.parentElement) {
+          if (node.className == "ruleview-code") {
+            break;
+          }
+        }
+      }
+    }
+
+    if (node.className == "ruleview-code") {
+      // We need to strip expanded properties from the node because we use
+      // node.textContent below, which also gets text from hidden nodes. The
+      // simplest way to do this is to clone the node and remove them from the
+      // clone.
+      node = node.cloneNode();
+      let computed = node.querySelector(".ruleview-computedlist");
+      if (computed) {
+        computed.parentNode.removeChild(computed);
+      }
+    }
+
+    let text = node.textContent;
+
+    // Format the rule
+    if (osString == "WINNT") {
+      text = text.replace(/{/g, "{\r\n    ");
+      text = text.replace(/;/g, ";\r\n    ");
+      text = text.replace(/\s*}/g, "\r\n}");
+    } else {
+      text = text.replace(/{/g, "{\n    ");
+      text = text.replace(/;/g, ";\n    ");
+      text = text.replace(/\s*}/g, "\n}");
+    }
+
+    clipboardHelper.copyString(text);
+  },
+
+  /**
+   * Copy a declaration from the rule view.
+   *
+   * @param aEvent The event object
+   */
+  ruleViewCopyDeclaration: function IUI_ruleViewCopyDeclaration(aEvent)
+  {
+    let node = this.chromeDoc.popupNode;
+    if (!node.classList.contains("ruleview-property") &&
+        !node.classList.contains("ruleview-computed")) {
+      while (node = node.parentElement) {
+        if (node.classList.contains("ruleview-property") ||
+            node.classList.contains("ruleview-computed")) {
+          break;
+        }
+      }
+    }
+
+    // We need to strip expanded properties from the node because we use
+    // node.textContent below, which also gets text from hidden nodes. The
+    // simplest way to do this is to clone the node and remove them from the
+    // clone.
+    node = node.cloneNode();
+    let computed = node.querySelector(".ruleview-computedlist");
+    if (computed) {
+      computed.parentNode.removeChild(computed);
+    }
+    clipboardHelper.copyString(node.textContent);
+  },
+
+  /**
+   * Copy a property name from the rule view.
+   *
+   * @param aEvent The event object
+   */
+  ruleViewCopyProperty: function IUI_ruleViewCopyProperty(aEvent)
+  {
+    let node = this.chromeDoc.popupNode;
+
+    if (!node.classList.contains("ruleview-propertyname")) {
+      node = node.querySelector(".ruleview-propertyname");
+    }
+
+    if (node) {
+      clipboardHelper.copyString(node.textContent);
+    }
+  },
+
+  /**
+   * Copy a property value from the rule view.
+   *
+   * @param aEvent The event object
+   */
+  ruleViewCopyPropertyValue: function IUI_ruleViewCopyPropertyValue(aEvent)
+  {
+    let node = this.chromeDoc.popupNode;
+
+    if (!node.classList.contains("ruleview-propertyvalue")) {
+      node = node.querySelector(".ruleview-propertyvalue");
+    }
+
+    if (node) {
+      clipboardHelper.copyString(node.textContent);
+    }
+  },
+
+  /**
    * Destroy the rule view.
    */
   destroyRuleView: function IUI_destroyRuleView()
   {
     let iframe = this.getToolIframe(this.ruleViewObject);
+    iframe.removeEventListener("copy", this.cssRuleViewBoundCopy);
     iframe.parentNode.removeChild(iframe);
 
     if (this.ruleView) {
+      let menu = this.chromeDoc.querySelector("#rule-view-context-menu");
+      if (menu) {
+        // Copy
+        let menuitem = this.chromeDoc.querySelector("#rule-view-copy");
+        menuitem.removeEventListener("command", this.cssRuleViewBoundCopy);
+
+        // Copy rule
+        menuitem = this.chromeDoc.querySelector("#rule-view-copy-rule");
+        menuitem.removeEventListener("command", this.cssRuleViewBoundCopyRule);
+
+        // Copy property
+        menuitem = this.chromeDoc.querySelector("#rule-view-copy-declaration");
+        menuitem.removeEventListener("command",
+                                     this.cssRuleViewBoundCopyDeclaration);
+
+        // Copy property name
+        menuitem = this.chromeDoc.querySelector("#rule-view-copy-property");
+        menuitem.removeEventListener("command",
+                                     this.cssRuleViewBoundCopyProperty);
+
+        // Copy property value
+        menuitem = this.chromeDoc.querySelector("#rule-view-copy-property-value");
+        menuitem.removeEventListener("command",
+                                     this.cssRuleViewBoundCopyPropertyValue);
+
+        menu.removeEventListener("popupshowing", this.cssRuleViewBoundMenuUpdate);
+        menu.parentNode.removeChild(menu);
+      }
+
       this.ruleView.element.removeEventListener("CssRuleViewChanged",
                                                 this.boundRuleViewChanged);
       this.ruleView.element.removeEventListener("CssRuleViewCSSLinkClicked",
                                                 this.cssRuleViewBoundCSSLinkClicked);
+      this.ruleView.element.removeEventListener("mousedown",
+                                                this.cssRuleViewBoundMouseDown);
+      this.ruleView.element.removeEventListener("mouseup",
+                                                this.cssRuleViewBoundMouseUp);
+      this.ruleView.element.removeEventListener("mousemove",
+                                                this.cssRuleViewBoundMouseMove);
       delete boundRuleViewChanged;
       this.ruleView.clear();
       delete this.ruleView;
@@ -1060,6 +1600,8 @@ InspectorUI.prototype = {
     let iframe = this.chromeDoc.createElement("iframe");
     iframe.id = "devtools-sidebar-iframe-" + aRegObj.id;
     iframe.setAttribute("flex", "1");
+    iframe.setAttribute("tooltip", "aHTMLTooltip");
+    iframe.addEventListener("mousedown", iframe.focus);
     this.sidebarDeck.appendChild(iframe);
 
     // wire up button to show the iframe
@@ -1087,6 +1629,8 @@ InspectorUI.prototype = {
     let btn = this.chromeDoc.getElementById(this.getToolbarButtonId(aTool.id));
     btn.setAttribute("checked", "true");
     if (aTool.sidebar) {
+      Services.prefs.setCharPref("devtools.inspector.activeSidebar", aTool.id);
+      this.store.setValue(this.winID, "activeSidebar", aTool.id);
       this.sidebarDeck.selectedPanel = this.getToolIframe(aTool);
       this.sidebarTools.forEach(function(other) {
         if (other != aTool)
@@ -1169,6 +1713,10 @@ InspectorUI.prototype = {
     let btn = this.chromeDoc.getElementById(buttonId);
     this.unbindToolEvent(btn, "click");
 
+    // Remove focus listener
+    let iframe = this.getToolIframe(aRegObj);
+    iframe.removeEventListener("mousedown", iframe.focus);
+
     // remove sidebar buttons and tools
     this.sidebarToolbar.removeChild(btn);
 
@@ -1178,57 +1726,6 @@ InspectorUI.prototype = {
       aRegObj.unregister.call(aRegObj.context);
 
     delete this.tools[aRegObj.id];
-  },
-
-  /**
-   * Save a list of open tools to the inspector store.
-   *
-   * @param aWinID The ID of the window used to save the associated tools
-   */
-  saveToolState: function IUI_saveToolState(aWinID)
-  {
-    let openTools = {};
-    this.toolsDo(function IUI_toolsSetId(aTool) {
-      if (aTool.isOpen) {
-        openTools[aTool.id] = true;
-      }
-    });
-    this.store.setValue(aWinID, "openTools", openTools);
-  },
-
-  /**
-   * Restore tools previously save using saveToolState().
-   *
-   * @param aWinID The ID of the window to which the associated tools are to be
-   *               restored.
-   */
-  restoreToolState: function IUI_restoreToolState(aWinID)
-  {
-    let openTools = this.store.getValue(aWinID, "openTools");
-    let activeSidebarTool;
-    if (openTools) {
-      this.toolsDo(function IUI_toolsOnShow(aTool) {
-        if (aTool.id in openTools) {
-          if (aTool.sidebar && !this.isSidebarOpen) {
-            this.showSidebar();
-            activeSidebarTool = aTool;
-          }
-          this.toolShow(aTool);
-        }
-      }.bind(this));
-      this.sidebarTools.forEach(function(tool) {
-        if (tool != activeSidebarTool)
-          this.chromeDoc.getElementById(
-            this.getToolbarButtonId(tool.id)).removeAttribute("checked");
-      }.bind(this));
-    }
-    if (this.store.getValue(this.winID, "inspecting")) {
-      this.highlighter.unlock();
-    } else {
-      this.highlighter.lock();
-    }
-
-    Services.obs.notifyObservers(null, INSPECTOR_NOTIFICATIONS.STATE_RESTORED, null);
   },
 
   /**
@@ -1254,7 +1751,7 @@ InspectorUI.prototype = {
   toolsDim: function IUI_toolsDim(aState)
   {
     this.toolsDo(function IUI_toolsDim(aTool) {
-      if (aTool.isOpen && "dim" in aTool) {
+      if ("dim" in aTool) {
         aTool.dim.call(aTool.context, aState);
       }
     });
@@ -1270,7 +1767,7 @@ InspectorUI.prototype = {
   toolsOnChanged: function IUI_toolsChanged(aUpdater)
   {
     this.toolsDo(function IUI_toolsOnChanged(aTool) {
-      if (aTool.isOpen && ("onChanged" in aTool) && aTool != aUpdater) {
+      if (("onChanged" in aTool) && aTool != aUpdater) {
         aTool.onChanged.call(aTool.context);
       }
     });
@@ -1664,6 +2161,13 @@ HTMLBreadcrumbs.prototype = {
     for (let i = 0; i < aNode.classList.length; i++) {
       text += "." + aNode.classList[i];
     }
+    for (let i = 0; i < PSEUDO_CLASSES.length; i++) {
+      let pseudo = PSEUDO_CLASSES[i];
+      if (DOMUtils.hasPseudoClassLock(aNode, pseudo)) {
+        text += pseudo;  
+      }      
+    }
+
     return text;
   },
 
@@ -1689,6 +2193,9 @@ HTMLBreadcrumbs.prototype = {
 
     let classesLabel = this.IUI.chromeDoc.createElement("label");
     classesLabel.className = "inspector-breadcrumbs-classes plain";
+    
+    let pseudosLabel = this.IUI.chromeDoc.createElement("label");
+    pseudosLabel.className = "inspector-breadcrumbs-pseudo-classes plain";
 
     tagLabel.textContent = aNode.tagName.toLowerCase();
     idLabel.textContent = aNode.id ? ("#" + aNode.id) : "";
@@ -1699,9 +2206,15 @@ HTMLBreadcrumbs.prototype = {
     }
     classesLabel.textContent = classesText;
 
+    let pseudos = PSEUDO_CLASSES.filter(function(pseudo) {
+      return DOMUtils.hasPseudoClassLock(aNode, pseudo);
+    }, this);
+    pseudosLabel.textContent = pseudos.join("");
+
     fragment.appendChild(tagLabel);
     fragment.appendChild(idLabel);
     fragment.appendChild(classesLabel);
+    fragment.appendChild(pseudosLabel);
 
     return fragment;
   },
@@ -1741,7 +2254,7 @@ HTMLBreadcrumbs.prototype = {
 
         item.onmouseup = (function(aNode) {
           return function() {
-            inspector.select(aNode, true, true);
+            inspector.select(aNode, true, true, "breadcrumbs");
           }
         })(nodes[i]);
 
@@ -1895,7 +2408,7 @@ HTMLBreadcrumbs.prototype = {
 
     button.onBreadcrumbsClick = function onBreadcrumbsClick() {
       inspector.stopInspecting();
-      inspector.select(aNode, true, true);
+      inspector.select(aNode, true, true, "breadcrumbs");
     };
 
     button.onclick = (function _onBreadcrumbsRightClick(aEvent) {
@@ -2010,6 +2523,20 @@ HTMLBreadcrumbs.prototype = {
     let element = this.nodeHierarchy[this.currentIndex].button;
     scrollbox.ensureElementIsVisible(element);
   },
+  
+  updateSelectors: function BC_updateSelectors()
+  {
+    for (let i = this.nodeHierarchy.length - 1; i >= 0; i--) {
+      let crumb = this.nodeHierarchy[i];
+      let button = crumb.button;
+
+      while(button.hasChildNodes()) {
+        button.removeChild(button.firstChild);
+      }
+      button.appendChild(this.prettyPrintNodeAsXUL(crumb.node));
+      button.setAttribute("tooltiptext", this.prettyPrintNodeAsText(crumb.node));
+    }
+  },
 
   /**
    * Update the breadcrumbs display when a new node is selected.
@@ -2051,6 +2578,8 @@ HTMLBreadcrumbs.prototype = {
 
     // Make sure the selected node and its neighbours are visible.
     this.scroll();
+
+    this.updateSelectors();
   },
 
 }
@@ -2070,3 +2599,20 @@ XPCOMUtils.defineLazyGetter(this, "StyleInspector", function () {
   return obj.StyleInspector;
 });
 
+XPCOMUtils.defineLazyGetter(this, "DOMUtils", function () {
+  return Cc["@mozilla.org/inspector/dom-utils;1"].getService(Ci.inIDOMUtils);
+});
+
+XPCOMUtils.defineLazyGetter(this, "clipboardHelper", function() {
+  return Cc["@mozilla.org/widget/clipboardhelper;1"].
+    getService(Ci.nsIClipboardHelper);
+});
+
+XPCOMUtils.defineLazyGetter(this, "styleInspectorStrings", function() {
+  return Services.strings.createBundle(
+    "chrome://browser/locale/devtools/styleinspector.properties");
+});
+
+XPCOMUtils.defineLazyGetter(this, "osString", function() {
+  return Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS;
+});

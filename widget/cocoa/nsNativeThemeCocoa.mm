@@ -1859,12 +1859,12 @@ nsNativeThemeCocoa::DrawWidgetBackground(nsRenderingContext* aContext,
       break;
 
     case NS_THEME_MENUPOPUP: {
-      HIThemeMenuDrawInfo mdi = {
-        version: 0,
-        menuType: IsDisabled(aFrame, eventState) ?
-            static_cast<ThemeMenuType>(kThemeMenuTypeInactive) :
-            static_cast<ThemeMenuType>(kThemeMenuTypePopUp)
-      };
+      HIThemeMenuDrawInfo mdi;
+      memset(&mdi, 0, sizeof(mdi));
+      mdi.version = 0;
+      mdi.menuType = IsDisabled(aFrame, eventState) ?
+                       static_cast<ThemeMenuType>(kThemeMenuTypeInactive) :
+                       static_cast<ThemeMenuType>(kThemeMenuTypePopUp);
 
       bool isLeftOfParent = false;
       if (IsSubmenu(aFrame, &isLeftOfParent) && !isLeftOfParent) {
@@ -1879,18 +1879,21 @@ nsNativeThemeCocoa::DrawWidgetBackground(nsRenderingContext* aContext,
       break;
 
     case NS_THEME_MENUITEM: {
-      // Clear the background to get correct transparency.
-      CGContextClearRect(cgContext, macRect);
+      if (thebesCtx->OriginalSurface()->GetContentType() == gfxASurface::CONTENT_COLOR_ALPHA) {
+        // Clear the background to get correct transparency.
+        CGContextClearRect(cgContext, macRect);
+      }
 
       // maybe use kThemeMenuItemHierBackground or PopUpBackground instead of just Plain?
-      HIThemeMenuItemDrawInfo drawInfo = {
-        version: 0,
-        itemType: kThemeMenuItemPlain,
-        state: (IsDisabled(aFrame, eventState) ? static_cast<ThemeMenuState>(kThemeMenuDisabled) :
-                 CheckBooleanAttr(aFrame, nsGkAtoms::menuactive) ?
-                    static_cast<ThemeMenuState>(kThemeMenuSelected) :
-                    static_cast<ThemeMenuState>(kThemeMenuActive))
-      };
+      HIThemeMenuItemDrawInfo drawInfo;
+      memset(&drawInfo, 0, sizeof(drawInfo));
+      drawInfo.version = 0;
+      drawInfo.itemType = kThemeMenuItemPlain;
+      drawInfo.state = (IsDisabled(aFrame, eventState) ?
+                         static_cast<ThemeMenuState>(kThemeMenuDisabled) :
+                         CheckBooleanAttr(aFrame, nsGkAtoms::menuactive) ?
+                           static_cast<ThemeMenuState>(kThemeMenuSelected) :
+                           static_cast<ThemeMenuState>(kThemeMenuActive));
 
       // XXX pass in the menu rect instead of always using the item rect
       HIRect ignored;

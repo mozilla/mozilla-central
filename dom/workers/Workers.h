@@ -73,7 +73,7 @@ AssertIsOnMainThread()
 
 // All of these are implemented in RuntimeService.cpp
 JSBool
-ResolveWorkerClasses(JSContext* aCx, JSObject* aObj, jsid aId, uintN aFlags,
+ResolveWorkerClasses(JSContext* aCx, JSObject* aObj, jsid aId, unsigned aFlags,
                      JSObject** aObjp);
 
 void
@@ -122,6 +122,9 @@ protected:
 
 WorkerCrossThreadDispatcher*
 GetWorkerCrossThreadDispatcher(JSContext* aCx, jsval aWorker);
+
+// Random unique constant to facilitate JSPrincipal debugging
+const uint32_t kJSPrincipalsDebugToken = 0x7e2df9d2;
 
 END_WORKERS_NAMESPACE
 

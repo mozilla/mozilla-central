@@ -1021,14 +1021,7 @@ nsresult nsHTMLMediaElement::LoadResource()
   }
 
   // Set the media element's CORS mode only when loading a resource
-  // By default, it's CORS_NONE
-  mCORSMode = CORS_NONE;
-  const nsAttrValue* value = GetParsedAttr(nsGkAtoms::crossorigin);
-  if (value) {
-    NS_ASSERTION(value->Type() == nsAttrValue::eEnum,
-                 "Why is this not an enum value?");
-    mCORSMode = CORSMode(value->GetEnumValue());
-  }
+  mCORSMode = AttrValueToCORSMode(GetParsedAttr(nsGkAtoms::crossorigin));
 
   nsHTMLMediaElement* other = LookupMediaElementURITable(mLoadingSrc);
   if (other) {
@@ -1756,10 +1749,8 @@ bool nsHTMLMediaElement::ParseAttribute(PRInt32 aNamespaceID,
       return true;
     }
     if (aAttribute == nsGkAtoms::crossorigin) {
-      return aResult.ParseEnumValue(aValue, kCORSAttributeTable, false,
-                                    // default value is anonymous if aValue is
-                                    // not a value we understand
-                                    &kCORSAttributeTable[0]);
+      ParseCORSValue(aValue, aResult);
+      return true;
     }
     if (aAttribute == nsGkAtoms::preload) {
       return aResult.ParseEnumValue(aValue, kPreloadTable, false);
@@ -2899,8 +2890,6 @@ void nsHTMLMediaElement::UpdateMediaSize(nsIntSize size)
 void nsHTMLMediaElement::NotifyOwnerDocumentActivityChanged()
 {
   nsIDocument* ownerDoc = OwnerDoc();
-  // Don't pause if we have no ownerDoc. Something native must have created
-  // us and be expecting us to work without a document.
   bool pauseForInactiveDocument =
     !ownerDoc->IsActive() || !ownerDoc->IsVisible();
 
@@ -3097,6 +3086,9 @@ void nsHTMLMediaElement::ChangeDelayLoadStatus(bool aDelay)
 
 already_AddRefed<nsILoadGroup> nsHTMLMediaElement::GetDocumentLoadGroup()
 {
+  if (!OwnerDoc()->IsActive()) {
+    NS_WARNING("Load group requested for media element in inactive document.");
+  }
   return OwnerDoc()->GetDocumentLoadGroup();
 }
 

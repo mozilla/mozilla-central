@@ -29,7 +29,7 @@ var gFinished = false;
 
 function telemetry_ping () {
   const TelemetryPing = Cc["@mozilla.org/base/telemetry-ping;1"].getService(Ci.nsIObserver);
-  TelemetryPing.observe(null, "sessionstore-windows-restored", null);
+  TelemetryPing.observe(null, "test-gather-startup", null);
   TelemetryPing.observe(null, "test-ping", SERVER);
 }
 
@@ -57,8 +57,31 @@ function checkHistograms(request, response) {
   // do not need the http server anymore
   httpserver.stop(do_test_finished);
   let s = request.bodyInputStream;
-  let payload = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON)
-                                             .decodeFromStream(s, s.available());
+  let payload = null;
+  let decoder = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON)
+
+  if (request.getHeader("content-encoding") == "gzip") {
+    let observer = {
+      buffer: "",
+      onStreamComplete: function(loader, context, status, length, result) {
+	this.buffer = String.fromCharCode.apply(this, result);
+      }
+    };
+
+    let scs = Cc["@mozilla.org/streamConverters;1"]
+              .getService(Ci.nsIStreamConverterService);
+    let listener = Cc["@mozilla.org/network/stream-loader;1"]
+                  .createInstance(Ci.nsIStreamLoader);
+    listener.init(observer);
+    let converter = scs.asyncConvertData("gzip", "uncompressed",
+                                         listener, null);
+    converter.onStartRequest(null, null);
+    converter.onDataAvailable(null, null, s, 0, s.available());
+    converter.onStopRequest(null, null, null);
+    payload = decoder.decode(observer.buffer);
+  } else {
+    payload = decoder.decodeFromStream(s, s.available());
+  }
 
   do_check_eq(request.getHeader("content-type"), "application/json; charset=UTF-8");
   do_check_true(payload.simpleMeasurements.uptime >= 0);
@@ -78,6 +101,9 @@ function checkHistograms(request, response) {
     do_check_eq(payload.info[f], expected_info[f]);
   }
 
+  do_check_true("appUpdateChannel" in payload.info);
+  do_check_true("locale" in payload.info);
+
   try {
     // If we've not got nsIGfxInfoDebug, then this will throw and stop us doing
     // this test.
@@ -95,6 +121,7 @@ function checkHistograms(request, response) {
 
   const TELEMETRY_PING = "TELEMETRY_PING";
   const TELEMETRY_SUCCESS = "TELEMETRY_SUCCESS";
+  const TELEMETRY_TEST_FLAG = "TELEMETRY_TEST_FLAG";
   do_check_true(TELEMETRY_PING in payload.histograms);
   let rh = Telemetry.registeredHistograms;
   for (let name in rh) {
@@ -104,6 +131,17 @@ function checkHistograms(request, response) {
   }
   do_check_false(IGNORE_HISTOGRAM in payload.histograms);
   do_check_false(IGNORE_CLONED_HISTOGRAM in payload.histograms);
+
+  // Flag histograms should automagically spring to life.
+  const expected_flag = {
+    range: [1, 2],
+    bucket_count: 3,
+    histogram_type: 3,
+    values: {0:1, 1:0},
+    sum: 1
+  };
+  let flag = payload.histograms[TELEMETRY_TEST_FLAG];
+  do_check_eq(uneval(flag), uneval(expected_flag));
 
   // There should be one successful report from the previous telemetry ping.
   const expected_tc = {

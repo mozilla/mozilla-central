@@ -135,6 +135,18 @@ GetLight(hal::LightType light, hal::LightConfiguration* aConfig)
   return status;
 }
 
+void 
+AdjustSystemClock(int32_t aDeltaMilliseconds)
+{
+  Hal()->SendAdjustSystemClock(aDeltaMilliseconds);
+}
+
+void
+SetTimezone(const nsCString& aTimezoneSpec)
+{
+  Hal()->SendSetTimezone(nsCString(aTimezoneSpec));
+} 
+
 void
 Reboot()
 {
@@ -157,10 +169,35 @@ DisableSensorNotifications(SensorType aSensor) {
   Hal()->SendDisableSensorNotifications(aSensor);
 }
 
+void
+EnableWakeLockNotifications()
+{
+  Hal()->SendEnableWakeLockNotifications();
+}
+
+void
+DisableWakeLockNotifications()
+{
+  Hal()->SendDisableWakeLockNotifications();
+}
+
+void
+ModifyWakeLock(const nsAString &aTopic, WakeLockControl aLockAdjust, WakeLockControl aHiddenAdjust)
+{
+  Hal()->SendModifyWakeLock(nsString(aTopic), aLockAdjust, aHiddenAdjust);
+}
+
+void
+GetWakeLockInfo(const nsAString &aTopic, WakeLockInformation *aWakeLockInfo)
+{
+  Hal()->SendGetWakeLockInfo(nsString(aTopic), aWakeLockInfo);
+}
+
 class HalParent : public PHalParent
                 , public BatteryObserver
                 , public NetworkObserver
                 , public ISensorObserver
+                , public WakeLockObserver
 {
 public:
   NS_OVERRIDE virtual bool
@@ -289,6 +326,20 @@ public:
   }
 
   NS_OVERRIDE virtual bool
+  RecvAdjustSystemClock(const int32_t &aDeltaMilliseconds)
+  {
+    hal::AdjustSystemClock(aDeltaMilliseconds);
+    return true;
+  }
+
+  NS_OVERRIDE virtual bool 
+  RecvSetTimezone(const nsCString& aTimezoneSpec)
+  {
+    hal::SetTimezone(aTimezoneSpec);
+    return true;  
+  }
+
+  NS_OVERRIDE virtual bool
   RecvReboot()
   {
     hal::Reboot();
@@ -317,6 +368,41 @@ public:
   void Notify(const SensorData& aSensorData) {
     unused << SendNotifySensorChange(aSensorData);
   }
+
+  NS_OVERRIDE virtual bool
+  RecvModifyWakeLock(const nsString &aTopic,
+                     const WakeLockControl &aLockAdjust,
+                     const WakeLockControl &aHiddenAdjust)
+  {
+    hal::ModifyWakeLock(aTopic, aLockAdjust, aHiddenAdjust);
+    return true;
+  }
+
+  NS_OVERRIDE virtual bool
+  RecvEnableWakeLockNotifications()
+  {
+    hal::RegisterWakeLockObserver(this);
+    return true;
+  }
+   
+  NS_OVERRIDE virtual bool
+  RecvDisableWakeLockNotifications()
+  {
+    hal::UnregisterWakeLockObserver(this);
+    return true;
+  }
+
+  NS_OVERRIDE virtual bool
+  RecvGetWakeLockInfo(const nsString &aTopic, WakeLockInformation *aWakeLockInfo)
+  {
+    hal::GetWakeLockInfo(aTopic, aWakeLockInfo);
+    return true;
+  }
+  
+  void Notify(const WakeLockInformation& aWakeLockInfo)
+  {
+    unused << SendNotifyWakeLockChange(aWakeLockInfo);
+  }
 };
 
 class HalChild : public PHalChild {
@@ -333,6 +419,12 @@ public:
   NS_OVERRIDE virtual bool
   RecvNotifyNetworkChange(const NetworkInformation& aNetworkInfo) {
     hal::NotifyNetworkChange(aNetworkInfo);
+    return true;
+  }
+
+  NS_OVERRIDE virtual bool
+  RecvNotifyWakeLockChange(const WakeLockInformation& aWakeLockInfo) {
+    hal::NotifyWakeLockChange(aWakeLockInfo);
     return true;
   }
 };

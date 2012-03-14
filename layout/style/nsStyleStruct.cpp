@@ -69,9 +69,9 @@
 #include "imgIContainer.h"
 #include "prlog.h"
 
-// Make sure we have enough bits in NS_STYLE_INHERIT_MASK.
-PR_STATIC_ASSERT((((1 << nsStyleStructID_Length) - 1) &
-                  ~(NS_STYLE_INHERIT_MASK)) == 0);
+MOZ_STATIC_ASSERT((((1 << nsStyleStructID_Length) - 1) &
+                   ~(NS_STYLE_INHERIT_MASK)) == 0,
+                  "Not enough bits in NS_STYLE_INHERIT_MASK");
 
 inline bool IsFixedUnit(const nsStyleCoord& aCoord, bool aEnumOK)
 {
@@ -1977,6 +1977,13 @@ nsStyleBackground::Size::operator==(const Size& aOther) const
          (mHeightType != eLengthPercentage || mHeight == aOther.mHeight);
 }
 
+void
+nsStyleBackground::Repeat::SetInitialValues() 
+{
+  mXRepeat = NS_STYLE_BG_REPEAT_REPEAT;
+  mYRepeat = NS_STYLE_BG_REPEAT_REPEAT;
+}
+
 nsStyleBackground::Layer::Layer()
 {
 }
@@ -1991,7 +1998,7 @@ nsStyleBackground::Layer::SetInitialValues()
   mAttachment = NS_STYLE_BG_ATTACHMENT_SCROLL;
   mClip = NS_STYLE_BG_CLIP_BORDER;
   mOrigin = NS_STYLE_BG_ORIGIN_PADDING;
-  mRepeat = NS_STYLE_BG_REPEAT_XY;
+  mRepeat.SetInitialValues();
   mPosition.SetInitialValues();
   mSize.SetInitialValues();
   mImage.SetNull();
@@ -2039,11 +2046,12 @@ void nsTimingFunction::AssignFromKeyword(PRInt32 aTimingFunctionType)
       break;
   }
 
-  PR_STATIC_ASSERT(NS_STYLE_TRANSITION_TIMING_FUNCTION_EASE == 0);
-  PR_STATIC_ASSERT(NS_STYLE_TRANSITION_TIMING_FUNCTION_LINEAR == 1);
-  PR_STATIC_ASSERT(NS_STYLE_TRANSITION_TIMING_FUNCTION_EASE_IN == 2);
-  PR_STATIC_ASSERT(NS_STYLE_TRANSITION_TIMING_FUNCTION_EASE_OUT == 3);
-  PR_STATIC_ASSERT(NS_STYLE_TRANSITION_TIMING_FUNCTION_EASE_IN_OUT == 4);
+  MOZ_STATIC_ASSERT(NS_STYLE_TRANSITION_TIMING_FUNCTION_EASE == 0 &&
+                    NS_STYLE_TRANSITION_TIMING_FUNCTION_LINEAR == 1 &&
+                    NS_STYLE_TRANSITION_TIMING_FUNCTION_EASE_IN == 2 &&
+                    NS_STYLE_TRANSITION_TIMING_FUNCTION_EASE_OUT == 3 &&
+                    NS_STYLE_TRANSITION_TIMING_FUNCTION_EASE_IN_OUT == 4,
+                    "transition timing function constants not as expected");
 
   static const float timingFunctionValues[5][4] = {
     { 0.25, 0.10, 0.25, 1.00 }, // ease

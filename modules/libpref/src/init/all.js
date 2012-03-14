@@ -203,6 +203,9 @@ pref("gfx.downloadable_fonts.enabled", true);
 pref("gfx.downloadable_fonts.fallback_delay", 3000);
 pref("gfx.downloadable_fonts.sanitize", true);
 
+// whether to always search all font cmaps during system font fallback
+pref("gfx.font_rendering.fallback.always_use_cmaps", false);
+
 #ifdef MOZ_GRAPHITE
 pref("gfx.font_rendering.graphite.enabled", false);
 #endif
@@ -215,8 +218,8 @@ pref("gfx.font_rendering.harfbuzz.scripts", 71);
 #ifdef ANDROID
 pref("gfx.font_rendering.harfbuzz.scripts", 71);
 #else
-// use harfbuzz for default (0x01) + arabic (0x02)
-pref("gfx.font_rendering.harfbuzz.scripts", 3);
+// use harfbuzz for default (0x01) + arabic (0x02) + hebrew (0x04)
+pref("gfx.font_rendering.harfbuzz.scripts", 7);
 #endif
 #endif
 
@@ -297,6 +300,8 @@ pref("toolkit.autocomplete.richBoundaryCutoff", 200);
 
 pref("toolkit.scrollbox.smoothScroll", true);
 pref("toolkit.scrollbox.scrollIncrement", 20);
+// Make sure to update NS_DEFAULT_VERTICAL_SCROLL_DISTANCE if changing this default.
+pref("toolkit.scrollbox.verticalScrollDistance", 3);
 pref("toolkit.scrollbox.clickToScroll.scrollDelay", 150);
 
 // Telemetry
@@ -306,6 +311,9 @@ pref("toolkit.telemetry.server", "https://data.mozilla.com");
 pref("toolkit.telemetry.server_owner", "Mozilla");
 // Information page about telemetry (temporary ; will be about:telemetry in the end)
 pref("toolkit.telemetry.infoURL", "http://www.mozilla.com/legal/privacy/firefox.html#telemetry");
+
+// Disable remote debugging protocol logging
+pref("devtools.debugger.log", false);
 
 // view source
 pref("view_source.syntax_highlight", true);
@@ -405,7 +413,6 @@ pref("extensions.spellcheck.inline.max-misspellings", 500);
 
 pref("editor.use_custom_colors", false);
 pref("editor.singleLine.pasteNewlines",      2);
-pref("editor.quotesPreformatted",            false);
 pref("editor.use_css",                       true);
 pref("editor.css.default_length_unit",       "px");
 pref("editor.resizing.preserve_ratio",       true);
@@ -656,7 +663,7 @@ pref("javascript.options.typeinference", true);
 pref("javascript.options.mem.high_water_mark", 128);
 pref("javascript.options.mem.max", -1);
 pref("javascript.options.mem.gc_per_compartment", true);
-pref("javascript.options.mem.gc_incremental", true);
+pref("javascript.options.mem.gc_incremental", false);
 pref("javascript.options.mem.gc_incremental_slice_ms", 10);
 pref("javascript.options.mem.log", false);
 pref("javascript.options.gc_on_memory_pressure", true);
@@ -675,6 +682,11 @@ pref("security.fileuri.strict_origin_policy", true);
 //   pref("network.security.ports.banned", "1,2,3,4,5");
 // prevents necko connecting to ports 1-5 unless the protocol
 // overrides.
+
+// Allow necko to do A/B testing. Will generally only happen if
+// telemetry is also enabled as otherwise there is no way to report
+// the results
+pref("network.allow-experiments", true);
 
 // Default action for unlisted external protocol handlers
 pref("network.protocol-handler.external-default", true);      // OK to load
@@ -815,6 +827,8 @@ pref("network.http.spdy.chunk-size", 4096);
 pref("network.http.spdy.timeout", 180);
 pref("network.http.spdy.coalesce-hostnames", true);
 pref("network.http.spdy.use-alternate-protocol", true);
+pref("network.http.spdy.ping-threshold", 44);
+pref("network.http.spdy.ping-timeout", 8);
 
 // default values for FTP
 // in a DSCP environment this should be 40 (0x28, or AF11), per RFC-4594,
@@ -904,6 +918,7 @@ pref("network.IDN.whitelist.cl", true);
 pref("network.IDN.whitelist.cn", true);
 pref("network.IDN.whitelist.de", true);
 pref("network.IDN.whitelist.dk", true);
+pref("network.IDN.whitelist.ee", true);
 pref("network.IDN.whitelist.es", true);
 pref("network.IDN.whitelist.fi", true);
 pref("network.IDN.whitelist.gr", true);
@@ -925,6 +940,7 @@ pref("network.IDN.whitelist.pl", true);
 pref("network.IDN.whitelist.pr", true);
 pref("network.IDN.whitelist.se", true);
 pref("network.IDN.whitelist.sh", true);
+pref("network.IDN.whitelist.si", true);
 pref("network.IDN.whitelist.th", true);
 pref("network.IDN.whitelist.tm", true);
 pref("network.IDN.whitelist.tw", true);
@@ -951,6 +967,8 @@ pref("network.IDN.whitelist.xn--fzc2c9e2c", true);
 pref("network.IDN.whitelist.xn--xkc2al3hye2a", true);
 // qa, Qatar, .<Qatar>
 pref("network.IDN.whitelist.xn--wgbl6a", true);
+// rs, Serbia, .<Srb>
+pref("network.IDN.whitelist.xn--90a3ac", true);
 // ru, Russian Federation, .<RF>
 pref("network.IDN.whitelist.xn--p1ai", true);
 // sa, Saudi Arabia, .<al-Saudiah> with variants
@@ -960,6 +978,8 @@ pref("network.IDN.whitelist.xn--mgbqly7c0a67fbc", true);
 pref("network.IDN.whitelist.xn--mgbqly7cvafr", true);
 // sy, Syria, .<Souria>
 pref("network.IDN.whitelist.xn--ogbpf8fl", true);
+// th, Thailand, .<Thai>
+pref("network.IDN.whitelist.xn--o3cw4h", true);
 // tw, Taiwan, <.Taiwan> with variants
 pref("network.IDN.whitelist.xn--kpry57d", true);  // Traditional
 pref("network.IDN.whitelist.xn--kprw13d", true);  // Simplified
@@ -1205,7 +1225,7 @@ pref("intl.hyphenation-alias.no-*", "nb");
 pref("intl.hyphenation-alias.nb-*", "nb");
 pref("intl.hyphenation-alias.nn-*", "nn");
 
-pref("font.mathfont-family", "STIXNonUnicode, STIXSizeOneSym, STIXSize1, STIXGeneral, Asana Math, Standard Symbols L, DejaVu Sans, Cambria Math");
+pref("font.mathfont-family", "MathJax_Main, STIXNonUnicode, STIXSizeOneSym, STIXSize1, STIXGeneral, Asana Math, Standard Symbols L, DejaVu Sans, Cambria Math");
 
 // Some CJK fonts have bad underline offset, their CJK character glyphs are overlapped (or adjoined)  to its underline.
 // These fonts are ignored the underline offset, instead of it, the underline is lowered to bottom of its em descent.
@@ -1309,6 +1329,36 @@ pref("mousewheel.horizscroll.withaltkey.sysnumlines",false);
 pref("mousewheel.horizscroll.withmetakey.action",0);
 pref("mousewheel.horizscroll.withmetakey.numlines",1);
 pref("mousewheel.horizscroll.withmetakey.sysnumlines",true);
+
+// These define the smooth scroll behavior (min ms, max ms) for different triggers
+// Some triggers:
+// Pixels: Discrete mouse wheel events, Synaptics touchpads on windows (generate wheel events)
+// Lines:  Up/Down/Left/Right KB arrows
+// Pages:  Page up/down, Space
+// Scrollbars: Clicking scrollbars arrows, clicking scrollbars tracks
+// Note: Currently OS X trackpad and magic mouse don't use our smooth scrolling
+// Note: These are relevant only when "general.smoothScroll" is enabled
+pref("general.smoothScroll.pixels.durationMinMS", 200);
+pref("general.smoothScroll.pixels.durationMaxMS", 800);
+pref("general.smoothScroll.lines.durationMinMS", 150);
+pref("general.smoothScroll.lines.durationMaxMS", 150);
+pref("general.smoothScroll.pages.durationMinMS", 150);
+pref("general.smoothScroll.pages.durationMaxMS", 150);
+pref("general.smoothScroll.scrollbars.durationMinMS", 150);
+pref("general.smoothScroll.scrollbars.durationMaxMS", 150);
+pref("general.smoothScroll.other.durationMinMS", 150);
+pref("general.smoothScroll.other.durationMaxMS", 150);
+pref("general.smoothScroll.pixels", true);
+pref("general.smoothScroll.lines", true);
+pref("general.smoothScroll.pages", true);
+pref("general.smoothScroll.scrollbars", true);
+pref("general.smoothScroll.other", true);
+// To connect consecutive scroll events into a continuous flow, the animation's duration
+// should be longer than scroll events intervals (or else the scroll will stop
+// before the next event arrives - we're guessing next interval by averaging recent
+// intervals).
+// This defines how longer is the duration compared to events interval (percentage)
+pref("general.smoothScroll.durationToIntervalRatio", 200);
 
 pref("profile.confirm_automigration",true);
 // profile.migration_behavior determines how the profiles root is set
@@ -1500,14 +1550,14 @@ pref("plugins.click_to_play", false);
 #ifndef DEBUG
 // How long a plugin is allowed to process a synchronous IPC message
 // before we consider it "hung".
-pref("dom.ipc.plugins.timeoutSecs", 25);
+pref("dom.ipc.plugins.timeoutSecs", 45);
 // How long a plugin process will wait for a response from the parent
 // to a synchronous request before terminating itself. After this
 // point the child assumes the parent is hung. Currently disabled.
 pref("dom.ipc.plugins.parentTimeoutSecs", 0);
 // How long a plugin launch is allowed to take before
 // we consider it failed.
-pref("dom.ipc.plugins.processLaunchTimeoutSecs", 25);
+pref("dom.ipc.plugins.processLaunchTimeoutSecs", 45);
 #else
 // No timeout in DEBUG builds
 pref("dom.ipc.plugins.timeoutSecs", 0);
@@ -1613,9 +1663,9 @@ pref("font.name-list.cursive.he", "Guttman Yad, Ktav, Arial");
 pref("font.name.serif.ja", "MS PMincho");
 pref("font.name.sans-serif.ja", "MS PGothic");
 pref("font.name.monospace.ja", "MS Gothic");
-pref("font.name-list.serif.ja", "MS PMincho, MS Mincho, MS PGothic, MS Gothic");
-pref("font.name-list.sans-serif.ja", "MS PGothic, MS Gothic, MS PMincho, MS Mincho");
-pref("font.name-list.monospace.ja", "MS Gothic, MS Mincho, MS PGothic, MS PMincho");
+pref("font.name-list.serif.ja", "MS PMincho, MS Mincho, MS PGothic, MS Gothic,Meiryo");
+pref("font.name-list.sans-serif.ja", "MS PGothic, MS Gothic, MS PMincho, MS Mincho,Meiryo");
+pref("font.name-list.monospace.ja", "MS Gothic, MS Mincho, MS PGothic, MS PMincho,Meiryo");
 
 pref("font.name.serif.ko", "Batang");
 pref("font.name.sans-serif.ko", "Gulim");
@@ -1665,27 +1715,27 @@ pref("font.name.cursive.x-western", "Comic Sans MS");
 pref("font.name.serif.zh-CN", "SimSun");
 pref("font.name.sans-serif.zh-CN", "SimSun");
 pref("font.name.monospace.zh-CN", "SimSun");
-pref("font.name-list.serif.zh-CN", "MS Song, SimSun");
-pref("font.name-list.sans-serif.zh-CN", "MS Song, SimSun");
-pref("font.name-list.monospace.zh-CN", "MS Song, SimSun");
+pref("font.name-list.serif.zh-CN", "MS Song, SimSun, SimSun-ExtB");
+pref("font.name-list.sans-serif.zh-CN", "MS Song, SimSun, SimSun-ExtB");
+pref("font.name-list.monospace.zh-CN", "MS Song, SimSun, SimSun-ExtB");
 
 // Per Taiwanese users' demand. They don't want to use TC fonts for
 // rendering Latin letters. (bug 88579)
 pref("font.name.serif.zh-TW", "Times New Roman"); 
 pref("font.name.sans-serif.zh-TW", "Arial");
 pref("font.name.monospace.zh-TW", "MingLiU");
-pref("font.name-list.serif.zh-TW", "PMingLiu, MingLiU"); 
-pref("font.name-list.sans-serif.zh-TW", "PMingLiU, MingLiU");
-pref("font.name-list.monospace.zh-TW", "MingLiU");
+pref("font.name-list.serif.zh-TW", "PMingLiu, MingLiU, MingLiU-ExtB");
+pref("font.name-list.sans-serif.zh-TW", "PMingLiU, MingLiU, MingLiU-ExtB");
+pref("font.name-list.monospace.zh-TW", "MingLiU, MingLiU-ExtB");
 
 // hkscsm3u.ttf (HKSCS-2001) :  http://www.microsoft.com/hk/hkscs
 // Hong Kong users have the same demand about glyphs for Latin letters (bug 88579)
 pref("font.name.serif.zh-HK", "Times New Roman");
 pref("font.name.sans-serif.zh-HK", "Arial");
 pref("font.name.monospace.zh-HK", "MingLiu_HKSCS");
-pref("font.name-list.serif.zh-HK", "MingLiu_HKSCS, Ming(for ISO10646), MingLiU");
-pref("font.name-list.sans-serif.zh-HK", "MingLiU_HKSCS, Ming(for ISO10646), MingLiU");
-pref("font.name-list.monospace.zh-HK", "MingLiU_HKSCS, Ming(for ISO10646), MingLiU");
+pref("font.name-list.serif.zh-HK", "MingLiu_HKSCS, Ming(for ISO10646), MingLiU, MingLiU_HKSCS-ExtB");
+pref("font.name-list.sans-serif.zh-HK", "MingLiU_HKSCS, Ming(for ISO10646), MingLiU, MingLiU_HKSCS-ExtB");
+pref("font.name-list.monospace.zh-HK", "MingLiU_HKSCS, Ming(for ISO10646), MingLiU, MingLiU_HKSCS-ExtB");
 
 pref("font.name.serif.x-devanagari", "Mangal");
 pref("font.name.sans-serif.x-devanagari", "Raghindi");
@@ -1919,7 +1969,7 @@ pref("font.size.variable.zh-HK", 16);
 pref("font.size.fixed.zh-HK", 16);
 
 // We have special support for Monotype Symbol on Windows.
-pref("font.mathfont-family", "STIXNonUnicode, STIXSizeOneSym, STIXSize1, STIXGeneral, Asana Math, Symbol, DejaVu Sans, Cambria Math");
+pref("font.mathfont-family", "MathJax_Main, STIXNonUnicode, STIXSizeOneSym, STIXSize1, STIXGeneral, Asana Math, Symbol, DejaVu Sans, Cambria Math");
 
 // cleartype settings - false implies default system settings 
 
@@ -2005,6 +2055,9 @@ pref("plugin.scan.WindowsMediaPlayer", "7.0");
 // Which is currently HKLM\Software\MozillaPlugins\xxxPLIDxxx\Path
 pref("plugin.scan.plid.all", true);
 
+// Allow the new AsyncDrawing mode to be used for plugins.
+pref("plugin.allow.asyncdrawing", false);
+
 // Help Windows NT, 2000, and XP dialup a RAS connection
 // when a network address is unreachable.
 pref("network.autodial-helper.enabled", true);
@@ -2078,16 +2131,16 @@ pref("font.name-list.monospace.ar", "Geeza Pro");
 pref("font.name-list.cursive.ar", "DecoType Naskh");
 pref("font.name-list.fantasy.ar", "KufiStandardGK");
 
-pref("font.name.serif.el", "Lucida Grande");
-pref("font.name.sans-serif.el", "Lucida Grande");
-pref("font.name.monospace.el", "Lucida Grande");
+pref("font.name.serif.el", "Times");
+pref("font.name.sans-serif.el", "Helvetica");
+pref("font.name.monospace.el", "Courier New");
 pref("font.name.cursive.el", "Lucida Grande");
 pref("font.name.fantasy.el", "Lucida Grande");
-pref("font.name-list.serif.el", "Lucida Grande");
-pref("font.name-list.sans-serif.el", "Lucida Grande");
-pref("font.name-list.monospace.el", "Lucida Grande");
-pref("font.name-list.cursive.el", "Lucida Grande");
-pref("font.name-list.fantasy.el", "Lucida Grande");
+pref("font.name-list.serif.el", "Times,Times New Roman");
+pref("font.name-list.sans-serif.el", "Helvetica,Lucida Grande");
+pref("font.name-list.monospace.el", "Courier New,Lucida Grande");
+pref("font.name-list.cursive.el", "Times,Lucida Grande");
+pref("font.name-list.fantasy.el", "Times,Lucida Grande");
 
 pref("font.name.serif.he", "Times New Roman");
 pref("font.name.sans-serif.he", "Arial");
@@ -2100,11 +2153,11 @@ pref("font.name-list.monospace.he", "Courier New");
 pref("font.name-list.cursive.he", "Times New Roman");
 pref("font.name-list.fantasy.he", "Times New Roman");
 
-pref("font.name.serif.ja", "Hiragino Mincho Pro"); 
-pref("font.name.sans-serif.ja", "Hiragino Kaku Gothic Pro"); 
+pref("font.name.serif.ja", "Hiragino Mincho ProN");
+pref("font.name.sans-serif.ja", "Hiragino Kaku Gothic ProN");
 pref("font.name.monospace.ja", "Osaka-Mono"); 
-pref("font.name-list.serif.ja", "Hiragino Mincho Pro"); 
-pref("font.name-list.sans-serif.ja", "Hiragino Kaku Gothic Pro"); 
+pref("font.name-list.serif.ja", "Hiragino Mincho ProN,Hiragino Mincho Pro");
+pref("font.name-list.sans-serif.ja", "Hiragino Kaku Gothic ProN,Hiragino Kaku Gothic Pro");
 pref("font.name-list.monospace.ja", "Osaka-Mono"); 
 
 pref("font.name.serif.ko", "AppleMyungjo"); 
@@ -2183,9 +2236,9 @@ pref("font.name.sans-serif.x-cyrillic", "Helvetica");
 pref("font.name.monospace.x-cyrillic", "Monaco");
 pref("font.name.cursive.x-cyrillic", "Geneva");
 pref("font.name.fantasy.x-cyrillic", "Charcoal CY");
-pref("font.name-list.serif.x-cyrillic", "Times");
-pref("font.name-list.sans-serif.x-cyrillic", "Helvetica");
-pref("font.name-list.monospace.x-cyrillic", "Monaco");
+pref("font.name-list.serif.x-cyrillic", "Times,Times New Roman");
+pref("font.name-list.sans-serif.x-cyrillic", "Helvetica,Arial");
+pref("font.name-list.monospace.x-cyrillic", "Monaco,Courier New");
 pref("font.name-list.cursive.x-cyrillic", "Geneva");
 pref("font.name-list.fantasy.x-cyrillic", "Charcoal CY");
 
@@ -2294,32 +2347,32 @@ pref("font.name.sans-serif.x-western", "Helvetica");
 pref("font.name.monospace.x-western", "Courier");
 pref("font.name.cursive.x-western", "Apple Chancery");
 pref("font.name.fantasy.x-western", "Papyrus");
-pref("font.name-list.serif.x-western", "Times");
-pref("font.name-list.sans-serif.x-western", "Helvetica");
-pref("font.name-list.monospace.x-western", "Courier");
+pref("font.name-list.serif.x-western", "Times,Times New Roman");
+pref("font.name-list.sans-serif.x-western", "Helvetica,Arial");
+pref("font.name-list.monospace.x-western", "Courier,Courier New");
 pref("font.name-list.cursive.x-western", "Apple Chancery");
 pref("font.name-list.fantasy.x-western", "Papyrus");
 
 pref("font.name.serif.zh-CN", "STSong");
 pref("font.name.sans-serif.zh-CN", "STHeiti");
 pref("font.name.monospace.zh-CN", "STHeiti");
-pref("font.name-list.serif.zh-CN", "STSong");
-pref("font.name-list.sans-serif.zh-CN", "STHeiti");
-pref("font.name-list.monospace.zh-CN", "STHeiti");
+pref("font.name-list.serif.zh-CN", "STSong,Heiti SC");
+pref("font.name-list.sans-serif.zh-CN", "STHeiti,Heiti SC");
+pref("font.name-list.monospace.zh-CN", "STHeiti,Heiti SC");
 
 pref("font.name.serif.zh-TW", "Apple LiSung"); 
 pref("font.name.sans-serif.zh-TW", "Apple LiGothic");  
 pref("font.name.monospace.zh-TW", "Apple LiGothic");  
-pref("font.name-list.serif.zh-TW", "Apple LiSung"); 
-pref("font.name-list.sans-serif.zh-TW", "Apple LiGothic");  
-pref("font.name-list.monospace.zh-TW", "Apple LiGothic");  
+pref("font.name-list.serif.zh-TW", "Apple LiSung,Heiti TC");
+pref("font.name-list.sans-serif.zh-TW", "Apple LiGothic,Heiti TC");
+pref("font.name-list.monospace.zh-TW", "Apple LiGothic,Heiti TC");
 
 pref("font.name.serif.zh-HK", "LiSong Pro");
 pref("font.name.sans-serif.zh-HK", "LiHei Pro");
 pref("font.name.monospace.zh-HK", "LiHei Pro");
-pref("font.name-list.serif.zh-HK", "LiSong Pro");
-pref("font.name-list.sans-serif.zh-HK", "LiHei Pro");
-pref("font.name-list.monospace.zh-HK", "LiHei Pro");
+pref("font.name-list.serif.zh-HK", "LiSong Pro,Heiti TC");
+pref("font.name-list.sans-serif.zh-HK", "LiHei Pro,Heiti TC");
+pref("font.name-list.monospace.zh-HK", "LiHei Pro,Heiti TC");
 
 pref("font.default.ar", "sans-serif");
 pref("font.size.variable.ar", 16);
@@ -2447,7 +2500,7 @@ pref("font.size.variable.zh-HK", 15);
 pref("font.size.fixed.zh-HK", 16);
 
 // Apple's Symbol is Unicode so use it
-pref("font.mathfont-family", "STIXNonUnicode, STIXSizeOneSym, STIXSize1, STIXGeneral, Asana Math, Symbol, DejaVu Sans, Cambria Math");
+pref("font.mathfont-family", "MathJax_Main, STIXNonUnicode, STIXSizeOneSym, STIXSize1, STIXGeneral, Asana Math, Symbol, DejaVu Sans, Cambria Math");
 
 // individual font faces to be treated as independent families
 // names are Postscript names of each face
@@ -2496,7 +2549,7 @@ pref("ui.key.menuAccessKeyFocuses", true);
 
 pref("font.alias-list", "sans,sans-serif,serif,monospace,Tms Rmn,Helv,Courier,Times New Roman");
 
-pref("font.mathfont-family", "STIXNonUnicode, STIXSizeOneSym, STIXSize1, STIXGeneral, Asana Math, DejaVu Sans");
+pref("font.mathfont-family", "MathJax_Main, STIXNonUnicode, STIXSizeOneSym, STIXSize1, STIXGeneral, Asana Math, DejaVu Sans");
 
 // Languages only need lists if we have a default that might not be available.
 // Tms Rmn and Helv cannot be used by Thebes but the OS/2 version of FontConfig
@@ -3404,6 +3457,7 @@ pref("full-screen-api.enabled", false);
 pref("full-screen-api.allow-trusted-requests-only", true);
 pref("full-screen-api.key-input-restricted", true);
 pref("full-screen-api.warning.enabled", true);
+pref("full-screen-api.exit-on-deactivate", true);
 
 // Time limit, in milliseconds, for nsEventStateManager::IsHandlingUserInput().
 // Used to detect long running handlers of user-generated events.
@@ -3423,6 +3477,10 @@ pref("dom.battery.enabled", true);
 pref("dom.sms.enabled", false);
 pref("dom.sms.whitelist", "");
 
+// WebContacts
+pref("dom.mozContacts.enabled", false);
+pref("dom.mozContacts.whitelist", "");
+
 // enable JS dump() function.
 pref("browser.dom.window.dump.enabled", false);
 
@@ -3440,11 +3498,15 @@ pref("dom.network.metered", false);
 pref("memory.low_virtual_memory_threshold_mb", 128);
 
 // On Windows 32- or 64-bit, fire a low-memory notification if we have less
+// than this many mb of commit space (physical memory plus page file) left.
+pref("memory.low_commit_space_threshold_mb", 128);
+
+// On Windows 32- or 64-bit, fire a low-memory notification if we have less
 // than this many mb of physical memory available on the whole machine.
 pref("memory.low_physical_memory_threshold_mb", 0);
 
 // On Windows 32- or 64-bit, don't fire a low-memory notification because of
-// low available physical memory more than once every
-// low_physical_memory_notification_interval_ms.
-pref("memory.low_physical_memory_notification_interval_ms", 10000);
+// low available physical memory or low commit space more than once every
+// low_memory_notification_interval_ms.
+pref("memory.low_memory_notification_interval_ms", 10000);
 #endif

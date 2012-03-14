@@ -1,5 +1,5 @@
 import subprocess
-from devicemanager import DeviceManager, DMError
+from devicemanager import DeviceManager, DMError, _pop_last_line
 import re
 import os
 import sys
@@ -25,15 +25,21 @@ class DeviceManagerADB(DeviceManager):
         packageName = 'org.mozilla.fennec_'
     self.Init(packageName)
 
+  def __del__(self):
+    if self.host:
+      self.disconnectRemoteADB()
+
   def Init(self, packageName):
     # Initialization code that may fail: Catch exceptions here to allow
     # successful initialization even if, for example, adb is not installed.
     try:
       self.verifyADB()
+      if self.host:
+        self.connectRemoteADB()
       self.verifyRunAs(packageName)
     except:
       self.useRunAs = False
-      self.packageName = None
+      self.packageName = packageName
     try:
       self.verifyZip()
     except:
@@ -62,6 +68,53 @@ class DeviceManagerADB(DeviceManager):
           print "restarting as root failed, but run-as available"
         else:
           print "restarting as root failed"
+
+  # external function: executes shell command on device
+  # returns:
+  # success: <return code>
+  # failure: None
+  def shell(self, cmd, outputfile, env=None, cwd=None):
+    # need to quote special characters here
+    for (index, arg) in enumerate(cmd):
+      if arg.find(" ") or arg.find("(") or arg.find(")") or arg.find("\""):
+        cmd[index] = '\'%s\'' % arg
+
+    # This is more complex than you'd think because adb doesn't actually
+    # return the return code from a process, so we have to capture the output
+    # to get it
+    # FIXME: this function buffers all output of the command into memory,
+    # always. :(
+    cmdline = " ".join(cmd) + "; echo $?"
+
+    # prepend cwd and env to command if necessary
+    if cwd:
+      cmdline = "cd %s; %s" % (cwd, cmdline)
+    if env:
+      envstr = '; '.join(map(lambda x: 'export %s=%s' % (x[0], x[1]), env.iteritems()))
+      cmdline = envstr + "; " + cmdline
+
+    # all output should be in stdout
+    proc = subprocess.Popen(["adb", "shell", cmdline],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (stdout, stderr) = proc.communicate()
+    outputfile.write(stdout.rstrip('\n'))
+
+    lastline = _pop_last_line(outputfile)
+    if lastline:
+      m = re.search('([0-9]+)', lastline)
+      if m:
+        return_code = m.group(1)
+        outputfile.seek(-2, 2)
+        outputfile.truncate() # truncate off the return code
+        return return_code
+
+    return None
+
+  def connectRemoteADB(self):
+    self.checkCmd(["connect", self.host + ":" + str(self.port)])
+
+  def disconnectRemoteADB(self):
+    self.checkCmd(["disconnect", self.host + ":" + str(self.port)])
 
   # external function
   # returns:
@@ -264,6 +317,7 @@ class DeviceManagerADB(DeviceManager):
     return ret
 
   # external function
+  # DEPRECATED: Use shell() or launchApplication() for new code
   # returns:
   #  success: pid
   #  failure: None
@@ -275,6 +329,7 @@ class DeviceManagerADB(DeviceManager):
     return self.launchProcess(parts, failIfRunning)
 
   # external function
+  # DEPRECATED: Use shell() or launchApplication() for new code
   # returns:
   #  success: output filename
   #  failure: None
@@ -327,6 +382,7 @@ class DeviceManagerADB(DeviceManager):
       if name == appname:
         p = self.runCmdAs(["shell", "kill", pid])
         return p.stdout.read()
+
     return None
 
   # external function
@@ -393,8 +449,8 @@ class DeviceManagerADB(DeviceManager):
   def getDirectory(self, remoteDir, localDir, checkDir=True):
     ret = []
     p = self.runCmd(["pull", remoteDir, localDir])
-    p.stderr.readline()
-    line = p.stderr.readline()
+    p.stdout.readline()
+    line = p.stdout.readline()
     while (line):
       els = line.split()
       f = els[len(els) - 1]
@@ -407,7 +463,7 @@ class DeviceManagerADB(DeviceManager):
       if (i > 0):
         f = f[0:i]
       ret.append(f)
-      line =  p.stderr.readline()
+      line =  p.stdout.readline()
     #the last line is a summary
     if (len(ret) > 0):
       ret.pop()
@@ -611,7 +667,7 @@ class DeviceManagerADB(DeviceManager):
       args.insert(1, "run-as")
       args.insert(2, self.packageName)
     args.insert(0, "adb")
-    return subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
   def runCmdAs(self, args):
     if self.useRunAs:
@@ -684,7 +740,13 @@ class DeviceManagerADB(DeviceManager):
     if (packageName and self.isCpAvailable() and devroot):
       tmpDir = self.getTempDir()
 
-      self.checkCmd(["shell", "run-as", packageName, "mkdir", devroot + "/sanity"])
+      # The problem here is that run-as doesn't cause a non-zero exit code
+      # when failing because of a non-existent or non-debuggable package :(
+      runAsOut = self.runCmd(["shell", "run-as", packageName, "mkdir", devroot + "/sanity"]).communicate()[0]
+      if runAsOut.startswith("run-as:") and ("not debuggable" in runAsOut[0] or
+                                             "is unknown" in runAsOut[0]):
+        raise DMError("run-as failed sanity check")
+
       self.checkCmd(["push", os.path.abspath(sys.argv[0]), tmpDir + "/tmpfile"])
       if self.useDDCopy:
         self.checkCmd(["shell", "run-as", packageName, "dd", "if=" + tmpDir + "/tmpfile", "of=" + devroot + "/sanity/tmpfile"])

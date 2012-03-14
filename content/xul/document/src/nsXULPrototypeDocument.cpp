@@ -146,7 +146,7 @@ JSClass nsXULPDGlobalObject::gSharedGlobalClass = {
     XPCONNECT_GLOBAL_FLAGS,
     JS_PropertyStub,  JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, nsXULPDGlobalObject_resolve,  JS_ConvertStub,
-    nsXULPDGlobalObject_finalize, NULL, NULL, NULL, NULL, NULL, NULL,
+    nsXULPDGlobalObject_finalize, NULL, NULL, NULL, NULL,
     TraceXPCGlobal
 };
 
@@ -788,11 +788,7 @@ nsXULPDGlobalObject::ClearGlobalObjectOwner()
   if (this != nsXULPrototypeDocument::gSystemGlobal)
     mCachedPrincipal = mGlobalObjectOwner->DocumentPrincipal();
 
-  if (mContext) {
-    mContext->FinalizeContext();
-    mContext = NULL;
-  }
-
+  mContext = NULL;
   mGlobalObjectOwner = NULL;
 }
 

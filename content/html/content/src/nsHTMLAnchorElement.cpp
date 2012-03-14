@@ -51,7 +51,6 @@
 #include "nsIDocument.h"
 #include "nsPresContext.h"
 #include "nsHTMLDNSPrefetch.h"
-#include "nsDOMMemoryReporter.h"
 
 using namespace mozilla::dom;
 
@@ -97,10 +96,8 @@ public:
   // nsIDOMHTMLAnchorElement
   NS_DECL_NSIDOMHTMLANCHORELEMENT  
 
-  // TODO: we do not really count Link::mCachedURI but given that it's a
-  // nsCOMPtr<nsIURI>, that would be required adding SizeOf() to the interface.
-  NS_DECL_AND_IMPL_DOM_MEMORY_REPORTER_SIZEOF(nsHTMLAnchorElement,
-                                              nsGenericHTMLElement)
+  // DOM memory reporter participant
+  NS_DECL_SIZEOF_EXCLUDING_THIS
 
   // nsILink
   NS_IMETHOD LinkAdded() { return NS_OK; }
@@ -521,5 +518,12 @@ nsEventStates
 nsHTMLAnchorElement::IntrinsicState() const
 {
   return Link::LinkState() | nsGenericHTMLElement::IntrinsicState();
+}
+
+size_t
+nsHTMLAnchorElement::SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOf) const
+{
+  return nsGenericHTMLElement::SizeOfExcludingThis(aMallocSizeOf) +
+         Link::SizeOfExcludingThis(aMallocSizeOf);
 }
 

@@ -87,7 +87,7 @@ void JS_FASTCALL
 ic::GetGlobalName(VMFrame &f, ic::GetGlobalNameIC *ic)
 {
     JSObject &obj = f.fp()->scopeChain().global();
-    PropertyName *name = f.script()->getName(GET_INDEX(f.pc()));
+    PropertyName *name = f.script()->getName(GET_UINT32_INDEX(f.pc()));
 
     RecompilationMonitor monitor(f.cx);
 
@@ -126,7 +126,7 @@ template <JSBool strict>
 static void JS_FASTCALL
 DisabledSetGlobal(VMFrame &f, ic::SetGlobalNameIC *ic)
 {
-    stubs::SetGlobalName<strict>(f, f.script()->getName(GET_INDEX(f.pc())));
+    stubs::SetGlobalName<strict>(f, f.script()->getName(GET_UINT32_INDEX(f.pc())));
 }
 
 template void JS_FASTCALL DisabledSetGlobal<true>(VMFrame &f, ic::SetGlobalNameIC *ic);
@@ -193,7 +193,7 @@ ic::SetGlobalName(VMFrame &f, ic::SetGlobalNameIC *ic)
 {
     JSObject &obj = f.fp()->scopeChain().global();
     JSScript *script = f.script();
-    PropertyName *name = script->getName(GET_INDEX(f.pc()));
+    PropertyName *name = script->getName(GET_UINT32_INDEX(f.pc()));
 
     RecompilationMonitor monitor(f.cx);
 
@@ -772,7 +772,7 @@ class CallCompiler : public BaseCompiler
     bool generateNativeStub()
     {
         /* Snapshot the frameDepth before SplatApplyArgs modifies it. */
-        uintN initialFrameDepth = f.regs.sp - f.fp()->slots();
+        unsigned initialFrameDepth = f.regs.sp - f.fp()->slots();
 
         /*
          * SplatApplyArgs has not been called, so we call it here before
@@ -1044,7 +1044,7 @@ ic::NativeNew(VMFrame &f, CallICInfo *ic)
 }
 
 static JS_ALWAYS_INLINE bool
-BumpStack(VMFrame &f, uintN inc)
+BumpStack(VMFrame &f, unsigned inc)
 {
     if (f.regs.sp + inc < f.stackLimit)
         return true;
@@ -1080,54 +1080,44 @@ ic::SplatApplyArgs(VMFrame &f)
         JS_ASSERT(JS_CALLEE(cx, vp).toObject().toFunction()->u.n.native == js_fun_apply);
 
         StackFrame *fp = f.regs.fp();
-        if (!fp->hasOverriddenArgs()) {
-            uintN n;
-            if (!fp->hasArgsObj()) {
-                /* Extract the common/fast path where there is no args obj. */
-                n = fp->numActualArgs();
-                if (!BumpStack(f, n))
-                    THROWV(false);
-                Value *argv = JS_ARGV(cx, vp + 1 /* vp[1]'s argv */);
-                f.regs.sp += n;
-                fp->forEachCanonicalActualArg(CopyTo(argv));
-            } else {
-                /* Simulate the argument-pushing part of js_fun_apply: */
-                JSObject *aobj = &fp->argsObj();
+        unsigned n;
+        if (!fp->hasArgsObj()) {
+            /* Extract the common/fast path where there is no args obj. */
+            n = fp->numActualArgs();
+            if (!BumpStack(f, n))
+                THROWV(false);
+            Value *argv = JS_ARGV(cx, vp + 1 /* vp[1]'s argv */);
+            f.regs.sp += n;
+            fp->forEachCanonicalActualArg(CopyTo(argv));
+        } else {
+            /* Simulate the argument-pushing part of js_fun_apply: */
+            JSObject *aobj = &fp->argsObj();
 
-                /* Steps 4-5 */
-                uintN length;
-                if (!js_GetLengthProperty(cx, aobj, &length))
-                    THROWV(false);
+            /* Steps 4-5 */
+            unsigned length;
+            if (!js_GetLengthProperty(cx, aobj, &length))
+                THROWV(false);
 
-                /* Step 6. */
-                if (length > StackSpace::ARGS_LENGTH_MAX) {
-                    JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL,
-                                         JSMSG_TOO_MANY_FUN_APPLY_ARGS);
-                    THROWV(false);
-                }
-
-                n = length;
-                if (!BumpStack(f, n))
-                    THROWV(false);
-
-                /* Steps 7-8 */
-                Value *argv = JS_ARGV(cx, &vp[1]);  /* vp[1] is the callee */
-                f.regs.sp += n;  /* GetElements may reenter, so inc early. */
-                if (!GetElements(cx, aobj, n, argv))
-                    THROWV(false);
+            /* Step 6. */
+            if (length > StackSpace::ARGS_LENGTH_MAX) {
+                JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL,
+                                     JSMSG_TOO_MANY_FUN_APPLY_ARGS);
+                THROWV(false);
             }
 
-            f.u.call.dynamicArgc = n;
-            return true;
+            n = length;
+            if (!BumpStack(f, n))
+                THROWV(false);
+
+            /* Steps 7-8 */
+            Value *argv = JS_ARGV(cx, &vp[1]);  /* vp[1] is the callee */
+            f.regs.sp += n;  /* GetElements may reenter, so inc early. */
+            if (!GetElements(cx, aobj, n, argv))
+                THROWV(false);
         }
 
-        /*
-         * Push the arguments value so that the stack matches the !lazyArgsObj
-         * stack state described above.
-         */
-        f.regs.sp++;
-        if (!js_GetArgsValue(cx, fp, &vp[3]))
-            THROWV(false);
+        f.u.call.dynamicArgc = n;
+        return true;
     }
 
     Value *vp = f.regs.sp - 4;
@@ -1153,7 +1143,7 @@ ic::SplatApplyArgs(VMFrame &f)
 
     /* Steps 4-5. */
     JSObject *aobj = &vp[3].toObject();
-    jsuint length;
+    uint32_t length;
     if (!js_GetLengthProperty(cx, aobj, &length))
         THROWV(false);
 
@@ -1164,7 +1154,7 @@ ic::SplatApplyArgs(VMFrame &f)
         THROWV(false);
     }
 
-    intN delta = length - 1;
+    int delta = length - 1;
     if (delta > 0 && !BumpStack(f, delta))
         THROWV(false);
     f.regs.sp += delta;

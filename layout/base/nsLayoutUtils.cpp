@@ -90,9 +90,7 @@
 #ifdef MOZ_MEDIA
 #include "nsHTMLVideoElement.h"
 #endif
-#include "nsGenericHTMLElement.h"
 #include "imgIRequest.h"
-#include "imgIContainer.h"
 #include "nsIImageLoadingContent.h"
 #include "nsCOMPtr.h"
 #include "nsListControlFrame.h"
@@ -974,6 +972,21 @@ nsLayoutUtils::GetEventCoordinatesRelativeTo(const nsEvent* aEvent, nsIFrame* aF
 #else
   if (!GUIEvent->widget)
     return nsPoint(NS_UNCONSTRAINEDSIZE, NS_UNCONSTRAINEDSIZE);
+
+  nsIView* view = aFrame->GetView();
+  if (view) {
+    nsIWidget* widget = view->GetWidget();
+    if (widget && widget == GUIEvent->widget) {
+      // Special case this cause it happens a lot.
+      // This also fixes bug 664707, events in the extra-special case of select
+      // dropdown popups that are transformed.
+      nsPresContext* presContext = aFrame->PresContext();
+      nsPoint pt(presContext->DevPixelsToAppUnits(GUIEvent->refPoint.x),
+                 presContext->DevPixelsToAppUnits(GUIEvent->refPoint.y));
+      return pt - view->ViewToWidgetOffset();
+    }
+  }
+
   /* If we walk up the frame tree and discover that any of the frames are
    * transformed, we need to do extra work to convert from the global
    * space to the local space.
@@ -1030,6 +1043,20 @@ nsLayoutUtils::GetEventCoordinatesRelativeTo(const nsEvent* aEvent,
   nsIWidget* widget = GUIEvent->widget;
   if (!widget) {
     return nsPoint(NS_UNCONSTRAINEDSIZE, NS_UNCONSTRAINEDSIZE);
+  }
+
+  nsIView* view = aFrame->GetView();
+  if (view) {
+    nsIWidget* frameWidget = view->GetWidget();
+    if (frameWidget && frameWidget == GUIEvent->widget) {
+      // Special case this cause it happens a lot.
+      // This also fixes bug 664707, events in the extra-special case of select
+      // dropdown popups that are transformed.
+      nsPresContext* presContext = aFrame->PresContext();
+      nsPoint pt(presContext->DevPixelsToAppUnits(aPoint.x),
+                 presContext->DevPixelsToAppUnits(aPoint.y));
+      return pt - view->ViewToWidgetOffset();
+    }
   }
 
   /* If we walk up the frame tree and discover that any of the frames are
@@ -1381,8 +1408,8 @@ nsLayoutUtils::CombineBreakType(PRUint8 aOrigBreakType,
 #ifdef MOZ_DUMP_PAINTING
 #include <stdio.h>
 
-static bool gDumpPaintList = getenv("MOZ_DUMP_PAINT_LIST") != 0;
 static bool gDumpEventList = false;
+int gPaintCount = 0;
 #endif
 
 nsresult
@@ -1774,10 +1801,22 @@ nsLayoutUtils::PaintFrame(nsRenderingContext* aRenderingContext, nsIFrame* aFram
   }
 
 #ifdef MOZ_DUMP_PAINTING
-  if (gDumpPaintList) {
-    fprintf(stdout, "Painting --- before optimization (dirty %d,%d,%d,%d):\n",
+  if (gfxUtils::sDumpPainting) {
+    if (gfxUtils::sDumpPaintingToFile) {
+      nsCString string("dump-");
+      string.AppendInt(gPaintCount);
+      string.Append(".html");
+      gfxUtils::sDumpPaintFile = fopen(string.BeginReading(), "w");
+    } else {
+      gfxUtils::sDumpPaintFile = stdout;
+    }
+    fprintf(gfxUtils::sDumpPaintFile, "<html><head><script>var array = {}; function ViewImage(index) { window.location = array[index]; }</script></head><body>");
+    fprintf(gfxUtils::sDumpPaintFile, "Painting --- before optimization (dirty %d,%d,%d,%d):\n",
             dirtyRect.x, dirtyRect.y, dirtyRect.width, dirtyRect.height);
-    nsFrame::PrintDisplayList(&builder, list);
+    nsFrame::PrintDisplayList(&builder, list, gfxUtils::sDumpPaintFile);
+    if (gfxUtils::sDumpPaintingToFile) {
+      fprintf(gfxUtils::sDumpPaintFile, "<script>");
+    }
   }
 #endif
 
@@ -1826,12 +1865,19 @@ nsLayoutUtils::PaintFrame(nsRenderingContext* aRenderingContext, nsIFrame* aFram
   }
 
 #ifdef MOZ_DUMP_PAINTING
-  if (gDumpPaintList) {
-    fprintf(stdout, "Painting --- after optimization:\n");
-    nsFrame::PrintDisplayList(&builder, list);
+  if (gfxUtils::sDumpPainting) {
+    fprintf(gfxUtils::sDumpPaintFile, "</script>Painting --- after optimization:\n");
+    nsFrame::PrintDisplayList(&builder, list, gfxUtils::sDumpPaintFile);
 
-    fprintf(stdout, "Painting --- retained layer tree:\n");
-    builder.LayerBuilder()->DumpRetainedLayerTree();
+    fprintf(gfxUtils::sDumpPaintFile, "Painting --- retained layer tree:\n");
+    builder.LayerBuilder()->DumpRetainedLayerTree(gfxUtils::sDumpPaintFile);
+    fprintf(gfxUtils::sDumpPaintFile, "</body></html>");
+    
+    if (gfxUtils::sDumpPaintingToFile) {
+      fclose(gfxUtils::sDumpPaintFile);
+    }
+    gfxUtils::sDumpPaintFile = NULL;
+    gPaintCount++;
   }
 #endif
 
@@ -4155,7 +4201,7 @@ nsLayoutUtils::SurfaceFromElement(dom::Element* aElement,
       surf = imgSurf;
     }
 
-    result.mCORSUsed = video->GetCORSMode() != nsGenericHTMLElement::CORS_NONE;
+    result.mCORSUsed = video->GetCORSMode() != CORS_NONE;
     result.mSurface = surf;
     result.mSize = size;
     result.mPrincipal = principal.forget();
@@ -4716,9 +4762,13 @@ ShouldInflateFontsForContainer(const nsIFrame *aFrame)
   // indicates whether the frame is inside something with a constrained
   // height (propagating down the tree), but the propagation stops when
   // we hit overflow-y: scroll or auto.
-  return aFrame->GetStyleText()->mTextSizeAdjust !=
-           NS_STYLE_TEXT_SIZE_ADJUST_NONE &&
-         !(aFrame->GetStateBits() & NS_FRAME_IN_CONSTRAINED_HEIGHT);
+  const nsStyleText* styleText = aFrame->GetStyleText();
+
+  return styleText->mTextSizeAdjust != NS_STYLE_TEXT_SIZE_ADJUST_NONE &&
+         !(aFrame->GetStateBits() & NS_FRAME_IN_CONSTRAINED_HEIGHT) &&
+         // We also want to disable font inflation for containers that have
+         // preformatted text.
+         styleText->WhiteSpaceCanWrap();
 }
 
 nscoord

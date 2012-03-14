@@ -25,16 +25,7 @@ public:
   {
     return mScriptOwner;
   }
-
-  nsIScriptContext* GetScriptContext() const
-  {
-    return mScriptContext;
-  }
-
-  nsPIDOMWindow* GetOwner() const
-  {
-    return mOwner;
-  }
+  bool SetScriptOwner(JSObject* aScriptOwner);
 
   JSObject* GetParentObject()
   {
@@ -60,9 +51,9 @@ protected:
   : mScriptOwner(nsnull)
   { }
 
-  virtual ~IDBWrapperCache()
-  { }
+  virtual ~IDBWrapperCache();
 
+private:
   JSObject* mScriptOwner;
 };
 

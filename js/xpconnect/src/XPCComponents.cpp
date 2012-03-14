@@ -66,7 +66,7 @@ using namespace js;
 /***************************************************************************/
 // stuff used by all
 
-static nsresult ThrowAndFail(uintN errNum, JSContext* cx, bool* retval)
+static nsresult ThrowAndFail(unsigned errNum, JSContext* cx, bool* retval)
 {
     XPCThrower::Throw(errNum, cx);
     *retval = false;
@@ -1428,7 +1428,7 @@ nsXPCComponents_Results::NewResolve(nsIXPConnectWrappedNative *wrapper,
                 jsval val;
 
                 *objp = obj;
-                if (!JS_NewNumberValue(cx, (jsdouble)rv, &val) ||
+                if (!JS_NewNumberValue(cx, (double)rv, &val) ||
                     !JS_DefinePropertyById(cx, obj, id, val,
                                            nsnull, nsnull,
                                            JSPROP_ENUMERATE |
@@ -2769,7 +2769,7 @@ PrincipalHolder::GetPrincipal()
 }
 
 static JSBool
-SandboxDump(JSContext *cx, uintN argc, jsval *vp)
+SandboxDump(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *str;
     if (!argc)
@@ -2799,15 +2799,15 @@ SandboxDump(JSContext *cx, uintN argc, jsval *vp)
     }
 #endif
 
-    fputs(cstr, stderr);
-    fflush(stderr);
+    fputs(cstr, stdout);
+    fflush(stdout);
     NS_Free(cstr);
     JS_SET_RVAL(cx, vp, JSVAL_TRUE);
     return true;
 }
 
 static JSBool
-SandboxDebug(JSContext *cx, uintN argc, jsval *vp)
+SandboxDebug(JSContext *cx, unsigned argc, jsval *vp)
 {
 #ifdef DEBUG
     return SandboxDump(cx, argc, vp);
@@ -2817,7 +2817,7 @@ SandboxDebug(JSContext *cx, uintN argc, jsval *vp)
 }
 
 static JSBool
-SandboxImport(JSContext *cx, uintN argc, jsval *vp)
+SandboxImport(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *thisobj = JS_THIS_OBJECT(cx, vp);
     if (!thisobj)
@@ -2907,7 +2907,7 @@ static JSClass SandboxClass = {
     XPCONNECT_GLOBAL_FLAGS,
     JS_PropertyStub,   JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     sandbox_enumerate, sandbox_resolve, sandbox_convert,  sandbox_finalize,
-    NULL, NULL, NULL, NULL, NULL, NULL, TraceXPCGlobal
+    NULL, NULL, NULL, NULL, TraceXPCGlobal
 };
 
 static JSFunctionSpec SandboxFunctions[] = {
@@ -3053,7 +3053,7 @@ xpc_CreateSandboxObject(JSContext * cx, jsval * vp, nsISupports *prinOrSop, JSOb
     }
 
     xpc::CompartmentPrivate *compartmentPrivate =
-        static_cast<xpc::CompartmentPrivate*>(JS_GetCompartmentPrivate(cx, compartment));
+        static_cast<xpc::CompartmentPrivate*>(JS_GetCompartmentPrivate(compartment));
     compartmentPrivate->location = sandboxName;
 
     return NS_OK;
@@ -3235,7 +3235,7 @@ nsXPCComponents_utils_Sandbox::CallOrConstruct(nsIXPConnectWrappedNative *wrappe
                 return ThrowAndFail(NS_ERROR_INVALID_ARG, cx, _retval);
 
             void* privateValue =
-                JS_GetCompartmentPrivate(cx, GetObjectCompartment(unwrapped));
+                JS_GetCompartmentPrivate(GetObjectCompartment(unwrapped));
             xpc::CompartmentPrivate *compartmentPrivate =
                 static_cast<xpc::CompartmentPrivate*>(privateValue);
 
@@ -3437,12 +3437,16 @@ xpc_EvalInSandbox(JSContext *cx, JSObject *sandbox, const nsAString& source,
     NS_ASSERTION(sop, "Invalid sandbox passed");
     nsCOMPtr<nsIPrincipal> prin = sop->GetPrincipal();
 
-    JSPrincipals *jsPrincipals;
-
-    if (!prin ||
-        NS_FAILED(prin->GetJSPrincipals(cx, &jsPrincipals)) ||
-        !jsPrincipals) {
+    if (!prin) {
         return NS_ERROR_FAILURE;
+    }
+
+    nsCAutoString filenameBuf;
+    if (!filename) {
+        // Default to the spec of the principal.
+        nsJSPrincipals::get(prin)->GetScriptLocation(filenameBuf);
+        filename = filenameBuf.get();
+        lineNo = 1;
     }
 
     JSObject *callingScope;
@@ -3458,7 +3462,6 @@ xpc_EvalInSandbox(JSContext *cx, JSObject *sandbox, const nsAString& source,
     nsRefPtr<ContextHolder> sandcx = new ContextHolder(cx, sandbox);
     if (!sandcx || !sandcx->GetJSContext()) {
         JS_ReportError(cx, "Can't prepare context for evalInSandbox");
-        JSPRINCIPALS_DROP(cx, jsPrincipals);
         return NS_ERROR_OUT_OF_MEMORY;
     }
 
@@ -3471,15 +3474,8 @@ xpc_EvalInSandbox(JSContext *cx, JSObject *sandbox, const nsAString& source,
         if (!stack->Push(sandcx->GetJSContext())) {
             JS_ReportError(cx,
                            "Unable to initialize XPConnect with the sandbox context");
-            JSPRINCIPALS_DROP(cx, jsPrincipals);
             return NS_ERROR_FAILURE;
         }
-    }
-
-    if (!filename) {
-        // Default the filename to the codebase.
-        filename = jsPrincipals->codebase;
-        lineNo = 1;
     }
 
     nsresult rv = NS_OK;
@@ -3487,8 +3483,6 @@ xpc_EvalInSandbox(JSContext *cx, JSObject *sandbox, const nsAString& source,
     {
         JSAutoRequest req(sandcx->GetJSContext());
         JSAutoEnterCompartment ac;
-        jsval v;
-        JSString *str = nsnull;
 
         if (!ac.enter(sandcx->GetJSContext(), sandbox)) {
             if (stack)
@@ -3496,9 +3490,11 @@ xpc_EvalInSandbox(JSContext *cx, JSObject *sandbox, const nsAString& source,
             return NS_ERROR_FAILURE;
         }
 
+        jsval v;
+        JSString *str = nsnull;
         JSBool ok =
             JS_EvaluateUCScriptForPrincipals(sandcx->GetJSContext(), sandbox,
-                                             jsPrincipals,
+                                             nsJSPrincipals::get(prin),
                                              reinterpret_cast<const jschar *>
                                                              (PromiseFlatString(source).get()),
                                              source.Length(), filename, lineNo,
@@ -3556,7 +3552,7 @@ xpc_EvalInSandbox(JSContext *cx, JSObject *sandbox, const nsAString& source,
 
             xpc::CompartmentPrivate *sandboxdata =
                 static_cast<xpc::CompartmentPrivate *>
-                           (JS_GetCompartmentPrivate(cx, js::GetObjectCompartment(sandbox)));
+                           (JS_GetCompartmentPrivate(js::GetObjectCompartment(sandbox)));
             if (!ac.enter(cx, callingScope) ||
                 !WrapForSandbox(cx, sandboxdata->wantXrays, &v)) {
                 rv = NS_ERROR_FAILURE;
@@ -3570,8 +3566,6 @@ xpc_EvalInSandbox(JSContext *cx, JSObject *sandbox, const nsAString& source,
 
     if (stack)
         unused << stack->Pop();
-
-    JSPRINCIPALS_DROP(cx, jsPrincipals);
 
     return rv;
 }
@@ -3704,6 +3698,18 @@ nsXPCComponents_Utils::NondeterministicGetWeakMapKeys(const jsval &aMap,
     return NS_OK;
 }
 
+/* void getDebugObject(); */
+NS_IMETHODIMP
+nsXPCComponents_Utils::GetJSTestingFunctions(JSContext *cx,
+                                             JS::Value *retval)
+{
+    JSObject *obj = js::GetTestingFunctions(cx);
+    if (!obj)
+        return NS_ERROR_XPC_JAVASCRIPT_ERROR;
+    *retval = OBJECT_TO_JSVAL(obj);
+    return NS_OK;
+}
+
 /* void getGlobalForObject(); */
 NS_IMETHODIMP
 nsXPCComponents_Utils::GetGlobalForObject(const JS::Value& object,
@@ -3754,7 +3760,7 @@ nsXPCComponents_Utils::CreateObjectIn(const jsval &vobj, JSContext *cx, jsval *r
 }
 
 JSBool
-FunctionWrapper(JSContext *cx, uintN argc, jsval *vp)
+FunctionWrapper(JSContext *cx, unsigned argc, jsval *vp)
 {
     jsval v = js::GetFunctionNativeReserved(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)), 0);
     NS_ASSERTION(JSVAL_IS_OBJECT(v), "weird function");
@@ -4128,7 +4134,7 @@ nsXPCComponents::NewResolve(nsIXPConnectWrappedNative *wrapper,
     if (!rt)
         return NS_ERROR_FAILURE;
 
-    uintN attrs = 0;
+    unsigned attrs = 0;
 
     if (id == rt->GetStringID(XPCJSRuntime::IDX_LAST_RESULT))
         attrs = JSPROP_READONLY;
@@ -4165,7 +4171,7 @@ nsXPCComponents::GetProperty(nsIXPConnectWrappedNative *wrapper,
 
     nsresult rv = NS_OK;
     if (doResult) {
-        if (!JS_NewNumberValue(cx, (jsdouble) res, vp))
+        if (!JS_NewNumberValue(cx, (double) res, vp))
             return NS_ERROR_OUT_OF_MEMORY;
         rv = NS_SUCCESS_I_DID_SOMETHING;
     }
@@ -4223,8 +4229,7 @@ nsXPCComponents::AttachNewComponentsObject(XPCCallContext& ccx,
 
     nsCOMPtr<XPCWrappedNative> wrapper;
     xpcObjectHelper helper(cholder);
-    XPCWrappedNative::GetNewOrUsed(ccx, helper, aScope, iface,
-                                   OBJ_IS_NOT_GLOBAL, getter_AddRefs(wrapper));
+    XPCWrappedNative::GetNewOrUsed(ccx, helper, aScope, iface, getter_AddRefs(wrapper));
     if (!wrapper)
         return false;
 

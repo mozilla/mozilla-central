@@ -117,9 +117,9 @@ Class js::MathClass = {
 };
 
 JSBool
-js_math_abs(JSContext *cx, uintN argc, Value *vp)
+js_math_abs(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, z;
+    double x, z;
 
     if (argc == 0) {
         vp->setDouble(js_NaN);
@@ -133,9 +133,9 @@ js_math_abs(JSContext *cx, uintN argc, Value *vp)
 }
 
 static JSBool
-math_acos(JSContext *cx, uintN argc, Value *vp)
+math_acos(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, z;
+    double x, z;
 
     if (argc == 0) {
         vp->setDouble(js_NaN);
@@ -158,9 +158,9 @@ math_acos(JSContext *cx, uintN argc, Value *vp)
 }
 
 static JSBool
-math_asin(JSContext *cx, uintN argc, Value *vp)
+math_asin(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, z;
+    double x, z;
 
     if (argc == 0) {
         vp->setDouble(js_NaN);
@@ -183,9 +183,9 @@ math_asin(JSContext *cx, uintN argc, Value *vp)
 }
 
 static JSBool
-math_atan(JSContext *cx, uintN argc, Value *vp)
+math_atan(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, z;
+    double x, z;
 
     if (argc == 0) {
         vp->setDouble(js_NaN);
@@ -201,8 +201,8 @@ math_atan(JSContext *cx, uintN argc, Value *vp)
     return JS_TRUE;
 }
 
-static inline jsdouble JS_FASTCALL
-math_atan2_kernel(jsdouble x, jsdouble y)
+static inline double JS_FASTCALL
+math_atan2_kernel(double x, double y)
 {
 #if defined(_MSC_VER)
     /*
@@ -213,7 +213,7 @@ math_atan2_kernel(jsdouble x, jsdouble y)
      * - The sign of y determines the multiplicator, 1 or 3.
      */
     if (JSDOUBLE_IS_INFINITE(x) && JSDOUBLE_IS_INFINITE(y)) {
-        jsdouble z = js_copysign(M_PI / 4, x);
+        double z = js_copysign(M_PI / 4, x);
         if (y < 0)
             z *= 3;
         return z;
@@ -232,9 +232,9 @@ math_atan2_kernel(jsdouble x, jsdouble y)
 }
 
 static JSBool
-math_atan2(JSContext *cx, uintN argc, Value *vp)
+math_atan2(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, y, z;
+    double x, y, z;
 
     if (argc <= 1) {
         vp->setDouble(js_NaN);
@@ -247,8 +247,8 @@ math_atan2(JSContext *cx, uintN argc, Value *vp)
     return JS_TRUE;
 }
 
-jsdouble
-js_math_ceil_impl(jsdouble x)
+double
+js_math_ceil_impl(double x)
 {
 #ifdef __APPLE__
     if (x < 0 && x > -1.0)
@@ -258,9 +258,9 @@ js_math_ceil_impl(jsdouble x)
 }
 
 JSBool
-js_math_ceil(JSContext *cx, uintN argc, Value *vp)
+js_math_ceil(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, z;
+    double x, z;
 
     if (argc == 0) {
         vp->setDouble(js_NaN);
@@ -274,9 +274,9 @@ js_math_ceil(JSContext *cx, uintN argc, Value *vp)
 }
 
 static JSBool
-math_cos(JSContext *cx, uintN argc, Value *vp)
+math_cos(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, z;
+    double x, z;
 
     if (argc == 0) {
         vp->setDouble(js_NaN);
@@ -307,9 +307,9 @@ math_exp_body(double d)
 }
 
 static JSBool
-math_exp(JSContext *cx, uintN argc, Value *vp)
+math_exp(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, z;
+    double x, z;
 
     if (argc == 0) {
         vp->setDouble(js_NaN);
@@ -325,16 +325,16 @@ math_exp(JSContext *cx, uintN argc, Value *vp)
     return JS_TRUE;
 }
 
-jsdouble
-js_math_floor_impl(jsdouble x)
+double
+js_math_floor_impl(double x)
 {
     return floor(x);
 }
 
 JSBool
-js_math_floor(JSContext *cx, uintN argc, Value *vp)
+js_math_floor(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, z;
+    double x, z;
 
     if (argc == 0) {
         vp->setDouble(js_NaN);
@@ -348,9 +348,9 @@ js_math_floor(JSContext *cx, uintN argc, Value *vp)
 }
 
 static JSBool
-math_log(JSContext *cx, uintN argc, Value *vp)
+math_log(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, z;
+    double x, z;
 
     if (argc == 0) {
         vp->setDouble(js_NaN);
@@ -373,11 +373,11 @@ math_log(JSContext *cx, uintN argc, Value *vp)
 }
 
 JSBool
-js_math_max(JSContext *cx, uintN argc, Value *vp)
+js_math_max(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, z = js_NegativeInfinity;
+    double x, z = js_NegativeInfinity;
     Value *argv;
-    uintN i;
+    unsigned i;
 
     if (argc == 0) {
         vp->setDouble(js_NegativeInfinity);
@@ -403,11 +403,11 @@ js_math_max(JSContext *cx, uintN argc, Value *vp)
 }
 
 JSBool
-js_math_min(JSContext *cx, uintN argc, Value *vp)
+js_math_min(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, z = js_PositiveInfinity;
+    double x, z = js_PositiveInfinity;
     Value *argv;
-    uintN i;
+    unsigned i;
 
     if (argc == 0) {
         vp->setDouble(js_PositiveInfinity);
@@ -432,12 +432,12 @@ js_math_min(JSContext *cx, uintN argc, Value *vp)
     return JS_TRUE;
 }
 
-static jsdouble
-powi(jsdouble x, jsint y)
+static double
+powi(double x, int y)
 {
-    jsuint n = (y < 0) ? -y : y;
-    jsdouble m = x;
-    jsdouble p = 1;
+    unsigned n = (y < 0) ? -y : y;
+    double m = x;
+    double p = 1;
     while (true) {
         if ((n & 1) != 0) p *= m;
         n >>= 1;
@@ -448,9 +448,9 @@ powi(jsdouble x, jsint y)
                 // internal precision in the pow() implementation would have
                 // given us a finite p. This happens very rarely.
                 
-                jsdouble result = 1.0 / p;
+                double result = 1.0 / p;
                 return (result == 0 && JSDOUBLE_IS_INFINITE(p))
-                       ? pow(x, static_cast<jsdouble>(y))  // Avoid pow(double, int).
+                       ? pow(x, static_cast<double>(y))  // Avoid pow(double, int).
                        : result;
             }
 
@@ -461,9 +461,9 @@ powi(jsdouble x, jsint y)
 }
 
 JSBool
-js_math_pow(JSContext *cx, uintN argc, Value *vp)
+js_math_pow(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, y, z;
+    double x, y, z;
 
     if (argc <= 1) {
         vp->setDouble(js_NaN);
@@ -511,7 +511,7 @@ js_math_pow(JSContext *cx, uintN argc, Value *vp)
 static const int64_t RNG_MULTIPLIER = 0x5DEECE66DLL;
 static const int64_t RNG_ADDEND = 0xBLL;
 static const int64_t RNG_MASK = (1LL << 48) - 1;
-static const jsdouble RNG_DSCALE = jsdouble(1LL << 53);
+static const double RNG_DSCALE = double(1LL << 53);
 
 /*
  * Math.random() support, lifted from java.util.Random.java.
@@ -544,17 +544,17 @@ random_next(int64_t *rngSeed, int bits)
     return nextseed >> (48 - bits);
 }
 
-static inline jsdouble
+static inline double
 random_nextDouble(JSContext *cx)
 {
-    return jsdouble((random_next(&cx->rngSeed, 26) << 27) + random_next(&cx->rngSeed, 27)) /
+    return double((random_next(&cx->rngSeed, 26) << 27) + random_next(&cx->rngSeed, 27)) /
            RNG_DSCALE;
 }
 
 static JSBool
-math_random(JSContext *cx, uintN argc, Value *vp)
+math_random(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble z = random_nextDouble(cx);
+    double z = random_nextDouble(cx);
     vp->setDouble(z);
     return JS_TRUE;
 }
@@ -576,7 +576,7 @@ js_copysign(double x, double y)
 
 
 JSBool /* ES5 15.8.2.15. */
-js_math_round(JSContext *cx, uintN argc, Value *vp)
+js_math_round(JSContext *cx, unsigned argc, Value *vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
 
@@ -610,9 +610,9 @@ js_math_round(JSContext *cx, uintN argc, Value *vp)
 }
 
 static JSBool
-math_sin(JSContext *cx, uintN argc, Value *vp)
+math_sin(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, z;
+    double x, z;
 
     if (argc == 0) {
         vp->setDouble(js_NaN);
@@ -629,9 +629,9 @@ math_sin(JSContext *cx, uintN argc, Value *vp)
 }
 
 JSBool
-js_math_sqrt(JSContext *cx, uintN argc, Value *vp)
+js_math_sqrt(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, z;
+    double x, z;
 
     if (argc == 0) {
         vp->setDouble(js_NaN);
@@ -648,9 +648,9 @@ js_math_sqrt(JSContext *cx, uintN argc, Value *vp)
 }
 
 static JSBool
-math_tan(JSContext *cx, uintN argc, Value *vp)
+math_tan(JSContext *cx, unsigned argc, Value *vp)
 {
-    jsdouble x, z;
+    double x, z;
 
     if (argc == 0) {
         vp->setDouble(js_NaN);
@@ -668,7 +668,7 @@ math_tan(JSContext *cx, uintN argc, Value *vp)
 
 #if JS_HAS_TOSOURCE
 static JSBool
-math_toSource(JSContext *cx, uintN argc, Value *vp)
+math_toSource(JSContext *cx, unsigned argc, Value *vp)
 {
     vp->setString(CLASS_ATOM(cx, Math));
     return JS_TRUE;

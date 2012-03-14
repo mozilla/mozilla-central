@@ -40,16 +40,10 @@
 #define nsBuiltinDecoderReader_h_
 
 #include <nsDeque.h>
-#include "Layers.h"
 #include "ImageLayers.h"
-#include "nsClassHashtable.h"
-#include "mozilla/TimeStamp.h"
 #include "nsSize.h"
-#include "nsRect.h"
 #include "mozilla/ReentrantMonitor.h"
 #include "GraphManager.h"
-
-class nsBuiltinDecoderStateMachine;
 
 // Stores info relevant to presenting media frames.
 class nsVideoInfo {

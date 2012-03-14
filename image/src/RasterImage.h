@@ -198,6 +198,7 @@ public:
   NS_SCRIPTABLE NS_IMETHOD RequestDecode(void);
   NS_SCRIPTABLE NS_IMETHOD LockImage(void);
   NS_SCRIPTABLE NS_IMETHOD UnlockImage(void);
+  NS_SCRIPTABLE NS_IMETHOD RequestDiscard(void);
   NS_SCRIPTABLE NS_IMETHOD ResetAnimation(void);
   NS_IMETHOD_(void) RequestRefresh(const mozilla::TimeStamp& aTime);
   // END NS_DECL_IMGICONTAINER
@@ -228,10 +229,10 @@ public:
   /* The total number of frames in this image. */
   PRUint32 GetNumFrames();
 
-  virtual PRUint32 GetDecodedHeapSize();
-  virtual PRUint32 GetDecodedNonheapSize();
-  virtual PRUint32 GetDecodedOutOfProcessSize();
-  virtual PRUint32 GetSourceHeapSize();
+  virtual size_t HeapSizeOfSourceWithComputedFallback(nsMallocSizeOfFun aMallocSizeOf) const;
+  virtual size_t HeapSizeOfDecodedWithComputedFallback(nsMallocSizeOfFun aMallocSizeOf) const;
+  virtual size_t NonHeapSizeOfDecoded() const;
+  virtual size_t OutOfProcessSizeOfDecoded() const;
 
   /* Triggers discarding. */
   void Discard(bool force = false);
@@ -699,7 +700,7 @@ private: // data
   bool CanDiscard();
   bool CanForciblyDiscard();
   bool DiscardingActive();
-  bool StoringSourceData();
+  bool StoringSourceData() const;
 
 protected:
   bool ShouldAnimate();

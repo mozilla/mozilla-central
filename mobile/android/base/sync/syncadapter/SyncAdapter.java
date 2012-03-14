@@ -1,49 +1,17 @@
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Android Sync Client.
- *
- * The Initial Developer of the Original Code is
- * the Mozilla Foundation.
- * Portions created by the Initial Developer are Copyright (C) 2011
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Chenxia Liu <liuche@mozilla.com>
- *   Richard Newman <rnewman@mozilla.com>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 package org.mozilla.gecko.sync.syncadapter;
 
 import java.io.IOException;
+import java.net.URI;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 
 import org.json.simple.parser.ParseException;
 import org.mozilla.gecko.sync.AlreadySyncingException;
+import org.mozilla.gecko.sync.GlobalConstants;
 import org.mozilla.gecko.sync.GlobalSession;
 import org.mozilla.gecko.sync.NonObjectJSONException;
 import org.mozilla.gecko.sync.SyncConfiguration;
@@ -51,6 +19,7 @@ import org.mozilla.gecko.sync.SyncConfigurationException;
 import org.mozilla.gecko.sync.SyncException;
 import org.mozilla.gecko.sync.Utils;
 import org.mozilla.gecko.sync.crypto.KeyBundle;
+import org.mozilla.gecko.sync.delegates.ClientsDataDelegate;
 import org.mozilla.gecko.sync.delegates.GlobalSessionCallback;
 import org.mozilla.gecko.sync.setup.Constants;
 import org.mozilla.gecko.sync.stage.GlobalSyncStage.Stage;
@@ -73,14 +42,16 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 
-public class SyncAdapter extends AbstractThreadedSyncAdapter implements GlobalSessionCallback {
+public class SyncAdapter extends AbstractThreadedSyncAdapter implements GlobalSessionCallback, ClientsDataDelegate {
   private static final String  LOG_TAG = "SyncAdapter";
 
   private static final String  PREFS_EARLIEST_NEXT_SYNC = "earliestnextsync";
   private static final String  PREFS_INVALIDATE_AUTH_TOKEN = "invalidateauthtoken";
+  private static final String  PREFS_CLUSTER_URL_IS_STALE = "clusterurlisstale";
 
   private static final int     SHARED_PREFERENCES_MODE = 0;
   private static final int     BACKOFF_PAD_SECONDS = 5;
+  private static final int     MINIMUM_SYNC_INTERVAL_MILLISECONDS = 5 * 60 * 1000;   // 5 minutes.
 
   private final AccountManager mAccountManager;
   private final Context        mContext;
@@ -92,21 +63,25 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements GlobalSe
     mAccountManager = AccountManager.get(context);
   }
 
+  private SharedPreferences getGlobalPrefs() {
+    return mContext.getSharedPreferences("sync.prefs.global", SHARED_PREFERENCES_MODE);
+  }
+
   /**
    * Backoff.
    */
   public synchronized long getEarliestNextSync() {
-    SharedPreferences sharedPreferences = mContext.getSharedPreferences("sync.prefs.global", SHARED_PREFERENCES_MODE);
+    SharedPreferences sharedPreferences = getGlobalPrefs();
     return sharedPreferences.getLong(PREFS_EARLIEST_NEXT_SYNC, 0);
   }
   public synchronized void setEarliestNextSync(long next) {
-    SharedPreferences sharedPreferences = mContext.getSharedPreferences("sync.prefs.global", SHARED_PREFERENCES_MODE);
+    SharedPreferences sharedPreferences = getGlobalPrefs();
     Editor edit = sharedPreferences.edit();
     edit.putLong(PREFS_EARLIEST_NEXT_SYNC, next);
     edit.commit();
   }
   public synchronized void extendEarliestNextSync(long next) {
-    SharedPreferences sharedPreferences = mContext.getSharedPreferences("sync.prefs.global", SHARED_PREFERENCES_MODE);
+    SharedPreferences sharedPreferences = getGlobalPrefs();
     if (sharedPreferences.getLong(PREFS_EARLIEST_NEXT_SYNC, 0) >= next) {
       return;
     }
@@ -116,17 +91,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements GlobalSe
   }
 
   public synchronized boolean getShouldInvalidateAuthToken() {
-    SharedPreferences sharedPreferences = mContext.getSharedPreferences("sync.prefs.global", SHARED_PREFERENCES_MODE);
+    SharedPreferences sharedPreferences = getGlobalPrefs();
     return sharedPreferences.getBoolean(PREFS_INVALIDATE_AUTH_TOKEN, false);
   }
   public synchronized void clearShouldInvalidateAuthToken() {
-    SharedPreferences sharedPreferences = mContext.getSharedPreferences("sync.prefs.global", SHARED_PREFERENCES_MODE);
+    SharedPreferences sharedPreferences = getGlobalPrefs();
     Editor edit = sharedPreferences.edit();
     edit.remove(PREFS_INVALIDATE_AUTH_TOKEN);
     edit.commit();
   }
   public synchronized void setShouldInvalidateAuthToken() {
-    SharedPreferences sharedPreferences = mContext.getSharedPreferences("sync.prefs.global", SHARED_PREFERENCES_MODE);
+    SharedPreferences sharedPreferences = getGlobalPrefs();
     Editor edit = sharedPreferences.edit();
     edit.putBoolean(PREFS_INVALIDATE_AUTH_TOKEN, true);
     edit.commit();
@@ -196,6 +171,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements GlobalSe
   public Object syncMonitor = new Object();
   private SyncResult syncResult;
 
+  private Account localAccount;
+
   /**
    * Return the number of milliseconds until we're allowed to sync again,
    * or 0 if now is fine.
@@ -211,6 +188,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements GlobalSe
 
   @Override
   public boolean shouldBackOff() {
+    if (wantNodeAssignment()) {
+      /*
+       * We recently had a 401 and we aborted the last sync. We should kick off
+       * another sync to fetch a new node/weave cluster URL, since ours is
+       * stale. If we have a user authentication error, the next sync will
+       * determine that and will stop requesting node assignment, so this will
+       * only force one abnormally scheduled sync.
+       */
+      return false;
+    }
+
     return delayMilliseconds() > 0;
   }
 
@@ -222,17 +210,21 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements GlobalSe
                             final SyncResult syncResult) {
     Utils.reseedSharedRandom(); // Make sure we don't work with the same random seed for too long.
 
+    boolean force = (extras != null) && (extras.getBoolean("force", false));
     long delay = delayMilliseconds();
     if (delay > 0) {
-      Log.i(LOG_TAG, "Not syncing: must wait another " + delay + "ms.");
-      long remainingSeconds = delay / 1000;
-      syncResult.delayUntil = remainingSeconds + BACKOFF_PAD_SECONDS;
-      return;
+      if (force) {
+        Log.i(LOG_TAG, "Forced sync: overruling remaining backoff of " + delay + "ms.");
+      } else {
+        Log.i(LOG_TAG, "Not syncing: must wait another " + delay + "ms.");
+        long remainingSeconds = delay / 1000;
+        syncResult.delayUntil = remainingSeconds + BACKOFF_PAD_SECONDS;
+        return;
+      }
     }
 
     // TODO: don't clear the auth token unless we have a sync error.
     Log.i(LOG_TAG, "Got onPerformSync. Extras bundle is " + extras);
-    Log.d(LOG_TAG, "Extras clusterURL: " + extras.getString("clusterURL"));
     Log.i(LOG_TAG, "Account name: " + account.name);
 
     // TODO: don't always invalidate; use getShouldInvalidateAuthToken.
@@ -301,6 +293,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements GlobalSe
       Log.i(LOG_TAG, "Waiting on sync monitor.");
       try {
         syncMonitor.wait();
+        long next = System.currentTimeMillis() + MINIMUM_SYNC_INTERVAL_MILLISECONDS;
+        Log.i(LOG_TAG, "Setting minimum next sync time to " + next);
+        extendEarliestNextSync(next);
       } catch (InterruptedException e) {
         Log.i(LOG_TAG, "Waiting on sync monitor interrupted.", e);
       }
@@ -332,14 +327,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements GlobalSe
                                         IOException, ParseException,
                                         NonObjectJSONException {
     Log.i(LOG_TAG, "Performing sync.");
-    this.syncResult = syncResult;
+    this.syncResult   = syncResult;
+    this.localAccount = account;
     // TODO: default serverURL.
     GlobalSession globalSession = new GlobalSession(SyncConfiguration.DEFAULT_USER_API,
                                                     serverURL, username, password, prefsPath,
-                                                    keyBundle, this, this.mContext, extras);
+                                                    keyBundle, this, this.mContext, extras, this);
 
     globalSession.start();
-
   }
 
   private void notifyMonitor() {
@@ -399,5 +394,75 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements GlobalSe
     if (backoff > 0) {
       this.extendEarliestNextSync(System.currentTimeMillis() + backoff);
     }
+  }
+
+  @Override
+  public synchronized String getAccountGUID() {
+    String accountGUID = mAccountManager.getUserData(localAccount, Constants.ACCOUNT_GUID);
+    if (accountGUID == null) {
+      accountGUID = Utils.generateGuid();
+      mAccountManager.setUserData(localAccount, Constants.ACCOUNT_GUID, accountGUID);
+    }
+    return accountGUID;
+  }
+
+  @Override
+  public synchronized String getClientName() {
+    String clientName = mAccountManager.getUserData(localAccount, Constants.CLIENT_NAME);
+    if (clientName == null) {
+      clientName = GlobalConstants.PRODUCT_NAME + " on " + android.os.Build.MODEL;
+      mAccountManager.setUserData(localAccount, Constants.CLIENT_NAME, clientName);
+    }
+    return clientName;
+  }
+
+  @Override
+  public synchronized void setClientsCount(int clientsCount) {
+    mAccountManager.setUserData(localAccount, Constants.NUM_CLIENTS,
+        Integer.toString(clientsCount));
+  }
+
+  @Override
+  public synchronized int getClientsCount() {
+    String clientsCount = mAccountManager.getUserData(localAccount, Constants.NUM_CLIENTS);
+    if (clientsCount == null) {
+      clientsCount = "0";
+      mAccountManager.setUserData(localAccount, Constants.NUM_CLIENTS, clientsCount);
+    }
+    return Integer.parseInt(clientsCount);
+  }
+
+  public synchronized boolean getClusterURLIsStale() {
+    SharedPreferences sharedPreferences = getGlobalPrefs();
+    return sharedPreferences.getBoolean(PREFS_CLUSTER_URL_IS_STALE, false);
+  }
+
+  public synchronized void setClusterURLIsStale(boolean clusterURLIsStale) {
+    SharedPreferences sharedPreferences = getGlobalPrefs();
+    Editor edit = sharedPreferences.edit();
+    edit.putBoolean(PREFS_CLUSTER_URL_IS_STALE, clusterURLIsStale);
+    edit.commit();
+  }
+
+  @Override
+  public boolean wantNodeAssignment() {
+    return getClusterURLIsStale();
+  }
+
+  @Override
+  public void informNodeAuthenticationFailed(GlobalSession session, URI failedClusterURL) {
+    // TODO: communicate to the user interface that we need a new user password!
+    // TODO: only freshen the cluster URL (better yet, forget the cluster URL) after the user has provided new credentials.
+    setClusterURLIsStale(false);
+  }
+
+  @Override
+  public void informNodeAssigned(GlobalSession session, URI oldClusterURL, URI newClusterURL) {
+    setClusterURLIsStale(false);
+  }
+
+  @Override
+  public void informUnauthorizedResponse(GlobalSession session, URI oldClusterURL) {
+    setClusterURLIsStale(true);
   }
 }

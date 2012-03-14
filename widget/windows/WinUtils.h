@@ -63,7 +63,6 @@ namespace widget {
 class WinUtils {
 public:
   enum WinVersion {
-    WIN2K_VERSION     = 0x500,
     WINXP_VERSION     = 0x501,
     WIN2K3_VERSION    = 0x502,
     VISTA_VERSION     = 0x600,
@@ -93,6 +92,17 @@ public:
                              const PRUnichar* aValueName,
                              PRUnichar* aBuffer,
                              DWORD aBufferLength);
+
+  /**
+   * Checks whether the registry key exists in either 32bit or 64bit branch on
+   * the environment.
+   *
+   * @param aRoot The registry root of aName.
+   * @param aKeyName The name of the registry key to check.
+   * @return TRUE if it exists and is readable.  Otherwise, FALSE.
+   */
+  static bool HasRegistryKey(HKEY aRoot,
+                             const PRUnichar* aKeyName);
 
   /**
    * GetTopLevelHWND() returns a window handle of the top level window which

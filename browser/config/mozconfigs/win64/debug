@@ -3,8 +3,14 @@ ac_add_options --host=x86_64-pc-mingw32
 
 ac_add_options --enable-debug
 ac_add_options --enable-trace-malloc
+ac_add_options --enable-signmar
 
 # Needed to enable breakpad in application.ini
 export MOZILLA_OFFICIAL=1
 
 mk_add_options MOZ_MAKE_FLAGS=-j1
+
+# Package js shell.
+export MOZ_PACKAGE_JSSHELL=1
+
+. $topsrcdir/browser/config/mozconfigs/win64/vs2010-mozconfig

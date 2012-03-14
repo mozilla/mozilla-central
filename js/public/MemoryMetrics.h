@@ -1,4 +1,7 @@
-/* ***** BEGIN LICENSE BLOCK *****
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+ * vim: set ts=8 sw=4 et tw=99 ft=cpp:
+ *
+ * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -61,31 +64,13 @@ struct TypeInferenceSizes
     size_t temporary;
 };
 
-typedef void* (* GetNameCallback)(JSContext *cx, JSCompartment *c);
-typedef void (* DestroyNameCallback)(void *string);
-
 struct CompartmentStats
 {
-    CompartmentStats()
-    {
+    CompartmentStats() {
         memset(this, 0, sizeof(*this));
     }
 
-    void init(void *name_, DestroyNameCallback destroyName)
-    {
-        name = name_;
-        destroyNameCb = destroyName;
-    }
-
-    ~CompartmentStats()
-    {
-        destroyNameCb(name);
-    }
-
-    // Pointer to an nsCString, which we can't use here.
-    void *name;
-    DestroyNameCallback destroyNameCb;
-
+    void   *extra;
     size_t gcHeapArenaHeaders;
     size_t gcHeapArenaPadding;
     size_t gcHeapArenaUnused;
@@ -119,8 +104,7 @@ struct CompartmentStats
 
 struct RuntimeStats
 {
-    RuntimeStats(JSMallocSizeOfFun mallocSizeOf, GetNameCallback getNameCb,
-                 DestroyNameCallback destroyNameCb)
+    RuntimeStats(JSMallocSizeOfFun mallocSizeOf)
       : runtimeObject(0)
       , runtimeAtomsTable(0)
       , runtimeContexts(0)
@@ -128,6 +112,7 @@ struct RuntimeStats
       , runtimeTemporary(0)
       , runtimeRegexpCode(0)
       , runtimeStackCommitted(0)
+      , runtimeGCMarker(0)
       , gcHeapChunkTotal(0)
       , gcHeapChunkCleanUnused(0)
       , gcHeapChunkDirtyUnused(0)
@@ -148,8 +133,6 @@ struct RuntimeStats
       , compartmentStatsVector()
       , currCompartmentStats(NULL)
       , mallocSizeOf(mallocSizeOf)
-      , getNameCb(getNameCb)
-      , destroyNameCb(destroyNameCb)
     {}
 
     size_t runtimeObject;
@@ -159,6 +142,7 @@ struct RuntimeStats
     size_t runtimeTemporary;
     size_t runtimeRegexpCode;
     size_t runtimeStackCommitted;
+    size_t runtimeGCMarker;
     size_t gcHeapChunkTotal;
     size_t gcHeapChunkCleanUnused;
     size_t gcHeapChunkDirtyUnused;
@@ -181,8 +165,8 @@ struct RuntimeStats
     CompartmentStats *currCompartmentStats;
 
     JSMallocSizeOfFun mallocSizeOf;
-    GetNameCallback getNameCb;
-    DestroyNameCallback destroyNameCb;
+
+    virtual void initExtraCompartmentStats(JSCompartment *c, CompartmentStats *cstats) = 0;
 };
 
 #ifdef JS_THREADSAFE
@@ -190,9 +174,8 @@ struct RuntimeStats
 extern JS_PUBLIC_API(bool)
 CollectRuntimeStats(JSRuntime *rt, RuntimeStats *rtStats);
 
-extern JS_PUBLIC_API(bool)
-GetExplicitNonHeapForRuntime(JSRuntime *rt, int64_t *amount,
-                             JSMallocSizeOfFun mallocSizeOf);
+extern JS_PUBLIC_API(int64_t)
+GetExplicitNonHeapForRuntime(JSRuntime *rt, JSMallocSizeOfFun mallocSizeOf);
 
 #endif /* JS_THREADSAFE */
 
