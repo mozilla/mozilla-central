@@ -119,7 +119,7 @@
           '<(overrides)',
           'source',
           '../..',  # the third_party folder for webrtc includes
-          '../../third_party/expat/files',
+          '../../third_party/expat/files/lib',
         ],
         'direct_dependent_settings': {
           'defines': [
@@ -128,7 +128,7 @@
           'include_dirs': [
             '<(overrides)',
             'source',
-            '../../third_party/expat/files'
+            '../../third_party/expat/files/lib'
           ],
         },
         'dependencies': [
@@ -140,7 +140,7 @@
           # the third_party folder for webrtc/ includes (non-chromium).
           '../../src',
           'source',
-          '../../third_party/expat/files',
+          '../../third_party/expat/files/lib',
         ],
       }],
       ['OS=="win"', {

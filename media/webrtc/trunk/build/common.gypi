@@ -1074,6 +1074,11 @@
         'cflags_cc!': ['-fno-rtti'],
         'cflags_cc+': ['-frtti', '-g'],
       }],
+      ['OS=="linux"', {
+        # we need lrint(), which is ISOC99, and Xcode
+	# already forces -std=c99 for mac below
+        'defines': ['_ISOC99_SOURCE=1'],
+      }],
       ['remoting==1', {
         'defines': ['ENABLE_REMOTING=1'],
       }],
