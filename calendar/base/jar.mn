@@ -83,6 +83,7 @@ calendar.jar:
     content/calendar/preferences/categories.xul            (content/preferences/categories.xul)
     content/calendar/preferences/categories.js             (content/preferences/categories.js)
     content/calendar/preferences/editCategory.xul          (content/preferences/editCategory.xul)
+    content/calendar/preferences/editCategory.js           (content/preferences/editCategory.js)
     content/calendar/preferences/general.js                (content/preferences/general.js)
 *   content/calendar/preferences/general.xul               (content/preferences/general.xul)
     content/calendar/preferences/timezones.js              (content/preferences/timezones.js)

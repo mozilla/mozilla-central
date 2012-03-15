@@ -69,15 +69,15 @@ var gCategoriesPane = {
 
         // A list of preferences to be reverted when the dialog is cancelled.
         // It needs to be a property of the parent to be visible onCancel
-        if (!parent.backupPrefList) {
+        if (!("backupPrefList" in parent)) {
             parent.backupPrefList = [];
         }
 
-        var categories = document.getElementById("calendar.categories.names").value;
+        let categories = document.getElementById("calendar.categories.names").value;
 
         // If no categories are configured load a default set from properties file
-        if (!categories || categories == "") {
-            categories = calGetString("categories", "categories2");
+        if (!categories) {
+            categories = cal.setupDefaultCategories();
             document.getElementById("calendar.categories.names").value = categories;
         }
 

@@ -39,10 +39,10 @@
 <?xul-overlay href="chrome://global/content/dialogOverlay.xul"?>
 
 <!-- DTD File with all strings specific to the file -->
-<!DOCTYPE page
+<!DOCTYPE dialog
 [
-    <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/preferences/categories.dtd" > %dtd1;
-    <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/global.dtd" > %dtd2;
+  <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/preferences/categories.dtd" > %dtd1;
+  <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/global.dtd" > %dtd2;
 ]>
 
 <dialog id="editCategory"
@@ -50,49 +50,21 @@
         buttons="accept,cancel"
         onload="editCategoryLoad();"
         ondialogaccept="return doOK();">
+  <script type="application/javascript" src="chrome://calendar/content/preferences/editCategory.js"/>
 
-<script type="application/javascript">
- <![CDATA[
-   var oldColor="#000000";
-   function editCategoryLoad() {
-     document.getElementById("categoryName").value = window.arguments[0];
-     document.title = window.arguments[2];
-     if (window.arguments[1]) {
-        document.getElementById("useColor").checked = true;
-        document.getElementById("categoryColor").color = window.arguments[1];
-     }
-   }
-
-   function toggleColor() {
-      if (document.getElementById("useColor").checked) {
-         document.getElementById("categoryColor").color = oldColor;
-      } else {
-         oldColor = document.getElementById("categoryColor").color;
-         document.getElementById("categoryColor").color = "transparent";
-      }
-   }
-
-   function doOK() {
-      let color = document.getElementById("useColor").checked ? document.getElementById("categoryColor").color : null;
-      let categoryName = document.getElementById("categoryName").value;
-      window.opener.gCategoriesPane.saveCategory(categoryName, color);
-   }
- ]]>
-</script>
-
-<!-- dialog-box: from dialogOverlay.xul -->
+  <!-- dialog-box: from dialogOverlay.xul -->
   <vbox id="dialog-box">
-     <hbox>
-        <label value="&pref.categories.name.label;" control="categoryName"/>
-        <textbox id="categoryName"/>
-     </hbox>
-     <hbox id="row2" pack="center">
-        <checkbox id="useColor"
-                  label="&pref.categories.usecolor.label;"
-                  oncommand="toggleColor()"/>
-        <colorpicker id="categoryColor"
-                 type="button"
-                 onchange="document.getElementById('useColor').checked=true;"/>
-     </hbox>
+    <hbox>
+      <label value="&pref.categories.name.label;" control="categoryName"/>
+      <textbox id="categoryName"/>
+    </hbox>
+    <hbox id="row2" pack="center">
+      <checkbox id="useColor"
+                label="&pref.categories.usecolor.label;"
+                oncommand="toggleColor()"/>
+      <colorpicker id="categoryColor"
+                   type="button"
+                   onchange="colorPickerChanged()"/>
+    </hbox>
   </vbox>
 </dialog>
