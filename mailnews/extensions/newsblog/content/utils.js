@@ -59,6 +59,40 @@ var FeedUtils = {
   // There are no new articles for this feed
   kNewsBlogNoNewItems: 4,
 
+/**
+ * Return a folder path string constructed from individual folder UTF8 names
+ * stored as properties (not possible hashes used to construct disk foldername).
+ * 
+ * @param  nsIMsgFolder aFolder     - the folder.
+ * @return string prettyName | null - name or null if not a disk folder.
+ */
+  getFolderPrettyPath: function(aFolder) {
+    let msgFolder = GetMsgFolderFromUri(aFolder.URI, true);
+    if (!msgFolder)
+      // Not a real folder uri.
+      return null;
+
+    if (msgFolder.URI == msgFolder.server.serverURI)
+      return msgFolder.server.prettyName;
+
+    // Server part first.
+    let pathParts = [msgFolder.server.prettyName];
+    let rawPathParts = msgFolder.URI.split(msgFolder.server.serverURI + "/");
+    let folderURI = msgFolder.server.serverURI;
+    rawPathParts = rawPathParts[1].split("/");
+    for (let i = 0; i < rawPathParts.length - 1; i++)
+    {
+      // Two or more folders deep parts here.
+      folderURI += "/" + rawPathParts[i];
+      msgFolder = GetMsgFolderFromUri(folderURI, true);
+      pathParts.push(msgFolder.name);
+    }
+
+    // Leaf folder last.
+    pathParts.push(aFolder.name);
+    return decodeURI(pathParts.join(" / "));
+  },
+
   // Progress glue code.  Acts as a go between the RSS back end and the mail
   // window front end determined by the aMsgWindow parameter passed into
   // nsINewsBlogFeedDownloader.

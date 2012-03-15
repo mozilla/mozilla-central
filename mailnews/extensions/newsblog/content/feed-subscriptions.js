@@ -57,7 +57,12 @@ var gFeedSubscriptionsWindow = {
     if (window.arguments && window.arguments[0].folder)
       folder = window.arguments[0].folder;
 
-    this.refreshSubscriptionView(folder)
+    // Ensure dialog is fully loaded before selecting, to get visible row.
+    setTimeout(function() {
+      gFeedSubscriptionsWindow.refreshSubscriptionView(folder)
+    }, 10);
+    let message = FeedUtils.strings.GetStringFromName("subscribe-loading");
+    this.updateStatusItem("statusText", message);
 
     let win = Services.wm.getMostRecentWindow("mail:3pane");
     if (win)
@@ -109,11 +114,11 @@ var gFeedSubscriptionsWindow = {
       firstVisRow = this.mView.treeBox.getFirstVisibleRow();
     this.loadSubscriptions();
     this.mTree.view = this.mView;
+
+    document.getElementById("selectFolderPopup")._ensureInitialized();
+
     if (aSelectFolder)
-      // Ensure dialog is fully loaded before selecting, to get visible row.
-      setTimeout(function() {
-        gFeedSubscriptionsWindow.selectFolder(aSelectFolder);
-      }, 0);
+      this.selectFolder(aSelectFolder);
     else
     {
       // If no folder to select, try to select the pre rebuild selection, in
@@ -158,6 +163,8 @@ var gFeedSubscriptionsWindow = {
                             firstVisRow+":"+lastVisRow+":"+this.mView.rowCount);
       }
     }
+
+    this.clearStatusInfo();
   },
 
   mView:
@@ -784,7 +791,7 @@ var gFeedSubscriptionsWindow = {
     let locationValue = document.getElementById("locationValue");
     let locationValidate = document.getElementById("locationValidate");
     let selectFolder = document.getElementById("selectFolder");
-    let rssAccountMenuItem = document.getElementById("rssAccountMenuItem");
+    let selectFolderValue = document.getElementById("selectFolderValue");
     let server, rootFolder, displayFolder;
 
     if (!aItem.container)
@@ -814,33 +821,60 @@ var gFeedSubscriptionsWindow = {
 
     // Common to both folder and feed items.
     nameValue.disabled = aItem.container;
-
-    selectFolder.setAttribute("ref", rootFolder.URI);
-    selectFolder.selectedIndex = -1;
-    selectFolder.disabled = aItem.container;
-    this.setFolderPicker(displayFolder.URI);
-
-    rssAccountMenuItem.label = server.prettyName;
-    rssAccountMenuItem.value = server.serverURI;
-    // A feed can't be added to the account folder.
-    rssAccountMenuItem.setAttribute("disabled", true);
+    selectFolder.setAttribute("hidden", aItem.container);
+    selectFolderValue.setAttribute("hidden", !aItem.container);
+    selectFolderValue.setAttribute("showfilepath", false);
+    this.setFolderPicker(displayFolder);
 
     // Set quick mode value.
     document.getElementById("quickMode").checked = aItem.quickMode;
   },
 
-  setFolderPicker: function(aFolderURI)
+  setFolderPicker: function(aFolder)
   {
-    let selectFolder = document.getElementById("selectFolder");
     let editFeed = document.getElementById("editFeed");
-
-    let msgFolder = GetMsgFolderFromUri(aFolderURI, true);
-    if (!msgFolder)
+    let folderPrettyPath = FeedUtils.getFolderPrettyPath(aFolder);
+    if (!folderPrettyPath)
       return editFeed.disabled = true;
 
-    editFeed.disabled = false;
-    selectFolder.setAttribute("label", msgFolder.name);
-    selectFolder.setAttribute("uri", msgFolder.URI);
+    let selectFolder = document.getElementById("selectFolder");
+    let selectFolderValue = document.getElementById("selectFolderValue");
+
+    try {
+      document.getElementById("selectFolderPopup").selectFolder(aFolder);
+    }
+    catch (ex) {}
+
+    selectFolder._folder = aFolder;
+    selectFolder.setAttribute("label", folderPrettyPath);
+    selectFolder.setAttribute("uri", aFolder.URI);
+    selectFolderValue.value = folderPrettyPath;
+    selectFolderValue.setAttribute("prettypath", folderPrettyPath);
+    selectFolderValue.setAttribute("filepath", aFolder.filePath.path);
+
+    return editFeed.disabled = false;
+  },
+
+  onClickSelectFolderValue: function(aEvent)
+  {
+    let target = aEvent.target;
+    if ((aEvent.button && aEvent.button != 0) ||
+        (aEvent.keyCode && aEvent.keyCode != aEvent.DOM_VK_RETURN) ||
+        (aEvent.button && aEvent.button == 0 &&
+         target.inputField.selectionStart != target.inputField.selectionEnd))
+      return;
+
+    // Toggle between showing prettyPath and absolute filePath.
+    if (target.getAttribute("showfilepath") == "true")
+    {
+      target.setAttribute("showfilepath", false);
+      target.value = target.getAttribute("prettypath");
+    }
+    else
+    {
+      target.setAttribute("showfilepath", true);
+      target.value = target.getAttribute("filepath");
+    }
   },
 
   setSummary: function(aChecked)
@@ -1104,9 +1138,11 @@ var gFeedSubscriptionsWindow = {
     let currentFolder = ds.GetTarget(resource, FZ_DESTFOLDER, true);
     let currentFolderURI = currentFolder.QueryInterface(Ci.nsIRDFResource).Value;
     let feed = new Feed(resource, currentFolderServer);
+    feed.folder = itemToEdit.parentFolder;
 
     let editNameValue = document.getElementById("nameValue").value;
     let editFeedLocation = document.getElementById("locationValue").value.trim();
+    let selectFolder = document.getElementById("selectFolder");
     let editQuickMode = document.getElementById("quickMode").checked;
 
     if (feed.url != editFeedLocation)
@@ -1135,10 +1171,13 @@ var gFeedSubscriptionsWindow = {
     }
 
     // Did the user change the folder URI for storing the feed?
-    let editFolderURI =
-      document.getElementById("selectFolder").getAttribute("uri");
+    let editFolderURI = selectFolder.getAttribute("uri");
     if (currentFolderURI != editFolderURI)
     {
+      // Make sure the new folderpicked folder is visible.
+      this.selectFolder(selectFolder._folder, true);
+      // Now go back to the feed item.
+      this.selectFeed(feed, null);
       // We need to find the index of the new parent folder.
       let newParentIndex = this.mView.kRowIndexUndefined;
       for (let index = 0; index < this.mView.rowCount; index++)

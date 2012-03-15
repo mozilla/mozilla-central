@@ -22,6 +22,7 @@
 #
 # Contributor(s):
 #  Scott MacGregor <mscott@mozilla.org>
+#  alta88 <alta88@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,6 +40,7 @@
 
 <?xml-stylesheet href="chrome://messenger/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/folderPane.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/folderMenus.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger-newsblog/skin/feed-subscriptions.css" type="text/css"?>
 
 <!DOCTYPE window SYSTEM "chrome://messenger-newsblog/locale/feed-subscriptions.dtd">
@@ -150,61 +152,25 @@
                        accesskey="&feedFolder.accesskey;"
                        control="selectFolder"/>
               </hbox>
-              <menulist id="selectFolder"
-                    disabled="true"
-                    containment="http://home.netscape.com/NC-rdf#child"
-                    sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
-                    sortDirection="ascending"
-                    datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
-                    ref="...">
-                  <menupopup>
-                    <menuitem id="rssAccountMenuItem"
-                              oncommand="gFeedSubscriptionsWindow.setFolderPicker(event.target.id)"/>
-                    <menuseparator/>
-                  </menupopup>
-
-                  <template>
-                    <!-- Cheat and use the CanRename property to make sure we
-                         don't list the Trash folder as a possible feed folder. -->
-                    <rule nc:CanFileMessages="true"
-                          iscontainer="true"
-                          isempty="false"
-                          nc:CanRename="true">
-                      <menupopup>
-                        <menu uri="..."
-                              class="folderMenuItem menu-iconic"
-                              oncommand="gFeedSubscriptionsWindow.setFolderPicker(event.target.id)"
-                              SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
-                              BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
-                              IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-                              IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-                              ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
-                              label="rdf:http://home.netscape.com/NC-rdf#Name">
-                          <menupopup class="menulist-menupopup">
-                            <menuitem label="rdf:http://home.netscape.com/NC-rdf#Name"
-                                      oncommand="gFeedSubscriptionsWindow.setFolderPicker(event.target.parentNode.parentNode.id)"/>
-                            <menuseparator/>
-                          </menupopup>
-                        </menu>
-                      </menupopup>
-                    </rule>
-                    <rule nc:CanFileMessages="true"
-                          nc:CanRename="true">
-                      <menupopup>
-                        <menuitem uri="..."
-                                  value="..."
-                                  class="folderMenuItem menuitem-iconic"
-                                  oncommand="gFeedSubscriptionsWindow.setFolderPicker(event.target.id)"
-                                  SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
-                                  BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
-                                  IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-                                  IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-                                  ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
-                                  label="rdf:http://home.netscape.com/NC-rdf#Name"/>
-                       </menupopup>
-                    </rule>
-                  </template>
-              </menulist>
+              <hbox>
+                <menulist id="selectFolder"
+                          flex="1"
+                          class="folderMenuItem"
+                          hidden="true">
+                  <menupopup id="selectFolderPopup"
+                             class="folderLocationPopup"
+                             type="folder"
+                             mode="feeds"
+                             showFileHereLabel="true"
+                             showAccountsFileHere="true"
+                             oncommand="gFeedSubscriptionsWindow.setFolderPicker(event.target._folder)"/>
+                </menulist>
+                <textbox id="selectFolderValue"
+                         flex="1"
+                         readonly="true"
+                         onkeypress="gFeedSubscriptionsWindow.onClickSelectFolderValue(event)"
+                         onclick="gFeedSubscriptionsWindow.onClickSelectFolderValue(event)"/>
+              </hbox>
             </row>
           </rows>
         </grid>
@@ -231,7 +197,7 @@
       <spacer flex="1"/>
       <progressmeter id="progressMeter"
                      collapsed="true"
-                     mode="normal"
+                     mode="determined"
                      value="0"/>
     </hbox>
 
