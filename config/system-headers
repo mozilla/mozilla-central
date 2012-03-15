@@ -1053,3 +1053,6 @@ ogg/os_types.h
 nestegg/nestegg.h
 cubeb/cubeb.h
 #endif
+sys/msg.h
+sys/ipc.h
+

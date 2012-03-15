@@ -42,6 +42,8 @@ SHARED_LIBRARY_LIBS += \
 	$(call EXPAND_LIBNAME_PATH,agc,$(DEPTH)/media/webrtc/trunk/src/modules/modules_agc) \
 	$(call EXPAND_LIBNAME_PATH,ns,$(DEPTH)/media/webrtc/trunk/src/modules/modules_ns) \
 	$(call EXPAND_LIBNAME_PATH,yuv,$(DEPTH)/media/webrtc/trunk/third_party/libyuv/libyuv_libyuv) \
+	$(call EXPAND_LIBNAME_PATH,sipcc,$(DEPTH)/media/webrtc/signaling/signaling_sipcc) \
+	$(call EXPAND_LIBNAME_PATH,ecc,$(DEPTH)/media/webrtc/signaling/signaling_ecc) \
         $(MKSHLIB_UNFORCE_ALL) \
 	$(call EXPAND_LIBNAME_PATH,webrtc_jpeg,$(DEPTH)/media/webrtc/trunk/src/common_video/common_video_webrtc_jpeg) \
 	$(NULL)

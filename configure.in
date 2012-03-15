@@ -9154,6 +9154,21 @@ if test -n "$MOZ_WEBRTC"; then
    fi
 fi
 
+if test -n "$MOZ_WEBRTC"; then
+   AC_MSG_RESULT("generating WebRTC/Signaling Makefiles...")
+   $PYTHON ${srcdir}/media/webrtc/trunk/build/gyp_chromium --format=mozmake \
+     --depth=${srcdir}/media/webrtc/trunk \
+     -D build_with_mozilla=1 -D enable_protobuf=0 \
+     -D include_internal_video_render=0 \
+     $EXTRA_GYP_DEFINES \
+     --generator-output=${_objdir}/media/webrtc/signaling \
+     --toplevel-dir=${srcdir} \
+     ${srcdir}/media/webrtc/signaling/signaling.gyp
+   if test "$?" != 0; then
+      AC_MSG_ERROR([failed to generate WebRTC/Signaling Makefiles])
+   fi
+fi
+
 # Generate a JSON config file for unittest harnesses etc to read
 # build configuration details from in a standardized way.
 OS_TARGET=${OS_TARGET} TARGET_CPU=${TARGET_CPU} MOZ_DEBUG=${MOZ_DEBUG} \
