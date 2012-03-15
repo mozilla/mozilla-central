@@ -407,36 +407,36 @@ DownloadTreeView.prototype = {
 
     // sort in reverse and prepend to the list to get continuous list indexes
     // with increasing negative numbers for default-sort in ascending order
-    this._statement = this._dm.DBConnection.createStatement(
+    var statement = this._dm.DBConnection.createStatement(
       "SELECT id, target, name, source, state, startTime, endTime, referrer, " +
             "currBytes, maxBytes, state IN (?1, ?2, ?3, ?4, ?5) AS isActive " +
       "FROM moz_downloads " +
       "ORDER BY isActive ASC, endTime ASC, startTime ASC, id DESC");
 
-    this._statement.bindByIndex(0, nsIDownloadManager.DOWNLOAD_NOTSTARTED);
-    this._statement.bindByIndex(1, nsIDownloadManager.DOWNLOAD_DOWNLOADING);
-    this._statement.bindByIndex(2, nsIDownloadManager.DOWNLOAD_PAUSED);
-    this._statement.bindByIndex(3, nsIDownloadManager.DOWNLOAD_QUEUED);
-    this._statement.bindByIndex(4, nsIDownloadManager.DOWNLOAD_SCANNING);
+    statement.bindByIndex(0, nsIDownloadManager.DOWNLOAD_NOTSTARTED);
+    statement.bindByIndex(1, nsIDownloadManager.DOWNLOAD_DOWNLOADING);
+    statement.bindByIndex(2, nsIDownloadManager.DOWNLOAD_PAUSED);
+    statement.bindByIndex(3, nsIDownloadManager.DOWNLOAD_QUEUED);
+    statement.bindByIndex(4, nsIDownloadManager.DOWNLOAD_SCANNING);
 
-    while (this._statement.executeStep()) {
+    while (statement.executeStep()) {
       // Try to get the attribute values from the statement
       let attrs = {
-        dlid: this._statement.getInt64(0),
-        file: this._statement.getString(1),
-        target: this._statement.getString(2),
-        uri: this._statement.getString(3),
-        state: this._statement.getInt32(4),
-        startTime: Math.round(this._statement.getInt64(5) / 1000),
-        endTime: Math.round(this._statement.getInt64(6) / 1000),
-        referrer: this._statement.getString(7),
-        currBytes: this._statement.getInt64(8),
-        maxBytes: this._statement.getInt64(9),
+        dlid: statement.getInt64(0),
+        file: statement.getString(1),
+        target: statement.getString(2),
+        uri: statement.getString(3),
+        state: statement.getInt32(4),
+        startTime: Math.round(statement.getInt64(5) / 1000),
+        endTime: Math.round(statement.getInt64(6) / 1000),
+        referrer: statement.getString(7),
+        currBytes: statement.getInt64(8),
+        maxBytes: statement.getInt64(9),
         lastSec: Infinity, // For calculations of remaining time
       };
 
       // If the download is active, grab the real progress, otherwise default 100
-      attrs.isActive = this._statement.getInt32(10);
+      attrs.isActive = statement.getInt32(10);
       if (attrs.isActive) {
         let dld = this._dm.getDownload(attrs.dlid);
         attrs.progress = dld.percentComplete;
@@ -474,7 +474,7 @@ DownloadTreeView.prototype = {
         this._dlList.unshift(attrs);
       }
     }
-    this._statement.reset();
+    statement.finalize();
     // find sorted column and sort the tree
     var sortedColumn = this._tree.columns.getSortedColumn();
     if (sortedColumn) {
@@ -627,7 +627,6 @@ DownloadTreeView.prototype = {
 
   _tree: null,
   _dlBundle: null,
-  _statement: null,
   _lastListIndex: 0,
   _selectionCache: null,
   __dateService: null,
