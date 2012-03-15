@@ -345,9 +345,9 @@ function onComposerSendMessage()
     else
     {
       // Try the global one
-      if (Application.prefs.getValue("ldap_2.autoComplete.useDirectory", false))
+      if (Services.prefs.getBoolPref("ldap_2.autoComplete.useDirectory"))
         autocompleteDirectory =
-          Application.prefs.getValue("ldap_2.autoComplete.directoryServer", null);
+          Services.prefs.getCharPref("ldap_2.autoComplete.directoryServer");
     }
 
     if (autocompleteDirectory)

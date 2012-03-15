@@ -239,7 +239,7 @@ EmailConfigWizard.prototype =
     menuitem.serverKey = null;
 
     // admin-locked prefs hurray
-    if (!Application.prefs.getValue("signon.rememberSignons", true)) {
+    if (!Services.prefs.getBoolPref("signon.rememberSignons")) {
       let rememberPasswordE = e("remember_password");
       rememberPasswordE.checked = false;
       rememberPasswordE.disabled = true;
