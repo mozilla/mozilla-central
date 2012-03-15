@@ -110,7 +110,7 @@ install:: $(addsuffix .xml,$(SEARCH_PLUGINS))
 libs-%:
 	$(NSINSTALL) -D $(DIST)/install
 	@$(MAKE) -C ../../mozilla/toolkit/locales libs-$* BOTH_MANIFESTS=1
-	@$(MAKE) -C ../../chat AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
+	@$(MAKE) -C ../../chat/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	@$(MAKE) -C ../../editor/ui/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	@$(MAKE) -C ../../mozilla/extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
 	@$(MAKE) -C ../../mozilla/intl/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
