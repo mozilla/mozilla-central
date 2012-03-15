@@ -358,6 +358,7 @@
           'sources': [ 
             'source/talk/sound/automaticallychosensoundsystem.h', 
             'source/talk/sound/platformsoundsystem.cc', 
+            'source/talk/sound/nullsoundsystem.cc', 
             'source/talk/sound/platformsoundsystem.h', 
             'source/talk/sound/platformsoundsystemfactory.cc', 
             'source/talk/sound/platformsoundsystemfactory.h', 

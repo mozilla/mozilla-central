@@ -1,10 +1,11 @@
 # shared libs for webrtc
 SHARED_LIBRARY_LIBS += \
         $(MKSHLIB_FORCE_ALL) \
-	$(call EXPAND_LIBNAME_PATH,jingle,$(DEPTH)/media/webrtc/trunk/third_party_mods/libjingle/libjingle_libjingle) \
-	$(call EXPAND_LIBNAME_PATH,jingle_p2p,$(DEPTH)/media/webrtc/trunk/third_party_mods/libjingle/libjingle_libjingle_p2p) \
-	$(call EXPAND_LIBNAME_PATH,jingle_app,$(DEPTH)/media/webrtc/trunk/third_party_mods/libjingle/libjingle_libjingle_app) \
-	$(call EXPAND_LIBNAME_PATH,jsoncpp,$(DEPTH)/media/webrtc/trunk/third_party_mods/libjingle/libjingle_jsoncpp) \
+	$(call EXPAND_LIBNAME_PATH,jingle,$(DEPTH)/media/webrtc/trunk/third_party/libjingle/libjingle_libjingle) \
+	$(call EXPAND_LIBNAME_PATH,srtp,$(DEPTH)/media/webrtc/trunk/third_party/libsrtp/libsrtp_libsrtp) \
+	$(call EXPAND_LIBNAME_PATH,jingle_p2p,$(DEPTH)/media/webrtc/trunk/third_party/libjingle/libjingle_libjingle_p2p) \
+	$(call EXPAND_LIBNAME_PATH,jingle_app,$(DEPTH)/media/webrtc/trunk/third_party/libjingle/libjingle_libjingle_app) \
+	$(call EXPAND_LIBNAME_PATH,jsoncpp,$(DEPTH)/media/webrtc/trunk/third_party/jsoncpp/jsoncpp_jsoncpp) \
 	$(call EXPAND_LIBNAME_PATH,video_capture_module,$(DEPTH)/media/webrtc/trunk/src/modules/modules_video_capture_module) \
 	$(call EXPAND_LIBNAME_PATH,webrtc_utility,$(DEPTH)/media/webrtc/trunk/src/modules/modules_webrtc_utility) \
 	$(call EXPAND_LIBNAME_PATH,audio_coding_module,$(DEPTH)/media/webrtc/trunk/src/modules/modules_audio_coding_module) \
