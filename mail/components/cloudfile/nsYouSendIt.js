@@ -405,12 +405,12 @@ nsYouSendIt.prototype = {
      // XXX: replace this with a better function
     let successCb = function(aResponseText, aRequest) {
       aRequestObserver.onStopRequest(null, this, Cr.NS_OK);
-    };
+    }.bind(this);
 
     let failureCb = function(aResponseText, aRequest) {
       aRequestObserver.onStopRequest(null, this,
                                      Ci.nsIMsgCloudFileProvider.authErr);
-    };
+    }.bind(this);
 
     this.logon(successCb, failureCb, true);
   },
