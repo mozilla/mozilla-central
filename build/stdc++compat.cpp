@@ -59,6 +59,7 @@ namespace std {
     template ostream& ostream::_M_insert(unsigned long);
     template ostream& ostream::_M_insert(long long);
     template ostream& ostream::_M_insert(unsigned long long);
+    template ostream& ostream::_M_insert(bool);
 #ifdef DEBUG
     template ostream& ostream::_M_insert(const void*);
 #endif
