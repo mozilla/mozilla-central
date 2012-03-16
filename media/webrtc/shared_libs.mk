@@ -49,8 +49,13 @@ SHARED_LIBRARY_LIBS += \
 	$(call EXPAND_LIBNAME_PATH,webrtc_jpeg,$(DEPTH)/media/webrtc/trunk/src/common_video/common_video_webrtc_jpeg) \
 	$(NULL)
 
-ifeq ($(OS_TARGET),WINNT)
-SHARED_LIBRARY_LIBS += $(call EXPAND_LIBNAME_PATH,expat,$(DEPTH)/media/webrtc/trunk/third_party/expat/expat_expat)
-else
-SHARED_LIBRARY_LIBS += -lexpat
-endif
+# disable system expat use temporarily
+#ifeq ($(OS_TARGET),WINNT)
+SHARED_LIBRARY_LIBS += \
+        $(MKSHLIB_FORCE_ALL) \
+        $(call EXPAND_LIBNAME_PATH,expat,$(DEPTH)/media/webrtc/trunk/third_party/expat/expat_expat) \
+        $(MKSHLIB_UNFORCE_ALL) \
+	$(NULL)
+#else
+#SHARED_LIBRARY_LIBS += -lexpat
+#endif

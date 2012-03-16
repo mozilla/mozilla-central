@@ -15,7 +15,8 @@
     ]
   },
   'conditions': [
-    ['os_posix == 1 and OS != "mac" and OS != "android"', {
+    # XXX FIX! force building of expat for Mozilla as a temporary measure
+    ['build_with_mozilla == 0 and os_posix == 1 and OS != "mac" and OS != "android"', {
       # On Linux, we implicitly already depend on expat via fontconfig;
       # let's not pull it in twice.
       'targets': [
