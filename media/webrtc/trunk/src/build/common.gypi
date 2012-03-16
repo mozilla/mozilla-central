@@ -46,7 +46,7 @@
     'build_libyuv%': 1,
 
     'conditions': [
-      ['OS=="win"', {
+      ['OS=="win" and build_with_mozilla==0', {
         # TODO(andrew, perkj): does this need to be here?
         # Path needed to build Direct Show base classes on Windows.
         # The code is included in the Windows SDK.
