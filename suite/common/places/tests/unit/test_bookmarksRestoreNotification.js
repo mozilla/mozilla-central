@@ -15,7 +15,7 @@
  *
  * The Original Code is Places test code.
  *
- * The Initial Developer of the Original Code is Mozilla Corp.
+ * The Initial Developer of the Original Code is Mozilla Foundation.
  * Portions created by the Initial Developer are Copyright (C) 2009
  * the Initial Developer. All Rights Reserved.
  *
@@ -231,73 +231,8 @@ var tests = [
       }
       catch (e) {}
     }
-  },
-
-  {
-    desc:       "HTML restore into folder: normal restore should succeed",
-    currTopic:  NSIOBSERVER_TOPIC_BEGIN,
-    finalTopic: NSIOBSERVER_TOPIC_SUCCESS,
-    data:       NSIOBSERVER_DATA_HTML,
-    run:        function () {
-      this.file = createFile("bookmarks-test_restoreNotification.html");
-      addBookmarks();
-      importer.exportHTMLToFile(this.file);
-      remove_all_bookmarks();
-      this.folderId = bmsvc.createFolder(bmsvc.unfiledBookmarksFolder,
-                                         "test folder",
-                                         bmsvc.DEFAULT_INDEX);
-      print("  Sanity check: createFolder() should have succeeded");
-      do_check_true(this.folderId > 0);
-      try {
-        importer.importHTMLFromFileToFolder(this.file, this.folderId, false);
-      }
-      catch (e) {
-        do_throw("  Restore should not have failed");
-      }
-    }
-  },
-
-  {
-    desc:       "HTML restore into folder: empty file should succeed",
-    currTopic:  NSIOBSERVER_TOPIC_BEGIN,
-    finalTopic: NSIOBSERVER_TOPIC_SUCCESS,
-    data:       NSIOBSERVER_DATA_HTML,
-    run:        function () {
-      this.file = createFile("bookmarks-test_restoreNotification.init.html");
-      this.folderId = bmsvc.createFolder(bmsvc.unfiledBookmarksFolder,
-                                         "test folder",
-                                         bmsvc.DEFAULT_INDEX);
-      print("  Sanity check: createFolder() should have succeeded");
-      do_check_true(this.folderId > 0);
-      try {
-        importer.importHTMLFromFileToFolder(this.file, this.folderId, false);
-      }
-      catch (e) {
-        do_throw("  Restore should not have failed");
-      }
-    }
-  },
-
-  {
-    desc:       "HTML restore into folder: nonexistent file should fail",
-    currTopic:  NSIOBSERVER_TOPIC_BEGIN,
-    finalTopic: NSIOBSERVER_TOPIC_FAILED,
-    data:       NSIOBSERVER_DATA_HTML,
-    run:        function () {
-      this.file = Services.dirsvc.get("ProfD", Ci.nsILocalFile);
-      this.file.append("this file doesn't exist because nobody created it");
-      this.folderId = bmsvc.createFolder(bmsvc.unfiledBookmarksFolder,
-                                         "test folder",
-                                         bmsvc.DEFAULT_INDEX);
-      print("  Sanity check: createFolder() should have succeeded");
-      do_check_true(this.folderId > 0);
-      try {
-        importer.importHTMLFromFileToFolder(this.file, this.folderId, false);
-        do_throw("  Restore should have failed");
-      }
-      catch (e) {}
-    }
   }
+
 ];
 
 // nsIObserver that observes bookmarks-restore-begin.

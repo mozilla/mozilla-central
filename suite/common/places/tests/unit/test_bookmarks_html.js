@@ -15,7 +15,7 @@
  *
  * The Original Code is mozilla.com code.
  *
- * The Initial Developer of the Original Code is Mozilla Corp.
+ * The Initial Developer of the Original Code is Mozilla Foundation.
  * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
@@ -131,29 +131,6 @@ function run_test() {
   testCanonicalBookmarks(bmsvc.bookmarksMenuFolder);
 
   /*
-  // XXX import-to-folder tests disabled due to bug 363634
-  // Test importing a pre-Places canonical bookmarks file to a specific folder.
-  // 1. create a new folder
-  // 2. import bookmarks.preplaces.html to that folder
-  // 3. run the test-suite
-  var testFolder = bmsvc.createFolder(bmsvc.bookmarksMenuFolder, "test-import", bmsvc.DEFAULT_INDEX);
-  try {
-    importer.importHTMLFromFileToFolder(bookmarksFileOld, testFolder, false);
-  } catch(ex) { do_throw("couldn't import the exported file to folder: " + ex); }
-  testCanonicalBookmarks(testFolder);
-  bmsvc.removeFolder(testFolder);
-
-  // Test importing a Places canonical bookmarks file to a specific folder.
-  // 1. create a new folder
-  // 2. import bookmarks.exported.html to that folder
-  // 3. run the test-suite
-  var testFolder = bmsvc.createFolder(bmsvc.bookmarksMenuFolder, "test-import", bmsvc.DEFAULT_INDEX);
-  try {
-    importer.importHTMLFromFileToFolder(bookmarksFileNew, testFolder, false);
-  } catch(ex) { do_throw("couldn't import the exported file to folder: " + ex); }
-  testCanonicalBookmarks(testFolder); 
-  bmsvc.removeFolder(testFolder);
-
   // XXX Disabled due to bug 381129 - separators will be duplicated on re-import
   // Test importing the exported bookmarks.html file *on top of* the existing
   // bookmarks. This tests import of IDs. If we support IDs correctly, there
