@@ -452,7 +452,8 @@
         './src/sipcc/core/src-common/digcalc.c',
         './src/sipcc/core/src-common/kpml_common_util.c',
         './src/sipcc/core/src-common/kpmlmap.c',
-        './src/sipcc/core/src-common/md5.c',
+# we'll pick this up from libjingle for now
+#        './src/sipcc/core/src-common/md5.c',
         './src/sipcc/core/src-common/misc_apps_task.c',
         './src/sipcc/core/src-common/pres_sub_not_handler.c',
         './src/sipcc/core/src-common/publish_int.c',
