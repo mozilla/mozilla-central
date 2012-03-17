@@ -60,11 +60,11 @@ namespace std {
     template ostream& ostream::_M_insert(long long);
     template ostream& ostream::_M_insert(unsigned long long);
     template ostream& ostream::_M_insert(bool);
-#ifdef DEBUG
     template ostream& ostream::_M_insert(const void*);
-#endif
     template ostream& __ostream_insert(ostream&, const char*, streamsize);
     template istream& istream::_M_extract(double&);
+    template istream& istream::_M_extract(float);
+    template istream& istream::_M_extract(unsigned int);
 #endif
 #if MOZ_LIBSTDCXX_VERSION >= GLIBCXX_VERSION(3, 4, 14)
     /* Instantiate these templates to avoid GLIBCXX_3.4.14 symbol versions
@@ -78,6 +78,7 @@ namespace std {
     template string& string::operator=(string&&);
     template wstring::basic_string(wstring&&);
     template wstring& wstring::operator=(wstring&&);
+    template string& string::assign(string&&);
     template wstring& wstring::assign(wstring&&);
 #endif /* __GXX_EXPERIMENTAL_CXX0X__ */
 #endif /* (__GNUC__ == 4) && (__GNUC_MINOR__ >= 5) */
