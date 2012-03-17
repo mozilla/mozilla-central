@@ -63,8 +63,8 @@ namespace std {
     template ostream& ostream::_M_insert(const void*);
     template ostream& __ostream_insert(ostream&, const char*, streamsize);
     template istream& istream::_M_extract(double&);
-    template istream& istream::_M_extract(float);
-    template istream& istream::_M_extract(unsigned int);
+    template istream& istream::_M_extract(float&);
+    template istream& istream::_M_extract(unsigned int&);
 #endif
 #if MOZ_LIBSTDCXX_VERSION >= GLIBCXX_VERSION(3, 4, 14)
     /* Instantiate these templates to avoid GLIBCXX_3.4.14 symbol versions
