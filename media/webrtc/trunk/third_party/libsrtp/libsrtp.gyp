@@ -43,6 +43,7 @@
       }],
       ['OS=="win"', {
         'defines': [
+          'FORCE_UINT64_T=1',
           'HAVE_WINSOCK2_H',
           'inline=__inline',
          ],
