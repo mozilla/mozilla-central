@@ -50,7 +50,7 @@ SHARED_LIBRARY_LIBS += \
 	$(NULL)
 
 # disable system expat use temporarily for Linux
-ifneq ($(OS_TARGET),MacOSX)
+ifneq ($(OS_TARGET),Darwin)
 SHARED_LIBRARY_LIBS += \
         $(MKSHLIB_FORCE_ALL) \
         $(call EXPAND_LIBNAME_PATH,expat,$(DEPTH)/media/webrtc/trunk/third_party/expat/expat_expat) \
