@@ -1,3 +1,5 @@
 #ac_add_options --disable-webrtc
 #ac_add_options --with-system-libvpx
 ac_add_options --disable-crashreporter
+
+touch configure.in
