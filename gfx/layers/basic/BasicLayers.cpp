@@ -744,9 +744,10 @@ BasicThebesLayer::PaintThebes(gfxContext* aContext,
       Mutated();
     } else {
       // It's possible that state.mRegionToInvalidate is nonempty here,
-      // if we are shrinking the valid region to nothing.
-      NS_ASSERTION(state.mRegionToDraw.IsEmpty(),
-                   "If we need to draw, we should have a context");
+      // if we are shrinking the valid region to nothing. So use mRegionToDraw
+      // instead.
+      NS_WARN_IF_FALSE(state.mRegionToDraw.IsEmpty(),
+                       "No context when we have something to draw; resource exhaustion?");
     }
   }
 
