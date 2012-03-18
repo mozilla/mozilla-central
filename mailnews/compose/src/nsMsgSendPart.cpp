@@ -263,25 +263,27 @@ int nsMsgSendPart::PushBody(const char* buffer, PRInt32 length)
 {
   int status = 0;
   const char* encoded_data = buffer;
-  
-  if (m_encoder_data) 
+
+  if (m_encoder_data)
   {
-    status = MIME_EncoderWrite(m_encoder_data, encoded_data, length);
-  } 
-  else 
+    nsresult rv = MIME_EncoderWrite(m_encoder_data, encoded_data, length);
+    if (NS_FAILED(rv))
+      status = -1;
+  }
+  else
   {
     // Merely translate all linebreaks to CRLF.
     const char *in = encoded_data;
     const char *end = in + length;
     char *buffer, *out;
-    
-    
+
+
     buffer = mime_get_stream_write_buffer();
-    if (!buffer) return NS_ERROR_OUT_OF_MEMORY;
-    
+    NS_ENSURE_TRUE(buffer, -1);
+
     NS_ASSERTION(encoded_data != buffer, "encoded_data == buffer");
     out = buffer;
-    
+
     for (; in < end; in++) {
       if (m_just_hit_CR) {
         m_just_hit_CR = false;
@@ -763,17 +765,20 @@ nsMsgSendPart::Write()
         break;
     }
   }
-  
-  if (m_encoder_data) 
+
+  if (m_encoder_data)
   {
-    status = MIME_EncoderDestroy(m_encoder_data, false);
+    nsresult rv  = MIME_EncoderDestroy(m_encoder_data, false);
     m_encoder_data = nsnull;
     needToWriteCRLFAfterEncodedBody = !m_parent;
-    if (status < 0)
+    if (NS_FAILED(rv))
+    {
+      status = -1;
       goto FAIL;
+    }
   }
-  
-  // 
+
+  //
   // Ok, from here we loop and drive the the output of all children 
   // for this message.
   //
@@ -810,7 +815,7 @@ nsMsgSendPart::Write()
   }
   else if (needToWriteCRLFAfterEncodedBody)
     PUSH(CRLF);
-  
+
 FAIL:
   PR_FREEIF(separator);
   return status;
