@@ -94,6 +94,10 @@ browser[type="content-conversation"] {
   cursor: pointer;
 }
 
+#statusMessage {
+  width: 15em;
+}
+
 #statusMessage:not([statusType="offline"]) {
   cursor: text;
 }
