@@ -69,6 +69,7 @@
             '../third_party/platformsdk_win7/files/Include',
           ],
           'defines': [
+	      'FORCE_UINT64_T', # XXX temp hack for mozilla
               '_CRT_SECURE_NO_WARNINGS',  # Suppres warnings about _vsnprinf
           ],
         }],
