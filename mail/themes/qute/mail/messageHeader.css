@@ -193,7 +193,7 @@
   -moz-image-region: rect(0px 192px 16px 176px);
 }
 
-#attachment-splitter[collapsed="true"] #attachmentView {
+#attachment-splitter[collapsed="true"] + #attachmentView {
   border-top: 1px solid ThreeDShadow;
 }
 
