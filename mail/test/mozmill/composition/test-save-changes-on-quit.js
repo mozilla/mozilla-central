@@ -35,7 +35,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * Tests that the attachment reminder works properly.
+ * Tests that we prompt the user if they'd like to save their message when they
+ * try to quit with an open compose window with unsaved changes.
  */
 
 const MODULE_NAME = "test-save-changes-on-close";
@@ -67,10 +68,11 @@ var setupModule = function (module) {
   ph.installInto(module);
 };
 
-/* Test that when a compose window is open with changes, and
+/**
+ * Test that when a compose window is open with changes, and
  * a Quit is requested (for example, from File > Quit from the
  * 3pane), that the user gets a confirmation dialog to discard
- * the changes.  This also tests that the user can cancel the
+ * the changes. This also tests that the user can cancel the
  * quit request.
  */
 function test_can_cancel_quit_on_changes() {
@@ -110,10 +112,11 @@ function test_can_cancel_quit_on_changes() {
   gMockPromptService.unregister();
 }
 
-/* Test that when a compose window is open with changes, and
+/**
+ * Test that when a compose window is open with changes, and
  * a Quit is requested (for example, from File > Quit from the
  * 3pane), that the user gets a confirmation dialog to discard
- * the changes.  This also tests that the user can let the quit
+ * the changes. This also tests that the user can let the quit
  * occur.
  */
 function test_can_quit_on_changes() {
@@ -152,7 +155,8 @@ function test_can_quit_on_changes() {
   gMockPromptService.unregister();
 }
 
-/* Bug 698077 - test that when quitting with two compose windows open, if
+/**
+ * Bug 698077 - test that when quitting with two compose windows open, if
  * one chooses "Don't Save", and the other chooses "Cancel", that the first
  * window's state is such that subsequent quit requests still cause the
  * Don't Save / Cancel / Save dialog to come up.
@@ -205,3 +209,4 @@ function test_window_quit_state_reset_on_aborted_quit() {
 
   gMockPromptService.unregister();
 }
+

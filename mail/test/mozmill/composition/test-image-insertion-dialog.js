@@ -35,6 +35,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * Tests the image insertion dialog functionality.
+ */
+
 var Ci = Components.interfaces;
 var Cc = Components.classes;
 var Cu = Components.utils;
@@ -60,7 +64,6 @@ function setupModule(module) {
   kh = collector.getModule('keyboard-helpers');
   kh.installInto(module);
 }
-
 
 function test_image_insertion_dialog_persist() {
   let cwc = open_compose_new_mail();

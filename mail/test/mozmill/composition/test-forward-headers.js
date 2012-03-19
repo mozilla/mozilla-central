@@ -35,7 +35,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * Tests that the attachment reminder works properly.
+ * Tests that headers like References and X-Forwarded-Message-Id are
+ * set properly when forwarding messages.
  */
 
 const MODULE_NAME = "test-forward-headers";
