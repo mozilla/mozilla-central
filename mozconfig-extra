@@ -2,4 +2,6 @@
 #ac_add_options --with-system-libvpx
 ac_add_options --disable-crashreporter
 
-touch configure.in
+pwd=`pwd`
+echo "=== forcing re-configure due to bug 643692 === curdir $pwd"
+touch $topsrcdir/configure.in
