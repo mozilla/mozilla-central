@@ -1707,13 +1707,13 @@ PRInt32 nsSmtpProtocol::SendMessageResponse()
   return SendQuit();
 }
 
-PRInt32 nsSmtpProtocol::SendQuit()
+PRInt32 nsSmtpProtocol::SendQuit(SmtpState aNextStateAfterResponse)
 {
   m_sendDone = true;
-  SendData("QUIT" CRLF); // send a quit command to close the connection with the server.
   m_nextState = SMTP_RESPONSE;
-  m_nextStateAfterResponse = SMTP_DONE;
-  return(0);
+  m_nextStateAfterResponse = aNextStateAfterResponse;
+
+  return SendData("QUIT" CRLF); // send a quit command to close the connection with the server.
 }
 
 nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
@@ -1956,17 +1956,12 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
     if(status < 0 && m_nextState != SMTP_FREE)
     {
       // send a quit command to close the connection with the server.
-      if (SendData("QUIT" CRLF) == NS_OK)
+      if (SendQuit(SMTP_ERROR_DONE) < 0)
       {
-        m_nextState = SMTP_RESPONSE;
-        m_nextStateAfterResponse = SMTP_ERROR_DONE;
+        m_nextState = SMTP_ERROR_DONE;
+        // Don't exit - loop around again and do the free case
+        ClearFlag(SMTP_PAUSE_FOR_READ);
       }
-      else
-      {
-      m_nextState = SMTP_ERROR_DONE;
-      /* don't exit! loop around again and do the free case */
-      ClearFlag(SMTP_PAUSE_FOR_READ);
-    }
     }
   } /* while(!SMTP_PAUSE_FOR_READ) */
 

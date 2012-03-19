@@ -198,7 +198,7 @@ private:
     PRInt32 ExtensionLoginResponse(nsIInputStream * inputStream, PRUint32 length);
     PRInt32 SendHeloResponse(nsIInputStream * inputStream, PRUint32 length);
     PRInt32 SendEhloResponse(nsIInputStream * inputStream, PRUint32 length);	
-    PRInt32 SendQuit();
+    PRInt32 SendQuit(SmtpState aNextStateAfterResponse = SMTP_DONE);
 
     PRInt32 AuthGSSAPIFirst();
     PRInt32 AuthGSSAPIStep();
