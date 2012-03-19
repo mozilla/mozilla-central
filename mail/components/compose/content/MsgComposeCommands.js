@@ -677,9 +677,12 @@ var attachmentBucketController = {
 
     cmd_convertCloud: {
       isEnabled: function() {
-        // Hide the command entirely if there are no cloud accounts.
+        // Hide the command entirely if Filelink is disabled, or if there are
+        // no cloud accounts.
         let cmd = document.getElementById("cmd_convertCloud");
-        cmd.hidden = (cloudFileAccounts.accounts.length == 0);
+
+        cmd.hidden = (!Services.prefs.getBoolPref("mail.cloud_files.enabled") ||
+                      cloudFileAccounts.accounts.length == 0);
         if (cmd.hidden)
           return false;
 
@@ -698,6 +701,9 @@ var attachmentBucketController = {
 
     cmd_convertAttachment: {
       isEnabled: function() {
+        if (!Services.prefs.getBoolPref("mail.cloud_files.enabled"))
+          return false;
+
         let bucket = document.getElementById("attachmentBucket");
         for (let [,item] in Iterator(bucket.selectedItems)) {
           if (item.uploading)
@@ -712,6 +718,14 @@ var attachmentBucketController = {
 
     cmd_cancelUpload: {
       isEnabled: function() {
+        let cmd = document.getElementById("context_cancelUpload");
+
+        // If Filelink is disabled, hide this menuitem and bailout.
+        if (!Services.prefs.getBoolPref("mail.cloud_files.enabled")) {
+          cmd.hidden = true;
+          return false;
+        }
+
         let bucket = document.getElementById("attachmentBucket");
         for (let [,item] in Iterator(bucket.selectedItems)) {
           if (item.uploading)
@@ -720,10 +734,9 @@ var attachmentBucketController = {
 
         // Hide the command entirely if the selected attachments aren't cloud
         // files.
-        // FOr some reason, the hidden property isn't propagating from the cmd
+        // For some reason, the hidden property isn't propagating from the cmd
         // to the menuitem.
-        let menuitem = document.getElementById("context_cancelUpload");
-        menuitem.hidden = true;
+        cmd.hidden = true;
         return false;
       },
       doCommand: function() {
