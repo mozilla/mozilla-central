@@ -100,7 +100,7 @@ private:
   nsCOMPtr<nsIMailboxUrl>  m_runningUrl; // the nsIMailboxURL that is currently running
   nsMailboxAction m_mailboxAction; // current mailbox action associated with this connnection...
   PRInt32      m_originalContentLength; /* the content length at the time of calling graph progress */
-
+  PRUint64 m_msgOffset;
   // Event sink handles
   nsCOMPtr<nsIStreamListener> m_mailboxParser;
 
@@ -128,8 +128,8 @@ private:
   virtual nsresult CloseSocket();
 
   PRInt32 SetupMessageExtraction();
-  nsresult OpenMultipleMsgTransport(PRUint32 offset, PRInt32 size);
-  nsresult OpenFileSocketForReuse(nsIURI * aURL, PRUint32 aStartPosition, PRInt32 aReadCount);
+  nsresult OpenMultipleMsgTransport(PRUint64 offset, PRInt32 size);
+  nsresult OpenFileSocketForReuse(nsIURI * aURL, PRUint64 aStartPosition, PRInt32 aReadCount);
   bool RunningMultipleMsgUrl();
 
   ////////////////////////////////////////////////////////////////////////////////////////

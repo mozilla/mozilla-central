@@ -35,14 +35,17 @@
  * ***** END LICENSE BLOCK ***** */
 
 /*
- * tests message moves with filter and quarantine enabled per bug 582918
+ * tests message moves with filter and quarantine enabled per bug 582918.
+ * It then tests that subsequent moves of the filtered messages work.
  *
  * adapted from test_copyThenMoveManual.js
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 load("../../../resources/POP3pump.js");
-const gFiles = ["../../../data/bugmail1", "../../../data/bugmail2"];
-var gMoveFolder;
+const gFiles = ["../../../data/bugmail1", "../../../data/bugmail10"];
+var gMoveFolder, gMoveFolder2;
 var gFilter; // the test filter
 var gFilterList;
 var gCurTestNum = 1;
@@ -74,21 +77,50 @@ const gTestArray =
   function waitForCopyToFinish() {
     do_timeout(1000, function() {++gCurTestNum; doTest();});
   },
-  function verifyFolders2() {
+  function verifyFolders1() {
     do_check_eq(folderCount(gMoveFolder), 2);
     // the local inbox folder should now be empty, since the second
     // operation was a move
     do_check_eq(folderCount(gLocalInboxFolder), 0);
 
+    let enumerator = gMoveFolder.msgDatabase.EnumerateMessages();
+    let firstMsgHdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+    let secondMsgHdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
     // Check that the messages have content
-    msgHdr = firstMsgHdr(gMoveFolder);
-
-    messageContent = getContentFromMessage(msgHdr);
+    messageContent = getContentFromMessage(firstMsgHdr);
     do_check_true(messageContent.indexOf("Some User <bugmail@example.org> changed") != -1);
+    messageContent = getContentFromMessage(secondMsgHdr);
+    do_check_true(messageContent.indexOf("https://bugzilla.mozilla.org/show_bug.cgi?id=436880") != -1);
 
     ++gCurTestNum;
     doTest();
-  }
+  },
+  function copyMovedMessages() {
+    let messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
+    let enumerator = gMoveFolder.msgDatabase.EnumerateMessages();
+    let firstMsgHdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+    let secondMsgHdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+    messages.appendElement(firstMsgHdr, false);
+    messages.appendElement(secondMsgHdr, false);
+    MailServices.copy.CopyMessages(gMoveFolder, messages, gMoveFolder2, false,
+                             copyListener, null, false);
+
+  },
+  function verifyFolders2() {
+    do_check_eq(folderCount(gMoveFolder2), 2);
+
+    let enumerator = gMoveFolder2.msgDatabase.EnumerateMessages();
+    let firstMsgHdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+    let secondMsgHdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+    // Check that the messages have content
+    messageContent = getContentFromMessage(firstMsgHdr);
+    do_check_true(messageContent.indexOf("Some User <bugmail@example.org> changed") != -1);
+    messageContent = getContentFromMessage(secondMsgHdr);
+    do_check_true(messageContent.indexOf("https://bugzilla.mozilla.org/show_bug.cgi?id=436880") != -1);
+
+    ++gCurTestNum;
+    doTest();
+  },
 ];
 
 function folderCount(folder)
@@ -119,6 +151,8 @@ function run_test()
 
   gMoveFolder = gLocalIncomingServer.rootMsgFolder
                   .createLocalSubfolder("MoveFolder");
+  gMoveFolder2 = gLocalIncomingServer.rootMsgFolder
+                  .createLocalSubfolder("MoveFolder2");
   const mailSession = Cc["@mozilla.org/messenger/services/session;1"]
                         .getService(Ci.nsIMsgMailSession);
 
@@ -151,6 +185,17 @@ function doTest()
   else
     do_timeout(1000, endTest);
 }
+
+var copyListener = {
+  OnStartCopy: function() {},
+  OnProgress: function(aProgress, aProgressMax) {},
+  SetMessageKey: function(aKey) {},
+  SetMessageId: function(aMessageId) {},
+  OnStopCopy: function(aStatus)
+  {
+    do_timeout(0, function(){doTest(++gCurTestNum);});
+  }
+};
 
 // nsIFolderListener implementation
 var FolderListener = {

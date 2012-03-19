@@ -100,7 +100,7 @@ nsMailboxProtocol::~nsMailboxProtocol()
   delete m_lineStreamBuffer;
 }
 
-nsresult nsMailboxProtocol::OpenMultipleMsgTransport(PRUint32 offset, PRInt32 size)
+nsresult nsMailboxProtocol::OpenMultipleMsgTransport(PRUint64 offset, PRInt32 size)
 {
   nsresult rv;
 
@@ -116,7 +116,7 @@ nsresult nsMailboxProtocol::OpenMultipleMsgTransport(PRUint32 offset, PRInt32 si
   return rv;
 }
 
-nsresult nsMailboxProtocol::OpenFileSocketForReuse(nsIURI * aURL, PRUint32 aStartPosition, PRInt32 aReadCount)
+nsresult nsMailboxProtocol::OpenFileSocketForReuse(nsIURI * aURL, PRUint64 aStartPosition, PRInt32 aReadCount)
 {
   NS_ENSURE_ARG_POINTER(aURL);
 
@@ -181,10 +181,7 @@ nsresult nsMailboxProtocol::Initialize(nsIURI * aURL)
         // we need to specify a byte range to read in so we read in JUST the message we want.
         rv = SetupMessageExtraction();
         if (NS_FAILED(rv)) return rv;
-        nsMsgKey aMsgKey;
         PRUint32 aMsgSize = 0;
-        rv = m_runningUrl->GetMessageKey(&aMsgKey);
-        NS_ASSERTION(NS_SUCCEEDED(rv), "oops....i messed something up");
         rv = m_runningUrl->GetMessageSize(&aMsgSize);
         NS_ASSERTION(NS_SUCCEEDED(rv), "oops....i messed something up");
         SetContentLength(aMsgSize);
@@ -192,7 +189,7 @@ nsresult nsMailboxProtocol::Initialize(nsIURI * aURL)
 
         if (RunningMultipleMsgUrl())
         {
-          rv = OpenFileSocketForReuse(aURL, (PRUint32) aMsgKey, aMsgSize);
+          rv = OpenFileSocketForReuse(aURL, m_msgOffset, aMsgSize);
           // if we're running multiple msg url, we clear the event sink because the multiple
           // msg urls will handle setting the progress.
           mProgressEventSink = nsnull;
@@ -242,7 +239,7 @@ nsresult nsMailboxProtocol::Initialize(nsIURI * aURL)
             }
           }
           else // must be a .eml file
-          rv = OpenFileSocket(aURL, (PRUint32) aMsgKey, aMsgSize);
+            rv = OpenFileSocket(aURL, 0, aMsgSize);
         }
         NS_ASSERTION(NS_SUCCEEDED(rv), "oops....i messed something up");
       }
@@ -340,7 +337,6 @@ NS_IMETHODIMP nsMailboxProtocol::OnStopRequest(nsIRequest *request, nsISupports 
           if (NS_SUCCEEDED(rv) && nextMsg)
           {
             PRUint32 msgSize = 0;
-            nsMsgKey msgKey;
             nsCOMPtr <nsIMsgFolder> msgFolder;
             nextMsg->GetFolder(getter_AddRefs(msgFolder));
             NS_ASSERTION(msgFolder, "couldn't get folder for next msg in multiple msg local copy");
@@ -354,7 +350,8 @@ NS_IMETHODIMP nsMailboxProtocol::OnStopRequest(nsIRequest *request, nsISupports 
                 msgUrl->SetOriginalSpec(uri.get());
                 msgUrl->SetUri(uri.get());
                 
-                nextMsg->GetMessageKey(&msgKey);
+                PRUint64 msgOffset;
+                nextMsg->GetMessageOffset(&msgOffset);
                 nextMsg->GetMessageSize(&msgSize);
                 // now we have to seek to the right position in the file and
                 // basically re-initialize the transport with the correct message size.
@@ -368,7 +365,7 @@ NS_IMETHODIMP nsMailboxProtocol::OnStopRequest(nsIRequest *request, nsISupports 
                 m_inputStream = 0;
                 m_outputStream = 0;
                 
-                rv = OpenMultipleMsgTransport(msgKey, msgSize);
+                rv = OpenMultipleMsgTransport(msgOffset, msgSize);
                 if (NS_SUCCEEDED(rv))
                 {
                   if (!m_inputStream)
@@ -465,6 +462,7 @@ PRInt32 nsMailboxProtocol::SetupMessageExtraction()
       {
         msgHdr->GetMessageSize(&messageSize);
         m_runningUrl->SetMessageSize(messageSize);
+        msgHdr->GetMessageOffset(&m_msgOffset);
       }
       else
         NS_ASSERTION(false, "couldn't get message header");
