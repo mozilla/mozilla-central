@@ -146,6 +146,10 @@
         Components.classes["@mozilla.org/browser/favicon-service;1"]
                   .getService(Components.interfaces.nsIFaviconService);
       </field>
+      <field name="mIOService" readonly="true">
+        Components.classes["@mozilla.org/network/io-service;1"]
+                  .getService(Components.interfaces.nsIIOService);
+      </field>
       <field name="mTabBox" readonly="true">
         document.getAnonymousElementByAttribute(this, "anonid", "tabbox");
       </field>
@@ -724,7 +728,7 @@
           <![CDATA[
             var browser = aTab.linkedBrowser;
             if (!(aURI instanceof Components.interfaces.nsIURI))
-              aURI = Services.io.newURI(aURI, null, null);
+              aURI = this.mIOService.newURI(aURI, null, null);
             browser.mIconURL = aURI.spec;
 
             if (aURI && this.mFaviconService) {
@@ -800,7 +804,7 @@
           <![CDATA[
             var iconURL = this.buildFavIconString(aURI);
             if (this.mFaviconService) {
-              let uri = Services.io.newURI(iconURL, null, null);
+              let uri = this.mIOService.newURI(iconURL, null, null);
               this.mFaviconService.setAndLoadFaviconForPage(aURI, uri, false);
             }
             var entry = this.openCacheEntry(iconURL, Components.interfaces.nsICache.ACCESS_READ);
@@ -1134,7 +1138,7 @@
 
               const targetDoc = event.target.ownerDocument;
               // Make a URI out of our href.
-              var uri = Services.io.newURI(href, targetDoc.characterSet, null);
+              var uri = this.mIOService.newURI(href, targetDoc.characterSet, null);
 
               // Verify that the load of this icon is legal.
               // error pages can load their favicon, to be on the safe side,
@@ -1187,7 +1191,7 @@
                 return; // Refuse to load if we can't do a security check.
               }
 
-              var origURI = Services.io.newURI(targetDoc.documentURI,
+              var origURI = this.mIOService.newURI(targetDoc.documentURI,
                                                targetDoc.characterSet, null);
               if (contentPolicy.shouldLoad(nsIContentPolicy.TYPE_IMAGE,
                                            uri, origURI, event.target,
@@ -2338,7 +2342,7 @@
           ]]>
         </body>
       </method>
-      
+
       <method name="moveTabToEnd">
         <body>
           <![CDATA[
@@ -2350,7 +2354,7 @@
           ]]>
         </body>
       </method>
-      
+
       <field name="backBrowserGroup">
         []
       </field>
