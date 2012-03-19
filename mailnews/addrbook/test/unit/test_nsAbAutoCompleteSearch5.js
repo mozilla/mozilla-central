@@ -4,8 +4,6 @@
  * indexes on a 
  */
 
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-
 const ACR = Components.interfaces.nsIAutoCompleteResult;
 
 const results = [ { email: "d <ema@test.invalid>", dirName: kPABData.dirName },
@@ -58,10 +56,7 @@ function run_test() {
   let obs = new acObserver();
 
   // Ensure we've got the comment column set up for extra checking.
-  let prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-    .getService(Components.interfaces.nsIPrefBranch);
-
-  prefSvc.setIntPref("mail.autoComplete.commentColumn", 1);
+  Services.prefs.setIntPref("mail.autoComplete.commentColumn", 1);
 
   // Test - Matches
 

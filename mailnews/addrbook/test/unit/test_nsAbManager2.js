@@ -4,14 +4,9 @@
  * getting the list of directories..
  */
 
-const abManagerContractID = "@mozilla.org/abmanager;1";
-const nsIAbManager = Components.interfaces.nsIAbManager;
 const nsIAbDirectory = Components.interfaces.nsIAbDirectory;
 const nsIAbListener = Components.interfaces.nsIAbListener;
 const numListenerOptions = 4;
-
-var gAbManager = Components.classes[abManagerContractID]
-                             .getService(nsIAbManager);
 
 var gAblAll;
 var gAblSingle = new Array(numListenerOptions);
@@ -27,19 +22,19 @@ abL.prototype = {
     this.mReceived |= nsIAbListener.itemAdded;
     this.mDirectory = item;
     if (this.mAutoRemoveItem)
-      gAbManager.removeAddressBookListener(this);
+      MailServices.ab.removeAddressBookListener(this);
   },
   onItemRemoved: function (parentItem, item) {
     this.mReceived |= nsIAbListener.directoryRemoved;
     this.mDirectory = item;
     if (this.mAutoRemoveItem)
-      gAbManager.removeAddressBookListener(this);
+      MailServices.ab.removeAddressBookListener(this);
   },
   onItemPropertyChanged: function (item, property, oldValue, newValue) {
     this.mReceived |= nsIAbListener.itemChanged;
     this.mDirectory = item;
     if (this.mAutoRemoveItem)
-      gAbManager.removeAddressBookListener(this);
+      MailServices.ab.removeAddressBookListener(this);
   }
 };
 
@@ -51,7 +46,7 @@ function checkDirs(aDirs, aDirArray) {
     var dir = aDirs.getNext().QueryInterface(nsIAbDirectory);
     var loc = dirArray.indexOf(dir.URI);
 
-    do_check_eq(gAbManager.getDirectory(dir.URI), dir);
+    do_check_eq(MailServices.ab.getDirectory(dir.URI), dir);
 
     if (loc == -1)
       do_throw("Unexpected directory " + dir.URI + " found in address book list");
@@ -64,7 +59,7 @@ function checkDirs(aDirs, aDirArray) {
 
 function addDirectory(dirName) {
   // Add the directory
-  gAbManager.newAddressBook(dirName, "", kPABData.dirType);
+  MailServices.ab.newAddressBook(dirName, "", kPABData.dirType);
 
   // Check for correct notifications
   do_check_eq(gAblAll.mReceived, nsIAbListener.itemAdded);
@@ -88,7 +83,7 @@ function addDirectory(dirName) {
 
 function removeDirectory(directory) {
   // Remove the directory
-  gAbManager.deleteAddressBook(directory.URI);
+  MailServices.ab.deleteAddressBook(directory.URI);
 
   // Check correct notifications
   do_check_eq(gAblAll.mReceived, nsIAbListener.directoryRemoved);
@@ -112,11 +107,11 @@ function run_test() {
 
   // Set up listeners
   gAblAll = new abL;
-  gAbManager.addAddressBookListener(gAblAll, nsIAbListener.all);
+  MailServices.ab.addAddressBookListener(gAblAll, nsIAbListener.all);
 
   for (i = 0; i < numListenerOptions; ++i) {
     gAblSingle[i] = new abL;
-    gAbManager.addAddressBookListener(gAblSingle[i], 1 << i);
+    MailServices.ab.addAddressBookListener(gAblSingle[i], 1 << i);
   }
 
   var expectedABs = [kPABData.URI, kCABData.URI];
@@ -128,7 +123,7 @@ function run_test() {
 
   // Test - Check initial directories
 
-  checkDirs(gAbManager.directories, expectedABs);
+  checkDirs(MailServices.ab.directories, expectedABs);
 
   // Test - Add a directory
 
@@ -137,7 +132,7 @@ function run_test() {
   // Test - Check new directory list
   expectedABs.push(newDirectory1.URI);
 
-  checkDirs(gAbManager.directories, expectedABs);
+  checkDirs(MailServices.ab.directories, expectedABs);
 
   // Test - Repeat for a second directory
 
@@ -146,7 +141,7 @@ function run_test() {
   // Test - Check new directory list
   expectedABs.push(newDirectory2.URI);
 
-  checkDirs(gAbManager.directories, expectedABs);
+  checkDirs(MailServices.ab.directories, expectedABs);
 
   // Test - Remove a directory
 
@@ -159,7 +154,7 @@ function run_test() {
 
   // Test - Check new directory list
 
-  checkDirs(gAbManager.directories, expectedABs);
+  checkDirs(MailServices.ab.directories, expectedABs);
 
   // Test - Repeat the removal
 
@@ -169,12 +164,12 @@ function run_test() {
   expectedABs.pop();
 
   // Test - Check new directory list
-  checkDirs(gAbManager.directories, expectedABs);
+  checkDirs(MailServices.ab.directories, expectedABs);
 
   // Test - Clear the listeners down
 
-  gAbManager.removeAddressBookListener(gAblAll);
+  MailServices.ab.removeAddressBookListener(gAblAll);
 
   for (i = 0; i< numListenerOptions; ++i)
-    gAbManager.removeAddressBookListener(gAblSingle[i]);
+    MailServices.ab.removeAddressBookListener(gAblSingle[i]);
 };

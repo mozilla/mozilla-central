@@ -15,17 +15,15 @@ function run_test() {
     return;
 
   // Test - Create an LDAP directory
-  var abManager = Components.classes["@mozilla.org/abmanager;1"]
-                            .getService(Components.interfaces.nsIAbManager);
 
   // Use a UTF-8 based directory name
   var abUri =
-    abManager.newAddressBook("\u041C\u0435\u043B\u0435\u043D\u043A\u0438",
-                             kLDAPTestSpec, kLDAPDirectory);
+    MailServices.ab.newAddressBook("\u041C\u0435\u043B\u0435\u043D\u043A\u0438",
+                                   kLDAPTestSpec, kLDAPDirectory);
 
   // Test - Check we have the directory.
-  var abDir = abManager.getDirectory(kLDAPUriPrefix + abUri)
-                       .QueryInterface(Components.interfaces.nsIAbLDAPDirectory);
+  let abDir = MailServices.ab.getDirectory(kLDAPUriPrefix + abUri)
+                             .QueryInterface(Components.interfaces.nsIAbLDAPDirectory);
 
   // Test - Check various fields
   do_check_eq(abDir.dirName, "\u041C\u0435\u043B\u0435\u043D\u043A\u0438");

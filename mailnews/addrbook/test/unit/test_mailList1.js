@@ -39,14 +39,11 @@ function run_test() {
 
   // Test - Get the directory.
 
-  var abManager = Components.classes["@mozilla.org/abmanager;1"]
-                            .getService(Components.interfaces.nsIAbManager);
-
   // XXX Getting all directories ensures we create all ABs because mailing
   // lists need help initialising themselves
-  var temp = abManager.directories;
+  MailServices.ab.directories;
 
-  var AB = abManager.getDirectory(kPABData.URI);
+  let AB = MailServices.ab.getDirectory(kPABData.URI);
 
   // Test - Check all the expected mailing lists exist.
 
@@ -70,7 +67,7 @@ function run_test() {
 
   // Test - Remove a list.
 
-  mailList = abManager.getDirectory(kPABData.URI + "/MailList4");
+  mailList = MailServices.ab.getDirectory(kPABData.URI + "/MailList4");
 
   AB.deleteDirectory(mailList);
 

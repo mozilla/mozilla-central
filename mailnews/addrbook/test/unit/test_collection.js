@@ -253,20 +253,14 @@ function run_test()
 {
   // Test - Get the address collecter
 
-  var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefBranch);
-
-  var abManager = Components.classes["@mozilla.org/abmanager;1"]
-                            .getService(Components.interfaces.nsIAbManager);
-
   // XXX Getting all directories ensures we create all ABs because the
   // address collecter can't currently create ABs itself (bug 314448).
-  var temp = abManager.directories;
+  MailServices.ab.directories;
 
   // Get the actual AB for the collector so we can check cards have been
   // added.
   collectChecker.AB =
-    abManager.getDirectory(prefService.getCharPref("mail.collect_addressbook"));
+    MailServices.ab.getDirectory(Services.prefs.getCharPref("mail.collect_addressbook"));
 
   // Get the actual collecter
   collectChecker.addressCollect =

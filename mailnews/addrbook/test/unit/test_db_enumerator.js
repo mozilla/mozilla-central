@@ -3,7 +3,6 @@
  * addr database and delete the underlying directory, which forces the ab
  * closed.
  */
-var abm             = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
 var ab_prefix       = "test-537815-";
 var re_prefix       = new RegExp(ab_prefix)
 var card_properties = { FirstName: "01-first-3", LastName: "02-last", PrimaryEmail: "08-email-1@zindus.com" };
@@ -15,15 +14,15 @@ function bug_537815_fixture_setup()
 
   for (i = 1; i <= max_addressbooks; i++) {
     let ab_name = ab_prefix + i;
-    abm.newAddressBook(ab_name, "", 2);
+    MailServices.ab.newAddressBook(ab_name, "", 2);
     dump("created: " + ab_name + "\n");
 
     for (var j = 1; j < 2; j++) {
-      let enm_dirs = abm.directories;
+      let enm_dirs = MailServices.ab.directories;
       while (enm_dirs.hasMoreElements()) {
         let elem = enm_dirs.getNext().QueryInterface(Ci.nsIAbDirectory);
         let uri = elem.URI;
-        let dir = abm.getDirectory(uri);
+        let dir = MailServices.ab.getDirectory(uri);
 
         dump("considering: j: " + j + " " + elem.dirName + "\n");
 
@@ -45,13 +44,13 @@ function bug_537815_fixture_setup()
 
 function bug_537815_test()
 {
-  let enm_dirs = abm.directories;
+  let enm_dirs = MailServices.ab.directories;
   let i, key;
 
   while (enm_dirs.hasMoreElements()) {
     let elem = enm_dirs.getNext().QueryInterface(Ci.nsIAbDirectory);
     let uri  = elem.URI;
-    let dir  = abm.getDirectory(uri);
+    let dir  = MailServices.ab.getDirectory(uri);
 
     if (String(elem.dirName).match(re_prefix)) {
       let enm_cards = dir.childCards;
@@ -78,7 +77,7 @@ function test_bug_537815()
 
 function bug_537815_fixture_tear_down()
 {
-  let enm_dirs = abm.directories;
+  let enm_dirs = MailServices.ab.directories;
   let a_uri = {};
 
   while (enm_dirs.hasMoreElements()) {
@@ -91,7 +90,7 @@ function bug_537815_fixture_tear_down()
   }
 
   for (let uri in a_uri)
-    abm.deleteAddressBook(uri);
+    MailServices.ab.deleteAddressBook(uri);
 }
 
 function run_test()

@@ -26,10 +26,7 @@ function run_test() {
   var obs = new acObserver();
 
   // Set up an identity in the account manager with the default settings
-  var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-
-  var identity = acctMgr.createIdentity();
+  let identity = MailServices.accounts.createIdentity();
 
   // Initially disable autocomplete
   identity.autocompleteToMyDomain = false;

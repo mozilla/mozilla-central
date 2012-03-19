@@ -3,13 +3,8 @@
  * Test suite for nsAbManager functions relating to listeners.
  */
 
-const abManagerContractID = "@mozilla.org/abmanager;1";
-const nsIAbManager = Components.interfaces.nsIAbManager;
 const nsIAbListener = Components.interfaces.nsIAbListener;
 const numListenerOptions = 4;
-
-var gAbManager = Components.classes[abManagerContractID]
-                             .getService(nsIAbManager);
 
 var gAblAll;
 var gAblSingle = new Array(numListenerOptions);
@@ -23,29 +18,29 @@ abL.prototype = {
   onItemAdded: function (parentItem, item) {
     this.mReceived |= nsIAbListener.itemAdded;
     if (this.mAutoRemoveItem)
-      gAbManager.removeAddressBookListener(this);
+      MailServices.ab.removeAddressBookListener(this);
   },
   onItemRemoved: function (parentItem, item) {
     this.mReceived |=
-      (item == gAbManager ? nsIAbListener.directoryRemoved :
-                            nsIAbListener.directoryItemRemoved);
+      (item == MailServices.ab ? nsIAbListener.directoryRemoved :
+                                 nsIAbListener.directoryItemRemoved);
     if (this.mAutoRemoveItem)
-      gAbManager.removeAddressBookListener(this);
+      MailServices.ab.removeAddressBookListener(this);
   },
   onItemPropertyChanged: function (item, property, oldValue, newValue) {
     this.mReceived |= nsIAbListener.itemChanged;
     if (this.mAutoRemoveItem)
-      gAbManager.removeAddressBookListener(this);
+      MailServices.ab.removeAddressBookListener(this);
   }
 };
 
 function NotifyAbManager() {
-  gAbManager.notifyItemPropertyChanged(null, null, null, null);
-  gAbManager.notifyDirectoryItemAdded(null, null);
-  gAbManager.notifyDirectoryItemDeleted(null, null);
-  // gAbManager just happens to be nsISupports derived and makes it easy for
+  MailServices.ab.notifyItemPropertyChanged(null, null, null, null);
+  MailServices.ab.notifyDirectoryItemAdded(null, null);
+  MailServices.ab.notifyDirectoryItemDeleted(null, null);
+  // MailServices.ab just happens to be nsISupports derived and makes it easy for
   // us to distinguish between xxxItemDeleted and xxxDeleted.
-  gAbManager.notifyDirectoryDeleted(null, gAbManager);
+  MailServices.ab.notifyDirectoryDeleted(null, MailServices.ab);
 }
 
 function run_test() {
@@ -55,11 +50,11 @@ function run_test() {
 
   gAblAll = new abL;
 
-  gAbManager.addAddressBookListener(gAblAll, nsIAbListener.all);
+  MailServices.ab.addAddressBookListener(gAblAll, nsIAbListener.all);
 
   for (i = 0; i < numListenerOptions; ++i) {
     gAblSingle[i] = new abL;
-    gAbManager.addAddressBookListener(gAblSingle[i], 1 << i);
+    MailServices.ab.addAddressBookListener(gAblSingle[i], 1 << i);
   }
 
   // Test - Notify listener on all available items
@@ -104,5 +99,5 @@ function run_test() {
 
   // Test - Remove main listener
 
-  gAbManager.removeAddressBookListener(gAblAll);
+  MailServices.ab.removeAddressBookListener(gAblAll);
 };

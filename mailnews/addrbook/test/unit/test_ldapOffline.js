@@ -4,9 +4,6 @@
  * when offline and that we don't crash.
  */
 
-Components.utils.import("resource://gre/modules/Services.jsm");
-Components.utils.import("resource://gre/modules/mailServices.js");
-
 const kLDAPDirectory = 0; // defined in nsDirPrefs.h
 const kLDAPUriPrefix = "moz-abldapdirectory://";
 const kLDAPTestSpec = "ldap://invalidhost//dc=intranet??sub?(objectclass=*)";

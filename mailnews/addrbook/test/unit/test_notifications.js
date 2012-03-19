@@ -28,18 +28,15 @@ var abListener = {
 function run_test() {
   var i;
 
-  var abManager = Cc["@mozilla.org/abmanager;1"]
-                    .getService(Ci.nsIAbManager);
-
   // XXX Getting all directories ensures we create all ABs because the
   // address collecter can't currently create ABs itself (bug 314448).
-  abManager.directories;
+  MailServices.ab.directories;
 
   // Add a listener
-  abManager.addAddressBookListener(abListener, Ci.nsIAbListener.all);
+  MailServices.ab.addAddressBookListener(abListener, Ci.nsIAbListener.all);
 
   // Get the directory
-  var AB = abManager.getDirectory(kPABData.URI);
+  let AB = MailServices.ab.getDirectory(kPABData.URI);
 
   // For card tests, the most we expect is one notification.
   abListener.maxResults = 1;
@@ -48,7 +45,7 @@ function run_test() {
 
   var card = Cc["@mozilla.org/addressbook/cardproperty;1"]
                .createInstance(Ci.nsIAbCard);
-  
+
   card.firstName = "test";
   card.primaryEmail = "test@invalid.com";
 
@@ -151,5 +148,5 @@ function run_test() {
 
   // Remove listener
 
-  abManager.removeAddressBookListener(abListener);
+  MailServices.ab.removeAddressBookListener(abListener);
 };

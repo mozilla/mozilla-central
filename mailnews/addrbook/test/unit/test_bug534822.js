@@ -13,14 +13,10 @@ function run_test() {
   specialPrefs = gProfileDir;
   specialPrefs.append("bug534822prefs.js");
 
-  Cc["@mozilla.org/preferences-service;1"]
-    .getService(Ci.nsIPrefService)
-    .readUserPrefs(specialPrefs);
+  Services.prefs.readUserPrefs(specialPrefs);
 
   // Now load the ABs and check we've got all of them.
-  let dirs = Cc["@mozilla.org/abmanager;1"]
-               .getService(Ci.nsIAbManager)
-               .directories;
+  let dirs = MailServices.ab.directories;
 
   let dir;
 
@@ -36,7 +32,7 @@ function run_test() {
 
   while (dirs.hasMoreElements()) {
     let dir = dirs.getNext().QueryInterface(Ci.nsIAbDirectory);
-    
+
     for (let i = 0; i < results.length; ++i) {
       if (results[i].name == dir.dirName) {
         do_check_false(results[i].result);

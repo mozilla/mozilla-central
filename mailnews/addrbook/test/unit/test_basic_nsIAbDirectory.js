@@ -27,15 +27,9 @@
 // Main function for the this test so we can check both personal and
 // collected books work correctly in an easy manner.
 function check_ab(abConfig) {
-  var gPref = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
-
   // Test - Get the directory
 
-  var abManager = Components.classes["@mozilla.org/abmanager;1"]
-                            .getService(Components.interfaces.nsIAbManager);
-
-  var AB = abManager.getDirectory(abConfig.URI);
+  let AB = MailServices.ab.getDirectory(abConfig.URI);
 
   // Test - Is it the right type?
 
@@ -63,11 +57,11 @@ function check_ab(abConfig) {
   // enable is the default
   do_check_eq(AB.useForAutocomplete(""), true);
 
-  gPref.setBoolPref("mail.enable_autocomplete", false);
+  Services.prefs.setBoolPref("mail.enable_autocomplete", false);
 
   do_check_eq(AB.useForAutocomplete(""), false);
 
-  gPref.setBoolPref("mail.enable_autocomplete", true);
+  Services.prefs.setBoolPref("mail.enable_autocomplete", true);
 
   do_check_eq(AB.useForAutocomplete(""), true);
 
@@ -82,28 +76,28 @@ function check_ab(abConfig) {
   // Test - check get/set int preferences on nsIAbDirectory
 
   AB.setIntValue("inttest", 12345);
-  do_check_eq(gPref.getIntPref(abConfig.dirPrefID + ".inttest"), 12345);
+  do_check_eq(Services.prefs.getIntPref(abConfig.dirPrefID + ".inttest"), 12345);
   do_check_eq(AB.getIntValue("inttest", -1), 12345);
 
   AB.setIntValue("inttest", 123456);
-  do_check_eq(gPref.getIntPref(abConfig.dirPrefID + ".inttest"), 123456);
+  do_check_eq(Services.prefs.getIntPref(abConfig.dirPrefID + ".inttest"), 123456);
   do_check_eq(AB.getIntValue("inttest", -2), 123456);
 
   // Test - check get/set bool preferences on nsIAbDirectory
 
   AB.setBoolValue("booltest", true);
-  do_check_eq(gPref.getBoolPref(abConfig.dirPrefID + ".booltest"), true);
+  do_check_eq(Services.prefs.getBoolPref(abConfig.dirPrefID + ".booltest"), true);
   do_check_eq(AB.getBoolValue("booltest", false), true);
 
   AB.setBoolValue("booltest", false);
-  do_check_eq(gPref.getBoolPref(abConfig.dirPrefID + ".booltest"), false);
+  do_check_eq(Services.prefs.getBoolPref(abConfig.dirPrefID + ".booltest"), false);
   do_check_eq(AB.getBoolValue("booltest", true), false);
 
 
   // Test - check get/set string preferences on nsIAbDirectory
 
   AB.setStringValue("stringtest", "tyu");
-  do_check_eq(gPref.getCharPref(abConfig.dirPrefID + ".stringtest"), "tyu");
+  do_check_eq(Services.prefs.getCharPref(abConfig.dirPrefID + ".stringtest"), "tyu");
   do_check_eq(AB.getStringValue("stringtest", ""), "tyu");
 }
 

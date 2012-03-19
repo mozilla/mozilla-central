@@ -12,6 +12,11 @@ var gMailDirService_js__;
 if (!gMailDirService_js__) {
 gMailDirService_js__ = true;
 
+// Services
+Components.utils.import("resource://gre/modules/Services.jsm");
+// MailServices
+Components.utils.import("resource:///modules/mailServices.js");
+
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // Declare these globally for unit tests and be done with it.

@@ -108,10 +108,7 @@ function run_test() {
 
   // Test - Check disabling of autocomplete
 
-  var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-    .getService(Components.interfaces.nsIPrefBranch);
-
-  prefSvc.setBoolPref("mail.enable_autocomplete", false);
+  Services.prefs.setBoolPref("mail.enable_autocomplete", false);
 
   acs.startSearch("abc", null, null, obs);
 
@@ -123,7 +120,7 @@ function run_test() {
 
   // Test - Check Enabling of autocomplete, but with empty string.
 
-  prefSvc.setBoolPref("mail.enable_autocomplete", true);
+  Services.prefs.setBoolPref("mail.enable_autocomplete", true);
 
   acs.startSearch(null, null, null, obs);
 
@@ -175,7 +172,7 @@ function run_test() {
   do_check_eq(obs._result.getImageAt(0), "");
 
   // Now quick-check with the address book name in the comment column.
-  prefSvc.setIntPref("mail.autoComplete.commentColumn", 1);
+  Services.prefs.setIntPref("mail.autoComplete.commentColumn", 1);
 
   acs.startSearch("email", null, null, obs);
 
@@ -238,9 +235,7 @@ function run_test() {
 
   // Test - Popularity Index
 
-  var abManager = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
-
-  var pab = abManager.getDirectory(kPABData.URI);
+  let pab = MailServices.ab.getDirectory(kPABData.URI);
 
   var childCards = pab.childCards;
 

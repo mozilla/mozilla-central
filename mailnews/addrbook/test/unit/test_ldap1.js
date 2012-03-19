@@ -14,14 +14,11 @@ function run_test() {
     return;
 
   // Test - Create an LDAP directory
-  var abManager = Components.classes["@mozilla.org/abmanager;1"]
-                            .getService(Components.interfaces.nsIAbManager);
-
-  var abUri = abManager.newAddressBook("test", kLDAPTestSpec, kLDAPDirectory);
+  let abUri = MailServices.ab.newAddressBook("test", kLDAPTestSpec, kLDAPDirectory);
 
   // Test - Check we have the directory.
-  var abDir = abManager.getDirectory(kLDAPUriPrefix + abUri)
-                       .QueryInterface(Components.interfaces.nsIAbLDAPDirectory);
+  let abDir = MailServices.ab.getDirectory(kLDAPUriPrefix + abUri)
+                             .QueryInterface(Components.interfaces.nsIAbLDAPDirectory);
 
   // Test - Check various fields
   do_check_eq(abDir.dirName, "test");
@@ -35,17 +32,8 @@ function run_test() {
 
   // Test - searchDuringLocalAutocomplete
 
-  var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
-
-  var ioService = Cc["@mozilla.org/network/io-service;1"]
-                    .getService(Ci.nsIIOService);
-
   // Set up an account and identity in the account manager
-  var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-
-  var identity = acctMgr.createIdentity();
+  let identity = MailServices.accounts.createIdentity();
 
   const localAcTests =
     [
@@ -100,11 +88,11 @@ function run_test() {
 
   function checkAc(element, index, array) {
     dump("Testing index " + index + "\n");
-    prefs.setBoolPref("ldap_2.autoComplete.useDirectory", element.useDir);
-    prefs.setCharPref("ldap_2.autoComplete.directoryServer", element.dirSer);
+    Services.prefs.setBoolPref("ldap_2.autoComplete.useDirectory", element.useDir);
+    Services.prefs.setCharPref("ldap_2.autoComplete.directoryServer", element.dirSer);
     identity.overrideGlobalPref = element.idOver;
     identity.directoryServer = element.idSer;
-    ioService.offline = element.offline;
+    Services.io.offline = element.offline;
 
     do_check_eq(abDir.useForAutocomplete(element.idKey), element.result);
   }

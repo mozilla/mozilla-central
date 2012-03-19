@@ -45,12 +45,10 @@ function run_test()
   // We set up the cards for this test manually as it is easier to set the
   // popularity index and we don't need many.
 
-  var abManager = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
-
   // Ensure all the directories are initialised.
-  abManager.directories;
+  MailServices.ab.directories;
 
-  var ab = abManager.getDirectory(kPABData.URI);
+  let ab = MailServices.ab.getDirectory(kPABData.URI);
 
   function createAndAddCard(element) {
     var card = Cc["@mozilla.org/addressbook/cardproperty;1"]

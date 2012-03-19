@@ -2,7 +2,6 @@
  * the guarantees of their documented requirements.
  */
 
-var abMgr;
 /**
  * Checks that the directory follows the contract for UUIDs.
  *
@@ -20,7 +19,7 @@ function check_directory(directory) {
 
   // Question 1: Is the UUID the preference ID?
   do_check_eq(prefId, directory.uuid);
-  
+
   // Now we need to run through the cards, checking that each card meets the
   // requirements.
   var seenIds = [], cards = [];
@@ -38,14 +37,14 @@ function check_directory(directory) {
     seenIds.push(card.localId);
 
     // Question 2.3: Is the format equal to generateUUID?
-    do_check_eq(card.uuid, abMgr.generateUUID(prefId, card.localId));
+    do_check_eq(card.uuid, MailServices.ab.generateUUID(prefId, card.localId));
   }
 
   // Question 3: Do cards returned via searches return UUIDs correctly?
   var uri = directory.URI;
   uri += "?(or(DisplayName,=,a)(DisplayName,!=,a))";
-  var search = abMgr.getDirectory(uri);
-  
+  let search = MailServices.ab.getDirectory(uri);
+
   enumerator = search.childCards;
   while (enumerator.hasMoreElements()) {
     var card = enumerator.getNext().QueryInterface(Ci.nsIAbCard);
@@ -57,13 +56,13 @@ function check_directory(directory) {
     do_check_neq(card.localId, "");
 
     // Question 3.3: Is the format equal to generateUUID?
-    do_check_eq(card.uuid, abMgr.generateUUID(prefId, card.localId));
+    do_check_eq(card.uuid, MailServices.ab.generateUUID(prefId, card.localId));
   }
 
   // The remaining tests deal with modification of address books.
   if (!testModification)
     return;
-  
+
   // Question 4: Does adding a new card properly set the UUID?
   var newCard = Cc["@mozilla.org/addressbook/cardproperty;1"]
                   .createInstance(Ci.nsIAbCard);
@@ -115,10 +114,9 @@ function run_test() {
   do_check_eq(newCard.localId, "");
 
   // Step 2: Check the directories
-  abMgr = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
-  var dirs = abMgr.directories;
+  let dirs = MailServices.ab.directories;
   while (dirs.hasMoreElements()) {
-    var directory = dirs.getNext().QueryInterface(Ci.nsIAbDirectory);
+    let directory = dirs.getNext().QueryInterface(Ci.nsIAbDirectory);
     check_directory(directory);
   }
 }

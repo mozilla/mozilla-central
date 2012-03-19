@@ -3,10 +3,8 @@
  * nsAbMDBDirectory::DeleteCards if aCards is null
  */
 function run_test() {
-  // get the Address Book Manager service
-  var abManager = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
   // get the Personal Address Book
-  var pab = abManager.getDirectory(kPABData.URI);
+  let pab = MailServices.ab.getDirectory(kPABData.URI);
   do_check_true(pab instanceof Ci.nsIAbDirectory);
   try {
     pab.deleteCards(null); // this should throw an error

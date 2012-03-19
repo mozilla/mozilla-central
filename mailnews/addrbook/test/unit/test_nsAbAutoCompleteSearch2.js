@@ -8,8 +8,6 @@
  * books.
  */
 
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-
 // taken from nsAbAutoCompleteSearch.js
 const ACR = Components.interfaces.nsIAutoCompleteResult;
 const nsIAbAutoCompleteResult = Components.interfaces.nsIAbAutoCompleteResult;
@@ -151,10 +149,7 @@ function run_test() {
   var obs = new acObserver();
 
   // Ensure we've got the comment column set up for extra checking.
-  var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-    .getService(Components.interfaces.nsIPrefBranch);
-
-  prefSvc.setIntPref("mail.autoComplete.commentColumn", 1);
+  Services.prefs.setIntPref("mail.autoComplete.commentColumn", 1);
 
   // Make up the last autocomplete result
   var lastResult = new nsAbAutoCompleteResult();
