@@ -1975,7 +1975,8 @@ mimeEmitterEndHeader(MimeDisplayOptions *opt, MimeObject *obj)
     if (msd->format_out == nsMimeOutput::nsMimeMessageSplitDisplay ||
         msd->format_out == nsMimeOutput::nsMimeMessageHeaderDisplay ||
         msd->format_out == nsMimeOutput::nsMimeMessageBodyDisplay ||
-        msd->format_out == nsMimeOutput::nsMimeMessageSaveAs) {
+        msd->format_out == nsMimeOutput::nsMimeMessageSaveAs ||
+        msd->format_out == nsMimeOutput::nsMimeMessagePrintOutput) {
       if (obj->headers) {
         nsMsgAttachmentData attachment;
         attIndex = 0;
