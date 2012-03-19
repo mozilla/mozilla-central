@@ -1,0 +1,3 @@
+# Turn off android builds until supported by webrtc.org
+exit 1
+
