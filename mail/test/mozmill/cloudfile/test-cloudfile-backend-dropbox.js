@@ -190,3 +190,25 @@ function test_deleting_uploads() {
   assert_equals(obs.data[kDeleteFile][0], kFilename);
   Services.obs.removeObserver(obs, kDeleteFile);
 }
+
+/**
+ * Test that when we call createExistingAccount, onStopRequest is successfully
+ * called, and we pass the correct parameters.
+ */
+function test_create_existing_account() {
+  let provider = gServer.getPreparedBackend("someNewAccount");
+  let done = false;
+  let myObs = {
+    onStartRequest: function(aRequest, aContext) {
+    },
+    onStopRequest: function(aRequest, aContext, aStatusCode) {
+      assert_true(aContext instanceof Ci.nsIMsgCloudFileProvider);
+      assert_equals(aStatusCode, Components.results.NS_OK);
+      done = true;
+    },
+  }
+
+  provider.createExistingAccount(myObs);
+  mc.waitFor(function() done);
+}
+

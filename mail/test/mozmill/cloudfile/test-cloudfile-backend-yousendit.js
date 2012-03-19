@@ -16,7 +16,8 @@ const RELATIVE_ROOT = '../shared-modules';
 const MODULE_REQUIRES = ['folder-display-helpers',
                          'compose-helpers',
                          'cloudfile-yousendit-helpers',
-                         'observer-helpers',];
+                         'observer-helpers',
+                         'prompt-helpers',];
 
 Cu.import('resource://gre/modules/Services.jsm');
 
@@ -40,6 +41,9 @@ function setupModule(module) {
 
   let oh = collector.getModule('observer-helpers');
   oh.installInto(module);
+
+  let ph = collector.getModule('prompt-helpers');
+  ph.installInto(module);
 
   gObsManager = new cbh.SimpleRequestObserverManager();
 
@@ -183,6 +187,29 @@ function test_deleting_uploads() {
   Services.obs.removeObserver(obs, kDeleteFile);
 }
 
+/**
+ * Test that when we call createExistingAccount, onStopRequest is successfully
+ * called, and we pass the correct parameters.
+ */
+function test_create_existing_account() {
+  // We have to mock out the auth prompter, or else we'll lock up.
+  gMockAuthPromptReg.register();
+  let provider = gServer.getPreparedBackend("someNewAccount");
+  let done = false;
+  let myObs = {
+    onStartRequest: function(aRequest, aContext) {
+    },
+    onStopRequest: function(aRequest, aContext, aStatusCode) {
+      assert_true(aContext instanceof Ci.nsIMsgCloudFileProvider);
+      assert_equals(aStatusCode, Components.results.NS_OK);
+      done = true;
+    },
+  }
+
+  provider.createExistingAccount(myObs);
+  mc.waitFor(function() done);
+  gMockAuthPromptReg.unregister();
+}
 
 function test_delete_refreshes_stale_token() {
   const kFilename = "testFile1";

@@ -46,12 +46,17 @@ const MODULE_NAME = 'prompt-helpers';
 const RELATIVE_ROOT = '../shared-modules';
 
 // we need this for the main controller
-const MODULE_REQUIRES = [];
+const MODULE_REQUIRES = ['mock-object-helpers'];
 const kMockPromptServiceName = "Mock Prompt Service";
 const kPromptServiceContractID = "@mozilla.org/embedcomp/prompt-service;1";
 const kPromptServiceName = "Prompt Service";
 
+let gMockAuthPromptReg;
+
 function setupModule() {
+  let moh = collector.getModule('mock-object-helpers');
+  gMockAuthPromptReg = new moh.MockObjectReplacer("@mozilla.org/prompter;1",
+                                                  MockAuthPromptFactoryConstructor);
 }
 
 function installInto(module) {
@@ -59,7 +64,45 @@ function installInto(module) {
 
   // Now copy helper functions
   module.gMockPromptService = gMockPromptService;
+  module.gMockAuthPromptReg = gMockAuthPromptReg;
+  module.gMockAuthPrompt = gMockAuthPrompt;
 }
+
+function MockAuthPromptFactoryConstructor() {
+  return gMockAuthPromptFactory;
+}
+
+var gMockAuthPromptFactory = {
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIPromptFactory]),
+  getPrompt: function(aParent, aIID, aResult) {
+    return gMockAuthPrompt.QueryInterface(aIID);
+  }
+}
+
+
+var gMockAuthPrompt = {
+  password: "",
+
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIAuthPrompt]),
+
+  prompt: function MAP_prompt(aTitle, aText, aRealm, aSave,
+                              aDefaultText) {
+    throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+  },
+
+  promptUsernameAndPassword: function
+      MAP_promptUsernameAndPassword(aTitle, aText, aRealm, aSave,
+                                    aUser, aPwd) {
+    throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+  },
+
+  promptPassword: function MAP_promptPassword(aTitle, aText,
+                                              aRealm, aSave,
+                                              aPwd) {
+    aPwd.value = this.password;
+    return true;
+  }
+};
 
 var gMockPromptService = {
   _registered: false,
