@@ -127,7 +127,7 @@ interface prplIUsernameSplit: nsISupports {
   readonly attribute AUTF8String defaultValue;
   readonly attribute char separator;
 
-  /* reverse is PR_TRUE if the separator should be found starting at
-     the end of the string, PR_FALSE otherwise. */
+  /* reverse is true if the separator should be found starting at
+     the end of the string, false otherwise. */
   readonly attribute boolean reverse;
 };
