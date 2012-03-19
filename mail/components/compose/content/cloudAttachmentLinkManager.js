@@ -49,17 +49,12 @@ var gCloudAttachmentLinkManager = {
     let childNodes = mailBody.childNodes;
     let container = editor.createElementWithDefaults("div");
 
-    for (let i = 0; i < childNodes.length; ++i) {
-      let oldChild = childNodes[i];
-      // It's strange, but for some reason, carriage-returns seem to be truncated
-      // during the node transfer...so we put them back.
-      if (oldChild.nodeType == Node.TEXT_NODE)
-        oldChild.nodeValue += "\r\n";
-
-      let removedChild = oldChild.parentNode.removeChild(oldChild);
-      container.appendChild(removedChild);
+    if (mailBody.hasChildNodes()) {
+      while (mailBody.childNodes.length > 0) {
+        let removedChild = mailBody.removeChild(mailBody.firstChild);
+        container.appendChild(removedChild);
+      }
     }
-
     editor.insertLineBreak();
     editor.insertElementAtSelection(container, false);
     editor.insertLineBreak();
