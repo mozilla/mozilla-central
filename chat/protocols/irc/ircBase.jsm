@@ -639,8 +639,8 @@ var ircBase = {
       // <nick> <user> <host> * :<real name>
       // <username>@<hostname>
       let source = aMessage.params[2] + "@" + aMessage.params[3];
-      return setWhoIs(this, aMessage, {connectedFrom: source,
-                                       realname: aMessage.params[5]});
+      return setWhoIs(this, aMessage, {realname: aMessage.params[5],
+                                       connectedFrom: source});
     },
     "312": function(aMessage) { // RPL_WHOISSERVER
       // <nick> <server> :<server info>
@@ -654,9 +654,9 @@ var ircBase = {
     },
     "314": function(aMessage) { // RPL_WHOWASUSER
       // <nick> <user> <host> * :<real name>
-      return setWhoIs(this, aMessage, {user: aMessage.params[2],
-                                       host: aMessage.params[3],
-                                       realname: aMessage.params[5]});
+      let source = aMessage.params[2] + "@" + aMessage.params[3];
+      return setWhoIs(this, aMessage, {realname: aMessage.params[5],
+                                       connectedFrom: source});
     },
     "315": function(aMessage) { // RPL_ENDOFWHO
       // <name> :End of WHO list
