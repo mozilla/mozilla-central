@@ -53,33 +53,29 @@
 
 /* :::: Toolbar :::: */
 
-#ab-toolbox {
+#ab-toolbox:not(:-moz-lwtheme) {
   -moz-appearance: none;
+  background-color: -moz-Dialog;
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
+                    rgba(255, 255, 255, 0) 28px);
   border-top: none;
-  background-color: transparent;
+  border-bottom: 1px solid ThreeDShadow;
 }
 
 toolbar:not(:-moz-lwtheme) {
   -moz-appearance: none;
   border: none;
-  background-color: -moz-Dialog;
 }
 
-@media all and (-moz-windows-default-theme) {
-  toolbar:not(:-moz-lwtheme) {
-    background-color: rgb(227, 237, 246);
+@media (-moz-windows-default-theme) {
+  #ab-toolbox:not(:-moz-lwtheme) {
+    background-color: rgb(207, 219, 236);
   }
 }
 
-toolbox > toolbar:first-child:not(:-moz-lwtheme) {
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
-                    rgba(255, 255, 255, .0));
-}
-
-toolbox > toolbar:last-of-type:not(:-moz-lwtheme) {
-  background-image: -moz-linear-gradient(transparent, transparent 10%,
-                    rgba(0, 0, 0, .03) 50%, rgba(0, 0, 0, .1) 90%,
-                    rgba(0, 0, 0, .2));
+toolbox > toolbar:last-of-type {
+  padding-top: 1px;
+  padding-bottom: 1px;
 }
 
 /* ::::: primary toolbar buttons ::::: */
@@ -234,69 +230,10 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   text-align: start;
 }
 
-@media all and (-moz-windows-compositor) {
-  #addressbookWindow,
-  #abContent {
-    -moz-appearance: -moz-win-borderless-glass;
-    background: transparent;
-  }
-
-  #ab-toolbox:not(:-moz-lwtheme),
-  #ab-toolbox > #ab-bar2,
-  #ab-toolbox > toolbar {
-    background: transparent;
-    border-style: none;
-  }
-
+@media (-moz-windows-compositor) {
   #ab-toolbox:not(:-moz-lwtheme) {
     color: black;
     text-shadow: 0 0 .7em white, 0 0 .7em white, 0 1px 0 rgba(255, 255, 255, .4);
-  }
-
-  #menubar-items:not(:-moz-lwtheme) {
-    background-color: rgba(255, 255, 255, .5);
-    border-radius: 4px;
-  }
-
-  menubar > menu:-moz-window-inactive {
-    color: MenuText;
-  }
-
-  /* lesser transparency on Glass background */
-  .toolbarbutton-menubutton-button:not(:-moz-lwtheme),
-  .toolbarbutton-menubutton-dropmarker:not(:-moz-lwtheme),
-  .toolbarbutton-1:not(:-moz-lwtheme) {
-    background-color: rgba(227, 237, 246, .7);
-  }
-
-  /* lesser transparency on Glass background */
-  .toolbarbutton-menubutton-button:not(:-moz-lwtheme):not([disabled="true"]):not(:active):hover,
-  toolbarbutton[type="menu-button"]:not(:-moz-lwtheme):not([open="true"]):not(:active):hover >
-                    .toolbarbutton-menubutton-dropmarker:not([disabled="true"]),
-  .toolbarbutton-1:not(:-moz-lwtheme):not([disabled="true"]):not([checked="true"]):not(:active):hover {
-    background-color: rgba(136, 197, 213, .85);
-  }
-
-  .toolbarbutton-menubutton-button[disabled="true"],
-  .toolbarbutton-menubutton-dropmarker[disabled="true"] {
-    opacity: 1 !important;
-  }
-
-  #addressbookWindow[sizemode=normal] #abContent {
-    -moz-appearance: none;
-    border: 1px solid rgba(10%, 10%, 10%, .4);
-    border-top: none;
-    background-color: transparent;
-    background-clip: padding-box;
-  }
-
-  #addressbookWindow[sizemode=normal] statusbar {
-    -moz-appearance: none;
-    margin-top: -1px;
-    border: 1px solid rgba(10%, 10%, 10%, .4);
-    border-top-color: threedshadow;
-    border-radius: 1px 1px 0 0;
-    background-clip: padding-box;
   }
 }
 
