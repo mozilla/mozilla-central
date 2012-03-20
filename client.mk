@@ -540,11 +540,8 @@ EXTRA_CONFIG_DEPS := \
 	$(TOPSRCDIR)/media/webrtc/trunk/testing/gmock.gyp \
 	$(TOPSRCDIR)/media/webrtc/trunk/testing/gtest.gyp \
 	$(TOPSRCDIR)/media/webrtc/trunk/third_party/libsrtp/libsrtp.gyp \
-	$(TOPSRCDIR)/media/webrtc/trunk/third_party/expat/expat.gyp.orig \
 	$(TOPSRCDIR)/media/webrtc/trunk/third_party/expat/expat.gyp \
-	$(TOPSRCDIR)/media/webrtc/trunk/third_party/libjingle/libjingle.gyp.~82663~ \
 	$(TOPSRCDIR)/media/webrtc/trunk/third_party/libjingle/libjingle.gyp \
-	$(TOPSRCDIR)/media/webrtc/trunk/third_party/libjingle/libjingle.gyp.~87358~ \
 	$(TOPSRCDIR)/media/webrtc/trunk/third_party/jsoncpp/jsoncpp.gyp \
 	$(TOPSRCDIR)/media/webrtc/trunk/third_party/protobuf/protobuf.gyp \
 	$(TOPSRCDIR)/media/webrtc/trunk/third_party/libjpeg_turbo/libjpeg.gyp \
