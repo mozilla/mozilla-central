@@ -43,23 +43,40 @@ Cu.import("resource:///modules/ircHandlers.jsm");
 Cu.import("resource:///modules/jsProtoHelper.jsm");
 Cu.import("resource:///modules/socket.jsm");
 
-// Parses a raw IRC message into an object (see section 2.3 of RFC 2812).
+/*
+ * Parses a raw IRC message into an object (see section 2.3 of RFC 2812). This
+ * returns an object with the following fields:
+ *   rawMessage The initial message string received without any processing.
+ *   command    A string that is the command or response code.
+ *   params     An array of strings for the parameters. The last parameter is
+ *              stripped of its : prefix.
+ * If the message is from a user:
+ *   nickname   The user's nickname.
+ *   user       The user's username, note that this can be undefined.
+ *   host       The user's hostname, note that this can be undefined.
+ *   source     A "nicely" formatted combination of user & host, which is
+ *              <user>@<host> or <user> if host is undefined.
+ * Otherwise if it's from a server:
+ *   servername This is the address of the server as a host (e.g.
+ *              irc.mozilla.org) or an IPv4 address (e.g. 1.2.3.4) or IPv6
+ *              address (e.g. 3ffe:1900:4545:3:200:f8ff:fe21:67cf).
+ */
 function ircMessage(aData) {
   LOG(aData);
   let message = {rawMessage: aData};
-  let temp;
+  let temp, prefix;
 
   // Splits the raw string into four parts (the second is required), the command
   // is required. A raw string looks like:
-  //   [":" <source> " "] <command> [" " <parameter>]* [":" <last parameter>]
-  //     <source>: :(<server url> | <nickname> [["!" <user>] "@" <host>])
+  //   [":" <prefix> " "] <command> [" " <parameter>]* [":" <last parameter>]
+  //     <prefix>: :(<server name> | <nickname> [["!" <user>] "@" <host>])
   //     <command>: /[^ ]+/
   //     <parameter>: /[^ ]+/
   //     <last parameter>: /.+/
   // See http://joshualuckers.nl/2010/01/10/regular-expression-to-match-raw-irc-messages/
   if ((temp = aData.match(/^(?::([^ ]+) )?([^ ]+)(?: ((?:[^: ][^ ]* ?)*))?(?: ?:(.*))?$/))) {
     // Assume message is from the server if not specified
-    message.source = temp[1] || this._server;
+    prefix = temp[1];
     message.command = temp[2];
     // Space separated parameters
     message.params = temp[3] ? temp[3].trim().split(/ +/) : [];
@@ -70,12 +87,18 @@ function ircMessage(aData) {
     //   :(server|nickname[[!user]@host]
     // If the source contains a . or a :, assume it's a server name. See RFC
     // 2812 Section 2.3 definition of servername vs. nickname.
-    if (message.source &&
-        (temp = message.source.match(/^([^ !@\.:]+)(?:!([^ @]+))?(?:@([^ ]+))?$/))) {
+    if (prefix &&
+        (temp = prefix.match(/^([^ !@\.:]+)(?:!([^ @]+))?(?:@([^ ]+))?$/))) {
       message.nickname = temp[1];
       message.user = temp[2] || null; // Optional
       message.host = temp[3] || null; // Optional
+      if (message.user)
+        message.source = message.user + "@" + message.host;
+      else
+        message.source = message.host; // Note: this can be null!
     }
+    else if (prefix)
+      message.servername = prefix;
   }
 
   return message;

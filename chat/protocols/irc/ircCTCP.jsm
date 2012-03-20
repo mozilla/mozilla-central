@@ -164,7 +164,7 @@ var ctcpBase = {
       // Display message in conversation
       this.getConversation(this.isMUCName(aMessage.params[0]) ?
                              aMessage.params[0] : aMessage.nickname)
-          .writeMessage(aMessage.nickname || aMessage.source,
+          .writeMessage(aMessage.nickname || aMessage.servername,
                         "/me " + aMessage.ctcp.param,
                         {incoming: true});
       return true;

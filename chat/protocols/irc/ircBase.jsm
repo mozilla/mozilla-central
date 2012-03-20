@@ -69,38 +69,43 @@ function privmsg(aAccount, aMessage, aIsNotification) {
     params.notification = true;
   aAccount.getConversation(aAccount.isMUCName(aMessage.params[0]) ?
                            aMessage.params[0] : aMessage.nickname)
-          .writeMessage(aMessage.nickname || aMessage.source,
+          .writeMessage(aMessage.nickname || aMessage.servername,
                         aMessage.params[1], params);
   return true;
 }
 
 // Display the message and remove them from the rooms they're in.
 function leftRoom(aAccount, aNicks, aChannels, aSource, aReason, aKicked) {
-  let msgId = aKicked ? "kicked" : "parted";
+  let msgId = "message." +  (aKicked ? "kicked" : "parted");
   // If a part message was included, include it.
-  let reason = aReason ? _("message." + msgId + ".reason", aReason) : "";
-  function __(aYou, aNick) {
+  let reason = aReason ? _(msgId + ".reason", aReason) : "";
+  function __(aNick, aYou) {
     // If the user is kicked, we need to say who kicked them.
-    if (aKicked)
-      return _("message." + msgId + aYou, aNick, aSource, reason);
-    return _("message." + msgId + aYou, aNick, reason);
+    let msgId2 = msgId + (aYou ? ".you" : "");
+    if (aKicked) {
+      if (aYou)
+        return _(msgId2, aSource, reason);
+      return _(msgId2, aNick, aSource, reason);
+    }
+    if (aYou)
+      return _(msgId2, reason);
+    return _(msgId2, aNick, reason);
   }
 
   for each (let channelName in aChannels) {
+    if (!aAccount.hasConversation(channelName))
+      continue; // Handle when we closed the window
+    let conversation = aAccount.getConversation(channelName);
     for each (let nick in aNicks) {
-      if (!aAccount.hasConversation(channelName))
-        continue; // Handle when we closed the window
-      let conversation = aAccount.getConversation(channelName);
-
       let msg;
       if (aAccount.normalize(nick) == aAccount.normalize(aAccount._nickname)) {
-        msg = __(".you", reason);
+        msg = __(nick, true);
         // If the user left, mark the conversation as no longer being active.
         conversation.left = true;
         conversation.notifyObservers(conversation, "update-conv-chatleft");
       }
       else
-        msg = __("", nick);
+        msg = __(nick);
 
       conversation.writeMessage(aSource, msg, {system: true});
       conversation.removeParticipant(nick, true);
@@ -112,8 +117,8 @@ function leftRoom(aAccount, aNicks, aChannels, aSource, aReason, aKicked) {
 function writeMessage(aAccount, aMessage, aString, aType) {
   let type = {};
   type[aType] = true;
-  aAccount.getConversation(aMessage.source)
-          .writeMessage(aMessage.source, aString, type);
+  aAccount.getConversation(aMessage.servername)
+          .writeMessage(aMessage.servername, aString, type);
   return true;
 }
 
@@ -197,7 +202,7 @@ var ircBase = {
           // Don't worry about adding ourself, RPL_NAMES takes care of that
           // case.
           conversation.getParticipant(aMessage.nickname, true);
-          let msg = _("message.join", aMessage.nickname, aMessage.source);
+          let msg = _("message.join", aMessage.nickname, aMessage.source || "");
           conversation.writeMessage(aMessage.nickname, msg, {system: true,
                                                              noLinkification: true});
         }
@@ -206,10 +211,13 @@ var ircBase = {
     },
     "KICK": function(aMessage) {
       // KICK <channel> *( "," <channel> ) <user> *( "," <user> ) [<comment>]
+      let comment = aMessage.params.length == 3 ? aMessage.params[2] : null;
+      // Some servers (moznet) send the kicker as the comment.
+      if (comment == aMessage.nickname)
+        comment = null;
       return leftRoom(this, aMessage.params[1].split(","),
                       aMessage.params[0].split(","), aMessage.nickname,
-                      aMessage.params.length == 3 ? aMessage.params[2] : null,
-                      true);
+                      comment, true);
     },
     "MODE": function(aMessage) {
       // MODE <nickname> *( ( "+" / "-") *( "i" / "w" / "o" / "O" / "r" ) )
@@ -244,7 +252,7 @@ var ircBase = {
     "PART": function(aMessage) {
       // PART <channel> *( "," <channel> ) [ <Part Message> ]
       return leftRoom(this, [aMessage.nickname], aMessage.params[0].split(","),
-                      aMessage.source,
+                      aMessage.source || "",
                       aMessage.params.length == 2 ? aMessage.params[1] : null);
     },
     "PING": function(aMessage) {
@@ -272,20 +280,20 @@ var ircBase = {
       for each (let conversation in this._conversations) {
         if (conversation.isChat &&
             conversation.hasParticipant(aMessage.nickname)) {
-          conversation.writeMessage(aMessage.source, msg, {system: true});
+          conversation.writeMessage(aMessage.servername, msg, {system: true});
           conversation.removeParticipant(aMessage.nickname, true);
         }
       }
       return true;
     },
     "SQUIT": function(aMessage) {
-      // XXX do we need this?
-      return false;
+      // <server> <comment>
+      return true;
     },
     "TOPIC": function(aMessage) {
       // TOPIC <channel> [ <topic> ]
       // Show topic as a message.
-      let source = aMessage.nickname || aMessage.source;
+      let source = aMessage.nickname || aMessage.servername;
       let conversation = this.getConversation(aMessage.params[0]);
       let topic = aMessage.params[1];
       let message;
