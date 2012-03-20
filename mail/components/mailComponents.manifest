@@ -19,4 +19,4 @@ category app-startup MailGlue service,@mozilla.org/mail/mailglue;1
 
 component {76a80bff-8c3f-4b78-ad2c-80099e35375d} webSearchProvider.js
 contract @mozilla.org/mail/web-search-provider;1 {76a80bff-8c3f-4b78-ad2c-80099e35375d}
-category xpcom-directory-providers web-search-directory-provider service,@mozilla.org/mail/web-search-provider;1
+category xpcom-directory-providers web-search-directory-provider @mozilla.org/mail/web-search-provider;1

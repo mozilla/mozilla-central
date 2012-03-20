@@ -37,11 +37,12 @@
 const NS_APP_SEARCH_DIR_LIST = "SrchPluginsDL";
 const NS_APP_USER_SEARCH_DIR = "UsrSrchPlugns";
 const NS_APP_SEARCH_DIR = "SrchPlugns";
-const NS_XPCOM_CURRENT_PROCESS_DIR = "XCurProdD";
+const NS_XPCOM_CURRENT_PROCESS_DIR = "XCurProcD";
 const XRE_EXTENSIONS_DIR_LIST = "XREExtDL";
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
@@ -49,19 +50,31 @@ Cu.import("resource://gre/modules/Services.jsm");
 function AppendingEnumerator(base, append) {
   this.base = base;
   this.append = append;
+  this.next = null;
+
+  this.getNext();
 }
 
 AppendingEnumerator.prototype = {
   QueryInterface: XPCOMUtils.generateQI([Ci.nsISimpleEnumerator]),
 
   hasMoreElements: function() {
-    return this.base.hasMoreElements();
+    return this.next != null;
   },
 
   getNext: function() {
-    let file = this.base.getNext().QueryInterface(Ci.nsIFile);
-    file.append(this.append);
-    return file;
+    let res = this.next;
+    let next = null;
+
+    while (this.base.hasMoreElements() && !next) {
+      let file = this.base.getNext().QueryInterface(Ci.nsIFile);
+      file.append(this.append);
+      if (file.exists())
+        next = file;
+    }
+
+    this.next = next;
+    return res;
   },
 };
 
@@ -164,7 +177,7 @@ WebSearchProvider.prototype = {
   appendFileKey: function(key, array) {
     try {
       let file = Services.dirsvc.get(key, Ci.nsIFile);
-      if (!file.exists())
+      if (file.exists())
         array.appendElement(file, false);
     }
     catch(e) {}
