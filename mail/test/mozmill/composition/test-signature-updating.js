@@ -110,15 +110,21 @@ function plaintextComposeWindowSwitchSignatures(suppressSigSep) {
   // the class moz-signature.
   assert_equals(node.localName, "div");
 
-  const sigClass = "moz-signature";
-  assert_equals(node.className, sigClass);
+  const kSeperator = "-- ";
+  const kSigClass = "moz-signature";
+  assert_equals(node.className, kSigClass);
 
-  let expectedText = "Tinderbox is soo 90ies\n";
+  let sigNode = node.firstChild;
 
-  if (!suppressSigSep)
-    expectedText = "-- \n" + expectedText;
+  if (!suppressSigSep) {
+    assert_equals(sigNode.textContent, kSeperator);
+    let brNode = sigNode.nextSibling;
+    assert_equals(brNode.localName, "br");
+    sigNode = brNode.nextSibling;
+  }
 
-  assert_equals(node.textContent, expectedText);
+  let expectedText = "Tinderbox is soo 90ies";
+  assert_equals(sigNode.textContent, expectedText);
 
   // Now switch identities!
   let menuID = cwc.e("msgIdentity");
@@ -134,18 +140,24 @@ function plaintextComposeWindowSwitchSignatures(suppressSigSep) {
   node = node.previousSibling;
 
   assert_equals(node.localName, "div");
-  assert_equals(node.className, sigClass);
+  assert_equals(node.className, kSigClass);
 
-  expectedText = "Tinderboxpushlog is the new *hotness!*\n";
+  sigNode = node.firstChild;
 
-  if (!suppressSigSep)
-    expectedText = "-- \n" + expectedText;
+  if (!suppressSigSep) {
+    expectedText = "-- ";
+    assert_equals(sigNode.textContent, kSeperator);
+    let brNode = sigNode.nextSibling;
+    assert_equals(brNode.localName, "br");
+    sigNode = brNode.nextSibling;
+  }
 
-  assert_equals(node.textContent, expectedText);
+  expectedText = "Tinderboxpushlog is the new *hotness!*";
+  assert_equals(sigNode.textContent, expectedText);
 
   // Now check that the original signature has been removed by ensuring
   // that there's only one node with class moz-signature.
-  let sigs = contentFrame.contentDocument.querySelectorAll("." + sigClass);
+  let sigs = contentFrame.contentDocument.querySelectorAll("." + kSigClass);
   assert_equals(sigs.length, 1);
 
   // And ensure that the text we wrote wasn't altered
