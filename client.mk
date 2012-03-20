@@ -516,9 +516,7 @@ EXTRA_CONFIG_DEPS := \
 	$(TOPSRCDIR)/media/webrtc/trunk/tools/gyp/test/relative/foo/a/c/c.gyp \
 	$(TOPSRCDIR)/media/webrtc/trunk/tools/gyp/test/relative/foo/b/b.gyp \
 	$(TOPSRCDIR)/media/webrtc/trunk/tools/gyp/test/cflags/cflags.gyp \
-	$(TOPSRCDIR)/media/webrtc/trunk/build/common.gypi.rej \
 	$(TOPSRCDIR)/media/webrtc/trunk/build/all.gyp \
-	$(TOPSRCDIR)/media/webrtc/trunk/build/all.gyp.rej \
 	$(TOPSRCDIR)/media/webrtc/trunk/build/grit_action.gypi \
 	$(TOPSRCDIR)/media/webrtc/trunk/build/all_android.gyp \
 	$(TOPSRCDIR)/media/webrtc/trunk/build/grit_target.gypi \
