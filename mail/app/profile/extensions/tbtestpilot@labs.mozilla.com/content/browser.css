@@ -72,7 +72,12 @@
 }
 
 .tail-up {
+ // Needed whilst we support Gecko < 13
  -moz-border-image: url(chrome://testpilot-os/skin/notification-tail-up.png) 26 56 22 18 / 26px 56px 22px 18px round stretch;
+ // Supported in Gecko >= 13
+ -moz-border-image: url(chrome://testpilot-os/skin/notification-tail-up.png) 26 50 22 18 fill repeat;
+ border-width: 26px 56px 22px 18px;
+ border-style: solid;
 }
 
 /* tail-down uses the old styling; it doesn't look as good as the new styling,
@@ -81,7 +86,12 @@
    installed Test Pilot from AMO, they should get the new styling, similar
    to .tail-up! */
 .tail-down {
+ // Needed whilst we support Gecko < 13
  -moz-border-image: url(chrome://testpilot/skin/notification-tail-down.png) 26 50 22 18 / 26px 50px 22px 18px repeat;
+ // Supported in Gecko >= 13
+ -moz-border-image: url(chrome://testpilot/skin/notification-tail-down.png) 26 50 22 18 fill repeat;
+ border-width: 26px 56px 22px 18px;
+ border-style: solid;
  color: white;
 }
 
