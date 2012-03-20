@@ -4773,11 +4773,14 @@ nsContentUtils::GetCurrentJSContext()
 }
 
 /* static */
-void
+nsresult
 nsContentUtils::ASCIIToLower(nsAString& aStr)
 {
   PRUnichar* iter = aStr.BeginWriting();
   PRUnichar* end = aStr.EndWriting();
+  if (NS_UNLIKELY(!iter || !end)) {
+    return NS_ERROR_OUT_OF_MEMORY;
+  }
   while (iter != end) {
     PRUnichar c = *iter;
     if (c >= 'A' && c <= 'Z') {
@@ -4785,16 +4788,20 @@ nsContentUtils::ASCIIToLower(nsAString& aStr)
     }
     ++iter;
   }
+  return NS_OK;
 }
 
 /* static */
-void
+nsresult
 nsContentUtils::ASCIIToLower(const nsAString& aSource, nsAString& aDest)
 {
   PRUint32 len = aSource.Length();
   aDest.SetLength(len);
   if (aDest.Length() == len) {
     PRUnichar* dest = aDest.BeginWriting();
+    if (NS_UNLIKELY(!dest)) {
+      return NS_ERROR_OUT_OF_MEMORY;
+    }
     const PRUnichar* iter = aSource.BeginReading();
     const PRUnichar* end = aSource.EndReading();
     while (iter != end) {
@@ -4804,15 +4811,20 @@ nsContentUtils::ASCIIToLower(const nsAString& aSource, nsAString& aDest)
       ++iter;
       ++dest;
     }
+    return NS_OK;
   }
+  return NS_ERROR_OUT_OF_MEMORY;
 }
 
 /* static */
-void
+nsresult
 nsContentUtils::ASCIIToUpper(nsAString& aStr)
 {
   PRUnichar* iter = aStr.BeginWriting();
   PRUnichar* end = aStr.EndWriting();
+  if (NS_UNLIKELY(!iter || !end)) {
+    return NS_ERROR_OUT_OF_MEMORY;
+  }
   while (iter != end) {
     PRUnichar c = *iter;
     if (c >= 'a' && c <= 'z') {
@@ -4820,16 +4832,20 @@ nsContentUtils::ASCIIToUpper(nsAString& aStr)
     }
     ++iter;
   }
+  return NS_OK;
 }
 
 /* static */
-void
+nsresult
 nsContentUtils::ASCIIToUpper(const nsAString& aSource, nsAString& aDest)
 {
   PRUint32 len = aSource.Length();
   aDest.SetLength(len);
   if (aDest.Length() == len) {
     PRUnichar* dest = aDest.BeginWriting();
+    if (NS_UNLIKELY(!dest)) {
+      return NS_ERROR_OUT_OF_MEMORY;
+    }
     const PRUnichar* iter = aSource.BeginReading();
     const PRUnichar* end = aSource.EndReading();
     while (iter != end) {
@@ -4839,7 +4855,9 @@ nsContentUtils::ASCIIToUpper(const nsAString& aSource, nsAString& aDest)
       ++iter;
       ++dest;
     }
+    return NS_OK;
   }
+  return NS_ERROR_OUT_OF_MEMORY;
 }
 
 bool
