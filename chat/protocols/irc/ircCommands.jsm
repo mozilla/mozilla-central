@@ -68,9 +68,10 @@ function messageCommand(aMsg, aConv) {
   let sep = aMsg.indexOf(" ");
   // If no space in the message or the first space is at the end of the message.
   if (sep == -1 || (sep + 1) == aMsg.length) {
-    if (!aMsg.length || sep == 0)
+    let msg = aMsg.trim();
+    if (!msg.length)
       return false;
-    getAccount(aConv).createConversation(aMsg);
+    getAccount(aConv).createConversation(msg);
     return true;
   }
 
