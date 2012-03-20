@@ -107,7 +107,7 @@ WebSearchProvider.prototype = {
                                          Ci.nsIDirectoryServiceProvider2]),
 
   getFile: function() {
-    throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+    return null;
   },
 
   getFiles: function(prop) {
