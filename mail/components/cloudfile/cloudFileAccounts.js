@@ -115,8 +115,7 @@ var cloudFileAccounts = {
     let className;
 
     try {
-      className = categoryManager.getCategoryEntry(CATEGORY, aType)
-                                 .substring(8); // remove "service,"
+      className = categoryManager.getCategoryEntry(CATEGORY, aType);
     } catch(e) {
       Cu.reportError(e);
       return null;

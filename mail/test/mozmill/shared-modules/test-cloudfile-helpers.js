@@ -103,8 +103,7 @@ var gMockCloudfileManager = {
   _mock_map: {},
 
   register: function MCM_register() {
-    gCategoryManager.addCategoryEntry("cloud-files", kMockID,
-                                      "service," + kMockContractID,
+    gCategoryManager.addCategoryEntry("cloud-files", kMockID, kMockContractID,
                                       false, true);
     gMockCloudfileComponent.register();
   },
