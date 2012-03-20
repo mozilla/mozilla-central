@@ -242,7 +242,11 @@ CommandsService.prototype = {
 
     // cmdArray contains commands sorted by priority, attempt to apply
     // them in order until one succeeds.
-    return cmdArray.some(function (aCmd) aCmd.run(args, aConversation));
+    if (!cmdArray.some(function (aCmd) aCmd.run(args, aConversation))) {
+      // If they all failed, print help message.
+      this.executeCommand("/help " + name, aConversation);
+    }
+    return true;
   },
 
   QueryInterface: XPCOMUtils.generateQI([Ci.imICommandsService]),
