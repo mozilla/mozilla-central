@@ -88,6 +88,7 @@
 #include "nsILineBreaker.h"
 #include "nsLWBrkCIID.h"
 #include "mozilla/Services.h"
+#include "mimemoz2.h"
 
 #ifdef MSGCOMP_TRACE_PERFORMANCE
 #include "prlog.h"
@@ -95,12 +96,6 @@
 #include "nsIMsgMessageService.h"
 #include "nsMsgUtils.h"
 #endif
-
-// <for functions="HTMLSantinize">
-#include "nsIParser.h"
-#include "nsParserCIID.h"
-#include "nsIContentSink.h"
-#include "mozISanitizingSerializer.h"
 
 #include "nsICommandLine.h"
 #include "nsIAppStartup.h"
@@ -111,10 +106,6 @@
 #include <shellapi.h>
 #include "nsIWidget.h"
 #endif
-
-static NS_DEFINE_CID(kParserCID, NS_PARSER_CID);
-// </for>
-
 
 #define DEFAULT_CHROME  "chrome://messenger/content/messengercompose/messengercompose.xul"
 
@@ -697,34 +688,14 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
       {
         //For security reason, we must sanitize the message body before accepting any html...
 
-        // Create a parser
-        nsCOMPtr<nsIParser> parser = do_CreateInstance(kParserCID);
+        rv = HTMLSanitize(rawBody, sanitizedBody); // from mimemoz2.h
 
-        // Create the appropriate output sink
-        nsCOMPtr<nsIContentSink> sink = do_CreateInstance(MOZ_SANITIZINGHTMLSERIALIZER_CONTRACTID);
-
-        nsCString allowedTags;
-        nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
-        if (prefs)
-          prefs->GetCharPref(MAILNEWS_ROOT_PREF "display.html_sanitizer.allowed_tags", getter_Copies(allowedTags));
-
-        if (parser && sink)
+        if (NS_FAILED(rv))
         {
-          nsCOMPtr<mozISanitizingHTMLSerializer> sanSink(do_QueryInterface(sink));
-          if (sanSink)
-          {
-            sanSink->Initialize(&sanitizedBody, 0, NS_ConvertASCIItoUTF16(allowedTags));
-
-            parser->SetContentSink(sink);
-            rv = parser->Parse(rawBody, 0, NS_LITERAL_CSTRING("text/html"), true);
-            if (NS_FAILED(rv))
-            {
-              // Something went horribly wrong with parsing for html format
-              // in the body.  Set composeHTMLFormat to false so we show the
-              // plain text mail compose.
-              composeHTMLFormat = false;
-            }
-          }
+          // Something went horribly wrong with parsing for html format
+          // in the body.  Set composeHTMLFormat to false so we show the
+          // plain text mail compose.
+          composeHTMLFormat = false;
         }
       }
 

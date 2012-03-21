@@ -160,12 +160,6 @@ printf(" E1\n");
 printf("buffer: -%s-\n", NS_LossyConvertUTF16toASCII(*textHTMLSan->complete_buffer).get());
 #endif
 
-  char* allowedTags = 0;
-  nsIPrefBranch *prefBranch = GetPrefBranch(obj->options);
-  if (prefBranch)
-    prefBranch->GetCharPref("mailnews.display.html_sanitizer.allowed_tags",
-                            &allowedTags);
-
 #ifdef DEBUG_BenB
 printf(" E2\n");
 #endif
@@ -177,7 +171,7 @@ printf(" E3\n");
 #ifdef DEBUG_BenB
 printf(" E4\n");
 #endif
-  HTMLSanitize(cb, sanitized, 0, NS_ConvertASCIItoUTF16(allowedTags));
+  HTMLSanitize(cb, sanitized);
 #ifdef DEBUG_BenB
 printf(" E5\n");
 #endif

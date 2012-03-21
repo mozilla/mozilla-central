@@ -207,8 +207,7 @@ nsresult
 HTML2Plaintext(const nsString& inString, nsString& outString,
                PRUint32 flags, PRUint32 wrapCol);
 nsresult
-HTMLSanitize(const nsString& inString, nsString& outString,
-             PRUint32 flags, const nsAString& allowedTags);
+HTMLSanitize(const nsString& inString, nsString& outString);
 
 extern "C" char             *MimeGetStringByID(PRInt32 stringID);
 extern "C" char             *MimeGetStringByName(const PRUnichar *stringName);

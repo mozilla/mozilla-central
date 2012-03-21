@@ -85,20 +85,11 @@
 #include "mimeeobj.h"
 // <for functions="HTML2Plaintext,HTMLSantinize">
 #include "nsXPCOM.h"
-#include "nsParserCIID.h"
-#include "nsIParser.h"
-#include "nsIHTMLContentSink.h"
-#include "nsIContentSerializer.h"
 #include "nsLayoutCID.h"
 #include "nsIComponentManager.h"
 #include "nsIParserUtils.h"
-#include "mozISanitizingSerializer.h"
 // </for>
 #include "mozilla/Services.h"
-
-// <for functions="HTML2Plaintext,HTMLSantinize">
-static NS_DEFINE_CID(kParserCID, NS_PARSER_CID);
-// </for>
 
 #ifdef HAVE_MIME_DATA_SLOT
 #define LOCK_LAST_CACHED_MESSAGE
@@ -2235,55 +2226,54 @@ HTML2Plaintext(const nsString& inString, nsString& outString,
 
 
 /* This function syncronously sanitizes an HTML document (string->string)
-   using the Gecko ContentSink mozISanitizingHTMLSerializer.
-
-   flags: currently unused
-   allowedTags: see mozSanitizingHTMLSerializer::ParsePrefs()
+   using the Gecko nsTreeSanitizer.
 */
 // copied from HTML2Plaintext above
 nsresult
-HTMLSanitize(const nsString& inString, nsString& outString,
-             PRUint32 flags, const nsAString& allowedTags)
+HTMLSanitize(const nsString& inString, nsString& outString)
 {
-  nsresult rv = NS_OK;
+  // If you want to add alternative sanitization, you can insert a conditional
+  // call to another sanitizer and an early return here.
 
-#if DEBUG_BenB
-  printf("Sanitizing HTML\n");
-  char* charstar = ToNewUTF8String(inString);
-  printf("Original HTML is:\n--------------------\n%s--------------------\n",
-         charstar);
-  delete[] charstar;
-#endif
+  PRUint32 flags = nsIParserUtils::SanitizerCidEmbedsOnly |
+                   nsIParserUtils::SanitizerDropForms;
 
-  // Create a parser
-  nsCOMPtr<nsIParser> parser = do_CreateInstance(kParserCID);
-  NS_ENSURE_TRUE(parser, NS_ERROR_FAILURE);
+  nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
 
-  // Create the appropriate output sink
-  nsCOMPtr<nsIContentSink> sink =
-                    do_CreateInstance(MOZ_SANITIZINGHTMLSERIALIZER_CONTRACTID);
-  NS_ENSURE_TRUE(sink, NS_ERROR_FAILURE);
-
-  nsCOMPtr<mozISanitizingHTMLSerializer> sanSink(do_QueryInterface(sink));
-  NS_ENSURE_TRUE(sanSink, NS_ERROR_FAILURE);
-
-  sanSink->Initialize(&outString, flags, allowedTags);
-
-  parser->SetContentSink(sink);
-
-  rv = parser->Parse(inString, 0, NS_LITERAL_CSTRING("text/html"), true);
-  if (NS_FAILED(rv))
-  {
-    NS_ERROR("Parse() failed!");
-    return rv;
+  // Start pref migration. This would make more sense in a method that runs
+  // once at app startup.
+  bool migrated = false;
+  nsresult rv = prefs->GetBoolPref(
+    "mailnews.display.html_sanitizer.allowed_tags.migrated",
+    &migrated);
+  if (NS_SUCCEEDED(rv) && !migrated) {
+    prefs->SetBoolPref("mailnews.display.html_sanitizer.allowed_tags.migrated",
+                       true);
+    nsCAutoString legacy;
+    rv = prefs->GetCharPref("mailnews.display.html_sanitizer.allowed_tags",
+                            getter_Copies(legacy));
+    if (NS_SUCCEEDED(rv)) {
+      prefs->SetBoolPref("mailnews.display.html_sanitizer.drop_non_css_presentation",
+                         legacy.Find("font") < 0);
+      prefs->SetBoolPref("mailnews.display.html_sanitizer.drop_media",
+                         legacy.Find("img") < 0);
+    }
   }
+  // End pref migration.
 
-#if DEBUG_BenB
-  charstar = ToNewUTF8String(outString);
-  printf("Sanitized HTML is:\n--------------------\n%s--------------------\n",
-         charstar);
-  delete[] charstar;
-#endif
+  bool dropPresentational = true;
+  bool dropMedia = false;
+  prefs->GetBoolPref(
+    "mailnews.display.html_sanitizer.drop_non_css_presentation",
+    &dropPresentational);
+  prefs->GetBoolPref(
+    "mailnews.display.html_sanitizer.drop_media",
+    &dropMedia);
+  if (dropPresentational)
+    flags |= nsIParserUtils::SanitizerDropNonCSSPresentation;
+  if (dropMedia)
+    flags |= nsIParserUtils::SanitizerDropMedia;
 
-  return rv;
+  nsCOMPtr<nsIParserUtils> utils = do_GetService(NS_PARSERUTILS_CONTRACTID);
+  return utils->Sanitize(inString, flags, outString);
 }

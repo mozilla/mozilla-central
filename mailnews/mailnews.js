@@ -531,7 +531,9 @@ pref("mailnews.display.date_senders_timezone", false);
 pref("mailnews.display.prefer_plaintext", false);  // Ignore HTML parts in multipart/alternative
 pref("mailnews.display.html_as", 0);  // How to display HTML/MIME parts. 0 = Render the sender's HTML; 1 = HTML->TXT->HTML; 2 = Show HTML source; 3 = Sanitize HTML; 4 = Show all body parts
 pref("mailnews.display.show_all_body_parts_menu", false); // Whether the View > Message body as > All body parts menu item is available
-pref("mailnews.display.html_sanitizer.allowed_tags", "html head title body p br div(lang,title) h1 h2 h3 h4 h5 h6 ul(type,compact) ol(type,compact,start) li(type,value) dl dt dd blockquote(type,cite) pre noscript noframes strong em sub sup span(lang,title) acronym(title) abbr(title) del(title,cite,datetime) ins(title,cite,datetime) q(cite) a(href,name,title) img(alt,title,longdesc,src) base(href) area(alt) applet(alt) object(alt) var samp dfn address kbd code cite s strike tt b i table(align) caption tr(align,valign) td(rowspan,colspan,align,valign) th(rowspan,colspan,align,valign) wbr");
+pref("mailnews.display.html_sanitizer.allowed_tags.migrated", false); // whether legacy mailnews.display.html_sanitizer.allowed_tags pref has been migrated to values of the two prefs below
+pref("mailnews.display.html_sanitizer.drop_non_css_presentation", true); // whether to drop <font>, <center>, align='...', etc.
+pref("mailnews.display.html_sanitizer.drop_media", false); // whether to drop <img>, <video> and <audio>
 pref("mailnews.display.disallow_mime_handlers", 0);  /* Let only a few classes process incoming data. This protects from bugs (e.g. buffer overflows) and from security loopholes (e.g. allowing unchecked HTML in some obscure classes, although the user has html_as > 0).
 This option is mainly for the UI of html_as.
 0 = allow all available classes
@@ -545,7 +547,6 @@ This option is mainly for the UI of html_as.
 // RSS rendering options, see prior 4 prefs above.
 pref("rss.display.prefer_plaintext", false);
 pref("rss.display.html_as", 0);
-pref("rss.display.html_sanitizer.allowed_tags", "html head title body p br div(lang,title) h1 h2 h3 h4 h5 h6 ul(type,compact) ol(type,compact,start) li(type,value) dl dt dd blockquote(type,cite) pre noscript noframes strong em sub sup span(lang,title) acronym(title) abbr(title) del(title,cite,datetime) ins(title,cite,datetime) q(cite) a(href,name,title) img(alt,title,longdesc,src) base(href) area(alt) applet(alt) object(alt) var samp dfn address kbd code cite s strike tt b i table(align) caption tr(align,valign) td(rowspan,colspan,align,valign) th(rowspan,colspan,align,valign) wbr");
 pref("rss.display.disallow_mime_handlers", 0);
 
 // RSS message body preferences

@@ -38,7 +38,7 @@
 /* The MimeInlineTextHTMLSanitized class cleans up HTML
 
    This class pushes the HTML that we get from the
-   sender of the message through a sanitizer (mozISanitizingHTMLSerializer),
+   sender of the message through a sanitizer (nsTreeSanitizer),
    which lets only allowed tags through. With the appropriate configuration,
    this protects from most of the security and visual-formatting problems
    that otherwise usually come with HTML (and which partly gave HTML in email
@@ -47,8 +47,7 @@
    However, due to the parsing and serializing (and later parsing again)
    required, there is an inherent, significant performance hit, when doing the
    santinizing here at the MIME / HTML source level. But users of this class
-   will most likely find it worth the cost. See also the comment in
-   mozISanitizingHTMLSerializer.h.
+   will most likely find it worth the cost.
  */
 
 #ifndef _MIMETHSA_H_
