@@ -790,10 +790,11 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
         m_editor->EndOfDocument();
       }
 
-      if (!sigOnTop && !aSignature.IsEmpty())
+      if (!sigOnTop && !aSignature.IsEmpty()) {
         textEditor->InsertLineBreak();
         InsertDivWrappedTextAtSelection(aSignature,
                                         NS_LITERAL_STRING("moz-signature"));
+      }
     }
   }
 

@@ -35,19 +35,19 @@ var gCloudAttachmentLinkManager = {
   NotifyComposeFieldsReady: function() {},
 
   NotifyComposeBodyReady: function() {
-    // If we're doing an inline-forward in plain-text mode, let's
-    // take all of the current message text, and wrap it up into
-    // its own DIV.
-    if (gComposeType != Components.interfaces.nsIMsgCompType.ForwardInline ||
-        gMsgCompose.composeHTML)
+    // If we're doing an inline-forward, let's take all of the current
+    // message text, and wrap it up into its own DIV.
+    if (gComposeType != Components.interfaces.nsIMsgCompType.ForwardInline)
       return;
 
     let mailDoc = document.getElementById("content-frame").contentDocument;
     let mailBody = mailDoc.getElementsByTagName("body")[0];
     let editor = GetCurrentEditor();
+    let selection = editor.selection;
 
     let childNodes = mailBody.childNodes;
     let container = editor.createElementWithDefaults("div");
+    container.setAttribute("class", "moz-forward-container");
 
     if (mailBody.hasChildNodes()) {
       while (mailBody.childNodes.length > 0) {
@@ -55,7 +55,9 @@ var gCloudAttachmentLinkManager = {
         container.appendChild(removedChild);
       }
     }
+    editor.beginningOfDocument();
     editor.insertLineBreak();
+    selection.collapse(mailBody, 1);
     editor.insertElementAtSelection(container, false);
     editor.insertLineBreak();
   },
@@ -146,6 +148,112 @@ var gCloudAttachmentLinkManager = {
     return link;
   },
 
+  _findInsertionPoint: function(aDocument) {
+    let mailBody = aDocument.getElementsByTagName("body")[0];
+    let editor = GetCurrentEditor();
+    let selection = editor.selection;
+
+    let childNodes = mailBody.childNodes;
+    let childToInsertAfter, childIndex;
+
+    // First, search for any text nodes that are immediate children of
+    // the body.  If we find any, we'll insert after those.
+    for (childIndex = childNodes.length - 1; childIndex >= 0; childIndex--) {
+      if (childNodes[childIndex].nodeType == Node.TEXT_NODE) {
+        childToInsertAfter = childNodes[childIndex];
+        break;
+      }
+    }
+
+    if (childIndex != -1) {
+      selection.collapse(childToInsertAfter,
+                         childToInsertAfter.nodeValue ?
+                         childToInsertAfter.nodeValue.length : 0);
+      if (childToInsertAfter.nodeValue &&
+          childToInsertAfter.nodeValue.length > 0)
+        editor.insertLineBreak();
+      editor.insertLineBreak();
+      return;
+    }
+
+    // If there's a signature, let's get a hold of it now.
+    let signature = mailBody.querySelector(".moz-signature");
+
+    // Are we replying?
+    let replyCitation = mailBody.querySelector(".moz-cite-prefix");
+    if (replyCitation) {
+      if (gCurrentIdentity && gCurrentIdentity.replyOnTop == 0) {
+        // Replying below quote - we'll select the point right before
+        // the signature.  If there's no signature, we'll just use the
+        // last node.
+        if (signature && signature.previousSibling)
+          selection.collapse(mailBody,
+                             Array.indexOf(childNodes,
+                                           signature.previousSibling));
+        else {
+          selection.collapse(mailBody, childNodes.length - 1);
+        }
+      } else {
+        // Replying above quote
+        if (replyCitation.previousSibling) {
+          let nodeIndex = Array.indexOf(childNodes, replyCitation.previousSibling);
+          if (nodeIndex <= 0) {
+            editor.insertLineBreak();
+            nodeIndex = 1;
+          }
+          selection.collapse(mailBody, nodeIndex);
+        } else {
+          editor.beginningOfDocument();
+          editor.insertLineBreak()
+        }
+      }
+      return;
+    }
+
+    // Are we forwarding?
+    let forwardBody = mailBody.querySelector(".moz-forward-container");
+    if (forwardBody) {
+      if (forwardBody.previousSibling) {
+        let nodeIndex = Array.indexOf(childNodes,
+                                      forwardBody.previousSibling);
+        if (nodeIndex <= 0) {
+          editor.insertLineBreak();
+          nodeIndex = 1;
+        }
+        // If we're forwarding, insert just before the forward body.
+        selection.collapse(mailBody, nodeIndex);
+      } else {
+        // Just insert after a linebreak at the top.
+        editor.beginningOfDocument();
+        editor.insertLineBreak();
+        selection.collapse(mailBody, 1);
+      }
+      return;
+    }
+
+    // If we haven't figured it out at this point, let's see if there's a
+    // signature, and just insert before it.
+    if (signature && signature.previousSibling) {
+      let nodeIndex = Array.indexOf(childNodes, signature.previousSibling);
+      if (nodeIndex <= 0) {
+        editor.insertLineBreak();
+        nodeIndex = 1;
+      }
+      selection.collapse(mailBody, nodeIndex);
+      return;
+    }
+
+    // If we haven't figured it out at this point, let's just put it
+    // at the bottom of the message body.  If the "bottom" is also the top,
+    // then we'll insert a linebreak just above it.
+    let nodeIndex = childNodes.length - 1;
+    if (nodeIndex <= 0) {
+      editor.insertLineBreak();
+      nodeIndex = 1;
+    }
+    selection.collapse(mailBody, nodeIndex);
+  },
+
   /**
    * Insert the header for the cloud attachment list, which we'll use to
    * as an insertion point for the individual cloud attachments.
@@ -154,7 +262,6 @@ var gCloudAttachmentLinkManager = {
    */
   _insertHeader: function(aDocument) {
     let brandBundle = Services.strings.createBundle("chrome://branding/locale/brand.properties");
-    let mailBody = aDocument.getElementsByTagName("body")[0];
     let editor = GetCurrentEditor();
     let selection = editor.selection;
 
@@ -163,24 +270,7 @@ var gCloudAttachmentLinkManager = {
     for (let i = 0; i < selection.rangeCount; i++)
       ranges.push(selection.getRangeAt(i));
 
-    // Find the last text node that's a first level child of the body.
-    // This will skip quoted text.
-    let childNodes = mailBody.childNodes;
-    // If we don't find any text nodes, we'll insert at the start of the
-    // body, which may not be quite right.
-    let childToInsertAfter = childNodes[0];
-    for (let i = childNodes.length - 1; i >= 0; i--) {
-      if (childNodes[i].nodeType == Node.TEXT_NODE &&
-          childNodes[i].nodeValue && childNodes[i].nodeValue.length > 0) {
-        childToInsertAfter = childNodes[i];
-        break;
-      }
-    }
-
-    selection.collapse(childToInsertAfter,
-                       childToInsertAfter.nodeValue ?
-                       childToInsertAfter.nodeValue.length : 0);
-
+    this._findInsertionPoint(aDocument);
 
     if (gMsgCompose.composeHTML) {
       // It's really quite strange, but if we don't set
@@ -222,28 +312,27 @@ var gCloudAttachmentLinkManager = {
       footer.style.marginTop = "15px";
       root.appendChild(footer);
 
-      editor.insertLineBreak();
       editor.insertElementAtSelection(root, false);
-      editor.insertLineBreak();
     }
     else {
+      let root = editor.createElementWithDefaults("div");
+      root.id = "cloudAttachmentListRoot";
+
       let header = editor.createElementWithDefaults("div");
       header.id = "cloudAttachmentListHeader";
       header.innerHTML = " ";
+      root.appendChild(header);
+
       let list = editor.createElementWithDefaults("span");
       list.id = "cloudAttachmentList";
-      list.innerHTML = " ";
+      root.appendChild(list);
 
-      editor.insertLineBreak();
-      editor.insertElementAtSelection(header, false);
-      editor.insertElementAtSelection(list, false);
-      editor.insertLineBreak();
+      editor.insertElementAtSelection(root, false);
     }
 
     // Restore the selection ranges.
     for (let [,range] in Iterator(ranges))
       selection.addRange(range);
-
   },
 
   /**
