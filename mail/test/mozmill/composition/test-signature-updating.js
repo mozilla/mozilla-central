@@ -110,14 +110,14 @@ function plaintextComposeWindowSwitchSignatures(suppressSigSep) {
   // the class moz-signature.
   assert_equals(node.localName, "div");
 
-  const kSeperator = "-- ";
+  const kSeparator = "-- ";
   const kSigClass = "moz-signature";
   assert_equals(node.className, kSigClass);
 
   let sigNode = node.firstChild;
 
   if (!suppressSigSep) {
-    assert_equals(sigNode.textContent, kSeperator);
+    assert_equals(sigNode.textContent, kSeparator);
     let brNode = sigNode.nextSibling;
     assert_equals(brNode.localName, "br");
     sigNode = brNode.nextSibling;
@@ -146,7 +146,7 @@ function plaintextComposeWindowSwitchSignatures(suppressSigSep) {
 
   if (!suppressSigSep) {
     expectedText = "-- ";
-    assert_equals(sigNode.textContent, kSeperator);
+    assert_equals(sigNode.textContent, kSeparator);
     let brNode = sigNode.nextSibling;
     assert_equals(brNode.localName, "br");
     sigNode = brNode.nextSibling;
