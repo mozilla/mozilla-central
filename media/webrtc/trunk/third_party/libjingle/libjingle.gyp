@@ -598,8 +598,17 @@
           'include_dirs': [
             'source/talk/third_party/libudev',
           ],
-          'cflags': [
-             '<!@(pkg-config --cflags gtk+-2.0)',
+	  # don't run pkg-config twice -- probably a better way to do this
+	  'conditions': [
+	    ['build_with_mozilla==0', {
+	      'cflags': [
+                '<!@(pkg-config --cflags gtk+-2.0)',
+              ],
+            }, {
+              'cflags_mozilla': [
+                '<!@(pkg-config --cflags gtk+-2.0)',
+              ],
+            }],
           ],
         }],        
         ['inside_chromium_build==1', {

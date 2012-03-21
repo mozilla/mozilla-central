@@ -295,15 +295,20 @@ class MakefileGenerator(object):
       if includes:
         data['INCLUDES_%s' % configname] = ["-I%s" %i for i in includes]
       #XXX: handle mac stuff?
-      cflags = config.get('cflags')
-      if cflags:
-        data['CPPFLAGS_%s' % configname] = cflags
-      cflags_c = config.get('cflags_c')
-      if cflags_c:
-        data['CFLAGS_%s' % configname] = cflags_c
-      cflags_cc = config.get('cflags_cc')
-      if cflags_cc:
-        data['CXXFLAGS_%s' % configname] = cflags_cc
+# we want to use our compiler options in general
+#      cflags = config.get('cflags')
+#      if cflags:
+#        data['CPPFLAGS_%s' % configname] = cflags
+#      cflags_c = config.get('cflags_c')
+#      if cflags_c:
+#        data['CFLAGS_%s' % configname] = cflags_c
+#      cflags_cc = config.get('cflags_cc')
+#      if cflags_cc:
+#        data['CXXFLAGS_%s' % configname] = cflags_cc
+# we need to keep pkg-config flags however
+      cflags_mozilla = config.get('cflags_mozilla')
+      if cflags_mozilla:
+        data['CPPFLAGS_%s' % configname] = cflags_mozilla
     sources = {
       'CPPSRCS': {'exts': CPLUSPLUS_EXTENSIONS, 'files': []},
       'CSRCS': {'exts': ['.c'], 'files': []},
