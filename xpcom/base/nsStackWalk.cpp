@@ -78,8 +78,8 @@ stack_callback(void *pc, void *closure)
   // stack shows up as having two pthread_cond_wait$UNIX2003 frames. The
   // correct one is the first that we find on our way up, so the
   // following check for gCriticalAddress.mAddr is critical.
-  if(gCriticalAddress.mAddr || dladdr(pc, &info) == 0  ||
-     info.dli_sname == NULL || strcmp(info.dli_sname, name) != 0)
+  if (gCriticalAddress.mAddr || dladdr(pc, &info) == 0  ||
+      info.dli_sname == NULL || strcmp(info.dli_sname, name) != 0)
     return;
   gCriticalAddress.mAddr = pc;
 }
@@ -1624,7 +1624,10 @@ unwind_callback (struct _Unwind_Context *context, void *closure)
     void *pc = reinterpret_cast<void *>(_Unwind_GetIP(context));
     if (IsCriticalAddress(pc)) {
         printf("Aborting stack trace, PC is critical\n");
-        return _URC_NORMAL_STOP;
+        /* We just want to stop the walk, so any error code will do.
+           Using _URC_NORMAL_STOP would probably be the most accurate,
+           but it is not defined on Android for ARM. */
+        return _URC_FOREIGN_EXCEPTION_CAUGHT;
     }
     if (--info->skip < 0)
         (*info->callback)(pc, info->closure);
