@@ -776,14 +776,13 @@ nsMsgComposeService::GetDefaultIdentity(nsIMsgIdentity **_retval)
 
   nsresult rv;
   nsCOMPtr<nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-  if (NS_SUCCEEDED(rv) && accountManager)
-  {
-    nsCOMPtr<nsIMsgAccount> defaultAccount;
-    rv = accountManager->GetDefaultAccount(getter_AddRefs(defaultAccount));
-    if (NS_SUCCEEDED(rv) && defaultAccount)
-      defaultAccount->GetDefaultIdentity(_retval);
-  }
-  return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIMsgAccount> defaultAccount;
+  rv = accountManager->GetDefaultAccount(getter_AddRefs(defaultAccount));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return defaultAccount->GetDefaultIdentity(_retval);
 }
 
 /* readonly attribute boolean logComposePerformance; */
@@ -961,7 +960,7 @@ NS_IMETHODIMP nsMsgTemplateReplyHelper::OnStopRunningUrl(nsIURI *aUrl, nsresult 
 
   rv = accountManager->FindAccountForServer(mServer, getter_AddRefs(account));
   NS_ENSURE_SUCCESS(rv, rv);
-  account->GetDefaultIdentity(getter_AddRefs(identity));
+  rv = account->GetDefaultIdentity(getter_AddRefs(identity));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // create the compose params object
@@ -1203,12 +1202,12 @@ nsMsgComposeService::ForwardMessage(const nsAString &forwardTo,
 
   nsCOMPtr<nsIMsgFolder> folder;
   aMsgHdr->GetFolder(getter_AddRefs(folder));
-  if (!folder)
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_TRUE(folder, NS_ERROR_NULL_POINTER);
+
   folder->GetUriForMsg(aMsgHdr, msgUri);
 
   // get the MsgIdentity for the above key using AccountManager
-  nsCOMPtr<nsIMsgAccountManager> accountManager = 
+  nsCOMPtr<nsIMsgAccountManager> accountManager =
     do_GetService (NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1218,7 +1217,12 @@ nsMsgComposeService::ForwardMessage(const nsAString &forwardTo,
   rv = accountManager->FindAccountForServer(aServer, getter_AddRefs(account));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = account->GetDefaultIdentity(getter_AddRefs(identity));
-  NS_ENSURE_SUCCESS(rv, rv);
+  // Use default identity if no identity has been found on this account
+  if (NS_FAILED(rv) || !identity)
+  {
+    rv = GetDefaultIdentity(getter_AddRefs(identity));
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
   if (aForwardType == nsIMsgComposeService::kForwardInline)
     return RunMessageThroughMimeDraft(msgUri,
@@ -1251,11 +1255,11 @@ nsMsgComposeService::ForwardMessage(const nsAString &forwardTo,
   pMsgComposeParams->SetOriginalMsgURI(msgUri.get());
   // create the nsIMsgCompose object to send the object
   nsCOMPtr<nsIMsgCompose> pMsgCompose (do_CreateInstance(NS_MSGCOMPOSE_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   /** initialize nsIMsgCompose, Send the message, wait for send completion response **/
   rv = pMsgCompose->Initialize(pMsgComposeParams, parentWindow, nsnull);
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   rv = pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, identity, nsnull, nsnull, nsnull);
   NS_ENSURE_SUCCESS(rv, rv);
