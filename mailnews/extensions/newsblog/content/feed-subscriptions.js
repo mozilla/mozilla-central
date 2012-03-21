@@ -49,6 +49,7 @@ var gFeedSubscriptionsWindow = {
   kSubscribeMode : 1,
   kUpdateMode    : 2,
   kMoveMode      : 3,
+  kCopyMode      : 4,
 
   onLoad: function ()
   {
@@ -329,93 +330,83 @@ var gFeedSubscriptionsWindow = {
 
     canDrop: function (aRow, aOrientation)
     { 
-      let dropResult = this.extractDragData();
-      return (aOrientation == Ci.nsITreeView.DROP_ON) &&
-             dropResult.canDrop &&
-             (dropResult.url || dropResult.index != this.kRowIndexUndefined);
+      let dropResult = this.extractDragData(aRow);
+      return aOrientation == Ci.nsITreeView.DROP_ON && dropResult.canDrop &&
+             (dropResult.dropUrl || dropResult.dropOnIndex != this.kRowIndexUndefined);
     },
 
     drop: function (aRow, aOrientation)
     {
       let win = gFeedSubscriptionsWindow;
-      let results = this.extractDragData();
+      let results = this.extractDragData(aRow);
       if (!results.canDrop)
         return;
 
       // Preselect the drop folder.
       this.selection.select(aRow);
 
-      if (results.url)
+      if (results.dropUrl)
       {
         // Don't freeze the app that initiated the drop just because we are
         // in a loop waiting for the user to dimisss the add feed dialog.
         setTimeout(function() {
-          win.addFeed(results.url, null, true, null, win.kSubscribeMode);
+          win.addFeed(results.dropUrl, null, true, null, win.kSubscribeMode);
         }, 0);
         let folderItem = this.getItemAtIndex(aRow);
         FeedUtils.log.debug("drop: folder, url - " +
-                            folderItem.folder.name+", "+results.url);
+                            folderItem.folder.name+", "+results.dropUrl);
       }
-      else if (results.index != this.kRowIndexUndefined)
+      else if (results.dropOnIndex != this.kRowIndexUndefined)
       {
-        win.moveFeed(results.index, aRow);
+        win.moveCopyFeed(results.dropOnIndex, aRow, results.dropEffect);
       }
     },
 
     // Helper function for drag and drop.
-    extractDragData: function()
+    extractDragData: function(aRow)
     {
-      let canDrop = false;
-      let urlToDrop, sourceUri;
-      let sourceIndex = this.kRowIndexUndefined;
-      let dragService = Cc["@mozilla.org/widget/dragservice;1"].
-                        getService().QueryInterface(Ci.nsIDragService);
-      let dragSession = dragService.getCurrentSession();
+      let dt = this._currentDataTransfer;
+      let dragDataResults = { canDrop:     false,
+                              dropUrl:     null,
+                              dropOnIndex: this.kRowIndexUndefined,
+                              dropEffect:  dt.dropEffect };
 
-      let transfer = Cc["@mozilla.org/widget/transferable;1"].
-                     createInstance(Ci.nsITransferable);
-      transfer.addDataFlavor("text/x-moz-url");
-      transfer.addDataFlavor("text/x-moz-feed-index");
-
-      dragSession.getData(transfer, 0);
-      let dataObj = new Object();
-      let flavor = new Object();
-      let len = new Object();
-
-      try {
-        transfer.getAnyTransferData(flavor, dataObj, len);
-      }
-      catch (ex) {
-        return { canDrop: false, url: "" };
-      }
-
-      if (dataObj.value)
+      if (dt.getData("text/x-moz-feed-index"))
       {
-        dataObj = dataObj.value.QueryInterface(Ci.nsISupportsString);
-        // Pull the URL out of the data object.
-        sourceUri = dataObj.data.substring(0, len.value);
-
-        if (flavor.value == "text/x-moz-url")
+        // Dragging a feed in the tree.
+        if (this.selection)
         {
-          let uri = Cc["@mozilla.org/network/standard-url;1"].
-                    createInstance(Ci.nsIURI);
-          uri.spec = sourceUri.split("\n")[0];
+          dragDataResults.dropOnIndex = this.selection.currentIndex;
 
-          if (uri.schemeIs("http") || uri.schemeIs("https"))
-          {
-            urlToDrop = uri.spec;
-            canDrop = true;
-          }
+          let curItem = this.getItemAtIndex(this.selection.currentIndex);
+          let newItem = this.getItemAtIndex(aRow);
+          let curServer = curItem && curItem.parentFolder ?
+                            curItem.parentFolder.server : null;
+          let newServer = newItem && newItem.folder ?
+                            newItem.folder.server : null;
+
+          // No copying within the same account and no moving to the account
+          // folder in the same account.
+          if (!(curServer == newServer &&
+                (dragDataResults.dropEffect == "copy" ||
+                 newItem.folder == curItem.parentFolder ||
+                 newItem.folder.isServer)))
+            dragDataResults.canDrop = true;
         }
-        else if (flavor.value == "text/x-moz-feed-index")
+      }
+      else
+      {
+        // Try to get a feed url.
+        let validUri = FeedUtils.getFeedUriFromDataTransfer(dt);
+
+        if (validUri)
         {
-          if (this.selection)
-            sourceIndex = this.selection.currentIndex;
-          canDrop = true;
+          dragDataResults.canDrop = true;
+          dragDataResults.dropUrl = validUri.spec;
         }
-      }  // if dataObj.value
+      }
 
-      return { canDrop: canDrop, url: urlToDrop, index: sourceIndex };
+      return dragDataResults;
     },
 
     getParentIndex: function (aRow)
@@ -858,10 +849,11 @@ var gFeedSubscriptionsWindow = {
   onClickSelectFolderValue: function(aEvent)
   {
     let target = aEvent.target;
-    if ((aEvent.button && aEvent.button != 0) ||
-        (aEvent.keyCode && aEvent.keyCode != aEvent.DOM_VK_RETURN) ||
-        (aEvent.button && aEvent.button == 0 &&
-         target.inputField.selectionStart != target.inputField.selectionEnd))
+    if ((("button" in aEvent) &&
+         (aEvent.button != 0 ||
+          aEvent.originalTarget.localName != "div" ||
+          target.selectionStart != target.selectionEnd)) ||
+        (aEvent.keyCode && aEvent.keyCode != aEvent.DOM_VK_RETURN))
       return;
 
     // Toggle between showing prettyPath and absolute filePath.
@@ -928,11 +920,11 @@ var gFeedSubscriptionsWindow = {
     let disable;
     this.updateFeedData(item);
     this.setSummaryFocus();
-    disable = !item || (!item.container || this.mActionMode == this.kMoveMode);
+    disable = !item || !item.container;
     document.getElementById("addFeed").disabled = disable;
-    disable = !item || (item.container && this.mActionMode != this.kMoveMode);
-    document.getElementById("removeFeed").disabled = disable;
+    disable = !item || item.container;
     document.getElementById("editFeed").disabled = disable;
+    document.getElementById("removeFeed").disabled = disable;
     document.getElementById("importOPML").disabled = !item || !isServer;
     document.getElementById("exportOPML").disabled = !item || !isServer;
   },
@@ -1191,9 +1183,7 @@ var gFeedSubscriptionsWindow = {
       }
 
       if (newParentIndex != this.mView.kRowIndexUndefined)
-        this.moveFeed(seln.currentIndex, newParentIndex)
-
-      updated = true;
+        this.moveCopyFeed(seln.currentIndex, newParentIndex, "move");
     }
 
     if (!updated)
@@ -1205,14 +1195,21 @@ var gFeedSubscriptionsWindow = {
     this.updateStatusItem("statusText", message);
   },
 
-  // Moves the feed located at aOldFeedIndex to a child of aNewParentIndex.
-  moveFeed: function(aOldFeedIndex, aNewParentIndex)
+/**
+ * Moves or copies a feed to another folder or account.
+ * 
+ * @param  int aOldFeedIndex    - index in tree of target feed item.
+ * @param  int aNewParentIndex  - index in tree of target parent folder item.
+ * @param  string aMoveCopy     - either "move" or "copy".
+ */
+  moveCopyFeed: function(aOldFeedIndex, aNewParentIndex, aMoveCopy)
   {
+    let moveFeed = aMoveCopy == "move" ? true : false;
     let currentItem = this.mView.getItemAtIndex(aOldFeedIndex);
     if (!currentItem ||
         this.mView.getParentIndex(aOldFeedIndex) == aNewParentIndex)
       // If the new parent is the same as the current parent, then do nothing.
-      return false;
+      return;
 
     let currentParentIndex = this.mView.getParentIndex(aOldFeedIndex);
     let currentParentItem = this.mView.getItemAtIndex(currentParentIndex);
@@ -1226,13 +1223,14 @@ var gFeedSubscriptionsWindow = {
     let ds = getSubscriptionsDS(currentItem.parentFolder.server);
     let resource = rdf.GetResource(currentItem.url);
 
-    let accountMove = false;
+    let accountMoveCopy = false;
     if (currentFolder.rootFolder.URI == newFolder.rootFolder.URI)
     {
       // Moving within the same account/feeds db.
-      if (newFolder.isServer)
-        // No moving to account folder if already in the account.
-        return false;
+      if (newFolder.isServer || !moveFeed)
+        // No moving to account folder if already in the account; can only move,
+        // not copy, to folder in the same account.
+        return;
 
       // Unassert the older URI, add an assertion for the new parent URI.
       ds.Change(resource, FZ_DESTFOLDER,
@@ -1246,34 +1244,39 @@ var gFeedSubscriptionsWindow = {
     }
     else
     {
-      // Moving to a new account.  If dropping on the account folder, a new
-      // subfolder is created if necessary.
-      accountMove = true;
+      // Moving/copying to a new account.  If dropping on the account folder,
+      // a new subfolder is created if necessary.
+      accountMoveCopy = true;
+      let mode = moveFeed ? this.kMoveMode : this.kCopyMode;
       let params = {quickMode: currentItem.quickMode};
       // Subscribe to the new folder first.  If it already exists in the
       // account or on error, return.
-      if (!this.addFeed(currentItem.url, newFolder, false, params, this.kMoveMode))
+      if (!this.addFeed(currentItem.url, newFolder, false, params, mode))
         return;
       // Unsubscribe the feed from the old folder, if add to the new folder
-      // is successfull.
-      deleteFeed(rdf.GetResource(currentItem.url),
-                 currentItem.parentFolder.server,
-                 currentItem.parentFolder);
+      // is successfull, and doing a move.
+      if (moveFeed)
+        deleteFeed(rdf.GetResource(currentItem.url),
+                   currentItem.parentFolder.server,
+                   currentItem.parentFolder);
     }
 
     // Finally, update our view layer.  Update old parent folder's quickMode
-    // and remove the old row.
-    this.updateFolderQuickModeInView(currentItem, currentParentItem, true);
-    this.mView.removeItemAtIndex(aOldFeedIndex, true);
-    if (aNewParentIndex > aOldFeedIndex)
-      aNewParentIndex--;
-
-    if (accountMove)
+    // and remove the old row, if move.  Otherwise no change to the view.
+    if (moveFeed)
     {
-      // If a cross account move, download callback will update the view with
-      // the new location.  Preselect folder/mode for callback.
+      this.updateFolderQuickModeInView(currentItem, currentParentItem, true);
+      this.mView.removeItemAtIndex(aOldFeedIndex, true);
+      if (aNewParentIndex > aOldFeedIndex)
+        aNewParentIndex--;
+    }
+
+    if (accountMoveCopy)
+    {
+      // If a cross account move/copy, download callback will update the view
+      // with the new location.  Preselect folder/mode for callback.
       this.selectFolder(newFolder, true, aNewParentIndex);
-      return true;
+      return;
     }
 
     // Add the new row location to the view.
@@ -1321,7 +1324,7 @@ var gFeedSubscriptionsWindow = {
     }
   },
 
-  beginDrag: function (aEvent)
+  onDragStart: function (aEvent)
   {
     // Get the selected feed article (if there is one).
     let seln = this.mView.selection;
@@ -1333,9 +1336,13 @@ var gFeedSubscriptionsWindow = {
     if (!item || item.container)
       return;
 
-    aEvent.dataTransfer.setData("text/x-moz-feed-index",
-                                seln.currentIndex.toString());
-    aEvent.dataTransfer.effectAllowed = "move";
+    aEvent.dataTransfer.setData("text/x-moz-feed-index", seln.currentIndex);
+    aEvent.dataTransfer.effectAllowed = "copyMove";
+  },
+
+  onDragOver: function (aEvent)
+  {
+    this.mView._currentDataTransfer = aEvent.dataTransfer;
   },
 
   mFeedDownloadCallback:
@@ -1414,6 +1421,9 @@ var gFeedSubscriptionsWindow = {
           if (win.mActionMode == win.kMoveMode)
             message = FeedUtils.strings.GetStringFromName(
                         "subscribe-feedMoved");
+          if (win.mActionMode == win.kCopyMode)
+            message = FeedUtils.strings.GetStringFromName(
+                        "subscribe-feedCopied");
 
           win.selectFeed(feed, parentIndex);
         }
@@ -1438,6 +1448,7 @@ var gFeedSubscriptionsWindow = {
           document.getElementById("addFeed").removeAttribute("disabled");
       }
 
+      win.mActionMode = null;
       win.clearStatusInfo();
       win.updateStatusItem("statusText", message, aErrorCode);
     },
@@ -1480,7 +1491,6 @@ var gFeedSubscriptionsWindow = {
 
   clearStatusInfo: function()
   {
-    this.mActionMode = null;
     document.getElementById("statusText").value = "";
     document.getElementById("progressMeter").collapsed = true;
     document.getElementById("validationText").collapsed = true;
@@ -1529,7 +1539,7 @@ var gFeedSubscriptionsWindow = {
 
     folderAdded: function(aFolder)
     {
-      if (aFolder.server.type != "rss")
+      if (aFolder.server.type != "rss" || FeedUtils.isInTrash(aFolder))
         return;
       FeedUtils.log.debug("folderAdded: folder - "+ aFolder.name);
       this.feedWindow.refreshSubscriptionView();
@@ -1537,7 +1547,7 @@ var gFeedSubscriptionsWindow = {
 
     folderDeleted: function(aFolder)
     {
-      if (aFolder.server.type != "rss")
+      if (aFolder.server.type != "rss" || FeedUtils.isInTrash(aFolder))
         return;
       FeedUtils.log.debug("folderDeleted: folder - "+ aFolder.name);
       let curSelItem = this.currentSelectedItem;
@@ -1555,7 +1565,7 @@ var gFeedSubscriptionsWindow = {
 
     folderRenamed: function(aOrigFolder, aNewFolder)
     {
-      if (aNewFolder.server.type != "rss")
+      if (aNewFolder.server.type != "rss" || FeedUtils.isInTrash(aNewFolder))
         return;
       FeedUtils.log.debug("folderRenamed: old:new - "+
                           aOrigFolder.name+":"+aNewFolder.name);

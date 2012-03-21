@@ -60,6 +60,84 @@ var FeedUtils = {
   kNewsBlogNoNewItems: 4,
 
 /**
+ * Dragging something from somewhere.  It may be a nice x-moz-url or from a
+ * browser or app that provides a less nice dataTransfer object in the event.
+ * Extract the url and if it passes the scheme test, try to subscribe.
+ * 
+ * @param  nsIDOMDataTransfer aDataTransfer  - the dnd event's dataTransfer.
+ * @return nsIURI uri                        - a uri if valid, null if none.
+ */
+  getFeedUriFromDataTransfer: function(aDataTransfer) {
+    let dt = aDataTransfer;
+    let types = ["text/x-moz-url-data", "text/x-moz-url"];
+    let validUri = false;
+    let uri = Cc["@mozilla.org/network/standard-url;1"].
+              createInstance(Ci.nsIURI);
+
+    if (dt.getData(types[0]))
+    {
+      // The url is the data.
+      uri.spec = dt.mozGetDataAt(types[0], 0);
+      validUri = this.isValidScheme(uri);
+      FeedUtils.log.trace("getFeedUriFromDataTransfer: dropEffect:type:value - "+
+                          dt.dropEffect+" : "+types[0]+" : "+uri.spec);
+    }
+    else if (dt.getData(types[1]))
+    {
+      // The url is the first part of the data, the second part is random.
+      uri.spec = dt.mozGetDataAt(types[1], 0).split("\n")[0];
+      validUri = this.isValidScheme(uri);
+      FeedUtils.log.trace("getFeedUriFromDataTransfer: dropEffect:type:value - "+
+                          dt.dropEffect+" : "+types[0]+" : "+uri.spec);
+    }
+    else
+    {
+      // Go through the types and see if there's a url; get the first one.
+      for (let i = 0; i < dt.types.length; i++) {
+        let spec = dt.mozGetDataAt(dt.types[i], 0);
+        FeedUtils.log.trace("getFeedUriFromDataTransfer: dropEffect:index:type:value - "+
+                            dt.dropEffect+" : "+i+" : "+dt.types[i]+" : "+spec);
+        try {
+          uri.spec = spec;
+          validUri = this.isValidScheme(uri);
+        }
+        catch(ex) {}
+
+        if (validUri)
+          break;
+      };
+    }
+
+    return validUri ? uri : null;
+  },
+
+/**
+ * Returns if a uri is valid to subscribe.
+ * 
+ * @param  nsIURI aUri  - the Uri.
+ * @return boolean      - true if a valid scheme, false if not.
+ */
+  isValidScheme: function(aUri) {
+    return (aUri instanceof Ci.nsIURI) &&
+           (aUri.schemeIs("http") || aUri.schemeIs("https"));
+  },
+
+/**
+ * Is a folder Trash or in Trash.
+ * 
+ * @param  nsIMsgFolder aFolder   - the folder.
+ * @return boolean                - true if folder is Trash else false.
+ */
+  isInTrash: function(aFolder) {
+    let trashFolder =
+        aFolder.rootFolder.getFolderWithFlags(Ci.nsMsgFolderFlags.Trash);
+    if (trashFolder &&
+        (trashFolder == aFolder || trashFolder.isAncestorOf(aFolder)))
+      return true;
+    return false;
+  },
+
+/**
  * Return a folder path string constructed from individual folder UTF8 names
  * stored as properties (not possible hashes used to construct disk foldername).
  * 

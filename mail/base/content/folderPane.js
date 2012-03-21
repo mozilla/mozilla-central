@@ -608,10 +608,9 @@ let gFolderTreeView = {
       }
       return true;
     }
-    // allow subscribing to feeds by dragging an url to a feed account
-    else if (Array.indexOf(types, "text/x-moz-url") != -1 &&
-             targetFolder.server.type == "rss")
-      return true;
+    // Allow subscribing to feeds by dragging an url to a feed account.
+    else if (targetFolder.server.type == "rss" && dt.mozItemCount == 1)
+      return FeedUtils.getFeedUriFromDataTransfer(dt) ? true : false;
     else if (Array.indexOf(types, "application/x-moz-file") != -1) {
       if (aOrientation != Ci.nsITreeView.DROP_ON)
         return false;
@@ -712,19 +711,15 @@ let gFolderTreeView = {
       }
     }
 
-    if (Array.indexOf(types, "text/x-moz-url") != -1 && count == 1 &&
-        targetFolder.server.type == "rss") {
+    if (targetFolder.server.type == "rss" && count == 1) {
       // This is a potential rss feed.  A link image as well as link text url
-      // should be handled.  There's only one, so just get the 0th element.
-      let url = dt.mozGetDataAt("text/x-moz-url-data", 0);
-      let uri = Cc["@mozilla.org/network/io-service;1"]
-                   .getService(Ci.nsIIOService).newURI(url, null, null);
-      if (!(uri.schemeIs("http") || uri.schemeIs("https")))
-        return;
+      // should be handled; try to extract a url from non moz apps as well.
+      let validUri = FeedUtils.getFeedUriFromDataTransfer(dt);
 
-      Cc["@mozilla.org/newsblog-feed-downloader;1"]
-         .getService(Ci.nsINewsBlogFeedDownloader)
-         .subscribeToFeed(url, targetFolder, msgWindow);
+      if (validUri)
+        Cc["@mozilla.org/newsblog-feed-downloader;1"]
+           .getService(Ci.nsINewsBlogFeedDownloader)
+           .subscribeToFeed(validUri.spec, targetFolder, msgWindow);
     }
   },
 
