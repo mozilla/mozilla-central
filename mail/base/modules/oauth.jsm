@@ -197,7 +197,7 @@ OAuth.prototype = {
           this.account.log.info("auth cancelled");
           this.account.finishAuthorizationRequest();
           this.account.onAuthorizationReceived(null);
-          this.connectFailureCallback();
+          this.account.connectFailureCallback();
         // ### auth cancelled.
         },
         loaded: function(aWindow, aWebProgress) {

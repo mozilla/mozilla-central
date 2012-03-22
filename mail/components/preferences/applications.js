@@ -820,9 +820,10 @@ var gCloudFileTab = {
 
   addCloudFileAccount: function CFT_addCloudFileAccount() {
     let accountKey = cloudFileAccounts.addAccountDialog();
-    if (accountKey)
-      this.rebuildView();
+    if (!accountKey)
+      return;
 
+    this.rebuildView();
     let newItem = this._list.querySelector("richlistitem[value='" + accountKey + "']");
     this._list.selectItem(newItem);
   },
