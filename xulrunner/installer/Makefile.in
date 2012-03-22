@@ -67,6 +67,7 @@ include $(topsrcdir)/config/rules.mk
 INSTALL_SDK = 1
 GENERATE_CACHE = 1
 
+include $(topsrcdir)/toolkit/mozapps/installer/signing.mk
 include $(topsrcdir)/toolkit/mozapps/installer/packager.mk
 
 # Add pkg-config files to the install:: target
