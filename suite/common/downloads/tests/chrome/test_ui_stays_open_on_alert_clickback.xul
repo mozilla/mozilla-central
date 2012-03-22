@@ -54,6 +54,7 @@
 
   <script type="application/javascript">
   <![CDATA[
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 function test()
 {
