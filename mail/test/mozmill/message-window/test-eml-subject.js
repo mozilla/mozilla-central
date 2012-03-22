@@ -25,7 +25,7 @@ function check_eml_window_title(subject, eml) {
   let msgc = open_message_from_file(file);
 
   let brandBundle = new StringBundle("chrome://branding/locale/brand.properties");
-  let productName = brandBundle.get("brandShortName");
+  let productName = brandBundle.get("brandFullName");
   let expectedTitle = subject;
   if (expectedTitle && !Application.platformIsMac)
     expectedTitle += " - ";
