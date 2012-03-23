@@ -900,6 +900,12 @@ nsNNTPProtocol::OnCacheEntryAvailable(nsICacheEntryDescriptor *entry, nsCacheAcc
   return ReadFromNewsConnection();
 }
 
+NS_IMETHODIMP
+nsNNTPProtocol::OnCacheEntryDoomed(nsresult status)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 nsresult nsNNTPProtocol::OpenCacheEntry()
 {
   nsresult rv = NS_OK;
@@ -919,7 +925,7 @@ nsresult nsNNTPProtocol::OpenCacheEntry()
   PRInt32 pos = urlSpec.FindChar('?');
   if (pos != -1)
     urlSpec.SetLength(pos);
-  return cacheSession->AsyncOpenCacheEntry(urlSpec, nsICache::ACCESS_READ_WRITE, this);
+  return cacheSession->AsyncOpenCacheEntry(urlSpec, nsICache::ACCESS_READ_WRITE, this, false);
 }
 
 NS_IMETHODIMP nsNNTPProtocol::AsyncOpen(nsIStreamListener *listener, nsISupports *ctxt)

@@ -8940,6 +8940,12 @@ nsImapMockChannel::OnCacheEntryAvailable(nsICacheEntryDescriptor *entry, nsCache
   return ReadFromImapConnection();
 }
 
+NS_IMETHODIMP
+nsImapMockChannel::OnCacheEntryDoomed(nsresult status)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 nsresult nsImapMockChannel::OpenCacheEntry()
 {
   nsresult rv;
@@ -9011,7 +9017,7 @@ nsresult nsImapMockChannel::OpenCacheEntry()
   nsCAutoString cacheKey;
   cacheKey.AppendInt(uidValidity, 16);
   cacheKey.Append(urlSpec);
-  return cacheSession->AsyncOpenCacheEntry(cacheKey, cacheAccess, this);
+  return cacheSession->AsyncOpenCacheEntry(cacheKey, cacheAccess, this, false);
 }
 
 nsresult nsImapMockChannel::ReadFromMemCache(nsICacheEntryDescriptor *entry)
