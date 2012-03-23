@@ -177,8 +177,8 @@ let gSyncUI = {
 
   // Functions called by observers
   onActivityStart: function SUI_onActivityStart() {
-    let syncButton = null;
-    if (syncButton = document.getElementById("sync-button"))
+    let syncButton = document.getElementById("sync-button");
+    if (syncButton)
       syncButton.setAttribute("status", "active");
   },
 
@@ -310,8 +310,8 @@ let gSyncUI = {
 
   // Helpers
   _updateLastSyncTime: function SUI__updateLastSyncTime() {
-    let syncButton = null;
-    if (!(syncButton = document.getElementById("sync-button")))
+    let syncButton = document.getElementById("sync-button");
+    if (!syncButton)
       return;
 
     let lastSync;
