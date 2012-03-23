@@ -161,7 +161,7 @@ function GetRootFoldersInFolderPaneOrder()
     // This is a HACK to work around bug 41133. If we have one of the
     // dummy "news" accounts there, that account won't have an
     // incomingServer attached to it, and everything will blow up.
-    if (acct.incomingServer)
+    if (acct.incomingServer && acct.incomingServer.type != "im")
       accounts.push(acct);
   }
 
