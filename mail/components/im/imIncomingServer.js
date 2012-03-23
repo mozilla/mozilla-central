@@ -27,6 +27,9 @@ imIncomingServer.prototype = {
   },
   _prefBranch: null,
   valid: true,
+  hidden: false,
+  get offlineSupportLevel() 0,
+  get supportsDiskSpace() false,
   _key: "",
   get key() this._key,
   set key(aKey) {
@@ -232,7 +235,8 @@ imIncomingServer.prototype = {
       get subFolders() EmptyEnumerator,
       getStringProperty: function(aPropertyName) "",
       getNumUnread: function(aDeep) 0,
-      Shutdown: function() {}
+      Shutdown: function() {},
+      QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgFolder])
     });
   },
 
