@@ -168,19 +168,15 @@ imIncomingServer.prototype = {
     this._prefBranch.setCharPref("type", aType);
   },
 
-  get username() this._prefBranch.getCharPref("username"),
+  get username() this._prefBranch.getCharPref("userName"),
   set username(aUsername) {
     if (!aUsername) {
-      // FIXME
-      // We are sometimes called with a null aUsername value. The JS
-      // stack doesn't help at all to understand where this comes
-      // from, as the next frame is in gloda.js which doesn't touch
-      // the username at all.
-      // The gloda line that's blamed is |msgAccountManager.allIdentities.Count()|
-      Components.utils.reportError("Attempting to set a null username to an imIncomingServer");
+      // nsMsgAccountManager::GetIncomingServer expects the pref to
+      // be named userName but some early test versions with IM had
+      // the pref named username.
       return;
     }
-    this._prefBranch.setCharPref("username", aUsername);
+    this._prefBranch.setCharPref("userName", aUsername);
   },
 
   get hostName() this._prefBranch.getCharPref("hostname"),
