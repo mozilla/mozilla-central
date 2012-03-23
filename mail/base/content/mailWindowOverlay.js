@@ -2294,6 +2294,20 @@ function IsMailFolderSelected()
   return folder && folder.server.type != "nntp";
 }
 
+function IsGetNewMessagesEnabled()
+{
+  let allServers = accountManager.allServers;
+  for (let i = 0; i < allServers.Count(); ++i) {
+    let server = allServers.GetElementAt(i)
+                           .QueryInterface(Components.interfaces.nsIMsgIncomingServer);
+    let type = server.type;
+    if (type == "im" || type == "none")
+      continue;
+    return true;
+  }
+  return false;
+}
+
 function IsGetNextNMessagesEnabled()
 {
   var selectedFolders = GetSelectedMsgFolders();

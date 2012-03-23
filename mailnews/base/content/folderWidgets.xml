@@ -307,7 +307,7 @@
               // This is a HACK to work around bug 41133. If we have one of the
               // dummy "news" accounts there, that account won't have an
               // incomingServer attached to it, and everything will blow up.
-              if (acct.incomingServer)
+              if (acct.incomingServer && acct.incomingServer.type != "im")
                 accounts.push(acct);
             }
 
@@ -621,8 +621,11 @@
           var count = acctMgr.accounts.Count();
           for (var i = 0; i < count; i++) {
             var acct = acctMgr.accounts.GetElementAt(i).QueryInterface(Ci.nsIMsgAccount);
-            addIfRecent(acct.incomingServer.rootFolder);
-            checkSubFolders(acct.incomingServer.rootFolder);
+            var incomingServer = acct.incomingServer;
+            if (incomingServer.type == "im")
+              continue;
+            addIfRecent(incomingServer.rootFolder);
+            checkSubFolders(incomingServer.rootFolder);
           }
 
           function sorter(a, b) {

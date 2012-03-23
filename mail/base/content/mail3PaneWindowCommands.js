@@ -519,8 +519,7 @@ var DefaultController =
       case "button_getNewMessages":
       case "cmd_getNewMessages":
       case "cmd_getMsgsForAuthAccounts":
-        // GetMsgs should always be enabled, see bugs 89404 and 111102.
-        return true;
+        return IsGetNewMessagesEnabled();
       case "cmd_getNextNMessages":
         return IsGetNextNMessagesEnabled();
       case "cmd_emptyTrash":
