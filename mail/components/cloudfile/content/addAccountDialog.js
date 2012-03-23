@@ -100,7 +100,7 @@ let addAccountDialog = {
       menuitem.setAttribute("value", key);
 
       if (provider.iconClass) {
-        menuitem.setAttribute("class", "menuitem-iconic");
+        menuitem.setAttribute("class", "menuitem-iconic menuitem-with-favicon");
         menuitem.setAttribute("image", provider.iconClass);
       }
 

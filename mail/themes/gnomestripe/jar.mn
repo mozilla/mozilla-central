@@ -91,6 +91,7 @@ classic.jar:
   skin/classic/messenger/addressbook/icons/remote-addrbook.png (mail/addrbook/remote-addrbook.png)
   skin/classic/messenger/addressbook/icons/remote-addrbook-error.png      (mail/addrbook/remote-addrbook-error.png)
   skin/classic/messenger/addressbook/icons/secure-remote-addrbook.png     (mail/addrbook/secure-remote-addrbook.png)
+  skin/classic/messenger/cloudfile/addAccountDialog.css       (mail/cloudfile/addAccountDialog.css)
   skin/classic/messenger/messengercompose/messengercompose.css (mail/compose/messengercompose.css)
   skin/classic/messenger/messengercompose/editorOverlay.css    (mail/compose/editorOverlay.css)
   skin/classic/messenger/messengercompose/compose-toolbar.png  (mail/compose/compose-toolbar.png)
