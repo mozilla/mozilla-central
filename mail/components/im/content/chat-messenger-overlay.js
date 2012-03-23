@@ -679,6 +679,35 @@ var chatHandler = {
               .queueAsyncAuthPrompt("im", false, {
       onPromptStart: function() {
         imServices.core.init();
+
+        // Find the accounts that exist in the im account service but
+        // not in nsMsgAccountManager. They have probably been lost if
+        // the user has used an older version of Thunderbird on a
+        // profile with IM accounts. See bug 736035.
+        let accountsById = {};
+        for each (let account in fixIterator(imServices.accounts.getAccounts()))
+          accountsById[account.numericId] = account;
+        let mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                            .getService(Ci.nsIMsgAccountManager);
+        for each (let account in fixIterator(mgr.accounts, Ci.nsIMsgAccount)) {
+          let incomingServer = account.incomingServer;
+          if (!incomingServer || incomingServer.type != "im")
+            continue;
+          delete accountsById[incomingServer.wrappedJSObject.imAccount.numericId];
+        }
+        // Let's recreate each of them...
+        for each (let account in accountsById) {
+          let inServer = mgr.createIncomingServer(account.name,
+                                                  account.protocol.id, // hostname
+                                                  "im");
+          inServer.wrappedJSObject.imAccount = account;
+          let acc = mgr.createAccount();
+          // Avoid new folder notifications.
+          inServer.valid = false;
+          acc.incomingServer = inServer;
+          inServer.valid = true;
+          mgr.notifyServerLoaded(inServer);
+        }
         chatHandler.initContactList();
         chatHandler._updateNoConvPlaceHolder();
         statusSelector.init();
