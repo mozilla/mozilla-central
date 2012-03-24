@@ -150,7 +150,7 @@ static NS_DEFINE_CID(kMsgSendLaterCID, NS_MSGSENDLATER_CID);
 // Convert an nsString buffer to plain text...
 //
 #include "nsMsgUtils.h"
-#include "nsIParser.h"
+#include "nsCharsetSource.h"
 
 static void ConvertAndSanitizeFileName(const char * displayName, nsString& aResult)
 {
