@@ -77,6 +77,9 @@
 #include "nsIMsgHdr.h"
 
 // needed to strip html out of the body
+#include "nsParserCIID.h"
+#include "nsIParser.h"
+#include "nsIHTMLContentSink.h"
 #include "nsIContentSerializer.h"
 #include "nsLayoutCID.h"
 #include "nsIParserUtils.h"
@@ -89,6 +92,8 @@
 #include "mozilla/Services.h"
 
 static PRLogModuleInfo *BayesianFilterLogModule = nsnull;
+
+static NS_DEFINE_CID(kParserCID, NS_PARSER_CID);
 
 #define kDefaultJunkThreshold .99 // we override this value via a pref
 static const char* kBayesianFilterTokenDelimiters = " \t\n\r\f.";
