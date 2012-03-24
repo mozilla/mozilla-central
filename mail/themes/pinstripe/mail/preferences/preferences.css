@@ -339,7 +339,7 @@ a {
 /* Flexing */
 #provider-management {
   height: 390px; /* As far as I can see, the height and width values needs to be hardcoded :( */
-  width: 280px;
+  width: 340px;
   display: -moz-box;
   -moz-box-orient: vertical;
 }
