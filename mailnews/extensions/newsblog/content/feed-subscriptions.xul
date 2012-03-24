@@ -58,15 +58,24 @@
         onkeypress="gFeedSubscriptionsWindow.onKeyPress(event);"
         onmousedown="gFeedSubscriptionsWindow.onMouseDown(event);">
 
-  <script type="application/javascript" src="utils.js"/>
-  <script type="application/javascript" src="file-utils.js"/>
-  <script type="application/javascript" src="debug-utils.js"/>
-  <script type="application/javascript" src="feed-subscriptions.js"/>
-  <script type="application/javascript" src="Feed.js"/>
-  <script type="application/javascript" src="FeedItem.js"/>
-  <script type="application/javascript" src="feed-parser.js"/>
-  <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
-  <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger-newsblog/content/utils.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger-newsblog/content/file-utils.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger-newsblog/content/debug-utils.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger-newsblog/content/feed-subscriptions.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger-newsblog/content/Feed.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger-newsblog/content/FeedItem.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger-newsblog/content/feed-parser.js"/>
+  <script type="application/javascript"
+          src="chrome://global/content/nsDragAndDrop.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/widgetglue.js"/>
 
   <keyset id="extensionsKeys">
     <key id="key_close"

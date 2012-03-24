@@ -7,10 +7,13 @@
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       title="&smtpServer.label;"
       onload="gSmtpServerListWindow.onLoad();">
-  <script type="application/javascript" src="amUtils.js"/>
-  <script type="application/javascript" src="am-smtp.js"/>
-  
-  <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/amUtils.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/am-smtp.js"/>
+
+  <stringbundle id="bundle_messenger"
+                src="chrome://messenger/locale/messenger.properties"/>
 
   <vbox flex="1" style="overflow: auto;">
     <dialogheader title="&smtpServer.label;"/>

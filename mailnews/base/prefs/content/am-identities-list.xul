@@ -53,7 +53,8 @@
   style="width: 40em;">
 
 <stringbundle id="bundle_prefs" src="chrome://messenger/locale/prefs.properties"/>
-<script type="application/javascript" src="am-identities-list.js"/>
+<script type="application/javascript"
+        src="chrome://messenger/content/am-identities-list.js"/>
 
 <label control="identitiesList">&identitiesListDesc.label;</label>
 
