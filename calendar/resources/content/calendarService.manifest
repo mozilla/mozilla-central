@@ -1,4 +1,4 @@
-component {65ef4b0b-d116-4b93-bf8a-84525991bf27} calendarService.js
+component {65ef4b0b-d116-4b93-bf8a-84525992bf27} calendarService.js
 contract @mozilla.org/commandlinehandler/general-startup;1?type=calendar {65ef4b0b-d116-4b93-bf8a-84525992bf27}
 category command-line-handler x-default @mozilla.org/commandlinehandler/general-startup;1?type=calendar
 
