@@ -892,16 +892,15 @@
           <![CDATA[
             // return early on startup when we haven't got a tab loaded yet
             let tabInfo = this.currentTabInfo;
-            if (!ttabInfo)
+            if (!tabInfo)
               return;
 
             let onEventFunc = tabInfo.mode.onEvent ||
                               tabInfo.mode.tabType.onEvent;
             if (!onEventFunc)
               return;
-            return onEventFunc.call(tabInfo.mode.tabType,
-                                    aCommand,
-                                    tabInfo);
+
+            onEventFunc.call(tabInfo.mode.tabType, aCommand, tabInfo);
           ]]>
         </body>
       </method>
