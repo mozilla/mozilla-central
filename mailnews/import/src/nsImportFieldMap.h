@@ -61,8 +61,8 @@ public:
    static NS_METHOD Create(nsIStringBundle *aBundle, nsISupports *aOuter, REFNSIID aIID, void **aResult);
 
 private:
-  nsresult  Allocate( PRInt32 newSize);
-  PRInt32    FindFieldNum( const PRUnichar *pDesc);
+  nsresult  Allocate(PRInt32 newSize);
+  PRInt32    FindFieldNum(const PRUnichar *pDesc);
 
 
 private:

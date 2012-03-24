@@ -60,54 +60,54 @@ public:
   ~nsEudoraWin32();
 
     // retrieve the mail folder
-  virtual bool      FindMailFolder( nsIFile **pFolder);
+  virtual bool      FindMailFolder(nsIFile **pFolder);
     // get the list of mailboxes
-  virtual nsresult  FindMailboxes( nsIFile *pRoot, nsISupportsArray **ppArray);
+  virtual nsresult  FindMailboxes(nsIFile *pRoot, nsISupportsArray **ppArray);
     // get a TOC file from a mailbox file
-  virtual nsresult  FindTOCFile( nsIFile *pMailFile, nsIFile **pTOCFile, bool *pDeleteToc);
+  virtual nsresult  FindTOCFile(nsIFile *pMailFile, nsIFile **pTOCFile, bool *pDeleteToc);
 
-  virtual nsresult  GetAttachmentInfo( const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachment);
+  virtual nsresult  GetAttachmentInfo(const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachment);
 
   // Things that must be overridden because they are platform specific.
     // retrieve the address book folder
-  virtual bool      FindAddressFolder( nsIFile **pFolder);
+  virtual bool      FindAddressFolder(nsIFile **pFolder);
     // get the list of address books
-  virtual nsresult  FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppArray);
+  virtual nsresult  FindAddressBooks(nsIFile *pRoot, nsISupportsArray **ppArray);
 
     // import settings from Win32 ini file
-  static bool    ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMailAccount);
-  static bool    FindSettingsFile( nsIFile **pIniFile) { return( FindEudoraLocation( pIniFile, true));}
+  static bool    ImportSettings(nsIFile *pIniFile, nsIMsgAccount **localMailAccount);
+  static bool    FindSettingsFile(nsIFile **pIniFile) { return FindEudoraLocation(pIniFile, true);}
 
-  static bool    FindFiltersFile( nsIFile **pFiltersFile);
+  static bool    FindFiltersFile(nsIFile **pFiltersFile);
 
-  static bool    GetMailboxNameHierarchy( const nsACString& pEudoraLocation, const char* pEudoraFilePath, nsCString& nameHierarchy);
+  static bool    GetMailboxNameHierarchy(const nsACString& pEudoraLocation, const char* pEudoraFilePath, nsCString& nameHierarchy);
 
 private:
-  nsresult  ScanMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
-  nsresult  IterateMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
-  nsresult  ScanDescmap( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport, const char *pData, PRInt32 len);
-  nsresult  FoundMailFolder( nsIFile *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
-  nsresult  FoundMailbox( nsIFile *mailFile, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
-  bool      FindMimeIniFile( nsIFile *pFile);
-  void    GetMimeTypeFromExtension( nsCString& ext, nsCString& mimeType);
-  nsresult  FoundAddressBook( nsIFile *file, const PRUnichar *pName, nsISupportsArray *pArray, nsIImportService *impSvc);
-  nsresult  ScanAddressDir( nsIFile *pDir, nsISupportsArray *pArray, nsIImportService *impSvc);
+  nsresult  ScanMailDir(nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
+  nsresult  IterateMailDir(nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
+  nsresult  ScanDescmap(nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport, const char *pData, PRInt32 len);
+  nsresult  FoundMailFolder(nsIFile *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
+  nsresult  FoundMailbox(nsIFile *mailFile, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
+  bool      FindMimeIniFile(nsIFile *pFile);
+  void    GetMimeTypeFromExtension(nsCString& ext, nsCString& mimeType);
+  nsresult  FoundAddressBook(nsIFile *file, const PRUnichar *pName, nsISupportsArray *pArray, nsIImportService *impSvc);
+  nsresult  ScanAddressDir(nsIFile *pDir, nsISupportsArray *pArray, nsIImportService *impSvc);
 
 
-  static bool      FindEudoraLocation( nsIFile **pFolder, bool findIni = false);
+  static bool      FindEudoraLocation(nsIFile **pFolder, bool findIni = false);
 
     // Settings support
-  static bool    BuildPOPAccount( nsIMsgAccountManager *accMgr, const char *pSection, const char *pIni, nsIMsgAccount **ppAccount);
-  static bool    BuildIMAPAccount( nsIMsgAccountManager *accMgr, const char *pSection, const char *pIni, nsIMsgAccount **ppAccount);
-  static void    GetServerAndUserName( const char *pSection, const char *pIni, nsCString& serverName, nsCString& userName, char *pBuff);
-  static void    GetAccountName( const char *pSection, nsString& str);
-  static void    SetIdentities( nsIMsgAccountManager *accMgr, nsIMsgAccount *acc, const char *pSection, const char *pIniFile, const char *userName, const char *serverName, char *pBuff);
-  static void    SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, const char *pServer, const char *pUser);
+  static bool    BuildPOPAccount(nsIMsgAccountManager *accMgr, const char *pSection, const char *pIni, nsIMsgAccount **ppAccount);
+  static bool    BuildIMAPAccount(nsIMsgAccountManager *accMgr, const char *pSection, const char *pIni, nsIMsgAccount **ppAccount);
+  static void    GetServerAndUserName(const char *pSection, const char *pIni, nsCString& serverName, nsCString& userName, char *pBuff);
+  static void    GetAccountName(const char *pSection, nsString& str);
+  static void    SetIdentities(nsIMsgAccountManager *accMgr, nsIMsgAccount *acc, const char *pSection, const char *pIniFile, const char *userName, const char *serverName, char *pBuff);
+  static void    SetSmtpServer(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, const char *pServer, const char *pUser);
 
 
 
-  static BYTE *  GetValueBytes( HKEY hKey, const char *pValueName);
-  static void    ConvertPath( nsCString& str);
+  static BYTE *  GetValueBytes(HKEY hKey, const char *pValueName);
+  static void    ConvertPath(nsCString& str);
 
 private:
   PRUint32    m_depth;

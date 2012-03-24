@@ -53,9 +53,9 @@ public:
   nsOEScanBoxes();
   ~nsOEScanBoxes();
 
-  static bool    FindMail( nsIFile *pWhere);
+  static bool    FindMail(nsIFile *pWhere);
 
-  bool    GetMailboxes( nsIFile *pWhere, nsISupportsArray **pArray);
+  bool    GetMailboxes(nsIFile *pWhere, nsISupportsArray **pArray);
 
 
 private:
@@ -70,31 +70,31 @@ private:
     bool      processed; // used by entries on m_pendingChildArray list
   } MailboxEntry;
 
-  static bool    Find50Mail( nsIFile *pWhere);
+  static bool    Find50Mail(nsIFile *pWhere);
 
-  void  Reset( void);
-  bool    FindMailBoxes( nsIFile * descFile);
-  bool    Find50MailBoxes( nsIFile * descFile);
+  void  Reset(void);
+  bool    FindMailBoxes(nsIFile * descFile);
+  bool    Find50MailBoxes(nsIFile * descFile);
 
   // If find mailboxes fails you can use this routine to get the raw mailbox file names
-  void  ScanMailboxDir( nsIFile * srcDir);
-  bool    Scan50MailboxDir( nsIFile * srcDir);
+  void  ScanMailboxDir(nsIFile * srcDir);
+  bool    Scan50MailboxDir(nsIFile * srcDir);
 
-  MailboxEntry *  GetIndexEntry( PRUint32 index);
-  void      AddChildEntry( MailboxEntry *pEntry, PRUint32 rootIndex);
+  MailboxEntry *  GetIndexEntry(PRUint32 index);
+  void      AddChildEntry(MailboxEntry *pEntry, PRUint32 rootIndex);
   MailboxEntry *  NewMailboxEntry(PRUint32 id, PRUint32 parent, const char *prettyName, char *pFileName);
   void        ProcessPendingChildEntries(PRUint32 parent, PRUint32 rootIndex, nsVoidArray &childArray);
   void        RemoveProcessedChildEntries();
 
 
-  bool        ReadLong( nsIInputStream * stream, PRInt32& val, PRUint32 offset);
-  bool        ReadLong( nsIInputStream * stream, PRUint32& val, PRUint32 offset);
-  bool        ReadString( nsIInputStream * stream, nsString& str, PRUint32 offset);
-  bool        ReadString( nsIInputStream * stream, nsCString& str, PRUint32 offset);
-  PRUint32     CountMailboxes( MailboxEntry *pBox);
+  bool        ReadLong(nsIInputStream * stream, PRInt32& val, PRUint32 offset);
+  bool        ReadLong(nsIInputStream * stream, PRUint32& val, PRUint32 offset);
+  bool        ReadString(nsIInputStream * stream, nsString& str, PRUint32 offset);
+  bool        ReadString(nsIInputStream * stream, nsCString& str, PRUint32 offset);
+  PRUint32     CountMailboxes(MailboxEntry *pBox);
 
-  void       BuildMailboxList( MailboxEntry *pBox, nsIFile * root, PRInt32 depth, nsISupportsArray *pArray);
-  bool         GetMailboxList( nsIFile * root, nsISupportsArray **pArray);
+  void       BuildMailboxList(MailboxEntry *pBox, nsIFile * root, PRInt32 depth, nsISupportsArray *pArray);
+  bool         GetMailboxList(nsIFile * root, nsISupportsArray **pArray);
 
 private:
   MailboxEntry *        m_pFirst;

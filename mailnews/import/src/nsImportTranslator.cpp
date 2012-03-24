@@ -41,22 +41,22 @@
 #include "ImportCharSet.h"
 
 
-bool nsImportTranslator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
+bool nsImportTranslator::ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
 {
   if (pProcessed)
     *pProcessed = inLen;
-  return( pOutFile->WriteData( pIn, inLen));
+  return (pOutFile->WriteData(pIn, inLen));
 }
 
-void CMHTranslator::ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut)
+void CMHTranslator::ConvertBuffer(const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut)
 {
   while (inLen) {
-    if (!ImportCharSet::IsUSAscii( *pIn) || ImportCharSet::Is822SpecialChar( *pIn) || ImportCharSet::Is822CtlChar( *pIn) ||
+    if (!ImportCharSet::IsUSAscii(*pIn) || ImportCharSet::Is822SpecialChar(*pIn) || ImportCharSet::Is822CtlChar(*pIn) ||
       (*pIn == ImportCharSet::cSpaceChar) || (*pIn == '*') || (*pIn == '\'') ||
       (*pIn == '%')) {
       // needs to be encode as %hex val
       *pOut = '%'; pOut++;
-      ImportCharSet::ByteToHex( *pIn, pOut);
+      ImportCharSet::ByteToHex(*pIn, pOut);
       pOut += 2;
     }
     else {
@@ -68,23 +68,23 @@ void CMHTranslator::ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint8 
   *pOut = 0;
 }
 
-bool CMHTranslator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
+bool CMHTranslator::ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
 {
   PRUint8    hex[2];
   while (inLen) {
-    if (!ImportCharSet::IsUSAscii( *pIn) || ImportCharSet::Is822SpecialChar( *pIn) || ImportCharSet::Is822CtlChar( *pIn) ||
+    if (!ImportCharSet::IsUSAscii(*pIn) || ImportCharSet::Is822SpecialChar(*pIn) || ImportCharSet::Is822CtlChar(*pIn) ||
       (*pIn == ImportCharSet::cSpaceChar) || (*pIn == '*') || (*pIn == '\'') ||
       (*pIn == '%')) {
       // needs to be encode as %hex val
-      if (!pOutFile->WriteByte( '%'))
-        return( false);
-      ImportCharSet::ByteToHex( *pIn, hex);
-      if (!pOutFile->WriteData( hex, 2))
-        return( false);
+      if (!pOutFile->WriteByte('%'))
+        return false;
+      ImportCharSet::ByteToHex(*pIn, hex);
+      if (!pOutFile->WriteData(hex, 2))
+        return false;
     }
     else {
-      if (!pOutFile->WriteByte( *pIn))
-        return( false);
+      if (!pOutFile->WriteByte(*pIn))
+        return false;
     }
     pIn++; inLen--;
   }
@@ -92,14 +92,14 @@ bool CMHTranslator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOu
   if (pProcessed)
     *pProcessed = inLen;
 
-  return( true);
+  return true;
 }
 
 
-bool C2047Translator::ConvertToFileQ( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
+bool C2047Translator::ConvertToFileQ(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
 {
   if (!inLen)
-    return( true);
+    return true;
 
   int    maxLineLen = 64;
   int    curLineLen = m_startLen;
@@ -108,38 +108,38 @@ bool C2047Translator::ConvertToFileQ( const PRUint8 * pIn, PRUint32 inLen, Impor
   PRUint8  hex[2];
   while (inLen) {
     if (startLine) {
-      if (!pOutFile->WriteStr( " =?"))
-        return( false);
-      if (!pOutFile->WriteStr( m_charset.get()))
-        return( false);
-      if (!pOutFile->WriteStr( "?q?"))
-        return( false);
+      if (!pOutFile->WriteStr(" =?"))
+        return false;
+      if (!pOutFile->WriteStr(m_charset.get()))
+        return false;
+      if (!pOutFile->WriteStr("?q?"))
+        return false;
       curLineLen += (6 + m_charset.Length());
       startLine = false;
     }
 
-    if (!ImportCharSet::IsUSAscii( *pIn) || ImportCharSet::Is822SpecialChar( *pIn) || ImportCharSet::Is822CtlChar( *pIn) ||
+    if (!ImportCharSet::IsUSAscii(*pIn) || ImportCharSet::Is822SpecialChar(*pIn) || ImportCharSet::Is822CtlChar(*pIn) ||
       (*pIn == ImportCharSet::cSpaceChar) || (*pIn == '?') || (*pIn == '=')) {
       // needs to be encode as =hex val
-      if (!pOutFile->WriteByte( '='))
-        return( false);
-      ImportCharSet::ByteToHex( *pIn, hex);
-      if (!pOutFile->WriteData( hex, 2))
-        return( false);
+      if (!pOutFile->WriteByte('='))
+        return false;
+      ImportCharSet::ByteToHex(*pIn, hex);
+      if (!pOutFile->WriteData(hex, 2))
+        return false;
       curLineLen += 3;
     }
     else {
-      if (!pOutFile->WriteByte( *pIn))
-        return( false);
+      if (!pOutFile->WriteByte(*pIn))
+        return false;
       curLineLen++;
     }
     pIn++; inLen--;
     if (curLineLen > maxLineLen) {
-      if (!pOutFile->WriteStr( "?="))
-        return( false);
+      if (!pOutFile->WriteStr("?="))
+        return false;
       if (inLen) {
-        if (!pOutFile->WriteStr( "\x0D\x0A "))
-          return( false);
+        if (!pOutFile->WriteStr("\x0D\x0A "))
+          return false;
       }
 
       startLine = true;
@@ -149,23 +149,23 @@ bool C2047Translator::ConvertToFileQ( const PRUint8 * pIn, PRUint32 inLen, Impor
 
   if (!startLine) {
     // end the encoding!
-    if (!pOutFile->WriteStr( "?="))
-      return( false);
+    if (!pOutFile->WriteStr("?="))
+      return false;
   }
 
   if (pProcessed)
     *pProcessed = inLen;
 
-  return( true);
+  return true;
 }
 
-bool C2047Translator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
+bool C2047Translator::ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
 {
   if (m_useQuotedPrintable)
-    return( ConvertToFileQ( pIn, inLen, pOutFile, pProcessed));
+    return ConvertToFileQ(pIn, inLen, pOutFile, pProcessed);
 
   if (!inLen)
-    return( true);
+    return true;
 
   int      maxLineLen = 64;
   int      curLineLen = m_startLen;
@@ -175,17 +175,17 @@ bool C2047Translator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, Import
 
   while (inLen) {
     if (startLine) {
-      if (!pOutFile->WriteStr( " =?")) {
+      if (!pOutFile->WriteStr(" =?")) {
         delete [] pEncoded;
-        return( false);
+        return false;
       }
-      if (!pOutFile->WriteStr( m_charset.get())) {
+      if (!pOutFile->WriteStr(m_charset.get())) {
         delete [] pEncoded;
-        return( false);
+        return false;
       }
-      if (!pOutFile->WriteStr( "?b?")) {
+      if (!pOutFile->WriteStr("?b?")) {
         delete [] pEncoded;
-        return( false);
+        return false;
       }
       curLineLen += (6 + m_charset.Length());
       startLine = false;
@@ -198,25 +198,25 @@ bool C2047Translator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, Import
 
     // encode the line, end the line
     // then continue. Update curLineLen, pIn, startLine, and inLen
-    UMimeEncode::ConvertBuffer( pIn, encodeMax, pEncoded, maxLineLen, maxLineLen, "\x0D\x0A");
+    UMimeEncode::ConvertBuffer(pIn, encodeMax, pEncoded, maxLineLen, maxLineLen, "\x0D\x0A");
 
-    if (!pOutFile->WriteStr( (const char *)pEncoded)) {
+    if (!pOutFile->WriteStr((const char *)pEncoded)) {
       delete [] pEncoded;
-      return( false);
+      return false;
     }
 
     pIn += encodeMax;
     inLen -= encodeMax;
     startLine = true;
     curLineLen = 0;
-    if (!pOutFile->WriteStr( "?=")) {
+    if (!pOutFile->WriteStr("?=")) {
       delete [] pEncoded;
-      return( false);
+      return false;
     }
     if (inLen) {
-      if (!pOutFile->WriteStr( "\x0D\x0A ")) {
+      if (!pOutFile->WriteStr("\x0D\x0A ")) {
         delete [] pEncoded;
-        return( false);
+        return false;
       }
     }
   }
@@ -226,11 +226,11 @@ bool C2047Translator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, Import
   if (pProcessed)
     *pProcessed = inLen;
 
-  return( true);
+  return true;
 }
 
 
-PRUint32  UMimeEncode::GetBufferSize( PRUint32 inBytes)
+PRUint32  UMimeEncode::GetBufferSize(PRUint32 inBytes)
 {
   // it takes 4 base64 bytes to represent 3 regular bytes
   inBytes += 3;
@@ -242,12 +242,12 @@ PRUint32  UMimeEncode::GetBufferSize( PRUint32 inBytes)
   // now allow for end of line characters
   inBytes += ((inBytes + 39) / 40) * 4;
 
-  return( inBytes);
+  return inBytes;
 }
 
 static PRUint8 gBase64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-PRUint32 UMimeEncode::ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut, PRUint32 maxLen, PRUint32 firstLineLen, const char * pEolStr)
+PRUint32 UMimeEncode::ConvertBuffer(const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut, PRUint32 maxLen, PRUint32 firstLineLen, const char * pEolStr)
 {
 
   PRUint32  pos = 0;
@@ -256,7 +256,7 @@ PRUint32 UMimeEncode::ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint
   PRUint32  maxLine = firstLineLen;
   int  eolLen = 0;
   if (pEolStr)
-    eolLen = strlen( pEolStr);
+    eolLen = strlen(pEolStr);
 
   while ((pos + 2) < inLen) {
     // Encode 3 bytes
@@ -273,7 +273,7 @@ PRUint32 UMimeEncode::ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint
       lineLen = 0;
       maxLine = maxLen;
       if (pEolStr) {
-        memcpy( pOut, pEolStr, eolLen);
+        memcpy(pOut, pEolStr, eolLen);
         pOut += eolLen;
         len += eolLen;
       }
@@ -284,7 +284,7 @@ PRUint32 UMimeEncode::ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint
     lineLen = 0;
     maxLine = maxLen;
     if (pEolStr) {
-      memcpy( pOut, pEolStr, eolLen);
+      memcpy(pOut, pEolStr, eolLen);
       pOut += eolLen;
       len += eolLen;
     }
@@ -324,5 +324,5 @@ PRUint32 UMimeEncode::ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint
 
   *pOut = 0;
 
-  return( len);
+  return len;
 }

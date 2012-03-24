@@ -87,7 +87,7 @@ nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, ns
   nsCOMPtr<nsIInputStream> inputStream;
   nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), pSrc);
   if (NS_FAILED(rv)) {
-    IMPORT_LOG0( "*** Error opening address file for reading\n");
+    IMPORT_LOG0("*** Error opening address file for reading\n");
     return rv;
   }
 
@@ -97,7 +97,7 @@ nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, ns
   PRUint32 bytesLeft = 0;
   rv = inputStream->Available(&bytesLeft);
   if (NS_FAILED(rv)) {
-    IMPORT_LOG0( "*** Error checking address file for size\n");
+    IMPORT_LOG0("*** Error checking address file for size\n");
     inputStream->Close();
     return rv;
   }
@@ -121,7 +121,7 @@ nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, ns
   if (skipRecord)
     rv = ReadRecord(lineStream, line, &more);
 
-  while (!(*pAbort) && more && NS_SUCCEEDED( rv)) {
+  while (!(*pAbort) && more && NS_SUCCEEDED(rv)) {
     // Read the line in
     rv = ReadRecord(lineStream, line, &more);
     if (NS_SUCCEEDED(rv)) {
@@ -129,7 +129,7 @@ nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, ns
       rv = ProcessLine(line.get(), line.Length(), errors);
 
       if (NS_FAILED(rv)) {
-        IMPORT_LOG0( "*** Error processing text record.\n");
+        IMPORT_LOG0("*** Error processing text record.\n");
       }
     }
     if (NS_SUCCEEDED(rv) && pProgress) {
@@ -144,7 +144,7 @@ nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, ns
   inputStream->Close();
 
   if (NS_FAILED(rv)) {
-    IMPORT_LOG0( "*** Error reading the address book - probably incorrect ending\n");
+    IMPORT_LOG0("*** Error reading the address book - probably incorrect ending\n");
     return NS_ERROR_FAILURE;
   }
 
@@ -198,7 +198,7 @@ nsresult nsTextAddress::ReadRecordNumber(nsIFile *aSrc, nsCString &aLine, PRInt3
   nsCOMPtr<nsIInputStream> inputStream;
   nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), aSrc);
   if (NS_FAILED(rv)) {
-    IMPORT_LOG0( "*** Error opening address file for reading\n");
+    IMPORT_LOG0("*** Error opening address file for reading\n");
     return rv;
   }
 
@@ -207,7 +207,7 @@ nsresult nsTextAddress::ReadRecordNumber(nsIFile *aSrc, nsCString &aLine, PRInt3
 
   rv = inputStream->Available(&bytesLeft);
   if (NS_FAILED(rv)) {
-    IMPORT_LOG0( "*** Error checking address file for eof\n");
+    IMPORT_LOG0("*** Error checking address file for eof\n");
     inputStream->Close();
     return rv;
   }
@@ -234,7 +234,7 @@ nsresult nsTextAddress::ReadRecordNumber(nsIFile *aSrc, nsCString &aLine, PRInt3
   return NS_ERROR_FAILURE;
 }
 
-PRInt32 nsTextAddress::CountFields( const char *pLine, PRInt32 maxLen, char delim)
+PRInt32 nsTextAddress::CountFields(const char *pLine, PRInt32 maxLen, char delim)
 {
     const char *pChar = pLine;
     PRInt32 len = 0;
@@ -275,10 +275,10 @@ PRInt32 nsTextAddress::CountFields( const char *pLine, PRInt32 maxLen, char deli
         len++;
     }
 
-    return( count);
+    return count;
 }
 
-bool nsTextAddress::GetField( const char *pLine, PRInt32 maxLen, PRInt32 index, nsCString& field, char delim)
+bool nsTextAddress::GetField(const char *pLine, PRInt32 maxLen, PRInt32 index, nsCString& field, char delim)
 {
     bool result = false;
     const char *pChar = pLine;
@@ -329,7 +329,7 @@ bool nsTextAddress::GetField( const char *pLine, PRInt32 maxLen, PRInt32 index, 
     }
 
     if (len >= maxLen) {
-        return( result);
+        return result;
     }
 
     result = true;
@@ -366,11 +366,11 @@ bool nsTextAddress::GetField( const char *pLine, PRInt32 maxLen, PRInt32 index, 
     }
 
     if (!fLen) {
-        return( result);
+        return result;
     }
 
-    field.Append( pStart, fLen);
-    field.Trim( kWhitespace);
+    field.Append(pStart, fLen);
+    field.Trim(kWhitespace);
 
     if (quoted) {
       PRInt32 offset = field.Find(NS_LITERAL_CSTRING("\"\""));
@@ -380,7 +380,7 @@ bool nsTextAddress::GetField( const char *pLine, PRInt32 maxLen, PRInt32 index, 
       }
     }
 
-    return( result);
+    return result;
 }
 
 nsresult nsTextAddress::DetermineDelim(nsIFile *aSrc)
@@ -388,7 +388,7 @@ nsresult nsTextAddress::DetermineDelim(nsIFile *aSrc)
   nsCOMPtr<nsIInputStream> inputStream;
   nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), aSrc);
   if (NS_FAILED(rv)) {
-    IMPORT_LOG0( "*** Error opening address file for reading\n");
+    IMPORT_LOG0("*** Error opening address file for reading\n");
     return rv;
   }
 
@@ -399,7 +399,7 @@ nsresult nsTextAddress::DetermineDelim(nsIFile *aSrc)
   PRUint32 bytesLeft = 0;
   rv = inputStream->Available(&bytesLeft);
   if (NS_FAILED(rv)) {
-    IMPORT_LOG0( "*** Error checking address file for eof\n");
+    IMPORT_LOG0("*** Error checking address file for eof\n");
     inputStream->Close();
     delete [] pLine;
     return rv;
@@ -448,11 +448,11 @@ nsresult nsTextAddress::DetermineDelim(nsIFile *aSrc)
     This is where the real work happens!
     Go through the field map and set the data in a new database row
 */
-nsresult nsTextAddress::ProcessLine( const char *pLine, PRInt32 len, nsString& errors)
+nsresult nsTextAddress::ProcessLine(const char *pLine, PRInt32 len, nsString& errors)
 {
     if (!m_fieldMap) {
-        IMPORT_LOG0( "*** Error, text import needs a field map\n");
-        return( NS_ERROR_FAILURE);
+        IMPORT_LOG0("*** Error, text import needs a field map\n");
+        return NS_ERROR_FAILURE;
     }
 
     nsresult rv;
@@ -467,24 +467,24 @@ nsresult nsTextAddress::ProcessLine( const char *pLine, PRInt32 len, nsString& e
     PRInt32        fieldNum;
     PRInt32        numFields = 0;
     bool          active;
-    rv = m_fieldMap->GetMapSize( &numFields);
-    for (PRInt32 i = 0; (i < numFields) && NS_SUCCEEDED( rv); i++) {
+    rv = m_fieldMap->GetMapSize(&numFields);
+    for (PRInt32 i = 0; (i < numFields) && NS_SUCCEEDED(rv); i++) {
         active = false;
-        rv = m_fieldMap->GetFieldMap( i, &fieldNum);
-        if (NS_SUCCEEDED( rv))
-            rv = m_fieldMap->GetFieldActive( i, &active);
-        if (NS_SUCCEEDED( rv) && active) {
-            if (GetField( pLine, len, i, fieldVal, m_delim)) {
+        rv = m_fieldMap->GetFieldMap(i, &fieldNum);
+        if (NS_SUCCEEDED(rv))
+            rv = m_fieldMap->GetFieldActive(i, &active);
+        if (NS_SUCCEEDED(rv) && active) {
+            if (GetField(pLine, len, i, fieldVal, m_delim)) {
                 if (!fieldVal.IsEmpty()) {
                     if (!newRow) {
-                        rv = m_database->GetNewRow( &newRow);
-                        if (NS_FAILED( rv)) {
-                            IMPORT_LOG0( "*** Error getting new address database row\n");
+                        rv = m_database->GetNewRow(&newRow);
+                        if (NS_FAILED(rv)) {
+                            IMPORT_LOG0("*** Error getting new address database row\n");
                         }
                     }
                     if (newRow) {
-                        NS_CopyNativeToUnicode( fieldVal, uVal);
-                        rv = m_fieldMap->SetFieldValue( m_database, newRow, fieldNum, uVal.get());
+                        NS_CopyNativeToUnicode(fieldVal, uVal);
+                        rv = m_fieldMap->SetFieldValue(m_database, newRow, fieldNum, uVal.get());
                     }
                 }
             }
@@ -494,15 +494,15 @@ nsresult nsTextAddress::ProcessLine( const char *pLine, PRInt32 len, nsString& e
         }
         else {
             if (active) {
-                IMPORT_LOG1( "*** Error getting field map for index %ld\n", (long) i);
+                IMPORT_LOG1("*** Error getting field map for index %ld\n", (long) i);
             }
         }
 
     }
 
-    if (NS_SUCCEEDED( rv)) {
+    if (NS_SUCCEEDED(rv)) {
         if (newRow) {
-            rv = m_database->AddCardRowToDB( newRow);
+            rv = m_database->AddCardRowToDB(newRow);
             // Release newRow????
         }
     }
@@ -510,6 +510,6 @@ nsresult nsTextAddress::ProcessLine( const char *pLine, PRInt32 len, nsString& e
         // Release newRow??
     }
 
-    return( rv);
+    return rv;
 }
 

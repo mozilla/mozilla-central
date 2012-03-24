@@ -46,7 +46,7 @@
 #include <vector>
 
 #ifndef PR_LAST_VERB_EXECUTED
-#define PR_LAST_VERB_EXECUTED PROP_TAG( PT_LONG, 0x1081)
+#define PR_LAST_VERB_EXECUTED PROP_TAG(PT_LONG, 0x1081)
 #endif
 
 #define EXCHIVERB_REPLYTOSENDER (102)
@@ -54,13 +54,13 @@
 #define EXCHIVERB_FORWARD       (104)
 
 #ifndef PR_ATTACH_CONTENT_ID
-#define PR_ATTACH_CONTENT_ID PROP_TAG( PT_TSTRING,	0x3712)
+#define PR_ATTACH_CONTENT_ID PROP_TAG(PT_TSTRING,	0x3712)
 #endif
 #ifndef PR_ATTACH_CONTENT_ID_W
-#define PR_ATTACH_CONTENT_ID_W PROP_TAG( PT_UNICODE,	0x3712)
+#define PR_ATTACH_CONTENT_ID_W PROP_TAG(PT_UNICODE,	0x3712)
 #endif
 #ifndef PR_ATTACH_CONTENT_ID_A
-#define PR_ATTACH_CONTENT_ID_A PROP_TAG( PT_STRING8,	0x3712)
+#define PR_ATTACH_CONTENT_ID_A PROP_TAG(PT_STRING8,	0x3712)
 #endif
 
 #ifndef PR_ATTACH_FLAGS
@@ -180,7 +180,7 @@ private:
 
 class CMapiMessage {
 public:
-  CMapiMessage( LPMESSAGE  lpMsg);
+  CMapiMessage(LPMESSAGE  lpMsg);
   ~CMapiMessage();
 
   // Attachments
@@ -197,19 +197,19 @@ public:
   inline bool HasAttach() const { return !m_stdattachments.empty(); }
 
   // Retrieve info for message
-  inline bool BodyIsHtml( void) const { return( m_bodyIsHtml);}
+  inline bool BodyIsHtml(void) const { return m_bodyIsHtml;}
   const char *GetFromLine(int& len) const {
     if (m_fromLine.IsEmpty())
       return NULL; 
     else {
       len = m_fromLine.Length();
-      return( m_fromLine.get());}
+      return m_fromLine.get();}
   }
   inline CMapiMessageHeaders *GetHeaders() { return &m_headers; }
-  inline const wchar_t *GetBody( void) const { return( m_body.get()); }
-  inline size_t GetBodyLen( void) const { return( m_body.Length()); }
+  inline const wchar_t *GetBody(void) const { return m_body.get(); }
+  inline size_t GetBodyLen(void) const { return m_body.Length(); }
   void GetBody(nsCString& dest) const;
-  inline const char *GetBodyCharset( void) const { return( m_mimeCharset.get());}
+  inline const char *GetBodyCharset(void) const { return m_mimeCharset.get();}
   inline bool IsRead() const { return m_msgFlags & MSGFLAG_READ; }
   inline bool IsReplied() const {
     return (m_msgLastVerb == EXCHIVERB_REPLYTOSENDER) ||
@@ -217,13 +217,13 @@ public:
   inline bool IsForvarded() const {
     return m_msgLastVerb == EXCHIVERB_FORWARD; }
 
-  bool    HasContentHeader( void) const {
-    return( !m_mimeContentType.IsEmpty());}
-  bool    HasMimeVersion( void) const {
+  bool    HasContentHeader(void) const {
+    return !m_mimeContentType.IsEmpty();}
+  bool    HasMimeVersion(void) const {
     return m_headers.Value(CMapiMessageHeaders::hdrMimeVersion); }
-  const char *GetMimeContent( void) const { return( m_mimeContentType.get());}
-  PRInt32     GetMimeContentLen( void) const { return( m_mimeContentType.Length());}
-  const char *GetMimeBoundary( void) const { return( m_mimeBoundary.get());}
+  const char *GetMimeContent(void) const { return m_mimeContentType.get();}
+  PRInt32     GetMimeContentLen(void) const { return m_mimeContentType.Length();}
+  const char *GetMimeBoundary(void) const { return m_mimeBoundary.get();}
 
    // The only required part of a message is its header
   inline bool ValidState() const { return !m_headers.IsEmpty(); }
@@ -271,13 +271,13 @@ private:
   //  PR_SUBJECT
   //  PR_MESSAGE_RECIPIENTS
   // and PR_CREATION_TIME if needed?
-  bool    FetchHeaders( void);
-  bool    FetchBody( void);
-  void    FetchFlags( void);
+  bool    FetchHeaders(void);
+  bool    FetchBody(void);
+  void    FetchFlags(void);
 
   static bool GetTmpFile(/*out*/ nsILocalFile **aResult);
   static bool CopyMsgAttachToFile(LPATTACH lpAttach, /*out*/ nsILocalFile **tmp_file);
-  static bool CopyBinAttachToFile( LPATTACH lpAttach, nsILocalFile **tmp_file);
+  static bool CopyBinAttachToFile(LPATTACH lpAttach, nsILocalFile **tmp_file);
 
   static void ClearAttachment(attach_data* data);
   void    ClearAttachments();
@@ -292,11 +292,11 @@ private:
   void    ProcessContentType();
   bool    CheckBodyInCharsetRange(const char* charset);
   void    FormatDateTime(SYSTEMTIME& tm, nsCString& s, bool includeTZ = true);
-  void    BuildFromLine( void);
+  void    BuildFromLine(void);
 
-  inline static bool IsSpace( char c) {
+  inline static bool IsSpace(char c) {
     return c == ' ' || c == '\r' || c == '\n' || c == '\b' || c == '\t';}
-  inline static bool IsSpace( wchar_t c) { 
+  inline static bool IsSpace(wchar_t c) { 
     return ((c & 0xFF) == c) && IsSpace(static_cast<char>(c)); } // Avoid false detections
 };
 

@@ -78,7 +78,7 @@ static PRUint32 EudoraHashString(const char* pszStr)
     }
   }
 
-  return (ulSum + 1);
+  return ulSum + 1;
 }
 
 
@@ -105,7 +105,7 @@ nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
   }
 
   // Create array in m_EmbeddedObjectList
-  nsresult rv = NS_NewISupportsArray( getter_AddRefs(m_EmbeddedObjectList) );
+  nsresult rv = NS_NewISupportsArray(getter_AddRefs(m_EmbeddedObjectList));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Return m_EmbeddedObjectList in aNodeList and increment ref count - caller
@@ -145,7 +145,9 @@ nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
     PRInt32   startEmbeddedContentLine = startLastClosingTag;
     PRInt32   lenEmbeddedContentTag = strlen(sEudoraEmbeddedContentLines[i]);
 
-    while ( (startEmbeddedContentLine = m_body.Find(sEudoraEmbeddedContentLines[i], true, startEmbeddedContentLine+1)) != kNotFound )
+    while ((startEmbeddedContentLine = m_body.Find(sEudoraEmbeddedContentLines[i],
+                                                   true,
+                                                   startEmbeddedContentLine+1)) != kNotFound)
     {
       // Found this translation of "Embedded Content" - remember that so that we don't
       // bother looking for any other translations.
@@ -162,7 +164,7 @@ nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
       // Verify that the embedded image spec exists and is a file
       bool      isFile = false;
       bool      exists = false;
-      if ( NS_FAILED(embeddedImageSpec->Exists( &exists)) || NS_FAILED(embeddedImageSpec->IsFile(&isFile)) )
+      if (NS_FAILED(embeddedImageSpec->Exists(&exists)) || NS_FAILED(embeddedImageSpec->IsFile(&isFile)))
         continue;
       if (!exists || !isFile)
         continue;
@@ -180,7 +182,7 @@ nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
           nsString    cidHash;
           cidHash.Assign(Substring(m_body, startCIDHash, endCIDHash - startCIDHash));
 
-          if ( !cidHash.IsEmpty() )
+          if (!cidHash.IsEmpty())
           {
             // Convert CID hash string to numeric value
             nsresult aErrorCode;
@@ -203,8 +205,7 @@ nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
       nsEudoraHTMLImageElement *image =
         new nsEudoraHTMLImageElement(srcUrl, cid);
 
-      nsCOMPtr<nsIDOMHTMLImageElement>   imageNode;
-      image->QueryInterface( NS_GET_IID(nsIDOMHTMLImageElement), getter_AddRefs(imageNode) );
+      nsCOMPtr<nsIDOMHTMLImageElement> imageNode(do_QueryInterface(image));
 
       // Append the embedded image node to the list
       (*aNodeList)->AppendElement(imageNode);
@@ -235,7 +236,7 @@ bool nsEudoraEditor::GetEmbeddedImageCID(PRUint32 aCIDHash, const nsAString & aO
   PRInt32   startImageTag = 0;
   PRInt32   closeImageTag = 0;
 
-  while ( (startImageTag = m_body.Find("<img", true, closeImageTag)) != kNotFound )
+  while ((startImageTag = m_body.Find("<img", true, closeImageTag)) != kNotFound)
   {
     closeImageTag = m_body.Find(">", false, startImageTag);
 
@@ -245,14 +246,14 @@ bool nsEudoraEditor::GetEmbeddedImageCID(PRUint32 aCIDHash, const nsAString & aO
 
     // Find the source attribute and make sure it's for our image tag
     PRInt32   startSrcValue = m_body.Find("src", true, startImageTag);
-    if ( (startSrcValue == kNotFound) || (startSrcValue > closeImageTag) )
+    if ((startSrcValue == kNotFound) || (startSrcValue > closeImageTag))
       continue;
 
     // Move past the src
     startSrcValue += 3;
 
     // Move past any whitespace
-    while ( isspace(m_body.CharAt(startSrcValue)) )
+    while (isspace(m_body.CharAt(startSrcValue)))
       ++startSrcValue;
 
     // We should find an = now
@@ -263,12 +264,12 @@ bool nsEudoraEditor::GetEmbeddedImageCID(PRUint32 aCIDHash, const nsAString & aO
     ++startSrcValue;
 
     // Move past any whitespace
-    while ( isspace(m_body.CharAt(startSrcValue)) )
+    while (isspace(m_body.CharAt(startSrcValue)))
       ++startSrcValue;
 
     // Get the quote char and verify that it's valid
     char    quoteChar = static_cast <char> (m_body.CharAt(startSrcValue));
-    if ( (quoteChar != '"') && (quoteChar != '\'') )
+    if ((quoteChar != '"') && (quoteChar != '\''))
       continue;
 
     // Move past the quote
@@ -289,7 +290,7 @@ bool nsEudoraEditor::GetEmbeddedImageCID(PRUint32 aCIDHash, const nsAString & aO
       // Remove "cid:" from the start
       aCID.Cut(0, 4);
 
-      PRUint32  hashValue = EudoraHashString( NS_LossyConvertUTF16toASCII(aCID).get() );
+      PRUint32  hashValue = EudoraHashString(NS_LossyConvertUTF16toASCII(aCID).get());
       foundMatch = (hashValue == aCIDHash);
     }
     else

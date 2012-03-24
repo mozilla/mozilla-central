@@ -46,17 +46,17 @@
 
 class nsOEAddressIterator : public CWabIterator {
 public:
-  nsOEAddressIterator( CWAB *pWab, nsIAddrDatabase *database);
+  nsOEAddressIterator(CWAB *pWab, nsIAddrDatabase *database);
   ~nsOEAddressIterator();
   
-  virtual nsresult  EnumUser( const PRUnichar * pName, LPENTRYID pEid, ULONG cbEid);
-  virtual nsresult  EnumList( const PRUnichar * pName, LPENTRYID pEid, ULONG cbEid, LPMAPITABLE table);
+  virtual nsresult  EnumUser(const PRUnichar * pName, LPENTRYID pEid, ULONG cbEid);
+  virtual nsresult  EnumList(const PRUnichar * pName, LPENTRYID pEid, ULONG cbEid, LPMAPITABLE table);
         void FindListRow(nsString &eMail, nsIMdbRow **cardRow);
 
 private:
-  bool      BuildCard( const PRUnichar * pName, nsIMdbRow *card, LPMAILUSER pUser);
-  void    SanitizeValue( nsString& val);
-  void    SplitString( nsString& val1, nsString& val2);
+  bool      BuildCard(const PRUnichar * pName, nsIMdbRow *card, LPMAILUSER pUser);
+  void    SanitizeValue(nsString& val);
+  void    SplitString(nsString& val1, nsString& val2);
   void    SetBirthDay(nsIMdbRow *card, PRTime& birthDay);
 
   CWAB *                m_pWab;

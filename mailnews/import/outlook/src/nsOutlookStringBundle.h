@@ -46,9 +46,9 @@ class nsOutlookStringBundle {
 public:
   static PRUnichar     * GetStringByID(PRInt32 stringID);
   static void GetStringByID(PRInt32 stringID, nsString& result);
-  static nsIStringBundle * GetStringBundle( void); // don't release
-  static void FreeString( PRUnichar *pStr) { NS_Free( pStr);}
-  static void Cleanup( void);
+  static nsIStringBundle * GetStringBundle(void); // don't release
+  static void FreeString(PRUnichar *pStr) { NS_Free(pStr);}
+  static void Cleanup(void);
 private:
   static nsIStringBundle * m_pBundle;
 };

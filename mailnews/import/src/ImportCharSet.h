@@ -83,29 +83,29 @@ public:
   static char      m_upperCaseMap[256];
   static char      m_Ascii[256];
 
-  inline static bool IsUSAscii( PRUint8 ch) { return( ((ch & (PRUint8)0x80) == 0));}
-  inline static bool Is822CtlChar( PRUint8 ch) { return( (ch < 32));}
-  inline static bool Is822SpecialChar( PRUint8 ch) { return( (m_Ascii[ch] & c822SpecialChar) == c822SpecialChar);}
-  inline static bool IsWhiteSpace( PRUint8 ch) { return( (m_Ascii[ch] & cWhiteSpaceChar) == cWhiteSpaceChar); }
-  inline static bool IsAlphaNum( PRUint8 ch) { return( (m_Ascii[ch] & cAlphaNumChar) == cAlphaNumChar); }
-  inline static bool IsDigit( PRUint8 ch) { return( (m_Ascii[ch] & cDigitChar) == cDigitChar); }
+  inline static bool IsUSAscii(PRUint8 ch) { return (((ch & (PRUint8)0x80) == 0));}
+  inline static bool Is822CtlChar(PRUint8 ch) { return (ch < 32);}
+  inline static bool Is822SpecialChar(PRUint8 ch) { return ((m_Ascii[ch] & c822SpecialChar) == c822SpecialChar);}
+  inline static bool IsWhiteSpace(PRUint8 ch) { return ((m_Ascii[ch] & cWhiteSpaceChar) == cWhiteSpaceChar); }
+  inline static bool IsAlphaNum(PRUint8 ch) { return ((m_Ascii[ch] & cAlphaNumChar) == cAlphaNumChar); }
+  inline static bool IsDigit(PRUint8 ch) { return ((m_Ascii[ch] & cDigitChar) == cDigitChar); }
 
-  inline static PRUint8 ToLower( PRUint8 ch) { if ((m_Ascii[ch] & cAlphaChar) == cAlphaChar) { return( cLowerAChar + (m_upperCaseMap[ch] - cUpperAChar)); } else return( ch); }
+  inline static PRUint8 ToLower(PRUint8 ch) { if ((m_Ascii[ch] & cAlphaChar) == cAlphaChar) { return cLowerAChar + (m_upperCaseMap[ch] - cUpperAChar); } else return ch; }
 
-  inline static long AsciiToLong( const PRUint8 * pChar, PRUint32 len) {
+  inline static long AsciiToLong(const PRUint8 * pChar, PRUint32 len) {
     long num = 0;
     while (len) {
       if ((m_Ascii[*pChar] & cDigitChar) == 0)
-        return( num);
+        return num;
       num *= 10;
       num += (*pChar - cZeroChar);
       len--;
       pChar++;
     }
-    return( num);
+    return num;
   }
 
-  inline static void ByteToHex( PRUint8 byte, PRUint8 * pHex) {
+  inline static void ByteToHex(PRUint8 byte, PRUint8 * pHex) {
     PRUint8 val = byte;
     val /= 16;
     if (val < 10)
@@ -121,83 +121,83 @@ public:
       *pHex = 'A' + (val - 10);
   }
 
-  inline static void  LongToHexBytes( PRUint32 type, PRUint8 * pStr) {
-    ByteToHex( (PRUint8) (type >> 24), pStr);
+  inline static void  LongToHexBytes(PRUint32 type, PRUint8 * pStr) {
+    ByteToHex((PRUint8) (type >> 24), pStr);
     pStr += 2;
-    ByteToHex( (PRUint8) ((type >> 16) & 0x0FF), pStr);
+    ByteToHex((PRUint8) ((type >> 16) & 0x0FF), pStr);
     pStr += 2;
-    ByteToHex( (PRUint8) ((type >> 8) & 0x0FF), pStr);
+    ByteToHex((PRUint8) ((type >> 8) & 0x0FF), pStr);
     pStr += 2;
-    ByteToHex( (PRUint8) (type & 0x0FF), pStr);
+    ByteToHex((PRUint8) (type & 0x0FF), pStr);
   }
 
-  inline static void SkipWhiteSpace( const PRUint8 * & pChar, PRUint32 & pos, PRUint32 max) {
-    while ((pos < max) && (IsWhiteSpace( *pChar))) {
+  inline static void SkipWhiteSpace(const PRUint8 * & pChar, PRUint32 & pos, PRUint32 max) {
+    while ((pos < max) && (IsWhiteSpace(*pChar))) {
       pos++; pChar++;
     }
   }
 
-  inline static void SkipSpaceTab( const PRUint8 * & pChar, PRUint32& pos, PRUint32 max) {
+  inline static void SkipSpaceTab(const PRUint8 * & pChar, PRUint32& pos, PRUint32 max) {
     while ((pos < max) && ((*pChar == (PRUint8)cSpaceChar) || (*pChar == (PRUint8)cTabChar))) {
       pos++; pChar++;
     }
   }
 
-  inline static void SkipTilSpaceTab( const PRUint8 * & pChar, PRUint32& pos, PRUint32 max) {
+  inline static void SkipTilSpaceTab(const PRUint8 * & pChar, PRUint32& pos, PRUint32 max) {
     while ((pos < max) && (*pChar != (PRUint8)cSpaceChar) && (*pChar != (PRUint8)cTabChar)) {
       pos++;
       pChar++;
     }
   }
 
-  inline static bool StrNICmp( const PRUint8 * pChar, const PRUint8 * pSrc, PRUint32 len) {
+  inline static bool StrNICmp(const PRUint8 * pChar, const PRUint8 * pSrc, PRUint32 len) {
     while (len && (m_upperCaseMap[*pChar] == m_upperCaseMap[*pSrc])) {
       pChar++; pSrc++; len--;
     }
-    return( len == 0);
+    return len == 0;
   }
 
-  inline static bool StrNCmp( const PRUint8 * pChar, const PRUint8 *pSrc, PRUint32 len) {
+  inline static bool StrNCmp(const PRUint8 * pChar, const PRUint8 *pSrc, PRUint32 len) {
     while (len && (*pChar == *pSrc)) {
       pChar++; pSrc++; len--;
     }
-    return( len == 0);
+    return len == 0;
   }
 
-  inline static int FindChar( const PRUint8 * pChar, PRUint8 ch, PRUint32 max) {
+  inline static int FindChar(const PRUint8 * pChar, PRUint8 ch, PRUint32 max) {
     PRUint32    pos = 0;
     while ((pos < max) && (*pChar != ch)) {
       pos++; pChar++;
     }
     if (pos < max)
-      return( (int) pos);
+      return (int) pos;
     else
-      return( -1);
+      return -1;
   }
 
-  inline static bool NextChar( const PRUint8 * & pChar, PRUint8 ch, PRUint32& pos, PRUint32 max) {
+  inline static bool NextChar(const PRUint8 * & pChar, PRUint8 ch, PRUint32& pos, PRUint32 max) {
     if ((pos < max) && (*pChar == ch)) {
       pos++;
       pChar++;
-      return( true);
+      return true;
     }
-    return( false);
+    return false;
   }
 
-  inline static PRInt32 strcmp( const char * pS1, const char * pS2) {
+  inline static PRInt32 strcmp(const char * pS1, const char * pS2) {
     while (*pS1 && *pS2 && (*pS1 == *pS2)) {
       pS1++;
       pS2++;
     }
-    return( *pS1 - *pS2);
+    return *pS1 - *pS2;
   }
 
-  inline static PRInt32 stricmp( const char * pS1, const char * pS2) {
+  inline static PRInt32 stricmp(const char * pS1, const char * pS2) {
     while (*pS1 && *pS2 && (m_upperCaseMap[PRUint8(*pS1)] == m_upperCaseMap[PRUint8(*pS2)])) {
       pS1++;
       pS2++;
     }
-    return( m_upperCaseMap[PRUint8(*pS1)] - m_upperCaseMap[PRUint8(*pS2)]);
+    return m_upperCaseMap[PRUint8(*pS1)] - m_upperCaseMap[PRUint8(*pS2)];
   }
 
 };

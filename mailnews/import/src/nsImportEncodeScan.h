@@ -47,14 +47,14 @@ public:
   nsImportEncodeScan();
   ~nsImportEncodeScan();
 
-  bool    InitEncodeScan( bool appleSingleEncode, nsIFile *pFile, const char *pName, PRUint8 * pBuf, PRUint32 sz);
-  void  CleanUpEncodeScan( void);
+  bool    InitEncodeScan(bool appleSingleEncode, nsIFile *pFile, const char *pName, PRUint8 * pBuf, PRUint32 sz);
+  void  CleanUpEncodeScan(void);
 
-  virtual bool    Scan( bool *pDone);
+  virtual bool    Scan(bool *pDone);
 
 protected:
-  void   FillInEntries( int numEntries);
-  bool     AddEntries( void);
+  void   FillInEntries(int numEntries);
+  bool     AddEntries(void);
 
 protected:
   bool        m_isAppleSingle;

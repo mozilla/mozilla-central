@@ -85,7 +85,7 @@ static const char *sMonths[12] = {
   "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
-CMapiMessage::CMapiMessage( LPMESSAGE lpMsg)
+CMapiMessage::CMapiMessage(LPMESSAGE lpMsg)
   : m_lpMsg(lpMsg), m_dldStateHeadersOnly(false), m_msgFlags(0)
 {
   nsresult rv;
@@ -209,7 +209,7 @@ bool CMapiMessage::EnsureDate()
   return false;
 }
 
-void CMapiMessage::BuildFromLine( void)
+void CMapiMessage::BuildFromLine(void)
 {
   m_fromLine = sFromLine;
   LPSPropValue pVal = CMapiApi::GetMapiProperty(m_lpMsg, PR_CREATION_TIME);
@@ -268,7 +268,7 @@ void CMapiMessage::GetDownloadState()
 //  PR_SUBJECT
 //  PR_MESSAGE_RECIPIENTS
 // and PR_CREATION_TIME if needed?
-bool CMapiMessage::FetchHeaders( void)
+bool CMapiMessage::FetchHeaders(void)
 {
   ULONG tag = PR_TRANSPORT_MESSAGE_HEADERS_A;
   LPSPropValue pVal = CMapiApi::GetMapiProperty(m_lpMsg, tag);
@@ -303,7 +303,7 @@ bool CMapiMessage::FetchHeaders( void)
 
   ProcessContentType();
 
-  return( !m_headers.IsEmpty());
+  return !m_headers.IsEmpty();
 }
 
 // Mime-Version: 1.0
@@ -643,12 +643,12 @@ bool CMapiMessage::CheckBodyInCharsetRange(const char* charset)
   return true;
 }
 
-bool CaseInsensitiveComp (wchar_t elem1, wchar_t elem2 )
+bool CaseInsensitiveComp (wchar_t elem1, wchar_t elem2)
 {
   return _wcsnicmp(&elem1, &elem2, 1) == 0;
 }
 
-void ExtractMetaCharset( const wchar_t* body, int bodySz, /*out*/nsCString& charset)
+void ExtractMetaCharset(const wchar_t* body, int bodySz, /*out*/nsCString& charset)
 {
   charset.Truncate();
   const wchar_t* body_end = body+bodySz;
@@ -681,7 +681,7 @@ void ExtractMetaCharset( const wchar_t* body, int bodySz, /*out*/nsCString& char
     LossyCopyUTF16toASCII(Substring(chset_pos, chset_end), charset);
 }
 
-bool CMapiMessage::FetchBody( void)
+bool CMapiMessage::FetchBody(void)
 {
   m_bodyIsHtml = false;
   m_body.Truncate();
@@ -689,11 +689,11 @@ bool CMapiMessage::FetchBody( void)
   // Get the Outlook codepage info; if unsuccessful then it defaults to 0 (CP_ACP) -> system default
   // Maybe we can use this info later?
   unsigned int codepage=0;
-  LPSPropValue pVal = CMapiApi::GetMapiProperty( m_lpMsg, PR_INTERNET_CPID);
+  LPSPropValue pVal = CMapiApi::GetMapiProperty(m_lpMsg, PR_INTERNET_CPID);
   if (pVal) {
-    if (PROP_TYPE( pVal->ulPropTag) == PT_LONG)
+    if (PROP_TYPE(pVal->ulPropTag) == PT_LONG)
       codepage = pVal->Value.l;
-    CMapiApi::MAPIFreeBuffer( pVal);
+    CMapiApi::MAPIFreeBuffer(pVal);
   }
 
   unsigned long nativeBodyType = 0;
@@ -710,7 +710,7 @@ bool CMapiMessage::FetchBody( void)
       else if ((PROP_TYPE(pVal->ulPropTag) == PT_UNICODE) &&
                (pVal->Value.lpszW) && (*(pVal->Value.lpszW)))
         m_body.Assign(pVal->Value.lpszW);
-      CMapiApi::MAPIFreeBuffer( pVal);
+      CMapiApi::MAPIFreeBuffer(pVal);
     }
 
     // Kind-hearted Outlook will give us html even for a plain text message.
@@ -814,20 +814,20 @@ static const SizedSPropTagArray(ieidAttachMax, ptaEid)=
 bool CMapiMessage::IterateAttachTable(LPMAPITABLE lpTable)
 {
   ULONG rowCount;
-  HRESULT hr = lpTable->GetRowCount( 0, &rowCount);
+  HRESULT hr = lpTable->GetRowCount(0, &rowCount);
   if (!rowCount) {
     return true;
   }
 
-  hr = lpTable->SetColumns( (LPSPropTagArray)&ptaEid, 0);
+  hr = lpTable->SetColumns((LPSPropTagArray)&ptaEid, 0);
   if (FAILED(hr)) {
-    MAPI_TRACE2( "SetColumns for attachment table failed: 0x%lx, %d\r\n", (long)hr, (int)hr);
+    MAPI_TRACE2("SetColumns for attachment table failed: 0x%lx, %d\r\n", (long)hr, (int)hr);
     return false;
   }
 
-  hr = lpTable->SeekRow( BOOKMARK_BEGINNING, 0, NULL);
+  hr = lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
   if (FAILED(hr)) {
-    MAPI_TRACE2( "SeekRow for attachment table failed: 0x%lx, %d\r\n", (long)hr, (int)hr);
+    MAPI_TRACE2("SeekRow for attachment table failed: 0x%lx, %d\r\n", (long)hr, (int)hr);
     return false;
   }
 
@@ -837,10 +837,10 @@ bool CMapiMessage::IterateAttachTable(LPMAPITABLE lpTable)
   do {
 
     lpRow = NULL;
-    hr = lpTable->QueryRows( 1, 0, &lpRow);
+    hr = lpTable->QueryRows(1, 0, &lpRow);
 
     if(HR_FAILED(hr)) {
-      MAPI_TRACE2( "QueryRows for attachment table failed: 0x%lx, %d\n", (long)hr, (int)hr);
+      MAPI_TRACE2("QueryRows for attachment table failed: 0x%lx, %d\n", (long)hr, (int)hr);
       bResult = false;
       break;
     }
@@ -851,14 +851,14 @@ bool CMapiMessage::IterateAttachTable(LPMAPITABLE lpTable)
       if (cNumRows) {
         DWORD aNum = lpRow->aRow[0].lpProps[ieidPR_ATTACH_NUM].Value.ul;
         AddAttachment(aNum);
-        MAPI_TRACE1( "\t\t****Attachment found - #%d\r\n", (int)aNum);
+        MAPI_TRACE1("\t\t****Attachment found - #%d\r\n", (int)aNum);
       }
-      CMapiApi::FreeProws( lpRow);
+      CMapiApi::FreeProws(lpRow);
     }
 
-  } while ( SUCCEEDED(hr) && cNumRows && lpRow);
+  } while (SUCCEEDED(hr) && cNumRows && lpRow);
 
-  return( bResult);
+  return bResult;
 }
 
 bool CMapiMessage::GetTmpFile(/*out*/ nsILocalFile **aResult)
@@ -917,7 +917,7 @@ bool CMapiMessage::CopyBinAttachToFile(LPATTACH lpAttach,
   nsCString tmpPath;
   _tmp_file->GetNativePath(tmpPath);
   LPSTREAM lpStreamFile;
-  HRESULT hr = CMapiApi::OpenStreamOnFile( gpMapiAllocateBuffer, gpMapiFreeBuffer, STGM_READWRITE | STGM_CREATE,
+  HRESULT hr = CMapiApi::OpenStreamOnFile(gpMapiAllocateBuffer, gpMapiFreeBuffer, STGM_READWRITE | STGM_CREATE,
     const_cast<char*>(tmpPath.get()), NULL, &lpStreamFile);
   if (HR_FAILED(hr)) {
     MAPI_TRACE1("~~ERROR~~ OpenStreamOnFile failed - temp path: %s\r\n",
@@ -927,24 +927,24 @@ bool CMapiMessage::CopyBinAttachToFile(LPATTACH lpAttach,
 
   bool bResult = true;
   LPSTREAM lpAttachStream;
-  hr = lpAttach->OpenProperty( PR_ATTACH_DATA_BIN, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpAttachStream);
+  hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpAttachStream);
 
-  if (HR_FAILED( hr)) {
-    MAPI_TRACE0( "~~ERROR~~ OpenProperty failed for PR_ATTACH_DATA_BIN.\r\n");
+  if (HR_FAILED(hr)) {
+    MAPI_TRACE0("~~ERROR~~ OpenProperty failed for PR_ATTACH_DATA_BIN.\r\n");
     lpAttachStream = NULL;
     bResult = false;
   }
   else {
     STATSTG st;
-    hr = lpAttachStream->Stat( &st, STATFLAG_NONAME);
-    if (HR_FAILED( hr)) {
-      MAPI_TRACE0( "~~ERROR~~ Stat failed for attachment stream\r\n");
+    hr = lpAttachStream->Stat(&st, STATFLAG_NONAME);
+    if (HR_FAILED(hr)) {
+      MAPI_TRACE0("~~ERROR~~ Stat failed for attachment stream\r\n");
       bResult = false;
     }
     else {
-      hr = lpAttachStream->CopyTo( lpStreamFile, st.cbSize, NULL, NULL);
-      if (HR_FAILED( hr)) {
-        MAPI_TRACE0( "~~ERROR~~ Attach Stream CopyTo temp file failed.\r\n");
+      hr = lpAttachStream->CopyTo(lpStreamFile, st.cbSize, NULL, NULL);
+      if (HR_FAILED(hr)) {
+        MAPI_TRACE0("~~ERROR~~ Attach Stream CopyTo temp file failed.\r\n");
         bResult = false;
       }
     }
@@ -988,10 +988,10 @@ bool CMapiMessage::AddAttachment(DWORD aNum)
     // 1. Get the file that contains the attachment data
     LPSPropValue pVal = CMapiApi::GetMapiProperty(lpAttach, PR_ATTACH_METHOD);
     if (pVal) {
-      aMethod = CMapiApi::GetLongFromProp( pVal);
+      aMethod = CMapiApi::GetLongFromProp(pVal);
       switch (aMethod) {
       case ATTACH_BY_VALUE:
-        MAPI_TRACE1( "\t\t** Attachment #%d by value.\r\n", aNum);
+        MAPI_TRACE1("\t\t** Attachment #%d by value.\r\n", aNum);
         bResult = CopyBinAttachToFile(lpAttach, getter_AddRefs(data->tmp_file));
         data->delete_file = true;
         break;
@@ -1152,7 +1152,7 @@ bool CMapiMessage::AddAttachment(DWORD aNum)
   }
 
   lpAttach->Release();
-  return( bResult);
+  return bResult;
 }
 
 void CMapiMessage::ClearAttachment(attach_data* data)
@@ -1189,9 +1189,9 @@ void CMapiMessage::ProcessAttachments()
   bool hasAttach = true;
 
   if (pVal) {
-    if (PROP_TYPE( pVal->ulPropTag) == PT_BOOLEAN)
+    if (PROP_TYPE(pVal->ulPropTag) == PT_BOOLEAN)
       hasAttach = (pVal->Value.b != 0);
-    CMapiApi::MAPIFreeBuffer( pVal);
+    CMapiApi::MAPIFreeBuffer(pVal);
   }
 
   if (!hasAttach)
@@ -1199,8 +1199,8 @@ void CMapiMessage::ProcessAttachments()
 
   // Get the attachment table?
   LPMAPITABLE pTable = NULL;
-  HRESULT hr = m_lpMsg->GetAttachmentTable( 0, &pTable);
-  if (FAILED( hr) || !pTable)
+  HRESULT hr = m_lpMsg->GetAttachmentTable(0, &pTable);
+  if (FAILED(hr) || !pTable)
     return;
   IterateAttachTable(pTable);
   pTable->Release();
@@ -1231,7 +1231,7 @@ bool CMapiMessage::GetEmbeddedAttachmentInfo(unsigned int i, nsIURI **uri,
                                              const char **cid,
                                              const char **name) const
 {
-  if ((i < 0) || ( i >= m_embattachments.size()))
+  if ((i < 0) || (i >= m_embattachments.size()))
     return false;
   attach_data* data = m_embattachments[i];
   if (!data)
@@ -1480,13 +1480,13 @@ void CMapiMessageHeaders::write_to_stream::operator () (const CHeaderField* f)
     return;
 
   PRUint32 written;
-  m_rv = m_pDst->Write( f->fname(), strlen(f->fname()), &written);
+  m_rv = m_pDst->Write(f->fname(), strlen(f->fname()), &written);
   NS_ENSURE_SUCCESS(m_rv,);
   if (f->fbody()) {
     m_rv = m_pDst->Write(f->fbody(), strlen(f->fbody()), &written);
     NS_ENSURE_SUCCESS(m_rv,);
   }
-  m_rv = m_pDst->Write( "\x0D\x0A", 2, &written);
+  m_rv = m_pDst->Write("\x0D\x0A", 2, &written);
 }
 
 nsresult CMapiMessageHeaders::ToStream(nsIOutputStream *pDst) const
@@ -1495,7 +1495,7 @@ nsresult CMapiMessageHeaders::ToStream(nsIOutputStream *pDst) const
                               write_to_stream(pDst));
   if (NS_SUCCEEDED(rv)) {
     PRUint32 written;
-    rv = pDst->Write( "\x0D\x0A", 2, &written); // Separator line
+    rv = pDst->Write("\x0D\x0A", 2, &written); // Separator line
   }
   return rv;
 }

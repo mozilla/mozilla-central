@@ -105,10 +105,10 @@ public:
     NS_IMETHOD TranslateFolderName(const nsAString & aFolderName, nsAString & _retval);
 
 public:
-  static void ReportSuccess( nsString& name, PRInt32 count, nsString *pStream);
-  static void ReportError( PRInt32 errorNum, nsString& name, nsString *pStream);
-  static void AddLinebreak( nsString *pStream);
-  static void SetLogs( nsString& success, nsString& error, PRUnichar **pError, PRUnichar **pSuccess);
+  static void ReportSuccess(nsString& name, PRInt32 count, nsString *pStream);
+  static void ReportError(PRInt32 errorNum, nsString& name, nsString *pStream);
+  static void AddLinebreak(nsString *pStream);
+  static void SetLogs(nsString& success, nsString& error, PRUnichar **pError, PRUnichar **pSuccess);
 
 private:
   PRUint32 m_bytesDone;
@@ -119,55 +119,55 @@ nsWMImport::nsWMImport()
   // Init logging module.
   if (!WMLOGMODULE)
     WMLOGMODULE = PR_NewLogModule("IMPORT");
-  IMPORT_LOG0( "nsWMImport Module Created\n");
+  IMPORT_LOG0("nsWMImport Module Created\n");
   nsWMStringBundle::GetStringBundle();
 }
 
 nsWMImport::~nsWMImport()
 {
-  IMPORT_LOG0( "nsWMImport Module Deleted\n");
+  IMPORT_LOG0("nsWMImport Module Deleted\n");
 }
 
 NS_IMPL_ISUPPORTS1(nsWMImport, nsIImportModule)
 
-NS_IMETHODIMP nsWMImport::GetName( PRUnichar **name)
+NS_IMETHODIMP nsWMImport::GetName(PRUnichar **name)
 {
   NS_ENSURE_ARG_POINTER(name);
   // nsString  title = "Windows Live Mail";
   // *name = ToNewUnicode(title);
-  *name = nsWMStringBundle::GetStringByID( WMIMPORT_NAME);
+  *name = nsWMStringBundle::GetStringByID(WMIMPORT_NAME);
 
     return NS_OK;
 }
 
-NS_IMETHODIMP nsWMImport::GetDescription( PRUnichar **name)
+NS_IMETHODIMP nsWMImport::GetDescription(PRUnichar **name)
 {
   NS_ENSURE_ARG_POINTER(name);
 
   // nsString  desc = "Windows Live Mail mail and address books";
   // *name = ToNewUnicode(desc);
-  *name = nsWMStringBundle::GetStringByID( WMIMPORT_DESCRIPTION);
+  *name = nsWMStringBundle::GetStringByID(WMIMPORT_DESCRIPTION);
   return NS_OK;
 }
 
-NS_IMETHODIMP nsWMImport::GetSupports( char **supports)
+NS_IMETHODIMP nsWMImport::GetSupports(char **supports)
 {
   NS_PRECONDITION(supports != nsnull, "null ptr");
   if (! supports)
       return NS_ERROR_NULL_POINTER;
 
-  *supports = strdup( kWMSupportsString);
-  return( NS_OK);
+  *supports = strdup(kWMSupportsString);
+  return NS_OK;
 }
 
-NS_IMETHODIMP nsWMImport::GetSupportsUpgrade( bool *pUpgrade)
+NS_IMETHODIMP nsWMImport::GetSupportsUpgrade(bool *pUpgrade)
 {
   NS_PRECONDITION(pUpgrade != nsnull, "null ptr");
   if (! pUpgrade)
     return NS_ERROR_NULL_POINTER;
 
   *pUpgrade = true;
-  return( NS_OK);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsWMImport::GetImportInterface(const char *pImportType,
@@ -179,17 +179,17 @@ NS_IMETHODIMP nsWMImport::GetImportInterface(const char *pImportType,
   *ppInterface = nsnull;
   nsresult rv;
 
-  if (!strcmp( pImportType, "settings")) {
+  if (!strcmp(pImportType, "settings")) {
     nsIImportSettings *pSettings = nsnull;
-    rv = nsWMSettings::Create( &pSettings);
-    if (NS_SUCCEEDED( rv)) {
-      pSettings->QueryInterface( kISupportsIID, (void **)ppInterface);
+    rv = nsWMSettings::Create(&pSettings);
+    if (NS_SUCCEEDED(rv)) {
+      pSettings->QueryInterface(kISupportsIID, (void **)ppInterface);
     }
-    NS_IF_RELEASE( pSettings);
-    return( rv);
+    NS_IF_RELEASE(pSettings);
+    return rv;
   }
 
-  return( NS_ERROR_NOT_AVAILABLE);
+  return NS_ERROR_NOT_AVAILABLE;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -229,36 +229,36 @@ NS_IMETHODIMP ImportWMMailImpl::FindMailboxes(nsIFile *pLoc,
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-void ImportWMMailImpl::AddLinebreak( nsString *pStream)
+void ImportWMMailImpl::AddLinebreak(nsString *pStream)
 {
   if (pStream)
-    pStream->Append( PRUnichar('\n'));
+    pStream->Append(PRUnichar('\n'));
 }
 
-void ImportWMMailImpl::ReportSuccess( nsString& name, PRInt32 count, nsString *pStream)
+void ImportWMMailImpl::ReportSuccess(nsString& name, PRInt32 count, nsString *pStream)
 {
   if (!pStream)
     return;
   // load the success string
-  PRUnichar *pFmt = nsWMStringBundle::GetStringByID( WMIMPORT_MAILBOX_SUCCESS);
-  PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get(), count);
-  pStream->Append( pText);
-  nsTextFormatter::smprintf_free( pText);
-  nsWMStringBundle::FreeString( pFmt);
-  AddLinebreak( pStream);
+  PRUnichar *pFmt = nsWMStringBundle::GetStringByID(WMIMPORT_MAILBOX_SUCCESS);
+  PRUnichar *pText = nsTextFormatter::smprintf(pFmt, name.get(), count);
+  pStream->Append(pText);
+  nsTextFormatter::smprintf_free(pText);
+  nsWMStringBundle::FreeString(pFmt);
+  AddLinebreak(pStream);
 }
 
-void ImportWMMailImpl::ReportError( PRInt32 errorNum, nsString& name, nsString *pStream)
+void ImportWMMailImpl::ReportError(PRInt32 errorNum, nsString& name, nsString *pStream)
 {
   if (!pStream)
     return;
   // load the error string
-  PRUnichar *pFmt = nsWMStringBundle::GetStringByID( errorNum);
-  PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get());
-  pStream->Append( pText);
-  nsTextFormatter::smprintf_free( pText);
-  nsWMStringBundle::FreeString( pFmt);
-  AddLinebreak( pStream);
+  PRUnichar *pFmt = nsWMStringBundle::GetStringByID(errorNum);
+  PRUnichar *pText = nsTextFormatter::smprintf(pFmt, name.get());
+  pStream->Append(pText);
+  nsTextFormatter::smprintf_free(pText);
+  nsWMStringBundle::FreeString(pFmt);
+  AddLinebreak(pStream);
 }
 
 void ImportWMMailImpl::SetLogs(nsString& success, nsString& error,
@@ -279,7 +279,7 @@ NS_IMETHODIMP ImportWMMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSourc
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP ImportWMMailImpl::GetImportProgress( PRUint32 *pDoneSoFar)
+NS_IMETHODIMP ImportWMMailImpl::GetImportProgress(PRUint32 *pDoneSoFar)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

@@ -60,50 +60,88 @@ public:
   ~nsEudoraMac();
 
     // retrieve the mail folder
-  virtual bool      FindMailFolder( nsIFile **pFolder);
+  virtual bool      FindMailFolder(nsIFile **pFolder);
     // get the list of mailboxes
-  virtual nsresult  FindMailboxes( nsIFile *pRoot, nsISupportsArray **ppArray);
+  virtual nsresult  FindMailboxes(nsIFile *pRoot,
+                                  nsISupportsArray **ppArray);
     // get a TOC file from a mailbox file
-  virtual nsresult  FindTOCFile( nsIFile *pMailFile, nsIFile **pTOCFile, bool *pDeleteToc);
+  virtual nsresult  FindTOCFile(nsIFile *pMailFile,
+                                nsIFile **pTOCFile,
+                                bool *pDeleteToc);
 
-  virtual nsresult  GetAttachmentInfo( const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachment);
+  virtual nsresult  GetAttachmentInfo(const char *pFileName,
+                                      nsIFile *pFile,
+                                      nsCString& mimeType,
+                                      nsCString& aAttachment);
 
     // Address book stuff
-  virtual bool      FindAddressFolder( nsIFile **pFolder);
+  virtual bool      FindAddressFolder(nsIFile **pFolder);
     // get the list of mailboxes
-  virtual nsresult  FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppArray);
+  virtual nsresult  FindAddressBooks(nsIFile *pRoot,
+                                     nsISupportsArray **ppArray);
 
     // import settings
-  static bool    ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMailAccount);
-  static bool    FindSettingsFile( nsIFile **pIniFile) { return( FindEudoraLocation( pIniFile, true));}
+  static bool    ImportSettings(nsIFile *pIniFile,
+                                nsIMsgAccount **localMailAccount);
+  static bool    FindSettingsFile(nsIFile **pIniFile) { return FindEudoraLocation(pIniFile, true);}
 
-  static bool    FindFiltersFile( nsIFile **pFiltersFile);
+  static bool    FindFiltersFile(nsIFile **pFiltersFile);
 
 private:
-  static bool    FindEudoraLocation( nsIFile **pFolder, bool findIni = false, nsIFile *pLookIn = nsnull);
-  static bool    FindEudoraLocation( nsIFile **pFolder, bool findIni, const char *specialDirName );
-  static bool    VerifyEudoraLocation( nsIFile **pFolder, bool findIni );
+  static bool    FindEudoraLocation(nsIFile **pFolder,
+                                    bool findIni = false,
+                                    nsIFile *pLookIn = nsnull);
+  static bool    FindEudoraLocation(nsIFile **pFolder,
+                                    bool findIni,
+                                    const char *specialDirName);
+  static bool    VerifyEudoraLocation(nsIFile **pFolder, bool findIni);
 
 
-  nsresult  ScanMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
-  nsresult  IterateMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
-  nsresult  FoundMailFolder( nsILocalFile *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
-  nsresult  FoundMailbox( nsIFile *mailFile, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
+  nsresult  ScanMailDir(nsIFile *pFolder,
+                        nsISupportsArray *pArray,
+                        nsIImportService *pImport);
+  nsresult  IterateMailDir(nsIFile *pFolder,
+                           nsISupportsArray *pArray,
+                           nsIImportService *pImport);
+  nsresult  FoundMailFolder(nsILocalFile *mailFolder,
+                            const char *pName,
+                            nsISupportsArray *pArray,
+                            nsIImportService *pImport);
+  nsresult  FoundMailbox(nsIFile *mailFile,
+                         const char *pName,
+                         nsISupportsArray *pArray,
+                         nsIImportService *pImport);
 
-  bool      IsValidMailFolderName( nsCString& name);
-  bool      IsValidMailboxName( nsCString& fName);
-  bool      IsValidMailboxFile( nsIFile *pFile);
+  bool      IsValidMailFolderName(nsCString& name);
+  bool      IsValidMailboxName(nsCString& fName);
+  bool      IsValidMailboxFile(nsIFile *pFile);
 
-  bool      CreateTocFromResource( nsIFile *pMail, nsIFile **pToc);
+  bool      CreateTocFromResource(nsIFile *pMail, nsIFile **pToc);
 
 
 
     // Settings support
-  static bool    BuildPOPAccount( nsIMsgAccountManager *accMgr, nsCString **pStrs, nsIMsgAccount **ppAccount, nsString& accName);
-  static bool    BuildIMAPAccount( nsIMsgAccountManager *accMgr, nsCString **pStrs, nsIMsgAccount **ppAccount, nsString& accName);
-  static void    SetIdentities( nsIMsgAccountManager *accMgr, nsIMsgAccount *acc, const char *userName, const char *serverName, nsCString **pStrs);
-  static void    SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, const char *pServer, const char *pUser);
-  static bool    GetSettingsFromResource( nsIFile *pSettings, short resId, nsCString **pStrs, bool *pIMAP);
+  static bool    BuildPOPAccount(nsIMsgAccountManager *accMgr,
+                                 nsCString **pStrs,
+                                 nsIMsgAccount **ppAccount,
+                                 nsString& accName);
+  static bool    BuildIMAPAccount(nsIMsgAccountManager *accMgr,
+                                  nsCString **pStrs,
+                                  nsIMsgAccount **ppAccount,
+                                  nsString& accName);
+  static void    SetIdentities(nsIMsgAccountManager *accMgr,
+                               nsIMsgAccount *acc,
+                               const char *userName,
+                               const char *serverName,
+                               nsCString **pStrs);
+  static void    SetSmtpServer(nsIMsgAccountManager *pMgr,
+                               nsIMsgAccount *pAcc,
+                               const char *pServer,
+                               const char *pUser);
+  static bool    GetSettingsFromResource(nsIFile *pSettings,
+                                         short resId,
+                                         nsCString **pStrs,
+                                         bool *pIMAP);
 
 
 private:

@@ -48,13 +48,13 @@ class nsOE5File
 {
 public:
     /* pFile must already be open for reading. */
-  static bool    VerifyLocalMailFile( nsIFile *pFile);
+  static bool    VerifyLocalMailFile(nsIFile *pFile);
     /* pFile must NOT be open for reading   */
-  static bool    IsLocalMailFile( nsIFile *pFile);
+  static bool    IsLocalMailFile(nsIFile *pFile);
 
-  static bool    ReadIndex( nsIInputStream *pFile, PRUint32 **ppIndex, PRUint32 *pSize);
+  static bool    ReadIndex(nsIInputStream *pFile, PRUint32 **ppIndex, PRUint32 *pSize);
 
-  static nsresult  ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString& name, nsIFile *inFile, nsIFile *pDestination, PRUint32 *pCount);
+  static nsresult  ImportMailbox(PRUint32 *pBytesDone, bool *pAbort, nsString& name, nsIFile *inFile, nsIFile *pDestination, PRUint32 *pCount);
 
   static void FileTimeToPRTime(const FILETIME *filetime, PRTime *prtm);
 

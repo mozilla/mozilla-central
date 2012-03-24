@@ -122,13 +122,13 @@ public:
   NS_IMETHOD TranslateFolderName(const nsAString & aFolderName, nsAString & _retval);
 
 public:
-  static void  AddLinebreak( nsString *pStream);
-  static void  SetLogs( nsString& success, nsString& error, PRUnichar **pError, PRUnichar **pSuccess);
-  static void ReportError( PRInt32 errorNum, nsString& name, nsString *pStream);
+  static void  AddLinebreak(nsString *pStream);
+  static void  SetLogs(nsString& success, nsString& error, PRUnichar **pError, PRUnichar **pSuccess);
+  static void ReportError(PRInt32 errorNum, nsString& name, nsString *pStream);
 
 
 private:
-  static void  ReportSuccess( nsString& name, PRInt32 count, nsString *pStream);
+  static void  ReportSuccess(nsString& name, PRInt32 count, nsString *pStream);
 
 private:
 #if defined(XP_WIN) || defined(XP_OS2)
@@ -154,18 +154,18 @@ public:
 
   // nsIImportAddressBooks interface
 
-  NS_IMETHOD GetSupportsMultiple(bool *_retval) { *_retval = true; return( NS_OK);}
+  NS_IMETHOD GetSupportsMultiple(bool *_retval) { *_retval = true; return NS_OK;}
 
   NS_IMETHOD GetAutoFind(PRUnichar **description, bool *_retval);
 
-  NS_IMETHOD GetNeedsFieldMap(nsIFile *location, bool *_retval) { *_retval = false; return( NS_OK);}
+  NS_IMETHOD GetNeedsFieldMap(nsIFile *location, bool *_retval) { *_retval = false; return NS_OK;}
 
   NS_IMETHOD GetDefaultLocation(nsIFile **location, bool *found, bool *userVerify);
 
   NS_IMETHOD FindAddressBooks(nsIFile *location, nsISupportsArray **_retval);
 
   NS_IMETHOD InitFieldMap(nsIImportFieldMap *fieldMap)
-    { return( NS_ERROR_FAILURE); }
+    { return NS_ERROR_FAILURE; }
 
   NS_IMETHOD ImportAddressBook(nsIImportABDescriptor *source,
                                nsIAddrDatabase *destination,
@@ -177,13 +177,13 @@ public:
 
   NS_IMETHOD GetImportProgress(PRUint32 *_retval);
 
-  NS_IMETHOD GetSampleData( PRInt32 index, bool *pFound, PRUnichar **pStr)
-    { return( NS_ERROR_FAILURE);}
+  NS_IMETHOD GetSampleData(PRInt32 index, bool *pFound, PRUnichar **pStr)
+    { return NS_ERROR_FAILURE;}
 
-  NS_IMETHOD SetSampleLocation( nsIFile *) { return( NS_OK); }
+  NS_IMETHOD SetSampleLocation(nsIFile *) { return NS_OK; }
 
 private:
-  static void  ReportSuccess( nsString& name, nsString *pStream);
+  static void  ReportSuccess(nsString& name, nsString *pStream);
 
 private:
 #if defined(XP_WIN) || defined(XP_OS2)
@@ -204,7 +204,7 @@ nsEudoraImport::nsEudoraImport()
   // Init logging module.
   if (!EUDORALOGMODULE)
     EUDORALOGMODULE = PR_NewLogModule("IMPORT");
-  IMPORT_LOG0( "nsEudoraImport Module Created\n");
+  IMPORT_LOG0("nsEudoraImport Module Created\n");
 
   nsEudoraStringBundle::GetStringBundle();
 }
@@ -212,7 +212,7 @@ nsEudoraImport::nsEudoraImport()
 
 nsEudoraImport::~nsEudoraImport()
 {
-  IMPORT_LOG0( "nsEudoraImport Module Deleted\n");
+  IMPORT_LOG0("nsEudoraImport Module Deleted\n");
 }
 
 
@@ -220,50 +220,50 @@ nsEudoraImport::~nsEudoraImport()
 NS_IMPL_ISUPPORTS1(nsEudoraImport, nsIImportModule)
 
 
-NS_IMETHODIMP nsEudoraImport::GetName( PRUnichar **name)
+NS_IMETHODIMP nsEudoraImport::GetName(PRUnichar **name)
 {
   NS_PRECONDITION(name != nsnull, "null ptr");
   if (! name)
     return NS_ERROR_NULL_POINTER;
 
-  *name = nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_NAME);
+  *name = nsEudoraStringBundle::GetStringByID(EUDORAIMPORT_NAME);
 
   return NS_OK;
 }
 
-NS_IMETHODIMP nsEudoraImport::GetDescription( PRUnichar **name)
+NS_IMETHODIMP nsEudoraImport::GetDescription(PRUnichar **name)
 {
   NS_PRECONDITION(name != nsnull, "null ptr");
   if (! name)
     return NS_ERROR_NULL_POINTER;
 
-  *name = nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_DESCRIPTION);
+  *name = nsEudoraStringBundle::GetStringByID(EUDORAIMPORT_DESCRIPTION);
 
   return NS_OK;
 }
 
-NS_IMETHODIMP nsEudoraImport::GetSupports( char **supports)
+NS_IMETHODIMP nsEudoraImport::GetSupports(char **supports)
 {
   NS_PRECONDITION(supports != nsnull, "null ptr");
   if (! supports)
     return NS_ERROR_NULL_POINTER;
 
-  *supports = strdup( kEudoraSupportsString);
-  return( NS_OK);
+  *supports = strdup(kEudoraSupportsString);
+  return NS_OK;
 }
 
-NS_IMETHODIMP nsEudoraImport::GetSupportsUpgrade( bool *pUpgrade)
+NS_IMETHODIMP nsEudoraImport::GetSupportsUpgrade(bool *pUpgrade)
 {
   NS_PRECONDITION(pUpgrade != nsnull, "null ptr");
   if (! pUpgrade)
     return NS_ERROR_NULL_POINTER;
 
   *pUpgrade = true;
-  return( NS_OK);
+  return NS_OK;
 }
 
 
-NS_IMETHODIMP nsEudoraImport::GetImportInterface( const char *pImportType, nsISupports **ppInterface)
+NS_IMETHODIMP nsEudoraImport::GetImportInterface(const char *pImportType, nsISupports **ppInterface)
 {
   NS_PRECONDITION(pImportType != nsnull, "null ptr");
   if (! pImportType)
@@ -274,82 +274,82 @@ NS_IMETHODIMP nsEudoraImport::GetImportInterface( const char *pImportType, nsISu
 
   *ppInterface = nsnull;
   nsresult  rv;
-  if (!strcmp( pImportType, "mail"))
+  if (!strcmp(pImportType, "mail"))
   {
     // create the nsIImportMail interface and return it!
     nsIImportMail *  pMail = nsnull;
     nsIImportGeneric *pGeneric = nsnull;
-    rv = ImportEudoraMailImpl::Create( &pMail);
-    if (NS_SUCCEEDED( rv)) {
+    rv = ImportEudoraMailImpl::Create(&pMail);
+    if (NS_SUCCEEDED(rv)) {
       nsCOMPtr<nsIImportService> impSvc(do_GetService(NS_IMPORTSERVICE_CONTRACTID, &rv));
-      if (NS_SUCCEEDED( rv))
+      if (NS_SUCCEEDED(rv))
       {
-        rv = impSvc->CreateNewGenericMail( &pGeneric);
-        if (NS_SUCCEEDED( rv))
+        rv = impSvc->CreateNewGenericMail(&pGeneric);
+        if (NS_SUCCEEDED(rv))
         {
-          pGeneric->SetData( "mailInterface", pMail);
+          pGeneric->SetData("mailInterface", pMail);
           nsString name;
-          nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_NAME, name);
+          nsEudoraStringBundle::GetStringByID(EUDORAIMPORT_NAME, name);
           nsCOMPtr<nsISupportsString> nameString (do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID, &rv));
           if (NS_SUCCEEDED(rv))
           {
             nameString->SetData(name);
-            pGeneric->SetData( "name", nameString);
-            rv = pGeneric->QueryInterface( kISupportsIID, (void **)ppInterface);
+            pGeneric->SetData("name", nameString);
+            rv = pGeneric->QueryInterface(kISupportsIID, (void **)ppInterface);
           }
         }
       }
     }
-    NS_IF_RELEASE( pMail);
-    NS_IF_RELEASE( pGeneric);
-    return( rv);
+    NS_IF_RELEASE(pMail);
+    NS_IF_RELEASE(pGeneric);
+    return rv;
   }
 
-  if (!strcmp( pImportType, "addressbook"))
+  if (!strcmp(pImportType, "addressbook"))
   {
     // create the nsIImportMail interface and return it!
     nsIImportAddressBooks *  pAddress = nsnull;
     nsIImportGeneric *    pGeneric = nsnull;
-    rv = ImportEudoraAddressImpl::Create( &pAddress);
-    if (NS_SUCCEEDED( rv))
+    rv = ImportEudoraAddressImpl::Create(&pAddress);
+    if (NS_SUCCEEDED(rv))
     {
       nsCOMPtr<nsIImportService> impSvc(do_GetService(NS_IMPORTSERVICE_CONTRACTID, &rv));
-      if (NS_SUCCEEDED( rv))
+      if (NS_SUCCEEDED(rv))
       {
-        rv = impSvc->CreateNewGenericAddressBooks( &pGeneric);
-        if (NS_SUCCEEDED( rv))
+        rv = impSvc->CreateNewGenericAddressBooks(&pGeneric);
+        if (NS_SUCCEEDED(rv))
         {
-          pGeneric->SetData( "addressInterface", pAddress);
-          rv = pGeneric->QueryInterface( kISupportsIID, (void **)ppInterface);
+          pGeneric->SetData("addressInterface", pAddress);
+          rv = pGeneric->QueryInterface(kISupportsIID, (void **)ppInterface);
         }
       }
     }
-    NS_IF_RELEASE( pAddress);
-    NS_IF_RELEASE( pGeneric);
-    return( rv);
+    NS_IF_RELEASE(pAddress);
+    NS_IF_RELEASE(pGeneric);
+    return rv;
   }
 
-  if (!strcmp( pImportType, "settings"))
+  if (!strcmp(pImportType, "settings"))
   {
     nsIImportSettings *pSettings = nsnull;
-    rv = nsEudoraSettings::Create( &pSettings);
-    if (NS_SUCCEEDED( rv))
-      pSettings->QueryInterface( kISupportsIID, (void **)ppInterface);
-    NS_IF_RELEASE( pSettings);
-    return( rv);
+    rv = nsEudoraSettings::Create(&pSettings);
+    if (NS_SUCCEEDED(rv))
+      pSettings->QueryInterface(kISupportsIID, (void **)ppInterface);
+    NS_IF_RELEASE(pSettings);
+    return rv;
   }
 
-  if (!strcmp( pImportType, "filters"))
+  if (!strcmp(pImportType, "filters"))
   {
     nsIImportFilters *pFilters = nsnull;
-    rv = nsEudoraFilters::Create( &pFilters);
-    if (NS_SUCCEEDED( rv))
-      pFilters->QueryInterface( kISupportsIID, (void **)ppInterface);
-    NS_IF_RELEASE( pFilters);
-    return( rv);
+    rv = nsEudoraFilters::Create(&pFilters);
+    if (NS_SUCCEEDED(rv))
+      pFilters->QueryInterface(kISupportsIID, (void **)ppInterface);
+    NS_IF_RELEASE(pFilters);
+    return rv;
   }
 
-  return( NS_ERROR_NOT_AVAILABLE);
+  return NS_ERROR_NOT_AVAILABLE;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -379,7 +379,7 @@ ImportEudoraMailImpl::ImportEudoraMailImpl()
   nsresult            rv;
   nsCOMPtr<nsIMsgTagService>    pTagService = do_GetService(NS_MSGTAGSERVICE_CONTRACTID, &rv);
 
-  if ( NS_SUCCEEDED(rv) )
+  if (NS_SUCCEEDED(rv))
   {
     struct EudoraDefaultLabels
     {
@@ -419,10 +419,10 @@ ImportEudoraMailImpl::ImportEudoraMailImpl()
     {
       eudoraKey = defaultEudoraLabels[i].key;
       rv = pTagService->GetTagForKey(eudoraKey, eudoraTag);
-      if ( NS_FAILED(rv) || eudoraTag.IsEmpty() )
+      if (NS_FAILED(rv) || eudoraTag.IsEmpty())
       {
         eudoraColor = defaultEudoraLabels[i].color;
-        rv = pTagService->AddTagForKey( eudoraKey, defaultEudoraLabels[i].tag, eudoraColor, EmptyCString() );
+        rv = pTagService->AddTagForKey(eudoraKey, defaultEudoraLabels[i].tag, eudoraColor, EmptyCString());
       }
     }
   }
@@ -440,7 +440,7 @@ ImportEudoraMailImpl::~ImportEudoraMailImpl()
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(ImportEudoraMailImpl, nsIImportMail)
 
-NS_IMETHODIMP ImportEudoraMailImpl::GetDefaultLocation( nsIFile **ppLoc, bool *found, bool *userVerify)
+NS_IMETHODIMP ImportEudoraMailImpl::GetDefaultLocation(nsIFile **ppLoc, bool *found, bool *userVerify)
 {
   NS_PRECONDITION(ppLoc != nsnull, "null ptr");
   NS_PRECONDITION(found != nsnull, "null ptr");
@@ -452,11 +452,11 @@ NS_IMETHODIMP ImportEudoraMailImpl::GetDefaultLocation( nsIFile **ppLoc, bool *f
   *found = m_eudora.FindMailFolder(ppLoc);
   *userVerify = true;
 
-  return( NS_OK);
+  return NS_OK;
 }
 
 
-NS_IMETHODIMP ImportEudoraMailImpl::FindMailboxes( nsIFile *pLoc, nsISupportsArray **ppArray)
+NS_IMETHODIMP ImportEudoraMailImpl::FindMailboxes(nsIFile *pLoc, nsISupportsArray **ppArray)
 {
   NS_PRECONDITION(pLoc != nsnull, "null ptr");
   NS_PRECONDITION(ppArray != nsnull, "null ptr");
@@ -464,54 +464,51 @@ NS_IMETHODIMP ImportEudoraMailImpl::FindMailboxes( nsIFile *pLoc, nsISupportsArr
     return NS_ERROR_NULL_POINTER;
 
   bool exists = false;
-  nsresult rv = pLoc->Exists( &exists);
-  if (NS_FAILED( rv) || !exists)
-    return( NS_ERROR_FAILURE);
+  nsresult rv = pLoc->Exists(&exists);
+  if (NS_FAILED(rv) || !exists)
+    return NS_ERROR_FAILURE;
 
-  rv = m_eudora.FindMailboxes( pLoc, ppArray);
-  if (NS_FAILED( rv) && *ppArray)
-  {
-    NS_RELEASE( *ppArray);
-    *ppArray = nsnull;
-  }
+  rv = m_eudora.FindMailboxes(pLoc, ppArray);
+  if (NS_FAILED(rv) && *ppArray)
+    NS_RELEASE(*ppArray);
 
-  return( rv);
+  return rv;
 }
 
-void ImportEudoraMailImpl::AddLinebreak( nsString *pStream)
+void ImportEudoraMailImpl::AddLinebreak(nsString *pStream)
 {
   if (pStream)
-    pStream->Append( PRUnichar('\n'));
+    pStream->Append(PRUnichar('\n'));
 }
 
-void ImportEudoraMailImpl::ReportSuccess( nsString& name, PRInt32 count, nsString *pStream)
+void ImportEudoraMailImpl::ReportSuccess(nsString& name, PRInt32 count, nsString *pStream)
 {
   if (!pStream)
     return;
   // load the success string
-  PRUnichar *pFmt = nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_MAILBOX_SUCCESS);
-  PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get(), count);
-  pStream->Append( pText);
-  nsTextFormatter::smprintf_free( pText);
-  nsEudoraStringBundle::FreeString( pFmt);
-  AddLinebreak( pStream);
+  PRUnichar *pFmt = nsEudoraStringBundle::GetStringByID(EUDORAIMPORT_MAILBOX_SUCCESS);
+  PRUnichar *pText = nsTextFormatter::smprintf(pFmt, name.get(), count);
+  pStream->Append(pText);
+  nsTextFormatter::smprintf_free(pText);
+  nsEudoraStringBundle::FreeString(pFmt);
+  AddLinebreak(pStream);
 }
 
-void ImportEudoraMailImpl::ReportError( PRInt32 errorNum, nsString& name, nsString *pStream)
+void ImportEudoraMailImpl::ReportError(PRInt32 errorNum, nsString& name, nsString *pStream)
 {
   if (!pStream)
     return;
   // load the error string
   PRUnichar *pFmt = nsEudoraStringBundle::GetStringByID(errorNum);
   PRUnichar *pText = nsTextFormatter::smprintf(pFmt, name.get());
-  pStream->Append( pText);
-  nsTextFormatter::smprintf_free( pText);
-  nsEudoraStringBundle::FreeString( pFmt);
-  AddLinebreak( pStream);
+  pStream->Append(pText);
+  nsTextFormatter::smprintf_free(pText);
+  nsEudoraStringBundle::FreeString(pFmt);
+  AddLinebreak(pStream);
 }
 
 
-void ImportEudoraMailImpl::SetLogs( nsString& success, nsString& error, PRUnichar **pError, PRUnichar **pSuccess)
+void ImportEudoraMailImpl::SetLogs(nsString& success, nsString& error, PRUnichar **pError, PRUnichar **pSuccess)
 {
   if (pError)
     *pError = ToNewUnicode(error);
@@ -533,46 +530,46 @@ NS_IMETHODIMP ImportEudoraMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
   nsString  error;
   if (!pSource || !pDestination || !fatalError)
   {
-    IMPORT_LOG0( "*** Bad param passed to eudora mailbox import\n");
-    nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_MAILBOX_BADPARAM, error);
+    IMPORT_LOG0("*** Bad param passed to eudora mailbox import\n");
+    nsEudoraStringBundle::GetStringByID(EUDORAIMPORT_MAILBOX_BADPARAM, error);
     if (fatalError)
       *fatalError = true;
-    SetLogs( success, error, pErrorLog, pSuccessLog);
+    SetLogs(success, error, pErrorLog, pSuccessLog);
     return NS_ERROR_NULL_POINTER;
   }
 
   bool      abort = false;
   nsString  name;
   PRUnichar *  pName;
-  if (NS_SUCCEEDED( pSource->GetDisplayName( &pName)))
+  if (NS_SUCCEEDED(pSource->GetDisplayName(&pName)))
   {
     name = pName;
-    NS_Free( pName);
+    NS_Free(pName);
   }
 
   PRUint32 mailSize = 0;
-  pSource->GetSize( &mailSize);
+  pSource->GetSize(&mailSize);
   if (mailSize == 0)
   {
-    IMPORT_LOG0( "Mailbox size is 0, skipping mailbox.\n");
-    ReportSuccess( name, 0, &success);
-    SetLogs( success, error, pErrorLog, pSuccessLog);
-    return( NS_OK);
+    IMPORT_LOG0("Mailbox size is 0, skipping mailbox.\n");
+    ReportSuccess(name, 0, &success);
+    SetLogs(success, error, pErrorLog, pSuccessLog);
+    return NS_OK;
   }
 
 
   nsCOMPtr <nsILocalFile>  inFile;
-  if (NS_FAILED(pSource->GetFile( getter_AddRefs(inFile))))
+  if (NS_FAILED(pSource->GetFile(getter_AddRefs(inFile))))
   {
-    ReportError( EUDORAIMPORT_MAILBOX_BADSOURCEFILE, name, &error);
-    SetLogs( success, error, pErrorLog, pSuccessLog);
-    return( NS_ERROR_FAILURE);
+    ReportError(EUDORAIMPORT_MAILBOX_BADSOURCEFILE, name, &error);
+    SetLogs(success, error, pErrorLog, pSuccessLog);
+    return NS_ERROR_FAILURE;
   }
 
 #ifdef IMPORT_DEBUG
   nsCString pPath;
   inFile->GetNativePath(pPath);
-  IMPORT_LOG1( "Import mailbox: %s\n", pPath.get());
+  IMPORT_LOG1("Import mailbox: %s\n", pPath.get());
 #endif
 
 
@@ -580,28 +577,28 @@ NS_IMETHODIMP ImportEudoraMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
   nsresult rv = NS_OK;
 
   m_bytes = 0;
-  rv = m_eudora.ImportMailbox( &m_bytes, &abort, name.get(), inFile, pDestination, &msgCount);
-  if (NS_SUCCEEDED( rv))
-    ReportSuccess( name, msgCount, &success);
+  rv = m_eudora.ImportMailbox(&m_bytes, &abort, name.get(), inFile, pDestination, &msgCount);
+  if (NS_SUCCEEDED(rv))
+    ReportSuccess(name, msgCount, &success);
   else
-    ReportError( EUDORAIMPORT_MAILBOX_CONVERTERROR, name, &error);
+    ReportError(EUDORAIMPORT_MAILBOX_CONVERTERROR, name, &error);
 
-  SetLogs( success, error, pErrorLog, pSuccessLog);
+  SetLogs(success, error, pErrorLog, pSuccessLog);
 
-  IMPORT_LOG0( "*** Returning from eudora mailbox import\n");
+  IMPORT_LOG0("*** Returning from eudora mailbox import\n");
 
-  return( rv);
+  return rv;
 }
 
 
-NS_IMETHODIMP ImportEudoraMailImpl::GetImportProgress( PRUint32 *pDoneSoFar)
+NS_IMETHODIMP ImportEudoraMailImpl::GetImportProgress(PRUint32 *pDoneSoFar)
 {
   NS_PRECONDITION(pDoneSoFar != nsnull, "null ptr");
   if (! pDoneSoFar)
     return NS_ERROR_NULL_POINTER;
 
   *pDoneSoFar = m_bytes;
-  return( NS_OK);
+  return NS_OK;
 }
 
 
@@ -653,10 +650,10 @@ NS_IMETHODIMP ImportEudoraAddressImpl::GetAutoFind(PRUnichar **description, bool
 
   nsString  str;
   *_retval = false;
-  nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_NICKNAMES_NAME, str);
+  nsEudoraStringBundle::GetStringByID(EUDORAIMPORT_NICKNAMES_NAME, str);
   *description = ToNewUnicode(str);
 
-  return( NS_OK);
+  return NS_OK;
 }
 
 
@@ -672,7 +669,7 @@ NS_IMETHODIMP ImportEudoraAddressImpl::GetDefaultLocation(nsIFile **ppLoc, bool 
   *found = m_eudora.FindAddressFolder(ppLoc);
   *userVerify = true;
 
-  return( NS_OK);
+  return NS_OK;
 }
 
 
@@ -685,32 +682,30 @@ NS_IMETHODIMP ImportEudoraAddressImpl::FindAddressBooks(nsIFile *pLoc, nsISuppor
         return NS_ERROR_NULL_POINTER;
 
   bool exists = false;
-  nsresult rv = pLoc->Exists( &exists);
-  if (NS_FAILED( rv) || !exists)
-    return( NS_ERROR_FAILURE);
+  nsresult rv = pLoc->Exists(&exists);
+  if (NS_FAILED(rv) || !exists)
+    return NS_ERROR_FAILURE;
 
-  rv = m_eudora.FindAddressBooks( pLoc, ppArray);
-  if (NS_FAILED( rv) && *ppArray) {
-    NS_RELEASE( *ppArray);
-    *ppArray = nsnull;
-  }
+  rv = m_eudora.FindAddressBooks(pLoc, ppArray);
+  if (NS_FAILED(rv) && *ppArray)
+    NS_RELEASE(*ppArray);
 
-  return( rv);
+  return rv;
 }
 
 
 
-void ImportEudoraAddressImpl::ReportSuccess( nsString& name, nsString *pStream)
+void ImportEudoraAddressImpl::ReportSuccess(nsString& name, nsString *pStream)
 {
   if (!pStream)
     return;
   // load the success string
-  PRUnichar *pFmt = nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_ADDRESS_SUCCESS);
-  PRUnichar *pText = nsTextFormatter::smprintf( pFmt, name.get());
-  pStream->Append( pText);
-  nsTextFormatter::smprintf_free( pText);
-  nsEudoraStringBundle::FreeString( pFmt);
-  ImportEudoraMailImpl::AddLinebreak( pStream);
+  PRUnichar *pFmt = nsEudoraStringBundle::GetStringByID(EUDORAIMPORT_ADDRESS_SUCCESS);
+  PRUnichar *pText = nsTextFormatter::smprintf(pFmt, name.get());
+  pStream->Append(pText);
+  nsTextFormatter::smprintf_free(pText);
+  nsEudoraStringBundle::FreeString(pFmt);
+  ImportEudoraMailImpl::AddLinebreak(pStream);
 }
 
 
@@ -723,79 +718,77 @@ ImportEudoraAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSource,
                                            PRUnichar **pSuccessLog,
                                            bool *fatalError)
 {
-    NS_PRECONDITION(pSource != nsnull, "null ptr");
-    NS_PRECONDITION(pDestination != nsnull, "null ptr");
-    NS_PRECONDITION(fatalError != nsnull, "null ptr");
+  NS_PRECONDITION(pSource != nsnull, "null ptr");
+  NS_PRECONDITION(pDestination != nsnull, "null ptr");
+  NS_PRECONDITION(fatalError != nsnull, "null ptr");
 
-  nsString  success;
-  nsString  error;
-    if (!pSource || !pDestination || !fatalError) {
-    IMPORT_LOG0( "*** Bad param passed to eudora address import\n");
+  nsString success;
+  nsString error;
+  if (!pSource || !pDestination || !fatalError) {
+    IMPORT_LOG0("*** Bad param passed to eudora address import\n");
     nsEudoraStringBundle::GetStringByID(EUDORAIMPORT_ADDRESS_BADPARAM, error);
     if (fatalError)
       *fatalError = true;
-    ImportEudoraMailImpl::SetLogs( success, error, pErrorLog, pSuccessLog);
-      return NS_ERROR_NULL_POINTER;
+    ImportEudoraMailImpl::SetLogs(success, error, pErrorLog, pSuccessLog);
+    return NS_ERROR_NULL_POINTER;
   }
 
-    bool      abort = false;
-    nsString  name;
-    pSource->GetPreferredName(name);
+  bool abort = false;
+  nsString name;
+  pSource->GetPreferredName(name);
 
   PRUint32 addressSize = 0;
-  pSource->GetSize( &addressSize);
+  pSource->GetSize(&addressSize);
   if (addressSize == 0) {
-    IMPORT_LOG0( "Address book size is 0, skipping mailbox.\n");
-    ReportSuccess( name, &success);
-    ImportEudoraMailImpl::SetLogs( success, error, pErrorLog, pSuccessLog);
-    return( NS_OK);
+    IMPORT_LOG0("Address book size is 0, skipping mailbox.\n");
+    ReportSuccess(name, &success);
+    ImportEudoraMailImpl::SetLogs(success, error, pErrorLog, pSuccessLog);
+    return NS_OK;
   }
 
 
-    nsCOMPtr<nsIFile> inFile;
-    if (NS_FAILED(pSource->GetAbFile(getter_AddRefs(inFile)))) {
-    ImportEudoraMailImpl::ReportError( EUDORAIMPORT_ADDRESS_BADSOURCEFILE, name, &error);
-    ImportEudoraMailImpl::SetLogs( success, error, pErrorLog, pSuccessLog);
-      return( NS_ERROR_FAILURE);
-    }
+  nsCOMPtr<nsIFile> inFile;
+  if (NS_FAILED(pSource->GetAbFile(getter_AddRefs(inFile)))) {
+    ImportEudoraMailImpl::ReportError(EUDORAIMPORT_ADDRESS_BADSOURCEFILE, name, &error);
+    ImportEudoraMailImpl::SetLogs(success, error, pErrorLog, pSuccessLog);
+    return NS_ERROR_FAILURE;
+  }
 
 
 #ifdef IMPORT_DEBUG
   nsCString path;
   inFile->GetNativePath(path);
-  IMPORT_LOG1( "Import address book: %s\n", path.get());
+  IMPORT_LOG1("Import address book: %s\n", path.get());
 #endif
 
 
-    nsresult rv = NS_OK;
+  nsresult rv = NS_OK;
 
   m_bytes = 0;
-  rv = m_eudora.ImportAddresses( &m_bytes, &abort, name.get(), inFile, pDestination, error);
+  rv = m_eudora.ImportAddresses(&m_bytes, &abort, name.get(), inFile, pDestination, error);
 
-  if (NS_SUCCEEDED( rv) && error.IsEmpty()) {
-    ReportSuccess( name, &success);
-  }
-  else {
-    ImportEudoraMailImpl::ReportError( EUDORAIMPORT_ADDRESS_CONVERTERROR, name, &error);
-  }
+  if (NS_SUCCEEDED(rv) && error.IsEmpty())
+    ReportSuccess(name, &success);
+  else
+    ImportEudoraMailImpl::ReportError(EUDORAIMPORT_ADDRESS_CONVERTERROR, name, &error);
 
-  ImportEudoraMailImpl::SetLogs( success, error, pErrorLog, pSuccessLog);
+  ImportEudoraMailImpl::SetLogs(success, error, pErrorLog, pSuccessLog);
 
-  IMPORT_LOG0( "*** Returning from eudora address import\n");
+  IMPORT_LOG0("*** Returning from eudora address import\n");
 
-    return( rv);
+  return rv;
 }
 
 
 NS_IMETHODIMP ImportEudoraAddressImpl::GetImportProgress(PRUint32 *_retval)
 {
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
+  NS_PRECONDITION(_retval != nsnull, "null ptr");
   if (!_retval)
-    return( NS_ERROR_NULL_POINTER);
+    return NS_ERROR_NULL_POINTER;
 
   *_retval = m_bytes;
 
-  return( NS_OK);
+  return NS_OK;
 }
 
 

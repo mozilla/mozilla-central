@@ -53,7 +53,7 @@ nsImportScanFile::~nsImportScanFile()
     CleanUpScan();
 }
 
-void nsImportScanFile::InitScan( nsIInputStream *pInputStream, PRUint8 * pBuf, PRUint32 sz)
+void nsImportScanFile::InitScan(nsIInputStream *pInputStream, PRUint8 * pBuf, PRUint32 sz)
 {
   m_pInputStream = pInputStream;
   m_pBuf = pBuf;
@@ -62,7 +62,7 @@ void nsImportScanFile::InitScan( nsIInputStream *pInputStream, PRUint8 * pBuf, P
   m_pos = 0;
 }
 
-void nsImportScanFile::CleanUpScan( void)
+void nsImportScanFile::CleanUpScan(void)
 {
   m_pInputStream = nsnull;
   if (m_allocated) {
@@ -71,7 +71,7 @@ void nsImportScanFile::CleanUpScan( void)
   }
 }
 
-void nsImportScanFile::ShiftBuffer( void)
+void nsImportScanFile::ShiftBuffer(void)
 {
   PRUint8 *  pTop;
   PRUint8 *  pCurrent;
@@ -91,12 +91,12 @@ void nsImportScanFile::ShiftBuffer( void)
   m_pos = 0;
 }
 
-bool nsImportScanFile::FillBufferFromFile( void)
+bool nsImportScanFile::FillBufferFromFile(void)
 {
   PRUint32 available;
-  nsresult rv = m_pInputStream->Available( &available);
+  nsresult rv = m_pInputStream->Available(&available);
   if (NS_FAILED(rv))
-    return( false);
+    return false;
 
   // Fill up a buffer and scan it
   ShiftBuffer();
@@ -111,42 +111,42 @@ bool nsImportScanFile::FillBufferFromFile( void)
   pBuf += m_bytesInBuf;
   rv = m_pInputStream->Read(pBuf, (PRInt32) cnt, &read);
 
-  if (NS_FAILED( rv))
-    return( false);
-  rv = m_pInputStream->Available( &available);
+  if (NS_FAILED(rv))
+    return false;
+  rv = m_pInputStream->Available(&available);
   if (NS_FAILED(rv))
           m_eof = true;
 
   m_bytesInBuf += cnt;
-  return( true);
+  return true;
 }
 
-bool nsImportScanFile::Scan( bool *pDone)
+bool nsImportScanFile::Scan(bool *pDone)
 {
   PRUint32 available;
-  nsresult rv = m_pInputStream->Available( &available);
+  nsresult rv = m_pInputStream->Available(&available);
   if (NS_FAILED(rv))
         {
     if (m_pos < m_bytesInBuf)
-      ScanBuffer( pDone);
+      ScanBuffer(pDone);
     *pDone = true;
-    return( true);
+    return true;
   }
 
   // Fill up a buffer and scan it
   if (!FillBufferFromFile())
-    return( false);
+    return false;
 
-  return( ScanBuffer( pDone));
+  return ScanBuffer(pDone);
 }
 
-bool nsImportScanFile::ScanBuffer( bool *)
+bool nsImportScanFile::ScanBuffer(bool *)
 {
-  return( true);
+  return true;
 }
 
 
-bool nsImportScanFileLines::ScanBuffer( bool *pDone)
+bool nsImportScanFileLines::ScanBuffer(bool *pDone)
 {
   // m_pos, m_bytesInBuf, m_eof, m_pBuf are relevant
 
@@ -193,12 +193,12 @@ bool nsImportScanFileLines::ScanBuffer( bool *pDone)
       break;
     }
 
-    if (!ProcessLine( m_pBuf + startPos, pos - startPos, pDone)) {
-      return( false);
+    if (!ProcessLine(m_pBuf + startPos, pos - startPos, pDone)) {
+      return false;
     }
     m_pos = pos;
   }
 
-  return( true);
+  return true;
 }
 

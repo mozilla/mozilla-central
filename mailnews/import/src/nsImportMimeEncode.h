@@ -53,20 +53,20 @@ public:
 	nsImportMimeEncode();
 	~nsImportMimeEncode();
 	
-	void	EncodeFile( nsIFile *pInFile, ImportOutFile *pOut, const char *pFileName, const char *pMimeType);
+	void	EncodeFile(nsIFile *pInFile, ImportOutFile *pOut, const char *pFileName, const char *pMimeType);
 
-	bool	DoWork( bool *pDone);
+	bool	DoWork(bool *pDone);
 	
-	long	NumBytesProcessed( void) { long val = m_bytesProcessed; m_bytesProcessed = 0; return( val);}
+	long	NumBytesProcessed(void) { long val = m_bytesProcessed; m_bytesProcessed = 0; return val;}
 
 protected:
-	void	CleanUp( void);
-	bool	SetUpEncode( void);
-	bool	WriteFileName( nsCString& fName, bool wasTrans, const char *pTag);
-	bool	TranslateFileName( nsCString& inFile, nsCString& outFile);
+	void	CleanUp(void);
+	bool	SetUpEncode(void);
+	bool	WriteFileName(nsCString& fName, bool wasTrans, const char *pTag);
+	bool	TranslateFileName(nsCString& inFile, nsCString& outFile);
 
 
-	virtual bool	ScanBuffer( bool *pDone);
+	virtual bool	ScanBuffer(bool *pDone);
 
 
 protected:

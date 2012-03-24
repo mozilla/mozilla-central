@@ -48,10 +48,10 @@
 
 nsIStringBundle *  nsWMStringBundle::m_pBundle = nsnull;
 
-nsIStringBundle *nsWMStringBundle::GetStringBundle( void)
+nsIStringBundle *nsWMStringBundle::GetStringBundle(void)
 {
   if (m_pBundle)
-    return( m_pBundle);
+    return m_pBundle;
 
   char*        propertyURL = WM_MSGS_URL;
   nsIStringBundle*  sBundle = nsnull;
@@ -64,14 +64,14 @@ nsIStringBundle *nsWMStringBundle::GetStringBundle( void)
 
   m_pBundle = sBundle;
 
-  return( sBundle);
+  return sBundle;
 }
 
-void nsWMStringBundle::GetStringByID( PRInt32 stringID, nsString& result)
+void nsWMStringBundle::GetStringByID(PRInt32 stringID, nsString& result)
 {
   PRUnichar *ptrv = GetStringByID(stringID);
   result = ptrv;
-  FreeString( ptrv);
+  FreeString(ptrv);
 }
 
 PRUnichar *nsWMStringBundle::GetStringByID(PRInt32 stringID)
@@ -83,8 +83,8 @@ PRUnichar *nsWMStringBundle::GetStringByID(PRInt32 stringID)
     PRUnichar *ptrv = nsnull;
     nsresult rv = m_pBundle->GetStringFromID(stringID, &ptrv);
 
-    if (NS_SUCCEEDED( rv) && ptrv)
-      return( ptrv);
+    if (NS_SUCCEEDED(rv) && ptrv)
+      return ptrv;
   }
 
   nsString resultString;
@@ -92,10 +92,10 @@ PRUnichar *nsWMStringBundle::GetStringByID(PRInt32 stringID)
   resultString.AppendInt(stringID);
   resultString.AppendLiteral("?]");
 
-  return( ToNewUnicode(resultString));
+  return ToNewUnicode(resultString);
 }
 
-void nsWMStringBundle::Cleanup( void)
+void nsWMStringBundle::Cleanup(void)
 {
   if (m_pBundle)
     m_pBundle->Release();

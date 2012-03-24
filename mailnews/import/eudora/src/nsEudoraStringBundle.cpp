@@ -51,7 +51,7 @@
 
 nsIStringBundle *  nsEudoraStringBundle::m_pBundle = nsnull;
 
-nsIStringBundle *nsEudoraStringBundle::GetStringBundle( void)
+nsIStringBundle *nsEudoraStringBundle::GetStringBundle(void)
 {
   if (m_pBundle)
     return m_pBundle;
@@ -65,15 +65,15 @@ nsIStringBundle *nsEudoraStringBundle::GetStringBundle( void)
     sBundleService->CreateBundle(propertyURL, &sBundle);
 
   m_pBundle = sBundle;
-  return( sBundle);
+  return sBundle;
 }
 
-void nsEudoraStringBundle::GetStringByID( PRInt32 stringID, nsString& result)
+void nsEudoraStringBundle::GetStringByID(PRInt32 stringID, nsString& result)
 {
 
   PRUnichar *ptrv = GetStringByID(stringID);
   result = ptrv;
-  FreeString( ptrv);
+  FreeString(ptrv);
 }
 
 PRUnichar *nsEudoraStringBundle::GetStringByID(PRInt32 stringID)
@@ -86,8 +86,8 @@ PRUnichar *nsEudoraStringBundle::GetStringByID(PRInt32 stringID)
     PRUnichar *ptrv = nsnull;
     nsresult rv = m_pBundle->GetStringFromID(stringID, &ptrv);
 
-    if (NS_SUCCEEDED( rv) && ptrv)
-      return( ptrv);
+    if (NS_SUCCEEDED(rv) && ptrv)
+      return ptrv;
   }
 
   nsString resultString(NS_LITERAL_STRING("[StringID "));
@@ -115,7 +115,7 @@ nsString nsEudoraStringBundle::FormatString(PRInt32 stringID, ...)
   return result;
 }
 
-void nsEudoraStringBundle::Cleanup( void)
+void nsEudoraStringBundle::Cleanup(void)
 {
   if (m_pBundle)
     m_pBundle->Release();

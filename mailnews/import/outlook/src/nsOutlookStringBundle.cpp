@@ -48,7 +48,7 @@
 
 nsIStringBundle *  nsOutlookStringBundle::m_pBundle = nsnull;
 
-nsIStringBundle *nsOutlookStringBundle::GetStringBundle( void)
+nsIStringBundle *nsOutlookStringBundle::GetStringBundle(void)
 {
   if (m_pBundle)
     return m_pBundle;
@@ -64,14 +64,14 @@ nsIStringBundle *nsOutlookStringBundle::GetStringBundle( void)
 
   m_pBundle = sBundle;
 
-  return( sBundle);
+  return sBundle;
 }
 
-void nsOutlookStringBundle::GetStringByID( PRInt32 stringID, nsString& result)
+void nsOutlookStringBundle::GetStringByID(PRInt32 stringID, nsString& result)
 {
   PRUnichar *ptrv = GetStringByID(stringID);
   result = ptrv;
-  FreeString( ptrv);
+  FreeString(ptrv);
 }
 
 PRUnichar *nsOutlookStringBundle::GetStringByID(PRInt32 stringID)
@@ -83,7 +83,7 @@ PRUnichar *nsOutlookStringBundle::GetStringByID(PRInt32 stringID)
     PRUnichar *ptrv = nsnull;
     nsresult rv = m_pBundle->GetStringFromID(stringID, &ptrv);
 
-    if (NS_SUCCEEDED( rv) && ptrv)
+    if (NS_SUCCEEDED(rv) && ptrv)
       return ptrv;
   }
 
@@ -95,7 +95,7 @@ PRUnichar *nsOutlookStringBundle::GetStringByID(PRInt32 stringID)
   return ToNewUnicode(resultString);
 }
 
-void nsOutlookStringBundle::Cleanup( void)
+void nsOutlookStringBundle::Cleanup(void)
 {
   if (m_pBundle)
     m_pBundle->Release();

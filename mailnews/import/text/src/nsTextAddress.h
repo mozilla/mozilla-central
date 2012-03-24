@@ -62,7 +62,7 @@ public:
   nsresult ImportAddresses(bool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsIImportFieldMap *fieldMap, nsString& errors, PRUint32 *pProgress);
 
   nsresult DetermineDelim(nsIFile *pSrc);
-  char GetDelim( void) { return( m_delim);}
+  char GetDelim(void) { return m_delim;}
 
   static nsresult ReadRecordNumber(nsIFile *pSrc, nsCString &aLine, PRInt32 rNum);
   static bool GetField(const char *pLine, PRInt32 maxLen, PRInt32 index, nsCString& field, char delim);

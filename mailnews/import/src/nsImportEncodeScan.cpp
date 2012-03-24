@@ -48,7 +48,7 @@
 #define  kDoneWithFile      6
 
 PRUint32  gAppleSingleHeader[6] = {0x00051600, 0x00020000, 0, 0, 0, 0};
-#define kAppleSingleHeaderSize  (6 * sizeof( PRUint32))
+#define kAppleSingleHeaderSize  (6 * sizeof(PRUint32))
 
 #ifdef _MAC_IMPORT_CODE
 #include "MoreFilesExtras.h"
@@ -58,21 +58,21 @@ CInfoPBRec  gCatInfoPB;
 U32      g2000Secs = 0;
 long    gGMTDelta = 0;
 
-long GetGmtDelta( void);
-U32 Get2000Secs( void);
+long GetGmtDelta(void);
+U32 Get2000Secs(void);
 
 
-long GetGmtDelta( void)
+long GetGmtDelta(void)
 {
   MachineLocation myLocation;
-  ReadLocation( &myLocation);
-  long  myDelta = BitAnd( myLocation.u.gmtDelta, 0x00FFFFFF);
-  if (BitTst( &myDelta, 23))
-    myDelta = BitOr( myDelta, 0xFF000000);
-  return( myDelta);
+  ReadLocation(&myLocation);
+  long  myDelta = BitAnd(myLocation.u.gmtDelta, 0x00FFFFFF);
+  if (BitTst(&myDelta, 23))
+    myDelta = BitOr(myDelta, 0xFF000000);
+  return myDelta;
 }
 
-U32 Get2000Secs( void)
+U32 Get2000Secs(void)
 {
   DateTimeRec  dr;
   dr.year = 2000;
@@ -83,8 +83,8 @@ U32 Get2000Secs( void)
   dr.second = 0;
   dr.dayOfWeek = 0;
   U32  result;
-  DateToSeconds( &dr, &result);
-  return( result);
+  DateToSeconds(&dr, &result);
+  return result;
 }
 #endif
 
@@ -100,7 +100,7 @@ nsImportEncodeScan::~nsImportEncodeScan()
 {
 }
 
-bool nsImportEncodeScan::InitEncodeScan( bool appleSingleEncode, nsIFile *fileLoc, const char *pName, PRUint8 * pBuf, PRUint32 sz)
+bool nsImportEncodeScan::InitEncodeScan(bool appleSingleEncode, nsIFile *fileLoc, const char *pName, PRUint8 * pBuf, PRUint32 sz)
 {
   CleanUpEncodeScan();
   m_isAppleSingle = appleSingleEncode;
@@ -117,20 +117,20 @@ bool nsImportEncodeScan::InitEncodeScan( bool appleSingleEncode, nsIFile *fileLo
                   NS_ENSURE_SUCCESS(rv, false);
     }
 
-    InitScan( m_inputStream, pBuf, sz);
+    InitScan(m_inputStream, pBuf, sz);
   }
   else {
   #ifdef _MAC_IMPORT_CODE
     // Fill in the file sizes
-    m_resourceForkSize = fileLoc.GetMacFileSize( UFileLocation::eResourceFork);
-    m_dataForkSize = fileLoc.GetMacFileSize( UFileLocation::eDataFork);
+    m_resourceForkSize = fileLoc.GetMacFileSize(UFileLocation::eResourceFork);
+    m_dataForkSize = fileLoc.GetMacFileSize(UFileLocation::eDataFork);
   #endif
   }
 
-  return( true);
+  return true;
 }
 
-void nsImportEncodeScan::CleanUpEncodeScan( void)
+void nsImportEncodeScan::CleanUpEncodeScan(void)
 {
   m_pInputStream->Close();
   m_pInputStream = nsnull;
@@ -140,7 +140,7 @@ void nsImportEncodeScan::CleanUpEncodeScan( void)
 
 // 26 + 12 per entry
 
-void nsImportEncodeScan::FillInEntries( int numEntries)
+void nsImportEncodeScan::FillInEntries(int numEntries)
 {
 #ifdef _MAC_IMPORT_CODE
   int    len = m_useFileName.GetLength();
@@ -152,20 +152,20 @@ void nsImportEncodeScan::FillInEntries( int numEntries)
   entry[1] = fileOffset;
   entry[2] = m_useFileName.GetLength();
   fileOffset += len;
-  MemCpy( m_pBuf + m_bytesInBuf, entry, 12);
+  MemCpy(m_pBuf + m_bytesInBuf, entry, 12);
   m_bytesInBuf += 12;
 
 
   Str255  comment;
   comment[0] = 0;
-  OSErr err = FSpDTGetComment( m_inputFileLoc, comment);
+  OSErr err = FSpDTGetComment(m_inputFileLoc, comment);
   if (comment[0] > 200)
     comment[0] = 200;
   entry[0] = 4;
   entry[1] = fileOffset;
   entry[2] = comment[0];
   fileOffset += 200;
-  MemCpy( m_pBuf + m_bytesInBuf, entry, 12);
+  MemCpy(m_pBuf + m_bytesInBuf, entry, 12);
   m_bytesInBuf += 12;
 
 
@@ -173,14 +173,14 @@ void nsImportEncodeScan::FillInEntries( int numEntries)
   entry[1] = fileOffset;
   entry[2] = 16;
   fileOffset += 16;
-  MemCpy( m_pBuf + m_bytesInBuf, entry, 12);
+  MemCpy(m_pBuf + m_bytesInBuf, entry, 12);
   m_bytesInBuf += 12;
 
   entry[0] = 9;
   entry[1] = fileOffset;
   entry[2] = 32;
   fileOffset += 32;
-  MemCpy( m_pBuf + m_bytesInBuf, entry, 12);
+  MemCpy(m_pBuf + m_bytesInBuf, entry, 12);
   m_bytesInBuf += 12;
 
 
@@ -188,7 +188,7 @@ void nsImportEncodeScan::FillInEntries( int numEntries)
   entry[1] = fileOffset;
   entry[2] = 4;
   fileOffset += 4;
-  MemCpy( m_pBuf + m_bytesInBuf, entry, 12);
+  MemCpy(m_pBuf + m_bytesInBuf, entry, 12);
   m_bytesInBuf += 12;
 
   if (m_resourceForkSize) {
@@ -196,7 +196,7 @@ void nsImportEncodeScan::FillInEntries( int numEntries)
     entry[1] = fileOffset;
     entry[2] = m_resourceForkSize;
     fileOffset += m_resourceForkSize;
-    MemCpy( m_pBuf + m_bytesInBuf, entry, 12);
+    MemCpy(m_pBuf + m_bytesInBuf, entry, 12);
     m_bytesInBuf += 12;
   }
 
@@ -205,21 +205,21 @@ void nsImportEncodeScan::FillInEntries( int numEntries)
     entry[1] = fileOffset;
     entry[2] = m_dataForkSize;
     fileOffset += m_dataForkSize;
-    MemCpy( m_pBuf + m_bytesInBuf, entry, 12);
+    MemCpy(m_pBuf + m_bytesInBuf, entry, 12);
     m_bytesInBuf += 12;
   }
 
 #endif
 }
 
-bool nsImportEncodeScan::AddEntries( void)
+bool nsImportEncodeScan::AddEntries(void)
 {
 #ifdef _MAC_IMPORT_CODE
   if (!g2000Secs) {
     g2000Secs = Get2000Secs();
     gGMTDelta = GetGmtDelta();
   }
-  MemCpy( m_pBuf + m_bytesInBuf, (PC_S8) m_useFileName, m_useFileName.GetLength());
+  MemCpy(m_pBuf + m_bytesInBuf, (PC_S8) m_useFileName, m_useFileName.GetLength());
   m_bytesInBuf += m_useFileName.GetLength();
   if (m_useFileName.GetLength() < 32) {
     int len = m_useFileName.GetLength();
@@ -232,9 +232,9 @@ bool nsImportEncodeScan::AddEntries( void)
 
   Str255  comment;
   comment[0] = 0;
-  OSErr err = FSpDTGetComment( m_inputFileLoc, comment);
+  OSErr err = FSpDTGetComment(m_inputFileLoc, comment);
   comment[0] = 200;
-  MemCpy( m_pBuf + m_bytesInBuf, &(comment[1]), comment[0]);
+  MemCpy(m_pBuf + m_bytesInBuf, &(comment[1]), comment[0]);
   m_bytesInBuf += comment[0];
 
   long  dates[4];
@@ -246,7 +246,7 @@ bool nsImportEncodeScan::AddEntries( void)
     dates[i] -= g2000Secs;
     dates[i] += gGMTDelta;
   }
-  MemCpy( m_pBuf + m_bytesInBuf, dates, 16);
+  MemCpy(m_pBuf + m_bytesInBuf, dates, 16);
   m_bytesInBuf += 16;
 
 
@@ -256,25 +256,25 @@ bool nsImportEncodeScan::AddEntries( void)
   fInfo.fdLocation.h = 0;
   fInfo.fdLocation.v = 0;
   fInfo.fdFldr = 0;
-  MemSet( &fxInfo, 0, sizeof( fxInfo));
-  MemCpy( m_pBuf + m_bytesInBuf, &fInfo, 16);
+  MemSet(&fxInfo, 0, sizeof(fxInfo));
+  MemCpy(m_pBuf + m_bytesInBuf, &fInfo, 16);
   m_bytesInBuf += 16;
-  MemCpy( m_pBuf + m_bytesInBuf, &fxInfo, 16);
+  MemCpy(m_pBuf + m_bytesInBuf, &fxInfo, 16);
   m_bytesInBuf += 16;
 
 
   dates[0] = 0;
   if ((gCatInfoPB.hFileInfo.ioFlAttrib & 1) != 0)
     dates[0] |= 1;
-  MemCpy( m_pBuf + m_bytesInBuf, dates, 4);
+  MemCpy(m_pBuf + m_bytesInBuf, dates, 4);
   m_bytesInBuf += 4;
 
 
 #endif
-  return( true);
+  return true;
 }
 
-bool nsImportEncodeScan::Scan( bool *pDone)
+bool nsImportEncodeScan::Scan(bool *pDone)
 {
   nsresult  rv;
 
@@ -283,34 +283,34 @@ bool nsImportEncodeScan::Scan( bool *pDone)
     // Stuff the buffer with things needed to encode the file...
     // then just allow UScanFile to handle each fork, but be careful
     // when handling eof.
-    switch( m_encodeScanState) {
+    switch(m_encodeScanState) {
       case kBeginAppleSingle: {
 #ifdef _MAC_IMPORT_CODE
-        OSErr err = GetCatInfoNoName( m_inputFileLoc.GetVRefNum(), m_inputFileLoc.GetParID(), m_inputFileLoc.GetFileNamePtr(), &gCatInfoPB);
+        OSErr err = GetCatInfoNoName(m_inputFileLoc.GetVRefNum(), m_inputFileLoc.GetParID(), m_inputFileLoc.GetFileNamePtr(), &gCatInfoPB);
         if (err != noErr)
-          return( FALSE);
+          return FALSE;
 #endif
         m_eof = false;
         m_pos = 0;
-        memcpy( m_pBuf, gAppleSingleHeader, kAppleSingleHeaderSize);
+        memcpy(m_pBuf, gAppleSingleHeader, kAppleSingleHeaderSize);
         m_bytesInBuf = kAppleSingleHeaderSize;
         int numEntries = 5;
         if (m_dataForkSize)
           numEntries++;
         if (m_resourceForkSize)
           numEntries++;
-        memcpy( m_pBuf + m_bytesInBuf, &numEntries, sizeof( numEntries));
-        m_bytesInBuf += sizeof( numEntries);
-        FillInEntries( numEntries);
+        memcpy(m_pBuf + m_bytesInBuf, &numEntries, sizeof(numEntries));
+        m_bytesInBuf += sizeof(numEntries);
+        FillInEntries(numEntries);
         m_encodeScanState = kAddEntries;
-        return( ScanBuffer( pDone));
+        return ScanBuffer(pDone);
       }
       break;
 
       case kBeginDataFork: {
         if (!m_dataForkSize) {
           m_encodeScanState = kDoneWithFile;
-          return( true);
+          return true;
         }
         // Initialize the scan of the data fork...
         if (!m_inputStream)
@@ -319,88 +319,88 @@ bool nsImportEncodeScan::Scan( bool *pDone)
                                   NS_ENSURE_SUCCESS(rv, false);
                                 }
         m_encodeScanState = kScanningDataFork;
-        return( true);
+        return true;
       }
       break;
 
       case kScanningDataFork: {
         bool result = FillBufferFromFile();
         if (!result)
-          return( false);
+          return false;
         if (m_eof) {
           m_eof = false;
-          result = ScanBuffer( pDone);
+          result = ScanBuffer(pDone);
           if (!result)
-            return( false);
+            return false;
           m_inputStream->Close();
                                         m_inputStream = nsnull;
           m_encodeScanState = kDoneWithFile;
-          return( true);
+          return true;
         }
         else
-          return( ScanBuffer( pDone));
+          return ScanBuffer(pDone);
       }
       break;
 
       case kScanningRsrcFork: {
         bool result = FillBufferFromFile();
         if (!result)
-          return( false);
+          return false;
         if (m_eof) {
           m_eof = false;
-          result = ScanBuffer( pDone);
+          result = ScanBuffer(pDone);
           if (!result)
-            return( false);
+            return false;
           m_inputStream->Close();
                                         m_inputStream = nsnull;
           m_encodeScanState = kBeginDataFork;
-          return( true);
+          return true;
         }
         else
-          return( ScanBuffer( pDone));
+          return ScanBuffer(pDone);
       }
       break;
 
       case kBeginResourceFork: {
         if (!m_resourceForkSize) {
           m_encodeScanState = kBeginDataFork;
-          return( true);
+          return true;
         }
         /*
         // FIXME: Open the resource fork on the Mac!!!
-        m_fH = UFile::OpenRsrcFileRead( m_inputFileLoc);
+        m_fH = UFile::OpenRsrcFileRead(m_inputFileLoc);
         if (m_fH == TR_FILE_ERROR)
-          return( FALSE);
+          return FALSE;
         */
         m_encodeScanState = kScanningRsrcFork;
-        return( true);
+        return true;
       }
       break;
 
       case kAddEntries: {
         ShiftBuffer();
         if (!AddEntries())
-          return( false);
+          return false;
         m_encodeScanState = kBeginResourceFork;
-        return( ScanBuffer( pDone));
+        return ScanBuffer(pDone);
       }
       break;
 
       case kDoneWithFile: {
         ShiftBuffer();
         m_eof = true;
-        if (!ScanBuffer( pDone))
-          return( false);
+        if (!ScanBuffer(pDone))
+          return false;
         *pDone = true;
-        return( true);
+        return true;
       }
       break;
     }
 
   }
   else
-    return( nsImportScanFile::Scan( pDone));
+    return nsImportScanFile::Scan(pDone);
 
-  return( false);
+  return false;
 }
 

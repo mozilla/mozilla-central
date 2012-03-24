@@ -50,10 +50,10 @@ static PRUint8 *  GetMimeType(const nsString& theExt);
 
 protected:
   // Registry stuff
-static BOOL  GetKey( HKEY root, LPCTSTR pName, PHKEY pKey);
-static BOOL  GetValueBytes( HKEY rootKey, LPCTSTR pValName, LPBYTE *ppBytes);
-static void  ReleaseValueBytes( LPBYTE pBytes);
-static BOOL  GetMimeTypeFromReg( const nsCString& ext, LPBYTE *ppBytes);
+static BOOL  GetKey(HKEY root, LPCTSTR pName, PHKEY pKey);
+static BOOL  GetValueBytes(HKEY rootKey, LPCTSTR pValName, LPBYTE *ppBytes);
+static void  ReleaseValueBytes(LPBYTE pBytes);
+static BOOL  GetMimeTypeFromReg(const nsCString& ext, LPBYTE *ppBytes);
 
 
 static PRUint8          m_mimeBuffer[kMaxMimeTypeSize];

@@ -171,46 +171,46 @@ public:
 
   // Things that must be overridden because they are platform specific.
     // retrieve the mail folder
-  virtual bool      FindMailFolder( nsIFile **pFolder) { return( false);}
+  virtual bool      FindMailFolder(nsIFile **pFolder) { return false;}
     // get the list of mailboxes
-  virtual nsresult  FindMailboxes( nsIFile *pRoot, nsISupportsArray **ppArray) { return( NS_ERROR_FAILURE);}
+  virtual nsresult  FindMailboxes(nsIFile *pRoot, nsISupportsArray **ppArray) { return NS_ERROR_FAILURE;}
     // get the toc file corresponding to this mailbox
-  virtual nsresult  FindTOCFile( nsIFile *pMailFile, nsIFile **pTOCFile, bool *pDeleteToc) { return( NS_ERROR_FAILURE);}
+  virtual nsresult  FindTOCFile(nsIFile *pMailFile, nsIFile **pTOCFile, bool *pDeleteToc) { return NS_ERROR_FAILURE;}
     // interpret the attachment line and return the attached file
-  virtual nsresult  GetAttachmentInfo( const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachment) { return( NS_ERROR_FAILURE);}
+  virtual nsresult  GetAttachmentInfo(const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachment) { return NS_ERROR_FAILURE;}
 
   // Non-platform specific common stuff
     // import a mailbox
-  nsresult ImportMailbox( PRUint32 *pBytes, bool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIFile *pDst, PRInt32 *pMsgCount);
+  nsresult ImportMailbox(PRUint32 *pBytes, bool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIFile *pDst, PRInt32 *pMsgCount);
 
-  static PRInt32    IsEudoraFromSeparator( const char *pData, PRInt32 maxLen, nsCString& defaultDate);
-  static bool      IsEudoraTag( const char *pChar, PRInt32 maxLen, bool &insideEudoraTags, nsCString &bodyType, PRInt32& tagLength);
+  static PRInt32    IsEudoraFromSeparator(const char *pData, PRInt32 maxLen, nsCString& defaultDate);
+  static bool      IsEudoraTag(const char *pChar, PRInt32 maxLen, bool &insideEudoraTags, nsCString &bodyType, PRInt32& tagLength);
 
 protected:
-  nsresult  CreateTempFile( nsIFile **ppFile);
-  nsresult  DeleteFile( nsIFile *pFile);
+  nsresult  CreateTempFile(nsIFile **ppFile);
+  nsresult  DeleteFile(nsIFile *pFile);
 
 
 private:
-   nsresult  ImportMailboxUsingTOC( PRUint32 *pBytes, bool *pAbort, nsIInputStream *pInputStream, nsIFile *tocFile, nsIOutputStream *pDst, PRInt32 *pMsgCount);
+   nsresult  ImportMailboxUsingTOC(PRUint32 *pBytes, bool *pAbort, nsIInputStream *pInputStream, nsIFile *tocFile, nsIOutputStream *pDst, PRInt32 *pMsgCount);
    nsresult  ReadTOCEntry(nsIInputStream *pToc, EudoraTOCEntry& tocEntry);
    nsresult  ImportMessage(SimpleBufferTonyRCopiedOnce& headers, SimpleBufferTonyRCopiedOnce& body, nsCString& defaultDate, nsCAutoString& bodyType, nsIOutputStream *pDst, PRInt32 *pMsgCount);
-   nsresult  ReadNextMessage( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& copy, SimpleBufferTonyRCopiedOnce& header,
+   nsresult  ReadNextMessage(ReadFileState *pState, SimpleBufferTonyRCopiedOnce& copy, SimpleBufferTonyRCopiedOnce& header,
                                         SimpleBufferTonyRCopiedOnce& body, nsCString& defaultDate,
                                         nsCString &defBodyType, EudoraTOCEntry *pTocEntry);
-  PRInt32    FindStartLine( SimpleBufferTonyRCopiedOnce& data);
-  PRInt32    FindNextEndLine( SimpleBufferTonyRCopiedOnce& data);
-  PRInt32    IsEndHeaders( SimpleBufferTonyRCopiedOnce& data);
-  nsresult  WriteFromSep( nsIOutputStream *pDst);
-  nsresult  FillMailBuffer( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& read);
+  PRInt32    FindStartLine(SimpleBufferTonyRCopiedOnce& data);
+  PRInt32    FindNextEndLine(SimpleBufferTonyRCopiedOnce& data);
+  PRInt32    IsEndHeaders(SimpleBufferTonyRCopiedOnce& data);
+  nsresult  WriteFromSep(nsIOutputStream *pDst);
+  nsresult  FillMailBuffer(ReadFileState *pState, SimpleBufferTonyRCopiedOnce& read);
 
-  void    EmptyAttachments( void);
-  nsresult  ExamineAttachment( SimpleBufferTonyRCopiedOnce& data);
-  bool      AddAttachment( nsCString& fileName);
+  void    EmptyAttachments(void);
+  nsresult  ExamineAttachment(SimpleBufferTonyRCopiedOnce& data);
+  bool      AddAttachment(nsCString& fileName);
 
-  static PRInt32    AsciiToLong( const char *pChar, PRInt32 len);
-  static int      IsWeekDayStr( const char *pStr);
-  static int      IsMonthStr( const char *pStr);
+  static PRInt32    AsciiToLong(const char *pChar, PRInt32 len);
+  static int      IsWeekDayStr(const char *pStr);
+  static int      IsMonthStr(const char *pStr);
 
 protected:
   nsCOMPtr <nsILocalFile>    m_mailImportLocation;

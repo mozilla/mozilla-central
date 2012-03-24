@@ -69,13 +69,13 @@ public:
   static nsresult CreateIdentity(void);
   static void ReleaseIdentity(void);
 private:
-  nsresult  CreateComponents( void);
+  nsresult  CreateComponents(void);
 
   void      UpdateHeader(CMapiMessageHeaders& oldHeaders, const CMapiMessageHeaders& newHeaders, CMapiMessageHeaders::SpecialHeader header, bool addIfAbsent = true);
   void      UpdateHeaders(CMapiMessageHeaders& oldHeaders, const CMapiMessageHeaders& newHeaders);
 
   nsresult  ComposeTheMessage(nsMsgDeliverMode mode, CMapiMessage &msg, nsIFile **pMsg);
-  nsresult  CopyComposedMessage( nsIFile *pSrc, nsIOutputStream *pDst, CMapiMessage& origMsg);
+  nsresult  CopyComposedMessage(nsIFile *pSrc, nsIOutputStream *pDst, CMapiMessage& origMsg);
 
   // Bug 593907
   void HackBody(const wchar_t* orig, size_t origLen, nsString& hack);

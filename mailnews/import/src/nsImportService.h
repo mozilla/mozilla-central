@@ -65,8 +65,8 @@ public:
     NS_DECL_NSIIMPORTSERVICE
 
 private:
-    nsresult LoadModuleInfo( const char*pClsId, const char *pSupports);
-  nsresult DoDiscover( void);
+    nsresult LoadModuleInfo(const char*pClsId, const char *pSupports);
+  nsresult DoDiscover(void);
 
 private:
     nsImportModuleList * m_pModules;
@@ -82,20 +82,20 @@ public:
   ImportModuleDesc() { m_pModule = nsnull;}
   ~ImportModuleDesc() { ReleaseModule();  }
 
-  void  SetCID( const nsCID& cid) { m_cid = cid;}
-  void  SetName( const PRUnichar *pName) { m_name = pName;}
-  void  SetDescription( const PRUnichar *pDesc) { m_description = pDesc;}
-  void  SetSupports( const char *pSupports) { m_supports = pSupports;}
+  void  SetCID(const nsCID& cid) { m_cid = cid;}
+  void  SetName(const PRUnichar *pName) { m_name = pName;}
+  void  SetDescription(const PRUnichar *pDesc) { m_description = pDesc;}
+  void  SetSupports(const char *pSupports) { m_supports = pSupports;}
 
-  nsCID      GetCID( void) { return( m_cid);}
-  const PRUnichar *GetName( void) { return( m_name.get());}
-  const PRUnichar *GetDescription( void) { return( m_description.get());}
-  const char *  GetSupports( void) { return( m_supports.get());}
+  nsCID      GetCID(void) { return m_cid;}
+  const PRUnichar *GetName(void) { return m_name.get();}
+  const PRUnichar *GetDescription(void) { return m_description.get();}
+  const char *  GetSupports(void) { return m_supports.get();}
 
-  nsIImportModule *  GetModule( bool keepLoaded = false); // Adds ref
-  void        ReleaseModule( void);
+  nsIImportModule *  GetModule(bool keepLoaded = false); // Adds ref
+  void        ReleaseModule(void);
 
-  bool        SupportsThings( const char *pThings);
+  bool        SupportsThings(const char *pThings);
 
 private:
     nsCID m_cid;
@@ -110,14 +110,14 @@ public:
   nsImportModuleList() { m_pList = nsnull; m_alloc = 0; m_count = 0;}
   ~nsImportModuleList() { ClearList(); }
 
-  void  AddModule( const nsCID& cid, const char *pSupports, const PRUnichar *pName, const PRUnichar *pDesc);
+  void  AddModule(const nsCID& cid, const char *pSupports, const PRUnichar *pName, const PRUnichar *pDesc);
 
-  void  ClearList( void);
+  void  ClearList(void);
 
-  PRInt32  GetCount( void) { return( m_count);}
+  PRInt32  GetCount(void) { return m_count;}
 
-  ImportModuleDesc *  GetModuleDesc( PRInt32 idx)
-    { if ((idx < 0) || (idx >= m_count)) return( nsnull); else return( m_pList[idx]);}
+  ImportModuleDesc *  GetModuleDesc(PRInt32 idx)
+    { if ((idx < 0) || (idx >= m_count)) return nsnull; else return m_pList[idx];}
 
 private:
 

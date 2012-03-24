@@ -102,7 +102,7 @@ public:
                              nsIMsgAccount **ppAccount);
   static void SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
                             nsIDOMDocument *xmlDoc, nsAutoString &userName,
-                            PRInt32 authMethodIncoming, bool isNNTP );
+                            PRInt32 authMethodIncoming, bool isNNTP);
   static void SetSmtpServer(nsIDOMDocument *xmlDoc, nsIMsgIdentity *id,
                             nsAutoString& inUserName, PRInt32 authMethodIncoming);
 };
@@ -372,7 +372,7 @@ bool WMSettings::DoImport(nsIMsgAccount **ppAccount)
   rv = accMgr->SaveAccountInfo();
   NS_ASSERTION(NS_SUCCEEDED(rv), "Can't save account info to pref file");
 
-  return( accounts != 0);
+  return accounts != 0;
 }
 
 bool WMSettings::DoIMAPServer(nsIMsgAccountManager *pMgr,
@@ -716,7 +716,7 @@ bool WMSettings::DoNNTPServer(nsIMsgAccountManager *pMgr,
 
 void WMSettings::SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
                                nsIDOMDocument *xmlDoc, nsAutoString &inUserName,
-                               PRInt32 authMethodIncoming, bool isNNTP )
+                               PRInt32 authMethodIncoming, bool isNNTP)
 {
   // Get the relevant information for an identity
   // BUG 470587. Don't set this: id->SetIdentityName(fullName);

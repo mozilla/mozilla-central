@@ -74,7 +74,7 @@ PRUnichar *nsImportStringBundle::GetStringByID(PRInt32 aStringID,
     nsresult rv = aBundle->GetStringFromID(aStringID, &ptrv);
 
     if (NS_SUCCEEDED(rv) && ptrv)
-      return(ptrv);
+      return ptrv;
   }
 
   nsString resultString(NS_LITERAL_STRING("[StringID "));
@@ -101,7 +101,7 @@ PRUnichar *nsImportStringBundle::GetStringByName(const char *aName,
         NS_ConvertUTF8toUTF16(aName).get(), &ptrv);
 
     if (NS_SUCCEEDED(rv) && ptrv)
-      return(ptrv);
+      return ptrv;
   }
 
   nsString resultString(NS_LITERAL_STRING("[StringName "));

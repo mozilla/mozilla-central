@@ -195,7 +195,7 @@ NS_IMETHODIMP nsVCardImport::GetImportInterface(
         rv = impSvc->CreateNewGenericAddressBooks(&pGeneric);
         if (NS_SUCCEEDED(rv)) {
           pGeneric->SetData("addressInterface", pAddress);
-          rv = pGeneric->QueryInterface( kISupportsIID, (void **)ppInterface);
+          rv = pGeneric->QueryInterface(kISupportsIID, (void **)ppInterface);
         }
       }
     }

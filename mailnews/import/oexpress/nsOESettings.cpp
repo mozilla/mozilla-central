@@ -67,19 +67,19 @@
 
 class OESettings {
 public:
-  static HKEY Find50Key( void);
-  static HKEY Find40Key( void);
-  static HKEY FindAccountsKey( void);
+  static HKEY Find50Key(void);
+  static HKEY Find40Key(void);
+  static HKEY FindAccountsKey(void);
 
-  static bool DoImport( nsIMsgAccount **ppAccount);
+  static bool DoImport(nsIMsgAccount **ppAccount);
 
-  static bool DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
-  static bool DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
-  static bool DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
+  static bool DoIMAPServer(nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
+  static bool DoPOP3Server(nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
+  static bool DoNNTPServer(nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
 
-  static void SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, HKEY hKey,
+  static void SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, HKEY hKey,
                              char *pIncomgUserName, PRInt32 authMethodIncoming, bool isNNTP);
-  static void SetSmtpServer( char *pSmtpServer, HKEY hKey, nsIMsgIdentity *id,
+  static void SetSmtpServer(char *pSmtpServer, HKEY hKey, nsIMsgIdentity *id,
                              char *pIncomgUserName, PRInt32 authMethodIncoming);
   static nsresult GetAccountName(HKEY hKey, char *defaultName, nsString &acctName);
   static bool IsKB933612Applied();
@@ -120,9 +120,9 @@ NS_IMETHODIMP nsOESettings::AutoLocate(PRUnichar **description, nsIFile **locati
   NS_PRECONDITION(description != nsnull, "null ptr");
   NS_PRECONDITION(_retval != nsnull, "null ptr");
   if (!description || !_retval)
-    return( NS_ERROR_NULL_POINTER);
+    return NS_ERROR_NULL_POINTER;
 
-  *description = nsOEStringBundle::GetStringByID( OEIMPORT_NAME);
+  *description = nsOEStringBundle::GetStringByID(OEIMPORT_NAME);
   *_retval = false;
 
   if (location)
@@ -131,13 +131,13 @@ NS_IMETHODIMP nsOESettings::AutoLocate(PRUnichar **description, nsIFile **locati
   key = OESettings::Find50Key();
   if (key != nsnull) {
     *_retval = true;
-    ::RegCloseKey( key);
+    ::RegCloseKey(key);
   }
   else {
     key = OESettings::Find40Key();
     if (key != nsnull) {
       *_retval = true;
-      ::RegCloseKey( key);
+      ::RegCloseKey(key);
     }
   }
   if (*_retval) {
@@ -146,97 +146,98 @@ NS_IMETHODIMP nsOESettings::AutoLocate(PRUnichar **description, nsIFile **locati
       *_retval = false;
     }
     else {
-      ::RegCloseKey( key);
+      ::RegCloseKey(key);
     }
   }
 
-  return( NS_OK);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsOESettings::SetLocation(nsIFile *location)
 {
-  return( NS_OK);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsOESettings::Import(nsIMsgAccount **localMailAccount, bool *_retval)
 {
-  NS_PRECONDITION( _retval != nsnull, "null ptr");
+  NS_PRECONDITION(_retval != nsnull, "null ptr");
 
-  if (OESettings::DoImport( localMailAccount)) {
+  if (OESettings::DoImport(localMailAccount)) {
     *_retval = true;
-    IMPORT_LOG0( "Settings import appears successful\n");
+    IMPORT_LOG0("Settings import appears successful\n");
   }
   else {
     *_retval = false;
-    IMPORT_LOG0( "Settings import returned FALSE\n");
+    IMPORT_LOG0("Settings import returned FALSE\n");
   }
 
-  return( NS_OK);
+  return NS_OK;
 }
 
-HKEY OESettings::FindAccountsKey( void)
+HKEY OESettings::FindAccountsKey(void)
 {
   HKEY  sKey;
 
-  if (::RegOpenKeyEx( HKEY_CURRENT_USER, "Identities", 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
-    BYTE *  pBytes = nsOERegUtil::GetValueBytes( sKey, "Default User ID");
-    ::RegCloseKey( sKey);
+  if (::RegOpenKeyEx(HKEY_CURRENT_USER, "Identities", 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
+    BYTE *  pBytes = nsOERegUtil::GetValueBytes(sKey, "Default User ID");
+    ::RegCloseKey(sKey);
     if (pBytes) {
-      nsCString  key( "Identities\\");
+      nsCString  key("Identities\\");
       key += (const char *)pBytes;
-      nsOERegUtil::FreeValueBytes( pBytes);
+      nsOERegUtil::FreeValueBytes(pBytes);
       key += "\\Software\\Microsoft\\Internet Account Manager\\Accounts";
-      if (::RegOpenKeyEx( HKEY_CURRENT_USER, key.get(), 0, KEY_QUERY_VALUE | KEY_ENUMERATE_SUB_KEYS, &sKey) == ERROR_SUCCESS) {
-        return( sKey);
+      if (::RegOpenKeyEx(HKEY_CURRENT_USER, key.get(), 0, KEY_QUERY_VALUE | KEY_ENUMERATE_SUB_KEYS, &sKey) == ERROR_SUCCESS) {
+        return sKey;
       }
     }
   }
 
-  if (::RegOpenKeyEx( HKEY_CURRENT_USER, "Software\\Microsoft\\Internet Account Manager\\Accounts", 0, KEY_QUERY_VALUE | KEY_ENUMERATE_SUB_KEYS, &sKey) == ERROR_SUCCESS) {
-    return( sKey);
+  if (::RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Internet Account Manager\\Accounts", 0, KEY_QUERY_VALUE | KEY_ENUMERATE_SUB_KEYS, &sKey) == ERROR_SUCCESS) {
+    return sKey;
   }
 
-  return( nsnull);
+  return nsnull;
 }
 
-HKEY OESettings::Find50Key( void)
+HKEY OESettings::Find50Key(void)
 {
   bool      success = false;
   HKEY    sKey;
 
-  if (::RegOpenKeyEx( HKEY_CURRENT_USER, "Identities", 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
-    BYTE *  pBytes = nsOERegUtil::GetValueBytes( sKey, "Default User ID");
-    ::RegCloseKey( sKey);
+  if (::RegOpenKeyEx(HKEY_CURRENT_USER, "Identities", 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
+    BYTE *  pBytes = nsOERegUtil::GetValueBytes(sKey, "Default User ID");
+    ::RegCloseKey(sKey);
     if (pBytes) {
-      nsCString  key( "Identities\\");
+      nsCString  key("Identities\\");
       key += (const char *)pBytes;
-      nsOERegUtil::FreeValueBytes( pBytes);
+      nsOERegUtil::FreeValueBytes(pBytes);
       key += "\\Software\\Microsoft\\Outlook Express\\5.0";
-      if (::RegOpenKeyEx( HKEY_CURRENT_USER, key.get(), 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
-        return( sKey);
+      if (::RegOpenKeyEx(HKEY_CURRENT_USER, key.get(), 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
+        return sKey;
       }
     }
   }
 
-  return( nsnull);
+  return nsnull;
 }
 
-HKEY OESettings::Find40Key( void)
+HKEY OESettings::Find40Key(void)
 {
   HKEY  sKey;
-  if (::RegOpenKeyEx( HKEY_CURRENT_USER, "Software\\Microsoft\\Outlook Express", 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
-    return( sKey);
-  }
+  if (::RegOpenKeyEx(HKEY_CURRENT_USER,
+                     "Software\\Microsoft\\Outlook Express", 0,
+                     KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS)
+    return sKey;
 
-  return( nsnull);
+  return nsnull;
 }
 
-bool OESettings::DoImport( nsIMsgAccount **ppAccount)
+bool OESettings::DoImport(nsIMsgAccount **ppAccount)
 {
   HKEY  hKey = FindAccountsKey();
   if (hKey == nsnull) {
-    IMPORT_LOG0( "*** Error finding Outlook Express registry account keys\n");
-    return( false);
+    IMPORT_LOG0("*** Error finding Outlook Express registry account keys\n");
+    return false;
   }
 
   nsresult  rv;
@@ -244,9 +245,9 @@ bool OESettings::DoImport( nsIMsgAccount **ppAccount)
   nsCOMPtr<nsIMsgAccountManager> accMgr =
            do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
     if (NS_FAILED(rv)) {
-    IMPORT_LOG0( "*** Failed to create a account manager!\n");
-    ::RegCloseKey( hKey);
-    return( false);
+    IMPORT_LOG0("*** Failed to create a account manager!\n");
+    ::RegCloseKey(hKey);
+    return false;
   }
 
   HKEY    subKey;
@@ -257,20 +258,20 @@ bool OESettings::DoImport( nsIMsgAccount **ppAccount)
   if (::RegOpenKeyEx(HKEY_CURRENT_USER, "Identities", 0,
                      KEY_QUERY_VALUE, &subKey) == ERROR_SUCCESS) {
     BYTE *  pBytes = nsOERegUtil::GetValueBytes(subKey, "Default User ID");
-    ::RegCloseKey( subKey);
+    ::RegCloseKey(subKey);
     if (pBytes) {
-      nsCString  key( "Identities\\");
+      nsCString  key("Identities\\");
       key += (const char *)pBytes;
-      nsOERegUtil::FreeValueBytes( pBytes);
+      nsOERegUtil::FreeValueBytes(pBytes);
       key += "\\Software\\Microsoft\\Internet Account Manager";
       if (::RegOpenKeyEx(HKEY_CURRENT_USER, key.get(), 0,
                          KEY_QUERY_VALUE , &subKey) == ERROR_SUCCESS) {
         BYTE * pBytes = nsOERegUtil::GetValueBytes(subKey,
                                                    "Default Mail Account");
-        ::RegCloseKey( subKey);
+        ::RegCloseKey(subKey);
         if (pBytes) {
           defMailName = (const char *)pBytes;
-          nsOERegUtil::FreeValueBytes( pBytes);
+          nsOERegUtil::FreeValueBytes(pBytes);
         }
       }
     }
@@ -283,10 +284,10 @@ bool OESettings::DoImport( nsIMsgAccount **ppAccount)
                        KEY_QUERY_VALUE, &subKey) == ERROR_SUCCESS) {
       BYTE *  pBytes = nsOERegUtil::GetValueBytes(subKey,
                                                   "Default Mail Account");
-      ::RegCloseKey( subKey);
+      ::RegCloseKey(subKey);
       if (pBytes) {
         defMailName = (const char *)pBytes;
-        nsOERegUtil::FreeValueBytes( pBytes);
+        nsOERegUtil::FreeValueBytes(pBytes);
       }
     }
   }
@@ -300,7 +301,7 @@ bool OESettings::DoImport( nsIMsgAccount **ppAccount)
   HKEY    subSubKey;
 
   subKey = Find50Key();
-  if (!subKey )
+  if (!subKey)
     subKey = Find40Key();
   // above key not critical
 
@@ -309,15 +310,15 @@ bool OESettings::DoImport( nsIMsgAccount **ppAccount)
   if (subKey){
     if (::RegOpenKeyEx(subKey, "Mail", 0, KEY_QUERY_VALUE,
                        &subSubKey) == ERROR_SUCCESS) {
-      ::RegCloseKey( subKey);
-      BYTE *  pBytes = nsOERegUtil::GetValueBytes( subSubKey, "Poll For Mail");
-      ::RegCloseKey( subSubKey);
+      ::RegCloseKey(subKey);
+      BYTE *  pBytes = nsOERegUtil::GetValueBytes(subSubKey, "Poll For Mail");
+      ::RegCloseKey(subSubKey);
       if (pBytes) {
         if (*(PRInt32 *)pBytes != -1){
           checkNewMail = true;
           checkNewMailTime = *(PRInt32 *)pBytes / 60000;
         }
-        nsOERegUtil::FreeValueBytes( pBytes);
+        nsOERegUtil::FreeValueBytes(pBytes);
       }
     }
   }
@@ -334,73 +335,73 @@ bool OESettings::DoImport( nsIMsgAccount **ppAccount)
 
   while (result == ERROR_SUCCESS) {
     numChars = 256;
-    result = ::RegEnumKeyEx( hKey, index, keyName, &numChars, NULL, NULL, NULL, NULL);
+    result = ::RegEnumKeyEx(hKey, index, keyName, &numChars, NULL, NULL, NULL, NULL);
     index++;
     if (result == ERROR_SUCCESS) {
-      if (::RegOpenKeyEx( hKey, keyName, 0, KEY_QUERY_VALUE, &subKey) == ERROR_SUCCESS) {
+      if (::RegOpenKeyEx(hKey, keyName, 0, KEY_QUERY_VALUE, &subKey) == ERROR_SUCCESS) {
         // Get the values for this account.
-        IMPORT_LOG1( "Opened Outlook Express account: %s\n", (char *)keyName);
+        IMPORT_LOG1("Opened Outlook Express account: %s\n", (char *)keyName);
 
         nsIMsgAccount  *anAccount = nsnull;
-        pBytes = nsOERegUtil::GetValueBytes( subKey, "IMAP Server");
+        pBytes = nsOERegUtil::GetValueBytes(subKey, "IMAP Server");
         if (pBytes) {
-          if (DoIMAPServer( accMgr, subKey, (char *)pBytes, &anAccount))
+          if (DoIMAPServer(accMgr, subKey, (char *)pBytes, &anAccount))
             accounts++;
-          nsOERegUtil::FreeValueBytes( pBytes);
+          nsOERegUtil::FreeValueBytes(pBytes);
         }
 
-        pBytes = nsOERegUtil::GetValueBytes( subKey, "NNTP Server");
+        pBytes = nsOERegUtil::GetValueBytes(subKey, "NNTP Server");
         if (pBytes) {
-          if (DoNNTPServer( accMgr, subKey, (char *)pBytes, &anAccount))
+          if (DoNNTPServer(accMgr, subKey, (char *)pBytes, &anAccount))
             accounts++;
-          nsOERegUtil::FreeValueBytes( pBytes);
+          nsOERegUtil::FreeValueBytes(pBytes);
         }
 
-        pBytes = nsOERegUtil::GetValueBytes( subKey, "POP3 Server");
+        pBytes = nsOERegUtil::GetValueBytes(subKey, "POP3 Server");
         if (pBytes) {
-            if (DoPOP3Server( accMgr, subKey, (char *)pBytes, &anAccount)) {
+            if (DoPOP3Server(accMgr, subKey, (char *)pBytes, &anAccount)) {
               accounts++;
           }
-          nsOERegUtil::FreeValueBytes( pBytes);
+          nsOERegUtil::FreeValueBytes(pBytes);
         }
 
         if (anAccount) {
           // Is this the default account?
           keyComp = keyName;
-          if (keyComp.Equals( defMailName)) {
-            accMgr->SetDefaultAccount( anAccount);
+          if (keyComp.Equals(defMailName)) {
+            accMgr->SetDefaultAccount(anAccount);
           }
-          NS_RELEASE( anAccount);
+          NS_RELEASE(anAccount);
         }
 
-        ::RegCloseKey( subKey);
+        ::RegCloseKey(subKey);
       }
     }
   }
-  ::RegCloseKey( hKey);
+  ::RegCloseKey(hKey);
 
   // Now save the new acct info to pref file.
   rv = accMgr->SaveAccountInfo();
   NS_ASSERTION(NS_SUCCEEDED(rv), "Can't save account info to pref file");
 
-  return( accounts != 0);
+  return accounts != 0;
 }
 
 nsresult OESettings::GetAccountName(HKEY hKey, char *defaultName, nsString &acctName)
 {
-  BYTE *pAccName = nsOERegUtil::GetValueBytes( hKey, "Account Name");
+  BYTE *pAccName = nsOERegUtil::GetValueBytes(hKey, "Account Name");
   nsresult rv = NS_OK;
   if (pAccName) {
     rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(),
                                    nsDependentCString((const char *)pAccName), acctName);
-    nsOERegUtil::FreeValueBytes( pAccName);
+    nsOERegUtil::FreeValueBytes(pAccName);
   }
   else
     acctName.AssignASCII(defaultName);
   return rv;
 }
 
-bool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
+bool OESettings::DoIMAPServer(nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
 {
   PRInt32 authMethod;
   if (ppAccount)
@@ -409,7 +410,7 @@ bool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
   char * pUserName;
   pUserName = (char *)nsOERegUtil::GetValueBytes(hKey, "IMAP User Name");
   if (!pUserName)
-    return( false);
+    return false;
 
   bool result = false;
 
@@ -419,13 +420,13 @@ bool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
                                  nsDependentCString(pServerName),
                                  NS_LITERAL_CSTRING("imap"),
                                  getter_AddRefs(in));
-  if (NS_FAILED( rv) || (in == nsnull)) {
+  if (NS_FAILED(rv) || (in == nsnull)) {
     // Create the incoming server and an account for it?
     rv = pMgr->CreateIncomingServer(nsDependentCString(pUserName),
                                     nsDependentCString(pServerName),
                                     NS_LITERAL_CSTRING("imap"),
                                     getter_AddRefs(in));
-    if (NS_SUCCEEDED( rv) && in) {
+    if (NS_SUCCEEDED(rv) && in) {
       BYTE * pRootFolder = nsOERegUtil::GetValueBytes(hKey, "IMAP Root Folder");
       if (pRootFolder)
       {
@@ -474,8 +475,8 @@ bool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
 
       // We have a server, create an account.
       nsCOMPtr<nsIMsgAccount> account;
-      rv = pMgr->CreateAccount(getter_AddRefs( account));
-      if (NS_SUCCEEDED( rv) && account) {
+      rv = pMgr->CreateAccount(getter_AddRefs(account));
+      if (NS_SUCCEEDED(rv) && account) {
         rv = account->SetIncomingServer(in);
 
         IMPORT_LOG0("Created an account and set the IMAP server as the incoming server\n");
@@ -492,8 +493,8 @@ bool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
     // for an existing server we create another identity,
     //  TB lists under 'manage identities'
     nsCOMPtr<nsIMsgAccount> account;
-    rv = pMgr->FindAccountForServer(in, getter_AddRefs( account));
-    if (NS_SUCCEEDED( rv) && account) {
+    rv = pMgr->FindAccountForServer(in, getter_AddRefs(account));
+    if (NS_SUCCEEDED(rv) && account) {
       IMPORT_LOG0("Created an identity and added to existing IMAP incoming server\n");
       // Fiddle with the identities
       in->GetAuthMethod(&authMethod);
@@ -507,19 +508,19 @@ bool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
   else
     result = true;
   nsOERegUtil::FreeValueBytes((BYTE *) pUserName);
-  return( result);
+  return result;
 }
 
-bool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
+bool OESettings::DoPOP3Server(nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
 {
   PRInt32 authMethod;    // Secure Password Authentication
   if (ppAccount)
     *ppAccount = nsnull;
 
   char * pUserName;
-  pUserName = (char *)nsOERegUtil::GetValueBytes( hKey, "POP3 User Name");
+  pUserName = (char *)nsOERegUtil::GetValueBytes(hKey, "POP3 User Name");
   if (!pUserName)
-    return( false);
+    return false;
 
   bool result = false;
 
@@ -528,15 +529,15 @@ bool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
   nsresult rv = pMgr->FindServer(nsDependentCString(pUserName),
                                  nsDependentCString(pServerName),
                                  NS_LITERAL_CSTRING("pop3"),
-                                 getter_AddRefs( in));
-  if (NS_FAILED( rv) || (in == nsnull)) {
+                                 getter_AddRefs(in));
+  if (NS_FAILED(rv) || (in == nsnull)) {
     // Create the incoming server and an account for it?
     rv = pMgr->CreateIncomingServer(nsDependentCString(pUserName),
                                     nsDependentCString(pServerName),
                                     NS_LITERAL_CSTRING("pop3"),
-                                    getter_AddRefs( in));
-    if (NS_SUCCEEDED( rv) && in) {
-      BYTE * pSecureConnection = nsOERegUtil::GetValueBytes( hKey, "POP3 Secure Connection");
+                                    getter_AddRefs(in));
+    if (NS_SUCCEEDED(rv) && in) {
+      BYTE * pSecureConnection = nsOERegUtil::GetValueBytes(hKey, "POP3 Secure Connection");
       if (pSecureConnection)
       {
         if (*pSecureConnection)
@@ -544,14 +545,14 @@ bool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
         nsOERegUtil::FreeValueBytes(pSecureConnection);
       }
 
-      BYTE * pPort = nsOERegUtil::GetValueBytes( hKey, "POP3 Port");
+      BYTE * pPort = nsOERegUtil::GetValueBytes(hKey, "POP3 Port");
       if (pPort)
       {
         in->SetPort(*(PRInt32 *) pPort);
         nsOERegUtil::FreeValueBytes(pPort);
       }
 
-      BYTE * pBytesTemp = nsOERegUtil::GetValueBytes( hKey, "POP3 Use Sicily");
+      BYTE * pBytesTemp = nsOERegUtil::GetValueBytes(hKey, "POP3 Use Sicily");
       if (pBytesTemp)
       {
         bool secAuth = *(bool *)pBytesTemp;
@@ -625,7 +626,7 @@ bool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
         pBytesTemp = nsOERegUtil::GetValueBytes(hKey, "Expire Days");
         if (pBytesTemp)
         {
-          pop3Server->SetNumDaysToLeaveOnServer(*(PRInt32*)pBytesTemp );
+          pop3Server->SetNumDaysToLeaveOnServer(*(PRInt32*)pBytesTemp);
           nsOERegUtil::FreeValueBytes(pBytesTemp);
         }
       }
@@ -633,12 +634,12 @@ bool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
                    pServerName, pUserName);
       nsString prettyName;
       if (NS_SUCCEEDED(GetAccountName(hKey, pServerName, prettyName)))
-        rv = in->SetPrettyName( prettyName);
+        rv = in->SetPrettyName(prettyName);
 
       // We have a server, create an account.
       nsCOMPtr<nsIMsgAccount>  account;
-      rv = pMgr->CreateAccount(getter_AddRefs( account));
-      if (NS_SUCCEEDED( rv) && account) {
+      rv = pMgr->CreateAccount(getter_AddRefs(account));
+      if (NS_SUCCEEDED(rv) && account) {
         rv = account->SetIncomingServer(in);
         IMPORT_LOG0("Created a new account and set the incoming server to the POP3 server.\n");
 
@@ -657,7 +658,7 @@ bool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
     // for an existing server we create another identity,
     // TB listed under 'manage identities'
     nsCOMPtr<nsIMsgAccount>  account;
-    rv = pMgr->FindAccountForServer(in, getter_AddRefs( account));
+    rv = pMgr->FindAccountForServer(in, getter_AddRefs(account));
     if (NS_SUCCEEDED(rv) && account) {
       IMPORT_LOG0("Created identity and added to existing POP3 incoming server.\n");
       // Fiddle with the identities
@@ -674,7 +675,7 @@ bool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
   return result;
 }
 
-bool OESettings::DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey,
+bool OESettings::DoNNTPServer(nsIMsgAccountManager *pMgr, HKEY hKey,
                                 char *pServerName, nsIMsgAccount **ppAccount)
 {
   if (ppAccount)
@@ -693,13 +694,13 @@ bool OESettings::DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey,
                                  nsDependentCString(pServerName),
                                  NS_LITERAL_CSTRING("nntp"),
                                  getter_AddRefs(in));
-  if (NS_FAILED( rv) || (in == nsnull)) {
+  if (NS_FAILED(rv) || (in == nsnull)) {
     // Create the incoming server and an account for it?
     rv = pMgr->CreateIncomingServer(EmptyCString(),
                                     nsDependentCString(pServerName),
                                     NS_LITERAL_CSTRING("nntp"),
                                     getter_AddRefs(in));
-    if (NS_SUCCEEDED( rv) && in) {
+    if (NS_SUCCEEDED(rv) && in) {
       BYTE * pBytesTemp = nsOERegUtil::GetValueBytes(hKey, "NNTP Port");
       if (pBytesTemp && *(PRInt32 *)pBytesTemp != 119)
         in->SetPort(*(PRInt32 *) pBytesTemp);
@@ -721,7 +722,7 @@ bool OESettings::DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey,
 
       // We have a server, create an account.
       nsCOMPtr<nsIMsgAccount> account;
-      rv = pMgr->CreateAccount(getter_AddRefs( account));
+      rv = pMgr->CreateAccount(getter_AddRefs(account));
       if (NS_SUCCEEDED(rv) && account) {
         rv = account->SetIncomingServer(in);
 
@@ -738,8 +739,8 @@ bool OESettings::DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey,
   else if (NS_SUCCEEDED(rv) && in) {
     // for the existing server...
     nsCOMPtr<nsIMsgAccount> account;
-    rv = pMgr->FindAccountForServer(in, getter_AddRefs( account));
-    if (NS_SUCCEEDED( rv) && account) {
+    rv = pMgr->FindAccountForServer(in, getter_AddRefs(account));
+    if (NS_SUCCEEDED(rv) && account) {
       IMPORT_LOG0("Using existing account and set the NNTP server as the incoming server\n");
       // Fiddle with the identities
       SetIdentities(pMgr, account, hKey, pUserName, 0, true);
@@ -757,7 +758,7 @@ bool OESettings::DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey,
 
 void OESettings::SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
                                HKEY hKey, char *pIncomgUserName,
-                               PRInt32 authMethodIncoming, bool isNNTP )
+                               PRInt32 authMethodIncoming, bool isNNTP)
 {
   // Get the relevant information for an identity
   char *pSmtpServer = (char *)nsOERegUtil::GetValueBytes(hKey, "SMTP Server");
@@ -844,8 +845,8 @@ void OESettings::SetSmtpServer(char *pSmtpServer, HKEY hKey,
     // don't try to make another server
     // regardless if username doesn't match
     rv = smtpService->FindServer(userName.get(), pSmtpServer,
-                                 getter_AddRefs( foundServer));
-    if (NS_SUCCEEDED( rv) && foundServer) {
+                                 getter_AddRefs(foundServer));
+    if (NS_SUCCEEDED(rv) && foundServer) {
       // set our account keyed to this smptserver key
       foundServer->GetKey(getter_Copies(smtpServerKey));
       id->SetSmtpServerKey(smtpServerKey);
@@ -855,8 +856,8 @@ void OESettings::SetSmtpServer(char *pSmtpServer, HKEY hKey,
     else {
       nsCOMPtr<nsISmtpServer> smtpServer;
       PRInt32 port;
-      rv = smtpService->CreateSmtpServer(getter_AddRefs( smtpServer));
-      if (NS_SUCCEEDED( rv) && smtpServer) {
+      rv = smtpService->CreateSmtpServer(getter_AddRefs(smtpServer));
+      if (NS_SUCCEEDED(rv) && smtpServer) {
         pBytes = nsOERegUtil::GetValueBytes(hKey, "SMTP Port");
         if (pBytes)
         {

@@ -43,9 +43,9 @@
 
 class ImportTranslate {
 public:
-  static bool ConvertString( const nsCString& inStr, nsCString& outStr, bool mimeHeader);
-  static nsImportTranslator *GetTranslator( void);
-  static nsImportTranslator *GetMatchingTranslator( const char *pCharSet);
+  static bool ConvertString(const nsCString& inStr, nsCString& outStr, bool mimeHeader);
+  static nsImportTranslator *GetTranslator(void);
+  static nsImportTranslator *GetMatchingTranslator(const char *pCharSet);
 
 protected:
   static int m_useTranslator;

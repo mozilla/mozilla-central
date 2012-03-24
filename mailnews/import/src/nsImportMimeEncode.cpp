@@ -62,7 +62,7 @@ nsImportMimeEncode::~nsImportMimeEncode()
   delete [] m_pInputBuf;
 }
 
-void nsImportMimeEncode::EncodeFile( nsIFile *pInFile, ImportOutFile *pOut, const char *pFileName, const char *pMimeType)
+void nsImportMimeEncode::EncodeFile(nsIFile *pInFile, ImportOutFile *pOut, const char *pFileName, const char *pMimeType)
 {
   m_fileName = pFileName;
   m_mimeType = pMimeType;
@@ -73,12 +73,12 @@ void nsImportMimeEncode::EncodeFile( nsIFile *pInFile, ImportOutFile *pOut, cons
   m_state = kStartState;
 }
 
-void nsImportMimeEncode::CleanUp( void)
+void nsImportMimeEncode::CleanUp(void)
 {
   CleanUpEncodeScan();
 }
 
-bool nsImportMimeEncode::SetUpEncode( void)
+bool nsImportMimeEncode::SetUpEncode(void)
 {
   nsCString    errStr;
   if (!m_pInputBuf) {
@@ -93,14 +93,14 @@ bool nsImportMimeEncode::SetUpEncode( void)
   // proceed with normal mime encoding just as on the PC.
   // For unknown mime types and files with both forks,
   // encode as AppleSingle format.
-  if (m_filePath.GetMacFileSize( UFileLocation::eResourceFork) || !pMimeType) {
+  if (m_filePath.GetMacFileSize(UFileLocation::eResourceFork) || !pMimeType) {
     m_appleSingle = TRUE;
     m_mimeType = "application/applefile";
   }
 #endif
 
-  if (!InitEncodeScan( m_appleSingle, m_pMimeFile, m_fileName.get(), m_pInputBuf, kEncodeBufferSz)) {
-    return( false);
+  if (!InitEncodeScan(m_appleSingle, m_pMimeFile, m_fileName.get(), m_pInputBuf, kEncodeBufferSz)) {
+    return false;
   }
 
   m_state = kEncodeState;
@@ -108,46 +108,46 @@ bool nsImportMimeEncode::SetUpEncode( void)
 
   // Write out the boundary header
   bool bResult = true;
-  bResult = m_pOut->WriteStr( "Content-type: ");
+  bResult = m_pOut->WriteStr("Content-type: ");
   if (bResult)
-    bResult = m_pOut->WriteStr( m_mimeType.get());
+    bResult = m_pOut->WriteStr(m_mimeType.get());
 
 #ifdef _MAC_IMPORT_CODE
   // include the type an creator here
   if (bResult)
-    bResult = m_pOut->WriteStr( "; x-mac-type=\"");
+    bResult = m_pOut->WriteStr("; x-mac-type=\"");
   U8  hex[8];
-  LongToHexBytes( m_filePath.GetFileType(), hex);
+  LongToHexBytes(m_filePath.GetFileType(), hex);
   if (bResult)
-    bResult = m_pOut->WriteData( hex, 8);
-  LongToHexBytes( m_filePath.GetFileCreator(), hex);
+    bResult = m_pOut->WriteData(hex, 8);
+  LongToHexBytes(m_filePath.GetFileCreator(), hex);
   if (bResult)
-    bResult = m_pOut->WriteStr( "\"; x-mac-creator=\"");
+    bResult = m_pOut->WriteStr("\"; x-mac-creator=\"");
   if (bResult)
-    bResult = m_pOut->WriteData( hex, 8);
+    bResult = m_pOut->WriteData(hex, 8);
   if (bResult)
-    bResult = m_pOut->WriteStr( "\"");
+    bResult = m_pOut->WriteStr("\"");
 #endif
 
   /*
   if (bResult)
-    bResult = m_pOut->WriteStr( gMimeTypeFileName);
+    bResult = m_pOut->WriteStr(gMimeTypeFileName);
   */
   if (bResult)
-    bResult = m_pOut->WriteStr( ";\x0D\x0A");
+    bResult = m_pOut->WriteStr(";\x0D\x0A");
 
   nsCString    fName;
-  bool        trans = TranslateFileName( m_fileName, fName);
+  bool        trans = TranslateFileName(m_fileName, fName);
   if (bResult)
-    bResult = WriteFileName( fName, trans, "name");
+    bResult = WriteFileName(fName, trans, "name");
   if (bResult)
-    bResult = m_pOut->WriteStr( "Content-transfer-encoding: base64");
+    bResult = m_pOut->WriteStr("Content-transfer-encoding: base64");
   if (bResult)
     bResult = m_pOut->WriteEol();
   if (bResult)
-    bResult = m_pOut->WriteStr( "Content-Disposition: attachment;\x0D\x0A");
+    bResult = m_pOut->WriteStr("Content-Disposition: attachment;\x0D\x0A");
   if (bResult)
-    bResult = WriteFileName( fName, trans, "filename");
+    bResult = WriteFileName(fName, trans, "filename");
   if (bResult)
     bResult = m_pOut->WriteEol();
 
@@ -155,23 +155,23 @@ bool nsImportMimeEncode::SetUpEncode( void)
     CleanUp();
   }
 
-  return( bResult);
+  return bResult;
 }
 
-bool nsImportMimeEncode::DoWork( bool *pDone)
+bool nsImportMimeEncode::DoWork(bool *pDone)
 {
   *pDone = false;
-  switch( m_state) {
+  switch(m_state) {
   case kNoState:
-    return( false);
+    return false;
     break;
   case kStartState:
-    return( SetUpEncode());
+    return SetUpEncode();
     break;
   case kEncodeState:
-    if (!Scan( pDone)) {
+    if (!Scan(pDone)) {
       CleanUp();
-      return( false);
+      return false;
     }
     if (*pDone) {
       *pDone = false;
@@ -185,12 +185,12 @@ bool nsImportMimeEncode::DoWork( bool *pDone)
     break;
   }
 
-  return( true);
+  return true;
 }
 
 static PRUint8 gBase64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-bool nsImportMimeEncode::ScanBuffer( bool *pDone)
+bool nsImportMimeEncode::ScanBuffer(bool *pDone)
 {
 
   PRUint32  pos = m_pos;
@@ -208,14 +208,14 @@ bool nsImportMimeEncode::ScanBuffer( bool *pDone)
     byte[2] = gBase64[(((*pChar) & 0xF) << 2) | (((*(pChar + 1)) & 0xC0) >>6)];
     pChar++;
     byte[3] = gBase64[(*pChar) & 0x3F];
-    if (!m_pOut->WriteData( byte, 4))
-      return( false);
+    if (!m_pOut->WriteData(byte, 4))
+      return false;
     pos += 3;
     pChar++;
     lineLen += 4;
     if (lineLen > 71) {
       if (!m_pOut->WriteEol())
-        return( false);
+        return false;
       lineLen = 0;
     }
   }
@@ -246,34 +246,34 @@ bool nsImportMimeEncode::ScanBuffer( bool *pDone)
       byte[3] = '=';
     }
 
-    if (!m_pOut->WriteData( byte, 4))
-      return( false);
+    if (!m_pOut->WriteData(byte, 4))
+      return false;
     if (!m_pOut->WriteEol())
-      return( false);
+      return false;
   }
   else if (m_eof) {
     /*
     byte[0] = '=';
-    if (!m_pOut->WriteData( byte, 1))
-      return( FALSE);
+    if (!m_pOut->WriteData(byte, 1))
+      return FALSE;
     */
     if (!m_pOut->WriteEol())
-      return( false);
+      return false;
   }
 
   m_lineLen = (int) lineLen;
   m_pos = pos;
   m_bytesProcessed += (pos - start);
-  return( true);
+  return true;
 }
 
-bool nsImportMimeEncode::TranslateFileName( nsCString& inFile, nsCString& outFile)
+bool nsImportMimeEncode::TranslateFileName(nsCString& inFile, nsCString& outFile)
 {
   const PRUint8 * pIn = (const PRUint8 *) inFile.get();
   int    len = inFile.Length();
 
   while (len) {
-    if (!ImportCharSet::IsUSAscii( *pIn))
+    if (!ImportCharSet::IsUSAscii(*pIn))
       break;
     len--;
     pIn++;
@@ -281,21 +281,21 @@ bool nsImportMimeEncode::TranslateFileName( nsCString& inFile, nsCString& outFil
   if (len) {
     // non US ascii!
     // assume this string needs translating...
-    if (!ImportTranslate::ConvertString( inFile, outFile, true)) {
+    if (!ImportTranslate::ConvertString(inFile, outFile, true)) {
       outFile = inFile;
-      return( false);
+      return false;
     }
     else {
-      return( true);
+      return true;
     }
   }
   else {
     outFile = inFile;
-    return( false);
+    return false;
   }
 }
 
-bool nsImportMimeEncode::WriteFileName( nsCString& fName, bool wasTrans, const char *pTag)
+bool nsImportMimeEncode::WriteFileName(nsCString& fName, bool wasTrans, const char *pTag)
 {
   int      tagNum = 0;
   int      idx = 0;
@@ -303,33 +303,33 @@ bool nsImportMimeEncode::WriteFileName( nsCString& fName, bool wasTrans, const c
   int      len;
   nsCString  numStr;
 
-  while ((((fName.Length() - idx) + strlen( pTag)) > 70) && result) {
-    len = 68 - strlen( pTag) - 5;
+  while ((((fName.Length() - idx) + strlen(pTag)) > 70) && result) {
+    len = 68 - strlen(pTag) - 5;
     if (wasTrans) {
-      if (fName.CharAt( idx + len - 1) == '%')
+      if (fName.CharAt(idx + len - 1) == '%')
         len--;
-      else if (fName.CharAt( idx + len - 2) == '%')
+      else if (fName.CharAt(idx + len - 2) == '%')
         len -= 2;
     }
 
     if (result)
-      result = m_pOut->WriteStr( "\x09");
+      result = m_pOut->WriteStr("\x09");
     if (result)
-      result = m_pOut->WriteStr( pTag);
+      result = m_pOut->WriteStr(pTag);
     numStr = "*";
-    numStr.AppendInt( tagNum);
+    numStr.AppendInt(tagNum);
     if (result)
-      result = m_pOut->WriteStr( numStr.get());
+      result = m_pOut->WriteStr(numStr.get());
     if (wasTrans && result)
-      result = m_pOut->WriteStr( "*=");
+      result = m_pOut->WriteStr("*=");
     else if (result)
-      result = m_pOut->WriteStr( "=\"");
+      result = m_pOut->WriteStr("=\"");
     if (result)
-      result = m_pOut->WriteData( ((const PRUint8 *)fName.get()) + idx, len);
+      result = m_pOut->WriteData(((const PRUint8 *)fName.get()) + idx, len);
     if (wasTrans && result)
-      result = m_pOut->WriteStr( "\x0D\x0A");
+      result = m_pOut->WriteStr("\x0D\x0A");
     else if (result)
-      result = m_pOut->WriteStr( "\"\x0D\x0A");
+      result = m_pOut->WriteStr("\"\x0D\x0A");
     idx += len;
     tagNum++;
   }
@@ -337,43 +337,43 @@ bool nsImportMimeEncode::WriteFileName( nsCString& fName, bool wasTrans, const c
   if (idx) {
     if ((fName.Length() - idx) > 0) {
       if (result)
-        result = m_pOut->WriteStr( "\x09");
+        result = m_pOut->WriteStr("\x09");
       if (result)
-        result = m_pOut->WriteStr( pTag);
+        result = m_pOut->WriteStr(pTag);
       numStr = "*";
-      numStr.AppendInt( tagNum);
+      numStr.AppendInt(tagNum);
       if (result)
-        result = m_pOut->WriteStr( numStr.get());
+        result = m_pOut->WriteStr(numStr.get());
       if (wasTrans && result)
-        result = m_pOut->WriteStr( "*=");
+        result = m_pOut->WriteStr("*=");
       else if (result)
-        result = m_pOut->WriteStr( "=\"");
+        result = m_pOut->WriteStr("=\"");
       if (result)
-        result = m_pOut->WriteData( ((const PRUint8 *)fName.get()) + idx, fName.Length() - idx);
+        result = m_pOut->WriteData(((const PRUint8 *)fName.get()) + idx, fName.Length() - idx);
       if (wasTrans && result)
-        result = m_pOut->WriteStr( "\x0D\x0A");
+        result = m_pOut->WriteStr("\x0D\x0A");
       else if (result)
-        result = m_pOut->WriteStr( "\"\x0D\x0A");
+        result = m_pOut->WriteStr("\"\x0D\x0A");
     }
   }
   else {
     if (result)
-      result = m_pOut->WriteStr( "\x09");
+      result = m_pOut->WriteStr("\x09");
     if (result)
-      result = m_pOut->WriteStr( pTag);
+      result = m_pOut->WriteStr(pTag);
     if (wasTrans && result)
-      result = m_pOut->WriteStr( "*=");
+      result = m_pOut->WriteStr("*=");
     else if (result)
-      result = m_pOut->WriteStr( "=\"");
+      result = m_pOut->WriteStr("=\"");
     if (result)
-      result = m_pOut->WriteStr( fName.get());
+      result = m_pOut->WriteStr(fName.get());
     if (wasTrans && result)
-      result = m_pOut->WriteStr( "\x0D\x0A");
+      result = m_pOut->WriteStr("\x0D\x0A");
     else if (result)
-      result = m_pOut->WriteStr( "\"\x0D\x0A");
+      result = m_pOut->WriteStr("\"\x0D\x0A");
   }
 
-  return( result);
+  return result;
 
 }
 
@@ -398,36 +398,34 @@ NS_IMPL_ISUPPORTS1(nsIImportMimeEncodeImpl, nsIImportMimeEncode)
 
 NS_METHOD nsIImportMimeEncodeImpl::EncodeFile(nsIFile *inFile, nsIFile *outFile, const char *fileName, const char *mimeType)
 {
-  return( Initialize( inFile, outFile, fileName, mimeType));
+  return Initialize(inFile, outFile, fileName, mimeType);
 }
 
 NS_METHOD nsIImportMimeEncodeImpl::DoWork(bool *done, bool *_retval)
 {
   if (done && _retval && m_pEncode) {
-    *_retval = m_pEncode->DoWork( done);
-    return( NS_OK);
+    *_retval = m_pEncode->DoWork(done);
+    return NS_OK;
   }
-  else
-    return( NS_ERROR_FAILURE);
+  return NS_ERROR_FAILURE;
 }
 
 NS_METHOD nsIImportMimeEncodeImpl::NumBytesProcessed(PRInt32 *_retval)
 {
   if (m_pEncode && _retval)
     *_retval = m_pEncode->NumBytesProcessed();
-  return( NS_OK);
+  return NS_OK;
 }
 
 NS_METHOD nsIImportMimeEncodeImpl::DoEncoding(bool *_retval)
 {
   if (_retval && m_pEncode) {
     bool    done = false;
-    while (m_pEncode->DoWork( &done) && !done);
+    while (m_pEncode->DoWork(&done) && !done);
     *_retval = done;
-    return( NS_OK);
+    return NS_OK;
   }
-  else
-    return( NS_ERROR_FAILURE);
+  return NS_ERROR_FAILURE;
 }
 
 NS_METHOD nsIImportMimeEncodeImpl::Initialize(nsIFile *inFile, nsIFile *outFile, const char *fileName, const char *mimeType)
@@ -436,11 +434,11 @@ NS_METHOD nsIImportMimeEncodeImpl::Initialize(nsIFile *inFile, nsIFile *outFile,
   delete m_pOut;
 
   m_pOut = new ImportOutFile();
-  m_pOut->InitOutFile( outFile);
+  m_pOut->InitOutFile(outFile);
 
   m_pEncode = new nsImportMimeEncode();
-  m_pEncode->EncodeFile( inFile, m_pOut, fileName, mimeType);
+  m_pEncode->EncodeFile(inFile, m_pOut, fileName, mimeType);
 
-  return( NS_OK);
+  return NS_OK;
 }
 

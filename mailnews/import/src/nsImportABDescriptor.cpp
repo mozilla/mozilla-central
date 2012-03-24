@@ -43,7 +43,7 @@
 
 ////////////////////////////////////////////////////////////////////////
 
-NS_METHOD nsImportABDescriptor::Create( nsISupports *aOuter, REFNSIID aIID, void **aResult)
+NS_METHOD nsImportABDescriptor::Create(nsISupports *aOuter, REFNSIID aIID, void **aResult)
 {
   if (aOuter)
     return NS_ERROR_NO_AGGREGATION;
@@ -52,9 +52,9 @@ NS_METHOD nsImportABDescriptor::Create( nsISupports *aOuter, REFNSIID aIID, void
   if (it == nsnull)
     return NS_ERROR_OUT_OF_MEMORY;
 
-  NS_ADDREF( it);
-  nsresult rv = it->QueryInterface( aIID, aResult);
-  NS_RELEASE( it);
+  NS_ADDREF(it);
+  nsresult rv = it->QueryInterface(aIID, aResult);
+  NS_RELEASE(it);
   return rv;
 }
 

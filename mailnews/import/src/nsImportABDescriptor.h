@@ -120,7 +120,7 @@ public:
   nsImportABDescriptor();
   virtual ~nsImportABDescriptor() {}
 
-  static NS_METHOD Create( nsISupports *aOuter, REFNSIID aIID, void **aResult);
+  static NS_METHOD Create(nsISupports *aOuter, REFNSIID aIID, void **aResult);
 
 private:
   PRUint32 mId; // used by creator of the structure

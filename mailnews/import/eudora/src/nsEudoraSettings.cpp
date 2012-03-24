@@ -87,7 +87,7 @@ NS_IMETHODIMP nsEudoraSettings::AutoLocate(PRUnichar **description, nsIFile **lo
     NS_PRECONDITION(_retval != nsnull, "null ptr");
     NS_PRECONDITION(location != nsnull, "null ptr");
   if (!description || !_retval || !location)
-    return( NS_ERROR_NULL_POINTER);
+    return NS_ERROR_NULL_POINTER;
 
   *description = nsnull;
   *_retval = false;
@@ -95,10 +95,10 @@ NS_IMETHODIMP nsEudoraSettings::AutoLocate(PRUnichar **description, nsIFile **lo
   nsresult  rv;
         m_pLocation =  do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
-  *description = nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_NAME);
+  *description = nsEudoraStringBundle::GetStringByID(EUDORAIMPORT_NAME);
 
 #if defined(XP_WIN) || defined(XP_OS2)
-  *_retval = nsEudoraWin32::FindSettingsFile( getter_AddRefs(m_pLocation));
+  *_retval = nsEudoraWin32::FindSettingsFile(getter_AddRefs(m_pLocation));
 #endif
 
   NS_IF_ADDREF(*location = m_pLocation);
@@ -108,12 +108,12 @@ NS_IMETHODIMP nsEudoraSettings::AutoLocate(PRUnichar **description, nsIFile **lo
 NS_IMETHODIMP nsEudoraSettings::SetLocation(nsIFile *location)
 {
   m_pLocation = location;
-  return( NS_OK);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsEudoraSettings::Import(nsIMsgAccount **localMailAccount, bool *_retval)
 {
-  NS_PRECONDITION( _retval != nsnull, "null ptr");
+  NS_PRECONDITION(_retval != nsnull, "null ptr");
 
   *_retval = false;
 
@@ -129,29 +129,29 @@ NS_IMETHODIMP nsEudoraSettings::Import(nsIMsgAccount **localMailAccount, bool *_
     }
 #endif
 #ifdef XP_MACOSX
-                nsEudoraMac::FindSettingsFile( getter_AddRefs(m_pLocation));
+                nsEudoraMac::FindSettingsFile(getter_AddRefs(m_pLocation));
 #endif
   }
 
   if (!m_pLocation) {
-    IMPORT_LOG0( "*** Error, unable to locate settings file for import.\n");
-    return( NS_ERROR_FAILURE);
+    IMPORT_LOG0("*** Error, unable to locate settings file for import.\n");
+    return NS_ERROR_FAILURE;
   }
 
   // do the settings import
 #if defined(XP_WIN) || defined(XP_OS2)
-  *_retval = nsEudoraWin32::ImportSettings( m_pLocation, localMailAccount);
+  *_retval = nsEudoraWin32::ImportSettings(m_pLocation, localMailAccount);
 #endif
 #ifdef XP_MACOSX
-  *_retval = nsEudoraMac::ImportSettings( m_pLocation, localMailAccount);
+  *_retval = nsEudoraMac::ImportSettings(m_pLocation, localMailAccount);
 #endif
 
   if (*_retval) {
-    IMPORT_LOG0( "Successful import of eudora settings\n");
+    IMPORT_LOG0("Successful import of eudora settings\n");
   }
   else {
-    IMPORT_LOG0( "*** Error, Unsuccessful import of eudora settings\n");
+    IMPORT_LOG0("*** Error, Unsuccessful import of eudora settings\n");
   }
 
-  return( NS_OK);
+  return NS_OK;
 }

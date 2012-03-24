@@ -38,17 +38,17 @@
 
 #include "OEDebugLog.h"
 
-BYTE * nsOERegUtil::GetValueBytes( HKEY hKey, const char *pValueName)
+BYTE * nsOERegUtil::GetValueBytes(HKEY hKey, const char *pValueName)
 {
   LONG  err;
   DWORD  bufSz;
   LPBYTE  pBytes = NULL;
   DWORD  type = 0;
 
-  err = ::RegQueryValueEx( hKey, pValueName, NULL, &type, NULL, &bufSz);
+  err = ::RegQueryValueEx(hKey, pValueName, NULL, &type, NULL, &bufSz);
   if (err == ERROR_SUCCESS) {
     pBytes = new BYTE[bufSz];
-    err = ::RegQueryValueEx( hKey, pValueName, NULL, NULL, pBytes, &bufSz);
+    err = ::RegQueryValueEx(hKey, pValueName, NULL, NULL, pBytes, &bufSz);
     if (err != ERROR_SUCCESS) {
       delete [] pBytes;
       pBytes = NULL;
@@ -64,20 +64,20 @@ BYTE * nsOERegUtil::GetValueBytes( HKEY hKey, const char *pValueName)
             delete [] pExpand;
           sz += 1024;
           pExpand = new BYTE[sz];
-          rSz = ::ExpandEnvironmentStrings( (LPCSTR) pBytes, (LPSTR) pExpand, sz);
+          rSz = ::ExpandEnvironmentStrings((LPCSTR) pBytes, (LPSTR) pExpand, sz);
         } while (rSz > sz);
 
         delete [] pBytes;
 
-        return( pExpand);
+        return pExpand;
       }
     }
   }
 
-  return( pBytes);
+  return pBytes;
 }
 
-void nsOERegUtil::FreeValueBytes( BYTE *pBytes)
+void nsOERegUtil::FreeValueBytes(BYTE *pBytes)
 {
   if (pBytes)
     delete [] pBytes;

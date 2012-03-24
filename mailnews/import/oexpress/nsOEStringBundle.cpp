@@ -48,10 +48,10 @@
 
 nsIStringBundle *  nsOEStringBundle::m_pBundle = nsnull;
 
-nsIStringBundle *nsOEStringBundle::GetStringBundle( void)
+nsIStringBundle *nsOEStringBundle::GetStringBundle(void)
 {
   if (m_pBundle)
-    return( m_pBundle);
+    return m_pBundle;
 
   char*        propertyURL = OE_MSGS_URL;
   nsIStringBundle*  sBundle = nsnull;
@@ -64,15 +64,14 @@ nsIStringBundle *nsOEStringBundle::GetStringBundle( void)
 
   m_pBundle = sBundle;
 
-  return( sBundle);
+  return sBundle;
 }
 
 
-void nsOEStringBundle::GetStringByID( PRInt32 stringID, nsString& result)
+void nsOEStringBundle::GetStringByID(PRInt32 stringID, nsString& result)
 {
-  PRUnichar *ptrv = GetStringByID( stringID);
-  result = ptrv;
-  FreeString( ptrv);
+  PRUnichar *ptrv = GetStringByID(stringID);
+  result.Adopt(ptrv);
 }
 
 PRUnichar *nsOEStringBundle::GetStringByID(PRInt32 stringID)
@@ -84,8 +83,8 @@ PRUnichar *nsOEStringBundle::GetStringByID(PRInt32 stringID)
     PRUnichar *ptrv = nsnull;
     nsresult rv = m_pBundle->GetStringFromID(stringID, &ptrv);
 
-    if (NS_SUCCEEDED( rv) && ptrv)
-      return( ptrv);
+    if (NS_SUCCEEDED(rv) && ptrv)
+      return ptrv;
   }
 
   nsString resultString;
@@ -93,10 +92,10 @@ PRUnichar *nsOEStringBundle::GetStringByID(PRInt32 stringID)
   resultString.AppendInt(stringID);
   resultString.AppendLiteral("?]");
 
-  return( ToNewUnicode(resultString));
+  return ToNewUnicode(resultString);
 }
 
-void nsOEStringBundle::Cleanup( void)
+void nsOEStringBundle::Cleanup(void)
 {
   if (m_pBundle)
     m_pBundle->Release();

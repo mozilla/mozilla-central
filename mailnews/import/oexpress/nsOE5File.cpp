@@ -64,7 +64,7 @@
                         ((ISANSWERED & s) ? nsMsgMessageFlags::Replied : 0) | \
                         ((ISFORWARDED & s) ? nsMsgMessageFlags::Forwarded : 0) | \
                         ((ISWATCHED & s) ? nsMsgMessageFlags::Watched : 0) | \
-                        ((ISIGNORED & s) ? nsMsgMessageFlags::Ignored : 0) )
+                        ((ISIGNORED & s) ? nsMsgMessageFlags::Ignored : 0))
 
 static char *gSig =
   "\xCF\xAD\x12\xFE\xC5\xFD\x74\x6F\x66\xE3\xD1\x11";
@@ -88,7 +88,7 @@ void nsOE5File::FileTimeToPRTime(const FILETIME *filetime, PRTime *prtm)
 #endif
 }
 
-bool nsOE5File::VerifyLocalMailFile( nsIFile *pFile)
+bool nsOE5File::VerifyLocalMailFile(nsIFile *pFile)
 {
   char    sig[kSignatureSize];
 
@@ -97,7 +97,7 @@ bool nsOE5File::VerifyLocalMailFile( nsIFile *pFile)
   if (NS_FAILED(NS_NewLocalFileInputStream(getter_AddRefs(inputStream), pFile)))
     return false;
 
-  if (!ReadBytes( inputStream, sig, 0, kSignatureSize))
+  if (!ReadBytes(inputStream, sig, 0, kSignatureSize))
     return false;
 
   bool    result = true;
@@ -108,52 +108,52 @@ bool nsOE5File::VerifyLocalMailFile( nsIFile *pFile)
   }
 
   char  storeName[14];
-  if (!ReadBytes( inputStream, storeName, 0x24C1, 12))
+  if (!ReadBytes(inputStream, storeName, 0x24C1, 12))
     result = false;
 
   storeName[12] = 0;
 
-  if (PL_strcasecmp( "LocalStore", storeName))
+  if (PL_strcasecmp("LocalStore", storeName))
     result = false;
 
   return result;
 }
 
-bool nsOE5File::IsLocalMailFile( nsIFile *pFile)
+bool nsOE5File::IsLocalMailFile(nsIFile *pFile)
 {
   nsresult  rv;
   bool      isFile = false;
 
-  rv = pFile->IsFile( &isFile);
-  if (NS_FAILED( rv) || !isFile)
-    return( false);
+  rv = pFile->IsFile(&isFile);
+  if (NS_FAILED(rv) || !isFile)
+    return false;
 
-  bool result = VerifyLocalMailFile( pFile);
+  bool result = VerifyLocalMailFile(pFile);
 
-  return( result);
+  return result;
 }
 
-bool nsOE5File::ReadIndex( nsIInputStream *pInputStream, PRUint32 **ppIndex, PRUint32 *pSize)
+bool nsOE5File::ReadIndex(nsIInputStream *pInputStream, PRUint32 **ppIndex, PRUint32 *pSize)
 {
   *ppIndex = nsnull;
   *pSize = 0;
 
   char    signature[4];
-  if (!ReadBytes( pInputStream, signature, 0, 4))
-    return( false);
+  if (!ReadBytes(pInputStream, signature, 0, 4))
+    return false;
 
   for (int i = 0; i < 4; i++) {
     if (signature[i] != gSig[i]) {
-      IMPORT_LOG0( "*** Outlook 5.0 dbx file signature doesn't match\n");
-      return( false);
+      IMPORT_LOG0("*** Outlook 5.0 dbx file signature doesn't match\n");
+      return false;
     }
   }
 
   PRUint32  offset = 0x00e4;
   PRUint32  indexStart = 0;
-  if (!ReadBytes( pInputStream, &indexStart, offset, 4)) {
-    IMPORT_LOG0( "*** Unable to read offset to index start\n");
-    return( false);
+  if (!ReadBytes(pInputStream, &indexStart, offset, 4)) {
+    IMPORT_LOG0("*** Unable to read offset to index start\n");
+    return false;
   }
 
   PRUint32Array array;
@@ -161,23 +161,23 @@ bool nsOE5File::ReadIndex( nsIInputStream *pInputStream, PRUint32 **ppIndex, PRU
   array.alloc = kIndexGrowBy;
   array.pIndex = new PRUint32[kIndexGrowBy];
 
-  PRUint32 next = ReadMsgIndex( pInputStream, indexStart, &array);
+  PRUint32 next = ReadMsgIndex(pInputStream, indexStart, &array);
   while (next) {
-    next = ReadMsgIndex( pInputStream, next, &array);
+    next = ReadMsgIndex(pInputStream, next, &array);
   }
 
   if (array.count) {
     *pSize = array.count;
     *ppIndex = array.pIndex;
-    return( true);
+    return true;
   }
 
   delete [] array.pIndex;
-  return( false);
+  return false;
 }
 
 
-PRUint32 nsOE5File::ReadMsgIndex( nsIInputStream *pInputStream, PRUint32 offset, PRUint32Array *pArray)
+PRUint32 nsOE5File::ReadMsgIndex(nsIInputStream *pInputStream, PRUint32 offset, PRUint32Array *pArray)
 {
   // Record is:
     // 4 byte marker
@@ -195,22 +195,22 @@ PRUint32 nsOE5File::ReadMsgIndex( nsIInputStream *pInputStream, PRUint32 offset,
 
   PRUint32  marker;
 
-  if (!ReadBytes( pInputStream, &marker, offset, 4))
-    return( 0);
+  if (!ReadBytes(pInputStream, &marker, offset, 4))
+    return 0;
 
   if (marker != offset)
-    return( 0);
+    return 0;
 
 
   PRUint32  vals[3];
 
-  if (!ReadBytes( pInputStream, vals, offset + 4, 12))
-    return( 0);
+  if (!ReadBytes(pInputStream, vals, offset + 4, 12))
+    return 0;
 
 
   PRUint8  len[4];
-  if (!ReadBytes( pInputStream, len, offset + 16, 4))
-    return( 0);
+  if (!ReadBytes(pInputStream, len, offset + 16, 4))
+    return 0;
 
 
 
@@ -218,9 +218,9 @@ PRUint32 nsOE5File::ReadMsgIndex( nsIInputStream *pInputStream, PRUint32 offset,
   cnt *= 3;
   PRUint32  *pData = new PRUint32[cnt];
 
-  if (!ReadBytes( pInputStream, pData, offset + 24, cnt * 4)) {
+  if (!ReadBytes(pInputStream, pData, offset + 24, cnt * 4)) {
     delete [] pData;
-    return( 0);
+    return 0;
   }
 
   PRUint32  next;
@@ -233,7 +233,7 @@ PRUint32 nsOE5File::ReadMsgIndex( nsIInputStream *pInputStream, PRUint32 offset,
 
     if (pArray->count >= pArray->alloc) {
       pNewIndex = new PRUint32[ pArray->alloc + kIndexGrowBy];
-      memcpy( pNewIndex, pArray->pIndex, (pArray->alloc * 4));
+      memcpy(pNewIndex, pArray->pIndex, (pArray->alloc * 4));
       (pArray->alloc) += kIndexGrowBy;
       delete [] pArray->pIndex;
       pArray->pIndex = pNewIndex;
@@ -252,15 +252,15 @@ PRUint32 nsOE5File::ReadMsgIndex( nsIInputStream *pInputStream, PRUint32 offset,
 
     next = pRecord[1];
     if (next)
-      while ((next = ReadMsgIndex( pInputStream, next, pArray)) != 0);
+      while ((next = ReadMsgIndex(pInputStream, next, pArray)) != 0);
   }
   delete [] pData;
 
   // return the pointer to the next subIndex
-  return( vals[1]);
+  return vals[1];
 }
 
-bool nsOE5File::IsFromLine( char *pLine, PRUint32 len)
+bool nsOE5File::IsFromLine(char *pLine, PRUint32 len)
 {
    return (len > 5 && (pLine[0] == 'F') && (pLine[1] == 'r') && (pLine[2] == 'o') && (pLine[3] == 'm') && (pLine[4] == ' '));
 }
@@ -270,7 +270,7 @@ bool nsOE5File::IsFromLine( char *pLine, PRUint32 len)
 #define  kMaxAttrCount       0x0030
 const char *nsOE5File::m_pFromLineSep = "From - Mon Jan 1 00:00:00 1965\x0D\x0A";
 
-nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString& name, nsIFile *inFile, nsIFile *pDestination, PRUint32 *pCount)
+nsresult nsOE5File::ImportMailbox(PRUint32 *pBytesDone, bool *pAbort, nsString& name, nsIFile *inFile, nsIFile *pDestination, PRUint32 *pCount)
 {
   nsresult  rv;
   PRInt32    msgCount = 0;
@@ -279,30 +279,31 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString&
 
   nsCOMPtr <nsIInputStream> inputStream;
   rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), inFile);
-  if (NS_FAILED( rv)) return( rv);
+  if (NS_FAILED(rv))
+    return rv;
   nsCOMPtr <nsIOutputStream> outputStream;
   rv = MsgNewBufferedFileOutputStream(getter_AddRefs(outputStream), pDestination, -1, 0600);
-  if (NS_FAILED( rv))
-    return( rv);
+  if (NS_FAILED(rv))
+    return rv;
 
   PRUint32 *  pIndex;
   PRUint32  indexSize;
   PRUint32 *  pFlags;
   PRUint64  *  pTime;
 
-  if (!ReadIndex( inputStream, &pIndex, &indexSize)) {
-    IMPORT_LOG1( "No messages found in mailbox: %s\n", NS_LossyConvertUTF16toASCII(name.get()));
-    return( NS_OK);
+  if (!ReadIndex(inputStream, &pIndex, &indexSize)) {
+    IMPORT_LOG1("No messages found in mailbox: %s\n", NS_LossyConvertUTF16toASCII(name.get()));
+    return NS_OK;
   }
 
   pTime  = new PRUint64[ indexSize];
   pFlags = new PRUint32[ indexSize];
   char *  pBuffer = new char[kMailboxBufferSize];
   if (!(*pAbort))
-    ConvertIndex( inputStream, pBuffer, pIndex, indexSize, pFlags, pTime);
+    ConvertIndex(inputStream, pBuffer, pIndex, indexSize, pFlags, pTime);
 
   PRUint32  block[4];
-  PRInt32   sepLen = (PRInt32) strlen( m_pFromLineSep);
+  PRInt32   sepLen = (PRInt32) strlen(m_pFromLineSep);
   PRUint32   written;
 
   /*
@@ -337,8 +338,8 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString&
     if (! pIndex[i])
       continue;
 
-    if (ReadBytes( inputStream, block, pIndex[i], 16) && (block[0] == pIndex[i]) &&
-      (block[2] < kMailboxBufferSize) && (ReadBytes( inputStream, pBuffer, kDontSeek, block[2])))
+    if (ReadBytes(inputStream, block, pIndex[i], 16) && (block[0] == pIndex[i]) &&
+      (block[2] < kMailboxBufferSize) && (ReadBytes(inputStream, pBuffer, kDontSeek, block[2])))
     {
       // block[2] contains the chars in the buffer (ie, buf content size).
       // block[3] contains offset to the next block of data (0 means no more data).
@@ -348,7 +349,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString&
 
       // write out the from separator.
       rv = NS_ERROR_FAILURE;
-      if (IsFromLine( pBuffer, size))
+      if (IsFromLine(pBuffer, size))
       {
         char *pChar = pStart;
         while ((pChar < pEnd) && (*pChar != '\r') && (*(pChar+1) != '\n'))
@@ -358,7 +359,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString&
         {
           // Get the "From " line so write it out.
           rv = outputStream->Write(pStart, pChar-pStart+2, &written);
-          if ( rv)
+          if (rv)
             // Now buffer starts from the 2nd line.
             pStart = pChar + 2;
         }
@@ -380,14 +381,14 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString&
         PL_strcpy(result + 7, buffer);
         PL_strcpy(result + 7 + 24, CRLF);
 
-        rv = outputStream->Write(result, (PRInt32) strlen( result), &written);
+        rv = outputStream->Write(result, (PRInt32) strlen(result), &written);
       }
-      if (NS_FAILED( rv))
+      if (NS_FAILED(rv))
       {
         // Write out the default from line since there is none in the msg.
         rv = outputStream->Write(m_pFromLineSep, sepLen, &written);
         // FIXME: Do I need to check the return value of written???
-        if (NS_FAILED( rv))
+        if (NS_FAILED(rv))
           break;
       }
 
@@ -407,7 +408,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString&
 
         // If the buffer doesn't end with CRLF then a line is broken into two blocks,
         // so save the incomplete line for later process when we read the next block.
-        if ( (size > 1) && !(*(pEnd - 2) == '\r' && *(pEnd - 1) == '\n') )
+        if ((size > 1) && !(*(pEnd - 2) == '\r' && *(pEnd - 1) == '\n'))
         {
           partialLineStart -= 2;
           while ((partialLineStart >= pStart) && (*partialLineStart != '\r') && (*(partialLineStart+1) != '\n'))
@@ -459,8 +460,8 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString&
           }
           else
           {
-            IMPORT_LOG2( "Error reading message from %s at 0x%lx\n", NS_LossyConvertUTF16toASCII(name.get()), pIndex[i]);
-            rv = outputStream->Write( "\x0D\x0A", 2, &written);
+            IMPORT_LOG2("Error reading message from %s at 0x%lx\n", NS_LossyConvertUTF16toASCII(name.get()), pIndex[i]);
+            rv = outputStream->Write("\x0D\x0A", 2, &written);
             next = 0;
           }
       } while (next);
@@ -479,7 +480,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString&
       //
       // In this case, the 1st msg is not recognized as a msg (it's skipped)
       // when you open the folder.
-      rv = outputStream->Write( "\x0D\x0A", 2, &written);
+      rv = outputStream->Write("\x0D\x0A", 2, &written);
 
       if (NS_FAILED(rv))
         break;
@@ -492,7 +493,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString&
     }
     else {
       // Error reading message, should this be logged???
-      IMPORT_LOG2( "Error reading message from %s at 0x%lx\n", NS_LossyConvertUTF16toASCII(name.get()), pIndex[i]);
+      IMPORT_LOG2("Error reading message from %s at 0x%lx\n", NS_LossyConvertUTF16toASCII(name.get()), pIndex[i]);
       *pAbort = true;
     }
   }
@@ -504,7 +505,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString&
   if (NS_FAILED(rv))
     *pAbort = true;
 
-  return( rv);
+  return rv;
 }
 
 
@@ -545,7 +546,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString&
   0x84 - direct text offset, direct pointer to message text
 */
 
-void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer,
+void nsOE5File::ConvertIndex(nsIInputStream *pFile, char *pBuffer,
                               PRUint32 *pIndex, PRUint32 size,
                               PRUint32 *pFlags, PRUint64 *pTime)
 {
@@ -571,39 +572,39 @@ void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer,
     offset = 0;
     flags = 0;
     time = 0;
-    if (ReadBytes( pFile, recordHead, pIndex[i], 12)) {
-      memcpy( &marker, recordHead, 4);
-      memcpy( &recordSize, recordHead + 4, 4);
+    if (ReadBytes(pFile, recordHead, pIndex[i], 12)) {
+      memcpy(&marker, recordHead, 4);
+      memcpy(&recordSize, recordHead + 4, 4);
       numAttrs = (PRUint32) recordHead[10];
       if (marker == pIndex[i] && numAttrs <= kMaxAttrCount) {
         dataStart = pIndex[i] + 12 + (numAttrs * 4);
-        if (ReadBytes( pFile, pBuffer, kDontSeek, numAttrs * 4)) {
+        if (ReadBytes(pFile, pBuffer, kDontSeek, numAttrs * 4)) {
           attrOffset = 0;
           for (attrIndex = 0; attrIndex < numAttrs; attrIndex++, attrOffset += 4) {
             tag = (PRUint8) pBuffer[attrOffset];
             if (tag == (PRUint8) 0x84) {
               tagData = 0;
-              memcpy( &tagData, pBuffer + attrOffset + 1, 3);
+              memcpy(&tagData, pBuffer + attrOffset + 1, 3);
               offset = tagData;
             }
             else if (tag == (PRUint8) 0x04) {
               tagData = 0;
-              memcpy( &tagData, pBuffer + attrOffset + 1, 3);
+              memcpy(&tagData, pBuffer + attrOffset + 1, 3);
               ReadBytes(pFile, &offset, dataStart + tagData, 4);
             }
             else if (tag == (PRUint8) 0x81) {
               tagData = 0;
-              memcpy( &tagData, pBuffer + attrOffset +1, 3);
+              memcpy(&tagData, pBuffer + attrOffset +1, 3);
               flags = tagData;
             }
             else if (tag == (PRUint8) 0x01) {
               tagData = 0;
-              memcpy( &tagData, pBuffer + attrOffset +1, 3);
+              memcpy(&tagData, pBuffer + attrOffset +1, 3);
               ReadBytes(pFile, &flags, dataStart + tagData, 4);
             }
             else if (tag == (PRUint8) 0x02) {
               tagData = 0;
-              memcpy( &tagData, pBuffer + attrOffset +1, 3);
+              memcpy(&tagData, pBuffer + attrOffset +1, 3);
               ReadBytes(pFile, &time, dataStart + tagData, 4);
             }
           }
@@ -617,19 +618,19 @@ void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer,
 }
 
 
-bool nsOE5File::ReadBytes( nsIInputStream *stream, void *pBuffer, PRUint32 offset, PRUint32 bytes)
+bool nsOE5File::ReadBytes(nsIInputStream *stream, void *pBuffer, PRUint32 offset, PRUint32 bytes)
 {
   nsresult  rv;
 
   nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(stream);
   if (offset != kDontSeek) {
     rv = seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, offset);
-    if (NS_FAILED( rv))
-      return( false);
+    if (NS_FAILED(rv))
+      return false;
   }
 
   if (!bytes)
-    return( true);
+    return true;
 
   PRUint32  cntRead;
   char *  pReadTo = (char *)pBuffer;
