@@ -37,85 +37,83 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var newmessages = "";
-var newsgroupname = "";
-var gNewsBundle;
-var prefs = Components.classes['@mozilla.org/preferences-service;1'].getService();
-prefs = prefs.QueryInterface(Components.interfaces.nsIPrefBranch);
+Components.utils.import("resource:///modules/mailServices.js");
 
-var serverid = null;
 var markreadElement = null;
 var numberElement = null;
 
-var server = null;
 var nntpServer = null;
 var args = null;
 
 function OnLoad()
 {
-    gNewsBundle = document.getElementById("bundle_news");
+  let newsBundle = document.getElementById("bundle_news");
 
-    if ("arguments" in window && window.arguments[0]) {
-        args = window.arguments[0].QueryInterface( Components.interfaces.nsINewsDownloadDialogArgs);
-        args.hitOK = false; /* by default, act like the user hit cancel */
-        args.downloadAll = false; /* by default, act like the user did not select download all */
+  if ("arguments" in window && window.arguments[0]) {
+    args = window.arguments[0]
+                 .QueryInterface(Components.interfaces.nsINewsDownloadDialogArgs);
+    /* by default, act like the user hit cancel */
+    args.hitOK = false;
+    /* by default, act like the user did not select download all */
+    args.downloadAll = false;
 
-        var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-        server = accountManager.getIncomingServer(args.serverKey);
-        nntpServer = server.QueryInterface(Components.interfaces.nsINntpIncomingServer);
 
-        var downloadHeadersTitlePrefix = gNewsBundle.getString("downloadHeadersTitlePrefix");
-        var okButtonText = gNewsBundle.getString("okButtonText");
+    nntpServer = MailServices.accounts.getIncomingServer(args.serverKey)
+               .QueryInterface(Components.interfaces.nsINntpIncomingServer);
 
-        document.title = downloadHeadersTitlePrefix;
+    document.title = newsBundle.getString("downloadHeadersTitlePrefix");
 
-        var infotext =  gNewsBundle.getFormattedString("downloadHeadersInfoText", [args.articleCount]);
-        setText('info', infotext);
-        var okbutton = document.documentElement.getButton("accept");
-        okbutton.setAttribute("label", okButtonText);
-        okbutton.focus();
-        setText("newsgroupLabel", args.groupName);
-    }
+    let infotext = newsBundle.getFormattedString("downloadHeadersInfoText",
+                                                 [args.articleCount]);
+    setText('info', infotext);
+    let okButtonText = newsBundle.getString("okButtonText");
+    let okbutton = document.documentElement.getButton("accept");
+    okbutton.setAttribute("label", okButtonText);
+    okbutton.focus();
+    setText("newsgroupLabel", args.groupName);
+  }
 
-    numberElement = document.getElementById("number");
-    numberElement.value = nntpServer.maxArticles;
+  numberElement = document.getElementById("number");
+  numberElement.value = nntpServer.maxArticles;
 
-    markreadElement = document.getElementById("markread");
-    markreadElement.checked = nntpServer.markOldRead;
+  markreadElement = document.getElementById("markread");
+  markreadElement.checked = nntpServer.markOldRead;
 
-    return true;
+  return true;
 }
 
 function setText(id, value) {
-    var element = document.getElementById(id);
-    if (!element) return;
-    if (element.hasChildNodes())
-        element.removeChild(element.firstChild);
-    var textNode = document.createTextNode(value);
-    element.appendChild(textNode);
+  let element = document.getElementById(id);
+  if (!element)
+    return;
+
+  if (element.hasChildNodes())
+    element.removeChild(element.firstChild);
+  let textNode = document.createTextNode(value);
+  element.appendChild(textNode);
 }
 
 function OkButtonCallback() {
-    nntpServer.maxArticles = numberElement.value;
-    nntpServer.markOldRead = markreadElement.checked;
+  nntpServer.maxArticles = numberElement.value;
+  nntpServer.markOldRead = markreadElement.checked;
 
-    var radio = document.getElementById("all");
-    if (radio)
-      args.downloadAll = radio.selected;
+  let radio = document.getElementById("all");
+  if (radio)
+    args.downloadAll = radio.selected;
 
-    args.hitOK = true;
-    return true;
+  args.hitOK = true;
+  return true;
 }
 
 function CancelButtonCallback() {
-    args.hitOK = false;
-    return true;
+  args.hitOK = false;
+  return true;
 }
 
 function setupDownloadUI(enable) {
-    var checkbox = document.getElementById("markread");
-    var numberFld = document.getElementById("number");
+  let checkbox = document.getElementById("markread");
+  let numberFld = document.getElementById("number");
 
-    checkbox.disabled = !enable;
-    numberFld.disabled = !enable;
+  checkbox.disabled = !enable;
+  numberFld.disabled = !enable;
 }
