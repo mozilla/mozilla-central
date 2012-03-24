@@ -578,11 +578,8 @@ function toolboxCustomizeChange(toolbox, event)
 function goClickThrobber(urlPref, aEvent)
 {
   var url = GetLocalizedStringPref(urlPref);
-
-  if (url) {
-    var where = whereToOpenLink(aEvent, false, true, true);
-    return openUILinkIn(url, where);
-  }
+  if (url)
+    openUILinkIn(url, whereToOpenLink(aEvent, false, true, true));
 }
 
 function getTopWin()
@@ -594,14 +591,14 @@ function isRestricted( url )
 {
   try {
     const nsIURIFixup = Components.interfaces.nsIURIFixup;
-    var uriFixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
-                             .getService(nsIURIFixup);
-    var url = uriFixup.createFixupURI(url, nsIURIFixup.FIXUP_FLAG_NONE);
+    var uri = Components.classes["@mozilla.org/docshell/urifixup;1"]
+                        .getService(nsIURIFixup)
+                        .createFixupURI(url, nsIURIFixup.FIXUP_FLAG_NONE);
     const URI_INHERITS_SECURITY_CONTEXT =
         Components.interfaces.nsIProtocolHandler.URI_INHERITS_SECURITY_CONTEXT;
     return Components.classes["@mozilla.org/network/util;1"]
                      .getService(Components.interfaces.nsINetUtil)
-                     .URIChainHasFlags(url, URI_INHERITS_SECURITY_CONTEXT);
+                     .URIChainHasFlags(uri, URI_INHERITS_SECURITY_CONTEXT);
   } catch (e) {
     return false;
   }
