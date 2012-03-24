@@ -990,7 +990,9 @@
 
             var undoItem = document.getAnonymousElementByAttribute(this, "tbattr", "tabbrowser-undoclosetab");
             undoItem.setAttribute("disabled", this.mSessionStore.getClosedTabCount(window) == 0);
-            undoItem.hidden = this.mPrefs.getIntPref("browser.tabs.max_tabs_undo") <= 0 && this.mPrefs.getIntPref("browser.sessionstore.max_tabs_undo") <= 0;
+            undoItem.hidden = this.mPrefs.getIntPref("browser.tabs.max_tabs_undo") <= 0 &&
+                              this.mPrefs.getIntPref("browser.sessionstore.max_tabs_undo") <= 0;
+            return true;
           ]]>
         </body>
       </method>
@@ -1571,8 +1573,8 @@
         <parameter name="aIndex"/>
         <body>
           <![CDATA[
-            if (this.mSessionStore.getClosedTabCount(window))
-              return this.mSessionStore.undoCloseTab(window, aIndex);
+            return this.mSessionStore.getClosedTabCount(window) ?
+                     this.mSessionStore.undoCloseTab(window, aIndex) : null;
           ]]>
         </body>
       </method>
