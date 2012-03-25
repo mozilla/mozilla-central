@@ -129,6 +129,11 @@ components/nsUnsetDefaultMail.js
 components/nsUpdateService.js
 components/nsUpdateServiceStub.js
 #endif
+#ifndef MOZ_URL_CLASSIFIER
+  components/nsUrlClassifierHashCompleter.js
+  components/nsUrlClassifierLib.js
+  components/nsUrlClassifierListManager.js
+#endif
 components/nsXmlRpcClient.js
 components/@DLL_PREFIX@oji@DLL_SUFFIX@
 components/pluginGlue.js
@@ -635,6 +640,11 @@ xpicleanup@BIN_SUFFIX@
   components/nsUpdateService.js
   components/nsUpdateServiceStub.js
   components/nsUpdateTimerManager.js
+  #ifdef MOZ_URL_CLASSIFIER
+    components/nsUrlClassifierHashCompleter.js
+    components/nsUrlClassifierLib.js
+    components/nsUrlClassifierListManager.js
+  #endif
   components/nsURLFormatter.js
   components/nsWebHandlerApp.js
   components/PlacesCategoriesStarter.js

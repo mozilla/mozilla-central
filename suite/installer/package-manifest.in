@@ -285,6 +285,9 @@
 @BINPATH@/components/unicharutil.xpt
 @BINPATH@/components/update.xpt
 @BINPATH@/components/uriloader.xpt
+#ifdef MOZ_URL_CLASSIFIER
+@BINPATH@/components/url-classifier.xpt
+#endif
 @BINPATH@/components/urlformatter.xpt
 @BINPATH@/components/webBrowser_core.xpt
 @BINPATH@/components/webbrowserpersist.xpt
@@ -392,7 +395,10 @@
 @BINPATH@/components/nsUpdateTimerManager.js
 @BINPATH@/components/nsUpdateTimerManager.manifest
 #ifdef MOZ_URL_CLASSIFIER
+@BINPATH@/components/nsURLClassifier.manifest
 @BINPATH@/components/nsUrlClassifierHashCompleter.js
+@BINPATH@/components/nsUrlClassifierLib.js
+@BINPATH@/components/nsUrlClassifierListManager.js
 #endif
 @BINPATH@/components/nsURLFormatter.js
 @BINPATH@/components/nsURLFormatter.manifest
