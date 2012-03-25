@@ -593,6 +593,7 @@ xpicleanup@BIN_SUFFIX@
   components/nsAboutLife.js
   components/nsAboutRights.js
   components/nsAboutSessionRestore.js
+  components/nsAboutSyncTabs.js
   components/nsBadCertHandler.js
   components/nsBlocklistService.js
   components/nsBrowserContentHandler.js
@@ -656,22 +657,24 @@ xpicleanup@BIN_SUFFIX@
   components/smime-service.js
   components/glautocomp.js
   components/jsmimeemitter.js
+  components/Weave.js
   components/Webapps.js
   components/browser.xpt
+  components/components.manifest
   components/interfaces.manifest
   components/mail.xpt
-  components/components.manifest
   defaults/profile/bookmarks.html
   defaults/profile/mimeTypes.rdf
   defaults/profile/chrome/
   defaults/profile/chrome/userChrome-example.css
   defaults/profile/chrome/userContent-example.css
-  defaults/pref/suite-l10n.js
   defaults/pref/browser-prefs.js
   defaults/pref/composer.js
   defaults/pref/mailnews.js
   defaults/pref/mdn.js
+  defaults/pref/services-sync.js
   defaults/pref/smime.js
+  defaults/pref/suite-l10n.js
   defaults/autoconfig/
   defaults/autoconfig/platform.js
   defaults/autoconfig/prefcalls.js
