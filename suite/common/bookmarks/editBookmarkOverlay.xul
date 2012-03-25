@@ -145,7 +145,10 @@
           </hbox>
         </row>
 
-        <row id="editBMPanel_folderTreeRow" collapsed="true" flex="2">
+        <row id="editBMPanel_folderTreeRow"
+             collapsed="true"
+             persist="height"
+             flex="2">
           <spacer/>
           <vbox flex="1">
             <tree id="editBMPanel_folderTree"
@@ -202,7 +205,10 @@
           </hbox>
         </row>
 
-        <row id="editBMPanel_tagsSelectorRow" collapsed="true" flex="2">
+        <row id="editBMPanel_tagsSelectorRow"
+             persist="height"
+             collapsed="true"
+             flex="2">
           <spacer/>
           <listbox id="editBMPanel_tagsSelector"
                    height="150"
@@ -222,7 +228,7 @@
                    observes="paneElementsBroadcaster"/>
         </row>
 
-        <row id="editBMPanel_descriptionRow" flex="1">
+        <row id="editBMPanel_descriptionRow" persist="height" flex="1">
           <observes element="additionalInfoBroadcaster" attribute="hidden"/>
           <label value="&editBookmarkOverlay.description.label;"
                  class="editBMPanel_rowLabel"
