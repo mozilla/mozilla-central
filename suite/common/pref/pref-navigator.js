@@ -271,9 +271,6 @@ function SetHomePageToDefaultPage()
 
 function Startup()
 {
-  document.getElementById("restoreTabs").value =
-    document.getElementById("browser.sessionstore.max_concurrent_tabs").value;
-
   // homepage groups can have an arbitrary number of <preference>s,
   // except for the default (0), thus we create them manually here 
   gPreferences = document.getElementById("navigator_preferences");
@@ -294,16 +291,16 @@ function SwitchPage(aIndex)
   document.getElementById("behaviourDeck").selectedIndex = aIndex;
 }
 
-function ConcurrentTabsSelected(aValue)
+function ReadConcurrentTabs()
 {
-  if (aValue != "-1" && aValue != "0")
-    document.getElementById("maxConcurrentTabs").focus();
+  var val = document.getElementById("browser.sessionstore.max_concurrent_tabs").value;
+  return val != 0 && val != -1 ? 3 : val;
 }
 
-function ConcurrentTabsChanged(aValue)
+function WriteConcurrentTabs(aValue)
 {
-  if (aValue != "-1" && aValue != "0")
-    document.getElementById("restoreTabs").value = aValue;
+  return aValue == "0" || aValue == "-1" ? aValue :
+      document.getElementById("maxConcurrentTabs").value;
 }
 
 // platform integration

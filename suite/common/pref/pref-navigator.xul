@@ -162,19 +162,22 @@
     <!-- session restore background tabs -->
     <groupbox>
       <caption label="&restoreSessionIntro.label;"/>
-      <radiogroup align="start" onselect="ConcurrentTabsSelected(this.value);"
-                  preference="browser.sessionstore.max_concurrent_tabs">
+      <radiogroup align="start"
+                  preference="browser.sessionstore.max_concurrent_tabs"
+                  onsyncfrompreference="return document.getElementById('navigator_pane').ReadConcurrentTabs();"
+                  onsynctopreference="return document.getElementById('navigator_pane').WriteConcurrentTabs(this.value);">
         <radio value="-1"
                label="&restoreImmediately.label;"
                accesskey="&restoreImmediately.accesskey;"/>
         <hbox align="center">
-          <radio id="restoreTabs" value="3" selected="true"
+          <radio id="restoreTabs" value="3"
+                 onclick="this.nextSibling.focus();"
                  label="&restoreTabs.label;"
                  accesskey="&restoreTabs.accesskey;"/>
           <textbox id="maxConcurrentTabs" type="number" size="2" min="-1"
-                   onchange="ConcurrentTabsChanged(this.value);"
+                   aria-labelledby="restoreTabs maxConcurrentTabs restoreTabsAtATime"
                    preference="browser.sessionstore.max_concurrent_tabs"/>
-          <label value="&restoreTabsAtATime.label;"/>
+          <label id="restoreTabsAtATime" value="&restoreTabsAtATime.label;"/>
         </hbox>
         <radio value="0"
                label="&restoreDeferred.label;"
