@@ -7,16 +7,18 @@
   min-width: 3px;
 }
 
-/* Adaptation of #threadpane-splitter */
 #contextSplitter {
-  background-image: url("chrome://messenger/skin/icons/vertical-threadpane-splitter-bg.gif");
-  background-repeat: repeat-y;
-  -moz-border-start: 1px solid #A6A6A6;
-  -moz-border-end: 1px solid #8C8C8C;
-}
-
-#contextSplitter[state="collapsed"] {
-  -moz-border-end: 0;
+  border: none;
+  -moz-border-end: 1px solid #8B8B8B;
+  background: none;
+  min-width: 0;
+  /* splitter grip area */
+  width: 5px;
+  /* make only the splitter border visible */
+  -moz-margin-start: -5px;
+  /* because of the negative margin needed to make the splitter visible */
+  position: relative;
+  z-index: 10;
 }
 
 /* Adaptation of #folderPaneBox/#folderPaneTree from pinstripe/mail/mailWindow1.css */
