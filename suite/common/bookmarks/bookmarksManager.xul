@@ -406,7 +406,8 @@
           <spacer flex="3"/>
         </vbox>
         <vbox id="infoBox" minimal="true">
-          <vbox id="editBookmarkPanelContent" flex="1"/>
+          <vbox id="editBookmarkPanelContent"/>
+          <spacer flex="1"/>
           <hbox id="infoBoxExpanderWrapper" align="center">
 
             <button type="image" id="infoBoxExpander"

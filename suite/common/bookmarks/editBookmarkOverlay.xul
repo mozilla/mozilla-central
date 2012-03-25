@@ -48,7 +48,7 @@
 <overlay id="editBookmarkOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <vbox id="editBookmarkPanelContent" flex="1">
+  <vbox id="editBookmarkPanelContent">
     <broadcaster id="paneElementsBroadcaster"/>
 
     <hbox id="editBMPanel_selectionCount" hidden="true" pack="center">

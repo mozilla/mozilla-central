@@ -1,3 +1,5 @@
+<?xml version="1.0"?>
+
 <!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
    -
@@ -126,7 +128,7 @@
       </vbox>
       <label id="editBookmarkPanelTitle"/>
     </row>
-    <vbox id="editBookmarkPanelContent" flex="1" hidden="true"/>
+    <vbox id="editBookmarkPanelContent" hidden="true"/>
     <hbox id="editBookmarkPanelBottomButtons">
       <button id="editBookmarkPanelRemoveButton"
               class="editBookmarkPanelHeaderButton"

@@ -73,6 +73,6 @@
   <script type="application/javascript"
           src="chrome://communicator/content/bookmarks/bm-props.js"/>
 
-<vbox id="editBookmarkPanelContent"/>
+<vbox id="editBookmarkPanelContent" flex="1"/>
 
 </dialog>
