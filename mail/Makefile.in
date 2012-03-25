@@ -46,10 +46,8 @@ include $(topsrcdir)/config/config.mk
 DIRS += base locales extensions steel themes jquery app
 
 ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_INSTALLER
 # though some lasts are more last than others
 DIRS += installer/windows
-endif
 endif
 
 ifdef ENABLE_TESTS
@@ -59,12 +57,8 @@ endif
 include $(topsrcdir)/config/rules.mk
 
 ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_INSTALLER
-
 # For Windows build the uninstaller during the application build since the
 # uninstaller is included with the application for mar file generation.
 libs::
 	$(MAKE) -C installer/windows uninstaller
-
-endif
 endif
