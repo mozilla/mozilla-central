@@ -36,6 +36,8 @@ messenger.jar:
 	skin/classic/messenger/messages/main.css                      (messages/main.css)
 	skin/classic/messenger/messages/NextStatus.html               (messages/NextStatus.html)
 	skin/classic/messenger/messages/Status.html                   (messages/Status.html)
+	skin/classic/messenger/messages/Outgoing/buddy_icon.png       (messages/Outgoing/buddy_icon.png)
+	skin/classic/messenger/messages/Incoming/buddy_icon.png       (messages/Incoming/buddy_icon.png)
 % skin messenger-emoticons classic/1.0 %skin/classic/messenger/smileys/
 	skin/classic/messenger/smileys/theme.js              (smileys/theme.js)
 	skin/classic/messenger/smileys/angry.png             (smileys/angry.png)

@@ -50,7 +50,7 @@ p {
 
 div.bubble {
   margin: 20px 20px 3px 20px;
-  padding: 5px 0px;
+  padding: 10px;
   border-width: 1px;
   border-style: solid;
   border-radius: 5px;
@@ -179,6 +179,18 @@ p.show:hover {
   background: url('Bitmaps/minus-hover.png') no-repeat left top;
 }
 
+.usericon {
+  position: absolute;
+  max-width: 48px;
+  max-height: 48px;
+  border-radius: 5px;
+}
+
+.message,
 .sender {
-  margin-left: 10px;
+  padding-left: 60px;
+}
+
+.message {
+  min-height: 30px;
 }
