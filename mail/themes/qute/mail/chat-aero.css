@@ -1,21 +1,136 @@
 %include chat.css
 
-#button-add-buddy {
+#chat-toobar {
+  padding: 1px 0;
+}
+
+.prplBuddyIcon {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+#listSplitter,
+#contextSplitter {
+  border: none;
+  -moz-border-start: 1px solid ThreeDShadow;
+  background-color: transparent;
+  min-width: 0;
+  /* splitter grip area */
+  width: 5px;
+  margin-top: 0;
+  /* make only the splitter border visible */
+  -moz-margin-end: -5px;
+  /* because of the negative margin needed to make the splitter visible */
+  position: relative;
+  z-index: 10;
+}
+
+#contextSplitter {
+  -moz-border-start: none;
+  -moz-border-end: 1px solid ThreeDShadow;
+  -moz-margin-start: -5px;
+  -moz-margin-end: 0;
+}
+
+.splitter,
+#logsSplitter {
+  border: none;
+  border-bottom: 1px solid ThreeDShadow;
+  min-height: 0;
+  /* splitter grip area */
+  height: 5px;
+  background-color: transparent;
+  /* make only the splitter border visible */
+  margin-top: -5px;
+  -moz-margin-start: 0;
+  /* because of the negative margin needed to make the splitter visible */
+  position: relative;
+  z-index: 10;
+}
+
+#noConvScreen {
+  -moz-border-start: none;
+}
+
+.conv-top,
+.conv-bottom,
+#logDisplay {
+  border: none;
+}
+
+@media (-moz-windows-default-theme) {
+  #listPaneBox {
+    background-color: rgb(238,243,250);
+  }
+
+  .convBox {
+    background-color: rgb(233,239,245);
+  }
+
+  #conversationsDeck {
+    background-color: rgb(233,239,245);
+  }
+
+  #listSplitter {
+    -moz-border-start: 1px solid #A9B7C9;
+  }
+
+  #contextSplitter {
+    -moz-border-end: 1px solid #A9B7C9;
+  }
+
+  .splitter,
+  #logsSplitter {
+    border-bottom: 1px solid #A9B7C9;
+  }
+
+  .conv-nicklist-header,
+  .conv-logs-header-label {
+    background-color: rgb(233,239,245);
+  }
+
+  imconv,
+  imcontact {
+    min-height: 1.7em;
+    color: -moz-FieldText !important;
+    border-radius: 3px;
+    border: 1px solid transparent;
+    background-color: none;
+  }
+
+  imconv[selected],
+  imcontact[selected],
+  imconv:hover,
+  imcontact:hover {
+    border: 1px solid Highlight;
+    background-image: -moz-linear-gradient(rgba(255,255,255,.98), rgba(255,255,255,.82));
+    background-repeat: no-repeat;
+    background-color: Highlight;
+    background-size: 100% 100%;
+    -moz-border-top-colors: Highlight rgba(255,255,255,.4);
+    -moz-border-right-colors: Highlight rgba(255,255,255,.4);
+    -moz-border-left-colors: Highlight rgba(255,255,255,.4);
+    -moz-border-bottom-colors: Highlight rgba(255,255,255,.6);
+  }
+
+  imconv[selected][current],
+  imcontact[selected][current] {
+    background-image: -moz-linear-gradient(rgba(255,255,255,.85), rgba(255,255,255,.6));
+  }
+
+  .listitem-iconic[inactive][selected] > .listcell-iconic > .listcell-label {
+    color: -moz-dialogtext !important;
+  }
+}
+
+#button-add-buddy,
+#button-join-buddy[disabled] {
   list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
   -moz-image-region: rect(0px 18px 18px 0px);
 }
 
-#button-join-buddy[disabled] {
-  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
-  -moz-image-region: rect(18px 18px 36px 0px);
-}
-
-#button-join-chat {
-  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
-  -moz-image-region: rect(0px 36px 18px 18px);
-}
-
+#button-join-chat,
 #button-join-chat[disabled] {
   list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
-  -moz-image-region: rect(18px 36px 36px 18px);
+  -moz-image-region: rect(0px 36px 18px 18px);
 }
