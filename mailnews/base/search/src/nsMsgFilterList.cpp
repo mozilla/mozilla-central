@@ -1104,8 +1104,8 @@ NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFo
 
   PRUint32 numFilters;
   nsresult rv = m_filters->Count(&numFilters);
-  NS_ENSURE_SUCCESS(rv,rv);
-  nsCOMPtr <nsIMsgFilter> filter;
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMsgFilter> filter;
   nsCString folderUri;
   *found = false;
   for (PRUint32 index = 0; index < numFilters; index++)
@@ -1115,10 +1115,11 @@ NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFo
 
     nsCOMPtr<nsISupportsArray> filterActionList;
     rv = filter->GetActionList(getter_AddRefs(filterActionList));
+    NS_ENSURE_SUCCESS(rv, rv);
     PRUint32 numActions;
     filterActionList->Count(&numActions);
 
-    for (PRUint32 actionIndex =0; actionIndex < numActions; actionIndex++)
+    for (PRUint32 actionIndex = 0; actionIndex < numActions; actionIndex++)
     {
       nsCOMPtr<nsIMsgRuleAction> filterAction =
           do_QueryElementAt(filterActionList, actionIndex);
@@ -1134,22 +1135,25 @@ NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFo
         rv = filterAction->GetTargetFolderUri(folderUri);
         if (NS_SUCCEEDED(rv) && !folderUri.IsEmpty())
         {
+          bool matchFound = false;
           if (caseInsensitive)
           {
             if (folderUri.Equals(oldFolderUri, nsCaseInsensitiveCStringComparator())) //local
-              *found = true;
+              matchFound = true;
           }
           else
           {
             if (folderUri.Equals(oldFolderUri))  //imap
-              *found = true;
+              matchFound = true;
           }
-          if (*found)
-          { //if we just want to match the uri's, newFolderUri will be null
-            if (!newFolderUri.IsEmpty()) 
+          if (matchFound)
+          {
+            *found = true;
+            //if we just want to match the uri's, newFolderUri will be null
+            if (!newFolderUri.IsEmpty())
             {
               rv = filterAction->SetTargetFolderUri(newFolderUri);
-              NS_ENSURE_SUCCESS(rv,rv);
+              NS_ENSURE_SUCCESS(rv, rv);
             }
           }
         }
