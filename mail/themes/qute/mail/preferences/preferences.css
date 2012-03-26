@@ -198,6 +198,10 @@ a {
   max-height: 16px;
 }
 
+#provider-settings .indented {
+  margin-left: 150px;
+}
+
 #provider-header {
   border-bottom: 1px solid #898c95;
   margin-bottom: 20px;
