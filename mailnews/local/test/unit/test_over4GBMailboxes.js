@@ -1,8 +1,8 @@
 /* -*- Mode: JavaScript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /*
- * Test to ensure that CopyFileMessage checks for > 4GB local folder, and that
- * we can parse and compact folders over 4GB to allow users to get them under
- * 4GB.
+ * Test to ensure that copyFileMessageInLocalFolder checks for over 4 GiB local folder, and that
+ * we can parse and compact folders over 4 GiB to allow users to get them under
+ * 4 GiB.
  */
 
 load("../../../resources/mailTestUtils.js");
@@ -14,9 +14,13 @@ load("../../../resources/messageGenerator.js");
 Services.prefs.setCharPref("mail.serverDefaultStoreContractID",
                            "@mozilla.org/msgstore/berkeleystore;1");
 
-var gLocalInboxSize;
+// If we're running out of memory parsing the folder, lowering the
+// block size might help, though it will slow the test down and consume
+// more disk space.
+const kSparseBlockSize = 102400000;
 
 var gGotAlert = false;
+var gLocalInboxSize;
 
 var dummyDocShell =
 {
@@ -33,7 +37,11 @@ var dummyDocShell =
                                          Ci.nsIInterfaceRequestor])
 }
 
+// This alert() is triggered when file size becomes close (enough) to or
+// exceeds 4 GiB.
+// See hardcoded value in nsMsgBrkMBoxStore::HasSpaceAvailable().
 function alert(aDialogTitle, aText) {
+  // See "/*/locales/en-US/chrome/*/messenger.properties > mailboxTooLarge".
   do_check_eq(aText.indexOf("The folder Inbox is full, and can't hold any more messages."), 0);
   gGotAlert = true;
 }
@@ -48,21 +56,13 @@ var dummyMsgWindow =
                                          Ci.nsISupportsWeakReference])
 };
 
-
-// If we're running out of memory parsing the folder, lowering the
-// block size might help, though it will slow the test down and consume
-// more disk space.
-const kSparseBlockSize = 102400000;
-
 function run_test()
 {
   loadLocalMailAccount();
 
-  // put a single message in the Inbox.
-  let messageGenerator = new MessageGenerator();
-  let message = messageGenerator.makeMessage();
-  let localInbox = gLocalInboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
-  localInbox.addMessage(message.toMboxString());
+  // "Master" do_test_pending(), paired with a do_test_finished() at the end of
+  // all the operations.
+  do_test_pending();
 
   // On Windows, check whether the drive is NTFS. If it is, mark the file as
   // sparse. If it isn't, then bail out now, because in all probability it is
@@ -71,27 +71,40 @@ function run_test()
       get_file_system(gLocalInboxFolder.filePath) != "NTFS")
   {
     dump("On Windows, this test only works on NTFS volumes.\n");
+
     endTest();
     return;
   }
   if (gLocalInboxFolder.filePath.clone().diskSpaceAvailable < 0x110000000)
   {
     dump("this test needs >4 GB of free disk space.\n");
+
     endTest();
     return;
   }
+
+  // put a single message in the Inbox.
+  let messageGenerator = new MessageGenerator();
+  let message = messageGenerator.makeMessage();
+  let localInbox = gLocalInboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+  localInbox.addMessage(message.toMboxString());
+
+  // Grow local inbox to over 4 GiB.
   let plugStore = gLocalInboxFolder.msgStore;
   do {
     let inboxFile = gLocalInboxFolder.filePath.clone();
     let nextOffset = inboxFile.fileSize + kSparseBlockSize;
+    // "Add" a new (empty) sparse block at the end of the file.
     mark_file_region_sparse(inboxFile, inboxFile.fileSize,
                             kSparseBlockSize);
     let reusable = new Object;
     let newMsgHdr = new Object;
     let outputStream = plugStore.getNewMsgOutputStream(gLocalInboxFolder,
-                                                       newMsgHdr, reusable).
-                         QueryInterface(Ci.nsISeekableStream);
+                                                       newMsgHdr, reusable)
+                                .QueryInterface(Ci.nsISeekableStream);
     outputStream.seek(0, nextOffset);
+    // Add a CR+LF at end of previous message then
+    // write the (same) message another time.
     let mboxString = "\r\n" + message.toMboxString();
     outputStream.write(mboxString, mboxString.length);
     outputStream.close();
@@ -99,12 +112,11 @@ function run_test()
   }
   while (gLocalInboxFolder.filePath.fileSize < 0x100000000)
 
+  // Save initial file size.
   gLocalInboxSize = gLocalInboxFolder.filePath.fileSize;
 
-  // "Master" do_test_pending(), paired with a do_test_finished() at the end of
-  // all the operations.
-  do_test_pending();
-
+  // Use copyFileMessageInLocalFolder() to (try to) append another message
+  //  to local inbox.
   let file = do_get_file("../../../data/multipart-complex2");
   try {
     copyFileMessageInLocalFolder(file, 0, "", dummyMsgWindow,
@@ -113,6 +125,7 @@ function run_test()
     });
   } catch (ex) {
   }
+
   // Force the db closed, so that getDatabaseWithReparse will notice
   // that it's out of date.
   gLocalInboxFolder.msgDatabase.ForceClosed();
@@ -126,25 +139,27 @@ function run_test()
 
 function testCompact()
 {
+  // mark messages as deleted.
   let msgDB = gLocalInboxFolder.msgDatabase;
   let enumerator = msgDB.EnumerateMessages();
   let firstHdr = true;
   let messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
   while (enumerator.hasMoreElements()) {
-    var header = enumerator.getNext();
+    let header = enumerator.getNext();
     if (header instanceof Components.interfaces.nsIMsgDBHdr && !firstHdr)
       messages.appendElement(header, false);
     firstHdr = false;
   }
-  // mark messages as deleted.
   gLocalInboxFolder.deleteMessages(messages, null, true, false, null, false);
+
+  // Note: compact() will also add 'X-Mozilla-Status' and 'X-Mozilla-Status2'
+  // lines to message(s).
   gLocalInboxFolder.compact(CompactListener, null);
 }
 
 var ParseListener =
 {
-  OnStartRunningUrl: function (aUrl) {
-  },
+  OnStartRunningUrl: function (aUrl) {},
   OnStopRunningUrl: function (aUrl, aExitCode) {
     // Check: reparse successful
     do_check_eq(aExitCode, 0);
@@ -155,8 +170,7 @@ var ParseListener =
 
 var CompactListener =
 {
-  OnStartRunningUrl: function (aUrl) {
-  },
+  OnStartRunningUrl: function (aUrl) {},
   OnStopRunningUrl: function (aUrl, aExitCode) {
     // Check: message successfully copied.
     do_check_eq(aExitCode, 0);
@@ -165,15 +179,17 @@ var CompactListener =
     // i.e., that we just have one message.
     do_check_true(gLocalInboxFolder.filePath.fileSize < kSparseBlockSize + 1000);
     do_check_eq(gLocalInboxFolder.getTotalMessages(false), 1);
+
+    do_check_true(gGotAlert);
     endTest();
   }
 };
 
 function endTest()
 {
-  do_check_true(gGotAlert);
   // free up disk space - if you want to look at the file after running
   // this test, comment out this line.
   gLocalInboxFolder.filePath.remove(false);
+
   do_test_finished();
 }

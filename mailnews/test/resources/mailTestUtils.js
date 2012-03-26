@@ -95,7 +95,7 @@ function loadLocalMailAccount()
  * @param aPort The port the server is on.
  * @param aUsername The username for the server.
  * @param aPassword The password for the server.
- * @returns The newly-created nsIMsgIncomingServer.
+ * @return The newly-created nsIMsgIncomingServer.
  */
 function create_incoming_server(aType, aPort, aUsername, aPassword) {
   let server = MailServices.accounts.createIncomingServer(aUsername, "localhost",
@@ -128,7 +128,7 @@ function create_incoming_server(aType, aPort, aUsername, aPassword) {
  * @param aPort The port the server is on.
  * @param aUsername The username for the server
  * @param aPassword The password for the server
- * @returns The newly-created nsISmtpServer.
+ * @return The newly-created nsISmtpServer.
  */
 function create_outgoing_server(aPort, aUsername, aPassword) {
   let server = MailServices.smtp.createSmtpServer();
@@ -328,14 +328,17 @@ function loadMessageToString(aFolder, aMsgHdr, aCharset)
 }
 
 /**
- * Return the file system a particular file is on. Currently only supported on
- * Windows.
+ * Returns the file system a particular file is on.
+ * Currently supported on Windows only.
  *
  * @param aFile The file to get the file system for.
+ * @return The file system a particular file is on, or 'null' if not on Windows.
  */
 function get_file_system(aFile) {
-  if (!("@mozilla.org/windows-registry-key;1" in Cc))
-    throw new Error("get_file_system is only supported on Windows");
+  if (!("@mozilla.org/windows-registry-key;1" in Cc)) {
+    do_print("get_file_system() is supported on Windows only.");
+    return null;
+  }
 
   // Win32 type and other constants.
   const BOOL = ctypes.int32_t;
@@ -417,7 +420,7 @@ function get_file_system(aFile) {
  * @param aFile The file to mark as sparse.
  * @param aRegionStart The start position of the sparse region, in bytes.
  * @param aRegionBytes The number of bytes to mark as sparse.
- * @returns Whether the OS and file system supports marking files as sparse. If
+ * @return Whether the OS and file system supports marking files as sparse. If
  *          this is true, then the file has been marked as sparse. If this is
  *          false, then the underlying system doesn't support marking files as
  *          sparse. If an exception is thrown, then the system does support
@@ -425,9 +428,16 @@ function get_file_system(aFile) {
  *
  */
 function mark_file_region_sparse(aFile, aRegionStart, aRegionBytes) {
+  let fileSystem = get_file_system(aFile);
+  do_print("[mark_file_region_sparse()] File system = " + (fileSystem || "(unknown)") +
+           ", file region = at " + toMiBString(aRegionStart) +
+           " for " + toMiBString(aRegionBytes));
+
   if ("@mozilla.org/windows-registry-key;1" in Cc) {
-    // If the file system is not NTFS, sorry, we don't support sparse files.
-    if (get_file_system(aFile) != "NTFS")
+    // On Windows, check whether the drive is NTFS. If it is, proceed.
+    // If it isn't, then bail out now, because in all probability it is
+    // FAT32, which doesn't support sparse files.
+    if (fileSystem != "NTFS")
       return false;
 
     // Win32 type and other constants.
@@ -582,6 +592,17 @@ function mark_file_region_sparse(aFile, aRegionStart, aRegionBytes) {
     // files.
     return true;
   }
+}
+
+/**
+ * Converts a size in bytes into its mebibytes string representation.
+ * NB: 1 MiB = 1024 * 1024 = 1048576 B.
+ *
+ * @param aSize The size in bytes.
+ * @return A string representing the size in medibytes.
+ */
+function toMiBString(aSize) {
+  return (aSize / 1048576) + " MiB";
 }
 
 /**
