@@ -51,9 +51,9 @@
 
   <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
   <script type="application/javascript" src="chrome://messenger/content/am-copies.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/amUtils.js"/>
 
   <vbox flex="1" id="copiesAndFolders">
-    <!-- stringbundle is used by msgFolderPickerOverlay.js-->
     <stringbundleset id="stringbundleset">
     <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
     </stringbundleset>

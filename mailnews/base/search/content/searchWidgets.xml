@@ -45,7 +45,6 @@
       -gFilter from FilterEditor.js
       -gCustomActions from FilterEditor.js
       -gFilterType from FilterEditor.js
-      -gMessengerBundle from msgFolderPickerOverlay.js
       -GetMsgFolderFromUri, SetFolderPickerElement from msgFolderPickerOverlay.js
 -->
 

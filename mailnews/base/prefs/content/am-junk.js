@@ -72,15 +72,13 @@ function onInit(aPageId, aServerId)
 
   if (!spamActionTargetAccount)
   {
-    var server = GetMsgFolderFromUri(aServerId, false).server;
+    let server = GetMsgFolderFromUri(aServerId, false).server;
     if (server.canCreateFoldersOnServer && server.canSearchMessages)
       spamActionTargetAccount = aServerId;
     else
       spamActionTargetAccount = am.localFoldersServer.serverURI;
     document.getElementById('server.spamActionTargetAccount').value = spamActionTargetAccount;
   }
-  document.getElementById("actionAccountPopup")
-          .selectFolder(GetMsgFolderFromUri(spamActionTargetAccount));
 
   if (!spamActionTargetFolder)
   {
@@ -88,14 +86,16 @@ function onInit(aPageId, aServerId)
     document.getElementById('server.spamActionTargetFolder').value = spamActionTargetFolder;
   }
 
+  let server = GetMsgFolderFromUri(spamActionTargetAccount);
+  document.getElementById("actionTargetAccount")
+          .setAttribute("label", prettyFolderName(server));
+  document.getElementById("actionAccountPopup").selectFolder(server);
+
   try
   {
-    var folder = GetMsgFolderFromUri(spamActionTargetFolder);
-    var longFolderName = document.getElementById("bundle_messenger")
-                                 .getFormattedString("verboseFolderFormat",
-                                 [folder.prettyName, folder.server.prettyName]);
+    let folder = GetMsgFolderFromUri(spamActionTargetFolder);
     document.getElementById("actionTargetFolder")
-            .setAttribute("label", longFolderName);
+            .setAttribute("label", prettyFolderName(folder));
   }
   catch (e) { /* OK for folder to not exist */ }
 
@@ -239,14 +239,7 @@ function onActionTargetChange(aEvent, aWSMElementId)
 {
   var folder = aEvent.target._folder;
   document.getElementById(aWSMElementId).value = folder.URI;
-  var folderName;
-  if (folder.isServer)
-    folderName = folder.prettyName;
-  else
-    folderName = document.getElementById("bundle_messenger")
-                         .getFormattedString("verboseFolderFormat",
-                         [folder.prettyName, folder.server.prettyName]);
-  aEvent.currentTarget.setAttribute("label", folderName);
+  aEvent.currentTarget.setAttribute("label", prettyFolderName(folder));
 }
 
 function buildServerFilterMenuList()

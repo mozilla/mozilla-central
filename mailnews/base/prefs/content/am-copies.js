@@ -72,17 +72,17 @@ function onInitCopiesAndFolders()
                      "identity.fccFolder",
                      "msgFccFolderPicker");
 
-    SetFolderDisplay(gDraftsRadioElemChoice, gDraftsRadioElemChoiceLocked,
-                     "draft",
-                     "msgDraftsAccountPicker",
-                     "identity.draftFolder",
-                     "msgDraftsFolderPicker");
-
     SetFolderDisplay(gArchivesRadioElemChoice, gArchivesRadioElemChoiceLocked,
                      "archive",
                      "msgArchivesAccountPicker",
                      "identity.archiveFolder",
                      "msgArchivesFolderPicker");
+
+    SetFolderDisplay(gDraftsRadioElemChoice, gDraftsRadioElemChoiceLocked,
+                     "draft",
+                     "msgDraftsAccountPicker",
+                     "identity.draftFolder",
+                     "msgDraftsFolderPicker");
 
     SetFolderDisplay(gTmplRadioElemChoice, gTmplRadioElemChoiceLocked,
                      "tmpl",
@@ -106,15 +106,15 @@ function SetGlobalRadioElemChoices()
     gFccRadioElemChoiceLocked = pickerModeElement.getAttribute("disabled");
     if (!gFccRadioElemChoice) gFccRadioElemChoice = gDefaultPickerMode;
 
-    pickerModeElement = document.getElementById("identity.draftsFolderPickerMode");
-    gDraftsRadioElemChoice = pickerModeElement.getAttribute("value");
-    gDraftsRadioElemChoiceLocked = pickerModeElement.getAttribute("disabled");
-    if (!gDraftsRadioElemChoice) gDraftsRadioElemChoice = gDefaultPickerMode;
-
     pickerModeElement = document.getElementById("identity.archivesFolderPickerMode");
     gArchivesRadioElemChoice = pickerModeElement.getAttribute("value");
     gArchivesRadioElemChoiceLocked = pickerModeElement.getAttribute("disabled");
     if (!gArchivesRadioElemChoice) gArchivesRadioElemChoice = gDefaultPickerMode;
+
+    pickerModeElement = document.getElementById("identity.draftsFolderPickerMode");
+    gDraftsRadioElemChoice = pickerModeElement.getAttribute("value");
+    gDraftsRadioElemChoiceLocked = pickerModeElement.getAttribute("disabled");
+    if (!gDraftsRadioElemChoice) gDraftsRadioElemChoice = gDefaultPickerMode;
 
     pickerModeElement = document.getElementById("identity.tmplFolderPickerMode");
     gTmplRadioElemChoice = pickerModeElement.getAttribute("value");
@@ -146,7 +146,7 @@ function SetFolderDisplay(pickerMode, disableMode,
     var rg = selectAccountRadioElem.radioGroup;
     var folderPickedElement = document.getElementById(folderPickedField);
     var uri = folderPickedElement.getAttribute("value");
-    // Get message folder from the given uri. Second argument (false) siginifies
+    // Get message folder from the given uri. Second argument (false) signifies
     // that there is no need to check for the existence of special folders as
     // these folders are created on demand at runtime in case of imap accounts.
     // For POP3 accounts, special folders are created at the account creation time.
@@ -184,10 +184,9 @@ function SetFolderDisplay(pickerMode, disableMode,
 // Initialize the folder display based on prefs values
 function InitFolderDisplay(folder, folderPicker) {
     try {
-      folderPicker.firstChild.selectFolder(folder);
-    } catch(ex) {
-      folderPicker.setAttribute("label", folder.prettyName);
-    }
+        folderPicker.firstChild.selectFolder(folder);
+    } catch (ex) {}
+    folderPicker.setAttribute("label", prettyFolderName(folder));
     folderPicker.folder = folder;
 }
 
@@ -213,15 +212,15 @@ function noteSelectionChange(aGroup, aType, aEvent)
       picker = document.getElementById("msgFcc"+aType+"Picker");
       break;
 
-    case "messageDrafts" :
-      gDraftsRadioElemChoice = modeValue;
-      picker = document.getElementById("msgDrafts"+aType+"Picker");
-      break;
-
     case "messageArchives" :
       gArchivesRadioElemChoice = modeValue;
       picker = document.getElementById("msgArchives"+aType+"Picker");
       updateArchiveHierarchyButton(folder);
+      break;
+
+    case "messageDrafts" :
+      gDraftsRadioElemChoice = modeValue;
+      picker = document.getElementById("msgDrafts"+aType+"Picker");
       break;
 
     case "messageTemplates" :
@@ -231,7 +230,7 @@ function noteSelectionChange(aGroup, aType, aEvent)
   }
 
   picker.folder = folder;
-  picker.setAttribute("label", folder.prettyName);
+  picker.setAttribute("label", prettyFolderName(folder));
 }
 
 // Need to append special folders when account picker is selected.
@@ -243,8 +242,8 @@ function SetSpecialFolderNamesWithDelims()
     /* we use internal names known to everyone like "Sent", "Templates" and "Drafts" */
 
     gFccFolderWithDelim = folderDelim + "Sent";
-    gDraftsFolderWithDelim = folderDelim + "Drafts";
     gArchivesFolderWithDelim = folderDelim + "Archives";
+    gDraftsFolderWithDelim = folderDelim + "Drafts";
     gTemplatesFolderWithDelim = folderDelim + "Templates";
 }
 
@@ -264,6 +263,14 @@ function onSaveCopiesAndFolders()
                         "identity.fccFolder",
                         "identity.fccFolderPickerMode" );
 
+    SaveFolderSettings( gArchivesRadioElemChoice,
+                        "messageArchives",
+                        gArchivesFolderWithDelim,
+                        "msgArchivesAccountPicker",
+                        "msgArchivesFolderPicker",
+                        "identity.archiveFolder",
+                        "identity.archivesFolderPickerMode" );
+
     SaveFolderSettings( gDraftsRadioElemChoice,
                         "messageDrafts",
                         gDraftsFolderWithDelim,
@@ -271,14 +278,6 @@ function onSaveCopiesAndFolders()
                         "msgDraftsFolderPicker",
                         "identity.draftFolder",
                         "identity.draftsFolderPickerMode" );
-
-    SaveFolderSettings(gArchivesRadioElemChoice,
-                        "messageArchives",
-                        gArchivesFolderWithDelim,
-                        "msgArchivesAccountPicker",
-                        "msgArchivesFolderPicker",
-                        "identity.archiveFolder",
-                        "identity.archivesFolderPickerMode");
 
     SaveFolderSettings( gTmplRadioElemChoice,
                         "messageTemplates",
@@ -415,15 +414,15 @@ function setPickersState(enablePickerId, disablePickerId, event)
     case "fcc_selectFolder":
       gFccRadioElemChoice = radioElemValue;
       break;
-    case "draft_selectAccount":
-    case "draft_selectFolder":
-      gDraftsRadioElemChoice = radioElemValue;
-      break;
     case "archive_selectAccount":
     case "archive_selectFolder":
       gArchivesRadioElemChoice = radioElemValue;
       updateArchiveHierarchyButton(document.getElementById(enablePickerId)
                                            .folder);
+      break;
+    case "draft_selectAccount":
+    case "draft_selectFolder":
+      gDraftsRadioElemChoice = radioElemValue;
       break;
     case "tmpl_selectAccount":
     case "tmpl_selectFolder":

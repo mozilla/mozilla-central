@@ -102,3 +102,20 @@ function trim(string)
 {
   return string.trim();
 }
+
+/**
+ * Return server/folder name formatted with server name if needed.
+ *
+ * @param target  nsIMsgFolder to format name for
+ *                If target.isServer then only its name is returned.
+ *                Otherwise return the name as <foldername> on <servername>.
+ **/
+function prettyFolderName(target)
+{
+  if (target.isServer)
+    return target.prettyName;
+
+  return document.getElementById("bundle_messenger")
+                 .getFormattedString("verboseFolderFormat",
+                                     [target.prettyName, target.server.prettyName]);
+}
