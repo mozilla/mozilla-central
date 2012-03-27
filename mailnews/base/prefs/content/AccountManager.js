@@ -61,8 +61,13 @@
  */
 
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/mailServices.js");
 
 var gSmtpHostNameIsIllegal = false;
+// If Local directory has changed the app needs to restart. Once this is set
+// a restart will be attempted at each attempt to close the Account manager with OK.
+var gRestartNeeded = false;
 
 // This is a hash-map for every account we've touched in the pane. Each entry
 // has additional maps of attribute-value pairs that we're going to want to save
@@ -226,7 +231,7 @@ function replaceWithDefaultSmtpServer(deletedSmtpServerKey)
 }
 
 function onAccept() {
-  // Check if user/host have been modified.
+  // Check if user/host have been modified correctly.
   if (!checkUserServerChanges(true))
     return false;
 
@@ -237,28 +242,31 @@ function onAccept() {
 
   onSave();
   // hack hack - save the prefs file NOW in case we crash
-  Components.classes["@mozilla.org/preferences-service;1"]
-            .getService(Components.interfaces.nsIPrefService)
-            .savePrefFile(null);
+  Services.prefs.savePrefFile(null);
+
+  if (gRestartNeeded) {
+    gRestartNeeded = !Application.restart();
+    // returns false so that Account manager is not exited when restart failed
+    return !gRestartNeeded;
+  }
+
   return true;
 }
 
 // Check if the user and/or host names have been changed and
-// if so check if the new names already exists for an account.
+// if so check if the new names already exists for an account
+// or are empty.
+// Also check if the Local Directory path was changed.
 function checkUserServerChanges(showAlert) {
-  const Cc = Components.classes;
-  const Ci = Components.interfaces;
+  const prefBundle = document.getElementById("bundle_prefs");
+  const alertTitle = prefBundle.getString("prefPanel-server");
+  var alertText = null;
   if (smtpService.defaultServer) {
     try {
       var smtpHostName = top.frames["contentFrame"].document.getElementById("smtp.hostname");
       if (smtpHostName && hostnameIsIllegal(smtpHostName.value)) {
-        var alertTitle = document.getElementById("bundle_brand")
-                                 .getString("brandShortName");
-        var alertMsg = document.getElementById("bundle_prefs")
-                               .getString("enterValidServerName");
-
-        Cc["@mozilla.org/embedcomp/prompt-service;1"]
-          .getService(Ci.nsIPromptService).alert(window, alertTitle, alertMsg);
+        alertText = prefBundle.getString("enterValidHostname");
+        Services.prompt.alert(window, alertTitle, alertText);
         gSmtpHostNameIsIllegal = true;
       }
     }
@@ -266,16 +274,17 @@ function checkUserServerChanges(showAlert) {
   }
 
   var accountValues = getValueArrayFor(currentAccount);
-  if (!accountValues) 
+  if (!accountValues)
     return true;
-  var pageElements = getPageFormElements();
 
-  if (pageElements == null) return true;
+  var pageElements = getPageFormElements();
+  if (pageElements == null)
+    return true;
 
   // Get the new username, hostname and type from the page
   var newUser, newHost, newType, oldUser, oldHost;
   var uIndx, hIndx;
-  for (var i=0; i<pageElements.length; i++) {
+  for (var i = 0; i < pageElements.length; i++) {
     if (pageElements[i].id) {
       var vals = pageElements[i].id.split(".");
       if (vals.length >= 2) {
@@ -301,47 +310,43 @@ function checkUserServerChanges(showAlert) {
     }
   }
 
+  var checkUser = true;
   // There is no username defined for news so reset it.
-  if (newType == "nntp")
+  if (newType == "nntp") {
     oldUser = newUser = "";
-
-
+    checkUser = false;
+  }
+  alertText = null;
   // If something is changed then check if the new user/host already exists.
   if ( (oldUser != newUser) || (oldHost != newHost) ) {
-    var accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
-                           .getService(Ci.nsIMsgAccountManager);
-    var newServer = accountManager.findRealServer(newUser, newHost, newType, 0);
-    if (newServer) {
-      if (showAlert) {
-        var alertText = document.getElementById("bundle_prefs")
-                                .getString("modifiedAccountExists");
-        Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                  .getService(Components.interfaces.nsIPromptService)
-                  .alert(window, null, alertText);
-
-      }
+    if ((checkUser && (newUser == "")) || (newHost == "")) {
+        alertText = prefBundle.getString("serverNameEmpty");
+    } else {
+      if (MailServices.accounts.findRealServer(newUser, newHost, newType, 0))
+        alertText = prefBundle.getString("modifiedAccountExists");
+    }
+    if (alertText) {
+      if (showAlert)
+        Services.prompt.alert(window, alertTitle, alertText);
       // Restore the old values before return
-      if (newType != "nntp")
+      if (checkUser)
         setFormElementValue(pageElements[uIndx], oldUser);
       setFormElementValue(pageElements[hIndx], oldHost);
       return false;
     }
 
     // If username is changed remind users to change Your Name and Email Address.
-    // If serve name is changed and has defined filters then remind users to edit rules.
+    // If server name is changed and has defined filters then remind users to edit rules.
     if (showAlert) {
-      var account = currentAccount
       var filterList;
-      if (account && (newType != "nntp")) {
-        var server = account.incomingServer;
-        filterList = server.getEditableFilterList(null);
+      if (currentAccount && checkUser) {
+        filterList = currentAccount.incomingServer.getEditableFilterList(null);
       }
       var userChangeText, serverChangeText;
-      var bundle = document.getElementById("bundle_prefs");
       if ( (oldHost != newHost) && (filterList != undefined) && filterList.filterCount )
-        serverChangeText = bundle.getString("serverNameChanged");
+        serverChangeText = prefBundle.getString("serverNameChanged");
       if (oldUser != newUser)
-        userChangeText = bundle.getString("userNameChanged");
+        userChangeText = prefBundle.getString("userNameChanged");
 
       if ( (serverChangeText != undefined) && (userChangeText != undefined) )
         serverChangeText = serverChangeText + "\n\n" + userChangeText;
@@ -349,14 +354,41 @@ function checkUserServerChanges(showAlert) {
         if (userChangeText != undefined)
           serverChangeText = userChangeText;
 
-      if (serverChangeText != undefined) {
-        var promptService =
-          Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                    .getService(Components.interfaces.nsIPromptService);
-        promptService.alert(window, null, serverChangeText);
+      if (serverChangeText != undefined)
+        Services.prompt.alert(window, alertTitle, serverChangeText);
+    }
+  }
+
+  // Warn if the Local directory path was changed.
+  // This can be removed once bug 2654 is fixed.
+  let oldLocalDir = null;
+  let newLocalDir = null;
+  let pIndx;
+  for (let i = 0; i < pageElements.length; i++) {
+    if (pageElements[i].id) {
+      if (pageElements[i].id == "server.localPath") {
+        oldLocalDir = accountValues["server"]["localPath"]; // both return nsILocalFile
+        newLocalDir = getFormElementValue(pageElements[i]);
+        pIndx = i;
+        break;
       }
     }
   }
+  if (oldLocalDir && newLocalDir && (oldLocalDir.path != newLocalDir.path)) {
+    let brandName = document.getElementById("bundle_brand").getString("brandShortName");
+    alertText = prefBundle.getFormattedString("localDirectoryChanged", [brandName]);
+
+    let cancel = Services.prompt.confirmEx(window, alertTitle, alertText,
+      (Services.prompt.BUTTON_POS_0 * Services.prompt.BUTTON_TITLE_IS_STRING) +
+      (Services.prompt.BUTTON_POS_1 * Services.prompt.BUTTON_TITLE_CANCEL),
+      prefBundle.getString("localDirectoryRestart"), null, null, null, {});
+    if (cancel) {
+      setFormElementValue(pageElements[pIndx], oldLocalDir);
+      return false;
+    }
+    gRestartNeeded = true;
+  }
+
   return true;
 }
 
