@@ -57,18 +57,6 @@
   -moz-transition: border-width .3s ease-in;
 }
 
-#IMSearchInput {
-  -moz-appearance: none;
-  background-clip: padding-box;
-  border: 1px solid ThreeDDarkShadow;
-  border-radius: 3.5px;
-  min-height: 24px;
-  margin-top: 1px;
-  margin-bottom: 1px;
-  -moz-padding-end: 2px;
-  -moz-padding-start: 2px;
-}
-
 .convBox {
   background-color: rgb(233,239,245);
 }

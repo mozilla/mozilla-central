@@ -277,14 +277,17 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 #peopleSearchInput {
   -moz-appearance: none;
   background-clip: padding-box;
-  border: 1px solid ThreeDDarkShadow;
-  border-radius: 3.5px;
+  border: 1px solid ThreeDShadow;
+  border-radius: 2px;
   width: 20em;
 }
 
-@media all and (-moz-windows-default-theme) {
+@media (-moz-windows-default-theme) {
   #peopleSearchInput {
-    border-color:rgba(0, 0, 0, .32);
+    border-color: hsla(210, 54%, 20%, .25) hsla(210, 54%, 20%, .27)
+                  hsla(210, 54%, 20%, .3);
+    box-shadow: 0 1px hsla(0, 0%, 0%, .01) inset,
+                0 1px hsla(0, 0%, 100%, .1);
   }
 
   #peopleSearchInput:-moz-lwtheme {
@@ -294,24 +297,26 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   }
 }
 
-@media all and (-moz-windows-compositor) {
-  #peopleSearchInput {
-    background-color: rgba(255, 255, 255, .725);
-    color: black;
+@media (-moz-windows-compositor) {
+  #peopleSearchInput:not(:-moz-lwtheme) {
+    border-color: hsla(210, 54%, 20%, .25) hsla(210, 54%, 20%, .27)
+                  hsla(210, 54%, 20%, .3);
   }
 
-  #peopleSearchInput:hover {
-    background-color: rgba(255, 255, 255, .898);
+  #peopleSearchInput:not(:-moz-lwtheme):not([focused]):hover {
+    border-color: hsla(210, 54%, 20%, .35) hsla(210, 54%, 20%, .37)
+                  hsla(210, 54%, 20%, .4);
   }
 
-  #peopleSearchInput[focused="true"] {
-    background-color: white;
+  #peopleSearchInput:not(:-moz-lwtheme)[focused] {
+    border-color: hsla(206, 100%, 60%, .65) hsla(206, 100%, 55%, .65)
+                  hsla(206, 100%, 50%, .65);
   }
 }
 
 /* ::::: address book sidebar ::::: */
 
-@media all and (-moz-windows-default-theme) {
+@media (-moz-windows-default-theme) {
   sidebarheader {
     -moz-appearance: none;
     background-color: #F8F8F8;
@@ -351,7 +356,7 @@ treechildren::-moz-tree-image(DirCol, IsRemote-true, IsSecure-true) {
   -moz-border-end: 1px solid transparent;
 }
 
-@media all and (-moz-windows-default-theme) {
+@media (-moz-windows-default-theme) {
   #dirTree {
     background-color: #EEF3FA;
   }
@@ -392,7 +397,7 @@ treechildren::-moz-tree-image(DirCol, IsRemote-true, IsSecure-true) {
   -moz-border-end: 1px solid ThreeDHighlight;
 }
 
-@media all and (-moz-windows-default-theme) {
+@media (-moz-windows-default-theme) {
   #abResultsTree {
     background-color: #EEF3FA;
   }
@@ -431,7 +436,7 @@ treechildren::-moz-tree-cell-text(GeneratedName) {
   background-color: -moz-Field;
 }
 
-@media all and (-moz-windows-default-theme) {
+@media (-moz-windows-default-theme) {
   #CardViewBox {
     background-color: #EEF3FA;
   }

@@ -67,16 +67,14 @@
   border-bottom: 1px solid ThreeDShadow;
 }
 
-@media all and (-moz-windows-default-theme) {
+@media (-moz-windows-default-theme) {
   #quick-filter-bar-main-bar,
   #quick-filter-bar-tab-bar,
   #quick-filter-bar-filter-text-bar {
     background: #f8f8f8;
     border-bottom-color: #a9b1b8;
   }
-}
 
-@media all and (-moz-windows-default-theme) {
   #threadTree[filterActive="searching"] {
     background-color: #ffffcc;
   }
@@ -119,7 +117,7 @@
               0 1px 0 rgba(255, 255, 255, .4);
 }
 
-@media all and (-moz-windows-default-theme) {
+@media (-moz-windows-default-theme) {
   #quick-filter-bar toolbarbutton:not([checked="true"]):hover {
     background: hsla(190, 60%, 70%, .5)
                 -moz-linear-gradient(rgba(251, 252, 253, .95),
@@ -229,12 +227,32 @@
 #qfb-qs-textbox {
   -moz-appearance: none;
   background-clip: padding-box;
-  border: 1px solid ThreeDDarkShadow;
-  border-radius: 3.5px;
+  border: 1px solid ThreeDShadow;
+  border-radius: 2px;
 }
 
-@media all and (-moz-windows-default-theme) {
+@media (-moz-windows-default-theme) {
   #qfb-qs-textbox {
-    border-color: rgba(0, 0, 0, .32);
+    border-color: hsla(210, 54%, 20%, .25) hsla(210, 54%, 20%, .27)
+                  hsla(210, 54%, 20%, .3);
+    box-shadow: 0 1px hsla(0, 0%, 0%, .01) inset,
+                0 1px hsla(0, 0%, 100%, .1);
+  }
+}
+
+@media (-moz-windows-compositor) {
+  #qfb-qs-textbox {
+    border-color: hsla(210, 54%, 20%, .25) hsla(210, 54%, 20%, .27)
+                  hsla(210, 54%, 20%, .3);
+  }
+
+  #qfb-qs-textbox:not([focused]):hover {
+    border-color: hsla(210, 54%, 20%, .35) hsla(210, 54%, 20%, .37)
+                  hsla(210, 54%, 20%, .4);
+  }
+
+  #qfb-qs-textbox[focused] {
+    border-color: hsla(206, 100%, 60%, .65) hsla(206, 100%, 55%, .65)
+                  hsla(206, 100%, 50%, .65);
   }
 }

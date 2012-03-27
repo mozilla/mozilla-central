@@ -13,10 +13,11 @@ treechildren::-moz-tree-cell-text {
 }
 
 #searchInput,
+#IMSearchInput,
 .remote-gloda-search {
   background-clip: padding-box;
-  border: 1px solid ThreeDDarkShadow;
-  border-radius: 3.5px;
+  border: 1px solid ThreeDShadow;
+  border-radius: 2px;
   min-height: 24px;
   margin-top: 1px;
   margin-bottom: 1px;
@@ -39,14 +40,17 @@ treechildren::-moz-tree-cell-text {
 
 @media (-moz-windows-default-theme) {
   #searchInput,
-  .remote-gloda-search
- {
-    border-color: rgba(0, 0, 0, .32);
+  #IMSearchInput,
+  .remote-gloda-search {
+    border-color: hsla(210, 54%, 20%, .25) hsla(210, 54%, 20%, .27)
+                  hsla(210, 54%, 20%, .3);
+    box-shadow: 0 1px hsla(0, 0%, 0%, .01) inset,
+                0 1px hsla(0, 0%, 100%, .1);
   }
 
   #searchInput:-moz-lwtheme,
+  #IMSearchInput:-moz-lwtheme,
   .remote-gloda-search:-moz-lwtheme {
-    background-color: rgba(255, 255, 255, .8);
     border-color: rgba(0, 0, 0, .32);
     color: black;
   }
@@ -130,19 +134,38 @@ treechildren::-moz-tree-cell-text {
     background-color: -moz-dialog;
   }
 
-  #searchInput,
-  .remote-gloda-search {
+  #searchInput:not(:-moz-lwtheme),
+  #IMSearchInput:not(:-moz-lwtheme),
+  .remote-gloda-search:not(:-moz-lwtheme) {
+    border-color: hsla(210, 54%, 20%, .25) hsla(210, 54%, 20%, .27)
+                  hsla(210, 54%, 20%, .3);
+  }
+
+  #searchInput:not(:-moz-lwtheme):not([focused]):hover,
+  #IMSearchInput:not(:-moz-lwtheme):not([focused]):hover,
+  .remote-gloda-search:not(:-moz-lwtheme):not([focused]):hover {
+    border-color: hsla(210, 54%, 20%, .35) hsla(210, 54%, 20%, .37)
+                  hsla(210, 54%, 20%, .4);
+  }
+
+  #searchInput:not(:-moz-lwtheme)[focused],
+  #IMSearchInput:not(:-moz-lwtheme)[focused],
+  .remote-gloda-search:not(:-moz-lwtheme)[focused] {
+    border-color: hsla(206, 100%, 60%, .65) hsla(206, 100%, 55%, .65)
+                  hsla(206, 100%, 50%, .65);
+  }
+
+  #tabbar-toolbar #searchInput:not(:-moz-lwtheme) {
     background-color: rgba(255, 255, 255, .725);
+    border-color: rgba(0, 0, 0, .32);
     color: black;
   }
 
-  #searchInput:hover,
-  .remote-gloda-search:hover {
+  #tabbar-toolbar #searchInput:not(:-moz-lwtheme):hover {
     background-color: rgba(255, 255, 255, .898);
   }
 
-  #searchInput[focused="true"],
-  .remote-gloda-search[focused="true"] {
+  #tabbar-toolbar #searchInput:not(:-moz-lwtheme)[focused="true"] {
     background-color: white;
   }
 }

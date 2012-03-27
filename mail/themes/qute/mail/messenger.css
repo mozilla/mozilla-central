@@ -125,6 +125,7 @@ sidebarheader .toolbarbutton-text:not([value]) {
 }
 
 #searchInput,
+#IMSearchInput,
 .remote-gloda-search {
   -moz-appearance: none;
   min-height: 22px;
@@ -134,6 +135,7 @@ sidebarheader .toolbarbutton-text:not([value]) {
 }
 
 #searchInput:-moz-lwtheme:not([focused="true"]),
+#IMSearchInput:-moz-lwtheme:not([focused="true"]),
 .remote-gloda-search:-moz-lwtheme:not([focused="true"]) {
   opacity: .85;
 }
