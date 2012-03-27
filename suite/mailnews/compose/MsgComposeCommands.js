@@ -235,6 +235,7 @@ var gComposeRecyclingListener = {
     EnableInlineSpellCheck(false);
     // clear any suggestions in the context menu
     InlineSpellCheckerUI.clearSuggestionsFromMenu();
+    InlineSpellCheckerUI.clearDictionaryListFromMenu();
 
     //Reset editor
     EditorResetFontAndColorAttributes();
