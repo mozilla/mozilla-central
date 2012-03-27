@@ -215,15 +215,6 @@ ircChannel.prototype = {
     this._participants = {};
   },
 
-  _left: false,
-  get left() this._left,
-  set left(aLeft) {
-    this._left = aLeft;
-
-    // If we've left, notify observers.
-    if (this._left)
-      this.notifyObservers(null, "update-conv-chatleft");
-  },
   get topic() this._topic, // can't add a setter without redefining the getter
   set topic(aTopic) {
     this._account.sendMessage("TOPIC", [this.name, aTopic]);
@@ -872,6 +863,15 @@ ircAccount.prototype = {
       buddy.setStatus(Ci.imIStatusInfo.STATUS_UNKNOWN, "");
 
     this.reportDisconnected();
+  },
+
+  remove: function() {
+    for each (let conv in this._conversations)
+      conv.close();
+    delete this._conversations;
+    for each (let buddy in this._buddies)
+      buddy.remove();
+    delete this._buddies;
   },
 
   unInit: function() {

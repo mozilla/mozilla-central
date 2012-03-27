@@ -67,6 +67,7 @@ const ForwardAccountPrototype = {
   observe: function(aSubject, aTopic, aData) {
     this._base.observe(aSubject, aTopic, aData);
   },
+  remove: function() this._base.remove(),
   unInit: function() this._base.unInit(),
   connect: function() this._base.connect(),
   disconnect: function() this._base.disconnect(),
@@ -107,7 +108,8 @@ const GenericAccountPrototype = {
     this.imAccount = aImAccount;
   },
   observe: function(aSubject, aTopic, aData) {},
-  unInit: function() {},
+  remove: function() { throw Cr.NS_ERROR_NOT_IMPLEMENTED; },
+  unInit: function() { throw Cr.NS_ERROR_NOT_IMPLEMENTED; },
   connect: function() { throw Cr.NS_ERROR_NOT_IMPLEMENTED; },
   disconnect: function() { throw Cr.NS_ERROR_NOT_IMPLEMENTED; },
   createConversation: function(aName) { throw Cr.NS_ERROR_NOT_IMPLEMENTED; },
@@ -516,7 +518,16 @@ const GenericConvChatPrototype = {
   get topic() this._topic,
   get topicSetter() this._topicSetter,
   get topicSettable() false,
-  get left() false,
+  _left: false,
+  get left() this._left,
+  set left(aLeft) {
+    if (aLeft == this._left)
+      return;
+
+    this._left = aLeft;
+    if (this._left)
+      this.notifyObservers(null, "update-conv-chatleft");
+  },
 
   getParticipants: function() {
     return new nsSimpleEnumerator(

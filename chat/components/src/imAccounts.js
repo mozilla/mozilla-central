@@ -544,6 +544,8 @@ imAccount.prototype = {
         break;
       }
     }
+    if (this.prplAccount)
+      this.prplAccount.remove();
     this.unInit();
     Services.contacts.forgetAccount(this.numericId);
     this.prefBranch.deleteBranch("");

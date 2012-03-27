@@ -917,6 +917,12 @@ Account.prototype = {
       this._timeline.notifyObservers(this._timeline, "update-conv-chatleft");
     this.reportDisconnected();
   },
+  remove: function() {
+    if (!this._timeline)
+      return;
+    this._timeline.close();
+    delete this._timeline;
+  },
   unInit: function() {
     this.cleanUp();
     // If we've received any messages, update the last known message.

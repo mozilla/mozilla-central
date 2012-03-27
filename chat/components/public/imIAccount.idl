@@ -88,6 +88,12 @@ interface prplIAccount: nsISupports {
   void observe(in nsISupports aObj, in string aEvent,
                [optional] in wstring aData);
 
+  // This should only be called by the imIAccountsService
+  // implementation, never directly.  It will call
+  // imIContactsService.accountBuddyRemoved on each buddy of the
+  // account and close all prplIConversation instances of the account.
+  void remove();
+
   /* Uninitialize the prplIAccount instance. This is typically done
      automatically at shutdown (by the core service) or as part of
      the 'remove' method. */

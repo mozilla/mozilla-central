@@ -188,8 +188,10 @@ const XMPPMUCConversationPrototype = {
 
   /* Called when the user closed the conversation */
   close: function() {
-    this._account.sendStanza(Stanza.presence({to: this.name + "/" + this._nick,
-                                             type: "unavailable"}));
+    if (!this.left) {
+      this._account.sendStanza(Stanza.presence({to: this.name + "/" + this._nick,
+                                               type: "unavailable"}));
+    }
     GenericConvChatPrototype.close.call(this);
   },
   unInit: function() {
@@ -555,8 +557,11 @@ const XMPPAccountPrototype = {
     let jid =
       aComponents.getValue("room") + "@" + aComponents.getValue("server");
     let nick = aComponents.getValue("nick");
-    if (jid in this._mucs)
-      return; // FIXME, check if we need to rejoin
+    if (jid in this._mucs) {
+      if (!this._mucs[jid].left)
+        return; // We are already in this conversation.
+      this._mucs[jid].left = false; // We are rejoining.
+    }
 
     let x;
     let password = aComponents.getValue("password");
@@ -619,6 +624,15 @@ const XMPPAccountPrototype = {
                       this.getInt("port") || 5222,
                       this.getString("connection_security"), this._jid,
                       this.imAccount.password, this);
+  },
+
+  remove: function() {
+    for each (let conv in this._conv)
+      conv.close();
+    for each (let muc in this._mucs)
+      muc.close();
+    for (let jid in this._buddies)
+      this._forgetRosterItem(jid);
   },
 
   unInit: function() {
@@ -1004,6 +1018,9 @@ const XMPPAccountPrototype = {
         b.setStatus(Ci.imIStatusInfo.STATUS_UNKNOWN, "");
       b.onAccountDisconnected();
     }
+
+    for each (let muc in this._mucs)
+      muc.left = true;
 
     for each (let request in this._pendingAuthRequests)
       request.cancel();
