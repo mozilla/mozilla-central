@@ -726,8 +726,8 @@ function test_toolbar_collapse_and_expand() {
     mc.window.resizeTo(1200, 600);
     // spin the event loop once
     mc.sleep(0);
-    if (expandedHeadersTopBox.clientHeight != shortHeight)
-      throw new Error("The header box should have returned to its wide size!");
+    mc.waitFor(function() expandedHeadersTopBox.clientHeight == shortHeight,
+               "The header box should have returned to its wide size!")
   }
   finally {
     // restore window to nominal dimensions; saving was not working out
