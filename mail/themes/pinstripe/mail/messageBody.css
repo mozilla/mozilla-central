@@ -65,10 +65,9 @@ div.headerdisplayname {
 
 /* ::::: message text, incl. quotes ::::: */
 
-blockquote {
-  margin: inherit;
-  border-width: 2px;
-  border-color: gray;
+.moz-text-flowed blockquote,
+.moz-text-plain blockquote {
+  margin: 0;
 }
 
 .moz-text-plain pre {
