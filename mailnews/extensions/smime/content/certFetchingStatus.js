@@ -45,6 +45,8 @@
   When all searches are finished, close the dialog.
 */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const nsIX509CertDB = Components.interfaces.nsIX509CertDB;
 const nsX509CertDB = "@mozilla.org/security/x509certdb;1";
 const CertAttribute = "usercertificate;binary";
@@ -73,23 +75,17 @@ function onLoad()
 
 function search()
 {
-  var prefService =
-    Components.classes["@mozilla.org/preferences-service;1"]
-      .getService(Components.interfaces.nsIPrefService);
-  var prefs = prefService.getBranch(null);
-
   // get the login to authenticate as, if there is one
   try {
-    gLogin = prefs.getComplexValue(gDirectoryPref + ".auth.dn", Components.interfaces.nsISupportsString).data;
+    gLogin = Services.prefs.getComplexValue(gDirectoryPref + ".auth.dn", Components.interfaces.nsISupportsString).data;
   } catch (ex) {
     // if we don't have this pref, no big deal
   }
 
   try {
-    let url = prefs.getCharPref(gDirectoryPref + ".uri");
+    let url = Services.prefs.getCharPref(gDirectoryPref + ".uri");
 
-    gLdapServerURL = Components.classes["@mozilla.org/network/io-service;1"]
-      .getService(Components.interfaces.nsIIOService)
+    gLdapServerURL = Services.io
       .newURI(url, null, null).QueryInterface(Components.interfaces.nsILDAPURL);
 
     gLdapConnection = Components.classes["@mozilla.org/network/ldap-connection;1"]
@@ -146,22 +142,20 @@ function getPassword()
   // we only need a password if we are using credentials
   if (gLogin)
   {
-    var windowWatcherSvc = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                            .getService(Components.interfaces.nsIWindowWatcher);
-    var authPrompter = windowWatcherSvc.getNewAuthPrompter(window.QueryInterface(Components.interfaces.nsIDOMWindow));    
-    var strBundle = document.getElementById('bundle_ldap');
-    var password = { value: "" };
-    
+    let authPrompter = Services.ww.getNewAuthPrompter(window.QueryInterface(Components.interfaces.nsIDOMWindow));
+    let strBundle = document.getElementById('bundle_ldap');
+    let password = { value: "" };
+
     // nsLDAPAutocompleteSession uses asciiHost instead of host for the prompt text, I think we should be
-    // consistent. 
-    if (authPrompter.promptPassword(strBundle.getString("authPromptTitle"),  
+    // consistent.
+    if (authPrompter.promptPassword(strBundle.getString("authPromptTitle"),
                                      strBundle.getFormattedString("authPromptText", [gLdapServerURL.asciiHost]),
                                      gLdapServerURL.spec,
                                      authPrompter.SAVE_PASSWORD_PERMANENTLY,
                                      password))
-      return password.value;       
+      return password.value;
   }
-  
+
   return null;
 }
 

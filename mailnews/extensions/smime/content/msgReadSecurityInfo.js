@@ -71,12 +71,12 @@ function onLoad()
   if (isupport) {
     gEncryptionCert = isupport.QueryInterface(nsIX509Cert);
   }
-  
+
   params = pkiParams.QueryInterface(nsIDialogParamBlock);
-  
+
   gSignatureStatus = params.GetInt(1);
   gEncryptionStatus = params.GetInt(2);
-  
+
   var bundle = document.getElementById("bundle_smime_read_info");
 
   if (bundle) {
@@ -147,7 +147,7 @@ function onLoad()
         break;
     }
 
-    
+
     document.getElementById("signatureLabel").value = 
       bundle.getString(sigInfoLabel);
 
@@ -157,7 +157,7 @@ function onLoad()
       label.collapsed = false;
       label.value = bundle.getString(sigInfoHeader);
     }
-    
+
     var str;
     if (sigInfo) {
       str = bundle.getString(sigInfo);
@@ -205,7 +205,7 @@ function onLoad()
       label.collapsed = false;
       label.value = bundle.getString(encInfoHeader);
     }
-    
+
     if (encInfo) {
       str = bundle.getString(encInfo);
     }
@@ -214,7 +214,7 @@ function onLoad()
     }
     setText("encryptionExplanation", str);
   }
-  
+
   if (gSignerCert) {
     document.getElementById("signatureCert").collapsed = false;
     if (gSignerCert.subjectName) {

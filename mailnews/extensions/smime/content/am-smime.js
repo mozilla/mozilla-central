@@ -37,6 +37,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const nsIX509CertDB = Components.interfaces.nsIX509CertDB;
 const nsX509CertDBContractID = "@mozilla.org/security/x509certdb;1";
 const nsIX509Cert = Components.interfaces.nsIX509Cert;
@@ -169,10 +171,8 @@ function smimeOnAcceptEditor()
 
 function onLockPreference()
 {
-  var initPrefString = "mail.identity"; 
-  var finalPrefString; 
-
-  var prefService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
+  var initPrefString = "mail.identity";
+  var finalPrefString;
 
   var allPrefElements = [
     { prefstring:"signingCertSelectButton", id:"signingCertSelectButton"},
@@ -182,7 +182,7 @@ function onLockPreference()
   ];
 
   finalPrefString = initPrefString + "." + gIdentity.key + ".";
-  gSmimePrefbranch = prefService.getBranch(finalPrefString);
+  gSmimePrefbranch = Services.prefs.getBranch(finalPrefString);
 
   disableIfLocked( allPrefElements );
 }
@@ -226,38 +226,20 @@ function disableIfLocked( prefstrArray )
   }
 }
 
-function getPromptService()
-{
-  var ifps = Components.interfaces.nsIPromptService;
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService();
-  if (promptService) {
-    promptService = promptService.QueryInterface(ifps);
-  }
-  return promptService;
-}
-
 function alertUser(message)
 {
-  var ps = getPromptService();
-  if (ps) {
-    ps.alert(
-      window,
-      gBrandBundle.getString("brandShortName"), 
-      message);
-  }
+  Services.prompt.alert(window,
+                        gBrandBundle.getString("brandShortName"),
+                        message);
 }
 
 function askUser(message)
 {
-  var ps = getPromptService();
-  if (!ps)
-    return false;
-
-  var button = ps.confirmEx(
+  let button = Services.prompt.confirmEx(
     window,
-    gBrandBundle.getString("brandShortName"), 
+    gBrandBundle.getString("brandShortName"),
     message,
-    ps.STD_YES_NO_BUTTONS,
+    Services.prompt.STD_YES_NO_BUTTONS,
     null,
     null,
     null,
@@ -454,9 +436,7 @@ function openCertManager()
 {
   // Check for an existing certManager window and focus it; it's not
   // application modal.
-  var windowMediator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                                 .getService(Components.interfaces.nsIWindowMediator);
-  var lastCertManager = windowMediator.getMostRecentWindow("mozilla:certmanager");
+  let lastCertManager = Services.wm.getMostRecentWindow("mozilla:certmanager");
   if (lastCertManager)
     lastCertManager.focus();
   else
@@ -468,9 +448,7 @@ function openDeviceManager()
 {
   // Check for an existing deviceManager window and focus it; it's not
   // application modal.
-  var windowMediator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                                 .getService(Components.interfaces.nsIWindowMediator);
-  var lastCertManager = windowMediator.getMostRecentWindow("mozilla:devicemanager");
+  let lastCertManager = Services.wm.getMostRecentWindow("mozilla:devicemanager");
   if (lastCertManager)
     lastCertManager.focus();
   else

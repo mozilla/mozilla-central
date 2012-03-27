@@ -37,6 +37,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 // Account encryption policy values:
 // const kEncryptionPolicy_Never = 0;
 // 'IfPossible' was used by ns4.
@@ -138,15 +140,10 @@ function showNeedSetupInfo()
   if (!compSmimeBundle || !brandBundle)
     return;
 
-  var ifps = Components.interfaces.nsIPromptService;
-  let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                .getService(ifps);
-
-  let buttonPressed =
-    promptService.confirmEx(window,
-                            brandBundle.getString("brandShortName"),
-                            compSmimeBundle.getString("NeedSetup"),
-                            ifps.STD_YES_NO_BUTTONS, 0, 0, 0, null, {});
+  let buttonPressed = Services.prompt.confirmEx(window,
+    brandBundle.getString("brandShortName"),
+    compSmimeBundle.getString("NeedSetup"),
+    Services.prompt.STD_YES_NO_BUTTONS, 0, 0, 0, null, {});
   if (buttonPressed == 0)
     openHelp("sign-encrypt", "chrome://communicator/locale/help/suitehelp.rdf");
 }

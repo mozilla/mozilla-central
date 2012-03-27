@@ -34,6 +34,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gListBox;
 var gViewButton;
 var gBundle;
@@ -149,29 +151,24 @@ function onLoad()
 
     if (missing.length > 0)
     {
-      var prefService = 
-        Components.classes["@mozilla.org/preferences-service;1"]
-          .getService(Components.interfaces.nsIPrefService);
-      var sPrefs = prefService.getBranch(null);
-
-      var autocompleteLdap = false;
-      autocompleteLdap = sPrefs.getBoolPref("ldap_2.autoComplete.useDirectory");
+      var autocompleteLdap = Services.prefs
+        .getBoolPref("ldap_2.autoComplete.useDirectory");
 
       if (autocompleteLdap)
       {
         var autocompleteDirectory = null;
-        autocompleteDirectory = sPrefs.getCharPref(
-          "ldap_2.autoComplete.directoryServer");
-
-        if(params.currentIdentity.overrideGlobalPref) {
+        if (params.currentIdentity.overrideGlobalPref) {
           autocompleteDirectory = params.currentIdentity.directoryServer;
+        } else {
+          autocompleteDirectory = Services.prefs
+            .getCharPref("ldap_2.autoComplete.directoryServer");
         }
 
         if (autocompleteDirectory)
         {
           window.openDialog('chrome://messenger-smime/content/certFetchingStatus.xul',
             '',
-            'chrome,resizable=1,modal=1,dialog=1', 
+            'chrome,resizable=1,modal=1,dialog=1',
             autocompleteDirectory,
             missing
           );
@@ -188,7 +185,7 @@ function onLoad()
 
     var signed_element = document.getElementById("signed");
     var encrypted_element = document.getElementById("encrypted");
-    
+
     if (params.smFields.requireEncryptMessage)
     {
       if (params.isEncryptionCertAvailable && canEncrypt.value)
@@ -204,7 +201,7 @@ function onLoad()
     {
       encrypted_element.value = no_string;
     }
-    
+
     if (params.smFields.signMessage)
     {
       if (params.isSigningCertAvailable)
@@ -223,13 +220,13 @@ function onLoad()
   }
 
   var imax = gCount.value;
-  
+
   for (var i = 0; i < imax; ++i)
   {
     var listitem  = document.createElement("listitem");
 
     listitem.appendChild(createCell(gEmailAddresses.value[i]));
-    
+
     if (!gCerts.value[i])
     {
       listitem.appendChild(createCell(gBundle.getString("StatusNotFound")));
@@ -286,4 +283,3 @@ function createCell(label)
   cell.setAttribute("label", label)
   return cell;
 }
-

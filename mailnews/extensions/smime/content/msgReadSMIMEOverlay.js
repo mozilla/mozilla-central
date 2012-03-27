@@ -35,6 +35,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gEncryptionStatus = -1;
 var gSignatureStatus = -1;
 var gSignerCert = null;
@@ -65,12 +67,11 @@ function showImapSignatureUnknown()
   if (!readSmimeBundle || !brandBundle)
     return;
 
-  let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                .getService(Components.interfaces.nsIPromptService);
-  if (promptService &&
-      promptService.confirm(window, brandBundle.getString("brandShortName"),
-                                    readSmimeBundle.getString("ImapOnDemand")))
+  if (Services.prompt.confirm(window, brandBundle.getString("brandShortName"),
+                              readSmimeBundle.getString("ImapOnDemand")))
+  {
     gDBView.reloadMessageWithAllParts();
+  }
 }
 
 function showMessageReadSecurityInfo()
