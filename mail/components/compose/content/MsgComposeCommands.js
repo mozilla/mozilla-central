@@ -1997,11 +1997,9 @@ function ShouldShowAttachmentNotification(async)
   let bucket = document.getElementById("attachmentBucket");
   let warn = getPref("mail.compose.attachment_reminder");
   if (warn && !bucket.itemCount) {
-    let prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefBranch);
-    let keywordsInCsv = prefs.getComplexValue(
-                             "mail.compose.attachment_reminder_keywords",
-                             Components.interfaces.nsIPrefLocalizedString).data;
+    let keywordsInCsv = Services.prefs.getComplexValue(
+      "mail.compose.attachment_reminder_keywords",
+      Components.interfaces.nsIPrefLocalizedString).data;
     let mailBody = document.getElementById("content-frame")
                            .contentDocument.getElementsByTagName("body")[0];
     let mailBodyNode = mailBody.cloneNode(true);
@@ -2011,22 +2009,13 @@ function ShouldShowAttachmentNotification(async)
     for (let i = blockquotes.length - 1; i >= 0; i--) {
       blockquotes[i].parentNode.removeChild(blockquotes[i]);
     }
+
     // For plaintext composition the quotes we need to find and exclude are
-    // normally <span _moz_quote="true">. If editor.quotesPreformatted is
-    // set we should exclude <pre _moz_quote="true"> nodes instead.
-    if (!getPref("editor.quotesPreformatted")) {
-      let spans = mailBodyNode.getElementsByTagName("span");
-      for (let i = spans.length - 1; i >= 0; i--) {
-        if (spans[i].hasAttribute("_moz_quote"))
-          spans[i].parentNode.removeChild(spans[i]);
-      }
-    }
-    else {
-      let pres = mailBodyNode.getElementsByTagName("pre");
-      for (let i = pres.length - 1; i >= 0; i--) {
-        if (pres[i].hasAttribute("_moz_quote"))
-          pres[i].parentNode.removeChild(pres[i]);
-      }
+    // <span _moz_quote="true">.
+    let spans = mailBodyNode.getElementsByTagName("span");
+    for (let i = spans.length - 1; i >= 0; i--) {
+      if (spans[i].hasAttribute("_moz_quote"))
+        spans[i].parentNode.removeChild(spans[i]);
     }
 
     // Ignore signature (html compose mode).
