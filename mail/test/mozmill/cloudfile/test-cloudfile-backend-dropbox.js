@@ -177,7 +177,7 @@ function test_deleting_uploads() {
 
   // Try deleting a file
   let obs = new ObservationRecorder();
-  obs.planFor(kDeleteFile)
+  obs.planFor(kDeleteFile);
   Services.obs.addObserver(obs, kDeleteFile, false);
 
   gServer.planForDeleteFile(kFilename);
@@ -212,3 +212,17 @@ function test_create_existing_account() {
   mc.waitFor(function() done);
 }
 
+/**
+ * Test that completing the OAuth procedure results in an attempt to logout.
+ */
+function test_oauth_complete_causes_logout() {
+  let provider = gServer.getPreparedBackend("someNewAccount");
+  let dummyObs = gObsManager.create("test_oauth_complete_causes_logout");
+  let obs = new ObservationRecorder();
+  obs.planFor(kLogout);
+  Services.obs.addObserver(obs, kLogout, false);
+  provider.createExistingAccount(dummyObs);
+  mc.waitFor(function() dummyObs.success);
+  mc.waitFor(function() 1 == obs.numSightings(kLogout));
+  Services.obs.removeObserver(obs, kLogout);
+}

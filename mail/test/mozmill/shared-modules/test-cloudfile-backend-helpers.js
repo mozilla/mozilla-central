@@ -16,6 +16,7 @@ const kUserDataRequested = "cloudfile:user";
 const kUploadFile = "cloudfile:uploadFile";
 const kGetFileURL = "cloudfile:getFileURL";
 const kDeleteFile = "cloudfile:deleteFile";
+const kLogout = "cloudfile:logout";
 
 Cu.import('resource://mozmill/stdlib/os.js', os);
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
@@ -29,6 +30,7 @@ function installInto(module) {
   module.kUploadFile = kUploadFile;
   module.kGetFileURL = kGetFileURL;
   module.kDeleteFile = kDeleteFile;
+  module.kLogout = kLogout;
   module.SimpleRequestObserverManager = SimpleRequestObserverManager;
   module.SimpleRequestObserver = SimpleRequestObserver;
 }

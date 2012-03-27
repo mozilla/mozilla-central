@@ -30,6 +30,8 @@ const kUserInfoPath = "account/info";
 const kPutFilePath = "files_put/sandbox/";
 const kSharesPath = "shares/sandbox/";
 const kDeletePath = "fileops/delete/";
+const kLogoutPath = "/logout";
+const kLogoutURL = kServerRoot + kLogoutPath;
 
 const kDefaultConfig = {
   port: kDefaultServerPort
@@ -104,7 +106,7 @@ MockDropboxServer.prototype = {
     let dropbox = Cc["@mozilla.org/mail/dropbox;1"]
                   .getService(Ci.nsIMsgCloudFileProvider);
 
-    let urls = [kServerURL, kContentURL, kAuthURL];
+    let urls = [kServerURL, kContentURL, kAuthURL, kLogoutURL];
     dropbox.overrideUrls(urls.length, urls);
     dropbox.init(aAccountKey);
     return dropbox;
@@ -247,6 +249,10 @@ MockDropboxServer.prototype = {
                                      authFunc);
     this._server.registerPathHandler(kAuthPath + kOAuthAuthorizePath,
                                      this._authHandler);
+
+    let logoutFunc = this._noteAndReturnString("cloudfile:logout", "",
+                                               "Successfully logged out!");
+    this._server.registerPathHandler(kLogoutPath, logoutFunc);
   },
 
   _authHandler: function MDBS__authHandler(meta, response) {

@@ -33,6 +33,7 @@ const kFilesPutPath = "files_put/sandbox/";
 var gServerUrl = "https://api.dropbox.com/1/";
 var gContentUrl = "https://api-content.dropbox.com/1/";
 var gAuthUrl = "https://www.dropbox.com/1/";
+var gLogoutUrl = "https://www.dropbox.com/logout";
 
 function wwwFormUrlEncode(aStr) {
   return encodeURIComponent(aStr).replace(/!/g, '%21')
@@ -411,6 +412,7 @@ nsDropbox.prototype = {
     gServerUrl = aUrls[0];
     gContentUrl = aUrls[1];
     gAuthUrl = aUrls[2];
+    gLogoutUrl = aUrls[3];
   },
 
   /**
@@ -430,14 +432,39 @@ nsDropbox.prototype = {
       return;
     }
 
-    this._connection = new OAuth(this.displayName, gServerUrl, gAuthUrl, authToken, authSecret,
-                                 kAppKey, kAppSecret);
+    this._connection = new OAuth(this.displayName, gServerUrl, gAuthUrl,
+                                 authToken, authSecret, kAppKey, kAppSecret);
     this._connection.connect(
       function () {
         this.log.info("success connecting");
         this._loggedIn = true;
         this._cachedAuthToken = this._connection.token;
         this._cachedAuthSecret = this._connection.tokenSecret;
+
+        // Attempt to end the session we just opened to get these tokens...
+        let xhr = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
+                    .createInstance(Ci.nsIXMLHttpRequest);
+        xhr.mozBackgroundRequest = true;
+        xhr.open("GET", gLogoutUrl);
+        xhr.onerror = function(aProgressEvent) {
+          this.log.error("Could not end authorization session!");
+          this.log.error("Status was: " + aProgressEvent.target.status);
+          this.log.error("Message was: " + aProgressEvent.target.statusText);
+        }.bind(this);
+
+        xhr.onload = function(aRequest) {
+          if (aRequest.target.status == 200)
+            this.log.info("Successfully ended authorization session.");
+          else {
+            this.log.error("Could not end authorization session!");
+            this.log.error("Status was: " + aRequest.target.status);
+            this.log.error("Message was: " + aRequest.target.statusText);
+          }
+        }.bind(this);
+
+        this.log.info("Sending logout request to: " + gLogoutUrl);
+        xhr.send();
+
         successCallback();
       }.bind(this),
       function () {

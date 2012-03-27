@@ -182,8 +182,17 @@ var cloudFileAccounts = {
 
   removeAccount: function(aKeyOrAccount) {
     let key = this._ensureKey(aKeyOrAccount);
+
     let type = Services.prefs.QueryInterface(Ci.nsIPrefBranch)
                        .deleteBranch(ACCOUNT_ROOT + key);
+
+    // Destroy any secret tokens for this accountKey.
+    let logins = Services.logins
+                         .findLogins({}, PWDMGR_HOST, null, "");
+    for each (let login in logins) {
+      if (login.username == key)
+        Services.logins.removeLogin(login);
+    }
   },
 
   get accounts() {
