@@ -49,6 +49,7 @@
 #include "nsIMsgOfflineImapOperation.h"
 #include "nsCOMPtr.h"
 #include "nsWeakReference.h"
+#include "nsCOMArray.h"
 
 class nsImapMoveCopyMsgTxn : public nsMsgTxn, nsIUrlListener
 {
@@ -80,7 +81,7 @@ public:
 protected:
 
   nsWeakPtr m_srcFolder;
-  nsCOMPtr<nsISupportsArray> m_srcHdrs;
+  nsCOMArray<nsIMsgDBHdr> m_srcHdrs;
   nsTArray<nsMsgKey> m_dupKeyArray;
   nsTArray<nsMsgKey> m_srcKeyArray;
   nsTArray<nsCString> m_srcMessageIds;
@@ -106,7 +107,7 @@ public:
                    nsIMsgFolder* dstFolder,
                    bool isMove,
                    nsOfflineImapOperationType opType,
-                   nsIMsgDBHdr *srcHdr);
+                   nsCOMArray<nsIMsgDBHdr> &srcHdrs);
   virtual ~nsImapOfflineTxn();
 
   NS_IMETHOD UndoTransaction(void);
@@ -115,11 +116,8 @@ public:
   void SetFlags(PRUint32 flags) {m_flags = flags;}
 protected:
   nsOfflineImapOperationType m_opType;
-  nsCOMPtr <nsIMsgDBHdr> m_header;
   // these two are used to undo flag changes, which we don't currently do.
   bool m_addFlags;
   PRUint32 m_flags;
 };
-
-
 #endif

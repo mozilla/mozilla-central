@@ -1080,12 +1080,12 @@ void nsImapOfflineSync::DeleteAllOfflineOpsForCurrentDB()
     // NS_ASSERTION(currentOp->GetOperationFlags() == 0);
     // delete any ops that have already played back
     m_currentDB->RemoveOfflineOp(currentOp);
-    m_currentDB->Commit(nsMsgDBCommitType::kLargeCommit);
     currentOp = nsnull;
     
     if (++m_KeyIndex < m_CurrentKeys.Length())
       m_currentDB->GetOfflineOpForKey(m_CurrentKeys[m_KeyIndex], false, getter_AddRefs(currentOp));
   }
+  m_currentDB->Commit(nsMsgDBCommitType::kLargeCommit);
   // turn off nsMsgFolderFlags::OfflineEvents
   if (m_currentFolder)
     m_currentFolder->ClearFlag(nsMsgFolderFlags::OfflineEvents);
