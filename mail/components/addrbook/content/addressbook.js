@@ -41,6 +41,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 // Ensure the activity modules are loaded for this window.
 Components.utils.import("resource:///modules/activity/activityModules.js");
 Components.utils.import("resource:///modules/mailServices.js");
@@ -49,7 +50,6 @@ const nsIAbListener = Components.interfaces.nsIAbListener;
 const kPrefMailAddrBookLastNameFirst = "mail.addr_book.lastnamefirst";
 const kPersistCollapseMapStorage = "directoryTree.json";
 
-var cvPrefs = 0;
 var gSearchTimer = null;
 var gStatusText = null;
 var gQueryURIFormat = null;
@@ -133,9 +133,7 @@ function OnUnloadAddressBook()
   // state of the tree view to a JSON file.
   gDirectoryTreeView.shutdown(kPersistCollapseMapStorage);
 
-  Components.classes["@mozilla.org/messenger/services/session;1"]
-            .getService(Components.interfaces.nsIMsgMailSession)
-            .RemoveMsgWindow(msgWindow);
+  MailServices.mailSession.RemoveMsgWindow(msgWindow);
 
   CloseAbView();
 }
@@ -197,7 +195,7 @@ function delayedOnLoadAddressBook()
   SelectFirstAddressBook();
 
   // if the pref is locked disable the menuitem New->LDAP directory
-  if (gPrefs.prefIsLocked("ldap_2.disable_button_add"))
+  if (Services.prefs.prefIsLocked("ldap_2.disable_button_add"))
     document.getElementById("addLDAP").setAttribute("disabled", "true");
 
   // Add a listener, so we can switch directories if the current directory is
@@ -226,23 +224,15 @@ function delayedOnLoadAddressBook()
         .QueryInterface(Components.interfaces.nsIDocShell)
         .useErrorPages = false;
 
-  Components.classes["@mozilla.org/messenger/services/session;1"]
-            .getService(Components.interfaces.nsIMsgMailSession)
-            .AddMsgWindow(msgWindow);
+  MailServices.mailSession.AddMsgWindow(msgWindow);
 }
 
 
 function GetCurrentPrefs()
 {
-  // prefs
-  if ( cvPrefs == 0 )
-    cvPrefs = new Object;
-
-  cvPrefs.prefs = gPrefs;
-
   // check "Show Name As" menu item based on pref
   var menuitemID;
-  switch (gPrefs.getIntPref(kPrefMailAddrBookLastNameFirst))
+  switch (Services.prefs.getIntPref(kPrefMailAddrBookLastNameFirst))
   {
     case kFirstNameFirst:
       menuitemID = 'firstLastCmd';
@@ -257,13 +247,13 @@ function GetCurrentPrefs()
   }
 
   var menuitem = top.document.getElementById(menuitemID);
-  if ( menuitem )
+  if (menuitem)
     menuitem.setAttribute('checked', 'true');
 
   // initialize phonetic
   var showPhoneticFields =
-        gPrefs.getComplexValue("mail.addr_book.show_phonetic_fields",
-                               Components.interfaces.nsIPrefLocalizedString).data;
+    Services.prefs.getComplexValue("mail.addr_book.show_phonetic_fields",
+      Components.interfaces.nsIPrefLocalizedString).data;
   // show phonetic fields if indicated by the pref
   if (showPhoneticFields == "true")
     document.getElementById("cmd_SortBy_PhoneticName")
@@ -289,7 +279,7 @@ function SetNameColumn(cmd)
       break;
   }
 
-  cvPrefs.prefs.setIntPref(kPrefMailAddrBookLastNameFirst, prefValue);
+  Services.prefs.setIntPref(kPrefMailAddrBookLastNameFirst, prefValue);
 }
 
 function onOSXFileMenuInit()
@@ -428,33 +418,29 @@ function AbPrintPreviewAddressBook()
 function AbExport()
 {
   try {
-    var selectedABURI = GetSelectedDirectory();
+    let selectedABURI = GetSelectedDirectory();
     if (!selectedABURI) return;
 
-    var directory = GetDirectoryFromURI(selectedABURI);
+    let directory = GetDirectoryFromURI(selectedABURI);
     MailServices.ab.exportAddressBook(window, directory);
   }
   catch (ex) {
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-
-    if (promptService) {
-      var message;
-      switch (ex.result) {
-        case Components.results.NS_ERROR_FILE_ACCESS_DENIED:
-          message = gAddressBookBundle.getString("failedToExportMessageFileAccessDenied");
-          break;
-        case Components.results.NS_ERROR_FILE_NO_DEVICE_SPACE:
-          message = gAddressBookBundle.getString("failedToExportMessageNoDeviceSpace");
-          break;
-        default:
-          message = ex.message;
-          break;
-      }
-
-      promptService.alert(window,
-        gAddressBookBundle.getString("failedToExportTitle"),
-        message);
+    let message;
+    switch (ex.result) {
+      case Components.results.NS_ERROR_FILE_ACCESS_DENIED:
+        message = gAddressBookBundle.getString("failedToExportMessageFileAccessDenied");
+        break;
+      case Components.results.NS_ERROR_FILE_NO_DEVICE_SPACE:
+        message = gAddressBookBundle.getString("failedToExportMessageNoDeviceSpace");
+        break;
+      default:
+        message = ex.message;
+        break;
     }
+
+    Services.prompt.alert(window,
+      gAddressBookBundle.getString("failedToExportTitle"),
+      message);
   }
 }
 
@@ -504,9 +490,7 @@ function onAdvancedAbSearch()
   var selectedABURI = GetSelectedDirectory();
   if (!selectedABURI) return;
 
-  var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].
-                                 getService(Components.interfaces.nsIWindowMediator);
-  var existingSearchWindow = windowManager.getMostRecentWindow("mailnews:absearch");
+  let existingSearchWindow = Services.wm.getMostRecentWindow("mailnews:absearch");
   if (existingSearchWindow)
     existingSearchWindow.focus();
   else
@@ -520,8 +504,9 @@ function onEnterInSearchBar()
   ClearCardViewPane();
 
   if (!gQueryURIFormat)
-    gQueryURIFormat = gPrefs.getComplexValue("mail.addr_book.quicksearchquery.format",
-                                              Components.interfaces.nsIPrefLocalizedString).data;
+    gQueryURIFormat = Services.prefs
+      .getComplexValue("mail.addr_book.quicksearchquery.format",
+                       Components.interfaces.nsIPrefLocalizedString).data;
 
   var searchURI = GetSelectedDirectory();
   if (!searchURI) return;
@@ -713,9 +698,6 @@ const kOSXPrefBase = "ldap_2.servers.osx";
 
 function AbOSXAddressBookExists()
 {
-  var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefBranch);
-
   // I hate doing it this way - until we redo how we manage address books
   // I can't think of a better way though.
 
@@ -723,12 +705,12 @@ function AbOSXAddressBookExists()
   var uriPresent = false;
   var position = 1;
   try {
-    uriPresent = prefSvc.getCharPref(kOSXPrefBase + ".uri") == kOSXDirectoryURI;
+    uriPresent = Services.prefs.getCharPref(kOSXPrefBase + ".uri") == kOSXDirectoryURI;
   }
   catch (e) { }
 
   try {
-    position = prefSvc.getIntPref(kOSXPrefBase + ".position");
+    position = Services.prefs.getIntPref(kOSXPrefBase + ".position");
   }
   catch (e) { }
 

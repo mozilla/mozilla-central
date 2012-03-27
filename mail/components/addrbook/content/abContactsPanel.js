@@ -163,10 +163,10 @@ function UpdateCardView()
 
 function onEnterInSearchBar()
 {
-  if (!gQueryURIFormat) 
-    gQueryURIFormat = gPrefs.getComplexValue("mail.addr_book.quicksearchquery.format", 
-                                              Components.interfaces.nsIPrefLocalizedString).data;
- 
+  if (!gQueryURIFormat)
+    gQueryURIFormat = Services.prefs.getComplexValue("mail.addr_book.quicksearchquery.format",
+      Components.interfaces.nsIPrefLocalizedString).data;
+
   var searchURI = GetSelectedDirectory();
   var searchInput = document.getElementById("peopleSearchInput");
 

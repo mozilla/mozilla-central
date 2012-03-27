@@ -41,17 +41,15 @@
 
 //NOTE: gAddressBookBundle must be defined and set or this Overlay won't work
 
-var gPrefs = Components.classes["@mozilla.org/preferences-service;1"];
-gPrefs = gPrefs.getService();
-gPrefs = gPrefs.QueryInterface(Components.interfaces.nsIPrefBranch);
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var gProfileDirURL;
 
-var gMapItURLFormat = gPrefs.getComplexValue("mail.addr_book.mapit_url.format",
-                                              Components.interfaces.nsIPrefLocalizedString).data;
+var gMapItURLFormat = Services.prefs.getComplexValue("mail.addr_book.mapit_url.format",
+  Components.interfaces.nsIPrefLocalizedString).data;
 
-var gIOService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-var gFileHandler = gIOService.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+var gFileHandler = Services.io.getProtocolHandler("file")
+  .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 var gPhotoDisplayHandlers = {};
 
 var zListName;
@@ -193,7 +191,8 @@ function GetAddressesFromURI(uri)
 
 function DisplayCardViewPane(realCard)
 {
-  var generatedName = realCard.generateName(gPrefs.getIntPref("mail.addr_book.lastnamefirst"));
+  let generatedName = realCard.generateName(
+    Services.prefs.getIntPref("mail.addr_book.lastnamefirst"));
 
   // This will become neater when bug 312116 is fixed...
   // (card.property instead of card.getProperty("Property"))
@@ -410,14 +409,12 @@ function DisplayCardViewPane(realCard)
 function setBuddyIcon(card, buddyIcon)
 {
   try {
-    var myScreenName = gPrefs.getCharPref("aim.session.screenname");
+    let myScreenName = Services.prefs.getCharPref("aim.session.screenname");
     if (myScreenName && card.primaryEmail) {
       if (!gProfileDirURL) {
         // lazily create these file urls, and keep them around
-        var dirService = Components.classes["@mozilla.org/file/directory_service;1"]
-            .getService(Components.interfaces.nsIProperties);
-        var profileDir = dirService.get("ProfD", Components.interfaces.nsIFile);
-        gProfileDirURL = gIOService.newFileURI(profileDir);
+        let profileDir = Services.dirsvc.get("ProfD", Components.interfaces.nsIFile);
+        gProfileDirURL = Services.io.newFileURI(profileDir);
       }
 
       // if we did have a buddy icon on disk for this screenname, this would be the file url spec for it

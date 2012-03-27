@@ -41,6 +41,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 
 var gDirTree;
@@ -48,9 +49,6 @@ var abList = 0;
 var gAbResultsTree = null;
 var gAbView = null;
 var gAddressBookBundle;
-
-var gPrefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-var gHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
 
 const kDefaultSortColumn = "GeneratedName";
 const kDefaultAscending = "ascending";
@@ -116,7 +114,7 @@ var DirPaneController =
             var disable = false;
             try {
               var prefName = selectedDir.substr(kLdapUrlPrefix.length);
-              disable = gPrefs.getBoolPref(prefName + ".disable_delete");
+              disable = Services.prefs.getBoolPref(prefName + ".disable_delete");
             }
             catch(ex) {
               // if this preference is not set its ok.
@@ -231,8 +229,6 @@ function AbDeleteSelectedDirectory()
 
 function AbDeleteDirectory(aURI)
 {
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-
   var directory = GetDirectoryFromURI(aURI);
   var confirmDeleteMessage;
   var clearPrefsRequired = false;
@@ -241,8 +237,8 @@ function AbDeleteDirectory(aURI)
     confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteMailingList");
   else {
     // Check if this address book is being used for collection
-    if (gPrefs.getCharPref("mail.collect_addressbook") == aURI &&
-        gPrefs.getBoolPref("mail.collect_email_address_outgoing")) {
+    if (Services.prefs.getCharPref("mail.collect_addressbook") == aURI &&
+        Services.prefs.getBoolPref("mail.collect_email_address_outgoing")) {
       var brandShortName = document.getElementById("bundle_brand").getString("brandShortName");
 
       confirmDeleteMessage = gAddressBookBundle.getFormattedString("confirmDeleteCollectionAddressbook", [brandShortName]);
@@ -253,21 +249,21 @@ function AbDeleteDirectory(aURI)
     }
   }
 
-  if (!promptService.confirm(window,
-                             gAddressBookBundle.getString(
-                                                directory.isMailList ?
-                                                "confirmDeleteMailingListTitle" :
-                                                "confirmDeleteAddressbookTitle"),
-                             confirmDeleteMessage))
+  if (!Services.prompt.confirm(window,
+                               gAddressBookBundle.getString(
+                                                  directory.isMailList ?
+                                                  "confirmDeleteMailingListTitle" :
+                                                  "confirmDeleteAddressbookTitle"),
+                               confirmDeleteMessage))
     return;
 
   // First clear/reset the prefs if required
   if (clearPrefsRequired) {
-    gPrefs.setBoolPref("mail.collect_email_address_outgoing", false);
+    Services.prefs.setBoolPref("mail.collect_email_address_outgoing", false);
 
     // Also reset the displayed value so that we don't get a blank item in the
     // prefs dialog if it gets enabled.
-    gPrefs.setCharPref("mail.collect_addressbook", kPersonalAddressbookURI);
+    Services.prefs.setCharPref("mail.collect_addressbook", kPersonalAddressbookURI);
   }
 
   MailServices.ab.deleteAddressBook(aURI);
@@ -300,7 +296,6 @@ function AbDelete()
   if (types == kNothingSelected)
     return;
 
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
   // If at least one mailing list is selected then prompt users for deletion.
 
   var confirmDeleteMessage;
@@ -317,7 +312,7 @@ function AbDelete()
       confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteContacts");
   }
 
-  if (confirmDeleteMessage && promptService.confirm(window, null, confirmDeleteMessage))
+  if (confirmDeleteMessage && Services.prompt.confirm(window, null, confirmDeleteMessage))
     gAbView.deleteSelectedCards();
 }
 
@@ -345,8 +340,6 @@ function AbNewMessage()
 {
   var msgComposeType = Components.interfaces.nsIMsgCompType;
   var msgComposFormat = Components.interfaces.nsIMsgCompFormat;
-  var msgComposeService = Components.classes["@mozilla.org/messengercompose;1"].getService();
-  msgComposeService = msgComposeService.QueryInterface(Components.interfaces.nsIMsgComposeService);
 
   var params = Components.classes["@mozilla.org/messengercompose/composeparams;1"].createInstance(Components.interfaces.nsIMsgComposeParams);
   if (params)
@@ -383,7 +376,7 @@ function AbNewMessage()
         composeFields.to = GetSelectedAddresses();
 
       params.composeFields = composeFields;
-      msgComposeService.OpenComposeWindowWithParams(null, params);
+      MailServices.compose.OpenComposeWindowWithParams(null, params);
     }
   }
 }
@@ -594,7 +587,7 @@ function GenerateAddressFromCard(card)
   else
     email = card.primaryEmail;
 
-  return gHeaderParser.makeFullAddress(card.displayName, email);
+  return MailServices.headerParser.makeFullAddress(card.displayName, email);
 }
 
 function GetDirectoryFromURI(uri)
@@ -669,9 +662,9 @@ function setupLdapAutocompleteSession()
     var prevAutocompleteDirectory = gCurrentAutocompleteDirectory;
     var i;
 
-    autocompleteLdap = gPrefs.getBoolPref("ldap_2.autoComplete.useDirectory");
+    autocompleteLdap = Services.prefs.getBoolPref("ldap_2.autoComplete.useDirectory");
     if (autocompleteLdap)
-        autocompleteDirectory = gPrefs.getCharPref(
+        autocompleteDirectory = Services.prefs.getCharPref(
             "ldap_2.autoComplete.directoryServer");
 
 
@@ -698,27 +691,24 @@ function setupLdapAutocompleteSession()
         //
         if (LDAPSession) {
             let url =
-              gPrefs.getComplexValue(autocompleteDirectory +".uri",
-				     Components.interfaces.nsISupportsString).data;
+              Services.prefs.getComplexValue(autocompleteDirectory + ".uri",
+                Components.interfaces.nsISupportsString).data;
 
-            LDAPSession.serverURL =
-              Components.classes["@mozilla.org/network/io-service;1"]
-                        .getService(Components.interfaces.nsIIOService)
-                        .newURI(url, null, null)
-                        .QueryInterface(Components.interfaces.nsILDAPURL);
+            LDAPSession.serverURL = Services.io.newURI(url, null, null)
+              .QueryInterface(Components.interfaces.nsILDAPURL);
 
             // get the login to authenticate as, if there is one
             //
             try {
-		LDAPSession.login =gPrefs.getComplexValue(
+                LDAPSession.login = Services.prefs.getComplexValue(
                     autocompleteDirectory + ".auth.dn",
                     Components.interfaces.nsISupportsString).data;
             } catch (ex) {
                 // if we don't have this pref, no big deal
             }
-            
+
             try {
-                LDAPSession.saslMechanism = gPrefs.getComplexValue(
+                LDAPSession.saslMechanism = Services.prefs.getComplexValue(
                     autocompleteDirectory + ".auth.saslmech",
                     Components.interfaces.nsISupportsString).data;
             } catch (ex) {
@@ -728,7 +718,7 @@ function setupLdapAutocompleteSession()
             // don't search on non-CJK strings shorter than this
             //
             try {
-                LDAPSession.minStringLength = gPrefs.getIntPref(
+                LDAPSession.minStringLength = Services.prefs.getIntPref(
                     autocompleteDirectory + ".autoComplete.minStringLength");
             } catch (ex) {
                 // if this pref isn't there, no big deal.  just let
@@ -738,7 +728,7 @@ function setupLdapAutocompleteSession()
             // don't search on CJK strings shorter than this
             //
             try {
-                LDAPSession.cjkMinStringLength = gPrefs.getIntPref(
+                LDAPSession.cjkMinStringLength = Services.prefs.getIntPref(
                   autocompleteDirectory + ".autoComplete.cjkMinStringLength");
             } catch (ex) {
                 // if this pref isn't there, no big deal.  just let
@@ -756,9 +746,9 @@ function setupLdapAutocompleteSession()
             //
             try {
                 ldapFormatter.nameFormat =
-                    gPrefs.getComplexValue(autocompleteDirectory +
-                                      ".autoComplete.nameFormat",
-                                      Components.interfaces.nsISupportsString).data;
+                    Services.prefs.getComplexValue(autocompleteDirectory +
+                        ".autoComplete.nameFormat",
+                        Components.interfaces.nsISupportsString).data;
             } catch (ex) {
                 // if this pref isn't there, no big deal.  just let
                 // nsAbLDAPAutoCompFormatter use its default.
@@ -768,9 +758,9 @@ function setupLdapAutocompleteSession()
             //
             try {
                 ldapFormatter.addressFormat =
-                    gPrefs.getComplexValue(autocompleteDirectory +
-                                      ".autoComplete.addressFormat",
-                                      Components.interfaces.nsISupportsString).data;
+                    Services.prefs.getComplexValue(autocompleteDirectory +
+                        ".autoComplete.addressFormat",
+                        Components.interfaces.nsISupportsString).data;
             } catch (ex) {
                 // if this pref isn't there, no big deal.  just let
                 // nsAbLDAPAutoCompFormatter use its default.
@@ -784,7 +774,7 @@ function setupLdapAutocompleteSession()
                 // 2 = other per-addressbook format
                 //
                 var showComments = 0;
-                showComments = gPrefs.getIntPref(
+                showComments = Services.prefs.getIntPref(
                     "mail.autoComplete.commentColumn");
 
                 switch (showComments) {
@@ -792,9 +782,9 @@ function setupLdapAutocompleteSession()
                 case 1:
                     // use the name of this directory
                     //
-                    ldapFormatter.commentFormat = gPrefs.getComplexValue(
-                                autocompleteDirectory + ".description",
-                                Components.interfaces.nsISupportsString).data;
+                    ldapFormatter.commentFormat = Services.prefs.getComplexValue(
+                        autocompleteDirectory + ".description",
+                        Components.interfaces.nsISupportsString).data;
                     break;
 
                 case 2:
@@ -802,9 +792,9 @@ function setupLdapAutocompleteSession()
                     //
                     try {
                         ldapFormatter.commentFormat =
-                            gPrefs.getComplexValue(autocompleteDirectory +
-                                        ".autoComplete.commentFormat",
-                                        Components.interfaces.nsISupportsString).data;
+                            Services.prefs.getComplexValue(autocompleteDirectory +
+                                ".autoComplete.commentFormat",
+                                Components.interfaces.nsISupportsString).data;
                     } catch (innerException) {
                         // if nothing has been specified, use the ldap
                         // organization field
@@ -832,9 +822,9 @@ function setupLdapAutocompleteSession()
             //
             try {
                 LDAPSession.outputFormat =
-                    gPrefs.getComplexValue(autocompleteDirectory +
-                                      ".autoComplete.outputFormat",
-                                      Components.interfaces.nsISupportsString).data;
+                    Services.prefs.getComplexValue(autocompleteDirectory +
+                        ".autoComplete.outputFormat",
+                        Components.interfaces.nsISupportsString).data;
 
             } catch (ex) {
                 // if this pref isn't there, no big deal.  just let
@@ -844,7 +834,7 @@ function setupLdapAutocompleteSession()
             // override default search filter template?
             //
             try {
-                LDAPSession.filterTemplate = gPrefs.getComplexValue(
+                LDAPSession.filterTemplate = Services.prefs.getComplexValue(
                     autocompleteDirectory + ".autoComplete.filterTemplate",
                     Components.interfaces.nsISupportsString).data;
 
@@ -860,7 +850,7 @@ function setupLdapAutocompleteSession()
                 // but there's no UI for that yet
                 //
                 LDAPSession.maxHits =
-                    gPrefs.getIntPref(autocompleteDirectory + ".maxHits");
+                    Services.prefs.getIntPref(autocompleteDirectory + ".maxHits");
             } catch (ex) {
                 // if this pref isn't there, or is out of range, no big deal.
                 // just let nsLDAPAutoCompleteSession use its default.
@@ -907,9 +897,7 @@ function setupLdapAutocompleteSession()
  * This will create the directory if it does not yet exist.
  */
 function getPhotosDir() {
-  var file = Components.classes["@mozilla.org/file/directory_service;1"]
-                       .getService(Components.interfaces.nsIProperties)
-                       .get("ProfD", Components.interfaces.nsIFile);
+  let file = Services.dirsvc.get("ProfD", Components.interfaces.nsIFile);
   // Get the Photos directory
   file.append("Photos");
   if (!file.exists() || !file.isDirectory())
@@ -938,9 +926,7 @@ function getPhotoURI(aPhotoName) {
   }
   if (!file.exists())
     return defaultPhotoURI;
-  return Components.classes["@mozilla.org/network/io-service;1"]
-                   .getService(Components.interfaces.nsIIOService)
-                   .newFileURI(file).spec;
+  return Services.io.newFileURI(file).spec;
 }
 
 /**
@@ -996,13 +982,11 @@ function storePhoto(aUri)
     return false;
 
   // Get the photos directory and check that it exists
-  var file = getPhotosDir();
+  let file = getPhotosDir();
 
   // Create a channel from the URI and open it as an input stream
-  var ios = Components.classes["@mozilla.org/network/io-service;1"]
-                      .getService(Components.interfaces.nsIIOService);
-  var channel = ios.newChannelFromURI(ios.newURI(aUri, null, null));
-  var istream = channel.open();
+  let channel = Services.io.newChannelFromURI(Services.io.newURI(aUri, null, null));
+  let istream = channel.open();
 
   // Get the photo file
   file = makePhotoFile(file, findPhotoExt(channel));
@@ -1053,5 +1037,3 @@ function makePhotoFile(aDir, aExtension) {
   } while (newFile.exists());
   return newFile;
 }
-
-

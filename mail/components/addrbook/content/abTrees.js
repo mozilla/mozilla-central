@@ -39,6 +39,7 @@
  * depends on jsTreeView.js being loaded before this script is loaded.
  */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 
 /**
@@ -115,8 +116,7 @@ directoryTreeView.prototype = {
 
     if (aJSONFile) {
       // Parse our persistent-open-state json file
-      let file = Cc["@mozilla.org/file/directory_service;1"]
-                    .getService(Ci.nsIProperties).get("ProfD", Ci.nsIFile);
+      let file = Services.dirsvc.get("ProfD", Ci.nsIFile);
       file.append(aJSONFile);
 
       if (file.exists()) {
@@ -149,8 +149,7 @@ directoryTreeView.prototype = {
     if (aJSONFile) {
       // Write out our json file...
       let data = JSON.stringify(this._persistOpenMap);
-      let file = Cc["@mozilla.org/file/directory_service;1"]
-                 .getService(Ci.nsIProperties).get("ProfD", Ci.nsIFile);
+      let file = Services.dirsvc.get("ProfD", Ci.nsIFile);
       file.append(aJSONFile);
       let foStream = Cc["@mozilla.org/network/safe-file-output-stream;1"]
                     .createInstance(Ci.nsIFileOutputStream);

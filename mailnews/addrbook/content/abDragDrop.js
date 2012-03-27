@@ -90,7 +90,7 @@ var abResultsPaneObserver = {
 
 
 var dragService = Components.classes["@mozilla.org/widget/dragservice;1"]
-                            .getService().QueryInterface(Components.interfaces.nsIDragService);
+                            .getService(Components.interfaces.nsIDragService);
 
 var abDirTreeObserver = {
   /**
