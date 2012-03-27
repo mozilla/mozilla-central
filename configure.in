@@ -580,8 +580,6 @@ case "$target" in
 
         _MOZ_RTTI_FLAGS_ON='-GR'
         _MOZ_RTTI_FLAGS_OFF='-GR-'
-        _MOZ_EXCEPTIONS_FLAGS_ON='-EHsc'
-        _MOZ_EXCEPTIONS_FLAGS_OFF=''
 
         dnl Ensure that mt.exe is 'Microsoft (R) Manifest Tool',
         dnl not something else like "magnetic tape manipulation utility".
@@ -1115,8 +1113,6 @@ fi
 # but that breaks when you have a 64 bit kernel with a 32 bit userland.
 OS_TEST="${target_cpu}"
 
-_COMPILER_PREFIX=
-
 HOST_OS_ARCH=`echo $host_os | sed -e 's|/|_|g'`
 
 #######################################################################
@@ -1431,10 +1427,8 @@ if test "$GNU_CC"; then
     DSO_CFLAGS=''
     DSO_PIC_CFLAGS='-fPIC'
     ASFLAGS="$ASFLAGS -fPIC"
-    _MOZ_RTTI_FLAGS_ON=${_COMPILER_PREFIX}-frtti
-    _MOZ_RTTI_FLAGS_OFF=${_COMPILER_PREFIX}-fno-rtti
-    _MOZ_EXCEPTIONS_FLAGS_ON='-fexceptions'
-    _MOZ_EXCEPTIONS_FLAGS_OFF='-fno-exceptions'
+    _MOZ_RTTI_FLAGS_ON=-frtti
+    _MOZ_RTTI_FLAGS_OFF=-fno-rtti
 
     # Turn on GNU specific features
     # -Wall - turn on all warnings
@@ -1492,7 +1486,7 @@ fi
 
 if test "$GNU_CXX"; then
     # FIXME: Let us build with strict aliasing. bug 414641.
-    CXXFLAGS="$CXXFLAGS -fno-strict-aliasing"
+    CXXFLAGS="$CXXFLAGS -fno-exceptions -fno-strict-aliasing"
     # Turn on GNU specific features
     _WARNINGS_CXXFLAGS="${_WARNINGS_CXXFLAGS} -Wall -Wpointer-arith -Woverloaded-virtual -Wsynth -Wno-ctor-dtor-privacy -Wno-non-virtual-dtor"
     if test -z "$INTEL_CC"; then
@@ -1516,7 +1510,7 @@ if test "$GNU_CXX"; then
             AC_LANG_SAVE
             AC_LANG_CPLUSPLUS
             _SAVE_CXXFLAGS="$CXXFLAGS"
-            CXXFLAGS="$CXXFLAGS ${_COMPILER_PREFIX}-Wno-invalid-offsetof"
+            CXXFLAGS="$CXXFLAGS -Wno-invalid-offsetof"
             AC_TRY_COMPILE([],
                            [return(0);],
                            ac_has_wno_invalid_offsetof="yes",
@@ -1525,7 +1519,7 @@ if test "$GNU_CXX"; then
             AC_LANG_RESTORE
         ])
     if test "$ac_has_wno_invalid_offsetof" = "yes"; then
-        _WARNINGS_CXXFLAGS="${_WARNINGS_CXXFLAGS} ${_COMPILER_PREFIX}-Wno-invalid-offsetof"
+        _WARNINGS_CXXFLAGS="${_WARNINGS_CXXFLAGS} -Wno-invalid-offsetof"
     fi
 
     AC_CACHE_CHECK(whether the compiler supports -Wno-variadic-macros,
@@ -1534,7 +1528,7 @@ if test "$GNU_CXX"; then
             AC_LANG_SAVE
             AC_LANG_CPLUSPLUS
             _SAVE_CXXFLAGS="$CXXFLAGS"
-            CXXFLAGS="$CXXFLAGS ${_COMPILER_PREFIX}-Wno-variadic-macros"
+            CXXFLAGS="$CXXFLAGS -Wno-variadic-macros"
             AC_TRY_COMPILE([],
                            [return(0);],
                            ac_has_wno_variadic_macros="yes",
@@ -1543,7 +1537,7 @@ if test "$GNU_CXX"; then
             AC_LANG_RESTORE
         ])
     if test "$ac_has_wno_variadic_macros" = "yes"; then
-        _WARNINGS_CXXFLAGS="${_WARNINGS_CXXFLAGS} ${_COMPILER_PREFIX}-Wno-variadic-macros"
+        _WARNINGS_CXXFLAGS="${_WARNINGS_CXXFLAGS} -Wno-variadic-macros"
     fi
 
     AC_CACHE_CHECK(whether the compiler supports -Werror=return-type,
@@ -2567,9 +2561,7 @@ alpha*-*-osf*)
        NS_USE_NATIVE=1
        AC_DEFINE(NSCAP_DISABLE_DEBUG_PTR_TYPES)
        CFLAGS="$CFLAGS -xlibmieee -xstrconst -xbuiltin=%all -D__FUNCTION__=__func__"
-       CXXFLAGS="$CXXFLAGS -xlibmieee -xbuiltin=%all -features=tmplife,tmplrefstatic,extensions -norunpath -D__FUNCTION__=__func__ -template=no%extdef"
-       _MOZ_EXCEPTIONS_FLAGS_ON='-features=except'
-       _MOZ_EXCEPTIONS_FLAGS_OFF='-features=no%except'
+       CXXFLAGS="$CXXFLAGS -xlibmieee -xbuiltin=%all -features=tmplife,tmplrefstatic,extensions,no%except -norunpath -D__FUNCTION__=__func__ -template=no%extdef"
        LDFLAGS="-xildoff $LDFLAGS"
        if test -z "$CROSS_COMPILE" -a -f /usr/lib/ld/map.noexstk; then
            _SAVE_LDFLAGS=$LDFLAGS
@@ -6284,7 +6276,7 @@ MOZ_ARG_DISABLE_BOOL(pedantic,
 _PEDANTIC= )
 if test "$_PEDANTIC"; then
     _SAVE_CXXFLAGS=$CXXFLAGS
-    CXXFLAGS="$CXXFLAGS ${_WARNINGS_CXXFLAGS} ${_COMPILER_PREFIX}-pedantic ${_COMPILER_PREFIX}-Wno-long-long"
+    CXXFLAGS="$CXXFLAGS -pedantic ${_WARNINGS_CXXFLAGS} -Wno-long-long"
     AC_MSG_CHECKING([whether C++ compiler has -pedantic long long bug])
     AC_TRY_COMPILE([$configure_static_assert_macros],
                    [CONFIGURE_STATIC_ASSERT(sizeof(long long) == 8)],
@@ -6294,8 +6286,8 @@ if test "$_PEDANTIC"; then
 
     case "$result" in
     no)
-        _WARNINGS_CFLAGS="${_WARNINGS_CFLAGS} ${_COMPILER_PREFIX}-pedantic ${_COMPILER_PREFIX}-Wno-long-long"
-        _WARNINGS_CXXFLAGS="${_WARNINGS_CXXFLAGS} ${_COMPILER_PREFIX}-pedantic ${_COMPILER_PREFIX}-Wno-long-long"
+        _WARNINGS_CFLAGS="-pedantic ${_WARNINGS_CFLAGS} -Wno-long-long"
+        _WARNINGS_CXXFLAGS="-pedantic ${_WARNINGS_CXXFLAGS} -Wno-long-long"
         ;;
     yes)
         AC_MSG_ERROR([Your compiler appears to have a known bug where long long is miscompiled when using -pedantic.  Reconfigure using --disable-pedantic. ])
@@ -6376,31 +6368,7 @@ if test "$ac_nscap_nonconst_opeq_bug" = "yes" ; then
 fi
 fi # ! SKIP_COMPILER_CHECKS
 
-dnl ========================================================
-dnl C++ exceptions (g++/VC/irix6/Sun only - for now)
-dnl Should be smarter and check that the compiler does indeed have exceptions
-dnl ========================================================
-MOZ_ARG_ENABLE_BOOL(cpp-exceptions,
-[  --enable-cpp-exceptions Enable C++ exceptions ],
-[ _MOZ_CPP_EXCEPTIONS=1 ],
-[ _MOZ_CPP_EXCEPTIONS= ])
-
-if test "$_MOZ_CPP_EXCEPTIONS"; then
-    _MOZ_EXCEPTIONS_FLAGS=$_MOZ_EXCEPTIONS_FLAGS_ON
-    AC_DEFINE(MOZ_CPP_EXCEPTIONS)
-else
-    _MOZ_EXCEPTIONS_FLAGS=$_MOZ_EXCEPTIONS_FLAGS_OFF
-fi
-
-AC_SUBST(_MOZ_EXCEPTIONS_FLAGS_ON)
-
-# Irix & OSF native compilers do not like exception declarations 
-# when exceptions are disabled
-if test -n "$MIPSPRO_CXX" -o -n "$COMPAQ_CXX" -o -n "$VACPP"; then
-    AC_DEFINE(CPP_THROW_NEW, [])
-else
-    AC_DEFINE(CPP_THROW_NEW, [throw()])
-fi
+AC_DEFINE(CPP_THROW_NEW, [throw()])
 AC_LANG_C
 
 dnl ========================================================
@@ -6842,7 +6810,6 @@ CFLAGS=`echo \
 
 CXXFLAGS=`echo \
 	$_MOZ_RTTI_FLAGS \
-	$_MOZ_EXCEPTIONS_FLAGS \
 	$_WARNINGS_CXXFLAGS \
 	$CXXFLAGS`
 
