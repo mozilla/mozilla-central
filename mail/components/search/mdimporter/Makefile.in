@@ -77,7 +77,7 @@ endif
 libs::
 	$(PBBUILD) $(PROJECT_ARG) -target thunderbird -configuration Release $(PBBUILD_ARG)
 	mkdir -p $(DIST)/package
-	$(INSTALL) "$(XCODE_PRODUCT_DIR)/Thunderbird.mdimporter" $(DIST)/package
+	$(INSTALL) "$(XCODE_PRODUCT_DIR)/thunderbird.mdimporter" $(DIST)/package
 
 clean clobber distclean::
 	rm -rf build
