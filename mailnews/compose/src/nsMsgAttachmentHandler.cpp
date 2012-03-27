@@ -587,20 +587,13 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
 
       nsCOMPtr<nsIURI> aURL;
       rv = messageService->GetUrlForUri(uri.get(), getter_AddRefs(aURL), nsnull);
-      if (aURL) {
-        rv = aURL->SetSpec(nsDependentCString(uri.get()));
-        if (NS_FAILED(rv))
-          goto done;
-      }
 
       rv = NS_NewInputStreamChannel(getter_AddRefs(m_converter_channel), aURL, nsnull);
       if (NS_FAILED(rv))
         goto done;
 
-      rv = m_mime_parser->AsyncConvertData(
-		    "message/rfc822",
-		    "message/rfc822",
-		    strListener, m_converter_channel);
+      rv = m_mime_parser->AsyncConvertData("message/rfc822", "message/rfc822",
+                                           strListener, m_converter_channel);
       if (NS_FAILED(rv))
         goto done;
 
