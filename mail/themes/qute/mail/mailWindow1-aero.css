@@ -189,7 +189,7 @@ padding: 4px 0px;
   background-image: none;
 }
 
-@media all and (-moz-windows-default-theme) {
+@media (-moz-windows-default-theme) {
   #folderPaneHeader {
     -moz-appearance: none;
     background-color: #f8f8f8;
@@ -260,9 +260,13 @@ padding: 4px 0px;
   #folderTree treechildren::-moz-tree-cell-text(dropOn) {
     color: -moz-FieldText;
   }
+
+  #status-bar {
+    background-color: hsl(210, 75%, 92%);
+  }
 }
 
-@media all and (-moz-windows-compositor) {
+@media (-moz-windows-compositor) {
   #messengerWindow[sizemode=normal] tabpanels#tabpanelcontainer {
     border: 1px solid rgba(10%, 10%, 10%, .4);
     border-top: none;

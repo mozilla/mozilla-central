@@ -37,14 +37,14 @@
 
 %include abContactsPanel.css
 
-@media all and (-moz-windows-default-theme) {
+@media (-moz-windows-default-theme) {
   #abContactsPanel {
     -moz-appearance: none;
-    background-color: rgb(207, 219, 236);
+    background-color: hsl(210, 75%, 92%);
   }
 }
 
-@media all and (-moz-windows-compositor) {
+@media (-moz-windows-compositor) {
   #abContactsPanel {
     background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5) 10px,
                         rgba(255, 255, 255, 0));

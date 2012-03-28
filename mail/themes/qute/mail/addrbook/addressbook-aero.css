@@ -57,7 +57,7 @@
   -moz-appearance: none;
   background-color: -moz-Dialog;
   background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
-                    rgba(255, 255, 255, 0) 28px);
+                    rgba(255, 255, 255, 0));
   border-top: none;
   border-bottom: 1px solid ThreeDShadow;
 }
@@ -69,7 +69,7 @@ toolbar:not(:-moz-lwtheme) {
 
 @media (-moz-windows-default-theme) {
   #ab-toolbox:not(:-moz-lwtheme) {
-    background-color: rgb(207, 219, 236);
+    background-color: hsl(210, 75%, 92%);
   }
 }
 
@@ -234,6 +234,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   #ab-toolbox:not(:-moz-lwtheme) {
     color: black;
     text-shadow: 0 0 .7em white, 0 0 .7em white, 0 1px 0 rgba(255, 255, 255, .4);
+    border-bottom-color: #AABCCF;
   }
 }
 
@@ -502,4 +503,13 @@ html|a {
 
 html|p {
   border: none !important;
+}
+
+@media (-moz-windows-default-theme) {
+  #status-bar {
+    -moz-appearance: none;
+    border: none;
+    border-top: 1px solid threedshadow;
+    background-color: hsl(210, 75%, 92%);
+  }
 }

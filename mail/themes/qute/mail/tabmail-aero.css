@@ -142,7 +142,7 @@
 
   .tabmail-tab[selected="true"]:not(:-moz-lwtheme) {
     background-image: -moz-linear-gradient(white, rgba(255, 255, 255, .5) 50%),
-                      -moz-linear-gradient(hsl(214, 44%, 87%), hsl(214, 44%, 87%));
+                      -moz-linear-gradient(hsl(214, 44%, 87%), hsl(210, 75%, 92%));
   }
 }
 
