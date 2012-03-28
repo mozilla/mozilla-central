@@ -158,7 +158,6 @@ var TestPilotMenuUtils;
       try {
       // Customize the interface of the newly opened window.
       Cu.import("resource://testpilot/modules/interface.js");
-      Services.console.logStringMessage("Interface module loaded.\n");
       TestPilotUIBuilder.buildCorrectInterface(window);
 
       /* "Hold" window load events for TestPilotSetup, passing them along only
@@ -181,7 +180,7 @@ var TestPilotMenuUtils;
       }
 
       } catch (e) {
-        Services.console.logStringMessage(e.toString());
+        Components.utils.reportError(e);
       }
     },
 

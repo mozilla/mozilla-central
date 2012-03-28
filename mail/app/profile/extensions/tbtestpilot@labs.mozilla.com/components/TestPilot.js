@@ -53,16 +53,13 @@ TestPilotComponent.prototype = {
                                          Ci.nsISupportsWeakReference]),
 
   observe: function TPC__observe(subject, topic, data) {
-    dump(subject +":" + topic + "\n");
     let os = Cc["@mozilla.org/observer-service;1"].
         getService(Ci.nsIObserverService);
     switch (topic) {
     case "profile-after-change":
       //Services.console.logStringMessage("Test Pilot Component Sessionstore\n");
       os.addObserver(this, "mail-startup-done", true);
-      dump("added\n");
       os.addObserver(this, "sessionstore-windows-restored", true);
-      dump("added\n");
       break;
     case "sessionstore-windows-restored":
     case "mail-startup-done":
