@@ -180,7 +180,7 @@ var TestPilotMenuUtils;
       }
 
       } catch (e) {
-        Components.utils.reportError(e);
+        Cu.reportError(e);
       }
     },
 

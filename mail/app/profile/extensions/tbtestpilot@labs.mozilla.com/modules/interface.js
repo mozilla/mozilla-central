@@ -79,11 +79,11 @@ var TestPilotUIBuilder = {
       .getService(Ci.nsIXULAppInfo).version;
   },
 
-  buildTestPilotInterface: function(window) {
+  buildTestPilotInterface: function(currentWindow) {
     // Don't need Feedback button: remove it
-    let feedbackButton = window.document.getElementById("feedback-menu-button");
+    let feedbackButton = currentWindow.document.getElementById("feedback-menu-button");
     if (!feedbackButton) {
-      let toolbox = window.document.getElementById("mail-toolbox");
+      let toolbox = currentWindow.document.getElementById("mail-toolbox");
       let palette = toolbox.palette;
       feedbackButton = palette.getElementsByAttribute("id", "feedback-menu-button").item(0);
     }
@@ -96,7 +96,7 @@ var TestPilotUIBuilder = {
     this._prefDefaultBranch.setIntPref(POPUP_CHECK_INTERVAL, 180000);
   },
 
-  buildFeedbackInterface: function(window) {
+  buildFeedbackInterface: function(currentWindow) {
     // Until input.mozilla.org works for Thunderbird, just bail out.
     return;
 
@@ -112,9 +112,9 @@ var TestPilotUIBuilder = {
 
     let mainToolbar;
     if (TestPilotSetup._appID == THUNDERBIRD_APP_ID)
-      mainToolbar = window.document.getElementById("mail-bar3");
+      mainToolbar = currentWindow.document.getElementById("mail-bar3");
     else
-      mainToolbar = window.document.getElementById("nav-bar");
+      mainToolbar = currentWindow.document.getElementById("nav-bar");
     let pref = "extensions.testpilot.alreadyCustomizedToolbar";
     let alreadyCustomized = this._prefs.getBoolPref(pref);
     let curSet = mainToolbar.currentSet;
@@ -124,11 +124,11 @@ var TestPilotUIBuilder = {
       let newSet = curSet + ",feedback-menu-button";
       mainToolbar.setAttribute("currentset", newSet);
       mainToolbar.currentSet = newSet;
-      window.document.persist(mainToolbar.id, "currentset");
+      currentWindow.document.persist(mainToolbar.id, "currentset");
       this._prefs.setBoolPref(pref, true);
       // if you don't do the following call, funny things happen.
       try {
-        window.BrowserToolboxCustomizeDone(true);
+        currentWindow.BrowserToolboxCustomizeDone(true);
       } catch (e) {
       }
     }
@@ -141,8 +141,8 @@ var TestPilotUIBuilder = {
 
     // Change the happy/sad labels if necessary
     if (TestPilotSetup._appID == THUNDERBIRD_APP_ID) {
-      let happy = window.document.getElementById("feedback-menu-happy-button");
-      let sad = window.document.getElementById("feedback-menu-sad-button");
+      let happy = currentWindow.document.getElementById("feedback-menu-happy-button");
+      let sad = currentWindow.document.getElementById("feedback-menu-sad-button");
       happy.setAttribute("label", happy.getAttribute("thunderbirdLabel"));
       sad.setAttribute("label", sad.getAttribute("thunderbirdLabel"));
     }
@@ -174,7 +174,7 @@ var TestPilotUIBuilder = {
     }
   },
 
-  buildCorrectInterface: function(window) {
+  buildCorrectInterface: function(currentWindow) {
     /* Apply no overlay to Fennec: */
     Cu.import("resource://testpilot/modules/setup.js");
 
@@ -185,7 +185,7 @@ var TestPilotUIBuilder = {
       // TODO: do something special here, probably
     }
     else {
-      let firefoxnav = window.document.getElementById("nav-bar");
+      let firefoxnav = currentWindow.document.getElementById("nav-bar");
       /* This is sometimes called for windows that don't have a navbar - in
        * that case, do nothing. TODO maybe this should be in onWindowLoad?*/
       if (!firefoxnav) {
@@ -197,20 +197,20 @@ var TestPilotUIBuilder = {
      * Once the overlay is complete, call buildFeedbackInterface() or buildTestPilotInterface(). */
     let self = this;
     if (this.channelUsesFeedback()) {
-      window.document.loadOverlay("chrome://testpilot/content/feedback-browser.xul",
+      currentWindow.document.loadOverlay("chrome://testpilot/content/feedback-browser.xul",
                                   {observe: function(subject, topic, data) {
                                      if (topic == "xul-overlay-merged") {
-                                       self.buildFeedbackInterface(window);
+                                       self.buildFeedbackInterface(currentWindow);
                                      }
                                    }});
     } else {
       let testPilotOverlay = (this.hasDoorhangerNotifications() ?
                               "chrome://testpilot/content/tp-browser-popupNotifications.xul" :
                               "chrome://testpilot/content/tp-browser-customNotifications.xul");
-      window.document.loadOverlay(testPilotOverlay,
+      currentWindow.document.loadOverlay(testPilotOverlay,
                                   {observe: function(subject, topic, data) {
                                      if (topic == "xul-overlay-merged") {
-                                       self.buildTestPilotInterface(window);
+                                       self.buildTestPilotInterface(currentWindow);
                                      }
                                   }});
     }

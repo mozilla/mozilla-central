@@ -282,26 +282,26 @@ Stringifier.prototype = {
       if ("name" in event)
         this._append("str(charCode):  '" + String.fromCharCode(event.charCode) + "'\n");
     }
-    if ("target" in event) {
+    if (("target" in event) && event.target) {
       this._append("target: " + event.target + "\n");
-      if (event.target && "nodeName" in event.target) {
+      if ("nodeName" in event.target)
         this._append("target.nodeName: " + event.target.nodeName + "\n");
+      if ("getAttribute" in event.target)
         this._append("target.id: " + event.target.getAttribute("id") + "\n");
-      }
     }
-    if ("currentTarget" in event) {
+    if (("currentTarget" in event) && event.currentTarget) {
       this._append("currentTarget: " + event.currentTarget + "\n");
-      if (event.currentTarget && "nodeName" in event.currentTarget) {
+      if ("nodeName" in event.currentTarget)
         this._append("currentTarget.nodeName: "+ event.currentTarget.nodeName + "\n");
+      if ("getAttribute" in event.currentTarget)
         this._append("currentTarget.id: "+ event.currentTarget.getAttribute("id") + "\n");
-      }
     }
-    if ("originalTarget" in event) {
+    if (("originalTarget" in event) && event.originalTarget) {
       this._append("originalTarget: " + event.originalTarget + "\n");
-      if (event.originalTarget && "nodeName" in event.originalTarget) {
+      if ("nodeName" in event.originalTarget)
         this._append("originalTarget.nodeName: "+ event.originalTarget.nodeName + "\n");
+      if ("getAttribute" in event.originalTarget)
         this._append("originalTarget.id: "+ event.originalTarget.getAttribute("id") + "\n");
-      }
     }
     let names = [
         "bubbles",

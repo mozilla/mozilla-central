@@ -78,11 +78,11 @@ function onBuiltinSurveyLoad() {
     let thanks = document.createElement("p");
     thanks.textContent =
       stringBundle.GetStringFromName("testpilot.surveyPage.thankYouForFinishingSurvey");
-    contentDiv.appendElement(thanks);
+    contentDiv.appendChild(thanks);
     let review = document.createElement("p");
     review.textContent = 
       stringBundle.GetStringFromName("testpilot.surveyPage.reviewOrChangeYourAnswers");
-    contentDiv.appendElement(review);
+    contentDiv.appendChild(review);
     submitButton.setAttribute("style", "display:none");
     let changeButton = document.getElementById("change-answers");
     changeButton.setAttribute("style", "");
@@ -93,7 +93,7 @@ function onBuiltinSurveyLoad() {
       let expl = Components.classes["@mozilla.org/feed-unescapehtml;1"]  
                    .getService(Components.interfaces.nsIScriptableUnescapeHTML)  
                    .parseFragment(task.surveyExplanation, false, null, document);  
-      explanation.appendElement(expl);
+      explanation.appendChild(expl);
     }
     drawSurveyForm(task, contentDiv);
     // Allow surveys to define arbitrary page load handlers - call them
