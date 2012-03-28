@@ -511,17 +511,23 @@ var chatHandler = {
   _updateNoConvPlaceHolder: function() {
     let connected = false;
     let hasAccount = false;
+    let canJoinChat = false;
     for (let account in fixIterator(imServices.accounts.getAccounts())) {
       hasAccount = true;
       if (account.connected) {
         connected = true;
-        break;
+        if (account.canJoinChat) {
+          canJoinChat = true;
+          break;
+        }
       }
     }
     document.getElementById("noConvInnerBox").hidden = !connected;
     document.getElementById("noAccountInnerBox").hidden = hasAccount;
     document.getElementById("noConnectedAccountInnerBox").hidden =
       connected || !hasAccount;
+    document.getElementById("button-add-buddy").disabled = !connected;
+    document.getElementById("button-join-chat").disabled = !canJoinChat;
   },
   observe: function(aSubject, aTopic, aData) {
     if (aTopic == "browser-request") {
