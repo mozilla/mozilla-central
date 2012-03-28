@@ -1257,42 +1257,6 @@
        </body>
      </method>
 
-     <method name="onNicklistKeyPress">
-      <parameter name="event"/>
-      <body>
-      <![CDATA[
-        if (event.keyCode != event.DOM_VK_RETURN &&
-            event.keyCode != event.DOM_VK_ENTER)
-          return;
-
-        let listbox = event.originalTarget;
-        if (listbox.selectedCount == 0)
-          return;
-
-        for (let i = 0; i < listbox.selectedCount; ++i) {
-          let nick = listbox.getSelectedItem(i).chatBuddy.name;
-          let name = this._conv.target.getNormalizedChatBuddyName(nick);
-          this._conv.account.createConversation(name);
-        }
-      ]]>
-      </body>
-     </method>
-
-     <method name="onNickClick">
-      <parameter name="event"/>
-      <body>
-      <![CDATA[
-        // Open a private conversation in new tab on a middle or double click.
-        if (event.button == 1 || (event.button == 0 && event.detail == 2)) {
-          var nick = event.originalTarget.chatBuddy.name;
-          let name = this._conv.target.getNormalizedChatBuddyName(nick);
-          let newConv = this._conv.account.createConversation(name);
-          Conversations.focusConversation(newConv);
-        }
-      ]]>
-      </body>
-     </method>
-
      <property name="convId">
        <getter>
          <![CDATA[

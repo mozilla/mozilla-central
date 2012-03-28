@@ -281,8 +281,8 @@
               <listbox id="nicklist" class="conv-nicklist"
                        flex="1" seltype="multiple"
                        tooltip="buddyTooltip"
-                       onclick="onNickClick(event);"
-                       onkeypress="onNicklistKeyPress(event);"/><!-- FIXME event handler -->
+                       onclick="chatHandler.onNickClick(event);"
+                       onkeypress="chatHandler.onNicklistKeyPress(event);"/>
             </vbox>
             <splitter id="logsSplitter" class="conv-chat"/>
             <vbox flex="1" id="previousConversations">

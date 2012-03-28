@@ -395,7 +395,7 @@
          if (localName == "imcontact")
            return updateTooltipFromContact(elt.contact, elt);
          if (localName == "listitem") {
-           let conv = document.getBindingParent(elt).conv;
+           let conv = document.getElementById("contactlistbox").selectedItem.conv;
            return updateTooltipFromParticipant(elt.chatBuddy, conv);
          }
 

@@ -435,6 +435,38 @@ var chatHandler = {
     this.updateTitle();
   },
 
+  onNickClick: function(aEvent) {
+    // Open a private conversation only for a middle or double click.
+    if (aEvent.button != 1 && (aEvent.button != 0 || aEvent.detail != 2))
+      return;
+
+    let conv = document.getElementById("contactlistbox").selectedItem.conv;
+    let nick = aEvent.originalTarget.chatBuddy.name;
+    let name = conv.target.getNormalizedChatBuddyName(nick);
+    try {
+      conv.account.createConversation(name);
+    } catch (e) {}
+  },
+
+  onNicklistKeyPress: function(aEvent) {
+    if (aEvent.keyCode != aEvent.DOM_VK_RETURN &&
+        aEvent.keyCode != aEvent.DOM_VK_ENTER)
+      return;
+
+    let listbox = aEvent.originalTarget;
+    if (listbox.selectedCount == 0)
+      return;
+
+    let conv = document.getElementById("contactlistbox").selectedItem.conv;
+    for (let i = 0; i < listbox.selectedCount; ++i) {
+      let nick = listbox.getSelectedItem(i).chatBuddy.name;
+      let name = conv.target.getNormalizedChatBuddyName(nick);
+      try {
+        conv.account.createConversation(name);
+      } catch (e) {}
+    }
+  },
+
   _openDialog: function(aType) {
     let features = "chrome,modal,titlebar,centerscreen";
     window.openDialog("chrome://messenger/content/chat/" + aType + ".xul", "",
