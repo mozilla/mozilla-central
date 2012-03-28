@@ -80,6 +80,7 @@
 #include "nsIMsgHeaderParser.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
+#include "nsEscape.h"
 
 //
 // Header strings...
@@ -590,32 +591,6 @@ FAIL:
 }
 
 static void
-mime_fix_up_html_address( char **addr)
-{
-  //
-  // We need to replace paired <> they are treated as HTML tag
-  //
-  if (addr && *addr && PL_strchr(*addr, '<') && PL_strchr(*addr, '>'))
-  {
-    char *lt = NULL;
-    PRInt32 newLen = 0;
-    do
-    {
-      newLen = strlen(*addr) + 3 + 1;
-      *addr = (char *) PR_REALLOC(*addr, newLen);
-      NS_ASSERTION (*addr, "out of memory fixing up html address");
-      lt = PL_strchr(*addr, '<');
-      NS_ASSERTION(lt, "couldn't find < char in address");
-      memmove(lt+4, lt+1, newLen - 4 - (lt - *addr));
-      *lt++ = '&';
-      *lt++ = 'l';
-      *lt++ = 't';
-      *lt = ';';
-    } while (PL_strchr(*addr, '<'));
-  }
-}
-
-static void
 mime_intl_insert_message_header_1(char        **body,
                                   char        **hdr_value,
                                   const char  *hdr_str,
@@ -648,8 +623,12 @@ mime_intl_insert_message_header_1(char        **body,
     char* utf8 = MIME_DecodeMimeHeader(*hdr_value, mailcharset, false,
                                        true);
     if (NULL != utf8) {
-        NS_MsgSACat(body, utf8);
-        PR_Free(utf8);
+      char *escaped = nsnull;
+      if (htmlEdit)
+        escaped = nsEscapeHTML(utf8);
+      NS_MsgSACat(body, escaped ? escaped : utf8);
+      NS_Free(escaped);
+      PR_Free(utf8);
     } else {
         NS_MsgSACat(body, *hdr_value); // raw MIME encoded string
     }
@@ -791,9 +770,6 @@ mime_insert_all_headers(char            **body,
     */
     if (PL_strcasecmp(name, "bcc") != 0)
     {
-      if (htmlEdit)
-        mime_fix_up_html_address(&c2);
-
       if (!PL_strcasecmp(name, "resent-from") || !PL_strcasecmp(name, "from") ||
           !PL_strcasecmp(name, "resent-to") || !PL_strcasecmp(name, "to") ||
           !PL_strcasecmp(name, "resent-cc") || !PL_strcasecmp(name, "cc") ||
@@ -898,7 +874,6 @@ mime_insert_normal_headers(char             **body,
                       mailcharset, htmlEdit);
   if (resent_from)
   {
-    if (htmlEdit) mime_fix_up_html_address(&resent_from);
     mime_intl_insert_message_header_1(&newBody, &resent_from,
                       HEADER_RESENT_FROM,
                       MimeGetNamedString(MIME_MHTML_RESENT_FROM),
@@ -906,7 +881,6 @@ mime_insert_normal_headers(char             **body,
   }
   if (resent_to)
   {
-    if (htmlEdit) mime_fix_up_html_address(&resent_to);
     mime_intl_insert_message_header_1(&newBody, &resent_to,
                       HEADER_RESENT_TO,
                       MimeGetNamedString(MIME_MHTML_RESENT_TO),
@@ -914,7 +888,6 @@ mime_insert_normal_headers(char             **body,
   }
   if (resent_cc)
   {
-    if (htmlEdit) mime_fix_up_html_address(&resent_cc);
     mime_intl_insert_message_header_1(&newBody, &resent_cc,
                       HEADER_RESENT_CC,
                       MimeGetNamedString(MIME_MHTML_RESENT_CC),
@@ -926,14 +899,12 @@ mime_insert_normal_headers(char             **body,
                       mailcharset, htmlEdit);
   if (from)
   {
-    if (htmlEdit) mime_fix_up_html_address(&from);
     mime_intl_insert_message_header_1(&newBody, &from, HEADER_FROM,
                       MimeGetNamedString(MIME_MHTML_FROM),
                       mailcharset, htmlEdit);
   }
   if (reply_to)
   {
-    if (htmlEdit) mime_fix_up_html_address(&reply_to);
     mime_intl_insert_message_header_1(&newBody, &reply_to, HEADER_REPLY_TO,
                       MimeGetNamedString(MIME_MHTML_REPLY_TO),
                       mailcharset, htmlEdit);
@@ -945,14 +916,12 @@ mime_insert_normal_headers(char             **body,
                       mailcharset, htmlEdit);
   if (to)
   {
-    if (htmlEdit) mime_fix_up_html_address(&to);
     mime_intl_insert_message_header_1(&newBody, &to, HEADER_TO,
                       MimeGetNamedString(MIME_MHTML_TO),
                       mailcharset, htmlEdit);
   }
   if (cc)
   {
-    if (htmlEdit) mime_fix_up_html_address(&cc);
     mime_intl_insert_message_header_1(&newBody, &cc, HEADER_CC,
                       MimeGetNamedString(MIME_MHTML_CC),
                       mailcharset, htmlEdit);
@@ -967,7 +936,6 @@ mime_insert_normal_headers(char             **body,
                       mailcharset, htmlEdit);
   if (followup_to)
   {
-    if (htmlEdit) mime_fix_up_html_address(&followup_to);
     mime_intl_insert_message_header_1(&newBody, &followup_to,
                       HEADER_FOLLOWUP_TO,
                       MimeGetNamedString(MIME_MHTML_FOLLOWUP_TO),
@@ -976,8 +944,6 @@ mime_insert_normal_headers(char             **body,
   // only show references for newsgroups
   if (newsgroups && references)
   {
-    if (htmlEdit) 
-      mime_fix_up_html_address(&references);
     mime_intl_insert_message_header_1(&newBody, &references,
                       HEADER_REFERENCES,
                       MimeGetNamedString(MIME_MHTML_REFERENCES),
@@ -1069,8 +1035,6 @@ mime_insert_micro_headers(char            **body,
 
   if (from)
   {
-    if (htmlEdit)
-      mime_fix_up_html_address(&from);
     mime_intl_insert_message_header_1(&newBody, &from, HEADER_FROM,
                     MimeGetNamedString(MIME_MHTML_FROM),
                     mailcharset, htmlEdit);
@@ -1087,7 +1051,6 @@ mime_insert_micro_headers(char            **body,
 */
   if (resent_from)
   {
-    if (htmlEdit) mime_fix_up_html_address(&resent_from);
     mime_intl_insert_message_header_1(&newBody, &resent_from,
                     HEADER_RESENT_FROM,
                     MimeGetNamedString(MIME_MHTML_RESENT_FROM),
@@ -1095,14 +1058,12 @@ mime_insert_micro_headers(char            **body,
   }
   if (to)
   {
-    if (htmlEdit) mime_fix_up_html_address(&to);
     mime_intl_insert_message_header_1(&newBody, &to, HEADER_TO,
                     MimeGetNamedString(MIME_MHTML_TO),
                     mailcharset, htmlEdit);
   }
   if (cc)
   {
-    if (htmlEdit) mime_fix_up_html_address(&cc);
     mime_intl_insert_message_header_1(&newBody, &cc, HEADER_CC,
                     MimeGetNamedString(MIME_MHTML_CC),
                     mailcharset, htmlEdit);
