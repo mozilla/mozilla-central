@@ -283,7 +283,8 @@ ContactIdentityCompleter.prototype = {
     // handle the initial setup case...
     if (aCollection.data == null) {
       // cheat and explicitly add our own contact...
-      if (!(Gloda.myContact.id in this.contactCollection._idMap))
+      if (Gloda.myContact &&
+          !(Gloda.myContact.id in this.contactCollection._idMap))
         this.contactCollection._onItemsAdded([Gloda.myContact]);
 
       // the set of identities owned by the contacts is automatically loaded as part
