@@ -84,7 +84,7 @@
       <checkbox id="reportIdle" label="&reportIdleAfter.label;"
                 accesskey="&reportIdleAfter.accesskey;"
                 preference="messenger.status.reportIdle"/>
-      <textbox id="timeBeforeAway" type="number" min="1"
+      <textbox id="timeBeforeAway" type="number" min="1" max="720"
                observes="idleReportingEnabled"
                preference="messenger.status.timeBeforeIdle"
                onsyncfrompreference="var elt = document.getElementById(this.getAttribute('preference'));
