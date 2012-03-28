@@ -94,6 +94,7 @@
 
   <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
   <script type="application/javascript" src="chrome://communicator/content/contentAreaClick.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/preferences/preferences.js"/>
 
   <prefpane id="paneGeneral" label="&paneGeneral.title;"
             src="chrome://messenger/content/preferences/general.xul"/>

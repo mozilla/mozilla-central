@@ -1,10 +1,12 @@
 messenger.jar:
 *   content/messenger/preferences/preferences.xul
+    content/messenger/preferences/preferences.js
 *   content/messenger/preferences/general.xul
 *   content/messenger/preferences/general.js
 *   content/messenger/preferences/display.xul
     content/messenger/preferences/display.js
 *   content/messenger/preferences/chat.xul
+    content/messenger/preferences/chat.js
 *   content/messenger/preferences/compose.xul
 *   content/messenger/preferences/compose.js
 *   content/messenger/preferences/sendoptions.xul
