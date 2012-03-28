@@ -213,6 +213,7 @@ imIncomingServer.prototype = {
 
   get serverURI() "im://" + this.imAccount.protocol.id + "/" + this.imAccount.normalizedName,
   _rootFolder: null,
+  get rootMsgFolder() this.rootFolder,
   get rootFolder() {
     if (this._rootFolder)
       return this._rootFolder;
