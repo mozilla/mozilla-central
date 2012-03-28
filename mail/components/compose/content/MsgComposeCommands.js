@@ -2784,6 +2784,7 @@ function GenericSendMessage(msgType)
         fallbackCharset.value && fallbackCharset.value != "")
       gMsgCompose.SetDocumentCharset(fallbackCharset.value);
   }
+
   try {
     // Just before we try to send the message, fire off the
     // compose-send-message event for listeners such as smime so they can do
@@ -2830,7 +2831,7 @@ function GenericSendMessage(msgType)
     enableEditableFields();
     updateComposeItems();
   }
-  if (originalCharset != gMsgCompose.compFields.characterSet)
+  if (gMsgCompose && originalCharset != gMsgCompose.compFields.characterSet)
     SetDocumentCharacterSet(gMsgCompose.compFields.characterSet);
 }
 
@@ -3369,8 +3370,22 @@ function ComposeCanClose()
       switch (result)
       {
         case 0: //Save
+          // Since we're going to save the message, we tell toolkit that
+          // the close command failed, by returning false, and then
+          // we close the window ourselves after the save is done.
           gCloseWindowAfterSave = true;
-          GenericSendMessage(nsIMsgCompDeliverMode.AutoSaveAsDraft);
+          // We catch the exception because we need to tell toolkit that it
+          // shouldn't close the window, because we're going to close it
+          // ourselves. If we don't tell toolkit that, and then close the window
+          // ourselves, the toolkit code that keeps track of the open windows
+          // gets off by one and the app can close unexpectedly on os's that
+          // shutdown the app when the last window is closed.
+          try {
+            GenericSendMessage(nsIMsgCompDeliverMode.AutoSaveAsDraft);
+          }
+          catch (ex) {
+            Components.utils.reportError(ex);
+          }
           return false;
         case 1: //Cancel
           return false;
