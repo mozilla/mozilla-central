@@ -520,6 +520,7 @@
 
   <!-- Tools Keys -->
   <key id="key_searchMail" key="&searchMailCmd.key;" oncommand="goDoCommand('cmd_search')" modifiers="accel, shift"/>
+  <key id="key_errorConsole" key="&errorConsoleCmd.commandkey;" oncommand="toJavaScriptConsole();" modifiers="accel,shift"/>
   <key id="key_addressbook"
        key="&addressBookCmd.key;"
        modifiers="accel, shift"
@@ -1696,7 +1697,7 @@
         <menuitem id="menu_import" label="&importCmd.label;"
                   accesskey="&importCmd.accesskey;"
                   oncommand="toImport();"/>
-        <menuitem id="javascriptConsole" label="&errorConsoleCmd.label;" accesskey="&errorConsoleCmd.accesskey;" oncommand="toJavaScriptConsole();"/>
+        <menuitem id="javascriptConsole" label="&errorConsoleCmd.label;" accesskey="&errorConsoleCmd.accesskey;" key="key_errorConsole" oncommand="toJavaScriptConsole();"/>
 #ifndef XP_UNIX
         <menuseparator id="prefSep"/>
         <menuitem id="menu_accountmgr" label="&accountManagerCmd.label;" accesskey="&accountManagerCmd.accesskey;" oncommand="MsgAccountManager(null);"/>
