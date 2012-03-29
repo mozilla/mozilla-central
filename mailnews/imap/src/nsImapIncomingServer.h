@@ -148,6 +148,13 @@ private:
   nsCOMPtr <nsISubscribableServer> mInner;
   nsresult EnsureInner();
   nsresult ClearInner();
+
+  // Utility function for checking folder existence
+  nsresult GetExistingMsgFolder(const nsACString& aURI,
+                                nsACString& folderUriWithNamespace,
+                                bool& namespacePrefixAdded,
+                                bool caseInsensitive,
+                                nsIMsgFolder **aFolder);
 };
 
 #endif

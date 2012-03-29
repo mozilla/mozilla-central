@@ -1,7 +1,7 @@
 // This file tests the mailbox handling of IMAP.
 
-var gServer, gLocalServer;
-var gCurTestNum;
+var gServer, gIMAPServer;
+var gCurTestNum = 0;
 var rootFolder;
 
 const gIMAPService = Cc["@mozilla.org/messenger/imapservice;1"]
@@ -11,9 +11,13 @@ function run_test() {
   var daemon = new imapDaemon();
   daemon.createMailbox("I18N box\u00E1", {subscribed : true});
   daemon.createMailbox("Unsubscribed box");
+  // Create an all upper case trash folder name to make sure
+  // we handle special folder names case-insensitively.
+  daemon.createMailbox("TRASH", {subscribed : true});
   gServer = makeServer(daemon, "");
 
-  gLocalServer = createLocalIMAPServer();
+  gIMAPServer = createLocalIMAPServer();
+  loadLocalMailAccount();
 
   // The server doesn't support more than one connection
   let prefBranch = Cc["@mozilla.org/preferences-service;1"]
@@ -27,22 +31,45 @@ function run_test() {
   // We aren't interested in downloading messages automatically
   prefBranch.setBoolPref("mail.server.server1.download_on_biff", false);
 
-  // Get the server list...
-  gLocalServer.performExpand(null);
-  gServer.performTest("SUBSCRIBE");
+  // We need an identity so that updateFolder doesn't fail
+  let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
+                  .getService(Ci.nsIMsgAccountManager);
+  let localAccount = acctMgr.createAccount();
+  let identity = acctMgr.createIdentity();
+  localAccount.addIdentity(identity);
+  localAccount.defaultIdentity = identity;
+  localAccount.incomingServer = gLocalIncomingServer;
+  acctMgr.defaultAccount = localAccount;
 
+  // Let's also have another account, using the same identity
+  let imapAccount = acctMgr.createAccount();
+  imapAccount.addIdentity(identity);
+  imapAccount.defaultIdentity = identity;
+  imapAccount.incomingServer = gIMAPServer;
+
+  // Get the server list...
+  gIMAPServer.performExpand(null);
+  gServer.performTest("LIST");
+  gRootFolder = gIMAPServer.rootFolder;
+  gIMAPInbox = gRootFolder.getChildNamed("INBOX").QueryInterface(Ci.nsIMsgImapMailFolder);
   do_test_pending();
 
-  doTest(1);
+  gIMAPInbox.updateFolderWithListener(null, UrlListener);
 }
 
 const gTestArray =
 [
   function checkDiscovery() {
-    rootFolder = gLocalServer.rootFolder;
+    dump("in check discovery\n");
+    rootFolder = gIMAPServer.rootFolder;
     // Check that we've subscribed to the boxes returned by LSUB. We also get
     // checking of proper i18n in mailboxes for free here.
     do_check_true(rootFolder.containsChildNamed("Inbox"));
+    do_check_true(rootFolder.containsChildNamed("TRASH"));
+    // Make sure we haven't created an extra "Trash" folder.
+    let trashes = rootFolder.getFoldersWithFlags(Ci.nsMsgFolderFlags.Trash);
+    do_check_eq(trashes.length, 1);
+    do_check_eq(rootFolder.numSubFolders, 3);
     do_check_true(rootFolder.containsChildNamed("I18N box\u00E1"));
     // This is not a subscribed box, so we shouldn't be subscribing to it.
     do_check_false(rootFolder.containsChildNamed("Unsubscribed box"));
@@ -59,7 +86,7 @@ const gTestArray =
   },
   function checkEmptyFolder() {
     try {
-    let serverSink = gLocalServer.QueryInterface(Ci.nsIImapServerSink);
+    let serverSink = gIMAPServer.QueryInterface(Ci.nsIImapServerSink);
       serverSink.possibleImapMailbox("/", '/', 0);
     }
     catch (ex) {
@@ -73,7 +100,7 @@ function endTest()
 {
   // Clean up the server in preparation
   gServer.resetTest();
-  gLocalServer.closeCachedConnections();
+  gIMAPServer.closeCachedConnections();
   gServer.performTest();
   gServer.stop();
 

@@ -4879,7 +4879,7 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
 
         // Don't set the Trash flag if not using the Trash model
         if (GetDeleteIsMoveToTrash() && !onlineTrashFolderExists &&
-            adoptedBoxSpec->mAllocatedPathName.Find(m_trashFolderName) != -1)
+            adoptedBoxSpec->mAllocatedPathName.Find(m_trashFolderName, CaseInsensitiveCompare) != -1)
         {
           bool trashExists = false;
           nsCString trashMatch(CreatePossibleTrashName(nsPrefix));
@@ -4896,11 +4896,11 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
               StringBeginsWith(adoptedBoxSpec->mAllocatedPathName,
                                serverTrashName,
                                nsCaseInsensitiveCStringComparator()) && /* "INBOX/" */
-              pathName.Equals(Substring(serverTrashName, 6));
+              pathName.Equals(Substring(serverTrashName, 6), nsCaseInsensitiveCStringComparator());
           }
           else
-            trashExists = adoptedBoxSpec->mAllocatedPathName.Equals(serverTrashName);
-              
+            trashExists = adoptedBoxSpec->mAllocatedPathName.Equals(serverTrashName, nsCaseInsensitiveCStringComparator());
+
           if (m_hostSessionList)
             m_hostSessionList->SetOnlineTrashFolderExistsForHost(GetImapServerKey(), trashExists);
 
