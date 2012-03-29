@@ -36,11 +36,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-// XXX This is needed by mailCommands.js for the new message command, ideally
-// this shouldn't be a global.
-var msgComposeService = Components.classes["@mozilla.org/messengercompose;1"]
-                                  .getService(Components.interfaces.nsIMsgComposeService);
-
 function hiddenWindowStartup()
 {
   // Disable menus which are not appropriate

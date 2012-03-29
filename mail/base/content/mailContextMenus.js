@@ -40,6 +40,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 
 const mailtolength = 7;
 
@@ -609,7 +610,7 @@ function composeEmailTo()
                         gFolderDisplay.displayedFolder.server);
   }
   params.composeFields = fields;
-  msgComposeService.OpenComposeWindowWithParams(null, params);
+  MailServices.compose.OpenComposeWindowWithParams(null, params);
 }
 
 // Extracts email address from url string

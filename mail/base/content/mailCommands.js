@@ -37,8 +37,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
-var gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                      .getService(Components.interfaces.nsIPromptService);
+Components.utils.import("resource:///modules/mailServices.js");
 
 /**
  * Get the identity that most likely is the best one to use, given the hint.
@@ -196,12 +195,6 @@ function ComposeMessage(type, format, folder, messageArray)
 
   // dump("\nComposeMessage from XUL: " + identity + "\n");
 
-  if (!msgComposeService)
-  {
-    dump("### msgComposeService is invalid\n");
-    return;
-  }
-
   switch (type)
   {
     case msgComposeType.New: //new message
@@ -214,13 +207,13 @@ function ComposeMessage(type, format, folder, messageArray)
                   .document.documentElement.hasAttribute("selectedaddresses"))
         NewMessageToSelectedAddresses(type, format, identity);
       else
-        msgComposeService.OpenComposeWindow(null, null, null, type,
-                                            format, identity, msgWindow);
+        MailServices.compose.OpenComposeWindow(null, null, null, type,
+                                               format, identity, msgWindow);
       return;
     case msgComposeType.NewsPost:
       // dump("OpenComposeWindow with " + identity + " and " + newsgroup + "\n");
-      msgComposeService.OpenComposeWindow(null, null, newsgroup, type,
-                                          format, identity, msgWindow);
+      MailServices.compose.OpenComposeWindow(null, null, newsgroup, type,
+                                             format, identity, msgWindow);
       return;
     case msgComposeType.ForwardAsAttachment:
       if (messageArray && messageArray.length)
@@ -229,8 +222,8 @@ function ComposeMessage(type, format, folder, messageArray)
         // of the header to tell the compose service to work out the attachment
         // subjects from the URIs.
         hdr = messageArray.length > 1 ? null : messenger.msgHdrFromURI(messageArray[0]);
-        msgComposeService.OpenComposeWindow(null, hdr, messageArray.join(','),
-                                            type, format, identity, msgWindow);
+        MailServices.compose.OpenComposeWindow(null, hdr, messageArray.join(','),
+                                               type, format, identity, msgWindow);
         return;
       }
     default:
@@ -251,8 +244,8 @@ function ComposeMessage(type, format, folder, messageArray)
           openComposeWindowForRSSArticle(null, hdr, messageUri, type,
                                          format, identity, msgWindow);
         else
-          msgComposeService.OpenComposeWindow(null, hdr, messageUri, type,
-                                              format, identity, msgWindow);
+          MailServices.compose.OpenComposeWindow(null, hdr, messageUri, type,
+                                                 format, identity, msgWindow);
       }
   }
 }
@@ -277,7 +270,7 @@ function NewMessageToSelectedAddresses(type, format, identity) {
       }
       composeFields.to = addressList;
       params.composeFields = composeFields;
-      msgComposeService.OpenComposeWindowWithParams(null, params);
+      MailServices.compose.OpenComposeWindowWithParams(null, params);
     }
   }
 }

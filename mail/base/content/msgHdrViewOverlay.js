@@ -41,6 +41,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 
 /* This is where functions related to displaying the headers for a selected message in the
    message pane live. */
@@ -1489,7 +1490,7 @@ function SendMailToNode(addressNode)
                         gFolderDisplay.displayedFolder.server);
   }
   params.composeFields = fields;
-  msgComposeService.OpenComposeWindowWithParams(null, params);
+  MailServices.compose.OpenComposeWindowWithParams(null, params);
 }
 
 /**
