@@ -294,7 +294,7 @@ richlistitem[error="true"] .accountStateIcon {
   opacity: .4;
 }
 
-#statusTypeIcon {
+#statusImageStack #statusTypeIcon {
   margin: 32px 0 0 32px;
   width: 16px;
   height: 16px;
@@ -342,40 +342,3 @@ richlistitem[error="true"] .accountStateIcon {
 #statusTypeIcon[status="idle"] {
   list-style-image: url('chrome://chat/skin/idle-16.png');
 }
-
-%ifdef XP_MACOSX
-#statusMessage {
-  margin: 32px 0 0;
-  min-height: 16px;
-}
-
-#statusMessage[editing] {
-  margin: 29px 2px 0 -4px;
-}
-
-#displayName[editing] {
-  margin-left: -4px;
-}
-%else
-#statusMessage {
-  margin: 32px 0 0;
-}
-
-#statusMessage[editing] {
-%ifdef XP_WIN
-  margin: 30px 0 1px -2px;
-%else
-  margin: 30px -2px -2px -4px;
-%endif
-}
-
-#displayName[editing] {
-%ifdef XP_WIN
-  margin-left: -2px;
-%else
-  margin-left: -4px;
-  margin-right: -2px;
-%endif
-  margin-bottom: 18px;
-}
-%endif

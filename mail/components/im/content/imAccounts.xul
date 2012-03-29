@@ -40,6 +40,7 @@
 <?xml-stylesheet href="chrome://messenger/content/chat/imAccounts.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/imRichlistbox.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/imAccounts.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/chat.css" type="text/css"?>
 
 <!DOCTYPE window [
  <!ENTITY % accountsDTD SYSTEM "chrome://messenger/locale/imAccounts.dtd">

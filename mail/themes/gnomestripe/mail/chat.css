@@ -70,7 +70,8 @@ toolbar[iconsize="small"] #button-join-chat[disabled] {
 #statusTypeIcon[status="available"],
 #statusTypeAvailable,
 .statusTypeIcon[status="available"],
-#imStatusAvailable {
+#imStatusAvailable,
+richlistitem[state="connected"] .accountStateIcon {
   list-style-image: url("chrome://messenger/skin/icons/status.png");
   -moz-image-region: rect(0px 16px 16px 0px);
 }
@@ -86,7 +87,8 @@ toolbar[iconsize="small"] #button-join-chat[disabled] {
 #statusTypeOffline,
 .statusTypeIcon[status="offline"],
 .statusTypeIcon[status="invisible"],
-#imStatusOffline {
+#imStatusOffline,
+richlistitem[state="disconnected"] .accountStateIcon {
   list-style-image: url("chrome://messenger/skin/icons/status.png");
   -moz-image-region: rect(0px 48px 16px 32px);
 }
@@ -98,4 +100,23 @@ toolbar[iconsize="small"] #button-join-chat[disabled] {
 .statusTypeIcon[status="away"] {
   list-style-image: url("chrome://messenger/skin/icons/status.png");
   -moz-image-region: rect(0px 64px 16px 48px);
+}
+
+#displayNameAndstatusMessageStack #statusMessage {
+  margin: 32px 0 0;
+}
+
+#displayNameAndstatusMessageStack #statusMessage[editing] {
+  margin: 30px -2px -2px -4px;
+}
+
+#displayNameAndstatusMessageStack #displayName[editing] {
+  margin-left: -4px;
+  margin-right: -2px;
+  margin-bottom: 18px;
+}
+
+#setStatusTypeMenupopup .menu-iconic-icon,
+#imAccountsStatus .menu-iconic-icon {
+  visibility: visible;
 }
