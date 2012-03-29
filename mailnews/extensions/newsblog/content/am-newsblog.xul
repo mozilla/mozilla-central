@@ -41,6 +41,7 @@
 %newsblogDTD;
 <!ENTITY % accountNoIdentDTD SYSTEM "chrome://messenger/locale/am-serverwithnoidentities.dtd" >
 %accountNoIdentDTD;
+<!ENTITY % accountServerTopDTD SYSTEM "chrome://messenger/locale/am-server-top.dtd">%accountServerTopDTD;
 ]>
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -54,8 +55,13 @@
           src="chrome://messenger-newsblog/content/am-newsblog.js"/>
   <script type="application/javascript"
           src="chrome://messenger-newsblog/content/newsblogOverlay.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/amUtils.js"/>
+
 
   <dialogheader id="am-newsblog-title" defaultTitle="&accountTitle.label;"/>
+
+  <description class="secDesc">&accountSettingsDesc.label;</description>
 
     <hbox align="center">
       <label value="&accountName.label;"
@@ -69,46 +75,77 @@
 
     <separator/>
 
-    <checkbox id="server.loginAtStartUp"
-              wsm_persist="true"
-              label="&loginAtStartup.label;"
-              accesskey="&loginAtStartup.accesskey;"
-              prefattribute="value"
-              prefstring="mail.server.%serverkey%.login_at_startup"/>
+    <groupbox>
+      <caption label="&serverSettings.label;"/>
 
-    <hbox align="center">
-      <checkbox id="server.doBiff"
+      <checkbox id="server.loginAtStartUp"
                 wsm_persist="true"
-                label="&biffStart.label;"
-                accesskey="&biffStart.accesskey;"
+                label="&loginAtStartup.label;"
+                accesskey="&loginAtStartup.accesskey;"
                 prefattribute="value"
-                prefstring="mail.server.%serverkey%.check_new_mail"/>
-      <textbox id="server.biffMinutes"
-               wsm_persist="true"
-               size="3"
-               preftype="int"
-               prefstring="mail.server.%serverkey%.check_time"
-               aria-labelledby="server.doBiff server.biffMinutes biffEnd"/>
-      <label id="biffEnd"
+                prefstring="mail.server.%serverkey%.login_at_startup"/>
+
+      <hbox align="center">
+        <checkbox id="server.doBiff"
+                  wsm_persist="true"
+                  label="&biffStart.label;"
+                  accesskey="&biffStart.accesskey;"
+                  prefattribute="value"
+                  prefstring="mail.server.%serverkey%.check_new_mail"/>
+        <textbox id="server.biffMinutes"
+                 wsm_persist="true"
+                 size="3"
+                 preftype="int"
+                 prefstring="mail.server.%serverkey%.check_time"
+                 aria-labelledby="server.doBiff server.biffMinutes biffEnd"/>
+        <label id="biffEnd"
              value="&biffEnd.label;"
              control="server.biffMinutes"/>
-    </hbox>
+      </hbox>
 
-    <checkbox id="server.quickMode"
-              wsm_persist="true"
-              genericattr="true"
-              label="&useQuickMode.label;"
-              accesskey="&useQuickMode.accesskey;"
-              preftype="bool"
-              prefattribute="value"
-              prefstring="mail.server.%serverkey%.quickMode"/>
+      <checkbox id="server.quickMode"
+                wsm_persist="true"
+                genericattr="true"
+                label="&useQuickMode.label;"
+                accesskey="&useQuickMode.accesskey;"
+                preftype="bool"
+                prefattribute="value"
+                prefstring="mail.server.%serverkey%.quickMode"/>
+    </groupbox>
 
-    <checkbox id="server.emptyTrashOnExit"
-              wsm_persist="true"
-              label="&emptyTrashOnExit.label;"
-              accesskey="&emptyTrashOnExit.accesskey;"
-              prefattribute="value"
-              prefstring="mail.server.%serverkey%.empty_trash_on_exit"/>
+    <separator class="thin"/>
+
+    <groupbox>
+      <caption label="&messageStorage.label;"/>
+
+      <checkbox id="server.emptyTrashOnExit"
+                wsm_persist="true"
+                label="&emptyTrashOnExit.label;"
+                accesskey="&emptyTrashOnExit.accesskey;"
+                prefattribute="value"
+                prefstring="mail.server.%serverkey%.empty_trash_on_exit"/>
+
+      <separator class="thin"/>
+
+      <vbox>
+        <label value="&localPath.label;" control="server.localPath"/>
+        <hbox align="center">
+          <textbox readonly="true"
+                   wsm_persist="true"
+                   flex="1"
+                   id="server.localPath"
+                   datatype="nsILocalFile"
+                   prefstring="mail.server.%serverkey%.directory"
+                   class="uri-element"/>
+          <button id="browseForLocalFolder"
+                  label="&browseFolder.label;"
+                  filepickertitle="&localFolderPicker.label;"
+                  accesskey="&browseFolder.accesskey;"
+                  oncommand="BrowseForLocalFolders();"/>
+        </hbox>
+      </vbox>
+
+    </groupbox>
 
     <separator class="thin"/>
 
@@ -116,6 +153,6 @@
       <spacer flex="1"/>
       <button label="&manageSubscriptions.label;"
               accesskey="&manageSubscriptions.accesskey;"
-              oncommand="openSubscriptionsDialog(gIncomingServer.rootFolder);"/>
+              oncommand="openSubscriptionsDialog(gServer.rootFolder);"/>
     </hbox>
 </page>

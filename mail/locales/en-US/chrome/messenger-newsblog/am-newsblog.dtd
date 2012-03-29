@@ -1,5 +1,3 @@
-<!ENTITY accountTitle.label "Account Settings">
-
 <!ENTITY biffStart.label "Check for new articles every ">
 <!ENTITY biffStart.accesskey "k">
 <!ENTITY biffEnd.label "minutes">

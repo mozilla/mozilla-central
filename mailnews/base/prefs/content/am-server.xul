@@ -345,61 +345,95 @@
       </hbox>
   -->
 
-    <hbox align="end">
-      <vbox align="start" flex="1" id="exitHandlingBox=">
-        <checkbox hidefor="pop3,nntp,movemail" wsm_persist="true" id="imap.cleanupInboxOnExit"
-                  label="&expungeOnExit.label;"
-                  accesskey="&expungeOnExit.accesskey;"
-                  prefattribute="value"
-                  prefstring="mail.server.%serverkey%.cleanup_inbox_on_exit"/>
-        <checkbox hidefor="nntp" wsm_persist="true" id="server.emptyTrashOnExit" 
-                  label="&emptyTrashOnExit.label;"
-                  accesskey="&emptyTrashOnExit.accesskey;"
-                  prefattribute="value"
-                  prefstring="mail.server.%serverkey%.empty_trash_on_exit"/>
-      </vbox>
-      <button label="&advancedButton.label;"
-              accesskey="&advancedButton.accesskey;"
-              oncommand="onAdvanced();"
-              wsm_persist="true" id="server.advancedbutton" 
-              prefstring="mail.server.%serverkey%.advanced.disable"
-              hidefor="nntp,movemail"/>
-    </hbox>
+    </groupbox>
 
-    <vbox hidefor="imap,pop3,movemail">
-      <label value="&newsrcFilePath.label;" control="nntp.newsrcFilePath"/>
-      <hbox align="center">
-        <textbox readonly="true" wsm_persist="true" flex="1" id="nntp.newsrcFilePath"
-                 datatype="nsILocalFile"
-                 prefstring="mail.server.%serverkey%.newsrc.file" class="uri-element"/>
-        <button id="browseForNewsrc" label="&browseNewsrc.label;" filepickertitle="&newsrcPicker.label;"
-                accesskey="&browseNewsrc.accesskey;" oncommand="BrowseForNewsrc()"/>
+    <groupbox>
+      <caption label="&messageStorage.label;"/>
+
+      <hbox align="end">
+        <vbox align="start" flex="1" id="exitHandlingBox=">
+          <checkbox hidefor="pop3,nntp,movemail"
+                    wsm_persist="true"
+                    id="imap.cleanupInboxOnExit"
+                    label="&expungeOnExit.label;"
+                    accesskey="&expungeOnExit.accesskey;"
+                    prefattribute="value"
+                    prefstring="mail.server.%serverkey%.cleanup_inbox_on_exit"/>
+          <checkbox hidefor="nntp"
+                    wsm_persist="true"
+                    id="server.emptyTrashOnExit"
+                    label="&emptyTrashOnExit.label;"
+                    accesskey="&emptyTrashOnExit.accesskey;"
+                    prefattribute="value"
+                    prefstring="mail.server.%serverkey%.empty_trash_on_exit"/>
+        </vbox>
+        <button label="&advancedButton.label;"
+                accesskey="&advancedButton.accesskey;"
+                oncommand="onAdvanced();"
+                wsm_persist="true"
+                id="server.advancedbutton"
+                prefstring="mail.server.%serverkey%.advanced.disable"
+                hidefor="nntp,movemail"/>
       </hbox>
-    </vbox>
+
+      <vbox hidefor="imap,pop3,movemail">
+        <label value="&newsrcFilePath.label;" control="nntp.newsrcFilePath"/>
+        <hbox align="center">
+          <textbox readonly="true"
+                   wsm_persist="true"
+                   flex="1"
+                   id="nntp.newsrcFilePath"
+                   datatype="nsILocalFile"
+                   prefstring="mail.server.%serverkey%.newsrc.file"
+                   class="uri-element"/>
+          <button id="browseForNewsrc"
+                  label="&browseNewsrc.label;"
+                  filepickertitle="&newsrcPicker.label;"
+                  accesskey="&browseNewsrc.accesskey;"
+                  oncommand="BrowseForNewsrc();"/>
+        </hbox>
+      </vbox>
+
+      <separator class="thin"/>
+
+      <vbox>
+      <label value="&localPath.label;" control="server.localPath"/>
+        <hbox align="center">
+          <textbox readonly="true"
+                   wsm_persist="true"
+                   flex="1"
+                   id="server.localPath"
+                   datatype="nsILocalFile"
+                   prefstring="mail.server.%serverkey%.directory"
+                   class="uri-element"/>
+          <button id="browseForLocalFolder"
+                  label="&browseFolder.label;"
+                  filepickertitle="&localFolderPicker.label;"
+                  accesskey="&browseFolder.accesskey;"
+                  oncommand="BrowseForLocalFolders();"/>
+        </hbox>
+      </vbox>
+
     </groupbox>
 
     <separator class="thin"/>
-    <vbox>
-      <label value="&localPath.label;" control="server.localPath"/>
-      <hbox align="center">
-        <textbox readonly="true" wsm_persist="true" flex="1" id="server.localPath" datatype="nsILocalFile"
-                 prefstring="mail.server.%serverkey%.directory" class="uri-element"/>
-        <button id="browseForLocalFolder" label="&browseFolder.label;" filepickertitle="&localFolderPicker.label;"
-                accesskey="&browseFolder.accesskey;" oncommand="BrowseForLocalFolders()"/>
-      </hbox>
-    </vbox>
-    <separator class="thin"/>
-     <hbox hidefor="imap,pop3,movemail" align="center" valign="middle" iscontrolcontainer="true">
-       <label value="&serverDefaultCharset.label;" control="nntp.charset"/>
-       <menulist hidable="true" hidefor="imap,pop3,movemail" wsm_persist="true" id="nntp.charset" 
-                   ref="NC:DecodersRoot" datasources="rdf:charset-menu"
-                   preftype="string" prefstring="mail.server.%serverkey%.charset"> 
-         <template>
-           <menupopup>
-             <menuitem label="rdf:http://home.netscape.com/NC-rdf#Name" value="..." uri="..."/>
-           </menupopup>
-         </template>
-       </menulist>
-     </hbox>
+
+    <hbox hidefor="imap,pop3,movemail" align="center" valign="middle" iscontrolcontainer="true">
+      <label value="&serverDefaultCharset.label;" control="nntp.charset"/>
+      <menulist hidable="true"
+                hidefor="imap,pop3,movemail"
+                wsm_persist="true"
+                id="nntp.charset"
+                ref="NC:DecodersRoot"
+                datasources="rdf:charset-menu"
+                preftype="string"
+                prefstring="mail.server.%serverkey%.charset">
+        <template>
+          <menupopup>
+            <menuitem label="rdf:http://home.netscape.com/NC-rdf#Name" value="..." uri="..."/>
+          </menupopup>
+        </template>
+      </menulist>
+    </hbox>
   </vbox>
 </page>

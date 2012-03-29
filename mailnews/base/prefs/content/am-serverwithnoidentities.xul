@@ -2,7 +2,10 @@
 
 <?xml-stylesheet href="chrome://messenger/skin/accountManage.css" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://messenger/locale/am-serverwithnoidentities.dtd" >
+<!DOCTYPE page [
+<!ENTITY % accountNoIdentDTD SYSTEM "chrome://messenger/locale/am-serverwithnoidentities.dtd" >%accountNoIdentDTD;
+<!ENTITY % accountServerTopDTD SYSTEM "chrome://messenger/locale/am-server-top.dtd">%accountServerTopDTD;
+]>
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       title="&accountTitle.label;"

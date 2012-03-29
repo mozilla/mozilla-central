@@ -34,7 +34,7 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 # ***** END LICENSE BLOCK *****
 
-var gIncomingServer;
+var gServer;
 
 function onInit(aPageId, aServerId)
 {
@@ -54,5 +54,5 @@ function onInit(aPageId, aServerId)
 
 function onPreInit(account, accountValues)
 {
-  gIncomingServer = account.incomingServer;
+  gServer = account.incomingServer;
 }
