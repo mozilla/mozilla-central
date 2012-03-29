@@ -102,6 +102,8 @@ function installInto(module) {
   // share the same code.
   module.select_contact = select_contacts;
   module.select_contacts = select_contacts;
+  module.edit_selected_contact = edit_selected_contact;
+  module.accept_contact_changes = accept_contact_changes;
 }
 
 /**
@@ -283,7 +285,7 @@ function load_contacts_into_address_book(aAddressBook, aContacts)
 
     if (!(contact instanceof Ci.nsIAbCard))
       contact = create_contact(contact.email,
-                                 contact.displayName, true);
+                               contact.displayName, true);
 
     aAddressBook.addCard(contact);
   }
@@ -452,3 +454,31 @@ function select_contacts(aContacts)
   }
 }
 
+/**
+ * Opens the contact editing dialog for the selected contact. Callers
+ * are responsible for closing the dialog.
+ *
+ * @param aController the address book window controller to use.
+ * @param aFunction the function to execute when the editing dialog
+ *                  is opened (since it's a modal dialog).  The function
+ *                  should take a single parameter, which will be the
+ *                  augmented controller for the editing dialog.
+ */
+function edit_selected_contact(aController, aFunction)
+{
+  windowHelper.plan_for_modal_dialog("abcardWindow", aFunction);
+  aController.click(aController.eid("button-editcard"));
+  windowHelper.wait_for_modal_dialog("abcardWindow");
+}
+
+/**
+ * Accepts the changes entered into the contact editing dialog, and closes
+ * the dialog.
+ *
+ * @param aController the contact editing dialog controller to use.
+ */
+function accept_contact_changes(aController)
+{
+  if (!aController.window.document.documentElement.acceptDialog())
+    throw new Error("Could not close the contact editing dialog!");
+}

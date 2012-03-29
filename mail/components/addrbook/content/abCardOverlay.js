@@ -207,28 +207,37 @@ function EditCardOKButton()
     directory = GetDirectoryFromURI(parentURI);
   }
 
-  var listDirectoriesCount = directory.addressLists.length;
-  var foundDirectories = new Array();
-  var foundDirectoriesCount = 0;
-  var i;
+  let listDirectoriesCount = directory.addressLists.length;
+  let foundDirectories = [];
+
   // create a list of mailing lists and the index where the card is at.
-  for ( i=0;  i < listDirectoriesCount; i++ ) {
-    var subdirectory = directory.addressLists.queryElementAt(i, Components.interfaces.nsIAbDirectory);
-    try {
-      var index = subdirectory.indexOf(gEditCard);
-      foundDirectories[foundDirectoriesCount] = {directory:subdirectory, index:index};
-      foundDirectoriesCount++;
-    } catch (ex) {}
+  for (let i = 0; i < listDirectoriesCount; i++) {
+    let subdir = directory.addressLists
+                          .queryElementAt(i, Components.interfaces.nsIAbDirectory);
+    if (subdir.isMailList) {
+      // See if any card in this list is the one we edited.
+      // Must compare card contents using .equals() instead of .indexOf()
+      // because gEditCard is not really a member of the .addressLists array.
+      let listCardsCount = subdir.addressLists.length;
+      for (let index = 0; index < listCardsCount; index++) {
+        let card = subdir.addressLists
+                         .queryElementAt(index, Components.interfaces.nsIAbCard);
+        if (card.equals(gEditCard.card))
+          foundDirectories.push({directory:subdir, cardIndex:index});
+      }
+    }
   }
-  
+
   CheckAndSetCardValues(gEditCard.card, document, false);
 
   directory.modifyCard(gEditCard.card);
-  
-  for (i=0; i < foundDirectoriesCount; i++) {
+
+  while (foundDirectories.length) {
     // Update the addressLists item for this card
-    foundDirectories[i].directory.addressLists
-                       .replaceElementAt(gEditCard.card, foundDirectories[i].index, false);
+    let foundItem = foundDirectories.pop();
+    foundItem.directory
+             .addressLists
+             .replaceElementAt(gEditCard.card, foundItem.cardIndex, false);
   }
 
   NotifySaveListeners(directory);
