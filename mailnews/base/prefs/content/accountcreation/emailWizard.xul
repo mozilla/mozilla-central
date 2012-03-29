@@ -447,8 +447,8 @@
                 hidden="false"
                 oncommand="gEmailConfigWizard.onNext();"/>
         <button id="create_button"
-                label="&createAccount.label;"
-                accesskey="&createAccount.accesskey;"
+                label="&doneAccount.label;"
+                accesskey="&doneAccount.accesskey;"
                 class="important-button"
                 hidden="true"
                 oncommand="gEmailConfigWizard.onCreate();"/>
@@ -502,8 +502,8 @@
                   oncommand="gSecurityWarningDialog.onCancel()"/>
           <spacer flex="1"/>
           <button id="iknow"
-                  label="&createAccount.label;"
-                  accesskey="&createAccount.accesskey;"
+                  label="&doneAccount.label;"
+                  accesskey="&doneAccount.accesskey;"
                   disabled="true"
                   oncommand="gSecurityWarningDialog.onOK()"/>
         </hbox>
