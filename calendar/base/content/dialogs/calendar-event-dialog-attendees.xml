@@ -1565,14 +1565,14 @@
         }
         if (event.originalTarget.localName == "input") {
             switch (event.keyCode) {
-                case 46:
-                case 8:
+                case KeyEvent.DOM_VK_DELETE:
+                case KeyEvent.DOM_VK_BACK_SPACE:
                     if (!event.originalTarget.value) {
                         this.deleteHit(event.originalTarget);
                     }
                     event.stopPropagation();
                     break;
-                case 13:
+                case KeyEvent.DOM_VK_RETURN:
                     this.arrowHit(event.originalTarget, 1);
                     event.stopPropagation();
                     event.preventDefault();
