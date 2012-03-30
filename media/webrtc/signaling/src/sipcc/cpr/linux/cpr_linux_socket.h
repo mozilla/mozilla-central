@@ -302,7 +302,7 @@ typedef uint16_t        sa_family_t;
 typedef struct
 {
     sa_family_t sun_family;  /* AF_LOCAL/AF_UNIX */
-    int8_t      sun_path[108];
+    char        sun_path[108];
 } cpr_sockaddr_un_t;
 
 

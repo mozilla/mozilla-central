@@ -351,7 +351,7 @@ cprGetMessage (cprMsgQueue_t msgQueue, boolean waitForever, void **ppUserData)
 {
     static const char fname[] = "cprGetMessage";
 	
-    uint32_t buffer = 0;
+    void *buffer = 0;
     cpr_msg_queue_t *msgq;
     cpr_msgq_node_t *node;
 	struct timespec timeout;
@@ -418,13 +418,13 @@ cprGetMessage (cprMsgQueue_t msgQueue, boolean waitForever, void **ppUserData)
 		if (ppUserData) {
 			*ppUserData = node->pUserData;
 		}
-		buffer = (long) node->msg;
+		buffer = node->msg;
 		
 	}
 	
 	pthread_mutex_unlock(&msgq->mutex);
 	
-    return (void *)(long) buffer;
+    return buffer;
 }
 
 
