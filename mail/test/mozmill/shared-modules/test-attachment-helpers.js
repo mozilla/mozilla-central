@@ -63,6 +63,7 @@ function installInto(module) {
   module.create_deleted_attachment = create_deleted_attachment;
   module.gMockFilePickReg = gMockFilePickReg;
   module.gMockFilePicker = gMockFilePicker;
+  module.select_attachments = select_attachments;
 }
 
 function MockFilePickerConstructor() {
@@ -206,3 +207,29 @@ function create_deleted_attachment(filename, type) {
   str += help_create_detached_deleted_attachment(filename, type);
   return str;
 }
+
+/**
+ * A helper function that selects either one, or a continuous range
+ * of items in the attachment list.
+ *
+ * @param aController a composer window controller
+ * @param aIndexStart the index of the first item to select
+ * @param aIndexEnd (optional) the index of the last item to select
+ */
+function select_attachments(aController, aIndexStart, aIndexEnd) {
+  let bucket = aController.e("attachmentBucket");
+  bucket.clearSelection();
+
+  if (aIndexEnd !== undefined) {
+    let startItem = bucket.getItemAtIndex(aIndexStart);
+    let endItem = bucket.getItemAtIndex(aIndexEnd);
+    bucket.selectItemRange(startItem, endItem);
+  } else {
+    bucket.selectedIndex = aIndexStart;
+  }
+
+  bucket.focus();
+  return bucket.selectedItems;
+}
+
+

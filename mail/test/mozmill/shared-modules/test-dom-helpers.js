@@ -76,9 +76,10 @@ function installInto(module) {
   // Now copy helper functions
   module.assert_element_visible = assert_element_visible;
   module.assert_element_not_visible = assert_element_not_visible;
+  module.wait_for_element = wait_for_element;
+  module.assert_next_nodes = assert_next_nodes;
+  module.assert_previous_nodes = assert_previous_nodes;
 }
-
-
 
 /**
  * This function takes either a string or an elementlibs.Elem, and returns
@@ -114,4 +115,58 @@ function assert_element_visible(aElt, aWhy) {
  */
 function assert_element_not_visible(aElt, aWhy) {
   folderDisplayHelper.assert_true(!element_visible(aElt), aWhy);
+}
+
+/**
+ * Wait for and return an element matching a particular CSS selector.
+ *
+ * @param aParent the node to begin searching from
+ * @param aSelector the CSS selector to search with
+ */
+function wait_for_element(aParent, aSelector) {
+  let target = null;
+  mc.waitFor(function() {
+    target = aParent.querySelector(aSelector);
+    return (target != null);
+  }, "Timed out waiting for a target for selector: " + aSelector);
+
+  return target;
+}
+
+/**
+ * Given some starting node aStart, ensure that aStart and the aNum next
+ * siblings of aStart are nodes of type aNodeType.
+ *
+ * @param aNodeType the type of node to look for, example: "br".
+ * @param aStart the first node to check.
+ * @param aNum the number of sibling br nodes to check for.
+ */
+function assert_next_nodes(aNodeType, aStart, aNum) {
+  let node = aStart;
+  for (let i = 0; i < aNum; ++i) {
+    node = node.nextSibling;
+    if (node.localName != aNodeType)
+      throw new Error("The node should be followed by " + aNum + " nodes of " +
+                      "type " + aNodeType);
+  }
+  return node;
+}
+
+/**
+ * Given some starting node aStart, ensure that aStart and the aNum previous
+ * siblings of aStart are nodes of type aNodeType.
+ *
+ * @param aNodeType the type of node to look for, example: "br".
+ * @param aStart the first node to check.
+ * @param aNum the number of sibling br nodes to check for.
+ */
+function assert_previous_nodes(aNodeType, aStart, aNum) {
+  let node = aStart;
+  for (let i = 0; i < aNum; ++i) {
+    node = node.previousSibling;
+    if (node.localName != aNodeType)
+      throw new Error("The node should be preceded by " + aNum + " nodes of " +
+                      "type " + aNodeType);
+  }
+  return node;
 }

@@ -51,16 +51,20 @@ const MODULE_NAME = 'compose-helpers';
 const RELATIVE_ROOT = '../shared-modules';
 
 // we need this for the main controller
-const MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
+const MODULE_REQUIRES = ['folder-display-helpers',
+                         'window-helpers',
+                         'dom-helpers'];
+const kTextNodeType = 3;
 
 var folderDisplayHelper;
 var mc;
-var windowHelper;
+var windowHelper, domHelper;
 
 function setupModule() {
   folderDisplayHelper = collector.getModule('folder-display-helpers');
   mc = folderDisplayHelper.mc;
   windowHelper = collector.getModule('window-helpers');
+  domHelper = collector.getModule('dom-helpers');
 }
 
 function installInto(module) {
@@ -79,13 +83,20 @@ function installInto(module) {
   module.add_attachments = add_attachments;
   module.add_attachment = add_attachments;
   module.delete_attachment = delete_attachment;
+  module.get_compose_body = get_compose_body;
+  module.type_in_composer = type_in_composer;
+  module.assert_previous_text = assert_previous_text;
 }
 
 /**
  * Opens the compose window by starting a new message
  *
+ * @param aController the controller for the mail:3pane from which to spawn
+ *                    the compose window.  If left blank, defaults to mc.
+ *
  * @return The loaded window of type "msgcompose" wrapped in a MozmillController
  *         that is augmented using augment_controller.
+ *
  */
 function open_compose_new_mail(aController) {
   if (aController === undefined)
@@ -298,4 +309,58 @@ function delete_attachment(aComposeWindow, aIndex) {
 
   aComposeWindow.click(new elib.Elem(node));
   aComposeWindow.window.RemoveSelectedAttachment();
+}
+
+/**
+ * Helper function returns the message body element of a composer window.
+ *
+ * @param aController the controller for a compose window.
+ */
+function get_compose_body(aController) {
+  let mailDoc = aController.e("content-frame").contentDocument;
+  return mailDoc.querySelector("body");
+}
+
+/**
+ * Given some compose window controller, type some text into that composer,
+ * pressing enter after each line except for the last.
+ *
+ * @param aController a compose window controller.
+ * @param aText an array of strings to type.
+ */
+function type_in_composer(aController, aText) {
+  // If we have any typing to do, let's do it.
+  let frame = aController.eid("content-frame");
+  for each (let [i, aLine] in Iterator(aText)) {
+    aController.type(frame, aLine);
+    if (i < aText.length - 1)
+      aController.keypress(frame, "VK_RETURN", {});
+  }
+}
+
+/**
+ * Given some starting node aStart, ensure that aStart is a text node which
+ * has a value matching the last value of the aText string array, and has
+ * a br node immediately preceding it. Repeated for each subsequent string
+ * of the aText array (working from end to start).
+ *
+ * @param aStart the first node to check
+ * @param aText an array of strings that should be checked for in reverse
+ *              order (so the last element of the array should be the first
+ *              text node encountered, the second last element of the array
+ *              should be the next text node encountered, etc).
+ */
+function assert_previous_text(aStart, aText) {
+  let textNode = aStart;
+  for (let i = aText.length - 1; i > 0; --i) {
+    if (textNode.nodeType != kTextNodeType)
+      throw new Error("Expected a text node");
+
+    if (textNode.nodeValue != aText[i])
+      throw new Error("Unexpected inequality - " + textNode.nodeValue + " != " +
+                      + aText[i]);
+    let br = domHelper.assert_previous_nodes("br", textNode, 1);
+    textNode = br.previousSibling;
+  }
+  return textNode;
 }

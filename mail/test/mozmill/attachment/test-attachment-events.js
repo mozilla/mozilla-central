@@ -52,30 +52,6 @@ function setupModule(module) {
 };
 
 /**
- * A helper function that selects either one, or a continuous range
- * of items in the attachment list.
- *
- * @param aController a composer window controller
- * @param aIndexStart the index of the first item to select
- * @param aIndexEnd (optional) the index of the last item to select
- */
-function select_attachments(aController, aIndexStart, aIndexEnd) {
-  let bucket = aController.e("attachmentBucket");
-  bucket.clearSelection();
-
-  if (aIndexEnd !== undefined) {
-    let startItem = bucket.getItemAtIndex(aIndexStart);
-    let endItem = bucket.getItemAtIndex(aIndexEnd);
-    bucket.selectItemRange(startItem, endItem);
-  } else {
-    bucket.selectedIndex = aIndexStart;
-  }
-
-  bucket.focus();
-  return bucket.selectedItems;
-}
-
-/**
  * Test that the attachments-added event is fired when we add a single
  * attachment.
  */
