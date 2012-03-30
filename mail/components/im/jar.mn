@@ -1,5 +1,6 @@
 messenger.jar:
 % overlay chrome://messenger/content/messenger.xul chrome://messenger/content/chat/chat-messenger-overlay.xul
+% style chrome://global/content/customizeToolbar.xul chrome://messenger/skin/chat.css
 *   content/messenger/chat/chat-messenger-overlay.xul    (content/chat-messenger-overlay.xul)
     content/messenger/chat/chat-messenger-overlay.js     (content/chat-messenger-overlay.js)
     content/messenger/chat/chat.css                      (content/chat.css)
