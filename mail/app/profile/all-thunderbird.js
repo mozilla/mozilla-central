@@ -781,3 +781,4 @@ pref("purple.conversations.im.send_typing", true);
 // BigFiles
 pref("mail.cloud_files.enabled", true);
 pref("mail.cloud_files.inserted_urls.footer.link", "http://www.getthunderbird.com");
+pref("mail.cloud_files.learn_more_url", "http://support.mozillamessaging.com/kb/file-link");
