@@ -575,17 +575,17 @@ nsMsgCompose::InsertDivWrappedTextAtSelection(const nsAString &aText,
 
   // Break up the text by newlines, and then insert text nodes followed
   // by <br> nodes.
-  nsAString::const_iterator start, end;
-  aText.BeginReading(start);
-  aText.EndReading(end);
+  PRInt32 start = 0;
+  PRInt32 end = aText.Length();
 
   for (;;)
   {
-    nsAString::const_iterator delimiter = start;
-    FindCharInReadable('\n', delimiter, end);
+    PRInt32 delimiter = aText.FindChar('\n', start);
+    if (delimiter == kNotFound)
+      delimiter = end;
 
     nsCOMPtr<nsIDOMText> textNode;
-    rv = doc->CreateTextNode(Substring(start, delimiter), getter_AddRefs(textNode));
+    rv = doc->CreateTextNode(Substring(aText, start, delimiter - start), getter_AddRefs(textNode));
     NS_ENSURE_SUCCESS(rv,);
 
     nsCOMPtr<nsIDOMNode> newTextNode = do_QueryInterface(textNode);
