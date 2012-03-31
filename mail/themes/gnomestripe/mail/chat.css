@@ -26,6 +26,22 @@
   border: none;
 }
 
+imconv,
+imcontact {
+  -moz-padding-start: 2px;
+  -moz-padding-end: 2px;
+}
+
+imconv[selected],
+imcontact[selected] {
+  background-color: Highlight;
+  color: HighlightText;
+}
+
+.conv-hbox {
+  -moz-box-align: center;
+}
+
 #button-add-buddy {
   list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
   -moz-image-region: rect(0px 22px 22px 0px);
