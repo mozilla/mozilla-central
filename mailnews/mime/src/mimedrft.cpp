@@ -652,6 +652,21 @@ MimeGetNamedString(PRInt32 id)
   return retString;
 }
 
+void
+MimeGetReplyHeaderOriginalMessage(nsACString &retString)
+{
+  nsCString defaultValue;
+  defaultValue.Adopt(MimeGetStringByID(MIME_FORWARDED_MESSAGE_HTML_USER_WROTE));
+
+  nsString tmpRetString;
+  NS_GetLocalizedUnicharPreferenceWithDefault(nsnull,
+    "mailnews.reply_header_originalmessage",
+    NS_ConvertUTF8toUTF16(defaultValue),
+    tmpRetString);
+
+  CopyUTF16toUTF8(tmpRetString, retString);
+}
+
 /* given an address string passed though parameter "address", this one will be converted
    and returned through the same parameter. The original string will be destroyed
 */
@@ -696,17 +711,18 @@ mime_insert_all_headers(char            **body,
     headers->done_p = true;
   }
 
+  nsCString replyHeader;
+  MimeGetReplyHeaderOriginalMessage(replyHeader);
   if (htmlEdit)
   {
     NS_MsgSACopy(&(newBody), "<HTML><BODY><BR><BR>");
-
-    NS_MsgSACat(&newBody, MimeGetNamedString(MIME_FORWARDED_MESSAGE_HTML_USER_WROTE));
+    NS_MsgSACat(&newBody, replyHeader.get());
     NS_MsgSACat(&newBody, MIME_HEADER_TABLE);
   }
   else
   {
     NS_MsgSACopy(&(newBody), MSG_LINEBREAK MSG_LINEBREAK);
-    NS_MsgSACat(&newBody, MimeGetNamedString(MIME_FORWARDED_MESSAGE_HTML_USER_WROTE));
+    NS_MsgSACat(&newBody, replyHeader.get());
   }
 
   for (i = 0; i < headers->heads_size; i++)
@@ -847,16 +863,18 @@ mime_insert_normal_headers(char             **body,
   UnquoteMimeAddress(parser, &to);
   UnquoteMimeAddress(parser, &cc);
 
+  nsCString replyHeader;
+  MimeGetReplyHeaderOriginalMessage(replyHeader);
   if (htmlEdit)
   {
     NS_MsgSACopy(&(newBody), "<HTML><BODY><BR><BR>");
-    NS_MsgSACat(&newBody, MimeGetNamedString(MIME_FORWARDED_MESSAGE_HTML_USER_WROTE));
+    NS_MsgSACat(&newBody, replyHeader.get());
     NS_MsgSACat(&newBody, MIME_HEADER_TABLE);
   }
   else
   {
     NS_MsgSACopy(&(newBody), MSG_LINEBREAK MSG_LINEBREAK);
-    NS_MsgSACat(&newBody, MimeGetNamedString(MIME_FORWARDED_MESSAGE_HTML_USER_WROTE));
+    NS_MsgSACat(&newBody, replyHeader.get());
   }
   if (subject)
     mime_intl_insert_message_header_1(&newBody, &subject, HEADER_SUBJECT,
@@ -1021,16 +1039,19 @@ mime_insert_micro_headers(char            **body,
   UnquoteMimeAddress(parser, &to);
   UnquoteMimeAddress(parser, &cc);
 
+  nsCString replyHeader;
+  MimeGetReplyHeaderOriginalMessage(replyHeader);
+
   if (htmlEdit)
   {
     NS_MsgSACopy(&(newBody), "<HTML><BODY><BR><BR>");
-    NS_MsgSACat(&newBody, MimeGetNamedString(MIME_FORWARDED_MESSAGE_HTML_USER_WROTE));
+    NS_MsgSACat(&newBody, replyHeader.get());
     NS_MsgSACat(&newBody, MIME_HEADER_TABLE);
   }
   else
   {
     NS_MsgSACopy(&(newBody), MSG_LINEBREAK MSG_LINEBREAK);
-    NS_MsgSACat(&newBody, MimeGetNamedString(MIME_FORWARDED_MESSAGE_HTML_USER_WROTE));
+    NS_MsgSACat(&newBody, replyHeader.get());
   }
 
   if (from)
