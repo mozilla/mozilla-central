@@ -80,7 +80,6 @@
 #include "nsIMsgHeaderParser.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
-#include "nsEscape.h"
 
 //
 // Header strings...
@@ -625,7 +624,7 @@ mime_intl_insert_message_header_1(char        **body,
     if (NULL != utf8) {
       char *escaped = nsnull;
       if (htmlEdit)
-        escaped = nsEscapeHTML(utf8);
+        escaped = MsgEscapeHTML(utf8);
       NS_MsgSACat(body, escaped ? escaped : utf8);
       NS_Free(escaped);
       PR_Free(utf8);
