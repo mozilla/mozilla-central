@@ -3,6 +3,8 @@
 <!DOCTYPE bindings [
   <!ENTITY % textcontextDTD SYSTEM "chrome://communicator/locale/utilityOverlay.dtd">
   %textcontextDTD;
+  <!ENTITY % navigatorDTD SYSTEM "chrome://navigator/locale/navigator.dtd">
+  %navigatorDTD;
 ]>
 
 <bindings id="urlbarBindings"
@@ -266,6 +268,11 @@
     </implementation>
 
     <handlers>
+      <handler event="keypress"
+               key="&locationBar.accesskey;"
+               modifiers="access"
+               action="this.select();"/>
+
       <handler event="ValueChange"><![CDATA[
         if (this._formattingEnabled && !this.focused)
           this._formatValue(true);
