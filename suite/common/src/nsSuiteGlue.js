@@ -79,6 +79,28 @@ SuiteGlue.prototype = {
     Services.prefs.setBoolPref("browser.sessionstore.resume_session_once", true);
   },
 
+  _logConsoleAPI: function(aEvent)
+  {
+    const nsIScriptError = Components.interfaces.nsIScriptError;
+    var flg = nsIScriptError.errorFlag;
+    switch (aEvent.level) {
+      case "warn":
+        flg = nsIScriptError.warningFlag;
+      case "error":
+        var scriptError = Components.classes["@mozilla.org/scripterror;1"]
+                                    .createInstance(nsIScriptError);
+        scriptError.initWithWindowID(Array.slice(aEvent.arguments),
+                                     aEvent.filename, "", aEvent.lineNumber, 0,
+                                     flg, "content javascript", aEvent.innerID);
+        Services.console.logMessage(scriptError);
+        break;
+      case "log":
+      case "info":
+        Services.console.logStringMessage(Array.slice(aEvent.arguments));
+        break;
+    }
+  },
+
   _setSyncAutoconnectDelay: function BG__setSyncAutoconnectDelay() {
     // Assume that a non-zero value for services.sync.autoconnectDelay should override
     if (Services.prefs.prefHasUserValue("services.sync.autoconnectDelay")) {
@@ -141,6 +163,10 @@ SuiteGlue.prototype = {
       case "browser-lastwindow-close-granted":
         if (this._saveSession)
           this._setPrefToSaveSession();
+        break;
+      case "console-api-log-event":
+        if (Services.prefs.getBoolPref("browser.dom.window.console.enabled"))
+          this._logConsoleAPI(subject.wrappedJSObject);
         break;
       case "weave:service:ready":
         this._setSyncAutoconnectDelay();
@@ -235,6 +261,7 @@ SuiteGlue.prototype = {
     Services.obs.addObserver(this, "quit-application-granted", false);
     Services.obs.addObserver(this, "browser-lastwindow-close-requested", false);
     Services.obs.addObserver(this, "browser-lastwindow-close-granted", false);
+    Services.obs.addObserver(this, "console-api-log-event", false);
     Services.obs.addObserver(this, "weave:service:ready", false);
     Services.obs.addObserver(this, "session-save", false);
     Services.obs.addObserver(this, "dl-done", false);
@@ -262,6 +289,7 @@ SuiteGlue.prototype = {
     Services.obs.removeObserver(this, "quit-application-granted");
     Services.obs.removeObserver(this, "browser-lastwindow-close-requested");
     Services.obs.removeObserver(this, "browser-lastwindow-close-granted");
+    Services.obs.removeObserver(this, "console-api-log-event");
     Services.obs.removeObserver(this, "weave:service:ready");
     Services.obs.removeObserver(this, "session-save");
     Services.obs.removeObserver(this, "dl-done");

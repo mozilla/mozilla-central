@@ -103,6 +103,9 @@ pref("browser.download.progress.closeWhenDone", false);
 // feedback from their action.
 pref("browser.download.saveLinkAsFilenameTimeout", 4000);
 
+// Output console.log/info/warn/error to the Error Console
+pref("browser.dom.window.console.enabled", false);
+
 // Use the findbar instead of the dialog box
 pref("browser.findbar.enabled", true);
 
