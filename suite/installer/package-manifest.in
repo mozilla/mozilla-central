@@ -318,6 +318,8 @@
 @BINPATH@/components/addonManager.js
 @BINPATH@/components/amContentHandler.js
 @BINPATH@/components/amWebInstallListener.js
+@BINPATH@/components/BrowserElementAPI.js
+@BINPATH@/components/BrowserElementAPI.manifest
 @BINPATH@/components/ConsoleAPI.js
 @BINPATH@/components/ConsoleAPI.manifest
 @BINPATH@/components/ContactManager.js

@@ -580,6 +580,7 @@ xpicleanup@BIN_SUFFIX@
   components/addonManager.js
   components/amContentHandler.js
   components/amWebInstallListener.js
+  components/BrowserElementAPI.js
   components/ConsoleAPI.js
   components/ContactManager.js
   components/contentAreaDropListener.js
