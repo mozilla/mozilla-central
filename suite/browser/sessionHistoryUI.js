@@ -123,6 +123,7 @@ function executeUrlBarHistoryCommand( aTarget )
     if (index != "nothing_available" && label)
       {
         gURLBar.value = label;
+        UpdatePageProxyState();
         handleURLBarCommand();
       }
   }
