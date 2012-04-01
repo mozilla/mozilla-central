@@ -160,13 +160,13 @@ var gSyncSetup = {
   resetPassphrase: function resetPassphrase() {
     // Apply the existing form fields so that
     // Weave.Service.changePassphrase() has the necessary credentials.
-    Weave.Service.account = document.getElementById("existingAccountName").value;
-    Weave.Service.password = document.getElementById("existingPassword").value;
+    Weave.Identity.account = document.getElementById("existingAccountName").value;
+    Weave.Identity.basicPassword = document.getElementById("existingPassword").value;
 
     // Generate a new passphrase so that Weave.Service.login() will
     // actually do something.
     let passphrase = Weave.Utils.generatePassphrase();
-    Weave.Service.passphrase = passphrase;
+    Weave.Identity.syncKey = passphrase;
 
     // Only open the dialog if username + password are actually correct.
     Weave.Service.login();
@@ -190,7 +190,7 @@ var gSyncSetup = {
 
   onResetPassphrase: function () {
     document.getElementById("existingPassphrase").value =
-      Weave.Utils.hyphenatePassphrase(Weave.Service.passphrase);
+      Weave.Utils.hyphenatePassphrase(Weave.Identity.syncKey);
     this.checkFields();
     this.wizard.advance();
   },
@@ -323,7 +323,7 @@ var gSyncSetup = {
     this._setFeedbackMessage(feedback, valid, str);
     this.status.email = valid;
     if (valid)
-      Weave.Service.account = value;
+      Weave.Identity.account = value;
     this.checkFields();
   },
 
@@ -349,7 +349,7 @@ var gSyncSetup = {
 
   onPassphraseGenerate: function () {
     let passphrase = Weave.Utils.generatePassphrase();
-    Weave.Service.passphrase = passphrase;
+    Weave.Identity.syncKey = passphrase;
     let el = document.getElementById("weavePassphrase");
     el.value = Weave.Utils.hyphenatePassphrase(passphrase);
   },
@@ -468,8 +468,8 @@ var gSyncSetup = {
                                                 challenge, response);
 
         if (error == null) {
-          Weave.Service.account = email;
-          Weave.Service.password = password;
+          Weave.Identity.account = email;
+          Weave.Identity.basicPassword = password;
           this._handleNoScript(false);
           this.wizard.pageIndex = SETUP_SUCCESS_PAGE;
           return false;
@@ -485,11 +485,11 @@ var gSyncSetup = {
         this.captchaBrowser.loadURI(Weave.Service.miscAPI + "captcha_html");
         break;
       case EXISTING_ACCOUNT_LOGIN_PAGE:
-        Weave.Service.account = Weave.Utils.normalizeAccount(
+        Weave.Identity.account = Weave.Utils.normalizeAccount(
           document.getElementById("existingAccountName").value);
-        Weave.Service.password = document.getElementById("existingPassword").value;
+        Weave.Identity.basicPassword = document.getElementById("existingPassword").value;
         let pp = document.getElementById("existingPassphrase").value;
-        Weave.Service.passphrase = Weave.Utils.normalizePassphrase(pp);
+        Weave.Identity.syncKey = Weave.Utils.normalizePassphrase(pp);
         if (Weave.Service.login())
           this.wizard.pageIndex = SETUP_SUCCESS_PAGE;
         return false;
@@ -613,9 +613,9 @@ var gSyncSetup = {
       onPaired: function onPaired() {},
 
       onComplete: function onComplete(credentials) {
-        Weave.Service.account = credentials.account;
-        Weave.Service.password = credentials.password;
-        Weave.Service.passphrase = credentials.synckey;
+        Weave.Identity.account = credentials.account;
+        Weave.Identity.basicPassword = credentials.password;
+        Weave.Identity.syncKey = credentials.synckey;
         Weave.Service.serverURL = credentials.serverURL;
         self.wizard.pageIndex = SETUP_SUCCESS_PAGE;
       },
