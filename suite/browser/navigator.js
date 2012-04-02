@@ -214,7 +214,15 @@ const gFormSubmitObserver = {
     }, false);
 
     this.panel.hidden = false;
-    this.panel.openPopup(element, "after_start", 0, 0);
+
+    var style = element.ownerDocument.defaultView.getComputedStyle(element, null);
+
+    var offset = style.direction == 'rtl' ? parseInt(style.paddingRight) + 
+                                            parseInt(style.borderRightWidth) :
+                                            parseInt(style.paddingLeft) +
+                                            parseInt(style.borderLeftWidth);
+
+    this.panel.openPopup(element, "after_start", offset, 0);
   }
 };
 
