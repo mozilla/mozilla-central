@@ -37,6 +37,11 @@
   border: none;
 }
 
+/* Set a background color to avoid lightweight theme backgrounds */
+#contextPane {
+  background-color: #FFFFFF;
+}
+
 /* Adaptation of #searchInput from pinstripe/mail/searchBox.css */
 /* it looks like appearance: searchfield gets us our search icon... */
 #IMSearchInput {

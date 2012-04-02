@@ -116,13 +116,8 @@ imgroup {
 %ifdef XP_MACOSX
   /* Copy of .main-header-area from pinstripe/mail/messageHeader.css */
   color: #2E3436; /* Aluminium 6 */
-  background: -moz-linear-gradient(top, #909090, #FFFFFF 5px);
-  border-bottom:1px solid #BFBFBF;
+  border-bottom:1px solid #BFBFBF !important;
   padding: 0.6ex;
-}
-
-.conv-top-info:-moz-window-inactive {
-  background: -moz-linear-gradient(top, #CDCDCD, #FFFFFF 5px);
 %else
   background-color: -moz-Dialog;
 %ifdef XP_WIN
