@@ -385,10 +385,10 @@ nsresult nsMessengerUnixIntegration::ShowAlertMessage(const nsAString& aAlertTit
 
   if (showAlert)
   {
+    mAlertInProgress = true;
 #ifdef MOZ_THUNDERBIRD
     nsCOMPtr<nsIAlertsService> alertsService(do_GetService(NS_SYSTEMALERTSERVICE_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv)) {
-      mAlertInProgress = true;
       rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(NEW_MAIL_ALERT_ICON),
                                                 aAlertTitle,
                                                 aAlertText,
@@ -400,7 +400,7 @@ nsresult nsMessengerUnixIntegration::ShowAlertMessage(const nsAString& aAlertTit
         return rv;
     }
     AlertFinished();
-    ShowNewAlertNotification(false);
+    rv = ShowNewAlertNotification(false);
 
 #else
     nsCOMPtr<nsIAlertsService> alertsService (do_GetService(NS_ALERTSERVICE_CONTRACTID, &rv));
@@ -410,12 +410,11 @@ nsresult nsMessengerUnixIntegration::ShowAlertMessage(const nsAString& aAlertTit
                                                 aAlertText, true,
                                                 NS_ConvertASCIItoUTF16(aFolderURI), this,
                                                 EmptyString());
-      mAlertInProgress = true;
     }
 #endif
   }
 
-  if (!showAlert || NS_FAILED(rv)) // go straight to showing the system tray icon.
+  if (NS_FAILED(rv)) // go straight to showing the system tray icon.
     AlertFinished();
 
   return rv;
@@ -470,17 +469,14 @@ nsresult nsMessengerUnixIntegration::ShowNewAlertNotification(bool aUserInitiate
     nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
     nsCOMPtr<nsIDOMWindow> newWindow;
 
+    mAlertInProgress = true;
     rv = wwatch->OpenWindow(0, ALERT_CHROME_URL, "_blank",
                             "chrome,dialog=yes,titlebar=no,popup=yes", argsArray,
                             getter_AddRefs(newWindow));
 
-    mAlertInProgress = true;
+    if (NS_FAILED(rv))
+      AlertFinished();
   }
-
-  // if the user has turned off the mail alert, or openWindow generated an error,
-  // then go straight to the system tray.
-  if (!showAlert || NS_FAILED(rv))
-    AlertFinished();
 
   return rv;
 }
