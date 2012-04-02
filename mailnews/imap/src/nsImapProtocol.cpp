@@ -9081,7 +9081,10 @@ nsresult nsImapMockChannel::ReadFromMemCache(nsICacheEntryDescriptor *entry)
     PRInt32 findPos = MsgFindCharInSet(nsDependentCString(firstBlock),
                                        ":\n\r", 0);
     // Check that the first line is a header line, i.e., with a ':' in it
-    shouldUseCacheEntry = findPos != -1 && firstBlock[findPos] == ':';
+    // Or that it begins with "From " because some IMAP servers allow that,
+    // even though it's technically invalid.
+    shouldUseCacheEntry = ((findPos != -1 && firstBlock[findPos] == ':') ||
+                           !(strncmp(firstBlock, "From ", 5)));
     in->Close();
   }
   if (shouldUseCacheEntry)
