@@ -1131,13 +1131,24 @@ nsMsgComposeAndSend::PreProcessPart(nsMsgAttachmentHandler  *ma,
   }
   else
     ma->mURL->GetSpec(turl);
-  hdrs = mime_generate_attachment_headers (ma->m_type.get(),
+
+  nsCString type(ma->m_type);
+  nsCString realName(ma->m_realName);
+
+  // for cloud attachments, make the part an html part with no name,
+  // so we don't show it as an attachment.
+  if (ma->mSendViaCloud)
+  {
+    type.Assign("text/html");
+    realName.Truncate();
+  }
+  hdrs = mime_generate_attachment_headers (type.get(),
                                            ma->m_typeParam.get(),
                                            ma->m_encoding.get(),
                                            ma->m_description.get(),
                                            ma->m_xMacType.get(),
                                            ma->m_xMacCreator.get(),
-                                           ma->m_realName.get(),
+                                           realName.get(),
                                            turl.get(),
                                            m_digest_p,
                                            ma,
@@ -1158,8 +1169,13 @@ nsMsgComposeAndSend::PreProcessPart(nsMsgAttachmentHandler  *ma,
   PR_FREEIF(hdrs);
   if (ma->mSendViaCloud)
   {
-    // here is where we'd insert the annotated html
-    part->SetBuffer(ma->mCloudUrl.get());
+    // put the url in an html part
+    nsCString htmlPart("<html><body><a href=\"");
+    htmlPart.Append(ma->mCloudUrl);
+    htmlPart.Append("\">");
+    htmlPart.Append(ma->mCloudUrl);
+    htmlPart.Append("</a></body></html>");
+    part->SetBuffer(htmlPart.get());
     if (m_deliver_mode == nsMsgSaveAsDraft)
     {
       nsCString urlSpec;
