@@ -1161,11 +1161,14 @@ function popupNotificationMenuShowing(event)
   separator.hidden = !createShowPopupsMenu(event.target, notificationbox.activeBrowser);
 }
 
-function createShowPopupsMenu(parent, browser)
+function RemovePopupsItems(parent)
 {
   while (parent.lastChild && ("popup" in parent.lastChild))
     parent.removeChild(parent.lastChild);
+}
 
+function createShowPopupsMenu(parent, browser)
+{
   if (!browser)
     return false;
 

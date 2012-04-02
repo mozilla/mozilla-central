@@ -465,7 +465,8 @@
 
   <menupopup id="popupNotificationMenu"
          oncommand="popupBlockerMenuCommand(event.target);"
-         onpopupshowing="return popupNotificationMenuShowing(event)">
+         onpopupshowing="return popupNotificationMenuShowing(event);"
+         onpopuphiding="RemovePopupsItems(this);">
     <menuitem id="allowPopupsForSite" hidden="true" accesskey="&allowPopups.accesskey;"
               oncommand="this.notificationbox.allowPopupsForSite(event);"/>
     <menuitem id="showPopupManager" label="&showPopupManager.label;"

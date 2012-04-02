@@ -162,7 +162,8 @@
 
     <menupopup id="popupBlockerMenu"
                oncommand="popupBlockerMenuCommand(event.target);"
-               onpopupshowing="return popupBlockerMenuShowing(event)"/>
+               onpopupshowing="return popupBlockerMenuShowing(event);"
+               onpopuphiding="RemovePopupsItems(this);"/>
     <!-- Items are generated, see popupBlockerMenuShowing() -->
     <menupopup id="popupNotificationMenu"/>
     <menupopup id="networkProperties"/>

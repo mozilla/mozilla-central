@@ -601,7 +601,8 @@
               label="&cookiePopupManager.label;"
               accesskey="&cookiePopupManager.accesskey;"
               oncommand="popupBlockerMenuCommand(event.target);">
-          <menupopup onpopupshowing="CheckForVisibility(event);">
+          <menupopup onpopupshowing="CheckForVisibility(event);"
+                     onpopuphiding="RemovePopupsItems(this);">
             <menuitem id="AllowPopups"
                       label="&cookieAllowPopupsCmd.label;"
                       accesskey="&cookieAllowPopupsCmd.accesskey;"
