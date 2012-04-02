@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #newMsgButton-mail-menuitem {
-  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
+  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png) !important;
   -moz-image-region: rect(1px 35px 17px 19px) !important;
 }
 
