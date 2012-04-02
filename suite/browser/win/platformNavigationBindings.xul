@@ -21,8 +21,9 @@
     <key id="key_fullScreen" keycode="VK_F11" command="View:FullScreen"/>
     <key id="key_newTabWithTargetBg" keycode="VK_INSERT" command="cmd_newTabWithTarget"/>
     <key id="key_newTabWithTargetFg" keycode="VK_INSERT" modifiers="alt" command="cmd_newTabWithTarget"/>
+
+    <!-- Location bar -->
+    <key keycode="VK_F6" oncommand="focusNextFrame(event);" modifiers="shift any"/>
   </keyset>
 
 </overlay>
-
-

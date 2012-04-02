@@ -2152,6 +2152,17 @@ function setStyleDisabled(disabled) {
   getMarkupDocumentViewer().authorStyleDisabled = disabled;
 }
 
+function focusNextFrame(aEvent)
+{
+  var fm = Components.classes["@mozilla.org/focus-manager;1"]
+                     .getService(Components.interfaces.nsIFocusManager);
+  var dir = aEvent.shiftKey ? fm.MOVEFOCUS_BACKWARDDOC
+                            : fm.MOVEFOCUS_FORWARDDOC;
+  var element = fm.moveFocus(window, null, dir, fm.FLAG_BYKEY);
+  if (element && element.ownerDocument == document)
+    ShowAndSelectContentsOfURLBar();
+}
+
 function URLBarFocusHandler(aEvent)
 {
   if (gIgnoreFocus)
