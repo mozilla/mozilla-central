@@ -679,6 +679,11 @@
               }
             }
 
+            // Update maxAddressesBeforeMore if we exceed the current cache
+            // estimate, but only if we aren't supposed to show all addresses.
+            if (!all && this.maxAddressesBeforeMore < i)
+              this.maxAddressesBeforeMore = i;
+
             // Hide any extra nodes but keep them around for later.
             cached = aAddressesNode.childNodes.length;
             for (let j = Math.max(i*2 - 1, 0); j < cached; j++) {
@@ -713,10 +718,13 @@
 
       <!-- The number of lines of addresses we will display before adding a
            (more) indicator to the widget. This can be increased using the
-           preference mailnews.headers.show_n_lines_before_more .
-           This will also influence how many address elements are cached
-           for the lifetime of the widget. -->
+           preference mailnews.headers.show_n_lines_before_more . -->
       <field name="maxLinesBeforeMore">1</field>
+
+      <!-- The number addresses which did fit up to now before the (more)
+           indicator became necessary to be added. This determines how many
+           address elements are cached for the lifetime of the widget. -->
+      <field name="maxAddressesBeforeMore">1</field>
 
       <!-- Public method to build the DOM nodes for display, to be called
            after all the addresses have been added to the widget. It uses
