@@ -106,9 +106,12 @@ function ircMessage(aData) {
 
 function ircChannel(aAccount, aName, aNick) {
   this._init(aAccount, aName, aNick);
+  this._observedNicks = [];
 }
 ircChannel.prototype = {
   __proto__: GenericConvChatPrototype,
+  _observedNicks: [],
+
   sendMsg: function(aMessage) {
     this._account.sendMessage("PRIVMSG", [this.name, aMessage]);
 
@@ -149,6 +152,8 @@ ircChannel.prototype = {
   unInit: function() {
     this._account.removeConversation(this.name);
     GenericConvChatPrototype.unInit.call(this);
+    if (this._observedNicks.length)
+      Services.obs.removeObserver(this, "user-info-received");
   },
 
   getNormalizedChatBuddyName: function(aNick)
@@ -222,6 +227,26 @@ ircChannel.prototype = {
   get topicSettable() true,
 
   get normalizedName() this._account.normalize(this.name),
+
+  waitForBuddyInfo: function(aNick) {
+    if (!this._observedNicks.length)
+      Services.obs.addObserver(this, "user-info-received", false);
+    this._observedNicks.push(this._account.normalize(aNick));
+  },
+
+  observe: function(aSubject, aTopic, aData) {
+    if (aTopic != "user-info-received")
+      return;
+
+    let nickIndex = this._observedNicks.indexOf(this._account.normalize(aData));
+    if (nickIndex == -1)
+      return;
+    this._observedNicks.splice(nickIndex, 1);
+    if (!this._observedNicks.length)
+      Services.obs.removeObserver(this, "user-info-received");
+    this._account.writeWhois(this, aData,
+                             aSubject.QueryInterface(Ci.nsISimpleEnumerator));
+  }
 };
 
 function ircParticipant(aName, aAccount) {
@@ -273,9 +298,12 @@ function ircConversation(aAccount, aName) {
     this.buddy = aAccount.getBuddy(aName);
 
   this._init(aAccount, aName);
+  this._observedNicks = [];
 }
 ircConversation.prototype = {
   __proto__: GenericConvIMPrototype,
+  _observedNicks: [],
+
   sendMsg: function(aMessage) {
     this._account.sendMessage("PRIVMSG", [this.name, aMessage]);
 
@@ -297,11 +325,33 @@ ircConversation.prototype = {
   unInit: function() {
     this._account.removeConversation(this.name);
     GenericConvIMPrototype.unInit.call(this);
+    if (this._observedNicks.length)
+      Services.obs.removeObserver(this, "user-info-received");
   },
 
   updateNick: function(aNewNick) {
     this._name = aNewNick;
     this.notifyObservers(null, "update-conv-title");
+  },
+
+  waitForBuddyInfo: function(aNick) {
+    if (!this._observedNicks.length)
+      Services.obs.addObserver(this, "user-info-received", false);
+    this._observedNicks.push(this._account.normalize(aNick));
+  },
+
+  observe: function(aSubject, aTopic, aData) {
+    if (aTopic != "user-info-received")
+      return;
+
+    let nickIndex = this._observedNicks.indexOf(this._account.normalize(aData));
+    if (nickIndex == -1)
+      return;
+    this._observedNicks.splice(nickIndex, 1);
+    if (!this._observedNicks.length)
+      Services.obs.removeObserver(this, "user-info-received");
+    this._account.writeWhois(this, aData,
+                             aSubject.QueryInterface(Ci.nsISimpleEnumerator));
   }
 };
 
@@ -495,7 +545,14 @@ ircAccount.prototype = {
   // Request WHOIS information on a buddy when the user requests more
   // information.
   requestBuddyInfo: function(aBuddyName) {
+    this.removeBuddyInfo(aBuddyName);
     this.sendMessage("WHOIS", aBuddyName);
+  },
+  // Request WHOWAS information on a buddy when the user requests more
+  // information.
+  requestOfflineBuddyInfo: function(aBuddyName) {
+    this.removeBuddyInfo(aBuddyName);
+    this.sendMessage("WHOWAS", aBuddyName);
   },
   // Return an nsISimpleEnumerator of imITooltipInfo for a given nick.
   getBuddyInfo: function(aNick) {
@@ -506,11 +563,45 @@ ircAccount.prototype = {
     let whoisInformation = this.whoisInformation[nick];
     let tooltipInfo = [];
     for (let field in whoisInformation) {
-      let value = whoisInformation[field];
-      tooltipInfo.push(new TooltipInfo(_("tooltip." + field), value));
+      if (field != "nick" && field != "offline") {
+        let value = whoisInformation[field];
+        tooltipInfo.push(new TooltipInfo(_("tooltip." + field), value));
+      }
     }
 
     return new nsSimpleEnumerator(tooltipInfo);
+  },
+  // Remove a WHOIS entry.
+  removeBuddyInfo: function(aNick) {
+    let nick = this.normalize(aNick);
+    if (hasOwnProperty(this.whoisInformation, nick))
+      delete this.whoisInformation[nick];
+  },
+  // Write WHOIS information to a conversation.
+  writeWhois: function(aConv, aNick, aTooltipInfo) {
+    let nick = this.normalize(aNick);
+    // RFC 2812 errors 401 and 406 result in there being no entry for the nick.
+    if (!hasOwnProperty(this.whoisInformation, nick)) {
+      aConv.writeMessage(null, _("message.unknownNick", nick), {system: true});
+      return;
+    }
+    // If the nick is offline, tell the user. In that case, it's WHOWAS info.
+    let msgType = "message.whois";
+    if ("offline" in this.whoisInformation[nick])
+      msgType = "message.whowas";
+    let msg = _(msgType, this.whoisInformation[nick]["nick"]);
+    while (aTooltipInfo.hasMoreElements()) {
+      let elt = aTooltipInfo.getNext().QueryInterface(Ci.prplITooltipInfo);
+      switch (elt.type) {
+        case Ci.prplITooltipInfo.pair:
+        case Ci.prplITooltipInfo.sectionHeader:
+          msg += "\n" + _("message.whoisEntry", elt.label, elt.value);
+          break;
+        case Ci.prplITooltipInfo.sectionBreak:
+          break;
+      }
+    }
+    aConv.writeMessage(null, msg, {system: true});
   },
 
   addBuddy: function(aTag, aName) {

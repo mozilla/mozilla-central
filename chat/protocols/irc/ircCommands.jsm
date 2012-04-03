@@ -38,10 +38,16 @@
 // implementing the commands field before we register them.
 const EXPORTED_SYMBOLS = ["commands"];
 
-Components.utils.import("resource:///modules/ircUtils.jsm");
+const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
+
+Cu.import("resource:///modules/ircUtils.jsm");
+Cu.import("resource:///modules/imServices.jsm");
+
+// Shortcut to get the JavaScript conversation object.
+function getConv(aConv) aConv.wrappedJSObject;
 
 // Shortcut to get the JavaScript account object.
-function getAccount(aConv) aConv.wrappedJSObject._account;
+function getAccount(aConv) getConv(aConv)._account;
 
 // Kick a user from a channel
 // aMsg is <user> [comment]
@@ -94,9 +100,8 @@ function actionCommand(aMsg, aConv) {
     return false;
 
   // Show the action on our conversation.
-  let account = getAccount(aConv);
-  account.getConversation(aConv.name)
-         .writeMessage(account._nickname, "/me " + aMsg, {outgoing: true});
+  getConv(aConv).writeMessage(getAccount(aConv)._nickname, "/me " + aMsg,
+                              {outgoing: true});
   return true;
 }
 
@@ -126,6 +131,15 @@ function ctcpCommand(aConv, aTarget, aCommand, aMsg) {
     return false;
 
   getAccount(aConv).sendCTCPMessage(aCommand, aMsg, aTarget, false);
+  return true;
+}
+
+function whoisCommand(aMsg, aConv) {
+  aMsg = aMsg.trim();
+  if (!aMsg || aMsg.indexOf(" ") != -1)
+    return false;
+  getConv(aConv).waitForBuddyInfo(aMsg);
+  getAccount(aConv).requestBuddyInfo(aMsg);
   return true;
 }
 
@@ -241,7 +255,7 @@ var commands = [
     name: "part",
     get helpString() _("command.part", "part"),
     run: function (aMsg, aConv) {
-      aConv.wrappedJSObject.part(aMsg);
+      getConv(aConv).part(aMsg);
       return true;
     }
   },
@@ -313,8 +327,15 @@ var commands = [
     run: function(aMsg, aConv) simpleCommand(aConv, "WALLOPS", aMsg)
   },
   {
+    name: "whois",
+    get helpString() _("command.whois", "whois"),
+    run: whoisCommand
+  },
+  {
     name: "whowas",
     get helpString() _("command.whowas", "whowas"),
-    run: function(aMsg, aConv) simpleCommand(aConv, "WHOWAS", aMsg)
+    // We can run whoisCommand here as that will automatically execute whowas
+    // if the nick is offline (and show the nick is actually online if not).
+    run: whoisCommand
   }
 ];

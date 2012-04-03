@@ -142,6 +142,9 @@ function setWhoIs(aAccount, aMessage, aFields) {
   if (!hasOwnProperty(aAccount.whoisInformation, buddyName))
     aAccount.whoisInformation[buddyName] = {};
 
+  // Set non-normalized nickname field.
+  aAccount.whoisInformation[buddyName]["nick"] = aMessage.params[1];
+
   // Set the WHOIS fields.
   for (let field in aFields)
     aAccount.whoisInformation[buddyName][field] = aFields[field];
@@ -654,6 +657,7 @@ var ircBase = {
     },
     "314": function(aMessage) { // RPL_WHOWASUSER
       // <nick> <user> <host> * :<real name>
+      setWhoIs(this, aMessage, {offline: true});
       let source = aMessage.params[2] + "@" + aMessage.params[3];
       return setWhoIs(this, aMessage, {realname: aMessage.params[5],
                                        connectedFrom: source});
@@ -678,11 +682,17 @@ var ircBase = {
       // <nick> :End of WHOIS list
       // We've received everything about WHOIS, tell the tooltip that is waiting
       // for this information.
-      let buddyName = this.normalize(aMessage.params[1]);
+      let nick = this.normalize(aMessage.params[1]);
 
-      // Notify the tooltip.
-      Services.obs.notifyObservers(this.getBuddyInfo(buddyName),
-                                   "user-info-received", buddyName);
+      if (hasOwnProperty(this.whoisInformation, nick)) {
+        Services.obs.notifyObservers(this.getBuddyInfo(nick),
+                                     "user-info-received", nick);
+      }
+      else {
+        // If there is no whois information stored at this point, the nick
+        // is either offline or does not exist, so we run WHOWAS.
+        this.requestOfflineBuddyInfo(nick);
+      }
       return true;
     },
     "319": function(aMessage) { // RPL_WHOISCHANNELS
@@ -862,8 +872,12 @@ var ircBase = {
     },
     "369": function(aMessage) { // RPL_ENDOFWHOWAS
       // <nick> :End of WHOWAS
-      // TODO
-      return false;
+      // We've received everything about WHOWAS, tell the tooltip that is waiting
+      // for this information.
+      let nick = this.normalize(aMessage.params[1]);
+      Services.obs.notifyObservers(this.getBuddyInfo(nick),
+                                   "user-info-received", nick);
+      return true;
     },
 
     /*
@@ -955,8 +969,10 @@ var ircBase = {
       // Error messages, Implement Section 5.2 of RFC 2812
     "401": function(aMessage) { // ERR_NOSUCHNICK
       // <nickname> :No such nick/channel
-      // TODO Parse & display an error to the user.
-      return false;
+      // Can arise in response to /mode, /invite, /kill, /msg, /whois.
+      // TODO Only handled in the conversation for /whois so far.
+      return errorMessage(this, aMessage,
+                          _("error.noSuchNick", aMessage.params[1]));
     },
     "402": function(aMessage) { // ERR_NOSUCHSERVER
       // <server name> :No such server
@@ -980,8 +996,9 @@ var ircBase = {
     },
     "406": function(aMessage) { // ERR_WASNOSUCHNICK
       // <nickname> :There was no such nickname
-      // TODO Error saying the nick never existed.
-      return false;
+      // Can arise in response to WHOWAS.
+      return errorMessage(this, aMessage,
+                          _("error.wasNoSuchNick", aMessage.params[1]));
     },
     "407": function(aMessage) { // ERR_TOOMANYTARGETS
       // <target> :<error code> recipients. <abord message>
