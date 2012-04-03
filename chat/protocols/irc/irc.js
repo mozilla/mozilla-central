@@ -182,6 +182,10 @@ ircChannel.prototype = {
       return;
     }
 
+    // If this is the user's nick, change it.
+    if (this._account.normalize(aOldNick) == this._account.normalize(this.nick))
+      this.nick = aNewNick;
+
     // Get the original ircParticipant and then remove it.
     let participant = this.getParticipant(aOldNick);
     this.removeParticipant(aOldNick);

@@ -493,9 +493,19 @@ const GenericConvChatPrototype = {
   _interfaces: [Ci.prplIConversation, Ci.prplIConvChat],
   classDescription: "generic ConvChat object",
 
-  _nick: null,
+  _init: function(aAccount, aName, aNick) {
+    this._participants = {};
+    this.nick = aNick;
+    GenericConversationPrototype._init.call(this, aAccount, aName);
+  },
+
+  get isChat() true,
+
   _topic: null,
   _topicSetter: null,
+  get topic() this._topic,
+  get topicSettable() false,
+  get topicSetter() this._topicSetter,
   setTopic: function(aTopic, aTopicSetter) {
     // Only change the topic if the topic and/or topic setter has changed.
     if (this._topic == aTopic && this._topicSetter == aTopicSetter)
@@ -507,17 +517,13 @@ const GenericConvChatPrototype = {
     this.notifyObservers(null, "chat-update-topic");
   },
 
-  _init: function(aAccount, aName, aNick) {
-    this._participants = {};
+  get nick() this._nick,
+  set nick(aNick) {
     this._nick = aNick;
-    GenericConversationPrototype._init.call(this, aAccount, aName);
+    let escapedNick = this._nick.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+    this._pingRegexp = new RegExp("\\b" + escapedNick + "\\b", "i");
   },
 
-  get isChat() true,
-  get nick() this._nick,
-  get topic() this._topic,
-  get topicSetter() this._topicSetter,
-  get topicSettable() false,
   _left: false,
   get left() this._left,
   set left(aLeft) {
@@ -538,7 +544,8 @@ const GenericConvChatPrototype = {
   getNormalizedChatBuddyName: function(aChatBuddyName) aChatBuddyName,
 
   writeMessage: function (aWho, aText, aProperties) {
-    aProperties.containsNick = aText.indexOf(this.nick) != -1;
+    aProperties.containsNick =
+      "incoming" in aProperties && this._pingRegexp.test(aText);
     GenericConversationPrototype.writeMessage.apply(this, arguments);
   }
 };
