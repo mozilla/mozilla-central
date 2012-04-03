@@ -38,6 +38,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * Functionality for the main application window (aka the 3pane) usually
+ * consisting of folder pane, thread pane and message pane.
+ */
+
+Components.utils.import("resource:///modules/mailServices.js");
+
 // Controller object for folder pane
 var FolderPaneController =
 {
@@ -474,10 +481,10 @@ var DefaultController =
         // and have more than one message selected.
         return (!IsMessagePaneCollapsed() && (GetNumSelectedMessages() == 1));
       case "cmd_search":
-        return IsCanSearchMessagesEnabled();
+        return (MailServices.accounts.accounts.Count() > 0);
       case "cmd_selectAll":
       case "cmd_selectFlagged":
-        return gDBView != null;
+        return !!gDBView;
       // these are enabled on when we are in threaded mode
       case "cmd_selectThread":
         if (GetNumSelectedMessages() <= 0) return false;
@@ -1065,13 +1072,6 @@ function IsSendUnsentMsgsEnabled(unsentMsgsFolder)
   return msgSendlater.hasUnsentMessages(identity);
 }
 
-function IsCanSearchMessagesEnabled()
-{
-  var folder = GetSelectedMsgFolders()[0];
-  if (!folder)
-    return false;
-  return folder.server.canSearchMessages;
-}
 function IsFolderCharsetEnabled()
 {
   return IsFolderSelected();
