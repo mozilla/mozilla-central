@@ -1940,7 +1940,7 @@ function updateCalendar() {
     gIsReadOnly = calendar.readOnly;
 
     // We might have to change the organizer, let's see
-    if (window.organizer) {
+    if (window.organizer && calendar.aclEntry) {
       window.organizer.id = calendar.getProperty("organizerId");
       window.organizer.commonName = calendar.getProperty("organizerCN");
     }
