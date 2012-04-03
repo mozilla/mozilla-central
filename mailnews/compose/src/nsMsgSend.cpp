@@ -1909,7 +1909,9 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
     for (k = mPreloadedAttachmentCount; k < i; k++)
     {
       bool isEqual = false;
-      (void)attachment.m_url->Equals(m_attachments[k].mURL, &isEqual);
+      NS_ASSERTION(attachment.m_url, "null attachment url!");
+      if (attachment.m_url)
+        (void)attachment.m_url->Equals(m_attachments[k].mURL, &isEqual);
       if (isEqual)
       {
         duplicateOf = k;
