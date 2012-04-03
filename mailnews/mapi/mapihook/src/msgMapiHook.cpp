@@ -78,6 +78,7 @@
 #include "msgMapiSupport.h"
 #include "msgMapiMain.h"
 #include "nsThreadUtils.h"
+#include "nsMsgUtils.h"
 #include "nsNetUtil.h"
 #include "mozilla/Services.h"
 
@@ -381,7 +382,9 @@ nsresult nsMapiHook::BlindSendMail (unsigned long aSession, nsIMsgCompFields * a
   rv = pMsgCompose->Initialize(pMsgComposeParams, hiddenWindow, nsnull);
   if (NS_FAILED(rv)) return rv ;
 
-  return pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, pMsgId, nsnull, nsnull, nsnull) ;
+  // If we're in offline mode, we'll need to queue it for later. No point in trying to send it.
+  return pMsgCompose->SendMsg(WeAreOffline() ? nsIMsgSend::nsMsgQueueForLater : nsIMsgSend::nsMsgDeliverNow,
+			      pMsgId, nsnull, nsnull, nsnull);
   if (NS_FAILED(rv)) return rv ;
 
   // assign to interface pointer from nsCOMPtr to facilitate typecast below
