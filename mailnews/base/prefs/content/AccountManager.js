@@ -62,7 +62,7 @@
 
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
-Components.utils.import("resource://gre/modules/mailServices.js");
+Components.utils.import("resource:///modules/mailServices.js");
 
 var gSmtpHostNameIsIllegal = false;
 // If Local directory has changed the app needs to restart. Once this is set
