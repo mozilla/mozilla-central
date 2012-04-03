@@ -330,7 +330,7 @@ var gAdvancedPane = {
   },
 
   /**
-   * open the return receipts configuration dialog 
+   * Display the return receipts configuration dialog.
    */
   showReturnReceipts: function()
   {
@@ -339,7 +339,7 @@ var gAdvancedPane = {
   },  
 
   /** 
-   * open the connections dialog 
+   * Display the the connection settings dialog.
    */
   showConnections: function ()
   {
@@ -349,7 +349,7 @@ var gAdvancedPane = {
   },
 
   /**
-   * open the offline settings dialog
+   * Display the the offline settings dialog.
    */
   showOffline: function()
   {
@@ -358,27 +358,42 @@ var gAdvancedPane = {
                            "", null);  
   },
 
+  /**
+   * Display the user's certificates and associated options.
+   */
   showCertificates: function ()
   {
-    document.documentElement.openWindow("mozilla:certmanager", "chrome://pippki/content/certManager.xul",
-                                        "width=600,height=400", null);
+    document.documentElement.openWindow("mozilla:certmanager",
+                                        "chrome://pippki/content/certManager.xul",
+                                        "", null);
   },
 
+  /**
+   * Display a dialog which describes the user's CRLs.
+   */
   showCRLs: function ()
   {
-    document.documentElement.openWindow("mozilla:crlmanager", "chrome://pippki/content/crlManager.xul",
-                                        "width=600,height=400", null);
+    document.documentElement.openWindow("mozilla:crlmanager",
+                                        "chrome://pippki/content/crlManager.xul",
+                                        "", null);
   },
 
+  /**
+   * Display a dialog in which OCSP preferences can be configured.
+   */
   showOCSP: function ()
   {
     document.documentElement.openSubDialog("chrome://mozapps/content/preferences/ocsp.xul",
                                            "", null);
   },
 
+  /**
+   * Display a dialog from which the user can manage his security devices.
+   */
   showSecurityDevices: function ()
   {
-    document.documentElement.openWindow("mozilla:devicemanager", "chrome://pippki/content/device_manager.xul",
-                                        "width=600,height=400", null);
+    document.documentElement.openWindow("mozilla:devicemanager",
+                                        "chrome://pippki/content/device_manager.xul",
+                                        "", null);
   }
 };
