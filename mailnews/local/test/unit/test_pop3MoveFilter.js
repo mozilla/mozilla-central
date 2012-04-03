@@ -12,6 +12,8 @@ Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 const gFiles = ["../../../data/bugmail10", "../../../data/bugmail11"];
 
+// make sure limiting download size doesn't causes issues with move filters.
+Services.prefs.setBoolPref("mail.server.default.limit_offline_message_size", true);
 Services.prefs.setBoolPref("mail.server.default.leave_on_server", true);
 
 const bugmail10_preview = 'Do not reply to this email. You can add comments to this bug at https://bugzilla.mozilla.org/show_bug.cgi?id=436880 -- Configure bugmail: https://bugzilla.mozilla.org/userprefs.cgi?tab=email ------- You are receiving this mail because: -----';

@@ -342,6 +342,8 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWOReparse(nsIMsgDatabase **aDatab
     }
   }
   NS_IF_ADDREF(*aDatabase = mDatabase);
+  if (mDatabase)
+    mDatabase->SetLastUseTime(PR_Now());
   return rv;
 }
 
@@ -1543,9 +1545,21 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
   nsCOMPtr<nsIMsgPluggableStore> msgStore;
   rv = GetMsgStore(getter_AddRefs(msgStore));
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = msgStore->CopyMessages(isMove, messages, this, listener, &storeDidCopy);
+  nsCOMPtr<nsITransaction> undoTxn;
+  rv = msgStore->CopyMessages(isMove, messages, this, listener,
+                              getter_AddRefs(undoTxn), &storeDidCopy);
   if (storeDidCopy)
+  {
+    NS_ASSERTION(undoTxn, "if store does copy, it needs to add undo action");
+    if (msgWindow && undoTxn)
+    {
+      nsCOMPtr<nsITransactionManager> txnMgr;
+      msgWindow->GetTransactionManager(getter_AddRefs(txnMgr));
+      if (txnMgr)
+        txnMgr->DoTransaction(undoTxn);
+    }
     return rv;
+  }
   // If the store doesn't do the copy, we'll stream the source messages into
   // the target folder, using getMsgInputStream and getNewMsgOutputStream.
 

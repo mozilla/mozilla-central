@@ -786,6 +786,7 @@ nsMsgBrkMBoxStore::FinishNewMessage(nsIOutputStream *aOutputStream,
   m_streamOutstandingFolder = nsnull;
 #endif
   NS_ENSURE_ARG_POINTER(aOutputStream);
+  aOutputStream->Flush();
 //  NS_ENSURE_ARG_POINTER(aNewHdr);
   return NS_OK;
 }
@@ -845,11 +846,13 @@ NS_IMETHODIMP
 nsMsgBrkMBoxStore::CopyMessages(bool isMove, nsIArray *aHdrArray,
                                nsIMsgFolder *aDstFolder,
                                nsIMsgCopyServiceListener *aListener,
+                               nsITransaction **aUndoAction,
                                bool *aCopyDone)
 {
   NS_ENSURE_ARG_POINTER(aHdrArray);
   NS_ENSURE_ARG_POINTER(aDstFolder);
   NS_ENSURE_ARG_POINTER(aCopyDone);
+  *aUndoAction = nsnull;
   *aCopyDone = false;
   return NS_OK;
 }
