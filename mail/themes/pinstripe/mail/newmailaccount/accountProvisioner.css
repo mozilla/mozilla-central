@@ -221,10 +221,6 @@ input[type="submit"].search {
   background-repeat: no-repeat;
 }
 
-#search input[type="text"]:placeholder {
-  color: #999;
-}
-
 #searchFields {
   margin-bottom: 13px;
   width: 100%;
