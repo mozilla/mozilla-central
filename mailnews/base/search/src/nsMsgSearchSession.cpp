@@ -55,7 +55,8 @@
 #include "nsServiceManagerUtils.h"
 #include "nsAutoPtr.h"
 
-NS_IMPL_ISUPPORTS3(nsMsgSearchSession, nsIMsgSearchSession, nsIUrlListener, nsISupportsWeakReference)
+NS_IMPL_ISUPPORTS3(nsMsgSearchSession, nsIMsgSearchSession, nsIUrlListener,
+                   nsISupportsWeakReference)
 
 nsMsgSearchSession::nsMsgSearchSession()
 {
@@ -72,32 +73,31 @@ nsMsgSearchSession::~nsMsgSearchSession()
 {
   InterruptSearch();
   delete m_expressionTree;
-  DestroyScopeList ();
-  DestroyTermList ();
+  DestroyScopeList();
+  DestroyTermList();
 }
 
-/* [noscript] void AddSearchTerm (in nsMsgSearchAttribute attrib, in nsMsgSearchOperator op, in nsMsgSearchValue value, in boolean BooleanAND, in string customString); */
 NS_IMETHODIMP
 nsMsgSearchSession::AddSearchTerm(nsMsgSearchAttribValue attrib,
                                   nsMsgSearchOpValue op,
-                                  nsIMsgSearchValue * value,
+                                  nsIMsgSearchValue *value,
                                   bool BooleanANDp,
                                   const char *customString)
 {
-    // stupid gcc
-    nsMsgSearchBooleanOperator boolOp;
-    if (BooleanANDp)
-        boolOp = (nsMsgSearchBooleanOperator)nsMsgSearchBooleanOp::BooleanAND;
-    else
-        boolOp = (nsMsgSearchBooleanOperator)nsMsgSearchBooleanOp::BooleanOR;
-  nsMsgSearchTerm *pTerm = new nsMsgSearchTerm (attrib, op, value,
-                                                  boolOp, customString);
-  if (nsnull == pTerm)
-    return NS_ERROR_OUT_OF_MEMORY;
-  m_termList->AppendElement (pTerm);
-        // force the expression tree to rebuild whenever we change the terms
-        delete m_expressionTree;
-        m_expressionTree = nsnull;
+  // stupid gcc
+  nsMsgSearchBooleanOperator boolOp;
+  if (BooleanANDp)
+    boolOp = (nsMsgSearchBooleanOperator)nsMsgSearchBooleanOp::BooleanAND;
+  else
+    boolOp = (nsMsgSearchBooleanOperator)nsMsgSearchBooleanOp::BooleanOR;
+  nsMsgSearchTerm *pTerm = new nsMsgSearchTerm(attrib, op, value,
+                                               boolOp, customString);
+  NS_ENSURE_TRUE(pTerm, NS_ERROR_OUT_OF_MEMORY);
+
+  m_termList->AppendElement(pTerm);
+  // force the expression tree to rebuild whenever we change the terms
+  delete m_expressionTree;
+  m_expressionTree = nsnull;
   return NS_OK;
 }
 
@@ -123,6 +123,7 @@ nsMsgSearchSession::GetSearchTerms(nsISupportsArray **aResult)
 NS_IMETHODIMP
 nsMsgSearchSession::CreateTerm(nsIMsgSearchTerm **aResult)
 {
+    NS_ENSURE_ARG_POINTER(aResult);
     nsMsgSearchTerm *term = new nsMsgSearchTerm;
     NS_ENSURE_TRUE(term, NS_ERROR_OUT_OF_MEMORY);
 
@@ -131,7 +132,6 @@ nsMsgSearchSession::CreateTerm(nsIMsgSearchTerm **aResult)
     return NS_OK;
 }
 
-/* void RegisterListener (in nsIMsgSearchNotify listener); */
 NS_IMETHODIMP nsMsgSearchSession::RegisterListener(nsIMsgSearchNotify *aListener,
                                                    PRInt32 aNotifyFlags)
 {
@@ -141,7 +141,6 @@ NS_IMETHODIMP nsMsgSearchSession::RegisterListener(nsIMsgSearchNotify *aListener
   return NS_OK;
 }
 
-/* void UnregisterListener (in nsIMsgSearchNotify listener); */
 NS_IMETHODIMP nsMsgSearchSession::UnregisterListener(nsIMsgSearchNotify *aListener)
 {
   NS_ENSURE_ARG_POINTER(aListener);
@@ -162,40 +161,38 @@ NS_IMETHODIMP nsMsgSearchSession::UnregisterListener(nsIMsgSearchNotify *aListen
   return NS_OK;
 }
 
-/* readonly attribute long numSearchTerms; */
 NS_IMETHODIMP nsMsgSearchSession::GetNumSearchTerms(PRUint32 *aNumSearchTerms)
 {
   NS_ENSURE_ARG(aNumSearchTerms);
   return m_termList->Count(aNumSearchTerms);
 }
 
-/* [noscript] void GetNthSearchTerm (in long whichTerm, in nsMsgSearchAttribute attrib, in nsMsgSearchOperator op, in nsMsgSearchValue value); */
 NS_IMETHODIMP
 nsMsgSearchSession::GetNthSearchTerm(PRInt32 whichTerm,
                                      nsMsgSearchAttribValue attrib,
                                      nsMsgSearchOpValue op,
-                                     nsIMsgSearchValue * value)
+                                     nsIMsgSearchValue *value)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* long CountSearchScopes (); */
 NS_IMETHODIMP nsMsgSearchSession::CountSearchScopes(PRInt32 *_retval)
 {
-  NS_ENSURE_ARG(_retval);
+  NS_ENSURE_ARG_POINTER(_retval);
   *_retval = m_scopeList.Length();
   return NS_OK;
 }
 
-  /* void GetNthSearchScope (in long which, out nsMsgSearchScope scopeId, out nsIMsgFolder folder); */
 NS_IMETHODIMP
 nsMsgSearchSession::GetNthSearchScope(PRInt32 which,
                                       nsMsgSearchScopeValue *scopeId,
                                       nsIMsgFolder **folder)
 {
+  NS_ENSURE_ARG_POINTER(scopeId);
+  NS_ENSURE_ARG_POINTER(folder);
+
   nsMsgSearchScopeTerm *scopeTerm = m_scopeList.SafeElementAt(which, nsnull);
-  if (!scopeTerm)
-    return NS_ERROR_INVALID_ARG;
+  NS_ENSURE_ARG(scopeTerm);
 
   *scopeId = scopeTerm->m_attribute;
   *folder = scopeTerm->m_folder;
@@ -203,7 +200,6 @@ nsMsgSearchSession::GetNthSearchScope(PRInt32 which,
   return NS_OK;
 }
 
-/* void AddScopeTerm (in nsMsgSearchScopeValue scope, in nsIMsgFolder folder); */
 NS_IMETHODIMP
 nsMsgSearchSession::AddScopeTerm(nsMsgSearchScopeValue scope,
                                  nsIMsgFolder *folder)
@@ -211,13 +207,11 @@ nsMsgSearchSession::AddScopeTerm(nsMsgSearchScopeValue scope,
   if (scope != nsMsgSearchScope::allSearchableGroups)
   {
     NS_ASSERTION(folder, "need folder if not searching all groups");
-    if (!folder)
-      return NS_ERROR_NULL_POINTER;
+    NS_ENSURE_TRUE(folder, NS_ERROR_NULL_POINTER);
   }
 
   nsMsgSearchScopeTerm *pScopeTerm = new nsMsgSearchScopeTerm(this, scope, folder);
-  if (!pScopeTerm)
-    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_TRUE(pScopeTerm, NS_ERROR_OUT_OF_MEMORY);
 
   m_scopeList.AppendElement(pScopeTerm);
   return NS_OK;
@@ -227,8 +221,7 @@ NS_IMETHODIMP
 nsMsgSearchSession::AddDirectoryScopeTerm(nsMsgSearchScopeValue scope)
 {
   nsMsgSearchScopeTerm *pScopeTerm = new nsMsgSearchScopeTerm(this, scope, nsnull);
-  if (!pScopeTerm)
-    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_TRUE(pScopeTerm, NS_ERROR_OUT_OF_MEMORY);
 
   m_scopeList.AppendElement(pScopeTerm);
   return NS_OK;
@@ -240,34 +233,31 @@ NS_IMETHODIMP nsMsgSearchSession::ClearScopes()
     return NS_OK;
 }
 
-/* [noscript] boolean ScopeUsesCustomHeaders (in nsMsgSearchScope scope, in voidStar selection, in boolean forFilters); */
 NS_IMETHODIMP
 nsMsgSearchSession::ScopeUsesCustomHeaders(nsMsgSearchScopeValue scope,
-                                           void * selection,
+                                           void *selection,
                                            bool forFilters,
                                            bool *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* boolean IsStringAttribute (in nsMsgSearchAttribute attrib); */
 NS_IMETHODIMP
 nsMsgSearchSession::IsStringAttribute(nsMsgSearchAttribValue attrib,
                                       bool *_retval)
 {
+  // Is this check needed?
   NS_ENSURE_ARG(_retval);
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* void AddAllScopes (in nsMsgSearchScope attrib); */
 NS_IMETHODIMP
 nsMsgSearchSession::AddAllScopes(nsMsgSearchScopeValue attrib)
 {
   // don't think this is needed.
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* void Search (); */
 NS_IMETHODIMP nsMsgSearchSession::Search(nsIMsgWindow *aWindow)
 {
   nsresult rv = Initialize();
@@ -289,7 +279,6 @@ NS_IMETHODIMP nsMsgSearchSession::Search(nsIMsgWindow *aWindow)
   return BeginSearching();
 }
 
-/* void InterruptSearch (); */
 NS_IMETHODIMP nsMsgSearchSession::InterruptSearch()
 {
   nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
@@ -339,25 +328,23 @@ NS_IMETHODIMP nsMsgSearchSession::ResumeSearch()
     return NS_ERROR_FAILURE;
 }
 
-/* [noscript] readonly attribute voidStar searchParam; */
-NS_IMETHODIMP nsMsgSearchSession::GetSearchParam(void * *aSearchParam)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* readonly attribute nsMsgSearchType searchType; */
-NS_IMETHODIMP nsMsgSearchSession::GetSearchType(nsMsgSearchType * *aSearchType)
+NS_IMETHODIMP nsMsgSearchSession::GetSearchParam(void **aSearchParam)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* [noscript] nsMsgSearchType SetSearchParam (in nsMsgSearchType type, in voidStar param); */
-NS_IMETHODIMP nsMsgSearchSession::SetSearchParam(nsMsgSearchType *type, void * param, nsMsgSearchType **_retval)
+NS_IMETHODIMP nsMsgSearchSession::GetSearchType(nsMsgSearchType **aSearchType)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* readonly attribute long numResults; */
+NS_IMETHODIMP nsMsgSearchSession::SetSearchParam(nsMsgSearchType *type,
+                                                 void *param,
+                                                 nsMsgSearchType **_retval)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 NS_IMETHODIMP nsMsgSearchSession::GetNumResults(PRInt32 *aNumResults)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
@@ -371,25 +358,23 @@ NS_IMETHODIMP nsMsgSearchSession::SetWindow(nsIMsgWindow *aWindow)
 
 NS_IMETHODIMP nsMsgSearchSession::GetWindow(nsIMsgWindow **aWindow)
 {
-  NS_ENSURE_ARG(aWindow);
+  NS_ENSURE_ARG_POINTER(aWindow);
   *aWindow = nsnull;
   nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
   msgWindow.swap(*aWindow);
   return NS_OK;
 }
 
-/* void OnStartRunningUrl (in nsIURI url); */
 NS_IMETHODIMP nsMsgSearchSession::OnStartRunningUrl(nsIURI *url)
 {
     return NS_OK;
 }
 
-/* void OnStopRunningUrl (in nsIURI url, in nsresult aExitCode); */
 NS_IMETHODIMP nsMsgSearchSession::OnStopRunningUrl(nsIURI *url, nsresult aExitCode)
 {
-  nsCOMPtr <nsIMsgSearchAdapter> runningAdapter;
+  nsCOMPtr<nsIMsgSearchAdapter> runningAdapter;
 
-  nsresult rv = GetRunningAdapter (getter_AddRefs(runningAdapter));
+  nsresult rv = GetRunningAdapter(getter_AddRefs(runningAdapter));
   // tell the current adapter that the current url has run.
   if (NS_SUCCEEDED(rv) && runningAdapter)
   {
@@ -419,7 +404,7 @@ nsresult nsMsgSearchSession::Initialize()
   //    time, so we'll do each scope in a separate adapter on the client
 
   nsMsgSearchScopeTerm *scopeTerm = nsnull;
-  nsresult err = NS_OK;
+  nsresult rv = NS_OK;
 
   PRUint32 numTerms;
   m_termList->Count(&numTerms);
@@ -438,15 +423,15 @@ nsresult nsMsgSearchSession::Initialize()
 
   // If this term list (loosely specified here by the first term) should be
   // scheduled in parallel, build up a list of scopes to do the round-robin scheduling
-  for (PRUint32 i = 0; i < m_scopeList.Length() && NS_SUCCEEDED(err); i++)
+  for (PRUint32 i = 0; i < m_scopeList.Length() && NS_SUCCEEDED(rv); i++)
   {
     scopeTerm = m_scopeList.ElementAt(i);
     // NS_ASSERTION(scopeTerm->IsValid());
 
-    err = scopeTerm->InitializeAdapter (m_termList);
+    rv = scopeTerm->InitializeAdapter(m_termList);
   }
 
-  return err;
+  return rv;
 }
 
 nsresult nsMsgSearchSession::BeginSearching()
@@ -466,13 +451,13 @@ nsresult nsMsgSearchSession::DoNextSearch()
   nsMsgSearchScopeTerm *scope = m_scopeList.ElementAt(m_idxRunningScope);
   if (scope->m_attribute == nsMsgSearchScope::onlineMail ||
     (scope->m_attribute == nsMsgSearchScope::news && scope->m_searchServer))
-    return BuildUrlQueue ();
+    return BuildUrlQueue();
   else
     return SearchWOUrls();
 }
 
 
-nsresult nsMsgSearchSession::BuildUrlQueue ()
+nsresult nsMsgSearchSession::BuildUrlQueue()
 {
   PRUint32 i;
   for (i = m_idxRunningScope; i < m_scopeList.Length(); i++)
@@ -481,7 +466,7 @@ nsresult nsMsgSearchSession::BuildUrlQueue ()
     if (scope->m_attribute != nsMsgSearchScope::onlineMail &&
       (scope->m_attribute != nsMsgSearchScope::news && scope->m_searchServer))
       break;
-    nsCOMPtr <nsIMsgSearchAdapter> adapter = do_QueryInterface(scope->m_adapter);
+    nsCOMPtr<nsIMsgSearchAdapter> adapter = do_QueryInterface(scope->m_adapter);
     if (adapter)
     {
       nsCString url;
@@ -500,7 +485,7 @@ nsresult nsMsgSearchSession::BuildUrlQueue ()
 nsresult nsMsgSearchSession::GetNextUrl()
 {
   nsCString nextUrl;
-  nsCOMPtr <nsIMsgMessageService> msgService;
+  nsCOMPtr<nsIMsgMessageService> msgService;
 
   bool stopped = false;
   nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
@@ -513,7 +498,7 @@ nsresult nsMsgSearchSession::GetNextUrl()
   nsMsgSearchScopeTerm *currentTerm = GetRunningScope();
   NS_ENSURE_TRUE(currentTerm, NS_ERROR_NULL_POINTER);
   EnableFolderNotifications(false);
-  nsCOMPtr <nsIMsgFolder> folder = currentTerm->m_folder;
+  nsCOMPtr<nsIMsgFolder> folder = currentTerm->m_folder;
   if (folder)
   {
     nsCString folderUri;
@@ -528,8 +513,10 @@ nsresult nsMsgSearchSession::GetNextUrl()
   return NS_OK;
 }
 
-/* static */ void nsMsgSearchSession::TimerCallback(nsITimer *aTimer, void *aClosure)
+/* static */
+void nsMsgSearchSession::TimerCallback(nsITimer *aTimer, void *aClosure)
 {
+  NS_ENSURE_TRUE(aClosure, );
   nsMsgSearchSession *searchSession = (nsMsgSearchSession *) aClosure;
   bool done;
   bool stopped = false;
@@ -541,7 +528,8 @@ nsresult nsMsgSearchSession::GetNextUrl()
 
   if (done || stopped)
   {
-    aTimer->Cancel();
+    if (aTimer)
+      aTimer->Cancel();
     searchSession->m_backgroundTimer = nsnull;
     if (searchSession->m_idxRunningScope < searchSession->m_scopeList.Length())
       searchSession->DoNextSearch();
@@ -562,15 +550,16 @@ nsresult nsMsgSearchSession::StartTimer()
   return NS_OK;
 }
 
-nsresult nsMsgSearchSession::SearchWOUrls ()
+nsresult nsMsgSearchSession::SearchWOUrls()
 {
   EnableFolderNotifications(false);
   return StartTimer();
 }
 
-NS_IMETHODIMP nsMsgSearchSession::GetRunningAdapter (nsIMsgSearchAdapter **aSearchAdapter)
+NS_IMETHODIMP
+nsMsgSearchSession::GetRunningAdapter(nsIMsgSearchAdapter **aSearchAdapter)
 {
-  NS_ENSURE_ARG(aSearchAdapter);
+  NS_ENSURE_ARG_POINTER(aSearchAdapter);
   nsMsgSearchScopeTerm *scope = GetRunningScope();
   if (scope)
   {
@@ -601,7 +590,7 @@ nsresult nsMsgSearchSession::NotifyListenersDone(nsresult aStatus)
 {
   // need to stabilize "this" in case one of the listeners releases the last
   // reference to us.
-  nsRefPtr <nsIMsgSearchSession> kungFuDeathGrip(this);
+  nsRefPtr<nsIMsgSearchSession> kungFuDeathGrip(this);
 
   nsCOMPtr<nsIMsgSearchNotify> listener;
   m_iListener = 0;
@@ -632,9 +621,9 @@ void nsMsgSearchSession::DestroyScopeList()
 }
 
 
-void nsMsgSearchSession::DestroyTermList ()
+void nsMsgSearchSession::DestroyTermList()
 {
-    m_termList->Clear();
+  m_termList->Clear();
 }
 
 nsMsgSearchScopeTerm *nsMsgSearchSession::GetRunningScope()
@@ -642,7 +631,7 @@ nsMsgSearchScopeTerm *nsMsgSearchSession::GetRunningScope()
   return m_scopeList.SafeElementAt(m_idxRunningScope, nsnull);
 }
 
-nsresult nsMsgSearchSession::TimeSlice (bool *aDone)
+nsresult nsMsgSearchSession::TimeSlice(bool *aDone)
 {
   // we only do serial for now.
   return TimeSliceSerial(aDone);
@@ -651,65 +640,60 @@ nsresult nsMsgSearchSession::TimeSlice (bool *aDone)
 void nsMsgSearchSession::ReleaseFolderDBRef()
 {
   nsMsgSearchScopeTerm *scope = GetRunningScope();
-  if (scope)
-  {
-    bool isOpen =false;
-    PRUint32 flags;
-    nsCOMPtr <nsIMsgFolder> folder;
-    scope->GetFolder(getter_AddRefs(folder));
-    nsCOMPtr <nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID);
-    if (mailSession && folder)
-    {
-      mailSession->IsFolderOpenInWindow(folder, &isOpen);
-      folder->GetFlags(&flags);
+  if (!scope)
+    return;
 
-      /*we don't null out the db reference for inbox because inbox is like the "main" folder
-       and performance outweighs footprint */
-      if (!isOpen && !(nsMsgFolderFlags::Inbox & flags))
-        folder->SetMsgDatabase(nsnull);
-    }
-  }
+  bool isOpen = false;
+  PRUint32 flags;
+  nsCOMPtr<nsIMsgFolder> folder;
+  scope->GetFolder(getter_AddRefs(folder));
+  nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID);
+  if (!mailSession || !folder)
+    return;
+
+  mailSession->IsFolderOpenInWindow(folder, &isOpen);
+  folder->GetFlags(&flags);
+
+  /*we don't null out the db reference for inbox because inbox is like the "main" folder
+    and performance outweighs footprint */
+  if (!isOpen && !(nsMsgFolderFlags::Inbox & flags))
+    folder->SetMsgDatabase(nsnull);
 }
-nsresult nsMsgSearchSession::TimeSliceSerial (bool *aDone)
+nsresult nsMsgSearchSession::TimeSliceSerial(bool *aDone)
 {
   // This version of TimeSlice runs each scope term one at a time, and waits until one
   // scope term is finished before starting another one. When we're searching the local
   // disk, this is the fastest way to do it.
 
-  NS_ENSURE_ARG(aDone);
-  nsresult rv = NS_OK;
-  nsMsgSearchScopeTerm *scope = GetRunningScope();
-  if (scope)
-  {
-    rv = scope->TimeSlice (aDone);
-    if (NS_FAILED(rv))
-      *aDone = true;
-    if (*aDone || NS_FAILED(rv))
-    {
-      EnableFolderNotifications(true);
-      ReleaseFolderDBRef();
-      m_idxRunningScope++;
-      EnableFolderNotifications(false);
-      // check if the next scope is an online search; if so,
-      // set *aDone to true so that we'll try to run the next
-      // search in TimerCallback.
-      scope = GetRunningScope();
-      if (scope && (scope->m_attribute == nsMsgSearchScope::onlineMail ||
-        (scope->m_attribute == nsMsgSearchScope::news && scope->m_searchServer)))
-      {
-        *aDone = true;
-        return rv;
-      }
+  NS_ENSURE_ARG_POINTER(aDone);
 
-    }
-    *aDone = false;
-    return rv;
-  }
-  else
+  nsMsgSearchScopeTerm *scope = GetRunningScope();
+  if (!scope)
   {
     *aDone = true;
     return NS_OK;
   }
+
+  nsresult rv = scope->TimeSlice(aDone);
+  if (*aDone || NS_FAILED(rv))
+  {
+    EnableFolderNotifications(true);
+    ReleaseFolderDBRef();
+    m_idxRunningScope++;
+    EnableFolderNotifications(false);
+    // check if the next scope is an online search; if so,
+    // set *aDone to true so that we'll try to run the next
+    // search in TimerCallback.
+    scope = GetRunningScope();
+    if (scope && (scope->m_attribute == nsMsgSearchScope::onlineMail ||
+      (scope->m_attribute == nsMsgSearchScope::news && scope->m_searchServer)))
+    {
+      *aDone = true;
+      return rv;
+    }
+  }
+  *aDone = false;
+  return rv;
 }
 
 void
@@ -739,9 +723,9 @@ nsMsgSearchSession::MatchHdr(nsIMsgDBHdr *aMsgHdr, nsIMsgDatabase *aDatabase, bo
       nsAutoString nullCharset, folderCharset;
       scope->m_adapter->GetSearchCharsets(nullCharset, folderCharset);
       NS_ConvertUTF16toUTF8 charset(folderCharset.get());
-      nsMsgSearchOfflineMail::MatchTermsForSearch(aMsgHdr, m_termList, charset.get(), scope, aDatabase, &m_expressionTree, aResult);
+      nsMsgSearchOfflineMail::MatchTermsForSearch(aMsgHdr, m_termList,
+        charset.get(), scope, aDatabase, &m_expressionTree, aResult);
     }
   }
   return NS_OK;
 }
-
