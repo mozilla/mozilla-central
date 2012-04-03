@@ -38,6 +38,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * Commands for the message composition window.
+ */
+
 // Ensure the activity modules are loaded for this window.
 Components.utils.import("resource:///modules/activity/activityModules.js");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
@@ -48,6 +52,7 @@ Components.utils.import("resource:///modules/errUtils.js");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource://gre/modules/InlineSpellChecker.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm")
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource:///modules/cloudFileAccounts.js");
 
@@ -776,23 +781,15 @@ var attachmentBucketController = {
   onEvent: function(event) {},
 };
 
+/**
+ * Start composing a new message.
+ */
 function goOpenNewMessage()
 {
-  // if there is a MsgNewMessage function in scope
-  // and we should use it, so that we choose the proper
-  // identity, based on the selected message or folder
-  // if not, bring up the compose window to the default identity
-  if ("MsgNewMessage" in window) {
-    MsgNewMessage(null);
-    return;
-   }
-
-   var msgComposeService = Components.classes["@mozilla.org/messengercompose;1"].getService();
-   msgComposeService = msgComposeService.QueryInterface(Components.interfaces.nsIMsgComposeService);
-   msgComposeService.OpenComposeWindow(null, null, null,
-                                       Components.interfaces.nsIMsgCompType.New,
-                                       Components.interfaces.nsIMsgCompFormat.Default,
-                                       null, null);
+  let identity = getCurrentIdentity();
+  MailServices.compose.OpenComposeWindow(null, null, null,
+    Components.interfaces.nsIMsgCompType.New,
+    Components.interfaces.nsIMsgCompFormat.Default, identity, null);
 }
 
 function QuoteSelectedMessage()
@@ -805,16 +802,8 @@ function QuoteSelectedMessage()
 
 function GetSelectedMessages()
 {
-  if (gMsgCompose) {
-    var mailWindow = Components.classes["@mozilla.org/appshell/window-mediator;1"].getService()
-                     .QueryInterface(Components.interfaces.nsIWindowMediator)
-                     .getMostRecentWindow("mail:3pane");
-    if (mailWindow) {
-      return mailWindow.gFolderDisplay.selectedMessageUris;
-    }
-  }
-
-  return null;
+  let mailWindow = Services.wm.getMostRecentWindow("mail:3pane");
+  return (mailWindow) ? mailWindow.gFolderDisplay.selectedMessageUris : null;
 }
 
 function SetupCommandUpdateHandlers()
@@ -844,15 +833,10 @@ function CommandUpdate_MsgCompose()
   var focusedWindow = top.document.commandDispatcher.focusedWindow;
 
   // we're just setting focus to where it was before
-  if (focusedWindow == gLastWindowToHaveFocus) {
-    //dump("XXX skip\n");
+  if (focusedWindow == gLastWindowToHaveFocus)
     return;
-  }
 
   gLastWindowToHaveFocus = focusedWindow;
-
-  //dump("XXX update, focus on " + focusedWindow + "\n");
-
   updateComposeItems();
 }
 
@@ -2219,107 +2203,103 @@ function ComposeStartup(recycled, aParams)
   // Get the <editor> element to startup an editor
   var editorElement = GetCurrentEditorElement();
   gMsgCompose = composeSvc.initCompose(params, window, editorElement.docShell);
-  if (gMsgCompose)
+
+  // Set the close listener.
+  gMsgCompose.recyclingListener = gComposeRecyclingListener;
+  gMsgCompose.addMsgSendListener(gSendListener);
+  // Lets the compose object knows that we are dealing with a recycled window.
+  gMsgCompose.recycledWindow = recycled;
+
+  document.getElementById("returnReceiptMenu")
+          .setAttribute('checked', gMsgCompose.compFields.returnReceipt);
+  document.getElementById("dsnMenu")
+          .setAttribute("checked", gMsgCompose.compFields.DSN);
+  document.getElementById("cmd_attachVCard")
+          .setAttribute("checked", gMsgCompose.compFields.attachVCard);
+
+  // If recycle, editor is already created.
+  if (!recycled)
   {
-    // set the close listener
-    gMsgCompose.recyclingListener = gComposeRecyclingListener;
-    gMsgCompose.addMsgSendListener(gSendListener);
-    //Lets the compose object knows that we are dealing with a recycled window
-    gMsgCompose.recycledWindow = recycled;
+    let editortype = gMsgCompose.composeHTML ? "htmlmail" : "textmail";
+    editorElement.makeEditable(editortype, true);
 
-    document.getElementById("returnReceiptMenu")
-            .setAttribute('checked', gMsgCompose.compFields.returnReceipt);
-    document.getElementById("dsnMenu")
-            .setAttribute('checked', gMsgCompose.compFields.DSN);
-    document.getElementById("cmd_attachVCard")
-            .setAttribute('checked', gMsgCompose.compFields.attachVCard);
-
-    // If recycle, editor is already created
-    if (!recycled)
+    // setEditorType MUST be called before setContentWindow
+    if (gMsgCompose.composeHTML)
     {
-      var editortype = gMsgCompose.composeHTML ? "htmlmail" : "textmail";
-      editorElement.makeEditable(editortype, true);
-
-      // setEditorType MUST be called before setContentWindow
-      if (gMsgCompose.composeHTML)
-      {
-        initLocalFontFaceMenu(document.getElementById("FontFacePopup"));
-      }
-      else
-      {
-        // Remove HTML toolbar, format and insert menus as we are editing in
-        // plain text mode
-        document.getElementById("outputFormatMenu").setAttribute("hidden", true);
-        document.getElementById("FormatToolbar").setAttribute("hidden", true);
-        document.getElementById("formatMenu").setAttribute("hidden", true);
-        document.getElementById("insertMenu").setAttribute("hidden", true);
-          document.getElementById("menu_showFormatToolbar").setAttribute("hidden", true);
-      }
-
-      // Do setup common to Message Composer and Web Composer
-      EditorSharedStartup();
-      InitLanguageMenu();
-    }
-
-    var msgCompFields = gMsgCompose.compFields;
-    if (msgCompFields)
-    {
-      if (params.bodyIsLink)
-      {
-        var body = msgCompFields.body;
-        if (gMsgCompose.composeHTML)
-        {
-          var cleanBody;
-          try {
-            cleanBody = decodeURI(body);
-          } catch(e) { cleanBody = body;}
-
-          // XXX : need to do html-escaping here !
-          msgCompFields.body = "<BR><A HREF=\"" + body + "\">" + cleanBody + "</A><BR>";
-        }
-        else
-          msgCompFields.body = "\n<" + body + ">\n";
-      }
-
-      var subjectValue = msgCompFields.subject;
-      GetMsgSubjectElement().value = subjectValue;
-
-      AddAttachments(msgCompFields.attachments);
-    }
-
-    var event = document.createEvent('Events');
-    event.initEvent('compose-window-init', false, true);
-    document.getElementById("msgcomposeWindow").dispatchEvent(event);
-
-    gMsgCompose.RegisterStateListener(stateListener);
-
-    if (recycled)
-    {
-      InitEditor();
-
-      if (gMsgCompose.composeHTML)
-      {
-        // Force color picker on toolbar to show document colors
-        onFontColorChange();
-        onBackgroundColorChange();
-      }
-
-      // reset the priorty field for recycled windows
-      updatePriorityToolbarButton('Normal');
+      initLocalFontFaceMenu(document.getElementById("FontFacePopup"));
     }
     else
     {
-      // Add an observer to be called when document is done loading,
-      // which creates the editor
-      try {
-        GetCurrentCommandManager().
-                addCommandObserver(gMsgEditorCreationObserver, "obs_documentCreated");
+      // Remove HTML toolbar, format and insert menus as we are editing in
+      // plain text mode.
+      document.getElementById("outputFormatMenu").setAttribute("hidden", true);
+      document.getElementById("FormatToolbar").setAttribute("hidden", true);
+      document.getElementById("formatMenu").setAttribute("hidden", true);
+      document.getElementById("insertMenu").setAttribute("hidden", true);
+      document.getElementById("menu_showFormatToolbar").setAttribute("hidden", true);
+    }
 
-        // Load empty page to create the editor
-        editorElement.webNavigation.loadURI("about:blank", 0, null, null, null);
-      } catch (e) {
-        dump(" Failed to startup editor: "+e+"\n");
-      }
+    // Do setup common to Message Composer and Web Composer.
+    EditorSharedStartup();
+    InitLanguageMenu();
+  }
+
+  if (params.bodyIsLink)
+  {
+    let body = gMsgCompose.compFields.body;
+    if (gMsgCompose.composeHTML)
+    {
+      let cleanBody;
+      try {
+        cleanBody = decodeURI(body);
+      } catch(e) { cleanBody = body; }
+
+      body = body.replace("&", "&amp;", "g");
+      gMsgCompose.compFields.body =
+        "<br /><a href=\"" + body + "\">" + cleanBody + "</a><br />";
+    }
+    else
+    {
+      gMsgCompose.compFields.body = "\n<" + body + ">\n";
+    }
+  }
+
+  GetMsgSubjectElement().value = gMsgCompose.compFields.subject;
+
+  AddAttachments(gMsgCompose.compFields.attachments);
+
+  var event = document.createEvent("Events");
+  event.initEvent("compose-window-init", false, true);
+  document.getElementById("msgcomposeWindow").dispatchEvent(event);
+
+  gMsgCompose.RegisterStateListener(stateListener);
+
+  if (recycled)
+  {
+    InitEditor();
+
+    if (gMsgCompose.composeHTML)
+    {
+      // Force color picker on toolbar to show document colors.
+      onFontColorChange();
+      onBackgroundColorChange();
+    }
+
+    // Reset the priority field for recycled windows.
+    updatePriorityToolbarButton("Normal");
+  }
+  else
+  {
+    // Add an observer to be called when document is done loading,
+    // which creates the editor.
+    try {
+      GetCurrentCommandManager().
+              addCommandObserver(gMsgEditorCreationObserver, "obs_documentCreated");
+
+      // Load empty page to create the editor.
+      editorElement.webNavigation.loadURI("about:blank", 0, null, null, null);
+    } catch (e) {
+      Components.utils.reportError(e);
     }
   }
 
