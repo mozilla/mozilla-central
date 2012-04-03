@@ -70,7 +70,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMailGNOMEIntegration, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMailMacIntegration)
 #endif
 
-#if defined(XP_WIN32) && (MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN)
+#if defined(XP_WIN32)
 #include "nsMailWinSearchHelper.h"
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMailWinSearchHelper, Init)
 #endif
@@ -82,9 +82,7 @@ NS_DEFINE_NAMED_CID(NS_SEAMONKEYPROFILEMIGRATOR_CID);
 NS_DEFINE_NAMED_CID(NS_OEXPRESSPROFILEMIGRATOR_CID);
 NS_DEFINE_NAMED_CID(NS_OUTLOOKPROFILEMIGRATOR_CID);
 NS_DEFINE_NAMED_CID(NS_MAILWININTEGRATION_CID);
-#if MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
 NS_DEFINE_NAMED_CID(NS_MAILWINSEARCHHELPER_CID);
-#endif // MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
 #endif // !XP_WIN32
 
 #if defined (XP_WIN32) || defined (XP_MACOSX)
@@ -106,9 +104,7 @@ const mozilla::Module::CIDEntry kMailCIDs[] = {
   { &kNS_OEXPRESSPROFILEMIGRATOR_CID, false, NULL, nsOEProfileMigratorConstructor },
   { &kNS_OUTLOOKPROFILEMIGRATOR_CID, false, NULL, nsOutlookProfileMigratorConstructor },
   { &kNS_MAILWININTEGRATION_CID, false, NULL, nsWindowsShellServiceConstructor },
-#if MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
   { &kNS_MAILWINSEARCHHELPER_CID, false, NULL, nsMailWinSearchHelperConstructor },
-#endif // MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
 #endif // !XP_WIN32
 #if defined (XP_WIN32) || defined (XP_MACOSX)
   { &kNS_EUDORAPROFILEMIGRATOR_CID, false, NULL, nsEudoraProfileMigratorConstructor },
@@ -129,9 +125,7 @@ const mozilla::Module::ContractIDEntry kMailContracts[] = {
   { NS_MAILPROFILEMIGRATOR_CONTRACTID_PREFIX "oexpress", &kNS_OEXPRESSPROFILEMIGRATOR_CID },
   { NS_MAILPROFILEMIGRATOR_CONTRACTID_PREFIX "outlook", &kNS_OUTLOOKPROFILEMIGRATOR_CID },
   { "@mozilla.org/mail/shell-service;1", &kNS_MAILWININTEGRATION_CID },
-#if MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
   { "@mozilla.org/mail/windows-search-helper;1", &kNS_MAILWINSEARCHHELPER_CID },
-#endif // MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
 #endif // !XP_WIN32
 #if defined (XP_WIN32) || defined (XP_MACOSX)
   { NS_MAILPROFILEMIGRATOR_CONTRACTID_PREFIX "eudora", &kNS_EUDORAPROFILEMIGRATOR_CID },
@@ -152,4 +146,3 @@ static const mozilla::Module kMailCompsModule = {
 };
 
 NSMODULE_DEFN(nsMailCompsModule) = &kMailCompsModule;
-

@@ -515,7 +515,6 @@ nsresult nsWindowsShellService::Init()
 bool
 nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, bool* aIsDefaultClient)
 {
-#if MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
   IApplicationAssociationRegistration* pAAR;
 
   HRESULT hr = CoCreateInstance(CLSID_ApplicationAssociationRegistration,
@@ -540,7 +539,6 @@ nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, bool* aIsDefaultClie
     pAAR->Release();
     return true;
   }
-#endif  
   return false;
 }
 
