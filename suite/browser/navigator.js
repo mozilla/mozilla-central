@@ -403,7 +403,10 @@ nsBrowserAccess.prototype = {
                                                fromExternal: isExternal,
                                                relatedToCurrent: isRelated,
                                                referrerURI: referrer});
-        return gBrowser.getBrowserForTab(newTab).contentWindow;
+        var contentWin = gBrowser.getBrowserForTab(newTab).contentWindow;
+        if (!bgLoad)
+          contentWin.focus();
+        return contentWin;
       default:
         var loadflags = isExternal ?
                         nsIWebNavigation.LOAD_FLAGS_FROM_EXTERNAL :
