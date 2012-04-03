@@ -820,11 +820,9 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
   NS_ENSURE_SUCCESS(rv, rv);
   bool leaveOnServer = false;
   m_popServer->GetLeaveMessagesOnServer(&leaveOnServer);
-  // aSize is only set for partial messages. Skip the flush for partials.
-  // Flush otherwise, since we can't guarantee that the pluggable store
-  // doesn't care.
-  if (!aSize)
-    rv = m_outFileStream->Flush(); // Make sure the message is written to the disk
+  // We need to flush the output stream, in case mail filters move
+  // the new message, which relies on all the data being flushed.
+  rv = m_outFileStream->Flush(); // Make sure the message is written to the disk
   NS_ENSURE_SUCCESS(rv, rv);
   NS_ASSERTION(m_newMailParser, "could not get m_newMailParser");
   if (m_newMailParser)
