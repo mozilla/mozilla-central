@@ -144,7 +144,7 @@ nsAbAutoCompleteSearch.prototype = {
           aDirectory.modifyCard(aCard);
         }
         catch (ex) {
-          Components.utils.reportError(e);
+          Components.utils.reportError(ex);
         }
       }
     }
