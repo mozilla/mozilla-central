@@ -532,11 +532,14 @@ nsPop3Sink::IncorporateBegin(const char* uidlString,
     if (NS_FAILED(rv))
       return rv;
 
-    //need a unique tmp file to prevent dataloss in multiuser environment
-    rv = tmpDownloadFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
-    NS_ENSURE_SUCCESS(rv, rv);
+    if (!m_tmpDownloadFile)
+    {
+      //need a unique tmp file to prevent dataloss in multiuser environment
+      rv = tmpDownloadFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
+      NS_ENSURE_SUCCESS(rv, rv);
 
-    m_tmpDownloadFile = do_QueryInterface(tmpDownloadFile, &rv);
+      m_tmpDownloadFile = do_QueryInterface(tmpDownloadFile, &rv);
+    }
     if (NS_SUCCEEDED(rv))
     {
       rv = MsgGetFileStream(m_tmpDownloadFile, getter_AddRefs(m_outFileStream));
