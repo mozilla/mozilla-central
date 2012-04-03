@@ -489,12 +489,9 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("offline.download.download_messages",      Int),
   MAKESAMETYPEPREFTRANSFORM("offline.send.unsent_messages",            Int),
   MAKESAMETYPEPREFTRANSFORM("offline.startup_state",                   Int),
-
   MAKESAMETYPEPREFTRANSFORM("plugin.override_internal_types",          Bool),
   MAKESAMETYPEPREFTRANSFORM("plugin.expose_full_path",                 Bool),
-
   MAKESAMETYPEPREFTRANSFORM("security.default_personal_cert",          String),
-  MAKESAMETYPEPREFTRANSFORM("security.enable_ssl2",                    Bool),
   MAKESAMETYPEPREFTRANSFORM("security.enable_ssl3",                    Bool),
   MAKESAMETYPEPREFTRANSFORM("security.enable_tls",                     Bool),
   MAKESAMETYPEPREFTRANSFORM("security.password_lifetime",              Int),
