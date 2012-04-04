@@ -9148,13 +9148,12 @@ if test -n "$MOZ_WEBRTC"; then
      $EXTRA_GYP_DEFINES \
      --generator-output=${_objdir}/media/webrtc/trunk \
      --toplevel-dir=${srcdir} \
+     -G OBJDIR=${_objdir} \
      ${srcdir}/media/webrtc/trunk/peerconnection.gyp
    if test "$?" != 0; then
       AC_MSG_ERROR([failed to generate WebRTC Makefiles])
    fi
-fi
 
-if test -n "$MOZ_WEBRTC"; then
    AC_MSG_RESULT("generating WebRTC/Signaling Makefiles...")
    $PYTHON ${srcdir}/media/webrtc/trunk/build/gyp_chromium --format=mozmake \
      --depth=${srcdir}/media/webrtc/trunk \
@@ -9163,6 +9162,7 @@ if test -n "$MOZ_WEBRTC"; then
      $EXTRA_GYP_DEFINES \
      --generator-output=${_objdir}/media/webrtc/signaling \
      --toplevel-dir=${srcdir} \
+     -G OBJDIR=${_objdir} \
      ${srcdir}/media/webrtc/signaling/signaling.gyp
    if test "$?" != 0; then
       AC_MSG_ERROR([failed to generate WebRTC/Signaling Makefiles])

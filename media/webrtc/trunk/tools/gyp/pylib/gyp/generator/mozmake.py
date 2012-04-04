@@ -186,7 +186,7 @@ def Compilable(filename):
   return os.path.splitext(filename)[1] in COMPILABLE_EXTENSIONS
 
 class MakefileGenerator(object):
-  def __init__(self, target_dicts, data, options, depth, topsrcdir, relative_srcdir, objdir):
+  def __init__(self, target_dicts, data, options, depth, topsrcdir, relative_srcdir, output_dir):
     self.target_dicts = target_dicts
     self.data = data
     self.options = options
@@ -194,7 +194,7 @@ class MakefileGenerator(object):
     self.relative_srcdir = swapslashes(relative_srcdir)
     self.topsrcdir = swapslashes(topsrcdir)
     self.srcdir = swapslashes(os.path.join(topsrcdir, relative_srcdir))
-    self.objdir = objdir
+    self.output_dir = output_dir
     # Directories to be built in order.
     self.dirs = []
     # Directories that can be built in any order, but before |dirs|.
@@ -212,7 +212,7 @@ class MakefileGenerator(object):
     rel_path = os.path.join(rel_path,
                              os.path.splitext(os.path.basename(build_file))[0]
                              + "_" + target_name)
-    output_file = os.path.join(self.objdir, rel_path, "Makefile")
+    output_file = os.path.join(self.output_dir, rel_path, "Makefile")
     return swapslashes(rel_path), swapslashes(output_file)
 
   def ProcessTargets(self, needed_targets):
@@ -369,8 +369,10 @@ def GenerateOutput(target_list, target_dicts, data, params):
   # Get a few directories into Mozilla-common naming conventions
   # The root of the source repository.
   topsrcdir = options.toplevel_dir
-  # The output directory.
-  objdir = options.generator_output or '.'
+  # The object directory (root of the build).
+  objdir = generator_flags['OBJDIR'] if 'OBJDIR' in generator_flags else '.'
+  # A relative path from the objdir to the topsrcdir
+  relative_topsrcdir = gyp.common.RelativePath(topsrcdir, objdir)
   # The directory containing the gyp file on which gyp was invoked.
   gyp_file_dir = os.path.dirname(params['build_files'][0]) or '.'
   # The relative path from topsrcdir to gyp_file_dir
@@ -379,8 +381,10 @@ def GenerateOutput(target_list, target_dicts, data, params):
   srcdir = gyp.common.RelativePath(gyp_file_dir, objdir)
   # The path to get up to the root of the objdir from the output dir.
   depth = getdepth(relative_srcdir)
+  # The output directory.
+  output_dir = options.generator_output or '.'
   # The path to the root Makefile
-  makefile_path = os.path.join(objdir, "Makefile")
+  makefile_path = os.path.join(output_dir, "Makefile")
 
   # Find the list of targets that derive from the gyp file(s) being built.
   needed_targets = set()
@@ -389,7 +393,7 @@ def GenerateOutput(target_list, target_dicts, data, params):
     for target in gyp.common.AllTargets(target_list, target_dicts, build_file):
       needed_targets.add(target)
 
-  generator = MakefileGenerator(target_dicts, data, options, depth, topsrcdir, relative_srcdir, objdir)
+  generator = MakefileGenerator(target_dicts, data, options, depth, relative_topsrcdir, relative_srcdir, output_dir)
   generator.ProcessTargets(needed_targets)
 
   # Write the top-level makefile, which simply calls the other makefiles
@@ -397,6 +401,8 @@ def GenerateOutput(target_list, target_dicts, data, params):
   if generator.parallel_dirs:
     topdata['PARALLEL_DIRS'] = generator.parallel_dirs
   WriteMakefile(makefile_path, topdata, params['build_files'][0],
-                depth, swapslashes(topsrcdir), swapslashes(srcdir),
+                depth,
+                swapslashes(relative_topsrcdir),
+                swapslashes(srcdir),
                 swapslashes(relative_srcdir))
-  WriteCommonMk(os.path.join(objdir, "common.mk"))
+  WriteCommonMk(os.path.join(output_dir, "common.mk"))
