@@ -95,7 +95,7 @@
     color: -moz-FieldText !important;
     border-radius: 3px;
     border: 1px solid transparent;
-    background-color: none;
+    background-color: transparent;
   }
 
   imconv[selected],
