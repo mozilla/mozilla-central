@@ -241,6 +241,7 @@ class FakeFileSystem : public FilesystemInterface {
       EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
+#ifdef SUPPORT_APP_ADATA_FOLDER
     bool GetAppDataFolder(Pathname *path, bool per_user) {
       EXPECT_TRUE(per_user) << "Unsupported operation";
 #ifdef WIN32
@@ -250,6 +251,7 @@ class FakeFileSystem : public FilesystemInterface {
 #endif
       return true;
     }
+#endif
     bool GetAppTempFolder(Pathname *path) {
       EXPECT_TRUE(false) << "Unsupported operation";
       return false;

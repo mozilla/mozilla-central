@@ -369,6 +369,7 @@ bool UnixFilesystem::GetAppPathname(Pathname* path) {
 #endif  // OSX
 }
 
+#ifdef SUPPORT_APP_ADATA_FOLDER
 bool UnixFilesystem::GetAppDataFolder(Pathname* path, bool per_user) {
   ASSERT(!organization_name_.empty());
   ASSERT(!application_name_.empty());
@@ -442,6 +443,7 @@ bool UnixFilesystem::GetAppDataFolder(Pathname* path, bool per_user) {
 #endif
   return CreateFolder(*path);
 }
+#endif
 
 bool UnixFilesystem::GetAppTempFolder(Pathname* path) {
 #if defined(ANDROID) || defined(IOS)

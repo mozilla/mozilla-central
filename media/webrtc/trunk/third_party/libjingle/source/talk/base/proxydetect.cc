@@ -390,6 +390,7 @@ bool EndsWith(const std::string& a, const std::string& b) {
   return result == 0;
 }
 
+#if GET_FIREFOX_PROXY_SETTINGS
 bool GetFirefoxProfilePath(Pathname* path) {
 #ifdef WIN32
   wchar_t w_path[MAX_PATH];
@@ -598,6 +599,13 @@ bool GetFirefoxProxySettings(const char* url, ProxyInfo* proxy) {
   }
   return success;
 }
+#else
+bool GetFirefoxProxySettings(const char* url, ProxyInfo* proxy) {
+  (void) url;
+  (void) proxy;
+  return false;
+}
+#endif
 
 #ifdef WIN32  // Windows specific implementation for reading Internet
               // Explorer proxy settings.

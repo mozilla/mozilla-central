@@ -154,12 +154,14 @@ inline bool GetTemporaryFolder(Pathname& path, bool create,
   return Filesystem::GetTemporaryFolder(path, create, &application_name)
          && FinishPath(path, create, append);
 }
+#ifdef SUPPORT_APP_ADATA_FOLDER
 inline bool GetAppDataFolder(Pathname& path, bool create,
                              const std::string& append) {
   ASSERT(!create); // TODO: Support create flag on Filesystem::GetAppDataFolder.
   return Filesystem::GetAppDataFolder(&path, true)
          && FinishPath(path, create, append);
 }
+#endif
 inline bool CleanupTemporaryFolder() {
   Pathname path;
   if (!GetTemporaryFolder(path, false, ""))

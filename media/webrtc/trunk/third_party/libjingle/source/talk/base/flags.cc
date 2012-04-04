@@ -283,6 +283,7 @@ void FlagList::Register(Flag* flag) {
 }
 
 #ifdef WIN32
+#ifdef WINDOWS_COMMANDLINE_ARGS
 WindowsCommandLineArguments::WindowsCommandLineArguments() {
   // start by getting the command line.
   LPTSTR command_line = ::GetCommandLine();
@@ -320,5 +321,6 @@ WindowsCommandLineArguments::~WindowsCommandLineArguments() {
 
   delete[] argv_;
 }
+#endif  // WINDOWS_COMMANDLINE_ARGS
 #endif  // WIN32
 

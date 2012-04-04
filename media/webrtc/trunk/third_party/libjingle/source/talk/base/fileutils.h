@@ -241,10 +241,12 @@ class FilesystemInterface {
   // limitations before using it, and robustly handle failure.
   virtual bool GetAppPathname(Pathname* path) = 0;
 
+#ifdef SUPPORT_APP_ADATA_FOLDER
   // Get a folder that is unique to the current application, which is suitable
   // for sharing data between executions of the app.  If the per_user arg is
   // true, the folder is also specific to the current user.
   virtual bool GetAppDataFolder(Pathname* path, bool per_user) = 0;
+#endif
 
   // Get a temporary folder that is unique to the current user and application.
   // TODO: Re-evaluate the goals of this function.  We probably just need any
@@ -388,9 +390,11 @@ class Filesystem {
     return EnsureDefaultFilesystem()->GetAppPathname(path);
   }
 
+#ifdef SUPPORT_APP_ADATA_FOLDER
   static bool GetAppDataFolder(Pathname* path, bool per_user) {
     return EnsureDefaultFilesystem()->GetAppDataFolder(path, per_user);
   }
+#endif
 
   static bool GetAppTempFolder(Pathname* path) {
     return EnsureDefaultFilesystem()->GetAppTempFolder(path);

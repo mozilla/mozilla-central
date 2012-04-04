@@ -105,7 +105,9 @@ class UnixFilesystem : public FilesystemInterface {
   // Returns the path to the running application.
   virtual bool GetAppPathname(Pathname* path);
 
+#ifdef SUPPORT_APP_ADATA_FOLDER
   virtual bool GetAppDataFolder(Pathname* path, bool per_user);
+#endif
 
   // Get a temporary folder that is unique to the current user and application.
   virtual bool GetAppTempFolder(Pathname* path);

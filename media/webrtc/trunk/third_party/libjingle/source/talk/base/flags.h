@@ -259,6 +259,7 @@ class FlagList {
 };
 
 #ifdef WIN32
+#ifdef WINDOWS_COMMANDLINE_ARGS
 // A helper class to translate Windows command line arguments into UTF8,
 // which then allows us to just pass them to the flags system.
 // This encapsulates all the work of getting the command line and translating
@@ -278,6 +279,7 @@ class WindowsCommandLineArguments {
  private:
   DISALLOW_EVIL_CONSTRUCTORS(WindowsCommandLineArguments);
 };
+#endif  // WINDOWS_COMMANDLINE_ARGS
 #endif  // WIN32
 
 

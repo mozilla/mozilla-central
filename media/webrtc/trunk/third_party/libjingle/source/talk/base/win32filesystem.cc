@@ -360,6 +360,7 @@ bool Win32Filesystem::GetAppPathname(Pathname* path) {
   return true;
 }
 
+#ifdef SUPPORT_APP_ADATA_FOLDER
 bool Win32Filesystem::GetAppDataFolder(Pathname* path, bool per_user) {
   ASSERT(!organization_name_.empty());
   ASSERT(!application_name_.empty());
@@ -387,6 +388,7 @@ bool Win32Filesystem::GetAppDataFolder(Pathname* path, bool per_user) {
   path->SetFolder(ToUtf8(buffer));
   return CreateFolder(*path);
 }
+#endif SUPPORT_APP_ADATA_FOLDER
 
 bool Win32Filesystem::GetAppTempFolder(Pathname* path) {
   if (!GetAppPathname(path))

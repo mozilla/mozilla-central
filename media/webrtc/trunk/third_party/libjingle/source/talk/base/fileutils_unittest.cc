@@ -105,6 +105,7 @@ TEST(FilesystemTest, TestGetDiskFreeSpace) {
   // Note that we should avoid picking any file/folder which could be located
   // at the remotely mounted drive/device.
   Pathname path;
+#ifdef SUPPORT_APP_ADATA_FOLDER
   ASSERT_TRUE(Filesystem::GetAppDataFolder(&path, true));
 
   int64 free1 = 0;
@@ -122,6 +123,7 @@ TEST(FilesystemTest, TestGetDiskFreeSpace) {
   // by more than 1% between the two calls.
   EXPECT_LT(static_cast<int64>(free1 * .9), free2);
   EXPECT_LT(free2, static_cast<int64>(free1 * 1.1));
+#endif
 
   int64 free3 = 0;
   path.clear();
