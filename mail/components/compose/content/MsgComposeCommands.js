@@ -733,8 +733,10 @@ var attachmentBucketController = {
 
         let bucket = document.getElementById("attachmentBucket");
         for (let [,item] in Iterator(bucket.selectedItems)) {
-          if (item && item.uploading)
+          if (item && item.uploading) {
+            cmd.hidden = false;
             return true;
+          }
         }
 
         // Hide the command entirely if the selected attachments aren't cloud
@@ -1051,9 +1053,14 @@ uploadListener.prototype = {
       event.initEvent("attachment-uploaded", true, true);
       attachmentItem.dispatchEvent(event);
     }
-    else if (aStatusCode == this.cloudProvider.uploadCanceled) {
+    else if (aStatusCode == Components.interfaces
+                                      .nsIMsgCloudFileProvider
+                                      .uploadCanceled) {
       attachmentItem.setAttribute("tooltiptext", attachmentItem.attachment.url);
       attachmentItem.image = null;
+      attachmentItem.uploading = false;
+      attachmentItem.attachment.sendViaCloud = false;
+      delete attachmentItem.cloudProvider;
     }
     else {
       let title;
