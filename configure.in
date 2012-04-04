@@ -9154,6 +9154,7 @@ if test -n "$MOZ_WEBRTC"; then
       AC_MSG_ERROR([failed to generate WebRTC Makefiles])
    fi
 
+ if false; then
    AC_MSG_RESULT("generating WebRTC/Signaling Makefiles...")
    $PYTHON ${srcdir}/media/webrtc/trunk/build/gyp_chromium --format=mozmake \
      --depth=${srcdir}/media/webrtc/trunk \
@@ -9167,6 +9168,7 @@ if test -n "$MOZ_WEBRTC"; then
    if test "$?" != 0; then
       AC_MSG_ERROR([failed to generate WebRTC/Signaling Makefiles])
    fi
+ fi 
 fi
 
 # Generate a JSON config file for unittest harnesses etc to read
