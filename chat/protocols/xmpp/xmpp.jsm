@@ -221,6 +221,9 @@ const XMPPConversationPrototype = {
   get title() this.buddy.contactDisplayName,
   get normalizedName() this.buddy.normalizedName,
 
+  get shouldSendTypingNotifications()
+    this._supportChatStateNotifications &&
+    Services.prefs.getBoolPref("purple.conversations.im.send_typing"),
   set supportChatStateNotifications(val) {
     this._supportChatStateNotifications = val;
   },
@@ -228,7 +231,7 @@ const XMPPConversationPrototype = {
   /* Called when the user is typing a message
    * aLength - length of the typed message */
   sendTyping: function(aLength) {
-    if (!this._supportChatStateNotifications)
+    if (!this.shouldSendTypingNotifications)
       return;
 
     this._cancelTypingTimer();
@@ -239,7 +242,7 @@ const XMPPConversationPrototype = {
   },
 
   finishedComposing: function() {
-    if (!this._supportChatStateNotifications)
+    if (!this.shouldSendTypingNotifications)
       return;
 
     this._setTypingState("paused");
@@ -272,7 +275,7 @@ const XMPPConversationPrototype = {
   /* Called when the user enters a chat message */
   sendMsg: function (aMsg) {
     this._cancelTypingTimer();
-    let cs = this._supportChatStateNotifications ? "active" : null;
+    let cs = this.shouldSendTypingNotifications ? "active" : null;
     let s = Stanza.message(this.to, aMsg, cs);
     this._account.sendStanza(s);
     let who;
