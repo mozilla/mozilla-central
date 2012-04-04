@@ -43,7 +43,11 @@ VPATH           = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS := trunk signaling
+DIRS := trunk
+
+ifneq ($(OS_TARGET),WINNT)
+DIRS += signaling
+endif
 
 # These Makefiles don't have corresponding Makefile.ins
 NO_SUBMAKEFILES_RULE = 1
