@@ -200,7 +200,9 @@ nsDropbox.prototype = {
     }
     else {
       for (let i = 0; i < this._uploads.length; i++)
-        if (this._uploads[i].file == aFile) {
+        if (this._uploads[i].file.equals(aFile)) {
+          this._uploads[i].requestObserver.onStopRequest(
+            null, null, Ci.nsIMsgCloudFileProvider.uploadCanceled);
           this._uploads.splice(i, 1);
           return;
         }
@@ -567,8 +569,9 @@ nsDropboxFileUploader.prototype = {
       function(aException, aResponseText, aRequest) {
         this.request = null;
         this.log.info("failed putting file response = " + aResponseText);
-        this.callback(this.requestObserver,
-                      Ci.nsIMsgCloudFileProvider.uploadErr);
+        if (this.callback)
+          this.callback(this.requestObserver,
+                        Ci.nsIMsgCloudFileProvider.uploadErr);
       }.bind(this), this, oauthParams);
   },
 
@@ -578,9 +581,12 @@ nsDropboxFileUploader.prototype = {
   cancel: function nsDFU_cancel() {
     this.callback(this.requestObserver, Ci.nsIMsgCloudFileProvider.uploadCanceled);
     if (this.request) {
-      let req = this.request.QueryInterface(Ci.nsIRequest);
-      if (req.channel)
-        req.channel.cancel();
+      let req = this.request;
+      if (req.channel) {
+        this.log.info("canceling channel upload");
+        delete this.callback;
+        req.channel.cancel(Cr.NS_BINDING_ABORTED);
+      }
       this.request = null;
     }
   },

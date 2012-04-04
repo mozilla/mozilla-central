@@ -202,11 +202,14 @@ nsYouSendIt.prototype = {
    * @param aFile the nsILocalFile being uploaded.
    */
   cancelFileUpload: function nsYouSendIt_cancelFileUpload(aFile) {
-    if (this._uploadingFile == aFile)
+    this.log.info("in cancel upload");
+    if (this._uploadingFile.equals(aFile))
       this._uploader.cancel();
     else {
       for (let i = 0; i < this._uploads.length; i++)
-        if (this._uploads[i].file == aFile) {
+        if (this._uploads[i].file.equals(aFile)) {
+          this._uploads[i].requestObserver.onStopRequest(
+            null, null, Ci.nsIMsgCloudFileProvider.uploadCanceled);
           this._uploads.splice(i, 1);
           return;
         }
@@ -750,7 +753,7 @@ nsYouSendItFileUploader.prototype = {
 
     let curDate = Date.now().toString();
     this.log.info("upload url = " + this._urlInfo.uploadUrl);
-
+    this.request = req;
     req.open("POST", this._urlInfo.uploadUrl, true);
     req.onload = function() {
       this.cleanupTempFile();
@@ -780,8 +783,9 @@ nsYouSendItFileUploader.prototype = {
 
     req.onerror = function () {
       this.cleanupTempFile();
-      this.callback(this.requestObserver,
-                    Ci.nsIMsgCloudFileProvider.uploadErr);
+      if (this.callback)
+        this.callback(this.requestObserver,
+                      Ci.nsIMsgCloudFileProvider.uploadErr);
     }.bind(this);
 
     req.setRequestHeader("Date", curDate);
@@ -852,6 +856,23 @@ nsYouSendItFileUploader.prototype = {
     }
   },
 
+  /**
+   * Cancels the upload request for the file associated with this Uploader.
+   */
+  cancel: function nsYSIFU_cancel() {
+    this.log.info("in uploader cancel");
+    this.callback(this.requestObserver, Ci.nsIMsgCloudFileProvider.uploadCanceled);
+    delete this.callback;
+    if (this.request) {
+      this.log.info("cancelling upload request");
+      let req = this.request;
+      if (req.channel) {
+        this.log.info("cancelling upload channel");
+        req.channel.cancel(Cr.NS_BINDING_ABORTED);
+      }
+      this.request = null;
+    }
+  },
   /**
    * Once the file is uploaded, if we want to get a sharing URL back, we have
    * to send a "commit" request - which this function does.

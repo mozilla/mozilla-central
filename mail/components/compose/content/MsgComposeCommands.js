@@ -733,7 +733,7 @@ var attachmentBucketController = {
 
         let bucket = document.getElementById("attachmentBucket");
         for (let [,item] in Iterator(bucket.selectedItems)) {
-          if (item.uploading)
+          if (item && item.uploading)
             return true;
         }
 
@@ -750,7 +750,7 @@ var attachmentBucketController = {
 
         let bucket = document.getElementById("attachmentBucket");
         for (let [,item] in Iterator(bucket.selectedItems)) {
-          if (item.uploading) {
+          if (item && item.uploading) {
             let file = fileHandler.getFileFromURLSpec(item.attachment.url);
             item.cloudProvider.cancelFileUpload(file);
           }
