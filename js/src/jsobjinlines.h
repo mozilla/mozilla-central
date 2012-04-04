@@ -277,7 +277,7 @@ inline void
 JSObject::initCall(JSContext *cx, const js::Bindings &bindings, JSObject *parent)
 {
     init(cx, &js::CallClass, &js::types::emptyTypeObject, parent, NULL, false);
-    lastProp = bindings.lastShape();
+    lastProp = bindings.callObjectShape(cx);
 
     /*
      * If |bindings| is for a function that has extensible parents, that means

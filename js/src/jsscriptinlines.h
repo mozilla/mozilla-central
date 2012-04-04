@@ -94,11 +94,17 @@ Bindings::lastShape() const
     return lastBinding;
 }
 
+Shape *
+Bindings::initialShape(JSContext *cx) const
+{
+    return EmptyShape::getEmptyCallShape(cx);
+}
+
 bool
 Bindings::ensureShape(JSContext *cx)
 {
     if (!lastBinding) {
-        lastBinding = EmptyShape::getEmptyCallShape(cx);
+        lastBinding = initialShape(cx);
         if (!lastBinding)
             return false;
     }

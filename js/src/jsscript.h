@@ -172,11 +172,13 @@ class Bindings {
     uint16 nargs;
     uint16 nvars;
     uint16 nupvars;
+    bool hasDup_:1;        // true if there are duplicate arguments
     bool hasExtensibleParents;
 
+    inline Shape *initialShape(JSContext *cx) const;
   public:
     inline Bindings(JSContext *cx)
-        : lastBinding(NULL), nargs(0), nvars(0), nupvars(0), hasExtensibleParents(false)
+        : lastBinding(NULL), nargs(0), nvars(0), nupvars(0), hasDup_(false), hasExtensibleParents(false)
     {
     }
 
@@ -210,6 +212,12 @@ class Bindings {
 
     /* Returns the shape lineage generated for these bindings. */
     inline js::Shape *lastShape() const;
+
+    /*
+     * Return the shape to use to create a call object for these bindings.
+     * The result is guaranteed not to have duplicate property names.
+     */
+    Shape *callObjectShape(JSContext *cx) const;
 
     enum {
         /*
@@ -256,6 +264,9 @@ class Bindings {
         *slotp = nargs;
         return add(cx, NULL, ARGUMENT);
     }
+
+    void noteDup() { hasDup_ = true; }
+    bool hasDup() const { return hasDup_; }
 
     /*
      * Look up an argument or variable name, returning its kind when found or
