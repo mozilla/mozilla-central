@@ -188,6 +188,33 @@ function test_deleting_uploads() {
 }
 
 /**
+ * Test that cancelling an upload causes onStopRequest to be
+ * called with nsIMsgCloudFileProvider.uploadCanceled.
+ */
+function test_can_cancel_upload() {
+  const kFilename = "testFile1";
+  let provider = gServer.getPreparedBackend("anAccount");
+  let file = getFile("./data/" + kFilename, __file__);
+  gServer.planForUploadFile(kFilename, 2000);
+  assert_can_cancel_uploads(mc, provider, [file]);
+}
+
+/**
+ * Test that cancelling several uploads causes onStopRequest to be
+ * called with nsIMsgCloudFileProvider.uploadCanceled.
+ */
+function test_can_cancel_uploads() {
+  const kFiles = ["testFile2", "testFile3", "testFile4"];
+  let provider = gServer.getPreparedBackend("anAccount");
+  let files = [];
+  for each (let [, filename] in Iterator(kFiles)) {
+    gServer.planForUploadFile(filename, 2000);
+    files.push(getFile("./data/" + filename, __file__));
+  }
+  assert_can_cancel_uploads(mc, provider, files);
+}
+
+/**
  * Test that when we call createExistingAccount, onStopRequest is successfully
  * called, and we pass the correct parameters.
  */
@@ -259,4 +286,3 @@ function test_delete_refreshes_stale_token() {
   mc.waitFor(function() gServer.auth.count > 0,
              "Timed out waiting for authorization attempt");
 }
-

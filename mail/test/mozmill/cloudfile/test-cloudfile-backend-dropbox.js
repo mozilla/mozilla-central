@@ -213,6 +213,35 @@ function test_create_existing_account() {
 }
 
 /**
+ * Test that cancelling an upload causes onStopRequest to be
+ * called with nsIMsgCloudFileProvider.uploadCanceled.
+ */
+function test_can_cancel_upload() {
+  const kFilename = "testFile1";
+  gServer.setupUser();
+  let provider = gServer.getPreparedBackend("someNewAccount");
+  let file = getFile("./data/" + kFilename, __file__);
+  gServer.planForUploadFile(kFilename, 2000);
+  assert_can_cancel_uploads(mc, provider, [file]);
+}
+
+/**
+ * Test that cancelling several uploads causes onStopRequest to be
+ * called with nsIMsgCloudFileProvider.uploadCanceled.
+ */
+function test_can_cancel_uploads() {
+  const kFiles = ["testFile2", "testFile3", "testFile4"];
+  gServer.setupUser();
+  let provider = gServer.getPreparedBackend("someNewAccount");
+  let files = [];
+  for each (let [, filename] in Iterator(kFiles)) {
+    gServer.planForUploadFile(filename, 2000);
+    files.push(getFile("./data/" + filename, __file__));
+  }
+  assert_can_cancel_uploads(mc, provider, files);
+}
+
+/**
  * Test that completing the OAuth procedure results in an attempt to logout.
  */
 function test_oauth_complete_causes_logout() {

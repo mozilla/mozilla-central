@@ -81,20 +81,6 @@ function setupTest() {
 }
 
 /**
- * Helper function for getting the nsILocalFile's for some files located
- * in a subdirectory of the test directory.
- *
- * @param aFiles an array of filename strings for files underneath the test
- *               file directory.
- *
- * Example: let files = collectFiles(['./data/testFile1', './data/testFile2']);
- */
-function collectFiles(aFiles) {
-  return [cfh.getFile(filename, __file__)
-          for each (filename in aFiles)]
-}
-
-/**
  * Given some compose window controller, wait for some Filelink URLs to be
  * inserted.
  *
@@ -138,7 +124,7 @@ function wait_for_attachment_urls(aController, aNumUrls) {
  *               the test directory.
  */
 function prepare_some_attachments_and_reply(aText, aFiles) {
-  gMockFilePicker.returnFiles = collectFiles(aFiles);
+  gMockFilePicker.returnFiles = collectFiles(aFiles, __file__);
 
   let provider = new MockCloudfileAccount();
   provider.init("someKey");
@@ -169,7 +155,7 @@ function prepare_some_attachments_and_reply(aText, aFiles) {
  *               the test directory.
  */
 function prepare_some_attachments_and_forward(aText, aFiles) {
-  gMockFilePicker.returnFiles = collectFiles(aFiles);
+  gMockFilePicker.returnFiles = collectFiles(aFiles, __file__);
 
   let provider = new MockCloudfileAccount();
   provider.init("someKey");
@@ -247,7 +233,7 @@ function test_inserts_linebreak_on_empty_compose() {
  * on both plaintext and HTML compose windows.
  */
 function subtest_inserts_linebreak_on_empty_compose() {
-  gMockFilePicker.returnFiles = collectFiles(kFiles);
+  gMockFilePicker.returnFiles = collectFiles(kFiles, __file__);
   let provider = new MockCloudfileAccount();
   provider.init("someKey");
   let cw = open_compose_new_mail();
@@ -276,7 +262,7 @@ function subtest_inserts_linebreak_on_empty_compose() {
  * node.
  */
 function test_inserts_linebreak_on_empty_compose_with_signature() {
-  gMockFilePicker.returnFiles = collectFiles(kFiles);
+  gMockFilePicker.returnFiles = collectFiles(kFiles, __file__);
   let provider = new MockCloudfileAccount();
   provider.init("someKey");
   let cw = open_compose_new_mail();
@@ -377,7 +363,7 @@ function test_adding_filelinks_to_written_message() {
  * HTML and plaintext mail.
  */
 function subtest_adding_filelinks_to_written_message() {
-  gMockFilePicker.returnFiles = collectFiles(kFiles);
+  gMockFilePicker.returnFiles = collectFiles(kFiles, __file__);
   let provider = new MockCloudfileAccount();
   provider.init("someKey");
   let cw = open_compose_new_mail();

@@ -115,7 +115,7 @@ MockYouSendItServer.prototype = {
     cloudFileAccounts.setSecretValue(aAccountKey, cloudFileAccounts.kTokenRealm, "someAuthToken");
 
     let yousendit = Cc["@mozilla.org/mail/yousendit;1"]
-                    .getService(Ci.nsIMsgCloudFileProvider);
+                    .createInstance(Ci.nsIMsgCloudFileProvider);
 
     let urls = [kServerURL];
     yousendit.overrideUrls(urls.length, urls);
@@ -167,8 +167,16 @@ MockYouSendItServer.prototype = {
     this.userInfo.setupUser(aData);
   },
 
-  planForUploadFile: function MDBS_planForUploadFile(aFilename, aData) {
-    this.receiver.expect(aFilename);
+  /**
+   * Prepare the mock server to have a file with filename aFilename be
+   * uploaded.
+   *
+   * @param aFilename the name of the file to be uploaded.
+   * @param aMSeconds an optional argument, for the amount of time the upload
+   *                  should take in milliseconds.
+   */
+  planForUploadFile: function MDBS_planForUploadFile(aFilename, aMSeconds) {
+    this.receiver.expect(aFilename, aMSeconds);
     let downloadUrl = kDownloadURLPrefix + "/" + aFilename;
     this.committer.prepareDownloadURL(aFilename, downloadUrl);
   },
@@ -342,6 +350,8 @@ function MockYouSendItReceiverSimple(aYouSendIt) {
   this._server = null;
   this._ysi = aYouSendIt;
   this._expectedFiles = [];
+  this._mSeconds = {};
+  this._timers = [];
 }
 
 MockYouSendItReceiverSimple.prototype = {
@@ -366,6 +376,12 @@ MockYouSendItReceiverSimple.prototype = {
     let filename = formData['filename'];
     let filenameIndex = this._expectedFiles.indexOf(filename);
 
+    Services.obs.notifyObservers(null, "cloudfile:uploadStarted",
+                                 filename);
+
+    if (filename in this._mSeconds)
+      aResponse.processAsync();
+
     if (filenameIndex == -1)
       throw new Error("Unexpected file upload: " + formData['filename']);
 
@@ -381,10 +397,28 @@ MockYouSendItReceiverSimple.prototype = {
 
     // De-register this URL...
     this._server.registerPathHandler(aRequest.path, null);
+
+    if (filename in this._mSeconds) {
+      let timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+      let timerEvent = {
+        notify: function(aTimer) {
+          aResponse.finish();
+        },
+      }
+      timer.initWithCallback(timerEvent, this._mSeconds[filename],
+                             Ci.nsITimer.TYPE_ONE_SHOT);
+      // This is kind of ridiculous, but it seems that we have to hold a
+      // reference to this timer, or else it can get garbage collected before
+      // it fires.
+      this._timers.push(timer);
+    }
   },
 
-  expect: function(aFilename) {
+  expect: function(aFilename, aMSeconds) {
     this._expectedFiles.push(aFilename);
+
+    if (aMSeconds)
+      this._mSeconds[aFilename] = aMSeconds;
   },
 
   get expecting() {

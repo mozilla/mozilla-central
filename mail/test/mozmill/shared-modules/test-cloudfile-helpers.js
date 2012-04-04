@@ -28,7 +28,7 @@ const kDefaults = {
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-var fdh, gMockCloudfileComponent;
+var cfh, fdh, gMockCloudfileComponent;
 
 function setupModule(module) {
   fdh = collector.getModule("folder-display-helpers");
@@ -47,6 +47,7 @@ function installInto(module) {
   module.gMockCloudfileManager = gMockCloudfileManager;
   module.MockCloudfileAccount = MockCloudfileAccount;
   module.getFile = getFile;
+  module.collectFiles = collectFiles;
 }
 
 
@@ -55,6 +56,24 @@ function getFile(aFilename, aRoot) {
   let file = os.getFileForPath(os.abspath(aFilename, path));
   fdh.assert_true(file.exists, "File " + aFilename + " does not exist.");
   return file;
+}
+
+/**
+ * Helper function for getting the nsILocalFile's for some files located
+ * in a subdirectory of the test directory.
+ *
+ * @param aFiles an array of filename strings for files underneath the test
+ *               file directory.
+ * @param aFileRoot the file who's parent directory we should start looking
+ *                  for aFiles in.
+ *
+ * Example:
+ * let files = collectFiles(['./data/testFile1', './data/testFile2'],
+ *                          __file__);
+ */
+function collectFiles(aFiles, aFileRoot) {
+  return [getFile(filename, aFileRoot)
+          for each (filename in aFiles)]
 }
 
 function MockCloudfileAccount() {
@@ -69,35 +88,26 @@ MockCloudfileAccount.prototype = {
     this.accountKey = aAccountKey;
   },
 
-  uploadFile: function(aFile, aListener) {
+  uploadFile: function MCA_uploadFile(aFile, aListener) {
     aListener.onStartRequest(null, null);
     aListener.onStopRequest(null, null, Cr.NS_OK);
   },
 
-  urlForFile: function(aFile) {
+  urlForFile: function MCA_urlForFile(aFile) {
     return "http://www.example.com/download/someFile";
   },
 
-  refreshUserInfo: function(aWithUI, aCallback) {
+  refreshUserInfo: function MCA_refreshUserInfo(aWithUI,
+                                                aCallback) {
     aCallback.onStartRequest(null, null);
     aCallback.onStopRequest(null, null, Cr.NS_OK);
-  }
-};
-
-
-function MockCloudfileController(aAccountKey) {
-  this.instances = [];
-  this.accountKey = aAccountKey;
-}
-
-MockCloudfileController.prototype = {
-  get connected() {
-    return this.account != null;
   },
-  connect: function MCC_connect(aAccount) {
-    this.account = aAccount;
+
+  cancelFileUpload: function MCA_cancelFileUpload(aFile) {
+    throw Cr.NS_ERROR_NOT_IMPLEMENTED;
   },
 };
+
 
 var gMockCloudfileManager = {
   _mock_map: {},

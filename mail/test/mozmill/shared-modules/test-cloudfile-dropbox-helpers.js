@@ -101,10 +101,11 @@ function MockDropboxServer() {}
 MockDropboxServer.prototype = {
   _server: null,
   _toDelete: [],
+  _timers: [],
 
   getPreparedBackend: function MDBS_getPreparedBackend(aAccountKey) {
     let dropbox = Cc["@mozilla.org/mail/dropbox;1"]
-                  .getService(Ci.nsIMsgCloudFileProvider);
+                  .createInstance(Ci.nsIMsgCloudFileProvider);
 
     let urls = [kServerURL, kContentURL, kAuthURL, kLogoutURL];
     dropbox.overrideUrls(urls.length, urls);
@@ -134,7 +135,8 @@ MockDropboxServer.prototype = {
       allDone = true;
     });
     aController.waitFor(function () allDone,
-                        "Timed out waiting for Dropbox server to stop!");
+                        "Timed out waiting for Dropbox server to stop!",
+                        10000);
   },
 
   setupUser: function MDBS_wireUser(aData) {
@@ -147,16 +149,53 @@ MockDropboxServer.prototype = {
                                      userFunc);
   },
 
-  planForUploadFile: function MDBS_planForUploadFile(aFileName, aData) {
+  /**
+   * Plan to upload a file with a particular filename.
+   *
+   * @param aFilename the name of the file that will be uploaded.
+   * @param aMSeconds an optional argument, for how long the upload should
+   *                  last in milliseconds.
+   */
+  planForUploadFile: function MDBS_planForUploadFile(aFilename, aMSeconds) {
     let data = kDefaultFilePutReturn;
-    data.path = aFileName;
-    aData = this._overrideDefault(data, aData);
+    data.path = aFilename;
 
+    // Prepare the function that will receive the upload and respond
+    // appropriately.
     let putFileFunc = this._noteAndReturnString("cloudfile:uploadFile",
-                                                aFileName,
-                                                JSON.stringify(aData));
-    this._server.registerPathHandler(kContentPath + kPutFilePath + aFileName,
-                                     putFileFunc);
+                                                aFilename,
+                                                JSON.stringify(data));
+
+    // Also prepare a function that will, if necessary, wait aMSeconds before
+    // firing putFileFunc.
+    let waitWrapperFunc = function(aRequest, aResponse) {
+      Services.obs.notifyObservers(null, "cloudfile:uploadStarted",
+                                   aFilename);
+
+      if (!aMSeconds) {
+        putFileFunc(aRequest, aResponse);
+        return;
+      }
+
+      // Ok, we're waiting a bit.  Tell the HTTP server that we're going to
+      // generate a response asynchronously, then set a timer to send the
+      // response after aMSeconds milliseconds.
+      aResponse.processAsync();
+      let timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+      let timerEvent = {
+        notify: function(aTimer) {
+          putFileFunc(aRequest, aResponse);
+          aResponse.finish();
+        },
+      };
+      timer.initWithCallback(timerEvent, aMSeconds,
+                             Ci.nsITimer.TYPE_ONE_SHOT);
+      // We can't let the timer get garbage collected, so we store it.
+      this._timers.push(timer);
+    }.bind(this);
+
+    this._server.registerPathHandler(kContentPath + kPutFilePath + aFilename,
+                                     waitWrapperFunc);
   },
 
   planForGetFileURL: function MDBS_planForGetShare(aFileName, aData) {
