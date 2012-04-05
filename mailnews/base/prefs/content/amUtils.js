@@ -62,29 +62,30 @@ function BrowseForLocalFolders()
   currentFolder.initWithPath(currentFolderTextBox.value);
   fp.displayDirectory = currentFolder;
 
-  if (fp.show() == nsIFilePicker.returnOK)
-  {
-    // Retrieve the selected folder.
-    var selectedFolder = fp.file;
+  if (fp.show() != nsIFilePicker.returnOK)
+    return;
 
-    // check that no other account/server has this same local directory
-    var allServers = MailServices.accounts.allServers;
-    for (var i = allServers.Count(); --i >= 0;)
-    {
-      var currentServer = allServers.QueryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
-      if (currentServer.key != gServer.key &&
-          currentServer.localPath.equals(selectedFolder))
-      {
-        var dirAlreadyUsed = top.document.getElementById("bundle_prefs")
-                                .getFormattedString("directoryUsedByOtherAccount",
-                                                    [currentServer.prettyName]);
-        Services.prompt.alert(window, null, dirAlreadyUsed);
-        return;
-      }
+  // Retrieve the selected folder.
+  let selectedFolder = fp.file;
+
+  // check that no other account/server has this same local directory
+  let allServers = MailServices.accounts.allServers;
+  for (let i = allServers.Count(); --i >= 0;) {
+    let currentServer = allServers
+      .QueryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
+    // IM server type does not have a .localPath
+    if (currentServer.key == gServer.key || currentServer.type == "im")
+      continue;
+
+    if (currentServer.localPath.equals(selectedFolder)) {
+      let dirAlreadyUsed = top.document.getElementById("bundle_prefs")
+                              .getFormattedString("directoryUsedByOtherAccount",
+                                                  [currentServer.prettyName]);
+      Services.prompt.alert(window, null, dirAlreadyUsed);
+      return;
     }
-
-    currentFolderTextBox.value = selectedFolder.path;
   }
+  currentFolderTextBox.value = selectedFolder.path;
 }
 
 function hostnameIsIllegal(hostname)
