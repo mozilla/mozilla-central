@@ -182,6 +182,7 @@
 @BINPATH@/components/dom_offline.xpt
 @BINPATH@/components/dom_power.xpt
 @BINPATH@/components/dom_range.xpt
+@BINPATH@/components/dom_settings.xpt
 @BINPATH@/components/dom_sidebar.xpt
 @BINPATH@/components/dom_smil.xpt
 @BINPATH@/components/dom_sms.xpt
@@ -411,6 +412,8 @@
 @BINPATH@/components/passwordmgr.manifest
 @BINPATH@/components/PlacesCategoriesStarter.js
 @BINPATH@/components/pluginGlue.manifest
+@BINPATH@/components/SettingsManager.js
+@BINPATH@/components/SettingsManager.manifest
 @BINPATH@/components/smileApplication.js
 @BINPATH@/components/smileApplication.manifest
 @BINPATH@/components/storage-Legacy.js

@@ -649,6 +649,7 @@ xpicleanup@BIN_SUFFIX@
   components/nsURLFormatter.js
   components/nsWebHandlerApp.js
   components/PlacesCategoriesStarter.js
+  components/SettingsManager.js
   components/smileApplication.js
   components/storage-Legacy.js
   components/storage-mozStorage.js
