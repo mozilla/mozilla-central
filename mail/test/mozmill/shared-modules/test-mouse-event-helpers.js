@@ -48,9 +48,12 @@ var EventUtils = {};
 Cu.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
 
 const MODULE_NAME = 'mouse-event-helpers';
+const MODULE_REQUIRES = ['folder-display-helpers'];
 
+var fdh;
 
 function setupModule() {
+  fdh = collector.getModule('folder-display-helpers');
 }
 
 function installInto(module) {
@@ -87,6 +90,7 @@ function drag_n_drop_element(aDragObject, aDragWindow, aDropObject,
                              aDropWindow, aRelDropX, aRelDropY, aListener)
 {
   let dt = synthesize_drag_start(aDragWindow, aDragObject, aListener);
+  fdh.assert_true(dt, "Drag target was undefined");
 
   synthesize_drag_over(aDropWindow, aDropObject, dt);
 
@@ -206,7 +210,7 @@ function _synthesizeDragEvent(aType, aWindow, aDispatcher, aDt, aArgs)
   if (aArgs && ("screenX" in aArgs))
     screenX = aArgs.screenX;
   else
-    screenX = aDispatcher.boxObject.ScreenX;;
+    screenX = aDispatcher.boxObject.ScreenX;
 
   let screenY;
   if (aArgs && ("screenY" in aArgs))

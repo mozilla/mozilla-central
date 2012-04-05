@@ -137,15 +137,8 @@ function test_tab_reorder_tabbar(){
   let tab1 = mc.tabmail.tabContainer.childNodes[1];
   let tab3 = mc.tabmail.tabContainer.childNodes[3];
 
-  let dt = synthesize_drag_start(mc.window, tab1, mc.tabmail.tabContainer);
-  assert_true(dt, "Drag target was undefined");
-
-  // Drop it onto the third tab ...
-  synthesize_drag_over(mc.window, tab3, dt);
-
-  synthesize_drop(mc.window, tab3, dt,
-      { screenX : tab3.boxObject.screenX + (tab3.boxObject.width * 0.75),
-        screenY : tab3.boxObject.screenY });
+  drag_n_drop_element(tab1, mc.window, tab3, mc.window, 0.75, 0.0,
+                      mc.tabmail.tabContainer);
 
   wait_for_message_display_completion(mc);
 
@@ -226,13 +219,8 @@ function test_tab_reorder_window(){
   let tabB = mc2.tabmail.tabContainer.childNodes[0];
   assert_true(tabB, "No movable Tab");
 
-  let dt = synthesize_drag_start(mc.window, tabA, mc.tabmail.tabContainer);
-
-  synthesize_drag_over(mc2.window, tabB,dt);
-
-  synthesize_drop(mc2.window,tabB, dt,
-      { screenX : tabB.boxObject.screenX + (tabB.boxObject.width * 0.75),
-        screenY : tabB.boxObject.screenY });
+  drag_n_drop_element(tabA, mc.window, tabB, mc2.window, 0.75, 0.0,
+                      mc.tabmail.tabContainer);
 
   wait_for_message_display_completion(mc2);
 
@@ -362,27 +350,27 @@ function _teardownRecentlyClosedMenu()
 }
 
 /**
- * Tests the recently closed tabs menu. 
+ * Tests the recently closed tabs menu.
  */
 function test_tab_recentlyClosed() {
 
   // Ensure only one tab is open, otherwise our test most likey fail anyway.
   mc.tabmail.closeOtherTabs(0);
   assert_number_of_tabs_open(1);
-  
+
   // We start with a clean tab history.
   mc.tabmail.recentlyClosedTabs = [];
-        
+
   // The history is cleaned so let's open 15 tabs...
-  be_in_folder(folder);    
-                   
+  be_in_folder(folder);
+
   for (let idx = 0; idx < 15; idx++) {
     select_click_row(idx);
     open_selected_message_in_new_tab(true);
   }
 
   assert_number_of_tabs_open(16);
-    
+
   switch_tab(2);
   assert_selected_and_displayed(msgHdrsInFolder[1]);
 
@@ -394,93 +382,93 @@ function test_tab_recentlyClosed() {
   // Start the test by closing all tabs except the first two tabs...
   for (let idx = 0; idx < 14; idx++)
     mc.tabmail.closeTab(2);
-    
+
   assert_number_of_tabs_open(2);
-    
+
   // ...then open the context menu.
   let menu = _synthesizeRecentlyClosedMenu();
 
   // Check if the context menu was populated correctly...
   assert_true(menu.itemCount == 12, "Failed to populate context menu");
   for (let idx=0; idx < 10; idx++)
-    assert_true(tabTitles[idx] == menu.getItemAtIndex(idx).label, 
-        "Tab Title does not match Menu item");
-    
+    assert_true(tabTitles[idx] == menu.getItemAtIndex(idx).label,
+                "Tab Title does not match Menu item");
+
   // Restore the most recently closed tab
   EventUtils.synthesizeMouse(menu.getItemAtIndex(0),5, 5, {},mc.window);
   _teardownRecentlyClosedMenu();
-  
+
   wait_for_message_display_completion(mc);
   assert_number_of_tabs_open(3);
-  assert_selected_and_displayed(msgHdrsInFolder[14]);  
+  assert_selected_and_displayed(msgHdrsInFolder[14]);
 
   // The context menu should now contain one item less.
   _synthesizeRecentlyClosedMenu();
-      
+
 
   assert_true(menu.itemCount == 11, "Failed to populate context menu");
   for (let idx=0; idx < 9; idx++)
-    assert_true(tabTitles[idx+1] == menu.getItemAtIndex(idx).label, 
-        "Tab Title does not match Menu item");
-        
-  // Now we restore an "random" tab.  
+    assert_true(tabTitles[idx+1] == menu.getItemAtIndex(idx).label,
+                "Tab Title does not match Menu item");
+
+  // Now we restore an "random" tab.
   EventUtils.synthesizeMouse(menu.getItemAtIndex(5),5, 5, {},mc.window);
   _teardownRecentlyClosedMenu();
-   
+
   wait_for_message_display_completion(mc);
-  assert_number_of_tabs_open(4);    
+  assert_number_of_tabs_open(4);
   assert_selected_and_displayed(msgHdrsInFolder[8]);
-        
-  // finally restore all tabs 
+
+  // finally restore all tabs
   _synthesizeRecentlyClosedMenu();
-  
-  assert_true(menu.itemCount == 10, 
+
+  assert_true(menu.itemCount == 10,
       "Failed to populate context menu");
   assert_true(tabTitles[1] == menu.getItemAtIndex(0).label,
       "Tab Title does not match Menu item");
   assert_true(tabTitles[7] == menu.getItemAtIndex(5).label,
       "Tab Title does not match Menu item");
-    
+
   EventUtils.synthesizeMouse(menu.getItemAtIndex(menu.itemCount-1),5, 5, {},mc.window);
   _teardownRecentlyClosedMenu();
-  
+
   wait_for_message_display_completion(mc);
-    
-  // out of the 16 tab, we closed all except two. As the history can store 
+
+  // out of the 16 tab, we closed all except two. As the history can store
   // only 10 items we have to endup with exactly 10 + 2 tabs.
-  assert_number_of_tabs_open(12);    
+  assert_number_of_tabs_open(12);
 }
 
 function teardownTest(test)
 {
-  
+
   switch(test)
-  {    
+  {
     case test_tab_reorder_detach :
     case test_tab_reorder_window :
-      // Some test cases open new windows, thus we need to ensure all 
+      // Some test cases open new windows, thus we need to ensure all
       // opened windows get closed.
 
       let en = Cc["@mozilla.org/appshell/window-mediator;1"]
                  .getService(Ci.nsIWindowMediator)
                  .getEnumerator("mail:3pane");
-       
+
        while(en.hasMoreElements()) {
-        
+
          var win = en.getNext();
-         
+
          if(win != mc.window)
            close_window(new mozmill.controller.MozMillController(win));
        }
-       
+
        // fall through!
 
     case test_tab_reorder_tabbar :
-        
+
     case test_tab_recentlyClosed :
     case test_tab_undo :
-    
-      // clean up the tabbbar 
+
+      // clean up the tabbbar
       mc.tabmail.closeOtherTabs(0);
       assert_number_of_tabs_open(1);
   }

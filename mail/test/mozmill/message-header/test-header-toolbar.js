@@ -44,17 +44,15 @@ var MODULE_NAME = 'test-header-toolbar';
 
 var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers',
-                       'address-book-helpers', 'mouse-event-helpers'];
+                       'address-book-helpers', 'mouse-event-helpers',
+                       'customization-helpers'];
 
 var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
-var controller = {};
-Cu.import('resource://mozmill/modules/controller.js', controller);
 Cu.import("resource://gre/modules/Services.jsm");
 
 var folder;
-
-const USE_SHEET_PREF = "toolbar.customization.usesheet";
+var gCDHelper ;
 
 function setupModule(module) {
   let fdh = collector.getModule('folder-display-helpers');
@@ -65,6 +63,10 @@ function setupModule(module) {
   abh.installInto(module);
   let meh = collector.getModule('mouse-event-helpers');
   meh.installInto(module);
+  let cu = collector.getModule('customization-helpers');
+  cu.installInto(module);
+  gCDHelper = new CustomizeDialogHelper('header-view-toolbar',
+    'CustomizeHeaderToolbar', 'CustomizeToolbarWindow');
 
   folder = create_folder("HeaderToolbar");
 
@@ -101,19 +103,19 @@ function test_get_msg_button_customize_header_toolbar()
   mc.click(mc.aid("button-getmsg", {class: "toolbarbutton-menubutton-dropmarker"}));
   mc.ewait("button-getAllNewMsgSeparator");
 
-  let getMailButtonPopup = mc.eid("button-getMsgPopup").node;
+  let getMailButtonPopup = mc.e("button-getMsgPopup");
   let originalServerCount = getMailButtonPopup.childElementCount;
 
   // Open customization dialog, because it broke the Get Message Button popup menu
   // see https://bugzilla.mozilla.org/show_bug.cgi?id=565045
-  let ctc = open_header_pane_toolbar_customization(mc);
-  close_header_pane_toolbar_customization(ctc);
+  let ctc = gCDHelper.open(mc);
+  gCDHelper.close(ctc);
 
   // Press the Get Message Button to populate popup menu again
   mc.click(mc.aid("button-getmsg", {class: "toolbarbutton-menubutton-dropmarker"}));
   mc.ewait("button-getAllNewMsgSeparator");
 
-  getMailButtonPopup = mc.eid("button-getMsgPopup").node;
+  getMailButtonPopup = mc.e("button-getMsgPopup");
   let finalServerCount = getMailButtonPopup.childElementCount;
 
   assert_equals(finalServerCount, originalServerCount,
@@ -128,7 +130,7 @@ function test_customize_header_toolbar_check_default()
 {
   let curMessage = select_message_in_folder(0);
 
-  let hdrToolbar = mc.eid("header-view-toolbar").node;
+  let hdrToolbar = mc.e("header-view-toolbar");
   let hdrBarDefaultSet = hdrToolbar.getAttribute("defaultset");
   assert_equals(hdrToolbar.currentSet, hdrBarDefaultSet);
   // In a fresh profile the currentset attribute does not
@@ -139,13 +141,13 @@ function test_customize_header_toolbar_check_default()
     "Header Toolbar currentset should be empty or contain default buttons "+
     "but contains: " + hdrToolbar.getAttribute("currentset"));
   // Now make sure, that also the attribute gets set:
-  restore_and_check_default_buttons(mc);
+  gCDHelper.restoreDefaultButtons(mc);
 
   // Display message in new window and check that the default
   // buttons are shown there.
   let msgc = open_selected_message_in_new_window();
   assert_selected_and_displayed(msgc, curMessage);
-  hdrToolbar = msgc.eid("header-view-toolbar").node;
+  hdrToolbar = msgc.e("header-view-toolbar");
   hdrBarDefaultSet = hdrToolbar.getAttribute("defaultset");
   assert_equals(hdrToolbar.currentSet, hdrBarDefaultSet);
   // In a fresh profile the currentset attribute does not
@@ -156,7 +158,7 @@ function test_customize_header_toolbar_check_default()
     "Header Toolbar currentset should be empty or contain default buttons "+
     "but contains: " + hdrToolbar.getAttribute("currentset"));
   // Now make sure, that also the attribute gets set:
-  restore_and_check_default_buttons(msgc);
+  gCDHelper.restoreDefaultButtons(msgc);
 
   close_window(msgc);
 }
@@ -169,15 +171,15 @@ function test_customize_header_toolbar_reorder_buttons()
   let curMessage = select_message_in_folder(0);
 
   // Restore the default buttons to get defined starting conditions.
-  restore_and_check_default_buttons(mc);
+  gCDHelper.restoreDefaultButtons(mc);
 
   // Save the currentSet of the toolbar before opening the
   // customization dialog, to get out of the way of the
   // wrapper- prefix.
-  let toolbar = mc.eid("header-view-toolbar").node;
+  let toolbar = mc.e("header-view-toolbar");
   let oldSet = toolbar.currentSet.split(",");
 
-  let ctc = open_header_pane_toolbar_customization(mc);
+  let ctc = gCDHelper.open(mc);
   let currentSet = toolbar.currentSet.split(",");
 
   for (let i = 1; i < currentSet.length; i++) {
@@ -188,7 +190,7 @@ function test_customize_header_toolbar_reorder_buttons()
     // places the buttons in the reverse order as at the beginning of the test.
     drag_n_drop_element(button1, mc.window, button2, mc.window, 0.25, 0.0, toolbar);
   }
-  close_header_pane_toolbar_customization(ctc);
+  gCDHelper.close(ctc);
 
   // Check, if the toolbar is really in reverse order of beginning.
   let reverseSet = oldSet.reverse().join(",");
@@ -199,14 +201,14 @@ function test_customize_header_toolbar_reorder_buttons()
   // buttons are shown there.
   let msgc = open_selected_message_in_new_window();
   assert_selected_and_displayed(msgc, curMessage);
-  let hdrToolbar = msgc.eid("header-view-toolbar").node;
+  let hdrToolbar = msgc.e("header-view-toolbar");
   let hdrBarDefaultSet = hdrToolbar.getAttribute("defaultset");
   assert_equals(hdrToolbar.currentSet, hdrBarDefaultSet);
   assert_equals(hdrToolbar.getAttribute("currentset"), hdrBarDefaultSet);
   close_window(msgc);
 
   // Leave the toolbar in the default state.
-  restore_and_check_default_buttons(mc);
+  gCDHelper.restoreDefaultButtons(mc);
 }
 
 /**
@@ -218,13 +220,13 @@ function test_customize_header_toolbar_separate_window()
   let curMessage = select_message_in_folder(0);
 
   // Restore the default buttons to get defined starting conditions.
-  restore_and_check_default_buttons(mc);
+  gCDHelper.restoreDefaultButtons(mc);
 
   // Display message in new window and check that the default
   // buttons are shown there.
   let msgc = open_selected_message_in_new_window();
   assert_selected_and_displayed(msgc, curMessage);
-  let hdrToolbar = msgc.eid("header-view-toolbar").node;
+  let hdrToolbar = msgc.e("header-view-toolbar");
   let hdrBarDefaultSet = hdrToolbar.getAttribute("defaultset");
   assert_equals(hdrToolbar.currentSet, hdrBarDefaultSet);
   assert_equals(hdrToolbar.getAttribute("currentset"), hdrBarDefaultSet);
@@ -232,10 +234,10 @@ function test_customize_header_toolbar_separate_window()
   // Save the currentSet of the toolbar before opening the
   // customization dialog, to get out of the way of the
   // wrapper- prefix.
-  let toolbar = msgc.eid("header-view-toolbar").node;
+  let toolbar = msgc.e("header-view-toolbar");
   let oldSet = toolbar.currentSet.split(",");
 
-  let ctc = open_header_pane_toolbar_customization(msgc);
+  let ctc = gCDHelper.open(msgc);
   let currentSet = toolbar.currentSet.split(",");
   for (let i = 1; i < currentSet.length; i++) {
     let button1 = msgc.e(currentSet[i]);
@@ -245,7 +247,7 @@ function test_customize_header_toolbar_separate_window()
     // places the buttons in the reverse order as at the beginning of the test.
     drag_n_drop_element(button1, msgc.window, button2, msgc.window, 0.25, 0.0, toolbar);
   }
-  close_header_pane_toolbar_customization(ctc);
+  gCDHelper.close(ctc);
 
   // Check, if the toolbar is really in reverse order of beginning.
   let reverseSet = oldSet.reverse().join(",");
@@ -264,7 +266,7 @@ function test_customize_header_toolbar_separate_window()
   select_message_in_folder(0);
 
   // Check, if the buttons in the mail3pane window are the correct ones.
-  hdrToolbar = mc.eid("header-view-toolbar").node;
+  hdrToolbar = mc.e("header-view-toolbar");
   hdrBarDefaultSet = hdrToolbar.getAttribute("defaultset");
   assert_equals(hdrToolbar.currentSet, hdrBarDefaultSet);
   assert_equals(hdrToolbar.getAttribute("currentset"), hdrBarDefaultSet);
@@ -272,12 +274,12 @@ function test_customize_header_toolbar_separate_window()
   // Open separate mail window again and check another time.
   msgc = open_selected_message_in_new_window();
   assert_selected_and_displayed(msgc, curMessage);
-  toolbar = msgc.eid("header-view-toolbar").node;
+  toolbar = msgc.e("header-view-toolbar");
   assert_equals(toolbar.currentSet, reverseSet);
   assert_equals(toolbar.getAttribute("currentset"), reverseSet);
 
   // Leave the toolbar in the default state.
-  restore_and_check_default_buttons(msgc);
+  gCDHelper.restoreDefaultButtons(msgc);
   close_window(msgc);
 }
 
@@ -293,20 +295,20 @@ function test_customize_header_toolbar_remove_buttons()
   select_message_in_folder(0);
 
   // Restore the default buttons to get defined starting conditions.
-  restore_and_check_default_buttons(mc);
+  gCDHelper.restoreDefaultButtons(mc);
 
-  let ctc = open_header_pane_toolbar_customization(mc);
-  let toolbar = mc.eid("header-view-toolbar").node;
+  let ctc = gCDHelper.open(mc);
+  let toolbar = mc.e("header-view-toolbar");
   lCurrentset = toolbar.currentSet.split(",");
   let target = ctc.e("palette-box");
   for (let i = 0; i < lCurrentset.length; i++) {
     let button = mc.e(lCurrentset[i]);
     drag_n_drop_element(button, mc.window, target, ctc.window, 0.5, 0.5, toolbar);
   }
-  close_header_pane_toolbar_customization(ctc);
+  gCDHelper.close(ctc);
 
   // Check, if the toolbar is really empty.
-  toolbar = mc.eid("header-view-toolbar").node;
+  toolbar = mc.e("header-view-toolbar");
   assert_equals(toolbar.currentSet, "__empty");
   assert_equals(toolbar.getAttribute("currentset"), "__empty");
 
@@ -319,7 +321,7 @@ function test_customize_header_toolbar_remove_buttons()
   // buttons are shown there.
   let msgc = open_selected_message_in_new_window();
   assert_selected_and_displayed(msgc, curMessage);
-  let hdrToolbar = msgc.eid("header-view-toolbar").node;
+  let hdrToolbar = msgc.e("header-view-toolbar");
   let hdrBarDefaultSet = hdrToolbar.getAttribute("defaultset");
   assert_equals(hdrToolbar.currentSet, hdrBarDefaultSet);
   assert_equals(hdrToolbar.getAttribute("currentset"), hdrBarDefaultSet);
@@ -336,14 +338,14 @@ function test_customize_header_toolbar_remove_buttons()
   abwc.window.close();
   select_message_in_folder(0);
 
-  toolbar = mc.eid("header-view-toolbar").node;
+  toolbar = mc.e("header-view-toolbar");
   assert_equals(toolbar.currentSet, "__empty");
   assert_equals(toolbar.getAttribute("currentset"), "__empty");
 
   // Check that all removed buttons show up in the palette
   // and move it back in the toolbar.
-  ctc = open_header_pane_toolbar_customization(mc);
-  toolbar = mc.eid("header-view-toolbar").node;
+  ctc = gCDHelper.open(mc);
+  toolbar = mc.e("header-view-toolbar");
   let palette = ctc.e("palette-box");
   for (let i = 0; i < lCurrentset.length; i++) {
     let button = ctc.e(lCurrentset[i]);
@@ -352,9 +354,9 @@ function test_customize_header_toolbar_remove_buttons()
     // original order.
     drag_n_drop_element(button, ctc.window, toolbar, mc.window, 0.99, 0.5, palette);
   }
-  close_header_pane_toolbar_customization(ctc);
+  gCDHelper.close(ctc);
 
-  toolbar = mc.eid("header-view-toolbar").node;
+  toolbar = mc.e("header-view-toolbar");
   assert_equals(toolbar.currentSet, hdrBarDefaultSet);
   assert_equals(toolbar.getAttribute("currentset"), hdrBarDefaultSet);
 }
@@ -367,9 +369,9 @@ function test_customize_header_toolbar_dialog_style()
   select_message_in_folder(0);
 
   // Restore the default buttons to get defined starting conditions.
-  restore_and_check_default_buttons(mc);
+  gCDHelper.restoreDefaultButtons(mc);
 
-  let ctc = open_header_pane_toolbar_customization(mc);
+  let ctc = gCDHelper.open(mc);
 
   // The full mode menulist entry is hidden, because in the header toolbar
   // this mode is disabled.
@@ -378,12 +380,12 @@ function test_customize_header_toolbar_dialog_style()
   assert_equals(ctc.window.getComputedStyle(fullMode).getPropertyValue("display"), "none");
   // The text besides icon menulist entry is selected, because in the header toolbar
   // this is the default mode.
-  let textIconMode = ctc.eid("textbesideiconItem").node;
+  let textIconMode = ctc.e("textbesideiconItem");
   assert_equals(textIconMode.getAttribute("selected"), "true");
 
   // The small icons checkbox is hidden, because in the header toolbar
   // this mode is the only possible (therefore, the checked attribute is true).
-  let smallIcons = ctc.eid("smallicons").node;
+  let smallIcons = ctc.e("smallicons");
   assert_equals(smallIcons.getAttribute("checked"), "true");
   assert_equals(ctc.window.getComputedStyle(smallIcons).getPropertyValue("display"), "none");
 
@@ -393,7 +395,7 @@ function test_customize_header_toolbar_dialog_style()
     querySelector("[oncommand*='addNewToolbar();']");
   assert_equals(ctc.window.getComputedStyle(addNewToolbar).getPropertyValue("display"), "none");
 
-  close_header_pane_toolbar_customization(ctc);
+  gCDHelper.close(ctc);
 }
 
 /**
@@ -404,30 +406,30 @@ function test_customize_header_toolbar_change_button_style()
   select_message_in_folder(0);
 
   // Restore the default buttons to get defined starting conditions.
-  restore_and_check_default_buttons(mc);
+  gCDHelper.restoreDefaultButtons(mc);
   // The default mode is label and icon visible.
   subtest_buttons_style("-moz-box", "-moz-box");
 
   // Change the button style to icon (only) mode
-  let ctc = open_header_pane_toolbar_customization(mc);
+  let ctc = gCDHelper.open(mc);
   let iconMode = ctc.window.document.getElementById("main-box").
     querySelector("[value*='icons']");
   ctc.click(new elib.Elem(iconMode));
-  close_header_pane_toolbar_customization(ctc);
+  gCDHelper.close(ctc);
 
   subtest_buttons_style("-moz-box", "none");
 
   // Change the button style to text (only) mode
-  ctc = open_header_pane_toolbar_customization(mc);
+  ctc = gCDHelper.open(mc);
   let textMode = ctc.window.document.getElementById("main-box").
     querySelector("[value*='text']");
   ctc.click(new elib.Elem(textMode));
-  close_header_pane_toolbar_customization(ctc);
+  gCDHelper.close(ctc);
 
   subtest_buttons_style("none", "-moz-box");
 
   // The default mode is label and icon visible.
-  restore_and_check_default_buttons(mc);
+  gCDHelper.restoreDefaultButtons(mc);
   subtest_buttons_style("-moz-box", "-moz-box");
 }
 
@@ -454,80 +456,19 @@ function select_message_in_folder(aMessageNum)
  */
 function subtest_buttons_style(aIconVisibility, aLabelVisibility)
 {
-  let toolbar = mc.eid("header-view-toolbar").node;
+  let toolbar = mc.e("header-view-toolbar");
   let currentSet = toolbar.currentSet.split(",");
 
   for (let i = 0; i < currentSet.length; i++) {
     // XXX For the moment only consider normal toolbar buttons.
     // XXX Handling of toolbaritem buttons has to be added later,
     // XXX especially the smart reply button!
-    if (mc.eid(currentSet[i]).node.tagName == "toolbarbutton") {
-      let icon = mc.aid(currentSet[i], {class: "toolbarbutton-icon"}).node;
-      let label = mc.aid(currentSet[i], {class: "toolbarbutton-text"}).node;
+    if (mc.e(currentSet[i]).tagName == "toolbarbutton") {
+      let icon = mc.a(currentSet[i], {class: "toolbarbutton-icon"});
+      let label = mc.a(currentSet[i], {class: "toolbarbutton-text"});
       assert_equals(mc.window.getComputedStyle(icon).getPropertyValue("display"), aIconVisibility);
       assert_equals(mc.window.getComputedStyle(label).getPropertyValue("display"), aLabelVisibility);
     }
-  }
-}
-
-/**
- *  Restore the default buttons in the header pane toolbar
- *  by clicking the corresponding button in the palette dialog
- *  and check if it worked.
- */
-function restore_and_check_default_buttons(aController)
-{
-  let ctc = open_header_pane_toolbar_customization(aController);
-  let restoreButton = ctc.window.document.getElementById("main-box").
-    querySelector("[oncommand*='overlayRestoreDefaultSet();']");
-  ctc.click(new elib.Elem(restoreButton));
-  close_header_pane_toolbar_customization(ctc);
-
-  let hdrToolbar = aController.eid("header-view-toolbar").node;
-  let hdrBarDefaultSet = hdrToolbar.getAttribute("defaultset");
-
-  assert_equals(hdrToolbar.currentSet, hdrBarDefaultSet);
-  assert_equals(hdrToolbar.getAttribute("currentset"), hdrBarDefaultSet);
-}
-
-/*
- * Open the header pane toolbar customization dialog.
- */
-function open_header_pane_toolbar_customization(aController)
-{
-  let ctc;
-  aController.click(aController.eid("CustomizeHeaderToolbar"));
-  // Depending on preferences the customization dialog is
-  // either a normal window or embedded into a sheet.
-  if (Services.prefs.getBoolPref(USE_SHEET_PREF, true)) {
-    // XXX Sleep so the dialog has a chance to load. It seems that
-    // ewait("donebutton") does not work after the update to mozmill 1.5.4b4.
-    controller.sleep(1000);
-    let contentWindow = aController.eid("customizeToolbarSheetIFrame").node.contentWindow;
-    // This is taken from test-migration-helpers.js#128:
-    // XXX this is not my fault, but I'm not going to fix it. Just make it less
-    // broken:
-    // Lie to mozmill to convince it to not explode because these frames never
-    // get a mozmillDocumentLoaded attribute.
-    contentWindow.mozmillDocumentLoaded = true;
-    ctc = augment_controller(new controller.MozMillController(contentWindow));
-  }
-  else {
-    ctc = wait_for_existing_window("CustomizeToolbarWindow");
-  }
-  return ctc;
-}
-
-/*
- * Close the header pane toolbar customization dialog.
- */
-function close_header_pane_toolbar_customization(aCtc)
-{
-  aCtc.click(aCtc.eid("donebutton"));
-  // XXX There should be an equivalent for testing the closure of
-  // XXX the dialog embedded in a sheet, but I do not know how.
-  if (!Services.prefs.getBoolPref(USE_SHEET_PREF, true)) {
-    assert_true(aCtc.window.closed, "The customization dialog is not closed.");
   }
 }
 

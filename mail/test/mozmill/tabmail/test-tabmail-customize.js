@@ -43,12 +43,9 @@ var MODULE_NAME = "test-tabmail-customize";
 
 var RELATIVE_ROOT = "../shared-modules";
 var MODULE_REQUIRES = ['folder-display-helpers', 'mouse-event-helpers',
-                       'window-helpers'];
+                       'window-helpers', 'customization-helpers'];
 
-const USE_SHEET_PREF = "toolbar.customization.usesheet";
-
-let controller = {};
-Cu.import('resource://mozmill/modules/controller.js', controller);
+var gCDHelper ;
 
 function setupModule(module) {
   let fdh = collector.getModule('folder-display-helpers');
@@ -57,13 +54,15 @@ function setupModule(module) {
   meh.installInto(module);
   let wh = collector.getModule('window-helpers');
   wh.installInto(module);
+  let cu = collector.getModule('customization-helpers');
+  cu.installInto(module);
+  gCDHelper = new CustomizeDialogHelper('mail-toolbar-menubar2',
+    'CustomizeMailToolbar', 'CustomizeToolbarWindow');
 }
 
 function teardownModule(module) {
   // Let's reset any and all of our changes to the toolbar
-  let ctw = open_mail_toolbox_customization_dialog(mc);
-  ctw.window.restoreDefaultSet();
-  close_mail_toolbox_customization_dialog(ctw);
+  gCDHelper.restoreDefaultButtons(mc);
 }
 
 /**
@@ -87,11 +86,14 @@ function test_open_context_menu() {
  * the tab bar.
  */
 function test_redirects_toolbarbutton_drops() {
+  // Restore the default buttons to get defined starting conditions.
+  gCDHelper.restoreDefaultButtons(mc);
+
   let tabbar = mc.e("tabcontainer");
   let toolbar = mc.e("tabbar-toolbar");
 
   // First, let's open up the customize toolbar window.
-  let ctw = open_mail_toolbox_customization_dialog(mc);
+  let ctw = gCDHelper.open(mc);
 
   // Let's grab some items from the customize window, and try dropping
   // them on the tab bar
@@ -102,11 +104,7 @@ function test_redirects_toolbarbutton_drops() {
   ].forEach(function(aButtonId) {
     let button = ctw.e(aButtonId);
 
-    let dt = synthesize_drag_start(ctw.window, button, ctw.window);
-    assert_true(dt, "Drag target was undefined");
-
-    synthesize_drag_over(mc.window, tabbar, dt);
-    synthesize_drop(mc.window, tabbar, dt);
+    drag_n_drop_element(button, ctw.window, tabbar, mc.window, 0.5, 0.5, ctw.window);
 
     // Now let's check to make sure that this button is now the first
     // item in the tab bar toolbar.
@@ -123,62 +121,13 @@ function test_redirects_toolbarbutton_drops() {
   ].forEach(function(aButtonId) {
     let button = mc.e(aButtonId);
 
-    let dt = synthesize_drag_start(mc.window, button, mc.window);
-    assert_true(dt, "Drag target was undefined");
-
-    synthesize_drag_over(mc.window, tabbar, dt);
-    synthesize_drop(mc.window, tabbar, dt);
+    drag_n_drop_element(button, mc.window, tabbar, mc.window, 0.5, 0.5, mc.window);
 
     // Now let's check to make sure that this button is now the first
     // item in the tab bar toolbar.
     assert_equals(toolbar.firstChild.id, "wrapper-" + aButtonId,
                   "Button was not added as first child!");
   });
-  
-  close_mail_toolbox_customization_dialog(ctw);
-}
 
-/**
- * Open the mail-toolbox customization dialog.
- */
-function open_mail_toolbox_customization_dialog(aController) {
-  // This is some hackery copied over from message-header/test-header-toolbar.js
-  // - we'll want to combine these two hacks at some point so we can eliminate
-  // them at the same time someday.
-  let ctc;
-  aController.click(aController.eid("CustomizeMailToolbar"));
-  // Depending on preferences the customization dialog is
-  // either a normal window or embedded into a sheet.
-  if (Services.prefs.getBoolPref(USE_SHEET_PREF, true)) {
-    // XXX Sleep so the dialog has a chance to load. It seems that
-    // ewait("donebutton") does not work after the update to mozmill 1.5.4b4.
-    controller.sleep(1000);
-    let contentWindow = aController.eid("customizeToolbarSheetIFrame").node.contentWindow;
-    // This is taken from test-migration-helpers.js#128:
-    // XXX this is not my fault, but I'm not going to fix it. Just make it less
-    // broken:
-    // Lie to mozmill to convince it to not explode because these frames never
-    // get a mozmillDocumentLoaded attribute.
-    contentWindow.mozmillDocumentLoaded = true;
-    ctc = augment_controller(new controller.MozMillController(contentWindow));
-  }
-  else {
-    ctc = wait_for_existing_window("CustomizeToolbarWindow");
-  }
-  return ctc;
-}
-
-/**
- * Close the mail-toolbox customization dialog.
- */
-function close_mail_toolbox_customization_dialog(aCtc)
-{
-  // As with open_mail_toolbox_customization_dialog, this is hackery copied
-  // over from message-header/test-header-toolbar.js.
-  aCtc.click(aCtc.eid("donebutton"));
-  // XXX There should be an equivalent for testing the closure of
-  // XXX the dialog embedded in a sheet, but I do not know how.
-  if (!Services.prefs.getBoolPref(USE_SHEET_PREF, true)) {
-    assert_true(aCtc.window.closed, "The customization dialog is not closed.");
-  }
+  gCDHelper.close(ctw);
 }
