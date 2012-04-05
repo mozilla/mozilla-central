@@ -191,9 +191,11 @@
       <pluginItem  blockID="p31">
                   <match name="filename" exp="NPMySrch.dll" />                        </pluginItem>
       <pluginItem  blockID="p33">
-      <match name="name" exp="[0-6]\.0\.[01]\d{2}\.\d+" />            <match name="filename" exp="npdeploytk.dll" />                        </pluginItem>
+      <match name="name" exp="[0-6]\.0\.[01]\d{2}\.\d+" />            <match name="filename" exp="npdeploytk.dll" />                      <versionRange  severity="1"></versionRange>
+                  </pluginItem>
       <pluginItem  blockID="p80">
-            <match name="description" exp="[^\d\._](0(\.\d+(\.\d+([_\.]\d+)?)?)?)|(1\.(([0-5](\.\d+([_\.]\d+)?)?)|(6(\.0[_\.](0?\d|1\d|2\d|30))?)|(7(\.0([_\.][0-2])?)?)))[^\d\._]" />      <match name="filename" exp="(npjp2\.dll)|(libnpjp2\.so)" />                        </pluginItem>
+            <match name="description" exp="[^\d\._](0(\.\d+(\.\d+([_\.]\d+)?)?)?)|(1\.(([0-5](\.\d+([_\.]\d+)?)?)|(6(\.0[_\.](0?\d|1\d|2\d|30))?)|(7(\.0([_\.][0-2])?)?)))[^\d\._]" />      <match name="filename" exp="(npjp2\.dll)|(libnpjp2\.so)" />                      <versionRange  severity="1"></versionRange>
+                  </pluginItem>
     </pluginItems>
 
   <gfxItems>
