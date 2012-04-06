@@ -601,13 +601,12 @@ var ircBase = {
     },
     "303": function(aMessage) { // RPL_ISON
       // :*1<nick> *( " " <nick> )"
-      // If there are any buddies online, mark them as online, otherwise return
-      // early.
-      if (aMessage.params.length <= 1)
-        return true;
-
+      // Set the status of the buddies based the lastest ISON response.
+      let receivedBuddyNames = [];
       // The buddy names as returned by the server.
-      let receivedBuddyNames = aMessage.params[1].trim().split(" ");
+      if (aMessage.params.length > 1)
+        receivedBuddyNames = aMessage.params[1].trim().split(" ");
+
       // This was received in response to the last ISON message sent.
       for each (let buddyName in this.pendingIsOnQueue) {
         // If the buddy name is in the list returned from the server, they're
