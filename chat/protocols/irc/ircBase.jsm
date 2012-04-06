@@ -210,6 +210,10 @@ var ircBase = {
                                                              noLinkification: true});
         }
       }
+      // If the joiner is a buddy, mark as online.
+      let buddy = this.getBuddy(aMessage.nickname);
+      if (buddy)
+        buddy.setStatus(Ci.imIStatusInfo.STATUS_AVAILABLE, "");
       return true;
     },
     "KICK": function(aMessage) {
@@ -287,6 +291,10 @@ var ircBase = {
           conversation.removeParticipant(aMessage.nickname, true);
         }
       }
+      // If the leaver is a buddy, mark as offline.
+      let buddy = this.getBuddy(aMessage.nickname);
+      if (buddy)
+        buddy.setStatus(Ci.imIStatusInfo.STATUS_OFFLINE, "");
       return true;
     },
     "SQUIT": function(aMessage) {
