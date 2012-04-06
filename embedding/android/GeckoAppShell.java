@@ -113,11 +113,23 @@ public class GeckoAppShell
 
     public static void reportJavaCrash(Throwable e) {
         Log.e(LOG_FILE_NAME, "top level exception", e);
+
+        // If the uncaught exception was rethrown, walk the exception `cause` chain to find
+        // the original exception so Socorro can correctly collate related crash reports.
+        Throwable cause;
+        while ((cause = e.getCause()) != null) {
+            e = cause;
+        }
+
+        reportJavaCrash(getStackTraceString(e));
+    }
+
+    private static String getStackTraceString(Throwable e) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         pw.flush();
-        reportJavaCrash(sw.toString());
+        return sw.toString();
     }
 
     private static native void reportJavaCrash(String stackTrace);
