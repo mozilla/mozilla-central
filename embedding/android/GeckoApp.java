@@ -330,12 +330,7 @@ abstract public class GeckoApp
                                            i.getStringExtra("args"),
                                            i.getDataString());
                 } catch (Exception e) {
-                    Log.e(LOG_FILE_NAME, "top level exception", e);
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    e.printStackTrace(pw);
-                    pw.flush();
-                    GeckoAppShell.reportJavaCrash(sw.toString());
+                    GeckoAppShell.reportJavaCrash(e);
                 }
             }
         }.start();
@@ -356,10 +351,7 @@ abstract public class GeckoApp
                     try {
                         Looper.loop();
                     } catch (Exception e) {
-                        Log.e(LOG_FILE_NAME, "top level exception", e);
-                        StringWriter sw = new StringWriter();
-                        e.printStackTrace(new PrintWriter(sw));
-                        GeckoAppShell.reportJavaCrash(sw.toString());
+                        GeckoAppShell.reportJavaCrash(e);
                     }
                     // resetting this is kinda pointless, but oh well
                     sTryCatchAttached = false;
