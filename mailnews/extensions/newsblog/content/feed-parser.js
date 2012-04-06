@@ -49,11 +49,13 @@ FeedParser.prototype =
   // parseFeed returns an array of parsed items ready for processing
   // it is currently a synchronous operation. If there was an error parsing the feed, 
   // parseFeed returns an empty feed in addition to calling aFeed.onParseError
-  parseFeed: function (aFeed, aSource, aDOM, aBaseURI)
+  parseFeed: function (aFeed, aDOM, aBaseURI)
   {
-    if (!aSource || !(aDOM instanceof Components.interfaces.nsIDOMXMLDocument))
+    if (!(aDOM instanceof Components.interfaces.nsIDOMXMLDocument) ||
+        aDOM.documentElement.getElementsByTagNameNS("http://www.mozilla.org/newlayout/xml/parsererror.xml", "parsererror")[0])
     {
-      aFeed.onParseError(aFeed);   
+      // No xml doc or gecko caught a basic parsing error.
+      aFeed.onParseError(aFeed);
       return new Array();
     }
     else if((aDOM.documentElement.namespaceURI == "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
@@ -78,7 +80,7 @@ FeedParser.prototype =
       debug(aFeed.url + " is an IETF Atom feed");
       return this.parseAsAtomIETF(aFeed, aDOM);
     }
-    else if (aSource.search(/"http:\/\/my\.netscape\.com\/rdf\/simple\/0\.9\/"/) != -1)
+    else if (aDOM.documentElement.getElementsByTagNameNS("http://my.netscape.com/rdf/simple/0.9/", "channel")[0])
     {
       debug(aFeed.url + " is an 0.90 feed");
       return this.parseAsRSS2(aFeed, aDOM);

@@ -208,8 +208,9 @@ var FeedUtils = {
     {
       FeedUtils.log.debug("downloaded: "+
                           (this.mSubscribeMode ? "Subscribe " : "Update ") +
-                          "feed:errorCode - " +
-                          feed.name+" : "+aErrorCode);
+                          "errorCode:feed:folder - " +
+                          aErrorCode+" : "+feed.name+" : "+
+                          (feed.folder ? feed.folder.filePath.path : "null"));
       if (this.mSubscribeMode)
       {
         if (aErrorCode == FeedUtils.kNewsBlogSuccess)
@@ -248,19 +249,33 @@ var FeedUtils = {
         // result do the freeing.  Otherwise new messages won't be indicated.
         feed.folder.msgDatabase = null;
 
+      let message = "";
+      switch (aErrorCode) {
+        case FeedUtils.kNewsBlogSuccess:
+        case FeedUtils.kNewsBlogFeedIsBusy:
+          break;
+        case FeedUtils.kNewsBlogNoNewItems:
+          message = feed.url+". " +
+                    FeedUtils.strings.GetStringFromName(
+                      "newsblog-noNewArticlesForFeed");
+          break;
+        case FeedUtils.kNewsBlogInvalidFeed:
+          message = FeedUtils.strings.formatStringFromName(
+                      "newsblog-feedNotValid", [feed.url], 1);
+          break;
+        case FeedUtils.kNewsBlogRequestFailure:
+          message = FeedUtils.strings.formatStringFromName(
+                      "newsblog-networkError", [feed.url], 1);
+          break;
+      }
+      if (message)
+        FeedUtils.log.info("downloaded: "+
+                           (this.mSubscribeMode ? "Subscribe " : "Update ") +
+                           message);
+
       if (this.mStatusFeedback)
       {
-        if (aErrorCode == FeedUtils.kNewsBlogNoNewItems)
-          this.mStatusFeedback.showStatusString(
-            FeedUtils.strings.GetStringFromName("newsblog-noNewArticlesForFeed"));
-        else if (aErrorCode == FeedUtils.kNewsBlogInvalidFeed)
-          this.mStatusFeedback.showStatusString(
-            FeedUtils.strings.formatStringFromName("newsblog-feedNotValid",
-                                                   [feed.url], 1));
-        else if (aErrorCode == FeedUtils.kNewsBlogRequestFailure)
-          this.mStatusFeedback.showStatusString(
-            FeedUtils.strings.formatStringFromName("newsblog-networkError",
-                                                   [feed.url], 1));
+        this.mStatusFeedback.showStatusString(message);
         this.mStatusFeedback.stopMeteors();
       }
 

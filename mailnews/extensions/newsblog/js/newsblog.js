@@ -77,11 +77,36 @@ var nsNewsBlogFeedDownloader =
         aFolder.rootFolder.getFolderWithFlags(Ci.nsMsgFolderFlags.Trash);
 
     function feeder() {
+      let folder;
       for (let i = 0; i < numFolders; i++) {
-        let folder = allFolders.GetElementAt(i).QueryInterface(Ci.nsIMsgFolder);
+        folder = allFolders.GetElementAt(i).QueryInterface(Ci.nsIMsgFolder);
         FeedUtils.log.debug("downloadFeed: START x/# foldername:uri - "+
                             (i+1)+"/"+ numFolders+" "+
                             folder.name+":"+folder.URI);
+
+        // Ensure msgDatabase for the folder is open for new message processing.
+        let msgDb;
+        try {
+          msgDb = folder.msgDatabase;
+        }
+        catch (ex) {}
+        if (!msgDb) {
+          // Force a reparse.  After the async reparse the folder will be ready
+          // for the next cycle; don't bother with a listener.  Continue with
+          // the next folder, as attempting to add a message to a folder with
+          // an unavailable msgDatabase will throw later.
+          FeedUtils.log.debug("downloadFeed: rebuild msgDatabase for "+
+                              folder.name+" - "+folder.filePath.path);
+          try
+          {
+            // Ignore error returns.
+            folder.QueryInterface(Ci.nsIMsgLocalMailFolder).
+                   getDatabaseWithReparse(null, null);
+          }
+          catch (ex) {}
+          continue;
+        }
+
         let feedUrlArray = getFeedUrlsInFolder(folder);
         // Continue if there are no feedUrls for the folder in the feeds
         // database.  All folders in Trash are now unsubscribed, so perhaps
@@ -94,18 +119,6 @@ var nsNewsBlogFeedDownloader =
                             folder.name+":"+feedUrlArray);
 
         FeedUtils.progressNotifier.init(aMsgWindow, false);
-
-        // Ensure msgDatabase for the folder is open for new message processing.
-        let msgDb;
-        try {
-          msgDb = aFolder.msgDatabase;
-        }
-        catch (ex) {}
-        if (!msgDb) {
-          // Forcing a reparse with listener here is the last resort.  This is
-          // not implemented; it is currently not done and may be unnecessary
-          // given other msgDatabase sync fixes.
-        }
 
         // We need to kick off a download for each feed.
         let id, feed;
@@ -127,9 +140,16 @@ var nsNewsBlogFeedDownloader =
             try {
               getFeed.next();
             }
-            catch (ex if ex instanceof StopIteration) {
-              // Finished with all feeds in base folder and its subfolders.
-              FeedUtils.log.debug("downloadFeed: StopIteration");
+            catch (ex) {
+              if (ex instanceof StopIteration)
+                // Finished with all feeds in base folder and its subfolders.
+                FeedUtils.log.debug("downloadFeed: Finished with folder - "+
+                                    aFolder.name);
+              else
+              {
+                FeedUtils.log.error("downloadFeed: error - " + ex);
+                FeedUtils.progressNotifier.downloaded({name: folder.name}, 0);
+              }
             }
           }, Ci.nsIThread.DISPATCH_NORMAL);
 
@@ -141,10 +161,17 @@ var nsNewsBlogFeedDownloader =
     let getFeed = feeder();
     try {
       getFeed.next();
-    } 
-    catch (ex if ex instanceof StopIteration) {
-      // Nothing to do.
-      FeedUtils.log.debug("downloadFeed: Nothing to do");
+    }
+    catch (ex) {
+      if (ex instanceof StopIteration)
+        // Nothing to do.
+        FeedUtils.log.debug("downloadFeed: Nothing to do in folder - "+
+                            aFolder.name);
+      else
+      {
+        FeedUtils.log.error("downloadFeed: error - " + ex);
+        FeedUtils.progressNotifier.downloaded({name: aFolder.name}, 0);
+      }
     }
   },
 

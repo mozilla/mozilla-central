@@ -71,11 +71,16 @@ var FeedCache =
 
   normalizeHost: function (aUrl)
   {
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"].
-                    getService(Components.interfaces.nsIIOService);
-    var normalizedUrl = ioService.newURI(aUrl, null, null);
-    normalizedUrl.host = normalizedUrl.host.toLowerCase();
-    return normalizedUrl.spec;
+    try
+    {
+      let normalizedUrl = Services.io.newURI(aUrl, null, null);
+      normalizedUrl.host = normalizedUrl.host.toLowerCase();
+      return normalizedUrl.spec
+    }
+    catch (ex)
+    {
+      return aUrl;
+    }
   }
 };
 
@@ -173,6 +178,8 @@ Feed.prototype =
     if (lastModified)
       this.request.setRequestHeader("If-Modified-Since", lastModified);
 
+    // Only order what you're going to eat...
+    this.request.responseType = "document";
     this.request.overrideMimeType("text/xml");
     this.request.onload = this.onDownloaded;
     this.request.onerror = this.onDownloadError;
@@ -194,13 +201,15 @@ Feed.prototype =
     if (!feed)
       throw("error after downloading " + url + ": couldn't retrieve feed from request");
 
-    // if the request has a Last-Modified header on it, then go ahead and remember
-    // that as a property on the feed so we can use it when making future requests.    
+    // If the server sends a Last-Modified header, store the property on the
+    // feed so we can use it when making future requests, to avoid downloading
+    // and parsing feeds that have not changed.
     var lastModifiedHeader = request.getResponseHeader('Last-Modified');
     if (lastModifiedHeader)
-      this.lastModified = lastModifiedHeader;
+      feed.lastModified = lastModifiedHeader;
 
-    feed.parse(); // parse will asynchronously call the download callback when it is done
+    // The download callback is called asynchronously when parse() is done.
+    feed.parse();
   }, 
   
   onProgress: function(aEvent) 
@@ -220,11 +229,12 @@ Feed.prototype =
     var feed = FeedCache.getFeed(url);
     if (feed.downloadCallback) 
     {
-      // if the http status code is a 304, then the feed has not been modified since we last downloaded it.
       var error = kNewsBlogRequestFailure;
       try
       {
         if (request.status == 304)
+          // If the http status code is 304, the feed has not been modified
+          // since we last downloaded it and does not need to be parsed.
           error = kNewsBlogNoNewItems;
       } catch (ex) {}
       feed.downloadCallback.downloaded(feed, error);
@@ -238,6 +248,7 @@ Feed.prototype =
     if (aFeed)
     {
       aFeed.mInvalidFeed = true;
+      aFeed.lastModified = "";
 
       if (aFeed.downloadCallback)
         aFeed.downloadCallback.downloaded(aFeed, kNewsBlogInvalidFeed);
@@ -353,21 +364,11 @@ Feed.prototype =
 
   parse: function() 
   {
-    // Figures out what description language (RSS, Atom) and version this feed
-    // is using and calls a language/version-specific feed parser.
-
-    debug("parsing feed " + this.url);
-
-    if (!this.request.responseText) 
-    {
-      this.onParseError(this);
-      return;
-    }
-      
-    // create a feed parser which will parse the feed for us
+    // Create a feed parser which will parse the feed.
     var parser = new FeedParser();
-    this.itemsToStore = parser.parseFeed(this, this.request.responseText, this.request.responseXML, this.request.channel.URI);
-  
+    this.itemsToStore = parser.parseFeed(this,
+                                         this.request.responseXML,
+                                         this.request.channel.URI);
     if (this.mInvalidFeed)
     {
       this.request = null;
