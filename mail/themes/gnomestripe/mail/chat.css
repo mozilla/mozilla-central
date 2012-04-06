@@ -26,6 +26,18 @@
   border: none;
 }
 
+#conv-top-info {
+  -moz-appearance: none;
+  color: -moz-DialogText;
+}
+
+.conv-nicklist-header,
+.conv-logs-header-label {
+  color: -moz-DialogText;
+  background-color: -moz-Dialog;
+  -moz-padding-start: 3px;
+}
+
 imconv,
 imcontact {
   -moz-padding-start: 2px;
