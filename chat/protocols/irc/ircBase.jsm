@@ -154,11 +154,31 @@ function setWhoIs(aAccount, aMessage, aFields) {
 
 // Try a new nick if the previous tried nick is already in use.
 function tryNewNick(aAccount, aMessage) {
-  // Take the returned nick and increment the last character.
-  aAccount._nickname = aMessage.params[1].slice(0, -1) +
-    String.fromCharCode(
-      aMessage.params[1].charCodeAt(aMessage.params[1].length - 1) + 1
-    );
+  let nickParts = /^(.+?)(\d*)$/.exec(aMessage.params[1]);
+  let newNick = nickParts[1];
+
+  // If there was not a digit at the end of the nick, just append 1.
+  let newDigits = "1";
+  // If there was a digit at the end of the nick, increment it.
+  if (nickParts[2]) {
+    newDigits = (parseInt(nickParts[2], 10) + 1).toString();
+    // If there were leading 0s, add them back on, after we've incremented (e.g.
+    // 009 --> 010).
+    for (let len = nickParts[2].length - newDigits.length; len > 0; --len)
+      newDigits = "0" + newDigits;
+  }
+  // If the nick will be too long, ensure all the digits fit.
+  if (newNick.length + newDigits.length > aAccount.maxNicknameLength) {
+    // Handle the silly case of a single letter followed by all nines.
+    if (newDigits.length == aAccount.maxNicknameLength)
+      newDigits = newDigits.slice(1);
+    newNick = newNick.slice(0, aAccount.maxNicknameLength - newDigits.length);
+  }
+  // Append the digits.
+  newNick += newDigits;
+
+  // Set the accounts new nickname.
+  aAccount._nickname = newNick;
   // Inform the user.
   LOG(aMessage.params[1] + " is already in use, trying " + aAccount._nickname);
 
