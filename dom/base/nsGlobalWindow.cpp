@@ -2282,6 +2282,16 @@ nsGlobalWindow::SetNewDocument(nsIDocument* aDocument,
 
         // XXXmarkh - tell other languages about this?
         ::JS_DeleteProperty(cx, currentInner->mJSObject, "document");
+
+        if (mDummyJavaPluginOwner) {
+          // Since we're reusing the inner window, tear down the
+          // dummy Java plugin we created for the old document in
+          // this window.
+          mDummyJavaPluginOwner->Destroy();
+          mDummyJavaPluginOwner = nsnull;
+
+          mDidInitJavaProperties = PR_FALSE;
+        }
       }
     } else {
       rv = newInnerWindow->InnerSetNewDocument(aDocument);
