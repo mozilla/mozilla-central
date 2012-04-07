@@ -92,14 +92,15 @@ function run_test() {
   // nsSuiteGlue uses databaseStatus to manage initialization.
   do_check_eq(hs.databaseStatus, hs.DATABASE_STATUS_CREATE);
 
-  // A migrator would run before nsSuiteGlue, so we mimic that behavior
-  // adding a bookmark.
+  // A migrator would run before nsSuiteGlue Places initialization, so mimic
+  // that behavior adding a bookmark and notifying the migration.
   bs.insertBookmark(bs.bookmarksMenuFolder, uri("http://mozilla.org/"),
                     bs.DEFAULT_INDEX, "migrated");
 
   // Initialize nsSuiteGlue.
   let bg = Cc["@mozilla.org/suite/suiteglue;1"].
-           getService(Ci.nsISuiteGlue);
+           getService(Ci.nsIObserver);
+  bg.observe(null, "initial-migration", null)
 
   // The test will continue once import has finished and smart bookmarks
   // have been created.

@@ -110,7 +110,9 @@ function run_test() {
   do_test_pending();
 
   print("Initialize suiteglue before Places");
-  Cc["@mozilla.org/suite/suiteglue;1"].getService(Ci.nsISuiteGlue);
+  // Avoid default bookmarks import.
+  Cc["@mozilla.org/suite/suiteglue;1"].getService(Ci.nsIObserver)
+    .observe(null, "initial-migration", null);
 
   Services.prefs.setBoolPref("privacy.item.history", true);
   Services.prefs.setBoolPref("privacy.item.urlbar", true);

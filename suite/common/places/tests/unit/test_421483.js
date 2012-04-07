@@ -15,7 +15,7 @@
  *
  * The Original Code is Places Unit Test code.
  *
- * The Initial Developer of the Original Code is Mozilla Corp.
+ * The Initial Developer of the Original Code is Mozilla Foundation.
  * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
@@ -56,6 +56,8 @@ try {
 try {
   var gluesvc = Cc["@mozilla.org/suite/suiteglue;1"].
                 getService(Ci.nsISuiteGlue);
+  // Avoid default bookmarks import.
+  gluesvc.QueryInterface(Ci.nsIObserver).observe(null, "initial-migration", null);
 } catch(ex) {
   do_throw("Could not get SuiteGlue service\n");
 }
