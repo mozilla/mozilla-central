@@ -7,7 +7,6 @@ builtin(include, mozilla/build/autoconf/glib.m4)dnl
 builtin(include, mozilla/build/autoconf/nspr.m4)dnl
 builtin(include, mozilla/build/autoconf/nss.m4)dnl
 builtin(include, mozilla/build/autoconf/pkg.m4)dnl
-builtin(include, mozilla/build/autoconf/freetype2.m4)dnl
 builtin(include, mozilla/build/autoconf/codeset.m4)dnl
 builtin(include, mozilla/build/autoconf/altoptions.m4)dnl
 builtin(include, mozilla/build/autoconf/mozprog.m4)dnl
