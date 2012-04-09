@@ -47,6 +47,9 @@ Components.utils.import("resource://gre/modules/AddonManager.jsm");
 Components.utils.import("resource:///modules/Sanitizer.jsm");
 Components.utils.import("resource:///modules/mailnewsMigrator.js");
 
+XPCOMUtils.defineLazyModuleGetter(this, "BookmarkHTMLUtils",
+                                  "resource://gre/modules/BookmarkHTMLUtils.jsm");
+
 // We try to backup bookmarks at idle times, to avoid doing that at shutdown.
 // Number of idle seconds before trying to backup bookmarks.  15 minutes.
 const BOOKMARKS_BACKUP_IDLE_TIME = 15 * 60;
@@ -206,12 +209,8 @@ SuiteGlue.prototype = {
         if (this._idleService.idleTime > BOOKMARKS_BACKUP_IDLE_TIME * 1000)
           this._backupBookmarks();
         break;
-      case "bookmarks-restore-success":
-      case "bookmarks-restore-failed":
-        Services.obs.removeObserver(this, "bookmarks-restore-success");
-        Services.obs.removeObserver(this, "bookmarks-restore-failed");
-        if (topic == "bookmarks-restore-success" && data == "html-initial")
-          this.ensurePlacesDefaultQueriesInitialized();
+      case "initial-migration":
+        this._initialMigrationPerformed = true;
         break;
     }
   },
@@ -664,23 +663,10 @@ SuiteGlue.prototype = {
     // import bookmarks. Same if we don't have any JSON backups, which
     // probably means that we never have used bookmarks in places yet.
     var databaseStatus = histsvc.databaseStatus;
-    var importBookmarks = databaseStatus == histsvc.DATABASE_STATUS_CREATE ||
-                          databaseStatus == histsvc.DATABASE_STATUS_CORRUPT ||
-                          !bookmarksBackupFile;
-
-    if (databaseStatus == histsvc.DATABASE_STATUS_CREATE ||
-        !bookmarksBackupFile) {
-      // If the database has just been created or we miss a JSON backup, but
-      // we already have any bookmark despite that, this is not the initial
-      // import. This can happen after a migration from a different browser
-      // since migrators run before us, or when someone cleaned out backups.
-      // In such a case we should not import, unless some pref has been set.
-      var bmsvc = Components.classes["@mozilla.org/browser/nav-bookmarks-service;1"]
-                            .getService(Components.interfaces.nsINavBookmarksService);
-      if (bmsvc.getIdForItemAt(bmsvc.bookmarksMenuFolder, 0) != -1 ||
-          bmsvc.getIdForItemAt(bmsvc.toolbarFolder, 0) != -1)
-        importBookmarks = false;
-    }
+    var importBookmarks = !this._initialMigrationPerformed &&
+                          (databaseStatus == histsvc.DATABASE_STATUS_CREATE ||
+                           databaseStatus == histsvc.DATABASE_STATUS_CORRUPT ||
+                           !bookmarksBackupFile);
 
     // Check if user or an extension has required to import bookmarks.html
     var importBookmarksHTML = false;
@@ -764,26 +750,26 @@ SuiteGlue.prototype = {
       }
 
       if (bookmarksURI) {
-        // Add an import observer.  It will ensure that smart bookmarks are
-        // created once the operation is complete.
-        Services.obs.addObserver(this, "bookmarks-restore-success", false);
-        Services.obs.addObserver(this, "bookmarks-restore-failed", false);
-
         // Import from bookmarks.html file.
         try {
-          var importer = Components.classes["@mozilla.org/browser/places/import-export-service;1"]
-                                   .getService(Components.interfaces.nsIPlacesImportExportService);
-          importer.importHTMLFromURI(bookmarksURI, true /* overwrite existing */);
+          BookmarkHTMLUtils.importFromURL(bookmarksURI.spec, true, (function (success) {
+            if (success) {
+              // Ensure that smart bookmarks are created once the operation is
+              // complete.
+              this.ensurePlacesDefaultQueriesInitialized();
+            }
+            else {
+              Components.utils.reportError("Bookmarks.html file could be corrupt.");
+            }
+          }).bind(this));
         }
         catch(ex) {
-          // Report the error, but ignore it.
           Components.utils.reportError("bookmarks.html file could be corrupt. " + ex);
-          Services.obs.removeObserver(this, "bookmarks-restore-success");
-          Services.obs.removeObserver(this, "bookmarks-restore-failed");
         }
       }
-      else
+      else {
         Components.utils.reportError("Unable to find bookmarks.html file.");
+      }
 
       // Reset preferences, so we won't try to import again at next run.
       if (importBookmarksHTML)

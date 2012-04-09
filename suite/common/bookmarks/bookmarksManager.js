@@ -357,10 +357,9 @@ var PlacesOrganizer = {
             Components.interfaces.nsIFilePicker.modeOpen);
     fp.appendFilters(Components.interfaces.nsIFilePicker.filterHTML);
     if (fp.show() != Components.interfaces.nsIFilePicker.returnCancel) {
-      if (fp.file) {
-        var importer = Components.classes["@mozilla.org/browser/places/import-export-service;1"]
-                                 .getService(Components.interfaces.nsIPlacesImportExportService);
-        importer.importHTMLFromFile(fp.file, false);
+      if (fp.fileURL) {
+        Components.utils.import("resource://gre/modules/BookmarkHTMLUtils.jsm");
+        BookmarkHTMLUtils.importFromURL(fp.fileURL.spec, false);
       }
     }
   },
