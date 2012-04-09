@@ -65,7 +65,6 @@ _BROWSER_FILES = \
     browser_library_left_pane_fixnames.js \
     browser_425884.js \
     browser_423515.js \
-    browser_457473_no_copy_guid.js \
     browser_sort_in_library.js \
     browser_library_open_leak.js \
     browser_library_left_pane_commands.js \
