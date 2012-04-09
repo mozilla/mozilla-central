@@ -752,6 +752,7 @@ var MessageWindowController =
       case "button_reply":
       case "cmd_replySender":
       case "cmd_replyGroup":
+      case "button_followup":
       case "cmd_replyall":
       case "button_replyall":
       case "cmd_replylist":
@@ -835,9 +836,9 @@ var MessageWindowController =
       case "cmd_replylist":
       case "button_replylist":
         return gFolderDisplay.selectedMessage && IsReplyListEnabled();
-
       case "cmd_replySender":
       case "cmd_replyGroup":
+      case "button_followup":
       case "cmd_forward":
       case "button_forward":
       case "cmd_forwardInline":

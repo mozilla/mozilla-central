@@ -283,6 +283,7 @@
   <command id="button_reply"/>
   <command id="button_replyall"/>
   <command id="button_replylist"/>
+  <command id="button_followup"/>
   <command id="button_archive"/>
   <command id="button_forward"/>
   <command id="button_delete"/>
@@ -677,8 +678,8 @@
               oncommand="gConversationOpener.openConversationForMessages(gFolderDisplay.selectedMessages);"/>
     <menuseparator id="mailContext-sep-open2"/>
     <menuitem id="mailContext-replyNewsgroup"
-              label="&contextReplyNewsgroup.label;"
-              accesskey="&contextReplyNewsgroup.accesskey;"
+              label="&contextReplyNewsgroup2.label;"
+              accesskey="&contextReplyNewsgroup2.accesskey;"
               oncommand="MsgReplyGroup(event);"/>
     <menuitem id="mailContext-replySender"
               label="&contextReplySender.label;"
@@ -1472,8 +1473,8 @@
                       accesskey="&replyMsgCmd.accesskey;"
                       key="key_reply"
                       command="cmd_reply"/>
-            <menuitem id="replyNewsgroupMainMenu" label="&replyNewsgroupCmd.label;"
-                      accesskey="&replyNewsgroupCmd.accesskey;"
+            <menuitem id="replyNewsgroupMainMenu" label="&replyNewsgroupCmd2.label;"
+                      accesskey="&replyNewsgroupCmd2.accesskey;"
                       key="key_reply"
                       command="cmd_replyGroup"/>
             <menuitem id="replySenderMainMenu" label="&replySenderCmd.label;"

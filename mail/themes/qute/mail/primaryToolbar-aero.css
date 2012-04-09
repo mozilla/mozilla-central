@@ -261,7 +261,7 @@ toolbar[iconsize="small"] .toolbarbutton-1 > .toolbarbutton-icon {
     #button-mark, #button-tag, #button-goback,
     #button-goforward, #button-compact, #button-archive, #hdrArchiveButton,
     #hdrReplyButton, #hdrReplyToSenderButton, #hdrReplyAllButton,
-    #hdrReplyOnlyButton, #hdrReplyListButton, #hdrForwardButton,
+    #hdrReplyListButton, #hdrFollowupButton, #hdrForwardButton,
     #hdrTrashButton, #hdrJunkButton, #qfb-show-filter-bar
     ) .toolbarbutton-icon {
   margin: 0 !important;

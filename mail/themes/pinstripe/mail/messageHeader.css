@@ -402,14 +402,14 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
 
 .hdrReplyToSenderButton,
 .hdrDummyReplyButton,
-.hdrReplyOnlyButton,
 .hdrReplyButton {
   /* large icons are only needed for customization dialog, so use here also small icons */
   list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
   -moz-image-region: rect(0px, 16px, 16px, 0px);
 }
 
-.hdrReplyListButton {
+.hdrReplyListButton,
+.hdrFollowupButton {
   /* large icons are only needed for customization dialog, so use here also small icons */
   list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
   -moz-image-region: rect(0px, 48px, 16px, 32px);

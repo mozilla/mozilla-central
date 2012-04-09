@@ -279,7 +279,6 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
 
 .hdrReplyToSenderButton,
 .hdrDummyReplyButton,
-.hdrReplyOnlyButton,
 .hdrReplyButton {
   list-style-image: url("chrome://messenger/skin/icons/button-reply.svg");
 }
@@ -288,7 +287,8 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
   list-style-image: url("chrome://messenger/skin/icons/button-reply-all.svg");
 }
 
-.hdrReplyListButton {
+.hdrReplyListButton,
+.hdrFollowupButton {
   list-style-image: url("chrome://messenger/skin/icons/button-reply-list.svg");
 }
 

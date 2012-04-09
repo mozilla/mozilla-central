@@ -1027,8 +1027,8 @@ function UpdateReplyButtons()
   let buttonToShow;
   if (gFolderDisplay.selectedMessageIsNews)
   {
-    // News messages always default to the "reply" dual-button.
-    buttonToShow = "reply";
+    // News messages always default to the "followup" dual-button.
+    buttonToShow = "followup";
   }
   else if (gFolderDisplay.selectedMessageIsFeed)
   {
@@ -1044,21 +1044,21 @@ function UpdateReplyButtons()
     else if (IsReplyAllEnabled())
       buttonToShow = "replyAll";
     else
-      buttonToShow = "replyOnly";
+      buttonToShow = "reply";
   }
 
   let smartReplyButton = document.getElementById("hdrSmartReplyButton");
   if (smartReplyButton)
   {
-    let replyOnlyButton = document.getElementById("hdrReplyOnlyButton");
     let replyButton = document.getElementById("hdrReplyButton");
     let replyAllButton = document.getElementById("hdrReplyAllButton");
     let replyListButton = document.getElementById("hdrReplyListButton");
+    let followupButton = document.getElementById("hdrFollowupButton");
 
-    replyOnlyButton.hidden = (buttonToShow != "replyOnly");
     replyButton.hidden = (buttonToShow != "reply");
     replyAllButton.hidden = (buttonToShow != "replyAll");
     replyListButton.hidden = (buttonToShow != "replyList");
+    followupButton.hidden = (buttonToShow != "followup");
   }
 
   let replyToSenderButton = document.getElementById("hdrReplyToSenderButton");
@@ -1067,8 +1067,7 @@ function UpdateReplyButtons()
     if (gFolderDisplay.selectedMessageIsFeed)
       replyToSenderButton.hidden = true;
     else if (smartReplyButton)
-      replyToSenderButton.hidden = buttonToShow == "reply" ||
-                                   buttonToShow == "replyOnly";
+      replyToSenderButton.hidden = (buttonToShow == "reply");
     else
       replyToSenderButton.hidden = false;
   }
@@ -1076,6 +1075,7 @@ function UpdateReplyButtons()
   goUpdateCommand("button_reply");
   goUpdateCommand("button_replyall");
   goUpdateCommand("button_replylist");
+  goUpdateCommand("button_followup");
 }
 
 function UpdateDeleteToolbarButton()

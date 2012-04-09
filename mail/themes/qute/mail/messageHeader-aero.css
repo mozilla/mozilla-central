@@ -331,7 +331,6 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
 
 .hdrReplyToSenderButton,
 .hdrDummyReplyButton,
-.hdrReplyOnlyButton,
 .hdrReplyButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px, 72px, 18px, 54px);
@@ -342,7 +341,8 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
   -moz-image-region: rect(0px, 90px, 18px, 72px);
 }
 
-.hdrReplyListButton {
+.hdrReplyListButton,
+.hdrFollowupButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px, 126px, 18px, 108px);
 }

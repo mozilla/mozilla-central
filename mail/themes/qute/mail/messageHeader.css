@@ -294,7 +294,6 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
 
 .hdrReplyToSenderButton,
 .hdrDummyReplyButton,
-.hdrReplyOnlyButton,
 .hdrReplyButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 96px 24px 72px);
@@ -302,7 +301,6 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
 
 toolbar[iconsize="small"] .hdrReplyToSenderButton,
 toolbar[iconsize="small"] .hdrDummyReplyButton,
-toolbar[iconsize="small"] .hdrReplyOnlyButton,
 toolbar[iconsize="small"] .hdrReplyButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 64px 16px 48px);
@@ -318,12 +316,14 @@ toolbar[iconsize="small"] .hdrReplyAllButton {
   -moz-image-region: rect(0px 80px 16px 64px);
 }
 
-.hdrReplyListButton {
+.hdrReplyListButton,
+.hdrFollowupButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 168px 24px 144px);
 }
 
-toolbar[iconsize="small"] .hdrReplyListButton {
+toolbar[iconsize="small"] .hdrReplyListButton,
+toolbar[iconsize="small"] .hdrFollowupButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 112px 16px 96px);
 }

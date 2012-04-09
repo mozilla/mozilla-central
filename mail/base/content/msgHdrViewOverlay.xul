@@ -216,7 +216,7 @@
                                                     'button_delete');RestoreFocusAfterHdrButton();"/>
               <toolbarbutton id="hdrReplyToSenderButton" label="&hdrReplyButton1.label;"
                              tooltiptext="&hdrReplyButton1.tooltip;"
-                             oncommand="MsgReplyMessage(event);RestoreFocusAfterHdrButton();"
+                             oncommand="MsgReplySender(event);RestoreFocusAfterHdrButton();"
                              observes="button_reply"
                              class="toolbarbutton-1 msgHeaderView-button hdrReplyToSenderButton"/>
               <toolbaritem id="hdrSmartReplyButton" label="&hdrSmartReplyButton1.label;">
@@ -226,31 +226,11 @@
                 <toolbarbutton id="hdrDummyReplyButton" label="&hdrSmartReplyButton1.label;"
                                hidden="true"
                                class="toolbarbutton-1 msgHeaderView-button hdrDummyReplyButton"/>
-                <toolbarbutton id="hdrReplyOnlyButton" label="&hdrReplyButton1.label;"
-                               tooltiptext="&hdrReplyButton1.tooltip;"
-                               oncommand="MsgReplyMessage(event);RestoreFocusAfterHdrButton();"
-                               observes="button_reply"
-                               class="toolbarbutton-1 msgHeaderView-button hdrReplyOnlyButton"/>
                 <toolbarbutton id="hdrReplyButton" label="&hdrReplyButton1.label;"
                                tooltiptext="&hdrReplyButton1.tooltip;"
-                               oncommand="MsgReplyMessage(event);RestoreFocusAfterHdrButton();"
+                               oncommand="MsgReplySender(event);RestoreFocusAfterHdrButton();"
                                observes="button_reply"
-                               class="toolbarbutton-1 msgHeaderView-button hdrReplyButton"
-                               type="menu-button">
-                  <menupopup id="hdrReplyDropdown">
-                    <menuitem id="hdrReply_ReplySubButton"
-                              label="&hdrReplyButton1.label;"
-                              tooltiptext="&hdrReplyButton1.tooltip;"
-                              observes="button_reply"/>
-                    <menuseparator id="hdrReplySubSeparator"/>
-                    <menuitem id="hdrReply_ReplyAllSubButton"
-                              label="&hdrReplyAllButton1.label;"
-                              tooltiptext="&hdrReplyAllButton1.tooltip;"
-                              observes="button_replyall"
-                              oncommand="MsgReplyToAllMessage(event); event.stopPropagation();
-                                         RestoreFocusAfterHdrButton();"/>
-                  </menupopup>
-                </toolbarbutton>
+                               class="toolbarbutton-1 msgHeaderView-button hdrReplyButton"/>
                 <toolbarbutton id="hdrReplyAllButton"
                                label="&hdrReplyAllButton1.label;"
                                tooltiptext="&hdrReplyAllButton1.tooltip;"
@@ -269,7 +249,7 @@
                               label="&hdrReplyButton1.label;"
                               tooltiptext="&hdrReplyButton1.tooltip;"
                               observes="button_reply"
-                              oncommand="MsgReplyMessage(event); event.stopPropagation();
+                              oncommand="MsgReplySender(event); event.stopPropagation();
                                          RestoreFocusAfterHdrButton();"/>
                   </menupopup>
                 </toolbarbutton>
@@ -297,7 +277,33 @@
                               label="&hdrReplyButton1.label;"
                               tooltiptext="&hdrReplyButton1.tooltip;"
                               observes="button_reply"
-                              oncommand="MsgReplyMessage(event); event.stopPropagation();
+                              oncommand="MsgReplySender(event); event.stopPropagation();
+                                         RestoreFocusAfterHdrButton();"/>
+                  </menupopup>
+                </toolbarbutton>
+                <toolbarbutton id="hdrFollowupButton" label="&hdrFollowupButton1.label;"
+                               tooltiptext="&hdrFollowupButton1.tooltip;"
+                               oncommand="MsgReplyGroup(event);RestoreFocusAfterHdrButton();"
+                               observes="button_followup"
+                               class="toolbarbutton-1 msgHeaderView-button hdrFollowupButton"
+                               type="menu-button">
+                  <menupopup id="hdrFollowupDropdown">
+                    <menuitem id="hdrFollowup_FollowupSubButton"
+                              label="&hdrFollowupButton1.label;"
+                              tooltiptext="&hdrFollowupButton1.tooltip;"
+                              observes="button_followup"/>
+                    <menuseparator id="hdrFollowupSubSeparator"/>
+                    <menuitem id="hdrFollowup_ReplyAllSubButton"
+                              label="&hdrReplyAllButton1.label;"
+                              tooltiptext="&hdrReplyAllButton1.tooltip;"
+                              observes="button_replyall"
+                              oncommand="MsgReplyToAllMessage(event); event.stopPropagation();
+                                         RestoreFocusAfterHdrButton();"/>
+                    <menuitem id="hdrFollowup_ReplySubButton"
+                              label="&hdrReplyButton1.label;"
+                              tooltiptext="&hdrReplyButton1.tooltip;"
+                              observes="button_reply"
+                              oncommand="MsgReplySender(event); event.stopPropagation();
                                          RestoreFocusAfterHdrButton();"/>
                   </menupopup>
                 </toolbarbutton>
