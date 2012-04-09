@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 /*
- *  Test for the most suitable identity in From address for reply-to-list
+ *  Test that the phishing bar behaves properly
  */
 
 var MODULE_NAME = "test-phishing-bar";
@@ -66,6 +66,19 @@ function setupModule(module) {
 }
 
 /**
+ * Make sure that the phishing bar is currently visible.
+ *
+ * @param msgc the Mozmill controller for the message window
+ */
+function assert_phishing_bar_visible(msgc) {
+  assert_true(!msgc.e("msgNotificationBar").collapsed,
+              "Notification bar is collapsed!");
+  assert_equals(msgc.e("msgNotificationBar").selectedPanel,
+                msgc.e("phishingBar"),
+                "Notification bar not showing phishing bar!");
+}
+
+/**
  * Make sure that the phishing bar gets hidden when the ignore button is
  * clicked.
  *
@@ -73,7 +86,7 @@ function setupModule(module) {
  */
 function help_test_hide_phishing_bar(msgc) {
   let phishingButton = msgc.e("phishingBar").getElementsByTagName("button")[0];
-  assert_true(!msgc.e("msgNotificationBar").collapsed);
+  assert_phishing_bar_visible(msgc);
 
   msgc.click(new elib.Elem(phishingButton));
   wait_for_message_display_completion(msgc, true);
@@ -97,4 +110,26 @@ function test_hide_phishing_bar_from_eml() {
   let msgc = open_message_from_file(file);
   help_test_hide_phishing_bar(msgc);
   */
+}
+
+function test_phishing_bar_for_eml_attachment() {
+  let thisFilePath = os.getFileForPath(__file__);
+  let file = os.getFileForPath(os.abspath("./evil-attached.eml", thisFilePath));
+
+  let msgc = open_message_from_file(file);
+
+  // Make sure the root message shows the phishing bar.
+  assert_phishing_bar_visible(msgc);
+
+  // Open the attached message.
+  plan_for_new_window("mail:messageWindow");
+  msgc.e("attachmentList").getItemAtIndex(0).attachment.open();
+  let msg2c = wait_for_new_window("mail:messageWindow");
+  wait_for_message_display_completion(msg2c, true);
+
+  // Now make sure the attached message shows the phishing bar.
+  assert_phishing_bar_visible(msg2c);
+
+  close_window(msg2c);
+  close_window(msgc);
 }

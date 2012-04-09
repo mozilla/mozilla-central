@@ -233,7 +233,6 @@ nsresult nsMailboxUrl::GetMsgHdrForKey(nsMsgKey  msgKey, nsIMsgDBHdr ** aMsgHdr)
         nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
         mailSession->GetTopmostMsgWindow(getter_AddRefs(msgWindow));
-        SetMsgWindow(msgWindow);
       }
 
       // maybe this is .eml file we're trying to read. See if we can get a header from the header sink.
@@ -322,7 +321,8 @@ NS_IMETHODIMP nsMailboxUrl::IsUrlType(PRUint32 type, bool *isType)
       *isType = (m_mailboxAction == nsIMailboxUrl::ActionMoveMessage);
       break;
     case nsIMsgMailNewsUrl::eDisplay:
-      *isType = (m_mailboxAction == nsIMailboxUrl::ActionFetchMessage);
+      *isType = (m_mailboxAction == nsIMailboxUrl::ActionFetchMessage ||
+                 m_mailboxAction == nsIMailboxUrl::ActionFetchPart);
       break;
     default:
       *isType = false;
