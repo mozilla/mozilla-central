@@ -208,6 +208,6 @@
              iconsize="small"
 #endif
              defaultset="task-synchronize-button,task-newevent-button,task-newtask-button,task-edit-button,task-delete-button,spring"/>
-    <toolbarset id="calendarToolbars" context="task-toolbar-context"/>
+    <toolbarset id="taskToolbars" context="task-toolbar-context"/>
   </toolbox>
 </overlay>

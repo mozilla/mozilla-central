@@ -1,11 +1,8 @@
-var ltnSuiteUtils = {
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-  customizeToolbar: function lSU_customizeToolbar(aItem) {
-    let toolbar = aItem.parentNode.triggerNode;
-    while (toolbar.localName != "toolbar")
-      toolbar = toolbar.parentNode;
-    goCustomizeToolbar(toolbar.toolbox);
-  },
+var ltnSuiteUtils = {
 
   addStartupObserver: function lSU_addStartupObserver() {
     let obs = Components.classes["@mozilla.org/observer-service;1"]
