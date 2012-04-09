@@ -6,3 +6,8 @@ richlistitem[feed] {
 #thepreviewimage {
   min-width: 1px;
 }
+
+.urltext:-moz-locale-dir(rtl) {
+  direction: ltr !important;
+  text-align: end !important;
+}

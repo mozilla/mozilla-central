@@ -152,7 +152,7 @@
             <row>
               <label control="urltext" value="&generalURL;"/>
               <separator/>
-              <textbox readonly="true" id="urltext"/>
+              <textbox readonly="true" id="urltext" class="urltext"/>
             </row>
             <row>
               <separator class="thin"/>
@@ -180,7 +180,7 @@
             <row>
               <label control="refertext" value="&generalReferrer;"/>
               <separator/>
-              <textbox readonly="true" id="refertext"/>
+              <textbox readonly="true" id="refertext" class="urltext"/>
             </row>
             <row>
               <separator class="thin"/>
@@ -252,7 +252,7 @@
               <row>
                 <label control="imageurltext" value="&mediaURL;"/>
                 <separator/>
-                <textbox readonly="true" id="imageurltext"/>
+                <textbox readonly="true" id="imageurltext" class="urltext"/>
               </row>
               <row>
                 <label control="imagetitletext" value="&mediaTitle;"/>

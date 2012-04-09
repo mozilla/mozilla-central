@@ -210,15 +210,28 @@ var gFieldView = new pageInfoTreeView(COPYCOL_FIELD_VALUE);
 var gLinkView = new pageInfoTreeView(COPYCOL_LINK_ADDRESS);
 var gImageView = new pageInfoTreeView(COPYCOL_IMAGE);
 
-const ATOM_CONTRACTID = "@mozilla.org/atom-service;1";
-var gBrokenAtom = Components.classes[ATOM_CONTRACTID]
-                            .getService(Components.interfaces.nsIAtomService)
-                            .getAtom("broken");
+var gAtomSvc = Components.classes["@mozilla.org/atom-service;1"]
+                         .getService(Components.interfaces.nsIAtomService);
+var gBrokenAtom = gAtomSvc.getAtom("broken");
+var gLtrAtom = gAtomSvc.getAtom("ltr");
 
 gImageView.getCellProperties = function(row, col, props) {
   if (gImageView.data[row][COL_IMAGE_SIZE] == gStrings.unknown &&
       !/^https:/.test(gImageView.data[row][COL_IMAGE_ADDRESS]))
     props.AppendElement(gBrokenAtom);
+
+  if (col.id == "image-address")
+    props.AppendElement(gLtrAtom);
+};
+
+gFormView.getCellProperties = function(row, col, props) {
+  if (col.id == "form-action")
+    props.AppendElement(gLtrAtom);
+};
+
+gLinkView.getCellProperties = function(row, col, props) {
+  if (col.id == "link-address")
+    props.AppendElement(gLtrAtom);
 };
 
 gImageView.cycleHeader = function(col)
@@ -575,7 +588,7 @@ function processFrames()
     onProcessFrame.forEach(function(func) { func(doc); });
     var iterator = doc.createTreeWalker(doc, NodeFilter.SHOW_ELEMENT, grabAll, true);
     gFrameList.shift();
-    setTimeout(doGrab, 16, iterator);
+    setTimeout(doGrab, 10, iterator);
   }
   else
     onFinished.forEach(function(func) { func(); });
@@ -583,13 +596,13 @@ function processFrames()
 
 function doGrab(iterator)
 {
-  for (var i = 0; i < 50; ++i)
+  for (var i = 0; i < 500; ++i)
     if (!iterator.nextNode()) {
       processFrames();
       return;
     }
 
-  setTimeout(doGrab, 16, iterator);
+  setTimeout(doGrab, 10, iterator);
 }
 
 function ensureSelection(view)
