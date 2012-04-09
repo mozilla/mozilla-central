@@ -80,6 +80,20 @@ function setupModule(module) {
   add_message_to_folder(folder, msg);
 }
 
+/**
+ * Helper function that takes an array of mail-emailaddress elements and
+ * returns the last one in the list that is not hidden. Returns null if no
+ * such element exists.
+ *
+ * @param aAddrs an array of mail-emailaddress elements.
+ */
+function get_last_visible_address(aAddrs) {
+  for (let i = aAddrs.length - 1; i >= 0; --i)
+    if (!aAddrs[i].hidden)
+      return aAddrs[i];
+  return null;
+}
+
 function test_add_tag_with_really_long_label() {
   be_in_folder(folder);
 
@@ -181,13 +195,12 @@ function test_clicking_star_opens_inline_contact_editor()
 {
   // Make sure we're in the right folder
   be_in_folder(folder);
-
   // Add a new message
   let msg = create_message();
   add_message_to_folder(folder, msg);
-
   // Open the latest message
   let curMessage = select_click_row(-1);
+  wait_for_message_display_completion(mc);
   // Make sure the star is clicked, and we add the
   // new contact to our address book
   let toDescription = mc.a('expandedtoBox', {class: "headerValue"});
@@ -200,7 +213,7 @@ function test_clicking_star_opens_inline_contact_editor()
   // Ok, if we're here, then the star has been clicked, and
   // the contact has been added to our AB.
   let addrs = toDescription.getElementsByTagName('mail-emailaddress');
-  let lastAddr = addrs[addrs.length-1];
+  let lastAddr = get_last_visible_address(addrs);
 
   // Click on the star, and ensure that the inline contact
   // editing panel opens
@@ -288,7 +301,7 @@ function test_address_book_switch_disabled_on_contact_in_mailing_list()
   // Ok, if we're here, then the star has been clicked, and
   // the contact has been added to our AB.
   let addrs = toDescription.getElementsByTagName('mail-emailaddress');
-  let lastAddr = addrs[addrs.length-1];
+  let lastAddr = get_last_visible_address(addrs);
 
   // Click on the star, and ensure that the inline contact
   // editing panel opens
@@ -310,7 +323,7 @@ function test_address_book_switch_disabled_on_contact_in_mailing_list()
   // address book it resides in, and then add that contact to the
   // mailing list
   addrs = toDescription.getElementsByTagName('mail-emailaddress');
-  let targetAddr = addrs[addrs.length-1].getAttribute("emailAddress");
+  let targetAddr = get_last_visible_address(addrs).getAttribute("emailAddress");
 
   let cards = get_cards_in_all_address_books_for_email(targetAddr);
 
@@ -593,7 +606,7 @@ function subtest_change_to_all_header_mode(toDescription) {
  */
 function subtest_more_widget_star_click(toDescription) {
   let addrs = toDescription.getElementsByTagName('mail-emailaddress');
-  let lastAddr = addrs[addrs.length-1];
+  let lastAddr = get_last_visible_address(addrs);
   ensure_no_card_exists(lastAddr.getAttribute("emailAddress"));
 
   // scroll to the bottom first so the address is in view
