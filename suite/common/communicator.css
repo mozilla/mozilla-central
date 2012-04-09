@@ -75,6 +75,7 @@ toolbox[xpfe="false"] {
   -moz-binding: url("chrome://global/content/bindings/toolbar.xml#toolbox");
 }
 
+toolbox[xpfe="false"] > toolbar,
 toolbar[xpfe="false"][type="menubar"],
 toolbar[xpfe="false"] {
   -moz-binding: url("chrome://global/content/bindings/toolbar.xml#toolbar");

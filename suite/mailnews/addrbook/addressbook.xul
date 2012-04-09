@@ -130,14 +130,14 @@
     <command id="button_delete" oncommand="goDoCommand('button_delete');"/>
     <command id="cmd_swapFirstNameLastName" oncommand="AbSwapFirstNameLastName()"/>
     <commandset id="tasksCommands"/>
-    <command id="cmd_CustomizeToolbars"
-             oncommand="goCustomizeToolbar(getAbToolbox());"/>
   </commandset>
 
 <broadcasterset id="abBroadcasters">
   <!-- Edit Menu -->
   <broadcaster id="Communicator:WorkMode"/>
 </broadcasterset>
+
+<broadcasterset id="mainBroadcasterSet"/>
 
 <keyset id="tasksKeys">
   <!-- File Menu -->

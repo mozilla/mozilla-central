@@ -311,6 +311,17 @@ function goToggleToolbar( id, elementID )
 
 var gCustomizeSheet = false;
 
+function SuiteCustomizeToolbar(aMenuItem)
+{
+  let toolbar = aMenuItem.parentNode.triggerNode;
+  while (toolbar.localName != "toolbar") {
+    toolbar = toolbar.parentNode;
+    if (!toolbar)
+      return false;
+  }
+  return goCustomizeToolbar(toolbar.toolbox);
+}
+
 function goCustomizeToolbar(toolbox)
 {
   /* If the toolbox has a method "customizeInit" then call it first.
@@ -373,9 +384,19 @@ function onViewToolbarsPopupShowing(aEvent, aInsertPoint)
   while (toolbar.localName != "toolbar")
     toolbar = toolbar.parentNode;
   var toolbox = toolbar.toolbox;
-
+  var externalToolbars = Array.filter(toolbox.externalToolbars,
+                                      function(toolbar) {
+                                        return toolbar.hasAttribute("toolbarname")});
   var toolbars = Array.slice(toolbox.getElementsByAttribute("toolbarname", "*"));
-  toolbars = toolbars.concat(toolbox.externalToolbars);
+  toolbars = toolbars.concat(externalToolbars);
+  var menusep = document.getElementById("toolbarmode-sep");
+
+  var menubar = toolbox.getElementsByAttribute("type", "menubar").item(0);
+  if (!menubar || !toolbars.length) {
+    menusep.hidden = true;
+    return;
+  }
+  menusep.hidden = false;
 
   toolbars.forEach(function(bar) {
     let menuItem = document.createElement("menuitem");

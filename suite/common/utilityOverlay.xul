@@ -30,6 +30,10 @@
                   src="chrome://communicator/locale/utilityOverlay.properties"/>
   </stringbundleset>
 
+<broadcasterset id="mainBroadcasterSet">
+  <broadcaster id="cmd_CustomizeToolbars"/>
+</broadcasterset>
+
   <!-- online/offline status indicators -->   
   <broadcaster id="Communicator:WorkMode"
                label="&offlineGoOfflineCmd.label;"
@@ -112,9 +116,10 @@
 
     <menuseparator id="toolbar-customize-sep"/>
     <menuitem id = "customize_toolbars"
-              command="cmd_CustomizeToolbars"
+              observes="cmd_CustomizeToolbars"
               label="&customizeToolbarContext.label;"
-              accesskey="&customizeToolbarContext.accesskey;"/>
+              accesskey="&customizeToolbarContext.accesskey;"
+              oncommand="return SuiteCustomizeToolbar(this);"/>
 
   </menupopup>
 

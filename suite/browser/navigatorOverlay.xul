@@ -200,7 +200,6 @@
     <command id="View:PageInfo"   oncommand="BrowserPageInfo();"/>
     <command id="View:FullScreen" oncommand="BrowserFullScreen();"/>
     <command id="cmd_SwitchDocumentDirection" oncommand="SwitchDocumentDirection(window.content);" />
-    <command id="cmd_CustomizeToolbars" oncommand="goCustomizeToolbar(getNavToolbox());"/>
  
     <!-- Search Menu -->
     <command id="cmd_find"
@@ -261,7 +260,7 @@
     <broadcaster id="cmd_viewcomponentbar" oncommand="goToggleToolbar('component-bar', 'cmd_viewcomponentbar');" checked="true"/>
     <broadcaster id="isImage"/>
   </broadcasterset>
-         
+
   <!-- Menu -->
   <menubar id="main-menubar" class="chromeclass-menubar">
     <menu id="menu_File">
@@ -359,7 +358,7 @@
                   oncommand="BrowserReload(event);"
                   onclick="checkForMiddleClick(this, event);"/>
         <menuseparator />
-  
+
         <!-- overlayed from viewZoomOverlay.xul -->
         <menu id="menu_zoom"/>
 

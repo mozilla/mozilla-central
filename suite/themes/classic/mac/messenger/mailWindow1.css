@@ -52,6 +52,10 @@
   background-color: #EEEEEE;
 }
 
+#messengerBox {
+  border-top: 1px solid #A1A1A1;
+}
+
 /* :::::
    :: Make sure the min height is small so we can
    :: resize the pane vertically -EDV
@@ -119,7 +123,7 @@
 }
 
 /* ..... tree adjustments ..... */
- 
+
 #folderTree {
   min-width: 1px;
   background-color: transparent;
@@ -192,7 +196,6 @@
 /* ..... tabmail ..... */
 
 .tabmail-strip {
-  border-bottom: 1px solid #A1A1A1;
   padding-bottom: 3px;
   background-color: #E8E8E8;
 }
@@ -262,4 +265,11 @@
 #tabbar-toolbar {
   -moz-appearance: none;
   min-height: 0;
+}
+
+#tabbar-toolbar > .toolbarbutton-1 {
+  margin-top: 1px;
+  margin-bottom: 1px;
+  padding-top: 0;
+  padding-bottom: 0;
 }

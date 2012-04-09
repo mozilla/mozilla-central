@@ -151,7 +151,6 @@
   <command id="cmd_quit"/>
   <command id="cmd_createFilterFromPopup" oncommand="goDoCommand('cmd_createFilterFromPopup')"/>
   <command id="cmd_pageSetup"/>
-  <command id="cmd_CustomizeToolbars" oncommand="goCustomizeToolbar(getMailToolbox());"/>
 </commandset>
 
 <commandset id="mailViewMenuItems"

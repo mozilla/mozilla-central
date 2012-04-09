@@ -43,6 +43,11 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+.mail-toolbox {
+  border-bottom: 1px solid #A1A1A1;
+  background-color: #E8E8E8;
+}
+
 /* ::::: primary toolbar buttons ::::: */
 
 #button-getmsg {
@@ -53,7 +58,7 @@
 #button-getmsg:hover:active,
 #button-getmsg[open] {
   -moz-image-region: rect(90px 59px 119px 30px);
-} 
+}
 
 #button-getmsg[disabled="true"] {
   -moz-image-region: rect(90px 89px 119px 60px) !important;
@@ -95,7 +100,7 @@
 #button-replyall:hover:active,
 #button-replyall[open] {
   -moz-image-region: rect(240px 59px 269px 30px);
-} 
+}
 
 #button-replyall[disabled="true"] {
   -moz-image-region: rect(240px 89px 269px 60px) !important;
@@ -109,11 +114,11 @@
 #button-forward:hover:active,
 #button-forward[open] {
   -moz-image-region: rect(60px 59px 89px 30px);
-} 
+}
 
 #button-forward[disabled="true"] {
   -moz-image-region: rect(60px 89px 89px 60px) !important;
-} 
+}
 
 #button-file {
   list-style-image: url("chrome://messenger/skin/icons/messengericons.png");
@@ -493,4 +498,8 @@ toolbar[iconsize="small"] > #sync-button[status=active] {
 
 #allowRemoteContentForAuthorDesc {
   -moz-padding-start: 10px;
+}
+
+.inline-toolbar {
+  -moz-appearance: none;
 }

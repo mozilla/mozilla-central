@@ -153,8 +153,6 @@
   <command id="cmd_selectAddress" oncommand="goDoCommand('cmd_selectAddress')"/>
   <command id="cmd_outputFormat" oncommand="OutputFormatMenuSelect(event.target)"/>
   <command id="cmd_quoteMessage" oncommand="goDoCommand('cmd_quoteMessage')"/>
-
-  <command id="cmd_CustomizeToolbars" oncommand="goCustomizeToolbar(getMailToolbox());"/>
 </commandset>
 
 <broadcasterset id="composeBroadcasters">
