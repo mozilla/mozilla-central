@@ -523,7 +523,7 @@
   <menupopup id="mailContext"
          onpopupshowing="return event.target != this ||
                                 FillMailContextMenu(this);"
-         onpopuphiding="if (event.target == this) MailContextOnPopupHiding();">
+         onpopuphiding="if (event.target == this) MailContextOnPopupHiding(this);">
     <menuitem id="context-openlinkintab"
               label="&openLinkCmdInTab.label;"
               accesskey="&openLinkCmdInTab.accesskey;"

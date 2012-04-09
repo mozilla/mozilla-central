@@ -42,10 +42,13 @@
 
 //NOTE: gMessengerBundle must be defined and set or this Overlay won't work
 
-// Function to change the highlighted row back to the row that is currently
-// outline/dotted without loading the contents of either rows.  This is
-// triggered when the context menu for a given row is hidden/closed
-// (onpopuphiding).
+/**
+ * Function to change the highlighted row back to the row that is currently
+ * outline/dotted without loading the contents of either rows. This is
+ * triggered when the context menu for a given row is hidden/closed
+ * (onpopuphiding).
+ * @param tree the tree element to restore selection for
+ */
 function RestoreSelectionWithoutContentLoad(tree)
 {
     // If a delete or move command had been issued, then we should
@@ -94,16 +97,29 @@ function RestoreSelectionWithoutContentLoad(tree)
     gRightMouseButtonDown = false;
 }
 
-function MailContextOnPopupHiding()
+/**
+ * Function to clear out the global nsContextMenu, and in the case when we
+ * are a threadpane context menu, restore the selection so that a right-click
+ * on a non-selected row doesn't move the selection.
+ * @param aTarget the target of the popup event
+ */
+function MailContextOnPopupHiding(aTarget)
 {
+  gContextMenu.hiding();
   gContextMenu = null;
-  if (InThreadPane())
+  if (InThreadPane(aTarget))
     RestoreSelectionWithoutContentLoad(GetThreadTree());
 }
 
-function InThreadPane()
+/**
+ * Determines whether the context menu was triggered by a node that's a child
+ * of the threadpane by looking for an ancestor node with id="threadTree".
+ * @param aTarget the target of the popup event
+ * @return true if the popupNode is a child of the threadpane, otherwise false
+ */
+function InThreadPane(aTarget)
 {
-  var node = document.popupNode;
+  var node = aTarget.triggerNode;
   while (node)
   {
     if (node.id == "threadTree")
@@ -113,9 +129,14 @@ function InThreadPane()
   return false;
 }
 
+/**
+ * Function to set up the global nsContextMenu, and the mailnews overlay.
+ * @param aTarget the target of the popup event
+ * @return true always
+ */
 function FillMailContextMenu(aTarget)
 {
-  var inThreadPane = InThreadPane();
+  var inThreadPane = InThreadPane(aTarget);
   gContextMenu = new nsContextMenu(aTarget, getBrowser());
   // Need to call nsContextMenu's initItems to hide what is not used.
   gContextMenu.initItems();
