@@ -191,8 +191,8 @@ function folderToJSON(aItemId) {
  * like dates.
  */
 function compareJSON(aNodeJSON_1, aNodeJSON_2) {
-  node1 = JSON.parse(aNodeJSON_1);
-  node2 = JSON.parse(aNodeJSON_2);
+  let node1 = JSON.parse(aNodeJSON_1);
+  let node2 = JSON.parse(aNodeJSON_2);
 
   // List of properties we should not compare (expected to be different).
   const SKIP_PROPS = ["dateAdded", "lastModified", "id"];
