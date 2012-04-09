@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this file,
+   - You can obtain one at http://mozilla.org/MPL/2.0/.  -->
+
+<!DOCTYPE html [
+  <!ENTITY % htmlDTD PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd"> %htmlDTD;
+  <!ENTITY % u1DTD SYSTEM "chrome://messenger/locale/cloudfile/UbuntuOne/settings.dtd"> %u1DTD;
+]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <script type="application/javascript"
+            src="chrome://messenger/content/cloudfile/UbuntuOne/settings.js"/>
+    <link rel="stylesheet"
+        type="text/css"
+        href="chrome://messenger/skin/cloudfile/addAccountDialog.css" />
+  </head>
+  <body id="provider-settings">
+    <form id="provider-form" onsubmit="return false;">
+      <label for="username">&UbuntuOneSettings.emailAddress;</label>
+      <input id="emailaddress" type="text" required="true"/>
+      <div id="learn-more" class="float-right">
+        <a href="https://one.ubuntu.com/">&UbuntuOneSettings.learnMore;</a>
+      </div>
+      <div>
+        <a href="https://one.ubuntu.com/services/">&UbuntuOneSettings.needAnAccount;</a>
+      </div>
+    </form>
+  </body>
+</html>

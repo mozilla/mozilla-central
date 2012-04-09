@@ -35,7 +35,7 @@ function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis, aMetho
   xhr.onload = function (aRequest) {
     try {
       let target = aRequest.target;
-      if (target.status != 200) {
+      if (target.status < 200 || target.status >= 300) {
         let errorText = target.responseText;
         if (!errorText || /<(ht|\?x)ml\b/i.test(errorText))
           errorText = target.statusText;
