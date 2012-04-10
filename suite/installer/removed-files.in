@@ -527,8 +527,14 @@ Throbber-small.gif
 #endif
 #endif
 #endif
-#ifdef XP_MACOSX
-updater.app/Contents/MacOS/updater.ini
+#ifndef MOZ_UPDATER
+  update.locale
+  #ifdef XP_MACOSX
+    updater.app/
+  #else
+    updater@BIN_SUFFIX@
+  #endif
+  updater.ini
 #endif
 #ifdef XP_OS2
   @DLL_PREFIX@xpcomcor@DLL_SUFFIX@
@@ -1045,7 +1051,9 @@ xpicleanup@BIN_SUFFIX@
   res/entityTables/htmlEntityVersions.properties
   res/entityTables/mathml20.properties
   res/entityTables/transliterate.properties
-  update.locale
+  #ifdef MOZ_UPDATER
+    update.locale
+  #endif
 #else
   components/binary.manifest
   omni.ja
