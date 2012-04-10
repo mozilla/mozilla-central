@@ -259,7 +259,6 @@ hyphenation/hyph_sl.dic
 hyphenation/hyph_sv.dic
 hyphenation/hyph_tr.dic
 hyphenation/hyph_uk.dic
-
 #ifdef XP_MACOSX
 isp/dotmac.rdf
 #endif
@@ -923,6 +922,7 @@ xpicleanup@BIN_SUFFIX@
   extensions/modern@themes.mozilla.org/icon.png
   extensions/modern@themes.mozilla.org/install.rdf
   extensions/modern@themes.mozilla.org/preview.png
+  jssubloader/
   modules/
   modules/AddonLogging.jsm
   modules/AddonManager.jsm
