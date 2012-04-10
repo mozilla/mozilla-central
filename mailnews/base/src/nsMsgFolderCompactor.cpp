@@ -1135,6 +1135,7 @@ nsFolderCompactState::EndCopy(nsISupports *url, nsresult aStatus)
     char storeToken[100];
     PR_snprintf(storeToken, sizeof(storeToken), "%lld", m_startOfNewMsg);
     newMsgHdr->SetStringProperty("storeToken", storeToken);
+    newMsgHdr->SetMessageOffset(m_startOfNewMsg);
 
     PRUint32 msgSize;
     (void) newMsgHdr->GetMessageSize(&msgSize);

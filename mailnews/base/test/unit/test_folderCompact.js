@@ -114,6 +114,23 @@ function calculateFolderSize(folder)
   return totalSize;
 }
 
+function verifyMsgOffsets(folder)
+{
+  let msgDB = folder.msgDatabase;
+  let enumerator = msgDB.EnumerateMessages();
+  if (enumerator)
+  {
+    while (enumerator.hasMoreElements())
+    {
+      let header = enumerator.getNext();
+      if (header instanceof Components.interfaces.nsIMsgDBHdr) {
+        let storeToken = header.getStringProperty("storeToken");
+        do_check_eq(storeToken, header.messageOffset);
+      }
+    }
+  }
+}
+
 /*
  * TESTS
  */
@@ -148,6 +165,7 @@ const gTestArray =
   },
   function testDeleteMessages2() {
     do_check_eq(gExpectedFolderSize, gLocalFolder3.filePath.fileSize);
+    verifyMsgOffsets(gLocalFolder3);
     var folder2DB = gLocalFolder2.msgDatabase;
     gMsgHdrs[0].hdr = folder2DB.getMsgHdrForMessageID(gMsgHdrs[0].ID);
 
@@ -176,6 +194,9 @@ const gTestArray =
     do_check_eq(gExpectedInboxSize, gLocalInboxFolder.filePath.fileSize);
     do_check_eq(gExpectedFolder2Size, gLocalFolder2.filePath.fileSize);
     do_check_eq(gExpectedFolder3Size, gLocalFolder3.filePath.fileSize);
+    verifyMsgOffsets(gLocalFolder2);
+    verifyMsgOffsets(gLocalFolder3);
+    verifyMsgOffsets(gLocalInboxFolder);
     urlListener.OnStopRunningUrl(null, 0);
   }
 ];
