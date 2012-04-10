@@ -1,5 +1,4 @@
 ac_add_options --enable-application=suite
-ac_add_options --enable-jemalloc
 ac_add_options --disable-optimize
 ac_add_options --enable-debug
 ac_add_options --enable-trace-malloc
