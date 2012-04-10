@@ -116,9 +116,12 @@ MimeObject    *mime_get_main_object(MimeObject* obj);
 nsresult MimeGetSize(MimeObject *child, PRInt32 *size) {
   bool isLeaf = mime_subclass_p(child->clazz, (MimeObjectClass *) &mimeLeafClass);
   bool isContainer = mime_subclass_p(child->clazz, (MimeObjectClass *) &mimeContainerClass);
+  bool isMsg = mime_subclass_p(child->clazz, (MimeObjectClass *) &mimeMessageClass);
 
   if (isLeaf) {
     *size += ((MimeLeaf *)child)->sizeSoFar;
+  } else if (isMsg) {
+    *size += ((MimeMessage *)child)->sizeSoFar;
   } else if (isContainer) {
     int i;
     MimeContainer *cont = (MimeContainer *)child;

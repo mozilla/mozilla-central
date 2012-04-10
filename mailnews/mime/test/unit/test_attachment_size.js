@@ -117,6 +117,32 @@ const partHtml = new SyntheticPartLeaf(
   }
 );
 
+let attachedMessage1 = msgGen.makeMessage({ body: { body: textAttachment } });
+let attachedMessage2 = msgGen.makeMessage({
+  body: { body: textAttachment },
+  attachments: [{ body: imageAttachment,
+                  contentType: 'application/x-ubik',
+                  filename: 'ubik',
+                  encoding: 'base64',
+                  format: '' }]
+});
+
+/**
+ * Return the size of a synthetic message. Much like the above comment, libmime
+ * counts bytes differently on Windows, where it counts newlines (\r\n) as 2
+ * bytes. Mac and Linux treats them as 1 byte.
+ *
+ * @param message a synthetic message from makeMessage()
+ * @return the message's size in bytes
+ */
+function get_message_size(message) {
+  let messageString = message.toMessageString();
+  if (epsilon == 4) // Windows
+    return messageString.length;
+  else // Mac/Linux
+    return messageString.replace(/\r\n/g, "\n").length;
+}
+
 // create some messages that have various types of attachments
 let messages = [
   // text attachment
@@ -160,22 +186,17 @@ let messages = [
   {
     bodyPart: new SyntheticPartMultiMixed([
       partHtml,
-      msgGen.makeMessage({ body: { body: textAttachment } }),
+      attachedMessage1,
     ]),
-    size: textAttachment.length + 1,
+    size: get_message_size(attachedMessage1),
   },
-  // this is an attached message that has itself an attachment
+  // this is an attached message that itself has an attachment
   {
     bodyPart: new SyntheticPartMultiMixed([
       partHtml,
-      msgGen.makeMessage({ body: { body: textAttachment },
-                           attachments: [{ body: imageAttachment,
-                            contentType: 'application/x-ubik',
-                            filename: 'ubik',
-                            encoding: 'base64',
-                            format: '' }] }),
+      attachedMessage2,
     ]),
-    size: textAttachment.length + imageSize,
+    size: get_message_size(attachedMessage2),
   },
   // an "attachment" that's really the body of the message
   { body: { body: textAttachment,

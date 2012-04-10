@@ -64,7 +64,9 @@ struct MimeMessage {
   bool crypto_msg_signed_p;  /* What the emitted xlation-stamp *says*. */
   bool crypto_msg_encrypted_p;
   bool grabSubject;  /* Should we try to grab the subject of this message */
-  PRInt32 bodyLength;
+  PRInt32 bodyLength; /* Used for determining if the body has been truncated */
+  PRInt32 sizeSoFar; /* The total size of the MIME message, once parsing is
+                        finished. */
 };
 
 #endif /* _MIMEMSG_H_ */

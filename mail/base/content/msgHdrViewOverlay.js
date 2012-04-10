@@ -42,6 +42,7 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource:///modules/gloda/utils.js");
 
 /* This is where functions related to displaying the headers for a selected message in the
    message pane live. */
@@ -1649,6 +1650,9 @@ function AttachmentInfo(contentType, url, name, uri,
   this.uri = uri;
   this.isExternalAttachment = isExternalAttachment;
   this.size = size;
+
+  let match = GlodaUtils.PART_RE.exec(url);
+  this.partID = match && match[1];
 }
 
 AttachmentInfo.prototype = {
@@ -2021,6 +2025,7 @@ function displayAttachmentsForExpandedView()
 
     toggleAttachmentList(false);
 
+    var lastPartID;
     var unknownSize = false;
     for each (let [, attachment] in Iterator(currentAttachments)) {
       // Create a new attachment widget
@@ -2029,10 +2034,16 @@ function displayAttachmentsForExpandedView()
       item.setAttribute("tooltiptext", attachment.name);
       item.addEventListener("command", attachmentItemCommand, false);
 
-      if (attachment.size !== null)
-        totalSize += attachment.size;
-      else if (!attachment.isDeleted)
-        unknownSize = true;
+      // Check if this attachment's part ID is a child of the last attachment
+      // we counted. If so, skip it, since we already accounted for its size
+      // from its parent.
+      if (!lastPartID || attachment.partID.indexOf(lastPartID) != 0) {
+        lastPartID = attachment.partID;
+        if (attachment.size !== null)
+          totalSize += attachment.size;
+        else if (!attachment.isDeleted)
+          unknownSize = true;
+      }
     }
 
     // Show the appropriate toolbar button and label based on the number of

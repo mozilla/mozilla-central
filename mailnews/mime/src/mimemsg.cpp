@@ -109,6 +109,7 @@ MimeMessage_initialize (MimeObject *object)
   MimeMessage *msg = (MimeMessage *)object;
   msg->grabSubject = false;
   msg->bodyLength = 0;
+  msg->sizeSoFar = 0;
 
   return ((MimeObjectClass*)&MIME_SUPERCLASS)->initialize(object);
 }
@@ -154,6 +155,8 @@ MimeMessage_parse_line (const char *aLine, PRInt32 aLength, MimeObject *obj)
   NS_ASSERTION(line && *line, "empty line in mime msg parse_line");
   if (!line || !*line) return -1;
 
+  msg->sizeSoFar += length;
+
   if (msg->grabSubject)
   {
     if ( (!PL_strncasecmp(line, "Subject: ", 9)) && (obj->parent) )
@@ -187,7 +190,7 @@ MimeMessage_parse_line (const char *aLine, PRInt32 aLength, MimeObject *obj)
     PR_ASSERT(kid);
     if (!kid) return -1;
 
-          msg->bodyLength += length;
+    msg->bodyLength += length;
 
     /* Don't allow MimeMessage objects to not end in a newline, since it
      would be inappropriate for any following part to appear on the same

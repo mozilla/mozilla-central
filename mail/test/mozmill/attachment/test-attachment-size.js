@@ -145,6 +145,13 @@ var messages = [
     attachmentSizes: [null, textAttachment.length],
     attachmentTotalSize: { size: textAttachment.length, exact: true },
   },
+  // this is an attached message that itself has an attachment
+  {
+    name: 'attached_message_with_attachment',
+    bodyPart: null,
+    attachmentSizes: [null, textAttachment.length],
+    attachmentTotalSize: { size: 0, exact: true },
+  },
 ];
 
 function setupModule(module) {
@@ -165,7 +172,7 @@ function setupModule(module) {
    * holds. However, on Windows, if the attachment is not encoded (that is, is
    * inline text), libmime will return N + 2 bytes.
    */
-  epsilon = ('@mozilla.org/windows-registry-key;1' in Components.classes) ? 2 : 1;
+  epsilon = ('@mozilla.org/windows-registry-key;1' in Components.classes) ? 4 : 2;
 
   // set up our detached/deleted attachments
   var thisFilePath = os.getFileForPath(__file__);
@@ -187,6 +194,24 @@ function setupModule(module) {
     [create_deleted_attachment(deletedName, 'text/plain')]
   );
 
+  var attachedMessage = msgGen.makeMessage({
+    body: { body: textAttachment },
+    attachments: [{ body: textAttachment,
+                    filename: 'ubik.txt',
+                    format: '' }],
+  });
+
+  /* Much like the above comment, libmime counts bytes differently on Windows,
+   * where it counts newlines (\r\n) as 2 bytes. Mac and Linux treats them as
+   * 1 byte.
+   */
+  var attachedMessageLength;
+  if (epsilon == 4) // Windows
+    attachedMessageLength = attachedMessage.toMessageString().length;
+  else // Mac/Linux
+    attachedMessageLength = attachedMessage.toMessageString()
+                                           .replace(/\r\n/g, "\n").length;
+
   folder = create_folder('AttachmentSizeA');
   for (let i = 0; i < messages.length; i++) {
     // First, add any missing info to the message object.
@@ -204,6 +229,14 @@ function setupModule(module) {
       case 'deleted_attachment':
       case 'multiple_attachments_one_deleted':
         messages[i].bodyPart = deleted;
+        break;
+      case 'attached_message_with_attachment':
+        messages[i].bodyPart = new SyntheticPartMultiMixed([
+          new SyntheticPartLeaf("I am text!", { contentType: "text/plain" }),
+          attachedMessage,
+        ]);
+        messages[i].attachmentSizes[0] = attachedMessageLength;
+        messages[i].attachmentTotalSize.size += attachedMessageLength;
         break;
     }
 
@@ -264,11 +297,16 @@ function check_total_attachment_size(count, expectedSize, exact) {
   if (nodes.length != count)
     throw new Error('Saw '+nodes.length+' attachments, but expected '+count);
 
+  let lastPartID;
   let size = 0;
   for (let i = 0; i < nodes.length; i++) {
-    let currSize = nodes[i].attachment.size;
-    if (!isNaN(currSize))
-      size += currSize;
+    let attachment = nodes[i].attachment;
+    if (!lastPartID || attachment.partID.indexOf(lastPartID) != 0) {
+      lastPartID = attachment.partID;
+      let currSize = attachment.size;
+      if (!isNaN(currSize))
+        size += currSize;
+    }
   }
 
   if (Math.abs(size - expectedSize) > epsilon*count)

@@ -258,6 +258,9 @@ function setupModule() {
   add_sets_to_folders = testHelperModule.add_sets_to_folders;
   make_folder_with_sets = testHelperModule.make_folder_with_sets;
   make_virtual_folder = testHelperModule.make_virtual_folder;
+  SyntheticPartLeaf = testHelperModule.SyntheticPartLeaf;
+  SyntheticPartMultiMixed = testHelperModule.SyntheticPartMultiMixed;
+  SyntheticPartMultiRelated = testHelperModule.SyntheticPartMultiRelated;
 
   delete_message_set = testHelperModule.async_delete_messages;
 
@@ -2795,6 +2798,9 @@ var add_sets_to_folders;
 var delete_message_set;
 var make_folder_with_sets;
 var make_virtual_folder;
+var SyntheticPartLeaf;
+var SyntheticPartMultiMixed;
+var SyntheticPartMultiRelated;
 
 /**
  * Load a file in its own 'module'.
