@@ -119,7 +119,11 @@
         </hbox>
 
          <hbox align="center">
-           <checkbox id="checkSearchSubFolders" label="&searchSubfolders.label;" checked="true" accesskey="&searchSubfolders.accesskey;"/>
+           <checkbox id="checkSearchSubFolders"
+                     label="&searchSubfolders.label;"
+                     accesskey="&searchSubfolders.accesskey;"
+                     checked="true"
+                     persist="checked"/>
            <spacer flex="10"/>
            <button label="&resetButton.label;" oncommand="onResetSearch(event);" accesskey="&resetButton.accesskey;"/>
          </hbox>
@@ -127,7 +131,8 @@
            <checkbox id="checkSearchOnline"
                      label="&searchOnServer.label;"
                      accesskey="&searchOnServer.accesskey;"
-                     oncommand="updateSearchLocalSystem();"/>
+                     oncommand="updateSearchLocalSystem();"
+                     persist="checked"/>
          </hbox>
       </vbox>
 

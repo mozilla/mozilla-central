@@ -348,32 +348,30 @@ function selectFolder(folder)
 
 function updateSearchFolderPicker(folderURI)
 {
-    SetFolderPicker(folderURI, gFolderPicker.id);
+  SetFolderPicker(folderURI, gFolderPicker.id);
 
-    // use the URI to get the real folder
-    gCurrentFolder = GetMsgFolderFromUri(folderURI);
+  // use the URI to get the real folder
+  gCurrentFolder = GetMsgFolderFromUri(folderURI);
 
-    var searchOnline = document.getElementById("checkSearchOnline");
-    if (searchOnline)
-    {
-      // We will clear and disable the search online checkbox if we are offline, or
-      // if the folder does not support online search.
+  var searchOnline = document.getElementById("checkSearchOnline");
+  // We will hide and disable the search online checkbox if we are offline, or
+  // if the folder does not support online search.
 
-      // Anything greater than 0 is an online server like IMAP or news.
-      if (gCurrentFolder.server.offlineSupportLevel &&
-          !Components.classes["@mozilla.org/network/io-service;1"]
-                             .getService(Components.interfaces.nsIIOService)
-                             .offline)
-      {
-        searchOnline.disabled = false;
-      }
-      else
-      {
-        searchOnline.checked = false;
-        searchOnline.disabled = true;
-      }
-    }
-    setSearchScope(GetScopeForFolder(gCurrentFolder));
+  // Any offlineSupportLevel > 0 is an online server like IMAP or news.
+  if (gCurrentFolder.server.offlineSupportLevel &&
+      !Components.classes["@mozilla.org/network/io-service;1"]
+                         .getService(Components.interfaces.nsIIOService)
+                         .offline)
+  {
+    searchOnline.hidden = false;
+    searchOnline.disabled = false;
+  }
+  else
+  {
+    searchOnline.hidden = true;
+    searchOnline.disabled = true;
+  }
+  setSearchScope(GetScopeForFolder(gCurrentFolder));
 }
 
 function updateSearchLocalSystem()
@@ -527,7 +525,7 @@ function AddSubFoldersToURI(folder)
 function GetScopeForFolder(folder)
 {
   let searchOnline = document.getElementById("checkSearchOnline");
-  if (searchOnline && searchOnline.checked)
+  if (!searchOnline.disabled && searchOnline.checked)
   {
     gSearchOnline = true;
     return folder.server.searchScope;
@@ -657,12 +655,15 @@ function saveAsVirtualFolder()
       searchFolderURIs += '|' + subFolderURIs;
   }
 
+  var searchOnline = document.getElementById("checkSearchOnline");
+  var doOnlineSearch = searchOnline.checked && !searchOnline.disabled;
+
   var dialog = window.openDialog("chrome://messenger/content/virtualFolderProperties.xul", "",
                                  "chrome,titlebar,modal,centerscreen",
                                  {folder: window.arguments[0].folder,
                                   searchTerms: toXPCOMArray(getSearchTerms(),
                                                             Components.interfaces.nsISupportsArray),
                                   searchFolderURIs: searchFolderURIs,
-                                  searchOnline: document.getElementById("checkSearchOnline").checked});
+                                  searchOnline: doOnlineSearch});
 }
 
