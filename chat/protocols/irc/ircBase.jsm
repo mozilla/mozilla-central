@@ -297,12 +297,12 @@ var ircBase = {
       // QUIT [ < Quit Message> ]
       // Some IRC servers automatically prefix a "Quit: " string. Remove the
       // duplication and use a localized version.
-      let quitMsg = aMessage.params[0];
+      let quitMsg = aMessage.params[0] || "";
       if (quitMsg.indexOf("Quit: ") == 0)
         quitMsg = quitMsg.slice(6); // "Quit: ".length
       // If a quit message was included, show it.
       let msg = _("message.quit", aMessage.nickname,
-                  aMessage.params.length ? _("message.quit2", quitMsg) : "");
+                  quitMsg.length ? _("message.quit2", quitMsg) : "");
       // Loop over every conversation with the user and display that they quit.
       for each (let conversation in this._conversations) {
         if (conversation.isChat &&
