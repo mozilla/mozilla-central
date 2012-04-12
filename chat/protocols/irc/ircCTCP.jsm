@@ -172,8 +172,9 @@ var ctcpBase = {
 
     // Used when an error needs to be replied with.
     "ERRMSG": function(aMessage) {
-      ERROR(aMessage);
-      return false;
+      WARN(aMessage.nickname + " failed to handle CTCP message: " +
+           aMessage.ctcp.param);
+      return true;
     },
 
     // Returns the user's full name, and idle time.
