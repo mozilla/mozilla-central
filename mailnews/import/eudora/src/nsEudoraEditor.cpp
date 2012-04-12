@@ -1248,3 +1248,8 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::MozMatchesSelector(const nsAString &aSel
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::MozRequestPointerLock()
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}

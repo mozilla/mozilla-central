@@ -943,3 +943,8 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::MozMatchesSelector(const nsAString &aSe
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::MozRequestPointerLock()
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
