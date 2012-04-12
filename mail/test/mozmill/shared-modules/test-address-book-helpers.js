@@ -104,6 +104,7 @@ function installInto(module) {
   module.select_contacts = select_contacts;
   module.edit_selected_contact = edit_selected_contact;
   module.accept_contact_changes = accept_contact_changes;
+  module.delete_address_book = delete_address_book;
 }
 
 /**
@@ -481,4 +482,12 @@ function accept_contact_changes(aController)
 {
   if (!aController.window.document.documentElement.acceptDialog())
     throw new Error("Could not close the contact editing dialog!");
+}
+
+/**
+ * Deletes an address book.
+ */
+function delete_address_book(aAddrBook)
+{
+  MailServices.ab.deleteAddressBook(aAddrBook.URI);
 }

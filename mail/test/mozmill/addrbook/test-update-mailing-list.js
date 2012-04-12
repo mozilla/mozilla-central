@@ -63,4 +63,7 @@ function test_contact_in_mailing_list_updated() {
                 "There should only be one contact in the mailing list");
   let mlContact = ml.addressLists.queryElementAt(0, Ci.nsIAbCard);
   assert_equals(kNewAddress, mlContact.primaryEmail);
+
+  // Destroy the address book that we created.
+  delete_address_book(ab);
 }
