@@ -511,6 +511,10 @@ function deleteFeed(aId, aServer, aParentFolder)
  */
 function getFeedUrlsInFolder(aFolder)
 {
+  if (aFolder.isServer || aFolder.getFlag(Ci.nsMsgFolderFlags.Trash))
+    // Never get any feedUrls in the account folder or trash folder.
+    return null;
+
   let feedUrlArray = [];
 
   let feedurls = aFolder.getStringProperty("feedUrl");
