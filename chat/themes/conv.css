@@ -62,3 +62,12 @@
 #Chat * {
   overflow: visible !important;
 }
+
+#unread-ruler {
+  margin: 0;
+  width: 100%;
+  border: solid;
+  border-width: 1px 0 0 0;
+  border-style: dashed;
+  border-color: Red;
+}

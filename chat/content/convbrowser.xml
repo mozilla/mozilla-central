@@ -292,9 +292,11 @@
       <method name="appendMessage">
         <parameter name="aMsg"/>
         <parameter name="aContext"/>
+        <parameter name="aFirstUnread"/>
         <body>
           <![CDATA[
-            this._pendingMessages.push({msg: aMsg, context: aContext});
+            this._pendingMessages.push({msg: aMsg, context: aContext,
+                                        firstUnread: aFirstUnread});
             if (this._messageDisplayPending)
               return;
             this._messageDisplayPending = true;
@@ -319,7 +321,8 @@
             let i;
             for (i = this._nextPendingMessageIndex; i < max; ++i) {
               let msg = this._pendingMessages[i];
-              this.displayMessage(msg.msg, msg.context, i + 1 < max);
+              this.displayMessage(msg.msg, msg.context, i + 1 < max,
+                                  msg.firstUnread);
               if (Date.now() - begin > 40)
                 break;
             }
@@ -352,6 +355,7 @@
         <parameter name="aMsg"/>
         <parameter name="aContext"/>
         <parameter name="aNoAutoScroll"/>
+        <parameter name="aFirstUnread"/>
         <body>
           <![CDATA[
             let doc = this.contentDocument;
@@ -387,11 +391,49 @@
 
             aMsg.message = cleanupImMarkup(doc, msg.replace(/\r?\n/g, "<br/>"),
                                            null, this._textModifiers);
+
             let next = (aContext == this._lastMessageIsContext || aMsg.system) &&
                        isNextMessage(this.theme, aMsg, this._lastMessage);
-            let html = getHTMLForMessage(aMsg, this.theme, next, aContext);
-            let body = doc.getElementsByTagName("body")[0];
-            let newElt = insertHTMLForMessage(aMsg, html, doc, next);
+            let newElt;
+            if (next && aFirstUnread) {
+              // If there wasn't an unread ruler, this would be a Next message.
+              // Therefore, save that version for later.
+              let html = getHTMLForMessage(aMsg, this.theme, next, aContext);
+              let ruler = doc.getElementById("unread-ruler");
+              ruler.nextMsgHtml = html;
+
+              // Remember where the Next message(s) would have gone.
+              let insert = doc.getElementById("insert");
+              if (!insert) {
+                insert = doc.createElement("div");
+                ruler.parentNode.insertBefore(insert, ruler);
+              }
+              insert.id = "insert-before";
+
+              next = false;
+              html = getHTMLForMessage(aMsg, this.theme, next, aContext);
+              newElt = insertHTMLForMessage(aMsg, html, doc, next);
+              let marker = doc.createElement("div");
+              marker.id = "end-of-split-block";
+              newElt.parentNode.appendChild(marker);
+
+              // Bracket the place where additional Next messages will be added,
+              // if that's not after the end-of-split-block element.
+              insert = doc.getElementById("insert");
+              if (insert) {
+                marker = doc.createElement("div");
+                marker.id = "next-messages-start";
+                insert.parentNode.insertBefore(marker, insert);
+                marker = doc.createElement("div");
+                marker.id = "next-messages-end";
+                insert.parentNode.insertBefore(marker, insert.nextSibling);
+              }
+            }
+            else {
+              let html = getHTMLForMessage(aMsg, this.theme, next, aContext);
+              newElt = insertHTMLForMessage(aMsg, html, doc, next);
+            }
+
             if (!aNoAutoScroll) {
               newElt.getBoundingClientRect(); // avoid ireflow bugs
               if (this._autoScrollEnabled || this._updateAutoScrollEnabled())
@@ -403,6 +445,76 @@
               this._firstNonContextElt = newElt;
             this._lastMessageIsContext = aContext;
           ]]>
+        </body>
+      </method>
+
+      <method name="setUnreadRuler">
+        <body>
+        <![CDATA[
+          // Remove any existing ruler (occurs when the window has lost focus).
+          this.removeUnreadRuler();
+
+          let doc = this.contentDocument;
+          let ruler = doc.createElement("hr");
+          ruler.id = "unread-ruler";
+          doc.getElementById("Chat").appendChild(ruler);
+       ]]>
+        </body>
+      </method>
+
+      <method name="removeUnreadRuler">
+        <body>
+        <![CDATA[
+          let doc = this.contentDocument;
+          let ruler = doc.getElementById("unread-ruler");
+          if (!ruler)
+            return;
+
+          // If a message block was split by the ruler, rejoin it.
+          let moveTo = doc.getElementById("insert-before");
+          if (moveTo) {
+            // Protect an existing insert node.
+            let actualInsert = doc.getElementById("insert");
+            if (actualInsert)
+              actualInsert.id = "actual-insert";
+
+            // Add first message following the ruler as a Next type message.
+            let range = doc.createRange();
+            let moveToParent = moveTo.parentNode;
+            range.selectNode(moveToParent);
+            let documentFragment = range.createContextualFragment(ruler.nextMsgHtml);
+            moveToParent.insertBefore(documentFragment, moveTo);
+
+            // If this added an insert node, insert the next messages there.
+            let insert = doc.getElementById("insert");
+            if (insert) {
+              moveToParent.removeChild(moveTo);
+              moveTo = insert;
+              moveToParent = moveTo.parentNode;
+            }
+
+            // Move remaining messages from the message block following the ruler.
+            let nextMessagesStart = doc.getElementById("next-messages-start");
+            if (nextMessagesStart) {
+              range = doc.createRange();
+              range.setStartAfter(nextMessagesStart);
+              range.setEndBefore(doc.getElementById("next-messages-end"));
+              moveToParent.insertBefore(range.extractContents(), moveTo);
+            }
+            moveToParent.removeChild(moveTo);
+
+            // Restore existing insert node.
+            if (actualInsert)
+              actualInsert.id = "insert";
+
+            // Delete surplus message block.
+            range = doc.createRange();
+            range.setStartAfter(ruler);
+            range.setEndAfter(doc.getElementById("end-of-split-block"));
+            range.deleteContents();
+          }
+          ruler.parentNode.removeChild(ruler);
+        ]]>
         </body>
       </method>
 
