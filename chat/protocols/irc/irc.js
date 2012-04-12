@@ -842,7 +842,13 @@ ircAccount.prototype = {
     "password": {"label": _("joinChat.password"), "isPassword": true}
   },
 
-  parseDefaultChatName: function(aDefaultName) ({"channel": aDefaultName}),
+  parseDefaultChatName: function(aDefaultName) {
+    let params = aDefaultName.split(" ");
+    let chatFields = {channel: params[0]};
+    if (params.length > 1)
+      chatFields.password = params[1];
+    return chatFields;
+  },
 
   // Attributes
   get canJoinChat() true,
