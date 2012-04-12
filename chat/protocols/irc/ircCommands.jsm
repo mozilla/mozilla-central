@@ -96,6 +96,9 @@ function setMode(aNickname, aConv, aMode, aAdd) {
 }
 
 function actionCommand(aMsg, aConv) {
+  // Don't try to send an empty action.
+  if (!aMsg || !aMsg.trim().length)
+    return false;
   if (!ctcpCommand(aConv, aConv.name, "ACTION", aMsg))
     return false;
 
