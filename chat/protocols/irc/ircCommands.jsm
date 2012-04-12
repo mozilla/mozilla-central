@@ -213,7 +213,21 @@ var commands = [
   {
     name: "mode",
     get helpString() _("command.mode", "mode"),
-    run: function(aMsg, aConv) simpleCommand(aConv, "MODE", aMsg)
+    run: function(aMsg, aConv) {
+      let params = aMsg.split(" ");
+
+      // If only a mode is given, it's the user's own mode that we want to set
+      // so we have to provide the user's nick.
+      if (params.length == 1)
+        params.unshift(aConv.nick);
+      // If a new mode and a nick are given, then it's for the current
+      // conversation.
+      else if (params.length == 2 && !getAccount(aConv).isMUCName(params[0]))
+        params = [aConv.name, params[1], params[0]];
+      // Otherwise assume a channel, new mode and nick were given or a channel
+      // and a mode were given. Nothing needs to be changed in these cases.
+      return simpleCommand(aConv, "MODE", params);
+    }
   },
   {
     name: "msg",
