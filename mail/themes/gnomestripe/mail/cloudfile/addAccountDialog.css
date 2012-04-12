@@ -2,8 +2,85 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+html, body {
+  font: message-box;
+  margin: 0;
+}
+
+a {
+  color: -moz-nativehyperlinktext;
+  text-decoration: underline;
+}
+
+#addCloudFileAccount {
+  padding-left: 15px;
+  padding-right: 13px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+#createAccountText {
+  margin-bottom: 20px;
+}
+
+#accountType, #accountSettings, #messages {
+  margin-bottom: 15px;
+  margin-left: 50px;
+  margin-right: 50px;
+}
+
+#accountType {
+  height: 29px;
+  /* We have to be a stickler about the width here, or else we get
+     weird issues where the menu will resize itself by a single pixel
+     when switching selections, which is distracting. */
+  min-width: 458px;
+  max-width: 458px;
+}
+
+#messages {
+  margin-top: 5px;
+}
+
+#messages #authorizing,
+#messages #error {
+  -moz-box-align: center;
+}
+
+#messages #authorizing image,
+#messages #error image {
+  max-width: 16px;
+  max-height: 16px;
+  vertical-align: middle;
+}
+
+#accountSettings {
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+#accountSettings body {
+  margin: 0;
+  padding: 0;
+}
+
+#provider-settings {
+  min-height: 80px;
+}
+
+#provider-form label, #provider-form input {
+  display: block;
+  margin-bottom: 5px;
+}
+
+#provider-form input {
+  -moz-box-sizing: border-box;
+  width: 100%;
+}
+
+/* Make the icons show up in the menulist */
 #accountType > menupopup > menuitem > .menu-iconic-left {
+  -moz-padding-end: 2px;
   display: -moz-box;
   min-width: 16px;
-  -moz-padding-end: 2px;
 }

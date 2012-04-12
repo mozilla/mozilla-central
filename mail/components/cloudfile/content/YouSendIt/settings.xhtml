@@ -13,12 +13,13 @@
             src="chrome://messenger/content/cloudfile/YouSendIt/settings.js"/>
     <link rel="stylesheet"
         type="text/css"
-        href="chrome://messenger/skin/preferences/preferences.css" />
+        href="chrome://messenger/skin/cloudfile/addAccountDialog.css" />
   </head>
   <body id="provider-settings">
-    <form id="providerForm" onsubmit="return false;">
-      <label for="username">&youSendItSettings.username;</label><input id="username" type="text" required="true"/>
-      <div class="indented">
+    <form id="provider-form" onsubmit="return false;">
+      <label for="username">&youSendItSettings.username;</label>
+      <input id="username" type="text" required="true"/>
+      <div>
         <a href="http://www.yousendit.com/compare-plans">&youSendItSettings.needAnAccount;</a>
       </div>
     </form>

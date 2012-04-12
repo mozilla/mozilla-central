@@ -748,8 +748,7 @@ var gCloudFileTab = {
       this._settingsDeck.selectedPanel = this._authErrorPanel;
     }
     else {
-      // TODO Handle this case...
-      dump("\n\nSome other error...\n\n");
+      Components.utils.reportError("Unexpected connection error.");
     }
   },
 
@@ -841,7 +840,7 @@ var gCloudFileTab = {
                              .formatStringFromName("dialog_removeAccount",
                                                    [accountName], 1);
 
-    if (confirm(confirmMessage)) {
+    if (Services.prompt.confirm(null, "", confirmMessage)) {
       this._list.clearSelection();
       cloudFileAccounts.removeAccount(accountKey);
       this.rebuildView();

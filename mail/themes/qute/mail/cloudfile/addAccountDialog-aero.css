@@ -1,0 +1,22 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+%include addAccountDialog.css
+
+@media (-moz-windows-default-theme) {
+  #accountType {
+    height: 26px;
+    /* We have to be a stickler about the width here, or else we get
+       weird issues where the menu will resize itself by a single pixel
+       when switching selections, which is distracting. */
+    min-width: 350px;
+    max-width: 350px;
+  }
+
+  #provider-form label {
+    margin-left: 0px;
+  }
+}
+
+

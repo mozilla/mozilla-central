@@ -2,6 +2,7 @@ messenger.jar:
 *   content/messenger/cloudfile/addAccountDialog.xul (content/addAccountDialog.xul)
     content/messenger/cloudfile/addAccountDialog.js  (content/addAccountDialog.js)
     content/messenger/cloudfile/attachment-24.png (content/attachment-24.png)
+    content/messenger/cloudfile/emptySettings.xhtml (content/emptySettings.xhtml)
     content/messenger/cloudfile/Dropbox/management.xhtml (content/Dropbox/management.xhtml)
     content/messenger/cloudfile/Dropbox/management.js    (content/Dropbox/management.js)
     content/messenger/cloudfile/Dropbox/settings.xhtml (content/Dropbox/settings.xhtml)

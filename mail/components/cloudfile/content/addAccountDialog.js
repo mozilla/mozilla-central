@@ -1,9 +1,13 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 const Cr = Components.results;
 
-const kFormId = "providerForm";
+const kFormId = "provider-form";
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
@@ -44,7 +48,6 @@ let addAccountDialog = {
   _settings: null,
   _settingsWrap: null,
   _accountType: null,
-  _accountName: null,
   _accept: null,
   _strings: Services.strings
                     .createBundle("chrome://messenger/locale/cloudfile/addAccountDialog.properties"),
@@ -77,7 +80,30 @@ let addAccountDialog = {
         form.addEventListener("input", addAccountDialog.onInput);
 
       addAccountDialog.onInput();
+
+      // Focus the first field in the form, if any, that does not have the
+      // class "focus-filter".
+      let firstField = doc.querySelector("form:not(.filter) input:not(.hidden)");
+      if (firstField)
+        firstField.focus();
+
     }, false);
+
+    this._settings.addEventListener("overflow", function(e) {
+      addAccountDialog.fitIFrame();
+    });
+
+    addAccountDialog.fitIFrame();
+  },
+
+  fitIFrame: function() {
+    // Determine the height of the accountSettings iframe, and adjust
+    // the height of the window appropriately.
+    let newHeight = this._settings.contentDocument
+                                  .body
+                                  .offsetHeight;
+    this._settings.style.height = this._settings.style.minHeight = newHeight + "px";
+    window.sizeToContent();
   },
 
   removeTitleMenuItem: function AAD_removeTitleMenuItem() {
@@ -112,6 +138,11 @@ let addAccountDialog = {
       this._accountType.hidden = true;
       this._noAccountText.hidden = false;
     }
+
+    // If there's only one option, let's choose it for the user to avoid
+    // a few clicks.
+    if (this._accountType.itemCount == 1)
+      this._accountType.selectedIndex = 0;
   },
 
   onOK: function AAD_onOK() {
@@ -122,6 +153,7 @@ let addAccountDialog = {
 
     let provider = cloudFileAccounts.createAccount(accountType, obs, extras);
     this._accept.disabled = true;
+
     this._messages.selectedPanel = this._authSpinner;
 
     return false;
@@ -149,9 +181,11 @@ let addAccountDialog = {
     if (!provider)
       return;
 
+    // Reset the message display
+    this._messages.selectedIndex = -1;
+
     // Load up the correct XHTML page for this provider.
     this._settings.contentDocument.location.href = provider.settingsURL;
-    this._settings.hidden = false;
   },
 
   onClickLink: function AAD_onClickLink(e) {

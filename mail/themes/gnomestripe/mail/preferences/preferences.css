@@ -124,54 +124,7 @@ a {
   text-decoration: underline;
 }
 
-/* Setting margins so we can start lining things up */
-#accountNameBox label, #accountName, #accountType, #provider-settings {
-  margin: 0;
-}
-
-#providerForm #username, #provider-signup {
-  width: 250px;
-}
-
-#providerForm label{
-  width: 150px;
-  text-align: right;
-//  padding-right: 3px; ???
-}
-
-#provider-signup, #accountType {
-  margin-left: 150px;
-}
-
-#providerForm label {
-  display: inline-block;
-}
-
-#provider-signup {
-  display: block;
-}
-
 /* Making sure there is some spacing between elements */
-
-#createAccountText {
-  margin-bottom: 20px;
-  padding: 0px 15px;
-}
-
-#accountType {
-  margin-bottom: 5px;
-}
-
-/* I am a hack */
-#accountType {
-  margin-right: 165px;
-}
-
-#messages #authorizing image,
-#messages #error image {
-  max-width: 16px;
-  max-height: 16px;
-}
 
 #provider-header {
   border-bottom: 1px solid black;
@@ -257,10 +210,6 @@ a {
 #cloudFileLoadingPanel, #cloudFileDefaultPanel {
   text-align: center;
   padding-top: 150px;
-}
-
-#provider-settings .indented {
-  margin-left: 150px;
 }
 
 /* Flexing */

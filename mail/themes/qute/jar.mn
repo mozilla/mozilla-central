@@ -380,7 +380,7 @@ classic.jar:
   skin/classic/aero/messenger/addressbook/icons/remote-addrbook.png (mail/addrbook/remote-addrbook-aero.png)
   skin/classic/aero/messenger/addressbook/icons/remote-addrbook-error.png      (mail/addrbook/remote-addrbook-error.png)
   skin/classic/aero/messenger/addressbook/icons/secure-remote-addrbook.png     (mail/addrbook/secure-remote-addrbook-aero.png)
-  skin/classic/aero/messenger/cloudfile/addAccountDialog.css       (mail/cloudfile/addAccountDialog.css)
+* skin/classic/aero/messenger/cloudfile/addAccountDialog.css       (mail/cloudfile/addAccountDialog-aero.css)
   skin/classic/aero/messenger/messengercompose/messengercompose.css (mail/compose/messengercompose-aero.css)
   skin/classic/aero/messenger/messengercompose/compose-toolbar.png  (mail/compose/compose-toolbar-aero.png)
   skin/classic/aero/messenger/messengercompose/format-buttons.png  (mail/compose/format-buttons-aero.png)
