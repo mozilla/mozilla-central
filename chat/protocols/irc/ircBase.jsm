@@ -311,6 +311,10 @@ var ircBase = {
           conversation.removeParticipant(aMessage.nickname, true);
         }
       }
+
+      // Remove from the whois table.
+      this.removeBuddyInfo(aMessage.nickname);
+
       // If the leaver is a buddy, mark as offline.
       let buddy = this.getBuddy(aMessage.nickname);
       if (buddy)

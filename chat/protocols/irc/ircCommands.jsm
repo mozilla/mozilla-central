@@ -138,8 +138,7 @@ function whoisCommand(aMsg, aConv) {
   aMsg = aMsg.trim();
   if (!aMsg || aMsg.indexOf(" ") != -1)
     return false;
-  getConv(aConv).waitForBuddyInfo(aMsg);
-  getAccount(aConv).requestBuddyInfo(aMsg);
+  getConv(aConv).requestBuddyInfo(aMsg);
   return true;
 }
 

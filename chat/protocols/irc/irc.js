@@ -169,6 +169,10 @@ ircChannel.prototype = {
 
     let participant = new ircParticipant(aNick, this._account);
     this._participants[normalizedNick] = participant;
+
+    // Add the participant to the whois table if it is not already there.
+    this._account.setWhoisFromNick(participant._name);
+
     if (aNotifyObservers) {
       this.notifyObservers(new nsSimpleEnumerator([participant]),
                            "chat-buddy-add");
@@ -232,10 +236,11 @@ ircChannel.prototype = {
 
   get normalizedName() this._account.normalize(this.name),
 
-  waitForBuddyInfo: function(aNick) {
+  requestBuddyInfo: function(aNick) {
     if (!this._observedNicks.length)
       Services.obs.addObserver(this, "user-info-received", false);
     this._observedNicks.push(this._account.normalize(aNick));
+    this._account.requestBuddyInfo(aNick);
   },
 
   observe: function(aSubject, aTopic, aData) {
@@ -298,15 +303,23 @@ ircParticipant.prototype = {
 };
 
 function ircConversation(aAccount, aName) {
-  if (aAccount.hasBuddy(aName))
-    this.buddy = aAccount.getBuddy(aName);
+  this.buddy = aAccount.getBuddy(aName);
+  let nick = this._account.normalize(aName);
+  if (hasOwnProperty(this._account.whoisInformation, nick))
+    aName = this._account.whoisInformation[nick]["nick"];
 
   this._init(aAccount, aName);
   this._observedNicks = [];
+
+  // Fetch correctly capitalized name.
+  // Always request the info as it may be out of date.
+  this._waitingForNick = true;
+  this.requestBuddyInfo(aName);
 }
 ircConversation.prototype = {
   __proto__: GenericConvIMPrototype,
   _observedNicks: [],
+  _waitingForNick: false,
 
   sendMsg: function(aMessage) {
     this._account.sendMessage("PRIVMSG", [this.name, aMessage]);
@@ -338,22 +351,34 @@ ircConversation.prototype = {
     this.notifyObservers(null, "update-conv-title");
   },
 
-  waitForBuddyInfo: function(aNick) {
+  requestBuddyInfo: function(aNick) {
     if (!this._observedNicks.length)
       Services.obs.addObserver(this, "user-info-received", false);
     this._observedNicks.push(this._account.normalize(aNick));
+    this._account.requestBuddyInfo(aNick);
   },
 
   observe: function(aSubject, aTopic, aData) {
     if (aTopic != "user-info-received")
       return;
 
-    let nickIndex = this._observedNicks.indexOf(this._account.normalize(aData));
+    let nick = this._account.normalize(aData);
+    let nickIndex = this._observedNicks.indexOf(nick);
     if (nickIndex == -1)
       return;
     this._observedNicks.splice(nickIndex, 1);
     if (!this._observedNicks.length)
       Services.obs.removeObserver(this, "user-info-received");
+
+    // If we are waiting for the conversation name, set it.
+    if (this._waitingForNick && nick == this.normalizedName) {
+      if (hasOwnProperty(this._account.whoisInformation, nick))
+        this.updateNick(this._account.whoisInformation[nick]["nick"]);
+      delete this._waitingForNick;
+      return;
+    }
+
+    // Otherwise, print the requested whois information.
     this._account.writeWhois(this, aData,
                              aSubject.QueryInterface(Ci.nsISimpleEnumerator));
   }
@@ -581,6 +606,13 @@ ircAccount.prototype = {
     if (hasOwnProperty(this.whoisInformation, nick))
       delete this.whoisInformation[nick];
   },
+  // Set minimal WHOIS entry containing only the capitalized nick,
+  // if no WHOIS info exists already.
+  setWhoisFromNick: function(aNick) {
+    let nick = this.normalize(aNick);
+    if (!hasOwnProperty(this.whoisInformation, nick))
+      this.whoisInformation[nick] = {"nick": aNick};
+  },
   // Write WHOIS information to a conversation.
   writeWhois: function(aConv, aNick, aTooltipInfo) {
     let nick = this.normalize(aNick);
@@ -642,13 +674,17 @@ ircAccount.prototype = {
   },
   changeBuddyNick: function(aOldNick, aNewNick) {
     let msg;
-    // Your nickname changed!
     if (this.normalize(aOldNick) == this.normalize(this._nickname)) {
+      // Your nickname changed!
       this._nickname = aNewNick;
       msg = _("message.nick.you", aNewNick);
     }
     else
       msg = _("message.nick", aOldNick, aNewNick);
+
+    // Adjust the whois table where necessary.
+    this.removeBuddyInfo(aOldNick);
+    this.setWhoisFromNick(aNewNick);
 
     for each (let conversation in this._conversations) {
       if (conversation.isChat && conversation.hasParticipant(aOldNick)) {
@@ -956,6 +992,9 @@ ircAccount.prototype = {
     // Mark all contacts on the account as having an unknown status.
     for each (let buddy in this._buddies)
       buddy.setStatus(Ci.imIStatusInfo.STATUS_UNKNOWN, "");
+
+    // Clear whois table.
+    this.whoisInformation = {};
 
     this.reportDisconnected();
   },
