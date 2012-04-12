@@ -2328,7 +2328,7 @@ BasicShadowableThebesLayer::PaintBuffer(gfxContext* aContext,
                     aRegionToDraw, aExtendedRegionToDraw, aRegionToInvalidate,
                     aDidSelfCopy,
                     aCallback, aCallbackData);
-  if (!HasShadow()) {
+  if (!HasShadow() || BasicManager()->IsTransactionIncomplete()) {
     return;
   }
 
