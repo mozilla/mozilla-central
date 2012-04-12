@@ -1,7 +1,4 @@
-let tempScope = {};
-Components.utils.import("resource:///modules/Sanitizer.jsm", tempScope);
-let Sanitizer = tempScope.Sanitizer;
-ok(typeof Sanitizer != "undefined", "Sanitizer module imported");
+Cu.import("resource:///modules/Sanitizer.jsm", this);
 
 function getWindows(aType, aSingle) {
   var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
@@ -103,9 +100,10 @@ var sanTests = {
                           .getService(Components.interfaces.nsIIOService);
       var uri = ios.newURI("http://sanitizer.test/", null, null);
 
-      var history = Components.classes["@mozilla.org/browser/global-history;2"]
-                              .getService(Components.interfaces.nsIBrowserHistory);
-      history.addPageWithDetails(uri, "Sanitizer!", Date.now());
+      PlacesUtils.history.addVisit(uri, Date.now() * 1000, null,
+                                   Ci.nsINavHistoryService.TRANSITION_LINK,
+                                   false, 0);
+      PlacesUtils.ghistory2.setPageTitle(uri, "Sanitizer!");
 
       return this.check();
     },
