@@ -1448,21 +1448,22 @@ if test "$GNU_CC"; then
     # -Wall - turn on a lot of warnings
     # -pedantic - this is turned on below
     # -Wpointer-arith - enabled with -pedantic, but good to have even if not
-    # -Werror=declaration-after-statement - MSVC doesn't like these
+    # -Wdeclaration-after-statement - MSVC doesn't like these
     # -Werror=return-type - catches missing returns, zero false positives
     # -Wtype-limits - catches overflow bugs, few false positives
     # -Wempty-body - catches bugs, e.g. "if (c); foo();", few false positives
     #
-    _WARNINGS_CFLAGS="${_WARNINGS_CFLAGS} -Wall -Wpointer-arith -Werror=declaration-after-statement"
+    _WARNINGS_CFLAGS="${_WARNINGS_CFLAGS} -Wall -Wpointer-arith -Wdeclaration-after-statement"
     MOZ_C_SUPPORTS_WARNING(-W, error=return-type, ac_c_has_werror_return_type)
     MOZ_C_SUPPORTS_WARNING(-W, type-limits, ac_c_has_wtype_limits)
     MOZ_C_SUPPORTS_WARNING(-W, empty-body, ac_c_has_wempty_body)
  
     # Turn off the following warnings that -Wall/-pedantic turn on:
-    # -Wno-overlength-strings - we exceed the minimum maximum length frequently
     # -Wno-unused - lots of violations in third-party code
+    # -Wno-overlength-strings - we exceed the minimum maximum length frequently
     #
-    _WARNINGS_CFLAGS="${_WARNINGS_CFLAGS} -Wno-overlength-strings -Wno-unused"
+    _WARNINGS_CFLAGS="${_WARNINGS_CFLAGS} -Wno-unused"
+    MOZ_C_SUPPORTS_WARNING(-Wno-, overlength-strings, ac_c_has_wno_overlength_strings)
 
     if test -z "$INTEL_CC" -a -z "$CLANG_CC"; then
        # Don't use -Wcast-align with ICC or clang
@@ -1525,12 +1526,13 @@ if test "$GNU_CXX"; then
     MOZ_CXX_SUPPORTS_WARNING(-W, empty-body, ac_cxx_has_wempty_body)
 
     # Turn off the following warnings that -Wall/-pedantic turn on:
-    # -Wno-overlength-strings - we exceed the minimum maximum length frequently 
     # -Wno-ctor-dtor-privacy - ???
+    # -Wno-overlength-strings - we exceed the minimum maximum length frequently 
     # -Wno-invalid-offsetof - we use offsetof on non-POD types frequently
     # -Wno-variadic-macros - ???
     #
-    _WARNINGS_CXXFLAGS="${_WARNINGS_CXXFLAGS} -Wno-overlength-strings -Wno-ctor-dtor-privacy"
+    _WARNINGS_CXXFLAGS="${_WARNINGS_CXXFLAGS} -Wno-ctor-dtor-privacy"
+    MOZ_CXX_SUPPORTS_WARNING(-Wno-, overlength-strings, ac_cxx_has_wno_overlength_strings)
     MOZ_CXX_SUPPORTS_WARNING(-Wno-, invalid-offsetof, ac_cxx_has_wno_invalid_offsetof)
     MOZ_CXX_SUPPORTS_WARNING(-Wno-, variadic-macros, ac_cxx_has_wno_variadic_macros)
 
