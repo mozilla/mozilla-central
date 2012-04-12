@@ -192,8 +192,9 @@ struct MimeObject {
   bool parsed_p;      /* Whether the parser has been shut down. */
   bool output_p;      /* Whether it should be written. */
   bool dontShowAsAttachment; /* Force an object to not be shown as attachment,
-                                  but when is false, it doesn't mean it will be
-                                  shown as attachment */
+                                but when is false, it doesn't mean it will be
+                                shown as attachment; specifically, body parts
+                                are never shown as attachments. */
 
   /* Read-buffer and write-buffer (on input, `parse_buffer' uses ibuffer to
    compose calls to `parse_line'; on output, `obuffer' is used in various

@@ -237,25 +237,28 @@ MimeObject_parse_begin (MimeObject *obj)
     char *id = mime_part_address(obj);
     if (!id) return MIME_OUT_OF_MEMORY;
 
-      // We need to check if a part is the subpart of the part to load.
-      // If so and this is a raw or body display output operation, then
-      // we should mark the part for subsequent output.
-      //
+    // We need to check if a part is the subpart of the part to load.
+    // If so and this is a raw or body display output operation, then
+    // we should mark the part for subsequent output.
 
-      // First, check for an exact match
-      obj->output_p = !strcmp(id, obj->options->part_to_load);
-      if (!obj->output_p && (obj->options->format_out == nsMimeOutput::nsMimeMessageRaw ||
-             obj->options->format_out == nsMimeOutput::nsMimeMessageBodyDisplay
-             || obj->options->format_out == nsMimeOutput::nsMimeMessageAttach))
+    // First, check for an exact match
+    obj->output_p = !strcmp(id, obj->options->part_to_load);
+    if (!obj->output_p && (obj->options->format_out == nsMimeOutput::nsMimeMessageRaw ||
+                           obj->options->format_out == nsMimeOutput::nsMimeMessageBodyDisplay ||
+                           obj->options->format_out == nsMimeOutput::nsMimeMessageAttach))
     {
-        // Then, check for subpart
-        unsigned int partlen = strlen(obj->options->part_to_load);
-        obj->output_p = (strlen(id) >= partlen + 2) && (id[partlen] == '.') &&
-            !strncmp(id, obj->options->part_to_load, partlen);
-      }
+      // Then, check for subpart
+      unsigned int partlen = strlen(obj->options->part_to_load);
+      obj->output_p = (strlen(id) >= partlen + 2) && (id[partlen] == '.') &&
+        !strncmp(id, obj->options->part_to_load, partlen);
+    }
 
     PR_Free(id);
   }
+
+  // If we've decided not to output this part, we also shouldn't be showing it
+  // as an attachment.
+  obj->dontShowAsAttachment = !obj->output_p;
 
   return 0;
 }

@@ -77,6 +77,13 @@ var setupModule = function (module) {
 
   folder = create_folder("AttachmentA");
 
+  var attachedMessage = msgGen.makeMessage({
+    body: { body: "I'm an attached email!" },
+    attachments: [{ body: textAttachment,
+                    filename: 'inner attachment.txt',
+                    format: '' }],
+  });
+
   // create some messages that have various types of attachments
   messages = [
     // no attachment
@@ -110,6 +117,18 @@ var setupModule = function (module) {
                                 'surely-exceeds-the-maximum-filename-length-' +
                                 'for-most-filesystems.txt',
                       format: '' }],
+    },
+    // a message with a text attachment and an email attachment, which in turn
+    // has its own text attachment
+    {
+      bodyPart: new SyntheticPartMultiMixed([
+        new SyntheticPartLeaf("I'm a message!"),
+        new SyntheticPartLeaf(textAttachment,
+                              { filename: 'outer attachment.txt',
+                                contentType: 'text/plain',
+                                format: '' }),
+        attachedMessage,
+      ]),
     },
     // evilly-named attachment; spaces should be collapsed and trimmed on the
     // ends
@@ -202,6 +221,34 @@ function test_long_attachment_name() {
 
   assert_true(messagepaneBox.boxObject.width >= attachmentBar.boxObject.width,
               "Attachment bar has expanded off the edge of the window!");
+}
+
+/**
+ * Make sure that, when opening attached messages, we only show the attachments
+ * "beneath" the attached message (as opposed to all attachments for the root
+ * message).
+ */
+function test_attached_message_attachments() {
+  be_in_folder(folder);
+
+  select_click_row(5);
+  assert_selected_and_displayed(5);
+
+  // Make sure we have the expected number of attachments in the root message:
+  // an outer text attachment, an attached email, and an inner text attachment.
+  assert_equals(mc.e("attachmentList").itemCount, 3);
+
+  // Open the attached email.
+  plan_for_new_window("mail:messageWindow");
+  mc.e("attachmentList").getItemAtIndex(1).attachment.open();
+  let msgc = wait_for_new_window("mail:messageWindow");
+  wait_for_message_display_completion(msgc, true);
+
+  // Make sure we have the expected number of attachments in the attached
+  // message: just an inner text attachment.
+  assert_equals(msgc.e("attachmentList").itemCount, 1);
+
+  close_window(msgc);
 }
 
 function test_attachment_name_click() {
