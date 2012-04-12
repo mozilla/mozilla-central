@@ -10,3 +10,4 @@
 <!ENTITY addAccountDialog.authorizing "Checking authorization...">
 <!ENTITY addAccountDialog.error "An error occurred while setting up the account!">
 <!ENTITY addAccountDialog.acceptButton.label "Set up Account">
+<!ENTITY addAccountDialog.learnMore "Learn more…">

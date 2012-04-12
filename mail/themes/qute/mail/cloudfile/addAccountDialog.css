@@ -84,3 +84,11 @@ a {
   min-width: 16px;
   -moz-padding-end: 2px;
 }
+
+#learn-more {
+  text-align: right;
+}
+
+.float-right {
+  float: right;
+}

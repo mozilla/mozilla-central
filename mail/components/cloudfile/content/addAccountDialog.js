@@ -66,34 +66,49 @@ let addAccountDialog = {
     this.addAccountTypes();
 
     // Hook up our onInput event handler
-    this._settings.addEventListener("DOMContentLoaded", function(e) {
-      let doc = this.contentDocument;
-
-      let links = doc.getElementsByTagName("a");
-
-      for (let [, link] in Iterator(links))
-        link.addEventListener("click", addAccountDialog.onClickLink);
-
-      let form = doc.getElementById(kFormId);
-
-      if (form)
-        form.addEventListener("input", addAccountDialog.onInput);
-
-      addAccountDialog.onInput();
-
-      // Focus the first field in the form, if any, that does not have the
-      // class "focus-filter".
-      let firstField = doc.querySelector("form:not(.filter) input:not(.hidden)");
-      if (firstField)
-        firstField.focus();
-
-    }, false);
+    this._settings.addEventListener("DOMContentLoaded",
+                                    this.onIFrameLoaded.bind(this),
+                                    false);
 
     this._settings.addEventListener("overflow", function(e) {
       addAccountDialog.fitIFrame();
     });
 
+    // Hook up the default "Learn More..." link to the appropriate link.
+    let learnMore = this._settings
+                        .contentDocument
+                        .querySelector('#learn-more > a[href=""]');
+    if (learnMore)
+      learnMore.href = Services.prefs
+                               .getCharPref("mail.cloud_files.learn_more_url");
+    // The default emptySettings.xhtml is already loaded into the IFrame
+    // at this point, before we could attach our DOMContentLoaded event
+    // listener, so we'll call the function here manually.
+    this.onIFrameLoaded(null);
+
     addAccountDialog.fitIFrame();
+  },
+
+  onIFrameLoaded: function AAD_onIFrameLoaded(aEvent) {
+    let doc = this._settings.contentDocument;
+
+    let links = doc.getElementsByTagName("a");
+
+    for (let [, link] in Iterator(links))
+      link.addEventListener("click", this.onClickLink);
+
+    let form = doc.getElementById(kFormId);
+
+    if (form)
+      form.addEventListener("input", this.onInput);
+
+    this.onInput();
+
+    // Focus the first field in the form, if any, that does not have the
+    // class "focus-filter".
+    let firstField = doc.querySelector("form:not(.filter) input:not(.hidden)");
+    if (firstField)
+      firstField.focus();
   },
 
   fitIFrame: function() {
