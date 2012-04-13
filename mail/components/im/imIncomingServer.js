@@ -103,7 +103,8 @@ imIncomingServer.prototype = {
     try {
       let prefName =
         "messenger.account." + this.imAccount.id + ".options." + aPrefName;
-      return Services.prefs.getCharPref(prefName);
+      return Services.prefs.getComplexValue(prefName,
+                                            Ci.nsISupportsString).data;
     } catch (x) {
       return this._getDefault(aPrefName);
     }
