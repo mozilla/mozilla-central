@@ -775,7 +775,11 @@ function loadStartFolder(initialUri)
             startFolder = GetMsgFolderFromUri(initialUri);
         else
         {
-            var defaultAccount = accountManager.defaultAccount;
+            try {
+                var defaultAccount = accountManager.defaultAccount;
+            } catch (x) {
+                return; // exception caused by no default account, ignore it.
+            }
 
             defaultServer = defaultAccount.incomingServer;
             var rootMsgFolder = defaultServer.rootMsgFolder;
@@ -840,8 +844,7 @@ function loadStartFolder(initialUri)
         return;
       }
 
-      dump(ex);
-      dump('Exception in LoadStartFolder caused by no default account.  We know about this\n');
+      Components.utils.reportError(ex);
     }
 
     MsgGetMessagesForAllServers(defaultServer);
