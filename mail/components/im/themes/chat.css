@@ -35,7 +35,24 @@
 }
 
 imgroup {
+  -moz-padding-start: 4px;
+}
+
+imgroup > label {
+  -moz-margin-start: 4px;
+}
+
+imcontact, imconv {
+  -moz-padding-start: 23px;
+}
+
+imgroup,
+imconv[unread] {
   font-weight: bold;
+}
+
+imconv[attention] {
+  color: blue;
 }
 
 /* From instantbird/themes/blist.css */

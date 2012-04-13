@@ -140,10 +140,6 @@ richlistitem[state="disconnected"] .accountStateIcon {
   -moz-image-region: rect(0px 64px 16px 48px);
 }
 
-imconv, imcontact, imgroup {
-  padding-left: 4px;
-}
-
 :-moz-any(imconv, imcontact, imgroup)[selected] {
   background: url("chrome://messenger/skin/icons/sidebar-item.png") 0 0 repeat-x #90A0C0;
   color: HighlightText;

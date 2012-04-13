@@ -141,15 +141,20 @@
             chatHandler.updateTitle();
           }
           this.setAttribute("unreadCount", "");
+          this.removeAttribute("unread");
+          this.removeAttribute("attention");
         }
         else {
           let unreadCount = this.conv.unreadIncomingMessageCount;
           if (!unreadCount)
             unreadCount = "";
           else {
+            this.setAttribute("unread", "true");
             if (this.conv.isChat) {
-            unreadCount =
-              this.conv.unreadTargetedMessageCount + "/" + unreadCount;
+              let directedMessages = this.conv.unreadTargetedMessageCount;
+              if (directedMessages)
+                this.setAttribute("attention", "true");
+              unreadCount = directedMessages + "/" + unreadCount;
             }
             unreadCount = "(" + unreadCount + ")";
           }
