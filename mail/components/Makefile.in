@@ -65,7 +65,6 @@ EXTRA_COMPONENTS = \
 	mailContentHandler.js \
 	aboutRedirector.js \
 	mailGlue.js \
-	webSearchProvider.js \
 	mailComponents.manifest \
 	$(NULL)
 

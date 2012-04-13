@@ -16,7 +16,3 @@ contract @mozilla.org/uriloader/content-handler;1?type=text/plain {1c73f03a-b817
 component {eb239c82-fac9-431e-98d7-11cacd0f71b8} mailGlue.js
 contract @mozilla.org/mail/mailglue;1 {eb239c82-fac9-431e-98d7-11cacd0f71b8}
 category app-startup MailGlue service,@mozilla.org/mail/mailglue;1
-
-component {76a80bff-8c3f-4b78-ad2c-80099e35375d} webSearchProvider.js
-contract @mozilla.org/mail/web-search-provider;1 {76a80bff-8c3f-4b78-ad2c-80099e35375d}
-category xpcom-directory-providers web-search-directory-provider service,@mozilla.org/mail/web-search-provider;1
