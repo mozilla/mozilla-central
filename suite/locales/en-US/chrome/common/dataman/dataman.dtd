@@ -97,6 +97,7 @@
 <!ENTITY perm.AskAlways "Always ask">
 <!ENTITY perm.NeverSave "Never save">
 <!ENTITY perm.Allow "Allow">
+<!ENTITY perm.AllowSameDomain "Allow for Same Domain">
 <!ENTITY perm.AllowSession "Allow for Session">
 <!ENTITY perm.Block "Block">
 

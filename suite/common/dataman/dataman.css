@@ -48,14 +48,35 @@ richlistitem.permission {
   -moz-box-orient: vertical;
 }
 
+/* cookie item has an allow for session option */
 richlistitem.permission[type="cookie"] {
   -moz-binding: url('chrome://communicator/content/dataman/dataman.xml#perm-cookie-item');
 }
 
+/* geolocation item defaults to always ask */
 richlistitem.permission[type="geo"] {
   -moz-binding: url('chrome://communicator/content/dataman/dataman.xml#perm-geo-item');
 }
 
+/* password item has different labels */
 richlistitem.permission[type="password"] {
   -moz-binding: url('chrome://communicator/content/dataman/dataman.xml#perm-password-item');
+}
+
+/* content blocker items have an allow for same domain option */
+richlistitem.permission[type="script"],
+richlistitem.permission[type="image"],
+richlistitem.permission[type="stylesheet"],
+richlistitem.permission[type="object"],
+richlistitem.permission[type="document"],
+richlistitem.permission[type="subdocument"],
+richlistitem.permission[type="refresh"],
+richlistitem.permission[type="xbl"],
+richlistitem.permission[type="ping"],
+richlistitem.permission[type="xmlhttprequest"],
+richlistitem.permission[type="objectsubrequest"],
+richlistitem.permission[type="dtd"],
+richlistitem.permission[type="font"],
+richlistitem.permission[type="media"] {
+  -moz-binding: url('chrome://communicator/content/dataman/dataman.xml#perm-content-item');
 }

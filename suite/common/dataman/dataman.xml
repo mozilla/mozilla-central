@@ -252,4 +252,27 @@
     </implementation>
   </binding>
 
+  <binding id="perm-content-item"
+           extends="chrome://communicator/content/dataman/dataman.xml#perm-base-item">
+    <content>
+      <xul:hbox>
+        <xul:label anonid="permHost" class="hostLabel" xbl:inherits="value=displayHost"/>
+        <xul:label anonid="permLabel" class="permissionLabel" xbl:inherits="value=label" control="radioGroup"/>
+      </xul:hbox>
+      <xul:hbox role="group" aria-labelledby="permLabel">
+        <xul:checkbox class="indent" anonid="useDefault" label="&perm.UseDefault;"
+                      oncommand="document.getBindingParent(this).useDefault(this.checked);"/>
+        <xul:spacer flex="1"/>
+        <xul:radiogroup anonid="radioGroup" orient="horizontal">
+          <xul:radio anonid="permSetting-1" label="&perm.Allow;"
+                     oncommand="document.getBindingParent(this).setCapability(Services.perms.ALLOW_ACTION);"/>
+          <xul:radio anonid="permSetting-3" label="&perm.AllowSameDomain;"
+                     oncommand="document.getBindingParent(this).setCapability(NOFOREIGN);"/>
+          <xul:radio anonid="permSetting-2" label="&perm.Block;"
+                     oncommand="document.getBindingParent(this).setCapability(Services.perms.DENY_ACTION);"/>
+        </xul:radiogroup>
+      </xul:hbox>
+    </content>
+  </binding>
+
 </bindings>

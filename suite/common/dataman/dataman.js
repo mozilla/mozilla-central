@@ -56,6 +56,9 @@ XPCOMUtils.defineLazyServiceGetter(gLocSvc, "idn",
                                    "@mozilla.org/network/idn-service;1",
                                    "nsIIDNService");
 
+// From nsContentBlocker.cpp
+const NOFOREIGN = 3;
+
 // :::::::::::::::::::: general functions ::::::::::::::::::::
 var gDataman = {
   bundle: null,
@@ -1257,7 +1260,7 @@ var gPerms = {
       this.addButton.disabled = true;
       this.addType.removeAllItems(); // Make sure list is clean.
       let permTypes = ["allowXULXBL", "cookie", "geo", "image", "install",
-                       "password", "popup"];
+                       "object", "password", "popup", "script", "stylesheet"];
       for (let i = 0; i < permTypes.length; i++) {
         let typeDesc = permTypes[i];
         try {
@@ -1307,10 +1310,6 @@ var gPerms = {
         return Services.perms.ALLOW_ACTION;
       case "geo":
         return Services.perms.DENY_ACTION;
-      case "image":
-        if (Services.prefs.getIntPref("permissions.default.image") == 2)
-          return Services.perms.DENY_ACTION;
-        return Services.perms.ALLOW_ACTION;
       case "install":
         if (Services.prefs.getBoolPref("xpinstall.whitelist.required"))
           return Services.perms.DENY_ACTION;
@@ -1322,7 +1321,19 @@ var gPerms = {
           return Services.perms.DENY_ACTION;
         return Services.perms.ALLOW_ACTION;
     }
-    return Services.perms.UNKNOWN_ACTION;
+    try {
+      // Look for an nsContentBlocker permission
+      switch (Services.prefs.getIntPref("permissions.default." + aType)) {
+        case 3:
+          return NOFOREIGN;
+        case 2:
+          return Services.perms.DENY_ACTION;
+        default:
+          return Services.perms.ALLOW_ACTION;
+      }
+    } catch (e) {
+      return Services.perms.UNKNOWN_ACTION;
+    }
   },
 
   reactToChange: function permissions_reactToChange(aSubject, aData) {
