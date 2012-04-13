@@ -103,6 +103,7 @@
             // loading the real conversation HTML.
             this._loadState = 0;
 
+            this.docShell.charset = "UTF-8";
             const URI = "chrome://chat/content/conv.html";
             const flag = Ci.nsIWebNavigation.LOAD_FLAGS_NONE;
             this.webNavigation.loadURI(URI, flag, null, null, null);
