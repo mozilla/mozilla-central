@@ -304,9 +304,9 @@ ircParticipant.prototype = {
 
 function ircConversation(aAccount, aName) {
   this.buddy = aAccount.getBuddy(aName);
-  let nick = this._account.normalize(aName);
-  if (hasOwnProperty(this._account.whoisInformation, nick))
-    aName = this._account.whoisInformation[nick]["nick"];
+  let nick = aAccount.normalize(aName);
+  if (hasOwnProperty(aAccount.whoisInformation, nick))
+    aName = aAccount.whoisInformation[nick]["nick"];
 
   this._init(aAccount, aName);
   this._observedNicks = [];
