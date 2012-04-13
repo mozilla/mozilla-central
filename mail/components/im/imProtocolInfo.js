@@ -14,7 +14,11 @@ imProtocolInfo.prototype = {
   get requiresUsername() true,
   get preflightPrettyNameWithEmailAddress() false,
   get canDelete() true,
-  get canLoginAtStartUp() true,
+  // Even though IM accounts can login at startup, canLoginAtStartUp
+  // should be false as it's used to decide if new messages should be
+  // fetched at startup and that concept of message doesn't apply to
+  // IM accounts.
+  get canLoginAtStartUp() false,
   get canDuplicate() false,
   getDefaultServerPort: function() 0,
   get canGetMessages() false,

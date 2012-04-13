@@ -202,7 +202,8 @@ imIncomingServer.prototype = {
   get spamSettings() {
     return {
       level: 0,
-      initialize: function(aServer) {}
+      initialize: function(aServer) {},
+      QueryInterface: XPCOMUtils.generateQI([Ci.nsISpamSettings])
     };
   },
 
