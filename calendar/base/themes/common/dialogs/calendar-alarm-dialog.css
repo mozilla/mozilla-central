@@ -19,13 +19,13 @@ calendar-alarm-widget {
 
 /* Alarm widget specific styles */
 calendar-alarm-widget {
-    border-bottom: 1px dotted #C0C0C0;
+    border-bottom: 1px dotted ThreeDShadow;
     padding: 6px 7px;
 }
 
 calendar-alarm-widget[selected="true"] {
-    background-image: url(chrome://mozapps/skin/extensions/itemEnabledFader.png);
-    background-color: #a2bdd8;
+    background-color: Highlight;
+    color: HighlightText;
     padding: 0 5px;
 }
 
@@ -53,6 +53,7 @@ calendar-alarm-widget[selected="true"] .action-buttons-box {
 }
 
 .alarm-details-label {
+    color: HighlightText;
     text-decoration: underline;
 }
 
