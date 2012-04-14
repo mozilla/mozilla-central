@@ -62,6 +62,20 @@
         </getter>
       </property>
 
+      <field name="_cwu">null</field>
+
+      <property name="contentWindowUtils" readonly="true">
+        <getter>
+          <![CDATA[
+            if (!this._cwu)
+              this._cwu = this.activeBrowser.contentWindow
+                              .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                              .getInterface(Components.interfaces.nsIDOMWindowUtils);
+            return this._cwu;
+          ]]>
+        </getter>
+      </property>
+
       <method name="addProgressListener">
         <body>
           <![CDATA[
@@ -87,6 +101,8 @@
                 (aWebProgress.isLoadingDocument || errorPage)) {
               this.missingPlugins = {};
               this.crashNotified = false;
+              this.clickToPlayPromptShown = false;
+              this.clickToPlayPluginsActivated = false;
               if (this.popupCount) {
                 this.popupCount = 0;
                 this.notifyPopupCountChanged();
@@ -329,6 +345,10 @@
 
       <field name="crashNotified">false</field>
 
+      <field name="clickToPlayPromptShown">false</field>
+
+      <field name="clickToPlayPluginsActivated">false</field>
+
       <method name="getPluginInfo">
         <parameter name="pluginElement"/>
         <body>
@@ -420,6 +440,25 @@
           ]]>
         </body>
       </method>
+
+      <method name="activatePlugins">
+        <body>
+          <![CDATA[
+            this.clickToPlayPluginsActivated = true;
+            var plugins = this.contentWindowUtils.plugins;
+            for (let plugin of plugins) {
+              let objLoadingContent = plugin.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
+              if (!objLoadingContent.activated)
+                objLoadingContent.playPlugin();
+            }
+            this.removePluginClickToPlayPrompt();
+          ]]>
+        </body>
+      </method>
+
+      <method name="showPluginClickToPlayPrompt"/>
+
+      <method name="removePluginClickToPlayPrompt"/>
 
       <method name="openURLPref">
         <parameter name="aPref"/>
@@ -521,7 +560,7 @@
                                         callback.apply(this, callbackArgs);
                                       }.bind(this),
                                       true);
-                  ]]>
+          ]]>
         </body>
       </method>
 
@@ -1720,7 +1759,7 @@
 
       <handler event="PluginDisabled">
         <![CDATA[
-          var plugin  = event.target;
+          var plugin = event.target;
           // Since we are expecting also untrusted events, make sure
           // that the target is a plugin
           if (plugin instanceof Components.interfaces.nsIObjectLoadingContent &&
@@ -1731,6 +1770,27 @@
             var manageLink = doc.getAnonymousElementByAttribute(plugin, "class", "managePluginsLink");
             this.addLinkClickCallback(manageLink, window.toEM, "addons://list/plugin");
           }
+        ]]>
+      </handler>
+
+      <handler event="PluginClickToPlay">
+        <![CDATA[
+          var plugin = event.target;
+
+          if (this.clickToPlayPluginsActivated) {
+            let objLoadingContent = plugin.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
+            objLoadingContent.playPlugin();
+            return;
+          }
+
+          // Force a style flush, so that we ensure our binding is attached.
+          plugin.clientTop;
+          var doc = plugin.ownerDocument;
+          var overlay = doc.getAnonymousElementByAttribute(plugin, "class", "mainBox");
+          this.addLinkClickCallback(overlay, this.activatePlugins);
+
+          if (!this.clickToPlayPromptShown)
+            this.showPluginClickToPlayPrompt();
         ]]>
       </handler>
 
@@ -1760,6 +1820,19 @@
           }
 
           this.offlineAppRequested(event.originalTarget);
+        ]]>
+      </handler>
+
+      <handler event="pageshow">
+        <![CDATA[
+          // The PluginClickToPlay events are not fired when navigating using the
+          // BF cache. |event.persisted| is true when the page is loaded from the
+          // BF cache, so this code reshows the notification if necessary.
+          if (!event.persisted || !this._prefs.getBoolPref("plugins.click_to_play"))
+            return;
+
+          if (this.contentWindowUtils.plugins.length)
+            this.showPluginClickToPlayPrompt();
         ]]>
       </handler>
     </handlers>
@@ -1847,6 +1920,35 @@
                                     "addons-notification-icon", action, null,
                                     options);
           ]]>
+        </body>
+      </method>
+
+      <method name="removePluginClickToPlayPrompt">
+        <body>
+          <![CDATA[
+            var notification = PopupNotifications.getNotification("click-to-play-plugins",
+                                                                  this.activeBrowser);
+            if (notification)
+              notification.remove();
+          ]]>
+        </body>
+      </method>
+
+      <method name="showPluginClickToPlayPrompt">
+        <body>
+          <![CDATA[
+            this.clickToPlayPromptShown = true;
+            var messageString = this._stringBundle.GetStringFromName("activatePluginsMessage.message");
+            var action = {
+              label: this._stringBundle.GetStringFromName("activatePluginsMessage.label"),
+              accessKey: this._stringBundle.GetStringFromName("activatePluginsMessage.accesskey"),
+              callback: this.activatePlugins.bind(this)
+            };
+            let options = { dismissed: true };
+            PopupNotifications.show(this.activeBrowser, "click-to-play-plugins",
+                                    messageString, "plugins-notification-icon",
+                                    action, null, options);
+           ]]>
         </body>
       </method>
 
