@@ -3961,6 +3961,12 @@ BEGIN_CASE(JSOP_FUNAPPLY)
     InitialFrameFlags initial = construct ? INITIAL_CONSTRUCT : INITIAL_NONE;
 
     JSScript *newScript = fun->script();
+
+    if (newScript->compileAndGo && newScript->hasClearedGlobal()) {
+        JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL, JSMSG_CLEARED_SCOPE);
+        goto error;
+    }
+
     if (!cx->stack.pushInlineFrame(cx, regs, args, *callee, fun, newScript, initial))
         goto error;
 
