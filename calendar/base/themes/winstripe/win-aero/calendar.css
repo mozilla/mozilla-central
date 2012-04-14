@@ -9,7 +9,7 @@
 
 #task-actions-toolbar > #task-actions-markcompleted {
   list-style-image: url(chrome://calendar/skin/tasks-actions-aero.png);
-  -moz-image-region: rect(0 34px 18px 18px);
+  -moz-image-region: rect(0 36px 18px 18px);
 }
 
 #task-actions-toolbar > #task-actions-priority {
@@ -37,15 +37,23 @@
   -moz-appearance: none;
   background-clip: padding-box;
   border: 1px solid ThreeDDarkShadow;
-  border-radius: 3.5px;
+  border-radius: 2px;
 }
 
-@media all and (-moz-windows-default-theme) {
+#view-task-edit-field,
+#task-text-filter-field {
+  width: 15em;
+}
+
+@media (-moz-windows-default-theme) {
   #unifinder-search-field,
   #view-task-edit-field,
   #task-text-filter-field,
   #unifinder-task-edit-field {
-    border-color: rgba(0, 0, 0, .32);
+    border-color: hsla(210, 54%, 20%, .25) hsla(210, 54%, 20%, .27)
+                  hsla(210, 54%, 20%, .3);
+    box-shadow: 0 1px hsla(0, 0%, 0%, .01) inset,
+                0 1px hsla(0, 0%, 100%, .1);
   }
 
   #bottom-events-box > #unifinder-searchBox,
@@ -67,6 +75,32 @@
 
   sidebarheader > spacer {
     min-height: 25px;
+  }
+}
+
+@media (-moz-windows-compositor) {
+  #unifinder-search-field,
+  #view-task-edit-field,
+  #task-text-filter-field,
+  #unifinder-task-edit-field {
+    border-color: hsla(210, 54%, 20%, .25) hsla(210, 54%, 20%, .27)
+                  hsla(210, 54%, 20%, .3);
+  }
+
+  #unifinder-search-field:not([focused]):hover,
+  #view-task-edit-field:not([focused]):hover,
+  #task-text-filter-field:not([focused]):hover,
+  #unifinder-task-edit-field:not([focused]):hover {
+    border-color: hsla(210, 54%, 20%, .35) hsla(210, 54%, 20%, .37)
+                  hsla(210, 54%, 20%, .4);
+  }
+
+  #unifinder-search-field[focused],
+  #view-task-edit-field[focused],
+  #task-text-filter-field[focused],
+  #unifinder-task-edit-field[focused] {
+    border-color: hsla(206, 100%, 60%, .65) hsla(206, 100%, 55%, .65)
+                  hsla(206, 100%, 50%, .65);
   }
 }
 

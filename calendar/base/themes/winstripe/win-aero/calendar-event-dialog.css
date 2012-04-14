@@ -7,13 +7,19 @@
   border-top: none;
   background-color: -moz-Dialog;
   background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
-                    rgba(255, 255, 255, .0) 10%, rgba(0, 0, 0, .03) 50%,
-                    rgba(0, 0, 0, .1) 90%, rgba(0, 0, 0, .2));
+                    rgba(255, 255, 255, 0));
+  border-bottom: 1px solid ThreeDShadow;
 }
 
 @media (-moz-windows-default-theme) {
   #event-toolbox {
-    background-color: rgb(227, 237, 246);
+    background-color: hsl(210, 75%, 92%);
+  }
+}
+
+@media (-moz-windows-compositor) {
+  #event-toolbox {
+    border-bottom-color: #AABCCF;
   }
 }
 

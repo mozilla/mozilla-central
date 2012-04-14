@@ -104,9 +104,13 @@
   -moz-image-region: rect(0px 144px 18px 126px);
 }
 
-@media all and (-moz-windows-compositor) {
+@media (-moz-windows-compositor) {
     #tabbar-toolbar #lightning-button-calendar,
     #tabbar-toolbar #lightning-button-tasks {
-      list-style-image: url(chrome://lightning/skin/mode-switch-icons-inverted.png);
+      list-style-image: url(chrome://lightning/skin/mode-switch-icons-inverted.png) !important;
+  }
+
+  #calendar-toolbox {
+    border-bottom-color: #AABCCF;
   }
 }
