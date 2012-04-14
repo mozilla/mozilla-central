@@ -51,10 +51,6 @@
 #include "jsobjinlines.h"
 #include "vm/RegExpObject-inl.h"
 
-#ifdef JS_METHODJIT
-#include "methodjit/Retcon.h"
-#endif
-
 using namespace js;
 
 JSObject *
@@ -336,15 +332,6 @@ GlobalObject::clear(JSContext *cx)
     int32 flags = getSlot(FLAGS).toInt32();
     flags |= FLAGS_CLEARED;
     setSlot(FLAGS, Int32Value(flags));
-
-    /* Release all JIT code in the compartment, as during a GC. */
-#ifdef JS_METHODJIT
-    mjit::ClearAllFrames(cx->compartment);
-    for (gc::CellIter i(cx, cx->compartment, gc::FINALIZE_SCRIPT); !i.done(); i.next()) {
-        JSScript *script = i.get<JSScript>();
-        mjit::ReleaseScriptCode(cx, script);
-    }
-#endif
 }
 
 bool
