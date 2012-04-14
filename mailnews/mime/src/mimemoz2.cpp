@@ -168,6 +168,14 @@ ProcessBodyAsAttachment(MimeObject *obj, nsMsgAttachmentData **data)
   else
   {
     tmp->m_realName.Adopt(MimeHeaders_get_name(child->headers, obj->options));
+
+    if (tmp->m_realName.IsEmpty() &&
+        tmp->m_realType.LowerCaseEqualsLiteral(MESSAGE_RFC822))
+    {
+      // We haven't actually parsed the message "attachment", so just give it a
+      // generic name.
+      tmp->m_realName = "AttachedMessage.eml";
+    }
   }
 
   tmp->m_hasFilename = !tmp->m_realName.IsEmpty();
@@ -607,12 +615,7 @@ MimeGetAttachmentList(MimeObject *tobj, const char *aMessageURL, nsMsgAttachment
     return 0;
 
   if (!mime_subclass_p(obj->clazz, (MimeObjectClass*) &mimeContainerClass))
-  {
-    if (!PL_strcasecmp(obj->content_type, MESSAGE_RFC822))
-      return 0;
-    else
-      return ProcessBodyAsAttachment(obj, data);
-  }
+    return ProcessBodyAsAttachment(obj, data);
 
   isAnInlineMessage = mime_typep(obj, (MimeObjectClass *) &mimeMessageClass);
 
@@ -638,7 +641,10 @@ MimeGetAttachmentList(MimeObject *tobj, const char *aMessageURL, nsMsgAttachment
 
   if (isAnInlineMessage)
   {
-    rv = GenerateAttachmentData(obj, aMessageURL, obj->options, false, -1, *data);
+    PRInt32 size = 0;
+    MimeGetSize(obj, &size);
+    rv = GenerateAttachmentData(obj, aMessageURL, obj->options, false, size,
+                                *data);
     NS_ENSURE_SUCCESS(rv, rv);
   }
   return BuildAttachmentList((MimeObject *) cobj, *data, aMessageURL);

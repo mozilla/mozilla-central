@@ -203,6 +203,10 @@ let messages = [
             contentType: 'application/x-ubik; name=attachment.ubik' },
     size: textAttachment.length,
   },
+  // a message/rfc822 "attachment" that's really the body of the message
+  { bodyPart: attachedMessage1,
+    size: get_message_size(attachedMessage1),
+  },
 ];
 
 
