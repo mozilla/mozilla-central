@@ -1360,7 +1360,6 @@ void nsImapServerResponseParser::msg_fetch()
           // ((A B) (C D) (E F))
           fServerConnection.GetCurrentUrl()->SetCustomAttributeResult(nsDependentCString(fetchResult));
           PR_Free(fetchResult);
-          break;
         }
         else
           SetSyntaxError(true);
