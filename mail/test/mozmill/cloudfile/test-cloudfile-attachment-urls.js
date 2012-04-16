@@ -208,12 +208,21 @@ function try_without_signature(aTest) {
   let oldSig = Services.prefs.getCharPref(kSigPrefKey);
   Services.prefs.setCharPref(kSigPrefKey, "");
 
+  try_with_plaintext_and_html_mail(aTest);
+  Services.prefs.setCharPref(kSigPrefKey, oldSig);
+}
+
+/**
+ * Helper function that runs a test function for HTML mail composition, and
+ * then again in plaintext mail composition.
+ *
+ * @param aTest a test that takes no arguments.
+ */
+function try_with_plaintext_and_html_mail(aTest) {
   aTest();
   Services.prefs.setBoolPref(kHtmlPrefKey, false);
   aTest();
   Services.prefs.setBoolPref(kHtmlPrefKey, true);
-
-  Services.prefs.setCharPref(kSigPrefKey, oldSig);
 }
 
 /**
@@ -320,10 +329,7 @@ function test_inserts_linebreak_on_empty_compose_with_signature() {
  * Tests that removing all Filelinks causes the root node to be removed.
  */
 function test_removing_filelinks_removes_root_node() {
-  subtest_removing_filelinks_removes_root_node();
-  Services.prefs.setBoolPref(kHtmlPrefKey, false);
-  subtest_removing_filelinks_removes_root_node();
-  Services.prefs.setBoolPref(kHtmlPrefKey, true);
+  try_with_plaintext_and_html_mail(subtest_removing_filelinks_removes_root_node);
 }
 
 /**
@@ -669,10 +675,7 @@ function subtest_adding_filelinks_to_forward(aText, aWithSig) {
  * We test this on both HTML and plaintext mail.
  */
 function test_converting_filelink_updates_urls() {
-  subtest_converting_filelink_updates_urls();
-  Services.prefs.setBoolPref(kHtmlPrefKey, false);
-  subtest_converting_filelink_updates_urls();
-  Services.prefs.setBoolPref(kHtmlPrefKey, true);
+  try_with_plaintext_and_html_mail(subtest_converting_filelink_updates_urls);
 }
 
 /**
@@ -712,10 +715,8 @@ function subtest_converting_filelink_updates_urls() {
  * Filelink is removed from the message body.
  */
 function test_converting_filelink_to_normal_removes_url() {
-  subtest_converting_filelink_to_normal_removes_url();
-  Services.prefs.setBoolPref(kHtmlPrefKey, false);
-  subtest_converting_filelink_to_normal_removes_url();
-  Services.prefs.setBoolPref(kHtmlPrefKey, true);
+  try_with_plaintext_and_html_mail(
+    subtest_converting_filelink_to_normal_removes_url);
 }
 
 /**
@@ -748,3 +749,37 @@ function subtest_converting_filelink_to_normal_removes_url() {
   if (root)
     throw new Error("Should not have found the cloudAttachmentListRoot");
 }
+
+/**
+ * Tests that if the user manually removes the Filelinks from the message body
+ * that it doesn't break future Filelink insertions.
+ */
+function test_filelinks_work_after_manual_removal() {
+  try_with_plaintext_and_html_mail(subtest_filelinks_work_after_manual_removal);
+}
+
+/**
+ * Subtest that first adds some Filelinks to the message body, removes them,
+ * and then adds another Filelink ensuring that the new URL is successfully
+ * inserted.
+ */
+function subtest_filelinks_work_after_manual_removal() {
+  // Insert some Filelinks...
+  gMockFilePicker.returnFiles = collectFiles(kFiles, __file__);
+  let provider = new MockCloudfileAccount();
+  provider.init("someKey");
+  let cw = open_compose_new_mail();
+  cw.window.attachToCloud(provider);
+
+  let [root, list, urls] = wait_for_attachment_urls(cw, kFiles.length);
+
+  // Now remove the root node from the document body
+  let mailBody = get_compose_body(cw);
+  mailBody.removeChild(root);
+
+  gMockFilePicker.returnFiles = collectFiles(["./data/testFile3"], __file__);
+  cw.window.attachToCloud(provider);
+  [root, list, urls] = wait_for_attachment_urls(cw, 1);
+}
+
+

@@ -78,15 +78,20 @@ var gCloudAttachmentLinkManager = {
     }
     else if (event.type == "attachments-removed" ||
              event.type == "attachments-converted") {
-      let list = mailDoc.getElementById("cloudAttachmentList");
-      let items = list.getElementsByClassName("cloudAttachmentItem");
+
+      let list, items;
+      list = mailDoc.getElementById("cloudAttachmentList");
+
+      if (list)
+        items = list.getElementsByClassName("cloudAttachmentItem");
 
       for (let attachment in fixIterator(
            event.detail, Components.interfaces.nsIMsgAttachment)) {
         // Remove the attachment from the message body.
-        for (let i = 0; i < items.length; i++)
-          if (items[i].contentLocation == attachment.contentLocation)
-            list.removeChild(items[i]);
+        if (list && items)
+          for (let i = 0; i < items.length; i++)
+            if (items[i].contentLocation == attachment.contentLocation)
+              list.removeChild(items[i]);
 
         // Now, remove the attachment from our internal list.
         let index = this.cloudAttachments.indexOf(attachment);
@@ -251,12 +256,34 @@ var gCloudAttachmentLinkManager = {
   },
 
   /**
+   * Attempts to find any elements with an id in aIDs, and sets those elements
+   * id attribute to the empty string, freeing up the ids for later use.
+   *
+   * @param aDocument the document to search for the elements.
+   * @param aIDs an array of id strings.
+   */
+  _resetNodeIDs: function(aDocument, aIDs) {
+    for each (let [, id] in Iterator(aIDs)) {
+      let node = aDocument.getElementById(id);
+      if (node)
+        node.id = "";
+    }
+  },
+
+  /**
    * Insert the header for the cloud attachment list, which we'll use to
    * as an insertion point for the individual cloud attachments.
    *
-   * @param aDocument the document to insert the header into
+   * @param aDocument the document to insert the header into.
    */
   _insertHeader: function(aDocument) {
+    // If there already exists a cloudAttachmentListRoot,
+    // cloudAttachmentListHeader or cloudAttachmentList in the document,
+    // strip them of their IDs so that we don't conflict with them.
+    this._resetNodeIDs(aDocument, ["cloudAttachmentListRoot",
+                                    "cloudAttachmentListHeader",
+                                    "cloudAttachmentList"]);
+
     let brandBundle = Services.strings.createBundle("chrome://branding/locale/brand.properties");
     let editor = GetCurrentEditor();
     let selection = editor.selection;
@@ -357,6 +384,12 @@ var gCloudAttachmentLinkManager = {
    */
   _insertItem: function(aDocument, aAttachment, aProvider) {
     let list = aDocument.getElementById("cloudAttachmentList");
+
+    if (!list) {
+      this._insertHeader(aDocument);
+      list = aDocument.getElementById("cloudAttachmentList");
+    }
+
     let node = aDocument.createElement("div");
     node.className = "cloudAttachmentItem";
     node.contentLocation = aAttachment.contentLocation;
