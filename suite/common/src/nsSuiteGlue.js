@@ -978,7 +978,7 @@ SuiteGlue.prototype = {
               smartBookmarks[i].parent = PlacesUtils.bookmarks.getFolderIdForItem(itemId);
               smartBookmarks[i].position = PlacesUtils.bookmarks.getItemIndex(itemId);
               // Remove current item, since it will be replaced.
-              PlacesUtils.removeItem(itemId);
+              PlacesUtils.bookmarks.removeItem(itemId);
               break;
             }
             // We don't remove old Smart Bookmarks because user could still
@@ -1019,9 +1019,10 @@ SuiteGlue.prototype = {
                                                         bookmarksMenuIndex);
           // Don't add a separator if the menu was empty or there is one already.
           if (id != -1 &&
-              PlacesUtils.bookmarks.getItemType(id) != PlacesUtils.bookmarks.TYPE_SEPARATOR)
+              PlacesUtils.bookmarks.getItemType(id) != PlacesUtils.bookmarks.TYPE_SEPARATOR) {
             PlacesUtils.bookmarks.insertSeparator(PlacesUtils.bookmarksMenuFolderId,
                                                   bookmarksMenuIndex);
+          }
        }
       }
     };
