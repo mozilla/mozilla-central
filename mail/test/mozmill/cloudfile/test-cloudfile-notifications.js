@@ -14,7 +14,10 @@ let MODULE_NAME = 'test-cloudfile-notifications';
 
 let RELATIVE_ROOT = '../shared-modules';
 let MODULE_REQUIRES = ['folder-display-helpers',
-                       'compose-helpers'];
+                       'compose-helpers',
+                       'cloudfile-helpers',
+                       'attachment-helpers',
+                       'prompt-helpers'];
 
 let controller = {};
 let mozmill = {};
@@ -24,7 +27,9 @@ Cu.import('resource://mozmill/modules/mozmill.js', mozmill);
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
 Cu.import('resource://gre/modules/Services.jsm');
 
-let maxSize;
+let maxSize, cfh, ah, oldInsertNotificationPref;
+
+const kInsertNotificationPref = "mail.compose.big_attachments.insert_notification";
 
 function setupModule(module) {
   let fdh = collector.getModule('folder-display-helpers');
@@ -33,23 +38,61 @@ function setupModule(module) {
   let ch = collector.getModule('compose-helpers');
   ch.installInto(module);
 
+  cfh = collector.getModule('cloudfile-helpers');
+  cfh.installInto(module);
+  cfh.gMockCloudfileManager.register();
+
+  ah = collector.getModule('attachment-helpers');
+  ah.installInto(module);
+  ah.gMockFilePickReg.register();
+
+  collector.getModule('prompt-helpers').installInto(module);
+
   maxSize = Services.prefs
                     .getIntPref("mail.compose.big_attachments.threshold_kb",
                                 0) * 1024;
+  oldInsertNotificationPref = Services.prefs
+                                      .getBoolPref(kInsertNotificationPref);
+  Services.prefs.setBoolPref(kInsertNotificationPref, true);
 };
 
+function teardownModule(module) {
+  cfh.gMockCloudfileManager.unregister();
+  ah.gMockFilePickReg.unregister();
+  Services.prefs.setBoolPref(kInsertNotificationPref,
+                             oldInsertNotificationPref);
+}
+
+/**
+ * A helper function to assert that the Filelink offer notification is
+ * either displayed or not displayed.
+ *
+ * @param aController the controller of the compose window to check.
+ * @param aDisplayed true if the notification should be displayed, false
+ *                   otherwise.
+ */
 function assert_cloudfile_notification_displayed(aController, aDisplayed) {
-  let nb = aController.window
-                      .document
-                      .getElementById("attachmentNotificationBox");
-  let hasNotification = false;
+  assert_notification_displayed(aController, "bigAttachment", aDisplayed);
+}
 
-  if (nb.getNotificationWithValue("bigAttachment"))
-    hasNotification = true;
+/**
+ * A helper function to assert that the Filelink upload notification is
+ * either displayed or not displayed.
+ *
+ * @param aController the controller of the compose window to check.
+ * @param aDisplayed true if the notification should be displayed, false
+ *                   otherwise.
+ */
+function assert_upload_notification_displayed(aController, aDisplayed) {
+  assert_notification_displayed(aController, "bigAttachmentUploading",
+                                aDisplayed);
+}
 
-  assert_equals(hasNotification, aDisplayed,
-                "Expected the notification to be " +
-                (aDisplayed ? "shown" : "not shown"));
+/**
+ * A helper function to close the Filelink upload notification.
+ */
+function close_upload_notification(aController) {
+  close_notification(aController, "bigAttachmentUploading");
 }
 
 function test_no_notification_for_small_file() {
@@ -111,4 +154,77 @@ function test_no_notification_if_disabled() {
   assert_cloudfile_notification_displayed(cwc, false);
 
   Services.prefs.setBoolPref("mail.cloud_files.enabled", true);
+}
+
+/**
+ * Tests that if we upload a single file, we get the link insertion
+ * notification bar displayed (unless preffed off).
+ */
+function test_link_insertion_notification_single() {
+  gMockFilePicker.returnFiles = collectFiles(['./data/testFile1'], __file__);
+  let provider = new MockCloudfileAccount();
+  provider.init("aKey");
+
+  let cwc = open_compose_new_mail(mc);
+  cwc.window.attachToCloud(provider);
+
+  assert_upload_notification_displayed(cwc, true);
+  close_upload_notification(cwc);
+
+  Services.prefs.setBoolPref(kInsertNotificationPref, false);
+  gMockFilePicker.returnFiles = collectFiles(['./data/testFile2'], __file__);
+  cwc.window.attachToCloud(provider);
+  assert_upload_notification_displayed(cwc, false);
+  Services.prefs.setBoolPref(kInsertNotificationPref, true);
+}
+
+/**
+ * Tests that if we upload multiple files, we get the link insertion
+ * notification bar displayed (unless preffed off).
+ */
+function test_link_insertion_notification_multiple() {
+  gMockFilePicker.returnFiles = collectFiles(['./data/testFile1',
+                                              './data/testFile2'], __file__);
+  let provider = new MockCloudfileAccount();
+  provider.init("aKey");
+
+  let cwc = open_compose_new_mail(mc);
+  cwc.window.attachToCloud(provider);
+
+  assert_upload_notification_displayed(cwc, true);
+  close_upload_notification(cwc);
+
+  Services.prefs.setBoolPref(kInsertNotificationPref, false);
+  gMockFilePicker.returnFiles = collectFiles(['./data/testFile3',
+                                              './data/testFile4'], __file__);
+  cwc.window.attachToCloud(provider);
+  assert_upload_notification_displayed(cwc, false);
+  Services.prefs.setBoolPref(kInsertNotificationPref, true);
+}
+
+/**
+ * Tests that the link insertion notification bar goes away even
+ * if we hit an uploading error.
+ */
+function test_link_insertion_goes_away_on_error() {
+  gMockPromptService.register();
+  gMockPromptService.returnValue = false;
+  gMockFilePicker.returnFiles = collectFiles(['./data/testFile1',
+                                              './data/testFile2'], __file__);
+  let provider = new MockCloudfileAccount();
+  provider.init("aKey");
+
+  provider.uploadFile = function(aFile, aListener) {
+    aListener.onStartRequest(null, null);
+    cwc.window.setTimeout(function() {
+      aListener.onStopRequest(null, null,
+                              Ci.nsIMsgCloudFileProvider.uploadErr);
+    }, 500);
+  }
+  let cwc = open_compose_new_mail(mc);
+  cwc.window.attachToCloud(provider);
+
+  assert_upload_notification_displayed(cwc, true);
+  wait_for_notification_to_stop(cwc, "bigAttachmentUploading");
+  gMockPromptService.unregister();
 }

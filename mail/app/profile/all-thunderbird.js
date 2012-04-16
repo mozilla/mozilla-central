@@ -487,6 +487,9 @@ pref("mail.compose.big_attachments.notify", true);
 // Size (in kB) to automatically prompt for conversion of attachments to
 // cloud links
 pref("mail.compose.big_attachments.threshold_kb", 1024);
+// True if the user should be notified that links will be inserted into
+// their message when the upload is completed
+pref("mail.compose.big_attachments.insert_notification", true);
 
 // Set this to false to prevent instrumentation from happening, e.g., user
 // has opted out, or an enterprise wants to disable it from the git go.

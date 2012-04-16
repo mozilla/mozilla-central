@@ -112,6 +112,10 @@ MockCloudfileAccount.prototype = {
   cancelFileUpload: function MCA_cancelFileUpload(aFile) {
     throw Cr.NS_ERROR_NOT_IMPLEMENTED;
   },
+
+  providerUrlForError: function MCA_providerUrlForError(aStatusCode) {
+    return "";
+  },
 };
 
 
