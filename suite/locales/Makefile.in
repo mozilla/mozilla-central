@@ -44,6 +44,8 @@ include $(DEPTH)/config/autoconf.mk
 
 include $(topsrcdir)/config/config.mk
 
+DEFINES += -DMOZ_APP_MAXVERSION=$(MOZ_APP_MAXVERSION)
+
 _ABS_SRCDIR := $(call core_abspath,$(topsrcdir))
 
 vpath %.xml @srcdir@/en-US/searchplugins

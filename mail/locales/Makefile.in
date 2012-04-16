@@ -44,6 +44,8 @@ include $(DEPTH)/config/autoconf.mk
 
 include $(topsrcdir)/config/config.mk
 
+DEFINES += -DMOZ_APP_MAXVERSION=$(MOZ_APP_MAXVERSION)
+
 vpath %.xml @srcdir@/en-US/searchplugins
 vpath %.xml $(LOCALE_SRCDIR)/searchplugins
 
