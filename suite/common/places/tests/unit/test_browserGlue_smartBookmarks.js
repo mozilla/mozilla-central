@@ -41,10 +41,6 @@
  * by the user or by other components.
  */
 
-// Initialize Places.
-var hs = Cc["@mozilla.org/browser/nav-history-service;1"].
-         getService(Ci.nsINavHistoryService);
-
 const PREF_SMART_BOOKMARKS_VERSION = "browser.places.smartBookmarksVersion";
 const PREF_AUTO_EXPORT_HTML = "browser.bookmarks.autoExportHTML";
 const PREF_IMPORT_BOOKMARKS_HTML = "browser.places.importBookmarksHTML";
@@ -66,13 +62,11 @@ function rebuildSmartBookmarks() {
       Ci.nsIConsoleListener
     ]),
   };
-  var console = Cc["@mozilla.org/consoleservice;1"].
-                getService(Ci.nsIConsoleService);
-  console.reset();
-  console.registerListener(consoleListener);
+  Services.console.reset();
+  Services.console.registerListener(consoleListener);
   Cc["@mozilla.org/suite/suiteglue;1"].getService(Ci.nsISuiteGlue)
                                       .ensurePlacesDefaultQueriesInitialized();
-  console.unregisterListener(consoleListener);
+  Services.console.unregisterListener(consoleListener);
 }
 
 
@@ -216,16 +210,13 @@ tests.push({
 //------------------------------------------------------------------------------
 
 function countFolderChildren(aFolderItemId) {
-  var query = hs.getNewQuery();
-  query.setFolders([aFolderItemId], 1);
-  var options = hs.getNewQueryOptions();
-  let rootNode = hs.executeQuery(query, options).root;
-  rootNode.containerOpen = true;
+  let rootNode = PlacesUtils.getFolderContents(aFolderItemId).root;
   let cc = rootNode.childCount;
   // Dump contents.
   for (let i = 0; i < cc ; i++) {
     let node = rootNode.getChild(i);
-    print("Found child at " + i + ": " + node.title);
+    let title = PlacesUtils.nodeIsSeparator(node) ? "---" : node.title;
+    print("Found child(" + i + "): " + title);
   }
   rootNode.containerOpen = false;
   return cc;
@@ -257,12 +248,12 @@ function run_test() {
   remove_all_JSON_backups();
 
   // Initialize SuiteGlue, but remove its listener to places-init-complete.
-  let bg = Cc["@mozilla.org/suite/suiteglue;1"].getService(Ci.nsISuiteGlue);
+  let bg = Cc["@mozilla.org/suite/suiteglue;1"].getService(Ci.nsIObserver);
   // Initialize Places.
   PlacesUtils.history;
   // Usually places init would async notify to glue, but we want to avoid
   // randomness here, thus we fire the notification synchronously.
-  bg.QueryInterface(Ci.nsIObserver).observe(null, "places-init-complete", null);
+  bg.observe(null, "places-init-complete", null);
 
   // Ensure preferences status.
   do_check_false(Services.prefs.getBoolPref(PREF_AUTO_EXPORT_HTML));

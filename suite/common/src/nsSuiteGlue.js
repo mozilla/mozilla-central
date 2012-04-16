@@ -906,37 +906,32 @@ SuiteGlue.prototype = {
         smartBookmarksCurrentVersion >= SMART_BOOKMARKS_VERSION)
       return;
 
-    var callback = {
-      _uri: function BG_EPDQI__uri(aSpec) {
-        return Services.io.newURI(aSpec, null, null);
-      },
-
+    let batch = {
       runBatched: function BG_EPDQI_runBatched() {
         var smartBookmarks = [];
-        var bookmarksMenuIndex = 0;
-        var bookmarksToolbarIndex = 0;
-
-        var placesBundle = Services.strings.createBundle("chrome://communicator/locale/places/places.properties");
+        let menuIndex = 0;
+        let toolbarIndex = 0;
+        let bundle = Services.strings.createBundle("chrome://communicator/locale/places/places.properties");
 
         // MOST VISITED
         var smart = {queryId: "MostVisited", // don't change this
                      itemId: null,
-                     title: placesBundle.GetStringFromName("mostVisitedTitle"),
-                     uri: this._uri("place:redirectsMode=" +
+                     title: bundle.GetStringFromName("mostVisitedTitle"),
+                     uri: NetUtil.newURI("place:redirectsMode=" +
                                     Components.interfaces.nsINavHistoryQueryOptions.REDIRECTS_MODE_TARGET +
                                     "&sort=" +
                                     Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_VISITCOUNT_DESCENDING +
                                     "&maxResults=" + MAX_RESULTS),
                      parent: PlacesUtils.toolbarFolderId,
-                     position: bookmarksToolbarIndex++,
+                     position: toolbarIndex++,
                      newInVersion: 1 };
         smartBookmarks.push(smart);
 
         // RECENTLY BOOKMARKED
         smart = {queryId: "RecentlyBookmarked", // don't change this
                  itemId: null,
-                 title: placesBundle.GetStringFromName("recentlyBookmarkedTitle"),
-                 uri: this._uri("place:folder=BOOKMARKS_MENU" +
+                 title: bundle.GetStringFromName("recentlyBookmarkedTitle"),
+                 uri: NetUtil.newURI("place:folder=BOOKMARKS_MENU" +
                                 "&folder=UNFILED_BOOKMARKS" +
                                 "&folder=TOOLBAR" +
                                 "&queryType=" +
@@ -946,22 +941,22 @@ SuiteGlue.prototype = {
                                 "&maxResults=" + MAX_RESULTS +
                                 "&excludeQueries=1"),
                  parent: PlacesUtils.bookmarksMenuFolderId,
-                 position: bookmarksMenuIndex++,
+                 position: menuIndex++,
                  newInVersion: 1 };
         smartBookmarks.push(smart);
 
         // RECENT TAGS
         smart = {queryId: "RecentTags", // don't change this
                  itemId: null,
-                 title: placesBundle.GetStringFromName("recentTagsTitle"),
-                 uri: this._uri("place:"+
+                 title: bundle.GetStringFromName("recentTagsTitle"),
+                 uri: NetUtil.newURI("place:"+
                     "type=" +
                     Components.interfaces.nsINavHistoryQueryOptions.RESULTS_AS_TAG_QUERY +
                     "&sort=" +
                     Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_LASTMODIFIED_DESCENDING +
                     "&maxResults=" + MAX_RESULTS),
                  parent: PlacesUtils.bookmarksMenuFolderId,
-                 position: bookmarksMenuIndex++,
+                 position: menuIndex++,
                  newInVersion: 1 };
         smartBookmarks.push(smart);
 
@@ -1016,19 +1011,19 @@ SuiteGlue.prototype = {
         if (smartBookmarksCurrentVersion == 0 &&
             smartBookmarkItemIds.length == 0) {
           let id = PlacesUtils.bookmarks.getIdForItemAt(PlacesUtils.bookmarksMenuFolderId,
-                                                        bookmarksMenuIndex);
+                                                        menuIndex);
           // Don't add a separator if the menu was empty or there is one already.
           if (id != -1 &&
               PlacesUtils.bookmarks.getItemType(id) != PlacesUtils.bookmarks.TYPE_SEPARATOR) {
             PlacesUtils.bookmarks.insertSeparator(PlacesUtils.bookmarksMenuFolderId,
-                                                  bookmarksMenuIndex);
+                                                  menuIndex);
           }
        }
       }
     };
 
     try {
-      PlacesUtils.bookmarks.runInBatchMode(callback, null);
+      PlacesUtils.bookmarks.runInBatchMode(batch, null);
     }
     catch(ex) {
       Components.utils.reportError(ex);
