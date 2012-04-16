@@ -92,7 +92,6 @@
                  observes="paneElementsBroadcaster"/>
           <textbox id="editBMPanel_feedLocationField"
                    class="uri-element"
-                   onblur="gEditItemOverlay.onFeedLocationFieldBlur();"
                    observes="paneElementsBroadcaster"/>
         </row>
 
@@ -104,7 +103,6 @@
                  observes="paneElementsBroadcaster"/>
           <textbox id="editBMPanel_siteLocationField"
                    class="uri-element"
-                   onblur="gEditItemOverlay.onSiteLocationFieldBlur();"
                    observes="paneElementsBroadcaster"/>
         </row>
 

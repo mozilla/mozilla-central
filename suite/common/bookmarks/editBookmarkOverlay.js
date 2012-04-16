@@ -597,34 +597,6 @@ var gEditItemOverlay = {
     }
   },
 
-  onFeedLocationFieldBlur: function EIO_onFeedLocationFieldBlur() {
-    var uri;
-    try {
-      uri = PlacesUIUtils.createFixedURI(this._element("feedLocationField").value);
-    }
-    catch(ex) { return; }
-
-    var currentFeedURI = PlacesUtils.livemarks.getFeedURI(this._itemId);
-    if (!currentFeedURI.equals(uri)) {
-      var txn = PlacesUIUtils.ptm.editLivemarkFeedURI(this._itemId, uri);
-      PlacesUIUtils.ptm.doTransaction(txn);
-    }
-  },
-
-  onSiteLocationFieldBlur: function EIO_onSiteLocationFieldBlur() {
-    var uri = null;
-    try {
-      uri = PlacesUIUtils.createFixedURI(this._element("siteLocationField").value);
-    }
-    catch(ex) {  }
-
-    var currentSiteURI = PlacesUtils.livemarks.getSiteURI(this._itemId);
-    if (!uri || !currentSiteURI.equals(uri)) {
-      var txn = PlacesUIUtils.ptm.editLivemarkSiteURI(this._itemId, uri);
-      PlacesUIUtils.ptm.doTransaction(txn);
-    }
-  },
-
   onLoadInSidebarCheckboxCommand:
   function EIO_onLoadInSidebarCheckboxCommand() {
     var loadInSidebarChecked = this._element("loadInSidebarCheckbox").checked;
