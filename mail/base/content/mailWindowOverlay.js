@@ -2375,14 +2375,14 @@ function SpaceHit(event)
     // if at the start of the message, go to the previous one
     if (contentWindow.scrollY > 0)
       contentWindow.scrollByPages(-1);
-    else
+    else if (pref.getBoolPref("mail.advance_on_spacebar"))
       goDoCommand("cmd_previousUnreadMsg");
   }
   else {
     // if at the end of the message, go to the next one
     if (contentWindow.scrollY < contentWindow.scrollMaxY)
       contentWindow.scrollByPages(1);
-    else
+    else if (pref.getBoolPref("mail.advance_on_spacebar"))
       goDoCommand("cmd_nextUnreadMsg");
   }
 }

@@ -187,6 +187,9 @@ pref("xpinstall.whitelist.add.36", "getpersonas.com");
 pref("mail.shell.checkDefaultClient", true);
 pref("mail.spellcheck.inline", true);
 
+// SpaceHit function
+pref("mail.advance_on_spacebar", true);
+
 pref("mail.biff.alert.show_preview", true);
 pref("mail.biff.alert.show_subject", true);
 pref("mail.biff.alert.show_sender",  true);
