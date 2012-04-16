@@ -102,10 +102,8 @@ function wait_for_attachment_urls(aController, aNumUrls) {
   let urls = null;
   aController.waitFor(function() {
     urls = mailBody.querySelectorAll("#cloudAttachmentList > .cloudAttachmentItem");
-    return (urls != null);
+    return (urls != null && urls.length == aNumUrls);
   });
-
-  assert_equals(aNumUrls, urls.length);
 
   return [root, list, urls];
 }
@@ -663,4 +661,90 @@ function subtest_adding_filelinks_to_forward(aText, aWithSig) {
     let mailBody = get_compose_body(cw);
     assert_equals(br, mailBody.firstChild);
   }
+}
+
+/**
+ * Test that if we convert a Filelink from one provider to another, that the
+ * old Filelink is removed, and a new Filelink is added for the new provider.
+ * We test this on both HTML and plaintext mail.
+ */
+function test_converting_filelink_updates_urls() {
+  subtest_converting_filelink_updates_urls();
+  Services.prefs.setBoolPref(kHtmlPrefKey, false);
+  subtest_converting_filelink_updates_urls();
+  Services.prefs.setBoolPref(kHtmlPrefKey, true);
+}
+
+/**
+ * Subtest for test_converting_filelink_updates_urls that creates two
+ * storage provider accounts, uploads files to one, converts them to the
+ * other, and ensures that the attachment links in the message body get
+ * get updated.
+ */
+function subtest_converting_filelink_updates_urls() {
+  gMockFilePicker.returnFiles = collectFiles(kFiles, __file__);
+  let providerA = new MockCloudfileAccount();
+  let providerB = new MockCloudfileAccount();
+  providerA.init("providerA");
+  providerB.init("providerB");
+
+  let cw = open_compose_new_mail();
+  cw.window.attachToCloud(providerA);
+
+  let [root, list, urls] = wait_for_attachment_urls(cw, kFiles.length);
+
+  // Convert each Filelink to providerB, ensuring that the URLs are replaced.
+  for (let i = 0; i < kFiles.length; ++i) {
+    let url = urls[i];
+    select_attachments(cw, i);
+    cw.window.convertSelectedToCloudAttachment(providerB);
+    [root, list, urls] = wait_for_attachment_urls(cw, kFiles.length);
+
+    let newUrl = urls[i];
+
+    assert_not_equals(url, newUrl,
+                      "The original URL should have been replaced");
+  }
+}
+
+/**
+ * Test that if we convert a Filelink to a normal attachment that the
+ * Filelink is removed from the message body.
+ */
+function test_converting_filelink_to_normal_removes_url() {
+  subtest_converting_filelink_to_normal_removes_url();
+  Services.prefs.setBoolPref(kHtmlPrefKey, false);
+  subtest_converting_filelink_to_normal_removes_url();
+  Services.prefs.setBoolPref(kHtmlPrefKey, true);
+}
+
+/**
+ * Subtest for test_converting_filelink_to_normal_removes_url that adds
+ * some Filelinks to an email, and then converts those Filelinks back into
+ * normal attachments, checking to ensure that the links are removed from
+ * the body of the email.
+ */
+function subtest_converting_filelink_to_normal_removes_url() {
+  gMockFilePicker.returnFiles = collectFiles(kFiles, __file__);
+  let provider = new MockCloudfileAccount();
+  provider.init("someKey");
+
+  let cw = open_compose_new_mail();
+  cw.window.attachToCloud(provider);
+
+  let [root, list, urls] = wait_for_attachment_urls(cw, kFiles.length);
+
+  for (let i = 0; i < kFiles.length; ++i) {
+    select_attachments(cw, i);
+    cw.window.convertSelectedToRegularAttachment();
+
+    let urls = list.querySelectorAll(".cloudAttachmentItem");
+    assert_equals(urls.length, kFiles.length - (i + 1));
+  }
+
+  // At this point, the root should also have been removed.
+  let mailBody = get_compose_body(cw);
+  root = mailBody.querySelector("#cloudAttachmentListRoot");
+  if (root)
+    throw new Error("Should not have found the cloudAttachmentListRoot");
 }

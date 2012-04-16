@@ -90,17 +90,21 @@ function MockCloudfileAccount() {
 MockCloudfileAccount.prototype = {
 
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgCloudFileProvider]),
+
   init: function MCA_init(aAccountKey) {
     this.accountKey = aAccountKey;
   },
 
   uploadFile: function MCA_uploadFile(aFile, aListener) {
     aListener.onStartRequest(null, null);
-    aListener.onStopRequest(null, null, Cr.NS_OK);
+    fdh.mc.window.setTimeout(function() {
+      aListener.onStopRequest(null, null, Cr.NS_OK);
+    }, 0);
   },
 
   urlForFile: function MCA_urlForFile(aFile) {
-    return "http://www.example.com/download/someFile";
+    return "http://www.example.com/" + this.accountKey + "/" +
+           aFile.leafName;
   },
 
   refreshUserInfo: function MCA_refreshUserInfo(aWithUI,
@@ -115,6 +119,17 @@ MockCloudfileAccount.prototype = {
 
   providerUrlForError: function MCA_providerUrlForError(aStatusCode) {
     return "";
+  },
+
+  deleteFile: function MCA_deleteFile(aFile, aCallback) {
+    aCallback.onStartRequest(null, null);
+    fdh.mc.window.setTimeout(function() {
+      aCallback.onStopRequest(null, null, Cr.NS_OK);
+    }, 0);
+  },
+
+  get displayName() {
+    return "Mock Storage: " + this.accountKey;
   },
 };
 

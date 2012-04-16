@@ -84,13 +84,9 @@ var gCloudAttachmentLinkManager = {
       for (let attachment in fixIterator(
            event.detail, Components.interfaces.nsIMsgAttachment)) {
         // Remove the attachment from the message body.
-        for (let i = 0; i < items.length; i++) {
-          // if the attachment was removed, or was converted and is no
-          // longer to be sent via cloud, remove from html node.
-          if ((event.type == "attachments-removed" || !attachment.sendViaCloud) &&
-              items[i].contentLocation == attachment.contentLocation)
+        for (let i = 0; i < items.length; i++)
+          if (items[i].contentLocation == attachment.contentLocation)
             list.removeChild(items[i]);
-        }
 
         // Now, remove the attachment from our internal list.
         let index = this.cloudAttachments.indexOf(attachment);
