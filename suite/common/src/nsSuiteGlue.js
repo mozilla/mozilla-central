@@ -47,6 +47,9 @@ Components.utils.import("resource://gre/modules/AddonManager.jsm");
 Components.utils.import("resource:///modules/Sanitizer.jsm");
 Components.utils.import("resource:///modules/mailnewsMigrator.js");
 
+XPCOMUtils.defineLazyModuleGetter(this, "PlacesUtils",
+                                  "resource://gre/modules/PlacesUtils.jsm");
+
 XPCOMUtils.defineLazyModuleGetter(this, "BookmarkHTMLUtils",
                                   "resource://gre/modules/BookmarkHTMLUtils.jsm");
 
@@ -653,19 +656,15 @@ SuiteGlue.prototype = {
     // We must instantiate the history service since it will tell us if we
     // need to import or restore bookmarks due to first-run, corruption or
     // forced migration (due to a major schema change).
-    var histsvc = Components.classes["@mozilla.org/browser/nav-history-service;1"]
-                            .getService(Components.interfaces.nsINavHistoryService);
-
-    Components.utils.import("resource://gre/modules/PlacesUtils.jsm");
     var bookmarksBackupFile = PlacesUtils.backups.getMostRecent("json");
 
     // If the database is corrupt or has been newly created we should
     // import bookmarks. Same if we don't have any JSON backups, which
     // probably means that we never have used bookmarks in places yet.
-    var databaseStatus = histsvc.databaseStatus;
+    var dbStatus = PlacesUtils.history.databaseStatus;
     var importBookmarks = !this._initialMigrationPerformed &&
-                          (databaseStatus == histsvc.DATABASE_STATUS_CREATE ||
-                           databaseStatus == histsvc.DATABASE_STATUS_CORRUPT ||
+                          (dbStatus == PlacesUtils.history.DATABASE_STATUS_CREATE ||
+                           dbStatus == PlacesUtils.history.DATABASE_STATUS_CORRUPT ||
                            !bookmarksBackupFile);
 
     // Check if user or an extension has required to import bookmarks.html
@@ -820,8 +819,6 @@ SuiteGlue.prototype = {
    * Backup bookmarks if needed.
    */
   _backupBookmarks: function() {
-    Components.utils.import("resource://gre/modules/PlacesUtils.jsm");
-
     let lastBackupFile = PlacesUtils.backups.getMostRecent();
 
     // Backup bookmarks if there are no backups or the maximum interval between
@@ -898,22 +895,16 @@ SuiteGlue.prototype = {
     // TODO bug 399268: should this be a pref?
     const MAX_RESULTS = 10;
 
-    // Get current smart bookmarks version.
-    // By default, if the pref is not set up, we must create Smart Bookmarks.
-    var smartBookmarksCurrentVersion = 0;
+    // Get current smart bookmarks version.  If not set, create them.
+    let smartBookmarksCurrentVersion = 0;
     try {
       smartBookmarksCurrentVersion = Services.prefs.getIntPref(SMART_BOOKMARKS_PREF);
-    } catch(ex) { /* no version set, new profile */ }
+    } catch(ex) {}
 
-    // Bail out if we don't have to create or update Smart Bookmarks.
+    // If version is current or smart bookmarks are disabled, just bail out.
     if (smartBookmarksCurrentVersion == -1 ||
         smartBookmarksCurrentVersion >= SMART_BOOKMARKS_VERSION)
       return;
-
-    var bmsvc = Components.classes["@mozilla.org/browser/nav-bookmarks-service;1"]
-                          .getService(Components.interfaces.nsINavBookmarksService);
-    var annosvc = Components.classes["@mozilla.org/browser/annotation-service;1"]
-                            .getService(Components.interfaces.nsIAnnotationService);
 
     var callback = {
       _uri: function BG_EPDQI__uri(aSpec) {
@@ -936,7 +927,7 @@ SuiteGlue.prototype = {
                                     "&sort=" +
                                     Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_VISITCOUNT_DESCENDING +
                                     "&maxResults=" + MAX_RESULTS),
-                     parent: bmsvc.toolbarFolder,
+                     parent: PlacesUtils.toolbarFolderId,
                      position: bookmarksToolbarIndex++,
                      newInVersion: 1 };
         smartBookmarks.push(smart);
@@ -954,7 +945,7 @@ SuiteGlue.prototype = {
                                 Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_DATEADDED_DESCENDING +
                                 "&maxResults=" + MAX_RESULTS +
                                 "&excludeQueries=1"),
-                 parent: bmsvc.bookmarksMenuFolder,
+                 parent: PlacesUtils.bookmarksMenuFolderId,
                  position: bookmarksMenuIndex++,
                  newInVersion: 1 };
         smartBookmarks.push(smart);
@@ -969,32 +960,32 @@ SuiteGlue.prototype = {
                     "&sort=" +
                     Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_LASTMODIFIED_DESCENDING +
                     "&maxResults=" + MAX_RESULTS),
-                 parent: bmsvc.bookmarksMenuFolder,
+                 parent: PlacesUtils.bookmarksMenuFolderId,
                  position: bookmarksMenuIndex++,
                  newInVersion: 1 };
         smartBookmarks.push(smart);
 
-        var smartBookmarkItemIds = annosvc.getItemsWithAnnotation(SMART_BOOKMARKS_ANNO);
         // Set current itemId, parent and position if Smart Bookmark exists,
         // we will use these informations to create the new version at the same
         // position.
+        let smartBookmarkItemIds = PlacesUtils.annotations.getItemsWithAnnotation(SMART_BOOKMARKS_ANNO);
         for each(var itemId in smartBookmarkItemIds) {
-          var queryId = annosvc.getItemAnnotation(itemId, SMART_BOOKMARKS_ANNO);
+          let queryId = PlacesUtils.annotations.getItemAnnotation(itemId, SMART_BOOKMARKS_ANNO);
           for (var i = 0; i < smartBookmarks.length; i++){
             if (smartBookmarks[i].queryId == queryId) {
               smartBookmarks[i].found = true;
               smartBookmarks[i].itemId = itemId;
-              smartBookmarks[i].parent = bmsvc.getFolderIdForItem(itemId);
-              smartBookmarks[i].position = bmsvc.getItemIndex(itemId);
+              smartBookmarks[i].parent = PlacesUtils.bookmarks.getFolderIdForItem(itemId);
+              smartBookmarks[i].position = PlacesUtils.bookmarks.getItemIndex(itemId);
               // Remove current item, since it will be replaced.
-              bmsvc.removeItem(itemId);
+              PlacesUtils.removeItem(itemId);
               break;
             }
             // We don't remove old Smart Bookmarks because user could still
             // find them useful, or could have personalized them.
             // Instead we remove the Smart Bookmark annotation.
             if (i == smartBookmarks.length - 1)
-              annosvc.removeItemAnnotation(itemId, SMART_BOOKMARKS_ANNO);
+              PlacesUtils.annotations.removeItemAnnotation(itemId, SMART_BOOKMARKS_ANNO);
           }
         }
 
@@ -1008,30 +999,35 @@ SuiteGlue.prototype = {
               !smartBookmark.found)
             continue;
 
-          smartBookmark.itemId = bmsvc.insertBookmark(smartBookmark.parent,
-                                                      smartBookmark.uri,
-                                                      smartBookmark.position,
-                                                      smartBookmark.title);
-          annosvc.setItemAnnotation(smartBookmark.itemId,
-                                    SMART_BOOKMARKS_ANNO, smartBookmark.queryId,
-                                    0, annosvc.EXPIRE_NEVER);
+          // Create the new smart bookmark and store its updated itemId.
+          smartBookmark.itemId =
+            PlacesUtils.bookmarks.insertBookmark(smartBookmark.parent,
+                                                 smartBookmark.uri,
+                                                 smartBookmark.position,
+                                                 smartBookmark.title);
+          PlacesUtils.annotations.setItemAnnotation(smartBookmark.itemId,
+                                                    SMART_BOOKMARKS_ANNO,
+                                                    smartBookmark.queryId, 0,
+                                                    PlacesUtils.annotations.EXPIRE_NEVER);
         }
 
         // If we are creating all Smart Bookmarks from ground up, add a
         // separator below them in the bookmarks menu.
         if (smartBookmarksCurrentVersion == 0 &&
             smartBookmarkItemIds.length == 0) {
-          let id = bmsvc.getIdForItemAt(bmsvc.bookmarksMenuFolder,
-                                        bookmarksMenuIndex);
+          let id = PlacesUtils.bookmarks.getIdForItemAt(PlacesUtils.bookmarksMenuFolderId,
+                                                        bookmarksMenuIndex);
           // Don't add a separator if the menu was empty or there is one already.
-          if (id != -1 && bmsvc.getItemType(id) != bmsvc.TYPE_SEPARATOR)
-            bmsvc.insertSeparator(bmsvc.bookmarksMenuFolder, bookmarksMenuIndex);
+          if (id != -1 &&
+              PlacesUtils.bookmarks.getItemType(id) != PlacesUtils.bookmarks.TYPE_SEPARATOR)
+            PlacesUtils.bookmarks.insertSeparator(PlacesUtils.bookmarksMenuFolderId,
+                                                  bookmarksMenuIndex);
        }
       }
     };
 
     try {
-      bmsvc.runInBatchMode(callback, null);
+      PlacesUtils.bookmarks.runInBatchMode(callback, null);
     }
     catch(ex) {
       Components.utils.reportError(ex);
