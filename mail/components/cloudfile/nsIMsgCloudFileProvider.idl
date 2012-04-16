@@ -36,6 +36,7 @@ interface nsIMsgCloudFileProvider : nsISupports {
    * @param aFile file to upload
    * @param aCallback callback when finished.
    *
+   * @throws nsIMsgCloudFileProvider.offlineErr if we are offline.
    */
   void uploadFile(in nsILocalFile aFile, in nsIRequestObserver aCallback);
   ACString urlForFile(in nsILocalFile aFile);
@@ -55,6 +56,7 @@ interface nsIMsgCloudFileProvider : nsISupports {
    * @param aWithUI if true, we may prompt for a password, or bring up an auth
    *                page. If false, we won't, and will fail if auth is required.
    * @param aCallback callback when finished.
+   * @throws nsIMsgCloudFileProvider.offlineErr if we are offline.
    */
   void refreshUserInfo(in boolean aWithUI, in nsIRequestObserver aCallback);
 
@@ -65,7 +67,8 @@ interface nsIMsgCloudFileProvider : nsISupports {
    * @param aFile File we previously uploaded in this session.
    * @param aCallback callback when finished
    *
-   * throws NS_ERROR_FAILURE if we don't know about the file.
+   * @throws NS_ERROR_FAILURE if we don't know about the file.
+   * @throws nsIMsgCloudFileProvider.offlineErr if we are offline.
    */
   void deleteFile(in nsILocalFile aFile, in nsIRequestObserver aCallback);
 
@@ -80,6 +83,7 @@ interface nsIMsgCloudFileProvider : nsISupports {
    * otherwise, an error occurred which is * probably specific to the provider.
    * If the request fails completely, onStopRequest will get called with
    * Components.results.NS_ERROR_FAILURE
+   * @throws nsIMsgCloudFileProvider.offlineErr if we are offline.
    */
   void createNewAccount(in ACString aEmailAddress, in ACString aPassword,
                         in ACString aFirstName, in ACString aLastName,

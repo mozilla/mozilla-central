@@ -447,8 +447,9 @@ var defaultController = {
         // Hide the command entirely if there are no cloud accounts or
         // the feature is disbled.
         let cmd = document.getElementById("cmd_attachCloud");
-        cmd.hidden = !Services.prefs.getBoolPref("mail.cloud_files.enabled")
-                     || (cloudFileAccounts.accounts.length == 0);
+        cmd.hidden = !Services.prefs.getBoolPref("mail.cloud_files.enabled") ||
+                     (cloudFileAccounts.accounts.length == 0) ||
+                     Services.io.offline;
         return !cmd.hidden;
       },
       doCommand: function() {
@@ -687,7 +688,8 @@ var attachmentBucketController = {
         let cmd = document.getElementById("cmd_convertCloud");
 
         cmd.hidden = (!Services.prefs.getBoolPref("mail.cloud_files.enabled") ||
-                      cloudFileAccounts.accounts.length == 0);
+                      cloudFileAccounts.accounts.length == 0) ||
+                      Services.io.offline;
         if (cmd.hidden)
           return false;
 
@@ -1053,21 +1055,12 @@ uploadListener.prototype = {
       event.initEvent("attachment-uploaded", true, true);
       attachmentItem.dispatchEvent(event);
     }
-    else if (aStatusCode == Components.interfaces
-                                      .nsIMsgCloudFileProvider
-                                      .uploadCanceled) {
-      attachmentItem.setAttribute("tooltiptext", attachmentItem.attachment.url);
-      attachmentItem.image = null;
-      attachmentItem.uploading = false;
-      attachmentItem.attachment.sendViaCloud = false;
-      delete attachmentItem.cloudProvider;
-    }
     else {
       let title;
       let msg;
       let displayName = cloudFileAccounts.getDisplayName(this.cloudProvider);
       let bundle = getComposeBundle();
-
+      let displayError = true;
       switch (aStatusCode) {
       case this.cloudProvider.authErr:
         title = bundle.getString("errorCloudFileAuth.title");
@@ -1092,6 +1085,9 @@ uploadListener.prototype = {
                                         [displayName,
                                          this.attachment.name]);
         break;
+      case this.cloudProvider.uploadCanceled:
+        displayError = false;
+        break;
       default:
         title = bundle.getString("errorCloudFileOther.title");
         msg = bundle.getFormattedString("errorCloudFileOther.message",
@@ -1100,20 +1096,26 @@ uploadListener.prototype = {
       }
 
       // TODO: support actions other than "Upgrade"
-      const prompt = Services.prompt;
-      let url = this.cloudProvider.providerUrlForError(aStatusCode);
-      let flags = prompt.BUTTON_POS_0 * prompt.BUTTON_TITLE_OK;
-      if (url)
-        flags += prompt.BUTTON_POS_1 * prompt.BUTTON_TITLE_IS_STRING;
-      if (prompt.confirmEx(window, title, msg, flags, null,
-                           bundle.getString("errorCloudFileUpgrade.label"),
-                           null, null, {})) {
-        openLinkExternally(url);
+      if (displayError) {
+        const prompt = Services.prompt;
+        let url = this.cloudProvider.providerUrlForError(aStatusCode);
+        let flags = prompt.BUTTON_POS_0 * prompt.BUTTON_TITLE_OK;
+        if (url)
+          flags += prompt.BUTTON_POS_1 * prompt.BUTTON_TITLE_IS_STRING;
+        if (prompt.confirmEx(window, title, msg, flags, null,
+                             bundle.getString("errorCloudFileUpgrade.label"),
+                             null, null, {})) {
+          openLinkExternally(url);
+        }
       }
 
       if (attachmentItem) {
         // Remove the loading throbber.
         attachmentItem.image = null;
+        attachmentItem.setAttribute("tooltiptext", attachmentItem.attachment.url);
+        attachmentItem.uploading = false;
+        attachmentItem.attachment.sendViaCloud = false;
+        delete attachmentItem.cloudProvider;
       }
     }
 
@@ -1186,7 +1188,12 @@ function attachToCloud(aProvider)
     let i = 0;
     let items = AddAttachments(attachments, function(aItem) {
       let listener = new uploadListener(attachments[i], files[i], aProvider);
-      aProvider.uploadFile(files[i], listener);
+      try {
+        aProvider.uploadFile(files[i], listener);
+      }
+      catch (ex) {
+        listener.onStopRequest(null, null, ex.result);
+      }
       i++;
     });
 
@@ -1203,6 +1210,11 @@ function attachToCloud(aProvider)
  */
 function convertListItemsToCloudAttachment(aItems, aProvider)
 {
+  // If we want to display an offline error message, we should do it here.
+  // No sense in doing the delete and upload and having them fail.
+  if (Services.io.offline)
+    return;
+
   let fileHandler = Services.io.getProtocolHandler("file")
                             .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
   let convertedAttachments = Components.classes["@mozilla.org/array;1"]
@@ -1223,14 +1235,20 @@ function convertListItemsToCloudAttachment(aItems, aProvider)
         file, new deletionListener(item.attachment, item.cloudProvider));
     }
 
-    aProvider.uploadFile(file,
-                         new uploadListener(item.attachment, file, aProvider));
-    convertedAttachments.appendElement(item.attachment, false);
+    try {
+      let listener = new uploadListener(item.attachment, file,
+                                        aProvider);
+      aProvider.uploadFile(file, listener);
+      convertedAttachments.appendElement(item.attachment, false);
+    }
+    catch (ex) {
+      listener.onStopRequest(null, null, ex.result);
+    }
   }
-
-  Services.obs.notifyObservers(convertedAttachments,
-                               "mail:attachmentsConverted",
-                               aProvider.accountKey);
+  if (convertedAttachments.length)
+    Services.obs.notifyObservers(convertedAttachments,
+                                 "mail:attachmentsConverted",
+                                 aProvider.accountKey);
 }
 
 /**

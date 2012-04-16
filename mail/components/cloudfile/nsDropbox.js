@@ -114,7 +114,12 @@ nsDropbox.prototype = {
       this.log.info("chaining upload, file = " + nextUpload.file.leafName);
       this._uploadingFile = nextUpload.file;
       this._uploader = nextUpload;
-      this.uploadFile(nextUpload.file, nextUpload.callback);
+      try {
+        this.uploadFile(nextUpload.file, nextUpload.callback);
+      }
+      catch (ex) {
+        nextUpload.callback(nextUpload.requestObserver, Cr.NS_ERROR_FAILURE);
+      }
     }
     else
       this._uploader = null;
@@ -129,7 +134,7 @@ nsDropbox.prototype = {
    */
   uploadFile: function nsDropbox_uploadFile(aFile, aCallback) {
     if (Services.io.offline)
-      return Ci.nsIMsgCloudFileProvider.offlineErr;
+      throw Ci.nsIMsgCloudFileProvider.offlineErr;
 
     this.log.info("uploading " + aFile.leafName);
 
@@ -306,7 +311,7 @@ nsDropbox.prototype = {
    */
   refreshUserInfo: function nsDropbox_refreshUserInfo(aWithUI, aCallback) {
     if (Services.io.offline)
-      return Ci.nsIMsgCloudFileProvider.offlineErr;
+      throw Ci.nsIMsgCloudFileProvider.offlineErr;
     this.requestObserver = aCallback;
     aCallback.onStartRequest(null, null);
     if (!this._loggedIn)
@@ -383,7 +388,7 @@ nsDropbox.prototype = {
    */
   deleteFile: function nsDropbox_deleteFile(aFile, aCallback) {
     if (Services.io.offline)
-      return Ci.nsIMsgCloudFileProvider.offlineErr;
+      throw Ci.nsIMsgCloudFileProvider.offlineErr;
 
     let uploadInfo = this._uploadInfo[aFile.path];
     if (!uploadInfo)

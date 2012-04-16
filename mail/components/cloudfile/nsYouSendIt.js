@@ -107,7 +107,13 @@ nsYouSendIt.prototype = {
       this.log.info("chaining upload, file = " + nextUpload.file.leafName);
       this._uploadingFile = nextUpload.file;
       this._uploader = nextUpload;
-      this.uploadFile(nextUpload.file, nextUpload.requestObserver);
+      try {
+        this.uploadFile(nextUpload.file, nextUpload.requestObserver);
+      }
+      catch (ex) {
+        // I'd like to pass ex.result, but that doesn't seem to be defined.
+        nextUpload.callback(nextUpload.requestObserver, Cr.NS_ERROR_FAILURE);
+      }
     }
     else
       this._uploader = null;
@@ -122,7 +128,7 @@ nsYouSendIt.prototype = {
    */
   uploadFile: function nsYouSendIt_uploadFile(aFile, aCallback) {
     if (Services.io.offline)
-      return Ci.nsIMsgCloudFileProvider.offlineErr;
+      throw Ci.nsIMsgCloudFileProvider.offlineErr;
 
     this.log.info("Preparing to upload a file");
 
@@ -320,7 +326,7 @@ nsYouSendIt.prototype = {
    */
   refreshUserInfo: function nsYouSendIt_refreshUserInfo(aWithUI, aListener) {
     if (Services.io.offline)
-      return Ci.nsIMsgCloudFileProvider.offlineErr;
+      throw Ci.nsIMsgCloudFileProvider.offlineErr;
 
     aListener.onStartRequest(null, null);
 
@@ -359,7 +365,7 @@ nsYouSendIt.prototype = {
                                                           aFirstName, aLastName,
                                                           aRequestObserver) {
     if (Services.io.offline)
-      return Ci.nsIMsgCloudFileProvider.offlineErr;
+      throw Ci.nsIMsgCloudFileProvider.offlineErr;
 
     let args = "?email=" + aEmailAddress + "&password=" + aPassword + "&firstname="
                + aFirstName + "&lastname=" + aLastName;
@@ -458,7 +464,7 @@ nsYouSendIt.prototype = {
 
     if (Services.io.offline) {
       this.log.error("We're offline - we can't delete the file.");
-      return Ci.nsIMsgCloudFileProvider.offlineErr;
+      throw Ci.nsIMsgCloudFileProvider.offlineErr;
     }
 
     let uploadInfo = this._uploadInfo[aFile.path];

@@ -12,7 +12,8 @@ var gBigFileObserver = {
   get hidden() {
     return this.sessionHidden ||
            !Services.prefs.getBoolPref("mail.cloud_files.enabled") ||
-           !Services.prefs.getBoolPref("mail.compose.big_attachments.notify");
+           !Services.prefs.getBoolPref("mail.compose.big_attachments.notify") ||
+           Services.io.offline;
   },
   hide: function(aPermanent) {
     if (aPermanent)
