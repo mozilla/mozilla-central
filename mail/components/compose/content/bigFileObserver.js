@@ -29,7 +29,6 @@ var gBigFileObserver = {
     let bucket = document.getElementById("attachmentBucket");
     bucket.addEventListener("attachments-added", this, false);
     bucket.addEventListener("attachments-removed", this, false);
-    bucket.addEventListener("attachment-renamed", this, false);
     bucket.addEventListener("attachments-uploading", this, false);
     bucket.addEventListener("attachment-uploaded", this, false);
     bucket.addEventListener("attachment-upload-failed", this, false);
@@ -43,7 +42,6 @@ var gBigFileObserver = {
     let bucket = document.getElementById("attachmentBucket");
     bucket.removeEventListener("attachments-added", this, false);
     bucket.removeEventListener("attachments-removed", this, false);
-    bucket.removeEventListener("attachment-renamed", this, false);
     bucket.removeEventListener("attachments-uploading", this, false);
     bucket.removeEventListener("attachment-uploaded", this, false);
     bucket.removeEventListener("attachment-upload-failed", this, false);
@@ -86,7 +84,7 @@ var gBigFileObserver = {
       str = PluralForm.get(plural, str);
     if (replacements !== undefined) {
       for (let i = 0; i < replacements.length; i++)
-        str = str.replace("#" + (i+1), replacements[i]);
+        str = str.replace("#" + (i + 1), replacements[i]);
     }
     return str;
   },
@@ -119,8 +117,6 @@ var gBigFileObserver = {
       if (attachment.sendViaCloud) {
         this.attachmentsRemoved([attachment]);
         uploaded.push(attachment);
-      } else {
-        this.attachmentsAdded([attachment]);
       }
     }
 

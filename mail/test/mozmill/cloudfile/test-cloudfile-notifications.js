@@ -6,10 +6,6 @@
  * Tests the get an account workflow.
  */
 
-let Cu = Components.utils;
-let Cc = Components.classes;
-let Ci = Components.interfaces;
-
 let MODULE_NAME = 'test-cloudfile-notifications';
 
 let RELATIVE_ROOT = '../shared-modules';
@@ -29,6 +25,7 @@ Cu.import('resource://gre/modules/Services.jsm');
 
 let maxSize, cfh, ah, oldInsertNotificationPref;
 
+const kOfferThreshold = "mail.compose.big_attachments.threshold_kb";
 const kInsertNotificationPref = "mail.compose.big_attachments.insert_notification";
 
 function setupModule(module) {
@@ -48,9 +45,7 @@ function setupModule(module) {
 
   collector.getModule('prompt-helpers').installInto(module);
 
-  maxSize = Services.prefs
-                    .getIntPref("mail.compose.big_attachments.threshold_kb",
-                                0) * 1024;
+  maxSize = Services.prefs.getIntPref(kOfferThreshold, 0) * 1024;
   oldInsertNotificationPref = Services.prefs
                                       .getBoolPref(kInsertNotificationPref);
   Services.prefs.setBoolPref(kInsertNotificationPref, true);
@@ -227,4 +222,39 @@ function test_link_insertion_goes_away_on_error() {
   assert_upload_notification_displayed(cwc, true);
   wait_for_notification_to_stop(cwc, "bigAttachmentUploading");
   gMockPromptService.unregister();
+}
+
+/**
+ * Test that we do not show the Filelink offer notification if we convert
+ * a Filelink back into a normal attachment.
+ */
+function test_no_offer_on_conversion() {
+  const kFiles = ['./data/testFile1', './data/testFile2'];
+  // Set the notification threshold to 0 to ensure that we get it.
+  Services.prefs.setIntPref(kOfferThreshold, 0);
+
+  // Insert some Filelinks...
+  gMockFilePicker.returnFiles = collectFiles(kFiles, __file__);
+  let provider = new MockCloudfileAccount();
+  provider.init("someKey");
+
+  // Override uploadFile to succeed instantaneously so that we don't have
+  // to worry about waiting for the onStopRequest method being called
+  // asynchronously.
+  provider.uploadFile = function(aFile, aListener) {
+    aListener.onStartRequest(null, null);
+    aListener.onStopRequest(null, null, Cr.NS_OK);
+  };
+
+  let cw = open_compose_new_mail();
+  cw.window.attachToCloud(provider);
+  assert_cloudfile_notification_displayed(cw, false);
+  // Now convert the file back into a normal attachment
+  select_attachments(cw, 0);
+  cw.window.convertSelectedToRegularAttachment();
+
+  assert_cloudfile_notification_displayed(cw, false);
+
+  // Now put the old threshold back.
+  Services.prefs.setIntPref(kOfferThreshold, maxSize);
 }
