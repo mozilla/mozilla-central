@@ -61,6 +61,7 @@
 #endif
 
 class nsFormHistory;
+class nsINode;
 
 class nsFormFillController : public nsIFormFillController,
                              public nsIAutoCompleteInput,
@@ -100,16 +101,20 @@ protected:
   inline nsIDOMWindow *GetWindowForDocShell(nsIDocShell *aDocShell);
   inline PRInt32 GetIndexOfDocShell(nsIDocShell *aDocShell);
 
-  static PLDHashOperator RemoveForDOMDocumentEnumerator(nsISupports* aKey,
-                                                        PRInt32& aEntry,
-                                                        void* aUserData);
+  void MaybeRemoveMutationObserver(nsINode* aNode);
+
+  static PLDHashOperator RemoveForDocumentEnumerator(const nsINode* aKey,
+                                                     bool& aEntry,
+                                                     void* aUserData);
   bool IsEventTrusted(nsIDOMEvent *aEvent);
   bool IsInputAutoCompleteOff();
   // members //////////////////////////////////////////
 
   nsCOMPtr<nsIAutoCompleteController> mController;
   nsCOMPtr<nsILoginManager> mLoginManager;
-  nsCOMPtr<nsIDOMHTMLInputElement> mFocusedInput;
+  nsIDOMHTMLInputElement* mFocusedInput;
+  nsINode* mFocusedInputNode;
+  nsINode* mListNode;
   nsCOMPtr<nsIAutoCompletePopup> mFocusedPopup;
 
   nsCOMPtr<nsISupportsArray> mDocShells;
@@ -120,7 +125,7 @@ protected:
   nsCOMPtr<nsIAutoCompleteObserver> mLastListener;
   nsString mLastSearchString;
 
-  nsDataHashtable<nsISupportsHashKey,PRInt32> mPwmgrInputs;
+  nsDataHashtable<nsPtrHashKey<const nsINode>, bool> mPwmgrInputs;
 
   PRUint32 mTimeout;
   PRUint32 mMinResultsForPopup;
