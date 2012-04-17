@@ -78,7 +78,7 @@ nsDropbox.prototype = {
   _lastErrorStatus : 0,
   _lastErrorText : "",
   _maxFileSize : kMaxFileSize,
-  _availableStorage : -1,
+  _totalStorage: -1,
   _fileSpaceUsed : -1,
   _uploads: [],
   _urlsForFiles : {},
@@ -177,7 +177,7 @@ nsDropbox.prototype = {
     let exceedsQuota = Ci.nsIMsgCloudFileProvider.uploadWouldExceedQuota;
     if (aFile.fileSize > this._maxFileSize)
       return aCallback.onStopRequest(null, null, exceedsFileLimit);
-    if (aFile.fileSize > this._availableStorage)
+    if (aFile.fileSize > this.remainingFileSpace)
       return aCallback.onStopRequest(null, null, exceedsQuota);
 
     delete this._userInfo; // force us to update userInfo on every upload.
@@ -243,9 +243,10 @@ nsDropbox.prototype = {
         this.log.info("user info = " + aResponseText);
         this._userInfo = JSON.parse(aResponseText);
         let quota = this._userInfo.quota_info;
-        this._availableStorage = quota.quota;
+        this._totalStorage = quota.quota;
         this._fileSpaceUsed = quota.normal + quota.shared;
-        this.log.info("avail storage = " + this._availableStorage);
+        this.log.info("storage total = " + this._totalStorage);
+        this.log.info("storage used = " + this._fileSpaceUsed);
         successCallback();
       }.bind(this),
       function(aException, aResponseText, aRequest) {
@@ -376,7 +377,7 @@ nsDropbox.prototype = {
    * If we don't know the limit, this will return -1.
    */
   get fileUploadSizeLimit() this._maxFileSize,
-  get remainingFileSpace() this._availableStorage,
+  get remainingFileSpace() this._totalStorage - this._fileSpaceUsed,
   get fileSpaceUsed() this._fileSpaceUsed,
 
   /**

@@ -6,10 +6,7 @@
  * Tests the Dropbox Bigfile backend.
  */
 
-let Cu = Components.utils;
-let Cc = Components.classes;
-let Ci = Components.interfaces;
-
+const Cr = Components.results;
 const MODULE_NAME = 'test-cloudfile-backend-dropbox';
 
 const RELATIVE_ROOT = '../shared-modules';
@@ -254,4 +251,46 @@ function test_oauth_complete_causes_logout() {
   mc.waitFor(function() dummyObs.success);
   mc.waitFor(function() 1 == obs.numSightings(kLogout));
   Services.obs.removeObserver(obs, kLogout);
+}
+
+/**
+ * Test that we calculate the used and remaining storage amounts correctly.
+ */
+function test_calculate_used_and_remaining_storage_correctly() {
+  const kShared = 12345;
+  const kNormal = 67890;
+  const kQuota = 31415926535;
+
+  let provider = gServer.getPreparedBackend("someNewAccount");
+
+  // Override the returned user profile values with the ones we defined
+  // above.
+  gServer.setupUser({
+    quota_info: {
+      shared: kShared,
+      quota: kQuota,
+      normal: kNormal,
+    }
+  });
+
+  let gotUserInfo = false;
+  let statusCode = null;
+
+  // Make the provider get the user profile from the fake server.
+  provider.refreshUserInfo(false, {
+    onStartRequest: function(aRequest, aContext) {},
+    onStopRequest: function(aRequest, aContext, aStatusCode) {
+      gotUserInfo = true;
+      statusCode = aStatusCode;
+    },
+  });
+
+  // These are the correct calculations that we should get back.
+  const kUsedSpace = kShared + kNormal;
+  const kRemainingSpace = kQuota - kUsedSpace;
+
+  mc.waitFor(function() gotUserInfo);
+  assert_equals(statusCode, Cr.NS_OK);
+  assert_equals(provider.fileSpaceUsed, kUsedSpace);
+  assert_equals(provider.remainingFileSpace, kRemainingSpace);
 }
