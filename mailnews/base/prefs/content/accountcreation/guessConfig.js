@@ -190,12 +190,12 @@ function guessConfig(domain, progressCallback, successCallback, errorCallback,
     // TODO
     // cert is also bad when targetSite is set. (Same below for incoming.)
     // Fix SSLErrorHandler and security warning dialog in emailWizard.js.
-    server.badCert = thisTry.certError != 0;
+    server.badCert = thisTry.selfSignedCert;
     server.targetSite = thisTry.targetSite;
     logger.info("CHOOSING " + server.type + " "+ server.hostname + ":" +
           server.port + ", auth method " + server.auth + " " +
           server.authAlternatives.join(",") + ", SSL " + server.socketType +
-          (server.badCert ? " (bad cert)" : ""));
+          (server.badCert ? " (bad cert!)" : ""));
   };
 
   var outgoingSuccess = function(thisTry, alternativeTries)
@@ -346,8 +346,8 @@ HostTry.prototype =
   // {Array of {Integer-enum}} @see _advertisesAuthMethods() result
   // Info about the server, from the protocol and SSL chat
   authMethods : null,
-  // {nsICertOverrideService.ERROR_*} Whether the SSL cert is not from a proper CA
-  certError : 0,
+  // {String} Whether the SSL cert is not from a proper CA
+  selfSignedCert : false,
   // {String} Which host the SSL cert is made for, if not hostname.
   // If set, this is an SSL error.
   targetSite : null,
@@ -519,6 +519,24 @@ HostDetector.prototype =
    */
   _processResult : function(thisTry, wiredata)
   {
+    if (thisTry._gotCertError == Ci.nsICertOverrideService.ERROR_MISMATCH)
+    {
+      thisTry._gotCertError = false;
+      thisTry.status = kFailed;
+      return;
+    }
+
+    if (thisTry._gotCertError == Ci.nsICertOverrideService.ERROR_UNTRUSTED ||
+        thisTry._gotCertError == Ci.nsICertOverrideService.ERROR_TIME)
+    {
+      this._log.info("TRYING AGAIN, hopefully with exception recorded");
+      thisTry._gotCertError = false;
+      thisTry.selfSignedCert = true; // _next_ run gets this exception
+      thisTry.status = kNotTried; // try again (with exception)
+      this._tryAll();
+      return;
+    }
+
     if (wiredata == null || wiredata === undefined)
     {
       this._log.info("no data");
@@ -534,10 +552,19 @@ HostDetector.prototype =
       thisTry.status = kFailed;
       return;
     }
+    if (thisTry.selfSignedCert)
+    {
+      // the callback will put up the cert exception dialog, so
+      // clear the override here.
+      this._log.info("clearing validity override for " + thisTry.hostname);
+      Cc["@mozilla.org/security/certoverride;1"]
+        .getService(Ci.nsICertOverrideService)
+        .clearValidityOverride(thisTry.hostname, thisTry.port);
+    }
     this._log.info("success with " + thisTry.hostname + ":" +
         thisTry.port + " " + protocolToString(thisTry.protocol) +
         " ssl " + thisTry.ssl +
-        (thisTry.certError ? " (bad cert)" : ""));
+        (thisTry.selfSignedCert ? " (selfSignedCert)" : ""));
     thisTry.status = kSuccess;
   },
 
@@ -914,7 +941,7 @@ function SSLErrorHandler(thisTry, logger)
 {
   this._try = thisTry;
   this._log = logger;
-  this.certError = 0;
+  this._gotCertError = false;
 }
 SSLErrorHandler.prototype =
 {
@@ -932,52 +959,55 @@ SSLErrorHandler.prototype =
     let host = parts[0];
     let port = parts[1];
 
-    /* The following 2 cert problems are unfortunately common:
-     * 1) hostname mismatch:
-     * user is custeromer at a domain hoster, he owns yourname.org,
-     * and the IMAP server is imap.hoster.com (but also reachable as
-     * imap.yourname.org), and has a cert for imap.hoster.com.
-     * 2) self-signed:
-     * a company has an internal IMAP server, and it's only for
-     * 30 employees, and they didn't want to buy a cert, so
-     * they use a self-signed cert.
-     *
-     * We would like the above to pass, somehow, with user confirmation.
-     * The following case should *not* pass:
-     *
-     * 1) MITM
-     * User has @gmail.com, and an attacker is between the user and
-     * the Internet and runs a man-in-the-middle (MITM) attack.
-     * Attacker controls DNS and sends imap.gmail.com to his own
-     * imap.attacker.com. He has either a valid, CA-issued
-     * cert for imap.attacker.com, or a self-signed cert.
-     * Of course, attacker.com could also be legit-sounding gmailservers.com.
-     *
-     * What makes it dangerous is that we (!) propose the server to the user,
-     * and he cannot judge whether imap.gmailservers.com is correct or not,
-     * and he will likely approve it.
-     */
-
     if (status.isDomainMismatch) {
-      this._try.certError = Ci.nsICertOverrideService.ERROR_MISMATCH;
-    }
-    else if (status.isUntrusted) {
-      this._try.certError = Ci.nsICertOverrideService.ERROR_UNTRUSTED;
-    }
-    else if (status.isNotValidAtThisTime) {
-      this._try.certError = Ci.nsICertOverrideService.ERROR_TIME;
-    }
-    else {
-      this._try.certError = -1; // other
+      this._try._gotCertError = Ci.nsICertOverrideService.ERROR_MISMATCH;
+      flags |= Ci.nsICertOverrideService.ERROR_MISMATCH;
+
+      // If it was just a domain mismatch error
+      // TODO "just"??? disabling it for now
+      if (false && !(status.isUntrusted || status.isNotValidAtThisTime)) {
+        // then, if we didn't get a wildcard in the certificate,
+        if (cert.commonName.charAt(0) != "*") {
+          // then add this host to the hosts to try, and skip to the end.
+          /* TODO This is logically broken, I think
+           * The hostname is in the cert, because the cert is only valid for
+           * this host. Anybody can get a cert (even from a CA) for
+           * imap.badsite.com . If you MITM me (which is what SSL certs try
+           * to prevent), we'll get imap.badsite.com here. Now, if we treat
+           * this as "cool, let's see whether imap.badsite.com also works!",
+           * the SSL cert was kind of pointless, no?
+           * Sure, we can let the user confirm it first (not sure whether we
+           * do that!), but that may be too risky, because users are likely
+           * to just accept. See phishing. */
+          if (this._hostsToTry.indexOf(cert.commonName) == -1) 
+            this._hostsToTry.push(cert.commonName);
+          this._tryIndex = this.tryOrder.length - 1;
+        }
+        return true;
+      }
     }
 
-    /* We will continue and connect and try here.
-     *
-     * In verifyConfig(), before we send the password, we *must*
-     * get another cert exception, this time with dialog to the user
-     * so that he gets informed about this and can make a choice.
-     */
+    if (status.isUntrusted) {
+      this._try._gotCertError = Ci.nsICertOverrideService.ERROR_UNTRUSTED;
+      flags |= Ci.nsICertOverrideService.ERROR_UNTRUSTED;
+    }
+    if (status.isNotValidAtThisTime) {
+      this._try._gotCertError = Ci.nsICertOverrideService.ERROR_TIME;
+      flags |= Ci.nsICertOverrideService.ERROR_TIME;
+    }
 
+    // If domain mismatch, then we shouldn't accept, and instead try the domain
+    // in the cert to the list of tries.
+    // Not skipping mismatches for now because it's too common, and until we can
+    // poke around the cert and find out what domain to try, best to live
+    // w/ orange than red.
+
+    this._try.targetSite = targetSite;
+    this._try._certOverrideProcessed = false;
+    Cc["@mozilla.org/security/certoverride;1"]
+      .getService(Ci.nsICertOverrideService)
+      .rememberValidityOverride(host, port, cert, flags,
+        false); // last bit is temporary -- should it be true? XXX
     this._log.warn("!! Overrode bad cert temporarily " + host + " " + port +
                    "flags = " + flags + "\n");
     return true;
