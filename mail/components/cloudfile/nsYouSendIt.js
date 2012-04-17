@@ -15,10 +15,10 @@ Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource:///modules/gloda/log4moz.js");
 Cu.import("resource:///modules/cloudFileAccounts.js");
 
-// Production url: var gServerUrl = "https://dpi.yousendit.com";
-var gServerUrl = "https://test2-api.yousendit.com";
+var gServerUrl = "https://dpi.yousendit.com"; // Production url
+// test url var gServerUrl = "https://test2-api.yousendit.com";
 
-const kApiKey = "9kkwmbvzschzxrermh6s4hkz";
+const kApiKey = "7spvjdt7m4kycr7jyhywrdn2";
 const kAuthPath = "/dpi/v1/auth";
 const kUserInfoPath = "/dpi/v1/user";
 const kItemPath = "/dpi/v1/item/";
@@ -286,6 +286,7 @@ nsYouSendIt.prototype = {
         let account = docResponse.account;
         this._availableStorage = account.availableStorage;
         this._maxFileSize = account.maxFileSize;
+        this.log.info("available storage = " + this._availableStorage + " max file size = " + this._maxFileSize);
         successCallback();
       }
       else {
