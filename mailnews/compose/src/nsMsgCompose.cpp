@@ -1710,16 +1710,20 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
   mDeleteDraft = (type == nsIMsgCompType::Draft);
   nsCAutoString msgUri(originalMsgURI);
   bool fileUrl = StringBeginsWith(msgUri, NS_LITERAL_CSTRING("file:"));
-  PRInt32 typeIndex = msgUri.Find("?type=application/x-message-display");
-  if (typeIndex != kNotFound)
+  PRInt32 typeIndex = msgUri.Find("type=application/x-message-display");
+  if (typeIndex != kNotFound && typeIndex > 0)
   {
-    // strip out ?type=application/x-message-display because it confuses libmime
-    msgUri.Cut(typeIndex, sizeof("?type=application/x-message-display") - 1);
+    // Strip out type=application/x-message-display because it confuses libmime.
+    msgUri.Cut(typeIndex, sizeof("type=application/x-message-display"));
     if (fileUrl) // we're dealing with an .eml file msg
     {
-      // we also need to replace the next '&' with '?'
+      // We have now removed the type from the uri. Make sure we don't have
+      // an uri with "&&" now. If we do, remove the second '&'.
       if (msgUri.CharAt(typeIndex) == '&')
-        msgUri.SetCharAt('?', typeIndex);
+        msgUri.Cut(typeIndex, 1);
+      // Remove possible trailing '?'.
+      if (msgUri.CharAt(msgUri.Length() - 1) == '?')
+        msgUri.Cut(msgUri.Length() - 1, 1);
     }
     else // we're dealing with a message/rfc822 attachment
     {
