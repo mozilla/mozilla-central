@@ -232,13 +232,13 @@ a {
 /* Loading panel */
 #cloudFileLoadingPanel, #cloudFileDefaultPanel {
   text-align: center;
-  padding-top: 150px;
+  padding-top: 120px;
 }
 
 /* Flexing */
 #provider-management {
-  height: 270px; /* As far as I can see, the height and width values needs to be hardcoded :( */
-  width: 350px;
+  height: 230px; /* As far as I can see, the height and width values needs to be hardcoded :( */
+  width: 355px;
   display: -moz-box;
   -moz-box-orient: vertical;
 }

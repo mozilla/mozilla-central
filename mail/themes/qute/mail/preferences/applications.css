@@ -127,8 +127,8 @@ richlistitem.cloudfileAccount[state="no-connection"] {
 
 #authImage {
   list-style-image: url("chrome://messenger/skin/preferences/auth-error.png");
-  width: 200px;
-  height: 200px;
+  width: 150px;
+  height: 150px;
 }
 
 #cloudFileLoadingSpinner {
