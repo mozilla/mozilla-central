@@ -1578,6 +1578,8 @@ EmailConfigWizard.prototype =
         // should back-port it to the current config.
         self._currentConfig.incoming.auth = successfulConfig.incoming.auth;
         self._currentConfig.outgoing.auth = successfulConfig.outgoing.auth;
+        self._currentConfig.incoming.username = successfulConfig.incoming.username;
+        self._currentConfig.outgoing.username = successfulConfig.outgoing.username;
         self.finish();
       },
       function(e) // failed
