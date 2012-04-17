@@ -37,7 +37,8 @@
 
 #security-button {
   width: 20px;
-  padding-right: 5px;
+  margin-top: -1px;
+  margin-right: 5px;
   background-repeat: no-repeat;
 }
 
@@ -72,4 +73,9 @@
     overflow: hidden;
     margin: 5px 5px;
     font-weight: normal;
+}
+
+#headerMessage {
+  margin-top: 3px;
+  margin-bottom: 3px;
 }

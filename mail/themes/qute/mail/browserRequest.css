@@ -63,3 +63,7 @@
   margin: 0px 5px;
   font-weight: normal;
 }
+
+#headerMessage {
+  margin-top: 4px;
+}
