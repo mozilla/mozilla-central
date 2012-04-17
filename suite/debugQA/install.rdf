@@ -12,14 +12,14 @@
       <!-- Suite -->
       <Description>
         <em:id>{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}</em:id>
-        <em:minVersion>2.0a</em:minVersion>
-        <em:maxVersion>@SEAMONKEY_VERSION@</em:maxVersion>
+        <em:minVersion>@MOZ_APP_VERSION@</em:minVersion>
+        <em:maxVersion>@MOZ_APP_MAXVERSION@</em:maxVersion>
       </Description>
     </em:targetApplication>
-    
+
     <!-- EXTENSION AUTHORS!
          DO NOT COPY THIS PROPERTY INTO YOUR INSTALL RDF FILES
-         It will cause users not to be informed of incompatibilities 
+         It will cause users not to be informed of incompatibilities
          with your extension when they are updated with Software Update
          and your extension will become unavailable to them!
          -->

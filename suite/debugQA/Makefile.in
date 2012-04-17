@@ -55,7 +55,8 @@ DIST_FILES = install.rdf
 DIRS = locales
 
 XULAPP_DEFINES = \
-    -DSEAMONKEY_VERSION=$(SEAMONKEY_VERSION) \
+    -DMOZ_APP_VERSION=$(MOZ_APP_VERSION) \
+    -DMOZ_APP_MAXVERSION=$(MOZ_APP_MAXVERSION) \
     $(NULL)
 
 include $(topsrcdir)/config/rules.mk
