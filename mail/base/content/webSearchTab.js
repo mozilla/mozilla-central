@@ -66,6 +66,27 @@ let webSearchTabType = {
     }
   },
 
+  initialize: function() {
+    let browser = document.getElementById("dummywebsearchbrowser");
+
+    // Manually hook up session and global history for the first browser
+    // so that we don't have to load global history before bringing up a
+    // window.
+    // Wire up session and global history before any possible
+    // progress notifications for back/forward button updating
+    browser.webNavigation.sessionHistory =
+      Components.classes["@mozilla.org/browser/shistory;1"]
+                .createInstance(Components.interfaces.nsISHistory);
+    Services.obs.addObserver(browser, "browser:purge-session-history", false);
+
+    // remove the disablehistory attribute so the browser cleans up, as
+    // though it had done this work itself
+    browser.removeAttribute("disablehistory");
+
+    let tabmail = document.getElementById("tabmail");
+    tabmail.registerTabType(this);
+  },
+
   openTab: function onTabOpened(aTab, aArgs) {
     if (!"contentPane" in aArgs || !"engine" in aArgs || !"query" in aArgs)
       throw("contentPage, engine, and query must be specified");
@@ -152,6 +173,9 @@ let webSearchTabType = {
     aTab.browser.loadURIWithFlags(aArgs.contentPage, null, null, null,
                                   aArgs.postData);
 
+    goUpdateCommand("cmd_goBackSearch");
+    goUpdateCommand("cmd_goForwardSearch");
+
     this.lastBrowserId++;
   },
 
@@ -201,35 +225,52 @@ let webSearchTabType = {
     }
   },
 
+  commands: {
+    cmd_goBackSearch: {
+      isEnabled: function(aTab) {
+        return aTab.browser.canGoBack;
+      },
+      doCommand: function(aTab) {
+        aTab.browser.goBack();
+      }
+    },
+
+    cmd_goForwardSearch: {
+      isEnabled: function(aTab) {
+        return aTab.browser.canGoForward;
+      },
+      doCommand: function(aTab) {
+        aTab.browser.goForward();
+      }
+    },
+  },
+
   supportsCommand: function supportsCommand(aCommand, aTab) {
-    switch (aCommand) {
-      case "cmd_goBackSearch":
-      case "cmd_goForwardSearch":
-        return true;
-      default:
-        return this.__proto__.supportsCommand(aCommand, aTab);
-    }
+    return (aCommand in this.commands) ||
+           this.__proto__.supportsCommand(aCommand, aTab);
   },
 
   isCommandEnabled: function isCommandEnabled(aCommand, aTab) {
-    switch (aCommand) {
-      case "cmd_goBackSearch":
-        return aTab.browser.canGoBack;
-      case "cmd_goForwardSearch":
-        return aTab.browser.canGoForward;
-      default:
-        return this.__proto__.isCommandEnabled(aCommand, aTab);
-    }
+    if (!this.supportsCommand(aCommand))
+      return;
+
+    if (aCommand in this.commands)
+      return this.commands[aCommand].isEnabled(aTab);
+    else
+      return this.__proto__.isCommandEnabled(aCommand, aTab);
   },
 
   doCommand: function doCommand(aCommand, aTab) {
-    switch (aCommand) {
-      case "cmd_goBackSearch":
-        aTab.browser.goBack();
-      case "cmd_goForwardSearch":
-        aTab.browser.goForward();
-      default:
-        this.__proto__.doCommand(aCommand, aTab);
+    if (!this.supportsCommand(aCommand))
+      return;
+
+    if (aCommand in this.commands) {
+      var cmd = this.commands[aCommand];
+      if (!cmd.isEnabled(aTab))
+        return;
+      cmd.doCommand(aTab);
+    } else {
+      this.__proto__.doCommand(aCommand, aTab);
     }
   },
 

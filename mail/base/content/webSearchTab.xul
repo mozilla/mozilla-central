@@ -50,13 +50,11 @@
   </commandset>
 
 
-  <!--We want to enable browser history, and at least the Go menu-->
-  <browser id="dummycontentbrowser" type="content" disablehistory="false"/>
   <hbox id="tabmail-container">
     <vbox id="webSearchTab" collapsed="true">
       <vbox flex="1">
-        <toolbox id="dummycontenttoolbox" class="contentTabToolbox">
-          <toolbar id="dummycontenttoolbar" class="contentTabToolbar"></toolbar>
+        <toolbox id="dummywebsearchtoolbox" class="contentTabToolbox">
+          <toolbar id="dummywebsearchtoolbar" class="contentTabToolbar"/>
         </toolbox>
         <hbox flex="1">
           <vbox class="navbar">
@@ -68,11 +66,11 @@
                             flex="1"/>
             <button class="defaultButton" type="checkbox"/>
           </vbox>
-          <browser id="dummycontentbrowser" type="content-targetable" flex="1"
+          <browser id="dummywebsearchbrowser" type="content-targetable" flex="1"
                    disablehistory="true" autocompletepopup="PopupAutoComplete"
                    context="mailContext"/>
-          <findbar browserid="dummycontentbrowser"/>
         </hbox>
+        <findbar browserid="dummywebsearchbrowser"/>
       </vbox>
     </vbox>
   </hbox>
