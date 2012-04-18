@@ -1,0 +1,43 @@
+if test -e "$topsrcdir/mozilla/build/macosx/universal/mozconfig"; then
+  oldtopsrcdir=$topsrcdir
+  export topsrcdir=$topsrcdir/mozilla
+else
+  # Big Hack that unsets CC / CXX so that mozconfig.common doesn't get
+  # mixed up with host/target CPUs when trying to work out how to do the
+  # universal build. When we redo the build system (bug 648979) this will
+  # go away.
+  unset CC
+  unset CXX
+fi
+
+. $topsrcdir/build/macosx/universal/mozconfig
+
+if test -n $oldtopsrcdir; then
+  export topsrcdir=$oldtopsrcdir
+fi
+
+ac_add_options --enable-application=mail
+ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
+ac_add_options --enable-update-packaging
+ac_add_options --enable-optimize
+ac_add_options --disable-debug
+ac_add_options --enable-tests
+ac_add_options --enable-official-branding
+
+export CFLAGS="-gdwarf-2"
+export CXXFLAGS="-gdwarf-2"
+
+# For NSS symbols
+export MOZ_DEBUG_SYMBOLS=1
+ac_add_options --enable-debug-symbols="-gdwarf-2"
+
+# Needed to enable breakpad in application.ini
+export MOZILLA_OFFICIAL=1
+
+# Enable parallel compiling
+CONCURRENCY=$(( `sysctl hw.logicalcpu | awk {'print $2'}`  + 2 ))
+mk_add_options MOZ_MAKE_FLAGS="-j$CONCURRENCY"
+
+# Run client.py
+mk_add_options CLIENT_PY_ARGS="--hg-options='--verbose --time' --hgtool=../tools/buildfarm/utils/hgtool.py --skip-chatzilla --skip-comm --skip-inspector --skip-venkman --tinderbox-print"
+mk_add_options ALWAYS_RUN_CLIENT_PY=1
