@@ -45,7 +45,7 @@
 <dialog id="viewLogWindow"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         onload="onLoad();"
-        title="&junkLog.title;"
+        title="&adaptiveJunkLog.title;"
         windowtype="mailnews:junklog"
         buttons="accept"
         buttonlabelaccept="&closeLog.label;"
@@ -53,12 +53,12 @@
         ondialogaccept="window.close()"
         persist="screenX screenY width height"
         style="width: 40em; height: 25em;">
-  
+
   <script type="application/javascript" src="chrome://messenger/content/preferences/junkLog.js"/>
-  
+
   <vbox flex="1">
     <hbox>
-      <label value="&junkLogInfo.label;"/>
+      <label value="&adaptiveJunkLogInfo.label;"/>
       <spacer flex="1"/>
       <button label="&clearLog.label;" accesskey="&clearLog.accesskey;" oncommand="clearLog()"/>
     </hbox>
@@ -66,7 +66,8 @@
       <spacer height="10px"/>
       <hbox flex="1">
         <spacer width="10px"/>
-        <browser id="logView" disablehistory="true" disablesecurity="true" src="about:blank" autofind="false" flex="1"/>
+        <browser id="logView" disablehistory="true" disablesecurity="true"
+                 src="about:blank" autofind="false" flex="1"/>
         <spacer width="10px"/>
       </hbox>
       <spacer height="10px"/>

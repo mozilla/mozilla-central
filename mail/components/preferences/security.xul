@@ -105,12 +105,12 @@
         <tab label="&itemPasswords.label;"/>
         <tab label="&itemCookies.label;"/>
       </tabs>
-      
+
       <tabpanels flex="1">
         <tabpanel orient="vertical">
           <description>&junkMail.intro;</description>
           <separator class="thin"/>
-          
+
           <checkbox id="manualMark" 
                     preference="mail.spam.manualMark"
                     oncommand="gSecurityPane.updateManualMarkMode(this.checked);"
@@ -118,19 +118,21 @@
 
           <radiogroup id="manualMarkMode" class="indent"
                       preference="mail.spam.manualMarkMode" aria-labelledby="manualMark">
-            <radio id="manualMarkMode0" value="0" label="&manualMarkModeMove.label;" accesskey="&manualMarkModeMove.accesskey;"/>
-            <radio id="manualMarkMode1" value="1" label="&manualMarkModeDelete.label;" accesskey="&manualMarkModeDelete.accesskey;"/>
+            <radio id="manualMarkMode0" value="0" label="&manualMarkModeMove.label;"
+                   accesskey="&manualMarkModeMove.accesskey;"/>
+            <radio id="manualMarkMode1" value="1" label="&manualMarkModeDelete.label;"
+                   accesskey="&manualMarkModeDelete.accesskey;"/>
           </radiogroup>
-          
-          <checkbox id="markAsReadOnSpam" label="&markAsReadOnSpam.label;" 
+
+          <checkbox id="markAsReadOnSpam" label="&markAsReadOnSpam.label;"
                     accesskey="&markAsReadOnSpam.accesskey;"
                     preference="mail.spam.markAsReadOnSpam"/>
 
           <hbox align="start">
-            <checkbox id="enableJunkLogging" label="&enableJunkLogging.label;"
-                      oncommand="gSecurityPane.updateJunkLogButton(this.checked);" 
-                      preference="mail.spam.logging.enabled" 
-                      accesskey="&enableJunkLogging.accesskey;"/>
+            <checkbox id="enableJunkLogging" label="&enableAdaptiveJunkLogging.label;"
+                      oncommand="gSecurityPane.updateJunkLogButton(this.checked);"
+                      preference="mail.spam.logging.enabled"
+                      accesskey="&enableAdaptiveJunkLogging.accesskey;"/>
             <spacer flex="1"/>
             <button id="openJunkLogButton" label="&openJunkLog.label;" accesskey="&openJunkLog.accesskey;" 
                     oncommand="gSecurityPane.openJunkLog();"/>
