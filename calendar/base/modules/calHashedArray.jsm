@@ -195,6 +195,10 @@ cal.HashedArray.prototype = {
      *                    defaults to the array length.
      */
     reindex: function reindex(from, to) {
+        if (this.mArray.length == 0) {
+            return;
+        }
+
         from = (from === undefined ? 0 : from);
         to = (to === undefined ? this.mArray.length - 1 : to);
 

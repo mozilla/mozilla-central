@@ -49,6 +49,7 @@ EXTRA_JS_MODULES = \
     calAlarmUtils.jsm \
     calAuthUtils.jsm \
     calHashedArray.jsm \
+    calItemUtils.jsm \
     calIteratorUtils.jsm \
     calItipUtils.jsm \
     calPrintUtils.jsm \
