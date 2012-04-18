@@ -673,10 +673,10 @@ Reify(JSContext *cx, JSCompartment *origin, Value *vp)
     bool isKeyIter = ni->isKeyIter();
     AutoIdVector keys(cx);
     if (length > 0) {
-        if (!keys.resize(length))
+        if (!keys.reserve(length))
             return false;
         for (size_t i = 0; i < length; ++i) {
-            keys[i] = ni->begin()[i];
+            keys.infallibleAppend(ni->begin()[i]);
             if (!origin->wrapId(cx, &keys[i]))
                 return false;
         }
