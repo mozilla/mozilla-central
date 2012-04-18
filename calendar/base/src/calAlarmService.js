@@ -448,15 +448,15 @@ calAlarmService.prototype = {
     },
 
     getOccurrencesInRange: function cAS_getOccurrencesInRange(aItem) {
-        if (aItem && aItem.recurrenceInfo) {
-            // We search 1 month in each direction for alarms.  Therefore,
-            // we need occurrences between initial start date and 1 month from now
-            let until = nowUTC();
-            until.month += 1;
+        // We search 1 month in each direction for alarms.  Therefore,
+        // we need occurrences between initial start date and 1 month from now
+        let until = nowUTC();
+        until.month += 1;
 
+        if (aItem && aItem.recurrenceInfo) {
             return aItem.recurrenceInfo.getOccurrences(this.mRangeStart, until, 0, {});
         } else {
-            return [aItem];
+            return cal.checkIfInRange(aItem, this.mRangeStart, until) ? [aItem] : [];
         }
     },
 
