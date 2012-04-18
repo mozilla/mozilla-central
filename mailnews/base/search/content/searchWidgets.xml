@@ -220,11 +220,25 @@
                   }
                 }
 
-                // don't add the tag action, several tags can be set
-                // don't add the forward action, severals forwards are OK
-                if (!isCustom && actionValue != 'addtagtomessage' &&
-                                 actionValue != 'forwardmessage')
-                  usedActions[actionValue] = true;
+                if (!isCustom) {
+                  // The following actions can appear more than once in a single filter
+                  // so do not set them as already used.
+                  if (actionValue != 'addtagtomessage' &&
+                      actionValue != 'forwardmessage' &&
+                      actionValue != 'copymessage')
+                    usedActions[actionValue] = true;
+                  // If either Delete message or Move message exists, disable the other one.
+                  // It does not make sense to apply both to the same message.
+                  if (actionValue == 'deletemessage')
+                    usedActions['movemessage'] = true;
+                  else if (actionValue == 'movemessage')
+                    usedActions['deletemessage'] = true;
+                  // The same with Mark as read/Mark as Unread.
+                  else if (actionValue == 'markasread')
+                    usedActions['markasunread'] = true;
+                  else if (actionValue == 'markasunread')
+                    usedActions['markasread'] = true;
+                }
               }
             }
             return usedActions;
