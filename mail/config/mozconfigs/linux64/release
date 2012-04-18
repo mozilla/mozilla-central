@@ -10,7 +10,7 @@ if test -e "$topsrcdir/mozilla/build/unix/mozconfig.linux"; then
   . $topsrcdir/mozilla/build/unix/mozconfig.linux
 else
   . $topsrcdir/build/unix/mozconfig.linux
-endif  
+fi  
 
 # Avoid dependency on libstdc++ 4.5
 ac_add_options --enable-stdcxx-compat
