@@ -50,7 +50,13 @@ listcell[enabled="false"] {
 }
 
 listcell[enabled="true"] {
- list-style-image: url("chrome://messenger/skin/icons/check.gif");
+  list-style-image: url("chrome://messenger/skin/icons/check.gif");
+}
+
+#FilterEditor {
+  padding-top: 1px;
+  -moz-padding-start: 0;
+  -moz-padding-end: 0;
 }
 
 .small-button {

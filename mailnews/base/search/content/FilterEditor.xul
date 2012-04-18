@@ -70,11 +70,13 @@
   <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
   <script type="application/javascript" src="chrome://messenger/content/msgFolderPickerOverlay.js"/>
 
-  <hbox align="center">
-    <label value="&filterName.label;" accesskey="&filterName.accesskey;" control="filterName"/>
-    <textbox flex="50%" id="filterName"/>
-    <spacer flex="50%"/>
-  </hbox>
+  <vbox>
+    <hbox align="center">
+      <label value="&filterName.label;" accesskey="&filterName.accesskey;" control="filterName"/>
+      <textbox flex="1" id="filterName"/>
+      <spacer flex="1"/>
+    </hbox>
+  </vbox>
 
   <separator/>
 
@@ -106,7 +108,7 @@
 
   </vbox>
 
-  <separator/>
+  <splitter id="gray_horizontal_splitter" persist="state"/>
 
   <vbox flex="1">
     <label value="&filterActionDesc.label;" accesskey="&filterActionDesc.accesskey;" control="filterActionList"/>

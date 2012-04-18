@@ -75,6 +75,10 @@ textbox {
   margin: 1px 4px;
 }
 
+#FilterEditor {
+  padding: 0px;
+}
+
 #filterListDialog {
   padding: 0px;
 }
