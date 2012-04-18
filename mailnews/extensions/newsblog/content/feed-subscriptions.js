@@ -137,9 +137,9 @@ var gFeedSubscriptionsWindow = {
         {
           // If selecting a prior selected feed, get its folder from the db
           // in case an ancestor folder was renamed/moved.
-          let itemResource = rdf.GetResource(item.url);
-          let ds = getSubscriptionsDS(item.parentFolder.server);
-          let itemFolder = ds.GetTarget(itemResource, FZ_DESTFOLDER, true);
+          let itemResource = FeedUtils.rdf.GetResource(item.url);
+          let ds = FeedUtils.getSubscriptionsDS(item.parentFolder.server);
+          let itemFolder = ds.GetTarget(itemResource, FeedUtils.FZ_DESTFOLDER, true);
           if (itemFolder)
           {
             itemFolder = itemFolder.QueryInterface(Ci.nsIMsgFolder);
@@ -582,7 +582,7 @@ var gFeedSubscriptionsWindow = {
     // Finally, set the folder's quickMode based on the its first feed's
     // quickMode, since that is how the view determines summary mode, and now
     // quickMode is updated to be the same for all feeds in a folder.
-    if (feeds)
+    if (feeds && feeds[0])
       folderObject.quickMode = feeds[0].quickMode;
 
     return folderObject;
@@ -591,16 +591,16 @@ var gFeedSubscriptionsWindow = {
   getFeedsInFolder: function (aFolder)
   {
     let feeds = new Array();
-    let feedUrlArray = getFeedUrlsInFolder(aFolder);
+    let feedUrlArray = FeedUtils.getFeedUrlsInFolder(aFolder);
     if (!feedUrlArray)
       // No feedUrls in this folder.
-      return;
+      return feeds;
 
     for (let url in feedUrlArray)
     {
       if (!feedUrlArray[url])
         continue;
-      let feedResource = rdf.GetResource(feedUrlArray[url]);
+      let feedResource = FeedUtils.rdf.GetResource(feedUrlArray[url]);
       let feed = new Feed(feedResource, aFolder.server);
       feeds.push(feed);
     }
@@ -887,7 +887,7 @@ var gFeedSubscriptionsWindow = {
       item.folder.server.setBoolValue("quickMode", aChecked);
       this.refreshSubscriptionView();
     }
-    else if (!getFeedUrlsInFolder(item.folder))
+    else if (!FeedUtils.getFeedUrlsInFolder(item.folder))
       // Not a folder with feeds.
       return;
     else
@@ -945,7 +945,7 @@ var gFeedSubscriptionsWindow = {
 
     if (item && item.folder &&
         (locationValue.hasAttribute("focused") || locationValue.value ||
-         item.folder.isServer || getFeedUrlsInFolder(item.folder)))
+         item.folder.isServer || FeedUtils.getFeedUrlsInFolder(item.folder)))
     {
       // Enable summary for account folder or folder with feeds or focus/value
       // in the feed url field of empty folders prior to add.
@@ -981,9 +981,9 @@ var gFeedSubscriptionsWindow = {
         return;
     }
 
-    deleteFeed(rdf.GetResource(itemToRemove.url),
-               itemToRemove.parentFolder.server,
-               itemToRemove.parentFolder);
+    FeedUtils.deleteFeed(FeedUtils.rdf.GetResource(itemToRemove.url),
+                         itemToRemove.parentFolder.server,
+                         itemToRemove.parentFolder);
 
     // Now that we have removed the feed from the datasource, it is time to
     // update our view layer.  Update parent folder's quickMode if necessary
@@ -1061,7 +1061,7 @@ var gFeedSubscriptionsWindow = {
 
     // Before we go any further, make sure the user is not already subscribed
     // to this feed.
-    if (feedAlreadyExists(feedLocation, addFolder.server))
+    if (FeedUtils.feedAlreadyExists(feedLocation, addFolder.server))
     {
       message = FeedUtils.strings.GetStringFromName(
                   "subscribe-feedAlreadySubscribed");
@@ -1094,13 +1094,13 @@ var gFeedSubscriptionsWindow = {
   // Helper routine used by addFeed and importOPMLFile.
   storeFeed: function(feedProperties)
   {
-    let itemResource = rdf.GetResource(feedProperties.feedLocation);
+    let itemResource = FeedUtils.rdf.GetResource(feedProperties.feedLocation);
     let feed = new Feed(itemResource, feedProperties.server);
 
     // If the user specified a folder to add the feed to, then set it here.
     if (feedProperties.folderURI)
     {
-      let folderResource = rdf.GetResource(feedProperties.folderURI);
+      let folderResource = FeedUtils.rdf.GetResource(feedProperties.folderURI);
       if (folderResource)
       {
         let folder = folderResource.QueryInterface(Ci.nsIMsgFolder);
@@ -1124,10 +1124,10 @@ var gFeedSubscriptionsWindow = {
     if (!itemToEdit || itemToEdit.container || !itemToEdit.parentFolder)
       return;
 
-    let resource = rdf.GetResource(itemToEdit.url);
+    let resource = FeedUtils.rdf.GetResource(itemToEdit.url);
     let currentFolderServer = itemToEdit.parentFolder.server;
-    let ds = getSubscriptionsDS(currentFolderServer);
-    let currentFolder = ds.GetTarget(resource, FZ_DESTFOLDER, true);
+    let ds = FeedUtils.getSubscriptionsDS(currentFolderServer);
+    let currentFolder = ds.GetTarget(resource, FeedUtils.FZ_DESTFOLDER, true);
     let currentFolderURI = currentFolder.QueryInterface(Ci.nsIRDFResource).Value;
     let feed = new Feed(resource, currentFolderServer);
     feed.folder = itemToEdit.parentFolder;
@@ -1213,15 +1213,15 @@ var gFeedSubscriptionsWindow = {
 
     let currentParentIndex = this.mView.getParentIndex(aOldFeedIndex);
     let currentParentItem = this.mView.getItemAtIndex(currentParentIndex);
-    let currentParentResource = rdf.GetResource(currentParentItem.url);
+    let currentParentResource = FeedUtils.rdf.GetResource(currentParentItem.url);
     let currentFolder = currentParentResource.QueryInterface(Ci.nsIMsgFolder);
 
     let newParentItem = this.mView.getItemAtIndex(aNewParentIndex);
-    let newParentResource = rdf.GetResource(newParentItem.url);
+    let newParentResource = FeedUtils.rdf.GetResource(newParentItem.url);
     let newFolder = newParentResource.QueryInterface(Ci.nsIMsgFolder);
 
-    let ds = getSubscriptionsDS(currentItem.parentFolder.server);
-    let resource = rdf.GetResource(currentItem.url);
+    let ds = FeedUtils.getSubscriptionsDS(currentItem.parentFolder.server);
+    let resource = FeedUtils.rdf.GetResource(currentItem.url);
 
     let accountMoveCopy = false;
     if (currentFolder.rootFolder.URI == newFolder.rootFolder.URI)
@@ -1233,14 +1233,14 @@ var gFeedSubscriptionsWindow = {
         return;
 
       // Unassert the older URI, add an assertion for the new parent URI.
-      ds.Change(resource, FZ_DESTFOLDER,
+      ds.Change(resource, FeedUtils.FZ_DESTFOLDER,
                 currentParentResource, newParentResource);
       ds.QueryInterface(Ci.nsIRDFRemoteDataSource).Flush();
       // Update the feed url attributes on the databases for each folder:
       // Remove our feed url property from the current folder.
-      updateFolderFeedUrl(currentFolder, currentItem.url, true);
+      FeedUtils.updateFolderFeedUrl(currentFolder, currentItem.url, true);
       // Add our feed url property to the new folder.
-      updateFolderFeedUrl(newFolder, currentItem.url, false);
+      FeedUtils.updateFolderFeedUrl(newFolder, currentItem.url, false);
     }
     else
     {
@@ -1256,9 +1256,9 @@ var gFeedSubscriptionsWindow = {
       // Unsubscribe the feed from the old folder, if add to the new folder
       // is successfull, and doing a move.
       if (moveFeed)
-        deleteFeed(rdf.GetResource(currentItem.url),
-                   currentItem.parentFolder.server,
-                   currentItem.parentFolder);
+        FeedUtils.deleteFeed(FeedUtils.rdf.GetResource(currentItem.url),
+                             currentItem.parentFolder.server,
+                             currentItem.parentFolder);
     }
 
     // Finally, update our view layer.  Update old parent folder's quickMode
@@ -1300,7 +1300,7 @@ var gFeedSubscriptionsWindow = {
   {
     let feedItem = aFeedItem;
     let parentItem = aParentItem;
-    let feedUrlArray = getFeedUrlsInFolder(feedItem.parentFolder);
+    let feedUrlArray = FeedUtils.getFeedUrlsInFolder(feedItem.parentFolder);
     let feedsInFolder = feedUrlArray ? feedUrlArray.length : 0;
 
     if (aRemove && feedsInFolder < 1)
@@ -1314,7 +1314,7 @@ var gFeedSubscriptionsWindow = {
       // only feed, update the parent folder to the feed's quickMode.
       if (feedsInFolder > 1)
       {
-        let feedResource = rdf.GetResource(feedItem.url);
+        let feedResource = FeedUtils.rdf.GetResource(feedItem.url);
         let feed = new Feed(feedResource, feedItem.parentFolder.server);
         feed.quickMode = parentItem.quickMode;
         feedItem.quickMode = parentItem.quickMode;
@@ -1358,11 +1358,11 @@ var gFeedSubscriptionsWindow = {
 
         // If we get here we should always have a folder by now, either in
         // feed.folder or FeedItems created the folder for us.
-        updateFolderFeedUrl(feed.folder, feed.url, false);
+        FeedUtils.updateFolderFeedUrl(feed.folder, feed.url, false);
 
         // Add feed adds the feed to the subscriptions db and flushes the
         // datasource.
-        addFeed(feed.url, feed.name, feed.folder); 
+        FeedUtils.addFeed(feed.url, feed.name, feed.folder); 
 
         // Now add the feed to our view.  If adding, the current selection will
         // be a folder; if updating it will be a feed.  No need to rebuild the
@@ -1432,9 +1432,9 @@ var gFeedSubscriptionsWindow = {
       {
         // Non success.  Remove intermediate traces from the feeds database.
         if (feed && feed.url && feed.server)
-          deleteFeed(rdf.GetResource(feed.url),
-                     feed.server,
-                     feed.server.rootFolder);
+          FeedUtils.deleteFeed(FeedUtils.rdf.GetResource(feed.url),
+                               feed.server,
+                               feed.server.rootFolder);
 
         if (aErrorCode == FeedUtils.kNewsBlogInvalidFeed)
           message = FeedUtils.strings.GetStringFromName(
@@ -1466,7 +1466,7 @@ var gFeedSubscriptionsWindow = {
       this.onProgress(feed, aCurrentFeedItems, aMaxFeedItems);
     },
 
-    onProgress: function(feed, aProgress, aProgressMax)
+    onProgress: function(feed, aProgress, aProgressMax, aLengthComputable)
     {
       gFeedSubscriptionsWindow.updateStatusItem("progressMeter",
                                                 (aProgress * 100) / aProgressMax);
@@ -1588,7 +1588,10 @@ var gFeedSubscriptionsWindow = {
       let curSelItem = this.currentSelectedItem;
       let feedWindow = this.feedWindow;
       if (aMove && aDestFolder.getFlag(Ci.nsMsgFolderFlags.Trash))
-        return this.folderDeleted(aSrcFolder);
+      {
+        this.folderDeleted(aSrcFolder);
+        return
+      }
 
       setTimeout(function() {
         feedWindow.refreshSubscriptionView();
@@ -1819,7 +1822,7 @@ var gFeedSubscriptionsWindow = {
       return -1;
 
     // Silently skip feeds that are already subscribed.
-    if (feedAlreadyExists(newFeedUrl, this.mRSSServer))
+    if (FeedUtils.feedAlreadyExists(newFeedUrl, this.mRSSServer))
     {
       FeedUtils.log.debug("importOutline: already subscribed in account "+
                           this.mRSSServer.prettyName+", url - "+ newFeedUrl);
@@ -1846,11 +1849,11 @@ var gFeedSubscriptionsWindow = {
       feed.link = aOutline.getAttribute("htmlUrl");
 
     feed.createFolder();
-    updateFolderFeedUrl(feed.folder, feed.url, false);
+    FeedUtils.updateFolderFeedUrl(feed.folder, feed.url, false);
 
     // addFeed adds the feed we have validated and downloaded to
     // our datasource, it also flushes the subscription datasource.
-    addFeed(feed.url, feed.name, feed.folder);
+    FeedUtils.addFeed(feed.url, feed.name, feed.folder);
     // Feed correctly added.
     return 1;
   }

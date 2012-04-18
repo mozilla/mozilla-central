@@ -23,6 +23,7 @@
  *  Myk Melez <myk@mozilla.org) (Original Author)
  *  David Bienvenu <bienvenu@nventure.com> 
  *  Ian Neal <iann_bugzilla@blueyonder.co.uk>
+ *  alta88 <alta88@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -58,14 +59,6 @@ var nsNewsBlogFeedDownloader =
                          "Feed subscription in progress\n");
       return;
     }
-
-    let feedUrlArray = getFeedUrlsInFolder(aFolder);
-
-    // Return if there are no feedUrls for the base folder in the feeds
-    // database, the base folder has no subfolders, or the folder is in Trash.
-    if ((!feedUrlArray && !aFolder.hasSubFolders) ||
-        aFolder.isSpecialFolder(Ci.nsMsgFolderFlags.Trash, true))
-      return;
 
     let allFolders = Cc["@mozilla.org/supports-array;1"].
                      createInstance(Ci.nsISupportsArray);
@@ -107,7 +100,7 @@ var nsNewsBlogFeedDownloader =
           continue;
         }
 
-        let feedUrlArray = getFeedUrlsInFolder(folder);
+        let feedUrlArray = FeedUtils.getFeedUrlsInFolder(folder);
         // Continue if there are no feedUrls for the folder in the feeds
         // database.  All folders in Trash are now unsubscribed, so perhaps
         // we may not want to check that here each biff each folder.
@@ -126,7 +119,7 @@ var nsNewsBlogFeedDownloader =
         {
           if (feedUrlArray[url])
           {
-            id = rdf.GetResource(feedUrlArray[url]);
+            id = FeedUtils.rdf.GetResource(feedUrlArray[url]);
             feed = new Feed(id, folder.server);
             feed.folder = folder;
             // Bump our pending feed download count.
@@ -197,7 +190,7 @@ var nsNewsBlogFeedDownloader =
       for (let i = 0; i < allServers.Count() && !aFolder; i++)
       {
         let currentServer = allServers.QueryElementAt(i, Ci.nsIMsgIncomingServer);
-        if (currentServer && currentServer.type == 'rss')
+        if (currentServer && currentServer.type == "rss")
           aFolder = currentServer.rootFolder;
       }
     }
@@ -265,16 +258,16 @@ var nsNewsBlogFeedDownloader =
 
     // Make sure we aren't already subscribed to this feed before we attempt
     // to subscribe to it.
-    if (feedAlreadyExists(aUrl, aFolder.server))
+    if (FeedUtils.feedAlreadyExists(aUrl, aFolder.server))
     {
       aMsgWindow.statusFeedback.showStatusString(
-        FeedUtils.strings.GetStringFromName('subscribe-feedAlreadySubscribed'));
+        FeedUtils.strings.GetStringFromName("subscribe-feedAlreadySubscribed"));
       return;
     }
 
-    let itemResource = rdf.GetResource(aUrl);
+    let itemResource = FeedUtils.rdf.GetResource(aUrl);
     let feed = new Feed(itemResource, aFolder.server);
-    feed.quickMode = feed.server.getBoolValue('quickMode');
+    feed.quickMode = feed.server.getBoolValue("quickMode");
 
     // If the root server, create a new folder for the feed.  The user must
     // want us to add this subscription url to an existing RSS folder.
@@ -293,13 +286,13 @@ var nsNewsBlogFeedDownloader =
 
     // An rss folder was just changed, get the folder's feedUrls and update
     // our feed data source.
-    let feedUrlArray = getFeedUrlsInFolder(aFolder);
+    let feedUrlArray = FeedUtils.getFeedUrlsInFolder(aFolder);
     if (!feedUrlArray)
       // No feedUrls in this folder.
       return;
 
     let newFeedUrl, id, resource, node;
-    let ds = getSubscriptionsDS(aFolder.server);
+    let ds = FeedUtils.getSubscriptionsDS(aFolder.server);
     let trashFolder =
         aFolder.rootFolder.getFolderWithFlags(Ci.nsMsgFolderFlags.Trash);
     for (let url in feedUrlArray)
@@ -307,22 +300,22 @@ var nsNewsBlogFeedDownloader =
       newFeedUrl = feedUrlArray[url];
       if (newFeedUrl)
       {
-        id = rdf.GetResource(newFeedUrl);
+        id = FeedUtils.rdf.GetResource(newFeedUrl);
         // If explicit delete or move to trash, unsubscribe.
         if (aUnsubscribe ||
             (trashFolder && trashFolder.isAncestorOf(aFolder)))
         {
-          deleteFeed(id, aFolder.server, aFolder);
+          FeedUtils.deleteFeed(id, aFolder.server, aFolder);
         }
         else
         {
-          resource = rdf.GetResource(aFolder.URI);
+          resource = FeedUtils.rdf.GetResource(aFolder.URI);
           // Get the node for the current folder URI.
-          node = ds.GetTarget(id, FZ_DESTFOLDER, true);
+          node = ds.GetTarget(id, FeedUtils.FZ_DESTFOLDER, true);
           if (node)
-            ds.Change(id, FZ_DESTFOLDER, node, resource);
+            ds.Change(id, FeedUtils.FZ_DESTFOLDER, node, resource);
           else
-            addFeed(newFeedUrl, resource.name, resource);
+            FeedUtils.addFeed(newFeedUrl, resource.name, resource);
         }
       }
     } // for each feed url in the folder property

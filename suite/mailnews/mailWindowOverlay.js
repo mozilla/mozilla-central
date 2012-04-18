@@ -3102,14 +3102,14 @@ function FeedSetContentView(val)
       if (wintype == "mail:3pane") {
         // Get quickmode per feed pref from feeds.rdf
         var quickMode, targetRes;
-        if (typeof FZ_NS == 'undefined')
+        if (!("FeedUtils" in window))
           Services.scriptloader.loadSubScript("chrome://messenger-newsblog/content/utils.js");
         try
         {
-          var targetRes = getParentTargetForChildResource(
-                          gMsgFolderSelected.URI,
-                          FZ_QUICKMODE,
-                          gMsgFolderSelected.server);
+          var targetRes = FeedUtils.getParentTargetForChildResource(
+                            gFolderDisplay.displayedFolder.URI,
+                            FeedUtils.FZ_QUICKMODE,
+                            gFolderDisplay.displayedFolder.server);
         }
         catch (ex) {};
 

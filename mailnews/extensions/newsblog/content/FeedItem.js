@@ -35,51 +35,45 @@
 #
 # ***** END LICENSE BLOCK ***** */
 
-// Handy conversion values.
-const HOURS_TO_MINUTES = 60;
-const MINUTES_TO_SECONDS = 60;
-const SECONDS_TO_MILLISECONDS = 1000;
-const MINUTES_TO_MILLISECONDS = MINUTES_TO_SECONDS * SECONDS_TO_MILLISECONDS;
-const HOURS_TO_MILLISECONDS = HOURS_TO_MINUTES * MINUTES_TO_MILLISECONDS;
-const ENCLOSURE_BOUNDARY_PREFIX = "--------------";  // 14 dashes
-const ENCLOSURE_HEADER_BOUNDARY_PREFIX = "------------"; // 12 dashes
-
-const MESSAGE_TEMPLATE = "\n\
-<html>\n\
-  <head>\n\
-    <title>%TITLE%</title>\n\
-    <base href=\"%BASE%\">\n\
-  </head>\n\
-  <body id=\"msgFeedSummaryBody\" selected=\"false\">\n\
-    %CONTENT%\n\
-  </body>\n\
-</html>\n\
-";
-
 function FeedItem()
 {
   this.mDate = new Date().toString();
-  this.mUnicodeConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
-                                     .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+  this.mUnicodeConverter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].
+                           createInstance(Ci.nsIScriptableUnicodeConverter);
+  this.mUnescapeHTML = Cc["@mozilla.org/feed-unescapehtml;1"].
+                       getService(Ci.nsIScriptableUnescapeHTML);
 }
 
 FeedItem.prototype =
 {
-  // Currently only for IETF Atom. RSS2 with GUIDs should do this as too.
+  // Currently only for IETF Atom.  RSS2 with GUIDs should do this too.
   isStoredWithId: false,
-  // Only for IETF Atom
+  // Only for IETF Atom.
   xmlContentBase: null,
   id: null,
   feed: null,
   description: null,
   content: null,
-  // Currently only support one enclosure per feed item...
+  // Currently only support one enclosure per feed item.
   enclosure: null,
-  // TO DO: this needs to be localized
+  // TO DO: this needs to be localized.
   title: "(no subject)",
   author: "anonymous",
   mURL: null,
   characterSet: "",
+
+  ENCLOSURE_BOUNDARY_PREFIX: "--------------", // 14 dashes
+  ENCLOSURE_HEADER_BOUNDARY_PREFIX: "------------", // 12 dashes
+  MESSAGE_TEMPLATE: '\n' +
+    '<html>\n' +
+    '  <head>\n' +
+    '    <title>%TITLE%</title>\n' +
+    '    <base href="%BASE%">\n' +
+    '  </head>\n' +
+    '  <body id="msgFeedSummaryBody" selected="false">\n' +
+    '    %CONTENT%\n' +
+    '  </body>\n' +
+    '</html>\n',
 
   get url()
   {
@@ -90,9 +84,7 @@ FeedItem.prototype =
   {
     try
     {
-      var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                .getService(Components.interfaces.nsIIOService);
-      this.mURL = ioService.newURI(aVal, null, null).spec;
+      this.mURL = Services.io.newURI(aVal, null, null).spec;
     }
     catch(ex)
     {
@@ -120,25 +112,26 @@ FeedItem.prototype =
 
   get messageID()
   {
-    var messageID = this.id || this.mURL || this.title;
+    let messageID = this.id || this.mURL || this.title;
 
-    debug('messageID - id = ' + this.id);
-    debug('messageID - mURL = ' + this.mURL);
-    debug('messageID - title = ' + this.title);
-    debug('messageID - messageID = ' + messageID);
+    FeedUtils.log.trace("FeedItem.messageID: id - " + this.id);
+    FeedUtils.log.trace("FeedItem.messageID: mURL - " + this.mURL);
+    FeedUtils.log.trace("FeedItem.messageID: title - " + this.title);
 
     // Escape occurrences of message ID meta characters <, >, and @.
     messageID.replace(/</g, "%3C");
     messageID.replace(/>/g, "%3E");
     messageID.replace(/@/g, "%40");
     messageID = messageID + "@" + "localhost.localdomain";
+
+    FeedUtils.log.trace("FeedItem.messageID: messageID - " + messageID);
     return messageID;
   },
 
   get itemUniqueURI()
   {
-    return (this.isStoredWithId && this.id) ? createURN(this.id) :
-           createURN(this.mURL || this.id);
+    return this.isStoredWithId && this.id ? this.createURN(this.id) :
+                                            this.createURN(this.mURL || this.id);
   },
 
   get contentBase()
@@ -153,25 +146,27 @@ FeedItem.prototype =
   {
     this.mUnicodeConverter.charset = this.characterSet;
 
-    // this.title and this.content contain HTML
-    // this.mUrl and this.contentBase contain plain text
+    // this.title and this.content contain HTML.
+    // this.mUrl and this.contentBase contain plain text.
 
     let resource = this.findStoredResource();
     if (resource == null)
     {
-      resource = rdf.GetResource(this.itemUniqueURI);
+      resource = FeedUtils.rdf.GetResource(this.itemUniqueURI);
       if (!this.content)
       {
-        debug(this.identity + " no content; storing");
+        FeedUtils.log.trace("FeedItem.store: " + this.identity +
+                            " no content; storing");
         this.content = this.description || this.title;
       }
 
-      debug(this.identity + " store both remote/no content and content items");
-      var content = MESSAGE_TEMPLATE;
+      FeedUtils.log.trace("FeedItem.store: " + this.identity +
+                          " store both remote/no content and content items");
+      let content = this.MESSAGE_TEMPLATE;
       content = content.replace(/%TITLE%/, this.title);
-      content = content.replace(/%BASE%/, htmlEscape(this.contentBase));
+      content = content.replace(/%BASE%/, this.htmlEscape(this.contentBase));
       content = content.replace(/%CONTENT%/, this.content);
-      // XXX store it elsewhere, f.e. this.page
+      // XXX store it elsewhere, f.e. this.page.
       this.content = content;
       this.writeToFolder();
       this.markStored(resource);
@@ -181,37 +176,39 @@ FeedItem.prototype =
 
   findStoredResource: function()
   {
-    // Checks to see if the item has already been stored in its feed's message folder.
+    // Checks to see if the item has already been stored in its feed's
+    // message folder.
+    FeedUtils.log.trace("FeedItem.findStoredResource: " + this.identity +
+                        " checking to see if stored");
 
-    debug(this.identity + " checking to see if stored");
-
-    var server = this.feed.server;
-    var folder = this.feed.folder;
+    let server = this.feed.server;
+    let folder = this.feed.folder;
 
     if (!folder)
     {
-      debug(this.feed.name + " folder doesn't exist; creating");
-      debug("creating " + this.feed.name + "as child of " +
-          server.rootMsgFolder + "\n");
-      server.rootMsgFolder.createSubfolder(this.feed.name, null /* supposed to be a msg window */);
+      FeedUtils.log.debug("FeedItem.findStoredResource: " + this.feed.name +
+                          " folder doesn't exist; creating as child of " +
+                          server.rootMsgFolder.prettyName + "\n");
+      server.rootMsgFolder.createSubfolder(this.feed.name, null);
       folder = server.rootMsgFolder.findSubFolder(this.feed.name);
-      debug(this.identity + " not stored (folder didn't exist)");
+      FeedUtils.log.debug("FeedItem.findStoredResource: " + this.identity +
+                          " not stored (folder didn't exist)");
       return null;
     }
 
-    var ds = getItemsDS(server);
-    var itemURI = this.itemUniqueURI;
-    var itemResource = rdf.GetResource(itemURI);
+    let ds = FeedUtils.getItemsDS(server);
+    let itemURI = this.itemUniqueURI;
+    let itemResource = FeedUtils.rdf.GetResource(itemURI);
 
-    var downloaded = ds.GetTarget(itemResource, FZ_STORED, true);
+    let downloaded = ds.GetTarget(itemResource, FeedUtils.FZ_STORED, true);
 
     // Backward compatibility: we might have stored this item before
     // isStoredWithId has been turned on for RSS 2.0 (bug 354345).
     // Check whether this item has been stored with its URL.
     if (!downloaded && this.mURL && itemURI != this.mURL)
     {
-      itemResource = rdf.GetResource(this.mURL);
-      downloaded = ds.GetTarget(itemResource, FZ_STORED, true);
+      itemResource = FeedUtils.rdf.GetResource(this.mURL);
+      downloaded = ds.GetTarget(itemResource, FeedUtils.FZ_STORED, true);
     }
 
     // Backward compatibility: the item may have been stored
@@ -219,97 +216,108 @@ FeedItem.prototype =
     // (bug 410842 & bug 461109)
     if (!downloaded)
     {
-      itemResource = rdf.GetResource((this.isStoredWithId && this.id) ?
-                                     ("urn:" + this.id) :
-                                     (this.mURL || ("urn:" + this.id)));
-      downloaded = ds.GetTarget(itemResource, FZ_STORED, true);
+      itemResource = FeedUtils.rdf.GetResource((this.isStoredWithId && this.id) ?
+                                               ("urn:" + this.id) :
+                                               (this.mURL || ("urn:" + this.id)));
+      downloaded = ds.GetTarget(itemResource, FeedUtils.FZ_STORED, true);
     }
 
     if (!downloaded ||
-        downloaded.QueryInterface(Components.interfaces.nsIRDFLiteral)
-                  .Value == "false")
+        downloaded.QueryInterface(Ci.nsIRDFLiteral).Value == "false")
     {
       // HACK ALERT: before we give up, try to work around an entity
-      // escaping bug in RDF. See Bug #258465 for more details
+      // escaping bug in RDF. See Bug #258465 for more details.
       itemURI = itemURI.replace(/&lt;/g, '<');
       itemURI = itemURI.replace(/&gt;/g, '>');
       itemURI = itemURI.replace(/&quot;/g, '"');
       itemURI = itemURI.replace(/&amp;/g, '&');
 
-      debug('Failed to find item, trying entity replacement version: '  + itemURI);
-      itemResource = rdf.GetResource(itemURI);
-      downloaded = ds.GetTarget(itemResource, FZ_STORED, true);
+      FeedUtils.log.trace("FeedItem.findStoredResource: failed to find item," +
+                          " trying entity replacement version - " + itemURI);
+      itemResource = FeedUtils.rdf.GetResource(itemURI);
+      downloaded = ds.GetTarget(itemResource, FeedUtils.FZ_STORED, true);
 
       if (downloaded)
       {
-        debug(this.identity + " stored");
+        FeedUtils.log.trace("FeedItem.findStoredResource: " + this.identity +
+                            " stored");
         return itemResource;
       }
 
-      debug(this.identity + " not stored");
+      FeedUtils.log.trace("FeedItem.findStoredResource: " + this.identity +
+                          " not stored");
       return null;
     }
     else
     {
-      debug(this.identity + " stored");
+      FeedUtils.log.trace("FeedItem.findStoredResource: " + this.identity +
+                          " stored");
       return itemResource;
     }
   },
 
   markValid: function(resource)
   {
-    var ds = getItemsDS(this.feed.server);
+    let ds = FeedUtils.getItemsDS(this.feed.server);
 
-    var newTimeStamp = rdf.GetLiteral(new Date().getTime());
-    var currentTimeStamp = ds.GetTarget(resource, FZ_LAST_SEEN_TIMESTAMP, true);
+    let newTimeStamp = FeedUtils.rdf.GetLiteral(new Date().getTime());
+    let currentTimeStamp = ds.GetTarget(resource,
+                                        FeedUtils.FZ_LAST_SEEN_TIMESTAMP,
+                                        true);
     if (currentTimeStamp)
-      ds.Change(resource, FZ_LAST_SEEN_TIMESTAMP, currentTimeStamp, newTimeStamp);
+      ds.Change(resource, FeedUtils.FZ_LAST_SEEN_TIMESTAMP,
+                currentTimeStamp, newTimeStamp);
     else
-      ds.Assert(resource, FZ_LAST_SEEN_TIMESTAMP, newTimeStamp, true);
+      ds.Assert(resource, FeedUtils.FZ_LAST_SEEN_TIMESTAMP,
+                newTimeStamp, true);
 
-    if (!ds.HasAssertion(resource, FZ_FEED, rdf.GetResource(this.feed.url), true))
-      ds.Assert(resource, FZ_FEED, rdf.GetResource(this.feed.url), true);
+    if (!ds.HasAssertion(resource, FeedUtils.FZ_FEED,
+                         FeedUtils.rdf.GetResource(this.feed.url), true))
+      ds.Assert(resource, FeedUtils.FZ_FEED,
+                FeedUtils.rdf.GetResource(this.feed.url), true);
 
-    if (ds.hasArcOut(resource, FZ_VALID))
+    if (ds.hasArcOut(resource, FeedUtils.FZ_VALID))
     {
-      var currentValue = ds.GetTarget(resource, FZ_VALID, true);
-      ds.Change(resource, FZ_VALID, currentValue, RDF_LITERAL_TRUE);
+      let currentValue = ds.GetTarget(resource, FeedUtils.FZ_VALID, true);
+      ds.Change(resource, FeedUtils.FZ_VALID,
+                currentValue, FeedUtils.RDF_LITERAL_TRUE);
     }
     else
-      ds.Assert(resource, FZ_VALID, RDF_LITERAL_TRUE, true);
+      ds.Assert(resource, FeedUtils.FZ_VALID, FeedUtils.RDF_LITERAL_TRUE, true);
   },
 
   markStored: function(resource)
   {
-    var ds = getItemsDS(this.feed.server);
+    let ds = FeedUtils.getItemsDS(this.feed.server);
 
-    if (!ds.HasAssertion(resource, FZ_FEED, rdf.GetResource(this.feed.url), true))
-      ds.Assert(resource, FZ_FEED, rdf.GetResource(this.feed.url), true);
+    if (!ds.HasAssertion(resource, FeedUtils.FZ_FEED,
+                         FeedUtils.rdf.GetResource(this.feed.url), true))
+      ds.Assert(resource, FeedUtils.FZ_FEED,
+                FeedUtils.rdf.GetResource(this.feed.url), true);
 
-    var currentValue;
-    if (ds.hasArcOut(resource, FZ_STORED))
+    let currentValue;
+    if (ds.hasArcOut(resource, FeedUtils.FZ_STORED))
     {
-      currentValue = ds.GetTarget(resource, FZ_STORED, true);
-      ds.Change(resource, FZ_STORED, currentValue, RDF_LITERAL_TRUE);
+      currentValue = ds.GetTarget(resource, FeedUtils.FZ_STORED, true);
+      ds.Change(resource, FeedUtils.FZ_STORED, 
+                currentValue, FeedUtils.RDF_LITERAL_TRUE);
     }
     else
-      ds.Assert(resource, FZ_STORED, RDF_LITERAL_TRUE, true);
+      ds.Assert(resource, FeedUtils.FZ_STORED,
+                FeedUtils.RDF_LITERAL_TRUE, true);
   },
 
   mimeEncodeSubject: function(aSubject, aCharset)
   {
-    // Get the mime header encoder service
-    var mimeEncoder = Components.classes["@mozilla.org/messenger/mimeconverter;1"]
-                                .getService(Components.interfaces.nsIMimeConverter);
-
     // This routine sometimes throws exceptions for mis-encoded data so
-    // wrap it with a try catch for now..
-    var newSubject;
+    // wrap it with a try catch for now.
+    let newSubject;
     try
     {
-      newSubject = mimeEncoder.encodeMimePartIIStr(
-          this.mUnicodeConverter.ConvertFromUnicode(aSubject),
-          false, aCharset, 9, 72);
+      newSubject = mailServices.mimeConverter.encodeMimePartIIStr(
+                     this.mUnicodeConverter.ConvertFromUnicode(aSubject),
+                     false,
+                     aCharset, 9, 72);
     }
     catch (ex)
     {
@@ -321,24 +329,21 @@ FeedItem.prototype =
 
   writeToFolder: function()
   {
-    debug(this.identity + " writing to message folder" + this.feed.name + "\n");
-
-    var server = this.feed.server;
+    FeedUtils.log.trace("FeedItem.writeToFolder: " + this.identity +
+                        " writing to message folder " + this.feed.name);
     this.mUnicodeConverter.charset = this.characterSet;
 
     // If the sender isn't a valid email address, quote it so it looks nicer.
-    if (this.author && this.author.indexOf('@') == -1)
-      this.author = '<' + this.author + '>';
+    if (this.author && this.author.indexOf("@") == -1)
+      this.author = "<" + this.author + ">";
 
     // Convert the title to UTF-16 before performing our HTML entity
     // replacement reg expressions.
-    var title = this.title;
+    let title = this.title;
 
-    // the subject may contain HTML entities.
-    // Convert these to their unencoded state. i.e. &amp; becomes '&'
-    title = Components.classes["@mozilla.org/feed-unescapehtml;1"]
-                      .getService(Components.interfaces.nsIScriptableUnescapeHTML)
-                      .unescape(title);
+    // The subject may contain HTML entities.  Convert these to their unencoded
+    // state. i.e. &amp; becomes '&'.
+    title = this.mUnescapeHTML.unescape(title);
 
     // Compress white space in the subject to make it look better.  Trim
     // leading/trailing spaces to prevent mbox header folding issue at just
@@ -364,9 +369,9 @@ FeedItem.prototype =
     // use it to calculate the offset of the X-Mozilla-Status lines from
     // the front of the message for the statusOffset property of the
     // DB header object.
-    var openingLine = 'From - ' + this.mDate + '\n';
+    let openingLine = 'From - ' + this.mDate + '\n';
 
-    var source =
+    let source =
       openingLine +
       'X-Mozilla-Status: 0000\n' +
       'X-Mozilla-Status2: 00000000\n' +
@@ -381,9 +386,11 @@ FeedItem.prototype =
 
     if (this.enclosure && this.enclosure.mFileName)
     {
-      var boundaryID = source.length + this.enclosure.mLength;
-      source += 'Content-Type: multipart/mixed;\n boundary="' + ENCLOSURE_HEADER_BOUNDARY_PREFIX + boundaryID + '"' + '\n\n' +
-                'This is a multi-part message in MIME format.\n' + ENCLOSURE_BOUNDARY_PREFIX + boundaryID + '\n' +
+      let boundaryID = source.length + this.enclosure.mLength;
+      source += 'Content-Type: multipart/mixed;\n boundary="' +
+                this.ENCLOSURE_HEADER_BOUNDARY_PREFIX + boundaryID + '"' + '\n\n' +
+                'This is a multi-part message in MIME format.\n' +
+                this.ENCLOSURE_BOUNDARY_PREFIX + boundaryID + '\n' +
                 'Content-Type: text/html; charset=' + this.characterSet + '\n' +
                 'Content-Transfer-Encoding: 8bit\n' +
                 this.content;
@@ -396,47 +403,72 @@ FeedItem.prototype =
 
     }
 
-    debug(this.identity + " is " + source.length + " characters long");
+    FeedUtils.log.trace("FeedItem.writeToFolder: " + this.identity +
+                        " is " + source.length + " characters long");
 
     // Get the folder and database storing the feed's messages and headers.
-    var folder = this.feed.folder.QueryInterface(Components.interfaces.nsIMsgLocalMailFolder);
-    var msgFolder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
+    let folder = this.feed.folder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+    let msgFolder = folder.QueryInterface(Ci.nsIMsgFolder);
     msgFolder.gettingNewMessages = true;
     // Source is a unicode string, we want to save a char * string in
-    // the original charset. So convert back
+    // the original charset. So convert back.
     folder.addMessage(this.mUnicodeConverter.ConvertFromUnicode(source));
     msgFolder.gettingNewMessages = false;
+  },
+
+  htmlEscape: function(s)
+  {
+    s = s.replace(/&/g, "&amp;");
+    s = s.replace(/>/g, "&gt;");
+    s = s.replace(/</g, "&lt;");
+    s = s.replace(/'/g, "&#39;");
+    s = s.replace(/"/g, "&quot;");
+    return s;
+  },
+
+  createURN: function(aName)
+  {
+    // Returns name as a URN in the 'feeditem' namespace. The returned URN is
+    // (or is intended to be) RFC2141 compliant.
+    // The builtin encodeURI provides nearly the exact encoding functionality
+    // required by the RFC.  The exceptions are that NULL characters should not
+    // appear, and that #, /, ?, &, and ~ should be escaped.
+    // NULL characters are removed before encoding.
+
+    let name = aName.replace(/\0/g, "");
+    let encoded = encodeURI(name);
+    encoded = encoded.replace(/\#/g, "%23");
+    encoded = encoded.replace(/\//g, "%2f");
+    encoded = encoded.replace(/\?/g, "%3f");
+    encoded = encoded.replace(/\&/g, "%26");
+    encoded = encoded.replace(/\~/g, "%7e");
+
+    return FeedUtils.FZ_ITEM_NS + encoded;
   }
 };
 
 
-// A feed enclosure is to RSS what an attachment is for e-mail. We make enclosures look
-// like attachments in the UI.
-
+// A feed enclosure is to RSS what an attachment is for e-mail.  We make
+// enclosures look like attachments in the UI.
 function FeedEnclosure(aURL, aContentType, aLength)
 {
   this.mURL = aURL;
   this.mContentType = aContentType;
   this.mLength = aLength;
 
-  // generate a fileName from the URL
+  // Generate a fileName from the URL.
   if (this.mURL)
   {
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService);
-    var enclosureURL, fileName;
     try
     {
-      enclosureURL  = ioService.newURI(this.mURL, null, null)
-                               .QueryInterface(Components.interfaces.nsIURL);
-      fileName = enclosureURL.fileName;
+      this.mFileName = Services.io.newURI(this.mURL, null, null).
+                                   QueryInterface(Ci.nsIURL).
+                                   fileName;
     }
     catch(ex)
     {
-      fileName = this.mURL;
+      this.mFileName = this.mURL;
     }
-    if (fileName)
-      this.mFileName = fileName;
   }
 }
 
@@ -446,20 +478,20 @@ FeedEnclosure.prototype =
   mContentType: "",
   mLength: 0,
   mFileName: "",
+  ENCLOSURE_BOUNDARY_PREFIX: "--------------", // 14 dashes
 
-  // Returns a string that looks like an e-mail attachment which
-  // represents the enclosure.
+  // Returns a string that looks like an e-mail attachment which represents
+  // the enclosure.
   convertToAttachment: function(aBoundaryID)
   {
     return '\n' +
-                  ENCLOSURE_BOUNDARY_PREFIX + aBoundaryID + '\n' +
-                  'Content-Type: ' + this.mContentType +
-                                 '; name="' + this.mFileName +
-                                 (this.mLength ? '"; size=' + this.mLength : '"') + '\n' +
-                  'X-Mozilla-External-Attachment-URL: ' + this.mURL + '\n' +
-                  'Content-Disposition: attachment; filename="' + this.mFileName + '"\n\n' +
-                  'This MIME attachment is stored separately from the message.\n' +
-                  ENCLOSURE_BOUNDARY_PREFIX + aBoundaryID + '--' + '\n';
-
+      this.ENCLOSURE_BOUNDARY_PREFIX + aBoundaryID + '\n' +
+      'Content-Type: ' + this.mContentType +
+                     '; name="' + this.mFileName +
+                     (this.mLength ? '"; size=' + this.mLength : '"') + '\n' +
+      'X-Mozilla-External-Attachment-URL: ' + this.mURL + '\n' +
+      'Content-Disposition: attachment; filename="' + this.mFileName + '"\n\n' +
+      'This MIME attachment is stored separately from the message.\n' +
+      this.ENCLOSURE_BOUNDARY_PREFIX + aBoundaryID + '--' + '\n';
   }
 };

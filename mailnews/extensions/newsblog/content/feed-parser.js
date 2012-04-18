@@ -34,122 +34,138 @@
  * the terms of any one of the MPL, the GPL or the 
  * ***** END LICENSE BLOCK ***** */
 
-// The feed parser depends on FeedItems.js, Feed.js.
+// The feed parser depends on FeedItem.js, Feed.js.
+function FeedParser() {
+  this.mSerializer = Cc["@mozilla.org/xmlextras/xmlserializer;1"].
+                     createInstance(Ci.nsIDOMSerializer);
+}
 
-var rdfcontainer =  Components.classes["@mozilla.org/rdf/container-utils;1"].getService(Components.interfaces.nsIRDFContainerUtils);
-var rdfparser = Components.classes["@mozilla.org/rdf/xml-parser;1"].createInstance(Components.interfaces.nsIRDFXMLParser);
-var serializer = Components.classes["@mozilla.org/xmlextras/xmlserializer;1"].createInstance(Components.interfaces.nsIDOMSerializer);
-var gIOService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-
-function FeedParser() 
-{}
-
-FeedParser.prototype = 
+FeedParser.prototype =
 {
-  // parseFeed returns an array of parsed items ready for processing
-  // it is currently a synchronous operation. If there was an error parsing the feed, 
-  // parseFeed returns an empty feed in addition to calling aFeed.onParseError
+  // parseFeed() returns an array of parsed items ready for processing.  It is
+  // currently a synchronous operation.  If there is an error parsing the feed,
+  // parseFeed returns an empty feed in addition to calling aFeed.onParseError.
   parseFeed: function (aFeed, aDOM, aBaseURI)
   {
-    if (!(aDOM instanceof Components.interfaces.nsIDOMXMLDocument) ||
-        aDOM.documentElement.getElementsByTagNameNS("http://www.mozilla.org/newlayout/xml/parsererror.xml", "parsererror")[0])
+    let doc = aDOM.documentElement;
+    if (!(aDOM instanceof Ci.nsIDOMXMLDocument) ||
+        doc.getElementsByTagNameNS(FeedUtils.MOZ_PARSERERROR_NS, "parsererror")[0])
     {
       // No xml doc or gecko caught a basic parsing error.
       aFeed.onParseError(aFeed);
       return new Array();
     }
-    else if((aDOM.documentElement.namespaceURI == "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
-            && (aDOM.documentElement.getElementsByTagNameNS("http://purl.org/rss/1.0/", "channel")[0]))
+    else if(doc.namespaceURI == FeedUtils.RDF_SYNTAX_NS &&
+            doc.getElementsByTagNameNS(FeedUtils.RSS_NS, "channel")[0])
     {
-      debug(aFeed.url + " is an RSS 1.x (RDF-based) feed");
-      // aSource can be misencoded (XMLHttpRequest converts to UTF-8 by default), 
-      // but the DOM is almost always right because it uses the hints in the XML file.
-      // This is slower, but not noticably so. Mozilla doesn't have the 
-      // XMLHttpRequest.responseBody property that IE has, which provides access 
-      // to the unencoded response.
-      var xmlString=serializer.serializeToString(aDOM.documentElement);
+      aFeed.mFeedType = "RSS_1.xRDF"
+      FeedUtils.log.debug("FeedParser.parseFeed: type:url - " +
+                          aFeed.mFeedType +" : " +aFeed.url);
+      // aSource can be misencoded (XMLHttpRequest converts to UTF-8 by default),
+      // but the DOM is almost always right because it uses the hints in the
+      // XML file.  This is slower, but not noticably so.  Mozilla doesn't have
+      // the XMLHttpRequest.responseBody property that IE has, which provides
+      // access to the unencoded response.
+      let xmlString = this.mSerializer.serializeToString(doc);
       return this.parseAsRSS1(aFeed, xmlString, aBaseURI);
     }
-    else if (aDOM.documentElement.namespaceURI == ATOM_03_NS)
+    else if (doc.namespaceURI == FeedUtils.ATOM_03_NS)
     {
-      debug(aFeed.url + " is an Atom 0.3 feed");
+      aFeed.mFeedType = "ATOM_0.3"
+      FeedUtils.log.debug("FeedParser.parseFeed: type:url - " +
+                          aFeed.mFeedType +" : " +aFeed.url);
       return this.parseAsAtom(aFeed, aDOM);
     }
-    else if (aDOM.documentElement.namespaceURI == ATOM_IETF_NS)
+    else if (doc.namespaceURI == FeedUtils.ATOM_IETF_NS)
     {
-      debug(aFeed.url + " is an IETF Atom feed");
+      aFeed.mFeedType = "ATOM_IETF"
+      FeedUtils.log.debug("FeedParser.parseFeed: type:url - " +
+                          aFeed.mFeedType +" : " +aFeed.url);
       return this.parseAsAtomIETF(aFeed, aDOM);
     }
-    else if (aDOM.documentElement.getElementsByTagNameNS("http://my.netscape.com/rdf/simple/0.9/", "channel")[0])
+    else if (doc.getElementsByTagNameNS(FeedUtils.RSS_090_NS, "channel")[0])
     {
-      debug(aFeed.url + " is an 0.90 feed");
+      aFeed.mFeedType = "RSS_0.90"
+      FeedUtils.log.debug("FeedParser.parseFeed: type:url - " +
+                          aFeed.mFeedType +" : " +aFeed.url);
       return this.parseAsRSS2(aFeed, aDOM);
     }
-    // XXX Explicitly check for RSS 2.0 instead of letting it be handled by the
-    // default behavior (who knows, we may change the default at some point).
-    else 
+    else
     {
-      // We don't know what kind of feed this is; let's pretend it's RSS 0.9x
-      // and hope things work out for the best.  In theory even RSS 1.0 feeds
-      // could be parsed by the 0.9x parser if the RSS namespace was the default.
-      debug(aFeed.url + " is of unknown format; assuming an RSS 0.9x feed");
+      // Parse as RSS 0.9x.  In theory even RSS 1.0 feeds could be parsed by
+      // the 0.9x parser if the RSS namespace were the default.
+      let rssVer = doc.localName == "rss" ? doc.getAttribute("version") : null;
+      if (rssVer)
+        aFeed.mFeedType = "RSS_" + rssVer;
+      else
+        aFeed.mFeedType = "RSS_0.9x?";
+      FeedUtils.log.debug("FeedParser.parseFeed: type:url - " +
+                          aFeed.mFeedType +" : " +aFeed.url);
       return this.parseAsRSS2(aFeed, aDOM);
     }
   },
 
-  parseAsRSS2: function (aFeed, aDOM) 
+  parseAsRSS2: function (aFeed, aDOM)
   {
     // Get the first channel (assuming there is only one per RSS File).
-    var parsedItems = new Array();
+    let parsedItems = new Array();
 
-    var channel = aDOM.getElementsByTagName("channel")[0];
+    let channel = aDOM.getElementsByTagName("channel")[0];
     if (!channel)
       return aFeed.onParseError(aFeed);
 
-    //usually the empty string, unless this is RSS .90
-    var nsURI = channel.namespaceURI || "";
-    debug("channel NS: '" + nsURI +"'");
+    // Usually the empty string, unless this is RSS .90.
+    let nsURI = channel.namespaceURI || "";
+    FeedUtils.log.debug("FeedParser.parseAsRSS2: channel nsURI - " + nsURI);
 
-    aFeed.title = aFeed.title || getNodeValue(this.childrenByTagNameNS(channel, nsURI, "title")[0]);
-    aFeed.description = getNodeValue(this.childrenByTagNameNS(channel, nsURI, "description")[0]);
-    aFeed.link = getNodeValue(this.childrenByTagNameNS(channel, nsURI, "link")[0]);
+    let tags = this.childrenByTagNameNS(channel, nsURI, "title");
+    aFeed.title = aFeed.title || this.getNodeValue(tags ? tags[0] : null);
+    tags = this.childrenByTagNameNS(channel, nsURI, "description");
+    aFeed.description = this.getNodeValue(tags ? tags[0] : null);
+    tags = this.childrenByTagNameNS(channel, nsURI, "link");
+    aFeed.link = this.getNodeValue(tags ? tags[0] : null);
 
     if (!aFeed.parseItems)
       return parsedItems;
 
     aFeed.invalidateItems();
-    // XXX use getElementsByTagNameNS for now
-    // childrenByTagNameNS would be better, but RSS .90 is still with us
-    var itemNodes = aDOM.getElementsByTagNameNS(nsURI,"item");
+    // XXX use getElementsByTagNameNS for now; childrenByTagNameNS would be
+    // better, but RSS .90 is still with us.
+    let itemNodes = aDOM.getElementsByTagNameNS(nsURI, "item");
+    FeedUtils.log.debug("FeedParser.parseAsRSS2: items to parse - " +
+                        itemNodes.length);
 
-    for (var i=0; i < itemNodes.length; i++) 
+    for (let i = 0; i < itemNodes.length; i++)
     {
-      var itemNode = itemNodes[i];
-      var item = new FeedItem();
+      let itemNode = itemNodes[i];
+      let item = new FeedItem();
       item.feed = aFeed;
       item.characterSet = "UTF-8";
 
-      var link = getNodeValue(this.childrenByTagNameNS(itemNode, nsURI, "link")[0]);
-      var guidNode = this.childrenByTagNameNS(itemNode, nsURI, "guid")[0];
-      var guid;
-      var isPermaLink = false;
-      if (guidNode) 
+      tags = this.childrenByTagNameNS(itemNode, nsURI, "link");
+      let link = this.getNodeValue(tags ? tags[0] : null);
+      tags = this.childrenByTagNameNS(itemNode, nsURI, "guid");
+      let guidNode = tags ? tags[0] : null;
+
+      let guid;
+      let isPermaLink = false;
+      if (guidNode)
       {
-        guid = getNodeValue(guidNode);
+        guid = this.getNodeValue(guidNode);
         // isPermaLink is true if the value is "true" or if the attribute is
         // not present; all other values, including "false" and "False" and
         // for that matter "TRuE" and "meatcake" are false.
         if (!guidNode.hasAttribute("isPermaLink") ||
             guidNode.getAttribute("isPermaLink") == "true")
           isPermaLink = true;
-        // if attribute isPermaLink is missing, it is good to check the validity
-        // of <guid> value as an URL to avoid linking to non-URL strings
+        // If attribute isPermaLink is missing, it is good to check the validity
+        // of <guid> value as an URL to avoid linking to non-URL strings.
         if (!guidNode.hasAttribute("isPermaLink"))
         {
           try
           {
-            gIOService.newURI(guid, null, null);
-            if (gIOService.extractScheme(guid) == "tag")
+            Services.io.newURI(guid, null, null);
+            if (Services.io.extractScheme(guid) == "tag")
               isPermaLink = false;
           }
           catch (ex)
@@ -163,182 +179,215 @@ FeedParser.prototype =
       }
 
       item.url = (guid && isPermaLink) ? guid : link ? link : null;
-      item.description = getNodeValue(this.childrenByTagNameNS(itemNode, nsURI, "description")[0]);
-      item.title = getNodeValue(this.childrenByTagNameNS(itemNode, nsURI, "title")[0])
-                   || (item.description ? (this.stripTags(item.description).substr(0, 150)) : null)
-                   || item.title;
+      tags = this.childrenByTagNameNS(itemNode, nsURI, "description");
+      item.description = this.getNodeValue(tags ? tags[0] : null);
+      tags = this.childrenByTagNameNS(itemNode, nsURI, "title");
+      item.title = this.getNodeValue(tags ? tags[0] : null) ||
+                   (item.description ?
+                      this.stripTags(item.description).substr(0, 150) : null) ||
+                   item.title;
 
-      item.author = getNodeValue(this.childrenByTagNameNS(itemNode, nsURI, "author")[0]
-                                 || this.childrenByTagNameNS(itemNode, DC_NS, "creator")[0])
-                                 || aFeed.title
-                                 || item.author;
-      item.date = getNodeValue(this.childrenByTagNameNS(itemNode, nsURI, "pubDate")[0]
-                               || this.childrenByTagNameNS(itemNode, DC_NS, "date")[0])
-                               || item.date;
+      tags = this.childrenByTagNameNS(itemNode, nsURI, "author");
+      if (!tags)
+        tags = this.childrenByTagNameNS(itemNode, FeedUtils.DC_NS, "creator");
+      item.author = this.getNodeValue(tags ? tags[0] : null) ||
+                    aFeed.title ||
+                    item.author;
+
+      tags = this.childrenByTagNameNS(itemNode, nsURI, "pubDate");
+      if (!tags)
+        tags = this.childrenByTagNameNS(itemNode, FeedUtils.DC_NS, "date");
+      item.date = this.getNodeValue(tags ? tags[0] : null) || item.date;
 
       if (!item.id)
-        item.id = item.feed.url + '#' + (item.date || item.title);
+        item.id = item.feed.url + "#" + (item.date || item.title);
 
       // If the date is invalid, users will see the beginning of the epoch
       // unless we reset it here, so they'll see the current time instead.
       // This is typical aggregator behavior.
-      if(item.date)
+      if (item.date)
       {
         item.date = item.date.trim();
-        if(!isValidRFC822Date(item.date))
+        if (!this.isValidRFC822Date(item.date))
         {
-          // XXX Use this on the other formats as well
-          item.date = dateRescue(item.date);
+          // XXX Use this on the other formats as well.
+          item.date = this.dateRescue(item.date);
         }
       }
 
-      var content = getNodeValue(this.childrenByTagNameNS(itemNode, RSS_CONTENT_NS, "encoded")[0]);
-      if(content)
-        item.content = content;
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.RSS_CONTENT_NS, "encoded");
+      item.content = this.getNodeValue(tags ? tags[0] : null);
 
-      // Handle an enclosure (if present)
-      var enclosureNode = this.childrenByTagNameNS(itemNode, nsURI, "enclosure")[0];
+      // Handle an enclosure (if present).
+      tags = this.childrenByTagNameNS(itemNode, nsURI, "enclosure");
+      let enclosureNode = tags ? tags[0] : null;
       if (enclosureNode)
-        item.enclosure = new FeedEnclosure(enclosureNode.getAttribute("url"), 
-                                          enclosureNode.getAttribute("type"),
-                                          enclosureNode.getAttribute("length"));
+        item.enclosure = new FeedEnclosure(enclosureNode.getAttribute("url"),
+                                           enclosureNode.getAttribute("type"),
+                                           enclosureNode.getAttribute("length"));
       parsedItems[i] = item;
     }
+
     return parsedItems;
   },
 
-  parseAsRSS1 : function(aFeed, aSource, aBaseURI) 
+  parseAsRSS1 : function(aFeed, aSource, aBaseURI)
   {
-    var parsedItems = new Array();
+    let parsedItems = new Array();
 
     // RSS 1.0 is valid RDF, so use the RDF parser/service to extract data.
     // Create a new RDF data source and parse the feed into it.
-    var ds = Components.classes["@mozilla.org/rdf/datasource;1?name=in-memory-datasource"]
-             .createInstance(Components.interfaces.nsIRDFDataSource);
+    let ds = Cc["@mozilla.org/rdf/datasource;1?name=in-memory-datasource"].
+             createInstance(Ci.nsIRDFDataSource);
 
+    let rdfparser = Cc["@mozilla.org/rdf/xml-parser;1"].
+                    createInstance(Ci.nsIRDFXMLParser);
     rdfparser.parseString(ds, aBaseURI, aSource);
-    
+
     // Get information about the feed as a whole.
-    var channel = ds.GetSource(RDF_TYPE, RSS_CHANNEL, true);
-    
-    aFeed.title = aFeed.title || getRDFTargetValue(ds, channel, RSS_TITLE) || aFeed.url;
-    aFeed.description = getRDFTargetValue(ds, channel, RSS_DESCRIPTION) || "";
-    aFeed.link = getRDFTargetValue(ds, channel, RSS_LINK) || aFeed.url;
+    let channel = ds.GetSource(FeedUtils.RDF_TYPE, FeedUtils.RSS_CHANNEL, true);
+
+    aFeed.title = aFeed.title ||
+                  this.getRDFTargetValue(ds, channel, FeedUtils.RSS_TITLE) ||
+                  aFeed.url;
+    aFeed.description = this.getRDFTargetValue(ds, channel, FeedUtils.RSS_DESCRIPTION) ||
+                        "";
+    aFeed.link = this.getRDFTargetValue(ds, channel, FeedUtils.RSS_LINK) ||
+                 aFeed.url;
 
     if (!aFeed.parseItems)
       return parsedItems;
 
     aFeed.invalidateItems();
 
-    var items = ds.GetTarget(channel, RSS_ITEMS, true);
+    let items = ds.GetTarget(channel, FeedUtils.RSS_ITEMS, true);
     if (items)
-      items = rdfcontainer.MakeSeq(ds, items).GetElements();
-  
+      items = FeedUtils.rdfContainerUtils.MakeSeq(ds, items).GetElements();
+ 
     // If the channel doesn't list any items, look for resources of type "item"
     // (a hacky workaround for some buggy feeds).
     if (!items || !items.hasMoreElements())
-      items = ds.GetSources(RDF_TYPE, RSS_ITEM, true);
+      items = ds.GetSources(FeedUtils.RDF_TYPE, FeedUtils.RSS_ITEM, true);
 
-    var index = 0; 
-    while (items.hasMoreElements()) 
+    let index = 0;
+    while (items.hasMoreElements())
     {
-      var itemResource = items.getNext().QueryInterface(Components.interfaces.nsIRDFResource);
-      var item = new FeedItem();
+      let itemResource = items.getNext().QueryInterface(Ci.nsIRDFResource);
+      let item = new FeedItem();
       item.feed = aFeed;
       item.characterSet = "UTF-8";
 
       // Prefer the value of the link tag to the item URI since the URI could be
       // a relative URN.
-      var uri = itemResource.Value;
-      var link = getRDFTargetValue(ds, itemResource, RSS_LINK);
+      let uri = itemResource.Value;
+      let link = this.getRDFTargetValue(ds, itemResource, FeedUtils.RSS_LINK);
 
-      // XXX
-      // check for bug258465 -- entities appear escaped 
-      // in the value returned by getRDFTargetValue when they shouldn't
+      // XXX Check for bug258465 - entities appear escaped  in the value
+      // returned by getRDFTargetValue when they shouldn't.
       //debug("link comparison\n" + " uri: " + uri + "\nlink: " + link);
 
       item.url = link || uri;
       item.id = item.url;
-      item.description = getRDFTargetValue(ds, itemResource, RSS_DESCRIPTION);
-      item.title = getRDFTargetValue(ds, itemResource, RSS_TITLE)
-                                     || getRDFTargetValue(ds, itemResource, DC_SUBJECT)
-                                     || (item.description ? (this.stripTags(item.description).substr(0, 150)) : null)
-                                     || item.title;
-      item.author = getRDFTargetValue(ds, itemResource, DC_CREATOR)
-                                      || getRDFTargetValue(ds, channel, DC_CREATOR)
-                                      || aFeed.title
-                                      || item.author;
-      
-      item.date = getRDFTargetValue(ds, itemResource, DC_DATE) || item.date;
-      item.content = getRDFTargetValue(ds, itemResource, RSS_CONTENT_ENCODED);
+      item.description = this.getRDFTargetValue(ds, itemResource,
+                                                FeedUtils.RSS_DESCRIPTION);
+      item.title = this.getRDFTargetValue(ds, itemResource, FeedUtils.RSS_TITLE) ||
+                   this.getRDFTargetValue(ds, itemResource, FeedUtils.DC_SUBJECT) ||
+                   (item.description ?
+                     (this.stripTags(item.description).substr(0, 150)) : null) ||
+                   item.title;
+      item.author = this.getRDFTargetValue(ds, itemResource, FeedUtils.DC_CREATOR) ||
+                    this.getRDFTargetValue(ds, channel, FeedUtils.DC_CREATOR) ||
+                    aFeed.title ||
+                    item.author;
+      item.date = this.getRDFTargetValue(ds, itemResource, FeedUtils.DC_DATE) ||
+                  item.date;
+      item.content = this.getRDFTargetValue(ds, itemResource,
+                                            FeedUtils.RSS_CONTENT_ENCODED);
 
       parsedItems[index++] = item;
     }
-  
+    FeedUtils.log.debug("FeedParser.parseAsRSS1: items parsed - " + index);
+
     return parsedItems;
   },
 
-  parseAsAtom: function(aFeed, aDOM) 
+  parseAsAtom: function(aFeed, aDOM)
   {
-    var parsedItems = new Array();
+    let parsedItems = new Array();
 
     // Get the first channel (assuming there is only one per Atom File).
-    var channel = aDOM.getElementsByTagName("feed")[0];
+    let channel = aDOM.getElementsByTagName("feed")[0];
     if (!channel)
     {
       aFeed.onParseError(aFeed);
       return parsedItems;
     }
 
-    aFeed.title = aFeed.title || this.stripTags(getNodeValue(this.childrenByTagNameNS(channel, ATOM_03_NS, "title")[0]));
-    aFeed.description = getNodeValue(this.childrenByTagNameNS(channel, ATOM_03_NS, "tagline")[0]);
-    aFeed.link = this.findAtomLink("alternate",this.childrenByTagNameNS(channel, ATOM_03_NS, "link"));
+    let tags = this.childrenByTagNameNS(channel, FeedUtils.ATOM_03_NS, "title");
+    aFeed.title = aFeed.title ||
+                  this.stripTags(this.getNodeValue(tags ? tags[0] : null));
+    tags = this.childrenByTagNameNS(channel, FeedUtils.ATOM_03_NS, "tagline");
+    aFeed.description = this.getNodeValue(tags ? tags[0] : null);
+    tags = this.childrenByTagNameNS(channel, FeedUtils.ATOM_03_NS, "link");
+    aFeed.link = this.findAtomLink("alternate", tags);
 
     if (!aFeed.parseItems)
       return parsedItems;
 
     aFeed.invalidateItems();
-    var items = this.childrenByTagNameNS(channel, ATOM_03_NS, "entry");
-    debug("Items to parse: " + items.length);
-  
-    for (var i=0; i < items.length; i++) 
+    let items = this.childrenByTagNameNS(channel, FeedUtils.ATOM_03_NS, "entry");
+    FeedUtils.log.debug("FeedParser.parseAsAtom: items to parse - " +
+                        items.length);
+
+    for (let i = 0; i < items.length; i++)
     {
-      var itemNode = items[i];
-      var item = new FeedItem();
+      let itemNode = items[i];
+      let item = new FeedItem();
       item.feed = aFeed;
       item.characterSet = "UTF-8";
 
-      var url;
-      url = this.findAtomLink("alternate",this.childrenByTagNameNS(itemNode, ATOM_03_NS, "link"));
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_03_NS, "link");
+      item.url = this.findAtomLink("alternate", tags);
 
-      item.url = url;
-      item.id = getNodeValue(this.childrenByTagNameNS(itemNode, ATOM_03_NS, "id")[0]);
-      item.description = getNodeValue(this.childrenByTagNameNS(itemNode, ATOM_03_NS, "summary")[0]);
-      item.title = getNodeValue(this.childrenByTagNameNS(itemNode, ATOM_03_NS, "title")[0])
-                                || (item.description ? item.description.substr(0, 150) : null)
-                                || item.title;
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_03_NS, "id");
+      item.id = this.getNodeValue(tags ? tags[0] : null);
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_03_NS, "summary");
+      item.description = this.getNodeValue(tags ? tags[0] : null);
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_03_NS, "title");
+      item.title = this.getNodeValue(tags ? tags[0] : null) ||
+                   (item.description ? item.description.substr(0, 150) : null) ||
+                   item.title;
 
-      var authorEl = this.childrenByTagNameNS(itemNode, ATOM_03_NS, "author")[0]
-                     || this.childrenByTagNameNS(itemNode, ATOM_03_NS, "contributor")[0]
-                     || this.childrenByTagNameNS(channel, ATOM_03_NS, "author")[0];
-      var author = "";
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_03_NS, "author");
+      if (!tags)
+        tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_03_NS, "contributor");
+      if (!tags)
+        tags = this.childrenByTagNameNS(channel, FeedUtils.ATOM_03_NS, "author");
 
-      if (authorEl) 
+      let authorEl = tags ? tags[0] : null;
+
+      let author = "";
+      if (authorEl)
       {
-        var name = getNodeValue(this.childrenByTagNameNS(authorEl, ATOM_03_NS, "name")[0]);
-        var email = getNodeValue(this.childrenByTagNameNS(authorEl, ATOM_03_NS, "email")[0]);
+        tags = this.childrenByTagNameNS(authorEl, FeedUtils.ATOM_03_NS, "name");
+        let name = this.getNodeValue(tags ? tags[0] : null);
+        tags = this.childrenByTagNameNS(authorEl, FeedUtils.ATOM_03_NS, "email");
+        let email = this.getNodeValue(tags ? tags[0] : null);
         if (name)
           author = name + (email ? " <" + email + ">" : "");
         else if (email)
           author = email;
       }
-      
+
       item.author = author || item.author || aFeed.title;
 
-      item.date = getNodeValue(this.childrenByTagNameNS(itemNode, ATOM_03_NS, "modified")[0]
-                               || this.childrenByTagNameNS(itemNode, ATOM_03_NS, "issued")[0]
-                               || this.childrenByTagNameNS(itemNode, ATOM_03_NS, "created")[0])
-                               || item.date;
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_03_NS, "modified");
+      if (!tags)
+        tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_03_NS, "issued");
+      if (!tags)
+        tags = this.childrenByTagNameNS(channel, FeedUtils.ATOM_03_NS, "created");
+
+      item.date = this.getNodeValue(tags ? tags[0] : null) || item.date;
 
       // XXX We should get the xml:base attribute from the content tag as well
       // and use it as the base HREF of the message.
@@ -348,104 +397,132 @@ FeedParser.prototype =
       // a namespace to identify the tags as HTML; and a few are buggy and put
       // HTML tags in without declaring their namespace so they look like Atom.
       // We deal with the first two but not the third.
-      
-      var content;
-      var contentNode = this.childrenByTagNameNS(itemNode, ATOM_03_NS, "content")[0];
-      if (contentNode) 
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_03_NS, "content");
+      let contentNode = tags ? tags[0] : null;
+
+      let content;
+      if (contentNode)
       {
         content = "";
-        for (var j=0; j < contentNode.childNodes.length; j++) 
+        for (let j = 0; j < contentNode.childNodes.length; j++)
         {
-          var node = contentNode.childNodes.item(j);
+          let node = contentNode.childNodes.item(j);
           if (node.nodeType == node.CDATA_SECTION_NODE)
             content += node.data;
           else
-            content += serializer.serializeToString(node);
+            content += this.mSerializer.serializeToString(node);
         }
       
-        if (contentNode.getAttribute('mode') == "escaped") 
+        if (contentNode.getAttribute("mode") == "escaped")
         {
           content = content.replace(/&lt;/g, "<");
           content = content.replace(/&gt;/g, ">");
           content = content.replace(/&amp;/g, "&");
         }
-      
+
         if (content == "")
           content = null;
       }
-      
+
       item.content = content;
       parsedItems[i] = item;
     }
+
     return parsedItems;
   },
 
   parseAsAtomIETF: function(aFeed, aDOM)
   {
-    
-    var parsedItems = new Array();
+    let parsedItems = new Array();
 
     // Get the first channel (assuming there is only one per Atom File).
-    var channel = this.childrenByTagNameNS(aDOM,ATOM_IETF_NS,"feed")[0];
+    let channel = this.childrenByTagNameNS(aDOM, FeedUtils.ATOM_IETF_NS, "feed")[0];
     if (!channel)
     {
       aFeed.onParseError(aFeed);
       return parsedItems;
     }
 
-    aFeed.title = aFeed.title || this.stripTags(this.serializeTextConstruct(this.childrenByTagNameNS(channel,ATOM_IETF_NS,"title")[0]));
-    aFeed.description = this.serializeTextConstruct(this.childrenByTagNameNS(channel,ATOM_IETF_NS,"subtitle")[0]);
-    aFeed.link = this.findAtomLink("alternate", this.childrenByTagNameNS(channel,ATOM_IETF_NS,"link"));
-    
+    let tags = this.childrenByTagNameNS(channel, FeedUtils.ATOM_IETF_NS, "title");
+    aFeed.title = aFeed.title ||
+                  this.stripTags(this.serializeTextConstruct(tags ? tags[0] : null));
+
+    tags = this.childrenByTagNameNS(channel, FeedUtils.ATOM_IETF_NS, "subtitle");
+    aFeed.description = this.serializeTextConstruct(tags ? tags[0] : null);
+
+    tags = this.childrenByTagNameNS(channel, FeedUtils.ATOM_IETF_NS, "link");
+    aFeed.link = this.findAtomLink("alternate", tags);
+
     if (!aFeed.parseItems)
       return parsedItems;
 
     aFeed.invalidateItems();
-    var items = this.childrenByTagNameNS(channel,ATOM_IETF_NS,"entry");
-    debug("Items to parse: " + items.length);
+    let items = this.childrenByTagNameNS(channel, FeedUtils.ATOM_IETF_NS, "entry");
+    FeedUtils.log.debug("FeedParser.parseAsAtomIETF: items to parse - " +
+                        items.length);
 
-    for (var i=0; i < items.length; i++) 
+    for (let i = 0; i < items.length; i++)
     {
-      var itemNode = items[i];
-      var item = new FeedItem();
+      let itemNode = items[i];
+      let item = new FeedItem();
       item.feed = aFeed;
       item.characterSet = "UTF-8";
       item.isStoredWithId = true;
-      item.url = this.findAtomLink("alternate", this.childrenByTagNameNS(itemNode, ATOM_IETF_NS, "link")) || aFeed.link;
-      item.id = getNodeValue(this.childrenByTagNameNS(itemNode, ATOM_IETF_NS, "id")[0]);
-      item.description = this.serializeTextConstruct(this.childrenByTagNameNS(itemNode, ATOM_IETF_NS, "summary")[0]);
-      item.title = this.stripTags(this.serializeTextConstruct(this.childrenByTagNameNS(itemNode, ATOM_IETF_NS, "title")[0])
-                                  || (item.description ? item.description.substr(0, 150) : null)
-                                  || item.title);
-      
-      // XXX Support multiple authors
-      var source = this.childrenByTagNameNS(itemNode, ATOM_IETF_NS, "source")[0];
-      var authorEl = this.childrenByTagNameNS(itemNode, ATOM_IETF_NS, "author")[0]
-                           || (source ? this.childrenByTagNameNS(source, ATOM_IETF_NS, "author")[0] : null)
-                           || this.childrenByTagNameNS(channel, ATOM_IETF_NS, "author")[0];
-      var author = "";
 
-      if (authorEl) 
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_IETF_NS, "link");
+      item.url = this.findAtomLink("alternate", tags) || aFeed.link;
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_IETF_NS, "id");
+      item.id = this.getNodeValue(tags ? tags[0] : null);
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_IETF_NS, "summary");
+      item.description = this.serializeTextConstruct(tags ? tags[0] : null);
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_IETF_NS, "title");
+      item.title = this.stripTags(this.serializeTextConstruct(tags ? tags[0] : null) ||
+                                  (item.description ?
+                                     item.description.substr(0, 150) : null) ||
+                                  item.title);
+
+      // XXX Support multiple authors.
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_IETF_NS, "source");
+      let source = tags ? tags[0] : null;
+
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_IETF_NS, "author");
+      if (!tags && source)
+        tags = this.childrenByTagNameNS(source, FeedUtils.ATOM_IETF_NS, "author");
+      if (!tags)
+        tags = this.childrenByTagNameNS(channel, FeedUtils.ATOM_IETF_NS, "author");
+
+      let authorEl = tags ? tags[0] : null;
+
+      let author = "";
+      if (authorEl)
       {
-        var name = getNodeValue(this.childrenByTagNameNS(authorEl, ATOM_IETF_NS, "name")[0]);
-        var email = getNodeValue(this.childrenByTagNameNS(authorEl, ATOM_IETF_NS, "email")[0]);
+        tags = this.childrenByTagNameNS(authorEl, FeedUtils.ATOM_IETF_NS, "name");
+        let name = this.getNodeValue(tags ? tags[0] : null);
+        tags = this.childrenByTagNameNS(authorEl, FeedUtils.ATOM_IETF_NS, "email");
+        let email = this.getNodeValue(tags ? tags[0] : null);
         if (name)
           author = name + (email ? " <" + email + ">" : "");
         else if (email)
           author = email;
       }
-      
+
       item.author = author || item.author || aFeed.title;
-      item.date = getNodeValue(this.childrenByTagNameNS(itemNode, ATOM_IETF_NS, "updated")[0]
-                               || this.childrenByTagNameNS(itemNode, ATOM_IETF_NS, "published")[0])
-                               || item.date;
 
-      item.content = this.serializeTextConstruct(this.childrenByTagNameNS(itemNode, ATOM_IETF_NS, "content")[0]);
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_IETF_NS, "updated");
+      if (!tags)
+        tags = this.childrenByTagNameNS(source, FeedUtils.ATOM_IETF_NS, "published");
+      item.date = this.getNodeValue(tags ? tags[0] : null) || item.date;
 
-      if(item.content)
-        item.xmlContentBase = this.childrenByTagNameNS(itemNode, ATOM_IETF_NS, "content")[0].baseURI;
-      else if(item.description)
-        item.xmlContentBase = this.childrenByTagNameNS(itemNode, ATOM_IETF_NS, "summary")[0].baseURI;
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_IETF_NS, "content");
+      item.content = this.serializeTextConstruct(tags ? tags[0] : null);
+
+      if (item.content)
+        item.xmlContentBase = tags ? tags[0].baseURI : null;
+      else if (item.description)
+      {
+        tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_IETF_NS, "summary");
+        item.xmlContentBase = tags ? tags[0].baseURI : null;
+      }
       else
         item.xmlContentBase = itemNode.baseURI;
 
@@ -453,79 +530,125 @@ FeedParser.prototype =
     }
 
     return parsedItems;
-
   },
 
   serializeTextConstruct: function(textElement)
   {
-    var content = "";
-
-    if (textElement) 
+    let content = "";
+    if (textElement)
     {
-      var textType = textElement.getAttribute('type');
+      let textType = textElement.getAttribute("type");
 
-      // Atom spec says consider it "text" if not present
-      if(!textType)
+      // Atom spec says consider it "text" if not present.
+      if (!textType)
         textType = "text";
 
-      // There could be some strange content type we don't handle
-      if((textType != "text") && (textType != "html") && (textType != "xhtml"))
+      // There could be some strange content type we don't handle.
+      if (textType != "text" && textType != "html" && textType != "xhtml")
         return null;
 
-      for (var j=0; j < textElement.childNodes.length; j++) 
+      for (let j = 0; j < textElement.childNodes.length; j++)
       {
-        var node = textElement.childNodes.item(j);
+        let node = textElement.childNodes.item(j);
         if (node.nodeType == node.CDATA_SECTION_NODE)
           content += this.xmlEscape(node.data);
         else
-          content += serializer.serializeToString(node);
+          content += this.mSerializer.serializeToString(node);
       }
-      if (textType == "html") 
+
+      if (textType == "html")
         content = this.xmlUnescape(content);
     }
 
-    // other parts of the code depend on this being null
-    // if there's no content
+    // Other parts of the code depend on this being null if there's no content.
     return content ? content : null;
   },
 
-  // finds elements that are direct children of the first arg
+  getRDFTargetValue: function(ds, source, property)
+  {
+    let node = ds.GetTarget(source, property, true);
+    if (node)
+    {
+      try
+      {
+        node = node.QueryInterface(Ci.nsIRDFLiteral);
+        if (node)
+          return node.Value;
+      }
+      catch (e)
+      {
+        // If the RDF was bogus, do nothing.  Rethrow if it's some other problem.
+        if (!((e instanceof Ci.nsIXPCException) &&
+              e.result == Cr.NS_ERROR_NO_INTERFACE))
+          throw new Error("FeedParser.getRDFTargetValue: " + e);
+      }
+    }
+
+    return null;
+  },
+
+  getNodeValue: function(node)
+  {
+    if (node && node.textContent)
+      return node.textContent.trim();
+    else if (node && node.firstChild)
+    {
+      let ret = "";
+      for (let child = node.firstChild; child; child = child.nextSibling)
+      {
+        let value = this.getNodeValue(child);
+        if (value)
+          ret += value;
+      }
+
+      if (ret)
+        return ret;
+    }
+
+    return null;
+  },
+
+  // Finds elements that are direct children of the first arg.
   childrenByTagNameNS: function(aElement, aNamespace, aTagName)
   {
-    var matches = aElement.getElementsByTagNameNS(aNamespace, aTagName);
-    var matchingChildren = new Array();
-    for (var i = 0; i < matches.length; i++) 
+    let matches = aElement.getElementsByTagNameNS(aNamespace, aTagName);
+    let matchingChildren = new Array();
+    for (let i = 0; i < matches.length; i++)
     {
-      if(matches[i].parentNode == aElement)
+      if (matches[i].parentNode == aElement)
         matchingChildren.push(matches[i])
     }
-    return matchingChildren;
+
+    return matchingChildren.length ? matchingChildren : null;
   },
 
   findAtomLink: function(linkRel, linkElements)
   {
-    // XXX Need to check for MIME type and hreflang
-    for ( var j=0 ; j<linkElements.length ; j++ ) {
-      var alink = linkElements[j];
-      if (alink && 
-          //if there's a link rel
-          ((alink.getAttribute('rel') && alink.getAttribute('rel') == linkRel) ||
-           //if there isn't, assume 'alternate'
-           (!alink.getAttribute('rel') && (linkRel=="alternate"))) 
-          && alink.getAttribute('href')) 
+    // XXX Need to check for MIME type and hreflang.
+    for (let j = 0; j < linkElements.length; j++) {
+      let alink = linkElements[j];
+      if (alink &&
+          // If there's a link rel.
+          ((alink.getAttribute("rel") && alink.getAttribute("rel") == linkRel) ||
+           // If there isn't, assume 'alternate'.
+           (!alink.getAttribute("rel") && (linkRel == "alternate"))) &&
+          alink.getAttribute("href"))
       {
-        // Atom links are interpreted relative to xml:base
-        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                   .getService(Components.interfaces.nsIIOService);
-        return ioService.newURI(alink.baseURI, null, null).resolve(alink.getAttribute('href'));
+        // Atom links are interpreted relative to xml:base.
+        try {
+          return Services.io.newURI(alink.baseURI, null, null).
+                             resolve(alink.getAttribute("href"));
+        }
+        catch (ex) {}
       }
     }
+
     return null;
   },
-  
+
   stripTags: function(someHTML)
   {
-    return someHTML ? someHTML.replace(/<[^>]+>/g,"") : someHTML;
+    return someHTML ? someHTML.replace(/<[^>]+>/g, "") : someHTML;
   },
 
   xmlUnescape: function(s)
@@ -542,5 +665,41 @@ FeedParser.prototype =
     s = s.replace(/>/g, "&gt;");
     s = s.replace(/</g, "&lt;");
     return s;
-   }
+  },
+
+  // Date validator for RSS feeds
+  FZ_RFC822_RE: "^(((Mon)|(Tue)|(Wed)|(Thu)|(Fri)|(Sat)|(Sun)), *)?\\d\\d?" +
+    " +((Jan)|(Feb)|(Mar)|(Apr)|(May)|(Jun)|(Jul)|(Aug)|(Sep)|(Oct)|(Nov)|(Dec))" +
+    " +\\d\\d(\\d\\d)? +\\d\\d:\\d\\d(:\\d\\d)? +(([+-]?\\d\\d\\d\\d)|(UT)|(GMT)" +
+    "|(EST)|(EDT)|(CST)|(CDT)|(MST)|(MDT)|(PST)|(PDT)|\\w)$",
+
+  isValidRFC822Date: function(pubDate)
+  {
+    let regex = new RegExp(this.FZ_RFC822_RE);
+    return regex.test(pubDate);
+  },
+
+  dateRescue: function(dateString)
+  {
+    // Deal with various kinds of invalid dates.
+    if (!isNaN(parseInt(dateString)))
+    {
+      // It's an integer, so maybe it's a timestamp.
+      let d = new Date(parseInt(dateString) * 1000);
+      let now = new Date();
+      let yeardiff = now.getFullYear() - d.getFullYear();
+      FeedUtils.log.trace("FeedParser.dateRescue: Rescue Timestamp date - " +
+                          d.toString() + " ,year diff - " + yeardiff);
+      if (yeardiff >= 0 && yeardiff < 3)
+        // It's quite likely the correct date.
+        return d.toString();
+    }
+
+    if (dateString.search(/^\d\d\d\d/) != -1)
+      //Could be an ISO8601/W3C date.
+      return new Date(dateString).toUTCString();
+
+    // Can't help.  Set to current time.
+    return (new Date()).toString();
+  }
 };

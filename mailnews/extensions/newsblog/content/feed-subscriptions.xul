@@ -63,8 +63,6 @@
   <script type="application/javascript"
           src="chrome://messenger-newsblog/content/file-utils.js"/>
   <script type="application/javascript"
-          src="chrome://messenger-newsblog/content/debug-utils.js"/>
-  <script type="application/javascript"
           src="chrome://messenger-newsblog/content/feed-subscriptions.js"/>
   <script type="application/javascript"
           src="chrome://messenger-newsblog/content/Feed.js"/>
