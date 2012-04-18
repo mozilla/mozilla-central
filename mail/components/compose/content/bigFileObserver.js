@@ -102,7 +102,7 @@ var gBigFileObserver = {
 
   attachmentsRemoved: function(aAttachments) {
     for (let attachment in fixIterator(
-         aAttachment , Components.interfaces.nsIMsgAttachment)) {
+         aAttachments, Components.interfaces.nsIMsgAttachment)) {
       let index = this.bigFiles.indexOf(attachment);
       if (index != -1)
         this.bigFiles.splice(index, 1);

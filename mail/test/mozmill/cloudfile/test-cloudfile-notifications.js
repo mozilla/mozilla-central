@@ -243,7 +243,7 @@ function test_no_offer_on_conversion() {
   // asynchronously.
   provider.uploadFile = function(aFile, aListener) {
     aListener.onStartRequest(null, null);
-    aListener.onStopRequest(null, null, Cr.NS_OK);
+    aListener.onStopRequest(null, null, Components.results.NS_OK);
   };
 
   let cw = open_compose_new_mail();
@@ -254,6 +254,55 @@ function test_no_offer_on_conversion() {
   cw.window.convertSelectedToRegularAttachment();
 
   assert_cloudfile_notification_displayed(cw, false);
+
+  // Now put the old threshold back.
+  Services.prefs.setIntPref(kOfferThreshold, maxSize);
+}
+
+/**
+ * Test that when we kick off an upload via the offer notification, then
+ * the upload notification is shown.
+ */
+function test_offer_then_upload_notifications() {
+  const kFiles = ['./data/testFile1', './data/testFile2'];
+  // Set the notification threshold to 0 to ensure that we get it.
+  Services.prefs.setIntPref(kOfferThreshold, 0);
+
+  // We're going to add attachments to the attachmentbucket, and we'll
+  // use the add_attachments helper function to do it.  First, retrieve
+  // some file URIs...
+  let fileURIs = [Services.io.newFileURI(file).spec
+                  for each (file in collectFiles(kFiles, __file__))];
+
+  // Create our mock provider
+  let provider = new MockCloudfileAccount();
+  provider.init("someKey");
+
+  // Override uploadFile to succeed instantaneously so that we don't have
+  // to worry about waiting for the onStopRequest method being called
+  // asynchronously.
+  provider.uploadFile = function(aFile, aListener) {
+    aListener.onStartRequest(null, null);
+    aListener.onStopRequest(null, null, Components.results.NS_OK);
+  };
+
+  let cw = open_compose_new_mail();
+
+  // Attach the files, saying that each is 500 bytes large - which should
+  // certainly trigger the offer.
+  add_attachments(cw, fileURIs, [500, 500]);
+  // Assert that the offer is displayed.
+  assert_cloudfile_notification_displayed(cw, true);
+  // Select both attachments in the attachmentbucket, and choose to convert
+  // them.
+  select_attachments(cw, 0, 1);
+  // Convert them.
+  cw.window.convertSelectedToCloudAttachment(provider);
+
+  // The offer should now be gone...
+  assert_cloudfile_notification_displayed(cw, false);
+  // And the upload notification should be displayed.
+  assert_upload_notification_displayed(cw, true);
 
   // Now put the old threshold back.
   Services.prefs.setIntPref(kOfferThreshold, maxSize);
