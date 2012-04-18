@@ -142,6 +142,7 @@
     <implementation implements="nsIObserver">
       <constructor><![CDATA[
         Components.utils.import("resource://gre/modules/PluralForm.jsm");
+        Components.utils.import("resource://calendar/modules/calItemUtils.jsm");
         let self = this;
 
         // set up the tree filter
@@ -403,79 +404,111 @@
            * High-level task tree manipulation
            */
 
-          addItem: function tTV_addItem(aItem, aDontSort) {
-              if (aItem.isCompleted && !this.binding.showCompleted) {
-                  return;
-              }
-
-              let index = this.binding.mHash2Index[aItem.hashId];
-              if (index === undefined) {
-                  index = this.binding.mTaskArray.length;
-                  this.binding.mTaskArray.push(aItem);
-                  this.binding.mHash2Index[aItem.hashId] = index;
-                  // The rowCountChanged function takes two arguments, the index where the
-                  // first row was inserted and the number of rows to insert.
-                  this.treebox.rowCountChanged(index, 1);
-              }
-
-              if (aDontSort) {
-                this.binding.recreateHashTable();
-              } else {
-                this.binding.sortItems();
-              }
-
-              index = this.binding.mHash2Index[aItem.hashId];
-              this.tree.view.selection.select(index);
-              this.treebox.ensureRowIsVisible(index);
+          // Adds an array of items to the list if they match the currently applied filter.
+          addItems: function tTV_addItems(aItems, aDontSort) {
+              this.modifyItems(aItems, [], aDontSort, true);
           },
 
-          removeItem: function tTV_removeItem(aItem, aDontSort) {
-              var index = this.binding.mHash2Index[aItem.hashId];
-              if (index != undefined) {
-                  delete this.binding.mHash2Index[aItem.hashId];
+          // Removes an array of items from the list.
+          removeItems: function tTV_removeItems(aItems) {
+              this.modifyItems([], aItems, true, false);
+          },
+
+          // Removes an array of old items from the list, and adds an array of new items if
+          // they match the currently applied filter.
+          modifyItems: function tTV_modifyItems(aNewItems, aOldItems, aDontSort, aSelectNew) {
+              let selItem = this.binding.currentTask;
+              let selIndex = this.tree.currentIndex;
+              let firstHash = null;
+              let remIndexes = [];
+              let itemsToAdd = [];
+              aNewItems = aNewItems || [];
+              aOldItems = aOldItems || [];
+
+              this.treebox.beginUpdateBatch();
+
+              let idiff = new itemDiff();
+              idiff.load(aOldItems);
+              idiff.difference(aNewItems);
+              idiff.complete();
+              let delItems = idiff.deletedItems;
+              let addItems = idiff.addedItems;
+              let modItems = idiff.modifiedItems;
+
+              // find the indexes of the old items that need to be removed
+              delItems.mArray.forEach(function(item) {
+                  if (item.hashId in this.binding.mHash2Index) {
+                      // the old item needs to be removed
+                      remIndexes.push(this.binding.mHash2Index[item.hashId]);
+                      delete this.binding.mHash2Index[item.hashId];
+                  }
+              }, this);
+
+              // modified items may need to be added, update, or removed
+              modItems.mArray.forEach(function(item) {
+                  let inFilter = this.binding.mFilter.isItemInFilters(item) && 
+                                 !(item.isCompleted && !this.binding.showCompleted);
+
+                  if (item.hashId in this.binding.mHash2Index) {
+                      if (inFilter) {
+                          // make sure we're using the new version of a modified item
+                          this.binding.mTaskArray[this.binding.mHash2Index[item.hashId]] = item;
+                      } else {
+                          // the modified item needs to be removed, it no longer matches the
+                          // applied filter.
+                          remIndexes.push(this.binding.mHash2Index[item.hashId]);
+                          delete this.binding.mHash2Index[item.hashId];
+                      }
+                  } else if (inFilter) {
+                      // the modified item needs to be added, it now matches the applied filter.
+                      itemsToAdd.push(item);
+                  }
+              }, this);
+
+              // find new items that need to be added
+              itemsToAdd = itemsToAdd.concat(addItems.mArray.filter(function(item) {
+                  return this.binding.mFilter.isItemInFilters(item) && 
+                         !(item.isCompleted && !this.binding.showCompleted);
+              }, this));
+
+              // remove the old items working backward from the end so the indexes stay valid
+              remIndexes.sort(function(a, b) {return b - a;}).forEach(function(index) {
                   this.binding.mTaskArray.splice(index, 1);
                   this.treebox.rowCountChanged(index, -1);
+              }, this);
 
-                  if (index == this.rowCount) {
-                      index--;
+              // add the new items
+              itemsToAdd.forEach(function(item) {
+                  if (!(item.hashId in this.binding.mHash2Index)) {
+                      let index = this.binding.mTaskArray.length;
+                      this.binding.mTaskArray.push(item);
+                      this.binding.mHash2Index[item.hashId] = index;
+                      this.treebox.rowCountChanged(index, 1);
+                      firstHash = firstHash || item.hashId;
                   }
+              }, this);
 
-                  this.tree.view.selection.select(index);
-
+              if (aDontSort) {
                   this.binding.recreateHashTable();
+              } else {
+                  this.binding.sortItems();
               }
-          },
 
-           modifyItem: function tTV_modifyItem(aNewItem, aOldItem, aDontSort) {
-              var index = this.binding.mHash2Index[aOldItem.hashId];
-              if (index != undefined) {
-                  // if a filter is installed we need to make sure that
-                  // the item still belongs to the set of valid items before
-                  // moving forward. if the filter cuts this item off, we
-                  // need to act accordingly.
-                  if (!this.binding.mFilter.isItemInFilters(aNewItem)) {
-                      this.removeItem(aNewItem);
-                      return;
-                  }
-                  // same holds true for the completed filter, which is
-                  // currently modeled as an explicit boolean.
-                  if (aNewItem.isCompleted != aOldItem.isCompleted) {
-                      if (aNewItem.isCompleted && !this.binding.showCompleted) {
-                          this.removeItem(aNewItem);
-                          return;
-                      }
-                  }
-                  delete this.binding.mHash2Index[aOldItem.hashId];
-                  this.binding.mHash2Index[aNewItem.hashId] = index;
-                  this.binding.mTaskArray[index] = aNewItem;
-                  this.tree.view.selection.select(index);
-
-                  if(aDontSort) {
-                      this.treebox.invalidateRow(index);
-                  } else {
-                      this.binding.sortItems();
-                  }
+              if (aSelectNew && firstHash && firstHash in this.binding.mHash2Index) {
+                  // select the first item added into the list
+                  selIndex = this.binding.mHash2Index[firstHash];
+              } else if (selItem && selItem.hashId in this.binding.mHash2Index) {
+                  // select the previously selected item
+                  selIndex = this.binding.mHash2Index[selItem.hashId];
+              } else if (selIndex >= this.binding.mTaskArray.length) {
+                  // make sure the previously selected index is valid
+                  selIndex = this.binding.mTaskArray.length - 1;
               }
+
+              this.tree.view.selection.select(selIndex);
+              this.treebox.ensureRowIsVisible(selIndex);
+
+              this.treebox.endUpdateBatch();
           },
 
           clear: function tTV_clear() {
@@ -856,36 +889,30 @@
 
           onAddItem: function tTO_onAddItem(aItem) {
               if (cal.isToDo(aItem)) {
-                  // get occurrences of repeating items
-                  let occs;
+                  let occs = [aItem];
                   if (this.binding.mFilter.endDate) {
+                      // get occurrences of repeating items
                       occs = aItem.getOccurrencesBetween(this.binding.mFilter.startDate,
                                                          this.binding.mFilter.endDate,
                                                          {});
-                  } else {
-                      occs = [aItem];
                   }
-                  for each (let occ in occs) {
-                      if (this.binding.mFilter.isItemInFilters(occ)) {
-                          this.binding.mTreeView.addItem(occ);
-                      }
-                  }
+                  this.binding.mTreeView.addItems(occs);
               }
           },
 
           onModifyItem: function tTO_onModifyItem(aNewItem, aOldItem) {
               if ((cal.isToDo(aNewItem) || cal.isToDo(aOldItem))) {
-
-                  if ((this.binding.mFilter.endDate) &&
-                      (aOldItem.recurrenceInfo || aNewItem.recurrenceInfo)) {
-
-                      // if item is repeating refresh to updated all modified occurrences
-                      this.binding.refresh();
-                  } else {
-                      // forward the call to the view which will in turn
-                      // update the internal reference and the view.
-                      this.binding.mTreeView.modifyItem(aNewItem, aOldItem);
+                  let newOccs = [aNewItem];
+                  let oldOccs = [aOldItem];
+                  if (this.binding.mFilter.endDate) {
+                      newOccs = aNewItem.getOccurrencesBetween(this.binding.mFilter.startDate,
+                                                               this.binding.mFilter.endDate,
+                                                               {});
+                      oldOccs = aOldItem.getOccurrencesBetween(this.binding.mFilter.startDate,
+                                                               this.binding.mFilter.endDate,
+                                                               {});
                   }
+                  this.binding.mTreeView.modifyItems(newOccs, oldOccs);
 
                   // we also need to notify potential listeners.
                   var event = document.createEvent('Events');
@@ -896,17 +923,14 @@
 
           onDeleteItem: function tTO_onDeleteItem(aDeletedItem) {
               if (cal.isToDo(aDeletedItem)) {
-
-                  // get occurrences of repeating items
-                  let occs;
+                  let occs = [aDeletedItem];
                   if (this.binding.mFilter.endDate) {
+                      // get occurrences of repeating items
                       occs = aDeletedItem.getOccurrencesBetween(this.binding.mFilter.startDate,
                                                                 this.binding.mFilter.endDate,
                                                                 {});
-                  } else {
-                      occs = [aDeletedItem];
                   }
-                  occs.forEach(this.binding.mTreeView.removeItem, this.binding.mTreeView);
+                  this.binding.mTreeView.removeItems(occs);
               }
           },
 
@@ -1041,14 +1065,10 @@
       <method name="onCalendarRemoved">
         <parameter name="aCalendar"/>
         <body><![CDATA[
-            this.mTreeView.treebox.beginUpdateBatch();
-            let tasks = this.mTaskArray.concat([]);
-            for each (let task in tasks) {
-                if (task.calendar.id == aCalendar.id) {
-                    this.mTreeView.removeItem(task);
-                }
-            }
-            this.mTreeView.treebox.endUpdateBatch();
+            let tasks = this.mTaskArray.filter(function(task) {
+                return task.calendar.id == aCalendar.id;
+            });
+            this.mTreeView.removeItems(tasks);
         ]]></body>
       </method>
 
