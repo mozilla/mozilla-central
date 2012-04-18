@@ -1,23 +1,19 @@
-# mozconfig.common only exists in mozilla-central
-if test -e "$topsrcdir/mozilla/build/macosx/universal/mozconfig.common" || test -e "$topsrcdir/build/macosx/universal/mozconfig.common"; then
+if test -e "$topsrcdir/mozilla/build/macosx/universal/mozconfig"; then
+  oldtopsrcdir=$topsrcdir
+  export topsrcdir=$topsrcdir/mozilla
+else
+  # Big Hack that unsets CC / CXX so that mozconfig.common doesn't get
+  # mixed up with host/target CPUs when trying to work out how to do the
+  # universal build. When we redo the build system (bug 648979) this will
+  # go away.
+  unset CC
+  unset CXX
+fi
 
-  if test -e "$topsrcdir/mozilla/build/macosx/universal/mozconfig"; then
-    oldtopsrcdir=$topsrcdir
-    export topsrcdir=$topsrcdir/mozilla
-  else
-    # Big Hack that unsets CC / CXX so that mozconfig.common doesn't get
-    # mixed up with host/target CPUs when trying to work out how to do the
-    # universal build. When we redo the build system (bug 648979) this will
-    # go away.
-    unset CC
-    unset CXX
-  fi
-  
-  . $topsrcdir/build/macosx/universal/mozconfig
-  
-  if test -n $oldtopsrcdir; then
-    export topsrcdir=$oldtopsrcdir
-  fi
+. $topsrcdir/build/macosx/universal/mozconfig
+
+if test -n $oldtopsrcdir; then
+  export topsrcdir=$oldtopsrcdir
 fi
 
 ac_add_options --enable-application=mail
@@ -48,4 +44,3 @@ mk_add_options MOZ_MAKE_FLAGS="-j$CONCURRENCY"
 # Run client.py
 mk_add_options CLIENT_PY_ARGS="--hg-options='--verbose --time' --hgtool=../tools/buildfarm/utils/hgtool.py --skip-chatzilla --skip-comm --skip-inspector --skip-venkman --tinderbox-print"
 mk_add_options ALWAYS_RUN_CLIENT_PY=1
-

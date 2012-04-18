@@ -14,6 +14,8 @@ export MOZ_DEBUG_SYMBOLS=1
 # Needed to enable breakpad in application.ini
 export MOZILLA_OFFICIAL=1
 
+export WIN32_REDIST_DIR=/d/msvs8/VC/redist/x86/Microsoft.VC80.CRT
+
 # Run client.py
 mk_add_options CLIENT_PY_ARGS="--hg-options='--verbose --time' --hgtool=../tools/buildfarm/utils/hgtool.py --skip-chatzilla --skip-comm --skip-inspector --skip-venkman --tinderbox-print"
 mk_add_options ALWAYS_RUN_CLIENT_PY=1
