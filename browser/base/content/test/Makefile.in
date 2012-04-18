@@ -250,6 +250,7 @@ _BROWSER_FILES = \
                  browser_aboutSyncProgress.js \
                  browser_middleMouse_inherit.js \
                  browser_tabDrop.js \
+                 browser_bug734076.js \
                  $(NULL)
 
 ifneq (cocoa,$(MOZ_WIDGET_TOOLKIT))
