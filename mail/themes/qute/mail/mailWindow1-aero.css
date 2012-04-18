@@ -40,7 +40,7 @@ treechildren::-moz-tree-image(news, threadCol, watch) {
   width: 5px;
   background-color: transparent;
   margin-top: 0;
-  -moz-margin-end: -5px;
+  -moz-margin-end: -4px;
   position: relative;
   z-index: 10;
   -moz-transition: border-width .3s ease-in;
@@ -94,12 +94,6 @@ treechildren::-moz-tree-image(news, threadCol, watch) {
 #threadpane-splitter[state="collapsed"]:hover,
 #attachment-splitter[state="collapsed"]:hover {
   border-bottom: 4px solid highlight;
-}
-
-#messagesBox {
-  /* For some reason, the thread/message panes overlap the folder pane splitter
-     by 1px because of the CSS above. Fix this. */
-  -moz-margin-start: 1px;
 }
 
 #accountCentralBox,
