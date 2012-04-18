@@ -728,8 +728,7 @@ nsMsgBrkMBoxStore::GetNewMsgOutputStream(nsIMsgFolder *aFolder,
   }
   if (!*aResult)
   {
-    rv = MsgNewBufferedFileOutputStream(aResult, mboxFile,
-                                        PR_WRONLY | PR_CREATE_FILE, 00600);
+    rv = MsgGetFileStream(mboxFile, aResult);
     NS_ASSERTION(NS_SUCCEEDED(rv), "failed opening offline store for output");
     if (NS_FAILED(rv))
       printf("failed opening offline store for %s\n", URI.get());
