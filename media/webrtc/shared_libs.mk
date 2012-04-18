@@ -43,6 +43,7 @@ SHARED_LIBRARY_LIBS += \
 	$(call EXPAND_LIBNAME_PATH,agc,$(DEPTH)/media/webrtc/trunk/src/modules/modules_agc) \
 	$(call EXPAND_LIBNAME_PATH,ns,$(DEPTH)/media/webrtc/trunk/src/modules/modules_ns) \
 	$(call EXPAND_LIBNAME_PATH,yuv,$(DEPTH)/media/webrtc/trunk/third_party/libyuv/libyuv_libyuv) \
+        $(call EXPAND_LIBNAME_PATH,expat,$(DEPTH)/media/webrtc/trunk/third_party/expat/expat_expat) \
         $(MKSHLIB_UNFORCE_ALL) \
 	$(call EXPAND_LIBNAME_PATH,webrtc_jpeg,$(DEPTH)/media/webrtc/trunk/src/common_video/common_video_webrtc_jpeg) \
 	$(NULL)
@@ -54,15 +55,4 @@ SHARED_LIBRARY_LIBS += \
 	$(call EXPAND_LIBNAME_PATH,ecc,$(DEPTH)/media/webrtc/signaling/signaling_ecc) \
         $(MKSHLIB_UNFORCE_ALL) \
 	$(NULL)
-endif
-
-# disable system expat use temporarily for Linux
-ifneq ($(OS_TARGET),Darwin)
-SHARED_LIBRARY_LIBS += \
-        $(MKSHLIB_FORCE_ALL) \
-        $(call EXPAND_LIBNAME_PATH,expat,$(DEPTH)/media/webrtc/trunk/third_party/expat/expat_expat) \
-        $(MKSHLIB_UNFORCE_ALL) \
-	$(NULL)
-else
-SHARED_LIBRARY_LIBS += -lexpat
 endif
