@@ -1741,6 +1741,17 @@ WebRtc_Word32 AudioDeviceLinuxALSA::StartPlayout()
         return -1;
     }
 
+    int errVal = LATE(snd_pcm_prepare)(_handlePlayout);
+    if (errVal < 0)
+    {
+        WEBRTC_TRACE(kTraceCritical, kTraceAudioDevice, _id,
+                     "     playout snd_pcm_prepare failed (%s)\n",
+                     LATE(snd_strerror)(errVal));
+        // just log error
+        // if snd_pcm_open fails will return -1
+    }
+
+
     unsigned int threadID(0);
     if (!_ptrThreadPlay->Start(threadID))
     {
@@ -1754,16 +1765,6 @@ WebRtc_Word32 AudioDeviceLinuxALSA::StartPlayout()
         return -1;
     }
     _playThreadID = threadID;
-
-    int errVal = LATE(snd_pcm_prepare)(_handlePlayout);
-    if (errVal < 0)
-    {
-        WEBRTC_TRACE(kTraceCritical, kTraceAudioDevice, _id,
-                     "     playout snd_pcm_prepare failed (%s)\n",
-                     LATE(snd_strerror)(errVal));
-        // just log error
-        // if snd_pcm_open fails will return -1
-    }
 
     return 0;
 }
