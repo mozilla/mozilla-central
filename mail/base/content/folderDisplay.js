@@ -485,7 +485,7 @@ FolderDisplayWidget.prototype = {
     let dbFolderInfo = msgDatabase.dBFolderInfo;
     dbFolderInfo.setCharProperty(this.PERSISTED_COLUMN_PROPERTY_NAME,
                                  JSON.stringify(aState));
-    msgDatabase.Commit(Components.interfaces.nsMsgDBCommitType.kSmallCommit);
+    msgDatabase.Commit(Components.interfaces.nsMsgDBCommitType.kLargeCommit);
   },
 
   /**
