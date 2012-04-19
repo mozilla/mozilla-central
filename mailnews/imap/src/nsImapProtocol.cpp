@@ -1754,6 +1754,8 @@ bool nsImapProtocol::ProcessCurrentURL()
       if (request) {
         nsresult status;
         request->GetStatus(&status);
+        if (!GetServerStateParser().LastCommandSuccessful() && NS_SUCCEEDED(status))
+          status = NS_MSG_ERROR_IMAP_COMMAND_FAILED;
         rv = m_channelListener->OnStopRequest(request, m_channelContext, status);
       }
   }
