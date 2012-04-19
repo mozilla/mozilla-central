@@ -304,6 +304,7 @@
         <parameter name="aFilterAction"/>
         <body>
           <![CDATA[
+            Components.utils.import("resource://gre/modules/Services.jsm", this);
             var filterActionStr;
             var actionTarget = document.getAnonymousNodes(this)[1];
             var actionItem = document.getAnonymousNodes(actionTarget);
@@ -337,15 +338,13 @@
                   menuitem.setAttribute("value", filterActionStr);
                   menuitem.disabled = true;
                   this.mRuleActionType.menulist.menupopup.appendChild(menuitem);
-                  var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
-                      .getService(Components.interfaces.nsIConsoleService);
                   var scriptError = Components.classes["@mozilla.org/scripterror;1"]
                       .createInstance(Components.interfaces.nsIScriptError);
                   scriptError.init("Missing custom action " + filterActionStr,
                       null, null, 0, 0,
                       Components.interfaces.nsIScriptError.errorFlag,
                       "component javascript");
-                  consoleService.logMessage(scriptError);
+                  Services.console.logMessage(scriptError);
                 }
                 break;
               case nsMsgFilterAction.MoveToFolder:
@@ -543,11 +542,10 @@
     <implementation>
       <constructor>
         <![CDATA[
-            var menuPopup = document.getAnonymousNodes(this)[0].menupopup;
-            var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                                       .getService(Components.interfaces.nsIMsgTagService);
-            var tagArray = tagService.getAllTags({});
-            for (var i = 0; i < tagArray.length; ++i)
+            Components.utils.import("resource:///modules/mailServices.js", this);
+            let menuPopup = document.getAnonymousNodes(this)[0].menupopup;
+            let tagArray = MailServices.tags.getAllTags({});
+            for (let i = 0; i < tagArray.length; ++i)
             {
               var taginfo = tagArray[i];
               var newMenuItem = document.createElement('menuitem');
@@ -602,10 +600,10 @@
     <implementation>
       <constructor>
         <![CDATA[
-            var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-            var identity = accountManager.getFirstIdentityForServer(gFilterList.folder.server);
+            Components.utils.import("resource:///modules/mailServices.js", this);
+            let identity = MailServices.accounts.getFirstIdentityForServer(gFilterList.folder.server);
             if (!identity) // typically if this is Local Folders
-              identity = accountManager.defaultAccount.defaultIdentity;
+              identity = MailServices.accounts.defaultAccount.defaultIdentity;
             var rdfService = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
             var resource = rdfService.GetResource(identity.stationeryFolder);
             var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
@@ -613,7 +611,7 @@
             var enumerator = msgFolder.msgDatabase.EnumerateMessages();
             var templateListPopup = document.getAnonymousNodes(this)[0].menupopup;
 
-            if ( enumerator )
+            if (enumerator)
             {
               while (enumerator.hasMoreElements())
               {

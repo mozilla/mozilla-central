@@ -38,7 +38,6 @@
 
 Components.utils.import("resource://gre/modules/Services.jsm");
 
-var gPrefs;
 var gAddButton;
 var gOKButton;
 var gRemoveButton;
@@ -51,16 +50,7 @@ var gCustomBundle=null;
 
 function onLoad()
 {
-    gPrefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-    var hdrs;
-    try
-    {
-       hdrs = gPrefs.getCharPref("mailnews.customHeaders");
-    }
-    catch(ex)
-    {
-      hdrs =null;
-    }
+    let hdrs = Services.prefs.getCharPref("mailnews.customHeaders");
     gHeaderInputElement = document.getElementById("headerInput");
     gHeaderInputElement.focus();
 
@@ -127,18 +117,13 @@ function onOk()
       hdrs = gArrayHdrs;
     else
       hdrs = gArrayHdrs.join(": ");
-    gPrefs.setCharPref("mailnews.customHeaders", hdrs);
+    Services.prefs.setCharPref("mailnews.customHeaders", hdrs);
     // flush prefs to disk, in case we crash, to avoid dataloss and problems with filters that use the custom headers
-    var prefService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
-    prefService.savePrefFile(null);
+    Services.prefs.savePrefFile(null);
   }
   else
   {
-    try
-    {
-      gPrefs.clearUserPref("mailnews.customHeaders"); //clear the pref, no custom headers 
-    }
-    catch(ex) {}  //will throw an exception if there is no "mailnews.customHeaders" in prefs.js
+    Services.prefs.clearUserPref("mailnews.customHeaders"); //clear the pref, no custom headers
   }
   window.close();
 }
