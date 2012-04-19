@@ -50,8 +50,9 @@ interface nsIArray;
 interface nsIUrlListener;
 interface nsIMsgIncomingServer;
 interface nsIMsgDatabase;
+interface nsITransaction;
 
-[scriptable, uuid(370f7a56-db1b-4cf9-b541-148572390416)]
+[scriptable, uuid(7c1f7385-ecec-45c5-b194-0a63af6690fd)]
 
 /**
  * Pluggable message store interface. Each incoming server can have a different
@@ -241,7 +242,7 @@ interface nsIMsgPluggableStore : nsISupports {
    * code will use getMsgInputStream on the source message,
    * getNewMsgOutputStream for the dest message, and stream the input to
    * the output. This operation can be asynchronous.
-   * If the store does the copy, it must add the appropriate undo action,
+   * If the store does the copy, it must return the appropriate undo action,
    * which can be store dependent. And it must send the appropriate
    * nsIMsgFolderNotificationService notifications.
    *
@@ -249,13 +250,16 @@ interface nsIMsgPluggableStore : nsISupports {
    * @param aHdrArray array of nsIMsgDBHdr's, all in the same folder
    * @param aDstFolder folder to move/copy the messages to.
    * @param aListener listener to notify of copy status.
+   * @param[out,optional] aUndoAction transaction to provide undo, if
+   * the store does the copy itself.
    * @return true if messages were copied, false if the core code should
    *         do the copy.
    */
   boolean copyMessages(in boolean isMove,
                        in nsIArray aHdrArray,
                        in nsIMsgFolder aDstFolder,
-                       in nsIMsgCopyServiceListener aListener);
+                       in nsIMsgCopyServiceListener aListener,
+                       out nsITransaction aUndoAction);
 
   /**
    * Does this store require compaction? For example, maildir doesn't require
