@@ -308,6 +308,11 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
   list-style-image: url("chrome://messenger/skin/icons/button-delete.svg");
 }
 
+.hdrTagButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 192px 16px 176px);
+}
+
 window[inlinetoolbox] #wrapper-spring {
   display: none;
 }
@@ -335,12 +340,6 @@ toolbarpaletteitem #hdrDummyReplyButton {
 .inline-toolbar {
   -moz-box-pack: end;
 }
-
-/*
-.hdrTrashButton > .toolbarbutton-icon {
-  -moz-margin-end: 0px;
-}
-*/
 
 .msgHeaderView-flat-button {
   min-width: 1px !important;

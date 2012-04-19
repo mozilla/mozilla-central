@@ -379,6 +379,11 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
   -moz-image-region: rect(0px, 144px, 18px, 126px);
 }
 
+.hdrTagButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 288px, 18px, 270px);
+}
+
 .inline-toolbar toolbarpaletteitem toolbarseparator,
 .inline-toolbar toolbarseparator {
   -moz-margin-start: 1px; /* make it symetrical */

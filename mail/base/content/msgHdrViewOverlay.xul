@@ -308,6 +308,22 @@
                   </menupopup>
                 </toolbarbutton>
               </toolbaritem>
+              <toolbarbutton id="hdrTagButton"
+                             type="menu"
+                             class="toolbarbutton-1 msgHeaderView-button hdrTagButton"
+                             label="&tagButton.label;"
+                             tooltiptext="&tagButton.tooltip;"
+                             command="cmd_tag">
+                <menupopup id="hdrTagDropdown" onpopupshowing="InitMessageTags(this)">
+                  <menuitem id="hdrTagDropdown-addNewTag"
+                            label="&addNewTag.label;"
+                            accesskey="&addNewTag.accesskey;"
+                            oncommand="AddTag();"/>
+                  <menuseparator id="hdrTagDropdown-sep-afterAddNewTag"/>
+                  <menuitem id="hdrTagDropdown-tagRemoveAll" oncommand="RemoveAllMessageTags();"/>
+                  <menuseparator id="hdrTagDropdown-sep-afterTagRemoveAll"/>
+                </menupopup>
+              </toolbarbutton>
             </toolbarpalette>
 
             <toolbar id="header-view-toolbar" class="inline-toolbar" align="start"

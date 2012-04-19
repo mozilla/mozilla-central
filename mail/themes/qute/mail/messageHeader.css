@@ -363,6 +363,11 @@ toolbar[iconsize="small"] .hdrJunkButton {
   -moz-image-region: rect(0px 192px 24px 168px);
 }
 
+.hdrTagButton {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 256px 16px 240px);
+}
+
 toolbar[iconsize="small"] .hdrTrashButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 128px 16px 112px);
