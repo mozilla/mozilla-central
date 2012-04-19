@@ -78,6 +78,7 @@ function nsContextMenu(aXulMenu, aIsShift) {
   // Message Related Items
   this.inMessageArea = false;
   this.inThreadPane = false;
+  this.messagepaneIsBlank = false;
   this.numSelectedMessages = 0;
   this.isNewsgroup = false;
   this.hideMailItems = false;
@@ -97,6 +98,12 @@ nsContextMenu.prototype = {
     // Get contextual info.
     this.setTarget(document.popupNode);
     this.setMessageTargets(document.popupNode);
+
+    if (!this.inThreadPane && this.messagepaneIsBlank) {
+      this.shouldDisplay = false;
+      return;
+    }
+
     this.isContentSelected = this.isContentSelection();
 
     this.hasPageMenu = false;
@@ -374,8 +381,7 @@ nsContextMenu.prototype = {
                   this.numSelectedMessages > 1 && !this.hideMailItems);
 
     this.showItem("mailContext-reportPhishingURL",
-                  this.numSelectedMessages > 0 && !this.inThreadPane &&
-                  this.onLink && !this.onMailtoLink);
+                  !this.inThreadPane && this.onLink && !this.onMailtoLink);
   },
   initSeparators: function CM_initSeparators() {
     const mailContextSeparators = [
@@ -554,13 +560,16 @@ nsContextMenu.prototype = {
 
     if (!this.inMessageArea) {
       this.inThreadPane = false;
-      this.numSelectedMessages = 0;
+      this.numSelectedMessages = 1;
       this.isNewsgroup = false;
       this.hideMailItems = true;
       return;
     }
 
     this.inThreadPane = this.popupNodeIsInThreadPane(aNode);
+    this.messagepaneIsBlank = (document.getElementById("messagepane")
+      .contentWindow.location.href == "about:blank");
+
     this.numSelectedMessages = GetNumSelectedMessages();
     this.isNewsgroup = gFolderDisplay.selectedMessageIsNews;
     // Don't show mail items for links/images, just show related items.
