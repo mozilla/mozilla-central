@@ -131,13 +131,13 @@
 }
 
 #button-add-buddy,
-#button-join-buddy[disabled] {
-  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
-  -moz-image-region: rect(0px 18px 18px 0px);
+#button-add-buddy[disabled] {
+  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png") !important;
+  -moz-image-region: rect(0px 18px 18px 0px) !important;
 }
 
 #button-join-chat,
 #button-join-chat[disabled] {
-  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
-  -moz-image-region: rect(0px 36px 18px 18px);
+  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png") !important;
+  -moz-image-region: rect(0px 36px 18px 18px) !important;
 }
