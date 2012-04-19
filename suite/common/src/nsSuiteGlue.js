@@ -903,35 +903,31 @@ SuiteGlue.prototype = {
 
     // If version is current or smart bookmarks are disabled, just bail out.
     if (smartBookmarksCurrentVersion == -1 ||
-        smartBookmarksCurrentVersion >= SMART_BOOKMARKS_VERSION)
+        smartBookmarksCurrentVersion >= SMART_BOOKMARKS_VERSION) {
       return;
+    }
 
     let batch = {
       runBatched: function BG_EPDQI_runBatched() {
-        var smartBookmarks = [];
         let menuIndex = 0;
         let toolbarIndex = 0;
         let bundle = Services.strings.createBundle("chrome://communicator/locale/places/places.properties");
 
-        // MOST VISITED
-        var smart = {queryId: "MostVisited", // don't change this
-                     itemId: null,
-                     title: bundle.GetStringFromName("mostVisitedTitle"),
-                     uri: NetUtil.newURI("place:redirectsMode=" +
-                                    Components.interfaces.nsINavHistoryQueryOptions.REDIRECTS_MODE_TARGET +
-                                    "&sort=" +
-                                    Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_VISITCOUNT_DESCENDING +
-                                    "&maxResults=" + MAX_RESULTS),
-                     parent: PlacesUtils.toolbarFolderId,
-                     position: toolbarIndex++,
-                     newInVersion: 1 };
-        smartBookmarks.push(smart);
-
-        // RECENTLY BOOKMARKED
-        smart = {queryId: "RecentlyBookmarked", // don't change this
-                 itemId: null,
-                 title: bundle.GetStringFromName("recentlyBookmarkedTitle"),
-                 uri: NetUtil.newURI("place:folder=BOOKMARKS_MENU" +
+        let smartBookmarks = {
+          MostVisited: {
+            title: bundle.GetStringFromName("mostVisitedTitle"),
+            uri: NetUtil.newURI("place:redirectsMode=" +
+                                Components.interfaces.nsINavHistoryQueryOptions.REDIRECTS_MODE_TARGET +
+                                "&sort=" +
+                                Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_VISITCOUNT_DESCENDING +
+                                "&maxResults=" + MAX_RESULTS),
+            parent: PlacesUtils.toolbarFolderId,
+            position: toolbarIndex++,
+            newInVersion: 1
+          },
+          RecentlyBookmarked: {
+            title: bundle.GetStringFromName("recentlyBookmarkedTitle"),
+            uri: NetUtil.newURI("place:folder=BOOKMARKS_MENU" +
                                 "&folder=UNFILED_BOOKMARKS" +
                                 "&folder=TOOLBAR" +
                                 "&queryType=" +
@@ -940,59 +936,59 @@ SuiteGlue.prototype = {
                                 Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_DATEADDED_DESCENDING +
                                 "&maxResults=" + MAX_RESULTS +
                                 "&excludeQueries=1"),
-                 parent: PlacesUtils.bookmarksMenuFolderId,
-                 position: menuIndex++,
-                 newInVersion: 1 };
-        smartBookmarks.push(smart);
-
-        // RECENT TAGS
-        smart = {queryId: "RecentTags", // don't change this
-                 itemId: null,
-                 title: bundle.GetStringFromName("recentTagsTitle"),
-                 uri: NetUtil.newURI("place:"+
-                    "type=" +
-                    Components.interfaces.nsINavHistoryQueryOptions.RESULTS_AS_TAG_QUERY +
-                    "&sort=" +
-                    Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_LASTMODIFIED_DESCENDING +
-                    "&maxResults=" + MAX_RESULTS),
-                 parent: PlacesUtils.bookmarksMenuFolderId,
-                 position: menuIndex++,
-                 newInVersion: 1 };
-        smartBookmarks.push(smart);
+            parent: PlacesUtils.bookmarksMenuFolderId,
+            position: menuIndex++,
+            newInVersion: 1
+          },
+          RecentTags: {
+            title: bundle.GetStringFromName("recentTagsTitle"),
+            uri: NetUtil.newURI("place:"+
+                                "type=" +
+                                Components.interfaces.nsINavHistoryQueryOptions.RESULTS_AS_TAG_QUERY +
+                                "&sort=" +
+                                Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_LASTMODIFIED_DESCENDING +
+                                "&maxResults=" + MAX_RESULTS),
+            parent: PlacesUtils.bookmarksMenuFolderId,
+            position: menuIndex++,
+            newInVersion: 1
+          }
+        };
 
         // Set current itemId, parent and position if Smart Bookmark exists,
         // we will use these informations to create the new version at the same
         // position.
         let smartBookmarkItemIds = PlacesUtils.annotations.getItemsWithAnnotation(SMART_BOOKMARKS_ANNO);
-        for each(var itemId in smartBookmarkItemIds) {
+        smartBookmarkItemIds.forEach(function (itemId) {
           let queryId = PlacesUtils.annotations.getItemAnnotation(itemId, SMART_BOOKMARKS_ANNO);
-          for (var i = 0; i < smartBookmarks.length; i++){
-            if (smartBookmarks[i].queryId == queryId) {
-              smartBookmarks[i].found = true;
-              smartBookmarks[i].itemId = itemId;
-              smartBookmarks[i].parent = PlacesUtils.bookmarks.getFolderIdForItem(itemId);
-              smartBookmarks[i].position = PlacesUtils.bookmarks.getItemIndex(itemId);
-              // Remove current item, since it will be replaced.
-              PlacesUtils.bookmarks.removeItem(itemId);
-              break;
-            }
+          if (queryId in smartBookmarks) {
+            let smartBookmark = smartBookmarks[queryId];
+            smartBookmark.itemId = itemId;
+            smartBookmark.parent = PlacesUtils.bookmarks.getFolderIdForItem(itemId);
+            smartBookmark.position = PlacesUtils.bookmarks.getItemIndex(itemId);
+          } else {
             // We don't remove old Smart Bookmarks because user could still
             // find them useful, or could have personalized them.
             // Instead we remove the Smart Bookmark annotation.
-            if (i == smartBookmarks.length - 1)
-              PlacesUtils.annotations.removeItemAnnotation(itemId, SMART_BOOKMARKS_ANNO);
+            PlacesUtils.annotations.removeItemAnnotation(itemId, SMART_BOOKMARKS_ANNO);
           }
-        }
+        });
 
-        // Create smart bookmarks.
-        for each(var smartBookmark in smartBookmarks) {
+        for (let queryId in smartBookmarks) {
+          let smartBookmark = smartBookmarks[queryId];
+
           // We update or create only changed or new smart bookmarks.
           // Also we respect user choices, so we won't try to create a smart
           // bookmark if it has been removed.
           if (smartBookmarksCurrentVersion > 0 &&
               smartBookmark.newInVersion <= smartBookmarksCurrentVersion &&
-              !smartBookmark.found)
+              !smartBookmark.itemId)
             continue;
+
+          // Remove old version of the smart bookmark if it exists, since it
+          // will be replaced in place.
+          if (smartBookmark.itemId) {
+            PlacesUtils.bookmarks.removeItem(smartBookmark.itemId);
+          }
 
           // Create the new smart bookmark and store its updated itemId.
           smartBookmark.itemId =
@@ -1002,7 +998,7 @@ SuiteGlue.prototype = {
                                                  smartBookmark.title);
           PlacesUtils.annotations.setItemAnnotation(smartBookmark.itemId,
                                                     SMART_BOOKMARKS_ANNO,
-                                                    smartBookmark.queryId, 0,
+                                                    queryId, 0,
                                                     PlacesUtils.annotations.EXPIRE_NEVER);
         }
 
@@ -1018,7 +1014,7 @@ SuiteGlue.prototype = {
             PlacesUtils.bookmarks.insertSeparator(PlacesUtils.bookmarksMenuFolderId,
                                                   menuIndex);
           }
-       }
+        }
       }
     };
 
