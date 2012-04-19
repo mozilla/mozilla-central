@@ -131,6 +131,10 @@ richlistitem.cloudfileAccount[state="no-connection"] {
   height: 150px;
 }
 
+#cloudFileToggleAndThreshold {
+  padding-bottom: 6px;
+}
+
 #cloudFileLoadingSpinner {
   width: 16px;
   height: 16px;
