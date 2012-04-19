@@ -8,6 +8,7 @@ const bugmail10 = do_get_file("../../../data/bugmail10");
 Services.prefs.setCharPref("mail.serverDefaultStoreContractID",
                            "@mozilla.org/msgstore/berkeleystore;1");
 
+var gLocalInboxSize;
 var gLocalTrashFolder;
 
 function run_test()
@@ -18,10 +19,15 @@ function run_test()
   // all the operations.
   do_test_pending();
 
-  let inboxFile = gLocalInboxFolder.filePath.clone();
-  var freeDiskSpace = inboxFile.diskSpaceAvailable;
-  if (freeDiskSpace < 0x100000000) {
-    dump("not enough free disk space: " + freeDiskSpace + "\n");
+  let inboxFile = gLocalInboxFolder.filePath;
+
+  let neededFreeSpace = 0x100000000;
+  let freeDiskSpace = inboxFile.diskSpaceAvailable;
+  do_print("Free disk space = " + toMiBString(freeDiskSpace));
+  if (freeDiskSpace < neededFreeSpace) {
+    do_print("This test needs " + toMiBString(neededFreeSpace) +
+             " free space to run. Aborting.");
+    todo_check_true(false);
 
     endTest();
     return;
@@ -41,6 +47,11 @@ function run_test()
   // Write a "space" character.
   outputStream.write(" ", 1);
   outputStream.close();
+
+  // Save initial file size.
+  gLocalInboxSize = gLocalInboxFolder.filePath.fileSize;
+  do_print("Local inbox size (before copyFileMessageInLocalFolder()) = " +
+           gLocalInboxSize);
 
   // Append mail data to over 2 GiB position for over 2 GiB msgkey.
   copyFileMessageInLocalFolder(bugmail10, 0, "", null, copyMessages);
@@ -62,7 +73,13 @@ function getMessageHdr()
 
 function copyMessages()
 {
-  // copy the message into the subfolder
+  // Make sure inbox file grew (i.e., we were not writing over data).
+  let localInboxSize = gLocalInboxFolder.filePath.fileSize;
+  do_print("Local inbox size (after copyFileMessageInLocalFolder()) = " +
+           localInboxSize);
+  do_check_true(localInboxSize > gLocalInboxSize);
+
+  // Copy the message into the subfolder.
   let messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
   messages.appendElement(getMessageHdr(), false);
   MailServices.copy.CopyMessages(gLocalInboxFolder, messages, gLocalTrashFolder,
@@ -75,6 +92,7 @@ var copyListener2 = {
   SetMessageKey : function(aKey) {},
   OnStopCopy : function(aStatus) {
     do_check_eq(aStatus, 0);
+
     do_timeout(0, accessOver2GBMsg);
   }
 };
@@ -105,8 +123,8 @@ gStreamListener = {
     fstream.init(bugmail10, -1, 0, 0);
     stream.init(fstream);
     let original = stream.read(this._data.length);
-
     do_check_eq(this._data, original);
+
     do_timeout(0, endTest);
   },
   onDataAvailable : function (aRequest, aContext, aInputStream, aOff, aCount) {
@@ -119,7 +137,7 @@ gStreamListener = {
 };
 
 function endTest() {
-  // free up disk space - if you want to look at the file after running
+  // Free up disk space - if you want to look at the file after running
   // this test, comment out this line.
   gLocalInboxFolder.filePath.remove(false);
 

@@ -40,11 +40,12 @@ function run_test()
   gIMAPIncomingServer.maximumConnectionsNumber = 1;
 
   // Figure out the name of the IMAP inbox
-  let inboxFile = gIMAPIncomingServer.rootMsgFolder.filePath.clone();
+  let inboxFile = gIMAPIncomingServer.rootMsgFolder.filePath;
   inboxFile.append("INBOX");
   if (!inboxFile.exists())
     inboxFile.create(Ci.nsIFile.NORMAL_FILE_TYPE, parseInt("0644", 8));
 
+  let neededFreeSpace = 0x200000000;
   // On Windows, check whether the drive is NTFS. If it is, mark the file as
   // sparse. If it isn't, then bail out now, because in all probability it is
   // FAT32, which doesn't support file sizes greater than 4 GB.
@@ -55,11 +56,15 @@ function run_test()
     endTest();
     return;
   }
+
   let isFileSparse = mark_file_region_sparse(inboxFile, 0, 0x10000000f);
-  if (!isFileSparse && inboxFile.diskSpaceAvailable < 0x200000000)
-  {
-    dump("On systems where files can't be marked sparse, this test needs 8 " +
-         "GB of free disk space.\n");
+  let freeDiskSpace = inboxFile.diskSpaceAvailable;
+  do_print("Free disk space = " + toMiBString(freeDiskSpace));
+  if (!isFileSparse && freeDiskSpace < neededFreeSpace) {
+    do_print("This test needs " + toMiBString(neededFreeSpace) +
+             " free space to run. Aborting.");
+    todo_check_true(false);
+
     endTest();
     return;
   }
@@ -105,6 +110,8 @@ function run_test()
 
   // Save initial file size.
   gOfflineStoreSize = gIMAPInbox.filePath.fileSize;
+  do_print("Offline store size (before 1st downloadAllForOffline()) = " +
+           gOfflineStoreSize);
 
   // Download for offline use, to append created messages to local IMAP inbox.
   gIMAPInbox.downloadAllForOffline(UrlListener, null);
@@ -125,26 +132,26 @@ var UrlListener =
       return;
     }
 
-    // verify that the message headers have the offline flag set.
+    // Make sure offline store grew (i.e., we were not writing over data).
+    let offlineStoreSize = gIMAPInbox.filePath.fileSize;
+    do_print("Offline store size (after 2nd downloadAllForOffline()) = " +
+             offlineStoreSize + ". (Msg hdr offsets should be close to it.)");
+    do_check_true(offlineStoreSize > gOfflineStoreSize);
+
+    // Verify that the message headers have the offline flag set.
     let msgEnumerator = gIMAPInbox.msgDatabase.EnumerateMessages();
     let offset = new Object;
     let size = new Object;
-    while (msgEnumerator.hasMoreElements())
-    {
+    while (msgEnumerator.hasMoreElements()) {
       let header = msgEnumerator.getNext();
       // Verify that each message has been downloaded and looks OK.
-      if (header instanceof Components.interfaces.nsIMsgDBHdr &&
-          (header.flags & Ci.nsMsgMessageFlags.Offline))
-        gIMAPInbox.getOfflineFileStream(header.messageKey, offset, size).close();
-      else
+      if (!(header instanceof Components.interfaces.nsIMsgDBHdr &&
+            (header.flags & Ci.nsMsgMessageFlags.Offline)))
         do_throw("Message not downloaded for offline use");
 
-      dump("msg hdr offset = " + offset.value + "\n");
+      gIMAPInbox.getOfflineFileStream(header.messageKey, offset, size).close();
+      do_print("Msg hdr offset = " + offset.value);
     }
-    let offlineStoreSize = gIMAPInbox.filePath.fileSize;
-    dump("offline store size = " + offlineStoreSize + "\n");
-    // Make sure offline store grew (i.e., we're not writing over data).
-    do_check_true(offlineStoreSize > gOfflineStoreSize);
 
     try {
       do_timeout(1000, endTest);
@@ -156,7 +163,7 @@ var UrlListener =
 
 function endTest()
 {
-  // free up disk space - if you want to look at the file after running
+  // Free up disk space - if you want to look at the file after running
   // this test, comment out this line.
   if (gIMAPInbox)
     gIMAPInbox.filePath.remove(false);
