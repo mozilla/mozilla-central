@@ -2068,6 +2068,8 @@ NS_IMETHODIMP nsMsgLocalMailFolder::BeginCopy(nsIMsgDBHdr *message)
   if (mCopyState->m_message)
     mCopyState->m_message->GetFlags(&(mCopyState->m_flags));
   DisplayMoveCopyStatusMsg();
+  if (mCopyState->m_listener)
+    mCopyState->m_listener->OnProgress(mCopyState->m_curCopyIndex, mCopyState->m_totalMsgCount);
   // if we're copying more than one message, StartMessage will handle this.
   return !mCopyState->m_copyingMultipleMessages ? WriteStartOfNewMessage() : rv;
 }
