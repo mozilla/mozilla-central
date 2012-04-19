@@ -735,6 +735,21 @@ nsMsgSendLater::HasUnsentMessages(nsIMsgIdentity *aIdentity, bool *aResult)
   NS_ENSURE_ARG_POINTER(aResult);
   nsresult rv;
 
+  nsCOMPtr<nsIMsgAccountManager> accountManager =
+    do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsISupportsArray> accounts;
+  accountManager->GetAccounts(getter_AddRefs(accounts));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRUint32 cnt = 0;
+  rv = accounts->Count(&cnt);
+  if (cnt == 0) {
+    *aResult = false;
+    return NS_OK; // no account set up -> no unsent messages
+  }
+
   // XXX This code should be set up for multiple unsent folders, however we
   // don't support that at the moment, so for now just assume one folder.
   if (!mMessageFolder)
