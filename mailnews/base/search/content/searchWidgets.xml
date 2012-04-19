@@ -474,18 +474,27 @@
         </body>
       </method>
 
+      <method name="updateRemoveButton">
+        <body>
+          <![CDATA[
+            // if we only have one row of actions, then disable the remove button for that row
+            this.mListBox.getItemAtIndex(0).mRemoveButton.disabled = this.mListBox.getRowCount() == 1;
+          ]]>
+        </body>
+      </method>
+
       <method name="addRow">
         <body>
           <![CDATA[
             if (this.mListBox.getRowCount() < document.getAnonymousNodes(this)[0].numVisibleActions())
             {
-              var listItem = document.createElement('listitem');
+              let listItem = document.createElement('listitem');
               listItem.className = 'ruleaction';
               this.mListBox.insertBefore(listItem, this.nextSibling);
               this.mListBox.ensureElementIsVisible(listItem);
 
               // make sure the first remove button is enabled
-              this.mListBox.getItemAtIndex(0).mRemoveButton.disabled = false;
+              this.updateRemoveButton();
             }
           ]]>
         </body>
@@ -494,15 +503,16 @@
       <method name="removeRow">
         <body>
           <![CDATA[
-            // this.mListBox will fail after the row is removed, so save
-            var listBox = this.mListBox;
+            // this.mListBox will fail after the row is removed, so save it
+            let listBox = this.mListBox;
             if (listBox.getRowCount() > 1)
               listBox.removeChild(this);
-            // if we only have one row left, then disable the remove button for that row
-            listBox.getItemAtIndex(0).mRemoveButton.disabled = listBox.getRowCount() == 1;
+            // can't use 'this' as it is destroyed now
+            listBox.getItemAtIndex(0).updateRemoveButton();
           ]]>
         </body>
       </method>
+
     </implementation>
   </binding>
 
@@ -516,6 +526,7 @@
             var filterAction = gFilter.actionList.QueryElementAt(actionIndex, Components.interfaces.nsIMsgRuleAction);
             this.parentNode.initWithAction(filterAction);
           }
+          this.parentNode.updateRemoveButton();
         ]]>
       </constructor>
     </implementation>
