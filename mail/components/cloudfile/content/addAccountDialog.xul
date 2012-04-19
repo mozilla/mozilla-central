@@ -30,7 +30,7 @@
 #ifdef XP_MACOSX
   <description id="createAccountTitle">&addAccountDialog.title;</description>
 #endif
-  <description id="createAccountText">&addAccountDialog.createAccountText;</description>
+  <description id="createAccountText">&addAccountDialog.createAccountText2;</description>
   <description id="noAccountText" hidden="true">&addAccountDialog.noAccountText;</description>
 
   <menulist id="accountType" onselect="return addAccountDialog.accountTypeSelected();">
