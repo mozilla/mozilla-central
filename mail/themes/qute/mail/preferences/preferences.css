@@ -213,8 +213,6 @@ a {
   height: 1em;
   border: 1px solid rgba(0,0,0,0.5);
   border-radius: 2px;
-
-  vertical-align: middle;
   -moz-margin-start: 0.5ch;
   -moz-box-sizing: border-box;
 }
@@ -241,6 +239,15 @@ a {
   width: 355px;
   display: -moz-box;
   -moz-box-orient: vertical;
+}
+
+#provider-space label {
+  -moz-margin-end: 0.5ch;
+  vertical-align: middle;
+}
+
+#provider-space span {
+  vertical-align: middle;
 }
 
 #provider-header {
