@@ -1463,9 +1463,6 @@ NS_IMETHODIMP nsMsgDatabase::Commit(nsMsgDBCommit commitType)
   {
     switch (commitType)
     {
-    case nsMsgDBCommitType::kSmallCommit:
-      err = m_mdbStore->SmallCommit(GetEnv());
-      break;
     case nsMsgDBCommitType::kLargeCommit:
       err = m_mdbStore->LargeCommit(GetEnv(), &commitThumb);
       break;
@@ -1900,7 +1897,6 @@ NS_IMETHODIMP nsMsgDatabase::DeleteMessages(PRUint32 aNumKeys, nsMsgKey* nsMsgKe
         break;
     }
   }
-  Commit(nsMsgDBCommitType::kSmallCommit);
   return err;
 }
 

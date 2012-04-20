@@ -73,10 +73,9 @@ interface nsISimpleEnumerator;
 
 %}
 
-[scriptable, uuid(8532d6db-95eb-48b3-8879-26e7168b90f7)]
+[scriptable, uuid(20d4c6c3-0460-403e-aa9c-813654641566)]
 interface nsAddrDBCommitType 
 {
-  const long kSmallCommit = 0;
   const long kLargeCommit = 1;
   const long kSessionCommit = 2;
   const long kCompressCommit = 3;

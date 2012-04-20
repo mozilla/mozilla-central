@@ -716,9 +716,6 @@ NS_IMETHODIMP nsAddrDatabase::Commit(PRUint32 commitType)
   {
     switch (commitType)
     {
-      case nsAddrDBCommitType::kSmallCommit:
-        err = m_mdbStore->SmallCommit(m_mdbEnv);
-        break;
       case nsAddrDBCommitType::kLargeCommit:
         err = m_mdbStore->LargeCommit(m_mdbEnv, &commitThumb);
         break;
