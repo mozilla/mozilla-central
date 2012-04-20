@@ -8,11 +8,8 @@ ac_add_options --enable-trace-malloc
 export CFLAGS="-gdwarf-2"
 export CXXFLAGS="-gdwarf-2"
 
-if test -e "$topsrcdir/mozilla/build/unix/mozconfig.linux"; then
-  . $topsrcdir/mozilla/build/unix/mozconfig.linux
-else
-  . $topsrcdir/build/unix/mozconfig.linux
-fi  
+CC=/tools/gcc-4.5-0moz3/bin/gcc
+CXX=/tools/gcc-4.5-0moz3/bin/g++
 
 # Avoid dependency on libstdc++ 4.5
 ac_add_options --enable-stdcxx-compat
