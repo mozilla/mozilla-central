@@ -432,6 +432,8 @@
             'source/talk/base/macconversion.h',
             'source/talk/base/macutils.cc',
             'source/talk/base/macutils.h',
+            'source/talk/base/unixfilesystem.cc',
+            'source/talk/base/unixfilesystem.h',
           ],
         }],
       ],
@@ -610,7 +612,14 @@
               ],
             }],
           ],
-        }],        
+        }],
+        ['OS=="mac"', {
+          'sources': [
+            'source/talk/session/phone/macdevicemanager.cc',
+            'source/talk/session/phone/macdevicemanager.h',
+            'source/talk/session/phone/macdevicemanagermm.mm',
+          ],
+        }],   
         ['inside_chromium_build==1', {
           'dependencies': [
             '../../third_party/webrtc/modules/modules.gyp:audio_device',
