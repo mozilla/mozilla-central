@@ -433,15 +433,25 @@ function type_in_composer(aController, aText) {
  */
 function assert_previous_text(aStart, aText) {
   let textNode = aStart;
-  for (let i = aText.length - 1; i > 0; --i) {
+  for (let i = aText.length - 1; i >= 0; --i) {
     if (textNode.nodeType != kTextNodeType)
-      throw new Error("Expected a text node");
+      throw new Error("Expected a text node! Node type was: " + textNode.nodeType);
 
     if (textNode.nodeValue != aText[i])
       throw new Error("Unexpected inequality - " + textNode.nodeValue + " != " +
                       + aText[i]);
-    let br = domHelper.assert_previous_nodes("br", textNode, 1);
-    textNode = br.previousSibling;
+
+    // We expect a BR preceding each text node automatically, except
+    // for the last one that we reach.
+    if (i > 0) {
+      let br = textNode.previousSibling;
+
+      if (br.localName != "br")
+        throw new Error("Expected a BR node - got a " + br.localName +
+                        "instead.");
+
+      textNode = br.previousSibling;
+    }
   }
   return textNode;
 }

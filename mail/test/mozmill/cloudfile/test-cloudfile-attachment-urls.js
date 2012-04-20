@@ -752,7 +752,8 @@ function subtest_converting_filelink_to_normal_removes_url() {
 
 /**
  * Tests that if the user manually removes the Filelinks from the message body
- * that it doesn't break future Filelink insertions.
+ * that it doesn't break future Filelink insertions. Tests both HTML and
+ * plaintext composers.
  */
 function test_filelinks_work_after_manual_removal() {
   try_with_plaintext_and_html_mail(subtest_filelinks_work_after_manual_removal);
@@ -782,4 +783,43 @@ function subtest_filelinks_work_after_manual_removal() {
   [root, list, urls] = wait_for_attachment_urls(cw, 1);
 }
 
+/**
+ * Test that if the users selection caret is on a newline when the URL
+ * insertion occurs, that the caret does not move when the insertion is
+ * complete. Tests both HTML and plaintext composers.
+ */
+function test_insertion_restores_caret_point() {
+  try_with_plaintext_and_html_mail(subtest_insertion_restores_caret_point);
+}
 
+/**
+ * Subtest that types some things into the composer, finishes on two
+ * linebreaks, inserts some Filelink URLs, and then types some more,
+ * ensuring that the selection is where we expect it to be.
+ */
+function subtest_insertion_restores_caret_point() {
+  // Insert some Filelinks...
+  gMockFilePicker.returnFiles = collectFiles(kFiles, __file__);
+  let provider = new MockCloudfileAccount();
+  provider.init("someKey");
+
+  let cw = open_compose_new_mail();
+
+  // Put the selection at the beginning of the document...
+  let editor = cw.window.GetCurrentEditor();
+  editor.beginningOfDocument();
+
+  // Do any necessary typing, ending with two linebreaks.
+  type_in_composer(cw, ["Line 1", "Line 2", "", ""]);
+
+  // Attach some Filelinks.
+  cw.window.attachToCloud(provider);
+  let [root, list, urls] = wait_for_attachment_urls(cw, kFiles.length);
+
+  // Type some text.
+  const kTypedIn = "Test";
+  type_in_composer(cw, [kTypedIn]);
+
+  // That text should be inserted just above the root attachment URL node.
+  let textNode = assert_previous_text(root.previousSibling, [kTypedIn]);
+}

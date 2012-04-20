@@ -287,6 +287,8 @@ var gCloudAttachmentLinkManager = {
     let brandBundle = Services.strings.createBundle("chrome://branding/locale/brand.properties");
     let editor = GetCurrentEditor();
     let selection = editor.selection;
+    let originalAnchor = selection.anchorNode;
+    let originalOffset = selection.anchorOffset;
 
     // Save off the selection ranges so we can restore them later.
     let ranges = [];
@@ -352,6 +354,8 @@ var gCloudAttachmentLinkManager = {
 
       editor.insertElementAtSelection(root, false);
     }
+
+    selection.collapse(originalAnchor, originalOffset);
 
     // Restore the selection ranges.
     for (let [,range] in Iterator(ranges))
