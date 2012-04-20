@@ -465,6 +465,7 @@ OS_LIBS += \
   -framework IOKit \
   -framework Foundation \
   -framework AppKit \
+  -framework Security \
   $(NULL)
 endif
 endif
