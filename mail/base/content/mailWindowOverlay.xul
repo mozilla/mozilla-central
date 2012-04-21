@@ -2028,6 +2028,7 @@
     <vbox flex="1">
       <description class="msgNotificationBarText">&remoteContentMessage2.label;</description>
       <label id="allowRemoteContentForAuthorDesc" class="msgNotificaton-smallText text-link"
+             crop="end"
              onclick="allowRemoteContentForSender();"/>
     </vbox>
     <button id="remoteContentBarButton" label="&loadRemoteContentButton3.label;"

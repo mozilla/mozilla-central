@@ -2659,7 +2659,9 @@ var gMessageNotificationBar =
     var desc = document.getElementById("bundle_messenger")
                        .getFormattedString("alwaysLoadRemoteContentForSender2",
                                            [emailAddress ? emailAddress : aMsgHdr.author]);
-    document.getElementById("allowRemoteContentForAuthorDesc").value = desc;
+    var authorDesc = document.getElementById("allowRemoteContentForAuthorDesc");
+    authorDesc.value = desc;
+    authorDesc.setAttribute("tooltiptext", desc);
     this.updateMsgNotificationBar(kMsgNotificationRemoteImages, true);
   },
 
