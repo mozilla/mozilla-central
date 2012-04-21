@@ -1605,6 +1605,67 @@ var gFeedSubscriptionsWindow = {
   /* *************************************************************** */
   /* OPML Functions                                                  */
   /* *************************************************************** */
+
+  get brandShortName() {
+    let brandBundle = document.getElementById("bundle_brand");
+    return brandBundle ? brandBundle.getString("brandShortName") : "";
+  },
+
+/**
+ * Export feeds as opml file Save As filepicker function.
+ * 
+ * @return nsILocalFile or null.
+ */
+  opmlPickSaveAsFile: function() {
+    let fileName = FeedUtils.strings.formatStringFromName(
+                     "subscribe-OPMLExportDefaultFileName",
+                     [this.brandShortName], 1);
+    let title = FeedUtils.strings.GetStringFromName("subscribe-OPMLExportTitle");
+    let fp = Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
+
+    fp.defaultString = fileName;
+    if (this.opmlLastSaveAsDir && (this.opmlLastSaveAsDir instanceof Ci.nsILocalFile))
+      fp.displayDirectory = this.opmlLastSaveAsDir;
+
+    fp.appendFilters(Ci.nsIFilePicker.filterAll);
+    fp.init(window, title, Ci.nsIFilePicker.modeSave);
+
+    if (fp.show() != Ci.nsIFilePicker.returnCancel && fp.file) {
+      this.opmlLastSaveAsDir = fp.file.parent;
+      return fp.file;
+    }
+
+    return null;
+  },
+
+/**
+ * Import feeds opml file Open filepicker function.
+ * 
+ * @return nsILocalFile or null.
+ */
+  opmlPickOpenFile: function() {
+    let title = FeedUtils.strings.GetStringFromName("subscribe-OPMLImportTitle");
+    let fp = Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
+
+    fp.defaultString = "";
+    if (this.opmlLastOpenDir && (this.opmlLastOpenDir instanceof Ci.nsILocalFile))
+      fp.displayDirectory = this.opmlLastOpenDir;
+
+    let opmlFilterText = FeedUtils.strings.GetStringFromName(
+                           "subscribe-OPMLExportOPMLFilesFilterText");
+    fp.appendFilter(opmlFilterText, "*.opml");
+    fp.appendFilters(Ci.nsIFilePicker.filterXML);
+    fp.appendFilters(Ci.nsIFilePicker.filterAll);
+    fp.init(window, title, Ci.nsIFilePicker.modeOpen);
+
+    if (fp.show() != Ci.nsIFilePicker.returnCancel && fp.file) {
+      this.opmlLastOpenDir = fp.file.parent;
+      return fp.file;
+    }
+
+    return null;
+  },
+
   exportOPML: function()
   {
     // Account folder must be selected.
@@ -1624,14 +1685,12 @@ var gFeedSubscriptionsWindow = {
 
       this.generatePPSpace(opmlRoot, SPACES2);
 
-      let brandBundle = document.getElementById("bundle_brand");
-
       // Make the <head> element.
       let head = opmlDoc.createElement("head");
       this.generatePPSpace(head, SPACES4);
       let titleText = FeedUtils.strings.formatStringFromName(
                         "subscribe-OPMLExportFileDialogTitle",
-                        [brandBundle.getString("brandShortName")], 1);
+                        [this.brandShortName], 1);
       let title = opmlDoc.createElement("title");
       title.appendChild(opmlDoc.createTextNode(titleText));
       head.appendChild(title);
@@ -1652,23 +1711,15 @@ var gFeedSubscriptionsWindow = {
 
       this.generatePPSpace(opmlRoot, "");
 
-      let serial=new XMLSerializer();
-      let omplFileName = FeedUtils.strings.formatStringFromName(
-                           "subscribe-OPMLExportDefaultFileName",
-                           [brandBundle.getString("brandShortName")], 1);
-      let pTitle = FeedUtils.strings.GetStringFromName(
-                     "subscribe-OPMLExportTitle");
-      let rv = pickSaveAs(pTitle, "$all", omplFileName);
-      if (rv.reason == PICK_CANCEL)
+      // Get file to save from filepicker.
+      let saveAsFile = this.opmlPickSaveAsFile();
+      if (!saveAsFile)
         return;
-      else if (rv)
-      {
-        //debug("opml:\n"+serial.serializeToString(opmlDoc)+"\n");
-        let file = new LocalFile(rv.file,
-                                 MODE_WRONLY | MODE_CREATE | MODE_TRUNCATE);
-        serial.serializeToStream(opmlDoc,file.outputStream, "utf-8");
-        file.close();
-      }
+
+      let serializer = new XMLSerializer();
+      let fos = FileUtils.openSafeFileOutputStream(saveAsFile);
+      serializer.serializeToStream(opmlDoc, fos, "utf-8");
+      FileUtils.closeSafeFileOutputStream(fos);
     }
   },
 
@@ -1742,10 +1793,9 @@ var gFeedSubscriptionsWindow = {
 
     this.mRSSServer = item.folder.server;
 
-    let pTitle = FeedUtils.strings.GetStringFromName(
-                   "subscribe-OPMLImportTitle");
-    let rv = pickOpen(pTitle, "$opml $xml $all");
-    if(rv.reason == PICK_CANCEL)
+    // Get file to open from filepicker.
+    let openFile = this.opmlPickOpenFile();
+    if (!openFile)
       return;
 
     let opmlDom = null;
@@ -1756,7 +1806,7 @@ var gFeedSubscriptionsWindow = {
 
     // Read in file as raw bytes, so Expat can do the decoding for us.
     try {
-      stream.init(rv.file, MODE_RDONLY, PERM_IROTH, 0);
+      stream.init(openFile, FileUtils.MODE_RDONLY, FileUtils.PERMS_FILE, 0);
       let parser = new DOMParser();
       opmlDom = parser.parseFromStream(stream, null, stream.available(),
                                        "application/xml");

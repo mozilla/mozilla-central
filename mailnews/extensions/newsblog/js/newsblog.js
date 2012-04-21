@@ -405,7 +405,6 @@ function loadScripts()
     scriptLoader.loadSubScript("chrome://messenger-newsblog/content/Feed.js");
     scriptLoader.loadSubScript("chrome://messenger-newsblog/content/FeedItem.js");
     scriptLoader.loadSubScript("chrome://messenger-newsblog/content/feed-parser.js");
-    scriptLoader.loadSubScript("chrome://messenger-newsblog/content/file-utils.js");
     scriptLoader.loadSubScript("chrome://messenger-newsblog/content/utils.js");
   }
 

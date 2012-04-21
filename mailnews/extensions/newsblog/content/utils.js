@@ -43,9 +43,10 @@ var Ci = Components.interfaces;
 var Cr = Components.results;
 var Cu = Components.utils;
 
-Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource:///modules/gloda/log4moz.js");
+Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource:///modules/MailUtils.js");
+Cu.import("resource://gre/modules/FileUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
@@ -382,7 +383,7 @@ var FeedUtils = {
 
     // If the file doesn't exist, create it.
     if (!file.exists())
-      this.createSubscriptionsFile(file);
+      this.createFile(file, this.FEEDS_TEMPLATE);
 
     return file;
   },
@@ -398,12 +399,6 @@ var FeedUtils = {
     '    </fz:feeds>\n' +
     '  </RDF:Description>\n' +
     '</RDF:RDF>\n',
-
-  createSubscriptionsFile: function(aFile) {
-    let file = new LocalFile(aFile, MODE_WRONLY | MODE_CREATE);
-    file.write(this.FEEDS_TEMPLATE);
-    file.close();
-  },
 
   getItemsDS: function(aServer) {
     let file = this.getItemsFile(aServer);
@@ -425,25 +420,27 @@ var FeedUtils = {
     return ds;
   },
 
-  FEEDITEMS_TEMPLATE: '<?xml version="1.0"?>\n' +
-    '<RDF:RDF xmlns:dc="http://purl.org/dc/elements/1.1/"\n' +
-    '         xmlns:fz="urn:forumzilla:"\n' +
-    '         xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">\n' +
-    '</RDF:RDF>\n',
-
   getItemsFile: function(aServer) {
     aServer.QueryInterface(Ci.nsIRssIncomingServer);
     let file = aServer.feedItemsDataSourcePath;
 
     // If the file doesn't exist, create it.
     if (!file.exists())
-    {
-      let newfile = new LocalFile(file, MODE_WRONLY | MODE_CREATE);
-      newfile.write(this.FEEDITEMS_TEMPLATE);
-      newfile.close();
-    }
+      this.createFile(file, this.FEEDITEMS_TEMPLATE);
 
     return file;
+  },
+
+  FEEDITEMS_TEMPLATE: '<?xml version="1.0"?>\n' +
+    '<RDF:RDF xmlns:dc="http://purl.org/dc/elements/1.1/"\n' +
+    '         xmlns:fz="urn:forumzilla:"\n' +
+    '         xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">\n' +
+    '</RDF:RDF>\n',
+
+  createFile: function(aFile, aTemplate) {
+    let fos = FileUtils.openSafeFileOutputStream(aFile);
+    fos.write(aTemplate, aTemplate.length);
+    FileUtils.closeSafeFileOutputStream(fos);
   },
 
   getParentTargetForChildResource: function(aChildResource, aParentTarget,

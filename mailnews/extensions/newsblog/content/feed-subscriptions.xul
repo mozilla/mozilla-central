@@ -61,8 +61,6 @@
   <script type="application/javascript"
           src="chrome://messenger-newsblog/content/utils.js"/>
   <script type="application/javascript"
-          src="chrome://messenger-newsblog/content/file-utils.js"/>
-  <script type="application/javascript"
           src="chrome://messenger-newsblog/content/feed-subscriptions.js"/>
   <script type="application/javascript"
           src="chrome://messenger-newsblog/content/Feed.js"/>
@@ -70,8 +68,6 @@
           src="chrome://messenger-newsblog/content/FeedItem.js"/>
   <script type="application/javascript"
           src="chrome://messenger-newsblog/content/feed-parser.js"/>
-  <script type="application/javascript"
-          src="chrome://messenger/content/widgetglue.js"/>
 
   <keyset id="extensionsKeys">
     <key id="key_close"
