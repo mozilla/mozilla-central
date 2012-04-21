@@ -115,12 +115,6 @@
 <!ENTITY stopButton.tooltip "Stop the current transfer"> 
 
 <!-- context menu items -->
-<!ENTITY spellCheckNoSuggestions.label "(No Suggestions Found)">
-<!ENTITY spellCheckIgnoreWord.label "Ignore Word">
-<!ENTITY spellCheckIgnoreWord.accesskey "I">
-<!ENTITY spellCheckAddToDictionary.label "Add to Dictionary">
-<!ENTITY spellCheckAddToDictionary.accesskey "n">
-
 <!ENTITY openAttachment.label "Open">
 <!ENTITY openAttachment.accesskey "O">
 <!ENTITY renameAttachment.label "Rename…">
