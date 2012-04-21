@@ -46,7 +46,13 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+#messengerWindow {
+  -moz-appearance: window;
+  background-color: -moz-Dialog;
+}
+
 #messagepanebox {
+  -moz-appearance: toolbox;
   text-shadow: none;
   background-color: -moz-dialog;
 }
@@ -54,31 +60,11 @@
 /* ..... message header borders ..... */
 
 @media all and (-moz-windows-compositor) {
-  #messengerWindow[sizemode=normal]  #navigation-toolbox {
-    border-top: 1px solid rgba(10%, 10%, 10%, .4);
-    border-left: 1px solid rgba(10%, 10%, 10%, .4);
-    border-right: 1px solid rgba(10%, 10%, 10%, .4);
-    background-clip: padding-box !important;
-  }
-
-  #messengerWindow[sizemode=normal] #mail-toolbox,
-  #messengerWindow[sizemode=normal] #messagepanebox {
-    border: 1px solid rgba(10%, 10%, 10%, .4);
-    border-top: none;
-    background-clip: padding-box;
-  }
-
-  #messengerWindow[sizemode=normal]  #mail-toolbox {
-    border-bottom-color: ThreeDShadow;
-  }
-
-  #messengerWindow[sizemode=normal] statusbar {
+  #status-bar {
     -moz-appearance: none;
-    margin-top: -1px;
-    border: 1px solid rgba(10%, 10%, 10%, .4);
-    border-top-color: threedshadow;
-    border-radius: 1px 1px 0 0;
-    background-clip: padding-box;
+    border: none;
+    border-top: 1px solid ThreeDShadow;
+    background-color: hsl(210, 75%, 92%);
   }
 }
 
