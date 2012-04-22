@@ -1,0 +1,7 @@
+%include tagColors.css
+
+@media (-moz-windows-default-theme) {
+  treechildren::-moz-tree-cell-text(lc-white, selected, focus) {
+    color: #000000;
+  }
+}
