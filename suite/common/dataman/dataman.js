@@ -1260,7 +1260,8 @@ var gPerms = {
       this.addButton.disabled = true;
       this.addType.removeAllItems(); // Make sure list is clean.
       let permTypes = ["allowXULXBL", "cookie", "geo", "image", "install",
-                       "object", "password", "popup", "script", "stylesheet"];
+                       "object", "password", "plugins", "popup", "script",
+                       "stylesheet"];
       for (let i = 0; i < permTypes.length; i++) {
         let typeDesc = permTypes[i];
         try {
@@ -1315,6 +1316,10 @@ var gPerms = {
           return Services.perms.DENY_ACTION;
         return Services.perms.ALLOW_ACTION;
       case "password":
+        return Services.perms.ALLOW_ACTION;
+      case "plugins":
+        if (Services.prefs.getBoolPref("plugins.click_to_play"))
+          return Services.perms.UNKNOWN_ACTION;
         return Services.perms.ALLOW_ACTION;
       case "popup":
         if (Services.prefs.getBoolPref("dom.disable_open_during_load"))
