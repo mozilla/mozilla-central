@@ -217,18 +217,47 @@ var commands = [
     name: "mode",
     get helpString() _("command.mode", "mode"),
     run: function(aMsg, aConv) {
+      function isMode(aString) "+-".indexOf(aString[0]) != -1;
       let params = aMsg.split(" ");
 
-      // If only a mode is given, it's the user's own mode that we want to set
-      // so we have to provide the user's nick.
-      if (params.length == 1)
-        params.unshift(aConv.nick);
-      // If a new mode and a nick are given, then it's for the current
-      // conversation.
-      else if (params.length == 2 && !getAccount(aConv).isMUCName(params[0]))
-        params = [aConv.name, params[1], params[0]];
-      // Otherwise assume a channel, new mode and nick were given or a channel
-      // and a mode were given. Nothing needs to be changed in these cases.
+      // Check if we have any params, we can't just check params.length, since
+      // that will always be at least 1 (but params[0] would be empty).
+      let hasParams = !/^\s*$/.test(aMsg);
+      let account = getAccount(aConv);
+      // These must be false if we don't have any paramters!
+      let isChannelName = hasParams && account.isMUCName(params[0]);
+      let isOwnNick =
+        account.normalize(params[0]) == account.normalize(account._nickname);
+
+      // If no parameters are given, the user is requesting their own mode.
+      if (!hasParams)
+        params = [aConv.nick];
+      else if (params.length == 1) {
+        // Only a mode is given, therefore the user is trying to set their own
+        // mode. We need to provide the user's nick.
+        if (isMode(params[0]))
+          params.unshift(aConv.nick);
+        // Alternately if the user gives a channel name, they're requesting a
+        // channel's mode. If they give their own nick, they're requesting their
+        // own mode. Otherwise, this is nonsensical.
+        else if (!isChannelName && !isOwnNick)
+          return false;
+      }
+      else if (params.length == 2) {
+        // If a new mode and a nick are given, then we need to provide the
+        // current conversation's name.
+        if (isMode(params[0]) && !isMode(params[1]))
+          params = [aConv.name, params[1], params[0]];
+        // Otherwise, the input must be a channel name or the user's own nick
+        // and a mode.
+        else if ((!isChannelName && !isOwnNick) || !isMode(params[1]))
+          return false;
+      }
+      // Otherwise a channel name, new mode and a nick were given or a channel
+      // name and a mode were given. If this is not true, return false.
+      else if (!(isChannelName && isMode(params[1])))
+        return false;
+
       return simpleCommand(aConv, "MODE", params);
     }
   },
