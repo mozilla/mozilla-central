@@ -420,7 +420,7 @@ var EmailAccountProvisioner = {
       success: EmailAccountProvisioner.onSearchResults})
       .error(EmailAccountProvisioner.showSearchError)
       .complete(function() {
-        $("#FirstAndLastName").html(firstname + " " + lastname);
+        $("#FirstAndLastName").html(String.trim(firstname + " " + lastname));
         EmailAccountProvisioner.searchEnabled(true);
         EmailAccountProvisioner.spinning(false);
       });
@@ -461,7 +461,7 @@ var EmailAccountProvisioner = {
     let tabmail = mail3Pane.document.getElementById("tabmail");
     tabmail.openTab("accountProvisionerTab", {
       contentPage: url,
-      realName: firstName + " " + lastName,
+      realName: String.trim(firstName + " " + lastName),
       email: email,
       searchEngine: provider.search_engine,
       onLoad: function (aEvent, aBrowser) {
