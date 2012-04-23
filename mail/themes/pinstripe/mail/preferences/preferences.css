@@ -235,7 +235,7 @@ a {
 
 #provider-space {
   text-align: right;
-  margin-right: 160px;
+  margin-right: 180px;
   margin-top: 50px;
   height: 100px;
 }
@@ -252,6 +252,9 @@ a {
 
 #provider-account-settings {
   text-align: right;
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
 }
 
 .space-swatch {
@@ -286,9 +289,7 @@ a {
 
 /* Flexing */
 #provider-management {
-  height: 390px; /* As far as I can see, the height and width values needs to be hardcoded :( */
-  width: 340px;
-  display: -moz-box;
+  display: block;
   -moz-box-orient: vertical;
 }
 

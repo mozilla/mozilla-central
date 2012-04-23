@@ -59,15 +59,3 @@ radio[pane]:hover {
 radio[pane][selected="true"] {
   background-color: rgb(193, 210, 238);
 }
-
-#provider-management {
-  height: 240px; /* As far as I can see, the height and width values needs to be hardcoded :( */
-  width: 350px;
-}
-
-@media all and (-moz-windows-default-theme) {
-  #provider-management {
-    height: 270px; /* As far as I can see, the height and width values needs to be hardcoded :( */
-    width: 350px;
-  }
-}
