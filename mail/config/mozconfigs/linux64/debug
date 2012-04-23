@@ -5,9 +5,6 @@ ac_add_options --enable-tests
 
 ac_add_options --enable-trace-malloc
 
-export CFLAGS="-gdwarf-2"
-export CXXFLAGS="-gdwarf-2"
-
 . $topsrcdir/build/unix/mozconfig.linux
 
 # Avoid dependency on libstdc++ 4.5
@@ -18,7 +15,6 @@ export MOZILLA_OFFICIAL=1
 
 # For NSS symbols
 export MOZ_DEBUG_SYMBOLS=1
-ac_add_options --enable-debug-symbols="-gdwarf-2"
 
 #Use ccache
 ac_add_options --with-ccache=/usr/bin/ccache
