@@ -49,13 +49,8 @@ p {
 }
 
 div.bubble {
-  margin: 20px 20px 3px 20px;
-  padding: 10px;
-  border-width: 1px;
-  border-style: solid;
-  border-radius: 5px;
-  background-color: #fcfcfc;
-  border-color: #aeafac;
+  margin: 2px 20px;
+  padding: 0;
 }
 
 div.bubble:not(.context):not(.event) {
@@ -73,13 +68,10 @@ div.bubble:not(.context):not(.event) {
     opacity: 1.0;
   }
 }
-div.bubble>div.indicator {
-  margin: 0;
-}
 
-div.bubble.event {
-  background-color: hsl(0, 0%, 99%);
-  border-color: hsl(0, 0%, 85%);
+div.bubble>div.indicator {
+  padding: 10px;
+  -moz-margin-start: 60px;
 }
 
 div.bubble p.pseudo {
@@ -90,34 +82,29 @@ div.bubble p.pseudo {
 div.bubble p.pseudo>span>span.time {
   display: block;
   float: right;
-  margin-right: 10px;
   color: #aeafac;
   font-weight: normal;
 }
 
 div.bubble hr {
-  margin: 0;
+  margin: 2px 0 0;
   height: 2px;
   border-style: none;
   border-top: 1px solid #ffffff;
   border-bottom: 1px solid #dbddd7;
 }
 
-p.interval {
+p.interval, #lastMessage {
   text-align: center;
   color: hsl(0, 0%, 60%);
 }
 
 .message {
-  padding: 5px 10px;
+  padding: 5px 0 0;
 }
 
 #lastMessage {
   line-height: 20px;
-  text-align: center;
-  color: hsl(0, 0%, 60%);
-  font-weight: bold;
-  text-shadow: 0px 1px 0px #ffffff;
 }
 
 p.nick {
@@ -134,10 +121,12 @@ p.action:before {
 
 p.event {
   color: hsl(0, 0%, 60%);
+  margin: 3px 15px;
 }
 
 #Chat {
   white-space: normal;
+  padding-top: 18px;
 }
 
 p *:-moz-any-link img {
@@ -145,15 +134,13 @@ p *:-moz-any-link img {
   border-bottom: solid 1px;
 }
 
-
-
 /* used by javascript */
 p.button {
   cursor: pointer;
   min-height: 20px;
-  margin-left: -24px;
+  -moz-margin-start: -10px;
   margin-bottom: -3px;
-  padding-left: 24px;
+  -moz-padding-start: 24px;
 }
 
 p.hide {
@@ -183,14 +170,42 @@ p.show:hover {
   position: absolute;
   max-width: 48px;
   max-height: 48px;
+  margin-top: -10px;
+  -moz-margin-start: -70px;
   border-radius: 5px;
 }
 
-.message,
-.sender {
-  padding-left: 60px;
+.bubble.event,
+.indicator {
+  border: 1px solid hsl(0, 0%, 85%);
+  border-radius: 5px;
+  background-color: hsl(0, 0%, 99%);
 }
 
-.message {
-  min-height: 30px;
+.nick .indicator {
+  border-color: Highlight;
+}
+
+@media (max-height: 500px) {
+  div.bubble {
+    margin-top: 3px !important;
+  }
+
+  div.bubble > div.indicator {
+    padding: 5px 10px;
+    -moz-margin-start: 0;
+  }
+
+  .usericon {
+    display: none;
+  }
+
+  .message {
+    padding: 2px 0 0;
+  }
+
+  .interval, #lastMessage {
+    line-height: -moz-initial !important;
+    margin: -2px 0 -3px !important;
+  }
 }
