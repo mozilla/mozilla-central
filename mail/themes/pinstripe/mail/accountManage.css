@@ -73,6 +73,10 @@
   min-width: 30ch;
 }
 
+treechildren::-moz-tree-cell-text(isDefaultServer-true) {
+  font-weight: bold;
+}
+
 button:not(.spinbuttons-button):not(.dialog-button) {
   min-height: 19px; /* aqua size for small buttons */
 }

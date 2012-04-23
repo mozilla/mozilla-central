@@ -426,53 +426,75 @@ function AddIMAccount()
                     "", "chrome,modal,titlebar,centerscreen");
 }
 
-function onSetDefault(event) {
-  if (event.target.getAttribute("disabled") == "true") return;
+/**
+ * Highlight the default server in the account tree,
+ * optionally un-highlight the previous one.
+ */
+function markDefaultServer(newDefault, oldDefault) {
+  let accountTree = document.getElementById("account-tree-children");
+  for each (let accountNode in accountTree.childNodes) {
+    if (newDefault == accountNode._account) {
+      accountNode.firstChild
+                 .firstChild
+                 .setAttribute("properties", "isDefaultServer-true");
+    }
+    if (oldDefault && oldDefault == accountNode._account) {
+      accountNode.firstChild
+                 .firstChild
+                 .removeAttribute("properties");
+    }
+  }
+}
 
-  Components.classes["@mozilla.org/messenger/account-manager;1"]
-            .getService(Components.interfaces.nsIMsgAccountManager)
-            .defaultAccount = currentAccount;
+/**
+ * Make currentAccount (currently selected in the account tree) the default one.
+ */
+function onSetDefault(event) {
+  // Make sure this function was not called while the control item is disabled
+  if (event.target.getAttribute("disabled") == "true")
+    return;
+
+  let previousDefault = MailServices.accounts.defaultAccount;
+  MailServices.accounts.defaultAccount = currentAccount;
+  markDefaultServer(currentAccount, previousDefault);
+
+  // This is only needed on Seamonkey which has this button.
   setEnabled(document.getElementById("setDefaultButton"), false);
 }
 
 function onRemoveAccount(event) {
-  if (event.target.getAttribute("disabled") == "true") return;
-
-  var account = currentAccount;
-
-  var server = account.incomingServer;
-  var type = server.type;
-  var prettyName = server.prettyName;
-
-  var protocolinfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type].getService(Components.interfaces.nsIMsgProtocolInfo);
-  var canDelete = protocolinfo.canDelete;
-  if (!canDelete) {
-    canDelete = server.canDelete;
-  }
-  if (!canDelete) 
+  if (event.target.getAttribute("disabled") == "true" || !currentAccount)
     return;
 
-  var bundle = document.getElementById("bundle_prefs");
-  var confirmRemoveAccount =
-    bundle.getFormattedString("confirmRemoveAccount", [prettyName]);
+  let server = currentAccount.incomingServer;
+  let type = server.type;
+  let prettyName = server.prettyName;
 
-  var confirmTitle = bundle.getString("confirmRemoveAccountTitle");
+  let canDelete = false;
+  if (Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type]
+                .getService(Components.interfaces.nsIMsgProtocolInfo).canDelete)
+    canDelete = true;
+  else
+    canDelete = server.canDelete;
 
-  var promptService =
-    Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-              .getService(Components.interfaces.nsIPromptService);
-  if (!promptService.confirm(window, confirmTitle, confirmRemoveAccount))
+  if (!canDelete)
+    return;
+
+  let bundle = document.getElementById("bundle_prefs");
+  let confirmRemoveAccount = bundle.getFormattedString("confirmRemoveAccount",
+                                                       [prettyName]);
+
+  let confirmTitle = bundle.getString("confirmRemoveAccountTitle");
+
+  if (!Services.prompt.confirm(window, confirmTitle, confirmRemoveAccount))
     return;
 
   try {
-    // clear cached data out of the account array
+    let serverId = server.serverURI;
+    MailServices.accounts.removeAccount(currentAccount);
+
     currentAccount = currentPageId = null;
-
-    var serverId = server.serverURI;
-    Components.classes["@mozilla.org/messenger/account-manager;1"]
-              .getService(Components.interfaces.nsIMsgAccountManager)
-              .removeAccount(account);
-
+    // clear cached data out of the account array
     if (serverId in accountArray) {
       delete accountArray[serverId];
     }
@@ -480,11 +502,14 @@ function onRemoveAccount(event) {
   }
   catch (ex) {
     dump("failure to remove account: " + ex + "\n");
-    var alertText = bundle.getString("failedRemoveAccount");
-    Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-              .getService(Components.interfaces.nsIPromptService)
-              .alert(window, null, alertText);;
+    let alertText = bundle.getString("failedRemoveAccount");
+    Services.prompt.alert(window, null, alertText);;
   }
+
+  // Either the default account was deleted so there is a new one
+  // or the default account was not changed. Either way, there is
+  // no need to unmark the old one.
+  markDefaultServer(MailServices.accounts.defaultAccount, null);
 }
 
 function saveAccount(accountValues, account)
@@ -1093,14 +1118,10 @@ var gAccountTree = {
   load: function at_load() {
     this._build();
 
-    var mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                        .getService(Components.interfaces.nsIMsgAccountManager);
-    mgr.addIncomingServerListener(this);
+    MailServices.accounts.addIncomingServerListener(this);
   },
   unload: function at_unload() {
-    var mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                        .getService(Components.interfaces.nsIMsgAccountManager);
-    mgr.removeIncomingServerListener(this);
+    MailServices.accounts.removeIncomingServerListener(this);
   },
   onServerLoaded: function at_onServerLoaded(aServer) {
     this._build();
@@ -1122,8 +1143,7 @@ var gAccountTree = {
                   {string: get("prefPanel-junk"), src: "am-junk.xul"}];
 
     // Get our account list, and add the proper items
-    var mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                        .getService(Components.interfaces.nsIMsgAccountManager);
+    var mgr = MailServices.accounts;
 
     var accounts = [a for each (a in fixIterator(mgr.accounts, Ci.nsIMsgAccount))];
     // Stupid bug 41133 hack. Grr...
@@ -1156,12 +1176,10 @@ var gAccountTree = {
     while (mainTree.firstChild)
       mainTree.removeChild(mainTree.firstChild);
 
-    var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch);
-    for each (var account in accounts) {
+    for each (let account in accounts) {
       let server = account.incomingServer;
 
-      if (server.type == "im" && !prefBranch.getBoolPref("mail.chat.enabled"))
+      if (server.type == "im" && !Services.prefs.getBoolPref("mail.chat.enabled"))
         continue;
 
       // Create the top level tree-item
@@ -1206,12 +1224,9 @@ var gAccountTree = {
         var svc = Components.classes[catMan.getCategoryEntry(CATEGORY, entryName)]
                             .getService(Ci.nsIMsgAccountManagerExtension);
         if (svc.showPanel(server)) {
-          var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                              .getService(Ci.nsIStringBundleService);
-
           let bundleName = "chrome://" + svc.chromePackageName +
                            "/locale/am-" + svc.name + ".properties";
-          let bundle = sbs.createBundle(bundleName);
+          let bundle = Services.strings.createBundle(bundleName);
           let title = bundle.GetStringFromName("prefPanel-" + svc.name);
           panelsToKeep.push({string: title, src: "am-" + svc.name + ".xul"});
         }
@@ -1220,7 +1235,7 @@ var gAccountTree = {
       if (panelsToKeep.length > 0) {
         var treekids = document.createElement("treechildren");
         treeitem.appendChild(treekids);
-        for each (panel in panelsToKeep) {
+        for each (let panel in panelsToKeep) {
           var kidtreeitem = document.createElement("treeitem");
           treekids.appendChild(kidtreeitem);
           var kidtreerow = document.createElement("treerow");
@@ -1238,6 +1253,8 @@ var gAccountTree = {
                                               : "am-main.xul");
       treeitem._account = account;
     }
+
+    markDefaultServer(mgr.defaultAccount, null);
 
     // Now add the outgoing server node
     var treeitem = document.createElement("treeitem");
