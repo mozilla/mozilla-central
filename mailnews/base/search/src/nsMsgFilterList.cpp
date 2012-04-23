@@ -1157,7 +1157,6 @@ NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFo
             }
           }
         }
-        break;  //we allow only one move action per filter
       }
     }
   }
