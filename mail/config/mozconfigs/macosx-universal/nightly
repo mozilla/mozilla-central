@@ -1,20 +1,13 @@
-if test -e "$topsrcdir/mozilla/build/macosx/universal/mozconfig"; then
-  oldtopsrcdir=$topsrcdir
-  export topsrcdir=$topsrcdir/mozilla
-else
-  # Big Hack that unsets CC / CXX so that mozconfig.common doesn't get
-  # mixed up with host/target CPUs when trying to work out how to do the
-  # universal build. When we redo the build system (bug 648979) this will
-  # go away.
+# Big Hack that unsets CC / CXX so that mozconfig.common doesn't get
+# mixed up with host/target CPUs when trying to work out how to do the
+# universal build. When we redo the build system (bug 648979) this will
+# go away.
+if test -e "$topsrcdir/mail/config/version.txt"; then
   unset CC
   unset CXX
 fi
 
 . $topsrcdir/build/macosx/universal/mozconfig
-
-if test -n $oldtopsrcdir; then
-  export topsrcdir=$oldtopsrcdir
-fi
 
 ac_add_options --enable-application=mail
 ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}

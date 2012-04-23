@@ -1,0 +1,18 @@
+ac_add_options --target=x86_64-pc-mingw32
+ac_add_options --host=x86_64-pc-mingw32
+
+ac_add_options --enable-application=mail
+ac_add_options --enable-debug
+ac_add_options --enable-trace-malloc
+
+# Needed to enable breakpad in application.ini
+export MOZILLA_OFFICIAL=1
+
+mk_add_options MOZ_MAKE_FLAGS=-j1
+
+# This is a hack, until we can get a consistent location for both of these.
+if test -e "$topsrcdir/mail/config/mozconfigs/win64/vs2010-mozconfig"; then
+  . $topsrcdir/mail/config/mozconfigs/win64/vs2010-mozconfig
+else
+  . $topsrcdir/browser/config/mozconfigs/win64/vs2010-mozconfig
+fi
