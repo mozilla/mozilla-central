@@ -610,6 +610,7 @@ nsresult nsPop3Protocol::Initialize(nsIURI * aURL)
 nsPop3Protocol::~nsPop3Protocol()
 {
   Cleanup();
+  PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("~nsPop3Protocol()"));
 }
 
 void nsPop3Protocol::Cleanup()
@@ -4162,11 +4163,11 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
           server->SetServerBusy(false); // the server is now not busy
         }
         PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("Clearing running protocol in POP3_FREE"));
+        CloseSocket();
         m_pop3Server->SetRunningProtocol(nsnull);
         if (mailnewsurl && urlStatusSet)
           mailnewsurl->SetUrlState(false, m_pop3ConData->urlStatus);
 
-        CloseSocket();
         m_url = nsnull;
         return NS_OK;
       }
