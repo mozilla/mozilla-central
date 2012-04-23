@@ -29,7 +29,8 @@ ac_add_options --enable-debug-symbols="-gdwarf-2"
 export MOZILLA_OFFICIAL=1
 
 #Use ccache
-ac_add_options --with-ccache=/usr/bin/ccache
+ac_add_options --with-ccache
+
 # Enable parallel compiling
 CONCURRENCY=$(( `sysctl hw.logicalcpu | awk {'print $2'}`  + 2 ))
 mk_add_options MOZ_MAKE_FLAGS="-j$CONCURRENCY"
