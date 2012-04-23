@@ -472,6 +472,8 @@ classic.jar:
   skin/classic/aero/messenger/icons/tab-arrow-left-inverted.png    (mail/icons/tab-arrow-left-inverted.png)
   skin/classic/aero/messenger/icons/mainwindow-dropdown-arrow.png  (mail/icons/mainwindow-dropdown-arrow.png)
   skin/classic/aero/messenger/icons/mainwindow-dropdown-arrow-inverted.png   (mail/icons/mainwindow-dropdown-arrow-inverted.png)
+  skin/classic/aero/messenger/icons/toolbarbutton-arrow-inverted.png         (mail/icons/toolbarbutton-arrow-inverted.png)
+  skin/classic/aero/messenger/icons/toolbarbutton-arrow.png        (mail/icons/toolbarbutton-arrow.png)
   skin/classic/aero/messenger/icons/tabDragIndicator.png           (mail/icons/tabDragIndicator.png)
   skin/classic/aero/messenger/accountcentral/read-messages.png     (mail/accountcentral/read-messages.png)
   skin/classic/aero/messenger/accountcentral/write-message.png     (mail/accountcentral/write-message.png)

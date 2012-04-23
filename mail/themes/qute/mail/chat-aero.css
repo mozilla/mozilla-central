@@ -130,24 +130,12 @@
   }
 }
 
-/* Default icons have a built-in glow, so they are 18*18px even in small mode,
-   except for the large back icon, which is why the code below uses 'auto'
-   rather than 18px. This will pick the correct size based on the image
-   region. */
-:-moz-any(
-    #button-add-buddy, #button-join-chat, #button-chat-accounts
-  ) .toolbarbutton-icon {
-  margin: 0 !important;
-  width: auto !important;
-  height: auto !important;
-}
-
 #button-add-buddy,
 #button-add-buddy[disabled],
 toolbar[iconsize="small"] #button-add-buddy,
 toolbar[iconsize="small"] #button-add-buddy[disabled] {
   list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
-  -moz-image-region: rect(0px 18px 18px 0px);
+  -moz-image-region: rect(1px 17px 17px 1px);
 }
 
 #button-join-chat,
@@ -155,7 +143,7 @@ toolbar[iconsize="small"] #button-add-buddy[disabled] {
 toolbar[iconsize="small"] #button-join-chat,
 toolbar[iconsize="small"] #button-join-chat[disabled] {
   list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
-  -moz-image-region: rect(0px 36px 18px 18px);
+  -moz-image-region: rect(1px 35px 17px 19px);
 }
 
 #button-chat-accounts,
@@ -163,5 +151,5 @@ toolbar[iconsize="small"] #button-join-chat[disabled] {
 toolbar[iconsize="small"] #button-chat-accounts,
 toolbar[iconsize="small"] #button-chat-accounts[disabled] {
   list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
-  -moz-image-region: rect(0px 54px 18px 36px);
+  -moz-image-region: rect(1px 53px 17px 37px);
 }

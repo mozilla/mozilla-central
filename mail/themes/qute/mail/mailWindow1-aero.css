@@ -184,6 +184,57 @@ padding: 4px 0px;
 }
 
 @media (-moz-windows-default-theme) {
+  menulist {
+    -moz-appearance: none;
+    margin: 1px 4px;
+    padding: 1px 5px !important;
+    border-radius: 2px;
+    border: 1px solid;
+    background-image: -moz-linear-gradient(hsla(0, 0%, 100%, .6),
+                      hsla(0, 0%, 100%, .1));
+    background-color: hsla(210, 32%, 93%, .2);
+    border-color: hsla(210, 54%, 20%, .15) hsla(210, 54%, 20%, .2)
+                  hsla(210, 54%, 20%, .25);
+    box-shadow: 0 1px hsla(0, 0%, 100%, .3) inset,
+                0 1px hsla(210, 54%, 20%, .03),
+                0 0 2px hsla(210, 54%, 20%, .1);
+    -moz-transition-property: background-color, border-color, box-shadow;
+    -moz-transition-duration: 150ms;
+  }
+
+  menulist:not([disabled="true"]):not([open="true"]):hover {
+    border-color: hsla(210, 54%, 20%, .3) hsla(210, 54%, 20%, .35)
+                  hsla(210, 54%, 20%, .4);
+    background-color: hsla(210, 48%, 96%, .75);
+    box-shadow: 0 0 1px hsla(210, 54%, 20%, .03),
+                0 0 2px hsla(210, 54%, 20%, .1);
+  }
+
+  menulist[open="true"] {
+    background-image: -moz-linear-gradient(hsla(0, 0%, 100%, .6),
+                      hsla(0, 0%, 100%, .1));
+    background-color: hsla(210, 54%, 20%, .15);
+    border-color: hsla(210, 54%, 20%, .3) hsla(210, 54%, 20%, .35)
+                  hsla(210, 54%, 20%, .4);
+    box-shadow: 0 1px 1px hsla(210, 54%, 20%, .1) inset,
+                0 0 1px hsla(210, 54%, 20%, .2) inset,
+                0 1px 0 hsla(210, 54%, 20%, 0),
+                0 0 2px hsla(210, 54%, 20%, 0);
+    text-shadow: none;
+    -moz-transition: none;
+  }
+
+  menulist[disabled="true"] {
+    opacity: .6;
+  }
+}
+
+menulist > .menulist-label-box {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+@media (-moz-windows-default-theme) {
   #folderPaneHeader {
     -moz-appearance: none;
     background-color: #f8f8f8;
@@ -196,52 +247,6 @@ padding: 4px 0px;
     background-color: #eef3fa;
     border-bottom: none;
     border-left: none;
-  }
-
-  menulist {
-    -moz-appearance: none;
-    padding: 1px 5px !important;
-    background: rgba(151, 152, 153, .05)
-                -moz-linear-gradient(rgba(251, 252, 253, .95),
-                rgba(246, 247, 248, .47) 49%, rgba(231, 232, 233, .45) 51%,
-                rgba(225, 226, 229, .3));
-    border-radius: 3.5px;
-    border: 1px solid;
-    border-color: rgba(0, 0, 0, .12) rgba(0, 0, 0, .19) rgba(0, 0, 0, .38);
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, .3) inset,
-                0 0 0 2px rgba(255, 255, 255, .1) inset;
-    color: ButtonText;
-    text-shadow: 0 0 3px white;
-  }
-
-  menulist:not([disabled="true"]):not([open="true"]):hover {
-    background-color: hsla(190, 60%, 70%, .5);
-    border-color: hsla(190, 50%, 65%, .8) hsla(190, 50%, 50%, .8)
-                  hsla(190, 50%, 40%, .8);
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, .3) inset,
-                0 0 0 2px rgba(255, 255, 255, .1) inset,
-                0 0 5px hsl(190, 90%, 80%);
-    -moz-transition: background-color .4s ease-in,
-                     border-color .3s ease-in,
-                     box-shadow .3s ease-in;
-  }
-
-  menulist[open="true"] {
-    background-color: transparent;
-    border-color: rgba(0, 0, 0, .65) rgba(0, 0, 0, .55) rgba(0, 0, 0, .5);
-    box-shadow: 0 0 9px rgba(0, 0, 0, .4) inset,
-                0 0 3px rgba(0, 0, 0, .4) inset,
-                0 1px 0 rgba(255, 255, 255, .4);
-    text-shadow: none;
-  }
-
-  menulist[disabled="true"] {
-    opacity: .6;
-  }
-
-  menulist > .menulist-label-box {
-    background-color: transparent !important;
-    color: inherit !important;
   }
 
   #folderTree treechildren::-moz-tree-cell(dropOn) {
@@ -283,12 +288,12 @@ padding: 4px 0px;
   }
 
   /* lesser transparency on Glass background */
-  menulist:not(:-moz-lwtheme):not([open="true"]) {
+  #tabbar-toolbar menulist:not(:-moz-lwtheme):not([open="true"]) {
     background-color: rgba(227, 237, 246, .7);
   }
 
   /* lesser transparency on Glass background */
-  menulist:not(:-moz-lwtheme):not([open="true"]):hover {
+  #tabbar-toolbar menulist:not(:-moz-lwtheme):not([open="true"]):hover {
     background-color: rgba(136, 197, 213, .85);
   }
 

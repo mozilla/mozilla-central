@@ -43,6 +43,10 @@
 * Tabmail Tabs
 */
 
+#tabpanelcontainer:-moz-lwtheme {
+  color: inherit;
+}
+
 @media (-moz-windows-default-theme) {
   .tabmail-tabs {
     padding: 0 3px;
