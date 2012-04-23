@@ -48,7 +48,7 @@ interface prplIMessageAction: nsIRunnable
   /* The protocol plugins need to provide a localized label suitable
      for being shown in the user interface (for example as a context
      menu item). */
-  readonly attribute ACString label;
+  readonly attribute AUTF8String label;
 };
 
 [scriptable, uuid(d9f0ca7f-ee59-4657-a3dd-f458c204ca45)]
