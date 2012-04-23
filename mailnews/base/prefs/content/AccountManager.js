@@ -164,16 +164,16 @@ function onUnload() {
 
 function selectServer(server, selectPage)
 {
-  var accountNode;
+  let childrenNode = document.getElementById("account-tree-children");
+
+  // Default to showing the first account.
+  let accountNode = childrenNode.firstChild;
 
   // Find the tree-node for the account we want to select
-  if (!server) {
-    // Just get the first account
-    accountNode = document.getElementById("account-tree-children").firstChild;
-  } else {
-    var childrenNode = document.getElementById("account-tree-children");
+  if (server) {
     for (var i = 0; i < childrenNode.childNodes.length; i++) {
-      if (server == childrenNode.childNodes[i]._account.incomingServer) {
+      let account = childrenNode.childNodes[i]._account;
+      if (account && server == account.incomingServer) {
         accountNode = childrenNode.childNodes[i];
         break;
       }
