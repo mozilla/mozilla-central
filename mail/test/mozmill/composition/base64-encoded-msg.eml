@@ -1,0 +1,11 @@
+Message-ID: <4877F4BB.3060507@example.org>
+Date: Fri, 11 Jul 2008 20:03:07 -0400
+From: Joe <joe@example.org>
+MIME-Version: 1.0
+To: Jane <jane@example.org>
+Subject: base64 content
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: base64
+
+WW91IGhhdmUgZGVjb2RlZCB0aGlzIHRleHQgZnJvbSBiYXNlNjQu
+
