@@ -238,9 +238,9 @@ function msgOpenAccountWizard(wizardCallback)
     selectServer(null, null);
 }
 
-// selectPage: the xul file name for the viewing page, 
+// selectPage: the xul file name for the viewing page,
 // null for the account main page, other pages are
-// 'am-server.xul', 'am-copies.xul', 'am-offline.xul', 
+// 'am-server.xul', 'am-copies.xul', 'am-offline.xul',
 // 'am-addressing.xul', 'am-smtp.xul'
 function MsgAccountManager(selectPage)
 {
@@ -253,9 +253,10 @@ function MsgAccountManager(selectPage)
         existingAccountManager.focus();
     else {
         try {
-            var server = GetSelectedMsgFolders()[0].server;
+            var server = GetSelectedMsgFolders()[0] || GetDefaultAccountRootFolder();
+            server = server.server;
         } catch (ex) { /* functions might not be defined */}
-        
+
         window.openDialog("chrome://messenger/content/AccountManager.xul",
                           "AccountManager",
                           "chrome,centerscreen,modal,titlebar,resizable",

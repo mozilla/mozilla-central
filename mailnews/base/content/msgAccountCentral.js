@@ -36,258 +36,325 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var selectedServer   = null; 
-var nsPrefBranch = null;
+Components.utils.import("resource://gre/modules/Services.jsm");
+
+var selectedServer = null;
 
 function OnInit()
 {
-    var title        = null;
-    var titleElement = null;
-    var brandName    = null;
-    var acctType     = null;
-    var acctName     = null;
-    var brandBundle;
-    var messengerBundle;
-
-    try {
-      if (!nsPrefBranch) {
-        var prefService = Components.classes["@mozilla.org/preferences-service;1"];
-        prefService = prefService.getService();
-        prefService = prefService.QueryInterface(Components.interfaces.nsIPrefService);
-
-        nsPrefBranch = prefService.getBranch(null);
-      }
-    }
-    catch (ex) {
-      dump("error getting pref service. "+ex+"\n");
-    }
-
     // Set the header for the page.
     // Title containts the brand name of the application and the account
     // type (mail/news) and the name of the account
     try {
-        // Get title element from the document
-        titleElement = document.getElementById("AccountCentralTitle");
+        let protocolInfo = null;
+        let msgFolder    = null;
+        let title;
 
         // Get the brand name
-        brandBundle = document.getElementById("bundle_brand");
-        brandName    = brandBundle.getString("brandShortName"); 
+        let brandName = document.getElementById("bundle_brand")
+                                .getString("brandShortName");
+        let messengerBundle = document.getElementById("bundle_messenger");
 
-        // Get the account type
-        messengerBundle = document.getElementById("bundle_messenger");
-        selectedServer = GetSelectedServer(); 
-        var serverType = selectedServer.type; 
-        if (serverType == "nntp")
-            acctType = messengerBundle.getString("newsAcctType");
-        else
-            acctType = messengerBundle.getString("mailAcctType");
+        selectedServer = GetSelectedServer();
+        if (selectedServer) {
+            // Get the account type
+            let serverType = selectedServer.type;
+            let acctType;
+            if (serverType == "nntp")
+                acctType = messengerBundle.getString("newsAcctType");
+            else if (serverType == "rss")
+                acctType = messengerBundle.getString("feedsAcctType");
+            else
+                acctType = messengerBundle.getString("mailAcctType");
 
-        // Get the account name
-        var msgFolder = GetSelectedMsgFolder();
-        acctName = msgFolder.prettyName;
+            // Get the account name
+            msgFolder = GetSelectedMsgFolder();
+            let acctName = msgFolder.prettyName;
+            // Display and collapse items presented to the user based on account type
+            protocolInfo = Components
+              .classes["@mozilla.org/messenger/protocol/info;1?type=" + serverType]
+              .getService(Components.interfaces.nsIMsgProtocolInfo);
+            title = messengerBundle.getFormattedString("acctCentralTitleFormat",
+                                                       [brandName, acctType, acctName]);
+        } else {
+            title = brandName;
+        }
 
-        title = messengerBundle.getFormattedString("acctCentralTitleFormat",
-                                                   [brandName,
-                                                    acctType,
-                                                    acctName]);
+        // Set the title for the document
+        document.getElementById("AccountCentralTitle").setAttribute("value", title);
 
-        titleElement.setAttribute("value", title);
-
-        // Display and collapse items presented to the user based on account type
-        var protocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + serverType];
-        protocolInfo = protocolInfo.getService(Components.interfaces.nsIMsgProtocolInfo);
         ArrangeAccountCentralItems(selectedServer, protocolInfo, msgFolder);
     }
     catch(ex) {
-        dump("Error -> " + ex + "\n");
+        Components.utils.reportError("Error getting selected account: " + ex + "\n");
     }
 }
- 
+
 // Show items in the AccountCentral page depending on the capabilities
 // of the given account
 function ArrangeAccountCentralItems(server, protocolInfo, msgFolder)
 {
+    let exceptions = [];
+
+    // Is this a RSS account?
+    let displayRssHeader = server && server.type == 'rss';
+
+    /***** Email header and items : Begin *****/
+
+    // Read Messages
+    let canGetMessages = false;
     try {
-        var displayRssHeader = server.type == 'rss';
-
-        /***** Email header and items : Begin *****/
-
-        // Read Messages
-        var canGetMessages = protocolInfo.canGetMessages;
+        canGetMessages = protocolInfo && protocolInfo.canGetMessages;
         SetItemDisplay("ReadMessages", canGetMessages && !displayRssHeader);
-    
-        // Compose Messages link
-        var showComposeMsgLink = protocolInfo.showComposeMsgLink;
+    } catch (e) { exceptions.push(e); }
+
+    // Compose Messages link
+    let showComposeMsgLink = false;
+    try {
+        showComposeMsgLink = protocolInfo && protocolInfo.showComposeMsgLink;
         SetItemDisplay("ComposeMessage", showComposeMsgLink);
-    
-        // Junk mail settings
-        var canControlJunkEmail = protocolInfo.canGetIncomingMessages && protocolInfo.canGetMessages && false;  // && false, until ready for prime time
+    } catch (e) { exceptions.push(e); }
+
+    // Junk mail settings (false, until ready for prime time)
+    let canControlJunkEmail = false
+    try {
+        canControlJunkEmail = false && protocolInfo &&
+                              protocolInfo.canGetIncomingMessages &&
+                              protocolInfo.canGetMessages;
         SetItemDisplay("JunkSettingsMail", canControlJunkEmail);
+    } catch (e) { exceptions.push(e); }
 
-        var displayEmailHeader = (canGetMessages || showComposeMsgLink || canControlJunkEmail) && !displayRssHeader;
-        // Display Email header, only if any of the items are displayed
-        SetItemDisplay("EmailHeader", displayEmailHeader);
-    
-        /***** Email header and items : End *****/
+    // Display Email header, only if any of the items are displayed
+    let displayEmailHeader = !displayRssHeader &&
+                             (canGetMessages || showComposeMsgLink ||
+                              canControlJunkEmail);
+    SetItemDisplay("EmailHeader", displayEmailHeader);
 
-        /***** News header and items : Begin *****/
+    /***** Email header and items : End *****/
 
-        // Subscribe to Newsgroups 
-        var canSubscribe = (msgFolder.canSubscribe) && !(protocolInfo.canGetMessages);
+    /***** News header and items : Begin *****/
+
+    // Subscribe to Newsgroups
+    let canSubscribe = false;
+    try {
+        canSubscribe = msgFolder && msgFolder.canSubscribe &&
+                       protocolInfo && !protocolInfo.canGetMessages;
         SetItemDisplay("SubscribeNewsgroups", canSubscribe);
-    
-        // Junk news settings
-        var canControlJunkNews = protocolInfo.canGetIncomingMessages && !(protocolInfo.canGetMessages) && false;  // && false, until ready for prime time
+    } catch (e) { exceptions.push(e); }
+
+    // Junk news settings (false, until ready for prime time)
+    let canControlJunkNews = false;
+    try {
+        canControlJunkNews = false && protocolInfo &&
+                             protocolInfo.canGetIncomingMessages &&
+                             !protocolInfo.canGetMessages;
         SetItemDisplay("JunkSettingsNews", canControlJunkNews);
+    } catch (e) { exceptions.push(e); }
 
-        var displayNewsHeader = canSubscribe || canControlJunkNews;
-        // Display News header, only if any of the items are displayed
-        SetItemDisplay("NewsHeader", displayNewsHeader);
-    
-        /***** News header and items : End *****/
-   
-        /***** RSS header and items : Begin *****/
-                        
-        SetItemDisplay("rssHeader", displayRssHeader);
-        SetItemDisplay("SubscribeRSS", displayRssHeader);
+    // Display News header, only if any of the items are displayed
+    let displayNewsHeader = canSubscribe || canControlJunkNews;
+    SetItemDisplay("NewsHeader", displayNewsHeader);
 
-        /***** RSS header and items : End *****/
-   
-        // If neither of above sections exist, collapse section separators
-        if (!(displayNewsHeader || displayEmailHeader || displayRssHeader)) { 
-            CollapseSectionSeparators("MessagesSection.separator", false);
-        } 
+    /***** News header and items : End *****/
 
-        /***** Accounts : Begin *****/
+    /***** RSS header and items : Begin *****/
 
-        var canShowCreateAccount = !nsPrefBranch.prefIsLocked("mail.disable_new_account_addition");
-        SetItemDisplay("CreateAccount", canShowCreateAccount);
-          
-        /***** Accounts : End *****/
+    // Display RSS header, only if this is RSS account
+    SetItemDisplay("rssHeader", displayRssHeader);
 
-        /***** Advanced Features header and items : Begin *****/
+    // Subscribe to RSS Feeds
+    SetItemDisplay("SubscribeRSS", displayRssHeader);
 
-        // Search Messages
-        var canSearchMessages = server.canSearchMessages;
-        SetItemDisplay("SearchMessages", canSearchMessages);
-    
-        // Create Filters
-        var canHaveFilters = server.canHaveFilters;
-        SetItemDisplay("CreateFilters", canHaveFilters);
+    /***** RSS header and items : End *****/
 
-        // Subscribe to IMAP Folders
-        var canSubscribeImapFolders = msgFolder.canSubscribe && protocolInfo.canGetMessages;
-        SetItemDisplay("SubscribeImapFolders", canSubscribeImapFolders);
-
-        // Offline Settings
-        var supportsOffline = (server.offlineSupportLevel != 0);
-        SetItemDisplay("OfflineSettings", supportsOffline);
-            
-        var displayAdvFeatures = canSearchMessages || canHaveFilters ||
-                                 canSubscribeImapFolders|| supportsOffline;
-        // Display Adv Features header, only if any of the items are displayed
-        SetItemDisplay("AdvancedFeaturesHeader", displayAdvFeatures);
-    
-        /***** Advanced Featuers header and items : End *****/
+    // If either of above sections exists, show section separators
+    if (displayNewsHeader || displayEmailHeader || displayRssHeader) {
+        UncollapseSectionSeparators("MessagesSection.separator");
     }
-    catch (ex) {
-        dump("Error is setting AccountCentral Items : " + ex + "\n");
+
+    /***** Accounts : Begin *****/
+
+    // Account Settings if a server is found
+    let canShowAccountSettings = server != null;
+    SetItemDisplay("AccountSettings", canShowAccountSettings);
+
+    // Show New Mail Account Wizard if not prohibited by pref
+    let canShowCreateAccount = false;
+    try {
+        canShowCreateAccount = !Services.prefs
+          .prefIsLocked("mail.disable_new_account_addition");
+        SetItemDisplay("CreateAccount", canShowCreateAccount);
+    } catch (e) { exceptions.push(e); }
+
+    // Display Accounts header, only if any of the items are displayed
+    let displayAccountsHeader = canShowAccountSettings || canShowCreateAccount;
+    SetItemDisplay("AccountsHeader", canShowCreateAccount);
+
+    /***** Accounts : End *****/
+
+    /***** Advanced Features header and items : Begin *****/
+
+    // Search Messages
+    let canSearchMessages = false;
+    try {
+        canSearchMessages = server && server.canSearchMessages;
+        SetItemDisplay("SearchMessages", canSearchMessages);
+    } catch (e) { exceptions.push(e); }
+
+    // Create Filters
+    let canHaveFilters = false;
+    try {
+        canHaveFilters = server && server.canHaveFilters;
+        SetItemDisplay("CreateFilters", canHaveFilters);
+    } catch (e) { exceptions.push(e); }
+
+    // Subscribe to IMAP Folders
+    let canSubscribeImapFolders = false;
+    try {
+        canSubscribeImapFolders = msgFolder && msgFolder.canSubscribe &&
+                                  protocolInfo && protocolInfo.canGetMessages;
+        SetItemDisplay("SubscribeImapFolders", canSubscribeImapFolders);
+    } catch (e) { exceptions.push(e); }
+
+    // Offline Settings
+    let supportsOffline = false;
+    try {
+        supportsOffline = server && server.offlineSupportLevel != 0;
+        SetItemDisplay("OfflineSettings", supportsOffline);
+    } catch (e) { exceptions.push(e); }
+
+    // Display Adv Features header, only if any of the items are displayed
+    let displayAdvFeatures = canSearchMessages || canHaveFilters ||
+                             canSubscribeImapFolders|| supportsOffline;
+    SetItemDisplay("AdvancedFeaturesHeader", displayAdvFeatures);
+
+    /***** Advanced Featuers header and items : End *****/
+
+    // If either of above features exist, show section separators
+    if (displayAdvFeatures) {
+        UncollapseSectionSeparators("AccountsSection.separator");
+    }
+
+    while (exceptions.length) {
+        Components.utils.reportError("Error in setting AccountCentral Items: "
+            + exceptions.pop() + "\n");
     }
 }
 
-// Collapse the item if the item feature is not supported 
+// Show the item if the item feature is supported
 function SetItemDisplay(elemId, displayThisItem)
 {
-    if (!displayThisItem) {
-        var elem = document.getElementById(elemId); 
-        elem.setAttribute("collapsed", true);
+    if (displayThisItem) {
+        let elem = document.getElementById(elemId);
+        elem.setAttribute("collapsed", false);
 
-        var separatorId = elemId + ".separator";
-        var elemSeparator = document.getElementById(separatorId); 
-        elemSeparator.setAttribute("collapsed", true);
+        let separatorId = elemId + ".separator";
+        let elemSeparator = document.getElementById(separatorId);
+        if (elemSeparator)
+            elemSeparator.setAttribute("collapsed", false);
     }
 }
 
-// Collapse section separators  
-function CollapseSectionSeparators(separatorBaseId)
+// Show section separators
+function UncollapseSectionSeparators(separatorBaseId)
 {
-    for (var i=1; i <= 3; i++) {
+    for (let i = 1; i <= 3; i++) {
         var separatorId = separatorBaseId + i;
-        var separator = document.getElementById(separatorId);   
-        separator.setAttribute("collapsed", true);
+        var separator = document.getElementById(separatorId);
+        separator.setAttribute("collapsed", false);
     }
 }
 
-// From the current folder tree, return the selected server
+// From the current folder tree, return the selected server or null
 function GetSelectedServer()
 {
-  return GetSelectedMsgFolder().server;
+    let currentFolder = GetSelectedMsgFolder();
+    return currentFolder ? currentFolder.server : null;
 }
 
-// From the current folder tree, return the selected folder
+// From the current folder tree, return the selected folder,
+// the root folder of default account or null
 function GetSelectedMsgFolder()
 {
-  return window.parent.GetSelectedMsgFolders()[0];
+    return window.parent.GetSelectedMsgFolders()[0] ||
+           window.parent.GetDefaultAccountRootFolder();
 }
 
-// Open Inbox for selected server.
-// If needed, open th twsity and select Inbox.    
+/**
+ * Open Inbox for selected server.
+ * If needed, open the twisty and select Inbox.
+ */
 function ReadMessages()
 {
+    if (!selectedServer)
+        return;
     try {
         window.parent.OpenInboxForServer(selectedServer);
     }
     catch(ex) {
-        dump("Error -> " + ex + "\n");
-    } 
-} 
+        Components.utils
+                  .reportError("Error opening Inbox for server: " + ex + "\n");
+    }
+}
 
 // Trigger composer for a new message
 function ComposeAMessage(event)
 {
     window.parent.MsgNewMessage(null);
-} 
+}
 
-// Open AccountManager to view settings for a given account
-// selectPage: the xul file name for the viewing page, 
-// null for the account main page, other pages are
-// 'am-server.xul', 'am-copies.xul', 'am-offline.xul', 
-// 'am-addressing.xul', 'am-smtp.xul'
+/**
+ * Open AccountManager to view settings for a given account
+ * @param selectPage  the xul file name for the viewing page,
+ *                    null for the account main page, other pages are
+ *                    'am-server.xul', 'am-copies.xul', 'am-offline.xul',
+ *                    'am-addressing.xul', 'am-smtp.xul'
+ */
 function ViewSettings(selectPage)
 {
     window.parent.MsgAccountManager(selectPage);
-} 
+}
 
 // Open AccountWizard to create an account
 function CreateNewAccount()
 {
-    window.parent.msgOpenAccountWizard();  
+    window.parent.msgOpenAccountWizard();
+}
+
+function CreateNewAccountTB()
+{
+    if (gPrefBranch.getBoolPref("mail.provider.enabled"))
+        NewMailAccountProvisioner(null);
+    else
+        AddMailAccount();
 }
 
 // Bring up search interface for selected account
 function SearchMessages()
 {
     window.parent.MsgSearchMessages();
-} 
+}
 
 // Open filters window
 function CreateMsgFilters()
 {
     window.parent.MsgFilters(null, null);
-} 
+}
 
 // Open Subscribe dialog
 function Subscribe()
 {
-    var server = GetSelectedServer();
-    if (server && server.type == 'rss')
-        window.parent.openSubscriptionsDialog(server.rootFolder);
+    if (!selectedServer)
+        return;
+    if (selectedServer.type == 'rss')
+        window.parent.openSubscriptionsDialog(selectedServer.rootFolder);
     else
         window.parent.MsgSubscribe();
-} 
+}
 
 // Open junk mail settings dialog
 function JunkSettings()
 {
+    // TODO: function does not exist yet, will throw an exception if exposed
     window.parent.MsgJunkMail();
 }
