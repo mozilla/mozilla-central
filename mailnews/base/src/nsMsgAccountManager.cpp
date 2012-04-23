@@ -1179,7 +1179,13 @@ hashGetNonHiddenServersToArray(nsCStringHashKey::KeyType aKey,
 {
   bool hidden = false;
   aServer->GetHidden(&hidden);
-  if (!hidden)
+  if (hidden)
+    return PL_DHASH_NEXT;
+
+  nsCString type;
+  NS_ENSURE_SUCCESS(aServer->GetType(type), PL_DHASH_NEXT);
+
+  if (!type.EqualsLiteral("im"))
   {
     nsISupportsArray *array = (nsISupportsArray*) aClosure;
     nsCOMPtr<nsISupports> serverSupports = do_QueryInterface(aServer);

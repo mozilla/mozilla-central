@@ -73,8 +73,7 @@ function BrowseForLocalFolders()
   for (let i = allServers.Count(); --i >= 0;) {
     let currentServer = allServers
       .QueryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
-    // IM server type does not have a .localPath
-    if (currentServer.key == gServer.key || currentServer.type == "im")
+    if (currentServer.key == gServer.key)
       continue;
 
     if (currentServer.localPath.equals(selectedFolder)) {

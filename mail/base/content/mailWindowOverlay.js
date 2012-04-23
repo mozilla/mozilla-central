@@ -2300,8 +2300,7 @@ function IsGetNewMessagesEnabled()
   for (let i = 0; i < allServers.Count(); ++i) {
     let server = allServers.GetElementAt(i)
                            .QueryInterface(Components.interfaces.nsIMsgIncomingServer);
-    let type = server.type;
-    if (type == "im" || type == "none")
+    if (server.type == "none")
       continue;
     return true;
   }

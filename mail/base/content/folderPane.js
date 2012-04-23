@@ -1711,18 +1711,15 @@ let gFolderTreeView = {
 
     let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
                      .getService(Ci.nsIMsgAccountManager);
-    for each (let acct in fixIterator(acctMgr.accounts, Ci.nsIMsgAccount)) {
+    for each (let server in fixIterator(acctMgr.allServers, Ci.nsIMsgIncomingServer)) {
       // Skip deferred accounts
-      if (acct.incomingServer instanceof Ci.nsIPop3IncomingServer &&
-          acct.incomingServer.deferredToAccount)
+      if (server instanceof Ci.nsIPop3IncomingServer &&
+          server.deferredToAccount)
         continue;
 
-      // Skip IM accounts
-      if (acct.incomingServer.type == "im")
-        continue;
-
-      folders.push(acct.incomingServer.rootFolder);
-      this.addSubFolders(acct.incomingServer.rootFolder, folders);
+      let rootFolder = server.rootFolder;
+      folders.push(rootFolder);
+      this.addSubFolders(rootFolder, folders);
     }
     return folders;
   },

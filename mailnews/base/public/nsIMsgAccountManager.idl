@@ -116,7 +116,7 @@ interface nsIMsgAccountManager : nsISupports {
    */
   readonly attribute nsISupportsArray allIdentities;
 
-  /* list of all servers in all accounts, except for hidden servers
+  /* list of all servers in all accounts, except for hidden and IM servers
    * array of nsIMsgIncomingServer
    */
   readonly attribute nsISupportsArray allServers;
