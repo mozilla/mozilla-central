@@ -49,6 +49,9 @@ function getConv(aConv) aConv.wrappedJSObject;
 // Shortcut to get the JavaScript account object.
 function getAccount(aConv) getConv(aConv)._account;
 
+// Trim leading and trailing spaces and split a string by any type of space.
+function splitInput(aString) aString.trim().split(/\s+/);
+
 // Kick a user from a channel
 // aMsg is <user> [comment]
 function kickCommand(aMsg, aConv) {
@@ -90,7 +93,7 @@ function setMode(aNickname, aConv, aMode, aAdd) {
     return false;
 
   // Change the mode for each nick, as separator by spaces.
-  return aNickname.split(" ").every(function(aNick)
+  return splitInput(aNickname).every(function(aNick)
     simpleCommand(aConv, "MODE",
                   [aConv.name, (aAdd ? "+" : "-") + aMode, aNick]));
 }
@@ -191,7 +194,7 @@ var commands = [
   {
     name: "join",
     get helpString() _("command.join", "join"),
-    run: function(aMsg, aConv) simpleCommand(aConv, "JOIN", aMsg.split(" "))
+    run: function(aMsg, aConv) simpleCommand(aConv, "JOIN", splitInput(aMsg))
   },
   {
     name: "kick",
@@ -218,7 +221,7 @@ var commands = [
     get helpString() _("command.mode", "mode"),
     run: function(aMsg, aConv) {
       function isMode(aString) "+-".indexOf(aString[0]) != -1;
-      let params = aMsg.split(" ");
+      let params = splitInput(aMsg);
 
       // Check if we have any params, we can't just check params.length, since
       // that will always be at least 1 (but params[0] would be empty).
