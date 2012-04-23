@@ -46,6 +46,7 @@ AB_CD = $(MOZ_UI_LOCALE)
 
 DEFINES += \
 	-DSEAMONKEY_ICO=\"$(DIST)/branding/seamonkey.ico\" \
+	-DHTML_FILE_ICO=\"$(DIST)/branding/html-file.ico\" \
 	-DAPP_VERSION="$(MOZ_APP_VERSION)" \
 	-DNO_BLOCKLIST_CRASHREPORTER \
 	$(NULL)

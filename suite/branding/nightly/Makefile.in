@@ -121,6 +121,7 @@ export::
 	$(NSINSTALL) -D $(DIST)/branding
 ifeq ($(OS_ARCH),WINNT)
 	cp $(srcdir)/icons/windows/seamonkey.ico      $(DIST)/branding/seamonkey.ico
+	cp $(srcdir)/icons/windows/html-file.ico      $(DIST)/branding/html-file.ico
 	cp $(srcdir)/package/windows/branding.nsi     $(DIST)/branding/branding.nsi
 	cp $(srcdir)/package/windows/wizHeader.bmp    $(DIST)/branding/wizHeader.bmp
 	cp $(srcdir)/package/windows/wizHeaderRTL.bmp $(DIST)/branding/wizHeaderRTL.bmp
