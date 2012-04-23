@@ -126,8 +126,9 @@ function ShowHideToolbarButtons()
   var array = gPrefs.getChildList(kEditorToolbarPrefs);
   for (var i in array) {
     var prefName = array[i];
-    var id = prefName.substr(kEditorToolbarPrefs.length) + "Button";
-    var button = document.getElementById(id);
+    var id = prefName.substr(kEditorToolbarPrefs.length);
+    var button = document.getElementById(id + "Button") ||
+                 document.getElementById(id + "-button");
     if (button)
       button.hidden = !gPrefs.getBoolPref(prefName);
   }
