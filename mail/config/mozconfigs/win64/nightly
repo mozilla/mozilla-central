@@ -17,3 +17,7 @@ if test -e "$topsrcdir/mail/config/mozconfigs/win64/vs2010-mozconfig"; then
 else
   . $topsrcdir/browser/config/mozconfigs/win64/vs2010-mozconfig
 fi
+
+# Run client.py
+mk_add_options CLIENT_PY_ARGS="--hg-options='--verbose --time' --hgtool=../tools/buildfarm/utils/hgtool.py --skip-chatzilla --skip-inspector --skip-venkman --tinderbox-print"
+mk_add_options ALWAYS_RUN_CLIENT_PY=1
