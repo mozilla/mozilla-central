@@ -471,9 +471,6 @@ public: // other port methods
   // } ----- end hinting methods -----
 
   // { ----- begin commit methods -----
-  NS_IMETHOD SmallCommit( // save minor changes if convenient and uncostly
-    nsIMdbEnv* ev); // context
-  
   NS_IMETHOD LargeCommit( // save important changes if at all possible
     nsIMdbEnv* ev, // context
     nsIMdbThumb** acqThumb); // acquire thumb for incremental commit

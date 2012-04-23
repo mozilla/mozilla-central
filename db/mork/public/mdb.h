@@ -1311,11 +1311,10 @@ public:
 **| event notification to any views that depend on old discarded content.
 |*/
 
-#define NS_IMDBSTORE_IID_STR "726618d3-f15b-49b9-9f4a-efcc9db53d0d"
-
+#define NS_IMDBSTORE_IID_STR "74d6218d-44b0-43b5-9ebe-69a17dfb562c"
 #define NS_IMDBSTORE_IID \
-{0x726618d3, 0xf15b, 0x49b9, \
-{0x9f, 0x4a, 0xef, 0xcc, 0x9d, 0xb5, 0x3d, 0x0d}}
+{0x74d6218d, 0x44b0, 0x43b5, \
+{0x9e, 0xbe, 0x69, 0xa1, 0x7d, 0xfb, 0x56, 0x2c}}
 
 class nsIMdbStore : public nsIMdbPort {
 public:
@@ -1402,9 +1401,6 @@ public:
   // } ----- end hinting methods -----
 
   // { ----- begin commit methods -----
-  NS_IMETHOD SmallCommit( // save minor changes if convenient and uncostly
-    nsIMdbEnv* ev) = 0; // context
-  
   NS_IMETHOD LargeCommit( // save important changes if at all possible
     nsIMdbEnv* ev, // context
     nsIMdbThumb** acqThumb) = 0; // acquire thumb for incremental commit

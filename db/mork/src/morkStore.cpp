@@ -2200,20 +2200,6 @@ morkStore::AvoidAtomColumnsHint( // advise col w/ poor atomizing prospects
 
 // { ----- begin commit methods -----
 NS_IMETHODIMP
-morkStore::SmallCommit( // save minor changes if convenient and uncostly
-  nsIMdbEnv* mev) // context
-{
-  mdb_err outErr = 0;
-  morkEnv* ev = CanUseStore(mev, /*inMutable*/ morkBool_kFalse, &outErr);
-  if ( ev )
-  {
-    // ev->StubMethodOnlyError(); // it's okay to do nothing for small commit
-    outErr = ev->AsErr();
-  }
-  return outErr;
-}
-
-NS_IMETHODIMP
 morkStore::LargeCommit( // save important changes if at all possible
   nsIMdbEnv* mev, // context
   nsIMdbThumb** acqThumb) // acquire thumb for incremental commit
