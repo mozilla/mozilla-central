@@ -95,3 +95,6 @@
 <!ENTITY ignoreSubthread.label "Ignore Subthread">
 <!ENTITY watchThread.label "Watch Thread">
 <!ENTITY stopExecution.label "Stop Filter Execution">
+
+<!ENTITY addAction.tooltip "Add a new action">
+<!ENTITY removeAction.tooltip "Remove this action">
