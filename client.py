@@ -316,21 +316,19 @@ def do_hg_pull(dir, repository, hg, rev, hgtool=None):
     if options.hgopts:
         hgopts = options.hgopts.split()
 
-    # We need to strip the trailing slash from the repository url so that the hg tool gets a
-    # url that's consistent with the rest of the build automation.
-    repo = repository.rstrip('/')
-
     if hgtool:
         hgtoolcmd = hgtool.split()
-        check_call_noisy(['python'] + hgtoolcmd + [repo, fulldir], retryMax=options.retries)
+        # We need to strip the trailing slash from the repository url so that the hg tool gets a
+        # url that's consistent with the rest of the build automation.
+        check_call_noisy(['python'] + hgtoolcmd + [repository.rstrip('/'), fulldir], retryMax=options.retries)
     elif not os.path.exists(fulldir):
         fulldir = os.path.join(topsrcdir, dir)
-        check_call_noisy([hg, 'clone'] + hgcloneopts + hgopts + [repo, fulldir],
+        check_call_noisy([hg, 'clone'] + hgcloneopts + hgopts + [repository, fulldir],
                          retryMax=options.retries)
     else:
         cmd = [hg, 'pull', '-R', fulldir] + hgopts
-        if repo is not None:
-            cmd.append(repo)
+        if repository is not None:
+            cmd.append(repository)
         check_call_noisy(cmd, retryMax=options.retries)
 
     # update to specific revision
