@@ -23,7 +23,7 @@
 
   <hbox flex="1">
     <vbox style="&accountTree.width;">
-      <tree flex="1" onselect="onAccountTreeSelect()" id="accounttree"
+      <tree flex="1" onselect="onAccountTreeSelect(null, null);" id="accounttree"
             seltype="single" hidecolumnpicker="true">
         <treecols>
           <treecol id="AccountCol" flex="1" primary="true" hideheader="true"/>

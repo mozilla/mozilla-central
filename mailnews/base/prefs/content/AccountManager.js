@@ -240,7 +240,9 @@ function onAccept() {
     return false;
   }
 
-  onSave();
+  if (!onSave())
+    return false;
+
   // hack hack - save the prefs file NOW in case we crash
   Services.prefs.savePrefFile(null);
 
@@ -395,7 +397,7 @@ function checkUserServerChanges(showAlert) {
 function onSave() {
   if (pendingPageId) {
     dump("ERROR: " + pendingPageId + " hasn't loaded yet! Not saving.\n");
-    return;
+    return false;
   }
 
   // make sure the current visible page is saved
@@ -404,8 +406,11 @@ function onSave() {
   for (var accountid in accountArray) {
     var accountValues = accountArray[accountid];
     var account = accountArray[accountid]._account;
-    saveAccount(accountValues, account);
+    if (!saveAccount(accountValues, account))
+      return false;
   }
+
+ return true;
 }
 
 function onAddAccount() {
@@ -582,23 +587,38 @@ function saveAccount(accountValues, account)
           dest[methodName](slot, typeArray[slot]);
         }
       }
-      else {
-      if (slot in dest && typeArray[slot] != undefined && dest[slot] != typeArray[slot]) {
+      else if (slot in dest && typeArray[slot] != undefined && dest[slot] != typeArray[slot]) {
         try {
           dest[slot] = typeArray[slot];
-          } 
-          catch (ex) {
+        } catch (ex) {
           // hrm... need to handle special types here
         }
       }
     }
   }
- }
- 
- // if we made account changes to the spam settings, we'll need to re-initialize
- // our settings object
- if (server && server.spamSettings)
-   server.spamSettings.initialize(server);
+
+  // if we made account changes to the spam settings, we'll need to re-initialize
+  // our settings object
+  if (server && server.spamSettings) {
+    try {
+      server.spamSettings.initialize(server);
+    } catch(e) {
+      let accountName = getAccountValue(account, getValueArrayFor(account), "server",
+                                        "prettyName", null, false);
+      let alertText = document.getElementById("bundle_prefs")
+                              .getFormattedString("junkSettingsBroken", [accountName]);
+      let review = Services.prompt.confirmEx(window, null, alertText,
+        (Services.prompt.BUTTON_POS_0 * Services.prompt.BUTTON_TITLE_YES) +
+        (Services.prompt.BUTTON_POS_1 * Services.prompt.BUTTON_TITLE_NO),
+        null, null, null, null, {});
+      if (!review) {
+        onAccountTreeSelect("am-junk.xul", account);
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 function updateButtons(tree, account) {
@@ -641,7 +661,7 @@ function updateButtons(tree, account) {
   var removeButton = document.getElementById("removeButton");
   var setDefaultButton = document.getElementById("setDefaultButton");
 
-  if (!addAccountButton && !removeButton && !setDefaultButton)
+  if (!addAccountButton && !removeButton && !setDefaultButton)
     return; // tb isn't useing these anymore
 
   var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
@@ -721,15 +741,19 @@ function setEnabled(control, enabled)
 // Called when someone clicks on an account. Figure out context by what they
 // clicked on. This is also called when an account is removed. In this case,
 // nothing is selected.
-function onAccountTreeSelect()
+function onAccountTreeSelect(pageId, account)
 {
-  var tree = document.getElementById("accounttree");
+  let tree = document.getElementById("accounttree");
 
-  if (tree.view.selection.count < 1)
-    return null;
-  var node = tree.contentView.getItemAtIndex(tree.currentIndex);
-  var account = node._account;
-  var pageId = node.getAttribute('PageTag')
+  let changeView = pageId && account;
+  if (!changeView) {
+    if (tree.view.selection.count < 1)
+      return null;
+
+    let node = tree.contentView.getItemAtIndex(tree.currentIndex);
+    account = node._account;
+    pageId = node.getAttribute("PageTag")
+  }
 
   if (pageId == currentPageId && account == currentAccount)
     return;
@@ -739,27 +763,29 @@ function onAccountTreeSelect()
 
   if (gSmtpHostNameIsIllegal) {
     gSmtpHostNameIsIllegal = false;
-    selectServer(currentAccount, currentPageId);
+    selectServer(currentAccount.incomingServer, currentPageId);
     return;
   }
 
   // save the previous page
   savePage(currentAccount);
 
-  var changeAccount = (account != currentAccount);
-  // loading a complete different page
+  let changeAccount = (account != currentAccount);
+
+  if (changeView)
+    selectServer(account.incomingServer, pageId);
+
   if (pageId != currentPageId) {
+    // loading a complete different page
 
     // prevent overwriting with bad stuff
     currentAccount = currentPageId = null;
 
     pendingAccount = account;
-    pendingPageId=pageId;
+    pendingPageId = pageId;
     loadPage(pageId);
-  }
-
-  // same page, different server
-  else if (changeAccount) {
+  } else if (changeAccount) {
+    // same page, different server
     restorePage(pageId, account);
   }
 
