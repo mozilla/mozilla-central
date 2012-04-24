@@ -6,7 +6,6 @@ var imServices = {};
 Components.utils.import("resource:///modules/imServices.jsm", imServices);
 imServices = imServices.Services;
 
-Components.utils.import("resource:///modules/index_im.js");
 Components.utils.import("resource://gre/modules/FileUtils.jsm");
 
 var gBuddyListContextMenu = null;
@@ -688,6 +687,8 @@ var chatHandler = {
       document.getElementById("key_goChat").disabled = true;
       return;
     }
+
+    Components.utils.import("resource:///modules/index_im.js");
 
     // initialize the customizeDone method on the customizeable toolbar
     var toolbox = document.getElementById("chat-view-toolbox");
