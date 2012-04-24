@@ -563,7 +563,8 @@
               return;
             }
 
-            if (this._lastScrollHeight != this.scrollHeight ||
+            if (!(_lastScrollHeight in this) ||
+                this._lastScrollHeight != this.scrollHeight ||
                 this._lastScrollWidth != this.scrollWidth) {
               // if the scrollheight changed, we are resizing the content area,
               // don't stop the auto scroll.
