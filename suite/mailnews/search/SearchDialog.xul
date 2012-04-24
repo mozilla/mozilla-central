@@ -140,7 +140,7 @@
       </hbox>
     </vbox>
  
-    <splitter id="gray_horizontal_splitter" collapse="after" persist="state">
+    <splitter id="gray_horizontal_splitter" persist="state">
       <grippy/>
     </splitter>
  
