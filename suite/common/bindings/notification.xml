@@ -983,16 +983,41 @@
         <body>
           <![CDATA[
             this.clickToPlayPromptShown = true;
-            var messageString = this._stringBundle.GetStringFromName("activatePluginsMessage.message");
+
+            var checkbox = document.createElement("checkbox");
+            checkbox.className = "rememberChoice";
+            checkbox.setAttribute("label", this._stringBundle.GetStringFromName("activatepluginsMessage.remember"));
+
+            const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
+            var pm = Components.classes["@mozilla.org/permissionmanager;1"]
+                               .getService(nsIPermissionManager);
+            var messageString = this._stringBundle.GetStringFromName("activatepluginsMessage.title");
             var buttons = [{
-              label: this._stringBundle.GetStringFromName("activatePluginsMessage.label"),
-              accessKey: this._stringBundle.GetStringFromName("activatePluginsMessage.accesskey"),
-              callback: this.activatePlugins.bind(this)
+              label: this._stringBundle.GetStringFromName("activatepluginsMessage.activate.label"),
+              accessKey: this._stringBundle.GetStringFromName("activatepluginsMessage.activate.accesskey"),
+              callback: (function () {
+                if (checkbox.checked)
+                  pm.add(this.activeBrowser.currentURI, "plugins",
+                         nsIPermissionManager.ALLOW_ACTION);
+                this.activatePlugins();
+              }).bind(this)
+            }, {
+              label: this._stringBundle.GetStringFromName("activatepluginsMessage.dismiss.label"),
+              accessKey: this._stringBundle.GetStringFromName("activatepluginsMessage.dismiss.accesskey"),
+              callback: (function () {
+                if (checkbox.checked)
+                  pm.add(this.activeBrowser.currentURI, "plugins",
+                         nsIPermissionManager.DENY_ACTION);
+              }).bind(this)
             }];
-            this.appendNotification(messageString, "click-to-play-plugins",
-                                    "chrome://mozapps/skin/plugins/pluginGeneric.png",
-                                    this.PRIORITY_INFO_HIGH,
-                                    buttons);
+            var box = this.appendNotification(messageString,
+                                              "click-to-play-plugins",
+                                              "chrome://mozapps/skin/plugins/pluginGeneric.png",
+                                              this.PRIORITY_INFO_HIGH,
+                                              buttons);
+            // Force a style flush, so that we ensure the binding is attached.
+            box.clientTop;
+            box.appendChild(checkbox);
           ]]>
         </body>
       </method>
@@ -1035,25 +1060,23 @@
                                                   [file], 1);
             var box = this.appendNotification(message, type, image,
                                               this.PRIORITY_INFO_HIGH, buttons);
-            // Create the checkbox on a timeout to allow the XBL to bind first.
-            setTimeout(function(stringBundle, formatter) {
-              if (site) {
-                box.checkbox = document.createElement("checkbox");
-                box.checkbox.className = "rememberChoice";
-                box.checkbox.setAttribute("label", stringBundle.GetStringFromName(type + ".remember"));
-                box.appendChild(box.checkbox);
-              }
-              var link = document.createElement("label");
-              link.className = "text-link";
-              link.setAttribute("value", stringBundle.GetStringFromName(type + ".learnMore"));
-
-              link.setAttribute("href", formatter.formatURLPref("browser.geolocation.warning.infoURL"));
-
-              document.getAnonymousElementByAttribute(box, "anonid", "messageText").appendChild(link);
-            }, 0, this._stringBundle, this._urlFormatter);
+            // Force a style flush, so that we ensure the binding is attached.
+            box.clientTop;
 
             // Create a dummy checkbox so file requests don't try to remember.
             box.checkbox = { checked: false };
+            if (site) {
+              box.checkbox = document.createElement("checkbox");
+              box.checkbox.className = "rememberChoice";
+              box.checkbox.setAttribute("label", this._stringBundle.GetStringFromName(type + ".remember"));
+              box.appendChild(box.checkbox);
+            }
+
+            var link = document.createElement("label");
+            link.className = "text-link";
+            link.setAttribute("value", this._stringBundle.GetStringFromName(type + ".learnMore"));
+            link.setAttribute("href", this._urlFormatter.formatURLPref("browser.geolocation.warning.infoURL"));
+            document.getAnonymousElementByAttribute(box, "anonid", "messageText").appendChild(link);
           ]]>
         </body>
       </method>
@@ -1811,6 +1834,16 @@
           plugin.clientTop;
           var doc = plugin.ownerDocument;
           var overlay = doc.getAnonymousElementByAttribute(plugin, "class", "mainBox");
+
+          const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
+          var pm = Components.classes["@mozilla.org/permissionmanager;1"]
+                             .getService(nsIPermissionManager);
+          var pluginPermission = pm.testPermission(this.activeBrowser.currentURI, "plugins");
+          if (pluginPermission == nsIPermissionManager.DENY_ACTION) {
+            overlay.style.visibility = "hidden";
+            return;
+          }
+
           this.addLinkClickCallback(overlay, this.activatePlugins);
 
           if (!this.clickToPlayPromptShown)
@@ -1855,7 +1888,18 @@
           if (!event.persisted || !this._prefs.getBoolPref("plugins.click_to_play"))
             return;
 
-          if (this.contentWindowUtils.plugins.length)
+          const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
+          var pm = Components.classes["@mozilla.org/permissionmanager;1"]
+                             .getService(nsIPermissionManager);
+          var pluginPermission = pm.testPermission(this.activeBrowser.currentURI, "plugins");
+          if (pluginPermission == nsIPermissionManager.DENY_ACTION)
+            return;
+
+          var pluginNeedsActivation = this.contentWindowUtils.plugins.some(function(aPlugin) {
+            var objLoadingContent = aPlugin.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
+            return !objLoadingContent.activated;
+          });
+          if (pluginNeedsActivation)
             this.showPluginClickToPlayPrompt();
         ]]>
       </handler>
@@ -1962,16 +2006,41 @@
         <body>
           <![CDATA[
             this.clickToPlayPromptShown = true;
-            var messageString = this._stringBundle.GetStringFromName("activatePluginsMessage.message");
-            var action = {
-              label: this._stringBundle.GetStringFromName("activatePluginsMessage.label"),
-              accessKey: this._stringBundle.GetStringFromName("activatePluginsMessage.accesskey"),
+            const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
+            var pm = Components.classes["@mozilla.org/permissionmanager;1"]
+                               .getService(nsIPermissionManager);
+            var messageString = this._stringBundle.GetStringFromName("activatepluginsMessage.title");
+            var mainAction = {
+              label: this._stringBundle.GetStringFromName("activatepluginsMessage.activate.label"),
+              accessKey: this._stringBundle.GetStringFromName("activatepluginsMessage.activate.accesskey"),
               callback: this.activatePlugins.bind(this)
             };
-            let options = { dismissed: true };
+            var secondaryActions = [{
+              label: this._stringBundle.GetStringFromName("activatepluginsMessage.always.label"),
+              accessKey: this._stringBundle.GetStringFromName("activatepluginsMessage.always.accesskey"),
+              callback: (function () {
+                pm.add(this.activeBrowser.currentURI, "plugins",
+                       nsIPermissionManager.ALLOW_ACTION);
+                this.activatePlugins();
+              }).bind(this)
+            }, {
+              label: this._stringBundle.GetStringFromName("activatepluginsMessage.never.label"),
+              accessKey: this._stringBundle.GetStringFromName("activatepluginsMessage.never.accesskey"),
+              callback: (function () {
+                pm.add(this.activeBrowser.currentURI, "plugins",
+                       nsIPermissionManager.DENY_ACTION);
+                var notification = PopupNotifications.getNotification("click-to-play-plugins",
+                                                                      this.activeBrowser);
+                if (notification)
+                  notification.remove();
+              }).bind(this)
+            }];
+            var options = {
+              dismissed: true
+            };
             PopupNotifications.show(this.activeBrowser, "click-to-play-plugins",
                                     messageString, "plugins-notification-icon",
-                                    action, null, options);
+                                    mainAction, secondaryActions, options);
            ]]>
         </body>
       </method>
