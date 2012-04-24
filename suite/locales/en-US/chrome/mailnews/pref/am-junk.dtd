@@ -1,5 +1,5 @@
 <!ENTITY junkSettings.label "Junk Settings">
-<!ENTITY trainingWarning.label "If enabled, you must first train &brandShortName; to identify junk mail by using the Junk toolbar button to mark messages as junk or not. You need to identify both junk and non junk messages.">
+<!ENTITY trainingDescription.label "If enabled, you must first train &brandShortName; to identify junk mail by using the Junk toolbar button to mark messages as junk or not. You need to identify both junk and non junk messages. After that &brandShortName; will be able to mark junk automatically.">
 <!ENTITY level.label "Enable adaptive junk mail controls for this account">
 <!ENTITY level.accesskey "E">
 
@@ -13,8 +13,12 @@
 <!ENTITY purge1.accesskey "u">
 <!ENTITY purge2.label "days">
 
-<!ENTITY whitelist.label "Do not mark mail as junk if the sender is in: ">
+<!ENTITY whitelistHeader.label "Do not automatically mark mail as junk if the sender is in: ">
 <!ENTITY whitelist.accesskey "D">
 
+<!ENTITY ispHeadersWarning.label "If enabled, &brandShortName; will automatically consider messages marked by this external classifier as junk.">
 <!ENTITY ispHeaders.label "Trust junk mail headers set by: ">
 <!ENTITY ispHeaders.accesskey "T">
+
+<!ENTITY junkClassification.label "Selection">
+<!ENTITY junkActions.label "Destination and Retention">

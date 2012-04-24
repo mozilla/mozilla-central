@@ -81,8 +81,8 @@ button:not(.spinbuttons-button):not(.dialog-button) {
   min-height: 19px; /* aqua size for small buttons */
 }
 
-page > description {
-     margin: 4px 4px 8px;
+description {
+  margin: 4px 4px 8px;
 }
 
 #archiveTree > treechildren {
