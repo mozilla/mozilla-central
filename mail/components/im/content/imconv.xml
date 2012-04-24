@@ -117,9 +117,8 @@
 
      <property name="selected">
        <getter><![CDATA[
-           if (!gChatTab)
-             document.getElementById("tabmail").openTab("chat", {background: true});
-           return gChatTab.tabNode.selected && this.getAttribute("selected") == "true";
+           return gChatTab && gChatTab.tabNode.selected &&
+                  this.getAttribute("selected") == "true";
          ]]></getter>
        <setter><![CDATA[
          if (val)
@@ -131,6 +130,7 @@
          ]]></setter>
      </property>
 
+     <field name="directedUnreadCount">0</field>
      <method name="update">
       <body>
       <![CDATA[
@@ -138,6 +138,7 @@
         if (this.selected) {
           if (this.convView && this.convView.loaded) {
             this.conv.markAsRead();
+            this.directedUnreadCount = 0;
             chatHandler.updateTitle();
           }
           this.setAttribute("unreadCount", "");
@@ -150,13 +151,21 @@
             unreadCount = "";
           else {
             this.setAttribute("unread", "true");
+            let directedMessages = unreadCount;
             if (this.conv.isChat) {
-              let directedMessages = this.conv.unreadTargetedMessageCount;
+              directedMessages = this.conv.unreadTargetedMessageCount;
               if (directedMessages)
                 this.setAttribute("attention", "true");
               unreadCount = directedMessages + "/" + unreadCount;
             }
             unreadCount = "(" + unreadCount + ")";
+            if (directedMessages > this.directedUnreadCount) {
+              if (!gChatTab) {
+                document.getElementById("tabmail").openTab("chat",
+                                                           {background: true});
+              }
+              this.directedUnreadCount = directedMessages;
+            }
           }
           this.setAttribute("unreadCount", unreadCount);
           chatHandler.updateTitle();

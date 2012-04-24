@@ -153,6 +153,8 @@ var chatHandler = {
   },
 
   updateTitle: function() {
+    if (!gChatTab)
+      return;
     let list = document.getElementById("conversationsGroup");
     let unreadCount = 0;
     for (let node = list.nextSibling; node.localName == "imconv"; node = node.nextSibling) {
