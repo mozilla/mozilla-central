@@ -1253,3 +1253,15 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::MozRequestPointerLock()
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
+
+NS_IMETHODIMP
+nsEudoraHTMLImageElement::GetX(PRInt32* aX)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
+nsEudoraHTMLImageElement::GetY(PRInt32* aY)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
