@@ -252,18 +252,34 @@ function onEditFilter()
 
 function onNewFilter(emailAddress)
 {
-  var args = {filterList: gCurrentFilterList};
+  let list = document.getElementById("filterList");
+  let filterNodes = list.childNodes;
+  let selectedFilter = currentFilter();
+  // if no filter is selected use the first position, starting at 1
+  let position = 1;
+  if (selectedFilter) {
+    // The filterNodes[0] item is the list header, skip it.
+    for (let i = 1; i < filterNodes.length; i++) {
+      if (filterNodes[i]._filter == selectedFilter) {
+        position = i;
+        break;
+      }
+    }
+  }
+
+  // The returned position is offset by 1 (due to the list header)
+  // compared to filter indexes in gCurrentFilterList.
+  let args = {filterList: gCurrentFilterList, filterPosition: position - 1};
 
   window.openDialog("chrome://messenger/content/FilterEditor.xul", "FilterEditor", "chrome,modal,titlebar,resizable,centerscreen", args);
 
   if ("refresh" in args && args.refresh) {
     rebuildFilterList(gCurrentFilterList);
 
-    // the new filter is always added as first item on top. Select it.
-    let list = document.getElementById("filterList");
+    // select the new filter, it is at the position of previous selection
     list.clearSelection();
-    list.addItemToSelection(list.childNodes[1]);
-    updateViewPosition(1);
+    list.addItemToSelection(list.childNodes[position]);
+    updateViewPosition(position);
   }
 }
 

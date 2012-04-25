@@ -59,6 +59,7 @@ var gSessionFolderListenerAdded = false;
 var gFilterActionList;
 var gCustomActions = null;
 var gFilterType;
+var gFilterPosition = 0;
 
 var gFilterActionStrings = ["none", "movemessage", "setpriorityto", "deletemessage",
                             "markasread", "ignorethread", "watchthread", "markasflagged",
@@ -94,6 +95,11 @@ function filterEditorOnLoad()
               .disabled = postPluginDisabled;
       document.getElementById("contextMenuListPostPluginBoth")
               .disabled = postPluginDisabled;
+    }
+
+    if ("filterPosition" in args)
+    {
+      gFilterPosition = args.filterPosition;
     }
 
     if ("filter" in args)
@@ -428,7 +434,7 @@ function saveFilter()
   if (isNewFilter)
   {
     // new filter - insert into gFilterList
-    gFilterList.insertFilterAt(0, gFilter);
+    gFilterList.insertFilterAt(gFilterPosition, gFilter);
   }
 
   // success!
