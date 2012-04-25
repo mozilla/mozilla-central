@@ -80,7 +80,7 @@
 
       <property name="theme"
                 readonly="true"
-                onget="return this._theme || (this._theme = getCurrentTheme());;"/>
+                onget="return this._theme || (this._theme = getCurrentTheme());"/>
 
       <field name="_conv">null</field>
 

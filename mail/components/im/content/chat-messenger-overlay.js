@@ -291,7 +291,7 @@ var chatHandler = {
   get observedContact() this._observedContact,
   set observedContact(aContact) {
     if (aContact == this._observedContact)
-      return;
+      return aContact;
     if (this._observedContact) {
       this._observedContact.removeObserver(this._contactObserver);
       delete this._observedContact;

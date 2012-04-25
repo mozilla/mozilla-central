@@ -674,7 +674,7 @@ function CreateAttachmentTransferData(aAttachment)
   // should allow this.
   if (aAttachment.contentType == "text/x-moz-deleted" ||
       aAttachment.sendViaCloud)
-    return;
+    return null;
 
   var name = aAttachment.name || aAttachment.displayName;
 

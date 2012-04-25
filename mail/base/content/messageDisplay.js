@@ -577,6 +577,7 @@ MessageTabDisplayWidget.prototype = {
                                                   true);
       return true;
     }
+    return false;
   },
 
   /**

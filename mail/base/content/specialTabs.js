@@ -887,6 +887,7 @@ var specialTabs = {
         openLinkExternally(href);
       }
     }
+    return false;
   },
 
   /**
@@ -914,6 +915,7 @@ var specialTabs = {
         openLinkExternally(href);
       }
     }
+    return false;
   },
 
   /**
@@ -951,6 +953,7 @@ var specialTabs = {
         openLinkExternally(href);
       }
     }
+    return false;
   },
 
   chromeTabType: {

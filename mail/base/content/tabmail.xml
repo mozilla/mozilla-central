@@ -458,8 +458,7 @@
       <method name="openTab">
         <parameter name="aTabModeName"/>
         <parameter name="aArgs"/>
-        <body>
-            <![CDATA[
+        <body><![CDATA[
         try {
           if (!(aTabModeName in this.tabModes))
             throw new Error("No such tab mode: " + aTabModeName);
@@ -468,7 +467,7 @@
           if (tabMode.tabs.length == tabMode.maxTabs) {
             let desiredTab = tabMode.tabs[0];
             this.tabContainer.selectedIndex = this.tabInfo.indexOf(desiredTab);
-            return;
+            return null;
           }
 
           // Do this so that we don't generate strict warnings
@@ -485,7 +484,7 @@
             if (tabIndex >= 0) {
               if (!background)
                 this.selectTabByIndex(null, tabIndex);
-              return;
+              return null;
             }
           }
 
@@ -578,7 +577,10 @@
             UpdateMailToolbar("tabmail");
 
           return tab;
-          } catch (e) { logException(e);}
+        } catch (e) {
+          logException(e);
+          return null;
+        }
         ]]></body>
       </method>
       <method name="selectTabByMode">
@@ -1415,7 +1417,7 @@
              // This can happen if we're starting up and haven't got a tab
              // loaded yet.
              if (!tab)
-               return;
+               return null;
 
              let onEventFunc = tab.mode.onEvent ||
                                tab.mode.tabType.onEvent;

@@ -92,7 +92,7 @@ function getIdentityForHeader(hdr, type)
     let deliveredTos = new Array();
     let index = 0;
     let header = "";
-    while (header = currentHeaderData[key]) {
+    while ((header = currentHeaderData[key])) {
       deliveredTos.push(header.headerValue.toLowerCase().trim());
       key = "delivered-to" + index++;
     }

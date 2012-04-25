@@ -760,6 +760,7 @@ let gFolderTreeView = {
   getCellText: function ftv_getCellText(aRow, aCol) {
     if (aCol.id == "folderNameCol")
       return this._rowMap[aRow].text;
+    return "";
   },
 
   /**
@@ -1023,7 +1024,7 @@ let gFolderTreeView = {
         searchFolderURIs +=  searchFolder.URI;
       }
       if (!searchFolderURIs.length)
-        return;
+        return null;
       smartFolder = gFolderTreeView._createVFFolder(folderName, smartRootFolder,
                                                     searchFolderURIs, flag);
     }

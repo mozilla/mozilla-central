@@ -223,6 +223,7 @@ let webSearchTabType = {
         }
       }
     }
+    return false;
   },
 
   commands: {
@@ -252,7 +253,7 @@ let webSearchTabType = {
 
   isCommandEnabled: function isCommandEnabled(aCommand, aTab) {
     if (!this.supportsCommand(aCommand))
-      return;
+      return false;
 
     if (aCommand in this.commands)
       return this.commands[aCommand].isEnabled(aTab);

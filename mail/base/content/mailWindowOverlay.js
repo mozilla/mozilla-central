@@ -774,16 +774,17 @@ function InitRecentlyClosedTabsPopup(menuPopup)
   }
   
   // "Restore All Tabs" with only one entry does not make sense 
-  if (tabs.length <= 1)
-    return;
+  if (tabs.length > 1) {
+    menuPopup.appendChild(document.createElement("menuseparator"));
   
-  menuPopup.appendChild(document.createElement("menuseparator"));
-  
-  let menuItem = document.createElement("menuitem");
-  menuItem.setAttribute("label", document.getElementById("bundle_messenger")
-                                         .getString("restoreAllTabs"));
-  menuItem.setAttribute("oncommand","goRestoreAllTabs();");
-  menuPopup.appendChild(menuItem);
+    let menuItem = document.createElement("menuitem");
+    menuItem.setAttribute("label", document.getElementById("bundle_messenger")
+                                           .getString("restoreAllTabs"));
+    menuItem.setAttribute("oncommand","goRestoreAllTabs();");
+    menuPopup.appendChild(menuItem);
+  }
+
+  return true;
 }
 
 function goRestoreAllTabs()

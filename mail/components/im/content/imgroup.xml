@@ -76,7 +76,7 @@
       <body>
       <![CDATA[
         if (this.contactsById.hasOwnProperty(aContact.id))
-          return;
+          return null;
 
         let contactElt = document.createElement(aTagName || "imcontact");
         if (this.hasAttribute("closed"))
