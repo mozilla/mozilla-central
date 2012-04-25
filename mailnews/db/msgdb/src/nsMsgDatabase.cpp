@@ -130,6 +130,7 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder,
   rv = aFolder->GetMsgStore(getter_AddRefs(msgStore));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = msgStore->GetSummaryFile(aFolder, getter_AddRefs(summaryFilePath));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsMsgDatabase *cacheDB = nsMsgDatabase::FindInCache(summaryFilePath);
   if (cacheDB)
