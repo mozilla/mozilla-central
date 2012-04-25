@@ -210,6 +210,13 @@
 #attachmentSaveAllSingle,
 #attachmentSaveAllMultiple {
   list-style-image: url("chrome://messenger/skin/icons/download.png");
+  -moz-image-region: rect(0px 18px 18px 0px);
+}
+
+#attachmentSaveAllSingle:not([disabled="true"]):active,
+#attachmentSaveAllMultiple:not([disabled="true"]):active {
+  list-style-image: url("chrome://messenger/skin/icons/download.png");
+  -moz-image-region: rect(18px 18px 36px 0px);
 }
 
 #attachmentSaveAllSingle > .toolbarbutton-menubutton-button,
@@ -294,49 +301,44 @@ attachmentlist:focus >attachmentitem[selected="true"] .attachmentcell-size {
   padding: 0;
 }
 
-/* Setting min & max-values here to make sure the buttons are the same size */
+/* Override primaryToolbar.css rules to give a button appearance */
 
-.msgHeaderView-button {
+.toolbarbutton-1.msgHeaderView-button {
   -moz-appearance: none;
-  border-radius: 4px;
-  min-height: 22px;
-  min-width: 22px;
   max-height: 22px;
   padding: 1px 2px;
   margin: 0px;
   -moz-margin-start: 0.4em;
   vertical-align: middle;
-  list-style-image: none; /* overrides the rule from primaryToolbar.css */
-  background-color: rgb(210,210,210);
+  background-color: -moz-dialog;
   border: 1px solid rgb(145,145,145);
+  border-radius: 4px;
   box-shadow: 0 20px 11.5px -10px rgb(255,255,255) inset, 0 1px rgba(255,255,255, 0.4);
 }
 
 .msgHeaderView-button:active,
 .msgHeaderView-button[type="menu-button"][open] {
-  background-color: rgb(186,186,186);
-  box-shadow: 0 4px 3px 0 rgb(140,140,140) inset;
+  box-shadow: 0 4px 3px 0 rgb(181,181,181) inset;
 }
 
-.msgHeaderView-button[type="menu-button"] > .toolbarbutton-menubutton-button {
-  -moz-appearance: none;
-  padding: 0;
+.toolbarbutton-1.msgHeaderView-button > .toolbarbutton-icon,
+.toolbarbutton-1.msgHeaderView-button > .toolbarbutton-menubutton-button >
+.toolbarbutton-icon {
   margin: 0;
-  -moz-padding-start: 0px;
-  -moz-padding-end: 0px;
-  -moz-margin-start: 0px;
-  -moz-margin-end: 0px;
-  padding-bottom: 2px !important;
-  min-width: 1em;
-  min-height: 1ex;
 }
 
-/* The default toolbarbutton CSS makes the dropmarker really tiny in icon mode;
- * make the click target easier to hit.
- */
+/* primaryToolbar.css makes the dropmarker padding wide; make it smaller. */
 .msgHeaderView-button[type="menu-button"] > .toolbarbutton-menubutton-dropmarker {
-  -moz-margin-start: 3px;
-  -moz-margin-end: 4px;
+  -moz-padding-start: 2px;
+  -moz-padding-end: 2px;
+}
+
+/* Separator between menu and split type buttons */
+.toolbarbutton-1.msgHeaderView-button >
+.toolbarbutton-menubutton-dropmarker::before {
+  -moz-margin-start: -4px;
+  -moz-margin-end: 3px;
+  margin-bottom: 1px;
 }
 
 .msgHeaderView-flat-button {
@@ -373,12 +375,6 @@ attachmentlist:focus >attachmentitem[selected="true"] .attachmentcell-size {
   -moz-border-left-colors: none;
 }
 
-.msgHeaderView-button > .toolbarbutton-text,
-.msgHeaderView-button[type="menu-button"] > .toolbarbutton-menubutton-button {
-  /* Needed to make the buttons at least the same height as the trash icon */
-  min-height: 16px;
-}
-
 .msgHeaderView-flat-button[type="menu-button"]:hover > .button-menubutton-button {
   background-color: rgb(230,231,227);
 }
@@ -392,8 +388,8 @@ attachmentlist:focus >attachmentitem[selected="true"] .attachmentcell-size {
 }
 
 toolbar[mode="text"] .msgHeaderView-button .toolbarbutton-text {
-  margin: 0;
-  padding: 0;
+  -moz-margin-start: 2px;
+  -moz-margin-end: 2px;
 }
 
 toolbarpaletteitem > #hdrReplyToSenderButton {
@@ -403,46 +399,39 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
 .hdrReplyToSenderButton,
 .hdrDummyReplyButton,
 .hdrReplyButton {
-  /* large icons are only needed for customization dialog, so use here also small icons */
-  list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
-  -moz-image-region: rect(0px, 16px, 16px, 0px);
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 72px 18px 54px);
 }
 
 .hdrReplyListButton,
 .hdrFollowupButton {
-  /* large icons are only needed for customization dialog, so use here also small icons */
-  list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
-  -moz-image-region: rect(0px, 48px, 16px, 32px);
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 126px 18px 108px);
 }
 
 .hdrReplyAllButton {
-  /* large icons are only needed for customization dialog, so use here also small icons */
-  list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
-  -moz-image-region: rect(0px, 32px, 16px, 16px);
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 90px 18px 72px);
 }
 
 .hdrForwardButton {
-  /* large icons are only needed for customization dialog, so use here also small icons */
-  list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
-  -moz-image-region: rect(0px, 64px, 16px, 48px);
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 108px 18px 90px);
 }
 
 .hdrArchiveButton {
-  /* large icons are only needed for customization dialog, so use here also small icons */
-  list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
-  -moz-image-region: rect(0px, 112px, 16px, 96px);
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 360px 18px 342px);
 }
 
 .hdrJunkButton {
-  /* large icons are only needed for customization dialog, so use here also small icons */
-  list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
-  -moz-image-region: rect(0px, 96px, 16px, 80px);
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 162px 18px 144px);
 }
 
 .hdrTrashButton {
-  /* large icons are only needed for customization dialog, so use here also small icons */
-  list-style-image: url("chrome://messenger/skin/icons/message-header-toolbar.png");
-  -moz-image-region: rect(0px, 80px, 16px, 64px);
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 144px 18px 126px);
 }
 
 .hdrTagButton {

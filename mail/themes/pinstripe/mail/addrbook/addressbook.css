@@ -57,196 +57,226 @@
 
 /* ::::: primary toolbar buttons ::::: */
 
+.toolbarbutton-1:not([type="menu-button"]),
+.toolbarbutton-1 > .toolbarbutton-menubutton-button,
+.toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker {
+  height: 22px;
+  padding: 0;
+  border: 0;
+}
+
+.toolbarbutton-1[type="menu"] {
+  -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu-vertical");
+}
+
+toolbox[labelalign="end"] .toolbarbutton-1[type="menu"],
+toolbox[labelalign="end"] toolbarpaletteitem .toolbarbutton-1[type="menu"] {
+  -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu");
+}
+
+.toolbarbutton-1[type="menu-button"] {
+  padding: 0;
+}
+
+.toolbarbutton-1 > .toolbarbutton-menubutton-button,
+.toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker {
+  margin: 0;
+}
+
 .toolbarbutton-1 {
+  margin: 2px 4px;
+}
+
+.toolbarbutton-1[open],
+.toolbarbutton-1[open] > .toolbarbutton-menubutton-button {
+  text-shadow: none;
+}
+
+.toolbarbutton-1:not([type="menu-button"]),
+.toolbarbutton-1 > .toolbarbutton-menubutton-button {
   -moz-box-orient: vertical;
 }
 
-toolbox[labelalign="end"] .toolbarbutton-1 {
+toolbarbutton[type="menu-button"],
+toolbox[mode="text"] .toolbarbutton-1,
+toolbox[mode="text"] .toolbarbutton-menubutton-button,
+toolbox[mode="text"] .toolbarbutton-menubutton-dropmarker,
+toolbox[labelalign="end"] .toolbarbutton-1,
+toolbox[labelalign="end"] toolbarpaletteitem .toolbarbutton-1,
+toolbox[labelalign="end"] .toolbarbutton-1[type="menu-button"]
+  > .toolbarbutton-menubutton-button,
+toolbox[labelalign="end"] toolbarpaletteitem
+  .toolbarbutton-1[type="menu-button"] > .toolbarbutton-menubutton-button {
   -moz-box-orient: horizontal;
+}
+
+toolbox[labelalign="end"] .toolbarbutton-1 .toolbarbutton-text {
+  -moz-margin-start: 2px;
 }
 
 toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   text-align: start;
 }
 
-toolbarbutton[type="menu-button"] > toolbarbutton {
-  -moz-box-orient: vertical !important;
-  padding: 0px;
-  margin: 0px;
+.toolbarbutton-1[checked="true"] > .toolbarbutton-text {
+  color: #0969b2;
+  text-shadow: 1px 1px 0 white;
 }
 
-toolbox[labelalign="end"] toolbarbutton[type="menu-button"] > toolbarbutton {
-  -moz-box-orient: horizontal !important;
+.toolbarbutton-1:not([type="menu-button"]),
+.toolbarbutton-1 > .toolbarbutton-menubutton-button {
+  min-width: 28px;
 }
 
+toolbar:not([mode="icons"]) .toolbarbutton-1:not([type="menu-button"]),
+toolbar:not([mode="icons"]) .toolbarbutton-1 > .toolbarbutton-menubutton-button {
+  min-width: 0;
+}
 
-/* ::::: new single card icon ::::: */
+.toolbarbutton-1 > .toolbarbutton-icon,
+.toolbarbutton-1 > .toolbarbutton-menubutton-button > .toolbarbutton-icon {
+  width: 18px;
+  height: 18px;
+  margin: 2px;
+}
+
+.toolbarbutton-1[disabled="true"] .toolbarbutton-text,
+.toolbarbutton-1[disabled="true"] > .toolbarbutton-icon,
+.toolbarbutton-1[type="menu-button"] > .toolbarbutton-menubutton-button[disabled="true"]
+  > .toolbarbutton-icon {
+  opacity: .4;
+}
+
+.toolbarbutton-1 > .toolbarbutton-menu-dropmarker,
+.toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker {
+  list-style-image: url(chrome://messenger/skin/icons/toolbarbutton-dropmarker.png) !important;
+}
+
+/* Separator between menu and split type buttons */
+.toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker::before {
+  content: "";
+  display: -moz-box;
+  width: 1px;
+  height: 18px;
+  -moz-margin-start: -6px;
+  -moz-margin-end: 5px;
+  margin-bottom: 2px;
+  background: hsla(0, 0%, 0%, .3) padding-box;
+  box-shadow: 0 0 0 1px hsla(0, 0%, 100%, .2);
+}
+
+toolbar[mode="icons"] .toolbarbutton-1 >
+.toolbarbutton-menubutton-dropmarker::before {
+  -moz-margin-start: -8px;
+}
+
+@media (-moz-mac-lion-theme) {
+  .toolbarbutton-1[disabled="true"] > .toolbarbutton-icon,
+  .toolbarbutton-1[type="menu-button"]
+    > .toolbarbutton-menubutton-button[disabled="true"] > .toolbarbutton-icon,
+  .toolbarbutton-1[disabled="true"] > .toolbarbutton-menu-dropmarker,
+  .toolbarbutton-1[disabled="true"] > .toolbarbutton-menubutton-dropmarker
+    > .dropmarker-icon,
+  .toolbarbutton-1:not(:hover):-moz-window-inactive .toolbarbutton-icon,
+  .toolbarbutton-1:not(:hover):-moz-window-inactive
+    > .toolbarbutton-menu-dropmarker,
+  .toolbarbutton-1:not(:hover):-moz-window-inactive
+    > .toolbarbutton-menubutton-dropmarker > .dropmarker-icon {
+    opacity: .5;
+  }
+
+  .toolbarbutton-1:-moz-window-inactive[disabled="true"] > .toolbarbutton-icon,
+  .toolbarbutton-1:-moz-window-inactive[type="menu-button"]
+    > .toolbarbutton-menubutton-button[disabled="true"] > .toolbarbutton-icon {
+    opacity: .25;
+  }
+
+  .toolbarbutton-1 > .toolbarbutton-menu-dropmarker,
+  .toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker {
+    list-style-image: url(chrome://messenger/skin/icons/toolbarbutton-dropmarker-lion.png) !important;
+  }
+}
+
+.toolbarbutton-1 > .toolbarbutton-menu-dropmarker {
+  -moz-margin-end: 1px;
+}
+
+.toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker {
+  width: 16px;
+  padding: 2px 4px !important;
+}
+
+toolbar:not([mode="icons"]) .toolbarbutton-1 > .toolbarbutton-menubutton-dropmarker {
+  width: auto;
+}
+
+toolbar[mode="icons"] .toolbarbutton-1 > menupopup {
+  margin-top: 1px;
+}
+
+#ab-toolbox > toolbar {
+  /* force iconsize="small" on these toolbars */
+  counter-reset: smallicons;
+}
 
 #button-newcard {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
-  -moz-image-region: rect(0px 32px 32px 0px);
+  -moz-image-region: rect(0px 18px 18px 0px);
 }
 
-#button-newcard:active {
-  -moz-image-region: rect(32px 32px 64px 0px);
+#button-newcard:not([disabled="true"]):active {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
+  -moz-image-region: rect(18px 18px 36px 0px);
 }
-
-#button-newcard[disabled="true"] {
-  -moz-image-region: rect(64px 32px 96px 0px) !important;
-}
-
-/* ::::: new list card icon ::::: */
 
 #button-newlist {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
-  -moz-image-region: rect(0px 64px 32px 32px);
+  -moz-image-region: rect(0px 36px 18px 18px);
 }
 
-#button-newlist:active {
-  -moz-image-region: rect(32px 64px 64px 32px);
+#button-newlist:not([disabled="true"]):active {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
+  -moz-image-region: rect(18px 36px 36px 18px);
 }
-
-#button-newlist[disabled="true"] {
-  -moz-image-region: rect(64px 64px 96px 32px) !important;
-}
-
-/* ::::: edit card icon ::::: */
 
 #button-editcard {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
-  -moz-image-region: rect(0px 96px 32px 64px);
+  -moz-image-region: rect(0px 54px 18px 36px);
 }
 
-#button-editcard:active {
-  -moz-image-region: rect(32px 96px 64px 64px);
+#button-editcard:not([disabled="true"]):active {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
+  -moz-image-region: rect(18px 54px 36px 36px);
 }
-
-#button-editcard[disabled="true"] {
-  -moz-image-region: rect(64px 96px 96px 64px) !important;
-}
-
-/* ::::: new message icon ::::: */
 
 #button-newmessage {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
-  -moz-image-region: rect(0px 128px 32px 96px);
+  -moz-image-region: rect(0px 72px 18px 54px);
 }
 
-#button-newmessage:active {
-  -moz-image-region: rect(32px 128px 64px 96px);
+#button-newmessage:not([disabled="true"]):active {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
+  -moz-image-region: rect(18px 72px 36px 54px);
 }
-
-#button-newmessage[disabled="true"] {
-  -moz-image-region: rect(64px 128px 96px 96px) !important;
-}
-
-/* ::::: instant message icon ::::: */
 
 #button-newim {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
-  -moz-image-region: rect(0px 160px 32px 128px);
+  -moz-image-region: rect(0px 90px 18px 72px);
 }
 
-#button-newim:active {
-  -moz-image-region: rect(32px 160px 64px 128px);
+#button-newim:not([disabled="true"]):active {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
+  -moz-image-region: rect(18px 90px 36px 72px);
 }
-
-#button-newim[disabled="true"] {
-  -moz-image-region: rect(64px 160px 96px 128px) !important;
-}
-
-/* ::::: delete icon ::::: */
 
 #button-abdelete {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
-  -moz-image-region: rect(0px 192px 32px 160px);
+  -moz-image-region: rect(0px 108px 18px 90px);
 }
 
-#button-abdelete:active {
-  -moz-image-region: rect(32px 192px 64px 160px);
-}
-
-#button-abdelete[disabled="true"] {
-  -moz-image-region: rect(64px 192px 96px 160px) !important;
-}
-/* ::::: small primary toolbar buttons ::::: */
-
-toolbar[iconsize="small"] #button-newcard {
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
-  -moz-image-region: rect(0px 24px 24px 0px);
-}
-
-toolbar[iconsize="small"] #button-newcard:hover:active {
-  -moz-image-region: rect(24px 24px 48px 0px);
-}
-
-toolbar[iconsize="small"] #button-newcard[disabled] {
-  -moz-image-region: rect(48px 24px 72px 0px) !important;
-}
-
-toolbar[iconsize="small"] #button-newlist {
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
-  -moz-image-region: rect(0px 48px 24px 24px);
-}
-
-toolbar[iconsize="small"] #button-newlist:hover:active {
-  -moz-image-region: rect(24px 48px 48px 24px);
-}
-
-toolbar[iconsize="small"] #button-newlist[disabled] {
-   -moz-image-region: rect(48px 48px 72px 24px) !important;
-}
-
-toolbar[iconsize="small"] #button-editcard {
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
-  -moz-image-region: rect(0px 72px 24px 48px);
-}
-
-toolbar[iconsize="small"] #button-editcard:hover:active {
-  -moz-image-region: rect(24px 72px 48px 48px);
-}
-
-toolbar[iconsize="small"] #button-editcard[disabled="true"] {
-  -moz-image-region: rect(48px 72px 72px 48px) !important;
-}
-
-toolbar[iconsize="small"] #button-newmessage {
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
-  -moz-image-region: rect(0px 96px 24px 72px);
-}
-
-toolbar[iconsize="small"] #button-newmessage:hover:active {
-  -moz-image-region: rect(24px 96px 48px 72px);
-}
-
-toolbar[iconsize="small"] #button-newmessage[disabled] {
-  -moz-image-region: rect(48px 96px 72px 72px) !important;
-}
-
-toolbar[iconsize="small"] #button-newim {
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
-  -moz-image-region: rect(0px 120px 24px 96px);
-}
-
-toolbar[iconsize="small"] #button-newim:hover:active {
-  -moz-image-region: rect(24px 120px 48px 96px);
-}
-
-toolbar[iconsize="small"] #button-newim[disabled] {
-  -moz-image-region: rect(48px 120px 72px 96px) !important;
-}
-
-toolbar[iconsize="small"] #button-abdelete {
-   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
-  -moz-image-region: rect(0px 144px 24px 120px);
-}
-
-toolbar[iconsize="small"] #button-abdelete:hover:active {
-  -moz-image-region: rect(24px 144px 48px 120px);
-}
-
-toolbar[iconsize="small"] #button-abdelete[disabled] {
-  -moz-image-region: rect(48px 144px 72px 120px) !important;
+#button-abdelete:not([disabled="true"]):active {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
+  -moz-image-region: rect(18px 108px 36px 90px);
 }
 
 #abContent {
@@ -460,4 +490,3 @@ html|a {
 html|p {
   border: none !important;
 }
-

@@ -3,53 +3,17 @@
 /* :::: Filter Tab Bar Button :::: */
 
 #qfb-show-filter-bar {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-  -moz-image-region: rect(0px 504px 24px 480px);
-}
-
-#qfb-show-filter-bar:hover:active {
-  -moz-image-region: rect(24px 504px 48px 480px);
-}
-
-#qfb-show-filter-bar[disabled="true"] {
-  -moz-image-region: rect(48px 504px 72px 480px) !important;
-}
-
-toolbar[iconsize="large"] #qfb-show-filter-bar {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
-  -moz-image-region: rect(0px 672px 32px 640px);
+  -moz-image-region: rect(0px 378px 18px 360px);
 }
 
-toolbar[iconsize="large"] #qfb-show-filter-bar:hover:active {
-  -moz-image-region: rect(32px 672px 64px 640px);
+#qfb-show-filter-bar:not([disabled="true"]):active {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(18px 378px 36px 360px);
 }
 
-toolbar[iconsize="large"] #qfb-show-filter-bar[disabled="true"] {
-  -moz-image-region: rect(64px 672px 96px 640px) !important;
-}
-
-#qfb-show-filter-bar > .toolbarbutton-icon {
-  padding: 0 3px;
-}
-
-#mail-toolbox #qfb-show-filter-bar[checked="true"] {
-  color: white !important;
-  margin-top: 2px;
-  margin-bottom: 1px;
-  padding-top: 1px;
-  padding-bottom: 2px;
-  background-color: rgba(0, 0, 0, 0.2);
-  border-color: transparent;
-  border-radius: 4px;
-  box-shadow: 0 1px rgba(0, 0, 0, 0.4) inset, 1px 0 rgba(0, 0, 0, 0.3) inset,
-              0 1px rgba(255, 255, 255, 0.5);
-  text-shadow: 0 1px rgba(0, 0, 0, 0.4) !important;
-}
-
-#mail-toolbox #qfb-show-filter-bar[checked="true"]:-moz-lwtheme {
-  color: inherit !important;
-  background-color: rgba(0, 0, 0, 0.15);
-  text-shadow: inherit !important;
+#qfb-show-filter-bar[checked="true"] {
+  -moz-image-region: rect(36px 378px 54px 360px);
 }
 
 /* :::: Filter Bar :::: */
