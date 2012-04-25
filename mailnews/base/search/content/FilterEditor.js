@@ -473,7 +473,10 @@ function AssignMeaningfulName()
       case attribs.HasAttachmentStatus:
       case attribs.JunkStatus:
       case attribs.JunkScoreOrigin:
-        value = activeItem.label;
+        if (activeItem)
+          value = activeItem.label;
+        else
+          value = "";
         break;
 
       default:
