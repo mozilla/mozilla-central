@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -40,9 +40,9 @@
 #endif
 
 #elif defined(WEBRTC_ANDROID)
-#include "Android/video_render_android_impl.h"
-#include "Android/video_render_android_surface_view.h"
-#include "Android/video_render_android_native_opengl2.h"
+#include "android/video_render_android_impl.h"
+#include "android/video_render_android_surface_view.h"
+#include "android/video_render_android_native_opengl2.h"
 #define STANDARD_RENDERING	kRenderAndroid
 
 #elif defined(WEBRTC_LINUX)
@@ -69,12 +69,6 @@ VideoRender::CreateVideoRender(const WebRtc_Word32 id,
                                const bool fullscreen,
                                const VideoRenderType videoRenderType/*=kRenderDefault*/)
 {
-    WEBRTC_TRACE(
-                 kTraceModuleCall,
-                 kTraceVideoRenderer,
-                 id,
-                 "CreateVideoRender(videoRenderType: %d, window: %x, fullscreen: %d)",
-                 videoRenderType, window, fullscreen);
 
     VideoRenderType resultVideoRenderType = videoRenderType;
     if (videoRenderType == kRenderDefault)
@@ -90,9 +84,6 @@ void VideoRender::DestroyVideoRender(
 {
     if (module)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     static_cast<ModuleVideoRenderImpl*> (module)->Id(),
-                     "DestroyVideoRender");
         delete module;
     }
 }
@@ -330,10 +321,8 @@ ModuleVideoRenderImpl::~ModuleVideoRenderImpl()
 
 WebRtc_Word32 ModuleVideoRenderImpl::ChangeUniqueId(const WebRtc_Word32 id)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "ChangeUniqueId(new id:%d)", id);
 
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     _id = id;
 
@@ -359,16 +348,14 @@ WebRtc_Word32 ModuleVideoRenderImpl::Process()
 void*
 ModuleVideoRenderImpl::Window()
 {
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
     return _ptrWindow;
 }
 
 WebRtc_Word32 ModuleVideoRenderImpl::ChangeWindow(void* window)
 {
 
-    CriticalSectionScoped cs(_moduleCrit);
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s", __FUNCTION__);
+    CriticalSectionScoped cs(&_moduleCrit);
 
 #ifdef WEBRTC_INCLUDE_INTERNAL_VIDEO_RENDER
 
@@ -422,18 +409,14 @@ WebRtc_Word32 ModuleVideoRenderImpl::ChangeWindow(void* window)
 
 WebRtc_Word32 ModuleVideoRenderImpl::Id()
 {
-    CriticalSectionScoped cs(_moduleCrit);
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s", __FUNCTION__);
+    CriticalSectionScoped cs(&_moduleCrit);
     return _id;
 }
 
 WebRtc_UWord32 ModuleVideoRenderImpl::GetIncomingFrameRate(
                                                            const WebRtc_UWord32 streamId)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s, stream: %u", __FUNCTION__, streamId);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     MapItem* mapItem = _streamRenderMap.Find(streamId);
     if (mapItem == NULL)
@@ -463,9 +446,7 @@ ModuleVideoRenderImpl::AddIncomingRenderStream(const WebRtc_UWord32 streamId,
                                                const float right,
                                                const float bottom)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s, stream: %u", __FUNCTION__, streamId);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -482,16 +463,6 @@ ModuleVideoRenderImpl::AddIncomingRenderStream(const WebRtc_UWord32 streamId,
         return NULL;
     }
 
-    // Create platform independant code
-    IncomingVideoStream* ptrIncomingStream = new IncomingVideoStream(_id,
-                                                                     streamId);
-    if (ptrIncomingStream == NULL)
-    {
-        WEBRTC_TRACE(kTraceError, kTraceVideoRenderer, _id,
-                     "%s: Can't create incoming stream", __FUNCTION__);
-        return NULL;
-    }
-
     VideoRenderCallback* ptrRenderCallback =
             _ptrRenderer->AddIncomingRenderStream(streamId, zOrder, left, top,
                                                   right, bottom);
@@ -502,6 +473,17 @@ ModuleVideoRenderImpl::AddIncomingRenderStream(const WebRtc_UWord32 streamId,
                      __FUNCTION__);
         return NULL;
     }
+
+    // Create platform independant code
+    IncomingVideoStream* ptrIncomingStream = new IncomingVideoStream(_id,
+                                                                     streamId);
+    if (ptrIncomingStream == NULL)
+    {
+        WEBRTC_TRACE(kTraceError, kTraceVideoRenderer, _id,
+                     "%s: Can't create incoming stream", __FUNCTION__);
+        return NULL;
+    }
+
 
     if (ptrIncomingStream->SetRenderCallback(ptrRenderCallback) == -1)
     {
@@ -524,9 +506,7 @@ ModuleVideoRenderImpl::AddIncomingRenderStream(const WebRtc_UWord32 streamId,
 WebRtc_Word32 ModuleVideoRenderImpl::DeleteIncomingRenderStream(
                                                                 const WebRtc_UWord32 streamId)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s, stream: %u", __FUNCTION__, streamId);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -557,10 +537,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::AddExternalRenderCallback(
                                                                const WebRtc_UWord32 streamId,
                                                                VideoRenderCallback* renderObject)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s, stream: %u, callback: %x", __FUNCTION__, streamId,
-                 renderObject);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     MapItem* mapItem = _streamRenderMap.Find(streamId);
     if (!mapItem)
@@ -572,10 +549,10 @@ WebRtc_Word32 ModuleVideoRenderImpl::AddExternalRenderCallback(
 
     IncomingVideoStream* ptrIncomingStream =
             static_cast<IncomingVideoStream*> (mapItem->GetItem());
-    if (!ptrIncomingStream)
-    {
+    if (!ptrIncomingStream) {
         WEBRTC_TRACE(kTraceError, kTraceVideoRenderer, _id,
                      "%s: could not get stream", __FUNCTION__);
+        return -1;
     }
     return ptrIncomingStream->SetExternalCallback(renderObject);
 }
@@ -588,9 +565,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::GetIncomingRenderStreamProperties(
                                                                        float& right,
                                                                        float& bottom) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s, stream: %u", __FUNCTION__, streamId);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -606,9 +581,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::GetIncomingRenderStreamProperties(
 
 WebRtc_UWord32 ModuleVideoRenderImpl::GetNumIncomingRenderStreams() const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s", __FUNCTION__);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     return (WebRtc_UWord32) _streamRenderMap.Size();
 }
@@ -616,9 +589,7 @@ WebRtc_UWord32 ModuleVideoRenderImpl::GetNumIncomingRenderStreams() const
 bool ModuleVideoRenderImpl::HasIncomingRenderStream(
                                                     const WebRtc_UWord32 streamId) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s", __FUNCTION__);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     bool hasStream = false;
     if (_streamRenderMap.Find(streamId) != NULL)
@@ -637,9 +608,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::RegisterRawFrameCallback(
 
 WebRtc_Word32 ModuleVideoRenderImpl::StartRender(const WebRtc_UWord32 streamId)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s(%u)", __FUNCTION__, streamId);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -652,9 +621,6 @@ WebRtc_Word32 ModuleVideoRenderImpl::StartRender(const WebRtc_UWord32 streamId)
     MapItem* item = _streamRenderMap.Find(streamId);
     if (item == NULL)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s: Could find render stream %d", __FUNCTION__,
-                     streamId);
         return -1;
     }
 
@@ -662,17 +628,12 @@ WebRtc_Word32 ModuleVideoRenderImpl::StartRender(const WebRtc_UWord32 streamId)
             static_cast<IncomingVideoStream*> (item->GetItem());
     if (incomingStream->Start() == -1)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s: Could not start stream %d", __FUNCTION__,
-                     incomingStream->StreamId());
         return -1;
     }
 
     // Start the HW renderer
     if (_ptrRenderer->StartRender() == -1)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s: Could not start renderer", __FUNCTION__);
         return -1;
     }
     return 0;
@@ -680,9 +641,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::StartRender(const WebRtc_UWord32 streamId)
 
 WebRtc_Word32 ModuleVideoRenderImpl::StopRender(const WebRtc_UWord32 streamId)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s(%u)", __FUNCTION__, streamId);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -695,9 +654,6 @@ WebRtc_Word32 ModuleVideoRenderImpl::StopRender(const WebRtc_UWord32 streamId)
     MapItem* item = _streamRenderMap.Find(streamId);
     if (item == NULL)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s: Could find render stream %d", __FUNCTION__,
-                     streamId);
         return -1;
     }
 
@@ -705,9 +661,6 @@ WebRtc_Word32 ModuleVideoRenderImpl::StopRender(const WebRtc_UWord32 streamId)
             static_cast<IncomingVideoStream*> (item->GetItem());
     if (incomingStream->Stop() == -1)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s: Could not start stream %d", __FUNCTION__,
-                     incomingStream->StreamId());
         return -1;
     }
 
@@ -716,9 +669,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::StopRender(const WebRtc_UWord32 streamId)
 
 WebRtc_Word32 ModuleVideoRenderImpl::ResetRender()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s", __FUNCTION__);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     WebRtc_Word32 error = 0;
 
@@ -730,9 +681,6 @@ WebRtc_Word32 ModuleVideoRenderImpl::ResetRender()
                 static_cast<IncomingVideoStream*> (item->GetItem());
         if (incomingStream->Reset() == -1)
         {
-            WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                         _id, "%s: Could not reset stream %d", __FUNCTION__,
-                         incomingStream->StreamId());
             error = -1;
         }
         item = _streamRenderMap.Next(item);
@@ -742,9 +690,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::ResetRender()
 
 RawVideoType ModuleVideoRenderImpl::PreferredVideoType() const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s", __FUNCTION__);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (_ptrRenderer == NULL)
     {
@@ -756,9 +702,7 @@ RawVideoType ModuleVideoRenderImpl::PreferredVideoType() const
 
 bool ModuleVideoRenderImpl::IsFullScreen()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s", __FUNCTION__);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -773,9 +717,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::GetScreenResolution(
                                                          WebRtc_UWord32& screenWidth,
                                                          WebRtc_UWord32& screenHeight) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s", __FUNCTION__);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -789,9 +731,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::GetScreenResolution(
 WebRtc_UWord32 ModuleVideoRenderImpl::RenderFrameRate(
                                                       const WebRtc_UWord32 streamId)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s, streamId: %u", __FUNCTION__, streamId);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -809,10 +749,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::SetStreamCropping(
                                                        const float right,
                                                        const float bottom)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s, l: %1.1f, t: %1.1f, r: %1.1f, b: %1.1f", __FUNCTION__,
-                 left, top, right, bottom);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -825,9 +762,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::SetStreamCropping(
 
 WebRtc_Word32 ModuleVideoRenderImpl::SetTransparentBackground(const bool enable)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s, enable: %d", __FUNCTION__, enable);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -854,9 +789,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::SetText(
                                              const float right,
                                              const float bottom)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s", __FUNCTION__);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -876,9 +809,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::SetBitmap(const void* bitMap,
                                                const float right,
                                                const float bottom)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s", __FUNCTION__);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -894,9 +825,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::GetLastRenderedFrame(
                                                           const WebRtc_UWord32 streamId,
                                                           VideoFrame &frame) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s", __FUNCTION__);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -933,10 +862,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::ConfigureRenderer(
                                                        const float right,
                                                        const float bottom)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s, l: %1.1f, t: %1.1f, r: %1.1f, b: %1.1f", __FUNCTION__,
-                 left, top, right, bottom);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -952,9 +878,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::SetStartImage(
                                                    const WebRtc_UWord32 streamId,
                                                    const VideoFrame& videoFrame)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s", __FUNCTION__);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -989,9 +913,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::SetTimeoutImage(
                                                      const VideoFrame& videoFrame,
                                                      const WebRtc_UWord32 timeout)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s", __FUNCTION__);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -1025,9 +947,7 @@ WebRtc_Word32 ModuleVideoRenderImpl::MirrorRenderStream(const int renderId,
                                                         const bool mirrorXAxis,
                                                         const bool mirrorYAxis)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id,
-                 "%s", __FUNCTION__);
-    CriticalSectionScoped cs(_moduleCrit);
+    CriticalSectionScoped cs(&_moduleCrit);
 
     if (!_ptrRenderer)
     {
@@ -1058,4 +978,3 @@ WebRtc_Word32 ModuleVideoRenderImpl::MirrorRenderStream(const int renderId,
 }
 
 } //namespace webrtc
-

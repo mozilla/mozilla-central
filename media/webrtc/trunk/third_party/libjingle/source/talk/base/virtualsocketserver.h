@@ -105,7 +105,10 @@ class VirtualSocketServer : public SocketServer, public sigslot::has_slots<> {
 
   // SocketFactory:
   virtual Socket* CreateSocket(int type);
+  virtual Socket* CreateSocket(int family, int type);
+
   virtual AsyncSocket* CreateAsyncSocket(int type);
+  virtual AsyncSocket* CreateAsyncSocket(int family, int type);
 
   // SocketServer:
   virtual void SetMessageQueue(MessageQueue* queue);
@@ -128,7 +131,7 @@ class VirtualSocketServer : public SocketServer, public sigslot::has_slots<> {
   IPAddress GetNextIP(int family);
   uint16 GetNextPort();
 
-  VirtualSocket* CreateSocketInternal(int type);
+  VirtualSocket* CreateSocketInternal(int family, int type);
 
   // Binds the given socket to addr, assigning and IP and Port if necessary
   int Bind(VirtualSocket* socket, SocketAddress* addr);

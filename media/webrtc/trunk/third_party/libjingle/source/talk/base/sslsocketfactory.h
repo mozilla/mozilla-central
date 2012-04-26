@@ -41,7 +41,8 @@ class SslSocketFactory : public SocketFactory {
  public:
   SslSocketFactory(SocketFactory* factory, const std::string& user_agent)
      : factory_(factory), agent_(user_agent), autodetect_proxy_(true),
-       force_connect_(false), logging_level_(LS_VERBOSE), binary_mode_(false) {
+       force_connect_(false), logging_level_(LS_VERBOSE), binary_mode_(false),
+       ignore_bad_cert_(false) {
   }
 
   void SetAutoDetectProxy() {
@@ -71,11 +72,14 @@ class SslSocketFactory : public SocketFactory {
 
   // SocketFactory Interface
   virtual Socket* CreateSocket(int type);
+  virtual Socket* CreateSocket(int family, int type);
+
   virtual AsyncSocket* CreateAsyncSocket(int type);
+  virtual AsyncSocket* CreateAsyncSocket(int family, int type);
 
  private:
   friend class ProxySocketAdapter;
-  AsyncSocket* CreateProxySocket(const ProxyInfo& proxy, int type);
+  AsyncSocket* CreateProxySocket(const ProxyInfo& proxy, int family, int type);
 
   SocketFactory* factory_;
   std::string agent_;

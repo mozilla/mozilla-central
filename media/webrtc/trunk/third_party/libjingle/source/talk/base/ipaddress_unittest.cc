@@ -169,6 +169,17 @@ bool CheckMaskCount(const std::string& mask, int expected_length) {
       (expected_length == CountIPMaskBits(addr));
 }
 
+bool TryInvalidMaskCount(const std::string& mask) {
+  // We don't care about the result at all, but we do want to know if
+  // CountIPMaskBits is going to crash or infinite loop or something.
+  IPAddress addr;
+  if (!IPFromString(mask, &addr)) {
+    return false;
+  }
+  CountIPMaskBits(addr);
+  return true;
+}
+
 bool CheckTruncateIP(const std::string& initial, int truncate_length,
                      const std::string& expected_result) {
   IPAddress addr, expected;
@@ -696,30 +707,30 @@ TEST(IPAddressTest, TestCountIPMaskBits) {
   EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:fc00", 118);
   EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffc", 126);
 
-  // Non-contiguous ranges. These are kind-of invalid but lets test them
+  // Non-contiguous ranges. These are invalid but lets test them
   // to make sure they don't crash anything or infinite loop or something.
-  EXPECT_PRED2(CheckMaskCount, "217.0.0.0", 2);
-  EXPECT_PRED2(CheckMaskCount, "255.185.0.0", 9);
-  EXPECT_PRED2(CheckMaskCount, "255.255.251.0", 21);
-  EXPECT_PRED2(CheckMaskCount, "255.255.251.255", 21);
-  EXPECT_PRED2(CheckMaskCount, "255.255.254.201", 23);
-  EXPECT_PRED2(CheckMaskCount, "::1", 0);
-  EXPECT_PRED2(CheckMaskCount, "fe80::1", 7);
-  EXPECT_PRED2(CheckMaskCount, "ff80::1", 9);
-  EXPECT_PRED2(CheckMaskCount, "ffff::1", 16);
-  EXPECT_PRED2(CheckMaskCount, "ffff:ff00:1::1", 24);
-  EXPECT_PRED2(CheckMaskCount, "ffff:ffff::ffff:1", 32);
-  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ff00:1::", 40);
-  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff::ff00", 48);
-  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ff00:1234::", 56);
-  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:0012::ffff", 64);
-  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ff01::", 72);
-  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:7f00::", 80);
-  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ff7a::", 88);
-  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:7f00:0000", 96);
-  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ff70:0000", 104);
-  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:0211", 112);
-  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ff7f", 120);
+  EXPECT_PRED1(TryInvalidMaskCount, "217.0.0.0");
+  EXPECT_PRED1(TryInvalidMaskCount, "255.185.0.0");
+  EXPECT_PRED1(TryInvalidMaskCount, "255.255.251.0");
+  EXPECT_PRED1(TryInvalidMaskCount, "255.255.251.255");
+  EXPECT_PRED1(TryInvalidMaskCount, "255.255.254.201");
+  EXPECT_PRED1(TryInvalidMaskCount, "::1");
+  EXPECT_PRED1(TryInvalidMaskCount, "fe80::1");
+  EXPECT_PRED1(TryInvalidMaskCount, "ff80::1");
+  EXPECT_PRED1(TryInvalidMaskCount, "ffff::1");
+  EXPECT_PRED1(TryInvalidMaskCount, "ffff:ff00:1::1");
+  EXPECT_PRED1(TryInvalidMaskCount, "ffff:ffff::ffff:1");
+  EXPECT_PRED1(TryInvalidMaskCount, "ffff:ffff:ff00:1::");
+  EXPECT_PRED1(TryInvalidMaskCount, "ffff:ffff:ffff::ff00");
+  EXPECT_PRED1(TryInvalidMaskCount, "ffff:ffff:ffff:ff00:1234::");
+  EXPECT_PRED1(TryInvalidMaskCount, "ffff:ffff:ffff:ffff:0012::ffff");
+  EXPECT_PRED1(TryInvalidMaskCount, "ffff:ffff:ffff:ffff:ff01::");
+  EXPECT_PRED1(TryInvalidMaskCount, "ffff:ffff:ffff:ffff:ffff:7f00::");
+  EXPECT_PRED1(TryInvalidMaskCount, "ffff:ffff:ffff:ffff:ffff:ff7a::");
+  EXPECT_PRED1(TryInvalidMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:7f00:0000");
+  EXPECT_PRED1(TryInvalidMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ff70:0000");
+  EXPECT_PRED1(TryInvalidMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:0211");
+  EXPECT_PRED1(TryInvalidMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ff7f");
 }
 
 TEST(IPAddressTest, TestTruncateIP) {
@@ -741,14 +752,20 @@ TEST(IPAddressTest, TestTruncateIP) {
                "ff80::");
   EXPECT_PRED3(CheckTruncateIP, "ffff:ff80:1111:2222:3333:4444:5555:6666", 23,
                "ffff:fe00::");
+  EXPECT_PRED3(CheckTruncateIP, "ffff:ff80:1111:2222:3333:4444:5555:6666", 32,
+               "ffff:ff80::");
   EXPECT_PRED3(CheckTruncateIP, "2400:f9af:e456:1111:2222:3333:4444:5555", 35,
                "2400:f9af:e000::");
   EXPECT_PRED3(CheckTruncateIP, "9999:1111:2233:4444:5555:6666:7777:8888", 53,
                "9999:1111:2233:4000::");
+  EXPECT_PRED3(CheckTruncateIP, "9999:1111:2233:4567:5555:6666:7777:8888", 64,
+               "9999:1111:2233:4567::");
   EXPECT_PRED3(CheckTruncateIP, "1111:2222:3333:4444:5555:6666:7777:8888", 68,
                "1111:2222:3333:4444:5000::");
   EXPECT_PRED3(CheckTruncateIP, "1111:2222:3333:4444:5555:6666:7777:8888", 92,
                "1111:2222:3333:4444:5555:6660::");
+  EXPECT_PRED3(CheckTruncateIP, "1111:2222:3333:4444:5555:6666:7777:8888", 96,
+               "1111:2222:3333:4444:5555:6666::");
   EXPECT_PRED3(CheckTruncateIP, "1111:2222:3333:4444:5555:6666:7777:8888", 105,
                "1111:2222:3333:4444:5555:6666:7700::");
   EXPECT_PRED3(CheckTruncateIP, "1111:2222:3333:4444:5555:6666:7777:8888", 124,

@@ -58,7 +58,7 @@ class TransportChannelImpl : public TransportChannel {
   // Allows an individual channel to request signaling and be notified when it
   // is ready.  This is useful if the individual named channels have need to
   // send their own transport-info stanzas.
-  sigslot::signal0<> SignalRequestSignaling;
+  sigslot::signal1<TransportChannelImpl*> SignalRequestSignaling;
   virtual void OnSignalingReady() = 0;
 
   // Handles sending and receiving of candidates.  The Transport
@@ -72,6 +72,9 @@ class TransportChannelImpl : public TransportChannel {
   sigslot::signal2<TransportChannelImpl*,
                    const Candidate&> SignalCandidateReady;
   virtual void OnCandidate(const Candidate& candidate) = 0;
+
+  // TransportChannel is forwarding this signal from PortAllocatorSession.
+  sigslot::signal1<TransportChannelImpl*> SignalCandidatesAllocationDone;
  private:
   DISALLOW_EVIL_CONSTRUCTORS(TransportChannelImpl);
 };

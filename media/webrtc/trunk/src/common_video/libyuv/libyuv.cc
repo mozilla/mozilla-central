@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -13,11 +13,7 @@
 #include <assert.h>
 
 // LibYuv includes
-#ifdef WEBRTC_ANDROID
-#include "libyuv/files/include/libyuv.h"
-#else
 #include "third_party/libyuv/include/libyuv.h"
-#endif
 
 namespace webrtc {
 
@@ -49,6 +45,8 @@ VideoType RawVideoTypeToCommonVideoVideoType(RawVideoType type) {
       return kNV12;
     case kVideoBGRA:
       return kBGRA;
+    case kVideoMJPEG:
+      return kMJPG;
     default:
       assert(false);
   }
@@ -229,10 +227,9 @@ libyuv::RotationMode ConvertRotationMode(VideoRotationMode rotation) {
       return libyuv::kRotate180;
     case kRotate270:
       return libyuv::kRotate270;
-    default:
-      assert(false);
-      return libyuv::kRotate0;
   }
+  assert(false);
+  return libyuv::kRotate0;
 }
 
 int ConvertVideoType(VideoType video_type) {
@@ -268,10 +265,9 @@ int ConvertVideoType(VideoType video_type) {
       return libyuv::FOURCC_ARGB;
     case kBGRA:
       return libyuv::FOURCC_BGRA;
-    default:
-      assert(false);
-      return libyuv::FOURCC_ANY;
   }
+  assert(false);
+  return libyuv::FOURCC_ANY;
 }
 
 int ConvertToI420(VideoType src_video_type,

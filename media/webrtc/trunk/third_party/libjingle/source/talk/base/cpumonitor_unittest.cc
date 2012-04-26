@@ -47,6 +47,7 @@ static const int kMaxCpus = 1024;
 static const int kSettleTime = 100;  // Amount of time to between tests.
 static const int kIdleTime = 500;  // Amount of time to be idle in ms.
 static const int kBusyTime = 1000;  // Amount of time to be busy in ms.
+static const int kLongInterval = 2000;  // Interval longer than busy times
 
 class BusyThread : public talk_base::Thread {
  public:
@@ -359,8 +360,8 @@ TEST(CpuMonitorTest, TestInterval) {
   CpuSampler sampler;
   EXPECT_TRUE(sampler.Init());
 
-  // Test1: Interval of 500 ms
-  sampler.set_load_interval(500);
+  // Test1: Set interval to large value so sampler will not update.
+  sampler.set_load_interval(kLongInterval);
 
   sampler.GetProcessLoad();
   sampler.GetSystemLoad();
@@ -368,7 +369,7 @@ TEST(CpuMonitorTest, TestInterval) {
   float proc_orig = sampler.GetProcessLoad();
   float sys_orig = sampler.GetSystemLoad();
 
-  CpuBusyLoop(200);
+  Thread::SleepMs(kIdleTime);
 
   float proc_halftime = sampler.GetProcessLoad();
   float sys_halftime = sampler.GetSystemLoad();

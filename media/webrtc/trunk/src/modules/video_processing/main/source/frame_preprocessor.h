@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -63,17 +63,19 @@ public:
     VideoContentMetrics* ContentMetrics() const;
 
 private:
+    // The content does not change so much every frame, so to reduce complexity
+    // we can compute new content metrics every |kSkipFrameCA| frames.
+    enum { kSkipFrameCA = 2 };
 
     WebRtc_Word32              _id;
     VideoContentMetrics*      _contentMetrics;
-    WebRtc_UWord32             _nativeHeight;
-    WebRtc_UWord32             _nativeWidth;
     WebRtc_UWord32             _maxFrameRate;
-    VideoFrame           _resampledFrame;
+    VideoFrame                _resampledFrame;
     VPMSpatialResampler*     _spatialResampler;
     VPMContentAnalysis*      _ca;
     VPMVideoDecimator*       _vd;
     bool                     _enableCA;
+    int                      _frameCnt;
     
 }; // end of VPMFramePreprocessor class definition
 

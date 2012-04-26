@@ -64,8 +64,11 @@ extern const buzz::StaticQName QN_JINGLE_CONTENT;
 extern const buzz::StaticQName QN_JINGLE_CONTENT_NAME;
 extern const buzz::StaticQName QN_JINGLE_CONTENT_MEDIA;
 extern const buzz::StaticQName QN_JINGLE_REASON;
+extern const buzz::StaticQName QN_JINGLE_DRAFT_GROUP;
+extern const buzz::StaticQName QN_JINGLE_DRAFT_GROUP_TYPE;
 extern const char JINGLE_CONTENT_MEDIA_AUDIO[];
 extern const char JINGLE_CONTENT_MEDIA_VIDEO[];
+extern const char JINGLE_CONTENT_MEDIA_DATA[];
 extern const char JINGLE_ACTION_SESSION_INITIATE[];
 extern const char JINGLE_ACTION_SESSION_INFO[];
 extern const char JINGLE_ACTION_SESSION_ACCEPT[];
@@ -115,10 +118,11 @@ extern const char LN_BANDWIDTH[];
 // these values being the same as the ones received.
 extern const char CN_AUDIO[];
 extern const char CN_VIDEO[];
+extern const char CN_DATA[];
 extern const char CN_OTHER[];
 // other SDP related strings
 // GN stands for group name
-extern const char GN_BUNDLE[];
+extern const char GROUP_TYPE_BUNDLE[];
 
 extern const char NS_JINGLE_RTP[];
 extern const buzz::StaticQName QN_JINGLE_RTP_CONTENT;
@@ -181,6 +185,8 @@ extern const char GINGLE_CANDIDATE_NAME_RTP[];
 extern const char GINGLE_CANDIDATE_NAME_RTCP[];
 extern const char GINGLE_CANDIDATE_NAME_VIDEO_RTP[];
 extern const char GINGLE_CANDIDATE_NAME_VIDEO_RTCP[];
+extern const char GINGLE_CANDIDATE_NAME_DATA_RTP[];
+extern const char GINGLE_CANDIDATE_NAME_DATA_RTCP[];
 
 extern const char NS_GINGLE_RAW[];
 extern const buzz::StaticQName QN_GINGLE_RAW_TRANSPORT;

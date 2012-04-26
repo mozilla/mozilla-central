@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -18,11 +18,11 @@ AfterStreamingFixture::AfterStreamingFixture()
     : channel_(voe_base_->CreateChannel()) {
   EXPECT_GE(channel_, 0);
 
-  const std::string& input_file = resource_manager_.long_audio_file_path();
-  EXPECT_FALSE(input_file.empty());
+  fake_microphone_input_file_ = resource_manager_.long_audio_file_path();
+  EXPECT_FALSE(fake_microphone_input_file_.empty());
 
   SetUpLocalPlayback();
-  StartPlaying(input_file);
+  StartPlaying();
 }
 
 AfterStreamingFixture::~AfterStreamingFixture() {
@@ -32,6 +32,19 @@ AfterStreamingFixture::~AfterStreamingFixture() {
   voe_base_->StopReceive(channel_);
 
   voe_base_->DeleteChannel(channel_);
+}
+
+void AfterStreamingFixture::SwitchToManualMicrophone() {
+  EXPECT_EQ(0, voe_file_->StopPlayingFileAsMicrophone(channel_));
+
+  TEST_LOG("You need to speak manually into the microphone for this test.\n");
+  TEST_LOG("Please start speaking now.\n");
+  Sleep(1000);
+}
+
+void AfterStreamingFixture::RestartFakeMicrophone() {
+  EXPECT_EQ(0, voe_file_->StartPlayingFileAsMicrophone(
+        channel_, fake_microphone_input_file_.c_str(), true, true));
 }
 
 void AfterStreamingFixture::SetUpLocalPlayback() {
@@ -49,10 +62,9 @@ void AfterStreamingFixture::SetUpLocalPlayback() {
   voe_codec_->SetSendCodec(channel_, codec);
 }
 
-void AfterStreamingFixture::StartPlaying(const std::string& input_file) {
+void AfterStreamingFixture::StartPlaying() {
   EXPECT_EQ(0, voe_base_->StartReceive(channel_));
   EXPECT_EQ(0, voe_base_->StartPlayout(channel_));
   EXPECT_EQ(0, voe_base_->StartSend(channel_));
-  EXPECT_EQ(0, voe_file_->StartPlayingFileAsMicrophone(
-      channel_, input_file.c_str(), true, true));
+  RestartFakeMicrophone();
 }

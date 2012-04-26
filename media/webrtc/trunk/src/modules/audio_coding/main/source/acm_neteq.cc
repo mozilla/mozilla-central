@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -405,7 +405,7 @@ ACMNetEQ::SetPlayoutMode(
                 return -1;
             }
 
-            enum WebRtcNetEQPlayoutMode playoutMode;
+            enum WebRtcNetEQPlayoutMode playoutMode = kPlayoutOff;
             switch(mode)
             {
             case voice:
@@ -417,10 +417,6 @@ ACMNetEQ::SetPlayoutMode(
             case streaming:
                 playoutMode = kPlayoutStreaming;
                 break;
-            default:
-                WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
-                    "SetPlayoutMode: NetEq Error playout mode not recognized");
-                return -1;
             }
             if(WebRtcNetEQ_SetPlayoutMode(_inst[idx], playoutMode) < 0)
             {
@@ -517,10 +513,12 @@ ACMNetEQ::NetworkStatistics(
 
 WebRtc_Word32
 ACMNetEQ::RecIn(
-    const WebRtc_Word8*    incomingPayload,
+    const WebRtc_UWord8*   incomingPayload,
     const WebRtc_Word32    payloadLength,
     const WebRtcRTPHeader& rtpInfo)
 {
+    WebRtc_Word16 payload_length = static_cast<WebRtc_Word16>(payloadLength);
+
     // translate to NetEq struct
     WebRtcNetEQ_RTPInfo netEqRTPInfo;
     netEqRTPInfo.payloadType = rtpInfo.header.payloadType;
@@ -540,28 +538,32 @@ ACMNetEQ::RecIn(
         (_currentSampFreqKHz * nowInMs);
 
     int status;
-
-    if(rtpInfo.type.Audio.channel == 1)
-    {
-        if(!_isInitialized[0])
-        {
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
-                "RecIn: NetEq is not initialized.");
-            return -1;
-        }
-        // PUSH into Master
-        status = WebRtcNetEQ_RecInRTPStruct(_inst[0], &netEqRTPInfo,
-            (WebRtc_UWord8 *)incomingPayload, (WebRtc_Word16)payloadLength,
-            recvTimestamp);
-        if(status < 0)
-        {
-            LogError("RecInRTPStruct", 0);
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
-                "RecIn: NetEq, error in pushing in Master");
-            return -1;
-        }
+    // In case of stereo payload, first half of the data should be pushed into
+    // master, and the second half into slave.
+    if (rtpInfo.type.Audio.channel == 2) {
+      payload_length = payload_length / 2;
     }
-    else if(rtpInfo.type.Audio.channel == 2)
+
+    // Check that master is initialized.
+    if(!_isInitialized[0])
+    {
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
+            "RecIn: NetEq is not initialized.");
+        return -1;
+    }
+    // PUSH into Master
+    status = WebRtcNetEQ_RecInRTPStruct(_inst[0], &netEqRTPInfo,
+             incomingPayload, payload_length, recvTimestamp);
+    if(status < 0)
+    {
+        LogError("RecInRTPStruct", 0);
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
+                     "RecIn: NetEq, error in pushing in Master");
+        return -1;
+    }
+
+    // If the received stream is stereo, insert second half of paket into slave.
+    if(rtpInfo.type.Audio.channel == 2)
     {
         if(!_isInitialized[1])
         {
@@ -571,8 +573,9 @@ ACMNetEQ::RecIn(
         }
         // PUSH into Slave
         status = WebRtcNetEQ_RecInRTPStruct(_inst[1], &netEqRTPInfo,
-            (WebRtc_UWord8 *)incomingPayload, (WebRtc_Word16)payloadLength,
-            recvTimestamp);
+                                            &incomingPayload[payload_length],
+                                            payload_length,
+                                            recvTimestamp);
         if(status < 0)
         {
             LogError("RecInRTPStruct", 1);
@@ -580,14 +583,6 @@ ACMNetEQ::RecIn(
                 "RecIn: NetEq, error in pushing in Slave");
             return -1;
         }
-    }
-    else
-    {
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
-                "RecIn: NetEq, error invalid numbe of channels %d \
-(1, for Master stream, and 2, for slave stream, are valid values)",
-                rtpInfo.type.Audio.channel);
-        return -1;
     }
 
     return 0;
@@ -673,7 +668,7 @@ ACMNetEQ::RecOut(
 
                 // Check for errors that can be recovered from:
                 // RECOUT_ERROR_SAMPLEUNDERRUN = 2003
-                int errorCode = WebRtcNetEQ_GetErrorCode(_inst[0]);
+                int errorCode = WebRtcNetEQ_GetErrorCode(_inst[1]);
                 if(errorCode != 2003)
                 {
                     // Cannot recover; return an error
@@ -681,6 +676,7 @@ ACMNetEQ::RecOut(
                 }
             }
         }
+
         if(payloadLenSample != payloadLenSampleSlave)
         {
             WEBRTC_TRACE(webrtc::kTraceWarning, webrtc::kTraceAudioCoding, _id,
@@ -990,7 +986,7 @@ ACMNetEQ::FlushBuffers()
 
 WebRtc_Word32
 ACMNetEQ::GetVersion(
-    WebRtc_Word8*   version,
+    char*   version,
     WebRtc_UWord32& remainingBufferInBytes,
     WebRtc_UWord32& position)
 {
@@ -1000,7 +996,7 @@ ACMNetEQ::GetVersion(
     remainingBufferInBytes -= (position - len);
     len = position;
 
-    WebRtc_Word8 myVersion[100];
+    char myVersion[100];
     if(WebRtcNetEQ_GetVersion(myVersion) < 0)
     {
         return -1;
@@ -1115,11 +1111,11 @@ ACMNetEQ::SetUniqueId(
 
 void
 ACMNetEQ::LogError(
-    const WebRtc_Word8* neteqFuncName,
+    const char* neteqFuncName,
     const WebRtc_Word16 idx) const
 {
-    WebRtc_Word8 errorName[NETEQ_ERR_MSG_LEN_BYTE];
-    WebRtc_Word8 myFuncName[50];
+    char errorName[NETEQ_ERR_MSG_LEN_BYTE];
+    char myFuncName[50];
     int neteqErrorCode = WebRtcNetEQ_GetErrorCode(_inst[idx]);
     WebRtcNetEQ_GetErrorName(neteqErrorCode, errorName, NETEQ_ERR_MSG_LEN_BYTE - 1);
     strncpy(myFuncName, neteqFuncName, 49);
@@ -1231,7 +1227,7 @@ ACMNetEQ::AddSlave(
            return -1;
         }
 
-        enum WebRtcNetEQPlayoutMode playoutMode;
+        enum WebRtcNetEQPlayoutMode playoutMode = kPlayoutOff;
         switch(_playoutMode)
         {
         case voice:
@@ -1243,10 +1239,6 @@ ACMNetEQ::AddSlave(
         case streaming:
             playoutMode = kPlayoutStreaming;
             break;
-        default:
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
-                "AddSlave: NetEq Error, playout mode not recognized");
-            return -1;
         }
         if(WebRtcNetEQ_SetPlayoutMode(_inst[slaveIdx], playoutMode) < 0)
         {

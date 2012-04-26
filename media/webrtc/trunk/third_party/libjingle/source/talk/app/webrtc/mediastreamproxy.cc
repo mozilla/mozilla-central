@@ -142,7 +142,7 @@ std::string MediaStreamProxy::label() const {
   return media_stream_impl_->label();
 }
 
-MediaStreamInterface::ReadyState MediaStreamProxy::ready_state() {
+MediaStreamInterface::ReadyState MediaStreamProxy::ready_state() const {
   if (!signaling_thread_->IsCurrent()) {
     ReadyStateMessageData msg(MediaStreamInterface::kInitializing);
     Send(MSG_READY_STATE, &msg);
@@ -264,7 +264,7 @@ void MediaStreamProxy::MediaStreamTrackListProxy<T>::SetImplementation(
 }
 
 template <class T>
-size_t MediaStreamProxy::MediaStreamTrackListProxy<T>::count() {
+size_t MediaStreamProxy::MediaStreamTrackListProxy<T>::count() const {
   if (!signaling_thread_->IsCurrent()) {
     SizeTMessageData msg(0u);
     Send(MSG_COUNT, &msg);

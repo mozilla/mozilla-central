@@ -1,3 +1,13 @@
+/*
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree. An additional intellectual property rights grant can be found
+ *  in the file PATENTS.  All contributing project authors may
+ *  be found in the AUTHORS file in the root of the source tree.
+ */
+
 #ifndef MODULE_COMMON_TYPES_H
 #define MODULE_COMMON_TYPES_H
 
@@ -287,16 +297,31 @@ struct RTCPVoIPMetric
     WebRtc_UWord16    JBabsMax;
 };
 
+// Struct containing forward error correction settings.
+struct FecProtectionParams {
+  int fec_rate;
+  bool use_uep_protection;
+  int max_fec_frames;
+};
+
 // class describing a complete, or parts of an encoded frame.
 class EncodedVideoData
 {
 public:
     EncodedVideoData() :
+        payloadType(0),
+        timeStamp(0),
+        renderTimeMs(0),
+        encodedWidth(0),
+        encodedHeight(0),
         completeFrame(false),
         missingFrame(false),
         payloadData(NULL),
         payloadSize(0),
-        bufferSize(0)
+        bufferSize(0),
+        fragmentationHeader(),
+        frameType(kVideoFrameDelta),
+        codec(kVideoCodecUnknown)
     {};
 
     EncodedVideoData(const EncodedVideoData& data)
@@ -383,30 +408,24 @@ public:
     VideoCodecType              codec;
 };
 
-// Video Content Metrics
-struct VideoContentMetrics
-{
-    VideoContentMetrics(): motionMagnitudeNZ(0), sizeZeroMotion(0), spatialPredErr(0),
-            spatialPredErrH(0), spatialPredErrV(0), motionPredErr(0),
-            motionHorizontalness(0), motionClusterDistortion(0),
-            nativeWidth(0), nativeHeight(0), contentChange(false) {   }
-    void Reset(){ motionMagnitudeNZ = 0; sizeZeroMotion = 0; spatialPredErr = 0;
-            spatialPredErrH = 0; spatialPredErrV = 0; motionPredErr = 0;
-            motionHorizontalness = 0; motionClusterDistortion = 0;
-            nativeWidth = 0; nativeHeight = 0; contentChange = false; }
+struct VideoContentMetrics {
+  VideoContentMetrics()
+      : motion_magnitude(0.0f),
+        spatial_pred_err(0.0f),
+        spatial_pred_err_h(0.0f),
+        spatial_pred_err_v(0.0f) {
+  }
 
-    float            motionMagnitudeNZ;
-    float            sizeZeroMotion;
-    float            spatialPredErr;
-    float            spatialPredErrH;
-    float            spatialPredErrV;
-    float            motionPredErr;
-    float            motionHorizontalness;
-    float            motionClusterDistortion;
-    WebRtc_UWord32   nativeWidth;
-    WebRtc_UWord32   nativeHeight;
-    WebRtc_UWord32   nativeFrameRate;
-    bool             contentChange;
+  void Reset() {
+    motion_magnitude = 0.0f;
+    spatial_pred_err = 0.0f;
+    spatial_pred_err_h = 0.0f;
+    spatial_pred_err_v = 0.0f;
+  }
+  float motion_magnitude;
+  float spatial_pred_err;
+  float spatial_pred_err_h;
+  float spatial_pred_err_v;
 };
 
 /*************************************************
@@ -737,7 +756,7 @@ public:
 
     AudioFrame& Append(const AudioFrame& rhs);
 
-    void Mute() const;
+    void Mute();
 
     AudioFrame& operator=(const AudioFrame& rhs);
     AudioFrame& operator>>=(const WebRtc_Word32 rhs);
@@ -748,7 +767,7 @@ public:
     WebRtc_UWord32 _timeStamp;
 
     // Supporting Stereo, stereo samples are interleaved
-    mutable WebRtc_Word16 _payloadData[kMaxAudioFrameSizeSamples];
+    WebRtc_Word16 _payloadData[kMaxAudioFrameSizeSamples];
     WebRtc_UWord16 _payloadDataLengthInSamples;
     int _frequencyInHz;
     WebRtc_UWord8  _audioChannel;
@@ -825,7 +844,7 @@ AudioFrame::UpdateFrame(
 
 inline
 void
-AudioFrame::Mute() const
+AudioFrame::Mute()
 {
   memset(_payloadData, 0, _payloadDataLengthInSamples * sizeof(WebRtc_Word16));
 }

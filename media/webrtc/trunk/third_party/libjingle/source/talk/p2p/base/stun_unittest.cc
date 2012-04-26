@@ -313,6 +313,150 @@ static const unsigned char kStunMessageWithManyAttributes[] = {
   'a', 'b', 'c', 'd', 'e', 'f', 'g', 0  // DATA must be padded per rfc5766.
 };
 
+// RFC5769 Test Vectors
+// Software name:  "STUN test client" (without quotes)
+// Username:  "evtj:h6vY" (without quotes)
+// Password:  "VOkJxbRl1RmTxUk/WvJxBt" (without quotes)
+static const char kRfc5769SampleMsgPassword[] = "VOkJxbRl1RmTxUk/WvJxBt";
+static const unsigned char kRfc5769SampleRequest[] = {
+  0x00, 0x01, 0x00, 0x58,   //     Request type and message length
+  0x21, 0x12, 0xa4, 0x42,   //  Magic cookie
+  0xb7, 0xe7, 0xa7, 0x01,   // }
+  0xbc, 0x34, 0xd6, 0x86,   // }  Transaction ID
+  0xfa, 0x87, 0xdf, 0xae,   // }
+  0x80, 0x22, 0x00, 0x10,   // SOFTWARE attribute header
+  0x53, 0x54, 0x55, 0x4e,   // }
+  0x20, 0x74, 0x65, 0x73,   // }  User-agent...
+  0x74, 0x20, 0x63, 0x6c,   // }  ...name
+  0x69, 0x65, 0x6e, 0x74,   // }
+  0x00, 0x24, 0x00, 0x04,   //   PRIORITY attribute header
+  0x6e, 0x00, 0x01, 0xff,   //   ICE priority value
+  0x80, 0x29, 0x00, 0x08,   //   ICE-CONTROLLED attribute header
+  0x93, 0x2f, 0xf9, 0xb1,   // }  Pseudo-random tie breaker...
+  0x51, 0x26, 0x3b, 0x36,   // }   ...for ICE control
+  0x00, 0x06, 0x00, 0x09,   //   USERNAME attribute header
+  0x65, 0x76, 0x74, 0x6a,   // }
+  0x3a, 0x68, 0x36, 0x76,   // }  Username (9 bytes) and padding (3 bytes)
+  0x59, 0x20, 0x20, 0x20,   // }
+  0x00, 0x08, 0x00, 0x14,   //   MESSAGE-INTEGRITY attribute header
+  0x9a, 0xea, 0xa7, 0x0c,   // }
+  0xbf, 0xd8, 0xcb, 0x56,   // }
+  0x78, 0x1e, 0xf2, 0xb5,   // }  HMAC-SHA1 fingerprint
+  0xb2, 0xd3, 0xf2, 0x49,   // }
+  0xc1, 0xb5, 0x71, 0xa2,   // }
+  0x80, 0x28, 0x00, 0x04,   //   FINGERPRINT attribute header
+  0xe5, 0x7a, 0x3b, 0xcf    //   CRC32 fingerprint
+};
+
+static const unsigned char kRfc5769SampleResponse[] = {
+  0x01, 0x01, 0x00, 0x3c,  //   Response type and message length
+  0x21, 0x12, 0xa4, 0x42,  //   Magic cookie
+  0xb7, 0xe7, 0xa7, 0x01,  // }
+  0xbc, 0x34, 0xd6, 0x86,  // }  Transaction ID
+  0xfa, 0x87, 0xdf, 0xae,  // }
+  0x80, 0x22, 0x00, 0x0b,  //  SOFTWARE attribute header
+  0x74, 0x65, 0x73, 0x74,  // }
+  0x20, 0x76, 0x65, 0x63,  // }  UTF-8 server name
+  0x74, 0x6f, 0x72, 0x20,  // }
+  0x00, 0x20, 0x00, 0x08,  //   XOR-MAPPED-ADDRESS attribute header
+  0x00, 0x01, 0xa1, 0x47,  //   Address family (IPv4) and xor'd mapped port
+  0xe1, 0x12, 0xa6, 0x43,  //   Xor'd mapped IPv4 address
+  0x00, 0x08, 0x00, 0x14,  //   MESSAGE-INTEGRITY attribute header
+  0x2b, 0x91, 0xf5, 0x99,  // }
+  0xfd, 0x9e, 0x90, 0xc3,  // }
+  0x8c, 0x74, 0x89, 0xf9,  // }  HMAC-SHA1 fingerprint
+  0x2a, 0xf9, 0xba, 0x53,  // }
+  0xf0, 0x6b, 0xe7, 0xd7,  // }
+  0x80, 0x28, 0x00, 0x04,  //   FINGERPRINT attribute header
+  0xc0, 0x7d, 0x4c, 0x96   //   CRC32 fingerprint
+};
+
+static const unsigned char kRfc5769SampleIPv6Response[] = {
+  0x01, 0x01, 0x00, 0x48,   //  Response type and message length
+  0x21, 0x12, 0xa4, 0x42,   //  Magic cookie
+  0xb7, 0xe7, 0xa7, 0x01,   // }
+  0xbc, 0x34, 0xd6, 0x86,   // }  Transaction ID
+  0xfa, 0x87, 0xdf, 0xae,   // }
+  0x80, 0x22, 0x00, 0x0b,   //   SOFTWARE attribute header
+  0x74, 0x65, 0x73, 0x74,   // }
+  0x20, 0x76, 0x65, 0x63,   // }  UTF-8 server name
+  0x74, 0x6f, 0x72, 0x20,   // }
+  0x00, 0x20, 0x00, 0x14,   //   XOR-MAPPED-ADDRESS attribute header
+  0x00, 0x02, 0xa1, 0x47,   //  Address family (IPv6) and xor'd mapped port.
+  0x01, 0x13, 0xa9, 0xfa,   // }
+  0xa5, 0xd3, 0xf1, 0x79,   // }  Xor'd mapped IPv6 address
+  0xbc, 0x25, 0xf4, 0xb5,   // }
+  0xbe, 0xd2, 0xb9, 0xd9,   // }
+  0x00, 0x08, 0x00, 0x14,   //   MESSAGE-INTEGRITY attribute header
+  0xa3, 0x82, 0x95, 0x4e,   // }
+  0x4b, 0xe6, 0x7b, 0xf1,   // }
+  0x17, 0x84, 0xc9, 0x7c,   // }  HMAC-SHA1 fingerprint
+  0x82, 0x92, 0xc2, 0x75,   // }
+  0xbf, 0xe3, 0xed, 0x41,   // }
+  0x80, 0x28, 0x00, 0x04,   //   FINGERPRINT attribute header
+  0xc8, 0xfb, 0x0b, 0x4c    //   CRC32 fingerprint
+};
+
+// Length parameter is changed to 0x38 from 0x58.
+// AddMessageIntegrity will add MI information and update the length param
+// accordingly.
+static const unsigned char kRfc5769RequestWithoutMI[] = {
+  0x00, 0x01, 0x00, 0x38,   //     Request type and message length
+  0x21, 0x12, 0xa4, 0x42,   // Magic cookie
+  0xb7, 0xe7, 0xa7, 0x01,   // }
+  0xbc, 0x34, 0xd6, 0x86,   // }  Transaction ID
+  0xfa, 0x87, 0xdf, 0xae,   // }
+  0x80, 0x22, 0x00, 0x10,   // SOFTWARE attribute header
+  0x53, 0x54, 0x55, 0x4e,   // }
+  0x20, 0x74, 0x65, 0x73,   // }  User-agent...
+  0x74, 0x20, 0x63, 0x6c,   // }  ...name
+  0x69, 0x65, 0x6e, 0x74,   // }
+  0x00, 0x24, 0x00, 0x04,   //   PRIORITY attribute header
+  0x6e, 0x00, 0x01, 0xff,   //   ICE priority value
+  0x80, 0x29, 0x00, 0x08,   //   ICE-CONTROLLED attribute header
+  0x93, 0x2f, 0xf9, 0xb1,   // }  Pseudo-random tie breaker...
+  0x51, 0x26, 0x3b, 0x36,   // }   ...for ICE control
+  0x00, 0x06, 0x00, 0x09,   //   USERNAME attribute header
+  0x65, 0x76, 0x74, 0x6a,   // }
+  0x3a, 0x68, 0x36, 0x76,   // }  Username (9 bytes) and padding (3 bytes)
+  0x59, 0x20, 0x20, 0x20    // }
+};
+
+// This HMAC differs from the RFC 5769 SampleRequest message. This differs
+// because spec uses 0x20 for the padding where as our implementation uses 0.
+static const unsigned char kCalculatedHmac1[] = {
+  0x79, 0x07, 0xc2, 0xd2,   // }
+  0xed, 0xbf, 0xea, 0x48,   // }
+  0x0e, 0x4c, 0x76, 0xd8,   // }  HMAC-SHA1 fingerprint
+  0x29, 0x62, 0xd5, 0xc3,   // }
+  0x74, 0x2a, 0xf9, 0xe3    // }
+};
+
+static const unsigned char kRfc5769SampleResponseWithoutMI[] = {
+  0x01, 0x01, 0x00, 0x1c,  //   Response type and message length
+  0x21, 0x12, 0xa4, 0x42,  //   Magic cookie
+  0xb7, 0xe7, 0xa7, 0x01,  // }
+  0xbc, 0x34, 0xd6, 0x86,  // }  Transaction ID
+  0xfa, 0x87, 0xdf, 0xae,  // }
+  0x80, 0x22, 0x00, 0x0b,  //  SOFTWARE attribute header
+  0x74, 0x65, 0x73, 0x74,  // }
+  0x20, 0x76, 0x65, 0x63,  // }  UTF-8 server name
+  0x74, 0x6f, 0x72, 0x20,  // }
+  0x00, 0x20, 0x00, 0x08,  //   XOR-MAPPED-ADDRESS attribute header
+  0x00, 0x01, 0xa1, 0x47,  //   Address family (IPv4) and xor'd mapped port
+  0xe1, 0x12, 0xa6, 0x43  //   Xor'd mapped IPv4 address
+};
+
+// This HMAC differs from the RFC 5769 SampleResponse message. This differs
+// because spec uses 0x20 for the padding where as our implementation uses 0.
+static const unsigned char kCalculatedHmac2[] = {
+  0x5d, 0x6b, 0x58, 0xbe,  // }
+  0xad, 0x94, 0xe0, 0x7e,  // }
+  0xef, 0x0d, 0xfc, 0x12,  // }  HMAC-SHA1 fingerprint
+  0x82, 0xa2, 0xbd, 0x08,  // }
+  0x43, 0x14, 0x10, 0x28   // }
+};
+
 // RTCP packet, for testing we correctly ignore non stun packet types.
 // V=2, P=false, RC=0, Type=200, Len=6, Sender-SSRC=85, etc
 static const unsigned char kRtcpPacket[] = {
@@ -992,6 +1136,103 @@ TEST_F(StunTest, TestLegacyPacket) {
 
   DoTest(reinterpret_cast<const char*>(rfc3489_packet.get()),
          sizeof(kStunMessageWithManyAttributes), "01230123456789ab");
+}
+
+TEST_F(StunTest, TestValidateMessageIntegrity) {
+  StunMessage msg1;
+  talk_base::ByteBuffer buf(reinterpret_cast<const char*>(
+      kRfc5769SampleRequest), sizeof(kRfc5769SampleRequest));
+  EXPECT_TRUE(msg1.Read(&buf));
+  EXPECT_TRUE(msg1.ValidateMessageIntegrity(
+      reinterpret_cast<const char*>(kRfc5769SampleRequest),
+      sizeof(kRfc5769SampleRequest),
+      kRfc5769SampleMsgPassword));
+  EXPECT_FALSE(msg1.ValidateMessageIntegrity(
+      reinterpret_cast<const char*>(kRfc5769SampleRequest),
+      sizeof(kRfc5769SampleRequest),
+      "InvalidPassword"));
+
+  StunMessage msg2;
+  talk_base::ByteBuffer buf2(
+      reinterpret_cast<const char*>(kRfc5769SampleResponse),
+      sizeof(kRfc5769SampleResponse));
+  EXPECT_TRUE(msg2.Read(&buf2));
+  EXPECT_TRUE(msg2.ValidateMessageIntegrity(
+      reinterpret_cast<const char*>(kRfc5769SampleResponse),
+      sizeof(kRfc5769SampleResponse),
+      kRfc5769SampleMsgPassword));
+  EXPECT_FALSE(msg2.ValidateMessageIntegrity(
+      reinterpret_cast<const char*>(kRfc5769SampleResponse),
+      sizeof(kRfc5769SampleResponse),
+      "InvalidPassword"));
+
+  StunMessage msg3;
+  talk_base::ByteBuffer buf3(
+      reinterpret_cast<const char*>(kRfc5769SampleIPv6Response),
+      sizeof(kRfc5769SampleIPv6Response));
+  EXPECT_TRUE(msg3.Read(&buf3));
+  EXPECT_TRUE(msg3.ValidateMessageIntegrity(
+      reinterpret_cast<const char*>(kRfc5769SampleIPv6Response),
+      sizeof(kRfc5769SampleIPv6Response),
+      kRfc5769SampleMsgPassword));
+  EXPECT_FALSE(msg3.ValidateMessageIntegrity(
+      reinterpret_cast<const char*>(kRfc5769SampleIPv6Response),
+      sizeof(kRfc5769SampleIPv6Response),
+      "InvalidPassword"));
+
+  EXPECT_FALSE(StunMessage::ValidateMessageIntegrity(
+      reinterpret_cast<const char*>(kStunMessageWithZeroLength),
+      sizeof(kStunMessageWithZeroLength),
+      kRfc5769SampleMsgPassword));
+
+  EXPECT_FALSE(StunMessage::ValidateMessageIntegrity(
+      reinterpret_cast<const char*>(kStunMessageWithExcessLength),
+      sizeof(kStunMessageWithExcessLength),
+      kRfc5769SampleMsgPassword));
+
+  EXPECT_FALSE(StunMessage::ValidateMessageIntegrity(
+      reinterpret_cast<const char*>(kStunMessageWithSmallLength),
+      sizeof(kStunMessageWithSmallLength),
+      kRfc5769SampleMsgPassword));
+}
+
+TEST_F(StunTest, TestAddMessageIntegrity) {
+  StunMessage msg;
+  talk_base::ByteBuffer buf(
+      reinterpret_cast<const char*>(kRfc5769RequestWithoutMI),
+      sizeof(kRfc5769RequestWithoutMI));
+  EXPECT_TRUE(msg.Read(&buf));
+  msg.AddMessageIntegrity(kRfc5769SampleMsgPassword);
+  const StunByteStringAttribute* mi_attr =
+      msg.GetByteString(STUN_ATTR_MESSAGE_INTEGRITY);
+  EXPECT_EQ(20U, mi_attr->length());
+  EXPECT_EQ(0, std::memcmp(
+      mi_attr->bytes(), kCalculatedHmac1, sizeof(kCalculatedHmac1)));
+
+  talk_base::ByteBuffer buf1;
+  msg.Write(&buf1);
+  EXPECT_TRUE(msg.ValidateMessageIntegrity(
+        reinterpret_cast<const char*>(buf1.Data()), buf1.Length(),
+        kRfc5769SampleMsgPassword));
+
+
+  StunMessage msg2;
+  talk_base::ByteBuffer buf2(
+      reinterpret_cast<const char*>(kRfc5769SampleResponseWithoutMI),
+      sizeof(kRfc5769SampleResponseWithoutMI));
+  EXPECT_TRUE(msg2.Read(&buf2));
+  msg2.AddMessageIntegrity(kRfc5769SampleMsgPassword);
+  const StunByteStringAttribute* mi_attr2 =
+      msg2.GetByteString(STUN_ATTR_MESSAGE_INTEGRITY);
+  EXPECT_EQ(20U, mi_attr2->length());
+  EXPECT_EQ(0, std::memcmp(
+      mi_attr2->bytes(), kCalculatedHmac2, sizeof(kCalculatedHmac2)));
+
+  talk_base::ByteBuffer buf3;
+  msg2.Write(&buf3);
+  EXPECT_TRUE(msg2.ValidateMessageIntegrity(
+        reinterpret_cast<const char*>(buf3.Data()), buf3.Length(),
+        kRfc5769SampleMsgPassword));
 }
 
 }  // namespace cricket

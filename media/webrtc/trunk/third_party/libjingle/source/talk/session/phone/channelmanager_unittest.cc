@@ -40,8 +40,10 @@ class ChannelManagerTest : public testing::Test {
 
   virtual void SetUp() {
     fme_ = new cricket::FakeMediaEngine();
+    fdme_ = new cricket::FakeDataEngine();
     fdm_ = new cricket::FakeDeviceManager();
-    cm_ = new cricket::ChannelManager(fme_, fdm_, talk_base::Thread::Current());
+    cm_ = new cricket::ChannelManager(
+        fme_, fdme_, fdm_, talk_base::Thread::Current());
     session_ = new cricket::FakeSession();
 
     std::vector<std::string> in_device_list, out_device_list, vid_device_list;
@@ -61,11 +63,13 @@ class ChannelManagerTest : public testing::Test {
     delete cm_;
     cm_ = NULL;
     fdm_ = NULL;
+    fdme_ = NULL;
     fme_ = NULL;
   }
 
   talk_base::Thread worker_;
   cricket::FakeMediaEngine* fme_;
+  cricket::FakeDataEngine* fdme_;
   cricket::FakeDeviceManager* fdm_;
   cricket::ChannelManager* cm_;
   cricket::FakeSession* session_;
@@ -113,8 +117,13 @@ TEST_F(ChannelManagerTest, CreateDestroyChannels) {
       cm_->CreateVideoChannel(session_, cricket::CN_VIDEO,
                               false, voice_channel);
   EXPECT_TRUE(video_channel != NULL);
+  cricket::DataChannel* data_channel =
+      cm_->CreateDataChannel(session_, cricket::CN_DATA,
+                             false);
+  EXPECT_TRUE(data_channel != NULL);
   cm_->DestroyVideoChannel(video_channel);
   cm_->DestroyVoiceChannel(voice_channel);
+  cm_->DestroyDataChannel(data_channel);
   cm_->Terminate();
 }
 
@@ -130,8 +139,13 @@ TEST_F(ChannelManagerTest, CreateDestroyChannelsOnThread) {
       cm_->CreateVideoChannel(session_, cricket::CN_VIDEO,
                               false, voice_channel);
   EXPECT_TRUE(video_channel != NULL);
+  cricket::DataChannel* data_channel =
+      cm_->CreateDataChannel(session_, cricket::CN_DATA,
+                             false);
+  EXPECT_TRUE(data_channel != NULL);
   cm_->DestroyVideoChannel(video_channel);
   cm_->DestroyVoiceChannel(voice_channel);
+  cm_->DestroyDataChannel(data_channel);
   cm_->Terminate();
 }
 
@@ -151,6 +165,10 @@ TEST_F(ChannelManagerTest, NoTransportChannelTest) {
       cm_->CreateVideoChannel(session_, cricket::CN_VIDEO,
                               false, voice_channel);
   EXPECT_TRUE(video_channel == NULL);
+  cricket::DataChannel* data_channel =
+      cm_->CreateDataChannel(session_, cricket::CN_DATA,
+                             false);
+  EXPECT_TRUE(data_channel == NULL);
   cm_->Terminate();
 }
 
@@ -243,7 +261,7 @@ TEST_F(ChannelManagerTest, SetVideoOptionsBeforeInit) {
   // Test that values that we set before Init are applied.
   EXPECT_TRUE(cm_->SetVideoOptions("video-in2"));
   EXPECT_TRUE(cm_->Init());
-  EXPECT_EQ("video-in2", fme_->video_in_device());
+  EXPECT_EQ("video-in2", cm_->video_device_name());
 }
 
 TEST_F(ChannelManagerTest, GetVideoOptionsBeforeInit) {
@@ -263,10 +281,10 @@ TEST_F(ChannelManagerTest, SetVideoOptions) {
   // Test setting defaults.
   EXPECT_TRUE(cm_->Init());
   EXPECT_TRUE(cm_->SetVideoOptions(""));  // will use DeviceManager default
-  EXPECT_EQ("video-in1", fme_->video_in_device());
+  EXPECT_EQ("video-in1", cm_->video_device_name());
   // Test setting specific values.
   EXPECT_TRUE(cm_->SetVideoOptions("video-in2"));
-  EXPECT_EQ("video-in2", fme_->video_in_device());
+  EXPECT_EQ("video-in2", cm_->video_device_name());
   // TODO: Add test for invalid value here.
 }
 
@@ -324,7 +342,7 @@ TEST_F(ChannelManagerTest, SetVideoOptionsUnplugPlugOneCamera) {
   // Init should fall back to avatar.
   EXPECT_TRUE(cm_->Init());
   // The media engine should use no camera.
-  EXPECT_EQ("", fme_->video_in_device());
+  EXPECT_EQ("", cm_->video_device_name());
   // The channel manager keeps the user preference "video-in".
   std::string video_in;
   EXPECT_TRUE(cm_->GetVideoOptions(&video_in));
@@ -336,7 +354,7 @@ TEST_F(ChannelManagerTest, SetVideoOptionsUnplugPlugOneCamera) {
   fdm_->SetVideoCaptureDevices(vid_device_list);
   // Init again. The user preferred device, "video-in1", is used.
   EXPECT_TRUE(cm_->Init());
-  EXPECT_EQ("video-in1", fme_->video_in_device());
+  EXPECT_EQ("video-in1", cm_->video_device_name());
   EXPECT_TRUE(cm_->GetVideoOptions(&video_in));
   EXPECT_EQ("video-in1", video_in);
 }
@@ -352,7 +370,7 @@ TEST_F(ChannelManagerTest, SetVideoOptionsUnplugPlugTwoDevices) {
   // Init should fall back to default device "video-in2".
   EXPECT_TRUE(cm_->Init());
   // The media engine should use the default device "video-in2".
-  EXPECT_EQ("video-in2", fme_->video_in_device());
+  EXPECT_EQ("video-in2", cm_->video_device_name());
   // The channel manager keeps the user preference "video-in".
   std::string video_in;
   EXPECT_TRUE(cm_->GetVideoOptions(&video_in));
@@ -364,7 +382,7 @@ TEST_F(ChannelManagerTest, SetVideoOptionsUnplugPlugTwoDevices) {
   fdm_->SetVideoCaptureDevices(vid_device_list);
   // Init again. The user preferred device, "video-in1", is used.
   EXPECT_TRUE(cm_->Init());
-  EXPECT_EQ("video-in1", fme_->video_in_device());
+  EXPECT_EQ("video-in1", cm_->video_device_name());
   EXPECT_TRUE(cm_->GetVideoOptions(&video_in));
   EXPECT_EQ("video-in1", video_in);
 }

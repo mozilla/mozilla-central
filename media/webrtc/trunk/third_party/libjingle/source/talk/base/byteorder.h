@@ -33,6 +33,7 @@
 #endif
 
 #ifdef WIN32
+#include <stdlib.h>
 #include <winsock2.h>
 #endif
 
@@ -142,11 +143,22 @@ inline bool IsHostBigEndian() {
 }
 
 inline uint16 HostToNetwork16(uint16 n) {
+#ifdef WIN32
+  // This and below _byteswap_* are to remove the dependency to ws2_32.dll
+  // especially for chrome, where we don't load the ws2_32.dll in the render
+  // process. This is correct only on little-endian machines.
+  return _byteswap_ushort(n);
+#else
   return htons(n);
+#endif
 }
 
 inline uint32 HostToNetwork32(uint32 n) {
+#ifdef WIN32
+  return _byteswap_ulong(n);
+#else
   return htonl(n);
+#endif
 }
 
 inline uint64 HostToNetwork64(uint64 n) {
@@ -155,11 +167,19 @@ inline uint64 HostToNetwork64(uint64 n) {
 }
 
 inline uint16 NetworkToHost16(uint16 n) {
+#ifdef WIN32
+  return _byteswap_ushort(n);
+#else
   return ntohs(n);
+#endif
 }
 
 inline uint32 NetworkToHost32(uint32 n) {
+#ifdef WIN32
+  return _byteswap_ulong(n);
+#else
   return ntohl(n);
+#endif
 }
 
 inline uint64 NetworkToHost64(uint64 n) {

@@ -32,6 +32,7 @@
 #include <vector>
 
 #include "talk/session/phone/devicemanager.h"
+#include "talk/session/phone/fakevideocapturer.h"
 #include "talk/session/phone/mediacommon.h"
 
 namespace cricket {
@@ -75,6 +76,9 @@ class FakeDeviceManager : public DeviceManagerInterface {
   virtual bool GetVideoCaptureDevices(std::vector<Device>* devs) {
     *devs = vidcap_devices_;
     return true;
+  }
+  virtual VideoCapturer* CreateVideoCapturer(const Device& device) const {
+    return new FakeVideoCapturer();
   }
 
   virtual bool GetDefaultVideoCaptureDevice(Device* device) {

@@ -37,6 +37,8 @@
 
 namespace cricket {
 
+class VideoCapturer;
+
 // Used to represent an audio or video capture or render device.
 struct Device {
   Device() {}
@@ -73,6 +75,9 @@ class DeviceManagerInterface {
 
   virtual bool GetVideoCaptureDevices(std::vector<Device>* devs) = 0;
   virtual bool GetVideoCaptureDevice(const std::string& name, Device* out) = 0;
+
+  // Device creation
+  virtual VideoCapturer* CreateVideoCapturer(const Device& device) const = 0;
 
   sigslot::signal0<> SignalDevicesChange;
 
@@ -115,6 +120,8 @@ class DeviceManager : public DeviceManagerInterface {
 
   virtual bool GetVideoCaptureDevices(std::vector<Device>* devs);
   virtual bool GetVideoCaptureDevice(const std::string& name, Device* out);
+
+  virtual VideoCapturer* CreateVideoCapturer(const Device& device) const;
 
   // The exclusion_list MUST be a NULL terminated list.
   static bool FilterDevices(std::vector<Device>* devices,

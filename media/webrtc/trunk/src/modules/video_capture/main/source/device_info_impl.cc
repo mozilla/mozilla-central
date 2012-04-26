@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -43,10 +43,8 @@ DeviceInfoImpl::~DeviceInfoImpl(void)
     delete &_apiLock;
 }
 WebRtc_Word32 DeviceInfoImpl::NumberOfCapabilities(
-                                        const WebRtc_UWord8* deviceUniqueIdUTF8)
+                                        const char* deviceUniqueIdUTF8)
 {
-    WEBRTC_TRACE(webrtc::kTraceModuleCall, webrtc::kTraceVideoCapture, _id,
-               "NumberOfCapabilities, uniqueID %s", deviceUniqueIdUTF8);
 
     if (!deviceUniqueIdUTF8)
         return -1;
@@ -79,12 +77,10 @@ WebRtc_Word32 DeviceInfoImpl::NumberOfCapabilities(
     return ret;
 }
 
-WebRtc_Word32 DeviceInfoImpl::GetCapability(const WebRtc_UWord8* deviceUniqueIdUTF8,
+WebRtc_Word32 DeviceInfoImpl::GetCapability(const char* deviceUniqueIdUTF8,
                                             const WebRtc_UWord32 deviceCapabilityNumber,
                                             VideoCaptureCapability& capability)
 {
-    WEBRTC_TRACE(webrtc::kTraceModuleCall, webrtc::kTraceVideoCapture, _id,
-               "GetCapability capability number %d", deviceCapabilityNumber);
 
     if (!deviceUniqueIdUTF8)
     {
@@ -148,13 +144,11 @@ WebRtc_Word32 DeviceInfoImpl::GetCapability(const WebRtc_UWord8* deviceUniqueIdU
 }
 
 WebRtc_Word32 DeviceInfoImpl::GetBestMatchedCapability(
-                                        const WebRtc_UWord8*deviceUniqueIdUTF8,
-                                        const VideoCaptureCapability requested,
+                                        const char*deviceUniqueIdUTF8,
+                                        const VideoCaptureCapability& requested,
                                         VideoCaptureCapability& resulting)
 {
 
-    WEBRTC_TRACE(webrtc::kTraceModuleCall, webrtc::kTraceVideoCapture, _id,
-               "GetBestMatchedCapability unique ID %s", deviceUniqueIdUTF8);
 
     if (!deviceUniqueIdUTF8)
         return -1;
@@ -320,7 +314,7 @@ WebRtc_Word32 DeviceInfoImpl::GetBestMatchedCapability(
 WebRtc_Word32 DeviceInfoImpl::GetExpectedCaptureDelay(
                                           const DelayValues delayValues[],
                                           const WebRtc_UWord32 sizeOfDelayValues,
-                                          const WebRtc_UWord8* productId,
+                                          const char* productId,
                                           const WebRtc_UWord32 width,
                                           const WebRtc_UWord32 height)
 {
@@ -394,7 +388,7 @@ WebRtc_Word32 DeviceInfoImpl::GetExpectedCaptureDelay(
 }
 
 //Default implementation. This should be overridden by Mobile implementations.
-WebRtc_Word32 DeviceInfoImpl::GetOrientation(const WebRtc_UWord8* deviceUniqueIdUTF8,
+WebRtc_Word32 DeviceInfoImpl::GetOrientation(const char* deviceUniqueIdUTF8,
                                              VideoCaptureRotation& orientation)
 {
     orientation = kCameraRotate0;

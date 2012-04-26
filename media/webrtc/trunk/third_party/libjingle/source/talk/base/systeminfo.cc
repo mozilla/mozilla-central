@@ -98,9 +98,9 @@ SystemInfo::SystemInfo()
   // Initialize the basic information.
 
 #if defined(__arm__)
-  cpu_arch_ = ARCH_ARM;
+  cpu_arch_ = SI_ARCH_ARM;
 #elif defined(CPU_X86)
-  cpu_arch_ = ARCH_X86;
+  cpu_arch_ = SI_ARCH_X86;
 #else
 #error "Unknown architecture."
 #endif
@@ -181,7 +181,7 @@ int SystemInfo::GetMaxPhysicalCpus() {
 int SystemInfo::GetCurCpus() {
   int cur_cpus;
 #ifdef WIN32
-  DWORD process_mask, system_mask;
+  DWORD_PTR process_mask, system_mask;
   ::GetProcessAffinityMask(::GetCurrentProcess(), &process_mask, &system_mask);
   for (cur_cpus = 0; process_mask; ++cur_cpus) {
     // Sparse-ones algorithm. There are slightly faster methods out there but

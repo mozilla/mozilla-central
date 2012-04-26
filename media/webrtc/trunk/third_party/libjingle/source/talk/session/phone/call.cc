@@ -29,9 +29,11 @@
 #include "talk/base/helpers.h"
 #include "talk/base/logging.h"
 #include "talk/base/thread.h"
+#include "talk/base/window.h"
 #include "talk/p2p/base/parsing.h"
 #include "talk/session/phone/call.h"
 #include "talk/session/phone/mediasessionclient.h"
+#include "talk/session/phone/screencastid.h"
 
 namespace cricket {
 
@@ -47,13 +49,23 @@ const int kNoVoicemailTimeout = 1000*180;
 const int kMediaMonitorInterval = 1000*15;
 // In order to be the same as the server-side switching, this must be 100.
 const int kAudioMonitorPollPeriodMillis = 100;
+
+// V is a pointer type.
+template<class K, class V>
+V FindOrNull(const std::map<K, V>& map,
+             const K& key) {
+  typename std::map<K, V>::const_iterator it = map.find(key);
+  return (it != map.end()) ? it->second : NULL;
+}
+
 }
 
 Call::Call(MediaSessionClient* session_client)
     : id_(talk_base::CreateRandomId()),
       session_client_(session_client),
       local_renderer_(NULL),
-      video_(false),
+      has_video_(false),
+      has_data_(false),
       muted_(false),
       video_muted_(false),
       send_to_voicemail_(true),
@@ -62,18 +74,18 @@ Call::Call(MediaSessionClient* session_client)
 
 Call::~Call() {
   while (sessions_.begin() != sessions_.end()) {
-    Session *session = sessions_[0];
+    Session* session = sessions_[0];
     RemoveSession(session);
     session_client_->session_manager()->DestroySession(session);
   }
   talk_base::Thread::Current()->Clear(this);
 }
 
-Session *Call::InitiateSession(const buzz::Jid &jid,
+Session* Call::InitiateSession(const buzz::Jid &jid,
                                const CallOptions& options) {
   const SessionDescription* offer = session_client_->CreateOffer(options);
 
-  Session *session = session_client_->CreateSession(this);
+  Session* session = session_client_->CreateSession(this);
   AddSession(session, offer);
   session->Initiate(jid.Str(), offer);
 
@@ -98,7 +110,7 @@ void Call::IncomingSession(
 
 void Call::AcceptSession(Session* session,
                          const cricket::CallOptions& options) {
-  std::vector<Session *>::iterator it;
+  std::vector<Session*>::iterator it;
   it = std::find(sessions_.begin(), sessions_.end(), session);
   ASSERT(it != sessions_.end());
   if (it != sessions_.end()) {
@@ -107,8 +119,8 @@ void Call::AcceptSession(Session* session,
   }
 }
 
-void Call::RejectSession(Session *session) {
-  std::vector<Session *>::iterator it;
+void Call::RejectSession(Session* session) {
+  std::vector<Session*>::iterator it;
   it = std::find(sessions_.begin(), sessions_.end(), session);
   ASSERT(it != sessions_.end());
   // Assume polite decline.
@@ -116,10 +128,10 @@ void Call::RejectSession(Session *session) {
     session->Reject(STR_TERMINATE_DECLINE);
 }
 
-void Call::TerminateSession(Session *session) {
+void Call::TerminateSession(Session* session) {
   ASSERT(std::find(sessions_.begin(), sessions_.end(), session)
          != sessions_.end());
-  std::vector<Session *>::iterator it;
+  std::vector<Session*>::iterator it;
   it = std::find(sessions_.begin(), sessions_.end(), session);
   // Assume polite terminations.
   if (it != sessions_.end())
@@ -128,10 +140,10 @@ void Call::TerminateSession(Session *session) {
 
 void Call::Terminate() {
   // Copy the list so that we can iterate over it in a stable way
-  std::vector<Session *> sessions = sessions_;
+  std::vector<Session*> sessions = sessions_;
 
   // There may be more than one session to terminate
-  std::vector<Session *>::iterator it;
+  std::vector<Session*>::iterator it;
   for (it = sessions.begin(); it != sessions.end(); it++)
     TerminateSession(*it);
 }
@@ -167,9 +179,9 @@ void Call::SetLocalRenderer(VideoRenderer* renderer) {
   }
 }
 
-void Call::SetVideoRenderer(Session *session, uint32 ssrc,
+void Call::SetVideoRenderer(Session* session, uint32 ssrc,
                             VideoRenderer* renderer) {
-  VideoChannel *video_channel = GetVideoChannel(session);
+  VideoChannel* video_channel = GetVideoChannel(session);
   if (video_channel) {
     video_channel->SetRenderer(ssrc, renderer);
     LOG(LS_INFO) << "Set renderer of ssrc " << ssrc
@@ -179,44 +191,7 @@ void Call::SetVideoRenderer(Session *session, uint32 ssrc,
   }
 }
 
-
-
-
-void Call::AddAudioRecvStream(Session *session, const StreamParams& stream) {
-  VoiceChannel *voice_channel = GetVoiceChannel(session);
-  if (voice_channel && stream.has_ssrcs()) {
-    voice_channel->AddRecvStream(stream);
-  }
-  recv_streams_.AddAudioStream(stream);
-}
-
-void Call::AddVideoRecvStream(Session *session, const StreamParams& stream) {
-  VideoChannel *video_channel = GetVideoChannel(session);
-  if (video_channel && stream.has_ssrcs()) {
-    video_channel->AddRecvStream(stream);
-  }
-  recv_streams_.AddVideoStream(stream);
-}
-
-void Call::RemoveAudioRecvStream(Session *session, const StreamParams& stream) {
-  VoiceChannel *voice_channel = GetVoiceChannel(session);
-  // TODO: Change RemoveRecvStream to take a stream argument.
-  if (voice_channel && stream.has_ssrcs()) {
-    voice_channel->RemoveRecvStream(stream.first_ssrc());
-  }
-  recv_streams_.RemoveAudioStreamByNickAndName(stream.nick, stream.name);
-}
-
-void Call::RemoveVideoRecvStream(Session *session, const StreamParams& stream) {
-  VideoChannel *video_channel = GetVideoChannel(session);
-  // TODO: Change RemoveRecvStream to take a stream argument.
-  if (video_channel && stream.has_ssrcs()) {
-    video_channel->RemoveRecvStream(stream.first_ssrc());
-  }
-  recv_streams_.RemoveVideoStreamByNickAndName(stream.nick, stream.name);
-}
-
-void Call::OnMessage(talk_base::Message *message) {
+void Call::OnMessage(talk_base::Message* message) {
   switch (message->message_id) {
   case MSG_CHECKAUTODESTROY:
     // If no more sessions for this call, delete it
@@ -238,23 +213,26 @@ void Call::OnMessage(talk_base::Message *message) {
   }
 }
 
-const std::vector<Session *> &Call::sessions() {
+const std::vector<Session*> &Call::sessions() {
   return sessions_;
 }
 
-bool Call::AddSession(Session *session, const SessionDescription* offer) {
+bool Call::AddSession(Session* session, const SessionDescription* offer) {
   bool succeeded = true;
-  VoiceChannel *voice_channel = NULL;
-  VideoChannel *video_channel = NULL;
+  VoiceChannel* voice_channel = NULL;
+  VideoChannel* video_channel = NULL;
+  DataChannel* data_channel = NULL;
 
   const ContentInfo* audio_offer = GetFirstAudioContent(offer);
   const ContentInfo* video_offer = GetFirstVideoContent(offer);
-  video_ = (video_offer != NULL);
+  const ContentInfo* data_offer = GetFirstDataContent(offer);
+  has_video_ = (video_offer != NULL);
+  has_data_ = (data_offer != NULL);
 
   ASSERT(audio_offer != NULL);
   // Create voice channel and start a media monitor.
   voice_channel = session_client_->channel_manager()->CreateVoiceChannel(
-      session, audio_offer->name, video_);
+      session, audio_offer->name, has_video_);
   // voice_channel can be NULL in case of NullVoiceEngine.
   if (voice_channel) {
     voice_channel_map_[session->id()] = voice_channel;
@@ -265,7 +243,7 @@ bool Call::AddSession(Session *session, const SessionDescription* offer) {
   }
 
   // If desired, create video channel and start a media monitor.
-  if (video_ && succeeded) {
+  if (has_video_ && succeeded) {
     video_channel = session_client_->channel_manager()->CreateVideoChannel(
         session, video_offer->name, true, voice_channel);
     // video_channel can be NULL in case of NullVideoEngine.
@@ -273,6 +251,19 @@ bool Call::AddSession(Session *session, const SessionDescription* offer) {
       video_channel_map_[session->id()] = video_channel;
       video_channel->SignalMediaMonitor.connect(this, &Call::OnMediaMonitor);
       video_channel->StartMediaMonitor(kMediaMonitorInterval);
+    } else {
+      succeeded = false;
+    }
+  }
+
+  // If desired, create data channel
+  if (has_data_ && succeeded) {
+    bool rtcp = false;
+    data_channel = session_client_->channel_manager()->CreateDataChannel(
+        session, data_offer->name, rtcp);
+    if (data_channel) {
+      data_channel_map_[session->id()] = data_channel;
+      data_channel->SignalDataReceived.connect(this, &Call::OnDataReceived);
     } else {
       succeeded = false;
     }
@@ -305,30 +296,39 @@ bool Call::AddSession(Session *session, const SessionDescription* offer) {
   return succeeded;
 }
 
-void Call::RemoveSession(Session *session) {
+void Call::RemoveSession(Session* session) {
   // Remove session from list
-  std::vector<Session *>::iterator it_session;
+  std::vector<Session*>::iterator it_session;
   it_session = std::find(sessions_.begin(), sessions_.end(), session);
   if (it_session == sessions_.end())
     return;
   sessions_.erase(it_session);
 
   // Destroy video channel
-  std::map<std::string, VideoChannel *>::iterator it_vchannel;
+  std::map<std::string, VideoChannel*>::iterator it_vchannel;
   it_vchannel = video_channel_map_.find(session->id());
   if (it_vchannel != video_channel_map_.end()) {
-    VideoChannel *video_channel = it_vchannel->second;
+    VideoChannel* video_channel = it_vchannel->second;
     video_channel_map_.erase(it_vchannel);
     session_client_->channel_manager()->DestroyVideoChannel(video_channel);
   }
 
   // Destroy voice channel
-  std::map<std::string, VoiceChannel *>::iterator it_channel;
+  std::map<std::string, VoiceChannel*>::iterator it_channel;
   it_channel = voice_channel_map_.find(session->id());
   if (it_channel != voice_channel_map_.end()) {
-    VoiceChannel *voice_channel = it_channel->second;
+    VoiceChannel* voice_channel = it_channel->second;
     voice_channel_map_.erase(it_channel);
     session_client_->channel_manager()->DestroyVoiceChannel(voice_channel);
+  }
+
+  // Destroy data channel
+  std::map<std::string, DataChannel*>::iterator it_dchannel;
+  it_dchannel = data_channel_map_.find(session->id());
+  if (it_dchannel != data_channel_map_.end()) {
+    DataChannel* data_channel = it_dchannel->second;
+    data_channel_map_.erase(it_dchannel);
+    session_client_->channel_manager()->DestroyDataChannel(data_channel);
   }
 
   // Destroy speaker monitor
@@ -342,26 +342,35 @@ void Call::RemoveSession(Session *session) {
 }
 
 VoiceChannel* Call::GetVoiceChannel(Session* session) {
-  std::map<std::string, VoiceChannel *>::iterator it
+  std::map<std::string, VoiceChannel*>::iterator it
     = voice_channel_map_.find(session->id());
   return (it != voice_channel_map_.end()) ? it->second : NULL;
 }
 
 VideoChannel* Call::GetVideoChannel(Session* session) {
-  std::map<std::string, VideoChannel *>::iterator it
+  std::map<std::string, VideoChannel*>::iterator it
     = video_channel_map_.find(session->id());
   return (it != video_channel_map_.end()) ? it->second : NULL;
 }
 
+DataChannel* Call::GetDataChannel(Session* session) {
+  std::map<std::string, DataChannel*>::iterator it =
+      data_channel_map_.find(session->id());
+  return (it != data_channel_map_.end()) ? it->second : NULL;
+}
+
 void Call::EnableChannels(bool enable) {
-  std::vector<Session *>::iterator it;
+  std::vector<Session*>::iterator it;
   for (it = sessions_.begin(); it != sessions_.end(); it++) {
-    VoiceChannel *voice_channel = GetVoiceChannel(*it);
-    VideoChannel *video_channel = GetVideoChannel(*it);
+    VoiceChannel* voice_channel = GetVoiceChannel(*it);
+    VideoChannel* video_channel = GetVideoChannel(*it);
+    DataChannel* data_channel = GetDataChannel(*it);
     if (voice_channel != NULL)
       voice_channel->Enable(enable);
     if (video_channel != NULL)
       video_channel->Enable(enable);
+    if (data_channel != NULL)
+      data_channel->Enable(enable);
   }
   session_client_->channel_manager()->SetLocalRenderer(
       (enable) ? local_renderer_ : NULL);
@@ -369,9 +378,9 @@ void Call::EnableChannels(bool enable) {
 
 void Call::Mute(bool mute) {
   muted_ = mute;
-  std::vector<Session *>::iterator it;
+  std::vector<Session*>::iterator it;
   for (it = sessions_.begin(); it != sessions_.end(); it++) {
-    VoiceChannel *voice_channel = voice_channel_map_[(*it)->id()];
+    VoiceChannel* voice_channel = voice_channel_map_[(*it)->id()];
     if (voice_channel != NULL)
       voice_channel->Mute(mute);
   }
@@ -379,12 +388,24 @@ void Call::Mute(bool mute) {
 
 void Call::MuteVideo(bool mute) {
   video_muted_ = mute;
-  std::vector<Session *>::iterator it;
+  std::vector<Session*>::iterator it;
   for (it = sessions_.begin(); it != sessions_.end(); it++) {
-    VideoChannel *video_channel = video_channel_map_[(*it)->id()];
+    VideoChannel* video_channel = video_channel_map_[(*it)->id()];
     if (video_channel != NULL)
       video_channel->Mute(mute);
   }
+}
+
+void Call::SendData(Session* session,
+                    const DataMediaChannel::SendDataParams& params,
+                    const std::string& data) {
+  DataChannel* data_channel = GetDataChannel(session);
+  if (!data_channel) {
+    LOG(LS_WARNING) << "Could not send data: no data channel.";
+    return;
+  }
+
+  data_channel->SendData(params, data);
 }
 
 void Call::PressDTMF(int event) {
@@ -400,6 +421,65 @@ void Call::PressDTMF(int event) {
   }
 }
 
+void Call::AddScreencast(Session* session,
+                         const std::string& stream_name, uint32 ssrc,
+                         const ScreencastId& screencastid, int fps) {
+  VideoChannel *video_channel = GetVideoChannel(session);
+  if (!video_channel) {
+    LOG(LS_WARNING) << "Cannot add screencast"
+                    << " because there is no video channel.";
+    return;
+  }
+
+  // TODO: Verify we aren't re-using an existing name or
+  // ssrc.
+  StreamParams stream;
+  stream.name = stream_name;
+  stream.ssrcs.push_back(ssrc);
+  SendStreamUpdate(session, stream);
+  // TODO: Wait for view request to send screencast.
+  video_channel->AddScreencast(ssrc, screencastid, fps);
+}
+
+void Call::RemoveScreencast(Session* session,
+                            const std::string& stream_name, uint32 ssrc) {
+  VideoChannel *video_channel = GetVideoChannel(session);
+  if (!video_channel) {
+    LOG(LS_WARNING) << "Cannot remove screencast"
+                    << " because there is no video channel.";
+    return;
+  }
+
+  StreamParams stream;
+  stream.name = stream_name;
+  // No ssrcs
+  video_channel->RemoveScreencast(ssrc);
+  SendStreamUpdate(session, stream);
+}
+
+void Call::SendStreamUpdate(Session* session, const StreamParams& stream) {
+  const ContentInfo* video_info =
+      GetFirstVideoContent(session->local_description());
+  if (video_info == NULL) {
+    LOG(LS_WARNING) << "Cannot send stream update for video.";
+    return;
+  }
+
+  // A "stream update" is a partial content update (a
+  // "description-info") that new stream info and nothing else.
+  talk_base::scoped_ptr<VideoContentDescription> video(
+      new VideoContentDescription());
+  video->set_multistream(true);
+  video->set_partial(true);
+  video->AddStream(stream);
+
+  std::vector<ContentInfo> contents;
+  contents.push_back(
+      ContentInfo(video_info->name, video_info->type, video.get()));
+
+  session->SendDescriptionInfoMessage(contents);
+}
+
 void Call::ContinuePlayDTMF() {
   playing_dtmf_ = false;
 
@@ -411,9 +491,9 @@ void Call::ContinuePlayDTMF() {
     queued_dtmf_.pop_front();
 
     LOG(LS_INFO) << "Call::ContinuePlayDTMF(" << tone << ")";
-    std::vector<Session *>::iterator it;
+    std::vector<Session*>::iterator it;
     for (it = sessions_.begin(); it != sessions_.end(); it++) {
-      VoiceChannel *voice_channel = voice_channel_map_[(*it)->id()];
+      VoiceChannel* voice_channel = voice_channel_map_[(*it)->id()];
       if (voice_channel != NULL) {
         voice_channel->PressDTMF(tone, true);
       }
@@ -425,10 +505,10 @@ void Call::ContinuePlayDTMF() {
   }
 }
 
-void Call::Join(Call *call, bool enable) {
+void Call::Join(Call* call, bool enable) {
   while (call->sessions_.size() != 0) {
     // Move session
-    Session *session = call->sessions_[0];
+    Session* session = call->sessions_[0];
     call->sessions_.erase(call->sessions_.begin());
     sessions_.push_back(session);
     session->SignalState.connect(this, &Call::OnSessionState);
@@ -437,36 +517,38 @@ void Call::Join(Call *call, bool enable) {
       .connect(this, &Call::OnReceivedTerminateReason);
 
     // Move voice channel
-    std::map<std::string, VoiceChannel *>::iterator it_channel;
+    std::map<std::string, VoiceChannel*>::iterator it_channel;
     it_channel = call->voice_channel_map_.find(session->id());
     if (it_channel != call->voice_channel_map_.end()) {
-      VoiceChannel *voice_channel = (*it_channel).second;
+      VoiceChannel* voice_channel = (*it_channel).second;
       call->voice_channel_map_.erase(it_channel);
       voice_channel_map_[session->id()] = voice_channel;
       voice_channel->Enable(enable);
     }
 
     // Move video channel
-    std::map<std::string, VideoChannel *>::iterator it_vchannel;
+    std::map<std::string, VideoChannel*>::iterator it_vchannel;
     it_vchannel = call->video_channel_map_.find(session->id());
     if (it_vchannel != call->video_channel_map_.end()) {
-      VideoChannel *video_channel = (*it_vchannel).second;
+      VideoChannel* video_channel = (*it_vchannel).second;
       call->video_channel_map_.erase(it_vchannel);
       video_channel_map_[session->id()] = video_channel;
       video_channel->Enable(enable);
     }
+
+    // TODO: Move data channel?
   }
 }
 
-void Call::StartConnectionMonitor(Session *session, int cms) {
-  VoiceChannel *voice_channel = GetVoiceChannel(session);
+void Call::StartConnectionMonitor(Session* session, int cms) {
+  VoiceChannel* voice_channel = GetVoiceChannel(session);
   if (voice_channel) {
     voice_channel->SignalConnectionMonitor.connect(this,
         &Call::OnConnectionMonitor);
     voice_channel->StartConnectionMonitor(cms);
   }
 
-  VideoChannel *video_channel = GetVideoChannel(session);
+  VideoChannel* video_channel = GetVideoChannel(session);
   if (video_channel) {
     video_channel->SignalConnectionMonitor.connect(this,
         &Call::OnConnectionMonitor);
@@ -474,38 +556,38 @@ void Call::StartConnectionMonitor(Session *session, int cms) {
   }
 }
 
-void Call::StopConnectionMonitor(Session *session) {
-  VoiceChannel *voice_channel = GetVoiceChannel(session);
+void Call::StopConnectionMonitor(Session* session) {
+  VoiceChannel* voice_channel = GetVoiceChannel(session);
   if (voice_channel) {
     voice_channel->StopConnectionMonitor();
     voice_channel->SignalConnectionMonitor.disconnect(this);
   }
 
-  VideoChannel *video_channel = GetVideoChannel(session);
+  VideoChannel* video_channel = GetVideoChannel(session);
   if (video_channel) {
     video_channel->StopConnectionMonitor();
     video_channel->SignalConnectionMonitor.disconnect(this);
   }
 }
 
-void Call::StartAudioMonitor(Session *session, int cms) {
-  VoiceChannel *voice_channel = GetVoiceChannel(session);
+void Call::StartAudioMonitor(Session* session, int cms) {
+  VoiceChannel* voice_channel = GetVoiceChannel(session);
   if (voice_channel) {
     voice_channel->SignalAudioMonitor.connect(this, &Call::OnAudioMonitor);
     voice_channel->StartAudioMonitor(cms);
   }
 }
 
-void Call::StopAudioMonitor(Session *session) {
-  VoiceChannel *voice_channel = GetVoiceChannel(session);
+void Call::StopAudioMonitor(Session* session) {
+  VoiceChannel* voice_channel = GetVoiceChannel(session);
   if (voice_channel) {
     voice_channel->StopAudioMonitor();
     voice_channel->SignalAudioMonitor.disconnect(this);
   }
 }
 
-bool Call::IsAudioMonitorRunning(Session *session) {
-  VoiceChannel *voice_channel = GetVoiceChannel(session);
+bool Call::IsAudioMonitorRunning(Session* session) {
+  VoiceChannel* voice_channel = GetVoiceChannel(session);
   if (voice_channel) {
     return voice_channel->IsAudioMonitorRunning();
   } else {
@@ -513,7 +595,7 @@ bool Call::IsAudioMonitorRunning(Session *session) {
   }
 }
 
-void Call::StartSpeakerMonitor(Session *session) {
+void Call::StartSpeakerMonitor(Session* session) {
   if (speaker_monitor_map_.find(session->id()) == speaker_monitor_map_.end()) {
     if (!IsAudioMonitorRunning(session)) {
       StartAudioMonitor(session, kAudioMonitorPollPeriodMillis);
@@ -529,7 +611,7 @@ void Call::StartSpeakerMonitor(Session *session) {
   }
 }
 
-void Call::StopSpeakerMonitor(Session *session) {
+void Call::StopSpeakerMonitor(Session* session) {
   if (speaker_monitor_map_.find(session->id()) == speaker_monitor_map_.end()) {
     LOG(LS_WARNING) << "Speaker monitor for session "
                     << session->id() << " already stopped.";
@@ -541,40 +623,46 @@ void Call::StopSpeakerMonitor(Session *session) {
   }
 }
 
-void Call::OnConnectionMonitor(VoiceChannel *channel,
+void Call::OnConnectionMonitor(VoiceChannel* channel,
                                const std::vector<ConnectionInfo> &infos) {
   SignalConnectionMonitor(this, infos);
 }
 
-void Call::OnMediaMonitor(VoiceChannel *channel, const VoiceMediaInfo& info) {
+void Call::OnMediaMonitor(VoiceChannel* channel, const VoiceMediaInfo& info) {
   SignalMediaMonitor(this, info);
 }
 
-void Call::OnAudioMonitor(VoiceChannel *channel, const AudioInfo& info) {
+void Call::OnAudioMonitor(VoiceChannel* channel, const AudioInfo& info) {
   SignalAudioMonitor(this, info);
 }
 
 void Call::OnSpeakerMonitor(CurrentSpeakerMonitor* monitor, uint32 ssrc) {
   StreamParams stream;
   recv_streams_.GetAudioStreamBySsrc(ssrc, &stream);
-  SignalSpeakerMonitor(this, static_cast<Session *>(monitor->session()),
+  SignalSpeakerMonitor(this, static_cast<Session*>(monitor->session()),
                        stream);
 }
 
-void Call::OnConnectionMonitor(VideoChannel *channel,
+void Call::OnConnectionMonitor(VideoChannel* channel,
                                const std::vector<ConnectionInfo> &infos) {
   SignalVideoConnectionMonitor(this, infos);
 }
 
-void Call::OnMediaMonitor(VideoChannel *channel, const VideoMediaInfo& info) {
+void Call::OnMediaMonitor(VideoChannel* channel, const VideoMediaInfo& info) {
   SignalVideoMediaMonitor(this, info);
+}
+
+void Call::OnDataReceived(DataChannel* channel,
+                          const ReceiveDataParams& params,
+                          const std::string& data) {
+  SignalDataReceived(this, params, data);
 }
 
 uint32 Call::id() {
   return id_;
 }
 
-void Call::OnSessionState(BaseSession *session, BaseSession::State state) {
+void Call::OnSessionState(BaseSession* session, BaseSession::State state) {
   switch (state) {
     case Session::STATE_RECEIVEDACCEPT:
     case Session::STATE_RECEIVEDREJECT:
@@ -585,16 +673,16 @@ void Call::OnSessionState(BaseSession *session, BaseSession::State state) {
     default:
       break;
   }
-  SignalSessionState(this, static_cast<Session *>(session), state);
+  SignalSessionState(this, static_cast<Session*>(session), state);
 }
 
-void Call::OnSessionError(BaseSession *session, Session::Error error) {
+void Call::OnSessionError(BaseSession* session, Session::Error error) {
   session_client_->session_manager()->signaling_thread()->Clear(this,
       MSG_TERMINATECALL);
-  SignalSessionError(this, static_cast<Session *>(session), error);
+  SignalSessionError(this, static_cast<Session*>(session), error);
 }
 
-void Call::OnSessionInfoMessage(Session *session,
+void Call::OnSessionInfoMessage(Session* session,
                                 const buzz::XmlElement* action_elem) {
   if (!IsJingleViewRequest(action_elem)) {
     return;
@@ -607,7 +695,7 @@ void Call::OnSessionInfoMessage(Session *session,
     return;
   }
 
-  VideoChannel *video_channel = GetVideoChannel(session);
+  VideoChannel* video_channel = GetVideoChannel(session);
   if (video_channel == NULL) {
     LOG(LS_WARNING) << "Ignore view request since we have no video channel.";
     return;
@@ -641,9 +729,63 @@ void FindStreamChanges(const std::vector<StreamParams>& streams,
   }
 }
 
-void Call::OnRemoteDescriptionUpdate(BaseSession *base_session,
+void Call::UpdateRecvStreams(const std::vector<StreamParams>& update_streams,
+                             BaseChannel* channel,
+                             std::vector<StreamParams>* recv_streams,
+                             std::vector<StreamParams>* added_streams,
+                             std::vector<StreamParams>* removed_streams) {
+  FindStreamChanges(*recv_streams,
+                    update_streams, added_streams, removed_streams);
+  AddRecvStreams(*added_streams,
+                 channel, recv_streams);
+  RemoveRecvStreams(*removed_streams,
+                    channel, recv_streams);
+}
+
+void Call::AddRecvStreams(const std::vector<StreamParams>& added_streams,
+                          BaseChannel* channel,
+                          std::vector<StreamParams>* recv_streams) {
+  std::vector<StreamParams>::const_iterator stream;
+  for (stream = added_streams.begin();
+       stream != added_streams.end();
+       ++stream) {
+    AddRecvStream(*stream, channel, recv_streams);
+  }
+}
+
+void Call::AddRecvStream(const StreamParams& stream,
+                         BaseChannel* channel,
+                         std::vector<StreamParams>* recv_streams) {
+  if (channel && stream.has_ssrcs()) {
+    channel->AddRecvStream(stream);
+  }
+  recv_streams->push_back(stream);
+}
+
+void Call::RemoveRecvStreams(const std::vector<StreamParams>& removed_streams,
+                             BaseChannel* channel,
+                             std::vector<StreamParams>* recv_streams) {
+  std::vector<StreamParams>::const_iterator stream;
+  for (stream = removed_streams.begin();
+       stream != removed_streams.end();
+       ++stream) {
+    RemoveRecvStream(*stream, channel, recv_streams);
+  }
+}
+
+void Call::RemoveRecvStream(const StreamParams& stream,
+                            BaseChannel* channel,
+                            std::vector<StreamParams>* recv_streams) {
+  if (channel && stream.has_ssrcs()) {
+    // TODO: Change RemoveRecvStream to take a stream argument.
+    channel->RemoveRecvStream(stream.first_ssrc());
+  }
+  RemoveStreamByNickAndName(recv_streams, stream.nick, stream.name);
+}
+
+void Call::OnRemoteDescriptionUpdate(BaseSession* base_session,
                                      const ContentInfos& updated_contents) {
-  Session* session = static_cast<Session *>(base_session);
+  Session* session = static_cast<Session*>(base_session);
 
   cricket::MediaStreams added_streams;
   cricket::MediaStreams removed_streams;
@@ -656,21 +798,11 @@ void Call::OnRemoteDescriptionUpdate(BaseSession *base_session,
     if (!audio_update->codecs().empty()) {
       UpdateVoiceChannelRemoteContent(session, audio_update);
     }
-
-    FindStreamChanges(recv_streams_.audio(),
-                      audio_update->streams(),
+    UpdateRecvStreams(audio_update->streams(),
+                      GetVoiceChannel(session),
+                      recv_streams_.mutable_audio(),
                       added_streams.mutable_audio(),
                       removed_streams.mutable_audio());
-    for (stream = added_streams.audio().begin();
-         stream != added_streams.audio().end();
-         ++stream) {
-      AddAudioRecvStream(session, *stream);
-    }
-    for (stream = removed_streams.audio().begin();
-         stream != removed_streams.audio().end();
-         ++stream) {
-      RemoveAudioRecvStream(session, *stream);
-    }
   }
 
   const ContentInfo* video_content = GetFirstVideoContent(updated_contents);
@@ -680,21 +812,25 @@ void Call::OnRemoteDescriptionUpdate(BaseSession *base_session,
     if (!video_update->codecs().empty()) {
       UpdateVideoChannelRemoteContent(session, video_update);
     }
-
-    FindStreamChanges(recv_streams_.video(),
-                      video_update->streams(),
+    UpdateRecvStreams(video_update->streams(),
+                      GetVideoChannel(session),
+                      recv_streams_.mutable_video(),
                       added_streams.mutable_video(),
                       removed_streams.mutable_video());
-    for (stream = added_streams.video().begin();
-         stream != added_streams.video().end();
-         ++stream) {
-      AddVideoRecvStream(session, *stream);
+  }
+
+  const ContentInfo* data_content = GetFirstDataContent(updated_contents);
+  if (data_content) {
+    const DataContentDescription* data_update =
+        static_cast<const DataContentDescription*>(data_content->description);
+    if (!data_update->codecs().empty()) {
+      UpdateDataChannelRemoteContent(session, data_update);
     }
-    for (stream = removed_streams.video().begin();
-         stream != removed_streams.video().end();
-         ++stream) {
-      RemoveVideoRecvStream(session, *stream);
-    }
+    UpdateRecvStreams(data_update->streams(),
+                      GetDataChannel(session),
+                      recv_streams_.mutable_data(),
+                      added_streams.mutable_data(),
+                      removed_streams.mutable_data());
   }
 
   if (!added_streams.empty() || !removed_streams.empty()) {
@@ -704,7 +840,7 @@ void Call::OnRemoteDescriptionUpdate(BaseSession *base_session,
 
 bool Call::UpdateVoiceChannelRemoteContent(
     Session* session, const AudioContentDescription* audio) {
-  VoiceChannel *voice_channel = GetVoiceChannel(session);
+  VoiceChannel* voice_channel = GetVoiceChannel(session);
   if (!voice_channel->SetRemoteContent(audio, CA_UPDATE)) {
     LOG(LS_ERROR) << "Failure in audio SetRemoteContent with CA_UPDATE";
     session->SetError(BaseSession::ERROR_CONTENT);
@@ -715,7 +851,7 @@ bool Call::UpdateVoiceChannelRemoteContent(
 
 bool Call::UpdateVideoChannelRemoteContent(
     Session* session, const VideoContentDescription* video) {
-  VideoChannel *video_channel = GetVideoChannel(session);
+  VideoChannel* video_channel = GetVideoChannel(session);
   if (!video_channel->SetRemoteContent(video, CA_UPDATE)) {
     LOG(LS_ERROR) << "Failure in video SetRemoteContent with CA_UPDATE";
     session->SetError(BaseSession::ERROR_CONTENT);
@@ -724,8 +860,19 @@ bool Call::UpdateVideoChannelRemoteContent(
   return true;
 }
 
-void Call::OnReceivedTerminateReason(Session *session,
-                                     const std::string &reason) {
+bool Call::UpdateDataChannelRemoteContent(
+    Session* session, const DataContentDescription* data) {
+  DataChannel* data_channel = GetDataChannel(session);
+  if (!data_channel->SetRemoteContent(data, CA_UPDATE)) {
+    LOG(LS_ERROR) << "Failure in data SetRemoteContent with CA_UPDATE";
+    session->SetError(BaseSession::ERROR_CONTENT);
+    return false;
+  }
+  return true;
+}
+
+void Call::OnReceivedTerminateReason(Session* session,
+                                     const std::string& reason) {
   session_client_->session_manager()->signaling_thread()->Clear(this,
     MSG_TERMINATECALL);
   SignalReceivedTerminateReason(this, session, reason);

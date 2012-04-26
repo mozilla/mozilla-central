@@ -367,39 +367,6 @@ public:
     virtual WebRtc_UWord16 MaxDataPayloadLength() const = 0;
 
     /*
-    *   set RTPKeepaliveStatus
-    *
-    *   enable              - on/off
-    *   unknownPayloadType  - payload type to use for RTP keepalive
-    *   deltaTransmitTimeMS - delta time between RTP keepalive packets
-    *
-    *   return -1 on failure else 0
-    */
-    virtual WebRtc_Word32 SetRTPKeepaliveStatus(
-        const bool enable,
-        const WebRtc_Word8 unknownPayloadType,
-        const WebRtc_UWord16 deltaTransmitTimeMS) = 0;
-
-    /*
-    *   Get RTPKeepaliveStatus
-    *
-    *   enable              - on/off
-    *   unknownPayloadType  - payload type in use for RTP keepalive
-    *   deltaTransmitTimeMS - delta time between RTP keepalive packets
-    *
-    *   return -1 on failure else 0
-    */
-    virtual WebRtc_Word32 RTPKeepaliveStatus(
-        bool* enable,
-        WebRtc_Word8* unknownPayloadType,
-        WebRtc_UWord16* deltaTransmitTimeMS) const = 0;
-
-    /*
-    *   check if RTPKeepaliveStatus is enabled
-    */
-    virtual bool RTPKeepalive() const = 0;
-
-    /*
     *   set codec name and payload type
     *
     *   return -1 on failure else 0
@@ -565,6 +532,18 @@ public:
                              WebRtc_UWord32* videoRate,
                              WebRtc_UWord32* fecRate,
                              WebRtc_UWord32* nackRate) const = 0;
+
+    /*
+     *  Get the send-side estimate of the available bandwidth.
+     */
+    virtual int EstimatedSendBandwidth(
+        WebRtc_UWord32* available_bandwidth) const = 0;
+
+    /*
+     *  Get the receive-side estimate of the available bandwidth.
+     */
+    virtual int EstimatedReceiveBandwidth(
+        WebRtc_UWord32* available_bandwidth) const = 0;
 
     /*
     *   Used by the codec module to deliver a video or audio frame for packetization
@@ -801,6 +780,10 @@ public:
                                       const WebRtc_UWord8 numberOfSSRC,
                                       const WebRtc_UWord32* SSRC) = 0;
 
+    // Used to set maximum bitrate estimate received in a REMB packet.
+    virtual WebRtc_Word32 SetMaximumBitrateEstimate(
+        const WebRtc_UWord32 bitrate) = 0;
+
     // Registers an observer to call when the estimate of the incoming channel
     // changes.
     virtual bool SetRemoteBitrateObserver(
@@ -823,14 +806,6 @@ public:
     *   return -1 on failure else 0
     */
     virtual WebRtc_Word32 SetTMMBRStatus(const bool enable) = 0;
-
-    /*
-    *    local bw estimation changed
-    *
-    *    for video called by internal estimator
-    *    for audio (iSAC) called by engine, geting the data from the decoder
-    */
-    virtual void OnBandwidthEstimateUpdate(WebRtc_UWord16 bandWidthKbit) = 0;
 
     /*
     *   (NACK)
@@ -1010,9 +985,9 @@ public:
     *
     *   return -1 on failure else 0
     */
-    virtual WebRtc_Word32 SetSendBitrate(const WebRtc_UWord32 startBitrate,
-                                       const WebRtc_UWord16 minBitrateKbit,
-                                       const WebRtc_UWord16 maxBitrateKbit) = 0;
+    virtual void SetSendBitrate(const WebRtc_UWord32 startBitrate,
+                                const WebRtc_UWord16 minBitrateKbit,
+                                const WebRtc_UWord16 maxBitrateKbit) = 0;
 
     /*
     *   Turn on/off generic FEC
@@ -1033,32 +1008,9 @@ public:
                                          WebRtc_UWord8& payloadTypeFEC) = 0;
 
 
-    /*
-    *   Set FEC code rate of key and delta frames
-    *   codeRate on a scale of 0 to 255 where 255 is 100% added packets, hence protect up to 50% packet loss
-    *
-    *   return -1 on failure else 0
-    */
-    virtual WebRtc_Word32 SetFECCodeRate(const WebRtc_UWord8 keyFrameCodeRate,
-                                       const WebRtc_UWord8 deltaFrameCodeRate) = 0;
-
-
-    /*
-    *   Set FEC unequal protection (UEP) across packets,
-    *   for key and delta frames.
-    *
-    *   If keyUseUepProtection is true UEP is enabled for key frames.
-    *   If deltaUseUepProtection is true UEP is enabled for delta frames.
-    *
-    *   UEP skews the FEC protection towards being spent more on the
-    *   important packets, at the cost of less FEC protection for the
-    *   non-important packets.
-    *
-    *   return -1 on failure else 0
-    */
-    virtual WebRtc_Word32 SetFECUepProtection(const bool keyUseUepProtection,
-                                          const bool deltaUseUepProtection) = 0;
-
+    virtual WebRtc_Word32 SetFecParameters(
+        const FecProtectionParams* delta_params,
+        const FecProtectionParams* key_params) = 0;
 
     /*
     *   Set method for requestion a new key frame
@@ -1072,7 +1024,7 @@ public:
     *
     *   return -1 on failure else 0
     */
-    virtual WebRtc_Word32 RequestKeyFrame(const FrameType frameType = kVideoFrameKey) = 0;
+    virtual WebRtc_Word32 RequestKeyFrame() = 0;
 };
 } // namespace webrtc
 #endif // WEBRTC_MODULES_RTP_RTCP_INTERFACE_RTP_RTCP_H_

@@ -61,7 +61,7 @@ void AsyncResolver::OnWorkDone() {
 static hostent* DeepCopyHostent(const hostent* ent) {
   // Get the total number of bytes we need to copy, and allocate our buffer.
   int num_aliases = 0, num_addrs = 0;
-  int total_len = sizeof(hostent);
+  size_t total_len = sizeof(hostent);
   total_len += strlen(ent->h_name) + 1;
   while (ent->h_aliases[num_aliases]) {
     total_len += sizeof(char*) + strlen(ent->h_aliases[num_aliases]) + 1;

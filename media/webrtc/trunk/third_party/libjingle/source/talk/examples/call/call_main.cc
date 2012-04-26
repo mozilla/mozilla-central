@@ -231,6 +231,7 @@ int main(int argc, char **argv) {
   DEFINE_string(videoinput, NULL, "RTP dump file for video input.");
   DEFINE_string(videooutput, NULL, "RTP dump file for video output.");
   DEFINE_bool(render, true, "Renders the video.");
+  DEFINE_bool(datachannel, false, "Enable an RTP data channel.");
   DEFINE_bool(debugsrtp, false, "Enable debugging for srtp.");
   DEFINE_bool(help, false, "Prints this message");
 
@@ -255,6 +256,7 @@ int main(int argc, char **argv) {
   std::string caps_ver = FLAG_capsver;
   bool debugsrtp = FLAG_debugsrtp;
   bool render = FLAG_render;
+  bool data_channel_enabled = FLAG_datachannel;
 
   if (debugsrtp) {
     cricket::EnableSrtpDebugging();
@@ -397,6 +399,7 @@ int main(int argc, char **argv) {
   client->SetInitialProtocol(initial_protocol);
   client->SetSecurePolicy(secure_policy);
   client->SetRender(render);
+  client->SetDataChannelEnabled(data_channel_enabled);
   console->Start();
 
   if (debug) {

@@ -1,10 +1,14 @@
-//
-//  VideoCaptureMacQTKitInfoObjC.cpp
-//
-//
+/*
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree. An additional intellectual property rights grant can be found
+ *  in the file PATENTS.  All contributing project authors may
+ *  be found in the AUTHORS file in the root of the source tree.
+ */
 
 #pragma mark **** imports/includes
-
 
 #import "video_capture_qtkit_info_objc.h"
 
@@ -13,7 +17,6 @@
 using namespace webrtc;
 
 #pragma mark **** hidden class interface
-
 
 @implementation VideoCaptureMacQTKitInfoObjC
 
@@ -38,8 +41,6 @@ using namespace webrtc;
 /// ***** Objective-C. Similar to C++ destructor
 /// ***** Returns nothing
 - (void)dealloc {
-     WEBRTC_TRACE(kTraceModuleCall, kTraceVideoCapture, 0,
-                  "%s:%d", __FUNCTION__, __LINE__);
     [super dealloc];
 }
 
@@ -48,8 +49,8 @@ using namespace webrtc;
 
 /// ***** Creates a message box with Cocoa framework
 /// ***** Returns 0 on success, -1 otherwise.
-- (NSNumber*)displayCaptureSettingsDialogBoxWithDevice:(const WebRtc_UWord8*)deviceUniqueIdUTF8
-                    AndTitle:(const WebRtc_UWord8*)dialogTitleUTF8
+- (NSNumber*)displayCaptureSettingsDialogBoxWithDevice:(const char*)deviceUniqueIdUTF8
+                    AndTitle:(const char*)dialogTitleUTF8
                     AndParentWindow:(void*) parentWindow
                     AtX:(WebRtc_UWord32)positionX
                     AndY:(WebRtc_UWord32) positionY
@@ -73,11 +74,11 @@ using namespace webrtc;
 
 
 - (NSNumber*)getDeviceNamesFromIndex:(WebRtc_UWord32)index
-    DefaultName:(WebRtc_UWord8*)deviceName
+    DefaultName:(char*)deviceName
     WithLength:(WebRtc_UWord32)deviceNameLength
-    AndUniqueID:(WebRtc_UWord8*)deviceUniqueID
+    AndUniqueID:(char*)deviceUniqueID
     WithLength:(WebRtc_UWord32)deviceUniqueIDLength
-    AndProductID:(WebRtc_UWord8*)deviceProductID
+    AndProductID:(char*)deviceProductID
     WithLength:(WebRtc_UWord32)deviceProductIDLength
 {
     if(NO == _OSSupportedInfo)

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -32,22 +32,19 @@ WebRtc_Word16 MapSetting(EchoCancellation::SuppressionLevel level) {
       return kAecNlpModerate;
     case EchoCancellation::kHighSuppression:
       return kAecNlpAggressive;
-    default:
-      return -1;
   }
+  assert(false);
+  return -1;
 }
 
-int MapError(int err) {
+AudioProcessing::Error MapError(int err) {
   switch (err) {
     case AEC_UNSUPPORTED_FUNCTION_ERROR:
       return AudioProcessing::kUnsupportedFunctionError;
-      break;
     case AEC_BAD_PARAMETER_ERROR:
       return AudioProcessing::kBadParameterError;
-      break;
     case AEC_BAD_PARAMETER_WARNING:
       return AudioProcessing::kBadStreamParameterWarning;
-      break;
     default:
       // AEC_UNSPECIFIED_ERROR
       // AEC_UNINITIALIZED_ERROR
@@ -163,7 +160,7 @@ int EchoCancellationImpl::ProcessCaptureAudio(AudioBuffer* audio) {
 }
 
 int EchoCancellationImpl::Enable(bool enable) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   // Ensure AEC and AECM are not both enabled.
   if (enable && apm_->echo_control_mobile()->is_enabled()) {
     return apm_->kBadParameterError;
@@ -177,7 +174,7 @@ bool EchoCancellationImpl::is_enabled() const {
 }
 
 int EchoCancellationImpl::set_suppression_level(SuppressionLevel level) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   if (MapSetting(level) == -1) {
     return apm_->kBadParameterError;
   }
@@ -192,7 +189,7 @@ EchoCancellation::SuppressionLevel EchoCancellationImpl::suppression_level()
 }
 
 int EchoCancellationImpl::enable_drift_compensation(bool enable) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   drift_compensation_enabled_ = enable;
   return Configure();
 }
@@ -202,7 +199,7 @@ bool EchoCancellationImpl::is_drift_compensation_enabled() const {
 }
 
 int EchoCancellationImpl::set_device_sample_rate_hz(int rate) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   if (rate < 8000 || rate > 96000) {
     return apm_->kBadParameterError;
   }
@@ -226,7 +223,7 @@ int EchoCancellationImpl::stream_drift_samples() const {
 }
 
 int EchoCancellationImpl::enable_metrics(bool enable) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   metrics_enabled_ = enable;
   return Configure();
 }
@@ -238,7 +235,7 @@ bool EchoCancellationImpl::are_metrics_enabled() const {
 // TODO(ajm): we currently just use the metrics from the first AEC. Think more
 //            aboue the best way to extend this to multi-channel.
 int EchoCancellationImpl::GetMetrics(Metrics* metrics) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   if (metrics == NULL) {
     return apm_->kNullPointerError;
   }
@@ -285,7 +282,7 @@ bool EchoCancellationImpl::stream_has_echo() const {
 }
 
 int EchoCancellationImpl::enable_delay_logging(bool enable) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   delay_logging_enabled_ = enable;
   return Configure();
 }
@@ -296,7 +293,7 @@ bool EchoCancellationImpl::is_delay_logging_enabled() const {
 
 // TODO(bjornv): How should we handle the multi-channel case?
 int EchoCancellationImpl::GetDelayMetrics(int* median, int* std) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   if (median == NULL) {
     return apm_->kNullPointerError;
   }
@@ -324,15 +321,6 @@ int EchoCancellationImpl::Initialize() {
   }
 
   was_stream_drift_set_ = false;
-
-  return apm_->kNoError;
-}
-
-int EchoCancellationImpl::get_version(char* version,
-                                      int version_len_bytes) const {
-  if (WebRtcAec_get_version(version, version_len_bytes) != 0) {
-      return apm_->kBadParameterError;
-  }
 
   return apm_->kNoError;
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -13,6 +13,7 @@
 
 #include <cassert>
 #include <cstdio>
+#include <ctime>
 
 #ifndef S_ISDIR  // Not defined in stat.h on Windows.
 #define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
@@ -167,12 +168,6 @@ int HandleCommandLineFlags(webrtc::test::TestConfig* config) {
 
   // Check single core flag.
   config->use_single_core = FLAGS_use_single_core;
-
-  // Seed our random function if that flag is enabled. This will force
-  // repeatable behaviour between runs.
-  if (!FLAGS_disable_fixed_random_seed) {
-    srand(0);
-  }
 
   // Get codec specific configuration.
   webrtc::VideoCodingModule::Codec(webrtc::kVideoCodecVP8,
@@ -462,8 +457,8 @@ int main(int argc, char* argv[]) {
 
   PrintConfigurationSummary(config);
 
-  webrtc::VP8Encoder encoder;
-  webrtc::VP8Decoder decoder;
+  webrtc::VP8Encoder* encoder = webrtc::VP8Encoder::Create();
+  webrtc::VP8Decoder* decoder = webrtc::VP8Decoder::Create();
   webrtc::test::Stats stats;
   webrtc::test::FrameReaderImpl frame_reader(config.input_filename,
                                              config.frame_length_in_bytes);
@@ -475,15 +470,21 @@ int main(int argc, char* argv[]) {
 
   webrtc::test::PacketManipulatorImpl packet_manipulator(
       &packet_reader, config.networking_config, config.verbose);
-  webrtc::test::VideoProcessorImpl processor(&encoder, &decoder,
-                                             &frame_reader,
-                                             &frame_writer,
-                                             &packet_manipulator,
-                                             config, &stats);
-  processor.Init();
+  // By default the packet manipulator is seeded with a fixed random.
+  // If disabled we must generate a new seed.
+  if (FLAGS_disable_fixed_random_seed) {
+    packet_manipulator.InitializeRandomSeed(time(NULL));
+  }
+  webrtc::test::VideoProcessor* processor =
+      new webrtc::test::VideoProcessorImpl(encoder, decoder,
+                                           &frame_reader,
+                                           &frame_writer,
+                                           &packet_manipulator,
+                                           config, &stats);
+  processor->Init();
 
   int frame_number = 0;
-  while (processor.ProcessFrame(frame_number)) {
+  while (processor->ProcessFrame(frame_number)) {
     if (frame_number % 80 == 0) {
       Log("\n");  // make the output a bit nicer.
     }
@@ -494,8 +495,8 @@ int main(int argc, char* argv[]) {
   Log("Processed %d frames\n", frame_number);
 
   // Release encoder and decoder to make sure they have finished processing.
-  encoder.Release();
-  decoder.Release();
+  encoder->Release();
+  decoder->Release();
 
   // Verify statistics are correct:
   assert(frame_number == static_cast<int>(stats.stats_.size()));
@@ -517,6 +518,9 @@ int main(int argc, char* argv[]) {
   if (FLAGS_python) {
     PrintPythonOutput(config, stats, ssim_result, psnr_result);
   }
+  delete processor;
+  delete encoder;
+  delete decoder;
   Log("Quality test finished!");
   return 0;
 }

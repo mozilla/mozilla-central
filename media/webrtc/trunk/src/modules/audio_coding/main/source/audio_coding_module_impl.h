@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -46,7 +46,7 @@ public:
 
     // get version information for ACM and all components
     WebRtc_Word32 Version(
-        WebRtc_Word8*   version,
+        char*   version,
         WebRtc_UWord32& remainingBufferInBytes,
         WebRtc_UWord32& position) const;
 
@@ -187,14 +187,14 @@ public:
 
     // incoming packet from network parsed and ready for decode
     WebRtc_Word32 IncomingPacket(
-        const WebRtc_Word8*    incomingPayload,
+        const WebRtc_UWord8*   incomingPayload,
         const WebRtc_Word32    payloadLength,
         const WebRtcRTPHeader& rtpInfo);
 
     // Incoming payloads, without rtp-info, the rtp-info will be created in ACM.
     // One usage for this API is when pre-encoded files are pushed in ACM.
     WebRtc_Word32 IncomingPayload(
-        const WebRtc_Word8*  incomingPayload,
+        const WebRtc_UWord8* incomingPayload,
         const WebRtc_Word32  payloadLength,
         const WebRtc_UWord8  payloadType,
         const WebRtc_UWord32 timestamp = 0);
@@ -292,12 +292,12 @@ protected:
         WebRtcACMCodecParams&  codecParams) const;
 
     WebRtc_Word16 DecoderListIDByPlName(
-        const WebRtc_Word8*  payloadName,
+        const char*  payloadName,
         const WebRtc_UWord16 sampFreqHz = 0) const;
 
     WebRtc_Word32 InitializeReceiverSafe();
 
-    bool HaveValidEncoder(const WebRtc_Word8* callerName) const;
+    bool HaveValidEncoder(const char* callerName) const;
 
     WebRtc_Word32 RegisterRecCodecMSSafe(
         const CodecInst& receiveCodec,
@@ -311,11 +311,11 @@ private:
     WebRtc_UWord32                 _lastTimestamp;
     WebRtc_UWord32                 _lastInTimestamp;
     CodecInst                      _sendCodecInst;
-    CodecInst                      _cngNB;
-    CodecInst                      _cngWB;
-    CodecInst                      _cngSWB;
-    CodecInst                      _RED;
-    CodecInst                      _DTMF;
+    uint8_t                        _cng_nb_pltype;
+    uint8_t                        _cng_wb_pltype;
+    uint8_t                        _cng_swb_pltype;
+    uint8_t                        _red_pltype;
+    bool                           _cng_reg_receiver;
     bool                           _vadEnabled;
     bool                           _dtxEnabled;
     ACMVADMode                     _vadMode;
@@ -323,10 +323,12 @@ private:
     ACMGenericCodec*               _slaveCodecs[ACMCodecDB::kMaxNumCodecs];
     WebRtc_Word16                  _mirrorCodecIdx[ACMCodecDB::kMaxNumCodecs];
     bool                           _stereoReceive[ACMCodecDB::kMaxNumCodecs];
+    bool                           _stereoReceiveRegistered;
     bool                           _stereoSend;
     int                            _prev_received_channel;
     int                            _expected_channels;
     WebRtc_Word32                  _currentSendCodecIdx;
+    int                            _current_receive_codec_idx;
     bool                           _sendCodecRegistered;
     ACMResampler                   _inputResampler;
     ACMResampler                   _outputResampler;
@@ -341,7 +343,6 @@ private:
     WebRtc_UWord8*                 _redBuffer;
     RTPFragmentationHeader*        _fragmentation;
     WebRtc_UWord32                 _lastFECTimestamp;
-    WebRtc_UWord8                  _redPayloadType;
     // if no RED is registered as receive codec this
     // will have an invalid value.
     WebRtc_UWord8                  _receiveREDPayloadType;
@@ -369,6 +370,8 @@ private:
 #ifdef TIMED_LOGGING
     TimedTrace                     _trace;
 #endif
+
+    AudioFrame                     _audioFrame;
 
 #ifdef ACM_QA_TEST
     FILE* _outgoingPL;

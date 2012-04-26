@@ -480,7 +480,7 @@ class PseudoTcpTestReceiveWindow : public PseudoTcpTestBase {
     ASSERT_EQ(2u, send_position_.size());
     ASSERT_EQ(2u, recv_position_.size());
 
-    const size_t estimated_recv_window = recv_position_[0];
+    const size_t estimated_recv_window = EstimateReceiveWindowSize();
 
     // The difference in consecutive send positions should equal the
     // receive window size or match very closely. This verifies that receive
@@ -569,16 +569,28 @@ class PseudoTcpTestReceiveWindow : public PseudoTcpTestBase {
         sent = tosend = 0;
       }
     } while (sent > 0);
+    // At this point, we've filled up the available space in the send queue.
 
-    if (remote_.isReceiveBufferFull()) {
+    int message_queue_size = talk_base::Thread::Current()->size();
+    // The message queue will always have at least 2 messages, an RCLOCK and
+    // an LCLOCK, since they are added back on the delay queue at the same time
+    // they are pulled off and therefore are never really removed.
+    if (message_queue_size > 2) {
+      // If there are non-clock messages remaining, attempt to continue sending
+      // after giving those messages time to process, which should free up the
+      // send buffer.
+      talk_base::Thread::Current()->PostDelayed(10, this, MSG_WRITE);
+    } else {
+      if (!remote_.isReceiveBufferFull()) {
+        LOG(LS_ERROR) << "This shouldn't happen - the send buffer is full, "
+                      << "the receive buffer is not, and there are no "
+                      << "remaining messages to process.";
+      }
       send_stream_.GetPosition(&position);
       send_position_.push_back(position);
 
       // Drain the receiver buffer.
       ReadUntilIOPending();
-    } else {
-      // If the receiver side is not full then keep writing.
-      talk_base::Thread::Current()->PostDelayed(10, this, MSG_WRITE);
     }
   }
 

@@ -55,8 +55,6 @@ root_env = Environment(
     '$MAIN_DIR/..',  # TODO: how can we use GOOGLECLIENT instead?
   ],
   CPPDEFINES = [
-    # Temp flag while porting to hammer.
-    'HAMMER_TIME=1',
     'LOGGING=1',
 
     # Feature selection
@@ -94,11 +92,12 @@ DeclareBit('have_libpulse',
 
 # List all the locales we localize to.
 root_env.AppendUnique(locales = [
-    'ar', 'bg', 'bn', 'ca', 'cs', 'da', 'de', 'el', 'en', 'en-GB', 'es',
-    'es-419', 'et', 'fa', 'fi', 'fil', 'fr', 'gu', 'hi', 'hr', 'hu', 'id',
-    'is', 'it', 'iw', 'ja', 'kn', 'ko', 'lt', 'lv', 'ml', 'mr', 'ms', 'nl',
-    'no', 'or', 'pl', 'pt-BR', 'pt-PT', 'ro', 'ru', 'sk', 'sl', 'sr', 'sv',
-    'ta', 'te', 'th', 'tl', 'tr', 'uk', 'ur', 'vi', 'zh-CN', 'zh-TW'])
+    'af', 'am', 'ar', 'bg', 'bn', 'ca', 'cs', 'da', 'de', 'el', 'en', 'en-GB',
+    'es', 'es-419', 'et', 'eu', 'fa', 'fi', 'fil', 'fr', 'fr-CA', 'gl', 'gu',
+    'hi', 'hr', 'hu', 'id', 'is', 'it', 'iw', 'ja', 'kn', 'ko', 'lt', 'lv',
+    'ml', 'mr', 'ms', 'nl', 'no', 'or', 'pl', 'pt-BR', 'pt-PT', 'ro', 'ru',
+    'sk', 'sl', 'sr', 'sv', 'sw', 'ta', 'te', 'th', 'tl', 'tr', 'uk', 'ur',
+    'vi', 'zh-CN', 'zh-HK', 'zh-TW', 'zu'])
 
 AddTargetGroup('all_breakpads', 'breakpad files can be built')
 
@@ -126,6 +125,7 @@ win_env = root_env.Clone(
   TARGET_ARCH = 'x86',
 )
 
+win_env.Decider('MD5-timestamp')
 win_env.Append(
   COMPONENT_LIBRARY_PUBLISH = True,  # Put dlls in output dir too
   CCFLAGS = [
@@ -220,14 +220,60 @@ win_dbg_env = win_env.Clone(
 
 win_dbg_env.Prepend(
   CCFLAGS = [
-      '/ZI',     # enable debugging
-      '/Od',     # disable optimizations
-      '/MTd',    # link with LIBCMTD.LIB debug lib
-      '/RTC1',   # enable runtime checks
+    '/ZI',     # enable debugging
+    '/Od',     # disable optimizations
+    '/MTd',    # link with LIBCMTD.LIB debug lib
+    '/RTC1',   # enable runtime checks
   ],
 )
 
 envs.append(win_dbg_env)
+
+win_dbg64_env = win_dbg_env.Clone(
+  BUILD_TYPE = 'dbg64',
+  BUILD_TYPE_DESCRIPTION = 'Windows debug 64bit build',
+  BUILD_GROUPS = ['all'],
+)
+
+win_dbg64_env.FilterOut(CCFLAGS = ['/ZI'])
+
+win_dbg64_env.Append(
+  # TODO: Consider CCFLAGS '/wd4244', '/wd4267'
+  CCFLAGS = [
+    '/Zi',     # enable debugging that is 64 bit compatible
+  ],
+  ARFLAGS = [
+    '/MACHINE:x64',
+  ],
+  CPPDEFINES = [
+    'WIN64',
+    'ARCH_CPU_64_BITS',
+  ],
+  LIBFLAGS = [
+    '/MACHINE:x64',
+  ],
+  LINKFLAGS = [
+    '/MACHINE:x64',
+  ],
+)
+
+win_dbg64_env.FilterOut(CPPDEFINES = ['_USE_32BIT_TIME_T'])
+
+win_dbg64_env.Prepend(
+  LIBPATH = [
+      '$VC80_DIR/vc/lib/amd64',
+      '$ATLMFC_VC80_DIR/lib/amd64',
+      '$PLATFORM_SDK_VISTA_6_0_DIR/Lib/x64',
+  ],
+)
+win_dbg64_env.PrependENVPath(
+  'PATH',
+  win_dbg64_env.Dir('$VC80_DIR/vc/bin/x86_amd64'))
+
+win_dbg64_env.SetBits('host_platform_64bit')
+
+envs.append(win_dbg64_env)
+
 
 win_coverage_env = win_dbg_env.Clone(
   tools = ['code_coverage'],
@@ -379,7 +425,7 @@ mac_opt_env = mac_env.Clone(
 )
 mac_opt_env.Append(
   CCFLAGS = [
-    # TODO: Figure out how mk can compile without
+    # TODO: Figure out how hammer can compile without
     # this flag, then remove.  Confirmed asserts are preprocessed
     # out.  Maybe it's a different version of gcc?
     '-Wno-unused-variable',
@@ -560,6 +606,10 @@ if os.environ.get("CXXFLAGS"):
 if os.environ.get("LIBFLAGS"):
   linux_cross_common_env.Append(
     _LIBFLAGS = os.environ.get("LIBFLAGS").split(' '),
+  )
+if os.environ.get("LINKFLAGS"):
+  linux_cross_common_env.Prepend(
+    LINKFLAGS = os.environ.get("LINKFLAGS").split(' '),
   )
 
 #-------------------------------------------------------------------------------

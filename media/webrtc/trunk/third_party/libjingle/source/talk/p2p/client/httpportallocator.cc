@@ -140,7 +140,10 @@ void HttpPortAllocatorSessionBase::GetPortConfigurations() {
   // but for now is done here and added to the initial config.  Note any later
   // configs will have unresolved stun ips and will be discarded by the
   // AllocationSequence.
-  PortConfiguration* config = new PortConfiguration(stun_hosts_[0], "", "", "");
+  PortConfiguration* config = new PortConfiguration(stun_hosts_[0],
+                                                    username(),
+                                                    password(),
+                                                    "");
   ConfigReady(config);
   TryCreateRelaySession();
 }
@@ -265,7 +268,9 @@ void HttpPortAllocatorSession::SendSessionRequest(const std::string& host,
   request->set_proxy(allocator()->proxy());
   request->response().document.reset(new talk_base::MemoryStream);
   request->request().verb = talk_base::HV_GET;
-  request->request().path = HttpPortAllocator::kCreateSessionURL;
+  std::string url = std::string(HttpPortAllocator::kCreateSessionURL) +
+      "?username=" + username() + "&password=" + password();
+  request->request().path = url;
   request->request().addHeader("X-Talk-Google-Relay-Auth", relay_token(), true);
   request->request().addHeader("X-Google-Relay-Auth", relay_token(), true);
   request->request().addHeader("X-Session-Type", session_type(), true);
@@ -274,6 +279,7 @@ void HttpPortAllocatorSession::SendSessionRequest(const std::string& host,
   request->set_port(port);
   request->Start();
   request->Release();
+
   requests_.push_back(request);
 }
 

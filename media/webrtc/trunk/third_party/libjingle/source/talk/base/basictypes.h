@@ -94,10 +94,24 @@ typedef unsigned char uint8;
 typedef signed char int8;
 #endif  // INT_TYPES_DEFINED
 
+// Detect compiler is for x86 or x64.
+#if defined(__x86_64__) || defined(_M_X64) || \
+    defined(__i386__) || defined(_M_IX86)
+#define CPU_X86 1
+#endif
+
 #ifdef WIN32
 typedef int socklen_t;
 #endif
 
+#if defined(__GNUC__)
+#define GCC_ATTR(x) __attribute__ ((x))
+#else  // !__GNUC__
+#define GCC_ATTR(x)
+#endif  // !__GNUC__
+
+// The following only works for C++
+#ifdef __cplusplus
 namespace talk_base {
   template<class T> inline T _min(T a, T b) { return (a > b) ? b : a; }
   template<class T> inline T _max(T a, T b) { return (a < b) ? b : a; }
@@ -106,12 +120,6 @@ namespace talk_base {
   // unlimited time.
   const int kForever = -1;
 }
-
-// Detect compiler is for x86 or x64.
-#if defined(__x86_64__) || defined(_M_X64) || \
-    defined(__i386__) || defined(_M_IX86)
-#define CPU_X86 1
-#endif
 
 #define ALIGNP(p, t) \
   (reinterpret_cast<uint8*>(((reinterpret_cast<uintptr_t>(p) + \
@@ -127,15 +135,10 @@ namespace talk_base {
 inline void Unused(const void *) { }
 #endif // UNUSED
 
-#if defined(__GNUC__)
-#define GCC_ATTR(x) __attribute__ ((x))
-#else  // !__GNUC__
-#define GCC_ATTR(x)
-#endif  // !__GNUC__
-
 // Use these to declare and define a static local variable (static T;) so that
 // it is leaked so that its destructors are not called at exit.
 #define LIBJINGLE_DEFINE_STATIC_LOCAL(type, name, arguments) \
   static type& name = *new type arguments
 
+#endif // __cplusplus
 #endif // TALK_BASE_BASICTYPES_H_

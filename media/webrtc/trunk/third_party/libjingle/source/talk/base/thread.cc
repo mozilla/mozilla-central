@@ -306,7 +306,7 @@ void SetThreadName(DWORD dwThreadID, LPCSTR szThreadName) {
 
   __try {
     RaiseException(MSDEV_SET_THREAD_NAME, 0, sizeof(info) / sizeof(DWORD),
-                   reinterpret_cast<DWORD*>(&info));
+                   reinterpret_cast<ULONG_PTR*>(&info));
   }
   __except(EXCEPTION_CONTINUE_EXECUTION) {
   }

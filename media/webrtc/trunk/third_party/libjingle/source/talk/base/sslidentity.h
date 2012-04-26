@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2008, Google Inc.
+ * Copyright 2004, Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
@@ -27,19 +27,13 @@
 
 // Handling of certificates and keypairs for SSLStreamAdapter's peer mode.
 
-#ifndef TALK_BASE_SSLIDENTITY_H__
-#define TALK_BASE_SSLIDENTITY_H__
+#ifndef TALK_BASE_SSLIDENTITY_H_
+#define TALK_BASE_SSLIDENTITY_H_
 
 #include <string>
+#include "talk/base/messagedigest.h"
 
 namespace talk_base {
-
-// Definitions for the digest algorithms
-extern const char DIGEST_SHA_1[];
-extern const char DIGEST_SHA_224[];
-extern const char DIGEST_SHA_256[];
-extern const char DIGEST_SHA_384[];
-extern const char DIGEST_SHA_512[];
 
 // Abstract interface overridden by SSL library specific
 // implementations.

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -11,8 +11,8 @@
 #ifndef WEBRTC_MODULES_VIDEO_CAPTURE_MAIN_INTERFACE_VIDEO_CAPTURE_H_
 #define WEBRTC_MODULES_VIDEO_CAPTURE_MAIN_INTERFACE_VIDEO_CAPTURE_H_
 
-#include "module.h"
-#include "video_capture_defines.h"
+#include "modules/interface/module.h"
+#include "modules/video_capture/main/interface/video_capture_defines.h"
 
 namespace webrtc {
 
@@ -32,42 +32,42 @@ class VideoCaptureModule: public RefCountedModule {
     //                       Null terminated otherwise.
     virtual WebRtc_Word32 GetDeviceName(
         WebRtc_UWord32 deviceNumber,
-        WebRtc_UWord8* deviceNameUTF8,
+        char* deviceNameUTF8,
         WebRtc_UWord32 deviceNameLength,
-        WebRtc_UWord8* deviceUniqueIdUTF8,
+        char* deviceUniqueIdUTF8,
         WebRtc_UWord32 deviceUniqueIdUTF8Length,
-        WebRtc_UWord8* productUniqueIdUTF8 = 0,
+        char* productUniqueIdUTF8 = 0,
         WebRtc_UWord32 productUniqueIdUTF8Length = 0) = 0;
 
 
     // Returns the number of capabilities this device.
     virtual WebRtc_Word32 NumberOfCapabilities(
-        const WebRtc_UWord8* deviceUniqueIdUTF8) = 0;
+        const char* deviceUniqueIdUTF8) = 0;
 
     // Gets the capabilities of the named device.
     virtual WebRtc_Word32 GetCapability(
-        const WebRtc_UWord8* deviceUniqueIdUTF8,
+        const char* deviceUniqueIdUTF8,
         const WebRtc_UWord32 deviceCapabilityNumber,
         VideoCaptureCapability& capability) = 0;
 
     // Gets clockwise angle the captured frames should be rotated in order
     // to be displayed correctly on a normally rotated display.
     virtual WebRtc_Word32 GetOrientation(
-        const WebRtc_UWord8* deviceUniqueIdUTF8,
+        const char* deviceUniqueIdUTF8,
         VideoCaptureRotation& orientation) = 0;
 
     // Gets the capability that best matches the requested width, height and
     // frame rate.
     // Returns the deviceCapabilityNumber on success.
     virtual WebRtc_Word32 GetBestMatchedCapability(
-        const WebRtc_UWord8*deviceUniqueIdUTF8,
-        const VideoCaptureCapability requested,
+        const char* deviceUniqueIdUTF8,
+        const VideoCaptureCapability& requested,
         VideoCaptureCapability& resulting) = 0;
 
      // Display OS /capture device specific settings dialog
     virtual WebRtc_Word32 DisplayCaptureSettingsDialogBox(
-        const WebRtc_UWord8* deviceUniqueIdUTF8,
-        const WebRtc_UWord8* dialogTitleUTF8,
+        const char* deviceUniqueIdUTF8,
+        const char* dialogTitleUTF8,
         void* parentWindow,
         WebRtc_UWord32 positionX,
         WebRtc_UWord32 positionY) = 0;
@@ -125,7 +125,7 @@ class VideoCaptureModule: public RefCountedModule {
   virtual WebRtc_Word32 StopSendImage() = 0;
 
   // Returns the name of the device used by this module.
-  virtual const WebRtc_UWord8* CurrentDeviceName() const = 0;
+  virtual const char* CurrentDeviceName() const = 0;
 
   // Returns true if the capture device is running
   virtual bool CaptureStarted() = 0;

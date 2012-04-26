@@ -10,6 +10,7 @@
 #include "talk/base/basicpacketsocketfactory.h"
 #include "talk/base/helpers.h"
 #include "talk/base/httpcommon.h"
+#include "talk/base/httpcommon-inl.h"
 #include "talk/base/logging.h"
 #include "talk/base/proxydetect.h"
 #include "talk/base/thread.h"
@@ -338,6 +339,8 @@ StunPort* ConnectivityChecker::CreateStunPort(
                           network->ip(),
                           0,
                           0,
+                          config->username,
+                          config->password,
                           config->stun_address);
 }
 

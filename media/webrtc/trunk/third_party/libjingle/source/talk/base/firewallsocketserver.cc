@@ -191,11 +191,19 @@ bool FirewallSocketServer::Check(FirewallProtocol p,
 }
 
 Socket* FirewallSocketServer::CreateSocket(int type) {
-  return WrapSocket(server_->CreateAsyncSocket(type), type);
+  return CreateSocket(AF_INET, type);
+}
+
+Socket* FirewallSocketServer::CreateSocket(int family, int type) {
+  return WrapSocket(server_->CreateAsyncSocket(family, type), type);
 }
 
 AsyncSocket* FirewallSocketServer::CreateAsyncSocket(int type) {
-  return WrapSocket(server_->CreateAsyncSocket(type), type);
+  return CreateAsyncSocket(AF_INET, type);
+}
+
+AsyncSocket* FirewallSocketServer::CreateAsyncSocket(int family, int type) {
+  return WrapSocket(server_->CreateAsyncSocket(family, type), type);
 }
 
 AsyncSocket* FirewallSocketServer::WrapSocket(AsyncSocket* sock, int type) {

@@ -111,7 +111,7 @@ void NATServer::OnInternalPacket(
 
   // Read the intended destination from the wire.
   SocketAddress dest_addr;
-  int length = UnpackAddressFromNAT(buf, size, &dest_addr);
+  size_t length = UnpackAddressFromNAT(buf, size, &dest_addr);
 
   // Find the translation for these addresses (allocating one if necessary).
   SocketAddressPair route(addr, dest_addr);

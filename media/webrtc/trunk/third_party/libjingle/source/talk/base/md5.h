@@ -15,14 +15,14 @@
  *
  */
 
-#ifndef TALK_BASE_MD5_H__
-#define TALK_BASE_MD5_H__
+#ifndef TALK_BASE_MD5_H_
+#define TALK_BASE_MD5_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef long unsigned int uint32;
+typedef unsigned int uint32;
 typedef struct MD5Context MD5_CTX;
 
 #define md5byte unsigned char
@@ -42,4 +42,4 @@ void MD5Transform(uint32 buf[4], uint32 const in[16]);
 };
 #endif
 
-#endif // TALK_BASE_MD5_H__
+#endif // TALK_BASE_MD5_H_

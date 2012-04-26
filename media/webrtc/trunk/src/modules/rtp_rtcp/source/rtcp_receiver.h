@@ -19,11 +19,12 @@
 #include "rtcp_utility.h"
 #include "rtp_rtcp_defines.h"
 #include "rtcp_receiver_help.h"
+#include "tmmbr_help.h"
 
 namespace webrtc {
 class ModuleRtpRtcpImpl;
 
-class RTCPReceiver
+class RTCPReceiver : public TMMBRHelp
 {
 public:
     RTCPReceiver(const WebRtc_Word32 id, RtpRtcpClock* clock,
@@ -69,6 +70,10 @@ public:
                       WebRtc_UWord16* minRTT,
                       WebRtc_UWord16* maxRTT) const;
 
+    WebRtc_UWord16 RTT() const;
+
+    int SetRTT(WebRtc_UWord16 rtt);
+
     WebRtc_Word32 ResetRTT(const WebRtc_UWord32 remoteSSRC);
 
     void UpdateLipSync(const WebRtc_Word32 audioVideoOffset) const;
@@ -93,10 +98,9 @@ public:
 
     bool UpdateRTCPReceiveInformationTimers();
 
-    void UpdateBandwidthEstimate(const WebRtc_UWord16 bwEstimateKbit);
+    WebRtc_Word32 BoundingSet(bool &tmmbrOwner, TMMBRSet*& boundingSetRec);
 
-    WebRtc_Word32 BoundingSet(bool &tmmbrOwner,
-                              TMMBRSet*& boundingSetRec);
+    WebRtc_Word32 UpdateTMMBR();
 
     WebRtc_Word32 SetPacketTimeout(const WebRtc_UWord32 timeoutMS);
     void PacketTimeout();
@@ -219,6 +223,11 @@ protected:
       _receivedCnameMap;
 
   WebRtc_UWord32            _packetTimeOutMS;
+
+  // Externally set RTT. This value can only be used if there are no valid
+  // RTT estimates.
+  WebRtc_UWord16 _rtt;
+
 };
 } // namespace webrtc
 #endif // WEBRTC_MODULES_RTP_RTCP_SOURCE_RTCP_RECEIVER_H_

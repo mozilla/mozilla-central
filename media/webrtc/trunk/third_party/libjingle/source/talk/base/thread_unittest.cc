@@ -26,6 +26,7 @@
  */
 
 #include "talk/base/asyncudpsocket.h"
+#include "talk/base/event.h"
 #include "talk/base/gunit.h"
 #include "talk/base/host.h"
 #include "talk/base/physicalsocketserver.h"
@@ -126,6 +127,26 @@ class CustomThread : public talk_base::Thread {
   bool Start() { return false; }
 };
 
+
+// A thread that does nothing when it runs and signals an event
+// when it is destroyed.
+class SignalWhenDestroyedThread : public Thread {
+ public:
+  SignalWhenDestroyedThread(Event* event)
+      : event_(event) {
+  }
+
+  virtual ~SignalWhenDestroyedThread() {
+    event_->Set();
+  }
+
+  virtual void Run() {
+    // Do nothing.
+  }
+
+ private:
+  Event* event_;
+};
 
 TEST(ThreadTest, Main) {
   const SocketAddress addr("127.0.0.1", 0);
@@ -229,6 +250,24 @@ TEST(ThreadTest, Wrap) {
   current_thread->WrapCurrent();
 }
 
+// Test that calling Release on a thread causes it to self-destruct when
+// it's finished running
+TEST(ThreadTest, Release) {
+  scoped_ptr<Event> event(new Event(true, false));
+  // Ensure the event is initialized.
+  bool inited = event->Reset();
+  EXPECT_TRUE(inited);
+
+  Thread* thread = new SignalWhenDestroyedThread(event.get());
+  thread->Start();
+  thread->Release();
+
+  // The event should get signaled when the thread completes, which should
+  // be nearly instantaneous, since it doesn't do anything.  For safety,
+  // give it 3 seconds in case the machine is under load.
+  bool signaled = event->Wait(3000);
+  EXPECT_TRUE(signaled);
+}
 
 #ifdef WIN32
 class ComThreadTest : public testing::Test, public MessageHandler {

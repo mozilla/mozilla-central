@@ -443,7 +443,7 @@ TEST(Base64, EncodeDecodeBattery) {
       EXPECT_EQ(decoded2.size(), base64_tests[i].plain_length);
       EXPECT_EQ_ARRAY(decoded2.size(), decoded2.data(), base64_tests[i].plaintext, i);
 
-      int len;
+      size_t len;
 
       // try putting some extra stuff after the equals signs, or in between them
       if (equals == 2) {

@@ -69,6 +69,11 @@ LocalVideoTrackHandler::LocalVideoTrackHandler(
     MediaProviderInterface* provider)
     : VideoTrackHandler(track, provider),
       local_video_track_(track) {
+  provider_->SetCaptureDevice(local_video_track_->label(),
+                              local_video_track_->GetVideoCapture());
+  VideoRendererWrapperInterface* renderer = video_track_->GetRenderer();
+  if (renderer)
+    provider_->SetLocalRenderer(video_track_->label(), renderer->renderer());
 }
 
 LocalVideoTrackHandler::~LocalVideoTrackHandler() {
@@ -89,15 +94,6 @@ void LocalVideoTrackHandler::OnRendererChanged() {
 }
 
 void LocalVideoTrackHandler::OnStateChanged() {
-  if (local_video_track_->state() == VideoTrackInterface::kLive) {
-    provider_->SetCaptureDevice(local_video_track_->label(),
-                                local_video_track_->GetVideoCapture());
-    VideoRendererWrapperInterface* renderer = video_track_->GetRenderer();
-    if (renderer)
-      provider_->SetLocalRenderer(video_track_->label(), renderer->renderer());
-    else
-      provider_->SetLocalRenderer(video_track_->label(), NULL);
-  }
 }
 
 void LocalVideoTrackHandler::OnEnabledChanged() {

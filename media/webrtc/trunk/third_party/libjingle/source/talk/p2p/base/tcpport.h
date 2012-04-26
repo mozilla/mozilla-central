@@ -52,9 +52,12 @@ class TCPPort : public Port {
                          talk_base::Network* network,
                          const talk_base::IPAddress& ip,
                          int min_port, int max_port,
+                         const std::string& username,
+                         const std::string& password,
                          bool allow_listen) {
     TCPPort* port = new TCPPort(thread, factory, network,
-                                ip, min_port, max_port, allow_listen);
+                                ip, min_port, max_port,
+                                username, password, allow_listen);
     if (!port->Init()) {
       delete port;
       port = NULL;
@@ -75,7 +78,8 @@ class TCPPort : public Port {
  protected:
   TCPPort(talk_base::Thread* thread, talk_base::PacketSocketFactory* factory,
           talk_base::Network* network, const talk_base::IPAddress& ip,
-          int min_port, int max_port, bool allow_listen);
+          int min_port, int max_port, const std::string& username,
+          const std::string& password, bool allow_listen);
   bool Init();
 
   // Handles sending using the local TCP socket.

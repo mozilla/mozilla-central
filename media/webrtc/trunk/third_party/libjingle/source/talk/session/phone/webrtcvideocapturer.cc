@@ -67,7 +67,7 @@ static kVideoFourCCEntry kSupportedFourCCs[] = {
 class WebRtcVcmFactory : public WebRtcVcmFactoryInterface {
  public:
   virtual webrtc::VideoCaptureModule* Create(int id,
-                                             const WebRtc_UWord8* device) {
+                                             const char* device) {
     return webrtc::VideoCaptureFactory::Create(id, device);
   }
   virtual webrtc::VideoCaptureModule::DeviceInfo* CreateDeviceInfo(int id) {
@@ -158,10 +158,10 @@ bool WebRtcVideoCapturer::Init(const Device& device) {
   // In the future, comparing IDs will be more robust.
   // TODO: Figure what's needed to allow this.
   int num_cams = info->NumberOfDevices();
-  WebRtc_UWord8 vcm_id[256] = "";
+  char vcm_id[256] = "";
   bool found = false;
   for (int index = 0; index < num_cams; ++index) {
-    WebRtc_UWord8 vcm_name[256];
+    char vcm_name[256];
     if (info->GetDeviceName(index, vcm_name, ARRAY_SIZE(vcm_name),
                             vcm_id, ARRAY_SIZE(vcm_id)) != -1) {
       if (device.name == reinterpret_cast<char*>(vcm_name)) {

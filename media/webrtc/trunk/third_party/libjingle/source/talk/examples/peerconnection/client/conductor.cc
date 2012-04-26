@@ -75,7 +75,7 @@ bool Conductor::InitializePeerConnection() {
     return false;
   }
 
-  peer_connection_ = peer_connection_factory_->CreatePeerConnection(
+  peer_connection_ = peer_connection_factory_->CreateRoapPeerConnection(
       GetPeerConnectionString(), this);
 
   if (!peer_connection_.get()) {
@@ -131,6 +131,13 @@ void Conductor::OnRemoveStream(webrtc::MediaStreamInterface* stream) {
   stream->AddRef();
   main_wnd_->QueueUIThreadCallback(STREAM_REMOVED,
                                    stream);
+}
+void Conductor::OnIceCandidate(const webrtc::IceCandidateInterface* candidate) {
+  LOG(INFO) << __FUNCTION__ << " " << candidate->label();
+}
+
+void Conductor::OnIceComplete() {
+  LOG(INFO) << __FUNCTION__;
 }
 
 //
@@ -250,8 +257,8 @@ Conductor::OpenVideoCaptureDevice() {
 
   const size_t kMaxDeviceNameLength = 128;
   const size_t kMaxUniqueIdLength = 256;
-  uint8 device_name[kMaxDeviceNameLength];
-  uint8 unique_id[kMaxUniqueIdLength];
+  char device_name[kMaxDeviceNameLength];
+  char unique_id[kMaxUniqueIdLength];
 
   const size_t device_count = device_info->NumberOfDevices();
   for (size_t i = 0; i < device_count; ++i) {

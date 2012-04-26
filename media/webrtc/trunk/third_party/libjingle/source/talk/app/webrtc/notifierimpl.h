@@ -31,7 +31,7 @@
 #include <list>
 
 #include "talk/base/common.h"
-#include "talk/app/webrtc/mediastream.h"
+#include "talk/app/webrtc/mediastreaminterface.h"
 
 namespace webrtc {
 

@@ -25,13 +25,14 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TALK_BASE_STREAM_H__
-#define TALK_BASE_STREAM_H__
+#ifndef TALK_BASE_STREAM_H_
+#define TALK_BASE_STREAM_H_
 
 #include "talk/base/basictypes.h"
 #include "talk/base/criticalsection.h"
 #include "talk/base/logging.h"
 #include "talk/base/messagehandler.h"
+#include "talk/base/messagequeue.h"
 #include "talk/base/scoped_ptr.h"
 #include "talk/base/sigslot.h"
 
@@ -64,6 +65,11 @@ enum StreamResult { SR_ERROR, SR_SUCCESS, SR_BLOCK, SR_EOS };
 enum StreamEvent { SE_OPEN = 1, SE_READ = 2, SE_WRITE = 4, SE_CLOSE = 8 };
 
 class Thread;
+
+struct StreamEventData : public MessageData {
+  int events, error;
+  StreamEventData(int ev, int er) : events(ev), error(er) { }
+};
 
 class StreamInterface : public MessageHandler {
  public:
@@ -224,7 +230,7 @@ class StreamInterface : public MessageHandler {
   // the end-of-line character, or something other than SR_SUCCESS.
   // TODO: this is too inefficient to keep here.  Break this out into a buffered
   // readline object or adapter
-  StreamResult ReadLine(std::string *line);
+  StreamResult ReadLine(std::string* line);
 
  protected:
   StreamInterface();
@@ -591,7 +597,7 @@ class FifoBuffer : public StreamInterface {
   virtual void Close();
   virtual const void* GetReadData(size_t* data_len);
   virtual void ConsumeReadData(size_t used);
-  virtual void* GetWriteBuffer(size_t *buf_len);
+  virtual void* GetWriteBuffer(size_t* buf_len);
   virtual void ConsumeWriteBuffer(size_t used);
   virtual bool GetWriteRemaining(size_t* size) const;
 
@@ -749,4 +755,4 @@ StreamResult Flow(StreamInterface* source,
 
 }  // namespace talk_base
 
-#endif  // TALK_BASE_STREAM_H__
+#endif  // TALK_BASE_STREAM_H_

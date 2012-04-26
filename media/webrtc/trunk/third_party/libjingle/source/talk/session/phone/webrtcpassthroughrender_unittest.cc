@@ -59,6 +59,14 @@ class WebRtcPassthroughRenderTest : public testing::Test {
     return (renderer_->AddExternalRenderCallback(stream_id, renderer) == 0);
   }
 
+  bool StartRender(int stream_id) {
+    return (renderer_->StartRender(stream_id) == 0);
+  }
+
+  bool StopRender(int stream_id) {
+    return (renderer_->StopRender(stream_id) == 0);
+  }
+
  private:
   talk_base::scoped_ptr<cricket::WebRtcPassthroughRender> renderer_;
 };
@@ -105,10 +113,27 @@ TEST_F(WebRtcPassthroughRenderTest, Renderer) {
   AddExternalRenderCallback(stream_id1, &renderer1);
   AddExternalRenderCallback(stream_id2, &renderer2);
   int test_frame_num = 10;
+  // RenderFrame without starting the render
+  for (int i = 0; i < test_frame_num; ++i) {
+    stream1->RenderFrame(stream_id1, frame);
+  }
+  EXPECT_EQ(0, renderer1.frame_num());
+  // Start the render and test again.
+  EXPECT_TRUE(StartRender(stream_id1));
   for (int i = 0; i < test_frame_num; ++i) {
     stream1->RenderFrame(stream_id1, frame);
   }
   EXPECT_EQ(test_frame_num, renderer1.frame_num());
+  // Stop the render and test again.
+  EXPECT_TRUE(StopRender(stream_id1));
+  for (int i = 0; i < test_frame_num; ++i) {
+    stream1->RenderFrame(stream_id1, frame);
+  }
+  // The frame number should not have changed.
+  EXPECT_EQ(test_frame_num, renderer1.frame_num());
+
+  // Test on stream2 with a differnt number.
+  EXPECT_TRUE(StartRender(stream_id2));
   test_frame_num = 30;
   for (int i = 0; i < test_frame_num; ++i) {
     stream2->RenderFrame(stream_id2, frame);

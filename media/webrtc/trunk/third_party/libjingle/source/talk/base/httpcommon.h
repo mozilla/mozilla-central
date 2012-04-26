@@ -2,26 +2,26 @@
  * libjingle
  * Copyright 2004--2005, Google Inc.
  *
- * Redistribution and use in source and binary forms, with or without 
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  1. Redistributions of source code must retain the above copyright notice, 
+ *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
  *  2. Redistributions in binary form must reproduce the above copyright notice,
  *     this list of conditions and the following disclaimer in the documentation
  *     and/or other materials provided with the distribution.
- *  3. The name of the author may not be used to endorse or promote products 
+ *  3. The name of the author may not be used to endorse or promote products
  *     derived from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
  * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
@@ -46,7 +46,7 @@ class SocketAddress;
 // Constants
 //////////////////////////////////////////////////////////////////////
 
-enum HttpCode { 
+enum HttpCode {
   HC_OK = 200,
   HC_NON_AUTHORITATIVE = 203,
   HC_NO_CONTENT = 204,
@@ -167,18 +167,18 @@ typedef std::pair<std::string, std::string> HttpAttribute;
 typedef std::vector<HttpAttribute> HttpAttributeList;
 void HttpComposeAttributes(const HttpAttributeList& attributes, char separator,
                            std::string* composed);
-void HttpParseAttributes(const char * data, size_t len, 
+void HttpParseAttributes(const char * data, size_t len,
                          HttpAttributeList& attributes);
 bool HttpHasAttribute(const HttpAttributeList& attributes,
                       const std::string& name,
                       std::string* value);
 bool HttpHasNthAttribute(HttpAttributeList& attributes,
-                         size_t index, 
+                         size_t index,
                          std::string* name,
                          std::string* value);
 
 // Convert RFC1123 date (DoW, DD Mon YYYY HH:MM:SS TZ) to unix timestamp
-bool HttpDateToSeconds(const std::string& date, unsigned long* seconds);
+bool HttpDateToSeconds(const std::string& date, time_t* seconds);
 
 inline uint16 HttpDefaultPort(bool secure) {
   return secure ? HTTP_SECURE_PORT : HTTP_DEFAULT_PORT;
@@ -384,7 +384,7 @@ struct HttpData {
   virtual size_t formatLeader(char* buffer, size_t size) const = 0;
   virtual HttpError parseLeader(const char* line, size_t len) = 0;
 
-protected:  
+protected:
   virtual ~HttpData() { }
   void clear(bool release_document);
   void copy(const HttpData& src);

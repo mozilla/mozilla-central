@@ -171,6 +171,8 @@ class Transport : public talk_base::MessageHandler,
   // Handles sending of ready candidates and receiving of remote candidates.
   sigslot::signal2<Transport*,
                    const std::vector<Candidate>&> SignalCandidatesReady;
+
+  sigslot::signal1<Transport*> SignalCandidatesAllocationDone;
   void OnRemoteCandidates(const std::vector<Candidate>& candidates);
 
   // If candidate is not acceptable, returns false and sets error.
@@ -195,8 +197,6 @@ class Transport : public talk_base::MessageHandler,
                    const buzz::XmlElement*>
       SignalTransportError;
 
-  sigslot::signal2<Transport*, const std::string&> SignalChannelGone;
-
   // (For testing purposes only.)  This indicates whether we will allow local
   // IPs (e.g. 127.*) to be used as addresses for P2P.
   bool allow_local_ips() const { return allow_local_ips_; }
@@ -213,14 +213,41 @@ class Transport : public talk_base::MessageHandler,
   virtual void OnTransportSignalingReady() {}
 
  private:
-  typedef std::map<std::string, TransportChannelImpl*> ChannelMap;
+  struct ChannelMapEntry {
+    ChannelMapEntry() : impl_(NULL), candidates_allocated_(false), ref_(0) {}
+    explicit ChannelMapEntry(TransportChannelImpl *impl)
+        : impl_(impl),
+          candidates_allocated_(false),
+          ref_(0) {
+    }
+
+    void AddRef() { ++ref_; }
+    void DecRef() {
+      ASSERT(ref_ > 0);
+      --ref_;
+    }
+    int ref() const { return ref_; }
+
+    TransportChannelImpl* get() const { return impl_; }
+    void set_candidates_allocated(bool status) {
+      candidates_allocated_ = status;
+    }
+    bool candidates_allocated() const { return candidates_allocated_; }
+
+  private:
+    TransportChannelImpl *impl_;
+    bool candidates_allocated_;
+    int ref_;
+  };
+
+  typedef std::map<std::string, ChannelMapEntry> ChannelMap;
 
   // Called when the state of a channel changes.
   void OnChannelReadableState(TransportChannel* channel);
   void OnChannelWritableState(TransportChannel* channel);
 
   // Called when a channel requests signaling.
-  void OnChannelRequestSignaling();
+  void OnChannelRequestSignaling(TransportChannelImpl* channel);
 
   // Called when a candidate is ready from remote peer.
   void OnRemoteCandidate(const Candidate& candidate);
@@ -229,6 +256,7 @@ class Transport : public talk_base::MessageHandler,
                                const Candidate& candidate);
   void OnChannelRouteChange(TransportChannel* channel,
                             const Candidate& remote_candidate);
+  void OnChannelCandidatesAllocationDone(TransportChannelImpl* channel);
 
   // Dispatches messages to the appropriate handler (below).
   void OnMessage(talk_base::Message* msg);
@@ -245,7 +273,7 @@ class Transport : public talk_base::MessageHandler,
   void OnRemoteCandidate_w(const Candidate& candidate);
   void OnChannelReadableState_s();
   void OnChannelWritableState_s();
-  void OnChannelRequestSignaling_s();
+  void OnChannelRequestSignaling_s(const std::string& name);
   void OnConnecting_s();
   void OnChannelRouteChange_s(const std::string& name,
                               const Candidate& remote_candidate);
@@ -267,6 +295,7 @@ class Transport : public talk_base::MessageHandler,
   bool readable_;
   bool writable_;
   bool connect_requested_;
+
   ChannelMap channels_;
   // Buffers the ready_candidates so that SignalCanidatesReady can
   // provide them in multiples.

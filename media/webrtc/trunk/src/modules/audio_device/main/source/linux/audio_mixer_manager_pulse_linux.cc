@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -23,6 +23,8 @@ extern webrtc_adm_linux_pulse::PulseAudioSymbolTable PaSymbolTable;
 
 namespace webrtc
 {
+
+enum { kMaxRetryOnFailure = 2 };
 
 AudioMixerManagerLinuxPulse::AudioMixerManagerLinuxPulse(const WebRtc_Word32 id) :
     _critSect(*CriticalSectionWrapper::CreateCriticalSection()),
@@ -67,7 +69,7 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::SetPulseAudioObjects(
     WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id, "%s",
                  __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (!mainloop || !context)
     {
@@ -91,7 +93,7 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::Close()
     WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id, "%s",
                  __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     CloseSpeaker();
     CloseMicrophone();
@@ -109,7 +111,7 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::CloseSpeaker()
     WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id, "%s",
                  __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     // Reset the index to -1
     _paOutputDeviceIndex = -1;
@@ -123,7 +125,7 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::CloseMicrophone()
     WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id, "%s",
                  __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     // Reset the index to -1
     _paInputDeviceIndex = -1;
@@ -137,7 +139,7 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::SetPlayStream(pa_stream* playStream)
     WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id,
                  "AudioMixerManagerLinuxPulse::SetPlayStream(playStream)");
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
     _paPlayStream = playStream;
     return 0;
 }
@@ -147,7 +149,7 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::SetRecStream(pa_stream* recStream)
     WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id,
                  "AudioMixerManagerLinuxPulse::SetRecStream(recStream)");
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
     _paRecStream = recStream;
     return 0;
 }
@@ -159,7 +161,7 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::OpenSpeaker(
                  "AudioMixerManagerLinuxPulse::OpenSpeaker(deviceIndex=%d)",
                  deviceIndex);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     // No point in opening the speaker
     // if PA objects have not been set
@@ -190,7 +192,7 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::OpenMicrophone(
                  "AudioMixerManagerLinuxPulse::OpenMicrophone(deviceIndex=%d)",
                  deviceIndex);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     // No point in opening the microphone
     // if PA objects have not been set
@@ -234,7 +236,7 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::SetSpeakerVolume(
                  "AudioMixerManagerLinuxPulse::SetSpeakerVolume(volume=%u)",
                  volume);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_paOutputDeviceIndex == -1)
     {
@@ -303,8 +305,6 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::SetSpeakerVolume(
 WebRtc_Word32
 AudioMixerManagerLinuxPulse::SpeakerVolume(WebRtc_UWord32& volume) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id,
-                 "%s", __FUNCTION__);
 
     if (_paOutputDeviceIndex == -1)
     {
@@ -317,27 +317,8 @@ AudioMixerManagerLinuxPulse::SpeakerVolume(WebRtc_UWord32& volume) const
         != PA_STREAM_UNCONNECTED))
     {
         // We can only get the volume if we have a connected stream
-        pa_operation* paOperation = NULL;
-        ResetCallbackVariables();
-        PaLock();
-
-        // Get info for this stream (sink input)
-        paOperation = LATE(pa_context_get_sink_input_info)(
-                           _paContext,
-                           LATE(pa_stream_get_index)(_paPlayStream),
-                           PaSinkInputInfoCallback,
-                           (void*) this);
-
-        WaitForOperationCompletion(paOperation);
-        PaUnLock();
-
-        if (!_callbackValues)
-        {
-            WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
-                         "Error getting output volume: %d",
-                         LATE(pa_context_errno)(_paContext));
-            return -1;
-        }
+        if (!GetSinkInputInfo())
+          return -1;
 
         volume = static_cast<WebRtc_UWord32> (_paVolume);
         ResetCallbackVariables();
@@ -356,8 +337,6 @@ AudioMixerManagerLinuxPulse::SpeakerVolume(WebRtc_UWord32& volume) const
 WebRtc_Word32
 AudioMixerManagerLinuxPulse::MaxSpeakerVolume(WebRtc_UWord32& maxVolume) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id,
-                 "%s", __FUNCTION__);
 
     if (_paOutputDeviceIndex == -1)
     {
@@ -376,8 +355,6 @@ AudioMixerManagerLinuxPulse::MaxSpeakerVolume(WebRtc_UWord32& maxVolume) const
 WebRtc_Word32
 AudioMixerManagerLinuxPulse::MinSpeakerVolume(WebRtc_UWord32& minVolume) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id,
-                 "%s", __FUNCTION__);
 
     if (_paOutputDeviceIndex == -1)
     {
@@ -394,8 +371,6 @@ AudioMixerManagerLinuxPulse::MinSpeakerVolume(WebRtc_UWord32& minVolume) const
 WebRtc_Word32
 AudioMixerManagerLinuxPulse::SpeakerVolumeStepSize(WebRtc_UWord16& stepSize) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id,
-                 "%s", __FUNCTION__);
 
     if (_paOutputDeviceIndex == -1)
     {
@@ -456,7 +431,7 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::SetSpeakerMute(bool enable)
                  "AudioMixerManagerLinuxPulse::SetSpeakerMute(enable=%u)",
                  enable);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_paOutputDeviceIndex == -1)
     {
@@ -509,8 +484,6 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::SetSpeakerMute(bool enable)
 
 WebRtc_Word32 AudioMixerManagerLinuxPulse::SpeakerMute(bool& enabled) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id,
-                 "%s", __FUNCTION__);
 
     if (_paOutputDeviceIndex == -1)
     {
@@ -523,27 +496,8 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::SpeakerMute(bool& enabled) const
         != PA_STREAM_UNCONNECTED))
     {
         // We can only get the mute status if we have a connected stream
-        pa_operation* paOperation = NULL;
-        ResetCallbackVariables();
-        PaLock();
-
-        // Get info for this stream (sink input)
-        paOperation = LATE(pa_context_get_sink_input_info)(
-            _paContext,
-            LATE(pa_stream_get_index)(_paPlayStream),
-            PaSinkInputInfoCallback,
-            (void*) this);
-
-        WaitForOperationCompletion(paOperation);
-        PaUnLock();
-
-        if (!_callbackValues)
-        {
-            WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
-                         "Error getting output volume: %d",
-                         LATE(pa_context_errno)(_paContext));
-            return -1;
-        }
+        if (!GetSinkInputInfo())
+          return -1;
 
         enabled = static_cast<bool> (_paMute);
         ResetCallbackVariables();
@@ -582,32 +536,12 @@ AudioMixerManagerLinuxPulse::StereoPlayoutIsAvailable(bool& available)
         deviceIndex = LATE(pa_stream_get_device_index)(_paPlayStream);
     }
 
-    pa_operation* paOperation = NULL;
-    ResetCallbackVariables();
-
-    // Get info for this sink
-    // We want to know if the actual device can play out in stereo
-    paOperation = LATE(pa_context_get_sink_info_by_index)(_paContext,
-                                                          deviceIndex,
-                                                          PaSinkInfoCallback,
-                                                          (void*) this);
-
-    WaitForOperationCompletion(paOperation);
     PaUnLock();
 
-    if (!_callbackValues)
-    {
-        WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
-                     "Error getting number of output channels: %d",
-                     LATE(pa_context_errno)(_paContext));
-        return -1;
-    }
+    if (!GetSinkInfoByIndex(deviceIndex))
+      return -1;
 
     available = static_cast<bool> (_paChannels == 2);
-
-    WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id,
-                 "     AudioMixerManagerLinuxPulse::StereoPlayoutIsAvailable() "
-                 "=> available=%i, available");
 
     // Reset members modified by callback
     ResetCallbackVariables();
@@ -693,7 +627,7 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::SetMicrophoneMute(bool enable)
                  "AudioMixerManagerLinuxPulse::SetMicrophoneMute(enable=%u)",
                  enable);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_paInputDeviceIndex == -1)
     {
@@ -751,8 +685,6 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::SetMicrophoneMute(bool enable)
 
 WebRtc_Word32 AudioMixerManagerLinuxPulse::MicrophoneMute(bool& enabled) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id,
-                 "%s", __FUNCTION__);
 
     if (_paInputDeviceIndex == -1)
     {
@@ -774,26 +706,10 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::MicrophoneMute(bool& enabled) const
         deviceIndex = LATE(pa_stream_get_device_index)(_paRecStream);
     }
 
-    pa_operation* paOperation = NULL;
-    ResetCallbackVariables();
-
-    // Get info for this source
-    paOperation
-        = LATE(pa_context_get_source_info_by_index)(_paContext, deviceIndex,
-                                                    PaSourceInfoCallback,
-                                                    (void*) this);
-
-    WaitForOperationCompletion(paOperation);
-
     PaUnLock();
 
-    if (!_callbackValues)
-    {
-        WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
-                     "Error getting input mute status: %d",
-                     LATE(pa_context_errno)(_paContext));
-        return -1;
-    }
+    if (!GetSourceInfoByIndex(deviceIndex))
+      return -1;
 
     enabled = static_cast<bool> (_paMute);
 
@@ -831,7 +747,7 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::SetMicrophoneBoost(bool enable)
                  "AudioMixerManagerLinuxPulse::SetMicrophoneBoost(enable=%u)",
                  enable);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_paInputDeviceIndex == -1)
     {
@@ -857,8 +773,6 @@ WebRtc_Word32 AudioMixerManagerLinuxPulse::SetMicrophoneBoost(bool enable)
 
 WebRtc_Word32 AudioMixerManagerLinuxPulse::MicrophoneBoost(bool& enabled) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id,
-                 "%s", __FUNCTION__);
 
     if (_paInputDeviceIndex == -1)
     {
@@ -896,7 +810,7 @@ AudioMixerManagerLinuxPulse::SetMicrophoneVolume(WebRtc_UWord32 volume)
                  "AudioMixerManagerLinuxPulse::SetMicrophoneVolume(volume=%u)",
                  volume);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_paInputDeviceIndex == -1)
     {
@@ -990,8 +904,6 @@ AudioMixerManagerLinuxPulse::SetMicrophoneVolume(WebRtc_UWord32 volume)
 WebRtc_Word32
 AudioMixerManagerLinuxPulse::MicrophoneVolume(WebRtc_UWord32& volume) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id,
-                 "%s", __FUNCTION__);
 
     if (_paInputDeviceIndex == -1)
     {
@@ -1013,26 +925,10 @@ AudioMixerManagerLinuxPulse::MicrophoneVolume(WebRtc_UWord32& volume) const
         deviceIndex = LATE(pa_stream_get_device_index)(_paRecStream);
     }
 
-    pa_operation* paOperation = NULL;
-    ResetCallbackVariables();
-
-    // Get info for this source
-    paOperation
-        = LATE(pa_context_get_source_info_by_index)(_paContext, deviceIndex,
-                                                    PaSourceInfoCallback,
-                                                    (void*) this);
-
-    WaitForOperationCompletion(paOperation);
-
     PaUnLock();
 
-    if (!_callbackValues)
-    {
-        WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
-                     "Error getting input volume: %d",
-                     LATE(pa_context_errno)(_paContext));
-        return -1;
-    }
+    if (!GetSourceInfoByIndex(deviceIndex))
+      return -1;
 
     volume = static_cast<WebRtc_UWord32> (_paVolume);
 
@@ -1048,8 +944,6 @@ AudioMixerManagerLinuxPulse::MicrophoneVolume(WebRtc_UWord32& volume) const
 WebRtc_Word32
 AudioMixerManagerLinuxPulse::MaxMicrophoneVolume(WebRtc_UWord32& maxVolume) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id,
-                 "%s", __FUNCTION__);
 
     if (_paInputDeviceIndex == -1)
     {
@@ -1069,8 +963,6 @@ AudioMixerManagerLinuxPulse::MaxMicrophoneVolume(WebRtc_UWord32& maxVolume) cons
 WebRtc_Word32
 AudioMixerManagerLinuxPulse::MinMicrophoneVolume(WebRtc_UWord32& minVolume) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id,
-                 "%s", __FUNCTION__);
 
     if (_paInputDeviceIndex == -1)
     {
@@ -1087,8 +979,6 @@ AudioMixerManagerLinuxPulse::MinMicrophoneVolume(WebRtc_UWord32& minVolume) cons
 WebRtc_Word32 AudioMixerManagerLinuxPulse::MicrophoneVolumeStepSize(
     WebRtc_UWord16& stepSize) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id,
-                 "%s", __FUNCTION__);
 
     if (_paInputDeviceIndex == -1)
     {
@@ -1298,4 +1188,84 @@ void AudioMixerManagerLinuxPulse::PaUnLock() const
     LATE(pa_threaded_mainloop_unlock)(_paMainloop);
 }
 
+bool AudioMixerManagerLinuxPulse::GetSinkInputInfo() const {
+  pa_operation* paOperation = NULL;
+  ResetCallbackVariables();
+
+  PaLock();
+  for (int retries = 0; retries < kMaxRetryOnFailure && !_callbackValues;
+       retries ++) {
+    // Get info for this stream (sink input).
+    paOperation = LATE(pa_context_get_sink_input_info)(
+        _paContext,
+        LATE(pa_stream_get_index)(_paPlayStream),
+        PaSinkInputInfoCallback,
+        (void*) this);
+
+    WaitForOperationCompletion(paOperation);
+  }
+  PaUnLock();
+
+  if (!_callbackValues) {
+    WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
+                 "GetSinkInputInfo failed to get volume info : %d",
+                 LATE(pa_context_errno)(_paContext));
+    return false;
+  }
+
+  return true;
 }
+
+bool AudioMixerManagerLinuxPulse::GetSinkInfoByIndex(
+    int device_index) const {
+  pa_operation* paOperation = NULL;
+  ResetCallbackVariables();
+
+  PaLock();
+  for (int retries = 0; retries < kMaxRetryOnFailure && !_callbackValues;
+       retries ++) {
+    paOperation = LATE(pa_context_get_sink_info_by_index)(_paContext,
+        device_index, PaSinkInfoCallback, (void*) this);
+
+    WaitForOperationCompletion(paOperation);
+  }
+  PaUnLock();
+
+  if (!_callbackValues) {
+    WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
+                 "GetSinkInfoByIndex failed to get volume info: %d",
+                 LATE(pa_context_errno)(_paContext));
+    return false;
+  }
+
+  return true;
+}
+
+bool AudioMixerManagerLinuxPulse::GetSourceInfoByIndex(
+    int device_index) const {
+  pa_operation* paOperation = NULL;
+  ResetCallbackVariables();
+
+  PaLock();
+  for (int retries = 0; retries < kMaxRetryOnFailure && !_callbackValues;
+       retries ++) {
+  paOperation  = LATE(pa_context_get_source_info_by_index)(
+      _paContext, device_index, PaSourceInfoCallback, (void*) this);
+
+  WaitForOperationCompletion(paOperation);
+  }
+
+  PaUnLock();
+
+  if (!_callbackValues) {
+    WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
+                 "GetSourceInfoByIndex error: %d",
+                 LATE(pa_context_errno)(_paContext));
+    return false;
+  }
+
+  return true;
+}
+
+}
+

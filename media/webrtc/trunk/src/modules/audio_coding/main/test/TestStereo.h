@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -11,11 +11,19 @@
 #ifndef TEST_STEREO_H
 #define TEST_STEREO_H
 
+#include <math.h>
+
 #include "ACMTest.h"
 #include "Channel.h"
 #include "PCMFile.h"
 
 namespace webrtc {
+
+enum StereoMonoMode {
+    kNotSet,
+    kMono,
+    kStereo
+};
 
 class TestPackStereo : public AudioPacketizationCallback
 {
@@ -35,8 +43,8 @@ public:
     WebRtc_UWord16 GetPayloadSize();
     WebRtc_UWord32 GetTimeStampDiff();
     void ResetPayloadSize();
-    void SetCodecType(int codecType);
-
+    void set_codec_mode(StereoMonoMode mode);
+    void set_lost_packet(bool lost);
 
 private:
     AudioCodingModule* _receiverACM;
@@ -46,8 +54,9 @@ private:
     WebRtc_UWord32           _lastInTimestamp;
     WebRtc_UWord64           _totalBytes;
     WebRtc_UWord16           _payloadSize;
-    WebRtc_UWord16           _noChannels;
-    int                    _codecType;
+    StereoMonoMode           _codec_mode;
+    // Simulate packet losses
+    bool _lost_packet;
 };
 
 class TestStereo : public ACMTest
@@ -66,9 +75,11 @@ private:
         WebRtc_Word32 sampFreqHz,
         int rate,
         int packSize,
-        int channels);
+        int channels,
+        int payload_type);
 
-    void Run(TestPackStereo* channel, int in_channels, int out_channels);
+    void Run(TestPackStereo* channel, int in_channels, int out_channels,
+             int percent_loss = 0);
     void OpenOutFile(WebRtc_Word16 testNumber);
     void DisplaySendReceiveCodec();
 
@@ -94,7 +105,18 @@ private:
     WebRtc_UWord16         _packSizeSamp;
     WebRtc_UWord16         _packSizeBytes;
     int                    _counter;
-    int                    _codecType;
+
+    // Payload types for stereo codecs and CNG
+    int g722_pltype_;
+    int l16_8khz_pltype_;
+    int l16_16khz_pltype_;
+    int l16_32khz_pltype_;
+    int pcma_pltype_;
+    int pcmu_pltype_;
+    int celt_pltype_;
+    int cn_8khz_pltype_;
+    int cn_16khz_pltype_;
+    int cn_32khz_pltype_;
 };
 
 } // namespace webrtc

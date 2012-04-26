@@ -417,6 +417,24 @@ void PseudoTcp::SetOption(Option opt, int value) {
   }
 }
 
+uint32 PseudoTcp::GetCongestionWindow() const {
+  return m_cwnd;
+}
+
+uint32 PseudoTcp::GetBytesInFlight() const {
+  return m_snd_nxt - m_snd_una;
+}
+
+uint32 PseudoTcp::GetBytesBufferedNotSent() const {
+  size_t buffered_bytes = 0;
+  m_sbuf.GetBuffered(&buffered_bytes);
+  return m_snd_una + buffered_bytes - m_snd_nxt;
+}
+
+uint32 PseudoTcp::GetRoundTripTimeEstimateMs() const {
+  return m_rx_srtt;
+}
+
 //
 // IPStream Implementation
 //

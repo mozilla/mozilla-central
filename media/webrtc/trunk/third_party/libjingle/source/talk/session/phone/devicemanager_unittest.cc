@@ -29,6 +29,8 @@
 #include "talk/base/win32.h"
 #include <objbase.h>
 #endif
+#include <string>
+
 #include "talk/base/fileutils.h"
 #include "talk/base/gunit.h"
 #include "talk/base/logging.h"
@@ -36,6 +38,8 @@
 #include "talk/base/scoped_ptr.h"
 #include "talk/base/stream.h"
 #include "talk/session/phone/devicemanager.h"
+#include "talk/session/phone/filevideocapturer.h"
+#include "talk/session/phone/testutils.h"
 #include "talk/session/phone/v4llookup.h"
 
 #ifdef LINUX
@@ -142,6 +146,16 @@ TEST(DeviceManagerTest, GetVideoDeviceIds) {
     EXPECT_EQ(device.name, video_ins[0].name);
     EXPECT_EQ(device.id, video_ins[0].id);
   }
+}
+
+TEST(DeviceManagerTest, GetVideoDeviceIds_File) {
+  scoped_ptr<DeviceManagerInterface> dm(DeviceManagerFactory::Create());
+  EXPECT_TRUE(dm->Init());
+  Device device;
+  const std::string test_file =
+      cricket::GetTestFilePath("captured-320x240-2s-48.frames");
+  EXPECT_TRUE(dm->GetVideoCaptureDevice(test_file, &device));
+  EXPECT_TRUE(cricket::FileVideoCapturer::IsFileVideoCapturerDevice(device));
 }
 
 TEST(DeviceManagerTest, VerifyDevicesListsAreCleared) {

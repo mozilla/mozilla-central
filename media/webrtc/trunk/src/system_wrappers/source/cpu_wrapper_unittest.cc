@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -23,7 +23,14 @@ using webrtc::EventWrapper;
 using webrtc::scoped_ptr;
 using webrtc::Trace;
 
-TEST(CpuWrapperTest, Usage) {
+// This test is flaky on Windows/Release.
+// http://code.google.com/p/webrtc/issues/detail?id=290
+#ifdef _WIN32
+#define MAYBE_Usage DISABLED_Usage
+#else
+#define MAYBE_Usage Usage
+#endif
+TEST(CpuWrapperTest, MAYBE_Usage) {
   Trace::CreateTrace();
   std::string trace_file = webrtc::test::OutputPath() +
       "cpu_wrapper_unittest.txt";
@@ -42,7 +49,7 @@ TEST(CpuWrapperTest, Usage) {
   // Initializing the CPU measurements may take a couple of seconds on Windows.
   // Since the initialization is lazy we need to wait until it is completed.
   // Should not take more than 10000 ms.
-  while (cpu_usage_available && (++num_iterations < 10000)) {
+  while (!cpu_usage_available && (++num_iterations < 10000)) {
     if (cores != NULL) {
       ASSERT_GT(num_cores, 0u);
       break;

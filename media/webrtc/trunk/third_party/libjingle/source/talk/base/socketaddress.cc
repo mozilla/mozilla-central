@@ -414,7 +414,7 @@ bool SocketAddress::GetLocalIPs(std::vector<IPAddress>* ips) {
 
   int errcode;
   if (hostent* pHost = SafeGetHostByName(hostname.c_str(), &errcode)) {
-    for (size_t i = 0; pHost->h_addr_list[i]; ++i) {
+    for (int i = 0; pHost->h_addr_list[i]; ++i) {
       IPAddress ip;
       if (IPFromHostEnt(pHost, i, &ip)) {
         ips->push_back(ip);

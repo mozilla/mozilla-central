@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -68,12 +68,12 @@ public:
     virtual WebRtc_Word16 RecordingDevices();
     virtual WebRtc_Word32
             PlayoutDeviceName(WebRtc_UWord16 index,
-                              WebRtc_Word8 name[kAdmMaxDeviceNameSize],
-                              WebRtc_Word8 guid[kAdmMaxGuidSize]);
+                              char name[kAdmMaxDeviceNameSize],
+                              char guid[kAdmMaxGuidSize]);
     virtual WebRtc_Word32
             RecordingDeviceName(WebRtc_UWord16 index,
-                                WebRtc_Word8 name[kAdmMaxDeviceNameSize],
-                                WebRtc_Word8 guid[kAdmMaxGuidSize]);
+                                char name[kAdmMaxDeviceNameSize],
+                                char guid[kAdmMaxGuidSize]);
 
     // Device selection
     virtual WebRtc_Word32 SetPlayoutDevice(WebRtc_UWord16 index);
@@ -247,6 +247,7 @@ private:
     SLDeviceVolumeItf _slMicVolume;
 
     WebRtc_UWord32 _micDeviceId;
+    WebRtc_UWord32 _recQueueSeq;
 
     // Events
     EventWrapper& _timeEventRec;
@@ -263,7 +264,6 @@ private:
     // Recording buffer
     WebRtc_Word8 _recQueueBuffer[N_REC_QUEUE_BUFFERS][2
             * REC_BUF_SIZE_IN_SAMPLES];
-    WebRtc_UWord32 _recQueueSeq;
     WebRtc_Word8 _recBuffer[N_REC_BUFFERS][2*REC_BUF_SIZE_IN_SAMPLES];
     WebRtc_UWord32 _recLength[N_REC_BUFFERS];
     WebRtc_UWord32 _recSeqNumber[N_REC_BUFFERS];

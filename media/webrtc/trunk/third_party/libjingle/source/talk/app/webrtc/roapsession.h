@@ -39,14 +39,8 @@
 
 #include "talk/app/webrtc/roaperrorcodes.h"
 #include "talk/base/basictypes.h"
-#include "talk/base/scoped_ptr.h"
-#include "talk/p2p/base/candidate.h"
-#include "talk/p2p/base/sessiondescription.h"
 
 namespace webrtc {
-
-using cricket::Candidate;
-using cricket::SessionDescription;
 
 class RoapAnswer;
 class RoapError;
@@ -64,33 +58,29 @@ class RoapSession {
     kOk,
     kShutDown,
     kError,
-    // The messages below is errors that can occur during parsing.
-    kConflict,  // Conflict detected during parsing of offer.
-    kDoubleConflict,  // Double conflict detected during parsing of offer.
+    // The messages below are errors that can occur during parsing.
+    kParseConflict,  // Conflict detected during parsing of offer.
+    kParseDoubleConflict,  // Double conflict detected during parsing of offer.
     kInvalidMessage  // The parsed message is invalid.
   };
 
   RoapSession();
 
-  // Creates a ROAP offer message based on the provided session description and
-  // candidates. This will update states in the ROAP sessions variables such as
-  // sequence number and create a local session id.
-  std::string CreateOffer(const SessionDescription* desc,
-                          const std::vector<Candidate>& candidates);
+  // Creates a ROAP offer message based on the provided session description
+  // including candidates. This will update states in the ROAP sessions
+  // variables such as sequence number and create a local session id.
+  std::string CreateOffer(const std::string& desc);
 
-  // Creates a ROAP answer message based on the provided session description and
-  // candidates. An offer must have been parsed before this function can be
-  // called.
-  std::string CreateAnswer(const SessionDescription* desc,
-                           const std::vector<Candidate>& candidates);
+  // Creates a ROAP answer message based on the provided session description.
+  // An offer must have been parsed before this function can be called.
+  std::string CreateAnswer(const std::string& desc);
   std::string CreateOk();
   std::string CreateShutDown();
   std::string CreateErrorMessage(RoapErrorCode error);
   ParseResult Parse(const std::string& msg);
   RoapErrorCode RemoteError();
-  // Get remote SessionDescription. The ownership is transferred to the caller.
-  SessionDescription* ReleaseRemoteDescription();
-  const std::vector<Candidate>& RemoteCandidates();
+
+  const std::string& RemoteDescription() { return remote_desc_; }
 
  private:
   ParseResult ValidateOffer(RoapOffer* received_offer);
@@ -110,9 +100,7 @@ class RoapSession {
   std::string session_token_;
   std::string response_token_;
 
-  talk_base::scoped_ptr<SessionDescription> remote_desc_;
-  std::vector<Candidate> remote_candidates_;
-
+  std::string remote_desc_;
   RoapErrorCode remote_error_;
 };
 

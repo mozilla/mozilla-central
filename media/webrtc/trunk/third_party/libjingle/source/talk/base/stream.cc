@@ -53,11 +53,6 @@ namespace talk_base {
 StreamInterface::~StreamInterface() {
 }
 
-struct PostEventData : public MessageData {
-  int events, error;
-  PostEventData(int ev, int er) : events(ev), error(er) { }
-};
-
 StreamResult StreamInterface::WriteAll(const void* data, size_t data_len,
                                        size_t* written, int* error) {
   StreamResult result = SR_SUCCESS;
@@ -111,7 +106,7 @@ StreamResult StreamInterface::ReadLine(std::string* line) {
 }
 
 void StreamInterface::PostEvent(Thread* t, int events, int err) {
-  t->Post(this, MSG_POST_EVENT, new PostEventData(events, err));
+  t->Post(this, MSG_POST_EVENT, new StreamEventData(events, err));
 }
 
 void StreamInterface::PostEvent(int events, int err) {
@@ -123,7 +118,7 @@ StreamInterface::StreamInterface() {
 
 void StreamInterface::OnMessage(Message* msg) {
   if (MSG_POST_EVENT == msg->message_id) {
-    PostEventData* pe = static_cast<PostEventData*>(msg->pdata);
+    StreamEventData* pe = static_cast<StreamEventData*>(msg->pdata);
     SignalEvent(this, pe->events, pe->error);
     delete msg->pdata;
   }
@@ -437,7 +432,7 @@ void FileStream::Close() {
 bool FileStream::SetPosition(size_t position) {
   if (!file_)
     return false;
-  return (fseek(file_, position, SEEK_SET) == 0);
+  return (fseek(file_, static_cast<int>(position), SEEK_SET) == 0);
 }
 
 bool FileStream::GetPosition(size_t* position) const {
@@ -536,7 +531,7 @@ POpenStream::~POpenStream() {
 
 bool POpenStream::Open(const std::string& subcommand,
                        const char* mode,
-                       int *error) {
+                       int* error) {
   Close();
   file_ = popen(subcommand.c_str(), mode);
   if (file_ == NULL) {
@@ -631,19 +626,19 @@ bool MemoryStreamBase::SetPosition(size_t position) {
   return true;
 }
 
-bool MemoryStreamBase::GetPosition(size_t *position) const {
+bool MemoryStreamBase::GetPosition(size_t* position) const {
   if (position)
     *position = seek_position_;
   return true;
 }
 
-bool MemoryStreamBase::GetSize(size_t *size) const {
+bool MemoryStreamBase::GetSize(size_t* size) const {
   if (size)
     *size = data_length_;
   return true;
 }
 
-bool MemoryStreamBase::GetAvailable(size_t *size) const {
+bool MemoryStreamBase::GetAvailable(size_t* size) const {
   if (size)
     *size = data_length_ - seek_position_;
   return true;
@@ -735,7 +730,7 @@ FifoBuffer::FifoBuffer(size_t size)
   // all events are done on the owner_ thread
 }
 
-FifoBuffer::FifoBuffer(size_t size, Thread *owner)
+FifoBuffer::FifoBuffer(size_t size, Thread* owner)
     : state_(SS_OPEN), buffer_(new char[size]), buffer_length_(size),
       data_length_(0), read_position_(0), owner_(owner) {
   // all events are done on the owner_ thread

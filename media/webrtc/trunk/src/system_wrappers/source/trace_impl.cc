@@ -283,9 +283,6 @@ WebRtc_Word32 TraceImpl::AddModuleAndId(char* traceMessage,
                 sprintf(traceMessage, "  VIDEO PROC:%5ld %5ld;", idEngine,
                         idChannel);
                 break;
-            default:
-                assert(false);
-                return 0;
         }
     } else {
         switch (module)
@@ -341,9 +338,6 @@ WebRtc_Word32 TraceImpl::AddModuleAndId(char* traceMessage,
             case kTraceVideoPreocessing:
                 sprintf (traceMessage, "  VIDEO PROC:%11ld;", idl);
                 break;
-            default:
-                assert(false);
-                return 0;
         }
     }
     // All messages are 25 characters.
@@ -435,8 +429,14 @@ WebRtc_Word32 TraceImpl::AddMessage(
 void TraceImpl::AddMessageToList(
     const char traceMessage[WEBRTC_TRACE_MAX_MESSAGE_SIZE],
     const WebRtc_UWord16 length,
-    const TraceLevel level)
-{
+    const TraceLevel level) {
+#ifdef WEBRTC_DIRECT_TRACE
+    if (_callback) {
+      _callback->Print(level, traceMessage, length);
+    }
+    return;
+#endif
+
     CriticalSectionScoped lock(_critsectArray);
 
     if(_nextFreeIdx[_activeQueue] >= WEBRTC_TRACE_MAX_QUEUE)

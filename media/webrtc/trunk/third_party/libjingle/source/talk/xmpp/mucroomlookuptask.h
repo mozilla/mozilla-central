@@ -52,6 +52,9 @@ class MucRoomLookupTask : public IqTask {
   MucRoomLookupTask(XmppTaskParentInterface* parent,
                     const Jid& lookup_jid,
                     const Jid& room_jid);
+  MucRoomLookupTask(XmppTaskParentInterface* parent,
+                    const Jid& lookup_jid,
+                    const std::string& hangout_id);
 
   sigslot::signal2<MucRoomLookupTask*,
                    const MucRoomInfo&> SignalResult;
@@ -63,6 +66,7 @@ class MucRoomLookupTask : public IqTask {
   static XmlElement* MakeNameQuery(const std::string& room_name,
                                    const std::string& room_domain);
   static XmlElement* MakeJidQuery(const Jid& room_jid);
+  static XmlElement* MakeHangoutIdQuery(const std::string& hangout_id);
 };
 
 }  // namespace buzz

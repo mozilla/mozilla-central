@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -10,7 +10,6 @@
 
 #include "device_info_linux.h"
 
-#include <sys/stat.h>
 #include <errno.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
@@ -68,15 +67,11 @@ WebRtc_UWord32 DeviceInfoLinux::NumberOfDevices()
     /* detect /dev/video [0-63]VideoCaptureModule entries */
     for (int n = 0; n < 64; n++)
     {
-        struct stat s;
         sprintf(device, "/dev/video%d", n);
-        if (stat(device, &s) == 0) //check validity of path
+        if ((fd = open(device, O_RDONLY)) != -1)
         {
-            if ((fd = open(device, O_RDONLY)) != -1)
-            {
-                close(fd);
-                count++;
-            }
+            close(fd);
+            count++;
         }
     }
 
@@ -85,11 +80,11 @@ WebRtc_UWord32 DeviceInfoLinux::NumberOfDevices()
 
 WebRtc_Word32 DeviceInfoLinux::GetDeviceName(
                                          WebRtc_UWord32 deviceNumber,
-                                         WebRtc_UWord8* deviceNameUTF8,
+                                         char* deviceNameUTF8,
                                          WebRtc_UWord32 deviceNameLength,
-                                         WebRtc_UWord8* deviceUniqueIdUTF8,
+                                         char* deviceUniqueIdUTF8,
                                          WebRtc_UWord32 deviceUniqueIdUTF8Length,
-                                         WebRtc_UWord8* /*productUniqueIdUTF8*/,
+                                         char* /*productUniqueIdUTF8*/,
                                          WebRtc_UWord32 /*productUniqueIdUTF8Length*/)
 {
     WEBRTC_TRACE(webrtc::kTraceApiCall, webrtc::kTraceVideoCapture, _id, "%s", __FUNCTION__);
@@ -101,20 +96,16 @@ WebRtc_Word32 DeviceInfoLinux::GetDeviceName(
     bool found = false;
     for (int n = 0; n < 64; n++)
     {
-        struct stat s;
         sprintf(device, "/dev/video%d", n);
-        if (stat(device, &s) == 0)  // Check validity of path
+        if ((fd = open(device, O_RDONLY)) != -1)
         {
-            if ((fd = open(device, O_RDONLY)) != -1)
-            {
-                if (count == deviceNumber) {
-                    // Found the device
-                    found = true;
-                    break;
-                } else {
-                    close(fd);
-                    count++;
-                }
+            if (count == deviceNumber) {
+                // Found the device
+                found = true;
+                break;
+            } else {
+                close(fd);
+                count++;
             }
         }
     }
@@ -170,7 +161,7 @@ WebRtc_Word32 DeviceInfoLinux::GetDeviceName(
 }
 
 WebRtc_Word32 DeviceInfoLinux::CreateCapabilityMap(
-                                        const WebRtc_UWord8* deviceUniqueIdUTF8)
+                                        const char* deviceUniqueIdUTF8)
 {
     int fd;
     char device[32];
@@ -187,41 +178,38 @@ WebRtc_Word32 DeviceInfoLinux::CreateCapabilityMap(
                "CreateCapabilityMap called for device %s", deviceUniqueIdUTF8);
 
     /* detect /dev/video [0-63] entries */
-    for (int n = 0; n < 64; n++)
+    for (int n = 0; n < 64; ++n)
     {
-        struct stat s;
         sprintf(device, "/dev/video%d", n);
-        if (stat(device, &s) == 0) //check validity of path
+        fd = open(device, O_RDONLY);
+        if (fd == -1)
+          continue;
+
+        // query device capabilities
+        struct v4l2_capability cap;
+        if (ioctl(fd, VIDIOC_QUERYCAP, &cap) == 0)
         {
-            if ((fd = open(device, O_RDONLY)) > 0)
+            if (cap.bus_info[0] != 0)
             {
-                // query device capabilities
-                struct v4l2_capability cap;
-                if (ioctl(fd, VIDIOC_QUERYCAP, &cap) == 0)
+                if (strncmp((const char*) cap.bus_info,
+                            (const char*) deviceUniqueIdUTF8,
+                            strlen((const char*) deviceUniqueIdUTF8)) == 0) //match with device id
                 {
-                    if (cap.bus_info[0] != 0)
-                    {
-                        if (strncmp((const char*) cap.bus_info,
-                                    (const char*) deviceUniqueIdUTF8,
-                                    strlen((const char*) deviceUniqueIdUTF8)) == 0) //match with device id
-                        {
-                            found = true;
-                            break; // fd matches with device unique id supplied
-                        }
-                    }
-                    else //match for device name
-                    {
-                        if (IsDeviceNameMatches((const char*) cap.card,
-                                                (const char*) deviceUniqueIdUTF8))
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
+                    found = true;
+                    break; // fd matches with device unique id supplied
                 }
-                close(fd); // close since this is not the matching device
+            }
+            else //match for device name
+            {
+                if (IsDeviceNameMatches((const char*) cap.card,
+                                        (const char*) deviceUniqueIdUTF8))
+                {
+                    found = true;
+                    break;
+                }
             }
         }
+        close(fd); // close since this is not the matching device
     }
 
     if (!found)
@@ -244,7 +232,7 @@ WebRtc_Word32 DeviceInfoLinux::CreateCapabilityMap(
 
     // Store the new used device name
     _lastUsedDeviceNameLength = deviceUniqueIdUTF8Length;
-    _lastUsedDeviceName = (WebRtc_UWord8*) realloc(_lastUsedDeviceName,
+    _lastUsedDeviceName = (char*) realloc(_lastUsedDeviceName,
                                                    _lastUsedDeviceNameLength + 1);
     memcpy(_lastUsedDeviceName, deviceUniqueIdUTF8, _lastUsedDeviceNameLength + 1);
 
@@ -255,7 +243,7 @@ WebRtc_Word32 DeviceInfoLinux::CreateCapabilityMap(
 }
 
 bool DeviceInfoLinux::IsDeviceNameMatches(const char* name,
-                                                      const char* deviceUniqueIdUTF8)
+                                          const char* deviceUniqueIdUTF8)
 {
     if (strncmp(deviceUniqueIdUTF8, name, strlen(name)) == 0)
             return true;
@@ -272,8 +260,11 @@ WebRtc_Word32 DeviceInfoLinux::FillCapabilityMap(int fd)
     video_fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     video_fmt.fmt.pix.sizeimage = 0;
 
-    int totalFmts = 2;
-    unsigned int videoFormats[] = { V4L2_PIX_FMT_YUV420, V4L2_PIX_FMT_YUYV };
+    int totalFmts = 3;
+    unsigned int videoFormats[] = {
+        V4L2_PIX_FMT_MJPEG,
+        V4L2_PIX_FMT_YUV420,
+        V4L2_PIX_FMT_YUYV };
 
     int sizes = 13;
     unsigned int size[][2] = { { 128, 96 }, { 160, 120 }, { 176, 144 },
@@ -304,10 +295,14 @@ WebRtc_Word32 DeviceInfoLinux::FillCapabilityMap(int fd)
                     {
                         cap->rawType = kVideoYUY2;
                     }
+                    else if (videoFormats[fmts] == V4L2_PIX_FMT_MJPEG)
+                    {
+                        cap->rawType = kVideoMJPEG;
+                    }
 
                     // get fps of current camera mode
                     // V4l2 does not have a stable method of knowing so we just guess.
-                    if(cap->width>=800)
+                    if(cap->width >= 800 && cap->rawType != kVideoMJPEG)
                     {
                         cap->maxFPS = 15;
                     }

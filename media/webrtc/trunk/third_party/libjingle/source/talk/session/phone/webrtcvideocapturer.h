@@ -47,7 +47,7 @@ class WebRtcVcmFactoryInterface {
  public:
   virtual ~WebRtcVcmFactoryInterface() {}
   virtual webrtc::VideoCaptureModule* Create(
-      int id, const WebRtc_UWord8* device) = 0;
+      int id, const char* device) = 0;
   virtual webrtc::VideoCaptureModule::DeviceInfo* CreateDeviceInfo(int id) = 0;
   virtual void DestroyDeviceInfo(
       webrtc::VideoCaptureModule::DeviceInfo* info) = 0;

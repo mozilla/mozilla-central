@@ -33,6 +33,7 @@
 #include "libyuv/planar_functions.h"
 #include "libyuv/scale.h"
 #endif
+#include "talk/base/logging.h"
 
 namespace cricket {
 
@@ -144,4 +145,40 @@ bool VideoFrame::SetToBlack() {
 #endif
 }
 
+static const size_t kMaxSampleSize = 1000000000u;
+// Returns whether a sample is valid
+bool VideoFrame::Validate(uint32 fourcc, int w, int h,
+                          const uint8 *sample, size_t sample_size) {
+  if (h < 0) {
+    h = -h;
+  }
+  // 16384 is maximum resolution for VP8 codec.
+  if (w < 1 || w > 16384 || h < 1 || h > 16384) {
+    LOG(LS_ERROR) << "Invalid dimensions: " << w << "x" << h;
+    return false;
+  }
+
+  // Sanity check size field is not too small or too large.
+  // 80 x 40 is less than half the minimum camera capture size
+  // even a jpeg frame will be larger than 2048 bytes.
+  if ((w * h >= 80 * 40 && sample_size < 2048) ||
+      sample_size > kMaxSampleSize) {
+    LOG(LS_ERROR) << "Invalid size field: " << sample_size;
+    return false;
+  }
+  if (sample == NULL) {
+    LOG(LS_ERROR) << "Invalid sample pointer";
+    return false;
+  }
+  // Scan pages to ensure they are there
+  // TODO: Remove or place with a faster function such as checksum.
+  for (int i = 0; i < static_cast<int>(sample_size) - 4095; i += 4096) {
+    const_cast<volatile const uint8*>(sample)[i];
+  }
+  const_cast<volatile const uint8*>(sample)[sample_size - 1];
+
+  return true;
+}
+
 }  // namespace cricket
+

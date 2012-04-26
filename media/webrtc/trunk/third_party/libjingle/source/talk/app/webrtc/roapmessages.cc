@@ -28,12 +28,10 @@
 #include "talk/app/webrtc/roapmessages.h"
 
 #include "talk/app/webrtc/webrtcsdp.h"
+#include "talk/base/common.h"
 #include "talk/base/json.h"
 
 namespace webrtc {
-
-using cricket::Candidate;
-using cricket::SessionDescription;
 
 // ROAP message types. Must match the enum RoapMessageType.
 static const char* kMessageTypes[] = {
@@ -156,18 +154,15 @@ RoapOffer::RoapOffer(const std::string& offer_session_id,
                      const std::string& session_token,
                      uint32 seq,
                      uint32 tie_breaker,
-                     const SessionDescription* desc,
-                     const std::vector<cricket::Candidate>& candidates)
+                     const std::string& desc)
     : RoapMessageBase(kOffer, offer_session_id, answer_session_id,
                       session_token, "", seq),
       tie_breaker_(tie_breaker),
-      desc_(desc),
-      candidates_(candidates) {
+      desc_(desc) {
 }
 
 RoapOffer::RoapOffer(const RoapMessageBase& base)
-    : RoapMessageBase(base),
-      desc_(NULL) {}
+    : RoapMessageBase(base) {}
 
 bool RoapOffer::Parse() {
   if (!GetUIntFromJsonObject(jmessage_, kTieBreaker, &tie_breaker_)) {
@@ -178,16 +173,15 @@ bool RoapOffer::Parse() {
   if (!GetStringFromJsonObject(jmessage_, kSessionDescription, &sdp_message))
       return false;
 
-  parsed_desc_.reset(new cricket::SessionDescription());
-  return SdpDeserialize(sdp_message, parsed_desc_.get(),
-                        &candidates_);
+  desc_ = sdp_message;
+  return !desc_.empty();
 }
 
 void RoapOffer::SerializeElement(Json::Value* message) {
   ASSERT(message != NULL);
   RoapMessageBase::SerializeElement(message);
   (*message)[kTieBreaker] = tie_breaker_;
-  (*message)[kSessionDescription] = SdpSerialize(*desc_, candidates_);
+  (*message)[kSessionDescription] = desc_;
 }
 
 RoapAnswer::RoapAnswer(const std::string& offer_session_id,
@@ -195,18 +189,15 @@ RoapAnswer::RoapAnswer(const std::string& offer_session_id,
                        const std::string& session_token,
                        const std::string& response_token,
                        uint32 seq,
-                       const SessionDescription* desc,
-                       const std::vector<Candidate>& candidates)
+                       const std::string& desc)
     : RoapMessageBase(kAnswer, offer_session_id, answer_session_id,
                       session_token, response_token, seq),
-      desc_(desc),
-      candidates_(candidates) {
+      desc_(desc) {
 }
 
 RoapAnswer::RoapAnswer(const RoapMessageBase& base)
     : RoapMessageBase(base),
-      more_coming_(false),
-      desc_(NULL) {}
+      more_coming_(false) {}
 
 bool RoapAnswer::Parse() {
   std::string more;
@@ -217,15 +208,15 @@ bool RoapAnswer::Parse() {
   if (!GetStringFromJsonObject(jmessage_, kSessionDescription, &sdp_message))
       return false;
 
-  parsed_desc_.reset(new cricket::SessionDescription());
-  return SdpDeserialize(sdp_message, parsed_desc_.get(), &candidates_);
+  desc_ = sdp_message;
+  return !desc_.empty();
 }
 
 void RoapAnswer::SerializeElement(Json::Value* message) {
   ASSERT(message != NULL);
   RoapMessageBase::SerializeElement(message);
 
-  (*message)[kSessionDescription] = SdpSerialize(*desc_, candidates_);
+  (*message)[kSessionDescription] = desc_;
 }
 
 RoapError::RoapError(const RoapMessageBase& base)

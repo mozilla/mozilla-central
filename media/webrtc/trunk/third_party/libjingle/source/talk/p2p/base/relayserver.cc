@@ -188,8 +188,7 @@ bool RelayServer::HasConnection(const talk_base::SocketAddress& address) const {
 }
 
 void RelayServer::OnReadEvent(talk_base::AsyncSocket* socket) {
-  ServerSocketMap::iterator iter = server_sockets_.find(socket);
-  ASSERT(iter != server_sockets_.end());
+  ASSERT(server_sockets_.find(socket) != server_sockets_.end());
   AcceptConnection(socket);
 }
 

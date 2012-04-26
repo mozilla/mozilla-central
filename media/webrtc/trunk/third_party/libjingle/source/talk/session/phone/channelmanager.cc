@@ -37,7 +37,9 @@
 #include "talk/base/logging.h"
 #include "talk/base/sigslotrepeater.h"
 #include "talk/base/stringencode.h"
+#include "talk/session/phone/dataengine.h"
 #include "talk/session/phone/soundclip.h"
+#include "talk/session/phone/videocapturer.h"
 
 namespace cricket {
 
@@ -65,6 +67,8 @@ enum {
   MSG_REGISTERVOICEPROCESSOR = 24,
   MSG_UNREGISTERVOICEPROCESSOR = 25,
   MSG_SETVIDEOCAPTURER = 26,
+  MSG_CREATEDATACHANNEL = 27,
+  MSG_DESTROYDATACHANNEL = 28,
 };
 
 static const int kNotSetOutputVolume = -1;
@@ -76,12 +80,15 @@ struct CreationParams : public talk_base::MessageData {
         content_name(content_name),
         rtcp(rtcp),
         voice_channel(voice_channel),
-        video_channel(NULL) {}
+        video_channel(NULL),
+        data_channel(NULL) {
+  }
   BaseSession* session;
   std::string content_name;
   bool rtcp;
   VoiceChannel* voice_channel;
   VideoChannel* video_channel;
+  DataChannel* data_channel;
 };
 
 struct AudioOptions : public talk_base::MessageData {
@@ -126,12 +133,10 @@ struct LocalRenderer : public talk_base::MessageData {
 };
 
 struct Capturer : public talk_base::MessageData {
-  Capturer(VideoCapturer* c, uint32 s)
+  Capturer(VideoCapturer* c)
       : capturer(c),
-        ssrc(s),
         result(false) {}
   VideoCapturer* capturer;
-  uint32 ssrc;
   bool result;
 };
 
@@ -164,41 +169,44 @@ struct VoiceProcessorParams : public talk_base::MessageData {
   bool result;
 };
 
-ChannelManager::ChannelManager(talk_base::Thread* worker_thread)
-    : media_engine_(MediaEngineFactory::Create()),
-      device_manager_(cricket::DeviceManagerFactory::Create()),
-      initialized_(false),
-      main_thread_(talk_base::Thread::Current()),
-      worker_thread_(worker_thread),
-      audio_in_device_(DeviceManagerInterface::kDefaultDeviceName),
-      audio_out_device_(DeviceManagerInterface::kDefaultDeviceName),
-      audio_options_(MediaEngineInterface::DEFAULT_AUDIO_OPTIONS),
-      audio_output_volume_(kNotSetOutputVolume),
-      local_renderer_(NULL),
-      capturing_(false),
-      monitoring_(false) {
-  Construct();
+ChannelManager::ChannelManager(talk_base::Thread* worker_thread) {
+  Construct(MediaEngineFactory::Create(),
+            new DataEngine(),
+            cricket::DeviceManagerFactory::Create(),
+            worker_thread);
+}
+
+ChannelManager::ChannelManager(MediaEngineInterface* me,
+                               DataEngineInterface* dme,
+                               DeviceManagerInterface* dm,
+                               talk_base::Thread* worker_thread) {
+  Construct(me, dme, dm, worker_thread);
 }
 
 ChannelManager::ChannelManager(MediaEngineInterface* me,
                                DeviceManagerInterface* dm,
-                               talk_base::Thread* worker_thread)
-    : media_engine_(me),
-      device_manager_(dm),
-      initialized_(false),
-      main_thread_(talk_base::Thread::Current()),
-      worker_thread_(worker_thread),
-      audio_in_device_(DeviceManagerInterface::kDefaultDeviceName),
-      audio_out_device_(DeviceManagerInterface::kDefaultDeviceName),
-      audio_options_(MediaEngineInterface::DEFAULT_AUDIO_OPTIONS),
-      audio_output_volume_(kNotSetOutputVolume),
-      local_renderer_(NULL),
-      capturing_(false),
-      monitoring_(false) {
-  Construct();
+                               talk_base::Thread* worker_thread) {
+  Construct(me, new DataEngine(), dm, worker_thread);
 }
 
-void ChannelManager::Construct() {
+void ChannelManager::Construct(MediaEngineInterface* me,
+                               DataEngineInterface* dme,
+                               DeviceManagerInterface* dm,
+                               talk_base::Thread* worker_thread) {
+  media_engine_.reset(me);
+  data_media_engine_.reset(dme);
+  device_manager_.reset(dm);
+  initialized_ = false;
+  main_thread_ = talk_base::Thread::Current();
+  worker_thread_ = worker_thread;
+  audio_in_device_ = DeviceManagerInterface::kDefaultDeviceName;
+  audio_out_device_ = DeviceManagerInterface::kDefaultDeviceName;
+  audio_options_ = MediaEngineInterface::DEFAULT_AUDIO_OPTIONS;
+  audio_output_volume_ = kNotSetOutputVolume;
+  local_renderer_ = NULL;
+  capturing_ = false;
+  monitoring_ = false;
+
   // Init the device manager immediately, and set up our default video device.
   SignalDevicesChange.repeat(device_manager_->SignalDevicesChange);
   device_manager_->Init();
@@ -238,6 +246,11 @@ void ChannelManager::GetSupportedVideoCodecs(
       it != media_engine_->video_codecs().end(); ++it) {
     codecs->push_back(*it);
   }
+}
+
+void ChannelManager::GetSupportedDataCodecs(
+    std::vector<DataCodec>* codecs) const {
+  *codecs = data_media_engine_->data_codecs();
 }
 
 bool ChannelManager::Init() {
@@ -337,6 +350,9 @@ void ChannelManager::Terminate_w() {
   while (!soundclips_.empty()) {
     DestroySoundclip_w(soundclips_.back());
   }
+  if (!SetVideoOptions_w(NULL)) {
+    LOG(LS_WARNING) << "failed to delete video capturer";
+  }
 }
 
 VoiceChannel* ChannelManager::CreateVoiceChannel(
@@ -366,7 +382,7 @@ VoiceChannel* ChannelManager::CreateVoiceChannel_w(
 
 void ChannelManager::DestroyVoiceChannel(VoiceChannel* voice_channel) {
   if (voice_channel) {
-    talk_base::TypedMessageData<VoiceChannel *> data(voice_channel);
+    talk_base::TypedMessageData<VoiceChannel*> data(voice_channel);
     Send(MSG_DESTROYVOICECHANNEL, &data);
   }
 }
@@ -416,13 +432,13 @@ VideoChannel* ChannelManager::CreateVideoChannel_w(
 
 void ChannelManager::DestroyVideoChannel(VideoChannel* video_channel) {
   if (video_channel) {
-    talk_base::TypedMessageData<VideoChannel *> data(video_channel);
+    talk_base::TypedMessageData<VideoChannel*> data(video_channel);
     Send(MSG_DESTROYVIDEOCHANNEL, &data);
   }
 }
 
-void ChannelManager::DestroyVideoChannel_w(VideoChannel *video_channel) {
-  // Destroy voice channel.
+void ChannelManager::DestroyVideoChannel_w(VideoChannel* video_channel) {
+  // Destroy video channel.
   ASSERT(initialized_);
   VideoChannels::iterator it = std::find(video_channels_.begin(),
       video_channels_.end(), video_channel);
@@ -432,6 +448,49 @@ void ChannelManager::DestroyVideoChannel_w(VideoChannel *video_channel) {
 
   video_channels_.erase(it);
   delete video_channel;
+}
+
+DataChannel* ChannelManager::CreateDataChannel(
+    BaseSession* session, const std::string& content_name, bool rtcp) {
+  CreationParams params(session, content_name, rtcp, NULL);
+  return (Send(MSG_CREATEDATACHANNEL, &params)) ? params.data_channel : NULL;
+}
+
+DataChannel* ChannelManager::CreateDataChannel_w(
+    BaseSession* session, const std::string& content_name, bool rtcp) {
+  // This is ok to alloc from a thread other than the worker thread.
+  ASSERT(initialized_);
+  DataMediaChannel* media_channel = data_media_engine_->CreateChannel();
+  DataChannel* data_channel = new DataChannel(
+      worker_thread_, media_channel,
+      session, content_name, rtcp);
+  if (!data_channel->Init()) {
+    LOG(LS_WARNING) << "Failed to init data channel.";
+    delete data_channel;
+    return NULL;
+  }
+  data_channels_.push_back(data_channel);
+  return data_channel;
+}
+
+void ChannelManager::DestroyDataChannel(DataChannel* data_channel) {
+  if (data_channel) {
+    talk_base::TypedMessageData<DataChannel*> data(data_channel);
+    Send(MSG_DESTROYDATACHANNEL, &data);
+  }
+}
+
+void ChannelManager::DestroyDataChannel_w(DataChannel* data_channel) {
+  // Destroy data channel.
+  ASSERT(initialized_);
+  DataChannels::iterator it = std::find(data_channels_.begin(),
+      data_channels_.end(), data_channel);
+  ASSERT(it != data_channels_.end());
+  if (it == data_channels_.end())
+    return;
+
+  data_channels_.erase(it);
+  delete data_channel;
 }
 
 Soundclip* ChannelManager::CreateSoundclip() {
@@ -617,8 +676,35 @@ bool ChannelManager::SetVideoOptions_w(const Device* cam_device) {
   ASSERT(worker_thread_ == talk_base::Thread::Current());
   ASSERT(initialized_);
 
-  // Set the video input device
-  return media_engine_->SetVideoCaptureDevice(cam_device);
+  if (!cam_device) {
+    video_device_name_.clear();
+    media_engine_->SetVideoCapturer(NULL);
+    video_capturer_.reset(NULL);
+    LOG(LS_INFO) << "Camera set to NULL";
+    return true;
+  }
+
+  // No need to do anything if the same device is passed more than once.
+  if (video_capturer_.get() &&
+      (video_capturer_->GetId() == cam_device->id)) {
+    // No change, return success.
+    return true;
+  }
+  VideoCapturer* video_capturer = device_manager_->CreateVideoCapturer(
+      *cam_device);
+  if (!video_capturer) {
+    return false;
+  }
+
+  // Register the new video_capturer.
+  if (!media_engine_->SetVideoCapturer(video_capturer)) {
+    delete video_capturer;
+    return false;
+  }
+  // Capturer successfully updated.
+  video_capturer_.reset(video_capturer);
+  video_device_name_ = cam_device->name;
+  return true;
 }
 
 bool ChannelManager::SetDefaultVideoEncoderConfig(const VideoEncoderConfig& c) {
@@ -673,19 +759,19 @@ bool ChannelManager::SetLocalRenderer_w(VideoRenderer* renderer) {
   return media_engine_->SetLocalRenderer(renderer);
 }
 
-bool ChannelManager::SetVideoCapturer(VideoCapturer* capturer, uint32 ssrc) {
+bool ChannelManager::SetVideoCapturer(VideoCapturer* capturer) {
   bool ret = true;
   if (initialized_) {
-    Capturer capture(capturer, ssrc);
+    Capturer capture(capturer);
     ret = (Send(MSG_SETVIDEOCAPTURER, &capture) && capture.result);
   }
   return ret;
 }
 
-bool ChannelManager::SetVideoCapturer_w(VideoCapturer* capturer, uint32 ssrc) {
+bool ChannelManager::SetVideoCapturer_w(VideoCapturer* capturer) {
   ASSERT(worker_thread_ == talk_base::Thread::Current());
   ASSERT(initialized_);
-  return media_engine_->SetVideoCapturer(capturer, ssrc);
+  return media_engine_->SetVideoCapturer(capturer);
 }
 
 CaptureResult ChannelManager::SetVideoCapture(bool capture) {
@@ -834,6 +920,18 @@ void ChannelManager::OnMessage(talk_base::Message* message) {
       DestroyVideoChannel_w(p);
       break;
     }
+    case MSG_CREATEDATACHANNEL: {
+      CreationParams* p = static_cast<CreationParams*>(data);
+      p->data_channel =
+          CreateDataChannel_w(p->session, p->content_name, p->rtcp);
+      break;
+    }
+    case MSG_DESTROYDATACHANNEL: {
+      DataChannel* p = static_cast<talk_base::TypedMessageData<DataChannel*>*>
+          (data)->data();
+      DestroyDataChannel_w(p);
+      break;
+    }
     case MSG_CREATESOUNDCLIP: {
       talk_base::TypedMessageData<Soundclip*> *p =
           static_cast<talk_base::TypedMessageData<Soundclip*>*>(data);
@@ -885,7 +983,7 @@ void ChannelManager::OnMessage(talk_base::Message* message) {
     }
     case MSG_SETVIDEOCAPTURER: {
       Capturer* p = static_cast<Capturer*>(data);
-      p->result = SetVideoCapturer_w(p->capturer, p->ssrc);
+      p->result = SetVideoCapturer_w(p->capturer);
       break;
     }
     case MSG_SETVIDEOCAPTURE: {

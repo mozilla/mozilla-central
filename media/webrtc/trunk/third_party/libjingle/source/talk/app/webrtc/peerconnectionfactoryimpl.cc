@@ -47,10 +47,12 @@ namespace {
 typedef talk_base::TypedMessageData<bool> InitMessageData;
 
 struct CreatePeerConnectionParams : public talk_base::MessageData {
-  CreatePeerConnectionParams(const std::string& configuration,
+  CreatePeerConnectionParams(bool use_roap,
+                             const std::string& configuration,
                              webrtc::PeerConnectionObserver* observer)
-      : configuration(configuration), observer(observer) {
+      : use_roap(use_roap), configuration(configuration), observer(observer) {
   }
+  bool use_roap;
   scoped_refptr<webrtc::PeerConnectionInterface> peerconnection;
   const std::string& configuration;
   webrtc::PeerConnectionObserver* observer;
@@ -150,7 +152,8 @@ void PeerConnectionFactory::OnMessage(talk_base::Message* msg) {
     case MSG_CREATE_PEERCONNECTION: {
       CreatePeerConnectionParams* pdata =
           static_cast<CreatePeerConnectionParams*> (msg->pdata);
-      pdata->peerconnection = CreatePeerConnection_s(pdata->configuration,
+      pdata->peerconnection = CreatePeerConnection_s(pdata->use_roap,
+                                                     pdata->configuration,
                                                      pdata->observer);
       break;
     }
@@ -170,8 +173,7 @@ bool PeerConnectionFactory::Initialize_s() {
   // WebRtcMediaEngine.
   cricket::WebRtcMediaEngine* webrtc_media_engine(
       new cricket::WebRtcMediaEngine(default_adm_.get(),
-                                     NULL,   // No secondary adm.
-                                     NULL));  // No vcm available.
+                                     NULL));   // No secondary adm.
 
   channel_manager_.reset(new cricket::ChannelManager(
       webrtc_media_engine, device_manager, worker_thread_));
@@ -193,18 +195,28 @@ scoped_refptr<PeerConnectionInterface>
 PeerConnectionFactory::CreatePeerConnection(
     const std::string& configuration,
     PeerConnectionObserver* observer) {
-  CreatePeerConnectionParams params(configuration, observer);
+  CreatePeerConnectionParams params(false, configuration, observer);
+  signaling_thread_->Send(this, MSG_CREATE_PEERCONNECTION, &params);
+  return params.peerconnection;
+}
+
+talk_base::scoped_refptr<PeerConnectionInterface>
+PeerConnectionFactory::CreateRoapPeerConnection(
+    const std::string& configuration,
+    PeerConnectionObserver* observer) {
+  CreatePeerConnectionParams params(true, configuration, observer);
   signaling_thread_->Send(this, MSG_CREATE_PEERCONNECTION, &params);
   return params.peerconnection;
 }
 
 scoped_refptr<PeerConnectionInterface>
 PeerConnectionFactory::CreatePeerConnection_s(
+    bool use_roap,
     const std::string& configuration,
     PeerConnectionObserver* observer) {
   talk_base::RefCountedObject<PeerConnection>* pc(
       new talk_base::RefCountedObject<PeerConnection>(this));
-  if (!pc->Initialize(configuration, observer)) {
+  if (!pc->Initialize(use_roap, configuration, observer)) {
     delete pc;
     pc = NULL;
   }

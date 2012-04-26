@@ -34,7 +34,6 @@
 #include "talk/base/fileutils.h"
 #include "talk/base/logging.h"
 #include "talk/base/pathutils.h"
-#include "talk/session/phone/channel.h"
 #include "talk/session/phone/rtpdump.h"
 
 
@@ -162,19 +161,21 @@ bool MediaRecorder::InternalAddChannel(BaseChannel* channel,
   return true;
 }
 
-void MediaRecorder::RemoveChannel(BaseChannel* channel) {
+void MediaRecorder::RemoveChannel(BaseChannel* channel,
+                                  SinkType type) {
   talk_base::CritScope cs(&critical_section_);
   std::map<BaseChannel*, SinkPair*>::iterator itr = sinks_.find(channel);
   if (sinks_.end() != itr) {
-    channel->UnregisterSendSink(itr->second->send_sink.get());
-    channel->UnregisterRecvSink(itr->second->recv_sink.get());
+    channel->UnregisterSendSink(itr->second->send_sink.get(), type);
+    channel->UnregisterRecvSink(itr->second->recv_sink.get(), type);
     delete itr->second;
     sinks_.erase(itr);
   }
 }
 
 bool MediaRecorder::EnableChannel(
-    BaseChannel* channel, bool enable_send, bool enable_recv) {
+    BaseChannel* channel, bool enable_send, bool enable_recv,
+    SinkType type) {
   talk_base::CritScope cs(&critical_section_);
   std::map<BaseChannel*, SinkPair*>::iterator itr = sinks_.find(channel);
   if (sinks_.end() == itr) {
@@ -185,17 +186,17 @@ bool MediaRecorder::EnableChannel(
   RtpDumpSink* sink = sink_pair->send_sink.get();
   sink->Enable(enable_send);
   if (enable_send) {
-    channel->RegisterSendSink(sink, &RtpDumpSink::OnPacket);
+    channel->RegisterSendSink(sink, &RtpDumpSink::OnPacket, type);
   } else {
-    channel->UnregisterSendSink(sink);
+    channel->UnregisterSendSink(sink, type);
   }
 
   sink = sink_pair->recv_sink.get();
   sink->Enable(enable_recv);
   if (enable_recv) {
-    channel->RegisterRecvSink(sink, &RtpDumpSink::OnPacket);
+    channel->RegisterRecvSink(sink, &RtpDumpSink::OnPacket, type);
   } else {
-    channel->UnregisterRecvSink(sink);
+    channel->UnregisterRecvSink(sink, type);
   }
 
   if (sink_pair->video_channel &&

@@ -38,6 +38,10 @@
 #include "talk/base/messagehandler.h"
 #include "talk/base/sigslot.h"
 
+#if defined(POSIX) && !defined(ANDROID)
+struct ifaddrs;
+#endif  // defined(POSIX) && !defined(ANDROID)
+
 namespace talk_base {
 
 class Network;
@@ -72,6 +76,9 @@ class NetworkManager {
   // given network, so that quality is tracked appropriately. Does not
   // include ignored networks.
   virtual void GetNetworks(NetworkList* networks) const = 0;
+
+  // Dumps a list of networks available to LS_INFO.
+  virtual void DumpNetworks(bool include_ignored) {}
 };
 
 // Base class for NetworkManager implementations.
@@ -81,23 +88,25 @@ class NetworkManagerBase : public NetworkManager {
   virtual ~NetworkManagerBase();
 
   virtual void GetNetworks(std::vector<Network*>* networks) const;
+  bool ipv6_enabled() const { return ipv6_enabled_; }
+  void set_ipv6_enabled(bool enabled) { ipv6_enabled_ = enabled; }
 
  protected:
+  typedef std::map<std::string, Network*> NetworkMap;
   // Updates |networks_| with the networks listed in |list|. If
   // |network_map_| already has a Network object for a network listed
   // in the |list| then it is reused. Accept ownership of the Network
-  // objects in the |list|. SignalNetworkListUpdated is emitted if
-  // there is a change in network configuration or
-  // |force_notification| is set to true.
-  void MergeNetworkList(const NetworkList& list, bool force_notification);
+  // objects in the |list|. |changed| will be set to true if there is
+  // any change in the network list.
+  void MergeNetworkList(const NetworkList& list, bool* changed);
 
  private:
-  typedef std::map<std::string, Network*> NetworkMap;
-
+  friend class NetworkTest;
   void DoUpdateNetworks();
 
   NetworkList networks_;
   NetworkMap networks_map_;
+  bool ipv6_enabled_;
 };
 
 // Basic implementation of the NetworkManager interface that gets list
@@ -112,14 +121,23 @@ class BasicNetworkManager : public NetworkManagerBase,
   virtual void StopUpdating();
 
   // Logs the available networks.
-  static void DumpNetworks(bool include_ignored);
+  virtual void DumpNetworks(bool include_ignored);
 
   // MessageHandler interface.
   virtual void OnMessage(Message* msg);
+  bool started() { return start_count_ > 0; }
 
  protected:
+#if defined(POSIX) && !defined(ANDROID)
+  // Separated from CreateNetworks for tests.
+  void ConvertIfAddrs(struct ifaddrs* interfaces,
+                      bool include_ignored,
+                      NetworkList* networks) const;
+#endif  // defined(POSIX) && !defined(ANDROID)
+
   // Creates a network object for each network available on the machine.
-  static bool CreateNetworks(bool include_ignored, NetworkList* networks);
+  bool CreateNetworks(bool include_ignored, NetworkList* networks) const;
+
   // Determines if a network should be ignored.
   static bool IsIgnoredNetwork(const Network& network);
 
@@ -129,29 +147,54 @@ class BasicNetworkManager : public NetworkManagerBase,
   void DoUpdateNetworks();
 
   Thread* thread_;
-  bool started_;
   bool sent_first_update_;
+  int start_count_;
 };
 
 // Represents a Unix-type network interface, with a name and single address.
 class Network {
  public:
-  Network() : ip_(INADDR_ANY) {}
-
+  Network() : prefix_(INADDR_ANY), scope_id_(0) {}
   Network(const std::string& name, const std::string& description,
-          const IPAddress& ip);
+          const IPAddress& prefix, int prefix_length);
 
-  // Returns the index of this network.  This is considered the primary key
-  // that identifies each network.
+  // Returns the name of the interface this network is associated wtih.
   const std::string& name() const { return name_; }
 
   // Returns the OS-assigned name for this network. This is useful for
   // debugging but should not be sent over the wire (for privacy reasons).
   const std::string& description() const { return description_; }
 
-  // Identifies the current IP address used by this network.
-  const IPAddress& ip() const { return ip_; }
-  void set_ip(const IPAddress& ip) { ip_ = ip; }
+  // Returns the prefix for this network.
+  const IPAddress& prefix() const { return prefix_; }
+  // Returns the length, in bits, of this network's prefix.
+  int prefix_length() const { return prefix_length_; }
+
+  // Returns the Network's current idea of the 'best' IP it has.
+  // 'Best' currently means the first one added.
+  // TODO: We should be preferring temporary addresses.
+  // Returns an unset IP if this network has no active addresses.
+  IPAddress ip() const {
+    if (ips_.size() == 0) {
+      return IPAddress();
+    }
+    return ips_.at(0);
+  }
+  // Adds an active IP address to this network. Does not check for duplicates.
+  void AddIP(const IPAddress& ip) { ips_.push_back(ip); }
+
+  // Sets the network's IP address list. Returns true if new IP addresses were
+  // detected. Passing true to already_changed skips this check.
+  bool SetIPs(const std::vector<IPAddress>& ips, bool already_changed);
+  // Get the list of IP Addresses associated with this network.
+  const std::vector<IPAddress>& GetIPs() { return ips_;}
+  // Clear the network's list of addresses.
+  void ClearIPs() { ips_.clear(); }
+
+  // Returns the scope-id of the network's address.
+  // Should only be relevant for link-local IPv6 addresses.
+  int scope_id() const { return scope_id_; }
+  void set_scope_id(int id) { scope_id_ = id; }
 
   // Indicates whether this network should be ignored, perhaps because
   // the IP is 0, or the interface is one we know is invalid.
@@ -166,7 +209,10 @@ class Network {
 
   std::string name_;
   std::string description_;
-  IPAddress ip_;
+  IPAddress prefix_;
+  int prefix_length_;
+  std::vector<IPAddress> ips_;
+  int scope_id_;
   bool ignored_;
   SessionList sessions_;
   double uniform_numerator_;
@@ -176,7 +222,6 @@ class Network {
 
   friend class NetworkManager;
 };
-
 }  // namespace talk_base
 
 #endif  // TALK_BASE_NETWORK_H_

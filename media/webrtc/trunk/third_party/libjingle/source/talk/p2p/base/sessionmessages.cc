@@ -86,6 +86,8 @@ std::string ToJingleString(ActionType type) {
       return JINGLE_ACTION_SESSION_INITIATE;
     case ACTION_SESSION_INFO:
       return JINGLE_ACTION_SESSION_INFO;
+    case ACTION_DESCRIPTION_INFO:
+      return JINGLE_ACTION_DESCRIPTION_INFO;
     case ACTION_SESSION_ACCEPT:
       return JINGLE_ACTION_SESSION_ACCEPT;
     // Notice that reject and terminate both go to
@@ -409,15 +411,15 @@ bool WriteJingleTransportInfo(const TransportInfo& tinfo,
   return true;
 }
 
-void WriteJingleContentPair(const std::string name,
-                            const XmlElements& pair_elems,
-                            XmlElements* elems) {
-  buzz::XmlElement* pair_elem = new buzz::XmlElement(QN_JINGLE_CONTENT);
-  pair_elem->SetAttr(QN_JINGLE_CONTENT_NAME, name);
-  pair_elem->SetAttr(QN_CREATOR, LN_INITIATOR);
-  AddXmlChildren(pair_elem, pair_elems);
+void WriteJingleContent(const std::string name,
+                        const XmlElements& child_elems,
+                        XmlElements* elems) {
+  buzz::XmlElement* content_elem = new buzz::XmlElement(QN_JINGLE_CONTENT);
+  content_elem->SetAttr(QN_JINGLE_CONTENT_NAME, name);
+  content_elem->SetAttr(QN_CREATOR, LN_INITIATOR);
+  AddXmlChildren(content_elem, child_elems);
 
-  elems->push_back(pair_elem);
+  elems->push_back(content_elem);
 }
 
 bool WriteJingleTransportInfos(const TransportInfos& tinfos,
@@ -426,12 +428,12 @@ bool WriteJingleTransportInfos(const TransportInfos& tinfos,
                                WriteError* error) {
   for (TransportInfos::const_iterator tinfo = tinfos.begin();
        tinfo != tinfos.end(); ++tinfo) {
-    XmlElements pair_elems;
+    XmlElements content_child_elems;
     if (!WriteJingleTransportInfo(*tinfo, trans_parsers,
-                                  &pair_elems, error))
+                                  &content_child_elems, error))
       return false;
 
-    WriteJingleContentPair(tinfo->content_name, pair_elems, elems);
+    WriteJingleContent(tinfo->content_name, content_child_elems, elems);
   }
 
   return true;
@@ -543,6 +545,34 @@ bool ParseJingleContentInfos(const buzz::XmlElement* jingle,
   return true;
 }
 
+bool ParseJingleGroupInfos(const buzz::XmlElement* jingle,
+                           ContentGroups* groups,
+                           ParseError* error) {
+  for (const buzz::XmlElement* pair_elem
+           = jingle->FirstNamed(QN_JINGLE_DRAFT_GROUP);
+       pair_elem != NULL;
+       pair_elem = pair_elem->NextNamed(QN_JINGLE_DRAFT_GROUP)) {
+    std::string group_name;
+    if (!RequireXmlAttr(pair_elem, QN_JINGLE_DRAFT_GROUP_TYPE,
+                        &group_name, error))
+      return false;
+
+    ContentGroup group(group_name);
+    for (const buzz::XmlElement* child_elem
+             = pair_elem->FirstNamed(QN_JINGLE_CONTENT);
+        child_elem != NULL;
+        child_elem = child_elem->NextNamed(QN_JINGLE_CONTENT)) {
+      std::string content_name;
+      if (!RequireXmlAttr(child_elem, QN_JINGLE_CONTENT_NAME,
+                          &content_name, error))
+        return false;
+      group.AddContentName(content_name);
+    }
+    groups->push_back(group);
+  }
+  return true;
+}
+
 buzz::XmlElement* WriteContentInfo(SignalingProtocol protocol,
                                    const ContentInfo& content,
                                    const ContentParserMap& parsers,
@@ -560,18 +590,31 @@ buzz::XmlElement* WriteContentInfo(SignalingProtocol protocol,
   return elem;
 }
 
+bool IsWritable(SignalingProtocol protocol,
+                const ContentInfo& content,
+                const ContentParserMap& parsers) {
+  ContentParser* parser = GetContentParser(parsers, content.type);
+  if (parser == NULL) {
+    return false;
+  }
+
+  return parser->IsWritable(protocol, content.description);
+}
+
 bool WriteGingleContentInfos(const ContentInfos& contents,
                              const ContentParserMap& parsers,
                              XmlElements* elems,
                              WriteError* error) {
-  if (contents.size() == 1) {
+  if (contents.size() == 1 ||
+      (contents.size() == 2 &&
+       !IsWritable(PROTOCOL_GINGLE, contents.at(1), parsers))) {
     buzz::XmlElement* elem = WriteContentInfo(
         PROTOCOL_GINGLE, contents.front(), parsers, error);
     if (!elem)
       return false;
 
     elems->push_back(elem);
-  } else if (contents.size() == 2 &&
+  } else if (contents.size() >= 2 &&
              contents.at(0).type == NS_JINGLE_RTP &&
              contents.at(1).type == NS_JINGLE_RTP) {
      // Special-case audio + video contents so that they are "merged"
@@ -609,12 +652,12 @@ const TransportInfo* GetTransportInfoByContentName(
   return NULL;
 }
 
-bool WriteJingleContentPairs(const ContentInfos& contents,
-                             const ContentParserMap& content_parsers,
-                             const TransportInfos& tinfos,
-                             const TransportParserMap& trans_parsers,
-                             XmlElements* elems,
-                             WriteError* error) {
+bool WriteJingleContents(const ContentInfos& contents,
+                         const ContentParserMap& content_parsers,
+                         const TransportInfos& tinfos,
+                         const TransportParserMap& trans_parsers,
+                         XmlElements* elems,
+                         WriteError* error) {
   for (ContentInfos::const_iterator content = contents.begin();
        content != contents.end(); ++content) {
     const TransportInfo* tinfo =
@@ -633,7 +676,46 @@ bool WriteJingleContentPairs(const ContentInfos& contents,
                                   &pair_elems, error))
       return false;
 
-    WriteJingleContentPair(content->name, pair_elems, elems);
+    WriteJingleContent(content->name, pair_elems, elems);
+  }
+  return true;
+}
+
+bool WriteJingleContentInfos(const ContentInfos& contents,
+                             const ContentParserMap& content_parsers,
+                             XmlElements* elems,
+                             WriteError* error) {
+  for (ContentInfos::const_iterator content = contents.begin();
+       content != contents.end(); ++content) {
+    XmlElements content_child_elems;
+    buzz::XmlElement* elem = WriteContentInfo(
+        PROTOCOL_JINGLE, *content, content_parsers, error);
+    if (!elem)
+      return false;
+    content_child_elems.push_back(elem);
+    WriteJingleContent(content->name, content_child_elems, elems);
+  }
+  return true;
+}
+
+bool WriteJingleGroupInfo(const ContentInfos& contents,
+                          const ContentGroups& groups,
+                          XmlElements* elems,
+                          WriteError* error) {
+  if (!groups.empty()) {
+    buzz::XmlElement* pair_elem = new buzz::XmlElement(QN_JINGLE_DRAFT_GROUP);
+    pair_elem->SetAttr(QN_JINGLE_DRAFT_GROUP_TYPE, GROUP_TYPE_BUNDLE);
+
+    XmlElements pair_elems;
+    for (ContentInfos::const_iterator content = contents.begin();
+         content != contents.end(); ++content) {
+      buzz::XmlElement* child_elem =
+          new buzz::XmlElement(QN_JINGLE_CONTENT, false);
+      child_elem->SetAttr(QN_JINGLE_CONTENT_NAME, content->name);
+      pair_elems.push_back(child_elem);
+    }
+    AddXmlChildren(pair_elem, pair_elems);
+    elems->push_back(pair_elem);
   }
   return true;
 }
@@ -697,6 +779,8 @@ static bool ParseContentMessage(
     if (!ParseJingleContentInfos(action_elem, content_parsers,
                                  &init->contents, error))
       return false;
+    if (!ParseJingleGroupInfos(action_elem, &init->groups, error))
+      return false;
 
     if (expect_transports &&
         !ParseJingleTransportInfos(action_elem, init->contents, trans_parsers,
@@ -713,6 +797,7 @@ static bool WriteContentMessage(
     const TransportInfos& tinfos,
     const ContentParserMap& content_parsers,
     const TransportParserMap& transport_parsers,
+    const ContentGroups& groups,
     XmlElements* elems,
     WriteError* error) {
   if (protocol == PROTOCOL_GINGLE) {
@@ -723,9 +808,11 @@ static bool WriteContentMessage(
                                    elems, error))
       return false;
   } else {
-    if (!WriteJingleContentPairs(contents, content_parsers,
-                                 tinfos, transport_parsers,
-                                 elems, error))
+    if (!WriteJingleContents(contents, content_parsers,
+                             tinfos, transport_parsers,
+                             elems, error))
+      return false;
+    if (!WriteJingleGroupInfo(contents, groups, elems, error))
       return false;
   }
 
@@ -750,10 +837,11 @@ bool WriteSessionInitiate(SignalingProtocol protocol,
                           const TransportInfos& tinfos,
                           const ContentParserMap& content_parsers,
                           const TransportParserMap& transport_parsers,
+                          const ContentGroups& groups,
                           XmlElements* elems,
                           WriteError* error) {
   return WriteContentMessage(protocol, contents, tinfos,
-                             content_parsers, transport_parsers,
+                             content_parsers, transport_parsers, groups,
                              elems, error);
 }
 
@@ -774,10 +862,11 @@ bool WriteSessionAccept(SignalingProtocol protocol,
                         const TransportInfos& tinfos,
                         const ContentParserMap& content_parsers,
                         const TransportParserMap& transport_parsers,
+                        const ContentGroups& groups,
                         XmlElements* elems,
                         WriteError* error) {
   return WriteContentMessage(protocol, contents, tinfos,
-                             content_parsers, transport_parsers,
+                             content_parsers, transport_parsers, groups,
                              elems, error);
 }
 
@@ -833,6 +922,18 @@ bool ParseDescriptionInfo(SignalingProtocol protocol,
   return ParseContentMessage(protocol, action_elem, expect_transports,
                              content_parsers, transport_parsers,
                              description_info, error);
+}
+
+bool WriteDescriptionInfo(SignalingProtocol protocol,
+                          const ContentInfos& contents,
+                          const ContentParserMap& content_parsers,
+                          XmlElements* elems,
+                          WriteError* error) {
+  if (protocol == PROTOCOL_GINGLE) {
+    return WriteGingleContentInfos(contents, content_parsers, elems, error);
+  } else {
+    return WriteJingleContentInfos(contents, content_parsers, elems, error);
+  }
 }
 
 bool ParseTransportInfos(SignalingProtocol protocol,

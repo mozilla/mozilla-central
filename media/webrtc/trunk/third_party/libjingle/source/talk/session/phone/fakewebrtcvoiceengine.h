@@ -66,6 +66,7 @@ class FakeWebRtcVoiceEngine
           file(false),
           vad(false),
           fec(false),
+          media_processor_registered(false),
           cn8_type(13),
           cn16_type(105),
           dtmf_type(106),
@@ -80,6 +81,7 @@ class FakeWebRtcVoiceEngine
     bool file;
     bool vad;
     bool fec;
+    bool media_processor_registered;
     int cn8_type;
     int cn16_type;
     int dtmf_type;
@@ -669,10 +671,10 @@ class FakeWebRtcVoiceEngine
     return 0;
   }
   WEBRTC_STUB(SetRTPKeepaliveStatus, (int channel, bool enable,
-                                      unsigned char unknownPayloadType,
+                                      int unknownPayloadType,
                                       int deltaTransmitTimeSeconds));
   WEBRTC_STUB(GetRTPKeepaliveStatus, (int channel, bool& enabled,
-                                      unsigned char& unknownPayloadType,
+                                      int& unknownPayloadType,
                                       int& deltaTransmitTimeSeconds));
   WEBRTC_STUB(StartRTPDump, (int channel, const char* fileNameUTF8,
                              webrtc::RTPDirections direction));
@@ -744,6 +746,8 @@ class FakeWebRtcVoiceEngine
     mode = ec_mode_;
     return 0;
   }
+  virtual void SetDelayOffsetMs(int offset) {}
+  WEBRTC_STUB(DelayOffsetMs, ());
   WEBRTC_STUB(SetAecmMode, (webrtc::AecmModes mode, bool enableCNG));
   WEBRTC_STUB(GetAecmMode, (webrtc::AecmModes& mode, bool& enabledCNG));
   WEBRTC_STUB(SetRxNsStatus, (int channel, bool enable, webrtc::NsModes mode));
@@ -774,11 +778,21 @@ class FakeWebRtcVoiceEngine
   WEBRTC_FUNC(RegisterExternalMediaProcessing,
               (int channel, webrtc::ProcessingTypes type,
                webrtc::VoEMediaProcess& processObject)) {
+    WEBRTC_CHECK_CHANNEL(channel);
+    if (channels_[channel]->media_processor_registered) {
+      return -1;
+    }
+    channels_[channel]->media_processor_registered = true;
     media_processor_ = &processObject;
     return 0;
   }
   WEBRTC_FUNC(DeRegisterExternalMediaProcessing,
               (int channel, webrtc::ProcessingTypes type)) {
+    WEBRTC_CHECK_CHANNEL(channel);
+    if (!channels_[channel]->media_processor_registered) {
+      return -1;
+    }
+    channels_[channel]->media_processor_registered = false;
     media_processor_ = NULL;
     return 0;
   }

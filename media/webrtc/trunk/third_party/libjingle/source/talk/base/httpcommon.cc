@@ -344,7 +344,7 @@ bool HttpHasNthAttribute(HttpAttributeList& attributes,
   return true;
 }
 
-bool HttpDateToSeconds(const std::string& date, unsigned long* seconds) {
+bool HttpDateToSeconds(const std::string& date, time_t* seconds) {
   const char* const kTimeZones[] = {
     "UT", "GMT", "EST", "EDT", "CST", "CDT", "MST", "MDT", "PST", "PDT",
     "A", "B", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M",
@@ -381,7 +381,7 @@ bool HttpDateToSeconds(const std::string& date, unsigned long* seconds) {
   case 'C': tval.tm_mon = 11; break;
   }
   tval.tm_year -= 1900;
-  unsigned long gmt, non_gmt = mktime(&tval);
+  size_t gmt, non_gmt = mktime(&tval);
   if ((zone[0] == '+') || (zone[0] == '-')) {
     if (!isdigit(zone[1]) || !isdigit(zone[2])
         || !isdigit(zone[3]) || !isdigit(zone[4])) {

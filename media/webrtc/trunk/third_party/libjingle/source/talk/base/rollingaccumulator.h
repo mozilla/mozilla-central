@@ -51,11 +51,11 @@ class RollingAccumulator {
   ~RollingAccumulator() {
   }
 
-  int max_count() const {
+  size_t max_count() const {
     return samples_.size();
   }
 
-  int count() const {
+  size_t count() const {
     return count_;
   }
 
@@ -102,8 +102,8 @@ class RollingAccumulator {
   }
 
  private:
-  int count_;
-  int next_index_;
+  size_t count_;
+  size_t next_index_;
   double sum_;    // Sum(x)
   double sum_2_;  // Sum(x*x)
   std::vector<T> samples_;

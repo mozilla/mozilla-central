@@ -49,10 +49,7 @@ class TransportChannelProxy: public TransportChannel {
   TransportChannelImpl* impl() { return impl_; }
 
   // Sets the implementation to which we will proxy.
-  // Impl can be belong to some other TransportChannelProxy,
-  // in that case it should't try to delete. TODO - Remove this hack
-  // when ref count support is available.
-  void SetImplementation(TransportChannelImpl* impl, bool owner);
+  void SetImplementation(TransportChannelImpl* impl);
 
   // Implementation of the TransportChannel interface.  These simply forward to
   // the implementation.
@@ -65,7 +62,6 @@ class TransportChannelProxy: public TransportChannel {
   typedef std::pair<talk_base::Socket::Option, int> OptionPair;
   typedef std::vector<OptionPair> OptionList;
   TransportChannelImpl* impl_;
-  bool owner_;
   OptionList pending_options_;
 
   // Catch signals from the implementation channel.  These just forward to the

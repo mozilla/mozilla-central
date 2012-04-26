@@ -1,7 +1,34 @@
 Libjingle
 
+0.6.17 - Mar 19, 2012
+  - Implemented ROAP on top of JSEP.
+  - Added a new signal after PortAllocatorSesison discoves all candidates for
+    the channel.
+
+0.6.16 - Mar 12, 2012
+  - Add support for data channel to libjingle.
+  - Update to use the latest webrtc.
+  - JSEP refactoring.
+
+0.6.15 - Mar 06, 2012
+  - Add Md5Digest, Sha1Digest and HMAC that works with any digest.
+  - Add app/webrtc/test.
+  - Remove win socket dependency from byteorder.
+  - Allow to use Thread without socketserver.
+  - Bug fixes.
+
+0.6.14 - Feb 28, 2012
+  - Initial JSEP support in WebRTC.
+  - Bug fixes.
+
+0.6.13 - Feb 16, 2012
+  - SDP compliance to WebRTC Signaling messages.
+  - Initial BUNDLE support in Jingle messages.
+  - Implementation of WebRTC external StartRender() and StopRender().
+  - Bug fixes.
+
 0.6.12 - Feb 07, 2012
-  - PeerConnection client for windows.
+  - PeerConnection client for Windows.
   - Bug fixes.
 
 0.6.11 - Jan 24, 2012

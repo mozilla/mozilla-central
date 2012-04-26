@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -39,7 +39,7 @@ class TestTransport : public Transport {
                                          (WebRtc_Word32)packetLength,
                                          true); // Allow non-compound RTCP
 
-    EXPECT_EQ(true, rtcpParser.IsValid());
+    EXPECT_TRUE(rtcpParser.IsValid());
     RTCPHelp::RTCPPacketInformation rtcpPacketInformation;
     EXPECT_EQ(0, rtcp_receiver_->IncomingRTCPPacket(rtcpPacketInformation,
                                                     &rtcpParser));
@@ -61,6 +61,7 @@ class RtcpFormatRembTest : public ::testing::Test {
   virtual void SetUp();
   virtual void TearDown();
 
+  RtpRtcpClock* system_clock_;
   ModuleRtpRtcpImpl* dummy_rtp_rtcp_impl_;
   RTCPSender* rtcp_sender_;
   RTCPReceiver* rtcp_receiver_;
@@ -68,12 +69,10 @@ class RtcpFormatRembTest : public ::testing::Test {
 };
 
 void RtcpFormatRembTest::SetUp() {
-  dummy_rtp_rtcp_impl_ =
-      new ModuleRtpRtcpImpl(0, false, ModuleRTPUtility::GetSystemClock());
-  rtcp_sender_ = new RTCPSender(0, false, ModuleRTPUtility::GetSystemClock(),
-                                dummy_rtp_rtcp_impl_);
-  rtcp_receiver_ = new RTCPReceiver(0, ModuleRTPUtility::GetSystemClock(),
-                                    dummy_rtp_rtcp_impl_);
+  system_clock_ = ModuleRTPUtility::GetSystemClock();
+  dummy_rtp_rtcp_impl_ = new ModuleRtpRtcpImpl(0, false, system_clock_);
+  rtcp_sender_ = new RTCPSender(0, false, system_clock_, dummy_rtp_rtcp_impl_);
+  rtcp_receiver_ = new RTCPReceiver(0, system_clock_, dummy_rtp_rtcp_impl_);
   test_transport_ = new TestTransport(rtcp_receiver_);
 
   EXPECT_EQ(0, rtcp_sender_->Init());
@@ -85,14 +84,15 @@ void RtcpFormatRembTest::TearDown() {
   delete rtcp_receiver_;
   delete dummy_rtp_rtcp_impl_;
   delete test_transport_;
+  delete system_clock_;
 }
 
 TEST_F(RtcpFormatRembTest, TestBasicAPI) {
-  EXPECT_EQ(false, rtcp_sender_->REMB());
+  EXPECT_FALSE(rtcp_sender_->REMB());
   EXPECT_EQ(0, rtcp_sender_->SetREMBStatus(true));
-  EXPECT_EQ(true, rtcp_sender_->REMB());
+  EXPECT_TRUE(rtcp_sender_->REMB());
   EXPECT_EQ(0, rtcp_sender_->SetREMBStatus(false));
-  EXPECT_EQ(false, rtcp_sender_->REMB());
+  EXPECT_FALSE(rtcp_sender_->REMB());
 
   EXPECT_EQ(0, rtcp_sender_->SetREMBData(1234, 0, NULL));
 }

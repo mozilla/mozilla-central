@@ -21,6 +21,8 @@
             'mock/mock_packet_manipulator.h',
             'packet_manipulator.h',
             'packet_manipulator.cc',
+            'predictive_packet_manipulator.h',
+            'predictive_packet_manipulator.cc',
             'stats.h',
             'stats.cc',
             'videoprocessor.h',
@@ -32,6 +34,7 @@
           'type': 'executable',
           'dependencies': [
             'video_codecs_test_framework',
+            'webrtc_video_coding',
             '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
             '<(webrtc_root)/../testing/gmock.gyp:gmock',
             '<(webrtc_root)/../test/test.gyp:test_support_main',

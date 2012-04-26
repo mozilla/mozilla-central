@@ -171,9 +171,11 @@ void TestMediaRecorder(BaseChannel* channel,
   // Create media recorder.
   talk_base::scoped_ptr<MediaRecorder> recorder(new MediaRecorder);
   // Fail to EnableChannel before AddChannel.
-  EXPECT_FALSE(recorder->EnableChannel(channel, true, true));
-  EXPECT_FALSE(channel->HasSendSinks());
-  EXPECT_FALSE(channel->HasRecvSinks());
+  EXPECT_FALSE(recorder->EnableChannel(channel, true, true, SINK_PRE_CRYPTO));
+  EXPECT_FALSE(channel->HasSendSinks(SINK_PRE_CRYPTO));
+  EXPECT_FALSE(channel->HasRecvSinks(SINK_PRE_CRYPTO));
+  EXPECT_FALSE(channel->HasSendSinks(SINK_POST_CRYPTO));
+  EXPECT_FALSE(channel->HasRecvSinks(SINK_POST_CRYPTO));
 
   // Add the channel to the recorder.
   talk_base::Pathname path;
@@ -191,34 +193,36 @@ void TestMediaRecorder(BaseChannel* channel,
   }
 
   // Enable recording only the sent media.
-  EXPECT_TRUE(recorder->EnableChannel(channel, true, false));
-  EXPECT_TRUE(channel->HasSendSinks());
-  EXPECT_FALSE(channel->HasRecvSinks());
+  EXPECT_TRUE(recorder->EnableChannel(channel, true, false, SINK_PRE_CRYPTO));
+  EXPECT_TRUE(channel->HasSendSinks(SINK_PRE_CRYPTO));
+  EXPECT_FALSE(channel->HasRecvSinks(SINK_POST_CRYPTO));
+  EXPECT_FALSE(channel->HasSendSinks(SINK_POST_CRYPTO));
+  EXPECT_FALSE(channel->HasRecvSinks(SINK_POST_CRYPTO));
   if (video_media_channel) {
     EXPECT_TRUE_WAIT(video_media_channel->sent_intra_frame(), 100);
   }
 
   // Enable recording only the received meida.
-  EXPECT_TRUE(recorder->EnableChannel(channel, false, true));
-  EXPECT_FALSE(channel->HasSendSinks());
-  EXPECT_TRUE(channel->HasRecvSinks());
+  EXPECT_TRUE(recorder->EnableChannel(channel, false, true, SINK_PRE_CRYPTO));
+  EXPECT_FALSE(channel->HasSendSinks(SINK_PRE_CRYPTO));
+  EXPECT_TRUE(channel->HasRecvSinks(SINK_PRE_CRYPTO));
   if (video_media_channel) {
     EXPECT_TRUE(video_media_channel->requested_intra_frame());
   }
 
   // Enable recording both the sent and the received video.
-  EXPECT_TRUE(recorder->EnableChannel(channel, true, true));
-  EXPECT_TRUE(channel->HasSendSinks());
-  EXPECT_TRUE(channel->HasRecvSinks());
+  EXPECT_TRUE(recorder->EnableChannel(channel, true, true, SINK_PRE_CRYPTO));
+  EXPECT_TRUE(channel->HasSendSinks(SINK_PRE_CRYPTO));
+  EXPECT_TRUE(channel->HasRecvSinks(SINK_PRE_CRYPTO));
 
   // Enable recording only headers.
   if (video_media_channel) {
     video_media_channel->set_sent_intra_frame(false);
     video_media_channel->set_requested_intra_frame(false);
   }
-  EXPECT_TRUE(recorder->EnableChannel(channel, true, true));
-  EXPECT_TRUE(channel->HasSendSinks());
-  EXPECT_TRUE(channel->HasRecvSinks());
+  EXPECT_TRUE(recorder->EnableChannel(channel, true, true, SINK_PRE_CRYPTO));
+  EXPECT_TRUE(channel->HasSendSinks(SINK_PRE_CRYPTO));
+  EXPECT_TRUE(channel->HasRecvSinks(SINK_PRE_CRYPTO));
   if (video_media_channel) {
     if ((filter & PF_RTPPACKET) == PF_RTPPACKET) {
       // If record the whole RTP packet, trigers FIR.
@@ -232,9 +236,9 @@ void TestMediaRecorder(BaseChannel* channel,
   }
 
   // Remove the voice channel from the recorder.
-  recorder->RemoveChannel(channel);
-  EXPECT_FALSE(channel->HasSendSinks());
-  EXPECT_FALSE(channel->HasRecvSinks());
+  recorder->RemoveChannel(channel, SINK_PRE_CRYPTO);
+  EXPECT_FALSE(channel->HasSendSinks(SINK_PRE_CRYPTO));
+  EXPECT_FALSE(channel->HasRecvSinks(SINK_PRE_CRYPTO));
 
   // Delete all files.
   recorder.reset();
@@ -266,9 +270,12 @@ void TestRecordHeaderAndMedia(BaseChannel* channel,
   }
 
   // Enable recording both sent and received.
-  EXPECT_TRUE(header_recorder->EnableChannel(channel, true, true));
-  EXPECT_TRUE(channel->HasSendSinks());
-  EXPECT_TRUE(channel->HasRecvSinks());
+  EXPECT_TRUE(
+      header_recorder->EnableChannel(channel, true, true, SINK_POST_CRYPTO));
+  EXPECT_TRUE(channel->HasSendSinks(SINK_POST_CRYPTO));
+  EXPECT_TRUE(channel->HasRecvSinks(SINK_POST_CRYPTO));
+  EXPECT_FALSE(channel->HasSendSinks(SINK_PRE_CRYPTO));
+  EXPECT_FALSE(channel->HasRecvSinks(SINK_PRE_CRYPTO));
   if (video_media_channel) {
     EXPECT_FALSE(video_media_channel->sent_intra_frame());
     EXPECT_FALSE(video_media_channel->requested_intra_frame());
@@ -295,9 +302,11 @@ void TestRecordHeaderAndMedia(BaseChannel* channel,
   }
 
   // Enable recording both sent and received.
-  EXPECT_TRUE(recorder->EnableChannel(channel, true, true));
-  EXPECT_TRUE(channel->HasSendSinks());
-  EXPECT_TRUE(channel->HasRecvSinks());
+  EXPECT_TRUE(recorder->EnableChannel(channel, true, true, SINK_PRE_CRYPTO));
+  EXPECT_TRUE(channel->HasSendSinks(SINK_POST_CRYPTO));
+  EXPECT_TRUE(channel->HasRecvSinks(SINK_POST_CRYPTO));
+  EXPECT_TRUE(channel->HasSendSinks(SINK_PRE_CRYPTO));
+  EXPECT_TRUE(channel->HasRecvSinks(SINK_PRE_CRYPTO));
   if (video_media_channel) {
     EXPECT_TRUE_WAIT(video_media_channel->sent_intra_frame(), 100);
     EXPECT_TRUE(video_media_channel->requested_intra_frame());
@@ -318,8 +327,8 @@ void TestRecordHeaderAndMedia(BaseChannel* channel,
 
 TEST(MediaRecorderTest, TestMediaRecorderVoiceChannel) {
   // Create the voice channel.
-  cricket::FakeSession session;
-  cricket::FakeMediaEngine media_engine;
+  FakeSession session;
+  FakeMediaEngine media_engine;
   VoiceChannel channel(talk_base::Thread::Current(), &media_engine,
                        new FakeVoiceMediaChannel(NULL), &session, "", false);
   EXPECT_TRUE(channel.Init());
@@ -330,8 +339,8 @@ TEST(MediaRecorderTest, TestMediaRecorderVoiceChannel) {
 
 TEST(MediaRecorderTest, TestMediaRecorderVideoChannel) {
   // Create the video channel.
-  cricket::FakeSession session;
-  cricket::FakeMediaEngine media_engine;
+  FakeSession session;
+  FakeMediaEngine media_engine;
   FakeVideoMediaChannel* media_channel = new FakeVideoMediaChannel(NULL);
   VideoChannel channel(talk_base::Thread::Current(), &media_engine,
                        media_channel, &session, "", false, NULL);

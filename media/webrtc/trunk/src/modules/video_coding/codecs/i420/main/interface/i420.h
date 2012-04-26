@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -50,7 +50,7 @@ public:
     virtual WebRtc_Word32
         Encode(const RawImage& inputImage,
                const CodecSpecificInfo* /*codecSpecificInfo*/,
-               const VideoFrameType* /*frameTypes*/);
+               const VideoFrameType /*frameTypes*/);
 
 // Register an encode complete callback object.
 //
@@ -65,12 +65,6 @@ public:
 // Return value                : WEBRTC_VIDEO_CODEC_OK if OK, < 0 otherwise.
     virtual WebRtc_Word32 Release();
 
-// Reset encoder state and prepare for a new call.
-//
-// Return value                : WEBRTC_VIDEO_CODEC_OK if OK, < 0 otherwise.
-//                               <0 - Error
-    virtual WebRtc_Word32 Reset();
-
     virtual WebRtc_Word32 SetRates(WebRtc_UWord32 /*newBitRate*/,
                                    WebRtc_UWord32 /*frameRate*/)
     {return WEBRTC_VIDEO_CODEC_OK;}
@@ -82,20 +76,6 @@ public:
     virtual WebRtc_Word32 CodecConfigParameters(WebRtc_UWord8* /*buffer*/,
                                                 WebRtc_Word32 /*size*/)
     {return WEBRTC_VIDEO_CODEC_OK;}
-
-// Get version number for the codec.
-//
-// Input:
-//      - version       : Pointer to allocated char buffer.
-//      - length        : Length of provided char buffer.
-//
-// Output:
-//      - version       : Version number string written to char buffer.
-//
-// Return value         : >0 - Length of written string.
-//                        <0 - Error
-    static WebRtc_Word32 VersionStatic(WebRtc_Word8 *version, WebRtc_Word32 length);
-    virtual WebRtc_Word32 Version(WebRtc_Word8 *version, WebRtc_Word32 length) const;
 
 private:
     bool                     _inited;

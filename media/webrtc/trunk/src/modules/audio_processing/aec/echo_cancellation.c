@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -23,6 +23,7 @@
 #include "aec_core.h"
 #include "aec_resampler.h"
 #include "common_audio/signal_processing/include/signal_processing_library.h"
+#include "modules/audio_processing/aec/echo_cancellation_internal.h"
 #include "ring_buffer.h"
 #include "typedefs.h"
 
@@ -43,58 +44,6 @@ static const int initCheck = 42;
 #ifdef WEBRTC_AEC_DEBUG_DUMP
 static int instance_count = 0;
 #endif
-
-typedef struct {
-    int delayCtr;
-    int sampFreq;
-    int splitSampFreq;
-    int scSampFreq;
-    float sampFactor; // scSampRate / sampFreq
-    short nlpMode;
-    short autoOnOff;
-    short activity;
-    short skewMode;
-    int bufSizeStart;
-    //short bufResetCtr;  // counts number of noncausal frames
-    int knownDelay;
-
-    short initFlag; // indicates if AEC has been initialized
-
-    // Variables used for averaging far end buffer size
-    short counter;
-    int sum;
-    short firstVal;
-    short checkBufSizeCtr;
-
-    // Variables used for delay shifts
-    short msInSndCardBuf;
-    short filtDelay;  // Filtered delay estimate.
-    int timeForDelayChange;
-    int ECstartup;
-    int checkBuffSize;
-    short lastDelayDiff;
-
-#ifdef WEBRTC_AEC_DEBUG_DUMP
-    void* far_pre_buf_s16;  // Time domain far-end pre-buffer in int16_t.
-    FILE *bufFile;
-    FILE *delayFile;
-    FILE *skewFile;
-#endif
-
-    // Structures
-    void *resampler;
-
-    int skewFrCtr;
-    int resample; // if the skew is small enough we don't resample
-    int highSkewCtr;
-    float skew;
-
-    void* far_pre_buf;  // Time domain far-end pre-buffer.
-
-    int lastError;
-
-    aec_t *aec;
-} aecpc_t;
 
 // Estimates delay to set the position of the far-end buffer read pointer
 // (controlled by knownDelay)
@@ -526,18 +475,12 @@ WebRtc_Word32 WebRtcAec_Process(void *aecInst, const WebRtc_Word16 *nearend,
                 // Enable the AEC
                 aecpc->ECstartup = 0;
             } else if (overhead_elements > 0) {
-                WebRtc_MoveReadPtr(aecpc->aec->far_buf_windowed,
-                                   overhead_elements);
-                WebRtc_MoveReadPtr(aecpc->aec->far_buf, overhead_elements);
-#ifdef WEBRTC_AEC_DEBUG_DUMP
-                WebRtc_MoveReadPtr(aecpc->aec->far_time_buf, overhead_elements);
-#endif
                 // TODO(bjornv): Do we need a check on how much we actually
                 // moved the read pointer? It should always be possible to move
                 // the pointer |overhead_elements| since we have only added data
                 // to the buffer and no delay compensation nor AEC processing
                 // has been done.
-                aecpc->aec->system_delay -= overhead_elements * PART_LEN;
+                WebRtcAec_MoveFarReadPtr(aecpc->aec, overhead_elements);
 
                 // Enable the AEC
                 aecpc->ECstartup = 0;
@@ -867,23 +810,6 @@ int WebRtcAec_GetDelayMetrics(void* handle, int* median, int* std) {
   return 0;
 }
 
-WebRtc_Word32 WebRtcAec_get_version(WebRtc_Word8 *versionStr, WebRtc_Word16 len)
-{
-    const char version[] = "AEC 2.5.0";
-    const short versionLen = (short)strlen(version) + 1; // +1 for null-termination
-
-    if (versionStr == NULL) {
-        return -1;
-    }
-
-    if (versionLen > len) {
-        return -1;
-    }
-
-    strncpy(versionStr, version, versionLen);
-    return 0;
-}
-
 WebRtc_Word32 WebRtcAec_get_error_code(void *aecInst)
 {
     aecpc_t *aecpc = aecInst;
@@ -903,6 +829,8 @@ static int EstBufDelay(aecpc_t* aecpc) {
   // Before we proceed with the delay estimate filtering we:
   // 1) Compensate for the frame that will be read.
   // 2) Compensate for drift resampling.
+  // 3) Compensate for non-causality if needed, since the estimated delay can't
+  //    be negative.
 
   // 1) Compensating for the frame(s) that will be read/processed.
   current_delay += FRAME_LEN * aecpc->aec->mult;
@@ -910,6 +838,11 @@ static int EstBufDelay(aecpc_t* aecpc) {
   // 2) Account for resampling frame delay.
   if (aecpc->skewMode == kAecTrue && aecpc->resample == kAecTrue) {
     current_delay -= kResamplingDelay;
+  }
+
+  // 3) Compensate for non-causality, if needed, by flushing one block.
+  if (current_delay < PART_LEN) {
+    current_delay += WebRtcAec_MoveFarReadPtr(aecpc->aec, 1) * PART_LEN;
   }
 
   aecpc->filtDelay = WEBRTC_SPL_MAX(0, (short) (0.8 * aecpc->filtDelay +

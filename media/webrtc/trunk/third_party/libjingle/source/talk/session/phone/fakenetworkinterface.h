@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2011, Google Inc.
+ * Copyright 2004 Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -37,6 +37,7 @@
 #include "talk/base/messagequeue.h"
 #include "talk/base/thread.h"
 #include "talk/session/phone/mediachannel.h"
+#include "talk/session/phone/rtputils.h"
 
 namespace cricket {
 
@@ -58,8 +59,9 @@ class FakeNetworkInterface : public MediaChannel::NetworkInterface,
   // the transport will send multiple copies of the packet with the specified
   // SSRCs. This allows us to simulate receiving media from multiple sources.
   void SetConferenceMode(bool conf, const std::vector<uint32>& ssrcs) {
+    talk_base::CritScope cs(&crit_);
     conf_ = conf;
-    ssrcs_ = ssrcs;
+    conf_sent_ssrcs_ = ssrcs;
   }
 
   int NumRtpBytes() {
@@ -71,9 +73,28 @@ class FakeNetworkInterface : public MediaChannel::NetworkInterface,
     return bytes;
   }
 
+  int NumRtpBytes(uint32 ssrc) {
+    talk_base::CritScope cs(&crit_);
+    int bytes = 0;
+    GetNumRtpBytesAndPackets(ssrc, &bytes, NULL);
+    return bytes;
+  }
+
   int NumRtpPackets() {
     talk_base::CritScope cs(&crit_);
     return rtp_packets_.size();
+  }
+
+  int NumRtpPackets(uint32 ssrc) {
+    talk_base::CritScope cs(&crit_);
+    int packets = 0;
+    GetNumRtpBytesAndPackets(ssrc, NULL, &packets);
+    return packets;
+  }
+
+  int NumSentSsrcs() {
+    talk_base::CritScope cs(&crit_);
+    return sent_ssrcs_.size();
   }
 
   // Note: callers are responsible for deleting the returned buffer.
@@ -105,11 +126,20 @@ class FakeNetworkInterface : public MediaChannel::NetworkInterface,
  protected:
   virtual bool SendPacket(talk_base::Buffer* packet) {
     talk_base::CritScope cs(&crit_);
+
+    uint32 cur_ssrc = 0;
+    if (!GetRtpSsrc(packet->data(), packet->length(), &cur_ssrc)) {
+      return false;
+    }
+    sent_ssrcs_.insert(cur_ssrc);
     rtp_packets_.push_back(*packet);
     if (conf_) {
       talk_base::Buffer buffer_copy(*packet);
-      for (size_t i = 0; i < ssrcs_.size(); ++i) {
-        talk_base::SetBE32(buffer_copy.data() + 8, ssrcs_[i]);
+      for (size_t i = 0; i < conf_sent_ssrcs_.size(); ++i) {
+        if (!SetRtpSsrc(buffer_copy.data(), buffer_copy.length(),
+                        conf_sent_ssrcs_[i])) {
+          return false;
+        }
         PostMessage(ST_RTP, buffer_copy);
       }
     } else {
@@ -157,10 +187,37 @@ class FakeNetworkInterface : public MediaChannel::NetworkInterface,
   }
 
  private:
+  void GetNumRtpBytesAndPackets(uint32 ssrc, int* bytes, int* packets) {
+    if (bytes) {
+      *bytes = 0;
+    }
+    if (packets) {
+      *packets = 0;
+    }
+    uint32 cur_ssrc = 0;
+    for (size_t i = 0; i < rtp_packets_.size(); ++i) {
+      if (!GetRtpSsrc(rtp_packets_[i].data(),
+                      rtp_packets_[i].length(), &cur_ssrc)) {
+        return;
+      }
+      if (ssrc == cur_ssrc) {
+        if (bytes) {
+          *bytes += rtp_packets_[i].length();
+        }
+        if (packets) {
+          ++(*packets);
+        }
+      }
+    }
+  }
+
   talk_base::Thread* thread_;
   MediaChannel* dest_;
   bool conf_;
-  std::vector<uint32> ssrcs_;
+  // The ssrcs used in sending out packets in conference mode.
+  std::vector<uint32> conf_sent_ssrcs_;
+  // All ssrcs received from SendPacket().
+  std::set<uint32> sent_ssrcs_;
   talk_base::CriticalSection crit_;
   std::vector<talk_base::Buffer> rtp_packets_;
   std::vector<talk_base::Buffer> rtcp_packets_;

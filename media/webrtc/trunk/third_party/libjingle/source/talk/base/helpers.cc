@@ -95,7 +95,7 @@ class SecureRandomGenerator : public RandomGenerator {
     if (!rtl_gen_random_ && !Init(NULL, 0)) {
       return false;
     }
-    return (rtl_gen_random_(buf, len) != FALSE);
+    return (rtl_gen_random_(buf, static_cast<int>(len)) != FALSE);
   }
 
  private:
@@ -266,7 +266,8 @@ bool CreateRandomString(size_t len, std::string* str) {
 
 bool CreateRandomString(size_t len, const std::string& table,
                         std::string* str) {
-  return CreateRandomString(len, table.c_str(), table.size(), str);
+  return CreateRandomString(len, table.c_str(),
+                            static_cast<int>(table.size()), str);
 }
 
 uint32 CreateRandomId() {

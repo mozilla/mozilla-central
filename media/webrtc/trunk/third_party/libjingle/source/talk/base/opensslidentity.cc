@@ -37,6 +37,7 @@
 
 #include "talk/base/logging.h"
 #include "talk/base/helpers.h"
+#include "talk/base/openssldigest.h"
 
 namespace talk_base {
 
@@ -225,18 +226,6 @@ OpenSSLCertificate* OpenSSLCertificate::FromPEMString(
     return NULL;
 }
 
-bool OpenSSLCertificate::GetDigestLength(const std::string &algorithm,
-                                         std::size_t *length) {
-  const EVP_MD *md;
-
-  if (!GetDigestEVP(algorithm, &md))
-    return false;
-
-  *length = EVP_MD_size(md);
-
-  return true;
-}
-
 bool OpenSSLCertificate::ComputeDigest(const std::string &algorithm,
                                        unsigned char *digest,
                                        std::size_t size,
@@ -252,7 +241,7 @@ bool OpenSSLCertificate::ComputeDigest(const X509 *x509,
   const EVP_MD *md;
   unsigned int n;
 
-  if (!GetDigestEVP(algorithm, &md))
+  if (!OpenSSLDigest::GetDigestEVP(algorithm, &md))
     return false;
 
   if (size < static_cast<size_t>(EVP_MD_size(md)))
@@ -262,34 +251,6 @@ bool OpenSSLCertificate::ComputeDigest(const X509 *x509,
 
   *length = n;
 
-  return true;
-}
-
-
-bool OpenSSLCertificate::GetDigestEVP(const std::string &algorithm,
-                                      const EVP_MD **mdp) {
-  const EVP_MD *md;
-  if (algorithm == DIGEST_SHA_1) {
-    md = EVP_sha1();
-  }
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L
-  else if (algorithm == DIGEST_SHA_224) {
-    md = EVP_sha224();
-  } else if (algorithm == DIGEST_SHA_256) {
-    md = EVP_sha256();
-  } else if (algorithm == DIGEST_SHA_384) {
-    md = EVP_sha384();
-  } else if (algorithm == DIGEST_SHA_512) {
-    md = EVP_sha512();
-  }
-#endif
-  else {
-    return false;
-  }
-
-  // Can't happen
-  ASSERT(EVP_MD_size(md) >= 20);
-  *mdp = md;
   return true;
 }
 
@@ -340,4 +301,4 @@ bool OpenSSLIdentity::ConfigureIdentity(SSL_CTX* ctx) {
   return true;
 }
 
-}  // talk_base namespace
+}  // namespace talk_base

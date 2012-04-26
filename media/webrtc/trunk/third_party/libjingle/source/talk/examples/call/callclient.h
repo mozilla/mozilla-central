@@ -69,7 +69,6 @@ namespace cricket {
 class PortAllocator;
 class MediaEngineInterface;
 class MediaSessionClient;
-class Receiver;
 class Call;
 class SessionManagerTask;
 struct CallOptions;
@@ -116,6 +115,9 @@ class CallClient: public sigslot::has_slots<> {
   void SetRender(bool render) {
     render_ = render;
   }
+  void SetDataChannelEnabled(bool data_channel_enabled) {
+    data_channel_enabled_ = data_channel_enabled;
+  }
   void SetConsole(Console *console) {
     console_ = console;
   }
@@ -130,6 +132,8 @@ class CallClient: public sigslot::has_slots<> {
   void ParseLine(const std::string &str);
 
   void SendChat(const std::string& to, const std::string msg);
+  void SendData(const std::string& stream_name,
+                const std::string& text);
   void InviteFriend(const std::string& user);
   void JoinMuc(const buzz::Jid& room_jid);
   void JoinMuc(const std::string& room_jid_str);
@@ -216,6 +220,9 @@ class CallClient: public sigslot::has_slots<> {
   void OnRoomConfigResult(buzz::MucRoomConfigTask* task);
   void OnRoomConfigError(buzz::IqTask* task,
                          const buzz::XmlElement* stanza);
+  void OnDataReceived(cricket::Call*,
+                      const cricket::ReceiveDataParams& params,
+                      const std::string& data);
   buzz::Jid GenerateRandomMucJid();
 
   void AddStaticRenderedView(
@@ -225,6 +232,7 @@ class CallClient: public sigslot::has_slots<> {
   bool RemoveStaticRenderedView(uint32 ssrc);
   void RemoveAllStaticRenderedViews();
   void SendViewRequest(cricket::Session* session);
+  bool SelectFirstDesktopScreencastId(cricket::ScreencastId* screencastid);
 
 
   static const std::string strerror(buzz::XmppEngine::Error err);
@@ -251,6 +259,7 @@ class CallClient: public sigslot::has_slots<> {
   cricket::SessionManager* session_manager_;
   cricket::SessionManagerTask* session_manager_task_;
   cricket::MediaEngineInterface* media_engine_;
+  cricket::DataEngineInterface* data_engine_;
   cricket::MediaSessionClient* media_client_;
   MucMap mucs_;
 
@@ -261,6 +270,7 @@ class CallClient: public sigslot::has_slots<> {
   bool auto_accept_;
   std::string pmuc_domain_;
   bool render_;
+  bool data_channel_enabled_;
   cricket::VideoRenderer* local_renderer_;
   cricket::VideoRenderer* remote_renderer_;
   StaticRenderedViews static_rendered_views_;

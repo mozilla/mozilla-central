@@ -24,7 +24,11 @@ class MacBaseSocketServer : public PhysicalSocketServer {
 
   // SocketServer Interface
   virtual Socket* CreateSocket(int type) { return NULL; }
+  virtual Socket* CreateSocket(int family, int type) { return NULL; }
+
   virtual AsyncSocket* CreateAsyncSocket(int type);
+  virtual AsyncSocket* CreateAsyncSocket(int family, int type);
+
   virtual bool Wait(int cms, bool process_io) = 0;
   virtual void WakeUp() = 0;
 

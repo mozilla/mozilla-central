@@ -54,6 +54,11 @@ class MediaContentDescription;
 struct CryptoParams;
 struct ViewRequest;
 
+enum SinkType {
+  SINK_PRE_CRYPTO,  // Sink packets before encryption or after decryption.
+  SINK_POST_CRYPTO  // Sink packets after encryption or before decryption.
+};
+
 // BaseChannel contains logic common to voice and video, including
 // enable/mute, marshaling calls to a worker thread, and
 // connection and media monitors.
@@ -98,44 +103,77 @@ class BaseChannel
   void StartConnectionMonitor(int cms);
   void StopConnectionMonitor();
 
+  // Configuration and setting.
+  void SetChannelOptions(int options);
+
   void set_srtp_signal_silent_time(uint32 silent_time) {
     srtp_filter_.set_signal_silent_time(silent_time);
   }
 
   template <class T>
   void RegisterSendSink(T* sink,
-                        void (T::*OnPacket)(const void*, size_t, bool)) {
+                        void (T::*OnPacket)(const void*, size_t, bool),
+                        SinkType type) {
     talk_base::CritScope cs(&signal_send_packet_cs_);
-    SignalSendPacket.disconnect(sink);
-    SignalSendPacket.connect(sink, OnPacket);
+    if (SINK_POST_CRYPTO == type) {
+      SignalSendPacketPostCrypto.disconnect(sink);
+      SignalSendPacketPostCrypto.connect(sink, OnPacket);
+    } else {
+      SignalSendPacketPreCrypto.disconnect(sink);
+      SignalSendPacketPreCrypto.connect(sink, OnPacket);
+    }
   }
 
-  void UnregisterSendSink(sigslot::has_slots<>* sink) {
+  void UnregisterSendSink(sigslot::has_slots<>* sink,
+                          SinkType type) {
     talk_base::CritScope cs(&signal_send_packet_cs_);
-    SignalSendPacket.disconnect(sink);
+    if (SINK_POST_CRYPTO == type) {
+      SignalSendPacketPostCrypto.disconnect(sink);
+    } else {
+      SignalSendPacketPreCrypto.disconnect(sink);
+    }
   }
 
-  bool HasSendSinks() {
+  bool HasSendSinks(SinkType type) {
     talk_base::CritScope cs(&signal_send_packet_cs_);
-    return !SignalSendPacket.is_empty();
+    if (SINK_POST_CRYPTO == type) {
+      return !SignalSendPacketPostCrypto.is_empty();
+    } else {
+      return !SignalSendPacketPreCrypto.is_empty();
+    }
   }
 
   template <class T>
   void RegisterRecvSink(T* sink,
-                        void (T::*OnPacket)(const void*, size_t, bool)) {
+                        void (T::*OnPacket)(const void*, size_t, bool),
+                        SinkType type) {
     talk_base::CritScope cs(&signal_recv_packet_cs_);
-    SignalRecvPacket.disconnect(sink);
-    SignalRecvPacket.connect(sink, OnPacket);
+    if (SINK_POST_CRYPTO == type) {
+      SignalRecvPacketPostCrypto.disconnect(sink);
+      SignalRecvPacketPostCrypto.connect(sink, OnPacket);
+    } else {
+      SignalRecvPacketPreCrypto.disconnect(sink);
+      SignalRecvPacketPreCrypto.connect(sink, OnPacket);
+    }
   }
 
-  void UnregisterRecvSink(sigslot::has_slots<>* sink) {
+  void UnregisterRecvSink(sigslot::has_slots<>* sink,
+                          SinkType type) {
     talk_base::CritScope cs(&signal_recv_packet_cs_);
-    SignalRecvPacket.disconnect(sink);
+    if (SINK_POST_CRYPTO == type) {
+      SignalRecvPacketPostCrypto.disconnect(sink);
+    } else {
+      SignalRecvPacketPreCrypto.disconnect(sink);
+    }
   }
 
-  bool HasRecvSinks() {
+  bool HasRecvSinks(SinkType type) {
     talk_base::CritScope cs(&signal_recv_packet_cs_);
-    return !SignalRecvPacket.is_empty();
+    if (SINK_POST_CRYPTO == type) {
+      return !SignalRecvPacketPostCrypto.is_empty();
+    } else {
+      return !SignalRecvPacketPreCrypto.is_empty();
+    }
   }
 
   SsrcMuxFilter* ssrc_filter() { return &ssrc_filter_; }
@@ -197,6 +235,9 @@ class BaseChannel
   bool AddRecvStream_w(const StreamParams& sp);
   bool RemoveRecvStream_w(uint32 ssrc);
 
+  // Configuration and setting.
+  void SetChannelOptions_w(int options);
+
   virtual void ChangeState() = 0;
 
   // Gets the content appropriate to the channel (audio or video).
@@ -229,8 +270,10 @@ class BaseChannel
       const std::vector<ConnectionInfo> &infos) = 0;
 
  private:
-  sigslot::signal3<const void*, size_t, bool> SignalSendPacket;
-  sigslot::signal3<const void*, size_t, bool> SignalRecvPacket;
+  sigslot::signal3<const void*, size_t, bool> SignalSendPacketPreCrypto;
+  sigslot::signal3<const void*, size_t, bool> SignalSendPacketPostCrypto;
+  sigslot::signal3<const void*, size_t, bool> SignalRecvPacketPreCrypto;
+  sigslot::signal3<const void*, size_t, bool> SignalRecvPacketPostCrypto;
   talk_base::CriticalSection signal_send_packet_cs_;
   talk_base::CriticalSection signal_recv_packet_cs_;
 
@@ -365,7 +408,7 @@ class VideoChannel : public BaseChannel {
   bool SetRenderer(uint32 ssrc, VideoRenderer* renderer);
   bool ApplyViewRequest(const ViewRequest& request);
 
-  bool AddScreencast(uint32 ssrc, const ScreencastId& id);
+  bool AddScreencast(uint32 ssrc, const ScreencastId& id, int fps);
   bool RemoveScreencast(uint32 ssrc);
 
   sigslot::signal2<VideoChannel*, const std::vector<ConnectionInfo> &>
@@ -378,8 +421,6 @@ class VideoChannel : public BaseChannel {
 
   bool SendIntraFrame();
   bool RequestIntraFrame();
-  void EnableCpuAdaptation(bool enable);
-
   sigslot::signal3<VideoChannel*, uint32, VideoMediaChannel::Error>
       SignalMediaError;
 
@@ -399,17 +440,11 @@ class VideoChannel : public BaseChannel {
   void RequestIntraFrame_w() {
     media_channel()->RequestIntraFrame();
   }
-  void EnableCpuAdaptation_w(bool enable) {
-    // TODO: The following call will clear all other options, which is
-    // OK now since SetOptions is not used in video media channel. In the
-    // future, add GetOptions() method and change the options.
-    media_channel()->SetOptions(enable ? OPT_CPU_ADAPTATION : 0);
-  }
 
   bool ApplyViewRequest_w(const ViewRequest& request);
   void SetRenderer_w(uint32 ssrc, VideoRenderer* renderer);
 
-  void AddScreencast_w(uint32 ssrc, const ScreencastId&);
+  void AddScreencast_w(uint32 ssrc, const ScreencastId& id, int fps);
   void RemoveScreencast_w(uint32 ssrc);
   void OnScreencastWindowEvent_s(uint32 ssrc, talk_base::WindowEvent we);
 
@@ -423,10 +458,87 @@ class VideoChannel : public BaseChannel {
   void OnVideoChannelError(uint32 ssrc, VideoMediaChannel::Error error);
   void OnSrtpError(uint32 ssrc, SrtpFilter::Mode mode, SrtpFilter::Error error);
 
-
   VoiceChannel *voice_channel_;
   VideoRenderer *renderer_;
   talk_base::scoped_ptr<VideoMediaMonitor> media_monitor_;
+};
+
+// DataChannel is a specialization for data.
+class DataChannel : public BaseChannel {
+ public:
+  DataChannel(talk_base::Thread *thread,
+              DataMediaChannel* media_channel,
+              BaseSession *session,
+              const std::string& content_name,
+              bool rtcp);
+  ~DataChannel();
+  bool Init();
+
+  // downcasts a MediaChannel
+  virtual DataMediaChannel* media_channel() const {
+    return static_cast<DataMediaChannel*>(BaseChannel::media_channel());
+  }
+
+  bool SendData(const DataMediaChannel::SendDataParams& params,
+                const std::string& data);
+
+  void StartMediaMonitor(int cms);
+  void StopMediaMonitor();
+
+  sigslot::signal2<DataChannel*, const DataMediaInfo&> SignalMediaMonitor;
+  sigslot::signal2<DataChannel*, const std::vector<ConnectionInfo> &>
+      SignalConnectionMonitor;
+  sigslot::signal3<DataChannel*, uint32, DataMediaChannel::Error>
+      SignalMediaError;
+  sigslot::signal3<DataChannel*,
+                   const ReceiveDataParams&,
+                   const std::string&>
+      SignalDataReceived;
+
+ private:
+  struct SendDataMessageData : public talk_base::MessageData {
+    SendDataMessageData(const DataMediaChannel::SendDataParams& params,
+                        const std::string& data)
+        : params(params),
+          data(data) {
+    }
+    const DataMediaChannel::SendDataParams params;
+    const std::string data;
+  };
+
+  struct DataReceivedMessageData : public talk_base::MessageData {
+    // We copy the data because the data will become invalid after we
+    // handle DataMediaChannel::SignalDataReceived but before we fire
+    // SignalDataReceived.
+    DataReceivedMessageData(
+        const ReceiveDataParams& params, const char* data, size_t len)
+        : params(params),
+          data(data, len) {
+    }
+    const ReceiveDataParams params;
+    const std::string data;
+  };
+
+  // overrides from BaseChannel
+  virtual const MediaContentDescription* GetFirstContent(
+      const SessionDescription* sdesc);
+  virtual bool SetLocalContent_w(const MediaContentDescription* content,
+                                 ContentAction action);
+  virtual bool SetRemoteContent_w(const MediaContentDescription* content,
+                                  ContentAction action);
+  virtual void ChangeState();
+
+  virtual void OnMessage(talk_base::Message *pmsg);
+  virtual void OnConnectionMonitorUpdate(
+      SocketMonitor *monitor, const std::vector<ConnectionInfo> &infos);
+  virtual void OnMediaMonitorUpdate(
+      DataMediaChannel *media_channel, const DataMediaInfo& info);
+  void OnDataReceived(
+      const ReceiveDataParams& params, const char* data, size_t len);
+  void OnDataChannelError(uint32 ssrc, DataMediaChannel::Error error);
+  void OnSrtpError(uint32 ssrc, SrtpFilter::Mode mode, SrtpFilter::Error error);
+
+  talk_base::scoped_ptr<DataMediaMonitor> media_monitor_;
 };
 
 }  // namespace cricket

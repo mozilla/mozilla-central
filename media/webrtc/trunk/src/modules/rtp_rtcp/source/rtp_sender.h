@@ -197,24 +197,6 @@ public:
     bool ProcessNACKBitRate(const WebRtc_UWord32 now);
 
     /*
-    *    Keep alive
-    */
-    WebRtc_Word32 EnableRTPKeepalive( const WebRtc_Word8 unknownPayloadType,
-                                    const WebRtc_UWord16 deltaTransmitTimeMS);
-
-    WebRtc_Word32 RTPKeepaliveStatus(bool* enable,
-                                   WebRtc_Word8* unknownPayloadType,
-                                   WebRtc_UWord16* deltaTransmitTimeMS) const;
-
-    WebRtc_Word32 DisableRTPKeepalive();
-
-    bool RTPKeepalive() const;
-
-    bool TimeToSendRTPKeepalive() const;
-
-    WebRtc_Word32 SendRTPKeepalivePacket();
-
-    /*
     *  RTX
     */
     void SetRTXStatus(const bool enable,
@@ -299,11 +281,9 @@ public:
                                  WebRtc_UWord8& payloadTypeRED,
                                  WebRtc_UWord8& payloadTypeFEC) const;
 
-    WebRtc_Word32 SetFECCodeRate(const WebRtc_UWord8 keyFrameCodeRate,
-                                 const WebRtc_UWord8 deltaFrameCodeRate);
-
-    WebRtc_Word32 SetFECUepProtection(const bool keyUseUepProtection,
-                                      const bool deltaUseUepProtection);
+    WebRtc_Word32 SetFecParameters(
+        const FecProtectionParams* delta_params,
+        const FecProtectionParams* key_params);
 
 protected:
     WebRtc_Word32 CheckPayloadType(const WebRtc_Word8 payloadType,
@@ -334,11 +314,6 @@ private:
 
     RtpHeaderExtensionMap     _rtpHeaderExtensionMap;
     WebRtc_Word32             _transmissionTimeOffset;
-
-    bool                      _keepAliveIsActive;
-    WebRtc_Word8              _keepAlivePayloadType;
-    WebRtc_UWord32            _keepAliveLastSent;
-    WebRtc_UWord16            _keepAliveDeltaTimeSend;
 
     // NACK
     WebRtc_UWord32            _nackByteCountTimes[NACK_BYTECOUNT_SIZE];
