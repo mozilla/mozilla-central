@@ -268,7 +268,12 @@ protected:
 
   static nsTArray<nsMsgDatabase*>* m_dbCache;
   static nsTArray<nsMsgDatabase*>* GetDBCache();
-  
+
+  static PRTime gLastUseTime; // global last use time
+  PRTime m_lastUseTime;       // last use time for this db
+  // inline to make instrumentation as cheap as possible
+  inline void RememberLastUseTime() {gLastUseTime = m_lastUseTime = PR_Now();}
+
   static void    AddToCache(nsMsgDatabase* pMessageDB) 
   {
 #ifdef DEBUG_David_Bienvenu
@@ -317,7 +322,7 @@ protected:
   virtual nsresult      InitExistingDB();
   virtual nsresult      InitNewDB();
   virtual nsresult      InitMDBInfo();
-  
+
   nsCOMPtr <nsIMsgFolder> m_folder;
   nsDBFolderInfo      *m_dbFolderInfo;
   nsMsgKey      m_nextPseudoMsgKey;
@@ -325,6 +330,7 @@ protected:
   nsIMdbStore   *m_mdbStore;
   nsIMdbTable   *m_mdbAllMsgHeadersTable;
   nsIMdbTable   *m_mdbAllThreadsTable;
+
   // Used for asynchronous db opens. If non-null, we're still opening
   // the underlying mork database. If null, the db has been completely opened.
   nsCOMPtr<nsIMdbThumb> m_thumb;

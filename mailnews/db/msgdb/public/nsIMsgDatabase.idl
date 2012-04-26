@@ -135,7 +135,7 @@ interface nsMsgDBCommitType
  * The contract ID for this component is
  * <tt>\@mozilla.org/msgDatabase/msgDBService;1</tt>.
  */
-[scriptable, uuid(09f52152-a3b7-4b89-935d-4033cbaea7e0)]
+[scriptable, uuid(e4743a99-ca44-4647-87b4-d73a444226b3)]
 interface nsIMsgDBService : nsISupports
 {
   /**
@@ -265,9 +265,12 @@ interface nsIMsgDBService : nsISupports
    * @returns         null if the db isn't open, otherwise the db.
    */
   nsIMsgDatabase cachedDBForFolder(in nsIMsgFolder aFolder);
+
+  /// an enumerator to iterate over the open dbs.
+  readonly attribute nsIArray openDBs;
 };
 
-[scriptable, uuid(a3cd60ac-d279-4521-8880-2e7723315cba)]
+[scriptable, uuid(21122b78-12ed-4657-aa07-29e109667825)]
 interface nsIMsgDatabase : nsIDBChangeAnnouncer {
   void forceFolderDBClosed(in nsIMsgFolder aFolder);
   void Close(in boolean aForceCommit);
@@ -280,6 +283,20 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
   void resetHdrCacheSize(in unsigned long size);
 
   readonly attribute nsIDBFolderInfo  dBFolderInfo;
+
+  /// Folder this db was opened on.
+  readonly attribute nsIMsgFolder folder;
+  /**
+   * This is used when deciding which db's to close to free up memory
+   * and other resources in an LRU manner. It doesn't track every operation
+   * on every object from the db, but high level things like open, commit,
+   * and perhaps some of the list methods. Commit should be a proxy for all
+   * the mutation methods.
+   *
+   * I'm allowing clients to set the last use time as well, so that
+   * nsIMsgFolder.msgDatabase can set the last use time.
+   */
+  attribute PRTime lastUseTime;
 
   // get a message header for the given key. Caller must release()!
 
@@ -462,7 +479,7 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
 
   attribute nsIMsgDownloadSettings msgDownloadSettings;
 
-  boolean HasNew();  
+  boolean HasNew();
   void ClearNewList(in boolean notify);
   void AddToNewList(in nsMsgKey key);
 

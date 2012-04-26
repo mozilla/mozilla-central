@@ -53,6 +53,7 @@ Components.utils.import("resource:///modules/mailnewsMigrator.js");
 Components.utils.import("resource:///modules/sessionStoreManager.js");
 Components.utils.import("resource:///modules/summaryFrameManager.js");
 Components.utils.import("resource:///modules/mailInstrumentation.js");
+Components.utils.import("resource:///modules/msgDBCacheManager.js");
 
 /* This is where functions related to the 3 pane window are kept */
 
@@ -382,6 +383,7 @@ function OnLoadMessenger()
   MailOfflineMgr.init();
   CreateMailWindowGlobals();
   GetMessagePaneWrapper().collapsed = true;
+  msgDBCacheManager.init();
 
   // This needs to be before we throw up the account wizard on first run.
   try {

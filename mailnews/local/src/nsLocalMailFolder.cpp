@@ -342,6 +342,8 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWOReparse(nsIMsgDatabase **aDatab
     }
   }
   NS_IF_ADDREF(*aDatabase = mDatabase);
+  if (mDatabase)
+    mDatabase->SetLastUseTime(PR_Now());
   return rv;
 }
 

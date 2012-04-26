@@ -80,6 +80,7 @@
 #include "nsIPrefBranch.h"
 #include "nsIMsgPluggableStore.h"
 #include "nsAlgorithm.h"
+#include "nsArrayEnumerator.h"
 
 #if defined(DEBUG_sspitzer_) || defined(DEBUG_seth_)
 #define DEBUG_MSGKEYSET 1
@@ -103,6 +104,8 @@ static const nsMsgKey kFirstPseudoKey = 0xfffffff0;
 static const nsMsgKey kIdStartOfFake = 0xffffff80;
 
 static PRLogModuleInfo* DBLog;
+
+PRTime nsMsgDatabase::gLastUseTime;
 
 NS_IMPL_ISUPPORTS1(nsMsgDBService, nsIMsgDBService)
 
@@ -139,6 +142,7 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder,
     // OpenMailDBFromFile. If so, take this chance to fix the folder.
     if (!cacheDB->m_folder)
       cacheDB->m_folder = aFolder;
+    cacheDB->RememberLastUseTime();
     *_retval = cacheDB; // FindInCache already addRefed.
     // if m_thumb is set, someone is asynchronously opening the db. But our
     // caller wants to synchronously open it, so just do it.
@@ -336,6 +340,7 @@ void nsMsgDBService::FinishDBOpen(nsIMsgFolder *aFolder, nsMsgDatabase *aMsgDB)
       aMsgDB->SyncCounts();
   }
   HookupPendingListeners(aMsgDB, aFolder);
+  aMsgDB->RememberLastUseTime();
 }
 
 // This method is called when the caller is trying to create a db without
@@ -449,6 +454,19 @@ NS_IMETHODIMP nsMsgDBService::CachedDBForFolder(nsIMsgFolder *aFolder, nsIMsgDat
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgDBService::GetOpenDBs(nsIArray **aOpenDBs)
+{
+  NS_ENSURE_ARG_POINTER(aOpenDBs);
+  nsresult rv;
+  nsCOMPtr<nsIMutableArray> openDBs(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  for (PRUint32 i = 0; i < nsMsgDatabase::m_dbCache->Length(); i++)
+    openDBs->AppendElement(nsMsgDatabase::m_dbCache->ElementAt(i), false);
+
+  openDBs.forget(aOpenDBs);
+  return NS_OK;
+}
+
 static bool gGotGlobalPrefs = false;
 static bool gThreadWithoutRe = true;
 static bool gStrictThreading = false;
@@ -528,6 +546,19 @@ NS_IMETHODIMP nsMsgDatabase::GetMsgHdrCacheSize(PRUint32 *aSize)
 {
   NS_ENSURE_ARG_POINTER(aSize);
   *aSize = m_cacheSize;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgDatabase::GetLastUseTime(PRTime *aTime)
+{
+  NS_ENSURE_ARG_POINTER(aTime);
+  *aTime = m_lastUseTime;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgDatabase::SetLastUseTime(PRTime aTime)
+{
+  gLastUseTime = m_lastUseTime = aTime;
   return NS_OK;
 }
 
@@ -1090,25 +1121,7 @@ nsMsgDatabase::~nsMsgDatabase()
   m_ChangeListeners.Clear();
 }
 
-NS_IMPL_ADDREF(nsMsgDatabase)
-
-NS_IMPL_RELEASE(nsMsgDatabase)
-
-NS_IMETHODIMP nsMsgDatabase::QueryInterface(REFNSIID aIID, void** aResult)
-{
-  if (aResult == NULL)
-    return NS_ERROR_NULL_POINTER;
-
-  if (aIID.Equals(NS_GET_IID(nsIMsgDatabase)) ||
-    aIID.Equals(NS_GET_IID(nsIDBChangeAnnouncer)) ||
-    aIID.Equals(NS_GET_IID(nsISupports)))
-  {
-    *aResult = static_cast<nsIMsgDatabase*>(this);
-    NS_ADDREF_THIS();
-    return NS_OK;
-  }
-  return NS_NOINTERFACE;
-}
+NS_IMPL_ISUPPORTS2(nsMsgDatabase, nsIMsgDatabase, nsIDBChangeAnnouncer);
 
 void nsMsgDatabase::GetMDBFactory(nsIMdbFactory ** aMdbFactory)
 {
@@ -1439,15 +1452,19 @@ NS_IMETHODIMP nsMsgDatabase::GetDBFolderInfo(nsIDBFolderInfo  **result)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgDatabase::GetFolder(nsIMsgFolder **aFolder)
+{
+  NS_ENSURE_ARG_POINTER(aFolder);
+  NS_IF_ADDREF(*aFolder = m_folder);
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgDatabase::Commit(nsMsgDBCommit commitType)
 {
   nsresult  err = NS_OK;
-  nsIMdbThumb  *commitThumb = NULL;
+  nsCOMPtr<nsIMdbThumb> commitThumb;
 
-#ifdef DEBUG_seth
-  printf("nsMsgDatabase::Commit(%d)\n",commitType);
-#endif
-
+  RememberLastUseTime();
   if (commitType == nsMsgDBCommitType::kLargeCommit || commitType == nsMsgDBCommitType::kSessionCommit)
   {
     mdb_percent outActualWaste = 0;
@@ -1465,13 +1482,13 @@ NS_IMETHODIMP nsMsgDatabase::Commit(nsMsgDBCommit commitType)
     switch (commitType)
     {
     case nsMsgDBCommitType::kLargeCommit:
-      err = m_mdbStore->LargeCommit(GetEnv(), &commitThumb);
+      err = m_mdbStore->LargeCommit(GetEnv(), getter_AddRefs(commitThumb));
       break;
     case nsMsgDBCommitType::kSessionCommit:
-      err = m_mdbStore->SessionCommit(GetEnv(), &commitThumb);
+      err = m_mdbStore->SessionCommit(GetEnv(), getter_AddRefs(commitThumb));
       break;
     case nsMsgDBCommitType::kCompressCommit:
-      err = m_mdbStore->CompressCommit(GetEnv(), &commitThumb);
+      err = m_mdbStore->CompressCommit(GetEnv(), getter_AddRefs(commitThumb));
       break;
     }
   }
@@ -1486,7 +1503,6 @@ NS_IMETHODIMP nsMsgDatabase::Commit(nsMsgDBCommit commitType)
       err = commitThumb->DoMore(GetEnv(), &outTotal, &outCurrent, &outDone, &outBroken);
     }
 
-    NS_IF_RELEASE(commitThumb);
   }
   // ### do something with error, but clear it now because mork errors out on commits.
   if (GetEnv())
@@ -1811,6 +1827,11 @@ NS_IMETHODIMP nsMsgDatabase::GetMsgHdrForKey(nsMsgKey key, nsIMsgDBHdr **pmsgHdr
   nsresult  err = NS_OK;
   mdb_bool  hasOid;
   mdbOid    rowObjectId;
+
+  // Because this may be called a lot, and we don't want gettimeofday() to show
+  // up in trace logs, we just remember the most recent time any db was used,
+  // which should be close enough for our purposes.
+  m_lastUseTime = gLastUseTime;
 
 #ifdef DEBUG_bienvenu1
   NS_ASSERTION(m_folder, "folder should be set");
@@ -2927,6 +2948,7 @@ nsresult nsMsgFilteredDBEnumerator::PrefetchNext()
 NS_IMETHODIMP
 nsMsgDatabase::EnumerateMessages(nsISimpleEnumerator* *result)
 {
+  RememberLastUseTime();
   NS_ENSURE_ARG_POINTER(result);
   nsMsgDBEnumerator* e = new nsMsgDBEnumerator(this, m_mdbAllMsgHeadersTable,
                                                nsnull, nsnull);
@@ -3061,6 +3083,9 @@ NS_IMETHODIMP nsMsgDatabase::ListAllKeys(nsIMsgKeyArray *aKeys)
   NS_ENSURE_ARG_POINTER(aKeys);
   nsresult  rv = NS_OK;
   nsCOMPtr<nsIMdbTableRowCursor> rowCursor;
+
+  RememberLastUseTime();
+
   if (m_mdbAllMsgHeadersTable)
   {
     PRUint32 numMsgs = 0;
@@ -3303,6 +3328,7 @@ NS_IMETHODIMP nsMsgDBThreadEnumerator::HasMoreElements(bool *aResult)
 NS_IMETHODIMP
 nsMsgDatabase::EnumerateThreads(nsISimpleEnumerator* *result)
 {
+  RememberLastUseTime();
   nsMsgDBThreadEnumerator* e = new nsMsgDBThreadEnumerator(this, nsnull);
   if (e == nsnull)
     return NS_ERROR_OUT_OF_MEMORY;
@@ -3323,11 +3349,13 @@ nsMsgFlagSetFilter(nsIMsgDBHdr *msg, void *closure)
 nsresult
 nsMsgDatabase::EnumerateMessagesWithFlag(nsISimpleEnumerator* *result, PRUint32 *pFlag)
 {
-    nsMsgDBEnumerator* e = new nsMsgDBEnumerator(this, m_mdbAllMsgHeadersTable, nsMsgFlagSetFilter, pFlag);
-    if (e == nsnull)
-        return NS_ERROR_OUT_OF_MEMORY;
-    NS_ADDREF(*result = e);
-    return NS_OK;
+  RememberLastUseTime();
+
+  nsMsgDBEnumerator* e = new nsMsgDBEnumerator(this, m_mdbAllMsgHeadersTable, nsMsgFlagSetFilter, pFlag);
+  if (!e)
+    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ADDREF(*result = e);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgDatabase::CreateNewHdr(nsMsgKey key, nsIMsgDBHdr **pnewHdr)

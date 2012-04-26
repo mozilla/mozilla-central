@@ -954,6 +954,7 @@ nsMsgDBFolder::GetMsgDatabase(nsIMsgDatabase** aMsgDatabase)
   if (!mDatabase)
     return NS_ERROR_FAILURE;
   NS_ADDREF(*aMsgDatabase = mDatabase);
+  mDatabase->SetLastUseTime(PR_Now());
   return NS_OK;
 }
 

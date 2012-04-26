@@ -111,6 +111,10 @@ pref("mailnews.headers.showSender", false);
 // be greater than one hour so daylight savings time changes don't affect us.
 // We will still always regenerate .msf files if the file size changes.
 pref("mail.db_timestamp_leeway", 4000);
+// How long should we leave idle db's open, in seconds.
+pref("mail.db.idle_limit", 3000);
+// How many db's should we leave open? LRU db's will be closed first
+pref("mail.db.max_open", 30);
 
 pref("mail.imap.chunk_size",                65536);
 pref("mail.imap.min_chunk_size_threshold",  98304);
