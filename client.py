@@ -91,6 +91,7 @@ elif action in ('update_nss'):
         options.cvsroot = os.environ.get('CVSROOT', CVSROOT_MOZILLA)
     do_cvs_export(NSS_DIRS, tag, options.cvsroot, options.cvs)
     print >>file("security/nss/TAG-INFO", "w"), tag
+    print >>file("security/nss/TAG-INFO-CKBI", "w"), tag
 elif action in ('update_libffi'):
     tag, = args[1:]
     if not options.cvsroot:
