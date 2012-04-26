@@ -42,9 +42,7 @@ try {
 }
 catch (e) { }
 
-if (channel != "aurora" &&
-    channel != "beta" &&
-    channel != "release") {
+if (isNightlyChannel(channel)) {
   var checkCompatPref = "extensions.checkCompatibility.nightly";
 }
 else {

@@ -53,9 +53,7 @@ function run_test() {
 
   // This test is only relevant on builds where the version is included in the
   // checkCompatibility preference name
-  if (channel != "aurora" &&
-      channel != "beta" &&
-      channel != "release") {
+  if (isNightlyChannel(channel)) {
     return;
   }
 

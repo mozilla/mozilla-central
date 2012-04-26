@@ -23,7 +23,8 @@ add_test(function() {
   catch (e) { }
   if (channel != "aurora" &&
       channel != "beta" &&
-      channel != "release") {
+      channel != "release" &&
+      channel != "esr") {
     var version = "nightly";
   }
   else {

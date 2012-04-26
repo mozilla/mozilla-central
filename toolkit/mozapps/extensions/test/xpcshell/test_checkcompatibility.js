@@ -75,9 +75,7 @@ function run_test() {
   }
   catch (e) { }
 
-  gIsNightly = channel != "aurora" &&
-               channel != "beta" &&
-               channel != "release";
+  gIsNightly = isNightlyChannel(channel);
 
   startupManager();
 

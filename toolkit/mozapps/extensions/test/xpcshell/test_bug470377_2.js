@@ -45,9 +45,7 @@ try {
 }
 catch (e) { }
 
-if (channel != "aurora" &&
-    channel != "beta" &&
-    channel != "release") {
+if (isNightlyChannel(channel)) {
   Services.prefs.setBoolPref("extensions.checkCompatibility.nightly", false);
 }
 else {
