@@ -392,7 +392,7 @@ gfxCoreTextShaper::SetGlyphsFromRun(gfxTextRun *aTextRun,
             }
 
             // find the maximum glyph index covered by the clump so far
-            if (isRightToLeft) {
+            if (!isLTR) {
                 for (PRInt32 i = charStart; i > charEnd; --i) {
                     if (charToGlyph[i] != NO_GLYPH) {
                         // update extent of glyph range
