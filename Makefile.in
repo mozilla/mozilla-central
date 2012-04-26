@@ -90,9 +90,11 @@ check mochitest reftest crashtest xpcshell-tests:: $(SUBMAKEFILES)
 mochitest-% :: $(SUBMAKEFILES)
 	$(MAKE) -C mozilla $@
 
-check::
+check-sync-dirs::
 	@$(PYTHON) $(topsrcdir)/mozilla/js/src/config/check-sync-dirs.py \
 	   $(topsrcdir)/build $(topsrcdir)/mozilla/build
+
+check:: check-sync-dirs
 
 ifndef MOZ_THUNDERBIRD
 package-tests:: $(SUBMAKEFILES)
