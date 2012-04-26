@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -52,7 +52,7 @@ public:
     WebRtc_Word32 SetAudioProcessingModule(
         AudioProcessing* audioProcessingModule);
 
-    WebRtc_Word32 PrepareDemux(const WebRtc_Word8* audioSamples,
+    WebRtc_Word32 PrepareDemux(const void* audioSamples,
                                const WebRtc_UWord32 nSamples,
                                const WebRtc_UWord8  nChannels,
                                const WebRtc_UWord32 samplesPerSec,
@@ -148,6 +148,15 @@ public: // FileCallback
 
     void RecordFileEnded(const WebRtc_Word32 id);
 
+#ifdef WEBRTC_VOICE_ENGINE_TYPING_DETECTION
+public:  // Typing detection
+    int TimeSinceLastTyping(int &seconds);
+    int SetTypingDetectionParameters(int timeWindow,
+                                     int costPerTyping,
+                                     int reportingThreshold,
+                                     int penaltyDecay);
+#endif
+
 private:
     TransmitMixer(const WebRtc_UWord32 instanceId);
 
@@ -197,8 +206,16 @@ private:  // owns
 
 #ifdef WEBRTC_VOICE_ENGINE_TYPING_DETECTION
     WebRtc_Word32 _timeActive;
+    WebRtc_Word32 _timeSinceLastTyping;
     WebRtc_Word32 _penaltyCounter;
     WebRtc_UWord32 _typingNoiseWarning;
+
+    // Tunable treshold values
+    int _timeWindow; // nr of10ms slots accepted to count as a hit.
+    int _costPerTyping; // Penalty added for a typing + activity coincide.
+    int _reportingThreshold; // Threshold for _penaltyCounter.
+    int _penaltyDecay; // How much we reduce _penaltyCounter every 10 ms.
+
 #endif
     WebRtc_UWord32 _saturationWarning;
     WebRtc_UWord32 _noiseWarning;

@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2005, Google Inc.
+ * Copyright 2004, Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
@@ -25,23 +25,10 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef TALK_BASE_STRINGDIGEST_H_
+#define TALK_BASE_STRINGDIGEST_H_
 
-#ifndef TALK_BASE_STRINGDIGEST_H__
-#define TALK_BASE_STRINGDIGEST_H__
+// TODO: Update remaining callers to use messagedigest.h instead
+#include "talk/base/messagedigest.h"
 
-#include <string>
-
-namespace talk_base {
-
-//////////////////////////////////////////////////////////////////////
-// Message Digest Utilities
-//////////////////////////////////////////////////////////////////////
-
-// Compute the MD5 message digest of data, and return it in 
-std::string MD5(const std::string& data);
-
-//////////////////////////////////////////////////////////////////////
-
-}  // namespace talk_base
-
-#endif  // TALK_BASE_STRINGDIGEST_H__
+#endif  // TALK_BASE_STRINGDIGEST_H_

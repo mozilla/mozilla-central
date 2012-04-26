@@ -1,4 +1,4 @@
-# Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+# Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
 #
 # Use of this source code is governed by a BSD-style license
 # that can be found in the LICENSE file in the root of the source
@@ -64,6 +64,11 @@
               '../../../../../..',
             ],
         }],
+        ['OS=="android"', {
+            'include_dirs': [
+              'android',
+            ],
+        }], # OS==android
         ['include_internal_audio_device==0', {
           'defines': [
             'WEBRTC_DUMMY_AUDIO_BUILD',
@@ -98,8 +103,20 @@
             'win/audio_device_utility_win.h',
             'win/audio_mixer_manager_win.cc',
             'win/audio_mixer_manager_win.h',
+            'android/audio_device_android_opensles.cc',
+            'android/audio_device_android_opensles.h',
+            'android/audio_device_utility_android.cc',
+            'android/audio_device_utility_android.h',
           ],
           'conditions': [
+            ['OS=="android"', {
+              'link_settings': {
+                'libraries': [
+                  '-llog',
+                  '-lOpenSLES',
+                ],
+              },
+            }],
             ['OS=="linux"', {
               'defines': [
                 'LINUX_ALSA',
@@ -107,7 +124,6 @@
               'link_settings': {
                 'libraries': [
                   '-ldl',
-                  '-lasound',
                 ],
               },
               'conditions': [
@@ -123,11 +139,6 @@
                     'linux/pulseaudiosymboltable_linux.cc',
                     'linux/pulseaudiosymboltable_linux.h',
                   ],
-                  'link_settings': {
-                    'libraries': [
-                      '-lpulse',
-                    ],
-                  },
                 }],
               ],
             }],
@@ -156,7 +167,7 @@
     },
   ],
   # Exclude the test targets when building with chromium.
-  'conditions': [   
+  'conditions': [
     ['build_with_chromium==0', {
       'targets': [
         {
@@ -165,6 +176,8 @@
          'dependencies': [
             'audio_device',
             'webrtc_utility',
+            '<(webrtc_root)/../test/test.gyp:test_support_main',
+            '<(webrtc_root)/../testing/gtest.gyp:gtest',
             '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
           ],
           'sources': [
@@ -181,6 +194,7 @@
             '<(webrtc_root)/common_audio/common_audio.gyp:resampler',
             '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
             '<(webrtc_root)/../test/test.gyp:test_support',
+            '<(webrtc_root)/../testing/gtest.gyp:gtest',
           ],
           'sources': [
             '../test/audio_device_test_func.cc',

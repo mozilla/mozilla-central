@@ -136,7 +136,7 @@ bool GetDoubleFromJson(const Json::Value& in, double* out) {
 
 bool GetValueFromJsonArray(const Json::Value& in, size_t n,
                            Json::Value* out) {
-  if (!in.isArray() || !in.isValidIndex(n)) {
+  if (!in.isArray() || !in.isValidIndex(static_cast<int>(n))) {
     return false;
   }
 

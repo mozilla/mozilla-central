@@ -36,27 +36,27 @@ function handlePeerMessage(peer_id, data) {
       // In loopback mode, replace the ROAP OFFER with ROAP ANSWER.
       data = data.replace("OFFER", "ANSWER");
       // Keep only the first crypto line for each m line in the answer.
-      var mlineBegin = data.indexOf("m=", 0);
-      while (mlineBegin != -1) {
-        var cryptoBegin = data.indexOf("a=crypto:", mlineBegin);
+      var mlines = data.split("m=");
+      // Start from 1 because the first item in the array is not a m line.
+      for (var i = 1; i < mlines.length; ++i) {
+        var mline = mlines[i];
+        var cryptoBegin = mline.indexOf("a=crypto:", 0);
         if (cryptoBegin == -1) {
-          // No more crypto lines.
-          break;
+          // No crypto line found.
+          continue;
         }
         // Skip the first crypto line.
-        cryptoBegin = data.indexOf("a=crypto:", cryptoBegin + 1);
-        // Update the mlineBegin to the the next m line.
-        mlineBegin = data.indexOf("m=", mlineBegin + 1);
-        while (cryptoBegin != -1 && cryptoBegin < mlineBegin) {
-          var cryptoEnd = data.indexOf("\\n", cryptoBegin);
-          var crypto = data.substring(cryptoBegin, cryptoEnd + 2);
+        cryptoBegin = mline.indexOf("a=crypto:", cryptoBegin + 1);
+        while (cryptoBegin != -1) {
+          var cryptoEnd = mline.indexOf("\\n", cryptoBegin);
+          var crypto = mline.substring(cryptoBegin, cryptoEnd + 2);
           data = data.replace(crypto, "");
           // Search for the the next crypto line.
-          cryptoBegin = data.indexOf("a=crypto:", cryptoBegin + 1);
+          cryptoBegin = mline.indexOf("a=crypto:", cryptoBegin + 1);
         }
       }
       var lines = data.split("\n");
-      for (var i = 1; i < lines.length; ++i) {
+      for (var i = 0; i < lines.length; ++i) {
         // Look for the offererSessionId and use it as answererSessionId
         if (lines[i].length > 0 && lines[i].search("offererSessionId") != -1) {
           var answer_session_id =

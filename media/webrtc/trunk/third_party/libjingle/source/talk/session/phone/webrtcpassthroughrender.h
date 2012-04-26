@@ -115,10 +115,10 @@ class WebRtcPassthroughRender : public webrtc::VideoRender {
   }
 
   virtual WebRtc_Word32 StartRender(
-      const WebRtc_UWord32 stream_id) { return 0; }
+      const WebRtc_UWord32 stream_id);
 
   virtual WebRtc_Word32 StopRender(
-      const WebRtc_UWord32 stream_id) { return 0; }
+      const WebRtc_UWord32 stream_id);
 
   virtual WebRtc_Word32 ResetRender() { return 0; }
 
@@ -201,6 +201,8 @@ class WebRtcPassthroughRender : public webrtc::VideoRender {
 
  private:
   typedef std::map<WebRtc_UWord32, PassthroughStream*> StreamMap;
+
+  PassthroughStream* FindStream(const WebRtc_UWord32 stream_id) const;
 
   void* window_;
   StreamMap stream_render_map_;

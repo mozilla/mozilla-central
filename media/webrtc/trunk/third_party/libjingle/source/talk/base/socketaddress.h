@@ -117,6 +117,8 @@ class SocketAddress {
   void SetScopeID(int id) { scope_id_ = id; }
 
   // Returns the IP address (or hostname) in printable form.
+  // TODO: Rename this so it is clear that IPv6 strings have "[" and "]"
+  // around the IP. Also, consider moving this to IPAddress.
   std::string IPAsString() const;
 
   // Returns the port as a string.

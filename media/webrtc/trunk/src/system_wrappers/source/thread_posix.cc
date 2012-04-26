@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -64,15 +64,19 @@ ThreadPosix::ThreadPosix(ThreadRunFunction func, ThreadObj obj,
       _dead(true),
       _prio(prio),
       _event(EventWrapper::Create()),
-      _setThreadName(false)
-{
+      _name(),
+      _setThreadName(false),
 #if (defined(WEBRTC_LINUX) || defined(WEBRTC_ANDROID))
-    _pid = -1;
+      _pid(-1),
 #endif
+      _attr(),
+      _thread(0)
+{
     if (threadName != NULL)
     {
         _setThreadName = true;
         strncpy(_name, threadName, kThreadMaxNameLength);
+        _name[kThreadMaxNameLength - 1] = '\0';
     }
 }
 
@@ -182,8 +186,6 @@ bool ThreadPosix::Start(unsigned int& /*threadID*/)
     case kRealtimePriority:
         param.sched_priority = maxPrio - 1;
         break;
-    default:
-        return false;
     }
     result = pthread_setschedparam(_thread, policy, &param);
     if (result == EINVAL)
@@ -193,7 +195,9 @@ bool ThreadPosix::Start(unsigned int& /*threadID*/)
     return true;
 }
 
-#if (defined(WEBRTC_LINUX) || defined(WEBRTC_ANDROID))
+// CPU_ZERO and CPU_SET are not available in NDK r7, so disable
+// SetAffinity on Android for now.
+#if (defined(WEBRTC_LINUX) && (!defined(WEBRTC_ANDROID)))
 bool ThreadPosix::SetAffinity(const int* processorNumbers,
                               const unsigned int amountOfProcessors) {
   if (!processorNumbers || (amountOfProcessors == 0)) {

@@ -30,12 +30,13 @@ class MacAsyncSocket : public AsyncSocket {
   virtual SocketAddress GetRemoteAddress() const;
   virtual int Bind(const SocketAddress& addr);
   virtual int Connect(const SocketAddress& addr);
-  virtual int Send(const void* pv, size_t cb);
-  virtual int SendTo(const void* pv, size_t cb, const SocketAddress& addr);
-  virtual int Recv(void* pv, size_t cb);
-  virtual int RecvFrom(void* pv, size_t cb, SocketAddress* paddr);
+  virtual int Send(const void* buffer, size_t length);
+  virtual int SendTo(const void* buffer, size_t length,
+                     const SocketAddress& addr);
+  virtual int Recv(void* buffer, size_t length);
+  virtual int RecvFrom(void* buffer, size_t length, SocketAddress* out_addr);
   virtual int Listen(int backlog);
-  virtual MacAsyncSocket* Accept(SocketAddress* paddr);
+  virtual MacAsyncSocket* Accept(SocketAddress* out_addr);
   virtual int Close();
   virtual int GetError() const;
   virtual void SetError(int error);

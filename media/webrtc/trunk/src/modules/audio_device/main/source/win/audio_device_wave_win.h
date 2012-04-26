@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -54,8 +54,14 @@ public:
     // Device enumeration
     virtual WebRtc_Word16 PlayoutDevices();
     virtual WebRtc_Word16 RecordingDevices();
-    virtual WebRtc_Word32 PlayoutDeviceName(WebRtc_UWord16 index, WebRtc_Word8 name[kAdmMaxDeviceNameSize], WebRtc_Word8 guid[kAdmMaxGuidSize]);
-    virtual WebRtc_Word32 RecordingDeviceName(WebRtc_UWord16 index, WebRtc_Word8 name[kAdmMaxDeviceNameSize], WebRtc_Word8 guid[kAdmMaxGuidSize]);
+    virtual WebRtc_Word32 PlayoutDeviceName(
+        WebRtc_UWord16 index,
+        char name[kAdmMaxDeviceNameSize],
+        char guid[kAdmMaxGuidSize]);
+    virtual WebRtc_Word32 RecordingDeviceName(
+        WebRtc_UWord16 index,
+        char name[kAdmMaxDeviceNameSize],
+        char guid[kAdmMaxGuidSize]);
 
     // Device selection
     virtual WebRtc_Word32 SetPlayoutDevice(WebRtc_UWord16 index);
@@ -185,7 +191,7 @@ private:
 
     WebRtc_Word32 GetPlayoutBufferDelay(WebRtc_UWord32& writtenSamples, WebRtc_UWord32& playedSamples);
     WebRtc_Word32 GetRecordingBufferDelay(WebRtc_UWord32& readSamples, WebRtc_UWord32& recSamples);
-    WebRtc_Word32 Write(WebRtc_Word8* data, WebRtc_UWord16 nSamples);
+    WebRtc_Word32 Write(int8_t* data, WebRtc_UWord16 nSamples);
     WebRtc_Word32 GetClockDrift(const WebRtc_UWord32 plSamp, const WebRtc_UWord32 rcSamp);
     WebRtc_Word32 MonitorRecording(const WebRtc_UWord32 time);
     WebRtc_Word32 RestartTimerIfNeeded(const WebRtc_UWord32 time);
@@ -247,8 +253,8 @@ private:
     WebRtc_UWord16                          _recDelayCount;
     WebRtc_UWord16                          _recPutBackDelay;
 
-    WebRtc_Word8    _recBuffer[N_BUFFERS_IN][4*REC_BUF_SIZE_IN_SAMPLES];
-    WebRtc_Word8    _playBuffer[N_BUFFERS_OUT][4*PLAY_BUF_SIZE_IN_SAMPLES];
+    int8_t                                  _recBuffer[N_BUFFERS_IN][4*REC_BUF_SIZE_IN_SAMPLES];
+    int8_t                                  _playBuffer[N_BUFFERS_OUT][4*PLAY_BUF_SIZE_IN_SAMPLES];
 
     AudioDeviceModule::BufferType           _playBufType;
 

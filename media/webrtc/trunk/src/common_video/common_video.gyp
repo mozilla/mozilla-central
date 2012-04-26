@@ -1,4 +1,4 @@
-# Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+# Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
 #
 # Use of this source code is governed by a BSD-style license
 # that can be found in the LICENSE file in the root of the source
@@ -8,8 +8,8 @@
 
 {
   'includes': [
-    '../common_settings.gypi', # Common settings
+    '../build/common.gypi',
     'libyuv/libyuv.gypi',
-    'jpeg/main/source/jpeg.gypi',
+    'jpeg/jpeg.gypi',
   ],
 }

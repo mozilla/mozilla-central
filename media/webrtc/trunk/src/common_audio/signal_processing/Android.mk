@@ -20,11 +20,9 @@ LOCAL_SRC_FILES := \
     auto_corr_to_refl_coef.c \
     auto_correlation.c \
     complex_fft.c \
-    complex_bit_reverse.c \
     copy_set_operations.c \
     division_operations.c \
     dot_product_with_scale.c \
-    downsample_fast.c \
     energy.c \
     filter_ar.c \
     filter_ma_fast_q12.c \
@@ -42,7 +40,6 @@ LOCAL_SRC_FILES := \
     resample_by_2_internal.c \
     resample_fractional.c \
     spl_sqrt.c \
-    spl_sqrt_floor.c \
     spl_version.c \
     splitting_filter.c \
     sqrt_of_one_minus_x_squared.c \
@@ -58,13 +55,16 @@ LOCAL_C_INCLUDES := \
 
 ifeq ($(ARCH_ARM_HAVE_NEON),true)
 LOCAL_SRC_FILES += \
-    min_max_operations_neon.c \
-    cross_correlation_neon.s
+    cross_correlation_neon.s \
+    downsample_fast_neon.s \
+    min_max_operations_neon.s \
+    vector_scaling_operations_neon.s
 LOCAL_CFLAGS += \
     $(MY_ARM_CFLAGS_NEON)
 else
 LOCAL_SRC_FILES += \
-    cross_correlation.c
+    cross_correlation.c \
+    downsample_fast.c
 endif
 
 ifeq ($(ARCH_ARM_HAVE_ARMV7A),true)
@@ -73,6 +73,16 @@ LOCAL_SRC_FILES += \
 else
 LOCAL_SRC_FILES += \
     filter_ar_fast_q12.c
+endif
+
+ifeq ($(TARGET_ARCH),arm)
+LOCAL_SRC_FILES += \
+    complex_bit_reverse_arm.s \
+    spl_sqrt_floor.s
+else
+LOCAL_SRC_FILES += \
+    complex_bit_reverse.c \
+    spl_sqrt_floor.c
 endif
 
 LOCAL_SHARED_LIBRARIES := libstlport

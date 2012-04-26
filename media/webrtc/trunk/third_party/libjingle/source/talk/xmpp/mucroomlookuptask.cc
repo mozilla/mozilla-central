@@ -49,6 +49,13 @@ MucRoomLookupTask::MucRoomLookupTask(XmppTaskParentInterface* parent,
              MakeJidQuery(room_jid)) {
 }
 
+MucRoomLookupTask::MucRoomLookupTask(XmppTaskParentInterface* parent,
+                                     const Jid& lookup_server_jid,
+                                     const std::string& hangout_id)
+    : IqTask(parent, STR_SET, lookup_server_jid,
+             MakeHangoutIdQuery(hangout_id)) {
+}
+
 XmlElement* MucRoomLookupTask::MakeNameQuery(
     const std::string& room_name, const std::string& room_domain) {
   XmlElement* name_elem = new XmlElement(QN_SEARCH_ROOM_NAME, false);
@@ -72,23 +79,46 @@ XmlElement* MucRoomLookupTask::MakeJidQuery(const Jid& room_jid) {
   return query;
 }
 
+// Construct a stanza to lookup the muc jid for a given hangout id. eg:
+//
+// <query xmlns="jabber:iq:search">
+//   <hangout-id>0b48ad092c893a53b7bfc87422caf38e93978798e</hangout-id>
+// </query>
+XmlElement* MucRoomLookupTask::MakeHangoutIdQuery(
+    const std::string& hangout_id) {
+  XmlElement* hangout_id_elem = new XmlElement(QN_SEARCH_HANGOUT_ID, false);
+  hangout_id_elem->SetBodyText(hangout_id);
+
+  XmlElement* query = new XmlElement(QN_SEARCH_QUERY, true);
+  query->AddElement(hangout_id_elem);
+  return query;
+}
+
+// Handle a response like the following:
+//
+// <query xmlns="jabber:iq:search">
+//   <item jid="muvc-private-chat-guid@groupchat.google.com">
+//     <room-name>0b48ad092c893a53b7bfc87422caf38e93978798e</room-name>
+//     <room-domain>hangout.google.com</room-domain>
+//   </item>
+// </query>
 void MucRoomLookupTask::HandleResult(const XmlElement* stanza) {
   const XmlElement* query_elem = stanza->FirstNamed(QN_SEARCH_QUERY);
   if (query_elem == NULL) {
-    SignalError(this, NULL);
+    SignalError(this, stanza);
     return;
   }
 
   const XmlElement* item_elem = query_elem->FirstNamed(QN_SEARCH_ITEM);
   if (item_elem == NULL) {
-    SignalError(this, NULL);
+    SignalError(this, stanza);
     return;
   }
 
   MucRoomInfo room;
   room.jid = Jid(item_elem->Attr(buzz::QN_JID));
   if (!room.jid.IsValid()) {
-    SignalError(this, NULL);
+    SignalError(this, stanza);
     return;
   }
 

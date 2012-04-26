@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -58,6 +58,7 @@ enum WebRtcNetEQDecoder
     kDecoderG722_1C_48,
     kDecoderSPEEX_8,
     kDecoderSPEEX_16,
+    kDecoderCELT_32,
     kDecoderGSMFR,
     kDecoderAMR,
     kDecoderAMRWB,
@@ -155,9 +156,9 @@ typedef struct
 /* Info functions */
 
 #define WEBRTC_NETEQ_MAX_ERROR_NAME 40
-int WebRtcNetEQ_GetVersion(WebRtc_Word8 *version);
+int WebRtcNetEQ_GetVersion(char *version);
 int WebRtcNetEQ_GetErrorCode(void *inst);
-int WebRtcNetEQ_GetErrorName(int errorCode, WebRtc_Word8 *errorName, int maxStrLen);
+int WebRtcNetEQ_GetErrorName(int errorCode, char *errorName, int maxStrLen);
 
 /* Instance memory assign functions */
 
@@ -212,4 +213,3 @@ int WebRtcNetEQ_VQmonGetRxStatistics(void *inst, WebRtc_UWord16 *avgDelayMs,
 #endif
 
 #endif
-

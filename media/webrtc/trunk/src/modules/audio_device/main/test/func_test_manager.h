@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -97,7 +97,7 @@ class AudioTransportImpl: public AudioTransport
 {
 public:
     virtual WebRtc_Word32
-        RecordedDataIsAvailable(const WebRtc_Word8* audioSamples,
+        RecordedDataIsAvailable(const void* audioSamples,
                                 const WebRtc_UWord32 nSamples,
                                 const WebRtc_UWord8 nBytesPerSample,
                                 const WebRtc_UWord8 nChannels,
@@ -111,15 +111,14 @@ public:
                                            const WebRtc_UWord8 nBytesPerSample,
                                            const WebRtc_UWord8 nChannels,
                                            const WebRtc_UWord32 samplesPerSec,
-                                           WebRtc_Word8* audioSamples,
+                                           void* audioSamples,
                                            WebRtc_UWord32& nSamplesOut);
 
     AudioTransportImpl(AudioDeviceModule* audioDevice);
     ~AudioTransportImpl();
 
 public:
-    WebRtc_Word32 SetFilePlayout(bool enable, const WebRtc_Word8* fileName =
-        NULL);
+    WebRtc_Word32 SetFilePlayout(bool enable, const char* fileName = NULL);
     void SetFullDuplex(bool enable);
     void SetSpeakerVolume(bool enable)
     {

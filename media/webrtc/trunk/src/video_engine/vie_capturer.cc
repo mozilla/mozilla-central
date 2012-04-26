@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -152,7 +152,7 @@ WebRtc_Word32 ViECapturer::Init(VideoCaptureModule& capture_module) {
 ViECapturer* ViECapturer::CreateViECapture(
     int capture_id,
     int engine_id,
-    const WebRtc_UWord8* device_unique_idUTF8,
+    const char* device_unique_idUTF8,
     const WebRtc_UWord32 device_unique_idUTF8Length,
     ProcessThread& module_process_thread) {
   ViECapturer* capture = new ViECapturer(capture_id, engine_id,
@@ -166,7 +166,7 @@ ViECapturer* ViECapturer::CreateViECapture(
 }
 
 WebRtc_Word32 ViECapturer::Init(
-    const WebRtc_UWord8* device_unique_idUTF8,
+    const char* device_unique_idUTF8,
     const WebRtc_UWord32 device_unique_idUTF8Length) {
   assert(capture_module_ == NULL);
   if (device_unique_idUTF8 == NULL) {
@@ -269,7 +269,7 @@ bool ViECapturer::Started() {
   return capture_module_->CaptureStarted();
 }
 
-const WebRtc_UWord8* ViECapturer::CurrentDeviceName() const {
+const char* ViECapturer::CurrentDeviceName() const {
   return capture_module_->CurrentDeviceName();
 }
 
@@ -292,8 +292,6 @@ WebRtc_Word32 ViECapturer::SetRotateCapturedFrames(
       break;
     case RotateCapturedFrame_270:
       converted_rotation = kCameraRotate270;
-      break;
-    default:
       break;
   }
   return capture_module_->SetCaptureRotation(converted_rotation);
@@ -450,9 +448,8 @@ WebRtc_Word32 ViECapturer::EnableDenoising(bool enable) {
   CriticalSectionScoped cs(deliver_cs_.get());
   if (enable) {
     if (denoising_enabled_) {
-      WEBRTC_TRACE(kTraceError, kTraceVideo, ViEId(engine_id_, capture_id_),
-                   "%s: denoising already enabled", __FUNCTION__);
-      return -1;
+      // Already enabled, nothing need to be done.
+      return 0;
     }
     denoising_enabled_ = true;
     if (IncImageProcRefCount() != 0) {
@@ -460,9 +457,8 @@ WebRtc_Word32 ViECapturer::EnableDenoising(bool enable) {
     }
   } else {
     if (denoising_enabled_ == false) {
-      WEBRTC_TRACE(kTraceError, kTraceVideo, ViEId(engine_id_, capture_id_),
-                   "%s: denoising not enabled", __FUNCTION__);
-      return -1;
+      // Already disabled, nothing need to be done.
+      return 0;
     }
     denoising_enabled_ = false;
     DecImageProcRefCount();
@@ -714,7 +710,7 @@ bool ViECapturer::CaptureCapabilityFixed() {
       requested_capability_.maxFPS != 0;
 }
 
-WebRtc_Word32 ViECapturer::Version(WebRtc_Word8* version,
+WebRtc_Word32 ViECapturer::Version(char* version,
                                    WebRtc_Word32 length) const {
   return 0;
 }
@@ -749,15 +745,15 @@ WebRtc_Word32 ViECapturer::InitEncode(const VideoCodec* codec_settings,
 
 WebRtc_Word32 ViECapturer::Encode(const RawImage& input_image,
                                   const CodecSpecificInfo* codec_specific_info,
-                                  const VideoFrameType* frame_types) {
+                                  const VideoFrameType frame_type) {
   CriticalSectionScoped cs(encoding_cs_.get());
   if (!capture_encoder_) {
     return WEBRTC_VIDEO_CODEC_UNINITIALIZED;
   }
-  if (*frame_types == kKeyFrame) {
+  if (frame_type == kKeyFrame) {
     return capture_encoder_->EncodeFrameType(kVideoFrameKey);
   }
-  if (*frame_types == kSkipFrame) {
+  if (frame_type == kSkipFrame) {
     return capture_encoder_->EncodeFrameType(kFrameEmpty);
   }
   return WEBRTC_VIDEO_CODEC_ERR_PARAMETER;

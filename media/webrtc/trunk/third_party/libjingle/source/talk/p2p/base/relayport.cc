@@ -190,15 +190,14 @@ RelayPort::RelayPort(
     talk_base::Network* network, const talk_base::IPAddress& ip,
     int min_port, int max_port, const std::string& username,
     const std::string& password, const std::string& magic_cookie)
-    : Port(thread, RELAY_PORT_TYPE, factory, network, ip, min_port, max_port),
+    : Port(thread, RELAY_PORT_TYPE, factory, network, ip, min_port, max_port,
+           username, password),
       ready_(false),
       magic_cookie_(magic_cookie),
       error_(0) {
   entries_.push_back(
       new RelayEntry(this, talk_base::SocketAddress()));
 
-  set_username_fragment(username);
-  set_password(password);
   if (magic_cookie_.size() == 0) {
     magic_cookie_.append(TURN_MAGIC_COOKIE_VALUE,
                          sizeof(TURN_MAGIC_COOKIE_VALUE));
@@ -208,7 +207,7 @@ RelayPort::RelayPort(
 RelayPort::~RelayPort() {
   for (size_t i = 0; i < entries_.size(); ++i)
     delete entries_[i];
-  thread_->Clear(this);
+  thread()->Clear(this);
 }
 
 void RelayPort::AddServerAddress(const ProtocolAddress& addr) {
@@ -457,11 +456,11 @@ void RelayEntry::Connect() {
   if (ra->proto == PROTO_UDP) {
     // UDP sockets are simple.
     socket = port_->socket_factory()->CreateUdpSocket(
-        talk_base::SocketAddress(port_->ip_, 0),
-        port_->min_port_, port_->max_port_);
+        talk_base::SocketAddress(port_->ip(), 0),
+        port_->min_port(), port_->max_port());
   } else if (ra->proto == PROTO_TCP || ra->proto == PROTO_SSLTCP) {
     socket = port_->socket_factory()->CreateClientTcpSocket(
-        talk_base::SocketAddress(port_->ip_, 0), ra->address,
+        talk_base::SocketAddress(port_->ip(), 0), ra->address,
         port_->proxy(), port_->user_agent(), ra->proto == PROTO_SSLTCP);
   } else {
     LOG(LS_WARNING) << "Unknown protocol (" << ra->proto << ")";

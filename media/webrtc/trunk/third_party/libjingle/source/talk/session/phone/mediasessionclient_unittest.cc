@@ -68,6 +68,10 @@ static const cricket::VideoCodec kVideoCodecs[] = {
   cricket::VideoCodec(96, "H264-SVC", 320, 200, 30, 1)
 };
 
+static const cricket::DataCodec kDataCodecs[] = {
+  cricket::DataCodec(101, "google-data", 0)
+};
+
 const std::string kGingleCryptoOffer = \
     "<rtp:encryption xmlns:rtp='urn:xmpp:jingle:apps:rtp:1'>   "  \
     "  <usage/>                                                "  \
@@ -406,6 +410,37 @@ const std::string kJingleVideoInitiate(
      "          <parameter name='width' value='320'/>                   " \
      "          <parameter name='framerate' value='30'/>                " \
      "        </payload-type>                                           " \
+     "      </description>                                              " \
+     "     <transport xmlns=\"http://www.google.com/transport/p2p\"/>   " \
+     "    </content>                                                    " \
+     "  </jingle>                                                       " \
+     "</iq>                                                             ");
+
+const std::string kJingleVideoInitiateWithData(
+     "<iq xmlns='jabber:client' from='me@domain.com/resource'           " \
+     "    to='user@domain.com/resource' type='set' id='123'>            " \
+     "  <jingle xmlns='urn:xmpp:jingle:1' action='session-initiate'     " \
+     "          sid='abcdef' initiator='me@domain.com/resource'>        " \
+     "    <content name='test audio'>                                   " \
+     "      <description xmlns='urn:xmpp:jingle:apps:rtp:1' media='audio'> " \
+     "        <payload-type id='103' name='ISAC' clockrate='16000'/>    " \
+     "      </description>                                              " \
+     "     <transport xmlns=\"http://www.google.com/transport/p2p\"/>   " \
+     "    </content>                                                    " \
+     "    <content name='test video'>                                   " \
+     "      <description xmlns='urn:xmpp:jingle:apps:rtp:1' media='video'> " \
+     "        <payload-type id='99' name='H264-SVC'>                    " \
+     "          <parameter name='height' value='200'/>                  " \
+     "          <parameter name='width' value='320'/>                   " \
+     "          <parameter name='framerate' value='30'/>                " \
+     "        </payload-type>                                           " \
+     "      </description>                                              " \
+     "     <transport xmlns=\"http://www.google.com/transport/p2p\"/>   " \
+     "    </content>                                                    " \
+     "    <content name='test data'>                                    " \
+     "      <description xmlns='urn:xmpp:jingle:apps:rtp:1' media='data'> " \
+     "        <payload-type id='101' name='google-data'/>               " \
+     "        <rtcp-mux/>                                               " \
      "      </description>                                              " \
      "     <transport xmlns=\"http://www.google.com/transport/p2p\"/>   " \
      "    </content>                                                    " \
@@ -779,6 +814,7 @@ const std::string kJingleInitiateDynamicWithoutNames(
 
 const uint32 kAudioSsrc = 4294967295U;
 const uint32 kVideoSsrc = 87654321;
+const uint32 kDataSsrc = 1010101;
 // Note that this message does not specify a session ID. It must be populated
 // before use.
 const std::string kGingleAcceptWithSsrcs(
@@ -814,6 +850,34 @@ const std::string kJingleAcceptWithSsrcs(
      "    <content name='video'>                                      " \
      "      <description xmlns='urn:xmpp:jingle:apps:rtp:1'           " \
      "          media='video' ssrc='87654321'>                        " \
+     "      </description>                                            " \
+     "     <transport xmlns='http://www.google.com/transport/p2p'/>   " \
+     "    </content>                                                  " \
+     "  </jingle>                                                     " \
+     "</iq>                                                           ");
+
+const std::string kJingleAcceptWithDataSsrcs(
+     "<iq xmlns='jabber:client' from='me@mydomain.com'                " \
+     "    to='user@domain.com/resource' type='set' id='150'>          " \
+     "  <jingle xmlns='urn:xmpp:jingle:1' action='session-accept'     " \
+     "          initiator='me@domain.com/resource'>                   " \
+     "    <content name='audio'>                                      " \
+     "      <description xmlns='urn:xmpp:jingle:apps:rtp:1'           " \
+     "          media='audio' ssrc='4294967295'>                      " \
+     "        <payload-type id='103' name='ISAC' clockrate='16000'/>  " \
+     "        <payload-type id='104' name='ISAC' clockrate='32000'/>  " \
+     "      </description>                                            " \
+     "     <transport xmlns='http://www.google.com/transport/p2p'/>   " \
+     "    </content>                                                  " \
+     "    <content name='video'>                                      " \
+     "      <description xmlns='urn:xmpp:jingle:apps:rtp:1'           " \
+     "          media='video' ssrc='87654321'>                        " \
+     "      </description>                                            " \
+     "     <transport xmlns='http://www.google.com/transport/p2p'/>   " \
+     "    </content>                                                  " \
+     "    <content name='data'>                                       " \
+     "      <description xmlns='urn:xmpp:jingle:apps:rtp:1'           " \
+     "          media='data' ssrc='1010101'>                          " \
      "      </description>                                            " \
      "     <transport xmlns='http://www.google.com/transport/p2p'/>   " \
      "    </content>                                                  " \
@@ -881,6 +945,68 @@ std::string JingleStreamAdd(const std::string& content_name,
       "    </content>"
       "  </jingle>"
       "</iq>";
+}
+
+std::string JingleOutboundStreamRemove(const std::string& sid,
+                                       const std::string& content_name,
+                                       const std::string& name) {
+  return \
+      "<cli:iq"
+      " to='me@mydomain.com'"
+      " type='set'"
+      " xmlns:cli='jabber:client'>"
+      "<jingle"
+      " xmlns='urn:xmpp:jingle:1'"
+      " action='description-info'"
+      " sid='" + sid + "'>"
+      "<content"
+      " name='" + content_name + "'"
+      " creator='initiator'>"
+      "<description"
+      " xmlns='urn:xmpp:jingle:apps:rtp:1'"
+      " media='" + content_name + "'>"
+      "<streams"
+      " xmlns='google:jingle'>"
+      "<stream"
+      " name='" + name + "'>"
+      "</stream>"
+      "</streams>"
+      "</description>"
+      "</content>"
+      "</jingle>"
+      "</cli:iq>";
+}
+
+std::string JingleOutboundStreamAdd(const std::string& sid,
+                                    const std::string& content_name,
+                                    const std::string& name,
+                                    const std::string& ssrc) {
+  return \
+      "<cli:iq"
+      " to='me@mydomain.com'"
+      " type='set'"
+      " xmlns:cli='jabber:client'>"
+      "<jingle"
+      " xmlns='urn:xmpp:jingle:1'"
+      " action='description-info'"
+      " sid='" + sid + "'>"
+      "<content"
+      " name='" + content_name + "'"
+      " creator='initiator'>"
+      "<description"
+      " xmlns='urn:xmpp:jingle:apps:rtp:1'"
+      " media='" + content_name + "'>"
+      "<streams"
+      " xmlns='google:jingle'>"
+      "<stream"
+      " name='" + name + "'>"
+      "<ssrc>" + ssrc + "</ssrc>"
+      "</stream>"
+      "</streams>"
+      "</description>"
+      "</content>"
+      "</jingle>"
+      "</cli:iq>";
 }
 
 std::string JingleStreamAddWithoutSsrc(const std::string& content_name,
@@ -993,6 +1119,8 @@ class MediaSessionTestParser {
       const buzz::XmlElement* payload_type) = 0;
   virtual cricket::VideoCodec VideoCodecFromPayloadType(
       const buzz::XmlElement* payload_type) = 0;
+  virtual cricket::DataCodec DataCodecFromPayloadType(
+      const buzz::XmlElement* payload_type) = 0;
   virtual buzz::XmlElement* EncryptionFromContent(
       buzz::XmlElement* content) = 0;
   virtual buzz::XmlElement* NextFromEncryption(
@@ -1051,7 +1179,7 @@ class JingleSessionTestParser : public MediaSessionTestParser {
     if (payload_type->HasAttr(cricket::QN_ID))
       id = atoi(payload_type->Attr(cricket::QN_ID).c_str());
 
-    std::string name = "";
+    std::string name;
     if (payload_type->HasAttr(cricket::QN_NAME))
       name = payload_type->Attr(cricket::QN_NAME);
 
@@ -1076,7 +1204,7 @@ class JingleSessionTestParser : public MediaSessionTestParser {
     if (payload_type->HasAttr(cricket::QN_ID))
       id = atoi(payload_type->Attr(cricket::QN_ID).c_str());
 
-    std::string name = "";
+    std::string name;
     if (payload_type->HasAttr(cricket::QN_NAME))
       name = payload_type->Attr(cricket::QN_NAME);
 
@@ -1098,6 +1226,19 @@ class JingleSessionTestParser : public MediaSessionTestParser {
     }
 
     return cricket::VideoCodec(id, name, width, height, framerate, 0);
+  }
+
+  cricket::DataCodec DataCodecFromPayloadType(
+      const buzz::XmlElement* payload_type) {
+    int id = 0;
+    if (payload_type->HasAttr(cricket::QN_ID))
+      id = atoi(payload_type->Attr(cricket::QN_ID).c_str());
+
+    std::string name;
+    if (payload_type->HasAttr(cricket::QN_NAME))
+      name = payload_type->Attr(cricket::QN_NAME);
+
+    return cricket::DataCodec(id, name, 0);
   }
 
   bool ActionIsTerminate(const buzz::XmlElement* action) {
@@ -1223,6 +1364,12 @@ class GingleSessionTestParser : public MediaSessionTestParser {
     return cricket::VideoCodec(id, name, width, height, framerate, 0);
   }
 
+  cricket::DataCodec DataCodecFromPayloadType(
+      const buzz::XmlElement* payload_type) {
+    // Gingle can't do data codecs.
+    return cricket::DataCodec(0, "", 0);
+  }
+
   buzz::XmlElement* EncryptionFromContent(
       buzz::XmlElement* content) {
     return content->FirstNamed(cricket::QN_ENCRYPTION);
@@ -1256,6 +1403,7 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
     pa_ = new cricket::BasicPortAllocator(nm_);
     sm_ = new cricket::SessionManager(pa_, NULL);
     fme_ = new cricket::FakeMediaEngine();
+    fdme_ = new cricket::FakeDataEngine();
 
     std::vector<cricket::AudioCodec>
         audio_codecs(kAudioCodecs, kAudioCodecs + ARRAY_SIZE(kAudioCodecs));
@@ -1263,10 +1411,13 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
     std::vector<cricket::VideoCodec>
         video_codecs(kVideoCodecs, kVideoCodecs + ARRAY_SIZE(kVideoCodecs));
     fme_->SetVideoCodecs(video_codecs);
+    std::vector<cricket::DataCodec>
+        data_codecs(kDataCodecs, kDataCodecs + ARRAY_SIZE(kDataCodecs));
+    fdme_->SetDataCodecs(data_codecs);
 
     client_ = new cricket::MediaSessionClient(
         buzz::Jid("user@domain.com/resource"), sm_,
-        fme_, new cricket::FakeDeviceManager());
+        fme_, fdme_, new cricket::FakeDeviceManager());
     client_->session_manager()->SignalOutgoingMessage.connect(
         this, &MediaSessionClientTest::OnSendStanza);
     client_->session_manager()->SignalSessionCreate.connect(
@@ -1401,6 +1552,37 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
     }
   }
 
+  virtual void CheckDataContent(buzz::XmlElement* content) {
+    if (initial_protocol_) {
+      // Gingle can not write out data content.
+      return;
+    }
+
+    buzz::XmlElement* e = PayloadTypeFromContent(content);
+    ASSERT_TRUE(e != NULL);
+    cricket::DataCodec codec = parser_->DataCodecFromPayloadType(e);
+    EXPECT_EQ(101, codec.id);
+    EXPECT_EQ("google-data", codec.name);
+
+    CheckDataRtcpMux(true, call_->sessions()[0]->local_description());
+    CheckDataRtcpMux(true, call_->sessions()[0]->remote_description());
+    if (expect_outgoing_crypto_) {
+      content = parser_->NextContent(content);
+      buzz::XmlElement* encryption = EncryptionFromContent(content);
+      ASSERT_TRUE(encryption != NULL);
+      // TODO: Check encryption parameters?
+    }
+  }
+
+  void CheckDataRtcpMux(bool expected_data_rtcp_mux,
+                        const cricket::SessionDescription* sdesc) {
+    const cricket::DataContentDescription* data =
+        GetFirstDataContentDescription(sdesc);
+    if (data != NULL) {
+      ASSERT_EQ(expected_data_rtcp_mux, data->rtcp_mux());
+    }
+  }
+
   void CheckAudioSsrcForIncomingAccept(const cricket::Session* session) {
     const cricket::AudioContentDescription* audio =
         GetFirstAudioContentDescription(session->remote_description());
@@ -1413,6 +1595,13 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
         GetFirstVideoContentDescription(session->remote_description());
     ASSERT_TRUE(video != NULL);
     ASSERT_EQ(kVideoSsrc, video->first_ssrc());
+  }
+
+  void CheckDataSsrcForIncomingAccept(const cricket::Session* session) {
+    const cricket::DataContentDescription* data =
+        GetFirstDataContentDescription(session->remote_description());
+    ASSERT_TRUE(data != NULL);
+    ASSERT_EQ(kDataSsrc, data->first_ssrc());
   }
 
   void TestGoodIncomingInitiate(const std::string &initiate_string,
@@ -1443,6 +1632,8 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
     cricket::CallOptions opts;
     opts.has_video = (GetFirstVideoContentDescription(
         call_->sessions()[0]->remote_description()) != NULL);
+    opts.has_data = (GetFirstDataContentDescription(
+        call_->sessions()[0]->remote_description()) != NULL);
     call_->AcceptSession(call_->sessions()[0], opts);
     ASSERT_EQ(cricket::Session::STATE_SENTACCEPT,
               call_->sessions()[0]->state());
@@ -1460,6 +1651,12 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
     stanzas_.clear();
     if (expect_outgoing_crypto_) {
       CheckCryptoForGoodOutgoingAccept(call_->sessions()[0]);
+    }
+
+    if (opts.has_data) {
+      CheckDataRtcpMux(true, call_->sessions()[0]->local_description());
+      CheckDataRtcpMux(true, call_->sessions()[0]->remote_description());
+      // TODO: Check rtcpmux and crypto?
     }
 
     call_->Terminate();
@@ -1727,6 +1924,11 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
         ASSERT_EQ(talk_base::ToString(options.video_bandwidth / 1000),
                   bandwidth->BodyText());
       }
+    }
+
+    if (options.has_data) {
+      content = parser_->NextContent(content);
+      CheckDataContent(content);
     }
 
     delete stanzas_[0];
@@ -2040,12 +2242,14 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
     stanzas_.clear();
   }
 
-  void TestIncomingAcceptWithSsrcs(const std::string& accept_string) {
+  void TestIncomingAcceptWithSsrcs(
+      const std::string& accept_string, bool has_data) {
     client_->CreateCall();
     ASSERT_TRUE(call_ != NULL);
 
     cricket::CallOptions options;
     options.has_video = true;
+    options.has_data = has_data;
     options.is_muc = true;
 
     call_->InitiateSession(buzz::Jid("me@mydomain.com"), options);
@@ -2093,6 +2297,9 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
 
     CheckAudioSsrcForIncomingAccept(call_->sessions()[0]);
     CheckVideoSsrcForIncomingAccept(call_->sessions()[0]);
+    if (has_data) {
+      CheckDataSsrcForIncomingAccept(call_->sessions()[0]);
+    }
   }
 
   size_t ClearStanzas() {
@@ -2104,10 +2311,46 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
     return size;
   }
 
-  void SetJingleSid(buzz::XmlElement* stanza) {
+  buzz::XmlElement* SetJingleSid(buzz::XmlElement* stanza) {
     buzz::XmlElement* jingle =
         stanza->FirstNamed(cricket::QN_JINGLE);
     jingle->SetAttr(cricket::QN_SID, call_->sessions()[0]->id());
+    return stanza;
+  }
+
+  void TestSendStreamUpdate() {
+    cricket::CallOptions options;
+    options.has_video = true;
+    options.is_muc = true;
+
+    client_->CreateCall();
+    call_->InitiateSession(buzz::Jid("me@mydomain.com"), options);
+    ClearStanzas();
+
+    cricket::StreamParams stream;
+    stream.name = "test-stream";
+    stream.ssrcs.push_back(1001);
+    talk_base::scoped_ptr<buzz::XmlElement> expected_stream_add(
+        buzz::XmlElement::ForStr(
+            JingleOutboundStreamAdd(
+                call_->sessions()[0]->id(),
+                "video", stream.name, "1001")));
+    talk_base::scoped_ptr<buzz::XmlElement> expected_stream_remove(
+        buzz::XmlElement::ForStr(
+            JingleOutboundStreamRemove(
+                call_->sessions()[0]->id(),
+                "video", stream.name)));
+
+    call_->SendStreamUpdate(call_->sessions()[0], stream);
+    ASSERT_EQ(1U, stanzas_.size());
+    EXPECT_EQ(expected_stream_add->Str(), stanzas_[0]->Str());
+    ClearStanzas();
+
+    stream.ssrcs.clear();
+    call_->SendStreamUpdate(call_->sessions()[0], stream);
+    ASSERT_EQ(1U, stanzas_.size());
+    EXPECT_EQ(expected_stream_remove->Str(), stanzas_[0]->Str());
+    ClearStanzas();
   }
 
   void TestStreamsUpdateAndViewRequests() {
@@ -2339,6 +2582,7 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
   cricket::PortAllocator* pa_;
   cricket::SessionManager* sm_;
   cricket::FakeMediaEngine* fme_;
+  cricket::FakeDataEngine* fdme_;
   cricket::MediaSessionClient* client_;
 
   cricket::Call* call_;
@@ -2382,6 +2626,14 @@ TEST(MediaSessionTest, JingleGoodVideoInitiateWithRtcpMux) {
   talk_base::scoped_ptr<buzz::XmlElement> elem;
   test->ExpectVideoRtcpMux(true);
   test->TestGoodIncomingInitiate(kJingleVideoInitiateWithRtcpMux, elem.use());
+}
+
+TEST(MediaSessionTest, JingleGoodVideoInitiateWithData) {
+  talk_base::scoped_ptr<MediaSessionClientTest> test(JingleTest());
+  talk_base::scoped_ptr<buzz::XmlElement> elem;
+  test->TestGoodIncomingInitiate(AddEncryption(kJingleVideoInitiateWithData,
+                                               kJingleCryptoOffer),
+                                 elem.use());
 }
 
 TEST(MediaSessionTest, JingleGoodInitiateAllSupportedAudioCodecs) {
@@ -2468,6 +2720,14 @@ TEST(MediaSessionTest, JingleGoodOutgoingInitiateWithRtcpMux) {
   cricket::CallOptions options;
   options.has_video = true;
   options.rtcp_mux_enabled = true;
+  test->TestGoodOutgoingInitiate(options);
+}
+
+TEST(MediaSessionTest, JingleGoodOutgoingInitiateWithData) {
+  talk_base::scoped_ptr<MediaSessionClientTest> test(JingleTest());
+  cricket::CallOptions options;
+  options.has_data = true;
+  test->ExpectCrypto(cricket::SEC_ENABLED);
   test->TestGoodOutgoingInitiate(options);
 }
 
@@ -2564,12 +2824,22 @@ TEST(MediaSessionTest, JingleGoodOutgoingInitiateWithCryptoRequired) {
 
 TEST(MediaSessionTest, JingleIncomingAcceptWithSsrcs) {
   talk_base::scoped_ptr<MediaSessionClientTest> test(JingleTest());
-  test->TestIncomingAcceptWithSsrcs(kJingleAcceptWithSsrcs);
+  test->TestIncomingAcceptWithSsrcs(kJingleAcceptWithSsrcs, false);
+}
+
+TEST(MediaSessionTest, JingleIncomingAcceptWithDataSsrcs) {
+  talk_base::scoped_ptr<MediaSessionClientTest> test(JingleTest());
+  test->TestIncomingAcceptWithSsrcs(kJingleAcceptWithDataSsrcs, true);
 }
 
 TEST(MediaSessionTest, JingleStreamsUpdateAndView) {
   talk_base::scoped_ptr<MediaSessionClientTest> test(JingleTest());
   test->TestStreamsUpdateAndViewRequests();
+}
+
+TEST(MediaSessionTest, JingleSendStreamUpdate) {
+  talk_base::scoped_ptr<MediaSessionClientTest> test(JingleTest());
+  test->TestSendStreamUpdate();
 }
 
 // Gingle tests
@@ -2771,5 +3041,13 @@ TEST(MediaSessionTest, GingleGoodOutgoingInitiateWithCryptoRequired) {
 
 TEST(MediaSessionTest, GingleIncomingAcceptWithSsrcs) {
   talk_base::scoped_ptr<MediaSessionClientTest> test(GingleTest());
-  test->TestIncomingAcceptWithSsrcs(kGingleAcceptWithSsrcs);
+  test->TestIncomingAcceptWithSsrcs(kGingleAcceptWithSsrcs, false);
+}
+
+TEST(MediaSessionTest, GingleGoodOutgoingInitiateWithData) {
+  talk_base::scoped_ptr<MediaSessionClientTest> test(GingleTest());
+  cricket::CallOptions options;
+  options.has_data = true;
+  test->ExpectCrypto(cricket::SEC_ENABLED);
+  test->TestGoodOutgoingInitiate(options);
 }

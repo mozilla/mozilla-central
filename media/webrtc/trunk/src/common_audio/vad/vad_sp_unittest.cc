@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -16,14 +16,13 @@
 
 extern "C" {
 #include "vad_core.h"
-#include "vad_defines.h"
 #include "vad_sp.h"
 }
 
 namespace {
 
 TEST_F(VadTest, vad_sp) {
-  VadInstT* self = (VadInstT*) malloc(sizeof(VadInstT));
+  VadInstT* self = reinterpret_cast<VadInstT*>(malloc(sizeof(VadInstT)));
   int16_t zeros[kMaxFrameLength] = { 0 };
   int32_t state[2] = { 0 };
   int16_t data_in[kMaxFrameLength];
@@ -44,24 +43,26 @@ TEST_F(VadTest, vad_sp) {
     data_in[i] = (i * i);
   }
   // Input values all zeros, expect all zeros out.
-  WebRtcVad_Downsampling(zeros, data_out, state, (int) kMaxFrameLength);
+  WebRtcVad_Downsampling(zeros, data_out, state,
+                         static_cast<int>(kMaxFrameLength));
   EXPECT_EQ(0, state[0]);
   EXPECT_EQ(0, state[1]);
   for (int16_t i = 0; i < kMaxFrameLength / 2; ++i) {
     EXPECT_EQ(0, data_out[i]);
   }
   // Make a simple non-zero data test.
-  WebRtcVad_Downsampling(data_in, data_out, state, (int) kMaxFrameLength);
+  WebRtcVad_Downsampling(data_in, data_out, state,
+                         static_cast<int>(kMaxFrameLength));
   EXPECT_EQ(207, state[0]);
   EXPECT_EQ(2270, state[1]);
 
-  ASSERT_EQ(0, WebRtcVad_InitCore(self, 0));
+  ASSERT_EQ(0, WebRtcVad_InitCore(self));
   // TODO(bjornv): Replace this part of the test with taking values from an
   // array and calculate the reference value here. Make sure the values are not
   // ordered.
   for (int16_t i = 0; i < 16; ++i) {
     int16_t value = 500 * (i + 1);
-    for (int j = 0; j < NUM_CHANNELS; ++j) {
+    for (int j = 0; j < kNumChannels; ++j) {
       // Use values both above and below initialized value.
       EXPECT_EQ(kReferenceMin[i], WebRtcVad_FindMinimum(self, value, j));
       EXPECT_EQ(kReferenceMin[i + 16], WebRtcVad_FindMinimum(self, 12000, j));

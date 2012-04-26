@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -22,34 +22,18 @@ namespace webrtc {
 
 typedef void Handle;
 
-/*template <class T>
-class GainControlHandle : public ComponentHandle<T> {
-  public:
-    GainControlHandle();
-    virtual ~GainControlHandle();
-
-    virtual int Create();
-    virtual T* ptr() const;
-
-  private:
-    T* handle;
-};*/
-
 namespace {
 WebRtc_Word16 MapSetting(GainControl::Mode mode) {
   switch (mode) {
     case GainControl::kAdaptiveAnalog:
       return kAgcModeAdaptiveAnalog;
-      break;
     case GainControl::kAdaptiveDigital:
       return kAgcModeAdaptiveDigital;
-      break;
     case GainControl::kFixedDigital:
       return kAgcModeFixedDigital;
-      break;
-    default:
-      return -1;
   }
+  assert(false);
+  return -1;
 }
 }  // namespace
 
@@ -226,7 +210,7 @@ int GainControlImpl::stream_analog_level() {
 }
 
 int GainControlImpl::Enable(bool enable) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   return EnableComponent(enable);
 }
 
@@ -235,7 +219,7 @@ bool GainControlImpl::is_enabled() const {
 }
 
 int GainControlImpl::set_mode(Mode mode) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   if (MapSetting(mode) == -1) {
     return apm_->kBadParameterError;
   }
@@ -250,7 +234,7 @@ GainControl::Mode GainControlImpl::mode() const {
 
 int GainControlImpl::set_analog_level_limits(int minimum,
                                              int maximum) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   if (minimum < 0) {
     return apm_->kBadParameterError;
   }
@@ -282,7 +266,7 @@ bool GainControlImpl::stream_is_saturated() const {
 }
 
 int GainControlImpl::set_target_level_dbfs(int level) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   if (level > 31 || level < 0) {
     return apm_->kBadParameterError;
   }
@@ -296,7 +280,7 @@ int GainControlImpl::target_level_dbfs() const {
 }
 
 int GainControlImpl::set_compression_gain_db(int gain) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   if (gain < 0 || gain > 90) {
     return apm_->kBadParameterError;
   }
@@ -310,7 +294,7 @@ int GainControlImpl::compression_gain_db() const {
 }
 
 int GainControlImpl::enable_limiter(bool enable) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   limiter_enabled_ = enable;
   return Configure();
 }
@@ -329,14 +313,6 @@ int GainControlImpl::Initialize() {
       (maximum_capture_level_ - minimum_capture_level_) >> 1;
   capture_levels_.assign(num_handles(), analog_capture_level_);
   was_analog_level_set_ = false;
-
-  return apm_->kNoError;
-}
-
-int GainControlImpl::get_version(char* version, int version_len_bytes) const {
-  if (WebRtcAgc_Version(version, version_len_bytes) != 0) {
-      return apm_->kBadParameterError;
-  }
 
   return apm_->kNoError;
 }

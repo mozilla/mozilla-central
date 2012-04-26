@@ -34,6 +34,7 @@
 #include "talk/base/criticalsection.h"
 #include "talk/base/scoped_ptr.h"
 #include "talk/base/sigslot.h"
+#include "talk/session/phone/channel.h"
 #include "talk/session/phone/mediasink.h"
 
 namespace talk_base {
@@ -88,8 +89,9 @@ class MediaRecorder {
                   const std::string& send_filename,
                   const std::string& recv_filename,
                   int filter);
-  void RemoveChannel(BaseChannel* channel);
-  bool EnableChannel(BaseChannel* channel, bool enable_send, bool enable_recv);
+  void RemoveChannel(BaseChannel* channel, SinkType type);
+  bool EnableChannel(BaseChannel* channel, bool enable_send, bool enable_recv,
+                     SinkType type);
   void FlushSinks();
 
  private:

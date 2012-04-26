@@ -224,7 +224,7 @@ class PubSubStateClient : public sigslot::has_slots<> {
     std::string key = key_serializer_->GetKey(
         info.publisher_nick, info.published_nick);
     bool has_old_state = (state_by_key_.find(key) != state_by_key_.end());
-    const C& old_state = has_old_state ? state_by_key_[key] : default_state_;
+    C old_state = has_old_state ? state_by_key_[key] : default_state_;
     if ((retracted && !has_old_state) || StatesEqual(new_state, old_state)) {
       // Nothing change, so don't bother signalling.
       return;
@@ -304,8 +304,6 @@ class PresenterStateClient : public PubSubStateClient<bool> {
                        const bool& state,
                        std::string* task_id_out) {
     XmlElement* presenter_elem = new XmlElement(QN_PRESENTER_PRESENTER, true);
-    // There's a dummy value, not used, but required.
-    presenter_elem->AddAttr(QN_JID, "dummy@value.net");
     presenter_elem->AddAttr(QN_NICK, published_nick);
 
     XmlElement* presentation_item_elem =
@@ -314,7 +312,7 @@ class PresenterStateClient : public PubSubStateClient<bool> {
     presentation_item_elem->AddAttr(
         QN_PRESENTER_PRESENTATION_TYPE, presentation_type);
 
-    // The Presenter state is kind of dumb in that it doesn't use
+    // The Presenter state is kind of dumb in that it doesn't always use
     // retracts.  It relies on setting the "type" to a special value.
     std::string itemid = published_nick;
     std::vector<XmlElement*> children;
@@ -380,6 +378,17 @@ HangoutPubSubClient::HangoutPubSubClient(XmppTaskParentInterface* parent,
   audio_mute_state_client_->SignalPublishError.connect(
       this, &HangoutPubSubClient::OnAudioMutePublishError);
 
+  video_pause_state_client_.reset(new PubSubStateClient<bool>(
+      nick_, media_client_.get(), QN_GOOGLE_MUC_VIDEO_PAUSE, false,
+      new PublishedNickKeySerializer(), new BoolStateSerializer()));
+  // Can't just repeat because we need to watch for remote mutes.
+  video_pause_state_client_->SignalStateChange.connect(
+      this, &HangoutPubSubClient::OnVideoPauseStateChange);
+  video_pause_state_client_->SignalPublishResult.connect(
+      this, &HangoutPubSubClient::OnVideoPausePublishResult);
+  video_pause_state_client_->SignalPublishError.connect(
+      this, &HangoutPubSubClient::OnVideoPausePublishError);
+
   recording_state_client_.reset(new PubSubStateClient<bool>(
       nick_, media_client_.get(), QN_GOOGLE_MUC_RECORDING, false,
       new PublishedNickKeySerializer(), new BoolStateSerializer()));
@@ -428,6 +437,11 @@ void HangoutPubSubClient::PublishPresenterState(
 void HangoutPubSubClient::PublishAudioMuteState(
     bool muted, std::string* task_id_out) {
   audio_mute_state_client_->Publish(nick_, muted, task_id_out);
+}
+
+void HangoutPubSubClient::PublishVideoPauseState(
+    bool paused, std::string* task_id_out) {
+  video_pause_state_client_->Publish(nick_, paused, task_id_out);
 }
 
 void HangoutPubSubClient::PublishRecordingState(
@@ -525,6 +539,23 @@ void HangoutPubSubClient::OnAudioMutePublishError(
   } else {
     SignalPublishAudioMuteError(task_id, stanza);
   }
+}
+
+void HangoutPubSubClient::OnVideoPauseStateChange(
+    const PubSubStateChange<bool>& change) {
+  SignalVideoPauseStateChange(
+      change.published_nick, change.old_state, change.new_state);
+}
+
+void HangoutPubSubClient::OnVideoPausePublishResult(
+    const std::string& task_id, const XmlElement* item) {
+  SignalPublishVideoPauseResult(task_id);
+}
+
+void HangoutPubSubClient::OnVideoPausePublishError(
+    const std::string& task_id, const XmlElement* item,
+    const XmlElement* stanza) {
+  SignalPublishVideoPauseError(task_id, stanza);
 }
 
 void HangoutPubSubClient::OnRecordingStateChange(

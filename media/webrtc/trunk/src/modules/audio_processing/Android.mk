@@ -1,4 +1,4 @@
-# Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+# Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
 #
 # Use of this source code is governed by a BSD-style license
 # that can be found in the LICENSE file in the root of the source
@@ -33,16 +33,18 @@ LOCAL_SRC_FILES := \
 # Flags passed to both C and C++ files.
 LOCAL_CFLAGS := \
     $(MY_WEBRTC_COMMON_DEFS) \
-    '-DWEBRTC_NS_FIXED'
+    '-DWEBRTC_NS_FIXED' \
+    '-DWEBRTC_ANDROID_PLATFORM_BUILD' \
+    '-DWEBRTC_AUDIOPROC_DEBUG_DUMP'
 #   floating point
 #   -DWEBRTC_NS_FLOAT'
 
 LOCAL_C_INCLUDES := \
-    $(LOCAL_PATH)/interface \
-    $(LOCAL_PATH)/aec/interface \
-    $(LOCAL_PATH)/aecm/interface \
-    $(LOCAL_PATH)/agc/interface \
-    $(LOCAL_PATH)/ns/interface \
+    $(LOCAL_PATH)/include \
+    $(LOCAL_PATH)/aec/include \
+    $(LOCAL_PATH)/aecm/include \
+    $(LOCAL_PATH)/agc/include \
+    $(LOCAL_PATH)/ns/include \
     $(LOCAL_PATH)/../interface \
     $(LOCAL_PATH)/../.. \
     $(LOCAL_PATH)/../../common_audio/signal_processing/include \
@@ -72,10 +74,12 @@ LOCAL_SRC_FILES:= \
 
 # Flags passed to both C and C++ files.
 LOCAL_CFLAGS := \
-    $(MY_WEBRTC_COMMON_DEFS)
+    $(MY_WEBRTC_COMMON_DEFS) \
+    '-DWEBRTC_ANDROID_PLATFORM_BUILD' \
+    '-DWEBRTC_AUDIOPROC_DEBUG_DUMP'
 
 LOCAL_C_INCLUDES := \
-    $(LOCAL_PATH)/interface \
+    $(LOCAL_PATH)/include \
     $(LOCAL_PATH)/../interface \
     $(LOCAL_PATH)/../.. \
     $(LOCAL_PATH)/../../system_wrappers/interface \
@@ -90,7 +94,7 @@ LOCAL_SHARED_LIBRARIES := \
     libstlport \
     libwebrtc_audio_preprocessing
 
-LOCAL_MODULE:= webrtc_apm_process_test
+LOCAL_MODULE:= webrtc_audioproc
 
 ifdef NDK_ROOT
 include $(BUILD_EXECUTABLE)
@@ -113,10 +117,12 @@ LOCAL_SRC_FILES:= \
 # Flags passed to both C and C++ files.
 LOCAL_CFLAGS := \
     $(MY_WEBRTC_COMMON_DEFS) \
-    '-DWEBRTC_APM_UNIT_TEST_FIXED_PROFILE'
+    '-DWEBRTC_AUDIOPROC_FIXED_PROFILE' \
+    '-DWEBRTC_ANDROID_PLATFORM_BUILD' \
+    '-DWEBRTC_AUDIOPROC_DEBUG_DUMP'
 
 LOCAL_C_INCLUDES := \
-    $(LOCAL_PATH)/interface \
+    $(LOCAL_PATH)/include \
     $(LOCAL_PATH)/../interface \
     $(LOCAL_PATH)/../.. \
     $(LOCAL_PATH)/../../../test \
@@ -133,7 +139,7 @@ LOCAL_SHARED_LIBRARIES := \
     libstlport \
     libwebrtc_audio_preprocessing
 
-LOCAL_MODULE:= webrtc_apm_unit_test
+LOCAL_MODULE:= webrtc_audioproc_unittest
 
 ifdef NDK_ROOT
 include $(BUILD_EXECUTABLE)

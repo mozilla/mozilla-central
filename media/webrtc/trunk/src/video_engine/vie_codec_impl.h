@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -15,13 +15,13 @@
 #include "video_engine/include/vie_codec.h"
 #include "video_engine/vie_defines.h"
 #include "video_engine/vie_ref_count.h"
-#include "video_engine/vie_shared_data.h"
 
 namespace webrtc {
 
+class ViESharedData;
+
 class ViECodecImpl
-    : public virtual ViESharedData,
-      public ViECodec,
+    : public ViECodec,
       public ViERefCount {
  public:
   virtual int Release();
@@ -49,6 +49,8 @@ class ViECodecImpl
   virtual int GetReceiveCodecStastistics(const int video_channel,
                                          unsigned int& key_frames,
                                          unsigned int& delta_frames) const;
+  virtual int GetCodecTargetBitrate(const int video_channel,
+                                    unsigned int* bitrate) const;
   virtual unsigned int GetDiscardedPackets(const int video_channel) const;
   virtual int SetKeyFrameRequestCallbackStatus(const int video_channel,
                                                const bool enable);
@@ -65,11 +67,13 @@ class ViECodecImpl
   virtual int WaitForFirstKeyFrame(const int video_channel, const bool wait);
 
  protected:
-  ViECodecImpl();
+  ViECodecImpl(ViESharedData* shared_data);
   virtual ~ViECodecImpl();
 
  private:
   bool CodecValid(const VideoCodec& video_codec);
+
+  ViESharedData* shared_data_;
 };
 
 }  // namespace webrtc

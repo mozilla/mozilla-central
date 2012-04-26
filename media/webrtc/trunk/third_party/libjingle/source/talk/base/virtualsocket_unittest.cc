@@ -130,8 +130,8 @@ struct Receiver : public MessageHandler, public sigslot::has_slots<> {
   scoped_ptr<AsyncUDPSocket> socket;
   uint32 bandwidth;
   bool done;
-  uint32 count;
-  uint32 sec_count;
+  size_t count;
+  size_t sec_count;
   double sum;
   double sum_sq;
   uint32 samples;
@@ -468,7 +468,8 @@ class VirtualSocketServerTest : public testing::Test {
 
     const size_t kDataSize = 5000;
     char send_buffer[kDataSize], recv_buffer[kDataSize];
-    for (size_t i = 0; i < kDataSize; ++i) send_buffer[i] = i;
+    for (size_t i = 0; i < kDataSize; ++i)
+      send_buffer[i] = static_cast<char>(i % 256);
     memset(recv_buffer, 0, sizeof(recv_buffer));
     size_t send_pos = 0, recv_pos = 0;
 
@@ -582,15 +583,15 @@ class VirtualSocketServerTest : public testing::Test {
 
     // First, deliver all packets in 0 ms.
     char buffer[2] = { 0, 0 };
-    const size_t cNumPackets = 10;
-    for (size_t i = 0; i < cNumPackets; ++i) {
+    const char cNumPackets = 10;
+    for (char i = 0; i < cNumPackets; ++i) {
       buffer[0] = '0' + i;
       EXPECT_EQ(1, a->Send(buffer, 1));
     }
 
     ss_->ProcessMessagesUntilIdle();
 
-    for (size_t i = 0; i < cNumPackets; ++i) {
+    for (char i = 0; i < cNumPackets; ++i) {
       EXPECT_EQ(1, b->Recv(buffer, sizeof(buffer)));
       EXPECT_EQ(static_cast<char>('0' + i), buffer[0]);
     }
@@ -603,14 +604,14 @@ class VirtualSocketServerTest : public testing::Test {
     ss_->set_delay_stddev(stddev);
     ss_->UpdateDelayDistribution();
 
-    for (size_t i = 0; i < cNumPackets; ++i) {
+    for (char i = 0; i < cNumPackets; ++i) {
       buffer[0] = 'A' + i;
       EXPECT_EQ(1, a->Send(buffer, 1));
     }
 
     ss_->ProcessMessagesUntilIdle();
 
-    for (size_t i = 0; i < cNumPackets; ++i) {
+    for (char i = 0; i < cNumPackets; ++i) {
       EXPECT_EQ(1, b->Recv(buffer, sizeof(buffer)));
       EXPECT_EQ(static_cast<char>('A' + i), buffer[0]);
     }
@@ -647,7 +648,7 @@ class VirtualSocketServerTest : public testing::Test {
   void DelayTest(const SocketAddress& initial_addr) {
     time_t seed = ::time(NULL);
     LOG(LS_VERBOSE) << "seed = " << seed;
-    srand(seed);
+    srand(static_cast<unsigned int>(seed));
 
     const uint32 mean = 2000;
     const uint32 stddev = 500;

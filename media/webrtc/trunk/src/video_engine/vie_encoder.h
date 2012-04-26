@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -25,7 +25,7 @@ namespace webrtc {
 
 class CriticalSectionWrapper;
 class ProcessThread;
-class QMTestVideoSettingsCallback;
+class QMVideoSettingsCallback;
 class RtpRtcp;
 class VideoCodingModule;
 class ViEEffectFilter;
@@ -44,6 +44,11 @@ class ViEEncoder
              WebRtc_UWord32 number_of_cores,
              ProcessThread& module_process_thread);
   ~ViEEncoder();
+
+  bool Init();
+
+  // Returns the id of the owning channel.
+  int Owner() const;
 
   // Drops incoming packets before they get to the encoder.
   void Pause();
@@ -88,6 +93,9 @@ class ViEEncoder
   WebRtc_Word32 SendKeyFrame();
   WebRtc_Word32 SendCodecStatistics(WebRtc_UWord32& num_key_frames,
                                     WebRtc_UWord32& num_delta_frames);
+  WebRtc_Word32 EstimatedSendBandwidth(
+      WebRtc_UWord32* available_bandwidth) const;
+  int CodecTargetBitrate(WebRtc_UWord32* bitrate) const;
   // Loss protection.
   WebRtc_Word32 UpdateProtectionMethod();
 
@@ -102,12 +110,9 @@ class ViEEncoder
     const RTPVideoHeader* rtp_video_hdr);
 
   // Implements VideoProtectionCallback.
-  virtual WebRtc_Word32 ProtectionRequest(
-      WebRtc_UWord8 delta_fecrate,
-      WebRtc_UWord8 key_fecrate,
-      bool delta_use_uep_protection,
-      bool key_use_uep_protection,
-      bool nack_enabled,
+  virtual int ProtectionRequest(
+      const FecProtectionParams* delta_fec_params,
+      const FecProtectionParams* key_fec_params,
       WebRtc_UWord32* sent_video_rate_bps,
       WebRtc_UWord32* sent_nack_rate_bps,
       WebRtc_UWord32* sent_fec_rate_bps);
@@ -141,7 +146,7 @@ class ViEEncoder
 
  private:
   WebRtc_Word32 engine_id_;
-  WebRtc_Word32 channel_id_;
+  const int channel_id_;
   const WebRtc_UWord32 number_of_cores_;
 
   VideoCodingModule& vcm_;
@@ -152,7 +157,7 @@ class ViEEncoder
   VideoCodec send_codec_;
 
   bool paused_;
-  WebRtc_Word64 time_last_intra_request_ms_[kMaxSimulcastStreams];
+  WebRtc_Word64 time_last_intra_request_ms_;
   WebRtc_Word32 channels_dropping_delta_frames_;
   bool drop_next_frame_;
 
@@ -171,7 +176,7 @@ class ViEEncoder
   ViEFileRecorder file_recorder_;
 
   // Quality modes callback
-  QMTestVideoSettingsCallback* qm_callback_;
+  QMVideoSettingsCallback* qm_callback_;
 };
 
 }  // namespace webrtc

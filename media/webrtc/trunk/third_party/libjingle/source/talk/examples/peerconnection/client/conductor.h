@@ -36,7 +36,7 @@
 
 #include "talk/examples/peerconnection/client/main_wnd.h"
 #include "talk/examples/peerconnection/client/peer_connection_client.h"
-#include "talk/app/webrtc/mediastream.h"
+#include "talk/app/webrtc/mediastreaminterface.h"
 #include "talk/app/webrtc/peerconnection.h"
 #include "talk/base/scoped_ptr.h"
 
@@ -87,6 +87,9 @@ class Conductor
       webrtc::PeerConnectionObserver::StateType state_changed) {}
   virtual void OnAddStream(webrtc::MediaStreamInterface* stream);
   virtual void OnRemoveStream(webrtc::MediaStreamInterface* stream);
+  virtual void OnIceCandidate(const webrtc::IceCandidateInterface* candidate);
+  virtual void OnIceComplete();
+
 
 
   //

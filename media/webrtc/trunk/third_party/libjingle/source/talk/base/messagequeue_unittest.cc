@@ -29,25 +29,34 @@
 #include "talk/base/logging.h"
 #include "talk/base/timeutils.h"
 #include "talk/base/messagequeue.h"
+#include "talk/base/nullsocketserver.h"
 
 using namespace talk_base;
 
-TEST(MessageQueue, DelayedPostsWithIdenticalTimesAreProcessedInFifoOrder) {
-  MessageQueue q;
-
+static void DelayedPostsWithIdenticalTimesAreProcessedInFifoOrder(
+    MessageQueue* q) {
+  EXPECT_TRUE(q != NULL);
   TimeStamp now = Time();
-  q.PostAt(now, NULL, 3);
-  q.PostAt(now - 2, NULL, 0);
-  q.PostAt(now - 1, NULL, 1);
-  q.PostAt(now, NULL, 4);
-  q.PostAt(now - 1, NULL, 2);
+  q->PostAt(now, NULL, 3);
+  q->PostAt(now - 2, NULL, 0);
+  q->PostAt(now - 1, NULL, 1);
+  q->PostAt(now, NULL, 4);
+  q->PostAt(now - 1, NULL, 2);
 
   Message msg;
   for (size_t i=0; i<5; ++i) {
     memset(&msg, 0, sizeof(msg));
-    EXPECT_TRUE(q.Get(&msg, 0));
+    EXPECT_TRUE(q->Get(&msg, 0));
     EXPECT_EQ(i, msg.message_id);
   }
 
-  EXPECT_FALSE(q.Get(&msg, 0));  // No more messages
+  EXPECT_FALSE(q->Get(&msg, 0));  // No more messages
+}
+
+TEST(MessageQueue, DelayedPostsWithIdenticalTimesAreProcessedInFifoOrder) {
+  MessageQueue q;
+  DelayedPostsWithIdenticalTimesAreProcessedInFifoOrder(&q);
+  NullSocketServer nullss;
+  MessageQueue q_nullss(&nullss);
+  DelayedPostsWithIdenticalTimesAreProcessedInFifoOrder(&q_nullss);
 }

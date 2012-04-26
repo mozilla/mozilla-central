@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -13,6 +13,7 @@
 
 #include "voe_base.h"
 
+#include "module_common_types.h"
 #include "ref_count.h"
 #include "shared_data.h"
 
@@ -21,8 +22,7 @@ namespace webrtc
 
 class ProcessThread;
 
-class VoEBaseImpl: public virtual voe::SharedData,
-                   public VoEBase,
+class VoEBaseImpl: public VoEBase,
                    public voe::RefCount,
                    public AudioTransport,
                    public AudioDeviceObserver
@@ -96,7 +96,7 @@ public:
 
     // AudioTransport
     virtual WebRtc_Word32
-        RecordedDataIsAvailable(const WebRtc_Word8* audioSamples,
+        RecordedDataIsAvailable(const void* audioSamples,
                                 const WebRtc_UWord32 nSamples,
                                 const WebRtc_UWord8 nBytesPerSample,
                                 const WebRtc_UWord8 nChannels,
@@ -110,7 +110,7 @@ public:
                                            const WebRtc_UWord8 nBytesPerSample,
                                            const WebRtc_UWord8 nChannels,
                                            const WebRtc_UWord32 samplesPerSec,
-                                           WebRtc_Word8* audioSamples,
+                                           void* audioSamples,
                                            WebRtc_UWord32& nSamplesOut);
 
     // AudioDeviceObserver
@@ -118,7 +118,7 @@ public:
     virtual void OnWarningIsReported(const WarningCode warning);
 
 protected:
-    VoEBaseImpl();
+    VoEBaseImpl(voe::SharedData* shared);
     virtual ~VoEBaseImpl();
 
 private:
@@ -142,6 +142,9 @@ private:
     bool _voiceEngineObserver;
     WebRtc_UWord32 _oldVoEMicLevel;
     WebRtc_UWord32 _oldMicLevel;
+    AudioFrame _audioFrame;
+    voe::SharedData* _shared;
+
 };
 
 } // namespace webrtc

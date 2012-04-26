@@ -70,6 +70,7 @@ extern const char STR_FROM[];
 extern const char STR_TO[];
 extern const char STR_BOTH[];
 extern const char STR_REMOVE[];
+extern const char STR_TRUE[];
 
 extern const char STR_TYPE[];
 extern const char STR_NAME[];
@@ -93,6 +94,10 @@ extern const char STR_OUTGOINGVOICEMAIL[];
 #endif
 
 extern const char STR_UNAVAILABLE[];
+
+extern const char NS_MUC_UNIQUE[];
+extern const StaticQName QN_MUC_UNIQUE_QUERY;
+extern const StaticQName QN_HANGOUT_ID;
 
 extern const char STR_GOOGLE_MUC_LOOKUP_JID[];
 extern const char STR_MUC_ROOMCONFIG_ROOMNAME[];
@@ -383,6 +388,7 @@ extern const StaticQName QN_SEARCH_ITEM;
 extern const StaticQName QN_SEARCH_ROOM_NAME;
 extern const StaticQName QN_SEARCH_ROOM_JID;
 extern const StaticQName QN_SEARCH_ROOM_DOMAIN;
+extern const StaticQName QN_SEARCH_HANGOUT_ID;
 
 // JEP 0115
 extern const char NS_CAPS[];
@@ -495,6 +501,7 @@ extern const StaticQName QN_LABEL;
 extern const char NS_GOOGLE_MUC_MEDIA[];
 extern const StaticQName QN_GOOGLE_MUC_AUDIO_MUTE;
 extern const StaticQName QN_GOOGLE_MUC_VIDEO_MUTE;
+extern const StaticQName QN_GOOGLE_MUC_VIDEO_PAUSE;
 extern const StaticQName QN_GOOGLE_MUC_RECORDING;
 extern const StaticQName QN_GOOGLE_MUC_MEDIA_BLOCK;
 extern const StaticQName QN_STATE_ATTR;

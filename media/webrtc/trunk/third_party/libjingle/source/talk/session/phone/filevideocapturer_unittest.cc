@@ -26,6 +26,8 @@
  */
 
 #include <stdio.h>
+
+#include <string>
 #include <vector>
 
 #include "talk/base/gunit.h"
@@ -170,6 +172,31 @@ TEST_F(FileVideoCapturerTest, TestRepeatForever) {
   EXPECT_FALSE(listener.resolution_changed());
   EXPECT_EQ(listener.frame_width(), capture_format_.width);
   EXPECT_EQ(listener.frame_height(), capture_format_.height);
+}
+
+TEST_F(FileVideoCapturerTest, TestPartialFrameHeader) {
+  EXPECT_TRUE(OpenFile("1.frame_plus_1.byte"));
+  VideoCapturerListener listener;
+  capturer_->SignalFrameCaptured.connect(
+      &listener, &VideoCapturerListener::OnFrameCaptured);
+  capturer_->set_repeat(0);
+  capture_format_ = capturer_->GetSupportedFormats()->at(0);
+  EXPECT_EQ(cricket::CR_SUCCESS, capturer_->Start(capture_format_));
+  EXPECT_TRUE_WAIT(!capturer_->IsRunning(), 1000);
+  EXPECT_EQ(1, listener.frame_count());
+}
+
+TEST_F(FileVideoCapturerTest, TestFileDevices) {
+  cricket::Device not_a_file("I'm a camera", "with an id");
+  EXPECT_FALSE(
+      cricket::FileVideoCapturer::IsFileVideoCapturerDevice(not_a_file));
+  const std::string test_file =
+      cricket::GetTestFilePath("captured-320x240-2s-48.frames");
+  cricket::Device file_device =
+      cricket::FileVideoCapturer::CreateFileVideoCapturerDevice(test_file);
+  EXPECT_TRUE(
+      cricket::FileVideoCapturer::IsFileVideoCapturerDevice(file_device));
+  EXPECT_TRUE(capturer_->Init(file_device));
 }
 
 }  // unnamed namespace

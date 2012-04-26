@@ -43,9 +43,9 @@ namespace talk_base {
 
 class ProxySocketAdapter : public AsyncSocketAdapter {
  public:
-  ProxySocketAdapter(SslSocketFactory* factory, int type)
-      : AsyncSocketAdapter(NULL), factory_(factory), type_(type),
-        detect_(NULL) {
+  ProxySocketAdapter(SslSocketFactory* factory, int family, int type)
+      : AsyncSocketAdapter(NULL), factory_(factory), family_(family),
+        type_(type), detect_(NULL) {
   }
   virtual ~ProxySocketAdapter() {
     Close();
@@ -94,7 +94,7 @@ private:
   // AutoDetectProxy Slots
   void OnProxyDetectionComplete(SignalThread* thread) {
     ASSERT(detect_ == thread);
-    Attach(factory_->CreateProxySocket(detect_->proxy(), type_));
+    Attach(factory_->CreateProxySocket(detect_->proxy(), family_, type_));
     detect_->Release();
     detect_ = NULL;
     if (0 == AsyncSocketAdapter::Connect(remote_)) {
@@ -105,6 +105,7 @@ private:
   }
 
   SslSocketFactory* factory_;
+  int family_;
   int type_;
   SocketAddress remote_;
   AutoDetectProxy* detect_;
@@ -115,24 +116,34 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 Socket* SslSocketFactory::CreateSocket(int type) {
-  return factory_->CreateSocket(type);
+  return CreateSocket(AF_INET, type);
+}
+
+Socket* SslSocketFactory::CreateSocket(int family, int type) {
+  return factory_->CreateSocket(family, type);
 }
 
 AsyncSocket* SslSocketFactory::CreateAsyncSocket(int type) {
+  return CreateAsyncSocket(AF_INET, type);
+}
+
+AsyncSocket* SslSocketFactory::CreateAsyncSocket(int family, int type) {
   if (autodetect_proxy_) {
-    return new ProxySocketAdapter(this, type);
+    return new ProxySocketAdapter(this, family, type);
   } else {
-    return CreateProxySocket(proxy_, type);
+    return CreateProxySocket(proxy_, family, type);
   }
 }
 
+
 AsyncSocket* SslSocketFactory::CreateProxySocket(const ProxyInfo& proxy,
+                                                 int family,
                                                  int type) {
-  AsyncSocket* socket = factory_->CreateAsyncSocket(type);
+  AsyncSocket* socket = factory_->CreateAsyncSocket(family, type);
   if (!socket)
     return NULL;
 
-  // Binary logging happens at the lowest level 
+  // Binary logging happens at the lowest level
   if (!logging_label_.empty() && binary_mode_) {
     socket = new LoggingSocketAdapter(socket, logging_level_,
                                       logging_label_.c_str(), binary_mode_);
@@ -170,7 +181,7 @@ AsyncSocket* SslSocketFactory::CreateProxySocket(const ProxyInfo& proxy,
 
   // Regular logging occurs at the highest level
   if (!logging_label_.empty() && !binary_mode_) {
-    socket = new LoggingSocketAdapter(socket, logging_level_, 
+    socket = new LoggingSocketAdapter(socket, logging_level_,
                                       logging_label_.c_str(), binary_mode_);
   }
   return socket;

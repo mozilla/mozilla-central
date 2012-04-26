@@ -29,29 +29,100 @@
 
 namespace cricket {
 
+static const int kRtpVersion = 2;
+static const size_t kRtpFlagsOffset = 0;
+static const size_t kRtpPayloadTypeOffset = 1;
+static const size_t kRtpSeqNumOffset = 2;
+static const size_t kRtpTimestampOffset = 4;
+static const size_t kRtpSsrcOffset = 8;
+static const size_t kRtcpPayloadTypeOffset = 1;
+
+bool GetUint8(const void* data, size_t offset, int* value) {
+  if (!data || !value) {
+    return false;
+  }
+  *value = *(static_cast<const uint8*>(data) + offset);
+  return true;
+}
+
+bool GetUint16(const void* data, size_t offset, int* value) {
+  if (!data || !value) {
+    return false;
+  }
+  *value = static_cast<int>(
+      talk_base::GetBE16(static_cast<const uint8*>(data) + offset));
+  return true;
+}
+
+bool GetUint32(const void* data, size_t offset, uint32* value) {
+  if (!data || !value) {
+    return false;
+  }
+  *value = talk_base::GetBE32(static_cast<const uint8*>(data) + offset);
+  return true;
+}
+
+bool SetUint8(void* data, size_t offset, int value) {
+  if (!data) {
+    return false;
+  }
+  talk_base::Set8(data, offset, value);
+  return true;
+}
+
+bool SetUint16(void* data, size_t offset, int value) {
+  if (!data) {
+    return false;
+  }
+  talk_base::SetBE16(static_cast<uint8*>(data) + offset, value);
+  return true;
+}
+
+bool SetUint32(void* data, size_t offset, uint32 value) {
+  if (!data) {
+    return false;
+  }
+  talk_base::SetBE32(static_cast<uint8*>(data) + offset, value);
+  return true;
+}
+
+bool GetRtpFlags(const void* data, size_t len, int* value) {
+  if (len < kMinRtpPacketLen) {
+    return false;
+  }
+  return GetUint8(data, kRtpFlagsOffset, value);
+}
+
 bool GetRtpPayloadType(const void* data, size_t len, int* value) {
-  if (!data || len < kMinRtpPacketLen || !value) return false;
-  *value = *(static_cast<const uint8*>(data) + 1) & 0x7F;
+  if (len < kMinRtpPacketLen) {
+    return false;
+  }
+  if (!GetUint8(data, kRtpPayloadTypeOffset, value)) {
+    return false;
+  }
+  *value &= 0x7F;
   return true;
 }
 
 bool GetRtpSeqNum(const void* data, size_t len, int* value) {
-  if (!data || len < kMinRtpPacketLen || !value) return false;
-  *value = static_cast<int>(
-      talk_base::GetBE16(static_cast<const uint8*>(data) + 2));
-  return true;
+  if (len < kMinRtpPacketLen) {
+    return false;
+  }
+  return GetUint16(data, kRtpSeqNumOffset, value);
 }
 
 bool GetRtpTimestamp(const void* data, size_t len, uint32* value) {
-  if (!data || len < kMinRtpPacketLen || !value) return false;
-  *value = talk_base::GetBE32(static_cast<const uint8*>(data) + 4);
-  return true;
+  if (len < kMinRtpPacketLen) {
+    return false;
+  }
+  return GetUint32(data, kRtpTimestampOffset, value);
 }
 
 bool GetRtpSsrc(const void* data, size_t len, uint32* value) {
-  if (!data || len < kMinRtpPacketLen || !value) return false;
-  *value = talk_base::GetBE32(static_cast<const uint8*>(data) + 8);
-  return true;
+  if (len < kMinRtpPacketLen) {
+    return false;
+  }
+  return GetUint32(data, kRtpSsrcOffset, value);
 }
 
 bool GetRtpHeaderLen(const void* data, size_t len, size_t* value) {
@@ -71,10 +142,18 @@ bool GetRtpHeaderLen(const void* data, size_t len, size_t* value) {
   return true;
 }
 
+bool GetRtpHeader(const void* data, size_t len, RtpHeader* header) {
+  return (GetRtpPayloadType(data, len, &(header->payload_type)) &&
+          GetRtpSeqNum(data, len, &(header->seq_num)) &&
+          GetRtpTimestamp(data, len, &(header->timestamp)) &&
+          GetRtpSsrc(data, len, &(header->ssrc)));
+}
+
 bool GetRtcpType(const void* data, size_t len, int* value) {
-  if (!data || len < kMinRtcpPacketLen || !value) return false;
-  *value = static_cast<int>(*(static_cast<const uint8*>(data) + 1));
-  return true;
+  if (len < kMinRtcpPacketLen) {
+    return false;
+  }
+  return GetUint8(data, kRtcpPayloadTypeOffset, value);
 }
 
 // This method returns SSRC first of RTCP packet, except if packet is SDES.
@@ -89,6 +168,49 @@ bool GetRtcpSsrc(const void* data, size_t len, uint32* value) {
   if (pl_type == kRtcpTypeSDES) return false;
   *value = talk_base::GetBE32(static_cast<const uint8*>(data) + 4);
   return true;
+}
+
+bool SetRtpHeaderFlags(
+    void* data, size_t len,
+    bool padding, bool extension, int csrc_count) {
+  if (csrc_count > 0x0F) {
+    return false;
+  }
+  int flags = 0;
+  flags |= (kRtpVersion << 6);
+  flags |= ((padding ? 1 : 0) << 5);
+  flags |= ((extension ? 1 : 0) << 4);
+  flags |= csrc_count;
+  return SetUint8(data, kRtpFlagsOffset, flags);
+}
+
+// Assumes marker bit is 0.
+bool SetRtpPayloadType(void* data, size_t len, int value) {
+  if (value >= 0x7F) {
+    return false;
+  }
+  return SetUint8(data, kRtpPayloadTypeOffset, value & 0x7F);
+}
+
+bool SetRtpSeqNum(void* data, size_t len, int value) {
+  return SetUint16(data, kRtpSeqNumOffset, value);
+}
+
+bool SetRtpTimestamp(void* data, size_t len, uint32 value) {
+  return SetUint32(data, kRtpTimestampOffset, value);
+}
+
+bool SetRtpSsrc(void* data, size_t len, uint32 value) {
+  return SetUint32(data, kRtpSsrcOffset, value);
+}
+
+// Assumes version 2, no padding, no extensions, no csrcs.
+bool SetRtpHeader(void* data, size_t len, const RtpHeader& header) {
+  return (SetRtpHeaderFlags(data, len, false, false, 0) &&
+          SetRtpPayloadType(data, len, header.payload_type) &&
+          SetRtpSeqNum(data, len, header.seq_num) &&
+          SetRtpTimestamp(data, len, header.timestamp) &&
+          SetRtpSsrc(data, len, header.ssrc));
 }
 
 }  // namespace cricket

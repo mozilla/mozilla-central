@@ -1,4 +1,4 @@
-# Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+# Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
 #
 # Use of this source code is governed by a BSD-style license
 # that can be found in the LICENSE file in the root of the source
@@ -13,9 +13,9 @@
       'type': 'executable',
       'conditions': [
         ['prefer_fixed_point==1', {
-          'defines': [ 'WEBRTC_APM_UNIT_TEST_FIXED_PROFILE' ],
+          'defines': [ 'WEBRTC_AUDIOPROC_FIXED_PROFILE' ],
         }, {
-          'defines': [ 'WEBRTC_APM_UNIT_TEST_FLOAT_PROFILE' ],
+          'defines': [ 'WEBRTC_AUDIOPROC_FLOAT_PROFILE' ],
         }],
         ['enable_protobuf==1', {
           'defines': [ 'WEBRTC_AUDIOPROC_DEBUG_DUMP' ],
@@ -29,7 +29,10 @@
         '<(webrtc_root)/../test/test.gyp:test_support',
         '<(webrtc_root)/../testing/gtest.gyp:gtest',
       ],
-      'sources': [ 'test/unit_test.cc', ],
+      'sources': [
+        'aec/system_delay_unittest.cc',
+        'test/unit_test.cc',
+      ],
     },
     {
       'target_name': 'audioproc_unittest_proto',

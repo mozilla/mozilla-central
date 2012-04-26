@@ -28,6 +28,7 @@
 #ifndef TALK_BASE_COMMON_H_
 #define TALK_BASE_COMMON_H_
 
+#include "talk/base/basictypes.h"
 #include "talk/base/constructormagic.h"
 
 #if defined(_MSC_VER)

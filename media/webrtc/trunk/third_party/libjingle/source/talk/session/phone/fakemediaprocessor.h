@@ -44,6 +44,7 @@ class FakeMediaProcessor : public VoiceProcessor, public VideoProcessor {
   virtual ~FakeMediaProcessor() {}
 
   virtual void OnFrame(uint32 ssrc,
+                       MediaProcessorDirection direction,
                        AudioFrame* frame) {
     ++voice_frame_count_;
   }

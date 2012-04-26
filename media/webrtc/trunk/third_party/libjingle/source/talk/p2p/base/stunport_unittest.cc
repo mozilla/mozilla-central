@@ -48,7 +48,7 @@ class StunPortTest : public testing::Test,
                      public sigslot::has_slots<> {
  public:
   StunPortTest()
-      : network_("unittest", "unittest", talk_base::IPAddress(INADDR_ANY)),
+      : network_("unittest", "unittest", talk_base::IPAddress(INADDR_ANY), 32),
         socket_factory_(talk_base::Thread::Current()),
         stun_server_(new cricket::TestStunServer(
           talk_base::Thread::Current(), kStunAddr)),
@@ -62,7 +62,8 @@ class StunPortTest : public testing::Test,
   void CreateStunPort(const talk_base::SocketAddress& server_addr) {
     stun_port_.reset(cricket::StunPort::Create(
         talk_base::Thread::Current(), &socket_factory_, &network_,
-        kLocalAddr.ipaddr(), 0, 0, server_addr));
+        kLocalAddr.ipaddr(), 0, 0, talk_base::CreateRandomString(16),
+        talk_base::CreateRandomString(22), server_addr));
     stun_port_->SignalAddressReady.connect(this,
         &StunPortTest::OnAddressReady);
     stun_port_->SignalAddressError.connect(this,
@@ -111,6 +112,9 @@ TEST_F(StunPortTest, TestPrepareAddress) {
   EXPECT_TRUE_WAIT(done(), kTimeoutMs);
   ASSERT_EQ(1U, port()->candidates().size());
   EXPECT_TRUE(kLocalAddr.EqualIPs(port()->candidates()[0].address()));
+
+  // TODO: Add IPv6 tests here, once either physicalsocketserver supports
+  // IPv6, or this test is changed to use VirtualSocketServer.
 }
 
 // Test that we fail properly if we can't get an address.

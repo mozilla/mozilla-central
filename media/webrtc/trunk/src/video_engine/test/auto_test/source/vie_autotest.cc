@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -12,25 +12,25 @@
 // vie_autotest.cc
 //
 
-#include "vie_autotest.h"
+#include "video_engine/test/auto_test/interface/vie_autotest.h"
 
 #include <stdio.h>
 
 #include "engine_configurations.h"
+#include "modules/video_render/main/interface/video_render.h"
 #include "testsupport/fileutils.h"
-#include "video_render.h"
-#include "vie_autotest_defines.h"
+#include "video_engine/test/auto_test/interface/vie_autotest_defines.h"
+#include "video_engine/test/auto_test/primitives/general_primitives.h"
+#include "video_engine/test/libvietest/include/tb_capture_device.h"
+#include "video_engine/test/libvietest/include/tb_interfaces.h"
+#include "video_engine/test/libvietest/include/tb_video_channel.h"
 
 // ViETest implementation
 FILE* ViETest::log_file_ = NULL;
 char* ViETest::log_str_ = NULL;
 
 std::string ViETest::GetResultOutputPath() {
-#ifdef WEBRTC_ANDROID
-    return "/sdcard/";
-#else
-    return webrtc::test::OutputPath();
-#endif
+  return webrtc::test::OutputPath();
 }
 
 // ViEAutoTest implementation
@@ -119,9 +119,6 @@ void ViEAutoTest::PrintVideoCodec(const webrtc::VideoCodec videoCodec)
         case webrtc::kVideoCodecUnknown:
             ViETest::Log("\tcodecType: ????");
             break;
-        default:
-            ViETest::Log("\tcodecType: ????");
-            break;
     }
 
     ViETest::Log("\theight: %u", videoCodec.height);
@@ -145,4 +142,14 @@ void ViEAutoTest::PrintAudioCodec(const webrtc::CodecInst audioCodec)
     ViETest::Log("\t: %u", audioCodec.pltype);
     ViETest::Log("\t: %u", audioCodec.rate);
     ViETest::Log("");
+}
+
+void ViEAutoTest::RenderCaptureDeviceAndOutputStream(
+    TbInterfaces* video_engine,
+    TbVideoChannel* video_channel,
+    TbCaptureDevice* capture_device) {
+  RenderInWindow(
+      video_engine->render, capture_device->captureId, _window1, 0);
+  RenderInWindow(
+      video_engine->render, video_channel->videoChannel, _window1, 1);
 }

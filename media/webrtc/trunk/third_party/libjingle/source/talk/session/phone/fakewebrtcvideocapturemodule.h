@@ -93,7 +93,7 @@ class FakeWebRtcVideoCaptureModule : public webrtc::VideoCaptureModule {
   virtual WebRtc_Word32 StopSendImage() {
     return 0;
   }
-  virtual const WebRtc_UWord8* CurrentDeviceName() const {
+  virtual const char* CurrentDeviceName() const {
     return NULL;  // not implemented
   }
   virtual bool CaptureStarted() {

@@ -162,6 +162,8 @@ class WebRtcVoiceEngine
  private:
   typedef std::vector<WebRtcSoundclipMedia *> SoundclipList;
   typedef std::vector<WebRtcVoiceMediaChannel *> ChannelList;
+  typedef sigslot::
+      signal3<uint32, MediaProcessorDirection, AudioFrame*> FrameSignal;
 
   struct CodecPref {
     const char* name;
@@ -190,11 +192,16 @@ class WebRtcVoiceEngine
   bool PauseLocalMonitor();
   bool ResumeLocalMonitor();
 
+  bool UnregisterProcessorChannel(MediaProcessorDirection channel_direction,
+                                  uint32 ssrc,
+                                  VoiceProcessor* voice_processor,
+                                  MediaProcessorDirection processor_direction);
+
   // When a voice processor registers with the engine, it is connected
   // to either the Rx or Tx signals, based on the direction parameter.
   // SignalXXMediaFrame will be invoked for every audio packet.
-  sigslot::signal2<uint32, AudioFrame*> SignalRxMediaFrame;
-  sigslot::signal2<uint32, AudioFrame*> SignalTxMediaFrame;
+  FrameSignal SignalRxMediaFrame;
+  FrameSignal SignalTxMediaFrame;
 
   static const int kDefaultLogSeverity = talk_base::LS_WARNING;
   static const CodecPref kCodecPrefs[];
@@ -284,6 +291,7 @@ class WebRtcVoiceMediaChannel
   explicit WebRtcVoiceMediaChannel(WebRtcVoiceEngine *engine);
   virtual ~WebRtcVoiceMediaChannel();
   virtual bool SetOptions(int options);
+  virtual int GetOptions() const { return options_; }
   virtual bool SetRecvCodecs(const std::vector<AudioCodec> &codecs);
   virtual bool SetSendCodecs(const std::vector<AudioCodec> &codecs);
   virtual bool SetRecvRtpHeaderExtensions(
@@ -349,7 +357,7 @@ class WebRtcVoiceMediaChannel
   std::set<int> ringback_channels_;  // channels playing ringback
   bool recv_codecs_set_;
   talk_base::scoped_ptr<webrtc::CodecInst> send_codec_;
-  int channel_options_;
+  int options_;
   bool agc_adjusted_;
   bool dtmf_allowed_;
   bool desired_playout_;

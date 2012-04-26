@@ -33,14 +33,10 @@
 #define TALK_APP_WEBRTC_ROAPMESSAGES_H_
 
 #include <string>
-#include <vector>
 
 #include "talk/app/webrtc/roaperrorcodes.h"
 #include "talk/base/basictypes.h"
 #include "talk/base/json.h"
-#include "talk/base/scoped_ptr.h"
-#include "talk/p2p/base/candidate.h"
-#include "talk/p2p/base/sessiondescription.h"
 
 namespace webrtc {
 
@@ -87,28 +83,25 @@ class RoapMessageBase {
 
 class RoapAnswer : public RoapMessageBase {
  public:
+  // Ctor for creating a new RoapAnswer used for deserialization.
+  // Call Parse after creating this object to parse an answer based on the
+  // message in |base|.
   explicit RoapAnswer(const RoapMessageBase& base);
-  // Note that the SessionDescription desc is used as a weak reference.
-  // The user of this class must ensure that desc outlives an instance of this
-  // object.
+
+  // Ctor for creating a new RoapAnswer used for serialization.
+  // See the specification for a full description of the arguments.
+  // |desc| is the session description in sdp-format, including ice candidates.
   RoapAnswer(const std::string& offer_session_id,
              const std::string& answer_session_id,
              const std::string& session_token,
              const std::string& response_token,
              uint32 seq,
-             const cricket::SessionDescription* desc,
-             const std::vector<cricket::Candidate>& candidates);
+             const std::string& desc);
   bool Parse();
 
-  // Get remote SessionDescription if the session description has been parsed
-  // and the ownership is transferred to the caller.
-  // NULL otherwise.
-  cricket::SessionDescription* ReleaseSessionDescription() {
-    return parsed_desc_.release();
-  }
-  const std::vector<cricket::Candidate>& candidates() const {
-    return candidates_;
-  }
+  // Get remote SessionDescription if the session description has been parsed.
+  // Empty string otherwise.
+  const std::string& SessionDescription() const { return desc_; }
   bool more_coming() const { return more_coming_ ; }
 
  protected:
@@ -116,47 +109,37 @@ class RoapAnswer : public RoapMessageBase {
 
  private:
   bool more_coming_;
-  // Session description parsed in an offer.
-  talk_base::scoped_ptr<cricket::SessionDescription> parsed_desc_;
-  // Weak ref to a session description provided in the constructor.
-  const cricket::SessionDescription* desc_;
-  std::vector<cricket::Candidate> candidates_;
+  std::string desc_;
 };
 
 class RoapOffer : public RoapMessageBase {
  public:
+  // Ctor for creating a new RoapOffer used for deserialization.
+  // Call Parse after creating this object to parse an answer based on the
+  // message in |base|.
   explicit RoapOffer(const RoapMessageBase& base);
-  // Note that the SessionDescription desc is used as a weak reference.
-  // The user of this class must ensure that desc outlives an instance of this
-  // object.
+  // Ctor for creating a new RoapOffer used for serialization.
+  // See the specification for a full description of the arguments.
+  // |desc| is the session description in sdp-format, including ice candidates.
   RoapOffer(const std::string& offer_session_id,
             const std::string& answer_session_id,
             const std::string& session_token,
             uint32 seq,
             uint32 tie_breaker,
-            const cricket::SessionDescription* desc,
-            const std::vector<cricket::Candidate>& candidates);
+            const std::string& desc);
   bool Parse();
 
   uint32 tie_breaker() const { return tie_breaker_; }
-  // Get remote SessionDescription if the session description has been parsed
-  // and the ownership is transferred to the caller.
-  // NULL otherwise.
-  cricket::SessionDescription* ReleaseSessionDescription() {
-    return parsed_desc_.release();
-  }
-  const std::vector<cricket::Candidate>&  candidates() { return candidates_; }
+  // Get remote SessionDescription if the session description has been parsed.
+  // Empty string otherwise.
+  const std::string& SessionDescription() const { return desc_; }
 
  protected:
   virtual void SerializeElement(Json::Value* message);
 
  private:
   uint32 tie_breaker_;
-  // Session description parsed in an offer.
-  talk_base::scoped_ptr<cricket::SessionDescription> parsed_desc_;
-  // Weak reference to a session description provided in the constructor.
-  const cricket::SessionDescription* desc_;
-  std::vector<cricket::Candidate> candidates_;
+  std::string desc_;
 };
 
 class RoapError : public RoapMessageBase {

@@ -27,7 +27,75 @@
 
 #include "talk/session/phone/streamparams.h"
 
+#include <sstream>
+
 namespace cricket {
+
+const char kFecSsrcGroupSemantics[] = "FEC";
+const char kFidSsrcGroupSemantics[] = "FID";
+const char kSimSsrcGroupSemantics[] = "SIM";
+
+static std::string SsrcsToString(const std::vector<uint32>& ssrcs) {
+  std::ostringstream ost;
+  ost << "ssrcs:[";
+  for (std::vector<uint32>::const_iterator it = ssrcs.begin();
+       it != ssrcs.end(); ++it) {
+    if (it != ssrcs.begin()) {
+      ost << ",";
+    }
+    ost << *it;
+  }
+  ost << "]";
+  return ost.str();
+}
+
+bool SsrcGroup::has_semantics(const std::string& semantics_in) const {
+  return (semantics == semantics_in && ssrcs.size() > 0);
+}
+
+std::string SsrcGroup::ToString() const {
+  std::ostringstream ost;
+  ost << "{";
+  ost << "semantics:" << semantics << ";";
+  ost << SsrcsToString(ssrcs);
+  ost << "}";
+  return ost.str();
+}
+
+std::string StreamParams::ToString() const {
+  std::ostringstream ost;
+  ost << "{";
+  if (!nick.empty()) {
+    ost << "nick:" << nick << ";";
+  }
+  if (!name.empty()) {
+    ost << "name:" << name << ";";
+  }
+  ost << SsrcsToString(ssrcs) << ";";
+  ost << "ssrc_groups:";
+  for (std::vector<SsrcGroup>::const_iterator it = ssrc_groups.begin();
+       it != ssrc_groups.end(); ++it) {
+    if (it != ssrc_groups.begin()) {
+      ost << ",";
+    }
+    ost << it->ToString();
+  }
+  ost << ";";
+  if (!type.empty()) {
+    ost << "type:" << type << ";";
+  }
+  if (!display.empty()) {
+    ost << "display:" << display << ";";
+  }
+  if (!cname.empty()) {
+    ost << "cname:" << cname << ";";
+  }
+  if (!sync_label.empty()) {
+    ost << "sync_label:" << sync_label;
+  }
+  ost << "}";
+  return ost.str();
+}
 
 bool GetStreamBySsrc(const StreamParamsVec& streams, uint32 ssrc,
                      StreamParams* stream_out) {

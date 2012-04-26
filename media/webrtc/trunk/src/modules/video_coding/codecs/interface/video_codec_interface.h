@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -77,18 +77,6 @@ class VideoEncoder
 public:
     virtual ~VideoEncoder() {};
 
-    // Get the encoder version.
-    //
-    // Input:
-    //          - length            : Length of the version buffer.
-    //
-    // Output:
-    //          - version           : Buffer where the version string will be written.
-    //
-    // Return value                 : Number of bytes written to the version buffer.
-    //                                < 0 on failure.
-    virtual WebRtc_Word32 Version(WebRtc_Word8 *version, WebRtc_Word32 length) const = 0;
-
     // Initialize the encoder with the information from the VideoCodec.
     //
     // Input:
@@ -109,10 +97,9 @@ public:
     //          - frameType         : The frame type to encode
     //
     // Return value                 : WEBRTC_VIDEO_CODEC_OK if OK, < 0 otherwise.
-    virtual WebRtc_Word32
-    Encode(const RawImage& inputImage,
-           const CodecSpecificInfo* codecSpecificInfo,
-           const VideoFrameType* frameTypes) = 0;
+    virtual WebRtc_Word32 Encode(const RawImage& inputImage,
+                                 const CodecSpecificInfo* codecSpecificInfo,
+                                 const VideoFrameType frameType) = 0;
 
     // Register an encode complete callback object.
     //
@@ -126,11 +113,6 @@ public:
     //
     // Return value                : WEBRTC_VIDEO_CODEC_OK if OK, < 0 otherwise.
     virtual WebRtc_Word32 Release() = 0;
-
-    // Reset encoder state and prepare for a new call.
-    //
-    // Return value                : WEBRTC_VIDEO_CODEC_OK if OK, < 0 otherwise.
-    virtual WebRtc_Word32 Reset() = 0;
 
     // Inform the encoder about the packet loss and round trip time on the
     // network used to decide the best pattern and signaling.

@@ -13,7 +13,6 @@
 #include "critical_section_wrapper.h"
 #include "trace.h"
 
-
 namespace webrtc {
 
 #define DISP_MAX 128
@@ -24,10 +23,11 @@ static int dispCount = 0;
 
 VideoX11Channel::VideoX11Channel(WebRtc_Word32 id) :
     _crit(*CriticalSectionWrapper::CreateCriticalSection()), _display(NULL),
-          _shminfo(), _image(NULL), _window(0L),
+          _shminfo(), _image(NULL), _window(0L), _gc(NULL),
           _width(DEFAULT_RENDER_FRAME_WIDTH),
           _height(DEFAULT_RENDER_FRAME_HEIGHT), _outWidth(0), _outHeight(0),
           _xPos(0), _yPos(0), _prepared(false), _dispCount(0), _buffer(NULL),
+          _top(0.0), _left(0.0), _right(0.0), _bottom(0.0),
           _Id(id)
 {
 }
@@ -37,7 +37,7 @@ VideoX11Channel::~VideoX11Channel()
     if (_prepared)
     {
         _crit.Enter();
-        RemoveRenderer();
+        ReleaseWindow();
         _crit.Leave();
     }
     delete &_crit;
@@ -46,7 +46,7 @@ VideoX11Channel::~VideoX11Channel()
 WebRtc_Word32 VideoX11Channel::RenderFrame(const WebRtc_UWord32 streamId,
                                                VideoFrame& videoFrame)
 {
-    CriticalSectionScoped cs(_crit);
+    CriticalSectionScoped cs(&_crit);
     if (_width != (WebRtc_Word32) videoFrame.Width() || _height
             != (WebRtc_Word32) videoFrame.Height())
     {
@@ -63,12 +63,11 @@ WebRtc_Word32 VideoX11Channel::FrameSizeChange(WebRtc_Word32 width,
                                                    WebRtc_Word32 height,
                                                    WebRtc_Word32 /*numberOfStreams */)
 {
-    CriticalSectionScoped cs(_crit);
+    CriticalSectionScoped cs(&_crit);
     if (_prepared)
     {
         RemoveRenderer();
     }
-
     if (CreateLocalRenderer(width, height) == -1)
     {
         return -1;
@@ -81,7 +80,7 @@ WebRtc_Word32 VideoX11Channel::DeliverFrame(unsigned char* buffer,
                                                 WebRtc_Word32 bufferSize,
                                                 unsigned WebRtc_Word32 /*timeStamp90kHz*/)
 {
-    CriticalSectionScoped cs(_crit);
+    CriticalSectionScoped cs(&_crit);
     if (!_prepared)
     {
         return 0;
@@ -101,8 +100,7 @@ WebRtc_Word32 VideoX11Channel::DeliverFrame(unsigned char* buffer,
                  _height, True);
 
     // very important for the image to update properly!
-    XSync(_display, false);
-
+    XSync(_display, False);
     return 0;
 
 }
@@ -121,13 +119,13 @@ WebRtc_Word32 VideoX11Channel::Init(Window window, float left, float top,
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVideoRenderer, _Id, "%s",
                  __FUNCTION__);
-    CriticalSectionScoped cs(_crit);
+    CriticalSectionScoped cs(&_crit);
 
     _window = window;
     _left = left;
-    _right = _right;
+    _right = right;
     _top = top;
-    _bottom = _bottom;
+    _bottom = bottom;
 
     _display = XOpenDisplay(NULL); // Use default display
     if (!_window || !_display)
@@ -171,6 +169,13 @@ WebRtc_Word32 VideoX11Channel::Init(Window window, float left, float top,
     if (_outHeight % 2)
         _outHeight++;
 
+    _gc = XCreateGC(_display, _window, 0, 0);
+    if (!_gc) {
+      // Failed to create the graphics context.
+      assert(false);
+      return -1;
+    }
+
     if (CreateLocalRenderer(winWidth, winHeight) == -1)
     {
         return -1;
@@ -183,7 +188,7 @@ WebRtc_Word32 VideoX11Channel::ChangeWindow(Window window)
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVideoRenderer, _Id, "%s",
                  __FUNCTION__);
-    CriticalSectionScoped cs(_crit);
+    CriticalSectionScoped cs(&_crit);
 
     // Stop the rendering, if we are rendering...
     RemoveRenderer();
@@ -219,9 +224,13 @@ WebRtc_Word32 VideoX11Channel::ReleaseWindow()
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVideoRenderer, _Id, "%s",
                  __FUNCTION__);
-    CriticalSectionScoped cs(_crit);
+    CriticalSectionScoped cs(&_crit);
 
     RemoveRenderer();
+    if (_gc) {
+      XFreeGC(_display, _gc);
+      _gc = NULL;
+    }
     if (_display)
     {
         XCloseDisplay(_display);
@@ -235,7 +244,7 @@ WebRtc_Word32 VideoX11Channel::CreateLocalRenderer(WebRtc_Word32 width,
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVideoRenderer, _Id, "%s",
                  __FUNCTION__);
-    CriticalSectionScoped cs(_crit);
+    CriticalSectionScoped cs(&_crit);
 
     if (!_window || !_display)
     {
@@ -251,9 +260,6 @@ WebRtc_Word32 VideoX11Channel::CreateLocalRenderer(WebRtc_Word32 width,
 
     _width = width;
     _height = height;
-
-    // create a graphics context in the window
-    _gc = XCreateGC(_display, _window, 0, 0);
 
     // create shared memory image
     _image = XShmCreateImage(_display, CopyFromParent, 24, ZPixmap, NULL,
@@ -274,6 +280,7 @@ WebRtc_Word32 VideoX11Channel::CreateLocalRenderer(WebRtc_Word32 width,
         //printf("XShmAttach failed !\n");
         return -1;
     }
+    XSync(_display, False);
 
     _prepared = true;
     return 0;
@@ -290,12 +297,15 @@ WebRtc_Word32 VideoX11Channel::RemoveRenderer()
     }
     _prepared = false;
 
-    // free and closse Xwindow and XShm
+    // Free the memory.
     XShmDetach(_display, &_shminfo);
     XDestroyImage( _image );
+    _image = NULL;
     shmdt(_shminfo.shmaddr);
-    XFreeGC(_display, _gc);
-
+    _shminfo.shmaddr = NULL;
+    _buffer = NULL;
+    shmctl(_shminfo.shmid, IPC_RMID, 0);
+    _shminfo.shmid = 0;
     return 0;
 }
 

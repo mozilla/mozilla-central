@@ -113,9 +113,6 @@ LogMessage::StreamList LogMessage::streams_;
 // Boolean options default to false (0)
 bool LogMessage::thread_, LogMessage::timestamp_;
 
-// Program start time
-uint32 LogMessage::start_ = StartTime();
-
 // If we're in diagnostic mode, we'll be explicitly set that way; default=false.
 bool LogMessage::is_diagnostic_mode_ = false;
 
@@ -125,7 +122,7 @@ LogMessage::LogMessage(const char* file, int line, LoggingSeverity sev,
   // Android's logging facility keeps track of timestamp and thread.
 #ifndef ANDROID
   if (timestamp_) {
-    uint32 time = TimeSince(start_);
+    uint32 time = TimeSince(LogStartTime());
     print_stream_ << "[" << std::setfill('0') << std::setw(3) << (time / 1000)
                   << ":" << std::setw(3) << (time % 1000) << std::setfill(' ')
                   << "] ";
@@ -206,6 +203,11 @@ LogMessage::~LogMessage() {
   }
 }
 
+uint32 LogMessage::LogStartTime() {
+  static const uint32 g_start = Time();
+  return g_start;
+}
+
 void LogMessage::LogContext(int min_sev) {
   ctx_sev_ = min_sev;
 }
@@ -216,10 +218,6 @@ void LogMessage::LogThreads(bool on) {
 
 void LogMessage::LogTimestamps(bool on) {
   timestamp_ = on;
-}
-
-void LogMessage::ResetTimestamps() {
-  start_ = Time();
 }
 
 void LogMessage::LogToDebug(int min_sev) {
@@ -419,8 +417,9 @@ void LogMessage::OutputToDebug(const std::string& str,
     // This handles dynamically allocated consoles, too.
     if (HANDLE error_handle = ::GetStdHandle(STD_ERROR_HANDLE)) {
       log_to_stderr = false;
-      unsigned long written;  // NOLINT
-      ::WriteFile(error_handle, str.data(), str.size(), &written, 0);
+      DWORD written = 0;
+      ::WriteFile(error_handle, str.data(), static_cast<DWORD>(str.size()),
+                  &written, 0);
     }
   }
 #endif  // WIN32

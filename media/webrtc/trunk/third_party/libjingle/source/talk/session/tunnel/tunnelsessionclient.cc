@@ -92,6 +92,9 @@ struct TunnelContentDescription : public ContentDescription {
   std::string description;
 
   TunnelContentDescription(const std::string& desc) : description(desc) { }
+  virtual ContentDescription* Copy() const {
+    return new TunnelContentDescription(*this);
+  }
 };
 
 ///////////////////////////////////////////////////////////////////////////////

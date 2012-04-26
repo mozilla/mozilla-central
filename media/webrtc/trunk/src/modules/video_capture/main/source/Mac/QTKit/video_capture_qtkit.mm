@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -32,8 +32,6 @@ VideoCaptureMacQTKit::VideoCaptureMacQTKit(const WebRtc_Word32 id) :
     _captureFrameRate(QTKIT_DEFAULT_FRAME_RATE),
     _frameCount(0)
 {
-    WEBRTC_TRACE(webrtc::kTraceModuleCall, webrtc::kTraceVideoCapture, id,
-                 "VideoCaptureMacQTKit::VideoCaptureMacQTKit() called");
 
     memset(_currentDeviceNameUTF8, 0, MAX_NAME_LENGTH);
     memset(_currentDeviceUniqueIdUTF8, 0, MAX_NAME_LENGTH);
@@ -58,13 +56,10 @@ VideoCaptureMacQTKit::~VideoCaptureMacQTKit()
 }
 
 WebRtc_Word32 VideoCaptureMacQTKit::Init(
-    const WebRtc_Word32 id, const WebRtc_UWord8* iDeviceUniqueIdUTF8)
+    const WebRtc_Word32 id, const char* iDeviceUniqueIdUTF8)
 {
-    CriticalSectionScoped cs(_apiCs);
+    CriticalSectionScoped cs(&_apiCs);
 
-    WEBRTC_TRACE(webrtc::kTraceModuleCall, webrtc::kTraceVideoCapture, id,
-                 "VideoCaptureMacQTKit::Init() called with id %d and unique "
-                 "device %s", id, iDeviceUniqueIdUTF8);
 
     const WebRtc_Word32 nameLength =
         (WebRtc_Word32) strlen((char*)iDeviceUniqueIdUTF8);
@@ -72,7 +67,7 @@ WebRtc_Word32 VideoCaptureMacQTKit::Init(
         return -1;
 
     // Store the device name
-    _deviceUniqueId = new WebRtc_UWord8[nameLength+1];
+    _deviceUniqueId = new char[nameLength+1];
     memcpy(_deviceUniqueId, iDeviceUniqueIdUTF8,nameLength+1);
 
     _captureDevice = [[VideoCaptureMacQTKitObjC alloc] init];
@@ -113,9 +108,9 @@ WebRtc_Word32 VideoCaptureMacQTKit::Init(
     }
 
     const int NAME_LENGTH = 1024;
-    WebRtc_UWord8 deviceNameUTF8[1024] = "";
-    WebRtc_UWord8 deviceUniqueIdUTF8[1024] = "";
-    WebRtc_UWord8 deviceProductUniqueIDUTF8[1024] = "";
+    char deviceNameUTF8[1024] = "";
+    char deviceUniqueIdUTF8[1024] = "";
+    char deviceProductUniqueIDUTF8[1024] = "";
 
     bool captureDeviceFound = false;
     for(int index = 0; index < captureDeviceCount; index++){
@@ -171,9 +166,6 @@ WebRtc_Word32 VideoCaptureMacQTKit::Init(
 WebRtc_Word32 VideoCaptureMacQTKit::StartCapture(
     const VideoCaptureCapability& capability)
 {
-    WEBRTC_TRACE(webrtc::kTraceModuleCall, webrtc::kTraceVideoCapture, _id,
-                 "StartCapture width %d, height %d, frameRate %d",
-                 capability.width, capability.height, capability.maxFPS);
 
     _captureWidth = capability.width;
     _captureHeight = capability.height;

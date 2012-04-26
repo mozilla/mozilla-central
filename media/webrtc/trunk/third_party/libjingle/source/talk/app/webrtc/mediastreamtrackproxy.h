@@ -34,9 +34,9 @@
 #include <string>
 #include <vector>
 
-#include "talk/app/webrtc/audiotrackimpl.h"
-#include "talk/app/webrtc/mediastream.h"
-#include "talk/app/webrtc/videotrackimpl.h"
+#include "talk/app/webrtc/audiotrack.h"
+#include "talk/app/webrtc/mediastreaminterface.h"
+#include "talk/app/webrtc/videotrack.h"
 #include "talk/base/thread.h"
 
 namespace cricket {

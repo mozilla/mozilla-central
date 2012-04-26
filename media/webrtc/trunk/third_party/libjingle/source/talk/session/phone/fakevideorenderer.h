@@ -29,6 +29,7 @@
 #define TALK_SESSION_PHONE_FAKEVIDEORENDERER_H_
 
 #include "talk/base/sigslot.h"
+#include "talk/session/phone/videoframe.h"
 #include "talk/session/phone/videorenderer.h"
 
 namespace cricket {
@@ -37,7 +38,8 @@ namespace cricket {
 class FakeVideoRenderer : public VideoRenderer {
  public:
   FakeVideoRenderer()
-      : width_(0),
+      : errors_(0),
+        width_(0),
         height_(0),
         num_set_sizes_(0),
         num_rendered_frames_(0) {
@@ -52,11 +54,19 @@ class FakeVideoRenderer : public VideoRenderer {
   }
 
   virtual bool RenderFrame(const VideoFrame* frame) {
+    // Treat unexpected frame size as error.
+    if (!frame ||
+        frame->GetWidth() != static_cast<size_t>(width_) ||
+        frame->GetHeight() != static_cast<size_t>(height_)) {
+      ++errors_;
+      return false;
+    }
     ++num_rendered_frames_;
     SignalRenderFrame(frame);
     return true;
   }
 
+  int errors() const { return errors_; }
   int width() const { return width_; }
   int height() const { return height_; }
   int num_set_sizes() const { return num_set_sizes_; }
@@ -66,6 +76,7 @@ class FakeVideoRenderer : public VideoRenderer {
   sigslot::signal1<const VideoFrame*> SignalRenderFrame;
 
  private:
+  int errors_;
   int width_;
   int height_;
   int num_set_sizes_;

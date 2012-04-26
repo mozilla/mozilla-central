@@ -38,15 +38,19 @@
 #include "talk/xmpp/jid.h"
 #include "talk/session/phone/audiomonitor.h"
 #include "talk/session/phone/currentspeakermonitor.h"
+#include "talk/session/phone/dataengine.h"
 #include "talk/session/phone/mediamessages.h"
 #include "talk/session/phone/mediasession.h"
 #include "talk/session/phone/streamparams.h"
+#include "talk/session/phone/screencastid.h"
 
 namespace cricket {
 
 class MediaSessionClient;
+class BaseChannel;
 class VoiceChannel;
 class VideoChannel;
+class DataChannel;
 
 // Can't typedef this easily since it's forward declared as struct elsewhere.
 struct CallOptions : public MediaSessionOptions {
@@ -57,32 +61,45 @@ class Call : public talk_base::MessageHandler, public sigslot::has_slots<> {
   explicit Call(MediaSessionClient* session_client);
   ~Call();
 
-  Session *InitiateSession(const buzz::Jid &jid, const CallOptions& options);
-  void AcceptSession(Session *session, const CallOptions& options);
-  void RejectSession(Session *session);
-  void TerminateSession(Session *session);
+  Session* InitiateSession(const buzz::Jid &jid, const CallOptions& options);
+  void AcceptSession(Session* session, const CallOptions& options);
+  void RejectSession(Session* session);
+  void TerminateSession(Session* session);
   void Terminate();
-  bool SendViewRequest(Session *session,
+  bool SendViewRequest(Session* session,
                        const ViewRequest& view_request);
   void SetLocalRenderer(VideoRenderer* renderer);
-  void SetVideoRenderer(Session *session, uint32 ssrc,
+  void SetVideoRenderer(Session* session, uint32 ssrc,
                         VideoRenderer* renderer);
-  void StartConnectionMonitor(Session *session, int cms);
-  void StopConnectionMonitor(Session *session);
-  void StartAudioMonitor(Session *session, int cms);
-  void StopAudioMonitor(Session *session);
-  bool IsAudioMonitorRunning(Session *session);
-  void StartSpeakerMonitor(Session *session);
-  void StopSpeakerMonitor(Session *session);
+  void StartConnectionMonitor(Session* session, int cms);
+  void StopConnectionMonitor(Session* session);
+  void StartAudioMonitor(Session* session, int cms);
+  void StopAudioMonitor(Session* session);
+  bool IsAudioMonitorRunning(Session* session);
+  void StartSpeakerMonitor(Session* session);
+  void StopSpeakerMonitor(Session* session);
   void Mute(bool mute);
   void MuteVideo(bool mute);
+  void SendData(Session* session,
+                const DataMediaChannel::SendDataParams& params,
+                const std::string& data);
   void PressDTMF(int event);
+  void AddScreencast(Session* session,
+                     const std::string& stream_name, uint32 ssrc,
+                     const ScreencastId& screencastid, int fps);
+  void RemoveScreencast(Session* session,
+                        const std::string& stream_name, uint32 ssrc);
+  void SendStreamUpdate(Session* session, const StreamParams& stream);
 
-  const std::vector<Session *> &sessions();
+  const std::vector<Session*> &sessions();
   uint32 id();
-  bool video() const { return video_; }
+  bool has_video() const { return has_video_; }
+  bool has_data() const { return has_data_; }
   bool muted() const { return muted_; }
   bool video_muted() const { return video_muted_; }
+  const std::vector<StreamParams>& data_recv_streams() const {
+    return recv_streams_.data();
+  }
 
   // Setting this to false will cause the call to have a longer timeout and
   // for the SignalSetupToCallVoicemail to never fire.
@@ -94,80 +111,102 @@ class Call : public talk_base::MessageHandler, public sigslot::has_slots<> {
   // Sets a flag on the chatapp that will redirect the call to voicemail once
   // the call has been terminated
   sigslot::signal0<> SignalSetupToCallVoicemail;
-  sigslot::signal2<Call *, Session *> SignalAddSession;
-  sigslot::signal2<Call *, Session *> SignalRemoveSession;
-  sigslot::signal3<Call *, Session *, Session::State>
+  sigslot::signal2<Call*, Session*> SignalAddSession;
+  sigslot::signal2<Call*, Session*> SignalRemoveSession;
+  sigslot::signal3<Call*, Session*, Session::State>
       SignalSessionState;
-  sigslot::signal3<Call *, Session *, Session::Error>
+  sigslot::signal3<Call*, Session*, Session::Error>
       SignalSessionError;
-  sigslot::signal3<Call *, Session *, const std::string &>
+  sigslot::signal3<Call*, Session*, const std::string &>
       SignalReceivedTerminateReason;
-  sigslot::signal2<Call *, const std::vector<ConnectionInfo> &>
+  sigslot::signal2<Call*, const std::vector<ConnectionInfo> &>
       SignalConnectionMonitor;
-  sigslot::signal2<Call *, const VoiceMediaInfo&> SignalMediaMonitor;
-  sigslot::signal2<Call *, const AudioInfo&> SignalAudioMonitor;
+  sigslot::signal2<Call*, const VoiceMediaInfo&> SignalMediaMonitor;
+  sigslot::signal2<Call*, const AudioInfo&> SignalAudioMonitor;
   // Empty nick on StreamParams means "unknown".
   // No ssrcs in StreamParams means "no current speaker".
-  sigslot::signal3<Call *,
-                   Session *,
+  sigslot::signal3<Call*,
+                   Session*,
                    const StreamParams&> SignalSpeakerMonitor;
-  sigslot::signal2<Call *, const std::vector<ConnectionInfo> &>
+  sigslot::signal2<Call*, const std::vector<ConnectionInfo> &>
       SignalVideoConnectionMonitor;
-  sigslot::signal2<Call *, const VideoMediaInfo&> SignalVideoMediaMonitor;
+  sigslot::signal2<Call*, const VideoMediaInfo&> SignalVideoMediaMonitor;
   // Gives added streams and removed streams, in that order.
-  sigslot::signal4<Call *,
-                   Session *,
+  sigslot::signal4<Call*,
+                   Session*,
                    const MediaStreams&,
                    const MediaStreams&> SignalMediaStreamsUpdate;
+  sigslot::signal3<Call*,
+                   const ReceiveDataParams&,
+                   const std::string&> SignalDataReceived;
 
  private:
-  void OnMessage(talk_base::Message *message);
-  void OnSessionState(BaseSession *session, BaseSession::State state);
-  void OnSessionError(BaseSession *session, Session::Error error);
+  void OnMessage(talk_base::Message* message);
+  void OnSessionState(BaseSession* session, BaseSession::State state);
+  void OnSessionError(BaseSession* session, Session::Error error);
   void OnSessionInfoMessage(
-      Session *session, const buzz::XmlElement* action_elem);
+      Session* session, const buzz::XmlElement* action_elem);
   void OnViewRequest(
-      Session *session, const ViewRequest& view_request);
+      Session* session, const ViewRequest& view_request);
   void OnRemoteDescriptionUpdate(
-      BaseSession *session, const ContentInfos& updated_contents);
-  void OnReceivedTerminateReason(Session *session, const std::string &reason);
-  void IncomingSession(Session *session, const SessionDescription* offer);
+      BaseSession* session, const ContentInfos& updated_contents);
+  void OnReceivedTerminateReason(Session* session, const std::string &reason);
+  void IncomingSession(Session* session, const SessionDescription* offer);
   // Returns true on success.
-  bool AddSession(Session *session, const SessionDescription* offer);
-  void RemoveSession(Session *session);
+  bool AddSession(Session* session, const SessionDescription* offer);
+  void RemoveSession(Session* session);
   void EnableChannels(bool enable);
-  void Join(Call *call, bool enable);
-  void OnConnectionMonitor(VoiceChannel *channel,
+  void Join(Call* call, bool enable);
+  void OnConnectionMonitor(VoiceChannel* channel,
                            const std::vector<ConnectionInfo> &infos);
-  void OnMediaMonitor(VoiceChannel *channel, const VoiceMediaInfo& info);
-  void OnAudioMonitor(VoiceChannel *channel, const AudioInfo& info);
+  void OnMediaMonitor(VoiceChannel* channel, const VoiceMediaInfo& info);
+  void OnAudioMonitor(VoiceChannel* channel, const AudioInfo& info);
   void OnSpeakerMonitor(CurrentSpeakerMonitor* monitor, uint32 ssrc);
-  void OnConnectionMonitor(VideoChannel *channel,
+  void OnConnectionMonitor(VideoChannel* channel,
                            const std::vector<ConnectionInfo> &infos);
-  void OnMediaMonitor(VideoChannel *channel, const VideoMediaInfo& info);
-  VoiceChannel* GetVoiceChannel(Session *session);
-  VideoChannel* GetVideoChannel(Session *session);
-  bool UpdateVoiceChannelRemoteContent(Session *session,
+  void OnMediaMonitor(VideoChannel* channel, const VideoMediaInfo& info);
+  void OnDataReceived(DataChannel* channel,
+                      const ReceiveDataParams& params,
+                      const std::string& data);
+  VoiceChannel* GetVoiceChannel(Session* session);
+  VideoChannel* GetVideoChannel(Session* session);
+  DataChannel* GetDataChannel(Session* session);
+  bool UpdateVoiceChannelRemoteContent(Session* session,
                                        const AudioContentDescription* audio);
-  bool UpdateVideoChannelRemoteContent(Session *session,
+  bool UpdateVideoChannelRemoteContent(Session* session,
                                        const VideoContentDescription* video);
-  void AddAudioRecvStream(Session *session, const StreamParams& audio_stream);
-  void AddVideoRecvStream(Session *session, const StreamParams& video_stream);
-  void RemoveAudioRecvStream(
-      Session *session, const StreamParams& audio_stream);
-  void RemoveVideoRecvStream(
-      Session *session, const StreamParams& video_stream);
+  bool UpdateDataChannelRemoteContent(Session* session,
+                                      const DataContentDescription* data);
+  void UpdateRecvStreams(const std::vector<StreamParams>& update_streams,
+                         BaseChannel* channel,
+                         std::vector<StreamParams>* recv_streams,
+                         std::vector<StreamParams>* added_streams,
+                         std::vector<StreamParams>* removed_streams);
+  void AddRecvStreams(const std::vector<StreamParams>& added_streams,
+                      BaseChannel* channel,
+                      std::vector<StreamParams>* recv_streams);
+  void AddRecvStream(const StreamParams& stream,
+                     BaseChannel* channel,
+                     std::vector<StreamParams>* recv_streams);
+  void RemoveRecvStreams(const std::vector<StreamParams>& removed_streams,
+                         BaseChannel* channel,
+                         std::vector<StreamParams>* recv_streams);
+  void RemoveRecvStream(const StreamParams& stream,
+                        BaseChannel* channel,
+                        std::vector<StreamParams>* recv_streams);
   void ContinuePlayDTMF();
 
   uint32 id_;
-  MediaSessionClient *session_client_;
-  std::vector<Session *> sessions_;
+  MediaSessionClient* session_client_;
+  std::vector<Session*> sessions_;
   MediaStreams recv_streams_;
-  std::map<std::string, VoiceChannel *> voice_channel_map_;
-  std::map<std::string, VideoChannel *> video_channel_map_;
-  std::map<std::string, CurrentSpeakerMonitor *> speaker_monitor_map_;
+  std::map<std::string, VoiceChannel*> voice_channel_map_;
+  std::map<std::string, VideoChannel*> video_channel_map_;
+  std::map<std::string, DataChannel*> data_channel_map_;
+  std::map<std::string, CurrentSpeakerMonitor*> speaker_monitor_map_;
   VideoRenderer* local_renderer_;
-  bool video_;
+  bool has_video_;
+  bool has_data_;
   bool muted_;
   bool video_muted_;
   bool send_to_voicemail_;

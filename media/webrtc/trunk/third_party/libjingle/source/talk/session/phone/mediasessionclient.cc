@@ -56,12 +56,15 @@ MediaSessionClient::MediaSessionClient(
 
 MediaSessionClient::MediaSessionClient(
     const buzz::Jid& jid, SessionManager *manager,
-    MediaEngineInterface* media_engine, DeviceManagerInterface* device_manager)
+    MediaEngineInterface* media_engine,
+    DataEngineInterface* data_media_engine,
+    DeviceManagerInterface* device_manager)
     : jid_(jid),
       session_manager_(manager),
       focus_call_(NULL),
       channel_manager_(new ChannelManager(
-          media_engine, device_manager, session_manager_->worker_thread())),
+          media_engine, data_media_engine,
+          device_manager, session_manager_->worker_thread())),
       desc_factory_(channel_manager_) {
   Construct();
 }
@@ -461,6 +464,17 @@ bool ParseJingleVideoCodec(const buzz::XmlElement* elem, VideoCodec* codec) {
   return true;
 }
 
+bool ParseJingleDataCodec(const buzz::XmlElement* elem, DataCodec* codec) {
+  int id = GetXmlAttr(elem, QN_ID, -1);
+  if (id < 0)
+    return false;
+
+  std::string name = GetXmlAttr(elem, QN_NAME, buzz::STR_EMPTY);
+
+  *codec = DataCodec(id, name, 0);
+  return true;
+}
+
 bool ParseJingleStreamsOrLegacySsrc(const buzz::XmlElement* desc_elem,
                                     MediaContentDescription* media,
                                     ParseError* error) {
@@ -537,6 +551,36 @@ bool ParseJingleVideoContent(const buzz::XmlElement* content_elem,
   return true;
 }
 
+bool ParseJingleDataContent(const buzz::XmlElement* content_elem,
+                            const ContentDescription** content,
+                            ParseError* error) {
+  DataContentDescription* data = new DataContentDescription();
+
+  for (const buzz::XmlElement* payload_elem =
+           content_elem->FirstNamed(QN_JINGLE_RTP_PAYLOADTYPE);
+      payload_elem != NULL;
+      payload_elem = payload_elem->NextNamed(QN_JINGLE_RTP_PAYLOADTYPE)) {
+    DataCodec codec;
+    if (ParseJingleDataCodec(payload_elem, &codec)) {
+      data->AddCodec(codec);
+    }
+  }
+
+  if (!ParseJingleStreamsOrLegacySsrc(content_elem, data, error)) {
+    return false;
+  }
+  ParseBandwidth(content_elem, data);
+
+  if (!ParseJingleEncryption(content_elem, data, error)) {
+    return false;
+  }
+
+  data->set_rtcp_mux(content_elem->FirstNamed(QN_JINGLE_RTCP_MUX) != NULL);
+
+  *content = data;
+  return true;
+}
+
 bool MediaSessionClient::ParseContent(SignalingProtocol protocol,
                                      const buzz::XmlElement* content_elem,
                                      const ContentDescription** content,
@@ -559,6 +603,8 @@ bool MediaSessionClient::ParseContent(SignalingProtocol protocol,
       return ParseJingleAudioContent(content_elem, content, error);
     } else if (media == JINGLE_CONTENT_MEDIA_VIDEO) {
       return ParseJingleVideoContent(content_elem, content, error);
+    } else if (media == JINGLE_CONTENT_MEDIA_DATA) {
+      return ParseJingleDataContent(content_elem, content, error);
     } else {
       return BadParse("Unknown media: " + media, error);
     }
@@ -744,6 +790,15 @@ buzz::XmlElement* CreateJingleVideoCodecElem(const VideoCodec& codec) {
   return elem;
 }
 
+buzz::XmlElement* CreateJingleDataCodecElem(const DataCodec& codec) {
+  buzz::XmlElement* elem = new buzz::XmlElement(QN_JINGLE_RTP_PAYLOADTYPE);
+
+  AddXmlAttr(elem, QN_ID, codec.id);
+  elem->AddAttr(QN_NAME, codec.name);
+
+  return elem;
+}
+
 void WriteLegacyJingleSsrc(const MediaContentDescription* media,
                            buzz::XmlElement* elem) {
   if (media->has_ssrcs()) {
@@ -815,6 +870,47 @@ buzz::XmlElement* CreateJingleVideoContentElem(
   return elem;
 }
 
+buzz::XmlElement* CreateJingleDataContentElem(
+    const DataContentDescription* data, bool crypto_required) {
+  buzz::XmlElement* elem =
+      new buzz::XmlElement(QN_JINGLE_RTP_CONTENT, true);
+
+  elem->SetAttr(QN_JINGLE_CONTENT_MEDIA, JINGLE_CONTENT_MEDIA_DATA);
+  WriteJingleStreamsOrLegacySsrc(data, elem);
+
+  for (DataCodecs::const_iterator codec = data->codecs().begin();
+       codec != data->codecs().end(); ++codec) {
+    elem->AddElement(CreateJingleDataCodecElem(*codec));
+  }
+
+  const CryptoParamsVec& cryptos = data->cryptos();
+  if (!cryptos.empty()) {
+    elem->AddElement(CreateJingleEncryptionElem(cryptos, crypto_required));
+  }
+
+  if (data->rtcp_mux()) {
+    elem->AddElement(new buzz::XmlElement(QN_JINGLE_RTCP_MUX));
+  }
+
+  if (data->bandwidth() != kAutoBandwidth) {
+    elem->AddElement(CreateBandwidthElem(QN_JINGLE_RTP_BANDWIDTH,
+                                         data->bandwidth()));
+  }
+
+  return elem;
+}
+
+bool MediaSessionClient::IsWritable(SignalingProtocol protocol,
+                                    const ContentDescription* content) {
+  const MediaContentDescription* media =
+      static_cast<const MediaContentDescription*>(content);
+  if (protocol == PROTOCOL_GINGLE &&
+      media->type() == MEDIA_TYPE_DATA) {
+    return false;
+  }
+  return true;
+}
+
 bool MediaSessionClient::WriteContent(SignalingProtocol protocol,
                                       const ContentDescription* content,
                                       buzz::XmlElement** elem,
@@ -839,8 +935,17 @@ bool MediaSessionClient::WriteContent(SignalingProtocol protocol,
     } else {
       *elem = CreateJingleVideoContentElem(video, crypto_required);
     }
+  } else if (media->type() == MEDIA_TYPE_DATA) {
+    const DataContentDescription* data =
+        static_cast<const DataContentDescription*>(media);
+    if (protocol == PROTOCOL_GINGLE) {
+      return BadWrite("Data channel not supported with Gingle.", error);
+    } else {
+      *elem = CreateJingleDataContentElem(data, crypto_required);
+    }
   } else {
-    return BadWrite("Unknown content type: " + media->type(), error);
+    return BadWrite("Unknown content type: " +
+                    talk_base::ToString<int>(media->type()), error);
   }
 
   return true;

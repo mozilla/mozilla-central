@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -121,7 +121,6 @@ AudioDeviceDummy::~AudioDeviceDummy()
 
 void AudioDeviceDummy::AttachAudioBuffer(AudioDeviceBuffer* audioBuffer)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     _ptrAudioBuffer = audioBuffer;
 
@@ -136,9 +135,9 @@ void AudioDeviceDummy::AttachAudioBuffer(AudioDeviceBuffer* audioBuffer)
 //  ActiveAudioLayer
 // ----------------------------------------------------------------------------
 
-WebRtc_Word32 AudioDeviceDummy::ActiveAudioLayer(AudioDeviceModule::AudioLayer& audioLayer) const
+WebRtc_Word32 AudioDeviceDummy::ActiveAudioLayer(
+    AudioDeviceModule::AudioLayer& audioLayer) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
     audioLayer = AudioDeviceModule::kDummyAudio;
     return 0;
 }
@@ -149,9 +148,8 @@ WebRtc_Word32 AudioDeviceDummy::ActiveAudioLayer(AudioDeviceModule::AudioLayer& 
 
 WebRtc_Word32 AudioDeviceDummy::Init()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_initialized)
     {
@@ -164,25 +162,29 @@ WebRtc_Word32 AudioDeviceDummy::Init()
 
     // RECORDING
     strncpy(threadName, "webrtc_audio_module_rec_thread", 63);
-    _ptrThreadRec = ThreadWrapper::CreateThread(RecThreadFunc, this, kRealtimePriority, threadName);
+    _ptrThreadRec = ThreadWrapper::CreateThread(
+        RecThreadFunc, this, kRealtimePriority, threadName);
     if (_ptrThreadRec == NULL)
     {
-        WEBRTC_TRACE(kTraceCritical, kTraceAudioDevice, _id, "  failed to create the rec audio thread");
+        WEBRTC_TRACE(kTraceCritical, kTraceAudioDevice, _id,
+                     "  failed to create the rec audio thread");
         return -1;
     }
 
     if (!_ptrThreadRec->Start(threadID))
     {
-        WEBRTC_TRACE(kTraceCritical, kTraceAudioDevice, _id, "  failed to start the rec audio thread");
+        WEBRTC_TRACE(kTraceCritical, kTraceAudioDevice, _id,
+                     "  failed to start the rec audio thread");
         delete _ptrThreadRec;
         _ptrThreadRec = NULL;
         return -1;
     }
     _recThreadID = threadID;
-    
+
     if (!_timeEventRec.StartTimer(periodic, REC_TIMER_PERIOD_MS))
     {
-        WEBRTC_TRACE(kTraceCritical, kTraceAudioDevice, _id, "  failed to start the rec timer event");
+        WEBRTC_TRACE(kTraceCritical, kTraceAudioDevice, _id,
+                     "  failed to start the rec timer event");
         if (_ptrThreadRec->Stop())
         {
             delete _ptrThreadRec;
@@ -190,33 +192,38 @@ WebRtc_Word32 AudioDeviceDummy::Init()
         }
         else
         {
-            WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id, "  unable to stop the activated rec thread");
+            WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
+                         "  unable to stop the activated rec thread");
         }
         return -1;
     }
 
     // PLAYOUT
     strncpy(threadName, "webrtc_audio_module_play_thread", 63);
-    _ptrThreadPlay = ThreadWrapper::CreateThread(PlayThreadFunc, this, kRealtimePriority, threadName);
+    _ptrThreadPlay = ThreadWrapper::CreateThread(
+        PlayThreadFunc, this, kRealtimePriority, threadName);
     if (_ptrThreadPlay == NULL)
     {
-        WEBRTC_TRACE(kTraceCritical, kTraceAudioDevice, _id, "  failed to create the play audio thread");
+        WEBRTC_TRACE(kTraceCritical, kTraceAudioDevice, _id,
+                     "  failed to create the play audio thread");
         return -1;
     }
 
     threadID = 0;
     if (!_ptrThreadPlay->Start(threadID))
     {
-        WEBRTC_TRACE(kTraceCritical, kTraceAudioDevice, _id, "  failed to start the play audio thread");
+        WEBRTC_TRACE(kTraceCritical, kTraceAudioDevice, _id,
+                     "  failed to start the play audio thread");
         delete _ptrThreadPlay;
         _ptrThreadPlay = NULL;
         return -1;
     }
     _playThreadID = threadID;
-    
+
     if (!_timeEventPlay.StartTimer(periodic, PLAY_TIMER_PERIOD_MS))
     {
-        WEBRTC_TRACE(kTraceCritical, kTraceAudioDevice, _id, "  failed to start the play timer event");
+        WEBRTC_TRACE(kTraceCritical, kTraceAudioDevice, _id,
+                     "  failed to start the play timer event");
         if (_ptrThreadPlay->Stop())
         {
             delete _ptrThreadPlay;
@@ -224,7 +231,8 @@ WebRtc_Word32 AudioDeviceDummy::Init()
         }
         else
         {
-            WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id, "  unable to stop the activated play thread");
+            WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
+                         "  unable to stop the activated play thread");
         }
         return -1;
     }
@@ -240,9 +248,8 @@ WebRtc_Word32 AudioDeviceDummy::Init()
 
 WebRtc_Word32 AudioDeviceDummy::Terminate()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (!_initialized)
     {
@@ -265,7 +272,8 @@ WebRtc_Word32 AudioDeviceDummy::Terminate()
         }
         else
         {
-            WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id, "  failed to close down the rec audio thread");       
+            WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
+                         "  failed to close down the rec audio thread");
         }
 
         _critSect.Enter();
@@ -289,7 +297,8 @@ WebRtc_Word32 AudioDeviceDummy::Terminate()
         }
         else
         {
-            WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id, "  failed to close down the play audio thread");       
+            WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
+                         "  failed to close down the play audio thread");
         }
 
         _critSect.Enter();
@@ -308,7 +317,6 @@ WebRtc_Word32 AudioDeviceDummy::Terminate()
 
 bool AudioDeviceDummy::Initialized() const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
     return (_initialized);
 }
 
@@ -318,9 +326,8 @@ bool AudioDeviceDummy::Initialized() const
 
 WebRtc_Word32 AudioDeviceDummy::SpeakerIsAvailable(bool& available)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     available = true;
 
@@ -333,9 +340,8 @@ WebRtc_Word32 AudioDeviceDummy::SpeakerIsAvailable(bool& available)
 
 WebRtc_Word32 AudioDeviceDummy::InitSpeaker()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_playing)
     {
@@ -353,9 +359,8 @@ WebRtc_Word32 AudioDeviceDummy::InitSpeaker()
 
 WebRtc_Word32 AudioDeviceDummy::MicrophoneIsAvailable(bool& available)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     available = true;
 
@@ -368,9 +373,8 @@ WebRtc_Word32 AudioDeviceDummy::MicrophoneIsAvailable(bool& available)
 
 WebRtc_Word32 AudioDeviceDummy::InitMicrophone()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_recording)
     {
@@ -388,7 +392,6 @@ WebRtc_Word32 AudioDeviceDummy::InitMicrophone()
 
 bool AudioDeviceDummy::SpeakerIsInitialized() const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return (_speakerIsInitialized);
 }
@@ -399,7 +402,6 @@ bool AudioDeviceDummy::SpeakerIsInitialized() const
 
 bool AudioDeviceDummy::MicrophoneIsInitialized() const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return (_microphoneIsInitialized);
 }
@@ -410,9 +412,8 @@ bool AudioDeviceDummy::MicrophoneIsInitialized() const
 
 WebRtc_Word32 AudioDeviceDummy::SpeakerVolumeIsAvailable(bool& available)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     available = false;
 
@@ -425,7 +426,6 @@ WebRtc_Word32 AudioDeviceDummy::SpeakerVolumeIsAvailable(bool& available)
 
 WebRtc_Word32 AudioDeviceDummy::SetSpeakerVolume(WebRtc_UWord32 volume)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "AudioDeviceDummy::SetSpeakerVolume(volume=%u)", volume);
 
 	return -1;
 }
@@ -436,7 +436,6 @@ WebRtc_Word32 AudioDeviceDummy::SetSpeakerVolume(WebRtc_UWord32 volume)
 
 WebRtc_Word32 AudioDeviceDummy::SpeakerVolume(WebRtc_UWord32& volume) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return -1;
 }
@@ -447,8 +446,6 @@ WebRtc_Word32 AudioDeviceDummy::SpeakerVolume(WebRtc_UWord32& volume) const
 
 WebRtc_Word32 AudioDeviceDummy::SetWaveOutVolume(WebRtc_UWord16 volumeLeft, WebRtc_UWord16 volumeRight)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "AudioDeviceDummy::SetWaveOutVolume(volumeLeft=%u, volumeRight=%u)", 
-		volumeLeft, volumeRight);
 
     return -1;
 }
@@ -459,7 +456,6 @@ WebRtc_Word32 AudioDeviceDummy::SetWaveOutVolume(WebRtc_UWord16 volumeLeft, WebR
 
 WebRtc_Word32 AudioDeviceDummy::WaveOutVolume(WebRtc_UWord16& volumeLeft, WebRtc_UWord16& volumeRight) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return -1;
 }
@@ -470,7 +466,6 @@ WebRtc_Word32 AudioDeviceDummy::WaveOutVolume(WebRtc_UWord16& volumeLeft, WebRtc
 
 WebRtc_Word32 AudioDeviceDummy::MaxSpeakerVolume(WebRtc_UWord32& maxVolume) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return -1;
 }
@@ -481,7 +476,6 @@ WebRtc_Word32 AudioDeviceDummy::MaxSpeakerVolume(WebRtc_UWord32& maxVolume) cons
 
 WebRtc_Word32 AudioDeviceDummy::MinSpeakerVolume(WebRtc_UWord32& minVolume) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return -1;
 }
@@ -492,7 +486,6 @@ WebRtc_Word32 AudioDeviceDummy::MinSpeakerVolume(WebRtc_UWord32& minVolume) cons
 
 WebRtc_Word32 AudioDeviceDummy::SpeakerVolumeStepSize(WebRtc_UWord16& stepSize) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 	
     return -1;
 }
@@ -503,9 +496,8 @@ WebRtc_Word32 AudioDeviceDummy::SpeakerVolumeStepSize(WebRtc_UWord16& stepSize) 
 
 WebRtc_Word32 AudioDeviceDummy::SpeakerMuteIsAvailable(bool& available)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     available = false;
 
@@ -518,7 +510,6 @@ WebRtc_Word32 AudioDeviceDummy::SpeakerMuteIsAvailable(bool& available)
 
 WebRtc_Word32 AudioDeviceDummy::SetSpeakerMute(bool enable)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "AudioDeviceDummy::SetSpeakerMute(enable=%u)", enable);
 
     return -1;
 }
@@ -529,7 +520,6 @@ WebRtc_Word32 AudioDeviceDummy::SetSpeakerMute(bool enable)
 
 WebRtc_Word32 AudioDeviceDummy::SpeakerMute(bool& enabled) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return -1;
 }
@@ -540,9 +530,8 @@ WebRtc_Word32 AudioDeviceDummy::SpeakerMute(bool& enabled) const
 
 WebRtc_Word32 AudioDeviceDummy::MicrophoneMuteIsAvailable(bool& available)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     available = false;
 
@@ -555,7 +544,6 @@ WebRtc_Word32 AudioDeviceDummy::MicrophoneMuteIsAvailable(bool& available)
 
 WebRtc_Word32 AudioDeviceDummy::SetMicrophoneMute(bool enable)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "AudioDeviceDummy::SetMicrophoneMute(enable=%u)", enable);
 
     return -1;
 }
@@ -566,7 +554,6 @@ WebRtc_Word32 AudioDeviceDummy::SetMicrophoneMute(bool enable)
 
 WebRtc_Word32 AudioDeviceDummy::MicrophoneMute(bool& enabled) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return -1;
 }
@@ -577,7 +564,6 @@ WebRtc_Word32 AudioDeviceDummy::MicrophoneMute(bool& enabled) const
 
 WebRtc_Word32 AudioDeviceDummy::MicrophoneBoostIsAvailable(bool& available)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     available = false;
     return 0;
@@ -589,7 +575,6 @@ WebRtc_Word32 AudioDeviceDummy::MicrophoneBoostIsAvailable(bool& available)
 
 WebRtc_Word32 AudioDeviceDummy::SetMicrophoneBoost(bool enable)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "AudioDeviceDummy::SetMicrophoneBoost(enable=%u)", enable);
 
     return -1;
 }
@@ -600,7 +585,6 @@ WebRtc_Word32 AudioDeviceDummy::SetMicrophoneBoost(bool enable)
 
 WebRtc_Word32 AudioDeviceDummy::MicrophoneBoost(bool& enabled) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return -1;
 }
@@ -611,7 +595,6 @@ WebRtc_Word32 AudioDeviceDummy::MicrophoneBoost(bool& enabled) const
 
 WebRtc_Word32 AudioDeviceDummy::StereoRecordingIsAvailable(bool& available)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     available = false;
     return 0;
@@ -623,9 +606,8 @@ WebRtc_Word32 AudioDeviceDummy::StereoRecordingIsAvailable(bool& available)
 
 WebRtc_Word32 AudioDeviceDummy::SetStereoRecording(bool enable)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "AudioDeviceDummy::SetStereoRecording(enable=%u)", enable);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (enable)
     {
@@ -641,7 +623,6 @@ WebRtc_Word32 AudioDeviceDummy::SetStereoRecording(bool enable)
 
 WebRtc_Word32 AudioDeviceDummy::StereoRecording(bool& enabled) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     enabled = false;
 
@@ -654,7 +635,6 @@ WebRtc_Word32 AudioDeviceDummy::StereoRecording(bool& enabled) const
 
 WebRtc_Word32 AudioDeviceDummy::StereoPlayoutIsAvailable(bool& available)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     available = false;
     return 0;
@@ -666,9 +646,8 @@ WebRtc_Word32 AudioDeviceDummy::StereoPlayoutIsAvailable(bool& available)
 
 WebRtc_Word32 AudioDeviceDummy::SetStereoPlayout(bool enable)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "AudioDeviceDummy::SetStereoPlayout(enable=%u)", enable);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (enable)
     {
@@ -684,7 +663,6 @@ WebRtc_Word32 AudioDeviceDummy::SetStereoPlayout(bool enable)
 
 WebRtc_Word32 AudioDeviceDummy::StereoPlayout(bool& enabled) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     enabled = false;
 
@@ -697,7 +675,6 @@ WebRtc_Word32 AudioDeviceDummy::StereoPlayout(bool& enabled) const
 
 WebRtc_Word32 AudioDeviceDummy::SetAGC(bool enable)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "AudioDeviceDummy::SetAGC(enable=%d)", enable);
 
     return -1;
 }
@@ -718,9 +695,8 @@ bool AudioDeviceDummy::AGC() const
 
 WebRtc_Word32 AudioDeviceDummy::MicrophoneVolumeIsAvailable(bool& available)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     available = false;
 
@@ -733,9 +709,10 @@ WebRtc_Word32 AudioDeviceDummy::MicrophoneVolumeIsAvailable(bool& available)
 
 WebRtc_Word32 AudioDeviceDummy::SetMicrophoneVolume(WebRtc_UWord32 volume)
 {
-    WEBRTC_TRACE(kTraceStream, kTraceAudioDevice, _id, "AudioDeviceDummy::SetMicrophoneVolume(volume=%u)", volume);
+    WEBRTC_TRACE(kTraceStream, kTraceAudioDevice, _id,
+                 "AudioDeviceDummy::SetMicrophoneVolume(volume=%u)", volume);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     return -1;
 }
@@ -748,7 +725,7 @@ WebRtc_Word32 AudioDeviceDummy::MicrophoneVolume(WebRtc_UWord32& volume) const
 {
     // WEBRTC_TRACE(kTraceStream, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     return -1;
 }
@@ -757,7 +734,8 @@ WebRtc_Word32 AudioDeviceDummy::MicrophoneVolume(WebRtc_UWord32& volume) const
 //  MaxMicrophoneVolume
 // ----------------------------------------------------------------------------
 
-WebRtc_Word32 AudioDeviceDummy::MaxMicrophoneVolume(WebRtc_UWord32& maxVolume) const
+WebRtc_Word32 AudioDeviceDummy::MaxMicrophoneVolume(
+    WebRtc_UWord32& maxVolume) const
 {
     WEBRTC_TRACE(kTraceStream, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
@@ -768,9 +746,9 @@ WebRtc_Word32 AudioDeviceDummy::MaxMicrophoneVolume(WebRtc_UWord32& maxVolume) c
 //  MinMicrophoneVolume
 // ----------------------------------------------------------------------------
 
-WebRtc_Word32 AudioDeviceDummy::MinMicrophoneVolume(WebRtc_UWord32& minVolume) const
+WebRtc_Word32 AudioDeviceDummy::MinMicrophoneVolume(
+    WebRtc_UWord32& minVolume) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return -1;
 }
@@ -779,9 +757,9 @@ WebRtc_Word32 AudioDeviceDummy::MinMicrophoneVolume(WebRtc_UWord32& minVolume) c
 //  MicrophoneVolumeStepSize
 // ----------------------------------------------------------------------------
 
-WebRtc_Word32 AudioDeviceDummy::MicrophoneVolumeStepSize(WebRtc_UWord16& stepSize) const
+WebRtc_Word32 AudioDeviceDummy::MicrophoneVolumeStepSize(
+    WebRtc_UWord16& stepSize) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return -1;
 }
@@ -792,9 +770,8 @@ WebRtc_Word32 AudioDeviceDummy::MicrophoneVolumeStepSize(WebRtc_UWord16& stepSiz
 
 WebRtc_Word16 AudioDeviceDummy::PlayoutDevices()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     return 1;
 }
@@ -805,7 +782,6 @@ WebRtc_Word16 AudioDeviceDummy::PlayoutDevices()
 
 WebRtc_Word32 AudioDeviceDummy::SetPlayoutDevice(WebRtc_UWord16 index)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "AudioDeviceDummy::SetPlayoutDevice(index=%u)", index);
 
     if (_playIsInitialized)
     {
@@ -824,7 +800,8 @@ WebRtc_Word32 AudioDeviceDummy::SetPlayoutDevice(WebRtc_UWord16 index)
 //  SetPlayoutDevice II (II)
 // ----------------------------------------------------------------------------
 
-WebRtc_Word32 AudioDeviceDummy::SetPlayoutDevice(AudioDeviceModule::WindowsDeviceType device)
+WebRtc_Word32 AudioDeviceDummy::SetPlayoutDevice(
+    AudioDeviceModule::WindowsDeviceType device)
 {
 	return -1;
 }
@@ -833,9 +810,11 @@ WebRtc_Word32 AudioDeviceDummy::SetPlayoutDevice(AudioDeviceModule::WindowsDevic
 //  PlayoutDeviceName
 // ----------------------------------------------------------------------------
 
-WebRtc_Word32 AudioDeviceDummy::PlayoutDeviceName(WebRtc_UWord16 index, WebRtc_Word8 name[kAdmMaxDeviceNameSize], WebRtc_Word8 guid[kAdmMaxGuidSize])
+WebRtc_Word32 AudioDeviceDummy::PlayoutDeviceName(
+    WebRtc_UWord16 index,
+    char name[kAdmMaxDeviceNameSize],
+    char guid[kAdmMaxGuidSize])
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "AudioDeviceDummy::PlayoutDeviceName(index=%u)", index);
 
     if (index != 0)
     {
@@ -856,9 +835,11 @@ WebRtc_Word32 AudioDeviceDummy::PlayoutDeviceName(WebRtc_UWord16 index, WebRtc_W
 //  RecordingDeviceName
 // ----------------------------------------------------------------------------
 
-WebRtc_Word32 AudioDeviceDummy::RecordingDeviceName(WebRtc_UWord16 index, WebRtc_Word8 name[kAdmMaxDeviceNameSize], WebRtc_Word8 guid[kAdmMaxGuidSize])
+WebRtc_Word32 AudioDeviceDummy::RecordingDeviceName(
+    WebRtc_UWord16 index,
+    char name[kAdmMaxDeviceNameSize],
+    char guid[kAdmMaxGuidSize])
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "AudioDeviceDummy::RecordingDeviceName(index=%u)", index);
 
     if (index != 0)
     {
@@ -881,9 +862,8 @@ WebRtc_Word32 AudioDeviceDummy::RecordingDeviceName(WebRtc_UWord16 index, WebRtc
 
 WebRtc_Word16 AudioDeviceDummy::RecordingDevices()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     return 1;
 }
@@ -894,7 +874,6 @@ WebRtc_Word16 AudioDeviceDummy::RecordingDevices()
 
 WebRtc_Word32 AudioDeviceDummy::SetRecordingDevice(WebRtc_UWord16 index)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "AudioDeviceDummy::SetRecordingDevice(index=%u)", index);
 
     if (_recIsInitialized)
     {
@@ -913,7 +892,8 @@ WebRtc_Word32 AudioDeviceDummy::SetRecordingDevice(WebRtc_UWord16 index)
 //  SetRecordingDevice II (II)
 // ----------------------------------------------------------------------------
 
-WebRtc_Word32 AudioDeviceDummy::SetRecordingDevice(AudioDeviceModule::WindowsDeviceType device)
+WebRtc_Word32 AudioDeviceDummy::SetRecordingDevice(
+    AudioDeviceModule::WindowsDeviceType device)
 {
     return -1;
 }
@@ -924,7 +904,6 @@ WebRtc_Word32 AudioDeviceDummy::SetRecordingDevice(AudioDeviceModule::WindowsDev
 
 WebRtc_Word32 AudioDeviceDummy::PlayoutIsAvailable(bool& available)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     available = true;
 
@@ -937,22 +916,20 @@ WebRtc_Word32 AudioDeviceDummy::PlayoutIsAvailable(bool& available)
 
 WebRtc_Word32 AudioDeviceDummy::RecordingIsAvailable(bool& available)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     available = true;
 
     return 0;
 }
-    
+
 // ----------------------------------------------------------------------------
 //  InitPlayout
 // ----------------------------------------------------------------------------
 
 WebRtc_Word32 AudioDeviceDummy::InitPlayout()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_playing)
     {
@@ -967,7 +944,8 @@ WebRtc_Word32 AudioDeviceDummy::InitPlayout()
     // Initialize the speaker (devices might have been added or removed)
     if (InitSpeaker() == -1)
     {
-        WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id, "  InitSpeaker() failed");
+        WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
+                     "  InitSpeaker() failed");
     }
 
     _playIsInitialized = true;
@@ -981,9 +959,8 @@ WebRtc_Word32 AudioDeviceDummy::InitPlayout()
 
 WebRtc_Word32 AudioDeviceDummy::InitRecording()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_recording)
     {
@@ -998,7 +975,8 @@ WebRtc_Word32 AudioDeviceDummy::InitRecording()
     // Initialize the microphone (devices might have been added or removed)
     if (InitMicrophone() == -1)
     {
-        WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id, "  InitMicrophone() failed");
+        WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
+                     "  InitMicrophone() failed");
     }
 
     _recIsInitialized = true;
@@ -1013,9 +991,8 @@ WebRtc_Word32 AudioDeviceDummy::InitRecording()
 
 WebRtc_Word32 AudioDeviceDummy::StartRecording()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (!_recIsInitialized)
     {
@@ -1038,9 +1015,8 @@ WebRtc_Word32 AudioDeviceDummy::StartRecording()
 
 WebRtc_Word32 AudioDeviceDummy::StopRecording()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (!_recIsInitialized)
     {
@@ -1059,7 +1035,6 @@ WebRtc_Word32 AudioDeviceDummy::StopRecording()
 
 bool AudioDeviceDummy::RecordingIsInitialized() const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
     return (_recIsInitialized);
 }
 
@@ -1069,7 +1044,6 @@ bool AudioDeviceDummy::RecordingIsInitialized() const
 
 bool AudioDeviceDummy::Recording() const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
     return (_recording);
 }
 
@@ -1079,7 +1053,6 @@ bool AudioDeviceDummy::Recording() const
 
 bool AudioDeviceDummy::PlayoutIsInitialized() const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return (_playIsInitialized);
 }
@@ -1090,9 +1063,8 @@ bool AudioDeviceDummy::PlayoutIsInitialized() const
 
 WebRtc_Word32 AudioDeviceDummy::StartPlayout()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (!_playIsInitialized)
     {
@@ -1115,7 +1087,6 @@ WebRtc_Word32 AudioDeviceDummy::StartPlayout()
 
 WebRtc_Word32 AudioDeviceDummy::StopPlayout()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (!_playIsInitialized)
     {
@@ -1134,7 +1105,7 @@ WebRtc_Word32 AudioDeviceDummy::StopPlayout()
 
 WebRtc_Word32 AudioDeviceDummy::PlayoutDelay(WebRtc_UWord16& delayMS) const
 {
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
     delayMS = 0;
     return 0;
 }
@@ -1145,7 +1116,7 @@ WebRtc_Word32 AudioDeviceDummy::PlayoutDelay(WebRtc_UWord16& delayMS) const
 
 WebRtc_Word32 AudioDeviceDummy::RecordingDelay(WebRtc_UWord16& delayMS) const
 {
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
     delayMS = 0;
     return 0;
 }
@@ -1156,18 +1127,17 @@ WebRtc_Word32 AudioDeviceDummy::RecordingDelay(WebRtc_UWord16& delayMS) const
 
 bool AudioDeviceDummy::Playing() const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
     return (_playing);
 }
 // ----------------------------------------------------------------------------
 //  SetPlayoutBuffer
 // ----------------------------------------------------------------------------
 
-WebRtc_Word32 AudioDeviceDummy::SetPlayoutBuffer(const AudioDeviceModule::BufferType type, WebRtc_UWord16 sizeMS)
+WebRtc_Word32 AudioDeviceDummy::SetPlayoutBuffer(
+    const AudioDeviceModule::BufferType type, WebRtc_UWord16 sizeMS)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "AudioDeviceDummy::SetPlayoutBuffer(type=%u, sizeMS=%u)", type, sizeMS);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     // Just ignore
 
@@ -1178,9 +1148,10 @@ WebRtc_Word32 AudioDeviceDummy::SetPlayoutBuffer(const AudioDeviceModule::Buffer
 //  PlayoutBuffer
 // ----------------------------------------------------------------------------
 
-WebRtc_Word32 AudioDeviceDummy::PlayoutBuffer(AudioDeviceModule::BufferType& type, WebRtc_UWord16& sizeMS) const
+WebRtc_Word32 AudioDeviceDummy::PlayoutBuffer(
+    AudioDeviceModule::BufferType& type, WebRtc_UWord16& sizeMS) const
 {
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     type = AudioDeviceModule::kAdaptiveBufferSize;
     sizeMS = 0;
@@ -1194,7 +1165,6 @@ WebRtc_Word32 AudioDeviceDummy::PlayoutBuffer(AudioDeviceModule::BufferType& typ
 
 WebRtc_Word32 AudioDeviceDummy::CPULoad(WebRtc_UWord16& load) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     load = 0;
 
@@ -1312,7 +1282,7 @@ bool AudioDeviceDummy::PlayThreadProcess()
     }
 
     Lock();
-    
+
     if(_playing)
     {
         WebRtc_Word8 playBuffer[2*160];
@@ -1333,7 +1303,7 @@ bool AudioDeviceDummy::PlayThreadProcess()
             WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
                 "  invalid number of output samples(%d)", nSamples);
         }
-        
+
         if (_playDataFile)
         {
             int wr = fwrite(playBuffer, 2, 160, _playDataFile);

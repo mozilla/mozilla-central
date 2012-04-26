@@ -43,6 +43,7 @@
 #include <vector>
 
 #include "talk/base/basictypes.h"
+#include "talk/base/byteorder.h"
 #ifdef WIN32
 #include "talk/base/win32.h"
 #endif
@@ -67,7 +68,7 @@ class IPAddress {
 
   explicit IPAddress(uint32 ip_in_host_byte_order) : family_(AF_INET) {
     memset(&u_, 0, sizeof(u_));
-    u_.ip4.s_addr = htonl(ip_in_host_byte_order);
+    u_.ip4.s_addr = HostToNetwork32(ip_in_host_byte_order);
   }
 
   IPAddress(const IPAddress &other) : family_(other.family_) {

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -18,8 +18,7 @@
 
 namespace webrtc {
 
-class VoERTP_RTCPImpl : public virtual voe::SharedData,
-                        public VoERTP_RTCP,
+class VoERTP_RTCPImpl : public VoERTP_RTCP,
                         public voe::RefCount
 {
 public:
@@ -87,17 +86,6 @@ public:
 
     virtual int GetRTCPStatistics(int channel, CallStatistics& stats);
 
-    // RTP keepalive mechanism (maintains NAT mappings associated to RTP flows)
-    virtual int SetRTPKeepaliveStatus(int channel,
-                                      bool enable,
-                                      unsigned char unknownPayloadType,
-                                      int deltaTransmitTimeSeconds = 15);
-
-    virtual int GetRTPKeepaliveStatus(int channel,
-                                      bool& enabled,
-                                      unsigned char& unknownPayloadType,
-                                      int& deltaTransmitTimeSeconds);
-
     // FEC
     virtual int SetFECStatus(int channel,
                              bool enable,
@@ -124,8 +112,11 @@ public:
                                      unsigned short payloadSize);
 
 protected:
-    VoERTP_RTCPImpl();
+    VoERTP_RTCPImpl(voe::SharedData* shared);
     virtual ~VoERTP_RTCPImpl();
+
+private:
+    voe::SharedData* _shared;
 };
 
 }  // namespace webrtc

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -48,7 +48,7 @@ WebRtc_Word32
 VideoRenderMacCocoaImpl::Init()
 {
 
-    CriticalSectionScoped cs(_renderMacCocoaCritsect);
+    CriticalSectionScoped cs(&_renderMacCocoaCritsect);
     WEBRTC_TRACE(kTraceInfo, kTraceVideoRenderer, _id, "%s:%d", __FUNCTION__, __LINE__);
 
     // cast ptrWindow from void* to CocoaRenderer. Void* was once NSOpenGLView, and CocoaRenderer is NSOpenGLView.
@@ -71,7 +71,7 @@ VideoRenderMacCocoaImpl::Init()
 WebRtc_Word32
 VideoRenderMacCocoaImpl::ChangeUniqueId(const WebRtc_Word32 id)
 {
-    CriticalSectionScoped cs(_renderMacCocoaCritsect);
+    CriticalSectionScoped cs(&_renderMacCocoaCritsect);
     WEBRTC_TRACE(kTraceInfo, kTraceVideoRenderer, _id, "%s", __FUNCTION__);
     _id = id;
 
@@ -87,7 +87,7 @@ WebRtc_Word32
 VideoRenderMacCocoaImpl::ChangeWindow(void* window)
 {
 
-    CriticalSectionScoped cs(_renderMacCocoaCritsect);
+    CriticalSectionScoped cs(&_renderMacCocoaCritsect);
     WEBRTC_TRACE(kTraceInfo, kTraceVideoRenderer, _id, "%s changing ID to ", __FUNCTION__, window);
 
     if (window == NULL)
@@ -96,7 +96,6 @@ VideoRenderMacCocoaImpl::ChangeWindow(void* window)
     }
     _ptrWindow = window;
 
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id, "%s:%d", __FUNCTION__, __LINE__);
 
     _ptrWindow = window;
     _ptrCocoaRender->ChangeWindow((CocoaRenderView*)_ptrWindow);
@@ -112,13 +111,12 @@ VideoRenderMacCocoaImpl::AddIncomingRenderStream(const WebRtc_UWord32 streamId,
         const float right,
         const float bottom)
 {
-    CriticalSectionScoped cs(_renderMacCocoaCritsect);
+    CriticalSectionScoped cs(&_renderMacCocoaCritsect);
     WEBRTC_TRACE(kTraceDebug, kTraceVideoRenderer, _id, "%s", __FUNCTION__);
     VideoChannelNSOpenGL* nsOpenGLChannel = NULL;
 
     if(!_ptrWindow)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id, "%s, no window", __FUNCTION__);
     }
 
     if(!nsOpenGLChannel)
@@ -134,7 +132,7 @@ WebRtc_Word32
 VideoRenderMacCocoaImpl::DeleteIncomingRenderStream(const WebRtc_UWord32 streamId)
 {
     WEBRTC_TRACE(kTraceDebug, kTraceVideoRenderer, _id, "Constructor %s:%d", __FUNCTION__, __LINE__);
-    CriticalSectionScoped cs(_renderMacCocoaCritsect);
+    CriticalSectionScoped cs(&_renderMacCocoaCritsect);
     _ptrCocoaRender->DeleteNSGLChannel(streamId);
 
     return 0;
@@ -194,7 +192,7 @@ WebRtc_Word32
 VideoRenderMacCocoaImpl::GetScreenResolution(WebRtc_UWord32& screenWidth,
         WebRtc_UWord32& screenHeight) const
 {
-    CriticalSectionScoped cs(_renderMacCocoaCritsect);
+    CriticalSectionScoped cs(&_renderMacCocoaCritsect);
     NSScreen* mainScreen = [NSScreen mainScreen];
 
     NSRect frame = [mainScreen frame];
@@ -207,7 +205,7 @@ VideoRenderMacCocoaImpl::GetScreenResolution(WebRtc_UWord32& screenWidth,
 WebRtc_UWord32
 VideoRenderMacCocoaImpl::RenderFrameRate(const WebRtc_UWord32 streamId)
 {
-    CriticalSectionScoped cs(_renderMacCocoaCritsect);
+    CriticalSectionScoped cs(&_renderMacCocoaCritsect);
     return 0;
 }
 

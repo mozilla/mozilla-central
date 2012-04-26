@@ -116,7 +116,7 @@ class MockMediaStream: public LocalMediaStreamInterface {
     EXPECT_EQ(talk_base::Thread::Current(), signaling_thread_);
     return stream_impl_->video_tracks();
   }
-  virtual ReadyState ready_state() {
+  virtual ReadyState ready_state() const {
     EXPECT_EQ(talk_base::Thread::Current(), signaling_thread_);
     return stream_impl_->ready_state();
   }

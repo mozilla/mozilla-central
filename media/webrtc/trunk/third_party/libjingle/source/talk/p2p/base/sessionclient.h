@@ -28,6 +28,8 @@
 #ifndef TALK_P2P_BASE_SESSIONCLIENT_H_
 #define TALK_P2P_BASE_SESSIONCLIENT_H_
 
+#include "talk/p2p/base/constants.h"
+
 namespace buzz {
 class XmlElement;
 }
@@ -36,7 +38,7 @@ namespace cricket {
 
 struct ParseError;
 class Session;
-class SessionDescription;
+class ContentDescription;
 
 class ContentParser {
  public:
@@ -44,6 +46,14 @@ class ContentParser {
                             const buzz::XmlElement* elem,
                             const ContentDescription** content,
                             ParseError* error) = 0;
+  // If not IsWriteable, then a given content should be "skipped" when
+  // writing in the given protocol, as if it didn't exist.  We assume
+  // most things are writeable.  We do this to avoid strange cases
+  // like data contents in Gingle, which aren't writable.
+  virtual bool IsWritable(SignalingProtocol protocol,
+                          const ContentDescription* content) {
+    return true;
+  }
   virtual bool WriteContent(SignalingProtocol protocol,
                             const ContentDescription* content,
                             buzz::XmlElement** elem,

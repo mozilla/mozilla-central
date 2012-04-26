@@ -45,7 +45,7 @@ const size_t kNATEncodedIPv6AddressSize = 20U;
 class NATInternalSocketFactory {
  public:
   virtual ~NATInternalSocketFactory() {}
-  virtual AsyncSocket* CreateInternalSocket(int type,
+  virtual AsyncSocket* CreateInternalSocket(int family, int type,
       const SocketAddress& local_addr, SocketAddress* nat_addr) = 0;
 };
 
@@ -58,10 +58,12 @@ class NATSocketFactory : public SocketFactory, public NATInternalSocketFactory {
 
   // SocketFactory implementation
   virtual Socket* CreateSocket(int type);
+  virtual Socket* CreateSocket(int family, int type);
   virtual AsyncSocket* CreateAsyncSocket(int type);
+  virtual AsyncSocket* CreateAsyncSocket(int family, int type);
 
   // NATInternalSocketFactory implementation
-  virtual AsyncSocket* CreateInternalSocket(int type,
+  virtual AsyncSocket* CreateInternalSocket(int family, int type,
       const SocketAddress& local_addr, SocketAddress* nat_addr);
 
  private:
@@ -144,7 +146,11 @@ class NATSocketServer : public SocketServer, public NATInternalSocketFactory {
 
   // SocketServer implementation
   virtual Socket* CreateSocket(int type);
+  virtual Socket* CreateSocket(int family, int type);
+
   virtual AsyncSocket* CreateAsyncSocket(int type);
+  virtual AsyncSocket* CreateAsyncSocket(int family, int type);
+
   virtual void SetMessageQueue(MessageQueue* queue) {
     msg_queue_ = queue;
     server_->SetMessageQueue(queue);
@@ -157,7 +163,7 @@ class NATSocketServer : public SocketServer, public NATInternalSocketFactory {
   }
 
   // NATInternalSocketFactory implementation
-  virtual AsyncSocket* CreateInternalSocket(int type,
+  virtual AsyncSocket* CreateInternalSocket(int family, int type,
       const SocketAddress& local_addr, SocketAddress* nat_addr);
 
  private:

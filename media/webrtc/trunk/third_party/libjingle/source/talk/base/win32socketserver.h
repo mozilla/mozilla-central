@@ -49,7 +49,7 @@ class Win32Socket : public AsyncSocket {
   Win32Socket();
   virtual ~Win32Socket();
 
-  bool CreateT(int type);
+  bool CreateT(int family, int type);
 
   int Attach(SOCKET s);
   void SetTimeout(int ms);
@@ -59,12 +59,12 @@ class Win32Socket : public AsyncSocket {
   virtual SocketAddress GetRemoteAddress() const;
   virtual int Bind(const SocketAddress& addr);
   virtual int Connect(const SocketAddress& addr);
-  virtual int Send(const void *pv, size_t cb);
-  virtual int SendTo(const void *pv, size_t cb, const SocketAddress& addr);
-  virtual int Recv(void *pv, size_t cb);
-  virtual int RecvFrom(void *pv, size_t cb, SocketAddress *paddr);
+  virtual int Send(const void *buffer, size_t length);
+  virtual int SendTo(const void *buffer, size_t length, const SocketAddress& addr);
+  virtual int Recv(void *buffer, size_t length);
+  virtual int RecvFrom(void *buffer, size_t length, SocketAddress *out_addr);
   virtual int Listen(int backlog);
-  virtual Win32Socket *Accept(SocketAddress *paddr);
+  virtual Win32Socket *Accept(SocketAddress *out_addr);
   virtual int Close();
   virtual int GetError() const;
   virtual void SetError(int error);
@@ -115,7 +115,11 @@ class Win32SocketServer : public SocketServer {
 
   // SocketServer Interface
   virtual Socket* CreateSocket(int type);
+  virtual Socket* CreateSocket(int family, int type);
+
   virtual AsyncSocket* CreateAsyncSocket(int type);
+  virtual AsyncSocket* CreateAsyncSocket(int family, int type);
+
   virtual void SetMessageQueue(MessageQueue* queue);
   virtual bool Wait(int cms, bool process_io);
   virtual void WakeUp();

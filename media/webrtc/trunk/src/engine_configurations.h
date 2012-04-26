@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -67,10 +67,8 @@
 // ----------------------------------------------------------------------------
 
 #define WEBRTC_VOICE_ENGINE_AUDIO_PROCESSING_API
-#define WEBRTC_VOICE_ENGINE_CALL_REPORT_API
 #define WEBRTC_VOICE_ENGINE_CODEC_API
 #define WEBRTC_VOICE_ENGINE_DTMF_API
-#define WEBRTC_VOICE_ENGINE_ENCRYPTION_API
 #define WEBRTC_VOICE_ENGINE_EXTERNAL_MEDIA_API
 #define WEBRTC_VOICE_ENGINE_FILE_API
 #define WEBRTC_VOICE_ENGINE_HARDWARE_API
@@ -79,6 +77,11 @@
 #define WEBRTC_VOICE_ENGINE_RTP_RTCP_API
 #define WEBRTC_VOICE_ENGINE_VIDEO_SYNC_API
 #define WEBRTC_VOICE_ENGINE_VOLUME_CONTROL_API
+
+#ifndef WEBRTC_CHROMIUM_BUILD
+#define WEBRTC_VOICE_ENGINE_CALL_REPORT_API
+#define WEBRTC_VOICE_ENGINE_ENCRYPTION_API
+#endif
 
 // ============================================================================
 //                                 VideoEngine
@@ -94,12 +97,15 @@
 #define WEBRTC_VIDEO_ENGINE_CAPTURE_API
 #define WEBRTC_VIDEO_ENGINE_CODEC_API
 #define WEBRTC_VIDEO_ENGINE_ENCRYPTION_API
-#define WEBRTC_VIDEO_ENGINE_FILE_API
 #define WEBRTC_VIDEO_ENGINE_IMAGE_PROCESS_API
 #define WEBRTC_VIDEO_ENGINE_NETWORK_API
 #define WEBRTC_VIDEO_ENGINE_RENDER_API
 #define WEBRTC_VIDEO_ENGINE_RTP_RTCP_API
 // #define WEBRTC_VIDEO_ENGINE_EXTERNAL_CODEC_API
+
+#ifndef WEBRTC_CHROMIUM_BUILD
+#define WEBRTC_VIDEO_ENGINE_FILE_API
+#endif
 
 // ============================================================================
 //                       Platform specific configurations
@@ -110,17 +116,17 @@
 // ----------------------------------------------------------------------------
 
 #if defined(_WIN32)
-	// #define DIRECTDRAW_RENDERING
-	#define DIRECT3D9_RENDERING  // Requires DirectX 9.
-#endif 
+// #define DIRECTDRAW_RENDERING
+#define DIRECT3D9_RENDERING  // Requires DirectX 9.
+#endif
 
 // ----------------------------------------------------------------------------
 //  VideoEngine MAC
 // ----------------------------------------------------------------------------
 
 #if defined(WEBRTC_MAC) && !defined(MAC_IPHONE)
-	// #define CARBON_RENDERING
-	#define COCOA_RENDERING
+// #define CARBON_RENDERING
+#define COCOA_RENDERING
 #endif
 
 // ----------------------------------------------------------------------------
@@ -128,7 +134,7 @@
 // ----------------------------------------------------------------------------
 
 #if defined(MAC_IPHONE)
-    #define EAGL_RENDERING
+#define EAGL_RENDERING
 #endif
 
 // ----------------------------------------------------------------------------

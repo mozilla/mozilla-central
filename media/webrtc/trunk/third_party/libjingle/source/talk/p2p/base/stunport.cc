@@ -32,6 +32,7 @@
 #include "talk/base/helpers.h"
 #include "talk/base/nethelpers.h"
 #include "talk/p2p/base/common.h"
+#include "talk/p2p/base/stun.h"
 
 namespace cricket {
 
@@ -63,7 +64,8 @@ class StunPortBindingRequest : public StunRequest {
         response->GetAddress(STUN_ATTR_MAPPED_ADDRESS);
     if (!addr_attr) {
       LOG(LS_ERROR) << "Binding response missing mapped address.";
-    } else if (addr_attr->family() != 1) {
+    } else if (addr_attr->family() != STUN_ADDRESS_IPV4 &&
+               addr_attr->family() != STUN_ADDRESS_IPV6) {
       LOG(LS_ERROR) << "Binding address has bad family";
     } else {
       talk_base::SocketAddress addr(addr_attr->ipaddr(), addr_attr->port());
@@ -128,8 +130,10 @@ StunPort::StunPort(talk_base::Thread* thread,
                    talk_base::PacketSocketFactory* factory,
                    talk_base::Network* network,
                    const talk_base::IPAddress& ip, int min_port, int max_port,
+                   const std::string& username, const std::string& password,
                    const talk_base::SocketAddress& server_addr)
-    : Port(thread, STUN_PORT_TYPE, factory, network, ip, min_port, max_port),
+    : Port(thread, STUN_PORT_TYPE, factory, network, ip, min_port, max_port,
+           username, password),
       server_addr_(server_addr),
       requests_(thread),
       socket_(NULL),
@@ -139,8 +143,8 @@ StunPort::StunPort(talk_base::Thread* thread,
 }
 
 bool StunPort::Init() {
-  socket_ = factory_->CreateUdpSocket(
-      talk_base::SocketAddress(ip_, 0), min_port_, max_port_);
+  socket_ = socket_factory()->CreateUdpSocket(
+      talk_base::SocketAddress(ip(), 0), min_port(), max_port());
   if (!socket_) {
     LOG_J(LS_WARNING, this) << "UDP socket creation failed";
     return false;

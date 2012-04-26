@@ -79,6 +79,8 @@ class FakeStunPort : public StunPort {
                const talk_base::IPAddress& ip,
                int min_port,
                int max_port,
+               const std::string& username,
+               const std::string& password,
                const talk_base::SocketAddress& server_addr)
       : StunPort(thread,
                  factory,
@@ -86,6 +88,8 @@ class FakeStunPort : public StunPort {
                  ip,
                  min_port,
                  max_port,
+                 username,
+                 password,
                  server_addr) {
   }
 
@@ -227,6 +231,8 @@ class ConnectivityCheckerForTest : public ConnectivityChecker {
                             network->ip(),
                             kMinPort,
                             kMaxPort,
+                            config->username,
+                            config->password,
                             config->stun_address);
   }
   virtual RelayPort* CreateRelayPort(const PortConfiguration* config,

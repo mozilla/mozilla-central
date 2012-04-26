@@ -35,6 +35,15 @@ namespace cricket {
 
 static const int kMaxStaticPayloadId = 95;
 
+bool Codec::Matches(int payload, const std::string& nm) const {
+  return (payload <= kMaxStaticPayloadId) ?
+      (id == payload) : (_stricmp(name.c_str(), nm.c_str()) == 0);
+}
+
+bool Codec::Matches(const Codec& codec) const {
+  return Matches(codec.id, codec.name);
+}
+
 bool AudioCodec::Matches(int payload, const std::string& nm) const {
   // Match the codec id/name based on the typical static/dynamic name rules.
   // Matching is case-insensitive.
@@ -63,22 +72,16 @@ std::string AudioCodec::ToString() const {
   return os.str();
 }
 
-bool VideoCodec::Matches(int payload, const std::string& nm) const {
-  // Match the codec id/name based on the typical static/dynamic name rules.
-  // Matching is case-insensitive.
-  return (payload <= kMaxStaticPayloadId) ?
-      (id == payload) : (_stricmp(name.c_str(), nm.c_str()) == 0);
-}
-
-bool VideoCodec::Matches(const VideoCodec& codec) const {
-  // Only the id and name are matched.
-  return Matches(codec.id, codec.name);
-}
-
 std::string VideoCodec::ToString() const {
   std::ostringstream os;
   os << "VideoCodec[" << id << ":" << name << ":" << width << ":" << height
      << ":" << framerate << ":" << preference << "]";
+  return os.str();
+}
+
+std::string DataCodec::ToString() const {
+  std::ostringstream os;
+  os << "DataCodec[" << id << ":" << name << "]";
   return os.str();
 }
 

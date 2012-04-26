@@ -36,6 +36,13 @@ const size_t kMinRtpPacketLen = 12;
 const size_t kMaxRtpPacketLen = 2048;
 const size_t kMinRtcpPacketLen = 4;
 
+struct RtpHeader {
+  int payload_type;
+  int seq_num;
+  uint32 timestamp;
+  uint32 ssrc;
+};
+
 enum RtcpTypes {
   kRtcpTypeSR = 200,      // Sender report payload type.
   kRtcpTypeRR = 201,      // Receiver report payload type.
@@ -53,6 +60,18 @@ bool GetRtpSsrc(const void* data, size_t len, uint32* value);
 bool GetRtpHeaderLen(const void* data, size_t len, size_t* value);
 bool GetRtcpType(const void* data, size_t len, int* value);
 bool GetRtcpSsrc(const void* data, size_t len, uint32* value);
+bool GetRtpHeader(const void* data, size_t len, RtpHeader* header);
+
+// Assumes marker bit is 0.
+bool SetRtpHeaderFlags(
+    void* data, size_t len,
+    bool padding, bool extension, int csrc_count);
+bool SetRtpPayloadType(void* data, size_t len, int value);
+bool SetRtpSeqNum(void* data, size_t len, int value);
+bool SetRtpTimestamp(void* data, size_t len, uint32 value);
+bool SetRtpSsrc(void* data, size_t len, uint32 value);
+// Assumes version 2, no padding, no extensions, no csrcs.
+bool SetRtpHeader(void* data, size_t len, const RtpHeader& header);
 
 }  // namespace cricket
 

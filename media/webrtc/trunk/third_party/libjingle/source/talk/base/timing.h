@@ -25,12 +25,14 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TALK_MAGICFLUTE_TESTING_TIMING_H_
-#define TALK_MAGICFLUTE_TESTING_TIMING_H_
+#ifndef TALK_BASE_TIMING_H_
+#define TALK_BASE_TIMING_H_
 
 #if defined(WIN32)
 #include "talk/base/win32.h"
 #endif
+
+namespace talk_base {
 
 class Timing {
  public:
@@ -39,14 +41,15 @@ class Timing {
 
   // WallTimeNow() returns the current wall-clock time in seconds,
   // within 10 milliseconds resolution.
-  double WallTimeNow();
+  virtual double WallTimeNow();
 
   // TimerNow() is like WallTimeNow(), but is monotonically
   // increasing.  It returns seconds in resolution of 10 microseconds
   // or better.  Although timer and wall-clock time have the same
   // timing unit, they do not necessarily correlate because wall-clock
   // time may be adjusted backwards, hence not monotonic.
-  double TimerNow();
+  // Made virtual so we can make a fake one.
+  virtual double TimerNow();
 
   // BusyWait() exhausts CPU as long as the time elapsed is less than
   // the specified interval in seconds.  Returns the actual waiting
@@ -64,9 +67,10 @@ class Timing {
 
  private:
 #if defined(WIN32)
-  LARGE_INTEGER tick_hz_;
   HANDLE timer_handle_;
 #endif
 };
 
-#endif  // TALK_MAGICFLUTE_TESTING_TIMING_H_
+}  // namespace talk_base
+
+#endif // TALK_BASE_TIMING_H_

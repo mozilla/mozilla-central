@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -87,9 +87,8 @@ bool GetVideoDevice(webrtc::ViEBase* ptrViEBase,
                     webrtc::ViECapture* ptrViECapture,
                     char* captureDeviceName, char* captureDeviceUniqueId);
 bool GetIPAddress(char* IP);
-#ifndef WEBRTC_ANDROID
 bool ValidateIP(std::string iStr);
-#endif
+
 // The following are Print to stdout functions.
 void PrintCallInformation(char* IP, char* videoCaptureDeviceName,
                           char* videoCaptureUniqueId,
@@ -1894,9 +1893,6 @@ void PrintRTCCPStatistics(webrtc::ViERTP_RTCP* ptrViERtpRtcp,
                                            "ERROR: %s at line %d",
                                            __FUNCTION__, __LINE__);
       break;
-    default:
-      std::cout << "Invalid RTCP Statistics selected" << std::endl;
-      break;
   }
   std::cout << "\tRTCP fraction of lost packets: "
             << fractionLost << std::endl;
@@ -2001,9 +1997,6 @@ void PrintCodecStatistics(webrtc::ViECodec* ptrViECodec, int videoChannel,
       numberOfErrors += ViETest::TestError(error == 0,
                                            "ERROR: %s at line %d",
                                            __FUNCTION__, __LINE__);
-      break;
-    default:
-      std::cout << "Invalid Codec Statistics selected" << std::endl;
       break;
   }
   std::cout << "\tNumber of encoded key frames: "

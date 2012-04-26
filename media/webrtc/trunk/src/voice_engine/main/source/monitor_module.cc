@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -30,7 +30,7 @@ MonitorModule::~MonitorModule()
 WebRtc_Word32 
 MonitorModule::RegisterObserver(MonitorObserver& observer)
 {
-    CriticalSectionScoped lock(_callbackCritSect);
+    CriticalSectionScoped lock(&_callbackCritSect);
     if (_observerPtr)
     {
         return -1;
@@ -42,7 +42,7 @@ MonitorModule::RegisterObserver(MonitorObserver& observer)
 WebRtc_Word32 
 MonitorModule::DeRegisterObserver()
 {
-    CriticalSectionScoped lock(_callbackCritSect);
+    CriticalSectionScoped lock(&_callbackCritSect);
     if (!_observerPtr)
     {
         return 0;
@@ -52,7 +52,7 @@ MonitorModule::DeRegisterObserver()
 }
 
 WebRtc_Word32 
-MonitorModule::Version(WebRtc_Word8* version,
+MonitorModule::Version(char* version,
                        WebRtc_UWord32& remainingBufferInBytes,
                        WebRtc_UWord32& position) const
 {
@@ -80,7 +80,7 @@ MonitorModule::Process()
     _lastProcessTime = GET_TIME_IN_MS();
     if (_observerPtr)
     {
-        CriticalSectionScoped lock(_callbackCritSect);
+        CriticalSectionScoped lock(&_callbackCritSect);
         _observerPtr->OnPeriodicProcess();
     }
     return 0;

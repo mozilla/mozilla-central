@@ -88,7 +88,7 @@ int InternalUrlDecode(const char *source, char *dest,
   }
 
   *dest = 0;
-  return dest - start;
+  return static_cast<int>(dest - start);
 }
 
 int UrlDecode(const char *source, char *dest) {
@@ -134,7 +134,7 @@ int InternalUrlEncode(const char *source, char *dest, unsigned int max,
   ASSERT(static_cast<unsigned int>(dest - start) < max);
   *dest = 0;
 
-  return dest - start;
+  return static_cast<int>(dest - start);
 }
 
 int UrlEncode(const char *source, char *dest, unsigned max) {
@@ -173,7 +173,7 @@ std::string
 InternalUrlEncodeString(const std::string & decoded,
                         bool encode_space_as_plus,
                         bool unsafe_only) {
-  size_t needed_length = decoded.length() * 3 + 1;
+  int needed_length = static_cast<int>(decoded.length()) * 3 + 1;
   char* buf = STACK_ARRAY(char, needed_length);
   InternalUrlEncode(decoded.c_str(), buf, needed_length,
                     encode_space_as_plus, unsafe_only);

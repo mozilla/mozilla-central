@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -97,6 +97,14 @@ public:
     // Gets the EC status and mode.
     virtual int GetEcStatus(bool& enabled, EcModes& mode) = 0;
 
+    // Sets a delay |offset| in ms to add to the system delay reported by the
+    // OS, which is used by the AEC to synchronize far- and near-end streams.
+    // In some cases a system may introduce a delay which goes unreported by the
+    // OS, but which is known to the user. This method can be used to compensate
+    // for the unreported delay.
+    virtual void SetDelayOffsetMs(int offset) = 0;
+    virtual int DelayOffsetMs() = 0;
+
     // Modifies settings for the AEC designed for mobile devices (AECM).
     virtual int SetAecmMode(AecmModes mode = kAecmSpeakerphone,
                             bool enableCNG = true) = 0;
@@ -178,6 +186,20 @@ public:
 
     // Gets the current typing detection status.
     virtual int GetTypingDetectionStatus(bool& enabled) = 0;
+
+    // Reports the lower of:
+    // * Time in seconds since the last typing event.
+    // * Time in seconds since the typing detection was enabled.
+    // Returns error if typing detection is disabled.
+    virtual int TimeSinceLastTyping(int &seconds) = 0;
+
+    // Optional setting of typing detection parameters
+    // Parameter with value == 0 will be ignored
+    // and left with default config.
+    virtual int SetTypingDetectionParameters(int timeWindow,
+                                             int costPerTyping,
+                                             int reportingThreshold,
+                                             int penaltyDecay) = 0;
 
 protected:
     VoEAudioProcessing() {}

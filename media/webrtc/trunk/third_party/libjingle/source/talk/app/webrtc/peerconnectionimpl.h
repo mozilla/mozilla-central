@@ -31,9 +31,10 @@
 #include <map>
 #include <string>
 
+#include "talk/app/webrtc/mediastreamsignaling.h"
 #include "talk/app/webrtc/peerconnection.h"
 #include "talk/app/webrtc/peerconnectionfactoryimpl.h"
-#include "talk/app/webrtc/peerconnectionsignaling.h"
+#include "talk/app/webrtc/roapsignaling.h"
 #include "talk/app/webrtc/streamcollectionimpl.h"
 #include "talk/app/webrtc/webrtcsession.h"
 #include "talk/base/scoped_ptr.h"
@@ -43,15 +44,17 @@ namespace webrtc {
 class MediaStreamHandlers;
 
 // PeerConnectionImpl implements the PeerConnection interface.
-// It uses PeerConnectionSignaling and WebRtcSession to implement
+// It uses RoapSignaling and WebRtcSession to implement
 // the PeerConnection functionality.
 class PeerConnection : public PeerConnectionInterface,
+                       public RemoteMediaStreamObserver,
                        public talk_base::MessageHandler,
                        public sigslot::has_slots<> {
  public:
   explicit PeerConnection(PeerConnectionFactory* factory);
 
-  bool Initialize(const std::string& configuration,
+  bool Initialize(bool use_roap,
+                  const std::string& configuration,
                   PeerConnectionObserver* observer);
 
   virtual ~PeerConnection();
@@ -71,21 +74,42 @@ class PeerConnection : public PeerConnectionInterface,
   virtual ReadyState ready_state();
   virtual SdpState sdp_state();
 
+  // Jsep functions.
+  virtual SessionDescriptionInterface* CreateOffer(const MediaHints& hints);
+  virtual SessionDescriptionInterface* CreateAnswer(
+      const MediaHints& hints,
+      const SessionDescriptionInterface* offer);
+
+  virtual bool StartIce(IceOptions options);
+  virtual bool SetLocalDescription(Action action,
+                                   SessionDescriptionInterface* desc);
+  virtual bool SetRemoteDescription(Action action,
+                                    SessionDescriptionInterface* desc);
+  virtual bool ProcessIceMessage(const IceCandidateInterface* ice_candidate);
+  virtual const SessionDescriptionInterface* local_description() const;
+  virtual const SessionDescriptionInterface* remote_description() const;
+
  private:
   // Implement talk_base::MessageHandler.
   void OnMessage(talk_base::Message* msg);
 
-  // Signals from PeerConnectionSignaling.
+  // Signals from RoapSignaling.
   void OnNewPeerConnectionMessage(const std::string& message);
-  void OnRemoteStreamAdded(MediaStreamInterface* remote_stream);
-  void OnRemoteStreamRemoved(MediaStreamInterface* remote_stream);
-  void OnSignalingStateChange(PeerConnectionSignaling::State state);
+  void OnSignalingStateChange(RoapSignaling::State state);
+
+  // Implements RemoteMediaStreamObserver.
+  virtual void OnAddStream(MediaStreamInterface* stream);
+  virtual void OnRemoveStream(MediaStreamInterface* stream);
+
+  // Signals from WebRtcSession.
+  void OnSessionStateChange(cricket::BaseSession* session,
+                            cricket::BaseSession::State state);
 
   void ChangeReadyState(PeerConnectionInterface::ReadyState ready_state);
   void ChangeSdpState(PeerConnectionInterface::SdpState sdp_state);
   void Terminate_s();
 
-  talk_base::Thread* signaling_thread() {
+  talk_base::Thread* signaling_thread() const {
     return factory_->signaling_thread();
   }
 
@@ -103,7 +127,8 @@ class PeerConnection : public PeerConnectionInterface,
 
   talk_base::scoped_ptr<cricket::PortAllocator> port_allocator_;
   talk_base::scoped_ptr<WebRtcSession> session_;
-  talk_base::scoped_ptr<PeerConnectionSignaling> signaling_;
+  talk_base::scoped_ptr<RoapSignaling> roap_signaling_;
+  talk_base::scoped_ptr<MediaStreamSignaling> mediastream_signaling_;
   talk_base::scoped_ptr<MediaStreamHandlers> stream_handler_;
 };
 

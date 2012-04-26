@@ -35,6 +35,7 @@
 namespace cricket {
 
 enum MediaProcessorDirection {
+    MPD_INVALID = 0,
     MPD_RX = 1 << 0,
     MPD_TX = 1 << 1,
     MPD_RX_AND_TX = MPD_RX | MPD_TX,
@@ -45,8 +46,10 @@ class VoiceProcessor : public sigslot::has_slots<> {
   virtual ~VoiceProcessor() {}
   // Contents of frame may be manipulated by the processor.
   // The processed data is expected to be the same size as the
-  // original data
-  virtual void OnFrame(uint32 ssrc, AudioFrame* frame) = 0;
+  // original data.
+  virtual void OnFrame(uint32 ssrc,
+                       MediaProcessorDirection direction,
+                       AudioFrame* frame) = 0;
 };
 
 }  // namespace cricket

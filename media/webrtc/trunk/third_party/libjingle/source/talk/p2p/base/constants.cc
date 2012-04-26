@@ -49,8 +49,11 @@ const buzz::StaticQName QN_JINGLE_CONTENT = { NS_JINGLE, "content" };
 const buzz::StaticQName QN_JINGLE_CONTENT_NAME = { NS_EMPTY, "name" };
 const buzz::StaticQName QN_JINGLE_CONTENT_MEDIA = { NS_EMPTY, "media" };
 const buzz::StaticQName QN_JINGLE_REASON = { NS_JINGLE, "reason" };
+const buzz::StaticQName QN_JINGLE_DRAFT_GROUP = { NS_JINGLE_DRAFT, "group" };
+const buzz::StaticQName QN_JINGLE_DRAFT_GROUP_TYPE = { NS_EMPTY, "type" };
 const char JINGLE_CONTENT_MEDIA_AUDIO[] = "audio";
 const char JINGLE_CONTENT_MEDIA_VIDEO[] = "video";
+const char JINGLE_CONTENT_MEDIA_DATA[] = "data";
 const char JINGLE_ACTION_SESSION_INITIATE[] = "session-initiate";
 const char JINGLE_ACTION_SESSION_INFO[] = "session-info";
 const char JINGLE_ACTION_SESSION_ACCEPT[] = "session-accept";
@@ -97,9 +100,10 @@ const char LN_BANDWIDTH[] = "bandwidth";
 
 const char CN_AUDIO[] = "audio";
 const char CN_VIDEO[] = "video";
+const char CN_DATA[] = "data";
 const char CN_OTHER[] = "main";
 // other SDP related strings
-const char GN_BUNDLE[] = "BUNDLE";
+const char GROUP_TYPE_BUNDLE[] = "BUNDLE";
 
 const char NS_JINGLE_RTP[] = "urn:xmpp:jingle:apps:rtp:1";
 const buzz::StaticQName QN_JINGLE_RTP_CONTENT =
@@ -178,6 +182,8 @@ const char GINGLE_CANDIDATE_NAME_RTP[] = "rtp";
 const char GINGLE_CANDIDATE_NAME_RTCP[] = "rtcp";
 const char GINGLE_CANDIDATE_NAME_VIDEO_RTP[] = "video_rtp";
 const char GINGLE_CANDIDATE_NAME_VIDEO_RTCP[] = "video_rtcp";
+const char GINGLE_CANDIDATE_NAME_DATA_RTP[] = "data_rtp";
+const char GINGLE_CANDIDATE_NAME_DATA_RTCP[] = "data_rtcp";
 
 // terminate reasons and errors
 const char JINGLE_ERROR_BAD_REQUEST[] = "bad-request";
@@ -220,6 +226,10 @@ const buzz::StaticQName QN_JINGLE_DRAFT_SSRC_GROUP =
 const buzz::StaticQName QN_SEMANTICS = { cricket::NS_EMPTY, "semantics" };
 const buzz::StaticQName QN_JINGLE_LEGACY_NOTIFY = { NS_JINGLE_DRAFT, "notify" };
 const buzz::StaticQName QN_JINGLE_LEGACY_SOURCE = { NS_JINGLE_DRAFT, "source" };
+
+const char NS_GINGLE_RAW[] = "http://www.google.com/transport/raw-udp";
+const buzz::StaticQName QN_GINGLE_RAW_TRANSPORT = { NS_GINGLE_RAW, "transport" };
+const buzz::StaticQName QN_GINGLE_RAW_CHANNEL = { NS_GINGLE_RAW, "channel" };
 
 // old stuff
 #ifdef FEATURE_ENABLE_VOICEMAIL

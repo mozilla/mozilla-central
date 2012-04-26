@@ -79,7 +79,10 @@ class PhysicalSocketServer : public SocketServer {
 
   // SocketFactory:
   virtual Socket* CreateSocket(int type);
+  virtual Socket* CreateSocket(int family, int type);
+
   virtual AsyncSocket* CreateAsyncSocket(int type);
+  virtual AsyncSocket* CreateAsyncSocket(int family, int type);
 
   // Internal Factory for Accept
   AsyncSocket* WrapSocket(SOCKET s);

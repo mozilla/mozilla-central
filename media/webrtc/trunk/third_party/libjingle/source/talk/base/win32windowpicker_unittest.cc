@@ -66,8 +66,7 @@ TEST(Win32WindowPickerTest, TestGetWindowList) {
   TCHAR window_title[500];
   GetWindowText(window_picker.visible_window()->handle(), window_title,
                 ARRAY_SIZE(window_title));
-  EXPECT_EQ(ToUtf8(window_title, wcslen(window_title)),
-            ToUtf8(kVisibleWindowTitle, wcslen(kVisibleWindowTitle)));
+  EXPECT_EQ(0, wcscmp(window_title, kVisibleWindowTitle));
 }
 
 TEST(Win32WindowPickerTest, TestIsVisible) {

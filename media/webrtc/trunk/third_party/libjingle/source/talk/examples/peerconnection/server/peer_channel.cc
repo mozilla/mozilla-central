@@ -160,7 +160,7 @@ void ChannelMember::SetWaitingSocket(DataSocket* ds) {
   assert(ds->method() == DataSocket::GET);
   if (ds && !queue_.empty()) {
     assert(waiting_socket_ == NULL);
-    const QueuedResponse& response = queue_.back();
+    const QueuedResponse& response = queue_.front();
     ds->Send(response.status, true, response.content_type,
              response.extra_headers, response.data);
     queue_.pop();

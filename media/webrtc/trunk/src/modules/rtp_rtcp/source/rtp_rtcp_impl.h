@@ -26,7 +26,7 @@ class MatlabPlot;
 
 namespace webrtc {
 
-class ModuleRtpRtcpImpl : public RtpRtcp, private TMMBRHelp
+class ModuleRtpRtcpImpl : public RtpRtcp
 {
 public:
     ModuleRtpRtcpImpl(const WebRtc_Word32 id,
@@ -147,16 +147,6 @@ public:
     *   Sender
     */
     virtual WebRtc_Word32 InitSender();
-
-    virtual WebRtc_Word32 SetRTPKeepaliveStatus(const bool enable,
-                                              const WebRtc_Word8 unknownPayloadType,
-                                              const WebRtc_UWord16 deltaTransmitTimeMS);
-
-    virtual WebRtc_Word32 RTPKeepaliveStatus(bool* enable,
-                                           WebRtc_Word8* unknownPayloadType,
-                                           WebRtc_UWord16* deltaTransmitTimeMS) const;
-
-    virtual bool RTPKeepalive() const;
 
     virtual WebRtc_Word32 RegisterSendPayload(const CodecInst& voiceCodec);
 
@@ -333,6 +323,9 @@ public:
                                       const WebRtc_UWord8 numberOfSSRC,
                                       const WebRtc_UWord32* SSRC);
 
+    virtual WebRtc_Word32 SetMaximumBitrateEstimate(
+        const WebRtc_UWord32 bitrate);
+
     virtual bool SetRemoteBitrateObserver(RtpRemoteBitrateObserver* observer);
     /*
     *   (IJ) Extended jitter report.
@@ -348,15 +341,7 @@ public:
 
     virtual WebRtc_Word32 SetTMMBRStatus(const bool enable);
 
-    virtual WebRtc_Word32 TMMBRReceived(const WebRtc_UWord32 size,
-                                      const WebRtc_UWord32 accNumCandidates,
-                                      TMMBRSet* candidateSet) const;
-
-    virtual WebRtc_Word32 SetTMMBN(const TMMBRSet* boundingSet,
-                                 const WebRtc_UWord32 maxBitrateKbit);
-
-    virtual WebRtc_Word32 RequestTMMBR(const WebRtc_UWord32 estimatedBW,
-                                     const WebRtc_UWord32 packetOH);
+    WebRtc_Word32 SetTMMBN(const TMMBRSet* boundingSet);
 
     virtual WebRtc_UWord16 MaxPayloadLength() const;
 
@@ -456,13 +441,13 @@ public:
     virtual WebRtc_Word32 SetKeyFrameRequestMethod(const KeyFrameRequestMethod method);
 
     // send a request for a keyframe
-    virtual WebRtc_Word32 RequestKeyFrame(const FrameType frameType);
+    virtual WebRtc_Word32 RequestKeyFrame();
 
     virtual WebRtc_Word32 SetCameraDelay(const WebRtc_Word32 delayMS);
 
-    virtual WebRtc_Word32 SetSendBitrate(const WebRtc_UWord32 startBitrate,
-                                       const WebRtc_UWord16 minBitrateKbit,
-                                       const WebRtc_UWord16 maxBitrateKbit);
+    virtual void SetSendBitrate(const WebRtc_UWord32 startBitrate,
+                                const WebRtc_UWord16 minBitrateKbit,
+                                const WebRtc_UWord16 maxBitrateKbit);
 
     virtual WebRtc_Word32 SetGenericFECStatus(const bool enable,
                                             const WebRtc_UWord8 payloadTypeRED,
@@ -472,12 +457,9 @@ public:
                                          WebRtc_UWord8& payloadTypeRED,
                                          WebRtc_UWord8& payloadTypeFEC);
 
-
-    virtual WebRtc_Word32 SetFECCodeRate(const WebRtc_UWord8 keyFrameCodeRate,
-                                         const WebRtc_UWord8 deltaFrameCodeRate);
-
-    virtual WebRtc_Word32 SetFECUepProtection(const bool keyUseUepProtection,
-                                              const bool deltaUseUepProtection);
+    virtual WebRtc_Word32 SetFecParameters(
+        const FecProtectionParams* delta_params,
+        const FecProtectionParams* key_params);
 
     virtual WebRtc_Word32 LastReceivedNTP(WebRtc_UWord32& NTPsecs,
                                           WebRtc_UWord32& NTPfrac,
@@ -491,6 +473,12 @@ public:
                              WebRtc_UWord32* fecRate,
                              WebRtc_UWord32* nackRate) const;
 
+    virtual int EstimatedSendBandwidth(
+        WebRtc_UWord32* available_bandwidth) const;
+
+    virtual int EstimatedReceiveBandwidth(
+        WebRtc_UWord32* available_bandwidth) const;
+
     virtual void SetRemoteSSRC(const WebRtc_UWord32 SSRC);
     
     virtual WebRtc_UWord32 SendTimeOfSendReport(const WebRtc_UWord32 sendReport);
@@ -499,8 +487,6 @@ public:
 
     // good state of RTP receiver inform sender
     virtual WebRtc_Word32 SendRTCPReferencePictureSelection(const WebRtc_UWord64 pictureID);
-
-    virtual void OnBandwidthEstimateUpdate(WebRtc_UWord16 bandWidthKbit);
 
     void OnReceivedNTP() ;
 
@@ -517,7 +503,7 @@ public:
     void OnReceivedBandwidthEstimateUpdate(const WebRtc_UWord16 bwEstimateKbit);
 
     // bad state of RTP receiver request a keyframe
-    void OnRequestIntraFrame(const FrameType frameType);
+    void OnRequestIntraFrame();
 
     void OnReceivedIntraFrameRequest(const RtpRtcp* caller);
 
@@ -533,6 +519,10 @@ public:
 
     void OnRequestSendReport();
 
+    // Following function is only called when constructing the object so no
+    // need to worry about data race.
+    void OwnsClock() { _owns_clock = true; }
+
 protected:
     void RegisterChildModule(RtpRtcp* module);
 
@@ -547,8 +537,6 @@ protected:
     // Get remote SequenceNumber
     WebRtc_UWord16 RemoteSequenceNumber() const;
 
-    WebRtc_Word32 UpdateTMMBR();
-
     // only for internal testing
     WebRtc_UWord32 LastSendReport(WebRtc_UWord32& lastRTCPTime);
 
@@ -558,6 +546,7 @@ protected:
     RTCPSender                _rtcpSender;
     RTCPReceiver              _rtcpReceiver;
 
+    bool                      _owns_clock;
     RtpRtcpClock&             _clock;
 private:
     void SendKeyFrame();

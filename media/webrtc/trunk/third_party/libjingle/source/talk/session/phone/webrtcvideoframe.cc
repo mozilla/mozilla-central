@@ -28,6 +28,7 @@
 #include "talk/session/phone/webrtcvideoframe.h"
 
 #include "libyuv/convert.h"
+#include "libyuv/convert_from.h"
 #include "libyuv/planar_functions.h"
 #include "talk/base/logging.h"
 #include "talk/session/phone/videocapturer.h"
@@ -243,6 +244,9 @@ bool WebRtcVideoFrame::Reset(uint32 format, int w, int h, int dw, int dh,
   // TODO: Add horizontal cropping support.
   if (format != FOURCC_I420 || dw != w || dh < 0 || dh > abs(h) ||
       rotation != 0) {
+    return false;
+  }
+  if (!Validate(format, w, h, sample, sample_size)) {
     return false;
   }
 

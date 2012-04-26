@@ -72,6 +72,9 @@ struct SecureTunnelContentDescription : public ContentDescription {
         client_pem_certificate(client_pem_cert),
         server_pem_certificate(server_pem_cert) {
   }
+  virtual ContentDescription* Copy() const {
+    return new SecureTunnelContentDescription(*this);
+  }
 };
 
 // SecureTunnelSessionClient

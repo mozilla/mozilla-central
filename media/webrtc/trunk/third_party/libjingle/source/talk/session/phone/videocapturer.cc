@@ -34,7 +34,7 @@
 namespace cricket {
 
 static const int64 kMaxDistance = ~(static_cast<int64>(1) << 63);
-static const int64  kMinDesirableFps = static_cast<int64>(15);
+static const int64  kMinDesirableFps = static_cast<int64>(14);
 
 /////////////////////////////////////////////////////////////////////
 // Implementation of struct CapturedFrame

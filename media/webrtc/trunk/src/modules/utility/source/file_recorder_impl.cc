@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -41,13 +41,18 @@ FileRecorder* FileRecorder::CreateFileRecorder(WebRtc_UWord32 instanceID,
     case kFileFormatPcm8kHzFile:
     case kFileFormatPcm32kHzFile:
         return new FileRecorderImpl(instanceID, fileFormat);
-#ifdef WEBRTC_MODULE_UTILITY_VIDEO
     case kFileFormatAviFile:
+#ifdef WEBRTC_MODULE_UTILITY_VIDEO
         return new AviRecorder(instanceID, fileFormat);
-#endif
-    default:
+#else
+        WEBRTC_TRACE(kTraceError, kTraceFile, -1,
+                             "Invalid file format: %d", kFileFormatAviFile);
+        assert(false);
         return NULL;
+#endif
     }
+    assert(false);
+    return NULL;
 }
 
 void FileRecorder::DestroyFileRecorder(FileRecorder* recorder)
@@ -60,8 +65,12 @@ FileRecorderImpl::FileRecorderImpl(WebRtc_UWord32 instanceID,
     : _instanceID(instanceID),
       _fileFormat(fileFormat),
       _moduleFile(MediaFile::CreateMediaFile(_instanceID)),
+      _stream(NULL),
+      codec_info_(),
       _amrFormat(AMRFileStorage),
-      _audioEncoder(instanceID)
+      _audioBuffer(),
+      _audioEncoder(instanceID),
+      _audioResampler()
 {
 }
 
@@ -86,7 +95,7 @@ WebRtc_Word32 FileRecorderImpl::RegisterModuleFileCallback(
 }
 
 WebRtc_Word32 FileRecorderImpl::StartRecordingAudioFile(
-    const WebRtc_Word8* fileName,
+    const char* fileName,
     const CodecInst& codecInst,
     WebRtc_UWord32 notificationTimeMs,
     ACMAMRPackingFormat amrFormat)
@@ -199,8 +208,10 @@ WebRtc_Word32 FileRecorderImpl::RecordAudioToFile(
         // Recording mono but incoming audio is (interleaved) stereo.
         tempAudioFrame._audioChannel = 1;
         tempAudioFrame._frequencyInHz = incomingAudioFrame._frequencyInHz;
+        tempAudioFrame._payloadDataLengthInSamples =
+          incomingAudioFrame._payloadDataLengthInSamples;
         for (WebRtc_UWord16 i = 0;
-             i < (incomingAudioFrame._payloadDataLengthInSamples >> 1); i++)
+             i < (incomingAudioFrame._payloadDataLengthInSamples); i++)
         {
             // Sample value is the average of left and right buffer rounded to
             // closest integer value. Note samples can be either 1 or 2 byte.
@@ -208,8 +219,24 @@ WebRtc_Word32 FileRecorderImpl::RecordAudioToFile(
                  ((incomingAudioFrame._payloadData[2 * i] +
                    incomingAudioFrame._payloadData[(2 * i) + 1] + 1) >> 1);
         }
+    }
+    else if( incomingAudioFrame._audioChannel == 1 &&
+        _moduleFile->IsStereo())
+    {
+        // Recording stereo but incoming audio is mono.
+        tempAudioFrame._audioChannel = 2;
+        tempAudioFrame._frequencyInHz = incomingAudioFrame._frequencyInHz;
         tempAudioFrame._payloadDataLengthInSamples =
-            incomingAudioFrame._payloadDataLengthInSamples / 2;
+          incomingAudioFrame._payloadDataLengthInSamples;
+        for (WebRtc_UWord16 i = 0;
+             i < (incomingAudioFrame._payloadDataLengthInSamples); i++)
+        {
+            // Duplicate sample to both channels
+             tempAudioFrame._payloadData[2*i] =
+               incomingAudioFrame._payloadData[i];
+             tempAudioFrame._payloadData[2*i+1] =
+               incomingAudioFrame._payloadData[i];
+        }
     }
 
     const AudioFrame* ptrAudioFrame = &incomingAudioFrame;
@@ -249,7 +276,8 @@ WebRtc_Word32 FileRecorderImpl::RecordAudioToFile(
                                           codec_info_.plfreq,
                                           kResamplerSynchronousStereo);
             _audioResampler.Push(ptrAudioFrame->_payloadData,
-                                 ptrAudioFrame->_payloadDataLengthInSamples,
+                                 ptrAudioFrame->_payloadDataLengthInSamples *
+                                 ptrAudioFrame->_audioChannel,
                                  (WebRtc_Word16*)_audioBuffer,
                                  MAX_AUDIO_BUFFER_IN_BYTES, outLen);
         } else {
@@ -261,7 +289,7 @@ WebRtc_Word32 FileRecorderImpl::RecordAudioToFile(
                                  (WebRtc_Word16*)_audioBuffer,
                                  MAX_AUDIO_BUFFER_IN_BYTES, outLen);
         }
-        encodedLenInBytes = outLen*2;
+        encodedLenInBytes = outLen * sizeof(WebRtc_Word16);
     }
 
     // Codec may not be operating at a frame rate of 10 ms. Whenever enough
@@ -329,7 +357,8 @@ class AudioFrameFileInfo
                      const WebRtc_UWord16 audioSize,
                      const WebRtc_UWord16 audioMS,
                      const TickTime& playoutTS)
-           : _audioSize(audioSize), _audioMS(audioMS) ,_playoutTS(playoutTS)
+           : _audioData(), _audioSize(audioSize), _audioMS(audioMS),
+             _playoutTS(playoutTS)
        {
            if(audioSize > MAX_AUDIO_BUFFER_IN_BYTES)
            {
@@ -376,7 +405,7 @@ AviRecorder::~AviRecorder( )
 }
 
 WebRtc_Word32 AviRecorder::StartRecordingVideoFile(
-    const WebRtc_Word8* fileName,
+    const char* fileName,
     const CodecInst& audioCodecInst,
     const VideoCodec& videoCodecInst,
     ACMAMRPackingFormat amrFormat,
@@ -423,7 +452,6 @@ WebRtc_Word32 AviRecorder::StopRecording()
     _timeEvent.StopTimer();
 
     StopThread();
-    _videoEncoder->Reset();
     return FileRecorderImpl::StopRecording();
 }
 
@@ -672,7 +700,7 @@ WebRtc_Word32 AviRecorder::EncodeAndWriteVideoToFile(VideoFrame& videoFrame)
         return -1;
     }
 
-    if(_frameScaler->ResizeFrameIfNeeded(videoFrame, _videoCodecInst.width,
+    if(_frameScaler->ResizeFrameIfNeeded(&videoFrame, _videoCodecInst.width,
                                          _videoCodecInst.height) != 0)
     {
         return -1;

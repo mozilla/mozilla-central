@@ -26,12 +26,7 @@
  */
 
 #include "talk/base/timing.h"
-
-#if defined(POSIX)
-#define _POSIX_C_SOURCE 199506L
-#endif
-
-#include <time.h>
+#include "talk/base/timeutils.h"
 
 #if defined(POSIX)
 #include <errno.h>
@@ -46,10 +41,10 @@
 #include "talk/base/win32.h"
 #endif
 
+namespace talk_base {
+
 Timing::Timing() {
 #if defined(WIN32)
-  QueryPerformanceFrequency(&tick_hz_);
-
   // This may fail, but we handle failure gracefully in the methods
   // that use it (use alternative sleep method).
   //
@@ -86,27 +81,7 @@ double Timing::WallTimeNow() {
 }
 
 double Timing::TimerNow() {
-#if defined(OSX)
-  // No clock_gettime on OSX.
-  clock_serv_t clock;
-  mach_timespec_t time;
-  host_get_clock_service(mach_host_self(), SYSTEM_CLOCK, &clock);
-  clock_get_time(clock, &time);
-  return (static_cast<double>(time.tv_sec) +
-          static_cast<double>(time.tv_nsec) * 1.0e-9);
-#elif defined(POSIX)
-  struct timespec time;
-  clock_gettime(CLOCK_MONOTONIC, &time);
-  // Convert from second (1.0) and nanosecond (1e-9).
-  return (static_cast<double>(time.tv_sec) +
-          static_cast<double>(time.tv_nsec) * 1.0e-9);
-
-#elif defined(WIN32)
-  LARGE_INTEGER count;
-  QueryPerformanceCounter(&count);
-  return (static_cast<double>(count.QuadPart) /
-          static_cast<double>(tick_hz_.QuadPart));
-#endif
+  return (static_cast<double>(TimeNanos()) / kNumNanosecsPerSec);
 }
 
 double Timing::BusyWait(double period) {
@@ -150,3 +125,5 @@ double Timing::IdleWait(double period) {
 
   return TimerNow() - start_time;
 }
+
+}  // namespace talk_base

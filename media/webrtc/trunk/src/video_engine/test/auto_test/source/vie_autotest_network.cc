@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -49,18 +49,12 @@ void ViEAutoTest::ViENetworkStandardTest()
 {
     TbInterfaces ViE("ViENetworkStandardTest"); // Create VIE
     TbCaptureDevice tbCapture(ViE);
-    EXPECT_EQ(0, ViE.render->AddRenderer(
-        tbCapture.captureId, _window1, 0, 0.0, 0.0, 1.0, 1.0));
-    EXPECT_EQ(0, ViE.render->StartRender(tbCapture.captureId));
-
     {
         // Create a video channel
         TbVideoChannel tbChannel(ViE, webrtc::kVideoCodecVP8);
         tbCapture.ConnectTo(tbChannel.videoChannel);
 
-        EXPECT_EQ(0, ViE.render->AddRenderer(
-            tbChannel.videoChannel, _window2, 1, 0.0, 0.0, 1.0, 1.0));
-        EXPECT_EQ(0, ViE.render->StartRender(tbChannel.videoChannel));
+        RenderCaptureDeviceAndOutputStream(&ViE, &tbChannel, &tbCapture);
 
         // ***************************************************************
         // Engine ready. Begin testing class
@@ -224,7 +218,7 @@ void ViEAutoTest::ViENetworkAPITest()
     TbInterfaces ViE("ViENetworkAPITest"); // Create VIE
     {
         // Create a video channel
-        TbVideoChannel tbChannel(ViE, webrtc::kVideoCodecVP8);
+        TbVideoChannel tbChannel(ViE, webrtc::kVideoCodecI420);
 
         //***************************************************************
         //	Engine ready. Begin testing class
@@ -239,18 +233,29 @@ void ViEAutoTest::ViENetworkAPITest()
         EXPECT_NE(0, ViE.network->RegisterSendTransport(
             tbChannel.videoChannel, testTransport));
 
-        unsigned char packet[1500];
+        // Create a empty RTP packet.
+        unsigned char packet[3000];
+        memset(packet, 0, sizeof(packet));
         packet[0] = 0x80; // V=2, P=0, X=0, CC=0
-        packet[1] = 0x78; // M=0, PT = 120 (VP8)
+        packet[1] = 0x7C; // M=0, PT = 124 (I420)
+
+        // Create a empty RTCP app packet.
+        unsigned char rtcpacket[3000];
+        memset(rtcpacket,0, sizeof(rtcpacket));
+        rtcpacket[0] = 0x80; // V=2, P=0, X=0, CC=0
+        rtcpacket[1] = 0xCC; // M=0, PT = 204 (RTCP app)
+        rtcpacket[2] = 0x0;
+        rtcpacket[3] = 0x03; // 3 Octets long.
+
         EXPECT_NE(0, ViE.network->ReceivedRTPPacket(
             tbChannel.videoChannel, packet, 1500));
         EXPECT_NE(0, ViE.network->ReceivedRTCPPacket(
-            tbChannel.videoChannel, packet, 1500));
+            tbChannel.videoChannel, rtcpacket, 1500));
         EXPECT_EQ(0, ViE.base->StartReceive(tbChannel.videoChannel));
         EXPECT_EQ(0, ViE.network->ReceivedRTPPacket(
             tbChannel.videoChannel, packet, 1500));
         EXPECT_EQ(0, ViE.network->ReceivedRTCPPacket(
-            tbChannel.videoChannel, packet, 1500));
+            tbChannel.videoChannel, rtcpacket, 1500));
         EXPECT_NE(0, ViE.network->ReceivedRTPPacket(
             tbChannel.videoChannel, packet, 11));
         EXPECT_NE(0, ViE.network->ReceivedRTPPacket(
@@ -272,12 +277,6 @@ void ViEAutoTest::ViENetworkAPITest()
         //
         // Local receiver
         //
-        // TODO (perkj) change when B 4239431 is fixed.
-        /*error = ViE.ptrViENetwork->SetLocalReceiver(tbChannel.videoChannel,
-                                                    1234, 1234, "127.0.0.1");
-        numberOfErrors += ViETest::TestError(error == 0,
-                                             "ERROR: %s at line %d",
-                                             __FUNCTION__, __LINE__);*/
         EXPECT_EQ(0, ViE.network->SetLocalReceiver(
             tbChannel.videoChannel, 1234, 1235, "127.0.0.1"));
         EXPECT_EQ(0, ViE.network->SetLocalReceiver(

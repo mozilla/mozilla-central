@@ -31,7 +31,7 @@
 #include <string>
 #include <vector>
 
-#include "talk/app/webrtc/mediastreamimpl.h"
+#include "talk/app/webrtc/mediastream.h"
 #include "talk/base/thread.h"
 
 namespace webrtc {
@@ -64,7 +64,7 @@ class MediaStreamProxy : public LocalMediaStreamInterface,
   virtual VideoTracks* video_tracks() {
     return video_tracks_;
   }
-  virtual ReadyState ready_state();
+  virtual ReadyState ready_state() const;
   virtual void set_ready_state(ReadyState new_state);
 
   // Implement Notifier
@@ -83,7 +83,7 @@ class MediaStreamProxy : public LocalMediaStreamInterface,
     explicit MediaStreamTrackListProxy(talk_base::Thread* signaling_thread);
 
     void SetImplementation(MediaStreamTrackListInterface<T>* track_list);
-    virtual size_t count();
+    virtual size_t count() const;
     virtual T* at(size_t index);
 
    private:

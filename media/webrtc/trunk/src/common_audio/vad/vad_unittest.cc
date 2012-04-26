@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -12,6 +12,7 @@
 
 #include <stdlib.h>
 
+#include "common_audio/signal_processing/include/signal_processing_library.h"
 #include "gtest/gtest.h"
 #include "typedefs.h"
 #include "webrtc_vad.h"
@@ -61,13 +62,7 @@ TEST_F(VadTest, ApiTest) {
     speech[i] = (i * i);
   }
 
-  // WebRtcVad_get_version() tests
-  char version[32];
-  EXPECT_EQ(-1, WebRtcVad_get_version(NULL, sizeof(version)));
-  EXPECT_EQ(-1, WebRtcVad_get_version(version, 1));
-  EXPECT_EQ(0, WebRtcVad_get_version(version, sizeof(version)));
-
-  // Null instance tests
+  // NULL instance tests
   EXPECT_EQ(-1, WebRtcVad_Create(NULL));
   EXPECT_EQ(-1, WebRtcVad_Init(NULL));
   EXPECT_EQ(-1, WebRtcVad_Assign(NULL, NULL));
@@ -75,15 +70,15 @@ TEST_F(VadTest, ApiTest) {
   EXPECT_EQ(-1, WebRtcVad_set_mode(NULL, kModes[0]));
   EXPECT_EQ(-1, WebRtcVad_Process(NULL, kRates[0], speech, kFrameLengths[0]));
 
-  // WebRtcVad_AssignSize tests
-  int handle_size_bytes = 0;
-  EXPECT_EQ(0, WebRtcVad_AssignSize(&handle_size_bytes));
-  EXPECT_EQ(576, handle_size_bytes);
+  // WebRtcVad_AssignSize() test.
+  size_t handle_size_bytes = WebRtcVad_AssignSize();
+  EXPECT_EQ(576u, handle_size_bytes);
 
-  // WebRtcVad_Assign tests
+  // WebRtcVad_Assign() tests.
   void* tmp_handle = malloc(handle_size_bytes);
-  EXPECT_EQ(-1, WebRtcVad_Assign(&handle, NULL));
-  EXPECT_EQ(0, WebRtcVad_Assign(&handle, tmp_handle));
+  EXPECT_EQ(-1, WebRtcVad_Assign(NULL, &handle));
+  EXPECT_EQ(-1, WebRtcVad_Assign(tmp_handle, NULL));
+  EXPECT_EQ(0, WebRtcVad_Assign(tmp_handle, &handle));
   EXPECT_EQ(handle, tmp_handle);
   free(tmp_handle);
 
@@ -97,9 +92,14 @@ TEST_F(VadTest, ApiTest) {
   // WebRtcVad_Init() test
   ASSERT_EQ(0, WebRtcVad_Init(handle));
 
-  // WebRtcVad_set_mode() invalid modes tests
-  EXPECT_EQ(-1, WebRtcVad_set_mode(handle, kModes[0] - 1));
-  EXPECT_EQ(-1, WebRtcVad_set_mode(handle, kModes[kModesSize - 1] + 1));
+  // WebRtcVad_set_mode() invalid modes tests. Tries smallest supported value
+  // minus one and largest supported value plus one.
+  EXPECT_EQ(-1, WebRtcVad_set_mode(handle,
+                                   WebRtcSpl_MinValueW32(kModes,
+                                                         kModesSize) - 1));
+  EXPECT_EQ(-1, WebRtcVad_set_mode(handle,
+                                   WebRtcSpl_MaxValueW32(kModes,
+                                                         kModesSize) + 1));
 
   // WebRtcVad_Process() tests
   // NULL speech pointer

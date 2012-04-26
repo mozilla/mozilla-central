@@ -55,7 +55,6 @@ bool RawTransport::ParseCandidates(SignalingProtocol protocol,
                                    const buzz::XmlElement* elem,
                                    Candidates* candidates,
                                    ParseError* error) {
-  ASSERT(elem->FirstChild() == NULL);
   for (const buzz::XmlElement* cand_elem = elem->FirstElement();
        cand_elem != NULL;
        cand_elem = cand_elem->NextElement()) {
@@ -86,7 +85,7 @@ bool RawTransport::WriteCandidates(SignalingProtocol protocol,
 
     buzz::XmlElement* elem = new buzz::XmlElement(QN_GINGLE_RAW_CHANNEL);
     elem->SetAttr(buzz::QN_NAME, type());
-    elem->SetAttr(QN_ADDRESS, addr.IPAsString());
+    elem->SetAttr(QN_ADDRESS, addr.ipaddr().ToString());
     elem->SetAttr(QN_PORT, addr.PortAsString());
     candidate_elems->push_back(elem);
   }

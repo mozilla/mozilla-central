@@ -108,9 +108,15 @@ bool MediaStreams::GetVideoStreamByNickAndName(
   return GetStreamByNickAndName(video_, nick, name, stream);
 }
 
+bool MediaStreams::GetDataStreamByNickAndName(
+    const std::string& nick, const std::string& name, StreamParams* stream) {
+  return GetStreamByNickAndName(data_, nick, name, stream);
+}
+
 void MediaStreams::CopyFrom(const MediaStreams& streams) {
   audio_ = streams.audio_;
   video_ = streams.video_;
+  data_ = streams.data_;
 }
 
 bool MediaStreams::GetAudioStreamBySsrc(uint32 ssrc, StreamParams* stream) {
@@ -121,12 +127,20 @@ bool MediaStreams::GetVideoStreamBySsrc(uint32 ssrc, StreamParams* stream) {
   return GetStreamBySsrc(video_, ssrc, stream);
 }
 
+bool MediaStreams::GetDataStreamBySsrc(uint32 ssrc, StreamParams* stream) {
+  return GetStreamBySsrc(data_, ssrc, stream);
+}
+
 void MediaStreams::AddAudioStream(const StreamParams& stream) {
   AddStream(&audio_, stream);
 }
 
 void MediaStreams::AddVideoStream(const StreamParams& stream) {
   AddStream(&video_, stream);
+}
+
+void MediaStreams::AddDataStream(const StreamParams& stream) {
+  AddStream(&data_, stream);
 }
 
 void MediaStreams::RemoveAudioStreamByNickAndName(
@@ -137,6 +151,11 @@ void MediaStreams::RemoveAudioStreamByNickAndName(
 void MediaStreams::RemoveVideoStreamByNickAndName(
     const std::string& nick, const std::string& name) {
   RemoveStreamByNickAndName(&video_, nick, name);
+}
+
+void MediaStreams::RemoveDataStreamByNickAndName(
+    const std::string& nick, const std::string& name) {
+  RemoveStreamByNickAndName(&data_, nick, name);
 }
 
 bool IsJingleViewRequest(const buzz::XmlElement* action_elem) {

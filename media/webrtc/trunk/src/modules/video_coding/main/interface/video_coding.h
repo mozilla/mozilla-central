@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -91,13 +91,6 @@ public:
     //                     < 0,         on error.
     virtual WebRtc_Word32 InitializeSender() = 0;
 
-    // Resets the encoder state to the same state as when the encoder
-    // was created.
-    //
-    // Return value      : VCM_OK, on success.
-    //                     < 0,         on error.
-    virtual WebRtc_Word32 ResetEncoder() = 0;
-
     // Registers a codec to be used for encoding. Calling this
     // API multiple times overwrites any previously registered codecs.
     //
@@ -153,17 +146,17 @@ public:
     //                     < 0,                     on error.
     virtual WebRtc_Word32 CodecConfigParameters(WebRtc_UWord8* buffer, WebRtc_Word32 size) = 0;
 
-    // API to get currently configured encoder target bit rate.
+    // API to get currently configured encoder target bitrate in kbit/s.
     //
-    // Return value      : The encoder target bit rate, on success.
-    //                     < 0,                         on error.
-    virtual WebRtc_UWord32 Bitrate() const = 0;
+    // Return value      : 0,   on success.
+    //                     < 0, on error.
+    virtual int Bitrate(unsigned int* bitrate) const = 0;
 
     // API to get currently configured encoder target frame rate.
     //
-    // Return value      : The encoder target frame rate, on success.
-    //                     < 0,                           on error.
-    virtual WebRtc_UWord32 FrameRate() const = 0;
+    // Return value      : 0,   on success.
+    //                     < 0, on error.
+    virtual int FrameRate(unsigned int* framerate) const = 0;
 
     // Sets the parameters describing the send channel. These parameters are inputs to the
     // Media Optimization inside the VCM and also specifies the target bit rate for the
@@ -263,16 +256,11 @@ public:
         const VideoContentMetrics* contentMetrics = NULL,
         const CodecSpecificInfo* codecSpecificInfo = NULL) = 0;
 
-    // Next frame encoded should be of the type frameType.
-    //
-    // Input:
-    //      - frameType    : The frame type to encode next time a VideoFrame
-    //                       is added to the module.
+    // Next frame encoded should be an intra frame (keyframe).
     //
     // Return value      : VCM_OK, on success.
     //                     < 0,         on error.
-    virtual WebRtc_Word32 FrameTypeRequest(FrameType frameType,
-                                           WebRtc_UWord8 simulcastIdx) = 0;
+    virtual WebRtc_Word32 IntraFrameRequest() = 0;
 
     // Frame Dropper enable. Can be used to disable the frame dropping when the encoder
     // over-uses its bit rate. This API is designed to be used when the encoded frames

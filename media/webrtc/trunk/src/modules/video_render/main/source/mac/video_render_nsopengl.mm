@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -243,7 +243,6 @@ int VideoChannelNSOpenGL::DeliverFrame(unsigned char* buffer, int bufferSize, un
 
     [_nsglContext makeCurrentContext];
 
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id, "bufferSize=%d _width=%d _height=%d", bufferSize, _width, _height);
 
     glBindTexture(GL_TEXTURE_RECTANGLE_EXT, _texture); // Make sure this texture is the active one
     GLenum glErr = glGetError();
@@ -557,7 +556,6 @@ int VideoRenderNSOpenGL::setRenderTargetWindow()
 {
     LockAGLCntx();
 
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id, "%s:%d", __FUNCTION__, __LINE__);
 
     GLuint attribs[] =
     {
@@ -588,7 +586,6 @@ int VideoRenderNSOpenGL::setRenderTargetWindow()
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id, "setRenderTargetWindow glClearColor 0.5");
 
     DisplayBuffers();
 
@@ -600,7 +597,6 @@ int VideoRenderNSOpenGL::setRenderTargetFullScreen()
 {
     LockAGLCntx();
 
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, _id, "%s:%d", __FUNCTION__, __LINE__);
 
     GLuint attribs[] =
     {
@@ -654,7 +650,6 @@ int VideoRenderNSOpenGL::setRenderTargetFullScreen()
 
 VideoRenderNSOpenGL::~VideoRenderNSOpenGL()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer, 0, "%s:%d", __FUNCTION__, __LINE__);
 
     if(_fullScreen)
     {
@@ -754,7 +749,7 @@ int VideoRenderNSOpenGL::Init()
 
 VideoChannelNSOpenGL* VideoRenderNSOpenGL::CreateNSGLChannel(int channel, int zOrder, float startWidth, float startHeight, float stopWidth, float stopHeight)
 {
-    CriticalSectionScoped cs(_nsglContextCritSec);
+    CriticalSectionScoped cs(&_nsglContextCritSec);
 
     if (HasChannel(channel))
     {
@@ -789,7 +784,7 @@ VideoChannelNSOpenGL* VideoRenderNSOpenGL::CreateNSGLChannel(int channel, int zO
 int VideoRenderNSOpenGL::DeleteAllNSGLChannels()
 {
 
-    CriticalSectionScoped cs(_nsglContextCritSec);
+    CriticalSectionScoped cs(&_nsglContextCritSec);
 
     std::map<int, VideoChannelNSOpenGL*>::iterator it;
     it = _nsglChannels.begin();
@@ -808,7 +803,7 @@ int VideoRenderNSOpenGL::DeleteAllNSGLChannels()
 WebRtc_Word32 VideoRenderNSOpenGL::DeleteNSGLChannel(const WebRtc_UWord32 channel)
 {
 
-    CriticalSectionScoped cs(_nsglContextCritSec);
+    CriticalSectionScoped cs(&_nsglContextCritSec);
 
     std::map<int, VideoChannelNSOpenGL*>::iterator it;
     it = _nsglChannels.find(channel);
@@ -844,7 +839,7 @@ WebRtc_Word32 VideoRenderNSOpenGL::GetChannelProperties(const WebRtc_UWord16 str
         float& bottom)
 {
 
-    CriticalSectionScoped cs(_nsglContextCritSec);
+    CriticalSectionScoped cs(&_nsglContextCritSec);
 
     bool channelFound = false;
 
@@ -907,13 +902,13 @@ int VideoRenderNSOpenGL::StopThread()
 bool VideoRenderNSOpenGL::IsFullScreen()
 {
 
-    CriticalSectionScoped cs(_nsglContextCritSec);
+    CriticalSectionScoped cs(&_nsglContextCritSec);
     return _fullScreen;
 }
 
 bool VideoRenderNSOpenGL::HasChannels()
 {
-    CriticalSectionScoped cs(_nsglContextCritSec);
+    CriticalSectionScoped cs(&_nsglContextCritSec);
 
     if (_nsglChannels.begin() != _nsglChannels.end())
     {
@@ -925,7 +920,7 @@ bool VideoRenderNSOpenGL::HasChannels()
 bool VideoRenderNSOpenGL::HasChannel(int channel)
 {
 
-    CriticalSectionScoped cs(_nsglContextCritSec);
+    CriticalSectionScoped cs(&_nsglContextCritSec);
 
     std::map<int, VideoChannelNSOpenGL*>::iterator it = _nsglChannels.find(channel);
 
@@ -939,7 +934,7 @@ bool VideoRenderNSOpenGL::HasChannel(int channel)
 int VideoRenderNSOpenGL::GetChannels(std::list<int>& channelList)
 {
 
-    CriticalSectionScoped cs(_nsglContextCritSec);
+    CriticalSectionScoped cs(&_nsglContextCritSec);
 
     std::map<int, VideoChannelNSOpenGL*>::iterator it = _nsglChannels.begin();
 
@@ -955,7 +950,7 @@ int VideoRenderNSOpenGL::GetChannels(std::list<int>& channelList)
 VideoChannelNSOpenGL* VideoRenderNSOpenGL::ConfigureNSGLChannel(int channel, int zOrder, float startWidth, float startHeight, float stopWidth, float stopHeight)
 {
 
-    CriticalSectionScoped cs(_nsglContextCritSec);
+    CriticalSectionScoped cs(&_nsglContextCritSec);
 
     std::map<int, VideoChannelNSOpenGL*>::iterator it = _nsglChannels.find(channel);
 
@@ -1071,7 +1066,7 @@ bool VideoRenderNSOpenGL::ScreenUpdateProcess()
 int VideoRenderNSOpenGL::CreateMixingContext()
 {
 
-    CriticalSectionScoped cs(_nsglContextCritSec);
+    CriticalSectionScoped cs(&_nsglContextCritSec);
 
     if(_fullScreen)
     {
@@ -1165,7 +1160,7 @@ int VideoRenderNSOpenGL::DisplayBuffers()
 int VideoRenderNSOpenGL::GetWindowRect(Rect& rect)
 {
 
-    CriticalSectionScoped cs(_nsglContextCritSec);
+    CriticalSectionScoped cs(&_nsglContextCritSec);
 
     if (_windowRef)
     {
@@ -1196,7 +1191,7 @@ int VideoRenderNSOpenGL::GetWindowRect(Rect& rect)
 WebRtc_Word32 VideoRenderNSOpenGL::ChangeUniqueID(WebRtc_Word32 id)
 {
 
-    CriticalSectionScoped cs(_nsglContextCritSec);
+    CriticalSectionScoped cs(&_nsglContextCritSec);
     _id = id;
     return 0;
 }

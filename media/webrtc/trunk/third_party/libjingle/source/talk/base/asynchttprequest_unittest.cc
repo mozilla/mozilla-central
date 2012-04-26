@@ -39,7 +39,7 @@ static const SocketAddress kServerHostnameAddr("localhost", 0);
 static const char kServerGetPath[] = "/get";
 static const char kServerPostPath[] = "/post";
 static const char kServerResponse[] = "This is a test";
-  
+
 class TestHttpServer : public HttpServer, public sigslot::has_slots<> {
  public:
   TestHttpServer(Thread* thread, const SocketAddress& addr)
@@ -147,7 +147,7 @@ TEST_F(AsyncHttpRequestTest, TestGetSuccess) {
       kServerGetPath);
   EXPECT_FALSE(started());
   req->Start();
-  EXPECT_TRUE_WAIT(started(), 100);  // Should have started by now.
+  EXPECT_TRUE_WAIT(started(), 5000);  // Should have started by now.
   EXPECT_TRUE_WAIT(done(), 5000);
   std::string response;
   EXPECT_EQ(200U, req->response().scode);
@@ -204,7 +204,7 @@ TEST_F(AsyncHttpRequestTest, TestGetSuccessDelay) {
   req->Start();
   Thread::SleepMs(5);
   EXPECT_FALSE(started());  // Should not have started immediately.
-  EXPECT_TRUE_WAIT(started(), 200);  // Should have started by now.
+  EXPECT_TRUE_WAIT(started(), 5000);  // Should have started by now.
   EXPECT_TRUE_WAIT(done(), 5000);
   std::string response;
   EXPECT_EQ(200U, req->response().scode);

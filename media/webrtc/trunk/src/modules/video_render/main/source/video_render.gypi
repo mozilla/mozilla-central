@@ -37,6 +37,11 @@
         'video_render_frames.h',
         'video_render_impl.h',
         'i_video_render.h',
+        # Android
+        'android/video_render_android_impl.h',
+        'android/video_render_android_native_opengl2.h',
+        'android/video_render_android_surface_view.h',
+        'android/video_render_opengles20.h',
         # Linux
         'linux/video_render_linux_impl.h',
         'linux/video_x11_channel.h',
@@ -61,6 +66,11 @@
         'video_render_frames.cc',
         'video_render_impl.cc',
         # PLATFORM SPECIFIC SOURCE FILES - Will be filtered below
+        # Android
+        'android/video_render_android_impl.cc',
+        'android/video_render_android_native_opengl2.cc',
+        'android/video_render_android_surface_view.cc',
+        'android/video_render_opengles20.cc',
         # Linux
         'linux/video_render_linux_impl.cc',
         'linux/video_x11_channel.cc',
@@ -85,6 +95,19 @@
         ['include_internal_video_render==1', {
           'defines': [
             'WEBRTC_INCLUDE_INTERNAL_VIDEO_RENDER',
+          ],
+        }],
+        ['OS!="android" or include_internal_video_render==0', {
+          'sources!': [
+            # Android
+            'android/video_render_android_impl.h',
+            'android/video_render_android_native_opengl2.h',
+            'android/video_render_android_surface_view.h',
+            'android/video_render_opengles20.h',
+            'android/video_render_android_impl.cc',
+            'android/video_render_android_native_opengl2.cc',
+            'android/video_render_android_surface_view.cc',
+            'android/video_render_opengles20.cc',
           ],
         }],
         ['OS!="linux" or include_internal_video_render==0', {
@@ -112,6 +135,13 @@
             'mac/cocoa_render_view.mm',
             'mac/cocoa_full_screen_window.mm',
           ],
+        }],
+        ['OS=="mac"', {
+          'direct_dependent_settings': {
+            'include_dirs': [
+              'mac',
+            ],
+          },
         }],
         ['OS!="win" or include_internal_video_render==0', {
           'sources!': [
@@ -149,6 +179,7 @@
           'sources': [
             '../test/testAPI/testAPI.cc',
             '../test/testAPI/testAPI.h',
+            '../test/testAPI/testAPI_android.cc',
             '../test/testAPI/testAPI_mac.mm',
           ],
           'conditions': [

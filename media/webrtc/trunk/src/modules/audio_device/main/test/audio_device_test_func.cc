@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -25,7 +25,7 @@ int func_test(int);
 //  main()
 // ----------------------------------------------------------------------------
 
-#if !defined(MAC_IPHONE) && !defined(ANDROID)
+#if !defined(MAC_IPHONE)
 int main(int /*argc*/, char* /*argv*/[])
 {
     func_test(0);
@@ -43,8 +43,6 @@ int func_test(int sel)
     TEST_LOG("=========================================\n\n");
 
     // Initialize the counters here to get rid of "unused variables" warnings.
-    testCount = 0;
-    errorCount = 0;
     warningCount = 0;
 
     FuncTestManager funcMgr;
@@ -77,7 +75,6 @@ int func_test(int sel)
         TEST_LOG("- - - - - - - - - - - - - - - - - - - -\n");
         TEST_LOG("\n: ");
 
-        int dummy(0);
         int selection(0);
         enum TestType testType(TTInvalid);
 
@@ -89,7 +86,9 @@ SHOW_MENU:
         }
         else
         {
-            dummy = scanf("%d", &selection);
+            if (scanf("%d", &selection) < 0) {
+              perror("Failed to get selection.");
+            }
         }
 
         switch (selection)
@@ -97,40 +96,40 @@ SHOW_MENU:
             case 0:
                 quit = true;
                 break;
-            case 1: 
+            case 1:
                 testType = TTAll;
                 break;
-            case 2: 
+            case 2:
                 testType = TTAudioLayerSelection;
                 break;
-            case 3: 
+            case 3:
                 testType = TTDeviceEnumeration;
                 break;
-            case 4: 
+            case 4:
                 testType = TTDeviceSelection;
                 break;
-            case 5: 
+            case 5:
                 testType = TTAudioTransport;
                 break;
-            case 6: 
+            case 6:
                 testType = TTSpeakerVolume;
                 break;
-            case 7: 
+            case 7:
                 testType = TTMicrophoneVolume;
                 break;
-            case 8: 
+            case 8:
                 testType = TTSpeakerMute;
                 break;
-            case 9: 
+            case 9:
                 testType = TTMicrophoneMute;
                 break;
-            case 10: 
+            case 10:
                 testType = TTMicrophoneBoost;
                 break;
-            case 11: 
+            case 11:
                 testType = TTMicrophoneAGC;
                 break;
-            case 12: 
+            case 12:
                 testType = TTLoopback;
                 break;
             case 13:

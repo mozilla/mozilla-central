@@ -8,12 +8,6 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-
-/*
- * This file includes the VAD API calls. For a specific function call description,
- * see webrtc_vad.h
- */
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -22,121 +16,73 @@
 
 static const int kInitCheck = 42;
 
-WebRtc_Word16 WebRtcVad_get_version(char *version, size_t size_bytes)
-{
-    const char my_version[] = "VAD 1.2.0";
-
-    if (version == NULL)
-    {
-        return -1;
-    }
-
-    if (size_bytes < sizeof(my_version))
-    {
-        return -1;
-    }
-
-    memcpy(version, my_version, sizeof(my_version));
-    return 0;
+size_t WebRtcVad_AssignSize() {
+  return sizeof(VadInstT);
 }
 
-WebRtc_Word16 WebRtcVad_AssignSize(int *size_in_bytes)
-{
-    *size_in_bytes = sizeof(VadInstT) * 2 / sizeof(WebRtc_Word16);
-    return 0;
+int WebRtcVad_Assign(void* memory, VadInst** handle) {
+  if (handle == NULL || memory == NULL) {
+    return -1;
+  }
+
+  *handle = (VadInst*) memory;
+  return 0;
 }
 
-WebRtc_Word16 WebRtcVad_Assign(VadInst **vad_inst, void *vad_inst_addr)
-{
+int WebRtcVad_Create(VadInst** handle) {
+  VadInstT* self = NULL;
 
-    if (vad_inst == NULL)
-    {
-        return -1;
-    }
+  if (handle == NULL) {
+    return -1;
+  }
 
-    if (vad_inst_addr != NULL)
-    {
-        *vad_inst = (VadInst*)vad_inst_addr;
-        return 0;
-    } else
-    {
-        return -1;
-    }
+  *handle = NULL;
+  self = (VadInstT*) malloc(sizeof(VadInstT));
+  *handle = (VadInst*) self;
+
+  if (self == NULL) {
+    return -1;
+  }
+
+  self->init_flag = 0;
+
+  return 0;
 }
 
-WebRtc_Word16 WebRtcVad_Create(VadInst **vad_inst)
-{
+int WebRtcVad_Free(VadInst* handle) {
+  if (handle == NULL) {
+    return -1;
+  }
 
-    VadInstT *vad_ptr = NULL;
+  free(handle);
 
-    if (vad_inst == NULL)
-    {
-        return -1;
-    }
-
-    *vad_inst = NULL;
-
-    vad_ptr = (VadInstT *)malloc(sizeof(VadInstT));
-    *vad_inst = (VadInst *)vad_ptr;
-
-    if (vad_ptr == NULL)
-    {
-        return -1;
-    }
-
-    vad_ptr->init_flag = 0;
-
-    return 0;
+  return 0;
 }
 
-WebRtc_Word16 WebRtcVad_Free(VadInst *vad_inst)
-{
-
-    if (vad_inst == NULL)
-    {
-        return -1;
-    }
-
-    free(vad_inst);
-    return 0;
+// TODO(bjornv): Move WebRtcVad_InitCore() code here.
+int WebRtcVad_Init(VadInst* handle) {
+  // Initialize the core VAD component.
+  return WebRtcVad_InitCore((VadInstT*) handle);
 }
 
-int WebRtcVad_Init(VadInst *vad_inst)
-{
-    short mode = 0; // Default high quality
+// TODO(bjornv): Move WebRtcVad_set_mode_core() code here.
+int WebRtcVad_set_mode(VadInst* handle, int mode) {
+  VadInstT* self = (VadInstT*) handle;
 
-    if (vad_inst == NULL)
-    {
-        return -1;
-    }
+  if (handle == NULL) {
+    return -1;
+  }
+  if (self->init_flag != kInitCheck) {
+    return -1;
+  }
 
-    return WebRtcVad_InitCore((VadInstT*)vad_inst, mode);
+  return WebRtcVad_set_mode_core(self, mode);
 }
 
-int WebRtcVad_set_mode(VadInst *vad_inst, WebRtc_Word16 mode)
+int16_t WebRtcVad_Process(VadInst* vad_inst, int16_t fs, int16_t* speech_frame,
+                          int16_t frame_length)
 {
-    VadInstT* vad_ptr;
-
-    if (vad_inst == NULL)
-    {
-        return -1;
-    }
-
-    vad_ptr = (VadInstT*)vad_inst;
-    if (vad_ptr->init_flag != kInitCheck)
-    {
-        return -1;
-    }
-
-    return WebRtcVad_set_mode_core((VadInstT*)vad_inst, mode);
-}
-
-WebRtc_Word16 WebRtcVad_Process(VadInst *vad_inst,
-                                WebRtc_Word16 fs,
-                                WebRtc_Word16 *speech_frame,
-                                WebRtc_Word16 frame_length)
-{
-    WebRtc_Word16 vad;
+    int16_t vad;
     VadInstT* vad_ptr;
 
     if (vad_inst == NULL)

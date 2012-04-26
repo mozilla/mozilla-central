@@ -80,39 +80,6 @@ VCMCodecDataBase::~VCMCodecDataBase()
 }
 
 WebRtc_Word32
-VCMCodecDataBase::Version(WebRtc_Word8* version,
-                                WebRtc_UWord32& remainingBufferInBytes,
-                                WebRtc_UWord32& position) const
-{
-    VCMGenericEncoder* encoder = NULL;
-    VideoCodec settings;
-    WebRtc_Word32 ret;
-    for (int i = 0; i < VCMCodecDataBase::NumberOfCodecs(); i++)
-    {
-        ret = VCMCodecDataBase::Codec(i, &settings);
-        if (ret < 0)
-        {
-            return ret;
-        }
-        encoder = CreateEncoder(settings.codecType);
-        if (encoder == NULL)
-        {
-            return VCM_MEMORY;
-        }
-        ret = encoder->_encoder.Version(&version[position], remainingBufferInBytes);
-        if (ret < 0)
-        {
-            return ret;
-        }
-        remainingBufferInBytes -= ret;
-        position += ret;
-        delete &encoder->_encoder;
-        delete encoder;
-    }
-    return VCM_OK;
-}
-
-WebRtc_Word32
 VCMCodecDataBase::Reset()
 {
     WebRtc_Word32 ret = ResetReceiver();
@@ -141,9 +108,9 @@ VCMGenericEncoder* VCMCodecDataBase::CreateEncoder(
 
     switch(type)
     {
-#ifdef  VIDEOCODEC_VP8
+#ifdef VIDEOCODEC_VP8
         case kVideoCodecVP8:
-            return new VCMGenericEncoder(*(new VP8Encoder));
+            return new VCMGenericEncoder(*(VP8Encoder::Create()));
 #endif
 #ifdef VIDEOCODEC_I420
         case kVideoCodecI420:
@@ -206,6 +173,7 @@ VCMCodecDataBase::Codec(WebRtc_UWord8 listId, VideoCodec *settings)
             settings->numberOfSimulcastStreams = 0;
             settings->codecSpecific.VP8.resilience = kResilientStream;
             settings->codecSpecific.VP8.numberOfTemporalLayers = 1;
+            settings->codecSpecific.VP8.denoisingOn = false;
             break;
         }
 #endif
@@ -495,7 +463,7 @@ VCMCodecDataBase::ResetReceiver()
         it = _decMap.begin();
     }
     ExternalDecoderMap::iterator exterit = _decExternalMap.begin();
-    while (exterit != _decExternalMap.begin()) {
+    while (exterit != _decExternalMap.end()) {
         delete (*exterit).second;
         _decExternalMap.erase(exterit);
         exterit = _decExternalMap.begin();
@@ -739,7 +707,7 @@ VCMCodecDataBase::CreateDecoder(VideoCodecType type) const
     {
 #ifdef VIDEOCODEC_VP8
     case kVideoCodecVP8:
-        return new VCMGenericDecoder(*(new VP8Decoder), _id);
+        return new VCMGenericDecoder(*(VP8Decoder::Create()), _id);
 #endif
 #ifdef VIDEOCODEC_I420
     case kVideoCodecI420:

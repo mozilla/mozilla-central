@@ -36,7 +36,7 @@
 class FakeWebRtcVcmFactory : public cricket::WebRtcVcmFactoryInterface {
  public:
   virtual webrtc::VideoCaptureModule* Create(int module_id,
-                                             const WebRtc_UWord8* device_id) {
+                                             const char* device_id) {
     if (!device_info.GetDeviceById(device_id)) return NULL;
     FakeWebRtcVideoCaptureModule* module =
         new FakeWebRtcVideoCaptureModule(this, module_id);

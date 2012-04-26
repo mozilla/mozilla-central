@@ -39,6 +39,9 @@
 
 namespace talk_base {
 
+const int kFakeIPv4NetworkPrefixLength = 24;
+const int kFakeIPv6NetworkPrefixLength = 64;
+
 // Fake network manager that allows us to manually specify the IPs to use.
 class FakeNetworkManager : public NetworkManagerBase,
                            public MessageHandler {
@@ -46,8 +49,11 @@ class FakeNetworkManager : public NetworkManagerBase,
   FakeNetworkManager()
       : thread_(Thread::Current()),
         next_index_(0),
-        started_(false) {
+        started_(false),
+        sent_first_update_(false) {
   }
+
+  typedef std::vector<SocketAddress> IfaceList;
 
   void AddInterface(const SocketAddress& iface) {
     // ensure a unique name for the interface
@@ -58,7 +64,7 @@ class FakeNetworkManager : public NetworkManagerBase,
   }
 
   void RemoveInterface(const SocketAddress& iface) {
-    for (std::vector<SocketAddress>::iterator it = ifaces_.begin();
+    for (IfaceList::iterator it = ifaces_.begin();
          it != ifaces_.end(); ++it) {
       if (it->EqualIPs(iface)) {
         ifaces_.erase(it);
@@ -69,7 +75,14 @@ class FakeNetworkManager : public NetworkManagerBase,
   }
 
   virtual void StartUpdating() {
+    if (started_) {
+      if (sent_first_update_)
+        SignalNetworksChanged();
+      return;
+    }
+
     started_ = true;
+    sent_first_update_ = false;
     thread_->Post(this);
   }
 
@@ -87,18 +100,35 @@ class FakeNetworkManager : public NetworkManagerBase,
     if (!started_)
       return;
     std::vector<Network*> networks;
-    for (std::vector<SocketAddress>::iterator it = ifaces_.begin();
+    for (IfaceList::iterator it = ifaces_.begin();
          it != ifaces_.end(); ++it) {
-      networks.push_back(new Network(it->hostname(), it->hostname(),
-                                     it->ipaddr()));
+      int prefix_length = 0;
+      if (it->ipaddr().family() == AF_INET) {
+        prefix_length = kFakeIPv4NetworkPrefixLength;
+      } else if (it->ipaddr().family() == AF_INET6) {
+        prefix_length = kFakeIPv6NetworkPrefixLength;
+      }
+      IPAddress prefix = TruncateIP(it->ipaddr(), prefix_length);
+      scoped_ptr<Network> net(new Network(it->hostname(),
+                                          it->hostname(),
+                                          prefix,
+                                          prefix_length));
+      net->AddIP(it->ipaddr());
+      networks.push_back(net.release());
     }
-    MergeNetworkList(networks, true);
+    bool changed;
+    MergeNetworkList(networks, &changed);
+    if (changed || !sent_first_update_) {
+      SignalNetworksChanged();
+      sent_first_update_ = true;
+    }
   }
 
   Thread* thread_;
-  std::vector<SocketAddress> ifaces_;
+  IfaceList ifaces_;
   int next_index_;
   bool started_;
+  bool sent_first_update_;
 };
 
 }  // namespace talk_base

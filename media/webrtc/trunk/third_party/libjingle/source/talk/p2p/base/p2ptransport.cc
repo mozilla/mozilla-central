@@ -64,15 +64,6 @@ P2PTransport::~P2PTransport() {
 }
 
 void P2PTransport::OnTransportError(const buzz::XmlElement* error) {
-  // Need to know if it was <unknown-channel name="xxx">.
-  ASSERT(error->Name().Namespace() == type());
-  if ((error->Name() == QN_GINGLE_P2P_UNKNOWN_CHANNEL_NAME)
-      && error->HasAttr(buzz::QN_NAME)) {
-    std::string channel_name = error->Attr(buzz::QN_NAME);
-    if (HasChannel(channel_name)) {
-      SignalChannelGone(this, channel_name);
-    }
-  }
 }
 
 
@@ -174,7 +165,7 @@ bool P2PTransportParser::WriteCandidate(const Candidate& candidate,
                                         buzz::XmlElement* elem,
                                         WriteError* error) {
   elem->SetAttr(buzz::QN_NAME, candidate.name());
-  elem->SetAttr(QN_ADDRESS, candidate.address().IPAsString());
+  elem->SetAttr(QN_ADDRESS, candidate.address().ipaddr().ToString());
   elem->SetAttr(QN_PORT, candidate.address().PortAsString());
   elem->SetAttr(QN_PREFERENCE, candidate.preference_str());
   elem->SetAttr(QN_USERNAME, candidate.username());

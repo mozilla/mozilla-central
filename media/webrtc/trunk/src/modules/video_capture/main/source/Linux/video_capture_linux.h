@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -25,7 +25,7 @@ class VideoCaptureModuleV4L2: public VideoCaptureImpl
 public:
     VideoCaptureModuleV4L2(WebRtc_Word32 id);
     virtual ~VideoCaptureModuleV4L2();
-    virtual WebRtc_Word32 Init(const WebRtc_UWord8* deviceUniqueId);
+    virtual WebRtc_Word32 Init(const char* deviceUniqueId);
     virtual WebRtc_Word32 StartCapture(const VideoCaptureCapability& capability);
     virtual WebRtc_Word32 StopCapture();
     virtual bool CaptureStarted();
@@ -56,7 +56,7 @@ private:
         void *start;
         size_t length;
     };
-    Buffer *pool;
+    Buffer *_pool;
 };
 } // namespace videocapturemodule
 } // namespace webrtc

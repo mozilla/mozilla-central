@@ -33,12 +33,16 @@
 #include <string>
 #include <vector>
 
-#include "talk/p2p/base/sessionmessages.h"
-#include "talk/p2p/base/sessionmanager.h"
+#include "talk/base/refcount.h"
+#include "talk/base/scoped_ptr.h"
+#include "talk/base/scoped_ref_ptr.h"
 #include "talk/base/socketaddress.h"
-#include "talk/p2p/base/sessionclient.h"
 #include "talk/p2p/base/parsing.h"
 #include "talk/p2p/base/port.h"
+#include "talk/p2p/base/sessionclient.h"
+#include "talk/p2p/base/sessionmanager.h"
+#include "talk/p2p/base/sessionmessages.h"
+#include "talk/p2p/base/transport.h"
 #include "talk/xmllite/xmlelement.h"
 #include "talk/xmpp/constants.h"
 
@@ -49,6 +53,9 @@ class Transport;
 class TransportChannel;
 class TransportChannelProxy;
 class TransportChannelImpl;
+
+typedef talk_base::RefCountedObject<talk_base::scoped_ptr<Transport> >
+TransportWrapper;
 
 // Used for errors that will send back a specific error message to the
 // remote peer.  We add "type" to the errors because it's needed for
@@ -84,21 +91,19 @@ class TransportProxy {
   TransportProxy(
       const std::string& sid,
       const std::string& content_name,
-      Transport* transport)
+      TransportWrapper* transport)
       : sid_(sid),
         content_name_(content_name),
         transport_(transport),
-        owner_(true),
         state_(STATE_INIT),
-        sent_candidates_(false) {}
+        sent_candidates_(false),
+        candidates_allocated_(false) {}
   ~TransportProxy();
 
   std::string content_name() const { return content_name_; }
-  Transport* impl() const { return transport_; }
-  // TransportProxy can contain a pointer to Transport for which it's not the
-  // actual owner. In that case it shouldn't try to delete Transport object.
-  // TODO - Remove this hack when ref count support is available.
-  void SetImplementation(Transport* impl, bool owner);
+  Transport* impl() const { return transport_->get(); }
+
+  void SetImplementation(TransportWrapper* impl);
   std::string type() const;
   bool negotiated() const { return state_ == STATE_NEGOTIATED; }
   const Candidates& sent_candidates() const { return sent_candidates_; }
@@ -114,8 +119,12 @@ class TransportProxy {
   void ClearUnsentCandidates() { unsent_candidates_.clear(); }
   void SpeculativelyConnectChannels();
   void CompleteNegotiation();
-  void CopyTransportProxyChannels(TransportProxy* proxy);
+  void SetupMux(TransportProxy* proxy);
   const ChannelMap& channels() { return channels_; }
+  void set_candidates_allocated(bool allocated) {
+    candidates_allocated_ = allocated;
+  }
+  bool candidates_allocated() { return candidates_allocated_; }
 
  private:
   enum TransportState {
@@ -132,12 +141,12 @@ class TransportProxy {
 
   std::string sid_;
   std::string content_name_;
-  Transport* transport_;
-  bool owner_;
+  talk_base::scoped_refptr<TransportWrapper> transport_;
   TransportState state_;
   ChannelMap channels_;
   Candidates sent_candidates_;
   Candidates unsent_candidates_;
+  bool candidates_allocated_;
 };
 
 typedef std::map<std::string, TransportProxy*> TransportMap;
@@ -176,6 +185,9 @@ class BaseSession : public sigslot::has_slots<>,
     ERROR_NETWORK = 3,   // network error, could not allocate network resources
     ERROR_CONTENT = 4,   // channel errors in SetLocalContent/SetRemoteContent
   };
+
+  // Convert State to a readable string.
+  static std::string StateToString(State state);
 
   BaseSession(talk_base::Thread* signaling_thread,
               talk_base::Thread* worker_thread,
@@ -290,10 +302,12 @@ class BaseSession : public sigslot::has_slots<>,
 
  protected:
   const TransportMap& transport_proxies() const { return transports_; }
+
   // Get a TransportProxy by content_name or transport. NULL if not found.
   TransportProxy* GetTransportProxy(const std::string& content_name);
   TransportProxy* GetTransportProxy(const Transport* transport);
   TransportProxy* GetFirstTransportProxy();
+  void DestroyTransportProxy(const std::string& content_name);
   // TransportProxy is owned by session.  Return proxy just for convenience.
   TransportProxy* GetOrCreateTransportProxy(const std::string& content_name);
   // Creates the actual transport object. Overridable for testing.
@@ -336,10 +350,18 @@ class BaseSession : public sigslot::has_slots<>,
                                     const buzz::XmlElement* extra_info) {
   }
 
-  // Called when we notice that one of our local channels has no peer, so it
-  // should be destroyed.
-  virtual void OnTransportChannelGone(Transport* transport,
-                                      const std::string& name) {
+  virtual void OnTransportRouteChange(
+      Transport* transport,
+      const std::string& name,
+      const cricket::Candidate& remote_candidate) {
+  }
+
+  virtual void OnTransportCandidatesAllocationDone(Transport* transport);
+
+  // Called when all transport channels allocated required candidates.
+  // This method should be used as an indication of candidates gathering process
+  // is completed and application can now send local candidates list to remote.
+  virtual void OnCandidatesAllocationDone() {
   }
 
   // Handles messages posted to us.
@@ -358,6 +380,8 @@ class BaseSession : public sigslot::has_slots<>,
   // is used for mux.
   void SetSelectedProxy(const std::string& content_name,
                         const ContentGroup* muxed_group);
+  // Log session state.
+  void LogState(State old_state, State new_state);
 
   talk_base::Thread* signaling_thread_;
   talk_base::Thread* worker_thread_;
@@ -416,9 +440,6 @@ class Session : public BaseSession {
   sigslot::signal1<Session*> SignalRequestSignaling;
   void OnSignalingReady() { BaseSession::OnSignalingReady(); }
 
-  // Invoked when we notice that there is no matching channel on our peer.
-  sigslot::signal2<Session*, const std::string&> SignalChannelGone;
-
   // Takes ownership of session description.
   // TODO: Add an error argument to pass back to the caller.
   bool Initiate(const std::string& to,
@@ -442,6 +463,7 @@ class Session : public BaseSession {
   // takes ownership of the given elements.  The signal does not; the
   // parent element will be deleted after the signal.
   bool SendInfoMessage(const XmlElements& elems);
+  bool SendDescriptionInfoMessage(const ContentInfos& contents);
   sigslot::signal2<Session*, const buzz::XmlElement*> SignalInfoMessage;
 
  private:
@@ -476,9 +498,6 @@ class Session : public BaseSession {
                                     const std::string& type,
                                     const std::string& text,
                                     const buzz::XmlElement* extra_info);
-  virtual void OnTransportChannelGone(Transport* transport,
-                                      const std::string& name);
-
   virtual void OnMessage(talk_base::Message *pmsg);
 
   // Send various kinds of session messages.

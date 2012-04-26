@@ -903,7 +903,7 @@ HKEY RegKey::GetRootKeyInfo(std::wstring* full_key_name) {
 
   HKEY h_key = NULL;
   // get the root HKEY
-  int index = full_key_name->find(L'\\');
+  size_t index = full_key_name->find(L'\\');
   std::wstring root_key;
 
   if (index == -1) {
@@ -968,7 +968,7 @@ std::wstring RegKey::GetParentKeyInfo(std::wstring* key_name) {
   ASSERT(key_name != NULL);
 
   // get the parent key
-  int index = key_name->rfind(L'\\');
+  size_t index = key_name->rfind(L'\\');
   std::wstring parent_key;
   if (index == -1) {
     parent_key = L"";

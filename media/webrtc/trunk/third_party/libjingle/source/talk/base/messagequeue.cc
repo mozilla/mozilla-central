@@ -25,10 +25,6 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if defined(_MSC_VER) && _MSC_VER < 1300
-#pragma warning(disable:4786)
-#endif
-
 #ifdef POSIX
 #include <sys/time.h>
 #endif
@@ -36,10 +32,17 @@
 #include "talk/base/common.h"
 #include "talk/base/logging.h"
 #include "talk/base/messagequeue.h"
+#include "talk/base/nullsocketserver.h"
 #include "talk/base/physicalsocketserver.h"
 
 
 namespace talk_base {
+
+#ifdef NO_SOCKETSERVER
+typedef NullSocketServer DefaultSocketServer;
+#else
+typedef PhysicalSocketServer DefaultSocketServer;
+#endif
 
 const uint32 kMaxMsgLatency = 150;  // 150 ms
 
@@ -114,7 +117,7 @@ MessageQueue::MessageQueue(SocketServer* ss)
     // server, and provide it to the MessageQueue, since the Thread controls
     // the I/O model, and MQ is agnostic to those details.  Anyway, this causes
     // messagequeue_unittest to depend on network libraries... yuck.
-    default_ss_.reset(new PhysicalSocketServer());
+    default_ss_.reset(new DefaultSocketServer());
     ss_ = default_ss_.get();
   }
   ss_->SetMessageQueue(this);

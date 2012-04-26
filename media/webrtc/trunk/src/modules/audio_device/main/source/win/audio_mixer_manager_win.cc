@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -63,7 +63,7 @@ WebRtc_Word32 AudioMixerManager::Close()
 {
     WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_outputMixerHandle != NULL)
     {
@@ -87,7 +87,7 @@ WebRtc_Word32 AudioMixerManager::CloseSpeaker()
 {
     WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_outputMixerHandle == NULL)
     {
@@ -110,7 +110,7 @@ WebRtc_Word32 AudioMixerManager::CloseMicrophone()
 {
     WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_inputMixerHandle == NULL)
     {
@@ -576,7 +576,7 @@ WebRtc_Word32 AudioMixerManager::OpenSpeaker(AudioDeviceModule::WindowsDeviceTyp
         WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id, "AudioMixerManager::OpenSpeaker(kDefaultCommunicationDevice)");
     }
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     // Close any existing output mixer handle
     //
@@ -695,7 +695,7 @@ WebRtc_Word32 AudioMixerManager::OpenSpeaker(WebRtc_UWord16 index)
 {
     WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id, "AudioMixerManager::OpenSpeaker(index=%d)", index);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     // Close any existing output mixer handle
     //
@@ -798,7 +798,7 @@ WebRtc_Word32 AudioMixerManager::OpenMicrophone(AudioDeviceModule::WindowsDevice
         WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id, "AudioMixerManager::OpenMicrophone(kDefaultCommunicationDevice)");
     }
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     // Close any existing output mixer handle
     //
@@ -917,7 +917,7 @@ WebRtc_Word32 AudioMixerManager::OpenMicrophone(WebRtc_UWord16 index)
 {
     WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id, "AudioMixerManager::OpenMicrophone(index=%d)", index);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     // Close any existing input mixer handle
     //
@@ -1032,7 +1032,7 @@ WebRtc_Word32 AudioMixerManager::SetSpeakerVolume(WebRtc_UWord32 volume)
 {
     WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id, "AudioMixerManager::SetSpeakerVolume(volume=%u)", volume);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_outputMixerHandle == NULL)
     {
@@ -1063,7 +1063,6 @@ WebRtc_Word32 AudioMixerManager::SetSpeakerVolume(WebRtc_UWord32 volume)
 
 WebRtc_Word32 AudioMixerManager::SpeakerVolume(WebRtc_UWord32& volume) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (_outputMixerHandle == NULL)
     {
@@ -1096,7 +1095,6 @@ WebRtc_Word32 AudioMixerManager::SpeakerVolume(WebRtc_UWord32& volume) const
 
 WebRtc_Word32 AudioMixerManager::MaxSpeakerVolume(WebRtc_UWord32& maxVolume) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (_outputMixerHandle == NULL)
     {
@@ -1126,7 +1124,6 @@ WebRtc_Word32 AudioMixerManager::MaxSpeakerVolume(WebRtc_UWord32& maxVolume) con
 
 WebRtc_Word32 AudioMixerManager::MinSpeakerVolume(WebRtc_UWord32& minVolume) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (_outputMixerHandle == NULL)
     {
@@ -1156,7 +1153,6 @@ WebRtc_Word32 AudioMixerManager::MinSpeakerVolume(WebRtc_UWord32& minVolume) con
 
 WebRtc_Word32 AudioMixerManager::SpeakerVolumeStepSize(WebRtc_UWord16& stepSize) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (_outputMixerHandle == NULL)
     {
@@ -1165,7 +1161,6 @@ WebRtc_Word32 AudioMixerManager::SpeakerVolumeStepSize(WebRtc_UWord16& stepSize)
     }
 
     const UINT mixerID(_outputMixerID);
-    const DWORD dwControlID(_speakerState[_outputMixerID].dwVolumeControlID);
     MIXERCONTROL mixerControl;
 
     // Retrieve one control line for a specified volume-control identifier
@@ -1224,7 +1219,7 @@ WebRtc_Word32 AudioMixerManager::SetSpeakerMute(bool enable)
 {
     WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id, "AudioMixerManager::SetSpeakerMute(enable=%u)", enable);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_outputMixerHandle == NULL)
     {
@@ -1260,7 +1255,6 @@ WebRtc_Word32 AudioMixerManager::SetSpeakerMute(bool enable)
 
 WebRtc_Word32 AudioMixerManager::SpeakerMute(bool& enabled) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (_outputMixerHandle == NULL)
     {
@@ -1320,7 +1314,7 @@ WebRtc_Word32 AudioMixerManager::SetMicrophoneMute(bool enable)
 {
     WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id, "AudioMixerManager::SetMicrophoneMute(enable=%u)", enable);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_inputMixerHandle == NULL)
     {
@@ -1356,7 +1350,6 @@ WebRtc_Word32 AudioMixerManager::SetMicrophoneMute(bool enable)
 
 WebRtc_Word32 AudioMixerManager::MicrophoneMute(bool& enabled) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (_inputMixerHandle == NULL)
     {
@@ -1414,7 +1407,7 @@ WebRtc_Word32 AudioMixerManager::SetMicrophoneBoost(bool enable)
 {
     WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id, "AudioMixerManager::SetMicrophoneBoost(enable=%u)", enable);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_inputMixerHandle == NULL)
     {
@@ -1450,7 +1443,6 @@ WebRtc_Word32 AudioMixerManager::SetMicrophoneBoost(bool enable)
 
 WebRtc_Word32 AudioMixerManager::MicrophoneBoost(bool& enabled) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (_inputMixerHandle == NULL)
     {
@@ -1506,7 +1498,7 @@ WebRtc_Word32 AudioMixerManager::MicrophoneVolumeIsAvailable(bool& available)
 
 WebRtc_Word32 AudioMixerManager::SetMicrophoneVolume(WebRtc_UWord32 volume)
 {
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_inputMixerHandle == NULL)
     {
@@ -1534,7 +1526,7 @@ WebRtc_Word32 AudioMixerManager::SetMicrophoneVolume(WebRtc_UWord32 volume)
 
 WebRtc_Word32 AudioMixerManager::MicrophoneVolume(WebRtc_UWord32& volume) const
 {
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_inputMixerHandle == NULL)
     {
@@ -1594,7 +1586,6 @@ WebRtc_Word32 AudioMixerManager::MaxMicrophoneVolume(WebRtc_UWord32& maxVolume) 
 
 WebRtc_Word32 AudioMixerManager::MinMicrophoneVolume(WebRtc_UWord32& minVolume) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (_inputMixerHandle == NULL)
     {
@@ -1624,7 +1615,6 @@ WebRtc_Word32 AudioMixerManager::MinMicrophoneVolume(WebRtc_UWord32& minVolume) 
 
 WebRtc_Word32 AudioMixerManager::MicrophoneVolumeStepSize(WebRtc_UWord16& stepSize) const
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (_inputMixerHandle == NULL)
     {

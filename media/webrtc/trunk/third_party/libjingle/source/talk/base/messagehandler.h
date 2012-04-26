@@ -38,12 +38,11 @@ struct Message;
 
 class MessageHandler {
  public:
-  virtual ~MessageHandler();
-
   virtual void OnMessage(Message* msg) = 0;
 
  protected:
   MessageHandler() {}
+  virtual ~MessageHandler();
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MessageHandler);

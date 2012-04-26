@@ -56,6 +56,7 @@ class MediaSessionClient : public SessionClient, public sigslot::has_slots<> {
   // and device_manager.
   MediaSessionClient(const buzz::Jid& jid, SessionManager *manager,
                      MediaEngineInterface* media_engine,
+                     DataEngineInterface* data_media_engine,
                      DeviceManagerInterface* device_manager);
   ~MediaSessionClient();
 
@@ -110,19 +111,22 @@ class MediaSessionClient : public SessionClient, public sigslot::has_slots<> {
   sigslot::signal1<Call *> SignalCallDestroy;
   sigslot::repeater0<> SignalDevicesChange;
 
+  virtual bool ParseContent(SignalingProtocol protocol,
+                            const buzz::XmlElement* elem,
+                            const ContentDescription** content,
+                            ParseError* error);
+  virtual bool IsWritable(SignalingProtocol protocol,
+                          const ContentDescription* content);
+  virtual bool WriteContent(SignalingProtocol protocol,
+                            const ContentDescription* content,
+                            buzz::XmlElement** elem,
+                            WriteError* error);
+
  private:
   void Construct();
   void OnSessionCreate(Session *session, bool received_initiate);
   void OnSessionState(BaseSession *session, BaseSession::State state);
   void OnSessionDestroy(Session *session);
-  virtual bool ParseContent(SignalingProtocol protocol,
-                            const buzz::XmlElement* elem,
-                            const ContentDescription** content,
-                            ParseError* error);
-  virtual bool WriteContent(SignalingProtocol protocol,
-                            const ContentDescription* content,
-                            buzz::XmlElement** elem,
-                            WriteError* error);
   Session *CreateSession(Call *call);
 
   buzz::Jid jid_;

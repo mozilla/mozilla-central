@@ -32,7 +32,7 @@
 #include <map>
 #include <string>
 
-#include "talk/app/webrtc/mediastream.h"
+#include "talk/app/webrtc/mediastreaminterface.h"
 #include "talk/examples/peerconnection/client/peer_connection_client.h"
 #include "talk/base/win32.h"
 #include "talk/session/phone/mediachannel.h"

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -23,7 +23,7 @@
 #include "utility.h"
 #include "voe_base.h"
 #include "voe_external_media.h"
-#include "voe_rtp_rtcp.h" 
+#include "voe_rtp_rtcp.h"
 
 #if defined(_WIN32)
 #include <Qos.h>
@@ -85,7 +85,7 @@ Channel::InFrameType(WebRtc_Word16 frameType)
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::InFrameType(frameType=%d)", frameType);
 
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
     // 1 indicates speech
     _sendFrameType = (frameType == 1) ? 1 : 0;
     return 0;
@@ -101,7 +101,7 @@ Channel::IncomingDtmf(const WebRtc_UWord8 digitDtmf, const bool end)
 
     if (digitDtmf != 999)
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
         if (_telephoneEventDetectionPtr)
         {
             _telephoneEventDetectionPtr->OnReceivedTelephoneEventInband(
@@ -119,7 +119,7 @@ Channel::OnRxVadDetected(const int vadDecision)
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId, _channelId),
                  "Channel::OnRxVadDetected(vadDecision=%d)", vadDecision);
 
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
     if (_rxVadObserverPtr)
     {
         _rxVadObserverPtr->OnRxVad(_channelId, vadDecision);
@@ -174,7 +174,7 @@ Channel::SendPacket(int channel, const void *data, int len)
     // SRTP or External encryption
     if (_encrypting)
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
 
         if (_encryptionPtr)
         {
@@ -224,7 +224,7 @@ Channel::SendPacket(int channel, const void *data, int len)
 
     // Packet transmission using external transport transport
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
 
         int n = _transportPtr->SendPacket(channel,
                                           bufferToSendPtr,
@@ -251,7 +251,7 @@ Channel::SendRTCPPacket(int channel, const void *data, int len)
                  "Channel::SendRTCPPacket(channel=%d, len=%d)", channel, len);
 
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
         if (_transportPtr == NULL)
         {
             WEBRTC_TRACE(kTraceError, kTraceVoice,
@@ -276,7 +276,7 @@ Channel::SendRTCPPacket(int channel, const void *data, int len)
     // SRTP or External encryption
     if (_encrypting)
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
 
         if (_encryptionPtr)
         {
@@ -327,7 +327,7 @@ Channel::SendRTCPPacket(int channel, const void *data, int len)
 
     // Packet transmission using external transport transport
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
 
         int n = _transportPtr->SendRTCPPacket(channel,
                                               bufferToSendPtr,
@@ -349,7 +349,7 @@ Channel::SendRTCPPacket(int channel, const void *data, int len)
 void
 Channel::IncomingRTPPacket(const WebRtc_Word8* incomingRtpPacket,
                            const WebRtc_Word32 rtpPacketLength,
-                           const WebRtc_Word8* fromIP,
+                           const char* fromIP,
                            const WebRtc_UWord16 fromPort)
 {
     WEBRTC_TRACE(kTraceStream, kTraceVoice, VoEId(_instanceId,_channelId),
@@ -371,7 +371,7 @@ Channel::IncomingRTPPacket(const WebRtc_Word8* incomingRtpPacket,
     // SRTP or External decryption
     if (_decrypting)
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
 
         if (_encryptionPtr)
         {
@@ -428,7 +428,7 @@ Channel::IncomingRTPPacket(const WebRtc_Word8* incomingRtpPacket,
 void
 Channel::IncomingRTCPPacket(const WebRtc_Word8* incomingRtcpPacket,
                             const WebRtc_Word32 rtcpPacketLength,
-                            const WebRtc_Word8* fromIP,
+                            const char* fromIP,
                             const WebRtc_UWord16 fromPort)
 {
     WEBRTC_TRACE(kTraceStream, kTraceVoice, VoEId(_instanceId,_channelId),
@@ -451,7 +451,7 @@ Channel::IncomingRTCPPacket(const WebRtc_Word8* incomingRtcpPacket,
     // SRTP or External decryption
     if (_decrypting)
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
 
         if (_encryptionPtr)
         {
@@ -515,7 +515,7 @@ Channel::OnReceivedTelephoneEvent(const WebRtc_Word32 id,
 #ifdef WEBRTC_DTMF_DETECTION
     if (_outOfBandTelephoneEventDetecion)
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
 
         if (_telephoneEventDetectionPtr)
         {
@@ -567,7 +567,7 @@ Channel::OnIncomingSSRCChanged(const WebRtc_Word32 id,
 
     if (_rtpObserver)
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
 
         if (_rtpObserverPtr)
         {
@@ -590,7 +590,7 @@ void Channel::OnIncomingCSRCChanged(const WebRtc_Word32 id,
 
     if (_rtpObserver)
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
 
         if (_rtpObserverPtr)
         {
@@ -616,7 +616,7 @@ Channel::OnApplicationDataReceived(const WebRtc_Word32 id,
 
     if (_rtcpObserver)
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
 
         if (_rtcpObserverPtr)
         {
@@ -633,7 +633,7 @@ WebRtc_Word32
 Channel::OnInitializeDecoder(
     const WebRtc_Word32 id,
     const WebRtc_Word8 payloadType,
-    const WebRtc_Word8 payloadName[RTP_PAYLOAD_NAME_SIZE],
+    const char payloadName[RTP_PAYLOAD_NAME_SIZE],
     const int frequency,
     const WebRtc_UWord8 channels,
     const WebRtc_UWord32 rate)
@@ -677,7 +677,7 @@ Channel::OnPacketTimeout(const WebRtc_Word32 id)
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::OnPacketTimeout(id=%d)", id);
 
-    CriticalSectionScoped cs(*_callbackCritSectPtr);
+    CriticalSectionScoped cs(_callbackCritSectPtr);
     if (_voiceEngineObserverPtr)
     {
         if (_receiving || _externalTransport)
@@ -711,7 +711,7 @@ Channel::OnReceivedPacket(const WebRtc_Word32 id,
     // Notify only for the case when we have restarted an RTP session.
     if (_rtpPacketTimedOut && (kPacketRtp == packetType))
     {
-        CriticalSectionScoped cs(*_callbackCritSectPtr);
+        CriticalSectionScoped cs(_callbackCritSectPtr);
         if (_voiceEngineObserverPtr)
         {
             WebRtc_Word32 channel = VoEChannelId(id);
@@ -772,7 +772,7 @@ Channel::OnPeriodicDeadOrAlive(const WebRtc_Word32 id,
     // Send callback to the registered observer
     if (_connectionObserver)
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
         if (_connectionObserverPtr)
         {
             _connectionObserverPtr->OnPeriodicDeadOrAlive(channel, isAlive);
@@ -805,7 +805,7 @@ Channel::OnReceivedPayloadData(const WebRtc_UWord8* payloadData,
     }
 
     // Push the incoming payload (parsed and ready for decoding) into the ACM
-    if (_audioCodingModule.IncomingPacket((const WebRtc_Word8*) payloadData,
+    if (_audioCodingModule.IncomingPacket(payloadData,
                                           payloadSize,
                                           *rtpHeader) != 0)
     {
@@ -898,7 +898,7 @@ WebRtc_Word32 Channel::GetAudioFrame(const WebRtc_Word32 id,
     // External media
     if (_outputExternalMedia)
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
         const bool isStereo = (audioFrame._audioChannel == 2);
         if (_outputExternalMediaCallbackPtr)
         {
@@ -914,24 +914,11 @@ WebRtc_Word32 Channel::GetAudioFrame(const WebRtc_Word32 id,
 
     // Record playout if enabled
     {
-        CriticalSectionScoped cs(_fileCritSect);
+        CriticalSectionScoped cs(&_fileCritSect);
 
         if (_outputFileRecording && _outputFileRecorderPtr)
         {
-            if(audioFrame._audioChannel == 2)
-            {
-                AudioFrame temp =  audioFrame;
-                AudioFrameOperations::StereoToMono (temp);
-                _outputFileRecorderPtr->RecordAudioToFile(temp);
-            }
-            else if(audioFrame._audioChannel == 1)
-            {
-                _outputFileRecorderPtr->RecordAudioToFile(audioFrame);
-            }
-            else
-            {
-                assert(false);
-            }
+            _outputFileRecorderPtr->RecordAudioToFile(audioFrame);
         }
     }
 
@@ -968,7 +955,7 @@ Channel::NeededFrequency(const WebRtc_Word32 id)
     // limit the spectrum anyway.
     if (_outputFilePlaying)
     {
-        CriticalSectionScoped cs(_fileCritSect);
+        CriticalSectionScoped cs(&_fileCritSect);
         if (_outputFilePlayerPtr && _outputFilePlaying)
         {
             if(_outputFilePlayerPtr->Frequency()>highestNeeded)
@@ -1032,7 +1019,7 @@ Channel::PlayFileEnded(const WebRtc_Word32 id)
 
     if (id == _inputFilePlayerId)
     {
-        CriticalSectionScoped cs(_fileCritSect);
+        CriticalSectionScoped cs(&_fileCritSect);
 
         _inputFilePlaying = false;
         WEBRTC_TRACE(kTraceStateInfo, kTraceVoice,
@@ -1042,7 +1029,7 @@ Channel::PlayFileEnded(const WebRtc_Word32 id)
     }
     else if (id == _outputFilePlayerId)
     {
-        CriticalSectionScoped cs(_fileCritSect);
+        CriticalSectionScoped cs(&_fileCritSect);
 
         _outputFilePlaying = false;
         WEBRTC_TRACE(kTraceStateInfo, kTraceVoice,
@@ -1060,7 +1047,7 @@ Channel::RecordFileEnded(const WebRtc_Word32 id)
 
     assert(id == _outputFileRecorderId);
 
-    CriticalSectionScoped cs(_fileCritSect);
+    CriticalSectionScoped cs(&_fileCritSect);
 
     _outputFileRecording = false;
     WEBRTC_TRACE(kTraceStateInfo, kTraceVoice,
@@ -1073,7 +1060,6 @@ Channel::Channel(const WebRtc_Word32 channelId,
                  const WebRtc_UWord32 instanceId) :
     _fileCritSect(*CriticalSectionWrapper::CreateCriticalSection()),
     _callbackCritSect(*CriticalSectionWrapper::CreateCriticalSection()),
-    _transmitCritSect(*CriticalSectionWrapper::CreateCriticalSection()),
     _instanceId(instanceId),
     _channelId(channelId),
     _rtpRtcpModule(*RtpRtcp::CreateRtpRtcp(VoEModuleId(
@@ -1120,6 +1106,8 @@ Channel::Channel(const WebRtc_Word32 channelId,
     _playoutTimeStampRTCP(0),
     _numberOfDiscardedPackets(0),
     _engineStatisticsPtr(NULL),
+    _outputMixerPtr(NULL),
+    _transmitMixerPtr(NULL),
     _moduleProcessThreadPtr(NULL),
     _audioDeviceModulePtr(NULL),
     _voiceEngineObserverPtr(NULL),
@@ -1218,7 +1206,7 @@ Channel::~Channel()
     StopPlayout();
 
     {
-        CriticalSectionScoped cs(_fileCritSect);
+        CriticalSectionScoped cs(&_fileCritSect);
         if (_inputFilePlayerPtr)
         {
             _inputFilePlayerPtr->RegisterModuleFileCallback(NULL);
@@ -1350,7 +1338,6 @@ Channel::~Channel()
     delete [] _encryptionRTCPBufferPtr;
     delete [] _decryptionRTCPBufferPtr;
     delete &_callbackCritSect;
-    delete &_transmitCritSect;
     delete &_fileCritSect;
 }
 
@@ -1528,7 +1515,7 @@ Channel::Init()
     {
         // A lock is needed here since users can call
         // RegisterExternalTransport() at the same time.
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
         _transportPtr = &_socketTransportModule;
     }
 #endif
@@ -1687,7 +1674,7 @@ Channel::StartSend()
     {
         // A lock is needed because |_sending| can be accessed or modified by
         // another thread at the same time.
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
 
         if (_sending)
         {
@@ -1701,7 +1688,7 @@ Channel::StartSend()
         _engineStatisticsPtr->SetLastError(
             VE_RTP_RTCP_MODULE_ERROR, kTraceError,
             "StartSend() RTP/RTCP failed to start sending");
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
         _sending = false;
         return -1;
     }
@@ -1717,7 +1704,7 @@ Channel::StopSend()
     {
         // A lock is needed because |_sending| can be accessed or modified by
         // another thread at the same time.
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
 
         if (!_sending)
         {
@@ -1822,8 +1809,8 @@ Channel::StopReceiving()
 WebRtc_Word32
 Channel::SetLocalReceiver(const WebRtc_UWord16 rtpPort,
                           const WebRtc_UWord16 rtcpPort,
-                          const WebRtc_Word8 ipAddr[64],
-                          const WebRtc_Word8 multicastIpAddr[64])
+                          const char ipAddr[64],
+                          const char multicastIpAddr[64])
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::SetLocalReceiver()");
@@ -1908,12 +1895,10 @@ Channel::GetLocalReceiver(int& port, int& RTCPport, char ipAddr[64])
         return -1;
     }
 
-    WebRtc_Word8 ipAddrTmp[UdpTransport::
-                           kIpAddressVersion6Length] = {0};
+    char ipAddrTmp[UdpTransport::kIpAddressVersion6Length] = {0};
     WebRtc_UWord16 rtpPort(0);
     WebRtc_UWord16 rtcpPort(0);
-    WebRtc_Word8 multicastIpAddr[UdpTransport::
-                                 kIpAddressVersion6Length] = {0};
+    char multicastIpAddr[UdpTransport::kIpAddressVersion6Length] = {0};
 
     // Acquire socket information from the socket module
     if (_socketTransportModule.ReceiveSocketInformation(ipAddrTmp,
@@ -1941,7 +1926,7 @@ Channel::GetLocalReceiver(int& port, int& RTCPport, char ipAddr[64])
 #ifndef WEBRTC_EXTERNAL_TRANSPORT
 WebRtc_Word32
 Channel::SetSendDestination(const WebRtc_UWord16 rtpPort,
-                            const WebRtc_Word8 ipAddr[64],
+                            const char ipAddr[64],
                             const int sourcePort,
                             const WebRtc_UWord16 rtcpPort)
 {
@@ -2100,7 +2085,7 @@ Channel::GetSendDestination(int& port,
         return -1;
     }
 
-    WebRtc_Word8 ipAddrTmp[UdpTransport::kIpAddressVersion6Length] = {0};
+    char ipAddrTmp[UdpTransport::kIpAddressVersion6Length] = {0};
     WebRtc_UWord16 rtpPort(0);
     WebRtc_UWord16 rtcpPort(0);
     WebRtc_UWord16 rtpSourcePort(0);
@@ -2141,11 +2126,6 @@ Channel::SetNetEQPlayoutMode(NetEqModes mode)
         case kNetEqFax:
             playoutMode = fax;
             break;
-        default:
-            _engineStatisticsPtr->SetLastError(
-                VE_INVALID_ARGUMENT, kTraceError,
-                "SetNetEQPlayoutMode() invalid mode");
-            return -1;
     }
     if (_audioCodingModule.SetPlayoutMode(playoutMode) != 0)
     {
@@ -2172,11 +2152,6 @@ Channel::GetNetEQPlayoutMode(NetEqModes& mode)
         case fax:
             mode = kNetEqFax;
             break;
-        default:
-            _engineStatisticsPtr->SetLastError(
-                VE_INVALID_ARGUMENT, kTraceError,
-                "GetNetEQPlayoutMode() invalid mode");
-            return -1;
     }
     WEBRTC_TRACE(kTraceStateInfo, kTraceVoice,
                  VoEId(_instanceId,_channelId),
@@ -2201,11 +2176,6 @@ Channel::SetNetEQBGNMode(NetEqBgnModes mode)
         case kBgnOff:
             noiseMode = Off;
             break;
-        default:
-            _engineStatisticsPtr->SetLastError(
-                VE_INVALID_ARGUMENT, kTraceError,
-                "SetNetEQBGNMode() invalid mode");
-            return -1;
     }
     if (_audioCodingModule.SetBackgroundNoiseMode(noiseMode) != 0)
     {
@@ -2267,7 +2237,7 @@ Channel::RegisterVoiceEngineObserver(VoiceEngineObserver& observer)
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::RegisterVoiceEngineObserver()");
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (_voiceEngineObserverPtr)
     {
@@ -2285,7 +2255,7 @@ Channel::DeRegisterVoiceEngineObserver()
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::DeRegisterVoiceEngineObserver()");
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (!_voiceEngineObserverPtr)
     {
@@ -2314,12 +2284,6 @@ Channel::GetNetEQBGNMode(NetEqBgnModes& mode)
         case Off:
             mode = kBgnOff;
             break;
-        default:
-            _engineStatisticsPtr->SetLastError(
-                    VE_INVALID_ARGUMENT,
-                    kTraceError,
-                    "GetNetEQBGNMode() invalid mode");
-            return -1;
     }
     WEBRTC_TRACE(kTraceStateInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::GetNetEQBGNMode() => mode=%u", mode);
@@ -2790,7 +2754,7 @@ WebRtc_Word32 Channel::RegisterExternalTransport(Transport& transport)
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId, _channelId),
                "Channel::RegisterExternalTransport()");
 
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
 #ifndef WEBRTC_EXTERNAL_TRANSPORT
     // Sanity checks for default (non external transport) to avoid conflict with
@@ -2828,7 +2792,7 @@ Channel::DeRegisterExternalTransport()
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::DeRegisterExternalTransport()");
 
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (!_transportPtr)
     {
@@ -2856,7 +2820,7 @@ Channel::ReceivedRTPPacket(const WebRtc_Word8* data, WebRtc_Word32 length)
 {
     WEBRTC_TRACE(kTraceStream, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::ReceivedRTPPacket()");
-    const WebRtc_Word8 dummyIP[] = "127.0.0.1";
+    const char dummyIP[] = "127.0.0.1";
     IncomingRTPPacket(data, length, dummyIP, 0);
     return 0;
 }
@@ -2866,7 +2830,7 @@ Channel::ReceivedRTCPPacket(const WebRtc_Word8* data, WebRtc_Word32 length)
 {
     WEBRTC_TRACE(kTraceStream, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::ReceivedRTCPPacket()");
-    const WebRtc_Word8 dummyIP[] = "127.0.0.1";
+    const char dummyIP[] = "127.0.0.1";
     IncomingRTCPPacket(data, length, dummyIP, 0);
     return 0;
 }
@@ -2880,7 +2844,7 @@ Channel::GetSourceInfo(int& rtpPort, int& rtcpPort, char ipAddr[64])
 
     WebRtc_UWord16 rtpPortModule;
     WebRtc_UWord16 rtcpPortModule;
-    WebRtc_Word8 ipaddr[UdpTransport::kIpAddressVersion6Length] = {0};
+    char ipaddr[UdpTransport::kIpAddressVersion6Length] = {0};
 
     if (_socketTransportModule.RemoteSocketInformation(ipaddr,
                                                        rtpPortModule,
@@ -2956,8 +2920,7 @@ Channel::SetSourceFilter(int rtpPort, int rtcpPort, const char ipAddr[64])
                      lastError);
         return -1;
     }
-    const WebRtc_Word8* filterIpAddress =
-        static_cast<const WebRtc_Word8*> (ipAddr);
+    const char* filterIpAddress = ipAddr;
     if (_socketTransportModule.SetFilterIP(filterIpAddress) != 0)
     {
         _engineStatisticsPtr->SetLastError(
@@ -2985,7 +2948,7 @@ Channel::GetSourceFilter(int& rtpPort, int& rtcpPort, char ipAddr[64])
             VE_SOCKET_TRANSPORT_MODULE_ERROR, kTraceWarning,
             "GetSourceFilter() failed to retrieve filter ports");
     }
-    WebRtc_Word8 ipAddrTmp[UdpTransport::kIpAddressVersion6Length] = {0};
+    char ipAddrTmp[UdpTransport::kIpAddressVersion6Length] = {0};
     if (_socketTransportModule.FilterIP(ipAddrTmp) != 0)
     {
         // no filter has been configured (not seen as an error)
@@ -3274,7 +3237,7 @@ Channel::RegisterDeadOrAliveObserver(VoEConnectionObserver& observer)
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::RegisterDeadOrAliveObserver()");
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (_connectionObserverPtr)
     {
@@ -3294,7 +3257,7 @@ Channel::DeRegisterDeadOrAliveObserver()
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::DeRegisterDeadOrAliveObserver()");
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (!_connectionObserverPtr)
     {
@@ -3447,7 +3410,7 @@ int Channel::StartPlayingFileLocally(const char* fileName,
     }
 
     {
-        CriticalSectionScoped cs(_fileCritSect);
+        CriticalSectionScoped cs(&_fileCritSect);
 
         if (_outputFilePlayerPtr)
         {
@@ -3495,7 +3458,7 @@ int Channel::StartPlayingFileLocally(const char* fileName,
     // the file, _fileCritSect will be taken. This would result in a deadlock.
     if (_outputMixerPtr->SetAnonymousMixabilityStatus(*this, true) != 0)
     {
-        CriticalSectionScoped cs(_fileCritSect);
+        CriticalSectionScoped cs(&_fileCritSect);
         _outputFilePlaying = false;
         _engineStatisticsPtr->SetLastError(
             VE_AUDIO_CONF_MIX_MODULE_ERROR, kTraceError,
@@ -3539,7 +3502,7 @@ int Channel::StartPlayingFileLocally(InStream* stream,
     }
 
     {
-      CriticalSectionScoped cs(_fileCritSect);
+      CriticalSectionScoped cs(&_fileCritSect);
 
       // Destroy the old instance
       if (_outputFilePlayerPtr)
@@ -3585,7 +3548,7 @@ int Channel::StartPlayingFileLocally(InStream* stream,
     // StartPlayingFileLocally(const char* ...) for more details.
     if (_outputMixerPtr->SetAnonymousMixabilityStatus(*this, true) != 0)
     {
-        CriticalSectionScoped cs(_fileCritSect);
+        CriticalSectionScoped cs(&_fileCritSect);
         _outputFilePlaying = false;
         _engineStatisticsPtr->SetLastError(
             VE_AUDIO_CONF_MIX_MODULE_ERROR, kTraceError,
@@ -3613,7 +3576,7 @@ int Channel::StopPlayingFileLocally()
     }
 
     {
-        CriticalSectionScoped cs(_fileCritSect);
+        CriticalSectionScoped cs(&_fileCritSect);
 
         if (_outputFilePlayerPtr->StopPlayingFile() != 0)
         {
@@ -3655,7 +3618,7 @@ int Channel::ScaleLocalFilePlayout(const float scale)
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::ScaleLocalFilePlayout(scale=%5.3f)", scale);
 
-    CriticalSectionScoped cs(_fileCritSect);
+    CriticalSectionScoped cs(&_fileCritSect);
 
     if (!_outputFilePlaying)
     {
@@ -3683,7 +3646,7 @@ int Channel::GetLocalPlayoutPosition(int& positionMs)
 
     WebRtc_UWord32 position;
 
-    CriticalSectionScoped cs(_fileCritSect);
+    CriticalSectionScoped cs(&_fileCritSect);
 
     if (_outputFilePlayerPtr == NULL)
     {
@@ -3727,7 +3690,7 @@ int Channel::StartPlayingFileAsMicrophone(const char* fileName,
         return 0;
     }
 
-    CriticalSectionScoped cs(_fileCritSect);
+    CriticalSectionScoped cs(&_fileCritSect);
 
     // Destroy the old instance
     if (_inputFilePlayerPtr)
@@ -3802,7 +3765,7 @@ int Channel::StartPlayingFileAsMicrophone(InStream* stream,
         return 0;
     }
 
-    CriticalSectionScoped cs(_fileCritSect);
+    CriticalSectionScoped cs(&_fileCritSect);
 
     // Destroy the old instance
     if (_inputFilePlayerPtr)
@@ -3858,7 +3821,7 @@ int Channel::StopPlayingFileAsMicrophone()
         return 0;
     }
 
-    CriticalSectionScoped cs(_fileCritSect);
+    CriticalSectionScoped cs(&_fileCritSect);
     if (_inputFilePlayerPtr->StopPlayingFile() != 0)
     {
         _engineStatisticsPtr->SetLastError(
@@ -3887,7 +3850,7 @@ int Channel::ScaleFileAsMicrophonePlayout(const float scale)
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::ScaleFileAsMicrophonePlayout(scale=%5.3f)", scale);
 
-    CriticalSectionScoped cs(_fileCritSect);
+    CriticalSectionScoped cs(&_fileCritSect);
 
     if (!_inputFilePlaying)
     {
@@ -3909,7 +3872,7 @@ int Channel::ScaleFileAsMicrophonePlayout(const float scale)
     return 0;
 }
 
-int Channel::StartRecordingPlayout(const WebRtc_Word8* fileName,
+int Channel::StartRecordingPlayout(const char* fileName,
                                    const CodecInst* codecInst)
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
@@ -3926,7 +3889,8 @@ int Channel::StartRecordingPlayout(const WebRtc_Word8* fileName,
     const WebRtc_UWord32 notificationTime(0); // Not supported in VoE
     CodecInst dummyCodec={100,"L16",16000,320,1,320000};
 
-    if (codecInst != NULL && codecInst->channels != 1)
+    if ((codecInst != NULL) &&
+      ((codecInst->channels < 1) || (codecInst->channels > 2)))
     {
         _engineStatisticsPtr->SetLastError(
             VE_BAD_ARGUMENT, kTraceError,
@@ -3949,7 +3913,7 @@ int Channel::StartRecordingPlayout(const WebRtc_Word8* fileName,
         format = kFileFormatCompressedFile;
     }
 
-    CriticalSectionScoped cs(_fileCritSect);
+    CriticalSectionScoped cs(&_fileCritSect);
 
     // Destroy the old instance
     if (_outputFileRecorderPtr)
@@ -4026,7 +3990,7 @@ int Channel::StartRecordingPlayout(OutStream* stream,
         format = kFileFormatCompressedFile;
     }
 
-    CriticalSectionScoped cs(_fileCritSect);
+    CriticalSectionScoped cs(&_fileCritSect);
 
     // Destroy the old instance
     if (_outputFileRecorderPtr)
@@ -4077,7 +4041,7 @@ int Channel::StopRecordingPlayout()
     }
 
 
-    CriticalSectionScoped cs(_fileCritSect);
+    CriticalSectionScoped cs(&_fileCritSect);
 
     if (_outputFileRecorderPtr->StopRecording() != 0)
     {
@@ -4193,7 +4157,7 @@ Channel::EnableSRTPSend(
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                "Channel::EnableSRTPSend()");
 
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (_encrypting)
     {
@@ -4263,7 +4227,7 @@ Channel::DisableSRTPSend()
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                "Channel::DisableSRTPSend()");
 
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (!_encrypting)
     {
@@ -4306,7 +4270,7 @@ Channel::EnableSRTPReceive(
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                "Channel::EnableSRTPReceive()");
 
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (_decrypting)
     {
@@ -4377,7 +4341,7 @@ Channel::DisableSRTPReceive()
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                "Channel::DisableSRTPReceive()");
 
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (!_decrypting)
     {
@@ -4413,7 +4377,7 @@ Channel::RegisterExternalEncryption(Encryption& encryption)
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                "Channel::RegisterExternalEncryption()");
 
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (_encryptionPtr)
     {
@@ -4437,7 +4401,7 @@ Channel::DeRegisterExternalEncryption()
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                "Channel::DeRegisterExternalEncryption()");
 
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (!_encryptionPtr)
     {
@@ -4562,7 +4526,7 @@ Channel::RegisterTelephoneEventDetection(
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::RegisterTelephoneEventDetection()");
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (_telephoneEventDetectionPtr)
     {
@@ -4626,7 +4590,7 @@ Channel::DeRegisterTelephoneEventDetection()
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId, _channelId),
                  "Channel::DeRegisterTelephoneEventDetection()");
 
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (!_telephoneEventDetectionPtr)
     {
@@ -4661,7 +4625,7 @@ Channel::GetTelephoneEventDetectionStatus(
                  "Channel::GetTelephoneEventDetectionStatus()");
 
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
         enabled = (_telephoneEventDetectionPtr != NULL);
     }
 
@@ -4718,7 +4682,7 @@ Channel::RegisterRxVadObserver(VoERxVadCallback &observer)
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::RegisterRxVadObserver()");
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (_rxVadObserverPtr)
     {
@@ -4737,7 +4701,7 @@ Channel::DeRegisterRxVadObserver()
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::DeRegisterRxVadObserver()");
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (!_rxVadObserverPtr)
     {
@@ -4942,11 +4906,6 @@ Channel::SetRxNsStatus(const bool enable, const NsModes mode)
         case kNsVeryHighSuppression:
             nsLevel = NoiseSuppression::kVeryHigh;
             break;
-        default:
-            _engineStatisticsPtr->SetLastError(
-                VE_INVALID_ARGUMENT, kTraceError,
-                "SetRxNsStatus() invalid Ns mode");
-            return -1;
     }
 
     if (_rxAudioProcessingModulePtr->noise_suppression()->set_level(nsLevel)
@@ -4998,11 +4957,6 @@ Channel::GetRxNsStatus(bool& enabled, NsModes& mode)
         case NoiseSuppression::kVeryHigh:
             mode = kNsVeryHighSuppression;
             break;
-        default:
-            _engineStatisticsPtr->SetLastError(
-                VE_APM_ERROR, kTraceError,
-                "GetRxNsStatus() invalid Ns mode");
-            return -1;
     }
 
     WEBRTC_TRACE(kTraceStateInfo, kTraceVoice,
@@ -5018,7 +4972,7 @@ Channel::RegisterRTPObserver(VoERTPObserver& observer)
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId, _channelId),
                  "Channel::RegisterRTPObserver()");
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (_rtpObserverPtr)
     {
@@ -5039,7 +4993,7 @@ Channel::DeRegisterRTPObserver()
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::DeRegisterRTPObserver()");
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (!_rtpObserverPtr)
     {
@@ -5060,7 +5014,7 @@ Channel::RegisterRTCPObserver(VoERTCPObserver& observer)
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::RegisterRTCPObserver()");
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (_rtcpObserverPtr)
     {
@@ -5081,7 +5035,7 @@ Channel::DeRegisterRTCPObserver()
 {
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId, _channelId),
                  "Channel::DeRegisterRTCPObserver()");
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (!_rtcpObserverPtr)
     {
@@ -5273,7 +5227,7 @@ Channel::GetRemoteRTCP_CNAME(char cName[256])
             "GetRemoteRTCP_CNAME() invalid CNAME input buffer");
         return -1;
     }
-    WebRtc_Word8 cname[RTCP_CNAME_SIZE];
+    char cname[RTCP_CNAME_SIZE];
     const WebRtc_UWord32 remoteSSRC = _rtpRtcpModule.RemoteSSRC();
     if (_rtpRtcpModule.RemoteCNAME(remoteSSRC, cname) != 0)
     {
@@ -5364,16 +5318,20 @@ Channel::GetRemoteRTCPData(
           remoteSSRC = it->remoteSSRC;
         }
 
-        *jitter = it->jitter;
-        WEBRTC_TRACE(kTraceStateInfo, kTraceVoice,
-                     VoEId(_instanceId, _channelId),
-                     "GetRemoteRTCPData() => jitter = %lu", *jitter);
+        if (jitter) {
+          *jitter = it->jitter;
+          WEBRTC_TRACE(kTraceStateInfo, kTraceVoice,
+                       VoEId(_instanceId, _channelId),
+                       "GetRemoteRTCPData() => jitter = %lu", *jitter);
+        }
 
-        *fractionLost = it->fractionLost;
-        WEBRTC_TRACE(kTraceStateInfo, kTraceVoice,
-                     VoEId(_instanceId, _channelId),
-                     "GetRemoteRTCPData() => fractionLost = %lu",
-                     *fractionLost);
+        if (fractionLost) {
+          *fractionLost = it->fractionLost;
+          WEBRTC_TRACE(kTraceStateInfo, kTraceVoice,
+                       VoEId(_instanceId, _channelId),
+                       "GetRemoteRTCPData() => fractionLost = %lu",
+                       *fractionLost);
+        }
     }
     return 0;
 }
@@ -5673,60 +5631,6 @@ Channel::GetFECStatus(bool& enabled, int& redPayloadtype)
 }
 
 int
-Channel::SetRTPKeepaliveStatus(bool enable,
-                               unsigned char unknownPayloadType,
-                               int deltaTransmitTimeSeconds)
-{
-    WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId, _channelId),
-                 "Channel::SetRTPKeepaliveStatus()");
-    if (_sending)
-    {
-        _engineStatisticsPtr->SetLastError(
-            VE_ALREADY_SENDING, kTraceError,
-            "SetRTPKeepaliveStatus() already sending");
-        return -1;
-    }
-    if (_rtpRtcpModule.SetRTPKeepaliveStatus(
-        enable,
-        unknownPayloadType,
-        1000 * deltaTransmitTimeSeconds) != 0)
-    {
-        _engineStatisticsPtr->SetLastError(
-            VE_RTP_RTCP_MODULE_ERROR, kTraceError,
-            "SetRTPKeepaliveStatus() failed to set RTP keepalive status");
-        return -1;
-    }
-    return 0;
-}
-
-int
-Channel::GetRTPKeepaliveStatus(bool& enabled,
-                               unsigned char& unknownPayloadType,
-                               int& deltaTransmitTimeSeconds)
-{
-    bool onOff(false);
-    WebRtc_Word8 payloadType(0);
-    WebRtc_UWord16 deltaTransmitTimeMS(0);
-    if (_rtpRtcpModule.RTPKeepaliveStatus(&onOff, &payloadType,
-                                          &deltaTransmitTimeMS) != 0)
-    {
-        _engineStatisticsPtr->SetLastError(
-            VE_RTP_RTCP_MODULE_ERROR, kTraceError,
-            "GetRTPKeepaliveStatus() failed to retrieve RTP keepalive status");
-        return -1;
-    }
-    enabled = onOff;
-    unknownPayloadType = payloadType;
-    deltaTransmitTimeSeconds = static_cast<int> (deltaTransmitTimeMS / 1000);
-    WEBRTC_TRACE(kTraceStateInfo, kTraceVoice,
-                 VoEId(_instanceId, _channelId),
-                 "GetRTPKeepaliveStatus() => enabled=%d, "
-                 "unknownPayloadType=%u, deltaTransmitTimeSeconds=%d",
-                 enabled, unknownPayloadType, deltaTransmitTimeSeconds);
-    return 0;
-}
-
-int
 Channel::StartRTPDump(const char fileNameUTF8[1024],
                       RTPDirections direction)
 {
@@ -5905,7 +5809,7 @@ Channel::PrepareEncodeAndSend(int mixingFrequency)
 
     if (_inputExternalMedia)
     {
-        CriticalSectionScoped cs(_callbackCritSect);
+        CriticalSectionScoped cs(&_callbackCritSect);
         const bool isStereo = (_audioFrame._audioChannel == 2);
         if (_inputExternalMediaCallbackPtr)
         {
@@ -6001,7 +5905,7 @@ int Channel::RegisterExternalMediaProcessing(
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::RegisterExternalMediaProcessing()");
 
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (kPlaybackPerChannel == type)
     {
@@ -6037,7 +5941,7 @@ int Channel::DeRegisterExternalMediaProcessing(ProcessingTypes type)
     WEBRTC_TRACE(kTraceInfo, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::DeRegisterExternalMediaProcessing()");
 
-    CriticalSectionScoped cs(_callbackCritSect);
+    CriticalSectionScoped cs(&_callbackCritSect);
 
     if (kPlaybackPerChannel == type)
     {
@@ -6247,11 +6151,11 @@ Channel::GetRtpRtcp(RtpRtcp* &rtpRtcpModule) const
 WebRtc_Word32
 Channel::MixOrReplaceAudioWithFile(const int mixingFrequency)
 {
-    WebRtc_Word16 fileBuffer[320];
+    scoped_array<WebRtc_Word16> fileBuffer(new WebRtc_Word16[640]);
     WebRtc_UWord32 fileSamples(0);
 
     {
-        CriticalSectionScoped cs(_fileCritSect);
+        CriticalSectionScoped cs(&_fileCritSect);
 
         if (_inputFilePlayerPtr == NULL)
         {
@@ -6262,7 +6166,7 @@ Channel::MixOrReplaceAudioWithFile(const int mixingFrequency)
             return -1;
         }
 
-        if (_inputFilePlayerPtr->Get10msAudioFromFile(fileBuffer,
+        if (_inputFilePlayerPtr->Get10msAudioFromFile(fileBuffer.get(),
                                                       fileSamples,
                                                       mixingFrequency) == -1)
         {
@@ -6285,17 +6189,23 @@ Channel::MixOrReplaceAudioWithFile(const int mixingFrequency)
 
     if (_mixFileWithMicrophone)
     {
+        // Currently file stream is always mono.
+        // TODO(xians): Change the code when FilePlayer supports real stereo.
         Utility::MixWithSat(_audioFrame._payloadData,
-                            fileBuffer,
-                            (WebRtc_UWord16)fileSamples);
+                            static_cast<int>(_audioFrame._audioChannel),
+                            fileBuffer.get(),
+                            1,
+                            static_cast<int>(fileSamples));
     }
     else
     {
-        // replace ACM audio with file
+        // Replace ACM audio with file.
+        // Currently file stream is always mono.
+        // TODO(xians): Change the code when FilePlayer supports real stereo.
         _audioFrame.UpdateFrame(_channelId,
                                 -1,
-                                fileBuffer,
-                                (WebRtc_UWord16)fileSamples,
+                                fileBuffer.get(),
+                                static_cast<WebRtc_UWord16>(fileSamples),
                                 mixingFrequency,
                                 AudioFrame::kNormalSpeech,
                                 AudioFrame::kVadUnknown,
@@ -6311,11 +6221,11 @@ Channel::MixAudioWithFile(AudioFrame& audioFrame,
 {
     assert(mixingFrequency <= 32000);
 
-    WebRtc_Word16 fileBuffer[640];
+    scoped_array<WebRtc_Word16> fileBuffer(new WebRtc_Word16[640]);
     WebRtc_UWord32 fileSamples(0);
 
     {
-        CriticalSectionScoped cs(_fileCritSect);
+        CriticalSectionScoped cs(&_fileCritSect);
 
         if (_outputFilePlayerPtr == NULL)
         {
@@ -6326,7 +6236,7 @@ Channel::MixAudioWithFile(AudioFrame& audioFrame,
         }
 
         // We should get the frequency we ask for.
-        if (_outputFilePlayerPtr->Get10msAudioFromFile(fileBuffer,
+        if (_outputFilePlayerPtr->Get10msAudioFromFile(fileBuffer.get(),
                                                        fileSamples,
                                                        mixingFrequency) == -1)
         {
@@ -6339,28 +6249,13 @@ Channel::MixAudioWithFile(AudioFrame& audioFrame,
 
     if (audioFrame._payloadDataLengthInSamples == fileSamples)
     {
-        // In case the incoming stream is stereo and file stream is mono,
-        // turn the file stream into stereo.
-        // TODO(xians): remove the code when FilePlayer supports real stereo.
-        if (audioFrame._audioChannel == 2)
-        {
-            // The mono file stream is copied to be stereo.
-            WebRtc_Word16* FileBufferCopy = new WebRtc_Word16[fileSamples];
-            memcpy(FileBufferCopy, fileBuffer,
-                   sizeof(WebRtc_Word16) * fileSamples);
-            for (unsigned int i = 0; i < fileSamples; i++)
-            {
-                fileBuffer[2*i]   = FileBufferCopy[i];
-                fileBuffer[2*i+1] = FileBufferCopy[i];
-            }
-            fileSamples = 2*fileSamples;
-            delete [] FileBufferCopy;
-        }
-
-        // Mix the incoming stream and file stream.
+        // Currently file stream is always mono.
+        // TODO(xians): Change the code when FilePlayer supports real stereo.
         Utility::MixWithSat(audioFrame._payloadData,
-                            fileBuffer,
-                            (WebRtc_UWord16)fileSamples);
+                            static_cast<int>(audioFrame._audioChannel),
+                            fileBuffer.get(),
+                            1,
+                            static_cast<int>(fileSamples));
     }
     else
     {

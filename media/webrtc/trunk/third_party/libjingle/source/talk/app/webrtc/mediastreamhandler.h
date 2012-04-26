@@ -36,7 +36,7 @@
 #include <list>
 #include <vector>
 
-#include "talk/app/webrtc/mediastream.h"
+#include "talk/app/webrtc/mediastreaminterface.h"
 #include "talk/app/webrtc/mediastreamprovider.h"
 #include "talk/app/webrtc/peerconnection.h"
 #include "talk/base/thread.h"
@@ -141,4 +141,3 @@ class MediaStreamHandlers {
 }  // namespace webrtc
 
 #endif  // TALK_APP_WEBRTC_MEDIASTREAMHANDLER_H_
-

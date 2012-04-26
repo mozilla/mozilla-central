@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -42,7 +42,7 @@ void ViEAutoTest::ViEBaseStandardTest() {
 
   webrtc::VideoCaptureModule* video_capture_module(NULL);
   const unsigned int kMaxDeviceNameLength = 128;
-  WebRtc_UWord8 device_name[kMaxDeviceNameLength];
+  char device_name[kMaxDeviceNameLength];
   memset(device_name, 0, kMaxDeviceNameLength);
   int capture_id;
 
@@ -133,6 +133,9 @@ void ViEAutoTest::ViEBaseAPITest() {
   ptrViEBase = webrtc::ViEBase::GetInterface(ptrViE);
   EXPECT_TRUE(NULL != ptrViEBase);
 
+  webrtc::ViENetwork* ptrVieNetwork = webrtc::ViENetwork::GetInterface(ptrViE);
+  EXPECT_TRUE(ptrVieNetwork != NULL);
+
   // ***************************************************************
   // Engine ready. Begin testing class
   // ***************************************************************
@@ -148,16 +151,35 @@ void ViEAutoTest::ViEBaseAPITest() {
   EXPECT_EQ(0, ptrViEBase->CreateChannel(videoChannel));
 
   int videoChannel2 = -1;
+  int videoChannel3 = -1;
   EXPECT_EQ(0, ptrViEBase->CreateChannel(videoChannel2));
   EXPECT_NE(videoChannel, videoChannel2) <<
       "Should allocate new number for independent channel";
 
   EXPECT_EQ(0, ptrViEBase->DeleteChannel(videoChannel2));
 
-  EXPECT_EQ(-1, ptrViEBase->CreateChannel(videoChannel2, videoChannel + 1)) <<
-      "Should fail since neither channel exists (the second must)";
+  EXPECT_EQ(-1, ptrViEBase->CreateChannel(videoChannel2, videoChannel + 1))
+    << "Should fail since neither channel exists (the second must)";
 
-  EXPECT_EQ(0, ptrViEBase->CreateChannel(videoChannel2, videoChannel));
+  // Create a receive only channel and a send channel. Verify we can't send on
+  // the receive only channel.
+  EXPECT_EQ(0, ptrViEBase->CreateReceiveChannel(videoChannel2, videoChannel));
+  EXPECT_EQ(0, ptrViEBase->CreateChannel(videoChannel3, videoChannel));
+
+  const char* ipAddress = "127.0.0.1\0";
+  const int sendPort = 1234;
+  EXPECT_EQ(0, ptrVieNetwork->SetSendDestination(videoChannel, ipAddress,
+                                                 sendPort));
+  EXPECT_EQ(0, ptrVieNetwork->SetSendDestination(videoChannel2,ipAddress,
+                                                 sendPort + 2));
+  EXPECT_EQ(0, ptrVieNetwork->SetSendDestination(videoChannel3,ipAddress,
+                                                 sendPort + 4));
+
+  EXPECT_EQ(0, ptrViEBase->StartSend(videoChannel));
+  EXPECT_EQ(-1, ptrViEBase->StartSend(videoChannel2));
+  EXPECT_EQ(0, ptrViEBase->StartSend(videoChannel3));
+  EXPECT_EQ(0, ptrViEBase->StopSend(videoChannel));
+  EXPECT_EQ(0, ptrViEBase->StopSend(videoChannel3));
 
   // Test Voice Engine integration with Video Engine.
   webrtc::VoiceEngine* ptrVoE = NULL;
@@ -191,6 +213,7 @@ void ViEAutoTest::ViEBaseAPITest() {
   EXPECT_EQ(0, ptrViEBase->DisconnectAudioChannel(videoChannel));
 
   // Clean up voice engine
+  EXPECT_EQ(0, ptrVieNetwork->Release());
   EXPECT_EQ(0, ptrViEBase->SetVoiceEngine(NULL));
   EXPECT_EQ(0, ptrVoEBase->Release());
   EXPECT_TRUE(webrtc::VoiceEngine::Delete(ptrVoE));

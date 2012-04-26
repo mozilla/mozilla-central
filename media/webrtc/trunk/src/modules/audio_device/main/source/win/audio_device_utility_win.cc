@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -50,7 +50,7 @@ AudioDeviceUtilityWindows::~AudioDeviceUtilityWindows()
 {
     WEBRTC_TRACE(kTraceMemory, kTraceAudioDevice, _id, "%s destroyed", __FUNCTION__);
     {
-        CriticalSectionScoped lock(_critSect);
+        CriticalSectionScoped lock(&_critSect);
 
         // free stuff here...
     }
@@ -68,7 +68,6 @@ AudioDeviceUtilityWindows::~AudioDeviceUtilityWindows()
 
 WebRtc_Word32 AudioDeviceUtilityWindows::Init()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     TCHAR szOS[STRING_MAX_SIZE];
 
@@ -78,8 +77,7 @@ WebRtc_Word32 AudioDeviceUtilityWindows::Init()
         char os[STRING_MAX_SIZE];
         if (WideCharToMultiByte(CP_UTF8, 0, szOS, -1, os, STRING_MAX_SIZE, NULL, NULL) == 0)
         {
-            DWORD err = GetLastError();
-            sprintf(os, "Could not get OS info");
+            strncpy(os, "Could not get OS info", STRING_MAX_SIZE);
         }
         // DEBUG_PRINTP("OS info: %s\n", os);
         WEBRTC_TRACE(kTraceStateInfo, kTraceAudioDevice, _id, "  OS info: %s", os);

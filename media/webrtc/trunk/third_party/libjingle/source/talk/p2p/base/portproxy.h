@@ -37,8 +37,10 @@ class PortProxy : public Port {
   PortProxy(talk_base::Thread* thread, const std::string& type,
             talk_base::PacketSocketFactory* factory,
             talk_base::Network* network,
-            const talk_base::IPAddress& ip, int min_port, int max_port)
-      : Port(thread, type, factory, network, ip, min_port, max_port) {
+            const talk_base::IPAddress& ip, int min_port, int max_port,
+            const std::string& username, const std::string& password)
+      : Port(thread, type, factory, network, ip, min_port, max_port,
+             username, password) {
   }
   virtual ~PortProxy() {}
 

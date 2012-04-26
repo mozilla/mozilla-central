@@ -48,7 +48,7 @@ class FakeWebRtcDeviceInfo : public webrtc::VideoCaptureModule::DeviceInfo {
   void AddCapability(const std::string& device_id,
                      const webrtc::VideoCaptureCapability& cap) {
     Device* dev = GetDeviceById(
-        reinterpret_cast<const WebRtc_UWord8*>(device_id.c_str()));
+        reinterpret_cast<const char*>(device_id.c_str()));
     if (!dev) return;
     dev->caps.push_back(cap);
   }
@@ -56,11 +56,11 @@ class FakeWebRtcDeviceInfo : public webrtc::VideoCaptureModule::DeviceInfo {
     return devices_.size();
   }
   virtual WebRtc_Word32 GetDeviceName(WebRtc_UWord32 device_num,
-                                      WebRtc_UWord8* device_name,
+                                      char* device_name,
                                       WebRtc_UWord32 device_name_len,
-                                      WebRtc_UWord8* device_id,
+                                      char* device_id,
                                       WebRtc_UWord32 device_id_len,
-                                      WebRtc_UWord8* product_id,
+                                      char* product_id,
                                       WebRtc_UWord32 product_id_len) {
     Device* dev = GetDeviceByIndex(device_num);
     if (!dev) return -1;
@@ -74,12 +74,12 @@ class FakeWebRtcDeviceInfo : public webrtc::VideoCaptureModule::DeviceInfo {
     }
     return 0;
   }
-  virtual WebRtc_Word32 NumberOfCapabilities(const WebRtc_UWord8* device_id) {
+  virtual WebRtc_Word32 NumberOfCapabilities(const char* device_id) {
     Device* dev = GetDeviceById(device_id);
     if (!dev) return -1;
     return dev->caps.size();
   }
-  virtual WebRtc_Word32 GetCapability(const WebRtc_UWord8* device_id,
+  virtual WebRtc_Word32 GetCapability(const char* device_id,
                                       const WebRtc_UWord32 device_cap_num,
                                       webrtc::VideoCaptureCapability& cap) {
     Device* dev = GetDeviceById(device_id);
@@ -88,18 +88,18 @@ class FakeWebRtcDeviceInfo : public webrtc::VideoCaptureModule::DeviceInfo {
     cap = dev->caps[device_cap_num];
     return 0;
   }
-  virtual WebRtc_Word32 GetOrientation(const WebRtc_UWord8* device_id,
+  virtual WebRtc_Word32 GetOrientation(const char* device_id,
                                        webrtc::VideoCaptureRotation& rotation) {
     return -1;  // not implemented
   }
   virtual WebRtc_Word32 GetBestMatchedCapability(
-      const WebRtc_UWord8* device_id,
-      const webrtc::VideoCaptureCapability requested,
+      const char* device_id,
+      const webrtc::VideoCaptureCapability& requested,
       webrtc::VideoCaptureCapability& resulting) {
     return -1;  // not implemented
   }
   virtual WebRtc_Word32 DisplayCaptureSettingsDialogBox(
-      const WebRtc_UWord8* device_id, const WebRtc_UWord8* dialog_title,
+      const char* device_id, const char* dialog_title,
       void* parent, WebRtc_UWord32 x, WebRtc_UWord32 y) {
     return -1;  // not implemented
   }
@@ -107,7 +107,7 @@ class FakeWebRtcDeviceInfo : public webrtc::VideoCaptureModule::DeviceInfo {
   Device* GetDeviceByIndex(size_t num) {
     return (num < devices_.size()) ? &devices_[num] : NULL;
   }
-  Device* GetDeviceById(const WebRtc_UWord8* device_id) {
+  Device* GetDeviceById(const char* device_id) {
     for (size_t i = 0; i < devices_.size(); ++i) {
       if (devices_[i].id == reinterpret_cast<const char*>(device_id)) {
         return &devices_[i];

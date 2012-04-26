@@ -61,7 +61,8 @@ class MucRoomLookupTaskTest : public testing::Test {
       room_jid("muc-jid-ponies@domain.com"),
       room_name("ponies"),
       room_domain("domain.com"),
-      room_full_name("ponies@domain.com") {
+      room_full_name("ponies@domain.com"),
+      hangout_id("some_hangout_id") {
   }
 
   virtual void SetUp() {
@@ -84,6 +85,7 @@ class MucRoomLookupTaskTest : public testing::Test {
   std::string room_name;
   std::string room_domain;
   std::string room_full_name;
+  std::string hangout_id;
 };
 
 TEST_F(MucRoomLookupTaskTest, TestLookupName) {
@@ -124,6 +126,45 @@ TEST_F(MucRoomLookupTaskTest, TestLookupName) {
   EXPECT_EQ(room_domain, listener->last_room.domain);
   EXPECT_EQ(room_jid, listener->last_room.jid);
   EXPECT_EQ(room_full_name, listener->last_room.full_name());
+  EXPECT_EQ(0, listener->error_count);
+}
+
+TEST_F(MucRoomLookupTaskTest, TestLookupHangoutId) {
+  ASSERT_EQ(0U, xmpp_client->sent_stanzas().size());
+
+  buzz::MucRoomLookupTask* task = new buzz::MucRoomLookupTask(
+      xmpp_client, lookup_server_jid, hangout_id);
+  task->SignalResult.connect(listener, &MucRoomLookupListener::OnResult);
+  task->Start();
+
+  std::string expected_iq =
+      "<cli:iq type=\"set\" to=\"lookup@domain.com\" id=\"0\" "
+        "xmlns:cli=\"jabber:client\">"
+        "<query xmlns=\"jabber:iq:search\">"
+          "<hangout-id>some_hangout_id</hangout-id>"
+        "</query>"
+      "</cli:iq>";
+
+  ASSERT_EQ(1U, xmpp_client->sent_stanzas().size());
+  EXPECT_EQ(expected_iq, xmpp_client->sent_stanzas()[0]->Str());
+
+  EXPECT_EQ("", listener->last_room.name);
+
+  std::string response_iq =
+      "<iq xmlns='jabber:client' from='lookup@domain.com' id='0' type='result'>"
+      "  <query xmlns='jabber:iq:search'>"
+      "    <item jid='muc-jid-ponies@domain.com'>"
+      "      <room-name>some_hangout_id</room-name>"
+      "      <room-domain>domain.com</room-domain>"
+      "    </item>"
+      "  </query>"
+      "</iq>";
+
+  xmpp_client->HandleStanza(buzz::XmlElement::ForStr(response_iq));
+
+  EXPECT_EQ(hangout_id, listener->last_room.name);
+  EXPECT_EQ(room_domain, listener->last_room.domain);
+  EXPECT_EQ(room_jid, listener->last_room.jid);
   EXPECT_EQ(0, listener->error_count);
 }
 

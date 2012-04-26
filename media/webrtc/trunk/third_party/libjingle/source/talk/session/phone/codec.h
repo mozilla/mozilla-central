@@ -31,26 +31,71 @@
 #include <map>
 #include <string>
 
+#include "talk/session/phone/constants.h"
+
 namespace cricket {
 
 typedef std::map<std::string, std::string> CodecParameterMap;
 
-struct AudioCodec {
+struct Codec {
   int id;
   std::string name;
   int clockrate;
+  int preference;
+
+  // Creates a codec with the given parameters.
+  Codec(int id, const std::string& name, int clockrate, int preference)
+      : id(id),
+        name(name),
+        clockrate(clockrate),
+        preference(preference) {
+  }
+
+  // Creates an empty codec.
+  Codec() : id(0), clockrate(0), preference(0) {}
+
+  // Indicates if this codec is compatible with the specified codec.
+  bool Matches(int id, const std::string& name) const;
+  bool Matches(const Codec& codec) const;
+
+  static bool Preferable(const Codec& first, const Codec& other) {
+    return first.preference > other.preference;
+  }
+
+  Codec& operator=(const Codec& c) {
+    this->id = c.id;  // id is reserved in objective-c
+    name = c.name;
+    clockrate = c.clockrate;
+    preference = c.preference;
+    return *this;
+  }
+
+  bool operator==(const Codec& c) const {
+    return this->id == c.id &&  // id is reserved in objective-c
+        name == c.name &&
+        clockrate == c.clockrate &&
+        preference == c.preference;
+  }
+
+  bool operator!=(const Codec& c) const {
+    return !(*this == c);
+  }
+};
+
+struct AudioCodec : public Codec {
   int bitrate;
   int channels;
-  int preference;
   CodecParameterMap params;
 
   // Creates a codec with the given parameters.
   AudioCodec(int pt, const std::string& nm, int cr, int br, int cs, int pr)
-      : id(pt), name(nm), clockrate(cr), bitrate(br),
-        channels(cs), preference(pr) {}
+      : Codec(pt, nm, cr, pr),
+        bitrate(br),
+        channels(cs) {
+  }
 
   // Creates an empty codec.
-  AudioCodec() : id(0), clockrate(0), bitrate(0), channels(0), preference(0) {}
+  AudioCodec() : Codec(), bitrate(0), channels(0) {}
 
   // Indicates if this codec is compatible with the specified codec.
   bool Matches(int payload, const std::string& nm) const;
@@ -88,25 +133,28 @@ struct AudioCodec {
   }
 };
 
-struct VideoCodec {
-  int id;
-  std::string name;
+struct VideoCodec : public Codec {
   int width;
   int height;
   int framerate;
-  int preference;
   CodecParameterMap params;
 
   // Creates a codec with the given parameters.
   VideoCodec(int pt, const std::string& nm, int w, int h, int fr, int pr)
-      : id(pt), name(nm), width(w), height(h), framerate(fr), preference(pr) {}
+      : Codec(pt, nm, kVideoCodecClockrate, pr),
+        width(w),
+        height(h),
+        framerate(fr) {
+  }
 
   // Creates an empty codec.
   VideoCodec()
-      : id(0), width(0), height(0), framerate(0), preference(0) {}
-
-  bool Matches(int payload, const std::string& nm) const;
-  bool Matches(const VideoCodec& codec) const;
+      : Codec(),
+        width(0),
+        height(0),
+        framerate(0) {
+    clockrate = kVideoCodecClockrate;
+  }
 
   static bool Preferable(const VideoCodec& first, const VideoCodec& other) {
     return first.preference > other.preference;
@@ -117,6 +165,7 @@ struct VideoCodec {
   VideoCodec& operator=(const VideoCodec& c) {
     this->id = c.id;  // id is reserved in objective-c
     name = c.name;
+    clockrate = c.clockrate;
     width = c.width;
     height = c.height;
     framerate = c.framerate;
@@ -128,6 +177,7 @@ struct VideoCodec {
   bool operator==(const VideoCodec& c) const {
     return this->id == c.id &&  // id is reserved in objective-c
            name == c.name &&
+           clockrate == c.clockrate &&
            width == c.width &&
            height == c.height &&
            framerate == c.framerate &&
@@ -138,6 +188,18 @@ struct VideoCodec {
   bool operator!=(const VideoCodec& c) const {
     return !(*this == c);
   }
+};
+
+struct DataCodec : public Codec {
+  DataCodec(int id, const std::string& name, int preference)
+      : Codec(id, name, kDataCodecClockrate, preference) {
+  }
+
+  DataCodec() : Codec() {
+    clockrate = kDataCodecClockrate;
+  }
+
+  std::string ToString() const;
 };
 
 struct VideoEncoderConfig {
