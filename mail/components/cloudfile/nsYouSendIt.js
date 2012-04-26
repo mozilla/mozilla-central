@@ -20,7 +20,7 @@ var gServerUrl = "https://dpi.yousendit.com"; // Production url
 
 const kApiKey = "7spvjdt7m4kycr7jyhywrdn2";
 const kAuthPath = "/dpi/v1/auth";
-const kUserInfoPath = "/dpi/v1/user";
+const kUserInfoPath = "/dpi/v2/user";
 const kItemPath = "/dpi/v1/item/";
 const kItemSendPath = kItemPath + "send";
 const kItemCommitPath = kItemPath + "commit";
@@ -57,6 +57,7 @@ nsYouSendIt.prototype = {
   _maxFileSize : -1,
   _fileSpaceUsed : -1,
   _availableStorage : -1,
+  _totalStorage : -1,
   _lastErrorStatus : 0,
   _lastErrorText : "",
   _uploadingFile : null,
@@ -231,13 +232,16 @@ nsYouSendIt.prototype = {
    */
   _handleStaleToken: function nsYouSendIt__handleStaleToken(aSuccessCallback,
                                                             aFailureCallback) {
+    this.log.info("Handling a stale token.");
     this._loggedIn = false;
+    this._cachedAuthToken = "";
     if (this.getPassword(this._userName, true) != "") {
       this.log.info("Attempting to reauth with saved password");
       // We had a stored password - let's try logging in with that now.
       this.logon(aSuccessCallback, aFailureCallback,
                  false);
     } else {
+      this.log.info("No saved password stored, so we can't refresh the token silently.");
       aFailureCallback();
     }
   },
@@ -268,8 +272,9 @@ nsYouSendIt.prototype = {
           this.log.info("error status = " + docResponse.errorStatus.code);
 
         if (docResponse.errorStatus && docResponse.errorStatus.code > 200) {
-          if (docResponse.errorStatus.code == 500) {
+          if (docResponse.errorStatus.code > 400) {
             // Our token has gone stale
+            this.log.info("Our token has gone stale - requesting a new one.");
 
             let retryGetUserInfo = function() {
               this._getUserInfo(successCallback, failureCallback);
@@ -284,7 +289,15 @@ nsYouSendIt.prototype = {
         }
         this._userInfo = docResponse;
         let account = docResponse.account;
-        this._availableStorage = account.availableStorage;
+        let storage = docResponse.storage;
+        if (storage) {
+          this._fileSpaceUsed = storage.currentUsage;
+          this._availableStorage = storage.storageQuota - this._fileSpaceUsed;
+        }
+        else {
+          this._availableStorage = account.availableStorage;
+        }
+
         this._maxFileSize = account.maxFileSize;
         this.log.info("available storage = " + this._availableStorage + " max file size = " + this._maxFileSize);
         successCallback();

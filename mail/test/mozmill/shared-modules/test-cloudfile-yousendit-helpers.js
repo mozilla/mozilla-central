@@ -21,7 +21,7 @@ const kServerRoot = "http://localhost:" + kDefaultServerPort;
 const kServerPath = "";
 const kServerURL = kServerRoot + kServerPath;
 const kAuthPath = "/dpi/v1/auth";
-const kUserInfoPath = "/dpi/v1/user";
+const kUserInfoPath = "/dpi/v2/user";
 const kFilePreparePath = "/dpi/v1/item/send";
 const kDefaultFileUploadPath = "/uploads";
 const kCommitPath = "/dpi/v1/item/commit";
@@ -69,6 +69,10 @@ const kDefaultUser = {
     maxFileSize: "104857600",
     premiumDelivery: null,
     verifyRecipientIdentity: "Included"
+  },
+  storage: {
+    currentUsage: 1045,
+    storageQuota: 2147483648
   },
   status: null,
   errorStatus: null,
