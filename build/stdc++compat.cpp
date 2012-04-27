@@ -65,6 +65,7 @@ namespace std {
     template istream& istream::_M_extract(double&);
     template istream& istream::_M_extract(float&);
     template istream& istream::_M_extract(unsigned int&);
+    template istream& istream::_M_extract(unsigned long&);
 #endif
 #if MOZ_LIBSTDCXX_VERSION >= GLIBCXX_VERSION(3, 4, 14)
     /* Instantiate these templates to avoid GLIBCXX_3.4.14 symbol versions
