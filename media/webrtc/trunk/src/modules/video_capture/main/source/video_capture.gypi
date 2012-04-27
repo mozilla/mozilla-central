@@ -92,9 +92,13 @@
                 },
               },
             }],  # mac
-            ['OS=="win" and build_with_mozilla==0', {
-              'dependencies': [
-                '<(webrtc_root)/modules/video_capture/main/source/Windows/direct_show_base_classes.gyp:direct_show_base_classes',
+            ['OS=="win"', {
+              'conditions': [
+                ['build_with_mozilla==0', {
+                  'dependencies': [
+                    '<(webrtc_root)/modules/video_capture/main/source/Windows/direct_show_base_classes.gyp:direct_show_base_classes',
+                  ],
+                }],
               ],
               'include_dirs': [
                 'Windows',
