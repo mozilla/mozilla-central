@@ -664,7 +664,7 @@ int VP8Decoder::Decode(const EncodedImage& input_image,
   }
 #endif
 
-#if WEBRTC_LIBVPX_VERSION >= 971
+#if WEBRTC_LIBVPX_VERSION >= 1000
   if (!mfqe_enabled_ && codec_specific_info &&
       codec_specific_info->codecSpecific.VP8.temporalIdx > 0) {
     // Enable MFQE if we are receiving layers.

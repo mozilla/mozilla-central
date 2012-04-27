@@ -291,11 +291,12 @@ EXTRA_CONFIG_DEPS := \
 	$(TOPSRCDIR)/media/webrtc/trunk/peerconnection.gyp \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/common_video/common_video.gyp \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/common_video/libyuv/libyuv.gypi \
-	$(TOPSRCDIR)/media/webrtc/trunk/src/common_video/jpeg/main/source/jpeg.gypi \
+	$(TOPSRCDIR)/media/webrtc/trunk/src/common_video/jpeg/jpeg.gypi \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/voice_engine/voice_engine.gyp \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/voice_engine/main/test/voice_engine_tests.gypi \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/voice_engine/main/source/voice_engine_core.gypi \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/video_engine/test/auto_test/vie_auto_test.gypi \
+	$(TOPSRCDIR)/media/webrtc/trunk/src/video_engine/test/libvietest/libvietest.gypi \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/video_engine/video_engine_core.gypi \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/video_engine/video_engine.gyp \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/video_engine/main/test/WindowsTest/windowstest.gypi \
@@ -342,14 +343,11 @@ EXTRA_CONFIG_DEPS := \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/modules/utility/source/utility.gypi \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/build/merge_libs.gyp \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/build/protoc.gypi \
-	$(TOPSRCDIR)/media/webrtc/trunk/src/build/external_code.gypi \
-	$(TOPSRCDIR)/media/webrtc/trunk/src/build/common_standalone.gypi \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/build/common.gypi \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/common_audio/vad/vad.gypi \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/common_audio/signal_processing/signal_processing.gypi \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/common_audio/common_audio.gyp \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/common_audio/resampler/resampler.gypi \
-	$(TOPSRCDIR)/media/webrtc/trunk/src/common_settings.gypi \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/supplement.gypi \
 	$(TOPSRCDIR)/media/webrtc/trunk/src/system_wrappers/source/system_wrappers.gyp \
 	$(TOPSRCDIR)/media/webrtc/trunk/tools/gyp/test/module/src/module.gyp \

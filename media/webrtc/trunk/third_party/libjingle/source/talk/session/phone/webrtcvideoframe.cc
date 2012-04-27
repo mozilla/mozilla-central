@@ -28,7 +28,6 @@
 #include "talk/session/phone/webrtcvideoframe.h"
 
 #include "libyuv/convert.h"
-#include "libyuv/convert_from.h"
 #include "libyuv/planar_functions.h"
 #include "talk/base/logging.h"
 #include "talk/session/phone/videocapturer.h"
