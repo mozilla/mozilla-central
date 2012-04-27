@@ -301,6 +301,8 @@
         'source/talk/base/messagedigest.h',
         'source/talk/base/ratelimiter.cc',
         'source/talk/base/ratelimiter.h',
+        'source/talk/base/sslstreamadapter.cc',
+        'source/talk/base/sslstreamadapter.h',
         'source/talk/base/stringencode.cc',
         'source/talk/base/stringencode.h',
         'source/talk/base/stringutils.cc',
@@ -423,8 +425,6 @@
           'sources': [
             'source/talk/base/latebindingsymboltable.cc',
             'source/talk/base/latebindingsymboltable.h',
-            'source/talk/base/sslstreamadapter.cc',
-            'source/talk/base/sslstreamadapter.h',
             'source/talk/base/unixfilesystem.cc',
             'source/talk/base/unixfilesystem.h',
           ],
