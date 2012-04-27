@@ -29,6 +29,7 @@
 #include "talk/session/phone/codec.h"
 
 using cricket::AudioCodec;
+using cricket::DataCodec;
 using cricket::VideoCodec;
 using cricket::VideoEncoderConfig;
 
@@ -219,4 +220,41 @@ TEST_F(CodecTest, TestVideoEncoderConfigOperators) {
   EXPECT_TRUE(c13 == c1);
   EXPECT_TRUE(c14 != c11);
   EXPECT_TRUE(c14 != c12);
+}
+
+TEST_F(CodecTest, TestDataCodecMatches) {
+  // Test a codec with a static payload type.
+  DataCodec c0(95, "D", 0);
+  EXPECT_TRUE(c0.Matches(95, ""));
+  EXPECT_FALSE(c0.Matches(96, ""));
+  EXPECT_TRUE(c0.Matches(DataCodec(95, "", 0)));
+  EXPECT_FALSE(c0.Matches(DataCodec(96, "", 0)));
+
+  // Test a codec with a dynamic payload type.
+  DataCodec c1(96, "D", 3);
+  EXPECT_TRUE(c1.Matches(96, "D"));
+  EXPECT_TRUE(c1.Matches(97, "D"));
+  EXPECT_TRUE(c1.Matches(96, "d"));
+  EXPECT_TRUE(c1.Matches(97, "d"));
+  EXPECT_FALSE(c1.Matches(96, ""));
+  EXPECT_FALSE(c1.Matches(95, "D"));
+  EXPECT_TRUE(c1.Matches(DataCodec(96, "D", 0)));
+  EXPECT_FALSE(c1.Matches(DataCodec(96, "", 0)));
+}
+
+TEST_F(CodecTest, TestDataCodecOperators) {
+  DataCodec c0(96, "D", 3);
+  DataCodec c1(95, "D", 3);
+  DataCodec c2(96, "x", 3);
+  DataCodec c3(96, "D", 1);
+  EXPECT_TRUE(c0 != c1);
+  EXPECT_TRUE(c0 != c2);
+  EXPECT_TRUE(c0 != c3);
+
+  DataCodec c4;
+  DataCodec c5(0, "", 0);
+  DataCodec c6 = c0;
+  EXPECT_TRUE(c5 == c4);
+  EXPECT_TRUE(c6 != c4);
+  EXPECT_TRUE(c6 == c0);
 }

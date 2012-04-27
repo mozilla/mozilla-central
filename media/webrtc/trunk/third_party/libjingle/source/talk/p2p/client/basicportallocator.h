@@ -106,7 +106,7 @@ struct PortConfiguration;
 class AllocationSequence;
 
 class BasicPortAllocatorSession : public PortAllocatorSession,
-    public talk_base::MessageHandler {
+                                  public talk_base::MessageHandler {
  public:
   BasicPortAllocatorSession(BasicPortAllocator* allocator,
                             const std::string& name,
@@ -140,6 +140,7 @@ class BasicPortAllocatorSession : public PortAllocatorSession,
   void OnAllocate();
   void DoAllocate();
   void OnNetworksChanged();
+  void OnAllocationSequenceObjectsCreated();
   void DisableEquivalentPhases(talk_base::Network* network,
       PortConfiguration* config, uint32* flags);
   void AddAllocatedPort(Port* port, AllocationSequence* seq, float pref,
@@ -147,9 +148,12 @@ class BasicPortAllocatorSession : public PortAllocatorSession,
   void OnAddressReady(Port* port);
   void OnProtocolEnabled(AllocationSequence* seq, ProtocolType proto);
   void OnPortDestroyed(Port* port);
+  void OnAddressError(Port* port);
   void OnConnectionCreated(Port* port, Connection* conn);
   void OnConnectionStateChange(Connection* conn);
   void OnShake();
+  void MaybeSignalCandidatesAllocationDone();
+  void OnPortAllocationComplete(AllocationSequence* seq);
 
   BasicPortAllocator* allocator_;
   talk_base::Thread* network_thread_;
@@ -159,6 +163,7 @@ class BasicPortAllocatorSession : public PortAllocatorSession,
   bool allocation_started_;
   bool network_manager_started_;
   bool running_;  // set when StartGetAllPorts is called
+  bool allocation_sequences_created_;
   std::vector<PortConfiguration*> configs_;
   std::vector<AllocationSequence*> sequences_;
 

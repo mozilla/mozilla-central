@@ -88,7 +88,7 @@ TEST_F(WebRtcVideoCapturerTest, TestInit) {
 
 TEST_F(WebRtcVideoCapturerTest, TestInitVcm) {
   EXPECT_TRUE(capturer_->Init(factory_->Create(0,
-      reinterpret_cast<const WebRtc_UWord8*>(kTestDeviceId.c_str()))));
+      reinterpret_cast<const char*>(kTestDeviceId.c_str()))));
 }
 
 TEST_F(WebRtcVideoCapturerTest, TestCapture) {
@@ -113,7 +113,7 @@ TEST_F(WebRtcVideoCapturerTest, TestCapture) {
 
 TEST_F(WebRtcVideoCapturerTest, TestCaptureVcm) {
   EXPECT_TRUE(capturer_->Init(factory_->Create(0,
-      reinterpret_cast<const WebRtc_UWord8*>(kTestDeviceId.c_str()))));
+      reinterpret_cast<const char*>(kTestDeviceId.c_str()))));
   EXPECT_FALSE(capturer_->GetSupportedFormats());
   VideoFormat format;
   EXPECT_TRUE(capturer_->GetBestCaptureFormat(kDefaultVideoFormat, &format));

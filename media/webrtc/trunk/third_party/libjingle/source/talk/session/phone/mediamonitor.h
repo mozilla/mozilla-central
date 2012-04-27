@@ -91,8 +91,8 @@ class MediaMonitorT : public MediaMonitor {
 
 typedef MediaMonitorT<VoiceMediaChannel, VoiceMediaInfo> VoiceMediaMonitor;
 typedef MediaMonitorT<VideoMediaChannel, VideoMediaInfo> VideoMediaMonitor;
+typedef MediaMonitorT<DataMediaChannel, DataMediaInfo> DataMediaMonitor;
 
 }  // namespace cricket
 
 #endif  // TALK_SESSION_PHONE_MEDIAMONITOR_H_
-

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -20,7 +20,8 @@ NETEQTEST_NetEQClass::NETEQTEST_NetEQClass()
     _bufferMem(NULL),
     _preparseRTP(false),
     _fsmult(1),
-    _isMaster(true)
+    _isMaster(true),
+    _noDecode(false)
 {
 #ifdef WINDOWS_TIMING
     _totTimeRecIn.QuadPart = 0;
@@ -36,7 +37,8 @@ NETEQTEST_NetEQClass::NETEQTEST_NetEQClass(enum WebRtcNetEQDecoder *usedCodec, i
     _bufferMem(NULL),
     _preparseRTP(false),
     _fsmult(1),
-    _isMaster(true)
+    _isMaster(true),
+    _noDecode(false)
 {
 #ifdef WINDOWS_TIMING
     _totTimeRecIn.QuadPart = 0;
@@ -283,7 +285,14 @@ WebRtc_Word16 NETEQTEST_NetEQClass::recOut(WebRtc_Word16 *outData, void *msInfo,
     if (!msInfo)
     {
         // no msInfo given, do mono mode
-        err = WebRtcNetEQ_RecOut(_inst, outData, &outLen);
+        if (_noDecode)
+        {
+            err = WebRtcNetEQ_RecOutNoDecode(_inst, outData, &outLen);
+        }
+        else
+        {
+            err = WebRtcNetEQ_RecOut(_inst, outData, &outLen);
+        }
     }
     else
     {
@@ -343,6 +352,18 @@ WebRtc_UWord32 NETEQTEST_NetEQClass::getSpeechTimeStamp()
 
     return (ts);
 
+}
+
+WebRtcNetEQOutputType NETEQTEST_NetEQClass::getOutputType() {
+  WebRtcNetEQOutputType type;
+
+  int err = WebRtcNetEQ_GetSpeechOutputType(_inst, &type);
+  if (err)
+  {
+    printError();
+    type = kOutputNormal;
+  }
+  return (type);
 }
 
 //NETEQTEST_NetEQVector::NETEQTEST_NetEQVector(int numChannels)

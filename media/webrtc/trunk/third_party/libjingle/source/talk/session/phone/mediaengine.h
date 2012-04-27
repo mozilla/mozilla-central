@@ -108,10 +108,10 @@ class MediaEngineInterface {
   // TODO: Add method for selecting the soundclip device.
   virtual bool SetSoundDevices(const Device* in_device,
                                const Device* out_device) = 0;
-  virtual bool SetVideoCaptureDevice(const Device* cam_device) = 0;
   // Sets the externally provided video capturer. The ssrc is the ssrc of the
   // (video) stream for which the video capturer should be set.
-  virtual bool SetVideoCapturer(VideoCapturer* capturer, uint32 ssrc) = 0;
+  virtual bool SetVideoCapturer(VideoCapturer* capturer) = 0;
+  virtual VideoCapturer* GetVideoCapturer() const = 0;
 
   // Device configuration
   // Gets the current speaker volume, as a value between 0 and 255.
@@ -207,11 +207,11 @@ class CompositeMediaEngine : public MediaEngineInterface {
                                const Device* out_device) {
     return voice_.SetDevices(in_device, out_device);
   }
-  virtual bool SetVideoCaptureDevice(const Device* cam_device) {
-    return video_.SetCaptureDevice(cam_device);
+  virtual bool SetVideoCapturer(VideoCapturer* capturer) {
+    return video_.SetVideoCapturer(capturer);
   }
-  virtual bool SetVideoCapturer(VideoCapturer* capturer, uint32 ssrc) {
-    return video_.SetVideoCapturer(capturer, ssrc);
+  virtual VideoCapturer* GetVideoCapturer() const {
+    return video_.GetVideoCapturer();
   }
 
   virtual bool GetOutputVolume(int* level) {
@@ -324,14 +324,14 @@ class NullVideoEngine {
   bool SetDefaultEncoderConfig(const VideoEncoderConfig& config) {
     return true;
   }
-  bool SetCaptureDevice(const Device* cam_device) { return true; }
   bool SetLocalRenderer(VideoRenderer* renderer) { return true; }
   CaptureResult SetCapture(bool capture) { return CR_SUCCESS;  }
   const std::vector<VideoCodec>& codecs() { return codecs_; }
   void SetLogging(int min_sev, const char* filter) {}
   bool RegisterProcessor(VideoProcessor* video_processor) { return true; }
   bool UnregisterProcessor(VideoProcessor* video_processor) { return true; }
-  bool SetVideoCapturer(VideoCapturer* capturer, uint32 ssrc) { return true; }
+  bool SetVideoCapturer(VideoCapturer* capturer) { return true; }
+  VideoCapturer* GetVideoCapturer() const { return NULL; }
 
   sigslot::signal2<VideoCapturer*, CaptureResult> SignalCaptureResult;
  private:
@@ -339,6 +339,13 @@ class NullVideoEngine {
 };
 
 typedef CompositeMediaEngine<NullVoiceEngine, NullVideoEngine> NullMediaEngine;
+
+class DataEngineInterface {
+ public:
+  virtual ~DataEngineInterface() {}
+  virtual DataMediaChannel* CreateChannel() = 0;
+  virtual const std::vector<DataCodec>& data_codecs() = 0;
+};
 
 }  // namespace cricket
 

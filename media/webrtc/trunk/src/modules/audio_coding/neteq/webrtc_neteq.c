@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -35,8 +35,8 @@
     return(-1); \
     } }
 
-int WebRtcNetEQ_strncpy(WebRtc_Word8 *strDest, int numberOfElements,
-                        const WebRtc_Word8 *strSource, int count)
+int WebRtcNetEQ_strncpy(char *strDest, int numberOfElements,
+                        const char *strSource, int count)
 {
     /* check vector lengths */
     if (count > numberOfElements)
@@ -59,7 +59,7 @@ int WebRtcNetEQ_strncpy(WebRtc_Word8 *strDest, int numberOfElements,
  * Info functions
  */
 
-int WebRtcNetEQ_GetVersion(WebRtc_Word8 *version)
+int WebRtcNetEQ_GetVersion(char *version)
 {
     char versionString[] = "3.3.0\0    ";
     char endChar[] = " ";
@@ -79,7 +79,7 @@ int WebRtcNetEQ_GetErrorCode(void *inst)
     return (NetEqMainInst->ErrorCode);
 }
 
-int WebRtcNetEQ_GetErrorName(int errorCode, WebRtc_Word8 *errorName, int maxStrLen)
+int WebRtcNetEQ_GetErrorName(int errorCode, char *errorName, int maxStrLen)
 {
     if ((errorName == NULL) || (maxStrLen <= 0))
     {
@@ -1632,7 +1632,7 @@ int WebRtcNetEQ_SetVADInstance(void *NetEQ_inst, void *VAD_inst,
  *						  -1 - Error
  */
 
-int WebRtcNetEQ_SetVADMode(void *inst, WebRtc_Word16 mode)
+int WebRtcNetEQ_SetVADMode(void *inst, int mode)
 {
 
     /* Typecast to internal instance type */

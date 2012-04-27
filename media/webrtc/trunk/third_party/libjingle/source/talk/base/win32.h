@@ -60,9 +60,10 @@ int win32_inet_pton(int af, const char* src, void *dst);
 ///////////////////////////////////////////////////////////////////////////////
 
 inline std::wstring ToUtf16(const char* utf8, size_t len) {
-  int len16 = ::MultiByteToWideChar(CP_UTF8, 0, utf8, len, NULL, 0);
+  int len16 = ::MultiByteToWideChar(CP_UTF8, 0, utf8, static_cast<int>(len),
+                                    NULL, 0);
   wchar_t* ws = STACK_ARRAY(wchar_t, len16);
-  ::MultiByteToWideChar(CP_UTF8, 0, utf8, len, ws, len16);
+  ::MultiByteToWideChar(CP_UTF8, 0, utf8, static_cast<int>(len), ws, len16);
   return std::wstring(ws, len16);
 }
 
@@ -71,10 +72,16 @@ inline std::wstring ToUtf16(const std::string& str) {
 }
 
 inline std::string ToUtf8(const wchar_t* wide, size_t len) {
-  int len8 = ::WideCharToMultiByte(CP_UTF8, 0, wide, len, NULL, 0, NULL, NULL);
+  int len8 = ::WideCharToMultiByte(CP_UTF8, 0, wide, static_cast<int>(len),
+                                   NULL, 0, NULL, NULL);
   char* ns = STACK_ARRAY(char, len8);
-  ::WideCharToMultiByte(CP_UTF8, 0, wide, len, ns, len8, NULL, NULL);
+  ::WideCharToMultiByte(CP_UTF8, 0, wide, static_cast<int>(len), ns, len8,
+                        NULL, NULL);
   return std::string(ns, len8);
+}
+
+inline std::string ToUtf8(const wchar_t* wide) {
+  return ToUtf8(wide, wcslen(wide));
 }
 
 inline std::string ToUtf8(const std::wstring& wstr) {

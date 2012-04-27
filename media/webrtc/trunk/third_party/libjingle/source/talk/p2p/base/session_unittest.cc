@@ -204,6 +204,23 @@ std::string JingleInitiateActionXml(const std::string& content) {
       "</jingle>";
 }
 
+std::string JingleGroupInfoXml(const std::string& content_name_a,
+                               const std::string& content_name_b) {
+  std::string group_info = "<jin:group"
+      " type=\"BUNDLE\""
+      " xmlns:jin=\"google:jingle\""
+      ">";
+  if (!content_name_a.empty())
+    group_info += "<content name=\"" + content_name_a + "\""
+    "/>";
+  if (!content_name_b.empty())
+    group_info += "<content name=\"" + content_name_b + "\""
+    "/>";
+  group_info += "</jin:group>";
+  return group_info;
+}
+
+
 std::string JingleEmptyContentXml(const std::string& content_name,
                                   const std::string& content_type,
                                   const std::string& transport_type) {
@@ -266,18 +283,22 @@ std::string GingleInitiateXml(const std::string& content_type) {
 std::string JingleInitiateXml(const std::string& content_name_a,
                               const std::string& content_type_a,
                               const std::string& content_name_b,
-                              const std::string& content_type_b) {
+                              const std::string& content_type_b,
+                              bool bundle = false) {
+  std::string content_xml;
   if (content_name_b.empty()) {
-    return JingleInitiateActionXml(
-        JingleEmptyContentXml(
-            content_name_a, content_type_a, kTransportType));
+    content_xml = JingleEmptyContentXml(
+        content_name_a, content_type_a, kTransportType);
   } else {
-    return JingleInitiateActionXml(
-        JingleEmptyContentXml(
-            content_name_a, content_type_a, kTransportType) +
-        JingleEmptyContentXml(
-            content_name_b, content_type_b, kTransportType));
+    content_xml = JingleEmptyContentXml(
+           content_name_a, content_type_a, kTransportType) +
+       JingleEmptyContentXml(
+           content_name_b, content_type_b, kTransportType);
+    if (bundle) {
+      content_xml += JingleGroupInfoXml(content_name_a, content_name_b);
+    }
   }
+  return JingleInitiateActionXml(content_xml);
 }
 
 std::string GingleAcceptXml(const std::string& content_type) {
@@ -289,20 +310,23 @@ std::string GingleAcceptXml(const std::string& content_type) {
 std::string JingleAcceptXml(const std::string& content_name_a,
                             const std::string& content_type_a,
                             const std::string& content_name_b,
-                            const std::string& content_type_b) {
+                            const std::string& content_type_b,
+                            bool bundle = false) {
+  std::string content_xml;
   if (content_name_b.empty()) {
-    return JingleActionXml(
-        "session-accept",
-        JingleEmptyContentXml(
-            content_name_a, content_type_a, kTransportType));
+    content_xml = JingleEmptyContentXml(
+        content_name_a, content_type_a, kTransportType);
   } else {
-    return JingleActionXml(
-        "session-accept",
+    content_xml = JingleEmptyContentXml(
+        content_name_a, content_type_a, kTransportType) +
         JingleEmptyContentXml(
-            content_name_a, content_type_a, kTransportType) +
-        JingleEmptyContentXml(
-            content_name_b, content_type_b, kTransportType));
+            content_name_b, content_type_b, kTransportType);
   }
+  if (bundle) {
+    content_xml += JingleGroupInfoXml(content_name_a, content_name_b);
+  }
+
+  return JingleActionXml("session-accept", content_xml);
 }
 
 std::string Gingle2CandidatesXml(const std::string& channel_name,
@@ -407,11 +431,13 @@ std::string InitiateXml(SignalingProtocol protocol,
                         const std::string& content_name_a,
                         const std::string& content_type_a,
                         const std::string& content_name_b,
-                        const std::string& content_type_b) {
+                        const std::string& content_type_b,
+                        bool bundle = false) {
   switch (protocol) {
     case PROTOCOL_JINGLE:
       return JingleInitiateXml(content_name_a, content_type_a,
-                               content_name_b, content_type_b);
+                               content_name_b, content_type_b,
+                               bundle);
     case PROTOCOL_GINGLE:
       return GingleInitiateXml(gingle_content_type);
     case PROTOCOL_HYBRID:
@@ -436,11 +462,12 @@ std::string AcceptXml(SignalingProtocol protocol,
                       const std::string& content_name_a,
                       const std::string& content_type_a,
                       const std::string& content_name_b,
-                      const std::string& content_type_b) {
+                      const std::string& content_type_b,
+                      bool bundle = false) {
   switch (protocol) {
     case PROTOCOL_JINGLE:
       return JingleAcceptXml(content_name_a, content_type_a,
-                             content_name_b, content_type_b);
+                             content_name_b, content_type_b, bundle);
     case PROTOCOL_GINGLE:
       return GingleAcceptXml(gingle_content_type);
     case PROTOCOL_HYBRID:
@@ -455,7 +482,8 @@ std::string AcceptXml(SignalingProtocol protocol,
 
 std::string AcceptXml(SignalingProtocol protocol,
                       const std::string& content_name,
-                      const std::string& content_type) {
+                      const std::string& content_type,
+                      bool bundle = false) {
   return AcceptXml(protocol,
                    content_type,
                    content_name, content_type,
@@ -567,10 +595,12 @@ class TestPortAllocatorSession : public cricket::PortAllocatorSession {
         port_offset_(port_offset),
         ports_(kNumPorts),
         address_("127.0.0.1", 0),
-        network_("network", "unittest", address_.ipaddr()),
+        network_("network", "unittest",
+                 talk_base::IPAddress(INADDR_LOOPBACK), 8),
         socket_factory_(talk_base::Thread::Current()),
         running_(false),
         port_(28653) {
+    network_.AddIP(address_.ipaddr());
   }
 
   ~TestPortAllocatorSession() {
@@ -583,9 +613,8 @@ class TestPortAllocatorSession : public cricket::PortAllocatorSession {
       int index = port_offset_ + i;
       ports_[i] = cricket::UDPPort::Create(
           talk_base::Thread::Current(), &socket_factory_,
-          &network_, address_.ipaddr(), GetPort(index), GetPort(index));
-      ports_[i]->set_username_fragment(GetUsername(index));
-      ports_[i]->set_password(GetPassword(index));
+          &network_, address_.ipaddr(), GetPort(index), GetPort(index),
+          GetUsername(index), GetPassword(index));
       AddPort(ports_[i]);
     }
   }
@@ -647,6 +676,9 @@ class TestContentDescription : public cricket::ContentDescription {
                                   const std::string& content_type)
       : gingle_content_type(gingle_content_type),
         content_type(content_type) {
+  }
+  virtual ContentDescription* Copy() const {
+    return new TestContentDescription(*this);
   }
 
   std::string gingle_content_type;
@@ -727,9 +759,9 @@ struct TestSessionClient: public cricket::SessionClient,
 };
 
 struct ChannelHandler : sigslot::has_slots<> {
-  explicit ChannelHandler(cricket::TransportChannel* p)
+  explicit ChannelHandler(cricket::TransportChannel* p, const std::string& name)
     : channel(p), last_readable(false), last_writable(false), data_count(0),
-      last_size(0) {
+      last_size(0), name(name) {
     p->SignalReadableState.connect(this, &ChannelHandler::OnReadableState);
     p->SignalWritableState.connect(this, &ChannelHandler::OnWritableState);
     p->SignalReadPacket.connect(this, &ChannelHandler::OnReadPacket);
@@ -755,6 +787,11 @@ struct ChannelHandler : sigslot::has_slots<> {
 
   void OnReadPacket(cricket::TransportChannel* p, const char* buf,
                     size_t size) {
+    if (memcmp(buf, name.c_str(), name.size()) != 0)
+      return;  // drop packet if packet doesn't belong to this channel. This
+               // can happen when transport channels are muxed together.
+    buf += name.size();  // Remove channel name from the message.
+    size -= name.size();  // Decrement size by channel name string size.
     EXPECT_EQ(channel, p);
     EXPECT_LE(size, sizeof(last_data));
     data_count += 1;
@@ -763,8 +800,10 @@ struct ChannelHandler : sigslot::has_slots<> {
   }
 
   void Send(const char* data, size_t size) {
-    int result = channel->SendPacket(data, size);
-    EXPECT_EQ(static_cast<int>(size), result);
+    std::string data_with_id(name);
+    data_with_id += data;
+    int result = channel->SendPacket(data_with_id.c_str(), data_with_id.size());
+    EXPECT_EQ(static_cast<int>(data_with_id.size()), result);
   }
 
   cricket::TransportChannel* channel;
@@ -772,6 +811,7 @@ struct ChannelHandler : sigslot::has_slots<> {
   int data_count;
   char last_data[4096];
   size_t last_size;
+  std::string name;
 };
 
 void PrintStanza(const std::string& message,
@@ -791,24 +831,8 @@ class TestClient : public sigslot::has_slots<> {
              const std::string& content_name_b,
              const std::string& channel_name_b) {
     Construct(port_allocator, next_message_id, local_name, start_protocol,
-              content_type, content_name_a, channel_name_a, std::string(""),
-              content_name_b, channel_name_b, std::string(""));
-  }
-
-  TestClient(cricket::PortAllocator* port_allocator,
-             int* next_message_id,
-             const std::string& local_name,
-             SignalingProtocol start_protocol,
-             const std::string& content_type,
-             const std::string& content_name_a,
-             const std::string& channel_name_a,
-             const std::string& channel_name_aa,
-             const std::string& content_name_b,
-             const std::string& channel_name_b,
-             const std::string& channel_name_bb) {
-    Construct(port_allocator, next_message_id, local_name, start_protocol,
-              content_type, content_name_a, channel_name_a, channel_name_aa,
-              content_name_b, channel_name_b, channel_name_bb);
+              content_type, content_name_a, channel_name_a,
+              content_name_b, channel_name_b);
   }
 
   ~TestClient() {
@@ -827,10 +851,8 @@ class TestClient : public sigslot::has_slots<> {
                  const std::string& cont_type,
                  const std::string& cont_name_a,
                  const std::string& chan_name_a,
-                 const std::string& chan_name_aa,
                  const std::string& cont_name_b,
-                 const std::string& chan_name_b,
-                 const std::string& chan_name_bb) {
+                 const std::string& chan_name_b) {
     port_allocator_ = pa;
     next_message_id = message_id;
     local_name = lname;
@@ -838,10 +860,8 @@ class TestClient : public sigslot::has_slots<> {
     content_type = cont_type;
     content_name_a = cont_name_a;
     channel_name_a = chan_name_a;
-    channel_name_aa = chan_name_aa;
     content_name_b = cont_name_b;
     channel_name_b = chan_name_b;
-    channel_name_bb = chan_name_bb;
     session_created_count = 0;
     session_destroyed_count = 0;
     session_remote_description_update_count = 0;
@@ -852,10 +872,6 @@ class TestClient : public sigslot::has_slots<> {
     chan_b = NULL;
     blow_up_on_error = true;
     error_count = 0;
-    if (!chan_name_aa.empty() || !chan_name_bb.empty()) {
-      chan_aa = NULL;
-      chan_bb = NULL;
-    }
 
     session_manager = new cricket::SessionManager(port_allocator_);
     session_manager->SignalSessionCreate.connect(
@@ -1024,15 +1040,9 @@ class TestClient : public sigslot::has_slots<> {
   void CreateChannels() {
     ASSERT(session != NULL);
     chan_a = new ChannelHandler(
-        session->CreateChannel(content_name_a, channel_name_a));
+        session->CreateChannel(content_name_a, channel_name_a), channel_name_a);
     chan_b = new ChannelHandler(
-        session->CreateChannel(content_name_b, channel_name_b));
-    if (!channel_name_aa.empty() && !channel_name_bb.empty()) {
-      chan_aa = new ChannelHandler(
-          session->CreateChannel(content_name_a, channel_name_aa));
-      chan_bb = new ChannelHandler(
-          session->CreateChannel(content_name_b, channel_name_bb));
-    }
+        session->CreateChannel(content_name_b, channel_name_b), channel_name_b);
   }
 
   int* next_message_id;
@@ -1041,10 +1051,8 @@ class TestClient : public sigslot::has_slots<> {
   std::string content_type;
   std::string content_name_a;
   std::string channel_name_a;
-  std::string channel_name_aa;
   std::string content_name_b;
   std::string channel_name_b;
-  std::string channel_name_bb;
 
   uint32 session_created_count;
   uint32 session_destroyed_count;
@@ -1058,9 +1066,7 @@ class TestClient : public sigslot::has_slots<> {
   cricket::Session* session;
   cricket::BaseSession::State last_session_state;
   ChannelHandler* chan_a;
-  ChannelHandler* chan_aa;
   ChannelHandler* chan_b;
-  ChannelHandler* chan_bb;
   bool blow_up_on_error;
   int error_count;
 };
@@ -1131,7 +1137,8 @@ class SessionTest : public testing::Test {
                    const std::string& transport_info_b_xml,
                    const std::string& transport_info_reply_a_xml,
                    const std::string& transport_info_reply_b_xml,
-                   const std::string& accept_xml) {
+                   const std::string& accept_xml,
+                   bool bundle = false) {
     talk_base::scoped_ptr<cricket::PortAllocator> allocator(
         new TestPortAllocator());
     int next_message_id = 0;
@@ -1167,6 +1174,14 @@ class SessionTest : public testing::Test {
         gingle_content_type,
         content_name_a, content_type,
         content_name_b, content_type);
+    if (bundle) {
+      cricket::ContentGroup group(cricket::GROUP_TYPE_BUNDLE);
+      group.AddContentName(content_name_a);
+      group.AddContentName(content_name_b);
+      EXPECT_TRUE(group.HasContentName(content_name_a));
+      EXPECT_TRUE(group.HasContentName(content_name_b));
+      offer->AddGroup(group);
+    }
     EXPECT_TRUE(initiator->session->Initiate(kResponder, offer));
     EXPECT_EQ(initiator->session->remote_name(), kResponder);
     EXPECT_EQ(initiator->session->local_description(), offer);
@@ -1174,6 +1189,7 @@ class SessionTest : public testing::Test {
     EXPECT_TRUE_WAIT(initiator->sent_stanza_count() > 0, kEventTimeout);
     EXPECT_EQ(cricket::BaseSession::STATE_SENTINITIATE,
               initiator->session_state());
+
     initiator->ExpectSentStanza(
         IqSet("0", kInitiator, kResponder, initiate_xml));
 
@@ -1273,11 +1289,20 @@ class SessionTest : public testing::Test {
         gingle_content_type,
         content_name_a, content_type,
         content_name_b, content_type);
+    if (bundle) {
+      cricket::ContentGroup group(cricket::GROUP_TYPE_BUNDLE);
+      group.AddContentName(content_name_a);
+      group.AddContentName(content_name_b);
+      EXPECT_TRUE(group.HasContentName(content_name_a));
+      EXPECT_TRUE(group.HasContentName(content_name_b));
+      answer->AddGroup(group);
+    }
     EXPECT_TRUE(responder->session->Accept(answer));
     EXPECT_EQ(responder->session->local_description(), answer);
 
     responder->ExpectSentStanza(
         IqSet("5", kResponder, kInitiator, accept_xml));
+
     EXPECT_EQ(0U, responder->sent_stanza_count());
 
     // Deliver the accept message and expect an ack.
@@ -1295,6 +1320,31 @@ class SessionTest : public testing::Test {
                    initiator->session_state(), kEventTimeout);
     EXPECT_EQ_WAIT(cricket::BaseSession::STATE_INPROGRESS,
                    responder->session_state(), kEventTimeout);
+    if (bundle) {
+      cricket::TransportChannel* initiator_chan_a = initiator->chan_a->channel;
+      cricket::TransportChannel* initiator_chan_b = initiator->chan_b->channel;
+
+      // Since we know these are TransportChannelProxy, type cast it.
+      cricket::TransportChannelProxy* initiator_proxy_chan_a =
+          static_cast<cricket::TransportChannelProxy*>(initiator_chan_a);
+      cricket::TransportChannelProxy* initiator_proxy_chan_b =
+              static_cast<cricket::TransportChannelProxy*>(initiator_chan_b);
+      EXPECT_TRUE(initiator_proxy_chan_a->impl() != NULL);
+      EXPECT_TRUE(initiator_proxy_chan_b->impl() != NULL);
+      EXPECT_EQ(initiator_proxy_chan_a->impl(), initiator_proxy_chan_b->impl());
+
+      cricket::TransportChannel* responder_chan_a = responder->chan_a->channel;
+      cricket::TransportChannel* responder_chan_b = responder->chan_b->channel;
+
+      // Since we know these are TransportChannelProxy, type cast it.
+      cricket::TransportChannelProxy* responder_proxy_chan_a =
+          static_cast<cricket::TransportChannelProxy*>(responder_chan_a);
+      cricket::TransportChannelProxy* responder_proxy_chan_b =
+              static_cast<cricket::TransportChannelProxy*>(responder_chan_b);
+      EXPECT_TRUE(responder_proxy_chan_a->impl() != NULL);
+      EXPECT_TRUE(responder_proxy_chan_b->impl() != NULL);
+      EXPECT_EQ(responder_proxy_chan_a->impl(), responder_proxy_chan_b->impl());
+    }
     TestSendRecv(initiator->chan_a, initiator->chan_b,
                  responder->chan_a, responder->chan_b);
 
@@ -1979,94 +2029,85 @@ class SessionTest : public testing::Test {
   }
 
   void TestTransportMux() {
+    SignalingProtocol initiator_protocol = PROTOCOL_JINGLE;
+    SignalingProtocol responder_protocol = PROTOCOL_JINGLE;
+    SignalingProtocol resulting_protocol = PROTOCOL_JINGLE;
     std::string content_type = cricket::NS_JINGLE_RTP;
     std::string gingle_content_type = cricket::NS_GINGLE_VIDEO;
     std::string content_name_a = cricket::CN_AUDIO;
-    std::string channel_name_a = "rtp";
-    std::string channel_name_aa = "rtcp";
+    std::string channel_name_a = "rtcp";
     std::string content_name_b = cricket::CN_VIDEO;
     std::string channel_name_b = "video_rtp";
-    std::string channel_name_bb = "video_rtcp";
-    cricket::SignalingProtocol protocol = PROTOCOL_JINGLE;
 
+    std::string initiate_xml = InitiateXml(
+        initiator_protocol,
+        gingle_content_type,
+        content_name_a, content_type,
+        content_name_b, content_type, true);
+    std::string transport_info_a_xml = TransportInfo2Xml(
+        initiator_protocol, content_name_a,
+        channel_name_a, 0, 1);
+    std::string transport_info_b_xml = TransportInfo2Xml(
+        initiator_protocol, content_name_b,
+        channel_name_b, 2, 3);
+    std::string transport_info_reply_a_xml = TransportInfo2Xml(
+        resulting_protocol, content_name_a,
+        channel_name_a, 4, 5);
+    std::string transport_info_reply_b_xml = TransportInfo2Xml(
+        resulting_protocol, content_name_b,
+        channel_name_b, 6, 7);
+    std::string accept_xml = AcceptXml(
+        resulting_protocol,
+        gingle_content_type,
+        content_name_a, content_type,
+        content_name_b, content_type, true);
+
+    TestSession(initiator_protocol, responder_protocol, resulting_protocol,
+                gingle_content_type,
+                content_type,
+                content_name_a, channel_name_a,
+                content_name_b, channel_name_b,
+                initiate_xml,
+                transport_info_a_xml, transport_info_b_xml,
+                transport_info_reply_a_xml, transport_info_reply_b_xml,
+                accept_xml,
+                true);
+  }
+
+  void TestSendDescriptionInfo() {
     talk_base::scoped_ptr<cricket::PortAllocator> allocator(
         new TestPortAllocator());
     int next_message_id = 0;
 
+    std::string content_name = "content-name";
+    std::string content_type = "content-type";
     talk_base::scoped_ptr<TestClient> initiator(
         new TestClient(allocator.get(), &next_message_id,
-                       kInitiator, protocol,
+                       kInitiator, PROTOCOL_JINGLE,
                        content_type,
-                       content_name_a, channel_name_a, channel_name_aa,
-                       content_name_b, channel_name_b, channel_name_bb));
-
-    // First creating the offer and answer session descriptions required for
-    // testing.
-    cricket::SessionDescription* offer = NewTestSessionDescription(
-        gingle_content_type,
-        content_name_a, content_type,
-        content_name_b, content_type);
-    // Add group information to the offer
-    cricket::ContentGroup group(cricket::GN_BUNDLE);
-    group.AddContentName(content_name_a);
-    group.AddContentName(content_name_b);
-    EXPECT_TRUE(group.HasContentName(content_name_a));
-    EXPECT_TRUE(group.HasContentName(content_name_b));
-    offer->AddGroup(group);
-
-    // Creating answer for the offer.
-    cricket::SessionDescription* answer = NewTestSessionDescription(
-        gingle_content_type,
-        content_name_a, content_type,
-        content_name_b, content_type);
-    // Check if group "TOGETHER" exists in the offer. If it's present then
-    // remote supports muxing.
-    EXPECT_TRUE(offer->HasGroup(cricket::GN_BUNDLE));
-    const cricket::ContentGroup* group_offer =
-        offer->GetGroupByName(cricket::GN_BUNDLE);
-    // Not creating new copy in answer, for test we can use this for test.
-    answer->AddGroup(*group_offer);
-    EXPECT_TRUE(answer->HasGroup(cricket::GN_BUNDLE));
+                       content_name, "",
+                       "",  ""));
 
     initiator->CreateSession();
-    EXPECT_TRUE(initiator->session->Initiate(
-        kResponder, offer));
+    cricket::SessionDescription* offer = NewTestSessionDescription(
+        content_name, content_type);
+    std::string initiate_xml = InitiateXml(
+        PROTOCOL_JINGLE, content_name, content_type);
 
-    EXPECT_TRUE(initiator->HasTransport(content_name_a));
-    EXPECT_TRUE(initiator->HasChannel(content_name_a, channel_name_a));
-    EXPECT_TRUE(initiator->HasChannel(content_name_a, channel_name_aa));
-    EXPECT_TRUE(initiator->HasTransport(content_name_b));
-    EXPECT_TRUE(initiator->HasChannel(content_name_b, channel_name_b));
-    EXPECT_TRUE(initiator->HasChannel(content_name_b, channel_name_bb));
-    // This test will not create initiator and responder. Manually change
-    // session state and invoke methods.
-    initiator->PrepareCandidates();
-    EXPECT_EQ(cricket::BaseSession::STATE_SENTINITIATE,
-              initiator->session_state());
-    // Now apply answer to the session and move session state to
-    // STATE_RECEIVEDACCEPT
-    initiator->session->set_remote_description(answer);
-    initiator->session->SetState(cricket::BaseSession::STATE_RECEIVEDACCEPT);
-    cricket::TransportChannel* chan_a =
-        initiator->GetChannel(content_name_a, channel_name_a);
-    cricket::TransportChannel* chan_b =
-            initiator->GetChannel(content_name_b, channel_name_b);
-    // Since we know these are TransportChannelProxy, type cast it.
-    cricket::TransportChannelProxy* proxy_chan_a =
-        static_cast<cricket::TransportChannelProxy*>(chan_a);
-    cricket::TransportChannelProxy* proxy_chan_b =
-            static_cast<cricket::TransportChannelProxy*>(chan_b);
-    EXPECT_EQ(proxy_chan_a->impl(), proxy_chan_b->impl());
-    cricket::TransportChannel* chan_aa =
-            initiator->GetChannel(content_name_a, channel_name_aa);
-        cricket::TransportChannel* chan_bb =
-                initiator->GetChannel(content_name_b, channel_name_bb);
-    cricket::TransportChannelProxy* proxy_chan_aa =
-        static_cast<cricket::TransportChannelProxy*>(chan_aa);
-    cricket::TransportChannelProxy* proxy_chan_bb =
-            static_cast<cricket::TransportChannelProxy*>(chan_bb);
-    EXPECT_EQ(proxy_chan_aa->impl(), proxy_chan_bb->impl());
-    // TODO - Add test code to send data after mux is enabled.
+    cricket::ContentInfos contents;
+    TestContentDescription content(content_type, content_type);
+    contents.push_back(
+        cricket::ContentInfo(content_name, content_type, &content));
+    std::string description_info_xml = JingleDescriptionInfoXml(
+        content_name, content_type);
+
+    EXPECT_TRUE(initiator->session->Initiate(kResponder, offer));
+    initiator->ExpectSentStanza(
+        IqSet("0", kInitiator, kResponder, initiate_xml));
+
+    EXPECT_TRUE(initiator->session->SendDescriptionInfoMessage(contents));
+    initiator->ExpectSentStanza(
+        IqSet("1", kInitiator, kResponder, description_info_xml));
   }
 };
 
@@ -2197,7 +2238,6 @@ TEST_F(SessionTest, HybridEarlyTerminationFromInitiator) {
   TestEarlyTerminationFromInitiator(PROTOCOL_HYBRID);
 }
 
-
 TEST_F(SessionTest, GingleRejection) {
   TestRejection(PROTOCOL_GINGLE);
 }
@@ -2228,4 +2268,8 @@ TEST_F(SessionTest, TestCandidatesInInitiateAndAccept) {
 
 TEST_F(SessionTest, TestTransportMux) {
   TestTransportMux();
+}
+
+TEST_F(SessionTest, TestSendDescriptionInfo) {
+  TestSendDescriptionInfo();
 }

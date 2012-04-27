@@ -45,15 +45,10 @@ typedef CompositeMediaEngine<WebRtcVoiceEngine, WebRtcVideoEngine>
 class WebRtcMediaEngine : public WebRtcCompositeMediaEngine {
  public:
   WebRtcMediaEngine(webrtc::AudioDeviceModule* adm,
-      webrtc::AudioDeviceModule* adm_sc, webrtc::VideoCaptureModule* vcm) {
+      webrtc::AudioDeviceModule* adm_sc) {
     voice_.SetAudioDeviceModule(adm, adm_sc);
     video_.SetVoiceEngine(&voice_);
-    video_.SetCaptureModule(vcm);
     video_.EnableTimedRender();
-  }
-  // Allow the VCM be set later if not ready during the construction time
-  bool SetVideoCaptureModule(webrtc::VideoCaptureModule* vcm) {
-    return video_.SetCaptureModule(vcm);
   }
 };
 

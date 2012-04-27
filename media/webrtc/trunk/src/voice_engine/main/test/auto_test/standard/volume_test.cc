@@ -11,13 +11,6 @@
 #include "after_streaming_fixture.h"
 
 class VolumeTest : public AfterStreamingFixture {
- protected:
-  void SwitchToManualMicrophone() {
-    EXPECT_EQ(0, voe_file_->StopPlayingFileAsMicrophone(channel_));
-
-    TEST_LOG("You need to speak manually into the microphone for this test.\n");
-    Sleep(2000);
-  }
 };
 
 TEST_F(VolumeTest, DefaultSpeakerVolumeIsAtMost255) {
@@ -51,13 +44,18 @@ TEST_F(VolumeTest, ManualSetVolumeWorks) {
 
 #if !defined(MAC_IPHONE)
 
-TEST_F(VolumeTest, DefaultMicrophoneVolumeIsAtMost255) {
+// TODO(phoglund): pending investigation in
+// http://code.google.com/p/webrtc/issues/detail?id=367
+TEST_F(VolumeTest, DISABLED_DefaultMicrophoneVolumeIsAtMost255) {
   unsigned int volume = 1000;
   EXPECT_EQ(0, voe_volume_control_->GetMicVolume(volume));
   EXPECT_LE(volume, 255u);
 }
 
-TEST_F(VolumeTest, ManualRequiresMicrophoneCanSetMicrophoneVolumeWithAcgOff) {
+// TODO(phoglund): pending investigation in
+// http://code.google.com/p/webrtc/issues/detail?id=367
+TEST_F(VolumeTest,
+       DISABLED_ManualRequiresMicrophoneCanSetMicrophoneVolumeWithAcgOff) {
   SwitchToManualMicrophone();
   EXPECT_EQ(0, voe_apm_->SetAgcStatus(false));
 
@@ -76,22 +74,22 @@ TEST_F(VolumeTest, ManualRequiresMicrophoneCanSetMicrophoneVolumeWithAcgOff) {
 }
 
 TEST_F(VolumeTest, ChannelScalingIsOneByDefault) {
-  float scaling = -1.0;
+  float scaling = -1.0f;
 
   EXPECT_EQ(0, voe_volume_control_->GetChannelOutputVolumeScaling(
       channel_, scaling));
-  EXPECT_FLOAT_EQ(1.0, scaling);
+  EXPECT_FLOAT_EQ(1.0f, scaling);
 }
 
 TEST_F(VolumeTest, ManualCanSetChannelScaling) {
   EXPECT_EQ(0, voe_volume_control_->SetChannelOutputVolumeScaling(
-      channel_, 0.1));
+      channel_, 0.1f));
 
-  float scaling = 1.0;
+  float scaling = 1.0f;
   EXPECT_EQ(0, voe_volume_control_->GetChannelOutputVolumeScaling(
       channel_, scaling));
 
-  EXPECT_FLOAT_EQ(0.1, scaling);
+  EXPECT_FLOAT_EQ(0.1f, scaling);
 
   TEST_LOG("Channel scaling set to 0.1: audio should be barely audible.\n");
   Sleep(2000);
@@ -107,7 +105,9 @@ TEST_F(VolumeTest, InputMutingIsNotEnabledByDefault) {
   EXPECT_FALSE(is_muted);
 }
 
-TEST_F(VolumeTest, ManualInputMutingMutesMicrophone) {
+// TODO(phoglund): pending investigation in
+// http://code.google.com/p/webrtc/issues/detail?id=367
+TEST_F(VolumeTest, DISABLED_ManualInputMutingMutesMicrophone) {
   SwitchToManualMicrophone();
 
   // Enable muting.
@@ -128,13 +128,17 @@ TEST_F(VolumeTest, ManualInputMutingMutesMicrophone) {
   Sleep(2000);
 }
 
-TEST_F(VolumeTest, SystemInputMutingIsNotEnabledByDefault) {
+// TODO(phoglund): pending investigation in
+// http://code.google.com/p/webrtc/issues/detail?id=367
+TEST_F(VolumeTest, DISABLED_SystemInputMutingIsNotEnabledByDefault) {
   bool is_muted = true;
   EXPECT_EQ(0, voe_volume_control_->GetSystemInputMute(is_muted));
   EXPECT_FALSE(is_muted);
 }
 
-TEST_F(VolumeTest, ManualSystemInputMutingMutesMicrophone) {
+// TODO(phoglund): pending investigation in
+// http://code.google.com/p/webrtc/issues/detail?id=367
+TEST_F(VolumeTest, DISABLED_ManualSystemInputMutingMutesMicrophone) {
   SwitchToManualMicrophone();
 
   // Enable system input muting.
@@ -218,24 +222,24 @@ TEST_F(VolumeTest, ChannelsAreNotPannedByDefault) {
 
 TEST_F(VolumeTest, ManualTestChannelPanning) {
   TEST_LOG("Panning left.\n");
-  EXPECT_EQ(0, voe_volume_control_->SetOutputVolumePan(channel_, 0.8, 0.1));
+  EXPECT_EQ(0, voe_volume_control_->SetOutputVolumePan(channel_, 0.8f, 0.1f));
   Sleep(1000);
 
   TEST_LOG("Back to center.\n");
-  EXPECT_EQ(0, voe_volume_control_->SetOutputVolumePan(channel_, 1.0, 1.0));
+  EXPECT_EQ(0, voe_volume_control_->SetOutputVolumePan(channel_, 1.0f, 1.0f));
   Sleep(1000);
 
   TEST_LOG("Panning right.\n");
-  EXPECT_EQ(0, voe_volume_control_->SetOutputVolumePan(channel_, 0.1, 0.8));
+  EXPECT_EQ(0, voe_volume_control_->SetOutputVolumePan(channel_, 0.1f, 0.8f));
   Sleep(1000);
 
   // To finish, verify that the getter works.
-  float left = 0.0;
-  float right = 0.0;
+  float left = 0.0f;
+  float right = 0.0f;
 
   EXPECT_EQ(0, voe_volume_control_->GetOutputVolumePan(channel_, left, right));
-  EXPECT_FLOAT_EQ(0.1, left);
-  EXPECT_FLOAT_EQ(0.8, right);
+  EXPECT_FLOAT_EQ(0.1f, left);
+  EXPECT_FLOAT_EQ(0.8f, right);
 }
 
 #endif  // !WEBRTC_ANDROID && !MAC_IPHONE

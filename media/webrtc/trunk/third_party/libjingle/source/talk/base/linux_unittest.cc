@@ -29,7 +29,7 @@
 #include "talk/base/linux.h"
 #include "talk/base/fileutils.h"
 #include "talk/base/logging.h"
-#include "testing/base/gunit.h"
+#include "talk/base/gunit.h"
 
 namespace talk_base {
 

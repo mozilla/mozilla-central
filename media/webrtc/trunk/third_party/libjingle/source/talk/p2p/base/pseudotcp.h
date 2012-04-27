@@ -108,6 +108,20 @@ class PseudoTcp {
   void GetOption(Option opt, int* value);
   void SetOption(Option opt, int value);
 
+  // Returns current congestion window in bytes.
+  uint32 GetCongestionWindow() const;
+
+  // Returns amount of data in bytes that has been sent, but haven't
+  // been acknowledged.
+  uint32 GetBytesInFlight() const;
+
+  // Returns number of bytes that were written in buffer and haven't
+  // been sent.
+  uint32 GetBytesBufferedNotSent() const;
+
+  // Returns current round-trip time estimate in milliseconds.
+  uint32 GetRoundTripTimeEstimateMs() const;
+
  protected:
   enum SendFlags { sfNone, sfDelayedAck, sfImmediateAck };
 

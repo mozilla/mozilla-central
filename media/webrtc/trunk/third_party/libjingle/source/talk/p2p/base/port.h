@@ -52,6 +52,11 @@ namespace cricket {
 class Connection;
 class ConnectionRequest;
 
+extern const float PREF_LOCAL_UDP;
+extern const float PREF_LOCAL_STUN;
+extern const float PREF_LOCAL_TCP;
+extern const float PREF_RELAY;
+
 enum ProtocolType {
   PROTO_UDP,
   PROTO_TCP,
@@ -77,7 +82,8 @@ class Port : public talk_base::MessageHandler, public sigslot::has_slots<> {
  public:
   Port(talk_base::Thread* thread, const std::string& type,
        talk_base::PacketSocketFactory* factory, talk_base::Network* network,
-       const talk_base::IPAddress& ip, int min_port, int max_port);
+       const talk_base::IPAddress& ip, int min_port, int max_port,
+       const std::string& username_fragment, const std::string& password);
   virtual ~Port();
 
   // The thread on which this port performs its I/O.
@@ -93,20 +99,6 @@ class Port : public talk_base::MessageHandler, public sigslot::has_slots<> {
   const std::string& name() const { return name_; }
   void set_name(const std::string& name) { name_ = name; }
 
-  // In order to establish a connection to this Port (so that real data can be
-  // sent through), the other side must send us a STUN binding request that is
-  // authenticated with this username and password.
-  // Fills in the username fragment and password.  These will be initially set
-  // in the constructor to random values.  Subclasses or tests can override.
-  // TODO: Change this to "username" rather than "username_fragment".
-  const std::string& username_fragment() const { return username_frag_; }
-  void set_username_fragment(const std::string& username) {
-    username_frag_ = username;
-  }
-
-  const std::string& password() const { return password_; }
-  void set_password(const std::string& password) { password_ = password; }
-
   // A value in [0,1] that indicates the preference for this port versus other
   // ports on this client.  (Larger indicates more preference.)
   float preference() const { return preference_; }
@@ -121,6 +113,13 @@ class Port : public talk_base::MessageHandler, public sigslot::has_slots<> {
   // Identifies the generation that this port was created in.
   uint32 generation() { return generation_; }
   void set_generation(uint32 generation) { generation_ = generation; }
+
+  // In order to establish a connection to this Port (so that real data can be
+  // sent through), the other side must send us a STUN binding request that is
+  // authenticated with this username_fragment and password.
+  // PortAllocatorSession will provide these username_fragment and password.
+  const std::string& username_fragment() const { return username_fragment_; }
+  const std::string& password() const { return password_; }
 
   // PrepareAddress will attempt to get an address for this port that other
   // clients can send to.  It may take some time before the address is read.
@@ -215,6 +214,11 @@ class Port : public talk_base::MessageHandler, public sigslot::has_slots<> {
   int min_port() { return min_port_; }
   int max_port() { return max_port_; }
 
+  void set_enable_message_integrity(bool enable) {
+    enable_message_integrity_ = enable;
+  }
+  bool enable_message_integrity() { return enable_message_integrity_; }
+
  protected:
   // Fills in the local address of the port.
   void AddAddress(const talk_base::SocketAddress& address,
@@ -239,7 +243,13 @@ class Port : public talk_base::MessageHandler, public sigslot::has_slots<> {
                       const talk_base::SocketAddress& addr,
                       StunMessage** out_msg, std::string* out_username);
 
-  // TODO: make these members private
+ private:
+  // Called when one of our connections deletes itself.
+  void OnConnectionDestroyed(Connection* conn);
+
+  // Checks if this port is useless, and hence, should be destroyed.
+  void CheckTimeout();
+
   talk_base::Thread* thread_;
   talk_base::PacketSocketFactory* factory_;
   std::string type_;
@@ -249,20 +259,14 @@ class Port : public talk_base::MessageHandler, public sigslot::has_slots<> {
   int max_port_;
   uint32 generation_;
   std::string name_;
-  std::string username_frag_;
-  std::string password_;
   float preference_;
+  std::string username_fragment_;
+  std::string password_;
   std::vector<Candidate> candidates_;
   AddressMap connections_;
   enum Lifetime { LT_PRESTART, LT_PRETIMEOUT, LT_POSTTIMEOUT } lifetime_;
   bool enable_port_packets_;
-
- private:
-  // Called when one of our connections deletes itself.
-  void OnConnectionDestroyed(Connection* conn);
-
-  // Checks if this port is useless, and hence, should be destroyed.
-  void CheckTimeout();
+  bool enable_message_integrity_;
 
   // Information to use when going through a proxy.
   std::string user_agent_;

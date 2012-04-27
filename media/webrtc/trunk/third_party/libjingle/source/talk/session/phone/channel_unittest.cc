@@ -48,27 +48,45 @@ static const cricket::AudioCodec kPcmaCodec(8, "PCMA", 64000, 8000, 1, 0);
 static const cricket::AudioCodec kIsacCodec(103, "ISAC", 40000, 16000, 1, 0);
 static const cricket::VideoCodec kH264Codec(97, "H264", 640, 400, 30, 0);
 static const cricket::VideoCodec kH264SvcCodec(99, "H264-SVC", 320, 200, 15, 0);
+static const cricket::DataCodec kGoogleDataCodec(101, "google-data", 0);
 static const uint32 kSsrc1 = 0x1111;
 static const uint32 kSsrc2 = 0x2222;
 static const uint32 kSsrc3 = 0x3333;
 static const char kCName[] = "a@b.com";
 
-class VoiceTraits {
+template<class ChannelT,
+         class MediaChannelT,
+         class ContentT,
+         class CodecT,
+         class MediaInfoT>
+class Traits {
  public:
-  typedef cricket::VoiceChannel Channel;
-  typedef cricket::FakeVoiceMediaChannel MediaChannel;
-  typedef cricket::AudioContentDescription Content;
-  typedef cricket::AudioCodec Codec;
-  typedef cricket::VoiceMediaInfo MediaInfo;
+  typedef ChannelT Channel;
+  typedef MediaChannelT MediaChannel;
+  typedef ContentT Content;
+  typedef CodecT Codec;
+  typedef MediaInfoT MediaInfo;
 };
 
-class VideoTraits {
- public:
-  typedef cricket::VideoChannel Channel;
-  typedef cricket::FakeVideoMediaChannel MediaChannel;
-  typedef cricket::VideoContentDescription Content;
-  typedef cricket::VideoCodec Codec;
-  typedef cricket::VideoMediaInfo MediaInfo;
+class VoiceTraits : public Traits<cricket::VoiceChannel,
+                                  cricket::FakeVoiceMediaChannel,
+                                  cricket::AudioContentDescription,
+                                  cricket::AudioCodec,
+                                  cricket::VoiceMediaInfo> {
+};
+
+class VideoTraits : public Traits<cricket::VideoChannel,
+                                  cricket::FakeVideoMediaChannel,
+                                  cricket::VideoContentDescription,
+                                  cricket::VideoCodec,
+                                  cricket::VideoMediaInfo> {
+};
+
+class DataTraits : public Traits<cricket::DataChannel,
+                                 cricket::FakeDataMediaChannel,
+                                 cricket::DataContentDescription,
+                                 cricket::DataCodec,
+                                 cricket::DataMediaInfo> {
 };
 
 // Base class for Voice/VideoChannel tests
@@ -107,8 +125,8 @@ class ChannelTest : public testing::Test, public sigslot::has_slots<> {
   void CreateChannels(int flags,
                       talk_base::Thread* thread) {
     CreateChannels(new typename T::MediaChannel(NULL),
-                     new typename T::MediaChannel(NULL),
-                     flags, thread);
+                   new typename T::MediaChannel(NULL),
+                   flags, thread);
   }
   void CreateChannels(
       typename T::MediaChannel* ch1, typename T::MediaChannel* ch2,
@@ -127,8 +145,10 @@ class ChannelTest : public testing::Test, public sigslot::has_slots<> {
         this, &ChannelTest<T>::OnMediaChannelError);
     channel2_->SignalMediaError.connect(
         this, &ChannelTest<T>::OnMediaChannelError);
-    CreateContent(flags1, kPcmuCodec, kH264Codec, &local_media_content1_);
-    CreateContent(flags2, kPcmuCodec, kH264Codec, &local_media_content2_);
+    CreateContent(flags1, kPcmuCodec, kH264Codec,
+                  &local_media_content1_);
+    CreateContent(flags2, kPcmuCodec, kH264Codec,
+                  &local_media_content2_);
     CopyContent(local_media_content1_, &remote_media_content1_);
     CopyContent(local_media_content2_, &remote_media_content2_);
     // Add stream information (SSRC) to the local content but not to the remote
@@ -161,8 +181,10 @@ class ChannelTest : public testing::Test, public sigslot::has_slots<> {
         this, &ChannelTest<T>::OnMediaMonitor);
     channel2_->SignalMediaError.connect(
         this, &ChannelTest<T>::OnMediaChannelError);
-    CreateContent(flags, kPcmuCodec, kH264Codec, &local_media_content1_);
-    CreateContent(flags, kPcmuCodec, kH264Codec, &local_media_content2_);
+    CreateContent(flags, kPcmuCodec, kH264Codec,
+                  &local_media_content1_);
+    CreateContent(flags, kPcmuCodec, kH264Codec,
+                  &local_media_content2_);
     CopyContent(local_media_content1_, &remote_media_content1_);
     CopyContent(local_media_content2_, &remote_media_content2_);
     // Add stream information (SSRC) to the local content but not to the remote
@@ -177,6 +199,7 @@ class ChannelTest : public testing::Test, public sigslot::has_slots<> {
       AddLegacyStreamInContent(kSsrc2, flags, &remote_media_content2_);
     }
   }
+
   typename T::Channel* CreateChannel(talk_base::Thread* thread,
                                      cricket::MediaEngineInterface* engine,
                                      typename T::MediaChannel* ch,
@@ -450,7 +473,9 @@ class ChannelTest : public testing::Test, public sigslot::has_slots<> {
   void TestSetRemoteContentUpdate() {
     CreateChannels(0, 0);
     typename T::Content content;
-    CreateContent(RTCP | RTCP_MUX | SECURE, kPcmuCodec, kH264Codec, &content);
+    CreateContent(RTCP | RTCP_MUX | SECURE,
+                  kPcmuCodec, kH264Codec,
+                  &content);
     EXPECT_EQ(0U, media_channel1_->codecs().size());
     EXPECT_TRUE(channel1_->SetLocalContent(&content, CA_OFFER));
     EXPECT_TRUE(channel1_->SetRemoteContent(&content, CA_ANSWER));
@@ -460,7 +485,8 @@ class ChannelTest : public testing::Test, public sigslot::has_slots<> {
     // Now update with other codecs.
     typename T::Content update_content;
     update_content.set_partial(true);
-    CreateContent(0, kIsacCodec, kH264SvcCodec, &update_content);
+    CreateContent(0, kIsacCodec, kH264SvcCodec,
+                  &update_content);
     EXPECT_TRUE(channel1_->SetRemoteContent(&update_content, CA_UPDATE));
     ASSERT_EQ(1U, media_channel1_->codecs().size());
     EXPECT_TRUE(CodecMatches(update_content.codecs()[0],
@@ -1142,8 +1168,10 @@ class ChannelTest : public testing::Test, public sigslot::has_slots<> {
     CreateChannels(0, 0);
     EXPECT_TRUE(SendInitiate());
     EXPECT_TRUE(SendAccept());
-    EXPECT_FALSE(channel1_->HasSendSinks());
-    EXPECT_FALSE(channel1_->HasRecvSinks());
+    EXPECT_FALSE(channel1_->HasSendSinks(cricket::SINK_POST_CRYPTO));
+    EXPECT_FALSE(channel1_->HasRecvSinks(cricket::SINK_POST_CRYPTO));
+    EXPECT_FALSE(channel1_->HasSendSinks(cricket::SINK_PRE_CRYPTO));
+    EXPECT_FALSE(channel1_->HasRecvSinks(cricket::SINK_PRE_CRYPTO));
 
     talk_base::Pathname path;
     EXPECT_TRUE(talk_base::Filesystem::GetTemporaryFolder(path, true, NULL));
@@ -1152,9 +1180,13 @@ class ChannelTest : public testing::Test, public sigslot::has_slots<> {
         new cricket::RtpDumpSink(path.pathname()));
     sink->set_packet_filter(cricket::PF_ALL);
     EXPECT_TRUE(sink->Enable(true));
-    channel1_->RegisterSendSink(sink.get(), &cricket::RtpDumpSink::OnPacket);
-    EXPECT_TRUE(channel1_->HasSendSinks());
-    EXPECT_FALSE(channel1_->HasRecvSinks());
+    channel1_->RegisterSendSink(
+        sink.get(), &cricket::RtpDumpSink::OnPacket, cricket::SINK_POST_CRYPTO);
+    EXPECT_TRUE(channel1_->HasSendSinks(cricket::SINK_POST_CRYPTO));
+    EXPECT_FALSE(channel1_->HasRecvSinks(cricket::SINK_POST_CRYPTO));
+    EXPECT_FALSE(channel1_->HasSendSinks(cricket::SINK_PRE_CRYPTO));
+    EXPECT_FALSE(channel1_->HasRecvSinks(cricket::SINK_PRE_CRYPTO));
+
     // The first packet is recorded with header + data.
     EXPECT_TRUE(SendRtp1());
     // The second packet is recorded with header only.
@@ -1165,7 +1197,7 @@ class ChannelTest : public testing::Test, public sigslot::has_slots<> {
     EXPECT_TRUE(SendRtp1());
      // The fourth packet is not recorded since sink is unregistered.
     EXPECT_TRUE(sink->Enable(true));
-    channel1_->UnregisterSendSink(sink.get());
+    channel1_->UnregisterSendSink(sink.get(), cricket::SINK_POST_CRYPTO);
     EXPECT_TRUE(SendRtp1());
     sink.reset();  // This will close the file.
 
@@ -1298,6 +1330,30 @@ class ChannelTest : public testing::Test, public sigslot::has_slots<> {
         transport_channel, reinterpret_cast<const char*>(kBadPacket),
         sizeof(kBadPacket));
     EXPECT_EQ_WAIT(T::MediaChannel::ERROR_PLAY_SRTP_AUTH_FAILED, error_, 500);
+  }
+
+  void TestSetChannelOptions(bool options_should_change) {
+    CreateChannels(0, 0);
+
+    channel1_->SetChannelOptions(1);
+    channel2_->SetChannelOptions(1);
+    if (options_should_change) {
+      EXPECT_EQ(1, media_channel1_->GetOptions());
+      EXPECT_EQ(1, media_channel2_->GetOptions());
+    } else {
+      EXPECT_EQ(0, media_channel1_->GetOptions());
+      EXPECT_EQ(0, media_channel2_->GetOptions());
+    }
+
+    channel1_->SetChannelOptions(2);
+    channel2_->SetChannelOptions(2);
+    if (options_should_change) {
+      EXPECT_EQ(2, media_channel1_->GetOptions());
+      EXPECT_EQ(2, media_channel2_->GetOptions());
+    } else {
+      EXPECT_EQ(0, media_channel1_->GetOptions());
+      EXPECT_EQ(0, media_channel2_->GetOptions());
+    }
   }
 
  protected:
@@ -1738,6 +1794,11 @@ TEST_F(VoiceChannelTest, SendSsrcMuxToSsrcMuxWithRtcpMux) {
   Base::SendSsrcMuxToSsrcMuxWithRtcpMux();
 }
 
+TEST_F(VoiceChannelTest, TestSetChannelOptions) {
+  // SetChannelOptions should do nothing on voice channel.
+  Base::TestSetChannelOptions(false);
+}
+
 // VideoChannelTest
 TEST_F(VideoChannelTest, TestInit) {
   Base::TestInit();
@@ -1914,3 +1975,198 @@ TEST_F(VideoChannelTest, TestApplyViewRequest) {
   EXPECT_EQ(0, send_format.width);
   EXPECT_EQ(0, send_format.height);
 }
+
+TEST_F(VideoChannelTest, TestSetChannelOptions) {
+  Base::TestSetChannelOptions(true);
+}
+
+
+// DataChannelTest
+
+class DataChannelTest
+    : public ChannelTest<DataTraits> {
+ public:
+  typedef ChannelTest<DataTraits>
+  Base;
+  DataChannelTest() : Base(kDataPacket, sizeof(kDataPacket),
+                           kRtcpReport, sizeof(kRtcpReport)) {
+  }
+};
+
+// Override to avoid engine channel parameter.
+template<>
+cricket::DataChannel* ChannelTest<DataTraits>::CreateChannel(
+    talk_base::Thread* thread, cricket::MediaEngineInterface* engine,
+    cricket::FakeDataMediaChannel* ch, cricket::BaseSession* session,
+    bool rtcp) {
+  cricket::DataChannel* channel = new cricket::DataChannel(
+      thread, ch, session, cricket::CN_DATA, rtcp);
+  if (!channel->Init()) {
+    delete channel;
+    channel = NULL;
+  }
+  return channel;
+}
+
+template<>
+void ChannelTest<DataTraits>::CreateContent(
+    int flags,
+    const cricket::AudioCodec& audio_codec,
+    const cricket::VideoCodec& video_codec,
+    cricket::DataContentDescription* data) {
+  data->AddCodec(kGoogleDataCodec);
+  data->set_rtcp_mux((flags & RTCP_MUX) != 0);
+  if (flags & SECURE) {
+    data->AddCrypto(cricket::CryptoParams(
+        1, cricket::CS_AES_CM_128_HMAC_SHA1_32,
+        "inline:" + talk_base::CreateRandomString(40), ""));
+  }
+}
+
+template<>
+void ChannelTest<DataTraits>::CopyContent(
+    const cricket::DataContentDescription& source,
+    cricket::DataContentDescription* data) {
+  *data = source;
+}
+
+template<>
+bool ChannelTest<DataTraits>::CodecMatches(const cricket::DataCodec& c1,
+                                           const cricket::DataCodec& c2) {
+  return c1.name == c2.name;
+}
+
+template<>
+void ChannelTest<DataTraits>::AddLegacyStreamInContent(
+    uint32 ssrc, int flags, cricket::DataContentDescription* data) {
+  data->AddLegacyStream(ssrc);
+}
+
+TEST_F(DataChannelTest, TestInit) {
+  Base::TestInit();
+  EXPECT_FALSE(media_channel1_->muted());
+}
+
+TEST_F(DataChannelTest, TestSetContents) {
+  Base::TestSetContents();
+}
+
+TEST_F(DataChannelTest, TestSetContentsNullOffer) {
+  Base::TestSetContentsNullOffer();
+}
+
+TEST_F(DataChannelTest, TestSetContentsRtcpMux) {
+  Base::TestSetContentsRtcpMux();
+}
+
+TEST_F(DataChannelTest, TestSetRemoteContentUpdate) {
+  Base::TestSetRemoteContentUpdate();
+}
+
+TEST_F(DataChannelTest, TestStreams) {
+  Base::TestStreams();
+}
+
+TEST_F(DataChannelTest, TestUpdateStreamsInLocalContent) {
+  Base::TestUpdateStreamsInLocalContent();
+}
+
+TEST_F(DataChannelTest, TestUpdateRemoteStreamsInContent) {
+  Base::TestUpdateStreamsInRemoteContent();
+}
+
+TEST_F(DataChannelTest, TestChangeStreamParamsInContent) {
+  Base::TestChangeStreamParamsInContent();
+}
+
+TEST_F(DataChannelTest, TestPlayoutAndSendingStates) {
+  Base::TestPlayoutAndSendingStates();
+}
+
+TEST_F(DataChannelTest, TestCallSetup) {
+  Base::TestCallSetup();
+}
+
+TEST_F(DataChannelTest, TestCallTeardownRtcpMux) {
+  Base::TestCallTeardownRtcpMux();
+}
+
+TEST_F(DataChannelTest, SendRtpToRtp) {
+  Base::SendRtpToRtp();
+}
+
+TEST_F(DataChannelTest, SendNoRtcpToNoRtcp) {
+  Base::SendNoRtcpToNoRtcp();
+}
+
+TEST_F(DataChannelTest, SendNoRtcpToRtcp) {
+  Base::SendNoRtcpToRtcp();
+}
+
+TEST_F(DataChannelTest, SendRtcpToNoRtcp) {
+  Base::SendRtcpToNoRtcp();
+}
+
+TEST_F(DataChannelTest, SendRtcpToRtcp) {
+  Base::SendRtcpToRtcp();
+}
+
+TEST_F(DataChannelTest, SendRtcpMuxToRtcp) {
+  Base::SendRtcpMuxToRtcp();
+}
+
+TEST_F(DataChannelTest, SendRtcpMuxToRtcpMux) {
+  Base::SendRtcpMuxToRtcpMux();
+}
+
+TEST_F(DataChannelTest, SendEarlyRtcpMuxToRtcp) {
+  Base::SendEarlyRtcpMuxToRtcp();
+}
+
+TEST_F(DataChannelTest, SendEarlyRtcpMuxToRtcpMux) {
+  Base::SendEarlyRtcpMuxToRtcpMux();
+}
+
+TEST_F(DataChannelTest, SendSrtpToSrtp) {
+  Base::SendSrtpToSrtp();
+}
+
+TEST_F(DataChannelTest, SendSrtpToRtp) {
+  Base::SendSrtpToSrtp();
+}
+
+TEST_F(DataChannelTest, SendSrtcpMux) {
+  Base::SendSrtcpMux();
+}
+
+TEST_F(DataChannelTest, SendRtpToRtpOnThread) {
+  Base::SendRtpToRtpOnThread();
+}
+
+TEST_F(DataChannelTest, SendSrtpToSrtpOnThread) {
+  Base::SendSrtpToSrtpOnThread();
+}
+
+TEST_F(DataChannelTest, SendWithWritabilityLoss) {
+  Base::SendWithWritabilityLoss();
+}
+
+TEST_F(DataChannelTest, TestMediaMonitor) {
+  Base::TestMediaMonitor();
+}
+
+TEST_F(DataChannelTest, TestSendData) {
+  CreateChannels(0, 0);
+  EXPECT_TRUE(SendInitiate());
+  EXPECT_TRUE(SendAccept());
+
+  cricket::DataMediaChannel::SendDataParams params;
+  params.ssrc = 42;
+  std::string data = "foo";
+  ASSERT_TRUE(media_channel1_->SendData(params, data));
+  EXPECT_EQ(params.ssrc,
+            media_channel1_->last_sent_data_params().ssrc);
+  EXPECT_EQ(data, media_channel1_->last_sent_data());
+}
+
+// TODO: TestSetReceiver?

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -39,7 +39,7 @@
 #endif  // defined(_DEBUG) && defined(_WIN32)
 
 namespace webrtc {
-const WebRtc_Word8 RTPFILE_VERSION[] = "1.0";
+const char RTPFILE_VERSION[] = "1.0";
 const WebRtc_UWord32 MAX_UWORD32 = 0xffffffff;
 
 // This stucture is specified in the rtpdump documentation.
@@ -58,13 +58,11 @@ typedef struct
 
 RtpDump* RtpDump::CreateRtpDump()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceUtility, -1, "CreateRtpDump()");
     return new RtpDumpImpl();
 }
 
 void RtpDump::DestroyRtpDump(RtpDump* object)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceUtility, -1, "DestroyRtpDump()");
     delete object;
 }
 
@@ -89,9 +87,8 @@ RtpDumpImpl::~RtpDumpImpl()
     WEBRTC_TRACE(kTraceMemory, kTraceUtility, -1, "%s deleted", __FUNCTION__);
 }
 
-WebRtc_Word32 RtpDumpImpl::Start(const WebRtc_Word8* fileNameUTF8)
+WebRtc_Word32 RtpDumpImpl::Start(const char* fileNameUTF8)
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceUtility, -1, "Start()");
 
     if (fileNameUTF8 == NULL)
     {
@@ -112,7 +109,7 @@ WebRtc_Word32 RtpDumpImpl::Start(const WebRtc_Word8* fileNameUTF8)
     _startTime = GetTimeInMS();
 
     // All rtp dump files start with #!rtpplay.
-    WebRtc_Word8 magic[16];
+    char magic[16];
     sprintf(magic, "#!rtpplay%s \n", RTPFILE_VERSION);
     if (_file.WriteText(magic) == -1)
     {
@@ -128,7 +125,7 @@ WebRtc_Word32 RtpDumpImpl::Start(const WebRtc_Word8* fileNameUTF8)
     // as Wireshark since it makes more sense.
     // http://wiki.wireshark.org/rtpdump explains that an additional 2 bytes
     // of padding should be added to the header.
-    WebRtc_Word8 dummyHdr[16];
+    char dummyHdr[16];
     memset(dummyHdr, 0, 16);
     if (!_file.Write(dummyHdr, sizeof(dummyHdr)))
     {
@@ -141,7 +138,6 @@ WebRtc_Word32 RtpDumpImpl::Start(const WebRtc_Word8* fileNameUTF8)
 
 WebRtc_Word32 RtpDumpImpl::Stop()
 {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceUtility, -1, "Stop()");
     CriticalSectionScoped lock(_critSect);
     _file.Flush();
     _file.CloseFile();

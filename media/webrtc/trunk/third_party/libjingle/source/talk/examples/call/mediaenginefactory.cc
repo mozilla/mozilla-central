@@ -57,7 +57,6 @@ std::vector<cricket::VideoCodec> RequiredVideoCodecs() {
 cricket::MediaEngineInterface* MediaEngineFactory::CreateFileMediaEngine(
     const char* voice_in, const char* voice_out,
     const char* video_in, const char* video_out) {
-
   cricket::FileMediaEngine* file_media_engine = new cricket::FileMediaEngine;
   // Set the RTP dump file names.
   if (voice_in) {

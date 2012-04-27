@@ -76,6 +76,7 @@ const char STR_FROM[] = "from";
 const char STR_TO[] = "to";
 const char STR_BOTH[] = "both";
 const char STR_REMOVE[] = "remove";
+const char STR_TRUE[] = "true";
 
 const char STR_TYPE[] = "type";
 const char STR_NAME[] = "name";
@@ -99,6 +100,10 @@ const char STR_OUTGOINGVOICEMAIL[] = "outgoingvoicemail";
 #endif
 
 const char STR_UNAVAILABLE[] = "unavailable";
+
+const char NS_MUC_UNIQUE[] = "http://jabber.org/protocol/muc#unique";
+const StaticQName QN_MUC_UNIQUE_QUERY = { NS_MUC_UNIQUE, "unique" };
+const StaticQName QN_HANGOUT_ID = { STR_EMPTY, "hangout-id" };
 
 const char STR_GOOGLE_MUC_LOOKUP_JID[] = "lookup.groupchat.google.com";
 const char STR_MUC_ROOMCONFIG_ROOMNAME[] = "muc#roomconfig_roomname";
@@ -414,6 +419,7 @@ const StaticQName QN_SEARCH_ITEM = { NS_SEARCH, "item" };
 const StaticQName QN_SEARCH_ROOM_NAME = { NS_SEARCH, "room-name" };
 const StaticQName QN_SEARCH_ROOM_DOMAIN = { NS_SEARCH, "room-domain" };
 const StaticQName QN_SEARCH_ROOM_JID = { NS_SEARCH, "room-jid" };
+const StaticQName QN_SEARCH_HANGOUT_ID = { NS_SEARCH, "hangout-id" };
 
 // JEP 0115
 const char NS_CAPS[] = "http://jabber.org/protocol/caps";
@@ -548,6 +554,8 @@ const StaticQName QN_GOOGLE_MUC_AUDIO_MUTE =
     { NS_GOOGLE_MUC_MEDIA, "audio-mute" };
 const StaticQName QN_GOOGLE_MUC_VIDEO_MUTE =
     { NS_GOOGLE_MUC_MEDIA, "video-mute" };
+const StaticQName QN_GOOGLE_MUC_VIDEO_PAUSE =
+    { NS_GOOGLE_MUC_MEDIA, "video-pause" };
 const StaticQName QN_GOOGLE_MUC_RECORDING =
     { NS_GOOGLE_MUC_MEDIA, "recording" };
 const StaticQName QN_GOOGLE_MUC_MEDIA_BLOCK = { NS_GOOGLE_MUC_MEDIA, "block" };

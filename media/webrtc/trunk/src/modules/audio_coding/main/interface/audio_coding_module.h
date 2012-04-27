@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -124,7 +124,7 @@ class AudioCodingModule: public Module {
   //   -1 if the list number (listId) is invalid.
   //    0 if succeeded.
   //
-  static WebRtc_Word32 Codec(const WebRtc_Word8* payloadName, CodecInst& codec,
+  static WebRtc_Word32 Codec(const char* payloadName, CodecInst& codec,
                              const WebRtc_Word32 samplingFreqHz = -1);
 
   ///////////////////////////////////////////////////////////////////////////
@@ -142,7 +142,7 @@ class AudioCodingModule: public Module {
   //   if the codec is found, the index of the codec in the list,
   //   -1 if the codec is not found.
   //
-  static WebRtc_Word32 Codec(const WebRtc_Word8* payloadName,
+  static WebRtc_Word32 Codec(const char* payloadName,
                              const WebRtc_Word32 samplingFreqHz = -1);
 
   ///////////////////////////////////////////////////////////////////////////
@@ -546,7 +546,7 @@ class AudioCodingModule: public Module {
   //   -1 if failed to push in the payload
   //    0 if payload is successfully pushed in.
   //
-  virtual WebRtc_Word32 IncomingPacket(const WebRtc_Word8* incomingPayload,
+  virtual WebRtc_Word32 IncomingPacket(const WebRtc_UWord8* incomingPayload,
                                        const WebRtc_Word32 payloadLengthByte,
                                        const WebRtcRTPHeader& rtpInfo) = 0;
 
@@ -574,7 +574,7 @@ class AudioCodingModule: public Module {
   //   -1 if failed to push in the payload
   //    0 if payload is successfully pushed in.
   //
-  virtual WebRtc_Word32 IncomingPayload(const WebRtc_Word8* incomingPayload,
+  virtual WebRtc_Word32 IncomingPayload(const WebRtc_UWord8* incomingPayload,
                                         const WebRtc_Word32 payloadLengthByte,
                                         const WebRtc_UWord8 payloadType,
                                         const WebRtc_UWord32 timestamp = 0) = 0;

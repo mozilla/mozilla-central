@@ -37,7 +37,7 @@ static bool IsApproximate(double expected, double value, double eps) {
 TEST(RollingAccumulatorTest, TestZeroSamples) {
   RollingAccumulator<int> accum(10);
 
-  EXPECT_EQ(0, accum.count());
+  EXPECT_EQ(0U, accum.count());
   EXPECT_EQ(0, accum.ComputeMean());
   EXPECT_EQ(0, accum.ComputeVariance());
 }
@@ -48,7 +48,7 @@ TEST(RollingAccumulatorTest, TestSomeSamples) {
     accum.AddSample(i);
   }
 
-  EXPECT_EQ(4, accum.count());
+  EXPECT_EQ(4U, accum.count());
   EXPECT_EQ(6, accum.ComputeSum());
   EXPECT_EQ(1, accum.ComputeMean());
   EXPECT_EQ(1, accum.ComputeVariance());
@@ -60,7 +60,7 @@ TEST(RollingAccumulatorTest, TestRollingSamples) {
     accum.AddSample(i);
   }
 
-  EXPECT_EQ(10, accum.count());
+  EXPECT_EQ(10U, accum.count());
   EXPECT_EQ(65, accum.ComputeSum());
   EXPECT_EQ(6, accum.ComputeMean());
   EXPECT_TRUE(IsApproximate(9, accum.ComputeVariance(), 1));
@@ -72,7 +72,7 @@ TEST(RollingAccumulatorTest, TestRollingSamplesDouble) {
     accum.AddSample(5 * i);
   }
 
-  EXPECT_EQ(10, accum.count());
+  EXPECT_EQ(10U, accum.count());
   EXPECT_TRUE(IsApproximate(875.0, accum.ComputeSum(), 1E-6));
   EXPECT_TRUE(IsApproximate(87.5, accum.ComputeMean(), 1E-6));
   EXPECT_TRUE(IsApproximate(229.166667, accum.ComputeVariance(), 25));

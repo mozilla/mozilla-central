@@ -25,7 +25,7 @@
 
 #include <string>
 
-#include "talk/app/webrtc/mediastreamimpl.h"
+#include "talk/app/webrtc/mediastream.h"
 #include "talk/app/webrtc/peerconnectionfactoryimpl.h"
 #include "talk/app/webrtc/fakeportallocatorfactory.h"
 #include "talk/base/gunit.h"
@@ -46,6 +46,8 @@ class NullPeerConnectionObserver : public PeerConnectionObserver {
   virtual void OnStateChange(StateType state_changed) {}
   virtual void OnAddStream(MediaStreamInterface* stream) {}
   virtual void OnRemoveStream(MediaStreamInterface* stream) {}
+  virtual void OnIceCandidate(const webrtc::IceCandidateInterface* candidate) {}
+  virtual void OnIceComplete() {}
 };
 
 TEST(PeerConnectionFactory, CreatePCUsingInternalModules) {

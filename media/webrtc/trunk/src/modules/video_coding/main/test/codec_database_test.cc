@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -181,12 +181,12 @@ CodecDataBaseTest::Perform(CmdArgs& args)
 
 
     _vcm->InitializeReceiver();
-    VP8Decoder* decoder = new VP8Decoder;
+    VP8Decoder* decoder = VP8Decoder::Create();
     VideoCodec vp8DecSettings;
     VideoCodingModule::Codec(kVideoCodecVP8, &vp8DecSettings);
     TEST(_vcm->RegisterExternalDecoder(decoder, vp8DecSettings.plType, false) == VCM_OK);
     TEST(_vcm->RegisterReceiveCodec(&vp8DecSettings, 1, false) == VCM_OK);
-    VP8Encoder* encoder = new VP8Encoder;
+    VP8Encoder* encoder = VP8Encoder::Create();
     VideoCodec vp8EncSettings;
     VideoCodingModule::Codec(kVideoCodecVP8, &vp8EncSettings);
     _vcm->RegisterTransportCallback(_encodeCallback); // encode returns error if callback uninitialized
@@ -238,7 +238,7 @@ CodecDataBaseTest::Perform(CmdArgs& args)
     // Try to decode a delta frame. Should get a warning since we have enabled the "require key frame" setting
     // and because no frame type request callback has been registered.
     TEST(_vcm->Decode() == VCM_MISSING_CALLBACK);
-    TEST(_vcm->FrameTypeRequest(kVideoFrameKey, 0) == VCM_OK);
+    TEST(_vcm->IntraFrameRequest() == VCM_OK);
     _timeStamp += (WebRtc_UWord32)(9e4 / _frameRate);
     sourceFrame.SetTimeStamp(_timeStamp);
     TEST(_vcm->AddVideoFrame(sourceFrame) == VCM_OK);
@@ -250,7 +250,7 @@ CodecDataBaseTest::Perform(CmdArgs& args)
     sendCodec.width = _width;
     sendCodec.height = _height;
     TEST(_vcm->RegisterReceiveCodec(&sendCodec, 1) == VCM_OK);
-    TEST(_vcm->FrameTypeRequest(kVideoFrameKey, 0) == VCM_OK);
+    TEST(_vcm->IntraFrameRequest() == VCM_OK);
     waitEvent->Wait(33);
     _timeStamp += (WebRtc_UWord32)(9e4 / _frameRate);
     sourceFrame.SetTimeStamp(_timeStamp);
@@ -260,7 +260,7 @@ CodecDataBaseTest::Perform(CmdArgs& args)
     waitEvent->Wait(33);
     _timeStamp += (WebRtc_UWord32)(9e4 / _frameRate);
     sourceFrame.SetTimeStamp(_timeStamp);
-    TEST(_vcm->FrameTypeRequest(kVideoFrameKey, 0) == VCM_OK);
+    TEST(_vcm->IntraFrameRequest() == VCM_OK);
     TEST(_vcm->AddVideoFrame(sourceFrame) == VCM_OK);
     TEST(_vcm->Decode() == VCM_OK);
     TEST(_vcm->ResetDecoder() == VCM_OK);

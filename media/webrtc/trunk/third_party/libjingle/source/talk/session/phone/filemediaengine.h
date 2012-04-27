@@ -93,8 +93,11 @@ class FileMediaEngine : public MediaEngineInterface {
     return true;
   }
   virtual bool SetVideoCaptureDevice(const Device* cam_device) { return true; }
-  virtual bool SetVideoCapturer(VideoCapturer* /*capturer*/, uint32 /*ssrc*/) {
+  virtual bool SetVideoCapturer(VideoCapturer* /*capturer*/) {
     return true;
+  }
+  virtual VideoCapturer* GetVideoCapturer() const {
+    return NULL;
   }
   virtual bool GetOutputVolume(int* level) {
     *level = 0;
@@ -192,11 +195,17 @@ class FileVoiceChannel : public VoiceMediaChannel {
   virtual bool RemoveRecvStream(uint32 ssrc) { return true; }
   virtual bool Mute(bool on) { return false; }
   virtual bool SetSendBandwidth(bool autobw, int bps) { return true; }
-  virtual bool SetOptions(int options) { return true; }
+  virtual bool SetOptions(int options) {
+    options_ = options;
+    return true;
+  }
+  virtual int GetOptions() const { return options_; }
 
  private:
   uint32 send_ssrc_;
   talk_base::scoped_ptr<RtpSenderReceiver> rtp_sender_receiver_;
+  int options_;
+
   DISALLOW_COPY_AND_ASSIGN(FileVoiceChannel);
 };
 
@@ -227,7 +236,7 @@ class FileVideoChannel : public VideoMediaChannel {
   virtual bool SetRenderer(uint32 ssrc, VideoRenderer* renderer) {
     return true;
   }
-  virtual bool AddScreencast(uint32 ssrc, const ScreencastId& id) {
+  virtual bool AddScreencast(uint32 ssrc, const ScreencastId& id, int fps) {
     return true;
   }
   virtual bool RemoveScreencast(uint32 ssrc) { return true; }
@@ -244,11 +253,17 @@ class FileVideoChannel : public VideoMediaChannel {
   virtual bool RemoveRecvStream(uint32 ssrc) { return true; }
   virtual bool Mute(bool on) { return false; }
   virtual bool SetSendBandwidth(bool autobw, int bps) { return true; }
-  virtual bool SetOptions(int options) { return true; }
+  virtual bool SetOptions(int options) {
+    options_ = options;
+    return true;
+  }
+  virtual int GetOptions() const { return options_; }
 
  private:
   uint32 send_ssrc_;
   talk_base::scoped_ptr<RtpSenderReceiver> rtp_sender_receiver_;
+  int options_;
+
   DISALLOW_COPY_AND_ASSIGN(FileVideoChannel);
 };
 

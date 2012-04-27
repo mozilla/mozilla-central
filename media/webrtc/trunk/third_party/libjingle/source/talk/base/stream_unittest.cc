@@ -43,7 +43,7 @@ class TestStream : public StreamInterface {
                             size_t* read, int* error) {
     unsigned char* uc_buffer = static_cast<unsigned char*>(buffer);
     for (size_t i = 0; i < buffer_len; ++i) {
-      uc_buffer[i] = pos_++;
+      uc_buffer[i] = static_cast<unsigned char>(pos_++);
     }
     if (read)
       *read = buffer_len;
@@ -72,7 +72,7 @@ class TestStream : public StreamInterface {
   }
 
  private:
-  unsigned char pos_;
+  size_t pos_;
 };
 
 bool VerifyTestBuffer(unsigned char* buffer, size_t len,

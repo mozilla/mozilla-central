@@ -45,7 +45,7 @@ BOOL CALLBACK Win32WindowPicker::EnumProc(HWND hwnd, LPARAM l_param) {
   // Skip the Program Manager window and the Start button.
   TCHAR class_name_w[500];
   ::GetClassName(hwnd, class_name_w, 500);
-  std::string class_name = ToUtf8(class_name_w, wcslen(class_name_w));
+  std::string class_name = ToUtf8(class_name_w);
   if (class_name == kProgramManagerClass || class_name == kButtonClass) {
     // We don't want the Program Manager window nor the Start button.
     return TRUE;
@@ -53,7 +53,8 @@ BOOL CALLBACK Win32WindowPicker::EnumProc(HWND hwnd, LPARAM l_param) {
 
   TCHAR window_title[500];
   GetWindowText(hwnd, window_title, ARRAY_SIZE(window_title));
-  std::string title = ToUtf8(window_title, wcslen(window_title));
+  std::string title = ToUtf8(window_title);
+
   WindowId id(hwnd);
   WindowDescription desc(id, title);
   descriptions->push_back(desc);
@@ -67,7 +68,7 @@ BOOL CALLBACK Win32WindowPicker::MonitorEnumProc(HMONITOR h_monitor,
   DesktopDescriptionList* desktop_desc =
       reinterpret_cast<DesktopDescriptionList*>(l_param);
 
-  DesktopId id(h_monitor, desktop_desc->size());
+  DesktopId id(h_monitor, static_cast<int>(desktop_desc->size()));
   // TODO: Figure out an appropriate desktop title.
   DesktopDescription desc(id, "");
   desktop_desc->push_back(desc);

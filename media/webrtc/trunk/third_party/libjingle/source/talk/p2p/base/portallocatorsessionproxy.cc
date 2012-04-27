@@ -127,7 +127,7 @@ void PortAllocatorSessionProxy::OnPortReady(PortAllocatorSession* session,
 
   PortProxy* proxy_port = new PortProxy(
       port->thread(), port->type(), port->socket_factory(), port->network(),
-      port->ip(), port->min_port(), port->max_port());
+      port->ip(), port->min_port(), port->max_port(), username(), password());
   proxy_port->set_impl(port);
   proxy_ports_[port] = proxy_port;
   SignalPortReady(this, proxy_port);

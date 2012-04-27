@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -23,26 +23,21 @@ namespace webrtc {
 typedef VadInst Handle;
 
 namespace {
-WebRtc_Word16 MapSetting(VoiceDetection::Likelihood likelihood) {
+int MapSetting(VoiceDetection::Likelihood likelihood) {
   switch (likelihood) {
     case VoiceDetection::kVeryLowLikelihood:
       return 3;
-      break;
     case VoiceDetection::kLowLikelihood:
       return 2;
-      break;
     case VoiceDetection::kModerateLikelihood:
       return 1;
-      break;
     case VoiceDetection::kHighLikelihood:
       return 0;
-      break;
-    default:
-      return -1;
   }
+  assert(false);
+  return -1;
 }
 }  // namespace
-
 
 VoiceDetectionImpl::VoiceDetectionImpl(const AudioProcessingImpl* apm)
   : ProcessingComponent(apm),
@@ -92,7 +87,7 @@ int VoiceDetectionImpl::ProcessCaptureAudio(AudioBuffer* audio) {
 }
 
 int VoiceDetectionImpl::Enable(bool enable) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   return EnableComponent(enable);
 }
 
@@ -113,7 +108,7 @@ bool VoiceDetectionImpl::stream_has_voice() const {
 }
 
 int VoiceDetectionImpl::set_likelihood(VoiceDetection::Likelihood likelihood) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   if (MapSetting(likelihood) == -1) {
     return apm_->kBadParameterError;
   }
@@ -127,7 +122,7 @@ VoiceDetection::Likelihood VoiceDetectionImpl::likelihood() const {
 }
 
 int VoiceDetectionImpl::set_frame_size_ms(int size) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   assert(size == 10); // TODO(ajm): remove when supported.
   if (size != 10 &&
       size != 20 &&
@@ -153,15 +148,6 @@ int VoiceDetectionImpl::Initialize() {
   using_external_vad_ = false;
   frame_size_samples_ = frame_size_ms_ * (apm_->split_sample_rate_hz() / 1000);
   // TODO(ajm): intialize frame buffer here.
-
-  return apm_->kNoError;
-}
-
-int VoiceDetectionImpl::get_version(char* version,
-                                    int version_len_bytes) const {
-  if (WebRtcVad_get_version(version, version_len_bytes) != 0) {
-    return apm_->kBadParameterError;
-  }
 
   return apm_->kNoError;
 }

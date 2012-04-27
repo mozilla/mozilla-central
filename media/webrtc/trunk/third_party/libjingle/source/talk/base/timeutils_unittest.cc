@@ -32,6 +32,16 @@
 
 namespace talk_base {
 
+TEST(TimeTest, TimeInMs) {
+  uint32 ts_earlier = Time();
+  Thread::SleepMs(100);
+  uint32 ts_now = Time();
+  // Allow for the thread to wakeup ~20ms early.
+  EXPECT_GE(ts_now, ts_earlier + 80);
+  // Make sure the Time is not returning in smaller unit like microseconds.
+  EXPECT_LT(ts_now, ts_earlier + 1000);
+}
+
 TEST(TimeTest, Comparison) {
   // Obtain two different times, in known order
   TimeStamp ts_earlier = Time();

@@ -30,6 +30,8 @@
 
 #include <vector>
 
+#include <string.h>
+
 #include "talk/session/phone/videocapturer.h"
 #include "talk/session/phone/videocommon.h"
 #include "talk/session/phone/videoframe.h"
@@ -41,7 +43,7 @@ class FakeVideoCapturer : public cricket::VideoCapturer {
  public:
   FakeVideoCapturer()
       : running_(false),
-        next_timestamp_(0) {
+        next_timestamp_(talk_base::kNumNanosecsPerMillisec) {
     // Default supported formats. Use ResetSupportedFormats to over write.
     std::vector<cricket::VideoFormat> formats;
     formats.push_back(cricket::VideoFormat(640, 480,
@@ -85,6 +87,8 @@ class FakeVideoCapturer : public cricket::VideoCapturer {
     talk_base::scoped_array<char> data(new char[size]);
     memset(data.get(), 0, size);
     frame.data = data.get();
+    // TODO: SignalFrameCaptured carry returned value to be able to
+    // capture results from downstream.
     SignalFrameCaptured(this, &frame);
     return true;
   }

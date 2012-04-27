@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -99,18 +99,16 @@ WebRtc_Word32 VideoRenderWindowsImpl::Init()
 
 WebRtc_Word32 VideoRenderWindowsImpl::ChangeUniqueId(const WebRtc_Word32 id)
 {
-    CriticalSectionScoped cs(_renderWindowsCritsect);
+    CriticalSectionScoped cs(&_renderWindowsCritsect);
     _id = id;
     return 0;
 }
 
 WebRtc_Word32 VideoRenderWindowsImpl::ChangeWindow(void* window)
 {
-    CriticalSectionScoped cs(_renderWindowsCritsect);
+    CriticalSectionScoped cs(&_renderWindowsCritsect);
     if (!_ptrRendererWin)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s, no renderer", __FUNCTION__);
         return -1;
     }
     else
@@ -127,13 +125,11 @@ VideoRenderWindowsImpl::AddIncomingRenderStream(const WebRtc_UWord32 streamId,
                                                 const float right,
                                                 const float bottom)
 {
-    CriticalSectionScoped cs(_renderWindowsCritsect);
+    CriticalSectionScoped cs(&_renderWindowsCritsect);
     VideoRenderCallback* renderCallback = NULL;
 
     if (!_ptrRendererWin)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s, no renderer", __FUNCTION__);
     }
     else
     {
@@ -147,12 +143,10 @@ VideoRenderWindowsImpl::AddIncomingRenderStream(const WebRtc_UWord32 streamId,
 WebRtc_Word32 VideoRenderWindowsImpl::DeleteIncomingRenderStream(
                                                                  const WebRtc_UWord32 streamId)
 {
-    CriticalSectionScoped cs(_renderWindowsCritsect);
+    CriticalSectionScoped cs(&_renderWindowsCritsect);
     WebRtc_Word32 error = -1;
     if (!_ptrRendererWin)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s, no renderer", __FUNCTION__);
     }
     else
     {
@@ -169,7 +163,7 @@ WebRtc_Word32 VideoRenderWindowsImpl::GetIncomingRenderStreamProperties(
                                                                         float& right,
                                                                         float& bottom) const
 {
-    CriticalSectionScoped cs(_renderWindowsCritsect);
+    CriticalSectionScoped cs(&_renderWindowsCritsect);
     zOrder = 0;
     left = 0;
     top = 0;
@@ -179,8 +173,6 @@ WebRtc_Word32 VideoRenderWindowsImpl::GetIncomingRenderStreamProperties(
     WebRtc_Word32 error = -1;
     if (!_ptrRendererWin)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s, no renderer", __FUNCTION__);
     }
     else
     {
@@ -192,12 +184,10 @@ WebRtc_Word32 VideoRenderWindowsImpl::GetIncomingRenderStreamProperties(
 
 WebRtc_Word32 VideoRenderWindowsImpl::StartRender()
 {
-    CriticalSectionScoped cs(_renderWindowsCritsect);
+    CriticalSectionScoped cs(&_renderWindowsCritsect);
     WebRtc_Word32 error = -1;
     if (!_ptrRendererWin)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s, no renderer", __FUNCTION__);
     }
     else
     {
@@ -208,12 +198,10 @@ WebRtc_Word32 VideoRenderWindowsImpl::StartRender()
 
 WebRtc_Word32 VideoRenderWindowsImpl::StopRender()
 {
-    CriticalSectionScoped cs(_renderWindowsCritsect);
+    CriticalSectionScoped cs(&_renderWindowsCritsect);
     WebRtc_Word32 error = -1;
     if (!_ptrRendererWin)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s, no renderer", __FUNCTION__);
     }
     else
     {
@@ -234,12 +222,10 @@ RawVideoType VideoRenderWindowsImpl::PerferedVideoType()
 
 bool VideoRenderWindowsImpl::FullScreen()
 {
-    CriticalSectionScoped cs(_renderWindowsCritsect);
+    CriticalSectionScoped cs(&_renderWindowsCritsect);
     bool fullscreen = false;
     if (!_ptrRendererWin)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s, no renderer", __FUNCTION__);
     }
     else
     {
@@ -267,7 +253,7 @@ WebRtc_Word32 VideoRenderWindowsImpl::GetScreenResolution(
                                                           WebRtc_UWord32& screenWidth,
                                                           WebRtc_UWord32& screenHeight) const
 {
-    CriticalSectionScoped cs(_renderWindowsCritsect);
+    CriticalSectionScoped cs(&_renderWindowsCritsect);
     screenWidth = 0;
     screenHeight = 0;
     return 0;
@@ -276,7 +262,7 @@ WebRtc_Word32 VideoRenderWindowsImpl::GetScreenResolution(
 WebRtc_UWord32 VideoRenderWindowsImpl::RenderFrameRate(
                                                        const WebRtc_UWord32 streamId)
 {
-    CriticalSectionScoped cs(_renderWindowsCritsect);
+    CriticalSectionScoped cs(&_renderWindowsCritsect);
     return 0;
 }
 
@@ -287,12 +273,10 @@ WebRtc_Word32 VideoRenderWindowsImpl::SetStreamCropping(
                                                         const float right,
                                                         const float bottom)
 {
-    CriticalSectionScoped cs(_renderWindowsCritsect);
+    CriticalSectionScoped cs(&_renderWindowsCritsect);
     WebRtc_Word32 error = -1;
     if (!_ptrRendererWin)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s, no renderer", __FUNCTION__);
     }
     else
     {
@@ -310,12 +294,10 @@ WebRtc_Word32 VideoRenderWindowsImpl::ConfigureRenderer(
                                                         const float right,
                                                         const float bottom)
 {
-    CriticalSectionScoped cs(_renderWindowsCritsect);
+    CriticalSectionScoped cs(&_renderWindowsCritsect);
     WebRtc_Word32 error = -1;
     if (!_ptrRendererWin)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s, no renderer", __FUNCTION__);
     }
     else
     {
@@ -329,12 +311,10 @@ WebRtc_Word32 VideoRenderWindowsImpl::ConfigureRenderer(
 WebRtc_Word32 VideoRenderWindowsImpl::SetTransparentBackground(
                                                                const bool enable)
 {
-    CriticalSectionScoped cs(_renderWindowsCritsect);
+    CriticalSectionScoped cs(&_renderWindowsCritsect);
     WebRtc_Word32 error = -1;
     if (!_ptrRendererWin)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s, no renderer", __FUNCTION__);
     }
     else
     {
@@ -354,12 +334,10 @@ WebRtc_Word32 VideoRenderWindowsImpl::SetText(
                                               const float right,
                                               const float bottom)
 {
-    CriticalSectionScoped cs(_renderWindowsCritsect);
+    CriticalSectionScoped cs(&_renderWindowsCritsect);
     WebRtc_Word32 error = -1;
     if (!_ptrRendererWin)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s, no renderer", __FUNCTION__);
     }
     else
     {
@@ -378,12 +356,10 @@ WebRtc_Word32 VideoRenderWindowsImpl::SetBitmap(const void* bitMap,
                                                 const float right,
                                                 const float bottom)
 {
-    CriticalSectionScoped cs(_renderWindowsCritsect);
+    CriticalSectionScoped cs(&_renderWindowsCritsect);
     WebRtc_Word32 error = -1;
     if (!_ptrRendererWin)
     {
-        WEBRTC_TRACE(kTraceModuleCall, kTraceVideoRenderer,
-                     _id, "%s, no renderer", __FUNCTION__);
     }
     else
     {
@@ -525,7 +501,6 @@ void VideoRenderWindowsImpl::LogOSAndHardwareDetails()
 
     DWORD nInstanceCount = 0;
     DWORD nItem = 0;
-    DWORD nCurCount = 0;
 
     // Get the IDxDiagContainer object called "DxDiag_DisplayDevices".
     // This call may take some time while dxdiag gathers the info.
@@ -892,7 +867,6 @@ void VideoRenderWindowsImpl::CheckHWDriver(bool& badDriver,
     // Read the registry to check if HW acceleration is enabled or not.
     HKEY regKey;
     DWORD value = 0;
-    DWORD valueLength = 4;
 
     //Assume the best
     badDriver = false;
@@ -907,7 +881,6 @@ void VideoRenderWindowsImpl::CheckHWDriver(bool& badDriver,
         DWORD driverPathLen = 512;
         TCHAR driverPath[512];
         memset(driverPath, 0, driverPathLen * sizeof(TCHAR));
-        DWORD dwType = REG_SZ;
 
         long retVal = RegQueryValueEx(regKey, _T("\\Device\\Video0"), NULL,
                                       NULL, (BYTE*) driverPath, &driverPathLen);

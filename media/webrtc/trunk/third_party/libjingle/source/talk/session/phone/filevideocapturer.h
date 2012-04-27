@@ -76,6 +76,17 @@ class FileVideoCapturer : public VideoCapturer {
   FileVideoCapturer();
   virtual ~FileVideoCapturer();
 
+  // Determines if the given device is actually a video file, to be captured
+  // with a FileVideoCapturer.
+  static bool IsFileVideoCapturerDevice(const Device& device) {
+    return device.id == kVideoFileDeviceName;
+  }
+
+  // Creates a fake device for the given filename.
+  static Device CreateFileVideoCapturerDevice(const std::string& filename) {
+    return Device(filename, kVideoFileDeviceName);
+  }
+
   // Set how many times to repeat reading the file. Repeat forever if the
   // parameter is talk_base::kForever(-1); no repeat if the parameter is 0 or
   // less than -1.
@@ -88,7 +99,12 @@ class FileVideoCapturer : public VideoCapturer {
     ignore_framerate_ = ignore_framerate;
   }
 
+  // Initializes the capturer with the given file.
   bool Init(const std::string& filename);
+
+  // Initializes the capturer with the given device. This should only be used
+  // if IsFileVideoCapturerDevice returned true for the given device.
+  bool Init(const Device& device);
 
   // Override virtual methods of parent class VideoCapturer.
   virtual CaptureResult Start(const VideoFormat& capture_format);
@@ -117,6 +133,7 @@ class FileVideoCapturer : public VideoCapturer {
  private:
   class FileReadThread;  // Forward declaration, defined in .cc.
 
+  static const char* kVideoFileDeviceName;
   talk_base::FileStream video_file_;
   CapturedFrame captured_frame_;
   // The number of bytes allocated buffer for captured_frame_.data.

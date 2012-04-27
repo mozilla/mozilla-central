@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -139,6 +139,17 @@ CaptureInputPin::GetMediaType (IN int iPosition, OUT MediaType * pmt)
             pmt->SetSubtype(&MEDIASUBTYPE_UYVY);
         }
         break;
+        case 4:
+        {
+            pvi->bmiHeader.biCompression = MAKEFOURCC('M','J','P','G');
+            pvi->bmiHeader.biBitCount = 12; //bit per pixel
+            pvi->bmiHeader.biWidth = _requestedCapability.width;
+            pvi->bmiHeader.biHeight = _requestedCapability.height;
+            pvi->bmiHeader.biSizeImage = 3*_requestedCapability.height
+                                         *_requestedCapability.width/2;
+            pmt->SetSubtype(&MEDIASUBTYPE_MJPG);
+        }
+        break;
         default :
         return VFW_S_NO_MORE_ITEMS;
     }
@@ -185,6 +196,12 @@ CaptureInputPin::CheckMediaType ( IN const MediaType * pMediaType)
                      pvi->bmiHeader.biWidth,pvi->bmiHeader.biHeight,
                      pvi->bmiHeader.biCompression);
 
+        if(*SubType == MEDIASUBTYPE_MJPG
+            && pvi->bmiHeader.biCompression == MAKEFOURCC('M','J','P','G'))
+        {
+            _resultingCapability.rawType = kVideoMJPEG;
+            return S_OK; // This format is acceptable.
+        }
         if(*SubType == MEDIASUBTYPE_I420
             && pvi->bmiHeader.biCompression == MAKEFOURCC('I','4','2','0'))
         {
@@ -235,6 +252,12 @@ CaptureInputPin::CheckMediaType ( IN const MediaType * pMediaType)
         _resultingCapability.width = pvi->bmiHeader.biWidth;
         _resultingCapability.height = abs(pvi->bmiHeader.biHeight);
 
+        if(*SubType == MEDIASUBTYPE_MJPG
+            && pvi->bmiHeader.biCompression == MAKEFOURCC('M','J','P','G'))
+        {
+            _resultingCapability.rawType = kVideoMJPEG;
+            return S_OK; // This format is acceptable.
+        }
         if(*SubType == MEDIASUBTYPE_I420
             && pvi->bmiHeader.biCompression == MAKEFOURCC('I','4','2','0'))
         {
@@ -394,7 +417,6 @@ CaptureSinkFilter::GetPin(IN int Index)
 
 STDMETHODIMP CaptureSinkFilter::Pause()
 {
-    HRESULT hr = S_OK;
     LockFilter();
     if (mState == State_Stopped)
     {

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -16,10 +16,10 @@ namespace webrtc {
 VPMFramePreprocessor::VPMFramePreprocessor():
 _id(0),
 _contentMetrics(NULL),
-_nativeHeight(0),
-_nativeWidth(0),
+_maxFrameRate(0),
 _resampledFrame(),
-_enableCA(false)
+_enableCA(false),
+_frameCnt(0)
 {
     _spatialResampler = new VPMSimpleSpatialResampler();
     _ca = new VPMContentAnalysis(true);
@@ -45,13 +45,12 @@ VPMFramePreprocessor::ChangeUniqueId(const WebRtc_Word32 id)
 void 
 VPMFramePreprocessor::Reset()
 {
-    _nativeWidth = 0;
-    _nativeHeight = 0;
     _ca->Release();
     _vd->Reset();
     _contentMetrics = NULL;
     _spatialResampler->Reset();
     _enableCA = false;
+    _frameCnt = 0;
 }
 	
     
@@ -163,19 +162,19 @@ VPMFramePreprocessor::PreprocessFrame(const VideoFrame* frame, VideoFrame** proc
       *processedFrame = &_resampledFrame;
     }
 
-    // Perform content analysis on the frame to be encoded
+    // Perform content analysis on the frame to be encoded.
     if (_enableCA)
     {
-        if (*processedFrame == NULL)  {
-          _contentMetrics = _ca->ComputeContentMetrics(frame);
-        } else {
-          _contentMetrics = _ca->ComputeContentMetrics(&_resampledFrame);
+        // Compute new metrics every |kSkipFramesCA| frames, starting with
+        // the first frame.
+        if (_frameCnt % kSkipFrameCA == 0) {
+          if (*processedFrame == NULL)  {
+            _contentMetrics = _ca->ComputeContentMetrics(frame);
+          } else {
+            _contentMetrics = _ca->ComputeContentMetrics(&_resampledFrame);
+          }
         }
-        // Update native values:
-        _contentMetrics->nativeHeight = frame->Height();
-        _contentMetrics->nativeWidth = frame->Width();
-        // Max value as set by user
-        _contentMetrics->nativeFrameRate = _maxFrameRate;
+        ++_frameCnt;
     }
     return VPM_OK;
 }

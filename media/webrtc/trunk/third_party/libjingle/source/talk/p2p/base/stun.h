@@ -76,7 +76,15 @@ enum StunAttributeType {
   STUN_ATTR_SOURCE_ADDRESS2       = 0x0012,  // Address
   STUN_ATTR_DATA                  = 0x0013,  // ByteString
   STUN_ATTR_XOR_MAPPED_ADDRESS    = 0x0020,  // XorAddress
-  STUN_ATTR_OPTIONS               = 0x8001   // UInt32
+  STUN_ATTR_OPTIONS               = 0x8001,  // UInt32
+  STUN_ATTR_SOFTWARE              = 0x8022,  // ByteString
+  STUN_ATTR_FINGERPRINT           = 0x8028,  // UInt32
+
+  // RFC5245 defined attributes.
+  STUN_ATTR_PRIORITY              = 0x0024,  // UInt32
+  STUN_ATTR_USE_CANDIDATE         = 0x0025,  // No content, Length = 0
+  STUN_ATTR_ICE_CONTROLLED        = 0x8029,  // UInt64
+  STUN_ATTR_ICE_CONTROLLING       = 0x802A   // UInt64
 };
 
 enum StunErrorCodes {
@@ -99,10 +107,15 @@ enum StunAddressFamily {
 };
 
 extern const char STUN_ERROR_REASON_BAD_REQUEST[];
+extern const char STUN_ERROR_REASON_UNAUTHORIZED[];
 extern const char STUN_ERROR_REASON_STALE_CREDENTIALS[];
 extern const char STUN_ERROR_REASON_SERVER_ERROR[];
 
+// STUN Attribute header length.
+const size_t kStunAttributeHeaderSize = 4;
+
 // Following values correspond to RFC5389.
+const size_t kStunHeaderSize = 20;
 const size_t kStunTransactionIdOffset = 8;
 const size_t kStunTransactionIdLength = 12;
 const uint32 kStunMagicCookie = 0x2112A442;
@@ -112,9 +125,13 @@ const size_t kStunMagicCookieLength = sizeof(kStunMagicCookie);
 // RFC3489.
 const size_t kStunLegacyTransactionIdLength = 16;
 
+// STUN Message Integrity HMAC length.
+const size_t kStunMessageIntegritySize = 20;
+
 class StunAttribute;
 class StunAddressAttribute;
 class StunUInt32Attribute;
+class StunUInt64Attribute;
 class StunByteStringAttribute;
 class StunErrorCodeAttribute;
 class StunUInt16ListAttribute;
@@ -139,11 +156,17 @@ class StunMessage {
   // is determined by the lengths of the transaction ID.
   bool IsLegacy() const;
 
+  static bool ValidateMessageIntegrity(
+      const char* data, size_t size, const std::string& password);
+  void AddMessageIntegrity(const std::string& password);
+  bool HasMessageIntegrity() const;
+
   void SetType(StunMessageType type) { type_ = type; }
   bool SetTransactionID(const std::string& str);
 
   const StunAddressAttribute* GetAddress(StunAttributeType type) const;
   const StunUInt32Attribute* GetUInt32(StunAttributeType type) const;
+  const StunUInt64Attribute* GetUInt64(StunAttributeType type) const;
   const StunByteStringAttribute* GetByteString(StunAttributeType type) const;
   const StunErrorCodeAttribute* GetErrorCode() const;
   const StunUInt16ListAttribute* GetUnknownAttributes() const;
@@ -160,13 +183,13 @@ class StunMessage {
   void Write(talk_base::ByteBuffer* buf) const;
 
  private:
+  const StunAttribute* GetAttribute(StunAttributeType type) const;
+  static bool IsValidTransactionId(const std::string& transaction_id);
+
   uint16 type_;
   uint16 length_;
   std::string transaction_id_;
   std::vector<StunAttribute*>* attrs_;
-
-  const StunAttribute* GetAttribute(StunAttributeType type) const;
-  static bool IsValidTransactionId(const std::string& transaction_id);
 };
 
 // Base class for all STUN/TURN attributes.
@@ -197,6 +220,7 @@ class StunAttribute {
   // Creates an attribute object with the given type and smallest length.
   static StunAddressAttribute* CreateAddress(uint16 type);
   static StunUInt32Attribute* CreateUInt32(uint16 type);
+  static StunUInt64Attribute* CreateUInt64(uint16 type);
   static StunByteStringAttribute* CreateByteString(uint16 type);
   static StunErrorCodeAttribute* CreateErrorCode();
   static StunUInt16ListAttribute* CreateUnknownAttributes();
@@ -306,6 +330,23 @@ class StunUInt32Attribute : public StunAttribute {
 
  private:
   uint32 bits_;
+};
+
+class StunUInt64Attribute : public StunAttribute {
+ public:
+  explicit StunUInt64Attribute(uint16 type);
+
+  static const uint16 SIZE = 8;
+
+  uint64 value() const { return bits_; }
+
+  void SetValue(uint64 bits) { bits_ = bits; }
+
+  bool Read(talk_base::ByteBuffer* buf);
+  void Write(talk_base::ByteBuffer* buf) const;
+
+ private:
+  uint64 bits_;
 };
 
 // Implements STUN/TURN attributes that record an arbitrary byte string

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -36,12 +36,12 @@ WebRtc_Word16 MapSetting(EchoControlMobile::RoutingMode mode) {
       return 3;
     case EchoControlMobile::kLoudSpeakerphone:
       return 4;
-    default:
-      return -1;
   }
+  assert(false);
+  return -1;
 }
 
-int MapError(int err) {
+AudioProcessing::Error MapError(int err) {
   switch (err) {
     case AECM_UNSUPPORTED_FUNCTION_ERROR:
       return AudioProcessing::kUnsupportedFunctionError;
@@ -155,7 +155,7 @@ int EchoControlMobileImpl::ProcessCaptureAudio(AudioBuffer* audio) {
 }
 
 int EchoControlMobileImpl::Enable(bool enable) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   // Ensure AEC and AECM are not both enabled.
   if (enable && apm_->echo_cancellation()->is_enabled()) {
     return apm_->kBadParameterError;
@@ -169,7 +169,7 @@ bool EchoControlMobileImpl::is_enabled() const {
 }
 
 int EchoControlMobileImpl::set_routing_mode(RoutingMode mode) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   if (MapSetting(mode) == -1) {
     return apm_->kBadParameterError;
   }
@@ -184,7 +184,7 @@ EchoControlMobile::RoutingMode EchoControlMobileImpl::routing_mode()
 }
 
 int EchoControlMobileImpl::enable_comfort_noise(bool enable) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   comfort_noise_enabled_ = enable;
   return Configure();
 }
@@ -195,7 +195,7 @@ bool EchoControlMobileImpl::is_comfort_noise_enabled() const {
 
 int EchoControlMobileImpl::SetEchoPath(const void* echo_path,
                                        size_t size_bytes) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   if (echo_path == NULL) {
     return apm_->kNullPointerError;
   }
@@ -214,7 +214,7 @@ int EchoControlMobileImpl::SetEchoPath(const void* echo_path,
 
 int EchoControlMobileImpl::GetEchoPath(void* echo_path,
                                        size_t size_bytes) const {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   if (echo_path == NULL) {
     return apm_->kNullPointerError;
   }
@@ -246,15 +246,6 @@ int EchoControlMobileImpl::Initialize() {
   }
 
   return ProcessingComponent::Initialize();
-}
-
-int EchoControlMobileImpl::get_version(char* version,
-                                       int version_len_bytes) const {
-  if (WebRtcAecm_get_version(version, version_len_bytes) != 0) {
-    return apm_->kBadParameterError;
-  }
-
-  return apm_->kNoError;
 }
 
 void* EchoControlMobileImpl::CreateHandle() const {

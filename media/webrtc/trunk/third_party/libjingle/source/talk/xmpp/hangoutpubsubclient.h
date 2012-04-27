@@ -90,6 +90,8 @@ class HangoutPubSubClient : public sigslot::has_slots<> {
   sigslot::signal3<const std::string&, bool, bool> SignalPresenterStateChange;
   // Signal (nick, was_muted, is_muted)
   sigslot::signal3<const std::string&, bool, bool> SignalAudioMuteStateChange;
+  // Signal (nick, was_paused, is_paused)
+  sigslot::signal3<const std::string&, bool, bool> SignalVideoPauseStateChange;
   // Signal (nick, was_recording, is_recording)
   sigslot::signal3<const std::string&, bool, bool> SignalRecordingStateChange;
   // Signal (mutee_nick, muter_nick, should_mute_locally)
@@ -108,6 +110,8 @@ class HangoutPubSubClient : public sigslot::has_slots<> {
       bool presenting, std::string* task_id_out = NULL);
   void PublishAudioMuteState(
       bool muted, std::string* task_id_out = NULL);
+  void PublishVideoPauseState(
+      bool paused, std::string* task_id_out = NULL);
   void PublishRecordingState(
       bool recording, std::string* task_id_out = NULL);
   void RemoteMute(
@@ -117,6 +121,7 @@ class HangoutPubSubClient : public sigslot::has_slots<> {
 
   // Signal task_id
   sigslot::signal1<const std::string&> SignalPublishAudioMuteResult;
+  sigslot::signal1<const std::string&> SignalPublishVideoPauseResult;
   sigslot::signal1<const std::string&> SignalPublishPresenterResult;
   sigslot::signal1<const std::string&> SignalPublishRecordingResult;
   // Signal (task_id, mutee_nick)
@@ -129,6 +134,8 @@ class HangoutPubSubClient : public sigslot::has_slots<> {
   // Signal (task_id, error stanza)
   sigslot::signal2<const std::string&,
                    const XmlElement*> SignalPublishAudioMuteError;
+  sigslot::signal2<const std::string&,
+                   const XmlElement*> SignalPublishVideoPauseError;
   sigslot::signal2<const std::string&,
                    const XmlElement*> SignalPublishPresenterError;
   sigslot::signal2<const std::string&,
@@ -163,6 +170,12 @@ class HangoutPubSubClient : public sigslot::has_slots<> {
   void OnAudioMutePublishError(const std::string& task_id,
                                const XmlElement* item,
                                const XmlElement* stanza);
+  void OnVideoPauseStateChange(const PubSubStateChange<bool>& change);
+  void OnVideoPausePublishResult(const std::string& task_id,
+                               const XmlElement* item);
+  void OnVideoPausePublishError(const std::string& task_id,
+                               const XmlElement* item,
+                               const XmlElement* stanza);
   void OnRecordingStateChange(const PubSubStateChange<bool>& change);
   void OnRecordingPublishResult(const std::string& task_id,
                                const XmlElement* item);
@@ -181,6 +194,7 @@ class HangoutPubSubClient : public sigslot::has_slots<> {
   talk_base::scoped_ptr<PubSubClient> presenter_client_;
   talk_base::scoped_ptr<PubSubStateClient<bool> > presenter_state_client_;
   talk_base::scoped_ptr<PubSubStateClient<bool> > audio_mute_state_client_;
+  talk_base::scoped_ptr<PubSubStateClient<bool> > video_pause_state_client_;
   talk_base::scoped_ptr<PubSubStateClient<bool> > recording_state_client_;
   talk_base::scoped_ptr<PubSubStateClient<bool> > media_block_state_client_;
 };

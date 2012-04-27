@@ -18,6 +18,7 @@ class TestHangoutPubSubListener : public sigslot::has_slots<> {
   TestHangoutPubSubListener() :
       request_error_count(0),
       publish_audio_mute_error_count(0),
+      publish_video_pause_error_count(0),
       publish_presenter_error_count(0),
       publish_recording_error_count(0),
       remote_mute_error_count(0) {
@@ -35,6 +36,13 @@ class TestHangoutPubSubListener : public sigslot::has_slots<> {
     last_audio_muted_nick = nick;
     last_was_audio_muted = was_muted;
     last_is_audio_muted = is_muted;
+  }
+
+  void OnVideoPauseStateChange(
+      const std::string& nick, bool was_paused, bool is_paused) {
+    last_video_paused_nick = nick;
+    last_was_video_paused = was_paused;
+    last_is_video_paused = is_paused;
   }
 
   void OnRecordingStateChange(
@@ -68,6 +76,12 @@ class TestHangoutPubSubListener : public sigslot::has_slots<> {
   void OnPublishAudioMuteError(const std::string& task_id,
                                const buzz::XmlElement* stanza) {
     ++publish_audio_mute_error_count;
+    error_task_id = task_id;
+  }
+
+  void OnPublishVideoPauseError(const std::string& task_id,
+                               const buzz::XmlElement* stanza) {
+    ++publish_video_pause_error_count;
     error_task_id = task_id;
   }
 
@@ -117,6 +131,9 @@ class TestHangoutPubSubListener : public sigslot::has_slots<> {
   std::string last_audio_muted_nick;
   bool last_is_audio_muted;
   bool last_was_audio_muted;
+  std::string last_video_paused_nick;
+  bool last_is_video_paused;
+  bool last_was_video_paused;
   std::string last_recording_nick;
   bool last_is_recording;
   bool last_was_recording;
@@ -129,6 +146,7 @@ class TestHangoutPubSubListener : public sigslot::has_slots<> {
   int request_error_count;
   std::string request_error_node;
   int publish_audio_mute_error_count;
+  int publish_video_pause_error_count;
   int publish_presenter_error_count;
   int publish_recording_error_count;
   int remote_mute_error_count;
@@ -153,6 +171,8 @@ class HangoutPubSubClientTest : public testing::Test {
         listener.get(), &TestHangoutPubSubListener::OnPresenterStateChange);
     client->SignalAudioMuteStateChange.connect(
         listener.get(), &TestHangoutPubSubListener::OnAudioMuteStateChange);
+    client->SignalVideoPauseStateChange.connect(
+        listener.get(), &TestHangoutPubSubListener::OnVideoPauseStateChange);
     client->SignalRecordingStateChange.connect(
         listener.get(), &TestHangoutPubSubListener::OnRecordingStateChange);
     client->SignalRemoteMute.connect(
@@ -163,6 +183,8 @@ class HangoutPubSubClientTest : public testing::Test {
         listener.get(), &TestHangoutPubSubListener::OnRequestError);
     client->SignalPublishAudioMuteError.connect(
         listener.get(), &TestHangoutPubSubListener::OnPublishAudioMuteError);
+    client->SignalPublishVideoPauseError.connect(
+        listener.get(), &TestHangoutPubSubListener::OnPublishVideoPauseError);
     client->SignalPublishPresenterError.connect(
         listener.get(), &TestHangoutPubSubListener::OnPublishPresenterError);
     client->SignalPublishRecordingError.connect(
@@ -214,6 +236,11 @@ TEST_F(HangoutPubSubClientTest, TestRequest) {
       "<iq xmlns='jabber:client' id='0' type='result' from='room@domain.com'>"
       "  <pubsub xmlns='http://jabber.org/protocol/pubsub'>"
       "    <items node='google:presenter'>"
+      "      <item id='12344'>"
+      "        <presenter xmlns='google:presenter' nick='presenting-nick2'/>"
+      "        <pre:presentation-item xmlns:pre='google:presenter'"
+      "          pre:presentation-type='s'/>"
+      "      </item>"
       "      <item id='12345'>"
       "        <presenter xmlns='google:presenter' nick='presenting-nick'/>"
       "        <pre:presentation-item xmlns:pre='google:presenter'"
@@ -226,17 +253,12 @@ TEST_F(HangoutPubSubClientTest, TestRequest) {
       "        <pre:presentation-item xmlns:pre='google:presenter'"
       "          pre:presentation-type='s'/>"
       "      </item>"
-      "      <item id='12347'>"
-      "        <presenter xmlns='google:presenter' nick='presenting-nick2'/>"
-      "        <pre:presentation-item xmlns:pre='google:presenter'"
-      "          pre:presentation-type='s'/>"
-      "      </item>"
       "    </items>"
       "  </pubsub>"
       "</iq>";
 
   xmpp_client->HandleStanza(buzz::XmlElement::ForStr(presenter_response));
-  EXPECT_EQ("presenting-nick2", listener->last_presenter_nick);
+  EXPECT_EQ("presenting-nick", listener->last_presenter_nick);
   EXPECT_FALSE(listener->last_was_presenting);
   EXPECT_TRUE(listener->last_is_presenting);
 
@@ -246,6 +268,9 @@ TEST_F(HangoutPubSubClientTest, TestRequest) {
       "    <items node='google:muc#media'>"
       "      <item id='audio-mute:muted-nick'>"
       "        <audio-mute nick='muted-nick' xmlns='google:muc#media'/>"
+      "      </item>"
+      "      <item id='video-pause:video-paused-nick'>"
+      "        <video-pause nick='video-paused-nick' xmlns='google:muc#media'/>"
       "      </item>"
       "      <item id='recording:recording-nick'>"
       "        <recording nick='recording-nick' xmlns='google:muc#media'/>"
@@ -258,6 +283,11 @@ TEST_F(HangoutPubSubClientTest, TestRequest) {
   EXPECT_EQ("muted-nick", listener->last_audio_muted_nick);
   EXPECT_FALSE(listener->last_was_audio_muted);
   EXPECT_TRUE(listener->last_is_audio_muted);
+
+  EXPECT_EQ("video-paused-nick", listener->last_video_paused_nick);
+  EXPECT_FALSE(listener->last_was_video_paused);
+  EXPECT_TRUE(listener->last_is_video_paused);
+
   EXPECT_EQ("recording-nick", listener->last_recording_nick);
   EXPECT_FALSE(listener->last_was_recording);
   EXPECT_TRUE(listener->last_is_recording);
@@ -285,7 +315,7 @@ TEST_F(HangoutPubSubClientTest, TestRequest) {
       "<message xmlns='jabber:client' from='room@domain.com'>"
       "  <event xmlns='http://jabber.org/protocol/pubsub#event'>"
       "    <items node='google:presenter'>"
-      "      <retract id='12347'/>"
+      "      <retract id='12344'/>"
       "    </items>"
       "  </event>"
       "</message>";
@@ -302,6 +332,7 @@ TEST_F(HangoutPubSubClientTest, TestRequest) {
       "    <items node='google:muc#media'>"
       "      <item id='audio-mute:muted-nick'>"
       "      </item>"
+      "      <retract id='video-pause:video-paused-nick'/>"
       "      <retract id='recording:recording-nick'/>"
       "    </items>"
       "  </event>"
@@ -312,6 +343,11 @@ TEST_F(HangoutPubSubClientTest, TestRequest) {
   EXPECT_EQ("muted-nick", listener->last_audio_muted_nick);
   EXPECT_TRUE(listener->last_was_audio_muted);
   EXPECT_FALSE(listener->last_is_audio_muted);
+
+  EXPECT_EQ("video-paused-nick", listener->last_video_paused_nick);
+  EXPECT_TRUE(listener->last_was_video_paused);
+  EXPECT_FALSE(listener->last_is_video_paused);
+
   EXPECT_EQ("recording-nick", listener->last_recording_nick);
   EXPECT_TRUE(listener->last_was_recording);
   EXPECT_FALSE(listener->last_is_recording);
@@ -348,6 +384,9 @@ TEST_F(HangoutPubSubClientTest, TestRequest) {
       "      <item id='audio-mute:muted-nick2'>"
       "        <audio-mute nick='muted-nick2' xmlns='google:muc#media'/>"
       "      </item>"
+      "      <item id='video-pause:video-paused-nick2'>"
+      "        <video-pause nick='video-paused-nick2' xmlns='google:muc#media'/>"
+      "      </item>"
       "      <item id='recording:recording-nick2'>"
       "        <recording nick='recording-nick2' xmlns='google:muc#media'/>"
       "      </item>"
@@ -360,6 +399,11 @@ TEST_F(HangoutPubSubClientTest, TestRequest) {
   EXPECT_EQ("muted-nick2", listener->last_audio_muted_nick);
   EXPECT_FALSE(listener->last_was_audio_muted);
   EXPECT_TRUE(listener->last_is_audio_muted);
+
+  EXPECT_EQ("video-paused-nick2", listener->last_video_paused_nick);
+  EXPECT_FALSE(listener->last_was_video_paused);
+  EXPECT_TRUE(listener->last_is_video_paused);
+
   EXPECT_EQ("recording-nick2", listener->last_recording_nick);
   EXPECT_FALSE(listener->last_was_recording);
   EXPECT_TRUE(listener->last_is_recording);
@@ -439,7 +483,7 @@ TEST_F(HangoutPubSubClientTest, TestPublish) {
           "<publish node=\"google:presenter\">"
             "<item id=\"me\">"
               "<presenter xmlns=\"google:presenter\""
-              " jid=\"dummy@value.net\" nick=\"me\"/>"
+              " nick=\"me\"/>"
               "<pre:presentation-item"
               " pre:presentation-type=\"s\" xmlns:pre=\"google:presenter\"/>"
             "</item>"
@@ -467,6 +511,22 @@ TEST_F(HangoutPubSubClientTest, TestPublish) {
   ASSERT_EQ(2U, xmpp_client->sent_stanzas().size());
   EXPECT_EQ(expected_audio_mute_iq, xmpp_client->sent_stanzas()[1]->Str());
 
+  client->PublishVideoPauseState(true);
+  std::string expected_video_pause_iq =
+      "<cli:iq type=\"set\" to=\"room@domain.com\" id=\"0\" "
+        "xmlns:cli=\"jabber:client\">"
+        "<pubsub xmlns=\"http://jabber.org/protocol/pubsub\">"
+          "<publish node=\"google:muc#media\">"
+            "<item id=\"video-pause:me\">"
+              "<video-pause xmlns=\"google:muc#media\" nick=\"me\"/>"
+            "</item>"
+          "</publish>"
+        "</pubsub>"
+      "</cli:iq>";
+
+  ASSERT_EQ(3U, xmpp_client->sent_stanzas().size());
+  EXPECT_EQ(expected_video_pause_iq, xmpp_client->sent_stanzas()[2]->Str());
+
   client->PublishRecordingState(true);
   std::string expected_recording_iq =
       "<cli:iq type=\"set\" to=\"room@domain.com\" id=\"0\" "
@@ -480,8 +540,8 @@ TEST_F(HangoutPubSubClientTest, TestPublish) {
         "</pubsub>"
       "</cli:iq>";
 
-  ASSERT_EQ(3U, xmpp_client->sent_stanzas().size());
-  EXPECT_EQ(expected_recording_iq, xmpp_client->sent_stanzas()[2]->Str());
+  ASSERT_EQ(4U, xmpp_client->sent_stanzas().size());
+  EXPECT_EQ(expected_recording_iq, xmpp_client->sent_stanzas()[3]->Str());
 
   client->RemoteMute("mutee");
   std::string expected_remote_mute_iq =
@@ -496,8 +556,8 @@ TEST_F(HangoutPubSubClientTest, TestPublish) {
         "</pubsub>"
       "</cli:iq>";
 
-  ASSERT_EQ(4U, xmpp_client->sent_stanzas().size());
-  EXPECT_EQ(expected_remote_mute_iq, xmpp_client->sent_stanzas()[3]->Str());
+  ASSERT_EQ(5U, xmpp_client->sent_stanzas().size());
+  EXPECT_EQ(expected_remote_mute_iq, xmpp_client->sent_stanzas()[4]->Str());
 
   client->PublishPresenterState(false);
   std::string expected_presenter_retract_iq =
@@ -507,7 +567,7 @@ TEST_F(HangoutPubSubClientTest, TestPublish) {
           "<publish node=\"google:presenter\">"
             "<item id=\"me\">"
               "<presenter xmlns=\"google:presenter\""
-              " jid=\"dummy@value.net\" nick=\"me\"/>"
+              " nick=\"me\"/>"
               "<pre:presentation-item"
               " pre:presentation-type=\"o\" xmlns:pre=\"google:presenter\"/>"
             "</item>"
@@ -515,9 +575,9 @@ TEST_F(HangoutPubSubClientTest, TestPublish) {
         "</pubsub>"
       "</cli:iq>";
 
-  ASSERT_EQ(5U, xmpp_client->sent_stanzas().size());
+  ASSERT_EQ(6U, xmpp_client->sent_stanzas().size());
   EXPECT_EQ(expected_presenter_retract_iq,
-            xmpp_client->sent_stanzas()[4]->Str());
+            xmpp_client->sent_stanzas()[5]->Str());
 
   client->PublishAudioMuteState(false);
   std::string expected_audio_mute_retract_iq =
@@ -530,9 +590,24 @@ TEST_F(HangoutPubSubClientTest, TestPublish) {
         "</pubsub>"
       "</cli:iq>";
 
-  ASSERT_EQ(6U, xmpp_client->sent_stanzas().size());
+  ASSERT_EQ(7U, xmpp_client->sent_stanzas().size());
   EXPECT_EQ(expected_audio_mute_retract_iq,
-            xmpp_client->sent_stanzas()[5]->Str());
+            xmpp_client->sent_stanzas()[6]->Str());
+
+  client->PublishVideoPauseState(false);
+  std::string expected_video_pause_retract_iq =
+      "<cli:iq type=\"set\" to=\"room@domain.com\" id=\"0\" "
+        "xmlns:cli=\"jabber:client\">"
+        "<pubsub xmlns=\"http://jabber.org/protocol/pubsub\">"
+          "<retract node=\"google:muc#media\" notify=\"true\">"
+            "<item id=\"video-pause:me\"/>"
+          "</retract>"
+        "</pubsub>"
+      "</cli:iq>";
+
+  ASSERT_EQ(8U, xmpp_client->sent_stanzas().size());
+  EXPECT_EQ(expected_video_pause_retract_iq,
+            xmpp_client->sent_stanzas()[7]->Str());
 
   client->BlockMedia("blockee");
   std::string expected_media_block_iq =
@@ -547,8 +622,8 @@ TEST_F(HangoutPubSubClientTest, TestPublish) {
         "</pubsub>"
       "</cli:iq>";
 
-  ASSERT_EQ(7U, xmpp_client->sent_stanzas().size());
-  EXPECT_EQ(expected_media_block_iq, xmpp_client->sent_stanzas()[6]->Str());
+  ASSERT_EQ(9U, xmpp_client->sent_stanzas().size());
+  EXPECT_EQ(expected_media_block_iq, xmpp_client->sent_stanzas()[8]->Str());
 }
 
 TEST_F(HangoutPubSubClientTest, TestPublishPresenterError) {
@@ -569,6 +644,16 @@ TEST_F(HangoutPubSubClientTest, TestPublishAudioMuteError) {
   client->PublishAudioMuteState(true);
   xmpp_client->HandleStanza(buzz::XmlElement::ForStr(result_iq));
   EXPECT_EQ(1, listener->publish_audio_mute_error_count);
+  EXPECT_EQ("0", listener->error_task_id);
+}
+
+TEST_F(HangoutPubSubClientTest, TestPublishVideoPauseError) {
+  std::string result_iq =
+      "<iq xmlns='jabber:client' id='0' type='error' from='room@domain.com'/>";
+
+  client->PublishVideoPauseState(true);
+  xmpp_client->HandleStanza(buzz::XmlElement::ForStr(result_iq));
+  EXPECT_EQ(1, listener->publish_video_pause_error_count);
   EXPECT_EQ("0", listener->error_task_id);
 }
 

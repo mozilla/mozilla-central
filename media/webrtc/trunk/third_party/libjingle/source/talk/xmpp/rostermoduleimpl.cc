@@ -221,7 +221,7 @@ XmppPresenceImpl::priority() const {
   if (!raw_xml_.get())
     return 0;
 
-  int raw_priority;
+  int raw_priority = 0;
   if (!talk_base::FromString(raw_xml_->TextNamed(QN_PRIORITY), &raw_priority))
     raw_priority = 0;
   if (raw_priority < -128)
@@ -388,7 +388,7 @@ XmppRosterContactImpl::subscription_state() const {
   if (!raw_xml_.get())
     return XMPP_SUBSCRIPTION_NONE;
 
-  XmppSubscriptionState state;
+  XmppSubscriptionState state = XMPP_SUBSCRIPTION_NONE;
 
   if (StringToSubscriptionState(raw_xml_->Attr(QN_SUBSCRIPTION),
                                 raw_xml_->Attr(QN_ASK),

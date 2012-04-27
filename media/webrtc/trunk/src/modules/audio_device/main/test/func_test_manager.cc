@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "func_test_manager.h"
+#include "gtest/gtest.h"
 #include "testsupport/fileutils.h"
 
 #include "../source/audio_device_config.h"
@@ -45,7 +46,7 @@ struct AudioPacket
 };
 
 // Helper functions
-#if !defined(MAC_IPHONE) && !defined(ANDROID)
+#if !defined(MAC_IPHONE)
 char* GetFilename(char* filename)
 {
     return filename;
@@ -71,31 +72,23 @@ AudioEventObserver::AudioEventObserver(AudioDeviceModule* audioDevice) :
     _audioDevice(audioDevice)
 {
 }
-;
 
 AudioEventObserver::~AudioEventObserver()
 {
 }
-;
 
 void AudioEventObserver::OnErrorIsReported(const ErrorCode error)
 {
     TEST_LOG("\n[*** ERROR ***] => OnErrorIsReported(%d)\n \n", error);
     _error = error;
-    // TEST(_audioDevice->StopRecording() == 0);
-    // TEST(_audioDevice->StopPlayout() == 0);
 }
-;
 
 
 void AudioEventObserver::OnWarningIsReported(const WarningCode warning)
 {
     TEST_LOG("\n[*** WARNING ***] => OnWarningIsReported(%d)\n \n", warning);
     _warning = warning;
-    //TEST(_audioDevice->StopRecording() == 0);
-    //TEST(_audioDevice->StopPlayout() == 0);
 }
-;
 
 AudioTransportImpl::AudioTransportImpl(AudioDeviceModule* audioDevice) :
     _audioDevice(audioDevice),
@@ -115,7 +108,6 @@ AudioTransportImpl::AudioTransportImpl(AudioDeviceModule* audioDevice) :
 {
     _resampler.Reset(48000, 48000, kResamplerSynchronousStereo);
 }
-;
 
 AudioTransportImpl::~AudioTransportImpl()
 {
@@ -137,14 +129,13 @@ AudioTransportImpl::~AudioTransportImpl()
         _audioList.PopFront();
     }
 }
-;
 
 // ----------------------------------------------------------------------------
 //	AudioTransportImpl::SetFilePlayout
 // ----------------------------------------------------------------------------
 
 WebRtc_Word32 AudioTransportImpl::SetFilePlayout(bool enable,
-                                                 const WebRtc_Word8* fileName)
+                                                 const char* fileName)
 {
     _playFromFile = enable;
     if (enable)
@@ -176,10 +167,9 @@ void AudioTransportImpl::SetFullDuplex(bool enable)
         _audioList.PopFront();
     }
 }
-;
 
 WebRtc_Word32 AudioTransportImpl::RecordedDataIsAvailable(
-    const WebRtc_Word8* audioSamples,
+    const void* audioSamples,
     const WebRtc_UWord32 nSamples,
     const WebRtc_UWord8 nBytesPerSample,
     const WebRtc_UWord8 nChannels,
@@ -216,10 +206,10 @@ WebRtc_Word32 AudioTransportImpl::RecordedDataIsAvailable(
             WebRtc_UWord32 minVolume(0);
             WebRtc_UWord32 volume(0);
             WebRtc_UWord16 stepSize(0);
-            TEST(_audioDevice->MaxMicrophoneVolume(&maxVolume) == 0);
-            TEST(_audioDevice->MinMicrophoneVolume(&minVolume) == 0);
-            TEST(_audioDevice->MicrophoneVolumeStepSize(&stepSize) == 0);
-            TEST(_audioDevice->MicrophoneVolume(&volume) == 0);
+            EXPECT_EQ(0, _audioDevice->MaxMicrophoneVolume(&maxVolume));
+            EXPECT_EQ(0, _audioDevice->MinMicrophoneVolume(&minVolume));
+            EXPECT_EQ(0, _audioDevice->MicrophoneVolumeStepSize(&stepSize));
+            EXPECT_EQ(0, _audioDevice->MicrophoneVolume(&volume));
             if (volume == 0)
             {
                 TEST_LOG("[0]");
@@ -233,7 +223,7 @@ WebRtc_Word32 AudioTransportImpl::RecordedDataIsAvailable(
                 volume = 0;
                 addMarker = false;
             }
-            TEST(_audioDevice->SetMicrophoneVolume(volume) == 0);
+            EXPECT_EQ(0, _audioDevice->SetMicrophoneVolume(volume));
         }
 
         if (_microphoneAGC)
@@ -241,9 +231,9 @@ WebRtc_Word32 AudioTransportImpl::RecordedDataIsAvailable(
             WebRtc_UWord32 maxVolume(0);
             WebRtc_UWord32 minVolume(0);
             WebRtc_UWord16 stepSize(0);
-            TEST(_audioDevice->MaxMicrophoneVolume(&maxVolume) == 0);
-            TEST(_audioDevice->MinMicrophoneVolume(&minVolume) == 0);
-            TEST(_audioDevice->MicrophoneVolumeStepSize(&stepSize) == 0);
+            EXPECT_EQ(0, _audioDevice->MaxMicrophoneVolume(&maxVolume));
+            EXPECT_EQ(0, _audioDevice->MinMicrophoneVolume(&minVolume));
+            EXPECT_EQ(0, _audioDevice->MicrophoneVolumeStepSize(&stepSize));
             // emulate real AGC (min->max->min->max etc.)
             if (currentMicLevel <= 1)
             {
@@ -263,9 +253,9 @@ WebRtc_Word32 AudioTransportImpl::RecordedDataIsAvailable(
         if (_microphoneMute && (_recCount % 500 == 0))
         {
             bool muted(false);
-            TEST(_audioDevice->MicrophoneMute(&muted) == 0);
+            EXPECT_EQ(0, _audioDevice->MicrophoneMute(&muted));
             muted = !muted;
-            TEST(_audioDevice->SetMicrophoneMute(muted) == 0);
+            EXPECT_EQ(0, _audioDevice->SetMicrophoneMute(muted));
             if (muted)
             {
                 TEST_LOG("[MUTE ON]");
@@ -280,9 +270,9 @@ WebRtc_Word32 AudioTransportImpl::RecordedDataIsAvailable(
         if (_microphoneBoost && (_recCount % 500 == 0))
         {
             bool boosted(false);
-            TEST(_audioDevice->MicrophoneBoost(&boosted) == 0);
+            EXPECT_EQ(0, _audioDevice->MicrophoneBoost(&boosted));
             boosted = !boosted;
-            TEST(_audioDevice->SetMicrophoneBoost(boosted) == 0);
+            EXPECT_EQ(0, _audioDevice->SetMicrophoneBoost(boosted));
             if (boosted)
             {
                 TEST_LOG("[BOOST ON]");
@@ -302,7 +292,7 @@ WebRtc_Word32 AudioTransportImpl::RecordedDataIsAvailable(
         {
             AudioDeviceModule::ChannelType
                 chType(AudioDeviceModule::kChannelLeft);
-            TEST(_audioDevice->RecordingChannel(&chType) == 0);
+            EXPECT_EQ(0, _audioDevice->RecordingChannel(&chType));
             if (chType == AudioDeviceModule::kChannelLeft)
                 TEST_LOG("-|");
             else
@@ -328,7 +318,7 @@ WebRtc_Word32 AudioTransportImpl::NeedMorePlayData(
     const WebRtc_UWord8 nBytesPerSample,
     const WebRtc_UWord8 nChannels,
     const WebRtc_UWord32 samplesPerSec,
-    WebRtc_Word8* audioSamples,
+    void* audioSamples,
     WebRtc_UWord32& nSamplesOut)
 {
     if (_fullDuplex)
@@ -499,10 +489,10 @@ WebRtc_Word32 AudioTransportImpl::NeedMorePlayData(
             WebRtc_UWord32 minVolume(0);
             WebRtc_UWord32 volume(0);
             WebRtc_UWord16 stepSize(0);
-            TEST(_audioDevice->MaxSpeakerVolume(&maxVolume) == 0);
-            TEST(_audioDevice->MinSpeakerVolume(&minVolume) == 0);
-            TEST(_audioDevice->SpeakerVolumeStepSize(&stepSize) == 0);
-            TEST(_audioDevice->SpeakerVolume(&volume) == 0);
+            EXPECT_EQ(0, _audioDevice->MaxSpeakerVolume(&maxVolume));
+            EXPECT_EQ(0, _audioDevice->MinSpeakerVolume(&minVolume));
+            EXPECT_EQ(0, _audioDevice->SpeakerVolumeStepSize(&stepSize));
+            EXPECT_EQ(0, _audioDevice->SpeakerVolume(&volume));
             if (volume == 0)
             {
                 TEST_LOG("[0]");
@@ -517,15 +507,15 @@ WebRtc_Word32 AudioTransportImpl::NeedMorePlayData(
                 volume = 0;
                 addMarker = false;
             }
-            TEST(_audioDevice->SetSpeakerVolume(volume) == 0);
+            EXPECT_EQ(0, _audioDevice->SetSpeakerVolume(volume));
         }
 
         if (_speakerMute && (_playCount % 500 == 0))
         {
             bool muted(false);
-            TEST(_audioDevice->SpeakerMute(&muted) == 0);
+            EXPECT_EQ(0, _audioDevice->SpeakerMute(&muted));
             muted = !muted;
-            TEST(_audioDevice->SetSpeakerMute(muted) == 0);
+            EXPECT_EQ(0, _audioDevice->SetSpeakerMute(muted));
             if (muted)
             {
                 TEST_LOG("[MUTE ON]");
@@ -544,8 +534,8 @@ WebRtc_Word32 AudioTransportImpl::NeedMorePlayData(
             WebRtc_UWord32 nItemsInList(0);
 
             nItemsInList = _audioList.GetSize();
-            TEST(_audioDevice->RecordingDelay(&recDelayMS) == 0);
-            TEST(_audioDevice->PlayoutDelay(&playDelayMS) == 0);
+            EXPECT_EQ(0, _audioDevice->RecordingDelay(&recDelayMS));
+            EXPECT_EQ(0, _audioDevice->PlayoutDelay(&playDelayMS));
             TEST_LOG("Delay (rec+play)+buf: %3u (%3u+%3u)+%3u [ms]\n",
                      recDelayMS + playDelayMS + 10 * (nItemsInList + 1),
                      recDelayMS, playDelayMS, 10 * (nItemsInList + 1));
@@ -566,7 +556,6 @@ WebRtc_Word32 AudioTransportImpl::NeedMorePlayData(
 
     return 0;
 }
-;
 
 FuncTestManager::FuncTestManager() :
     _resourcePath(webrtc::test::ProjectRootPath() +
@@ -589,7 +578,7 @@ FuncTestManager::~FuncTestManager()
 
 WebRtc_Word32 FuncTestManager::Init()
 {
-    TEST((_processThread = ProcessThread::CreateProcessThread()) != NULL);
+    EXPECT_TRUE((_processThread = ProcessThread::CreateProcessThread()) != NULL);
     if (_processThread == NULL)
     {
         return -1;
@@ -597,33 +586,33 @@ WebRtc_Word32 FuncTestManager::Init()
     _processThread->Start();
 
     // create the Audio Device module
-    TEST((_audioDevice = AudioDeviceModuleImpl::Create(
+    EXPECT_TRUE((_audioDevice = AudioDeviceModuleImpl::Create(
         555, ADM_AUDIO_LAYER)) != NULL);
     if (_audioDevice == NULL)
     {
         return -1;
     }
-    TEST(_audioDevice->AddRef() == 1);
+    EXPECT_EQ(1, _audioDevice->AddRef());
 
     // register the Audio Device module
     _processThread->RegisterModule(_audioDevice);
 
     // register event observer
     _audioEventObserver = new AudioEventObserver(_audioDevice);
-    TEST(_audioDevice->RegisterEventObserver(_audioEventObserver) == 0);
+    EXPECT_EQ(0, _audioDevice->RegisterEventObserver(_audioEventObserver));
 
     // register audio transport
     _audioTransport = new AudioTransportImpl(_audioDevice);
-    TEST(_audioDevice->RegisterAudioCallback(_audioTransport) == 0);
+    EXPECT_EQ(0, _audioDevice->RegisterAudioCallback(_audioTransport));
 
     return 0;
 }
 
 WebRtc_Word32 FuncTestManager::Close()
 {
-    TEST(_audioDevice->RegisterEventObserver(NULL) == 0);
-    TEST(_audioDevice->RegisterAudioCallback(NULL) == 0);
-    TEST(_audioDevice->Terminate() == 0);
+    EXPECT_EQ(0, _audioDevice->RegisterEventObserver(NULL));
+    EXPECT_EQ(0, _audioDevice->RegisterAudioCallback(NULL));
+    EXPECT_EQ(0, _audioDevice->Terminate());
 
     // release the ProcessThread object
     if (_processThread)
@@ -650,7 +639,7 @@ WebRtc_Word32 FuncTestManager::Close()
     // release the AudioDeviceModule object
     if (_audioDevice)
     {
-        TEST(_audioDevice->Release() == 0);
+        EXPECT_EQ(0, _audioDevice->Release());
         _audioDevice = NULL;
     }
 
@@ -664,58 +653,56 @@ WebRtc_Word32 FuncTestManager::Close()
 
 WebRtc_Word32 FuncTestManager::DoTest(const TestType testType)
 {
-    WebRtc_UWord32 ret(0);
-
     switch (testType)
     {
         case TTAll:
-            ret = TestAudioLayerSelection();
-            ret = TestDeviceEnumeration();
-            ret = TestDeviceSelection();
-            ret = TestAudioTransport();
-            ret = TestSpeakerVolume();
-            ret = TestMicrophoneVolume();
-            ret = TestLoopback();
+            TestAudioLayerSelection();
+            TestDeviceEnumeration();
+            TestDeviceSelection();
+            TestAudioTransport();
+            TestSpeakerVolume();
+            TestMicrophoneVolume();
+            TestLoopback();
         case TTAudioLayerSelection:
             TestAudioLayerSelection();
             break;
         case TTDeviceEnumeration:
-            ret = TestDeviceEnumeration();
+            TestDeviceEnumeration();
             break;
         case TTDeviceSelection:
-            ret = TestDeviceSelection();
+            TestDeviceSelection();
             break;
         case TTAudioTransport:
-            ret = TestAudioTransport();
+            TestAudioTransport();
             break;
         case TTSpeakerVolume:
-            ret = TestSpeakerVolume();
+            TestSpeakerVolume();
             break;
         case TTMicrophoneVolume:
-            ret = TestMicrophoneVolume();
+            TestMicrophoneVolume();
             break;
         case TTSpeakerMute:
-            ret = TestSpeakerMute();
+            TestSpeakerMute();
             break;
         case TTMicrophoneMute:
-            ret = TestMicrophoneMute();
+            TestMicrophoneMute();
             break;
         case TTMicrophoneBoost:
-            ret = TestMicrophoneBoost();
+            TestMicrophoneBoost();
             break;
         case TTMicrophoneAGC:
-            ret = TestMicrophoneAGC();
+            TestMicrophoneAGC();
             break;
         case TTLoopback:
-            ret = TestLoopback();
+            TestLoopback();
             break;
         case TTDeviceRemoval:
-            ret = TestDeviceRemoval();
+            TestDeviceRemoval();
             break;
         case TTMobileAPI:
-            ret = TestAdvancedMBAPI();
+            TestAdvancedMBAPI();
         case TTTest:
-            ret = TestExtra();
+            TestExtra();
             break;
         default:
             break;
@@ -723,7 +710,6 @@ WebRtc_Word32 FuncTestManager::DoTest(const TestType testType)
 
     return 0;
 }
-;
 
 WebRtc_Word32 FuncTestManager::TestAudioLayerSelection()
 {
@@ -741,7 +727,7 @@ WebRtc_Word32 FuncTestManager::TestAudioLayerSelection()
     AudioDeviceModule* audioDevice = _audioDevice;
 
     AudioDeviceModule::AudioLayer audioLayer;
-    TEST(audioDevice->ActiveAudioLayer(&audioLayer) == 0);
+    EXPECT_EQ(0, audioDevice->ActiveAudioLayer(&audioLayer));
 
     if (audioLayer == AudioDeviceModule::kWindowsWaveAudio)
     {
@@ -768,7 +754,7 @@ WebRtc_Word32 FuncTestManager::TestAudioLayerSelection()
     {
         TEST_LOG("Would you like to try kWindowsCoreAudio instead "
             "[requires Win Vista or Win 7] (Y/N)?\n: ");
-        TEST(scanf(" %c", &ch) > 0);
+        EXPECT_TRUE(scanf(" %c", &ch) > 0);
         ch = toupper(ch);
         if (ch == 'Y')
         {
@@ -777,7 +763,7 @@ WebRtc_Word32 FuncTestManager::TestAudioLayerSelection()
     } else if (audioLayer == AudioDeviceModule::kWindowsCoreAudio)
     {
         TEST_LOG("Would you like to try kWindowsWaveAudio instead (Y/N)?\n: ");
-        TEST(scanf(" %c", &ch) > 0);
+        EXPECT_TRUE(scanf(" %c", &ch) > 0);
         ch = toupper(ch);
         if (ch == 'Y')
         {
@@ -791,9 +777,9 @@ WebRtc_Word32 FuncTestManager::TestAudioLayerSelection()
         // First, close down what we have started
 
         // terminate
-        TEST(_audioDevice->RegisterEventObserver(NULL) == 0);
-        TEST(_audioDevice->RegisterAudioCallback(NULL) == 0);
-        TEST(_audioDevice->Terminate() == 0);
+        EXPECT_EQ(0, _audioDevice->RegisterEventObserver(NULL));
+        EXPECT_EQ(0, _audioDevice->RegisterAudioCallback(NULL));
+        EXPECT_EQ(0, _audioDevice->Terminate());
 
         // release the ProcessThread object
         if (_processThread)
@@ -820,14 +806,14 @@ WebRtc_Word32 FuncTestManager::TestAudioLayerSelection()
         // release the AudioDeviceModule object
         if (_audioDevice)
         {
-            TEST(_audioDevice->Release() == 0);
+            EXPECT_EQ(0, _audioDevice->Release());
             _audioDevice = NULL;
         }
 
         // ==================================================
         // Next, try to make fresh start with new audio layer
 
-        TEST((_processThread = ProcessThread::CreateProcessThread()) != NULL);
+        EXPECT_TRUE((_processThread = ProcessThread::CreateProcessThread()) != NULL);
         if (_processThread == NULL)
         {
             return -1;
@@ -851,7 +837,7 @@ WebRtc_Word32 FuncTestManager::TestAudioLayerSelection()
         {
             TEST_LOG("\nERROR: Switch of audio layer failed!\n");
             // restore default audio layer instead
-            TEST((_audioDevice = AudioDeviceModuleImpl::Create(
+            EXPECT_TRUE((_audioDevice = AudioDeviceModuleImpl::Create(
                 555, AudioDeviceModule::kPlatformDefaultAudio)) != NULL);
         }
 
@@ -861,20 +847,20 @@ WebRtc_Word32 FuncTestManager::TestAudioLayerSelection()
             return -1;
         }
 
-        TEST(_audioDevice->AddRef() == 1);
+        EXPECT_EQ(1, _audioDevice->AddRef());
 
         // register the Audio Device module
         _processThread->RegisterModule(_audioDevice);
 
         // register event observer
         _audioEventObserver = new AudioEventObserver(_audioDevice);
-        TEST(_audioDevice->RegisterEventObserver(_audioEventObserver) == 0);
+        EXPECT_EQ(0, _audioDevice->RegisterEventObserver(_audioEventObserver));
 
         // register audio transport
         _audioTransport = new AudioTransportImpl(_audioDevice);
-        TEST(_audioDevice->RegisterAudioCallback(_audioTransport) == 0);
+        EXPECT_EQ(0, _audioDevice->RegisterAudioCallback(_audioTransport));
 
-        TEST(_audioDevice->ActiveAudioLayer(&audioLayer) == 0);
+        EXPECT_EQ(0, _audioDevice->ActiveAudioLayer(&audioLayer));
 
         if (audioLayer == AudioDeviceModule::kWindowsWaveAudio)
         {
@@ -915,18 +901,18 @@ WebRtc_Word32 FuncTestManager::TestDeviceEnumeration()
 
     AudioDeviceModule* audioDevice = _audioDevice;
 
-    TEST(audioDevice->Init() == 0);
-    TEST(audioDevice->Initialized() == true);
+    EXPECT_EQ(0, audioDevice->Init());
+    EXPECT_TRUE(audioDevice->Initialized());
 
-    WebRtc_Word8 name[kAdmMaxDeviceNameSize];
-    WebRtc_Word8 guid[kAdmMaxGuidSize];
+    char name[kAdmMaxDeviceNameSize];
+    char guid[kAdmMaxGuidSize];
 
     const WebRtc_Word16 nPlayoutDevices(audioDevice->PlayoutDevices());
-    TEST(nPlayoutDevices >= 0);
+    EXPECT_TRUE(nPlayoutDevices >= 0);
     TEST_LOG("\nPlayoutDevices: %u\n \n", nPlayoutDevices);
     for (int n = 0; n < nPlayoutDevices; n++)
     {
-        TEST(audioDevice->PlayoutDeviceName(n, name, guid) == 0);
+        EXPECT_EQ(0, audioDevice->PlayoutDeviceName(n, name, guid));
         TEST_LOG(
                  "PlayoutDeviceName(%d) :   name=%s \n \
 	                 guid=%s\n",
@@ -935,20 +921,20 @@ WebRtc_Word32 FuncTestManager::TestDeviceEnumeration()
 
 #ifdef _WIN32
     // default (-1)
-    TEST(audioDevice->PlayoutDeviceName(-1, name, guid) == 0);
+    EXPECT_EQ(0, audioDevice->PlayoutDeviceName(-1, name, guid));
     TEST_LOG("PlayoutDeviceName(%d):   default name=%s \n \
 	                 default guid=%s\n", -1, name, guid);
 #else
     // should fail
-    TEST(audioDevice->PlayoutDeviceName(-1, name, guid) == -1);
+    EXPECT_EQ(-1, audioDevice->PlayoutDeviceName(-1, name, guid));
 #endif
 
     const WebRtc_Word16 nRecordingDevices(audioDevice->RecordingDevices());
-    TEST(nRecordingDevices >= 0);
+    EXPECT_TRUE(nRecordingDevices >= 0);
     TEST_LOG("\nRecordingDevices: %u\n \n", nRecordingDevices);
     for (int n = 0; n < nRecordingDevices; n++)
     {
-        TEST(audioDevice->RecordingDeviceName(n, name, guid) == 0);
+        EXPECT_EQ(0, audioDevice->RecordingDeviceName(n, name, guid));
         TEST_LOG(
                  "RecordingDeviceName(%d) : name=%s \n \
 	                 guid=%s\n",
@@ -957,16 +943,16 @@ WebRtc_Word32 FuncTestManager::TestDeviceEnumeration()
 
 #ifdef _WIN32
     // default (-1)
-    TEST(audioDevice->RecordingDeviceName(-1, name, guid) == 0);
+    EXPECT_EQ(0, audioDevice->RecordingDeviceName(-1, name, guid));
     TEST_LOG("RecordingDeviceName(%d): default name=%s \n \
 	                 default guid=%s\n", -1, name, guid);
 #else
     // should fail
-    TEST(audioDevice->PlayoutDeviceName(-1, name, guid) == -1);
+    EXPECT_EQ(-1, audioDevice->PlayoutDeviceName(-1, name, guid));
 #endif
 
-    TEST(audioDevice->Terminate() == 0);
-    TEST(audioDevice->Initialized() == false);
+    EXPECT_EQ(0, audioDevice->Terminate());
+    EXPECT_FALSE(audioDevice->Initialized());
 
     PRINT_TEST_RESULTS;
 
@@ -1005,88 +991,88 @@ WebRtc_Word32 FuncTestManager::TestDeviceSelection()
 
     AudioDeviceModule* audioDevice = _audioDevice;
 
-    TEST(audioDevice->Init() == 0);
-    TEST(audioDevice->Initialized() == true);
+    EXPECT_EQ(0, audioDevice->Init());
+    EXPECT_TRUE(audioDevice->Initialized());
 
     bool available(false);
     WebRtc_Word16 nDevices(-1);
-    WebRtc_Word8 name[kAdmMaxDeviceNameSize];
-    WebRtc_Word8 guid[kAdmMaxGuidSize];
+    char name[kAdmMaxDeviceNameSize];
+    char guid[kAdmMaxGuidSize];
 
     // =======
     // Playout
 
     nDevices = audioDevice->PlayoutDevices();
-    TEST(nDevices >= 0);
+    EXPECT_TRUE(nDevices >= 0);
 
     TEST_LOG("\n");
 #ifdef _WIN32
-    TEST(audioDevice->SetPlayoutDevice(
+    EXPECT_TRUE(audioDevice->SetPlayoutDevice(
         AudioDeviceModule::kDefaultCommunicationDevice) == 0);
     PRINT_HEADING(Playout, kDefaultCommunicationDevice);
-    TEST(audioDevice->PlayoutIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&available));
     PRINT_STR(Playout, available);
     if (available)
     {
-        TEST(audioDevice->StereoPlayoutIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->StereoPlayoutIsAvailable(&available));
         PRINT_STR(Stereo Playout, available);
     }
     else
     {
         PRINT_STR(Stereo Playout, false);
     }
-    TEST(audioDevice->SpeakerIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->SpeakerIsAvailable(&available));
     PRINT_STR(Speaker, available);
-    TEST(audioDevice->SpeakerVolumeIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->SpeakerVolumeIsAvailable(&available));
     PRINT_STR(Speaker Volume, available);
-    TEST(audioDevice->SpeakerMuteIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->SpeakerMuteIsAvailable(&available));
     PRINT_STR(Speaker Mute, available);
 
-    TEST(audioDevice->SetPlayoutDevice(AudioDeviceModule::kDefaultDevice) == 0);
+    EXPECT_EQ(0, audioDevice->SetPlayoutDevice(AudioDeviceModule::kDefaultDevice));
     PRINT_HEADING(Playout, kDefaultDevice);
-    TEST(audioDevice->PlayoutIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&available));
     PRINT_STR(Playout, available);
     if (available)
     {
-        TEST(audioDevice->StereoPlayoutIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->StereoPlayoutIsAvailable(&available));
         PRINT_STR(Stereo Playout, available);
     }
     else
     {
         PRINT_STR(Stereo Playout, false);
     }
-    TEST(audioDevice->SpeakerIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->SpeakerIsAvailable(&available));
     PRINT_STR(Speaker, available);
-    TEST(audioDevice->SpeakerVolumeIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->SpeakerVolumeIsAvailable(&available));
     PRINT_STR(Speaker Volume, available);
-    TEST(audioDevice->SpeakerMuteIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->SpeakerMuteIsAvailable(&available));
     PRINT_STR(Speaker Mute, available);
 #else
-    TEST(audioDevice->SetPlayoutDevice(
+    EXPECT_TRUE(audioDevice->SetPlayoutDevice(
         AudioDeviceModule::kDefaultCommunicationDevice) == -1);
-    TEST(audioDevice->SetPlayoutDevice(AudioDeviceModule::kDefaultDevice) == -1);
+    EXPECT_EQ(-1, audioDevice->SetPlayoutDevice(AudioDeviceModule::kDefaultDevice));
 #endif
 
     for (int i = 0; i < nDevices; i++)
     {
-        TEST(audioDevice->SetPlayoutDevice(i) == 0);
-        TEST(audioDevice->PlayoutDeviceName(i, name, guid) == 0);
+        EXPECT_EQ(0, audioDevice->SetPlayoutDevice(i));
+        EXPECT_EQ(0, audioDevice->PlayoutDeviceName(i, name, guid));
         PRINT_HEADING_IDX(Playout, i, name);
-        TEST(audioDevice->PlayoutIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&available));
         PRINT_STR(Playout, available);
         if (available)
         {
-            TEST(audioDevice->StereoPlayoutIsAvailable(&available) == 0);
+            EXPECT_EQ(0, audioDevice->StereoPlayoutIsAvailable(&available));
             PRINT_STR(Stereo Playout, available);
         } else
         {
             PRINT_STR(Stereo Playout, false);
         }
-        TEST(audioDevice->SpeakerIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->SpeakerIsAvailable(&available));
         PRINT_STR(Speaker, available);
-        TEST(audioDevice->SpeakerVolumeIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->SpeakerVolumeIsAvailable(&available));
         PRINT_STR(Speaker Volume, available);
-        TEST(audioDevice->SpeakerMuteIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->SpeakerMuteIsAvailable(&available));
         PRINT_STR(Speaker Mute, available);
     }
 
@@ -1094,18 +1080,18 @@ WebRtc_Word32 FuncTestManager::TestDeviceSelection()
     // Recording
 
     nDevices = audioDevice->RecordingDevices();
-    TEST(nDevices >= 0);
+    EXPECT_TRUE(nDevices >= 0);
 
     TEST_LOG("\n");
 #ifdef _WIN32
-    TEST(audioDevice->SetRecordingDevice(
+    EXPECT_TRUE(audioDevice->SetRecordingDevice(
         AudioDeviceModule::kDefaultCommunicationDevice) == 0);
     PRINT_HEADING(Recording, kDefaultCommunicationDevice);
-    TEST(audioDevice->RecordingIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->RecordingIsAvailable(&available));
     PRINT_STR(Recording, available);
     if (available)
     {
-        TEST(audioDevice->StereoRecordingIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->StereoRecordingIsAvailable(&available));
         PRINT_STR(Stereo Recording, available);
     }
     else
@@ -1113,22 +1099,22 @@ WebRtc_Word32 FuncTestManager::TestDeviceSelection()
         // special fix to ensure that we don't log 'available' when recording is not OK
         PRINT_STR(Stereo Recording, false);
     }
-    TEST(audioDevice->MicrophoneIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->MicrophoneIsAvailable(&available));
     PRINT_STR(Microphone, available);
-    TEST(audioDevice->MicrophoneVolumeIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->MicrophoneVolumeIsAvailable(&available));
     PRINT_STR(Microphone Volume, available);
-    TEST(audioDevice->MicrophoneMuteIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->MicrophoneMuteIsAvailable(&available));
     PRINT_STR(Microphone Mute, available);
-    TEST(audioDevice->MicrophoneBoostIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->MicrophoneBoostIsAvailable(&available));
     PRINT_STR(Microphone Boost, available);
 
-    TEST(audioDevice->SetRecordingDevice(AudioDeviceModule::kDefaultDevice) == 0);
+    EXPECT_EQ(0, audioDevice->SetRecordingDevice(AudioDeviceModule::kDefaultDevice));
     PRINT_HEADING(Recording, kDefaultDevice);
-    TEST(audioDevice->RecordingIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->RecordingIsAvailable(&available));
     PRINT_STR(Recording, available);
     if (available)
     {
-        TEST(audioDevice->StereoRecordingIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->StereoRecordingIsAvailable(&available));
         PRINT_STR(Stereo Recording, available);
     }
     else
@@ -1136,30 +1122,30 @@ WebRtc_Word32 FuncTestManager::TestDeviceSelection()
         // special fix to ensure that we don't log 'available' when recording is not OK
         PRINT_STR(Stereo Recording, false);
     }
-    TEST(audioDevice->MicrophoneIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->MicrophoneIsAvailable(&available));
     PRINT_STR(Microphone, available);
-    TEST(audioDevice->MicrophoneVolumeIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->MicrophoneVolumeIsAvailable(&available));
     PRINT_STR(Microphone Volume, available);
-    TEST(audioDevice->MicrophoneMuteIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->MicrophoneMuteIsAvailable(&available));
     PRINT_STR(Microphone Mute, available);
-    TEST(audioDevice->MicrophoneBoostIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->MicrophoneBoostIsAvailable(&available));
     PRINT_STR(Microphone Boost, available);
 #else
-    TEST(audioDevice->SetRecordingDevice(
+    EXPECT_TRUE(audioDevice->SetRecordingDevice(
         AudioDeviceModule::kDefaultCommunicationDevice) == -1);
-    TEST(audioDevice->SetRecordingDevice(AudioDeviceModule::kDefaultDevice) == -1);
+    EXPECT_EQ(-1, audioDevice->SetRecordingDevice(AudioDeviceModule::kDefaultDevice));
 #endif
 
     for (int i = 0; i < nDevices; i++)
     {
-        TEST(audioDevice->SetRecordingDevice(i) == 0);
-        TEST(audioDevice->RecordingDeviceName(i, name, guid) == 0);
+        EXPECT_EQ(0, audioDevice->SetRecordingDevice(i));
+        EXPECT_EQ(0, audioDevice->RecordingDeviceName(i, name, guid));
         PRINT_HEADING_IDX(Recording, i, name);
-        TEST(audioDevice->RecordingIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->RecordingIsAvailable(&available));
         PRINT_STR(Recording, available);
         if (available)
         {
-            TEST(audioDevice->StereoRecordingIsAvailable(&available) == 0);
+            EXPECT_EQ(0, audioDevice->StereoRecordingIsAvailable(&available));
             PRINT_STR(Stereo Recording, available);
         } else
         {
@@ -1167,18 +1153,18 @@ WebRtc_Word32 FuncTestManager::TestDeviceSelection()
             // is not OK
             PRINT_STR(Stereo Recording, false);
         }
-        TEST(audioDevice->MicrophoneIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->MicrophoneIsAvailable(&available));
         PRINT_STR(Microphone, available);
-        TEST(audioDevice->MicrophoneVolumeIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->MicrophoneVolumeIsAvailable(&available));
         PRINT_STR(Microphone Volume, available);
-        TEST(audioDevice->MicrophoneMuteIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->MicrophoneMuteIsAvailable(&available));
         PRINT_STR(Microphone Mute, available);
-        TEST(audioDevice->MicrophoneBoostIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->MicrophoneBoostIsAvailable(&available));
         PRINT_STR(Microphone Boost, available);
     }
 
-    TEST(audioDevice->Terminate() == 0);
-    TEST(audioDevice->Initialized() == false);
+    EXPECT_EQ(0, audioDevice->Terminate());
+    EXPECT_FALSE(audioDevice->Initialized());
 
     PRINT_TEST_RESULTS;
 
@@ -1200,8 +1186,8 @@ WebRtc_Word32 FuncTestManager::TestAudioTransport()
 
     AudioDeviceModule* audioDevice = _audioDevice;
 
-    TEST(audioDevice->Init() == 0);
-    TEST(audioDevice->Initialized() == true);
+    EXPECT_EQ(0, audioDevice->Init());
+    EXPECT_TRUE(audioDevice->Initialized());
 
     bool recIsAvailable(false);
     bool playIsAvailable(false);
@@ -1212,7 +1198,7 @@ WebRtc_Word32 FuncTestManager::TestAudioTransport()
         return -1;
     }
 
-    TEST(audioDevice->RecordingIsAvailable(&recIsAvailable) == 0);
+    EXPECT_EQ(0, audioDevice->RecordingIsAvailable(&recIsAvailable));
     if (!recIsAvailable)
     {
         TEST_LOG(
@@ -1225,7 +1211,7 @@ WebRtc_Word32 FuncTestManager::TestAudioTransport()
         return -1;
     }
 
-    TEST(audioDevice->PlayoutIsAvailable(&playIsAvailable) == 0);
+    EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&playIsAvailable));
     if (recIsAvailable && playIsAvailable)
     {
         _audioTransport->SetFullDuplex(true);
@@ -1243,18 +1229,18 @@ WebRtc_Word32 FuncTestManager::TestAudioTransport()
         // =========================================
         // Start by playing out an existing PCM file
 
-        TEST(audioDevice->SpeakerVolumeIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->SpeakerVolumeIsAvailable(&available));
         if (available)
         {
             WebRtc_UWord32 maxVolume(0);
-            TEST(audioDevice->MaxSpeakerVolume(&maxVolume) == 0);
-            TEST(audioDevice->SetSpeakerVolume(maxVolume/2) == 0);
+            EXPECT_EQ(0, audioDevice->MaxSpeakerVolume(&maxVolume));
+            EXPECT_EQ(0, audioDevice->SetSpeakerVolume(maxVolume/2));
         }
 
-        TEST(audioDevice->RegisterAudioCallback(_audioTransport) == 0);
+        EXPECT_EQ(0, audioDevice->RegisterAudioCallback(_audioTransport));
 
-        TEST(audioDevice->InitPlayout() == 0);
-        TEST(audioDevice->PlayoutSampleRate(&samplesPerSec) == 0);
+        EXPECT_EQ(0, audioDevice->InitPlayout());
+        EXPECT_EQ(0, audioDevice->PlayoutSampleRate(&samplesPerSec));
         if (samplesPerSec == 48000) {
             _audioTransport->SetFilePlayout(
                 true, GetResource(_playoutFile48.c_str()));
@@ -1272,7 +1258,7 @@ WebRtc_Word32 FuncTestManager::TestAudioTransport()
                      samplesPerSec);
             return -1;
         }
-        TEST(audioDevice->StartPlayout() == 0);
+        EXPECT_EQ(0, audioDevice->StartPlayout());
 
         if (audioDevice->Playing())
         {
@@ -1283,8 +1269,8 @@ WebRtc_Word32 FuncTestManager::TestAudioTransport()
             PAUSE(DEFAULT_PAUSE_TIME);
         }
 
-        TEST(audioDevice->StopPlayout() == 0);
-        TEST(audioDevice->RegisterAudioCallback(NULL) == 0);
+        EXPECT_EQ(0, audioDevice->StopPlayout());
+        EXPECT_EQ(0, audioDevice->RegisterAudioCallback(NULL));
 
         _audioTransport->SetFilePlayout(false);
     }
@@ -1295,29 +1281,29 @@ WebRtc_Word32 FuncTestManager::TestAudioTransport()
         // ====================================
         // Next, record from microphone to file
 
-        TEST(audioDevice->MicrophoneVolumeIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->MicrophoneVolumeIsAvailable(&available));
         if (available)
         {
             WebRtc_UWord32 maxVolume(0);
-            TEST(audioDevice->MaxMicrophoneVolume(&maxVolume) == 0);
-            TEST(audioDevice->SetMicrophoneVolume(maxVolume) == 0);
+            EXPECT_EQ(0, audioDevice->MaxMicrophoneVolume(&maxVolume));
+            EXPECT_EQ(0, audioDevice->SetMicrophoneVolume(maxVolume));
         }
 
-        TEST(audioDevice->StartRawInputFileRecording(
+        EXPECT_TRUE(audioDevice->StartRawInputFileRecording(
             GetFilename(RecordedMicrophoneFile)) == 0);
-        TEST(audioDevice->RegisterAudioCallback(_audioTransport) == 0);
+        EXPECT_EQ(0, audioDevice->RegisterAudioCallback(_audioTransport));
 
-        TEST(audioDevice->InitRecording() == 0);
-        TEST(audioDevice->StereoRecording(&enabled) == 0);
+        EXPECT_EQ(0, audioDevice->InitRecording());
+        EXPECT_EQ(0, audioDevice->StereoRecording(&enabled));
         if (enabled)
         {
             // ensure file recording in mono
-            TEST(audioDevice->SetRecordingChannel(AudioDeviceModule::kChannelLeft) == 0);
+            EXPECT_EQ(0, audioDevice->SetRecordingChannel(AudioDeviceModule::kChannelLeft));
         }
-        TEST(audioDevice->StartRecording() == 0);
+        EXPECT_EQ(0, audioDevice->StartRecording());
         AudioDeviceUtility::Sleep(100);
 
-        TEST(audioDevice->Recording() == true);
+        EXPECT_TRUE(audioDevice->Recording());
         if (audioDevice->Recording())
         {
             TEST_LOG("\n \n> The microphone input signal is now being recorded "
@@ -1327,14 +1313,14 @@ WebRtc_Word32 FuncTestManager::TestAudioTransport()
             PAUSE(DEFAULT_PAUSE_TIME);
         }
 
-        TEST(audioDevice->StereoRecording(&enabled) == 0);
+        EXPECT_EQ(0, audioDevice->StereoRecording(&enabled));
         if (enabled)
         {
-            TEST(audioDevice->SetRecordingChannel(AudioDeviceModule::kChannelBoth) == 0);
+            EXPECT_EQ(0, audioDevice->SetRecordingChannel(AudioDeviceModule::kChannelBoth));
         }
-        TEST(audioDevice->StopRecording() == 0);
-        TEST(audioDevice->RegisterAudioCallback(NULL) == 0);
-        TEST(audioDevice->StopRawInputFileRecording() == 0);
+        EXPECT_EQ(0, audioDevice->StopRecording());
+        EXPECT_EQ(0, audioDevice->RegisterAudioCallback(NULL));
+        EXPECT_EQ(0, audioDevice->StopRawInputFileRecording());
     }
 
     if (recIsAvailable && playIsAvailable)
@@ -1345,16 +1331,16 @@ WebRtc_Word32 FuncTestManager::TestAudioTransport()
         _audioTransport->SetFilePlayout(true,
                                         GetFilename(RecordedMicrophoneFile));
 
-        TEST(audioDevice->RegisterAudioCallback(_audioTransport) == 0);
-        TEST(audioDevice->PlayoutIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->RegisterAudioCallback(_audioTransport));
+        EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&available));
         if (available)
         {
-            TEST(audioDevice->InitPlayout() == 0);
-            TEST(audioDevice->StartPlayout() == 0);
+            EXPECT_EQ(0, audioDevice->InitPlayout());
+            EXPECT_EQ(0, audioDevice->StartPlayout());
             AudioDeviceUtility::Sleep(100);
         }
 
-        TEST(audioDevice->Playing() == true);
+        EXPECT_TRUE(audioDevice->Playing());
         if (audioDevice->Playing())
         {
             TEST_LOG("\n \n> Listen to the recorded file and verify that the "
@@ -1363,8 +1349,8 @@ WebRtc_Word32 FuncTestManager::TestAudioTransport()
             PAUSE(DEFAULT_PAUSE_TIME);
         }
 
-        TEST(audioDevice->StopPlayout() == 0);
-        TEST(audioDevice->RegisterAudioCallback(NULL) == 0);
+        EXPECT_EQ(0, audioDevice->StopPlayout());
+        EXPECT_EQ(0, audioDevice->RegisterAudioCallback(NULL));
 
         _audioTransport->SetFilePlayout(false);
     }
@@ -1377,35 +1363,35 @@ WebRtc_Word32 FuncTestManager::TestAudioTransport()
         WebRtc_UWord32 playSamplesPerSec(0);
         WebRtc_UWord32 recSamplesPerSecRec(0);
 
-        TEST(audioDevice->RegisterAudioCallback(_audioTransport) == 0);
+        EXPECT_EQ(0, audioDevice->RegisterAudioCallback(_audioTransport));
 
         _audioTransport->SetFullDuplex(true);
 
-        TEST(audioDevice->MicrophoneVolumeIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->MicrophoneVolumeIsAvailable(&available));
         if (available)
         {
             WebRtc_UWord32 maxVolume(0);
-            TEST(audioDevice->MaxMicrophoneVolume(&maxVolume) == 0);
-            TEST(audioDevice->SetMicrophoneVolume(maxVolume) == 0);
+            EXPECT_EQ(0, audioDevice->MaxMicrophoneVolume(&maxVolume));
+            EXPECT_EQ(0, audioDevice->SetMicrophoneVolume(maxVolume));
         }
 
-        TEST(audioDevice->InitRecording() == 0);
-        TEST(audioDevice->InitPlayout() == 0);
-        TEST(audioDevice->PlayoutSampleRate(&playSamplesPerSec) == 0);
-        TEST(audioDevice->RecordingSampleRate(&recSamplesPerSecRec) == 0);
+        EXPECT_EQ(0, audioDevice->InitRecording());
+        EXPECT_EQ(0, audioDevice->InitPlayout());
+        EXPECT_EQ(0, audioDevice->PlayoutSampleRate(&playSamplesPerSec));
+        EXPECT_EQ(0, audioDevice->RecordingSampleRate(&recSamplesPerSecRec));
         if (playSamplesPerSec != recSamplesPerSecRec)
         {
             TEST_LOG("\nERROR: sample rates does not match (fs_play=%u, fs_rec=%u)",
                      playSamplesPerSec, recSamplesPerSecRec);
-            TEST(audioDevice->StopRecording() == 0);
-            TEST(audioDevice->StopPlayout() == 0);
-            TEST(audioDevice->RegisterAudioCallback(NULL) == 0);
+            EXPECT_EQ(0, audioDevice->StopRecording());
+            EXPECT_EQ(0, audioDevice->StopPlayout());
+            EXPECT_EQ(0, audioDevice->RegisterAudioCallback(NULL));
             _audioTransport->SetFullDuplex(false);
             return -1;
         }
 
-        TEST(audioDevice->StartRecording() == 0);
-        TEST(audioDevice->StartPlayout() == 0);
+        EXPECT_EQ(0, audioDevice->StartRecording());
+        EXPECT_EQ(0, audioDevice->StartPlayout());
         AudioDeviceUtility::Sleep(100);
 
         if (audioDevice->Playing() && audioDevice->Recording())
@@ -1417,15 +1403,15 @@ WebRtc_Word32 FuncTestManager::TestAudioTransport()
             PAUSE(DEFAULT_PAUSE_TIME);
         }
 
-        TEST(audioDevice->StopRecording() == 0);
-        TEST(audioDevice->StopPlayout() == 0);
-        TEST(audioDevice->RegisterAudioCallback(NULL) == 0);
+        EXPECT_EQ(0, audioDevice->StopRecording());
+        EXPECT_EQ(0, audioDevice->StopPlayout());
+        EXPECT_EQ(0, audioDevice->RegisterAudioCallback(NULL));
 
         _audioTransport->SetFullDuplex(false);
     }
 
-    TEST(audioDevice->Terminate() == 0);
-    TEST(audioDevice->Initialized() == false);
+    EXPECT_EQ(0, audioDevice->Terminate());
+    EXPECT_FALSE(audioDevice->Initialized());
 
     TEST_LOG("\n");
     PRINT_TEST_RESULTS;
@@ -1448,8 +1434,8 @@ WebRtc_Word32 FuncTestManager::TestSpeakerVolume()
 
     AudioDeviceModule* audioDevice = _audioDevice;
 
-    TEST(audioDevice->Init() == 0);
-    TEST(audioDevice->Initialized() == true);
+    EXPECT_EQ(0, audioDevice->Init());
+    EXPECT_TRUE(audioDevice->Initialized());
 
     if (SelectPlayoutDevice() == -1)
     {
@@ -1461,7 +1447,7 @@ WebRtc_Word32 FuncTestManager::TestSpeakerVolume()
     WebRtc_UWord32 startVolume(0);
     WebRtc_UWord32 samplesPerSec(0);
 
-    TEST(audioDevice->SpeakerVolumeIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->SpeakerVolumeIsAvailable(&available));
     if (available)
     {
         _audioTransport->SetSpeakerVolume(true);
@@ -1473,21 +1459,21 @@ WebRtc_Word32 FuncTestManager::TestSpeakerVolume()
     }
 
     // store initial volume setting
-    TEST(audioDevice->InitSpeaker() == 0);
-    TEST(audioDevice->SpeakerVolume(&startVolume) == 0);
+    EXPECT_EQ(0, audioDevice->InitSpeaker());
+    EXPECT_EQ(0, audioDevice->SpeakerVolume(&startVolume));
 
     // start at volume 0
-    TEST(audioDevice->SetSpeakerVolume(0) == 0);
+    EXPECT_EQ(0, audioDevice->SetSpeakerVolume(0));
 
     // ======================================
     // Start playing out an existing PCM file
 
-    TEST(audioDevice->RegisterAudioCallback(_audioTransport) == 0);
-    TEST(audioDevice->PlayoutIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->RegisterAudioCallback(_audioTransport));
+    EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&available));
     if (available)
     {
-        TEST(audioDevice->InitPlayout() == 0);
-        TEST(audioDevice->PlayoutSampleRate(&samplesPerSec) == 0);
+        EXPECT_EQ(0, audioDevice->InitPlayout());
+        EXPECT_EQ(0, audioDevice->PlayoutSampleRate(&samplesPerSec));
         if (48000 == samplesPerSec) {
             _audioTransport->SetFilePlayout(
                 true, GetResource(_playoutFile48.c_str()));
@@ -1505,10 +1491,10 @@ WebRtc_Word32 FuncTestManager::TestSpeakerVolume()
                      samplesPerSec);
             return -1;
         }
-        TEST(audioDevice->StartPlayout() == 0);
+        EXPECT_EQ(0, audioDevice->StartPlayout());
     }
 
-    TEST(audioDevice->Playing() == true);
+    EXPECT_TRUE(audioDevice->Playing());
     if (audioDevice->Playing())
     {
         TEST_LOG("\n> Listen to the file being played out and verify that the "
@@ -1519,14 +1505,14 @@ WebRtc_Word32 FuncTestManager::TestSpeakerVolume()
         PAUSE(10000);
     }
 
-    TEST(audioDevice->StopPlayout() == 0);
-    TEST(audioDevice->RegisterAudioCallback(NULL) == 0);
+    EXPECT_EQ(0, audioDevice->StopPlayout());
+    EXPECT_EQ(0, audioDevice->RegisterAudioCallback(NULL));
 
     _audioTransport->SetSpeakerVolume(false);
     _audioTransport->SetFilePlayout(false);
 
     // restore volume setting
-    TEST(audioDevice->SetSpeakerVolume(startVolume) == 0);
+    EXPECT_EQ(0, audioDevice->SetSpeakerVolume(startVolume));
 
     TEST_LOG("\n");
     PRINT_TEST_RESULTS;
@@ -1549,8 +1535,8 @@ WebRtc_Word32 FuncTestManager::TestSpeakerMute()
 
     AudioDeviceModule* audioDevice = _audioDevice;
 
-    TEST(audioDevice->Init() == 0);
-    TEST(audioDevice->Initialized() == true);
+    EXPECT_EQ(0, audioDevice->Init());
+    EXPECT_TRUE(audioDevice->Initialized());
 
     if (SelectPlayoutDevice() == -1)
     {
@@ -1562,7 +1548,7 @@ WebRtc_Word32 FuncTestManager::TestSpeakerMute()
     bool startMute(false);
     WebRtc_UWord32 samplesPerSec(0);
 
-    TEST(audioDevice->SpeakerMuteIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->SpeakerMuteIsAvailable(&available));
     if (available)
     {
         _audioTransport->SetSpeakerMute(true);
@@ -1575,21 +1561,21 @@ WebRtc_Word32 FuncTestManager::TestSpeakerMute()
     }
 
     // store initial mute setting
-    TEST(audioDevice->InitSpeaker() == 0);
-    TEST(audioDevice->SpeakerMute(&startMute) == 0);
+    EXPECT_EQ(0, audioDevice->InitSpeaker());
+    EXPECT_EQ(0, audioDevice->SpeakerMute(&startMute));
 
     // start with no mute
-    TEST(audioDevice->SetSpeakerMute(false) == 0);
+    EXPECT_EQ(0, audioDevice->SetSpeakerMute(false));
 
     // ======================================
     // Start playing out an existing PCM file
 
-    TEST(audioDevice->RegisterAudioCallback(_audioTransport) == 0);
-    TEST(audioDevice->PlayoutIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->RegisterAudioCallback(_audioTransport));
+    EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&available));
     if (available)
     {
-        TEST(audioDevice->InitPlayout() == 0);
-        TEST(audioDevice->PlayoutSampleRate(&samplesPerSec) == 0);
+        EXPECT_EQ(0, audioDevice->InitPlayout());
+        EXPECT_EQ(0, audioDevice->PlayoutSampleRate(&samplesPerSec));
         if (48000 == samplesPerSec)
             _audioTransport->SetFilePlayout(true, _playoutFile48.c_str());
         else if (44100 == samplesPerSec || 44000 == samplesPerSec)
@@ -1600,10 +1586,10 @@ WebRtc_Word32 FuncTestManager::TestSpeakerMute()
                      samplesPerSec);
             return -1;
         }
-        TEST(audioDevice->StartPlayout() == 0);
+        EXPECT_EQ(0, audioDevice->StartPlayout());
     }
 
-    TEST(audioDevice->Playing() == true);
+    EXPECT_TRUE(audioDevice->Playing());
     if (audioDevice->Playing())
     {
         TEST_LOG("\n> Listen to the file being played out and verify that the"
@@ -1614,14 +1600,14 @@ WebRtc_Word32 FuncTestManager::TestSpeakerMute()
         PAUSE(DEFAULT_PAUSE_TIME);
     }
 
-    TEST(audioDevice->StopPlayout() == 0);
-    TEST(audioDevice->RegisterAudioCallback(NULL) == 0);
+    EXPECT_EQ(0, audioDevice->StopPlayout());
+    EXPECT_EQ(0, audioDevice->RegisterAudioCallback(NULL));
 
     _audioTransport->SetSpeakerMute(false);
     _audioTransport->SetFilePlayout(false);
 
     // restore mute setting
-    TEST(audioDevice->SetSpeakerMute(startMute) == 0);
+    EXPECT_EQ(0, audioDevice->SetSpeakerMute(startMute));
 
     TEST_LOG("\n");
     PRINT_TEST_RESULTS;
@@ -1644,8 +1630,8 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneVolume()
 
     AudioDeviceModule* audioDevice = _audioDevice;
 
-    TEST(audioDevice->Init() == 0);
-    TEST(audioDevice->Initialized() == true);
+    EXPECT_EQ(0, audioDevice->Init());
+    EXPECT_TRUE(audioDevice->Initialized());
 
     if (SelectRecordingDevice() == -1)
     {
@@ -1654,7 +1640,7 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneVolume()
     }
 
     bool available(false);
-    TEST(audioDevice->MicrophoneVolumeIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->MicrophoneVolumeIsAvailable(&available));
     if (available)
     {
         _audioTransport->SetMicrophoneVolume(true);
@@ -1671,7 +1657,7 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneVolume()
         return -1;
     }
 
-    TEST(audioDevice->PlayoutIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&available));
     if (available)
     {
         _audioTransport->SetFullDuplex(true);
@@ -1687,7 +1673,7 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneVolume()
              RecordedMicrophoneVolumeFile);
     char ch;
     bool fileRecording(false);
-    TEST(scanf(" %c", &ch) > 0);
+    EXPECT_TRUE(scanf(" %c", &ch) > 0);
     ch = toupper(ch);
     if (ch == 'Y')
     {
@@ -1698,11 +1684,11 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneVolume()
     bool enabled(false);
 
     // store initial volume setting
-    TEST(audioDevice->InitMicrophone() == 0);
-    TEST(audioDevice->MicrophoneVolume(&startVolume) == 0);
+    EXPECT_EQ(0, audioDevice->InitMicrophone());
+    EXPECT_EQ(0, audioDevice->MicrophoneVolume(&startVolume));
 
     // start at volume 0
-    TEST(audioDevice->SetMicrophoneVolume(0) == 0);
+    EXPECT_EQ(0, audioDevice->SetMicrophoneVolume(0));
 
     // ======================================================================
     // Start recording from the microphone while the mic volume is changed
@@ -1711,30 +1697,30 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneVolume()
 
     if (fileRecording)
     {
-        TEST(audioDevice->StartRawInputFileRecording(RecordedMicrophoneVolumeFile) == 0);
+        EXPECT_EQ(0, audioDevice->StartRawInputFileRecording(RecordedMicrophoneVolumeFile));
     }
-    TEST(audioDevice->RegisterAudioCallback(_audioTransport) == 0);
-    TEST(audioDevice->RecordingIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->RegisterAudioCallback(_audioTransport));
+    EXPECT_EQ(0, audioDevice->RecordingIsAvailable(&available));
     if (available)
     {
-        TEST(audioDevice->InitRecording() == 0);
-        TEST(audioDevice->StereoRecording(&enabled) == 0);
+        EXPECT_EQ(0, audioDevice->InitRecording());
+        EXPECT_EQ(0, audioDevice->StereoRecording(&enabled));
         if (enabled)
         {
             // ensures a mono file
-            TEST(audioDevice->SetRecordingChannel(AudioDeviceModule::kChannelRight) == 0);
+            EXPECT_EQ(0, audioDevice->SetRecordingChannel(AudioDeviceModule::kChannelRight));
         }
-        TEST(audioDevice->StartRecording() == 0);
+        EXPECT_EQ(0, audioDevice->StartRecording());
     }
-    TEST(audioDevice->PlayoutIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&available));
     if (available)
     {
-        TEST(audioDevice->InitPlayout() == 0);
-        TEST(audioDevice->StartPlayout() == 0);
+        EXPECT_EQ(0, audioDevice->InitPlayout());
+        EXPECT_EQ(0, audioDevice->StartPlayout());
     }
 
-    TEST(audioDevice->Recording() == true);
-    TEST(audioDevice->Playing() == true);
+    EXPECT_TRUE(audioDevice->Recording());
+    EXPECT_TRUE(audioDevice->Playing());
     if (audioDevice->Recording() && audioDevice->Playing())
     {
         TEST_LOG("\n> Speak into the microphone and verify that the selected "
@@ -1749,18 +1735,18 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneVolume()
 
     if (fileRecording)
     {
-        TEST(audioDevice->StopRawInputFileRecording() == 0);
+        EXPECT_EQ(0, audioDevice->StopRawInputFileRecording());
     }
-    TEST(audioDevice->StopRecording() == 0);
-    TEST(audioDevice->StopPlayout() == 0);
-    TEST(audioDevice->RegisterAudioCallback(NULL) == 0);
-    TEST(audioDevice->StereoRecordingIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->StopRecording());
+    EXPECT_EQ(0, audioDevice->StopPlayout());
+    EXPECT_EQ(0, audioDevice->RegisterAudioCallback(NULL));
+    EXPECT_EQ(0, audioDevice->StereoRecordingIsAvailable(&available));
 
     _audioTransport->SetMicrophoneVolume(false);
     _audioTransport->SetFullDuplex(false);
 
     // restore volume setting
-    TEST(audioDevice->SetMicrophoneVolume(startVolume) == 0);
+    EXPECT_EQ(0, audioDevice->SetMicrophoneVolume(startVolume));
 
     TEST_LOG("\n");
     PRINT_TEST_RESULTS;
@@ -1783,8 +1769,8 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneMute()
 
     AudioDeviceModule* audioDevice = _audioDevice;
 
-    TEST(audioDevice->Init() == 0);
-    TEST(audioDevice->Initialized() == true);
+    EXPECT_EQ(0, audioDevice->Init());
+    EXPECT_TRUE(audioDevice->Initialized());
 
     if (SelectRecordingDevice() == -1)
     {
@@ -1793,7 +1779,7 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneMute()
     }
 
     bool available(false);
-    TEST(audioDevice->MicrophoneMuteIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->MicrophoneMuteIsAvailable(&available));
     if (available)
     {
         _audioTransport->SetMicrophoneMute(true);
@@ -1810,7 +1796,7 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneMute()
         return -1;
     }
 
-    TEST(audioDevice->PlayoutIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&available));
     if (available)
     {
         _audioTransport->SetFullDuplex(true);
@@ -1826,7 +1812,7 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneMute()
         RecordedMicrophoneMuteFile);
     char ch;
     bool fileRecording(false);
-    TEST(scanf(" %c", &ch) > 0);
+    EXPECT_TRUE(scanf(" %c", &ch) > 0);
     ch = toupper(ch);
     if (ch == 'Y')
     {
@@ -1837,11 +1823,11 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneMute()
     bool enabled(false);
 
     // store initial volume setting
-    TEST(audioDevice->InitMicrophone() == 0);
-    TEST(audioDevice->MicrophoneMute(&startMute) == 0);
+    EXPECT_EQ(0, audioDevice->InitMicrophone());
+    EXPECT_EQ(0, audioDevice->MicrophoneMute(&startMute));
 
     // start at no mute
-    TEST(audioDevice->SetMicrophoneMute(false) == 0);
+    EXPECT_EQ(0, audioDevice->SetMicrophoneMute(false));
 
     // ==================================================================
     // Start recording from the microphone while the mic mute is toggled
@@ -1850,30 +1836,30 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneMute()
 
     if (fileRecording)
     {
-        TEST(audioDevice->StartRawInputFileRecording(RecordedMicrophoneMuteFile) == 0);
+        EXPECT_EQ(0, audioDevice->StartRawInputFileRecording(RecordedMicrophoneMuteFile));
     }
-    TEST(audioDevice->RegisterAudioCallback(_audioTransport) == 0);
-    TEST(audioDevice->RecordingIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->RegisterAudioCallback(_audioTransport));
+    EXPECT_EQ(0, audioDevice->RecordingIsAvailable(&available));
     if (available)
     {
-        TEST(audioDevice->InitRecording() == 0);
-        TEST(audioDevice->StereoRecording(&enabled) == 0);
+        EXPECT_EQ(0, audioDevice->InitRecording());
+        EXPECT_EQ(0, audioDevice->StereoRecording(&enabled));
         if (enabled)
         {
             // ensure file recording in mono
-            TEST(audioDevice->SetRecordingChannel(AudioDeviceModule::kChannelLeft) == 0);
+            EXPECT_EQ(0, audioDevice->SetRecordingChannel(AudioDeviceModule::kChannelLeft));
         }
-        TEST(audioDevice->StartRecording() == 0);
+        EXPECT_EQ(0, audioDevice->StartRecording());
     }
-    TEST(audioDevice->PlayoutIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&available));
     if (available)
     {
-        TEST(audioDevice->InitPlayout() == 0);
-        TEST(audioDevice->StartPlayout() == 0);
+        EXPECT_EQ(0, audioDevice->InitPlayout());
+        EXPECT_EQ(0, audioDevice->StartPlayout());
     }
 
-    TEST(audioDevice->Recording() == true);
-    TEST(audioDevice->Playing() == true);
+    EXPECT_TRUE(audioDevice->Recording());
+    EXPECT_TRUE(audioDevice->Playing());
     if (audioDevice->Recording() && audioDevice->Playing())
     {
         TEST_LOG("\n> Speak into the microphone and verify that the selected "
@@ -1887,17 +1873,17 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneMute()
 
     if (fileRecording)
     {
-        TEST(audioDevice->StopRawInputFileRecording() == 0);
+        EXPECT_EQ(0, audioDevice->StopRawInputFileRecording());
     }
-    TEST(audioDevice->StopRecording() == 0);
-    TEST(audioDevice->StopPlayout() == 0);
-    TEST(audioDevice->RegisterAudioCallback(NULL) == 0);
+    EXPECT_EQ(0, audioDevice->StopRecording());
+    EXPECT_EQ(0, audioDevice->StopPlayout());
+    EXPECT_EQ(0, audioDevice->RegisterAudioCallback(NULL));
 
     _audioTransport->SetMicrophoneMute(false);
     _audioTransport->SetFullDuplex(false);
 
     // restore volume setting
-    TEST(audioDevice->SetMicrophoneMute(startMute) == 0);
+    EXPECT_EQ(0, audioDevice->SetMicrophoneMute(startMute));
 
     TEST_LOG("\n");
     PRINT_TEST_RESULTS;
@@ -1920,8 +1906,8 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneBoost()
 
     AudioDeviceModule* audioDevice = _audioDevice;
 
-    TEST(audioDevice->Init() == 0);
-    TEST(audioDevice->Initialized() == true);
+    EXPECT_EQ(0, audioDevice->Init());
+    EXPECT_TRUE(audioDevice->Initialized());
 
     if (SelectRecordingDevice() == -1)
     {
@@ -1930,7 +1916,7 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneBoost()
     }
 
     bool available(false);
-    TEST(audioDevice->MicrophoneBoostIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->MicrophoneBoostIsAvailable(&available));
     if (available)
     {
         _audioTransport->SetMicrophoneBoost(true);
@@ -1947,7 +1933,7 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneBoost()
         return -1;
     }
 
-    TEST(audioDevice->PlayoutIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&available));
     if (available)
     {
         _audioTransport->SetFullDuplex(true);
@@ -1962,7 +1948,7 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneBoost()
         RecordedMicrophoneBoostFile);
     char ch;
     bool fileRecording(false);
-    TEST(scanf(" %c", &ch) > 0);
+    EXPECT_TRUE(scanf(" %c", &ch) > 0);
     ch = toupper(ch);
     if (ch == 'Y')
     {
@@ -1973,11 +1959,11 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneBoost()
     bool enabled(false);
 
     // store initial volume setting
-    TEST(audioDevice->InitMicrophone() == 0);
-    TEST(audioDevice->MicrophoneBoost(&startBoost) == 0);
+    EXPECT_EQ(0, audioDevice->InitMicrophone());
+    EXPECT_EQ(0, audioDevice->MicrophoneBoost(&startBoost));
 
     // start at no boost
-    TEST(audioDevice->SetMicrophoneBoost(false) == 0);
+    EXPECT_EQ(0, audioDevice->SetMicrophoneBoost(false));
 
     // ==================================================================
     // Start recording from the microphone while the mic boost is toggled
@@ -1986,30 +1972,30 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneBoost()
 
     if (fileRecording)
     {
-        TEST(audioDevice->StartRawInputFileRecording(RecordedMicrophoneBoostFile) == 0);
+        EXPECT_EQ(0, audioDevice->StartRawInputFileRecording(RecordedMicrophoneBoostFile));
     }
-    TEST(audioDevice->RegisterAudioCallback(_audioTransport) == 0);
-    TEST(audioDevice->RecordingIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->RegisterAudioCallback(_audioTransport));
+    EXPECT_EQ(0, audioDevice->RecordingIsAvailable(&available));
     if (available)
     {
-        TEST(audioDevice->InitRecording() == 0);
-        TEST(audioDevice->StereoRecording(&enabled) == 0);
+        EXPECT_EQ(0, audioDevice->InitRecording());
+        EXPECT_EQ(0, audioDevice->StereoRecording(&enabled));
         if (enabled)
         {
             // ensure file recording in mono
-            TEST(audioDevice->SetRecordingChannel(AudioDeviceModule::kChannelLeft) == 0);
+            EXPECT_EQ(0, audioDevice->SetRecordingChannel(AudioDeviceModule::kChannelLeft));
         }
-        TEST(audioDevice->StartRecording() == 0);
+        EXPECT_EQ(0, audioDevice->StartRecording());
     }
-    TEST(audioDevice->PlayoutIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&available));
     if (available)
     {
-        TEST(audioDevice->InitPlayout() == 0);
-        TEST(audioDevice->StartPlayout() == 0);
+        EXPECT_EQ(0, audioDevice->InitPlayout());
+        EXPECT_EQ(0, audioDevice->StartPlayout());
     }
 
-    TEST(audioDevice->Recording() == true);
-    TEST(audioDevice->Playing() == true);
+    EXPECT_TRUE(audioDevice->Recording());
+    EXPECT_TRUE(audioDevice->Playing());
     if (audioDevice->Recording() && audioDevice->Playing())
     {
         TEST_LOG("\n> Speak into the microphone and verify that the selected "
@@ -2024,17 +2010,17 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneBoost()
 
     if (fileRecording)
     {
-        TEST(audioDevice->StopRawInputFileRecording() == 0);
+        EXPECT_EQ(0, audioDevice->StopRawInputFileRecording());
     }
-    TEST(audioDevice->StopRecording() == 0);
-    TEST(audioDevice->StopPlayout() == 0);
-    TEST(audioDevice->RegisterAudioCallback(NULL) == 0);
+    EXPECT_EQ(0, audioDevice->StopRecording());
+    EXPECT_EQ(0, audioDevice->StopPlayout());
+    EXPECT_EQ(0, audioDevice->RegisterAudioCallback(NULL));
 
     _audioTransport->SetMicrophoneBoost(false);
     _audioTransport->SetFullDuplex(false);
 
     // restore boost setting
-    TEST(audioDevice->SetMicrophoneBoost(startBoost) == 0);
+    EXPECT_EQ(0, audioDevice->SetMicrophoneBoost(startBoost));
 
     TEST_LOG("\n");
     PRINT_TEST_RESULTS;
@@ -2057,8 +2043,8 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneAGC()
 
     AudioDeviceModule* audioDevice = _audioDevice;
 
-    TEST(audioDevice->Init() == 0);
-    TEST(audioDevice->Initialized() == true);
+    EXPECT_EQ(0, audioDevice->Init());
+    EXPECT_TRUE(audioDevice->Initialized());
 
     if (SelectRecordingDevice() == -1)
     {
@@ -2067,7 +2053,7 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneAGC()
     }
 
     bool available(false);
-    TEST(audioDevice->MicrophoneVolumeIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->MicrophoneVolumeIsAvailable(&available));
     if (available)
     {
         _audioTransport->SetMicrophoneAGC(true);
@@ -2084,7 +2070,7 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneAGC()
         return -1;
     }
 
-    TEST(audioDevice->PlayoutIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&available));
     if (available)
     {
         _audioTransport->SetFullDuplex(true);
@@ -2099,7 +2085,7 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneAGC()
         RecordedMicrophoneAGCFile);
     char ch;
     bool fileRecording(false);
-    TEST(scanf(" %c", &ch) > 0);
+    EXPECT_TRUE(scanf(" %c", &ch) > 0);
     ch = toupper(ch);
     if (ch == 'Y')
     {
@@ -2110,8 +2096,8 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneAGC()
     bool enabled(false);
 
     // store initial volume setting
-    TEST(audioDevice->InitMicrophone() == 0);
-    TEST(audioDevice->MicrophoneVolume(&startVolume) == 0);
+    EXPECT_EQ(0, audioDevice->InitMicrophone());
+    EXPECT_EQ(0, audioDevice->MicrophoneVolume(&startVolume));
 
     // ====================================================================
     // Start recording from the microphone while the mic volume is changed
@@ -2121,32 +2107,32 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneAGC()
 
     if (fileRecording)
     {
-        TEST(audioDevice->StartRawInputFileRecording(RecordedMicrophoneAGCFile) == 0);
+        EXPECT_EQ(0, audioDevice->StartRawInputFileRecording(RecordedMicrophoneAGCFile));
     }
-    TEST(audioDevice->RegisterAudioCallback(_audioTransport) == 0);
-    TEST(audioDevice->RecordingIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->RegisterAudioCallback(_audioTransport));
+    EXPECT_EQ(0, audioDevice->RecordingIsAvailable(&available));
     if (available)
     {
-        TEST(audioDevice->SetAGC(true) == 0);
-        TEST(audioDevice->InitRecording() == 0);
-        TEST(audioDevice->StereoRecording(&enabled) == 0);
+        EXPECT_EQ(0, audioDevice->SetAGC(true));
+        EXPECT_EQ(0, audioDevice->InitRecording());
+        EXPECT_EQ(0, audioDevice->StereoRecording(&enabled));
         if (enabled)
         {
             // ensures a mono file
-            TEST(audioDevice->SetRecordingChannel(AudioDeviceModule::kChannelRight) == 0);
+            EXPECT_EQ(0, audioDevice->SetRecordingChannel(AudioDeviceModule::kChannelRight));
         }
-        TEST(audioDevice->StartRecording() == 0);
+        EXPECT_EQ(0, audioDevice->StartRecording());
     }
-    TEST(audioDevice->PlayoutIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&available));
     if (available)
     {
-        TEST(audioDevice->InitPlayout() == 0);
-        TEST(audioDevice->StartPlayout() == 0);
+        EXPECT_EQ(0, audioDevice->InitPlayout());
+        EXPECT_EQ(0, audioDevice->StartPlayout());
     }
 
-    TEST(audioDevice->AGC() == true);
-    TEST(audioDevice->Recording() == true);
-    TEST(audioDevice->Playing() == true);
+    EXPECT_TRUE(audioDevice->AGC());
+    EXPECT_TRUE(audioDevice->Recording());
+    EXPECT_TRUE(audioDevice->Playing());
     if (audioDevice->Recording() && audioDevice->Playing())
     {
         TEST_LOG("\n> Speak into the microphone and verify that the volume of"
@@ -2161,19 +2147,19 @@ WebRtc_Word32 FuncTestManager::TestMicrophoneAGC()
 
     if (fileRecording)
     {
-        TEST(audioDevice->StopRawInputFileRecording() == 0);
+        EXPECT_EQ(0, audioDevice->StopRawInputFileRecording());
     }
-    TEST(audioDevice->SetAGC(false) == 0);
-    TEST(audioDevice->StopRecording() == 0);
-    TEST(audioDevice->StopPlayout() == 0);
-    TEST(audioDevice->RegisterAudioCallback(NULL) == 0);
-    TEST(audioDevice->StereoRecordingIsAvailable(&available) == 0);
+    EXPECT_EQ(0, audioDevice->SetAGC(false));
+    EXPECT_EQ(0, audioDevice->StopRecording());
+    EXPECT_EQ(0, audioDevice->StopPlayout());
+    EXPECT_EQ(0, audioDevice->RegisterAudioCallback(NULL));
+    EXPECT_EQ(0, audioDevice->StereoRecordingIsAvailable(&available));
 
     _audioTransport->SetMicrophoneAGC(false);
     _audioTransport->SetFullDuplex(false);
 
     // restore volume setting
-    TEST(audioDevice->SetMicrophoneVolume(startVolume) == 0);
+    EXPECT_EQ(0, audioDevice->SetMicrophoneVolume(startVolume));
 
     TEST_LOG("\n");
     PRINT_TEST_RESULTS;
@@ -2196,8 +2182,8 @@ WebRtc_Word32 FuncTestManager::TestLoopback()
 
     AudioDeviceModule* audioDevice = _audioDevice;
 
-    TEST(audioDevice->Init() == 0);
-    TEST(audioDevice->Initialized() == true);
+    EXPECT_EQ(0, audioDevice->Init());
+    EXPECT_TRUE(audioDevice->Initialized());
 
     bool recIsAvailable(false);
     bool playIsAvailable(false);
@@ -2210,7 +2196,7 @@ WebRtc_Word32 FuncTestManager::TestLoopback()
         return -1;
     }
 
-    TEST(audioDevice->RecordingIsAvailable(&recIsAvailable) == 0);
+    EXPECT_EQ(0, audioDevice->RecordingIsAvailable(&recIsAvailable));
     if (!recIsAvailable)
     {
         TEST_LOG("\nERROR: Recording is not available for the selected device!\n \n");
@@ -2223,7 +2209,7 @@ WebRtc_Word32 FuncTestManager::TestLoopback()
         return -1;
     }
 
-    TEST(audioDevice->PlayoutIsAvailable(&playIsAvailable) == 0);
+    EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&playIsAvailable));
     if (recIsAvailable && playIsAvailable)
     {
         _audioTransport->SetFullDuplex(true);
@@ -2242,40 +2228,40 @@ WebRtc_Word32 FuncTestManager::TestLoopback()
         WebRtc_UWord32 playSamplesPerSec(0);
         WebRtc_UWord32 recSamplesPerSecRec(0);
 
-        TEST(audioDevice->RegisterAudioCallback(_audioTransport) == 0);
+        EXPECT_EQ(0, audioDevice->RegisterAudioCallback(_audioTransport));
 
         _audioTransport->SetFullDuplex(true);
 
-        TEST(audioDevice->StereoRecordingIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->StereoRecordingIsAvailable(&available));
         if (available)
         {
-            TEST(audioDevice->SetStereoRecording(true) == 0);
+            EXPECT_EQ(0, audioDevice->SetStereoRecording(true));
         }
 
-        TEST(audioDevice->StereoPlayoutIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->StereoPlayoutIsAvailable(&available));
         if (available)
         {
-            TEST(audioDevice->SetStereoPlayout(true) == 0);
+            EXPECT_EQ(0, audioDevice->SetStereoPlayout(true));
         }
 
-        TEST(audioDevice->MicrophoneVolumeIsAvailable(&available) == 0);
+        EXPECT_EQ(0, audioDevice->MicrophoneVolumeIsAvailable(&available));
         if (available)
         {
             WebRtc_UWord32 maxVolume(0);
-            TEST(audioDevice->MaxMicrophoneVolume(&maxVolume) == 0);
-            TEST(audioDevice->SetMicrophoneVolume(maxVolume) == 0);
+            EXPECT_EQ(0, audioDevice->MaxMicrophoneVolume(&maxVolume));
+            EXPECT_EQ(0, audioDevice->SetMicrophoneVolume(maxVolume));
         }
 
-        TEST(audioDevice->InitRecording() == 0);
-        TEST(audioDevice->InitPlayout() == 0);
-        TEST(audioDevice->PlayoutSampleRate(&playSamplesPerSec) == 0);
-        TEST(audioDevice->RecordingSampleRate(&recSamplesPerSecRec) == 0);
-        TEST(audioDevice->StereoPlayout(&enabled) == 0);
+        EXPECT_EQ(0, audioDevice->InitRecording());
+        EXPECT_EQ(0, audioDevice->InitPlayout());
+        EXPECT_EQ(0, audioDevice->PlayoutSampleRate(&playSamplesPerSec));
+        EXPECT_EQ(0, audioDevice->RecordingSampleRate(&recSamplesPerSecRec));
+        EXPECT_EQ(0, audioDevice->StereoPlayout(&enabled));
         enabled ? nPlayChannels = 2 : nPlayChannels = 1;
-        TEST(audioDevice->StereoRecording(&enabled) == 0);
+        EXPECT_EQ(0, audioDevice->StereoRecording(&enabled));
         enabled ? nRecChannels = 2 : nRecChannels = 1;
-        TEST(audioDevice->StartRecording() == 0);
-        TEST(audioDevice->StartPlayout() == 0);
+        EXPECT_EQ(0, audioDevice->StartRecording());
+        EXPECT_EQ(0, audioDevice->StartPlayout());
 
         if (audioDevice->Playing() && audioDevice->Recording())
         {
@@ -2290,16 +2276,16 @@ WebRtc_Word32 FuncTestManager::TestLoopback()
             PAUSE(30000);
         }
 
-        TEST(audioDevice->StopRecording() == 0);
-        TEST(audioDevice->StopPlayout() == 0);
-        TEST(audioDevice->RegisterAudioCallback(NULL) == 0);
+        EXPECT_EQ(0, audioDevice->StopRecording());
+        EXPECT_EQ(0, audioDevice->StopPlayout());
+        EXPECT_EQ(0, audioDevice->RegisterAudioCallback(NULL));
 
         _audioTransport->SetFullDuplex(false);
         _audioTransport->SetLoopbackMeasurements(false);
     }
 
-    TEST(audioDevice->Terminate() == 0);
-    TEST(audioDevice->Initialized() == false);
+    EXPECT_EQ(0, audioDevice->Terminate());
+    EXPECT_FALSE(audioDevice->Initialized());
 
     TEST_LOG("\n");
     PRINT_TEST_RESULTS;
@@ -2322,8 +2308,8 @@ WebRtc_Word32 FuncTestManager::TestDeviceRemoval()
 
     AudioDeviceModule* audioDevice = _audioDevice;
 
-    TEST(audioDevice->Init() == 0);
-    TEST(audioDevice->Initialized() == true);
+    EXPECT_EQ(0, audioDevice->Init());
+    EXPECT_TRUE(audioDevice->Initialized());
 
     bool recIsAvailable(false);
     bool playIsAvailable(false);
@@ -2339,7 +2325,7 @@ WebRtc_Word32 FuncTestManager::TestDeviceRemoval()
             return -1;
         }
 
-        TEST(audioDevice->RecordingIsAvailable(&recIsAvailable) == 0);
+        EXPECT_EQ(0, audioDevice->RecordingIsAvailable(&recIsAvailable));
         if (!recIsAvailable)
         {
             TEST_LOG("\nERROR: Recording is not available for the selected device!\n \n");
@@ -2352,7 +2338,7 @@ WebRtc_Word32 FuncTestManager::TestDeviceRemoval()
             return -1;
         }
 
-        TEST(audioDevice->PlayoutIsAvailable(&playIsAvailable) == 0);
+        EXPECT_EQ(0, audioDevice->PlayoutIsAvailable(&playIsAvailable));
         if (recIsAvailable && playIsAvailable)
         {
             _audioTransport->SetFullDuplex(true);
@@ -2370,43 +2356,43 @@ WebRtc_Word32 FuncTestManager::TestDeviceRemoval()
             WebRtc_UWord32 playSamplesPerSec(0);
             WebRtc_UWord32 recSamplesPerSecRec(0);
 
-            TEST(audioDevice->RegisterAudioCallback(_audioTransport) == 0);
+            EXPECT_EQ(0, audioDevice->RegisterAudioCallback(_audioTransport));
 
             _audioTransport->SetFullDuplex(true);
 
-            TEST(audioDevice->StereoRecordingIsAvailable(&available) == 0);
+            EXPECT_EQ(0, audioDevice->StereoRecordingIsAvailable(&available));
             if (available)
             {
-                TEST(audioDevice->SetStereoRecording(true) == 0);
+                EXPECT_EQ(0, audioDevice->SetStereoRecording(true));
             }
 
-            TEST(audioDevice->StereoPlayoutIsAvailable(&available) == 0);
+            EXPECT_EQ(0, audioDevice->StereoPlayoutIsAvailable(&available));
             if (available)
             {
-                TEST(audioDevice->SetStereoPlayout(true) == 0);
+                EXPECT_EQ(0, audioDevice->SetStereoPlayout(true));
             }
 
-            TEST(audioDevice->MicrophoneVolumeIsAvailable(&available) == 0);
+            EXPECT_EQ(0, audioDevice->MicrophoneVolumeIsAvailable(&available));
             if (available)
             {
                 WebRtc_UWord32 maxVolume(0);
-                TEST(audioDevice->MaxMicrophoneVolume(&maxVolume) == 0);
-                TEST(audioDevice->SetMicrophoneVolume(maxVolume) == 0);
+                EXPECT_EQ(0, audioDevice->MaxMicrophoneVolume(&maxVolume));
+                EXPECT_EQ(0, audioDevice->SetMicrophoneVolume(maxVolume));
             }
 
-            TEST(audioDevice->InitRecording() == 0);
-            TEST(audioDevice->InitPlayout() == 0);
-            TEST(audioDevice->PlayoutSampleRate(&playSamplesPerSec) == 0);
-            TEST(audioDevice->RecordingSampleRate(&recSamplesPerSecRec) == 0);
-            TEST(audioDevice->StereoPlayout(&enabled) == 0);
+            EXPECT_EQ(0, audioDevice->InitRecording());
+            EXPECT_EQ(0, audioDevice->InitPlayout());
+            EXPECT_EQ(0, audioDevice->PlayoutSampleRate(&playSamplesPerSec));
+            EXPECT_EQ(0, audioDevice->RecordingSampleRate(&recSamplesPerSecRec));
+            EXPECT_EQ(0, audioDevice->StereoPlayout(&enabled));
             enabled ? nPlayChannels = 2 : nPlayChannels = 1;
-            TEST(audioDevice->StereoRecording(&enabled) == 0);
+            EXPECT_EQ(0, audioDevice->StereoRecording(&enabled));
             enabled ? nRecChannels = 2 : nRecChannels = 1;
-            TEST(audioDevice->StartRecording() == 0);
-            TEST(audioDevice->StartPlayout() == 0);
+            EXPECT_EQ(0, audioDevice->StartRecording());
+            EXPECT_EQ(0, audioDevice->StartPlayout());
 
             AudioDeviceModule::AudioLayer audioLayer;
-            TEST(audioDevice->ActiveAudioLayer(&audioLayer) == 0);
+            EXPECT_EQ(0, audioDevice->ActiveAudioLayer(&audioLayer));
 
             if (audioLayer == AudioDeviceModule::kLinuxPulseAudio)
             {
@@ -2457,9 +2443,9 @@ WebRtc_Word32 FuncTestManager::TestDeviceRemoval()
                 }
             }
 
-            TEST(audioDevice->StopRecording() == 0);
-            TEST(audioDevice->StopPlayout() == 0);
-            TEST(audioDevice->RegisterAudioCallback(NULL) == 0);
+            EXPECT_EQ(0, audioDevice->StopRecording());
+            EXPECT_EQ(0, audioDevice->StopPlayout());
+            EXPECT_EQ(0, audioDevice->RegisterAudioCallback(NULL));
 
             _audioTransport->SetFullDuplex(false);
 
@@ -2475,8 +2461,8 @@ WebRtc_Word32 FuncTestManager::TestDeviceRemoval()
         }
     } // loopCount
 
-    TEST(audioDevice->Terminate() == 0);
-    TEST(audioDevice->Initialized() == false);
+    EXPECT_EQ(0, audioDevice->Terminate());
+    EXPECT_FALSE(audioDevice->Initialized());
 
     TEST_LOG("\n");
     PRINT_TEST_RESULTS;
@@ -2499,11 +2485,11 @@ WebRtc_Word32 FuncTestManager::TestExtra()
 
     AudioDeviceModule* audioDevice = _audioDevice;
 
-    TEST(audioDevice->Init() == 0);
-    TEST(audioDevice->Initialized() == true);
+    EXPECT_EQ(0, audioDevice->Init());
+    EXPECT_TRUE(audioDevice->Initialized());
 
-    TEST(audioDevice->Terminate() == 0);
-    TEST(audioDevice->Initialized() == false);
+    EXPECT_EQ(0, audioDevice->Terminate());
+    EXPECT_FALSE(audioDevice->Initialized());
 
     TEST_LOG("\n");
     PRINT_TEST_RESULTS;
@@ -2514,8 +2500,8 @@ WebRtc_Word32 FuncTestManager::TestExtra()
 WebRtc_Word32 FuncTestManager::SelectRecordingDevice()
 {
     WebRtc_Word16 nDevices = _audioDevice->RecordingDevices();
-    WebRtc_Word8 name[kAdmMaxDeviceNameSize];
-    WebRtc_Word8 guid[kAdmMaxGuidSize];
+    char name[kAdmMaxDeviceNameSize];
+    char guid[kAdmMaxGuidSize];
     WebRtc_Word32 ret(-1);
 
 #ifdef _WIN32
@@ -2525,7 +2511,7 @@ WebRtc_Word32 FuncTestManager::SelectRecordingDevice()
     TEST_LOG("- - - - - - - - - - - - - - - - - - - -\n");
     for (int i = 0; i < nDevices; i++)
     {
-        TEST(_audioDevice->RecordingDeviceName(i, name, guid) == 0);
+        EXPECT_EQ(0, _audioDevice->RecordingDeviceName(i, name, guid));
         TEST_LOG(" (%d) Device %d (%s)\n", i+10, i, name);
     }
     TEST_LOG("\n: ");
@@ -2536,16 +2522,16 @@ WebRtc_Word32 FuncTestManager::SelectRecordingDevice()
 
     if (sel == 0)
     {
-        TEST((ret = _audioDevice->SetRecordingDevice(AudioDeviceModule::kDefaultDevice)) == 0);
+        EXPECT_EQ(0, (ret = _audioDevice->SetRecordingDevice(AudioDeviceModule::kDefaultDevice)));
     }
     else if (sel == 1)
     {
-        TEST((ret = _audioDevice->SetRecordingDevice(
+        EXPECT_TRUE((ret = _audioDevice->SetRecordingDevice(
             AudioDeviceModule::kDefaultCommunicationDevice)) == 0);
     }
     else if (sel < (nDevices+10))
     {
-        TEST((ret = _audioDevice->SetRecordingDevice(sel-10)) == 0);
+        EXPECT_EQ(0, (ret = _audioDevice->SetRecordingDevice(sel-10)));
     }
     else
     {
@@ -2555,15 +2541,15 @@ WebRtc_Word32 FuncTestManager::SelectRecordingDevice()
     TEST_LOG("\nSelect Recording Device\n \n");
     for (int i = 0; i < nDevices; i++)
     {
-        TEST(_audioDevice->RecordingDeviceName(i, name, guid) == 0);
+        EXPECT_EQ(0, _audioDevice->RecordingDeviceName(i, name, guid));
         TEST_LOG(" (%d) Device %d (%s)\n", i, i, name);
     }
     TEST_LOG("\n: ");
     int sel(0);
-    TEST(scanf("%u", &sel) > 0);
+    EXPECT_TRUE(scanf("%u", &sel) > 0);
     if (sel < (nDevices))
     {
-        TEST((ret = _audioDevice->SetRecordingDevice(sel)) == 0);
+        EXPECT_EQ(0, (ret = _audioDevice->SetRecordingDevice(sel)));
     } else
     {
         return -1;
@@ -2576,8 +2562,8 @@ WebRtc_Word32 FuncTestManager::SelectRecordingDevice()
 WebRtc_Word32 FuncTestManager::SelectPlayoutDevice()
 {
     WebRtc_Word16 nDevices = _audioDevice->PlayoutDevices();
-    WebRtc_Word8 name[kAdmMaxDeviceNameSize];
-    WebRtc_Word8 guid[kAdmMaxGuidSize];
+    char name[kAdmMaxDeviceNameSize];
+    char guid[kAdmMaxGuidSize];
 
 #ifdef _WIN32
     TEST_LOG("\nSelect Playout Device\n \n");
@@ -2586,7 +2572,7 @@ WebRtc_Word32 FuncTestManager::SelectPlayoutDevice()
     TEST_LOG("- - - - - - - - - - - - - - - - - - - -\n");
     for (int i = 0; i < nDevices; i++)
     {
-        TEST(_audioDevice->PlayoutDeviceName(i, name, guid) == 0);
+        EXPECT_EQ(0, _audioDevice->PlayoutDeviceName(i, name, guid));
         TEST_LOG(" (%d) Device %d (%s)\n", i+10, i, name);
     }
     TEST_LOG("\n: ");
@@ -2599,17 +2585,17 @@ WebRtc_Word32 FuncTestManager::SelectPlayoutDevice()
 
     if (sel == 0)
     {
-        TEST((ret = _audioDevice->SetPlayoutDevice(
+        EXPECT_TRUE((ret = _audioDevice->SetPlayoutDevice(
             AudioDeviceModule::kDefaultDevice)) == 0);
     }
     else if (sel == 1)
     {
-        TEST((ret = _audioDevice->SetPlayoutDevice(
+        EXPECT_TRUE((ret = _audioDevice->SetPlayoutDevice(
             AudioDeviceModule::kDefaultCommunicationDevice)) == 0);
     }
     else if (sel < (nDevices+10))
     {
-        TEST((ret = _audioDevice->SetPlayoutDevice(sel-10)) == 0);
+        EXPECT_EQ(0, (ret = _audioDevice->SetPlayoutDevice(sel-10)));
     }
     else
     {
@@ -2619,16 +2605,16 @@ WebRtc_Word32 FuncTestManager::SelectPlayoutDevice()
     TEST_LOG("\nSelect Playout Device\n \n");
     for (int i = 0; i < nDevices; i++)
     {
-        TEST(_audioDevice->PlayoutDeviceName(i, name, guid) == 0);
+        EXPECT_EQ(0, _audioDevice->PlayoutDeviceName(i, name, guid));
         TEST_LOG(" (%d) Device %d (%s)\n", i, i, name);
     }
     TEST_LOG("\n: ");
     int sel(0);
-    TEST(scanf("%u", &sel) > 0);
+    EXPECT_TRUE(scanf("%u", &sel) > 0);
     WebRtc_Word32 ret(0);
     if (sel < (nDevices))
     {
-        TEST((ret = _audioDevice->SetPlayoutDevice(sel)) == 0);
+        EXPECT_EQ(0, (ret = _audioDevice->SetPlayoutDevice(sel)));
     } else
     {
         return -1;
@@ -2653,8 +2639,8 @@ WebRtc_Word32 FuncTestManager::TestAdvancedMBAPI()
 
     AudioDeviceModule* audioDevice = _audioDevice;
 
-    TEST(audioDevice->Init() == 0);
-    TEST(audioDevice->Initialized() == true);
+    EXPECT_EQ(0, audioDevice->Init());
+    EXPECT_TRUE(audioDevice->Initialized());
 
     if (SelectRecordingDevice() == -1)
     {
@@ -2669,16 +2655,16 @@ WebRtc_Word32 FuncTestManager::TestAdvancedMBAPI()
     _audioTransport->SetFullDuplex(true);
     _audioTransport->SetLoopbackMeasurements(true);
 
-    TEST(audioDevice->RegisterAudioCallback(_audioTransport) == 0);
+    EXPECT_EQ(0, audioDevice->RegisterAudioCallback(_audioTransport));
     // Start recording
-    TEST(audioDevice->InitRecording() == 0);
-    TEST(audioDevice->StartRecording() == 0);
+    EXPECT_EQ(0, audioDevice->InitRecording());
+    EXPECT_EQ(0, audioDevice->StartRecording());
     // Start playout
-    TEST(audioDevice->InitPlayout() == 0);
-    TEST(audioDevice->StartPlayout() == 0);
+    EXPECT_EQ(0, audioDevice->InitPlayout());
+    EXPECT_EQ(0, audioDevice->StartPlayout());
 
-    TEST(audioDevice->Recording() == true);
-    TEST(audioDevice->Playing() == true);
+    EXPECT_TRUE(audioDevice->Recording());
+    EXPECT_TRUE(audioDevice->Playing());
 
 #if defined(_WIN32_WCE) || defined(MAC_IPHONE)
     TEST_LOG("\nResetAudioDevice\n \n");
@@ -2693,7 +2679,7 @@ WebRtc_Word32 FuncTestManager::TestAdvancedMBAPI()
         TEST_LOG("Resetting sound device several time with pause %d ms\n", p);
         for (int l=0; l<20; ++l)
         {
-            TEST(audioDevice->ResetAudioDevice() == 0);
+            EXPECT_EQ(0, audioDevice->ResetAudioDevice());
             AudioDeviceUtility::Sleep(p);
         }
         TEST_LOG("\n> Speak into the microphone and verify that the audio is good.\n");
@@ -2712,27 +2698,27 @@ WebRtc_Word32 FuncTestManager::TestAdvancedMBAPI()
     }
 
     TEST_LOG("Set to use speaker\n");
-    TEST(audioDevice->SetLoudspeakerStatus(true) == 0);
+    EXPECT_EQ(0, audioDevice->SetLoudspeakerStatus(true));
     TEST_LOG("\n> Speak into the microphone and verify that the audio is"
         " from the loudspeaker.\n\
 > Press any key to stop...\n \n");
     PAUSE(DEFAULT_PAUSE_TIME);
-    TEST(audioDevice->GetLoudspeakerStatus(loudspeakerOn) == 0);
-    TEST(loudspeakerOn == true);
+    EXPECT_EQ(0, audioDevice->GetLoudspeakerStatus(loudspeakerOn));
+    EXPECT_TRUE(loudspeakerOn);
 
     TEST_LOG("Set to not use speaker\n");
-    TEST(audioDevice->SetLoudspeakerStatus(false) == 0);
+    EXPECT_EQ(0, audioDevice->SetLoudspeakerStatus(false));
     TEST_LOG("\n> Speak into the microphone and verify that the audio is not"
         " from the loudspeaker.\n\
 > Press any key to stop...\n \n");
     PAUSE(DEFAULT_PAUSE_TIME);
-    TEST(audioDevice->GetLoudspeakerStatus(loudspeakerOn) == 0);
-    TEST(loudspeakerOn == false);
+    EXPECT_EQ(0, audioDevice->GetLoudspeakerStatus(loudspeakerOn));
+    EXPECT_FALSE(loudspeakerOn);
 #endif
 
-    TEST(audioDevice->StopRecording() == 0);
-    TEST(audioDevice->StopPlayout() == 0);
-    TEST(audioDevice->RegisterAudioCallback(NULL) == 0);
+    EXPECT_EQ(0, audioDevice->StopRecording());
+    EXPECT_EQ(0, audioDevice->StopPlayout());
+    EXPECT_EQ(0, audioDevice->RegisterAudioCallback(NULL));
 
     _audioTransport->SetFullDuplex(false);
 

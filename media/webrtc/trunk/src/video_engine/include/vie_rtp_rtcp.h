@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -15,7 +15,6 @@
 //  - Obtaining RTCP data from incoming RTCP sender reports.
 //  - RTP and RTCP statistics (jitter, packet loss, RTT etc.).
 //  - Forward Error Correction (FEC).
-//  - RTP Keep‐alive for maintaining the NAT mappings associated to RTP flows.
 //  - Writing RTP and RTCP packets to binary files for off‐line analysis of the
 //    call quality.
 //  - Inserting extra RTP packets into active audio stream.
@@ -210,7 +209,8 @@ class WEBRTC_DLLEXPORT ViERTP_RTCP {
                             bool sender,
                             bool receiver) = 0;
 
-  // The function gets statistics from the received RTCP report.
+  // This function returns our locally created statistics of the received RTP
+  // stream.
   virtual int GetReceivedRTCPStatistics(
       const int video_channel,
       unsigned short& fraction_lost,
@@ -219,7 +219,8 @@ class WEBRTC_DLLEXPORT ViERTP_RTCP {
       unsigned int& jitter,
       int& rtt_ms) const = 0;
 
-  // The function gets statistics from the RTCP report sent to the receiver.
+  // This function returns statistics reported by the remote client in a RTCP
+  // packet.
   virtual int GetSentRTCPStatistics(const int video_channel,
                                     unsigned short& fraction_lost,
                                     unsigned int& cumulative_lost,
@@ -242,22 +243,18 @@ class WEBRTC_DLLEXPORT ViERTP_RTCP {
                                 unsigned int& fec_bitrate_sent,
                                 unsigned int& nackBitrateSent) const = 0;
 
-  // This function enables or disables an RTP keep-alive mechanism which can
-  // be used to maintain an existing Network Address Translator (NAT) mapping
-  // while regular RTP is no longer transmitted.
-  virtual int SetRTPKeepAliveStatus(
+  // This function gets the send-side estimated bandwidth available for video,
+  // including overhead, in bits/s.
+  virtual int GetEstimatedSendBandwidth(
       const int video_channel,
-      bool enable,
-      const char unknown_payload_type,
-      const unsigned int delta_transmit_time_seconds =
-          KDefaultDeltaTransmitTimeSeconds) = 0;
+      unsigned int* estimated_bandwidth) const = 0;
 
-  // This function gets the RTP keep-alive status.
-  virtual int GetRTPKeepAliveStatus(
+  // This function gets the receive-side estimated bandwidth available for
+  // video, including overhead, in bits/s.
+  // Returns -1 when no valid estimate is available.
+  virtual int GetEstimatedReceiveBandwidth(
       const int video_channel,
-      bool& enabled,
-      char& unkown_payload_type,
-      unsigned int& delta_transmit_time_seconds) const = 0;
+      unsigned int* estimated_bandwidth) const = 0;
 
   // This function enables capturing of RTP packets to a binary file on a
   // specific channel and for a given direction. The file can later be

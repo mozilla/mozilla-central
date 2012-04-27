@@ -94,10 +94,57 @@ TEST(RtpUtilsTest, GetRtp) {
   EXPECT_TRUE(GetRtpSsrc(kPcmuFrame, sizeof(kPcmuFrame), &ssrc));
   EXPECT_EQ(1u, ssrc);
 
+  RtpHeader header;
+  EXPECT_TRUE(GetRtpHeader(kPcmuFrame, sizeof(kPcmuFrame), &header));
+  EXPECT_EQ(0, header.payload_type);
+  EXPECT_EQ(1, header.seq_num);
+  EXPECT_EQ(0u, header.timestamp);
+  EXPECT_EQ(1u, header.ssrc);
+
   EXPECT_FALSE(GetRtpPayloadType(kInvalidPacket, sizeof(kInvalidPacket), &pt));
   EXPECT_FALSE(GetRtpSeqNum(kInvalidPacket, sizeof(kInvalidPacket), &seq_num));
   EXPECT_FALSE(GetRtpTimestamp(kInvalidPacket, sizeof(kInvalidPacket), &ts));
   EXPECT_FALSE(GetRtpSsrc(kInvalidPacket, sizeof(kInvalidPacket), &ssrc));
+}
+
+TEST(RtpUtilsTest, SetRtp) {
+  unsigned char packet[] = {
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+  };
+
+  EXPECT_TRUE(SetRtpHeaderFlags(packet, sizeof(packet), false, false, 0));
+  EXPECT_TRUE(SetRtpPayloadType(packet, sizeof(packet), 9u));
+  EXPECT_TRUE(SetRtpSeqNum(packet, sizeof(packet), 1111u));
+  EXPECT_TRUE(SetRtpTimestamp(packet, sizeof(packet), 2222u));
+  EXPECT_TRUE(SetRtpSsrc(packet, sizeof(packet), 3333u));
+
+  // Bits: 10 0 0 0000
+  EXPECT_EQ(128u, packet[0]);
+  size_t len;
+  EXPECT_TRUE(GetRtpHeaderLen(packet, sizeof(packet), &len));
+  EXPECT_EQ(12U, len);
+  RtpHeader header;
+  EXPECT_TRUE(GetRtpHeader(packet, sizeof(packet), &header));
+  EXPECT_EQ(9, header.payload_type);
+  EXPECT_EQ(1111, header.seq_num);
+  EXPECT_EQ(2222u, header.timestamp);
+  EXPECT_EQ(3333u, header.ssrc);
+
+  unsigned char packet2[] = {
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+  };
+
+  EXPECT_TRUE(SetRtpHeader(packet2, sizeof(packet2), header));
+
+  // Bits: 10 0 0 0000
+  EXPECT_EQ(128u, packet2[0]);
+  EXPECT_TRUE(GetRtpHeaderLen(packet2, sizeof(packet2), &len));
+  EXPECT_EQ(12U, len);
+  EXPECT_TRUE(GetRtpHeader(packet2, sizeof(packet2), &header));
+  EXPECT_EQ(9, header.payload_type);
+  EXPECT_EQ(1111, header.seq_num);
+  EXPECT_EQ(2222u, header.timestamp);
+  EXPECT_EQ(3333u, header.ssrc);
 }
 
 TEST(RtpUtilsTest, GetRtpHeaderLen) {
@@ -141,4 +188,3 @@ TEST(RtpUtilsTest, GetRtcp) {
 }
 
 }  // namespace cricket
-

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -41,12 +41,12 @@ TEST_F(SplTest, MacroTest) {
 
     EXPECT_EQ(-63, WEBRTC_SPL_MUL(a, B));
     EXPECT_EQ(-2147483645, WEBRTC_SPL_MUL(a, b));
-    EXPECT_EQ(-2147483645u, WEBRTC_SPL_UMUL(a, b));
+    EXPECT_EQ(2147483651u, WEBRTC_SPL_UMUL(a, b));
     b = WEBRTC_SPL_WORD16_MAX >> 1;
     EXPECT_EQ(65535u, WEBRTC_SPL_UMUL_RSFT16(a, b));
     EXPECT_EQ(1073627139u, WEBRTC_SPL_UMUL_16_16(a, b));
     EXPECT_EQ(16382u, WEBRTC_SPL_UMUL_16_16_RSFT16(a, b));
-    EXPECT_EQ(-49149u, WEBRTC_SPL_UMUL_32_16(a, b));
+    EXPECT_EQ(4294918147u, WEBRTC_SPL_UMUL_32_16(a, b));
     EXPECT_EQ(65535u, WEBRTC_SPL_UMUL_32_16_RSFT16(a, b));
     EXPECT_EQ(-49149, WEBRTC_SPL_MUL_16_U16(a, b));
 
@@ -394,8 +394,8 @@ TEST_F(SplTest, RandTest) {
 TEST_F(SplTest, SignalProcessingTest) {
     const int kVectorSize = 4;
     int A[] = {1, 2, 33, 100};
+    const WebRtc_Word16 kHanning[4] = { 2399, 8192, 13985, 16384 };
     WebRtc_Word16 b16[kVectorSize];
-    WebRtc_Word32 b32[kVectorSize];
 
     WebRtc_Word16 bTmp16[kVectorSize];
     WebRtc_Word32 bTmp32[kVectorSize];
@@ -404,26 +404,27 @@ TEST_F(SplTest, SignalProcessingTest) {
 
     for (int kk = 0; kk < kVectorSize; ++kk) {
         b16[kk] = A[kk];
-        b32[kk] = A[kk];
     }
 
     EXPECT_EQ(2, WebRtcSpl_AutoCorrelation(b16, kVectorSize, 1, bTmp32, &bScale));
-    WebRtcSpl_ReflCoefToLpc(b16, kVectorSize, bTmp16);
-//    for (int kk = 0; kk < kVectorSize; ++kk) {
-//        EXPECT_EQ(aTmp16[kk], bTmp16[kk]);
-//    }
-    WebRtcSpl_LpcToReflCoef(bTmp16, kVectorSize, b16);
-//    for (int kk = 0; kk < kVectorSize; ++kk) {
-//        EXPECT_EQ(a16[kk], b16[kk]);
-//    }
-    WebRtcSpl_AutoCorrToReflCoef(b32, kVectorSize, bTmp16);
-//    for (int kk = 0; kk < kVectorSize; ++kk) {
-//        EXPECT_EQ(aTmp16[kk], bTmp16[kk]);
-//    }
+    // TODO(bjornv): Activate the Reflection Coefficient tests when refactoring.
+//    WebRtcSpl_ReflCoefToLpc(b16, kVectorSize, bTmp16);
+////    for (int kk = 0; kk < kVectorSize; ++kk) {
+////        EXPECT_EQ(aTmp16[kk], bTmp16[kk]);
+////    }
+//    WebRtcSpl_LpcToReflCoef(bTmp16, kVectorSize, b16);
+////    for (int kk = 0; kk < kVectorSize; ++kk) {
+////        EXPECT_EQ(a16[kk], b16[kk]);
+////    }
+//    WebRtcSpl_AutoCorrToReflCoef(b32, kVectorSize, bTmp16);
+////    for (int kk = 0; kk < kVectorSize; ++kk) {
+////        EXPECT_EQ(aTmp16[kk], bTmp16[kk]);
+////    }
+
     WebRtcSpl_GetHanningWindow(bTmp16, kVectorSize);
-//    for (int kk = 0; kk < kVectorSize; ++kk) {
-//        EXPECT_EQ(aTmp16[kk], bTmp16[kk]);
-//    }
+    for (int kk = 0; kk < kVectorSize; ++kk) {
+        EXPECT_EQ(kHanning[kk], bTmp16[kk]);
+    }
 
     for (int kk = 0; kk < kVectorSize; ++kk) {
         b16[kk] = A[kk];

@@ -67,23 +67,69 @@ static bool AddCryptoParams(const std::string& cipher_suite,
   out->resize(size + 1);
   return CreateCryptoParams(size, cipher_suite, &out->at(size));
 }
+
+void AddMediaCryptos(const CryptoParamsVec& cryptos,
+                     MediaContentDescription* media) {
+  for (CryptoParamsVec::const_iterator crypto = cryptos.begin();
+       crypto != cryptos.end(); ++crypto) {
+    media->AddCrypto(*crypto);
+  }
+}
+
+bool CreateMediaCryptos(const std::vector<std::string>& crypto_suites,
+                        MediaContentDescription* media) {
+  CryptoParamsVec cryptos;
+  for (std::vector<std::string>::const_iterator it = crypto_suites.begin();
+       it != crypto_suites.end(); ++it) {
+    if (!AddCryptoParams(*it, &cryptos)) {
+      return false;
+    }
+  }
+  AddMediaCryptos(cryptos, media);
+  return true;
+}
 #endif
 
-// For audio, HMAC 32 is prefered because of the low overhead.
-static bool GetSupportedAudioCryptos(CryptoParamsVec* cryptos) {
-#ifdef HAVE_SRTP
-  return AddCryptoParams(CS_AES_CM_128_HMAC_SHA1_32, cryptos) &&
-      AddCryptoParams(CS_AES_CM_128_HMAC_SHA1_80, cryptos);
-#else
+const CryptoParamsVec* GetCryptos(const MediaContentDescription* media) {
+  if (!media) {
+    return NULL;
+  }
+  return &media->cryptos();
+}
+
+bool FindMatchingCrypto(const CryptoParamsVec& cryptos,
+                        const CryptoParams& crypto,
+                        CryptoParams* out) {
+  for (CryptoParamsVec::const_iterator it = cryptos.begin();
+       it != cryptos.end(); ++it) {
+    if (crypto.Matches(*it)) {
+      *out = *it;
+      return true;
+    }
+  }
   return false;
+}
+
+// For audio, HMAC 32 is prefered because of the low overhead.
+static void GetSupportedAudioCryptoSuites(
+    std::vector<std::string>* crypto_suites) {
+#ifdef HAVE_SRTP
+  crypto_suites->push_back(CS_AES_CM_128_HMAC_SHA1_32);
+  crypto_suites->push_back(CS_AES_CM_128_HMAC_SHA1_80);
 #endif
 }
 
-static bool GetSupportedVideoCryptos(CryptoParamsVec* cryptos) {
+static void GetSupportedVideoCryptoSuites(
+    std::vector<std::string>* crypto_suites) {
 #ifdef HAVE_SRTP
-  return AddCryptoParams(CS_AES_CM_128_HMAC_SHA1_80, cryptos);
-#else
-  return false;
+  crypto_suites->push_back(CS_AES_CM_128_HMAC_SHA1_80);
+#endif
+}
+
+static void GetSupportedDataCryptoSuites(
+    std::vector<std::string>* crypto_suites) {
+#ifdef HAVE_SRTP
+  crypto_suites->push_back(CS_AES_CM_128_HMAC_SHA1_80);
 #endif
 }
 
@@ -173,8 +219,11 @@ static void GetCurrentStreamParams(const SessionDescription* sdesc,
   const ContentInfos& contents = sdesc->contents();
   for (ContentInfos::const_iterator content = contents.begin();
        content != contents.end(); content++) {
-    if (!IsAudioContent(&*content) && !IsVideoContent(&*content))
+    if (!IsAudioContent(&*content) &&
+        !IsVideoContent(&*content) &&
+        !IsDataContent(&*content)) {
       continue;
+    }
     const MediaContentDescription* media =
         static_cast<const MediaContentDescription*>(
             content->description);
@@ -192,7 +241,7 @@ static void GetCurrentStreamParams(const SessionDescription* sdesc,
 static bool AddStreamParams(
     MediaType media_type,
     const MediaSessionOptions::Streams& streams,
-    StreamParamsVec* current_params,
+    StreamParamsVec* current_streams,
     MediaContentDescription* content_description) {
   for (MediaSessionOptions::Streams::const_iterator stream_it = streams.begin();
        stream_it != streams.end(); ++stream_it) {
@@ -202,15 +251,15 @@ static bool AddStreamParams(
     StreamParams param;
     // nick is empty for StreamParams generated using
     // MediaSessionDescriptionFactory.
-    if (!GetStreamByNickAndName(*current_params, "", stream_it->name, &param)) {
+    if (!GetStreamByNickAndName(*current_streams, "", stream_it->name, &param)) {
       // This is a new stream.
       // Get a CNAME. Either new or same as one of the other synched streams.
       std::string cname;
-      if (!GenerateCname(*current_params, streams, stream_it->sync_label,
+      if (!GenerateCname(*current_streams, streams, stream_it->sync_label,
                          &cname)) {
         return false;
       }
-      uint32 ssrc = GenerateSsrc(*current_params);
+      uint32 ssrc = GenerateSsrc(*current_streams);
       // TODO: Generate the more complex types of stream_params.
 
       StreamParams stream_param;
@@ -220,13 +269,138 @@ static bool AddStreamParams(
       stream_param.sync_label = stream_it->sync_label;
       content_description->AddStream(stream_param);
 
-      // Store the new StreamParams in current_params.
+      // Store the new StreamParams in current_streams.
       // This is necessary so that we can use the CNAME for other media types.
-      current_params->push_back(stream_param);
+      current_streams->push_back(stream_param);
     } else {
       content_description->AddStream(param);
     }
   }
+  return true;
+}
+
+// Create a media content to be offered in a session-initiate,
+// according to the given options.rtcp_mux, options.is_muc,
+// options.streams, codecs, crypto, and streams.  If we don't
+// currently have crypto (in current_cryptos) and it is enabled (in
+// secure_policy), crypto is created (according to crypto_suites).  If
+// add_legacy_stream is true, and current_streams is empty, a legacy
+// stream is created.  The created content is added to the offer.
+template <class C>
+static bool CreateMediaContentOffer(
+    const MediaSessionOptions& options,
+    const std::vector<C>& codecs,
+    const SecureMediaPolicy& secure_policy,
+    const CryptoParamsVec* current_cryptos,
+    const std::vector<std::string>& crypto_suites,
+    bool add_legacy_stream,
+    StreamParamsVec* current_streams,
+    MediaContentDescriptionImpl<C>* offer) {
+  offer->AddCodecs(codecs);
+  offer->SortCodecs();
+
+  offer->set_crypto_required(secure_policy == SEC_REQUIRED);
+  offer->set_rtcp_mux(options.rtcp_mux_enabled);
+  offer->set_multistream(options.is_muc);
+
+  if (!AddStreamParams(
+          offer->type(), options.streams, current_streams, offer)) {
+    return false;
+  }
+
+  if (options.streams.empty() && add_legacy_stream) {
+    // TODO: Remove this legacy stream when all apps use StreamParams.
+    offer->AddLegacyStream(talk_base::CreateRandomNonZeroId());
+  }
+
+  if (secure_policy != SEC_DISABLED) {
+    if (current_cryptos) {
+      AddMediaCryptos(*current_cryptos, offer);
+    }
+    if (offer->cryptos().empty()) {
+      if (!CreateMediaCryptos(crypto_suites, offer)) {
+        return false;
+      }
+    }
+  }
+
+  if (offer->crypto_required() && offer->cryptos().empty()) {
+    return false;
+  }
+
+  return true;
+}
+
+template <class C>
+static void NegotiateCodecs(const std::vector<C>& local_codecs,
+                     const std::vector<C>& offered_codecs,
+                     std::vector<C>* negotiated_codecs) {
+  typename std::vector<C>::const_iterator ours;
+  for (ours = local_codecs.begin();
+       ours != local_codecs.end(); ++ours) {
+    typename std::vector<C>::const_iterator theirs;
+    for (theirs = offered_codecs.begin();
+         theirs != offered_codecs.end(); ++theirs) {
+      if (ours->Matches(*theirs)) {
+        C negotiated(*ours);
+        negotiated.id = theirs->id;
+        negotiated_codecs->push_back(negotiated);
+      }
+    }
+  }
+}
+
+// Create a media content to be answered in a session-accept,
+// according to the given options.rtcp_mux, options.streams, codecs,
+// crypto, and streams.  If we don't currently have crypto (in
+// current_cryptos) and it is enabled (in secure_policy), crypto is
+// created (according to crypto_suites).  If add_legacy_stream is
+// true, and current_streams is empty, a legacy stream is created.
+// The codecs, rtcp_mux, and crypto are all negotiated with the offer
+// from the incoming session-initiate.  If the negotiation fails, this
+// method returns false.  The created content is added to the offer.
+template <class C>
+static bool CreateMediaContentAnswer(
+    const MediaContentDescriptionImpl<C>* offer,
+    const MediaSessionOptions& options,
+    const std::vector<C>& local_codecs,
+    const SecureMediaPolicy& secure_policy,
+    const CryptoParamsVec* current_cryptos,
+    StreamParamsVec* current_streams,
+    bool add_legacy_stream,
+    MediaContentDescriptionImpl<C>* answer) {
+  std::vector<C> negotiated_codecs;
+  NegotiateCodecs(local_codecs, offer->codecs(), &negotiated_codecs);
+  answer->AddCodecs(negotiated_codecs);
+  answer->SortCodecs();
+
+  answer->set_rtcp_mux(options.rtcp_mux_enabled && offer->rtcp_mux());
+
+  if (secure_policy != SEC_DISABLED) {
+    CryptoParams crypto;
+    if (SelectCrypto(offer, &crypto)) {
+      if (current_cryptos) {
+        FindMatchingCrypto(*current_cryptos, crypto, &crypto);
+      }
+      answer->AddCrypto(crypto);
+    }
+  }
+
+  if (answer->cryptos().empty() &&
+      (offer->crypto_required() || secure_policy == SEC_REQUIRED)) {
+    return false;
+  }
+
+  if (!AddStreamParams(
+          answer->type(), options.streams, current_streams, answer)) {
+    return false;  // Something went seriously wrong.
+  }
+
+  if (options.streams.empty() && add_legacy_stream) {
+    // TODO: Remove this legacy stream when all apps use StreamParams.
+    answer->AddLegacyStream(talk_base::CreateRandomNonZeroId());
+  }
+
   return true;
 }
 
@@ -239,6 +413,8 @@ void MediaSessionOptions::AddStream(MediaType type,
     has_video = true;
   else if (type == MEDIA_TYPE_AUDIO)
     has_audio = true;
+  else if (type == MEDIA_TYPE_DATA)
+    has_data = true;
 }
 
 void MediaSessionOptions::RemoveStream(MediaType type,
@@ -264,6 +440,7 @@ MediaSessionDescriptionFactory::MediaSessionDescriptionFactory(
       add_legacy_(true) {
   channel_manager->GetSupportedAudioCodecs(&audio_codecs_);
   channel_manager->GetSupportedVideoCodecs(&video_codecs_);
+  channel_manager->GetSupportedDataCodecs(&data_codecs_);
 }
 
 SessionDescription* MediaSessionDescriptionFactory::CreateOffer(
@@ -271,107 +448,69 @@ SessionDescription* MediaSessionDescriptionFactory::CreateOffer(
     const SessionDescription* current_description) {
   scoped_ptr<SessionDescription> offer(new SessionDescription());
 
-  StreamParamsVec current_params;
-  GetCurrentStreamParams(current_description, &current_params);
+  StreamParamsVec current_streams;
+  GetCurrentStreamParams(current_description, &current_streams);
 
   if (options.has_audio) {
     scoped_ptr<AudioContentDescription> audio(new AudioContentDescription());
-    for (AudioCodecs::const_iterator codec = audio_codecs_.begin();
-         codec != audio_codecs_.end(); ++codec) {
-      audio->AddCodec(*codec);
-    }
-    audio->SortCodecs();
-    if (!AddStreamParams(MEDIA_TYPE_AUDIO, options.streams, &current_params,
-                         audio.get())) {
-      return NULL;  // Abort, something went seriously wrong.
-    }
+    std::vector<std::string> crypto_suites;
+    GetSupportedAudioCryptoSuites(&crypto_suites);
 
-    if (options.streams.empty() && add_legacy_) {
-      // TODO: Remove this legacy stream when all apps use StreamParams.
-      audio->AddLegacyStream(talk_base::CreateRandomNonZeroId());
+    if (!CreateMediaContentOffer(
+            options,
+            audio_codecs_,
+            secure(),
+            GetCryptos(GetFirstAudioContentDescription(current_description)),
+            crypto_suites,
+            add_legacy_,
+            &current_streams,
+            audio.get())) {
+      return NULL;
     }
-    audio->set_multistream(options.is_muc);
-    audio->set_rtcp_mux(options.rtcp_mux_enabled);
     audio->set_lang(lang_);
-
-    if (secure() != SEC_DISABLED) {
-      CryptoParamsVec audio_cryptos;
-      if (current_description) {
-        // Copy crypto parameters from the previous offer.
-        const ContentInfo* info =
-            GetFirstAudioContent(current_description);
-        if (info) {
-          const AudioContentDescription* desc =
-              static_cast<const AudioContentDescription*>(info->description);
-          audio_cryptos = desc->cryptos();
-        }
-      }
-      if (audio_cryptos.empty())
-        GetSupportedAudioCryptos(&audio_cryptos);  // Generate new cryptos.
-
-      for (CryptoParamsVec::const_iterator crypto = audio_cryptos.begin();
-           crypto != audio_cryptos.end(); ++crypto) {
-        audio->AddCrypto(*crypto);
-      }
-
-      if (secure() == SEC_REQUIRED) {
-        if (audio->cryptos().empty()) {
-          return NULL;  // Abort, crypto required but none found.
-        }
-        audio->set_crypto_required(true);
-      }
-    }
-
     offer->AddContent(CN_AUDIO, NS_JINGLE_RTP, audio.release());
   }
 
-  // add video codecs, if this is a video call
   if (options.has_video) {
     scoped_ptr<VideoContentDescription> video(new VideoContentDescription());
-    for (VideoCodecs::const_iterator codec = video_codecs_.begin();
-         codec != video_codecs_.end(); ++codec) {
-      video->AddCodec(*codec);
+    std::vector<std::string> crypto_suites;
+    GetSupportedVideoCryptoSuites(&crypto_suites);
+
+    if (!CreateMediaContentOffer(
+            options,
+            video_codecs_,
+            secure(),
+            GetCryptos(GetFirstVideoContentDescription(current_description)),
+            crypto_suites,
+            add_legacy_,
+            &current_streams,
+            video.get())) {
+      return NULL;
     }
 
-    video->SortCodecs();
-    if (!AddStreamParams(MEDIA_TYPE_VIDEO, options.streams, &current_params,
-                         video.get())) {
-      return NULL;  // Abort, something went seriously wrong.
-    }
-
-    if (options.streams.empty() && add_legacy_) {
-      // TODO: Remove this legacy stream when all apps use StreamParams.
-      video->AddLegacyStream(talk_base::CreateRandomNonZeroId());
-    }
-    video->set_multistream(options.is_muc);
     video->set_bandwidth(options.video_bandwidth);
-    video->set_rtcp_mux(options.rtcp_mux_enabled);
+    offer->AddContent(CN_VIDEO, NS_JINGLE_RTP, video.release());
+  }
 
-    if (secure() != SEC_DISABLED) {
-      CryptoParamsVec video_cryptos;
-      if (current_description) {
-        // Copy crypto parameters from the previous offer.
-        const VideoContentDescription* desc =
-            GetFirstVideoContentDescription(current_description);
-        if (desc) {
-          video_cryptos = desc->cryptos();
-        }
-      }
-      if (video_cryptos.empty())
-        GetSupportedVideoCryptos(&video_cryptos);  // Generate new crypto.
-      for (CryptoParamsVec::const_iterator crypto = video_cryptos.begin();
-           crypto != video_cryptos.end(); ++crypto) {
-        video->AddCrypto(*crypto);
-      }
-      if (secure() == SEC_REQUIRED) {
-        if (video->cryptos().empty()) {
-          return NULL;  // Abort, crypto required but none found.
-        }
-        video->set_crypto_required(true);
-      }
+  if (options.has_data) {
+    scoped_ptr<DataContentDescription> data(new DataContentDescription());
+    std::vector<std::string> crypto_suites;
+    GetSupportedDataCryptoSuites(&crypto_suites);
+
+    if (!CreateMediaContentOffer(
+            options,
+            data_codecs_,
+            secure(),
+            GetCryptos(GetFirstDataContentDescription(current_description)),
+            crypto_suites,
+            add_legacy_,
+            &current_streams,
+            data.get())) {
+      return NULL;
     }
 
-    offer->AddContent(CN_VIDEO, NS_JINGLE_RTP, video.release());
+    data->set_bandwidth(options.data_bandwidth);
+    offer->AddContent(CN_DATA, NS_JINGLE_RTP, data.release());
   }
 
   return offer.release();
@@ -385,68 +524,23 @@ SessionDescription* MediaSessionDescriptionFactory::CreateAnswer(
   // XEP-0167, we retain the same payload ids from the offer in the answer.
   scoped_ptr<SessionDescription> accept(new SessionDescription());
 
-  StreamParamsVec current_params;
-  GetCurrentStreamParams(current_description, &current_params);
+  StreamParamsVec current_streams;
+  GetCurrentStreamParams(current_description, &current_streams);
 
   const ContentInfo* audio_content = GetFirstAudioContent(offer);
   if (audio_content && options.has_audio) {
-    const AudioContentDescription* audio_offer =
-        static_cast<const AudioContentDescription*>(audio_content->description);
     scoped_ptr<AudioContentDescription> audio_accept(
         new AudioContentDescription());
-    for (AudioCodecs::const_iterator ours = audio_codecs_.begin();
-        ours != audio_codecs_.end(); ++ours) {
-      for (AudioCodecs::const_iterator theirs = audio_offer->codecs().begin();
-          theirs != audio_offer->codecs().end(); ++theirs) {
-        if (ours->Matches(*theirs)) {
-          AudioCodec negotiated(*ours);
-          negotiated.id = theirs->id;
-          audio_accept->AddCodec(negotiated);
-        }
-      }
-    }
-
-    audio_accept->SortCodecs();
-    if (!AddStreamParams(MEDIA_TYPE_AUDIO, options.streams, &current_params,
-                         audio_accept.get())) {
-      return NULL;  // Abort, something went seriously wrong.
-    }
-
-    if (options.streams.empty() && add_legacy_) {
-      // TODO: Remove this legacy stream when all apps use StreamParams.
-      audio_accept->AddLegacyStream(talk_base::CreateRandomNonZeroId());
-    }
-    audio_accept->set_rtcp_mux(
-        options.rtcp_mux_enabled && audio_offer->rtcp_mux());
-
-    if (secure() != SEC_DISABLED) {
-      CryptoParams crypto;
-
-      if (SelectCrypto(audio_offer, &crypto)) {
-        if (current_description) {
-          // Check if this crypto already exist in the previous
-          // session description. Use it in that case.
-          const ContentInfo* info =
-              GetFirstAudioContent(current_description);
-          if (info) {
-            const AudioContentDescription* desc =
-                static_cast<const AudioContentDescription*>(info->description);
-            const CryptoParamsVec& cryptos = desc->cryptos();
-            for (CryptoParamsVec::const_iterator it = cryptos.begin();
-                it != cryptos.end(); ++it) {
-              if (crypto.Matches(*it)) {
-                crypto = *it;
-                break;
-              }
-            }
-          }
-        }
-        audio_accept->AddCrypto(crypto);
-      }
-    }
-
-    if (audio_accept->cryptos().empty() &&
-        (audio_offer->crypto_required() || secure() == SEC_REQUIRED)) {
+    if (!CreateMediaContentAnswer(
+            static_cast<const AudioContentDescription*>(
+                audio_content->description),
+            options,
+            audio_codecs_,
+            secure(),
+            GetCryptos(GetFirstAudioContentDescription(current_description)),
+            &current_streams,
+            add_legacy_,
+            audio_accept.get())) {
       return NULL;  // Fails the session setup.
     }
     accept->AddContent(audio_content->name, audio_content->type,
@@ -457,68 +551,50 @@ SessionDescription* MediaSessionDescriptionFactory::CreateAnswer(
 
   const ContentInfo* video_content = GetFirstVideoContent(offer);
   if (video_content && options.has_video) {
-    const VideoContentDescription* video_offer =
-        static_cast<const VideoContentDescription*>(video_content->description);
     scoped_ptr<VideoContentDescription> video_accept(
         new VideoContentDescription());
-    for (VideoCodecs::const_iterator ours = video_codecs_.begin();
-        ours != video_codecs_.end(); ++ours) {
-      for (VideoCodecs::const_iterator theirs = video_offer->codecs().begin();
-          theirs != video_offer->codecs().end(); ++theirs) {
-        if (ours->Matches(*theirs)) {
-          VideoCodec negotiated(*ours);
-          negotiated.id = theirs->id;
-          video_accept->AddCodec(negotiated);
-        }
-      }
-    }
-    if (!AddStreamParams(MEDIA_TYPE_VIDEO, options.streams, &current_params,
-                         video_accept.get())) {
-      return NULL;  // Abort, something went seriously wrong.
-    }
-
-    if (options.streams.empty() && add_legacy_) {
-      // TODO: Remove this legacy stream when all apps use StreamParams.
-      video_accept->AddLegacyStream(talk_base::CreateRandomNonZeroId());
-    }
-    video_accept->set_bandwidth(options.video_bandwidth);
-    video_accept->set_rtcp_mux(
-        options.rtcp_mux_enabled && video_offer->rtcp_mux());
-    video_accept->SortCodecs();
-
-    if (secure() != SEC_DISABLED) {
-      CryptoParams crypto;
-
-      if (SelectCrypto(video_offer, &crypto)) {
-        if (current_description) {
-          // Check if this crypto already exist in the previous
-          // session description. Use it in that case.
-          const VideoContentDescription* desc =
-              GetFirstVideoContentDescription(current_description);
-          if (desc) {
-            const CryptoParamsVec& cryptos = desc->cryptos();
-            for (CryptoParamsVec::const_iterator it = cryptos.begin();
-                 it != cryptos.end(); ++it) {
-              if (crypto.Matches(*it)) {
-                crypto = *it;
-                break;
-              }
-            }
-          }
-        }
-        video_accept->AddCrypto(crypto);
-      }
-    }
-
-    if (video_accept->cryptos().empty() &&
-        (video_offer->crypto_required() || secure() == SEC_REQUIRED)) {
+    if (!CreateMediaContentAnswer(
+            static_cast<const VideoContentDescription*>(
+                video_content->description),
+            options,
+            video_codecs_,
+            secure(),
+            GetCryptos(GetFirstVideoContentDescription(current_description)),
+            &current_streams,
+            add_legacy_,
+            video_accept.get())) {
       return NULL;  // Fails the session setup.
     }
+    video_accept->set_bandwidth(options.video_bandwidth);
     accept->AddContent(video_content->name, video_content->type,
                        video_accept.release());
   } else {
     LOG(LS_INFO) << "Video is not supported in answer";
   }
+
+  const ContentInfo* data_content = GetFirstDataContent(offer);
+  if (data_content && options.has_data) {
+    scoped_ptr<DataContentDescription> data_accept(
+        new DataContentDescription());
+    if (!CreateMediaContentAnswer(
+            static_cast<const DataContentDescription*>(
+                data_content->description),
+            options,
+            data_codecs_,
+            secure(),
+            GetCryptos(GetFirstDataContentDescription(current_description)),
+            &current_streams,
+            add_legacy_,
+            data_accept.get())) {
+      return NULL;  // Fails the session setup.
+    }
+    data_accept->set_bandwidth(options.data_bandwidth);
+    accept->AddContent(data_content->name, data_content->type,
+                       data_accept.release());
+  } else {
+    LOG(LS_INFO) << "Data is not supported in answer";
+  }
+
   return accept.release();
 }
 
@@ -540,6 +616,10 @@ bool IsVideoContent(const ContentInfo* content) {
   return IsMediaContent(content, MEDIA_TYPE_VIDEO);
 }
 
+bool IsDataContent(const ContentInfo* content) {
+  return IsMediaContent(content, MEDIA_TYPE_DATA);
+}
+
 static const ContentInfo* GetFirstMediaContent(const ContentInfos& contents,
                                                MediaType media_type) {
   for (ContentInfos::const_iterator content = contents.begin();
@@ -559,6 +639,10 @@ const ContentInfo* GetFirstVideoContent(const ContentInfos& contents) {
   return GetFirstMediaContent(contents, MEDIA_TYPE_VIDEO);
 }
 
+const ContentInfo* GetFirstDataContent(const ContentInfos& contents) {
+  return GetFirstMediaContent(contents, MEDIA_TYPE_DATA);
+}
+
 static const ContentInfo* GetFirstMediaContent(const SessionDescription* sdesc,
                                                MediaType media_type) {
   if (sdesc == NULL)
@@ -575,18 +659,33 @@ const ContentInfo* GetFirstVideoContent(const SessionDescription* sdesc) {
   return GetFirstMediaContent(sdesc, MEDIA_TYPE_VIDEO);
 }
 
+const ContentInfo* GetFirstDataContent(const SessionDescription* sdesc) {
+  return GetFirstMediaContent(sdesc, MEDIA_TYPE_DATA);
+}
+
+const MediaContentDescription* GetFirstMediaContentDescription(
+    const SessionDescription* sdesc, MediaType media_type) {
+  const ContentInfo* content = GetFirstMediaContent(sdesc, media_type);
+  const ContentDescription* description = content ? content->description : NULL;
+  return static_cast<const MediaContentDescription*>(description);
+}
+
 const AudioContentDescription* GetFirstAudioContentDescription(
     const SessionDescription* sdesc) {
-  const ContentInfo* content = GetFirstAudioContent(sdesc);
-  const ContentDescription* description = content ? content->description : NULL;
-  return static_cast<const AudioContentDescription*>(description);
+  return static_cast<const AudioContentDescription*>(
+      GetFirstMediaContentDescription(sdesc, MEDIA_TYPE_AUDIO));
 }
 
 const VideoContentDescription* GetFirstVideoContentDescription(
     const SessionDescription* sdesc) {
-  const ContentInfo* content = GetFirstVideoContent(sdesc);
-  const ContentDescription* description = content ? content->description : NULL;
-  return static_cast<const VideoContentDescription*>(description);
+  return static_cast<const VideoContentDescription*>(
+      GetFirstMediaContentDescription(sdesc, MEDIA_TYPE_VIDEO));
+}
+
+const DataContentDescription* GetFirstDataContentDescription(
+    const SessionDescription* sdesc) {
+  return static_cast<const DataContentDescription*>(
+      GetFirstMediaContentDescription(sdesc, MEDIA_TYPE_DATA));
 }
 
 }  // namespace cricket

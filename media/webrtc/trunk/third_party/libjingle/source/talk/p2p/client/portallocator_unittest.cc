@@ -80,37 +80,37 @@ class PortAllocatorTest : public testing::Test, public sigslot::has_slots<> {
         relay_server_(Thread::Current(), kRelayUdpIntAddr, kRelayUdpExtAddr,
                       kRelayTcpIntAddr, kRelayTcpExtAddr,
                       kRelaySslTcpIntAddr, kRelaySslTcpExtAddr),
-        allocator_(&network_manager_, kStunAddr,
-                   kRelayUdpIntAddr, kRelayTcpIntAddr, kRelaySslTcpIntAddr) {
+        allocator_(new cricket::BasicPortAllocator(
+            &network_manager_, kStunAddr,
+            kRelayUdpIntAddr, kRelayTcpIntAddr, kRelaySslTcpIntAddr)),
+        candidate_allocation_done_(false) {
   }
 
   void AddInterface(const SocketAddress& addr) {
     network_manager_.AddInterface(addr);
   }
   bool SetPortRange(int min_port, int max_port) {
-    return allocator_.SetPortRange(min_port, max_port);
+    return allocator_->SetPortRange(min_port, max_port);
   }
+
   bool CreateSession(const std::string& name, const std::string& type) {
-    session_.reset(allocator_.CreateSession(name, type));
+    session_.reset(CreateSession("session", name, type));
     if (!session_.get())
       return false;
-
-    session_->SignalPortReady.connect(this,
-        &PortAllocatorTest::OnPortReady);
-    session_->SignalCandidatesReady.connect(this,
-        &PortAllocatorTest::OnCandidatesReady);
     return true;
   }
 
   cricket::PortAllocatorSession* CreateSession(
       const std::string& sid, const std::string& name,
-      const std::string& type, cricket::PortAllocator* allocator) {
+      const std::string& type) {
     cricket::PortAllocatorSession* session =
-        allocator->CreateSession(sid, name, type);
+        allocator_->CreateSession(sid, name, type);
     session->SignalPortReady.connect(this,
             &PortAllocatorTest::OnPortReady);
     session->SignalCandidatesReady.connect(this,
         &PortAllocatorTest::OnCandidatesReady);
+    session->SignalCandidatesAllocationDone.connect(this,
+        &PortAllocatorTest::OnCandidatesAllocationDone);
     return session;
   }
 
@@ -127,19 +127,14 @@ class PortAllocatorTest : public testing::Test, public sigslot::has_slots<> {
     return (addr.port() >= min_port && addr.port() <= max_port);
   }
 
-  cricket::PortAllocator* CreateAllocator() {
-    return new cricket::BasicPortAllocator(
-        &network_manager_, kStunAddr, SocketAddress(),
-        SocketAddress(), SocketAddress());
-  }
-
-  cricket::P2PTransportChannel* CreateTransportChannel(
-      const std::string& name, cricket::PortAllocator* allocator) {
-    return new cricket::P2PTransportChannel(name, "unittest", NULL, allocator);
+  void OnCandidatesAllocationDone(cricket::PortAllocatorSession* allocator) {
+    candidate_allocation_done_ = true;
   }
 
  protected:
-  cricket::BasicPortAllocator& allocator() { return allocator_; }
+  cricket::BasicPortAllocator& allocator() {
+    return reinterpret_cast<cricket::BasicPortAllocator&> (*(allocator_.get()));
+  }
 
   void OnPortReady(cricket::PortAllocatorSession* ses, cricket::Port* port) {
     LOG(LS_INFO) << "OnPortReady: " << port->ToString();
@@ -160,10 +155,11 @@ class PortAllocatorTest : public testing::Test, public sigslot::has_slots<> {
   cricket::TestStunServer stun_server_;
   cricket::TestRelayServer relay_server_;
   talk_base::FakeNetworkManager network_manager_;
-  cricket::BasicPortAllocator allocator_;
+  talk_base::scoped_ptr<cricket::PortAllocator> allocator_;
   talk_base::scoped_ptr<cricket::PortAllocatorSession> session_;
   std::vector<cricket::Port*> ports_;
   std::vector<cricket::Candidate> candidates_;
+  bool candidate_allocation_done_;
 };
 
 // Tests that we can init the port allocator and create a session.
@@ -213,6 +209,7 @@ TEST_F(PortAllocatorTest, TestGetAllPorts) {
   EXPECT_PRED5(CheckCandidate, candidates_[6],
       "rtp", "relay", "ssltcp", kRelaySslTcpIntAddr);
   EXPECT_EQ(4U, ports_.size());
+  EXPECT_TRUE(candidate_allocation_done_);
 }
 
 // Test that we restrict client ports appropriately when a port range is set.
@@ -242,6 +239,9 @@ TEST_F(PortAllocatorTest, TestGetAllPortsPortRange) {
                kMinPort, kMaxPort);
   ASSERT_EQ_WAIT(6U, candidates_.size(), 1500);
   EXPECT_EQ(4U, ports_.size());
+  ASSERT_EQ_WAIT(7U, candidates_.size(), 2000);
+  EXPECT_EQ(4U, ports_.size());
+  EXPECT_TRUE(candidate_allocation_done_);
   // Check the port number for the TCP port object.
   EXPECT_PRED3(CheckPort, candidates_[5].address(), kMinPort, kMaxPort);
 }
@@ -253,6 +253,7 @@ TEST_F(PortAllocatorTest, TestGetAllPortsNoAdapters) {
   session_->GetInitialPorts();
   session_->StartGetAllPorts();
   WAIT(candidates_.size() > 0, 2000);
+  EXPECT_TRUE(candidate_allocation_done_);
 }
 
 // Test that we don't crash or malfunction if we can't create UDP sockets.
@@ -277,6 +278,7 @@ TEST_F(PortAllocatorTest, TestGetAllPortsNoUdpSockets) {
   EXPECT_PRED5(CheckCandidate, candidates_[4],
       "rtp", "relay", "ssltcp", kRelaySslTcpIntAddr);
   EXPECT_EQ(2U, ports_.size());
+  EXPECT_TRUE(candidate_allocation_done_);
 }
 
 // Test that we don't crash or malfunction if we can't create UDP sockets or
@@ -304,6 +306,7 @@ TEST_F(PortAllocatorTest, TestGetAllPortsNoUdpSocketsNoTcpListen) {
   EXPECT_PRED5(CheckCandidate, candidates_[4],
       "rtp", "relay", "ssltcp", kRelaySslTcpIntAddr);
   EXPECT_EQ(2U, ports_.size());
+  EXPECT_TRUE(candidate_allocation_done_);
 }
 
 // Test that we don't crash or malfunction if we can't create any sockets.
@@ -316,6 +319,104 @@ TEST_F(PortAllocatorTest, TestGetAllPortsNoSockets) {
   session_->GetInitialPorts();
   session_->StartGetAllPorts();
   WAIT(candidates_.size() > 0, 2000);
+  // TODO - Check candidate_allocation_done signal.
+  // In case of Relay, ports creation will succeed but sockets will fail.
+  // There is no error reporting from RelayEntry to handle this failure.
+}
+
+// Testing STUN timeout.
+TEST_F(PortAllocatorTest, TestGetAllPortsNoUdpAllowed) {
+  fss_->AddRule(false, talk_base::FP_UDP, talk_base::FD_ANY, kClientAddr);
+  AddInterface(kClientAddr);
+  EXPECT_TRUE(CreateSession("rtp", "unittest"));
+  session_->GetInitialPorts();
+  session_->StartGetAllPorts();
+  EXPECT_EQ_WAIT(1U, candidates_.size(), 1000);
+  EXPECT_PRED5(CheckCandidate, candidates_[0],
+      "rtp", "local", "udp", kClientAddr);
+  EXPECT_EQ_WAIT(2U, candidates_.size(), 3000);
+  EXPECT_PRED5(CheckCandidate, candidates_[1],
+      "rtp", "local", "tcp", kClientAddr);
+  EXPECT_EQ(2U, ports_.size());
+  EXPECT_EQ_WAIT(6U, candidates_.size(), 3000);
+  EXPECT_PRED5(CheckCandidate, candidates_[2],
+      "rtp", "relay", "udp", kRelayUdpIntAddr);
+  EXPECT_PRED5(CheckCandidate, candidates_[3],
+      "rtp", "relay", "tcp", kRelayTcpIntAddr);
+  EXPECT_PRED5(CheckCandidate, candidates_[4],
+      "rtp", "relay", "ssltcp", kRelaySslTcpIntAddr);
+  EXPECT_PRED5(CheckCandidate, candidates_[5],
+      "rtp", "relay", "udp", kRelayUdpExtAddr);
+  EXPECT_EQ(3U, ports_.size());
+  // Stun Timeout is 9sec.
+  EXPECT_TRUE_WAIT(candidate_allocation_done_, 9000);
+}
+
+// Test to verify ICE restart process.
+TEST_F(PortAllocatorTest, TestGetAllPortsRestarts) {
+  AddInterface(kClientAddr);
+  EXPECT_TRUE(CreateSession("rtp", "unittest"));
+  session_->GetInitialPorts();
+  session_->StartGetAllPorts();
+  EXPECT_EQ_WAIT(2U, candidates_.size(), 1000);
+  EXPECT_EQ(2U, ports_.size());
+  EXPECT_EQ_WAIT(4U, candidates_.size(), 2000);
+  EXPECT_EQ(3U, ports_.size());
+  EXPECT_EQ_WAIT(6U, candidates_.size(), 1500);
+  EXPECT_EQ(4U, ports_.size());
+  EXPECT_EQ_WAIT(7U, candidates_.size(), 2000);
+  EXPECT_EQ(4U, ports_.size());
+  EXPECT_TRUE(candidate_allocation_done_);
+  // TODO - Extend this to verify ICE restart.
+}
+
+TEST_F(PortAllocatorTest, TestBasicMuxFeatures) {
+  allocator().set_flags(cricket::PORTALLOCATOR_ENABLE_BUNDLE);
+  // Session ID - session1.
+  talk_base::scoped_ptr<cricket::PortAllocatorSession> session1(
+      CreateSession("session1", "rtp", "audio"));
+  talk_base::scoped_ptr<cricket::PortAllocatorSession> session2(
+      CreateSession("session1", "rtcp", "audio"));
+  // We know that PortAllocator is creating a proxy session when bundle flag
+  // is enabled, it's safe to type cast session objects.
+  cricket::PortAllocatorSessionProxy* proxy1 =
+      static_cast<cricket::PortAllocatorSessionProxy*>(session1.get());
+  ASSERT_TRUE(proxy1 != NULL);
+  cricket::PortAllocatorSessionProxy* proxy2 =
+      static_cast<cricket::PortAllocatorSessionProxy*>(session2.get());
+  ASSERT_TRUE(proxy2 != NULL);
+  EXPECT_EQ(proxy1->impl(), proxy2->impl());
+  AddInterface(kClientAddr);
+  session1->GetInitialPorts();
+  session2->GetInitialPorts();
+  // Each session should receive two proxy ports of local and stun.
+  ASSERT_EQ_WAIT(4U, ports_.size(), 1000);
+  EXPECT_EQ(4U, candidates_.size());
+  EXPECT_PRED5(CheckCandidate, candidates_[0],
+      "rtp", "local", "udp", kClientAddr);
+  EXPECT_PRED5(CheckCandidate, candidates_[1],
+      "rtcp", "local", "udp", kClientAddr);
+  EXPECT_PRED5(CheckCandidate, candidates_[2],
+      "rtp", "stun", "udp", kClientAddr);
+
+  EXPECT_PRED5(CheckCandidate, candidates_[3],
+      "rtcp", "stun", "udp", kClientAddr);
+  talk_base::scoped_ptr<cricket::PortAllocatorSession> session3(
+      CreateSession("session1", "video_rtp", "video"));
+  // ListenToEvents(session3.get());
+  session3->GetInitialPorts();
+  // Since real ports and sessions are already allocated and signal sent, no
+  // new ports will be allocated when new proxy session created.
+  talk_base::Thread::Current()->ProcessMessages(1000);
+  EXPECT_NE(6U, ports_.size());
+  // Creating a PortAllocatorSession with different session name from above.
+  // In this case proxy PAS should have a different PAS.
+  // Session ID - session2.
+  talk_base::scoped_ptr<cricket::PortAllocatorSession> session4(
+        CreateSession("session2", "video_rtp", "video"));
+  cricket::PortAllocatorSessionProxy* proxy4 =
+        static_cast<cricket::PortAllocatorSessionProxy*>(session4.get());
+  EXPECT_NE(proxy4->impl(), proxy1->impl());
 }
 
 // Test that the httpportallocator correctly maintains its lists of stun and
@@ -344,53 +445,4 @@ TEST(HttpPortAllocatorTest, TestHttpPortAllocatorHostLists) {
   alloc.SetStunHosts(stun_servers);
   EXPECT_EQ(2U, alloc.relay_hosts().size());
   EXPECT_EQ(2U, alloc.stun_hosts().size());
-}
-
-TEST_F(PortAllocatorTest, TestBasicMuxFeatures) {
-  talk_base::scoped_ptr<cricket::PortAllocator> allocator(CreateAllocator());
-  allocator->set_flags(cricket::PORTALLOCATOR_ENABLE_BUNDLE);
-  // Session ID - session1.
-  talk_base::scoped_ptr<cricket::PortAllocatorSession> session1(
-      CreateSession("session1", "rtp", "audio", allocator.get()));
-  talk_base::scoped_ptr<cricket::PortAllocatorSession> session2(
-      CreateSession("session1", "rtcp", "audio", allocator.get()));
-  // We know that PortAllocator is creating a proxy session when bundle flag
-  // is enabled, it's safe to type cast session objects.
-  cricket::PortAllocatorSessionProxy* proxy1 =
-      static_cast<cricket::PortAllocatorSessionProxy*>(session1.get());
-  ASSERT_TRUE(proxy1 != NULL);
-  cricket::PortAllocatorSessionProxy* proxy2 =
-      static_cast<cricket::PortAllocatorSessionProxy*>(session2.get());
-  ASSERT_TRUE(proxy2 != NULL);
-  EXPECT_EQ(proxy1->impl(), proxy2->impl());
-  AddInterface(kClientAddr);
-  session1->GetInitialPorts();
-  session2->GetInitialPorts();
-  // Each session should receive two proxy ports of local and stun.
-  ASSERT_EQ_WAIT(4U, ports_.size(), 1000);
-  EXPECT_EQ(4U, candidates_.size());
-  EXPECT_PRED5(CheckCandidate, candidates_[0],
-      "rtp", "local", "udp", kClientAddr);
-  EXPECT_PRED5(CheckCandidate, candidates_[1],
-      "rtcp", "local", "udp", kClientAddr);
-  EXPECT_PRED5(CheckCandidate, candidates_[2],
-      "rtp", "stun", "udp", kClientAddr);
-  EXPECT_PRED5(CheckCandidate, candidates_[3],
-      "rtcp", "stun", "udp", kClientAddr);
-  talk_base::scoped_ptr<cricket::PortAllocatorSession> session3(
-      CreateSession("session1", "video_rtp", "video", allocator.get()));
-  // ListenToEvents(session3.get());
-  session3->GetInitialPorts();
-  // Since real ports and sessions are already allocated and signal sent, no
-  // new ports will be allocated when new proxy session created.
-  talk_base::Thread::Current()->ProcessMessages(1000);
-  EXPECT_NE(6U, ports_.size());
-  // Creating a PortAllocatorSession with different session name from above.
-  // In this case proxy PAS should have a different PAS.
-  // Session ID - session2.
-  talk_base::scoped_ptr<cricket::PortAllocatorSession> session4(
-        CreateSession("session2", "video_rtp", "video", allocator.get()));
-  cricket::PortAllocatorSessionProxy* proxy4 =
-        static_cast<cricket::PortAllocatorSessionProxy*>(session4.get());
-  EXPECT_NE(proxy4->impl(), proxy1->impl());
 }

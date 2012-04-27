@@ -2,26 +2,26 @@
  * libjingle
  * Copyright 2006, Google Inc.
  *
- * Redistribution and use in source and binary forms, with or without 
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  1. Redistributions of source code must retain the above copyright notice, 
+ *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
  *  2. Redistributions in binary form must reproduce the above copyright notice,
  *     this list of conditions and the following disclaimer in the documentation
  *     and/or other materials provided with the distribution.
- *  3. The name of the author may not be used to endorse or promote products 
+ *  3. The name of the author may not be used to endorse or promote products
  *     derived from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
  * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
@@ -180,7 +180,7 @@ void FlagList::SplitArgument(const char* arg,
     // get the value if any
     if (*arg == '=') {
       // make a copy so we can NUL-terminate flag name
-      int n = arg - *name;
+      int n = static_cast<int>(arg - *name);
       if (n >= buffer_size)
         Fatal(__FILE__, __LINE__, "CHECK(%s) failed", "n < buffer_size");
       memcpy(buffer, *name, n * sizeof(char));
@@ -294,19 +294,10 @@ WindowsCommandLineArguments::WindowsCommandLineArguments() {
 
   // iterate over the returned wide strings;
   for(int i = 0; i < argc_; ++i) {
-    // for each, create a char buffer big enough to hold it; so, find out
-    // how much space we need.
-    int len8 = WideCharToMultiByte(CP_UTF8, 0, wide_argv[i],
-                                   wcslen(wide_argv[i]), NULL, 0,
-                                   NULL, NULL);
-    // then allocate the buffer...
-    char *buffer = new char[1 + len8]; // +1 for trailing \0
-    // and do the conversion.
-    WideCharToMultiByte(CP_UTF8, 0, wide_argv[i],
-                        wcslen(wide_argv[i]), buffer, len8,
-                        NULL, NULL);
-    // WideCharToMultibyte doesn't give us a trailing \0, so we add it.
-    buffer[len8] = '\0';
+    std::string s = talk_base::ToUtf8(wide_argv[i], wcslen(wide_argv[i]));
+    char *buffer = new char[s.length() + 1];
+    talk_base::strcpyn(buffer, s.length() + 1, s.c_str());
+
     // make sure the argv array has the right string at this point.
     argv_[i] = buffer;
   }

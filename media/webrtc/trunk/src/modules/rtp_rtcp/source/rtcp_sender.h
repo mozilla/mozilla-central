@@ -68,7 +68,7 @@ public:
     WebRtc_Word32 SendRTCP(const WebRtc_UWord32 rtcpPacketTypeFlags,
                            const WebRtc_Word32 nackSize = 0,
                            const WebRtc_UWord16* nackList = 0,
-                           const WebRtc_UWord32 RTT = 0,
+                           const bool repeat = false,
                            const WebRtc_UWord64 pictureID = 0);
 
     WebRtc_Word32 AddReportBlock(const WebRtc_UWord32 SSRC,
@@ -91,6 +91,8 @@ public:
 
     void UpdateRemoteBitrateEstimate(unsigned int target_bitrate);
 
+    void ReceivedRemb(unsigned int estimated_bitrate);
+
     /*
     *   TMMBR
     */
@@ -100,9 +102,6 @@ public:
 
     WebRtc_Word32 SetTMMBN(const TMMBRSet* boundingSet,
                            const WebRtc_UWord32 maxBitrateKbit);
-
-    WebRtc_Word32 RequestTMMBR(const WebRtc_UWord32 estimatedBW,
-                               const WebRtc_UWord32 packetOH);
 
     /*
     *   Extended jitter report
@@ -135,13 +134,15 @@ public:
 
     WebRtc_UWord32 CalculateNewTargetBitrate(WebRtc_UWord32 RTT);
 
+    WebRtc_UWord32 LatestBandwidthEstimate() const;
+
     // Returns true if there is a valid estimate of the incoming bitrate, false
     // otherwise.
-    bool ValidBitrateEstimate();
+    bool ValidBitrateEstimate() const;
 
 private:
     WebRtc_Word32 SendToNetwork(const WebRtc_UWord8* dataBuffer,
-                              const WebRtc_UWord16 length);
+                                const WebRtc_UWord16 length);
 
     void UpdatePacketRate();
 
@@ -178,8 +179,8 @@ private:
     WebRtc_Word32 BuildVoIPMetric(WebRtc_UWord8* rtcpbuffer, WebRtc_UWord32& pos);
     WebRtc_Word32 BuildBYE(WebRtc_UWord8* rtcpbuffer, WebRtc_UWord32& pos);
     WebRtc_Word32 BuildFIR(WebRtc_UWord8* rtcpbuffer,
-                         WebRtc_UWord32& pos,
-                         const WebRtc_UWord32 RTT);
+                           WebRtc_UWord32& pos,
+                           bool repeat);
     WebRtc_Word32 BuildSLI(WebRtc_UWord8* rtcpbuffer,
                          WebRtc_UWord32& pos,
                          const WebRtc_UWord8 pictureID);
@@ -235,7 +236,6 @@ private:
 
     // Full intra request
     WebRtc_UWord8         _sequenceNumberFIR;
-    WebRtc_UWord32        _lastTimeFIR;
 
     // REMB    
     WebRtc_UWord8       _lengthRembSSRC;

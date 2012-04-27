@@ -113,6 +113,9 @@ class RtpHelper : public Base {
     options_ = options;
     return true;
   }
+  virtual int GetOptions() const {
+    return options_;
+  }
   virtual bool SetRecvRtpHeaderExtensions(
       const std::vector<RtpHeaderExtension>& extensions) {
     recv_extensions_ = extensions;
@@ -356,6 +359,7 @@ class FakeVideoMediaChannel : public RtpHelper<VideoMediaChannel> {
       : engine_(engine),
         muted_(false),
         screen_casting_(false),
+        screencast_fps_(0),
         sent_intra_frame_(false),
         requested_intra_frame_(false) {
   }
@@ -434,12 +438,14 @@ class FakeVideoMediaChannel : public RtpHelper<VideoMediaChannel> {
   virtual bool SetSend(bool send) {
     return set_sending(send);
   }
-  virtual bool AddScreencast(uint32 ssrc, const ScreencastId& id) {
+  virtual bool AddScreencast(uint32 ssrc, const ScreencastId& id, int fps) {
     screen_casting_ = true;
+    screencast_fps_ = fps;
     return true;
   }
   virtual bool RemoveScreencast(uint32 ssrc) {
     screen_casting_ = false;
+    screencast_fps_ = 0;
     return true;
   }
   virtual bool SetSendBandwidth(bool autobw, int bps) { return true; }
@@ -474,6 +480,7 @@ class FakeVideoMediaChannel : public RtpHelper<VideoMediaChannel> {
   void set_requested_intra_frame(bool v) { requested_intra_frame_ = v; }
   bool requested_intra_frame() const { return requested_intra_frame_; }
   bool screen_casting() const { return screen_casting_; }
+  int screencast_fps() const { return screencast_fps_; }
 
  private:
   // Be default, each send stream uses the first send codec format.
@@ -494,6 +501,7 @@ class FakeVideoMediaChannel : public RtpHelper<VideoMediaChannel> {
   std::map<uint32, VideoFormat> send_formats_;
   bool muted_;
   bool screen_casting_;
+  int screencast_fps_;
   bool sent_intra_frame_;
   bool requested_intra_frame_;
 };
@@ -503,6 +511,75 @@ class FakeSoundclipMedia : public SoundclipMedia {
   virtual bool PlaySound(const char *buf, int len, int flags) {
     return true;
   }
+};
+
+class FakeDataMediaChannel : public RtpHelper<DataMediaChannel> {
+ public:
+  explicit FakeDataMediaChannel(void* unused)
+      : muted_(false) {
+  }
+  ~FakeDataMediaChannel() {}
+  const std::vector<DataCodec>& recv_codecs() const { return recv_codecs_; }
+  const std::vector<DataCodec>& send_codecs() const { return send_codecs_; }
+  const std::vector<DataCodec>& codecs() const { return send_codecs(); }
+  bool muted() const { return muted_; }
+
+  virtual bool SetRecvCodecs(const std::vector<DataCodec> &codecs) {
+    if (fail_set_recv_codecs()) {
+      // Fake the failure in SetRecvCodecs.
+      return false;
+    }
+    recv_codecs_= codecs;
+    return true;
+  }
+  virtual bool SetSendCodecs(const std::vector<DataCodec> &codecs) {
+    if (fail_set_send_codecs()) {
+      // Fake the failure in SetSendCodecs.
+      return false;
+    }
+    send_codecs_= codecs;
+    return true;
+  }
+  virtual bool SetSend(bool send) {
+    return set_sending(send);
+  }
+  virtual bool SetReceive(bool receive) {
+    set_playout(receive);
+    return true;
+  }
+
+  virtual bool SetSendBandwidth(bool autobw, int bps) { return true; }
+  virtual bool Mute(bool on) {
+    muted_ = on;
+    return true;
+  }
+  virtual bool AddRecvStream(const StreamParams& sp) {
+    if (!RtpHelper<DataMediaChannel>::AddRecvStream(sp))
+      return false;
+    return true;
+  }
+  virtual bool RemoveRecvStream(uint32 ssrc) {
+    if (!RtpHelper<DataMediaChannel>::RemoveRecvStream(ssrc))
+      return false;
+    return true;
+  }
+
+  virtual bool SendData(
+      const SendDataParams& params, const std::string& data) {
+    last_sent_data_params_ = params;
+    last_sent_data_ = data;
+    return true;
+  }
+
+  SendDataParams last_sent_data_params() { return last_sent_data_params_; }
+  std::string last_sent_data() { return last_sent_data_; }
+
+ private:
+  std::vector<DataCodec> recv_codecs_;
+  std::vector<DataCodec> send_codecs_;
+  bool muted_;
+  SendDataParams last_sent_data_params_;
+  std::string last_sent_data_;
 };
 
 // A base class for all of the shared parts between FakeVoiceEngine
@@ -707,8 +784,11 @@ class FakeVideoEngine : public FakeBaseEngine {
     renderer_ = r;
     return true;
   }
-  bool SetVideoCapturer(VideoCapturer* /*capturer*/, uint32 /*ssrc*/) {
-    return false;
+  bool SetVideoCapturer(VideoCapturer* /*capturer*/) {
+    return true;
+  }
+  VideoCapturer* GetVideoCapturer() const {
+    return NULL;
   }
   CaptureResult SetCapture(bool capture) {
     capture_ = capture;
@@ -770,7 +850,6 @@ class FakeMediaEngine
   }
   const std::string& audio_in_device() const { return voice_.in_device_; }
   const std::string& audio_out_device() const { return voice_.out_device_; }
-  const std::string& video_in_device() const { return video_.in_device_; }
   VideoRenderer* local_renderer() { return video_.renderer_; }
   int voice_loglevel() const { return voice_.loglevel_; }
   const std::string& voice_logfilter() const { return voice_.logfilter_; }
@@ -825,6 +904,35 @@ inline FakeVideoMediaChannel::~FakeVideoMediaChannel() {
     engine_->UnregisterChannel(this);
   }
 }
+
+class FakeDataEngine : public DataEngineInterface {
+ public:
+  virtual DataMediaChannel* CreateChannel() {
+    FakeDataMediaChannel* ch = new FakeDataMediaChannel(this);
+    channels_.push_back(ch);
+    return ch;
+  }
+
+  FakeDataMediaChannel* GetChannel(size_t index) {
+    return (channels_.size() > index) ? channels_[index] : NULL;
+  }
+
+  void UnregisterChannel(DataMediaChannel* channel) {
+    channels_.erase(std::find(channels_.begin(), channels_.end(), channel));
+  }
+
+  virtual void SetDataCodecs(const std::vector<DataCodec>& data_codecs) {
+    data_codecs_ = data_codecs;
+  }
+
+  virtual const std::vector<DataCodec>& data_codecs() {
+    return data_codecs_;
+  }
+
+ private:
+  std::vector<FakeDataMediaChannel*> channels_;
+  std::vector<DataCodec> data_codecs_;
+};
 
 }  // namespace cricket
 

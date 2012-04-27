@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -122,22 +122,18 @@ WebRtc_Word32 DeviceInfoWindows::Init()
 WebRtc_UWord32 DeviceInfoWindows::NumberOfDevices()
 {
     ReadLockScoped cs(_apiLock);
-    WEBRTC_TRACE(webrtc::kTraceModuleCall, webrtc::kTraceVideoCapture, _id,
-                 "NumberOfDevices");
     return GetDeviceInfo(0, 0, 0, 0, 0, 0, 0);
 
 }
 WebRtc_Word32 DeviceInfoWindows::GetDeviceName(
                                        WebRtc_UWord32 deviceNumber,
-                                       WebRtc_UWord8* deviceNameUTF8,
+                                       char* deviceNameUTF8,
                                        WebRtc_UWord32 deviceNameLength,
-                                       WebRtc_UWord8* deviceUniqueIdUTF8,
+                                       char* deviceUniqueIdUTF8,
                                        WebRtc_UWord32 deviceUniqueIdUTF8Length,
-                                       WebRtc_UWord8* productUniqueIdUTF8,
+                                       char* productUniqueIdUTF8,
                                        WebRtc_UWord32 productUniqueIdUTF8Length)
 {
-    WEBRTC_TRACE(webrtc::kTraceModuleCall, webrtc::kTraceVideoCapture, _id,
-                 "GetDeviceName");
     ReadLockScoped cs(_apiLock);
     const WebRtc_Word32 result = GetDeviceInfo(deviceNumber, deviceNameUTF8,
                                                deviceNameLength,
@@ -150,11 +146,11 @@ WebRtc_Word32 DeviceInfoWindows::GetDeviceName(
 
 WebRtc_Word32 DeviceInfoWindows::GetDeviceInfo(
                                        WebRtc_UWord32 deviceNumber,
-                                       WebRtc_UWord8* deviceNameUTF8,
+                                       char* deviceNameUTF8,
                                        WebRtc_UWord32 deviceNameLength,
-                                       WebRtc_UWord8* deviceUniqueIdUTF8,
+                                       char* deviceUniqueIdUTF8,
                                        WebRtc_UWord32 deviceUniqueIdUTF8Length,
-                                       WebRtc_UWord8* productUniqueIdUTF8,
+                                       char* productUniqueIdUTF8,
                                        WebRtc_UWord32 productUniqueIdUTF8Length)
 
 {
@@ -276,8 +272,8 @@ WebRtc_Word32 DeviceInfoWindows::GetDeviceInfo(
 }
 
 IBaseFilter * DeviceInfoWindows::GetDeviceFilter(
-                                     const WebRtc_UWord8* deviceUniqueIdUTF8,
-                                     WebRtc_UWord8* productUniqueIdUTF8,
+                                     const char* deviceUniqueIdUTF8,
+                                     char* productUniqueIdUTF8,
                                      WebRtc_UWord32 productUniqueIdUTF8Length)
 {
 
@@ -331,11 +327,10 @@ IBaseFilter * DeviceInfoWindows::GetDeviceFilter(
                 {
                     char tempDevicePathUTF8[256];
                     tempDevicePathUTF8[0] = 0;
-                    const int compresult =
-                        WideCharToMultiByte(CP_UTF8, 0, varName.bstrVal, -1,
-                                            tempDevicePathUTF8,
-                                            sizeof(tempDevicePathUTF8), NULL,
-                                            NULL);
+                    WideCharToMultiByte(CP_UTF8, 0, varName.bstrVal, -1,
+                                        tempDevicePathUTF8,
+                                        sizeof(tempDevicePathUTF8), NULL,
+                                        NULL);
                     if (strncmp(tempDevicePathUTF8,
                                 (const char*) deviceUniqueIdUTF8,
                                 deviceUniqueIdUTF8Length) == 0)
@@ -391,7 +386,7 @@ WebRtc_Word32 DeviceInfoWindows::GetWindowsCapability(
 }
 
 WebRtc_Word32 DeviceInfoWindows::CreateCapabilityMap(
-                                         const WebRtc_UWord8* deviceUniqueIdUTF8)
+                                         const char* deviceUniqueIdUTF8)
 
 {
     // Reset old capability list
@@ -414,7 +409,7 @@ WebRtc_Word32 DeviceInfoWindows::CreateCapabilityMap(
                  "CreateCapabilityMap called for device %s", deviceUniqueIdUTF8);
 
 
-    WebRtc_UWord8 productId[kVideoCaptureProductIdLength];
+    char productId[kVideoCaptureProductIdLength];
     IBaseFilter* captureDevice = DeviceInfoWindows::GetDeviceFilter(
                                                deviceUniqueIdUTF8,
                                                productId,
@@ -545,7 +540,6 @@ WebRtc_Word32 DeviceInfoWindows::CreateCapabilityMap(
             VideoCaptureCapabilityWindows* capability =
                                         new VideoCaptureCapabilityWindows();
             WebRtc_Word64 avgTimePerFrame = 0;
-            bool interlaced = false;
 
             if (pmt->formattype == FORMAT_VideoInfo)
             {
@@ -693,7 +687,7 @@ WebRtc_Word32 DeviceInfoWindows::CreateCapabilityMap(
     
     // Store the new used device name
     _lastUsedDeviceNameLength = deviceUniqueIdUTF8Length;
-    _lastUsedDeviceName = (WebRtc_UWord8*) realloc(_lastUsedDeviceName,
+    _lastUsedDeviceName = (char*) realloc(_lastUsedDeviceName,
                                                    _lastUsedDeviceNameLength
                                                        + 1);
     memcpy(_lastUsedDeviceName, deviceUniqueIdUTF8, _lastUsedDeviceNameLength+ 1);
@@ -709,8 +703,8 @@ WebRtc_Word32 DeviceInfoWindows::CreateCapabilityMap(
  "\\?\usb#vid_0408&pid_2010&mi_00#7&258e7aaf&0&0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\global"
  "\\?\avc#sony&dv-vcr&camcorder&dv#65b2d50301460008#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\global"
  */
-void DeviceInfoWindows::GetProductId(const WebRtc_UWord8* devicePath,
-                                      WebRtc_UWord8* productUniqueIdUTF8,
+void DeviceInfoWindows::GetProductId(const char* devicePath,
+                                      char* productUniqueIdUTF8,
                                       WebRtc_UWord32 productUniqueIdUTF8Length)
 {
     *productUniqueIdUTF8 = '\0';
@@ -750,8 +744,8 @@ void DeviceInfoWindows::GetProductId(const WebRtc_UWord8* devicePath,
 }
 
 WebRtc_Word32 DeviceInfoWindows::DisplayCaptureSettingsDialogBox(
-                                         const WebRtc_UWord8* deviceUniqueIdUTF8,
-                                         const WebRtc_UWord8* dialogTitleUTF8,
+                                         const char* deviceUniqueIdUTF8,
+                                         const char* dialogTitleUTF8,
                                          void* parentWindow,
                                          WebRtc_UWord32 positionX,
                                          WebRtc_UWord32 positionY)

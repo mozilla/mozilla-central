@@ -28,11 +28,10 @@
 #ifndef TALK_APP_WEBRTC_MEDIASTREAMPROVIDER_H_
 #define TALK_APP_WEBRTC_MEDIASTREAMPROVIDER_H_
 
-#include "talk/app/webrtc/mediastream.h"
-
 namespace cricket {
 
 class VideoCapturer;
+class VideoRenderer;
 
 }  // namespace cricket
 

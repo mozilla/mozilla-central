@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -73,7 +73,8 @@ ViEChannel::ViEChannel(WebRtc_Word32 channel_id,
       effect_filter_(NULL),
       color_enhancement_(true),
       vcm_rttreported_(TickTime::Now()),
-      file_recorder_(channel_id) {
+      file_recorder_(channel_id),
+      mtu_(0) {
   WEBRTC_TRACE(kTraceMemory, kTraceVideo, ViEId(engine_id, channel_id),
                "ViEChannel::ViEChannel(channel_id: %d, engine_id: %d)",
                channel_id, engine_id);
@@ -251,13 +252,8 @@ WebRtc_Word32 ViEChannel::SetSendCodec(const VideoCodec& video_codec,
         std::min(start_bitrate, video_codec.simulcastStream[0].maxBitrate);
     start_bitrate -= stream_bitrate;
     // Set correct bitrate to base layer.
-    if (rtp_rtcp_.SetSendBitrate(
-          stream_bitrate, video_codec.minBitrate,
-          video_codec.simulcastStream[0].maxBitrate) != 0) {
-      WEBRTC_TRACE(kTraceError, kTraceVideo, ViEId(engine_id_, channel_id_),
-                   "%s: could not set send bitrates", __FUNCTION__);
-      return -1;
-    }
+    rtp_rtcp_.SetSendBitrate(stream_bitrate, video_codec.minBitrate,
+                             video_codec.simulcastStream[0].maxBitrate);
     // Create our simulcast RTP modules.
     for (int i = simulcast_rtp_rtcp_.size();
          i < video_codec.numberOfSimulcastStreams - 1;
@@ -282,12 +278,6 @@ WebRtc_Word32 ViEChannel::SetSendCodec(const VideoCodec& video_codec,
       RtpRtcp::DestroyRtpRtcp(rtp_rtcp);
       simulcast_rtp_rtcp_.pop_back();
     }
-    VideoCodec video_codec;
-    if (vcm_.Codec(kVideoCodecVP8, &video_codec) != VCM_OK) {
-      WEBRTC_TRACE(kTraceWarning, kTraceVideo, ViEId(engine_id_, channel_id_),
-                   "%s: VCM: failure geting default VP8 pl_type", __FUNCTION__);
-      return -1;
-    }
     WebRtc_UWord8 idx = 0;
     // Configure all simulcast modules.
     for (std::list<RtpRtcp*>::iterator it = simulcast_rtp_rtcp_.begin();
@@ -311,11 +301,8 @@ WebRtc_Word32 ViEChannel::SetSendCodec(const VideoCodec& video_codec,
                      "%s: RTP::RegisterSendTransport failure", __FUNCTION__);
         return -1;
       }
-      if (module_process_thread_.RegisterModule(rtp_rtcp) != 0) {
-        WEBRTC_TRACE(kTraceError, kTraceVideo, ViEId(engine_id_, channel_id_),
-                     "%s: RTP::RegisterModule failure", __FUNCTION__);
-        return -1;
-      }
+      // Silently ignore error.
+      module_process_thread_.RegisterModule(rtp_rtcp);
       if (rtp_rtcp->SetRTCPStatus(rtp_rtcp_.RTCP()) != 0) {
         WEBRTC_TRACE(kTraceWarning, kTraceVideo, ViEId(engine_id_, channel_id_),
                      "%s: RTP::SetRTCPStatus failure", __FUNCTION__);
@@ -326,6 +313,9 @@ WebRtc_Word32 ViEChannel::SetSendCodec(const VideoCodec& video_codec,
                      "%s: could not register payload type", __FUNCTION__);
         return -1;
       }
+      if (mtu_ != 0) {
+        rtp_rtcp->SetMaxTransferUnit(mtu_);
+      }
       if (restart_rtp) {
         rtp_rtcp->SetSendingStatus(true);
       }
@@ -333,13 +323,8 @@ WebRtc_Word32 ViEChannel::SetSendCodec(const VideoCodec& video_codec,
       const WebRtc_UWord32 stream_bitrate =
           std::min(start_bitrate, video_codec.simulcastStream[idx].maxBitrate);
       start_bitrate -= stream_bitrate;
-      if (rtp_rtcp->SetSendBitrate(
-            stream_bitrate, video_codec.minBitrate,
-            video_codec.simulcastStream[idx].maxBitrate) != 0) {
-        WEBRTC_TRACE(kTraceError, kTraceVideo, ViEId(engine_id_, channel_id_),
-                     "%s: could not set send bitrates", __FUNCTION__);
-        return -1;
-      }
+      rtp_rtcp->SetSendBitrate(stream_bitrate, video_codec.minBitrate,
+                               video_codec.simulcastStream[idx].maxBitrate);
     }
     vie_receiver_.RegisterSimulcastRtpRtcpModules(simulcast_rtp_rtcp_);
   } else {
@@ -357,13 +342,9 @@ WebRtc_Word32 ViEChannel::SetSendCodec(const VideoCodec& video_codec,
     // Clear any previous modules.
     vie_receiver_.RegisterSimulcastRtpRtcpModules(simulcast_rtp_rtcp_);
 
-    if (rtp_rtcp_.SetSendBitrate(video_codec.startBitrate * 1000,
-                                 video_codec.minBitrate,
-                                 video_codec.maxBitrate) != 0) {
-      WEBRTC_TRACE(kTraceError, kTraceVideo, ViEId(engine_id_, channel_id_),
-                   "%s: could not set send bitrates", __FUNCTION__);
-      return -1;
-    }
+    rtp_rtcp_.SetSendBitrate(video_codec.startBitrate * 1000,
+                             video_codec.minBitrate,
+                             video_codec.maxBitrate);
   }
   // Enable this if H264 is available.
   // This sets the wanted packetization mode.
@@ -743,6 +724,9 @@ WebRtc_Word32 ViEChannel::SetSSRC(const WebRtc_UWord32 SSRC,
   if (simulcast_idx == 0) {
     return rtp_rtcp_.SetSSRC(SSRC);
   }
+  if (simulcast_idx > simulcast_rtp_rtcp_.size()) {
+      return -1;
+  }
   std::list<RtpRtcp*>::const_iterator it = simulcast_rtp_rtcp_.begin();
   for (int i = 1; i < simulcast_idx; ++i, ++it) {
     if (it ==  simulcast_rtp_rtcp_.end()) {
@@ -816,7 +800,7 @@ WebRtc_Word32 ViEChannel::SetStartSequenceNumber(
   return rtp_rtcp_.SetSequenceNumber(sequence_number);
 }
 
-WebRtc_Word32 ViEChannel::SetRTCPCName(const WebRtc_Word8 rtcp_cname[]) {
+WebRtc_Word32 ViEChannel::SetRTCPCName(const char rtcp_cname[]) {
   WEBRTC_TRACE(kTraceInfo, kTraceVideo, ViEId(engine_id_, channel_id_),
                "%s", __FUNCTION__);
   if (rtp_rtcp_.Sending()) {
@@ -827,13 +811,13 @@ WebRtc_Word32 ViEChannel::SetRTCPCName(const WebRtc_Word8 rtcp_cname[]) {
   return rtp_rtcp_.SetCNAME(rtcp_cname);
 }
 
-WebRtc_Word32 ViEChannel::GetRTCPCName(WebRtc_Word8 rtcp_cname[]) {
+WebRtc_Word32 ViEChannel::GetRTCPCName(char rtcp_cname[]) {
   WEBRTC_TRACE(kTraceInfo, kTraceVideo, ViEId(engine_id_, channel_id_),
                "%s", __FUNCTION__);
   return rtp_rtcp_.CNAME(rtcp_cname);
 }
 
-WebRtc_Word32 ViEChannel::GetRemoteRTCPCName(WebRtc_Word8 rtcp_cname[]) {
+WebRtc_Word32 ViEChannel::GetRemoteRTCPCName(char rtcp_cname[]) {
   WEBRTC_TRACE(kTraceInfo, kTraceVideo, ViEId(engine_id_, channel_id_), "%s",
                __FUNCTION__);
 
@@ -1068,76 +1052,9 @@ void ViEChannel::GetBandwidthUsage(WebRtc_UWord32& total_bitrate_sent,
   }
 }
 
-WebRtc_Word32 ViEChannel::SetKeepAliveStatus(
-    const bool enable,
-    const WebRtc_Word8 unknown_payload_type,
-    const WebRtc_UWord16 delta_transmit_timeMS) {
-  WEBRTC_TRACE(kTraceInfo, kTraceVideo, ViEId(engine_id_, channel_id_),
-               "%s", __FUNCTION__);
-
-  if (enable && rtp_rtcp_.RTPKeepalive()) {
-    WEBRTC_TRACE(kTraceError, kTraceVideo, ViEId(engine_id_, channel_id_),
-                 "%s: RTP keepalive already enabled", __FUNCTION__);
-    return -1;
-  } else if (!enable && !rtp_rtcp_.RTPKeepalive()) {
-    WEBRTC_TRACE(kTraceError, kTraceVideo, ViEId(engine_id_, channel_id_),
-                 "%s: RTP keepalive already disabled", __FUNCTION__);
-    return -1;
-  }
-
-  if (rtp_rtcp_.SetRTPKeepaliveStatus(enable, unknown_payload_type,
-                                      delta_transmit_timeMS) != 0) {
-    WEBRTC_TRACE(kTraceError, kTraceVideo, ViEId(engine_id_, channel_id_),
-                 "%s: Could not set RTP keepalive status %d", __FUNCTION__,
-                 enable);
-    if (enable == false && !rtp_rtcp_.DefaultModuleRegistered()) {
-      // Not sending media and we try to disable keep alive
-      rtp_rtcp_.ResetSendDataCountersRTP();
-      rtp_rtcp_.SetSendingStatus(false);
-    }
-    return -1;
-  }
-
-  if (enable && !rtp_rtcp_.Sending()) {
-    // Enable sending to start sending Sender reports instead of receive
-    // reports.
-    if (rtp_rtcp_.SetSendingStatus(true) != 0) {
-      rtp_rtcp_.SetRTPKeepaliveStatus(false, 0, 0);
-      WEBRTC_TRACE(kTraceError, kTraceVideo, ViEId(engine_id_, channel_id_),
-                   "%s: Could not start sending", __FUNCTION__);
-      return -1;
-    }
-  } else if (!enable && !rtp_rtcp_.SendingMedia()) {
-    // Not sending media and we're disabling keep alive.
-    rtp_rtcp_.ResetSendDataCountersRTP();
-    if (rtp_rtcp_.SetSendingStatus(false) != 0) {
-      WEBRTC_TRACE(kTraceError, kTraceVideo, ViEId(engine_id_, channel_id_),
-                   "%s: Could not stop sending", __FUNCTION__);
-      return -1;
-    }
-  }
-  return 0;
-}
-
-WebRtc_Word32 ViEChannel::GetKeepAliveStatus(
-    bool& enabled,
-    WebRtc_Word8& unknown_payload_type,
-    WebRtc_UWord16& delta_transmit_time_ms) {
-  WEBRTC_TRACE(kTraceInfo, kTraceVideo, ViEId(engine_id_, channel_id_), "%s",
-               __FUNCTION__);
-  if (rtp_rtcp_.RTPKeepaliveStatus(&enabled, &unknown_payload_type,
-                                   &delta_transmit_time_ms) != 0) {
-    WEBRTC_TRACE(kTraceError, kTraceVideo, ViEId(engine_id_, channel_id_),
-                 "%s: Could not get RTP keepalive status", __FUNCTION__);
-    return -1;
-  }
-  WEBRTC_TRACE(kTraceError, kTraceVideo, ViEId(engine_id_, channel_id_),
-               "%s: enabled = %d, unknown_payload_type = %d, "
-               "delta_transmit_time_ms = %ul",
-               __FUNCTION__, enabled, (WebRtc_Word32) unknown_payload_type,
-    delta_transmit_time_ms);
-
-  return 0;
+int ViEChannel::GetEstimatedReceiveBandwidth(
+    WebRtc_UWord32* estimated_bandwidth) const {
+  return rtp_rtcp_.EstimatedReceiveBandwidth(estimated_bandwidth);
 }
 
 WebRtc_Word32 ViEChannel::StartRTPDump(const char file_nameUTF8[1024],
@@ -1177,7 +1094,7 @@ WebRtc_Word32 ViEChannel::StopRTPDump(RTPDirections direction) {
 
 WebRtc_Word32 ViEChannel::SetLocalReceiver(const WebRtc_UWord16 rtp_port,
                                            const WebRtc_UWord16 rtcp_port,
-                                           const WebRtc_Word8* ip_address) {
+                                           const char* ip_address) {
   WEBRTC_TRACE(kTraceInfo, kTraceVideo, ViEId(engine_id_, channel_id_), "%s",
                __FUNCTION__);
 
@@ -1197,7 +1114,7 @@ WebRtc_Word32 ViEChannel::SetLocalReceiver(const WebRtc_UWord16 rtp_port,
     return -1;
   }
 
-  const WebRtc_Word8* multicast_ip_address = NULL;
+  const char* multicast_ip_address = NULL;
   if (socket_transport_.InitializeReceiveSockets(&vie_receiver_, rtp_port,
                                                  ip_address,
                                                  multicast_ip_address,
@@ -1218,7 +1135,7 @@ WebRtc_Word32 ViEChannel::SetLocalReceiver(const WebRtc_UWord16 rtp_port,
 
 WebRtc_Word32 ViEChannel::GetLocalReceiver(WebRtc_UWord16& rtp_port,
                                            WebRtc_UWord16& rtcp_port,
-                                           WebRtc_Word8* ip_address) const {
+                                           char* ip_address) const {
   WEBRTC_TRACE(kTraceInfo, kTraceVideo, ViEId(engine_id_, channel_id_), "%s",
                __FUNCTION__);
 
@@ -1238,7 +1155,7 @@ WebRtc_Word32 ViEChannel::GetLocalReceiver(WebRtc_UWord16& rtp_port,
     return -1;
   }
 
-  WebRtc_Word8 multicast_ip_address[UdpTransport::kIpAddressVersion6Length];
+  char multicast_ip_address[UdpTransport::kIpAddressVersion6Length];
   if (socket_transport_.ReceiveSocketInformation(ip_address, rtp_port,
                                                  rtcp_port,
                                                  multicast_ip_address) != 0) {
@@ -1257,7 +1174,7 @@ WebRtc_Word32 ViEChannel::GetLocalReceiver(WebRtc_UWord16& rtp_port,
 }
 
 WebRtc_Word32 ViEChannel::SetSendDestination(
-    const WebRtc_Word8* ip_address,
+    const char* ip_address,
     const WebRtc_UWord16 rtp_port,
     const WebRtc_UWord16 rtcp_port,
     const WebRtc_UWord16 source_rtp_port,
@@ -1331,8 +1248,8 @@ WebRtc_Word32 ViEChannel::SetSendDestination(
                    "Running in loopback. Forcing fixed SSRC");
     }
   } else {
-    WebRtc_UWord8 local_host_address[16];
-    WebRtc_UWord8 current_ip_address[16];
+    char local_host_address[16];
+    char current_ip_address[16];
 
     WebRtc_Word32 conv_result =
       UdpTransport::LocalHostAddressIPV6(local_host_address);
@@ -1376,7 +1293,7 @@ WebRtc_Word32 ViEChannel::SetSendDestination(
 }
 
 WebRtc_Word32 ViEChannel::GetSendDestination(
-    WebRtc_Word8* ip_address,
+    char* ip_address,
     WebRtc_UWord16& rtp_port,
     WebRtc_UWord16& rtcp_port,
     WebRtc_UWord16& source_rtp_port,
@@ -1436,11 +1353,7 @@ WebRtc_Word32 ViEChannel::StartSend() {
 #endif
   rtp_rtcp_.SetSendingMediaStatus(true);
 
-  if (rtp_rtcp_.Sending() && !rtp_rtcp_.RTPKeepalive()) {
-    if (rtp_rtcp_.RTPKeepalive()) {
-      // Sending Keep alive, don't trigger an error.
-      return 0;
-    }
+  if (rtp_rtcp_.Sending()) {
     // Already sending.
     WEBRTC_TRACE(kTraceError, kTraceVideo, ViEId(engine_id_, channel_id_),
                  "%s: Already sending", __FUNCTION__);
@@ -1471,10 +1384,6 @@ WebRtc_Word32 ViEChannel::StopSend() {
        it++) {
     RtpRtcp* rtp_rtcp = *it;
     rtp_rtcp->SetSendingMediaStatus(false);
-  }
-  if (rtp_rtcp_.RTPKeepalive()) {
-    // Don't turn off sending since we'll send keep alive packets.
-    return 0;
   }
   if (!rtp_rtcp_.Sending()) {
     WEBRTC_TRACE(kTraceWarning, kTraceVideo, ViEId(engine_id_, channel_id_),
@@ -1588,7 +1497,7 @@ bool ViEChannel::Receiving() {
 
 WebRtc_Word32 ViEChannel::GetSourceInfo(WebRtc_UWord16& rtp_port,
                                         WebRtc_UWord16& rtcp_port,
-                                        WebRtc_Word8* ip_address,
+                                        char* ip_address,
                                         WebRtc_UWord32 ip_address_length) {
   {
     CriticalSectionScoped cs(callback_cs_.get());
@@ -1760,7 +1669,7 @@ bool ViEChannel::IsIPv6Enabled() {
 
 WebRtc_Word32 ViEChannel::SetSourceFilter(const WebRtc_UWord16 rtp_port,
                                           const WebRtc_UWord16 rtcp_port,
-                                          const WebRtc_Word8* ip_address) {
+                                          const char* ip_address) {
   callback_cs_->Enter();
   WEBRTC_TRACE(kTraceInfo, kTraceVideo, ViEId(engine_id_, channel_id_), "%s",
                __FUNCTION__);
@@ -1792,7 +1701,7 @@ WebRtc_Word32 ViEChannel::SetSourceFilter(const WebRtc_UWord16 rtp_port,
 
 WebRtc_Word32 ViEChannel::GetSourceFilter(WebRtc_UWord16& rtp_port,
                                           WebRtc_UWord16& rtcp_port,
-                                          WebRtc_Word8* ip_address) const {
+                                          char* ip_address) const {
   callback_cs_->Enter();
   WEBRTC_TRACE(kTraceInfo, kTraceVideo, ViEId(engine_id_, channel_id_), "%s",
                __FUNCTION__);
@@ -1947,6 +1856,7 @@ WebRtc_Word32 ViEChannel::SetMTU(WebRtc_UWord16 mtu) {
     RtpRtcp* rtp_rtcp = *it;
     rtp_rtcp->SetMaxTransferUnit(mtu);
   }
+  mtu_ = mtu;
   return 0;
 }
 
@@ -2163,6 +2073,8 @@ WebRtc_Word32 ViEChannel::FrameToRender(VideoFrame& video_frame) {
     arr_ofCSRC[0] = rtp_rtcp_.RemoteSSRC();
     no_of_csrcs = 1;
   }
+  WEBRTC_TRACE(kTraceStream, kTraceVideo, ViEId(engine_id_, channel_id_),
+               "%s(timestamp:%u)", __FUNCTION__, video_frame.TimeStamp());
   DeliverFrame(video_frame, no_of_csrcs, arr_ofCSRC);
   return 0;
 }
@@ -2189,16 +2101,16 @@ WebRtc_Word32 ViEChannel::ReceiveStatistics(const WebRtc_UWord32 bit_rate,
   return 0;
 }
 
-WebRtc_Word32 ViEChannel::FrameTypeRequest(const FrameType frame_type) {
+WebRtc_Word32 ViEChannel::RequestKeyFrame() {
   WEBRTC_TRACE(kTraceStream, kTraceVideo, ViEId(engine_id_, channel_id_),
-               "%s(frame_type: %d)", __FUNCTION__, frame_type);
+               "%s", __FUNCTION__);
   {
     CriticalSectionScoped cs(callback_cs_.get());
     if (codec_observer_ && do_key_frame_callbackRequest_) {
       codec_observer_->RequestNewKeyFrame(channel_id_);
     }
   }
-  return rtp_rtcp_.RequestKeyFrame(frame_type);
+  return rtp_rtcp_.RequestKeyFrame();
 }
 
 WebRtc_Word32 ViEChannel::SliceLossIndicationRequest(
@@ -2230,8 +2142,14 @@ bool ViEChannel::ChannelDecodeProcess() {
     if (rtp_rtcp_.RTT(rtp_rtcp_.RemoteSSRC(), &RTT, &avgRTT, &minRTT, &maxRTT)
         == 0) {
       vcm_.SetReceiveChannelParameters(RTT);
+      vcm_rttreported_ = TickTime::Now();
+    } else if (!rtp_rtcp_.Sending() &&
+               (TickTime::Now() - vcm_rttreported_).Milliseconds() > 5000) {
+      // Wait at least 5 seconds before faking a 200 ms RTT. This is to
+      // make sure we have a chance to start sending before we decide to fake.
+      vcm_.SetReceiveChannelParameters(200);
+      vcm_rttreported_ = TickTime::Now();
     }
-    vcm_rttreported_ = TickTime::Now();
   }
   return true;
 }
@@ -2260,6 +2178,10 @@ WebRtc_Word32 ViEChannel::StartDecodeThread() {
     return -1;
   }
 
+  // Used to make sure that we don't give the VCM a faked RTT
+  // too early.
+  vcm_rttreported_ = TickTime::Now();
+
   WEBRTC_TRACE(kTraceInfo, kTraceVideo, ViEId(engine_id_, channel_id_),
                "%s: decode thread with id %u started", __FUNCTION__);
   return 0;
@@ -2279,7 +2201,7 @@ WebRtc_Word32 ViEChannel::StopDecodeThread() {
     // Couldn't stop the thread, leak instead of crash.
     WEBRTC_TRACE(kTraceWarning, kTraceVideo, ViEId(engine_id_, channel_id_),
                  "%s: could not stop decode thread", __FUNCTION__);
-    assert(!"could not stop decode thread");
+    assert(false && "could not stop decode thread");
   }
   decode_thread_ = NULL;
   return 0;
@@ -2417,7 +2339,7 @@ void ViEChannel::OnApplicationDataReceived(const WebRtc_Word32 id,
 WebRtc_Word32 ViEChannel::OnInitializeDecoder(
     const WebRtc_Word32 id,
     const WebRtc_Word8 payload_type,
-    const WebRtc_Word8 payload_name[RTP_PAYLOAD_NAME_SIZE],
+    const char payload_name[RTP_PAYLOAD_NAME_SIZE],
     const int frequency,
     const WebRtc_UWord8 channels,
     const WebRtc_UWord32 rate) {

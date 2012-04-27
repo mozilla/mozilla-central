@@ -21,6 +21,10 @@ MacBaseSocketServer::~MacBaseSocketServer() {
 }
 
 AsyncSocket* MacBaseSocketServer::CreateAsyncSocket(int type) {
+  return CreateAsyncSocket(AF_INET, type);
+}
+
+AsyncSocket* MacBaseSocketServer::CreateAsyncSocket(int family, int type) {
   if (SOCK_STREAM != type)
     return NULL;
 

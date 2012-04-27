@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -41,9 +41,9 @@ int MapSetting(NoiseSuppression::Level level) {
       return 2;
     case NoiseSuppression::kVeryHigh:
       return 3;
-    default:
-      return -1;
   }
+  assert(false);
+  return -1;
 }
 }  // namespace
 
@@ -88,7 +88,7 @@ int NoiseSuppressionImpl::ProcessCaptureAudio(AudioBuffer* audio) {
 }
 
 int NoiseSuppressionImpl::Enable(bool enable) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   return EnableComponent(enable);
 }
 
@@ -97,7 +97,7 @@ bool NoiseSuppressionImpl::is_enabled() const {
 }
 
 int NoiseSuppressionImpl::set_level(Level level) {
-  CriticalSectionScoped crit_scoped(*apm_->crit());
+  CriticalSectionScoped crit_scoped(apm_->crit());
   if (MapSetting(level) == -1) {
     return apm_->kBadParameterError;
   }
@@ -108,20 +108,6 @@ int NoiseSuppressionImpl::set_level(Level level) {
 
 NoiseSuppression::Level NoiseSuppressionImpl::level() const {
   return level_;
-}
-
-int NoiseSuppressionImpl::get_version(char* version,
-                                      int version_len_bytes) const {
-#if defined(WEBRTC_NS_FLOAT)
-  if (WebRtcNs_get_version(version, version_len_bytes) != 0)
-#elif defined(WEBRTC_NS_FIXED)
-  if (WebRtcNsx_get_version(version, version_len_bytes) != 0)
-#endif
-  {
-      return apm_->kBadParameterError;
-  }
-
-  return apm_->kNoError;
 }
 
 void* NoiseSuppressionImpl::CreateHandle() const {

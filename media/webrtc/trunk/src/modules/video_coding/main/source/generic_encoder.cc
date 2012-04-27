@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -33,15 +33,6 @@ VCMGenericEncoder::~VCMGenericEncoder()
 {
 }
 
-WebRtc_Word32
-VCMGenericEncoder::Reset()
-{
-    _bitRate = 0;
-    _frameRate = 0;
-    _VCMencodedFrameCallback = NULL;
-    return _encoder.Reset();
-}
-
 WebRtc_Word32 VCMGenericEncoder::Release()
 {
     _bitRate = 0;
@@ -68,7 +59,7 @@ VCMGenericEncoder::InitEncode(const VideoCodec* settings,
 WebRtc_Word32
 VCMGenericEncoder::Encode(const VideoFrame& inputFrame,
                           const CodecSpecificInfo* codecSpecificInfo,
-                          FrameType* frameType)
+                          const FrameType frameType)
 {
     RawImage rawImage(inputFrame.Buffer(),
                       inputFrame.Length(),
@@ -77,12 +68,9 @@ VCMGenericEncoder::Encode(const VideoFrame& inputFrame,
     rawImage._height    = inputFrame.Height();
     rawImage._timeStamp = inputFrame.TimeStamp();
 
-    VideoFrameType videoFrameTypes[kMaxSimulcastStreams];
-    for (int i = 0; i < kMaxSimulcastStreams; i++)
-    {
-        videoFrameTypes[i] = VCMEncodedFrame::ConvertFrameType(frameType[i]);
-    }
-    return _encoder.Encode(rawImage, codecSpecificInfo, videoFrameTypes);
+    VideoFrameType videoFrameType =
+        VCMEncodedFrame::ConvertFrameType(frameType);
+    return _encoder.Encode(rawImage, codecSpecificInfo, videoFrameType);
 }
 
 WebRtc_Word32
@@ -131,16 +119,10 @@ VCMGenericEncoder::SetPeriodicKeyFrames(bool enable)
     return _encoder.SetPeriodicKeyFrames(enable);
 }
 
-WebRtc_Word32
-VCMGenericEncoder::RequestFrame(FrameType* frameTypes)
-{
-    RawImage image;
-    VideoFrameType videoFrameTypes[kMaxSimulcastStreams];
-    for (int i = 0; i < kMaxSimulcastStreams; i++)
-    {
-        videoFrameTypes[i] = VCMEncodedFrame::ConvertFrameType(frameTypes[i]);
-    }
-    return _encoder.Encode(image, NULL,  videoFrameTypes);
+WebRtc_Word32 VCMGenericEncoder::RequestFrame(const FrameType frameType) {
+  RawImage image;
+  VideoFrameType videoFrameType = VCMEncodedFrame::ConvertFrameType(frameType);
+  return _encoder.Encode(image, NULL,  videoFrameType);
 }
 
 WebRtc_Word32
@@ -167,6 +149,8 @@ _sendCallback(),
 _mediaOpt(NULL),
 _encodedBytes(0),
 _payloadType(0),
+_codecType(kVideoCodecUnknown),
+_internalSource(false),
 _bitStreamAfterEncoder(NULL)
 {
 #ifdef DEBUG_ENCODER_BIT_STREAM

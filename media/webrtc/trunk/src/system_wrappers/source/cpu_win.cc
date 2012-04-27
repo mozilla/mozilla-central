@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -46,7 +46,7 @@ WebRtc_Word32 CpuWindows::CpuUsageMultiCore(WebRtc_UWord32& num_cores,
     {
         num_cores = 0;
         cpu_usage = NULL;
-        return 0;
+        return -1;
     }
     num_cores = number_of_objects_ - 1;
     cpu_usage = cpu_usage_;
@@ -85,8 +85,7 @@ CpuWindows::CpuWindows()
 CpuWindows::~CpuWindows()
 {
     // All resources are reclaimed in StopPollingCpu().
-    const bool success = StopPollingCpu();
-    assert(success);
+    StopPollingCpu();
     DeAllocateComplexDataTypes();
 }
 
@@ -165,10 +164,6 @@ bool CpuWindows::StopPollingCpu()
         }
     }
 
-    if (!has_initialized_)
-    {
-        return false;
-    }
     CriticalSectionScoped cs(terminate_crit_);
     terminate_ = true;
     sleep_event->Set();
@@ -193,8 +188,7 @@ bool CpuWindows::ProcessImpl()
         CriticalSectionScoped cs(terminate_crit_);
         if (terminate_)
         {
-            const bool success = Terminate();
-            assert(success);
+            Terminate();
             terminate_cond_->WakeAll();
             return false;
         }
@@ -224,10 +218,8 @@ bool CpuWindows::ProcessImpl()
     }
 
     // UpdateCpuUsage() returns false if a single (or more) CPU read(s) failed.
-    // Not a major problem if it happens but make sure it doesnt trigger in
-    // debug.
-    const bool success = UpdateCpuUsage();
-    assert(success);
+    // Not a major problem if it happens.
+    UpdateCpuUsage();
     return true;
 }
 

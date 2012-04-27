@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -105,9 +105,8 @@ AudioDeviceAndroidOpenSLES::~AudioDeviceAndroidOpenSLES() {
 
 void AudioDeviceAndroidOpenSLES::AttachAudioBuffer(
     AudioDeviceBuffer* audioBuffer) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     _ptrAudioBuffer = audioBuffer;
 
@@ -120,7 +119,6 @@ void AudioDeviceAndroidOpenSLES::AttachAudioBuffer(
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::ActiveAudioLayer(
     AudioDeviceModule::AudioLayer& audioLayer) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     audioLayer = AudioDeviceModule::kPlatformDefaultAudio;
 
@@ -128,9 +126,8 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::ActiveAudioLayer(
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::Init() {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_initialized) {
         return 0;
@@ -141,8 +138,9 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::Init() {
     _recWarning = 0;
     _recError = 0;
 
-    SLEngineOption EngineOption[] = { (SLuint32) SL_ENGINEOPTION_THREADSAFE,
-            (SLuint32) SL_BOOLEAN_TRUE };
+    SLEngineOption EngineOption[] = {
+      { (SLuint32) SL_ENGINEOPTION_THREADSAFE, (SLuint32) SL_BOOLEAN_TRUE },
+    };
     WebRtc_Word32 res = slCreateEngine(&_slEngineObject, 1, EngineOption, 0,
                                        NULL, NULL);
     //WebRtc_Word32 res = slCreateEngine( &_slEngineObject, 0, NULL, 0, NULL,
@@ -194,9 +192,8 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::Init() {
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::Terminate() {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (!_initialized) {
         return 0;
@@ -223,13 +220,11 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::Terminate() {
 }
 
 bool AudioDeviceAndroidOpenSLES::Initialized() const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return (_initialized);
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SpeakerIsAvailable(bool& available) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     // We always assume it's available
     available = true;
@@ -238,9 +233,8 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SpeakerIsAvailable(bool& available) {
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitSpeaker() {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_playing) {
         WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
@@ -262,7 +256,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitSpeaker() {
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::MicrophoneIsAvailable(bool& available) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     // We always assume it's available
     available = true;
@@ -271,9 +264,8 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::MicrophoneIsAvailable(bool& available)
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitMicrophone() {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (_recording) {
         WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
@@ -295,20 +287,17 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitMicrophone() {
 }
 
 bool AudioDeviceAndroidOpenSLES::SpeakerIsInitialized() const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return _speakerIsInitialized;
 }
 
 bool AudioDeviceAndroidOpenSLES::MicrophoneIsInitialized() const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return _micIsInitialized;
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SpeakerVolumeIsAvailable(
                                                                  bool& available) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     available = true; // We assume we are always be able to set/get volume
 
@@ -317,8 +306,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SpeakerVolumeIsAvailable(
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetSpeakerVolume(
     WebRtc_UWord32 volume) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id,
-                 "SetSpeakerVolume(volume=%u)", volume);
 
     if (!_speakerIsInitialized) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
@@ -395,7 +382,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetSpeakerVolume(
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SpeakerVolume(
     WebRtc_UWord32& volume) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     /*    if (!_speakerIsInitialized)
      {
@@ -481,7 +467,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SpeakerVolume(
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetWaveOutVolume(
     WebRtc_UWord16 /*volumeLeft*/,
     WebRtc_UWord16 /*volumeRight*/) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s)", __FUNCTION__);
 
     WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
                  "  API call not supported on this platform");
@@ -495,7 +480,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetWaveOutVolume(
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::WaveOutVolume(
     WebRtc_UWord16& /*volumeLeft*/,
     WebRtc_UWord16& /*volumeRight*/) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
                  "  API call not supported on this platform");
@@ -504,7 +488,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::WaveOutVolume(
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::MaxSpeakerVolume(
     WebRtc_UWord32& maxVolume) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (!_speakerIsInitialized) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
@@ -519,7 +502,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::MaxSpeakerVolume(
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::MinSpeakerVolume(
     WebRtc_UWord32& minVolume) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (!_speakerIsInitialized) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
@@ -534,7 +516,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::MinSpeakerVolume(
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SpeakerVolumeStepSize(
     WebRtc_UWord16& stepSize) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (!_speakerIsInitialized) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
@@ -552,7 +533,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SpeakerVolumeStepSize(
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SpeakerMuteIsAvailable(
     bool& available) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     available = false; // Speaker mute not supported on Android
 
@@ -560,7 +540,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SpeakerMuteIsAvailable(
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetSpeakerMute(bool /*enable*/) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
                  "  API call not supported on this platform");
@@ -568,7 +547,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetSpeakerMute(bool /*enable*/) {
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SpeakerMute(bool& /*enabled*/) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
                  "  API call not supported on this platform");
@@ -577,7 +555,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SpeakerMute(bool& /*enabled*/) const {
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::MicrophoneMuteIsAvailable(
     bool& available) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     available = false; // Mic mute not supported on Android
 
@@ -585,7 +562,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::MicrophoneMuteIsAvailable(
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetMicrophoneMute(bool /*enable*/) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
                  "  API call not supported on this platform");
@@ -594,7 +570,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetMicrophoneMute(bool /*enable*/) {
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::MicrophoneMute(
     bool& /*enabled*/) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
                  "  API call not supported on this platform");
@@ -603,7 +578,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::MicrophoneMute(
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::MicrophoneBoostIsAvailable(
                                                                    bool& available) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     available = false; // Mic boost not supported on Android
 
@@ -611,7 +585,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::MicrophoneBoostIsAvailable(
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetMicrophoneBoost(bool enable) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (!_micIsInitialized) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
@@ -629,7 +602,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetMicrophoneBoost(bool enable) {
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::MicrophoneBoost(bool& enabled) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (!_micIsInitialized) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
@@ -644,7 +616,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::MicrophoneBoost(bool& enabled) const {
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::StereoRecordingIsAvailable(
     bool& available) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     available = false; // Stereo recording not supported on Android
 
@@ -652,7 +623,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::StereoRecordingIsAvailable(
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetStereoRecording(bool enable) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (enable) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
@@ -664,7 +634,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetStereoRecording(bool enable) {
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::StereoRecording(bool& enabled) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     enabled = false;
 
@@ -673,7 +642,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::StereoRecording(bool& enabled) const {
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::StereoPlayoutIsAvailable(
     bool& available) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     available = false; // Stereo playout not supported on Android
 
@@ -681,7 +649,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::StereoPlayoutIsAvailable(
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetStereoPlayout(bool enable) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (enable) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
@@ -693,7 +660,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetStereoPlayout(bool enable) {
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::StereoPlayout(bool& enabled) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     enabled = false;
 
@@ -702,8 +668,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::StereoPlayout(bool& enabled) const {
 
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetAGC(bool enable) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "SetAGC(enable=%d)",
-                 enable);
 
     _AGC = enable;
 
@@ -711,14 +675,12 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetAGC(bool enable) {
 }
 
 bool AudioDeviceAndroidOpenSLES::AGC() const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return _AGC;
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::MicrophoneVolumeIsAvailable(
     bool& available) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     available = true;
 
@@ -727,7 +689,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::MicrophoneVolumeIsAvailable(
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetMicrophoneVolume(
     WebRtc_UWord32 volume) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (_slEngineObject == NULL) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
@@ -763,7 +724,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetMicrophoneVolume(
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::MicrophoneVolume(
     WebRtc_UWord32& /*volume*/) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     /*    if (_slEngineObject == NULL)
      {
@@ -804,13 +764,11 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::MicrophoneVolume(
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::MaxMicrophoneVolume(
     WebRtc_UWord32& /*maxVolume*/) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
     return 0;
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::MinMicrophoneVolume(
     WebRtc_UWord32& minVolume) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     minVolume = 0;
     return 0;
@@ -818,20 +776,17 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::MinMicrophoneVolume(
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::MicrophoneVolumeStepSize(
     WebRtc_UWord16& stepSize) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     stepSize = 1;
     return 0;
 }
 
 WebRtc_Word16 AudioDeviceAndroidOpenSLES::PlayoutDevices() {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return 1;
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetPlayoutDevice(WebRtc_UWord16 index) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (_playIsInitialized) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
@@ -854,7 +809,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetPlayoutDevice(WebRtc_UWord16 index)
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetPlayoutDevice(
     AudioDeviceModule::WindowsDeviceType /*device*/) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
                  "  API call not supported on this platform");
@@ -863,9 +817,8 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetPlayoutDevice(
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::PlayoutDeviceName(
     WebRtc_UWord16 index,
-    WebRtc_Word8 name[kAdmMaxDeviceNameSize],
-    WebRtc_Word8 guid[kAdmMaxGuidSize]) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
+    char name[kAdmMaxDeviceNameSize],
+    char guid[kAdmMaxGuidSize]) {
 
     if (0 != index) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
@@ -885,9 +838,8 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::PlayoutDeviceName(
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::RecordingDeviceName(
     WebRtc_UWord16 index,
-    WebRtc_Word8 name[kAdmMaxDeviceNameSize],
-    WebRtc_Word8 guid[kAdmMaxGuidSize]) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
+    char name[kAdmMaxDeviceNameSize],
+    char guid[kAdmMaxGuidSize]) {
 
     if (0 != index) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
@@ -906,14 +858,12 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::RecordingDeviceName(
 }
 
 WebRtc_Word16 AudioDeviceAndroidOpenSLES::RecordingDevices() {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return 1;
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetRecordingDevice(
     WebRtc_UWord16 index) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     if (_recIsInitialized) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
@@ -936,7 +886,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetRecordingDevice(
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetRecordingDevice(
     AudioDeviceModule::WindowsDeviceType /*device*/) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
                  "  API call not supported on this platform");
@@ -944,7 +893,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetRecordingDevice(
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::PlayoutIsAvailable(bool& available) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     available = false;
 
@@ -962,7 +910,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::PlayoutIsAvailable(bool& available) {
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::RecordingIsAvailable(bool& available) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     available = false;
 
@@ -980,9 +927,8 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::RecordingIsAvailable(bool& available) 
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitPlayout() {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (!_initialized) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id, "  Not initialized");
@@ -1019,7 +965,7 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitPlayout() {
         return -1;
     }
 
-    WebRtc_Word32 res(-1);
+    WebRtc_Word32 res = -1;
     SLDataFormat_PCM pcm;
     SLDataSource audioSource;
     SLDataLocator_AndroidSimpleBufferQueue simpleBufferQueue;
@@ -1138,9 +1084,8 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitPlayout() {
 // ----------------------------------------------------------------------------
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitRecording() {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (!_initialized) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id, "  Not initialized");
@@ -1176,17 +1121,13 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitRecording() {
                      "  Recording object is NULL");
         return -1;
     }
-    WebRtc_Word32 res(-1);
-    WebRtc_Word32 numInputs(0);
-    WebRtc_UWord32 inputDeviceIDs[N_MAX_INPUT_DEVICES];
-    SLAudioInputDescriptor audioInputDescriptor;
-    SLDataSource audioSource;
-    SLDataLocator_IODevice micLocator;
-    SLDataSink audioSink;
-    SLDataFormat_PCM pcm;
-    SLDataLocator_AndroidSimpleBufferQueue simpleBufferQueue;
-    bool micAvailable(false);
-    WebRtc_UWord32 micDeviceID(0);
+
+    // TODO(leozwang) clean up following commented out code
+    // WebRtc_Word32 numInputs(0);
+    // WebRtc_UWord32 inputDeviceIDs[N_MAX_INPUT_DEVICES];
+    // SLAudioInputDescriptor audioInputDescriptor;
+    // bool micAvailable(false);
+    // WebRtc_UWord32 micDeviceID(0);
 
     /*    // Get the Audio IO DEVICE CAPABILITIES interface, which is also implicit
      res = (*_slEngineObject)->GetInterface(_slEngineObject,
@@ -1258,6 +1199,14 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitRecording() {
      return -1;
      }
      */
+
+    WebRtc_Word32 res(-1);
+    SLDataSource audioSource;
+    SLDataLocator_IODevice micLocator;
+    SLDataSink audioSink;
+    SLDataFormat_PCM pcm;
+    SLDataLocator_AndroidSimpleBufferQueue simpleBufferQueue;
+
     // Setup the data source structure
     micLocator.locatorType = SL_DATALOCATOR_IODEVICE;
     micLocator.deviceType = SL_IODEVICE_AUDIOINPUT;
@@ -1281,7 +1230,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitRecording() {
     audioSink.pFormat = (void *) &pcm;
     audioSink.pLocator = (void *) &simpleBufferQueue;
 
-    // Create audio recorder 
     const SLInterfaceID id[1] = { SL_IID_ANDROIDSIMPLEBUFFERQUEUE };
     const SLboolean req[1] = { SL_BOOLEAN_TRUE };
     res = (*_slEngine)->CreateAudioRecorder(_slEngine, &_slRecorder,
@@ -1301,8 +1249,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitRecording() {
         return -1;
     }
 
-    WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
-                 "  get Recorder interface");
     // Get the RECORD interface - it is an implicit interface
     res = (*_slRecorder)->GetInterface(_slRecorder, SL_IID_RECORD,
                                        (void*) &_slRecorderRecord);
@@ -1312,8 +1258,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitRecording() {
         return -1;
     }
 
-    WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
-                 "  get Recorder Simple Buffer Queue 2");
     // Get the simpleBufferQueue interface
     res = (*_slRecorder)->GetInterface(_slRecorder,
                                        SL_IID_ANDROIDSIMPLEBUFFERQUEUE,
@@ -1324,8 +1268,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitRecording() {
         return -1;
     }
 
-    WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
-                 "  register Recorder Callback 2");
     // Setup to receive buffer queue event callbacks
     res = (*_slRecorderSimpleBufferQueue)->RegisterCallback(
         _slRecorderSimpleBufferQueue,
@@ -1342,9 +1284,8 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitRecording() {
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::StartRecording() {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (!_recIsInitialized) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
@@ -1433,9 +1374,8 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::StartRecording() {
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::StopRecording() {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (!_recIsInitialized) {
         WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id,
@@ -1493,28 +1433,24 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::StopRecording() {
 }
 
 bool AudioDeviceAndroidOpenSLES::RecordingIsInitialized() const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return _recIsInitialized;
 }
 
 
 bool AudioDeviceAndroidOpenSLES::Recording() const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return _recording;
 }
 
 bool AudioDeviceAndroidOpenSLES::PlayoutIsInitialized() const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return _playIsInitialized;
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::StartPlayout() {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (!_playIsInitialized) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id,
@@ -1595,9 +1531,8 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::StartPlayout() {
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::StopPlayout() {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    CriticalSectionScoped lock(_critSect);
+    CriticalSectionScoped lock(&_critSect);
 
     if (!_playIsInitialized) {
         WEBRTC_TRACE(kTraceInfo, kTraceAudioDevice, _id,
@@ -1655,7 +1590,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::RecordingDelay(WebRtc_UWord16& delayMS
 }
 
 bool AudioDeviceAndroidOpenSLES::Playing() const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     return _playing;
 }
@@ -1663,7 +1597,6 @@ bool AudioDeviceAndroidOpenSLES::Playing() const {
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetPlayoutBuffer(
     const AudioDeviceModule::BufferType /*type*/,
     WebRtc_UWord16 /*sizeMS*/) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
                  "  API call not supported on this platform");
@@ -1673,7 +1606,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetPlayoutBuffer(
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::PlayoutBuffer(
     AudioDeviceModule::BufferType& type,
     WebRtc_UWord16& sizeMS) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     type = AudioDeviceModule::kAdaptiveBufferSize;
     sizeMS = _playoutDelay; // Set to current playout delay
@@ -1682,7 +1614,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::PlayoutBuffer(
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::CPULoad(WebRtc_UWord16& /*load*/) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
                  "  API call not supported on this platform");
@@ -1722,8 +1653,6 @@ void AudioDeviceAndroidOpenSLES::ClearRecordingError() {
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetLoudspeakerStatus(bool enable) {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s(%d)",
-                 __FUNCTION__, enable);
 
     //  if (!_javaContext)
     //  {
@@ -1781,7 +1710,6 @@ WebRtc_Word32 AudioDeviceAndroidOpenSLES::SetLoudspeakerStatus(bool enable) {
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::GetLoudspeakerStatus(
     bool& enabled) const {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
     enabled = _loudSpeakerOn;
     return 0;
@@ -2001,17 +1929,17 @@ void AudioDeviceAndroidOpenSLES::UpdateRecordingDelay() {
 }
 
 WebRtc_Word32 AudioDeviceAndroidOpenSLES::InitSampleRate() {
-    WEBRTC_TRACE(kTraceModuleCall, kTraceAudioDevice, _id, "%s", __FUNCTION__);
 
-    WebRtc_Word32 res(-1);
-    WebRtc_Word32 numOutputs(0);
-    WebRtc_UWord32 headsetDeviceID(0);
-    WebRtc_UWord32 earpieceDeviceID(0);
-    bool headsetAvailable(false);
-    bool earpieceAvailable(false);
-    bool foundSampleRate(false);
-    WebRtc_UWord32 outputDeviceIDs[N_MAX_OUTPUT_DEVICES];
-    SLAudioOutputDescriptor audioOutputDescriptor;
+    // TODO(leozwang) clean up following commented out code
+    // WebRtc_Word32 res(-1);
+    // WebRtc_Word32 numOutputs(0);
+    // WebRtc_UWord32 headsetDeviceID(0);
+    // WebRtc_UWord32 earpieceDeviceID(0);
+    // bool headsetAvailable(false);
+    // bool earpieceAvailable(false);
+    // bool foundSampleRate(false);
+    // WebRtc_UWord32 outputDeviceIDs[N_MAX_OUTPUT_DEVICES];
+    // SLAudioOutputDescriptor audioOutputDescriptor;
 
     if (_slEngineObject == NULL) {
         WEBRTC_TRACE(kTraceError, kTraceAudioDevice, _id, "  SL Object is NULL");

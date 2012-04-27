@@ -352,14 +352,11 @@ ssl_error:
 
 int
 OpenSSLAdapter::ContinueSSL() {
-  LOG(LS_INFO) << "ContinueSSL";
   ASSERT(state_ == SSL_CONNECTING);
 
   int code = SSL_connect(ssl_);
   switch (SSL_get_error(ssl_, code)) {
   case SSL_ERROR_NONE:
-    LOG(LS_INFO) << " -- success";
-
     if (!SSLPostConnectionCheck(ssl_, ssl_host_name_.c_str())) {
       LOG(LS_ERROR) << "TLS post connection check failed";
       // make sure we close the socket
@@ -381,16 +378,12 @@ OpenSSLAdapter::ContinueSSL() {
     break;
 
   case SSL_ERROR_WANT_READ:
-    LOG(LS_INFO) << " -- error want read";
-    break;
-
   case SSL_ERROR_WANT_WRITE:
-    LOG(LS_INFO) << " -- error want write";
     break;
 
   case SSL_ERROR_ZERO_RETURN:
   default:
-    LOG(LS_INFO) << " -- error " << code;
+    LOG(LS_WARNING) << "ContinueSSL -- error " << code;
     return (code != 0) ? code : -1;
   }
 

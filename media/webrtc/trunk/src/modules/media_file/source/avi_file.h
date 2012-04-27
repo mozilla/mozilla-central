@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -102,14 +102,14 @@ public:
 
     WebRtc_Word32 CreateAudioStream(const AVISTREAMHEADER& audioStreamHeader,
                                     const WAVEFORMATEX& waveFormatHeader);
-    WebRtc_Word32 Create(const WebRtc_Word8* fileName);
+    WebRtc_Word32 Create(const char* fileName);
 
     WebRtc_Word32 WriteAudio(const WebRtc_UWord8* data, WebRtc_Word32 length);
     WebRtc_Word32 WriteVideo(const WebRtc_UWord8* data, WebRtc_Word32 length);
 
     WebRtc_Word32 GetVideoStreamInfo(AVISTREAMHEADER& videoStreamHeader,
                                      BITMAPINFOHEADER& bitmapInfo,
-                                     WebRtc_Word8* codecConfigParameters,
+                                     char* codecConfigParameters,
                                      WebRtc_Word32& configLength);
 
     WebRtc_Word32 GetDuration(WebRtc_Word32& durationMs);
@@ -177,6 +177,7 @@ private:
     void CloseWrite();
 
     void ResetMembers();
+    void ResetComplexMembers();
 
     WebRtc_Word32 ReadRIFF();
     WebRtc_Word32 ReadHeaders();

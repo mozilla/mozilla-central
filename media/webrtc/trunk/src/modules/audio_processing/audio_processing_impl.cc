@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -28,7 +28,7 @@
 
 #ifdef WEBRTC_AUDIOPROC_DEBUG_DUMP
 // Files generated at build-time by the protobuf compiler.
-#ifdef WEBRTC_ANDROID
+#ifdef WEBRTC_ANDROID_PLATFORM_BUILD
 #include "external/webrtc/src/modules/audio_processing/debug.pb.h"
 #else
 #include "webrtc/audio_processing/debug.pb.h"
@@ -37,10 +37,6 @@
 
 namespace webrtc {
 AudioProcessing* AudioProcessing::Create(int id) {
-  /*WEBRTC_TRACE(webrtc::kTraceModuleCall,
-             webrtc::kTraceAudioProcessing,
-             id,
-             "AudioProcessing::Create()");*/
 
   AudioProcessingImpl* apm = new AudioProcessingImpl(id);
   if (apm->Initialize() != kNoError) {
@@ -75,6 +71,7 @@ AudioProcessingImpl::AudioProcessingImpl(int id)
       split_sample_rate_hz_(kSampleRate16kHz),
       samples_per_channel_(sample_rate_hz_ / 100),
       stream_delay_ms_(0),
+      delay_offset_ms_(0),
       was_stream_delay_set_(false),
       num_reverse_channels_(1),
       num_input_channels_(1),
@@ -139,7 +136,7 @@ int AudioProcessingImpl::split_sample_rate_hz() const {
 }
 
 int AudioProcessingImpl::Initialize() {
-  CriticalSectionScoped crit_scoped(*crit_);
+  CriticalSectionScoped crit_scoped(crit_);
   return InitializeLocked();
 }
 
@@ -183,7 +180,7 @@ int AudioProcessingImpl::InitializeLocked() {
 }
 
 int AudioProcessingImpl::set_sample_rate_hz(int rate) {
-  CriticalSectionScoped crit_scoped(*crit_);
+  CriticalSectionScoped crit_scoped(crit_);
   if (rate != kSampleRate8kHz &&
       rate != kSampleRate16kHz &&
       rate != kSampleRate32kHz) {
@@ -207,7 +204,7 @@ int AudioProcessingImpl::sample_rate_hz() const {
 }
 
 int AudioProcessingImpl::set_num_reverse_channels(int channels) {
-  CriticalSectionScoped crit_scoped(*crit_);
+  CriticalSectionScoped crit_scoped(crit_);
   // Only stereo supported currently.
   if (channels > 2 || channels < 1) {
     return kBadParameterError;
@@ -225,7 +222,7 @@ int AudioProcessingImpl::num_reverse_channels() const {
 int AudioProcessingImpl::set_num_channels(
     int input_channels,
     int output_channels) {
-  CriticalSectionScoped crit_scoped(*crit_);
+  CriticalSectionScoped crit_scoped(crit_);
   if (output_channels > input_channels) {
     return kBadParameterError;
   }
@@ -254,7 +251,7 @@ int AudioProcessingImpl::num_output_channels() const {
 }
 
 int AudioProcessingImpl::ProcessStream(AudioFrame* frame) {
-  CriticalSectionScoped crit_scoped(*crit_);
+  CriticalSectionScoped crit_scoped(crit_);
   int err = kNoError;
 
   if (frame == NULL) {
@@ -385,7 +382,7 @@ int AudioProcessingImpl::ProcessStream(AudioFrame* frame) {
 }
 
 int AudioProcessingImpl::AnalyzeReverseStream(AudioFrame* frame) {
-  CriticalSectionScoped crit_scoped(*crit_);
+  CriticalSectionScoped crit_scoped(crit_);
   int err = kNoError;
 
   if (frame == NULL) {
@@ -454,6 +451,8 @@ int AudioProcessingImpl::AnalyzeReverseStream(AudioFrame* frame) {
 
 int AudioProcessingImpl::set_stream_delay_ms(int delay) {
   was_stream_delay_set_ = true;
+  delay += delay_offset_ms_;
+
   if (delay < 0) {
     return kBadParameterError;
   }
@@ -476,9 +475,18 @@ bool AudioProcessingImpl::was_stream_delay_set() const {
   return was_stream_delay_set_;
 }
 
+void AudioProcessingImpl::set_delay_offset_ms(int offset) {
+  CriticalSectionScoped crit_scoped(crit_);
+  delay_offset_ms_ = offset;
+}
+
+int AudioProcessingImpl::delay_offset_ms() const {
+  return delay_offset_ms_;
+}
+
 int AudioProcessingImpl::StartDebugRecording(
     const char filename[AudioProcessing::kMaxFilenameSize]) {
-  CriticalSectionScoped crit_scoped(*crit_);
+  CriticalSectionScoped crit_scoped(crit_);
   assert(kMaxFilenameSize == FileWrapper::kMaxFileNameSize);
 
   if (filename == NULL) {
@@ -509,7 +517,7 @@ int AudioProcessingImpl::StartDebugRecording(
 }
 
 int AudioProcessingImpl::StopDebugRecording() {
-  CriticalSectionScoped crit_scoped(*crit_);
+  CriticalSectionScoped crit_scoped(crit_);
 
 #ifdef WEBRTC_AUDIOPROC_DEBUG_DUMP
   // We just return if recording hasn't started.
@@ -553,12 +561,7 @@ VoiceDetection* AudioProcessingImpl::voice_detection() const {
 }
 
 WebRtc_Word32 AudioProcessingImpl::ChangeUniqueId(const WebRtc_Word32 id) {
-  CriticalSectionScoped crit_scoped(*crit_);
-  /*WEBRTC_TRACE(webrtc::kTraceModuleCall,
-             webrtc::kTraceAudioProcessing,
-             id_,
-             "ChangeUniqueId(new id = %d)",
-             id);*/
+  CriticalSectionScoped crit_scoped(crit_);
   id_ = id;
 
   return kNoError;

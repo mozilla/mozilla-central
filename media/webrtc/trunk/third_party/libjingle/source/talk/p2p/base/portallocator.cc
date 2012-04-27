@@ -31,6 +31,21 @@
 
 namespace cricket {
 
+// Mediaproxy expects username to be 16 bytes.
+static const int kUsernameLength = 16;
+// Minimum password length of 22 characters as per RFC5245.
+static const int kPasswordLength = 22;
+
+PortAllocatorSession::PortAllocatorSession(const std::string& name,
+                                           const std::string& session_type,
+                                           uint32 flags)
+    : name_(name),
+      session_type_(session_type),
+      flags_(flags),
+      username_(talk_base::CreateRandomString(kUsernameLength)),
+      password_(talk_base::CreateRandomString(kPasswordLength)) {
+}
+
 PortAllocator::~PortAllocator() {
   for (SessionMuxerMap::iterator iter = muxers_.begin();
        iter != muxers_.end(); ++iter) {

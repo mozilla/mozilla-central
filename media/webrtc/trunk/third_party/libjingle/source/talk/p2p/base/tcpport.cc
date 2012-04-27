@@ -36,8 +36,10 @@ namespace cricket {
 TCPPort::TCPPort(talk_base::Thread* thread,
                  talk_base::PacketSocketFactory* factory,
                  talk_base::Network* network, const talk_base::IPAddress& ip,
-                 int min_port, int max_port, bool allow_listen)
-    : Port(thread, LOCAL_PORT_TYPE, factory, network, ip, min_port, max_port),
+                 int min_port, int max_port, const std::string& username,
+                 const std::string& password, bool allow_listen)
+    : Port(thread, LOCAL_PORT_TYPE, factory, network, ip, min_port, max_port,
+           username, password),
       incoming_only_(false),
       allow_listen_(allow_listen),
       socket_(NULL),
@@ -48,8 +50,8 @@ bool TCPPort::Init() {
   if (allow_listen_) {
     // Treat failure to create or bind a TCP socket as fatal.  This
     // should never happen.
-    socket_ = factory_->CreateServerTcpSocket(
-        talk_base::SocketAddress(ip_, 0), min_port_, max_port_,
+    socket_ = socket_factory()->CreateServerTcpSocket(
+        talk_base::SocketAddress(ip(), 0), min_port(), max_port(),
         false /* ssl */);
     if (!socket_) {
       LOG_J(LS_ERROR, this) << "TCP socket creation failed.";
@@ -108,7 +110,7 @@ void TCPPort::PrepareAddress() {
     LOG_J(LS_INFO, this) << "Not listening due to firewall restrictions.";
     // Note: We still add the address, since otherwise the remote side won't
     // recognize our incoming TCP connections.
-    AddAddress(talk_base::SocketAddress(ip_, 0), "tcp", true);
+    AddAddress(talk_base::SocketAddress(ip(), 0), "tcp", true);
   }
 }
 
@@ -218,7 +220,7 @@ TCPConnection::TCPConnection(TCPPort* port, const Candidate& candidate,
     }
   } else {
     // Incoming connections should match the network address.
-    ASSERT(socket_->GetLocalAddress().ipaddr() == port->ip_);
+    ASSERT(socket_->GetLocalAddress().ipaddr() == port->ip());
   }
 
   if (socket_) {

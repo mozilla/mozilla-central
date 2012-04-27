@@ -27,11 +27,15 @@
 
 #ifdef POSIX
 #include <sys/time.h>
+#if defined(OSX)
+#include <mach/mach_time.h>
+#endif
 #endif
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <mmsystem.h>
 #endif
 
 #include "talk/base/common.h"
@@ -44,28 +48,52 @@ namespace talk_base {
 const uint32 LAST = 0xFFFFFFFF;
 const uint32 HALF = 0x80000000;
 
-#ifdef POSIX
-uint32 Time() {
-  struct timeval tv;
-  gettimeofday(&tv, 0);
-  return tv.tv_sec * 1000 + tv.tv_usec / 1000;
-}
+uint64 TimeNanos() {
+  int64 ticks = 0;
+#if defined(OSX)
+  static mach_timebase_info_data_t timebase;
+  if (timebase.denom == 0) {
+    // Get the timebase if this is the first time we run.
+    // Recommended by Apple's QA1398.
+    kern_return_t ret = mach_timebase_info(&timebase);
+    ASSERT(ret == KERN_SUCCESS);
+  }
+  // Use timebase to convert absolute time tick units into nanoseconds.
+  ticks = mach_absolute_time() * timebase.numer / timebase.denom;
+#elif defined(POSIX)
+  struct timespec ts;
+  // TODO: Do we need to handle the case when CLOCK_MONOTONIC
+  // is not supported?
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  ticks = kNumNanosecsPerSec * static_cast<int64>(ts.tv_sec) +
+      static_cast<int64>(ts.tv_nsec);
+#elif defined(WIN32)
+  static volatile LONG last_timegettime = 0;
+  static volatile int64 num_wrap_timegettime = 0;
+  volatile LONG* last_timegettime_ptr = &last_timegettime;
+  DWORD now = timeGetTime();
+  // Atomically update the last gotten time
+  DWORD old = InterlockedExchange(last_timegettime_ptr, now);
+  if (now < old) {
+    // If now is earlier than old, there may have been a race between
+    // threads.
+    // 0x0fffffff ~3.1 days, the code will not take that long to execute
+    // so it must have been a wrap around.
+    if (old > 0xf0000000 && now < 0x0fffffff) {
+      num_wrap_timegettime++;
+    }
+  }
+  ticks = now + (num_wrap_timegettime << 32);
+  // TODO: Calculate with nanosecond precision.  Otherwise, we're just
+  // wasting a multiply and divide when doing Time() on Windows.
+  ticks = ticks * kNumNanosecsPerMillisec;
 #endif
+  return ticks;
+}
 
-#ifdef WIN32
 uint32 Time() {
-  return GetTickCount();
+  return static_cast<uint32>(TimeNanos() / kNumNanosecsPerMillisec);
 }
-#endif
-
-uint32 StartTime() {
-  // Close to program execution time
-  static const uint32 g_start = Time();
-  return g_start;
-}
-
-// Make sure someone calls it so that it gets initialized
-static uint32 ignore = StartTime();
 
 uint32 TimeAfter(int32 elapsed) {
   ASSERT(elapsed >= 0);

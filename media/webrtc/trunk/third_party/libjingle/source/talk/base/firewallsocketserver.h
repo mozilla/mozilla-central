@@ -76,7 +76,11 @@ class FirewallSocketServer : public SocketServer {
              const SocketAddress& src, const SocketAddress& dst);
 
   virtual Socket* CreateSocket(int type);
+  virtual Socket* CreateSocket(int family, int type);
+
   virtual AsyncSocket* CreateAsyncSocket(int type);
+  virtual AsyncSocket* CreateAsyncSocket(int family, int type);
+
   virtual void SetMessageQueue(MessageQueue* queue) {
     server_->SetMessageQueue(queue);
   }

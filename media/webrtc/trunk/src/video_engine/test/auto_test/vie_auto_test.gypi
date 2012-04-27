@@ -1,4 +1,4 @@
-# Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+# Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
 #
 # Use of this source code is governed by a BSD-style license
 # that can be found in the LICENSE file in the root of the source
@@ -21,6 +21,7 @@
         '<(webrtc_root)/../test/metrics.gyp:metrics',
         '<(webrtc_root)/../test/test.gyp:test_support',
         'video_engine_core',
+        'libvietest',
       ],
       'include_dirs': [
         'interface/',
@@ -32,11 +33,6 @@
         '../../../common_video/interface',
       ],
       'sources': [
-        'interface/tb_capture_device.h',
-        'interface/tb_external_transport.h',
-        'interface/tb_I420_codec.h',
-        'interface/tb_interfaces.h',
-        'interface/tb_video_channel.h',
         'interface/vie_autotest.h',
         'interface/vie_autotest_defines.h',
         'interface/vie_autotest_linux.h',
@@ -47,22 +43,14 @@
         'interface/vie_autotest_windows.h',
         'interface/vie_file_based_comparison_tests.h',
         'interface/vie_window_manager_factory.h',
-
-        # Helper classes
-        'helpers/vie_fake_camera.cc',
-        'helpers/vie_fake_camera.h',
-        'helpers/vie_file_capture_device.cc',
-        'helpers/vie_file_capture_device.h',
-        'helpers/vie_to_file_renderer.cc',
-        'helpers/vie_to_file_renderer.h',
-        'helpers/vie_window_creator.cc',
-        'helpers/vie_window_creator.h',
+        'interface/vie_window_creator.h',
 
         # New, fully automated tests
+        'automated/legacy_fixture.cc',
+        'automated/two_windows_fixture.cc',
         'automated/vie_api_integration_test.cc',
         'automated/vie_extended_integration_test.cc',
-        'automated/vie_integration_test_base.cc',
-        'automated/vie_integration_test_base.h',
+        'automated/vie_rtp_fuzz_test.cc',
         'automated/vie_standard_integration_test.cc',
         'automated/vie_video_verification_test.cc',
 
@@ -73,15 +61,11 @@
         'primitives/codec_primitives.h',
         'primitives/framedrop_primitives.h',
         'primitives/framedrop_primitives.cc',
+        'primitives/framedrop_primitives_unittest.cc',
         'primitives/general_primitives.cc',
         'primitives/general_primitives.h',
 
         # Platform independent
-        'source/tb_capture_device.cc',
-        'source/tb_external_transport.cc',
-        'source/tb_I420_codec.cc',
-        'source/tb_interfaces.cc',
-        'source/tb_video_channel.cc',
         'source/vie_autotest.cc',
         'source/vie_autotest_base.cc',
         'source/vie_autotest_capture.cc',
@@ -97,53 +81,31 @@
         'source/vie_autotest_custom_call.cc',
         'source/vie_autotest_simulcast.cc',
         'source/vie_file_based_comparison_tests.cc',
+        'source/vie_window_creator.cc',
 
         # Platform dependent
+        # Android
+        'source/vie_autotest_android.cc',
         # Linux
         'source/vie_autotest_linux.cc',
         'source/vie_window_manager_factory_linux.cc',
         # Mac
-        'source/vie_autotest_mac_cocoa.mm',
-        'source/vie_autotest_mac_carbon.cc',
+        'source/vie_autotest_cocoa_mac.mm',
+        'source/vie_autotest_carbon_mac.cc',
         'source/vie_window_manager_factory_mac.mm',
         # Windows
-        'source/vie_autotest_windows.cc',
+        'source/vie_autotest_win.cc',
         'source/vie_window_manager_factory_win.cc',
       ],
-      'copies': [{
-        'destination': '/tmp',
-        'files': [
-          'media/captureDeviceImage.bmp',
-          'media/captureDeviceImage.jpg',
-          'media/renderStartImage.bmp',
-          'media/renderStartImage.jpg',
-          'media/renderTimeoutImage.bmp',
-          'media/renderTimeoutImage.jpg',
-        ],
-      }],
       'conditions': [
-        # TODO(andrew): rename these to be suffixed with _mac and _win. They
-        # will then be automatically excluded.
-        ['OS!="mac"', {
-          'sources!': [
-            'source/vie_autotest_mac_cocoa.cc',
-            'source/vie_autotest_mac_carbon.cc',
-            'source/vie_window_manager_factory_mac.mm',
-          ],
-        }],
-        ['OS!="win"', {
-          'sources!': [
-            'source/vie_autotest_windows.cc',
-          ],
-        }],
-        ['OS!="linux"', {
-          'sources!': [
-            'source/vie_window_manager_factory_linux.cc',
-          ],
-        }],
-
         # TODO(andrew): this likely isn't an actual dependency. It should be
         # included in webrtc.gyp or video_engine.gyp instead.
+        ['OS=="android"', {
+          'libraries': [
+            '-lGLESv2',
+            '-llog',
+          ],
+        }],
         ['OS=="win"', {
           'dependencies': [
             'vie_win_test',
@@ -151,16 +113,13 @@
         }],
         ['OS=="linux"', {
           # TODO(andrew): these should be provided directly by the projects
-          # which require them instead.
+          #   # which require them instead.
           'libraries': [
             '-lXext',
             '-lX11',
           ],
         }],
         ['OS=="mac"', {
-          'include_dirs': [
-            '../../../modules/video_render/main/source/mac',
-          ],
           'xcode_settings': {
             'OTHER_LDFLAGS': [
               '-framework Foundation -framework AppKit -framework Cocoa -framework OpenGL -framework CoreVideo -framework CoreAudio -framework AudioToolbox',

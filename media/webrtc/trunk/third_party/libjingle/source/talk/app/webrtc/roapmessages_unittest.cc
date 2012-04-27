@@ -48,20 +48,15 @@ static const char kOfferSessionId[] = "offer_1";
 static const char kAnswerSessionId[] = "answer_1";
 static const char kSessionToken[] = "session_1";
 
+#define SDP_REFERENCE "this is a fake sdp string"
+
 static const char kOfferReference[] =
     "{\n"
     "   \"answererSessionId\" : \"answer_1\",\n"
     "   \"messageType\" : \"OFFER\",\n"
     "   \"offererSessionId\" : \"offer_1\",\n"
-    "   \"sdp\" : \"v=0\\r\\n"
-    "o=- 0 0 IN IP4 127.0.0.1\\r\\n"
-    "s=\\r\\n"
-    "t=0 0\\r\\n"
-    "m=audio 0 RTP/AVPF\\r\\n"
-    "a=mid:audio\\r\\n"
-    "a=rtcp-mux\\r\\n"
-    "a=ssrc:1 cname:stream_1_cname mslabel:local_stream_1 "
-        "label:local_audio_1\\r\\n"
+    "   \"sdp\" : \""
+    SDP_REFERENCE
     "\",\n"  // End of sdp.
     "   \"seq\" : 1,\n"
     "   \"tieBreaker\" : 0\n"
@@ -72,18 +67,14 @@ static const char kAnswerReference[] =
     "   \"answererSessionId\" : \"answer_1\",\n"
     "   \"messageType\" : \"ANSWER\",\n"
     "   \"offererSessionId\" : \"offer_1\",\n"
-    "   \"sdp\" : \"v=0\\r\\n"
-    "o=- 0 0 IN IP4 127.0.0.1\\r\\n"
-    "s=\\r\\n"
-    "t=0 0\\r\\n"
-    "m=audio 0 RTP/AVPF\\r\\n"
-    "a=mid:audio\\r\\n"
-    "a=rtcp-mux\\r\\n"
-    "a=ssrc:1 cname:stream_1_cname mslabel:local_stream_1 "
-        "label:local_audio_1\\r\\n"
+    "   \"sdp\" : \""
+    SDP_REFERENCE
     "\",\n"  // End of sdp.
     "   \"seq\" : 1\n"
     "}\n";
+
+static const char kSdpReference[]= SDP_REFERENCE;
+#undef SDP_REFERENCE
 
 static const char kOkReference[] =
     "{\n"
@@ -109,28 +100,6 @@ static const char kErrorReference[] =
     "   \"offererSessionId\" : \"offer_1\",\n"
     "   \"seq\" : 1\n"
     "}\n";
-
-// RoapMessageTest creates a session description that matches the
-// reference messages above.
-class RoapMessageTest: public testing::Test {
- public:
-  void SetUp() {
-    talk_base::scoped_ptr<AudioContentDescription> audio(
-        new AudioContentDescription());
-    audio->set_rtcp_mux(true);
-    StreamParams audio_stream;
-    audio_stream.name = kAudioTrackLabel1;
-    audio_stream.cname = kStream1Cname;
-    audio_stream.sync_label = kStreamLabel1;
-    audio_stream.ssrcs.push_back(kAudioTrack1Ssrc);
-    audio->AddStream(audio_stream);
-    desc1_.AddContent(cricket::CN_AUDIO, cricket::NS_JINGLE_RTP,
-                      audio.release());
-  }
-   protected:
-    cricket::SessionDescription desc1_;
-    cricket::Candidates empty_candidates_;
-};
 
 static bool CompareRoapBase(const webrtc::RoapMessageBase& base1,
                             const webrtc::RoapMessageBase& base2) {
@@ -160,11 +129,11 @@ static bool CompareRoapError(const webrtc::RoapError& error1,
       error1.error() == error2.error();
 }
 
-TEST_F(RoapMessageTest, RoapOffer) {
-  webrtc::RoapOffer offer(kOfferSessionId, kAnswerSessionId, "", 1, 0, &desc1_,
-                          empty_candidates_);
+TEST(RoapMessageTest, RoapOffer) {
+  webrtc::RoapOffer offer(kOfferSessionId, kAnswerSessionId, "", 1, 0,
+                          kSdpReference);
   std::string offer_string = offer.Serialize();
-  EXPECT_TRUE(kOfferReference == offer_string);
+  EXPECT_EQ(kOfferReference, offer_string);
 
   webrtc::RoapMessageBase base;
   EXPECT_TRUE(base.Parse(kOfferReference));
@@ -174,11 +143,11 @@ TEST_F(RoapMessageTest, RoapOffer) {
   EXPECT_TRUE(CompareRoapOffer(offer, parsed_offer));
 }
 
-TEST_F(RoapMessageTest, RoapAnswer) {
+TEST(RoapMessageTest, RoapAnswer) {
   webrtc::RoapAnswer answer(kOfferSessionId, kAnswerSessionId, "", "", 1,
-                            &desc1_, empty_candidates_);
+                            kSdpReference);
   std::string answer_string = answer.Serialize();
-  EXPECT_TRUE(kAnswerReference == answer_string);
+  EXPECT_EQ(kAnswerReference, answer_string);
 
   webrtc::RoapMessageBase base;
   EXPECT_TRUE(base.Parse(kAnswerReference));
@@ -188,7 +157,7 @@ TEST_F(RoapMessageTest, RoapAnswer) {
   EXPECT_TRUE(CompareRoapAnswer(answer, parsed_answer));
 }
 
-TEST_F(RoapMessageTest, RoapOk) {
+TEST(RoapMessageTest, RoapOk) {
   webrtc::RoapOk ok(kOfferSessionId, kAnswerSessionId, "", "", 1);
   std::string ok_string = ok.Serialize();
   EXPECT_TRUE(kOkReference == ok_string);
@@ -200,7 +169,7 @@ TEST_F(RoapMessageTest, RoapOk) {
   EXPECT_TRUE(CompareRoapBase(ok, parsed_ok));
 }
 
-TEST_F(RoapMessageTest, RoapShutdown) {
+TEST(RoapMessageTest, RoapShutdown) {
   webrtc::RoapShutdown shutdown(kOfferSessionId, kAnswerSessionId, "", 1);
   std::string shutdown_string = shutdown.Serialize();
   EXPECT_TRUE(kShutdownReference == shutdown_string);
@@ -212,7 +181,7 @@ TEST_F(RoapMessageTest, RoapShutdown) {
   EXPECT_TRUE(CompareRoapBase(shutdown, parsed_shutdown));
 }
 
-TEST_F(RoapMessageTest, RoapError) {
+TEST(RoapMessageTest, RoapError) {
   webrtc::RoapError error(kOfferSessionId, kAnswerSessionId, "", "", 1,
                           webrtc::kTimeout);
   std::string error_string = error.Serialize();

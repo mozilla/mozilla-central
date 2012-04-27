@@ -2,26 +2,26 @@
  * libjingle
  * Copyright 2004--2005, Google Inc.
  *
- * Redistribution and use in source and binary forms, with or without 
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  1. Redistributions of source code must retain the above copyright notice, 
+ *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
  *  2. Redistributions in binary form must reproduce the above copyright notice,
  *     this list of conditions and the following disclaimer in the documentation
  *     and/or other materials provided with the distribution.
- *  3. The name of the author may not be used to endorse or promote products 
+ *  3. The name of the author may not be used to endorse or promote products
  *     derived from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
  * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
@@ -46,7 +46,7 @@ enum XmppChatroomState {
   XMPP_CHATROOM_STATE_REQUESTED_EXIT   = 3,
 };
 
-//! Module that encapsulates a chatroom. 
+//! Module that encapsulates a chatroom.
 class XmppChatroomModule : public XmppModule {
 public:
 
@@ -83,7 +83,7 @@ public:
   //! Requests that the user enter a chatroom
   //! The EnterChatroom callback will be called when the request is complete.
   //! Password should be empty for a room that doesn't require a password
-  //! If the room doesn't exist, the server will create an "Instant Room" if the 
+  //! If the room doesn't exist, the server will create an "Instant Room" if the
   //! server policy supports this action.
   //! There will be different methods for creating/configuring a "Reserved Room"
   //! Async callback for this method is ChatroomEnteredStatus
@@ -96,15 +96,15 @@ public:
   //! Requests a status change
   //! status is the standard XMPP status code
   //! extended_status is the extended status when status is XMPP_PRESENCE_XA
-  virtual XmppReturnStatus RequestStatusChange(XmppPresenceShow status, 
+  virtual XmppReturnStatus RequestStatusChange(XmppPresenceShow status,
                                                const std::string& extended_status) = 0;
 
   //! Returns the number of members in the room
   virtual size_t GetChatroomMemberCount() = 0;
 
   //! Gets an enumerator for the members in the chatroom
-  //! The caller must delete the enumerator when the caller is finished with it. 
-  //! The caller must also ensure that the lifetime of the enumerator is 
+  //! The caller must delete the enumerator when the caller is finished with it.
+  //! The caller must also ensure that the lifetime of the enumerator is
   //! scoped by the XmppChatRoomModule that created it.
   virtual XmppReturnStatus CreateMemberEnumerator(XmppChatroomMemberEnumerator** enumerator) = 0;
 
@@ -154,11 +154,11 @@ public:
 class XmppChatroomMember {
 public:
   virtual ~XmppChatroomMember() { }
-    
+
   //! The jid for the member in the chatroom
   virtual const Jid member_jid() const = 0;
 
-  //! The full jid for the member 
+  //! The full jid for the member
   //! This is only available in non-anonymous rooms.
   //! If the room is anonymous, this returns JID_EMPTY
   virtual const Jid full_jid() const = 0;
@@ -209,13 +209,15 @@ enum XmppChatroomExitedStatus
   //! The system is shutting down
   XMPP_CHATROOM_EXITED_SYSTEM_SHUTDOWN             = 4,
   //! For some other reason
-  XMPP_CHATROOM_EXITED_UNSPECIFIED                 = 5,             
+  XMPP_CHATROOM_EXITED_UNSPECIFIED                 = 5,
 };
 
 //! The XmppChatroomHandler is the interface for callbacks from the
 //! the chatroom
 class XmppChatroomHandler {
 public:
+  virtual ~XmppChatroomHandler() {}
+
   //! Indicates the response to RequestEnterChatroom method
   //! XMPP_CHATROOM_SUCCESS represents success.
   //! Other status codes are for errors
@@ -223,7 +225,7 @@ public:
                                      XmppChatroomEnteredStatus status) = 0;
 
 
-  //! Indicates that the user has exited the chatroom, either due to 
+  //! Indicates that the user has exited the chatroom, either due to
   //! a call to RequestExitChatroom or for some other reason.
   //! status indicates the reason the user exited
   virtual void ChatroomExitedStatus(XmppChatroomModule* room,
@@ -243,7 +245,7 @@ public:
                               size_t index) = 0;
 
   //! Indicates a new message has been received
-  //! message is the message - 
+  //! message is the message -
   // $TODO - message should be changed
   //! to a strongly-typed message class that contains info
   //! such as the sender, message bodies, etc.,
@@ -255,4 +257,3 @@ public:
 }
 
 #endif
-

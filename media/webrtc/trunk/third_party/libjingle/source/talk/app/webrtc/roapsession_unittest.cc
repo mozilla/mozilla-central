@@ -32,194 +32,49 @@
 #include "talk/base/gunit.h"
 #include "talk/base/logging.h"
 #include "talk/base/scoped_ptr.h"
-#include "talk/p2p/base/transport.h"
-#include "talk/session/phone/mediasession.h"
 
-using cricket::AudioContentDescription;
-using cricket::Candidates;
-using cricket::ContentInfo;
-using cricket::SessionDescription;
-using cricket::VideoContentDescription;
 using webrtc::RoapMessageBase;
 using webrtc::RoapSession;
+using webrtc::RoapAnswer;
 using webrtc::RoapOffer;
 
-// MediaStream 1
-static const char kStreamLabel1[] = "local_stream_1";
-static const char kStream1Cname[] = "stream_1_cname";
-static const char kAudioTrackLabel1[] = "local_audio_1";
-static const uint32 kAudioTrack1Ssrc = 1;
-static const char kVideoTrackLabel1[] = "local_video_1";
-static const uint32 kVideoTrack1Ssrc = 2;
-static const char kVideoTrackLabel2[] = "local_video_2";
-static const uint32 kVideoTrack2Ssrc = 3;
+// Reference sdp string
+static const char kSdpDescription1[] =
+    "m=fake content 1\r\n"
+    "m=fake content 2\r\n";
 
-// MediaStream 2
-static const char kStreamLabel2[] = "local_stream_2";
-static const char kStream2Cname[] = "stream_2_cname";
-static const char kAudioTrackLabel2[] = "local_audio_2";
-static const uint32 kAudioTrack2Ssrc = 4;
-static const char kVideoTrackLabel3[] = "local_video_3";
-static const uint32 kVideoTrack3Ssrc = 5;
+static const char kSdpDescription2[] =
+    "m=fake content 3\r\n"
+    "m=fake content 4\r\n";
 
-class RoapSessionTest: public testing::Test {
- public:
-  void SetUp() {
-    talk_base::scoped_ptr<AudioContentDescription> audio(
-        new AudioContentDescription());
-    audio->set_rtcp_mux(true);
-    cricket::StreamParams audio_stream1;
-    audio_stream1.name = kAudioTrackLabel1;
-    audio_stream1.cname = kStream1Cname;
-    audio_stream1.sync_label = kStreamLabel1;
-    audio_stream1.ssrcs.push_back(kAudioTrack1Ssrc);
-    audio->AddStream(audio_stream1);
-    desc1_.AddContent(cricket::CN_AUDIO, cricket::NS_JINGLE_RTP,
-                      audio.release());
-
-    talk_base::scoped_ptr<VideoContentDescription> video(
-        new VideoContentDescription());
-
-    cricket::StreamParams video_stream1;
-    video_stream1.name = kVideoTrackLabel1;
-    video_stream1.cname = kStream1Cname;
-    video_stream1.sync_label = kStreamLabel1;
-    video_stream1.ssrcs.push_back(kVideoTrack1Ssrc);
-    video->AddStream(video_stream1);
-
-    cricket::StreamParams video_stream2;
-    video_stream2.name = kVideoTrackLabel2;
-    video_stream2.cname = kStream1Cname;
-    video_stream2.sync_label = kStreamLabel1;
-    video_stream2.ssrcs.push_back(kVideoTrack2Ssrc);
-    video->AddStream(video_stream2);
-    desc1_.AddContent(cricket::CN_VIDEO, cricket::NS_JINGLE_RTP,
-                      video.release());
-
-    audio.reset(new AudioContentDescription());
-    audio->set_rtcp_mux(true);
-    cricket::StreamParams audio_stream2;
-    audio_stream2.name = kAudioTrackLabel2;
-    audio_stream2.cname = kStream2Cname;
-    audio_stream2.sync_label = kStreamLabel2;
-    audio_stream2.ssrcs.push_back(kAudioTrack2Ssrc);
-    audio->AddStream(audio_stream2);
-    desc2_.AddContent(cricket::CN_AUDIO, cricket::NS_JINGLE_RTP,
-                      audio.release());
-
-    video.reset(new VideoContentDescription());
-    cricket::StreamParams video_stream3;
-    video_stream3.name = kVideoTrackLabel3;
-    video_stream3.cname = kStream2Cname;
-    video_stream3.sync_label = kStreamLabel2;
-    video_stream3.ssrcs.push_back(kVideoTrack3Ssrc);
-    video->AddStream(video_stream3);
-    desc2_.AddContent(cricket::CN_VIDEO, cricket::NS_JINGLE_RTP,
-                      video.release());
-
-    int port = 1234;
-    talk_base::SocketAddress address("127.0.0.1", port++);
-    cricket::Candidate candidate1("video_rtcp", "udp", address, 1,
-        "user_video_rtcp", "password_video_rtcp", "local", "eth0", 0);
-    address.SetPort(port++);
-    cricket::Candidate candidate2("video_rtp", "udp", address, 1,
-        "user_video_rtp", "password_video_rtp", "local", "eth0", 0);
-    address.SetPort(port++);
-    cricket::Candidate candidate3("rtp", "udp", address, 1,
-        "user_rtp", "password_rtp", "local", "eth0", 0);
-    address.SetPort(port++);
-    cricket::Candidate candidate4("rtcp", "udp", address, 1,
-        "user_rtcp", "password_rtcp", "local", "eth0", 0);
-
-    candidates_.push_back(candidate1);
-    candidates_.push_back(candidate2);
-    candidates_.push_back(candidate3);
-    candidates_.push_back(candidate4);
-  }
-
-  bool CompareSessionDescription(const SessionDescription* desc1,
-                                 const SessionDescription* desc2) {
-    const ContentInfo* audio_1 = desc1->GetContentByName("audio");
-    const AudioContentDescription* audio_desc_1 =
-        static_cast<const AudioContentDescription*>(audio_1->description);
-    const ContentInfo* video_1 = desc1->GetContentByName("video");
-    const VideoContentDescription* video_desc_1 =
-        static_cast<const VideoContentDescription*>(video_1->description);
-
-    const ContentInfo* audio_2 = desc2->GetContentByName("audio");
-    const AudioContentDescription* audio_desc_2 =
-        static_cast<const AudioContentDescription*>(audio_2->description);
-    const ContentInfo* video_2 = desc2->GetContentByName("video");
-    const VideoContentDescription* video_desc_2 =
-        static_cast<const VideoContentDescription*>(video_2->description);
-
-    // Check that all streams are equal. We only check that the number of
-    // codecs are the same and leave it for other unit tests to test
-    // parsing / serialization of the session description.
-    return audio_desc_1->codecs().size() == audio_desc_2->codecs().size() &&
-        audio_desc_1->streams() == audio_desc_2->streams() &&
-        video_desc_1->codecs().size() == video_desc_2->codecs().size() &&
-        video_desc_1->streams() == video_desc_2->streams();
-  }
-
-  bool CompareCandidates(const Candidates& c1, const Candidates& c2) {
-    if (c1.size() != c2.size())
-      return false;
-
-    Candidates::const_iterator it1 = c1.begin();
-    for (; it1 != c1.end(); ++it1) {
-      // It is ok if the order in the vector have changed.
-      Candidates::const_iterator it2 = c2.begin();
-      for (; it2 != c2.end(); ++it2) {
-        if (it1->IsEquivalent(*it2)) {
-          break;
-        }
-      }
-      if (it2 == c2.end())
-        return false;
-    }
-    return true;
-  }
-
- protected:
-  cricket::SessionDescription desc1_;
-  cricket::SessionDescription desc2_;
-  cricket::Candidates candidates_;
-};
-
-TEST_F(RoapSessionTest, OfferAnswer) {
+TEST(RoapSessionTest, OfferAnswer) {
   RoapSession roap_session1;
   RoapSession roap_session2;
 
-  std::string offer_message = roap_session1.CreateOffer(&desc1_, candidates_);
+  std::string offer_message = roap_session1.CreateOffer(kSdpDescription1);
 
   // Check that it is valid to send to another peer.
   EXPECT_EQ(RoapSession::kOffer, roap_session2.Parse(offer_message));
-  talk_base::scoped_ptr<const cricket::SessionDescription> received_offer(
-      roap_session2.ReleaseRemoteDescription());
+  std::string received_offer(roap_session2.RemoteDescription());
 
-  ASSERT_TRUE(received_offer.get() != NULL);
-  EXPECT_TRUE(CompareSessionDescription(&desc1_, received_offer.get()));
-  EXPECT_TRUE(CompareCandidates(candidates_, roap_session2.RemoteCandidates()));
+  EXPECT_FALSE(received_offer.empty());
+  EXPECT_EQ(kSdpDescription1, received_offer);
 
-  std::string answer_message = roap_session2.CreateAnswer(&desc2_, candidates_);
+  std::string answer_message = roap_session2.CreateAnswer(kSdpDescription2);
 
   EXPECT_EQ(RoapSession::kAnswer, roap_session1.Parse(answer_message));
-  talk_base::scoped_ptr<const cricket::SessionDescription> received_answer(
-      roap_session1.ReleaseRemoteDescription());
+  std::string received_answer(roap_session1.RemoteDescription());
 
-  EXPECT_TRUE(CompareSessionDescription(&desc2_, received_answer.get()));
-  EXPECT_FALSE(CompareSessionDescription(received_offer.get(),
-                                         received_answer.get()));
-  EXPECT_TRUE(CompareCandidates(candidates_, roap_session1.RemoteCandidates()));
+  EXPECT_EQ(kSdpDescription2, received_answer);
+  EXPECT_NE(received_offer, received_answer);
 }
 
-TEST_F(RoapSessionTest, InvalidInitialization) {
+TEST(RoapSessionTest, InvalidInitialization) {
   RoapSession roap_session1;
   RoapSession roap_session2;
 
-  std::string offer_message1 = roap_session1.CreateOffer(&desc1_, candidates_);
-  std::string offer_message2 = roap_session2.CreateOffer(&desc2_, candidates_);
+  std::string offer_message1 = roap_session1.CreateOffer(kSdpDescription1);
+  std::string offer_message2 = roap_session2.CreateOffer(kSdpDescription2);
 
   // It is an error to receive an initial offer if you have sent an
   // initial offer.
@@ -230,50 +85,45 @@ TEST_F(RoapSessionTest, InvalidInitialization) {
             roap_session2.Parse(offer_message1));
 }
 
-TEST_F(RoapSessionTest, Glare) {
+TEST(RoapSessionTest, Glare) {
   RoapSession roap_session1;
   RoapSession roap_session2;
 
   // Setup. Need to exchange an offer and an answer in order to test for glare.
-  std::string offer_message1 = roap_session1.CreateOffer(&desc1_, candidates_);
+  std::string offer_message1 = roap_session1.CreateOffer(kSdpDescription1);
 
   roap_session2.Parse(offer_message1);
-  talk_base::scoped_ptr<const SessionDescription> received_offer(
-      roap_session2.ReleaseRemoteDescription());
-  std::string answer_message2 = roap_session2.CreateAnswer(&desc2_,
-                                                           candidates_);
+  std::string answer_message2 = roap_session2.CreateAnswer(kSdpDescription2);
   roap_session1.Parse(answer_message2);
 
   // Ok- we should now have all we need. Create a glare condition by
   // updating the offer simultaneously.
-  offer_message1 = roap_session1.CreateOffer(&desc2_, candidates_);
-  std::string offer_message2 = roap_session2.CreateOffer(&desc1_, candidates_);
+  offer_message1 = roap_session1.CreateOffer(kSdpDescription2);
+  std::string offer_message2 = roap_session2.CreateOffer(kSdpDescription1);
 
   EXPECT_TRUE(
       (RoapSession::kOffer == roap_session1.Parse(offer_message2) &&
-      RoapSession::kConflict == roap_session2.Parse(offer_message1)) ||
+      RoapSession::kParseConflict == roap_session2.Parse(offer_message1)) ||
       (RoapSession::kOffer == roap_session2.Parse(offer_message1) &&
-      RoapSession::kConflict == roap_session1.Parse(offer_message2)));
+      RoapSession::kParseConflict == roap_session1.Parse(offer_message2)));
 }
 
 // Test Glare resolution by setting different TieBreakers.
-TEST_F(RoapSessionTest, TieBreaker) {
+TEST(RoapSessionTest, TieBreaker) {
   RoapSession roap_session1;
   RoapSession roap_session2;
 
   // Offer 1
-  std::string offer_message1 = roap_session1.CreateOffer(&desc1_, candidates_);
+  std::string offer_message1 = roap_session1.CreateOffer(kSdpDescription1);
 
   EXPECT_EQ(RoapSession::kOffer, roap_session2.Parse(offer_message1));
-  talk_base::scoped_ptr<const SessionDescription> received_offer(
-      roap_session2.ReleaseRemoteDescription());
-  std::string answer_message2 = roap_session2.CreateAnswer(&desc2_,
-                                                           candidates_);
+  std::string received_offer(roap_session2.RemoteDescription());
+  std::string answer_message2 = roap_session2.CreateAnswer(kSdpDescription2);
 
   EXPECT_EQ(RoapSession::kAnswer, roap_session1.Parse(answer_message2));
 
   // Ok- we should now have all we need. Create a double conflict condition.
-  offer_message1 = roap_session1.CreateOffer(&desc2_, candidates_);
+  offer_message1 = roap_session1.CreateOffer(kSdpDescription2);
   RoapMessageBase message_base;
   EXPECT_TRUE(message_base.Parse(offer_message1));
   RoapOffer message_offer(message_base);
@@ -283,33 +133,140 @@ TEST_F(RoapSessionTest, TieBreaker) {
                                   "",
                                   message_offer.seq(),
                                   message_offer.tie_breaker(),
-                                  &desc1_,
-                                  candidates_);
-  EXPECT_EQ(RoapSession::kDoubleConflict,
+                                  kSdpDescription1);
+  EXPECT_EQ(RoapSession::kParseDoubleConflict,
             roap_session1.Parse(double_conflict_offer.Serialize()));
 
-  RoapOffer losing_offer(message_offer.answer_session_id(),
-                         message_offer.offer_session_id(),
+  // After a double conflict both offers must be abandoned and a new offer
+  // created. Recreate the sent offer.
+  offer_message1 = roap_session1.CreateOffer(kSdpDescription2);
+  EXPECT_TRUE(message_base.Parse(offer_message1));
+  RoapOffer message_offer2(message_base);
+
+  RoapOffer losing_offer(message_offer2.answer_session_id(),
+                         message_offer2.offer_session_id(),
                          "",
-                         message_offer.seq(),
+                         message_offer2.seq(),
                          0,
-                         &desc1_,
-                         candidates_);
-  EXPECT_EQ(RoapSession::kConflict,
+                         kSdpDescription1);
+  EXPECT_EQ(RoapSession::kParseConflict,
             roap_session1.Parse(losing_offer.Serialize()));
 
-  RoapOffer winning_offer(message_offer.answer_session_id(),
-                          message_offer.offer_session_id(),
+  RoapOffer winning_offer(message_offer2.answer_session_id(),
+                          message_offer2.offer_session_id(),
                           "",
-                          message_offer.seq(),
+                          message_offer2.seq(),
                           0xFFFFFFFF,
-                          &desc1_,
-                          candidates_);
+                          kSdpDescription1);
   EXPECT_EQ(RoapSession::kOffer,
             roap_session1.Parse(winning_offer.Serialize()));
 }
 
-TEST_F(RoapSessionTest, ShutDownOk) {
+TEST(RoapSessionTest, SequenceNumberOnOffer) {
+  RoapSession roap_session1;
+  RoapSession roap_session2;
+
+  std::string offer_message = roap_session1.CreateOffer(kSdpDescription1);
+  EXPECT_EQ(RoapSession::kOffer, roap_session2.Parse(offer_message));
+
+  // Invalid since we have already received the same  message.
+  EXPECT_EQ(RoapSession::kInvalidMessage, roap_session2.Parse(offer_message));
+
+  RoapMessageBase message_base;
+  EXPECT_TRUE(message_base.Parse(offer_message));
+  RoapOffer message_offer(message_base);
+  EXPECT_TRUE(message_offer.Parse());
+  // Create a new offer with higher sequence number.
+  RoapOffer new_offer(message_offer.offer_session_id(),
+                      message_offer.answer_session_id(),
+                      message_offer.session_token(),
+                      message_offer.seq()+1,
+                      0,
+                      kSdpDescription1);
+
+  EXPECT_EQ(RoapSession::kOffer, roap_session2.Parse(new_offer.Serialize()));
+}
+
+TEST(RoapSessionTest, SequenceNumberOnOfferInGlare) {
+  RoapSession roap_session1;
+  RoapSession roap_session2;
+
+  // Setup. Need to exchange an offer and an answer in order to test for glare.
+  std::string offer_message1 = roap_session1.CreateOffer(kSdpDescription1);
+
+  roap_session2.Parse(offer_message1);
+  std::string answer_message2 = roap_session2.CreateAnswer(kSdpDescription2);
+  roap_session1.Parse(answer_message2);
+
+  // Ok- we should now have all we need. Create a glare condition by
+  // updating the offers simultaneously.
+  offer_message1 = roap_session1.CreateOffer(kSdpDescription2);
+  std::string offer_message2 = roap_session2.CreateOffer(kSdpDescription1);
+
+  RoapMessageBase message_base;
+  EXPECT_TRUE(message_base.Parse(offer_message1));
+  RoapOffer message_offer(message_base);
+  EXPECT_TRUE(message_offer.Parse());
+  // Create an offer with lower sequence number.
+  RoapOffer bad_offer(message_offer.offer_session_id(),
+                      message_offer.answer_session_id(),
+                      message_offer.session_token(),
+                      message_offer.seq()-1,
+                      0,
+                      kSdpDescription1);
+
+  EXPECT_EQ(RoapSession::kInvalidMessage,
+            roap_session2.Parse(bad_offer.Serialize()));
+
+  // Test that we accept offers with higher sequence number in glare.
+  RoapOffer god_offer(message_offer.offer_session_id(),
+                      message_offer.answer_session_id(),
+                      message_offer.session_token(),
+                      message_offer.seq()+1,
+                      0,
+                      kSdpDescription1);
+
+  EXPECT_EQ(RoapSession::kOffer,
+            roap_session2.Parse(god_offer.Serialize()));
+}
+
+
+TEST(RoapSessionTest, SequenceNumberOnAnswer) {
+  RoapSession roap_session1;
+  RoapSession roap_session2;
+
+  std::string offer_message = roap_session1.CreateOffer(kSdpDescription1);
+
+  EXPECT_EQ(RoapSession::kOffer, roap_session2.Parse(offer_message));
+  std::string answer_message = roap_session2.CreateAnswer(kSdpDescription2);
+
+  RoapMessageBase message_base;
+  EXPECT_TRUE(message_base.Parse(offer_message));
+  RoapAnswer message_answer(message_base);
+  EXPECT_TRUE(message_answer.Parse());
+
+  // Create an answer with higher sequence number than the offer.
+  RoapAnswer bad_answer(message_answer.offer_session_id(),
+                        message_answer.answer_session_id(),
+                        message_answer.session_token(),
+                        message_answer.response_token(),
+                        message_answer.seq()+1,
+                        kSdpDescription2);
+
+  EXPECT_EQ(RoapSession::kInvalidMessage,
+            roap_session1.Parse(bad_answer.Serialize()));
+
+  RoapAnswer god_answer(message_answer.offer_session_id(),
+                        message_answer.answer_session_id(),
+                        message_answer.session_token(),
+                        message_answer.response_token(),
+                        message_answer.seq(),
+                        kSdpDescription2);
+
+  EXPECT_EQ(RoapSession::kAnswer, roap_session1.Parse(god_answer.Serialize()));
+}
+
+TEST(RoapSessionTest, ShutDownOk) {
   RoapSession roap_session1;
   std::string shutdown = roap_session1.CreateShutDown();
 
@@ -320,7 +277,7 @@ TEST_F(RoapSessionTest, ShutDownOk) {
   EXPECT_EQ(RoapSession::kOk, roap_session1.Parse(ok_message));
 }
 
-TEST_F(RoapSessionTest, ErrorMessageCreation) {
+TEST(RoapSessionTest, ErrorMessageCreation) {
   RoapSession roap_session1;
   RoapSession roap_session2;
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -65,7 +65,7 @@ class VerifyingAudioReceiver : public RtpData {
           return 0;
         }
       }
-      EXPECT_EQ(false, true) << "This code path should never happen.";
+      ADD_FAILURE() << "This code path should never happen.";
       return -1;
     }
     return 0;
@@ -77,7 +77,7 @@ class RTPCallback : public RtpFeedback {
   virtual WebRtc_Word32 OnInitializeDecoder(
       const WebRtc_Word32 id,
       const WebRtc_Word8 payloadType,
-      const WebRtc_Word8 payloadName[RTP_PAYLOAD_NAME_SIZE],
+      const char payloadName[RTP_PAYLOAD_NAME_SIZE],
       const int frequency,
       const WebRtc_UWord8 channels,
       const WebRtc_UWord32 rate) {
@@ -192,7 +192,7 @@ TEST_F(RtpRtcpAudioTest, Basic) {
   EXPECT_EQ(0, module1->SetSSRC(test_ssrc));
   EXPECT_EQ(0, module1->SetStartTimestamp(test_timestamp));
 
-  EXPECT_EQ(false, module1->TelephoneEvent());
+  EXPECT_FALSE(module1->TelephoneEvent());
 
   // Test detection at the end of a DTMF tone.
   EXPECT_EQ(0, module2->SetTelephoneEventStatus(true, true, true));

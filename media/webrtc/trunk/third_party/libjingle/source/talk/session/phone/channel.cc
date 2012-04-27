@@ -64,10 +64,11 @@ enum {
   MSG_RTPPACKET = 22,
   MSG_RTCPPACKET = 23,
   MSG_CHANNEL_ERROR = 24,
-  MSG_ENABLECPUADAPTATION = 25,
-  MSG_DISABLECPUADAPTATION = 26,
-  MSG_SCALEVOLUME = 27,
-  MSG_HANDLEVIEWREQUEST = 28
+  MSG_SETCHANNELOPTIONS = 25,
+  MSG_SCALEVOLUME = 26,
+  MSG_HANDLEVIEWREQUEST = 27,
+  MSG_SENDDATA = 28,
+  MSG_DATARECEIVED = 29
 };
 
 struct SetContentData : public talk_base::MessageData {
@@ -144,16 +145,18 @@ struct RenderMessageData : public talk_base::MessageData {
 };
 
 struct ScreencastMessageData : public talk_base::MessageData {
-  ScreencastMessageData(uint32 s, const ScreencastId& id)
+  ScreencastMessageData(uint32 s, const ScreencastId& id, int f)
       : ssrc(s),
-        window_id(id) {
+        window_id(id),
+        fps(f) {
   }
   uint32 ssrc;
   ScreencastId window_id;
+  int fps;
 };
 
-struct ScreencastEventData : public talk_base::MessageData {
-  ScreencastEventData(uint32 s, talk_base::WindowEvent we)
+struct ScreencastEventMessageData : public talk_base::MessageData {
+  ScreencastEventMessageData(uint32 s, talk_base::WindowEvent we)
       : ssrc(s),
         event(we) {
   }
@@ -174,7 +177,8 @@ struct VoiceChannelErrorMessageData : public talk_base::MessageData {
   VoiceChannelErrorMessageData(uint32 in_ssrc,
                                VoiceMediaChannel::Error in_error)
       : ssrc(in_ssrc),
-        error(in_error) {}
+        error(in_error) {
+  }
   uint32 ssrc;
   VoiceMediaChannel::Error error;
 };
@@ -183,9 +187,19 @@ struct VideoChannelErrorMessageData : public talk_base::MessageData {
   VideoChannelErrorMessageData(uint32 in_ssrc,
                                VideoMediaChannel::Error in_error)
       : ssrc(in_ssrc),
-        error(in_error) {}
+        error(in_error) {
+  }
   uint32 ssrc;
   VideoMediaChannel::Error error;
+};
+
+struct DataChannelErrorMessageData : public talk_base::MessageData {
+  DataChannelErrorMessageData(uint32 in_ssrc,
+                              DataMediaChannel::Error in_error)
+      : ssrc(in_ssrc),
+        error(in_error) {}
+  uint32 ssrc;
+  DataMediaChannel::Error error;
 };
 
 struct SsrcMessageData : public talk_base::MessageData {
@@ -195,9 +209,17 @@ struct SsrcMessageData : public talk_base::MessageData {
 };
 
 struct StreamMessageData : public talk_base::MessageData {
-  explicit StreamMessageData(const StreamParams& sp) : sp(sp), result(false) {}
+  explicit StreamMessageData(const StreamParams& in_sp)
+      : sp(in_sp),
+        result(false) {
+  }
   StreamParams sp;
   bool result;
+};
+
+struct ChannelOptionsMessageData : public talk_base::MessageData {
+  explicit ChannelOptionsMessageData(int in_options) : options(in_options) {}
+  int options;
 };
 
 static const char* PacketType(bool rtcp) {
@@ -230,7 +252,7 @@ BaseChannel::BaseChannel(talk_base::Thread* thread,
       has_remote_content_(false),
       muted_(false) {
   ASSERT(worker_thread_ == talk_base::Thread::Current());
-  LOG(LS_INFO) << "Created channel";
+  LOG(LS_INFO) << "Created channel for " << content_name;
 }
 
 BaseChannel::~BaseChannel() {
@@ -431,6 +453,12 @@ bool BaseChannel::SendPacket(bool rtcp, talk_base::Buffer* packet) {
     return false;
   }
 
+  // Signal to the media sink before protecting the packet.
+  {
+    talk_base::CritScope cs(&signal_send_packet_cs_);
+    SignalSendPacketPreCrypto(packet->data(), packet->length(), rtcp);
+  }
+
   // Protect if needed.
   if (srtp_filter_.IsActive()) {
     bool res;
@@ -463,11 +491,10 @@ bool BaseChannel::SendPacket(bool rtcp, talk_base::Buffer* packet) {
     packet->SetLength(len);
   }
 
-  // Signal to the media sink after protecting the packet. TODO:
-  // Separate APIs to record unprotected media and protected header.
+  // Signal to the media sink after protecting the packet.
   {
     talk_base::CritScope cs(&signal_send_packet_cs_);
-    SignalSendPacket(packet->data(), packet->length(), rtcp);
+    SignalSendPacketPostCrypto(packet->data(), packet->length(), rtcp);
   }
 
   // Bon voyage.
@@ -492,11 +519,10 @@ void BaseChannel::HandlePacket(bool rtcp, talk_base::Buffer* packet) {
     return;
   }
 
-  // Signal to the media sink before unprotecting the packet. TODO:
-  // Separate APIs to record unprotected media and protected header.
+  // Signal to the media sink before unprotecting the packet.
   {
     talk_base::CritScope cs(&signal_recv_packet_cs_);
-    SignalRecvPacket(packet->data(), packet->length(), rtcp);
+    SignalRecvPacketPostCrypto(packet->data(), packet->length(), rtcp);
   }
 
   // Unprotect the packet, if needed.
@@ -528,6 +554,12 @@ void BaseChannel::HandlePacket(bool rtcp, talk_base::Buffer* packet) {
     }
 
     packet->SetLength(len);
+  }
+
+  // Signal to the media sink after unprotecting the packet.
+  {
+    talk_base::CritScope cs(&signal_recv_packet_cs_);
+    SignalRecvPacketPreCrypto(packet->data(), packet->length(), rtcp);
   }
 
   // Push it down to the media channel.
@@ -573,6 +605,11 @@ void BaseChannel::OnSessionState(BaseSession* session,
     default:
       break;
   }
+}
+
+void BaseChannel::SetChannelOptions(int options) {
+  ChannelOptionsMessageData data(options);
+  Send(MSG_SETCHANNELOPTIONS, &data);
 }
 
 void BaseChannel::EnableMedia_w() {
@@ -681,6 +718,10 @@ bool BaseChannel::SetRtcpMux_w(bool enable, ContentAction action,
   return ret;
 }
 
+void BaseChannel::SetChannelOptions_w(int options) {
+  media_channel()->SetOptions(options);
+}
+
 bool BaseChannel::AddRecvStream_w(const StreamParams& sp) {
   ASSERT(worker_thread() == talk_base::Thread::Current());
   if (!media_channel()->AddRecvStream(sp))
@@ -786,7 +827,10 @@ bool BaseChannel::UpdateRemoteStreams_w(
         }
         RemoveStreamBySsrc(&remote_streams_, existing_stream.first_ssrc());
       } else {
-        LOG(LS_WARNING) << "Ignore unsupported stream update";
+        LOG(LS_WARNING) << "Ignore unsupported stream update"
+                        << " stream name = " << it->name
+                        << " stream exists? " << stream_exists
+                        << " has ssrcs? " << it->has_ssrcs();
       }
     }
     return true;
@@ -1139,12 +1183,16 @@ bool VoiceChannel::SetRemoteContent_w(const MediaContentDescription* content,
 
   if (action != CA_UPDATE) {
     // Tweak our audio processing settings, if needed.
-    int audio_options = 0;
+    int audio_options = media_channel()->GetOptions();
     if (audio->conference_mode()) {
       audio_options |= OPT_CONFERENCE;
+    } else {
+      audio_options &= (~OPT_CONFERENCE);
     }
     if (audio->agc_minus_10db()) {
       audio_options |= OPT_AGC_MINUS_10DB;
+    } else {
+      audio_options &= (~OPT_AGC_MINUS_10DB);
     }
     if (!media_channel()->SetOptions(audio_options)) {
       // Log an error on failure, but don't abort the call.
@@ -1343,14 +1391,14 @@ bool VideoChannel::ApplyViewRequest(const ViewRequest& request) {
   return data.result;
 }
 
-bool VideoChannel::AddScreencast(uint32 ssrc, const ScreencastId& id) {
-  ScreencastMessageData data(ssrc, id);
+bool VideoChannel::AddScreencast(uint32 ssrc, const ScreencastId& id, int fps) {
+  ScreencastMessageData data(ssrc, id, fps);
   Send(MSG_ADDSCREENCAST, &data);
   return true;
 }
 
 bool VideoChannel::RemoveScreencast(uint32 ssrc) {
-  ScreencastMessageData data(ssrc, ScreencastId());
+  ScreencastMessageData data(ssrc, ScreencastId(), 0);
   Send(MSG_REMOVESCREENCAST, &data);
   return true;
 }
@@ -1363,10 +1411,6 @@ bool VideoChannel::SendIntraFrame() {
 bool VideoChannel::RequestIntraFrame() {
   Send(MSG_REQUESTINTRAFRAME);
   return true;
-}
-
-void VideoChannel::EnableCpuAdaptation(bool enable) {
-  Send(enable ? MSG_ENABLECPUADAPTATION : MSG_DISABLECPUADAPTATION);
 }
 
 void VideoChannel::ChangeState() {
@@ -1459,9 +1503,11 @@ bool VideoChannel::SetRemoteContent_w(const MediaContentDescription* content,
 
   if (action != CA_UPDATE) {
     // Tweak our video processing settings, if needed.
-    int video_options = 0;
+    int video_options = media_channel()->GetOptions();
     if (video->conference_mode()) {
       video_options |= OPT_CONFERENCE;
+    } else {
+      video_options &= (~OPT_CONFERENCE);
     }
     if (!media_channel()->SetOptions(video_options)) {
       // Log an error on failure, but don't abort the call.
@@ -1524,8 +1570,9 @@ void VideoChannel::SetRenderer_w(uint32 ssrc, VideoRenderer* renderer) {
   media_channel()->SetRenderer(ssrc, renderer);
 }
 
-void VideoChannel::AddScreencast_w(uint32 ssrc, const ScreencastId& id) {
-  media_channel()->AddScreencast(ssrc, id);
+void VideoChannel::AddScreencast_w(uint32 ssrc, const ScreencastId& id,
+                                   int fps) {
+  media_channel()->AddScreencast(ssrc, id, fps);
 }
 
 void VideoChannel::RemoveScreencast_w(uint32 ssrc) {
@@ -1541,41 +1588,44 @@ void VideoChannel::OnScreencastWindowEvent_s(uint32 ssrc,
 void VideoChannel::OnMessage(talk_base::Message *pmsg) {
   switch (pmsg->message_id) {
     case MSG_SETRENDERER: {
-      RenderMessageData* data = static_cast<RenderMessageData*>(pmsg->pdata);
+      const RenderMessageData* data =
+          static_cast<RenderMessageData*>(pmsg->pdata);
       SetRenderer_w(data->ssrc, data->renderer);
       break;
     }
     case MSG_ADDSCREENCAST: {
-      ScreencastMessageData* data =
+      const ScreencastMessageData* data =
           static_cast<ScreencastMessageData*>(pmsg->pdata);
-      AddScreencast_w(data->ssrc, data->window_id);
+      AddScreencast_w(data->ssrc, data->window_id, data->fps);
       break;
     }
     case MSG_REMOVESCREENCAST: {
-      ScreencastMessageData* data =
+      const ScreencastMessageData* data =
           static_cast<ScreencastMessageData*>(pmsg->pdata);
       RemoveScreencast_w(data->ssrc);
       break;
     }
     case MSG_SCREENCASTWINDOWEVENT: {
-      ScreencastEventData* data =
-          static_cast<ScreencastEventData*>(pmsg->pdata);
+      const ScreencastEventMessageData* data =
+          static_cast<ScreencastEventMessageData*>(pmsg->pdata);
       OnScreencastWindowEvent_s(data->ssrc, data->event);
       delete data;
       break;
     }
-    case MSG_SENDINTRAFRAME:
+    case MSG_SENDINTRAFRAME: {
       SendIntraFrame_w();
       break;
-    case MSG_REQUESTINTRAFRAME:
+    }
+    case MSG_REQUESTINTRAFRAME: {
       RequestIntraFrame_w();
       break;
-    case MSG_ENABLECPUADAPTATION:
-      EnableCpuAdaptation_w(true);
+    }
+    case MSG_SETCHANNELOPTIONS: {
+      const ChannelOptionsMessageData* data =
+          static_cast<ChannelOptionsMessageData*>(pmsg->pdata);
+      SetChannelOptions_w(data->options);
       break;
-    case MSG_DISABLECPUADAPTATION:
-      EnableCpuAdaptation_w(false);
-      break;
+    }
     case MSG_CHANNEL_ERROR: {
       const VideoChannelErrorMessageData* data =
           static_cast<VideoChannelErrorMessageData*>(pmsg->pdata);
@@ -1600,6 +1650,8 @@ void VideoChannel::OnConnectionMonitorUpdate(
   SignalConnectionMonitor(this, infos);
 }
 
+// TODO: Look into removing duplicate code between
+// audio, video, and data, perhaps by using templates.
 void VideoChannel::OnMediaMonitorUpdate(
     VideoMediaChannel* media_channel, const VideoMediaInfo &info) {
   ASSERT(media_channel == this->media_channel());
@@ -1608,7 +1660,8 @@ void VideoChannel::OnMediaMonitorUpdate(
 
 void VideoChannel::OnScreencastWindowEvent(uint32 ssrc,
                                            talk_base::WindowEvent event) {
-  ScreencastEventData* pdata = new ScreencastEventData(ssrc, event);
+  ScreencastEventMessageData* pdata =
+      new ScreencastEventMessageData(ssrc, event);
   signaling_thread()->Post(this, MSG_SCREENCASTWINDOWEVENT, pdata);
 }
 
@@ -1638,6 +1691,233 @@ void VideoChannel::OnSrtpError(uint32 ssrc, SrtpFilter::Mode mode,
       // TODO: Turn on the signaling of replay error once we have
       // switched to the new mechanism for doing video retransmissions.
       // OnVideoChannelError(ssrc, VideoMediaChannel::ERROR_PLAY_SRTP_REPLAY);
+      break;
+    default:
+      break;
+  }
+}
+
+DataChannel::DataChannel(talk_base::Thread* thread,
+                         DataMediaChannel* media_channel,
+                         BaseSession* session,
+                         const std::string& content_name,
+                         bool rtcp)
+    // MediaEngine is NULL
+    : BaseChannel(thread, NULL, media_channel, session, content_name, rtcp) {
+}
+
+DataChannel::~DataChannel() {
+  StopMediaMonitor();
+  // this can't be done in the base class, since it calls a virtual
+  DisableMedia_w();
+}
+
+bool DataChannel::Init() {
+  TransportChannel* rtcp_channel = rtcp() ?
+      session()->CreateChannel(content_name(), "data_rtcp") : NULL;
+  if (!BaseChannel::Init(session()->CreateChannel(content_name(), "data_rtp"),
+                         rtcp_channel)) {
+    return false;
+  }
+  media_channel()->SignalDataReceived.connect(
+      this, &DataChannel::OnDataReceived);
+  media_channel()->SignalMediaError.connect(
+      this, &DataChannel::OnDataChannelError);
+  srtp_filter()->SignalSrtpError.connect(
+      this, &DataChannel::OnSrtpError);
+  return true;
+}
+
+bool DataChannel::SendData(
+    const DataMediaChannel::SendDataParams& params,
+    const std::string& data) {
+  SendDataMessageData message_data(params, data);
+  Send(MSG_SENDDATA, &message_data);
+  return true;
+}
+
+const MediaContentDescription* DataChannel::GetFirstContent(
+    const SessionDescription* sdesc) {
+  const ContentInfo* cinfo = GetFirstDataContent(sdesc);
+  if (cinfo == NULL)
+    return NULL;
+
+  return static_cast<const MediaContentDescription*>(cinfo->description);
+}
+
+bool DataChannel::SetLocalContent_w(const MediaContentDescription* content,
+                                    ContentAction action) {
+  ASSERT(worker_thread() == talk_base::Thread::Current());
+  LOG(LS_INFO) << "Setting local data description";
+
+  const DataContentDescription* data =
+      static_cast<const DataContentDescription*>(content);
+  ASSERT(data != NULL);
+  if (!data) return false;
+
+  bool ret = SetBaseLocalContent_w(content, action);
+
+  if (action != CA_UPDATE || data->has_codecs()) {
+    ret &= media_channel()->SetRecvCodecs(data->codecs());
+  }
+
+  // If everything worked, see if we can start receiving.
+  if (ret) {
+    set_has_local_content(true);
+    ChangeState();
+  } else {
+    LOG(LS_WARNING) << "Failed to set local data description";
+  }
+  return ret;
+}
+
+bool DataChannel::SetRemoteContent_w(const MediaContentDescription* content,
+                                     ContentAction action) {
+  ASSERT(worker_thread() == talk_base::Thread::Current());
+
+  const DataContentDescription* data =
+      static_cast<const DataContentDescription*>(content);
+  ASSERT(data != NULL);
+  if (!data) return false;
+
+  // If the remote data doesn't have codecs and isn't an update, it
+  // must be empty, so ignore it.
+  if (action != CA_UPDATE && !data->has_codecs()) {
+    return true;
+  }
+  LOG(LS_INFO) << "Setting remote data description";
+
+  bool ret = true;
+  // Set remote video codecs (what the other side wants to receive).
+  if (action != CA_UPDATE || data->has_codecs()) {
+    ret &= media_channel()->SetSendCodecs(data->codecs());
+  }
+
+  if (ret) {
+    ret &= SetBaseRemoteContent_w(content, action);
+  }
+
+  if (action != CA_UPDATE) {
+    int bandwidth_bps = data->bandwidth();
+    bool auto_bandwidth = (bandwidth_bps == kAutoBandwidth);
+    ret &= media_channel()->SetSendBandwidth(auto_bandwidth, bandwidth_bps);
+  }
+
+  // If everything worked, see if we can start sending.
+  if (ret) {
+    set_has_remote_content(true);
+    ChangeState();
+  } else {
+    LOG(LS_WARNING) << "Failed to set remote data description";
+  }
+  return ret;
+}
+
+void DataChannel::ChangeState() {
+  // Render incoming data if we're the active call, and we have the local
+  // content. We receive data on the default channel and multiplexed streams.
+  bool recv = enabled() && has_local_content();
+  if (!media_channel()->SetReceive(recv)) {
+    LOG(LS_ERROR) << "Failed to SetReceive on data channel";
+  }
+
+  // Send outgoing data if we're the active call, we have the remote content,
+  // and we have had some form of connectivity.
+  bool send = enabled() && has_remote_content() && was_ever_writable();
+  if (!media_channel()->SetSend(send)) {
+    LOG(LS_ERROR) << "Failed to SetSend on data channel";
+  }
+
+  LOG(LS_INFO) << "Changing data state, recv=" << recv << " send=" << send;
+}
+
+void DataChannel::OnMessage(talk_base::Message *pmsg) {
+  switch (pmsg->message_id) {
+    case MSG_SENDDATA: {
+      SendDataMessageData* data =
+          static_cast<SendDataMessageData*>(pmsg->pdata);
+      // TODO: use return value?
+      media_channel()->SendData(data->params, data->data);
+      break;
+    }
+    case MSG_DATARECEIVED: {
+      DataReceivedMessageData* data =
+          static_cast<DataReceivedMessageData*>(pmsg->pdata);
+      SignalDataReceived(this, data->params, data->data);
+      delete data;
+      break;
+    }
+    case MSG_CHANNEL_ERROR: {
+      const DataChannelErrorMessageData* data =
+          static_cast<DataChannelErrorMessageData*>(pmsg->pdata);
+      SignalMediaError(this, data->ssrc, data->error);
+      delete data;
+      break;
+    }
+    default:
+      BaseChannel::OnMessage(pmsg);
+      break;
+  }
+}
+
+void DataChannel::OnConnectionMonitorUpdate(
+    SocketMonitor* monitor, const std::vector<ConnectionInfo>& infos) {
+  SignalConnectionMonitor(this, infos);
+}
+
+void DataChannel::StartMediaMonitor(int cms) {
+  media_monitor_.reset(new DataMediaMonitor(media_channel(), worker_thread(),
+      talk_base::Thread::Current()));
+  media_monitor_->SignalUpdate.connect(
+      this, &DataChannel::OnMediaMonitorUpdate);
+  media_monitor_->Start(cms);
+}
+
+void DataChannel::StopMediaMonitor() {
+  if (media_monitor_.get()) {
+    media_monitor_->Stop();
+    media_monitor_->SignalUpdate.disconnect(this);
+    media_monitor_.reset();
+  }
+}
+
+void DataChannel::OnMediaMonitorUpdate(
+    DataMediaChannel* media_channel, const DataMediaInfo& info) {
+  ASSERT(media_channel == this->media_channel());
+  SignalMediaMonitor(this, info);
+}
+
+void DataChannel::OnDataReceived(
+    const ReceiveDataParams& params, const char* data, size_t len) {
+  DataReceivedMessageData* msg = new DataReceivedMessageData(
+      params, data, len);
+  signaling_thread()->Post(this, MSG_DATARECEIVED, msg);
+}
+
+void DataChannel::OnDataChannelError(
+    uint32 ssrc, DataMediaChannel::Error err) {
+  DataChannelErrorMessageData* data = new DataChannelErrorMessageData(
+      ssrc, err);
+  signaling_thread()->Post(this, MSG_CHANNEL_ERROR, data);
+}
+
+void DataChannel::OnSrtpError(uint32 ssrc, SrtpFilter::Mode mode,
+                              SrtpFilter::Error error) {
+  switch (error) {
+    case SrtpFilter::ERROR_FAIL:
+      OnDataChannelError(ssrc, (mode == SrtpFilter::PROTECT) ?
+                         DataMediaChannel::ERROR_SEND_SRTP_ERROR :
+                         DataMediaChannel::ERROR_RECV_SRTP_ERROR);
+      break;
+    case SrtpFilter::ERROR_AUTH:
+      OnDataChannelError(ssrc, (mode == SrtpFilter::PROTECT) ?
+                         DataMediaChannel::ERROR_SEND_SRTP_AUTH_FAILED :
+                         DataMediaChannel::ERROR_RECV_SRTP_AUTH_FAILED);
+      break;
+    case SrtpFilter::ERROR_REPLAY:
+      // Only receving channel should have this error.
+      ASSERT(mode == SrtpFilter::UNPROTECT);
+      OnDataChannelError(ssrc, DataMediaChannel::ERROR_RECV_SRTP_REPLAY);
       break;
     default:
       break;

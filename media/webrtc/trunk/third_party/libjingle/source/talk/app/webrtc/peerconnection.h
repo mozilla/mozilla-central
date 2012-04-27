@@ -31,40 +31,44 @@
 // PeerConnectionFactory class provides factory methods to create
 // peerconnection, mediastream and media tracks objects.
 //
-// The Following steps are needed to setup a typical call.
+// The Following steps are needed to setup a typical call using Jsep.
 // 1. Create a PeerConnectionFactoryInterface. Check constructors for more
 // information about input parameters.
 // 2. Create a PeerConnection object. Provide a configuration string which
 // points either to stun or turn server to generate ICE candidates and provide
 // an object that implements the PeerConnectionObserver interface.
-// Now PeerConnection will startcollecting ICE candidates.
 // 3. Create local MediaStream and MediaTracks using the PeerConnectionFactory
 // and add it to PeerConnection by calling AddStream.
 // 4. Once all mediastreams are added to peerconnection, call
-// CommitStreamChanges. Now PeerConnection starts generating an offer based on
-// the local mediastreams.
-// 5. When PeerConnection have generated the ICE candidates it will call the
-// observer OnSignalingMessage callback with the initial offer.
-// 6. When an Answer from peer received it must be supplied to the
-// PeerConnection by calling ProcessSignalingMessage.
-// At this point PeerConnection knows remote capabilities and ICE candidates.
-// Media will start flowing to the remote peer.
+// CommitStreamChanges.
+// 5. Create an offer and serialize it and send it to the remote peer.
+// 6. Start generating Ice candidates by calling StartIce. Once a candidate have
+// been found PeerConnection will call the observer function OnIceCandidate.
+// These candidates must also be serialized and sent to the remote peer.
+// 7. Once an answer is received from the remote peer, call
+// SetLocalSessionDescription with the offer and SetRemoteSessionDescription
+// with the remote answer.
+// 8. Once a remote candidate is received from the remote peer, provide it to
+// the peerconnection by calling AddCandidate.
+
 
 // The Receiver of a call can decide to accept or reject the call.
 // This decision will be taken by the application not peerconnection.
 // If application decides to accept the call
 // 1. Create PeerConnectionFactoryInterface if it doesn't exist.
-// 2. Create new PeerConnection
-// 3. Provide the remote offer to the new PeerConnection object by calling
-// ProcessSignalingMessage.
-// 4. PeerConnection will call the observer function OnAddStream with remote
-// MediaStream and tracks information.
-// 5. PeerConnection will call the observer function OnSignalingMessage with
-// local ICE candidates in a answer message.
-// 6. Application can add it's own MediaStreams by calling AddStream.
+// 2. Create a new PeerConnection.
+// 3. The application can add its own MediaStreams by calling AddStream.
 // When all streams have been added the application must call
-// CommitStreamChanges. Streams can be added at any time after the
-// PeerConnection object have been created.
+// CommitStreamChanges.
+// 4. Generate an answer to the remote offer by calling CreateAnswer.
+// 5. Provide the remote offer to the new PeerConnection object by calling
+// SetRemoteSessionDescription.
+// 6. Provide the remote ice candidates by calling AddCandidate.
+// 7. Provide the local answer to the new PeerConnection by calling
+// SetLocalSessionDescription with the new answer.
+// 8. Start generating Ice candidates by calling StartIce. Once a candidate have
+// been found PeerConnection will call the observer function OnIceCandidate.
+// Send these candidates to the remote peer.
 
 #ifndef TALK_APP_WEBRTC_PEERCONNECTION_H_
 #define TALK_APP_WEBRTC_PEERCONNECTION_H_
@@ -72,7 +76,8 @@
 #include <string>
 #include <vector>
 
-#include "talk/app/webrtc/mediastream.h"
+#include "talk/app/webrtc/jsep.h"
+#include "talk/app/webrtc/mediastreaminterface.h"
 #include "talk/base/socketaddress.h"
 
 namespace talk_base {
@@ -99,7 +104,7 @@ class StreamCollectionInterface : public talk_base::RefCountInterface {
 
 // PeerConnection callback interface. Application should implement these
 // methods.
-class PeerConnectionObserver {
+class PeerConnectionObserver : public IceCandidateObserver {
  public:
   enum StateType {
     kReadyState,
@@ -129,7 +134,8 @@ class PeerConnectionObserver {
 };
 
 
-class PeerConnectionInterface : public talk_base::RefCountInterface {
+class PeerConnectionInterface : public JsepInterface,
+                                public talk_base::RefCountInterface {
  public:
   enum ReadyState {
     kNew,
@@ -240,6 +246,9 @@ class PeerConnectionFactoryInterface : public talk_base::RefCountInterface {
   virtual talk_base::scoped_refptr<PeerConnectionInterface>
       CreatePeerConnection(const std::string& config,
                            PeerConnectionObserver* observer) = 0;
+  virtual talk_base::scoped_refptr<PeerConnectionInterface>
+      CreateRoapPeerConnection(const std::string& config,
+                               PeerConnectionObserver* observer) = 0;
 
   virtual talk_base::scoped_refptr<LocalMediaStreamInterface>
       CreateLocalMediaStream(const std::string& label) = 0;
@@ -264,8 +273,8 @@ talk_base::scoped_refptr<PeerConnectionFactoryInterface>
 CreatePeerConnectionFactory();
 
 // Create a new instance of PeerConnectionFactoryInterface.
-// Ownership of the arguments are not transfered to this object and must
-// remain in scope for the lifetime of the PeerConnectionFactoryInterface.
+// Ownership of |factory| and |default_adm| is transferred to the returned
+// factory.
 talk_base::scoped_refptr<PeerConnectionFactoryInterface>
 CreatePeerConnectionFactory(talk_base::Thread* worker_thread,
                             talk_base::Thread* signaling_thread,

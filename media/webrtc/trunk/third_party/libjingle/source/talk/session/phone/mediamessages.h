@@ -47,9 +47,9 @@ namespace cricket {
 
 struct StreamParams;
 
-// A collection of audio and video streams. Most of the methods are
-// merely for convenience. Many of these methods are keyed by ssrc,
-// which is the source identifier in the RTP spec
+// A collection of audio and video and data streams. Most of the
+// methods are merely for convenience. Many of these methods are keyed
+// by ssrc, which is the source identifier in the RTP spec
 // (http://tools.ietf.org/html/rfc3550).
 struct MediaStreams {
  public:
@@ -57,13 +57,15 @@ struct MediaStreams {
   void CopyFrom(const MediaStreams& sources);
 
   bool empty() const {
-    return audio_.empty() && video_.empty();
+    return audio_.empty() && video_.empty() && data_.empty();
   }
 
   std::vector<StreamParams>* mutable_audio() { return &audio_; }
   std::vector<StreamParams>* mutable_video() { return &video_; }
+  std::vector<StreamParams>* mutable_data() { return &data_; }
   const std::vector<StreamParams>& audio() const { return audio_; }
   const std::vector<StreamParams>& video() const { return video_; }
+  const std::vector<StreamParams>& data() const { return data_; }
 
   // Remove the streams with the given name.  Names are only unique to
   // nicks, so you need the nick as well.
@@ -71,22 +73,29 @@ struct MediaStreams {
       const std::string& nick, const std::string& name, StreamParams* source);
   bool GetVideoStreamByNickAndName(
       const std::string& nick, const std::string& name, StreamParams* source);
+  bool GetDataStreamByNickAndName(
+      const std::string& nick, const std::string& name, StreamParams* source);
   // Get the source with the given ssrc.  Returns true if found.
   bool GetAudioStreamBySsrc(uint32 ssrc, StreamParams* source);
   bool GetVideoStreamBySsrc(uint32 ssrc, StreamParams* source);
+  bool GetDataStreamBySsrc(uint32 ssrc, StreamParams* source);
   // Add a source.
   void AddAudioStream(const StreamParams& source);
   void AddVideoStream(const StreamParams& source);
+  void AddDataStream(const StreamParams& source);
   // Remove the source with the given name.  Names are only unique to
   // nicks, so you need the nick as well.
   void RemoveAudioStreamByNickAndName(const std::string& nick,
                                       const std::string& name);
   void RemoveVideoStreamByNickAndName(const std::string& nick,
                                       const std::string& name);
+  void RemoveDataStreamByNickAndName(const std::string& nick,
+                                      const std::string& name);
 
  private:
   std::vector<StreamParams> audio_;
   std::vector<StreamParams> video_;
+  std::vector<StreamParams> data_;
 
   DISALLOW_COPY_AND_ASSIGN(MediaStreams);
 };

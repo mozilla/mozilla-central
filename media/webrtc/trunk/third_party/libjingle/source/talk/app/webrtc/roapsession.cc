@@ -28,6 +28,7 @@
 #include "talk/app/webrtc/roapsession.h"
 
 #include "talk/app/webrtc/roapmessages.h"
+#include "talk/base/common.h"
 #include "talk/base/helpers.h"
 #include "talk/base/logging.h"
 
@@ -50,9 +51,7 @@ RoapSession::RoapSession()
     received_seq_(0) {
 }
 
-std::string RoapSession::CreateOffer(
-    const SessionDescription* desc,
-    const std::vector<Candidate>& candidates) {
+std::string RoapSession::CreateOffer(const std::string& desc) {
   if (local_id_.empty()) {
     local_id_ = CreateLocalId(remote_id_);
   }
@@ -62,21 +61,19 @@ std::string RoapSession::CreateOffer(
   } while (local_tie_breaker_ > kMaxTieBreaker);
 
   RoapOffer offer(local_id_, remote_id_, session_token_, ++seq_,
-                  local_tie_breaker_, desc, candidates);
+                  local_tie_breaker_, desc);
   waiting_for_answer_ = true;
   return offer.Serialize();
 }
 
-std::string RoapSession::CreateAnswer(
-    const SessionDescription* desc,
-    const std::vector<Candidate>& candidates) {
+std::string RoapSession::CreateAnswer(const std::string& desc) {
   ASSERT(!remote_id_.empty());
   if (local_id_.empty()) {
     local_id_ = CreateLocalId(remote_id_);
   }
 
   RoapAnswer answer(remote_id_, local_id_, session_token_, response_token_,
-                    seq_, desc, candidates);
+                    seq_, desc);
   response_token_.clear();
   return answer.Serialize();
 }
@@ -199,25 +196,31 @@ RoapSession::ParseResult RoapSession::ValidateOffer(
       received_offer->offer_session_id() == remote_id_ &&
       received_offer->answer_session_id() == local_id_;
 
-  if (!result || received_offer->seq() < seq_) {
-    return kInvalidMessage;  // Old seq.
+  if (!result) {
+    return kInvalidMessage;
   }
 
   if (waiting_for_answer_) {
-    if (received_offer->seq() != seq_) {
-      return kInvalidMessage;
+    if (received_offer->seq() < seq_) {
+      return kInvalidMessage;  // Old seq.
     }
-    // Glare.
-    if (received_offer->tie_breaker() < local_tie_breaker_) {
-      return kConflict;
-    } else if (received_offer->tie_breaker() == local_tie_breaker_) {
-      return kDoubleConflict;
-    }
+    if (received_offer->seq() == seq_) {
+      // Glare.
+      if (received_offer->tie_breaker() < local_tie_breaker_) {
+        return kParseConflict;
+      }
+      if (received_offer->tie_breaker() == local_tie_breaker_) {
+        waiting_for_answer_ = false;
+        return kParseDoubleConflict;
+      }
+    }  // Else, the sequence number is larger than our sent offer. Accept it.
+  } else if (received_offer->seq() <= seq_) {
+    return kInvalidMessage;  // Old seq.
   }
   // seq ok or remote offer won the glare resolution.
+  waiting_for_answer_ = false;
   seq_  = received_offer->seq();
-  remote_desc_.reset(received_offer->ReleaseSessionDescription());
-  remote_candidates_ = received_offer->candidates();
+  remote_desc_ = received_offer->SessionDescription();
   return kOffer;
 }
 
@@ -234,8 +237,7 @@ RoapSession::ParseResult RoapSession::ValidateAnswer(
     return kInvalidMessage;
   }
 
-  remote_desc_.reset(received_answer->ReleaseSessionDescription());
-  remote_candidates_ = received_answer->candidates();
+  remote_desc_ = received_answer->SessionDescription();
   if (received_answer->more_coming()) {
     return kAnswerMoreComing;
   }
@@ -260,23 +262,11 @@ RoapSession::ParseResult RoapSession::ValidateOk(
 
 RoapSession::ParseResult RoapSession::ValidateError(
     const RoapError& message) {
-  bool result =
-      message.offer_session_id() == local_id_ && message.seq() == seq_;
-
-  if (!result) {
-    return kInvalidMessage;
+  if (message.error() != kConflict) {
+    waiting_for_answer_ = false;
   }
-  waiting_for_answer_ = false;
   remote_error_ = message.error();
   return kError;
-}
-
-SessionDescription* RoapSession::ReleaseRemoteDescription() {
-  return remote_desc_.release();
-}
-
-const std::vector<Candidate>& RoapSession::RemoteCandidates() {
-  return remote_candidates_;
 }
 
 RoapErrorCode RoapSession::RemoteError() {

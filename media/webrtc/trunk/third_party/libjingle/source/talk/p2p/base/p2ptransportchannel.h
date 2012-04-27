@@ -125,6 +125,7 @@ class P2PTransportChannel : public TransportChannelImpl,
   void OnPortReady(PortAllocatorSession *session, Port* port);
   void OnCandidatesReady(PortAllocatorSession *session,
                          const std::vector<Candidate>& candidates);
+  void OnCandidatesAllocationDone(PortAllocatorSession* session);
   void OnConnectionStateChange(Connection *connection);
   void OnConnectionDestroyed(Connection *connection);
   void OnPortDestroyed(Port* port);

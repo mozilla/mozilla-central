@@ -28,7 +28,7 @@
 #include <string>
 
 #include "talk/app/webrtc/fakeportallocatorfactory.h"
-#include "talk/app/webrtc/mediastreamimpl.h"
+#include "talk/app/webrtc/mediastream.h"
 #include "talk/app/webrtc/peerconnection.h"
 #include "talk/app/webrtc/peerconnectionimpl.h"
 #include "talk/app/webrtc/roapmessages.h"
@@ -40,11 +40,21 @@ static const char kStreamLabel1[] = "local_stream_1";
 static const char kStreamLabel2[] = "local_stream_2";
 static const char kStunConfiguration[] = "STUN stun.l.google.com:19302";
 static const char kInvalidConfiguration[] = "a13151913541234:19302";
+static const int kDefaultStunPort = 3478;
+static const char kStunAddressOnly[] = "STUN address";
+static const char kStunInvalidPort[] = "STUN address:-1";
+static const char kStunAddressPortAndMore1[] = "STUN address:port:more";
+static const char kStunAddressPortAndMore2[] = "STUN address:port more";
+static const char kTurnAddressOnly[] = "TURN address";
+static const char kTurnInvalidPort[] = "TURN address:-1";
+static const char kTurnAddressPortAndMore1[] = "TURN address:port:more";
+static const char kTurnAddressPortAndMore2[] = "TURN address:port more";
 static const uint32 kTimeout = 5000U;
 
 using talk_base::scoped_ptr;
 using talk_base::scoped_refptr;
 using webrtc::FakePortAllocatorFactory;
+using webrtc::IceCandidateInterface;
 using webrtc::LocalMediaStreamInterface;
 using webrtc::LocalVideoTrackInterface;
 using webrtc::MediaStreamInterface;
@@ -53,6 +63,7 @@ using webrtc::PeerConnectionObserver;
 using webrtc::PortAllocatorFactoryInterface;
 using webrtc::RoapMessageBase;
 using webrtc::RoapOffer;
+using webrtc::SessionDescriptionInterface;
 
 
 // Create ROAP message for shutdown.
@@ -66,21 +77,10 @@ static std::string CreateShutdownMessage() {
 static std::string CreateAnswerMessage(const RoapMessageBase& msg) {
   webrtc::RoapOffer offer(msg);
   EXPECT_TRUE(offer.Parse());
-  cricket::SessionDescription* sdp_offer =
-      offer.ReleaseSessionDescription();
-  const cricket::ContentInfo* audio_content = GetFirstAudioContent(sdp_offer);
-  if (audio_content) {
-    const cricket::AudioContentDescription* desc =
-        static_cast<const cricket::AudioContentDescription*>(
-            audio_content->description);
-    cricket::CryptoParamsVec& cryptos =
-        const_cast<cricket::CryptoParamsVec&>(desc->cryptos());
-    cryptos.erase(cryptos.begin()++);
-  }
-
+  std::string answer_sdp = offer.SessionDescription();
   webrtc::RoapAnswer answer(offer.offer_session_id(), "dummy_session",
                             offer.session_token(), offer.response_token(),
-                            offer.seq(), sdp_offer, offer.candidates());
+                            offer.seq(), answer_sdp);
   return answer.Serialize();
 }
 
@@ -93,6 +93,10 @@ static std::string CreateOkMessage(const RoapMessageBase& msg) {
 
 class MockPeerConnectionObserver : public PeerConnectionObserver {
  public:
+  MockPeerConnectionObserver() : ice_complete_(false) {
+  }
+  ~MockPeerConnectionObserver() {
+  }
   void SetPeerConnectionInterface(PeerConnectionInterface* pc) {
     pc_ = pc;
     state_ = pc_->ready_state();
@@ -127,6 +131,16 @@ class MockPeerConnectionObserver : public PeerConnectionObserver {
   virtual void OnRemoveStream(MediaStreamInterface* stream) {
     last_removed_stream_ = stream;
   }
+  virtual void OnIceCandidate(const webrtc::IceCandidateInterface* candidate) {
+    std::string sdp;
+    EXPECT_TRUE(candidate->ToString(&sdp));
+    EXPECT_LT(0u, sdp.size());
+    last_candidate_.reset(webrtc::CreateIceCandidate(candidate->label(), sdp));
+    EXPECT_TRUE(last_candidate_.get() != NULL);
+  }
+  virtual void OnIceComplete() {
+    ice_complete_ = true;
+  }
 
   // Returns the label of the last added stream.
   // Empty string if no stream have been added.
@@ -141,10 +155,12 @@ class MockPeerConnectionObserver : public PeerConnectionObserver {
     return "";
   }
 
-  talk_base::scoped_refptr<PeerConnectionInterface> pc_;
+  scoped_refptr<PeerConnectionInterface> pc_;
   RoapMessageBase last_message_;
   PeerConnectionInterface::ReadyState state_;
   PeerConnectionInterface::SdpState sdp_state_;
+  scoped_ptr<IceCandidateInterface> last_candidate_;
+  bool ice_complete_;
 
  private:
   scoped_refptr<MediaStreamInterface> last_added_stream_;
@@ -162,18 +178,73 @@ class PeerConnectionImplTest : public testing::Test {
     ASSERT_TRUE(pc_factory_.get() != NULL);
   }
 
-  void CreatePeerConnection() {
-    pc_ = pc_factory_->CreatePeerConnection(kStunConfiguration, &observer_);
+  void CreateRoapPeerConnection() {
+    pc_ = pc_factory_->CreateRoapPeerConnection(kStunConfiguration, &observer_);
     ASSERT_TRUE(pc_.get() != NULL);
     observer_.SetPeerConnectionInterface(pc_.get());
     EXPECT_EQ(PeerConnectionInterface::kNegotiating, observer_.state_);
   }
 
+  void CreatePeerConnection() {
+    pc_ = pc_factory_->CreatePeerConnection(kStunConfiguration, &observer_);
+    ASSERT_TRUE(pc_.get() != NULL);
+    observer_.SetPeerConnectionInterface(pc_.get());
+    EXPECT_EQ(PeerConnectionInterface::kNew, observer_.state_);
+  }
+
   void CreatePeerConnectionWithInvalidConfiguration() {
     pc_ = pc_factory_->CreatePeerConnection(kInvalidConfiguration, &observer_);
     ASSERT_TRUE(pc_.get() != NULL);
+    EXPECT_EQ(0u, port_allocator_factory_->stun_configs().size());
+    EXPECT_EQ(0u, port_allocator_factory_->turn_configs().size());
     observer_.SetPeerConnectionInterface(pc_.get());
-    EXPECT_EQ(PeerConnectionInterface::kNegotiating, observer_.state_);
+    EXPECT_EQ(PeerConnectionInterface::kNew, observer_.state_);
+  }
+
+  void CreatePeerConnectionWithDifferentConfigurations() {
+    pc_ = pc_factory_->CreatePeerConnection(kStunAddressOnly, &observer_);
+    EXPECT_EQ(1u, port_allocator_factory_->stun_configs().size());
+    EXPECT_EQ(0u, port_allocator_factory_->turn_configs().size());
+    EXPECT_EQ("address",
+        port_allocator_factory_->stun_configs()[0].server.hostname());
+    EXPECT_EQ(kDefaultStunPort,
+        port_allocator_factory_->stun_configs()[0].server.port());
+
+    pc_ = pc_factory_->CreatePeerConnection(kStunInvalidPort, &observer_);
+    EXPECT_EQ(0u, port_allocator_factory_->stun_configs().size());
+    EXPECT_EQ(0u, port_allocator_factory_->turn_configs().size());
+
+    pc_ = pc_factory_->CreatePeerConnection(kStunAddressPortAndMore1,
+                                            &observer_);
+    EXPECT_EQ(0u, port_allocator_factory_->stun_configs().size());
+    EXPECT_EQ(0u, port_allocator_factory_->turn_configs().size());
+
+    pc_ = pc_factory_->CreatePeerConnection(kStunAddressPortAndMore2,
+                                            &observer_);
+    EXPECT_EQ(0u, port_allocator_factory_->stun_configs().size());
+    EXPECT_EQ(0u, port_allocator_factory_->turn_configs().size());
+
+    pc_ = pc_factory_->CreatePeerConnection(kTurnAddressOnly, &observer_);
+    EXPECT_EQ(0u, port_allocator_factory_->stun_configs().size());
+    EXPECT_EQ(1u, port_allocator_factory_->turn_configs().size());
+    EXPECT_EQ("address",
+        port_allocator_factory_->turn_configs()[0].server.hostname());
+    EXPECT_EQ(kDefaultStunPort,
+        port_allocator_factory_->turn_configs()[0].server.port());
+
+    pc_ = pc_factory_->CreatePeerConnection(kTurnInvalidPort, &observer_);
+    EXPECT_EQ(0u, port_allocator_factory_->stun_configs().size());
+    EXPECT_EQ(0u, port_allocator_factory_->turn_configs().size());
+
+    pc_ = pc_factory_->CreatePeerConnection(kTurnAddressPortAndMore1,
+                                            &observer_);
+    EXPECT_EQ(0u, port_allocator_factory_->stun_configs().size());
+    EXPECT_EQ(0u, port_allocator_factory_->turn_configs().size());
+
+    pc_ = pc_factory_->CreatePeerConnection(kTurnAddressPortAndMore2,
+                                            &observer_);
+    EXPECT_EQ(0u, port_allocator_factory_->stun_configs().size());
+    EXPECT_EQ(0u, port_allocator_factory_->turn_configs().size());
   }
 
   void AddStream(const std::string& label) {
@@ -185,7 +256,9 @@ class PeerConnectionImplTest : public testing::Test {
     stream->AddTrack(video_track.get());
     pc_->AddStream(stream);
     pc_->CommitStreamChanges();
+  }
 
+  void WaitForRoapOffer() {
     EXPECT_EQ_WAIT(PeerConnectionInterface::kSdpWaiting, observer_.sdp_state_,
                    kTimeout);
     // Wait for the ICE agent to find the candidates and send an offer.
@@ -193,7 +266,8 @@ class PeerConnectionImplTest : public testing::Test {
                    kTimeout);
   }
 
-  scoped_refptr<PortAllocatorFactoryInterface> port_allocator_factory_;
+
+  scoped_refptr<FakePortAllocatorFactory> port_allocator_factory_;
   scoped_refptr<webrtc::PeerConnectionFactoryInterface> pc_factory_;
   scoped_refptr<PeerConnectionInterface> pc_;
   MockPeerConnectionObserver observer_;
@@ -204,9 +278,15 @@ TEST_F(PeerConnectionImplTest, CreatePeerConnectionWithInvalidConfiguration) {
   AddStream(kStreamLabel1);
 }
 
-TEST_F(PeerConnectionImplTest, AddStream) {
-  CreatePeerConnection();
+TEST_F(PeerConnectionImplTest,
+       CreatePeerConnectionWithDifferentConfigurations) {
+  CreatePeerConnectionWithDifferentConfigurations();
+}
+
+TEST_F(PeerConnectionImplTest, RoapAddStream) {
+  CreateRoapPeerConnection();
   AddStream(kStreamLabel1);
+  WaitForRoapOffer();
   ASSERT_EQ(1u, pc_->local_streams()->count());
   EXPECT_EQ(kStreamLabel1, pc_->local_streams()->at(0)->label());
 
@@ -223,19 +303,19 @@ TEST_F(PeerConnectionImplTest, AddStream) {
   EXPECT_EQ(kStreamLabel1, pc_->remote_streams()->at(0)->label());
 }
 
-TEST_F(PeerConnectionImplTest, DISABLED_UpdateStream) {
-  CreatePeerConnection();
+TEST_F(PeerConnectionImplTest, RoapUpdateStream) {
+  CreateRoapPeerConnection();
   AddStream(kStreamLabel1);
-  WAIT(PeerConnectionInterface::kNegotiating == observer_.state_, kTimeout);
+  WaitForRoapOffer();
   pc_->ProcessSignalingMessage(CreateAnswerMessage(observer_.last_message_));
   WAIT(PeerConnectionInterface::kActive ==  observer_.state_, kTimeout);
   WAIT(PeerConnectionInterface::kSdpIdle == observer_.sdp_state_, kTimeout);
 
   AddStream(kStreamLabel2);
+  WaitForRoapOffer();
   ASSERT_EQ(2u, pc_->local_streams()->count());
   EXPECT_EQ(kStreamLabel2, pc_->local_streams()->at(1)->label());
-  EXPECT_EQ_WAIT(PeerConnectionInterface::kSdpWaiting, observer_.sdp_state_,
-                 kTimeout);
+
   EXPECT_EQ(PeerConnectionInterface::kActive, observer_.state_);
   pc_->ProcessSignalingMessage(CreateAnswerMessage(observer_.last_message_));
   EXPECT_EQ_WAIT(PeerConnectionInterface::kSdpIdle, observer_.sdp_state_,
@@ -249,8 +329,7 @@ TEST_F(PeerConnectionImplTest, DISABLED_UpdateStream) {
   pc_->RemoveStream(static_cast<LocalMediaStreamInterface*>(
       pc_->local_streams()->at(1)));
   pc_->CommitStreamChanges();
-  EXPECT_EQ_WAIT(PeerConnectionInterface::kSdpWaiting, observer_.sdp_state_,
-                 kTimeout);
+  WaitForRoapOffer();
   pc_->ProcessSignalingMessage(CreateAnswerMessage(observer_.last_message_));
   EXPECT_EQ_WAIT(PeerConnectionInterface::kSdpIdle, observer_.sdp_state_,
                  kTimeout);
@@ -258,8 +337,8 @@ TEST_F(PeerConnectionImplTest, DISABLED_UpdateStream) {
   EXPECT_EQ(1u, pc_->local_streams()->count());
 }
 
-TEST_F(PeerConnectionImplTest, SendClose) {
-  CreatePeerConnection();
+TEST_F(PeerConnectionImplTest, RoapSendClose) {
+  CreateRoapPeerConnection();
   pc_->Close();
   EXPECT_EQ(RoapMessageBase::kShutdown, observer_.last_message_.type());
   EXPECT_EQ(PeerConnectionInterface::kClosing, observer_.state_);
@@ -267,21 +346,88 @@ TEST_F(PeerConnectionImplTest, SendClose) {
   EXPECT_EQ_WAIT(PeerConnectionInterface::kClosed, observer_.state_, kTimeout);
 }
 
-TEST_F(PeerConnectionImplTest, ReceiveClose) {
-  CreatePeerConnection();
+TEST_F(PeerConnectionImplTest, RoapReceiveClose) {
+  CreateRoapPeerConnection();
   pc_->ProcessSignalingMessage(CreateShutdownMessage());
   EXPECT_EQ_WAIT(RoapMessageBase::kOk, observer_.last_message_.type(),
                  kTimeout);
   EXPECT_EQ(PeerConnectionInterface::kClosed, observer_.state_);
 }
 
-TEST_F(PeerConnectionImplTest, ReceiveCloseWhileExpectingAnswer) {
-  CreatePeerConnection();
+TEST_F(PeerConnectionImplTest, RoapReceiveCloseWhileExpectingAnswer) {
+  CreateRoapPeerConnection();
   AddStream(kStreamLabel1);
+  WaitForRoapOffer();
 
   // Receive the shutdown message.
   pc_->ProcessSignalingMessage(CreateShutdownMessage());
   EXPECT_EQ_WAIT(RoapMessageBase::kOk, observer_.last_message_.type(),
                  kTimeout);
   EXPECT_EQ(PeerConnectionInterface::kClosed, observer_.state_);
+}
+
+TEST_F(PeerConnectionImplTest, Jsep_InitiateCall) {
+  CreatePeerConnection();
+  AddStream(kStreamLabel1);
+
+  SessionDescriptionInterface* offer(pc_->CreateOffer(webrtc::MediaHints()));
+  SessionDescriptionInterface* answer(
+      pc_->CreateAnswer(webrtc::MediaHints(), offer));
+
+  // SetLocalDescription takes ownership of offer.
+  EXPECT_TRUE(pc_->SetLocalDescription(PeerConnectionInterface::kOffer,
+                                       offer));
+  EXPECT_EQ(PeerConnectionInterface::kNegotiating, observer_.state_);
+  // SetRemoteDescription takes ownership of answer.
+  EXPECT_TRUE(pc_->SetRemoteDescription(PeerConnectionInterface::kAnswer,
+                                        answer));
+  EXPECT_EQ(PeerConnectionInterface::kActive, observer_.state_);
+
+  // Since we answer with the same session description as we offer we can
+  // check if OnAddStream have been called.
+  EXPECT_EQ_WAIT(kStreamLabel1, observer_.GetLastAddedStreamLabel(), kTimeout);
+}
+
+TEST_F(PeerConnectionImplTest, Jsep_ReceiveCall) {
+  CreatePeerConnection();
+  AddStream(kStreamLabel1);
+
+  SessionDescriptionInterface* offer(pc_->CreateOffer(webrtc::MediaHints()));
+  SessionDescriptionInterface* answer(pc_->CreateAnswer(webrtc::MediaHints(),
+                                                        offer));
+  // SetRemoteDescription takes ownership of offer.
+  EXPECT_TRUE(pc_->SetRemoteDescription(PeerConnectionInterface::kOffer,
+                                        offer));
+  EXPECT_EQ(PeerConnectionInterface::kNegotiating, observer_.state_);
+  // SetLocalDescription takes ownership of answer.
+  EXPECT_TRUE(pc_->SetLocalDescription(PeerConnectionInterface::kAnswer,
+                                       answer));
+  EXPECT_EQ(PeerConnectionInterface::kActive, observer_.state_);
+
+  // Since we answer with the same session description as we offer we can
+  // check if OnAddStream have been called.
+  EXPECT_EQ_WAIT(kStreamLabel1, observer_.GetLastAddedStreamLabel(), kTimeout);
+}
+
+// Test that candidates are generated and that we can parse our own candidates.
+TEST_F(PeerConnectionImplTest, Jsep_IceCandidates) {
+  CreatePeerConnection();
+  EXPECT_FALSE(pc_->StartIce(PeerConnectionInterface::kUseAll));
+
+  SessionDescriptionInterface* offer(pc_->CreateOffer(webrtc::MediaHints()));
+  SessionDescriptionInterface* answer(
+      pc_->CreateAnswer(webrtc::MediaHints(), offer));
+  EXPECT_TRUE(pc_->SetLocalDescription(PeerConnectionInterface::kOffer,
+                                       offer));
+  EXPECT_TRUE(pc_->StartIce(PeerConnectionInterface::kUseAll));
+
+  EXPECT_TRUE_WAIT(observer_.last_candidate_.get() != NULL, kTimeout);
+  EXPECT_TRUE_WAIT(observer_.ice_complete_, kTimeout);
+  EXPECT_FALSE(pc_->ProcessIceMessage(observer_.last_candidate_.get()));
+
+  // SetRemoteDescription takes ownership of answer.
+  EXPECT_TRUE(pc_->SetRemoteDescription(PeerConnectionInterface::kAnswer,
+                                        answer));
+
+  EXPECT_TRUE(pc_->ProcessIceMessage(observer_.last_candidate_.get()));
 }

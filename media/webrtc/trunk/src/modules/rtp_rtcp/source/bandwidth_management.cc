@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -31,8 +31,6 @@ BandwidthManagement::BandwidthManagement(const WebRtc_Word32 id) :
     _last_fraction_loss(0),
     _last_round_trip_time(0),
     _bwEstimateIncoming(0),
-    _smoothedFractionLostQ4(-1), // indicate uninitialized
-    _sFLFactorQ4(14),            // 0.875 in Q4
     _timeLastIncrease(0)
 {
 }
@@ -42,7 +40,7 @@ BandwidthManagement::~BandwidthManagement()
     delete _critsect;
 }
 
-WebRtc_Word32
+void
 BandwidthManagement::SetSendBitrate(const WebRtc_UWord32 startBitrate,
                                     const WebRtc_UWord16 minBitrateKbit,
                                     const WebRtc_UWord16 maxBitrateKbit)
@@ -59,7 +57,6 @@ BandwidthManagement::SetSendBitrate(const WebRtc_UWord32 startBitrate,
     {
         _maxBitRateConfigured = maxBitrateKbit*1000;
     }
-    return 0;
 }
 
 WebRtc_Word32
@@ -183,6 +180,19 @@ WebRtc_Word32 BandwidthManagement::UpdatePacketLoss(
     return 0;
 }
 
+WebRtc_Word32 BandwidthManagement::AvailableBandwidth(
+    WebRtc_UWord32* bandwidthKbit) const {
+  CriticalSectionScoped cs(_critsect);
+  if (_bitRate == 0) {
+    return -1;
+  }
+  if (!bandwidthKbit) {
+    return -1;
+  }
+  *bandwidthKbit = _bitRate;
+  return 0;
+}
+
 /* Calculate the rate that TCP-Friendly Rate Control (TFRC) would apply.
  * The formula in RFC 3448, Section 3.1, is used.
  */
@@ -257,20 +267,7 @@ WebRtc_UWord32 BandwidthManagement::ShapeSimple(WebRtc_Word32 packetLoss,
         newBitRate += 1000;
     }
 
-    // Calculate smoothed loss number
-    if (_smoothedFractionLostQ4 < 0)
-    {
-        // startup
-        _smoothedFractionLostQ4 = static_cast<WebRtc_UWord16>(packetLoss);
-    }
-    else
-    {
-        _smoothedFractionLostQ4 = ((_sFLFactorQ4 * _smoothedFractionLostQ4 + 8) >> 4) // Q4*Q4 = Q8; down to Q4 again with proper rounding
-            + (16 - _sFLFactorQ4) * static_cast<WebRtc_UWord16>(packetLoss);  // Q4 * Q0 = Q4
-    }
-
     // Calculate what rate TFRC would apply in this situation
-    //WebRtc_Word32 tfrcRate = CalcTFRCbps(1000, rtt, _smoothedFractionLostQ4 >> 4); // scale loss to Q0 (back to [0, 255])
     WebRtc_Word32 tfrcRate = CalcTFRCbps(1000, rtt, packetLoss); // scale loss to Q0 (back to [0, 255])
 
     if (reducing &&
@@ -278,7 +275,7 @@ WebRtc_UWord32 BandwidthManagement::ShapeSimple(WebRtc_Word32 packetLoss,
         static_cast<WebRtc_UWord32>(tfrcRate) > newBitRate)
     {
         // do not reduce further if rate is below TFRC rate
-        newBitRate = _bitRate;
+        newBitRate = tfrcRate;
     }
 
     if (_bwEstimateIncoming > 0 && newBitRate > _bwEstimateIncoming)

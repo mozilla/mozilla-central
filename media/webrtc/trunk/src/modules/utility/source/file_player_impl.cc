@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -39,13 +39,18 @@ FilePlayer* FilePlayer::CreateFilePlayer(WebRtc_UWord32 instanceID,
     case kFileFormatPcm32kHzFile:
         // audio formats
         return new FilePlayerImpl(instanceID, fileFormat);
-#ifdef WEBRTC_MODULE_UTILITY_VIDEO
     case kFileFormatAviFile:
+#ifdef WEBRTC_MODULE_UTILITY_VIDEO
         return new VideoFilePlayerImpl(instanceID, fileFormat);
-#endif
-    default:
+#else
+        WEBRTC_TRACE(kTraceError, kTraceFile, -1,
+                     "Invalid file format: %d", kFileFormatAviFile);
+        assert(false);
         return NULL;
+#endif
     }
+    assert(false);
+    return NULL;
 }
 
 void FilePlayer::DestroyFilePlayer(FilePlayer* player)
@@ -59,10 +64,12 @@ FilePlayerImpl::FilePlayerImpl(const WebRtc_UWord32 instanceID,
       _fileFormat(fileFormat),
       _fileModule(*MediaFile::CreateMediaFile(instanceID)),
       _decodedLengthInMS(0),
+      _decodedAudioBuffer(),
       _audioDecoder(instanceID),
       _codec(),
       _numberOf10MsPerFrame(0),
       _numberOf10MsInDecoder(0),
+      _resampler(),
       _scaling(1.0)
 {
     _codec.plfreq = 0;
@@ -221,7 +228,7 @@ WebRtc_Word32 FilePlayerImpl::SetAudioScaling(float scaleFactor)
     return -1;
 }
 
-WebRtc_Word32 FilePlayerImpl::StartPlayingFile(const WebRtc_Word8* fileName,
+WebRtc_Word32 FilePlayerImpl::StartPlayingFile(const char* fileName,
                                                bool loop,
                                                WebRtc_UWord32 startPosition,
                                                float volumeScaling,
@@ -461,11 +468,14 @@ VideoFilePlayerImpl::VideoFilePlayerImpl(WebRtc_UWord32 instanceID,
                                          FileFormats fileFormat)
     : FilePlayerImpl(instanceID,fileFormat),
       _videoDecoder(*new VideoCoder(instanceID)),
+      video_codec_info_(),
       _decodedVideoFrames(0),
       _encodedData(*new EncodedVideoData()),
       _frameScaler(*new FrameScaler()),
       _critSec(CriticalSectionWrapper::CreateCriticalSection()),
+      _startTime(),
       _accumulatedRenderTimeMs(0),
+      _frameLengthMS(0),
       _numberOfFramesRead(0),
       _videoOnly(false)
 {
@@ -481,7 +491,7 @@ VideoFilePlayerImpl::~VideoFilePlayerImpl()
 }
 
 WebRtc_Word32 VideoFilePlayerImpl::StartPlayingVideoFile(
-    const WebRtc_Word8* fileName,
+    const char* fileName,
     bool loop,
     bool videoOnly)
 {
@@ -522,7 +532,7 @@ WebRtc_Word32 VideoFilePlayerImpl::StopPlayingFile()
     CriticalSectionScoped lock( _critSec);
 
     _decodedVideoFrames = 0;
-    _videoDecoder.Reset();
+    _videoDecoder.ResetDecoder();
 
     return FilePlayerImpl::StopPlayingFile();
 }
@@ -540,7 +550,7 @@ WebRtc_Word32 VideoFilePlayerImpl::GetVideoFromFile(VideoFrame& videoFrame,
     }
     if( videoFrame.Length() > 0)
     {
-        retVal = _frameScaler.ResizeFrameIfNeeded(videoFrame, outWidth,
+        retVal = _frameScaler.ResizeFrameIfNeeded(&videoFrame, outWidth,
                                                   outHeight);
     }
     return retVal;

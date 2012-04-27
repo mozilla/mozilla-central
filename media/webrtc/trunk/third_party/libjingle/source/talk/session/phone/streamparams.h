@@ -51,6 +51,10 @@
 
 namespace cricket {
 
+extern const char kFecSsrcGroupSemantics[];
+extern const char kFidSsrcGroupSemantics[];
+extern const char kSimSsrcGroupSemantics[];
+
 struct SsrcGroup {
   SsrcGroup(const std::string& usage, const std::vector<uint32>& ssrcs)
       : semantics(usage), ssrcs(ssrcs) {
@@ -62,6 +66,10 @@ struct SsrcGroup {
   bool operator!=(const SsrcGroup &other) const {
     return !(*this == other);
   }
+
+  bool has_semantics(const std::string& semantics) const;
+
+  std::string ToString() const;
 
   std::string semantics;  // e.g FIX, FEC, SIM.
   std::vector<uint32> ssrcs;  // SSRCs of this type.
@@ -103,6 +111,23 @@ struct StreamParams {
   void add_ssrc(uint32 ssrc) {
     ssrcs.push_back(ssrc);
   }
+  bool has_ssrc_groups() const {
+    return !ssrc_groups.empty();
+  }
+  bool has_ssrc_group(const std::string& semantics) const {
+    return (get_ssrc_group(semantics) != NULL);
+  }
+  const SsrcGroup* get_ssrc_group(const std::string& semantics) const {
+    for (std::vector<SsrcGroup>::const_iterator it = ssrc_groups.begin();
+         it != ssrc_groups.end(); ++it) {
+      if (it->has_semantics(semantics)) {
+        return &(*it);
+      }
+    }
+    return NULL;
+  }
+
+  std::string ToString() const;
 
   // Resource of the MUC jid of the participant of with this stream.
   // For 1:1 calls, should be left empty (which means remote streams

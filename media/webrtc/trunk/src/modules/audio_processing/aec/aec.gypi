@@ -1,4 +1,4 @@
-# Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+# Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
 #
 # Use of this source code is governed by a BSD-style license
 # that can be found in the LICENSE file in the root of the source
@@ -20,16 +20,17 @@
         '<(webrtc_root)/common_audio/common_audio.gyp:signal_processing',
       ],
       'include_dirs': [
-        'interface',
+        'include',
       ],
       'direct_dependent_settings': {
         'include_dirs': [
-          'interface',
+          'include',
         ],
       },
       'sources': [
-        'interface/echo_cancellation.h',
+        'include/echo_cancellation.h',
         'echo_cancellation.c',
+        'echo_cancellation_internal.h',
         'aec_core.h',
         'aec_core.c',
         'aec_rdft.h',
@@ -46,24 +47,30 @@
         }],
       ],
     },
-    {
-      'target_name': 'aec_sse2',
-      'type': '<(library)',
-      'sources': [
-        'aec_core_sse2.c',
-        'aec_rdft_sse2.c',
+  ],
+  'conditions': [
+    ['target_arch=="ia32" or target_arch=="x64"', {
+      'targets': [
+        {
+          'target_name': 'aec_sse2',
+          'type': '<(library)',
+          'sources': [
+            'aec_core_sse2.c',
+            'aec_rdft_sse2.c',
+          ],
+          'conditions': [
+            ['os_posix==1 and OS!="mac"', {
+              'cflags': [ '-msse2', ],
+	      'cflags_mozilla': [ '-msse2', ],
+            }],
+            ['OS=="mac"', {
+              'xcode_settings': {
+                'OTHER_CFLAGS': [ '-msse2', ],
+              },
+            }],
+          ],
+        },
       ],
-      'conditions': [
-        ['os_posix==1 and OS!="mac"', {
-          'cflags': [ '-msse2', ],
-          'cflags_mozilla': [ '-msse2', ],
-        }],
-        ['OS=="mac"', {
-          'xcode_settings': {
-            'OTHER_CFLAGS': [ '-msse2', ],
-          },
-        }],
-      ],
-    },
+    }],
   ],
 }

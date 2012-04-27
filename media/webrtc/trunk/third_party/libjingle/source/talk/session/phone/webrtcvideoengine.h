@@ -95,16 +95,13 @@ class WebRtcVideoEngine : public sigslot::has_slots<>,
   const std::vector<VideoCodec>& codecs() const;
   void SetLogging(int min_sev, const char* filter);
 
-  // Capture-related stuff. Will be removed with capture refactor.
-  bool SetCaptureDevice(const Device* device);
-  bool SetCaptureModule(webrtc::VideoCaptureModule* vcm);
   // If capturer is NULL, unregisters the capturer and stops capturing.
   // Otherwise sets the capturer and starts capturing.
-  bool SetVideoCapturer(VideoCapturer* capturer, uint32 /*ssrc*/);
+  bool SetVideoCapturer(VideoCapturer* capturer);
+  VideoCapturer* GetVideoCapturer() const;
   bool SetLocalRenderer(VideoRenderer* renderer);
   CaptureResult SetCapture(bool capture);
   sigslot::repeater2<VideoCapturer*, CaptureResult> SignalCaptureResult;
-  virtual VideoCapturer* CreateVideoCapturer(const Device& device);
   CaptureResult UpdateCapturingState();
   bool IsCapturing() const;
   void OnFrameCaptured(VideoCapturer* capturer, const CapturedFrame* frame);
@@ -160,7 +157,7 @@ class WebRtcVideoEngine : public sigslot::has_slots<>,
   bool RebuildCodecList(const VideoCodec& max_codec);
   void ApplyLogging(const std::string& log_filter);
   bool InitVideoEngine();
-  bool SetCapturer(VideoCapturer* capturer, bool own_capturer);
+  bool SetCapturer(VideoCapturer* capturer);
 
   // webrtc::ViEBaseObserver implementation.
   virtual void PerformanceAlarm(const unsigned int cpu_load);
@@ -182,7 +179,6 @@ class WebRtcVideoEngine : public sigslot::has_slots<>,
   talk_base::CriticalSection channels_crit_;
   VideoChannels channels_;
 
-  bool owns_capturer_;
   VideoCapturer* video_capturer_;
   bool capture_started_;
   int local_renderer_w_;
@@ -220,7 +216,7 @@ class WebRtcVideoMediaChannel : public VideoMediaChannel,
   virtual bool RemoveRecvStream(uint32 ssrc);
   virtual bool SetRenderer(uint32 ssrc, VideoRenderer* renderer);
   virtual bool GetStats(VideoMediaInfo* info);
-  virtual bool AddScreencast(uint32 ssrc, const ScreencastId& id) {
+  virtual bool AddScreencast(uint32 ssrc, const ScreencastId& id, int fps) {
     return false;
   }
   virtual bool RemoveScreencast(uint32 ssrc) {
@@ -242,6 +238,7 @@ class WebRtcVideoMediaChannel : public VideoMediaChannel,
   }
   virtual bool SetSendBandwidth(bool autobw, int bps);
   virtual bool SetOptions(int options);
+  virtual int GetOptions() const { return options_; }
   virtual void SetInterface(NetworkInterface* iface);
 
   // Public functions for use by tests and other specialized code.
@@ -264,6 +261,7 @@ class WebRtcVideoMediaChannel : public VideoMediaChannel,
  private:
   typedef std::map<uint32, WebRtcVideoChannelInfo*> ChannelMap;
 
+
   // Creates and initializes a WebRtc video channel.
   bool ConfigureChannel(int channel_id);
   bool ConfigureReceiving(int channel_id, uint32 remote_ssrc);
@@ -272,6 +270,11 @@ class WebRtcVideoMediaChannel : public VideoMediaChannel,
                     int min_bitrate,
                     int start_bitrate,
                     int max_bitrate);
+  void LogSendCodecChange(const std::string& reason);
+  bool DropFrame() const {
+    return (send_codec_.get() == NULL ||
+            (send_codec_->width == 0 && send_codec_->height == 0));
+  }
   // Prepares the channel with channel id |channel_id| to receive all codecs in
   // |receive_codecs_| and start receive packets.
   bool SetReceiveCodecs(int channel_id);
@@ -287,26 +290,30 @@ class WebRtcVideoMediaChannel : public VideoMediaChannel,
   // Call Webrtc function to stop sending media on |vie_channel_|.
   // Does not affect |sending_|.
   bool StopSend();
+  // Send with one local SSRC. Normal case.
+  bool IsOneSsrcStream(const StreamParams& sp);
 
   WebRtcVideoEngine* engine_;
   VoiceMediaChannel* voice_channel_;
   int vie_channel_;
   int vie_capture_;
   webrtc::ViEExternalCapture* external_capture_;
-  bool sending_;
   bool render_started_;
   bool muted_;  // Flag to tell if we need to mute video.
-  // Our local SSRC. Currently only one send stream is supported.
-  uint32 local_ssrc_;
+
+  // |send_params_| contains local stream parameters.
+  talk_base::scoped_ptr<StreamParams> send_params_;
   uint32 first_receive_ssrc_;
   int send_min_bitrate_;
   int send_start_bitrate_;
   int send_max_bitrate_;
   talk_base::scoped_ptr<webrtc::VideoCodec> send_codec_;
+  bool sending_;
+
   std::vector<webrtc::VideoCodec> receive_codecs_;
   talk_base::scoped_ptr<WebRtcEncoderObserver> encoder_observer_;
   talk_base::scoped_ptr<WebRtcLocalStreamInfo> local_stream_info_;
-  int channel_options_;
+  int options_;
 
   ChannelMap mux_channels_;  // Contains all receive channels.
 };

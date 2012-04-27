@@ -35,6 +35,7 @@
 #include <algorithm>
 
 #include "talk/session/phone/codec.h"
+#include "talk/session/phone/constants.h"
 #include "talk/session/phone/cryptoparams.h"
 #include "talk/session/phone/mediachannel.h"
 #include "talk/session/phone/streamparams.h"
@@ -45,6 +46,7 @@ namespace cricket {
 class ChannelManager;
 typedef std::vector<AudioCodec> AudioCodecs;
 typedef std::vector<VideoCodec> VideoCodecs;
+typedef std::vector<DataCodec> DataCodecs;
 typedef std::vector<CryptoParams> CryptoParamsVec;
 
 // SEC_ENABLED and SEC_REQUIRED should only be used if the session
@@ -67,7 +69,8 @@ enum SecureMediaPolicy {
 
 enum MediaType {
   MEDIA_TYPE_AUDIO,
-  MEDIA_TYPE_VIDEO
+  MEDIA_TYPE_VIDEO,
+  MEDIA_TYPE_DATA
 };
 
 // Options to control how session descriptions are generated.
@@ -76,9 +79,12 @@ struct MediaSessionOptions {
   MediaSessionOptions() :
       has_audio(true),  // Audio enabled by default.
       has_video(false),
+      has_data(false),
       is_muc(false),
       rtcp_mux_enabled(true),
-      video_bandwidth(kAutoBandwidth) {
+      video_bandwidth(kAutoBandwidth),
+
+      data_bandwidth(kDataMaxBandwidth) {
   }
 
   // Add a stream with MediaType type and id name.
@@ -91,10 +97,12 @@ struct MediaSessionOptions {
 
   bool has_audio;
   bool has_video;
+  bool has_data;
   bool is_muc;
   bool rtcp_mux_enabled;
   // bps. -1 == auto.
   int video_bandwidth;
+  int data_bandwidth;
 
   struct Stream {
     Stream(MediaType type,
@@ -233,6 +241,12 @@ class MediaContentDescriptionImpl : public MediaContentDescription {
   void AddCodec(const C& codec) {
     codecs_.push_back(codec);
   }
+  void AddCodecs(const std::vector<C>& codecs) {
+    typename std::vector<C>::const_iterator codec;
+    for (codec = codecs.begin(); codec != codecs.end(); ++codec) {
+      AddCodec(*codec);
+    }
+  }
   void SortCodecs() {
     std::sort(codecs_.begin(), codecs_.end(), PreferenceSort());
   }
@@ -246,6 +260,9 @@ class AudioContentDescription : public MediaContentDescriptionImpl<AudioCodec> {
   AudioContentDescription() :
       agc_minus_10db_(false) {}
 
+  virtual ContentDescription* Copy() const {
+    return new AudioContentDescription(*this);
+  }
   virtual MediaType type() const { return MEDIA_TYPE_AUDIO; }
 
   const std::string &lang() const { return lang_; }
@@ -265,7 +282,18 @@ class AudioContentDescription : public MediaContentDescriptionImpl<AudioCodec> {
 
 class VideoContentDescription : public MediaContentDescriptionImpl<VideoCodec> {
  public:
+  virtual ContentDescription* Copy() const {
+    return new VideoContentDescription(*this);
+  }
   virtual MediaType type() const { return MEDIA_TYPE_VIDEO; }
+};
+
+class DataContentDescription : public MediaContentDescriptionImpl<DataCodec> {
+ public:
+  virtual ContentDescription* Copy() const {
+    return new DataContentDescription(*this);
+  }
+  virtual MediaType type() const { return MEDIA_TYPE_DATA; }
 };
 
 // Creates media session descriptions according to the supplied codecs and
@@ -283,6 +311,8 @@ class MediaSessionDescriptionFactory {
   void set_audio_codecs(const AudioCodecs& codecs) { audio_codecs_ = codecs; }
   const VideoCodecs& video_codecs() const { return video_codecs_; }
   void set_video_codecs(const VideoCodecs& codecs) { video_codecs_ = codecs; }
+  const DataCodecs& data_codecs() const { return data_codecs_; }
+  void set_data_codecs(const DataCodecs& codecs) { data_codecs_ = codecs; }
   SecureMediaPolicy secure() const { return secure_; }
   void set_secure(SecureMediaPolicy s) { secure_ = s; }
   // Decides if a StreamParams shall be added to the audio and video media
@@ -303,6 +333,7 @@ class MediaSessionDescriptionFactory {
  private:
   AudioCodecs audio_codecs_;
   VideoCodecs video_codecs_;
+  DataCodecs data_codecs_;
   SecureMediaPolicy secure_;
   bool add_legacy_;
   std::string lang_;
@@ -311,15 +342,26 @@ class MediaSessionDescriptionFactory {
 // Convenience functions.
 bool IsAudioContent(const ContentInfo* content);
 bool IsVideoContent(const ContentInfo* content);
+bool IsDataContent(const ContentInfo* content);
 const ContentInfo* GetFirstAudioContent(const ContentInfos& contents);
 const ContentInfo* GetFirstVideoContent(const ContentInfos& contents);
+const ContentInfo* GetFirstDataContent(const ContentInfos& contents);
 const ContentInfo* GetFirstAudioContent(const SessionDescription* sdesc);
 const ContentInfo* GetFirstVideoContent(const SessionDescription* sdesc);
+const ContentInfo* GetFirstDataContent(const SessionDescription* sdesc);
 const AudioContentDescription* GetFirstAudioContentDescription(
     const SessionDescription* sdesc);
 const VideoContentDescription* GetFirstVideoContentDescription(
     const SessionDescription* sdesc);
-
+const DataContentDescription* GetFirstDataContentDescription(
+    const SessionDescription* sdesc);
+bool GetStreamBySsrc(
+    const SessionDescription* sdesc, MediaType media_type,
+    uint32 ssrc, StreamParams* stream_out);
+bool GetStreamByNickAndName(
+    const SessionDescription* sdesc, MediaType media_type,
+    const std::string& nick, const std::string& name,
+    StreamParams* stream_out);
 }  // namespace cricket
 
 #endif  // TALK_SESSION_PHONE_MEDIASESSION_H_

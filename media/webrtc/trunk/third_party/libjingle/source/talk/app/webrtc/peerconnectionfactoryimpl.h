@@ -31,7 +31,7 @@
 
 #include "talk/base/scoped_ptr.h"
 #include "talk/app/webrtc/peerconnection.h"
-#include "talk/app/webrtc/mediastream.h"
+#include "talk/app/webrtc/mediastreaminterface.h"
 #include "talk/base/thread.h"
 #include "talk/session/phone/channelmanager.h"
 
@@ -40,9 +40,12 @@ namespace webrtc {
 class PeerConnectionFactory : public PeerConnectionFactoryInterface,
                               public talk_base::MessageHandler {
  public:
-  talk_base::scoped_refptr<PeerConnectionInterface> CreatePeerConnection(
-      const std::string& config,
-      PeerConnectionObserver* observer);
+  virtual talk_base::scoped_refptr<PeerConnectionInterface>
+      CreatePeerConnection(const std::string& config,
+                           PeerConnectionObserver* observer);
+  virtual talk_base::scoped_refptr<PeerConnectionInterface>
+      CreateRoapPeerConnection(const std::string& config,
+                               PeerConnectionObserver* observer);
   bool Initialize();
 
   virtual talk_base::scoped_refptr<LocalMediaStreamInterface>
@@ -75,6 +78,7 @@ class PeerConnectionFactory : public PeerConnectionFactoryInterface,
   bool Initialize_s();
   void Terminate_s();
   talk_base::scoped_refptr<PeerConnectionInterface> CreatePeerConnection_s(
+      bool use_roap,
       const std::string& configuration,
       PeerConnectionObserver* observer);
   // Implements talk_base::MessageHandler.

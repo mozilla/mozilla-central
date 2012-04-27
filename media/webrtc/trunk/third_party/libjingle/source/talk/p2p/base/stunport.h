@@ -51,9 +51,12 @@ class StunPort : public Port {
                           talk_base::Network* network,
                           const talk_base::IPAddress& ip,
                           int min_port, int max_port,
+                          const std::string& username,
+                          const std::string& password,
                           const talk_base::SocketAddress& server_addr) {
     StunPort* port = new StunPort(thread, factory, network,
-                                  ip, min_port, max_port, server_addr);
+                                  ip, min_port, max_port,
+                                  username, password, server_addr);
     if (!port->Init()) {
       delete port;
       port = NULL;
@@ -91,6 +94,7 @@ class StunPort : public Port {
   StunPort(talk_base::Thread* thread, talk_base::PacketSocketFactory* factory,
            talk_base::Network* network, const talk_base::IPAddress& ip,
            int min_port, int max_port,
+           const std::string& username, const std::string& password,
            const talk_base::SocketAddress& server_addr);
   bool Init();
 

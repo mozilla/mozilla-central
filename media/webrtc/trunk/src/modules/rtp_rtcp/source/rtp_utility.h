@@ -40,7 +40,6 @@ namespace ModuleRTPUtility
     {
         WebRtc_UWord32    frequency;
         WebRtc_UWord8     channels;
-        WebRtc_UWord8     bitsPerSample;
         WebRtc_UWord32    rate;
     };
     struct VideoPayload
@@ -64,6 +63,10 @@ namespace ModuleRTPUtility
     // system. The returned instances are guaranteed to read the same
     // times; in particular, they return relative times relative to
     // the same base.
+    // Note that even though the instances returned by this function
+    // read the same times a new object is created every time this
+    // API is called. The ownership of this object belongs to the
+    // caller.
     RtpRtcpClock* GetSystemClock();
 
     // Return the current RTP timestamp from the NTP timestamp
@@ -232,7 +235,9 @@ namespace ModuleRTPUtility
         const WebRtc_UWord16        _dataLength;
         const RtpVideoCodecTypes    _videoType;
     };
-}
-} // namespace webrtc
+
+}  // namespace ModuleRTPUtility
+
+}  // namespace webrtc
 
 #endif // WEBRTC_MODULES_RTP_RTCP_SOURCE_RTP_UTILITY_H_

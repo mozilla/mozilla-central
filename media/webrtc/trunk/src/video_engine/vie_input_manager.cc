@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -76,9 +76,9 @@ int ViEInputManager::NumberOfCaptureDevices() {
 }
 
 int ViEInputManager::GetDeviceName(WebRtc_UWord32 device_number,
-                                   WebRtc_UWord8* device_nameUTF8,
+                                   char* device_nameUTF8,
                                    WebRtc_UWord32 device_name_length,
-                                   WebRtc_UWord8* device_unique_idUTF8,
+                                   char* device_unique_idUTF8,
                                    WebRtc_UWord32 device_unique_idUTF8Length) {
   WEBRTC_TRACE(webrtc::kTraceInfo, webrtc::kTraceVideo, ViEId(engine_id_),
                "%s(device_number: %d)", __FUNCTION__, device_number);
@@ -90,7 +90,7 @@ int ViEInputManager::GetDeviceName(WebRtc_UWord32 device_number,
 }
 
 int ViEInputManager::NumberOfCaptureCapabilities(
-  const WebRtc_UWord8* device_unique_idUTF8) {
+  const char* device_unique_idUTF8) {
   WEBRTC_TRACE(webrtc::kTraceInfo, webrtc::kTraceVideo, ViEId(engine_id_), "%s",
                __FUNCTION__);
   assert(capture_device_info_);
@@ -98,7 +98,7 @@ int ViEInputManager::NumberOfCaptureCapabilities(
 }
 
 int ViEInputManager::GetCaptureCapability(
-    const WebRtc_UWord8* device_unique_idUTF8,
+    const char* device_unique_idUTF8,
     const WebRtc_UWord32 device_capability_number,
     CaptureCapability& capability) {
   WEBRTC_TRACE(webrtc::kTraceInfo, webrtc::kTraceVideo, ViEId(engine_id_),
@@ -123,7 +123,7 @@ int ViEInputManager::GetCaptureCapability(
   return result;
 }
 
-int ViEInputManager::GetOrientation(const WebRtc_UWord8* device_unique_idUTF8,
+int ViEInputManager::GetOrientation(const char* device_unique_idUTF8,
                                     RotateCapturedFrame& orientation) {
   WEBRTC_TRACE(webrtc::kTraceInfo, webrtc::kTraceVideo, ViEId(engine_id_),
                "%s(device_unique_idUTF8: %s,)", __FUNCTION__,
@@ -146,15 +146,13 @@ int ViEInputManager::GetOrientation(const WebRtc_UWord8* device_unique_idUTF8,
     case kCameraRotate270:
       orientation = RotateCapturedFrame_270;
       break;
-    default:
-      assert(!"Unknown enum");
   }
   return result;
 }
 
 int ViEInputManager::DisplayCaptureSettingsDialogBox(
-    const WebRtc_UWord8* device_unique_idUTF8,
-    const WebRtc_UWord8* dialog_titleUTF8,
+    const char* device_unique_idUTF8,
+    const char* dialog_titleUTF8,
     void* parent_window,
     WebRtc_UWord32 positionX,
     WebRtc_UWord32 positionY) {
@@ -165,7 +163,7 @@ int ViEInputManager::DisplayCaptureSettingsDialogBox(
 }
 
 int ViEInputManager::CreateCaptureDevice(
-    const WebRtc_UWord8* device_unique_idUTF8,
+    const char* device_unique_idUTF8,
     const WebRtc_UWord32 device_unique_idUTF8Length,
     int& capture_id) {
   WEBRTC_TRACE(webrtc::kTraceInfo, webrtc::kTraceVideo, ViEId(engine_id_),
@@ -200,8 +198,8 @@ int ViEInputManager::CreateCaptureDevice(
       return -1;
     }
 
-    WebRtc_UWord8 found_name[kVideoCaptureDeviceNameLength] = "";
-    WebRtc_UWord8 found_unique_name[kVideoCaptureUniqueNameLength] = "";
+    char found_name[kVideoCaptureDeviceNameLength] = "";
+    char found_unique_name[kVideoCaptureUniqueNameLength] = "";
     capture_device_info_->GetDeviceName(device_index, found_name,
                                         kVideoCaptureDeviceNameLength,
                                         found_unique_name,
@@ -365,7 +363,7 @@ int ViEInputManager::CreateExternalCaptureDevice(
   return 0;
 }
 
-int ViEInputManager::CreateFilePlayer(const WebRtc_Word8* file_nameUTF8,
+int ViEInputManager::CreateFilePlayer(const char* file_nameUTF8,
                                       const bool loop,
                                       const webrtc::FileFormats file_format,
                                       VoiceEngine* voe_ptr, int& file_id) {
