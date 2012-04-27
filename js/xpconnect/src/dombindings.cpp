@@ -1180,7 +1180,13 @@ ListBase<LC>::finalize(JSContext *cx, JSObject *proxy)
     if (cache) {
         cache->ClearWrapper();
     }
-    NS_RELEASE(list);
+    XPCJSRuntime *rt = nsXPConnect::GetRuntimeInstance();
+    if (rt) {
+        rt->DeferredRelease(nativeToSupports(list));
+    }
+    else {
+        NS_RELEASE(list);
+    }
 }
 
 
