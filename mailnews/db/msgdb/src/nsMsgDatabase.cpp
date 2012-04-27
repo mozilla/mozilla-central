@@ -1121,7 +1121,7 @@ nsMsgDatabase::~nsMsgDatabase()
   m_ChangeListeners.Clear();
 }
 
-NS_IMPL_ISUPPORTS2(nsMsgDatabase, nsIMsgDatabase, nsIDBChangeAnnouncer);
+NS_IMPL_ISUPPORTS2(nsMsgDatabase, nsIMsgDatabase, nsIDBChangeAnnouncer)
 
 void nsMsgDatabase::GetMDBFactory(nsIMdbFactory ** aMdbFactory)
 {
