@@ -2054,7 +2054,7 @@
 
   <hbox id="junkBar" class="msgNotificationBar" align="center">
     <image id="junkBarImage"/>
-    <description flex="1" class="msgNotificationBarText">&junkBarMessage1.label;</description>
+    <description flex="1" class="msgNotificationBarText">&junkBarMessage2.label;</description>
     <button label="&junkBarButton1.label;" oncommand="JunkSelectedMessages(false);"/>
   </hbox>
 
