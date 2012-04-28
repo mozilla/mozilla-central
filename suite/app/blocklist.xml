@@ -1,7 +1,11 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1334609923000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1335396801000">
   <emItems>
       <emItem  blockID="i58" id="webmaster@buzzzzvideos.info">
+                        <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i86" id="{45147e67-4020-47e2-8f7a-55464fb535aa}">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
