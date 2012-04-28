@@ -395,7 +395,9 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
 
   // Attempt to locate the mail spool file
   nsCAutoString spoolPath;
-  rv = LocateSpoolFile(spoolPath);
+  rv = in_server->GetCharValue("spoolDir", spoolPath);
+  if (spoolPath.IsEmpty())
+    rv = LocateSpoolFile(spoolPath);
   if (NS_FAILED(rv) || spoolPath.IsEmpty()) {
     Error(MOVEMAIL_SPOOL_FILE_NOT_FOUND, nsnull, 0);
     return NS_ERROR_FAILURE;
@@ -403,6 +405,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
 
   // Create an input stream for the spool file
   nsCOMPtr<nsILocalFile> spoolFile;
+  printf("spool path = %s\n", spoolPath.get());
   rv = NS_NewNativeLocalFile(spoolPath, true, getter_AddRefs(spoolFile));
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsIInputStream> spoolInputStream;
@@ -437,21 +440,13 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
   NS_ENSURE_TRUE(inbox, NS_ERROR_FAILURE);
   nsCOMPtr <nsIOutputStream> outputStream;
   nsCOMPtr<nsIMsgPluggableStore> msgStore;
+  nsCOMPtr<nsIMsgDBHdr> newHdr;
   rv = in_server->GetMsgStore(getter_AddRefs(msgStore));
   NS_ENSURE_SUCCESS(rv, rv);
   bool reusable;
-  nsCOMPtr<nsIMsgDBHdr> newHdr;
-  msgStore->GetNewMsgOutputStream(inbox, getter_AddRefs(newHdr),
-                                  &reusable, getter_AddRefs(outputStream));
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr <nsIInputStream> inputStream = do_QueryInterface(outputStream);
   // create a new mail parser
   nsRefPtr<nsParseNewMailState> newMailParser = new nsParseNewMailState;
   NS_ENSURE_TRUE(newMailParser, NS_ERROR_OUT_OF_MEMORY);
-
-  rv = newMailParser->Init(serverFolder, inbox,
-                           nsnull, newHdr, outputStream);
-  NS_ENSURE_SUCCESS(rv, rv);
 
   in_server->SetServerBusy(true);
 
@@ -484,6 +479,23 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
 
     buffer += MSG_LINEBREAK;
 
+    if (isMore && !strncmp(buffer.get(), "From ", 5)) {
+      // finish prev header, if any.
+      if (newHdr) {
+        outputStream->Flush();
+        newMailParser->PublishMsgHeader(nsnull);
+        msgStore->FinishNewMessage(outputStream, newHdr);
+        newMailParser->Clear();
+      }
+      msgStore->GetNewMsgOutputStream(inbox, getter_AddRefs(newHdr),
+                                      &reusable, getter_AddRefs(outputStream));
+      NS_ENSURE_SUCCESS(rv, rv);
+      nsCOMPtr <nsIInputStream> inputStream = do_QueryInterface(outputStream);
+      rv = newMailParser->Init(serverFolder, inbox,
+                               nsnull, newHdr, outputStream);
+      NS_ENSURE_SUCCESS(rv, rv);
+      
+    }
     newMailParser->HandleLine(buffer.BeginWriting(), buffer.Length());
     outputStream->Write(buffer.get(), buffer.Length(), &bytesWritten);
 
@@ -497,11 +509,13 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
       outputStream->Write(buffer.get(), buffer.Length(), &bytesWritten);
     }
   }
-
-  outputStream->Flush();
-  newMailParser->OnStopRequest(nsnull, nsnull, NS_OK);
-  msgStore->FinishNewMessage(outputStream, newHdr);
-  outputStream->Close();
+  if (outputStream) {
+    outputStream->Flush();
+    newMailParser->PublishMsgHeader(nsnull);
+    newMailParser->OnStopRequest(nsnull, nsnull, NS_OK);
+    msgStore->FinishNewMessage(outputStream, newHdr);
+    outputStream->Close();
+  }
 
   // Truncate the spool file
   rv = spoolFile->SetFileSize(0);
