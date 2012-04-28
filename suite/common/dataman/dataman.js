@@ -2033,11 +2033,29 @@ var gPasswords = {
       this.tree.view.selection.count >= this.tree.view.rowCount;
   },
 
-  copyPassword: function passwords_copyPassword() {
+  copySelPassword: function passwords_copySelPassword() {
     // Copy selected signon's password to clipboard.
     let row = this.tree.currentIndex;
     let password = gPasswords.displayedSignons[row].password;
     gLocSvc.clipboard.copyString(password);
+  },
+
+  copyPassword: function passwords_copyPassword() {
+    // Prompt for the master password upfront.
+    let token = Components.classes["@mozilla.org/security/pk11tokendb;1"]
+                          .getService(Components.interfaces.nsIPK11TokenDB)
+                          .getInternalKeyToken();
+
+    if (this.showPasswords || token.checkPassword(""))
+      this.copySelPassword();
+    else {
+      try {
+        token.login(true);
+        this.copySelPassword();
+      } catch (ex) {
+      // If user cancels an exception is expected.
+      }
+    }
   },
 
   reactToChange: function passwords_reactToChange(aSubject, aData) {
