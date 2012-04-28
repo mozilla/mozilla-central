@@ -565,7 +565,8 @@ nsPop3Sink::IncorporateBegin(const char* uidlString,
   nsCOMPtr<nsISeekableStream> seekableOutStream = do_QueryInterface(m_outFileStream);
 
   // create a new mail parser
-  m_newMailParser = new nsParseNewMailState;
+  if (!m_newMailParser)
+    m_newMailParser = new nsParseNewMailState;
   NS_ENSURE_TRUE(m_newMailParser, NS_ERROR_OUT_OF_MEMORY);
   if (m_uidlDownload)
     m_newMailParser->DisableFilters();
