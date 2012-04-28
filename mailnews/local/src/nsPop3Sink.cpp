@@ -809,10 +809,11 @@ nsresult nsPop3Sink::HandleTempDownloadFailed(nsIMsgWindow *msgWindow)
 NS_IMETHODIMP
 nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
 {
-  if (m_buildMessageUri && !m_baseMessageUri.IsEmpty())
+  if (m_buildMessageUri && !m_baseMessageUri.IsEmpty() && m_newMailParser &&
+      m_newMailParser->m_newMsgHdr)
   {
     PRUint32 msgKey;
-    m_newMailParser->GetEnvelopePos(&msgKey);
+    m_newMailParser->m_newMsgHdr->GetMessageKey(&msgKey);
     m_messageUri.Truncate();
     nsBuildLocalMessageURI(m_baseMessageUri.get(), msgKey, m_messageUri);
   }
