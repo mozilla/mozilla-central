@@ -938,8 +938,8 @@ function loadStartFolder(initialUri)
     }
     catch(ex)
     {
-      dump(ex);
-      dump('Exception in LoadStartFolder caused by no default account.  We know about this\n');
+      // If no default account then show account central page.
+      ShowAccountCentral();
     }
 
     MsgGetMessagesForAllServers(defaultServer);
