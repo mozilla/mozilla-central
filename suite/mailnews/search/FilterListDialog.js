@@ -386,14 +386,17 @@ function onEditFilter()
 function onNewFilter(emailAddress)
 {
   var curFilterList = currentFilterList();
-  var args = {filterList: curFilterList, refresh: false};
+  var position = Math.max(gFilterTree.currentIndex, 0);
+  var args = {filterList: curFilterList,
+              filterPosition: position, refresh: false};
   
   window.openDialog("chrome://messenger/content/FilterEditor.xul", "FilterEditor", "chrome,modal,titlebar,resizable,centerscreen", args);
 
   if (args.refresh)
   {
-    gFilterTreeView.tree.rowCountChanged(0, 1);
-    gFilterTree.view.selection.select(0);
+    gFilterTreeView.tree.rowCountChanged(position, 1);
+    gFilterTree.view.selection.select(position);
+    gFilterTree.treeBoxObject.ensureRowIsVisible(position);
   }
 }
 
