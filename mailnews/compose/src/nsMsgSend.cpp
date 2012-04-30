@@ -1139,7 +1139,7 @@ nsMsgComposeAndSend::PreProcessPart(nsMsgAttachmentHandler  *ma,
   // so we don't show it as an attachment.
   if (ma->mSendViaCloud)
   {
-    type.Assign("text/html");
+    type.Assign("application/octet-stream");
     realName.Truncate();
   }
   hdrs = mime_generate_attachment_headers (type.get(),
@@ -1169,31 +1169,26 @@ nsMsgComposeAndSend::PreProcessPart(nsMsgAttachmentHandler  *ma,
   PR_FREEIF(hdrs);
   if (ma->mSendViaCloud)
   {
-    // put the url in an html part
-    nsCString htmlPart("<html><body><a href=\"");
-    htmlPart.Append(ma->mCloudUrl);
-    htmlPart.Append("\">");
-    htmlPart.Append(ma->mCloudUrl);
-    htmlPart.Append("</a></body></html>");
-    part->SetBuffer(htmlPart.get());
+    nsCString urlSpec;
+    ma->mURL->GetSpec(urlSpec);
+    // Need to add some headers so that libmime can restore the cloud info
+    // when loading a draft message.
+    nsCString draftInfo(HEADER_X_MOZILLA_CLOUD_PART": cloudFile; url=");
+    draftInfo.Append(ma->mCloudUrl.get());
+    // don't leak user file paths or account keys to recipients.
     if (m_deliver_mode == nsMsgSaveAsDraft)
     {
-      nsCString urlSpec;
-      ma->mURL->GetSpec(urlSpec);
-      // Need to add some headers so that libmime can restore the cloud info
-      // when loading a draft message.
-      nsCString draftInfo(HEADER_X_MOZILLA_CLOUD_PART": cloudFile; url=");
-      draftInfo.Append(ma->mCloudUrl.get());
       draftInfo.Append("; provider=");
       draftInfo.Append(ma->mCloudProviderKey.get());
       draftInfo.Append("; file=");
       draftInfo.Append(urlSpec.get());
-      draftInfo.Append("; name=");
-      draftInfo.Append(ma->m_realName.get());
-      draftInfo.Append(CRLF);
-      part->AppendOtherHeaders(draftInfo.get());
     }
-    part->SetType("text/html");
+    draftInfo.Append("; name=");
+    draftInfo.Append(ma->m_realName.get());
+    draftInfo.Append(CRLF);
+    part->AppendOtherHeaders(draftInfo.get());
+    part->SetType("application/octet-stream");
+    part->SetBuffer("");
   }
   if (NS_FAILED(status))
     return 0;
