@@ -494,21 +494,44 @@ function onRemoveAccount(event) {
   if (!Services.prompt.confirm(window, confirmTitle, confirmRemoveAccount))
     return;
 
+  let serverList = [];
+  let accountTreeNode = document.getElementById("account-tree-children");
+  // build the list of servers in the account tree (order is important)
+  for (let i = 0; i < accountTreeNode.childNodes.length; i++) {
+    if ("_account" in accountTreeNode.childNodes[i]) {
+      let curServer = accountTreeNode.childNodes[i]._account.incomingServer;
+      if (serverList.indexOf(curServer) == -1)
+        serverList.push(curServer);
+    }
+  }
+
+  // get position of the current server in the server list
+  let serverIndex = serverList.indexOf(server);
+
+  // After the current server is deleted, choose the next server/account,
+  // or the previous one if the last one was deleted.
+  if (serverIndex == serverList.length - 1)
+    serverIndex--;
+  else
+    serverIndex++;
+
   try {
     let serverId = server.serverURI;
     MailServices.accounts.removeAccount(currentAccount);
 
-    currentAccount = currentPageId = null;
     // clear cached data out of the account array
+    currentAccount = currentPageId = null;
     if (serverId in accountArray) {
       delete accountArray[serverId];
     }
-    selectServer(null, null);
+
+    if ((serverIndex >= 0) && (serverIndex < serverList.length))
+      selectServer(serverList[serverIndex], null);
   }
   catch (ex) {
-    dump("failure to remove account: " + ex + "\n");
+    Components.utils.reportError("Failure to remove account: " + ex);
     let alertText = bundle.getString("failedRemoveAccount");
-    Services.prompt.alert(window, null, alertText);;
+    Services.prompt.alert(window, null, alertText);
   }
 
   // Either the default account was deleted so there is a new one
