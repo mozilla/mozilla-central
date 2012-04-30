@@ -560,13 +560,12 @@ NS_IMETHODIMP
 nsMsgSearchSession::GetRunningAdapter(nsIMsgSearchAdapter **aSearchAdapter)
 {
   NS_ENSURE_ARG_POINTER(aSearchAdapter);
+  *aSearchAdapter = nsnull;
   nsMsgSearchScopeTerm *scope = GetRunningScope();
   if (scope)
   {
-    NS_ADDREF(*aSearchAdapter = scope->m_adapter);
-    return NS_OK;
+    NS_IF_ADDREF(*aSearchAdapter = scope->m_adapter);    
   }
-  *aSearchAdapter = nsnull;
   return NS_OK;
 }
 
