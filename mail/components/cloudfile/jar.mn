@@ -7,5 +7,6 @@ messenger.jar:
     content/messenger/cloudfile/Dropbox/management.js    (content/Dropbox/management.js)
     content/messenger/cloudfile/Dropbox/settings.xhtml (content/Dropbox/settings.xhtml)
     content/messenger/cloudfile/YouSendIt/management.xhtml (content/YouSendIt/management.xhtml)
+    content/messenger/cloudfile/YouSendIt/management.js (content/YouSendIt/management.js)
     content/messenger/cloudfile/YouSendIt/settings.js (content/YouSendIt/settings.js)
     content/messenger/cloudfile/YouSendIt/settings.xhtml (content/YouSendIt/settings.xhtml)
