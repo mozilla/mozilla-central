@@ -119,12 +119,12 @@ treechildren::-moz-tree-cell-text(container, closed, hasUnread, read) {
 
 /* ::::: message column icons ::::: */
 
-treecol.treecol-image image {
+.treecol-image image {
   -moz-padding-end: 5px;
   padding-bottom: 3px;
 }
 
-:-moz-system-metric(windows-classic) treecol.treecol-image image {
+:-moz-system-metric(windows-classic) .treecol-image image {
   -moz-padding-end: 1px;
   padding-bottom: 2px;
 }
@@ -137,7 +137,7 @@ treecol.treecol-image image {
 
 /* ..... thread column ..... */
 
-treecol.threadColumnHeader {
+.threadColumnHeader {
   list-style-image: url("chrome://messenger/skin/icons/thread-col.svg");
 }
 
@@ -159,7 +159,7 @@ treechildren::-moz-tree-image(news, threadCol, ignoreSubthread) {
 
 /* ..... read column ..... */
 
-treecol.readColumnHeader {
+.readColumnHeader {
   list-style-image: url("chrome://messenger/skin/icons/readcol.svg");
 }
 
@@ -177,7 +177,7 @@ treechildren::-moz-tree-image(unreadButtonColHeader, unread) {
 
 /* ..... attachment column ..... */
 
-treecol.attachmentColumnHeader {
+.attachmentColumnHeader {
   list-style-image: url("chrome://messenger/skin/icons/attachment-col.svg");
 }
 
@@ -187,7 +187,7 @@ treechildren::-moz-tree-image(attachmentCol, attach) {
 
 /* ..... flag column ..... */
 
-treecol.flagColumnHeader {
+.flagColumnHeader {
   list-style-image: url("chrome://messenger/skin/icons/flag-col.svg");
 }
 
@@ -206,7 +206,7 @@ treechildren::-moz-tree-image(flaggedCol, flagged) {
 
 /* ..... junkStatus column ..... */
 
-treecol.junkStatusHeader {
+.junkStatusHeader {
   list-style-image: url("chrome://messenger/skin/icons/junk-col.svg");
   -moz-padding-end: 3px;
 }
@@ -414,6 +414,6 @@ treechildren::-moz-tree-cell-text(subjectCol) {
 
 /* ..... tabs ..... */
 
-tabpanels#tabpanelcontainer {
+#tabpanelcontainer {
   -moz-appearance: none;
 }

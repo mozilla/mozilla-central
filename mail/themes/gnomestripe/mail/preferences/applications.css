@@ -104,13 +104,13 @@ menuitem[appHandlerIcon="plugin"] {
 /**
  * Used by the outgoing attachment manager
  */
-richlistitem.cloudfileAccount[state="connecting"],
-richlistitem.cloudfileAccount[state="waiting-to-connect"] {
+.cloudfileAccount[state="connecting"],
+.cloudfileAccount[state="waiting-to-connect"] {
   list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
 }
 
-richlistitem.cloudfileAccount[state="auth-error"],
-richlistitem.cloudfileAccount[state="no-connection"] {
+.cloudfileAccount[state="auth-error"],
+.cloudfileAccount[state="no-connection"] {
   list-style-image: url("moz-icon://stock/gtk-dialog-error?size=menu")!important;
 }
 

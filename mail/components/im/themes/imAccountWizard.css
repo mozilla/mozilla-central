@@ -44,31 +44,31 @@
   overflow: auto;
 }
 
-groupbox.collapsable {
+.collapsable {
   -moz-user-focus: normal;
 }
 
 %ifdef XP_WIN
-groupbox.collapsable .caption-text {
+.caption-text {
   border: 1px solid transparent;
 }
 
-groupbox.collapsable:focus .caption-text {
+.collapsable:focus .caption-text {
   border: 1px dotted ThreeDDarkShadow;
 }
 %endif
 
-groupbox.collapsable[closed="true"] {
+.collapsable[closed="true"] {
   border: none;
   -moz-appearance: none;
 }
 
-groupbox[closed="true"] > .groupbox-body {
+.collapsable[closed="true"] > .groupbox-body {
   display: none;
 }
 
 %ifdef XP_MACOSX
-groupbox.collapsable caption .caption-icon {
+.caption-icon {
   width: 11px;
   height: 11px;
   background-repeat: no-repeat;
@@ -77,11 +77,11 @@ groupbox.collapsable caption .caption-icon {
   background-image: url("chrome://global/skin/arrow/arrow-dn.gif");
 }
 
-groupbox.collapsable[closed="true"] caption .caption-icon {
+.collapsable[closed="true"] .caption-icon {
   background-image: url("chrome://global/skin/arrow/arrow-rit.gif");
 }
 %else
-groupbox.collapsable caption .caption-icon {
+.caption-icon {
   width: 9px;
   height: 9px;
   background-repeat: no-repeat;
@@ -92,7 +92,7 @@ groupbox.collapsable caption .caption-icon {
 }
 
 
-groupbox.collapsable[closed="true"] caption .caption-icon {
+.collapsable[closed="true"] .caption-icon {
   background-image: url("chrome://global/skin/tree/twisty-clsd.png");
 }
 %endif

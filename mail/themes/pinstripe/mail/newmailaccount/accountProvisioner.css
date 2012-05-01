@@ -253,7 +253,9 @@ input[type="submit"].search {
   font-weight: bold;
 }
 
-.hbox.row.th.displayNone { display: none; }
+#resultsHeader.displayNone {
+  display: none;
+}
 
 #results {
   width: 100%;

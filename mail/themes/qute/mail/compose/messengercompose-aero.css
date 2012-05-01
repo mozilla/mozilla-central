@@ -445,7 +445,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 }
 
 @media (-moz-windows-default-theme) {
-  treechildren.autocomplete-treebody::-moz-tree-cell-text(selected) {
+  .autocomplete-treebody::-moz-tree-cell-text(selected) {
     color: -moz-DialogText !important;
   }
 }

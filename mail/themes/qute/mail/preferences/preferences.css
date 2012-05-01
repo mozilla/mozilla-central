@@ -40,7 +40,7 @@
 
 /* Global Styles */
 
-radiogroup.paneSelector {
+.paneSelector {
   background-color: rgb(90, 116, 164);
   color: white;
   background-image: url("chrome://messenger/skin/preferences/background.png");

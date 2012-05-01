@@ -40,7 +40,7 @@
 
 %include preferences.css
 
-radiogroup.paneSelector {
+.paneSelector {
   background-color: -moz-field;
   background-image: none;
   color: -moz-fieldtext;

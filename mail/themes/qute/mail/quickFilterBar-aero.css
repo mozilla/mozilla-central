@@ -211,7 +211,7 @@
   -moz-margin-end: 0;
 }
 
-#quick-filter-bar-collapsible-buttons toolbarbutton label.toolbarbutton-text {
+#quick-filter-bar-collapsible-buttons toolbarbutton .toolbarbutton-text {
   -moz-margin-start: 3px !important;
 }
 

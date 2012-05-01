@@ -170,15 +170,15 @@ treecol[hideheader="true"] {
 
 /* ..... thread column ..... */
 
-treecol.threadColumnHeader {
+.threadColumnHeader {
   list-style-image: url("chrome://messenger/skin/icons/unthreadcol.png");
 }
 
-treecol.threadColumnHeader[sortDirection="ascending"]  {
+.threadColumnHeader[sortDirection="ascending"]  {
   list-style-image: url("chrome://messenger/skin/icons/threadcol.png");
 }
 
-treecol.threadColumnHeader[sortDirection="descending"] {
+.threadColumnHeader[sortDirection="descending"] {
   list-style-image: url("chrome://messenger/skin/icons/threadcol.png");
 }
 
@@ -200,7 +200,7 @@ treechildren::-moz-tree-image(threadCol, container, hasUnread, selected) {
 
 /* ..... read column ..... */
 
-treecol.readColumnHeader {
+.readColumnHeader {
   list-style-image: url("chrome://messenger/skin/icons/readcol.png");
 }
 
@@ -246,7 +246,7 @@ treechildren::-moz-tree-image(subjectCol, replied, forwarded, selected) {
 
 /* ..... attachment column ..... */
 
-treecol.attachmentColumnHeader {
+.attachmentColumnHeader {
   list-style-image: url("chrome://messenger/skin/icons/attachment-col.png");
 
   -moz-padding-end: 5px;
@@ -262,7 +262,7 @@ treechildren::-moz-tree-image(attachmentCol, attach, focus, selected) {
 
 /* ..... flag column ..... */
 
-treecol.flagColumnHeader {
+.flagColumnHeader {
   list-style-image: url("chrome://messenger/skin/icons/flagcol.png");
 }
 
@@ -280,7 +280,7 @@ treechildren::-moz-tree-image(flaggedCol, flagged) {
 
 /* ..... junkStatus column ..... */
 
-treecol.junkStatusHeader {
+.junkStatusHeader {
   list-style-image: url("chrome://messenger/skin/icons/junk-column-header.png");
   -moz-padding-end: 3px;
   -moz-padding-start: 2px;

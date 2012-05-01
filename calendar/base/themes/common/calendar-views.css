@@ -922,15 +922,15 @@ calendar-event-box[gripBars="both"]:not([readonly="true"]):hover .calendar-event
 }
 
 /* tooltips */
-vbox.tooltipBox {
+.tooltipBox {
     max-width: 40em;
 }
 
-column.tooltipValueColumn {
+.tooltipValueColumn {
     max-width: 35em; /* tooltipBox max-width minus space for label */
 }
 
-label.tooltipHeaderLabel {
+.tooltipHeaderLabel {
     font-weight: bold;
     text-align: right;
     margin-top: 0;
@@ -939,17 +939,17 @@ label.tooltipHeaderLabel {
     -moz-margin-end: 1em; /* 1em space before value */
 }
 
-description.tooltipHeaderDescription {
+.tooltipHeaderDescription {
     font-weight: normal;
     text-align: left;
     margin: 0pt;
 }
 
-separator.tooltipBodySeparator {
+.tooltipBodySeparator {
     height: 1ex; /* 1ex space above body text, below last header. */
 }
 
-description.tooltipBody {
+.tooltipBody {
     font-weight: normal;
     white-space: pre-wrap;
     margin: 0pt;

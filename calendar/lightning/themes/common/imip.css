@@ -15,24 +15,22 @@ td {
        width: 2em;
        text-align: left;
 }
-td.header {
+.header {
+       color: HighlightText;
+       font-size: 1em;
+       font-weight: bold;
        background-color: Highlight;
 }
-td.description {
+.description {
        width: 9em;
        text-align: right;
        -moz-border-end: 1px solid rgba(255, 255, 255, 0.2);
        background-color: rgba(0, 0, 0, 0.2);
 }
-td.content {
+.content {
        width: 29em;
        background-color: -moz-default-background-color;
 }
-td.content p {
+.content p {
        white-space: pre-wrap;
-}
-p.header {
-       color: HighlightText;
-       font-size: 1em;
-       font-weight: bold;
 }

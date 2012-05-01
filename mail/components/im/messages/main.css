@@ -48,12 +48,12 @@ p {
   padding: 0;
 }
 
-div.bubble {
+.bubble {
   margin: 2px 20px;
   padding: 0;
 }
 
-div.bubble:not(.context):not(.event) {
+.bubble:not(.context):not(.event) {
   -moz-animation-duration: 0.5s;
   -moz-animation-name: fadein;
   -moz-animation-iteration-count: 1;
@@ -69,24 +69,24 @@ div.bubble:not(.context):not(.event) {
   }
 }
 
-div.bubble>div.indicator {
+.indicator {
   padding: 10px;
   -moz-margin-start: 60px;
 }
 
-div.bubble p.pseudo {
+.pseudo {
   font-size: smaller;
   font-weight: bold;
 }
 
-div.bubble p.pseudo>span>span.time {
+.time {
   display: block;
   float: right;
   color: #aeafac;
   font-weight: normal;
 }
 
-div.bubble hr {
+.bubble hr {
   margin: 2px 0 0;
   height: 2px;
   border-style: none;
@@ -94,7 +94,7 @@ div.bubble hr {
   border-bottom: 1px solid #dbddd7;
 }
 
-p.interval, #lastMessage {
+.interval, #lastMessage {
   text-align: center;
   color: hsl(0, 0%, 60%);
 }
@@ -107,19 +107,19 @@ p.interval, #lastMessage {
   line-height: 20px;
 }
 
-p.nick {
+.nick {
   font-weight: bold;
 }
 
-p.action {
+.action {
   font-style: italic;
 }
 
-p.action:before {
+.action:before {
   content: "*** ";
 }
 
-p.event {
+.event {
   color: hsl(0, 0%, 60%);
   margin: 3px 15px;
 }
@@ -135,7 +135,7 @@ p *:-moz-any-link img {
 }
 
 /* used by javascript */
-p.button {
+.button {
   cursor: pointer;
   min-height: 20px;
   -moz-margin-start: -10px;
@@ -143,26 +143,26 @@ p.button {
   -moz-padding-start: 24px;
 }
 
-p.hide {
+.hide {
   background: url('Bitmaps/plus.png') no-repeat left top;
 }
 
-p.hide:hover {
+.hide:hover {
   background: url('Bitmaps/plus-hover.png') no-repeat left top;
 }
 
-p.hide:after {
+.hide:after {
   content: "...";
   color: hsl(0, 0%, 60%);
 }
 
-p.show {
+.show {
   background: url('Bitmaps/minus.png') no-repeat left top;
   margin-bottom: -20px;
   width: 0;
 }
 
-p.show:hover {
+.show:hover {
   background: url('Bitmaps/minus-hover.png') no-repeat left top;
 }
 
@@ -175,7 +175,7 @@ p.show:hover {
   border-radius: 5px;
 }
 
-.bubble.event,
+.event,
 .indicator {
   border: 1px solid hsl(0, 0%, 85%);
   border-radius: 5px;
@@ -187,11 +187,11 @@ p.show:hover {
 }
 
 @media (max-height: 500px) {
-  div.bubble {
+  .bubble {
     margin-top: 3px !important;
   }
 
-  div.bubble > div.indicator {
+  .indicator {
     padding: 5px 10px;
     -moz-margin-start: 0;
   }

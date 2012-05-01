@@ -38,44 +38,44 @@ window {
   -moz-appearance: none;
 }
 
-image.warningicon {
+.warningicon {
   width: 16px;
   height: 16px;
   background: url("chrome://global/skin/icons/warning-16.png") no-repeat;
 }
 
-image.insecureLarry {
+.insecureLarry {
   height: 64px;
   width: 64px;
   padding: 0;
   background: url("chrome://global/skin/icons/sslWarning.png") no-repeat;
 }
 
-image.secureLarry {
+.secureLarry {
   height: 64px;
   width: 64px;
   padding: 0;
   background: url("chrome://messenger/skin/icons/identity.png") no-repeat;
 }
 
-vbox.mastervbox {
+.mastervbox {
   padding: 14px;
   background: -moz-dialog;
 }
 
-vbox.icon[state='strong'] {
+.icon[state='strong'] {
   background-image: url("chrome://messenger/skin/icons/secure.png");
 }
 
-vbox.icon[state='failed'] {
+.icon[state='failed'] {
   background-image: url("chrome://messenger/skin/icons/failed.png");
 }
 
-vbox.icon[state='probing'] {
+.icon[state='probing'] {
   background-image: url("chrome://messenger/skin/icons/probing.png");
 }
 
-vbox.icon[state='weak'] {
+.icon[state='weak'] {
   background-image: url("chrome://messenger/skin/icons/insecure.png");
 }
 
@@ -167,13 +167,7 @@ textbox.username {
   margin-top: 4px !important;
 }
 
-textbox.host {
-  width: 12em;
-  margin-bottom: 4px !important;
-  margin-top: 4px !important;
-}
-
-menulist.host {
+.host {
   width: 12em;
   margin-bottom: 4px !important;
   margin-top: 4px !important;
@@ -190,11 +184,11 @@ menulist.host {
   background-image: url("chrome://messenger/skin/section_expanded.png");
 }
 
-label.autoconfigLabel {
+.autoconfigLabel {
   text-align: right;
 }
 
-label.textbox-label {
+.textbox-label {
   text-align: right;
 }
 

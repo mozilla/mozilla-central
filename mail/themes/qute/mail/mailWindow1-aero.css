@@ -18,7 +18,7 @@
   }
 }
 
-treecol.threadColumnHeader {
+.threadColumnHeader {
   -moz-padding-end: 2px;
 }
 
@@ -116,12 +116,12 @@ treechildren::-moz-tree-image(news, threadCol, watch) {
   color: InfoText;
 }
 
-treecol.treecol-image image {
+.treecol-image image {
   -moz-padding-start: 1px;
   -moz-padding-end: 2px;
 }
 
-treecol.junkStatusHeader {
+.junkStatusHeader {
   -moz-padding-end: 2px;
 }
 
@@ -266,7 +266,7 @@ menulist > .menulist-label-box {
 }
 
 @media (-moz-windows-compositor) {
-  #messengerWindow[sizemode=normal] tabpanels#tabpanelcontainer {
+  #messengerWindow[sizemode=normal] #tabpanelcontainer {
     border: 1px solid rgba(10%, 10%, 10%, .4);
     border-top: none;
     background-clip: padding-box;

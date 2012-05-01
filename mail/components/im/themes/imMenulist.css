@@ -37,10 +37,10 @@
 
 
 /* Fix the icons in the menulist by undoing things from menu.css */
-menulist > menupopup > menuitem.menuitem-iconic > .menu-iconic-left {
+menulist > menupopup > .menuitem-iconic > .menu-iconic-left {
   display: -moz-box !important;
 }
 
-menulist > menupopup > menuitem.menuitem-iconic > .menu-iconic-text {
+menulist > menupopup > .menuitem-iconic > .menu-iconic-text {
   margin-left: 2px !important;
 }
