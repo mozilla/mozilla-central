@@ -111,6 +111,9 @@ function ircChannel(aAccount, aName, aNick) {
 ircChannel.prototype = {
   __proto__: GenericConvChatPrototype,
   _observedNicks: [],
+  // This is set to true after a message is sent to notify the 401
+  // ERR_NOSUCHNICK handler to write an error message to the conversation.
+  _pendingMessage: false,
 
   sendMsg: function(aMessage) {
     this._account.sendMessage("PRIVMSG", [this.name, aMessage]);
@@ -120,6 +123,8 @@ ircChannel.prototype = {
     // though, try to handle that.
     if (this.hasParticipant(this._account._nickname))
       this.writeMessage(this.nick, aMessage, {outgoing: true});
+
+    this._pendingMessage = true;
   },
   // Overwrite the writeMessage function to apply CTCP formatting before
   // display.
@@ -320,6 +325,9 @@ ircConversation.prototype = {
   __proto__: GenericConvIMPrototype,
   _observedNicks: [],
   _waitingForNick: false,
+  // This is set to true after a message is sent to notify the 401
+  // ERR_NOSUCHNICK handler to write an error message to the conversation.
+  _pendingMessage: false,
 
   sendMsg: function(aMessage) {
     this._account.sendMessage("PRIVMSG", [this.name, aMessage]);
@@ -327,6 +335,8 @@ ircConversation.prototype = {
     // Since the server doesn't send us a message back, just assume the message
     // was received and immediately show it.
     this.writeMessage(this._account._nickname, aMessage, {outgoing: true});
+
+    this._pendingMessage = true;
   },
 
   // Overwrite the writeMessage function to apply CTCP formatting before

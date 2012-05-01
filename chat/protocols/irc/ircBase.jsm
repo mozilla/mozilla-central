@@ -133,8 +133,21 @@ function serverMessage(aAccount, aMsg, aNoLastParam) {
                       "system");
 }
 
-function errorMessage(aAccount, aMessage, aError)
-  writeMessage(aAccount, aMessage, aError, "error")
+function serverErrorMessage(aAccount, aMessage, aError) {
+  // If we don't want to show messages from the server, just mark it as handled.
+  if (!aAccount._showServerTab)
+    return true;
+
+  return writeMessage(aAccount, aMessage, aError, "error")
+}
+
+function conversationErrorMessage(aAccount, aMessage, aError) {
+  let conv = aAccount.getConversation(aMessage.params[1]);
+  conv.writeMessage(aMessage.servername, _(aError, aMessage.params[1]),
+                    {error: true, system: true});
+  delete conv._pendingMessage;
+  return true;
+}
 
 function setWhoIs(aAccount, aMessage, aFields) {
   let buddyName = aAccount.normalize(aMessage.params[1], aAccount.userPrefixes);
@@ -623,6 +636,9 @@ var ircBase = {
       // <nick> :<away message>
       // TODO set user as away on buddy list / conversation lists
       // TODO Display an autoResponse if this is after sending a private message
+      // If the conversation is waiting for a response, it's received one.
+      if (this.hasConversation(aMessage.params[1]))
+        delete this.getConversation(aMessage.params[1])._pendingMessage;
       return setWhoIs(this, aMessage, {away: aMessage.params[2]});
     },
     "302": function(aMessage) { // RPL_USERHOST
@@ -1001,9 +1017,17 @@ var ircBase = {
     "401": function(aMessage) { // ERR_NOSUCHNICK
       // <nickname> :No such nick/channel
       // Can arise in response to /mode, /invite, /kill, /msg, /whois.
-      // TODO Only handled in the conversation for /whois so far.
-      return errorMessage(this, aMessage,
-                          _("error.noSuchNick", aMessage.params[1]));
+      // TODO Handled in the conversation for /whois and /mgs so far.
+      let msgId = "error.noSuch" +
+        (this.isMUCName(aMessage.params[1]) ? "Channel" : "Nick");
+      if (this.hasConversation(aMessage.params[1])) {
+        // If the conversation exists and we just sent a message from it, then
+        // notify that the user is offline.
+        if (this.getConversation(aMessage.params[1])._pendingMessage)
+          conversationErrorMessage(this, aMessage, msgId);
+      }
+
+      return serverErrorMessage(this, aMessage, _(msgId, aMessage.params[1]));
     },
     "402": function(aMessage) { // ERR_NOSUCHSERVER
       // <server name> :No such server
@@ -1012,29 +1036,29 @@ var ircBase = {
     },
     "403": function(aMessage) { // ERR_NOSUCHCHANNEL
       // <channel name> :No such channel
-      return errorMessage(this, aMessage,
-                          _("error.noChannel", aMessage.params[0]));
+      return serverErrorMessage(this, aMessage,
+                                _("error.noChannel", aMessage.params[0]));
     },
-    "404": function(aMessage) { // ERR_CANNONTSENDTOCHAN
+    "404": function(aMessage) { // ERR_CANNOTSENDTOCHAN
       // <channel name> :Cannot send to channel
-      // TODO handle that the channel didn't receive the message.
-      return false;
+      // Notify the user that they can't send to that channel.
+      return conversationErrorMessage(this, aMessage,
+                                      "error.cannotSendToChannel");
     },
     "405": function(aMessage) { // ERR_TOOMANYCHANNELS
       // <channel name> :You have joined too many channels
-      return errorMessage(this, aMessage,
-                          _("error.tooManyChannels", aMessage.params[0]));
+      return serverErrorMessage(this, aMessage,
+                                _("error.tooManyChannels", aMessage.params[0]));
     },
     "406": function(aMessage) { // ERR_WASNOSUCHNICK
       // <nickname> :There was no such nickname
       // Can arise in response to WHOWAS.
-      return errorMessage(this, aMessage,
-                          _("error.wasNoSuchNick", aMessage.params[1]));
+      return serverErrorMessage(this, aMessage,
+                                _("error.wasNoSuchNick", aMessage.params[1]));
     },
     "407": function(aMessage) { // ERR_TOOMANYTARGETS
-      // <target> :<error code> recipients. <abord message>
-      // TODO
-      return false;
+      // <target> :<error code> recipients. <abort message>
+      return conversationErrorMessage(this, aMessage, "error.nonUniqueTarget");
     },
     "408": function(aMessage) { // ERR_NOSUCHSERVICE
       // <service name> :No such service
@@ -1048,28 +1072,34 @@ var ircBase = {
     },
     "411": function(aMessage) { // ERR_NORECIPIENT
       // :No recipient given (<command>)
-      ERROR("ERR_NORECIPIENT:\n" + aMessage.params[0]);
+      // If this happens a real error with the protocol occurred.
+      ERROR("ERR_NORECIPIENT: No recipient given for PRIVMSG.");
       return true;
     },
     "412": function(aMessage) { // ERR_NOTEXTTOSEND
       // :No text to send
-      // TODO Message was not sent.
+      // If this happens a real error with the protocol occurred: we should
+      // always block the user from sending empty messages.
+      ERROR("ERR_NOTEXTTOSEND: No text to send for PRIVMSG.");
       return true;
     },
     "413": function(aMessage) { // ERR_NOTOPLEVEL
       // <mask> :No toplevel domain specified
-      // TODO Message was not sent.
-      return false;
+      // If this response is received, a real error occurred in the protocol.
+      ERROR("ERR_NOTOPLEVEL: Toplevel domain not specified.");
+      return true;
     },
     "414": function(aMessage) { // ERR_WILDTOPLEVEL
       // <mask> :Wildcard in toplevel domain
-      // TODO Message was not sent.
-      return false;
+      // If this response is received, a real error occurred in the protocol.
+      ERROR("ERR_WILDTOPLEVEL: Wildcard toplevel domain specified.");
+      return true;
     },
     "415": function(aMessage) { // ERR_BADMASK
       // <mask> :Bad Server/host mask
-      // TODO Message was not sent.
-      return false;
+      // If this response is received, a real error occurred in the protocol.
+      ERROR("ERR_BADMASK: Bad server/host mask specified.");
+      return true;
     },
     "421": function(aMessage) { // ERR_UNKNOWNCOMMAND
       // <command> :Unknown command
@@ -1171,13 +1201,13 @@ var ircBase = {
     },
     "465": function(aMessage) { // ERR_YOUREBANEDCREEP
       // :You are banned from this server
-      errorMessage(this, aMessage, _("error.banned"));
+      serverErrorMessage(this, aMessage, _("error.banned"));
       this.gotDisconnected(Ci.prplIAccount.ERROR_OTHER_ERROR,
                            _("error.banned")); // Notify account manager.
       return true;
     },
     "466": function(aMessage) { // ERR_YOUWILLBEBANNED
-      return errorMessage(this, aMessage, _("error.bannedSoon"));
+      return serverErrorMessage(this, aMessage, _("error.bannedSoon"));
     },
     "467": function(aMessage) { // ERR_KEYSET
       // <channel> :Channel key already set
@@ -1267,7 +1297,7 @@ var ircBase = {
     },
     "502": function(aMessage) { // ERR_USERSDONTMATCH
       // :Cannot change mode for other users
-      return errorMessage(this, aMessage, _("error.mode.wrongUser"));
+      return serverErrorMessage(this, aMessage, _("error.mode.wrongUser"));
     }
   }
 };
