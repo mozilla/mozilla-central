@@ -405,7 +405,6 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
 
   // Create an input stream for the spool file
   nsCOMPtr<nsILocalFile> spoolFile;
-  printf("spool path = %s\n", spoolPath.get());
   rv = NS_NewNativeLocalFile(spoolPath, true, getter_AddRefs(spoolFile));
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsIInputStream> spoolInputStream;
