@@ -14,7 +14,7 @@
 <!ENTITY purge2.label "days">
 
 <!ENTITY whitelistHeader.label "Do not automatically mark mail as junk if the sender is in: ">
-<!ENTITY whitelist.accesskey "D">
+<!ENTITY whitelistHeader.accesskey "D">
 
 <!ENTITY ispHeadersWarning.label "If enabled, &brandShortName; will automatically consider messages marked by this external classifier as junk.">
 <!ENTITY ispHeaders.label "Trust junk mail headers set by: ">
