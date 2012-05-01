@@ -826,10 +826,12 @@ bin/libfreebl_32int64_3.so
 #endif
 
 [debugqa]
+#ifdef MOZ_PACKAGE_DEBUGQA
 #ifdef MOZ_OMNIJAR
 @BINPATH@/distribution/extensions/debugQA@mozilla.org.xpi
 #else
 @BINPATH@/extensions/debugQA@mozilla.org/install.rdf
 @BINPATH@/extensions/debugQA@mozilla.org/chrome.manifest
 @BINPATH@/extensions/debugQA@mozilla.org/chrome/debugqa@JAREXT@
+#endif
 #endif

@@ -89,6 +89,13 @@ ifeq (gtk2, $(MOZ_WIDGET_TOOLKIT))
 DEFINES += -DMOZ_GTK2=1
 endif
 
+# Check whether this build is an alpha or nightly:
+# replace "pre" with "a" in the version then look if "a" matches.
+# This should match /suite/Makefile.in.
+ifneq (,$(findstring a,$(MOZ_APP_VERSION:pre=a)))
+DEFINES += -DMOZ_PACKAGE_DEBUGQA=1
+endif
+
 ifdef NSS_DISABLE_DBM
 DEFINES += -DNSS_DISABLE_DBM=1
 endif

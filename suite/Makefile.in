@@ -43,8 +43,9 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-# check if this is an alpha or nightly
-# replace "pre" with "a" in the version and then look if "a" matches
+# Check whether this build is an alpha or nightly:
+# replace "pre" with "a" in the version then look if "a" matches.
+# This should match /suite/installer/Makefile.in.
 ifneq (,$(findstring a,$(MOZ_APP_VERSION:pre=a)))
 PARALLEL_DIRS = debugQA
 endif
