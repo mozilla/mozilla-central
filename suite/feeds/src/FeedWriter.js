@@ -282,7 +282,7 @@ FeedWriter.prototype = {
   get _faviconService() {
     if (!this.__faviconService)
       this.__faviconService = Components.classes["@mozilla.org/browser/favicon-service;1"]
-                                        .getService(Components.interfaces.nsIFaviconService);
+                                        .getService(Components.interfaces.mozIAsyncFavicons);
 
     return this.__faviconService;
   },
@@ -1358,7 +1358,7 @@ FeedWriter.prototype = {
     }
     let faviconURI = makeURI(readerURI.resolve("/favicon.ico"));
     let self = this;
-    this._faviconService.setAndLoadFaviconForPage(readerURI, faviconURI, false,
+    this._faviconService.setAndFetchFaviconForPage(readerURI, faviconURI, false,
       function(aURI, aDataLen, aData, aMimeType) {
         if (aDataLen > 0) {
           let dataURL = "data:" + aMimeType + ";base64," +

@@ -443,9 +443,7 @@ WebContentConverterRegistrar.prototype = {
       // Now Ask the user and provide the proper callback
       message = this._getFormattedString("addProtocolHandler",
                                          [aTitle, uri.host, aProtocol]);
-      var fis = Components.classes["@mozilla.org/browser/favicon-service;1"]
-                          .getService(Components.interfaces.nsIFaviconService);
-      var notificationIcon = fis.getFaviconLinkForIcon(uri);
+      var notificationIcon = uri.resolve("/favicon.ico");
       var notificationValue = "Protocol Registration: " + aProtocol;
       var addButton = {
         label: this._getString("addProtocolHandlerAddButton"),
@@ -538,7 +536,7 @@ WebContentConverterRegistrar.prototype = {
   _appendFeedReaderNotification: function appendFeedReaderNotification(aURI, aName, aNotificationBox) {
     var uriSpec = aURI.spec;
     var notificationValue = "feed reader notification: " + uriSpec;
-    var notificationIcon = aURI.prePath + "/favicon.ico";
+    var notificationIcon = aURI.resolve("/favicon.ico");
 
     // Don't append a new notification if the notificationbox
     // has a notification for the given feed reader already
