@@ -224,7 +224,39 @@
 
      <method name="keyPress">
       <parameter name="aEvent"/>
-      <body></body>
+      <body>
+      <![CDATA[
+        // If Enter or Return is pressed, focus the input box.
+        if (aEvent.keyCode == aEvent.DOM_VK_RETURN ||
+            aEvent.keyCode == aEvent.DOM_VK_ENTER) {
+          this.convView.focus();
+          return;
+        }
+
+        let isMac = "nsILocalFileMac" in Components.interfaces;
+        let accelKeyPressed = isMac ? aEvent.metaKey : aEvent.ctrlKey;
+        // If a character was typed or the accel+v copy shortcut was used,
+        // focus the input box and resend the key event.
+        if (aEvent.charCode != 0 && !aEvent.altKey &&
+            (accelKeyPressed && aEvent.charCode == 'v'.charCodeAt(0) ||
+             !aEvent.ctrlKey && !aEvent.metaKey)) {
+          this.convView.focus();
+          const masks = Components.interfaces.nsIDOMNSEvent;
+          let modifiers = 0;
+          if (aEvent.shiftKey)
+            modifiers |= masks.SHIFT_MASK;
+          if (aEvent.ctrlKey)
+            modifiers |= masks.CONTROL_MASK;
+          if (aEvent.metaKey)
+            modifiers |= masks.META_MASK;
+          window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                .getInterface(Components.interfaces.nsIDOMWindowUtils)
+                .sendKeyEvent(aEvent.type, aEvent.keyCode, aEvent.charCode,
+                              modifiers);
+          aEvent.preventDefault();
+        }
+      ]]>
+      </body>
      </method>
     </implementation>
     <handlers>

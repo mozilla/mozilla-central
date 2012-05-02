@@ -203,7 +203,9 @@
      <method name="openConversation">
       <body>
        <![CDATA[
-         this.contact.createConversation();
+         let prplConv = this.contact.createConversation();
+         let uiConv = Services.conversations.getUIConversation(prplConv);
+         chatHandler.focusConversation(uiConv);
        ]]>
       </body>
      </method>
@@ -258,8 +260,10 @@
      <handler event="mousedown">
        <![CDATA[
          if (!this.hasAttribute("aliasing") && canOpenConversation() &&
-             event.originalTarget.getAttribute("anonid") == "startChatBubble")
+             event.originalTarget.getAttribute("anonid") == "startChatBubble") {
            openConversation();
+           event.preventDefault();
+         }
        ]]>
      </handler>
 

@@ -310,6 +310,13 @@ var chatHandler = {
     else if (item.localName == "imcontact")
       item.openConversation();
   },
+  focusConversation: function(aUIConv) {
+    let conv =
+      document.getElementById("conversationsGroup").contactsById[aUIConv.id];
+    document.getElementById("contactlistbox").selectedItem = conv;
+    if (conv.convView)
+      conv.convView.focus();
+  },
   showContactInfo: function(aContact) {
     let cti = document.getElementById("conv-top-info");
     cti.setAttribute("userIcon", aContact.buddyIconFilename);
@@ -337,6 +344,14 @@ var chatHandler = {
   _hideContextPane: function(aHide) {
     document.getElementById("contextSplitter").hidden = aHide;
     document.getElementById("contextPane").hidden = aHide;
+  },
+  onListItemClick: function(aEvent) {
+    // We only care about single clicks of the left button.
+    if (aEvent.button != 0 || aEvent.detail != 1)
+      return;
+    let item = document.getElementById("contactlistbox").selectedItem;
+    if (item.localName == "imconv" && item.convView)
+      item.convView.focus();
   },
   onListItemSelected: function() {
     let item = document.getElementById("contactlistbox").selectedItem;
@@ -711,6 +726,7 @@ var chatHandler = {
       item.keyPress(aEvent);
     });
     listbox.addEventListener("select", this.onListItemSelected.bind(this));
+    listbox.addEventListener("click", this.onListItemClick.bind(this));
     window.addEventListener("resize", this.onConvResize.bind(this));
     document.getElementById("conversationsGroup").sortComparator =
       function(a, b) a.title.toLowerCase().localeCompare(b.title.toLowerCase());
