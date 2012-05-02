@@ -314,6 +314,8 @@ var chatHandler = {
     let cti = document.getElementById("conv-top-info");
     cti.setAttribute("userIcon", aContact.buddyIconFilename);
     cti.setAttribute("displayName", aContact.displayName);
+    let proto = aContact.preferredBuddy.protocol;
+    cti.setAttribute("prplIcon", proto.iconBaseURI + "icon.png");
     let statusText = aContact.statusText;
     let statusType = aContact.statusType;
     if (statusText)
