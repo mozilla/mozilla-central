@@ -37,37 +37,6 @@
 
 /** Test for Bug 394759, ported in Bug 510890 **/
 
-function provideWindow(aCallback, aURL, aFeatures) {
-  function callback() {
-    executeSoon(function () {
-      aCallback(win);
-    });
-  }
-
-  let win = openDialog(getBrowserURL(), "", aFeatures || "chrome,all,dialog=no", aURL);
-
-  whenWindowLoaded(win, function () {
-    if (!aURL) {
-      callback();
-      return;
-    }
-
-    win.getBrowser().selectedBrowser.addEventListener("load", function loadListener_pW_wWL() {
-      win.getBrowser().selectedBrowser.removeEventListener("load", loadListener_pW_wWL, true);
-      callback();
-    }, true);
-  });
-}
-
-function whenWindowLoaded(aWin, aCallback) {
-  aWin.addEventListener("load", function loadListener_wWL() {
-    aWin.removeEventListener("load", loadListener_wWL, false);
-    executeSoon(function () {
-      aCallback(aWin);
-    });
-  }, false);
-}
-
 function test() {
   // This test takes quite some time, and timeouts frequently, so we require
   // more time to run.
@@ -104,7 +73,7 @@ function test() {
                    (winData.isPopup ? "all=no" : "all");
     let url = "http://example.com/?window=" + windowsToOpen.length;
 
-    provideWindow(function (win) {
+    provideWindow(function onTestURLLoaded(win) {
       win.close();
       openWindowRec(windowsToOpen, expectedResults, recCallback);
     }, url, settings);

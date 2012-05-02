@@ -38,6 +38,28 @@
 let ss = Components.classes["@mozilla.org/suite/sessionstore;1"]
                    .getService(Components.interfaces.nsISessionStore);
 
+function provideWindow(aCallback, aURL, aFeatures) {
+  function callbackSoon(aWindow) {
+    executeSoon(function executeCallbackSoon() {
+      aCallback(aWindow);
+    });
+  }
+
+  let win = openDialog(getBrowserURL(), "", aFeatures || "chrome,all,dialog=no", aURL);
+  whenWindowLoaded(win, function onWindowLoaded(aWin) {
+    if (!aURL) {
+      info("Loaded a blank window.");
+      callbackSoon(aWin);
+      return;
+    }
+
+    aWin.gBrowser.selectedBrowser.addEventListener("load", function selectedBrowserLoadListener() {
+      aWin.gBrowser.selectedBrowser.removeEventListener("load", selectedBrowserLoadListener, true);
+      callbackSoon(aWin);
+    }, true);
+  });
+}
+
 // This assumes that tests will at least have some state/entries
 function waitForBrowserState(aState, aSetStateCallback) {
   let windows = [window];
@@ -146,6 +168,15 @@ function waitForSaveState(aSaveStateCallback) {
   observing = true;
   Services.obs.addObserver(observer, topic, false);
 };
+
+function whenWindowLoaded(aWindow, aCallback) {
+  aWindow.addEventListener("load", function windowLoadListener() {
+    aWindow.removeEventListener("load", windowLoadListener, false);
+    executeSoon(function executeWhenWindowLoaded() {
+      aCallback(aWindow);
+    });
+  }, false);
+}
 
 var gUniqueCounter = 0;
 function r() {
