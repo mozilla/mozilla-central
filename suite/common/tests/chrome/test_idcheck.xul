@@ -322,14 +322,12 @@
             window.CheckGenerics,
             []
           ],
-/* Passes test but has major leak. (Bug 504730)
         // Venkman
         "chrome://venkman/content/venkman.xul":
           [
             window.CheckGenerics,
             []
           ],
-*/
       };
 
       // run test
