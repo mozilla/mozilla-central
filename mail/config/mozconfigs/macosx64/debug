@@ -1,14 +1,4 @@
-if test -e "$topsrcdir/mozilla/build/macosx/common"; then
-  oldtopsrcdir=$topsrcdir
-  export topsrcdir=$topsrcdir/mozilla
-fi
-
 . $topsrcdir/build/macosx/common
-
-if test -n $oldtopsrcdir; then
-  export topsrcdir=$oldtopsrcdir
-fi
-
 ac_add_options --enable-application=mail
 ac_add_options --enable-debug
 ac_add_options --enable-trace-malloc
@@ -22,7 +12,7 @@ export MOZILLA_OFFICIAL=1
 # For NSS symbols
 export MOZ_DEBUG_SYMBOLS=1
 
-#ac_add_options --with-ccache
+ac_add_options --with-ccache
 
 # Run client.py
 mk_add_options CLIENT_PY_ARGS="--hg-options='--verbose --time' --hgtool=../tools/buildfarm/utils/hgtool.py --skip-chatzilla --skip-comm --skip-inspector --skip-venkman --tinderbox-print"
