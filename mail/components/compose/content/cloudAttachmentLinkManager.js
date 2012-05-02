@@ -55,11 +55,11 @@ var gCloudAttachmentLinkManager = {
         container.appendChild(removedChild);
       }
     }
-    editor.beginningOfDocument();
     editor.insertLineBreak();
     selection.collapse(mailBody, 1);
     editor.insertElementAtSelection(container, false);
     editor.insertLineBreak();
+    editor.beginningOfDocument();
   },
   ComposeProcessDone: function() {},
   SaveInFolderDone: function() {},
