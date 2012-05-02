@@ -162,7 +162,8 @@ MockYouSendItServer.prototype = {
       allDone = true;
     });
     aController.waitFor(function () allDone,
-                        "Timed out waiting for Dropbox server to stop!");
+                        "Timed out waiting for YouSendIt server to stop!",
+                        10000);
   },
 
   setupUser: function MDBS_wireUser(aData) {
