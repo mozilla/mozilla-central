@@ -518,17 +518,52 @@
         </body>
       </method>
 
+      <method name="_getSections">
+        <body>
+        <![CDATA[
+          // If a section is displayed below this point, we assume not enough of
+          // it is visible, so we must scroll to it.
+          // The 3/4 constant is arbitrary, but it has to be greater than 1/2.
+          this._maximalSectionOffset = Math.round(this.clientHeight * 3 / 4);
+
+          // Get list of current section elements.
+          let sectionElements = [];
+          if (this._firstNonContextElt)
+            sectionElements.push(this._firstNonContextElt);
+          let ruler = this.contentDocument.getElementById("unread-ruler");
+          if (ruler)
+            sectionElements.push(ruler);
+
+          // Return ordered array of sections with entries
+          // [Y, scrollY such that Y is centered]
+          let sections = [];
+          let maxY = this.contentWindow.scrollMaxY;
+          for (let i = 0; i < sectionElements.length; ++i) {
+            let y = sectionElements[i].offsetTop;
+            // The section is unnecessary if close to top/bottom of conversation.
+            if (y < this._maximalSectionOffset || maxY < y)
+              continue;
+            sections.push([y, y - Math.round(this.clientHeight / 2)]);
+          }
+          return sections;
+        ]]>
+        </body>
+      </method>
+
       <method name="scrollToPreviousSection">
         <body>
         <![CDATA[
-          let nonContextY =
-            this._firstNonContextElt ? this._firstNonContextElt.offsetTop : 0;
-          let sectionY =
-            Math.max(nonContextY - Math.round(this.clientHeight / 2), 0);
-          if (this.contentWindow.scrollY < nonContextY)
-            this.contentWindow.scrollTo(0, 0);
-          else
-            this.contentWindow.scrollTo(0, sectionY);
+          let sections = this._getSections();
+          let y = this.contentWindow.scrollY;
+          let newY = 0;
+          for (let i = sections.length - 1; i >= 0; --i) {
+            let section = sections[i];
+            if (y > section[0]) {
+              newY = section[1];
+              break;
+            }
+          }
+          this.contentWindow.scrollTo(0, newY);
           this._updateAutoScrollEnabled();
         ]]>
         </body>
@@ -537,15 +572,17 @@
       <method name="scrollToNextSection">
         <body>
         <![CDATA[
-          let maxY = this.contentWindow.scrollMaxY;
-          let nonContextY =
-            this._firstNonContextElt ? this._firstNonContextElt.offsetTop : maxY;
-          let sectionY =
-            (nonContextY < maxY) ? nonContextY - Math.round(this.clientHeight / 2) : maxY;
-          if (this.contentWindow.scrollY < sectionY)
-            this.contentWindow.scrollTo(0, sectionY);
-          else
-            this.contentWindow.scrollTo(0, maxY);
+          let sections = this._getSections();
+          let y = this.contentWindow.scrollY;
+          let newY = this.contentWindow.scrollMaxY;
+          for (let i = 0; i < sections.length; ++i) {
+            let section = sections[i];
+            if (y + this._maximalSectionOffset < section[0]) {
+              newY = section[1];
+              break;
+            }
+          }
+          this.contentWindow.scrollTo(0, newY);
           this._updateAutoScrollEnabled();
         ]]>
         </body>
@@ -1108,12 +1145,6 @@
                action="this.scrollToPreviousSection(); event.preventDefault();"/>
 
       <handler event="keypress" keycode="VK_END"
-               action="this.scrollToNextSection(); event.preventDefault();"/>
-
-      <handler event="keypress" modifiers="control" keycode="VK_HOME"
-               action="this.scrollToPreviousSection(); event.preventDefault();"/>
-
-      <handler event="keypress" modifiers="control" keycode="VK_END"
                action="this.scrollToNextSection(); event.preventDefault();"/>
 
       <handler event="keypress" keycode="VK_F7" group="system">
