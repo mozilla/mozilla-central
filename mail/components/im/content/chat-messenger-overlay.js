@@ -128,10 +128,85 @@ var chatTabType = {
     gChatTab = null;
   },
 
-  supportsCommand: function (aCommand, aTab) false,
-  isCommandEnabled: function (aCommand, aTab) false,
-  doCommand: function(aCommand, aTab) { },
+  supportsCommand: function ct_supportsCommand(aCommand, aTab) {
+    switch (aCommand) {
+      case "cmd_fullZoomReduce":
+      case "cmd_fullZoomEnlarge":
+      case "cmd_fullZoomReset":
+      case "cmd_fullZoomToggle":
+      case "cmd_find":
+      case "cmd_findAgain":
+      case "cmd_findPrevious":
+        return true;
+      default:
+        return false;
+    }
+  },
+  isCommandEnabled: function ct_isCommandEnabled(aCommand, aTab) {
+    switch (aCommand) {
+      case "cmd_fullZoomReduce":
+      case "cmd_fullZoomEnlarge":
+      case "cmd_fullZoomReset":
+      case "cmd_fullZoomToggle":
+        return !!this.getBrowser();
+      case "cmd_find":
+      case "cmd_findAgain":
+      case "cmd_findPrevious":
+        return !!this.getFindbar();
+      default:
+        return false;
+    }
+  },
+  doCommand: function ct_doCommand(aCommand, aTab) {
+    switch (aCommand) {
+      case "cmd_fullZoomReduce":
+        ZoomManager.reduce();
+        break;
+      case "cmd_fullZoomEnlarge":
+        ZoomManager.enlarge();
+        break;
+      case "cmd_fullZoomReset":
+        ZoomManager.reset();
+        break;
+      case "cmd_fullZoomToggle":
+        ZoomManager.toggleZoom();
+        break;
+      case "cmd_find":
+        this.getFindbar().onFindCommand();
+        break;
+      case "cmd_findAgain":
+        this.getFindbar().onFindAgainCommand(false);
+        break;
+      case "cmd_findPrevious":
+        this.getFindbar().onFindAgainCommand(true);
+        break;
+    }
+  },
   onEvent: function(aEvent, aTab) { },
+  getBrowser: function ct_getBrowser(aTab) {
+    let panel = document.getElementById("conversationsDeck").selectedPanel;
+    if (panel == document.getElementById("logDisplay")) {
+      if (document.getElementById("logDisplayDeck").selectedPanel ==
+          document.getElementById("logDisplayBrowserBox"))
+        return document.getElementById("conv-log-browser");
+    }
+    else if (panel && panel.localName == "imconversation") {
+      return panel.browser;
+    }
+    return null;
+  },
+  getFindbar: function ct_getFindbar(aTab) {
+    let panel = document.getElementById("conversationsDeck").selectedPanel;
+    if (panel == document.getElementById("logDisplay")) {
+      if (document.getElementById("logDisplayDeck").selectedPanel ==
+          document.getElementById("logDisplayBrowserBox"))
+        return document.getElementById("log-findbar");
+    }
+    else if (panel && panel.localName == "imconversation") {
+      return panel.findbar;
+    }
+    return null;
+  },
 
   saveTabState: function(aTab) { }
 };
