@@ -162,6 +162,16 @@ function AcceptDialog()
     return false;
   }
 
+  // Although switching profile works by performing a restart internally,
+  // the user is quitting the old profile, so make it look like a quit.
+  var cancelQuit = Components.classes["@mozilla.org/supports-PRBool;1"]
+                             .createInstance(Components.interfaces.nsISupportsPRBool);
+  Components.classes["@mozilla.org/observer-service;1"]
+            .getService(Components.interfaces.nsIObserverService)
+            .notifyObservers(cancelQuit, "quit-application-requested", null);
+  if (cancelQuit.data)
+    return false;
+
   try {
     var env = Components.classes["@mozilla.org/process/environment;1"]
                         .getService(Components.interfaces.nsIEnvironment);
