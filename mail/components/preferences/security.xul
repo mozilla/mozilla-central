@@ -95,6 +95,11 @@
       <preference id="network.cookie.blockFutureCookies"
                   name="network.cookie.blockFutureCookies"
                   type="bool"/>
+
+      <!-- Do Not Track -->
+      <preference id="privacy.donottrackheader.enabled"
+                  name="privacy.donottrackheader.enabled"
+                  type="bool"/>
     </preferences>
 
     <tabbox id="securityPrefs" flex="1" onselect="gSecurityPane.tabSelectionChanged();">
@@ -230,6 +235,15 @@
                     oncommand="gSecurityPane.showCookies();"
                     preference="pref.privacy.disable_button.view_cookies"/>
           </hbox>
+
+          <separator class="thin"/>
+          <hbox id="dntBox">
+            <checkbox id="privacyDoNotTrackPref"
+                      label="&doNotTrack.label;"
+                      accesskey="&doNotTrack.accesskey;"
+                      preference="privacy.donottrackheader.enabled"/>
+          </hbox>
+
         </tabpanel>
       </tabpanels>
     </tabbox>
