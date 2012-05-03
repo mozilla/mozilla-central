@@ -565,6 +565,8 @@ const XMPPAccountPrototype = {
         return; // We are already in this conversation.
       this._mucs[jid].left = false; // We are rejoining.
     }
+    else
+      this._mucs[jid] = nick;
 
     let x;
     let password = aComponents.getValue("password");
@@ -572,7 +574,6 @@ const XMPPAccountPrototype = {
       x = Stanza.node("x", Stanza.NS.muc, null,
                       Stanza.node("password", null, null, password));
     }
-    this._mucs[jid] = nick;
     this._connection.sendStanza(Stanza.presence({to: jid + "/" + nick}, x));
   },
 
