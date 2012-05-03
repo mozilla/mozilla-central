@@ -460,6 +460,8 @@ NS_IMETHODIMP nsMsgDBService::GetOpenDBs(nsIArray **aOpenDBs)
   nsresult rv;
   nsCOMPtr<nsIMutableArray> openDBs(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
+  nsMsgDatabase::GetDBCache();
+  NS_ENSURE_TRUE(nsMsgDatabase::m_dbCache, NS_ERROR_OUT_OF_MEMORY);
   for (PRUint32 i = 0; i < nsMsgDatabase::m_dbCache->Length(); i++)
     openDBs->AppendElement(nsMsgDatabase::m_dbCache->ElementAt(i), false);
 
