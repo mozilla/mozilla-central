@@ -371,6 +371,9 @@
             if (!aMsg.noLinkification)
               csFlags |= cs.kURLs;
 
+            if (aFirstUnread)
+              this.setUnreadRuler();
+
             let msg = aMsg.originalMessage;
 
             // The slash of a leading '/me' should not be used to
