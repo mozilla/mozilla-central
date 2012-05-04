@@ -18,11 +18,11 @@
 }
 
 #task-actions-toolbar > #calendar-delete-task-button {
-  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
-  -moz-image-region: rect(0 144px 18px 126px);
+  list-style-image: url(chrome://calendar/skin/toolbar-aero.png);
+  -moz-image-region: rect(0 108px 18px 90px);
 }
 
-#task-actions-toolbar > #calendar-add-task-button {
+#task-addition-box > box > #calendar-add-task-button {
   list-style-image: url(chrome://calendar/skin/toolbar-small-aero.png);
 }
 
