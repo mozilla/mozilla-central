@@ -230,7 +230,7 @@ function test_copy_to_clipboard_public() {
   for (let [, flavor] in Iterator(["text/html", "text/unicode"])) {
     let data = {};
     transferable.getTransferData(flavor, data, {});
-    let text = data.value.data;
+    let text = data.value.QueryInterface(Ci.nsISupportsString).data;
 
     for (let [, str] in Iterator(ABOUT_SUPPORT_STRINGS)) {
       if (text.indexOf(str) == -1)
@@ -271,7 +271,7 @@ function test_copy_to_clipboard_private() {
   for (let [, flavor] in Iterator(["text/html", "text/unicode"])) {
     let data = {};
     transferable.getTransferData(flavor, data, {});
-    let text = data.value.data;
+    let text = data.value.QueryInterface(Ci.nsISupportsString).data;
 
     for (let [, str] in Iterator(ABOUT_SUPPORT_STRINGS)) {
       if (text.indexOf(str) == -1)
