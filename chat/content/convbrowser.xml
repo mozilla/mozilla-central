@@ -548,6 +548,7 @@
               continue;
             sections.push([y, y - Math.round(this.clientHeight / 2)]);
           }
+          sections.sort(function(a, b) a[0] - b[0]);
           return sections;
         ]]>
         </body>
