@@ -214,9 +214,12 @@ CommandsService.prototype = {
       cmdArray.push(commands[""]);
 
     if (aConversation) {
-      let prplId = aConversation.account.protocol.id;
-      if (commands.hasOwnProperty(prplId))
-        cmdArray.push(commands[prplId]);
+      let account = aConversation.account;
+      if (account.connected) {
+        let prplId = account.protocol.id;
+        if (commands.hasOwnProperty(prplId))
+          cmdArray.push(commands[prplId]);
+      }
     }
 
     // Remove the commands that can't apply in this context.
