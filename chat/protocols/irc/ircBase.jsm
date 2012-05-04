@@ -1036,8 +1036,7 @@ var ircBase = {
     },
     "403": function(aMessage) { // ERR_NOSUCHCHANNEL
       // <channel name> :No such channel
-      return serverErrorMessage(this, aMessage,
-                                _("error.noChannel", aMessage.params[0]));
+      return conversationErrorMessage(this, aMessage, "error.noChannel");
     },
     "404": function(aMessage) { // ERR_CANNOTSENDTOCHAN
       // <channel name> :Cannot send to channel
