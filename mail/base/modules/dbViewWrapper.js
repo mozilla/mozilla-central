@@ -1173,7 +1173,7 @@ DBViewWrapper.prototype = {
     if (aOldFolder == this.displayedFolder)
       this.displayedFolder = aNewFolder;
 
-    // indexOf does't work for this (reliably)
+    // indexOf doesn't work for this (reliably)
     for each (let [i,underlyingFolder] in Iterator(this._underlyingFolders)) {
       if (aOldFolder == underlyingFolder) {
         this._underlyingFolders[i] = aNewFolder;
@@ -1209,7 +1209,7 @@ DBViewWrapper.prototype = {
       return;
     }
 
-    // indexOf does't work for this (reliably)
+    // indexOf doesn't work for this (reliably)
     for each (let [i,underlyingFolder] in Iterator(this._underlyingFolders)) {
       if (aFolder == underlyingFolder) {
         this._underlyingFolders.splice(i,1);

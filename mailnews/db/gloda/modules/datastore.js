@@ -1080,7 +1080,7 @@ var GlodaDatastore = {
 
     // Create the file if it does not exist
     if (!dbFile.exists()) {
-      this._log.debug("Creating database because it does't exist.");
+      this._log.debug("Creating database because it doesn't exist.");
       dbConnection = this._createDB(dbService, dbFile);
     }
     // It does exist, but we (someday) might need to upgrade the schema

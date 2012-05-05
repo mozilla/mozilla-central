@@ -165,7 +165,7 @@ let mailTabType = {
         // inherit from the previous tab (if we've got one)
         else if (modelTab)
           messagePaneShouldBeVisible = modelTab.messageDisplay.visible;
-        // who does't love a message pane?
+        // who doesn't love a message pane?
         else
           messagePaneShouldBeVisible = true;
 

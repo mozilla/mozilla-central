@@ -60,7 +60,7 @@ MessageDisplayWidget.prototype = {
 
   /**
    * Track whether the single message display pane is desired to be displayed
-   *  (it is actually displayed when active, does't matter when not), or
+   *  (it is actually displayed when active, doesn't matter when not), or
    *  otherwise the multiple message display pane is desired to be displayed.
    */
   _singleMessageDisplay: null,

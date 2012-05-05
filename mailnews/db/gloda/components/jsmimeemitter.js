@@ -272,7 +272,7 @@ MimeMessageEmitter.prototype = {
     // nop
   },
   writeHTMLHeaders: function mime_emitter_writeHTMLHeaders(aName) {
-    // It does't look like this should even be part of the interface; I think
+    // It doesn't look like this should even be part of the interface; I think
     //  only the nsMimeHtmlDisplayEmitter::EndHeader call calls this signature.
     // nop
   },

@@ -195,7 +195,7 @@ GlodaDatabind.prototype = {
 
     if (this._updateFulltextStmt) {
       stmt = this._updateFulltextStmt;
-      // fulltextColumns does't include id/docid, need to explicitly set it
+      // fulltextColumns doesn't include id/docid, need to explicitly set it
       stmt.bindInt64Parameter(0, aThing[this._idAttr]);
       for each (let [iColDef, colDef] in
                 Iterator(this._tableDef.fulltextColumns)) {

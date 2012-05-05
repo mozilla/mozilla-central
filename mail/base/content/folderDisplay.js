@@ -1210,7 +1210,7 @@ FolderDisplayWidget.prototype = {
     //  [0, 0] with 0 rows.  If that happens, we need to fix up the selection
     //  here.
     if (rowCount == 0 && treeSelection.count)
-      // nsTreeSelection does't generate an event if we use clearRange, so use
+      // nsTreeSelection doesn't generate an event if we use clearRange, so use
       //  that to avoid spurious events, given that we are going to definitely
       //  trigger a change notification below.
       treeSelection.clearRange(0, 0);
