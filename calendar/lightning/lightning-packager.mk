@@ -165,7 +165,7 @@ UPLOAD_FILES = \
   $(NULL)
 
 hack_l10n_upload:
-	[ -f $(DIST)/$(UNIVERSAL_PATH)xpi-stage/lighting-all.xpi ] && \
+	[ -f $(DIST)/$(UNIVERSAL_PATH)xpi-stage/lightning-all.xpi ] && \
 	  cp -RL $(DIST)/$(UNIVERSAL_PATH)xpi-stage/lightning-all.xpi $(DIST)/$(MOZ_PKG_PLATFORM)/lightning.xpi || true
 
 stage_upload:
