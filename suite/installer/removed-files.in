@@ -527,6 +527,7 @@ Throbber-small.gif
 #endif
 #endif
 #ifndef MOZ_UPDATER
+  update-settings.ini
   update.locale
   #ifdef XP_MACOSX
     updater.app/

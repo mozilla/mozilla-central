@@ -50,6 +50,12 @@ MOZ_BRANDING_DIRECTORY=suite/branding/nightly
 MOZ_OFFICIAL_BRANDING_DIRECTORY=suite/branding/nightly
 MOZ_EXTENSIONS_DEFAULT=" venkman inspector irc gnomevfs"
 MOZ_UPDATER=1
+# This should usually be the same as the value MAR_CHANNEL_ID.
+# If more than one ID is needed, then you should use a comma separated list
+# of values.
+ACCEPTED_MAR_CHANNEL_IDS=seamonkey-comm-central
+# The MAR_CHANNEL_ID must not contain the following 3 characters: ",\t "
+MAR_CHANNEL_ID=seamonkey-comm-central
 MOZ_HELP_VIEWER=1
 MOZ_MORK=1
 MOZ_STATIC_BUILD_UNSUPPORTED=1

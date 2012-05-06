@@ -115,6 +115,9 @@
 #endif
 @BINPATH@/application.ini
 @BINPATH@/platform.ini
+#ifdef MOZ_UPDATER
+@BINPATH@/update-settings.ini
+#endif
 #ifdef XP_OS2
 @BINPATH@/@DLL_PREFIX@mozsqlt3@DLL_SUFFIX@
 #else
