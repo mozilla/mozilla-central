@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1335396801000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1336156186000">
   <emItems>
       <emItem  blockID="i58" id="webmaster@buzzzzvideos.info">
                         <versionRange  minVersion="0" maxVersion="*">
@@ -23,6 +23,10 @@
                   </emItem>
       <emItem  blockID="i43" id="supportaccessplugin@gmail.com">
                         </emItem>
+      <emItem  blockID="i88" id="anttoolbar@ant.com">
+                        <versionRange  minVersion="2.4.6.4" maxVersion="2.4.6.4" severity="1">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i65" id="activity@facebook.com">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
@@ -204,16 +208,33 @@
   <pluginItems>
       <pluginItem  blockID="p28">
                   <match name="filename" exp="NPFFAddOn.dll" />                        </pluginItem>
+      <pluginItem  blockID="p29">
+      <match name="name" exp="^Yahoo Application State Plugin$" />      <match name="description" exp="^Yahoo Application State Plugin$" />      <match name="filename" exp="npYState.dll" />                      <versionRange >
+                      <targetApplication id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+              <versionRange  minVersion="1.0.0.5" maxVersion="*" />
+            </targetApplication>
+                  </versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p30">
+      <match name="name" exp="QuickTime Plug-in 7[.]1[.]" />            <match name="filename" exp="npqtplugin.?[.]dll" />                      <versionRange >
+                      <targetApplication id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+              <versionRange  minVersion="1.0.0.5" maxVersion="*" />
+            </targetApplication>
+                  </versionRange>
+                  </pluginItem>
       <pluginItem  blockID="p31">
                   <match name="filename" exp="NPMySrch.dll" />                        </pluginItem>
       <pluginItem  blockID="p33">
       <match name="name" exp="[0-6]\.0\.[01]\d{2}\.\d+" />            <match name="filename" exp="npdeploytk.dll" />                      <versionRange  severity="1"></versionRange>
                   </pluginItem>
       <pluginItem  blockID="p80">
-            <match name="description" exp="[^\d\._]((0(\.\d+(\.\d+([_\.]\d+)?)?)?)|(1\.(([0-5](\.\d+([_\.]\d+)?)?)|(6(\.0([_\.](0?\d|1\d|2\d|30))?)?)|(7(\.0([_\.][0-2])?)?))))([^\d\._]|$)" />      <match name="filename" exp="(npjp2\.dll)|(libnpjp2\.so)" />                      <versionRange  severity="1"></versionRange>
+      <match name="name" exp="\(TM\)" />      <match name="description" exp="[^\d\._]((0(\.\d+(\.\d+([_\.]\d+)?)?)?)|(1\.(([0-5](\.\d+([_\.]\d+)?)?)|(6(\.0([_\.](0?\d|1\d|2\d|30))?)?)|(7(\.0([_\.][0-2])?)?))))([^\d\._]|$)" />      <match name="filename" exp="(npjp2\.dll)|(libnpjp2\.so)" />                      <versionRange  severity="1"></versionRange>
                   </pluginItem>
       <pluginItem  blockID="p85">
-                  <match name="filename" exp="JavaPlugin2_NPAPI\.plugin" />                      <versionRange  minVersion="0" maxVersion="12.9.0" severity="1"></versionRange>
+                  <match name="filename" exp="JavaPlugin2_NPAPI\.plugin" />                      <versionRange  minVersion="0" maxVersion="13.6.0" severity="1"></versionRange>
+                  </pluginItem>
+      <pluginItem  os="Darwin" blockID="p89">
+                  <match name="filename" exp="AdobePDFViewerNPAPI\.plugin" />                      <versionRange  minVersion="0" maxVersion="10.1.3" severity="1"></versionRange>
                   </pluginItem>
     </pluginItems>
 
