@@ -1106,25 +1106,24 @@ SessionStoreService.prototype = {
     let closedTab = closedTabs[aIndex];
     if (aIndex in this._windows[aWindow.__SSi]._closedTabs)
       this._windows[aWindow.__SSi]._closedTabs.splice(aIndex, 1);
-    var browser = aWindow.getBrowser();
-    var index = browser.savedBrowsers.indexOf(closedTab);
+    var tabbrowser = aWindow.getBrowser();
+    var index = tabbrowser.savedBrowsers.indexOf(closedTab);
     this._sendWindowStateEvent(aWindow, "Busy");
     if (index != -1)
       // SeaMonkey has its own undoclosetab functionality
-      return browser.restoreTab(index);
+      return tabbrowser.restoreTab(index);
 
     // create a new tab
-    var tab = browser.addTab();
+    var tab = tabbrowser.addTab();
 
     // restore the tab's position
-    browser.moveTabTo(tab, closedTab.pos);
+    tabbrowser.moveTabTo(tab, closedTab.pos);
 
     // restore tab content
     this.restoreHistoryPrecursor(aWindow, [tab], [closedTab.state], 1, 0, 0);
 
-    // focus the tab's content area
-    var content = browser.getBrowserForTab(tab).contentWindow;
-    aWindow.setTimeout(function() { content.focus(); }, 0);
+    // focus the tab's content area (bug 342432)
+    tab.linkedBrowser.focus();
 
     return tab;
   },
@@ -1141,10 +1140,10 @@ SessionStoreService.prototype = {
     var closedTab = closedTabs[aIndex];
     if (aIndex in this._windows[aWindow.__SSi]._closedTabs)
       this._windows[aWindow.__SSi]._closedTabs.splice(aIndex, 1);
-    var browser = aWindow.getBrowser();
-    var index = browser.savedBrowsers.indexOf(closedTab);
+    var tabbrowser = aWindow.getBrowser();
+    var index = tabbrowser.savedBrowsers.indexOf(closedTab);
     if (index != -1)
-      browser.forgetSavedBrowser(aIndex);
+      tabbrowser.forgetSavedBrowser(aIndex);
   },
 
   getClosedWindowCount: function sss_getClosedWindowCount() {
