@@ -60,13 +60,6 @@ include $(topsrcdir)/config/config.mk
 
 default alldep all:: $(topsrcdir)/configure config.status
 
-ifndef INCLUDED_BRIDGE_MK
-include $(topsrcdir)/bridge/bridge.mk
-endif
-
-# workaround Bug 599809 by making these makefiles be generated here
-SUBMAKEFILES += $(addsuffix /Makefile, $(APP_LIBXUL_DIRS) $(APP_LIBXUL_STATICDIRS))
-
 $(topsrcdir)/configure: $(topsrcdir)/configure.in
 	@echo "STOP!  configure.in has changed, and your configure is out of date."
 	@echo "Please rerun autoconf and configure."

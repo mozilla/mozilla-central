@@ -34,18 +34,16 @@
 #
 # ***** END LICENSE BLOCK *****
 
-INCLUDED_BRIDGE_MK = 1
-
 APP_LIBXUL_DIRS += $(DEPTH)$(SUBDIR)/mozilla/xpfe/components/autocomplete
 
-#ifdef MOZ_LDAP_XPCOM
+ifneq (,$(MOZ_LDAP_XPCOM)$(filter mozldap,$(MOZ_APP_COMPONENT_LIBS)))
 APP_LIBXUL_STATICDIRS += $(DEPTH)$(SUBDIR)/ldap/sdks/c-sdk
 APP_LIBXUL_DIRS += $(DEPTH)$(SUBDIR)/ldap/xpcom
-#endif
+endif
 
-#ifdef MOZ_MORK
+ifneq (,$(MOZ_MORK)$(filter mork,$(MOZ_APP_COMPONENT_LIBS)))
 APP_LIBXUL_DIRS += $(DEPTH)$(SUBDIR)/db/mork
-#endif
+endif
 
 APP_LIBXUL_DIRS += \
   $(DEPTH)$(SUBDIR)/mailnews/base \

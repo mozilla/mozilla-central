@@ -37,8 +37,10 @@
 
 ifndef COMM_BUILD # Mozilla Makefile
 
+ifdef MOZ_APP_COMPONENT_LIBS
 SUBDIR=/..
 include $(topsrcdir)/../bridge/bridge.mk
+endif
 
 ifndef LIBXUL_SDK
 include $(topsrcdir)/toolkit/toolkit-tiers.mk
@@ -55,6 +57,15 @@ tier_app_dirs += services
 else # toplevel Makefile
 
 TIERS += app
+
+include $(topsrcdir)/bridge/bridge.mk
+ifdef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
+tier_app_staticdirs += $(APP_LIBXUL_STATICDIRS:./%=%)
+tier_app_dirs += $(APP_LIBXUL_DIRS:./%=%)
+else
+# workaround Bug 599809 by making these makefiles be generated here
+SUBMAKEFILES += $(addsuffix /Makefile, $(APP_LIBXUL_DIRS) $(APP_LIBXUL_STATICDIRS))
+endif
 
 ifdef MOZ_COMPOSER
 tier_app_dirs += editor/ui

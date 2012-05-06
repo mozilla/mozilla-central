@@ -6506,6 +6506,7 @@ MOZ_ARG_ENABLE_BOOL(incomplete-external-linkage,
     MOZ_INCOMPLETE_EXTERNAL_LINKAGE=1,
     MOZ_INCOMPLETE_EXTERNAL_LINKAGE= )
 
+export MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 AC_SUBST(MOZ_INCOMPLETE_EXTERNAL_LINKAGE)
 
 dnl ========================================================
