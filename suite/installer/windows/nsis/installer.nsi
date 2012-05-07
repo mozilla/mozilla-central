@@ -124,8 +124,11 @@ VIAddVersionKey "OriginalFilename" "setup.exe"
 
 Name "${BrandFullName}"
 OutFile "setup.exe"
-InstallDirRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${BrandFullNameInternal} (${AppVersion})" "InstallLocation"
-InstallDir "$PROGRAMFILES\${BrandFullName}\"
+!ifdef HAVE_64BIT_OS
+  InstallDir "$PROGRAMFILES64\${BrandFullName}\"
+!else
+  InstallDir "$PROGRAMFILES32\${BrandFullName}\"
+!endif
 ShowInstDetails nevershow
 
 ################################################################################
@@ -335,7 +338,7 @@ Section "-Application" APP_IDX
   ; registered. bug 338878
   ${LogHeader} "DLL Registration"
   ClearErrors
-  RegDLL "$INSTDIR\AccessibleMarshal.dll"
+  ${RegisterDLL} "$INSTDIR\AccessibleMarshal.dll"
   ${If} ${Errors}
     ${LogMsg} "** ERROR Registering: $INSTDIR\AccessibleMarshal.dll **"
   ${Else}
@@ -1033,11 +1036,10 @@ Function .onInit
 
   ; There must always be a core directory
   ${GetSize} "$EXEDIR\core\" "/S=0K" $R5 $R7 $R8
-  IntOp $R8 $R5 + $R6
   ; Add 1024 Kb to the diskspace requirement since the installer makes a copy
   ; of the MAPI dll's (around 20 Kb)... also, see Bug 434338.
-  IntOp $R8 $R8 + 1024
-  SectionSetSize ${APP_IDX} $R8
+  IntOp $R5 $R5 + 1024
+  SectionSetSize ${APP_IDX} $R5
 
   ; Initialize $hHeaderBitmap to prevent redundant changing of the bitmap if
   ; the user clicks the back button
