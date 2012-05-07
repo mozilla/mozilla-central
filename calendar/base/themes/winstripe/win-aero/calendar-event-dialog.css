@@ -35,32 +35,26 @@
   padding: 1px 0 2px;
 }
 
-#event-toolbar[iconsize="small"] .toolbarbutton-1 .toolbarbutton-icon {
-  margin: 0;
-  width: 18px;
-  height: 18px;
-}
-
 .cal-event-toolbarbutton {
   list-style-image: url(chrome://calendar/skin/calendar-event-dialog-toolbar-aero.png);
 }
 
 #button-save {
-  -moz-image-region: rect(0 108px 18px 90px);
+  -moz-image-region: rect(1px 107px 17px 91px);
 }
 
 #button-attendees {
-  -moz-image-region: rect(0 36px 18px 18px);
+  -moz-image-region: rect(1px 35px 17px 19px);
 }
 
 #button-privacy {
-  -moz-image-region: rect(0 90px 18px 72px);
+  -moz-image-region: rect(1px 89px 17px 73px);
 }
 
 #button-url {
-  -moz-image-region: rect(0 72px 18px 54px);
+  -moz-image-region: rect(1px 71px 17px 55px);
 }
 
 #button-delete {
-  -moz-image-region: rect(0 306px 18px 288px);
+  -moz-image-region: rect(1px 305px 17px 289px);
 }

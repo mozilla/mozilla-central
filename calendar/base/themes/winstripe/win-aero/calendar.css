@@ -2,24 +2,30 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#task-actions-toolbar .toolbarbutton-icon {
+  margin: 1px;
+  width: 16px;
+  height: 16px;
+}
+
 #task-actions-toolbar > #task-actions-category {
   list-style-image: url(chrome://calendar/skin/tasks-actions-aero.png);
-  -moz-image-region: rect(0 18px 18px 0);
+  -moz-image-region: rect(1px 17px 17px 1px);
 }
 
 #task-actions-toolbar > #task-actions-markcompleted {
   list-style-image: url(chrome://calendar/skin/tasks-actions-aero.png);
-  -moz-image-region: rect(0 36px 18px 18px);
+  -moz-image-region: rect(1px 35px 17px 19px);
 }
 
 #task-actions-toolbar > #task-actions-priority {
   list-style-image: url(chrome://calendar/skin/tasks-actions-aero.png);
-  -moz-image-region: rect(0 52px 18px 34px);
+  -moz-image-region: rect(1px 51px 17px 35px);
 }
 
 #task-actions-toolbar > #calendar-delete-task-button {
   list-style-image: url(chrome://calendar/skin/toolbar-aero.png);
-  -moz-image-region: rect(0 108px 18px 90px);
+  -moz-image-region: rect(1px 107px 17px 91px);
 }
 
 #task-addition-box > box > #calendar-add-task-button {

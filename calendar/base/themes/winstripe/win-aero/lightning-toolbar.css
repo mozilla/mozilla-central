@@ -47,61 +47,48 @@
   -moz-image-region: rect(0 80px 16px 64px);
 }
 
-#lightning-button-calendar > .toolbarbutton-icon,
-#lightning-button-tasks > .toolbarbutton-icon {
-  width: 16px;
-  height: 16px;
-  margin: 1px;
-}
-
 /* Toolbar buttons */
 
 .calbar-toolbarbutton-1 {
   list-style-image: url(chrome://calendar/skin/toolbar-aero.png);
 }
 
-.calbar-toolbarbutton-1 > .toolbarbutton-icon {
-  width: 18px !important;
-  height: 18px !important;
-  margin: 0 !important;
-}
-
 #calendar-synchronize-button,
 #task-synchronize-button {
-  -moz-image-region: rect(0px 18px 18px 0px);
+  -moz-image-region: rect(1px 17px 17px 1px);
 }
 
 #calendar-newevent-button,
 #task-newevent-button {
-  -moz-image-region: rect(0px 36px 18px 18px);
+  -moz-image-region: rect(1px 35px 17px 19px);
 }
 
 #calendar-newtask-button,
 #task-newtask-button {
-  -moz-image-region: rect(0px 72px 18px 54px);
+  -moz-image-region: rect(1px 71px 17px 55px);
 }
 
 #calendar-edit-button,
 #task-edit-button {
-  -moz-image-region: rect(0px 90px 18px 72px);
+  -moz-image-region: rect(1px 89px 17px 73px);
 }
 
 #calendar-delete-button,
 #task-delete-button {
-  -moz-image-region: rect(0px 108px 18px 90px);
+  -moz-image-region: rect(1px 107px 17px 91px);
 }
 
 #calendar-goto-today-button {
-  -moz-image-region: rect(0px 54px 18px 36px);
+  -moz-image-region: rect(1px 53px 17px 37px);
 }
 
 #calendar-print-button,
 #task-print-button {
-  -moz-image-region: rect(0px 126px 18px 108px);
+  -moz-image-region: rect(1px 125px 17px 109px);
 }
 
 #calendar-unifinder-button {
-  -moz-image-region: rect(0px 144px 18px 126px);
+  -moz-image-region: rect(1px 143px 17px 127px);
 }
 
 @media (-moz-windows-compositor) {

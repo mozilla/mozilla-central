@@ -55,12 +55,6 @@
     padding: 0;
 }
 
-#task-actions-toolbox .toolbarbutton-icon {
-    margin: 0;
-    width: auto;
-    height: auto;
-}
-
 #task-actions-category {
     list-style-image: url(chrome://calendar/skin/tasks-actions.png);
     -moz-image-region: rect(0px, 16px, 16px, 0px);
