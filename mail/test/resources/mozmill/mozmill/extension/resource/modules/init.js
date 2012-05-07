@@ -42,22 +42,34 @@ var EXPORTED_SYMBOLS = ["mozmill"];
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
-  
+
+var controller = Cu.import('resource://mozmill/modules/controller.js');
 var mozmill = Cu.import('resource://mozmill/modules/mozmill.js');
-  
-// Observer for new top level windows
-var windowObserver = {
-  observe: function(subject, topic, data) {
+var utils = Cu.import('resource://mozmill/modules/utils.js');
+
+
+// Observer when a new top-level window is ready
+var windowReadyObserver = {
+  observe: function (subject, topic, data) {
     attachEventListeners(subject);
   }
 };
+
+
+// Observer when a top-level window is closed
+var windowCloseObserver = {
+  observe: function (subject, topic, data) {
+    controller.windowMap.remove(utils.getWindowId(subject));
+  }
+};
+
 
 /**
  * Attach event listeners
  */
 function attachEventListeners(aWindow) {
   aWindow.addEventListener("load", function (event) {
-    aWindow.mozmillDocumentLoaded = true;
+    controller.windowMap.update(utils.getWindowId(aWindow), "loaded", true);
  
     if ("gBrowser" in aWindow) {
       // Page is ready
@@ -66,8 +78,9 @@ function attachEventListeners(aWindow) {
 
         // Only update the flag if we have a document as target
         if ("defaultView" in doc) {
-          // dump("*** Window content loaded: " + doc + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
-          doc.defaultView.mozmillDocumentLoaded = true;
+          var id = utils.getWindowId(doc.defaultView);
+          controller.windowMap.update(id, "loaded", true);
+          // dump("*** load event: " + id + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
         }
       }, true);
  
@@ -85,8 +98,9 @@ function attachEventListeners(aWindow) {
 
           // Only update the flag if we have a document as target
           if ("defaultView" in doc) {
-            // dump("*** Window content loaded: " + doc + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
-            doc.defaultView.mozmillDocumentLoaded = true;
+            var id = utils.getWindowId(doc.defaultView);
+            controller.windowMap.update(id, "loaded", true);
+            // dump("*** load event: " + id + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
           }
         }
       }, true);
@@ -97,8 +111,9 @@ function attachEventListeners(aWindow) {
 
         // Only update the flag if we have a document as target
         if ("defaultView" in doc) {
-          // dump("*** Window content unloaded: " + doc + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
-          doc.defaultView.mozmillDocumentLoaded = false;
+          var id = utils.getWindowId(doc.defaultView);
+          controller.windowMap.update(id, "loaded", false);
+          // dump("*** beforeunload event: " + id + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
         }
       }, true);
     }
@@ -112,7 +127,8 @@ function initialize() {
   // Activate observer for new top level windows
   var observerService = Cc["@mozilla.org/observer-service;1"].
                         getService(Ci.nsIObserverService);
-  observerService.addObserver(windowObserver, "toplevel-window-ready", false);
+  observerService.addObserver(windowReadyObserver, "toplevel-window-ready", false);
+  observerService.addObserver(windowCloseObserver, "outer-window-destroyed", false);
 
   // Attach event listeners to all open windows
   var enumerator = Cc["@mozilla.org/appshell/window-mediator;1"].
@@ -122,11 +138,10 @@ function initialize() {
     attachEventListeners(win);
 
     // For windows or dialogs already open we have to explicitly set the property
-    // otherwise windows which load really quick never gets the property set and
-    // we fail to create the controller
-    win.mozmillDocumentLoaded = true;
+    // otherwise windows which load really quick on startup never gets the
+    // property set and we fail to create the controller
+    controller.windowMap.update(utils.getWindowId(win), "loaded", true);
   };
 }
 
 initialize();
-

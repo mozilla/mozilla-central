@@ -39,9 +39,12 @@
 
 var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler", 
                         "getFile", "Copy", "getChromeWindow", "getWindows", "runEditor",
-                        "runFile", "getWindowByTitle", "getWindowByType", "tempfile", 
-                        "getMethodInWindows", "getPreference", "setPreference",
+                        "runFile", "getWindowByTitle", "getWindowByType", "getWindowId",
+                        "tempfile", "getMethodInWindows", "getPreference", "setPreference",
                         "sleep", "assert", "unwrapNode", "TimeoutError", "waitFor", "waitForEval"];
+
+const Ci = Components.interfaces;
+
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
               .getService(Components.interfaces.nsIAppShellService)
@@ -106,6 +109,21 @@ function getWindowByType(type) {
   var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
            .getService(Components.interfaces.nsIWindowMediator);
   return wm.getMostRecentWindow(type);
+}
+
+/**
+ * Retrieve the outer window id for the given window
+ **/
+function getWindowId(aWindow) {
+  try {
+    // Normally we can retrieve the id via window utils
+    return aWindow.QueryInterface(Ci.nsIInterfaceRequestor).
+                   getInterface(Ci.nsIDOMWindowUtils).
+                   outerWindowID;
+  } catch (e) {
+    // ... but for observer notifications we need another interface
+    return aWindow.QueryInterface(Ci.nsISupportsPRUint64).data;
+  }
 }
 
 function tempfile(appention) {

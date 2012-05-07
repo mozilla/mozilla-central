@@ -39,7 +39,7 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ["MozMillController", "waitForEval", "MozMillAsyncTest",
-                        "globalEventRegistry", "sleep"];
+                        "globalEventRegistry", "sleep", "windowMap"];
 
 var EventUtils = {}; Components.utils.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
 
@@ -53,6 +53,42 @@ var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
                 .hiddenDOMWindow;
 var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
      getService(Components.interfaces.nsIConsoleService);
+
+// The window map which is used to store information e.g. loaded state of each
+// open chrome and content window.
+var windowMap = {
+  _windows : { },
+
+  contains : function (aWindowId) {
+    return (aWindowId in this._windows);
+  },
+
+  getValue : function (aWindowId, aProperty) {
+    if (!this.contains(aWindowId)) {
+      return undefined;
+    } else {
+      var win = this._windows[aWindowId];
+
+      return (aProperty in win) ? win[aProperty]
+                                : undefined;
+    }
+  },
+
+  remove : function (aWindowId) {
+    if (this.contains(aWindowId))
+      delete this._windows[aWindowId];
+    // dump("* current map: " + JSON.stringify(this._windows) + "\n");
+  },
+
+  update : function (aWindowId, aProperty, aValue) {
+    if (!this.contains(aWindowId))
+      this._windows[aWindowId] = { };
+
+    this._windows[aWindowId][aProperty] = aValue;
+    // dump("* current map: " + JSON.stringify(this._windows) + "\n");
+  }
+}
+
 
 // Declare most used utils functions in the controller namespace
 var sleep = utils.sleep;
@@ -640,7 +676,8 @@ MozMillController.prototype.radio = function(el)
 MozMillController.prototype.isLoaded = function (window) {
   var win = window || this.window;
 
-  return ("mozmillDocumentLoaded" in win) && win.mozmillDocumentLoaded;
+  var id = utils.getWindowId(win);
+  return windowMap.contains(id) && windowMap.getValue(id, "loaded");
 }
 
 MozMillController.prototype.waitFor = function(callback, message, timeout,
@@ -1285,7 +1322,7 @@ function browserAdditions (controller) {
     win = win || this.window.gBrowser.selectedBrowser.contentWindow;
 
     // Wait until the content in the tab has been loaded
-    this.waitFor(function() {
+    this.waitFor(function () {
       return this.isLoaded(win);
     }, "controller.waitForPageLoad(): Timeout waiting for page loaded.",
        timeout, aInterval, this);
