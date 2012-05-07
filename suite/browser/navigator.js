@@ -1631,14 +1631,14 @@ function handleURLBarCommand(aUserAction, aTriggeringEvent)
          ('button'  in aTriggeringEvent && aTriggeringEvent.button == 1))) {
       // Check if user requests Tabs instead of windows
       if (GetBoolPref("browser.tabs.opentabfor.urlbar", false)) {
+        // Reset url in the urlbar
+        URLBarSetURI();
         // Open link in new tab
         var t = browser.addTab(url, {allowThirdPartyFixup: true, postData: postData.value});
 
         // Focus new tab unless shift is pressed
-        if (!shiftPressed) {
-          browser.userTypedValue = null;
+        if (!shiftPressed)
           browser.selectedTab = t;
-        }
       } else {
         // Open a new window with the URL
         var newWin = openDialog(getBrowserURL(), "_blank", "all,dialog=no", url,
@@ -2232,12 +2232,10 @@ function ShowAndSelectContentsOfURLBar()
     return;
   }
 
-  if (!gURLBar.readOnly) {
-    if (gURLBar.value)
-      gURLBar.select();
-    else
-      gURLBar.focus();
-  }
+  if (gURLBar.value)
+    gURLBar.select();
+  else
+    gURLBar.focus();
 }
 
 // If "ESC" is pressed in the url bar, we replace the urlbar's value with the url of the page
