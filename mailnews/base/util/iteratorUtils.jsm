@@ -56,22 +56,23 @@ let Ci = Components.interfaces;
  *                      values
  */
 function toArray(aObj, aUseKeys) {
-  // NodeList is DOM, so modules don't have it. Use XPCOM instead.
-  if (aObj instanceof Ci.nsIDOMNodeList) {
-    // aUseKeys doesn't make sense in this case, always return the values.
-    return Array.slice(aObj);
-  // - The Iterator object seems to be per-scope, so use a string-based check
+  // - The Iterator object seems to be per-scope, so use a string-based check.
+  //   We use indexOf because the constructor toString returns a function dump,
+  //   which we don't actually care about.
   // - Not all iterators are instances of Iterator, so additionally use a
   //   duck-typing test.
-  } else if (("constructor" in aObj && "name" in aObj.constructor &&
-              aObj.constructor.name == "Iterator") ||
-             ("__iterator__" in aObj)) {
+  if ((aObj.constructor.toString().indexOf("Iterator") != -1) 
+      || ("__iterator__" in aObj)) {
     if (aUseKeys) {
       return [ a for (a in aObj) ];
     } else {
       return [ a for each (a in aObj) ];
     }
+  } else if (aObj.constructor.toString() == "[object NodeList]") {
+    // aUseKeys doesn't make sense in this case, always return the values.
+    return Array.slice(aObj);
   }
+
   return null;
 }
 

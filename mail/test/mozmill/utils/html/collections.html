@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <title>Collections</title>
+    <script type="application/javascript;version=1.7">
+      var gIterator = Iterator([1, 2, 3, 4, 5]);
+
+      var gCustomIterator = {
+        _array: [6, 7, 8, 9],
+        __iterator__: function testIterator() {
+          for (var i = 0; i < this._array.length; ++i)
+            yield this._array[i];
+        }
+      };
+    </script>
+  </head>
+  <body>
+    I have two collections defined - gIterator is an Iterator, and contains
+    [1, 2, 3, 4, 5], and gCustomIterator is an object with an __iterator__
+    method that contains [6, 7, 8, 9].
+  </body>
+</html>
