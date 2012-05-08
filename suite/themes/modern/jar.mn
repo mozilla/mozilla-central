@@ -587,6 +587,7 @@ modern.jar:
   skin/modern/mozapps/passwordmgr/key-64.png                       (mozapps/passwordmgr/key-64.png)
   skin/modern/mozapps/passwordmgr/key.png                          (mozapps/passwordmgr/key.png)
   skin/modern/mozapps/plugins/contentPluginBlocked.png             (mozapps/plugins/contentPluginBlocked.png)
+  skin/modern/mozapps/plugins/contentPluginClickToPlay.png         (mozapps/plugins/contentPluginClickToPlay.png)
   skin/modern/mozapps/plugins/contentPluginCrashed.png             (mozapps/plugins/contentPluginCrashed.png)
   skin/modern/mozapps/plugins/contentPluginDisabled.png            (mozapps/plugins/contentPluginDisabled.png)
   skin/modern/mozapps/plugins/contentPluginDownload.png            (mozapps/plugins/contentPluginDownload.png)
