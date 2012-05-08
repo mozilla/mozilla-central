@@ -193,6 +193,7 @@ classic.jar:
   skin/classic/messenger/icons/flag.png                       (mail/icons/flag.png)
   skin/classic/messenger/icons/flag-empty.png                 (mail/icons/flag-empty.png)
   skin/classic/messenger/icons/server.png                     (mail/icons/server.png)
+  skin/classic/messenger/icons/read.png                       (mail/icons/read.png)
   skin/classic/messenger/icons/readcol.svg                    (mail/icons/readcol.svg)
   skin/classic/messenger/icons/unreadmail.png                 (mail/icons/unreadmail.png)
   skin/classic/messenger/icons/search-arrow.gif               (mail/icons/search-arrow.gif)

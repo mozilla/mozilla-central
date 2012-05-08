@@ -115,6 +115,7 @@ toolbox[labelalign="end"] #qfb-show-filter-bar {
 #quick-filter-bar-main-bar toolbarbutton {
   -moz-margin-start: 1px;
   -moz-margin-end: 1px;
+  min-width: 26px;
 }
 
 /* keep that hideous outline focus ring from showing on the checked buttons */
@@ -135,11 +136,7 @@ toolbox[labelalign="end"] #qfb-show-filter-bar {
 }
 
 #qfb-unread {
-  list-style-image: url("chrome://messenger/skin/icons/readmail.png");
-}
-
-#qfb-unread[checked] {
-  list-style-image: url("chrome://messenger/skin/icons/unreadmail.png");
+  list-style-image: url("chrome://messenger/skin/icons/read.png");
 }
 
 #qfb-starred {
@@ -178,6 +175,14 @@ toolbox[labelalign="end"] #qfb-show-filter-bar {
 
 #quick-filter-bar[filterActive="nomatches"] #qfb-results-label {
   color: #f66;
+}
+
+#quick-filter-bar-main-bar toolbarbutton > .toolbarbutton-icon {
+  -moz-margin-end: 0;
+}
+
+#quick-filter-bar-collapsible-buttons > toolbarbutton > .toolbarbutton-text {
+  -moz-margin-start: 4px !important;
 }
 
 #quick-filter-bar-expando toolbarbutton,
