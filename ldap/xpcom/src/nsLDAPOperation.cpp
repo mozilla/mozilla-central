@@ -290,6 +290,10 @@ nsLDAPOperation::SaslStep(const char *token, PRUint32 tokenLen)
 NS_IMETHODIMP
 nsLDAPOperation::SimpleBind(const nsACString& passwd)
 {
+    nsRefPtr<nsLDAPConnection> connection = mConnection;
+    // There is a possibilty that mConnection can be cleared by another
+    // thread. Grabbing a local reference to mConnection may avoid this.
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=557928#c1
     nsresult rv;
     nsCAutoString bindName;
     PRInt32 originalMsgID = mMsgID;
@@ -305,7 +309,7 @@ nsLDAPOperation::SimpleBind(const nsACString& passwd)
 
     NS_PRECONDITION(mMessageListener != 0, "MessageListener not set");
 
-    rv = mConnection->GetBindName(bindName);
+    rv = connection->GetBindName(bindName);
     if (NS_FAILED(rv))
         return rv;
 
@@ -316,7 +320,7 @@ nsLDAPOperation::SimpleBind(const nsACString& passwd)
     // If this is a second try at binding, remove the operation from pending ops
     // because msg id has changed...
     if (originalMsgID)
-      mConnection->RemovePendingOperation(originalMsgID);
+      connection->RemovePendingOperation(originalMsgID);
 
     mMsgID = ldap_simple_bind(mConnectionHandle, bindName.get(),
                               PromiseFlatCString(mSavePassword).get());
@@ -329,7 +333,7 @@ nsLDAPOperation::SimpleBind(const nsACString& passwd)
 
     // make sure the connection knows where to call back once the messages
     // for this operation start coming in
-    rv = mConnection->AddPendingOperation(mMsgID, this);
+    rv = connection->AddPendingOperation(mMsgID, this);
     switch (rv) {
     case NS_OK:
         break;
