@@ -3,6 +3,9 @@
  * Test suite for attachment file name.
  */
 
+load("../../../resources/logHelper.js");
+load("../../../resources/asyncTestUtils.js");
+
 const input0 = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_"+
     "`abcdefghijklmnopqrstuvwxyz{|}~"+
     "\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf"+
@@ -32,105 +35,44 @@ const expectedCD1 = "Content-Disposition: attachment;\r\n"+
     ' filename*0=" !\\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ";\r\n'+
     ' filename*1="[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~.txt"\r\n';
 
-const expectedCTList0 = [
-    'Content-Type: text/plain; charset=US-ASCII;\r\n'+
-    ' name=" =?ISO-8859-1?Q?!=22=23=24=25=26=27=28=29*+=2C-=2E/0123456789=3A=3B=3C=3D?='+
-    '=?ISO-8859-1?Q?=3E=3F=40ABCDEFGHIJKLMNOPQRSTUVWXYZ=5B=5C=5D=5E=5F=60abcd?='+
-    '=?ISO-8859-1?Q?efghijklmnopqrstuvwxyz=7B=7C=7D=7E=A0=A1=A2=A3=A4=A5=A6=A7?='+
-    '=?ISO-8859-1?Q?=A8=A9=AA=AB=AC=AD=AE=AF=B0=B1=B2=B3=B4=B5=B6=B7=B8=B9=BA?='+
-    '=?ISO-8859-1?Q?=BB=BC=BD=BE=BF=C0=C1=C2=C3=C4=C5=C6=C7=C8=C9=CA=CB=CC=CD?='+
-    '=?ISO-8859-1?Q?=CE=CF=D0=D1=D2=D3=D4=D5=D6=D7=D8=D9=DA=DB=DC=DD=DE=DF=E0?='+
-    '=?ISO-8859-1?Q?=E1=E2=E3=E4=E5=E6=E7=E8=E9=EA=EB=EC=ED=EE=EF=F0=F1=F2=F3?='+
-    '=?ISO-8859-1?Q?=F4=F5=F6=F7=F8=F9=FA=FB=FC=FD=FE=FF=2Etxt?="\r\n',
+const ParamFoldingPref = {
+  RFC2047: 0,
+  RFC2047WithCRLF: 1,
+  RFC2231: 2
+}
 
-    'Content-Type: text/plain; charset=US-ASCII;\r\n'+
-    ' name=" =?ISO-8859-1?Q?!=22=23=24=25=26=27=28=29*+=2C-=2E/0123456789=3A=3B=3C=3D?=\r\n'+
-    ' =?ISO-8859-1?Q?=3E=3F=40ABCDEFGHIJKLMNOPQRSTUVWXYZ=5B=5C=5D=5E=5F=60abcd?=\r\n'+
-    ' =?ISO-8859-1?Q?efghijklmnopqrstuvwxyz=7B=7C=7D=7E=A0=A1=A2=A3=A4=A5=A6=A7?=\r\n'+
-    ' =?ISO-8859-1?Q?=A8=A9=AA=AB=AC=AD=AE=AF=B0=B1=B2=B3=B4=B5=B6=B7=B8=B9=BA?=\r\n'+
-    ' =?ISO-8859-1?Q?=BB=BC=BD=BE=BF=C0=C1=C2=C3=C4=C5=C6=C7=C8=C9=CA=CB=CC=CD?=\r\n'+
-    ' =?ISO-8859-1?Q?=CE=CF=D0=D1=D2=D3=D4=D5=D6=D7=D8=D9=DA=DB=DC=DD=DE=DF=E0?=\r\n'+
-    ' =?ISO-8859-1?Q?=E1=E2=E3=E4=E5=E6=E7=E8=E9=EA=EB=EC=ED=EE=EF=F0=F1=F2=F3?=\r\n'+
-    ' =?ISO-8859-1?Q?=F4=F5=F6=F7=F8=F9=FA=FB=FC=FD=FE=FF=2Etxt?="\r\n',
+const expectedCTList0 = {
+  RFC2047: 'Content-Type: text/plain; charset=US-ASCII;\r\n'+
+           ' name=" =?ISO-8859-1?Q?!=22=23=24=25=26=27=28=29*+=2C-=2E/0123456789=3A=3B=3C=3D?='+
+           '=?ISO-8859-1?Q?=3E=3F=40ABCDEFGHIJKLMNOPQRSTUVWXYZ=5B=5C=5D=5E=5F=60abcd?='+
+           '=?ISO-8859-1?Q?efghijklmnopqrstuvwxyz=7B=7C=7D=7E=A0=A1=A2=A3=A4=A5=A6=A7?='+
+           '=?ISO-8859-1?Q?=A8=A9=AA=AB=AC=AD=AE=AF=B0=B1=B2=B3=B4=B5=B6=B7=B8=B9=BA?='+
+           '=?ISO-8859-1?Q?=BB=BC=BD=BE=BF=C0=C1=C2=C3=C4=C5=C6=C7=C8=C9=CA=CB=CC=CD?='+
+           '=?ISO-8859-1?Q?=CE=CF=D0=D1=D2=D3=D4=D5=D6=D7=D8=D9=DA=DB=DC=DD=DE=DF=E0?='+
+           '=?ISO-8859-1?Q?=E1=E2=E3=E4=E5=E6=E7=E8=E9=EA=EB=EC=ED=EE=EF=F0=F1=F2=F3?='+
+           '=?ISO-8859-1?Q?=F4=F5=F6=F7=F8=F9=FA=FB=FC=FD=FE=FF=2Etxt?="\r\n',
 
-    'Content-Type: text/plain; charset=US-ASCII\r\n'
-];
+  RFC2047WithCRLF: 'Content-Type: text/plain; charset=US-ASCII;\r\n'+
+                   ' name=" =?ISO-8859-1?Q?!=22=23=24=25=26=27=28=29*+=2C-=2E/0123456789=3A=3B=3C=3D?=\r\n'+
+                   ' =?ISO-8859-1?Q?=3E=3F=40ABCDEFGHIJKLMNOPQRSTUVWXYZ=5B=5C=5D=5E=5F=60abcd?=\r\n'+
+                   ' =?ISO-8859-1?Q?efghijklmnopqrstuvwxyz=7B=7C=7D=7E=A0=A1=A2=A3=A4=A5=A6=A7?=\r\n'+
+                   ' =?ISO-8859-1?Q?=A8=A9=AA=AB=AC=AD=AE=AF=B0=B1=B2=B3=B4=B5=B6=B7=B8=B9=BA?=\r\n'+
+                   ' =?ISO-8859-1?Q?=BB=BC=BD=BE=BF=C0=C1=C2=C3=C4=C5=C6=C7=C8=C9=CA=CB=CC=CD?=\r\n'+
+                   ' =?ISO-8859-1?Q?=CE=CF=D0=D1=D2=D3=D4=D5=D6=D7=D8=D9=DA=DB=DC=DD=DE=DF=E0?=\r\n'+
+                   ' =?ISO-8859-1?Q?=E1=E2=E3=E4=E5=E6=E7=E8=E9=EA=EB=EC=ED=EE=EF=F0=F1=F2=F3?=\r\n'+
+                   ' =?ISO-8859-1?Q?=F4=F5=F6=F7=F8=F9=FA=FB=FC=FD=FE=FF=2Etxt?="\r\n',
 
-const expectedCTList1 = [
-    'Content-Type: text/plain; charset=US-ASCII;\r\n'+
-    ' name=" !\\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~.txt"\r\n',
+  RFC2231: 'Content-Type: text/plain; charset=US-ASCII\r\n'
+}
 
-    'Content-Type: text/plain; charset=US-ASCII;\r\n'+
-    ' name=" !\\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~.txt"\r\n',
+const expectedCTList1 = {
+  RFC2047: 'Content-Type: text/plain; charset=US-ASCII;\r\n'+
+           ' name=" !\\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~.txt"\r\n',
 
-    'Content-Type: text/plain; charset=US-ASCII\r\n'
-];
+  RFC2047WithCRLF: 'Content-Type: text/plain; charset=US-ASCII;\r\n'+
+                   ' name=" !\\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~.txt"\r\n',
 
-var gSmtpServer;
-var gDraftFolder;
-var gCurTestNum = 0;
-
-var progressListener = {
-  onStateChange: function(aWebProgress, aRequest, aStateFlags, aStatus) {
-    if (aStateFlags & Ci.nsIWebProgressListener.STATE_STOP){
-      do_timeout(0, function(){doTest(++gCurTestNum);});
-    }
-  },
-
-  onProgressChange: function(aWebProgress, aRequest, aCurSelfProgress, aMaxSelfProgress, aCurTotalProgress, aMaxTotalProgress) {},
-  onLocationChange: function(aWebProgress, aRequest, aLocation, aFlags) {},
-  onStatusChange: function(aWebProgress, aRequest, aStatus, aMessage) {},
-  onSecurityChange: function(aWebProgress, aRequest, state) {},
-
-  QueryInterface : function(iid) {
-    if (iid.equals(Ci.nsIWebProgressListener) ||
-        iid.equals(Ci.nsISupportsWeakReference) ||
-        iid.equals(Ci.nsISupports))
-      return this;
-
-    throw Components.results.NS_NOINTERFACE;
-  }
-};
-
-function createMessage(folding, input) {
-  const prefs = Cc["@mozilla.org/preferences-service;1"]
-                  .getService(Ci.nsIPrefBranch);
-  prefs.setIntPref("mail.strictly_mime.parm_folding", folding);
-
-  var msgCompose = Cc["@mozilla.org/messengercompose/compose;1"]
-                     .createInstance(Ci.nsIMsgCompose);
-  var fields = Cc["@mozilla.org/messengercompose/composefields;1"]
-                 .createInstance(Ci.nsIMsgCompFields);
-  var params = Cc["@mozilla.org/messengercompose/composeparams;1"]
-                 .createInstance(Ci.nsIMsgComposeParams);
-  params.composeFields = fields;
-  msgCompose.initialize(params);
-  var identity = getSmtpIdentity(null, gSmtpServer);
-
-  gDraftFolder = null;
-  // Make sure the drafts folder is empty
-  try {
-    gDraftFolder = gLocalRootFolder.getChildNamed("Drafts");
-    // try to delete
-    gLocalRootFolder.propagateDelete(gDraftFolder, true, null);
-  } catch (ex) {
-      dump(ex + " didn't find drafts folder\n");
-    // we don't have to remove the folder because it doen't exist yet
-  }
-  // Create a new, empty drafts folder
-  gDraftFolder = gLocalRootFolder.createLocalSubfolder("Drafts");
-
-  var attachment = Cc["@mozilla.org/messengercompose/attachment;1"]
-                     .createInstance(Ci.nsIMsgAttachment);
-  attachment.url = "data:,";
-  attachment.name = input;
-  fields.addAttachment(attachment);
-
-  var progress = Cc["@mozilla.org/messenger/progress;1"]
-                   .createInstance(Ci.nsIMsgProgress);
-  progress.registerListener(progressListener);
-  msgCompose.SendMsg(Ci.nsIMsgSend.nsMsgSaveAsDraft, identity, "", null,
-                     progress);
+  RFC2231: 'Content-Type: text/plain; charset=US-ASCII\r\n'
 }
 
 function checkAttachment(expectedCD, expectedCT) {
@@ -164,63 +106,32 @@ function checkAttachment(expectedCD, expectedCT) {
   } while (contentType.substr(pos, 1) == " ");
   contentType = contentType.substr(0, pos);
   do_check_eq(contentType, expectedCT);
-  do_timeout(0, function(){doTest(++gCurTestNum);});
 }
 
-const gTestArray =
-[
-  function createMessage1() { createMessage(0, input0); },
-  function checkAttachment1() { checkAttachment(expectedCD0, expectedCTList0[0]); },
+function testInput0() {
+  for (let folding in ParamFoldingPref) {
+    Services.prefs.setIntPref("mail.strictly_mime.parm_folding", ParamFoldingPref[folding]);
+    yield async_run({ func: createMessage, args: [input0] });
+    checkAttachment(expectedCD0, expectedCTList0[folding]);
+  }
+}
 
-  function createMessage2() { createMessage(1, input0); },
-  function checkAttachment2() { checkAttachment(expectedCD0, expectedCTList0[1]); },
+function testInput1() {
+  for (let folding in ParamFoldingPref) {
+    Services.prefs.setIntPref("mail.strictly_mime.parm_folding", ParamFoldingPref[folding]);
+    yield async_run({ func: createMessage, args: [input1] });
+    checkAttachment(expectedCD1, expectedCTList1[folding]);
+  }
+}
 
-  function createMessage3() { createMessage(2, input0); },
-  function checkAttachment3() { checkAttachment(expectedCD0, expectedCTList0[2]); },
-
-  function createMessage4() { createMessage(0, input1); },
-  function checkAttachment4() { checkAttachment(expectedCD1, expectedCTList1[0]); },
-
-  function createMessage5() { createMessage(1, input1); },
-  function checkAttachment5() { checkAttachment(expectedCD1, expectedCTList1[1]); },
-
-  function createMessage6() { createMessage(2, input1); },
-  function checkAttachment6() { checkAttachment(expectedCD1, expectedCTList1[2]); }
+var tests = [
+  testInput0,
+  testInput1,
+  do_test_finished
 ]
 
 function run_test() {
-  // Ensure we have at least one mail account
   loadLocalMailAccount();
-
-  gSmtpServer = getBasicSmtpServer();
-
   do_test_pending();
-
-  doTest(1);
-}
-
-function doTest(test)
-{
-  dump("doTest " + test + "\n");
-  if (test <= gTestArray.length) {
-    gCurTestNum = test;
- 
-    var testFn = gTestArray[test-1];
-
-    // Set a limit in case the notifications haven't arrived (i.e. a problem)
-    do_timeout(10000, function() {
-        if(gCurTestNum == test)
-	  do_throw("Notifications not received in 10000 ms for operation " + testFn.name);
-        }
-      );
-    try {
-      testFn();
-    } catch(ex) {
-      dump(ex);
-      do_throw(ex);
-    }
-  }
-  else {
-    do_test_finished(); // for the one in run_test()
-  }
+  async_run_tests(tests);
 }

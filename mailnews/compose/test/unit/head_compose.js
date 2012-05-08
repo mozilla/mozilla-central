@@ -11,6 +11,7 @@ load("../../../fakeserver/auth.js")
 load("../../../fakeserver/smtpd.js")
 
 const SMTP_PORT = 1024+120;
+var gDraftFolder;
 
 // Setup the daemon and server
 function setupServerDaemon(handler) {
@@ -88,3 +89,99 @@ var copyListener = {
     throw Components.results.NS_ERROR_NO_INTERFACE;
   }
 };
+
+var progressListener = {
+  onStateChange: function(aWebProgress, aRequest, aStateFlags, aStatus) {
+    if (aStateFlags & Ci.nsIWebProgressListener.STATE_STOP)
+      async_driver();
+  },
+
+  onProgressChange: function(aWebProgress, aRequest, aCurSelfProgress,
+    aMaxSelfProgress, aCurTotalProgress, aMaxTotalProgress) {},
+  onLocationChange: function(aWebProgress, aRequest, aLocation, aFlags) {},
+  onStatusChange: function(aWebProgress, aRequest, aStatus, aMessage) {},
+  onSecurityChange: function(aWebProgress, aRequest, state) {},
+
+  QueryInterface : function(iid) {
+    if (iid.equals(Ci.nsIWebProgressListener) ||
+        iid.equals(Ci.nsISupportsWeakReference) ||
+        iid.equals(Ci.nsISupports))
+      return this;
+
+    throw Components.results.NS_NOINTERFACE;
+  }
+};
+
+function createMessage(aAttachment) {
+  let fields = Cc["@mozilla.org/messengercompose/composefields;1"]
+                 .createInstance(Ci.nsIMsgCompFields);
+  let params = Cc["@mozilla.org/messengercompose/composeparams;1"]
+                 .createInstance(Ci.nsIMsgComposeParams);
+  params.composeFields = fields;
+
+  let msgCompose = MailServices.compose.initCompose(params);
+  let identity = getSmtpIdentity(null, getBasicSmtpServer());
+
+  let rootFolder = gLocalIncomingServer.rootMsgFolder;
+  gDraftFolder = null;
+  // Make sure the drafts folder is empty
+  try {
+    gDraftFolder = rootFolder.getChildNamed("Drafts");
+    // try to delete
+    rootFolder.propagateDelete(gDraftFolder, true, null);
+  } catch (e) {
+    // we don't have to remove the folder because it doen't exist yet
+  }
+  // Create a new, empty drafts folder
+  gDraftFolder = rootFolder.createLocalSubfolder("Drafts");
+
+  // Set attachment
+  if (aAttachment) {
+    let attachment = Cc["@mozilla.org/messengercompose/attachment;1"]
+                       .createInstance(Ci.nsIMsgAttachment);
+    if (aAttachment instanceof Ci.nsIFile) {
+      attachment.url = "file://" + aAttachment.path;
+      attachment.contentType = 'text/plain';
+      attachment.name = aAttachment.leafName;
+    } else {
+      attachment.url = "data:,";
+      attachment.name = aAttachment;
+    }
+    fields.addAttachment(attachment);
+  }
+
+  let progress = Cc["@mozilla.org/messenger/progress;1"]
+                   .createInstance(Ci.nsIMsgProgress);
+  progress.registerListener(progressListener);
+  msgCompose.SendMsg(Ci.nsIMsgSend.nsMsgSaveAsDraft, identity, "", null,
+                     progress);
+  return false;
+}
+
+// get the first message header found in a folder
+function firstMsgHdr(folder) {
+  let enumerator = folder.msgDatabase.EnumerateMessages();
+  if (enumerator.hasMoreElements())
+    return enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+  return null;
+}
+
+function getAttachmentFromContent(aContent) {
+  function getBoundaryStringFromContent(aContent) {
+    let found = aContent.match(/Content-Type: multipart\/mixed;\s+boundary="(.*?)"/);
+    do_check_neq(found, null);
+    do_check_eq(found.length, 2);
+
+    return found[1];
+  };
+
+  let boundary = getBoundaryStringFromContent(aContent);
+  let regex = new RegExp("\\r\\n\\r\\n--" + boundary + "\\r\\n" +
+                         "([\\s\\S]*?)\\r\\n" +
+                         "--" + boundary + "--", "m");
+  let attachments = aContent.match(regex);
+  do_check_neq(attachments, null);
+  do_check_eq(attachments.length, 2);
+  return attachments[1];
+}
+
