@@ -6643,7 +6643,7 @@ fi
 
 if test -z "$SKIP_LIBRARY_CHECKS" -a "$NECKO_WIFI" -a "$OS_ARCH" = "Linux"
 then
-  MOZ_CHECK_HEADER([iwlib.h])
+  AC_CHECK_HEADER([iwlib.h])
   if test "$ac_cv_header_iwlib_h" != "yes"; then
     AC_MSG_ERROR([Can't find header iwlib.h for Necko WiFi scanning (might be in package libiw-dev (Ubuntu) or wireless-tools-devel (Fedora) or libiw-devel (openSUSE)); use --disable-necko-wifi to disable])
   fi
