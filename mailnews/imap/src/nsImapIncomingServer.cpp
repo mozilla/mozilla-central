@@ -3128,11 +3128,13 @@ NS_IMETHODIMP nsImapIncomingServer::SetSocketType(PRInt32 aSocketType)
 }
 
 NS_IMETHODIMP
-nsImapIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName, const nsACString& newName)
+nsImapIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName,
+                                              const nsACString& newName,
+                                              bool hostnameChanged)
 {
   nsresult rv;
   // 1. Do common things in the base class.
-  rv = nsMsgIncomingServer::OnUserOrHostNameChanged(oldName, newName);
+  rv = nsMsgIncomingServer::OnUserOrHostNameChanged(oldName, newName, hostnameChanged);
   NS_ENSURE_SUCCESS(rv,rv);
 
   // 2. Reset 'HaveWeEverDiscoveredFolders' flag so the new folder list can be

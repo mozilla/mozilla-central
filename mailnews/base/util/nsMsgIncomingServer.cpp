@@ -1219,7 +1219,9 @@ nsMsgIncomingServer::InternalSetHostName(const nsACString& aHostname, const char
 }
 
 NS_IMETHODIMP
-nsMsgIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName, const nsACString& newName)
+nsMsgIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName,
+                                             const nsACString& newName,
+                                             bool hostnameChanged)
 {
   nsresult rv;
 
@@ -1239,25 +1241,57 @@ nsMsgIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName, const ns
   // 4. Lastly, replace all occurrences of old name in the acct name with the new one.
   nsString acctName;
   rv = GetPrettyName(acctName);
-  if (NS_SUCCEEDED(rv) && !acctName.IsEmpty())
-  {
-    PRInt32 match = 0;
-    PRUint32 offset = 0;
-    nsString oldSubstr = NS_ConvertASCIItoUTF16(oldName);
-    nsString newSubstr = NS_ConvertASCIItoUTF16(newName);
-    while (offset < acctName.Length()) {
-        match = acctName.Find(oldSubstr, offset);
-        if (match == -1)
-            break;
- 
-        acctName.Replace(offset + match, oldSubstr.Length(), newSubstr);
-        offset += (match + newSubstr.Length());
-    }
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    SetPrettyName(acctName);
+  NS_ENSURE_FALSE(acctName.IsEmpty(), NS_OK);
+
+  // exit if new name contains @ then better do not update the account name
+  if (!hostnameChanged && (newName.FindChar('@') != kNotFound))
+    return NS_OK;
+
+  PRInt32 atPos = acctName.FindChar('@');
+
+  // get previous username and hostname
+  nsCString userName, hostName;
+  if (hostnameChanged)
+  {
+    rv = GetRealUsername(userName);
+    NS_ENSURE_SUCCESS(rv, rv);
+    hostName.Assign(oldName);
+  }
+  else
+  {
+    userName.Assign(oldName);
+    rv = GetRealHostName(hostName);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  return rv;
+  // switch corresponding part of the account name to the new name...
+  nsString acctPart;
+  if (!hostnameChanged && (atPos != kNotFound))
+  {
+    // ...if username changed and the previous username was equal to the part
+    // of the account name before @
+    acctName.Left(acctPart, atPos);
+    if (acctPart.Equals(NS_ConvertASCIItoUTF16(userName)))
+      acctName.Replace(0, userName.Length(), NS_ConvertASCIItoUTF16(newName));
+  }
+  if (hostnameChanged)
+  {
+    // ...if hostname changed and the previous hostname was equal to the part
+    // of the account name after @, or to the whole account name
+    if (atPos == kNotFound)
+      atPos = 0;
+    else
+      atPos += 1;
+    acctName.Right(acctPart, acctName.Length() - atPos);
+    if (acctPart.Equals(NS_ConvertASCIItoUTF16(hostName))) {
+      acctName.Replace(atPos, acctName.Length() - atPos,
+                       NS_ConvertASCIItoUTF16(newName));
+    }
+  }
+
+  return SetPrettyName(acctName);
 }
 
 NS_IMETHODIMP
@@ -1278,7 +1312,7 @@ nsMsgIncomingServer::SetRealHostName(const nsACString& aHostname)
 
   // A few things to take care of if we're changing the hostname.
   if (!aHostname.Equals(oldName, nsCaseInsensitiveCStringComparator()))
-    rv = OnUserOrHostNameChanged(oldName, aHostname);
+    rv = OnUserOrHostNameChanged(oldName, aHostname, true);
   return rv;
 }
 
@@ -1335,7 +1369,7 @@ nsMsgIncomingServer::SetRealUsername(const nsACString& aUsername)
   NS_ENSURE_SUCCESS(rv, rv);
   rv = SetCharValue("realuserName", aUsername);
   if (!oldName.Equals(aUsername))
-    rv = OnUserOrHostNameChanged(oldName, aUsername);
+    rv = OnUserOrHostNameChanged(oldName, aUsername, false);
   return rv;
 }
 

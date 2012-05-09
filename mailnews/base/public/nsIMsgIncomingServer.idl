@@ -60,7 +60,7 @@ interface nsIMsgPluggableStore;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(7e03bc94-4e09-4c48-bee0-19d0d60c6767)]
+[scriptable, uuid(cf46d3ce-bf1e-40b5-8749-53d1424638b3)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -119,8 +119,9 @@ interface nsIMsgIncomingServer : nsISupports {
   readonly attribute ACString localStoreType;
 
   // Perform specific tasks (reset flags, remove files, etc) for account user/server name changes.
-  void onUserOrHostNameChanged(in ACString oldName, in ACString newName);
-  
+  void onUserOrHostNameChanged(in ACString oldName, in ACString newName,
+                               in bool hostnameChanged);
+
   /* cleartext version of the password */
   attribute ACString password;
 

@@ -91,7 +91,9 @@ public:
   NS_IMETHOD GetFilterScope(nsMsgSearchScopeValue *filterScope);
   NS_IMETHOD GetSearchScope(nsMsgSearchScopeValue *searchScope);
   NS_IMETHOD GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff);
-  NS_IMETHOD OnUserOrHostNameChanged(const nsACString& oldName, const nsACString& newName);
+  NS_IMETHOD OnUserOrHostNameChanged(const nsACString& oldName,
+                                     const nsACString& newName,
+                                     bool hostnameChanged);
   NS_IMETHOD GetNumIdleConnections(PRInt32 *aNumIdleConnections);
   NS_IMETHOD ForgetSessionPassword();
   NS_IMETHOD GetMsgFolderFromURI(nsIMsgFolder *aFolderResource, const nsACString& aURI, nsIMsgFolder **aFolder);

@@ -85,7 +85,9 @@ public:
     NS_IMETHOD CloseCachedConnections();
     NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
     NS_IMETHOD PerformExpand(nsIMsgWindow *aMsgWindow);
-    NS_IMETHOD OnUserOrHostNameChanged(const nsACString& oldName, const nsACString& newName);
+    NS_IMETHOD OnUserOrHostNameChanged(const nsACString& oldName,
+                                       const nsACString& newName,
+                                       bool hostnameChanged);
 
     // for nsMsgLineBuffer
     virtual PRInt32 HandleLine(const char *line, PRUint32 line_size);

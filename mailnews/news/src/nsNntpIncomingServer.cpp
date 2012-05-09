@@ -2099,11 +2099,13 @@ nsNntpIncomingServer::SetSocketType(PRInt32 aSocketType)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName, const nsACString& newName)
+nsNntpIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName,
+                                              const nsACString& newName,
+                                              bool hostnameChanged)
 {
   nsresult rv;
   // 1. Do common things in the base class.
-  rv = nsMsgIncomingServer::OnUserOrHostNameChanged(oldName, newName);
+  rv = nsMsgIncomingServer::OnUserOrHostNameChanged(oldName, newName, hostnameChanged);
   NS_ENSURE_SUCCESS(rv,rv);
 
   // 2. Remove file hostinfo.dat so that the new subscribe
