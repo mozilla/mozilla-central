@@ -95,14 +95,15 @@ public:
   /* nsISupportsArray FindMailboxes (in nsIFile location); */
   NS_IMETHOD FindMailboxes(nsIFile *location, nsISupportsArray **_retval);
 
-  /* void ImportMailbox (in nsIImportMailboxDescriptor source, in nsIFile destination, out boolean fatalError); */
-  NS_IMETHOD ImportMailbox(nsIImportMailboxDescriptor *source, nsIFile *destination,
-                PRUnichar **pErrorLog, PRUnichar **pSuccessLog, bool *fatalError);
+  NS_IMETHOD ImportMailbox(nsIImportMailboxDescriptor *source,
+                           nsIMsgFolder *dstFolder,
+                           PRUnichar **pErrorLog, PRUnichar **pSuccessLog,
+                           bool *fatalError);
 
   /* unsigned long GetImportProgress (); */
   NS_IMETHOD GetImportProgress(PRUint32 *_retval);
 
-    NS_IMETHOD TranslateFolderName(const nsAString & aFolderName, nsAString & _retval);
+  NS_IMETHOD TranslateFolderName(const nsAString & aFolderName, nsAString & _retval);
 
 public:
   static void ReportSuccess(nsString& name, PRInt32 count, nsString *pStream);
@@ -271,7 +272,7 @@ void ImportWMMailImpl::SetLogs(nsString& success, nsString& error,
 }
 
 NS_IMETHODIMP ImportWMMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSource,
-                                              nsIFile *pDestination,
+                                              nsIMsgFolder *pDstFolder,
                                               PRUnichar **pErrorLog,
                                               PRUnichar **pSuccessLog,
                                               bool *fatalError)

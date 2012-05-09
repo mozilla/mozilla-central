@@ -67,12 +67,13 @@
 
 #include "nsISupports.idl"
 
-interface   nsIFile;
-interface   nsISupportsArray;
-interface  nsIImportMailboxDescriptor;
-interface  nsIOutputStream;
+interface nsIFile;
+interface nsISupportsArray;
+interface nsIImportMailboxDescriptor;
+interface nsIOutputStream;
+interface nsIMsgFolder;
 
-[scriptable, uuid(cf208fac-b275-449d-9dc9-0d8f16c59fe1)]
+[scriptable, uuid(306561d3-ed2f-425d-87ee-eb129a84a6af)]
 interface nsIImportMail : nsISupports
 {
 
@@ -92,16 +93,16 @@ interface nsIImportMail : nsISupports
   nsISupportsArray FindMailboxes( in nsIFile location);
 
   /*
-    Import a specific mailbox into the destination file supplied.  If an error
+    Import a specific mailbox into the destination folder supplied.  If an error
     occurs that is non-fatal, the destination will be deleted and other mailboxes
     will be imported.  If a fatal error occurs, the destination will be deleted
     and the import operation will abort.
   */
-  void   ImportMailbox( in nsIImportMailboxDescriptor source,
-               in nsIFile destination,
-               out wstring errorLog,
-               out wstring successLog,
-               out boolean fatalError);
+  void   ImportMailbox(in nsIImportMailboxDescriptor source,
+                       in nsIMsgFolder dstFolder,
+                       out wstring errorLog,
+                       out wstring successLog,
+                       out boolean fatalError);
 
   /*
     Return the amount of the mailbox that has been imported so far.  This number

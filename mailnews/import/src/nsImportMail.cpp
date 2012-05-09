@@ -763,7 +763,6 @@ ImportMailThread(void *stuff)
   nsCOMPtr<nsIMsgFolder>    curFolder(destRoot);
 
   nsCOMPtr<nsIMsgFolder>          newFolder;
-  nsCOMPtr<nsILocalFile>          outBox;
   nsCOMPtr<nsIMsgFolder>          subFolder;
   nsCOMPtr<nsISimpleEnumerator>   enumerator;
 
@@ -864,22 +863,18 @@ ImportMailThread(void *stuff)
       ProxyCreateSubfolder(curFolder, lastName); // this may fail if the folder already exists..that's ok
 
       rv = ProxyGetChildNamed(curFolder, lastName, getter_AddRefs(newFolder));
-      if (NS_SUCCEEDED(rv))
-        newFolder->GetFilePath(getter_AddRefs(outBox));
-      else
-        IMPORT_LOG1("*** ImportMailThread: Failed to locate subfolder '%s' after it's been created.", lastName.get());
-
       if (NS_FAILED(rv)) {
+        IMPORT_LOG1("*** ImportMailThread: Failed to locate subfolder '%s' after it's been created.", lastName.get());
         nsImportGenericMail::ReportError(IMPORT_ERROR_MB_CREATE, lastName.get(),
                                          &error, pData->stringBundle);
       }
 
-      if (size && import && newFolder && outBox && NS_SUCCEEDED(rv)) {
+      if (size && import && newFolder && NS_SUCCEEDED(rv)) {
         bool fatalError = false;
         pData->currentSize = size;
         PRUnichar *pSuccess = nsnull;
         PRUnichar *pError = nsnull;
-        rv = pData->mailImport->ImportMailbox(box, outBox, &pError, &pSuccess, &fatalError);
+        rv = pData->mailImport->ImportMailbox(box, newFolder, &pError, &pSuccess, &fatalError);
         if (pError) {
           error.Append(pError);
           NS_Free(pError);

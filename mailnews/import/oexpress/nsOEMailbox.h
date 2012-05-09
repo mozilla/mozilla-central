@@ -43,9 +43,13 @@
 #include "nsStringGlue.h"
 #include "nsIFile.h"
 
+class nsIMsgFolder;
+
 class CImportMailbox {
 public:
-  static bool    ImportMailbox(PRUint32 *pDone, bool *pAbort, nsString& name, nsIFile * inFile, nsIFile * outFile, PRUint32 *pCount);
+  static bool ImportMailbox(PRUint32 *pDone, bool *pAbort, nsString& name,
+                            nsIFile * inFile, nsIMsgFolder * outFolder,
+                            PRUint32 *pCount);
 
 private:
   static bool    GetIndexFile(nsIFile* mbxFile);

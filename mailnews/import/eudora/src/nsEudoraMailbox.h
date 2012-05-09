@@ -181,7 +181,9 @@ public:
 
   // Non-platform specific common stuff
     // import a mailbox
-  nsresult ImportMailbox(PRUint32 *pBytes, bool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIFile *pDst, PRInt32 *pMsgCount);
+  nsresult ImportMailbox(PRUint32 *pBytes, bool *pAbort, const PRUnichar *pName,
+                         nsIFile *pSrc, nsIMsgFolder *pDst, PRInt32 *pMsgCount);
+ 
 
   static PRInt32    IsEudoraFromSeparator(const char *pData, PRInt32 maxLen, nsCString& defaultDate);
   static bool      IsEudoraTag(const char *pChar, PRInt32 maxLen, bool &insideEudoraTags, nsCString &bodyType, PRInt32& tagLength);
@@ -192,7 +194,11 @@ protected:
 
 
 private:
-   nsresult  ImportMailboxUsingTOC(PRUint32 *pBytes, bool *pAbort, nsIInputStream *pInputStream, nsIFile *tocFile, nsIOutputStream *pDst, PRInt32 *pMsgCount);
+  nsresult ImportMailboxUsingTOC(PRUint32 *pBytes, bool *pAbort,
+                                 nsIInputStream *pInputStream,
+                                 nsIFile *tocFile,
+                                 nsIMsgFolder *pDstFolder, PRInt32 *pMsgCount);
+
    nsresult  ReadTOCEntry(nsIInputStream *pToc, EudoraTOCEntry& tocEntry);
    nsresult  ImportMessage(SimpleBufferTonyRCopiedOnce& headers, SimpleBufferTonyRCopiedOnce& body, nsCString& defaultDate, nsCAutoString& bodyType, nsIOutputStream *pDst, PRInt32 *pMsgCount);
    nsresult  ReadNextMessage(ReadFileState *pState, SimpleBufferTonyRCopiedOnce& copy, SimpleBufferTonyRCopiedOnce& header,

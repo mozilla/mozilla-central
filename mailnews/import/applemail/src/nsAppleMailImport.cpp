@@ -48,6 +48,9 @@
 #include "nsIImportGeneric.h"
 #include "nsILocalFile.h"
 #include "nsIStringBundle.h"
+#include "nsIMsgFolder.h"
+#include "nsIMsgHdr.h"
+#include "nsIMsgPluggableStore.h"
 #include "nsNetUtil.h"
 #include "nsMsgUtils.h"
 #include "mozilla/Services.h"
@@ -501,8 +504,11 @@ nsresult nsAppleMailImportMail::FindMboxDirs(nsILocalFile *aFolder, nsISupportsA
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAppleMailImportMail::ImportMailbox(nsIImportMailboxDescriptor *aMailbox, nsIFile *aDestination, 
-                                                   PRUnichar **aErrorLog, PRUnichar **aSuccessLog, bool *aFatalError)
+NS_IMETHODIMP
+nsAppleMailImportMail::ImportMailbox(nsIImportMailboxDescriptor *aMailbox,
+                                     nsIMsgFolder *aDstFolder,
+                                     PRUnichar **aErrorLog,
+                                     PRUnichar **aSuccessLog, bool *aFatalError)
 {
   nsAutoString errorLog, successLog;
 
@@ -556,15 +562,17 @@ NS_IMETHODIMP nsAppleMailImportMail::ImportMailbox(nsIImportMailboxDescriptor *a
     }
 
     // prepare an outstream to the destination file
-    nsCOMPtr<nsIOutputStream> outStream;
-    rv = MsgNewBufferedFileOutputStream(getter_AddRefs(outStream), aDestination);
-    if (!outStream || NS_FAILED(rv)) {
+    nsCOMPtr<nsIMsgPluggableStore> msgStore;
+    rv = aDstFolder->GetMsgStore(getter_AddRefs(msgStore));
+    if (!msgStore || NS_FAILED(rv)) {
       ReportStatus(APPLEMAILIMPORT_MAILBOX_CONVERTERROR, mailboxName, errorLog);
       SetLogs(successLog, errorLog, aSuccessLog, aErrorLog);
       return NS_ERROR_FAILURE;
     }
 
     bool hasMore = false;
+    nsCOMPtr<nsIOutputStream> outStream;
+
     while (NS_SUCCEEDED(directoryEnumerator->HasMoreElements(&hasMore)) && hasMore) {
       // get the next file entry
       nsCOMPtr<nsILocalFile> currentEntry;
@@ -589,12 +597,29 @@ NS_IMETHODIMP nsAppleMailImportMail::ImportMailbox(nsIImportMailboxDescriptor *a
       if (!StringEndsWith(leafName, NS_LITERAL_STRING(".emlx")))
         continue;
 
-      // add the data to the mbox stream
-      if (NS_SUCCEEDED(nsEmlxHelperUtils::AddEmlxMessageToStream(currentEntry, outStream)))
-        mProgress++;
-    }
-  }
+      nsCOMPtr<nsIMsgDBHdr> msgHdr;
+      bool reusable;
+      rv = msgStore->GetNewMsgOutputStream(aDstFolder, getter_AddRefs(msgHdr),
+                                           &reusable,
+                                           getter_AddRefs(outStream));
+      if (NS_FAILED(rv))
+        break;
 
+      // add the data to the mbox stream
+      if (NS_SUCCEEDED(nsEmlxHelperUtils::AddEmlxMessageToStream(currentEntry, outStream))) {
+        mProgress++;
+        msgStore->FinishNewMessage(outStream, msgHdr);
+      }
+      else {
+        msgStore->DiscardNewMessage(outStream, msgHdr);
+        break;
+      }
+      if (!reusable)
+        outStream->Close();
+    }
+    if (outStream)
+      outStream->Close();
+  }
   // just indicate that we're done, using the same number that we used to estimate
   // number of messages earlier.
   PRUint32 finalSize;

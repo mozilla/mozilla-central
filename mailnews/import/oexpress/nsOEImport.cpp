@@ -100,9 +100,10 @@ public:
   /* nsISupportsArray FindMailboxes (in nsIFile location); */
   NS_IMETHOD FindMailboxes(nsIFile *location, nsISupportsArray **_retval);
 
-  /* void ImportMailbox (in nsIImportMailboxDescriptor source, in nsIFile destination, out boolean fatalError); */
-  NS_IMETHOD ImportMailbox(nsIImportMailboxDescriptor *source, nsIFile *destination,
-                PRUnichar **pErrorLog, PRUnichar **pSuccessLog, bool *fatalError);
+  NS_IMETHOD ImportMailbox(nsIImportMailboxDescriptor *source,
+                           nsIMsgFolder *dstFolder,
+                           PRUnichar **pErrorLog, PRUnichar **pSuccessLog,
+                           bool *fatalError);
 
   /* unsigned long GetImportProgress (); */
   NS_IMETHOD GetImportProgress(PRUint32 *_retval);
@@ -420,25 +421,17 @@ void ImportOEMailImpl::SetLogs(nsString& success, nsString& error, PRUnichar **p
 }
 
 NS_IMETHODIMP ImportOEMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSource,
-                                              nsIFile *pDestination,
+                                              nsIMsgFolder *dstFolder,
                                               PRUnichar **pErrorLog,
                                               PRUnichar **pSuccessLog,
                                               bool *fatalError)
 {
-  NS_PRECONDITION(pSource != nsnull, "null ptr");
-  NS_PRECONDITION(pDestination != nsnull, "null ptr");
-  NS_PRECONDITION(fatalError != nsnull, "null ptr");
+  NS_ENSURE_ARG_POINTER(pSource);
+  NS_ENSURE_ARG_POINTER(dstFolder);
+  NS_ENSURE_ARG_POINTER(fatalError);
 
   nsString success;
   nsString error;
-  if (!pSource || !pDestination || !fatalError) {
-    nsOEStringBundle::GetStringByID(OEIMPORT_MAILBOX_BADPARAM, error);
-    if (fatalError)
-      *fatalError = true;
-    SetLogs(success, error, pErrorLog, pSuccessLog);
-    return NS_ERROR_NULL_POINTER;
-  }
-
   bool abort = false;
   nsString name;
   nsString pName;
@@ -469,11 +462,11 @@ NS_IMETHODIMP ImportOEMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSourc
   nsresult rv;
   if (nsOE5File::IsLocalMailFile(inFile)) {
     IMPORT_LOG1("Importing OE5 mailbox: %s!\n", NS_LossyConvertUTF16toASCII(name.get()));
-    rv = nsOE5File::ImportMailbox(&m_bytesDone, &abort, name, inFile, pDestination, &msgCount);
+    rv = nsOE5File::ImportMailbox( &m_bytesDone, &abort, name, inFile, dstFolder, &msgCount);
   }
   else {
-    if (CImportMailbox::ImportMailbox(&m_bytesDone, &abort, name, inFile, pDestination, &msgCount))
-      rv = NS_OK;
+    if (CImportMailbox::ImportMailbox( &m_bytesDone, &abort, name, inFile, dstFolder, &msgCount))
+       rv = NS_OK;
     else
       rv = NS_ERROR_FAILURE;
   }

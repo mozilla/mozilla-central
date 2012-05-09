@@ -57,7 +57,9 @@ public:
   
   nsresult GetMailFolders(nsISupportsArray **pArray);
   nsresult GetAddressBooks(nsISupportsArray **pArray);
-  nsresult ImportMailbox(PRUint32 *pDoneSoFar, bool *pAbort, PRInt32 index, const PRUnichar *pName, nsIFile *pDest, PRInt32 *pMsgCount);
+  nsresult ImportMailbox(PRUint32 *pDoneSoFar, bool *pAbort, PRInt32 index,
+                         const PRUnichar *pName, nsIMsgFolder *pDest,
+                         PRInt32 *pMsgCount);
   static nsresult ImportMessage(LPMESSAGE lpMsg, nsIOutputStream *destOutputStream, nsMsgDeliverMode mode);
   nsresult ImportAddresses(PRUint32 *pCount, PRUint32 *pTotal, const PRUnichar *pName, PRUint32 id, nsIAddrDatabase *pDb, nsString& errors);
 private:

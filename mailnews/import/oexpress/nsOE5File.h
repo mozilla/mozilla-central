@@ -40,6 +40,7 @@
 
 #include "nsStringGlue.h"
 #include "nsIFile.h"
+#include "nsIMsgFolder.h"
 #include <windows.h>
 
 class nsIInputStream;
@@ -54,7 +55,9 @@ public:
 
   static bool    ReadIndex(nsIInputStream *pFile, PRUint32 **ppIndex, PRUint32 *pSize);
 
-  static nsresult  ImportMailbox(PRUint32 *pBytesDone, bool *pAbort, nsString& name, nsIFile *inFile, nsIFile *pDestination, PRUint32 *pCount);
+  static nsresult ImportMailbox(PRUint32 *pBytesDone, bool *pAbort,
+                                nsString& name, nsIFile *inFile,
+                                nsIMsgFolder *pDstFolder, PRUint32 *pCount);
 
   static void FileTimeToPRTime(const FILETIME *filetime, PRTime *prtm);
 

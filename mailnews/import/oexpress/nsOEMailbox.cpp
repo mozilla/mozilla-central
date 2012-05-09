@@ -43,12 +43,15 @@
 #include "nsMsgLocalFolderHdrs.h"
 #include "nsCRT.h"
 #include "nsNetUtil.h"
+#include "nsIMsgFolder.h"
+#include "nsIMsgHdr.h"
+#include "nsIMsgPluggableStore.h"
 #include "nsISeekableStream.h"
 #include "nsMsgUtils.h"
 
 class CMbxScanner {
 public:
-  CMbxScanner(nsString& name, nsIFile * mbxFile, nsIFile * dstFile);
+  CMbxScanner(nsString& name, nsIFile * mbxFile, nsIMsgFolder *dstFolder);
   ~CMbxScanner();
 
   virtual bool    Initialize(void);
@@ -62,7 +65,7 @@ protected:
   virtual void  CleanUp(void);
 
 private:
-  void  ReportWriteError(nsIFile * file, bool fatal = true);
+  void  ReportWriteError(nsIMsgFolder *folder, bool fatal = true);
   void  ReportReadError(nsIFile * file, bool fatal = true);
   bool CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes);
   bool IsFromLineKey(PRUint8 *pBuf, PRUint32 max);
@@ -73,10 +76,11 @@ public:
 protected:
   PRUint32 *    m_pDone;
   nsString      m_name;
-  nsCOMPtr <nsIFile> m_mbxFile;
-  nsCOMPtr <nsIFile> m_dstFile;
-  nsCOMPtr <nsIInputStream> m_mbxFileInputStream;
-  nsCOMPtr <nsIOutputStream> m_dstFileOutputStream;
+  nsCOMPtr<nsIFile> m_mbxFile;
+  nsCOMPtr<nsIMsgFolder> m_dstFolder;
+  nsCOMPtr<nsIInputStream> m_mbxFileInputStream;
+  nsCOMPtr<nsIOutputStream> m_dstOutputStream;
+  nsCOMPtr<nsIMsgPluggableStore> m_msgStore;
   PRUint8 *     m_pInBuffer;
   PRUint8 *     m_pOutBuffer;
   PRUint32      m_bufSz;
@@ -92,7 +96,7 @@ protected:
 
 class CIndexScanner : public CMbxScanner {
 public:
-  CIndexScanner(nsString& name, nsIFile * idxFile, nsIFile * mbxFile, nsIFile *dstFile);
+  CIndexScanner(nsString& name, nsIFile * idxFile, nsIFile * mbxFile, nsIMsgFolder *dstFolder);
   ~CIndexScanner();
 
   virtual bool    Initialize(void);
@@ -115,7 +119,9 @@ private:
 };
 
 
-bool CImportMailbox::ImportMailbox(PRUint32 *pDone, bool *pAbort, nsString& name, nsIFile * inFile, nsIFile * outFile, PRUint32 *pCount)
+bool CImportMailbox::ImportMailbox(PRUint32 *pDone, bool *pAbort,
+                                   nsString& name, nsIFile * inFile,
+                                   nsIMsgFolder *outFolder, PRUint32 *pCount)
 {
   bool    done = false;
   nsresult rv;
@@ -132,7 +138,7 @@ bool CImportMailbox::ImportMailbox(PRUint32 *pDone, bool *pAbort, nsString& name
 
     IMPORT_LOG1("Using index file for: %S\n", name.get());
 
-    CIndexScanner *pIdxScanner = new CIndexScanner(name, idxFile, inFile, outFile);
+    CIndexScanner *pIdxScanner = new CIndexScanner(name, idxFile, inFile, outFolder);
     if (pIdxScanner->Initialize()) {
       if (pIdxScanner->DoWork(pAbort, pDone, pCount)) {
         done = true;
@@ -155,7 +161,7 @@ bool CImportMailbox::ImportMailbox(PRUint32 *pDone, bool *pAbort, nsString& name
     something went wrong with the index file, just scan the mailbox
     file itself.
   */
-  CMbxScanner *pMbx = new CMbxScanner(name, inFile, outFile);
+  CMbxScanner *pMbx = new CMbxScanner(name, inFile, outFolder);
   if (pMbx->Initialize()) {
     if (pMbx->DoWork(pAbort, pDone, pCount)) {
       done = true;
@@ -203,12 +209,13 @@ const char *CMbxScanner::m_pFromLine = "From - Mon Jan 1 00:00:00 1965\x0D\x0A";
 #define  kBufferKB  16
 
 
-CMbxScanner::CMbxScanner(nsString& name, nsIFile* mbxFile, nsIFile* dstFile)
+CMbxScanner::CMbxScanner(nsString& name, nsIFile* mbxFile,
+                         nsIMsgFolder* dstFolder)
 {
   m_msgCount = 0;
   m_name = name;
   m_mbxFile = mbxFile;
-  m_dstFile = dstFile;
+  m_dstFolder = dstFolder;
   m_pInBuffer = nsnull;
   m_pOutBuffer = nsnull;
   m_bufSz = 0;
@@ -223,7 +230,7 @@ CMbxScanner::~CMbxScanner()
   CleanUp();
 }
 
-void CMbxScanner::ReportWriteError(nsIFile * file, bool fatal)
+void CMbxScanner::ReportWriteError(nsIMsgFolder * folder, bool fatal)
 {
   m_fatalError = fatal;
 }
@@ -249,7 +256,7 @@ bool CMbxScanner::Initialize(void)
     return false;
   }
 
-  if (NS_FAILED(MsgNewBufferedFileOutputStream(getter_AddRefs(m_dstFileOutputStream), m_dstFile, -1, 0600))) {
+  if (NS_FAILED(m_dstFolder->GetMsgStore(getter_AddRefs(m_msgStore)))) {
     CleanUp();
     return false;
   }
@@ -292,8 +299,8 @@ void CMbxScanner::CleanUp(void)
 {
   if (m_mbxFileInputStream)
     m_mbxFileInputStream->Close();
-  if (m_dstFileOutputStream)
-    m_dstFileOutputStream->Close();
+  if (m_dstOutputStream)
+    m_dstOutputStream->Close();
 
   delete [] m_pInBuffer;
   m_pInBuffer = nsnull;
@@ -305,7 +312,8 @@ void CMbxScanner::CleanUp(void)
 
 #define  kNumMbxLongsToRead  4
 
-bool CMbxScanner::WriteMailItem(PRUint32 flags, PRUint32 offset, PRUint32 size, PRUint32 *pTotalMsgSize)
+bool CMbxScanner::WriteMailItem(PRUint32 flags, PRUint32 offset, PRUint32 size,
+                                PRUint32 *pTotalMsgSize)
 {
   PRUint32  values[kNumMbxLongsToRead];
   PRInt32    cnt = kNumMbxLongsToRead * sizeof(PRUint32);
@@ -337,9 +345,32 @@ bool CMbxScanner::WriteMailItem(PRUint32 flags, PRUint32 offset, PRUint32 size, 
   if (pTotalMsgSize != nsnull)
     *pTotalMsgSize = values[2];
 
+  nsCOMPtr<nsIMsgDBHdr> msgHdr;
+  bool reusable;
+
+  rv = m_msgStore->GetNewMsgOutputStream(m_dstFolder, getter_AddRefs(msgHdr), &reusable,
+                                         getter_AddRefs(m_dstOutputStream));
+  if (NS_FAILED(rv))
+  {
+    IMPORT_LOG1( "Mbx getting outputstream error: 0x%lx\n", rv);
+    return false;
+  }
+
   // everything looks kosher...
   // the actual message text follows and is values[3] bytes long...
-  return CopyMbxFileBytes(flags,  values[3]);
+  bool copyOK = CopyMbxFileBytes(flags,  values[3]);
+  if (copyOK)
+    m_msgStore->FinishNewMessage(m_dstOutputStream, msgHdr);
+  else {
+    m_msgStore->DiscardNewMessage(m_dstOutputStream, msgHdr);
+    IMPORT_LOG0( "Mbx CopyMbxFileBytes failed\n");
+  }
+  if (!reusable)
+  {
+    m_dstOutputStream->Close();
+    m_dstOutputStream = nsnull;
+  }
+  return copyOK;
 }
 
 bool CMbxScanner::IsFromLineKey(PRUint8 * pBuf, PRUint32 max)
@@ -410,22 +441,22 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
 
       }
       // Begin every message with a From separator
-      rv = m_dstFileOutputStream->Write(m_pFromLine, fromLen, &cntRead);
+      rv = m_dstOutputStream->Write(m_pFromLine, fromLen, &cntRead);
       if (NS_FAILED(rv) || (cntRead != fromLen)) {
-        ReportWriteError(m_dstFile);
+        ReportWriteError(m_dstFolder);
         return false;
       }
       char statusLine[50];
       PRUint32 msgFlags = flags; // need to convert from OE flags to mozilla flags
       PR_snprintf(statusLine, sizeof(statusLine), X_MOZILLA_STATUS_FORMAT MSG_LINEBREAK, msgFlags & 0xFFFF);
-      rv = m_dstFileOutputStream->Write(statusLine, strlen(statusLine), &cntRead);
+      rv = m_dstOutputStream->Write(statusLine, strlen(statusLine), &cntRead);
       if (NS_SUCCEEDED(rv) && cntRead == fromLen)
       {
         PR_snprintf(statusLine, sizeof(statusLine), X_MOZILLA_STATUS2_FORMAT MSG_LINEBREAK, msgFlags & 0xFFFF0000);
-        rv = m_dstFileOutputStream->Write(statusLine, strlen(statusLine), &cntRead);
+        rv = m_dstOutputStream->Write(statusLine, strlen(statusLine), &cntRead);
       }
       if (NS_FAILED(rv) || (cntRead != fromLen)) {
-        ReportWriteError(m_dstFile);
+        ReportWriteError(m_dstFolder);
         return false;
       }
       first = false;
@@ -448,11 +479,11 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
           if ((pIn[1] == nsCRT::LF) && IsFromLineKey(pIn + 2, cnt)) {
             inIdx += 2;
             // Match, escape it
-            rv = m_dstFileOutputStream->Write((const char *)pStart, (PRInt32)inIdx, &cntRead);
+            rv = m_dstOutputStream->Write((const char *)pStart, (PRInt32)inIdx, &cntRead);
             if (NS_SUCCEEDED(rv) && (cntRead == (PRInt32)inIdx))
-              rv = m_dstFileOutputStream->Write(">", 1, &cntRead);
+              rv = m_dstOutputStream->Write(">", 1, &cntRead);
             if (NS_FAILED(rv) || (cntRead != 1)) {
-              ReportWriteError(m_dstFile);
+              ReportWriteError(m_dstFolder);
               return false;
             }
 
@@ -469,9 +500,9 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
       inIdx++;
       pIn++;
     }
-    rv = m_dstFileOutputStream->Write((const char *)pStart, (PRInt32)inIdx, &cntRead);
+    rv = m_dstOutputStream->Write((const char *)pStart, (PRInt32)inIdx, &cntRead);
     if (NS_FAILED(rv) || (cntRead != (PRInt32)inIdx)) {
-      ReportWriteError(m_dstFile);
+      ReportWriteError(m_dstFolder);
       return false;
     }
 
@@ -488,9 +519,9 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
   // separator never really hurts so better to be safe
   // and always do it.
   //  if ((last[0] != nsCRT::CR) || (last[1] != nsCRT::LF)) {
-  rv = m_dstFileOutputStream->Write("\x0D\x0A", 2, &cntRead);
+  rv = m_dstOutputStream->Write("\x0D\x0A", 2, &cntRead);
   if (NS_FAILED(rv) || (cntRead != 2)) {
-    ReportWriteError(m_dstFile);
+    ReportWriteError(m_dstFolder);
     return false;
   }
   //  } // != nsCRT::CR || != nsCRT::LF
@@ -498,9 +529,9 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
   return true;
 }
 
-
-CIndexScanner::CIndexScanner(nsString& name, nsIFile * idxFile, nsIFile * mbxFile, nsIFile * dstFile)
-: CMbxScanner(name, mbxFile, dstFile)
+CIndexScanner::CIndexScanner(nsString& name, nsIFile * idxFile,
+                             nsIFile * mbxFile, nsIMsgFolder * dstFolder)
+  : CMbxScanner( name, mbxFile, dstFolder)
 {
   m_idxFile = idxFile;
   m_curItemIndex = 0;

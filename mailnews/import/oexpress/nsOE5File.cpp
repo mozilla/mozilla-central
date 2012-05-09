@@ -43,6 +43,8 @@
 #include "prprf.h"
 #include "nsMsgLocalFolderHdrs.h"
 #include "nsIOutputStream.h"
+#include "nsIMsgPluggableStore.h"
+#include "nsIMsgHdr.h"
 #include "nsNetUtil.h"
 #include "nsISeekableStream.h"
 #include "nsMsgMessageFlags.h"
@@ -270,21 +272,20 @@ bool nsOE5File::IsFromLine(char *pLine, PRUint32 len)
 #define  kMaxAttrCount       0x0030
 const char *nsOE5File::m_pFromLineSep = "From - Mon Jan 1 00:00:00 1965\x0D\x0A";
 
-nsresult nsOE5File::ImportMailbox(PRUint32 *pBytesDone, bool *pAbort, nsString& name, nsIFile *inFile, nsIFile *pDestination, PRUint32 *pCount)
+nsresult nsOE5File::ImportMailbox(PRUint32 *pBytesDone, bool *pAbort,
+                                  nsString& name, nsIFile *inFile,
+                                  nsIMsgFolder *dstFolder, PRUint32 *pCount)
 {
-  nsresult  rv;
   PRInt32    msgCount = 0;
   if (pCount)
     *pCount = 0;
 
-  nsCOMPtr <nsIInputStream> inputStream;
-  rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), inFile);
-  if (NS_FAILED(rv))
-    return rv;
-  nsCOMPtr <nsIOutputStream> outputStream;
-  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(outputStream), pDestination, -1, 0600);
-  if (NS_FAILED(rv))
-    return rv;
+  nsCOMPtr<nsIInputStream> inputStream;
+  nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), inFile);
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMsgPluggableStore> msgStore;
+  rv = dstFolder->GetMsgStore(getter_AddRefs(msgStore));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   PRUint32 *  pIndex;
   PRUint32  indexSize;
@@ -331,12 +332,24 @@ nsresult nsOE5File::ImportMailbox(PRUint32 *pBytesDone, bool *pAbort, nsString& 
   PRUint32  next, size;
   char *pStart, *pEnd, *partialLineStart;
   nsCAutoString partialLine, tempLine;
+  nsCOMPtr<nsIOutputStream> outputStream;
   rv = NS_OK;
 
   for (PRUint32 i = 0; (i < indexSize) && !(*pAbort); i++)
   {
     if (! pIndex[i])
       continue;
+
+    nsCOMPtr<nsIMsgDBHdr> msgHdr;
+    bool reusable;
+
+    rv = msgStore->GetNewMsgOutputStream(dstFolder, getter_AddRefs(msgHdr), &reusable,
+                                         getter_AddRefs(outputStream));
+    if (NS_FAILED(rv))
+    {
+      IMPORT_LOG1( "Mbx getting outputstream error: 0x%lx\n", rv);
+      break;
+    }
 
     if (ReadBytes(inputStream, block, pIndex[i], 16) && (block[0] == pIndex[i]) &&
       (block[2] < kMailboxBufferSize) && (ReadBytes(inputStream, pBuffer, kDontSeek, block[2])))
@@ -482,8 +495,16 @@ nsresult nsOE5File::ImportMailbox(PRUint32 *pBytesDone, bool *pAbort, nsString& 
       // when you open the folder.
       rv = outputStream->Write("\x0D\x0A", 2, &written);
 
-      if (NS_FAILED(rv))
+      if (NS_FAILED(rv)) {
+        IMPORT_LOG0( "Error writing message during OE import\n");
+        msgStore->DiscardNewMessage(outputStream, msgHdr);
         break;
+      }
+
+      msgStore->FinishNewMessage(outputStream, msgHdr);
+
+      if (!reusable)
+        outputStream->Close();
 
       msgCount++;
       if (pCount)
@@ -497,7 +518,8 @@ nsresult nsOE5File::ImportMailbox(PRUint32 *pBytesDone, bool *pAbort, nsString& 
       *pAbort = true;
     }
   }
-
+  if (outputStream)
+    outputStream->Close();
   delete [] pBuffer;
   delete [] pFlags;
   delete [] pTime;

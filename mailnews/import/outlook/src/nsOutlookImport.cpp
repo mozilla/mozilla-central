@@ -96,9 +96,10 @@ public:
   /* nsISupportsArray FindMailboxes (in nsIFile location); */
   NS_IMETHOD FindMailboxes(nsIFile *location, nsISupportsArray **_retval);
 
-  /* void ImportMailbox (in nsIImportMailboxDescriptor source, in nsIFile destination, out boolean fatalError); */
-  NS_IMETHOD ImportMailbox(nsIImportMailboxDescriptor *source, nsIFile *destination,
-                PRUnichar **pErrorLog, PRUnichar **pSuccessLog, bool *fatalError);
+  NS_IMETHOD ImportMailbox(nsIImportMailboxDescriptor *source,
+                           nsIMsgFolder *dstFolder,
+                           PRUnichar **pErrorLog, PRUnichar **pSuccessLog,
+                           bool *fatalError);
 
   /* unsigned long GetImportProgress (); */
   NS_IMETHOD GetImportProgress(PRUint32 *_retval);
@@ -420,33 +421,26 @@ void ImportOutlookMailImpl::SetLogs(nsString& success, nsString& error, PRUnicha
     *pSuccess = ToNewUnicode(success);
 }
 
-NS_IMETHODIMP ImportOutlookMailImpl::ImportMailbox( nsIImportMailboxDescriptor *pSource,
-                        nsIFile *pDestination,
-                        PRUnichar **pErrorLog,
-                        PRUnichar **pSuccessLog,
-                        bool *fatalError)
+NS_IMETHODIMP
+ImportOutlookMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSource,
+                                     nsIMsgFolder *dstFolder,
+                                     PRUnichar **pErrorLog,
+                                     PRUnichar **pSuccessLog,
+                                     bool *fatalError)
 {
-  NS_PRECONDITION(pSource != nsnull, "null ptr");
-  NS_PRECONDITION(pDestination != nsnull, "null ptr");
-  NS_PRECONDITION(fatalError != nsnull, "null ptr");
+  NS_ENSURE_ARG_POINTER(pSource);
+  NS_ENSURE_ARG_POINTER(dstFolder);
+  NS_ENSURE_ARG_POINTER(fatalError);
 
   nsString  success;
   nsString  error;
-  if (!pSource || !pDestination || !fatalError) {
-    nsOutlookStringBundle::GetStringByID(OUTLOOKIMPORT_MAILBOX_BADPARAM, error);
-    if (fatalError)
-      *fatalError = true;
-    SetLogs(success, error, pErrorLog, pSuccessLog);
-      return NS_ERROR_NULL_POINTER;
-  }
-
-    bool      abort = false;
-    nsString  name;
-    PRUnichar *  pName;
-    if (NS_SUCCEEDED(pSource->GetDisplayName(&pName))) {
-      name = pName;
-      NS_Free(pName);
-    }
+  bool abort = false;
+  nsString name;
+  PRUnichar *pName;
+  if (NS_SUCCEEDED( pSource->GetDisplayName( &pName))) {
+    name = pName;
+    NS_Free( pName);
+ }
 
   PRUint32 mailSize = 0;
   pSource->GetSize(&mailSize);
@@ -463,7 +457,8 @@ NS_IMETHODIMP ImportOutlookMailImpl::ImportMailbox( nsIImportMailboxDescriptor *
 
   m_bytesDone = 0;
 
-  rv = m_mail.ImportMailbox(&m_bytesDone, &abort, (PRInt32)index, name.get(), pDestination, &msgCount);
+  rv = m_mail.ImportMailbox(&m_bytesDone, &abort, (PRInt32)index, name.get(),
+                            dstFolder, &msgCount);
 
   if (NS_SUCCEEDED(rv))
     ReportSuccess(name, msgCount, &success);
@@ -472,7 +467,7 @@ NS_IMETHODIMP ImportOutlookMailImpl::ImportMailbox( nsIImportMailboxDescriptor *
 
   SetLogs(success, error, pErrorLog, pSuccessLog);
 
-    return rv;
+  return rv;
 }
 
 
