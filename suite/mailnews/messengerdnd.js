@@ -49,7 +49,7 @@ function CanDropOnFolderTree(aIndex, aOrientation)
 {
   var dragSession = dragService.getCurrentSession();
   if (!dragSession)
-    return;
+    return false;
 
   var folderTree = GetFolderTree();
   var targetFolder = GetFolderResource(folderTree, aIndex)
