@@ -652,8 +652,8 @@ nsMsgMaildirStore::GetNewMsgOutputStream(nsIMsgFolder *aFolder,
     rv = db->CreateNewHdr(nsMsgKey_None, aNewMsgHdr);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    (*aNewMsgHdr)->SetMessageOffset(0);
   }
+  (*aNewMsgHdr)->SetMessageOffset(0);
   // path to the message download folder
   nsCOMPtr<nsILocalFile> newFile;
   rv = aFolder->GetFilePath(getter_AddRefs(newFile));

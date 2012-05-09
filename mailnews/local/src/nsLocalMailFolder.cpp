@@ -1558,6 +1558,10 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
       if (txnMgr)
         txnMgr->DoTransaction(undoTxn);
     }
+    if (isMove)
+      srcFolder->NotifyFolderEvent(NS_SUCCEEDED(rv) ? mDeleteOrMoveMsgCompletedAtom :
+                                                      mDeleteOrMoveMsgFailedAtom);
+
     return rv;
   }
   // If the store doesn't do the copy, we'll stream the source messages into
@@ -2307,6 +2311,8 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(bool aCopySucceeded)
       mCopyState->m_fileStream->Close();
     else
       mCopyState->m_fileStream->Flush();
+    mCopyState->m_msgStore->FinishNewMessage(mCopyState->m_fileStream,
+                                             mCopyState->m_newHdr);
   }
   //Copy the header to the new database
   if (mCopyState->m_message)

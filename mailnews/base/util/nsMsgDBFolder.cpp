@@ -867,7 +867,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRInt64 *offs
 NS_IMETHODIMP
 nsMsgDBFolder::GetOfflineStoreOutputStream(nsIMsgDBHdr *aHdr,
                                            nsIOutputStream **aOutputStream)
-      {
+{
   NS_ENSURE_ARG_POINTER(aOutputStream);
   NS_ENSURE_ARG_POINTER(aHdr);
 
@@ -878,8 +878,8 @@ nsMsgDBFolder::GetOfflineStoreOutputStream(nsIMsgDBHdr *aHdr,
   rv = offlineStore->GetNewMsgOutputStream(this, &aHdr, &reusable,
                                            aOutputStream);
   NS_ENSURE_SUCCESS(rv, rv);
-          return rv;
-      }
+  return rv;
+}
 
 NS_IMETHODIMP
 nsMsgDBFolder::GetMsgInputStream(nsIMsgDBHdr *aMsgHdr, bool *aReusable,
@@ -1717,6 +1717,9 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
   if (m_tempMessageStream)
     seekable = do_QueryInterface(m_tempMessageStream);
 
+  nsCOMPtr<nsIMsgPluggableStore> msgStore;
+  GetMsgStore(getter_AddRefs(msgStore));
+
   if (seekable)
   {
     mDatabase->MarkOffline(messageKey, true, nsnull);
@@ -1751,8 +1754,8 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
          m_tempMessageStream->Close();
          m_tempMessageStream = nsnull;
          ReleaseSemaphore(static_cast<nsIMsgFolder*>(this));
-
-         localStore->SetFileSize(messageOffset);
+         if (msgStore)
+           msgStore->DiscardNewMessage(m_tempMessageStream, m_offlineHeader);
        }
        NS_ERROR("offline message too small");
     }
@@ -1766,8 +1769,6 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
                    "offline message doesn't start with From ");
 #endif
   }
-  nsCOMPtr<nsIMsgPluggableStore> msgStore;
-  GetMsgStore(getter_AddRefs(msgStore));
   if (msgStore)
     msgStore->FinishNewMessage(m_tempMessageStream, m_offlineHeader);
 
