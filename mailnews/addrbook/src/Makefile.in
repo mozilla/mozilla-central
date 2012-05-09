@@ -81,6 +81,9 @@ EXTRA_COMPONENTS += \
 		nsAbLDAPAttributeMap.js \
 		nsAbAutoCompleteMyDomain.js \
 		nsAbAutoCompleteSearch.js \
+		$(NULL)
+
+EXTRA_PP_COMPONENTS += \
 		nsAddrbook.manifest \
 		$(NULL)
 
@@ -113,12 +116,22 @@ CPPSRCS		+= \
 		nsAbLDAPDirectoryQuery.cpp \
 		nsAbLDAPDirectoryModify.cpp \
 		nsAbBoolExprToLDAPFilter.cpp \
-		nsAbLDAPAutoCompFormatter.cpp \
 		nsAbLDAPReplicationService.cpp \
 		nsAbLDAPReplicationQuery.cpp \
 		nsAbLDAPReplicationData.cpp \
+		$(NULL)
+
+ifndef MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE
+CPPSRCS		+= \
+		nsAbLDAPAutoCompFormatter.cpp \
 		nsLDAPAutoCompleteSession.cpp \
 		$(NULL)
+else
+DEFINES += -DMOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE
+EXTRA_COMPONENTS += \
+		nsAbLDAPAutoCompleteSearch.js \
+		$(NULL)
+endif
 
 # XXX These files are not being built as they don't work. Bug 311632 should
 # fix them.

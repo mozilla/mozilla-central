@@ -67,7 +67,7 @@
                          class="plain textbox-addressingWidget uri-element"
                          type="autocomplete"
                          flex="1"
-                         autocompletesearch="addrbook"
+                         autocompletesearch="addrbook ldap"
                          timeout="300"
                          maxrows="4"
                          completedefaultindex="true"

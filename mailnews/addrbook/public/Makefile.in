@@ -73,10 +73,14 @@ XPIDLSRCS	= \
 		$(NULL)
 
 ifdef MOZ_LDAP_XPCOM
+ifndef MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE
 XPIDLSRCS       += \
 		nsILDAPAutoCompleteSession.idl \
 		nsILDAPAutoCompFormatter.idl \
 		nsIAbLDAPAutoCompFormatter.idl \
+		$(NULL)
+endif
+XPIDLSRCS       += \
                 nsIAbLDAPReplicationService.idl \
                 nsIAbLDAPReplicationQuery.idl \
                 nsIAbLDAPReplicationData.idl \

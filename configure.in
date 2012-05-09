@@ -6710,6 +6710,11 @@ if test "$MOZ_DEBUG" -o "$NS_TRACE_MALLOC"; then
 fi
 
 if test "$MOZ_LDAP_XPCOM"; then
+    MOZ_ARG_ENABLE_BOOL(incomplete-toolkit-ldap-autocomplete,
+    [  --enable-incomplete-toolkit-ldap-autocomplete Builds a JavaScript component that implements an LDAP autocomplete component using the toolkit interfaces rather than the C++ component using the obsolete XPFE interfaces. ],
+        MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE=1,
+        MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE= )
+
     LDAP_CFLAGS='-I${DIST}/public/ldap'
     if test "$OS_ARCH" = "WINNT"; then
         if test -n "$GNU_CC"; then
@@ -6732,6 +6737,7 @@ if test "$MOZ_LDAP_XPCOM"; then
     LDAP_MODULE="MODULE(nsLDAPProtocolModule)"
     export LDAP_MODULE
 fi
+AC_SUBST(MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE)
 
 
 dnl ========================================================
