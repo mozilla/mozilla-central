@@ -130,6 +130,7 @@
 
 .toolbarbutton-1 {
   -moz-box-orient: vertical;
+  min-height: 24px;
 }
 
 toolbox[labelalign="end"] .toolbarbutton-1,

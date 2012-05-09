@@ -249,7 +249,6 @@
 }
 
 .toolbarbutton-1.msgHeaderView-button {
-  min-height: 1ex;
   min-width: 1em;
   -moz-margin-start: 2px !important;
   -moz-margin-end: 2px !important;
@@ -259,8 +258,6 @@
   /* important required to override primaryToolbar.css rules */
   -moz-padding-start: 3px !important;
   -moz-padding-end: 3px !important;
-  padding-top: 2px !important;
-  padding-bottom: 2px !important;
 }
 
 @media not all and (-moz-windows-default-theme) {
@@ -321,7 +318,6 @@
 
 .msgHeaderView-button[type="menu-button"] > .toolbarbutton-menubutton-button {
   min-width: 1em;
-  min-height: 24px;
   margin: 0px;
   /* important required to override primaryToolbar.css rules */
   -moz-padding-start: 3px !important;
@@ -457,7 +453,6 @@ toolbarpaletteitem #hdrDummyReplyButton {
 .msgHeaderView-button,
 toolbarpaletteitem .msgHeaderView-button {
   -moz-appearance: none;
-  min-height: 24px;
 }
 
 .msgHeaderView-flat-button {
