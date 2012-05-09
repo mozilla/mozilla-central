@@ -1655,3 +1655,14 @@ function GetFileFromString(aString)
   return uri instanceof Components.interfaces.nsIFileURL ?
          uri.file.QueryInterface(Components.interfaces.nsILocalFile) : null;
 }
+
+function CopyImage()
+{
+  var param = Components.classes["@mozilla.org/embedcomp/command-params;1"]
+                        .createInstance(Components.interfaces.nsICommandParams);
+  param.setLongValue("imageCopy",
+                     Components.interfaces.nsIContentViewerEdit.COPY_IMAGE_ALL);
+  document.commandDispatcher.getControllerForCommand("cmd_copyImage")
+          .QueryInterface(Components.interfaces.nsICommandController)
+          .doCommandWithParams("cmd_copyImage", param);
+}

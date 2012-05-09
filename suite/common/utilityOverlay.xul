@@ -364,7 +364,7 @@
            oncommand="goDoCommand('cmd_copyLink')"
            disabled="false"/>
   <command id="cmd_copyImage"
-           oncommand="goDoCommand('cmd_copyImage')"
+           oncommand="CopyImage();"
            disabled="false"/>
   <command id="cmd_undo"
            label="&undoCmd.label;"
