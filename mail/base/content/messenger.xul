@@ -75,6 +75,7 @@
   -  3-pane view inside of tabs.
   -->
 <window id="messengerWindow"
+        xmlns:svg="http://www.w3.org/2000/svg"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         title="&titledefault.label;@PRE_RELEASE_SUFFIX@"
         titlemodifier="&titledefault.label;@PRE_RELEASE_SUFFIX@"
@@ -587,5 +588,13 @@
     <statusbarpanel id="unreadMessageCount"/>
     <statusbarpanel id="totalMessageCount"/>
   </statusbar>
+
+  <svg:svg height="0">
+    <svg:clipPath id="tab-curve-clip-path">
+      <svg:path d="M30,31C21,31,2,31,2,31s0,0,0-1c9,0,11-5,13-13 C16,12,17,2,30,2L30,31z" />
+      <svg:rect x="30" y="2" width="1" height="30" />
+    </svg:clipPath>
+  </svg:svg>
+
 </window>
 

@@ -75,7 +75,7 @@
 }
 
 #navigation-toolbox #tabs-toolbar:not(:-moz-lwtheme) {
-  border-bottom: 1px solid ThreeDDarkShadow;
+  border-bottom: 1px solid ThreeDShadow;
 }
 
 #navigation-toolbox #tabs-toolbar:-moz-lwtheme {
@@ -375,6 +375,13 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   #tabs-toolbar {
     background: transparent !important;
     border-style: none;
+  }
+
+  #tabs-toolbar:not(:-moz-lwtheme) {
+    margin-left: 1px;
+    margin-right: 1px;
+    background-image: -moz-linear-gradient(hsla(210, 23%, 74%, .05),
+                      hsla(210, 23%, 74%, .8)) !important;
   }
 
   #mail-toolbox:not(:-moz-lwtheme),
