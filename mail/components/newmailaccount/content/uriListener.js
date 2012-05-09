@@ -50,19 +50,6 @@ Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/NetUtil.jsm");
 
-// Why don't people use JSMs? Sigh...
-let accountCreationFuncs = {};
-Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/util.js", accountCreationFuncs);
-Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/accountConfig.js", accountCreationFuncs);
-Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/emailWizard.js", accountCreationFuncs);
-Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/sanitizeDatatypes.js", accountCreationFuncs);
-Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/fetchhttp.js", accountCreationFuncs);
-Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/readFromXML.js", accountCreationFuncs);
-Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/verifyConfig.js", accountCreationFuncs);
-Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/fetchConfig.js", accountCreationFuncs);
-Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/createInBackend.js", accountCreationFuncs);
-Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/MyBadCertHandler.js", accountCreationFuncs);
-
 /**
  * This is an observer that watches all HTTP requests for one where the
  * response contentType contains text/xml.  Once that observation is
@@ -180,6 +167,40 @@ TracingListener.prototype = {
   onStopRequest: function (/* nsIRequest */ aRequest,
                            /* nsISupports */ aContext,
                            /* int */ aStatusCode) {
+
+    // Why don't people use JSMs? Sigh...
+    let accountCreationFuncs = {};
+    Services.scriptloader.loadSubScript(
+      "chrome://messenger/content/accountcreation/util.js",
+      accountCreationFuncs);
+    Services.scriptloader.loadSubScript(
+      "chrome://messenger/content/accountcreation/accountConfig.js",
+      accountCreationFuncs);
+    Services.scriptloader.loadSubScript(
+      "chrome://messenger/content/accountcreation/emailWizard.js",
+      accountCreationFuncs);
+    Services.scriptloader.loadSubScript(
+      "chrome://messenger/content/accountcreation/sanitizeDatatypes.js",
+      accountCreationFuncs);
+    Services.scriptloader.loadSubScript(
+      "chrome://messenger/content/accountcreation/fetchhttp.js",
+      accountCreationFuncs);
+    Services.scriptloader.loadSubScript(
+     "chrome://messenger/content/accountcreation/readFromXML.js",
+     accountCreationFuncs);
+    Services.scriptloader.loadSubScript(
+      "chrome://messenger/content/accountcreation/verifyConfig.js",
+      accountCreationFuncs);
+    Services.scriptloader.loadSubScript(
+      "chrome://messenger/content/accountcreation/fetchConfig.js",
+      accountCreationFuncs);
+    Services.scriptloader.loadSubScript(
+      "chrome://messenger/content/accountcreation/createInBackend.js",
+      accountCreationFuncs);
+    Services.scriptloader.loadSubScript(
+      "chrome://messenger/content/accountcreation/MyBadCertHandler.js",
+      accountCreationFuncs);
+
     try {
       // Attempt to construct the downloaded data into XML
       let data = this.chunks.join("");

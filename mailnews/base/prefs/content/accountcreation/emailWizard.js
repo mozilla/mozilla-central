@@ -191,6 +191,8 @@ EmailConfigWizard.prototype =
       }
     }
 
+    gEmailWizardLogger.info("Email account setup dialog loaded.");
+
     gStringsBundle = e("strings");
     gMessengerBundle = e("bundle_messenger");
     gBrandShortName = e("bundle_brand").getString("brandShortName");
@@ -1606,8 +1608,6 @@ EmailConfigWizard.prototype =
 };
 
 var gEmailConfigWizard = new EmailConfigWizard();
-gEmailWizardLogger.info("email account setup dialog");
-
 
 function serverMatches(a, b)
 {
