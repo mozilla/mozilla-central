@@ -1967,7 +1967,7 @@ nsImapMailFolder::MarkAllMessagesRead(nsIMsgWindow *aMsgWindow)
     EnableNotifications(allMessageCountNotifications, false, true /*dbBatching*/);
     rv = mDatabase->MarkAllRead(&numMarked, &thoseMarked);
     EnableNotifications(allMessageCountNotifications, true, true /*dbBatching*/);
-    if (NS_SUCCEEDED(rv))
+    if (NS_SUCCEEDED(rv) && numMarked)
     {
       rv = StoreImapFlags(kImapMsgSeenFlag, true, thoseMarked,
                           numMarked, nsnull);
@@ -1990,7 +1990,7 @@ NS_IMETHODIMP nsImapMailFolder::MarkThreadRead(nsIMsgThread *thread)
     nsMsgKey *keys;
     PRUint32 numKeys;
     rv = mDatabase->MarkThreadRead(thread, nsnull, &numKeys, &keys);
-    if (NS_SUCCEEDED(rv))
+    if (NS_SUCCEEDED(rv) && numKeys)
     {
       rv = StoreImapFlags(kImapMsgSeenFlag, true, keys, numKeys, nsnull);
       mDatabase->Commit(nsMsgDBCommitType::kLargeCommit);

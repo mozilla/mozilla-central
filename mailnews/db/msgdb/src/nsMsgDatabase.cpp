@@ -2230,12 +2230,19 @@ nsMsgDatabase::MarkThreadRead(nsIMsgThread *thread, nsIDBChangeListener *instiga
       }
     }
   }
-  *aThoseMarked =
-    (nsMsgKey *) nsMemory::Clone(&thoseMarked[0],
-                                 thoseMarked.Length() * sizeof(nsMsgKey));
+
   *aNumMarked = thoseMarked.Length();
-  if (!*aThoseMarked)
-    return NS_ERROR_OUT_OF_MEMORY;
+
+  if (thoseMarked.Length())
+  {
+    *aThoseMarked =
+      (nsMsgKey *) nsMemory::Clone(&thoseMarked[0],
+                                   thoseMarked.Length() * sizeof(nsMsgKey));
+    if (!*aThoseMarked)
+      return NS_ERROR_OUT_OF_MEMORY;
+  }
+  else
+    *aThoseMarked = nsnull;
 
   return rv;
 }
@@ -2659,11 +2666,18 @@ NS_IMETHODIMP nsMsgDatabase::MarkAllRead(PRUint32 *aNumKeys, nsMsgKey **aThoseMa
     }
     NS_RELEASE(pHeader);
   }
-  *aThoseMarked = (nsMsgKey *) nsMemory::Clone(&thoseMarked[0],
-                                       thoseMarked.Length() * sizeof(nsMsgKey));
-  if (!*aThoseMarked)
-    return NS_ERROR_OUT_OF_MEMORY;
+
   *aNumKeys = thoseMarked.Length();
+
+  if (thoseMarked.Length())
+  {
+    *aThoseMarked = (nsMsgKey *) nsMemory::Clone(&thoseMarked[0],
+                                                 thoseMarked.Length() * sizeof(nsMsgKey));
+    if (!*aThoseMarked)
+      return NS_ERROR_OUT_OF_MEMORY;
+  }
+  else
+    *aThoseMarked = nsnull;
 
   // force num new to 0.
   PRInt32 numUnreadMessages;

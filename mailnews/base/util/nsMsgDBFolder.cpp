@@ -1465,11 +1465,11 @@ nsMsgDBFolder::MarkAllMessagesRead(nsIMsgWindow *aMsgWindow)
     nsMsgKey *thoseMarked;
     PRUint32 numMarked;
     rv = mDatabase->MarkAllRead(&numMarked, &thoseMarked);
-    NS_ENSURE_SUCCESS(rv, rv);
     EnableNotifications(allMessageCountNotifications, true, true /*dbBatching*/);
+    NS_ENSURE_SUCCESS(rv, rv);
 
     // Setup a undo-state
-    if (aMsgWindow)
+    if (aMsgWindow && numMarked)
       rv = AddMarkAllReadUndoAction(aMsgWindow, thoseMarked, numMarked);
     nsMemory::Free(thoseMarked);
   }
