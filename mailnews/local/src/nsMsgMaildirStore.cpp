@@ -1151,7 +1151,8 @@ void MaildirStoreParser::TimerCallback(nsITimer *aTimer, void *aClosure)
         nsCOMPtr<nsIMsgMailNewsUrl> url = do_QueryInterface(mailboxurl);
         url->SetUpdatingFolder(true);
         nsCAutoString uriSpec("mailbox://");
-        url->SetSpec(uriSpec);
+        // ### TODO - what if SetSpec fails?
+        (void) url->SetSpec(uriSpec);
         parser->m_listener->OnStopRunningUrl(url, NS_OK);
       }
     }

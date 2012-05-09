@@ -2572,87 +2572,92 @@ nsresult nsImapService::GetServerFromUrl(nsIImapUrl *aImapUrl, nsIMsgIncomingSer
 }
 
 NS_IMETHODIMP nsImapService::NewURI(const nsACString &aSpec,
-                                    const char *aOriginCharset,  // ignored 
+                                    const char *aOriginCharset,  // ignored
                                     nsIURI *aBaseURI,
                                     nsIURI **aRetVal)
 {
+  NS_ENSURE_ARG_POINTER(aRetVal);
+
   nsresult rv;
   nsCOMPtr<nsIImapUrl> aImapUrl = do_CreateInstance(kImapUrlCID, &rv);
-  if (NS_SUCCEEDED(rv))
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // now extract lots of fun information...
+  nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(aImapUrl);
+  // nsCAutoString unescapedSpec(aSpec);
+  // nsUnescape(unescapedSpec.BeginWriting());
+
+  // set the spec
+  if (aBaseURI)
   {
-    // now extract lots of fun information...
-    nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(aImapUrl);
-    //nsCAutoString unescapedSpec(aSpec);
-    // nsUnescape(unescapedSpec.BeginWriting());
-
-    // set the spec
-    if (aBaseURI) 
-    {
-      nsCAutoString newSpec;
-      aBaseURI->Resolve(aSpec, newSpec);
-      mailnewsUrl->SetSpec(newSpec);
-    } 
-    else 
-      mailnewsUrl->SetSpec(aSpec);
-
-    nsCString folderName;
-
-    // if we can't get a folder name out of the url then I think this is an error
-    aImapUrl->CreateCanonicalSourceFolderPathString(getter_Copies(folderName));
-    if (folderName.IsEmpty())
-    {
-      rv = mailnewsUrl->GetFileName(folderName);
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
-
-    nsCOMPtr <nsIMsgIncomingServer> server;
-    rv = GetServerFromUrl(aImapUrl, getter_AddRefs(server));
-    // if we can't extract the imap server from this url then give up!!!
-    NS_ENSURE_SUCCESS(rv, rv);
-    NS_ENSURE_TRUE(server, NS_ERROR_FAILURE);
-
-    // now try to get the folder in question...
-    nsCOMPtr<nsIMsgFolder> rootFolder;
-    server->GetRootFolder(getter_AddRefs(rootFolder));
-    if (rootFolder && !folderName.IsEmpty())
-    {
-      nsCOMPtr<nsIMsgFolder> folder;
-      nsCOMPtr <nsIMsgImapMailFolder> imapRoot = do_QueryInterface(rootFolder, &rv);
-      nsCOMPtr <nsIMsgImapMailFolder> subFolder;
-      if (imapRoot)
-      {
-        imapRoot->FindOnlineSubFolder(folderName, getter_AddRefs(subFolder));
-        folder = do_QueryInterface(subFolder, &rv);
-      }
-      if (NS_SUCCEEDED(rv))
-      {
-        nsCOMPtr<nsIImapMessageSink> msgSink = do_QueryInterface(folder);
-        rv = aImapUrl->SetImapMessageSink(msgSink);
-
-        nsCOMPtr<nsIMsgFolder> msgFolder = do_QueryInterface(folder);
-        rv = SetImapUrlSink(msgFolder, aImapUrl);
-
-         nsCString messageIdString;
-         aImapUrl->GetListOfMessageIds(messageIdString);
-         if (!messageIdString.IsEmpty())
-        {
-          bool useLocalCache = false;
-          msgFolder->HasMsgOffline(atoi(messageIdString.get()), &useLocalCache);  
-          mailnewsUrl->SetMsgIsInLocalCache(useLocalCache);
-        }
-      }
-    }
-
-    // if we are fetching a part, be sure to enable fetch parts on demand
-    bool mimePartSelectorDetected = false;
-    aImapUrl->GetMimePartSelectorDetected(&mimePartSelectorDetected);
-    if (mimePartSelectorDetected)
-      aImapUrl->SetFetchPartsOnDemand(true);
-
-    // we got an imap url, so be sure to return it...
-    nsCOMPtr<nsIURI> imapUri = do_QueryInterface(aImapUrl);
-    imapUri.swap(*aRetVal);
+    nsCAutoString newSpec;
+    aBaseURI->Resolve(aSpec, newSpec);
+    rv = mailnewsUrl->SetSpec(newSpec);
   }
+  else
+  {
+    rv = mailnewsUrl->SetSpec(aSpec);
+  }
+
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCString folderName;
+  // if we can't get a folder name out of the url then I think this is an error
+  aImapUrl->CreateCanonicalSourceFolderPathString(getter_Copies(folderName));
+  if (folderName.IsEmpty())
+  {
+    rv = mailnewsUrl->GetFileName(folderName);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  nsCOMPtr<nsIMsgIncomingServer> server;
+  rv = GetServerFromUrl(aImapUrl, getter_AddRefs(server));
+  // if we can't extract the imap server from this url then give up!!!
+  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_TRUE(server, NS_ERROR_FAILURE);
+
+  // now try to get the folder in question...
+  nsCOMPtr<nsIMsgFolder> rootFolder;
+  server->GetRootFolder(getter_AddRefs(rootFolder));
+  if (rootFolder && !folderName.IsEmpty())
+  {
+    nsCOMPtr<nsIMsgFolder> folder;
+    nsCOMPtr<nsIMsgImapMailFolder> imapRoot = do_QueryInterface(rootFolder, &rv);
+    nsCOMPtr<nsIMsgImapMailFolder> subFolder;
+    if (imapRoot)
+    {
+      imapRoot->FindOnlineSubFolder(folderName, getter_AddRefs(subFolder));
+      folder = do_QueryInterface(subFolder, &rv);
+    }
+    if (NS_SUCCEEDED(rv))
+    {
+      nsCOMPtr<nsIImapMessageSink> msgSink = do_QueryInterface(folder);
+      rv = aImapUrl->SetImapMessageSink(msgSink);
+
+      nsCOMPtr<nsIMsgFolder> msgFolder = do_QueryInterface(folder);
+      rv = SetImapUrlSink(msgFolder, aImapUrl);
+
+      nsCString messageIdString;
+      aImapUrl->GetListOfMessageIds(messageIdString);
+      if (!messageIdString.IsEmpty())
+      {
+        bool useLocalCache = false;
+        msgFolder->HasMsgOffline(atoi(messageIdString.get()), &useLocalCache);
+        mailnewsUrl->SetMsgIsInLocalCache(useLocalCache);
+      }
+    }
+  }
+
+  // if we are fetching a part, be sure to enable fetch parts on demand
+  bool mimePartSelectorDetected = false;
+  aImapUrl->GetMimePartSelectorDetected(&mimePartSelectorDetected);
+  if (mimePartSelectorDetected)
+    aImapUrl->SetFetchPartsOnDemand(true);
+
+  // we got an imap url, so be sure to return it...
+  nsCOMPtr<nsIURI> imapUri = do_QueryInterface(aImapUrl);
+
+  imapUri.swap(*aRetVal);
 
   return rv;
 }
