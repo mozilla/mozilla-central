@@ -295,82 +295,44 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
 .hdrReplyToSenderButton,
 .hdrDummyReplyButton,
 .hdrReplyButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
-  -moz-image-region: rect(0px 96px 24px 72px);
-}
-
-toolbar[iconsize="small"] .hdrReplyToSenderButton,
-toolbar[iconsize="small"] .hdrDummyReplyButton,
-toolbar[iconsize="small"] .hdrReplyButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 64px 16px 48px);
 }
 
 .hdrReplyAllButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
-  -moz-image-region: rect(0px 120px 24px 96px);
-}
-
-toolbar[iconsize="small"] .hdrReplyAllButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 80px 16px 64px);
 }
 
 .hdrReplyListButton,
 .hdrFollowupButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
-  -moz-image-region: rect(0px 168px 24px 144px);
-}
-
-toolbar[iconsize="small"] .hdrReplyListButton,
-toolbar[iconsize="small"] .hdrFollowupButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 112px 16px 96px);
 }
 
 .hdrForwardButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
-  -moz-image-region: rect(0px 144px 24px 120px);
-}
-
-toolbar[iconsize="small"] .hdrForwardButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 96px 16px 80px);
 }
 
 .hdrArchiveButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
-  -moz-image-region: rect(0px 480px 24px 456px);
-}
-
-toolbar[iconsize="small"] .hdrArchiveButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 320px 16px 304px);
 }
 
 .hdrJunkButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
-  -moz-image-region: rect(0px 216px 24px 192px);
-}
-
-toolbar[iconsize="small"] .hdrJunkButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 144px 16px 128px);
 }
 
 .hdrTrashButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
-  -moz-image-region: rect(0px 192px 24px 168px);
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 128px 16px 112px);
 }
 
 .hdrTagButton {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 256px 16px 240px);
-}
-
-toolbar[iconsize="small"] .hdrTrashButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-  -moz-image-region: rect(0px 128px 16px 112px);
 }
 
 .inline-toolbar toolbarpaletteitem toolbarseparator,
@@ -705,17 +667,6 @@ mail-headerfield > .headerValue {
   -moz-user-focus: normal;
   -moz-user-select: text;
   word-wrap: break-word;
-}
-
-/* This is a workaround for #562608 to make the buttons smaller */
-.hdrArchiveButton > .button-box > .button-icon {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-  -moz-image-region: rect(0px 320px 16px 304px);
-}
-
-.hdrTrashButton > .button-box > .button-icon {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-  -moz-image-region: rect(0px 128px 16px 112px);
 }
 
 #header-view-toolbox {
