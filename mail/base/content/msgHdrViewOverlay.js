@@ -40,16 +40,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * Functions related to displaying the headers for a selected message in the
+ * message pane.
+ */
+
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/gloda/utils.js");
 
-/* This is where functions related to displaying the headers for a selected message in the
-   message pane live. */
-
 ////////////////////////////////////////////////////////////////////////////////////
-// Warning: if you go to modify any of these JS routines please get a code review from
-// scott@scott-macgregor.org. It's critical that the code in here for displaying
+// Warning: It's critical that the code in here for displaying
 // the message headers for a selected message remain as fast as possible. In particular,
 // right now, we only introduce one reflow per message. i.e. if you click on a message in the thread
 // pane, we batch up all the changes for displaying the header pane (to, cc, attachements button, etc.)
@@ -580,16 +582,19 @@ var messageHeaderSink = {
       }
 
       var size = null;
-      if (isExternalAttachment) {
-        var fileHandler = Components.classes["@mozilla.org/network/io-service;1"]
-                                    .getService(Components.interfaces.nsIIOService)
-                                    .getProtocolHandler("file")
-                                    .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+      if (isExternalAttachment && /^file:/.test(url)) {
+        let fileHandler = Services.io.getProtocolHandler("file")
+          .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
         try {
-          size = fileHandler.getFileFromURLSpec(url).fileSize;
+          let file = fileHandler.getFileFromURLSpec(url);
+          // Can't get size for detached attachments which are no longer
+          // available on the specified location.
+          if (file.exists())
+            size = file.fileSize;
         }
         catch(e) {
-          Components.utils.reportError("Couldn't open external attachment!");
+          Components.utils.reportError("Couldn't open external attachment; " +
+                                       "url=" + url + "; " + e);
         }
       }
 
