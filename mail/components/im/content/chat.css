@@ -86,7 +86,7 @@ browser[type="content-conversation"] {
 }
 
 #IMSearchInput {
-  -moz-binding: url("chrome://messenger/content/chat/imsearch.xml#IMGlodaSearch");
+  -moz-binding: url("chrome://messenger/content/search.xml#glodaSearch");
 }
 
 

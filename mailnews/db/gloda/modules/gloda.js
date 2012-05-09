@@ -696,6 +696,11 @@ var Gloda = {
    */
   BUILT_IN: "built-in",
 
+  /**
+   * Special sentinel value that will cause facets to skip a noun instance
+   * when an attribute has this value.
+   */
+  IGNORE_FACET: GlodaDatastore.IGNORE_FACET,
 
   /*
    * The following are explicit noun IDs.  While most extension-provided nouns
@@ -795,6 +800,10 @@ var Gloda = {
    * An attachment to a message. A message may have many different attachments.
    */
   NOUN_ATTACHMENT: GlodaAttachment.prototype.NOUN_ID, // 105
+  /**
+   * An account related to a message. A message can have only one account.
+   */
+  NOUN_ACCOUNT: GlodaAccount.prototype.NOUN_ID, // 106
 
   /**
    * Parameterized identities, for use in the from-me, to-me, cc-me optimization
@@ -1240,6 +1249,30 @@ var Gloda = {
         else
           return [null, GlodaDatastore._mapFolder(aFolderOrGlodaFolder).id];
       }}, this.NOUN_FOLDER);
+    this.defineNoun({
+      name: "account",
+      clazz: GlodaAccount,
+      allowsArbitraryAttrs: false,
+      isPrimitive: false,
+      equals: function(a, b) {
+        if (a && !b || !a && b)
+          return false;
+        if (!a && !b)
+          return true;
+        return a.id == b.id;
+      },
+      comparator: function gloda_account_comparator(a, b) {
+        if (a == null) {
+          if (b == null)
+            return 0;
+          else
+            return 1;
+        }
+        else if (b == null) {
+          return -1;
+        }
+        return a.name.localeCompare(b.name);
+      }}, this.NOUN_ACCOUNT);
     this.defineNoun({
       name: "conversation",
       clazz: GlodaConversation,
@@ -2061,9 +2094,11 @@ var Gloda = {
       if (oldValue !== undefined || !aIsConceptuallyNew)
         aOldItem[key] = value;
 
-      // the new canQuery property has to be explicitly set to generate entries
-      // in the messageAttributes table, hence making the message query-able.
-      if (!attrib.canQuery) {
+      // the new canQuery property has to be set to true to generate entries
+      // in the messageAttributes table. Any other truthy value (like a non
+      // empty string), will still make the message query-able but without
+      // using the database.
+      if (attrib.canQuery !== true) {
         continue;
       }
 
@@ -2168,7 +2203,7 @@ var Gloda = {
       //  should no longer have these values
       delete aOldItem[key];
 
-      if (!attrib.canQuery) {
+      if (attrib.canQuery !== true) {
         this._log.debug("Not inserting attribute "+attrib.attributeName
             +" into the db, since we don't plan on querying on it");
         continue;

@@ -187,7 +187,7 @@
                      timeout="200"
                      maxlength="192"
                      placeholder=""
-                     emptytextbase="&searchAllChatMessages.label.base;"
+                     emptytextbase="&search.label.base;"
                      keyLabelNonMac="&search.keyLabel.nonmac;"
                      keyLabelMac="&search.keyLabel.mac;"
                      >

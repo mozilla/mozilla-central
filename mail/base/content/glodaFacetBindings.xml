@@ -1405,8 +1405,13 @@
         // -- Show All
         let showNode = document.getAnonymousElementByAttribute(
                           this, "anonid", "showall");
+        const GlodaMessage = Gloda.lookupNounDef("message").clazz;
+        let visble = aMessages.some(function(m) m instanceof GlodaMessage);
+        showNode.style.display = visble ? "inline" : "none";
         showNode.textContent = glodaFacetStrings.get(
-          "glodaFacetView.results.message.openAsList.label");
+          "glodaFacetView.results.message.openEmailAsList.label");
+        showNode.setAttribute("title", glodaFacetStrings.get(
+          "glodaFacetView.results.message.openEmailAsList.tooltip"));
         showNode.onkeypress = function(event) {
           if (event.charCode == KeyEvent.DOM_VK_SPACE) {
             FacetContext.showActiveSetInTab()
@@ -1547,27 +1552,14 @@
         }
         let subject = anonElem("subject");
         // -- eventify
-        if (FacetContext.searcher instanceof GlodaIMSearcher) {
-          subject.onclick = function(aEvent) {
-            FacetContext.showIMConversationInTab(message,
-                                                 aEvent.button == 1);
-          }
-          subject.onkeypress = function(aEvent) {
-            if (aEvent.keyCode == aEvent.DOM_VK_RETURN)
-              FacetContext.showIMConversationInTab(message,
-                                                   aEvent.shiftKey == true);
-          }
+        subject.onclick = function(aEvent) {
+          FacetContext.showConversationInTab(message,
+                                             aEvent.button == 1);
         }
-        else {
-          subject.onclick = function(aEvent) {
+        subject.onkeypress = function(aEvent) {
+          if (aEvent.keyCode == aEvent.DOM_VK_RETURN)
             FacetContext.showConversationInTab(message,
-                                               aEvent.button == 1);
-          }
-          subject.onkeypress = function(aEvent) {
-            if (aEvent.keyCode == aEvent.DOM_VK_RETURN)
-              FacetContext.showConversationInTab(message,
-                                                 aEvent.shiftKey == true);
-          }
+                                               aEvent.shiftKey == true);
         }
 
         // -- Content Poking
@@ -1668,7 +1660,12 @@
 
           let matches = [];
           if ("stashedColumns" in FacetContext.collection) {
-            let offsets = FacetContext.collection.stashedColumns[message.id][0];
+            let collection;
+            if (message instanceof Gloda.lookupNounDef("im-conversation").clazz)
+              collection = FacetContext.IMCollection;
+            else
+              collection = FacetContext.collection;
+            let offsets = collection.stashedColumns[message.id][0];
             let offsetNums = [parseInt(x) for each (x in offsets.split(" "))];
             for (let i = 0; i < offsetNums.length; i += 4) {
               // i is the column index. The indexedBodyText is in the column 0.

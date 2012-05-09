@@ -119,29 +119,23 @@ var GlodaFundAttr = {
       attributeName: "folder",
       singular: true,
       facet: true,
-      extraFacets: [
-        {
-          type: "default",
-          alias: "account",
-          // Group the folders by their account (label)...
-          groupIdAttr: "accountLabel",
-          // sort the groups by string using magic convenience value
-          groupComparator: function(a, b) {
-            return a.accountLabel.localeCompare(b.accountLabel);
-          },
-          queryHelper: "Account",
-          // Display the account label for the facet
-          labelFunc: function(aGlodaFolder) {
-            return aGlodaFolder.accountLabel;
-          }
-        },
-      ],
       special: Gloda.kSpecialColumn,
       specialColumnName: "folderID",
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_FOLDER,
       }); // tested-by: test_attributes_fundamental
-    this._attrFolder = Gloda.defineAttribute({
+    this._attrAccount = Gloda.defineAttribute({
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrDerived,
+      attributeName: "account",
+      canQuery: "memory",
+      singular: true,
+      facet: true,
+      subjectNouns: [Gloda.NOUN_MESSAGE],
+      objectNoun: Gloda.NOUN_ACCOUNT
+      });
+    this._attrMessageKey = Gloda.defineAttribute({
       provider: this,
       extensionName: Gloda.BUILT_IN,
       attributeType: Gloda.kAttrFundamental,

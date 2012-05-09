@@ -178,6 +178,12 @@ GlodaQueryClass.prototype = {
         let constraint = curQuery._constraints[iConstraint];
         let [constraintType, attrDef] = constraint;
         let boundName = attrDef ? attrDef.boundName : "id";
+        if ((boundName in aObj) &&
+            aObj[boundName] === GlodaDatastore.IGNORE_FACET) {
+          querySatisfied = false;
+          break;
+        }
+
         let constraintValues = constraint.slice(2);
 
         if (constraintType === GlodaDatastore.kConstraintIdIn) {

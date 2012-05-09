@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const EXPORTED_SYMBOLS = ["GlodaAttributeDBDef",
+const EXPORTED_SYMBOLS = ["GlodaAttributeDBDef", "GlodaAccount",
                     "GlodaConversation", "GlodaFolder", "GlodaMessage",
                     "GlodaContact", "GlodaIdentity", "GlodaAttachment"];
 
@@ -195,6 +195,27 @@ function MixIn(aConstructor, aMixIn) {
 }
 
 /**
+ * @class A gloda wrapper around nsIMsgIncomingServer.
+ */
+function GlodaAccount(aIncomingServer) {
+  this._incomingServer = aIncomingServer;
+}
+
+GlodaAccount.prototype = {
+  NOUN_ID: 106,
+  get id() { return this._incomingServer.key; },
+  get name() { return this._incomingServer.prettyName; },
+  get incomingServer() { return this._incomingServer; },
+  toString: function gloda_account_toString() {
+    return "Account: " + this.id;
+  },
+
+  toLocaleString: function gloda_account_toLocaleString() {
+    return this.name;
+  }
+};
+
+/**
  * @class A gloda conversation (thread) exists so that messages can belong.
  */
 function GlodaConversation(aDatastore, aID, aSubject, aOldestMessageDate,
@@ -239,6 +260,7 @@ function GlodaFolder(aDatastore, aID, aURI, aDirtyStatus, aPrettyName,
   this._dirtyStatus = aDirtyStatus;
   this._prettyName = aPrettyName;
   this._xpcomFolder = null;
+  this._account = null;
   this._activeIndexing = false;
   this._activeHeaderRetrievalLastStamp = 0;
   this._indexingPriority = aIndexingPriority;
@@ -434,6 +456,19 @@ GlodaFolder.prototype = {
   },
 
   /**
+   * Retrieve a GlodaAccount instance corresponding to this folder.
+   *
+   * @return The GlodaAccount instance.
+   */
+  getAccount: function gloda_folder_getAccount() {
+    if (!this._account) {
+      let msgFolder = this.getXPCOMFolder(this.kActivityFolderOnlyNoData);
+      this._account = new GlodaAccount(msgFolder.server);
+    }
+    return this._account;
+  },
+
+  /**
    * How many milliseconds must a folder have not had any header retrieval
    *  activity before it's okay to lose the database reference?
    */
@@ -480,14 +515,6 @@ GlodaFolder.prototype = {
     }
 
     return true;
-  },
-
-  /**
-   * Return the string associated with this account.
-   */
-  get accountLabel() {
-    let msgFolder = this.getXPCOMFolder(this.kActivityFolderOnlyNoData);
-    return msgFolder.server.prettyName;
   }
 };
 
@@ -559,6 +586,19 @@ GlodaMessage.prototype = {
     }
     catch (ex) {
     }
+    return null;
+  },
+  get account() {
+    // XXX due to a deletion bug it is currently possible to get in a state
+    //  where we have an illegal folderID value.  This will result in an
+    //  exception.  As a workaround, let's just return null in that case.
+    try {
+      if (this._folderID == null)
+        return null;
+      let folder = this._datastore._mapFolderID(this._folderID);
+      return folder.getAccount();
+    }
+    catch (ex) { }
     return null;
   },
   get conversation() {

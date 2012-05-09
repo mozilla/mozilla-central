@@ -286,9 +286,18 @@
                 tabmail.closeTab();
               }
               this.value = ''; // clear our value, to avoid persistence
-              tabmail.openTab("glodaFacet", {
+              let args = {
                 searcher: new GlodaMsgSearcher(null, searchString)
-              });
+              };
+              let prefBranch =
+                Components.classes['@mozilla.org/preferences-service;1'].
+                getService(Components.interfaces.nsIPrefBranch);
+              if (prefBranch.getBoolPref("mail.chat.enabled")) {
+                if (!("GlodaIMSearcher" in window))
+                  Cu.import("resource:///modules/search_im.js");
+                args.IMSearcher = new GlodaIMSearcher(null, searchString);
+              }
+              tabmail.openTab("glodaFacet", args);
             }
           } catch (e) {
             logException(e);

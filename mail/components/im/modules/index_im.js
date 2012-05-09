@@ -39,9 +39,11 @@ const EXPORTED_SYMBOLS = [];
 const {classes: Cc, interfaces: Ci, utils: Cu, Constructor: CC} = Components;
 
 Cu.import("resource:///modules/imXPCOMUtils.jsm");
+Cu.import("resource:///modules/iteratorUtils.jsm");
 Cu.import("resource://gre/modules/FileUtils.jsm");
 Cu.import("resource://gre/modules/NetUtil.jsm");
 Cu.import("resource:///modules/gloda/public.js");
+Cu.import("resource:///modules/gloda/datamodel.js");
 Cu.import("resource:///modules/gloda/indexer.js");
 Cu.import("resource:///modules/imServices.jsm");
 
@@ -57,6 +59,8 @@ const ScriptableInputStream = CC("@mozilla.org/scriptableinputstream;1",
 XPCOMUtils.defineLazyGetter(this, "MailFolder", function()
   Cc["@mozilla.org/rdf/resource-factory;1?name=mailbox"].createInstance(Ci.nsIMsgFolder)
 );
+
+var gIMAccounts = {};
 
 function GlodaIMConversation(aTitle, aTime, aPath, aContent)
 {
@@ -76,14 +80,54 @@ GlodaIMConversation.prototype = {
   get content() this._content,
 
   // for glodaFacetBindings.xml compatibility (pretend we are a message object)
+  get account() {
+    let [protocol, username] = this._path.split("/", 2);
+
+    let cacheName = protocol + "/" + username;
+    if (cacheName in gIMAccounts)
+      return gIMAccounts[cacheName];
+
+    // Find the nsIIncomingServer for the current imIAccount.
+    let mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                        .getService(Ci.nsIMsgAccountManager);
+    for each (let account in fixIterator(mgr.accounts, Ci.nsIMsgAccount)) {
+      let incomingServer = account.incomingServer;
+      if (!incomingServer || incomingServer.type != "im")
+        continue;
+      let imAccount = incomingServer.wrappedJSObject.imAccount;
+      if (imAccount.protocol.normalizedName == protocol &&
+          imAccount.normalizedName == username)
+        return (gIMAccounts[cacheName] = new GlodaAccount(incomingServer));
+    }
+    // The IM conversation is probably for an account that no longer exists.
+    return null;
+  },
   get subject() this._title,
   get date() new Date(this._time * 1000),
-  get recipient() null,
-  get from() ({value: "", contact: {name: ""}}),
+  get involves() Gloda.IGNORE_FACET,
+  _recipients: null,
+  get recipients() {
+    if (!this._recipients)
+      this._recipients = [{contact: {name: this._path.split("/", 2)[1]}}];
+    return this._recipients;
+  },
+  _from: null,
+  get from() {
+    if (!this._from) {
+      let from = "";
+      let account = this._account;
+      if (account)
+        from = account.incomingServer.wrappedJSObject.imAccount.protocol.name;
+      this._from = {value: "", contact: {name: from}};
+    }
+    return this._from;
+  },
+  get tags() [],
   get starred() false,
   get attachmentNames() null,
   get indexedBodyText() this._content,
   get read() true,
+  get folder() Gloda.IGNORE_FACET,
 
   // for glodaFacetView.js _removeDupes
   get headerMessageID() this.id

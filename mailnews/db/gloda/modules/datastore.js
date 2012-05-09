@@ -717,6 +717,7 @@ var GlodaDatastore = {
   kSpecialColumnParent: 16|2,
   kSpecialString: 32,
   kSpecialFulltext: 64,
+  IGNORE_FACET: {},
 
   kConstraintIdIn: 0,
   kConstraintIn: 1,

@@ -216,6 +216,8 @@ DiscreteFaceter.prototype = {
 
     for each (let [, item] in Iterator(aItems)) {
       let val = (attrKey in item) ? item[attrKey] : null;
+      if (val === Gloda.IGNORE_FACET)
+        continue;
 
       // skip items the filter tells us to ignore
       if (filter && !filter(val))
@@ -258,6 +260,8 @@ DiscreteFaceter.prototype = {
 
     for each (let [, item] in Iterator(aItems)) {
       let val = (attrKey in item) ? item[attrKey] : null;
+      if (val === Gloda.IGNORE_FACET)
+        continue;
 
       // skip items the filter tells us to ignore
       if (filter && !filter(val))
@@ -327,6 +331,9 @@ DiscreteSetFaceter.prototype = {
 
     for each (let [, item] in Iterator(aItems)) {
       let vals = (attrKey in item) ? item[attrKey] : null;
+      if (vals === Gloda.IGNORE_FACET)
+        continue;
+
       if (vals == null || vals.length == 0) {
         vals = [null];
       }
@@ -374,6 +381,9 @@ DiscreteSetFaceter.prototype = {
 
     for each (let [, item] in Iterator(aItems)) {
       let vals = (attrKey in item) ? item[attrKey] : null;
+      if (vals === Gloda.IGNORE_FACET)
+        continue;
+
       if (vals == null || vals.length == 0) {
         vals = [null];
       }

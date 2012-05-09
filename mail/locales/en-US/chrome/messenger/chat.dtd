@@ -32,17 +32,6 @@
 <!ENTITY joinChatButton.label          "Join Chat">
 <!ENTITY chatAccountsButton.label      "Show Accounts">
 
-<!-- LOCALIZATION NOTE (searchAllChatMessages.label.base):
-     This is the base of the empty text for the chat search box.  We replace
-     #1 with the contents of the appropriate search.keyLabel.* value for the
-     platform (defined in messenger/messenger.dtd).
-     The goal is to convey to the user that typing in the box will allow them
-     to search for conversations and that there is a hotkey they can press
-     to get to the box faster.  If the global indexer is disabled, the search
-     box will be collapsed and the user will never see this message.
-     -->
-<!ENTITY searchAllChatMessages.label.base "Search all conversations… #1">
-
 <!ENTITY status.available          "Available">
 <!ENTITY status.unavailable        "Unavailable">
 <!ENTITY status.offline            "Offline">

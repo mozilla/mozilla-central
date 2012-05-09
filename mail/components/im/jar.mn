@@ -23,7 +23,6 @@ messenger.jar:
 *   content/messenger/chat/imconversation.xml            (content/imconversation.xml)
     content/messenger/chat/imconv.xml                    (content/imconv.xml)
     content/messenger/chat/imgroup.xml                   (content/imgroup.xml)
-    content/messenger/chat/imsearch.xml                  (content/imsearch.xml)
 % skin messenger-messagestyles classic/1.0 %skin/classic/messenger/messages/
 	skin/classic/messenger/messages/Bitmaps/minus-hover.png       (messages/Bitmaps/minus-hover.png)
 	skin/classic/messenger/messages/Bitmaps/minus.png             (messages/Bitmaps/minus.png)

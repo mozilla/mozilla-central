@@ -45,6 +45,11 @@ var glodaFacetTabType = {
       aTab.searcher = aArgs.searcher;
       aTab.collection = aTab.searcher.getCollection();
       aTab.query = aTab.searcher.query;
+      if ("IMSearcher" in aArgs) {
+        aTab.IMSearcher = aArgs.IMSearcher;
+        aTab.IMCollection = aArgs.IMSearcher.getCollection();
+        aTab.IMQuery = aTab.IMSearcher.query;
+      }
 
       let searchString = aTab.searcher.searchString;
       aTab.title = aTab.searchInputValue = aTab.searchString =

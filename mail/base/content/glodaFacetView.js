@@ -329,15 +329,7 @@ ActiveNonSingularConstraint.prototype = {
 };
 
 var FacetContext = {
-  get facetDriver() {
-    if (!("GlodaIMSearcher" in window))
-      Cu.import("resource:///modules/search_im.js");
-    let nounName =
-      this.searcher instanceof GlodaIMSearcher ? "im-conversation" : "message";
-    delete this.facetDriver;
-    this.facetDriver = new FacetDriver(Gloda.lookupNounDef(nounName), window);
-    return this.facetDriver;
-  },
+  facetDriver: new FacetDriver(Gloda.lookupNounDef("message"), window),
 
   /**
    * The root collection which our active set is a subset of.  We hold onto this
@@ -420,6 +412,8 @@ var FacetContext = {
     else
       this._sortBy = '-date';
     this.fullSet = this._removeDupes(this._collection.items.concat());
+    if ("IMCollection" in this)
+      this.fullSet = this.fullSet.concat(this.IMCollection.items);
     this.build(this.fullSet);
   },
 
@@ -843,25 +837,18 @@ var FacetContext = {
    */
   showConversationInTab: function(aMessage, aBackground) {
     let tabmail = this.rootWin.document.getElementById("tabmail");
+    if (aMessage instanceof Gloda.lookupNounDef("im-conversation").clazz) {
+      tabmail.openTab("chat", {
+        convType: "log",
+        conv: aMessage,
+        background: aBackground
+      });
+      return;
+    }
     tabmail.openTab("glodaList", {
       conversation: aMessage.conversation,
       message: aMessage,
       title: aMessage.conversation.subject,
-      background: aBackground
-    });
-  },
-
-  /**
-   * Show the conversation in a new glodaList tab.
-   *
-   * @param {GlodaIMConversation} aConversation The conversation to show.
-   * @param {Boolean} [aBackground] Whether it should be in the background.
-   */
-  showIMConversationInTab: function(aConversation, aBackground) {
-    let tabmail = this.rootWin.document.getElementById("tabmail");
-    tabmail.openTab("chat", {
-      convType: "log",
-      conv: aConversation,
       background: aBackground
     });
   },
@@ -890,7 +877,9 @@ var FacetContext = {
   onItemsRemoved: function(aItems, aCollection) {
   },
   onQueryCompleted: function(aCollection) {
-    this.initialBuild();
+    if (this.tab.query.completed &&
+        (!("IMQuery" in aTab) || this.tab.IMQuery.completed))
+      this.initialBuild();
   }
 };
 
@@ -917,21 +906,27 @@ function reachOutAndTouchFrame() {
   parentWin.tab = null;
   $(window).resize(function() {
     document.getElementById("facet-date").build(true);
-  })
+  });
   // we need to hook the context up as a listener in all cases since
   //  removal notifications are required.
   if ("searcher" in aTab) {
     FacetContext.searcher = aTab.searcher;
     aTab.searcher.listener = FacetContext;
+    if ("IMSearcher" in aTab) {
+      FacetContext.IMSearcher = aTab.IMSearcher;
+      aTab.IMSearcher.listener = FacetContext;
+    }
   }
   else {
     FacetContext.searcher = null;
     aTab.collection.listener = FacetContext;
   }
   FacetContext.collection = aTab.collection;
+  if ("IMCollection" in aTab)
+    FacetContext.IMCollection = aTab.IMCollection;
 
   // if it has already completed, we need to prod things
-  if (aTab.query.completed)
+  if (aTab.query.completed && (!("IMQuery" in aTab) || aTab.IMQuery.completed))
     FacetContext.initialBuild();
 }
 
