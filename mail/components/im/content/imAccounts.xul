@@ -56,7 +56,7 @@
         windowtype="Messenger:Accounts"
         onload="gAccountManager.load()"
         title="&accountsWindow.title;"
-        style="&accountsWindow.style;"
+        style="&accountsWindow2.style;"
         persist="width height screenX screenY">
  <script type="application/javascript" src="chrome://messenger/content/chat/imAccounts.js"/>
  <script type="application/javascript" src="chrome://messenger/content/chat/imStatusSelector.js"/>
