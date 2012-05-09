@@ -57,6 +57,7 @@ let addAccountDialog = {
     this._accountType = document.getElementById("accountType");
     this._noAccountText = document.getElementById("noAccountText");
     this._accept = document.documentElement.getButton("accept");
+    this._cancel = document.documentElement.getButton("cancel");
     this._messages = document.getElementById("messages");
     this._authSpinner = document.getElementById("authorizing");
     this._error = document.getElementById("error");
@@ -100,7 +101,7 @@ let addAccountDialog = {
     let form = doc.getElementById(kFormId);
 
     if (form)
-      form.addEventListener("input", this.onInput);
+      form.addEventListener("input", this.onInput.bind(this));
 
     this.onInput();
 
@@ -148,10 +149,16 @@ let addAccountDialog = {
       this._accountType.menupopup.appendChild(menuitem);
     }
 
+    // This block should go away when bug 748437 gets fixed, since we'll
+    // be able to add an arbitrary number of accounts for each account type.
     if (this._accountType.itemCount == 0) {
       this._createAccountText.hidden = true;
       this._accountType.hidden = true;
+      this._accept.disabled = true;
       this._noAccountText.hidden = false;
+      this._settings.classList.remove("indent");
+      this._settings.classList.add("small-indent")
+      this._cancel.focus();
     }
 
     // If there's only one option, let's choose it for the user to avoid
@@ -211,7 +218,14 @@ let addAccountDialog = {
 
   onInput: function AAD_onInput() {
     // Let's see if we have everything we need to make OK enabled...
-    addAccountDialog._accept.disabled = !addAccountDialog.checkValidity();
+    if (this._accountType.selectedIndex == -1) {
+      // We have the "Select a service provider" menuitem selected, so we
+      // shouldn't be able to click "Set up account"
+      this._accept.disabled = true;
+    }
+    else {
+      this._accept.disabled = !this.checkValidity();
+    }
   },
 
   checkValidity: function AAD_checkValidity() {
@@ -228,7 +242,6 @@ let addAccountDialog = {
 
     return true;
   },
-
 }
 
 XPCOMUtils.defineLazyServiceGetter(this, "gProtocolService",

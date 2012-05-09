@@ -19,4 +19,6 @@
   }
 }
 
-
+.small-indent {
+  -moz-margin-end: 6px;
+}

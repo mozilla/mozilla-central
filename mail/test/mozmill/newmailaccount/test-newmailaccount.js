@@ -51,7 +51,8 @@ var MODULE_REQUIRES = ['folder-display-helpers',
                        'content-tab-helpers',
                        'window-helpers',
                        'newmailaccount-helpers',
-                       'keyboard-helpers'];
+                       'keyboard-helpers',
+                       'dom-helpers'];
 
 var controller = {};
 var mozmill = {};
@@ -99,6 +100,7 @@ function setupModule(module) {
   nmah.installInto(module);
   let kh = collector.getModule('keyboard-helpers');
   kh.installInto(module);
+  collector.getModule('dom-helpers').installInto(module);
 
   // Make sure we enable the Account Provisioner.
   Services.prefs.setBoolPref(kProvisionerEnabledPref, true);
@@ -755,7 +757,7 @@ function subtest_search_button_disabled_cases(w) {
   $('input[type="checkbox"][value="foo"]').click();
 
   // The search submit button should become disabled
-  wait_for_element_disabled(w, "searchSubmit");
+  wait_for_element_enabled(w, w.e("searchSubmit"), false);
 
   // Case 2:  Search input has text, some providers selected
 
@@ -765,20 +767,20 @@ function subtest_search_button_disabled_cases(w) {
 
   // We already have at least one provider checked from the last case, so
   // the search submit button should become enabled
-  wait_for_element_enabled(w, "searchSubmit");
+  wait_for_element_enabled(w, w.e("searchSubmit"), true);
 
   // Case 3:  Search input has text, no providers selected
   // Make sure no provider checkboxes are checked.
   $('input[type="checkbox"]:checked').click();
 
   // The search submit button should now be disabled
-  wait_for_element_disabled(w, "searchSubmit");
+  wait_for_element_enabled(w, w.e("searchSubmit"), false);
 
   // We'll turn on a single provider now to enable the search button,
   // so we can ensure that it actually *becomes* disabled for the next
   // case.
   $('input[type="checkbox"][value="foo"]').click();
-  wait_for_element_enabled(w, "searchSubmit");
+  wait_for_element_enabled(w, w.e("searchSubmit"), true);
 
   // Case 4:  Search input has no text, and no providers are
   // selected.
@@ -788,7 +790,7 @@ function subtest_search_button_disabled_cases(w) {
   w.keypress(null, 'VK_BACK_SPACE', {});
   $('input[type="checkbox"]:checked').click();
 
-  wait_for_element_disabled(w, "searchSubmit");
+  wait_for_element_enabled(w, w.e("searchSubmit"), false);
 }
 
 /**

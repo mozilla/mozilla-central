@@ -79,6 +79,7 @@ function installInto(module) {
   module.wait_for_element = wait_for_element;
   module.assert_next_nodes = assert_next_nodes;
   module.assert_previous_nodes = assert_previous_nodes;
+  module.wait_for_element_enabled = wait_for_element_enabled;
 }
 
 /**
@@ -169,4 +170,21 @@ function assert_previous_nodes(aNodeType, aStart, aNum) {
                       "type " + aNodeType);
   }
   return node;
+}
+
+/**
+ * Given some element, wait for that element to be enabled or disabled,
+ * depending on the value of aEnabled.
+ *
+ * @param aController the controller parent of the element
+ * @param aNode the element to check.
+ * @param aEnabled whether or not the node should be enabled, or disabled.
+ */
+function wait_for_element_enabled(aController, aElement, aEnabled) {
+  if (!("disabled" in aElement))
+    throw new Error("Element does not appear to have disabled property.");
+
+  aController.waitFor(function() aElement.disabled != aEnabled,
+                      "Element should have eventually been " +
+                      (aEnabled ? "enabled" : "disabled"));
 }

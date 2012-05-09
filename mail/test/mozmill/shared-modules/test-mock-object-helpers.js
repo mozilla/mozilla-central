@@ -10,7 +10,7 @@ let Cm = Components.manager;
 let Ci = Components.interfaces;
 
 function installInto(module) {
-  module.MockObjectReplacer = MockObjectSwapper;
+  module.MockObjectReplacer = MockObjectReplacer;
   module.MockObjectRegisterer = MockObjectRegisterer;
 }
 

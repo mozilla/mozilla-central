@@ -12,12 +12,9 @@ const MODULE_NAME = 'cloudfile-helpers';
 const RELATIVE_ROOT = '../shared-modules';
 const MODULE_REQUIRES = ['folder-display-helpers'];
 
-const kMockContractID = "@mozilla.org/mail/mockCloudFile;1";
-const kMockCID = "614fd1f7-a404-4505-92fd-8b0ceff2f66c";
-const kMockID = "mock";
+const kMockContractIDPrefix = "@mozilla.org/mail/mockCloudFile;1?id=";
 
 const kDefaults = {
-  type: kMockID,
   displayName: "Mock Storage",
   iconClass: "chrome://messenger/skin/icons/dropbox.png",
   accountKey: null,
@@ -34,18 +31,14 @@ const kDefaults = {
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-var cfh, fdh, gMockCloudfileComponent;
+var fdh, moh;
 
 function setupModule(module) {
   fdh = collector.getModule("folder-display-helpers");
   fdh.installInto(module);
 
-  let moh = collector.getModule("mock-object-helpers");
-
-  gMockCloudfileComponent = new moh.MockObjectRegisterer(
-      kMockContractID,
-      kMockCID,
-      MockCloudfileAccount);
+  moh = collector.getModule("mock-object-helpers");
+  moh.installInto(module);
 }
 
 function installInto(module) {
@@ -134,22 +127,77 @@ MockCloudfileAccount.prototype = {
 };
 
 
+function MockCloudfileProviderGenerator(aID, aOverrides) {
+  let constructor = function MockCloudfileAccount() {
+
+    for(let someDefault in kDefaults)
+      this[someDefault] = kDefaults[someDefault];
+
+    for (let override in aOverrides)
+      this[override] = aOverrides[override];
+
+    this.type = aID;
+  }
+
+  constructor.prototype = MockCloudfileAccount.prototype;
+
+  return constructor;
+}
+
 var gMockCloudfileManager = {
   _mock_map: {},
 
-  register: function MCM_register() {
-    gCategoryManager.addCategoryEntry("cloud-files", kMockID, kMockContractID,
-                                      false, true);
-    gMockCloudfileComponent.register();
+  register: function MCM_register(aID, aOverrides) {
+    if (!aID)
+      aID = "default";
+
+    if (aID in this._mock_map)
+      throw Error("Already registered a mock cloudfile provider with id = " +
+                  aID);
+
+    if (!aOverrides)
+      aOverrides = {};
+
+    let mockContractID = kMockContractIDPrefix + aID;
+    let mockID = aID;
+    let mockCID = this._generateCID();
+
+    let component = new moh.MockObjectRegisterer(
+      mockContractID,
+      mockCID,
+      MockCloudfileProviderGenerator(aID, aOverrides));
+
+    this._mock_map[aID] = component;
+
+    gCategoryManager.addCategoryEntry("cloud-files", mockID,
+                                      mockContractID, false, true);
+    this._mock_map[aID].register();
   },
 
-  unregister: function MCM_unregister() {
-    gCategoryManager.deleteCategoryEntry("cloud-files", kMockID, false);
-    gMockCloudfileComponent.unregister();
+  unregister: function MCM_unregister(aID) {
+    if (!aID)
+      aID = "default";
+
+    if (!(aID in this._mock_map))
+      throw Error("No registered mock cloudfile provider with id = " +
+                  aID);
+
+    gCategoryManager.deleteCategoryEntry("cloud-files", aID, false);
+    this._mock_map[aID].unregister();
+    delete this._mock_map[aID];
   },
 
+  _generateCID: function MCM__generateCID() {
+    let uuid = this._uuidService.generateUUID().toString();
+    return uuid.replace('{', '').replace('}', '');
+  },
 }
+
+XPCOMUtils.defineLazyServiceGetter(gMockCloudfileManager, "_uuidService",
+                                   "@mozilla.org/uuid-generator;1",
+                                   "nsIUUIDGenerator");
 
 XPCOMUtils.defineLazyServiceGetter(this, "gCategoryManager",
                                    "@mozilla.org/categorymanager;1",
                                    "nsICategoryManager");
+

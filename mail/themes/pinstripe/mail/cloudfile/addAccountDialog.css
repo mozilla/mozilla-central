@@ -29,10 +29,16 @@ a {
   margin-right: 3px;
 }
 
-#accountType, #accountSettings, #messages {
+.indent {
   margin-bottom: 15px;
-  margin-left: 50px;
-  margin-right: 56px;
+  -moz-margin-start: 50px;
+  -moz-margin-end: 56px;
+}
+
+.small-indent {
+  margin-bottom: 15px;
+  -moz-margin-start: 6px;
+  -moz-margin-end: 6px;
 }
 
 #accountType {

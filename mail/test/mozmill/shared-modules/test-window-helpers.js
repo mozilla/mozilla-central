@@ -696,7 +696,7 @@ function wait_for_frame_load(aFrame, aURLOrPredicate) {
     get webProgress () (aFrame.contentWindow.QueryInterface(Ci.nsIInterfaceRequestor)
                               .getInterface(Ci.nsIWebNavigation)
                               .QueryInterface(Ci.nsIWebProgress)),
-    get currentURI () (NetUtil.newURI(aFrame.getAttribute("src"))),
+    get currentURI () (NetUtil.newURI(aFrame.contentDocument.location)),
     get contentWindow () (aFrame.contentWindow),
   };
   return _wait_for_generic_load(details, aURLOrPredicate);

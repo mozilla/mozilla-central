@@ -20,10 +20,16 @@ a {
   margin-bottom: 20px;
 }
 
-#accountType, #accountSettings, #messages {
+.indent {
   margin-bottom: 15px;
-  margin-left: 50px;
-  margin-right: 50px;
+  -moz-margin-start: 50px;
+  -moz-margin-end: 50px;
+}
+
+.small-indent {
+  margin-bottom: 15px;
+  -moz-margin-start: 6px;
+  -moz-margin-end: 5px;
 }
 
 #accountType {

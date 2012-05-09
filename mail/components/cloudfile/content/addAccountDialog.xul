@@ -33,14 +33,14 @@
   <description id="createAccountText">&addAccountDialog.createAccountText2;</description>
   <description id="noAccountText" hidden="true">&addAccountDialog.noAccountText;</description>
 
-  <menulist id="accountType" onselect="return addAccountDialog.accountTypeSelected();">
+  <menulist id="accountType" class="indent" onselect="return addAccountDialog.accountTypeSelected();">
     <menupopup>
       <menuitem label="&addAccountDialog.menuTitle;" value=""/>
     </menupopup>
   </menulist>
 
-  <iframe id="accountSettings" flex="1" src="chrome://messenger/content/cloudfile/emptySettings.xhtml"/>
-  <deck id="messages" selectedIndex="-1">
+  <iframe id="accountSettings" class="indent" flex="1" src="chrome://messenger/content/cloudfile/emptySettings.xhtml"/>
+  <deck id="messages" class="indent" selectedIndex="-1">
     <hbox id="authorizing">
       <image src="chrome://global/skin/icons/loading_16.png"/>
       <label>&addAccountDialog.authorizing;</label>

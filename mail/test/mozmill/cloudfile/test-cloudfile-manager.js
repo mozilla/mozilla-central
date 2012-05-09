@@ -33,7 +33,7 @@ function setupModule(module) {
 
   cfh = collector.getModule('cloudfile-helpers');
   cfh.installInto(module);
-  cfh.gMockCloudfileManager.register();
+  cfh.gMockCloudfileManager.register(kTestAccountType);
 
   let wh = collector.getModule('window-helpers');
   wh.installInto(module);
@@ -52,7 +52,7 @@ function setupModule(module) {
 function teardownModule(module) {
   Services.prefs.QueryInterface(Ci.nsIPrefBranch)
           .deleteBranch("mail.cloud_files.accounts");
-  cfh.gMockCloudfileManager.unregister();
+  cfh.gMockCloudfileManager.unregister(kTestAccountType);
 }
 
 function create_dummy_account(aKey, aType, aDisplayName) {

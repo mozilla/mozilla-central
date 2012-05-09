@@ -73,8 +73,6 @@ function installInto(module) {
   module.wait_for_search_results = wait_for_search_results;
   module.gConsoleListener = gConsoleListener;
   module.wait_to_be_offline = wait_to_be_offline;
-  module.wait_for_element_enabled = wait_for_element_enabled;
-  module.wait_for_element_disabled = wait_for_element_disabled;
 }
 
 /* Wait until the list of providers is loaded and displayed.
@@ -187,22 +185,6 @@ function wait_to_be_offline(w) {
     return w.window.$("#cannotConnectMessage").is(":visible");
   }, "Timed out waiting for the account provisioner to be in "
     + "offline mode.");
-}
-
-/* Waits for an input element with id aId to be enabled.
- */
-function wait_for_element_enabled(w, aId) {
-  mc.waitFor(function() {
-    return w.window.$("#" + aId).is(":enabled");
-  }, "Timed out waiting for element with id=" + aId + " to be enabled");
-}
-
-/* Waits for an input element with id aId to be disabled.
- */
-function wait_for_element_disabled(w, aId) {
-  mc.waitFor(function() {
-    return w.window.$("#" + aId).is(":disabled");
-  }, "Timed out waiting_for_element with id=" + aId + " to be disabled");
 }
 
 /* A listener for the Error Console, which allows us to ensure that certain

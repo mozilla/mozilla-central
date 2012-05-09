@@ -216,8 +216,8 @@ var cloudFileAccounts = {
 
   addAccountDialog: function CFA_addAccountDialog() {
     let params = {accountKey: null};
-    Services.ww
-            .activeWindow
+    Services.wm
+            .getMostRecentWindow(null)
             .openDialog("chrome://messenger/content/cloudfile/"
                         + "addAccountDialog.xul",
                         "", "chrome, dialog, modal, resizable=yes",
