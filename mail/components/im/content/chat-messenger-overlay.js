@@ -106,6 +106,7 @@ var chatTabType = {
     aTab.tabNode.setAttribute("image", "chrome://chat/skin/chat-16.png");
     this._handleArgs(aArgs);
     chatHandler.updateTitle();
+    chatHandler._updateFocus();
   },
   shouldSwitchTo: function(aArgs) {
     if (!gChatTab)
@@ -123,6 +124,7 @@ var chatTabType = {
     }
     else
       chatHandler.onListItemSelected();
+    chatHandler._updateFocus();
   },
   closeTab: function(aTab) {
     gChatTab = null;
@@ -601,6 +603,7 @@ var chatHandler = {
     return (this._colorCache[aName] = Math.round(res) % 360);
   },
 
+  _placeHolderButtonId: "",
   _updateNoConvPlaceHolder: function() {
     let connected = false;
     let hasAccount = false;
@@ -619,8 +622,38 @@ var chatHandler = {
     document.getElementById("noAccountInnerBox").hidden = hasAccount;
     document.getElementById("noConnectedAccountInnerBox").hidden =
       connected || !hasAccount;
+    if (connected) {
+      delete this._placeHolderButtonId;
+    }
+    else {
+      this._placeHolderButtonId =
+        hasAccount ? "openIMAccountManagerButton" : "openIMAccountWizardButton";
+    }
     document.getElementById("button-add-buddy").disabled = !connected;
     document.getElementById("button-join-chat").disabled = !canJoinChat;
+    let groupIds = ["conversations", "onlinecontacts", "offlinecontacts"];
+    let contactlist = document.getElementById("contactlistbox");
+    if (!hasAccount || !connected && groupIds.every(function(id)
+        document.getElementById(id + "Group").contacts.length)) {
+      contactlist.disabled = true;
+    }
+    else {
+      contactlist.disabled = false;
+      let selectedItem = contactlist.selectedItem;
+      if (!selectedItem || selectedItem.collapsed) {
+        for each (let id in groupIds) {
+          let item = document.getElementById(id + "Group");
+          if (item.collapsed)
+            continue;
+          contactlist.selectedItem = item;
+          break;
+        }
+      }
+    }
+  },
+  _updateFocus: function() {
+    let focusId = this._placeHolderButtonId || "contactlistbox";
+    document.getElementById(focusId).focus();
   },
   observe: function(aSubject, aTopic, aData) {
     if (aTopic == "browser-request") {
