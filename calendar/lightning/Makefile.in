@@ -67,6 +67,10 @@ ifneq (,$(findstring pre,$(LIGHTNING_VERSION)))
 DEFINES += -DLIGHTNING_PRERELEASE_VERSION=1
 endif
 
+ifdef LIGHTNING_UPDATE_LOCATION
+DEFINES += -DLIGHTNING_UPDATE_LOCATION=$(LIGHTNING_UPDATE_LOCATION)
+endif
+
 # Gecko milestone
 GRE_MILESTONE = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build Milestone)
 ifdef GRE_MILESTONE
