@@ -95,6 +95,7 @@ chrome/venkman.jar
 components/airbag.xpt
 components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
 components/bookmarks.xpt
+components/BrowserElementAPI.js
 components/@DLL_PREFIX@caps@DLL_SUFFIX@
 components/chatzilla-service.js
 components/@DLL_PREFIX@chrome@DLL_SUFFIX@
@@ -586,7 +587,6 @@ xpicleanup@BIN_SUFFIX@
   components/addonManager.js
   components/amContentHandler.js
   components/amWebInstallListener.js
-  components/BrowserElementAPI.js
   components/BrowserElementParent.js
   components/ConsoleAPI.js
   components/ContactManager.js
