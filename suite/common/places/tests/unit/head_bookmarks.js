@@ -103,9 +103,13 @@ let (backup_date = new Date().toLocaleFormat("%Y-%m-%d")) {
 
 // Smart bookmarks constants.
 const SMART_BOOKMARKS_VERSION = 3;
+// 1 = "Most Visited".
 const SMART_BOOKMARKS_ON_TOOLBAR = 1;
+// 3 = "Recently Bookmarked", "Recent Tags", separator.
 const SMART_BOOKMARKS_ON_MENU = 3; // Takes in count the additional separator.
 
 // Default bookmarks constants.
+// 4 =  "SeaMonkey", "mozilla.org", "mozillaZine", "mozdev.org".
 const DEFAULT_BOOKMARKS_ON_TOOLBAR = 4;
-const DEFAULT_BOOKMARKS_ON_MENU = 3; // Takes in count the additional separator.
+// 2 = "SeaMonkey and Mozilla", "Search the Web".
+const DEFAULT_BOOKMARKS_ON_MENU = 2;
