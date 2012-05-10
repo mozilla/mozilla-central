@@ -598,6 +598,25 @@ var tests = [
       ok(this.notifyObj.removedCallbackTriggered, "removed callback triggered");
     }
   },
+  // Test notification when chrome is hidden
+  { // Test #19
+    run: function () {
+      window.locationbar.visible = false;
+      this.notifyObj = new basicNotification();
+      this.notification = showNotification(this.notifyObj);
+      window.locationbar.visible = true;
+    },
+    onShown: function (popup) {
+      checkPopup(popup, this.notifyObj);
+      is(popup.anchorNode.className, "tabbrowser-tab", "notification anchored to tab");
+      dismissNotification(popup);
+    },
+    onHidden: function (popup) {
+      ok(this.notifyObj.dismissalCallbackTriggered, "dismissal callback triggered");
+      this.notification.remove();
+      ok(this.notifyObj.removedCallbackTriggered, "removed callback triggered");
+    }
+  },
 ];
 
 function showNotification(notifyObj) {
