@@ -261,7 +261,6 @@ var tests = [
 
       // switch back to the old browser
       gBrowser.selectedTab = this.oldSelectedTab;
-
     },
     onHidden: function (popup) {
       // actually remove the notification to prevent it from reappearing
