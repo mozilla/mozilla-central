@@ -77,8 +77,16 @@
     -     Open a tab of the given "mode", passing the provided arguments as an 
     -     object. The tab type author should tell you the modes they implement 
     -     and the required/optional arguments.
-    -     One of the arguments you can pass is "background": if this is true,
-    -     the tab will be loaded in the background.
+    -
+    -     Each tab type can define the set of arguments that it expects, but
+    -     there are also a few common ones that all should obey, including:
+    -
+    -     * "background": if this is true, the tab will be loaded in the
+    -       background.
+    -     * "disregardOpener": if this is true, then the tab opener will not
+    -       be switched to automatically by tabmail if the new tab is immediately
+    -       closed.
+    -
     - * closeTab(aOptionalTabIndexInfoOrTabNode,aNoUndo): 
     -     If no argument is provided, the current tab is closed. The first 
     -     argument specifies a specific tab to be closed. It can be a tab index,
@@ -341,6 +349,9 @@
       <field name="recentlyClosedTabs" readonly="true">
         new Array();
       </field>
+      <field name="mLastTabOpener">
+        null
+      </field>
       <method name="createTooltip">
         <parameter name="event"/>
         <body><![CDATA[
@@ -514,6 +525,17 @@
           }
 
           let oldTab = this._mostRecentTabInfo = this.currentTabInfo;
+
+          let disregardOpener = ("disregardOpener" in aArgs)
+                                && aArgs.disregardOpener;
+
+          // If we're not disregarding the opening, hold a reference to opener
+          // so that if the new tab is closed without switching, we can switch
+          // back to the opener tab.
+          if (disregardOpener)
+            this.mLastTabOpener = null;
+          else
+            this.mLastTabOpener = oldTab;
 
           // the order of the following statements is important
           this.tabInfo[this.tabContainer.childNodes.length - 1] = tab;
@@ -701,7 +723,6 @@
               let session = this.persistTab(tab);
 
               if (session) {
-              
                 this.recentlyClosedTabs.unshift(
                   { tab: JSON.stringify(session), idx: iTab, title: tab.title });
 
@@ -709,16 +730,29 @@
                   this.recentlyClosedTabs.pop();    
               }
             }
-            
+
             let closeFunc = tab.mode.closeTab || tab.mode.tabType.closeTab;
             closeFunc.call(tab.mode.tabType, tab);
-             
+
             this.tabInfo.splice(iTab, 1);
             tab.mode.tabs.splice(tab.mode.tabs.indexOf(tab), 1);
             this.tabContainer.removeChild(tabNode);
-            if (this.tabContainer.selectedIndex == -1)
-              this.tabContainer.selectedIndex =
-                (iTab == this.tabContainer.childNodes.length) ? iTab - 1 : iTab;
+
+            if (this.tabContainer.selectedIndex == -1) {
+              let lastTabOpenerIndex = this.tabInfo.indexOf(this.mLastTabOpener);
+
+              if (this.mLastTabOpener && (lastTabOpenerIndex != -1)) {
+                this.tabContainer.selectedIndex = this.tabInfo.indexOf(this.mLastTabOpener);
+              } else {
+                this.tabContainer.selectedIndex =
+                  (iTab == this.tabContainer.childNodes.length) ? iTab - 1 : iTab;
+              }
+
+            }
+
+            // Clear the last tab opener - we don't need this anymore.
+            this.mLastTabOpener = null;
+
             if (this.currentTabInfo == tab)
               this.updateCurrentTab();
 
@@ -1114,6 +1148,10 @@
               // Update the toolbar status - we don't need to do menus as they
               // do themselves when we open them.
               UpdateMailToolbar("tabmail");
+
+              // We switched tabs, so we don't need to know the last tab
+              // opener anymore.
+              this.mLastTabOpener = null;
             }
           ]]>
         </body>

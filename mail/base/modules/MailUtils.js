@@ -213,7 +213,9 @@ var MailUtils =
           // Open all the tabs in the background, except for the last one
           aTabmail.openTab("message", {msgHdr: msgHdr,
               viewWrapperToClone: aViewWrapperToClone,
-              background: (i < (aMsgHdrs.length - 1))});
+              background: (i < (aMsgHdrs.length - 1)),
+              disregardOpener: (aMsgHdrs.length > 1),
+          });
 
         if (mail3PaneWindow)
           mail3PaneWindow.focus();
