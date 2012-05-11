@@ -45,10 +45,9 @@ class nsIMAPBodyShellCache;
 class nsIMAPBodyShell;
 class nsIImapIncomingServer;
 
-// 2a8e21fe-e3c4-11d2-a504-0060b0fc04b7
-
+// f4d89e3e-77da-492c-962b-7835f0742c22
 #define NS_IIMAPHOSTSESSIONLIST_IID \
-{ 0x2a8e21fe, 0xe3c4, 0x11d2, {0xa5, 0x04, 0x00, 0x60, 0xb0, 0xfc, 0x04, 0xb7 } }
+{ 0xf4d89e3e, 0x77da, 0x492c, {0x96, 0x2b, 0x78, 0x35, 0xf0, 0x74, 0x2c, 0x22 } }
 
 // this is an interface to a linked list of host info's    
 class nsIImapHostSessionList : public nsISupports
@@ -61,8 +60,6 @@ public:
   NS_IMETHOD ResetAll() = 0;
 
   // Capabilities
-  NS_IMETHOD  GetCapabilityForHost(const char *serverKey, PRUint32 &result) = 0;
-  NS_IMETHOD  SetCapabilityForHost(const char *serverKey, PRUint32 capability) = 0;
   NS_IMETHOD  GetHostHasAdminURL(const char *serverKey, bool &result) = 0;
   NS_IMETHOD  SetHostHasAdminURL(const char *serverKey, bool hasAdminUrl) = 0;
   // Subscription

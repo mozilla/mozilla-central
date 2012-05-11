@@ -2252,8 +2252,12 @@ void nsImapServerResponseParser::capability_data()
         fCapabilityFlag |= kHasCondStoreCapability;
       else if (token.Equals("ENABLE", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasEnableCapability;
+      else if (token.Equals("EXTENDED-LIST", nsCaseInsensitiveCStringComparator()))
+        fCapabilityFlag |= kHasExtendedListCapability;
       else if (token.Equals("XLIST", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasXListCapability;
+      else if (token.Equals("SPECIAL-USE", nsCaseInsensitiveCStringComparator()))
+        fCapabilityFlag |= kHasSpecialUseCapability;
       else if (token.Equals("COMPRESS=DEFLATE", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kHasCompressDeflateCapability;
       else if (token.Equals("MOVE", nsCaseInsensitiveCStringComparator()))
@@ -2263,10 +2267,6 @@ void nsImapServerResponseParser::capability_data()
     }
   } while (fNextToken && endToken < 0 && !fAtEndOfLine && ContinueParse());
 
-  if (fHostSessionList)
-    fHostSessionList->SetCapabilityForHost(
-    fServerConnection.GetImapServerKey(), 
-    fCapabilityFlag);
   nsImapProtocol *navCon = &fServerConnection;
   NS_ASSERTION(navCon, "null imap protocol connection while parsing capability response");	// we should always have this
   if (navCon)
@@ -3042,11 +3042,6 @@ void	nsImapServerResponseParser::UseCachedShell(nsIMAPBodyShell *cachedShell)
 
 void nsImapServerResponseParser::ResetCapabilityFlag() 
 {
-    if (fHostSessionList)
-    {
-        fHostSessionList->SetCapabilityForHost(
-            fServerConnection.GetImapServerKey(), kCapabilityUndefined);
-    }
 }
 
 /*

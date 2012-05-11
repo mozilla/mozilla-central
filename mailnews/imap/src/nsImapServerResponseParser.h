@@ -121,8 +121,8 @@ public:
   void SetReportingErrors(bool reportThem) { fReportingErrors=reportThem;}
   bool GetReportingErrors() { return fReportingErrors; }
 
-  PRUint32 GetCapabilityFlag() { return fCapabilityFlag; }
-  void   SetCapabilityFlag(PRUint32 capability) {fCapabilityFlag = capability;}
+  eIMAPCapabilityFlags GetCapabilityFlag() { return fCapabilityFlag; }
+  void   SetCapabilityFlag(eIMAPCapabilityFlags capability) {fCapabilityFlag = capability;}
   bool ServerHasIMAP4Rev1Capability() { return ((fCapabilityFlag & kIMAP4rev1Capability) != 0); }
   bool ServerHasACLCapability() { return ((fCapabilityFlag & kACLCapability) != 0); }
   bool ServerHasNamespaceCapability() { return ((fCapabilityFlag & kNamespaceCapability) != 0); }
@@ -272,7 +272,7 @@ private:
 
   eIMAPstate               fIMAPstate;
 
-  PRUint32      fCapabilityFlag;
+  eIMAPCapabilityFlags      fCapabilityFlag;
   nsCString     fMailAccountUrl;
   char          *fNetscapeServerVersionString;
   char          *fXSenderInfo; /* changed per message download */

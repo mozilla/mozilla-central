@@ -752,10 +752,6 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
       m_channelListener = new StreamListenerProxy(aRealStreamListener);
     }
 
-    PRUint32 capability = kCapabilityUndefined;
-
-    m_hostSessionList->GetCapabilityForHost(GetImapServerKey(), capability);
-
     server->GetRealHostName(m_realHostName);
     PRInt32 authMethod;
     (void) server->GetAuthMethod(&authMethod);
@@ -814,9 +810,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
 
         if (m_socketType == nsMsgSocketType::SSL)
           connectionType = "ssl";
-        else if ((m_socketType == nsMsgSocketType::trySTARTTLS &&
-                 (capability & kHasStartTLSCapability))
-                 || m_socketType == nsMsgSocketType::alwaysSTARTTLS)
+        else if (m_socketType == nsMsgSocketType::alwaysSTARTTLS)
           connectionType = "starttls";
 
         nsCOMPtr<nsIProxyInfo> proxyInfo;
@@ -1659,11 +1653,19 @@ bool nsImapProtocol::ProcessCurrentURL()
                 rv = sslControl->StartTLS();
                 if (NS_SUCCEEDED(rv))
                 {
+                  // Upgrade "trySTARTTLS" accounts to "alwaysSTARTTLS" in prefs
+                  if (m_socketType == nsMsgSocketType::trySTARTTLS)
+                  {
+                    nsCOMPtr<nsIMsgIncomingServer> imapServer =
+                        do_QueryReferent(m_server);
+                    imapServer->SetSocketType(nsMsgSocketType::alwaysSTARTTLS);
+                  }
+
                   // force re-issue of "capability", because servers may
                   // enable other auth features (e.g. remove LOGINDISABLED
                   // and add AUTH=PLAIN) after we upgraded to SSL.
                   Capability();
-                  PRInt32 capabilityFlag = GetServerStateParser().GetCapabilityFlag();
+                  eIMAPCapabilityFlags capabilityFlag = GetServerStateParser().GetCapabilityFlag();
                   // Courier imap doesn't return STARTTLS capability if we've done
                   // a STARTTLS! But we need to remember this capability so we'll
                   // try to use STARTTLS next time.
@@ -1671,7 +1673,6 @@ bool nsImapProtocol::ProcessCurrentURL()
                   {
                     capabilityFlag |= kHasStartTLSCapability;
                     GetServerStateParser().SetCapabilityFlag(capabilityFlag);
-                    m_hostSessionList->SetCapabilityForHost(GetImapServerKey(), capabilityFlag);
                     CommitCapability();
                   }
                 }
@@ -3369,7 +3370,7 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
   case kEveryThingRFC822Peek:
     {
       const char *formatString = "";
-      PRUint32 server_capabilityFlags = GetServerStateParser().GetCapabilityFlag();
+      eIMAPCapabilityFlags server_capabilityFlags = GetServerStateParser().GetCapabilityFlag();
 
       GetServerStateParser().SetFetchingEverythingRFC822(true);
       if (server_capabilityFlags & kIMAP4rev1Capability)
@@ -3405,7 +3406,7 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
   case kHeadersRFC822andUid:
     if (GetServerStateParser().ServerHasIMAP4Rev1Capability())
     {
-      PRUint32 server_capabilityFlags = GetServerStateParser().GetCapabilityFlag();
+      eIMAPCapabilityFlags server_capabilityFlags = GetServerStateParser().GetCapabilityFlag();
       bool aolImapServer = ((server_capabilityFlags & kAOLImapCapability) != 0);
       bool downloadAllHeaders = false;
       // checks if we're filtering on "any header" or running a spam filter requiring all headers
@@ -5342,11 +5343,10 @@ void nsImapProtocol::Capability()
         ParseIMAPandCheckForNewMail();
     if (!gUseLiteralPlus)
     {
-      PRUint32 capabilityFlag = GetServerStateParser().GetCapabilityFlag();
+      eIMAPCapabilityFlags capabilityFlag = GetServerStateParser().GetCapabilityFlag();
       if (capabilityFlag & kLiteralPlusCapability)
       {
         GetServerStateParser().SetCapabilityFlag(capabilityFlag & ~kLiteralPlusCapability);
-        m_hostSessionList->SetCapabilityForHost(GetImapServerKey(), capabilityFlag & ~kLiteralPlusCapability);
       }
     }
 }
@@ -5547,8 +5547,8 @@ void nsImapProtocol::InitPrefAuthMethods(PRInt32 authMethodPrefValue)
  */
 nsresult nsImapProtocol::ChooseAuthMethod()
 {
-  PRInt32 serverCaps = GetServerStateParser().GetCapabilityFlag();
-  PRInt32 availCaps = serverCaps & m_prefAuthMethods & ~m_failedAuthMethods;
+  eIMAPCapabilityFlags serverCaps = GetServerStateParser().GetCapabilityFlag();
+  eIMAPCapabilityFlags availCaps = serverCaps & m_prefAuthMethods & ~m_failedAuthMethods;
 
   PR_LOG(IMAP, PR_LOG_DEBUG, ("IMAP auth: server caps 0x%X, pref 0x%X, failed 0x%X, avail caps 0x%X",
         serverCaps, m_prefAuthMethods, m_failedAuthMethods, availCaps));
@@ -5585,7 +5585,7 @@ nsresult nsImapProtocol::ChooseAuthMethod()
   return NS_OK;
 }
 
-void nsImapProtocol::MarkAuthMethodAsFailed(PRInt32 failedAuthMethod)
+void nsImapProtocol::MarkAuthMethodAsFailed(eIMAPCapabilityFlags failedAuthMethod)
 {
   PR_LOG(IMAP, PR_LOG_DEBUG, ("marking auth method 0x%X failed", failedAuthMethod));
   m_failedAuthMethods |= failedAuthMethod;

@@ -137,7 +137,7 @@ private:
   nsCOMArray<nsIMsgFolder> m_subscribeFolders; // used to keep folder resources around while subscribe UI is up.
   nsCOMArray<nsIMsgImapMailFolder> m_foldersToStat; // folders to check for new mail with Status
   nsVoidArray       m_urlConsumers;
-  PRUint32          m_capability;
+  eIMAPCapabilityFlags          m_capability;
   nsCString         m_manageMailAccountUrl;
   bool              m_userAuthenticated;
   bool              mDoingSubscribeDialog;

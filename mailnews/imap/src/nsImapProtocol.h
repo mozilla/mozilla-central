@@ -497,7 +497,7 @@ private:
   nsresult GetPassword(nsCString &password, bool aNewPasswordRequested);
   void InitPrefAuthMethods(PRInt32 authMethodPrefValue);
   nsresult ChooseAuthMethod();
-  void MarkAuthMethodAsFailed(PRInt32 failedAuthMethod);
+  void MarkAuthMethodAsFailed(eIMAPCapabilityFlags failedAuthMethod);
   void ResetAuthMethods();
 
   // All of these methods actually issue protocol
@@ -623,8 +623,8 @@ private:
   bool    m_sendID;
   PRInt32 m_curFetchSize;
   bool    m_ignoreExpunges;
-  PRInt32 m_prefAuthMethods; // set of capability flags (in nsImapCore.h) for auth methods
-  PRInt32 m_failedAuthMethods; // ditto
+  eIMAPCapabilityFlags m_prefAuthMethods; // set of capability flags (in nsImapCore.h) for auth methods
+  eIMAPCapabilityFlags m_failedAuthMethods; // ditto
   eIMAPCapabilityFlag m_currentAuthMethod; // exactly one capability flag, or 0
   PRInt32 m_socketType;
   PRInt32 m_chunkSize;

@@ -183,26 +183,6 @@ nsIMAPHostSessionList::AddHostToList(const char *serverKey,
   return (newHost == NULL) ? NS_ERROR_ILLEGAL_VALUE : NS_OK;
 }
 
-NS_IMETHODIMP nsIMAPHostSessionList::GetCapabilityForHost(const char *serverKey, PRUint32 &result)
-{
-  PR_EnterMonitor(gCachedHostInfoMonitor);
-
-  nsIMAPHostInfo *host = FindHost(serverKey);
-  result = (host) ? host->fCapabilityFlags : 0;
-  PR_ExitMonitor(gCachedHostInfoMonitor);
-  return (host == NULL) ? NS_ERROR_ILLEGAL_VALUE : NS_OK;
-}
-
-NS_IMETHODIMP nsIMAPHostSessionList::SetCapabilityForHost(const char *serverKey, PRUint32 capability)
-{
-  PR_EnterMonitor(gCachedHostInfoMonitor);
-  nsIMAPHostInfo *host = FindHost(serverKey);
-  if (host)
-    host->fCapabilityFlags = capability;
-  PR_ExitMonitor(gCachedHostInfoMonitor);
-  return (host == NULL) ? NS_ERROR_ILLEGAL_VALUE : NS_OK;
-}
-
 NS_IMETHODIMP nsIMAPHostSessionList::GetPasswordForHost(const char *serverKey, nsString &result)
 {
   PR_EnterMonitor(gCachedHostInfoMonitor);

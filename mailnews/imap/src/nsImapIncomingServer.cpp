@@ -175,10 +175,6 @@ NS_IMETHODIMP nsImapIncomingServer::SetKey(const nsACString& aKey)  // override 
   if (!otherUsersNamespace.IsEmpty())
       hostSession->SetNamespaceFromPrefForHost(key.get(), otherUsersNamespace.get(),
                                                kOtherUsersNamespace);
-  PRInt32 capability;
-  rv = GetCapabilityPref(&capability);
-  NS_ENSURE_SUCCESS(rv, rv);
-  hostSession->SetCapabilityForHost(key.get(), capability);
   return rv;
 }
 
@@ -399,9 +395,6 @@ nsImapIncomingServer::SetDeleteModel(PRInt32 ivalue)
 NS_IMPL_SERVERPREF_INT(nsImapIncomingServer, TimeOutLimits,
                        "timeout")
 
-NS_IMPL_SERVERPREF_INT(nsImapIncomingServer, CapabilityPref,
-                       "capability")
-
 NS_IMPL_SERVERPREF_STR(nsImapIncomingServer, ServerIDPref,
                        "serverIDResponse")
 
@@ -422,6 +415,11 @@ NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, MimePartsOnDemand,
 
 NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, SendID,
                        "send_client_info")
+
+NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, CapabilityACL,
+                       "cacheCapa.acl")
+NS_IMPL_SERVERPREF_BOOL(nsImapIncomingServer, CapabilityQuota,
+                       "cacheCapa.quota")
 
 NS_IMETHODIMP
 nsImapIncomingServer::GetIsAOLServer(bool *aBool)
@@ -2209,10 +2207,11 @@ nsImapIncomingServer::PromptPassword(nsIMsgWindow *aMsgWindow,
 }
 
 // for the nsIImapServerSink interface
-NS_IMETHODIMP nsImapIncomingServer::SetCapability(PRUint32 capability)
+NS_IMETHODIMP nsImapIncomingServer::SetCapability(eIMAPCapabilityFlags capability)
 {
   m_capability = capability;
-  SetCapabilityPref(capability);
+  SetCapabilityACL(capability & kACLCapability);
+  SetCapabilityQuota(capability & kQuotaCapability);
   return NS_OK;
 }
 

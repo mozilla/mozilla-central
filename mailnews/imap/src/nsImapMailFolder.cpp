@@ -5931,19 +5931,21 @@ nsImapMailFolder::FillInFolderProps(nsIMsgImapFolderProps *aFolderProps)
   NS_ENSURE_SUCCESS(rv, rv);
 
   // get the host session list and get server capabilities.
-  PRUint32 capability = kCapabilityUndefined;
+  eIMAPCapabilityFlags capability = kCapabilityUndefined;
 
-  nsCOMPtr<nsIImapHostSessionList> hostSession = do_GetService(kCImapHostSessionList, &rv);
+  nsCOMPtr<nsIImapIncomingServer> imapServer;
+  rv = GetImapIncomingServer(getter_AddRefs(imapServer));
   // if for some bizarre reason this fails, we'll still fall through to the normal sharing code
-  if (NS_SUCCEEDED(rv) && hostSession)
+  if (NS_SUCCEEDED(rv))
   {
-    nsCString serverKey;
-    GetServerKey(serverKey);
-    hostSession->GetCapabilityForHost(serverKey.get(), capability);
+    bool haveACL = false;
+    bool haveQuota = false;
+    imapServer->GetCapabilityACL(&haveACL);
+    imapServer->GetCapabilityQuota(&haveQuota);
 
     // Figure out what to display in the Quota tab of the folder properties.
     // Does the server support quotas?
-    if(capability & kQuotaCapability)
+    if (haveQuota)
     {
       // Have we asked the server for quota information?
       if(m_folderQuotaCommandIssued)
@@ -5994,7 +5996,7 @@ nsImapMailFolder::FillInFolderProps(nsIMsgImapFolderProps *aFolderProps)
     // See if the server supports ACL.
     // If not, just set the folder description to a string that says
     // the server doesn't support sharing, and return.
-    if (! (capability & kACLCapability))
+    if (!haveACL)
     {
       rv = IMAPGetStringByID(IMAP_SERVER_DOESNT_SUPPORT_ACL, getter_Copies(folderTypeDesc));
       if (NS_SUCCEEDED(rv))

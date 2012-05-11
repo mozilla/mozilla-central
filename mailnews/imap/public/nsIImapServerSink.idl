@@ -72,7 +72,7 @@ interface nsIImapServerSink : nsISupports {
   void setFolderAdminURL(in ACString folderName, in ACString adminUrl);
   boolean folderVerifiedOnline(in ACString folderName);
 
-  void setCapability(in unsigned long capability);
+  void setCapability(in unsigned long long capability);
   /// RFC 2971 ID server response
   void setServerID(in ACString aServerID);
   boolean loadNextQueuedUrl(in nsIImapProtocol protocol);

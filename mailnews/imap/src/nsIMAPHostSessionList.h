@@ -59,7 +59,7 @@ protected:
   char *fCachedPassword;
   nsCString fOnlineDir;
   nsIMAPHostInfo *fNextHost;
-  PRUint32 fCapabilityFlags;
+  eIMAPCapabilityFlags fCapabilityFlags;
   char *fHierarchyDelimiters;// string of top-level hierarchy delimiters
   bool fHaveWeEverDiscoveredFolders;
   char *fCanonicalOnlineSubDir;
@@ -92,8 +92,6 @@ public:
   NS_IMETHOD ResetAll();
 
   // Capabilities
-  NS_IMETHOD GetCapabilityForHost(const char *serverKey, PRUint32 &result);
-  NS_IMETHOD SetCapabilityForHost(const char *serverKey, PRUint32 capability);
   NS_IMETHOD GetHostHasAdminURL(const char *serverKey, bool &result);
   NS_IMETHOD SetHostHasAdminURL(const char *serverKey, bool hasAdminUrl);
   // Subscription

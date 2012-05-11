@@ -120,41 +120,58 @@ typedef enum {
     kUnknownNamespace
 } EIMAPNamespaceType;
 
-typedef enum {
-    kCapabilityUndefined = 0x00000000,
-    kCapabilityDefined = 0x00000001,
-    kHasAuthLoginCapability = 0x00000002, /* AUTH LOGIN (not the same as kHasAuthOldLoginCapability) */
-    kHasAuthOldLoginCapability = 0x00000004, /* original IMAP login method */
-    kHasXSenderCapability = 0x00000008,
-    kIMAP4Capability = 0x00000010,          /* RFC1734 */
-    kIMAP4rev1Capability = 0x00000020,      /* RFC2060 */
-    kIMAP4other = 0x00000040,                       /* future rev?? */
-    kNoHierarchyRename = 0x00000080,                        /* no hierarchy rename */
-    kACLCapability = 0x00000100,          /* ACL extension */
-    kNamespaceCapability = 0x00000200,    /* IMAP4 Namespace Extension */
-    kHasIDCapability = 0x00000400,  /* client user agent id extension */
-    kXServerInfoCapability = 0x00000800,  /* XSERVERINFO extension for admin urls */
-    kHasAuthPlainCapability = 0x00001000, /* new form of auth plain base64 login */
-    kUidplusCapability = 0x00002000,   /* RFC 2359 UIDPLUS extension */
-    kLiteralPlusCapability = 0x00004000, /* RFC 2088 LITERAL+ extension */
-    kAOLImapCapability = 0x00008000,     /* aol imap extensions */
-    kHasLanguageCapability = 0x00010000, /* language extensions */
-    kHasCRAMCapability     = 0x00020000, /* CRAM auth extension */
-    kQuotaCapability       = 0x00040000, /* RFC 2087 quota extension */
-    kHasIdleCapability       = 0x00080000,  /* RFC 2177 idle extension */
-    kHasAuthNTLMCapability = 0x00100000,  /* AUTH NTLM extension */
-    kHasAuthMSNCapability = 0x00200000,   /* AUTH MSN extension */
-    kHasStartTLSCapability = 0x00400000,   /* STARTTLS support */
-    kHasAuthNoneCapability = 0x00800000, /* needs no login */
-    kHasAuthGssApiCapability = 0x01000000, /* GSSAPI AUTH */
-    kHasCondStoreCapability =  0x02000000, /* RFC 3551 CondStore extension */
-    kHasEnableCapability    =  0x04000000, /* RFC 5161 ENABLE extension */
-    kHasXListCapability    =  0x08000000,  /* XLIST extension */
-    kHasCompressDeflateCapability  = 0x10000000,  /* RFC 4978 COMPRESS extension */
-    kHasAuthExternalCapability  = 0x20000000,  /* RFC 2222 SASL AUTH EXTERNAL */
-    kHasMoveCapability  = 0x40000000,  /* Proposed MOVE RFC */
-    kHasHighestModSeqCapability  = 0x80000000  /* Subset of RFC 3551 */
-} eIMAPCapabilityFlag;
+
+/**
+ * IMAP server feature, mostly CAPABILITY responses
+ *
+ * one of the cap flags below
+ */
+typedef PRUint64 eIMAPCapabilityFlag;
+/**
+ * IMAP server features, mostly CAPABILITY responses
+ *
+ * any set of the cap flags below, i.e.
+ * i.e. 0, 1 or more |eIMAPCapabilityFlag|.
+ */
+typedef PRUint64 eIMAPCapabilityFlags;
+
+const eIMAPCapabilityFlag kCapabilityUndefined = 0x00000000;
+const eIMAPCapabilityFlag kCapabilityDefined = 0x00000001;
+const eIMAPCapabilityFlag kHasAuthLoginCapability = 0x00000002;  /* AUTH LOGIN (not the same as kHasAuthOldLoginCapability) */
+const eIMAPCapabilityFlag kHasAuthOldLoginCapability = 0x00000004;  /* original IMAP login method */
+const eIMAPCapabilityFlag kHasXSenderCapability = 0x00000008;
+const eIMAPCapabilityFlag kIMAP4Capability = 0x00000010;           /* RFC1734 */
+const eIMAPCapabilityFlag kIMAP4rev1Capability = 0x00000020;       /* RFC2060 */
+const eIMAPCapabilityFlag kIMAP4other = 0x00000040;                        /* future rev?? */
+const eIMAPCapabilityFlag kNoHierarchyRename = 0x00000080;                         /* no hierarchy rename */
+const eIMAPCapabilityFlag kACLCapability = 0x00000100;           /* ACL extension */
+const eIMAPCapabilityFlag kNamespaceCapability = 0x00000200;     /* IMAP4 Namespace Extension */
+const eIMAPCapabilityFlag kHasIDCapability = 0x00000400;  /* client user agent id extension */
+const eIMAPCapabilityFlag kXServerInfoCapability = 0x00000800;  /* XSERVERINFO extension for admin urls */
+const eIMAPCapabilityFlag kHasAuthPlainCapability = 0x00001000; /* new form of auth plain base64 login */
+const eIMAPCapabilityFlag kUidplusCapability = 0x00002000;   /* RFC 2359 UIDPLUS extension */
+const eIMAPCapabilityFlag kLiteralPlusCapability = 0x00004000; /* RFC 2088 LITERAL+ extension */
+const eIMAPCapabilityFlag kAOLImapCapability = 0x00008000;     /* aol imap extensions */
+const eIMAPCapabilityFlag kHasLanguageCapability = 0x00010000; /* language extensions */
+const eIMAPCapabilityFlag kHasCRAMCapability = 0x00020000; /* CRAM auth extension */
+const eIMAPCapabilityFlag kQuotaCapability = 0x00040000; /* RFC 2087 quota extension */
+const eIMAPCapabilityFlag kHasIdleCapability = 0x00080000;  /* RFC 2177 idle extension */
+const eIMAPCapabilityFlag kHasAuthNTLMCapability = 0x00100000;  /* AUTH NTLM extension */
+const eIMAPCapabilityFlag kHasAuthMSNCapability = 0x00200000;   /* AUTH MSN extension */
+const eIMAPCapabilityFlag kHasStartTLSCapability =0x00400000;   /* STARTTLS support */
+const eIMAPCapabilityFlag kHasAuthNoneCapability = 0x00800000; /* needs no login */
+const eIMAPCapabilityFlag kHasAuthGssApiCapability = 0x01000000; /* GSSAPI AUTH */
+const eIMAPCapabilityFlag kHasCondStoreCapability = 0x02000000; /* RFC 3551 CondStore extension */
+const eIMAPCapabilityFlag kHasEnableCapability = 0x04000000; /* RFC 5161 ENABLE extension */
+const eIMAPCapabilityFlag kHasXListCapability = 0x08000000;  /* XLIST extension */
+const eIMAPCapabilityFlag kHasCompressDeflateCapability = 0x10000000;  /* RFC 4978 COMPRESS extension */
+const eIMAPCapabilityFlag kHasAuthExternalCapability = 0x20000000;  /* RFC 2222 SASL AUTH EXTERNAL */
+const eIMAPCapabilityFlag kHasMoveCapability = 0x40000000;  /* Proposed MOVE RFC */
+const eIMAPCapabilityFlag kHasHighestModSeqCapability = 0x80000000;  /* Subset of RFC 3551 */
+// above are 32bit; below start the PRUint64 bits 33-64
+const eIMAPCapabilityFlag kHasExtendedListCapability = 0x100000000LL;  /* RFC 5258 */
+const eIMAPCapabilityFlag kHasSpecialUseCapability = 0x200000000LL;  /* RFC 6154: Sent, Draft etc. folders */
+
 
 // this used to be part of the connection object class - maybe we should move it into 
 // something similar
