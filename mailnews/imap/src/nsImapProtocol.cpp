@@ -812,6 +812,10 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
           connectionType = "ssl";
         else if (m_socketType == nsMsgSocketType::alwaysSTARTTLS)
           connectionType = "starttls";
+        // This can go away once we think everyone is migrated
+        // away from the trySTARTTLS socket type.
+        else if (m_socketType == nsMsgSocketType::trySTARTTLS)
+          connectionType =  "starttls";
 
         nsCOMPtr<nsIProxyInfo> proxyInfo;
         rv = MsgExamineForProxy("imap", m_realHostName.get(), port, getter_AddRefs(proxyInfo));
@@ -1653,14 +1657,8 @@ bool nsImapProtocol::ProcessCurrentURL()
                 rv = sslControl->StartTLS();
                 if (NS_SUCCEEDED(rv))
                 {
-                  // Upgrade "trySTARTTLS" accounts to "alwaysSTARTTLS" in prefs
                   if (m_socketType == nsMsgSocketType::trySTARTTLS)
-                  {
-                    nsCOMPtr<nsIMsgIncomingServer> imapServer =
-                        do_QueryReferent(m_server);
-                    imapServer->SetSocketType(nsMsgSocketType::alwaysSTARTTLS);
-                  }
-
+                    m_imapServerSink->UpdateTrySTARTTLSPref(true);
                   // force re-issue of "capability", because servers may
                   // enable other auth features (e.g. remove LOGINDISABLED
                   // and add AUTH=PLAIN) after we upgraded to SSL.
@@ -1688,6 +1686,8 @@ bool nsImapProtocol::ProcessCurrentURL()
                 SetConnectionStatus(rv);        // stop netlib
                 m_transport->Close(rv);
               }
+              else if (m_socketType == nsMsgSocketType::trySTARTTLS)
+                m_imapServerSink->UpdateTrySTARTTLSPref(false);
             }
           }
           else if (m_socketType == nsMsgSocketType::alwaysSTARTTLS)
@@ -1696,17 +1696,30 @@ bool nsImapProtocol::ProcessCurrentURL()
             if (m_transport)
               m_transport->Close(rv);
           }
+          else if (m_socketType == nsMsgSocketType::trySTARTTLS)
+          {
+            // STARTTLS failed, so downgrade socket type
+            m_imapServerSink->UpdateTrySTARTTLSPref(false);
+          }
         }
-        // in this case, we didn't know the server supported TLS when
-        // we created the socket, so we're going to retry with
-        // STARTTLS.
-        else if (m_socketType == nsMsgSocketType::trySTARTTLS
-            && (GetServerStateParser().GetCapabilityFlag() & kHasStartTLSCapability))
+        else if (m_socketType == nsMsgSocketType::trySTARTTLS)
         {
-          ClearFlag(IMAP_CONNECTION_IS_OPEN);
-          TellThreadToDie();
-          SetConnectionStatus(NS_ERROR_FAILURE);
-          return RetryUrl();
+          // we didn't know the server supported TLS when we created
+          // the socket, so we're going to retry with a STARTTLS socket
+          if (GetServerStateParser().GetCapabilityFlag() & kHasStartTLSCapability)
+          {
+            ClearFlag(IMAP_CONNECTION_IS_OPEN);
+            TellThreadToDie();
+            SetConnectionStatus(NS_ERROR_FAILURE);
+            return RetryUrl();
+          }
+          else
+          {
+            // trySTARTTLS set, but server doesn't have TLS capability,
+            // so downgrade socket type
+            m_imapServerSink->UpdateTrySTARTTLSPref(false);
+            m_socketType = nsMsgSocketType::plain;
+          }
         }
         logonFailed = !TryToLogon();
         if (m_retryUrlOnError)

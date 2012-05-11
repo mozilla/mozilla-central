@@ -48,7 +48,7 @@ interface nsIImapMockChannel;
  * nsIImapServerSink is designed to be used as a proxy to the application's UI
  * thread from the running IMAP threads.
  */
-[scriptable, uuid(24136ca7-0000-4731-8d5f-fc0908aa7c75)]
+[scriptable, uuid(33184087-eadc-4b5d-aad6-14cf6e6a43af)]
 interface nsIImapServerSink : nsISupports {
   /**
    * Check if the given folder path is a possible IMAP mailbox.
@@ -169,6 +169,13 @@ interface nsIImapServerSink : nsISupports {
 
   attribute boolean userAuthenticated;
   void setMailServerUrls(in ACString manageMailAccount, in ACString manageLists, in ACString manageFilters);
+
+  /** Used by the imap thread when upgrading from the socketType
+   * trySTARTTLS.
+   * @param aSucceeded whether STARTTLS succeeded. If it did, the server
+   * will set the socket type to alwaysSTARTTLS, otherwise plain.
+   */
+  void UpdateTrySTARTTLSPref(in boolean aSucceeded);
 
   readonly attribute ACString arbitraryHeaders;
   void forgetPassword();

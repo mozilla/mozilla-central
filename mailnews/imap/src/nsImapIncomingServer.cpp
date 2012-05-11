@@ -440,6 +440,14 @@ nsImapIncomingServer::SetIsAOLServer(bool aBool)
 }
 
 NS_IMETHODIMP
+nsImapIncomingServer::UpdateTrySTARTTLSPref(bool aStartTLSSucceeded)
+{
+  SetSocketType(aStartTLSSucceeded ? nsMsgSocketType::alwaysSTARTTLS :
+                                     nsMsgSocketType::plain);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 nsImapIncomingServer::GetImapConnectionAndLoadUrl(nsIImapUrl* aImapUrl,
                                                   nsISupports* aConsumer)
 {
