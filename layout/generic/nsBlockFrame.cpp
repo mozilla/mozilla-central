@@ -2216,7 +2216,7 @@ nsBlockFrame::ReflowDirtyLines(nsBlockReflowState& aState)
       if (0 == toMove->GetChildCount()) {
         // The line is empty. Try the next one.
         NS_ASSERTION(nsnull == toMove->mFirstChild, "bad empty line");
-        aState.FreeLineBox(toMove);
+        FreeLineBox(toMove);
         continue;
       }
 
@@ -2433,7 +2433,7 @@ nsBlockFrame::DeleteLine(nsBlockReflowState& aState,
                  "but perhaps OK now");
     nsLineBox *line = aLine;
     aLine = mLines.erase(aLine);
-    aState.FreeLineBox(line);
+    FreeLineBox(line);
     // Mark the previous margin of the next line dirty since we need to
     // recompute its top position.
     if (aLine != aLineEnd)
@@ -2665,7 +2665,7 @@ nsBlockFrame::PullFrameFrom(nsBlockReflowState&  aState,
     Invalidate(fromLine->GetVisualOverflowArea());
     fromLineList->erase(aFromLine);
     // aFromLine is now invalid
-    aState.FreeLineBox(fromLine);
+    FreeLineBox(fromLine);
 
     // Put any remaining overflow lines back.
     if (aFromOverflowLine) {
@@ -3274,7 +3274,7 @@ nsBlockFrame::ReflowBlockFrame(nsBlockReflowState& aState,
 
             // Push continuation to a new line, but only if we actually made one.
             if (madeContinuation) {
-              nsLineBox* line = aState.NewLineBox(nextFrame, 1, true);
+              nsLineBox* line = NewLineBox(nextFrame, 1, true);
               NS_ENSURE_TRUE(line, NS_ERROR_OUT_OF_MEMORY);
               mLines.after_insert(aLine, line);
             }
@@ -3608,7 +3608,7 @@ nsBlockFrame::DoReflowInlineFrames(nsBlockReflowState& aState,
         nsLineBox *toremove = aLine;
         aLine = mLines.erase(aLine);
         NS_ASSERTION(nsnull == toremove->mFirstChild, "bad empty line");
-        aState.FreeLineBox(toremove);
+        FreeLineBox(toremove);
       }
       --aLine;
 
@@ -4068,7 +4068,7 @@ nsBlockFrame::SplitLine(nsBlockReflowState& aState,
 #endif
 
     // Put frames being split out into their own line
-    nsLineBox* newLine = aState.NewLineBox(aFrame, pushCount, false);
+    nsLineBox* newLine = NewLineBox(aFrame, pushCount, false);
     if (!newLine) {
       return NS_ERROR_OUT_OF_MEMORY;
     }
@@ -4794,8 +4794,6 @@ nsBlockFrame::AddFrames(nsFrameList& aFrameList, nsIFrame* aPrevSibling)
     aPrevSibling = mBullet;
   }
   
-  nsIPresShell *presShell = PresContext()->PresShell();
-
   // Attempt to find the line that contains the previous sibling
   nsFrameList overflowFrames;
   nsLineList* lineList = &mLines;
@@ -4843,7 +4841,7 @@ nsBlockFrame::AddFrames(nsFrameList& aFrameList, nsIFrame* aPrevSibling)
     PRInt32 rem = prevSibLine->GetChildCount() - prevSiblingIndex - 1;
     if (rem) {
       // Split the line in two where the frame(s) are being inserted.
-      nsLineBox* line = NS_NewLineBox(presShell, aPrevSibling->GetNextSibling(), rem, false);
+      nsLineBox* line = NewLineBox(aPrevSibling->GetNextSibling(), rem, false);
       if (!line) {
         return NS_ERROR_OUT_OF_MEMORY;
       }
@@ -4889,7 +4887,7 @@ nsBlockFrame::AddFrames(nsFrameList& aFrameList, nsIFrame* aPrevSibling)
         (aPrevSibling && ShouldPutNextSiblingOnNewLine(aPrevSibling))) {
       // Create a new line for the frame and add its line to the line
       // list.
-      nsLineBox* line = NS_NewLineBox(presShell, newFrame, 1, isBlock);
+      nsLineBox* line = NewLineBox(newFrame, 1, isBlock);
       if (!line) {
         return NS_ERROR_OUT_OF_MEMORY;
       }
