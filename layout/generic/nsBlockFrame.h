@@ -352,10 +352,19 @@ protected:
 #endif
 #endif
 
+  NS_DECLARE_FRAME_PROPERTY(LineCursorProperty, nsnull)
+  nsLineBox* GetLineCursor() {
+    return (GetStateBits() & NS_BLOCK_HAS_LINE_CURSOR) ?
+      static_cast<nsLineBox*>(Properties().Get(LineCursorProperty())) : nsnull;
+  }
+
   nsLineBox* NewLineBox(nsIFrame* aFrame, PRInt32 aCount, bool aIsBlock) {
     return NS_NewLineBox(PresContext()->PresShell(), aFrame, aCount, aIsBlock);
   }
   void FreeLineBox(nsLineBox* aLine) {
+    if (aLine == GetLineCursor()) {
+      ClearLineCursor();
+    }
     aLine->Destroy(PresContext()->PresShell());
   }
 
