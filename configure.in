@@ -6089,14 +6089,6 @@ if test -n "$_ENABLE_CODESIGHS"; then
 fi
 
 dnl ========================================================
-dnl = Support for Quantify (Windows)
-dnl ========================================================
-MOZ_ARG_ENABLE_BOOL(quantify,
-[  --enable-quantify      Enable Quantify support (Windows only) ],
-    MOZ_QUANTIFY=1,
-    MOZ_QUANTIFY= )
-
-dnl ========================================================
 dnl = Support for demangling undefined symbols
 dnl ========================================================
 if test -z "$SKIP_LIBRARY_CHECKS"; then
@@ -6786,7 +6778,6 @@ AC_SUBST(MOZ_ENABLE_PROFILER_SPS)
 AC_SUBST(MOZ_JPROF)
 AC_SUBST(MOZ_SHARK)
 AC_SUBST(MOZ_PROFILING)
-AC_SUBST(MOZ_QUANTIFY)
 AC_SUBST(MOZ_LDAP_XPCOM)
 AC_SUBST(LDAP_CFLAGS)
 AC_SUBST(LDAP_LIBS)

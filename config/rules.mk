@@ -485,8 +485,8 @@ TAG_PROGRAM		= xargs etags -a
 # (moved this from config.mk so that config.mk can be included 
 #  before the CPPSRCS are defined)
 #
-ifneq ($(CPPSRCS)$(CMMSRCS),)
-CPP_PROG_LINK		= 1
+ifneq ($(HOST_CPPSRCS)$(HOST_CMMSRCS),)
+HOST_CPP_PROG_LINK	= 1
 endif
 
 #
@@ -988,11 +988,11 @@ ifdef MSMANIFEST_TOOL
 	fi
 endif	# MSVC with manifest tool
 else
-ifeq ($(CPP_PROG_LINK),1)
+ifeq ($(HOST_CPP_PROG_LINK),1)
 	$(HOST_CXX) -o $@ $(HOST_CXXFLAGS) $(HOST_LDFLAGS) $(HOST_PROGOBJS) $(HOST_LIBS) $(HOST_EXTRA_LIBS)
 else
 	$(HOST_CC) -o $@ $(HOST_CFLAGS) $(HOST_LDFLAGS) $(HOST_PROGOBJS) $(HOST_LIBS) $(HOST_EXTRA_LIBS)
-endif # CPP_PROG_LINK
+endif # HOST_CPP_PROG_LINK
 endif
 endif
 
@@ -1041,31 +1041,6 @@ else
 	$(HOST_CC) $(HOST_OUTOPTION)$@ $(HOST_CFLAGS) $(INCLUDES) $< $(HOST_LIBS) $(HOST_EXTRA_LIBS)
 endif
 endif
-endif
-
-#
-# Purify target.  Solaris/sparc only to start.
-# Purify does not recognize "egcs" or "c++" so we go with 
-# "gcc" and "g++" for now.
-#
-pure:	$(PROGRAM)
-ifeq ($(CPP_PROG_LINK),1)
-	$(PURIFY) $(CCC) -o $^.pure $(CXXFLAGS) $(PROGOBJS) $(LDFLAGS) $(LIBS_DIR) $(LIBS) $(OS_LIBS) $(EXTRA_LIBS)
-else
-	$(PURIFY) $(CC) -o $^.pure $(CFLAGS) $(PROGOBJS) $(LDFLAGS) $(LIBS_DIR) $(LIBS) $(OS_LIBS) $(EXTRA_LIBS)
-endif
-ifndef NO_DIST_INSTALL
-	$(INSTALL) $(IFLAGS2) $^.pure $(FINAL_TARGET)
-endif
-
-quantify: $(PROGRAM)
-ifeq ($(CPP_PROG_LINK),1)
-	$(QUANTIFY) $(CCC) -o $^.quantify $(CXXFLAGS) $(PROGOBJS) $(LDFLAGS) $(LIBS_DIR) $(LIBS) $(OS_LIBS) $(EXTRA_LIBS)
-else
-	$(QUANTIFY) $(CC) -o $^.quantify $(CFLAGS) $(PROGOBJS) $(LDFLAGS) $(LIBS_DIR) $(LIBS) $(OS_LIBS) $(EXTRA_LIBS)
-endif
-ifndef NO_DIST_INSTALL
-	$(INSTALL) $(IFLAGS2) $^.quantify $(FINAL_TARGET)
 endif
 
 ifdef DTRACE_PROBE_OBJ

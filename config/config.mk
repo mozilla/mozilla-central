@@ -193,17 +193,6 @@ OS_CFLAGS += -Zi -UDEBUG -DNDEBUG
 OS_LDFLAGS += -DEBUG -OPT:REF
 endif # MOZ_DEBUG_SYMBOLS
 
-ifdef MOZ_QUANTIFY
-# -FIXED:NO is needed for Quantify to work, but it increases the size
-# of executables, so only use it if building for Quantify.
-WIN32_EXE_LDFLAGS += -FIXED:NO
-
-# We need -OPT:NOICF to prevent identical methods from being merged together.
-# Otherwise, Quantify doesn't know which method was actually called when it's
-# showing you the profile.
-OS_LDFLAGS += -OPT:NOICF
-endif
-
 #
 # Handle trace-malloc in optimized builds.
 # No opt to give sane callstacks.
@@ -366,8 +355,6 @@ MY_RULES	:= $(DEPTH)/config/myrules.mk
 # Default command macros; can be overridden in <arch>.mk.
 #
 CCC		= $(CXX)
-PURIFY		= purify $(PURIFYOPTIONS)
-QUANTIFY	= quantify $(QUANTIFYOPTIONS)
 XPIDL_LINK = $(PYTHON) $(LIBXUL_DIST)/sdk/bin/xpt.py link
 
 INCLUDES = \
