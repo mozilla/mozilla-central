@@ -292,25 +292,23 @@ tabmail > tabbox > tabpanels {
   margin: 0;
   padding: 0 4px;
 }
+
 .tabs-newtab-button {
   list-style-image: url(chrome://messenger/skin/tabs/newtab.png);
 }
+
 .tabs-alltabs-button {
   padding-top: 2px;
   list-style-image: url(chrome://messenger/skin/tabs/alltabs-box-bkgnd-icon.png);
-}
-.tabs-newtab-button:hover ,
-.tabs-alltabs-button:hover {
-  background-color: rgba(0,0,0,0.10);
-}
-.tabs-newtab-button:hover:active,
-.tabs-alltabs-button:hover:active,
-.tabs-alltabs-button[open="true"] {
-  background-color: rgba(0,0,0,0.20);
+  -moz-image-region: rect(0, 16px, 16px, 0);
 }
 
-.tabs-newtab-button > .toolbarbutton-text ,
-.tabs-alltabs-button > .toolbarbutton-menu-dropmarker ,
+.tabs-alltabs-button[open] {
+  -moz-image-region: rect(16px, 16px, 32px, 0);
+}
+
+.tabs-newtab-button > .toolbarbutton-text,
+.tabs-alltabs-button > .toolbarbutton-menu-dropmarker,
 .tabs-alltabs-button > .toolbarbutton-text {
   display: none;
 }
