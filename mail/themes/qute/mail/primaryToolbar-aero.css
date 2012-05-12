@@ -64,6 +64,8 @@
 .mail-toolbox > toolbar {
   -moz-margin-start: 0;
   border-bottom: none;
+  /* force iconsize="small" on these toolbars */
+  counter-reset: smallicons;
 }
 
 .mail-toolbox > toolbar:not(:-moz-lwtheme),
@@ -550,6 +552,11 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 #palette-box #folder-location-container,
 #palette-box #viewPicker {
   -moz-box-flex: 1;
+}
+
+/* remove the small icons checkbox in Customize window */
+#smallicons {
+  display: none;
 }
 
 /* ::::: message notification bar style rules ::::: */

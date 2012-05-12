@@ -719,12 +719,11 @@ mail-newsgroups-headerfield {
   -moz-box-align: baseline;
 }
 
-window[inlinetoolbox] #smallicons,
-window[inlinetoolbox] button[icon="add"] {
+window[inlinetoolbox] #newtoolbar {
   display: none;
 }
 
-window[inlinetoolbox] #modelist menuitem:first-child {
+window[inlinetoolbox] #modefull {
   display: none;
 }
 

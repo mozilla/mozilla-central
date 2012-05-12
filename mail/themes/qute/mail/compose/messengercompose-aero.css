@@ -76,6 +76,11 @@ toolbar:not(:-moz-lwtheme) {
   border: none;
 }
 
+#compose-toolbox > toolbar {
+  /* force iconsize="small" on these toolbars */
+  counter-reset: smallicons;
+}
+
 @media (-moz-windows-default-theme) {
   #compose-toolbox:not(:-moz-lwtheme) {
     background-color: hsl(210, 75%, 92%);

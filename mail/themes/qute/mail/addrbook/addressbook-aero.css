@@ -67,6 +67,11 @@ toolbar:not(:-moz-lwtheme) {
   border: none;
 }
 
+#ab-toolbox > toolbar {
+  /* force iconsize="small" on these toolbars */
+  counter-reset: smallicons;
+}
+
 @media (-moz-windows-default-theme) {
   #ab-toolbox:not(:-moz-lwtheme) {
     background-color: hsl(210, 75%, 92%);
