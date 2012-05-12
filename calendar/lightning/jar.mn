@@ -30,6 +30,7 @@ lightning.jar:
     content/lightning/lightning-calendar-creation.js       (content/lightning-calendar-creation.js)
     content/lightning/lightning-calendar-properties.xul    (content/lightning-calendar-properties.xul)
     content/lightning/lightning-calendar-properties.js     (content/lightning-calendar-properties.js)
+    content/lightning/lightning-invitation.xhtml           (content/lightning-invitation.xhtml)
     content/lightning/lightning-menus.xul                  (content/lightning-menus.xul)
     content/lightning/lightning-migration.xul              (content/lightning-migration.xul)
     content/lightning/lightning-standalone.xul             (content/lightning-standalone.xul)
