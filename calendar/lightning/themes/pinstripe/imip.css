@@ -4,7 +4,7 @@
 
 @import url(chrome://lightning/skin/common/imip.css);
 
-table {
-       margin-top: 1em;
-       margin-bottom: 1em;
+#invitation-table {
+    margin-top: 1em;
+    margin-bottom: 1em;
 }

@@ -2,19 +2,72 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-table {
+/* Now this sucks. We have to replicate the rules using background propreties,
+   since html elements don't work with list-style-image and -moz-image-region. */
+.status-icon {
+    background-image: url(chrome://messagebody/skin/calendar-event-dialog-attendees.png);
+    width: 12px;
+    height: 14px;
+    background-position: -36px 0;
+}
+
+.status-icon[disabled="true"] {
+    background-position: -36px -14px;
+}
+
+.status-icon[status="ACCEPTED"] {
+    background-position: 0 0;
+}
+
+.status-icon[status="ACCEPTED"][disabled="true"] {
+    background-position: 0 -14px;
+}
+
+.status-icon[status="DECLINED"] {
+    background-position: -12px 0;
+}
+
+.status-icon[status="DECLINED"][disabled="true"] {
+    background-position: -12px -14px;
+}
+
+.status-icon[status="NEEDS-ACTION"] {
+    background-position: -24px 0;
+}
+
+.status-icon[status="NEEDS-ACTION"][disabled="true"] {
+    background-position: -24px -14px;
+}
+
+.status-icon[status="TENTATIVE"] {
+    background-position: -36px 0;
+}
+
+.status-icon[status="TENTATIVE"][disabled="true"] {
+    background-position: -36px -14px;
+}
+
+#imipHtml-attendees-row > .content,
+#imipHtml-organizer-row > .content,
+#attendee-table > tbody > tr > td,
+#organizer-table > tbody > tr > td {
+    padding: 0
+}
+
+#invitation-table {
        border: 3px solid -moz-default-color;
        border-collapse: collapse;
        width: 40em;
        -moz-margin-start: auto;
        -moz-margin-end: auto;
 }
-td {
+#invitation-table > tbody > tr > td {
        padding: 3px;
        vertical-align: top;
        width: 2em;
        text-align: left;
 }
+
 .header {
        color: HighlightText;
        font-size: 1em;
@@ -26,6 +79,7 @@ td {
        text-align: right;
        -moz-border-end: 1px solid rgba(255, 255, 255, 0.2);
        background-color: rgba(0, 0, 0, 0.2);
+       vertical-align: top;
 }
 .content {
        width: 29em;

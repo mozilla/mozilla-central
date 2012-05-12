@@ -3088,29 +3088,7 @@ function showAttendeePopup(event) {
             responsiveAttendees++;
         }
 
-        // Construct the display string from common name and/or email address.
-        var re = new RegExp("^mailto:(.*)", "i");
-        var name = aAttendee.commonName;
-        if (name) {
-            var email = aAttendee.id;
-            if (email && email.length) {
-                if (re.test(email)) {
-                    name += ' <' + RegExp.$1 + '>';
-                } else {
-                    name += ' <' + email + '>';
-                }
-            }
-        } else {
-            var email = aAttendee.id;
-            if (email && email.length) {
-                if (re.test(email)) {
-                    name = RegExp.$1;
-                } else {
-                    name = email;
-                }
-            }
-        }
-        aNode.setAttribute("label", name);
+        aNode.setAttribute("label", aAttendee.toString());
         aNode.setAttribute("status", aAttendee.participationStatus);
         aNode.attendee = aAttendee;
     }

@@ -112,19 +112,39 @@ ltnMimeConverter.prototype = {
         field("when", cal.getDateFormatter().formatItemInterval(event));
         field("comment", event.getProperty("COMMENT"), true);
 
-        // ORGANIZER field
-        if (event.organizer && (event.organizer.commonName || event.organizer.id)) {
-            // Trim any instances of "mailto:" for better readibility.
-            let orgname = event.organizer.commonName ||
-                          event.organizer.id.replace(/mailto:/ig, "");
-            field("organizer", orgname);
-        }
-
         // DESCRIPTION field
         let eventDescription = (event.getProperty("DESCRIPTION") || "")
                                     /* Remove the useless "Outlookism" squiggle. */
                                     .replace("*~*~*~*~*~*~*~*~*~*", "");
         field("description", eventDescription, true);
+
+        // ATTENDEE and ORGANIZER fields
+        let attendees = event.getAttendees({});
+        let attendeeTemplate = doc.getElementById("attendee-template");
+        let attendeeTable = doc.getElementById("attendee-table");
+        let organizerTable = doc.getElementById("organizer-table");
+        doc.getElementById("imipHtml-attendees-row").hidden = (attendees.length < 1);
+        doc.getElementById("imipHtml-organizer-row").hidden = !event.organizer;
+
+        function setupAttendee(attendee) {
+            let row = attendeeTemplate.cloneNode(true);
+            row.removeAttribute("id");
+            row.removeAttribute("hidden");
+            row.getElementsByClassName("status-icon")[0].setAttribute("status", attendee.participationStatus);
+            row.getElementsByClassName("attendee-name")[0].textContent = attendee.toString();
+            return row;
+        }
+
+        // Fill rows for attendees and organizer
+        field("attendees");
+        for each (let attendee in attendees) {
+            attendeeTable.appendChild(setupAttendee(attendee));
+        }
+
+        field("organizer");
+        if (event.organizer) {
+            organizerTable.appendChild(setupAttendee(event.organizer));
+        }
 
         return doc;
     },

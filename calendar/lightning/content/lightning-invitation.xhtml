@@ -6,7 +6,7 @@
     <link rel='stylesheet' type='text/css' href='chrome://messagebody/skin/imip.css'/>
   </head>
   <body>
-    <table>
+    <table id="invitation-table">
       <tr id="imipHtml-header-row">
         <th colspan="2" class="header">
           <p id="imipHtml-header-descr" class="header"/>
@@ -26,7 +26,9 @@
       </tr>
       <tr id="imipHtml-organizer-row" hidden="true">
         <td class="description"><p id="imipHtml-organizer-descr"/></td>
-        <td class="content"><p id="imipHtml-organizer-content"/></td>
+        <td class="content">
+          <table id="organizer-table"/>
+        </td>
       </tr>
       <tr id="imipHtml-description-row" hidden="true">
         <td class="description"><p id="imipHtml-description-descr"/></td>
@@ -35,6 +37,17 @@
       <tr id="imipHtml-comment-row" hidden="true">
         <td class="description"><p id="imipHtml-comment-descr"/></td>
         <td class="content"><p id="imipHtml-comment-content"/></td>
+      </tr>
+      <tr id="imipHtml-attendees-row" hidden="true">
+        <td class="description"><p id="imipHtml-attendees-descr"/></td>
+        <td class="content">
+          <table id="attendee-table">
+            <tr id="attendee-template" hidden="true">
+              <td><p class="status-icon"/></td>
+              <td class="attendee-name"/>
+            </tr>
+          </table>
+        </td>
       </tr>
     </table>
   </body>

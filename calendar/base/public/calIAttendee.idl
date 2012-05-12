@@ -104,7 +104,9 @@ interface calIAttendee : nsISupports
   attribute calIIcalProperty icalProperty;
 
   /**
-   * Return a string representation of this instance.
+   * The display name of the attendee. If the attendee has a common name, this
+   * is used. Otherwise, the attendee id is displayed (often an email), with the
+   * mailto: prefix dropped.
    */
   AUTF8String toString();
 };

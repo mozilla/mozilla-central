@@ -1,6 +1,7 @@
 #filter substitution
 lightning.jar:
 % override chrome://messagebody/skin/imip.css chrome://lightning/skin/imip.css
+% override chrome://messagebody/skin/calendar-event-dialog-attendees.png chrome://calendar/skin/calendar-event-dialog-attendees.png
 % overlay chrome://messenger/content/messenger.xul chrome://lightning/content/lightning-migration.xul
 % overlay chrome://messenger/content/msgAccountCentral.xul chrome://lightning/content/messenger-overlay-accountCentral.xul
 % overlay chrome://messenger/content/messenger.xul chrome://lightning/content/messenger-overlay-sidebar.xul

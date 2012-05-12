@@ -202,7 +202,3 @@ toolbar[iconsize="small"] #button-question[disabled="true"]:hover {
 toolbar[iconsize="small"] #button-question:hover {
     -moz-image-region: rect(16px 384px 32px 368px);
 }
-
-.status-icon > .menu-iconic-left {
-    visibility: inherit;
-}
