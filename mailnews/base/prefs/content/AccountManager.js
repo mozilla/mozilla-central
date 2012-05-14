@@ -255,17 +255,21 @@ function onAccept() {
   return true;
 }
 
-// Check if the user and/or host names have been changed and
-// if so check if the new names already exists for an account
-// or are empty.
-// Also check if the Local Directory path was changed.
+/**
+ * Check if the user and/or host names have been changed and if so check
+ * if the new names already exists for an account or are empty.
+ * Also check if the Local Directory path was changed.
+ *
+ * @param showAlert  show and alert if a problem with the host / user name is found
+ */
 function checkUserServerChanges(showAlert) {
   const prefBundle = document.getElementById("bundle_prefs");
   const alertTitle = prefBundle.getString("prefPanel-server");
   var alertText = null;
   if (smtpService.defaultServer) {
     try {
-      var smtpHostName = top.frames["contentFrame"].document.getElementById("smtp.hostname");
+      var smtpHostName = top.frames["contentFrame"]
+                            .document.getElementById("smtp.hostname");
       if (smtpHostName && hostnameIsIllegal(smtpHostName.value)) {
         alertText = prefBundle.getString("enterValidHostname");
         Services.prompt.alert(window, alertTitle, alertText);
@@ -320,11 +324,13 @@ function checkUserServerChanges(showAlert) {
   }
   alertText = null;
   // If something is changed then check if the new user/host already exists.
-  if ( (oldUser != newUser) || (oldHost != newHost) ) {
+  if ((oldUser != newUser) || (oldHost != newHost)) {
     if ((checkUser && (newUser == "")) || (newHost == "")) {
         alertText = prefBundle.getString("serverNameEmpty");
     } else {
-      if (MailServices.accounts.findRealServer(newUser, newHost, newType, 0))
+      let sameServer = MailServices.accounts
+                                   .findRealServer(newUser, newHost, newType, 0)
+      if (sameServer && (sameServer != currentAccount.incomingServer))
         alertText = prefBundle.getString("modifiedAccountExists");
     }
     if (alertText) {
@@ -338,26 +344,24 @@ function checkUserServerChanges(showAlert) {
     }
 
     // If username is changed remind users to change Your Name and Email Address.
-    // If server name is changed and has defined filters then remind users to edit rules.
+    // If server name is changed and has defined filters then remind users
+    // to edit rules.
     if (showAlert) {
-      var filterList;
+      let filterList;
       if (currentAccount && checkUser) {
         filterList = currentAccount.incomingServer.getEditableFilterList(null);
       }
-      var userChangeText, serverChangeText;
-      if ( (oldHost != newHost) && (filterList != undefined) && filterList.filterCount )
-        serverChangeText = prefBundle.getString("serverNameChanged");
+      let changeText = "";
+      if ((oldHost != newHost) &&
+          (filterList != undefined) && filterList.filterCount)
+        changeText = prefBundle.getString("serverNameChanged");
+      // In the event that oldHost == newHost or oldUser == newUser,
+      // the \n\n will be trimmed off before the message is shown.
       if (oldUser != newUser)
-        userChangeText = prefBundle.getString("userNameChanged");
+        changeText = changeText + "\n\n" + prefBundle.getString("userNameChanged");
 
-      if ( (serverChangeText != undefined) && (userChangeText != undefined) )
-        serverChangeText = serverChangeText + "\n\n" + userChangeText;
-      else
-        if (userChangeText != undefined)
-          serverChangeText = userChangeText;
-
-      if (serverChangeText != undefined)
-        Services.prompt.alert(window, alertTitle, serverChangeText);
+      if (changeText != "")
+        Services.prompt.alert(window, alertTitle, changeText.trim());
     }
   }
 
