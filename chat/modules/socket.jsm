@@ -55,7 +55,6 @@
  * High-level methods:
  *   .connect(<host>, <port>[, ("starttls" | "ssl" | "udp") [, <proxy>]])
  *   .disconnect()
- *   .reconnect()
  *   .listen(port)
  *   .send(String data)
  *   .isAlive()
@@ -173,15 +172,6 @@ const Socket = {
         // We had some error getting the proxy service, just don't use one.
         this._createTransport(null);
       }
-    }
-  },
-
-  // Reconnect to the current settings stored in the socket.
-  reconnect: function() {
-    // If there's nothing to reconnect to or we're connected, do nothing
-    if (!this.isAlive() && this.host && this.port) {
-      this.disconnect();
-      this.connect(this.host, this.port, this.security, this.proxy);
     }
   },
 

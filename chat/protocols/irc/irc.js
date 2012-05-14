@@ -817,6 +817,7 @@ ircAccount.prototype = {
   _quitTimer: null,
   // RFC 2812 Section 3.1.7.
   quit: function(aMessage) {
+    this.reportDisconnecting(Ci.prplIAccount.NO_ERROR);
     this.sendMessage("QUIT",
                      aMessage || this.getString("quitmsg") || undefined);
   },
@@ -826,6 +827,12 @@ ircAccount.prototype = {
        return;
 
     this.reportDisconnecting(Ci.prplIAccount.NO_ERROR);
+
+    // If there's no socket, disconnect immediately to avoid waiting 2 seconds.
+    if (!this._socket || !this._socket.isAlive()) {
+      this.gotDisconnected();
+      return;
+    }
 
     // Let the server know we're going to disconnect.
     this.quit();
@@ -922,6 +929,11 @@ ircAccount.prototype = {
   sendRawMessage: function(aMessage, aLoggedData) {
     // TODO This should escape any characters that can't be used in IRC (e.g.
     // \001, \r\n).
+
+    if (!this._socket || !this._socket.isAlive()) {
+      this.gotDisconnected(Ci.prplIAccount.ERROR_NETWORK_ERROR,
+                           _("connection.error.lost"));
+    }
 
     let length = this.countBytes(aMessage) + 2;
     if (length > this.maxMessageLength) {

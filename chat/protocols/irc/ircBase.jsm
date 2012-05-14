@@ -211,9 +211,21 @@ var ircBase = {
     "ERROR": function(aMessage) {
       // ERROR <error message>
       // Client connection has been terminated.
-      clearTimeout(this._quitTimer);
-      this.gotDisconnected(Ci.prplIAccount.NO_ERROR,
-                           aMessage.params[0]); // Notify account manager.
+      if (!this.disconnecting) {
+        // We received an ERROR message when we weren't expecting it, this is
+        // probably the server giving us a ping timeout.
+        ERROR("Received unexpected ERROR response:\n" + aMessage.params[0]);
+        this.gotDisconnected(Ci.prplIAccount.ERROR_NETWORK_ERROR,
+                             _("connection.error.lost"));
+      }
+      else {
+        // We received an ERROR message when expecting it (i.e. we've sent a
+        // QUIT command).
+        clearTimeout(this._quitTimer);
+        delete this._quitTimer;
+        // Notify account manager.
+        this.gotDisconnected();
+      }
       return true;
     },
     "INVITE": function(aMessage) {
@@ -297,7 +309,7 @@ var ircBase = {
     },
     "PING": function(aMessage) {
       // PING <server1 [ <server2> ]
-      // Keep the connection alive
+      // Keep the connection alive.
       this.sendMessage("PONG", aMessage.params[0]);
       return true;
     },
