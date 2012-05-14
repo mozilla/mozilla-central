@@ -1093,7 +1093,6 @@ ContentPermissionPrompt.prototype = {
             .QueryInterface(Components.interfaces.nsIDocShell)
             .chromeEventHandler.parentNode.wrappedJSObject
             .showGeolocationPrompt(path, host,
-                                   "chrome://communicator/skin/icons/geo.png",
                                    allowCallback,
                                    cancelCallback);
   },

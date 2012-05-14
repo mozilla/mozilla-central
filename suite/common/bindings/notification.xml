@@ -146,10 +146,8 @@
                   }
                 }];
                 notification =
-                  this.appendNotification(message, "refresh-blocked",
-                                          "chrome://communicator/skin/icons/application.png",
-                                          this.PRIORITY_INFO_MEDIUM,
-                                          buttons);
+                  this.appendNotification(message, "refresh-blocked", null,
+                                          this.PRIORITY_INFO_MEDIUM, buttons);
               }
               // In the case of a meta refresh, the location has already
               // changed. But in the case of an HTTP header refresh, the
@@ -434,9 +432,8 @@
 
             // Now we can display our notification.
             const priority = this.PRIORITY_WARNING_MEDIUM;
-            const iconURL = "chrome://mozapps/skin/plugins/pluginGeneric.png";
             this.appendNotification(aMessage, aNotification,
-                                    iconURL, priority, aButtons);
+                                    null, priority, aButtons);
           ]]>
         </body>
       </method>
@@ -605,7 +602,6 @@
 
             // Configure the notification bar
             var priority = this.PRIORITY_WARNING_MEDIUM;
-            var iconURL = "chrome://mozapps/skin/plugins/notifyPluginCrashed.png";
             var reloadLabel = this._stringBundle.GetStringFromName("crashedpluginsMessage.reloadButton.label");
             var reloadKey   = this._stringBundle.GetStringFromName("crashedpluginsMessage.reloadButton.accesskey");
             var submitLabel = this._stringBundle.GetStringFromName("crashedpluginsMessage.submitButton.label");
@@ -629,7 +625,7 @@
             }
 
             var notification = this.appendNotification(messageString, "plugin-crashed",
-                                                       iconURL, priority, buttons);
+                                                       null, priority, buttons);
 
             // Add the "learn more" link.
             var XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
@@ -1012,7 +1008,7 @@
             }];
             var box = this.appendNotification(messageString,
                                               "click-to-play-plugins",
-                                              "chrome://mozapps/skin/plugins/pluginGeneric.png",
+                                              null,
                                               this.PRIORITY_INFO_HIGH,
                                               buttons);
             // Force a style flush, so that we ensure the binding is attached.
@@ -1025,7 +1021,6 @@
       <method name="showGeolocationPrompt">
         <parameter name="file"/>
         <parameter name="site"/>
-        <parameter name="image"/>
         <parameter name="allowCallback"/>
         <parameter name="cancelCallback"/>
         <body>
@@ -1058,7 +1053,7 @@
               message = this._stringBundle
                             .formatStringFromName(type + ".fileWantsToKnow",
                                                   [file], 1);
-            var box = this.appendNotification(message, type, image,
+            var box = this.appendNotification(message, type, null,
                                               this.PRIORITY_INFO_HIGH, buttons);
             // Force a style flush, so that we ensure the binding is attached.
             box.clientTop;
@@ -1179,9 +1174,8 @@
 
             if (!this.getNotificationWithValue(notificationName)) {
               var priority = this.PRIORITY_WARNING_MEDIUM;
-              var iconURL = "chrome://mozapps/skin/xpinstall/xpinstallItemGeneric.png";
               this.appendNotification(messageString, notificationName,
-                                      iconURL, priority, buttons);
+                                      null, priority, buttons);
             }
           ]]>
         </body>
@@ -1213,9 +1207,8 @@
               }
             }];
             var priority = this.PRIORITY_INFO_MEDIUM;
-            var iconURL = "chrome://mozapps/skin/xpinstall/xpinstallItemGeneric.png";
             this.appendNotification(messageString, notificationName,
-                                    iconURL, priority, buttons);
+                                    null, priority, buttons);
 
             installInfo.installs.every(function(aInstall) {
               aInstall.cancel();
@@ -1271,9 +1264,8 @@
                                           .replace("#2", installInfo.installs.length)
                                           .replace("#3", brandShortName);
             var priority = this.PRIORITY_WARNING_MEDIUM;
-            var iconURL = "chrome://mozapps/skin/xpinstall/xpinstallItemGeneric.png";
             this.appendNotification(messageString, notificationName,
-                                    iconURL, priority, buttons);
+                                    null, priority, buttons);
           ]]>
         </body>
       </method>
@@ -1304,9 +1296,8 @@
 
             if (!this.getNotificationWithValue(notificationName)) {
               var priority = this.PRIORITY_WARNING_MEDIUM;
-              var iconURL = "chrome://mozapps/skin/xpinstall/xpinstallItemGeneric.png";
               this.appendNotification(messageString, notificationName,
-                                      iconURL, priority, buttons);
+                                      null, priority, buttons);
             }
           ]]>
         </body>
@@ -1352,9 +1343,8 @@
                                                     .replace("#4", version);
 
               var priority = this.PRIORITY_WARNING_MEDIUM;
-              var iconURL = "chrome://mozapps/skin/xpinstall/xpinstallItemGeneric.png";
               this.appendNotification(messageString, notificationName,
-                                      iconURL, priority, []);
+                                      null, priority, []);
             }
           ]]>
         </body>
@@ -1383,9 +1373,8 @@
               callback: this.addonInstallCancelled.bind(this, installInfo, sourceURI)
             }];
             var priority = this.PRIORITY_INFO_MEDIUM;
-            var iconURL = "chrome://mozapps/skin/xpinstall/xpinstallItemGeneric.png";
             var box = this.appendNotification(messageString, notificationName,
-                                              iconURL, priority, buttons);
+                                              null, priority, buttons);
             box.installInfo = installInfo;
             installInfo.installs.forEach(function(aInstall) {
               aInstall.addListener(box);
@@ -1558,8 +1547,7 @@
 
               const priority = this.PRIORITY_WARNING_MEDIUM;
               this.appendNotification(message, "popup-blocked",
-                                      "chrome://navigator/skin/icons/popup-blocked.png",
-                                      priority, buttons);
+                                      null, priority, buttons);
             }
           }
         ]]>
@@ -2048,7 +2036,6 @@
       <method name="showGeolocationPrompt">
         <parameter name="file"/>
         <parameter name="site"/>
-        <parameter name="image"/>
         <parameter name="allowCallback"/>
         <parameter name="cancelCallback"/>
         <body>
@@ -2433,7 +2420,7 @@
       <xul:hbox class="notification-inner outset" flex="1" xbl:inherits="type">
         <xul:hbox anonid="details" align="center" flex="1"
                   oncommand="this.parentNode.parentNode._doButtonCommand(event);">
-          <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image"/>
+          <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image,type,value"/>
           <xul:description anonid="messageText" class="messageText" xbl:inherits="xbl:text=label"/>
           <xul:progressmeter mode="undetermined" xbl:inherits="mode,value=progress"/>
           <xul:label flex="1" xbl:inherits="value=status"/>
@@ -2544,7 +2531,7 @@
     <content>
       <xul:vbox class="notification-inner outset" flex="1" xbl:inherits="type">
         <xul:hbox align="center">
-          <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image"/>
+          <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image,type,value"/>
           <xul:arrowscrollbox orient="horizontal" flex="1" pack="end"
                               oncommand="document.getBindingParent(this)._doButtonCommand(event);">
             <children/>
@@ -2565,7 +2552,7 @@
     <content>
       <xul:vbox class="notification-inner outset" flex="1" xbl:inherits="type">
         <xul:hbox align="center">
-          <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image"/>
+          <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image,type,value"/>
           <xul:arrowscrollbox orient="horizontal" flex="1" pack="end"
                               oncommand="document.getBindingParent(this)._doButtonCommand(event);">
             <children/>

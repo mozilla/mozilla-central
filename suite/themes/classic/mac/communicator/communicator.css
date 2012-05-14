@@ -147,3 +147,42 @@ toolbar textbox:-moz-lwtheme:not([focused="true"]) {
 treecols:-moz-lwtheme {
   text-shadow: none;
 }
+
+/* ::::: notification bars ::::: */
+
+.messageImage[value="refresh-blocked"] {
+  list-style-image: url("chrome://communicator/skin/icons/application.png");
+}
+
+.messageImage[value="blocked-plugins"],
+.messageImage[value="carbon-failure-plugins"],
+.messageImage[value="missing-plugins"],
+.messageImage[value="outdated-plugins"],
+.messageImage[value="click-to-play-plugins"],
+.messageImage[value="plugin-crashed"] {
+  list-style-image: url("chrome://mozapps/skin/plugins/pluginGeneric-16.png");
+}
+
+.messageImage[value="geolocation"] {
+  list-style-image: url("chrome://communicator/skin/icons/geo.png");
+}
+
+.messageImage[value="indexedDB-permissions-prompt"],
+.messageImage[value="indexedDB-quota-prompt"] {
+  list-style-image: url("chrome://global/skin/icons/question-16.png");
+}
+
+.messageImage[value="addon-install-blocked"],
+.messageImage[value="addon-install-cancelled"],
+.messageImage[value="addon-install-complete"],
+.messageImage[value="addon-install-disabled"],
+.messageImage[value="addon-install-failed"],
+.messageImage[value="addon-install-started"],
+.messageImage[value="lwtheme-install-request"],
+.messageImage[value="lwtheme-install-notification"] {
+  list-style-image: url("chrome://mozapps/skin/extensions/extensionGeneric-16.png");
+}
+
+.messageImage[value="popup-blocked"] {
+  list-style-image: url("chrome://navigator/skin/icons/popup-blocked.png");
+}
