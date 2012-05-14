@@ -103,15 +103,19 @@ nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar **
   NS_ENSURE_ARG(aParser);
   nsresult rv = NS_OK;
 
+  *aOutgoingFullName = nsnull;
+  *aOutgoingEmailAddress = nsnull;
+  *aOutgoingName = nsnull;
+
   char * result = nsnull;
-  if (aAddress)
+  if (aAddress && aAddress[0])
   {
     result = MIME_DecodeMimeHeader(aAddress, NULL, false, true);
     *aOutgoingEmailAddress = ToNewUnicode(NS_ConvertUTF8toUTF16(result ? result : aAddress));
     PR_FREEIF(result);
   }
 
-  if (aName)
+  if (aName && aName[0])
   {
     result = MIME_DecodeMimeHeader(aName, NULL, false, true);
     *aOutgoingName = ToNewUnicode(NS_ConvertUTF8toUTF16(result ? result : aName));
