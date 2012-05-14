@@ -1472,17 +1472,16 @@ $(XPIDL_GEN_DIR)/.done:
 # with any addition to the directory, regenerating all .h files -> everything.
 
 XPIDL_DEPS = \
-  $(MOZILLA_DIR)/xpcom/idl-parser/header.py \
-  $(MOZILLA_DIR)/xpcom/idl-parser/typelib.py \
-  $(MOZILLA_DIR)/xpcom/idl-parser/xpidl.py \
+  $(LIBXUL_DIST)/sdk/bin/header.py \
+  $(LIBXUL_DIST)/sdk/bin/typelib.py \
+  $(LIBXUL_DIST)/sdk/bin/xpidl.py \
   $(NULL)
 
 $(XPIDL_GEN_DIR)/%.h: %.idl $(XPIDL_DEPS) $(XPIDL_GEN_DIR)/.done
 	$(REPORT_BUILD)
 	$(PYTHON) -u $(MOZILLA_DIR)/config/pythonpath.py \
 	  -I$(MOZILLA_DIR)/other-licenses/ply \
-	  -I$(MOZILLA_DIR)/xpcom/idl-parser \
-	  $(MOZILLA_DIR)/xpcom/idl-parser/header.py --cachedir=$(MOZILLA_DIR)/xpcom/idl-parser $(XPIDL_FLAGS) $(_VPATH_SRCS) -d $(MDDEPDIR)/$(@F).pp -o $@
+	  $(LIBXUL_DIST)/sdk/bin/header.py $(XPIDL_FLAGS) $(_VPATH_SRCS) -d $(MDDEPDIR)/$(@F).pp -o $@
 	@if test -n "$(findstring $*.h, $(EXPORTS))"; \
 	  then echo "*** WARNING: file $*.h generated from $*.idl overrides $(srcdir)/$*.h"; else true; fi
 
@@ -1493,9 +1492,8 @@ $(XPIDL_GEN_DIR)/%.xpt: %.idl $(XPIDL_DEPS) $(XPIDL_GEN_DIR)/.done
 	$(REPORT_BUILD)
 	$(PYTHON) -u $(MOZILLA_DIR)/config/pythonpath.py \
 	  -I$(MOZILLA_DIR)/other-licenses/ply \
-	  -I$(MOZILLA_DIR)/xpcom/idl-parser \
 	  -I$(MOZILLA_DIR)/xpcom/typelib/xpt/tools \
-	  $(MOZILLA_DIR)/xpcom/idl-parser/typelib.py --cachedir=$(MOZILLA_DIR)/xpcom/idl-parser $(XPIDL_FLAGS) $(_VPATH_SRCS) -d $(MDDEPDIR)/$(@F).pp -o $@
+	  $(LIBXUL_DIST)/sdk/bin/typelib.py $(XPIDL_FLAGS) $(_VPATH_SRCS) -d $(MDDEPDIR)/$(@F).pp -o $@
 
 # no need to link together if XPIDLSRCS contains only XPIDL_MODULE
 ifneq ($(XPIDL_MODULE).idl,$(strip $(XPIDLSRCS)))
