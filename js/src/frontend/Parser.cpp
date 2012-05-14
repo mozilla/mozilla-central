@@ -1007,6 +1007,9 @@ DeoptimizeUsesWithin(Definition *dn, const TokenPos &pos)
     return ndeoptimized != 0;
 }
 
+static inline bool
+BlockIdInScope(uintN blockid, TreeContext *tc);
+
 static bool
 LeaveFunction(ParseNode *fn, TreeContext *funtc, PropertyName *funName = NULL,
               FunctionSyntaxKind kind = Expression)
@@ -1067,7 +1070,16 @@ LeaveFunction(ParseNode *fn, TreeContext *funtc, PropertyName *funName = NULL,
                 }
             }
 
-            Definition *outer_dn = tc->decls.lookupFirst(atom);
+            MultiDeclRange mdl = tc->decls.lookupMulti(atom);
+#if JS_HAS_BLOCK_SCOPE
+            /* See same hack in TOK_NAME case of Parser::primaryExpr. */
+            while (!mdl.empty() && mdl.front()->isLet() &&
+                   !BlockIdInScope(mdl.front()->pn_blockid, tc))
+            {
+                mdl.popFront();
+            }
+#endif
+            Definition *outer_dn = mdl.empty() ? NULL : mdl.front();
 
             /*
              * Make sure to deoptimize lexical dependencies that are polluted
