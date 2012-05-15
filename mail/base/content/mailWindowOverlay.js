@@ -2365,6 +2365,9 @@ function SpaceHit(event)
   else if (focusedElement && !hRefForClickEvent(event))
     return;
 
+  if (!contentWindow)
+    return;
+
   var rssiframe = contentWindow.document.getElementById('_mailrssiframe');
   // If we are displaying an RSS article, we really want to scroll
   // the nested iframe.
