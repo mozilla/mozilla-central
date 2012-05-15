@@ -86,7 +86,8 @@ p {
   font-weight: normal;
 }
 
-.bubble hr {
+.bubble.event > hr,
+.bubble > .indicator > hr {
   margin: 2px 0 0;
   height: 2px;
   border-style: none;
@@ -119,7 +120,7 @@ p {
   content: "*** ";
 }
 
-.event {
+p.event {
   color: hsl(0, 0%, 60%);
   margin: 3px 15px;
 }
@@ -175,14 +176,14 @@ p *:-moz-any-link img {
   border-radius: 5px;
 }
 
-.event,
+.bubble.event,
 .indicator {
   border: 1px solid hsl(0, 0%, 85%);
   border-radius: 5px;
   background-color: hsl(0, 0%, 99%);
 }
 
-.nick .indicator {
+.nick > .indicator {
   border-color: Highlight;
 }
 
