@@ -263,7 +263,7 @@ nsYouSendIt.prototype = {
     req.open("GET", gServerUrl + kUserInfoPath + args, true);
 
     req.onload = function() {
-      if (req.status >= 200 && req.status < 400) {
+      if (req.status >= 200 && req.status <= 400) {
         this.log.info("request status = " + req.status +
                       " response = " + req.responseText);
         let docResponse = JSON.parse(req.responseText);
@@ -272,7 +272,7 @@ nsYouSendIt.prototype = {
           this.log.info("error status = " + docResponse.errorStatus.code);
 
         if (docResponse.errorStatus && docResponse.errorStatus.code > 200) {
-          if (docResponse.errorStatus.code > 400) {
+          if (docResponse.errorStatus.code >= 400) {
             // Our token has gone stale
             this.log.info("Our token has gone stale - requesting a new one.");
 
@@ -607,6 +607,16 @@ nsYouSendIt.prototype = {
   },
 
   /**
+   * Clears any saved YouSendIt passwords for this instance's account.
+   */
+  clearPassword: function nsYouSendIt_clearPassword() {
+    let logins = Services.logins.findLogins({}, gServerUrl, null, gServerUrl);
+    for each (let loginInfo in logins)
+      if (loginInfo.username == this._userName)
+        Services.logins.removeLogin(loginInfo);
+  },
+
+  /**
    * Attempt to log on and get the auth token for this YouSendIt account.
    *
    * @param successCallback the callback to be fired if logging on is successful
@@ -642,6 +652,7 @@ nsYouSendIt.prototype = {
           successCallback();
         }
         else {
+          this.clearPassword();
           this._loggedIn = false;
           this._lastErrorText = docResponse.errorStatus.message;
           this._lastErrorStatus = docResponse.errorStatus.code;
@@ -649,6 +660,7 @@ nsYouSendIt.prototype = {
         }
       }
       else {
+        this.clearPassword();
         failureCallback();
       }
     }.bind(this);
