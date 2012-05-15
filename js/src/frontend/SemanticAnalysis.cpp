@@ -656,9 +656,6 @@ SetFunctionKinds(FunctionBox *funbox, uint32 *tcflags, bool isDirectEval)
                     FlagHeavyweights(lexdep, funbox, tcflags);
             }
         }
-
-        if (funbox->joinable())
-            fun->setJoinable();
     }
 }
 

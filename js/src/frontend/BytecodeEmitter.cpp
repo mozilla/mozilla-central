@@ -6337,21 +6337,6 @@ frontend::EmitTree(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
                 }
 #endif
                 if (op != JSOP_NOP) {
-                    /*
-                     * Specialize JSOP_SETPROP to JSOP_SETMETHOD to defer or
-                     * avoid null closure cloning. Do this only for assignment
-                     * statements that are not completion values wanted by a
-                     * script evaluator, to ensure that the joined function
-                     * can't escape directly.
-                     */
-                    if (!wantval &&
-                        pn2->isKind(TOK_ASSIGN) &&
-                        pn2->isOp(JSOP_NOP) &&
-                        pn2->pn_left->isOp(JSOP_SETPROP) &&
-                        pn2->pn_right->isOp(JSOP_LAMBDA) &&
-                        pn2->pn_right->pn_funbox->joinable()) {
-                        pn2->pn_left->setOp(JSOP_SETMETHOD);
-                    }
                     if (!EmitTree(cx, bce, pn2))
                         return JS_FALSE;
                     if (Emit1(cx, bce, op) < 0)
@@ -7107,26 +7092,19 @@ frontend::EmitTree(JSContext *cx, BytecodeEmitter *bce, ParseNode *pn)
                 if (!bce->makeAtomIndex(pn3->pn_atom, &index))
                     return JS_FALSE;
 
-                /* Check whether we can optimize to JSOP_INITMETHOD. */
                 ParseNode *init = pn2->pn_right;
                 bool lambda = init->isOp(JSOP_LAMBDA);
-                if (lambda)
+                if (lambda) {
                     ++methodInits;
-                if (op == JSOP_INITPROP && lambda && init->pn_funbox->joinable()) {
-                    obj = NULL;
-                    op = JSOP_INITMETHOD;
-                    pn2->setOp(op);
-                } else {
-                    /*
-                     * Disable NEWOBJECT on initializers that set __proto__, which has
-                     * a non-standard setter on objects.
-                     */
-                    if (pn3->pn_atom == cx->runtime->atomState.protoAtom)
-                        obj = NULL;
-                    op = JSOP_INITPROP;
-                    if (lambda)
-                        ++slowMethodInits;
+                    ++slowMethodInits;
                 }
+                /*
+                 * Disable NEWOBJECT on initializers that set __proto__, which has
+                 * a non-standard setter on objects.
+                 */
+                if (pn3->pn_atom == cx->runtime->atomState.protoAtom)
+                    obj = NULL;
+                op = JSOP_INITPROP;
 
                 if (obj) {
                     JS_ASSERT(!obj->inDictionaryMode());

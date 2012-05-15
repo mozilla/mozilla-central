@@ -58,14 +58,6 @@ JSFunction::inStrictMode() const
 }
 
 inline void
-JSFunction::setJoinable()
-{
-    JS_ASSERT(isInterpreted());
-    setSlot(METHOD_ATOM_SLOT, js::NullValue());
-    flags |= JSFUN_JOINABLE;
-}
-
-inline void
 JSFunction::setMethodAtom(JSAtom *atom)
 {
     JS_ASSERT(joinable());

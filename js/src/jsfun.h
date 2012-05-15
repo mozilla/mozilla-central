@@ -84,10 +84,7 @@
  * move to u.i.script->flags. For now we use function flag bits to minimize
  * pointer-chasing.
  */
-#define JSFUN_JOINABLE      0x0001  /* function is null closure that does not
-                                       appear to call itself via its own name
-                                       or arguments.callee */
-
+// 0x0001 was JSFUN_JOINABLE, but was deleted for bug 739808.
 #define JSFUN_PROTOTYPE     0x0800  /* function is Function.prototype for some
                                        global object */
 
@@ -161,7 +158,7 @@ struct JSFunction : public JSObject_Slots2
     }
 
     bool joinable() const {
-        return flags & JSFUN_JOINABLE;
+        return false;
     }
 
     JSObject &compiledFunObj() {
@@ -180,8 +177,6 @@ struct JSFunction : public JSObject_Slots2
     };
 
   public:
-    inline void setJoinable();
-
     /*
      * Method name imputed from property uniquely assigned to or initialized,
      * where the function does not need to be cloned to carry a scope chain or
