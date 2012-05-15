@@ -99,21 +99,18 @@ function runTest()
   // Empty any old downloads
   db.executeSimpleSQL("DELETE FROM moz_downloads");
 
-  var rawStmt = db.createStatement(
+  var stmt = db.createStatement(
     "INSERT INTO moz_downloads (name, source, target, startTime, endTime, " +
       "state, currBytes, maxBytes, preferredAction, autoResume) " +
     "VALUES (:name, :source, :target, :startTime, :endTime, :state, " +
       ":currBytes, :maxBytes, :preferredAction, :autoResume)");
-  var stmt = Components.classes["@mozilla.org/storage/statement-wrapper;1"]
-                       .createInstance(Components.interfaces.mozIStorageStatementWrapper);
-  stmt.initialize(rawStmt);
   for each (var dl in DoneDownloadData) {
     for (var prop in dl)
       stmt.params[prop] = dl[prop];
 
     stmt.execute();
   }
-  //stmt.statement.finalize();
+  //stmt.finalize();
 
   // Close the UI if necessary
   var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
@@ -164,7 +161,7 @@ function runTest()
 
             stmt.execute();
           }
-          stmt.statement.finalize();
+          stmt.finalize();
           dm.cleanUp();
 
           break;
