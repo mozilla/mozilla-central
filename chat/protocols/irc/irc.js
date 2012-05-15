@@ -572,7 +572,9 @@ ircAccount.prototype = {
     function charCodeToByteCount(c) {
       // Unicode characters with a code point >  127 are 2 bytes long.
       // Unicode characters with a code point > 2047 are 3 bytes long.
-      return c < 128 ? 1 : c < 2048 ? 2 : 3;
+      // Unicode characters with a code point >= 32768 are on 4 bytes,
+      // split by JS to 2 UTF16 characters of 2 bytes.
+      return c < 128 ? 1 : (c < 2048 || c >= 32768) ? 2 : 3;
     }
     let bytes = 0;
     for (let i = 0; i < aStr.length; i++)
