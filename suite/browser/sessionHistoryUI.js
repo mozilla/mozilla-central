@@ -63,58 +63,61 @@ function toggleTabsFromOtherComputers()
   }
 
 function FillHistoryMenu(aParent, aMenu)
+{
+  // Remove old entries if any
+  deleteHistoryItems(aParent);
+
+  var sessionHistory = getWebNavigation().sessionHistory;
+
+  var count = sessionHistory.count;
+  var index = sessionHistory.index;
+  var end;
+
+  switch (aMenu)
   {
-    // Remove old entries if any
-    deleteHistoryItems(aParent);
-
-    var sessionHistory = getWebNavigation().sessionHistory;
-
-    var count = sessionHistory.count;
-    var index = sessionHistory.index;
-    var end;
-    var j;
-    var entry;
-
-    switch (aMenu)
+    case "back":
+      end = index > MAX_HISTORY_MENU_ITEMS ? index - MAX_HISTORY_MENU_ITEMS
+                                           : 0;
+      if (index <= end)
+        return false;
+      for (let j = index - 1; j >= end; j--)
       {
-        case "back":
-          end = (index > MAX_HISTORY_MENU_ITEMS) ? index - MAX_HISTORY_MENU_ITEMS : 0;
-          if ((index - 1) < end) return false;
-          for (j = index - 1; j >= end; j--)
-            {
-              entry = sessionHistory.getEntryAtIndex(j, false);
-              if (entry)
-                createMenuItem(aParent, j, entry.title);
-            }
-          break;
-        case "forward":
-          end  = ((count-index) > MAX_HISTORY_MENU_ITEMS) ? index + MAX_HISTORY_MENU_ITEMS : count - 1;
-          if ((index + 1) > end) return false;
-          for (j = index + 1; j <= end; j++)
-            {
-              entry = sessionHistory.getEntryAtIndex(j, false);
-              if (entry)
-                createMenuItem(aParent, j, entry.title);
-            }
-          break;
-        case "go":
-          var startHistory = document.getElementById("startHistorySeparator");
-          var endHistory = document.getElementById("endHistorySeparator");
-          var syncMenuItem = document.getElementById("sync-tabs-menuitem");
-          startHistory.hidden = (count == 0);
-          end = count > MAX_HISTORY_MENU_ITEMS ? count - MAX_HISTORY_MENU_ITEMS : 0;
-          for (j = count - 1; j >= end; j--)
-            {
-              entry = sessionHistory.getEntryAtIndex(j, false);
-              if (entry)
-                createRadioMenuItem(aParent, endHistory, j, entry.title, j == index);
-            }
-          toggleTabsFromOtherComputers();
-          endHistory.hidden = (endHistory == aParent.lastChild || syncMenuItem.hidden);
-          break;
+        let entry = sessionHistory.getEntryAtIndex(j, false);
+        if (entry)
+          createHistoryMenuItem(aParent, j, entry);
       }
-    return true;
+      break;
+    case "forward":
+      end = count - index > MAX_HISTORY_MENU_ITEMS ? index + MAX_HISTORY_MENU_ITEMS
+                                                   : count - 1;
+      if (index >= end)
+        return false;
+      for (let j = index + 1; j <= end; j++)
+      {
+        let entry = sessionHistory.getEntryAtIndex(j, false);
+        if (entry)
+          createHistoryMenuItem(aParent, j, entry);
+      }
+      break;
+    case "go":
+      var startHistory = document.getElementById("startHistorySeparator");
+      var endHistory = document.getElementById("endHistorySeparator");
+      var syncMenuItem = document.getElementById("sync-tabs-menuitem");
+      startHistory.hidden = (count == 0);
+      end = count > MAX_HISTORY_MENU_ITEMS ? count - MAX_HISTORY_MENU_ITEMS
+                                           : 0;
+      for (let j = count - 1; j >= end; j--)
+      {
+        let entry = sessionHistory.getEntryAtIndex(j, false);
+        if (entry)
+          createHistoryMenuItem(aParent, j, entry, endHistory, j == index);
+      }
+      toggleTabsFromOtherComputers();
+      endHistory.hidden = (endHistory == aParent.lastChild || syncMenuItem.hidden);
+      break;
   }
+  return true;
+}
 
 function executeUrlBarHistoryCommand( aTarget )
   {
@@ -157,35 +160,42 @@ function createUBHistoryMenu( aParent )
     na.setAttribute("disabled", "true");
   }
 
-function createMenuItem(aParent, aIndex, aLabel)
+function createHistoryMenuItem(aParent, aIndex, aEntry, aAnchor, aChecked)
+{
+  var menuitem = document.createElement("menuitem");
+  menuitem.setAttribute("label", aEntry.title);
+  menuitem.setAttribute("index", aIndex);
+  if (aChecked)
   {
-    var menuitem = document.createElement( "menuitem" );
-    menuitem.setAttribute( "label", aLabel );
-    menuitem.setAttribute( "index", aIndex );
-    aParent.appendChild(menuitem);
+    menuitem.setAttribute("type", "radio");
+    menuitem.setAttribute("checked", "true");
   }
 
-function createRadioMenuItem(aParent, aAnchor, aIndex, aLabel, aChecked)
+  if (!aChecked || /Mac/.test(navigator.platform))
   {
-    var menuitem = document.createElement("menuitem");
-    menuitem.setAttribute("type", "radio");
-    menuitem.setAttribute("label", aLabel);
-    menuitem.setAttribute("index", aIndex);
-    if (aChecked)
-      menuitem.setAttribute("checked", "true");
-    aParent.insertBefore(menuitem, aAnchor);
+    menuitem.className = "menuitem-iconic bookmark-item menuitem-with-favicon";
+    PlacesUtils.favicons.getFaviconURLForPage(aEntry.URI,
+      function faviconURLCallback(aURI) {
+        if (aURI) {
+          menuitem.setAttribute("image",
+                                PlacesUtils.favicons
+                                           .getFaviconLinkForIcon(aURI).spec);
+        }
+      }
+    );
   }
+  aParent.appendChild(menuitem);
+}
 
 function deleteHistoryItems(aParent)
+{
+  var children = aParent.childNodes;
+  for (let i = children.length - 1; i >= 0; --i)
   {
-    var children = aParent.childNodes;
-    for (var i = children.length - 1; i >= 0; --i )
-      {
-        var index = children[i].getAttribute( "index" );
-        if (index)
-          aParent.removeChild( children[i] );
-      }
+    if (children[i].hasAttribute("index"))
+      aParent.removeChild(children[i]);
   }
+}
 
 function updateGoMenu(event)
   {
