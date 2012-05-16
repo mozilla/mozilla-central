@@ -9,7 +9,7 @@
 
 let MODULE_NAME = "test-migrate-to-rdf-ui-3";
 let RELATIVE_ROOT = "../shared-modules";
-let MODULE_REQUIRES = ["folder-display-helpers", "migration-helpers"];
+let MODULE_REQUIRES = ["folder-display-helpers"];
 
 let Cc = Components.classes;
 let Ci = Components.interfaces;
@@ -18,10 +18,7 @@ let Cu = Components.utils;
 Cu.import("resource://gre/modules/Services.jsm");
 
 function setupModule(module) {
-  let fdh = collector.getModule("folder-display-helpers");
-  fdh.installInto(module);
-  let mh = collector.getModule("migration-helpers");
-  mh.installInto(module);
+  collector.getModule("folder-display-helpers").installInto(module);
 }
 
 /**

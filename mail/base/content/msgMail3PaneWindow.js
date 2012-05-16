@@ -927,18 +927,10 @@ function UpgradeProfileAndBeUglyAboutIt()
   var threadPaneUIVersion;
 
   try {
-
     threadPaneUIVersion = gPrefBranch.getIntPref("mailnews.ui.threadpane.version");
-
     if (threadPaneUIVersion < 7)
     {
-      // Open a dialog explaining the major changes from version 2.
-      if (gPrefBranch.getBoolPref("mail.ui.show.migration.on.upgrade"))
-        // But let the main window finish opening first.
-        setTimeout(openFeatureConfigurator, 0, [true,]);
-
       gPrefBranch.setIntPref("mailnews.ui.threadpane.version", 7);
-
     } // version 7 upgrades
   }
   catch (ex) {

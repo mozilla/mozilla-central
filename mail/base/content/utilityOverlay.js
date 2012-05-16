@@ -299,22 +299,6 @@ function openSearchTab(query, where) {
 }
 
 /**
- * Open the Migration Assistant.
- *
- * @param aIsUpgrade whether this is being opened as a result of upgrading
- *     from an earlier version of Thunderbird.
- */
-function openFeatureConfigurator(aIsUpgrade) {
-  let options = "chrome,dialog=yes,all,centerscreen,width=704,height=416";
-  if (aIsUpgrade)
-    options += ",modal";
-  window.openDialog("chrome://messenger/content/featureConfigurator.xhtml",
-                    "_blank", options,
-                    // Below are window.arguments for featureConfigurator.js
-                    window, aIsUpgrade);
-}
-
-/**
  * Open the dictionary list in a new content tab, if possible in an available
  * mail:3pane window, otherwise by opening a new mail:3pane.
  *

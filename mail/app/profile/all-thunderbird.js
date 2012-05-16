@@ -224,9 +224,6 @@ pref("mail.close_message_window.on_delete", false);
 // truncates the list.
 pref("mailnews.headers.show_n_lines_before_more", 1);
 
-// Thunderbird wants to show the migration assistant on upgrade by default.
-pref("mail.ui.show.migration.on.upgrade", true);
-
 // We want to keep track of what items are appropriate in
 // localstore.rdf.  We use versioning to scrub out the things
 // that have become obsolete.

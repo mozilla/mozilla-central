@@ -77,10 +77,6 @@
                 label="&releaseCmd2.label;" accesskey="&releaseCmd2.accesskey;"
                 oncommand="openFormattedURL('app.releaseNotesURL');"/>
       <menuseparator id="functionsSeparator"/>
-      <menuitem id="featureConfigurator"
-                label="&featureConfiguratorCmd.label;"
-                accesskey="&featureConfiguratorCmd.accesskey;"
-                oncommand="openFeatureConfigurator(false);"/>
       <menuitem id="helpSafeMode"
                 label="&helpSafeMode.label;"
                 accesskey="&helpSafeMode.accesskey;"
