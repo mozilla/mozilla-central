@@ -593,12 +593,6 @@ var BookmarkPropertiesPanel = {
     var childTransactions = [];
 
     if (this._description) {
-      var annoObj = { name   : PlacesUIUtils.DESCRIPTION_ANNO,
-                      type   : Ci.nsIAnnotationService.TYPE_STRING,
-                      flags  : 0,
-                      value  : description,
-                      expires: Ci.nsIAnnotationService.EXPIRE_NEVER };
-      
       let annoObj = { name   : PlacesUIUtils.DESCRIPTION_ANNO,
                       type   : Ci.nsIAnnotationService.TYPE_STRING,
                       flags  : 0,
