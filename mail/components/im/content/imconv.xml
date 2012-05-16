@@ -110,7 +110,7 @@
              aTopic == "chat-update-topic")
            this.update();
          if (aTopic == "update-conv-title")
-           this.group.updateContactPosition(aSubject);
+           this.group.updateContactPosition(this.conv);
        ]]>
        </body>
      </method>
