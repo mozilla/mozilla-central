@@ -864,7 +864,6 @@ var ircBase = {
       // TODO parse and display this?
       return false;
     },
-
     /*
      * NAMREPLY
      */
@@ -872,11 +871,13 @@ var ircBase = {
       // <target> ( "=" / "*" / "@" ) <channel> :[ "@" / "+" ] <nick> *( " " [ "@" / "+" ] <nick> )
       // TODO Keep if this is secret (@), private (*) or public (=)
       let conversation = this.getConversation(aMessage.params[2]);
-      aMessage.params[3].trim().split(" ").forEach(
-        function(aNick) conversation.getParticipant(aNick, false));
+      let newParticipants = [];
+      aMessage.params[3].trim().split(" ").forEach(function(aNick)
+        newParticipants.push(conversation.getParticipant(aNick, false)));
+      conversation.notifyObservers(new nsSimpleEnumerator(newParticipants),
+                                   "chat-buddy-add");
       return true;
     },
-
     "361": function(aMessage) { // RPL_KILLDONE
       // Non-generic
       // TODO What is this?
@@ -904,19 +905,14 @@ var ircBase = {
       // <mask> :End of LINKS list
       return true;
     },
-
     /*
      * Names
      */
     "366": function(aMessage) { // RPL_ENDOFNAMES
       // <target> <channel> :End of NAMES list
-      // Notify the conversation of the added participants.
-      let conversation = this.getConversation(aMessage.params[1]);
-      conversation.notifyObservers(conversation.getParticipants(),
-                                   "chat-buddy-add");
+      // All participants have already been added by the 353 handler.
       return true;
     },
-
     /*
      * End of a bunch of lists
      */
