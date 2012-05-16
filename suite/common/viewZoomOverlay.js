@@ -228,6 +228,12 @@ var FullZoom = {
       return;
     }
 
+    // Image documents should always start at 1, and are not affected by prefs.
+    if (!aIsTabSwitch && aBrowser.contentDocument.mozSyntheticDocument) {
+      ZoomManager.setZoomForBrowser(aBrowser, this._ensureValid(1));
+      return;
+    }
+
     if (Services.contentPrefs.hasCachedPref(aURI, this.name)) {
       let zoomValue = Services.contentPrefs.getPref(aURI, this.name);
       this._applyPrefToSetting(zoomValue, aBrowser);
@@ -297,14 +303,14 @@ var FullZoom = {
    * one.
    **/
   _applyPrefToSetting: function FullZoom_applyPrefToSetting(aValue, aBrowser) {
-    if (!this.siteSpecific || window.gInPrintPreviewMode)
+    var browser = aBrowser || (getBrowser() && getBrowser().selectedBrowser);
+
+    if (!this.siteSpecific || window.gInPrintPreviewMode ||
+        browser.contentDocument.mozSyntheticDocument)
       return;
 
-    var browser = aBrowser || (getBrowser() && getBrowser().selectedBrowser);
     try {
-      if (browser.contentDocument instanceof Components.interfaces.nsIImageDocument)
-        ZoomManager.setZoomForBrowser(browser, this._ensureValid(1));
-      else if (typeof aValue != "undefined")
+      if (typeof aValue != "undefined")
         ZoomManager.setZoomForBrowser(browser, this._ensureValid(aValue));
       else if (typeof this.globalValue != "undefined")
         ZoomManager.setZoomForBrowser(browser, this.globalValue);
@@ -316,7 +322,7 @@ var FullZoom = {
 
   _applySettingToPref: function FullZoom_applySettingToPref() {
     if (!this.siteSpecific || window.gInPrintPreviewMode ||
-        content.document instanceof Components.interfaces.nsIImageDocument)
+        content.document.mozSyntheticDocument)
       return;
 
     var zoomLevel = ZoomManager.zoom;
@@ -324,7 +330,7 @@ var FullZoom = {
   },
 
   _removePref: function FullZoom_removePref() {
-    if (!(content.document instanceof Components.interfaces.nsIImageDocument))
+    if (!content.document.mozSyntheticDocument)
       Services.contentPrefs.removePref(getBrowser().currentURI, this.name);
   },
 
