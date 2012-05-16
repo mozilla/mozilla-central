@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="closeGlyph" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="8px" height="8px" viewBox="0 0 8 8" xml:space="preserve">
+
+  <defs id="toolbarGlyphDEFS">
+
+    <linearGradient id="glyphGradientOverlay" x1="0" y1="0" x2="0" y2="100%">
+      <stop id="transparentStop" style="stop-color:#ffffff;stop-opacity:0" offset="0"/>
+      <stop id="translucentStop" style="stop-color:#ffffff;stop-opacity:0.25" offset="1"/>
+    </linearGradient>
+
+    <filter x="-0.5" y="-0.25" width="2" height="1.5" color-interpolation-filters="sRGB" id="glyphFilter">
+      <feGaussianBlur id="innerShadowBlurFLTR" stdDeviation="1" result="innerShadowBlurRE"/>
+      <feOffset id="innerShadowBlurOffsetFLTR" dy="1" dx="0" result="innerShadowBlurOffsetRE"/>
+      <feComposite id="innerShadowBlurCompositeFLTR" in2="innerShadowBlurOffsetRE" operator="atop" in="SourceGraphic" result="innerShadowBlurCompositeRE"/>
+      <feFlood id="innerShadowBlurFloodFLTR" flood-color="rgb(0,0,0)" flood-opacity="0.25" in="innerShadowBlurCompositeRE" result="innerShadowBlurFloodRE"/>
+      <feBlend id="innerShadowBlurBlendFLTR" in2="innerShadowBlurFloodRE" mode="normal" in="innerShadowBlurCompositeRE" result="innerShadowBlurBlendRE"/>
+      <feComposite id="sourceGraphicCompositeFLTR" in2="SourceGraphic" operator="atop" result="sourceGraphicCompositeRE"/>
+      <feColorMatrix id="sourceGraphicAlphaFLTR" type="luminanceToAlpha" values="0 0 0 -1 0  0 0 0 -1 0  0 0 0 -1 0  0 0 0 1 0" in="sourceGraphicCompositeRE" result="sourceGraphicAlphaRE"/>
+      <feGaussianBlur id="innerGlowBlurFLTR" in="sourceGraphicCompositeRE" stdDeviation="1" result="innerGlowBlurRE"/>
+      <feOffset id="innerGlowBlurOffsetFLTR" dy="0" dx="0" result="innerGlowBlurOffsetRE"/>
+      <feComposite id="innerGlowBlurCompositeFLTR" in2="innerGlowBlurOffsetRE" operator="atop" in="sourceGraphicCompositeRE" result="innerGlowBlurCompositeRE"/>
+      <feFlood id="innerGlowFloodFLTR" flood-color="rgb(0,0,0)" flood-opacity="1" in="innerGlowBlurCompositeRE" result="innerGlowFloodRE"/>
+      <feBlend id="innerGlowBlendFLTR" in2="innerGlowFloodRE" mode="normal" in="innerGlowBlurCompositeRE" result="innerGlowBlendRE"/>
+      <feComposite id="innerGlowCompositeFLTR" in2="sourceGraphicCompositeRE" operator="atop" result="sourceGraphicCompositeRE"/>
+      <feColorMatrix id="bottomEtchColorMatrixFLTR" values="0 0 0 -1 0  0 0 0 -1 0  0 0 0 -1 0  0 0 0 1 0" in="sourceGraphicCompositeRE" result="sourceGraphicAlphaRE"/>
+      <feGaussianBlur id="bottomEtchBlurFLTR" stdDeviation="0.4" in="sourceGraphicAlphaRE" result="bottomEtchBlurRE"/>
+      <feColorMatrix id="bottomEtchAlphaFLTR" values="-1 0 0 0 1  0 -1 0 0 1  0 0 -1 0 1  0 0 0 0.25 0" type="matrix" result="bottomEtchAlphaRE"/>
+      <feOffset id="bottomEtchOffsetFLTR" dy="1" dx="0" in="bottomEtchAlphaRE" result="bottomEtchOffsetRE"/>
+      <feMerge id="sourceEtchMergeFLTR" result="sourceGraphicCompositeRE">
+        <feMergeNode id="etchNODE" in="bottomEtchOffsetRE"/>
+        <feMergeNode id="sourceNODE" in="sourceGraphicCompositeRE"/>
+      </feMerge>
+      <feColorMatrix id="outerGlowColorMatrixFLTR" values="0 0 0 -1 0  0 0 0 -1 0  0 0 0 -1 0  0 0 0 1 0" in="sourceGraphicCompositeRE" result="sourceGraphicAlphaRE"/>
+      <feGaussianBlur id="outerGlowBlurFLTR" stdDeviation="1" in="sourceGraphicAlphaRE" result="outerGlowBlurRE"/>
+      <feColorMatrix id="outerGlowAlphaFLTR" values="-1 0 0 0 1  0 -1 0 0 1  0 0 -1 0 1  0 0 0 0.5 0" type="matrix" result="outerGlowAlphaRE"/>
+      <feOffset id="outerGlowOffsetFLTR" dy="0" dx="0" in="outerGlowAlphaRE" result="outerGlowOffsetRE"/>
+      <feMerge id="sourceOuterGlowOffsetMergeFLTR">
+        <feMergeNode id="outerGlowNODE" in="outerGlowOffsetRE"/>
+        <feMergeNode id="sourceNODE" in="sourceGraphicCompositeRE"/>
+      </feMerge>
+    </filter>
+
+  </defs>
+
+  <polygon points="7.625,6.211 7.625,6 7.414,6 6.562,5.148 6.562,5 6.414,5 5.625,4.21 5.625,3.822 6.447,3 6.688,3 6.688,2.759 7.447,2 7.656,2 7.656,1.791 7.724,1.723 7.656,1.656 7.656,1 7,1 7,1 7,0.281 6,0.281 6,0.618 5.618,1 5.344,1 5.344,1.274 4.618,2 3.415,2 2.656,1.242 2.656,1 2.415,1 2,0.585 2,0.25 1,0.25 1,1 0.344,1 0.344,1.688 0.309,1.723 0.344,1.758 0.344,2 0.586,2 1.312,2.727 1.312,3 1.586,3 2.375,3.789 2.375,4.243 1.618,5 1.438,5 1.438,5.181 0.618,6 0.438,6 0.438,6.181 0.309,6.309 0.438,6.438 0.438,7 1,7 1,7.719 1.719,7.719 1.724,7.723 1.728,7.719 2,7.719 2,7.447 2.447,7 2.562,7 2.562,6.885 3.447,6 4.586,6 5.375,6.789 5.375,7 5.586,7 6,7.414 6,7.75 7,7.75 7,7.032 7.032,7 7.625,7 7.625,6.408 7.724,6.309" id="closeGlyphBASE" style="fill:ButtonText; fill-opacity:.5; filter:url(#glyphFilter);"/>
+  <polygon points="7.625,6.211 7.625,6 7.414,6 6.562,5.148 6.562,5 6.414,5 5.625,4.21 5.625,3.822 6.447,3 6.688,3 6.688,2.759 7.447,2 7.656,2 7.656,1.791 7.724,1.723 7.656,1.656 7.656,1 7,1 7,1 7,0.281 6,0.281 6,0.618 5.618,1 5.344,1 5.344,1.274 4.618,2 3.415,2 2.656,1.242 2.656,1 2.415,1 2,0.585 2,0.25 1,0.25 1,1 0.344,1 0.344,1.688 0.309,1.723 0.344,1.758 0.344,2 0.586,2 1.312,2.727 1.312,3 1.586,3 2.375,3.789 2.375,4.243 1.618,5 1.438,5 1.438,5.181 0.618,6 0.438,6 0.438,6.181 0.309,6.309 0.438,6.438 0.438,7 1,7 1,7.719 1.719,7.719 1.724,7.723 1.728,7.719 2,7.719 2,7.447 2.447,7 2.562,7 2.562,6.885 3.447,6 4.586,6 5.375,6.789 5.375,7 5.586,7 6,7.414 6,7.75 7,7.75 7,7.032 7.032,7 7.625,7 7.625,6.408 7.724,6.309" id="closeGlyphBASE" style="fill:url(#glyphGradientOverlay); fill-opacity:1;"/>
+
+</svg>

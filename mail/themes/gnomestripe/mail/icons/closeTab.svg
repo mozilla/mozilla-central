@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="closeGlyph" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="8px" height="8px" viewBox="0 0 8 8" xml:space="preserve">
+
+  <defs id="defs62">
+
+    <filter x="-0.1" y="-0.1" width="1.2" height="1.2" color-interpolation-filters="sRGB" id="filter9">
+      <feFlood id="feFlood5" result="flood" flood-color="rgb(255,255,255)" flood-opacity="0.5" in="SourceGraphic"/>
+      <feComposite in2="SourceGraphic" operator="out" in="flood" result="composite" id="feComposite7"/>
+      <feGaussianBlur id="feGaussianBlur9" result="result1" stdDeviation="0.01"/>
+      <feOffset id="feOffset11" result="result2" dy="1" dx="0"/>
+      <feComposite in2="SourceGraphic" operator="atop" in="result2" result="fbSourceGraphic" id="feComposite13"/>
+      <feColorMatrix id="feColorMatrix7742" values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0" in="fbSourceGraphic" result="fbSourceGraphicAlpha"/>
+      <feFlood in="fbSourceGraphic" result="flood" flood-color="rgb(0,0,0)" flood-opacity="0.392157" id="feFlood7744"/>
+      <feComposite in2="fbSourceGraphic" operator="in" in="flood" result="composite1" id="feComposite7746"/>
+      <feGaussianBlur result="blur" stdDeviation="1" in="composite1" id="feGaussianBlur7748"/>
+      <feOffset result="offset" dy="1.38778e-16" dx="0" id="feOffset7750"/>
+      <feComposite in2="offset" operator="over" in="fbSourceGraphic" result="composite2" id="feComposite7752"/>
+    </filter>
+
+  </defs>
+
+  <polygon points="7.625,6.211 7.625,6 7.414,6 6.562,5.148 6.562,5 6.414,5 5.625,4.21 5.625,3.822 6.447,3 6.688,3 6.688,2.759 7.447,2 7.656,2 7.656,1.791 7.724,1.723 7.656,1.656 7.656,1 7,1 7,1 7,0.281 6,0.281 6,0.618 5.618,1 5.344,1 5.344,1.274 4.618,2 3.415,2 2.656,1.242 2.656,1 2.415,1 2,0.585 2,0.25 1,0.25 1,1 0.344,1 0.344,1.688 0.309,1.723 0.344,1.758 0.344,2 0.586,2 1.312,2.727 1.312,3 1.586,3 2.375,3.789 2.375,4.243 1.618,5 1.438,5 1.438,5.181 0.618,6 0.438,6 0.438,6.181 0.309,6.309 0.438,6.438 0.438,7 1,7 1,7.719 1.719,7.719 1.724,7.723 1.728,7.719 2,7.719 2,7.447 2.447,7 2.562,7 2.562,6.885 3.447,6 4.586,6 5.375,6.789 5.375,7 5.586,7 6,7.414 6,7.75 7,7.75 7,7.032 7.032,7 7.625,7 7.625,6.408 7.724,6.309" id="closeGlyphBASE" style="fill:-moz-MenuBarText; fill-opacity:.5; filter:url(#filter9);"/>
+
+</svg>
