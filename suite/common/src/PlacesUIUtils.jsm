@@ -191,7 +191,7 @@ var PlacesUIUtils = {
             txn = PlacesUIUtils._getFolderCopyTransaction(node, aContainer, index);
         }
         else if (node.type == PlacesUtils.TYPE_X_MOZ_PLACE_SEPARATOR)
-          txn = PlacesUIUtils.ptm.createSeparator(-1, index);
+          txn = new PlacesCreateSeparatorTransaction(-1, index);
         else if (node.type == PlacesUtils.TYPE_X_MOZ_PLACE)
           txn = PlacesUIUtils._getBookmarkItemCopyTransaction(node, -1, index);
 
@@ -208,7 +208,10 @@ var PlacesUIUtils = {
       var txns = [];
       if (aData.children) {
         aData.children.forEach(function(aChild) {
-          txns.push(this.ptm.tagURI(PlacesUtils._uri(aChild.uri), [aData.title]));
+          txns.push(
+            new PlacesTagURITransaction(PlacesUtils._uri(aChild.uri),
+                                        [aData.title])          
+          );
         }, this);
       }
       return this.ptm.aggregateTransactions("addTags", txns);
@@ -220,16 +223,17 @@ var PlacesUIUtils = {
     else {
       var childItems = getChildItemsTransactions(aData.children);
       if (aData.dateAdded)
-        childItems.push(this.ptm.editItemDateAdded(null, aData.dateAdded));
+        childItems.push(new PlacesEditItemDateAddedTransaction(null, aData.dateAdded));
       if (aData.lastModified)
-        childItems.push(this.ptm.editItemLastModified(null, aData.lastModified));
+        childItems.push(new PlacesEditItemLastModifiedTransaction(null, aData.lastModified));
 
       var annos = aData.annos || [];
       annos = annos.filter(function(aAnno) {
         // always exclude GUID when copying any item
         return aAnno.name != PlacesUtils.GUID_ANNO;
       });
-      return this.ptm.createFolder(aData.title, aContainer, aIndex, annos, childItems);
+      return new PlacesCreateFolderTransaction(aData.title, aContainer, aIndex,
+                                               annos, childItems);
     }
   },
 
@@ -252,8 +256,8 @@ var PlacesUIUtils = {
       // always exclude GUID when copying any item
       return aAnno.name != PlacesUtils.GUID_ANNO;
     });
-    return this.ptm.createLivemark(feedURI, siteURI, aData.title, aContainer,
-                                   aIndex, aData.annos);
+    return new PlacesCreateLivemarkTransaction(feedURI, siteURI, aData.title,
+                                               aContainer, aIndex, aData.annos);
   },
 
   /**
@@ -279,7 +283,7 @@ var PlacesUIUtils = {
         if (copy)
           return this._getFolderCopyTransaction(data, container, index);
         // Otherwise move the item.
-        return this.ptm.moveItem(data.id, container, index);
+        return new PlacesMoveItemTransaction(data.id, container, index);
         break;
       case PlacesUtils.TYPE_X_MOZ_PLACE:
         if (data.id == -1) // Not bookmarked.
@@ -288,15 +292,15 @@ var PlacesUIUtils = {
         if (copy)
           return this._getBookmarkItemCopyTransaction(data, container, index);
         // Otherwise move the item.
-        return this.ptm.moveItem(data.id, container, index);
+        return new PlacesMoveItemTransaction(data.id, container, index);
         break;
       case PlacesUtils.TYPE_X_MOZ_PLACE_SEPARATOR:
         // There is no data in a separator, so copying it just amounts to
         // inserting a new separator.
         if (copy)
-          return this.ptm.createSeparator(container, index);
+          return new PlacesCreateSeparatorTransaction(container, index);
         // Otherwise move the item.
-        return this.ptm.moveItem(data.id, container, index);
+        return new PlacesMoveItemTransaction(data.id, container, index);
         break;
       default:
         if (type == PlacesUtils.TYPE_X_MOZ_URL ||
@@ -304,8 +308,8 @@ var PlacesUIUtils = {
             type == this.TYPE_TAB_DROP) {
           var title = (type != PlacesUtils.TYPE_UNICODE) ? data.title :
                                                              data.uri;
-          return this.ptm.createItem(PlacesUtils._uri(data.uri),
-                                     container, index, title);
+          return new PlacesCreateBookmarkTransaction(PlacesUtils._uri(data.uri),
+                                                     container, index, titel);
         }
     }
     return null;

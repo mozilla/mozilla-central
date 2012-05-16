@@ -151,9 +151,9 @@ PlacesController.prototype = {
   isCommandEnabled: function PC_isCommandEnabled(aCommand) {
     switch (aCommand) {
     case "cmd_undo":
-      return PlacesUIUtils.ptm.numberOfUndoItems > 0;
+      return PlacesUtils.transactionManager.numberOfUndoItems > 0;
     case "cmd_redo":
-      return PlacesUIUtils.ptm.numberOfRedoItems > 0;
+      return PlacesUtils.transactionManager.numberOfRedoItems > 0;
     case "cmd_cut":
     case "placesCmd_cut":
       var nodes = this._view.selectedNodes;
@@ -227,10 +227,10 @@ PlacesController.prototype = {
   doCommand: function PC_doCommand(aCommand) {
     switch (aCommand) {
     case "cmd_undo":
-      PlacesUIUtils.ptm.undoTransaction();
+      PlacesUtils.transactionManager.undoTransaction(); 
       break;
     case "cmd_redo":
-      PlacesUIUtils.ptm.redoTransaction();
+      PlacesUtils.transactionManager.redoTransaction(); 
       break;
     case "cmd_cut":
     case "placesCmd_cut":
@@ -833,8 +833,8 @@ PlacesController.prototype = {
     var ip = this._view.insertionPoint;
     if (!ip)
       throw Components.results.NS_ERROR_NOT_AVAILABLE;
-    var txn = PlacesUIUtils.ptm.createSeparator(ip.itemId, ip.index);
-    PlacesUIUtils.ptm.doTransaction(txn);
+    var txn = new PlacesCreateSeparatorTransaction(ip.itemId, ip.index);
+    PlacesUtils.transactionManager.doTransaction(txn);
     // select the new item
     var insertedNodeId = PlacesUtils.bookmarks
                                     .getIdForItemAt(ip.itemId, ip.index);
@@ -855,8 +855,8 @@ PlacesController.prototype = {
    */
   sortFolderByName: function PC_sortFolderByName() {
     var itemId = PlacesUtils.getConcreteItemId(this._view.selectedNode);
-    var txn = PlacesUIUtils.ptm.sortFolderByName(itemId);
-    PlacesUIUtils.ptm.doTransaction(txn);
+    var txn = new PlacesSortFolderByNameTransaction(itemId);
+    PlacesUtils.transactionManager.doTransaction(txn);
   },
 
   /**
@@ -920,7 +920,8 @@ PlacesController.prototype = {
         // untag transaction.
         var tagItemId = PlacesUtils.getConcreteItemId(node.parent);
         var uri = PlacesUtils._uri(node.uri);
-        transactions.push(PlacesUIUtils.ptm.untagURI(uri, [tagItemId]));
+        let txn = new PlacesUntagURITransaction(uri, [tagItemId]);
+        transactions.push(txn);
       }
       else if (PlacesUtils.nodeIsTagQuery(node) && node.parent &&
                PlacesUtils.nodeIsQuery(node.parent) &&
@@ -932,8 +933,10 @@ PlacesController.prototype = {
         // must only remove the query node.
         var tag = node.title;
         var URIs = PlacesUtils.tagging.getURIsForTag(tag);
-        for (var j = 0; j < URIs.length; j++)
-          transactions.push(PlacesUIUtils.ptm.untagURI(URIs[j], [tag]));
+        for (var j = 0; j < URIs.length; j++) {
+          let txn = new PlacesUntagURITransaction(URIs[j], [tag]);
+          transactions.push(txn);
+        }
       }
       else if (PlacesUtils.nodeIsURI(node) &&
                PlacesUtils.nodeIsQuery(node.parent) &&
@@ -961,7 +964,8 @@ PlacesController.prototype = {
           // to skip nodes that are children of an already removed folder.
           removedFolders.push(node);
         }
-        transactions.push(PlacesUIUtils.ptm.removeItem(node.itemId));
+        let txn = new PlacesRemoveItemTransaction(node.itemId);
+        transactions.push(txn);
       }
     }
   },
@@ -980,8 +984,8 @@ PlacesController.prototype = {
       this._removeRange(ranges[i], transactions, removedFolders);
 
     if (transactions.length > 0) {
-      var txn = PlacesUIUtils.ptm.aggregateTransactions(txnName, transactions);
-      PlacesUIUtils.ptm.doTransaction(txn);
+      var txn = new PlacesAggregatedTransaction(txnName, transactions);
+      PlacesUtils.transactionManager.doTransaction(txn);
     }
   },
 
@@ -1272,7 +1276,7 @@ PlacesController.prototype = {
           var txn;
           if (ip.isTag) {
             var uri = PlacesUtils._uri(items[i].uri);
-            txn = PlacesUIUtils.ptm.tagURI(uri, [ip.itemId]);
+            txn = new PlacesTagURITransaction(uri, [ip.itemId]);
           }
           else {
             // adjusted to make sure that items are given the correct index
@@ -1302,8 +1306,8 @@ PlacesController.prototype = {
     var transactions = getTransactions([PlacesUtils.TYPE_X_MOZ_PLACE,
                                         PlacesUtils.TYPE_X_MOZ_URL,
                                         PlacesUtils.TYPE_UNICODE]);
-    var txn = PlacesUIUtils.ptm.aggregateTransactions("Paste", transactions);
-    PlacesUIUtils.ptm.doTransaction(txn);
+    let aggregatedTxn = new PlacesAggregatedTransaction("Paste", transactions);
+    PlacesUtils.transactionManager.doTransaction(aggregatedTxn);
 
     // select the pasted items, they should be consecutive
     var insertedNodeIds = [];
@@ -1538,7 +1542,8 @@ let PlacesControllerDragHelper = {
           insertionPoint.orientation == Components.interfaces.nsITreeView.DROP_ON) {
         let uri = PlacesUtils._uri(unwrapped.uri);
         let tagItemId = insertionPoint.itemId;
-        transactions.push(PlacesUIUtils.ptm.tagURI(uri,[tagItemId]));
+        let tagTxn = new PlacesTagURITransaction(uri, [tagItemId]);
+        transactions.push(tagTxn);
       }
       else {
         transactions.push(PlacesUIUtils.makeTransaction(unwrapped,
@@ -1547,8 +1552,8 @@ let PlacesControllerDragHelper = {
       }
     }
 
-    let txn = PlacesUIUtils.ptm.aggregateTransactions("DropItems", transactions);
-    PlacesUIUtils.ptm.doTransaction(txn);
+    let txn = new PlacesAggregatedTransaction("DropItems", transactions);
+    PlacesUtils.transactionManager.doTransaction(txn);
   },
 
   /**
