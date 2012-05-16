@@ -105,6 +105,15 @@ ifdef MOZ_CALENDAR
 	@$(MAKE) -C calendar/lightning upload
 endif
 
+source-upload::
+	@$(MAKE) -C mail/installer source-upload
+
+hg-bundle::
+	@$(MAKE) -C mail/installer hg-bundle
+
+l10n-check::
+	@$(MAKE) -C mail/locales l10n-check
+
 ifdef ENABLE_TESTS
 include $(srcdir)/mail/testsuite-targets.mk
 endif
