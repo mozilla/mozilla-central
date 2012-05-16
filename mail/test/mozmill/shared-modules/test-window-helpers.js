@@ -937,8 +937,9 @@ var AugmentEverybodyWith = {
       if (aRootPopup.state == "closed")
         aRootPopup.openPopup(null, "", 0, 0, true, true);
       if (aRootPopup.state != "open") { // handle "showing"
-        utils.waitFor(function () aRootPopup.state == "open",
-                      "Popup never opened!", 1000, 50);
+        utils.waitFor(function() { return aRootPopup.state == "open"; },
+                      "Popup never opened! id=" + aRootPopup.id +
+                      ", state=" + aRootPopup.state, 5000, 50);
       }
       // These popups sadly do not close themselves, so we need to keep track
       //  of them so we can make sure they end up closed.
@@ -974,17 +975,19 @@ var AugmentEverybodyWith = {
         if ("menupopup" in matchingNode) {
           curPopup = matchingNode.menupopup;
           closeStack.push(curPopup);
-          utils.waitFor(function () curPopup.state == "open",
-                        "Popup never opened at action depth: " + iAction,
-                        1000, 50);
+          utils.waitFor(function() { return curPopup.state == "open"; },
+                        "Popup never opened at action depth " + iAction +
+                        "; id=" + curPopup.id + ", state=" + curPopup.state,
+                        5000, 50);
         }
       }
 
       while (closeStack.length) {
         curPopup = closeStack.pop();
         this.keypress(new elib.Elem(curPopup), "VK_ESCAPE", {});
-        utils.waitFor(function () curPopup.state == "closed",
-                      "Popup did not close!", 1000, 50);
+        utils.waitFor(function() { return curPopup.state == "closed"; },
+                      "Popup did not close! id=" + curPopup.id +
+                      ", state=" +  curPopup.state, 5000, 50);
       }
     },
 
