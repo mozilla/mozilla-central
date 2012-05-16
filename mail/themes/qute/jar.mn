@@ -286,12 +286,6 @@ classic.jar:
   skin/classic/aero/communicator/icons/smileys/smiley-cry.png           (mail/icons/smiley-cry-aero.png)
   skin/classic/aero/communicator/icons/smileys/smiley-sealed.png        (mail/icons/smiley-sealed-aero.png)
 % skin messenger classic/1.0 %skin/classic/aero/messenger/ os=WINNT osversion>=6
-  skin/classic/aero/messenger/featureConfigurator.css              (mail/featureConfigurator.css)
-  skin/classic/aero/messenger/featureConfigurators/subpage.css     (mail/featureConfigurators/subpage.css)
-  skin/classic/aero/messenger/featureConfigurators/animation.png   (mail/featureConfigurators/animation.png)
-  skin/classic/aero/messenger/featureConfigurators/compact-header.png  (mail/featureConfigurators/compact-header.png)
-  skin/classic/aero/messenger/featureConfigurators/folder-columns.png  (mail/featureConfigurators/folder-columns.png)
-  skin/classic/aero/messenger/featureConfigurators/toolbars.png    (mail/featureConfigurators/toolbars.png)
 * skin/classic/aero/messenger/primaryToolbar.css                   (mail/primaryToolbar-aero.css)
   skin/classic/aero/messenger/aboutSupport.css                     (mail/aboutSupport.css)
   skin/classic/aero/messenger/accountCentral.css                   (mail/accountCentral.css)
