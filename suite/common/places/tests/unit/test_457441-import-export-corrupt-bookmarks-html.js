@@ -60,7 +60,7 @@ const LOAD_IN_SIDEBAR_ANNO = "bookmarkProperties/loadInSidebar";
 const POST_DATA_ANNO = "bookmarkProperties/POSTData";
 
 const TEST_FAVICON_PAGE_URL = "http://www.seamonkey-project.org/";
-const TEST_FAVICON_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH1QwCEiUG/+wAegAAAu5JREFUOMtlk01oXFUUx3/3vfte3kydmeeQJgUTMsEaKX40tREbDHYE6UIXnZVUujCIiu3GKl0EXRh3ol1EF8WutItuuum4sRTRRXFRFGUyRPxIyVe1mK+ZZD46d968e6+LSduoFw7/c+D+Dv8D5wj+984NDQ4mz6TT/iiAMWCMRanO1urqnaJSZy/u/i12F2H46Qe5XGo6DAOMscSxQWuL1t08imI2NlRpba05CVOz/2qQSJx7+/DhfTPAPUhrQxwbJl54mHemJnCkg20pxh67sFStqlGY2pZd/OOjIyPZmTi+D91t0N+/h/enn2NuFW78aXm6dRvfd3NBIItK8bwEGB5Oz3iei1IxWpt7lrW2vPjKKKoDv65bMr5m4kiOvr4kjUaUh0+OO/DRwSBwR5WKabc1Smnu5zGFwgjfLsIv69CKDL+vG44dGyaKNK5rJ+XAQCqfTifY3Gzumrurp04dom0dlrag3gZtBc2OIZPpIZVK0tubycuxsSfD44VnsQaMBbsTxsDBIx3O/2hRsSAbWFwBf21b8vmn6N83zvz8SijL5YhGo47rguOC0YZsVjI+nuAP7RNpCANLpREzkBYMZly+vhxRLivq9Ri5vLxdqlQaaA1as2MfTp7u4fqGS0dbDvVp6hlBJrD0bFkuXarheaBUpSS1Xii1WvsxJovWXfufnX+QK5uSB3xN0tGkfIdHeyFahddfqxIEAs+DZvPv0s4iXf1CiCcmoQvf2Bvw8oEYAazUBM/sFfz8XZsLnzdRyiKlwJg15uau5XYWafYMpAvvvvd4OD+U4PRDMeYO3F7QbP7W4c1ii1YLPA+CQCBExK1b5Wk4uywArLVDxZ+aX6qeZD5ZiXjrRAXP69qUsqueJ5ASoqjC4uIP07Xaqx8CONbaK9+v2KUDuT3sV2uFky99U3TdJkEgCAJBItFVKSNqtYWlmzevT96FAYS19iiwJYSY3X3S2ewjBd8PQinBcaBaXSnV62989d/j/wcgGYelT45hgQAAAABJRU5ErkJggg==";
+const TEST_FAVICON_DATA_SIZE = 865;
 
 function run_test() {
   do_test_pending();
@@ -82,8 +82,7 @@ function after_import(success) {
 
   // Check that every bookmark is correct
   // Corrupt bookmarks should not have been imported
-  database_check();
-  waitForAsyncUpdates(function() {
+  database_check(function () {
     // Create corruption in database
     var corruptItemId = bs.insertBookmark(bs.toolbarFolder,
                                           uri("http://test.mozilla.org"),
@@ -116,16 +115,17 @@ function after_import(success) {
 }
 
 function before_database_check(success) {
-    // Check that every bookmark is correct
-    database_check();
-
-    waitForAsyncUpdates(do_test_finished);
+  // Check that every bookmark is correct
+  database_check(do_test_finished);
 }
 
 /*
  * Check for imported bookmarks correctness
+ *
+ * @param aCallback
+ *        Called when the checks are finished.
  */
-function database_check() {
+function database_check(aCallback) {
   // BOOKMARKS MENU
   var query = hs.getNewQuery();
   query.setFolders([bs.bookmarksMenuFolder], 1);
@@ -224,7 +224,14 @@ function database_check() {
   unfiledBookmarks.containerOpen = false;
 
   // favicons
-  var faviconURI = icos.getFaviconForPage(uri(TEST_FAVICON_PAGE_URL));
-  var dataURL = icos.getFaviconDataAsDataURL(faviconURI);
-  do_check_eq(TEST_FAVICON_DATA_URL, dataURL);
+  icos.getFaviconDataForPage(uri(TEST_FAVICON_PAGE_URL),
+    function DC_onComplete(aURI, aDataLen, aData, aMimeType) {
+      // aURI should never be null when aDataLen > 0.
+      do_check_neq(aURI, null);
+      // Favicon data is stored in the bookmarks file as a "data:" URI.  For
+      // simplicity, instead of converting the data we receive to a "data:" URI
+      // and comparing it, we just check the data size.
+      do_check_eq(TEST_FAVICON_DATA_SIZE, aDataLen);
+      aCallback();
+    });
 }
