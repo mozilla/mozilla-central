@@ -54,6 +54,7 @@ EXTRA_JS_MODULES = \
 		ircHandlers.jsm \
 		ircISUPPORT.jsm \
 		ircUtils.jsm \
+		ircWatchMonitor.jsm \
 		$(NULL)
 
 ifdef ENABLE_TESTS

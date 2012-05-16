@@ -650,12 +650,14 @@ ircAccount.prototype = {
     aConv.writeMessage(null, msg, {system: true});
   },
 
+  trackBuddy: function(aNick) {
+    // Put the username as the first to be checked on the next ISON call.
+    this._isOnQueue.unshift(aNick);
+  },
   addBuddy: function(aTag, aName) {
     let buddy = new ircAccountBuddy(this, null, aTag, aName);
     this._buddies[buddy.normalizedName] = buddy;
-
-    // Put the username as the first to be checked on the next ISON call.
-    this._isOnQueue.unshift(buddy.userName);
+    this.trackBuddy(buddy.userName);
 
     Services.contacts.accountBuddyAdded(buddy);
   },
@@ -664,8 +666,8 @@ ircAccount.prototype = {
   loadBuddy: function(aBuddy, aTag) {
     let buddy = new ircAccountBuddy(this, aBuddy, aTag);
     this._buddies[buddy.normalizedName] = buddy;
-    // Put each buddy name into the ISON queue.
-    this._isOnQueue.push(buddy.userName);
+    this.trackBuddy(buddy.userName);
+
     return buddy;
   },
   hasBuddy: function(aName)
@@ -910,9 +912,11 @@ ircAccount.prototype = {
         ERROR("IRC parameters cannot have spaces: " + params.slice(0, -1));
         return null;
       }
-      // Join the parameters with spaces, except the last parameter which gets
-      // joined with a " :" before it (and can contain spaces).
-      message += " " + params.concat(":" + params.pop()).join(" ");
+      // Join the parameters with spaces. The last parameter can contain space
+      // if necessary, in which case it gets prepended with a :.
+      if (params.slice(-1).indexOf(" ") != -1)
+        params.push(":" + params.pop());
+      message += " " + params.join(" ");
     }
 
     return message;
@@ -1055,20 +1059,30 @@ function ircProtocol() {
   Cu.import("resource:///modules/ircCommands.jsm", this);
   this.registerCommands();
 
-  // Register the standard handlers
+  // Register the standard handlers.
   let tempScope = {};
   Cu.import("resource:///modules/ircBase.jsm", tempScope);
   Cu.import("resource:///modules/ircISUPPORT.jsm", tempScope);
   Cu.import("resource:///modules/ircCTCP.jsm", tempScope);
   Cu.import("resource:///modules/ircDCC.jsm", tempScope);
 
+  // Extra features.
+  Cu.import("resource:///modules/ircWatchMonitor.jsm", tempScope);
+
   // Register default IRC handlers (IRC base, CTCP).
   ircHandlers.registerHandler(tempScope.ircBase);
   ircHandlers.registerHandler(tempScope.ircISUPPORT);
   ircHandlers.registerHandler(tempScope.ircCTCP);
-  // Register default CTCP handlers (CTCP base, DCC).
+  // Register default CTCP handlers (ISUPPORT base, CTCP base, DCC).
+  ircHandlers.registerISUPPORTHandler(tempScope.isupportBase);
   ircHandlers.registerCTCPHandler(tempScope.ctcpBase);
   ircHandlers.registerCTCPHandler(tempScope.ctcpDCC);
+
+  // Register extra features.
+  ircHandlers.registerHandler(tempScope.ircWATCH);
+  ircHandlers.registerISUPPORTHandler(tempScope.isupportWATCH);
+  ircHandlers.registerHandler(tempScope.ircMONITOR);
+  ircHandlers.registerISUPPORTHandler(tempScope.isupportMONITOR);
 }
 ircProtocol.prototype = {
   __proto__: GenericProtocolPrototype,

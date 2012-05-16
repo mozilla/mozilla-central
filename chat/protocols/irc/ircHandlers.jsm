@@ -47,6 +47,9 @@ var ircHandlers = {
    *   name        The display name of the handler.
    *   priority    The priority of the handler (0 is default, positive is
    *               higher priority)
+   *   isEnabled   A function where 'this' is bound to the account object. This
+   *               should reflect whether this handler should be used for this
+   *               account.
    *   commands    An object of commands, each command is a function which
    *               accepts a message object and has 'this' bound to the account
    *               object. It should return whether the message was successfully
@@ -65,6 +68,10 @@ var ircHandlers = {
     // Protect ourselves from adding broken handlers.
     if (!("commands" in aHandler)) {
       ERROR("IRC handlers must have a \"commands\" property: " + aHandler.name);
+      return false;
+    }
+    if (!("isEnabled" in aHandler)) {
+      ERROR("IRC handlers must have a \"isEnabled\" property: " + aHandler.name);
       return false;
     }
 
@@ -105,7 +112,8 @@ var ircHandlers = {
         // Attempt to execute the command, by checking if the handler has the
         // command.
         // Parse the command with the JavaScript account object as "this".
-        if (hasOwnProperty(handler.commands, aCommand) &&
+        if (handler.isEnabled.call(aAccount) &&
+            hasOwnProperty(handler.commands, aCommand) &&
             handler.commands[aCommand].call(aAccount, aMessage)) {
           DEBUG(JSON.stringify(aMessage));
           return true;

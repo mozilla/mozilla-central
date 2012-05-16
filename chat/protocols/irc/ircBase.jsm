@@ -205,6 +205,7 @@ var ircBase = {
   // Parameters
   name: "RFC 2812", // Name identifier
   priority: ircHandlers.DEFAULT_PRIORITY,
+  isEnabled: function() true,
 
   // The IRC commands that can be handled.
   commands: {

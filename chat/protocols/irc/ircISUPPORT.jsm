@@ -44,13 +44,22 @@
  *     http://tools.ietf.org/html/draft-hardy-irc-isupport-00
  */
 
-const EXPORTED_SYMBOLS = ["ircISUPPORT"];
+const EXPORTED_SYMBOLS = ["ircISUPPORT", "isupportBase"];
 
 const Cu = Components.utils;
 
 Cu.import("resource:///modules/ircHandlers.jsm");
 Cu.import("resource:///modules/ircUtils.jsm");
 
+/*
+ * Parses a individual token from a ISUPPORT message of the form:
+ *   <parameter>=<value> or -<value>
+ * The isupport field is added to the message and it has the following fields:
+ *   parameter  What is being configured by this ISUPPORT token.
+ *   useDefault Whether this parameter should be reset to the default value, as
+ *              defined by the RFC.
+ *   value      The new value for the parameter.
+ */
 function isupportMessage(aMessage, aToken) {
   let message = aMessage;
   message.isupport = {};
@@ -66,6 +75,7 @@ var ircISUPPORT = {
   name: "ISUPPORT",
   // Slightly above default RFC 2812 priority.
   priority: ircHandlers.DEFAULT_PRIORITY + 10,
+  isEnabled: function() true,
 
   commands: {
     // RPL_ISUPPORT
@@ -75,10 +85,10 @@ var ircISUPPORT = {
         this.ISUPPORT = {};
 
       // Seperate the ISUPPORT parameters.
-      let tokens = aMessage.params[1].split(" ");
+      let tokens = aMessage.params.slice(1, -1);
 
       let handled = true;
-      for (let token in tokens) {
+      for each (let token in tokens) {
         let message = isupportMessage(aMessage, token);
         handled &= ircHandlers.handleISUPPORTMessage(this, message);
       }
@@ -100,7 +110,7 @@ function setSimpleNumber(aAccount, aField, aMessage, aDefaultValue) {
 function generateNormalize(aStart, aEnd) {
   const exp = new RegExp("[\\x" + aStart.toString(16) + "-\\x" +
                          aEnd.toString(16) + "]", "g");
-  return function(aStr, aRemoveStatus) {
+  return function(aStr, aPrefixes) {
     let str = aStr;
     if (aPrefixes && aPrefixes.indexOf(aStr[0]) != -1)
       str = str.slice(1);
@@ -111,8 +121,8 @@ function generateNormalize(aStart, aEnd) {
 
 var isupportBase = {
   name: "ISUPPORT",
-  description: "IRC RPL_ISUPPORT Numeric Definition",
   priority: ircHandlers.DEFAULT_PRIORITY,
+  isEnabled: function() true,
 
   commands: {
     "CASEMAPPING": function(aMessage) {
@@ -151,7 +161,7 @@ var isupportBase = {
 
       let pairs = aMessage.isupport.value.split(",");
       for each (let pair in pairs) {
-        let [prefixes, num] = pair.split(":");
+        let [prefix, num] = pair.split(":");
         this.maxChannels[prefix] = num;
       }
       return true;

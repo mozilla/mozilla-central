@@ -103,6 +103,7 @@ var ircCTCP = {
   name: "CTCP",
   // Slightly above default RFC 2812 priority.
   priority: ircHandlers.HIGH_PRIORITY,
+  isEnabled: function() true,
 
   // CTCP uses only PRIVMSG and NOTICE commands.
   commands: {
@@ -156,6 +157,7 @@ var ctcpBase = {
   // Parameters
   name: "CTCP",
   priority: ircHandlers.DEFAULT_PRIORITY,
+  isEnabled: function() true,
 
   // These represent CTCP commands.
   commands: {

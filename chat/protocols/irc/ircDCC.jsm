@@ -85,6 +85,7 @@ var ctcpDCC = {
   name: "DCC",
   // Slightly above default CTCP priority.
   priority: ircHandlers.HIGH_PRIORITY + 10,
+  isEnabled: function() true,
 
   commands: {
     // Handle a DCC message by parsing the message and executing any handlers.
