@@ -582,7 +582,7 @@ nsYouSendIt.prototype = {
       return "";
 
     // OK, let's prompt for it.
-    let win = Services.wm.getMostRecentWindow("msgcompose");
+    let win = Services.wm.getMostRecentWindow(null);
 
     let authPrompter = Services.ww.getNewAuthPrompter(win);
     var password = { value: "" };
