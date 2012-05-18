@@ -327,6 +327,8 @@
 @BINPATH@/components/addonManager.js
 @BINPATH@/components/amContentHandler.js
 @BINPATH@/components/amWebInstallListener.js
+@BINPATH@/components/AppsService.js
+@BINPATH@/components/AppsService.manifest
 @BINPATH@/components/BrowserElementParent.js
 @BINPATH@/components/BrowserElementParent.manifest
 @BINPATH@/components/ConsoleAPI.js
