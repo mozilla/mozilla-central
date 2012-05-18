@@ -97,7 +97,7 @@ nsresult nsVCardAddress::ImportAddresses(
   nsCString record;
   while (!(*pAbort) && more && NS_SUCCEEDED(rv)) {
     rv = ReadRecord(lineStream, record, &more);
-    if (NS_SUCCEEDED(rv)) {
+    if (NS_SUCCEEDED(rv) && !record.IsEmpty()) {
       // Parse the vCard and build an nsIAbCard from it
       nsCOMPtr<nsIAbCard> cardFromVCard;
       rv = ab->EscapedVCardToAbCard(record.get(), getter_AddRefs(cardFromVCard));
@@ -137,8 +137,15 @@ nsresult nsVCardAddress::ReadRecord(
 
   aRecord.Truncate();
 
+  // remove the empty lines.
+  do {
+    rv = aLineStream->ReadLine(line, aMore);
+  }
+  while (line.IsEmpty() && *aMore);
+  if (!*aMore)
+    return rv;
+
   // read BEGIN:VCARD
-  rv = aLineStream->ReadLine(line, &more);
   if (!line.LowerCaseEqualsLiteral("begin:vcard")) {
     IMPORT_LOG0("*** Expected case-insensitive BEGIN:VCARD at start of vCard\n");
     rv = NS_ERROR_FAILURE;
