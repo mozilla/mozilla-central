@@ -452,6 +452,26 @@
           ]]>
         </body>
       </method>
+      
+      <method name="activateSinglePlugin">
+        <parameter name="aPlugin"/>
+        <body>
+          <![CDATA[
+            var objLoadingContent = aPlugin.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
+            if (!objLoadingContent.activated)
+              objLoadingContent.playPlugin();
+        
+            var haveUnplayedPlugins = this.contentWindowUtils.plugins.some(function(plugin) {
+              var hupObjLoadingContent = plugin.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
+              return plugin != aPlugin && !hupObjLoadingContent.activated;
+            });
+            if (!haveUnplayedPlugins) {
+              this.removePluginClickToPlayPrompt();
+              this.clickToPlayPromptShown = false;
+            }
+          ]]>
+        </body>
+      </method>
 
       <method name="openURLPref">
         <parameter name="aPref"/>
@@ -1832,7 +1852,7 @@
             return;
           }
 
-          this.addLinkClickCallback(overlay, this.activatePlugins);
+          this.addLinkClickCallback(overlay, this.activateSinglePlugin, plugin);
 
           if (!this.clickToPlayPromptShown)
             this.showPluginClickToPlayPrompt();
