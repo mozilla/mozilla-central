@@ -588,9 +588,7 @@ cal.itip = {
 
         let autoResponse = { value: false }; // controls confirm to send email only once
 
-        let invitedAttendee = ((cal.calInstanceOf(aItem.calendar, Components.interfaces.calISchedulingSupport) &&
-                                aItem.calendar.isInvitation(aItem))
-                               ? aItem.calendar.getInvitedAttendee(aItem) : null);
+        let invitedAttendee = cal.isInvitation(aItem) && cal.getInvitedAttendee(aItem);
         if (invitedAttendee) { // actually is an invitation copy, fix attendee list to send REPLY
             /* We check if the attendee id matches one of of the
              * userAddresses. If they aren't equal, it means that

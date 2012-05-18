@@ -99,6 +99,7 @@
     <implementation>
       <constructor><![CDATA[
          Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+         Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
          let self = this;
          this.eventNameTextbox.onblur = function onBlur() {
@@ -254,9 +255,8 @@
           this.setAttribute("calendar", item.calendar.name.toLowerCase());
 
           // Invitation
-          if (item.calendar instanceof Components.interfaces.calISchedulingSupport &&
-              item.calendar.isInvitation(item)) {
-              this.setAttribute("invitation-status", item.calendar.getInvitedAttendee(item).participationStatus);
+          if (cal.isInvitation(item)) {
+              this.setAttribute("invitation-status", cal.getInvitedAttendee(item).participationStatus);
               this.setAttribute("readonly", "true");
           } else if (!isCalendarWritable(item.calendar)) {
               this.setAttribute("readonly", "true");

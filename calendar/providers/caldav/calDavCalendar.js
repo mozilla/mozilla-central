@@ -116,6 +116,8 @@ calDavCalendar.prototype = {
                         Components.interfaces.calIFreeBusyProvider,
                         Components.interfaces.nsIChannelEventSink,
                         Components.interfaces.calIItipTransport,
+                        Components.interfaces.calISchedulingSupport,
+                        Components.interfaces.calICalendar,
                         Components.interfaces.calIChangeLog,
                         calICalDavCalendar,
                         Components.interfaces.nsIClassInfo,

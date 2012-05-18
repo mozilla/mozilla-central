@@ -140,6 +140,7 @@
 
       <!-- constructor -->
       <constructor><![CDATA[
+        Components.utils.import("resource://calendar/modules/calUtils.jsm");
         this.mDateFormatter = getDateFormatter();
       ]]></constructor>
 
@@ -209,7 +210,7 @@
             let attendeeLabel = document.getAnonymousElementByAttribute(
                 this, "anonid", "attendee");
             let attendeeString = attendeeText;
-            let att = aItem.calendar.getInvitedAttendee(aItem);;
+            let att = cal.getInvitedAttendee(aItem);
             if (att) {
                 if (att.commonName && att.commonName.length > 0) {
                     attendeeString += att.commonName;
@@ -226,10 +227,7 @@
       <method name="getCalendarItemParticipationStatus">
         <parameter name="aItem"/>
         <body><![CDATA[
-          var att;
-          if (calInstanceOf(aItem.calendar, Components.interfaces.calISchedulingSupport)) {
-              att = aItem.calendar.getInvitedAttendee(aItem);
-          }
+          let att = cal.getInvitedAttendee(aItem);
           return (att ? att.participationStatus : null);
         ]]></body>
       </method>
