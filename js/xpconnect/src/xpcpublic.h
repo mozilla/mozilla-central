@@ -182,6 +182,8 @@ xpc_UnmarkGrayObject(JSObject *obj)
         xpc_UnmarkGrayObjectRecursive(obj);
 }
 
+bool xpc_DeferredRelease(nsISupports *obj);
+
 class nsIMemoryMultiReporterCallback;
 
 namespace mozilla {

@@ -674,6 +674,12 @@ xpc_UnmarkGrayObjectRecursive(JSObject *obj)
     JS_TraceChildren(&trc, obj, JSTRACE_OBJECT);
 }
 
+bool
+xpc_DeferredRelease(nsISupports *obj)
+{
+    return nsXPConnect::GetRuntimeInstance()->DeferredRelease(obj);
+}
+
 struct TraversalTracer : public JSTracer
 {
     TraversalTracer(nsCycleCollectionTraversalCallback &aCb) : cb(aCb)

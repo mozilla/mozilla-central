@@ -2294,7 +2294,7 @@ XPCJSRuntime::OnJSContextNew(JSContext *cx)
     return JS_TRUE;
 }
 
-JSBool
+bool
 XPCJSRuntime::DeferredRelease(nsISupports* obj)
 {
     NS_ASSERTION(obj, "bad param");
