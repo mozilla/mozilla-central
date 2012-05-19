@@ -47,7 +47,10 @@
   ${UpdateProtocolHandlers}
 
   ; Win7 taskbar and start menu link maintenance
-  ${UpdateShortcutAppModelIDs} "$INSTDIR\${FileMainEXE}" "${AppUserModelID}" $0
+  ${If} ${AtLeastWin7}
+  ${AndIf} "$AppUserModelID" != ""
+    ${UpdateShortcutAppModelIDs} "$INSTDIR\${FileMainEXE}" "$AppUserModelID" $0
+  ${EndIf}
 
   ; Upgrade the copies of the MAPI DLLs
   ${UpgradeMapiDLLs}
@@ -294,20 +297,29 @@
   SetShellVarContext all  ; Set $DESKTOP to All Users
   ${Unless} ${FileExists} "$DESKTOP\${BrandFullName}.lnk"
     CreateShortCut "$DESKTOP\${BrandFullName}.lnk" "$INSTDIR\${FileMainEXE}" "" "$INSTDIR\${FileMainEXE}" 0
-    ApplicationID::Set "$DESKTOP\${BrandFullName}.lnk" "${AppUserModelID}"
+    ${If} ${AtLeastWin7}
+    ${AndIf} "$AppUserModelID" != ""
+      ApplicationID::Set "$DESKTOP\${BrandFullName}.lnk" "$AppUserModelID"
+    ${EndIf}
     ShellLink::SetShortCutWorkingDirectory "$DESKTOP\${BrandFullName}.lnk" "$INSTDIR"
     ${Unless} ${FileExists} "$DESKTOP\${BrandFullName}.lnk"
       SetShellVarContext current  ; Set $DESKTOP to the current user's desktop
       ${Unless} ${FileExists} "$DESKTOP\${BrandFullName}.lnk"
         CreateShortCut "$DESKTOP\${BrandFullName}.lnk" "$INSTDIR\${FileMainEXE}" "" "$INSTDIR\${FileMainEXE}" 0
-        ApplicationID::Set "$DESKTOP\${BrandFullName}.lnk" "${AppUserModelID}"
+        ${If} ${AtLeastWin7}
+        ${AndIf} "$AppUserModelID" != ""
+          ApplicationID::Set "$DESKTOP\${BrandFullName}.lnk" "$AppUserModelID"
+        ${EndIf}
         ShellLink::SetShortCutWorkingDirectory "$DESKTOP\${BrandFullName}.lnk" "$INSTDIR"
       ${EndUnless}
     ${EndUnless}
   ${EndUnless}
   ${Unless} ${FileExists} "$QUICKLAUNCH\${BrandFullName}.lnk"
     CreateShortCut "$QUICKLAUNCH\${BrandFullName}.lnk" "$INSTDIR\${FileMainEXE}" "" "$INSTDIR\${FileMainEXE}" 0
-    ApplicationID::Set "$QUICKLAUNCH\${BrandFullName}.lnk" "${AppUserModelID}"
+    ${If} ${AtLeastWin7}
+    ${AndIf} "$AppUserModelID" != ""
+      ApplicationID::Set "$QUICKLAUNCH\${BrandFullName}.lnk" "$AppUserModelID"
+    ${EndIf}
     ShellLink::SetShortCutWorkingDirectory "$QUICKLAUNCH\${BrandFullName}.lnk" "$INSTDIR"
   ${EndUnless}
 !macroend

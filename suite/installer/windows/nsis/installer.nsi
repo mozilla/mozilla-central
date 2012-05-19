@@ -37,6 +37,7 @@
 
 # Also requires:
 # AppAssocReg http://nsis.sourceforge.net/Application_Association_Registration_plug-in
+# CityHash    http://mxr.mozilla.org/mozilla-central/source/other-licenses/nsis/Contrib/CityHash
 # ShellLink plugin http://nsis.sourceforge.net/ShellLink_plug-in
 # UAC         http://nsis.sourceforge.net/UAC_plug-in
 
@@ -101,6 +102,7 @@ VIAddVersionKey "OriginalFilename" "setup.exe"
 !insertmacro FindSMProgramsDir
 !insertmacro GetPathFromString
 !insertmacro GetParent
+!insertmacro InitHashAppModelId
 !insertmacro IsHandlerForInstallDir
 !insertmacro ManualCloseAppPrompt
 !insertmacro RegCleanMain
@@ -360,6 +362,9 @@ Section "-Application" APP_IDX
 
   ClearErrors
 
+  ; setup the application model id registration value
+  ${InitHashAppModelId} "$INSTDIR" "Software\Mozilla\${AppName}\TaskBarIDs"
+
   ; Default for creating Start Menu folder and shortcuts
   ; (1 = create, 0 = don't create)
   ${If} $AddStartMenuSC == ""
@@ -482,10 +487,16 @@ Section "-Application" APP_IDX
       ${LogMsg} "Added Start Menu Directory: $SMPROGRAMS\$StartMenuDir"
     ${EndUnless}
     CreateShortCut "$SMPROGRAMS\$StartMenuDir\${BrandFullName}.lnk" "$INSTDIR\${FileMainEXE}" "" "$INSTDIR\${FileMainEXE}" 0
-    ApplicationID::Set "$SMPROGRAMS\$StartMenuDir\${BrandFullName}.lnk" "${AppUserModelID}"
+    ${If} ${AtLeastWin7}
+    ${AndIf} "$AppUserModelID" != ""
+      ApplicationID::Set "$SMPROGRAMS\$StartMenuDir\${BrandFullName}.lnk" "$AppUserModelID"
+    ${EndIf}
     ${LogMsg} "Added Shortcut: $SMPROGRAMS\$StartMenuDir\${BrandFullName}.lnk"
     CreateShortCut "$SMPROGRAMS\$StartMenuDir\${BrandFullName} ($(SAFE_MODE)).lnk" "$INSTDIR\${FileMainEXE}" "-safe-mode" "$INSTDIR\${FileMainEXE}" 0
-    ApplicationID::Set "$SMPROGRAMS\$StartMenuDir\${BrandFullName} ($(SAFE_MODE)).lnk" "${AppUserModelID}"
+    ${If} ${AtLeastWin7}
+    ${AndIf} "$AppUserModelID" != ""
+      ApplicationID::Set "$SMPROGRAMS\$StartMenuDir\${BrandFullName} ($(SAFE_MODE)).lnk" "$AppUserModelID"
+    ${EndIf}
     ${LogMsg} "Added Shortcut: $SMPROGRAMS\$StartMenuDir\${BrandFullName} ($(SAFE_MODE)).lnk"
     CreateShortCut "$SMPROGRAMS\$StartMenuDir\${BrandFullName} $(MAILNEWS_TEXT).lnk" "$INSTDIR\${FileMainEXE}" "-mail" "$INSTDIR\chrome\icons\default\messengerWindow.ico" 0
     ${LogMsg} "Added Shortcut: $SMPROGRAMS\$StartMenuDir\${BrandFullName} $(MAILNEWS_TEXT).lnk"
@@ -495,13 +506,19 @@ Section "-Application" APP_IDX
 
   ${If} $AddQuickLaunchSC == 1
     CreateShortCut "$QUICKLAUNCH\${BrandFullName}.lnk" "$INSTDIR\${FileMainEXE}" "" "$INSTDIR\${FileMainEXE}" 0
-    ApplicationID::Set "$QUICKLAUNCH\${BrandFullName}.lnk" "${AppUserModelID}"
+    ${If} ${AtLeastWin7}
+    ${AndIf} "$AppUserModelID" != ""
+      ApplicationID::Set "$QUICKLAUNCH\${BrandFullName}.lnk" "$AppUserModelID"
+    ${EndIf}
     ${LogMsg} "Added Shortcut: $QUICKLAUNCH\${BrandFullName}.lnk"
   ${EndIf}
 
   ${If} $AddDesktopSC == 1
     CreateShortCut "$DESKTOP\${BrandFullName}.lnk" "$INSTDIR\${FileMainEXE}" "" "$INSTDIR\${FileMainEXE}" 0
-    ApplicationID::Set "$DESKTOP\${BrandFullName}.lnk" "${AppUserModelID}"
+    ${If} ${AtLeastWin7}
+    ${AndIf} "$AppUserModelID" != ""
+      ApplicationID::Set "$DESKTOP\${BrandFullName}.lnk" "$AppUserModelID"
+    ${EndIf}
     ${LogMsg} "Added Shortcut: $DESKTOP\${BrandFullName}.lnk"
   ${EndIf}
 
