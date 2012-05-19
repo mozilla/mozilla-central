@@ -115,16 +115,16 @@ PLDHashOperator
 nsMsgSearchDBView::ThreadTableCloner(const nsACString &aKey, nsIMsgThread* aThread, void* aArg)
 {
   nsMsgSearchDBView* view = static_cast<nsMsgSearchDBView*>(aArg);
-  nsresult rv = view->m_threadsTable.Put(aKey, aThread);
-  return NS_SUCCEEDED(rv) ? PL_DHASH_NEXT : PL_DHASH_STOP;
+  view->m_threadsTable.Put(aKey, aThread);
+  return PL_DHASH_NEXT;
 }
 
 PLDHashOperator
 nsMsgSearchDBView::MsgHdrTableCloner(const nsACString &aKey, nsIMsgDBHdr* aMsgHdr, void* aArg)
 {
   nsMsgSearchDBView* view = static_cast<nsMsgSearchDBView*>(aArg);
-  nsresult rv = view->m_hdrsTable.Put(aKey, aMsgHdr);
-  return NS_SUCCEEDED(rv) ? PL_DHASH_NEXT : PL_DHASH_STOP;
+  view->m_hdrsTable.Put(aKey, aMsgHdr);
+  return PL_DHASH_NEXT;
 }
 
 NS_IMETHODIMP
@@ -1347,7 +1347,8 @@ nsresult nsMsgSearchDBView::AddRefToHash(nsCString &reference,
   if (oldThread)
     return NS_OK;
 
-  return m_threadsTable.Put(reference, thread);
+  m_threadsTable.Put(reference, thread);
+  return NS_OK;
 }
 
 nsresult nsMsgSearchDBView::AddMsgToHashTables(nsIMsgDBHdr *msgHdr,

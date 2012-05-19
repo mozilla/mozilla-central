@@ -311,7 +311,8 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidCustomFlagPair(PRUint32 uid, const ch
     if (!ourCustomFlags)
       return NS_ERROR_OUT_OF_MEMORY;
   }
-  return (m_customFlagsHash.Put(uid, ourCustomFlags) == 0) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  m_customFlagsHash.Put(uid, ourCustomFlags);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsImapFlagAndUidState::GetCustomFlags(PRUint32 uid, char **customFlags)

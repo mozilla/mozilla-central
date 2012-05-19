@@ -69,7 +69,8 @@ nsMsgTxn::~nsMsgTxn()
 
 nsresult nsMsgTxn::Init()
 {
-  return mPropertyHash.Init() ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  mPropertyHash.Init();
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgTxn::HasKey(const nsAString& name, bool *aResult)
@@ -92,7 +93,8 @@ NS_IMETHODIMP nsMsgTxn::GetProperty(const nsAString& name, nsIVariant* * _retval
 NS_IMETHODIMP nsMsgTxn::SetProperty(const nsAString& name, nsIVariant *value)
 {
   NS_ENSURE_ARG_POINTER(value);
-  return mPropertyHash.Put(name, value) ? NS_OK : NS_ERROR_FAILURE;
+  mPropertyHash.Put(name, value);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgTxn::DeleteProperty(const nsAString& name)

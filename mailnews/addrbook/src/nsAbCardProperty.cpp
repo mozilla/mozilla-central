@@ -305,35 +305,40 @@ NS_IMETHODIMP nsAbCardProperty::GetPropertyAsBool(const char *name, bool *value)
 
 NS_IMETHODIMP nsAbCardProperty::SetProperty(const nsACString &name, nsIVariant *value)
 {
-  return m_properties.Put(name, value);
+  m_properties.Put(name, value);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbCardProperty::SetPropertyAsAString(const char *name, const nsAString &value) 
 {
   nsCOMPtr<nsIWritableVariant> variant = do_CreateInstance(NS_VARIANT_CONTRACTID);
   variant->SetAsAString(value);
-  return m_properties.Put(nsDependentCString(name), variant);
+  m_properties.Put(nsDependentCString(name), variant);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbCardProperty::SetPropertyAsAUTF8String(const char *name, const nsACString &value) 
 {
   nsCOMPtr<nsIWritableVariant> variant = do_CreateInstance(NS_VARIANT_CONTRACTID);
   variant->SetAsAUTF8String(value);
-  return m_properties.Put(nsDependentCString(name), variant);
+  m_properties.Put(nsDependentCString(name), variant);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbCardProperty::SetPropertyAsUint32(const char *name, PRUint32 value) 
 {
   nsCOMPtr<nsIWritableVariant> variant = do_CreateInstance(NS_VARIANT_CONTRACTID);
   variant->SetAsUint32(value);
-  return m_properties.Put(nsDependentCString(name), variant);
+  m_properties.Put(nsDependentCString(name), variant);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbCardProperty::SetPropertyAsBool(const char *name, bool value) 
 {
   nsCOMPtr<nsIWritableVariant> variant = do_CreateInstance(NS_VARIANT_CONTRACTID);
   variant->SetAsBool(value);
-  return m_properties.Put(nsDependentCString(name), variant);
+  m_properties.Put(nsDependentCString(name), variant);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbCardProperty::DeleteProperty(const nsACString &name)

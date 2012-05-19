@@ -6274,12 +6274,11 @@ void nsMsgIMAPFolderACL::UpdateACLCache()
 
 bool nsMsgIMAPFolderACL::SetFolderRightsForUser(const nsACString& userName, const nsACString& rights)
 {
-  bool ret = false;
   nsCString myUserName;
-  nsCOMPtr <nsIMsgIncomingServer> server;
+  nsCOMPtr<nsIMsgIncomingServer> server;
   nsresult rv = m_folder->GetServer(getter_AddRefs(server));
-  if (NS_FAILED(rv))
-    return ret;
+  NS_ENSURE_SUCCESS(rv, false);
+
   // we need the real user name to match with what the imap server returns
   // in the acl response.
   server->GetRealUsername(myUserName);
@@ -6291,7 +6290,7 @@ bool nsMsgIMAPFolderACL::SetFolderRightsForUser(const nsACString& userName, cons
     ourUserName.Assign(userName);
 
   if (ourUserName.IsEmpty())
-    return ret;
+    return false;
 
   ToLowerCase(ourUserName);
   nsCString oldValue;
@@ -6303,13 +6302,13 @@ bool nsMsgIMAPFolderACL::SetFolderRightsForUser(const nsACString& userName, cons
     NS_ASSERTION(m_aclCount >= 0, "acl count can't go negative");
   }
   m_aclCount++;
-  ret = (m_rightsHash.Put(ourUserName, PromiseFlatCString(rights)) == 0);
+  m_rightsHash.Put(ourUserName, PromiseFlatCString(rights));
 
   if (myUserName.Equals(ourUserName) || ourUserName.EqualsLiteral(IMAP_ACL_ANYONE_STRING))
     // if this is setting an ACL for me, cache it in the folder pref flags
     UpdateACLCache();
 
-  return ret;
+  return true;
 }
 
 static PLDHashOperator fillArrayWithKeys(const nsACString& key,

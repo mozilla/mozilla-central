@@ -504,8 +504,8 @@ PLDHashOperator
 nsMsgGroupView::GroupTableCloner(const nsAString &aKey, nsIMsgThread* aGroupThread, void* aArg)
 {
   nsMsgGroupView* view = static_cast<nsMsgGroupView*>(aArg);
-  nsresult rv = view->m_groupsTable.Put(aKey, aGroupThread);
-  return NS_SUCCEEDED(rv) ? PL_DHASH_NEXT : PL_DHASH_STOP;
+  view->m_groupsTable.Put(aKey, aGroupThread);
+  return PL_DHASH_NEXT;
 }
 
 
