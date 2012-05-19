@@ -107,7 +107,6 @@
                 this.popupCount = 0;
                 this.notifyPopupCountChanged();
               }
-              // XXX should be: removeTransientNotifications(true) once bug 303327 is fixed
               this.removeTransientNotifications();
             }
           ]]>
