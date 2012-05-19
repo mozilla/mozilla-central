@@ -151,10 +151,7 @@ nsLDAPConnection::Init(nsILDAPURL *aUrl, const nsACString &aBindName,
 
   // Initialise the hashtable to keep track of pending operations.
   // 10 buckets seems like a reasonable size.
-  if (!mPendingOperations.Init(10)) { //OOM
-    NS_ERROR("nsLDAPConnection::Init(): out of memory for mPendingOperations");
-    return NS_ERROR_FAILURE;
-  }
+  mPendingOperations.Init(10);
 
   nsCOMPtr<nsIThread> curThread = do_GetCurrentThread();
   if (!curThread) {

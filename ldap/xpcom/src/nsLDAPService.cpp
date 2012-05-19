@@ -236,15 +236,8 @@ nsLDAPService::~nsLDAPService()
 //
 nsresult nsLDAPService::Init()
 {
-    if (!mServers.Init()) {
-        NS_ERROR("nsLDAPService::Init: out of memory ");
-        return NS_ERROR_OUT_OF_MEMORY;
-    }
-
-    if (!mConnections.Init()) {
-        NS_ERROR("nsLDAPService::Init: out of memory ");
-        return NS_ERROR_OUT_OF_MEMORY;
-    }
+    mServers.Init();
+    mConnections.Init();
 
     return NS_OK;
 }
