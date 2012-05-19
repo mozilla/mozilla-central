@@ -912,9 +912,11 @@ ircAccount.prototype = {
         ERROR("IRC parameters cannot have spaces: " + params.slice(0, -1));
         return null;
       }
-      // Join the parameters with spaces. The last parameter can contain space
-      // if necessary, in which case it gets prepended with a :.
-      if (params.slice(-1).indexOf(" ") != -1)
+      // Join the parameters with spaces. The last parameter can contain spaces
+      // if necessary, in which case it gets prepended with a :. A : must also
+      // be prepended if it is the first character.
+      let lastParam = params.slice(-1)[0];
+      if (lastParam.indexOf(" ") != -1 || lastParam[0] == ":")
         params.push(":" + params.pop());
       message += " " + params.join(" ");
     }
