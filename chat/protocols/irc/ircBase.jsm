@@ -370,6 +370,9 @@ var ircBase = {
     "001": function(aMessage) { // RPL_WELCOME
       // Welcome to the Internet Relay Network <nick>!<user>@<host>
       this.reportConnected();
+      // If our status is Unavailable, tell the server.
+      if (this.imAccount.statusInfo.statusType < Ci.imIStatusInfo.STATUS_AVAILABLE)
+        this.observe(null, "status-changed");
       // Check if any of our buddies are online!
       this.sendIsOn();
       return serverMessage(this, aMessage);

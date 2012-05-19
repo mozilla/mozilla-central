@@ -550,10 +550,10 @@ ircAccount.prototype = {
       return;
 
     let {statusType: type, statusText: text} = this.imAccount.statusInfo;
-    LOG("New status: " + type + ", " + text);
+    DEBUG("New status received:\ntype = " + type + "\ntext = " + text);
 
     // Tell the server to mark us as away.
-    if (type < Ci.imIStatusInfo.STATUS_AVAILABLE && !this.isAway) {
+    if (type < Ci.imIStatusInfo.STATUS_AVAILABLE) {
       // We have to have a string in order to set IRC as AWAY.
       if (!text) {
         // If no status is given, use the the default idle/away message.
