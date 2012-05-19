@@ -88,8 +88,8 @@ NS_IMPL_ISUPPORTS_INHERITED3(nsAbOutlookDirectory, nsAbDirProperty,
 
 NS_IMETHODIMP nsAbOutlookDirectory::Init(const char *aUri)
 {
-  NS_ENSURE_TRUE(mQueryThreads.Init(), NS_ERROR_FAILURE);
-  NS_ENSURE_TRUE(mCardList.Init(), NS_ERROR_FAILURE);
+  mQueryThreads.Init();
+  mCardList.Init();
 
   nsresult rv = nsAbDirProperty::Init(aUri);
   NS_ENSURE_SUCCESS(rv, rv);
