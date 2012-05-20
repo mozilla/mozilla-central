@@ -1822,8 +1822,6 @@ nsresult nsMsgDBFolder::HandleAutoCompactEvent(nsIMsgWindow *aWindow)
     PRInt32 offlineSupportLevel;
     if (numServers > 0)
     {
-      nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, serverIndex);
-      NS_ENSURE_SUCCESS(rv, rv);
       nsCOMPtr<nsIMutableArray> folderArray = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
       nsCOMPtr<nsIMutableArray> offlineFolderArray = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
@@ -1833,6 +1831,8 @@ nsresult nsMsgDBFolder::HandleAutoCompactEvent(nsIMsgWindow *aWindow)
       PRInt32 localExpungedBytes = 0;
       do
       {
+        nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, serverIndex);
+        NS_ENSURE_SUCCESS(rv, rv);
         nsCOMPtr<nsIMsgPluggableStore> msgStore;
         rv = server->GetMsgStore(getter_AddRefs(msgStore));
         NS_ENSURE_SUCCESS(rv, rv);
@@ -1877,6 +1877,7 @@ nsresult nsMsgDBFolder::HandleAutoCompactEvent(nsIMsgWindow *aWindow)
             for (PRUint32 i = 0; i < cnt; i++)
             {
               nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i);
+              expungedBytes = 0;
               folder->GetExpungedBytes(&expungedBytes);
               if (expungedBytes > 0 )
               {
@@ -1886,7 +1887,6 @@ nsresult nsMsgDBFolder::HandleAutoCompactEvent(nsIMsgWindow *aWindow)
             }
           }
         }
-        server = do_QueryElementAt(allServers, serverIndex);
       }
       while (++serverIndex < numServers);
       totalExpungedBytes = localExpungedBytes + offlineExpungedBytes;
