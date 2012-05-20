@@ -56,14 +56,26 @@ function isMsgEmailScam(aUrl)
   if (!aUrl || !gPrefBranch.getBoolPref("mail.phishing.detection.enabled"))
     return isEmailScam;
 
-  // Ignore nntp and RSS messages
-  // nsIMsgMailNewsUrl.folder can throw an error, especially if we are opening
-  // a .eml message.
   try {
-    var serverType = aUrl.folder.server.type;
-    if (serverType == 'nntp' || serverType == 'rss')
+    // nsIMsgMailNewsUrl.folder can throw an NS_ERROR_FAILURE, especially if
+    // we are opening an .eml file.
+    var folder = aUrl.folder;
+
+    // Ignore NNTP and RSS messages.
+    if (folder.server.type == 'nntp' || folder.server.type == 'rss')
       return isEmailScam;
-  } catch (ex) {}
+
+    // Also ignore messages in Sent/Drafts/Templates/Outbox.
+    const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+    let outgoingFlags = nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Drafts |
+                        nsMsgFolderFlags.Templates | nsMsgFolderFlags.Queue;
+    if (folder.isSpecialFolder(outgoingFlags, true))
+      return isEmailScam;
+
+  } catch (ex) {
+    if (ex.result != Components.results.NS_ERROR_FAILURE)
+      throw ex;
+  }
 
   // loop through all of the link nodes in the message's DOM, looking for phishing URLs...
   var msgDocument = document.getElementById('messagepane').contentDocument;
@@ -106,7 +118,6 @@ function isPhishingURL(aLinkNode, aSilentMode, aHref)
     return false;
 
   var linkTextURL = {};
-  var unobscuredHostName = {};
   var isPhishingURL = false;
 
   var hrefURL = Services.io.newURI(href, null, null);
@@ -115,9 +126,8 @@ function isPhishingURL(aLinkNode, aSilentMode, aHref)
   // this prevents us from flagging imap and other internally handled urls
   if (hrefURL.schemeIs('http') || hrefURL.schemeIs('https'))
   {
-    unobscuredHostName.value = hrefURL.host;
-
-    if (hostNameIsIPAddress(hrefURL.host, unobscuredHostName) && !isLocalIPAddress(unobscuredHostName))
+    var ipAddress = hostNameIsIPAddress(hrefURL.host);
+    if (ipAddress && !isLocalIPAddress(ipAddress))
       phishingType = kPhishingWithIPAddress;
     else if (misMatchedHostWithLinkText(aLinkNode, hrefURL, linkTextURL))
       phishingType = kPhishingWithMismatchedHosts;
@@ -125,7 +135,7 @@ function isPhishingURL(aLinkNode, aSilentMode, aHref)
     isPhishingURL = phishingType != kPhishingNotSuspicious;
 
     if (!aSilentMode && isPhishingURL) // allow the user to override the decision
-      isPhishingURL = confirmSuspiciousURL(phishingType, unobscuredHostName.value);
+      isPhishingURL = confirmSuspiciousURL(phishingType, hrefURL.host);
   }
 
   return isPhishingURL;
@@ -159,9 +169,8 @@ function misMatchedHostWithLinkText(aLinkNode, aHrefURL, aLinkTextURL)
   return false;
 }
 
-// returns true if the hostName is an IP address
-// if the host name is an obscured IP address, returns the unobscured host
-function hostNameIsIPAddress(aHostName, aUnobscuredHostName)
+// returns the unobscured host (if there is one), otherwise null
+function hostNameIsIPAddress(aHostName)
 {
   // TODO: Add Support for IPv6
 
@@ -180,7 +189,7 @@ function hostNameIsIPAddress(aHostName, aUnobscuredHostName)
     // Convert to a binary to test for possible DWORD.
     var binaryDword = parseInt(aHostName).toString(2);
     if (isNaN(binaryDword))
-      return false;
+      return null;
 
     // convert the dword into its component IP parts.
     ipComponents =
@@ -204,17 +213,11 @@ function hostNameIsIPAddress(aHostName, aUnobscuredHostName)
   // make sure each part of the IP address is in fact a number
   for (index = 0; index < ipComponents.length; ++index)
     if (isNaN(ipComponents[index])) // if any part of the IP address is not a number, then we can safely return
-      return false;
+      return null;
 
-  // only set aUnobscuredHostName if we are looking at an IPv4 host name
+  // only return unobscured host name if we are looking at an IPv4 host name
   var hostName = ipComponents.join(".");
-  if (isIPv4HostName(hostName))
-  {
-    aUnobscuredHostName.value = hostName;
-    return true;
-  }
-
-  return false;
+  return isIPv4HostName(hostName) ? hostName : null;
 }
 
 function isIPv4HostName(aHostName)
@@ -249,7 +252,7 @@ function confirmSuspiciousURL(aPhishingType, aSuspiciousHostName)
 // returns true if the IP address is a local address.
 function isLocalIPAddress(unobscuredHostName)
 {
-  var ipComponents = unobscuredHostName.value.split(".");
+  var ipComponents = unobscuredHostName.split(".");
 
   return ipComponents[0] == 10 ||
          (ipComponents[0] == 192 && ipComponents[1] == 168) ||
