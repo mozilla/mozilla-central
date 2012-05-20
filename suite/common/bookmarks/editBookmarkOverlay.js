@@ -573,11 +573,12 @@ var gEditItemOverlay = {
   onDescriptionFieldBlur: function EIO_onDescriptionFieldBlur() {
     var description = this._element("descriptionField").value;
     if (description != PlacesUIUtils.getItemDescription(this._itemId)) {
+      const nsIAnnotationService = Components.interfaces.nsIAnnotationService;
       var annoObj = { name   : PlacesUIUtils.DESCRIPTION_ANNO,
-                      type   : Ci.nsIAnnotationService.TYPE_STRING,
+                      type   : nsIAnnotationService.TYPE_STRING,
                       flags  : 0,
                       value  : description,
-                      expires: Ci.nsIAnnotationService.EXPIRE_NEVER };
+                      expires: nsIAnnotationService.EXPIRE_NEVER };
       var txn = new PlacesSetItemAnnotationTransaction(this._itemId, annoObj);
       PlacesUtils.transactionManager.doTransaction(txn);
     }
@@ -607,12 +608,13 @@ var gEditItemOverlay = {
 
   onLoadInSidebarCheckboxCommand:
   function EIO_onLoadInSidebarCheckboxCommand() {
+    const nsIAnnotationService = Components.interfaces.nsIAnnotationService;
     var loadInSidebarChecked = this._element("loadInSidebarCheckbox").checked;
     var annoObj = { name   : PlacesUIUtils.LOAD_IN_SIDEBAR_ANNO,
-                    type   : Ci.nsIAnnotationService.TYPE_INT32,
+                    type   : nsIAnnotationService.TYPE_INT32,
                     flags  : 0,
                     value  : loadInSidebarChecked,
-                    expires: Ci.nsIAnnotationService.EXPIRE_NEVER };
+                    expires: nsIAnnotationService.EXPIRE_NEVER };
     var txn = new PlacesSetItemAnnotationTransaction(this._itemId,
                                                      annoObj);
     PlacesUtils.transactionManager.doTransaction(txn);
