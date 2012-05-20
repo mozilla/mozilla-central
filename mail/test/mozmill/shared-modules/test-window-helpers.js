@@ -1250,18 +1250,6 @@ var PerWindowTypeAugmentations = {
       }
     }
   },
-
-  /**
-   * The feature configurator.
-   */
-  "mailnews:featureconfigurator": {
-    elementsToExpose: {
-      contentFrame: "contentFrame",
-    },
-    globalsToExposeViaGetters: {
-      featureConfigurator: "FeatureConfigurator",
-    },
-  },
 };
 
 function _augment_helper(aController, aAugmentDef) {
