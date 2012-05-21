@@ -76,6 +76,7 @@
 #include "nsIMsgMdnGenerator.h"
 #include "nsMsgFolderFlags.h"
 #include "nsMsgUtils.h"
+#include "nsMsgMessageFlags.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "mozilla/Services.h"
 
@@ -2256,6 +2257,14 @@ NS_IMETHODIMP nsMsgIncomingServer::IsNewHdrDuplicate(nsIMsgDBHdr *aNewHdr, bool 
   NS_ENSURE_ARG_POINTER(aResult);
   NS_ENSURE_ARG_POINTER(aNewHdr);
   *aResult = false;
+
+  // If the message has been partially downloaded, the message should not
+  // be considered a duplicated message. See bug 714090.
+  PRUint32 flags;
+  aNewHdr->GetFlags(&flags);
+  if (flags & nsMsgMessageFlags::Partial)
+    return NS_OK;
+
   nsCAutoString strHashKey;
   nsCString messageId, subject;
   aNewHdr->GetMessageId(getter_Copies(messageId));
