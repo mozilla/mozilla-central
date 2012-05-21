@@ -1331,7 +1331,8 @@ function BrowserOpenTab()
 {
   if (!gInPrintPreviewMode) {
     var uriToLoad;
-    switch (GetIntPref("browser.tabs.loadOnNewTab", 0))
+    var tabPref = GetIntPref("browser.tabs.loadOnNewTab",0);
+    switch (tabPref)
     {
       default:
         uriToLoad = "about:blank";
@@ -1358,7 +1359,11 @@ function BrowserOpenTab()
       return;
     }
 
-    gBrowser.selectedTab = gBrowser.addTab(uriToLoad);
+    if (tabPref == 2)
+      OpenSessionHistoryIn("tabfocused", 0);
+    else  
+      gBrowser.selectedTab = gBrowser.addTab(uriToLoad);
+      
     if (uriToLoad == "about:blank" && isElementVisible(gURLBar))
       setTimeout(WindowFocusTimerCallback, 0, gURLBar);
     else
