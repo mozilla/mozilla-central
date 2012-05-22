@@ -274,20 +274,27 @@ var ircBase = {
     },
     "MODE": function(aMessage) {
       // MODE <nickname> *( ( "+" / "-") *( "i" / "w" / "o" / "O" / "r" ) )
-      // If less than 3 parameter is given, the mode is your usermode.
+      // MODE <channel> *( ( "-" / "+" ) *<modes> *<modeparams> )
       if (aMessage.params.length >= 3) {
-        // Update the mode of the ConvChatBuddy.
+        // If there are 3 parameters given, then the mode of a participant is
+        // being given: update the mode of the ConvChatBuddy.
         let conversation = this.getConversation(aMessage.params[0]);
-        let convChatBuddy = conversation.getParticipant(aMessage.params[2]);
-        convChatBuddy.setMode(aMessage.params[1]);
+        conversation.getParticipant(aMessage.params[2])
+                    .setMode(aMessage.params[1], aMessage.nickname);
 
-        // Notify the UI of changes.
-        let msg = _("message.mode", aMessage.params[1], aMessage.params[2],
-                    aMessage.nickname);
-        conversation.writeMessage(aMessage.nickname, msg, {system: true});
-        conversation.notifyObservers(convChatBuddy, "chat-buddy-update");
+        return true;
       }
-      return true;
+      if (this.isMUCName(aMessage.params[0])) {
+        // Otherwise if the first parameter is a channel name, it's a channel
+        // mode.
+        this.getConversation(aMessage.params[0])
+            .setMode(aMessage.params[1], aMessage);
+
+        return true;
+      }
+      // Otherwise the user's own mode is being returned to them.
+      // TODO
+      return false;
     },
     "NICK": function(aMessage) {
       // NICK <nickname>
@@ -785,8 +792,10 @@ var ircBase = {
      */
     "324": function(aMessage) { // RPL_CHANNELMODEIS
       // <channel> <mode> <mode params>
-      // TODO parse this and have the UI respond accordingly.
-      return false;
+      this.getConversation(aMessage.params[1]).setMode(aMessage.params[2],
+                                                       aMessage);
+
+      return true;
     },
     "325": function(aMessage) { // RPL_UNIQOPIS
       // <channel> <nickname>
@@ -872,13 +881,25 @@ var ircBase = {
      */
     "353": function(aMessage) { // RPL_NAMREPLY
       // <target> ( "=" / "*" / "@" ) <channel> :[ "@" / "+" ] <nick> *( " " [ "@" / "+" ] <nick> )
-      // TODO Keep if this is secret (@), private (*) or public (=)
       let conversation = this.getConversation(aMessage.params[2]);
+      // Keep if this is secret (@), private (*) or public (=).
+      conversation.setModesFromRestriction(aMessage.params[1]);
+      // Add the participants.
       let newParticipants = [];
       aMessage.params[3].trim().split(" ").forEach(function(aNick)
         newParticipants.push(conversation.getParticipant(aNick, false)));
       conversation.notifyObservers(new nsSimpleEnumerator(newParticipants),
                                    "chat-buddy-add");
+
+      // This assumes that this is the last message received when joining a
+      // channel, so a few "clean up" tasks are done here.
+      // Update whether the topic is editable.
+      conversation.checkTopicSettable();
+
+      // If we haven't received the MODE yet, request it.
+      if (!conversation._receivedInitialMode)
+        this.sendMessage("MODE", aMessage.params[1]);
+
       return true;
     },
     "361": function(aMessage) { // RPL_KILLDONE
@@ -1272,8 +1293,7 @@ var ircBase = {
     },
     "482": function(aMessage) { // ERR_CHANOPRIVSNEEDED
       // <channel> :You're not channel operator
-      // TODO ask for auth?
-      return false;
+      return conversationErrorMessage(this, aMessage, "error.notChannelOp");
     },
     "483": function(aMessage) { // ERR_CANTKILLSERVER
       // :You can't kill a server!

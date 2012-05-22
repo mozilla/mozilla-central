@@ -250,7 +250,7 @@ var commands = [
         // If a new mode and a nick are given, then we need to provide the
         // current conversation's name.
         if (isMode(params[0]) && !isMode(params[1]))
-          params = [aConv.name, params[1], params[0]];
+          params = [aConv.name, params[0], params[1]];
         // Otherwise, the input must be a channel name or the user's own nick
         // and a mode.
         else if ((!isChannelName && !isOwnNick) || !isMode(params[1]))
