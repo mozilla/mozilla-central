@@ -19,12 +19,14 @@
   <binding id="attachmentlist-base" extends="chrome://global/content/bindings/listbox.xml#listbox-base">
     <implementation>
       <constructor><![CDATA[
-        this.children.filter(function(aChild) aChild.getAttribute("selected") == "true")
-                     .forEach(this.selectedItems.push, this.selectedItems);
+        let children = Array.slice(this._childNodes);
 
-        this.children.filter(function(aChild) !aChild.hasAttribute("context"))
-                     .forEach(function(aChild) aChild.setAttribute("context",
-                              this.getAttribute("itemcontext")), this);
+        children.filter(function(aChild) aChild.getAttribute("selected") == "true")
+                .forEach(this.selectedItems.push, this.selectedItems);
+
+        children.filter(function(aChild) !aChild.hasAttribute("context"))
+                .forEach(function(aChild) aChild.setAttribute("context",
+                         this.getAttribute("itemcontext")), this);
 
         this.sizes = {small: 16, large: 32, tile: 32};
         this.messenger = Components.classes["@mozilla.org/messenger;1"]
@@ -61,61 +63,80 @@
       </property>
 
       <property name="itemCount" readonly="true"
-                onget="return this.children.length;"/>
+                onget="return this._childNodes.length;"/>
 
       <method name="getIndexOfItem">
         <parameter name="item"/>
         <body><![CDATA[
-          return this.children.indexOf(item);
+          for (let i = 0; i < this._childNodes.length; i++) {
+            if (this._childNodes[i] === item)
+              return i;
+          }
+          return -1;
         ]]></body>
       </method>
       <method name="getItemAtIndex">
         <parameter name="index"/>
         <body><![CDATA[
-          return this.children[index] || null;
+          if (index >= 0 && index < this._childNodes.length)
+            return this._childNodes[index];
+          return null;
         ]]></body>
       </method>
       <method name="getRowCount">
         <body><![CDATA[
-          return this.children.length;
+          return this._childNodes.length;
         ]]></body>
       </method>
       <method name="getNumberOfVisibleRows">
         <body><![CDATA[
-          return this._itemsPerRow() * this._itemsPerCol();
+          let itemsPerRow = this._itemsPerRow();
+          return itemsPerRow * this._itemsPerCol(itemsPerRow);
         ]]></body>
       </method>
       <method name="getIndexOfFirstVisibleRow">
         <body><![CDATA[
-          let children = this.children;
-          if (children.length == 0)
+          if (this._childNodes.length == 0)
             return -1;
 
           // First try to estimate which row is visible, assuming they're all
           // the same height.
           let box = this.scrollbox;
-          let estimatedIndex = Math.floor(box.scrollTop /
-                                          children[0].boxObject.height);
-          let offset = children[estimatedIndex].boxObject.screenY -
+          let estimatedRow = Math.floor(box.scrollTop /
+                                        this._childNodes[0].boxObject.height);
+          let estimatedIndex = estimatedRow * this._itemsPerRow();
+          let offset = this._childNodes[estimatedIndex].boxObject.screenY -
                        box.boxObject.screenY;
 
-          if (offset > 0) { // We went too far!
+          if (offset > 0) {
+            // We went too far! Go back until we find an item totally off-
+            // screen, then return the one after that.
             for (let i = estimatedIndex - 1; i >= 0; i--) {
-              if (children[i].boxObject.screenY - box.boxObject.screenY <= 0)
-                return i;
+              let childBoxObj = this._childNodes[i].boxObject;
+              if (childBoxObj.screenY + childBoxObj.height <=
+                  box.boxObject.screenY)
+                return i+1;
             }
+
+            // If we get here, we must have gone back to the beginning of the
+            // list, so just return 0.
+            return 0;
           }
           else {
-            for (let i = estimatedIndex; i < this.children.length; i++) {
-              if (children[i].boxObject.screenY + children[i].boxObject.height -
+            // We didn't go far enough! Keep going until we find an item at
+            // least partially on-screen.
+            for (let i = estimatedIndex; i < this._childNodes.length; i++) {
+              let childBoxObj = this._childNodes[i].boxObject;
+              if (childBoxObj.screenY + childBoxObj.height >
                   box.boxObject.screenY > 0)
                 return i;
             }
-          }
 
-          // If we get here, something is very wrong.
-          dump("Couldn't get index of first visible row for attachmentlist!");
-          return -1;
+            // If we get here, something is very wrong.
+            Components.utils.reportError(
+              "Couldn't get index of first visible row for attachmentlist!\n");
+            return -1;
+          }
         ]]></body>
       </method>
       <method name="ensureIndexIsVisible">
@@ -197,13 +218,16 @@
         <parameter name="direction"/>  <!-- Must be -1 or 1 -->
         <body><![CDATA[
           let pageOffset = this.getNumberOfVisibleRows() * direction;
+          let firstVisibleIndex = this.getIndexOfFirstVisibleRow();
+
           // skip over invisible elements - the user won't care about them
           for (let i = 0; i != pageOffset; i += direction) {
-            let item = this.getItemAtIndex(this.currentIndex + i);
+            let item = this.getItemAtIndex(firstVisibleIndex + i);
             if (item && !this._canUserSelect(item))
               pageOffset += direction;
           }
-          let newTop = this.getIndexOfFirstVisibleRow() + pageOffset;
+
+          let newTop = firstVisibleIndex + pageOffset;
           if (direction == 1) {
             let maxTop = this.getRowCount() - this.getNumberOfVisibleRows();
             for (let i = this.getRowCount(); i >= 0 && i > maxTop; i--) {
@@ -241,8 +265,7 @@
 
       <!-- ///////////////// private members ///////////////// -->
 
-      <property name="children" readonly="true"
-                onget="return Array.slice(this.getElementsByTagName('attachmentitem'));"/>
+      <field name="_childNodes" readonly="true">this.getElementsByTagName("attachmentitem")</field>
       <property name="scrollbox" readonly="true"
                 onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'scrollbox');"/>
 
@@ -258,35 +281,43 @@
 
       <method name="_itemsPerRow">
         <body><![CDATA[
-          let firstItem = this.children[0] || null;
-          if (!firstItem)
-            return 0; // nothing to be visible
+          // For 0 or 1 children, we can assume that they all fit in one row.
+          if (this._childNodes.length < 2)
+            return this._childNodes.length;
 
-          let itemsPerRow = Math.floor(this.scrollbox.clientWidth /
-                                       firstItem.boxObject.width);
-          return Math.max(itemsPerRow, 1);
+          let itemWidth = this._childNodes[1].boxObject.x -
+                          this._childNodes[0].boxObject.x;
+
+          if (itemWidth == 0) // Each item takes up a full row
+            return 1;
+          else
+            return Math.floor(this.scrollbox.clientWidth / itemWidth);
         ]]></body>
       </method>
 
       <method name="_itemsPerCol">
+        <parameter name="aItemsPerRow"/>
         <body><![CDATA[
-          let firstItem = this.children[0] || null;
-          if (!firstItem)
-            return 0; // nothing to be visible
+          let itemsPerRow = aItemsPerRow || this._itemsPerRow();
 
-          let itemsPerCol = Math.floor(this.scrollbox.clientHeight /
-                                       firstItem.boxObject.height);
-          return Math.max(itemsPerCol, 1);
+          if (this._childNodes.length == 0)
+            return 0;
+          else if (this._childNodes.length <= itemsPerRow)
+            return 1;
+
+          let itemHeight = this._childNodes[itemsPerRow].boxObject.y -
+                           this._childNodes[0].boxObject.y;
+
+          return Math.floor(this.scrollbox.clientHeight / itemHeight);
         ]]></body>
       </method>
 
       <method name="_setImageSize">
         <body><![CDATA[
-          let children = this.children;
           let size = this.sizes[this.view] || 16;
 
-          for (let i = 0; i < children.length; i++)
-            children[i].imageSize = size;
+          for (let i = 0; i < this._childNodes.length; i++)
+            this._childNodes[i].imageSize = size;
         ]]></body>
       </method>
     </implementation>
@@ -329,10 +360,10 @@
       <method name="setOptimumWidth">
         <body><![CDATA[
           let width = 0;
-          for (let i = 0; i < this.children.length; i++)
-            width = Math.max(width, this.children[i].scrollWidth);
-          for (let i = 0; i < this.children.length; i++)
-            this.children[i].width = width;
+          for (let i = 0; i < this._childNodes.length; i++)
+            width = Math.max(width, this._childNodes[i].scrollWidth);
+          for (let i = 0; i < this._childNodes.length; i++)
+            this._childNodes[i].width = width;
         ]]></body>
       </method>
     </implementation>
@@ -359,6 +390,14 @@
         <children includes="attachmentitem"/>
       </xul:scrollbox>
     </content>
+    <implementation>
+      <method name="_itemsPerRow">
+        <body><![CDATA[
+          // Vertical attachment lists have one item per row by definition.
+          return 1;
+        ]]></body>
+      </method>
+    </implementation>
   </binding>
 
   <binding id="attachmentitem" extends="chrome://global/content/bindings/listbox.xml#listitem">
