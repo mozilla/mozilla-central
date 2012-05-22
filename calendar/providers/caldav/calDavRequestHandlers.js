@@ -368,31 +368,31 @@ webDavSyncHandler.prototype = {
             return;
         }
 
-        let C = new Namespace("C", "urn:ietf:params:xml:ns:caldav");
-        let D = new Namespace("D", "DAV:");
-        default xml namespace = D;
-        let queryXml =
-          <sync-collection>
-            <sync-token/>
-            <prop>
-              <getcontenttype/>
-              <getetag/>
-            </prop>
-          </sync-collection>;
 
+        let syncTokenString = "<sync-token/>";
         if (this.calendar.mWebdavSyncToken && this.calendar.mWebdavSyncToken.length > 0) {
-            queryXml.D::["sync-token"] = this.calendar.mWebdavSyncToken;
+            let syncToken = cal.xml.escapeString(this.calendar.mWebdavSyncToken);
+            syncTokenString = "<sync-token>" + syncToken + "</sync-token>";
         }
 
-        let queryString = xmlHeader + queryXml.toXMLString();
+        let queryXml =
+          xmlHeader +
+          '<sync-collection xmlns="DAV:">' +
+            syncTokenString +
+            '<prop>' +
+              '<getcontenttype/>' +
+              '<getetag/>' +
+            '</prop>' +
+          '</sync-collection>';
+
         let requestUri = this.calendar.makeUri(null, this.baseUri);
 
         if (this.calendar.verboseLogging()) {
-            cal.LOG("CalDAV: send(" + requestUri.spec + "): " + queryString);
+            cal.LOG("CalDAV: send(" + requestUri.spec + "): " + queryXml);
         }
         cal.LOG("CalDAV: webdav-sync Token: " + this.calendar.mWebdavSyncToken);
         let httpchannel = cal.prepHttpChannel(requestUri,
-                                              queryString,
+                                              queryXml,
                                               "text/xml; charset=utf-8",
                                               this.calendar);
         httpchannel.setRequestHeader("Depth", "1", false);
@@ -708,33 +708,33 @@ multigetSyncHandler.prototype = {
             this.calendar.checkDavResourceType(this.changeLogListener);
             return;
         }
-        let C = new Namespace("C", "urn:ietf:params:xml:ns:caldav");
-        let D = new Namespace("D", "DAV:");
-        let queryXml =
-          <calendar-multiget xmlns:D={D} xmlns={C}>
-            <D:prop>
-              <D:getetag/>
-              <calendar-data/>
-            </D:prop>
-          </calendar-multiget>;
 
         let batchSize = cal.getPrefSafe("calendar.caldav.multigetBatchSize", 100);
+        let hrefString = "";
         while (this.itemsNeedFetching.length && batchSize > 0) {
-            batchSize --;
+            batchSize--;
             // ensureEncodedPath extracts only the path component of the item and
             // encodes it before it is sent to the server
             let locpath = this.calendar.ensureEncodedPath(this.itemsNeedFetching.pop());
-            queryXml.D::prop += <D:href xmlns:D={D}>{locpath}</D:href>;
+            hrefString += "<D:href>" + cal.xml.escapeString(locpath) + "</D:href>";
         }
 
-        let multigetQueryString = xmlHeader + queryXml.toXMLString();
+        let queryXml =
+          xmlHeader +
+          '<C:calendar-multiget xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">' +
+            hrefString +
+            '<D:prop>' +
+              '<D:getetag/>' +
+              '<C:calendar-data/>' +
+            '</D:prop>' +
+          '</C:calendar-multiget>';
 
         let requestUri = this.calendar.makeUri(null, this.baseUri);
         if (this.calendar.verboseLogging()) {
             cal.LOG("CalDAV: send(" + requestUri.spec + "): " + queryXml);
         }
         let httpchannel = cal.prepHttpChannel(requestUri,
-                                              multigetQueryString,
+                                              queryXml,
                                               "text/xml; charset=utf-8",
                                               this.calendar);
         httpchannel.setRequestHeader("Depth", "1", false);

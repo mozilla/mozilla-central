@@ -44,6 +44,7 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://calendar/modules/calXMLUtils.jsm");
 Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
 
 //
@@ -59,6 +60,21 @@ const CI = Components.interfaces;
 const calIOperationListener = Components.interfaces.calIOperationListener;
 const calICalendar = Components.interfaces.calICalendar;
 const calIErrors = Components.interfaces.calIErrors;
+
+function icsNSResolver(prefix) {
+    const ns = {
+        D: "DAV:"
+    };
+
+    return ns[prefix] || null;
+}
+
+function icsXPath(aNode, aExpr, aType) {
+    return cal.xml.evalXPath(aNode, aExpr, icsNSResolver, aType);
+}
+function icsXPathFirst(aNode, aExpr, aType) {
+    return cal.xml.evalXPathFirst(aNode, aExpr, icsNSResolver, aType);
+}
 
 function calICSCalendar() {
     this.initProviderBase();
@@ -1010,27 +1026,22 @@ httpHooks.prototype = {
                                                 .interfaces.nsIScriptableUnicodeConverter);
                 resultConverter.charset = "UTF-8";
 
-                var str;
                 try {
-                    str = resultConverter.convertFromByteArray(aResult, aResultLength);
+                    var str = resultConverter.convertFromByteArray(aResult, aResultLength);
+                    var multistatus = cal.xml.parseString(str);
                 } catch (e) {
                     cal.LOG("[calICSCalendar] Failed to fetch channel etag");
                 }
-                var multistatus = cal.safeNewXML(str);
-                try {
-                    thisHook.mEtag = multistatus..D::getetag;
-                } catch (e) {
-                    thisHook.mEtag = null;
-                }
+
+                thisHook.mEtag = icsXPathFirst(multistatus, "/D:propfind/D:response/D:propstat/D:prop/D:getetag");
                 aRespFunc();
             }
-            var D = new Namespace("D", "DAV:");
-            default xml namespace = D;
-            var queryXml = <D:propfind xmlns:D="DAV:">
-                    <D:prop>
-                      <D:getetag/>
-                    </D:prop>
-                  </D:propfind>;
+            let queryXml =
+                '<D:propfind xmlns:D="DAV:">' +
+                  '<D:prop>' +
+                    '<D:getetag/>' +
+                  '</D:prop>' +
+                '</D:propfind>';
 
             let etagChannel = cal.prepHttpChannel(aChannel.URI, queryXml,
                                                   "text/xml; charset=utf-8",
