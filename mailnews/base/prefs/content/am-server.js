@@ -215,17 +215,6 @@ function secureSelect(aLoading)
         "authPasswordCleartextViaSSL" : "authPasswordCleartextInsecurely");
 }
 
-function onCheckItem(changeElementId, checkElementId)
-{
-    var element = document.getElementById(changeElementId);
-    var notify = document.getElementById(checkElementId);
-
-    if (notify.checked && !getAccountValueIsLocked(notify))
-      element.removeAttribute("disabled");
-    else
-      element.setAttribute("disabled", "true");
-}
-
 function setupMailOnServerUI()
 { 
    var checked = document.getElementById("pop3.leaveMessagesOnServer").checked;

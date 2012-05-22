@@ -57,6 +57,8 @@
           src="chrome://messenger-newsblog/content/newsblogOverlay.js"/>
   <script type="application/javascript"
           src="chrome://messenger/content/amUtils.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/am-prefs.js"/>
 
 
   <dialogheader id="am-newsblog-title" defaultTitle="&accountTitle.label;"/>
@@ -90,11 +92,15 @@
                   wsm_persist="true"
                   label="&biffStart.label;"
                   accesskey="&biffStart.accesskey;"
+                  oncommand="onCheckItem('server.biffMinutes', this.id);"
                   prefattribute="value"
                   prefstring="mail.server.%serverkey%.check_new_mail"/>
         <textbox id="server.biffMinutes"
                  wsm_persist="true"
+                 type="number"
                  size="3"
+                 min="1"
+                 increment="1"
                  preftype="int"
                  prefstring="mail.server.%serverkey%.check_time"
                  aria-labelledby="server.doBiff server.biffMinutes biffEnd"/>

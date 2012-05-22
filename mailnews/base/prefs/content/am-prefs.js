@@ -118,3 +118,23 @@ function getAccountValueIsLocked(element)
   return false;
 }
 
+/**
+ * Enables/disables element (slave) according to the checked state
+ * of another element (master).
+ *
+ * @param changeElementId  slave element which should be enabled/disabled
+ *                         if the checkElement is checked/unchecked
+ * @param checkElementId  the master element which changed .checked state
+ *
+ * See bug 728681 for the pattern on how this is used.
+ */
+function onCheckItem(changeElementId, checkElementId)
+{
+  let element = document.getElementById(changeElementId);
+  let notify = document.getElementById(checkElementId);
+
+  if (notify.checked && !getAccountValueIsLocked(notify))
+    element.removeAttribute("disabled");
+  else
+    element.setAttribute("disabled", "true");
+}
