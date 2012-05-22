@@ -510,7 +510,8 @@ var EmailAccountProvisioner = {
         // Ugh, we couldn't get the JSON file.  Maybe we're not online.  Or maybe
         // the server is down, or the file isn't being served.  Regardless, if
         // we get here, none of this stuff is going to work.
-        EmailAccountProvisioner._loadProviderRetryId = window.setTimeout(EmailAccountProvisioner.tryToPopulateProviderList,
+        EmailAccountProvisioner._loadProviderRetryId = window.setTimeout(EmailAccountProvisioner.tryToPopulateProviderList
+                                                                                                .bind(self),
                                                                          RETRY_TIMEOUT);
         EmailAccountProvisioner._loadingProviders = false;
         EmailAccountProvisioner.beOffline();
