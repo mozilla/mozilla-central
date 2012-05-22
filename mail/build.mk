@@ -93,6 +93,9 @@ package:
 package-compare:
 	@$(MAKE) -C mail/installer package-compare
 
+stage-package:
+	@$(MAKE) -C mail/installer stage-package
+
 install::
 	@$(MAKE) -C mail/installer install
 

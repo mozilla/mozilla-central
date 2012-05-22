@@ -111,6 +111,7 @@ endif
 
 GENERATE_CACHE=1
 
+include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/signing.mk
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
 
 ifeq (Darwin, $(OS_ARCH))

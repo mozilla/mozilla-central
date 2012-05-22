@@ -226,7 +226,7 @@ endif
 
 profiledbuild::
 	$(MAKE) -f $(TOPSRCDIR)/client.mk build MOZ_PROFILE_GENERATE=1
-	$(MAKE) -C $(PGO_OBJDIR) package
+	$(MAKE) -C $(PGO_OBJDIR) stage-package
 	OBJDIR=${PGO_OBJDIR} $(PROFILE_GEN_SCRIPT)
 	$(MAKE) -f $(TOPSRCDIR)/client.mk maybe_clobber_profiledbuild
 	$(MAKE) -f $(TOPSRCDIR)/client.mk build MOZ_PROFILE_USE=1
