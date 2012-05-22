@@ -648,117 +648,102 @@ function saveAccount(accountValues, account)
   return true;
 }
 
+/**
+ * Set enabled/disabled state for account actions buttons.
+ * Called by all apps, but if the buttons do not exist, exits early.
+ */
 function updateButtons(tree, account) {
-  var canCreate = true;
-  var canDelete = true;
-  var canSetDefault = true;
-
-  if (account) {
-    var server = account.incomingServer;
-    var type = server.type;
-
-    var am = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                       .getService(Components.interfaces.nsIMsgAccountManager);
-    if (account == am.defaultAccount || !server.canBeDefaultServer ||
-        account.identities.Count() < 1)
-      canSetDefault = false;
-
-    var protocolinfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type].getService(Components.interfaces.nsIMsgProtocolInfo);
-    canDelete = protocolinfo.canDelete;
-    if (!canDelete) {
-      canDelete = server.canDelete;
-    }
-  }
-  else {
-    // HACK
-    // if account is null, we have either selected a SMTP server, or there is a problem
-    // either way, we don't want the user to be able to delete it.
-
-    canSetDefault = false;
-    canDelete = false;
-  }
-
-  if (tree.view.selection.count < 1)
-    canSetDefault = canDelete = false;
-
-  // check for disabled preferences on the account buttons.  
-  //  Not currently handled by WSM or the main loop yet since these buttons aren't
-  //  under the IFRAME
-  var addAccountButton = document.getElementById("addAccountButton");
-  var removeButton = document.getElementById("removeButton");
-  var setDefaultButton = document.getElementById("setDefaultButton");
+  let addAccountButton = document.getElementById("addAccountButton");
+  let removeButton = document.getElementById("removeButton");
+  let setDefaultButton = document.getElementById("setDefaultButton");
 
   if (!addAccountButton && !removeButton && !setDefaultButton)
-    return; // tb isn't useing these anymore
+    return; // Thunderbird isn't using these.
 
-  var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefBranch);
-  if (prefBranch.prefIsLocked(addAccountButton.getAttribute("prefstring")))
-    canCreate = false;
-  if (prefBranch.prefIsLocked(setDefaultButton.getAttribute("prefstring")))
-    canSetDefault = false;
-  if (prefBranch.prefIsLocked(removeButton.getAttribute("prefstring")))
-    canDelete = false;
-
-  setEnabled(addAccountButton, canCreate);
-  setEnabled(setDefaultButton, canSetDefault);
-  setEnabled(removeButton, canDelete);
+  updateItems(tree, account, addAccountButton, setDefaultButton, removeButton);
+  updateBlockedItems([addAccountButton, setDefaultButton, removeButton], false);
 }
 
 /**
  * Set enabled/disabled state for the actions in the Account Actions menu.
+ * Called only by Thunderbird.
  */
-function initAcountActionsButton(menupopup) {
-  let account = getCurrentAccount();
-  if (account) {
-    let server = account.incomingServer;
-
-    let am = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                      .getService(Components.interfaces.nsIMsgAccountManager);
-    if (account == am.defaultAccount || !server.canBeDefaultServer ||
-        account.identities.Count() < 1)
-      document.getElementById("accountActionsDropdownSetDefault")
-              .setAttribute("disabled", true);
-    else
-      document.getElementById("accountActionsDropdownSetDefault")
-              .removeAttribute("disabled");
-
-    let protocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + server.type]
-                                .getService(Components.interfaces.nsIMsgProtocolInfo);
-    if (!protocolInfo.canDelete)
-      document.getElementById("accountActionsDropdownRemove")
-              .setAttribute("disabled", true);
-    else
-      document.getElementById("accountActionsDropdownRemove")
-              .removeAttribute("disabled");
-  }
-  else { // SMTP server
-    document.getElementById("accountActionsDropdownSetDefault")
-            .setAttribute("disabled", true);
-    document.getElementById("accountActionsDropdownRemove")
-            .setAttribute("disabled", true);
-  }
-
-  let prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefBranch);
-  if (!prefBranch.getBoolPref("mail.chat.enabled"))
+function initAccountActionsButtons(menupopup) {
+  if (!Services.prefs.getBoolPref("mail.chat.enabled"))
     document.getElementById("accountActionsAddIMAccount").hidden = true;
 
-  let children = menupopup.childNodes;
-  for (let i = 0; i < children.length; i++) {
-    let prefstring = children[i].getAttribute("prefstring");
+  updateItems(
+    document.getElementById("accounttree"),
+    getCurrentAccount(),
+    document.getElementById("accountActionsAddMailAccount"),
+    document.getElementById("accountActionsDropdownSetDefault"),
+    document.getElementById("accountActionsDropdownRemove"));
+
+  updateBlockedItems(menupopup.childNodes, true);
+}
+
+/**
+ * Determine enabled/disabled state for the passed in elements
+ * representing account actions.
+ */
+function updateItems(tree, account, addAccountItem, setDefaultItem, removeItem) {
+  // Start with items disabled and then find out what can be enabled.
+  let canSetDefault = false;
+  let canDelete = false;
+
+  if (account && (tree.view.selection.count >= 1)) {
+    // Only try to check properties if there was anything selected in the tree
+    // and it belongs to an account.
+    // Otherwise we have either selected a SMTP server, or there is some
+    // problem. Either way, we don't want the user to act on it.
+    let server = account.incomingServer;
+    let type = server.type;
+
+    if (account != MailServices.accounts.defaultAccount &&
+        server.canBeDefaultServer && account.identities.Count() > 0)
+      canSetDefault = true;
+
+    if (Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type]
+                  .getService(Components.interfaces.nsIMsgProtocolInfo).canDelete)
+      canDelete = true;
+    else
+      canDelete = server.canDelete;
+  }
+
+  setEnabled(addAccountItem, true);
+  setEnabled(setDefaultItem, canSetDefault);
+  setEnabled(removeItem, canDelete);
+}
+
+/**
+ * Disable buttons/menu items if their control preference is locked.
+ * SeaMonkey: Not currently handled by WSM or the main loop yet
+ * since these buttons aren't under the IFRAME.
+ *
+ * @param aItems  the elements to be checked
+ * @param aMustBeTrue  if true then the pref must be boolean and set to true
+ *                     to trigger the disabling (TB requires this, SM not)
+ */
+function updateBlockedItems(aItems, aMustBeTrue) {
+  for each (let [, item] in Iterator(aItems)) {
+    let prefstring = item.getAttribute("prefstring");
     if (!prefstring)
       continue;
 
-    if (prefBranch.prefIsLocked(prefstring) && prefBranch.getBoolPref(prefstring))
-      children[i].setAttribute("disabled", true);
+    if (Services.prefs.prefIsLocked(prefstring) &&
+        (!aMustBeTrue || Services.prefs.getBoolPref(prefstring)))
+      item.setAttribute("disabled", true);
   }
 }
 
-
+/**
+ * Set enabled/disabled state for the control.
+ */
 function setEnabled(control, enabled)
 {
-  if (!control) return;
+  if (!control)
+    return;
+
   if (enabled)
     control.removeAttribute("disabled");
   else
