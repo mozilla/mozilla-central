@@ -1872,7 +1872,7 @@
         ]]>
       </handler>
 
-      <handler event="MozApplicationManifest">
+      <handler event="MozApplicationManifest" phase="capturing">
         <![CDATA[
           if (!this._prefs.getBoolPref("browser.offline-apps.notify"))
             return;
