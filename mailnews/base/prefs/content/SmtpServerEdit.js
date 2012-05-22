@@ -36,57 +36,43 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 
-var smtpService;
-var smtpServer;
+let gSmtpServer;
 
 function onLoad(event)
 {
-
-    if (!smtpService) {
-        smtpService =
-            Components.classes["@mozilla.org/messengercompose/smtp;1"].getService(Components.interfaces.nsISmtpService);
-    }
-
-    var server = window.arguments[0].server;
- 
-    initializeDialog(server);
-}
-
-function initializeDialog(server)
-{
-    smtpServer = server;
-
-    initSmtpSettings(server);
+  gSmtpServer = window.arguments[0].server;
+  initSmtpSettings(gSmtpServer);
 }
 
 function onAccept()
 {
-    if (hostnameIsIllegal(gSmtpHostname.value)) {
-      var prefsBundle = document.getElementById("bundle_prefs");
-      var brandBundle = document.getElementById("bundle_brand");
-      var alertTitle = brandBundle.getString("brandShortName");
-      var alertMsg = prefsBundle.getString("enterValidServerName");
-      var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-      promptService.alert(window, alertTitle, alertMsg);
+  if (hostnameIsIllegal(gSmtpHostname.value)) {
+    let prefsBundle = document.getElementById("bundle_prefs");
+    let brandBundle = document.getElementById("bundle_brand");
+    let alertTitle = brandBundle.getString("brandShortName");
+    let alertMsg = prefsBundle.getString("enterValidServerName");
+    Services.prompt.alert(window, alertTitle, alertMsg);
 
-      window.arguments[0].result = false;
-      return false;
+    window.arguments[0].result = false;
+    return false;
+  }
+
+  // If we didn't have an SMTP server to initialize with,
+  // we must be creating one.
+  try {
+    if (!gSmtpServer) {
+      gSmtpServer = MailServices.smtp.createSmtpServer();
+      window.arguments[0].addSmtpServer = gSmtpServer.key;
     }
 
-    // if we didn't have an SMTP server to initialize with,
-    // we must be creating one.
-    try {
-        if (!smtpServer) {
-            smtpServer = smtpService.createSmtpServer();
-            window.arguments[0].addSmtpServer = smtpServer.key;
-        }
-        
-        saveSmtpSettings(smtpServer);
-    } catch (ex) {
-        dump("Error saving smtp server: " + ex + "\n");
-    }
+    saveSmtpSettings(gSmtpServer);
+  } catch (ex) {
+    Components.utils.reportError("Error saving smtp server: " + ex);
+  }
 
-    window.arguments[0].result = true;
-    return true;
+  window.arguments[0].result = true;
+  return true;
 }

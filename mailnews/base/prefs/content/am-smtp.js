@@ -37,10 +37,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const nsIPromptService = Components.interfaces.nsIPromptService;
-var smtpService = Components.classes["@mozilla.org/messengercompose/smtp;1"].getService(Components.interfaces.nsISmtpService);
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 
-var gSmtpServerListWindow = 
+var gSmtpServerListWindow =
 {
   mBundle: null,
   mServerList: null,
@@ -65,12 +65,12 @@ var gSmtpServerListWindow =
 
   onSelectionChanged: function(aEvent)
   {
-    if (this.mServerList.selectedItems.length <= 0) 
+    if (this.mServerList.selectedItems.length <= 0)
       return;
 
     var server = this.getSelectedServer();
     this.updateButtons(server);
-    this.updateServerInfoBox(server);    
+    this.updateServerInfoBox(server);
   },
 
   onDeleteServer: function (aEvent)
@@ -79,19 +79,18 @@ var gSmtpServerListWindow =
     if (server)
     {
       // confirm deletion
-      var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(nsIPromptService);
-      var cancel = promptService.confirmEx(window, this.mBundle.getString('smtpServers-confirmServerDeletionTitle'), 
-                                           this.mBundle.getFormattedString('smtpServers-confirmServerDeletion', [server.hostname], 1),
-                                           nsIPromptService.STD_YES_NO_BUTTONS,
-                                           null, null, null, null, { });
+      let cancel = Services.prompt.confirmEx(window,
+        this.mBundle.getString('smtpServers-confirmServerDeletionTitle'),
+        this.mBundle.getFormattedString('smtpServers-confirmServerDeletion', [server.hostname], 1),
+        Services.prompt.STD_YES_NO_BUTTONS, null, null, null, null, { });
 
       if (!cancel)
       {
-        smtpService.deleteSmtpServer(server);
+        MailServices.smtp.deleteSmtpServer(server);
         parent.replaceWithDefaultSmtpServer(server.key);
         this.refreshServerList("", true);
       }
-    } 
+    }
   },
 
   onAddServer: function (aEvent)
@@ -101,29 +100,29 @@ var gSmtpServerListWindow =
 
   onEditServer: function (aEvent)
   {
-    if (this.mServerList.selectedItems.length <= 0) 
+    if (this.mServerList.selectedItems.length <= 0)
       return;
     this.openServerEditor(this.getSelectedServer());
   },
 
   onSetDefaultServer: function(aEvent)
   {
-    if (this.mServerList.selectedItems.length <= 0) 
+    if (this.mServerList.selectedItems.length <= 0)
       return;
 
-    smtpService.defaultServer = this.getSelectedServer();
-    this.refreshServerList(smtpService.defaultServer.key, true);
+    MailServices.smtp.defaultServer = this.getSelectedServer();
+    this.refreshServerList(MailServices.smtp.defaultServer.key, true);
   },
 
   updateButtons: function(aServer)
   {
     // can't delete default server
-    if (smtpService.defaultServer == aServer) 
+    if (MailServices.smtp.defaultServer == aServer)
     {
       this.mSetDefaultServerButton.setAttribute("disabled", "true");
       this.mDeleteButton.setAttribute("disabled", "true");
     }
-    else 
+    else
     {
       this.mSetDefaultServerButton.removeAttribute("disabled");
       this.mDeleteButton.removeAttribute("disabled");
@@ -170,8 +169,8 @@ var gSmtpServerListWindow =
         break;
       default:
         // leave empty
-        dump("Warning: unknown value for smtpserver...authMethod: " +
-             aServer.authMethod + "\n");
+        Components.utils.reportError("Warning: unknown value for smtpserver... authMethod: " +
+          aServer.authMethod);
     }
     if (authStr)
       document.getElementById("authMethodValue").value =
@@ -184,14 +183,15 @@ var gSmtpServerListWindow =
     while (this.mServerList.hasChildNodes())
       this.mServerList.removeChild(this.mServerList.lastChild);
 
-    var defaultServer = smtpService.defaultServer;
-    this.fillSmtpServers(this.mServerList, smtpService.smtpServers, defaultServer);
+    this.fillSmtpServers(this.mServerList,
+                         MailServices.smtp.smtpServers,
+                         MailServices.smtp.defaultServer);
 
     if (aServerKeyToSelect)
       this.mServerList.selectItem(this.mServerList.getElementsByAttribute("key", aServerKeyToSelect)[0]);
     else // select the default server
       this.mServerList.selectItem(this.mServerList.getElementsByAttribute("default", "true")[0]);
-    
+
     if (aFocusList)
       this.mServerList.focus();
   },
@@ -224,9 +224,9 @@ var gSmtpServerListWindow =
       serverName = aServer.description + ' - ';
     else if (aServer.username)
       serverName = aServer.username + ' - ';
-    
+
     serverName += aServer.hostname;
-      
+
     if (aIsDefault)
     {
       serverName += " " + this.mBundle.getString("defaultServerTag");
@@ -236,7 +236,7 @@ var gSmtpServerListWindow =
     listitem.setAttribute("label", serverName);
     listitem.setAttribute("key", aServer.key);
     listitem.setAttribute("class", "smtpServerListItem");
-    
+
     // give it some unique id
     listitem.id = "smtpServer." + aServer.key;
     return listitem;
@@ -250,19 +250,17 @@ var gSmtpServerListWindow =
 
     window.openDialog("chrome://messenger/content/SmtpServerEdit.xul",
                       "smtpEdit", "chrome,titlebar,modal,centerscreen", args);
-    
+
     // now re-select the server which was just added
-    if (args.result)          
+    if (args.result)
       this.refreshServerList(aServer ? aServer.key : args.addSmtpServer, true);
-  
+
     return args.result;
   },
 
   getSelectedServer: function()
   {
     var serverKey = this.mServerList.selectedItems[0].getAttribute("key");
-    return smtpService.getServerByKey(serverKey); 
+    return MailServices.smtp.getServerByKey(serverKey);
   }
 };
-
-

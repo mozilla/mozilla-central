@@ -37,6 +37,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
+
 // be real hacky with document.getElementById until document.controls works
 // with the new XUL widgets
 
@@ -47,9 +50,6 @@ var gSmtpHostname;
 var gSmtpPort;
 var gSmtpAuthMethod;
 var gSmtpSocketType;
-var gSmtpPrefBranch;
-var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-var gSmtpService = Components.classes["@mozilla.org/messengercompose/smtp;1"].getService(Components.interfaces.nsISmtpService);
 var gPort;
 var gDefaultPort;
 const Ci = Components.interfaces;
@@ -81,7 +81,7 @@ function initSmtpSettings(server) {
     sslChanged(false);
     authMethodChanged(false);
 
-    if (gSmtpService.defaultServer)
+    if (MailServices.smtp.defaultServer)
       onLockPreference();
 
     setLabelFromStringBundle("authMethod-no", "authNo");
@@ -111,38 +111,41 @@ function hideUnlessSelected(element)
 function setLabelFromStringBundle(elementID, stringName)
 {
   document.getElementById(elementID).label =
-      document.getElementById("bundle_messenger").getString(stringName);
+    document.getElementById("bundle_messenger").getString(stringName);
 }
 
 // Disables xul elements that have associated preferences locked.
 function onLockPreference()
 {
   try {
-    var finalPrefString = "mail.smtpserver." +
-        gSmtpService.defaultServer.key + ".";
-
-    var prefService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
-
-    var allPrefElements = {
+    let allPrefElements = {
       hostname:     gSmtpHostname,
       description:  gSmtpDescription,
       port:         gSmtpPort,
       authMethod:   gSmtpAuthMethod,
       try_ssl:      gSmtpSocketType
     };
+    disableIfLocked(allPrefElements);
+  } catch (e) { // non-fatal
+    Components.utils.reportError("Error while getting locked prefs: " + e);
+  }
+}
 
-    gSmtpPrefBranch = prefService.getBranch(finalPrefString);
-    disableIfLocked( allPrefElements );
-  } catch (e) { dump("error while locking prefs: " + e + "\n"); } // non-fatal
-} 
-
-// Does the work of disabling an element given the array which contains xul id/prefstring pairs.
-// Also saves the id/locked state in an array so that other areas of the code can avoid
-// stomping on the disabled state indiscriminately.
-function disableIfLocked( prefstrArray )
+/**
+ * Does the work of disabling an element given the array which contains xul id/prefstring pairs.
+ *
+ * @param prefstrArray  array of XUL elements to check
+ *
+ * TODO: try to merge this with disableIfLocked function in am-offline.js (bug 755885)
+ */
+function disableIfLocked(prefstrArray)
 {
-  for (var prefstring in prefstrArray)
-    if (gSmtpPrefBranch.prefIsLocked(prefstring))
+  let finalPrefString = "mail.smtpserver." +
+    MailServices.smtp.defaultServer.key + ".";
+  let smtpPrefBranch = Services.prefs.getBranch(finalPrefString);
+
+  for (let prefstring in prefstrArray)
+    if (smtpPrefBranch.prefIsLocked(prefstring))
       prefstrArray[prefstring].disabled = true;
 }
 
@@ -171,8 +174,8 @@ function authMethodChanged(userAction)
  * the |gSmtpSocketType| value, and sets the port to use to this default,
  * if that's appropriate.
  *
- * @param userAction false for dialog initialization,
- *                   true for user action.
+ * @param userAction  false for dialog initialization,
+ *                    true for user action.
  */
 function sslChanged(userAction)
 {
