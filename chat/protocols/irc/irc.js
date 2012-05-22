@@ -584,6 +584,9 @@ ircAccount.prototype = {
   // Request WHOIS information on a buddy when the user requests more
   // information.
   requestBuddyInfo: function(aBuddyName) {
+    if (!this.connected)
+      return;
+
     this.removeBuddyInfo(aBuddyName);
     this.sendMessage("WHOIS", aBuddyName);
   },
