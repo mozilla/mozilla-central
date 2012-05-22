@@ -42,8 +42,16 @@
 
 [scriptable, uuid(205d4b2b-1ccf-4879-9ef1-f08942566151)]
 interface imICoreService: nsISupports {
+  readonly attribute boolean initialized;
+
+  // This will emit a prpl-init notification. After this point the 'initialized'
+  // attribute will be 'true' and it's safe to access the services for accounts,
+  // contacts, conversations and commands.
   void init();
-  void quit(); // will emit a prpl-quit notification.
+
+  // This will emit a prpl-quit notification. This is the last opportunity to
+  // use the aforementioned services before they are uninitialized.
+  void quit();
 
   // returns an enumerator on a pplIProtocol array
   nsISimpleEnumerator getProtocols();

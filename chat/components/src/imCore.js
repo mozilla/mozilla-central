@@ -274,8 +274,10 @@ UserStatus.prototype = {
 var gCoreService;
 function CoreService() { gCoreService = this; }
 CoreService.prototype = {
-  _initialized: false,
   globalUserStatus: null,
+
+  _initialized: false,
+  get initialized() this._initialized,
   init: function() {
     if (this._initialized)
       return;
@@ -297,6 +299,7 @@ CoreService.prototype = {
     accounts.initAccounts();
     Services.contacts.initContacts();
     Services.conversations.initConversations();
+    Services.obs.notifyObservers(this, "prpl-init", null);
 
     if (accounts.autoLoginStatus == Ci.imIAccountsService.AUTOLOGIN_ENABLED)
       accounts.processAutoLogin();
