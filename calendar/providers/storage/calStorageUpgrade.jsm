@@ -187,7 +187,7 @@ function getVersion(db) {
         selectSchemaVersion = createStatement(db,
                               "SELECT version FROM " +
                               "cal_calendar_schema_version LIMIT 1");
-        if (selectSchemaVersion.step()) {
+        if (selectSchemaVersion.executeStep()) {
             version = selectSchemaVersion.row.version;
         }
 
@@ -397,7 +397,7 @@ function ensureUpdatedTimezones(db) {
     let tzServiceVersion = cal.getTimezoneService().version;
     let version;
     try {
-        version = (selectTzVersion.step() ? selectTzVersion.row.version : null);
+        version = (selectTzVersion.executeStep() ? selectTzVersion.row.version : null);
     } finally {
         selectTzVersion.reset();
     }
@@ -428,7 +428,7 @@ function ensureUpdatedTimezones(db) {
             "SELECT recurrence_id_tz AS zone FROM cal_attachments  WHERE recurrence_id_tz IS NOT NULL" +
             ");");
         try {
-            while (getZones.step()) {
+            while (getZones.executeStep()) {
                 let zone = getZones.row.zone;
                 // Send the timezones off to the timezone service to attempt conversion:
                 let tz = getTimezone(zone);
@@ -997,7 +997,7 @@ upgrade.v13 = function upgrade_v13(db, version) {
                 let stmt = createStatement(db,
                                            "SELECT id, cal_id FROM cal_" + itemTable);
                 try {
-                    while (stmt.step()) {
+                    while (stmt.executeStep()) {
                         calIds[stmt.row.id] = stmt.row.cal_id;
                     }
                 }
@@ -1215,7 +1215,7 @@ upgrade.v17 = function upgrade_v17(db, version) {
                                               "       recurrence_id" +
                                               "  FROM cal_" + tblName +
                                               " LIMIT 1");
-                stmt.step();
+                stmt.executeStep();
             } catch (e) {
                 // An error happened, which means the cols don't exist
                 hasColumns = false;

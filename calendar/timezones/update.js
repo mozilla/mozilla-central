@@ -124,19 +124,6 @@ function hashTimezone(tz) {
     return ret;
 }
 
-function createStatement(db, sql) {
-    try {
-        var stmt = db.createStatement(sql);
-        var wrapper = Components.classes["@mozilla.org/storage/statement-wrapper;1"]
-                                .createInstance(Components.interfaces.mozIStorageStatementWrapper);
-        wrapper.initialize(stmt);
-        return wrapper;
-    } catch (exc) {
-        throw ("mozStorage exception: createStatement failed, statement: '" + 
-               sql + "', error: '" + db.lastErrorString + "' - " + exc);
-    }
-}
-
 function ask(question, options) {
     for (;;) {
         dump(question);
@@ -226,9 +213,10 @@ try {
                               .getService(Components.interfaces.mozIStorageService);
     var db = dbService.openDatabase(sqlTzFile);
 
-    var statement = createStatement(db, "SELECT * FROM tz_data WHERE alias IS NULL");
+    let statement;
     try {
-        while (statement.step()) {
+        statement = db.createStatement("SELECT * FROM tz_data WHERE alias IS NULL");
+        while (statement.executeStep()) {
             var row = statement.row;
             oldSet[row.tzid] = new calIntrinsicTimezone(row.latitude,
                                                         row.longitude,
@@ -237,16 +225,21 @@ try {
                                                                        "END:VCALENDAR\r\n").getFirstSubcomponent("VTIMEZONE"));
         }
     } finally {
-        statement.reset();
+        if (statement) {
+            statement.reset();
+        }
     }
-    statement = createStatement(db, "SELECT * FROM tz_data WHERE alias IS NOT NULL");
+
     try {
-        while (statement.step()) {
+        statement = db.createStatement("SELECT * FROM tz_data WHERE alias IS NOT NULL");
+        while (statement.executeStep()) {
             var row = statement.row;
             oldSet[row.tzid] = oldSet[row.alias];
         }
     } finally {
-        statement.reset();
+        if (statement) {
+            statement.reset();
+        }
     }
 
     // now compare new and old, what changed etc:
@@ -299,10 +292,10 @@ try {
                    "latitude  TEXT, " +
                    "longitude TEXT, " +
                    "component TEXT");
-    statement = createStatement(db,
-                                "INSERT INTO tz_data (tzid, alias, latitude, longitude, component) " +
-                                "VALUES (:tzid, :alias, :latitude, :longitude, :component)");
+
     try {
+        statement = db.createStatement("INSERT INTO tz_data (tzid, alias, latitude, longitude, component) " +
+                                       "VALUES (:tzid, :alias, :latitude, :longitude, :component)");
         for (var tzid in newSet) {
             statement.reset();
             var params = statement.params;
@@ -319,10 +312,12 @@ try {
             } else { // alias
                 params.alias = tz.tzid;
             }
-            statement.execute();
+            statement.executeStep();
         }
     } finally {
-        statement.reset();
+        if (statement) {
+            statement.reset();
+        }
     }
     db.executeSimpleSQL("UPDATE tz_version SET version = '" + arguments[2] + "'");
 

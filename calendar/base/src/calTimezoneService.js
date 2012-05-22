@@ -149,14 +149,6 @@ calTimezoneService.prototype = {
         return cal.doQueryInterface(this, calTimezoneService.prototype, aIID, null, this);
     },
 
-    createStatement: function calTimezoneService_createStatement(sql) {
-        let statement = this.mDb.createStatement(sql);
-        let ret = Components.classes["@mozilla.org/storage/statement-wrapper;1"]
-                            .createInstance(Components.interfaces.mozIStorageStatementWrapper);
-        ret.initialize(statement);
-        return ret;
-    },
-
     // nsIStartupService
     startup: function startup(aCompleteListener) {
         this.ensureInitialized(aCompleteListener);
@@ -209,11 +201,11 @@ calTimezoneService.prototype = {
                                       .getService(Components.interfaces.mozIStorageService);
             this.mDb = dbService.openDatabase(sqlTzFile);
             if (this.mDb) {
-                this.mSelectByTzid = this.createStatement("SELECT * FROM tz_data WHERE tzid = :tzid LIMIT 1");
+                this.mSelectByTzid = this.mDb.createStatement("SELECT * FROM tz_data WHERE tzid = :tzid LIMIT 1");
 
-                let selectVersion = this.createStatement("SELECT version FROM tz_version LIMIT 1");
+                let selectVersion = this.mDb.createStatement("SELECT version FROM tz_version LIMIT 1");
                 try {
-                    if (selectVersion.step()) {
+                    if (selectVersion.executeStep()) {
                         this.mVersion = selectVersion.row.version;
                     }
                 } finally {
@@ -315,7 +307,7 @@ calTimezoneService.prototype = {
         var tz = this.mTimezoneCache[tzid];
         if (!tz && !this.mBlacklist[tzid]) {
             this.mSelectByTzid.params.tzid = tzid;
-            if (this.mSelectByTzid.step()) {
+            if (this.mSelectByTzid.executeStep()) {
                 var row = this.mSelectByTzid.row;
                 var alias = row.alias;
                 if (alias && alias.length > 0) {
@@ -340,9 +332,9 @@ calTimezoneService.prototype = {
     get timezoneIds() {
         if (!this.mTzids) {
             var tzids = [];
-            var selectAllButAlias = this.createStatement("SELECT * FROM tz_data WHERE alias IS NULL");
+            let selectAllButAlias = this.mDb.createStatement("SELECT * FROM tz_data WHERE alias IS NULL");
             try {
-                while (selectAllButAlias.step()) {
+                while (selectAllButAlias.executeStep()) {
                     tzids.push(selectAllButAlias.row.tzid);
                 }
             } finally {

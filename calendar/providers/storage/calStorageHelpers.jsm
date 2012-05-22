@@ -47,7 +47,6 @@ Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 var EXPORTED_SYMBOLS = [
     "CAL_ITEM_FLAG",
-    "createStatement",
     "getInUtcOrKeepFloating",
     "dateToText",
     "textToDate",
@@ -74,30 +73,6 @@ var CAL_ITEM_FLAG = {
 
 // The cache of foreign timezones
 var gForeignTimezonesCache = {};
-
-/**
- * Create a storage statement on the given database connection with the passed
- * sql statement string.
- *
- * @param aDb       The mozIStorageConnection to create the statement with.
- * @param aSql      A string with the SQL of the statement to create.
- */
-function createStatement(aDb, aSql) {
-    try {
-        // TODO We don't need the wrapper anymore if we get rid of calling
-        // statements as functions, i.e mDeleteAttendees(aID);
-        let stmt = aDb.createStatement(aSql);
-        let wrapper = Components.classes["@mozilla.org/storage/statement-wrapper;1"]
-                                .createInstance(Components.interfaces.mozIStorageStatementWrapper);
-        wrapper.initialize(stmt);
-        return wrapper;
-    } catch (e) {
-        cal.ERROR("mozStorage exception: createStatement failed, statement: '" +
-                  aSql + "', error: '" + (aDb ? aDb.lastErrorString : "(no db)") + "' - " + e);
-    }
-
-    return null;
-}
 
 /**
  * Returns the passed date in UTC, unless it is floating. In this case, it is

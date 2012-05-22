@@ -53,14 +53,6 @@ function getPrefBranchFor(id) {
     return (REGISTRY_BRANCH + id + ".");
 }
 
-function createStatement(dbconn, sql) {
-    let stmt = dbconn.createStatement(sql);
-    let wrapper = Components.classes["@mozilla.org/storage/statement-wrapper;1"]
-                            .createInstance(Components.interfaces.mozIStorageStatementWrapper);
-    wrapper.initialize(stmt);
-    return wrapper;
-}
-
 /**
  * Helper function to flush the preferences file. If the application crashes
  * after a calendar has been created using the prefs registry, then the calendar
@@ -412,12 +404,12 @@ calCalendarManager.prototype = {
     },
 
     migrateDB: function calmgr_migrateDB(db) {
-        let selectCalendars = createStatement(db, "SELECT * FROM cal_calendars");
-        let selectPrefs = createStatement(db, "SELECT name, value FROM cal_calendars_prefs WHERE calendar = :calendar");
+        let selectCalendars = db.createStatement("SELECT * FROM cal_calendars");
+        let selectPrefs = db.createStatement("SELECT name, value FROM cal_calendars_prefs WHERE calendar = :calendar");
         try {
             let sortOrder = {};
 
-            while (selectCalendars.step()) {
+            while (selectCalendars.executeStep()) {
                 let id = cal.getUUID(); // use fresh uuids
                 cal.setPref(getPrefBranchFor(id) + "type", selectCalendars.row.type);
                 cal.setPref(getPrefBranchFor(id) + "uri", selectCalendars.row.uri);
@@ -425,7 +417,7 @@ calCalendarManager.prototype = {
                 sortOrder[selectCalendars.row.id] = id;
                 // move over prefs:
                 selectPrefs.params.calendar = selectCalendars.row.id;
-                while (selectPrefs.step()) {
+                while (selectPrefs.executeStep()) {
                     let name = selectPrefs.row.name.toLowerCase(); // may come lower case, so force it to be
                     let value = selectPrefs.row.value;
                     switch (name) {
@@ -531,8 +523,8 @@ calCalendarManager.prototype = {
         }
 
         try {
-            stmt = createStatement(db, "SELECT version FROM " + table + " LIMIT 1");
-            if (stmt.step()) {
+            stmt = db.createStatement("SELECT version FROM " + table + " LIMIT 1");
+            if (stmt.executeStep()) {
                 version = stmt.row.version;
             }
             stmt.reset();
