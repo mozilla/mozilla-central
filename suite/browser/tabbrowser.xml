@@ -1059,7 +1059,7 @@
                                          tabListener.mMessage],
                                         true, false);
 
-            this._callProgressListeners(this.mBrowser, "onProgressChange",
+            this._callProgressListeners(null, "onProgressChange",
                                         [this.mCurrentBrowser.webProgress,
                                          tabListener.mRequest,
                                          tabListener.mCurProgress,
@@ -1071,7 +1071,7 @@
             // Also send the onUpdateCurrentBrowser event for compatibility
             var progress = tabListener.mMaxProgress > 0 ?
                 tabListener.mCurProgress / tabListener.mMaxProgress : 0;
-            this._callProgressListeners(this.mBrowser, "onUpdateCurrentBrowser",
+            this._callProgressListeners(null, "onUpdateCurrentBrowser",
                                         [tabListener.mStateFlags,
                                          tabListener.mStatus,
                                          tabListener.mMessage,
