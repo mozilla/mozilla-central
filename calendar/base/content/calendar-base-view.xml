@@ -70,6 +70,7 @@
       <field name="mDropShadowsLength">null</field>
       <field name="mShadowOffset">null</field>
       <field name="mDropShadows">null</field>
+      <field name="mMagnifyAmount">0</field>
       <field name="mPrefObserver"><![CDATA[
       ({ calView: this,
          observe: function calViewPrefChange(subj, topic, pref) {
@@ -802,6 +803,50 @@
 
         // Prevent default scroll handling
         event.preventDefault();
+      ]]></handler>
+      <handler event="MozRotateGesture"><![CDATA[
+        // Threshold for the minimum and maximum angle we should accept
+        // rotation for. 90 degrees minimum is most logical, but 45 degrees
+        // allows you to rotate with one hand.
+        const MIN_ROTATE_ANGLE = 45;
+        const MAX_ROTATE_ANGLE = 180;
+
+        let absval = Math.abs(event.delta);
+        if (this.supportsRotation &&
+            absval >= MIN_ROTATE_ANGLE &&
+            absval < MAX_ROTATE_ANGLE) {
+            toggleOrientation();
+            event.preventDefault();
+        }
+      ]]></handler>
+      <handler event="MozMagnifyGestureStart"><![CDATA[
+        this.mMagnifyAmount = 0;
+      ]]></handler>
+      <handler event="MozMagnifyGestureUpdate"><![CDATA[
+        // Threshold as to how much magnification causes the zoom to happen
+        const THRESHOLD = 30;
+
+        if (this.supportsZoom) {
+            this.mMagnifyAmount += event.delta;
+
+            if (this.mMagnifyAmount > THRESHOLD) {
+                this.zoomOut();
+                this.mMagnifyAmount = 0;
+            } else if (this.mMagnifyAmount < -THRESHOLD) {
+                this.zoomIn();
+                this.mMagnifyAmount = 0;
+            }
+            event.preventDefault();
+        }
+      ]]></handler>
+      <handler event="MozSwipeGesture"><![CDATA[
+        if ((event.direction == SimpleGestureEvent.DIRECTION_UP && !this.rotated) ||
+            (event.direction == SimpleGestureEvent.DIRECTION_LEFT && this.rotated)) {
+            this.moveView(-1);
+        } else if ((event.direction == SimpleGestureEvent.DIRECTION_DOWN && !this.rotated) ||
+                   (event.direction == SimpleGestureEvent.DIRECTION_RIGHT && this.rotated)) {
+            this.moveView(1);
+        }
       ]]></handler>
     </handlers>
   </binding>
