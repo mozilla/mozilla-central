@@ -70,20 +70,33 @@
 <!ENTITY calendar.events.filter.next31Days.label "Events in the Next 31 Days">
 <!ENTITY calendar.events.filter.thisCalendarMonth.label "Events in this Calendar Month">
 
-<!ENTITY calendar.unifinder.tree.done.label          "Done">
-<!ENTITY calendar.unifinder.tree.priority.label      "Priority">
-<!ENTITY calendar.unifinder.tree.title.label         "Title">
-<!ENTITY calendar.unifinder.tree.percentcomplete.label "&#37; Complete">
-<!ENTITY calendar.unifinder.tree.startdate.label     "Start">
-<!ENTITY calendar.unifinder.tree.enddate.label       "End">
-<!ENTITY calendar.unifinder.tree.duedate.label       "Due">
-<!ENTITY calendar.unifinder.tree.completeddate.label "Completed">
-<!ENTITY calendar.unifinder.tree.categories.label    "Category">
-<!ENTITY calendar.unifinder.tree.location.label      "Location">
-<!ENTITY calendar.unifinder.tree.status.label        "Status">
-<!ENTITY calendar.unifinder.tree.calendarname.label  "Calendar Name">
-<!ENTITY calendar.unifinder.tree.duration.label      "Due in">
-<!ENTITY calendar.unifinder.close.tooltip            "Close event search and event list">
+<!ENTITY calendar.unifinder.tree.done.label              "Done">
+<!ENTITY calendar.unifinder.tree.done.tooltip            "Click to sort by Done">
+<!ENTITY calendar.unifinder.tree.priority.label          "Priority">
+<!ENTITY calendar.unifinder.tree.priority.tooltip        "Click to sort by Priority">
+<!ENTITY calendar.unifinder.tree.title.label             "Title">
+<!ENTITY calendar.unifinder.tree.title.tooltip           "Click to sort by Title">
+<!ENTITY calendar.unifinder.tree.percentcomplete.label   "&#37; Complete">
+<!ENTITY calendar.unifinder.tree.percentcomplete.tooltip "Click to sort by &#37; Complete">
+<!ENTITY calendar.unifinder.tree.startdate.label         "Start">
+<!ENTITY calendar.unifinder.tree.startdate.tooltip       "Click to sort by Start Date">
+<!ENTITY calendar.unifinder.tree.enddate.label           "End">
+<!ENTITY calendar.unifinder.tree.enddate.tooltip         "Click to sort by End Date">
+<!ENTITY calendar.unifinder.tree.duedate.label           "Due">
+<!ENTITY calendar.unifinder.tree.duedate.tooltip         "Click to sort by Due Date">
+<!ENTITY calendar.unifinder.tree.completeddate.label     "Completed">
+<!ENTITY calendar.unifinder.tree.completeddate.tooltip   "Click to sort by Completed">
+<!ENTITY calendar.unifinder.tree.categories.label        "Category">
+<!ENTITY calendar.unifinder.tree.categories.tooltip      "Click to sort by Category">
+<!ENTITY calendar.unifinder.tree.location.label          "Location">
+<!ENTITY calendar.unifinder.tree.location.tooltip        "Click to sort by Location">
+<!ENTITY calendar.unifinder.tree.status.label            "Status">
+<!ENTITY calendar.unifinder.tree.status.tooltip          "Click to sort by Status">
+<!ENTITY calendar.unifinder.tree.calendarname.label      "Calendar Name">
+<!ENTITY calendar.unifinder.tree.calendarname.tooltip    "Click to sort by Calendar Name">
+<!ENTITY calendar.unifinder.tree.duration.label          "Due in">
+<!ENTITY calendar.unifinder.tree.duration.tooltip        "Click to sort by Due in">
+<!ENTITY calendar.unifinder.close.tooltip                "Close event search and event list">
 
 <!ENTITY calendar.today.button.tooltip          "Go to Today" >
 <!ENTITY calendar.todaypane.button.tooltip      "Show Today Pane" >

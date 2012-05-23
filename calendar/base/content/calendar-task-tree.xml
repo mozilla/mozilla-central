@@ -75,7 +75,8 @@
                        cycler="true"
                        sortKey="completedDate"
                        itemproperty="completed"
-                       label="&calendar.unifinder.tree.done.label;">
+                       label="&calendar.unifinder.tree.done.label;"
+                       tooltiptext="&calendar.unifinder.tree.done.tooltip;">
             <xul:image anonid="checkboximg" />
           </xul:treecol>
           <xul:splitter class="tree-splitter" ordinal="2"/>
@@ -84,56 +85,72 @@
                        minwidth="17"
                        fixed="true"
                        itemproperty="priority"
-                       label="&calendar.unifinder.tree.priority.label;">
+                       label="&calendar.unifinder.tree.priority.label;"
+                       tooltiptext="&calendar.unifinder.tree.priority.tooltip;">
             <xul:image anonid="priorityimg"/>
           </xul:treecol>
           <xul:splitter class="tree-splitter" ordinal="4"/>
           <xul:treecol anonid="calendar-task-tree-col-title"
                        flex="1"
                        itemproperty="title"
-                       label="&calendar.unifinder.tree.title.label;"/>
+                       label="&calendar.unifinder.tree.title.label;"
+                       tooltiptext="&calendar.unifinder.tree.title.tooltip;"/>
           <xul:splitter class="tree-splitter" ordinal="6"/>
           <xul:treecol anonid="calendar-task-tree-col-entrydate"
                        itemproperty="entryDate"
-                       flex="1" label="&calendar.unifinder.tree.startdate.label;"/>
+                       flex="1"
+                       label="&calendar.unifinder.tree.startdate.label;"
+                       tooltiptext="&calendar.unifinder.tree.startdate.tooltip;"/>
           <xul:splitter class="tree-splitter" ordinal="8"/>
           <xul:treecol anonid="calendar-task-tree-col-duedate"
                        itemproperty="dueDate"
-                       flex="1" label="&calendar.unifinder.tree.duedate.label;"/>
+                       flex="1"
+                       label="&calendar.unifinder.tree.duedate.label;"
+                       tooltiptext="&calendar.unifinder.tree.duedate.tooltip;"/>
           <xul:splitter class="tree-splitter" ordinal="10"/>
           <xul:treecol anonid="calendar-task-tree-col-duration"
                        sortKey="dueDate"
                        itemproperty="duration"
-                       flex="1" label="&calendar.unifinder.tree.duration.label;"/>
+                       flex="1"
+                       label="&calendar.unifinder.tree.duration.label;"
+                       tooltiptext="&calendar.unifinder.tree.duration.tooltip;"/>
           <xul:splitter class="tree-splitter" ordinal="12"/>
           <xul:treecol anonid="calendar-task-tree-col-completeddate"
                        itemproperty="completedDate"
-                       flex="1" label="&calendar.unifinder.tree.completeddate.label;"/>
+                       flex="1"
+                       label="&calendar.unifinder.tree.completeddate.label;"
+                       tooltiptext="&calendar.unifinder.tree.completeddate.tooltip;"/>
           <xul:splitter class="tree-splitter" ordinal="14"/>
           <xul:treecol anonid="calendar-task-tree-col-percentcomplete"
                        flex="1"
                        type="progressmeter"
                        minwidth="19"
                        itemproperty="percentComplete"
-                       label="&calendar.unifinder.tree.percentcomplete.label;"/>
+                       label="&calendar.unifinder.tree.percentcomplete.label;"
+                       tooltiptext="&calendar.unifinder.tree.percentcomplete.tooltip;"/>
           <xul:splitter class="tree-splitter" ordinal="16"/>
           <xul:treecol anonid="calendar-task-tree-col-categories"
                        itemproperty="categories"
-                       flex="1" label="&calendar.unifinder.tree.categories.label;"/>
+                       flex="1"
+                       label="&calendar.unifinder.tree.categories.label;"
+                       tooltiptext="&calendar.unifinder.tree.categories.tooltip;"/>
           <xul:splitter class="tree-splitter" ordinal="18"/>
           <xul:treecol anonid="calendar-task-tree-col-location"
                        itemproperty="location"
-                       label="&calendar.unifinder.tree.location.label;"/>
+                       label="&calendar.unifinder.tree.location.label;"
+                       tooltiptext="&calendar.unifinder.tree.location.tooltip;"/>
           <xul:splitter class="tree-splitter" ordinal="20"/>
           <xul:treecol anonid="calendar-task-tree-col-status"
                        flex="1"
                        itemproperty="status"
-                       label="&calendar.unifinder.tree.status.label;"/>
+                       label="&calendar.unifinder.tree.status.label;"
+                       tooltiptext="&calendar.unifinder.tree.status.tooltip;"/>
           <xul:splitter class="tree-splitter" ordinal="22"/>
           <xul:treecol anonid="calendar-task-tree-col-calendarname"
                        flex="1"
                        itemproperty="calendar"
-                       label="&calendar.unifinder.tree.calendarname.label;"/>
+                       label="&calendar.unifinder.tree.calendarname.label;"
+                       tooltiptext="&calendar.unifinder.tree.calendarname.tooltip;"/>
         </xul:treecols>
         <xul:treechildren tooltip="taskTreeTooltip"/>
       </xul:tree>
