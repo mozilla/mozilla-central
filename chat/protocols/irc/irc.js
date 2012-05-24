@@ -212,15 +212,19 @@ ircChannel.prototype = {
     return participant;
   },
   updateNick: function(aOldNick, aNewNick) {
-    if (!this.hasParticipant(aOldNick)) {
+    let isParticipant = this.hasParticipant(aOldNick);
+    if (this._account.normalize(aOldNick) == this._account.normalize(this.nick)) {
+      // If this is the user's nick, change it.
+      this.nick = aNewNick;
+      // If the account was disconnected, it's OK the user is not a participant.
+      if (!isParticipant)
+        return;
+    }
+    else if (!isParticipant) {
       ERROR("Trying to rename nick that doesn't exist! " + aOldNick + " to " +
             aNewNick);
       return;
     }
-
-    // If this is the user's nick, change it.
-    if (this._account.normalize(aOldNick) == this._account.normalize(this.nick))
-      this.nick = aNewNick;
 
     // Get the original ircParticipant and then remove it.
     let participant = this.getParticipant(aOldNick);
@@ -559,6 +563,7 @@ function ircAccount(aProtocol, aImAccount) {
   // Split the account name into usable parts.
   let splitter = aImAccount.name.lastIndexOf("@");
   this._nickname = aImAccount.name.slice(0, splitter);
+  this._originalNickname = this._nickname;
   this._server = aImAccount.name.slice(splitter + 1);
 
   // For more information, see where these are defined in the prototype below.
@@ -569,6 +574,7 @@ function ircAccount(aProtocol, aImAccount) {
 ircAccount.prototype = {
   __proto__: GenericAccountPrototype,
   _socket: null,
+  _originalNickname: null,
   _MODE_WALLOPS: 1 << 2, // mode 'w'
   _MODE_INVISIBLE: 1 << 3, // mode 'i'
   get _mode() 0,
@@ -758,21 +764,27 @@ ircAccount.prototype = {
       // Your nickname changed!
       this._nickname = aNewNick;
       msg = _("message.nick.you", aNewNick);
+      for each (let conversation in this._conversations) {
+        // Update the nick for chats, and inform the user in every conversation.
+        if (conversation.isChat)
+          conversation.updateNick(aOldNick, aNewNick);
+        conversation.writeMessage(aOldNick, msg, {system: true});
+      }
     }
-    else
+    else {
       msg = _("message.nick", aOldNick, aNewNick);
+      for each (let conversation in this._conversations) {
+        if (conversation.isChat && conversation.hasParticipant(aOldNick)) {
+          // Update the nick in every chat conversation it is in.
+          conversation.updateNick(aOldNick, aNewNick);
+          conversation.writeMessage(aOldNick, msg, {system: true});
+        }
+      }
+    }
 
     // Adjust the whois table where necessary.
     this.removeBuddyInfo(aOldNick);
     this.setWhoisFromNick(aNewNick);
-
-    for each (let conversation in this._conversations) {
-      if (conversation.isChat && conversation.hasParticipant(aOldNick)) {
-        // Update the nick in every chat conversation the user is in.
-        conversation.updateNick(aOldNick, aNewNick);
-        conversation.writeMessage(aOldNick, msg, {system: true});
-      }
-    }
 
     // If a private conversation is open with that user, change its title.
     if (this.hasConversation(aOldNick)) {
@@ -873,6 +885,7 @@ ircAccount.prototype = {
     // Load preferences.
     this._port = this.getInt("port");
     this._ssl = this.getBool("ssl");
+
     // Use the display name as the user's real name.
     this._realname = this.imAccount.statusInfo.displayName;
     this._encoding = this.getString("encoding") || "UTF-8";
@@ -1054,14 +1067,14 @@ ircAccount.prototype = {
                        "PASS <password not logged>");
     }
     // Send the nick message (section 3.1.2).
-    this.sendMessage("NICK", this._nickname);
+    this.sendMessage("NICK", this._originalNickname);
 
     // Send the user message (section 3.1.3).
     // Use brandShortName as the username.
     let username =
       l10nHelper("chrome://branding/locale/brand.properties")("brandShortName");
     this.sendMessage("USER", [username, this._mode.toString(), "*",
-                              this._realname || this._nickname]);
+                              this._realname || this._originalNickname]);
   },
 
   gotDisconnected: function(aError, aErrorMessage) {
@@ -1082,12 +1095,12 @@ ircAccount.prototype = {
     delete this._isOnTimer;
 
     // Clean up each conversation: mark as left and remove participant.
-    for (let conversation in this._conversations) {
-      if (this.isMUCName(conversation)) {
+    for each (let conversation in this._conversations) {
+      if (conversation.isChat) {
         // Remove the user's nick and mark the conversation as left as that's
         // the final known state of the room.
-        this._conversations[conversation].removeParticipant(this._nickname, true);
-        this._conversations[conversation].left = true;
+        conversation.removeParticipant(this._nickname, true);
+        conversation.left = true;
       }
     }
 
