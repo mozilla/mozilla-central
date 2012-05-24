@@ -165,6 +165,8 @@ const Socket = {
         // Add a URI scheme since, by default, some protocols (i.e. IRC) don't
         // have a URI scheme before the host.
         let uri = Services.io.newURI("http://" + this.host, null, null);
+        // This will return null when the result is known immediately and
+        // the callback will just be dispatched to the current thread.
         this._proxyCancel = proxyService.asyncResolve(uri, this.proxyFlags, this);
       } catch(e) {
         Cu.reportError(e);
@@ -193,7 +195,8 @@ const Socket = {
     }
 
     if ("_proxyCancel" in this) {
-      this._proxyCancel.cancel(Cr.NS_ERROR_ABORT); // Has to give a failure code
+      if (this._proxyCancel)
+        this._proxyCancel.cancel(Cr.NS_ERROR_ABORT); // Has to give a failure code
       delete this._proxyCancel;
     }
   },
@@ -275,6 +278,11 @@ const Socket = {
    * nsIProtocolProxyCallback methods
    */
   onProxyAvailable: function(aRequest, aURI, aProxyInfo, aStatus) {
+    if (!("_proxyCancel" in this)) {
+      this.log("onProxyAvailable called, but disconnect() was called before.");
+      return;
+    }
+
     if (aProxyInfo) {
       this.log("using " + aProxyInfo.type + " proxy: " +
                aProxyInfo.host + ":" + aProxyInfo.port);
