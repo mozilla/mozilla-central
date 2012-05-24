@@ -3049,6 +3049,8 @@ function addRecipientsToIgnoreList(aAddressesToAdd)
     var names = {};
     var fullNames = {};
     var numAddresses = hdrParser.parseHeadersWithArray(aAddressesToAdd, emailAddresses, names, fullNames);
+    if (!names)
+      return;
     var tokenizedNames = new Array();
 
     // each name could consist of multiple word delimited by either commas or spaces. i.e. Green Lantern
