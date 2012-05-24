@@ -161,7 +161,7 @@ nsresult nsMsgI18NConvertToUnicode(const char* aCharset,
 
   // get an unicode converter
   if (aIsCharsetCanonical)  // optimize for modified UTF-7 used by IMAP
-    rv = ccm->GetUnicodeDecoderRawInternal(aCharset, getter_AddRefs(decoder));
+    rv = ccm->GetUnicodeDecoderRaw(aCharset, getter_AddRefs(decoder));
   else
     rv = ccm->GetUnicodeDecoderInternal(aCharset, getter_AddRefs(decoder));
   NS_ENSURE_SUCCESS(rv, rv);
