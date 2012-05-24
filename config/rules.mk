@@ -1,43 +1,9 @@
 # vim:set ts=8 sw=8 sts=8 noet:
 #
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is mozilla.org code.
-#
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#  Chase Phillips <chase@mozilla.org>
-#  Benjamin Smedberg <benjamin@smedbergs.us>
-#  Jeff Walden <jwalden+code@mit.edu>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either of the GNU General Public License Version 2 or later (the "GPL"),
-# or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
 
 ifndef topsrcdir
 $(error topsrcdir was not set))
@@ -76,7 +42,7 @@ ifdef SYSTEM_LIBXUL
 endif
 
 # ELOG prints out failed command when building silently (gmake -s).
-ifneq (,$(findstring -s,$(MAKEFLAGS)))
+ifneq (,$(findstring s, $(filter-out --%, $(MAKEFLAGS))))
   ELOG := $(EXEC) sh $(BUILD_TOOLS)/print-failed-commands.sh
 else
   ELOG :=
@@ -102,14 +68,14 @@ endif
 # Testing frameworks support
 ################################################################################
 
+testxpcobjdir = $(MOZDEPTH)/_tests/xpcshell
+
 ifdef ENABLE_TESTS
 
 ifdef XPCSHELL_TESTS
 ifndef relativesrcdir
 $(error Must define relativesrcdir when defining XPCSHELL_TESTS.)
 endif
-
-testxpcobjdir = $(MOZDEPTH)/_tests/xpcshell
 
 define _INSTALL_TESTS
 $(DIR_INSTALL) $(wildcard $(srcdir)/$(dir)/*) $(testxpcobjdir)/$(relativesrcdir)/$(dir)
@@ -131,10 +97,13 @@ testxpcsrcdir = $(MOZILLA_SRCDIR)/testing/xpcshell
 # See also $(MOZILLA_DIR)/testing/testsuite-targets.mk 'xpcshell-tests' target for global execution.
 xpcshell-tests:
 	$(PYTHON) -u $(MOZILLA_DIR)/config/pythonpath.py \
-	  -I$(MOZILLA_DIR)/build \
+	  -I$(MOZILLA_DIR)/build -I$(MOZDEPTH)/_tests/mozbase/mozinfo \
 	  $(testxpcsrcdir)/runxpcshelltests.py \
 	  --symbols-path=$(DIST)/crashreporter-symbols \
 	  --build-info-json=$(MOZDEPTH)/mozinfo.json \
+	  --tests-root-dir=$(testxpcobjdir) \
+	  --xunit-file=$(testxpcobjdir)/$(relativesrcdir)/results.xml \
+	  --xunit-suite-name=xpcshell \
 	  $(EXTRA_TEST_ARGS) \
 	  $(LIBXUL_DIST)/bin/xpcshell \
 	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(relativesrcdir)/$(dir))
@@ -144,7 +113,7 @@ xpcshell-tests:
 # attach a debugger and then start the test.
 check-interactive:
 	$(PYTHON) -u $(MOZILLA_DIR)/config/pythonpath.py \
-	  -I$(MOZILLA_DIR)/build \
+	  -I$(MOZILLA_DIR)/build -I$(MOZDEPTH)/_tests/mozbase/mozinfo \
 	  $(testxpcsrcdir)/runxpcshelltests.py \
 	  --symbols-path=$(DIST)/crashreporter-symbols \
 	  --build-info-json=$(MOZDEPTH)/mozinfo.json \
@@ -157,7 +126,7 @@ check-interactive:
 # Execute a single test, specified in $(SOLO_FILE)
 check-one:
 	$(PYTHON) -u $(MOZILLA_DIR)/config/pythonpath.py \
-	  -I$(MOZILLA_DIR)/build \
+	  -I$(MOZILLA_DIR)/build -I$(MOZDEPTH)/_tests/mozbase/mozinfo \
 	  $(testxpcsrcdir)/runxpcshelltests.py \
 	  --symbols-path=$(DIST)/crashreporter-symbols \
 	  --build-info-json=$(MOZDEPTH)/mozinfo.json \
@@ -263,7 +232,7 @@ endif
 
 ifdef FORCE_SHARED_LIB
 ifndef FORCE_STATIC_LIB
-LIBRARY			:= $(NULL)
+LIBRARY := $(NULL)
 endif
 endif
 
@@ -470,8 +439,8 @@ endif
 # A Makefile that needs $(MDDEPDIR) created but doesn't set any of these
 # variables we know to check can just set NEED_MDDEPDIR explicitly.
 ifneq (,$(OBJS)$(XPIDLSRCS)$(SIMPLE_PROGRAMS)$(NEED_MDDEPDIR))
-MAKE_DIRS		+= $(CURDIR)/$(MDDEPDIR)
-GARBAGE_DIRS		+= $(MDDEPDIR)
+MAKE_DIRS	+= $(CURDIR)/$(MDDEPDIR)
+GARBAGE_DIRS	+= $(CURDIR)/$(MDDEPDIR)
 endif
 
 #
@@ -482,7 +451,7 @@ TAG_PROGRAM		= xargs etags -a
 
 #
 # Turn on C++ linking if we have any .cpp or .mm files
-# (moved this from config.mk so that config.mk can be included 
+# (moved this from config.mk so that config.mk can be included
 #  before the CPPSRCS are defined)
 #
 ifneq ($(HOST_CPPSRCS)$(HOST_CMMSRCS),)
@@ -490,7 +459,7 @@ HOST_CPP_PROG_LINK	= 1
 endif
 
 #
-# This will strip out symbols that the component should not be 
+# This will strip out symbols that the component should not be
 # exporting from the .dynsym section.
 #
 ifdef IS_COMPONENT
@@ -498,7 +467,7 @@ EXTRA_DSO_LDOPTS += $(MOZ_COMPONENTS_VERSION_SCRIPT_LDFLAGS)
 endif # IS_COMPONENT
 
 #
-# Enforce the requirement that MODULE_NAME must be set 
+# Enforce the requirement that MODULE_NAME must be set
 # for components in static builds
 #
 ifdef IS_COMPONENT
@@ -588,18 +557,18 @@ ifeq ($(OS_ARCH),OSF1)
 ifdef IS_COMPONENT
 ifeq ($(GNU_CC)$(GNU_CXX),)
 EXTRA_DSO_LDOPTS += -B symbolic
-endif  
-endif  
+endif
+endif
 endif
 
 #
 # Linux: add -Bsymbolic flag for components
-# 
+#
 ifeq ($(OS_ARCH),Linux)
 ifdef IS_COMPONENT
 EXTRA_DSO_LDOPTS += -Wl,-Bsymbolic
 endif
-endif 
+endif
 
 #
 # GNU doesn't have path length limitation
@@ -674,7 +643,7 @@ endif
 	$(MAKE) tools
 
 # Do depend as well
-alldep:: 
+alldep::
 	$(MAKE) export
 	$(MAKE) depend
 	$(MAKE) libs
@@ -905,7 +874,7 @@ clean clobber realclean clobber_all:: $(SUBMAKEFILES)
 
 distclean:: $(SUBMAKEFILES)
 	$(foreach dir,$(PARALLEL_DIRS) $(DIRS) $(STATIC_DIRS) $(TOOL_DIRS),-$(call SUBMAKE,$@,$(dir)))
-	-rm -rf $(ALL_TRASH_DIRS) 
+	-rm -rf $(ALL_TRASH_DIRS)
 	-rm -f $(ALL_TRASH)  \
 	Makefile .HSancillary \
 	$(wildcard *.$(OBJ_SUFFIX)) $(wildcard *.ho) $(wildcard host_*.o*) \
@@ -1437,7 +1406,7 @@ export:: $(AUTOCFG_JS_EXPORTS) $(FINAL_TARGET)/defaults/autoconfig
 	$(INSTALL) $(IFLAGS1) $^
 endif
 
-endif 
+endif
 ################################################################################
 # Export the elements of $(XPIDLSRCS)
 # generating .h and .xpt files and moving them to the appropriate places.
@@ -1463,7 +1432,7 @@ $(IDL_DIR)::
 	$(NSINSTALL) -D $@
 
 # generate .h files from into $(XPIDL_GEN_DIR), then export to $(DIST)/include;
-# warn against overriding existing .h file. 
+# warn against overriding existing .h file.
 $(XPIDL_GEN_DIR)/.done:
 	@if test ! -d $(XPIDL_GEN_DIR); then echo Creating $(XPIDL_GEN_DIR)/.done; rm -rf $(XPIDL_GEN_DIR); mkdir $(XPIDL_GEN_DIR); fi
 	@touch $@
@@ -1523,7 +1492,7 @@ export:: $(XPIDLSRCS) $(IDL_DIR)
 	$(INSTALL) $(IFLAGS1) $^
 
 export:: $(patsubst %.idl,$(XPIDL_GEN_DIR)/%.h, $(XPIDLSRCS)) $(DIST)/include
-	$(INSTALL) $(IFLAGS1) $^ 
+	$(INSTALL) $(IFLAGS1) $^
 endif # NO_DIST_INSTALL
 
 endif # XPIDLSRCS
@@ -1893,7 +1862,7 @@ FORCE:
 .DELETE_ON_ERROR:
 
 # Properly set LIBPATTERNS for the platform
-.LIBPATTERNS = $(if $(IMPORT_LIB_SUFFIX),$(LIB_PREFIX)%.$(IMPORT_LIB_SUFFIX)) $(LIB_PREFIX)%.$(LIB_SUFFIX) $(DLL_PREFIX)%$(DLL_SUFFIX) 
+.LIBPATTERNS = $(if $(IMPORT_LIB_SUFFIX),$(LIB_PREFIX)%.$(IMPORT_LIB_SUFFIX)) $(LIB_PREFIX)%.$(LIB_SUFFIX) $(DLL_PREFIX)%$(DLL_SUFFIX)
 
 tags: TAGS
 
@@ -2037,7 +2006,7 @@ $(foreach var,$(FREEZE_VARIABLES),$(eval $(var)_FROZEN := '$($(var))'))
 CHECK_FROZEN_VARIABLES = $(foreach var,$(FREEZE_VARIABLES), \
   $(if $(subst $($(var)_FROZEN),,'$($(var))'),$(error Makefile variable '$(var)' changed value after including rules.mk. Was $($(var)_FROZEN), now $($(var)).)))
 
-libs export libs::
+libs export::
 	$(CHECK_FROZEN_VARIABLES)
 
 default all::
