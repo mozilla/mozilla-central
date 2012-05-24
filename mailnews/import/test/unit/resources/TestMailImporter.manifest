@@ -1,0 +1,4 @@
+component {a81438ef-aca1-41a5-9b3a-3ccfbbe4f5e1} TestMailImporter.js
+contract @mozilla.org/import/test;1 {a81438ef-aca1-41a5-9b3a-3ccfbbe4f5e1}
+category mailnewsimport {a81438ef-aca1-41a5-9b3a-3ccfbbe4f5e1} mail
+

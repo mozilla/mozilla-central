@@ -379,3 +379,5 @@ MailImportHelper.prototype =
 }
 
 MailImportHelper.prototype.__proto__ = GenericImportHelper.prototype;
+
+do_load_manifest("resources/TestMailImporter.manifest");
