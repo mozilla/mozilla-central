@@ -890,16 +890,6 @@ var ircBase = {
         newParticipants.push(conversation.getParticipant(aNick, false)));
       conversation.notifyObservers(new nsSimpleEnumerator(newParticipants),
                                    "chat-buddy-add");
-
-      // This assumes that this is the last message received when joining a
-      // channel, so a few "clean up" tasks are done here.
-      // Update whether the topic is editable.
-      conversation.checkTopicSettable();
-
-      // If we haven't received the MODE yet, request it.
-      if (!conversation._receivedInitialMode)
-        this.sendMessage("MODE", aMessage.params[1]);
-
       return true;
     },
     "361": function(aMessage) { // RPL_KILLDONE
@@ -935,6 +925,17 @@ var ircBase = {
     "366": function(aMessage) { // RPL_ENDOFNAMES
       // <target> <channel> :End of NAMES list
       // All participants have already been added by the 353 handler.
+
+      // This assumes that this is the last message received when joining a
+      // channel, so a few "clean up" tasks are done here.
+      let conversation = this.getConversation(aMessage.params[1]);
+      // Update whether the topic is editable.
+      conversation.checkTopicSettable();
+
+      // If we haven't received the MODE yet, request it.
+      if (!conversation._receivedInitialMode)
+        this.sendMessage("MODE", aMessage.params[1]);
+
       return true;
     },
     /*
