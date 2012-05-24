@@ -1089,7 +1089,7 @@
             var link = document.createElement("label");
             link.className = "text-link";
             link.setAttribute("value", this._stringBundle.GetStringFromName(type + ".learnMore"));
-            link.setAttribute("href", this._urlFormatter.formatURLPref("browser.geolocation.warning.infoURL"));
+            link.setAttribute("href", this._urlFormatter.formatURLPref("browser." + type + ".warning.infoURL"));
             document.getAnonymousElementByAttribute(box, "anonid", "messageText").appendChild(link);
           ]]>
         </body>
