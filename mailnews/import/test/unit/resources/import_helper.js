@@ -1,5 +1,115 @@
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
+
 // used by checkProgress to periodically check the progress of the import
-var gAbImportHelper;
+var gGenericImportHelper;
+/**
+ * GenericImportHelper
+ * The parent class of AbImportHelper and MailImportHelper.
+ *
+ * @param aModuleType The type of import module. Should be addressbook or mail.
+ * @param aModuleSearchString
+ *                    The string to search the module names for, such as
+ *                    "Text file" to find the import module for comma-separated
+ *                    value, LDIF, and tab-delimited files.
+ * @param aFile       An instance of nsIFile to import.
+ *
+ * @constructor
+ * @class
+ */
+function GenericImportHelper(aModuleType, aModuleSearchString, aFile)
+{
+  gGenericImportHelper = null;
+  if (aModuleType != "addressbook" && aModuleType != "mail")
+    do_throw("Unexpected type passed to the GenericImportHelper constructor");
+  this.mModuleType = aModuleType;
+  this.mModuleSearchString = aModuleSearchString;
+  this.mInterface = this._findInterface();
+  do_check_neq(this.mInterface, null);
+
+  this.mFile = aFile; // checked in the beginImport method
+}
+
+GenericImportHelper.prototype =
+{
+  /**
+   * GenericImportHelper.beginImport
+   * Imports the given address book export or mail data and invoke 
+   * checkProgress of child class to check the data,
+   */
+  beginImport: function() {
+    do_check_true(this.mFile instanceof Ci.nsIFile && this.mFile.exists())
+
+    if (this.mModuleType == "addressbook")
+      this.mInterface.SetData("addressLocation", this.mFile);
+    else if (this.mModuleType == "mail")
+      this.mInterface.SetData("mailLocation", this.mFile);
+
+    do_check_true(this.mInterface.WantsProgress());
+    do_check_true(this.mInterface.BeginImport(null, null));
+    do_test_pending();
+    this.checkProgress();
+  },
+  /**
+   * GenericImportHelper.getInterface
+   *
+   * @return An nsIImportGeneric import interface.
+   */
+  getInterface: function() {
+    return this.mInterface;
+  },
+
+  _findInterface: function() {
+    var importService = Cc["@mozilla.org/import/import-service;1"]
+                        .getService(Ci.nsIImportService);
+    var count = importService.GetModuleCount(this.mModuleType);
+
+    // Iterate through each import module until the one being searched for is
+    // found and then return the ImportInterface of that module
+    for (var i = 0; i < count; i++) {
+      // Check if the current module fits the search string gets the interface
+      if (importService.GetModuleName(this.mModuleType, i).indexOf(this.mModuleSearchString) != -1) {
+        return importService.GetModule(this.mModuleType, i)
+                            .GetImportInterface(this.mModuleType)
+                            .QueryInterface(Ci.nsIImportGeneric);
+      }
+    }
+    return null; // it wasn't found
+  },
+  /**
+   * GenericImportHelper.checkProgress
+   * Checks the progress of an import every 200 milliseconds until it is
+   * complete.  Checks the test results if there is an original address book,
+   * otherwise evaluates the optional command, or calls do_test_finished().
+   */
+  checkProgress: function() {
+    do_check_true(this.mInterface &&
+                  this.mInterface instanceof Ci.nsIImportGeneric);
+    do_check_true(this.mInterface.ContinueImport());
+    // if the import isn't done, check again in 200 milliseconds.
+    if (this.mInterface.GetProgress() != 100) {
+      // use the helper object to check the progress of the import after 200 ms
+      gGenericImportHelper = this;
+      do_timeout(200, function(){gGenericImportHelper.checkProgress();});
+    } else { // if it is done, check the results or finish the test.
+      this.checkResults();
+      do_test_finished();
+    }
+  },
+
+  /**
+   * GenericImportHelper.checkResults
+   * Checks the results of the import.
+   * Child class should implement this method.
+   */
+  checkResults: function() {
+  }
+}
+
+function endsWith(string, suffix) {
+  return string.indexOf(suffix, string.length - suffix.length) != -1;
+}
+
 /**
  * AbImportHelper
  * A helper for Address Book imports. To use, supply at least the file and type.
@@ -8,8 +118,10 @@ var gAbImportHelper;
  * See AB_README for more information.
  *
  * @param aFile     An instance of nsIAbFile to import.
- * @param aType     The type of import.  Should be LDIF, CSV, or TAB.
- *
+ * @param aModuleSearchString
+ *                  The string to search the module names for, such as
+ *                  "Text file" to find the import module for comma-separated
+ *                  value, LDIF, and tab-delimited files.
  * Optional parameters: Include if you would like the import checked.
  * @param aAbName   The name the address book will have (the filename without
  *                  the extension).
@@ -18,12 +130,11 @@ var gAbImportHelper;
  * @constructor
  * @class
  */
-function AbImportHelper(aFile, aType, aAbName, aJsonName)
+function AbImportHelper(aFile, aModuleSearchString, aAbName, aJsonName)
 {
-  gAbImportHelper = null;
-  this.mFile = aFile; // checked in the beginImport method
-  this.mAbName = aAbName;
+  GenericImportHelper.call(this, "addressbook", aModuleSearchString, aFile);
 
+  this.mAbName = aAbName;
   /* Attribute notes:  The attributes listed in the declaration below are
    * supported by all three text export/import types. PreferMailFormat is only
    * supported by LDIF.
@@ -40,79 +151,19 @@ function AbImportHelper(aFile, aType, aAbName, aJsonName)
      "Company", "BirthYear", "BirthMonth", "BirthDay", "WebPage1", "WebPage2",
      "Custom1", "Custom2", "Custom3", "Custom4", "Notes", "_AimScreenName"];
   // get the extra attributes supported for the given type of import
-  if (aType == "LDIF")
-  {
+  if (endsWith(this.mFile.leafName.toLowerCase(), ".ldif")) {
     // LDIF: add PreferMailFormat
     this.mSupportedAttributes = supportedAttributes.concat(["PreferMailFormat"]);
-    this.mLdif = true;
-  }
-  else if (aType == "CSV" || aType == "TAB")
-  {
+  } else if (endsWith(this.mFile.leafName.toLowerCase(), ".csv")) {
     this.mSupportedAttributes = supportedAttributes;
-    this.mLdif = false;
   }
-  else
-    do_throw("Unexpected type passed to the AbImportHelper constructor");
   // get the "cards" from the JSON file, if necessary
   if (aJsonName)
     this.mJsonCards = this.getJsonCards(aJsonName);
 }
+
 AbImportHelper.prototype =
 {
-  /**
-   * AbImportHelper.beginImport
-   * Imports the given address book export and checks the imported address book
-   * with the array in addressbook.json if aAbName and aJsonName were supplied
-   * to the constructor.
-   */
-  beginImport: function()
-  {
-    do_check_true(this.mFile instanceof Ci.nsIFile && this.mFile.exists() &&
-                  this.mFile.isFile());
-
-    // get the import interface used for all text imports
-    this.mAbInterface = this.getInterface("addressbook", ".csv");
-    this.mAbInterface.SetData("addressLocation", this.mFile);
-    // skip setting the field map if this is an LDIF import
-    if (!this.mLdif)
-      this.mAbInterface.SetData("fieldMap", this.getDefaultFieldMap(true));
-
-    do_check_true(this.mAbInterface.WantsProgress());
-    do_check_true(this.mAbInterface.BeginImport(null, null));
-    do_test_pending();
-    this.checkProgress();
-  },
-  /**
-   * AbImportHelper.getInterface
-   * Returns an import interface based on the name of the module and a string
-   * to search for.
-   *
-   * @param aModuleName The name of the module, such as "addressbook".
-   * @param aSearchStr  The string to search the module names for, such as
-   *                    ".csv" to find the import module for comma-separated
-   *                    value, LDIF, and tab-delimited files.
-   * @return An nsIImportGeneric import interface.
-   */
-  getInterface: function(aModuleName, aSearchStr)
-  {
-    do_check_true(aModuleName && aModuleName.length > 0);
-    do_check_true(aSearchStr && aSearchStr.length > 0);
-
-    var importService = Cc["@mozilla.org/import/import-service;1"]
-                         .getService(Ci.nsIImportService);
-    var module;
-    var count = importService.GetModuleCount(aModuleName);
-
-    // Iterate through each import module until the one being searched for is
-    // found and then return the ImportInterface of that module
-    for (var i = 0; i < count; i++)
-      // Check if the current module fits the search string gets the interface
-      if (importService.GetModuleName(aModuleName, i).indexOf(aSearchStr) != -1)
-        return importService.GetModule(aModuleName, i)
-                            .GetImportInterface(aModuleName)
-                            .QueryInterface(Ci.nsIImportGeneric);
-    return null; // it wasn't found
-  },
   /**
    * AbImportHelper.getDefaultFieldMap
    * Returns the default field map.
@@ -121,8 +172,7 @@ AbImportHelper.prototype =
    *                         be skipped.
    * @return A default field map.
    */
-  getDefaultFieldMap: function(aSkipFirstRecord)
-  {
+  getDefaultFieldMap: function(aSkipFirstRecord) {
     var importService = Cc["@mozilla.org/import/import-service;1"]
                          .getService(Ci.nsIImportService);
     var fieldMap = importService.CreateNewFieldMap();
@@ -132,32 +182,38 @@ AbImportHelper.prototype =
 
     return fieldMap;
   },
+
   /**
-   * AbImportHelper.checkProgress
-   * Checks the progress of an import every 200 milliseconds until it is
-   * complete.  Checks the test results if there is an original address book,
-   * otherwise evaluates the optional command, or calls do_test_finished().
+   * AbImportHelper.setFieldMap
+   * Set the field map.
+   *
+   * @param aFieldMap The field map used for address book import.
    */
-  checkProgress: function()
-  {
-    do_check_true(this.mAbInterface &&
-                  this.mAbInterface instanceof Ci.nsIImportGeneric);
-    do_check_true(this.mAbInterface.ContinueImport());
-    // if the import isn't done, check again in 200 milliseconds.
-    if (this.mAbInterface.GetProgress() != 100) {
-      // use the helper object to check the progress of the import after 200 ms
-      gAbImportHelper = this;
-      do_timeout(200, function(){gAbImportHelper.checkProgress();});
-    }
-    // if it is done, check the results or finish the test.
-    else
-    {
-      if (this.mAbName)
-        this.checkResults(this.mAbName);
-      else
-        do_test_finished();
-    }
+  setFieldMap: function(aFieldMap) {
+    this.mInterface.SetData("fieldMap", aFieldMap);
   },
+
+  /**
+   * AbImportHelper.setAddressLocation
+   * Set the the location of the address book.
+   *
+   * @param aLocation The location of the source address book.
+   */
+  setAddressBookLocation: function(aLocation) {
+    this.mInterface.SetData("addressLocation", aLocation);
+  },
+
+  /**
+   * AbImportHelper.setAddressDestination
+   * Set the the destination of the address book.
+   *
+   * @param aDestination   URI of destination address book or null if
+   *                       new address books will be created.
+   */
+  setAddressDestination: function(aDestination) {
+    this.mInterface.SetData("addressDestination", aDestination);
+  },
+
   /**
    * AbImportHelper.checkResults
    * Checks the results of the import.
@@ -165,15 +221,13 @@ AbImportHelper.prototype =
    * attributes of each card with the card(s) in the JSON array.
    * Calls do_test_finished() when done
    */
-  checkResults: function()
-  {
+  checkResults: function() {
     if (!this.mJsonCards)
       do_throw("The address book must be setup before checking results");
     // When do_test_pending() was called and there is an error the test hangs.
     // This try/catch block will catch any errors and call do_throw() with the
     // error to throw the error and avoid the hang.
-    try
-    {
+    try {
       // make sure an address book was created
       var newAb = this.getAbByName(this.mAbName);
       do_check_neq(newAb, null);
@@ -200,15 +254,13 @@ AbImportHelper.prototype =
    * @return An nsIAbDirectory, if found.
    *         null if the requested Address Book could not be found.
    */
-  getAbByName: function(aName)
-  {
+  getAbByName: function(aName) {
     do_check_true(aName && aName.length > 0);
 
     var iter = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager)
                                              .directories;
     var data = null;
-    while (iter.hasMoreElements())
-    {
+    while (iter.hasMoreElements()) {
       data = iter.getNext();
       if (data instanceof Ci.nsIAbDirectory)
         if (data.dirName == aName)
@@ -224,8 +276,7 @@ AbImportHelper.prototype =
    * @param aJsonCard The object decoded from addressbook.json.
    * @param aCard     The imported card to compare with.
    */
-  compareCards: function(aJsonCard, aCard)
-  {
+  compareCards: function(aJsonCard, aCard) {
     for (var i in aJsonCard)
       if (this.mSupportedAttributes.indexOf(i) >= 0)
         do_check_eq(aJsonCard[i], aCard.getProperty(i, "BAD"));
@@ -241,8 +292,7 @@ AbImportHelper.prototype =
    * @param aName The name of the array in addressbook.json.
    * @return An array of "cards".
    */
-  getJsonCards: function(aName)
-  {
+  getJsonCards: function(aName) {
     if (!aName)
       do_throw("Error - getJSONAb requires an address book name");
     var file = do_get_file("resources/addressbook.json");
@@ -271,3 +321,61 @@ AbImportHelper.prototype =
     return arr;
   }
 }
+AbImportHelper.prototype.__proto__ = GenericImportHelper.prototype;
+
+/**
+ * MailImportHelper
+ * A helper for mail imports.
+ *
+ * @param aFile      An instance of nsIFile to import.
+ * @param aModuleSearchString
+ *                   The string to search the module names for, such as
+ *                   "Outlook Express" or "Eudora mail" etc. etc.
+ * @param aExpected  An instance of nsIFile to compare with the imported
+ *                   folders.
+ *
+ * @constructor
+ * @class
+ */
+function MailImportHelper(aFile, aModuleSearchString, aExpected)
+{
+  GenericImportHelper.call(this, "mail", aModuleSearchString, aFile);
+  this.mExpected = aExpected;
+}
+
+MailImportHelper.prototype =
+{
+  _checkEqualFolder: function(expectedFolder, actualFolder) {
+    do_check_eq(expectedFolder.leafName, actualFolder.name);
+    let expectedSubFolderCount = 0;
+
+    let expectedEnumerator = expectedFolder.directoryEntries;
+    let expectedSubFolders = [];
+    while (expectedEnumerator.hasMoreElements()) {
+      let entry = expectedEnumerator.getNext().QueryInterface(Ci.nsIFile);
+      if (entry.isDirectory()) {
+        expectedSubFolderCount++;
+        expectedSubFolders.push(entry);
+      }
+    }
+    do_check_eq(expectedSubFolderCount, actualFolder.numSubFolders);
+
+    let actualEnumerator = actualFolder.subFolders;
+    for (let i = 0; i < expectedSubFolderCount; i++) {
+      let expectedSubFolder = expectedSubFolders[i];
+      let actualSubFolder = actualEnumerator.getNext().QueryInterface(Ci.nsIMsgFolder);
+      this._checkEqualFolder(expectedSubFolder, actualSubFolder);
+    }
+  },
+
+  checkResults: function() {
+    let rootFolder = MailServices.accounts.localFoldersServer.rootFolder;
+    do_check_true(rootFolder.containsChildNamed(this.mFile.leafName));
+    let importedFolder = rootFolder.getChildNamed(this.mFile.leafName);
+    do_check_neq(importedFolder, null);
+
+    this._checkEqualFolder(this.mExpected, importedFolder);
+  }
+}
+
+MailImportHelper.prototype.__proto__ = GenericImportHelper.prototype;

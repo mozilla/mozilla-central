@@ -13,5 +13,5 @@ function run_test()
   var abMgr = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
 
   var file = do_get_file("resources/bug_263304.ldif");
-  new AbImportHelper(file, "LDIF", "bug_263304", "bug_263304").beginImport();
+  new AbImportHelper(file, "Text file", "bug_263304", "bug_263304").beginImport();
 }

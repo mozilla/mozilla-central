@@ -15,6 +15,6 @@ function run_test()
   var abMgr = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
 
   var file = do_get_file("resources/basic_ldif_addressbook.ldif");
-  new AbImportHelper(file, "LDIF", "basic_ldif_addressbook",
+  new AbImportHelper(file, "Text file", "basic_ldif_addressbook",
                      "basic_addressbook").beginImport();
 }
