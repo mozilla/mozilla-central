@@ -489,6 +489,11 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
       }
     }
   }
+  else
+  {
+    m_currentDB->RemoveOfflineOp(currentOp);
+    ProcessNextOperation();
+  }
 }
 
 void nsImapOfflineSync::ClearCurrentOps()
@@ -920,6 +925,9 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
         // loop until we find the next db record that matches the current playback operation
         while (currentOp && !(opType & mCurrentPlaybackOpType))
         {
+          // remove operations with no type.
+          if (!opType)
+            m_currentDB->RemoveOfflineOp(currentOp);
           currentOp = nsnull;
           ++m_KeyIndex;
           if (m_KeyIndex < m_CurrentKeys.Length())
