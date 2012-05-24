@@ -385,8 +385,14 @@ function NewMailAccountProvisioner(aMsgWindow, args) {
   if (!args.okCallback)
     args.okCallback = null;
 
-  if (!args.success)
+  let windowParams = "chrome,titlebar,centerscreen,width=640,height=480";
+
+  if (!args.success) {
     args.success = false;
+    // If we're not opening up the success dialog, then our window should be
+    // modal.
+    windowParams = "modal," + windowParams;
+  }
 
   // NOTE: If you're a developer, and you notice that the jQuery code in
   // accountProvisioner.xhtml isn't throwing errors or warnings, that's due
@@ -395,7 +401,7 @@ function NewMailAccountProvisioner(aMsgWindow, args) {
   window.openDialog(
     "chrome://messenger/content/newmailaccount/accountProvisioner.xhtml",
     "AccountCreation",
-    "modal,chrome,titlebar,centerscreen,width=640,height=480",
+    windowParams,
     args);
 }
 

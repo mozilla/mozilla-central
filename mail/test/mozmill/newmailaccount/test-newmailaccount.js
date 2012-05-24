@@ -159,15 +159,21 @@ function test_get_an_account() {
   // Record how many accounts we start with.
   gNumAccounts = nAccounts();
 
-  // Plan for the account provisioner window to re-open, and then let
-  // subtest_get_an_account_part_2 run.
-  plan_for_modal_dialog("AccountCreation", subtest_get_an_account_part_2);
+  // Plan for the account provisioner window to re-open, and then run the
+  // controller through subtest_get_an_account_part_2. Since the Account
+  // Provisioner dialog is non-modal in the event of success, we use our
+  // normal window handlers.
+  plan_for_new_window("AccountCreation");
 
   // Click the OK button to order the account.
   let btn = tab.browser.contentWindow.document.querySelector("input[value=Send]");
   mc.click(new elib.Elem(btn));
 
-  wait_for_modal_dialog("AccountCreation");
+  let ac = wait_for_new_window("AccountCreation");
+
+  plan_for_window_close(ac);
+  subtest_get_an_account_part_2(ac);
+  wait_for_window_close();
 
   // Make sure we set the default search engine
   let engine = Services.search.getEngineByName("bar");
