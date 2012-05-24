@@ -1496,6 +1496,10 @@ NS_IMETHODIMP nsMsgCompose::CloseWindow(bool recycleIt)
   NS_ENSURE_SUCCESS(rv, rv);
   mDocShell = nsnull;
 
+  // ensure that the destructor of nsMsgSend is invoked to remove
+  // temporary files.
+  mMsgSend = nsnull;
+
   recycleIt = recycleIt && !IsLastWindow();
   if (recycleIt)
   {
