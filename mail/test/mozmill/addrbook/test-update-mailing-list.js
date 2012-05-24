@@ -34,7 +34,8 @@ function test_contact_in_mailing_list_updated() {
   // Add the mailing list to the address book, and then the card to the
   // address book, and finally, the card to the mailing list.
   ml.addressLists.appendElement(contact, false);
-  ab.addMailList(ml);
+  ml = ab.addMailList(ml);
+
   contact = ml.addressLists.queryElementAt(0, Ci.nsIAbCard);
 
   // Open the address book, select our contact...
@@ -52,10 +53,6 @@ function test_contact_in_mailing_list_updated() {
   // to see whether or not the mailing list contact was updated,
   // we have to get a fresh copy of the address book...
   ab = MailServices.ab.getDirectory(ab.URI);
-
-  // And get a fresh copy of the mailing list, which is the first
-  // child node of the address book...
-  ml = ab.childNodes.getNext();
 
   // Ensure that the primary email address for the contact changed
   // in the mailing list as well.
