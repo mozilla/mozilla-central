@@ -919,13 +919,11 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
                 switch (itemFilter & calICalendar.ITEM_FILTER_COMPLETED_ALL) {
                     case calICalendar.ITEM_FILTER_COMPLETED_YES:
                         if (!item.isCompleted) {
-                            delete item;
                             item = null;
                         }
                         break;
                     case calICalendar.ITEM_FILTER_COMPLETED_NO:
                         if (item.isCompleted) {
-                            delete item;
                             item = null;
                         }
                         break;

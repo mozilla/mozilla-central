@@ -817,7 +817,7 @@
               }
           }
           if (oldIndex < 0) {
-              return;
+              return false;
           }
 
           // If no row is specified (-1), then assume append.

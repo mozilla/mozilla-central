@@ -214,6 +214,8 @@
                 let modeAttributeValues = this.getAttribute(aModeAttribute).split(",");
                 let modes = this.getAttribute("mode").split(",");
                 return modeAttributeValues[modes.indexOf(lMode)];
+            } else {
+                return "";
             }
         ]]></body>
       </method>
