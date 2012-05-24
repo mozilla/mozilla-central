@@ -193,7 +193,7 @@ interface nsIMsgMessageService : nsISupports {
   void Search(in nsIMsgSearchSession aSearchSession, in nsIMsgWindow aMsgWindow, in nsIMsgFolder aMsgFolder, in string aSearchUri);
 
   /** 
-   * This methot streams a message to the passed in consumer. If aConvertData is true, it
+   * This method streams a message to the passed in consumer. If aConvertData is true, it
    * will create a stream converter from message rfc822 to star/star. It will also tack
    * aAdditionalHeader onto the url (e.g., "header=filter").
    *
