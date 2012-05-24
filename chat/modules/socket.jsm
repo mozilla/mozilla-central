@@ -57,7 +57,6 @@
  *   .disconnect()
  *   .listen(port)
  *   .send(String data)
- *   .isAlive()
  *   .startTLS()
  * High-level properties:
  *   XXX Need to include properties here
@@ -261,11 +260,7 @@ const Socket = {
     }
   },
 
-  isAlive: function() {
-    if (!this.transport)
-      return false;
-    return this.transport.isAlive();
-  },
+  isConnected: false,
 
   startTLS: function() {
     this.transport.securityInfo.QueryInterface(Ci.nsISSLSocketControl).StartTLS();
@@ -302,6 +297,7 @@ const Socket = {
     this._resetBuffers();
     this._openStreams();
 
+    this.isConnected = true;
     this.onConnectionHeard();
     this.stopListening();
   },
@@ -367,6 +363,7 @@ const Socket = {
   // Called to signify the end of an asynchronous request.
   onStopRequest: function(aRequest, aContext, aStatus) {
     this.log("onStopRequest (" + aStatus + ")");
+    delete this.isConnected;
     if (aStatus == NS_ERROR_NET_RESET)
       this.onConnectionReset();
     else if (aStatus == NS_ERROR_NET_TIMEOUT)
@@ -404,6 +401,7 @@ const Socket = {
     this.log("onTransportStatus(" + (status || ("0x" + aStatus.toString(16))) +")");
 
     if (status == "STATUS_CONNECTED_TO") {
+      this.isConnected = true;
       // Notify that the connection has been established.
       this.onConnection();
     }

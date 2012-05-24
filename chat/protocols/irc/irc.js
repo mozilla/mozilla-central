@@ -899,7 +899,7 @@ ircAccount.prototype = {
     this.reportDisconnecting(Ci.prplIAccount.NO_ERROR);
 
     // If there's no socket, disconnect immediately to avoid waiting 2 seconds.
-    if (!this._socket || !this._socket.isAlive()) {
+    if (!this._socket || !this._socket.isConnected) {
       this.gotDisconnected();
       return;
     }
@@ -1004,7 +1004,7 @@ ircAccount.prototype = {
     // TODO This should escape any characters that can't be used in IRC (e.g.
     // \001, \r\n).
 
-    if (!this._socket || !this._socket.isAlive()) {
+    if (!this._socket || !this._socket.isConnected) {
       this.gotDisconnected(Ci.prplIAccount.ERROR_NETWORK_ERROR,
                            _("connection.error.lost"));
     }
