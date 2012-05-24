@@ -50,7 +50,7 @@ nsUbuntuOne.prototype = {
 
   get type() "UbuntuOne",
   get displayName() "Ubuntu One",
-  get serviceURL() "https://one.ubuntu.com/",
+  get serviceURL() "https://one.ubuntu.com/referrals/referee/2149434/?next=/",
   get iconClass() "chrome://messenger/skin/icons/ubuntuone.png",
   get accountKey() this._accountKey,
   get lastError() this._lastErrorText,
@@ -376,7 +376,7 @@ nsUbuntuOne.prototype = {
    */
   providerUrlForError: function nsUbuntuOne_providerUrlForError(aError) {
     if (aError == Ci.nsIMsgCloudFileProvider.uploadWouldExceedQuota)
-      return "https://one.ubuntu.com/services/add-storage/";
+      return "https://one.ubuntu.com/referrals/referee/2149434/?next=/services/add-storage/";
     return "";
   },
 
