@@ -350,10 +350,20 @@ imAccount.prototype = {
 
   _pendingReconnectForConnectionInfoChange: false,
   _connectionInfoChanged: function() {
-    /* This will be the first connection with these parameters */
+    // The next connection will be the first connection with these parameters.
     this.firstConnectionState = Ci.imIAccount.FIRST_CONNECTION_UNKNOWN;
 
-    if (this._pendingReconnectForConnectionInfoChange)
+    // We want to attempt to reconnect with the new settings only if a
+    // previous attempt failed or a connection attempt is currently
+    // pending (so we can return early if the account is currently
+    // connected or disconnected without error).
+    // The code doing the reconnection attempt is wrapped within an
+    // executeSoon call so that when multiple settings are changed at
+    // once we don't attempt to reconnect until they are all saved.
+    // If a reconnect attempt is already scheduled, we can also return early.
+    if (this._pendingReconnectForConnectionInfoChange || this.connected ||
+        (this.disconnected &&
+         this.connectionErrorReason == Ci.prplIAccount.NO_ERROR))
       return;
 
     this._pendingReconnectForConnectionInfoChange = true;
