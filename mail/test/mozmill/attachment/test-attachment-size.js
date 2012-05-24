@@ -63,6 +63,10 @@ const imageAttachment =
   'SNQAAlmAY+71EgFoAAAAASUVORK5CYII=';
 const imageSize = 188;
 
+const vcardAttachment =
+  'YmVnaW46dmNhcmQNCmZuOkppbSBCb2INCm46Qm9iO0ppbQ0KZW1haWw7aW50ZXJuZXQ6Zm9v' +
+  'QGJhci5jb20NCnZlcnNpb246Mi4xDQplbmQ6dmNhcmQNCg0K';
+
 const detachedName = './attachment.txt';
 const missingName = './nonexistent.txt';
 const deletedName = 'deleted.txt';
@@ -119,6 +123,21 @@ var messages = [
     attachmentSizes: [textAttachment.length, binaryAttachment.length],
     attachmentTotalSize: { size: textAttachment.length +
                                  binaryAttachment.length,
+                           exact: true },
+  },
+  // vCards should be ignored in the attachment list; make sure we do so
+  // properly.
+  { name: 'multiple_attachments_one_vcard',
+    attachments: [{ body: textAttachment,
+                    filename: 'ubik.txt',
+                    format: '' },
+                  { body: vcardAttachment,
+                    contentType: 'text/x-vcard',
+                    filename: 'ubik.vcf',
+                    encoding: 'base64',
+                    format: '' }],
+    attachmentSizes: [textAttachment.length],
+    attachmentTotalSize: { size: textAttachment.length,
                            exact: true },
   },
   { name: 'multiple_attachments_one_detached',

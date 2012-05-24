@@ -567,11 +567,13 @@ var messageHeaderSink = {
       this.onEndHeaders();
     },
 
-    handleAttachment: function(contentType, url, displayName, uri, isExternalAttachment)
+    handleAttachment: function(contentType, url, displayName, uri,
+                               isExternalAttachment)
     {
-      // presentation level change....don't show vcards as external attachments in the UI.
-      // libmime already renders them inline.
+      this.skipAttachment = true;
 
+      // Don't show vcards as external attachments in the UI. libmime already
+      //renders them inline.
       if (!this.mSaveHdr)
         this.mSaveHdr = messenger.messageServiceFromURI(uri).messageURIToMsgHdr(uri);
       if (contentType == "text/x-vcard") {
@@ -601,6 +603,8 @@ var messageHeaderSink = {
       currentAttachments.push(new AttachmentInfo(contentType, url, displayName,
                                                  uri, isExternalAttachment,
                                                  size));
+      this.skipAttachment = false;
+
       // If we have an attachment, set the nsMsgMessageFlags.Attachment flag
       // on the hdr to cause the "message with attachment" icon to show up
       // in the thread pane.
@@ -619,6 +623,9 @@ var messageHeaderSink = {
 
     addAttachmentField: function(field, value)
     {
+      if (this.skipAttachment)
+        return;
+
       let last = currentAttachments[currentAttachments.length - 1];
       if (field == "X-Mozilla-PartSize" && !last.isExternalAttachment &&
           !last.isDeleted) {
