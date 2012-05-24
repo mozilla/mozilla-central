@@ -623,6 +623,8 @@ function OnUnloadMessenger()
   let tabmail = document.getElementById("tabmail");
   tabmail._teardown();
 
+  webSearchTabType.shutdown();
+
   var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
                               .getService(Components.interfaces.nsIMsgMailSession);
   mailSession.RemoveFolderListener(folderListener);
