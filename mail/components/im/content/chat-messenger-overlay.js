@@ -807,7 +807,9 @@ var chatHandler = {
     if (!Services.prefs.getBoolPref("mail.chat.enabled")) {
       ["button-chat", "menu_goChat", "goChatSeparator",
        "imAccountsStatus", "newIMAccountMenuItem"].forEach(function(aId) {
-         document.getElementById(aId).hidden = true;
+         let elt = document.getElementById(aId);
+         if (elt)
+           elt.hidden = true;
        });
       document.getElementById("key_goChat").disabled = true;
       return;
