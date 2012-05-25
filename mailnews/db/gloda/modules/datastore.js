@@ -47,7 +47,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
- 
+
 Cu.import("resource:///modules/IOUtils.js");
 Cu.import("resource://gre/modules/Services.jsm");
 
@@ -735,7 +735,7 @@ var GlodaDatastore = {
    *
    * - Fundamental changes to the schema so that two versions of Thunderbird
    *    cannot use the same global database.  To wit, Thunderbird N+1 needs to
-   *    blow away the database of Thunderbird N and reindex from scratch. 
+   *    blow away the database of Thunderbird N and reindex from scratch.
    *    Likewise, Thunderbird N will need to blow away Thunderbird N+1's
    *    database because it can't understand it.  And we can't simply use a
    *    different file because there would be fatal bookkeeping losses.
@@ -790,7 +790,7 @@ var GlodaDatastore = {
    *  as possible.  If we start to use up the "accepts and leaves intact" range
    *  without majorly changing things up, re-do the numbering acceptance range
    *  to give us additional runway.
-   * 
+   *
    * Also, if we keep needing non-nuking upgrades, consider adding an additional
    *  table to the database that can tell older versions of Thunderbird what to
    *  do when confronted with a newer database and where it can set flags to tell
@@ -1119,7 +1119,8 @@ var GlodaDatastore = {
           }
           // too far from the future, nuke it.
           else {
-            dbConnection = this._nukeMigration(dbConnection);
+            dbConnection = this._nukeMigration(dbService, dbFile,
+                                               dbConnection);
           }
         }
         // - database from the past!  migrate it, possibly.
@@ -1447,10 +1448,11 @@ var GlodaDatastore = {
     }
   },
 
-  _nukeMigration: function gloda_ds_nukeMigration(aDBConnection) {
+  _nukeMigration: function gloda_ds_nukeMigration(aDBService, aDBFile,
+                                                  aDBConnection) {
     aDBConnection.close();
     aDBFile.remove(false);
-    this._log.warn("Global database has been purged due to schema change.  " + 
+    this._log.warn("Global database has been purged due to schema change.  " +
                    "old version was " + this._actualSchemaVersion +
                    ", new version is: " + this._schemaVersion);
     return this._createDB(aDBService, aDBFile);
@@ -1503,16 +1505,16 @@ var GlodaDatastore = {
     // - recover from bug 732372 that affected TB 11 beta / TB 12 alpha / TB 13
     //    trunk.  The fix is bug 734507.  The revision bump happens
     //    asynchronously. (migrate-able)
-    
+
     // nuke if prior to 26
     if (aCurVersion < 26)
-      return this._nukeMigration(aDBConnection);
+      return this._nukeMigration(aDBService, aDBFile, aDBConnection);
 
     // They must be desiring our "a.contact is undefined" fix!
     // This fix runs asynchronously as the first indexing job the indexer ever
     //  performs.  It is scheduled by the enabling of the message indexer and
     //  it is the one that updates the schema version when done.
-    
+
     // return the same DB connection since we didn't create a new one or do
     //  anything.
     return aDBConnection;
