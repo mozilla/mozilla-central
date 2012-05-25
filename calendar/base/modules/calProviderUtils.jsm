@@ -846,7 +846,7 @@ cal.ProviderBase.prototype = {
             let id = this.getProperty("organizerId");
             if (id) {
                 let org = aItem.organizer;
-                if (!org || (org.id.toLowerCase() == id.toLowerCase())) {
+                if (!org || !org.id || (org.id.toLowerCase() == id.toLowerCase())) {
                     return false;
                 }
                 return (aItem.getAttendeeById(id) != null);
@@ -855,13 +855,13 @@ cal.ProviderBase.prototype = {
         }
 
         let org = aItem.organizer;
-        if (!org) {
+        if (!org || !org.id) {
             // HACK
             // if we don't have an organizer, this is perhaps because it's an exception
             // to a recurring event. We check the parent item.
             if (aItem.parentItem) {
                 org = aItem.parentItem.organizer;
-                if (!org) return false;
+                if (!org || !org.id) return false;
             } else {
                 return false;
             }
