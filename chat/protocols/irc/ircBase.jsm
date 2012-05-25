@@ -805,18 +805,23 @@ var ircBase = {
       // <channel> :No topic is set
       let conversation = this.getConversation(aMessage.params[1]);
       conversation.setTopic(""); // Clear the topic.
-      let msg = _("message.topicRemoved", conversation.name);
+      let msg = _("message.topicNotSet", conversation.name);
       conversation.writeMessage(null, msg, {system: true});
-      return false;
+      return true;
     },
     "332": function(aMessage) { // RPL_TOPIC
       // <channel> :<topic>
       // Update the topic UI
       let conversation = this.getConversation(aMessage.params[1]);
-      conversation.setTopic(ctcpFormatToText(aMessage.params[2]));
+      let topic = aMessage.params[2];
+      conversation.setTopic(topic ? ctcpFormatToText(topic) : "");
       // Send the topic as a message.
-      let msg = _("message.topic", conversation.name, aMessage.params[2]);
-      conversation.writeMessage(null, msg, {system: true});
+      let message;
+      if (topic)
+        message = _("message.topic", conversation.name, topic);
+      else
+        message = _("message.topicNotSet", conversation.name);
+      conversation.writeMessage(null, message, {system: true});
       return true;
     },
     "333": function(aMessage) { // nonstandard

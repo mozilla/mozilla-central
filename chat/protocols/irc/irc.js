@@ -80,7 +80,8 @@ function ircMessage(aData) {
     message.command = temp[2];
     // Space separated parameters
     message.params = temp[3] ? temp[3].trim().split(/ +/) : [];
-    if (temp[4]) // Last parameter can contain spaces
+    // Last parameter can contain spaces or be an empty string.
+    if (temp[4] != undefined)
       message.params.push(temp[4]);
 
     // The source string can be split into multiple parts as:
@@ -993,11 +994,13 @@ ircAccount.prototype = {
         ERROR("IRC parameters cannot have spaces: " + params.slice(0, -1));
         return null;
       }
-      // Join the parameters with spaces. The last parameter can contain spaces
-      // if necessary, in which case it gets prepended with a :. A : must also
-      // be prepended if it is the first character.
-      let lastParam = params.slice(-1)[0];
-      if (lastParam.indexOf(" ") != -1 || lastParam[0] == ":")
+      // Join the parameters with spaces. There are three cases in which the
+      // last parameter ("trailing" in RFC 2812) must be prepended with a colon:
+      //  1. If the last parameter contains a space.
+      //  2. If the first character of the last parameter is a colon.
+      //  3. If the last parameter is an empty string.
+      let trailing = params.slice(-1)[0];
+      if (!trailing.length || trailing.indexOf(" ") != -1 || trailing[0] == ":")
         params.push(":" + params.pop());
       message += " " + params.join(" ");
     }
