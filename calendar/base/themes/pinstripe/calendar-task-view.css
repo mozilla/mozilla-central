@@ -39,28 +39,37 @@
 
 #task-actions-category {
     list-style-image: url(chrome://calendar/skin/tasks-actions.png);
-    -moz-image-region: rect(0px, 16px, 16px, 0px);
+    -moz-image-region: rect(0px 18px 18px 0px);
 }
 
 #task-actions-markcompleted {
     list-style-image: url(chrome://calendar/skin/tasks-actions.png);
-    -moz-image-region: rect(0px, 32px, 16px, 16px);
+    -moz-image-region: rect(0px 36px 18px 18px);
 }
 
 #task-actions-priority {
     list-style-image: url(chrome://calendar/skin/tasks-actions.png);
-    -moz-image-region: rect(0px, 48px, 16px, 32px);
+    -moz-image-region: rect(0px 54px 18px 36px);
 }
 
 #calendar-delete-task-button {
-    list-style-image: url(chrome://messenger/skin/icons/message-header-toolbar.png);
-    -moz-image-region: rect(0px, 96px, 16px, 80px);}
-
-#calendar-add-task-button {
-    list-style-image: url(chrome://calendar/skin/toolbar-small.png);
-    -moz-image-region: rect(0px 384px 24px 360px);
+    list-style-image: url(chrome://calendar/skin/toolbar.png);
+    -moz-image-region: rect(18px 108px 36px 90px);
 }
 
-#calendar-add-task-button[disabled="true"] {
-    -moz-image-region: rect(48px 384px 72px 360px);
+#calendar-add-task-button {
+    list-style-image: url(chrome://calendar/skin/toolbar.png);
+    -moz-image-region: rect(0px 72px 18px 54px);
+}
+
+#calendar-add-task-button:not([disabled]):active {
+    -moz-image-region: rect(18px 72px 36px 54px);
+}
+
+#calendar-add-task-button[disabled="true"] > .toolbarbutton-icon {
+    opacity: .5;
+}
+
+#calendar-add-task-button > .toolbarbutton-text {
+  -moz-margin-start: 0px;
 }

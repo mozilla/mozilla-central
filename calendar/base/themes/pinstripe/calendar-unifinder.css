@@ -10,6 +10,12 @@
     border-bottom: 1px solid #bebebe;
 }
 
+.unifinder-closebutton {
+    border-right-color: transparent;
+    border-left-color: transparent;
+    background-color: transparent;
+}
+
 .unifinder-closebutton > .toolbarbutton-text {
     display: none;
 }

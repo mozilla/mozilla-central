@@ -23,37 +23,14 @@
 }
 
 /*--------------------------------------------------------------------
- *   Event dialog toolbar buttons - small
- *-------------------------------------------------------------------*/
-
-toolbar[iconsize="small"] .cal-event-toolbarbutton {
-    list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar-small.png");
-}
-
-/*--------------------------------------------------------------------
  *   invite attendees button
  *-------------------------------------------------------------------*/
 
 #button-attendees {
-  -moz-image-region: rect(0px 64px 32px 32px);
+  -moz-image-region: rect(0 36px 18px 18px);
 }
-#button-attendees[disabled="true"],
-#button-attendees[disabled="true"]:hover {
-  -moz-image-region: rect(64px 64px 96px 32px);
-}
-#button-attendees:hover {
-  -moz-image-region: rect(32px 64px 64px 32px);
-}
-
-toolbar[iconsize="small"] #button-attendees {
-  -moz-image-region: rect(0px 48px 24px 24px);
-}
-toolbar[iconsize="small"] #button-attendees[disabled="true"],
-toolbar[iconsize="small"] #button-attendees[disabled="true"]:hover {
-  -moz-image-region: rect(48px 48px 72px 24px);
-}
-toolbar[iconsize="small"] #button-attendees:hover {
-  -moz-image-region: rect(24px 48px 48px 24px);
+#button-attendees:not([disabled]):active {
+  -moz-image-region: rect(18px 36px 36px 18px);
 }
 
 /*--------------------------------------------------------------------
@@ -61,25 +38,10 @@ toolbar[iconsize="small"] #button-attendees:hover {
  *-------------------------------------------------------------------*/
 
 #button-url {
-  -moz-image-region: rect(0px 128px 32px 96px);
+  -moz-image-region: rect(0 72px 18px 54px);
 }
-#button-url[disabled="true"],
-#button-url[disabled="true"]:hover {
-  -moz-image-region: rect(64px 128px 96px 96px);
-}
-#button-url:hover {
-  -moz-image-region: rect(32px 128px 64px 96px);
-}
-
-toolbar[iconsize="small"] #button-url {
-  -moz-image-region: rect(0px 96px 24px 72px);
-}
-toolbar[iconsize="small"] #button-url[disabled="true"],
-toolbar[iconsize="small"] #button-url[disabled="true"]:hover {
-  -moz-image-region: rect(48px 96px 72px 72px);
-}
-toolbar[iconsize="small"] #button-url:hover {
-  -moz-image-region: rect(24px 96px 48px 72px);
+#button-url:not([disabled]):active {
+  -moz-image-region: rect(18px 72px 36px 54px);
 }
 
 /*--------------------------------------------------------------------
@@ -87,25 +49,10 @@ toolbar[iconsize="small"] #button-url:hover {
  *-------------------------------------------------------------------*/
 
 #button-privacy {
-  -moz-image-region: rect(0px 160px 32px 128px);
+  -moz-image-region: rect(0 90px 18px 72px);
 }
-#button-privacy[disabled="true"],
-#button-privacy[disabled="true"]:hover {
-  -moz-image-region: rect(64px 160px 96px 128px);
-}
-#button-privacy:hover {
-  -moz-image-region: rect(32px 160px 64px 128px);
-}
-
-toolbar[iconsize="small"] #button-privacy {
-  -moz-image-region: rect(0px 120px 24px 96px);
-}
-toolbar[iconsize="small"] #button-privacy[disabled="true"],
-toolbar[iconsize="small"] #button-privacy[disabled="true"]:hover {
-  -moz-image-region: rect(48px 120px 72px 96px);
-}
-toolbar[iconsize="small"] #button-privacy:hover {
-  -moz-image-region: rect(24px 120px 48px 96px);
+#button-privacy:not([disabled]):active {
+  -moz-image-region: rect(18px 90px 36px 72px);
 }
 
 /*--------------------------------------------------------------------
@@ -113,25 +60,10 @@ toolbar[iconsize="small"] #button-privacy:hover {
  *-------------------------------------------------------------------*/
 
 #button-save {
-  -moz-image-region: rect(0px 192px 32px 160px);
+  -moz-image-region: rect(0 108px 18px 90px);
 }
-#button-save[disabled="true"],
-#button-save[disabled="true"]:hover {
-  -moz-image-region: rect(64px 192px 96px 160px);
-}
-#button-save:hover {
-  -moz-image-region: rect(32px 192px 64px 160px);
-}
-
-toolbar[iconsize="small"] #button-save {
-  -moz-image-region: rect(0px 144px 24px 120px);
-}
-toolbar[iconsize="small"] #button-save[disabled="true"],
-toolbar[iconsize="small"] #button-save[disabled="true"]:hover {
-  -moz-image-region: rect(48px 144px 72px 120px);
-}
-toolbar[iconsize="small"] #button-save:hover {
-  -moz-image-region: rect(24px 144px 48px 120px);
+#button-save:not([disabled]):active {
+  -moz-image-region: rect(18px 108px 36px 90px);
 }
 
 /*--------------------------------------------------------------------
@@ -139,49 +71,8 @@ toolbar[iconsize="small"] #button-save:hover {
  *-------------------------------------------------------------------*/
 
 #button-delete {
-    -moz-image-region: rect(0px 544px 32px 512px);
+  -moz-image-region: rect(0 306px 18px 288px);
 }
-#button-delete[disabled="true"],
-#button-delete[disabled="true"]:hover {
-    -moz-image-region: rect(64px 544px 96px 512px);
-}
-#button-delete:hover {
-    -moz-image-region: rect(32px 544px 64px 512px);
-}
-
-toolbar[iconsize="small"] #button-delete {
-    -moz-image-region: rect(0px 408px 24px 384px);
-}
-toolbar[iconsize="small"] #button-delete[disabled="true"],
-toolbar[iconsize="small"] #button-delete[disabled="true"]:hover {
-    -moz-image-region: rect(48px 408px 72px 384px);
-}
-toolbar[iconsize="small"] #button-delete:hover {
-    -moz-image-region: rect(24px 408px 48px 384px);
-}
-
-/*--------------------------------------------------------------------
- *   help button
- *-------------------------------------------------------------------*/
-
-#button-question {
-  -moz-image-region: rect(0px 768px 32px 736px);
-}
-#button-question[disabled="true"],
-#button-question[disabled="true"]:hover {
-  -moz-image-region: rect(64px 768px 96px 736px);
-}
-#button-question:hover {
-  -moz-image-region: rect(32px 768px 64px 736px);
-}
-
-toolbar[iconsize="small"] #button-question {
-  -moz-image-region: rect(0px 576px 24px 552px);
-}
-toolbar[iconsize="small"] #button-question[disabled="true"],
-toolbar[iconsize="small"] #button-question[disabled="true"]:hover {
-  -moz-image-region: rect(48px 576px 72px 552px);
-}
-toolbar[iconsize="small"] #button-question:hover {
-  -moz-image-region: rect(24px 576px 48px 552px);
+#button-delete:not([disabled]):active {
+  -moz-image-region: rect(18px 306px 36px 288px);
 }
