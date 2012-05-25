@@ -173,6 +173,7 @@ calendar.jar:
 
 # Following files only add for OSX.
 #ifdef XP_MACOSX
+    skin/calendar/checkbox-images-graphite.png             (themes/@THEME@/images/checkbox-images-graphite.png)
     skin/calendar/sidebar-item.png                         (themes/@THEME@/images/sidebar-item.png)
     skin/calendar/toolbar.png                              (themes/@THEME@/images/toolbar.png)
 #endif

@@ -4,6 +4,11 @@
 
 @import url(chrome://calendar/skin/common/calendar-management.css);
 
+calendar-list-tree:-moz-system-metric(mac-graphite-theme)
+> tree > treechildren::-moz-tree-image(checkbox-treecol) {
+    list-style-image: url(chrome://calendar/skin/checkbox-images-graphite.png);
+}
+
 calendar-list-tree > tree > treechildren::-moz-tree-image(checkbox-treecol) {
     -moz-image-region: rect(0 16px 16px 0);
 }
