@@ -2526,7 +2526,7 @@ EndMarkPhase(JSContext *cx, GCMarker *gcmarker, JSGCInvocationKind gckind)
     rt->gcStats.endPhase(gcstats::PHASE_MARK);
 
     if (rt->gcCallback)
-        (void) rt->gcCallback(cx, JSGC_MARK_END);
+        (void) rt->gcCallback(cx, JSGC_MARK_END, !!rt->gcCurrentCompartment);
 
 #ifdef DEBUG
     /* Make sure that we didn't mark an object in another compartment */
@@ -2641,7 +2641,7 @@ SweepPhase(JSContext *cx, GCMarker *gcmarker, JSGCInvocationKind gckind)
     }
 
     if (rt->gcCallback)
-        (void) rt->gcCallback(cx, JSGC_FINALIZE_END);
+        (void) rt->gcCallback(cx, JSGC_FINALIZE_END, !!rt->gcCurrentCompartment);
 }
 
 /*
@@ -2972,7 +2972,7 @@ js_GC(JSContext *cx, JSCompartment *comp, JSGCInvocationKind gckind, gcstats::Re
          * on another thread.
          */
         if (JSGCCallback callback = rt->gcCallback) {
-            if (!callback(cx, JSGC_BEGIN) && gckind != GC_LAST_CONTEXT)
+            if (!callback(cx, JSGC_BEGIN, !!rt->gcCurrentCompartment) && gckind != GC_LAST_CONTEXT)
                 return;
         }
 
@@ -2985,7 +2985,7 @@ js_GC(JSContext *cx, JSCompartment *comp, JSGCInvocationKind gckind, gcstats::Re
 
         /* We re-sample the callback again as the finalizers can change it. */
         if (JSGCCallback callback = rt->gcCallback)
-            (void) callback(cx, JSGC_END);
+            (void) callback(cx, JSGC_END, !!rt->gcCurrentCompartment);
 
         /*
          * On shutdown, iterate until finalizers or the JSGC_END callback

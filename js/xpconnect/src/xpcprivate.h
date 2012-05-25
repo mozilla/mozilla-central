@@ -769,7 +769,7 @@ public:
     void AddXPConnectRoots(JSContext* cx,
                            nsCycleCollectionTraversalCallback& cb);
 
-    static JSBool GCCallback(JSContext *cx, JSGCStatus status);
+    static JSBool GCCallback(JSContext *cx, JSGCStatus status, JSBool isCompartmentGC);
 
     inline void AddVariantRoot(XPCTraceableVariant* variant);
     inline void AddWrappedJSRoot(nsXPCWrappedJS* wrappedJS);

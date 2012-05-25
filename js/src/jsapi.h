@@ -1113,7 +1113,7 @@ typedef enum JSGCStatus {
 } JSGCStatus;
 
 typedef JSBool
-(* JSGCCallback)(JSContext *cx, JSGCStatus status);
+(* JSGCCallback)(JSContext *cx, JSGCStatus status, JSBool isCompartment);
 
 /*
  * Generic trace operation that calls JS_CallTracer on each traceable thing

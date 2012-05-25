@@ -221,7 +221,7 @@ static void
 OnWrapperDestroyed();
 
 static JSBool
-DelayedReleaseGCCallback(JSContext* cx, JSGCStatus status)
+DelayedReleaseGCCallback(JSContext* cx, JSGCStatus status, JSBool isCompartmentGC)
 {
   if (JSGC_END == status) {
     // Take ownership of sDelayedReleases and null it out now. The

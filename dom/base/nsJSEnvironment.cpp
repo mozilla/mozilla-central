@@ -3389,7 +3389,7 @@ nsJSContext::GC()
 }
 
 static JSBool
-DOMGCCallback(JSContext *cx, JSGCStatus status)
+DOMGCCallback(JSContext *cx, JSGCStatus status, JSBool isCompartmentGC)
 {
   static PRTime start;
 
@@ -3443,7 +3443,7 @@ DOMGCCallback(JSContext *cx, JSGCStatus status)
     }
   }
 
-  JSBool result = gOldJSGCCallback ? gOldJSGCCallback(cx, status) : JS_TRUE;
+  JSBool result = gOldJSGCCallback ? gOldJSGCCallback(cx, status, isCompartmentGC) : JS_TRUE;
 
   if (status == JSGC_BEGIN && !NS_IsMainThread())
     return JS_FALSE;

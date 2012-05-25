@@ -22,7 +22,7 @@ struct StringWrapper
 } sw;
 
 JSBool
-GCCallback(JSContext *cx, JSGCStatus status)
+GCCallback(JSContext *cx, JSGCStatus status, JSBool isFull)
 {
     if (status == JSGC_MARK_END)
         sw.strOk = !JS_IsAboutToBeFinalized(cx, sw.str);

@@ -108,7 +108,7 @@
 #define JSD_STARTUP_ENTRY "JSDebugger Startup Observer"
 
 static JSBool
-jsds_GCCallbackProc (JSContext *cx, JSGCStatus status);
+jsds_GCCallbackProc (JSContext *cx, JSGCStatus status, JSBool isCompartmentGC);
 
 /*******************************************************************************
  * global vars
@@ -512,7 +512,7 @@ jsds_NotifyPendingDeadScripts (JSContext *cx)
 }
 
 static JSBool
-jsds_GCCallbackProc (JSContext *cx, JSGCStatus status)
+jsds_GCCallbackProc (JSContext *cx, JSGCStatus status, JSBool isCompartmentGC)
 {
 #ifdef DEBUG_verbose
     printf ("new gc status is %i\n", status);
@@ -525,7 +525,7 @@ jsds_GCCallbackProc (JSContext *cx, JSGCStatus status)
     }
 
     gGCStatus = status;
-    if (gLastGCProc && !gLastGCProc (cx, status)) {
+    if (gLastGCProc && !gLastGCProc (cx, status, isCompartmentGC)) {
         /*
          * If gLastGCProc returns false, then the GC will abort without making
          * another callback with status=JSGC_END, so set the status to JSGC_END
