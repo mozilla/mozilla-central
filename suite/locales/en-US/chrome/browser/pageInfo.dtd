@@ -40,14 +40,20 @@
 <!-- Note to localizers, don't localize the strings 'width' or 'height' -->
 <!ENTITY  pageInfoWindow.dimensions  "width: 100ch; height: 38em;">
 
-<!ENTITY  copy.key              "C">
-<!ENTITY  copy.label            "Copy">
-<!ENTITY  copy.accesskey        "C">
-<!ENTITY  selectall.key         "A">
-<!ENTITY  selectall.label       "Select All">
-<!ENTITY  selectall.accesskey   "A">
-<!ENTITY  openHelpMac.key       "?">
-<!ENTITY  closeWindow.key       "w">
+<!ENTITY  copy.key               "C">
+<!ENTITY  copy.label             "Copy">
+<!ENTITY  copy.accesskey         "C">
+<!ENTITY  selectall.key          "A">
+<!ENTITY  selectall.label        "Select All">
+<!ENTITY  selectall.accesskey    "A">
+<!ENTITY  openHelpMac.key        "?">
+<!ENTITY  closeWindow.key        "w">
+<!ENTITY  copyLinks.label           "Copy Link(s)">
+<!ENTITY  copyLinks.accesskey       "L">
+<!ENTITY  openInNewTab.label        "Open in New Tab">
+<!ENTITY  openInNewTab.accesskey    "T">
+<!ENTITY  openInNewWindow.label     "Open in New Window">
+<!ENTITY  openInNewWindow.accesskey "W">
 
 <!ENTITY  generalTab            "General">
 <!ENTITY  generalTab.accesskey  "G">

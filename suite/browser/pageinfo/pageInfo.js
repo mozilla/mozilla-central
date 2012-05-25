@@ -1380,35 +1380,53 @@ function formatDate(datestr, unknown)
                                     date.getHours(), date.getMinutes(), date.getSeconds());
 }
 
-function doCopy()
+function getSelectedItems(linksMode)
+{
+  // linksMode is a boolean that is used to determine 
+  // whether the getSelectedItems() function needs to
+  // run with urlSecurityCheck() or not.  
+
+  var elem = document.commandDispatcher.focusedElement;
+
+  var view = elem.view;
+  var selection = view.selection;
+  var text = [], tmp = '';
+  var min = {}, max = {};
+
+  var count = selection.getRangeCount();
+
+  for (var i = 0; i < count; i++) {
+    selection.getRangeAt(i, min, max);
+
+    for (var row = min.value; row <= max.value; row++) {
+      view.performActionOnRow("copy", row);
+
+      tmp = elem.getAttribute("copybuffer");
+      if (tmp)
+      {
+        try {
+          if (linksMode)
+            urlSecurityCheck(tmp, gDocument.nodePrincipal);
+          text.push(tmp);
+        }
+        catch (e) {
+        }
+      }
+      elem.removeAttribute("copybuffer");
+    }
+  }
+  
+  return text;
+}
+
+function doCopy(isLinkMode)
 {
   if (!gClipboardHelper)
     return;
 
-  var elem = document.commandDispatcher.focusedElement;
+  var text = getSelectedItems(isLinkMode);
 
-  if (elem && "treeBoxObject" in elem) {
-    var view = elem.view;
-    var selection = view.selection;
-    var text = [], tmp = '';
-    var min = {}, max = {};
-
-    var count = selection.getRangeCount();
-
-    for (var i = 0; i < count; i++) {
-      selection.getRangeAt(i, min, max);
-
-      for (var row = min.value; row <= max.value; row++) {
-        view.performActionOnRow("copy", row);
-
-        tmp = elem.getAttribute("copybuffer");
-        if (tmp)
-          text.push(tmp);
-        elem.removeAttribute("copybuffer");
-      }
-    }
-    gClipboardHelper.copyString(text.join("\n"));
-  }
+  gClipboardHelper.copyString(text.join("\n"));
 }
 
 function doSelectAll()
@@ -1417,4 +1435,12 @@ function doSelectAll()
 
   if (elem && "treeBoxObject" in elem)
     elem.view.selection.selectAll();
+}
+
+function onOpenIn(mode)
+{
+  var linkList = getSelectedItems(true);
+
+  if (linkList.length)
+    openUILinkArrayIn(linkList, mode);
 }
