@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
     return 255;
   }
 
-  int result = XRE_main(argc, argv, appData);
+  int result = XRE_main(argc, argv, appData, 0);
   XRE_FreeAppData(appData);
   return result;
 }

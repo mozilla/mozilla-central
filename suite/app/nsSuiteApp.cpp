@@ -188,7 +188,7 @@ static int do_main(const char *exePath, int argc, char* argv[])
       Output("Couldn't read application.ini");
       return 255;
     }
-    result = XRE_main(argc, argv, appData);
+    result = XRE_main(argc, argv, appData, 0);
     XRE_FreeAppData(appData);
   } else {
 #ifdef XP_WIN
@@ -203,7 +203,7 @@ static int do_main(const char *exePath, int argc, char* argv[])
     if (NS_FAILED(rv)) {
       return 255;
     }
-    result = XRE_main(argc, argv, &sAppData);
+    result = XRE_main(argc, argv, &sAppData, 0);
   }
   
   return result;
