@@ -105,8 +105,18 @@
       if (ua) {
         var list = document.getElementById("aboutPageList");
         var listItem = list.appendChild(document.createElement("li"));
-        listItem.appendChild(document.createTextNode("&about.buildIdentifier;"));
+        listItem.appendChild(document.createTextNode("&about.useragent;"));
         listItem.appendChild(document.createTextNode(ua));
+      }
+
+      var buildId = Components.classes["@mozilla.org/xre/app-info;1"]
+                                 .getService(Components.interfaces.nsIXULAppInfo)
+                                 .appBuildID;
+      if (buildId) {
+        var list = document.getElementById("aboutPageList");
+        var listItem = list.appendChild(document.createElement("li"));
+        listItem.appendChild(document.createTextNode("&about.buildIdentifier;"));
+        listItem.appendChild(document.createTextNode(buildId));
       }
 
       // Determine and display current channel.
