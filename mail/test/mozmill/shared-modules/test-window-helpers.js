@@ -1726,22 +1726,16 @@ function screenshotToDataURL(aWindow) {
   // (We may need to do this for popups...)
   /*
   // - find all the sub-windows and render them
-  function isVisible(aElem) {
-    if (aElem.hidden || aElem.collapsed)
-      return false;
-    let parent = aElem.parentNode;
-    if (parent == null)
-      return true;
-    if (("selectedPanel" in parent) &&
-        parent.selectedPanel != aElem)
-      return false;
-    return isVisible(parent);
-  }
+
+  // function isVisible(aElem) has been moved to test-dom-helpers.js and
+  // renamed into element_visible_recursive(). If you resurrect the following
+  // function subrenderCandidates, then make sure that you import
+  // test-dom-helpers.js.
 
   function subrenderCandidates(aElements) {
     for (let i = 0; i < aElements.length; i++) {
       let elem = aElements[i];
-      if (isVisible(elem)) {
+      if (element_visible_recursive(elem)) {
         let rect = elem.getBoundingClientRect();
         ctx.save();
         ctx.translate(rect.left, rect.top);

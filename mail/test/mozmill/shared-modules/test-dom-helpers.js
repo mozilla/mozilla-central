@@ -75,6 +75,7 @@ function installInto(module) {
 
   // Now copy helper functions
   module.assert_element_visible = assert_element_visible;
+  module.element_visible_recursive = element_visible_recursive;
   module.assert_element_not_visible = assert_element_not_visible;
   module.wait_for_element = wait_for_element;
   module.assert_next_nodes = assert_next_nodes;
@@ -107,6 +108,24 @@ function element_visible(aElt) {
  */
 function assert_element_visible(aElt, aWhy) {
   folderDisplayHelper.assert_true(element_visible(aElt), aWhy);
+}
+
+/**
+ * Returns if a element is visible by traversing all parent elements and check
+ * that all are visible.
+ *
+ * @param aElem The element to be checked
+ */
+function element_visible_recursive(aElem) {
+  if (aElem.hidden || aElem.collapsed)
+    return false;
+  let parent = aElem.parentNode;
+  if (parent == null)
+    return true;
+  if (("selectedPanel" in parent) &&
+      parent.selectedPanel != aElem)
+    return false;
+  return element_visible_recursive(parent);
 }
 
 /**

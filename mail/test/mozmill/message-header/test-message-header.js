@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Blake Winton <bwinton@latte.ca>
  *   Dan Mosedale <dmose@mozillamessaging.com>
+ *   Joachim Herb <joachim.herb@gmx.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -43,12 +44,13 @@ var MODULE_NAME = 'test-message-header';
 
 var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers',
-                       'address-book-helpers'];
+                       'address-book-helpers', 'dom-helpers'];
 
 var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
+Cu.import("resource:///modules/mailServices.js");
 
-var folder;
+var folder, folderMore;
 var gInterestingMessage;
 
 function setupModule(module) {
@@ -58,8 +60,11 @@ function setupModule(module) {
   wh.installInto(module);
   let abh = collector.getModule('address-book-helpers');
   abh.installInto(module);
+  let dh = collector.getModule('dom-helpers');
+  dh.installInto(module);
 
   folder = create_folder("MessageWindowA");
+  folderMore = create_folder("MesageHeaderMoreButton");
 
   // create a message that has the interesting headers that commonly
   // show up in the message header pane for testing
@@ -73,6 +78,18 @@ function setupModule(module) {
     }});
 
   add_message_to_folder(folder, gInterestingMessage);
+
+  // create a message that has more to and cc addresses than visible in the
+  // tooltip text of the more button
+  let msgMore1 = create_message({to: msgGen.makeNamesAndAddresses(40),
+                                 cc: msgGen.makeNamesAndAddresses(40)});
+  add_message_to_folder(folderMore, msgMore1);
+
+  // create a message that has more to and cc addresses than visible in the
+  // header
+  let msgMore2 = create_message({to: msgGen.makeNamesAndAddresses(20),
+                                 cc: msgGen.makeNamesAndAddresses(20)});
+  add_message_to_folder(folderMore, msgMore2);
 
   // create a message that has boring headers to be able to switch to and
   // back from, to force the more button to collapse again.
@@ -468,6 +485,26 @@ function test_more_widget() {
   subtest_more_widget_display(toDescription);
   subtest_more_widget_click(toDescription);
   subtest_more_widget_star_click(toDescription);
+
+  let showNLinesPref = Services.prefs.getIntPref("mailnews.headers.show_n_lines_before_more");
+  Services.prefs.clearUserPref("mailnews.headers.show_n_lines_before_more");
+  change_to_header_normal_mode();
+  be_in_folder(folderMore);
+
+  // first test a message with so many addresses that they don't fit in the
+  // more widget's tooltip text
+  let msg = select_click_row(0);
+  wait_for_message_display_completion(mc);
+  assert_selected_and_displayed(mc, msg);
+  subtest_more_button_tooltip(msg);
+
+  // then test a message with so many addresses that they do fit in the
+  // more widget's tooltip text
+  msg = select_click_row(1);
+  wait_for_message_display_completion(mc);
+  assert_selected_and_displayed(mc, msg);
+  subtest_more_button_tooltip(msg);
+  Services.prefs.setIntPref("mailnews.headers.show_n_lines_before_more", showNLinesPref);
 }
 
 /**
@@ -749,6 +786,128 @@ function test_toolbar_collapse_and_expand() {
     mc.window.resizeTo(1024, 768);
   }
 }
+
+/**
+ * Test if the tooltip text of the more widget contains the correct addresses
+ * not shown in the header and the number of addresses also hidden in the
+ * tooltip text.
+ * @param aMsg the message for which the subtest should be performed
+ */
+function subtest_more_button_tooltip(aMsg) {
+  // check for more indicator number of the more widget
+  let addresses = {};
+  let fullNames = {};
+  let names = {};
+  let numAddrsCC = MailServices.headerParser.parseHeadersWithArray(
+    aMsg.ccList, addresses, names, fullNames);
+  let numAddrsTo = MailServices.headerParser.parseHeadersWithArray(
+    aMsg.recipients, addresses, names, fullNames);
+
+  let shownToAddrNum = get_number_of_addresses_in_header("expandedtoBox");
+  let shownCCAddrNum = get_number_of_addresses_in_header("expandedccBox");
+
+  // first check the number of addresses in the more widget
+  let hiddenCCAddrsNum = numAddrsCC - shownCCAddrNum;
+  let hiddenToAddrsNum = numAddrsTo - shownToAddrNum;
+
+  let moreNumberTo = get_number_of_more_button("expandedtoBox");
+  assert_not_equals(NaN, moreNumberTo);
+  assert_equals(hiddenToAddrsNum, moreNumberTo);
+
+  let moreNumberCC = get_number_of_more_button("expandedccBox");
+  assert_not_equals(NaN, moreNumberCC);
+  assert_equals(hiddenCCAddrsNum, moreNumberCC);
+
+  subtest_addresses_in_tooltip_text(aMsg.recipients, "expandedtoBox",
+                                    shownToAddrNum, hiddenToAddrsNum);
+  subtest_addresses_in_tooltip_text(aMsg.ccList, "expandedccBox",
+                                    shownCCAddrNum, hiddenCCAddrsNum);
+}
+
+/**
+ * Return the number of addresses visible in headerBox.
+ * @param aHeaderBox the id of the header box element for which to look for
+ *                   visible addresses
+ * @return           the number of visible addresses in the header box
+ */
+function get_number_of_addresses_in_header(aHeaderBox) {
+  let headerBoxElement = mc.a(aHeaderBox, {class: "headerValue"});
+  let addrs = headerBoxElement.getElementsByTagName('mail-emailaddress');
+  let addrNum = 0;
+  for (let i = 0; i < addrs.length; i++) {
+    // check that the address is really visible and not just a cached
+    // element
+    if (element_visible_recursive(addrs[i]))
+      addrNum += 1;
+  }
+  return addrNum;
+}
+
+/**
+ * Return the number shown in the more widget.
+ * @param aHeaderBox the id of the header box element for which to look for
+ *                   the number in the more widget
+ * @return           the number shown in the more widget
+ */
+function get_number_of_more_button(aHeaderBox) {
+  let moreNumber = 0;
+  let headerBoxElement = mc.e(aHeaderBox);
+  let moreIndicator = headerBoxElement.more;
+  if (element_visible_recursive(moreIndicator)) {
+    let moreText = moreIndicator.getAttribute("value");
+    let moreSplit = moreText.split(" ");
+    moreNumber = parseInt(moreSplit[0])
+  }
+  return moreNumber;
+}
+
+/**
+ * Check if hidden addresses are part of more tooltip text.
+ * @param aRecipients     an array containing the addresses to look for in the
+ *                        header or the tooltip text
+ * @param aHeaderBox      the id of the header box element for which to look
+ *                        for hidden addresses
+ * @param aShownAddrsNum  the number of addresses shown in the header
+ * @param aHiddenAddrsNum the number of addresses not shown in the header
+ */
+function subtest_addresses_in_tooltip_text(aRecipients, aHeaderBox,
+                                           aShownAddrsNum, aHiddenAddrsNum) {
+  // check for more indicator number of the more widget
+  let addresses = {};
+  let fullNames = {};
+  let names = {};
+  let numAddresses = MailServices.headerParser.parseHeadersWithArray(
+      aRecipients, addresses, names, fullNames);
+
+  let headerBoxElement = mc.e(aHeaderBox);
+  let moreIndicator = headerBoxElement.more;
+  let tooltipText = moreIndicator.getAttribute("tooltiptext");
+  let maxTooltipAddrsNum = headerBoxElement.maxAddressesInMoreTooltipValue;
+  let addrsNumInTooltip = 0;
+
+  for (let i = aShownAddrsNum; (i < numAddresses) &&
+                               (i < maxTooltipAddrsNum + aShownAddrsNum); i++) {
+    assert_true(tooltipText.indexOf(fullNames.value[i]) != -1, fullNames.value[i]);
+    addrsNumInTooltip += 1;
+  }
+
+  if (aHiddenAddrsNum < maxTooltipAddrsNum) {
+    assert_equals(aHiddenAddrsNum, addrsNumInTooltip);
+  }
+  else {
+    assert_equals(maxTooltipAddrsNum, addrsNumInTooltip);
+    // check if ", and X more" shows the correct number
+    let moreTooltipSplit = tooltipText.split(", ");
+    let words = mc.window.document
+                         .getElementById("bundle_messenger")
+                         .getString("headerMoreAddrsTooltip");
+    let remainingAddresses = numAddresses - aShownAddrsNum - maxTooltipAddrsNum;
+    let moreForm = mc.window.PluralForm.get(remainingAddresses, words)
+                            .replace("#1", remainingAddresses);
+    assert_equals(moreForm, ", " + moreTooltipSplit[moreTooltipSplit.length - 1]);
+  }
+}
+
 // Some platforms (notably Mac) don't have a11y, so disable these tests there.
 if ("nsIAccessibleRole" in Ci) {
   /**

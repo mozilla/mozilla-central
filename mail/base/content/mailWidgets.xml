@@ -740,6 +740,7 @@
                   this.appendComma();
 
                 this.addNMore(remainingAddresses);
+                this.setNMoreTooltiptext(this.mAddresses.slice(-remainingAddresses));
               }
             }
 
@@ -821,8 +822,47 @@
 
             // set the "n more" text node
             this.more.setAttribute("value", moreForm);
+            // remove the tooltip text of the more widget
+            this.more.removeAttribute("tooltiptext");
 
             this.more.collapsed = false;
+          ]]>
+        </body>
+      </method>
+
+      <!-- This field is used to specify the maximum number of addresses in the more
+           button tooltip text. -->
+      <field name="tooltipLength">20</field>
+      <property name="maxAddressesInMoreTooltipValue"
+                onset="return this.tooltipLength=val;"
+                onget="return this.tooltipLength;"/>
+
+      <!-- Populate the tooltiptext of the (N more) widget with hidden email
+           addresses. -->
+      <method name="setNMoreTooltiptext">
+        <parameter name="aAddresses"/>
+        <body>
+          <![CDATA[
+            if (aAddresses.length == 0)
+              return;
+
+            let tttArray = [];
+            for (let i = 0; (i < aAddresses.length) && (i < this.tooltipLength); i++) {
+              tttArray.push(aAddresses[i].fullAddress);
+            }
+            let ttText = tttArray.join(", ");
+
+            let remainingAddresses = aAddresses.length - tttArray.length;
+            // not all missing addresses fit in the tooltip
+            if (remainingAddresses > 0) {
+              // figure out the right plural for the language we're using
+              let words = document.getElementById("bundle_messenger")
+                                  .getString("headerMoreAddrsTooltip");
+              let moreForm = PluralForm.get(remainingAddresses, words)
+                                       .replace("#1", remainingAddresses);
+              ttText += moreForm;
+            }
+            this.more.setAttribute("tooltiptext", ttText);
           ]]>
         </body>
       </method>
