@@ -60,7 +60,8 @@ var Utilities = {
     if (!this._livemarks) {
       this._livemarks =
         Components.classes["@mozilla.org/browser/livemark-service;2"]
-                  .getService(Components.interfaces.nsILivemarkService);
+                  .getService(Components.interfaces.mozIAsyncLivemarks)
+                  .QueryInterface(Components.interfaces.nsILivemarkService);
     }
     return this._livemarks;
   },

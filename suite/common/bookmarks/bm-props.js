@@ -283,14 +283,8 @@ var BookmarkPropertiesPanel = {
           break;
 
         case "folder":
-          if (PlacesUtils.itemIsLivemark(this._itemId)) {
-            this._itemType = LIVEMARK_CONTAINER;
-            this._feedURI = PlacesUtils.livemarks.getFeedURI(this._itemId);
-            this._siteURI = PlacesUtils.livemarks.getSiteURI(this._itemId);
-          }
-          else
-            this._itemType = BOOKMARK_FOLDER;
-          break;
+          this._itemType = BOOKMARK_FOLDER;
+          PlacesUtils.livemarks.getLivemark({ id: this._itemId }, this);
       }
 
       // Description
@@ -343,8 +337,7 @@ var BookmarkPropertiesPanel = {
         this._fillAddProperties();
         // if this is an uri related dialog disable accept button until
         // the user fills an uri value.
-        if (this._itemType == BOOKMARK_ITEM ||
-            this._itemType == LIVEMARK_CONTAINER)
+        if (this._itemType == BOOKMARK_ITEM)
           acceptButton.disabled = !this._inputIsValid();
         break;
     }
@@ -428,6 +421,20 @@ var BookmarkPropertiesPanel = {
     }
   },
 
+  // mozILivemarkCallback
+  onCompletion: function BPP_onCompletion(aStatus, aLivemark) {
+    if (Components.isSuccessCode(aStatus)) {
+      this._itemType = LIVEMARK_CONTAINER;
+      this._feedURI = aLivemark.feedURI;
+      this._siteURI = aLivemark.siteURI;
+      this._fillEditProperties();
+
+      document.documentElement
+              .getButton("accept").disabled = !this._inputIsValid();
+      window.outerHeight += this._element("nameRow").boxObject.height * 2;
+    }
+  },
+
   _beginBatch: function BPP__beginBatch() {
     if (this._batching)
       return;
@@ -466,6 +473,7 @@ var BookmarkPropertiesPanel = {
   // nsISupports
   QueryInterface: function BPP_QueryInterface(aIID) {
     if (aIID.equals(Components.interfaces.nsIDOMEventListener) ||
+        aIID.equals(Components.interfaces.mozILivemarkCallback) ||
         aIID.equals(Components.interfaces.nsISupports))
       return this;
 
@@ -535,16 +543,6 @@ var BookmarkPropertiesPanel = {
       return false;
     if (this._isAddKeywordDialog && !this._element("keywordField").value.length)
       return false;
-
-    // Feed Location has to be a valid URI;
-    // Site Location has to be a valid URI or empty
-    if (this._itemType == LIVEMARK_CONTAINER) {
-      if (!this._containsValidURI("feedLocationField"))
-        return false;
-      if (!this._containsValidURI("siteLocationField") &&
-          (this._element("siteLocationField").value.length > 0))
-        return false;
-    }
 
     return true;
   },

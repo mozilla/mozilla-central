@@ -129,6 +129,10 @@ PlacesTreeView.prototype = {
     if (aContainer._plainContainer !== undefined)
       return aContainer._plainContainer;
 
+    // Livemarks are always plain containers.
+    if (aContainer._feedURI)
+      return aContainer._plainContainer = true;
+
     // We don't know enough about non-query containers.
     if (!(aContainer instanceof Components.interfaces.nsINavHistoryQueryResultNode))
       return aContainer._plainContainer = false;
@@ -328,7 +332,8 @@ PlacesTreeView.prototype = {
 
       // Recursively do containers.
       if (!this._flatList &&
-          curChild instanceof Components.interfaces.nsINavHistoryContainerResultNode) {
+          curChild instanceof Components.interfaces.nsINavHistoryContainerResultNode &&
+          !curChild._feedURI) {
         let resource = this._getResourceForNode(curChild);
         let isopen = resource != null &&
                      PlacesUIUtils.localStore.HasAssertion(resource,
@@ -626,7 +631,8 @@ PlacesTreeView.prototype = {
 
     // Compute the new row number of the node.
     let row = -1;
-    if (aNewIndex == 0 || this._isPlainContainer(aParentNode)) {
+    let cc = aParentNode.childCount;
+    if (aNewIndex == 0 || this._isPlainContainer(aParentNode) || cc == 0) {
       // We don't need to worry about sub hierarchies of the parent node
       // if it's a plain container, or if the new node is its first child.
       if (aParentNode == this._rootNode)
@@ -639,7 +645,6 @@ PlacesTreeView.prototype = {
       // can set the new visible index to be right before that.  Note that we
       // have to search down instead of up, because some siblings could have
       // children themselves that would be in the way.
-      let cc = aParentNode.childCount;
       let separatorsAreHidden = PlacesUtils.nodeIsSeparator(aNode) &&
                                 this.isSorted();
       for (let i = aNewIndex + 1; i < cc; i++) {
@@ -815,6 +820,20 @@ PlacesTreeView.prototype = {
     }
   },
 
+  _populateLivemarkContainer: function PTV__populateLivemarkContainer(aNode) {
+    PlacesUtils.livemarks.getLivemark({ id: aNode.itemId },
+      function onCompletion(aStatus, aLivemark) {
+        let placesNode = aNode;
+        // Container may have closed since the call
+        if (!Components.isSuccessCode(aStatus) || !placesNode.containerOpen)
+          return;
+
+        let children = aLivemark.getNodesForContainer(placesNode);
+        for (let i = 0; i < children.length; i++)
+          this.nodeInserted(placesNode, children[i], i);
+      }.bind(this));
+  },
+
   nodeTitleChanged: function PTV_nodeTitleChanged(aNode, aNewTitle) {
     this._invalidateCellValue(aNode, this.COLUMN_TYPE_TITLE);
   },
@@ -830,6 +849,20 @@ PlacesTreeView.prototype = {
   nodeHistoryDetailsChanged:
   function PTV_nodeHistoryDetailsChanged(aNode, aUpdatedVisitDate,
                                          aUpdatedVisitCount) {
+    if (aNode.parent && aNode.parent._feedURI) {
+      // Find the node in the parent.
+      let parentRow = this._flatList ? 0 : this._getRowForNode(aNode.parent);
+      for (let i = parentRow; i < this._rows.length; i++) {
+        let child = this.nodeForTreeIndex(i);
+        if (child.uri == aNode.uri) {
+          delete child._cellProperties;
+          this._invalidateCellValue(child, this.COLUMN_TYPE_TITLE);
+          break;
+        }
+      }
+      return;
+    }
+
     this._invalidateCellValue(aNode, this.COLUMN_TYPE_DATE);
     this._invalidateCellValue(aNode, this.COLUMN_TYPE_VISITCOUNT);
   },
@@ -846,8 +879,17 @@ PlacesTreeView.prototype = {
     if (aAnno == PlacesUIUtils.DESCRIPTION_ANNO) {
       this._invalidateCellValue(aNode, this.COLUMN_TYPE_DESCRIPTION);
     } else if (aAnno == PlacesUtils.LMANNO_FEEDURI) {
-      // The livemark attribute is set as a cell property on the title cell.
-      this._invalidateCellValue(aNode, this.COLUMN_TYPE_TITLE);
+      PlacesUtils.livemarks.getLivemark({ id: aNode.itemId },
+        function onCompletion(aStatus, aLivemark) {
+          if (Components.isSuccessCode(aStatus)) {
+            aNode._feedURI = aLivemark.feedURI;
+            if (aNode._cellProperties)
+              aNode._cellProperties.push(this._getAtomFor("livemark"));
+            // The livemark attribute is set as a cell property on the title cell.
+            this._invalidateCellValue(aNode, this.COLUMN_TYPE_TITLE);
+          }
+        }.bind(this)
+      );
     }
   },
 
@@ -863,6 +905,30 @@ PlacesTreeView.prototype = {
   containerStateChanged:
   function PTV_containerStateChanged(aNode, aOldState, aNewState) {
     this.invalidateContainer(aNode);
+
+    if (PlacesUtils.nodeIsFolder(aNode) ||
+        (this._flatList && aNode == this._rootNode)) {
+      if (PlacesUtils.asQuery(this._rootNode).queryOptions.excludeItems)
+        return;
+
+      PlacesUtils.livemarks.getLivemark({ id: aNode.itemId },
+        function onCompletion(aStatus, aLivemark) {
+          if (Components.isSuccessCode(aStatus)) {
+            let shouldInvalidate = !aNode._feedURI;
+            aNode._feedURI = aLivemark.feedURI;
+            if (aNewState == Components.interfaces.nsINavHistoryContainerResultNode.STATE_OPENED) {
+              aLivemark.registerForUpdates(aNode, this);
+              aLivemark.reload();
+              if (shouldInvalidate)
+                this.invalidateContainer(aNode);
+            }
+            else {
+              aLivemark.unregisterForUpdates(aNode);
+            }
+          }
+        }.bind(this)
+      );
+    }
   },
 
   invalidateContainer: function PTV_invalidateContainer(aContainer) {
@@ -955,6 +1021,10 @@ PlacesTreeView.prototype = {
           item.containerOpen = true;
       }
     }
+
+    if (aContainer._feedURI &&
+        !PlacesUtils.asQuery(this._result.root).queryOptions.excludeItems)
+      this._populateLivemarkContainer(aContainer);
 
     this._tree.endUpdateBatch();
 
@@ -1113,8 +1183,20 @@ PlacesTreeView.prototype = {
         }
         else if (nodeType == Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_FOLDER ||
                  nodeType == Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_FOLDER_SHORTCUT) {
-          if (PlacesUtils.nodeIsLivemarkContainer(node))
+          if (node._feedURI)
             properties.push(this._getAtomFor("livemark"));
+          else {
+            PlacesUtils.livemarks.getLivemark({ id: node.itemId },
+              function onCompletion(aStatus, aLivemark) {
+                if (Components.isSuccessCode(aStatus)) {
+                  node._feedURI = aLivemark.feedURI;
+                  node._cellProperties.push(this._getAtomFor("livemark"));
+                  // The livemark attribute is set as a cell property on the title cell.
+                  this._invalidateCellValue(node, this.COLUMN_TYPE_TITLE);
+                }
+              }.bind(this)
+            );
+          }
         }
 
         if (itemId != -1) {
@@ -1127,9 +1209,10 @@ PlacesTreeView.prototype = {
         properties.push(this._getAtomFor("separator"));
       else if (PlacesUtils.nodeIsURI(node)) {
         properties.push(this._getAtomFor(PlacesUIUtils.guessUrlSchemeForUI(node.uri)));
-        if (itemId != -1) {
-          if (PlacesUtils.nodeIsLivemarkContainer(node.parent))
-            properties.push(this._getAtomFor("livemarkItem"));
+        if (node.parent._feedURI) {
+          properties.push(this._getAtomFor("livemarkItem"));
+          if (node.accessCount)
+            properties.push(this._getAtomFor("visited"));
         }
       }
 
@@ -1158,7 +1241,7 @@ PlacesTreeView.prototype = {
         let parent = node.parent;
         if ((PlacesUtils.nodeIsQuery(parent) ||
              PlacesUtils.nodeIsFolder(parent)) &&
-            !node.hasChildren)
+            !PlacesUtils.asQuery(node).hasChildren)
           return PlacesUtils.asQuery(parent).queryOptions.expandQueries;
       }
       return true;
@@ -1177,6 +1260,9 @@ PlacesTreeView.prototype = {
   isContainerEmpty: function PTV_isContainerEmpty(aRow) {
     if (this._flatList)
       return true;
+
+    if (this._rows[aRow]._feedURI)
+      return PlacesUtils.asQuery(this._result.root).queryOptions.excludeItems;
 
     // All containers are listed in the rows array.
     return !this._rows[aRow].hasChildren;
@@ -1422,15 +1508,18 @@ PlacesTreeView.prototype = {
       return;
     }
 
-    let resource = this._getResourceForNode(node);
-    if (resource) {
-      const openLiteral = PlacesUIUtils.RDF.GetResource("http://home.netscape.com/NC-rdf#open");
-      const trueLiteral = PlacesUIUtils.RDF.GetLiteral("true");
+    // Persist container open state, except for livemarks.
+    if (!node._feedURI) {
+      let resource = this._getResourceForNode(node);
+      if (resource) {
+        const openLiteral = PlacesUIUtils.RDF.GetResource("http://home.netscape.com/NC-rdf#open");
+        const trueLiteral = PlacesUIUtils.RDF.GetLiteral("true");
 
-      if (node.containerOpen)
-        PlacesUIUtils.localStore.Unassert(resource, openLiteral, trueLiteral);
-      else
-        PlacesUIUtils.localStore.Assert(resource, openLiteral, trueLiteral, true);
+        if (node.containerOpen)
+          PlacesUIUtils.localStore.Unassert(resource, openLiteral, trueLiteral);
+        else
+          PlacesUIUtils.localStore.Assert(resource, openLiteral, trueLiteral, true);
+      }
     }
 
     node.containerOpen = !node.containerOpen;
@@ -1573,10 +1662,8 @@ PlacesTreeView.prototype = {
     // The following items are never editable:
     // * Read-only items.
     // * places-roots
-    // * livemark items
     // * separators
     if (PlacesUtils.nodeIsReadOnly(node) ||
-        PlacesUtils.nodeIsLivemarkItem(node) ||
         PlacesUtils.nodeIsSeparator(node))
       return false;
 

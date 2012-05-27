@@ -52,6 +52,7 @@ var gEditItemOverlay = {
   _observersAdded: false,
   _staticFoldersListBuilt: false,
   _initialized: false,
+  _titleOverride: null,
 
   // the first field which was edited after this panel was initialized for
   // a certain item
@@ -80,6 +81,8 @@ var gEditItemOverlay = {
       this._hiddenRows.splice(0, this._hiddenRows.length);
     // force-read-only
     this._readOnly = aInfo && aInfo.forceReadOnly;
+    // override title
+    this._titleOverride = aInfo && aInfo.titleOverride;
   },
 
   _showHideRows: function EIO__showHideRows() {
@@ -160,12 +163,13 @@ var gEditItemOverlay = {
     }
     else {
       this._itemId = aFor;
+      // We can't store information on livemarks.
+      if (aFor == -1)
+        this._readOnly = true;
       var containerId = PlacesUtils.bookmarks.getFolderIdForItem(this._itemId);
       this._itemType = PlacesUtils.bookmarks.getItemType(this._itemId);
       if (this._itemType == Components.interfaces.nsINavBookmarksService.TYPE_BOOKMARK) {
         this._uri = PlacesUtils.bookmarks.getBookmarkURI(this._itemId);
-        if (!this._readOnly) // If readOnly wasn't forced through aInfo
-          this._readOnly = PlacesUtils.itemIsLivemark(containerId);
         this._initTextField("keywordField",
                             PlacesUtils.bookmarks
                                        .getKeywordForBookmark(this._itemId));
@@ -175,17 +179,9 @@ var gEditItemOverlay = {
                                                     PlacesUIUtils.LOAD_IN_SIDEBAR_ANNO);
       }
       else {
-        if (!this._readOnly) // If readOnly wasn't forced through aInfo
-          this._readOnly = false;
-
         this._uri = null;
-        this._isLivemark = PlacesUtils.itemIsLivemark(this._itemId);
-        if (this._isLivemark) {
-          var feedURI = PlacesUtils.livemarks.getFeedURI(this._itemId);
-          var siteURI = PlacesUtils.livemarks.getSiteURI(this._itemId);
-          this._initTextField("feedLocationField", feedURI.spec);
-          this._initTextField("siteLocationField", siteURI ? siteURI.spec : "");
-        }
+        this._isLivemark = false;
+        PlacesUtils.livemarks.getLivemark({ id: this._itemId }, this);
       }
 
       // folder picker
@@ -366,6 +362,7 @@ var gEditItemOverlay = {
 
   QueryInterface: function EIO_QueryInterface(aIID) {
     if (aIID.equals(Components.interfaces.nsIDOMEventListener) ||
+        aIID.equals(Components.interfaces.mozILivemarkCallback) ||
         aIID.equals(Components.interfaces.nsINavBookmarkObserver) ||
         aIID.equals(Components.interfaces.nsISupports))
       return this;
@@ -378,6 +375,9 @@ var gEditItemOverlay = {
   },
 
   _getItemStaticTitle: function EIO__getItemStaticTitle() {
+    if (this._titleOverride)
+      return this._titleOverride;
+
     if (this._itemId == -1)
       return PlacesUtils.history.getPageTitle(this._uri);
 
@@ -425,6 +425,8 @@ var gEditItemOverlay = {
     this._multiEdit = false;
     this._firstEditedField = "";
     this._initialized = false;
+    this._readOnly = false;
+    this._titleOverride = null;
   },
 
   onTagsFieldBlur: function EIO_onTagsFieldBlur() {
@@ -890,6 +892,17 @@ var gEditItemOverlay = {
     }
   },
 
+  // mozILivemarkCallback
+  onCompletion: function EIO_onCompletion(aStatus, aLivemark) {
+    if (Components.isSuccessCode(aStatus)) {
+      this._isLivemark = true;
+      this._initTextField("feedLocationField", aLivemark.feedURI.spec, true);
+      this._initTextField("siteLocationField",
+                          aLivemark.siteURI ? aLivemark.siteURI.spec : "", true);
+      this._showHideRows();
+    }
+  },
+
   // nsINavBookmarkObserver
   onItemChanged: function EIO_onItemChanged(aItemId, aProperty,
                                             aIsAnnotationProperty, aValue,
@@ -987,15 +1000,17 @@ var gEditItemOverlay = {
                                                   PlacesUIUtils.LOAD_IN_SIDEBAR_ANNO);
       break;
     case PlacesUtils.LMANNO_FEEDURI:
-      var feedURISpec = PlacesUtils.livemarks.getFeedURI(this._itemId).spec;
-      this._initTextField("feedLocationField", feedURISpec);
+      var feedURISpec = PlacesUtils.annotations.getItemAnnotation(this._itemId,
+                        PlacesUtils.LMANNO_FEEDURI);
+      this._initTextField("feedLocationField", feedURISpec, true);
       break;
     case PlacesUtils.LMANNO_SITEURI:
       var siteURISpec = "";
-      var siteURI = PlacesUtils.livemarks.getSiteURI(this._itemId);
-      if (siteURI)
-        siteURISpec = siteURI.spec;
-      this._initTextField("siteLocationField", siteURISpec);
+      try {
+        siteURISpec = PlacesUtils.annotations.getItemAnnotation(this._itemId,
+                      PlacesUtils.LMANNO_SITEURI);
+      } catch (e) {}
+      this._initTextField("siteLocationField", siteURISpec, true);
       break;
     }
   },

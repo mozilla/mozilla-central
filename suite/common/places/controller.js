@@ -42,7 +42,6 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // XXXmano: we should move most/all of these constants to PlacesUtils
 const ORGANIZER_ROOT_BOOKMARKS = "place:folder=BOOKMARKS_MENU&excludeItems=1&queryType=1";
-const ORGANIZER_SUBSCRIPTIONS_QUERY = "place:annotation=livemark%2FfeedURI";
 
 // No change to the view, preserve current selection
 const RELOAD_ACTION_NOTHING = 0;
@@ -67,6 +66,19 @@ const REMOVE_PAGES_MAX_SINGLEREMOVES = 10;
 
 // XXX: should pull in from global definition, see bug 585500
 var TAB_DROP_TYPE = "application/x-moz-tabbrowser-tab";
+
+/**
+ * A completion callback for reloading a live bookmark.
+ * @param   aStatus
+ *          The status code for the async livemark operation
+ * @param   aLivemark
+ *          The live bookmark
+ */
+function onReload(aStatus, aLivemark)
+{
+  if (Components.isSuccessCode(aStatus))
+    aLivemark.reload(true);
+}
 
 /**
  * Represents an insertion point within a container where we can insert
@@ -200,15 +212,11 @@ PlacesController.prototype = {
                  Components.interfaces.nsINavHistoryQueryOptions.SORT_BY_NONE;
     case "placesCmd_show:info":
       var selectedNode = this._view.selectedNode;
-      if (selectedNode &&
-          PlacesUtils.getConcreteItemId(selectedNode) != -1  &&
-          !PlacesUtils.nodeIsLivemarkItem(selectedNode))
-        return true;
-      return false;
+      return selectedNode && PlacesUtils.getConcreteItemId(selectedNode) != -1;
     case "placesCmd_reload":
       // Livemark containers
       var selectedNode = this._view.selectedNode;
-      return selectedNode && PlacesUtils.nodeIsLivemarkContainer(selectedNode);
+      return selectedNode && !!selectedNode._feedURI;
     case "placesCmd_sortBy:name":
       var selectedNode = this._view.selectedNode;
       return selectedNode &&
@@ -501,7 +509,7 @@ PlacesController.prototype = {
             if (parentNode) {
               if (PlacesUtils.nodeIsTagQuery(parentNode))
                 nodeData["tagChild"] = true;
-              else if (PlacesUtils.nodeIsLivemarkContainer(parentNode))
+              else if (parentNode._feedURI)
                 nodeData["livemarkChild"] = true;
             }
           }
@@ -718,8 +726,8 @@ PlacesController.prototype = {
    */
   reloadSelectedLivemark: function PC_reloadSelectedLivemark() {
     var selectedNode = this._view.selectedNode;
-    if (selectedNode && PlacesUtils.nodeIsLivemarkContainer(selectedNode))
-      PlacesUtils.livemarks.reloadLivemarkFolder(selectedNode.itemId);
+    if (selectedNode)
+      PlacesUtils.livemarks.getLivemark({ id: selectedNode.itemId }, onReload);
   },
 
   /**
@@ -1126,8 +1134,8 @@ PlacesController.prototype = {
         addData(PlacesUtils.TYPE_X_MOZ_PLACE, i);
 
         // Drop the feed uri for livemark containers
-        if (PlacesUtils.nodeIsLivemarkContainer(node))
-          addURIData(i, PlacesUtils.livemarks.getFeedURI(node.itemId).spec);
+        if (node._feedURI)
+          addURIData(i, node._feedURI.spec);
         else if (node.uri)
           addURIData(i);
       }
@@ -1169,8 +1177,8 @@ PlacesController.prototype = {
           let suffix = i < (nodes.length - 1) ? PlacesUtils.endl : "";
           let uri = overrideURI;
 
-          if (PlacesUtils.nodeIsLivemarkContainer(node))
-            uri = PlacesUtils.livemarks.getFeedURI(node.itemId).spec
+          if (node._feedURI)
+            uri = node._feedURI.spec;
 
           mozURLString += (PlacesUtils.wrapNode(node, PlacesUtils.TYPE_X_MOZ_URL,
                                                  uri) + suffix);

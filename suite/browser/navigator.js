@@ -705,9 +705,6 @@ function Startup()
 
   // initialize the session-restore service
   setTimeout(InitSessionStoreCallback, 0);
-
-  // initialize the livemark service
-  setTimeout(function() { PlacesUtils.livemarks.start(); }, 5000);
 }
 
 function UpdateNavBar()
