@@ -309,7 +309,7 @@ var PlacesUIUtils = {
           var title = (type != PlacesUtils.TYPE_UNICODE) ? data.title :
                                                              data.uri;
           return new PlacesCreateBookmarkTransaction(PlacesUtils._uri(data.uri),
-                                                     container, index, titel);
+                                                     container, index, title);
         }
     }
     return null;
