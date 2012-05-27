@@ -331,14 +331,14 @@ function test_threading() {
  *  message header".
  */
 function test_attachment_flag() {
-  // create a synthetic message with attachment
+  // create a synthetic message with an attachment that won't normally be listed
+  // in the attachment pane (Content-Disposition: inline, no filename, and
+  // displayable inline)
   let smsg = msgGen.makeMessage({
     name: 'test message with part 1.2 attachment',
-    bodyPart: new SyntheticPartMultiMixed([
-      new SyntheticPartLeaf({body: 'I like cheese!'}),
-      let (m = msgGen.makeMessage({ body: { body: 'I like wine!' }}))
-      (m._contentType = "roquefort", m)
-    ]),
+    attachments: [{ body: 'attachment',
+                    filename: '',
+                    format: '' }],
   });
   // save it off for test_attributes_fundamental_from_disk
   let msgSet = new SyntheticMessageSet([smsg]);

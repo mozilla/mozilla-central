@@ -558,16 +558,16 @@ var bogusMessage = msgGen.makeMessage({ body: { body: "whatever" } });
 bogusMessage._contentType = "woooooo"; // Breaking abstraction boundaries. Bad.
 
 let weirdMessageInfos = [
-  // This message has a malformed part as an attachment, so it will end up as a
-  // MimeUnknown part. Previously, libmime would emit notifications for this to
-  // be treated as an attachment, name Part 1.2. Now it's not the case anymore,
-  // so we should ensure this message has no attachments.
+  // This message has an unnamed part as an attachment (with
+  // Content-Disposition: inline and which is displayable inline). Previously,
+  // libmime would emit notifications for this to be treated as an attachment,
+  // name Part 1.2. Now it's not the case anymore, so we should ensure this
+  // message has no attachments.
   {
-    name: 'MimeUnknown attachment (actually, a message)',
-    bodyPart: new SyntheticPartMultiMixed([
-      partHtml,
-      bogusMessage,
-    ]),
+    name: 'test message with part 1.2 attachment',
+    attachments: [{ body: 'attachment',
+                    filename: '',
+                    format: '' }],
   },
 ];
 

@@ -56,6 +56,7 @@ public:
   bool    m_isExternalAttachment;  // Flag for determining if the attachment is external
   bool    m_isDownloaded;          // Flag for determining if the attachment has already been downloaded
   bool    m_hasFilename;           // Tells whether the name is provided by us or if it's a Part 1.2-like attachment
+  bool    m_displayableInline;     // Tells whether the attachment could be displayed inline
 };
 
 class nsMsgAttachedFile : public nsIMsgAttachedFile

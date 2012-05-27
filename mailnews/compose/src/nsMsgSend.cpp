@@ -5056,7 +5056,7 @@ NS_IMETHODIMP nsMsgComposeAndSend::SetCryptoclosure(nsIMsgComposeSecure * aCrypt
 NS_IMPL_ISUPPORTS1(nsMsgAttachmentData, nsIMsgAttachmentData)
 
 nsMsgAttachmentData::nsMsgAttachmentData() :  m_size(0), m_isExternalAttachment(0),
-  m_isDownloaded(false), m_hasFilename(false)
+  m_isDownloaded(false), m_hasFilename(false), m_displayableInline(false)
 {
 }
 

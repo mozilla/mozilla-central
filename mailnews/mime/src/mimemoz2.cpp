@@ -152,6 +152,9 @@ ProcessBodyAsAttachment(MimeObject *obj, nsMsgAttachmentData **data)
                        nsCaseInsensitiveCStringComparator()))
     ValidateRealName(tmp, child->headers);
 
+  tmp->m_displayableInline = obj->clazz->displayable_inline_p(obj->clazz,
+                                                              obj->headers);
+
   char  *tmpURL = nsnull;
   char  *id = nsnull;
   char  *id_imap = nsnull;
@@ -330,6 +333,7 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   tmp->m_isExternalAttachment = isExternalAttachment;
   tmp->m_size = attSize;
   tmp->m_disposition.Adopt(MimeHeaders_get(object->headers, HEADER_CONTENT_DISPOSITION, true, false));
+  tmp->m_displayableInline = object->clazz->displayable_inline_p(object->clazz, object->headers);
 
   char *part_addr = mime_imap_part_address(object);
   tmp->m_isDownloaded = !part_addr;
@@ -636,12 +640,16 @@ NotifyEmittersOfAttachmentList(MimeDisplayOptions     *opt,
   while (tmp->m_url)
   {
     // The code below implements the following logic:
-    // - always display if Content-Disposition: attachment
-    // - IF there's no name at all (we don't know what to do with it then)!,
-    //   OR if the attachment doesn't have a "provided name" (it's a Part 1.2
-    //   thingy, then) and we're not asking for all body parts or only
-    //   interested in metadata, THEN skip
-    if (!tmp->m_disposition.Equals("attachment") &&
+    // - Always display the attachment if the Content-Disposition is
+    //   "attachment" or if it can't be displayed inline.
+    // - If there's no name at all, just skip it (we don't know what to do with
+    //   it then).
+    // - If the attachment has a "provided name" (i.e. not something like "Part
+    //   1.2"), display it.
+    // - If we're asking for all body parts and NOT asking for metadata only,
+    //   display it.
+    // - Otherwise, skip it.
+    if (!tmp->m_disposition.Equals("attachment") && tmp->m_displayableInline &&
         (tmp->m_realName.IsEmpty() || (!tmp->m_hasFilename &&
         (opt->html_as_p != 4 || opt->metadata_only))))
     {
