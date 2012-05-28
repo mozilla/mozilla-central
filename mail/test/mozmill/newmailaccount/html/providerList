@@ -40,6 +40,11 @@
   "api": "http://localhost:43336/registrationCorrupt.html",
   "tos_url": "http://www.example.com/corrupt-tos",
   "privacy_url": "http://www.example.com/corrupt-privacy"
-}
-
-]
+},{"id": "err",
+  "label": "Error Provider",
+  "paid": false,
+  "languages" : ["en-US"],
+  "api": "http://localhost:43336/registrationError.html",
+  "tos_url": "http://www.example.com/err-tos",
+  "privacy_url": "http://www.example.com/err-privacy"
+}]

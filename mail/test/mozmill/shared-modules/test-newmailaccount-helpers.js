@@ -199,7 +199,7 @@ var gConsoleListener = {
     if (!this._msg)
       return;
 
-    this._sawMsg = (aMsg.message.indexOf(this._msg) != -1);
+    this._sawMsg |= (aMsg.message.indexOf(this._msg) != -1);
   },
 
   listenFor: function(aMsg) {

@@ -215,7 +215,7 @@ function subtest_get_an_account(w) {
  */
 function subtest_get_an_account_part_2(w) {
   // Re-get the new window
-  $ = w.window.$;
+  let $ = w.window.$;
 
   // An account should have been added.
   assert_equals(nAccounts(), gNumAccounts + 1);
@@ -624,14 +624,15 @@ function test_throws_console_error_on_corrupt_XML() {
   Services.console.registerListener(gConsoleListener);
 
   // Click the OK button to order the account.
+  plan_for_modal_dialog("AccountCreation", close_dialog_immediately);
+
   let btn = tab.browser.contentWindow.document.querySelector("input[value=Send]");
   mc.click(new elib.Elem(btn));
+  wait_for_modal_dialog("AccountCreation");
 
   gConsoleListener.wait();
 
   Services.console.unregisterListener(gConsoleListener);
-
-  mc.tabmail.closeTab(tab);
 }
 
 /**
@@ -917,6 +918,16 @@ function sub_get_to_order_form(aController, aAddress) {
 }
 
 /**
+ * Helper function to be passed to plan_for_modal_dialog that closes the
+ * Account Provisioner dialog immediately.
+ */
+function close_dialog_immediately(aController) {
+  plan_for_window_close(aController);
+  mc.click(new elib.Elem(aController.window.document.querySelector(".close")));
+  wait_for_window_close();
+}
+
+/**
  * Test that clicking on links in the order form open in the same account
  * provisioner tab.
  */
@@ -981,4 +992,31 @@ function test_external_link_opening_behaviour() {
              "opened in the default browser.");
   gMockExtProtSvcReg.unregister();
   mc.tabmail.closeTab(tab);
+}
+
+/**
+ * Test that if the provider returns XML that we can't turn into an account,
+ * then we error out and go back to the Account Provisioner dialog.
+ */
+function test_return_to_provisioner_on_error_XML() {
+  const kOriginalTabNum = mc.tabmail.tabContainer.childNodes.length;
+
+  get_to_order_form("error@error.nul");
+
+  let tab = mc.tabmail.currentTabInfo;
+  let doc = tab.browser.contentWindow.document;
+
+  plan_for_modal_dialog("AccountCreation", close_dialog_immediately);
+
+  // Click the OK button to order the account.
+  let btn = tab.browser.contentWindow.document.querySelector("input[value=Send]");
+  mc.click(new elib.Elem(btn));
+
+  wait_for_modal_dialog("AccountCreation");
+
+  // We should be done executing the function defined in plan_for_modal_dialog
+  // now, so the Account Provisioner dialog should be closed, and the order
+  // form tab should have been closed.
+  assert_equals(kOriginalTabNum, mc.tabmail.tabContainer.childNodes.length,
+                "Timed out waiting for the order form tab to close.");
 }

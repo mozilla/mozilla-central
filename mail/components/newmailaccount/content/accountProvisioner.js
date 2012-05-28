@@ -370,7 +370,7 @@ var EmailAccountProvisioner = {
       }
     });
 
-    if (window.arguments[0].search_engine || window.arguments[0].success) {
+    if (window.arguments[0].success) {
       // Show the success page which lets a user compose mail, find add-ons,
       // set a signature, etc.
       gLog.info("Looks like we just finished ordering an address - showing the success page...");
