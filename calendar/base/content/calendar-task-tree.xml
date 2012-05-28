@@ -441,6 +441,7 @@
               let itemsToAdd = [];
               aNewItems = aNewItems || [];
               aOldItems = aOldItems || [];
+              let _this = this;
 
               this.treebox.beginUpdateBatch();
 
@@ -462,31 +463,25 @@
               }, this);
 
               // modified items may need to be added, update, or removed
-              modItems.mArray.forEach(function(item) {
-                  let inFilter = this.binding.mFilter.isItemInFilters(item) && 
-                                 !(item.isCompleted && !this.binding.showCompleted);
-
-                  if (item.hashId in this.binding.mHash2Index) {
+              this.binding.mFilter.filterItems(modItems.mArray, function(item, inFilter) {
+                  if (item.hashId in _this.binding.mHash2Index) {
                       if (inFilter) {
                           // make sure we're using the new version of a modified item
-                          this.binding.mTaskArray[this.binding.mHash2Index[item.hashId]] = item;
+                          _this.binding.mTaskArray[_this.binding.mHash2Index[item.hashId]] = item;
                       } else {
                           // the modified item needs to be removed, it no longer matches the
                           // applied filter.
-                          remIndexes.push(this.binding.mHash2Index[item.hashId]);
-                          delete this.binding.mHash2Index[item.hashId];
+                          remIndexes.push(_this.binding.mHash2Index[item.hashId]);
+                          delete _this.binding.mHash2Index[item.hashId];
                       }
                   } else if (inFilter) {
                       // the modified item needs to be added, it now matches the applied filter.
                       itemsToAdd.push(item);
                   }
-              }, this);
+              });
 
               // find new items that need to be added
-              itemsToAdd = itemsToAdd.concat(addItems.mArray.filter(function(item) {
-                  return this.binding.mFilter.isItemInFilters(item) && 
-                         !(item.isCompleted && !this.binding.showCompleted);
-              }, this));
+              itemsToAdd = itemsToAdd.concat(this.binding.mFilter.filterItems(addItems.mArray));
 
               // remove the old items working backward from the end so the indexes stay valid
               remIndexes.sort(function(a, b) {return b - a;}).forEach(function(index) {
@@ -909,7 +904,8 @@
                   let occs = [aItem];
                   if (this.binding.mFilter.endDate) {
                       // get occurrences of repeating items
-                      occs = aItem.getOccurrencesBetween(this.binding.mFilter.startDate,
+                      occs = aItem.getOccurrencesBetween(this.binding.mFilter.startDate || 
+                                                         cal.createDateTime(),
                                                          this.binding.mFilter.endDate,
                                                          {});
                   }
@@ -922,10 +918,12 @@
                   let newOccs = [aNewItem];
                   let oldOccs = [aOldItem];
                   if (this.binding.mFilter.endDate) {
-                      newOccs = aNewItem.getOccurrencesBetween(this.binding.mFilter.startDate,
+                      newOccs = aNewItem.getOccurrencesBetween(this.binding.mFilter.startDate ||
+                                                               cal.createDateTime(),
                                                                this.binding.mFilter.endDate,
                                                                {});
-                      oldOccs = aOldItem.getOccurrencesBetween(this.binding.mFilter.startDate,
+                      oldOccs = aOldItem.getOccurrencesBetween(this.binding.mFilter.startDate ||
+                                                               cal.createDateTime(),
                                                                this.binding.mFilter.endDate,
                                                                {});
                   }
@@ -943,7 +941,8 @@
                   let occs = [aDeletedItem];
                   if (this.binding.mFilter.endDate) {
                       // get occurrences of repeating items
-                      occs = aDeletedItem.getOccurrencesBetween(this.binding.mFilter.startDate,
+                      occs = aDeletedItem.getOccurrencesBetween(this.binding.mFilter.startDate ||
+                                                                cal.createDateTime(),
                                                                 this.binding.mFilter.endDate,
                                                                 {});
                   }
@@ -1038,12 +1037,14 @@
                       aCalendar.ITEM_FILTER_COMPLETED_ALL;
                   filter |= aCalendar.ITEM_FILTER_TYPE_TODO;
 
+                  let startDate = savedThis.mFilter.startDate;
                   if (savedThis.mFilter.endDate) {
                       filter |= aCalendar.ITEM_FILTER_CLASS_OCCURRENCES;
+                      startDate = startDate || cal.createDateTime();
                   }
                   aCalendar.getItems(filter,
                                      0,
-                                     savedThis.mFilter.startDate,
+                                     startDate,
                                      savedThis.mFilter.endDate,
                                      refreshListener);
               }
@@ -1188,16 +1189,11 @@
         <parameter name="aFilter"/>
         <body><![CDATA[
             this.mFilter.textFilterField = this.mTextFilterField;
-            this.mFilter.propertyFilter = aFilter || this.mFilter.propertyFilter || "all";
-            this.mDateRangeFilter = aFilter || this.mDateRangeFilter;
-            if (this.mDateRangeFilter) {
-                this.mFilter.setDateFilter(this.mDateRangeFilter);
+
+            if (aFilter) {
+                this.mFilter.applyFilter(aFilter);
             } else {
-                let oneDay = cal.createDuration();
-                oneDay.days = 1;
-                this.mFilter.startDate = cal.createDateTime();
-                this.mFilter.endDate = this.getInitialDate().clone();
-                this.mFilter.endDate.addDuration(oneDay);
+                this.mFilter.updateFilterDates();
             }
 
             this.refresh();
@@ -1307,9 +1303,12 @@
         <body><![CDATA[
             this.mFilter.selectedDate = agendaListbox.today && agendaListbox.today.start ? 
                                         agendaListbox.today.start : now();
-            this.mFilter.propertyFilter = aFilter || this.mFilter.propertyFilter || "all";
-            this.mDateRangeFilter = aFilter || this.mDateRangeFilter || "all";
-            this.mFilter.setDateFilter(this.mDateRangeFilter);
+
+            if (aFilter) {
+                this.mFilter.applyFilter(aFilter);
+            } else {
+                this.mFilter.updateFilterDates();
+            }
 
             this.refresh();
         ]]></body>

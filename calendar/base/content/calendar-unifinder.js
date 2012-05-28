@@ -248,7 +248,7 @@ function prepareCalendarUnifinder() {
 
         // Set up the filter
         unifinderTreeView.mFilter = new calFilter();
-        unifinderTreeView.mFilter.propertyFilter = "unifinder-search-field";
+        unifinderTreeView.mFilter.textFilterField = "unifinder-search-field";
 
         // Set up the unifinder views.
         unifinderTreeView.treeElement = unifinderTree;
@@ -952,7 +952,7 @@ function addItemsFromCalendar(aCalendar, aAddItemsInternalFunc) {
     if (!document.getElementById(unifinderTreeView.mFilter.textFilterField)) {
         return;
     }
-    unifinderTreeView.mFilter.setDateFilter(getCurrentUnifinderFilter());
+    unifinderTreeView.mFilter.applyFilter(getCurrentUnifinderFilter());
 
     if (unifinderTreeView.mFilter.startDate && unifinderTreeView.mFilter.endDate) {
         filter |= aCalendar.ITEM_FILTER_CLASS_OCCURRENCES;

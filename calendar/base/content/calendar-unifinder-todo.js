@@ -80,6 +80,16 @@ function updateCalendarToDoUnifinder(aFilter) {
         document.getElementById("unifinder-todo-filter-broadcaster").setAttribute("value", aFilter);
     }
 
+    if (filter && !showCompleted) {
+        let filterProps = tree.mFilter.getDefinedFilterProperties(filter);
+        if (filterProps) {
+            filterProps.status = (filterProps.status || filterProps.FILTER_STATUS_ALL) &
+                                 (filterProps.FILTER_STATUS_INCOMPLETE |
+                                  filterProps.FILTER_STATUS_IN_PROGRESS);
+            filter = filterProps;
+        }
+    }
+
     // update the filter
     tree.showCompleted = showCompleted;
     tree.updateFilter(filter);
