@@ -637,6 +637,11 @@ var tests = [
 var gInbox;
 
 function run_test() {
+  do_register_cleanup(function() {
+    const Cu = Components.utils;
+    Cu.import("resource:///modules/gloda/datastore.js");
+    GlodaDatastore.shutdown();
+  });
   // use mbox injection because the fake server chokes sometimes right now
   gInbox = configure_message_injection({mode: "local"});
   async_run_tests(tests);
