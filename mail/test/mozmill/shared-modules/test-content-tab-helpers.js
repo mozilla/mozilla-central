@@ -46,6 +46,7 @@ Cu.import('resource://mozmill/modules/mozmill.js', mozmill);
 var utils = {};
 Cu.import('resource://mozmill/modules/utils.js', utils);
 Cu.import("resource://gre/modules/Services.jsm");
+Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 
 const MODULE_NAME = 'content-tab-helpers';
 
