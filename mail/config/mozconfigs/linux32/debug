@@ -1,8 +1,7 @@
 ac_add_options --enable-application=mail
 ac_add_options --enable-debug
-ac_add_options --enable-tests
-
 ac_add_options --enable-trace-malloc
+ac_add_options --enable-signmar
 
 . $topsrcdir/build/unix/mozconfig.linux
 
@@ -15,14 +14,13 @@ export MOZILLA_OFFICIAL=1
 # For NSS symbols
 export MOZ_DEBUG_SYMBOLS=1
 
-#Use ccache
-ac_add_options --with-ccache=/usr/bin/ccache
-
 # Enable parallel compiling
 CONCURRENCY=$(( `grep processor /proc/cpuinfo | wc -l` + 2 ))
 mk_add_options MOZ_MAKE_FLAGS="-j$CONCURRENCY"
 
+#Use ccache
+ac_add_options --with-ccache=/usr/bin/ccache
+
 # Run client.py
 mk_add_options CLIENT_PY_ARGS="--hg-options='--time' --hgtool=../tools/buildfarm/utils/hgtool.py --skip-chatzilla --skip-comm --skip-inspector --skip-venkman --tinderbox-print"
 mk_add_options ALWAYS_RUN_CLIENT_PY=1
-
