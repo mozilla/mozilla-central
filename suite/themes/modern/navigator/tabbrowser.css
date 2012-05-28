@@ -103,6 +103,10 @@ tab[busy] {
   list-style-image: url("chrome://communicator/skin/icons/loading.gif");
 }
 
+.alltabs-item[tabIsScrolled] {
+  font-style: italic;
+}
+
 /* ::::: close button ::::: */
 
 .tabs-closebutton {

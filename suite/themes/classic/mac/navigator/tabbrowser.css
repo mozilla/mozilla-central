@@ -194,6 +194,10 @@ tabpanels {
   list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
 }
 
+.alltabs-item[tabIsScrolled] {
+  font-style: italic;
+}
+
 /* ::::: close button ::::: */
 
 .tabs-closebutton {

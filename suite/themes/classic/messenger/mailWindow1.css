@@ -137,6 +137,10 @@ tabpanels {
   text-shadow: none;
 }
 
+.alltabs-item[tabIsScrolled] {
+  font-style: italic;
+}
+
 #tabbar-toolbar {
   -moz-appearance: none;
   border-top-style: none;

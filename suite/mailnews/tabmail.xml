@@ -1342,19 +1342,16 @@
         <body>
           <![CDATA[
             let tabContainer = document.getBindingParent(this);
-            // We don't want menu item decoration unless there is overflow.
-            if (tabContainer.getAttribute("overflow") != "true")
-              return;
-
             let tabstripBO = tabContainer.mTabstrip.scrollBoxObject;
+
             for (let i = 0; i < this.childNodes.length; i++)
             {
               let curTabBO = this.childNodes[i].tab.boxObject;
               if (curTabBO.screenX >= tabstripBO.screenX &&
                   curTabBO.screenX + curTabBO.width <= tabstripBO.screenX + tabstripBO.width)
-                this.childNodes[i].setAttribute("tabIsVisible", "true");
+                this.childNodes[i].removeAttribute("tabIsScrolled");
               else
-                this.childNodes[i].removeAttribute("tabIsVisible");
+                this.childNodes[i].setAttribute("tabIsScrolled", "true");
             }
           ]]>
         </body>

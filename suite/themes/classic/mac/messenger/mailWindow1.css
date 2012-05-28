@@ -227,6 +227,10 @@
   font-weight: bold;
 }
 
+.alltabs-item[tabIsScrolled] {
+  font-style: italic;
+}
+
 #tabbar-toolbar {
   -moz-appearance: none;
   min-height: 0;

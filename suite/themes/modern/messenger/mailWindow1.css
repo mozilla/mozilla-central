@@ -136,6 +136,10 @@
   font-weight: bold;
 }
 
+.alltabs-item[tabIsScrolled] {
+  font-style: italic;
+}
+
 #tabbar-toolbar {
   background-color: transparent;
   min-height: 0;
