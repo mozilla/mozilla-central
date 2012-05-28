@@ -52,11 +52,14 @@ const MODULE_NAME = 'content-tab-helpers';
 const RELATIVE_ROOT = '../shared-modules';
 
 // we need this for the main controller
-const MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
+const MODULE_REQUIRES = ['folder-display-helpers',
+                         'window-helpers',
+                         'mock-object-helpers'];
 
 const NORMAL_TIMEOUT = 6000;
 const FAST_TIMEOUT = 1000;
 const FAST_INTERVAL = 100;
+const EXT_PROTOCOL_SVC_CID = "@mozilla.org/uriloader/external-protocol-service;1";
 
 var folderDisplayHelper;
 var mc;
@@ -64,6 +67,7 @@ var wh;
 
 // logHelper (and therefore folderDisplayHelper) exports
 var mark_failure;
+let gMockExtProtocolSvcReg;
 
 function setupModule() {
   folderDisplayHelper = collector.getModule('folder-display-helpers');
@@ -71,6 +75,9 @@ function setupModule() {
   mark_failure = folderDisplayHelper.mark_failure;
 
   wh = collector.getModule('window-helpers');
+  let moh = collector.getModule('mock-object-helpers');
+  gMockExtProtSvcReg = new moh.MockObjectReplacer(EXT_PROTOCOL_SVC_CID,
+                                                  MockExtProtConstructor);
 }
 
 function installInto(module) {
@@ -95,7 +102,52 @@ function installInto(module) {
   module.get_notification_bar_for_tab = get_notification_bar_for_tab;
   module.get_test_plugin = get_test_plugin;
   module.plugins_run_in_separate_processes = plugins_run_in_separate_processes;
+  module.gMockExtProtSvcReg = gMockExtProtSvcReg;
+  module.gMockExtProtSvc = gMockExtProtSvc;
 }
+
+/**
+ * gMockExtProtocolSvc allows us to capture (most if not all) attempts to
+ * open links in the default browser.
+ */
+let gMockExtProtSvc = {
+  _loadedURLs: [],
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIExternalProtocolService]),
+
+  externalProtocolHandlerExists: function(aProtocolScheme) {
+  },
+
+  getApplicationDescription: function(aScheme) {
+  },
+
+  getProtocolHandlerInfo: function(aProtocolScheme) {
+  },
+
+  getProtocolHandlerInfoFromOS: function(aProtocolScheme, aFound) {
+  },
+
+  isExposedProtocol: function(aProtocolScheme) {
+  },
+
+  loadURI: function(aURI, aWindowContext) {
+  },
+
+  loadUrl: function(aURL) {
+    this._loadedURLs.push(aURL.spec);
+  },
+
+  setProtocolHandlerDefaults: function(aHandlerInfo, aOSHandlerExists) {
+  },
+
+  urlLoaded: function(aURL) {
+    return this._loadedURLs.indexOf(aURL) != -1;
+  },
+}
+
+function MockExtProtConstructor() {
+  return gMockExtProtSvc;
+}
+
 
 /* Allows for planning / capture of notification events within
  * content tabs, for example: plugin crash notifications, theme

@@ -5,7 +5,6 @@
     <title>Fake registration page</title>
   </head>
   <body>
-  
     <div class="title">Local version</div>
     <div class="content">
       <form action="config.xml" method="GET">
@@ -16,6 +15,11 @@
          <input value="Send" type="submit">
          </p>
       </form>
+      <a id="external" href="target.html" target="_blank">Should open externally</a>
+      <a id="internal" href="target.html">Should open internally</a>
+      <p id="newtab" onclick="window.open('target.html');">
+        Should open in a new content tab.
+      </p>
     </div>
   </body>
 </html>

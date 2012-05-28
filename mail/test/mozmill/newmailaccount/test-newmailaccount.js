@@ -612,19 +612,7 @@ function subtest_shows_error_on_empty_suggest_from_name(w) {
  */
 function test_throws_console_error_on_corrupt_XML() {
   // Open the provisioner - once opened, let subtest_get_an_account run.
-  plan_for_modal_dialog("AccountCreation",
-                        subtest_throws_console_error_on_corrupt_XML);
-  open_provisioner_window();
-  wait_for_modal_dialog("AccountCreation");
-
-  // Once we're here, subtest_get_an_account has completed, and we're waiting
-  // for a content tab to load for the account order form.
-
-  // Make sure the page is loaded.
-  wait_for_content_tab_load(undefined, function (aURL) {
-    return aURL.host == "localhost";
-  });
-
+  get_to_order_form("corrupt@corrupt.nul");
   let tab = mc.tabmail.currentTabInfo;
 
   // Record how many accounts we start with.
@@ -642,34 +630,8 @@ function test_throws_console_error_on_corrupt_XML() {
   gConsoleListener.wait();
 
   Services.console.unregisterListener(gConsoleListener);
-}
 
-/**
- * Subtest for test_throws_console_error_on_corrupt_XML.  This
- * function does a search for an email address, and then chooses
- * an address from a provider that returns corrupt XML.
- */
-function subtest_throws_console_error_on_corrupt_XML(w) {
-  wait_for_provider_list_loaded(w);
-  wait_for_search_ready(w);
-  let $ = w.window.$;
-
-  // Make sure that only the corrupt provider is checked.
-  $('input[type="checkbox"]').not('[value="corrupt"]').removeAttr("checked");
-
-  // Fill in some data
-  $("#name").val("Green Llama");
-  $("#searchSubmit").click();
-  wait_for_search_results(w);
-
-  // Click on the first address. This reveals the button with the price.
-  $(".address:first").click();
-  mc.waitFor(function () $("button.create:visible").length > 0);
-
-  plan_for_content_tab_load();
-
-  // Clicking this button should close the modal dialog.
-  $('button.create[address="corrupt@corrupt.nul"]').click();
+  mc.tabmail.closeTab(tab);
 }
 
 /**
@@ -898,11 +860,125 @@ function test_other_lang_link_hides() {
 }
 
 /**
- * Subtest for test_other_lang_link_hides that just waits for the provider list
- * to be loaded, and then ensures that the "show me providers in other
+ * Subtest for test_other_lang_link_hides that just waits for the provider
+ * list to be loaded, and then ensures that the "show me providers in other
  * languages" link is not visible.
  */
 function subtest_other_lang_link_hides(w) {
   wait_for_provider_list_loaded(w);
   wait_for_element_invisible(w, "otherLangDesc");
+}
+
+/**
+ * Quickly get us to the default order form (registration.html) and return
+ * when we're there.
+ */
+function get_to_order_form(aAddress) {
+  if (!aAddress)
+    aAddress = "green@example.com";
+
+  plan_for_modal_dialog("AccountCreation", function(aController) {
+    sub_get_to_order_form(aController, aAddress);
+  });
+  open_provisioner_window();
+  wait_for_modal_dialog("AccountCreation");
+
+  // Once we're here, subtest_get_an_account has completed, and we're waiting
+  // for a content tab to load for the account order form.
+
+  // Make sure the page is loaded.
+  wait_for_content_tab_load(undefined, function (aURL) {
+    return aURL.host == "localhost";
+  });
+}
+
+/**
+ * Fills in the Account Provisioner dialog to get us to the order form.
+ */
+function sub_get_to_order_form(aController, aAddress) {
+  wait_for_provider_list_loaded(aController);
+  wait_for_search_ready(aController);
+
+  // Fill in some data
+  let $ = aController.window.$;
+  $("#name").val("Joe Nobody");
+  $("#searchSubmit").click();
+  wait_for_search_results(aController);
+
+  // Click on the first address. This reveals the button with the price.
+  $(".address:first").click();
+  mc.waitFor(function () $("button.create:visible").length > 0);
+
+  // Pick the email address green@example.com
+  plan_for_content_tab_load();
+
+  // Clicking this button should close the modal dialog.
+  $('button.create[address="' + aAddress + '"]').click();
+}
+
+/**
+ * Test that clicking on links in the order form open in the same account
+ * provisioner tab.
+ */
+function test_internal_link_opening_behaviour() {
+  get_to_order_form();
+
+  // Open the provisioner - once opened, let subtest_get_an_account run...
+  let tab = mc.tabmail.currentTabInfo;
+  let doc = tab.browser.contentWindow.document;
+
+  // Click on the internal link.
+  mc.click(new elib.Elem(doc.getElementById("internal")));
+
+  // We should load the target page in the current tab browser.
+  wait_for_browser_load(tab.browser, function(aURL) {
+    return aURL.host == "localhost" && aURL.path == "/target.html";
+  });
+  // Now close the tab.
+  mc.tabmail.closeTab(tab);
+}
+
+/**
+ * Test that window.open in the order form opens in new content tabs.
+ */
+function test_window_open_link_opening_behaviour() {
+  get_to_order_form();
+
+  let tab = mc.tabmail.currentTabInfo;
+  let doc = tab.browser.contentWindow.document;
+
+  // First, click on the Javascript link - this should open in a new content
+  // tab and be focused.
+  let newTabLink = doc.getElementById("newtab");
+  open_content_tab_with_click(newTabLink, function(aURL) {
+    return aURL.host == "localhost" && aURL.path == "/target.html";
+  });
+
+  // Close the new tab.
+  let newTab = mc.tabmail.currentTabInfo;
+  mc.tabmail.closeTab(newTab);
+  mc.tabmail.closeTab(tab);
+}
+
+/**
+ * Test that links with target="_blank" open in the default browser.
+ */
+function test_external_link_opening_behaviour() {
+  get_to_order_form();
+
+  let tab = mc.tabmail.currentTabInfo;
+  let doc = tab.browser.contentWindow.document;
+
+  // Mock out the ExternalProtocolService.
+  gMockExtProtSvcReg.register();
+
+  let external = doc.getElementById("external");
+  let targetHref = external.href;
+  mc.click(new elib.Elem(external));
+
+  mc.waitFor(function () gMockExtProtSvc.urlLoaded(targetHref),
+             "Timed out waiting for the link " + targetHref + "to be " +
+             "opened in the default browser.");
+  gMockExtProtSvcReg.unregister();
+  mc.tabmail.closeTab(tab);
 }

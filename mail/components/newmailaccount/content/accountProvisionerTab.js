@@ -32,6 +32,7 @@ let accountProvisionerTabType = Object.create(specialTabs.contentTabType, {
  * of openTab, and passing those to our _setMonitoring function.
  */
 accountProvisionerTabType.openTab = function(aTab, aArgs) {
+  aArgs.clickHandler = "accountProvisionerTabType.clickHandler(event);";
   specialTabs.contentTabType.openTab.call(this, aTab, aArgs);
 
   this._setMonitoring(aTab.browser, aArgs.realName, aArgs.email,
@@ -75,4 +76,28 @@ accountProvisionerTabType._setMonitoring = function(aBrowser, aRealName,
                            false);
 
   this._log.info("httpRequestObserver wired up.");
+}
+
+/**
+ * Click handler for the Account Provisioner tab that allows all links
+ * to open within the current content tab, except for those which have
+ * their targets set to _blank - these links open in the default browser.
+ */
+accountProvisionerTabType.clickHandler = function(aEvent) {
+  // Don't handle events that: a) aren't trusted, b) have already been
+  // handled or c) aren't left-click.
+  if (!aEvent.isTrusted || aEvent.defaultPrevented || aEvent.button)
+    return true;
+
+  let href = hRefForClickEvent(aEvent, true);
+
+  // Check to see if we're set to open the link externally...
+  if (aEvent.target.hasAttribute("target")) {
+    if (aEvent.target.target == "_blank") {
+      aEvent.preventDefault();
+      openLinkExternally(href);
+    }
+  }
+
+  return false;
 }
