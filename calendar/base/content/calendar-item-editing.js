@@ -364,14 +364,16 @@ function openEventDialog(calendarItem, calendar, mode, callback, job, initialDat
         url = "chrome://calendar/content/calendar-summary-dialog.xul";
     }
 
+    // reminder: event dialog should not be modal (cf bug 122671)
     var features;
+    // keyword "dependent" should not be used (cf bug 752206)
     if (Services.appinfo.OS == "WINNT") {
-        features = "chrome,titlebar,resizable,dependent";
+        features = "chrome,titlebar,resizable";
     } else if (Services.appinfo.OS == "Darwin") {
         features = "chrome,titlebar,resizable,minimizable=no";
     } else {
         // All other targets, mostly Linux flavors using gnome.
-        features = "chrome,titlebar,resizable,dependent,minimizable=no,dialog=no";
+        features = "chrome,titlebar,resizable,minimizable=no,dialog=no";
     }
 
     openDialog(url, "_blank", features, args);
