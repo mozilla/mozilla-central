@@ -368,6 +368,29 @@ function NewMailAccountProvisioner(aMsgWindow, args) {
 
   let mail3Pane = Services.wm.getMostRecentWindow("mail:3pane");
 
+  // If we couldn't find a 3pane, bail out.
+  if (!mail3Pane) {
+    Components.utils.reportError("Could not find a 3pane to connect to.");
+    return;
+  }
+
+  let tabmail = mail3Pane.document.getElementById("tabmail");
+
+  if (!tabmail) {
+    Components.utils.reportError("Could not find a tabmail in the 3pane!");
+    return;
+  }
+
+  // If there's already an accountProvisionerTab open, just focus it instead
+  // of opening a new dialog.
+  let apTab = tabmail.getTabInfoForCurrentOrFirstModeInstance(
+    tabmail.tabModes["accountProvisionerTab"]);
+
+  if (apTab) {
+    tabmail.switchToTab(apTab);
+    return;
+  }
+
   // XXX make sure these are all defined in all contexts... to be on the safe
   // side, just get a mail:3pane and borrow the functions from it?
   if (!args.NewMailAccount)

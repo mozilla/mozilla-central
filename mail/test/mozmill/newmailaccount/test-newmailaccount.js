@@ -1150,3 +1150,40 @@ function subtest_search_button_disabled_if_no_lang_support(aController) {
   wait_for_element_enabled(aController, aController.e("searchSubmit"), false);
   close_dialog_immediately(aController);
 }
+
+/**
+ * Test that if we try to open the Account Provisioner dialog when an
+ * Account Provisioner tab is opened, that we focus the tab instead of opening
+ * the dialog.
+ */
+function test_get_new_account_focuses_existing_ap_tab() {
+  get_to_order_form("green@example.com");
+  let apTab = mc.tabmail.getTabInfoForCurrentOrFirstModeInstance(
+    mc.tabmail.tabModes["accountProvisionerTab"]);
+
+  // Switch back to the inbox tab.
+  mc.tabmail.switchToTab(0);
+
+  // Try to re-open the provisioner dialog
+  open_provisioner_window();
+
+  // If we got here, that means that we weren't blocked by a dialog
+  // being opened, which is good.
+  assert_selected_tab(apTab);
+
+  // Now open up the wizard, and try opening the Account Provisioner from
+  // there.
+  plan_for_new_window("mail:autoconfig");
+
+  // Open the wizard...
+  mc.click(new elib.Elem(mc.menus.menu_File.menu_New.newMailAccountMenuItem));
+  let wizard = wait_for_new_window("mail:autoconfig");
+
+  // Click on the "Get a new Account" button in the wizard.
+  wizard.click(wizard.eid("provisioner_button"));
+
+  // If we got here, that means that we weren't blocked by a dialog
+  // being opened, which is what we wanted..
+  assert_selected_tab(apTab);
+  mc.tabmail.closeTab(apTab);
+}
