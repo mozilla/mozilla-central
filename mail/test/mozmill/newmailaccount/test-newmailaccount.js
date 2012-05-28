@@ -57,11 +57,13 @@ var MODULE_REQUIRES = ['folder-display-helpers',
 var controller = {};
 var mozmill = {};
 var elib = {};
+let httpd = {};
 Cu.import('resource://mozmill/modules/controller.js', controller);
 Cu.import('resource://mozmill/modules/mozmill.js', mozmill);
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import("resource:///modules/mailServices.js");
+Cu.import('resource://mozmill/stdlib/httpd.js', httpd);
 
 // RELATIVE_ROOT messes with the collector, so we have to bring the path back
 // so we get the right path for the resources.
@@ -71,6 +73,8 @@ const kProvisionerEnabledPref = "mail.provider.enabled";
 const kSuggestFromNamePref = "mail.provider.suggestFromName";
 const kProviderListPref = "mail.provider.providerList";
 const kAcceptLangs = "intl.accept_languages";
+const kDefaultServerPort = 4444;
+const kDefaultServerRoot = "http://localhost:" + kDefaultServerPort;
 
 Services.prefs.setCharPref(kProviderListPref, url + "providerList");
 Services.prefs.setCharPref(kSuggestFromNamePref, url + "suggestFromName");
@@ -1019,4 +1023,108 @@ function test_return_to_provisioner_on_error_XML() {
   // form tab should have been closed.
   assert_equals(kOriginalTabNum, mc.tabmail.tabContainer.childNodes.length,
                 "Timed out waiting for the order form tab to close.");
+}
+
+/**
+ * Test that if we initiate a search, then the search input, the search button,
+ * and all checkboxes should be disabled. The ability to close the window should
+ * still be enabled though.
+ */
+function test_disabled_fields_when_searching() {
+  plan_for_modal_dialog("AccountCreation",
+                        subtest_disabled_fields_when_searching);
+  open_provisioner_window();
+  wait_for_modal_dialog("AccountCreation");
+}
+
+/**
+ * Subtest for test_disabled_fields_when_searching. Sets up a fake HTTP server
+ * that slowly returns a search suggestion, and then checks to ensure all the
+ * right fields are disabled (search input, search button, all check boxes).
+ * We also make sure those fields are renabled once the test is completed.
+ */
+function subtest_disabled_fields_when_searching(aController) {
+  const kSuggestPath = "/slowSuggest";
+  const kSearchMSeconds = 2000;
+  let timer;
+
+  function slow_results(aRequest, aResponse) {
+    aResponse.processAsync();
+    timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+    let result = [{
+      product: "personalized_email",
+      addresses: ["green@example.com", "green_llama@example.com"],
+      succeeded: true,
+      quote: "b28acb3c0a474d33af22",
+      price: 0,
+      provider: "bar"
+    }];
+    let timerEvent = {
+      notify: function(aTimer) {
+        aResponse.setStatusLine(null, 200, "OK");
+        aResponse.setHeader("Content-Type", "application/json");
+        aResponse.write(JSON.stringify(result));
+        aResponse.finish();
+      }
+    };
+    timer.initWithCallback(timerEvent, kSearchMSeconds,
+                           Ci.nsITimer.TYPE_ONE_SHOT);
+  }
+
+  // Set up a mock HTTP server to serve up a super slow search...
+  let server = httpd.getServer(kDefaultServerPort, '');
+  server.registerPathHandler(kSuggestPath, slow_results);
+  server.start(kDefaultServerPort);
+
+  // Now point our suggestFromName pref at that slow server.
+  let originalSuggest = Services.prefs.getCharPref(kSuggestFromNamePref);
+  Services.prefs.setCharPref(kSuggestFromNamePref,
+                             kDefaultServerRoot + kSuggestPath);
+
+  wait_for_provider_list_loaded(aController);
+  wait_for_search_ready(aController);
+
+  let doc = aController.window.document;
+  aController.e("name").focus();
+  input_value(aController, "Fone Bone");
+
+  aController.click(aController.eid("searchSubmit"));
+
+  // Our slow search has started. We have kSearchMSeconds milliseconds before
+  // the search completes. Plenty of time to check that the right things are
+  // disabled.
+  wait_for_element_enabled(aController, aController.e("searchSubmit"), false);
+  wait_for_element_enabled(aController, aController.e("name"), false);
+  let providerCheckboxes = doc.querySelectorAll(".providerCheckbox");
+
+  for (let [, checkbox] in Iterator(providerCheckboxes))
+    wait_for_element_enabled(aController, checkbox, false);
+
+  // Check to ensure that the buttons for switching to the wizard and closing
+  // the wizard are still enabled.
+  wait_for_element_enabled(aController, doc.querySelector(".close"), true);
+  wait_for_element_enabled(aController, doc.querySelector(".existing"), true);
+
+  // Ok, wait for the results to come through...
+  wait_for_search_results(aController);
+
+  wait_for_element_enabled(aController, aController.e("searchSubmit"), true);
+  wait_for_element_enabled(aController, aController.e("name"), true);
+
+  for (let [, checkbox] in Iterator(providerCheckboxes))
+    wait_for_element_enabled(aController, checkbox, true);
+
+  // Ok, cleanup time. Put the old suggest URL back.
+  Services.prefs.setCharPref(kSuggestFromNamePref, originalSuggest);
+
+  // The fake HTTP server stops asynchronously, so let's kick off the stop
+  // and wait for it to complete.
+  let serverStopped = false;
+  server.stop(function() {
+    serverStopped = true;
+  });
+  aController.waitFor(function() serverStopped,
+                      "Timed out waiting for the fake server to stop.");
+
+  close_dialog_immediately(aController);
 }

@@ -170,8 +170,10 @@ var EmailAccountProvisioner = {
   searchEnabled: function EAP_searchEnabled(aVal) {
     if (aVal) {
       $("#name").removeAttr("disabled");
+      $(".providerCheckbox").removeAttr("disabled");
     } else {
       $("#name").attr("disabled", "true");
+      $(".providerCheckbox").attr("disabled", "true");
     }
     this.searchButtonEnabled(aVal);
   },
@@ -588,6 +590,7 @@ var EmailAccountProvisioner = {
 
       let providerCheckbox = $('<input type="checkbox" />')
                              .val(provider.id)
+                             .addClass("providerCheckbox")
                              .attr("id", checkboxId);
 
       let providerEntry = $('<li class="provider" />')
