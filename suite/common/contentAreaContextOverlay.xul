@@ -82,6 +82,10 @@
                 label="&spellAddToDictionary.label;"
                 accesskey="&spellAddToDictionary.accesskey;"
                 oncommand="InlineSpellCheckerUI.addToDictionary();"/>
+      <menuitem id="spell-undo-add-to-dictionary"
+                label="&spellUndoAddToDictionary.label;"
+                accesskey="&spellUndoAddToDictionary.accesskey;"
+                oncommand="InlineSpellCheckerUI.undoAddToDictionary();"/>
       <menuitem id="spell-ignore-word"
                 label="&spellIgnoreWord.label;"
                 accesskey="&spellIgnoreWord.accesskey;"

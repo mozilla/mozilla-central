@@ -308,16 +308,19 @@ nsContextMenu.prototype = {
   initSpellingItems: function() {
     var canSpell = InlineSpellCheckerUI.canSpellCheck;
     var onMisspelling = InlineSpellCheckerUI.overMisspelling;
+    var showUndo = InlineSpellCheckerUI.enabled &&
+                   InlineSpellCheckerUI.canUndo();
     this.showItem("spell-check-enabled", canSpell);
     this.showItem("spell-separator", canSpell || this.possibleSpellChecking);
     if (canSpell)
       this.setItemAttr("spell-check-enabled", "checked", InlineSpellCheckerUI.enabled);
     this.showItem("spell-add-to-dictionary", onMisspelling);
+    this.showItem("spell-undo-add-to-dictionary", showUndo);
     this.showItem("spell-ignore-word", onMisspelling);
 
     // suggestion list
     this.showItem("spell-add-separator", onMisspelling);
-    this.showItem("spell-suggestions-separator", onMisspelling);
+    this.showItem("spell-suggestions-separator", onMisspelling || showUndo);
     if (onMisspelling) {
       var suggestionsSeparator = document.getElementById("spell-add-separator");
       var numsug = InlineSpellCheckerUI.addSuggestionsToMenu(suggestionsSeparator.parentNode, suggestionsSeparator, 5);
