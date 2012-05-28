@@ -1128,3 +1128,25 @@ function subtest_disabled_fields_when_searching(aController) {
 
   close_dialog_immediately(aController);
 }
+
+function test_search_button_disabled_if_no_lang_support() {
+  // Set the user's supported language to something ridiculous (caching the
+  // old one so we can put it back later).
+  let oldLangs = Services.prefs.getCharPref(kAcceptLangs);
+  Services.prefs.setCharPref(kAcceptLangs, "foo,bar,baz");
+
+  plan_for_modal_dialog("AccountCreation",
+                        subtest_search_button_disabled_if_no_lang_support);
+  open_provisioner_window();
+  wait_for_modal_dialog("AccountCreation");
+
+  Services.prefs.setCharPref(kAcceptLangs, oldLangs);
+}
+
+function subtest_search_button_disabled_if_no_lang_support(aController) {
+  wait_for_provider_list_loaded(aController);
+
+  // The search button should be disabled.
+  wait_for_element_enabled(aController, aController.e("searchSubmit"), false);
+  close_dialog_immediately(aController);
+}

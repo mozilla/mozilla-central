@@ -109,6 +109,7 @@ var EmailAccountProvisioner = {
   _storage: null,
   providers: {},
   _someProvidersChecked: false,
+  _hasSupportedLang: false,
   // These get passed in when creating the Account Provisioner window.
   NewMailAccount: window.arguments[0].NewMailAccount,
   NewComposeMessage: window.arguments[0].NewComposeMessage,
@@ -612,6 +613,8 @@ var EmailAccountProvisioner = {
         providerCheckbox.attr('checked', 'checked');
         providerEntry.css('display', 'inline-block');
         providerList.append(providerEntry);
+        // Ok, at least one provider supports the user's language.
+        EmailAccountProvisioner._hasSupportedLang = true;
       }
       else {
         providerEntry.addClass("otherLanguage");
@@ -634,6 +637,7 @@ var EmailAccountProvisioner = {
     EmailAccountProvisioner.populateTermsAndPrivacyLinks();
     EmailAccountProvisioner.beOnline();
     EmailAccountProvisioner._loadedProviders = true;
+    EmailAccountProvisioner.searchButtonEnabled(EmailAccountProvisioner._hasSupportedLang);
   },
 
   /**
