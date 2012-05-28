@@ -955,26 +955,24 @@ nsMsgComposeAndSend::GatherMimeAttachments()
       for (i = 0; i < m_attachment_count; i++)
       {
         //
+        // look for earlier part with the same content id. If we find it,
+        // need to remember the mapping between our node index and the
+        // part num of the earlier part.
+        PRInt32 nodeIndex = m_attachments[i].mNodeIndex;
+        if (nodeIndex != -1)
+        {
+          for (PRUint32 j = 0; j < i; j++)
+          {
+            if (m_attachments[j].mNodeIndex != -1 &&
+                m_attachments[j].m_contentId.Equals(m_attachments[i].m_contentId))
+              m_partNumbers[nodeIndex] = m_partNumbers[m_attachments[j].mNodeIndex];
+          }
+        }
         // rhp: This is here because we could get here after saying OK
         // to a lot of prompts about not being able to fetch this part!
         //
         if (m_attachments[i].mPartUserOmissionOverride)
-        {
-          // look for earlier part with the same content id. If we find it,
-          // need to remember the mapping between our node index and the
-          // part num of the earlier part.
-          PRInt32 nodeIndex = m_attachments[i].mNodeIndex;
-          if (nodeIndex != -1)
-          {
-            for (PRUint32 j = 0; j < i; j++)
-            {
-              if (m_attachments[j].mNodeIndex != -1 &&
-                  m_attachments[j].m_contentId.Equals(m_attachments[i].m_contentId))
-                m_partNumbers[nodeIndex] = m_partNumbers[m_attachments[j].mNodeIndex];
-            }
-          }
           continue;
-        }
 
         // Now, we need to add this part to the m_related_part member so the
         // message will be generated correctly.
