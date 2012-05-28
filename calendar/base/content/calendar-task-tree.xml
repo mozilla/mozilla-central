@@ -1185,18 +1185,38 @@
         ]]></body>
       </method>
 
+      <method name="doUpdateFilter">
+        <parameter name="aFilter"/>
+        <body><![CDATA[
+            let needsRefresh = false;
+            let oldStart = this.mFilter.mStartDate;
+            let oldEnd = this.mFilter.mEndDate;
+
+            if (aFilter) {
+                let props = this.mFilter.filterProperties;
+                this.mFilter.applyFilter(aFilter);
+                needsRefresh = !props || !props.equals(this.mFilter.filterProperties);
+            } else {
+                this.mFilter.updateFilterDates();
+            }
+
+            // we only need to refresh the tree if the filter properties or date range changed
+            if (needsRefresh ||
+                !((!oldStart && !this.mFilter.mStartDate) ||
+                  (oldStart && this.mFilter.mStartDate && oldStart.compare(this.mFilter.mStartDate) == 0)) ||
+                !((!oldEnd && !this.mFilter.mEndDate) ||
+                  (oldEnd && this.mFilter.mEndDate && oldEnd.compare(this.mFilter.mEndDate) == 0))) {
+                this.refresh();
+            }
+        ]]></body>
+      </method>
+
       <method name="updateFilter">
         <parameter name="aFilter"/>
         <body><![CDATA[
             this.mFilter.textFilterField = this.mTextFilterField;
 
-            if (aFilter) {
-                this.mFilter.applyFilter(aFilter);
-            } else {
-                this.mFilter.updateFilterDates();
-            }
-
-            this.refresh();
+            this.doUpdateFilter(aFilter);
         ]]></body>
       </method>
 
@@ -1304,13 +1324,7 @@
             this.mFilter.selectedDate = agendaListbox.today && agendaListbox.today.start ? 
                                         agendaListbox.today.start : now();
 
-            if (aFilter) {
-                this.mFilter.applyFilter(aFilter);
-            } else {
-                this.mFilter.updateFilterDates();
-            }
-
-            this.refresh();
+            this.doUpdateFilter(aFilter);
         ]]></body>
       </method>
     </implementation>    
