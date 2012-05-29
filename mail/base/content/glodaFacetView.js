@@ -832,23 +832,26 @@ var FacetContext = {
   /**
    * Show the conversation in a new glodaList tab.
    *
-   * @param {GlodaConversation} aConversation The conversation to show.
+   * @param {glodaFacetBindings.xml#result-message} aResultMessage The
+   *     result the user wants to see in more details.
    * @param {Boolean} [aBackground] Whether it should be in the background.
    */
-  showConversationInTab: function(aMessage, aBackground) {
+  showConversationInTab: function(aResultMessage, aBackground) {
     let tabmail = this.rootWin.document.getElementById("tabmail");
-    if (aMessage instanceof Gloda.lookupNounDef("im-conversation").clazz) {
+    let message = aResultMessage.message;
+    if (message instanceof Gloda.lookupNounDef("im-conversation").clazz) {
       tabmail.openTab("chat", {
         convType: "log",
-        conv: aMessage,
+        conv: message,
+        searchTerm: aResultMessage.firstMatchText,
         background: aBackground
       });
       return;
     }
     tabmail.openTab("glodaList", {
-      conversation: aMessage.conversation,
-      message: aMessage,
-      title: aMessage.conversation.subject,
+      conversation: message.conversation,
+      message: message,
+      title: message.conversation.subject,
       background: aBackground
     });
   },

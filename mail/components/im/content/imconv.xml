@@ -205,8 +205,14 @@
         let list = this.parentNode;
         if (list.selectedItem == this)
           list.selectedItem = this.previousSibling;
-        list.removeChild(this);
-        delete this.conv;
+        if (this.log) {
+          this.hidden = true;
+          delete this.log;
+        }
+        else {
+          list.removeChild(this);
+          delete this.conv;
+        }
       ]]>
       </body>
      </method>

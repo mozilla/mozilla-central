@@ -88,8 +88,16 @@ var chatTabType = {
 
     let item = document.getElementById("searchResultConv");
     item.log = aArgs.conv;
+    if (aArgs.searchTerm)
+      item.searchTerm = aArgs.searchTerm;
+    else
+      delete item.searchTerm;
     item.hidden = false;
-    document.getElementById("contactlistbox").selectedItem = item;
+    item.shouldDisplayConversation = true;
+    if (item.selected)
+      chatHandler.onListItemSelected();
+    else
+      document.getElementById("contactlistbox").selectedItem = item;
   },
   openTab: function(aTab, aArgs) {
     if (!document.getElementById("conversationsGroup").nextSibling.localName == "imconv") {
@@ -278,21 +286,25 @@ var chatHandler = {
   },
 
   _pendingLogBrowserLoad: false,
-  _showLog: function(aLog) {
+  _showLogPanel: function() {
     document.getElementById("conversationsDeck").selectedPanel =
       document.getElementById("logDisplay");
     document.getElementById("logDisplayDeck").selectedPanel =
       document.getElementById("logDisplayBrowserBox");
-    let conv = aLog.getConversation();
+  },
+  _showLog: function(aConversation, aSearchTerm) {
+    this._showLogPanel();
     let browser = document.getElementById("conv-log-browser");
+    browser._autoScrollEnabled = false;
     if (this._pendingLogBrowserLoad) {
-      browser._conv = conv;
-      return conv;
+      browser._conv = aConversation;
+      return;
     }
-    browser.init(conv);
+    browser.init(aConversation);
     this._pendingLogBrowserLoad = true;
+    if (aSearchTerm)
+      this._pendingSearchTerm = aSearchTerm;
     Services.obs.addObserver(this, "conversation-loaded", false);
-    return conv;
   },
   _makeFriendlyDate: function(aDate) {
     let dts = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
@@ -353,7 +365,11 @@ var chatHandler = {
     let list = document.getElementById("contactlistbox");
     if (list.selectedItem.getAttribute("id") != "searchResultConv")
       document.getElementById("goToConversation").hidden = false;
-    this._showLog(log);
+    let path = log.path;
+    if (this._displayedLog != path) {
+      this._displayedLog = path;
+      this._showLog(log.getConversation());
+    }
   },
 
   _contactObserver: {
@@ -444,10 +460,13 @@ var chatHandler = {
       let path = "logs/" + item.log.path;
       let file = FileUtils.getFile("ProfD", path.split("/"));
       let log = imServices.logs.getLogFromFile(file);
-      let button = document.getElementById("goToConversation");
-      button.hidden = true;
-      let conv = this._showLog(log);
-
+      document.getElementById("goToConversation").hidden = true;
+      document.getElementById("contextPane").removeAttribute("chat");
+      let conv = log.getConversation();
+      if (item.shouldDisplayConversation) {
+        this._displayedLog = log.path;
+        this._showLog(conv, item.searchTerm || undefined);
+      }
       let cti = document.getElementById("conv-top-info");
       cti.setAttribute("displayName", conv.title);
       cti.removeAttribute("userIcon");
@@ -457,16 +476,23 @@ var chatHandler = {
       cti.removeAttribute("statusTypeTooltiptext");
 
       let logs = this._showLogList(imServices.logs.getSimilarLogs(log));
-      let time = log.time;
-      let list = document.getElementById("logList");
-      let logItem = list.firstChild;
-      while (logItem) {
-        if (logItem.log.time == time) {
-          list.selectedItem = logItem;
-          break;
+      if (item.shouldDisplayConversation) {
+        let time = log.time;
+        let list = document.getElementById("logList");
+        let logItem = list.firstChild;
+        while (logItem) {
+          if (logItem.log.time == time) {
+            list.selectedItem = logItem;
+            break;
+          }
+          logItem = logItem.nextSibling;
         }
-        logItem = logItem.nextSibling;
+        delete item.shouldDisplayConversation;
       }
+      else {
+        this._showLogPanel();
+      }
+
       this.observedContact = null;
     }
     else if (item.localName == "imconv") {
@@ -674,6 +700,21 @@ var chatHandler = {
         browser.appendMessage(msg);
       }
 
+      if (this._pendingSearchTerm) {
+        let findbar = document.getElementById("log-findbar");
+        let findField = findbar._findField;
+        findField.value = this._pendingSearchTerm;
+        findbar.open();
+        findField.focus();
+        delete this._pendingSearchTerm;
+        let eventListener = function() {
+          findbar.onFindAgainCommand();
+          if (findbar._findField.getAttribute("status") != "notfound" ||
+              !browser._messageDisplayPending)
+            browser.removeEventListener("MessagesDisplayed", eventListener);
+        };
+        browser.addEventListener("MessagesDisplayed", eventListener);
+      }
       delete this._pendingLogBrowserLoad;
       Services.obs.removeObserver(this, "conversation-loaded");
       return;      

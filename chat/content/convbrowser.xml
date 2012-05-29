@@ -337,6 +337,9 @@
                 this.progressBar.max = max;
                 this.progressBar.value = this._nextPendingMessageIndex;
               }
+              let event = document.createEvent("UIEvents");
+              event.initUIEvent("MessagesDisplayed", false, false, window, 0);
+              this.dispatchEvent(event);
               Services.tm.mainThread.dispatch(this.displayPendingMessages.bind(this),
                                               Ci.nsIEventTarget.DISPATCH_NORMAL);
               return;

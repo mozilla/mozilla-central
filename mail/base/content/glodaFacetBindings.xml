@@ -1553,14 +1553,14 @@
         let subject = anonElem("subject");
         // -- eventify
         subject.onclick = function(aEvent) {
-          FacetContext.showConversationInTab(message,
+          FacetContext.showConversationInTab(this,
                                              aEvent.button == 1);
-        }
+        }.bind(this);
         subject.onkeypress = function(aEvent) {
           if (aEvent.keyCode == aEvent.DOM_VK_RETURN)
-            FacetContext.showConversationInTab(message,
+            FacetContext.showConversationInTab(this,
                                                aEvent.shiftKey == true);
-        }
+        }.bind(this);
 
         // -- Content Poking
         if (message.subject.trim() == "")
@@ -1768,6 +1768,8 @@
             offset += match[0] + match[1] - offset;
             let span = document.createElement("span");
             span.textContent = secondNode.data;
+            if (!this.firstMatchText)
+              this.firstMatchText = secondNode.data;
             span.setAttribute("class", "message-body-fulltext-match");
             parent.replaceChild(span, secondNode);
           }

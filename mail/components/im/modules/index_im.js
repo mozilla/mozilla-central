@@ -115,7 +115,7 @@ GlodaIMConversation.prototype = {
   get from() {
     if (!this._from) {
       let from = "";
-      let account = this._account;
+      let account = this.account;
       if (account)
         from = account.incomingServer.wrappedJSObject.imAccount.protocol.name;
       this._from = {value: "", contact: {name: from}};
