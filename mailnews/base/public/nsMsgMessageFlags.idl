@@ -39,6 +39,9 @@ interface nsMsgMessageFlags
   /// The children of this sub-thread are folded in the display
   const nsMsgMessageFlagType Elided          = 0x00000020;
 
+  /// The message is a feed, originally downloaded in a server.type=rss account
+  const nsMsgMessageFlagType FeedMsg         = 0x00000040;
+
   /// This news article or IMAP message is present in the disk cache
   const nsMsgMessageFlagType Offline         = 0x00000080;
 

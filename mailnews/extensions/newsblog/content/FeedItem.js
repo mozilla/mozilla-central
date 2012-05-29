@@ -380,7 +380,8 @@ FeedItem.prototype =
     msgFolder.gettingNewMessages = true;
     // Source is a unicode string, we want to save a char * string in
     // the original charset. So convert back.
-    folder.addMessage(this.mUnicodeConverter.ConvertFromUnicode(source));
+    let msgDBHdr = folder.addMessage(this.mUnicodeConverter.ConvertFromUnicode(source));
+    msgDBHdr.OrFlags(Ci.nsMsgMessageFlags.FeedMsg);
     msgFolder.gettingNewMessages = false;
   },
 
