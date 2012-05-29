@@ -17,4 +17,4 @@ pref("app.update.promptWaitTime", 86400);
 
 pref("app.vendorURL", "http://www.mozillamessaging.com/%LOCALE%/%APP%/");
 
-pref("browser.search.param.ms-pc", "MOZI");
+pref("browser.search.param.ms-pc", "MOZT");
