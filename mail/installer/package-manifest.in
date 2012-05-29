@@ -25,6 +25,7 @@
 @APPNAME@/Contents/Info.plist
 @APPNAME@/Contents/PkgInfo
 @APPNAME@/Contents/Resources/
+@APPNAME@/Contents/_CodeSignature/CodeResources
 @APPNAME@/Contents/Library/
 #endif
 
