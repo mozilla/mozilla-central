@@ -108,15 +108,15 @@ p {
   line-height: 20px;
 }
 
-.nick {
+p.nick {
   font-weight: bold;
 }
 
-.action {
+p.action {
   font-style: italic;
 }
 
-.action:before {
+p.action:before {
   content: "*** ";
 }
 
