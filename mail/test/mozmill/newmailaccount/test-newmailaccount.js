@@ -143,8 +143,13 @@ function nAccounts() {
  * this test is split over 3 functions, and uses a global gNumAccounts.  The
  * three functions are "test_get_an_account", "subtest_get_an_account",
  * and "subtest_get_an_account_part_2".
+ *
+ * @param aCloseAndRestore a boolean for whether or not we should close and
+ *                         restore the Account Provisioner tab before filling
+ *                         in the form. Defaults to false.
  */
-function test_get_an_account() {
+function test_get_an_account(aCloseAndRestore) {
+  let originalEngine = Services.search.currentEngine;
   // Open the provisioner - once opened, let subtest_get_an_account run.
   plan_for_modal_dialog("AccountCreation", subtest_get_an_account);
   open_provisioner_window();
@@ -159,6 +164,17 @@ function test_get_an_account() {
   });
 
   let tab = mc.tabmail.currentTabInfo;
+
+  if (aCloseAndRestore) {
+    // Close the account provisioner tab, and then restore it...
+    mc.tabmail.closeTab(mc.tabmail.currentTabInfo);
+    mc.tabmail.undoCloseTab();
+    // Wait for the page to be loaded again...
+    wait_for_content_tab_load(undefined, function (aURL) {
+      return aURL.host == "localhost";
+    });
+    tab = mc.tabmail.currentTabInfo;
+  }
 
   // Record how many accounts we start with.
   gNumAccounts = nAccounts();
@@ -182,6 +198,10 @@ function test_get_an_account() {
   // Make sure we set the default search engine
   let engine = Services.search.getEngineByName("bar");
   assert_equals(engine, Services.search.currentEngine);
+
+  // Restore the original search engine.
+  Services.search.currentEngine = originalEngine;
+  remove_email_account("green@example.com");
 }
 
 /**
@@ -233,6 +253,14 @@ function subtest_get_an_account_part_2(w) {
 
   // Then click "Finish"
   mc.click(w.eid("closeWindow"));
+}
+
+/**
+ * Runs test_get_an_account again, but this time, closes and restores the
+ * order form tab before submitting it.
+ */
+function test_restored_ap_tab_works() {
+  test_get_an_account(true);
 }
 
 /**

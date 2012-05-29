@@ -73,6 +73,7 @@ function installInto(module) {
   module.wait_for_search_results = wait_for_search_results;
   module.gConsoleListener = gConsoleListener;
   module.wait_to_be_offline = wait_to_be_offline;
+  module.remove_email_account = remove_email_account;
 }
 
 /* Wait until the list of providers is loaded and displayed.
@@ -185,6 +186,21 @@ function wait_to_be_offline(w) {
     return w.window.$("#cannotConnectMessage").is(":visible");
   }, "Timed out waiting for the account provisioner to be in "
     + "offline mode.");
+}
+
+/**
+ * Remove an account with address aAddress from the current profile.
+ *
+ * @param aAddress the email address to try to remove.
+ */
+function remove_email_account(aAddress) {
+  for each (let account in fixIterator(MailServices.accounts.accounts,
+                                       Ci.nsIMsgAccount)) {
+    if (account.defaultIdentity.email == aAddress) {
+      MailServices.accounts.removeAccount(account);
+      break;
+    }
+  }
 }
 
 /* A listener for the Error Console, which allows us to ensure that certain

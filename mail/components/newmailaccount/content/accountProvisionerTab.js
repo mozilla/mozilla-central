@@ -13,6 +13,8 @@ Cu.import("resource:///modules/gloda/log4moz.js");
  * A content tab for the account provisioner.  We use Javascript-y magic to
  * "subclass" specialTabs.contentTabType, and then override the appropriate
  * members.
+ *
+ * Also note that accountProvisionerTab is a singleton (hence the maxTabs: 1).
  */
 let accountProvisionerTabType = Object.create(specialTabs.contentTabType, {
   name: {value: "accountProvisionerTab"},
@@ -35,6 +37,12 @@ accountProvisionerTabType.openTab = function(aTab, aArgs) {
   aArgs.clickHandler = "accountProvisionerTabType.clickHandler(event);";
   specialTabs.contentTabType.openTab.call(this, aTab, aArgs);
 
+  // Since there's only one tab of this type ever (see the mode definition),
+  // we're OK to stash this stuff here.
+  this._realName = aArgs.realName;
+  this._email = aArgs.email;
+  this._searchEngine = aArgs.searchEngine || "";
+
   this._setMonitoring(aTab.browser, aArgs.realName, aArgs.email,
                       aArgs.searchEngine);
 }
@@ -49,7 +57,33 @@ accountProvisionerTabType.closeTab = function(aTab) {
   this._log.info("Performing account provisioner cleanup");
   this._log.info("Removing httpRequestObserver");
   Services.obs.removeObserver(this._observer, "http-on-examine-response");
+  delete this._observer;
   this._log.info("Account provisioner cleanup is done.");
+}
+
+/**
+ * Serialize our tab into something we can restore later.
+ */
+accountProvisionerTabType.persistTab = function(aTab) {
+  return {
+    tabURI: aTab.browser.currentURI.spec,
+    realName: this._realName,
+    email: this._email,
+    searchEngine: this._searchEngine
+  };
+}
+
+/**
+ * Re-open the accountProvisionerTab with all of the stuff we stashed in
+ * persistTab. This will automatically hook up our monitoring again.
+ */
+accountProvisionerTabType.restoreTab = function(aTabmail, aPersistedState) {
+  aTabmail.openTab("accountProvisionerTab",
+                   { contentPage: aPersistedState.tabURI,
+                     realName: aPersistedState.realName,
+                     email: aPersistedState.email,
+                     searchEngine: aPersistedState.searchEngine,
+                     background: true } );
 }
 
 /**
