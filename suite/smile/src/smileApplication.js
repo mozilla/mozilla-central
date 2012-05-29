@@ -122,6 +122,8 @@ function Window(aWindow) {
   this._events = new Events();
   this._cleanup = {};
 
+  // Define '_event()' as bound once for all.
+  this._event = this.__event.bind(this);
   this._watch("TabOpen");
   this._watch("TabMove");
   this._watch("TabClose");
@@ -141,14 +143,14 @@ Window.prototype = {
    */
   _watch : function win_watch(aType) {
     this._tabbrowser.tabContainer.addEventListener(aType,
-      this._cleanup[aType] = this._event.bind(this),
+      this._cleanup[aType] = this._event,
       true);
   },
 
   /*
    * Helper event callback used to redirect events made on the XBL element
    */
-  _event : function win_event(aEvent) {
+  __event : function win_event(aEvent) {
     this._events.dispatch(aEvent.type, new BrowserTab(this, aEvent.originalTarget));
   },
 
@@ -192,6 +194,8 @@ function BrowserTab(aSMILEWindow, aTab) {
   this._events = new Events();
   this._cleanup = {};
 
+  // Define '_event()' as bound once for all.
+  this._event = this.__event.bind(this);
   this._watch("load");
 
   gShutdown.push(this._shutdown.bind(this));
@@ -228,14 +232,14 @@ BrowserTab.prototype = {
    */
   _watch : function bt_watch(aType) {
     this._browser.addEventListener(aType,
-      this._cleanup[aType] = this._event.bind(this),
+      this._cleanup[aType] = this._event,
       true);
   },
 
   /*
    * Helper event callback used to redirect events made on the XBL element
    */
-  _event : function bt_event(aEvent) {
+  __event : function bt_event(aEvent) {
     if (aEvent.type == "load") {
       if (!(aEvent.originalTarget instanceof Components.interfaces.nsIDOMDocument))
         return;
