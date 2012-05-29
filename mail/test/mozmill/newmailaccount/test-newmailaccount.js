@@ -218,7 +218,8 @@ function subtest_get_an_account(w) {
 
   // Fill in some data
   let $ = w.window.$;
-  $("#name").val("Green Llama");
+  type_in_search_name(w, "Green Llama");
+
   $("#searchSubmit").click();
   wait_for_search_results(w);
 
@@ -435,7 +436,7 @@ function subtest_persist_name_in_search_field(w) {
   let $ = w.window.$;
 
   // Type a name into the search field
-  $("#name").val(NAME);
+  type_in_search_name(w, NAME);
 
   // Do a search
   $("#searchSubmit").click();
@@ -481,7 +482,7 @@ function subtest_html_characters_and_ampersands(w) {
   // Type a name with some HTML tags and an ampersand in there
   // to see if we can trip up account provisioner.
   const CLEVER_STRING = "<i>Hey, I'm ''clever &\"\" smart!<!-- Ain't I a stinkah? --></i>";
-  $("#name").val(CLEVER_STRING);
+  type_in_search_name(w, CLEVER_STRING);
 
   // Do the search.
   $("#searchSubmit").click();
@@ -597,7 +598,7 @@ function subtest_shows_error_on_bad_suggest_from_name(w) {
   wait_for_search_ready(w);
   let $ = w.window.$;
 
-  $("#name").val("Boston Low");
+  type_in_search_name(w, "Boston Low");
 
   // Do the search.
   $("#searchSubmit").click();
@@ -629,7 +630,7 @@ function subtest_shows_error_on_empty_suggest_from_name(w) {
   wait_for_search_ready(w);
   let $ = w.window.$;
 
-  $("#name").val("Maggie Robbins");
+  type_in_search_name(w, "Maggie Robbins");
 
   // Do the search.
   $("#searchSubmit").click();
@@ -763,8 +764,7 @@ function subtest_search_button_disabled_cases(w) {
   // Case 2:  Search input has text, some providers selected
 
   // Put something into the search input
-  searchInput.getNode().focus();
-  input_value(w, "Dexter Morgan");
+  type_in_search_name(w, "Dexter Morgan");
 
   // We already have at least one provider checked from the last case, so
   // the search submit button should become enabled
@@ -934,7 +934,8 @@ function sub_get_to_order_form(aController, aAddress) {
 
   // Fill in some data
   let $ = aController.window.$;
-  $("#name").val("Joe Nobody");
+  type_in_search_name(aController, "Joe Nobody");
+
   $("#searchSubmit").click();
   wait_for_search_results(aController);
 
@@ -1113,8 +1114,7 @@ function subtest_disabled_fields_when_searching(aController) {
   wait_for_search_ready(aController);
 
   let doc = aController.window.document;
-  aController.e("name").focus();
-  input_value(aController, "Fone Bone");
+  type_in_search_name(aController, "Fone Bone");
 
   aController.click(aController.eid("searchSubmit"));
 
@@ -1157,6 +1157,10 @@ function subtest_disabled_fields_when_searching(aController) {
   close_dialog_immediately(aController);
 }
 
+/**
+ * Tests that the search button is disabled if there is no initially
+ * supported language for the user.
+ */
 function test_search_button_disabled_if_no_lang_support() {
   // Set the user's supported language to something ridiculous (caching the
   // old one so we can put it back later).
@@ -1164,19 +1168,49 @@ function test_search_button_disabled_if_no_lang_support() {
   Services.prefs.setCharPref(kAcceptLangs, "foo,bar,baz");
 
   plan_for_modal_dialog("AccountCreation",
-                        subtest_search_button_disabled_if_no_lang_support);
+                        subtest_search_button_disabled_on_init);
   open_provisioner_window();
   wait_for_modal_dialog("AccountCreation");
 
   Services.prefs.setCharPref(kAcceptLangs, oldLangs);
 }
 
-function subtest_search_button_disabled_if_no_lang_support(aController) {
+/**
+ * Subtest used by several functions that checks to make sure that the
+ * search button is disabled when the Account Provisioner dialog  is opened.
+ */
+function subtest_search_button_disabled_on_init(aController) {
   wait_for_provider_list_loaded(aController);
 
   // The search button should be disabled.
   wait_for_element_enabled(aController, aController.e("searchSubmit"), false);
   close_dialog_immediately(aController);
+}
+
+/**
+ * Tests that the search button is disabled if we start up the Account
+ * Provisioner, and we have no search in the input.
+ */
+function test_search_button_disabled_if_no_query_on_init() {
+  // We have to do a little bit of gymnastics to access the local storage
+  // for the accountProvisioner dialog...
+  let url = "chrome://content/messenger/accountProvisionerStorage/accountProvisioner";
+  let ssm = Cc["@mozilla.org/scriptsecuritymanager;1"]
+    .getService(Ci.nsIScriptSecurityManager);
+  let dsm = Cc["@mozilla.org/dom/storagemanager;1"]
+    .getService(Ci.nsIDOMStorageManager);
+
+  let uri = Services.io.newURI(url, "", null);
+  let principal = ssm.getCodebasePrincipal(uri);
+  let storage = dsm.getLocalStorageForPrincipal(principal, url);
+
+  // Ok, got it. Now let's blank out the name.
+  storage.setItem("name", "");
+
+  plan_for_modal_dialog("AccountCreation",
+                        subtest_search_button_disabled_on_init);
+  open_provisioner_window();
+  wait_for_modal_dialog("AccountCreation");
 }
 
 /**

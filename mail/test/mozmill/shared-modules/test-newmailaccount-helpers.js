@@ -45,7 +45,7 @@ const RELATIVE_ROOT = "../shared-modules";
 const MODULE_REQUIRES = ['folder-display-helpers'];
 
 var elib = {};
-var mc, fdh;
+var mc, fdh, kbh;
 
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
 Cu.import('resource://gre/modules/Services.jsm');
@@ -55,7 +55,7 @@ Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 function setupModule(module) {
   fdh = collector.getModule('folder-display-helpers');
   fdh.installInto(module);
-
+  kbh = collector.getModule('keyboard-helpers');
   mc = fdh.mc;
 }
 
@@ -74,6 +74,7 @@ function installInto(module) {
   module.gConsoleListener = gConsoleListener;
   module.wait_to_be_offline = wait_to_be_offline;
   module.remove_email_account = remove_email_account;
+  module.type_in_search_name = type_in_search_name;
 }
 
 /* Wait until the list of providers is loaded and displayed.
@@ -91,9 +92,9 @@ function wait_for_provider_list_loaded(aController) {
 function wait_for_search_ready(aController) {
   mc.waitFor(function() {
     mc.sleep(0);
-    return aController.window.$("#searchSubmit").is(":enabled");
+    return aController.window.$("#name").is(":enabled");
   },
-            "Timed out waiting for the search fields to be enabled");
+            "Timed out waiting for the search input field to be enabled");
 }
 
 /* Wait for a particular element to become fully visible.  Assumes that
@@ -201,6 +202,21 @@ function remove_email_account(aAddress) {
       break;
     }
   }
+}
+
+/**
+ * Helper function that finds the search input, clears it of any content,
+ * and then manually types aName into the field.
+ *
+ * @param aController the controller for the Account Provisioner dialog.
+ * @param aName the name to type in.
+ */
+function type_in_search_name(aController, aName) {
+  aController.e("name").focus();
+  aController.keypress(null, 'a', {accelKey: true});
+  aController.keypress(null, 'VK_BACK_SPACE', {});
+
+  kbh.input_value(aController, aName);
 }
 
 /* A listener for the Error Console, which allows us to ensure that certain
