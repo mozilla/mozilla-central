@@ -147,7 +147,7 @@ nsresult nsMsgMaildirStore::AddSubFolders(nsIMsgFolder *parent, nsIFile *path,
       }
     }
   }
-  return rv;
+  return rv == NS_MSG_FOLDER_EXISTS ? NS_OK : rv;
 }
 
 NS_IMETHODIMP nsMsgMaildirStore::DiscoverSubFolders(nsIMsgFolder *aParentFolder,
@@ -196,7 +196,7 @@ NS_IMETHODIMP nsMsgMaildirStore::DiscoverSubFolders(nsIMsgFolder *aParentFolder,
       NS_ENSURE_SUCCESS(rv, rv);
     }
   }
-  return rv;
+  return (rv == NS_MSG_FOLDER_EXISTS) ? NS_OK : rv;
 }
 
 /**

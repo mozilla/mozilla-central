@@ -118,10 +118,8 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::DiscoverSubFolders(nsIMsgFolder *aParentFolder,
 
     // now, discover those folders
     rv = AddSubFolders(aParentFolder, path, aDeep);
-    if (NS_FAILED(rv))
-      return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    bool createdDefaultMailboxes = false;
     nsCOMPtr<nsILocalMailIncomingServer> localMailServer;
 
     if (isServer)
@@ -134,12 +132,12 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::DiscoverSubFolders(nsIMsgFolder *aParentFolder,
 
       // first create the folders on disk (as empty files)
       rv = localMailServer->CreateDefaultMailboxes(path);
-      NS_ENSURE_SUCCESS(rv, rv);
-      createdDefaultMailboxes = true;
+      if (NS_FAILED(rv) && rv != NS_MSG_FOLDER_EXISTS)
+        return rv;
+
       // now, discover those folders
       rv = AddSubFolders(aParentFolder, path, aDeep);
-      if (NS_FAILED(rv))
-        return rv;
+      NS_ENSURE_SUCCESS(rv, rv);
       
       rv = localMailServer->SetFlagsOnDefaultMailboxes();
       if (NS_FAILED(rv))
@@ -1136,7 +1134,7 @@ nsMsgBrkMBoxStore::AddSubFolders(nsIMsgFolder *parent, nsIFile *path,
       }
     }
   }
-  return rv;
+  return rv == NS_MSG_FOLDER_EXISTS ? NS_OK : rv;
 }
 
 /* Finds the directory associated with this folder.  That is if the path is
