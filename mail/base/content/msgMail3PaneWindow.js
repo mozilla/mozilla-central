@@ -332,14 +332,30 @@ const MailPrefObserver = {
  */
 function AutoConfigWizard(okCallback)
 {
+  let suppressDialogs = false;
+
+  // Try to get the suppression pref that we stashed away in accountProvisionerTab.js.
+  // If it doesn't exist, nsIPrefBranch throws, so we eat it silently and move along.
+  try {
+    suppressDialogs = Services.prefs.getBoolPref("mail.provider.suppress_dialog_on_startup");
+  } catch(e) {};
+
+  if (suppressDialogs) {
+    // Looks like we were in the middle of filling out an account form. We
+    // won't display the dialogs in that case.
+    Services.prefs.clearUserPref("mail.provider.suppress_dialog_on_startup");
+    okCallback();
+    return;
+  }
+
   if (gPrefBranch.getBoolPref("mail.provider.enabled")) {
     // We need to let the event loop pump a little so that the 3pane finishes
-    // opening - so we use setTimeout. The 100ms is a bit arbitrary, but seems
+    // opening - so we use setTimeout. The 200ms is a bit arbitrary, but seems
     // to be enough time to let the 3pane do it's thing, and not pull focus
     // when the Account Provisioner modal window closes.
     setTimeout(function() {
       NewMailAccountProvisioner(msgWindow, { okCallback: okCallback });
-    }, 100);
+    }, 200);
   }
   else
     NewMailAccount(msgWindow, okCallback);
@@ -614,6 +630,7 @@ function FindOther3PaneWindow()
  */
 function OnUnloadMessenger()
 {
+  Services.obs.notifyObservers(window, "mail-unloading-messenger", null);
   accountManager.removeIncomingServerListener(gThreePaneIncomingServerListener);
   gPrefBranch.removeObserver("mail.pane_config.dynamic", MailPrefObserver);
   gPrefBranch.removeObserver("mail.showCondensedAddresses", MailPrefObserver);

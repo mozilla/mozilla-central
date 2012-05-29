@@ -57,6 +57,7 @@ accountProvisionerTabType.closeTab = function(aTab) {
   this._log.info("Performing account provisioner cleanup");
   this._log.info("Removing httpRequestObserver");
   Services.obs.removeObserver(this._observer, "http-on-examine-response");
+  Services.obs.removeObserver(this.quitObserver, "mail-unloading-messenger", false);
   delete this._observer;
   this._log.info("Account provisioner cleanup is done.");
 }
@@ -108,6 +109,7 @@ accountProvisionerTabType._setMonitoring = function(aBrowser, aRealName,
   // Register our observer
   Services.obs.addObserver(this._observer, "http-on-examine-response",
                            false);
+  Services.obs.addObserver(this.quitObserver, "mail-unloading-messenger", false);
 
   this._log.info("httpRequestObserver wired up.");
 }
@@ -134,4 +136,24 @@ accountProvisionerTabType.clickHandler = function(aEvent) {
   }
 
   return false;
+}
+
+/**
+ * This observer listens for the mail-unloading-messenger event fired by each
+ * mail window before they unload. If the mail window is the same window that
+ * this accountProvisionerTab belongs to, then we stash a pref so that when
+ * the session restarts, we go straight to the tab, as opposed to showing the
+ * dialog again.
+ */
+accountProvisionerTabType.quitObserver = {
+  observe: function(aSubject, aTopic, aData) {
+    // Make sure we saw the right topic, and that the window that is closing
+    // is the 3pane window that the accountProvisionerTab belongs to.
+    if (aTopic == "mail-unloading-messenger" && (aSubject === window)) {
+      // We quit while the accountProvisionerTab was opened. Set our sneaky
+      // pref so that we suppress the dialog on startup.
+      Services.prefs.setBoolPref("mail.provider.suppress_dialog_on_startup",
+                                 true);
+    }
+  }
 }
