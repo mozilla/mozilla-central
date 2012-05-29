@@ -40,16 +40,14 @@ function LOG(aStr) {};
 function test_tryNewNick() {
   for (let currentNick in testData) {
     let account = {
-      _nickname: null,
       maxNicknameLength: 9,
-      // Dummy function.
-      sendMessage: function(aCommand, aNewNick) {}
+      sendMessage: function(aCommand, aNewNick) {
+        do_check_eq(aNewNick, testData[currentNick]);
+      }
     };
     let message = {params: [null, currentNick]};
 
     ircBase.tryNewNick(account, message);
-
-    do_check_eq(account._nickname, testData[currentNick]);
   }
 
   run_next_test();
