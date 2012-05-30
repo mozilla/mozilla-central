@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 /*
  * This file wants to be a data file of some sort.  It might do better as a real
  *  raw JSON file.  It is trying to be one right now, but it obviously is not.

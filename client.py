@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 
 # Warning, this file must be compatible with Python 2.4, for our
 # various tools, such as http://mxr.mozilla.org/ see-also: Bug 601207

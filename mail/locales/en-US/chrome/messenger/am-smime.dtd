@@ -1,3 +1,7 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
 <!ENTITY securityTitle.label "Security">
 <!ENTITY securityTab.label "Security">
 <!ENTITY securityHeading.label "To send and receive signed or encrypted messages, you should specify both a digital signing certificate and an encryption certificate.">

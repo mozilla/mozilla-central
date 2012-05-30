@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 /* The following are used by both syncSetup.xul and syncGenericChange.xul */
 .statusIcon {
   -moz-margin-start: 4px;

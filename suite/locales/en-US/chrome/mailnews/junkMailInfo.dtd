@@ -1,3 +1,7 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
 <!ENTITY window.title  "About Junk Mail">
 <!ENTITY window.width  "450">
 <!ENTITY info1a.label  "Mail automatically detects incoming messages that appear to be junk mail (also known as spam). Messages that Mail thinks are junk will display a junk icon">

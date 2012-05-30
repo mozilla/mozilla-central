@@ -1,3 +1,7 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
 <!ENTITY pref.findAsYouType.title "Find As You Type">
 <!ENTITY findAsYouTypeBehavior.label "Find As You Type">
 <!ENTITY findAsYouTypeTip.label "Tip: To manually start Find As You Type, type / to find text or ' to find links, followed by the text you want to find.">
