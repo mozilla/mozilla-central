@@ -67,7 +67,7 @@ function run_test()
                   .createInstance(Components.interfaces.nsIMimeHeaders);
 
   for (let i = 0; i < headers.length; i++) {
-    mimeHdr.initialize(headers[i].header, headers[i].header.length);
+    mimeHdr.initialize(headers[i].header);
     let receivedHeader = mimeHdr.extractHeader("Content-Type", false);
 
     dump("\nTesting Content-Type: " + receivedHeader + " == " + headers[i].result + "\n");

@@ -274,7 +274,7 @@ let SearchIntegration =
         let headers = this._message.split(/\r\n\r\n|\r\r|\n\n/, 1)[0];
         let mimeHeaders = Cc["@mozilla.org/messenger/mimeheaders;1"]
                             .createInstance(Ci.nsIMimeHeaders);
-        mimeHeaders.initialize(headers, headers.length);
+        mimeHeaders.initialize(headers);
         let receivedHeader = mimeHeaders.extractHeader("Received", false);
 
         this._outputStream.writeString("From: " + this._msgHdr.author + CRLF);

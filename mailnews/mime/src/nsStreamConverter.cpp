@@ -1045,7 +1045,8 @@ nsStreamConverter::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresul
         if (NS_SUCCEEDED(rv))
         {
           if (*workHeaders)
-            mimeHeaders->Initialize((*workHeaders)->all_headers, (*workHeaders)->all_headers_fp);
+            mimeHeaders->Initialize(Substring((*workHeaders)->all_headers,
+              (*workHeaders)->all_headers_fp));
           mMimeStreamConverterListener->OnHeadersReady(mimeHeaders);
         }
         else

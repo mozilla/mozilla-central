@@ -653,7 +653,7 @@ nsMimeBaseEmitter::AddAllHeaders(const nsACString &allheaders)
     {
         nsCOMPtr<nsIMimeHeaders> mimeHeaders = do_CreateInstance(NS_IMIMEHEADERS_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
-        mimeHeaders->Initialize(allheaders.BeginReading(), allheaders.Length());
+        mimeHeaders->Initialize(allheaders);
         msgurl->SetMimeHeaders(mimeHeaders);
     }
   }

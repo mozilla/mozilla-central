@@ -326,8 +326,8 @@ bool nsMsgMdnGenerator::NotInToOrCc()
     nsCString cc;
 
     m_identity->GetReplyTo(reply_to);
-    m_headers->ExtractHeader(HEADER_TO, true, getter_Copies(to));
-    m_headers->ExtractHeader(HEADER_CC, true, getter_Copies(cc));
+    m_headers->ExtractHeader(HEADER_TO, true, to);
+    m_headers->ExtractHeader(HEADER_CC, true, cc);
 
   // start with a simple check
   if ((!to.IsEmpty() && PL_strcasestr(to.get(), m_email.get())) ||
@@ -351,8 +351,7 @@ bool nsMsgMdnGenerator::ValidateReturnPath()
         return m_reallySendMdn;
 
     nsCString returnPath;
-    m_headers->ExtractHeader(HEADER_RETURN_PATH, false,
-                             getter_Copies(returnPath));
+    m_headers->ExtractHeader(HEADER_RETURN_PATH, false, returnPath);
     if (returnPath.IsEmpty())
     {
       m_autoSend = false;
@@ -540,7 +539,7 @@ nsresult nsMsgMdnGenerator::CreateFirstPart()
                                                                "UTF-8", 0, conformToStandard);
 
     nsCString subject;
-    m_headers->ExtractHeader(HEADER_SUBJECT, false, getter_Copies(subject));
+    m_headers->ExtractHeader(HEADER_SUBJECT, false, subject);
     convbuf = nsMsgI18NEncodeMimePartIIStr(subject.Length() ? subject.get() : "[no subject]",
                                            false, m_charset.get(), 0, conformToStandard);
     tmpBuffer = PR_smprintf("Subject: %s%s" CRLF,
@@ -561,8 +560,7 @@ nsresult nsMsgMdnGenerator::CreateFirstPart()
 
   // *** This is not in the spec. I am adding this so we could do
   // threading
-    m_headers->ExtractHeader(HEADER_MESSAGE_ID, false,
-                             getter_Copies(m_messageId));
+    m_headers->ExtractHeader(HEADER_MESSAGE_ID, false, m_messageId);
 
     if (!m_messageId.IsEmpty())
     {
@@ -695,7 +693,7 @@ nsresult nsMsgMdnGenerator::CreateSecondPart()
 
     nsCString originalRecipient;
     m_headers->ExtractHeader(HEADER_ORIGINAL_RECIPIENT, false,
-                             getter_Copies(originalRecipient));
+                             originalRecipient);
 
     if (!originalRecipient.IsEmpty())
     {
@@ -775,7 +773,7 @@ nsresult nsMsgMdnGenerator::OutputAllHeaders()
     int32_t all_headers_size = 0;
     nsresult rv = NS_OK;
 
-    rv = m_headers->GetAllHeaders(getter_Copies(all_headers));
+    rv = m_headers->GetAllHeaders(all_headers);
     if (NS_FAILED(rv))
         return rv;
     all_headers_size = all_headers.Length();
@@ -888,7 +886,7 @@ nsresult nsMsgMdnGenerator::InitAndProcess(bool *needToAskUser)
           // in which case we find the originating account's identity.
           nsCString accountKey;
           m_headers->ExtractHeader(HEADER_X_MOZILLA_ACCOUNT_KEY, false,
-                               getter_Copies(accountKey));
+                                   accountKey);
           nsCOMPtr <nsIMsgAccount> account;
           if (!accountKey.IsEmpty())
             accountManager->GetAccount(accountKey, getter_AddRefs(account));
@@ -900,8 +898,8 @@ nsresult nsMsgMdnGenerator::InitAndProcess(bool *needToAskUser)
             // Find the correct identity based on the "To:" and "Cc:" header
             nsCString mailTo;
             nsCString mailCC;
-            m_headers->ExtractHeader(HEADER_TO, true, getter_Copies(mailTo));
-            m_headers->ExtractHeader(HEADER_CC, true, getter_Copies(mailCC));
+            m_headers->ExtractHeader(HEADER_TO, true, mailTo);
+            m_headers->ExtractHeader(HEADER_CC, true, mailCC);
             nsCOMPtr<nsIArray> servIdentities;
             accountManager->GetIdentitiesForServer(m_server, getter_AddRefs(servIdentities));
             if (servIdentities)
@@ -992,10 +990,10 @@ nsresult nsMsgMdnGenerator::InitAndProcess(bool *needToAskUser)
     if (m_mdnEnabled)
     {
         m_headers->ExtractHeader(HEADER_DISPOSITION_NOTIFICATION_TO, false,
-                                 getter_Copies(m_dntRrt));
+                                 m_dntRrt);
         if (m_dntRrt.IsEmpty())
             m_headers->ExtractHeader(HEADER_RETURN_RECEIPT_TO, false,
-                                     getter_Copies(m_dntRrt));
+                                     m_dntRrt);
         if (!m_dntRrt.IsEmpty() && ProcessSendMode() && ValidateReturnPath())
         {
             if (!m_autoSend)

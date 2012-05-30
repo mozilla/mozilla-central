@@ -2484,41 +2484,40 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
       nsCString charset;
       compFields->GetCharacterSet(getter_Copies(charset));
 
-      mHeaders->ExtractHeader(HEADER_FROM, true, getter_Copies(outCString));
+      mHeaders->ExtractHeader(HEADER_FROM, true, outCString);
       ConvertRawBytesToUTF16(outCString, charset.get(), from);
 
-      mHeaders->ExtractHeader(HEADER_TO, true, getter_Copies(outCString));
+      mHeaders->ExtractHeader(HEADER_TO, true, outCString);
       ConvertRawBytesToUTF16(outCString, charset.get(), to);
 
-      mHeaders->ExtractHeader(HEADER_CC, true, getter_Copies(outCString));
+      mHeaders->ExtractHeader(HEADER_CC, true, outCString);
       ConvertRawBytesToUTF16(outCString, charset.get(), cc);
 
-      mHeaders->ExtractHeader(HEADER_MAIL_FOLLOWUP_TO, true,
-                              getter_Copies(outCString));
+      mHeaders->ExtractHeader(HEADER_MAIL_FOLLOWUP_TO, true, outCString);
       ConvertRawBytesToUTF16(outCString, charset.get(), mailFollowupTo);
 
-      mHeaders->ExtractHeader(HEADER_REPLY_TO, false, getter_Copies(outCString));
+      mHeaders->ExtractHeader(HEADER_REPLY_TO, false, outCString);
       ConvertRawBytesToUTF16(outCString, charset.get(), replyTo);
 
-      mHeaders->ExtractHeader(HEADER_MAIL_REPLY_TO, true, getter_Copies(outCString));
+      mHeaders->ExtractHeader(HEADER_MAIL_REPLY_TO, true, outCString);
       ConvertRawBytesToUTF16(outCString, charset.get(), mailReplyTo);
 
-      mHeaders->ExtractHeader(HEADER_NEWSGROUPS, false, getter_Copies(outCString));
+      mHeaders->ExtractHeader(HEADER_NEWSGROUPS, false, outCString);
       if (!outCString.IsEmpty())
         mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
                                          false, true, newgroups);
 
-      mHeaders->ExtractHeader(HEADER_FOLLOWUP_TO, false, getter_Copies(outCString));
+      mHeaders->ExtractHeader(HEADER_FOLLOWUP_TO, false, outCString);
       if (!outCString.IsEmpty())
         mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
                                          false, true, followUpTo);
 
-      mHeaders->ExtractHeader(HEADER_MESSAGE_ID, false, getter_Copies(outCString));
+      mHeaders->ExtractHeader(HEADER_MESSAGE_ID, false, outCString);
       if (!outCString.IsEmpty())
         mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
                                          false, true, messageId);
 
-      mHeaders->ExtractHeader(HEADER_REFERENCES, false, getter_Copies(outCString));
+      mHeaders->ExtractHeader(HEADER_REFERENCES, false, outCString);
       if (!outCString.IsEmpty())
         mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
                                          false, true, references);
@@ -2700,7 +2699,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
 
         // Preserve BCC for the reply-to-self case (can be known if replying
         // from the Sent folder).
-        mHeaders->ExtractHeader(HEADER_BCC, true, getter_Copies(outCString));
+        mHeaders->ExtractHeader(HEADER_BCC, true, outCString);
         if (!outCString.IsEmpty())
         {
           nsAutoString bcc;
@@ -2715,7 +2714,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
           compFields->SetTo(to);
         }
         else {
-          mHeaders->ExtractHeader(HEADER_LIST_POST, true, getter_Copies(outCString));
+          mHeaders->ExtractHeader(HEADER_LIST_POST, true, outCString);
           if (!outCString.IsEmpty())
             mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
                                              false, true, listPost);

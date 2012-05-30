@@ -5445,11 +5445,11 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIInputStream *stream, const 
       break;
 
     // Process the headers, looking for things we need
-    rv = mimeHeaders->Initialize(msgHeaders.get(), msgHeaders.Length());
+    rv = mimeHeaders->Initialize(msgHeaders);
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsAutoCString contentTypeHdr;
-    mimeHeaders->ExtractHeader("Content-Type", false, getter_Copies(contentTypeHdr));
+    mimeHeaders->ExtractHeader("Content-Type", false, contentTypeHdr);
 
     // Get the content type
     // If we don't have a content type, then we assign text/plain
@@ -5497,7 +5497,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIInputStream *stream, const 
 
       // Finally, get the encoding
       nsAutoCString encodingHdr;
-      mimeHeaders->ExtractHeader("Content-Transfer-Encoding", false, getter_Copies(encodingHdr));
+      mimeHeaders->ExtractHeader("Content-Transfer-Encoding", false, encodingHdr);
       if (!encodingHdr.IsEmpty())
         mimeHdrParam->GetParameter(encodingHdr, nullptr, EmptyCString(), false, nullptr, encoding);
 

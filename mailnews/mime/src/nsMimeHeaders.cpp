@@ -5,7 +5,6 @@
 
 #include "msgCore.h"    // precompiled header...
 #include "nsMimeHeaders.h"
-#include "prmem.h"
 
 nsMimeHeaders::nsMimeHeaders() :
   mHeaders(nullptr)
@@ -20,7 +19,7 @@ nsMimeHeaders::~nsMimeHeaders()
 
 NS_IMPL_ISUPPORTS1(nsMimeHeaders, nsIMimeHeaders)
 
-nsresult nsMimeHeaders::Initialize(const char *aAllHeaders, int32_t allHeadersSize)
+nsresult nsMimeHeaders::Initialize(const nsACString &aAllHeaders)
 {
   /* just in case we want to reuse the object, cleanup...*/
   if (mHeaders)
@@ -29,32 +28,31 @@ nsresult nsMimeHeaders::Initialize(const char *aAllHeaders, int32_t allHeadersSi
   mHeaders = MimeHeaders_new();
   if (mHeaders)
     // XXX This function returns -1 in some paths, not nsresult
-    return static_cast<nsresult>(MimeHeaders_parse_line(aAllHeaders, allHeadersSize, mHeaders));
+    return static_cast<nsresult>(MimeHeaders_parse_line(
+      aAllHeaders.BeginReading(), aAllHeaders.Length(), mHeaders));
 
   return NS_ERROR_OUT_OF_MEMORY;
 }
 
-nsresult nsMimeHeaders::ExtractHeader(const char *headerName, bool getAllOfThem, char **_retval)
+nsresult nsMimeHeaders::ExtractHeader(const char *headerName, bool allOfThem,
+    nsACString &retval)
 {
-  NS_ENSURE_ARG_POINTER(_retval);
   NS_ENSURE_TRUE(mHeaders, NS_ERROR_NOT_INITIALIZED);
 
-  *_retval = MimeHeaders_get(mHeaders, headerName, false, getAllOfThem);
+  // The external API doesn't have nsACString::Adopt, so we need to use a
+  // temporary string for adoption instead.
+  nsCString tempString;
+  tempString.Adopt(MimeHeaders_get(mHeaders, headerName, false, allOfThem));
+  retval = tempString;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMimeHeaders::GetAllHeaders(char **_retval)
+NS_IMETHODIMP nsMimeHeaders::GetAllHeaders(nsACString &allHeaders)
 {
-  NS_ENSURE_ARG_POINTER(_retval);
   NS_ENSURE_TRUE(mHeaders, NS_ERROR_NOT_INITIALIZED);
   NS_ENSURE_TRUE(mHeaders->all_headers, NS_ERROR_NULL_POINTER);
 
-  char *allHeaders = (char *) NS_Alloc(mHeaders->all_headers_fp + 1);
-  NS_ENSURE_TRUE(allHeaders, NS_ERROR_OUT_OF_MEMORY);
-
-  memcpy(allHeaders, mHeaders->all_headers, mHeaders->all_headers_fp);
-  *(allHeaders + mHeaders->all_headers_fp) = 0;
-  *_retval = allHeaders;
+  allHeaders.Assign(mHeaders->all_headers, mHeaders->all_headers_fp);
 
   return NS_OK;
 }

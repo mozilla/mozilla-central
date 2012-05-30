@@ -23,7 +23,7 @@ function run_test()
 
   let mimeHdr = Components.classes["@mozilla.org/messenger/mimeheaders;1"]
                   .createInstance(Components.interfaces.nsIMimeHeaders);
-  mimeHdr.initialize(headers, headers.length);
+  mimeHdr.initialize(headers);
   let receivedHeader = mimeHdr.extractHeader("To", false);
   dump(receivedHeader+"\n");
 
