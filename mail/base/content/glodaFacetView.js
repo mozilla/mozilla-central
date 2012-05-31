@@ -806,7 +806,8 @@ var FacetContext = {
   showConversationInTab: function(aResultMessage, aBackground) {
     let tabmail = this.rootWin.document.getElementById("tabmail");
     let message = aResultMessage.message;
-    if (message instanceof Gloda.lookupNounDef("im-conversation").clazz) {
+    if ("IMCollection" in this &&
+        message instanceof Gloda.lookupNounDef("im-conversation").clazz) {
       tabmail.openTab("chat", {
         convType: "log",
         conv: message,

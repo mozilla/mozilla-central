@@ -1627,7 +1627,8 @@
           let matches = [];
           if ("stashedColumns" in FacetContext.collection) {
             let collection;
-            if (message instanceof Gloda.lookupNounDef("im-conversation").clazz)
+            if ("IMCollection" in FacetContext &&
+                message instanceof Gloda.lookupNounDef("im-conversation").clazz)
               collection = FacetContext.IMCollection;
             else
               collection = FacetContext.collection;
