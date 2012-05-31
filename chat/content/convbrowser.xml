@@ -289,6 +289,9 @@
               if (Date.now() - begin > 40)
                 break;
             }
+            let event = document.createEvent("UIEvents");
+            event.initUIEvent("MessagesDisplayed", false, false, window, 0);
+            this.dispatchEvent(event);
             if (i < max - 1) {
               this._nextPendingMessageIndex = i + 1;
               if (this.progressBar) {
@@ -300,9 +303,6 @@
                 this.progressBar.max = max;
                 this.progressBar.value = this._nextPendingMessageIndex;
               }
-              let event = document.createEvent("UIEvents");
-              event.initUIEvent("MessagesDisplayed", false, false, window, 0);
-              this.dispatchEvent(event);
               Services.tm.mainThread.dispatch(this.displayPendingMessages.bind(this),
                                               Ci.nsIEventTarget.DISPATCH_NORMAL);
               return;
