@@ -4,9 +4,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 /*
- * Core mail routines used by all of the major mail windows (address book, 3-pane, compose and stand alone message window).
- * Routines to support custom toolbars in mail windows, opening up a new window of a particular type all live here. 
- * Before adding to this file, ask yourself, is this a JS routine that is going to be used by all of the main mail windows?
+ * Core mail routines used by all of the major mail windows (address book,
+ * 3-pane, compose and stand alone message window).
+ * Routines to support custom toolbars in mail windows, opening up a new window
+ * of a particular type all live here.
+ * Before adding to this file, ask yourself, is this a JS routine that is going
+ * to be used by all of the main mail windows?
  */
 
 Components.utils.import("resource://gre/modules/Services.jsm");
@@ -64,7 +67,8 @@ function overlayUpdateToolbarMode(aModeValue)
 
 function overlayOnLoad()
 {
-  let restoreButton = document.getElementById("main-box").querySelector("[oncommand*='restore']");
+  let restoreButton = document.getElementById("main-box")
+                              .querySelector("[oncommand*='restore']");
   restoreButton.setAttribute("oncommand", "overlayRestoreDefaultSet();");
 
   // Add the textBesideIcon menu item if it's not already there.
@@ -140,10 +144,7 @@ function CustomizeMailToolbar(toolboxId, customizePopupId)
   var toolbox = document.getElementById(toolboxId);
 
   var customizeURL = "chrome://global/content/customizeToolbar.xul";
-  let prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefService)
-                          .getBranch(null);
-  gCustomizeSheet = prefSvc.getBoolPref("toolbar.customization.usesheet");
+  gCustomizeSheet = Services.prefs.getBoolPref("toolbar.customization.usesheet");
 
   if (gCustomizeSheet) {
     var sheetFrame = document.getElementById("customizeToolbarSheetIFrame");
@@ -292,18 +293,13 @@ function onViewToolbarsPopupShowing(aEvent, toolboxIds)
 
 function toJavaScriptConsole()
 {
-    toOpenWindowByType("global:console", "chrome://global/content/console.xul");
+  toOpenWindowByType("global:console", "chrome://global/content/console.xul");
 }
 
-function toOpenWindowByType( inType, uri )
+function toOpenWindowByType(inType, uri)
 {
-  const Cc = Components.classes;
-  const Ci = Components.interfaces;
-  var windowManager = Cc['@mozilla.org/appshell/window-mediator;1'].getService();
-  var windowManagerInterface = windowManager.QueryInterface(Ci.nsIWindowMediator);
-
-  var topWindow = windowManagerInterface.getMostRecentWindow( inType );
-  if ( topWindow )
+  var topWindow = Services.wm.getMostRecentWindow(inType);
+  if (topWindow)
     topWindow.focus();
   else
     window.open(uri, "_blank", "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar");
@@ -319,12 +315,7 @@ function focusOnMail(tabNo, event)
 {
   // this is invoked by accel-<number>
   // if the window isn't visible or focused, make it so
-  const Cc = Components.classes;
-  const Ci = Components.interfaces;
-  var windowManager = Cc['@mozilla.org/appshell/window-mediator;1'].getService();
-  var windowManagerInterface = windowManager.QueryInterface(Ci.nsIWindowMediator);
-
-  var topWindow = windowManagerInterface.getMostRecentWindow("mail:3pane");
+  var topWindow = Services.wm.getMostRecentWindow("mail:3pane");
   if (topWindow) {
     if (topWindow != window)
       topWindow.focus();
@@ -333,13 +324,15 @@ function focusOnMail(tabNo, event)
   }
   else {
     window.open("chrome://messenger/content/messenger.xul",
-                "_blank", "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar");
+                "_blank",
+                "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar");
   }
 }
 
-function toAddressBook() 
+function toAddressBook()
 {
-  toOpenWindowByType("mail:addressbook", "chrome://messenger/content/addressbook/addressbook.xul");
+  toOpenWindowByType("mail:addressbook",
+                     "chrome://messenger/content/addressbook/addressbook.xul");
 }
 
 function showChatTab()
@@ -353,20 +346,17 @@ function showChatTab()
 
 function toImport()
 {
-  window.openDialog("chrome://messenger/content/importDialog.xul","importDialog","chrome, modal, titlebar, centerscreen");
+  window.openDialog("chrome://messenger/content/importDialog.xul", "importDialog",
+                    "chrome, modal, titlebar, centerscreen");
 }
 
 // aPaneID
 function openOptionsDialog(aPaneID, aTabID)
 {
-  var prefsService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null);
-  var instantApply = prefsService.getBoolPref("browser.preferences.instantApply");
+  var instantApply = Services.prefs.getBoolPref("browser.preferences.instantApply");
   var features = "chrome,titlebar,toolbar,centerscreen" + (instantApply ? ",dialog=no" : ",modal");
 
-  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-           .getService(Components.interfaces.nsIWindowMediator);
-  
-  var win = wm.getMostRecentWindow("Mail:Preferences");
+  var win = Services.wm.getMostRecentWindow("Mail:Preferences");
   if (win)
   {
     win.focus();
@@ -374,14 +364,16 @@ function openOptionsDialog(aPaneID, aTabID)
     {
       var pane = win.document.getElementById(aPaneID);
       win.document.documentElement.showPane(pane);
-      
+
       // I don't know how to support aTabID for an arbitrary panel when the dialog is already open
       // This is complicated because showPane is asynchronous (it could trigger a dynamic overlay)
       // so our tab element may not be accessible right away...
     }
   }
-  else 
-    openDialog("chrome://messenger/content/preferences/preferences.xul","Preferences", features, aPaneID, aTabID);
+  else {
+    openDialog("chrome://messenger/content/preferences/preferences.xul",
+               "Preferences", features, aPaneID, aTabID);
+  }
 }
 
 function openAddonsMgr(aView)
@@ -527,13 +519,9 @@ function openSupportURL()
  */
 function openFormattedURL(aPrefName)
 {
-  var urlToOpen = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                            .getService(Components.interfaces.nsIURLFormatter)
-                            .formatURLPref(aPrefName);
+  var urlToOpen = Services.urlFormatter.formatURLPref(aPrefName);
 
-  var uri = Components.classes["@mozilla.org/network/io-service;1"]
-                      .getService(Components.interfaces.nsIIOService)
-                      .newURI(urlToOpen, null, null);
+  var uri = Services.io.newURI(urlToOpen, null, null);
 
   var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
                               .getService(Components.interfaces.nsIExternalProtocolService);
@@ -573,16 +561,13 @@ function safeModeRestart()
 #endif
 
 function getMostRecentMailWindow() {
-  let wm = Cc["@mozilla.org/appshell/window-mediator;1"]
-             .getService(Components.interfaces.nsIWindowMediator);
-
 #ifdef BROKEN_WM_Z_ORDER
-  let win = wm.getMostRecentWindow("mail:3pane", true);
+  let win = Services.wm.getMostRecentWindow("mail:3pane", true);
 
   // if we're lucky, this isn't a popup, and we can just return this
   if (win && win.document.documentElement.getAttribute("chromehidden")) {
     win = null;
-    var windowList = wm.getEnumerator("mail:3pane", true);
+    var windowList = Services.wm.getEnumerator("mail:3pane", true);
     // this is oldest to newest, so this gets a bit ugly
     while (windowList.hasMoreElements()) {
       var nextWin = windowList.getNext();
@@ -591,7 +576,7 @@ function getMostRecentMailWindow() {
     }
   }
 #else
-  var windowList = wm.getZOrderDOMWindowEnumerator("mail:3pane", true);
+  var windowList = Services.wm.getZOrderDOMWindowEnumerator("mail:3pane", true);
   if (!windowList.hasMoreElements())
     return null;
 
@@ -689,18 +674,21 @@ nsFlavorDataProvider.prototype =
     {
       var urlPrimitive = { };
       var dataSize = { };
-      aTransferable.getTransferData("application/x-moz-file-promise-url", urlPrimitive, dataSize);
+      aTransferable.getTransferData("application/x-moz-file-promise-url",
+                                    urlPrimitive, dataSize);
 
       var srcUrlPrimitive = urlPrimitive.value.QueryInterface(Components.interfaces.nsISupportsString);
 
       // now get the destination file location from kFilePromiseDirectoryMime
       var dirPrimitive = {};
-      aTransferable.getTransferData("application/x-moz-file-promise-dir", dirPrimitive, dataSize);
+      aTransferable.getTransferData("application/x-moz-file-promise-dir",
+                                    dirPrimitive, dataSize);
       var destDirectory = dirPrimitive.value.QueryInterface(Components.interfaces.nsILocalFile);
 
       // now save the attachment to the specified location
-      // XXX: we need more information than just the attachment url to save it, fortunately, we have an array
-      // of all the current attachments so we can cheat and scan through them
+      // XXX: we need more information than just the attachment url to save it,
+      // fortunately, we have an array of all the current attachments so we can
+      // cheat and scan through them
 
       var attachment = null;
       for each (let index in Iterator(currentAttachments, true))
@@ -714,7 +702,11 @@ nsFlavorDataProvider.prototype =
       if (attachment)
       {
         var name = attachment.name || attachment.displayName;
-        var destFilePath = messenger.saveAttachmentToFolder(attachment.contentType, attachment.url, encodeURIComponent(name), attachment.uri, destDirectory);
+        var destFilePath = messenger.saveAttachmentToFolder(attachment.contentType,
+                                                            attachment.url,
+                                                            encodeURIComponent(name),
+                                                            attachment.uri,
+                                                            destDirectory);
         aData.value = destFilePath.QueryInterface(Components.interfaces.nsISupports);
         aDataLen.value = 4;
       }
