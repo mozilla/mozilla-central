@@ -573,30 +573,19 @@ function subtest_adding_filelinks_to_plaintext_reply_below(aText, aWithSig) {
   let cw = prepare_some_attachments_and_reply(aText, kFiles);
   let [root, list, urls] = wait_for_attachment_urls(cw, kFiles.length);
 
-  // So, we should have the root, followed by a br
-  let br = root.nextSibling;
-  assert_equals(br.localName, "br",
-                "The attachment URL containment node should be followed by " +
-                " a br");
+  let br, span;
 
-  // If a signature was inserted AND no text was entered, then there
-  // should only be a single br preceding the root.
-  if (aWithSig && !aText.length)
-    br = assert_previous_nodes("br", root, 1);
-  else {
-    // Otherwise, there should be two br's preceding the root.
-    br = assert_previous_nodes("br", root, 2);
-  }
-
-  let span;
+  assert_next_nodes("br", root, 1);
 
   if (aText.length) {
+    br = assert_previous_nodes("br", root, 2);
     // If text was entered, make sure it matches what we expect...
     let textNode = assert_previous_text(br.previousSibling, aText);
     // And then grab the span, which should be before the final text node.
     span = textNode.previousSibling;
   }
   else {
+    br = assert_previous_nodes("br", root, 1);
     // If no text was entered, just grab the last br's previous sibling - that
     // will be the span.
     span = br.previousSibling;
