@@ -16,6 +16,7 @@ const nsActEvent = Components.Constructor("@mozilla.org/activity-event;1",
 const nsActWarning = Components.Constructor("@mozilla.org/activity-warning;1",
                                             "nsIActivityWarning", "init");
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 Components.utils.import("resource:///modules/gloda/log4moz.js");
@@ -53,10 +54,7 @@ let autosyncModule =
 
   get bundle() {
     delete this.bundle;
-    let bundleSvc = Cc["@mozilla.org/intl/stringbundle;1"]
-                      .getService(Ci.nsIStringBundleService);
-
-    return this.bundle = bundleSvc
+    return this.bundle = Services.strings
       .createBundle("chrome://messenger/locale/activity.properties");
   },
 

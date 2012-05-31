@@ -17,11 +17,11 @@ const nsActWarning = Components.Constructor("@mozilla.org/activity-warning;1",
                                             "nsIActivityWarning", "init");
 const nsMsgFolderFlags = Ci.nsMsgFolderFlags;
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 Components.utils.import("resource:///modules/gloda/log4moz.js");
-
-
 
 // This module provides a link between the move/copy code and the activity
 // manager.
@@ -43,13 +43,10 @@ let moveCopyModule =
 
   get bundle() {
     delete this.bundle;
-    let bundleSvc = Cc["@mozilla.org/intl/stringbundle;1"]
-                      .getService(Ci.nsIStringBundleService);
-
-    return this.bundle = bundleSvc
+    return this.bundle = Services.strings
       .createBundle("chrome://messenger/locale/activity.properties");
   },
-  
+
   getString: function(stringName) {
     try {
       return this.bundle.GetStringFromName(stringName)
@@ -188,12 +185,10 @@ let moveCopyModule =
   },
 
   folderDeleted : function(aFolder) {
-    let acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                            .getService(Components.interfaces.nsIMsgAccountManager);
     let server = aFolder.server;
     // If the account has been removed, we're going to ignore this notification.
     try {
-      acctMgr.FindServer(server.username, server.hostName, server.type);
+      MailServices.accounts.FindServer(server.username, server.hostName, server.type);
     }
     catch(ex) {return;}
 
@@ -206,7 +201,7 @@ let moveCopyModule =
       displayText = this.getString("emptiedTrash");
     else
       displayText = this.getString("deletedFolder").replace("#1", aFolder.prettiestName);
-    
+
     // create an activity event
     let event = new nsActEvent(displayText,
                                aFolder.server,
@@ -216,7 +211,7 @@ let moveCopyModule =
 
     event.addSubject(aFolder);
     event.iconClass = "deleteMail";
-        
+
     // When we rename, we get a delete event as well as a rename, so store
     // the last folder we deleted
     this.lastFolder = {};
@@ -304,16 +299,11 @@ let moveCopyModule =
 
   init: function() {
     // XXX when do we need to remove ourselves?
-    let notificationService = Components.classes["@mozilla.org/messenger/msgnotificationservice;1"]
-                                 .getService(Components.interfaces.nsIMsgFolderNotificationService);
-    notificationService.addListener(this,
-                                    notificationService.msgsDeleted |
-                                    notificationService.msgsMoveCopyCompleted |
-                                    notificationService.folderDeleted |
-                                    notificationService.folderMoveCopyCompleted |
-                                    notificationService.folderRenamed);
+    MailServices.mfn.addListener(this,
+                                 MailServices.mfn.msgsDeleted |
+                                 MailServices.mfn.msgsMoveCopyCompleted |
+                                 MailServices.mfn.folderDeleted |
+                                 MailServices.mfn.folderMoveCopyCompleted |
+                                 MailServices.mfn.folderRenamed);
   }
 }
-
-
-

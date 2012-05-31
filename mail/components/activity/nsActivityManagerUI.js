@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -40,13 +41,11 @@ nsActivityManagerUI.prototype = {
         parent = aWindowContext.getInterface(Ci.nsIDOMWindow);
     } catch (e) { /* it's OK to not have a parent window */ }
 
-    var ww = Cc["@mozilla.org/embedcomp/window-watcher;1"].
-             getService(Ci.nsIWindowWatcher);
-    ww.openWindow(parent,
-                  ACTIVITY_MANAGER_URL,
-                  "ActivityManager",
-                  "chrome,dialog=no,resizable",
-                  {});
+    Services.ww.openWindow(parent,
+                           ACTIVITY_MANAGER_URL,
+                           "ActivityManager",
+                           "chrome,dialog=no,resizable",
+                           {});
   },
 
   get visible() {
@@ -57,9 +56,7 @@ nsActivityManagerUI.prototype = {
   //// nsActivityManagerUI
 
   get recentWindow() {
-    var wm = Cc["@mozilla.org/appshell/window-mediator;1"].
-             getService(Ci.nsIWindowMediator);
-    return wm.getMostRecentWindow("ActivityManager");
+    return Services.wm.getMostRecentWindow("ActivityManager");
   },
 
   //////////////////////////////////////////////////////////////////////////////

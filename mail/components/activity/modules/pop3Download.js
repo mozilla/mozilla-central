@@ -16,6 +16,8 @@ const nsActEvent = Components.Constructor("@mozilla.org/activity-event;1",
 const nsActWarning = Components.Constructor("@mozilla.org/activity-warning;1",
                                             "nsIActivityWarning", "init");
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 Components.utils.import("resource:///modules/gloda/log4moz.js");
@@ -43,13 +45,10 @@ let pop3DownloadModule =
 
   get bundle() {
     delete this.bundle;
-    let bundleSvc = Cc["@mozilla.org/intl/stringbundle;1"]
-                      .getService(Ci.nsIStringBundleService);
-
-    return this.bundle = bundleSvc
+    return this.bundle = Services.strings
       .createBundle("chrome://messenger/locale/activity.properties");
   },
-  
+
   getString: function(stringName) {
     try {
       return this.bundle.GetStringFromName(stringName)
@@ -127,9 +126,6 @@ let pop3DownloadModule =
   },
   init: function() {
     // XXX when do we need to remove ourselves?
-    pop3Service = Cc["@mozilla.org/messenger/popservice;1"]
-                     .getService(Ci.nsIPop3Service);
-    pop3Service.addListener(this);
+    MailServices.pop3.addListener(this);
   }
 };
-

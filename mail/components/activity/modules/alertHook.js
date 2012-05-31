@@ -12,6 +12,8 @@ const Cr = Components.results;
 const nsActWarning = Components.Constructor("@mozilla.org/activity-warning;1",
                                             "nsIActivityWarning", "init");
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // This module provides a link between the send later service and the activity
@@ -32,10 +34,9 @@ let alertHook =
 
   get brandShortName() {
     delete this.brandShortName;
-    return this.brandShortName = Cc["@mozilla.org/intl/stringbundle;1"]
-                                   .getService(Ci.nsIStringBundleService)
-                                   .createBundle("chrome://branding/locale/brand.properties")
-                                   .GetStringFromName("brandShortName");
+    return this.brandShortName = Services.strings
+      .createBundle("chrome://branding/locale/brand.properties")
+      .GetStringFromName("brandShortName");
   },
 
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgUserFeedbackListener]),
@@ -85,9 +86,6 @@ let alertHook =
   init: function() {
     // We shouldn't need to remove the listener as we're not being held by
     // anyone except by the send later instance.
-    let msgMailSession = Cc["@mozilla.org/messenger/services/session;1"]
-                             .getService(Ci.nsIMsgMailSession);
-
-    msgMailSession.addUserFeedbackListener(this);
+    MailServices.mailSession.addUserFeedbackListener(this);
   }
 };
