@@ -193,12 +193,6 @@ var gCloudAttachmentLinkManager = {
                                            signature.previousSibling));
         else {
           selection.collapse(mailBody, childNodes.length - 1);
-          editor.insertLineBreak();
-
-          if (!gMsgCompose.composeHTML)
-            editor.insertLineBreak();
-
-          selection.collapse(mailBody, childNodes.length - 2);
         }
       } else {
         // Replying above quote
@@ -211,7 +205,7 @@ var gCloudAttachmentLinkManager = {
           selection.collapse(mailBody, nodeIndex);
         } else {
           editor.beginningOfDocument();
-          editor.insertLineBreak();
+          editor.insertLineBreak()
         }
       }
       return;

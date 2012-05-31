@@ -579,7 +579,10 @@ nsMsgCompose::InsertDivWrappedTextAtSelection(const nsAString &aText,
     m_editor->GetSelection(getter_AddRefs(selection));
 
     if (selection)
+    {
+      textEditor->InsertLineBreak();
       selection->Collapse(parent, offset + 1);
+    }
   }
   if (divElem)
     divElem->SetAttribute(NS_LITERAL_STRING("class"), classStr);
