@@ -31,6 +31,9 @@ var ircHandlers = {
   _ctcpHandlers: [],
   // Object to hold the DCC handlers, expects the same fields as _ircHandlers.
   _dccHandlers: [],
+  // Object to hold the Services handlers, expects the same fields as
+  // _ircHandlers.
+  _servicesHandlers: [],
 
   _registerHandler: function(aArray, aHandler) {
     // Protect ourselves from adding broken handlers.
@@ -72,6 +75,11 @@ var ircHandlers = {
   unregisterDCCHandler: function(aHandler)
     this._unregisterHandler(this._dccHandlers, aHandler),
 
+  registerServicesHandler: function(aHandler)
+    this._registerHandler(this._servicesHandlers, aHandler),
+  unregisterServicesHandler: function(aHandler)
+    this._unregisterHandler(this._servicesHandlers, aHandler),
+
   // Handle a message based on a set of handlers.
   _handleMessage: function(aHandlers, aAccount, aMessage, aCommand) {
     // Loop over each handler and run the command until one handles the message.
@@ -112,15 +120,21 @@ var ircHandlers = {
                         aMessage.ctcp.command),
 
   // aMessage is a DCC Message, which inherits from a CTCP Message.
-  handleDCCPMessage: function(aAccount, aMessage)
+  handleDCCMessage: function(aAccount, aMessage)
     this._handleMessage(this._dccHandlers, aAccount, aMessage,
                         aMessage.ctcp.dcc.type),
+
+  // aMessage is a Services Message.
+  handleServicesMessage: function(aAccount, aMessage)
+    this._handleMessage(this._servicesHandlers, aAccount, aMessage,
+                        aMessage.serviceName),
 
   // Checking if handlers exist.
   get hasHandlers() this._ircHandlers.length > 0,
   get hasISUPPORTHandlers() this._isupportHandlers.length > 0,
   get hasCTCPHandlers() this._ctcpHandlers.length > 0,
   get hasDCCHandlers() this._dccHandlers.length > 0,
+  get hasServicesHandlers() this._servicesHandlers.length > 0,
 
   // Some constant priorities.
   get LOW_PRIORITY() -100,

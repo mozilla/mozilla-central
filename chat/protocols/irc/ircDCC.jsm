@@ -9,7 +9,7 @@
  *     http://www.irchelp.org/irchelp/rfc/dccspec.html
  */
 
-const EXPORTED_SYMBOLS = ["ctcpDCC", "dccBase"];
+const EXPORTED_SYMBOLS = ["ctcpDCC"/*, "dccBase"*/];
 
 const Cu = Components.utils;
 
@@ -63,7 +63,7 @@ var ctcpDCC = {
         return false;
 
       // Parse the message and attempt to handle it.
-      return ircHandlers.handleMessage(this, DCCMessage(aMessage));
+      return ircHandlers.handleDCCMessage(this, DCCMessage(aMessage));
     }
   }
 };

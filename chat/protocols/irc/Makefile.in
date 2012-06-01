@@ -21,6 +21,7 @@ EXTRA_JS_MODULES = \
 		ircCommands.jsm \
 		ircHandlers.jsm \
 		ircISUPPORT.jsm \
+		ircServices.jsm \
 		ircUtils.jsm \
 		ircWatchMonitor.jsm \
 		$(NULL)

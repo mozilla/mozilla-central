@@ -1122,6 +1122,7 @@ function ircProtocol() {
   Cu.import("resource:///modules/ircISUPPORT.jsm", tempScope);
   Cu.import("resource:///modules/ircCTCP.jsm", tempScope);
   Cu.import("resource:///modules/ircDCC.jsm", tempScope);
+  Cu.import("resource:///modules/ircServices.jsm", tempScope);
 
   // Extra features.
   Cu.import("resource:///modules/ircWatchMonitor.jsm", tempScope);
@@ -1130,10 +1131,14 @@ function ircProtocol() {
   ircHandlers.registerHandler(tempScope.ircBase);
   ircHandlers.registerHandler(tempScope.ircISUPPORT);
   ircHandlers.registerHandler(tempScope.ircCTCP);
-  // Register default CTCP handlers (ISUPPORT base, CTCP base, DCC).
+  ircHandlers.registerHandler(tempScope.ircServices);
+  // Register default ISUPPORT handler (ISUPPORT base).
   ircHandlers.registerISUPPORTHandler(tempScope.isupportBase);
+  // Register default CTCP handlers (CTCP base, DCC).
   ircHandlers.registerCTCPHandler(tempScope.ctcpBase);
   ircHandlers.registerCTCPHandler(tempScope.ctcpDCC);
+  // Register default IRC Services handlers (IRC Services base).
+  ircHandlers.registerServicesHandler(tempScope.servicesBase);
 
   // Register extra features.
   ircHandlers.registerHandler(tempScope.ircWATCH);
