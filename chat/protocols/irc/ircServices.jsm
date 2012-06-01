@@ -8,13 +8,21 @@
  * with the names NickServ, ChanServ, OperServ and MemoServ; but other services
  * do exist and are in use.
  *
+ * Since the "protocol" behind services is really just text-based, human
+ * readable messages, attempt to parse them, but always fall back to just
+ * showing the message to the user if we're unsure what to do.
+ *
  * Anope
  *  http://www.anope.org/docgen/1.8/
  */
 
 const EXPORTED_SYMBOLS = ["ircServices", "servicesBase"];
 
-Components.utils.import("resource:///modules/ircHandlers.jsm");
+const Cu = Components.utils;
+
+Cu.import("resource:///modules/imXPCOMUtils.jsm");
+Cu.import("resource:///modules/ircHandlers.jsm");
+Cu.import("resource:///modules/ircUtils.jsm");
 
 /*
  * If a service is found, an extra field (serviceName) is added with the
@@ -69,9 +77,6 @@ var servicesBase = {
   priority: ircHandlers.DEFAULT_PRIORITY,
   isEnabled: function() true,
 
-  // All of the "protocol" behind services is text-based, human readable
-  // messages. We'll do our best to parse them, but if we're unsure...we should
-  // always fall back and let the user see the message!
   commands: {
     "ChanServ": function(aMessage) {
       // [<channel name>] <message>
@@ -95,6 +100,54 @@ var servicesBase = {
       this.getConversation(channel)
           .writeMessage(aMessage.nickname, message, params);
       return true;
+    },
+
+    "NickServ": function(aMessage) {
+      let text = aMessage.params[1];
+
+      // Since we feed the messages back through the system at the end of the
+      // timeout when waiting for a log-in, we need to NOT try to handle them
+      // here and let them fall through to the default handler.
+      if (this.isHandlingQueuedMessages)
+        return false;
+
+      // If we have a queue of messages, we're waiting for authentication.
+      if (this.nickservMessageQueue) {
+        if (text == "Password accepted - you are now recognized." || // Anope.
+          text == "You are now identified for \x02" + aMessage.params[0] + "\x02.") { // Atheme.
+          // Password successfully accepted by NickServ, don't display the
+          // queued messages.
+          LOG("Successfully authenticated with NickServ.");
+          clearTimeout(this.nickservAuthTimeout);
+          delete this.nickservAuthTimeout;
+          delete this.nickservMessageQueue;
+        }
+        else {
+          // Queue any other messages that occur during the timeout so they
+          // appear in the proper order.
+          this.nickservMessageQueue.push(aMessage);
+        }
+        return true;
+      }
+
+      // NickServ wants us to identify.
+      if (text == "This nick is owned by someone else.  Please choose another." || // Anope.
+          text == "This nickname is registered. Please choose a different nickname, or identify via \x02/msg NickServ identify <password>\x02.") { // Atheme.
+        LOG("Authentication requested by NickServ.");
+
+        // Wait one second before showing the message to the user (giving the
+        // the server time to process the PASS command).
+        this.nickservMessageQueue = [aMessage];
+        this.nickservAuthTimeout = setTimeout(function() {
+          this.isHandlingQueuedMessages = true;
+          this.nickservMessageQueue.every(function(aMessage)
+            ircHandlers.handleMessage(this, aMessage), this);
+          delete this.isHandlingQueuedMessages;
+        }.bind(this), 1000);
+        return true;
+      }
+
+      return false;
     }
   }
 };
