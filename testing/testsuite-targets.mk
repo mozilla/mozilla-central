@@ -352,7 +352,7 @@ stage-peptest: make-stage-dir
 
 # This will get replaced by actual logic in a subsequent patch.
 stage-modules: make-stage-dir
-	$(TOUCH) $(PKG_STAGETAGE)/modules/.dummy
+	$(TOUCH) $(PKG_STAGE)/modules/.dummy
 
 stage-mozbase: make-stage-dir
 	$(MAKE) -C $(DEPTH)/testing/mozbase stage-package
