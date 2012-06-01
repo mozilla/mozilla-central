@@ -579,10 +579,7 @@ nsMsgCompose::InsertDivWrappedTextAtSelection(const nsAString &aText,
     m_editor->GetSelection(getter_AddRefs(selection));
 
     if (selection)
-    {
-      textEditor->InsertLineBreak();
       selection->Collapse(parent, offset + 1);
-    }
   }
   if (divElem)
     divElem->SetAttribute(NS_LITERAL_STRING("class"), classStr);
@@ -5489,11 +5486,12 @@ nsMsgCompose::SetIdentity(nsIMsgIdentity *aIdentity)
       m_editor->EndOfDocument();
 
     nsCOMPtr<nsIHTMLEditor> htmlEditor (do_QueryInterface(m_editor));
+    nsCOMPtr<nsIPlaintextEditor> textEditor (do_QueryInterface(m_editor));
 
     if (m_composeHTML)
       rv = htmlEditor->InsertHTML(aSignature);
     else {
-      rv = NS_OK;
+      rv = textEditor->InsertLineBreak();
       InsertDivWrappedTextAtSelection(aSignature, NS_LITERAL_STRING("moz-signature"));
     }
 

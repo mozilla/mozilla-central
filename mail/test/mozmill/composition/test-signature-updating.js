@@ -68,9 +68,8 @@ function plaintextComposeWindowSwitchSignatures(suppressSigSep) {
   let contentFrame = cwc.e("content-frame");
   let node = contentFrame.contentDocument.body.lastChild;
 
-  // In plaintext compose, the signature is followed by two <br> elements.
-  assert_equals(node.localName, "br");
-  node = node.previousSibling;
+  // The last node is a BR - this allows users to put text after the
+  // signature without it being styled like the signature.
   assert_equals(node.localName, "br");
   node = node.previousSibling;
 
@@ -101,9 +100,8 @@ function plaintextComposeWindowSwitchSignatures(suppressSigSep) {
 
   node = contentFrame.contentDocument.body.lastChild;
 
-  // In plaintext compose, the signature is followed by two <br> elements.
-  assert_equals(node.localName, "br");
-  node = node.previousSibling;
+  // The last node is a BR - this allows users to put text after the
+  // signature without it being styled like the signature.
   assert_equals(node.localName, "br");
   node = node.previousSibling;
 
