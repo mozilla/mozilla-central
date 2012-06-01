@@ -5,7 +5,7 @@
 
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 
-var gFeedSubscriptionsWindow = {
+var FeedSubscriptions = {
   get mTree() { return document.getElementById("rssSubscriptionsList"); },
 
   mFeedContainers: [],
@@ -15,6 +15,7 @@ var gFeedSubscriptionsWindow = {
   kUpdateMode    : 2,
   kMoveMode      : 3,
   kCopyMode      : 4,
+  kImportingOPML : 5,
 
   onLoad: function ()
   {
@@ -25,8 +26,8 @@ var gFeedSubscriptionsWindow = {
 
     // Ensure dialog is fully loaded before selecting, to get visible row.
     setTimeout(function() {
-      gFeedSubscriptionsWindow.refreshSubscriptionView(folder)
-    }, 10);
+      FeedSubscriptions.refreshSubscriptionView(folder)
+    }, 100);
     let message = FeedUtils.strings.GetStringFromName("subscribe-loading");
     this.updateStatusItem("statusText", message);
 
@@ -75,9 +76,6 @@ var gFeedSubscriptionsWindow = {
   refreshSubscriptionView: function(aSelectFolder)
   {
     let item = this.mView.currentItem;
-    let firstVisRow, lastVisRow, curFirstVisRow;
-    if (this.mView.treeBox)
-      firstVisRow = this.mView.treeBox.getFirstVisibleRow();
     this.loadSubscriptions();
     this.mTree.view = this.mView;
 
@@ -91,45 +89,21 @@ var gFeedSubscriptionsWindow = {
       // an existing window.  For folderpane changes in a feed account.
       if (item)
       {
+        let rootFolder = item.container ? item.folder.rootFolder :
+                                          item.parentFolder.rootFolder;
         if (item.container)
         {
-          if (!this.selectFolder(item.folder))
+          if (!this.selectFolder(item.folder, { open: item.open }))
             // The item no longer exists, an ancestor folder was deleted or
             // renamed/moved.
-            this.selectFolder(item.folder.rootFolder);
+            this.selectFolder(rootFolder);
         }
         else
-        {
-          // If selecting a prior selected feed, get its folder from the db
-          // in case an ancestor folder was renamed/moved.
-          let itemResource = FeedUtils.rdf.GetResource(item.url);
-          let ds = FeedUtils.getSubscriptionsDS(item.parentFolder.server);
-          let itemFolder = ds.GetTarget(itemResource, FeedUtils.FZ_DESTFOLDER, true);
-          if (itemFolder)
-          {
-            itemFolder = itemFolder.QueryInterface(Ci.nsIMsgFolder);
-            this.selectFeed({folder: itemFolder, url: item.url}, null);
-          }
-          else
-            // The item no longer exists, an ancestor folder was deleted.
-            this.selectFolder(item.parentFolder.rootFolder);
-        }
-
-        curFirstVisRow = this.mView.treeBox.getFirstVisibleRow();
-        lastVisRow = this.mView.treeBox.getLastVisibleRow();
-        if (firstVisRow >= 0 && //firstVisRow >= curFirstVisRow &&
-            this.mView.rowCount - lastVisRow > firstVisRow - curFirstVisRow)
-          this.mView.treeBox.scrollToRow(firstVisRow);
-        else
-          this.mView.treeBox.ensureRowIsVisible(this.mView.rowCount - 1);
-        FeedUtils.log.debug("refreshSubscriptionView: curIndex:curFirstVisRow:" +
-                            "firstVisRow:lastVisRow:rowCount - " +
-                            this.mView.selection.currentIndex+":"+
-                            curFirstVisRow+":"+
-                            firstVisRow+":"+lastVisRow+":"+this.mView.rowCount);
+          this.selectFeed({ folder: rootFolder, url: item.url }, null);
       }
     }
 
+    this.mView.treeBox.ensureRowIsVisible(this.mView.selection.currentIndex);
     this.clearStatusInfo();
   },
 
@@ -234,10 +208,26 @@ var gFeedSubscriptionsWindow = {
 
     getItemAtIndex: function (aRow)
     {
-      if (aRow < 0 || aRow >= gFeedSubscriptionsWindow.mFeedContainers.length)
+      if (aRow < 0 || aRow >= FeedSubscriptions.mFeedContainers.length)
         return null;
 
-      return gFeedSubscriptionsWindow.mFeedContainers[aRow];
+      return FeedSubscriptions.mFeedContainers[aRow];
+    },
+
+    getItemInViewIndex: function(aFolder)
+    {
+      if (!aFolder || !(aFolder instanceof Ci.nsIMsgFolder))
+        return null;
+
+      for (let index = 0; index < this.rowCount; index++)
+      {
+        // Find the visible folder in the view.
+        let item = this.getItemAtIndex(index);
+        if (item && item.container && item.url == aFolder.URI)
+          return index;
+      }
+
+      return null;
     },
 
     removeItemAtIndex: function (aRow, aNoSelect)
@@ -248,7 +238,7 @@ var gFeedSubscriptionsWindow = {
 
       if (itemToRemove.container && itemToRemove.open)
         // Close it, if open container.
-        this.toggle(aRow);
+        this.toggleOpenState(aRow);
 
       let parentIndex = this.getParentIndex(aRow);
       let hasNextSibling = this.hasNextSibling(aRow, aRow);
@@ -267,7 +257,7 @@ var gFeedSubscriptionsWindow = {
       }
 
       // Now remove it from our view.
-      gFeedSubscriptionsWindow.mFeedContainers.splice(aRow, 1);
+      FeedSubscriptions.mFeedContainers.splice(aRow, 1);
 
       // Now invalidate the correct tree rows.
       this.mRowCount--;
@@ -277,14 +267,14 @@ var gFeedSubscriptionsWindow = {
       // done later or not at all).  If the item is the last child, select the
       // parent.  Otherwise select the next sibling.
       if (!aNoSelect) {
-        if (aRow <= gFeedSubscriptionsWindow.mFeedContainers.length)
+        if (aRow <= FeedSubscriptions.mFeedContainers.length)
           this.selection.select(hasNextSibling ? aRow : aRow - 1);
         else
           this.selection.clearSelection();
       }
 
       // Now refocus the tree.
-      gFeedSubscriptionsWindow.mTree.focus();
+      FeedSubscriptions.mTree.focus();
     },
 
     getCellText: function (aRow, aColumn)
@@ -302,7 +292,7 @@ var gFeedSubscriptionsWindow = {
 
     drop: function (aRow, aOrientation)
     {
-      let win = gFeedSubscriptionsWindow;
+      let win = FeedSubscriptions;
       let results = this.extractDragData(aRow);
       if (!results.canDrop)
         return;
@@ -319,7 +309,7 @@ var gFeedSubscriptionsWindow = {
         }, 0);
         let folderItem = this.getItemAtIndex(aRow);
         FeedUtils.log.debug("drop: folder, url - " +
-                            folderItem.folder.name+", "+results.dropUrl);
+                            folderItem.folder.name + ", " + results.dropUrl);
       }
       else if (results.dropOnIndex != this.kRowIndexUndefined)
       {
@@ -381,16 +371,36 @@ var gFeedSubscriptionsWindow = {
       if (item)
       {
         for (let index = aRow; index >= 0; index--)
-          if (gFeedSubscriptionsWindow.mFeedContainers[index].level < item.level)
+          if (FeedSubscriptions.mFeedContainers[index].level < item.level)
             return index;
       }
 
       return this.kRowIndexUndefined;
     },
 
+    isIndexChildOfParentIndex: function (aRow, aChildRow)
+    {
+      // For visible tree rows, not if items are children of closed folders.
+      let item = this.getItemAtIndex(aRow);
+      if (!item || aChildRow <= aRow)
+        return false;
+
+      let targetLevel = this.getItemAtIndex(aRow).level;
+      let rows = FeedSubscriptions.mFeedContainers;
+
+      for (let i = aRow + 1; i < rows.length; i++) {
+        if (this.getItemAtIndex(i).level <= targetLevel)
+          break;
+        if (aChildRow == i)
+          return true;
+      }
+
+      return false;
+    },
+
     hasNextSibling: function(aRow, aAfterIndex) {
       let targetLevel = this.getItemAtIndex(aRow).level;
-      let rows = gFeedSubscriptionsWindow.mFeedContainers;
+      let rows = FeedSubscriptions.mFeedContainers;
       for (let i = aAfterIndex + 1; i < rows.length; i++) {
         if (this.getItemAtIndex(i).level == targetLevel)
           return true;
@@ -447,7 +457,7 @@ var gFeedSubscriptionsWindow = {
       if (!item)
         return null;
 
-      let rows = gFeedSubscriptionsWindow.mFeedContainers;
+      let rows = FeedSubscriptions.mFeedContainers;
       let rowCount = 0;
       let multiplier;
 
@@ -501,13 +511,16 @@ var gFeedSubscriptionsWindow = {
   makeFolderObject: function (aFolder, aCurrentLevel)
   {
     let defaultQuickMode = aFolder.server.getBoolValue("quickMode");
+    let open = !aFolder.isServer &&
+               aFolder.server == this.mRSSServer &&
+               this.mActionMode == this.kImportingOPML ? true : false
     let folderObject =  { children : [],
                           folder   : aFolder,
-                          name     : aFolder.prettiestName,
+                          name     : aFolder.prettyName,
                           level    : aCurrentLevel,
                           url      : aFolder.URI,
                           quickMode: defaultQuickMode,
-                          open     : false,
+                          open     : open,
                           container: true };
 
     // If a feed has any sub folders, add them to the list of children.
@@ -525,16 +538,6 @@ var gFeedSubscriptionsWindow = {
       }
     }
 
-    function sorter(a, b)
-    {
-      let sortKey = a.folder.compareSortKeys(b.folder);
-      if (sortKey)
-        return sortKey;
-      return a.name.toLowerCase() > b.name.toLowerCase();
-    }
- 
-    folderObject.children.sort(sorter);
-
     let feeds = this.getFeedsInFolder(aFolder);
     for (let feed in feeds)
     {
@@ -550,7 +553,16 @@ var gFeedSubscriptionsWindow = {
     if (feeds && feeds[0])
       folderObject.quickMode = feeds[0].quickMode;
 
+    folderObject.children = this.folderItemSorter(folderObject.children);
+
     return folderObject;
+  },
+
+  folderItemSorter: function (aArray)
+  {
+    return aArray.sort(function(a, b) { return a.name.toLowerCase() >
+                                               b.name.toLowerCase() }).
+                  sort(function(a, b) { return a.container < b.container });
   },
 
   getFeedsInFolder: function (aFolder)
@@ -592,17 +604,9 @@ var gFeedSubscriptionsWindow = {
     // Put together an array of folders.  Each feed account level folder is
     // included as the root.
     let numFolders = 0;
-    let feedRootFolders = [];
     let feedContainers = [];
-
     // Get all the feed account folders.
-    let allServers = MailServices.accounts.allServers;
-    for (let i = 0; i < allServers.Count(); i++)
-    {
-      let currentServer = allServers.QueryElementAt(i, Ci.nsIMsgIncomingServer);
-      if (currentServer && currentServer.type == "rss")
-        feedRootFolders.push(currentServer.rootFolder);
-    }
+    let feedRootFolders = FeedUtils.getAllRssServerRootFolders();
 
     feedRootFolders.forEach(function(rootFolder) {
       feedContainers.push(this.makeFolderObject(rootFolder, 0));
@@ -612,33 +616,58 @@ var gFeedSubscriptionsWindow = {
     this.mFeedContainers = feedContainers;
     this.mView.mRowCount = numFolders;
 
-    gFeedSubscriptionsWindow.mTree.focus();
+    FeedSubscriptions.mTree.focus();
   },
 
   /**
    * Find the folder in the tree.  The search may be limited to subfolders of
-   * a known folder, or expanded to include the entire tree.  The first
-   * occurence of a folder URI will be selected.
+   * a known folder, or expanded to include the entire tree. This function is
+   * also used to insert/remove folders without rebuilding the tree view cache
+   * (to avoid position/toggle state loss).
    * 
    * @param  aFolder nsIMsgFolder - the folder to find.
-   * @param  [aSelect] boolean    - if true (default) the folder's ancestors
-   *                                will be opened and the folder selected.
-   * @param  [aParentIndex] int   - index of folder to start the search.
-   * @param  [aOpen] boolean      - if true (default) the folder is opened.
+   * @param  [aParams] object     - params object, containing:
+   * 
+   * [parentIndex] int        - index of folder to start the search; if
+   *                            null (default), the index of the folder's
+   *                            rootFolder will be used.
+   * [select] boolean         - if true (default) the folder's ancestors
+   *                            will be opened and the folder selected.
+   * [open] boolean           - if true (default) the folder is opened.
+   * [remove] boolean         - delete the item from tree row cache if true,
+   *                            false (default) otherwise.
+   * [newFolder] nsIMsgFolder - if not null (default) the new folder,
+   *                            for add or rename.
    * 
    * @return bool found - true if found, false if not.
    */
-  selectFolder: function(aFolder, aSelect, aParentIndex, aOpen)
+  selectFolder: function(aFolder, aParms)
   {
     let folderURI = aFolder.URI;
-    let selectIt = aSelect == null ? true : aSelect;
-    let openIt = aOpen == null ? true : aOpen;
+    let parentIndex = aParms && ("parentIndex" in aParms) ? aParms.parentIndex : null;
+    let selectIt = aParms && ("select" in aParms) ? aParms.select : true;
+    let openIt = aParms && ("open" in aParms) ? aParms.open : true;
+    let removeIt = aParms && ("remove" in aParms) ? aParms.remove : false;
+    let newFolder = aParms && ("newFolder" in aParms) ? aParms.newFolder : null;
     let startIndex, startItem;
     let found = false;
 
-    if (aFolder.isServer || aParentIndex != null)
-      // For a server, the aParentIndex doesn't matter, they are always visible.
-      startIndex = aParentIndex;
+    let firstVisRow, curFirstVisRow, curLastVisRow;
+    if (this.mView.treeBox)
+      firstVisRow = this.mView.treeBox.getFirstVisibleRow();
+
+    if (parentIndex != null)
+    {
+      // Use the parentIndex if given.
+      startIndex = parentIndex;
+      if (aFolder.isServer)
+        // Fake item for account root folder.
+        startItem = { name: "AccountRoot",
+                      children: [this.mView.getItemAtIndex(startIndex)],
+                      container: true, open: false, url: null, level: -1};
+      else
+        startItem = this.mView.getItemAtIndex(startIndex);
+    }
     else
     {
       // Get the folder's root parent index.
@@ -650,21 +679,71 @@ var gFeedSubscriptionsWindow = {
           break;
       }
       startIndex = index;
+      if (aFolder.isServer)
+        // Fake item for account root folder.
+        startItem = { name: "AccountRoot",
+                      children: [this.mView.getItemAtIndex(startIndex)],
+                      container: true, open: false, url: null, level: -1};
+      else
+        startItem = this.mView.getItemAtIndex(startIndex);
     }
-
-    if (!aFolder.isServer)
-      startItem = this.mView.getItemAtIndex(startIndex);
 
     function containsFolder(aItem)
     {
       // Search for the folder.  If it's found, set the open state on all
       // ancestor folders.  A toggle() rebuilds the view rows to match the map.
       if (aItem.url == folderURI)
-        return true;
+        return found = true;
 
       for (let i = 0; i < aItem.children.length; i++) {
         if (aItem.children[i].container && containsFolder(aItem.children[i]))
-          return aItem.children[i].open = true;
+        {
+          if (removeIt && aItem.children[i].url == folderURI)
+          {
+            // Get all occurences in the tree cache arrays.
+            FeedUtils.log.debug("selectFolder: delete in cache, " +
+                                "parent:children:item:index - "+
+                                aItem.name + ":" + aItem.children.length + ":" +
+                                aItem.children[i].name + ":" + i);
+            aItem.children.splice(i, 1);
+            FeedUtils.log.debug("selectFolder: deleted in cache, " +
+                                "parent:children - " +
+                                aItem.name + ":" + aItem.children.length);
+            removeIt = false;
+            return true;
+          }
+          if (newFolder)
+          {
+            let newItem = FeedSubscriptions.makeFolderObject(newFolder,
+                                                             aItem.level + 1);
+            newItem.open = aItem.children[i].open;
+            if (newFolder.isServer)
+              FeedSubscriptions.mFeedContainers[startIndex] = newItem;
+            else
+            {
+              aItem.children[i] = newItem;
+              aItem.children = FeedSubscriptions.folderItemSorter(aItem.children);
+            }
+            FeedUtils.log.debug("selectFolder: parentName:newFolderName:newFolderItem - " +
+                                aItem.name + ":" + newItem.name + ":" + newItem.toSource());
+            newFolder = null;
+            return true;
+          }
+          if (!found)
+          {
+            // For the folder to find.
+            found = true;
+            aItem.children[i].open = openIt;
+          }
+          else
+          {
+            // For ancestor folders.
+            if (selectIt || openIt)
+              aItem.children[i].open = true;
+          }
+
+          return true;
+        }
       }
 
       return false;
@@ -673,7 +752,7 @@ var gFeedSubscriptionsWindow = {
     if (startItem)
     {
       // Find a folder with a specific parent.
-      found = containsFolder(startItem);
+      containsFolder(startItem);
       if (!found)
         return false;
 
@@ -682,7 +761,7 @@ var gFeedSubscriptionsWindow = {
 
       if (startItem.open)
         this.mView.toggle(startIndex);
-      this.mView.toggle(startIndex);
+      this.mView.toggleOpenState(startIndex);
     }
 
     for (let index = 0; index < this.mView.rowCount && selectIt; index++)
@@ -693,17 +772,30 @@ var gFeedSubscriptionsWindow = {
         continue;
       if (item.url == folderURI)
       {
-        if (item.children.length && !item.open && openIt)
-          this.mView.toggle(index);
+        if (item.children.length &&
+            ((!item.open && openIt) || (item.open && !openIt)))
+          this.mView.toggleOpenState(index);
         this.mView.selection.select(index);
-        this.mView.treeBox.ensureRowIsVisible(index);
         found = true;
         break;
       }
     }
 
-    if (this.mView.selection.selectEventsSuppressed)
-      this.mView.selection.selectEventsSuppressed = false;
+    // Ensure tree position does not jump unnecessarily.
+    curFirstVisRow = this.mView.treeBox.getFirstVisibleRow();
+    curLastVisRow = this.mView.treeBox.getLastVisibleRow();
+    if (firstVisRow >= 0 &&
+        this.mView.rowCount - curLastVisRow > firstVisRow - curFirstVisRow)
+      this.mView.treeBox.scrollToRow(firstVisRow);
+    else
+      this.mView.treeBox.ensureRowIsVisible(this.mView.rowCount - 1);
+
+    FeedUtils.log.debug("selectFolder: curIndex:firstVisRow:" +
+                        "curFirstVisRow:curLastVisRow:rowCount - " +
+                        this.mView.selection.currentIndex + ":" +
+                        firstVisRow + ":" +
+                        curFirstVisRow + ":" + curLastVisRow + ":" + this.mView.rowCount);
+
     return found;
   },
 
@@ -718,8 +810,18 @@ var gFeedSubscriptionsWindow = {
    */
   selectFeed: function(aFeed, aParentIndex)
   {
+    let folder = aFeed.folder;
     let found = false;
-    if (this.selectFolder(aFeed.folder, true, aParentIndex))
+
+    if (aFeed.folder.isServer) {
+      // If passed the root folder, the caller wants to get the feed's folder
+      // from the db (for cases of an ancestor folder rename/move).
+      let itemResource = FeedUtils.rdf.GetResource(aFeed.url);
+      let ds = FeedUtils.getSubscriptionsDS(aFeed.folder.server);
+      folder = ds.GetTarget(itemResource, FeedUtils.FZ_DESTFOLDER, true);
+    }
+
+    if (this.selectFolder(folder, { parentIndex: aParentIndex }))
     {
       let seln = this.mView.selection;
       let item = this.mView.currentItem;
@@ -850,7 +952,7 @@ var gFeedSubscriptionsWindow = {
       // An account folder.  If it changes, all non feed containing subfolders
       // need to be updated with the new default.
       item.folder.server.setBoolValue("quickMode", aChecked);
-      this.refreshSubscriptionView();
+      this.FolderListener.folderAdded(item.folder);
     }
     else if (!FeedUtils.getFeedUrlsInFolder(item.folder))
       // Not a folder with feeds.
@@ -881,17 +983,26 @@ var gFeedSubscriptionsWindow = {
   onSelect: function ()
   {
     let item = this.mView.currentItem;
-    let isServer = item && item.folder && item.folder.isServer;
-    let disable;
     this.updateFeedData(item);
     this.setSummaryFocus();
-    disable = !item || !item.container;
+    this.updateButtons(item);
+  },
+
+  updateButtons: function (aSelectedItem)
+  {
+    let item = aSelectedItem;
+    let isServer = item && item.folder && item.folder.isServer;
+    let disable = !item || !item.container ||
+                  this.mActionMode == this.kImportingOPML;
     document.getElementById("addFeed").disabled = disable;
-    disable = !item || item.container;
+    disable = !item || item.container ||
+              this.mActionMode == this.kImportingOPML;
     document.getElementById("editFeed").disabled = disable;
     document.getElementById("removeFeed").disabled = disable;
-    document.getElementById("importOPML").disabled = !item || !isServer;
-    document.getElementById("exportOPML").disabled = !item || !isServer;
+    disable = !item || !isServer ||
+              this.mActionMode == this.kImportingOPML;
+    document.getElementById("importOPML").disabled = disable;
+    document.getElementById("exportOPML").disabled = disable;
   },
 
   onMouseDown: function (aEvent)
@@ -1116,6 +1227,7 @@ var gFeedSubscriptionsWindow = {
     {
       feed.title = editNameValue;
       itemToEdit.name = editNameValue;
+      seln.tree.invalidateRow(seln.currentIndex);
       updated = true;
     }
 
@@ -1132,7 +1244,7 @@ var gFeedSubscriptionsWindow = {
     if (currentFolderURI != editFolderURI)
     {
       // Make sure the new folderpicked folder is visible.
-      this.selectFolder(selectFolder._folder, true);
+      this.selectFolder(selectFolder._folder);
       // Now go back to the feed item.
       this.selectFeed(feed, null);
       // We need to find the index of the new parent folder.
@@ -1240,7 +1352,7 @@ var gFeedSubscriptionsWindow = {
     {
       // If a cross account move/copy, download callback will update the view
       // with the new location.  Preselect folder/mode for callback.
-      this.selectFolder(newFolder, true, aNewParentIndex);
+      this.selectFolder(newFolder, { parentIndex: aNewParentIndex });
       return;
     }
 
@@ -1316,7 +1428,7 @@ var gFeedSubscriptionsWindow = {
     {
       // Feed is null if our attempt to parse the feed failed.
       let message = "";
-      let win = gFeedSubscriptionsWindow;
+      let win = FeedSubscriptions;
       if (aErrorCode == FeedUtils.kNewsBlogSuccess)
       {
         win.updateStatusItem("progressMeter", 100);
@@ -1341,7 +1453,8 @@ var gFeedSubscriptionsWindow = {
           if (curItem.container)
           {
             // Open the container, if it exists.
-            let folderExists = win.selectFolder(feed.folder, true, curIndex);
+            let folderExists = win.selectFolder(feed.folder,
+                                                { parentIndex: curIndex });
             if (!folderExists)
             {
               // This means a new folder was created.
@@ -1371,8 +1484,10 @@ var gFeedSubscriptionsWindow = {
             newItem = win.makeFeedObject(feed, feed.folder, level);
           }
 
-          win.updateFolderQuickModeInView(newItem, parentItem, false);
+          if (!newItem.container)
+            win.updateFolderQuickModeInView(newItem, parentItem, false);
           parentItem.children.push(newItem);
+          parentItem.children = win.folderItemSorter(parentItem.children)
 
           if (win.mActionMode == win.kSubscribeMode)
             message = FeedUtils.strings.GetStringFromName(
@@ -1427,14 +1542,14 @@ var gFeedSubscriptionsWindow = {
       let message = FeedUtils.strings.formatStringFromName(
                       "subscribe-gettingFeedItems",
                       [aCurrentFeedItems, aMaxFeedItems], 2);
-      gFeedSubscriptionsWindow.updateStatusItem("statusText", message);
+      FeedSubscriptions.updateStatusItem("statusText", message);
       this.onProgress(feed, aCurrentFeedItems, aMaxFeedItems);
     },
 
     onProgress: function(feed, aProgress, aProgressMax, aLengthComputable)
     {
-      gFeedSubscriptionsWindow.updateStatusItem("progressMeter",
-                                                (aProgress * 100) / aProgressMax);
+      FeedSubscriptions.updateStatusItem("progressMeter",
+                                         (aProgress * 100) / aProgressMax);
     }
   },
 
@@ -1445,7 +1560,13 @@ var gFeedSubscriptionsWindow = {
     if (el.getAttribute("collapsed"))
       el.removeAttribute("collapsed");
 
-    el.value = aValue;
+    if (aID == "progressMeter")
+      el.setAttribute("mode", aValue == "?" ? "undetermined" : "determined");
+
+    if (aID == "statusText")
+      el.textContent = aValue;
+    else
+      el.value = aValue;
 
     el = document.getElementById("validationText");
     if (aErrorCode == FeedUtils.kNewsBlogInvalidFeed)
@@ -1456,7 +1577,7 @@ var gFeedSubscriptionsWindow = {
 
   clearStatusInfo: function()
   {
-    document.getElementById("statusText").value = "";
+    document.getElementById("statusText").textContent = "";
     document.getElementById("progressMeter").collapsed = true;
     document.getElementById("validationText").collapsed = true;
   },
@@ -1480,7 +1601,7 @@ var gFeedSubscriptionsWindow = {
 
         win.focus();
         win.openContentTab(url, "tab", "^" + validationSite);
-        FeedUtils.log.debug("checkValidation: query url - "+url);
+        FeedUtils.log.debug("checkValidation: query url - " + url);
       }
     }
     aEvent.stopPropagation();
@@ -1494,8 +1615,12 @@ var gFeedSubscriptionsWindow = {
       let subscriptionsWindow =
         Services.wm.getMostRecentWindow("Mail:News-BlogSubscriptions");
       if (subscriptionsWindow)
-        return this._feedWindow = subscriptionsWindow.gFeedSubscriptionsWindow;
+        return this._feedWindow = subscriptionsWindow.FeedSubscriptions;
       return null;
+    },
+
+    get currentSelectedIndex() {
+      return this.feedWindow ? this.feedWindow.mView.selection.currentIndex : -1;
     },
 
     get currentSelectedItem() {
@@ -1504,66 +1629,189 @@ var gFeedSubscriptionsWindow = {
 
     folderAdded: function(aFolder)
     {
-      if (aFolder.server.type != "rss" || FeedUtils.isInTrash(aFolder))
+      if (aFolder.server.type != "rss" ||
+          FeedUtils.isInTrash(aFolder))
         return;
-      FeedUtils.log.debug("folderAdded: folder - "+ aFolder.name);
-      this.feedWindow.refreshSubscriptionView();
+
+      let parentFolder = aFolder.isServer ? aFolder : aFolder.parent;
+      FeedUtils.log.debug("folderAdded: folder:parent - " + aFolder.name + ":" +
+                          (parentFolder ? parentFolder.filePath.path : "(null)"));
+      let feedWindow = this.feedWindow;
+
+      if (!parentFolder)
+        return;
+
+      let curSelIndex = this.currentSelectedIndex;
+      let curSelItem = this.currentSelectedItem;
+      let firstVisRow = feedWindow.mView.treeBox.getFirstVisibleRow();
+      let indexInView = feedWindow.mView.getItemInViewIndex(parentFolder);
+      let open = indexInView != null;
+
+      if (aFolder.isServer)
+      {
+        if (indexInView)
+          // Existing account root folder in the view.
+          open = feedWindow.mView.getItemAtIndex(indexInView).open;
+        else
+        {
+          // Add the account root folder to the view.
+          feedWindow.mFeedContainers.push(feedWindow.makeFolderObject(parentFolder, 0));
+          feedWindow.mView.mRowCount++;
+          feedWindow.mTree.view = feedWindow.mView;
+          feedWindow.mView.treeBox.scrollToRow(firstVisRow);
+          return;
+        }
+      }
+
+      // Rebuild the added folder's parent item in the tree row cache.
+      feedWindow.selectFolder(parentFolder, { select: false,
+                                              open: open,
+                                              newFolder: parentFolder });
+
+      if (indexInView == null || !curSelItem)
+        // Folder isn't in the tree view, no need to update the view.
+        return;
+
+      let parentIndex = feedWindow.mView.getParentIndex(indexInView);
+      if (parentIndex == feedWindow.mView.kRowIndexUndefined)
+        // Root folder is its own parent.
+        parentIndex = indexInView;
+      if (open)
+      {
+        // Close an open parent (or root) folder.
+        feedWindow.mView.toggle(parentIndex);
+        feedWindow.mView.toggleOpenState(parentIndex);
+      }
+      feedWindow.mView.treeBox.scrollToRow(firstVisRow);
+
+      if (curSelItem.container)
+        feedWindow.selectFolder(curSelItem.folder, { open: curSelItem.open });
+      else
+        feedWindow.selectFeed({ folder: curSelItem.parentFolder,
+                                url: curSelItem.url }, parentIndex);
     },
 
     folderDeleted: function(aFolder)
     {
       if (aFolder.server.type != "rss" || FeedUtils.isInTrash(aFolder))
         return;
-      FeedUtils.log.debug("folderDeleted: folder - "+ aFolder.name);
-      let curSelItem = this.currentSelectedItem;
+
+      FeedUtils.log.debug("folderDeleted: folder - " + aFolder.name);
       let feedWindow = this.feedWindow;
-      if (curSelItem && curSelItem.container && curSelItem.folder == aFolder)
-      {
-        let curSelIndex = this.feedWindow.mView.selection.currentIndex;
-        this.feedWindow.mView.removeItemAtIndex(curSelIndex);
-      }
-      else
-        setTimeout(function() {
-          feedWindow.refreshSubscriptionView();
-        }, 20);
+      let curSelIndex = this.currentSelectedIndex;
+      let indexInView = feedWindow.mView.getItemInViewIndex(aFolder);
+      let open = indexInView != null;
+
+      // Delete the folder from the tree row cache.
+      feedWindow.selectFolder(aFolder, { select: false, open: false, remove: true });
+
+      if (!open || curSelIndex < 0)
+        // Folder isn't in the tree view, no need to update the view.
+        return;
+
+      let select =
+        indexInView == curSelIndex ||
+        feedWindow.mView.isIndexChildOfParentIndex(indexInView, curSelIndex);
+      feedWindow.mView.removeItemAtIndex(indexInView, !select);
     },
 
     folderRenamed: function(aOrigFolder, aNewFolder)
     {
       if (aNewFolder.server.type != "rss" || FeedUtils.isInTrash(aNewFolder))
         return;
-      FeedUtils.log.debug("folderRenamed: old:new - "+
-                          aOrigFolder.name+":"+aNewFolder.name);
-      let curSelItem = this.currentSelectedItem;
+
+      FeedUtils.log.debug("folderRenamed: old:new - " +
+                          aOrigFolder.name + ":" + aNewFolder.name);
       let feedWindow = this.feedWindow;
-      setTimeout(function() {
-        feedWindow.refreshSubscriptionView();
-        if (curSelItem && curSelItem.container &&
-            curSelItem.folder == aOrigFolder)
-          feedWindow.selectFolder(aNewFolder, true, null, false);
-      }, 20);
+      let curSelIndex = this.currentSelectedIndex;
+      let curSelItem = this.currentSelectedItem;
+      let firstVisRow = feedWindow.mView.treeBox.getFirstVisibleRow();
+      let indexInView = feedWindow.mView.getItemInViewIndex(aOrigFolder);
+      let open = indexInView != null;
+
+      // Rebuild the renamed folder's item in the tree row cache.
+      feedWindow.selectFolder(aOrigFolder, { select: false,
+                                             open: open,
+                                             newFolder: aNewFolder });
+
+      if (!open || !curSelItem)
+        // Folder isn't in the tree view, no need to update the view.
+        return;
+
+      let select =
+        indexInView == curSelIndex ||
+        feedWindow.mView.isIndexChildOfParentIndex(indexInView, curSelIndex);
+      let parentIndex = feedWindow.mView.getParentIndex(indexInView);
+      if (parentIndex == feedWindow.mView.kRowIndexUndefined)
+        // Root folder is its own parent.
+        parentIndex = indexInView;
+      feedWindow.mView.toggle(parentIndex);
+      feedWindow.mView.toggleOpenState(parentIndex);
+      feedWindow.mView.treeBox.scrollToRow(firstVisRow);
+
+      if (curSelItem.container) {
+        if (curSelItem.folder == aOrigFolder)
+          feedWindow.selectFolder(aNewFolder, { open: curSelItem.open });
+        else if (select)
+          feedWindow.mView.selection.select(indexInView);
+        else
+          feedWindow.selectFolder(curSelItem.folder, { open: curSelItem.open });
+      }
+      else
+        feedWindow.selectFeed({ folder: curSelItem.parentFolder.rootFolder,
+                                url: curSelItem.url }, parentIndex);
     },
 
     folderMoveCopyCompleted: function(aMove, aSrcFolder, aDestFolder)
     {
       if (aDestFolder.server.type != "rss")
         return;
-      FeedUtils.log.debug("folderMoveCopyCompleted: move:src:dest - "+
-                          aMove+":"+aSrcFolder.name+":"+aDestFolder.name);
-      let curSelItem = this.currentSelectedItem;
+
+      FeedUtils.log.debug("folderMoveCopyCompleted: move:src:dest - " +
+                          aMove + ":" + aSrcFolder.name + ":" + aDestFolder.name);
       let feedWindow = this.feedWindow;
-      if (aMove && aDestFolder.getFlag(Ci.nsMsgFolderFlags.Trash))
+      let curSelIndex = this.currentSelectedIndex;
+      let curSelItem = this.currentSelectedItem;
+      let firstVisRow = feedWindow.mView.treeBox.getFirstVisibleRow();
+      let indexInView = feedWindow.mView.getItemInViewIndex(aSrcFolder);
+      let destIndexInView = feedWindow.mView.getItemInViewIndex(aDestFolder);
+      let open = indexInView != null || destIndexInView != null;
+      let parentIndex = feedWindow.mView.getItemInViewIndex(aDestFolder.parent);
+      let select =
+        indexInView == curSelIndex ||
+        feedWindow.mView.isIndexChildOfParentIndex(indexInView, curSelIndex);
+
+      if (aMove)
       {
         this.folderDeleted(aSrcFolder);
-        return
+        if (aDestFolder.getFlag(Ci.nsMsgFolderFlags.Trash))
+          return;
       }
 
       setTimeout(function() {
-        feedWindow.refreshSubscriptionView();
-        if (curSelItem && curSelItem.container &&
-            curSelItem.folder == aSrcFolder)
-          feedWindow.selectFolder(aDestFolder);
-      }, 20);
+        // State on disk needs to settle before a folder object can be rebuilt.
+        feedWindow.selectFolder(aDestFolder, { select: false,
+                                               open: open || select,
+                                               newFolder: aDestFolder });
+
+        if (!open || !curSelItem)
+          // Folder isn't in the tree view, no need to update the view.
+          return;
+
+        feedWindow.mView.toggle(parentIndex);
+        feedWindow.mView.toggleOpenState(parentIndex);
+        feedWindow.mView.treeBox.scrollToRow(firstVisRow);
+
+        if (curSelItem.container) {
+          if (curSelItem.folder == aSrcFolder || select)
+            feedWindow.selectFolder(aDestFolder, { open: true });
+          else
+            feedWindow.selectFolder(curSelItem.folder, { open: curSelItem.open });
+        }
+        else
+          feedWindow.selectFeed({ folder: curSelItem.parentFolder.rootFolder,
+                                  url: curSelItem.url }, null);
+      }, 50);
     }
   },
 
@@ -1579,23 +1827,36 @@ var gFeedSubscriptionsWindow = {
 /**
  * Export feeds as opml file Save As filepicker function.
  * 
+ * @param  bool aList - if true, exporting as list; if false (default)
+ *                      exporting feeds in folder structure - used for title.
  * @return nsILocalFile or null.
  */
-  opmlPickSaveAsFile: function() {
+  opmlPickSaveAsFile: function(aList)
+  {
+    let accountName = this.mRSSServer.rootFolder.prettyName;
     let fileName = FeedUtils.strings.formatStringFromName(
                      "subscribe-OPMLExportDefaultFileName",
-                     [this.brandShortName], 1);
-    let title = FeedUtils.strings.GetStringFromName("subscribe-OPMLExportTitle");
+                     [this.brandShortName, accountName], 2);
+    let title = aList ? FeedUtils.strings.formatStringFromName(
+                          "subscribe-OPMLExportTitleList", [accountName], 1) :
+                        FeedUtils.strings.formatStringFromName(
+                          "subscribe-OPMLExportTitleStruct", [accountName], 1);
     let fp = Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
 
     fp.defaultString = fileName;
+    fp.defaultExtension = "opml";
     if (this.opmlLastSaveAsDir && (this.opmlLastSaveAsDir instanceof Ci.nsILocalFile))
       fp.displayDirectory = this.opmlLastSaveAsDir;
 
+    let opmlFilterText = FeedUtils.strings.GetStringFromName(
+                           "subscribe-OPMLExportOPMLFilesFilterText");
+    fp.appendFilter(opmlFilterText, "*.opml");
     fp.appendFilters(Ci.nsIFilePicker.filterAll);
+    fp.filterIndex = 0;
     fp.init(window, title, Ci.nsIFilePicker.modeSave);
 
-    if (fp.show() != Ci.nsIFilePicker.returnCancel && fp.file) {
+    if (fp.show() != Ci.nsIFilePicker.returnCancel && fp.file)
+    {
       this.opmlLastSaveAsDir = fp.file.parent;
       return fp.file;
     }
@@ -1608,7 +1869,8 @@ var gFeedSubscriptionsWindow = {
  * 
  * @return nsILocalFile or null.
  */
-  opmlPickOpenFile: function() {
+  opmlPickOpenFile: function()
+  {
     let title = FeedUtils.strings.GetStringFromName("subscribe-OPMLImportTitle");
     let fp = Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
 
@@ -1623,7 +1885,8 @@ var gFeedSubscriptionsWindow = {
     fp.appendFilters(Ci.nsIFilePicker.filterAll);
     fp.init(window, title, Ci.nsIFilePicker.modeOpen);
 
-    if (fp.show() != Ci.nsIFilePicker.returnCancel && fp.file) {
+    if (fp.show() != Ci.nsIFilePicker.returnCancel && fp.file)
+    {
       this.opmlLastOpenDir = fp.file.parent;
       return fp.file;
     }
@@ -1631,7 +1894,7 @@ var gFeedSubscriptionsWindow = {
     return null;
   },
 
-  exportOPML: function()
+  exportOPML: function(aEvent)
   {
     // Account folder must be selected.
     let item = this.mView.currentItem;
@@ -1639,6 +1902,8 @@ var gFeedSubscriptionsWindow = {
       return;
 
     this.mRSSServer = item.folder.server;
+    let rootFolder = this.mRSSServer.rootFolder;
+    let exportAsList = aEvent.ctrlKey;
     let SPACES2 = "  ";
     let SPACES4 = "    ";
 
@@ -1646,7 +1911,8 @@ var gFeedSubscriptionsWindow = {
     {
       let opmlDoc = document.implementation.createDocument("", "opml", null);
       let opmlRoot = opmlDoc.documentElement;
-      opmlRoot.setAttribute("version","1.0");
+      opmlRoot.setAttribute("version", "1.0");
+      opmlRoot.setAttribute("xmlns:fz", "urn:forumzilla:");
 
       this.generatePPSpace(opmlRoot, SPACES2);
 
@@ -1655,7 +1921,7 @@ var gFeedSubscriptionsWindow = {
       this.generatePPSpace(head, SPACES4);
       let titleText = FeedUtils.strings.formatStringFromName(
                         "subscribe-OPMLExportFileDialogTitle",
-                        [this.brandShortName], 1);
+                        [this.brandShortName, rootFolder.prettyName], 2);
       let title = opmlDoc.createElement("title");
       title.appendChild(opmlDoc.createTextNode(titleText));
       head.appendChild(title);
@@ -1670,21 +1936,38 @@ var gFeedSubscriptionsWindow = {
 
       // Add <outline>s to the <body>.
       let body = opmlDoc.createElement("body");
-      this.generateOutline(this.mRSSServer.rootFolder, body, SPACES4.length);
-      this.generatePPSpace(body, SPACES2);
-      opmlRoot.appendChild(body);
+      if (exportAsList)
+        this.generateOutlineList(rootFolder, body, SPACES4.length + 2);
+      else
+        this.generateOutlineStruct(rootFolder, body, SPACES4.length);
 
+      this.generatePPSpace(body, SPACES2);
+
+      if (!body.childElementCount)
+        // No folders/feeds.
+        return;
+
+      opmlRoot.appendChild(body);
       this.generatePPSpace(opmlRoot, "");
 
+      let serializer = new XMLSerializer();
+
+      if (FeedUtils.log.level <= Log4Moz.Level.Debug)
+        FeedUtils.log.debug("exportOPML: opmlDoc -\n" +
+                            serializer.serializeToString(opmlDoc) + "\n");
+
       // Get file to save from filepicker.
-      let saveAsFile = this.opmlPickSaveAsFile();
+      let saveAsFile = this.opmlPickSaveAsFile(exportAsList);
       if (!saveAsFile)
         return;
 
-      let serializer = new XMLSerializer();
       let fos = FileUtils.openSafeFileOutputStream(saveAsFile);
       serializer.serializeToStream(opmlDoc, fos, "utf-8");
       FileUtils.closeSafeFileOutputStream(fos);
+
+      let statusReport = FeedUtils.strings.formatStringFromName(
+                           "subscribe-OPMLExportDone", [saveAsFile.path], 1);
+      this.updateStatusItem("statusText", statusReport);
     }
   },
 
@@ -1694,56 +1977,103 @@ var gFeedSubscriptionsWindow = {
     aNode.appendChild(aNode.ownerDocument.createTextNode(indentString));
   },
 
-  generateOutline: function(baseFolder, parent, indentLevel)
+  generateOutlineList: function(baseFolder, parent, indentLevel)
   {
-    let folderEnumerator = baseFolder.subFolders;
-
     // Pretty printing.
-    let indentString = "";
-    for (let i = 0; i < indentLevel; i++)
-      indentString = indentString + " ";
+    let indentString = (new Array(indentLevel - 1)).join(" ");
 
+    let feedOutline;
+    let folderEnumerator = baseFolder.subFolders;
     while (folderEnumerator.hasMoreElements())
     {
-      let folder = folderEnumerator.getNext();
-      if ((folder instanceof Ci.nsIMsgFolder) &&
-          !folder.getFlag(Ci.nsMsgFolderFlags.Trash) &&
-          !folder.getFlag(Ci.nsMsgFolderFlags.Virtual))
+      let folder = folderEnumerator.getNext().QueryInterface(Ci.nsIMsgFolder);
+      FeedUtils.log.debug("generateOutlineList: folder - " +
+                          folder.filePath.path);
+      if (!(folder instanceof Ci.nsIMsgFolder) ||
+          folder.getFlag(Ci.nsMsgFolderFlags.Trash) ||
+          folder.getFlag(Ci.nsMsgFolderFlags.Virtual))
+        continue;
+
+      FeedUtils.log.debug("generateOutlineList: CONTINUE folderName - " +
+                          folder.name);
+
+      if (folder.hasSubFolders)
       {
-        let outline;
-        if (folder.hasSubFolders)
-        {
-          // Make a mostly empty outline element.
-          outline = parent.ownerDocument.createElement("outline");
-          outline.setAttribute("text", folder.prettiestName);
-          // Recurse.
-          this.generateOutline(folder, outline, indentLevel + 2);
-          this.generatePPSpace(parent, indentString);
-          this.generatePPSpace(outline, indentString);
-          parent.appendChild(outline);
-        }
-        else
-        {
-          // Add outline elements with xmlUrls.
-          let feeds = this.getFeedsInFolder(folder);
-          for (let feed in feeds)
-          {
-            outline = this.opmlFeedToOutline(feeds[feed], parent.ownerDocument);
-            this.generatePPSpace(parent, indentString);
-            parent.appendChild(outline);
-          }
-        }
+        FeedUtils.log.debug("generateOutlineList: has subfolders - " +
+                            folder.name);
+        // Recurse.
+        this.generateOutlineList(folder, parent, indentLevel);
+      }
+
+      // Add outline elements with xmlUrls.
+      let feeds = this.getFeedsInFolder(folder);
+      for (let feed in feeds)
+      {
+        FeedUtils.log.debug("generateOutlineList: folder has FEED url - " +
+                            folder.name + " : " + feeds[feed].url);
+        feedOutline = this.exportOPMLOutline(feeds[feed], parent.ownerDocument);
+        this.generatePPSpace(parent, indentString);
+        parent.appendChild(feedOutline);
       }
     }
   },
 
-  opmlFeedToOutline: function(aFeed, aDoc)
+  generateOutlineStruct: function(baseFolder, parent, indentLevel)
+  {
+    // Pretty printing.
+    function indentString(len) { return (new Array(len - 1)).join(" ") };
+
+    let folderOutline, feedOutline;
+    let folderEnumerator = baseFolder.subFolders;
+    while (folderEnumerator.hasMoreElements())
+    {
+      let folder = folderEnumerator.getNext().QueryInterface(Ci.nsIMsgFolder);
+      FeedUtils.log.debug("generateOutlineStruct: folder - " +
+                          folder.filePath.path);
+      if (!(folder instanceof Ci.nsIMsgFolder) ||
+          folder.getFlag(Ci.nsMsgFolderFlags.Trash) ||
+          folder.getFlag(Ci.nsMsgFolderFlags.Virtual))
+        continue;
+
+      FeedUtils.log.debug("generateOutlineStruct: CONTINUE folderName - " +
+                          folder.name);
+
+      // Make a folder outline element.
+      folderOutline = parent.ownerDocument.createElement("outline");
+      folderOutline.setAttribute("title", folder.prettyName);
+      this.generatePPSpace(parent, indentString(indentLevel + 2));
+
+      if (folder.hasSubFolders)
+      {
+        FeedUtils.log.debug("generateOutlineStruct: has subfolders - " +
+                            folder.name);
+        // Recurse.
+        this.generateOutlineStruct(folder, folderOutline, indentLevel + 2);
+      }
+
+      let feeds = this.getFeedsInFolder(folder);
+      for (let feed in feeds)
+      {
+        // Add feed outline elements with xmlUrls.
+        FeedUtils.log.debug("generateOutlineStruct: folder has FEED url - "+
+                            folder.name + " : " + feeds[feed].url);
+        feedOutline = this.exportOPMLOutline(feeds[feed], parent.ownerDocument);
+        this.generatePPSpace(folderOutline, indentString(indentLevel + 4));
+        folderOutline.appendChild(feedOutline);
+      }
+
+      parent.appendChild(folderOutline);
+    }
+  },
+
+  exportOPMLOutline: function(aFeed, aDoc)
   {
     let outRv = aDoc.createElement("outline");
+    outRv.setAttribute("type", "rss");
     outRv.setAttribute("title", aFeed.title);
     outRv.setAttribute("text", aFeed.title);
-    outRv.setAttribute("type", "rss");
     outRv.setAttribute("version", "RSS");
+    outRv.setAttribute("fz:quickMode", aFeed.quickMode);
     outRv.setAttribute("xmlUrl", aFeed.url);
     outRv.setAttribute("htmlUrl", aFeed.link);
     return outRv;
@@ -1751,27 +2081,57 @@ var gFeedSubscriptionsWindow = {
 
   importOPML: function()
   {
-    // Account folder must be selected.
-    let item = this.mView.currentItem;
+    // Account folder must be selected in subscribe dialog.
+    let item = this.mView ? this.mView.currentItem : null;
     if (!item || !item.folder || !item.folder.isServer)
       return;
 
-    this.mRSSServer = item.folder.server;
-
+    let server = item.folder.server;
     // Get file to open from filepicker.
     let openFile = this.opmlPickOpenFile();
     if (!openFile)
       return;
 
-    let opmlDom = null;
-    let statusReport;
-    let feedsAdded = 0;
+    this.mActionMode = this.kImportingOPML;
+    this.updateButtons(null);
+    this.selectFolder(item.folder, { select: false, open: true });
+    let statusReport = FeedUtils.strings.GetStringFromName("subscribe-loading");
+    this.updateStatusItem("statusText", statusReport);
+    // If there were a getElementsByAttribute in html, we could go determined...
+    this.updateStatusItem("progressMeter", "?");
+
+    if (!this.importOPMLFile(openFile, server, this.importOPMLFinished)) {
+      this.mActionMode = null;
+      this.updateButtons(item);
+      this.clearStatusInfo();
+    }
+  },
+
+/**
+ * Import opml file into a feed account.  Used by the Subscribe dialog and
+ * the Import wizard.
+ * 
+ * @param  nsILocalFile aFile           - the opml file.
+ * @param  nsIMsgIncomingServer aServer - the account server.
+ * @param  func aCallback               - callback function.
+ * 
+ * @return bool                         - false if error.
+ */
+  importOPMLFile: function(aFile, aServer, aCallback)
+  {
+    if (aServer && (aServer instanceof Ci.nsIMsgIncomingServer))
+      this.mRSSServer = aServer;
+
+    if (!aFile || !this.mRSSServer || !aCallback)
+      return false;
+
+    let opmlDom, statusReport;
     let stream = Cc["@mozilla.org/network/file-input-stream;1"].
                  createInstance(Ci.nsIFileInputStream);
 
     // Read in file as raw bytes, so Expat can do the decoding for us.
     try {
-      stream.init(openFile, FileUtils.MODE_RDONLY, FileUtils.PERMS_FILE, 0);
+      stream.init(aFile, FileUtils.MODE_RDONLY, FileUtils.PERMS_FILE, 0);
       let parser = new DOMParser();
       opmlDom = parser.parseFromStream(stream, null, stream.available(),
                                        "application/xml");
@@ -1780,96 +2140,227 @@ var gFeedSubscriptionsWindow = {
       statusReport = FeedUtils.strings.GetStringFromName(
                        "subscribe-errorOpeningFile");
       Services.prompt.alert(window, null, statusReport);
-      return;
+      return false;
     }
     finally {
       stream.close();
     }
 
-    // Return if the user didn't give us an OPML file.
-    if(!opmlDom || opmlDom.documentElement.tagName != "opml")
+    let body = opmlDom ? opmlDom.getElementsByTagName("body")[0] : null;
+
+    // Return if the OPML file is invalid or empty.
+    if (!body || !body.childElementCount ||
+      opmlDom.documentElement.tagName != "opml")
     {
       statusReport = FeedUtils.strings.formatStringFromName(
-                       "subscribe-OPMLImportInvalidFile", [rv.file.leafName], 1);
+                       "subscribe-OPMLImportInvalidFile", [aFile.leafName], 1);
       Services.prompt.alert(window, null, statusReport);
-      return;
-    }
-    else
-    {
-      let outlines = opmlDom.getElementsByTagName("body")[0].
-                             getElementsByTagName("outline");
-      // Try to import records if there are any.
-      for (let index = 0; index < outlines.length; index++)
-      {
-        if (this.importOutline(outlines[index]) == 1)
-          feedsAdded++;
-      }
-
-      if (outlines.length > feedsAdded)
-        statusReport = FeedUtils.strings.formatStringFromName("subscribe-OPMLImportStatus",
-          [PluralForm.get(feedsAdded,
-                          FeedUtils.strings.GetStringFromName("subscribe-OPMLImportUniqueFeeds"))
-                     .replace("#1", feedsAdded),
-           PluralForm.get(outlines.length,
-                          FeedUtils.strings.GetStringFromName("subscribe-OPMLImportFoundFeeds"))
-                     .replace("#1", outlines.length)], 2);
-       else
-        statusReport = PluralForm.get(feedsAdded,
-          FeedUtils.strings.GetStringFromName("subscribe-OPMLImportFeedCount"))
-                           .replace("#1", feedsAdded);
+      return false;
     }
 
-    this.clearStatusInfo();
-    this.updateStatusItem("statusText", statusReport);
-
-    // Add the new feeds to our view.
-    if (feedsAdded)
-      this.refreshSubscriptionView(this.mRSSServer.rootFolder);
+    this.importOPMLOutlines(body, this.mRSSServer, aCallback);
+    return true;
   },
 
-  importOutline: function(aOutline)
+  importOPMLOutlines: function(aBody, aRSSServer, aCallback)
   {
-    // XXX only dealing with flat OPML files for now.
-    // We still need to add support for grouped files.
-    let newFeedUrl = aOutline.getAttribute("xmlUrl") ||
-                     aOutline.getAttribute("url");
-    if (!newFeedUrl)
-      return -1;
+    let win = this;
+    let rssServer = aRSSServer;
+    let callback = aCallback;
+    let outline, feedFolder;
+    let badTag = false;
+    let firstFeedInFolderQuickMode = null;
+    let lastFolder;
+    let feedsAdded = 0;
+    let rssOutlines = 0;
+    let folderOutlines = 0;
 
-    // Silently skip feeds that are already subscribed.
-    if (FeedUtils.feedAlreadyExists(newFeedUrl, this.mRSSServer))
+    function processor(aParentNode, aParentFolder)
     {
-      FeedUtils.log.debug("importOutline: already subscribed in account "+
-                          this.mRSSServer.prettyName+", url - "+ newFeedUrl);
-      return 0;
+      FeedUtils.log.trace("importOPMLOutlines: PROCESSOR tag:name:childs - " +
+                          aParentNode.tagName + ":" +
+                          aParentNode.getAttribute("text") + ":" +
+                          aParentNode.childElementCount);
+      while (true)
+      {
+        if (aParentNode.tagName == "body" && !aParentNode.childElementCount)
+        {
+          // Finished.
+          let statusReport = win.importOPMLStatus(feedsAdded, rssOutlines);
+          callback(statusReport, lastFolder, win);
+          return;
+        }
+
+        outline = aParentNode.firstElementChild;
+        if (outline.tagName != "outline")
+        {
+          FeedUtils.log.info("importOPMLOutlines: skipping, node is not an " +
+                             "<outline> - <" + outline.tagName + ">");
+          badTag = true;
+          break;
+        }
+
+        let outlineName = outline.getAttribute("text") ||
+                          outline.getAttribute("title") ||
+                          outline.getAttribute("xmlUrl");
+        let feedUrl, folderURI;
+
+        if (outline.getAttribute("type") == "rss")
+        {
+          // A feed outline.
+          feedUrl = outline.getAttribute("xmlUrl") || outline.getAttribute("url");
+          if (!feedUrl)
+          {
+            FeedUtils.log.info("importOPMLOutlines: skipping, type=rss <outline> " +
+                               "has no url - " + outlineName);
+            break;
+          }
+
+          rssOutlines++;
+          feedFolder = aParentFolder;
+
+          if (FeedUtils.feedAlreadyExists(feedUrl, rssServer))
+          {
+            FeedUtils.log.info("importOPMLOutlines: feed already subscribed in account " +
+                               rssServer.prettyName + ", url - " + feedUrl);
+            break;
+          }
+
+          if (aParentNode.tagName == "outline" &&
+              aParentNode.getAttribute("type") != "rss")
+            // Parent is a folder, already created.
+            folderURI = feedFolder.URI;
+          else
+          {
+            // Parent is not a folder outline, likely the <body> in a flat list.
+            // Create feed's folder with feed's name and account rootFolder as
+            // parent of feed's folder.
+            // NOTE: Assume a type=rss outline must be a leaf and is not a
+            // direct parent of another type=rss outline; such a structure
+            // may lead to unintended nesting and inaccurate counts.
+          }
+
+          // Create the feed.
+          let quickMode = outline.hasAttribute("fz:quickMode") ?
+                          outline.getAttribute("fz:quickMode") == "true" ?
+                          true : false : rssServer.getBoolValue("quickMode");
+
+          if (firstFeedInFolderQuickMode === null)
+            // The summary/web page pref applies to all feeds in a folder,
+            // though it is a property of an individual feed.  This can be
+            // set (and is obvious) in the subscribe dialog; ensure import
+            // doesn't leave mismatches if mismatched in the opml file.
+            firstFeedInFolderQuickMode = quickMode;
+          else
+            quickMode = firstFeedInFolderQuickMode;
+
+          let feedProperties = { feedName     : outlineName,
+                                 feedLocation : feedUrl,
+                                 server       : rssServer,
+                                 folderURI    : folderURI,
+                                 quickMode    : quickMode };
+
+          FeedUtils.log.debug("importOPMLOutlines: importing feed: name, url - "+
+                              outlineName + ", " + feedUrl);
+
+          let feed = win.storeFeed(feedProperties);
+          if (outline.hasAttribute("htmlUrl"))
+            feed.link = outline.getAttribute("htmlUrl");
+
+          feed.createFolder();
+          FeedUtils.updateFolderFeedUrl(feed.folder, feed.url, false);
+
+          // addFeed() adds the feed to the datasource, it also flushes the
+          // subscription datasource.
+          FeedUtils.addFeed(feed.url, feed.name, feed.folder);
+          // Feed correctly added.
+          feedsAdded++;
+          lastFolder = feed.folder;
+        }
+        else
+        {
+          // A folder outline.
+          try {
+            feedFolder = aParentFolder.getChildNamed(outlineName);
+          }
+          catch (ex) {
+            // Folder not found, create it.
+            FeedUtils.log.debug("importOPMLOutlines: creating folder - '" +
+                                outlineName + "' in parent folder " +
+                                aParentFolder.filePath.path);
+            firstFeedInFolderQuickMode = null;
+            try {
+              feedFolder = aParentFolder.QueryInterface(Ci.nsIMsgLocalMailFolder).
+                                         createLocalSubfolder(outlineName);
+              folderOutlines++;
+            }
+            catch (ex) {
+              // An error creating.  This can happen in (rare, if user manually
+              // deletes .msf or panacea or such) cases of mismatched folder
+              // names and hashed names and files on disk.  Skip it.
+              FeedUtils.log.error("importOPMLOutlines: skipping, error creating " +
+                                  " folder - '" + outlineName +
+                                  "' in parent folder " + aParentFolder.filePath.path);
+              badTag = true;
+              break;
+            }
+          }
+        }
+        break;
+      }
+
+      if (!outline.childElementCount || badTag)
+      {
+        // Remove leaf nodes that are processed or bad tags from the opml dom,
+        // and go back to reparse.  This method lets us use setTimeout to
+        // prevent UI hang, in situations of both deep and shallow trees.
+        // A yield/generator.next() method is fine for shallow trees, but not
+        // the true recursion required for deeper trees; both the shallow loop
+        // and the recurse should give it up.
+        aParentNode.removeChild(outline);
+        badTag = false;
+        outline = aBody;
+        feedFolder = rssServer.rootFolder;
+      }
+
+      setTimeout(function() {
+        processor(outline, feedFolder);
+      }, 0);
     }
 
-    let feedName = aOutline.getAttribute("text") ||
-                   aOutline.getAttribute("title") ||
-                   aOutline.getAttribute("xmlUrl");
+    processor(aBody, rssServer.rootFolder);
+  },
 
-    let defaultQuickMode = this.mRSSServer.getBoolValue("quickMode");
-    let feedProperties = { feedName     : feedName,
-                           feedLocation : newFeedUrl,
-                           server       : this.mRSSServer,
-                           folderURI    : "",
-                           quickMode    : defaultQuickMode};
+  importOPMLStatus: function(aFeedsAdded, aRssOutlines, aFolderOutlines)
+  {
+    let statusReport;
+    if (aRssOutlines > aFeedsAdded)
+      statusReport = FeedUtils.strings.formatStringFromName("subscribe-OPMLImportStatus",
+        [PluralForm.get(aFeedsAdded,
+                        FeedUtils.strings.GetStringFromName("subscribe-OPMLImportUniqueFeeds"))
+                   .replace("#1", aFeedsAdded),
+         PluralForm.get(aRssOutlines,
+                        FeedUtils.strings.GetStringFromName("subscribe-OPMLImportFoundFeeds"))
+                   .replace("#1", aRssOutlines)], 2);
+    else
+      statusReport = PluralForm.get(aFeedsAdded,
+        FeedUtils.strings.GetStringFromName("subscribe-OPMLImportFeedCount"))
+                         .replace("#1", aFeedsAdded);
 
-    FeedUtils.log.debug("importOutline: importing feed: name, url - "+
-                        feedName+", "+newFeedUrl);
+    return statusReport;
+  },
 
-    let feed = this.storeFeed(feedProperties);
-    feed.title = feedProperties.feedName;
-    if (aOutline.hasAttribute("htmlUrl"))
-      feed.link = aOutline.getAttribute("htmlUrl");
-
-    feed.createFolder();
-    FeedUtils.updateFolderFeedUrl(feed.folder, feed.url, false);
-
-    // addFeed adds the feed we have validated and downloaded to
-    // our datasource, it also flushes the subscription datasource.
-    FeedUtils.addFeed(feed.url, feed.name, feed.folder);
-    // Feed correctly added.
-    return 1;
+  importOPMLFinished: function(aStatusReport, aLastFolder, aWin)
+  {
+    if (aLastFolder)
+    {
+      aWin.selectFolder(aLastFolder, { select: false, newFolder: aLastFolder });
+      aWin.selectFolder(aLastFolder.parent);
+    }
+    aWin.mActionMode = null;
+    aWin.updateButtons(aWin.mView.currentItem);
+    aWin.clearStatusInfo();
+    aWin.updateStatusItem("statusText", aStatusReport);
   }
+
 };

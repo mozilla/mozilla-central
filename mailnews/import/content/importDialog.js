@@ -6,6 +6,7 @@
 
 var importType = null;
 var gImportMsgsBundle;
+var gFeedsBundle;
 var importService = 0;
 var successStr = null;
 var errorStr = null;
@@ -13,12 +14,14 @@ var inputStr = null ;
 var progressInfo = null;
 var selectedModuleName = null;
 var addInterface = null ;
+var newFeedAcctCreated = false;
 
 const nsISupportsString = Components.interfaces.nsISupportsString;
 
 function OnLoadImportDialog()
 {
   gImportMsgsBundle = document.getElementById("bundle_importMsgs");
+  gFeedsBundle = document.getElementById("bundle_feeds");
   importService = Components.classes["@mozilla.org/import/import-service;1"]
                             .getService(Components.interfaces.nsIImportService);
 
@@ -67,8 +70,16 @@ function SetUpImportType()
     if (importType == "all")
       document.getElementById("importFields").value = "addressbook";
   }
-  
-  ListModules();
+
+  let descriptionDeck = document.getElementById("selectDescriptionDeck");
+  descriptionDeck.setAttribute("selectedIndex", "0");
+  if (importType == "feeds")
+  {
+    descriptionDeck.setAttribute("selectedIndex", "1");
+    ListFeedAccounts();
+  }
+  else
+    ListModules();
 }
 
 
@@ -107,6 +118,7 @@ function ImportDialogOKButton()
   var deck = document.getElementById("stateDeck");
   var header = document.getElementById("header");
   var progressMeterEl = document.getElementById("progressMeter");
+  progressMeterEl.setAttribute("mode", "determined");
   var progressStatusEl = document.getElementById("progressStatus");
   var progressTitleEl = document.getElementById("progressTitle");
 
@@ -120,8 +132,13 @@ function ImportDialogOKButton()
   {
     importType = document.getElementById("importFields").value;
     var index = listbox.selectedItems[0].getAttribute('list-index');
-    var module = importService.GetModule(importType, index);
-    var name = importService.GetModuleName(importType, index);
+    if (importType == "feeds")
+      var module = "Feeds";
+    else
+    {
+      var module = importService.GetModule(importType, index);
+      var name = importService.GetModuleName(importType, index);
+    }
     selectedModuleName = name;
     if (module)
     {
@@ -173,6 +190,29 @@ function ImportDialogOKButton()
             nextButton.removeAttribute("disabled");
             backButton.removeAttribute("disabled");
             return( false);
+          }
+          break;
+
+        case "feeds":
+          if (ImportFeeds())
+          {
+            // Successful completion of pre processing and launch of async import.
+            meterText = document.getElementById("description").textContent;
+            header.setAttribute("description", meterText);
+
+            progressStatusEl.setAttribute("label", "");
+            progressTitleEl.setAttribute("label", meterText);
+            progressMeterEl.setAttribute("mode", "undetermined");
+
+            deck.setAttribute("selectedIndex", "2");
+            return true;
+          }
+          else
+          {
+            // Cancelled or error.
+            nextButton.removeAttribute("disabled");
+            backButton.removeAttribute("disabled");
+            return false;
           }
           break;
 
@@ -281,11 +321,26 @@ function ContinueImportCallback()
 
 function ImportSelectionChanged()
 {
-  var listbox = document.getElementById('moduleList');
+  let listbox = document.getElementById('moduleList');
+  let acctNameBox = document.getElementById('acctName-box');
   if ( listbox && listbox.selectedItems && (listbox.selectedItems.length == 1) )
   {
-    var index = listbox.selectedItems[0].getAttribute('list-index');
-    SetDivText('description', top.importService.GetModuleDescription(top.importType, index));
+    let index = listbox.selectedItems[0].getAttribute('list-index');
+    acctNameBox.setAttribute('style', 'visibility: hidden;');
+    if (importType == 'feeds')
+    {
+      if (index == 0)
+      {
+        SetDivText('description', gFeedsBundle.getString('ImportFeedsNewAccount'));
+        let defaultName = gFeedsBundle.getString("feeds-accountname");
+        document.getElementById( "acctName").value = defaultName;
+        acctNameBox.removeAttribute('style');
+      }
+      else
+        SetDivText('description', gFeedsBundle.getString('ImportFeedsExistingAccount'));
+    }
+    else
+      SetDivText('description', top.importService.GetModuleDescription(top.importType, index));
   }
 }
 
@@ -334,6 +389,32 @@ function AddModuleToList(moduleName, index)
   body.appendChild(item);
 }
 
+function ListFeedAccounts() {
+  let body = document.getElementById( "moduleList");
+  while (body.hasChildNodes())
+    body.removeChild(body.lastChild);
+
+  // Add item to allow for new account creation.
+  let item = document.createElement("listitem");
+  item.setAttribute("label", gFeedsBundle.getString('ImportFeedsCreateNewListItem'));
+  item.setAttribute("list-index", 0);
+  body.appendChild(item);
+
+  let index = 0;
+  let feedRootFolders = FeedUtils.getAllRssServerRootFolders();
+
+  feedRootFolders.forEach(function(rootFolder) {
+    item = document.createElement("listitem");
+    item.setAttribute("label", rootFolder.prettyName);
+    item.setAttribute("list-index", ++index);
+    item.server = rootFolder.server;
+    body.appendChild(item);
+  }, this);
+
+  if (index)
+    // If there is an existing feed account, select the first one.
+    body.selectedIndex = 1;
+}
 
 function ContinueImport( info) {
   var isMail = info.importType == 'mail' ? true : false;
@@ -401,10 +482,9 @@ function ShowResults(doesWantProgress, result)
                        var progressStatusEl = document.getElementById("progressStatus");
                        var progressTitleEl = document.getElementById("progressTitle");
 
-                       var meterText = gImportMsgsBundle.getFormattedString('AddrProgressMeterText',
-                                                                                                                  [ name ]);
+                       var meterText = gImportMsgsBundle.getFormattedString('AddrProgressMeterText', [ name ]);
                        header.setAttribute("description", meterText);
-      
+
                        progressStatusEl.setAttribute("label", "");
                        progressTitleEl.setAttribute("label", meterText);
 
@@ -843,8 +923,75 @@ function ImportFilters( module, error)
   return filtersInterface.Import(error);
 }
 
+/*
+  Import feeds.
+*/
+function ImportFeeds()
+{
+  // Get file to open from filepicker.
+  let openFile = FeedSubscriptions.opmlPickOpenFile();
+  if (!openFile)
+    return false;
+
+  let acctName;
+  let acctNewExist = gFeedsBundle.getString("ImportFeedsExisting");
+  let fileName = openFile.path;
+  let server = document.getElementById("moduleList").selectedItem.server;
+  newFeedAcctCreated = false;
+
+  if (!server)
+  {
+    // Create a new Feeds account.
+    acctName = document.getElementById("acctName").value;
+    server = FeedUtils.createRssAccount(acctName).incomingServer;
+    acctNewExist = gFeedsBundle.getString("ImportFeedsNew");
+    newFeedAcctCreated = true;
+  }
+
+  acctName = server.rootFolder.prettyName;
+
+  let callback = function(aStatusReport, aLastFolder , aFeedWin)
+  {
+    let message = gFeedsBundle.getFormattedString("ImportFeedsDone",
+                                                  [fileName, acctNewExist, acctName]);
+    ShowImportResultsRaw(message + "  " + aStatusReport, null, true);
+    document.getElementById("back").removeAttribute("disabled");
+
+    let subscriptionsWindow = Services.wm.getMostRecentWindow("Mail:News-BlogSubscriptions");
+    if (subscriptionsWindow)
+    {
+      let feedWin = subscriptionsWindow.FeedSubscriptions;
+      if (aLastFolder)
+        feedWin.FolderListener.folderAdded(aLastFolder);
+      feedWin.mActionMode = null;
+      feedWin.updateButtons(feedWin.mView.currentItem);
+      feedWin.clearStatusInfo();
+      feedWin.updateStatusItem("statusText", aStatusReport);
+    }
+  }
+
+  if (!FeedSubscriptions.importOPMLFile(openFile, server, callback))
+    return false;
+
+  let subscriptionsWindow = Services.wm.getMostRecentWindow("Mail:News-BlogSubscriptions");
+  if (subscriptionsWindow)
+  {
+    let feedWin = subscriptionsWindow.FeedSubscriptions;
+    feedWin.mActionMode = feedWin.kImportingOPML;
+    feedWin.updateButtons(null);
+    let statusReport = gFeedsBundle.getString("subscribe-loading");
+    feedWin.updateStatusItem("statusText", statusReport);
+    feedWin.updateStatusItem("progressMeter", "?");
+  }
+
+  return true;
+}
+
 function SwitchType( newType)
 {
+  if (top.importType == newType)
+    return;
+
   top.importType = newType;
   top.progressInfo.importType = newType;
 
@@ -895,7 +1042,8 @@ function next()
 function SelectFirstItem()
 {
   var listbox = document.getElementById("moduleList");
-  listbox.selectedIndex = 0;
+  if (listbox.selectedIndex == -1)
+    listbox.selectedIndex = 0;
   ImportSelectionChanged();
 }
 
@@ -934,6 +1082,10 @@ function back()
 
     // Enable the cancel button again.
     document.getElementById("cancel").removeAttribute("disabled");
+
+    // If a new Feed account has been created, rebuild the list.
+    if (newFeedAcctCreated)
+      ListFeedAccounts();
 
     // Now go back to the second page.
     deck.setAttribute("selectedIndex", "1");

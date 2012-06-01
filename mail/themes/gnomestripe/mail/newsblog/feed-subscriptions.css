@@ -26,3 +26,6 @@
   height: 24px;
 }
 
+#selectFolder {
+  margin-top: 1px !important;
+}

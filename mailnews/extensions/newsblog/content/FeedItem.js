@@ -157,8 +157,7 @@ FeedItem.prototype =
       FeedUtils.log.debug("FeedItem.findStoredResource: " + this.feed.name +
                           " folder doesn't exist; creating as child of " +
                           server.rootMsgFolder.prettyName + "\n");
-      server.rootMsgFolder.createSubfolder(this.feed.name, null);
-      folder = server.rootMsgFolder.findSubFolder(this.feed.name);
+      this.feed.createFolder();
       FeedUtils.log.debug("FeedItem.findStoredResource: " + this.identity +
                           " not stored (folder didn't exist)");
       return null;

@@ -19,10 +19,10 @@
         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         xmlns:nc="http://home.netscape.com/NC-rdf#"
         persist="width height screenX screenY sizemode"
-        onload="gFeedSubscriptionsWindow.onLoad();"
-        onunload="return gFeedSubscriptionsWindow.onUnload();"
-        onkeypress="gFeedSubscriptionsWindow.onKeyPress(event);"
-        onmousedown="gFeedSubscriptionsWindow.onMouseDown(event);">
+        onload="FeedSubscriptions.onLoad();"
+        onunload="return FeedSubscriptions.onUnload();"
+        onkeypress="FeedSubscriptions.onKeyPress(event);"
+        onmousedown="FeedSubscriptions.onMouseDown(event);">
 
   <script type="application/javascript"
           src="chrome://messenger-newsblog/content/utils.js"/>
@@ -59,7 +59,7 @@
           treelines="true"
           flex="1"
           hidecolumnpicker="true"
-          onselect="gFeedSubscriptionsWindow.onSelect();"
+          onselect="FeedSubscriptions.onSelect();"
           seltype="single">
       <treecols>
         <treecol id="folderNameCol"
@@ -68,8 +68,8 @@
                  hideheader="true"/>
       </treecols>
       <treechildren id="subscriptionChildren"
-                    ondragstart="gFeedSubscriptionsWindow.onDragStart(event);"
-                    ondragover="gFeedSubscriptionsWindow.onDragOver(event);"/>
+                    ondragstart="FeedSubscriptions.onDragStart(event);"
+                    ondragover="FeedSubscriptions.onDragOver(event);"/>
     </tree>
 
     <hbox id="rssFeedInfoBox">
@@ -103,14 +103,14 @@
                          class="uri-element"
                          placeholder="&feedLocation.placeholder;"
                          clickSelectsAll="true"
-                         onfocus="gFeedSubscriptionsWindow.setSummaryFocus();"
-                         onblur="gFeedSubscriptionsWindow.setSummaryFocus();"/>
+                         onfocus="FeedSubscriptions.setSummaryFocus();"
+                         onblur="FeedSubscriptions.setSummaryFocus();"/>
                 <label id="locationValidate"
                        collapsed="true"
                        class="text-link"
                        crop="end"
                        value="&locationValidate.label;"
-                       onclick="gFeedSubscriptionsWindow.checkValidation(event);"/>
+                       onclick="FeedSubscriptions.checkValidation(event);"/>
               </hbox>
             </row>
             <row>
@@ -131,13 +131,13 @@
                              mode="feeds"
                              showFileHereLabel="true"
                              showAccountsFileHere="true"
-                             oncommand="gFeedSubscriptionsWindow.setFolderPicker(event.target._folder)"/>
+                             oncommand="FeedSubscriptions.setFolderPicker(event.target._folder)"/>
                 </menulist>
                 <textbox id="selectFolderValue"
                          flex="1"
                          readonly="true"
-                         onkeypress="gFeedSubscriptionsWindow.onClickSelectFolderValue(event)"
-                         onclick="gFeedSubscriptionsWindow.onClickSelectFolderValue(event)"/>
+                         onkeypress="FeedSubscriptions.onClickSelectFolderValue(event)"
+                         onclick="FeedSubscriptions.onClickSelectFolderValue(event)"/>
               </hbox>
             </row>
           </rows>
@@ -145,24 +145,23 @@
         <checkbox id="quickMode"
                   accesskey="&quickMode.accesskey;"
                   label="&quickMode.label;"
-                  oncommand="gFeedSubscriptionsWindow.setSummary(this.checked)"/>
+                  oncommand="FeedSubscriptions.setSummary(this.checked)"/>
       </vbox>
     </hbox>
 
     <hbox id="statusContainerBox"
           align="center"
           valign="middle">
-      <label id="statusText"
-             class="statusbarpanel-text"
-             crop="end"
-             value=""/>
+      <vbox flex="1">
+        <description id="statusText"/>
+      </vbox>
+      <spacer flex="1"/>
       <label id="validationText"
              collapsed="true"
              class="text-link"
              crop="end"
              value="&validateText.label;"
-             onclick="gFeedSubscriptionsWindow.checkValidation(event);"/>
-      <spacer flex="1"/>
+             onclick="FeedSubscriptions.checkValidation(event);"/>
       <progressmeter id="progressMeter"
                      collapsed="true"
                      mode="determined"
@@ -174,31 +173,32 @@
         <button id="addFeed"
                 label="&button.addFeed.label;"
                 accesskey="&button.addFeed.accesskey;"
-                oncommand="gFeedSubscriptionsWindow.addFeed();"/>
+                oncommand="FeedSubscriptions.addFeed();"/>
 
         <button id="editFeed"
                 disabled="true"
                 label="&button.editFeed.label;"
                 accesskey="&button.editFeed.accesskey;"
-                oncommand="gFeedSubscriptionsWindow.editFeed();"/>
+                oncommand="FeedSubscriptions.editFeed();"/>
 
         <button id="removeFeed"
                 disabled="true"
                 label="&button.removeFeed.label;"
                 accesskey="&button.removeFeed.accesskey;"
-                oncommand="gFeedSubscriptionsWindow.removeFeed(true);"/>
+                oncommand="FeedSubscriptions.removeFeed(true);"/>
 
         <spacer flex="1"/>
 
         <button id="importOPML"
                 label="&button.importOPML.label;"
                 accesskey="&button.importOPML.accesskey;"
-                oncommand="gFeedSubscriptionsWindow.importOPML();"/>
+                oncommand="FeedSubscriptions.importOPML();"/>
 
         <button id="exportOPML"
                 label="&button.exportOPML.label;"
                 accesskey="&button.exportOPML.accesskey;"
-                oncommand="gFeedSubscriptionsWindow.exportOPML();"/>
+                tooltiptext="&button.exportOPML.tooltip;"
+                oncommand="FeedSubscriptions.exportOPML(event);"/>
       </hbox>
     </hbox>
   </vbox>

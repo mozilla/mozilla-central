@@ -428,8 +428,20 @@ Feed.prototype =
 
   createFolder: function()
   {
-    if (!this.folder)
-      this.server.rootMsgFolder.createSubfolder(this.name, null);
+    if (this.folder)
+      return;
+
+    try {
+      this.folder = this.server.rootMsgFolder.
+                                QueryInterface(Ci.nsIMsgLocalMailFolder).
+                                createLocalSubfolder(this.name);
+    }
+    catch (ex) {
+      // An error creating.
+      FeedUtils.log.error("Feed.createFolder: error creating folder - '"+
+                          this.name+"' in parent folder "+
+                          this.server.rootMsgFolder.filePath.path + " -- "+ex);
+    }
   },
 
   // Gets the next item from itemsToStore and forces that item to be stored

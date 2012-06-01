@@ -16,7 +16,12 @@ function openSubscriptionsDialog(aFolder)
   if (subscriptionsWindow)
   {
     if (aFolder)
-      subscriptionsWindow.gFeedSubscriptionsWindow.selectFolder(aFolder);
+    {
+      subscriptionsWindow.FeedSubscriptions.selectFolder(aFolder);
+      subscriptionsWindow.FeedSubscriptions.mView.treeBox.ensureRowIsVisible(
+        subscriptionsWindow.FeedSubscriptions.mView.selection.currentIndex);
+    }
+
     subscriptionsWindow.focus();
   }
   else

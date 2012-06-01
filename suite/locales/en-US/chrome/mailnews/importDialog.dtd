@@ -7,6 +7,8 @@
 <!ENTITY importAll.accesskey      "E">
 <!ENTITY importMail.label         "Mail">
 <!ENTITY importMail.accesskey     "M">
+<!ENTITY importFeeds.label        "Feed Subscriptions">
+<!ENTITY importFeeds.accesskey    "d">
 <!ENTITY importAddressbook.label  "Address Books">
 <!ENTITY importAddressbook.accesskey "A">
 <!ENTITY importSettings.label     "Settings">
@@ -20,11 +22,14 @@
 <!ENTITY importTitle.label        "&brandShortName; Import Wizard">
 <!ENTITY importShortDesc.label    "Import Mail, Address Books, Settings, and Filters from other programs">
 
-<!ENTITY importDescription1.label "This wizard will import mail messages, address book entries, preferences, and/or filters from other mail programs and common address book formats into &brandShortName;.">
+<!ENTITY importDescription1.label "This wizard will import mail messages, address book entries, feed subscriptions, preferences, and/or filters from other mail programs and common address book formats into &brandShortName;.">
 <!ENTITY importDescription2.label "Once they have been imported, you will be able to access them from within &brandShortName;.">
 
 <!ENTITY selectDescription.label  "Please select the type of file that you would like to import:">
+<!ENTITY selectDescriptionB.label "Please select an existing account or create a new account:">
 <!ENTITY selectDescription.accesskey "P">
+<!ENTITY acctName.label           "Name:">
+<!ENTITY acctName.accesskey       "N">
 
 <!ENTITY back.label               "&lt; Back">
 <!ENTITY forward.label            "Next &gt;">

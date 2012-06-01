@@ -37,9 +37,9 @@ var nsNewsBlogFeedDownloader =
       let folder;
       for (let i = 0; i < numFolders; i++) {
         folder = allFolders.GetElementAt(i).QueryInterface(Ci.nsIMsgFolder);
-        FeedUtils.log.debug("downloadFeed: START x/# foldername:uri - "+
-                            (i+1)+"/"+ numFolders+" "+
-                            folder.name+":"+folder.URI);
+        FeedUtils.log.debug("downloadFeed: START x/# foldername:uri - " +
+                            (i+1) + "/" + numFolders + " " +
+                            folder.name + ":" + folder.URI);
 
         // Ensure msgDatabase for the folder is open for new message processing.
         let msgDb;
@@ -52,8 +52,8 @@ var nsNewsBlogFeedDownloader =
           // for the next cycle; don't bother with a listener.  Continue with
           // the next folder, as attempting to add a message to a folder with
           // an unavailable msgDatabase will throw later.
-          FeedUtils.log.debug("downloadFeed: rebuild msgDatabase for "+
-                              folder.name+" - "+folder.filePath.path);
+          FeedUtils.log.debug("downloadFeed: rebuild msgDatabase for " +
+                              folder.name + " - " + folder.filePath.path);
           try
           {
             // Ignore error returns.
@@ -72,8 +72,8 @@ var nsNewsBlogFeedDownloader =
             (aFolder.isServer && trashFolder && trashFolder.isAncestorOf(folder)))
           continue;
 
-        FeedUtils.log.debug("downloadFeed: CONTINUE foldername:urlArray - "+
-                            folder.name+":"+feedUrlArray);
+        FeedUtils.log.debug("downloadFeed: CONTINUE foldername:urlArray - " +
+                            folder.name + ":" + feedUrlArray);
 
         FeedUtils.progressNotifier.init(aMsgWindow, false);
 
@@ -89,7 +89,7 @@ var nsNewsBlogFeedDownloader =
             // Bump our pending feed download count.
             FeedUtils.progressNotifier.mNumPendingFeedDownloads++;
             feed.download(true, FeedUtils.progressNotifier);
-            FeedUtils.log.debug("downloadFeed: DOWNLOAD feed url - "+
+            FeedUtils.log.debug("downloadFeed: DOWNLOAD feed url - " +
                                 feedUrlArray[url]);
           }
 
@@ -100,7 +100,7 @@ var nsNewsBlogFeedDownloader =
             catch (ex) {
               if (ex instanceof StopIteration)
                 // Finished with all feeds in base folder and its subfolders.
-                FeedUtils.log.debug("downloadFeed: Finished with folder - "+
+                FeedUtils.log.debug("downloadFeed: Finished with folder - " +
                                     aFolder.name);
               else
               {
@@ -122,7 +122,7 @@ var nsNewsBlogFeedDownloader =
     catch (ex) {
       if (ex instanceof StopIteration)
         // Nothing to do.
-        FeedUtils.log.debug("downloadFeed: Nothing to do in folder - "+
+        FeedUtils.log.debug("downloadFeed: Nothing to do in folder - " +
                             aFolder.name);
       else
       {
@@ -149,47 +149,11 @@ var nsNewsBlogFeedDownloader =
 
     // If aFolder is null, then use the root folder for the first RSS account.
     if (!aFolder)
-    {
-      let allServers = MailServices.accounts.allServers;
-      for (let i = 0; i < allServers.Count() && !aFolder; i++)
-      {
-        let currentServer = allServers.QueryElementAt(i, Ci.nsIMsgIncomingServer);
-        if (currentServer && currentServer.type == "rss")
-          aFolder = currentServer.rootFolder;
-      }
-    }
+      aFolder = FeedUtils.getAllRssServerRootFolders()[0];
 
-    // If the user has no RSS account yet, create one; also check then if
-    // the "Local Folders" exist yet and create if necessary.
+    // If the user has no Feeds account yet, create one.
     if (!aFolder)
-    {
-      let server = MailServices.accounts.createIncomingServer("nobody",
-                                                              "Feeds",
-                                                              "rss");
-      server.biffMinutes = FeedUtils.kBiffMinutesDefault;
-      server.prettyName = FeedUtils.strings.GetStringFromName("feeds-accountname");
-      server.valid = true;
-      let account = MailServices.accounts.createAccount();
-      account.incomingServer = server;
-
-      aFolder = account.incomingServer.rootFolder;
-
-      // Create "Local Folders" if none exist yet as it's guaranteed that
-      // those exist when any account exists.
-      let localFolders = null;
-      try {
-        localFolders = MailServices.accounts.localFoldersServer;
-      }
-      catch (ex) {}
-
-      if (!localFolders)
-        MailServices.accounts.createLocalMailAccount();
-
-      // Save new accounts in case of a crash.
-      try {
-        MailServices.accounts.saveAccountInfo();
-      } catch (ex) {}
-    }
+      aFolder = FeedUtils.createRssAccount().incomingServer.rootFolder;
 
     if (!aMsgWindow)
     {
@@ -248,6 +212,9 @@ var nsNewsBlogFeedDownloader =
     if (!gExternalScriptsLoaded)
       loadScripts();
 
+    FeedUtils.log.debug("updateSubscriptionsDS: folder changed, name:unsubscribe - " +
+                        aFolder.filePath.path + ":" + aUnsubscribe);
+
     // An rss folder was just changed, get the folder's feedUrls and update
     // our feed data source.
     let feedUrlArray = FeedUtils.getFeedUrlsInFolder(aFolder);
@@ -264,6 +231,9 @@ var nsNewsBlogFeedDownloader =
       newFeedUrl = feedUrlArray[url];
       if (newFeedUrl)
       {
+        FeedUtils.log.debug("updateSubscriptionsDS: processing url - " +
+                            newFeedUrl);
+
         id = FeedUtils.rdf.GetResource(newFeedUrl);
         // If explicit delete or move to trash, unsubscribe.
         if (aUnsubscribe ||

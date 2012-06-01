@@ -534,6 +534,8 @@ pref("rss.show.summary", 1);
 // 1 - open summary in new window
 // 2 - toggle load summary and content-base url in message pane
 pref("rss.show.content-base", 0);
+// Feeds system logging, uses log4moz conventions.
+pref("Feeds.logging.console", "Info");
 
 pref("mail.forward_message_mode", 0); // 0=default as attachment 2=forward as inline with attachments, (obsolete 4.x value)1=forward as quoted (mapped to 2 in mozilla)
 pref("mail.forward_add_extension", true); // add .eml extension when forwarding as attachment
