@@ -8300,6 +8300,12 @@ bool nsImapProtocol::TryToLogon()
    */
 
   bool newPasswordRequested = false;
+  // remember the msgWindow before we start trying to logon, because if the
+  // server drops the connection on errors, TellThreadToDie will null out the
+  // protocolsink and we won't be able to get the msgWindow.
+  nsCOMPtr<nsIMsgWindow> msgWindow;
+  GetMsgWindow(getter_AddRefs(msgWindow));
+
   // This loops over 1) auth methods (only one per loop) and 2) password tries (with UI)
   while (!loginSucceeded && !skipLoop && !DeathSignalReceived())
   {
@@ -8347,8 +8353,6 @@ bool nsImapProtocol::TryToLogon()
           PR_LOG(IMAP, PR_LOG_WARN, ("IMAP: ask user what to do (after login failed): new passwort, retry, cancel"));
           if (!m_imapServerSink)
             break;
-          nsCOMPtr<nsIMsgWindow> msgWindow;
-          GetMsgWindow(getter_AddRefs(msgWindow));
           // if there's no msg window, don't forget the password
           if (!msgWindow)
             break;
