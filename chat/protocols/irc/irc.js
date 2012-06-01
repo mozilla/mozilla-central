@@ -97,6 +97,72 @@ function _setMode(aNewMode) {
   }
 }
 
+// This copies all the properties of aBase to aPrototype (which is expected to
+// be the prototype of an object). This is necessary because JavaScript does not
+// support multiple inheritance and both conversation objects have a lot of
+// shared code (but inherit from objects exposing different XPCOM interfaces).
+function copySharedBaseToPrototype(aBase, aPrototype) {
+  for (let property in aBase)
+    aPrototype[property] = aBase[property];
+}
+
+// Properties / methods shared by both ircChannel and ircConversation.
+const GenericIRCConversation = {
+  _observedNicks: [],
+  // This is set to true after a message is sent to notify the 401
+  // ERR_NOSUCHNICK handler to write an error message to the conversation.
+  _pendingMessage: false,
+  _waitingForNick: false,
+
+  sendMsg: function(aMessage) {
+    this._account.sendMessage("PRIVMSG", [this.name, aMessage]);
+
+    // Since the server doesn't send us a message back, just assume the message
+    // was received and immediately show it.
+    this.writeMessage(this._account._nickname, aMessage, {outgoing: true});
+
+    this._pendingMessage = true;
+  },
+
+  requestBuddyInfo: function(aNick) {
+    if (!this._observedNicks.length)
+      Services.obs.addObserver(this, "user-info-received", false);
+    this._observedNicks.push(this._account.normalize(aNick));
+    this._account.requestBuddyInfo(aNick);
+  },
+
+  observe: function(aSubject, aTopic, aData) {
+    if (aTopic != "user-info-received")
+      return;
+
+    let nick = this._account.normalize(aData);
+    let nickIndex = this._observedNicks.indexOf(nick);
+    if (nickIndex == -1)
+      return;
+    this._observedNicks.splice(nickIndex, 1);
+    if (!this._observedNicks.length)
+      Services.obs.removeObserver(this, "user-info-received");
+
+    // If we are waiting for the conversation name, set it.
+    if (this._waitingForNick && nick == this.normalizedName) {
+      if (hasOwnProperty(this._account.whoisInformation, nick))
+        this.updateNick(this._account.whoisInformation[nick]["nick"]);
+      delete this._waitingForNick;
+      return;
+    }
+
+    // Otherwise, print the requested whois information.
+    this._account.writeWhois(this, aData,
+                             aSubject.QueryInterface(Ci.nsISimpleEnumerator));
+  },
+
+  unInitIRCConversation: function() {
+    this._account.removeConversation(this.name);
+    if (this._observedNicks.length)
+      Services.obs.removeObserver(this, "user-info-received");
+  }
+};
+
 function ircChannel(aAccount, aName, aNick) {
   this._init(aAccount, aName, aNick);
   this._modes = [];
@@ -106,22 +172,7 @@ ircChannel.prototype = {
   __proto__: GenericConvChatPrototype,
   _modes: [],
   _receivedInitialMode: false,
-  _observedNicks: [],
-  // This is set to true after a message is sent to notify the 401
-  // ERR_NOSUCHNICK handler to write an error message to the conversation.
-  _pendingMessage: false,
 
-  sendMsg: function(aMessage) {
-    this._account.sendMessage("PRIVMSG", [this.name, aMessage]);
-
-    // Since we don't receive a message back from the server, just assume it
-    // was received and write it. An IRC bouncer will send us our message back
-    // though, try to handle that.
-    if (this.hasParticipant(this._account._nickname))
-      this.writeMessage(this.nick, aMessage, {outgoing: true});
-
-    this._pendingMessage = true;
-  },
   // Overwrite the writeMessage function to apply CTCP formatting before
   // display.
   writeMessage: function(aWho, aText, aProperties) {
@@ -151,10 +202,8 @@ ircChannel.prototype = {
   },
 
   unInit: function() {
-    this._account.removeConversation(this.name);
+    this.unInitIRCConversation();
     GenericConvChatPrototype.unInit.call(this);
-    if (this._observedNicks.length)
-      Services.obs.removeObserver(this, "user-info-received");
   },
 
   getNormalizedChatBuddyName: function(aNick)
@@ -285,29 +334,9 @@ ircChannel.prototype = {
            participant.halfOp;
   },
 
-  get normalizedName() this._account.normalize(this.name),
-
-  requestBuddyInfo: function(aNick) {
-    if (!this._observedNicks.length)
-      Services.obs.addObserver(this, "user-info-received", false);
-    this._observedNicks.push(this._account.normalize(aNick));
-    this._account.requestBuddyInfo(aNick);
-  },
-
-  observe: function(aSubject, aTopic, aData) {
-    if (aTopic != "user-info-received")
-      return;
-
-    let nickIndex = this._observedNicks.indexOf(this._account.normalize(aData));
-    if (nickIndex == -1)
-      return;
-    this._observedNicks.splice(nickIndex, 1);
-    if (!this._observedNicks.length)
-      Services.obs.removeObserver(this, "user-info-received");
-    this._account.writeWhois(this, aData,
-                             aSubject.QueryInterface(Ci.nsISimpleEnumerator));
-  }
+  get normalizedName() this._account.normalize(this.name)
 };
+copySharedBaseToPrototype(GenericIRCConversation, ircChannel.prototype);
 
 function ircParticipant(aName, aConv) {
   this._name = aName;
@@ -360,21 +389,6 @@ function ircConversation(aAccount, aName) {
 }
 ircConversation.prototype = {
   __proto__: GenericConvIMPrototype,
-  _observedNicks: [],
-  _waitingForNick: false,
-  // This is set to true after a message is sent to notify the 401
-  // ERR_NOSUCHNICK handler to write an error message to the conversation.
-  _pendingMessage: false,
-
-  sendMsg: function(aMessage) {
-    this._account.sendMessage("PRIVMSG", [this.name, aMessage]);
-
-    // Since the server doesn't send us a message back, just assume the message
-    // was received and immediately show it.
-    this.writeMessage(this._account._nickname, aMessage, {outgoing: true});
-
-    this._pendingMessage = true;
-  },
 
   // Overwrite the writeMessage function to apply CTCP formatting before
   // display.
@@ -387,49 +401,16 @@ ircConversation.prototype = {
   get normalizedName() this._account.normalize(this.name),
 
   unInit: function() {
-    this._account.removeConversation(this.name);
+    this.unInitIRCConversation();
     GenericConvIMPrototype.unInit.call(this);
-    if (this._observedNicks.length)
-      Services.obs.removeObserver(this, "user-info-received");
   },
 
   updateNick: function(aNewNick) {
     this._name = aNewNick;
     this.notifyObservers(null, "update-conv-title");
-  },
-
-  requestBuddyInfo: function(aNick) {
-    if (!this._observedNicks.length)
-      Services.obs.addObserver(this, "user-info-received", false);
-    this._observedNicks.push(this._account.normalize(aNick));
-    this._account.requestBuddyInfo(aNick);
-  },
-
-  observe: function(aSubject, aTopic, aData) {
-    if (aTopic != "user-info-received")
-      return;
-
-    let nick = this._account.normalize(aData);
-    let nickIndex = this._observedNicks.indexOf(nick);
-    if (nickIndex == -1)
-      return;
-    this._observedNicks.splice(nickIndex, 1);
-    if (!this._observedNicks.length)
-      Services.obs.removeObserver(this, "user-info-received");
-
-    // If we are waiting for the conversation name, set it.
-    if (this._waitingForNick && nick == this.normalizedName) {
-      if (hasOwnProperty(this._account.whoisInformation, nick))
-        this.updateNick(this._account.whoisInformation[nick]["nick"]);
-      delete this._waitingForNick;
-      return;
-    }
-
-    // Otherwise, print the requested whois information.
-    this._account.writeWhois(this, aData,
-                             aSubject.QueryInterface(Ci.nsISimpleEnumerator));
   }
 };
+copySharedBaseToPrototype(GenericIRCConversation, ircConversation.prototype);
 
 function ircSocket(aAccount) {
   this._account = aAccount;
