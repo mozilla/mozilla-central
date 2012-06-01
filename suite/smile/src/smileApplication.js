@@ -10,55 +10,45 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 //=================================================
 // Singleton that holds services and utilities
 var Utilities = {
-  _bookmarks : null,
   get bookmarks() {
-    if (!this._bookmarks) {
-      this._bookmarks =
-        Components.classes["@mozilla.org/browser/nav-bookmarks-service;1"]
-                  .getService(Components.interfaces.nsINavBookmarksService);
-    }
-    return this._bookmarks;
+    let bookmarks =
+      Components.classes["@mozilla.org/browser/nav-bookmarks-service;1"]
+                .getService(Components.interfaces.nsINavBookmarksService);
+    this.__defineGetter__("bookmarks", function() bookmarks);
+    return this.bookmarks;
   },
 
-  _livemarks : null,
   get livemarks() {
-    if (!this._livemarks) {
-      this._livemarks =
-        Components.classes["@mozilla.org/browser/livemark-service;2"]
-                  .getService(Components.interfaces.mozIAsyncLivemarks)
-                  .QueryInterface(Components.interfaces.nsILivemarkService);
-    }
-    return this._livemarks;
+    let livemarks =
+      Components.classes["@mozilla.org/browser/livemark-service;2"]
+                .getService(Components.interfaces.mozIAsyncLivemarks)
+                .QueryInterface(Components.interfaces.nsILivemarkService);
+    this.__defineGetter__("livemarks", function() livemarks);
+    return this.livemarks;
   },
 
-  _annotations : null,
   get annotations() {
-    if (!this._annotations) {
-      this._annotations =
-        Components.classes["@mozilla.org/browser/annotation-service;1"]
-                  .getService(Components.interfaces.nsIAnnotationService);
-    }
-    return this._annotations;
+    let annotations =
+      Components.classes["@mozilla.org/browser/annotation-service;1"]
+                .getService(Components.interfaces.nsIAnnotationService);
+    this.__defineGetter__("annotations", function() annotations);
+    return this.annotations;
   },
 
-  _history : null,
   get history() {
-    if (!this._history) {
-      this._history =
-        Components.classes["@mozilla.org/browser/nav-history-service;1"]
-                  .getService(Components.interfaces.nsINavHistoryService);
-    }
-    return this._history;
+    let history =
+      Components.classes["@mozilla.org/browser/nav-history-service;1"]
+                .getService(Components.interfaces.nsINavHistoryService);
+    this.__defineGetter__("history", function() history);
+    return this.history;
   },
 
-  _windowMediator : null,
   get windowMediator() {
-    if (!this._windowMediator) {
-      this._windowMediator =
-        Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                  .getService(Components.interfaces.nsIWindowMediator);
-    }
-    return this._windowMediator;
+    let windowMediator =
+      Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                .getService(Components.interfaces.nsIWindowMediator);
+    this.__defineGetter__("windowMediator", function() windowMediator);
+    return this.windowMediator;
   },
 
   makeURI : function(aSpec) {
@@ -70,11 +60,11 @@ var Utilities = {
   },
 
   free : function() {
-    this._bookmarks = null;
-    this._livemarks = null;
-    this._annotations = null;
-    this._history = null;
-    this._windowMediator = null;
+    delete this.bookmarks;
+    delete this.livemarks
+    delete this.annotations;
+    delete this.history;
+    delete this.windowMediator;
   }
 };
 
@@ -642,7 +632,6 @@ var ApplicationFactory = {
 // Application constructor
 function Application() {
   this.initToolkitHelpers();
-  this._bookmarks = null;
 }
 
 //=================================================
@@ -675,17 +664,15 @@ Application.prototype = {
     this.__proto__.__proto__.observe.call(this, aSubject, aTopic, aData);
     if (aTopic == "xpcom-shutdown") {
       this._obs.removeObserver(this, "xpcom-shutdown");
-      this._bookmarks = null;
+      delete this.bookmarks;
       Utilities.free();
     }
   },
 
-  _bookmarks : null,
   get bookmarks() {
-    if (this._bookmarks == null)
-     this._bookmarks = new BookmarkRoots();
-
-    return this._bookmarks;
+    let bookmarks = new BookmarkRoots();
+    this.__defineGetter__("bookmarks", function() bookmarks);
+    return this.bookmarks;
   },
 
   get windows() {
