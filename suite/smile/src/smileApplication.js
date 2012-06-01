@@ -7,6 +7,9 @@ const Cc = Components.classes;
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
+const APPLICATION_CID = Components.ID("{c9ba8f65-c936-4ac6-a859-8936832b0c12}");
+const APPLICATION_CONTRACTID = "@mozilla.org/smile/application;1";
+
 //=================================================
 // Singleton that holds services and utilities
 var Utilities = {
@@ -97,7 +100,7 @@ Window.prototype = {
    * are actually dispatched to tabs, so we capture them.
    */
   _watch : function win_watch(aType) {
-    this._tabbrowser.tabContainer.addEventListener(aType,
+    this._tabbrowser.addEventListener(aType,
       this._cleanup[aType] = this._event,
       true);
   },
@@ -127,7 +130,7 @@ Window.prototype = {
 
   _shutdown : function win_shutdown() {
     for (var type in this._cleanup)
-      this._tabbrowser.tabContainer.removeEventListener(type, this._cleanup[type], true);
+      this._tabbrowser.removeEventListener(type, this._cleanup[type], true);
     this._cleanup = null;
 
     this._window = null;
@@ -141,6 +144,7 @@ Window.prototype = {
 
 //=================================================
 // BrowserTab implementation
+// SMILE deals with tabs whereas FUEL deals with browsers.
 function BrowserTab(aSMILEWindow, aTab) {
   this._window = aSMILEWindow;
   this._tabbrowser = aSMILEWindow._tabbrowser;
@@ -562,6 +566,7 @@ BookmarkFolder.prototype = {
   QueryInterface : XPCOMUtils.generateQI([Components.interfaces.smileIBookmarkFolder, Components.interfaces.nsINavBookmarkObserver])
 };
 
+
 //=================================================
 // BookmarkRoots implementation
 function BookmarkRoots() {
@@ -638,7 +643,7 @@ function Application() {
 // Application implementation
 Application.prototype = {
   // for XPCOMUtils
-  classID:          Components.ID("{c9ba8f65-c936-4ac6-a859-8936832b0c12}"),
+  classID:          APPLICATION_CID,
 
   // redefine the default factory for XPCOMUtils
   _xpcom_factory: ApplicationFactory,
@@ -651,8 +656,8 @@ Application.prototype = {
 
   // for nsIClassInfo
   classInfo: XPCOMUtils.generateCI({
-    classID: Components.ID("{c9ba8f65-c936-4ac6-a859-8936832b0c12}"),
-    contractID: "@mozilla.org/smile/application;1",
+    classID: APPLICATION_CID,
+    contractID: APPLICATION_CONTRACTID,
     interfaces: [Components.interfaces.smileIApplication,
                  Components.interfaces.extIApplication,
                  Components.interfaces.nsIObserver],
@@ -695,6 +700,6 @@ Application.prototype = {
 
 #include ../../../mozilla/toolkit/components/exthelper/extApplication.js
 
-//module initialization
+// set the proto, defined in extApplication.js
 Application.prototype.__proto__ = extApplication.prototype;
 var NSGetFactory = XPCOMUtils.generateNSGetFactory([Application]);
