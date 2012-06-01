@@ -22,8 +22,8 @@ function test() {
   waitForExplicitFinish();
 
   let window_B = openDialog(location, "_blank", "chrome,all,dialog=no");
-  window_B.addEventListener("load", function(aEvent) {
-    window_B.removeEventListener("load", arguments.callee, false);
+  window_B.addEventListener("load", function testWindowBLoad(aEvent) {
+    window_B.removeEventListener("load", testWindowBLoad, false);
 
       waitForFocus(function() {
         // Add identifying information to window_B

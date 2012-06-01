@@ -15,8 +15,8 @@ function test() {
     "suite/common/tests/browser/browser_form_restore_events_sample.html";
   let tab = getBrowser().addTab(testURL);
   let window = tab.ownerDocument.defaultView;
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function testTabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", testTabLBLoad, true);
     let doc = tab.linkedBrowser.contentDocument;
 
     // text fields
@@ -45,8 +45,8 @@ function test() {
     doc.getElementById("modify11").checked = true;
 
     let tab2 = ss.duplicateTab(window,tab);
-    tab2.linkedBrowser.addEventListener("load", function(aEvent) {
-      tab2.linkedBrowser.removeEventListener("load", arguments.callee, true);
+    tab2.linkedBrowser.addEventListener("load", function testTab2LBLoad(aEvent) {
+      tab2.linkedBrowser.removeEventListener("load", testTab2LBLoad, true);
       let doc = tab2.linkedBrowser.contentDocument;
       let inputFired = doc.getElementById("inputFired").textContent.trim().split();
       let changeFired = doc.getElementById("changeFired").textContent.trim().split();

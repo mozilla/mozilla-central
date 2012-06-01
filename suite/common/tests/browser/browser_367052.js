@@ -14,15 +14,15 @@ function test() {
 
   // restore a blank tab
   let tab = getBrowser().addTab("about:");
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    this.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function testTabLBLoad(aEvent) {
+    this.removeEventListener("load", testTabLBLoad, true);
 
     let history = tab.linkedBrowser.webNavigation.sessionHistory;
     ok(history.count >= 1, "the new tab does have at least one history entry");
 
     ss.setTabState(tab, '{ "entries": [] }');
-    tab.linkedBrowser.addEventListener("load", function(aEvent) {
-      this.removeEventListener("load", arguments.callee, true);
+    tab.linkedBrowser.addEventListener("load", function testTabLBLoad2(aEvent) {
+      this.removeEventListener("load", testTabLBLoad2, true);
       ok(history.count == 0, "the tab was restored without any history whatsoever");
 
       getBrowser().removeTab(tab);

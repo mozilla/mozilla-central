@@ -13,8 +13,8 @@ function test() {
   let rootDir = getRootDirectory(gTestPath);
   let testURL = rootDir + "browser_456342_sample.xhtml";
   let tab = getBrowser().addTab(testURL);
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    this.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function testTabLBLoad(aEvent) {
+    this.removeEventListener("load", testTabLBLoad, true);
 
     let expectedValue = "try to save me";
     // Since bug 537289 we only save non-default values, so we need to set each

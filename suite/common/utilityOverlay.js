@@ -319,8 +319,8 @@ function goCustomizeToolbar(toolbox)
     // Open the panel, but make it invisible until the iframe has loaded so
     // that the user doesn't see a white flash.
     panel.style.visibility = "hidden";
-    toolbox.addEventListener("beforecustomization", function () {
-      toolbox.removeEventListener("beforecustomization", arguments.callee, false);
+    toolbox.addEventListener("beforecustomization", function toolboxBeforeCustom() {
+      toolbox.removeEventListener("beforecustomization", toolboxBeforeCustom, false);
       panel.style.removeProperty("visibility");
     }, false);
     panel.openPopup(toolbox, "after_start", 0, 0);
@@ -1515,10 +1515,10 @@ function switchToTabHavingURI(aURI, aOpenNew, aCallback) {
     let where = newWindowPref == kNewTab ? "tabfocused" : "window";
     let browserWin = openUILinkIn(aURI.spec, where);
     if (aCallback) {
-      browserWin.addEventListener("pageshow", function(event) {
+      browserWin.addEventListener("pageshow", function browserWinPageShow(event) {
         if (event.target.location.href != aURI.spec)
           return;
-        browserWin.removeEventListener("pageshow", arguments.callee, true);
+        browserWin.removeEventListener("pageshow", browserWinPageShow, true);
         aCallback(browserWin.getBrowser().selectedBrowser);
       }, true);
     }

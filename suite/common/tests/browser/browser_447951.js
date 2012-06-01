@@ -10,8 +10,8 @@ function test() {
     "suite/common/tests/browser/browser_447951_sample.html#";
 
   let tab = getBrowser().addTab();
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function testTabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", testTabLBLoad, true);
     
     let tabState = { entries: [] };
     let max_entries = Services.prefs.getIntPref("browser.sessionhistory.max_entries");
@@ -19,8 +19,8 @@ function test() {
       tabState.entries.push({ url: baseURL + i });
     
     ss.setTabState(tab, JSON.stringify(tabState));
-    tab.addEventListener("SSTabRestored", function(aEvent) {
-      tab.removeEventListener("SSTabRestored", arguments.callee, false);
+    tab.addEventListener("SSTabRestored", function testTabSSTabRestored(aEvent) {
+      tab.removeEventListener("SSTabRestored", testTabSSTabRestored, false);
       tabState = JSON.parse(ss.getTabState(tab));
       is(tabState.entries.length, max_entries, "session history filled to the limit");
       is(tabState.entries[0].url, baseURL + 0, "... but not more");

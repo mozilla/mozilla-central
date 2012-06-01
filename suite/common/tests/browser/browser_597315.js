@@ -54,11 +54,11 @@ function test() {
 // helper function
 function waitForLoadsInBrowser(aBrowser, aLoadCount, aCallback) {
   let loadCount = 0;
-  aBrowser.addEventListener("load", function(aEvent) {
+  aBrowser.addEventListener("load", function aBrowserLoad(aEvent) {
     if (++loadCount < aLoadCount)
       return;
 
-    aBrowser.removeEventListener("load", arguments.callee, true);
+    aBrowser.removeEventListener("load", aBrowserLoad, true);
     aCallback();
   }, true);
 }

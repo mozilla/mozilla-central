@@ -12,7 +12,7 @@ function checkState(tab) {
 
   let popStateCount = 0;
 
-  tab.linkedBrowser.addEventListener('popstate', function(aEvent) {
+  tab.linkedBrowser.addEventListener('popstate', function checkStateTabPopState(aEvent) {
     let contentWindow = tab.linkedBrowser.contentWindow;
     if (popStateCount == 0) {
       popStateCount++;
@@ -48,7 +48,8 @@ function checkState(tab) {
       ok(!doc.getElementById("new-elem"), "new-elem should be removed.");
 
       // Clean up after ourselves and finish the test.
-      tab.linkedBrowser.removeEventListener("popstate", arguments.callee, true);
+      tab.linkedBrowser.removeEventListener("popstate", checkStateTabPopState,
+                                              true);
       getBrowser().removeTab(tab);
       finish();
     }
@@ -74,13 +75,13 @@ function test() {
   let tab = getBrowser().addTab("about:blank");
   let tabBrowser = tab.linkedBrowser;
 
-  tabBrowser.addEventListener("load", function(aEvent) {
-    tabBrowser.removeEventListener("load", arguments.callee, true);
+  tabBrowser.addEventListener("load", function testTabBrowserLoad(aEvent) {
+    tabBrowser.removeEventListener("load", testTabBrowserLoad, true);
 
     tabBrowser.loadURI("http://example.com", null, null);
 
-    tabBrowser.addEventListener("load", function(aEvent) {
-      tabBrowser.removeEventListener("load", arguments.callee, true);
+    tabBrowser.addEventListener("load", function testTabBrowserLoad2(aEvent) {
+      tabBrowser.removeEventListener("load", testTabBrowserLoad2, true);
 
       // After these push/replaceState calls, the window should have three
       // history entries:
@@ -102,8 +103,8 @@ function test() {
       ss.setTabState(tab2, state, true);
 
       // Run checkState() once the tab finishes loading its restored state.
-      tab2.linkedBrowser.addEventListener("load", function() {
-        tab2.linkedBrowser.removeEventListener("load", arguments.callee, true);
+      tab2.linkedBrowser.addEventListener("load", function testTBTab2LBLoad() {
+        tab2.linkedBrowser.removeEventListener("load", testTBTab2LBLoad, true);
         SimpleTest.executeSoon(function() {
           checkState(tab2);
         });

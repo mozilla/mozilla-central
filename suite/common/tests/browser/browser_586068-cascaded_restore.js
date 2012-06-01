@@ -249,8 +249,8 @@ function test_multiWindowState() {
   function windowObserver(aSubject, aTopic, aData) {
     let theWin = aSubject.QueryInterface(Components.interfaces.nsIDOMWindow);
     if (aTopic == "domwindowopened") {
-      theWin.addEventListener("load", function() {
-        theWin.removeEventListener("load", arguments.callee, false);
+      theWin.addEventListener("load", function theWinLoad() {
+        theWin.removeEventListener("load", theWinLoad, false);
 
         Services.ww.unregisterNotification(windowObserver);
         theWin.getBrowser().addTabsProgressListener(progressListener);
@@ -512,8 +512,8 @@ function test_setBrowserStateInterrupted() {
   function windowObserver(aSubject, aTopic, aData) {
     let theWin = aSubject.QueryInterface(Components.interfaces.nsIDOMWindow);
     if (aTopic == "domwindowopened") {
-      theWin.addEventListener("load", function() {
-        theWin.removeEventListener("load", arguments.callee, false);
+      theWin.addEventListener("load", function wObserverTheWinLoad() {
+        theWin.removeEventListener("load", wObserverTheWinLoad, false);
 
         Services.ww.unregisterNotification(windowObserver);
         theWin.getBrowser().addTabsProgressListener(progressListener);

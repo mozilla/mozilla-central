@@ -12,15 +12,15 @@ function test() {
   let rootDir = getRootDirectory(gTestPath);
   let testURL = rootDir + "browser_485482_sample.html";
   let tab = getBrowser().addTab(testURL);
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function testTabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", testTabLBLoad, true);
     let doc = tab.linkedBrowser.contentDocument;
     doc.querySelector("input[type=text]").value = uniqueValue;
     doc.querySelector("input[type=checkbox]").checked = true;
     
     let tab2 = ss.duplicateTab(window, tab);
-    tab2.linkedBrowser.addEventListener("load", function(aEvent) {
-      tab2.linkedBrowser.removeEventListener("load", arguments.callee, true);
+    tab2.linkedBrowser.addEventListener("load", function testTab2LBLoad(aEvent) {
+      tab2.linkedBrowser.removeEventListener("load", testTab2LBLoad, true);
       doc = tab2.linkedBrowser.contentDocument;
       is(doc.querySelector("input[type=text]").value, uniqueValue,
          "generated XPath expression was valid");

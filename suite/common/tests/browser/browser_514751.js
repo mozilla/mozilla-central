@@ -24,8 +24,8 @@ function test() {
 
       switch(aTopic) {
         case "domwindowopened":
-          theWin.addEventListener("load", function () {
-            theWin.removeEventListener("load", arguments.callee, false);
+          theWin.addEventListener("load", function testTheWinLoad() {
+            theWin.removeEventListener("load", testTheWinLoad, false);
             executeSoon(function() {
               var gotError = false;
               try {

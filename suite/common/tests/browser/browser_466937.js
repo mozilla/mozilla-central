@@ -18,15 +18,15 @@ function test() {
   
   let tab = getBrowser().addTab(testURL);
   let window = tab.ownerDocument.defaultView;
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function testTabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", testTabLBLoad, true);
     let doc = tab.linkedBrowser.contentDocument;
     doc.getElementById("reverse_thief").value = "/home/user/secret2";
     doc.getElementById("bystander").value = testPath;
     
     let tab2 = ss.duplicateTab(window,tab);
-    tab2.linkedBrowser.addEventListener("load", function(aEvent) {
-      tab2.linkedBrowser.removeEventListener("load", arguments.callee, true);
+    tab2.linkedBrowser.addEventListener("load", function testTab2LBLoad(aEvent) {
+      tab2.linkedBrowser.removeEventListener("load", testTab2LBLoad, true);
       doc = tab2.linkedBrowser.contentDocument;
       is(doc.getElementById("thief").value, "",
          "file path wasn't set to text field value");

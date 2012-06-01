@@ -35,15 +35,16 @@ function test() {
       switch (aTopic) {
         case "domwindowopened":
           origWin = theWin;
-          theWin.addEventListener("load", function () {
-            theWin.removeEventListener("load", arguments.callee, false);
+          theWin.addEventListener("load", function testTheWinLoad() {
+            theWin.removeEventListener("load", testTheWinLoad, false);
             executeSoon(function () {
               // Close the window as soon as the first tab loads, or
               // immediately if there are no tabs.
               if (aState.windowState.windows[0].tabs[0].entries.length) {
-                theWin.gBrowser.addEventListener("load", function() {
-                  theWin.gBrowser.removeEventListener("load",
-                                                      arguments.callee, true);
+                theWin.gBrowser.addEventListener("load",
+                                                   function testTheWinLoad2() {
+                  theWin.gBrowser.removeEventListener("load", testTheWinLoad2,
+                                                        true);
                   theWin.close();
                 }, true);
               } else {

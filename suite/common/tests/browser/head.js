@@ -56,8 +56,8 @@ function waitForBrowserState(aState, aSetStateCallback) {
   function windowObserver(aSubject, aTopic, aData) {
     if (aTopic == "domwindowopened") {
       let newWindow = aSubject.QueryInterface(Components.interfaces.nsIDOMWindow);
-      newWindow.addEventListener("load", function() {
-        newWindow.removeEventListener("load", arguments.callee, false);
+      newWindow.addEventListener("load", function newWindowLoad() {
+        newWindow.removeEventListener("load", newWindowLoad, false);
 
         if (++windowsOpen == expectedWindows) {
           Services.ww.unregisterNotification(windowObserver);

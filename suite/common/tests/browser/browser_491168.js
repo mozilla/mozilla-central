@@ -28,8 +28,8 @@ function test() {
   getBrowser().selectedTab = tab;
 
   let browser = tab.linkedBrowser;
-  browser.addEventListener("load", function() {
-    browser.removeEventListener("load", arguments.callee, true);
+  browser.addEventListener("load", function testBrowserLoad() {
+    browser.removeEventListener("load", testBrowserLoad, true);
 
     let tabState = JSON.parse(ss.getTabState(tab));
     is(tabState.entries[0].referrer,  REFERRER1,
@@ -38,14 +38,14 @@ function test() {
     tabState.entries[0].referrer = REFERRER2;
     ss.setTabState(tab, JSON.stringify(tabState));
 
-    tab.addEventListener("SSTabRestored", function() {
-      tab.removeEventListener("SSTabRestored", arguments.callee, true);
+    tab.addEventListener("SSTabRestored", function testBrowserTabRestored() {
+      tab.removeEventListener("SSTabRestored", testBrowserTabRestored, true);
       is(window.content.document.referrer, REFERRER2, "document.referrer matches referrer set via setTabState.");
 
       getBrowser().removeTab(tab);
       let newTab = ss.undoCloseTab(window, 0);
-      newTab.addEventListener("SSTabRestored", function() {
-        newTab.removeEventListener("SSTabRestored", arguments.callee, true);
+      newTab.addEventListener("SSTabRestored", function testBrowserNewTabRest() {
+        newTab.removeEventListener("SSTabRestored", testBrowserNewTabRest, true);
 
         is(window.content.document.referrer, REFERRER2, "document.referrer is still correct after closing and reopening the tab.");
         getBrowser().removeTab(newTab);

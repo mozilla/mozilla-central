@@ -13,8 +13,8 @@ function test() {
   // create a new tab
   let tab = getBrowser().addTab(testURL);
   ss.setTabValue(tab, key, value);
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    this.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function testTabLBLoad(aEvent) {
+    this.removeEventListener("load", testTabLBLoad, true);
     // get the tab's state
     let state = ss.getTabState(tab);
     ok(state, "get the tab's state");
@@ -44,8 +44,8 @@ function test() {
   let tab2 = getBrowser().addTab();
   // set the tab's state
   ss.setTabState(tab2, JSON.stringify(state));
-  tab2.linkedBrowser.addEventListener("load", function(aEvent) {
-    this.removeEventListener("load", arguments.callee, true);
+  tab2.linkedBrowser.addEventListener("load", function testTab2LBLoad(aEvent) {
+    this.removeEventListener("load", testTab2LBLoad, true);
    // verify the correctness of the restored tab
     ok(ss.getTabValue(tab2, key2) == value2 && this.currentURI.spec == testURL,
        "the tab's state was correctly restored");
@@ -58,8 +58,8 @@ function test() {
     let duplicateTab = ss.duplicateTab(window, tab2);
     getBrowser().removeTab(tab2);
     
-    duplicateTab.linkedBrowser.addEventListener("load", function(aEvent) {
-      this.removeEventListener("load", arguments.callee, true);
+    duplicateTab.linkedBrowser.addEventListener("load", function testTab2DupLBLoad(aEvent) {
+      this.removeEventListener("load", testTab2DupLBLoad, true);
       // verify the correctness of the duplicated tab
       ok(ss.getTabValue(duplicateTab, key2) == value2 && this.currentURI.spec == testURL,
          "correctly duplicated the tab's state");

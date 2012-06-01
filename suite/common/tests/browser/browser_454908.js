@@ -18,8 +18,8 @@ function test() {
   let rootDir = getRootDirectory(gTestPath);
   let testURL = rootDir + "browser_454908_sample.html";
   let tab = getBrowser().addTab(testURL);
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function testTabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", testTabLBLoad, true);
     let doc = tab.linkedBrowser.contentDocument;
     for (let id in fieldValues)
       doc.getElementById(id).value = fieldValues[id];
@@ -27,8 +27,8 @@ function test() {
     getBrowser().removeTab(tab);
     
     tab = getBrowser().undoCloseTab();
-    tab.linkedBrowser.addEventListener("load", function(aEvent) {
-      tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+    tab.linkedBrowser.addEventListener("load", function testTabLBLoad2(aEvent) {
+      tab.linkedBrowser.removeEventListener("load", testTabLBLoad2, true);
       let doc = tab.linkedBrowser.contentDocument;
       for (let id in fieldValues) {
         let node = doc.getElementById(id);

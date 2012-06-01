@@ -753,8 +753,8 @@ function triggerSecondaryCommand(popup, index) {
 
   notification.button.focus();
 
-  popup.addEventListener("popupshown", function () {
-    popup.removeEventListener("popupshown", arguments.callee, false);
+  popup.addEventListener("popupshown", function triggerPopupShown() {
+    popup.removeEventListener("popupshown", triggerPopupShown, false);
 
     // Press down until the desired command is selected
     for (let i = 0; i <= index; i++)
@@ -770,12 +770,12 @@ function triggerSecondaryCommand(popup, index) {
 
 function loadURI(uri, callback) {
   if (callback) {
-    gBrowser.addEventListener("load", function() {
+    gBrowser.addEventListener("load", function loadURIgBLoad() {
       // Ignore the about:blank load
       if (gBrowser.currentURI.spec != uri)
         return;
 
-      gBrowser.removeEventListener("load", arguments.callee, true);
+      gBrowser.removeEventListener("load", loadURIgBLoad, true);
 
       callback();
     }, true);

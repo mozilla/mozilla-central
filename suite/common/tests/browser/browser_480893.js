@@ -13,14 +13,14 @@ function test() {
   let tab = getBrowser().addTab("about:sessionrestore");
   getBrowser().selectedTab = tab;
   let browser = tab.linkedBrowser;
-  browser.addEventListener("load", function(aEvent) {
-    browser.removeEventListener("load", arguments.callee, true);
+  browser.addEventListener("load", function testBrowserLoad(aEvent) {
+    browser.removeEventListener("load", testBrowserLoad, true);
     let doc = browser.contentDocument;
 
     // click on the "Start New Session" button after about:sessionrestore is loaded
     doc.getElementById("errorCancel").click();
-    browser.addEventListener("load", function(aEvent) {
-      browser.removeEventListener("load", arguments.callee, true);
+    browser.addEventListener("load", function testBrowserLoad2(aEvent) {
+      browser.removeEventListener("load", testBrowserLoad2, true);
       let doc = browser.contentDocument;
 
       is(doc.URL, "about:blank", "loaded page is about:blank");
@@ -31,14 +31,14 @@ function test() {
       Services.prefs.setCharPref("browser.startup.homepage", homepage);
       Services.prefs.setIntPref("browser.startup.page", 1);
       getBrowser().loadURI("about:sessionrestore");
-      browser.addEventListener("load", function(aEvent) {
-        browser.removeEventListener("load", arguments.callee, true);
+      browser.addEventListener("load", function testBrowserLoad3(aEvent) {
+        browser.removeEventListener("load", testBrowserLoad3, true);
         let doc = browser.contentDocument;
 
         // click on the "Start New Session" button after about:sessionrestore is loaded
         doc.getElementById("errorCancel").click();
-        browser.addEventListener("load", function(aEvent) {
-          browser.removeEventListener("load", arguments.callee, true);
+        browser.addEventListener("load", function testBrowserLoad4(aEvent) {
+          browser.removeEventListener("load", testBrowserLoad4, true);
           let doc = browser.contentDocument;
 
           is(doc.URL, homepage, "loaded page is the homepage");

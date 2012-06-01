@@ -43,8 +43,8 @@ function test1() {
   let uri = "data:text/html,<html><body><iframe name='t'></iframe><form target='t' action='data:text/html,'><input><input id='s' type='submit'></form></body></html>";
   let tab = gBrowser.addTab();
 
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function test1TabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", test1TabLBLoad, true);
     let doc = gBrowser.contentDocument;
 
     doc.getElementById('s').click();
@@ -73,8 +73,8 @@ function test2()
   let uri = "data:text/html,<iframe name='t'></iframe><form target='t' action='data:text/html,'><input required id='i'><input id='s' type='submit'></form>";
   let tab = gBrowser.addTab();
 
-  gInvalidFormPopup.addEventListener("popupshown", function() {
-    gInvalidFormPopup.removeEventListener("popupshown", arguments.callee, false);
+  gInvalidFormPopup.addEventListener("popupshown", function test2gIpopupShown() {
+    gInvalidFormPopup.removeEventListener("popupshown", test2gIpopupShown, false);
 
     let doc = gBrowser.contentDocument;
     is(doc.activeElement, doc.getElementById('i'),
@@ -88,8 +88,8 @@ function test2()
     executeSoon(test3);
   }, false);
 
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function test2TabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", test2TabLBLoad, true);
 
     gBrowser.contentDocument.getElementById('s').click();
   }, true);
@@ -107,8 +107,8 @@ function test3()
   let uri = "data:text/html,<iframe name='t'></iframe><form target='t' action='data:text/html,'><input><input id='i' required><input required><input id='s' type='submit'></form>";
   let tab = gBrowser.addTab();
 
-  gInvalidFormPopup.addEventListener("popupshown", function() {
-    gInvalidFormPopup.removeEventListener("popupshown", arguments.callee, false);
+  gInvalidFormPopup.addEventListener("popupshown", function test3gIPopupShown() {
+    gInvalidFormPopup.removeEventListener("popupshown", test3gIPopupShown, false);
 
     let doc = gBrowser.contentDocument;
     is(doc.activeElement, doc.getElementById('i'),
@@ -122,8 +122,8 @@ function test3()
     executeSoon(test4a);
   }, false);
 
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function test3TabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", test3TabLBLoad, true);
 
     gBrowser.contentDocument.getElementById('s').click();
   }, true);
@@ -141,8 +141,8 @@ function test4a()
   let uri = "data:text/html,<iframe name='t'></iframe><form target='t' action='data:text/html,'><input id='i' required><input id='s' type='submit'></form>";
   let tab = gBrowser.addTab();
 
-  gInvalidFormPopup.addEventListener("popupshown", function() {
-    gInvalidFormPopup.removeEventListener("popupshown", arguments.callee, false);
+  gInvalidFormPopup.addEventListener("popupshown", function test4agIPopupShown() {
+    gInvalidFormPopup.removeEventListener("popupshown", test4agIPopupShown, false);
 
     let doc = gBrowser.contentDocument;
     is(doc.activeElement, doc.getElementById('i'),
@@ -162,8 +162,8 @@ function test4a()
     });
   }, false);
 
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function test4aTabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", test4aTabLBLoad, true);
 
     gBrowser.contentDocument.getElementById('s').click();
   }, true);
@@ -181,8 +181,8 @@ function test4b()
   let uri = "data:text/html,<iframe name='t'></iframe><form target='t' action='data:text/html,'><input type='email' id='i' required><input id='s' type='submit'></form>";
   let tab = gBrowser.addTab();
 
-  gInvalidFormPopup.addEventListener("popupshown", function() {
-    gInvalidFormPopup.removeEventListener("popupshown", arguments.callee, false);
+  gInvalidFormPopup.addEventListener("popupshown", function test4bgIpopupShown() {
+    gInvalidFormPopup.removeEventListener("popupshown", test4bgIpopupShown, false);
 
     let doc = gBrowser.contentDocument;
     is(doc.activeElement, doc.getElementById('i'),
@@ -202,8 +202,8 @@ function test4b()
     });
   }, false);
 
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function test4bTabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", test4bTabLBLoad, true);
 
     gBrowser.contentDocument.getElementById('s').click();
   }, true);
@@ -221,8 +221,8 @@ function test5()
   let uri = "data:text/html,<iframe name='t'></iframe><form target='t' action='data:text/html,'><input id='i' required><input id='s' type='submit'></form>";
   let tab = gBrowser.addTab();
 
-  gInvalidFormPopup.addEventListener("popupshown", function() {
-    gInvalidFormPopup.removeEventListener("popupshown", arguments.callee, false);
+  gInvalidFormPopup.addEventListener("popupshown", function test5gIpopupShown() {
+    gInvalidFormPopup.removeEventListener("popupshown", test5gIpopupShown, false);
 
     let doc = gBrowser.contentDocument;
     is(doc.activeElement, doc.getElementById('i'),
@@ -242,8 +242,8 @@ function test5()
     });
   }, false);
 
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function test5TabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", test5TabLBLoad, true);
 
     gBrowser.contentDocument.getElementById('s').click();
   }, true);
@@ -260,8 +260,8 @@ function test6()
   let uri = "data:text/html,<iframe name='t'></iframe><form target='t' action='data:text/html,'><input id='i' required><input id='s' type='submit'></form>";
   let tab = gBrowser.addTab();
 
-  gInvalidFormPopup.addEventListener("popupshown", function() {
-    gInvalidFormPopup.removeEventListener("popupshown", arguments.callee, false);
+  gInvalidFormPopup.addEventListener("popupshown", function test6gIpopupShown() {
+    gInvalidFormPopup.removeEventListener("popupshown", test6gIpopupShown, false);
 
     let doc = gBrowser.contentDocument;
     is(doc.activeElement, doc.getElementById('i'),
@@ -281,8 +281,8 @@ function test6()
     });
   }, false);
 
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function test6TabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", test6TabLBLoad, true);
 
     gBrowser.contentDocument.getElementById('s').click();
   }, true);
@@ -299,8 +299,8 @@ function test7()
   let uri = "data:text/html,<iframe name='t'></iframe><form target='t' action='data:text/html,'><input id='i' required><input id='s' type='submit'></form>";
   let tab = gBrowser.addTab();
 
-  gInvalidFormPopup.addEventListener("popupshown", function() {
-    gInvalidFormPopup.removeEventListener("popupshown", arguments.callee, false);
+  gInvalidFormPopup.addEventListener("popupshown", function test7gIpopupShown() {
+    gInvalidFormPopup.removeEventListener("popupshown", test7gIpopupShown, false);
 
     let doc = gBrowser.contentDocument;
     is(doc.activeElement, doc.getElementById('i'),
@@ -323,8 +323,8 @@ function test7()
     });
   }, false);
 
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function test7TabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", test7TabLBLoad, true);
 
     gBrowser.contentDocument.getElementById('s').click();
   }, true);
@@ -363,8 +363,8 @@ function test8()
 
   Services.obs.addObserver(gObserver, "invalidformsubmit", false);
 
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function test8TabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", test8TabLBLoad, true);
 
     isnot(gBrowser.selectedTab, tab,
           "This tab should have been loaded in background");
@@ -383,8 +383,8 @@ function test9()
   let uri = "data:text/html,<iframe name='t'></iframe><form target='t' action='data:text/html,'><input x-moz-errormessage='foo' required id='i'><input id='s' type='submit'></form>";
   let tab = gBrowser.addTab();
 
-  gInvalidFormPopup.addEventListener("popupshown", function() {
-    gInvalidFormPopup.removeEventListener("popupshown", arguments.callee, false);
+  gInvalidFormPopup.addEventListener("popupshown", function test9gIpopupShown() {
+    gInvalidFormPopup.removeEventListener("popupshown", test9gIpopupShown, false);
 
     let doc = gBrowser.contentDocument;
     is(doc.activeElement, doc.getElementById('i'),
@@ -400,8 +400,8 @@ function test9()
     executeSoon(test10);
   }, false);
 
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function test9TabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", test9TabLBLoad, true);
 
     gBrowser.contentDocument.getElementById('s').click();
   }, true);
@@ -418,8 +418,8 @@ function test10()
   let uri = "data:text/html,<iframe name='t'></iframe><form target='t' action='data:text/html,'><input type='email' required id='i'><input id='s' type='submit'></form>";
   let tab = gBrowser.addTab();
 
-  gInvalidFormPopup.addEventListener("popupshown", function() {
-    gInvalidFormPopup.removeEventListener("popupshown", arguments.callee, false);
+  gInvalidFormPopup.addEventListener("popupshown", function test10gIpopupShown() {
+    gInvalidFormPopup.removeEventListener("popupshown", test10gIpopupShown, false);
 
     let doc = gBrowser.contentDocument;
     let input = doc.getElementById('i');
@@ -430,8 +430,8 @@ function test10()
     is(gInvalidFormPopup.firstChild.textContent, input.validationMessage,
        "The panel should show the current validation message");
 
-    input.addEventListener('input', function() {
-      input.removeEventListener('input', arguments.callee, false);
+    input.addEventListener('input', function test10InputInput() {
+      input.removeEventListener('input', test10InputInput, false);
 
       executeSoon(function() {
         // Now, the element suffers from another error, the message should have
@@ -448,8 +448,8 @@ function test10()
     EventUtils.synthesizeKey('f', {});
   }, false);
 
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function test10TabLBLoad(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", test10TabLBLoad, true);
 
     gBrowser.contentDocument.getElementById('s').click();
   }, true);

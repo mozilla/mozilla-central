@@ -68,10 +68,10 @@
       // We must be sure tree is initialized, so we wait for place to be set.
       SimpleTest.waitForExplicitFinish();
       var tree = gEditItemOverlay._element("folderTree");
-      tree.addEventListener("DOMAttrModified", function(event) {
+      tree.addEventListener("DOMAttrModified", function treeDOMAttrMod(event) {
           if (event.attrName != "place")
             return;
-          tree.removeEventListener("DOMAttrModified", arguments.callee, false);
+          tree.removeEventListener("DOMAttrModified", treeDOMAttrMod, false);
           SimpleTest.executeSoon(function() {
             tree.view.selection.clearSelection();
             ok(document.getElementById("editBMPanel_newFolderButton").disabled,

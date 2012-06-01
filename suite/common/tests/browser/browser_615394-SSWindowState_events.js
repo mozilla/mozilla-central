@@ -262,8 +262,8 @@ function test_setBrowserState() {
   function windowObserver(aSubject, aTopic, aData) {
     if (aTopic == "domwindowopened") {
       newWindow = aSubject.QueryInterface(Components.interfaces.nsIDOMWindow);
-      newWindow.addEventListener("load", function() {
-        newWindow.removeEventListener("load", arguments.callee, false);
+      newWindow.addEventListener("load", function newWindowLoad() {
+        newWindow.removeEventListener("load", newWindowLoad, false);
 
         Services.ww.unregisterNotification(windowObserver);
 
@@ -325,8 +325,8 @@ function test_undoCloseWindow() {
     reopenedWindow.addEventListener("SSWindowStateBusy", onSSWindowStateBusy, false);
     reopenedWindow.addEventListener("SSWindowStateReady", onSSWindowStateReady, false);
 
-    reopenedWindow.addEventListener("load", function() {
-      reopenedWindow.removeEventListener("load", arguments.callee, false);
+    reopenedWindow.addEventListener("load", function reopenWindowLoad() {
+      reopenedWindow.removeEventListener("load", reopenWindowLoad, false);
 
       reopenedWindow.getBrowser().tabContainer.addEventListener("SSTabRestored", onSSTabRestored, false);
     }, false);

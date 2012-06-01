@@ -366,8 +366,8 @@ SessionStoreService.prototype = {
 
     switch (aTopic) {
     case "domwindowopened": // catch new windows
-      aSubject.addEventListener("load", function(aEvent) {
-        aEvent.currentTarget.removeEventListener("load", arguments.callee, false);
+      aSubject.addEventListener("load", function aSubjectLoad(aEvent) {
+        aEvent.currentTarget.removeEventListener("load", aSubjectLoad, false);
         _this.onLoad(aEvent.currentTarget);
       }, false);
       break;

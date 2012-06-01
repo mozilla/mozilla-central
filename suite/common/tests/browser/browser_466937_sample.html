@@ -8,8 +8,8 @@
 <input type="file" id="bystander">
 
 <script>
-  window.addEventListener("DOMContentLoaded", function() {
-    window.removeEventListener("DOMContentLoaded", arguments.callee, false);
+  window.addEventListener("DOMContentLoaded", function windowDOMContentLoaded() {
+    window.removeEventListener("DOMContentLoaded", windowDOMContentLoaded, false);
     if (!document.location.hash) {
       document.location.hash = "#ready";
     }

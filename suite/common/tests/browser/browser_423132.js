@@ -35,13 +35,13 @@ function test() {
   let newWin = openDialog(location, "_blank", "chrome,all,dialog=no", "about:blank");
 
   // make sure sessionstore saves the cookie data, then close the window
-  newWin.addEventListener("load", function (aEvent) {
-    newWin.removeEventListener("load", arguments.callee, false);
+  newWin.addEventListener("load", function testNewWinLoad(aEvent) {
+    newWin.removeEventListener("load", testNewWinLoad, false);
 
     newWin.getBrowser().selectedBrowser.loadURI(testURL, null, null);
 
-    newWin.getBrowser().addEventListener("pageshow", function (aEvent) {
-      newWin.getBrowser().removeEventListener("pageshow", arguments.callee, true);
+    newWin.getBrowser().addEventListener("pageshow", function testNewWinPageShow(aEvent) {
+      newWin.getBrowser().removeEventListener("pageshow", testNewWinPageShow, true);
 
       // get the sessionstore state for the window
       let state = ss.getWindowState(newWin);

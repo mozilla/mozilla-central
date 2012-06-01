@@ -99,8 +99,8 @@ function restoreSession() {
   // restore the session into a new window and close the current tab
   var newWindow = top.openDialog(top.location, "_blank", "chrome,dialog=no,all", "about:blank");
   var tab = top.gBrowser.selectedTab;
-  newWindow.addEventListener("load", function() {
-    newWindow.removeEventListener("load", arguments.callee, true);
+  newWindow.addEventListener("load", function newWindowLoad() {
+    newWindow.removeEventListener("load", newWindowLoad, true);
     ss.setWindowState(newWindow, stateString, true);
 
     top.gBrowser.removeTab(tab);

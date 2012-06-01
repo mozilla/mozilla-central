@@ -13,11 +13,11 @@ function test() {
   var frameCount = 0;
   let tab = getBrowser().addTab(testURL);
   let window = tab.ownerDocument.defaultView;
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
+  tab.linkedBrowser.addEventListener("load", function testTabLBLoad(aEvent) {
     // wait for all frames to load completely
     if (frameCount++ < 5)
       return;
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+    tab.linkedBrowser.removeEventListener("load", testTabLBLoad, true);
     function typeText(aTextField, aValue) {
       aTextField.value = aValue;
       
@@ -33,11 +33,11 @@ function test() {
     
     frameCount = 0;
     let tab2 = ss.duplicateTab(window,tab);
-    tab2.linkedBrowser.addEventListener("load", function(aEvent) {
+    tab2.linkedBrowser.addEventListener("load", function testTab2LBLoad(aEvent) {
       // wait for all frames to load completely
       if (frameCount++ < 5)
         return;
-      tab2.linkedBrowser.removeEventListener("load", arguments.callee, true);
+      tab2.linkedBrowser.removeEventListener("load", testTab2LBLoad, true);
 
       let doc = tab2.linkedBrowser.contentDocument;
       let win = tab2.linkedBrowser.contentWindow;
