@@ -36,6 +36,10 @@ nsAbLDAPAutoCompleteResult.prototype = {
     return this._searchResults.length;
   },
 
+  getLabelAt: function getLabelAt(aIndex) {
+    return this.getValueAt(aIndex);
+  },
+
   getValueAt: function getValueAt(aIndex) {
     return this._searchResults[aIndex].value;
   },
