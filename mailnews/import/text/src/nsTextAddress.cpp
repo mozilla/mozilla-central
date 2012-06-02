@@ -11,6 +11,7 @@
 #include "nsIInputStream.h"
 #include "nsILineInputStream.h"
 #include "nsNetUtil.h"
+#include "nsMsgUtils.h"
 
 #include "TextDebugLog.h"
 #include "plstr.h"
@@ -141,16 +142,7 @@ nsresult nsTextAddress::ReadRecord(nsILineInputStream *aLineStream, nsCString &a
           aLine.AppendLiteral(MSG_LINEBREAK);
         aLine.Append(line);
 
-#ifdef MOZILLA_INTERNAL_API
-        numQuotes += line.CountChar('"');
-#else
-        const char *begin, *end;
-        line.BeginReading(&begin, &end);
-        for (const char *current = begin; current < end; ++current) {
-          if (*current == '"')
-            ++numQuotes;
-        }
-#endif
+        numQuotes += MsgCountChar(line, '"');
       }
     }
     // Continue whilst everything is ok, and we have an odd number of quotes.

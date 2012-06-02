@@ -331,6 +331,8 @@ NS_MSG_BASE nsresult ConvertBufToPlainText(nsString &aConBuf, bool formatFlowed,
         (aString).ReplaceChar(aNeedle, aReplacement)
 #define MsgFind(str, what, ignore_case, offset) \
         (str).Find(what, ignore_case, offset)
+#define MsgCountChar(aString, aChar) \
+        (aString).CountChar(aChar)
 
 #else
 
@@ -478,6 +480,22 @@ do_QueryElementAt( nsISupportsArray* array, PRUint32 aIndex, nsresult* aErrorPtr
 {
     return MsgQueryElementAt(array, aIndex, aErrorPtr);
 }
+/**
+ * Count occurences of specified character in string.
+ *
+ */
+inline
+PRUint32 MsgCountChar(nsACString &aString, PRUnichar aChar) {
+  const char *begin, *end;
+  PRUint32 num_chars = 0;
+  aString.BeginReading(&begin, &end);
+  for (const char *current = begin; current < end; ++current) {
+      if (*current == aChar)
+        ++num_chars;
+  }
+  return num_chars;
+}
+
 #endif
 
 #endif

@@ -87,6 +87,7 @@ EXTRA_DSO_LDOPTS += \
 	$(call EXPAND_LIBNAME_PATH,unicharutil_external_s,$(LIBXUL_DIST)/lib) \
 	$(MOZDEPTH)/rdf/util/src/$(LIB_PREFIX)rdfutil_external_s.$(LIB_SUFFIX) \
 	$(NSPR_LIBS) \
+	$(XPCOM_LIBS) \
 	$(NULL)
 endif
 

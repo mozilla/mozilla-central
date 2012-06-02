@@ -1172,7 +1172,7 @@ nsMsgIncomingServer::InternalSetHostName(const nsACString& aHostname, const char
 {
   nsCString hostname;
   hostname = aHostname;
-  if (hostname.CountChar(':') == 1)
+  if (MsgCountChar(hostname, ':') == 1)
   {
     PRInt32 colonPos = hostname.FindChar(':');
     nsCAutoString portString(Substring(hostname, colonPos));
@@ -1234,13 +1234,11 @@ nsMsgIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName,
   }
 
   // switch corresponding part of the account name to the new name...
-  nsString acctPart;
   if (!hostnameChanged && (atPos != kNotFound))
   {
     // ...if username changed and the previous username was equal to the part
     // of the account name before @
-    acctName.Left(acctPart, atPos);
-    if (acctPart.Equals(NS_ConvertASCIItoUTF16(userName)))
+    if (StringHead(acctName, atPos).Equals(NS_ConvertASCIItoUTF16(userName)))
       acctName.Replace(0, userName.Length(), NS_ConvertASCIItoUTF16(newName));
   }
   if (hostnameChanged)
@@ -1251,8 +1249,7 @@ nsMsgIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName,
       atPos = 0;
     else
       atPos += 1;
-    acctName.Right(acctPart, acctName.Length() - atPos);
-    if (acctPart.Equals(NS_ConvertASCIItoUTF16(hostName))) {
+    if (Substring(acctName, atPos).Equals(NS_ConvertASCIItoUTF16(hostName))) {
       acctName.Replace(atPos, acctName.Length() - atPos,
                        NS_ConvertASCIItoUTF16(newName));
     }
@@ -1288,7 +1285,7 @@ nsMsgIncomingServer::GetHostName(nsACString& aResult)
 {
   nsresult rv;
   rv = GetCharValue("hostname", aResult);
-  if (aResult.CountChar(':') == 1)
+  if (MsgCountChar(aResult, ':') == 1)
   {
     // gack, we need to reformat the hostname - SetHostName will do that
     SetHostName(aResult);
@@ -1308,7 +1305,7 @@ nsMsgIncomingServer::GetRealHostName(nsACString& aResult)
   if (aResult.IsEmpty())
     return GetHostName(aResult);
 
-  if (aResult.CountChar(':') == 1)
+  if (MsgCountChar(aResult, ':') == 1)
   {
     SetRealHostName(aResult);
     rv = GetCharValue("realhostname", aResult);
