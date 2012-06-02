@@ -322,19 +322,19 @@ void nsNNTPProtocol::Cleanup()  //free char* member variables
   PR_FREEIF(m_cancelID);
 }
 
-NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow)
+NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI *aURL, nsIMsgWindow *aMsgWindow)
 {
-  nsresult rv = NS_OK;
-
   if (aMsgWindow) {
     m_msgWindow = aMsgWindow;
   }
   nsMsgProtocol::InitFromURI(aURL);
 
   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_nntpServer);
+  NS_ASSERTION(m_nntpServer, "nsNNTPProtocol need an m_nntpServer.");
+  NS_ENSURE_TRUE(m_nntpServer, NS_ERROR_UNEXPECTED);
 
-  rv = m_nntpServer->GetMaxArticles(&m_maxArticles);
-  NS_ENSURE_SUCCESS(rv,rv);
+  nsresult rv = m_nntpServer->GetMaxArticles(&m_maxArticles);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   PRInt32 socketType;
   rv = server->GetSocketType(&socketType);
@@ -344,7 +344,7 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
   rv = m_url->GetPort(&port);
   if (NS_FAILED(rv) || (port<=0)) {
     rv = server->GetPort(&port);
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
 
     if (port<=0) {
       port = (socketType == nsMsgSocketType::SSL) ?
@@ -352,20 +352,20 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
     }
 
     rv = m_url->SetPort(port);
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  NS_PRECONDITION(m_url , "invalid URL passed into NNTP Protocol");
+  NS_PRECONDITION(m_url, "invalid URL passed into NNTP Protocol");
 
   m_runningURL = do_QueryInterface(m_url, &rv);
-  if (NS_FAILED(rv)) return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
   SetIsBusy(true);
 
   nsCString group;
 
   // Initialize m_newsAction before possible use in ParseURL method
   m_runningURL->GetNewsAction(&m_newsAction);
-  
+
   // parse url to get the msg folder and check if the message is in the folder's
   // local cache before opening a new socket and trying to download the message
   rv = ParseURL(m_url, group, m_messageID);
