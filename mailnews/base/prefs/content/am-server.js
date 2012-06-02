@@ -11,8 +11,8 @@ function onInit(aPageId, aServerId)
 {
   initServerType();
 
-  onCheckItem("server.biffMinutes", "server.doBiff");
-  onCheckItem("nntp.maxArticles", "nntp.notifyOn");
+  onCheckItem("server.biffMinutes", ["server.doBiff"]);
+  onCheckItem("nntp.maxArticles", ["nntp.notifyOn"]);
   setupMailOnServerUI();
   setupFixedUI();
   if (document.getElementById("server.type").getAttribute("value") == "imap")
@@ -177,21 +177,18 @@ function secureSelect(aLoading)
 }
 
 function setupMailOnServerUI()
-{ 
-   var checked = document.getElementById("pop3.leaveMessagesOnServer").checked;
-   var locked = getAccountValueIsLocked(document.getElementById("pop3.leaveMessagesOnServer"));
-   document.getElementById("pop3.deleteMailLeftOnServer").disabled = locked || !checked ;
-   setupAgeMsgOnServerUI();
+{
+  onCheckItem("pop3.deleteMailLeftOnServer", ["pop3.leaveMessagesOnServer"]);
+  setupAgeMsgOnServerUI();
 }
 
 function setupAgeMsgOnServerUI()
-{ 
-   var leaveMsgsChecked = document.getElementById("pop3.leaveMessagesOnServer").checked;
-   var checked = document.getElementById("pop3.deleteByAgeFromServer").checked;
-   var locked = getAccountValueIsLocked(document.getElementById("pop3.deleteByAgeFromServer"));
-   document.getElementById("pop3.deleteByAgeFromServer").disabled = locked || !leaveMsgsChecked;
-   document.getElementById("daysEnd").disabled = locked || !leaveMsgsChecked;
-   document.getElementById("pop3.numDaysToLeaveOnServer").disabled = locked || !checked || !leaveMsgsChecked;
+{
+  const kLeaveMsgsId = "pop3.leaveMessagesOnServer";
+  const kDeleteByAgeId = "pop3.deleteByAgeFromServer";
+  onCheckItem(kDeleteByAgeId, [kLeaveMsgsId]);
+  onCheckItem("daysEnd", [kLeaveMsgsId]);
+  onCheckItem("pop3.numDaysToLeaveOnServer", [kLeaveMsgsId, kDeleteByAgeId]);
 }
 
 function setupFixedUI()

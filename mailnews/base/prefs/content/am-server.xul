@@ -52,12 +52,12 @@
                        prefstring="mail.server.%serverkey%.realhostname" class="uri-element"/>
               <label hidefor="movemail" value="&port.label;"
                      accesskey="&port.accesskey;" control="server.port"/>
-              <label id="fixedServerPort" hidefor="movemail" 
+              <label id="fixedServerPort" hidefor="movemail"
                      collapsed="true" use="server.port"/>
               <textbox wsm_persist="true" size="3" id="server.port"
-                       preftype="int" hidefor="movemail" 
+                       preftype="int" hidefor="movemail"
                        prefstring="mail.server.%serverkey%.port"
-                       type="number" max="65535"/>
+                       type="number" min="1" max="65535" increment="1"/>
               <label value="&serverPortDefault.label;" hidefor="movemail"/>
               <label id="defaultPort" hidefor="movemail"/>
           </hbox>
@@ -144,7 +144,7 @@
     <hbox align="center">
       <checkbox wsm_persist="true" id="server.doBiff" label="&biffStart.label;"
                 accesskey="&biffStart.accesskey;"
-                oncommand="onCheckItem('server.biffMinutes', this.id);"
+                oncommand="onCheckItem('server.biffMinutes', [this.id]);"
                 prefattribute="value"
                 prefstring="mail.server.%serverkey%.check_new_mail"/>
       <textbox wsm_persist="true" id="server.biffMinutes"
@@ -182,9 +182,9 @@
                   accesskey="&deleteByAgeFromServer.accesskey;"
                   prefattribute="value"
                   prefstring="mail.server.%serverkey%.delete_by_age_from_server"/>
-        <textbox wsm_persist="true" id="pop3.numDaysToLeaveOnServer" size="3" 
+        <textbox wsm_persist="true" id="pop3.numDaysToLeaveOnServer" size="3"
                  aria-labelledby="pop3.deleteByAgeFromServer pop3.numDaysToLeaveOnServer daysEnd"
-                 preftype="int"
+                 preftype="int" type="number" min="1" increment="1"
                  prefstring="mail.server.%serverkey%.num_days_to_leave_on_server"/>
         <label id="daysEnd" control="pop3.numDaysToLeaveOnServer" value="&daysEnd.label;"/>
       </hbox>
@@ -278,7 +278,7 @@
       <checkbox wsm_persist="true" id="nntp.notifyOn"
                 label="&maxMessagesStart.label;"
                 accesskey="&maxMessagesStart.accesskey;"
-                oncommand="onCheckItem('nntp.maxArticles', this.id);"
+                oncommand="onCheckItem('nntp.maxArticles', [this.id]);"
                 prefattribute="value"
                 prefstring="mail.server.%serverkey%.notify.on"/>
       <textbox wsm_persist="true" id="nntp.maxArticles"

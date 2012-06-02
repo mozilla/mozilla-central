@@ -61,7 +61,7 @@
                   wsm_persist="true"
                   label="&biffStart.label;"
                   accesskey="&biffStart.accesskey;"
-                  oncommand="onCheckItem('server.biffMinutes', this.id);"
+                  oncommand="onCheckItem('server.biffMinutes', [this.id]);"
                   prefattribute="value"
                   prefstring="mail.server.%serverkey%.check_new_mail"/>
         <textbox id="server.biffMinutes"

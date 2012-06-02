@@ -20,7 +20,7 @@ function onInit(aPageId, aServerId)
   title.setAttribute("title", titleValue);
   document.title = titleValue;
 
-  onCheckItem("server.biffMinutes", "server.doBiff");
+  onCheckItem("server.biffMinutes", ["server.doBiff"]);
 }
 
 function onPreInit(account, accountValues)
