@@ -86,6 +86,8 @@ function test_archive_options_enabled() {
   open_advanced_settings(function(amc) {
     subtest_check_archive_options_enabled(amc, 0, false);
   });
+
+  accountManager.removeAccount(account);
 }
 
 function subtest_initial_state(identity) {
