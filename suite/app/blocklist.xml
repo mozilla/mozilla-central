@@ -1,9 +1,5 @@
 <?xml version="1.0"?>
-<!-- This Source Code Form is subject to the terms of the Mozilla Public
-   - License, v. 2.0. If a copy of the MPL was not distributed with this
-   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
-
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1337963207000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1338423018000">
   <emItems>
       <emItem  blockID="i58" id="webmaster@buzzzzvideos.info">
                         <versionRange  minVersion="0" maxVersion="*">
@@ -27,12 +23,20 @@
                   </emItem>
       <emItem  blockID="i43" id="supportaccessplugin@gmail.com">
                         </emItem>
+      <emItem  blockID="i82" id="{8f42fb8b-b6f6-45de-81c0-d6d39f54f971}">
+                        <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i42" id="{D19CA586-DD6C-4a0a-96F8-14644F340D60}">
                         <versionRange  minVersion="0.1" maxVersion="14.4.0" severity="1">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i88" id="anttoolbar@ant.com">
                         <versionRange  minVersion="2.4.6.4" maxVersion="2.4.6.4" severity="1">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i98" id="youtubeeing@youtuberie.com">
+                        <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i65" id="activity@facebook.com">
@@ -89,6 +93,10 @@
                         <versionRange  minVersion="3.4.1" maxVersion="3.4.1.194" severity="1">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i97" id="support3_en@adobe122.com">
+                        <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i77" id="{fa277cfc-1d75-4949-a1f9-4ac8e41b2dfd}">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
@@ -113,8 +121,8 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i70" id="psid-vhvxQHMZBOzUZA@jetpack">
-                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+      <emItem  blockID="i51" id="admin@youtubeplayer.com">
+                        <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i68" id="flashupdate@adobe.com">
@@ -181,6 +189,10 @@
                         <versionRange  minVersion="0.1" maxVersion="5.2.0.7164" severity="1">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i17" id="{3252b9ae-c69a-4eaf-9502-dc9c1f6c009e}">
+                        <versionRange  minVersion="2.2" maxVersion="2.2">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i76" id="crossriderapp3924@crossrider.com">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
@@ -193,15 +205,11 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i17" id="{3252b9ae-c69a-4eaf-9502-dc9c1f6c009e}">
-                        <versionRange  minVersion="2.2" maxVersion="2.2">
+      <emItem  blockID="i70" id="psid-vhvxQHMZBOzUZA@jetpack">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i96" id="youtubeee@youtuber3.com">
-                        <versionRange  minVersion="0" maxVersion="*">
-                    </versionRange>
-                  </emItem>
-      <emItem  blockID="i82" id="{8f42fb8b-b6f6-45de-81c0-d6d39f54f971}">
+      <emItem  blockID="i99" id="pfzPXmnzQRXX6@2iABkVe.com">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
@@ -217,7 +225,7 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i51" id="admin@youtubeplayer.com">
+      <emItem  blockID="i96" id="youtubeee@youtuber3.com">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
