@@ -504,9 +504,13 @@ GenericProtocolHandler.prototype = {
     var prefix = /^feed:\/\//.test(spec) ? "http:" : "";
     var inner = this._ioSvc.newURI(spec.replace("feed:", prefix),
                                    originalCharset, baseURI);
-    var uri = Components.classes["@mozilla.org/network/util;1"]
-                        .getService(Components.interfaces.nsINetUtil)
-                        .newSimpleNestedURI(inner);
+    var netutil = Components.classes["@mozilla.org/network/util;1"]
+                            .getService(Components.interfaces.nsINetUtil);
+    if (netutil.URIChainHasFlags(inner,
+        Components.interfaces.nsIProtocolHandler.URI_INHERITS_SECURITY_CONTEXT))
+      throw Components.results.NS_ERROR_MALFORMED_URI;
+
+    var uri = netutil.newSimpleNestedURI(inner);
     uri.spec = inner.spec.replace(prefix, "feed:");
     return uri;
   },
