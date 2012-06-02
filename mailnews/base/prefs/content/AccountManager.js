@@ -46,10 +46,6 @@ var currentPageId;
 var pendingAccount;
 var pendingPageId;
 
-// services used
-var smtpService;
-var nsPrefBranch;
-
 // This sets an attribute in a xul element so that we can later
 // know what value to substitute in a prefstring.  Different
 // preference types set different attributes.  We get the value
@@ -67,8 +63,8 @@ function updateElementWithKeys(account, element, type) {
       element["serverkey"] = account.incomingServer.key;
       break;
     case "smtp":
-      if (smtpService.defaultServer)
-        element["serverkey"] = smtpService.defaultServer.key;
+      if (MailServices.smtp.defaultServer)
+        element["serverkey"] = MailServices.smtp.defaultServer.key;
       break;
     default:
 //      dump("unknown element type! "+type+"\n");
@@ -114,9 +110,6 @@ function onLoad() {
 
   accountArray = new Object();
   gGenericAttributeTypes = new Object();
-
-  smtpService =
-    Components.classes["@mozilla.org/messengercompose/smtp;1"].getService(Components.interfaces.nsISmtpService);
 
   gAccountTree.load();
 
@@ -166,11 +159,10 @@ function selectServer(server, selectPage)
 
 function replaceWithDefaultSmtpServer(deletedSmtpServerKey)
 {
-  //First we replace the smtpserverkey in every identity
-  const Ci = Components.interfaces;
-  var am = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                     .getService(Ci.nsIMsgAccountManager);
-  for each (var identity in fixIterator(am.allIdentities, Ci.nsIMsgIdentity)) {
+  // First we replace the smtpserverkey in every identity.
+  let am = MailServices.accounts;
+  for each (let identity in fixIterator(am.allIdentities,
+                                        Components.interfaces.nsIMsgIdentity)) {
     if (identity.smtpServerKey == deletedSmtpServerKey)
       identity.smtpServerKey = "";
   }
@@ -185,7 +177,7 @@ function replaceWithDefaultSmtpServer(deletedSmtpServerKey)
 
   for (var accountid in accountArray) {
     var account = accountArray[accountid]._account;
-    if(account && account.defaultIdentity) {
+    if (account && account.defaultIdentity) {
       var accountValues = accountArray[accountid];
       var smtpServerKey = getAccountValue(account, accountValues, "identity",
                                           "smtpServerKey", null, false);
@@ -231,7 +223,7 @@ function checkUserServerChanges(showAlert) {
   const prefBundle = document.getElementById("bundle_prefs");
   const alertTitle = prefBundle.getString("prefPanel-server");
   var alertText = null;
-  if (smtpService.defaultServer) {
+  if (MailServices.smtp.defaultServer) {
     try {
       var smtpHostName = top.frames["contentFrame"]
                             .document.getElementById("smtp.hostname");
@@ -249,7 +241,7 @@ function checkUserServerChanges(showAlert) {
     return true;
 
   var pageElements = getPageFormElements();
-  if (pageElements == null)
+  if (!pageElements)
     return true;
 
   // Get the new username, hostname and type from the page
@@ -388,10 +380,7 @@ function onAddAccount() {
 
 function AddMailAccount()
 {
-  let msgWindow = Components.classes["@mozilla.org/messenger/services/session;1"]
-                            .getService(Components.interfaces.nsIMsgMailSession)
-                            .topmostMsgWindow;
-  NewMailAccount(msgWindow);
+  NewMailAccount(MailServices.mailSession.topmostMsgWindow);
 }
 
 function AddIMAccount()
@@ -538,7 +527,7 @@ function saveAccount(accountValues, account)
       else if (type == "nntp")
         dest = server.QueryInterface(Components.interfaces.nsINntpIncomingServer);
       else if (type == "smtp")
-        dest = smtpService.defaultServer;
+        dest = MailServices.smtp.defaultServer;
 
       } catch (ex) {
         // don't do anything, just means we don't support that
@@ -725,15 +714,16 @@ function onAccountTreeSelect(pageId, account)
   let changeView = pageId && account;
   if (!changeView) {
     if (tree.view.selection.count < 1)
-      return null;
+      return false;
 
     let node = tree.contentView.getItemAtIndex(tree.currentIndex);
-    account = node._account;
+    account = ("_account" in node) ? node._account : null;
+
     pageId = node.getAttribute("PageTag")
   }
 
   if (pageId == currentPageId && account == currentAccount)
-    return;
+    return true;
 
   // check if user/host names have been changed
   checkUserServerChanges(false);
@@ -741,7 +731,7 @@ function onAccountTreeSelect(pageId, account)
   if (gSmtpHostNameIsIllegal) {
     gSmtpHostNameIsIllegal = false;
     selectServer(currentAccount.incomingServer, currentPageId);
-    return;
+    return true;
   }
 
   // save the previous page
@@ -768,6 +758,8 @@ function onAccountTreeSelect(pageId, account)
 
   if (changeAccount)
     updateButtons(tree, account);
+
+  return true;
 }
 
 // page has loaded
@@ -796,19 +788,15 @@ function onPanelLoaded(pageId) {
 
 function loadPage(pageId)
 {
-  var chromePackageName;
-  try 
-  {
+  let chromePackageName;
+  try {
     // we could compare against "main","server","copies","offline","addressing",
     // "smtp" and "advanced" first to save the work, but don't,
     // as some of these might be turned into extensions (for thunderbird)
-    var am = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                       .getService(Components.interfaces.nsIMsgAccountManager);
-    var package = pageId.split("am-")[1].split(".xul")[0];
-    chromePackageName = am.getChromePackageName(package);
+    let packageName = pageId.split("am-")[1].split(".xul")[0];
+    chromePackageName = MailServices.accounts.getChromePackageName(packageName);
   }
-  catch (ex) 
-  {
+  catch (ex) {
     chromePackageName = "messenger";
   }
   const LOAD_FLAGS_NONE = Components.interfaces.nsIWebNavigation.LOAD_FLAGS_NONE;
@@ -826,15 +814,15 @@ function savePage(account)
     top.frames["contentFrame"].onSave();
 
   var accountValues = getValueArrayFor(account);
-  if (!accountValues) 
+  if (!accountValues)
     return;
 
   var pageElements = getPageFormElements();
-  if (!pageElements) 
+  if (!pageElements)
     return;
 
   // store the value in the account
-  for (var i=0; i<pageElements.length; i++) {
+  for (var i = 0; i < pageElements.length; i++) {
     if (pageElements[i].id) {
       var vals = pageElements[i].id.split(".");
       if (vals.length >= 2) {
@@ -880,7 +868,7 @@ function getAccountValue(account, accountValues, type, slot, preftype, isGeneric
     else if (type == "nntp")
       source = server.QueryInterface(Components.interfaces.nsINntpIncomingServer);
     else if (type == "smtp")
-      source = smtpService.defaultServer;
+      source = MailServices.smtp.defaultServer;
     } catch (ex) {
     }
 
@@ -932,18 +920,18 @@ function restorePage(pageId, account)
     return;
 
   var accountValues = getValueArrayFor(account);
-  if (!accountValues) 
+  if (!accountValues)
     return;
 
   if ("onPreInit" in top.frames["contentFrame"])
     top.frames["contentFrame"].onPreInit(account, accountValues);
 
   var pageElements = getPageFormElements();
-  if (!pageElements) 
+  if (!pageElements)
     return;
 
   // restore the value from the account
-  for (var i=0; i<pageElements.length; i++) {
+  for (var i = 0; i < pageElements.length; i++) {
     if (pageElements[i].id) {
       var vals = pageElements[i].id.split(".");
       if (vals.length >= 2) {
@@ -967,12 +955,12 @@ function restorePage(pageId, account)
             element["serverkey"] = account.incomingServer.key;
             break;
           case "smtp":
-            if (smtpService.defaultServer)
-              element["serverkey"] = smtpService.defaultServer.key;
+            if (MailServices.smtp.defaultServer)
+              element["serverkey"] = MailServices.smtp.defaultServer.key;
             break;
         }
         var isLocked = getAccountValueIsLocked(pageElements[i]);
-        setEnabled(pageElements[i],!isLocked);
+        setEnabled(pageElements[i], !isLocked);
       }
     }
   }
@@ -1100,9 +1088,11 @@ function getCurrentAccount()
 
 // get the array of form elements for the given page
 function getPageFormElements() {
-  if("getElementsByAttribute" in top.frames["contentFrame"].document)
+  if ("getElementsByAttribute" in top.frames["contentFrame"].document)
     return top.frames["contentFrame"].document
               .getElementsByAttribute("wsm_persist", "true");
+
+  return null;
 }
 
 // get the value array for the given account
@@ -1203,8 +1193,9 @@ var gAccountTree = {
         panelsToKeep.push(panels[4]); // and addresssing
       }
 
-      // Everyone except news and RSS has a junk panel
+      // Everyone except News, RSS and IM has a junk panel
       // XXX: unextensible!
+      // The existence of server.spamSettings can't currently be used for this.
       if (server.type != "nntp" && server.type != "rss" && server.type != "im")
         panelsToKeep.push(panels[5]);
 
