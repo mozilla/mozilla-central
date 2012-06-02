@@ -88,16 +88,13 @@ PlacesTreeView.prototype = {
    * @return true if aContainer is a plain container, false otherwise.
    */
   _isPlainContainer: function PTV__isPlainContainer(aContainer) {
-    if (aContainer._plainContainer !== undefined)
-      return aContainer._plainContainer;
-
     // All history containers are query containers, but we need to QI
     aContainer.QueryInterface(Components.interfaces.nsINavHistoryQueryResultNode);
 
     // Of all history containers, only URI containers are flat, and they don't
     // contain folders, no need to check that either.
-    return aContainer._plainContainer = (aContainer.queryOptions.resultType ==
-               Components.interfaces.nsINavHistoryQueryOptions.RESULTS_AS_URI)
+    return aContainer.queryOptions.resultType ==
+               Components.interfaces.nsINavHistoryQueryOptions.RESULTS_AS_URI;
   },
 
   /**
@@ -821,8 +818,16 @@ PlacesTreeView.prototype = {
       this._rootNode.containerOpen = false;
     }
 
-    this._result = val;
-    this._rootNode = val ? val.root : null;
+    if (val) {
+      this._result = val;
+      this._rootNode = val.root;
+      this._cellProperties = new WeakMap();
+    }
+    else if (this._result) {
+      delete this._result;
+      delete this._rootNode;
+      delete this._cellProperties;
+    }
 
     // If the tree is not set yet, setTree will call finishInit.
     if (this._tree && val)
@@ -874,9 +879,10 @@ PlacesTreeView.prototype = {
     if (aColumn.id != "Name")
       return;
 
-    var node = this._getNodeForRow(aRow);
-    if (!node._cellProperties) {
-      let properties = new Array();
+    let node = this._getNodeForRow(aRow);
+    let properties = this._cellProperties.get(node, null);
+    if (!properties) {
+      properties = [];
       if (node.type == Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_QUERY) {
         properties.push(this._getAtomFor("query"));
         if (PlacesUtils.nodeIsDay(node))
@@ -885,10 +891,11 @@ PlacesTreeView.prototype = {
           properties.push(this._getAtomFor("hostContainer"));
       }
 
-      node._cellProperties = properties;
+      this._cellProperties.set(node, properties);
     }
-    for (let i = 0; i < node._cellProperties.length; i++)
-      aProperties.AppendElement(node._cellProperties[i]);
+    for (let property of properties) {
+      aProperties.AppendElement(property);
+    }
   },
 
   getColumnProperties: function(aColumn, aProperties) { },
