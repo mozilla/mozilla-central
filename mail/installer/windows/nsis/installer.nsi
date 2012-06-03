@@ -59,7 +59,6 @@ Var PageName
 !include defines.nsi
 !include common.nsh
 !include locales.nsi
-!include version.nsh
 
 VIAddVersionKey "FileDescription"  "${BrandShortName} Installer"
 VIAddVersionKey "OriginalFilename" "setup.exe"
