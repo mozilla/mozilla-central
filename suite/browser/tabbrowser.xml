@@ -697,8 +697,8 @@
             browser.mIconURL = aURI.spec;
 
             if (aURI && this.mFaviconService) {
-              this.mFaviconService.setAndLoadFaviconForPage(browser.currentURI,
-                                                            aURI, false);
+              this.mFaviconService.setAndFetchFaviconForPage(browser.currentURI,
+                                                             aURI, false);
             }
 
             this.updateIcon(aTab);
@@ -770,7 +770,7 @@
             var iconURL = this.buildFavIconString(aURI);
             if (this.mFaviconService) {
               let uri = this.mIOService.newURI(iconURL, null, null);
-              this.mFaviconService.setAndLoadFaviconForPage(aURI, uri, false);
+              this.mFaviconService.setAndFetchFaviconForPage(aURI, uri, false);
             }
             var entry = this.openCacheEntry(iconURL, Components.interfaces.nsICache.ACCESS_READ);
             if (!entry)
