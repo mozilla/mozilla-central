@@ -46,3 +46,16 @@ abLists2.mab
 ------------
 
 The same as abLists1.mab, but with com.invalid instead of invalid.com, and ListTestX instead of TestListX.
+
+mime-torture
+------------
+
+This is a file which is known as the MIME torture test. It contains several
+nested multipart/* and message/* segments; as its explanation describes:
+
+  This is a demonstration of multi-part mail with encapsulated messages.  This
+  is a very complex message whose purpose it is to exercise software using the
+  new multi-part message standard.
+
+The original source of this file is unknown, but a copy can be found at
+<http://sourceforge.net/projects/kmmail/files/MIME%20Torture%20Tests/>.
