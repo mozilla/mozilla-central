@@ -12,6 +12,7 @@
 #include "nsILineInputStream.h"
 #include "nsNetUtil.h"
 #include "nsMsgUtils.h"
+#include "mdb.h"
 
 #include "TextDebugLog.h"
 #include "plstr.h"
@@ -257,7 +258,6 @@ bool nsTextAddress::GetField(const char *pLine, PRInt32 maxLen, PRInt32 index, n
         if (len >= maxLen)
             break;
         if (*pChar == '"') {
-            len = -1;
             do {
                 len++;
                 pChar++;
@@ -418,9 +418,7 @@ nsresult nsTextAddress::ProcessLine(const char *pLine, PRInt32 len, nsString& er
 
     // Wait until we get our first non-empty field, then create a new row,
     // fill in the data, then add the row to the database.
-
-
-    nsIMdbRow *    newRow = nsnull;
+    nsCOMPtr<nsIMdbRow> newRow;
     nsString    uVal;
     nsCString    fieldVal;
     PRInt32        fieldNum;
@@ -436,7 +434,7 @@ nsresult nsTextAddress::ProcessLine(const char *pLine, PRInt32 len, nsString& er
             if (GetField(pLine, len, i, fieldVal, m_delim)) {
                 if (!fieldVal.IsEmpty()) {
                     if (!newRow) {
-                        rv = m_database->GetNewRow(&newRow);
+                        rv = m_database->GetNewRow(getter_AddRefs(newRow));
                         if (NS_FAILED(rv)) {
                             IMPORT_LOG0("*** Error getting new address database row\n");
                         }
@@ -449,25 +447,14 @@ nsresult nsTextAddress::ProcessLine(const char *pLine, PRInt32 len, nsString& er
             }
             else
                 break;
-
         }
-        else {
-            if (active) {
-                IMPORT_LOG1("*** Error getting field map for index %ld\n", (long) i);
-            }
-        }
-
-    }
-
-    if (NS_SUCCEEDED(rv)) {
-        if (newRow) {
-            rv = m_database->AddCardRowToDB(newRow);
-            // Release newRow????
+        else if (active) {
+          IMPORT_LOG1("*** Error getting field map for index %ld\n", (long) i);
         }
     }
-    else {
-        // Release newRow??
-    }
+
+    if (NS_SUCCEEDED(rv) && newRow)
+      rv = m_database->AddCardRowToDB(newRow);
 
     return rv;
 }
