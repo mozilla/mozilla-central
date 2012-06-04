@@ -231,6 +231,26 @@ var gAdvancedPane = {
     var disable = enabledPref.locked || !enabledPref.value || autoPref.locked ||
                   !autoPref.value || modePref.locked;
     warnIncompatible.disabled = disable;
+
+#ifdef MOZ_MAINTENANCE_SERVICE
+    // Check to see if the maintenance service is installed.
+    // If it is don't show the preference at all.
+    var installed;
+    try {
+      Components.utils.reportError("0");
+      var wrk = Components.classes["@mozilla.org/windows-registry-key;1"]
+                .createInstance(Components.interfaces.nsIWindowsRegKey);
+      wrk.open(wrk.ROOT_KEY_LOCAL_MACHINE,
+               "SOFTWARE\\Mozilla\\MaintenanceService",
+               wrk.ACCESS_READ | wrk.WOW64_64);
+      installed = wrk.readIntValue("Installed");
+      wrk.close();
+    } catch(e) {
+    }
+    if (installed != 1) {
+      document.getElementById("useService").hidden = true;
+    }
+#endif
   },
 
   /**

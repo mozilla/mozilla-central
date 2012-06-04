@@ -114,6 +114,7 @@
 @BINPATH@/@MOZ_APP_NAME@
 #endif
 @BINPATH@/application.ini
+@BINPATH@/update-settings.ini
 @BINPATH@/blocklist.xml
 @BINPATH@/platform.ini
 #ifdef XP_OS2
@@ -713,6 +714,13 @@
 @BINPATH@/updater.app/
 #else
 @BINPATH@/updater@BIN_SUFFIX@
+#endif
+
+; [MaintenanceService]
+;
+#ifdef MOZ_MAINTENANCE_SERVICE
+@BINPATH@/maintenanceservice.exe
+@BINPATH@/maintenanceservice_installer.exe
 #endif
 
 ; [crash reporter]

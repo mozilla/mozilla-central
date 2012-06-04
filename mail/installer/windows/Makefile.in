@@ -29,6 +29,13 @@ INSTALLER_FILES = \
 	nsis/shared.nsh \
 	$(NULL)
 
+ifdef MOZ_MAINTENANCE_SERVICE
+INSTALLER_FILES += \
+	nsis/maintenanceservice_installer.nsi \
+	$(NULL)
+endif
+
+
 BRANDING_FILES = \
 	branding.nsi \
 	wizHeader.bmp \
@@ -60,6 +67,17 @@ uninstaller::
 	$(PYTHON) $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/preprocess-locale.py \
 	  --preprocess-locale $(MOZILLA_SRCDIR) \
 	  $(call EXPAND_LOCALE_SRCDIR,mail/locales)/installer $(AB_CD) $(CONFIG_DIR)
+
+# For building the maintenanceservice installer
+ifdef MOZ_MAINTENANCE_SERVICE
+maintenanceservice_installer::
+	$(INSTALL) $(addprefix $(srcdir)/,$(INSTALLER_FILES)) $(CONFIG_DIR)
+	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py -Fsubstitution $(DEFINES) $(ACDEFINES) \
+	  $(srcdir)/nsis/defines.nsi.in > $(CONFIG_DIR)/defines.nsi
+	$(PYTHON) $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/windows/nsis/preprocess-locale.py \
+	  --preprocess-locale $(MOZILLA_SRCDIR) \
+	  $(call EXPAND_LOCALE_SRCDIR,mail/locales)/installer $(AB_CD) $(CONFIG_DIR)
+endif
 
 $(CONFIG_DIR)/setup.exe::
 	$(RM) -r $(CONFIG_DIR) && mkdir $(CONFIG_DIR)

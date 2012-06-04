@@ -1179,3 +1179,7 @@ components/xmlextras.xpt
 # ****************************************************************************
 # * End of XPTs at the time we started linking them on Linux and Mac.        *
 # ****************************************************************************
+#ifndef MOZ_MAINTENANCE_SERVICE
+maintenanceservice.exe
+maintenanceservice_installer.exe
+#endif

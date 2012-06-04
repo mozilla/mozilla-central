@@ -13,6 +13,13 @@ if [ "$COMM_BUILD" ]; then
   MOZ_LDAP_XPCOM=1
 fi
 MOZ_COMPOSER=1
+if test "$OS_ARCH" = "WINNT"; then
+  if ! test "$HAVE_64BIT_OS"; then
+    MOZ_VERIFY_MAR_SIGNATURE=1
+    MOZ_MAINTENANCE_SERVICE=1
+  fi
+fi
+
 MOZ_SAFE_BROWSING=1
 MOZ_MORK=1
 if test -z "$MOZ_INCOMPLETE_EXTERNAL_LINKAGE"; then
@@ -27,3 +34,9 @@ THUNDERBIRD_VERSION=$MOZ_APP_VERSION
 
 MOZ_BRANDING_DIRECTORY=mail/branding/nightly
 MOZ_OFFICIAL_BRANDING_DIRECTORY=other-licenses/branding/thunderbird
+# This should usually be the same as the value MAR_CHANNEL_ID.
+# If more than one ID is needed, then you should use a comma separated list
+# of values.
+ACCEPTED_MAR_CHANNEL_IDS=thunderbird-comm-central
+# The MAR_CHANNEL_ID must not contain the following 3 characters: ",\t "
+MAR_CHANNEL_ID=thunderbird-comm-central

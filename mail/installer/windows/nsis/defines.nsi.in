@@ -23,6 +23,9 @@
 !define PreReleaseSuffix      "@PRE_RELEASE_SUFFIX@"
 !define BrandFullName         "${BrandFullNameInternal}${PreReleaseSuffix}"
 
+!define CERTIFICATE_NAME      "Mozilla Corporation"
+!define CERTIFICATE_ISSUER    "Thawte Code Signing CA - G2"
+
 # NO_INSTDIR_FROM_REG is defined for pre-releases which have a PreReleaseSuffix
 # (e.g. Alpha X, Beta X, etc.) to prevent finding a non-default installation
 # directory in the registry and using that as the default. This prevents
@@ -41,6 +44,10 @@
 #else
 !define ARCH "x86"
 !define MinSupportedVer "Microsoft Windows XP SP2"
+#endif
+
+#ifdef MOZ_MAINTENANCE_SERVICE
+!define MOZ_MAINTENANCE_SERVICE
 #endif
 
 # File details shared by both the installer and uninstaller

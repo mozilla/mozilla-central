@@ -84,6 +84,11 @@ pref("app.update.idletime", 60);
 // which tells users what's new in this new update.
 pref("app.update.showInstalledUI", false);
 
+// Whether or not to attempt using the service for updates.
+#ifdef MOZ_MAINTENANCE_SERVICE
+pref("app.update.service.enabled", true);
+#endif
+
 // Release notes URL
 pref("app.releaseNotesURL", "http://live.mozillamessaging.com/%APP%/releasenotes?locale=%LOCALE%&version=%VERSION%&os=%OS%&buildid=%APPBUILDID%");
 

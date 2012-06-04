@@ -71,6 +71,9 @@
 <!ENTITY showUpdates.label              "Show Update History">
 <!ENTITY showUpdates.accesskey          "S">
 
+<!ENTITY useService.label                "Use a background service to install updates">
+<!ENTITY useService.accesskey            "b">
+
 <!-- Networking and Disk Space -->
 <!ENTITY showSettings.label            "Settings…">
 <!ENTITY showSettings.accesskey        "S">
