@@ -3021,6 +3021,8 @@ function addRecipientsToIgnoreList(aAddressesToAdd)
     // or Lantern,Green. Tokenize on comma first, then tokenize again on spaces.
     for (name in names.value)
     {
+      if (!names.value[name])
+        continue;
       var splitNames = names.value[name].split(',');
       for (let i = 0; i < splitNames.length; i++)
       {
