@@ -982,6 +982,10 @@
                         oncommand="MsgAccountWizard();"/>
               <menuseparator id="newPopupMenuSeparator"/>
               <menuitem id="menu_newCard"/>
+              <menuitem id="newIMContactMenuItem"
+                        label="&newIMContactCmd.label;"
+                        accesskey="&newIMContactCmd.accesskey;"
+                        oncommand="chatHandler.addBuddy();"/>
             </menupopup>
           </menu>
           <menuitem id="openMessageFileMenuitem" label="&openMessageFileCmd.label;"
@@ -1638,6 +1642,10 @@
             <menuitem id="imStatusShowAccounts" label="&imStatus.showAccounts;"/>
           </menupopup>
         </menu>
+        <menuitem id="joinChatMenuItem"
+                  label="&joinChatCmd.label;"
+                  accesskey="&joinChatCmd.accesskey;"
+                  oncommand="chatHandler.joinChat();"/>
 
         <menuseparator id="devToolsSeparator"/>
         <menuitem id="filtersCmd" label="&filtersCmd.label;"

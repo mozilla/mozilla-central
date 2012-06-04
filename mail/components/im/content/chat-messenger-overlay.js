@@ -655,8 +655,16 @@ var chatHandler = {
       this._placeHolderButtonId =
         hasAccount ? "openIMAccountManagerButton" : "openIMAccountWizardButton";
     }
-    document.getElementById("button-add-buddy").disabled = !connected;
-    document.getElementById("button-join-chat").disabled = !canJoinChat;
+    for each (let id in ["button-add-buddy", "newIMContactMenuItem"]) {
+      let elt = document.getElementById(id);
+      if (elt)
+        elt.disabled = !connected;
+    }
+    for each (let id in ["button-join-chat", "joinChatMenuItem"]) {
+      let elt = document.getElementById(id);
+      if (elt)
+        elt.disabled = !canJoinChat;
+    }
     let groupIds = ["conversations", "onlinecontacts", "offlinecontacts"];
     let contactlist = document.getElementById("contactlistbox");
     if (!hasAccount || !connected && groupIds.every(function(id)
@@ -847,7 +855,8 @@ var chatHandler = {
   init: function() {
     if (!Services.prefs.getBoolPref("mail.chat.enabled")) {
       ["button-chat", "menu_goChat", "goChatSeparator",
-       "imAccountsStatus", "newIMAccountMenuItem"].forEach(function(aId) {
+       "imAccountsStatus", "joinChatMenuItem",
+       "newIMAccountMenuItem", "newIMContactMenuItem"].forEach(function(aId) {
          let elt = document.getElementById(aId);
          if (elt)
            elt.hidden = true;
