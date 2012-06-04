@@ -1,0 +1,5 @@
+chat.jar:
+% skin prpl-jabber classic/1.0 %skin/classic/prpl/xmpp/
+	skin/classic/prpl/xmpp/icon32.png	(icons/prpl-jabber-32.png)
+	skin/classic/prpl/xmpp/icon48.png	(icons/prpl-jabber-48.png)
+	skin/classic/prpl/xmpp/icon.png	        (icons/prpl-jabber.png)
