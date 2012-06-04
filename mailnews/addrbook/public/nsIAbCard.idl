@@ -68,7 +68,7 @@ interface nsIAbPreferMailFormat {
  * The contract id for the standard implementation is
  * <tt>\@mozilla.org/addressbook/cardproperty;1</tt>.
  */
-[scriptable, uuid(5d6712d1-995c-42f4-91d7-e5539203af80)]
+[scriptable, uuid(9bddf024-5178-4097-894e-d84b4ddde101)]
 interface nsIAbCard : nsIAbItem {
   /**
    * The UUID for the nsIAbDirectory containing this card.
@@ -244,6 +244,14 @@ interface nsIAbCard : nsIAbItem {
   AString generatePhoneticName(in boolean aLastNameFirst);
 
   /**
+   * Generate a chat name from the card, containing the value of the
+   * first non-empty chat field.
+   *
+   * @return                 A string containing the generated chat name.
+   */
+  AString generateChatName();
+
+  /**
    * This function will copy all values from one card to another.
    *
    * @param  srcCard         The source card to copy values from.
@@ -334,6 +342,15 @@ interface nsIAbCard : nsIAbItem {
 #define kCustom3Property            "Custom3"
 #define kCustom4Property            "Custom4"
 #define kNotesProperty              "Notes"
+
+#define kGtalkProperty              "_GoogleTalk"
+#define kAIMProperty                "_AimScreenName"
+#define kYahooProperty              "_Yahoo"
+#define kSkypeProperty              "_Skype"
+#define kQQProperty                 "_QQ"
+#define kMSNProperty                "_MSN"
+#define kICQProperty                "_ICQ"
+#define kXMPPProperty               "_JabberId"
 
 #define kAnniversaryYearProperty    "AnniversaryYear"
 #define kAnniversaryMonthProperty   "AnniversaryMonth"

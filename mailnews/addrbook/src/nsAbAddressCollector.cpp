@@ -241,15 +241,18 @@ nsAbAddressCollector::AutoCollectScreenName(nsIAbCard *aCard,
 
   const nsACString& domain = Substring(aEmail, atPos + 1);
 
+  if (domain.IsEmpty())
+    return;
   // username in 
   // username@aol.com (America Online)
   // username@cs.com (Compuserve)
   // username@netscape.net (Netscape webmail)
   // are all AIM screennames.  autocollect that info.
-  if (!domain.IsEmpty() &&
-      (domain.Equals("aol.com") || domain.Equals("cs.com") ||
-       domain.Equals("netscape.net")))
+  if (domain.Equals("aol.com") || domain.Equals("cs.com") ||
+      domain.Equals("netscape.net"))
     aCard->SetPropertyAsAUTF8String(kScreenNameProperty, Substring(aEmail, 0, atPos));
+  else if (domain.Equals("gmail.com") || domain.Equals("googlemail.com"))
+    aCard->SetPropertyAsAUTF8String(kGtalkProperty, Substring(aEmail, 0, atPos));
 }
 
 // Returns true if the card was modified successfully.

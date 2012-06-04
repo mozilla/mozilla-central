@@ -47,8 +47,12 @@ static const AppendItem NAME_ATTRS_ARRAY[] = {
   {kDisplayNameProperty, "propertyDisplayName", eAppendLabel},
   {kNicknameProperty, "propertyNickname", eAppendLabel},
   {kPriEmailProperty, "", eAppendLine},
+#ifndef MOZ_THUNDERBIRD
   {k2ndEmailProperty, "", eAppendLine},
   {kScreenNameProperty, "propertyScreenName", eAppendLabel}
+#else
+  {k2ndEmailProperty, "", eAppendLine}
+#endif
 };
 
 static const AppendItem PHONE_ATTRS_ARRAY[] = {
@@ -84,6 +88,17 @@ static const AppendItem CUSTOM_ATTRS_ARRAY[] = {
   {kCustom3Property, "propertyCustom3", eAppendLabel},
   {kCustom4Property, "propertyCustom4", eAppendLabel},
   {kNotesProperty, "", eAppendLine}
+};
+
+static const AppendItem CHAT_ATTRS_ARRAY[] = {
+  {kGtalkProperty, "propertyGtalk", eAppendLabel},
+  {kAIMProperty, "propertyAIM", eAppendLabel},
+  {kYahooProperty, "propertyYahoo", eAppendLabel},
+  {kSkypeProperty, "propertySkype", eAppendLabel},
+  {kQQProperty, "propertyQQ", eAppendLabel},
+  {kMSNProperty, "propertyMSN", eAppendLabel},
+  {kICQProperty, "propertyICQ", eAppendLabel},
+  {kXMPPProperty, "propertyXMPP", eAppendLabel}
 };
 
 nsAbCardProperty::nsAbCardProperty()
@@ -781,6 +796,9 @@ nsresult nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
 
   if (!m_IsMailList) {
     rv = AppendSection(CUSTOM_ATTRS_ARRAY, sizeof(CUSTOM_ATTRS_ARRAY)/sizeof(AppendItem), NS_LITERAL_STRING("headingOther"), bundle, conv, xmlStr);
+#ifdef MOZ_THUNDERBIRD
+    rv = AppendSection(CHAT_ATTRS_ARRAY, sizeof(CHAT_ATTRS_ARRAY)/sizeof(AppendItem), NS_LITERAL_STRING("headingChat"), bundle, conv, xmlStr);
+#endif
   }
   else {
     rv = AppendSection(CUSTOM_ATTRS_ARRAY, sizeof(CUSTOM_ATTRS_ARRAY)/sizeof(AppendItem), NS_LITERAL_STRING("headingDescription"),
@@ -1134,5 +1152,24 @@ NS_IMETHODIMP nsAbCardProperty::GeneratePhoneticName(bool aLastNameFirst,
     aResult += lastName;
   }
 
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbCardProperty::GenerateChatName(nsAString &aResult)
+{
+  aResult.Truncate();
+
+#define CHECK_CHAT_PROPERTY(aProtocol)                                       \
+  if (NS_SUCCEEDED(GetPropertyAsAString(k##aProtocol##Property, aResult)) && \
+      !aResult.IsEmpty())                                                    \
+    return NS_OK
+  CHECK_CHAT_PROPERTY(Gtalk);
+  CHECK_CHAT_PROPERTY(AIM);
+  CHECK_CHAT_PROPERTY(Yahoo);
+  CHECK_CHAT_PROPERTY(Skype);
+  CHECK_CHAT_PROPERTY(QQ);
+  CHECK_CHAT_PROPERTY(MSN);
+  CHECK_CHAT_PROPERTY(ICQ);
+  CHECK_CHAT_PROPERTY(XMPP);
   return NS_OK;
 }

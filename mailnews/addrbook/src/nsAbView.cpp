@@ -413,6 +413,9 @@ nsresult nsAbView::GetCardValue(nsIAbCard *card, const PRUnichar *colID,
     // Use LN/FN order for the phonetic name
     return card->GeneratePhoneticName(true, _retval);
 
+  if (!NS_strcmp(colID, NS_LITERAL_STRING("ChatName").get()))
+    return card->GenerateChatName(_retval);
+
   nsresult rv = card->GetPropertyAsAString(NS_ConvertUTF16toUTF8(colID).get(), _retval);
   if (rv == NS_ERROR_NOT_AVAILABLE) {
     rv = NS_OK;

@@ -26,6 +26,7 @@
       <tab id="homeTabButton" label="&Home.tab;" accesskey="&Home.accesskey;"/>
       <tab id="workTabButton" label="&Work.tab;" accesskey="&Work.accesskey;"/>
       <tab id="otherTabButton" label="&Other.tab;" accesskey="&Other.accesskey;"/>
+      <tab id="chatTabButton" label="&Chat.tab;" accesskey="&Chat.accesskey;"/>
       <tab id="photoTabButton" label="&Photo.tab;" accesskey="&Photo.accesskey;"/>
     </tabs>
 
@@ -127,10 +128,11 @@
             </hbox>
             <hbox id="ScreenNameContainer" align="center">
               <spacer flex="1"/>
-              <label control="ScreenName" value="&ScreenName.label;"
-                     accesskey="&ScreenName.accesskey;"/>
+              <label class="text-link" value="&chatName.label;"
+                     onclick="showChat();"/>
               <hbox class="CardEditWidth">
-                <textbox id="ScreenName" flex="1"/>
+                <textbox id="ChatName" readonly="true" flex="1"
+                         onclick="showChat();"/>
               </hbox>
             </hbox>
           </vbox> <!-- End of Name/Email -->
@@ -366,6 +368,76 @@
                accesskey="&Notes.accesskey;"/>
         <textbox id="Notes" multiline="true" wrap="virtual" flex="1"/>
       </vbox>
+
+      <!-- ** Chat Tab ** -->
+      <hbox id="abChatTab">
+        <vbox>
+          <hbox id="GtalkContainer" align="center">
+            <spacer flex="1"/>
+            <label control="Gtalk" value="&Gtalk.label;"
+                   accesskey="&Gtalk.accesskey;"/>
+            <hbox class="CardEditWidth">
+              <textbox id="Gtalk" flex="1" onchange="updateChatName();"/>
+            </hbox>
+          </hbox>
+          <hbox id="AIMContainer" align="center">
+            <spacer flex="1"/>
+            <label control="AIM" value="&AIM.label;"
+                   accesskey="&AIM.accesskey;"/>
+            <hbox class="CardEditWidth">
+              <textbox id="AIM" flex="1" onchange="updateChatName();"/>
+            </hbox>
+          </hbox>
+          <hbox id="YahooContainer" align="center">
+            <spacer flex="1"/>
+            <label control="Yahoo" value="&Yahoo.label;"
+                   accesskey="&Yahoo.accesskey;"/>
+            <hbox class="CardEditWidth">
+              <textbox id="Yahoo" flex="1" onchange="updateChatName();"/>
+            </hbox>
+          </hbox>
+          <hbox id="SkypeContainer" align="center">
+            <spacer flex="1"/>
+            <label control="Skype" value="&Skype.label;"
+                   accesskey="&Skype.accesskey;"/>
+            <hbox class="CardEditWidth">
+              <textbox id="Skype" flex="1" onchange="updateChatName();"/>
+            </hbox>
+          </hbox>
+          <hbox id="QQContainer" align="center">
+            <spacer flex="1"/>
+            <label control="QQ" value="&QQ.label;"
+                   accesskey="&QQ.accesskey;"/>
+            <hbox class="CardEditWidth">
+              <textbox id="QQ" flex="1" onchange="updateChatName();"/>
+            </hbox>
+          </hbox>
+          <hbox id="MSNContainer" align="center">
+            <spacer flex="1"/>
+            <label control="MSN" value="&MSN.label;"
+                   accesskey="&MSN.accesskey;"/>
+            <hbox class="CardEditWidth">
+              <textbox id="MSN" flex="1" onchange="updateChatName();"/>
+            </hbox>
+          </hbox>
+          <hbox id="ICQContainer" align="center">
+            <spacer flex="1"/>
+            <label control="ICQ" value="&ICQ.label;"
+                   accesskey="&ICQ.accesskey;"/>
+            <hbox class="CardEditWidth">
+              <textbox id="ICQ" flex="1" onchange="updateChatName();"/>
+            </hbox>
+          </hbox>
+          <hbox id="XMPPContainer" align="center">
+            <spacer flex="1"/>
+            <label control="XMPP" value="&XMPP.label;"
+                   accesskey="&XMPP.accesskey;"/>
+            <hbox class="CardEditWidth">
+              <textbox id="XMPP" flex="1" onchange="updateChatName();"/>
+            </hbox>
+          </hbox>
+        </vbox>
+      </hbox>
 
       <!-- ** Photo Tab ** -->
       <hbox id="abPhotoTab" align="center">
