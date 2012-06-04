@@ -23,7 +23,7 @@ function XMPPProtocol() {
 XMPPProtocol.prototype = {
   __proto__: GenericProtocolPrototype,
   get normalizedName() "jabber",
-  get name() "XMPP (JS)",
+  get name() "XMPP",
   get iconBaseURI() "chrome://prpl-jabber/skin/",
   getAccount: function(aImAccount) new XMPPAccount(this, aImAccount),
   options: {
