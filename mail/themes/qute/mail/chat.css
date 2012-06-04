@@ -106,10 +106,18 @@
   background-color: -moz-Dialog;
 }
 
-imconv[selected],
-imcontact[selected] {
+:-moz-any(imconv, imcontact, imgroup) {
+  border: 1px solid transparent;
+}
+
+:-moz-any(imconv, imcontact, imgroup)[selected] {
+  background-color: -moz-cellhighlight;
+}
+
+#contactlistbox:focus > :-moz-any(imconv, imcontact, imgroup)[selected] {
   background-color: Highlight;
   color: HighlightText;
+  border: 1px dotted #F3D982;
 }
 
 #button-add-buddy {
