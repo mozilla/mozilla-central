@@ -182,7 +182,7 @@
                              oncommand="goDoCommand(event.shiftKey ? 'button_shiftDelete' :
                                                     'button_delete');RestoreFocusAfterHdrButton();"/>
               <toolbarbutton id="hdrReplyToSenderButton" label="&hdrReplyButton1.label;"
-                             tooltiptext="&hdrReplyButton1.tooltip;"
+                             tooltiptext="&hdrReplyButton2.tooltip;"
                              oncommand="MsgReplySender(event);RestoreFocusAfterHdrButton();"
                              observes="button_reply"
                              class="toolbarbutton-1 msgHeaderView-button hdrReplyToSenderButton"/>
@@ -194,7 +194,7 @@
                                hidden="true"
                                class="toolbarbutton-1 msgHeaderView-button hdrDummyReplyButton"/>
                 <toolbarbutton id="hdrReplyButton" label="&hdrReplyButton1.label;"
-                               tooltiptext="&hdrReplyButton1.tooltip;"
+                               tooltiptext="&hdrReplyButton2.tooltip;"
                                oncommand="MsgReplySender(event);RestoreFocusAfterHdrButton();"
                                observes="button_reply"
                                class="toolbarbutton-1 msgHeaderView-button hdrReplyButton"/>
@@ -214,7 +214,7 @@
                     <menuseparator id="hdrReplyAllSubSeparator"/>
                     <menuitem id="hdrReplySubButton"
                               label="&hdrReplyButton1.label;"
-                              tooltiptext="&hdrReplyButton1.tooltip;"
+                              tooltiptext="&hdrReplyButton2.tooltip;"
                               observes="button_reply"
                               oncommand="MsgReplySender(event); event.stopPropagation();
                                          RestoreFocusAfterHdrButton();"/>
@@ -242,7 +242,7 @@
                                          RestoreFocusAfterHdrButton();"/>
                     <menuitem id="hdrReplyList_ReplySubButton"
                               label="&hdrReplyButton1.label;"
-                              tooltiptext="&hdrReplyButton1.tooltip;"
+                              tooltiptext="&hdrReplyButton2.tooltip;"
                               observes="button_reply"
                               oncommand="MsgReplySender(event); event.stopPropagation();
                                          RestoreFocusAfterHdrButton();"/>
@@ -268,7 +268,7 @@
                                          RestoreFocusAfterHdrButton();"/>
                     <menuitem id="hdrFollowup_ReplySubButton"
                               label="&hdrReplyButton1.label;"
-                              tooltiptext="&hdrReplyButton1.tooltip;"
+                              tooltiptext="&hdrReplyButton2.tooltip;"
                               observes="button_reply"
                               oncommand="MsgReplySender(event); event.stopPropagation();
                                          RestoreFocusAfterHdrButton();"/>
