@@ -685,8 +685,8 @@ var ircBase = {
     "312": function(aMessage) { // RPL_WHOISSERVER
       // <nick> <server> :<server info>
       return setWhoIs(this, aMessage,
-                      {server: _("tooltip.serverValue", aMessage.params[2],
-                                 aMessage.params[3])});
+                      {serverName: aMessage.params[2],
+                       serverInfo: aMessage.params[3]});
     },
     "313": function(aMessage) { // RPL_WHOISOPERATOR
       // <nick> :is an IRC operator

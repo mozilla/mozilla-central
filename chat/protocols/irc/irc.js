@@ -624,10 +624,33 @@ ircAccount.prototype = {
       return EmptyEnumerator;
 
     let whoisInformation = this.whoisInformation[nick];
+    if (whoisInformation.serverName && whoisInformation.serverInfo) {
+      whoisInformation.server =
+        _("tooltip.serverValue", whoisInformation.serverName,
+          whoisInformation.serverInfo);
+    }
+
+    // List of the names of the info to actually show in the tooltip and
+    // optionally a transform function to apply to the value. Each field here
+    // maps to tooltip.<fieldname> in irc.properties.
+    // See the various RPL_WHOIS* results for the options.
+    let normalizeBool = function(aBool) _(aBool ? "yes" : "no");
+    const kFields = {
+      realname: null,
+      server: null,
+      connectedFrom: null,
+      away: null,
+      ircOp: normalizeBool,
+      idleTime: null,
+      channels: null
+    };
+
     let tooltipInfo = [];
-    for (let field in whoisInformation) {
-      if (field != "nick" && field != "offline") {
+    for (let field in kFields) {
+      if (whoisInformation.hasOwnProperty(field) && whoisInformation[field]) {
         let value = whoisInformation[field];
+        if (kFields[field])
+          value = kFields[field](value);
         tooltipInfo.push(new TooltipInfo(_("tooltip." + field), value));
       }
     }
