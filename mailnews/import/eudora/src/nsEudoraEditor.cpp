@@ -674,6 +674,72 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetDataset(nsIDOMDOMStringMap * *aDatase
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+/* attribute boolean itemScope; */
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetItemScope(bool *aItemScope)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetItemScope(bool aItemScope)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* attribute nsIVariant itemType; */
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetItemType(nsIVariant * *aItemType)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetItemType(nsIVariant *aItemType)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* attribute DOMString itemId; */
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetItemId(nsAString & aItemId)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetItemId(const nsAString & aItemId)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute nsIDOMHTMLPropertiesCollection properties; */
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetProperties(nsIDOMHTMLPropertiesCollection * *aProperties)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* attribute nsIVariant itemValue; */
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetItemValue(nsIVariant * *aItemValue)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetItemValue(nsIVariant *aItemValue)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* attribute nsIVariant itemProp; */
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetItemProp(nsIVariant * *aItemProp)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetItemProp(nsIVariant *aItemProp)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* attribute nsIVariant itemRef; */
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetItemRef(nsIVariant * *aItemRef)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetItemRef(nsIVariant *aItemRef)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 
 // attribute boolean hidden
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetHidden(bool *aHidden)

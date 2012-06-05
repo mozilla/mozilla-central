@@ -382,6 +382,72 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::GetDataset(nsIDOMDOMStringMap * *aDatas
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+/* attribute boolean itemScope; */
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetItemScope(bool *aItemScope)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetItemScope(bool aItemScope)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* attribute nsIVariant itemType; */
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetItemType(nsIVariant * *aItemType)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetItemType(nsIVariant *aItemType)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* attribute DOMString itemId; */
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetItemId(nsAString & aItemId)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetItemId(const nsAString & aItemId)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute nsIDOMHTMLPropertiesCollection properties; */
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetProperties(nsIDOMHTMLPropertiesCollection * *aProperties)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* attribute nsIVariant itemValue; */
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetItemValue(nsIVariant * *aItemValue)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetItemValue(nsIVariant *aItemValue)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* attribute nsIVariant itemProp; */
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetItemProp(nsIVariant * *aItemProp)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetItemProp(nsIVariant *aItemProp)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* attribute nsIVariant itemRef; */
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetItemRef(nsIVariant * *aItemRef)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetItemRef(nsIVariant *aItemRef)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 
 // attribute boolean hidden
 NS_IMETHODIMP nsOutlookHTMLImageElement::GetHidden(bool *aHidden)
