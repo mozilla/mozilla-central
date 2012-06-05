@@ -344,6 +344,7 @@ Account.prototype = {
   consumerSecret: "DKtKaSf5a7pBNhdBsSZHTnI5Y03hRlPFYWmb4xXBlkU",
   completionURI: "http://oauthcallback.local/",
   baseURI: "https://api.twitter.com/",
+  _lastMsgId: "",
 
   // Use this to keep track of the pending timeline requests. We attempt to fetch
   // home_timeline, @ mentions and tracked keywords (i.e. 3 timelines)
@@ -519,8 +520,10 @@ Account.prototype = {
       let lastMsgId = this.prefs.getCharPref("lastMessageId");
       // Check that the ID is made up of all digits, otherwise the server will
       // croak on our request.
-      if (/^\d+$/.test(lastMsgId))
+      if (/^\d+$/.test(lastMsgId)) {
         lastMsgParam = "&since_id=" + lastMsgId;
+        this._lastMsgId = lastMsgId;
+      }
       else
         WARN("invalid value for the lastMessageId preference: " + lastMsgId);
     }
@@ -544,14 +547,26 @@ Account.prototype = {
 
   get timeline() this._timeline || (this._timeline = new Conversation(this)),
   displayMessages: function(aMessages) {
+    let lastMsgId = this._lastMsgId;
     for each (let tweet in aMessages) {
       if (!("user" in tweet) || !("text" in tweet) || !("id_str" in tweet) ||
          tweet.id_str in this._knownMessageIds)
         continue;
-      this._knownMessageIds[tweet.id_str] = tweet;
+      let id = tweet.id_str;
+      // Update the last known message.
+      // Compare the length of the ids first, and then the text.
+      // This avoids converting tweet ids into rounded numbers.
+      if (id.length > lastMsgId.length ||
+          (id.length == lastMsgId.length && id > lastMsgId))
+        lastMsgId = id;
+      this._knownMessageIds[id] = tweet;
       if ("description" in tweet.user)
         this._userInfo[tweet.user.screen_name] = tweet.user;
       this.timeline.displayTweet(tweet);
+    }
+    if (lastMsgId != this._lastMsgId) {
+      this._lastMsgId = lastMsgId;
+      this.prefs.setCharPref("lastMessageId", this._lastMsgId);
     }
   },
 
@@ -910,17 +925,6 @@ Account.prototype = {
   },
   unInit: function() {
     this.cleanUp();
-    // If we've received any messages, update the last known message.
-    let newestMessageId = "";
-    for (let id in this._knownMessageIds) {
-      // Compare the length of the ids first, and then the text.
-      // This avoids converting tweet ids into rounded numbers.
-      if (id.length > newestMessageId.length ||
-          (id.length == newestMessageId.length && id > newestMessageId))
-        newestMessageId = id;
-    }
-    if (newestMessageId)
-      this.prefs.setCharPref("lastMessageId", newestMessageId);
   },
   disconnect: function() {
     this.gotDisconnected();
