@@ -15,9 +15,9 @@ include $(topsrcdir)/config/config.mk
 
 XPCSHELL_TESTS = unit
 
-SIMPLE_PROGRAMS = \
-	TestMailCookie$(BIN_SUFFIX) \
-	$(NULL)
+CPP_UNIT_TESTS = \
+    TestMailCookie.cpp \
+    $(NULL)
 
 include $(topsrcdir)/config/rules.mk
 
@@ -25,17 +25,3 @@ LOCAL_INCLUDES = \
     -I$(MOZILLA_SRCDIR)/xpcom/tests \
     -I$(MOZILLA_SRCDIR)/netwerk/test \
     $(NULL)
-
-ifndef MOZILLA_INTERNAL_API
-LIBS += $(XPCOM_GLUE_LDOPTS)
-endif
-
-LIBS += $(XPCOM_LIBS)
-
-LIBS +=   \
-  $(XPCOM_LIBS) \
-  $(NSPR_LIBS) \
-  $(NULL)
-
-check::
-	$(RUN_TEST_PROGRAM) $(DIST)/bin/TestMailCookie$(BIN_SUFFIX)
