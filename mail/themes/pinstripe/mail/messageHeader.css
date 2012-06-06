@@ -401,8 +401,8 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
 }
 
 .hdrTagButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-  -moz-image-region: rect(0px 384px 24px 360px);
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 288px 18px 270px);
 }
 
 window[inlinetoolbox] #wrapper-spring {

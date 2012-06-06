@@ -22,29 +22,29 @@
 }
 
 .back {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-  -moz-image-region: rect(0px 408px 24px 384px);
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 306px 18px 288px);
 }
 
 .back:hover:active {
-  -moz-image-region: rect(24px 408px 48px 384px);
+  -moz-image-region: rect(18px 306px 36px 288px);
 }
 
 .back[disabled] {
-  -moz-image-region: rect(48px 408px 72px 384px) !important;
+  opacity: .5;
 }
 
 .forward {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-  -moz-image-region: rect(0px 432px 24px 408px);
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 324px 18px 306px);
 }
 
 .forward:hover:active {
-  -moz-image-region: rect(24px 432px 48px 408px);
+  -moz-image-region: rect(18px 324px 36px 306px);
 }
 
 .forward[disabled="true"] {
-  -moz-image-region: rect(48px 432px 72px 408px) !important;
+  opacity: .5;
 }
 
 .engines .toolbarbutton-icon {
