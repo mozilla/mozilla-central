@@ -464,6 +464,8 @@ calCalendarManager.prototype = {
         } catch (exc) {
             db.rollbackTransaction();
             throw exc;
+        } finally {
+            db.close();
         }
     },
 
