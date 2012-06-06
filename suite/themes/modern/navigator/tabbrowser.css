@@ -35,14 +35,6 @@ tab[busy] {
   height: 16px;
 }
 
-.toolbarbutton-text {
-  display: none;
-}
-
-.toolbarbutton-icon {
-  margin: 0px;
-}
-
 /* ::::: Tab scrollbox arrow, and all-tabs buttons ::::: */
 
 .scrollbutton-up,
@@ -88,6 +80,10 @@ tab[busy] {
 .scrollbutton-down:not([disabled="true"]):hover:active {
   border-color: #86929E;
   background-color: #8C9AA8;
+}
+
+.tabs-alltabs-button > .toolbarbutton-icon {
+  margin: 0px;
 }
 
 /* All tabs menupopup */

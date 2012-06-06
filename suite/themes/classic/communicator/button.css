@@ -137,12 +137,9 @@ toolbar[labelalign="end"] .toolbarbutton-1 > hbox > vbox {
 
 /* override winstripe */
 
-.toolbarbutton-icon {
+.toolbarbutton-icon[label]:not([label=""]),
+.toolbarbutton-icon[type="menu"] {
   -moz-margin-end: 2px;
-}
-
-.taskbutton > .toolbarbutton-icon {
-  -moz-margin-end: 0px;
 }
 
 /**

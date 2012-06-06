@@ -123,12 +123,10 @@ tabpanels {
   -moz-border-left-colors: transparent transparent;
 }
 
-.toolbarbutton-text {
+.tabs-newbutton > .toolbarbutton-text,
+.tabs-alltabs-button > .toolbarbutton-text,
+.tabs-closebutton > .toolbarbutton-text {
   display: none;
-}
-
-.toolbarbutton-icon {
-  margin: 0 !important; /* needs to override communicator.css */
 }
 
 /* ::::: Tab scrollbox arrow ::::: */
@@ -227,7 +225,7 @@ tabpanels {
   -moz-margin-start: -6px;
   position: relative;
 }
- 
+
 .tab-drop-indicator {
   height: 11px;
   width: 11px;

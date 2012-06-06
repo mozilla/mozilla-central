@@ -36,7 +36,7 @@ tabpanels {
 }
 
 .tabbrowser-tab {
-  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.png"); 
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.png");
   padding: 0px 2px 2px;
   margin-bottom: 1px;
   border-bottom: none;
@@ -60,14 +60,6 @@ tabpanels {
 .scrollbutton-down:-moz-lwtheme:not([selected="true"]),
 .tabbrowser-tab:-moz-lwtheme:not([selected="true"]) {
   opacity: .8;
-}
-
-.toolbarbutton-text {
-  display: none;
-}
-
-.toolbarbutton-icon {
-  margin: 0px !important; /* needs to override communicator.css */
 }
 
 /* ::::: Tab scrollbox arrow, and all-tabs buttons ::::: */
@@ -143,6 +135,10 @@ tabpanels {
 
 .tabs-alltabs-button {
   margin: 2px 0px 1px;
+}
+
+.tabs-alltabs-button > .toolbarbutton-icon {
+  margin: 0px !important;
 }
 
 /* All tabs menupopup */
