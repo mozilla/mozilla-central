@@ -361,7 +361,8 @@ calStorageCalendar.prototype = {
             let localDB = cal.getCalendarDirectory();
             localDB.append("local.sqlite");
             localDB = Services.storage.openDatabase(localDB);
-            Services.obs.removeObserver(this, "profile-before-change");
+            cal.addObserver((function() localDB.close()),
+                            "profile-before-change", true);
 
             this.mDB = localDB;
             upgradeDB(this.mDB);
@@ -370,11 +371,6 @@ calStorageCalendar.prototype = {
         }
 
         this.initDB();
-    },
-
-    observe : function() {
-        Services.obs.removeObserver(this, "profile-before-change");
-        this.mDB.close();
     },
 
     /**
