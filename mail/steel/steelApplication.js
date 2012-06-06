@@ -41,7 +41,10 @@ Application.prototype = {
   _xpcom_factory: ApplicationFactory,
 
   // for nsISupports
-  QueryInterface : XPCOMUtils.generateQI([Ci.steelIApplication, Ci.extIApplication, Ci.nsIObserver]),
+  QueryInterface : XPCOMUtils.generateQI([Ci.steelIApplication,
+                                          Ci.extIApplication,
+					  Ci.nsIObserver,
+                                          Ci.nsISupportsWeakReference]),
 
   classInfo: XPCOMUtils.generateCI({classID: APPLICATION_CID,
 				    contractID: APPLICATION_CONTRACTID,
