@@ -424,7 +424,7 @@ nsMsgIncomingServer::GetIntValue(const char *prefname,
 NS_IMETHODIMP
 nsMsgIncomingServer::GetFileValue(const char* aRelPrefName,
                                   const char* aAbsPrefName,
-                                  nsILocalFile** aLocalFile)
+                                  nsIFile** aLocalFile)
 {
   if (!mPrefBranch)
     return NS_ERROR_NOT_INITIALIZED;
@@ -441,7 +441,7 @@ nsMsgIncomingServer::GetFileValue(const char* aRelPrefName,
       (*aLocalFile)->Normalize();
   } else {
     rv = mPrefBranch->GetComplexValue(aAbsPrefName,
-                                      NS_GET_IID(nsILocalFile),
+                                      NS_GET_IID(nsIFile),
                                       reinterpret_cast<void**>(aLocalFile));
     if (NS_FAILED(rv))
       return rv;
@@ -461,7 +461,7 @@ nsMsgIncomingServer::GetFileValue(const char* aRelPrefName,
 NS_IMETHODIMP
 nsMsgIncomingServer::SetFileValue(const char* aRelPrefName,
                                   const char* aAbsPrefName,
-                                  nsILocalFile* aLocalFile)
+                                  nsIFile* aLocalFile)
 {
   if (!mPrefBranch)
     return NS_ERROR_NOT_INITIALIZED;
@@ -478,7 +478,7 @@ nsMsgIncomingServer::SetFileValue(const char* aRelPrefName,
     if (NS_FAILED(rv))
       return rv;
   }
-  return mPrefBranch->SetComplexValue(aAbsPrefName, NS_GET_IID(nsILocalFile), aLocalFile);
+  return mPrefBranch->SetComplexValue(aAbsPrefName, NS_GET_IID(nsIFile), aLocalFile);
 }
 
 NS_IMETHODIMP
@@ -880,7 +880,7 @@ nsMsgIncomingServer::ForgetSessionPassword()
 }
 
 NS_IMETHODIMP
-nsMsgIncomingServer::SetDefaultLocalPath(nsILocalFile *aDefaultLocalPath)
+nsMsgIncomingServer::SetDefaultLocalPath(nsIFile *aDefaultLocalPath)
 {
   nsresult rv;
   nsCOMPtr<nsIMsgProtocolInfo> protocolInfo;
@@ -890,7 +890,7 @@ nsMsgIncomingServer::SetDefaultLocalPath(nsILocalFile *aDefaultLocalPath)
 }
 
 NS_IMETHODIMP
-nsMsgIncomingServer::GetLocalPath(nsILocalFile **aLocalPath)
+nsMsgIncomingServer::GetLocalPath(nsIFile **aLocalPath)
 {
   nsresult rv;
 
@@ -907,7 +907,7 @@ nsMsgIncomingServer::GetLocalPath(nsILocalFile **aLocalPath)
   rv = getProtocolInfo(getter_AddRefs(protocolInfo));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> localPath;
+  nsCOMPtr<nsIFile> localPath;
   rv = protocolInfo->GetDefaultLocalPath(getter_AddRefs(localPath));
   NS_ENSURE_SUCCESS(rv, rv);
   localPath->Create(nsIFile::DIRECTORY_TYPE, 0755);
@@ -960,7 +960,7 @@ nsMsgIncomingServer::GetMsgStore(nsIMsgPluggableStore **aMsgStore)
 
 
 NS_IMETHODIMP
-nsMsgIncomingServer::SetLocalPath(nsILocalFile *aLocalPath)
+nsMsgIncomingServer::SetLocalPath(nsIFile *aLocalPath)
 {
   NS_ENSURE_ARG_POINTER(aLocalPath);
   aLocalPath->Create(nsIFile::DIRECTORY_TYPE, 0755);
@@ -1031,7 +1031,7 @@ nsMsgIncomingServer::RemoveFiles()
     NS_ASSERTION(false, "shouldn't remove files for a deferred account");
     return NS_ERROR_FAILURE;
   }
-  nsCOMPtr <nsILocalFile> localPath;
+  nsCOMPtr <nsIFile> localPath;
   nsresult rv = GetLocalPath(getter_AddRefs(localPath));
   NS_ENSURE_SUCCESS(rv, rv);
   return localPath->Remove(true);
@@ -1079,7 +1079,7 @@ nsMsgIncomingServer::GetFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **
       // The default case, a local folder, is a bit special. It requires
       // more initialization.
 
-      nsCOMPtr<nsILocalFile> thisFolder;
+      nsCOMPtr<nsIFile> thisFolder;
       rv = msgFolder->GetFilePath(getter_AddRefs(thisFolder));
       NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1094,7 +1094,7 @@ nsMsgIncomingServer::GetFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **
       mFilterFile->Exists(&fileExists);
       if (!fileExists)
       {
-        nsCOMPtr<nsILocalFile> oldFilterFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+        nsCOMPtr<nsIFile> oldFilterFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
         rv = oldFilterFile->InitWithFile(thisFolder);
         NS_ENSURE_SUCCESS(rv, rv);
@@ -1840,8 +1840,7 @@ nsMsgIncomingServer::ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filte
   nsCOMPtr<nsIMsgFilterService> filterService = do_GetService(NS_MSGFILTERSERVICE_CONTRACTID, &rv);
   nsCOMPtr<nsIMsgFilterList> serverFilterList;
 
-  nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(file);
-  rv = filterService->OpenFilterList(localFile, NULL, NULL, getter_AddRefs(serverFilterList));
+  rv = filterService->OpenFilterList(file, NULL, NULL, getter_AddRefs(serverFilterList));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = serverFilterList->GetFilterNamed(yesFilterName,

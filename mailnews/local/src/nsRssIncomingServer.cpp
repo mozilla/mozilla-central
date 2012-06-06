@@ -7,7 +7,7 @@
 #include "nsMsgFolderFlags.h"
 #include "nsINewsBlogFeedDownloader.h"
 #include "nsMsgBaseCID.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIMsgFolderNotificationService.h"
 
 #include "nsIMsgLocalMailFolder.h"
@@ -58,11 +58,11 @@ nsRssIncomingServer::~nsRssIncomingServer()
   }
 }
 
-nsresult nsRssIncomingServer::FillInDataSourcePath(const nsAString& aDataSourceName, nsILocalFile ** aLocation)
+nsresult nsRssIncomingServer::FillInDataSourcePath(const nsAString& aDataSourceName, nsIFile ** aLocation)
 {
   nsresult rv;
   // start by gettting the local path for this server
-  nsCOMPtr<nsILocalFile> localFile;
+  nsCOMPtr<nsIFile> localFile;
   rv = GetLocalPath(getter_AddRefs(localFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -73,12 +73,12 @@ nsresult nsRssIncomingServer::FillInDataSourcePath(const nsAString& aDataSourceN
 }
 
 // nsIRSSIncomingServer methods
-NS_IMETHODIMP nsRssIncomingServer::GetSubscriptionsDataSourcePath(nsILocalFile ** aLocation)
+NS_IMETHODIMP nsRssIncomingServer::GetSubscriptionsDataSourcePath(nsIFile ** aLocation)
 {
   return FillInDataSourcePath(NS_LITERAL_STRING("feeds.rdf"), aLocation);
 }
 
-NS_IMETHODIMP nsRssIncomingServer::GetFeedItemsDataSourcePath(nsILocalFile ** aLocation)
+NS_IMETHODIMP nsRssIncomingServer::GetFeedItemsDataSourcePath(nsIFile ** aLocation)
 {
   return FillInDataSourcePath(NS_LITERAL_STRING("feeditems.rdf"), aLocation);
 }

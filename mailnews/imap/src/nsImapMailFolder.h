@@ -269,8 +269,8 @@ public:
                               nsIMsgCopyServiceListener* listener);
   NS_IMETHOD GetNewMessages(nsIMsgWindow *aWindow, nsIUrlListener *aListener);
 
-  NS_IMETHOD GetFilePath(nsILocalFile** aPathName);
-  NS_IMETHOD SetFilePath(nsILocalFile * aPath);
+  NS_IMETHOD GetFilePath(nsIFile** aPathName);
+  NS_IMETHOD SetFilePath(nsIFile * aPath);
 
   NS_IMETHOD Shutdown(bool shutdownChildren);
 
@@ -305,7 +305,7 @@ public:
   NS_IMETHOD SetFilterList(nsIMsgFilterList *aMsgFilterList);
   NS_IMETHOD GetCustomIdentity(nsIMsgIdentity **aIdentity);
 
-  nsresult AddSubfolderWithPath(nsAString& name, nsILocalFile *dbPath, nsIMsgFolder **child, bool brandNew = false);
+  nsresult AddSubfolderWithPath(nsAString& name, nsIFile *dbPath, nsIMsgFolder **child, bool brandNew = false);
   nsresult MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
                                   nsIMsgDatabase *sourceDB,
                                   const nsACString& destFolder,
@@ -347,7 +347,7 @@ protected:
   nsresult  NormalEndHeaderParseStream(nsIImapProtocol *aProtocol, nsIImapUrl *imapUrl);
 
   void EndOfflineDownload();
-  nsresult CopyFileToOfflineStore(nsILocalFile *srcFile, nsMsgKey msgKey);
+  nsresult CopyFileToOfflineStore(nsIFile *srcFile, nsMsgKey msgKey);
 
   nsresult MarkMessagesImapDeleted(nsTArray<nsMsgKey> *keyArray, bool deleted, nsIMsgDatabase *db);
 
@@ -366,8 +366,8 @@ protected:
   nsresult DisplayStatusMsg(nsIImapUrl *aImapUrl, const nsAString& msg);
 
   //nsresult RenameLocal(const char *newName);
-  nsresult AddDirectorySeparator(nsILocalFile *path);
-  nsresult CreateSubFolders(nsILocalFile *path);
+  nsresult AddDirectorySeparator(nsIFile *path);
+  nsresult CreateSubFolders(nsIFile *path);
   nsresult GetDatabase();
   virtual void GetIncomingServerType(nsCString& serverType) { serverType.AssignLiteral("imap");}
 

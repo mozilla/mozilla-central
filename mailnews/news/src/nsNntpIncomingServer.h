@@ -19,7 +19,7 @@
 #include "nsIMsgWindow.h"
 #include "nsISubscribableServer.h"
 #include "nsITimer.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsITreeView.h"
 #include "nsITreeSelection.h"
 #include "nsIAtom.h"
@@ -120,7 +120,7 @@ private:
     bool mNewsrcHasChanged;
     bool mHostInfoLoaded;
     bool mHostInfoHasChanged;
-    nsCOMPtr <nsILocalFile> mHostInfoFile;
+    nsCOMPtr <nsIFile> mHostInfoFile;
     
     PRUint32 mLastGroupDate;
     PRTime mFirstNewDate;
@@ -136,7 +136,7 @@ private:
     nsresult EnsureInner();
     nsresult ClearInner();
     nsresult IsValidRow(PRInt32 row);
-    nsCOMPtr<nsILocalFile> mNewsrcFilePath;
+    nsCOMPtr<nsIFile> mNewsrcFilePath;
 };
 
 #endif

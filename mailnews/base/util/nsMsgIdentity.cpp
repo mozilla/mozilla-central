@@ -103,7 +103,7 @@ nsMsgIdentity::ToString(nsAString& aResult)
 /* Identity attribute accessors */
 
 NS_IMETHODIMP
-nsMsgIdentity::GetSignature(nsILocalFile **sig)
+nsMsgIdentity::GetSignature(nsIFile **sig)
 {
   bool gotRelPref;
   nsresult rv = NS_GetPersistentFile("sig_file" REL_FILE_PREF_SUFFIX, "sig_file", nsnull, gotRelPref, sig, mPrefBranch);
@@ -116,7 +116,7 @@ nsMsgIdentity::GetSignature(nsILocalFile **sig)
 }
 
 NS_IMETHODIMP
-nsMsgIdentity::SetSignature(nsILocalFile *sig)
+nsMsgIdentity::SetSignature(nsIFile *sig)
 {
   nsresult rv = NS_OK;
   if (sig)
@@ -519,7 +519,7 @@ NS_IMETHODIMP nsMsgIdentity::GetIntAttribute(const char *aName, PRInt32 *val)
 #define COPY_IDENTITY_FILE_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER)   \
   {  \
     nsresult macro_rv;  \
-    nsCOMPtr <nsILocalFile>macro_spec;   \
+    nsCOMPtr <nsIFile>macro_spec;   \
           macro_rv = SRC_ID->MACRO_GETTER(getter_AddRefs(macro_spec)); \
           if (NS_SUCCEEDED(macro_rv)) \
             this->MACRO_SETTER(macro_spec);     \

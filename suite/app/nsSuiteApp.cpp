@@ -27,7 +27,7 @@
 #include "prenv.h"
 
 #include "nsCOMPtr.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsStringGlue.h"
 
 #ifdef XP_WIN
@@ -111,7 +111,7 @@ static const nsDynamicFunctionLoad kXULFuncs[] = {
 
 static int do_main(const char *exePath, int argc, char* argv[])
 {
-  nsCOMPtr<nsILocalFile> appini;
+  nsCOMPtr<nsIFile> appini;
   nsresult rv;
   
   // Allow seamonkey.exe to launch XULRunner apps via -app <application.ini>

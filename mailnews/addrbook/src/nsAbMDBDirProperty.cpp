@@ -134,7 +134,7 @@ NS_IMETHODIMP nsAbMDBDirProperty::ClearDatabase()
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsAbMDBDirProperty::GetDatabaseFile(nsILocalFile **aResult)
+NS_IMETHODIMP nsAbMDBDirProperty::GetDatabaseFile(nsIFile **aResult)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

@@ -63,8 +63,8 @@ class nsAppleMailImportMail : public nsIImportMail
   private:
 
   void FindAccountMailDirs(nsIFile *aRoot, nsISupportsArray *aMailboxDescs, nsIImportService *aImportService);
-  nsresult FindMboxDirs(nsILocalFile *aFolder, nsISupportsArray *aMailboxDescs, nsIImportService *aImportService);
-  nsresult AddMboxDir(nsILocalFile *aFolder, nsISupportsArray *aMailboxDescs, nsIImportService *aImportService);
+  nsresult FindMboxDirs(nsIFile *aFolder, nsISupportsArray *aMailboxDescs, nsIImportService *aImportService);
+  nsresult AddMboxDir(nsIFile *aFolder, nsISupportsArray *aMailboxDescs, nsIImportService *aImportService);
     
   // aInfoString is the format to a "foo %s" string. It may be NULL if the error string needs no such format.
   void ReportStatus(PRInt32 aErrorNum, nsString &aName, nsAString &aStream);

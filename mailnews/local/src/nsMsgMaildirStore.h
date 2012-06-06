@@ -11,7 +11,7 @@
 #define nsMsgMaildirStore_h__
 
 #include "nsMsgLocalStoreUtils.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsInterfaceHashtable.h"
 #include "nsMsgMessageFlags.h"
 
@@ -27,10 +27,10 @@ private:
   ~nsMsgMaildirStore();
 
 protected:
-  nsresult GetDirectoryForFolder(nsILocalFile *path);
-  nsresult CreateDirectoryForFolder(nsILocalFile *path, bool aIsServer);
+  nsresult GetDirectoryForFolder(nsIFile *path);
+  nsresult CreateDirectoryForFolder(nsIFile *path, bool aIsServer);
 
-  nsresult CreateMaildir(nsILocalFile *path);
+  nsresult CreateMaildir(nsIFile *path);
   nsresult AddSubFolders(nsIMsgFolder *parent, nsIFile *path, bool deep);
   nsresult GetOutputStream(nsIMsgDBHdr *aHdr,
                            nsCOMPtr<nsIOutputStream> &aOutputStream);

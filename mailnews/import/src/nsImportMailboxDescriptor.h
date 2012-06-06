@@ -9,7 +9,7 @@
 #include "nscore.h"
 #include "nsStringGlue.h"
 #include "nsIImportMailboxDescriptor.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsCOMPtr.h"
 
 ////////////////////////////////////////////////////////////////////////
@@ -39,8 +39,8 @@ public:
   NS_IMETHOD  GetImport(bool *pImport) { *pImport = m_import; return NS_OK;}
   NS_IMETHOD  SetImport(bool doImport) { m_import = doImport; return NS_OK;}
 
-  /* readonly attribute nsILocalFile file; */
-  NS_IMETHOD GetFile(nsILocalFile * *aFile) { if (m_pFile) { NS_ADDREF(*aFile = m_pFile); return NS_OK;} else return NS_ERROR_FAILURE; }
+  /* readonly attribute nsIFile file; */
+  NS_IMETHOD GetFile(nsIFile * *aFile) { if (m_pFile) { NS_ADDREF(*aFile = m_pFile); return NS_OK;} else return NS_ERROR_FAILURE; }
 
 
 
@@ -53,7 +53,7 @@ private:
   PRUint32    m_id;      // used by creator of the structure
   PRUint32    m_depth;    // depth in the hierarchy
   nsString    m_displayName;// name of this mailbox
-  nsCOMPtr <nsILocalFile> m_pFile;  // source file (if applicable)
+  nsCOMPtr <nsIFile> m_pFile;  // source file (if applicable)
   PRUint32    m_size;
   bool        m_import;    // import it or not?
 };

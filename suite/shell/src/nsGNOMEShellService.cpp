@@ -11,7 +11,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsIGConfService.h"
 #include "nsIGnomeVFSService.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIProcess.h"
 #include "prenv.h"
 
@@ -95,7 +95,7 @@ nsGNOMEShellService::SetDesktopBackgroundColor(PRUint32 aColor)
 }
 
 NS_IMETHODIMP
-nsGNOMEShellService::OpenApplicationWithURI(nsILocalFile* aApplication, const nsACString& aURI)
+nsGNOMEShellService::OpenApplicationWithURI(nsIFile* aApplication, const nsACString& aURI)
 {
   nsresult rv;
   nsCOMPtr<nsIProcess> process = 
@@ -113,7 +113,7 @@ nsGNOMEShellService::OpenApplicationWithURI(nsILocalFile* aApplication, const ns
 }
 
 NS_IMETHODIMP
-nsGNOMEShellService::GetDefaultFeedReader(nsILocalFile** _retval)
+nsGNOMEShellService::GetDefaultFeedReader(nsIFile** _retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

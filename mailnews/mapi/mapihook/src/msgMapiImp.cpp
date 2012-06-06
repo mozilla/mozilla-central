@@ -32,7 +32,7 @@
 #include "nsIMsgHeaderParser.h"
 #include "nsILineInputStream.h"
 #include "nsISeekableStream.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIFileStreams.h"
 #include "nsNetCID.h"
 #include "nsMsgMessageFlags.h"
@@ -716,7 +716,7 @@ char *MsgMapiListContext::ConvertBodyToMapiFormat (nsIMsgDBHdr *hdr)
     return nsnull;
 
   nsCOMPtr <nsIInputStream> inputStream;
-  nsCOMPtr <nsILocalFile> localFile;
+  nsCOMPtr <nsIFile> localFile;
   folder->GetFilePath(getter_AddRefs(localFile));
 
   nsresult rv;

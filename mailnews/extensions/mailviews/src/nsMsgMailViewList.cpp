@@ -11,7 +11,7 @@
 #include "nsMsgBaseCID.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsComponentManagerUtils.h"
 #include "mozilla/Services.h"
 
@@ -258,15 +258,14 @@ nsresult nsMsgMailViewList::LoadMailViews()
         defaultMessagesFile->CopyToNative(profileDir, EmptyCString());
     }
     // this is kind of a hack but I think it will be an effective hack. The filter service already knows how to 
-    // take a nsILocalFile and parse the contents into filters which are very similar to mail views. Intead of
+    // take a nsIFile and parse the contents into filters which are very similar to mail views. Intead of
     // re-writing all of that dirty parsing code, let's just re-use it then convert the results into a data strcuture
     // we wish to give to our consumers. 
       
     nsCOMPtr<nsIMsgFilterService> filterService = do_GetService(NS_MSGFILTERSERVICE_CONTRACTID, &rv);
     nsCOMPtr<nsIMsgFilterList> mfilterList;
       
-    nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(file);
-    rv = filterService->OpenFilterList(localFile, NULL, NULL, getter_AddRefs(mFilterList));
+    rv = filterService->OpenFilterList(file, NULL, NULL, getter_AddRefs(mFilterList));
     NS_ENSURE_SUCCESS(rv, rv);
 
     // now convert the filter list into our mail view objects, stripping out just the info we need

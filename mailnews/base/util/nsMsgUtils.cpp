@@ -931,7 +931,7 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
   rv = msgFolder->GetParent(getter_AddRefs(parent));
   if (NS_FAILED(rv) || !parent)
   {
-    nsCOMPtr <nsILocalFile> folderPath;
+    nsCOMPtr <nsIFile> folderPath;
     // for local folders, path is to the berkeley mailbox.
     // for imap folders, path needs to have .msf appended to the name
     msgFolder->GetFilePath(getter_AddRefs(folderPath));
@@ -1152,7 +1152,7 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
                                           const char *absPrefName,
                                           const char *dirServiceProp,
                                           bool& gotRelPref,
-                                          nsILocalFile **aFile,
+                                          nsIFile **aFile,
                                           nsIPrefBranch *prefBranch)
 {
     NS_ENSURE_ARG_POINTER(aFile);
@@ -1170,7 +1170,7 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
         prefBranch = mainBranch;
     }
 
-    nsCOMPtr<nsILocalFile> localFile;
+    nsCOMPtr<nsIFile> localFile;
 
     // Get the relative first
     nsCOMPtr<nsIRelativeFilePref> relFilePref;
@@ -1186,13 +1186,13 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
     // If not, get the old absolute
     if (!localFile) {
         prefBranch->GetComplexValue(absPrefName,
-                                    NS_GET_IID(nsILocalFile), getter_AddRefs(localFile));
+                                    NS_GET_IID(nsIFile), getter_AddRefs(localFile));
 
         // If not, and given a dirServiceProp, use directory service.
         if (!localFile && dirServiceProp) {
             nsCOMPtr<nsIProperties> dirService(do_GetService("@mozilla.org/file/directory_service;1"));
             if (!dirService) return NS_ERROR_FAILURE;
-            dirService->Get(dirServiceProp, NS_GET_IID(nsILocalFile), getter_AddRefs(localFile));
+            dirService->Get(dirServiceProp, NS_GET_IID(nsIFile), getter_AddRefs(localFile));
             if (!localFile) return NS_ERROR_FAILURE;
         }
     }
@@ -1209,7 +1209,7 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
 
 NS_MSG_BASE nsresult NS_SetPersistentFile(const char *relPrefName,
                                           const char *absPrefName,
-                                          nsILocalFile *aFile,
+                                          nsIFile *aFile,
                                           nsIPrefBranch *prefBranch)
 {
     NS_ENSURE_ARG(relPrefName);
@@ -1227,7 +1227,7 @@ NS_MSG_BASE nsresult NS_SetPersistentFile(const char *relPrefName,
 
     // Write the absolute for backwards compatibilty's sake.
     // Or, if aPath is on a different drive than the profile dir.
-    nsresult rv = prefBranch->SetComplexValue(absPrefName, NS_GET_IID(nsILocalFile), aFile);
+    nsresult rv = prefBranch->SetComplexValue(absPrefName, NS_GET_IID(nsIFile), aFile);
 
     // Write the relative path.
     nsCOMPtr<nsIRelativeFilePref> relFilePref;
@@ -1316,10 +1316,10 @@ void Seconds2PRTime(PRUint32 seconds, PRTime *prTime)
   LL_MUL((*prTime), intermediateResult, microSecondsPerSecond);
 }
 
-nsresult GetSummaryFileLocation(nsILocalFile* fileLocation, nsILocalFile** summaryLocation)
+nsresult GetSummaryFileLocation(nsIFile* fileLocation, nsIFile** summaryLocation)
 {
   nsresult rv;
-  nsCOMPtr <nsILocalFile> newSummaryLocation = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  nsCOMPtr <nsIFile> newSummaryLocation = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   newSummaryLocation->InitWithFile(fileLocation);
@@ -1360,7 +1360,7 @@ nsresult GetSpecialDirectoryWithFileName(const char* specialDirName,
 }
 
 
-nsresult MsgGetFileStream(nsILocalFile *file, nsIOutputStream **fileStream)
+nsresult MsgGetFileStream(nsIFile *file, nsIOutputStream **fileStream)
 {
   nsMsgFileStream *newFileStream = new nsMsgFileStream;
   NS_ENSURE_TRUE(newFileStream, NS_ERROR_OUT_OF_MEMORY);
@@ -1370,7 +1370,7 @@ nsresult MsgGetFileStream(nsILocalFile *file, nsIOutputStream **fileStream)
   return rv;
 }
 
-nsresult MsgReopenFileStream(nsILocalFile *file, nsIInputStream *fileStream)
+nsresult MsgReopenFileStream(nsIFile *file, nsIInputStream *fileStream)
 {
   nsMsgFileStream *msgFileStream = static_cast<nsMsgFileStream *>(fileStream);
   if (msgFileStream)
@@ -1475,7 +1475,7 @@ bool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains)
   return domainIsTrusted;
 }
 
-nsresult MsgGetLocalFileFromURI(const nsACString &aUTF8Path, nsILocalFile **aFile)
+nsresult MsgGetLocalFileFromURI(const nsACString &aUTF8Path, nsIFile **aFile)
 {
   nsresult rv;
   nsCOMPtr<nsIURI> argURI;
@@ -2220,7 +2220,7 @@ private:
 NS_IMPL_ISUPPORTS1(CharsetDetectionObserver, nsICharsetDetectionObserver)
 
 NS_MSG_BASE nsresult
-MsgDetectCharsetFromFile(nsILocalFile *aFile, nsACString &aCharset)
+MsgDetectCharsetFromFile(nsIFile *aFile, nsACString &aCharset)
 {
   // First try the universal charset detector
   nsCOMPtr<nsICharsetDetector> detector

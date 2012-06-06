@@ -309,7 +309,7 @@ NS_IMETHODIMP ImportOEMailImpl::GetDefaultLocation(nsIFile **ppLoc, bool *found,
 
   // use scanboxes to find the location.
   nsresult rv;
-  nsCOMPtr <nsILocalFile> file = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  nsCOMPtr <nsIFile> file = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   if (NS_FAILED(rv))
     return rv;
 
@@ -413,7 +413,7 @@ NS_IMETHODIMP ImportOEMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSourc
     return NS_OK;
   }
 
-  nsCOMPtr <nsILocalFile> inFile;
+  nsCOMPtr <nsIFile> inFile;
   if (NS_FAILED(pSource->GetFile(getter_AddRefs(inFile)))) {
     ReportError(OEIMPORT_MAILBOX_BADSOURCEFILE, name, &error);
     SetLogs(success, error, pErrorLog, pSuccessLog);

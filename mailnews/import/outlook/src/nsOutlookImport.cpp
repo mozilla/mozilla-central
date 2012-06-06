@@ -326,7 +326,7 @@ NS_IMETHODIMP ImportOutlookMailImpl::GetDefaultLocation(nsIFile **ppLoc, bool *f
 
 
   nsresult  rv;
-  nsCOMPtr <nsILocalFile> resultFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  nsCOMPtr <nsIFile> resultFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   if (NS_FAILED(rv))
     return rv;
 

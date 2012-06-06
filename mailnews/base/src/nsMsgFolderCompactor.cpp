@@ -7,7 +7,7 @@
 #include "nsCOMPtr.h"
 #include "nsIMsgFolder.h"
 #include "nsAutoPtr.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsNetUtil.h"
 #include "nsIMsgHdr.h"
 #include "nsIStreamListener.h"
@@ -80,7 +80,7 @@ void nsFolderCompactState::CleanupTempFilesAfterError()
   CloseOutputStream();
   if (m_db)
     m_db->ForceClosed();
-  nsCOMPtr <nsILocalFile> summaryFile;
+  nsCOMPtr <nsIFile> summaryFile;
   GetSummaryFileLocation(m_file, getter_AddRefs(summaryFile)); 
   m_file->Remove(false);
   summaryFile->Remove(false);
@@ -169,7 +169,7 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, bool aOfflineStore,
    nsCOMPtr<nsIMsgDatabase> db;
    nsCOMPtr<nsIDBFolderInfo> folderInfo;
    nsCOMPtr<nsIMsgDatabase> mailDBFactory;
-   nsCOMPtr<nsILocalFile> path;
+   nsCOMPtr<nsIFile> path;
    nsCString baseMessageURI;
 
    nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(folder, &rv);
@@ -249,7 +249,7 @@ nsresult nsFolderCompactState::ShowStatusMsg(const nsString& aMsg)
 
 nsresult
 nsFolderCompactState::Init(nsIMsgFolder *folder, const char *baseMsgUri, nsIMsgDatabase *db,
-                           nsILocalFile *path, nsIMsgWindow *aMsgWindow)
+                           nsIFile *path, nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
 
@@ -373,14 +373,14 @@ nsFolderCompactState::FinishCompact()
     return NS_ERROR_NOT_INITIALIZED;
 
   // All okay time to finish up the compact process
-  nsCOMPtr<nsILocalFile> path;
+  nsCOMPtr<nsIFile> path;
   nsCOMPtr<nsIDBFolderInfo> folderInfo;
 
   // get leaf name and database name of the folder
   nsresult rv = m_folder->GetFilePath(getter_AddRefs(path));
-  nsCOMPtr <nsILocalFile> folderPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  nsCOMPtr <nsIFile> folderPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr <nsILocalFile> summaryFile;
+  nsCOMPtr <nsIFile> summaryFile;
   folderPath->InitWithFile(path);
   // need to make sure we put the .msf file in the same directory
   // as the original mailbox, so resolve symlinks.
@@ -407,7 +407,7 @@ nsFolderCompactState::FinishCompact()
     m_db = nsnull;
   }
 
-  nsCOMPtr <nsILocalFile> newSummaryFile;
+  nsCOMPtr <nsIFile> newSummaryFile;
   GetSummaryFileLocation(m_file, getter_AddRefs(newSummaryFile));
 
   nsCOMPtr <nsIDBFolderInfo> transferInfo;
@@ -994,7 +994,7 @@ nsresult
 nsOfflineStoreCompactState::FinishCompact()
 {
   // All okay time to finish up the compact process
-  nsCOMPtr<nsILocalFile> path;
+  nsCOMPtr<nsIFile> path;
   PRUint32 flags;
 
     // get leaf name and database name of the folder

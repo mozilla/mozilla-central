@@ -5,7 +5,7 @@
 #include "nsRssService.h"
 #include "nsIRssIncomingServer.h"
 #include "nsCOMPtr.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsMailDirServiceDefs.h"
 #include "nsIProperties.h"
 #include "nsServiceManagerUtils.h"
@@ -22,15 +22,15 @@ NS_IMPL_ISUPPORTS2(nsRssService,
                    nsIRssService,
                    nsIMsgProtocolInfo)
                    
-NS_IMETHODIMP nsRssService::GetDefaultLocalPath(nsILocalFile * *aDefaultLocalPath)
+NS_IMETHODIMP nsRssService::GetDefaultLocalPath(nsIFile * *aDefaultLocalPath)
 {
     NS_ENSURE_ARG_POINTER(aDefaultLocalPath);
     *aDefaultLocalPath = nsnull;
     
-    nsCOMPtr<nsILocalFile> localFile;
+    nsCOMPtr<nsIFile> localFile;
     nsCOMPtr<nsIProperties> dirService(do_GetService("@mozilla.org/file/directory_service;1"));
     if (!dirService) return NS_ERROR_FAILURE;
-    dirService->Get(NS_APP_MAIL_50_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(localFile));
+    dirService->Get(NS_APP_MAIL_50_DIR, NS_GET_IID(nsIFile), getter_AddRefs(localFile));
     if (!localFile) return NS_ERROR_FAILURE;
 
     bool exists;
@@ -44,7 +44,7 @@ NS_IMETHODIMP nsRssService::GetDefaultLocalPath(nsILocalFile * *aDefaultLocalPat
 
 }
 
-NS_IMETHODIMP nsRssService::SetDefaultLocalPath(nsILocalFile * aDefaultLocalPath)
+NS_IMETHODIMP nsRssService::SetDefaultLocalPath(nsIFile * aDefaultLocalPath)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }

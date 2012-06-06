@@ -11,7 +11,7 @@
 #include "nsMsgMessageFlags.h"
 #include "nsIDBFolderInfo.h"
 #include "nsIInputStream.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsMsgLocalFolderHdrs.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgDBCID.h"
@@ -109,7 +109,7 @@ NS_IMETHODIMP nsMsgMailboxParser::OnStartRequest(nsIRequest *request, nsISupport
 
         folder->GetName(m_folderName);
 
-        nsCOMPtr<nsILocalFile> path;
+        nsCOMPtr<nsIFile> path;
         folder->GetFilePath(getter_AddRefs(path));
 
         if (path)

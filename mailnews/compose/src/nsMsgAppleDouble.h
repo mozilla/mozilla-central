@@ -164,7 +164,7 @@ typedef struct _appledouble_decode_object
 	int		pos_inbuff;			/* the offset in the current buffer.			*/ 
 
 
-	nsCOMPtr <nsILocalFile> tmpFile;		/* the temp file to hold the decode data fork 	*/
+	nsCOMPtr <nsIFile> tmpFile;		/* the temp file to hold the decode data fork 	*/
 								                      /* when doing the binhex exporting.				*/
   nsCOMPtr <nsIOutputStream> tmpFileStream; /* The output File Stream */
 	PRInt32	            data_size;			/* the size of the data in the tmp file.		*/

@@ -21,8 +21,8 @@ public:
 
     virtual int       Write();
 
-    virtual nsresult    SetFile(nsILocalFile *filename);
-    const nsILocalFile  *GetFile() {return m_file;}
+    virtual nsresult    SetFile(nsIFile *filename);
+    const nsIFile  *GetFile() {return m_file;}
 
     virtual int       SetBuffer(const char* buffer);
     const char        *GetBuffer() {return m_buffer;}
@@ -70,7 +70,7 @@ protected:
 
 	nsCOMPtr<nsIMsgSend> m_state;
 	nsMsgSendPart       *m_parent;
-  nsCOMPtr <nsILocalFile>   m_file;
+  nsCOMPtr <nsIFile>   m_file;
 	char                *m_buffer;
   char                *m_type;
   char                *m_other;

@@ -7,7 +7,7 @@
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "nsIImportService.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIImportMailboxDescriptor.h"
 #include "nsOERegUtil.h"
 #include "nsOE5File.h"
@@ -70,7 +70,6 @@ bool nsOEScanBoxes::Find50Mail(nsIFile *pWhere)
   nsresult   rv;
   bool      success = false;
   HKEY    sKey;
-        nsCOMPtr <nsILocalFile> localWhere = do_QueryInterface(pWhere);
 
   if (::RegOpenKeyEx(HKEY_CURRENT_USER, "Identities", 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
     BYTE *  pBytes = nsOERegUtil::GetValueBytes(sKey, "Default User ID");
@@ -83,7 +82,7 @@ bool nsOEScanBoxes::Find50Mail(nsIFile *pWhere)
       if (::RegOpenKeyEx(HKEY_CURRENT_USER, key.get(), 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
         pBytes = nsOERegUtil::GetValueBytes(sKey, "Store Root");
         if (pBytes) {
-          localWhere->InitWithNativePath(nsDependentCString((const char *)pBytes));
+          pWhere->InitWithNativePath(nsDependentCString((const char *)pBytes));
 
           IMPORT_LOG1("Setting native path: %s\n", pBytes);
 
@@ -106,7 +105,6 @@ bool nsOEScanBoxes::FindMail(nsIFile *pWhere)
   nsresult   rv;
   bool      success = false;
   HKEY    sKey;
-        nsCOMPtr <nsILocalFile> localWhere = do_QueryInterface(pWhere);
 
   if (Find50Mail(pWhere))
     return true;
@@ -114,7 +112,7 @@ bool nsOEScanBoxes::FindMail(nsIFile *pWhere)
   if (::RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Outlook Express", 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
     LPBYTE  pBytes = nsOERegUtil::GetValueBytes(sKey, "Store Root");
     if (pBytes) {
-      localWhere->InitWithNativePath(nsDependentCString((const char *) pBytes));
+      pWhere->InitWithNativePath(nsDependentCString((const char *) pBytes));
       pWhere->AppendNative(NS_LITERAL_CSTRING("Mail"));
       bool    isDir = false;
       rv = pWhere->IsDirectory(&isDir);
@@ -552,7 +550,7 @@ bool nsOEScanBoxes::Scan50MailboxDir(nsIFile * srcDir)
   {
     nsCOMPtr<nsISupports> aSupport;
     rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
-    nsCOMPtr<nsILocalFile> entry(do_QueryInterface(aSupport, &rv));
+    nsCOMPtr<nsIFile> entry(do_QueryInterface(aSupport, &rv));
     directoryEnumerator->HasMoreElements(&hasMore);
 
     isFile = false;
@@ -619,7 +617,7 @@ void nsOEScanBoxes::ScanMailboxDir(nsIFile * srcDir)
   {
     nsCOMPtr<nsISupports> aSupport;
     rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
-    nsCOMPtr<nsILocalFile> entry(do_QueryInterface(aSupport, &rv));
+    nsCOMPtr<nsIFile> entry(do_QueryInterface(aSupport, &rv));
     directoryEnumerator->HasMoreElements(&hasMore);
 
     isFile = false;
@@ -720,7 +718,7 @@ void nsOEScanBoxes::BuildMailboxList(MailboxEntry *pBox, nsIFile * root, PRInt32
   }
 
   nsresult            rv;
-  nsCOMPtr <nsILocalFile> file;
+  nsCOMPtr <nsIFile> file;
   MailboxEntry *  pChild;
   nsIImportMailboxDescriptor *  pID;
   nsISupports *          pInterface;
@@ -738,8 +736,7 @@ void nsOEScanBoxes::BuildMailboxList(MailboxEntry *pBox, nsIFile * root, PRInt32
       pID->SetDisplayName((PRUnichar *)pBox->mailName.get());
       if (!pBox->fileName.IsEmpty()) {
         pID->GetFile(getter_AddRefs(file));
-                                nsCOMPtr <nsILocalFile> localRoot = do_QueryInterface(root);
-        file->InitWithFile(localRoot);
+        file->InitWithFile(root);
         file->AppendNative(pBox->fileName);
         size = 0;
         file->GetFileSize(&size);

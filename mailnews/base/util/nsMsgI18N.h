@@ -9,7 +9,7 @@
 #include "nscore.h"
 #include "msgCore.h"
 #include "nsStringGlue.h"
-class nsILocalFile;
+class nsIFile;
 
 /**
  * Encode an input string into RFC 2047 form.
@@ -98,10 +98,10 @@ NS_MSG_BASE nsresult nsMsgI18NConvertToUnicode(const char* aCharset,
 /**
  * Parse for META charset.
  *
- * @param file    [IN] A nsILocalFile.
+ * @param file    [IN] A nsIFile.
  * @return            A charset name or empty string if not found.
  */
-NS_MSG_BASE const char *nsMsgI18NParseMetaCharset(nsILocalFile* file);
+NS_MSG_BASE const char *nsMsgI18NParseMetaCharset(nsIFile* file);
 
 /**
  * Convert from charset to unicode. Also does substitution for unconverted characters (e.g. entity, '?').

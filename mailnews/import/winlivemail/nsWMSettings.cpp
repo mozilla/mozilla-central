@@ -31,7 +31,7 @@
 #include "nsIImapIncomingServer.h"
 #include "nsINntpIncomingServer.h"
 #include "stdlib.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsISimpleEnumerator.h"
 #include "nsIMutableArray.h"
 #include "nsIDOMDocument.h"
@@ -48,12 +48,12 @@
 class WMSettings {
 public:
   static nsresult FindWMKey(nsIWindowsRegKey* akey);
-  static bool getOEacctFiles(nsILocalFile* file, nsCOMArray<nsILocalFile>& fileArray);
+  static bool getOEacctFiles(nsIFile* file, nsCOMArray<nsIFile>& fileArray);
   static nsresult GetValueForTag(nsIDOMDocument *xmlDoc,
                                  const nsAString& tagName,
                                  nsAString &value);
   static nsresult MakeXMLdoc(nsIDOMDocument** xmlDoc,
-                             nsILocalFile* file);
+                             nsIFile* file);
   static bool DoImport(nsIMsgAccount **ppAccount);
   static bool DoIMAPServer(nsIMsgAccountManager *pMgr,
                              nsIDOMDocument *xmlDoc,
@@ -162,8 +162,8 @@ nsresult WMSettings::FindWMKey(nsIWindowsRegKey* akey)
   return rv;
 }
 
-bool WMSettings::getOEacctFiles(nsILocalFile* file,
-                                  nsCOMArray<nsILocalFile>& fileArray)
+bool WMSettings::getOEacctFiles(nsIFile* file,
+                                  nsCOMArray<nsIFile>& fileArray)
 {
   nsresult rv;
   nsCOMPtr<nsISimpleEnumerator> entries;
@@ -177,7 +177,7 @@ bool WMSettings::getOEacctFiles(nsILocalFile* file,
     entries->GetNext(getter_AddRefs(sup));
     if (!sup)
       return false;
-    nsCOMPtr<nsILocalFile> fileX = do_QueryInterface(sup);
+    nsCOMPtr<nsIFile> fileX = do_QueryInterface(sup);
     if (!fileX)
       return false;
     nsString name;
@@ -212,7 +212,7 @@ nsresult WMSettings::GetValueForTag(nsIDOMDocument *xmlDoc,
 }
 
 nsresult WMSettings::MakeXMLdoc(nsIDOMDocument** xmlDoc,
-                                nsILocalFile* file)
+                                nsIFile* file)
 {
   nsresult rv;
   nsCOMPtr<nsIFileInputStream> stream =
@@ -271,9 +271,9 @@ bool WMSettings::DoImport(nsIMsgAccount **ppAccount)
     return false;
   }
 
-  nsCOMPtr<nsILocalFile> file(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
+  nsCOMPtr<nsIFile> file(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
   if (!file) {
-    IMPORT_LOG0("*** Failed to create an nsILocalFile!\n");
+    IMPORT_LOG0("*** Failed to create an nsIFile!\n");
     return false;
   }
   nsCOMPtr<nsIMsgAccountManager> accMgr =
@@ -297,7 +297,7 @@ bool WMSettings::DoImport(nsIMsgAccount **ppAccount)
     IMPORT_LOG0("*** Failed get store root!\n");
     return false;
   }
-  nsCOMArray<nsILocalFile> fileArray;
+  nsCOMArray<nsIFile> fileArray;
   if (!getOEacctFiles(file, fileArray)) {
     IMPORT_LOG0("*** Failed to get OEacctFiles!\n");
     return false;

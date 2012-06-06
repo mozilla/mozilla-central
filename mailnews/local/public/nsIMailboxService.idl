@@ -9,7 +9,7 @@
 interface nsIURI;
 interface nsIStreamListener;
 interface nsIMsgWindow;
-interface nsILocalFile;
+interface nsIFile;
 
 [scriptable, uuid(809FCD02-B9EA-4DC0-84F0-3FBC55AE11F1)]
 interface nsIMailboxService : nsISupports {
@@ -27,7 +27,7 @@ interface nsIMailboxService : nsISupports {
    * pass in a mailbox  parser (the consumer). The url listener can be null
    * if you have no interest in tracking the url.
    */
-  nsIURI ParseMailbox(in nsIMsgWindow aMsgWindow, in nsILocalFile aMailboxPath,
+  nsIURI ParseMailbox(in nsIMsgWindow aMsgWindow, in nsIFile aMailboxPath,
                                  in nsIStreamListener aMailboxParser,
                                  in nsIUrlListener aUrlListener);
 

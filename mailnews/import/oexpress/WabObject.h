@@ -9,7 +9,7 @@
 #include "nscore.h"
 #include "prtypes.h"
 #include "nsStringGlue.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 
 #include <windows.h>
 #include <wab.h>
@@ -25,7 +25,7 @@ public:
 class CWAB
 {
 public:
-    CWAB(nsILocalFile *fileName);
+    CWAB(nsIFile *fileName);
     ~CWAB();
 
   bool      Loaded(void) { return m_bInitialized;}

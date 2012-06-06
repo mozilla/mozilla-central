@@ -82,7 +82,7 @@ private:
   nsresult              SnarfMsgAttachment(nsMsgCompFields *compFields);
   bool                  UseUUEncode_p(void);
   void                  AnalyzeDataChunk (const char *chunk, PRInt32 chunkSize);
-  nsresult              LoadDataFromFile(nsILocalFile *file, nsString &sigData, bool charsetConversion); //A similar function already exist in nsMsgCompose!
+  nsresult              LoadDataFromFile(nsIFile *file, nsString &sigData, bool charsetConversion); //A similar function already exist in nsMsgCompose!
 #ifdef XP_MACOSX
   nsresult              ConvertToAppleEncoding(const nsCString &aFileSpecURI, 
                                                const nsCString &aFilePath, 
@@ -95,7 +95,7 @@ private:
   //
 public:
   nsCOMPtr<nsIURI> mURL;
-  nsCOMPtr<nsILocalFile>        mTmpFile;         // The temp file to which we save it 
+  nsCOMPtr<nsIFile>        mTmpFile;         // The temp file to which we save it 
   nsCOMPtr<nsIOutputStream>  mOutFile;          
   nsCOMPtr<nsIRequest> mRequest; // The live request used while fetching an attachment
   nsMsgCompFields       *mCompFields;       // Message composition fields for the sender
@@ -104,7 +104,7 @@ public:
 #ifdef XP_MACOSX
   // if we need to encode this file into for example an appledouble, or zip file,
   // this file is our working file. currently only needed on mac.
-  nsCOMPtr<nsILocalFile> mEncodedWorkingFile;
+  nsCOMPtr<nsIFile> mEncodedWorkingFile;
 #endif
 
   nsCString m_xMacType;      // Mac file type

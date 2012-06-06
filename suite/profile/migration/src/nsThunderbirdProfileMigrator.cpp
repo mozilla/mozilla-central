@@ -199,33 +199,33 @@ nsThunderbirdProfileMigrator::FillProfileDataFromRegistry()
   // Find the Thunderbird Registry
   nsCOMPtr<nsIProperties> fileLocator(
     do_GetService("@mozilla.org/file/directory_service;1"));
-  nsCOMPtr<nsILocalFile> thunderbirdData;
+  nsCOMPtr<nsIFile> thunderbirdData;
 #ifdef XP_WIN
-  fileLocator->Get(NS_WIN_APPDATA_DIR, NS_GET_IID(nsILocalFile),
+  fileLocator->Get(NS_WIN_APPDATA_DIR, NS_GET_IID(nsIFile),
                    getter_AddRefs(thunderbirdData));
 
   thunderbirdData->Append(NS_LITERAL_STRING("Thunderbird"));
 
 #elif defined(XP_MACOSX)
-  fileLocator->Get(NS_MAC_USER_LIB_DIR, NS_GET_IID(nsILocalFile),
+  fileLocator->Get(NS_MAC_USER_LIB_DIR, NS_GET_IID(nsIFile),
                    getter_AddRefs(thunderbirdData));
   
   thunderbirdData->Append(NS_LITERAL_STRING("Thunderbird"));
 
 #elif defined(XP_UNIX)
-  fileLocator->Get(NS_UNIX_HOME_DIR, NS_GET_IID(nsILocalFile),
+  fileLocator->Get(NS_UNIX_HOME_DIR, NS_GET_IID(nsIFile),
                    getter_AddRefs(thunderbirdData));
   
   thunderbirdData->Append(NS_LITERAL_STRING(".thunderbird"));
 
 #elif defined(XP_BEOS)
-   fileLocator->Get(NS_BEOS_SETTINGS_DIR, NS_GET_IID(nsILocalFile),
+   fileLocator->Get(NS_BEOS_SETTINGS_DIR, NS_GET_IID(nsIFile),
                     getter_AddRefs(thunderbirdData));
 
    thunderbirdData->Append(NS_LITERAL_STRING("Thunderbird"));
 
 #elif defined(XP_OS2)
-  fileLocator->Get(NS_OS2_HOME_DIR, NS_GET_IID(nsILocalFile),
+  fileLocator->Get(NS_OS2_HOME_DIR, NS_GET_IID(nsIFile),
                    getter_AddRefs(thunderbirdData));
   
   thunderbirdData->Append(NS_LITERAL_STRING("Thunderbird"));

@@ -12,7 +12,7 @@
 #include "nsMsgMessageFlags.h"
 #include "nsISeekableStream.h"
 #include "nsIInputStream.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "plbase64.h"
 #include "prmem.h"
 

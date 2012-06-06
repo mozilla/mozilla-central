@@ -5,7 +5,7 @@
 
 #include "nsISupports.idl"
 
-interface nsILocalFile;
+interface nsIFile;
 
 %{C++
 #define NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX \
@@ -20,7 +20,7 @@ interface nsIMsgProtocolInfo : nsISupports
      * the default path to store local data for this type of
      * server. Each server is usually in a subdirectory below this
      */
-    attribute nsILocalFile defaultLocalPath;
+    attribute nsIFile defaultLocalPath;
 
     /**
      * the IID of the protocol-specific interface for this server

@@ -24,7 +24,7 @@
 #include "nsIMsgFolder.h"
 #include "nsIPrompt.h"
 
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsMailDirServiceDefs.h"
 #include "nsMsgUtils.h"
 
@@ -142,7 +142,7 @@ bool ObtainSpoolLock(const char *aSpoolName,
    * This involves creating a .mozlock file and attempting to hard-link it to
    * the customary .lock file.
    */
-  nsCOMPtr<nsILocalFile> spoolFile;
+  nsCOMPtr<nsIFile> spoolFile;
   nsresult rv = NS_NewNativeLocalFile(nsDependentCString(aSpoolName),
                                       true,
                                       getter_AddRefs(spoolFile));
@@ -196,8 +196,8 @@ bool ObtainSpoolLock(const char *aSpoolName,
   nsCAutoString lockstr(aSpoolName);
   lockstr.Append(".lock");
 
-  // Create nsILocalFile for the spool.mozlock file
-  nsCOMPtr<nsILocalFile> tmplocfile;
+  // Create nsIFile for the spool.mozlock file
+  nsCOMPtr<nsIFile> tmplocfile;
   rv = NS_NewNativeLocalFile(mozlockstr, true, getter_AddRefs(tmplocfile));
   if (NS_FAILED(rv))
     return false;
@@ -253,7 +253,7 @@ bool YieldSpoolLock(const char *aSpoolName, bool aUsingLockFile)
   LOG(("YieldSpoolLock(%s)", aSpoolName));
 
   if (!aUsingLockFile) {
-    nsCOMPtr<nsILocalFile> spoolFile;
+    nsCOMPtr<nsIFile> spoolFile;
     nsresult rv = NS_NewNativeLocalFile(nsDependentCString(aSpoolName),
                                         true,
                                         getter_AddRefs(spoolFile));
@@ -275,8 +275,8 @@ bool YieldSpoolLock(const char *aSpoolName, bool aUsingLockFile)
 
   nsresult rv;
 
-  // Create nsILocalFile for the spool.lock file
-  nsCOMPtr<nsILocalFile> locklocfile;
+  // Create nsIFile for the spool.lock file
+  nsCOMPtr<nsIFile> locklocfile;
   rv = NS_NewNativeLocalFile(lockstr, true, getter_AddRefs(locklocfile));
   if (NS_FAILED(rv))
     return false;
@@ -306,7 +306,7 @@ LocateSpoolFile(nsACString & spoolPath)
   bool isFile;
   nsresult rv;
 
-  nsCOMPtr<nsILocalFile> spoolFile;
+  nsCOMPtr<nsIFile> spoolFile;
   rv = NS_NewNativeLocalFile(EmptyCString(), true, getter_AddRefs(spoolFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -370,7 +370,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
   }
 
   // Create an input stream for the spool file
-  nsCOMPtr<nsILocalFile> spoolFile;
+  nsCOMPtr<nsIFile> spoolFile;
   rv = NS_NewNativeLocalFile(spoolPath, true, getter_AddRefs(spoolFile));
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsIInputStream> spoolInputStream;
@@ -508,21 +508,21 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
 
 
 NS_IMETHODIMP
-nsMovemailService::SetDefaultLocalPath(nsILocalFile *aPath)
+nsMovemailService::SetDefaultLocalPath(nsIFile *aPath)
 {
   NS_ENSURE_ARG(aPath);
   return NS_SetPersistentFile(PREF_MAIL_ROOT_MOVEMAIL_REL, PREF_MAIL_ROOT_MOVEMAIL, aPath);
 }
 
 NS_IMETHODIMP
-nsMovemailService::GetDefaultLocalPath(nsILocalFile ** aResult)
+nsMovemailService::GetDefaultLocalPath(nsIFile ** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = nsnull;
 
   nsresult rv;
   bool havePref;
-  nsCOMPtr<nsILocalFile> localFile;
+  nsCOMPtr<nsIFile> localFile;
   rv = NS_GetPersistentFile(PREF_MAIL_ROOT_MOVEMAIL_REL,
                             PREF_MAIL_ROOT_MOVEMAIL,
                             NS_APP_MAIL_50_DIR,

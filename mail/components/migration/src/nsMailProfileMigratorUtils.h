@@ -41,7 +41,7 @@ struct MigrationData {
   bool replaceOnly;
 };
 
-class nsILocalFile;
+class nsIFile;
 void GetMigrateDataFromArray(MigrationData* aDataArray, 
                              PRInt32 aDataArrayLength,
                              bool aReplace,

@@ -26,7 +26,7 @@
 #include "prprf.h"
 #include "nsIMsgFolderCache.h"
 #include "nsMsgUtils.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIURL.h"
 #include "nsNetCID.h"
 #include "nsIPrefService.h"
@@ -2377,7 +2377,7 @@ nsMsgAccountManager::CreateLocalMailAccount()
   // under <profile dir>/Mail/Local Folders or
   // <"mail.directory" pref>/Local Folders
   nsCOMPtr <nsIFile> mailDir;
-  nsCOMPtr <nsILocalFile> localFile;
+  nsCOMPtr <nsIFile> localFile;
   bool dirExists;
 
   // we want <profile>/Mail
@@ -2947,7 +2947,7 @@ void VirtualFolderChangeListener::ProcessUpdateEvent(nsIMsgFolder *virtFolder,
   virtDB->Commit(nsMsgDBCommitType::kLargeCommit);
 }
 
-nsresult nsMsgAccountManager::GetVirtualFoldersFile(nsCOMPtr<nsILocalFile>& file)
+nsresult nsMsgAccountManager::GetVirtualFoldersFile(nsCOMPtr<nsIFile>& file)
 {
   nsCOMPtr<nsIFile> profileDir;
   nsresult rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(profileDir));
@@ -2961,7 +2961,7 @@ nsresult nsMsgAccountManager::GetVirtualFoldersFile(nsCOMPtr<nsILocalFile>& file
 
 NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
 {
-  nsCOMPtr <nsILocalFile> file;
+  nsCOMPtr <nsIFile> file;
   GetVirtualFoldersFile(file);
   if (!file)
     return NS_ERROR_FAILURE;
@@ -3111,7 +3111,7 @@ NS_IMETHODIMP nsMsgAccountManager::SaveVirtualFolders()
   if (!m_virtualFoldersLoaded)
     return NS_OK;
 
-  nsCOMPtr<nsILocalFile> file;
+  nsCOMPtr<nsIFile> file;
   GetVirtualFoldersFile(file);
 
   // Open a buffered, safe output stream
@@ -3683,7 +3683,7 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemEvent(nsIMsgFolder *aFolder, nsIAtom *a
 }
 
 NS_IMETHODIMP
-nsMsgAccountManager::FolderUriForPath(nsILocalFile *aLocalPath,
+nsMsgAccountManager::FolderUriForPath(nsIFile *aLocalPath,
                                                nsACString &aMailboxUri)
 {
   NS_ENSURE_ARG_POINTER(aLocalPath);
@@ -3707,7 +3707,7 @@ nsMsgAccountManager::FolderUriForPath(nsILocalFile *aLocalPath,
     nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(folderArray, i, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsILocalFile> folderPath;
+    nsCOMPtr<nsIFile> folderPath;
     rv = folder->GetFilePath(getter_AddRefs(folderPath));
     NS_ENSURE_SUCCESS(rv, rv);
 

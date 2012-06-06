@@ -500,20 +500,20 @@ NS_IMETHODIMP nsPop3Service::NewChannel(nsIURI *aURI, nsIChannel **_retval)
 
 
 NS_IMETHODIMP
-nsPop3Service::SetDefaultLocalPath(nsILocalFile *aPath)
+nsPop3Service::SetDefaultLocalPath(nsIFile *aPath)
 {
     NS_ENSURE_ARG(aPath);
     return NS_SetPersistentFile(PREF_MAIL_ROOT_POP3_REL, PREF_MAIL_ROOT_POP3, aPath);
 }
 
 NS_IMETHODIMP
-nsPop3Service::GetDefaultLocalPath(nsILocalFile **aResult)
+nsPop3Service::GetDefaultLocalPath(nsIFile **aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
     *aResult = nsnull;
 
     bool havePref;
-    nsCOMPtr<nsILocalFile> localFile;
+    nsCOMPtr<nsIFile> localFile;
     nsresult rv = NS_GetPersistentFile(PREF_MAIL_ROOT_POP3_REL,
                                        PREF_MAIL_ROOT_POP3,
                                        NS_APP_MAIL_50_DIR,

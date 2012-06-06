@@ -212,7 +212,7 @@ interface nsIMsgAccountManager : nsISupports {
    * @param aLocalPath path of the folder whose uri we want.
    * @return the URI of the folder that corresponds to aLocalPath
    */
-  ACString folderUriForPath(in nsILocalFile aLocalPath);
+  ACString folderUriForPath(in nsIFile aLocalPath);
 };
 
 %{C++

@@ -160,7 +160,7 @@ nsresult nsAbLDAPProcessChangeLogData::OnLDAPSearchResult(nsILDAPMessage *aMessa
                 nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
                 if (NS_FAILED(rv)) 
                     break;
-                nsCOMPtr<nsILocalFile> dbPath;
+                nsCOMPtr<nsIFile> dbPath;
                 rv = abSession->GetUserProfileDirectory(getter_AddRefs(dbPath));
                 if (NS_FAILED(rv)) 
                     break;

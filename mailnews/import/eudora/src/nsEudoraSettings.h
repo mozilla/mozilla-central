@@ -8,7 +8,7 @@
 #define nsEudoraSettings_h___
 
 #include "nsIImportSettings.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsCOMPtr.h"
 
 class nsEudoraSettings : public nsIImportSettings {

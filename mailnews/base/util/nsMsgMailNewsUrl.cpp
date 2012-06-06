@@ -930,9 +930,8 @@ nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFile *aFile, bool addDummyE
   // (Windows doesn't care, btw, just unixoids do...)
   aFile->Remove(false);
 
-  nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(aFile);
   nsresult rv = MsgNewBufferedFileOutputStream(getter_AddRefs(m_outputStream),
-                                               localFile, -1, 00600);
+                                               aFile, -1, 00600);
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (m_outputStream && addDummyEnvelope)

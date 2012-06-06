@@ -187,7 +187,7 @@ private:
   static int      IsMonthStr(const char *pStr);
 
 protected:
-  nsCOMPtr <nsILocalFile>    m_mailImportLocation;
+  nsCOMPtr <nsIFile>    m_mailImportLocation;
 
 private:
   PRInt64    m_mailSize;

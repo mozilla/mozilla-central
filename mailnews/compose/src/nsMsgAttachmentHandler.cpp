@@ -42,7 +42,7 @@
 
 #define AD_WORKING_BUFF_SIZE                  8192
 
-extern void         MacGetFileType(nsILocalFile *fs, bool *useDefault, char **type, char **encoding);
+extern void         MacGetFileType(nsIFile *fs, bool *useDefault, char **type, char **encoding);
 
 #include "nsILocalFileMac.h"
 
@@ -431,7 +431,7 @@ nsMsgAttachmentHandler::PickCharset()
   if (!m_charset.IsEmpty() || !m_type.LowerCaseEqualsLiteral(TEXT_PLAIN))
     return NS_OK;
 
-  nsCOMPtr<nsILocalFile> tmpFile =
+  nsCOMPtr<nsIFile> tmpFile =
     do_QueryInterface(mTmpFile);
   if (!tmpFile)
     return NS_OK;
@@ -644,7 +644,7 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
     nsCAutoString unescapedFilePath;
     MsgUnescapeString(filePath, 0, unescapedFilePath);
 
-    nsCOMPtr<nsILocalFile> sourceFile;
+    nsCOMPtr<nsIFile> sourceFile;
     NS_NewNativeLocalFile(unescapedFilePath, true, getter_AddRefs(sourceFile));
     if (!sourceFile)
       return NS_ERROR_FAILURE;
@@ -921,7 +921,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
 #endif // XP_MACOSX
 
 nsresult
-nsMsgAttachmentHandler::LoadDataFromFile(nsILocalFile *file, nsString &sigData, bool charsetConversion)
+nsMsgAttachmentHandler::LoadDataFromFile(nsIFile *file, nsString &sigData, bool charsetConversion)
 {
   PRInt32       readSize;
   char          *readBuf;
@@ -998,7 +998,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     mOutFile->Close();
     mOutFile = nsnull;
   }
-  // this silliness is because Windows nsILocalFile caches its file size
+  // this silliness is because Windows nsIFile caches its file size
   // so if an output stream writes to it, it will still return the original
   // cached size.
   if (mTmpFile)
@@ -1136,7 +1136,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
             (void) outputStream->Write(tData.get(), tData.Length(), &bytesWritten);
           }
           outputStream->Close();
-          // this silliness is because Windows nsILocalFile caches its file size
+          // this silliness is because Windows nsIFile caches its file size
           // so if an output stream writes to it, it will still return the original
           // cached size.
           if (mTmpFile)

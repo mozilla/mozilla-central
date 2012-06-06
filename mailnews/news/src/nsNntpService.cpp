@@ -1269,20 +1269,20 @@ NS_IMETHODIMP nsNntpService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
 }
 
 NS_IMETHODIMP
-nsNntpService::SetDefaultLocalPath(nsILocalFile *aPath)
+nsNntpService::SetDefaultLocalPath(nsIFile *aPath)
 {
     NS_ENSURE_ARG(aPath);
     return NS_SetPersistentFile(PREF_MAIL_ROOT_NNTP_REL, PREF_MAIL_ROOT_NNTP, aPath);
 }
 
 NS_IMETHODIMP
-nsNntpService::GetDefaultLocalPath(nsILocalFile ** aResult)
+nsNntpService::GetDefaultLocalPath(nsIFile ** aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
     *aResult = nsnull;
 
     bool havePref;
-    nsCOMPtr<nsILocalFile> localFile;
+    nsCOMPtr<nsIFile> localFile;
     nsresult rv = NS_GetPersistentFile(PREF_MAIL_ROOT_NNTP_REL,
                               PREF_MAIL_ROOT_NNTP,
                               NS_APP_NEWS_50_DIR,

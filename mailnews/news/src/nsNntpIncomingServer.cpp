@@ -8,7 +8,7 @@
 #include "nsIPrefService.h"
 #include "nsNewsFolder.h"
 #include "nsIMsgFolder.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsCOMPtr.h"
 #include "nsINntpService.h"
 #include "nsINNTPProtocol.h"
@@ -148,7 +148,7 @@ nsNntpIncomingServer::CreateRootFolderFromUri(const nsCString &serverUri,
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetNewsrcFilePath(nsILocalFile **aNewsrcFilePath)
+nsNntpIncomingServer::GetNewsrcFilePath(nsIFile **aNewsrcFilePath)
 {
   nsresult rv;
   if (mNewsrcFilePath)
@@ -187,7 +187,7 @@ nsNntpIncomingServer::GetNewsrcFilePath(nsILocalFile **aNewsrcFilePath)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::SetNewsrcFilePath(nsILocalFile *aFile)
+nsNntpIncomingServer::SetNewsrcFilePath(nsIFile *aFile)
 {
     NS_ENSURE_ARG_POINTER(aFile);
 
@@ -209,14 +209,14 @@ nsNntpIncomingServer::GetLocalStoreType(nsACString& type)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::SetNewsrcRootPath(nsILocalFile *aNewsrcRootPath)
+nsNntpIncomingServer::SetNewsrcRootPath(nsIFile *aNewsrcRootPath)
 {
     NS_ENSURE_ARG(aNewsrcRootPath);
     return NS_SetPersistentFile(PREF_MAIL_NEWSRC_ROOT_REL, PREF_MAIL_NEWSRC_ROOT, aNewsrcRootPath);
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetNewsrcRootPath(nsILocalFile **aNewsrcRootPath)
+nsNntpIncomingServer::GetNewsrcRootPath(nsIFile **aNewsrcRootPath)
 {
     NS_ENSURE_ARG_POINTER(aNewsrcRootPath);
     *aNewsrcRootPath = nsnull;
@@ -310,7 +310,7 @@ nsNntpIncomingServer::WriteNewsrcFile()
 #ifdef DEBUG_NEWS
         printf("write newsrc file for %s\n", hostname.get());
 #endif
-        nsCOMPtr <nsILocalFile> newsrcFile;
+        nsCOMPtr <nsIFile> newsrcFile;
         rv = GetNewsrcFilePath(getter_AddRefs(newsrcFile));
         if (NS_FAILED(rv)) return rv;
 
@@ -2075,7 +2075,7 @@ nsNntpIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName,
 
   // 2. Remove file hostinfo.dat so that the new subscribe
   //    list will be reloaded from the new server.
-  nsCOMPtr <nsILocalFile> hostInfoFile;
+  nsCOMPtr <nsIFile> hostInfoFile;
   rv = GetLocalPath(getter_AddRefs(hostInfoFile));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = hostInfoFile->AppendNative(NS_LITERAL_CSTRING(HOSTINFO_FILE_NAME));

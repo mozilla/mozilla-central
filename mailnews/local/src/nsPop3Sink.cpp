@@ -461,7 +461,7 @@ nsPop3Sink::IncorporateBegin(const char* uidlString,
     if (uidlString)
         printf("uidl string: %s\n", uidlString);
 #endif
-  nsCOMPtr<nsILocalFile> path;
+  nsCOMPtr<nsIFile> path;
 
   m_folder->GetFilePath(getter_AddRefs(path));
 

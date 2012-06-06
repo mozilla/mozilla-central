@@ -80,7 +80,7 @@ int nsMsgSendPart::CopyString(char** dest, const char* src)
 }
 
 
-nsresult nsMsgSendPart::SetFile(nsILocalFile *file)
+nsresult nsMsgSendPart::SetFile(nsIFile *file)
 {
   m_file = file;
   return NS_OK;

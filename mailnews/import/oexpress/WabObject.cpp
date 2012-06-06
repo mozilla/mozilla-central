@@ -79,7 +79,7 @@ AddrImportField    extraUserFields[kExtraUserFields] = {
 // pszFileName - FileName of WAB file to open
 //          if no file name is specified, opens the default
 //
-CWAB::CWAB(nsILocalFile *file)
+CWAB::CWAB(nsIFile *file)
 {
     // Here we load the WAB Object and initialize it
     m_pUniBuff = NULL;

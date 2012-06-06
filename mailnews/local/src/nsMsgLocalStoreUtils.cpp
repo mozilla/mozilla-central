@@ -5,7 +5,7 @@
  
 #include "msgCore.h"    // precompiled header...
 #include "nsMsgLocalStoreUtils.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "prprf.h"
 
 nsMsgLocalStoreUtils::nsMsgLocalStoreUtils()
@@ -13,7 +13,7 @@ nsMsgLocalStoreUtils::nsMsgLocalStoreUtils()
 }
 
 nsresult
-nsMsgLocalStoreUtils::AddDirectorySeparator(nsILocalFile *path)
+nsMsgLocalStoreUtils::AddDirectorySeparator(nsIFile *path)
 {
   nsAutoString leafName;
   path->GetLeafName(leafName);

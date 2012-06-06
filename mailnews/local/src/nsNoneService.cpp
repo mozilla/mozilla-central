@@ -12,7 +12,7 @@
 
 #include "nsMsgLocalCID.h"
 #include "nsMsgBaseCID.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsCOMPtr.h"
 #include "nsMsgUtils.h"
 
@@ -32,20 +32,20 @@ nsNoneService::~nsNoneService()
 NS_IMPL_ISUPPORTS2(nsNoneService, nsINoneService, nsIMsgProtocolInfo)
 
 NS_IMETHODIMP
-nsNoneService::SetDefaultLocalPath(nsILocalFile *aPath)
+nsNoneService::SetDefaultLocalPath(nsIFile *aPath)
 {
     NS_ENSURE_ARG(aPath);
     return NS_SetPersistentFile(PREF_MAIL_ROOT_NONE_REL, PREF_MAIL_ROOT_NONE, aPath);
 }     
 
 NS_IMETHODIMP
-nsNoneService::GetDefaultLocalPath(nsILocalFile ** aResult)
+nsNoneService::GetDefaultLocalPath(nsIFile ** aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
     *aResult = nsnull;
     
     bool havePref;
-    nsCOMPtr<nsILocalFile> localFile;    
+    nsCOMPtr<nsIFile> localFile;    
     nsresult rv = NS_GetPersistentFile(PREF_MAIL_ROOT_NONE_REL,
                               PREF_MAIL_ROOT_NONE,
                               NS_APP_MAIL_50_DIR,

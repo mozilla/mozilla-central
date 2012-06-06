@@ -198,7 +198,7 @@ private:
                               nsIMsgIncomingServer** aResult);
 
   // handle virtual folders
-  static nsresult GetVirtualFoldersFile(nsCOMPtr<nsILocalFile>& file);
+  static nsresult GetVirtualFoldersFile(nsCOMPtr<nsIFile>& file);
   static nsresult WriteLineToOutputStream(const char *prefix, const char * line, nsIOutputStream *outputStream);
   void     ParseAndVerifyVirtualFolderScope(nsCString &buffer,
                                             nsIRDFService *rdf);

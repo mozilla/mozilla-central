@@ -7,7 +7,7 @@
 #define nsEudoraFilters_h___
 
 #include "nsIImportFilters.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsCOMPtr.h"
 #include "nsMsgFilterCore.h"
 

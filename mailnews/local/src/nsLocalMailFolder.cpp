@@ -228,7 +228,7 @@ nsMsgLocalMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
     // This should add all existing folders as sub-folders of this folder.
     rv = msgStore->DiscoverSubFolders(this, true);
 
-    nsCOMPtr<nsILocalFile> path;
+    nsCOMPtr<nsIFile> path;
     rv = GetFilePath(getter_AddRefs(path));
     if (NS_FAILED(rv))
       return rv;
@@ -323,7 +323,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWithReparse(nsIUrlListener *aRepa
 
   if (!mDatabase)
   {
-    nsCOMPtr <nsILocalFile> pathFile;
+    nsCOMPtr <nsIFile> pathFile;
     rv = GetFilePath(getter_AddRefs(pathFile));
     if (NS_FAILED(rv))
       return rv;
@@ -371,7 +371,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWithReparse(nsIUrlListener *aRepa
 
         mDatabase = nsnull;
       }
-      nsCOMPtr <nsILocalFile> summaryFile;
+      nsCOMPtr <nsIFile> summaryFile;
       rv = GetSummaryFileLocation(pathFile, getter_AddRefs(summaryFile));
       NS_ENSURE_SUCCESS(rv, rv);
       // Remove summary file.
@@ -479,7 +479,7 @@ nsMsgLocalMailFolder::GetMessages(nsISimpleEnumerator **result)
 NS_IMETHODIMP nsMsgLocalMailFolder::GetFolderURL(nsACString& aUrl)
 {
   nsresult rv;
-  nsCOMPtr<nsILocalFile> path;
+  nsCOMPtr<nsIFile> path;
   rv = GetFilePath(getter_AddRefs(path));
   if (NS_FAILED(rv))
     return rv;
@@ -781,7 +781,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Delete()
   rv = server->GetMsgStore(getter_AddRefs(msgStore));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr <nsILocalFile> summaryFile;
+  nsCOMPtr <nsIFile> summaryFile;
   rv = msgStore->GetSummaryFile(this, getter_AddRefs(summaryFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1025,7 +1025,7 @@ nsresult nsMsgLocalMailFolder::OpenDatabase()
   NS_ENSURE_SUCCESS(rv, rv);
 
   bool folderEmpty = false;
-  nsCOMPtr <nsILocalFile> file;
+  nsCOMPtr <nsIFile> file;
   rv = GetFilePath(getter_AddRefs(file));
 
   rv = msgDBService->OpenFolderDB(this, true, getter_AddRefs(mDatabase));
@@ -1147,7 +1147,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetSizeOnDisk(PRUint32* aSize)
   nsresult rv = NS_OK;
   if (!mFolderSize)
   {
-    nsCOMPtr <nsILocalFile> file;
+    nsCOMPtr <nsIFile> file;
     rv = GetFilePath(getter_AddRefs(file));
     NS_ENSURE_SUCCESS(rv, rv);
     PRInt64 folderSize;
@@ -1295,7 +1295,7 @@ nsMsgLocalMailFolder::InitCopyState(nsISupports* aSupport,
                                     nsIMsgWindow *msgWindow, bool isFolder,
                                     bool allowUndo)
 {
-  nsCOMPtr<nsILocalFile> path;
+  nsCOMPtr<nsIFile> path;
 
   NS_ASSERTION(!mCopyState, "already copying a msg into this folder");
   if (mCopyState)

@@ -12,7 +12,7 @@
 #include "nsWindowsShellService.h"
 #include "nsIProcess.h"
 #include "windows.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsNetUtil.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsUnicharUtils.h"
@@ -303,9 +303,9 @@ GetHelperPath(nsString& aPath)
     do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> appHelper;
+  nsCOMPtr<nsIFile> appHelper;
   rv = directoryService->Get(NS_XPCOM_CURRENT_PROCESS_DIR,
-                             NS_GET_IID(nsILocalFile),
+                             NS_GET_IID(nsIFile),
                              getter_AddRefs(appHelper));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -551,8 +551,8 @@ nsWindowsShellService::SetDefaultClient(bool aForAllUsers,
     do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> appHelper;
-  rv = directoryService->Get(NS_XPCOM_CURRENT_PROCESS_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(appHelper));
+  nsCOMPtr<nsIFile> appHelper;
+  rv = directoryService->Get(NS_XPCOM_CURRENT_PROCESS_DIR, NS_GET_IID(nsIFile), getter_AddRefs(appHelper));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = appHelper->AppendNative(NS_LITERAL_CSTRING("uninstall"));
@@ -864,7 +864,7 @@ nsWindowsShellService::SetDesktopBackgroundColor(PRUint32 aColor)
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::OpenApplicationWithURI(nsILocalFile* aApplication,
+nsWindowsShellService::OpenApplicationWithURI(nsIFile* aApplication,
                                               const nsACString& aURI)
 {
   nsresult rv;
@@ -883,7 +883,7 @@ nsWindowsShellService::OpenApplicationWithURI(nsILocalFile* aApplication,
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::GetDefaultFeedReader(nsILocalFile** _retval)
+nsWindowsShellService::GetDefaultFeedReader(nsIFile** _retval)
 {
   *_retval = nsnull;
 
@@ -919,7 +919,7 @@ nsWindowsShellService::GetDefaultFeedReader(nsILocalFile** _retval)
     path = Substring(path, 0, path.FindChar(' '));
   }
 
-  nsCOMPtr<nsILocalFile> defaultReader =
+  nsCOMPtr<nsIFile> defaultReader =
     do_CreateInstance("@mozilla.org/file/local;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 

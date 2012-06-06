@@ -11,7 +11,7 @@
 #define nsMsgNewsFolder_h__
 
 #include "nsMsgDBFolder.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsINntpIncomingServer.h" // need this for the IID
 #include "nsNewsUtils.h"
 #include "nsMsgKeySet.h"
@@ -84,9 +84,9 @@ public:
 protected:
   // helper routine to parse the URI and update member variables
   nsresult AbbreviatePrettyName(nsAString& prettyName, PRInt32 fullwords);
-  nsresult ParseFolder(nsILocalFile *path);
-  nsresult CreateSubFolders(nsILocalFile *path);
-  nsresult AddDirectorySeparator(nsILocalFile *path);
+  nsresult ParseFolder(nsIFile *path);
+  nsresult CreateSubFolders(nsIFile *path);
+  nsresult AddDirectorySeparator(nsIFile *path);
   nsresult GetDatabase();
   virtual nsresult CreateChildFromURI(const nsCString &uri, nsIMsgFolder **folder);
 
@@ -111,7 +111,7 @@ protected:
   nsCString mUnsubscribedNewsgroupLines;
   nsMsgKeySet *mReadSet;
 
-  nsCOMPtr<nsILocalFile> mNewsrcFilePath;
+  nsCOMPtr<nsIFile> mNewsrcFilePath;
 
   // used for auth news
   nsCString mGroupUsername;

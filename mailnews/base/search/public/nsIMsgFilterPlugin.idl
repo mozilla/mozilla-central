@@ -11,7 +11,7 @@ interface nsIMsgFilterHitNotify;
 interface nsIMsgWindow;
 interface nsIMsgDBHdr;
 interface nsIStreamListener;
-interface nsILocalFile;
+interface nsIFile;
 
 /**
  * This interface is still very much under development, and is not yet stable.
@@ -323,7 +323,7 @@ interface nsIMsgCorpus : nsISupports
    *                    aFromTraits, that represent the local trait ids to
    *                    be used in storing data from aFile into the local corpus.
    */
-  void updateData(in nsILocalFile aFile, in boolean aIsAdd,
+  void updateData(in nsIFile aFile, in boolean aIsAdd,
                   [optional] in unsigned long aRemapCount,
                   [optional, array, size_is(aRemapCount)] in unsigned long aFromTraits,
                   [optional, array, size_is(aRemapCount)] in unsigned long aToTraits);

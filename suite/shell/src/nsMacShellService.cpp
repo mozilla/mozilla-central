@@ -81,7 +81,7 @@ nsMacShellService::SetDesktopBackgroundColor(PRUint32 aColor)
 }
 
 NS_IMETHODIMP
-nsMacShellService::OpenApplicationWithURI(nsILocalFile* aApplication, const nsACString& aURI)
+nsMacShellService::OpenApplicationWithURI(nsIFile* aApplication, const nsACString& aURI)
 {
   nsCOMPtr<nsILocalFileMac> lfm(do_QueryInterface(aApplication));
   CFURLRef appURL;
@@ -118,7 +118,7 @@ nsMacShellService::OpenApplicationWithURI(nsILocalFile* aApplication, const nsAC
 }
 
 NS_IMETHODIMP
-nsMacShellService::GetDefaultFeedReader(nsILocalFile** _retval)
+nsMacShellService::GetDefaultFeedReader(nsIFile** _retval)
 {
   nsresult rv = NS_ERROR_FAILURE;
   *_retval = nsnull;

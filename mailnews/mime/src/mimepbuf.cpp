@@ -55,7 +55,7 @@ struct MimePartBufferData
   PRInt32     part_buffer_fp;        /* Active length. */
   PRInt32     part_buffer_size;      /* How big it is. */
 
-  nsCOMPtr <nsILocalFile> file_buffer;    /* The nsILocalFile of a temp file used when we
+  nsCOMPtr <nsIFile> file_buffer;    /* The nsIFile of a temp file used when we
                                                           run out of room in the head_buffer. */
   nsCOMPtr <nsIInputStream> input_file_stream;    /* A stream to it. */
   nsCOMPtr <nsIOutputStream> output_file_stream;  /* A stream to it. */

@@ -105,7 +105,7 @@ nsresult nsEmlxHelperUtils::ConvertToMboxRD(const char *aMessageBufferStart, con
   return NS_OK;
 }
 
-nsresult nsEmlxHelperUtils::AddEmlxMessageToStream(nsILocalFile *aMessage, nsIOutputStream *aOut)
+nsresult nsEmlxHelperUtils::AddEmlxMessageToStream(nsIFile *aMessage, nsIOutputStream *aOut)
 {
   NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
 

@@ -41,7 +41,7 @@ protected:
   void  CleanupTempFilesAfterError();
 
   nsresult Init(nsIMsgFolder *aFolder, const char* aBaseMsgUri, nsIMsgDatabase *aDb,
-                            nsILocalFile *aPath, nsIMsgWindow *aMsgWindow);
+                            nsIFile *aPath, nsIMsgWindow *aMsgWindow);
   nsresult GetMessage(nsIMsgDBHdr **message);
   nsresult BuildMessageURI(const char *baseURI, PRUint32 key, nsCString& uri);
   nsresult ShowStatusMsg(const nsString& aMsg);
@@ -55,7 +55,7 @@ protected:
   nsCString m_messageUri; // current message uri being copy
   nsCOMPtr<nsIMsgFolder> m_folder; // current folder being compact
   nsCOMPtr<nsIMsgDatabase> m_db; // new database for the compact folder
-  nsCOMPtr <nsILocalFile> m_file; // new mailbox for the compact folder
+  nsCOMPtr <nsIFile> m_file; // new mailbox for the compact folder
   nsCOMPtr <nsIOutputStream> m_fileStream; // output file stream for writing
   // all message keys that need to be copied over
   nsRefPtr<nsMsgKeyArray> m_keyArray;

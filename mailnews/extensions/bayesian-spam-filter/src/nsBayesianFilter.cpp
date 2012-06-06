@@ -2196,7 +2196,7 @@ NS_IMETHODIMP nsBayesianFilter::ClearTrait(PRUint32 aTrait)
 }
 
 NS_IMETHODIMP
-nsBayesianFilter::UpdateData(nsILocalFile *aFile,
+nsBayesianFilter::UpdateData(nsIFile *aFile,
                              bool aIsAdd,
                              PRUint32 aRemapCount,
                              PRUint32 *aFromTraits,
@@ -2394,7 +2394,7 @@ bool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize,
     return true;
 }
 
-nsresult CorpusStore::getTrainingFile(nsILocalFile ** aTrainingFile)
+nsresult CorpusStore::getTrainingFile(nsIFile ** aTrainingFile)
 {
   // should we cache the profile manager's directory?
   nsCOMPtr<nsIFile> profileDir;
@@ -2404,10 +2404,10 @@ nsresult CorpusStore::getTrainingFile(nsILocalFile ** aTrainingFile)
   rv = profileDir->Append(NS_LITERAL_STRING("training.dat"));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return profileDir->QueryInterface(NS_GET_IID(nsILocalFile), (void **) aTrainingFile);
+  return profileDir->QueryInterface(NS_GET_IID(nsIFile), (void **) aTrainingFile);
 }
 
-nsresult CorpusStore::getTraitFile(nsILocalFile ** aTraitFile)
+nsresult CorpusStore::getTraitFile(nsIFile ** aTraitFile)
 {
   // should we cache the profile manager's directory?
   nsCOMPtr<nsIFile> profileDir;
@@ -2418,7 +2418,7 @@ nsresult CorpusStore::getTraitFile(nsILocalFile ** aTraitFile)
   rv = profileDir->Append(NS_LITERAL_STRING("traits.dat"));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return profileDir->QueryInterface(NS_GET_IID(nsILocalFile), (void **) aTraitFile);
+  return profileDir->QueryInterface(NS_GET_IID(nsIFile), (void **) aTraitFile);
 }
 
 static const char kMagicCookie[] = { '\xFE', '\xED', '\xFA', '\xCE' };
@@ -2740,7 +2740,7 @@ void CorpusStore::setMessageCount(PRUint32 aTraitId, PRUint32 aCount)
 }
 
 nsresult
-CorpusStore::UpdateData(nsILocalFile *aFile,
+CorpusStore::UpdateData(nsIFile *aFile,
                         bool aIsAdd,
                         PRUint32 aRemapCount,
                         PRUint32 *aFromTraits,

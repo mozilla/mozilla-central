@@ -5,7 +5,7 @@
 
 #include "nsIMsgSearchSession.idl"
 
-interface nsILocalFile;
+interface nsIFile;
 interface nsIMsgFolder;
 interface nsIMsgDBHdr;
 interface nsILineInputStream;

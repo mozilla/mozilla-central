@@ -11,7 +11,7 @@
 #include "nsIMsgFilterList.h"
 #include "nsCOMPtr.h"
 #include "nsISupportsArray.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIOutputStream.h"
 
 const PRInt16 kFileVersion = 9;
@@ -68,12 +68,12 @@ protected:
   nsCString m_filterFileName;
   nsCOMPtr<nsISupportsArray> m_filters;
   nsCString m_arbitraryHeaders;
-  nsCOMPtr<nsILocalFile> m_defaultFile;
+  nsCOMPtr<nsIFile> m_defaultFile;
   nsCString m_unparsedFilterBuffer; //holds one entire filter unparsed 
 
 private:
   nsresult TruncateLog();
-  nsresult GetLogFile(nsILocalFile **aFile);
+  nsresult GetLogFile(nsIFile **aFile);
   nsCOMPtr<nsIOutputStream> m_logStream;
 };
 

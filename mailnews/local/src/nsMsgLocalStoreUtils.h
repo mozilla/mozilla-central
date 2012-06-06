@@ -27,7 +27,7 @@ class nsMsgLocalStoreUtils
 public:
   nsMsgLocalStoreUtils();
 
-  static nsresult AddDirectorySeparator(nsILocalFile *path);
+  static nsresult AddDirectorySeparator(nsIFile *path);
   static bool nsShouldIgnoreFile(nsAString& name);
   static void ChangeKeywordsHelper(nsIMsgDBHdr *message,
                             PRUint64 desiredOffset,

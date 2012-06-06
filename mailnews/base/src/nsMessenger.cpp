@@ -11,7 +11,7 @@
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "nsIStringStream.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsISupportsObsolete.h"
 #include "nsQuickSort.h"
@@ -316,7 +316,7 @@ NS_IMETHODIMP nsMessenger::SetDisplayCharset(const nsACString& aCharset)
 }
 
 nsresult
-nsMessenger::PromptIfFileExists(nsILocalFile *file)
+nsMessenger::PromptIfFileExists(nsIFile *file)
 {
   nsresult rv = NS_ERROR_FAILURE;
   bool exists;
@@ -352,7 +352,7 @@ nsMessenger::PromptIfFileExists(nsILocalFile *file)
     {
       // if we don't re-init the path for redisplay the picker will
       // show the full path, not just the file name
-      nsCOMPtr<nsILocalFile> currentFile = do_CreateInstance("@mozilla.org/file/local;1");
+      nsCOMPtr<nsIFile> currentFile = do_CreateInstance("@mozilla.org/file/local;1");
       if (!currentFile) return NS_ERROR_FAILURE;
 
       rv = currentFile->InitWithPath(path);
@@ -374,7 +374,7 @@ nsMessenger::PromptIfFileExists(nsILocalFile *file)
       filePicker->SetDefaultString(path);
       filePicker->AppendFilters(nsIFilePicker::filterAll);
 
-      nsCOMPtr <nsILocalFile> lastSaveDir;
+      nsCOMPtr <nsIFile> lastSaveDir;
       rv = GetLastSaveDirectory(getter_AddRefs(lastSaveDir));
       if (NS_SUCCEEDED(rv) && lastSaveDir) {
         filePicker->SetDisplayDirectory(lastSaveDir);
@@ -390,7 +390,7 @@ nsMessenger::PromptIfFileExists(nsILocalFile *file)
         return NS_ERROR_FAILURE;
       }
 
-      nsCOMPtr<nsILocalFile> localFile;
+      nsCOMPtr<nsIFile> localFile;
 
       rv = filePicker->GetFile(getter_AddRefs(localFile));
       NS_ENSURE_SUCCESS(rv, rv);
@@ -602,11 +602,8 @@ nsMessenger::DetachAttachmentsWOPrompts(nsIFile* aDestFolder,
   if (!aCount)
     return NS_OK;
   nsSaveAllAttachmentsState *saveState;
-  nsCOMPtr<nsIFile> clone;
-  nsresult rv = aDestFolder->Clone(getter_AddRefs(clone));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsILocalFile> attachmentDestination(do_QueryInterface(clone, &rv));
+  nsCOMPtr<nsIFile> attachmentDestination;
+  nsresult rv = aDestFolder->Clone(getter_AddRefs(attachmentDestination));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCAutoString path;
@@ -763,16 +760,14 @@ nsMessenger::OpenAttachment(const nsACString& aContentType, const nsACString& aU
 
 NS_IMETHODIMP
 nsMessenger::SaveAttachmentToFolder(const nsACString& contentType, const nsACString& url, const nsACString& displayName,
-                                    const nsACString& messageUri, nsILocalFile * aDestFolder, nsILocalFile ** aOutFile)
+                                    const nsACString& messageUri, nsIFile * aDestFolder, nsIFile ** aOutFile)
 {
   NS_ENSURE_ARG_POINTER(aDestFolder);
   nsresult rv;
 
-  nsCOMPtr<nsIFile> clone;
-  rv = aDestFolder->Clone(getter_AddRefs(clone));
+  nsCOMPtr<nsIFile> attachmentDestination;
+  rv = aDestFolder->Clone(getter_AddRefs(attachmentDestination));
   NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsILocalFile> attachmentDestination = do_QueryInterface(clone);
 
   nsString unescapedFileName;
   ConvertAndSanitizeFileName(PromiseFlatCString(displayName).get(), unescapedFileName);
@@ -814,8 +809,8 @@ nsMessenger::SaveOneAttachment(const char * aContentType, const char * aURL,
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRInt16 dialogResult;
-  nsCOMPtr<nsILocalFile> localFile;
-  nsCOMPtr<nsILocalFile> lastSaveDir;
+  nsCOMPtr<nsIFile> localFile;
+  nsCOMPtr<nsIFile> lastSaveDir;
   nsCString filePath;
   nsString saveAttachmentStr;
   nsString defaultDisplayString;
@@ -881,8 +876,8 @@ nsMessenger::SaveAllAttachments(PRUint32 count,
   nsresult rv = NS_ERROR_OUT_OF_MEMORY;
   nsCOMPtr<nsIFilePicker> filePicker =
     do_CreateInstance("@mozilla.org/filepicker;1", &rv);
-  nsCOMPtr<nsILocalFile> localFile;
-  nsCOMPtr<nsILocalFile> lastSaveDir;
+  nsCOMPtr<nsIFile> localFile;
+  nsCOMPtr<nsIFile> lastSaveDir;
   PRInt16 dialogResult;
   nsString saveAttachmentStr;
 
@@ -960,7 +955,7 @@ nsMessenger::SaveAs(const nsACString& aURI, bool aAsFile,
 
   if (aAsFile)
   {
-    nsCOMPtr<nsILocalFile> saveAsFile;
+    nsCOMPtr<nsIFile> saveAsFile;
     // show the file picker if BypassFilePicker is not specified (null) or false
     if (!aBypassFilePicker) {
       rv = GetSaveAsFile(aMsgFilename, &saveAsFileType, getter_AddRefs(saveAsFile));
@@ -1063,14 +1058,13 @@ nsMessenger::SaveAs(const nsACString& aURI, bool aAsFile,
   else
   {
     // ** save as Template
-    nsCOMPtr <nsIFile> tmpTempFile;
+    nsCOMPtr <nsIFile> tmpFile;
     nsresult rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
                                                   "nsmail.tmp",
-                                                  getter_AddRefs(tmpTempFile));
+                                                  getter_AddRefs(tmpFile));
 
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr <nsILocalFile> tmpFile = do_QueryInterface(tmpTempFile, &rv);
     // For temp file, we should use restrictive 00600 instead of ATTACHMENT_PERMISSION 
     rv = tmpFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
     if (NS_FAILED(rv)) goto done;
@@ -1114,7 +1108,7 @@ done:
 
 nsresult
 nsMessenger::GetSaveAsFile(const nsAString& aMsgFilename, PRInt32 *aSaveAsFileType,
-                           nsILocalFile **aSaveAsFile)
+                           nsIFile **aSaveAsFile)
 {
   nsresult rv;
   nsCOMPtr<nsIFilePicker> filePicker = do_CreateInstance("@mozilla.org/filepicker;1", &rv);
@@ -1158,12 +1152,12 @@ nsMessenger::GetSaveAsFile(const nsAString& aMsgFilename, PRInt32 *aSaveAsFileTy
 
   PRInt16 dialogResult;
 
-  nsCOMPtr <nsILocalFile> lastSaveDir;
+  nsCOMPtr <nsIFile> lastSaveDir;
   rv = GetLastSaveDirectory(getter_AddRefs(lastSaveDir));
   if (NS_SUCCEEDED(rv) && lastSaveDir)
     filePicker->SetDisplayDirectory(lastSaveDir);
 
-  nsCOMPtr<nsILocalFile> localFile;
+  nsCOMPtr<nsIFile> localFile;
   rv = filePicker->Show(&dialogResult);
   NS_ENSURE_SUCCESS(rv, rv);
   if (dialogResult == nsIFilePicker::returnCancel)
@@ -1235,7 +1229,7 @@ nsMessenger::GetSaveAsFile(const nsAString& aMsgFilename, PRInt32 *aSaveAsFileTy
  * @param [out] aSaveDir directory to save to. Will be null on cancel.
  */
 nsresult
-nsMessenger::GetSaveToDir(nsILocalFile **aSaveDir)
+nsMessenger::GetSaveToDir(nsIFile **aSaveDir)
 {
   nsresult rv;
   nsCOMPtr<nsIFilePicker> filePicker =
@@ -1246,7 +1240,7 @@ nsMessenger::GetSaveToDir(nsILocalFile **aSaveDir)
   GetString(NS_LITERAL_STRING("ChooseFolder"), chooseFolderStr);
   filePicker->Init(mWindow, chooseFolderStr, nsIFilePicker::modeGetFolder);
 
-  nsCOMPtr<nsILocalFile> lastSaveDir;
+  nsCOMPtr<nsIFile> lastSaveDir;
   rv = GetLastSaveDirectory(getter_AddRefs(lastSaveDir));
   if (NS_SUCCEEDED(rv) && lastSaveDir)
     filePicker->SetDisplayDirectory(lastSaveDir);
@@ -1260,7 +1254,7 @@ nsMessenger::GetSaveToDir(nsILocalFile **aSaveDir)
     return NS_OK;
   }
 
-  nsCOMPtr<nsILocalFile> dir;
+  nsCOMPtr<nsIFile> dir;
   rv = filePicker->GetFile(getter_AddRefs(dir));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1283,7 +1277,7 @@ nsMessenger::SaveMessages(PRUint32 aCount,
 
   nsresult rv;
 
-  nsCOMPtr<nsILocalFile> saveDir;
+  nsCOMPtr<nsIFile> saveDir;
   rv = GetSaveToDir(getter_AddRefs(saveDir));
   NS_ENSURE_SUCCESS(rv, rv);
   if (!saveDir) // A null saveDir means that the user canceled the save.
@@ -1293,7 +1287,7 @@ nsMessenger::SaveMessages(PRUint32 aCount,
     if (!aFilenameArray[i]) // just to be sure
       return NS_ERROR_FAILURE;
 
-    nsCOMPtr<nsILocalFile> saveToFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+    nsCOMPtr<nsIFile> saveToFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     rv = saveToFile->InitWithFile(saveDir);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -1703,8 +1697,6 @@ nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, PRUint32 a
     
     mimeService->GetFromTypeAndExtension(m_contentType, EmptyCString(), getter_AddRefs(mimeinfo));
     
-    nsCOMPtr<nsILocalFile> outputFile = do_QueryInterface(m_file);
-    
     // create a download progress window
     // We don't want to show the progress dialog if the download is really small.
     // but what is a small download? Well that's kind of arbitrary
@@ -1721,12 +1713,12 @@ nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, PRUint32 a
         mMaxProgress > aBytesDownloaded * 2)
     {
       nsCOMPtr<nsITransfer> tr = do_CreateInstance(NS_TRANSFER_CONTRACTID, &rv);
-      if (tr && outputFile)
+      if (tr && m_file)
       {
         PRTime timeDownloadStarted = PR_Now();
         
         nsCOMPtr<nsIURI> outputURI;
-        NS_NewFileURI(getter_AddRefs(outputURI), outputFile);
+        NS_NewFileURI(getter_AddRefs(outputURI), m_file);
         
         nsCOMPtr<nsIURI> url;
         channel->GetURI(getter_AddRefs(url));
@@ -1746,7 +1738,7 @@ nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, PRUint32 a
       nsCOMPtr<nsIAppleFileDecoder> appleFileDecoder = do_CreateInstance(NS_IAPPLEFILEDECODER_CONTRACTID, &rv);
       if (NS_SUCCEEDED(rv) && appleFileDecoder)
       {
-        rv = appleFileDecoder->Initialize(m_outputStream, outputFile);
+        rv = appleFileDecoder->Initialize(m_outputStream, m_file);
         if (NS_SUCCEEDED(rv))
           m_outputStream = do_QueryInterface(appleFileDecoder, &rv);
       }
@@ -1823,7 +1815,7 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
       nsSaveAllAttachmentsState *state = m_saveAllAttachmentsState;
       PRUint32 i = state->m_curIndex;
       nsString unescapedName;
-      nsCOMPtr<nsILocalFile> localFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+      nsCOMPtr<nsIFile> localFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
       if (NS_FAILED(rv)) goto done;
       rv = localFile->InitWithNativePath(nsDependentCString(state->m_directoryName));
       
@@ -2025,15 +2017,15 @@ nsSaveAllAttachmentsState::~nsSaveAllAttachmentsState()
 }
 
 nsresult
-nsMessenger::GetLastSaveDirectory(nsILocalFile **aLastSaveDir)
+nsMessenger::GetLastSaveDirectory(nsIFile **aLastSaveDir)
 {
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
   // this can fail, and it will, on the first time we call it, as there is no default for this pref.
-  nsCOMPtr <nsILocalFile> localFile;
-  rv = prefBranch->GetComplexValue(MESSENGER_SAVE_DIR_PREF_NAME, NS_GET_IID(nsILocalFile), getter_AddRefs(localFile));
+  nsCOMPtr <nsIFile> localFile;
+  rv = prefBranch->GetComplexValue(MESSENGER_SAVE_DIR_PREF_NAME, NS_GET_IID(nsIFile), getter_AddRefs(localFile));
   if (NS_SUCCEEDED(rv)) {
     NS_IF_ADDREF(*aLastSaveDir = localFile);
   }
@@ -2041,7 +2033,7 @@ nsMessenger::GetLastSaveDirectory(nsILocalFile **aLastSaveDir)
 }
 
 nsresult
-nsMessenger::SetLastSaveDirectory(nsILocalFile *aLocalFile)
+nsMessenger::SetLastSaveDirectory(nsIFile *aLocalFile)
 {
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
@@ -2057,7 +2049,7 @@ nsMessenger::SetLastSaveDirectory(nsILocalFile *aLocalFile)
   bool isDirectory;
   rv = file->IsDirectory(&isDirectory);
   if (NS_SUCCEEDED(rv) && isDirectory) {
-    rv = prefBranch->SetComplexValue(MESSENGER_SAVE_DIR_PREF_NAME, NS_GET_IID(nsILocalFile), aLocalFile);
+    rv = prefBranch->SetComplexValue(MESSENGER_SAVE_DIR_PREF_NAME, NS_GET_IID(nsIFile), aLocalFile);
     NS_ENSURE_SUCCESS(rv,rv);
   }
   else {
@@ -2065,10 +2057,7 @@ nsMessenger::SetLastSaveDirectory(nsILocalFile *aLocalFile)
     rv = file->GetParent(getter_AddRefs(parent));
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsCOMPtr <nsILocalFile> parentLocalFile = do_QueryInterface(parent, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    rv = prefBranch->SetComplexValue(MESSENGER_SAVE_DIR_PREF_NAME, NS_GET_IID(nsILocalFile), parentLocalFile);
+    rv = prefBranch->SetComplexValue(MESSENGER_SAVE_DIR_PREF_NAME, NS_GET_IID(nsIFile), parent);
     NS_ENSURE_SUCCESS(rv,rv);
   }
   return NS_OK;

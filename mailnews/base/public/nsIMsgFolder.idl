@@ -22,7 +22,7 @@ interface nsITransport;
 interface nsIFile;
 interface nsIOutputStream;
 interface nsIInputStream;
-interface nsILocalFile;
+interface nsIFile;
 interface nsIMsgIdentity;
 interface nsIArray;
 interface nsIMutableArray;
@@ -465,7 +465,7 @@ interface nsIMsgFolder : nsISupports {
   /**
    * local path of this folder
    */
-  attribute nsILocalFile filePath;
+  attribute nsIFile filePath;
 
   readonly attribute ACString baseMessageURI;
   ACString generateMessageURI(in nsMsgKey msgKey);

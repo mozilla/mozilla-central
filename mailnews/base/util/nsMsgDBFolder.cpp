@@ -245,19 +245,19 @@ NS_IMETHODIMP nsMsgDBFolder::CloseAndBackupFolderDB(const nsACString& newName)
   if ( !(mFlags & nsMsgFolderFlags::Mail))
     return NS_OK;
 
-  nsCOMPtr<nsILocalFile> folderPath;
+  nsCOMPtr<nsIFile> folderPath;
   nsresult rv = GetFilePath(getter_AddRefs(folderPath));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> dbFile;
+  nsCOMPtr<nsIFile> dbFile;
   rv = GetSummaryFileLocation(folderPath, getter_AddRefs(dbFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> backupDir;
+  nsCOMPtr<nsIFile> backupDir;
   rv = CreateBackupDirectory(getter_AddRefs(backupDir));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> backupDBFile;
+  nsCOMPtr<nsIFile> backupDBFile;
   rv = GetBackupSummaryFile(getter_AddRefs(backupDBFile), newName);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -289,7 +289,7 @@ NS_IMETHODIMP nsMsgDBFolder::OpenBackupMsgDatabase()
 {
   if (mBackupDatabase)
     return NS_OK;
-  nsCOMPtr<nsILocalFile> folderPath;
+  nsCOMPtr<nsIFile> folderPath;
   nsresult rv = GetFilePath(getter_AddRefs(folderPath));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -297,13 +297,13 @@ NS_IMETHODIMP nsMsgDBFolder::OpenBackupMsgDatabase()
   rv = folderPath->GetLeafName(folderName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> backupDir;
+  nsCOMPtr<nsIFile> backupDir;
   rv = CreateBackupDirectory(getter_AddRefs(backupDir));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // We use a dummy message folder file so we can use
   // GetSummaryFileLocation to get the db file name
-  nsCOMPtr<nsILocalFile> backupDBDummyFolder;
+  nsCOMPtr<nsIFile> backupDBDummyFolder;
   rv = CreateBackupDirectory(getter_AddRefs(backupDBDummyFolder));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = backupDBDummyFolder->Append(folderName);
@@ -328,7 +328,7 @@ NS_IMETHODIMP nsMsgDBFolder::OpenBackupMsgDatabase()
 
 NS_IMETHODIMP nsMsgDBFolder::RemoveBackupMsgDatabase()
 {
-  nsCOMPtr<nsILocalFile> folderPath;
+  nsCOMPtr<nsIFile> folderPath;
   nsresult rv = GetFilePath(getter_AddRefs(folderPath));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -336,19 +336,19 @@ NS_IMETHODIMP nsMsgDBFolder::RemoveBackupMsgDatabase()
   rv = folderPath->GetLeafName(folderName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> backupDir;
+  nsCOMPtr<nsIFile> backupDir;
   rv = CreateBackupDirectory(getter_AddRefs(backupDir));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // We use a dummy message folder file so we can use
   // GetSummaryFileLocation to get the db file name
-  nsCOMPtr<nsILocalFile> backupDBDummyFolder;
+  nsCOMPtr<nsIFile> backupDBDummyFolder;
   rv = CreateBackupDirectory(getter_AddRefs(backupDBDummyFolder));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = backupDBDummyFolder->Append(folderName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> backupDBFile;
+  nsCOMPtr<nsIFile> backupDBFile;
   rv = GetSummaryFileLocation(backupDBDummyFolder, getter_AddRefs(backupDBFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -573,7 +573,7 @@ void nsMsgDBFolder::UpdateNewMessages()
 // helper function that gets the cache element that corresponds to the passed in file spec.
 // This could be static, or could live in another class - it's not specific to the current
 // nsMsgDBFolder. If it lived at a higher level, we could cache the account manager and folder cache.
-nsresult nsMsgDBFolder::GetFolderCacheElemFromFile(nsILocalFile *file, nsIMsgFolderCacheElement **cacheElement)
+nsresult nsMsgDBFolder::GetFolderCacheElemFromFile(nsIFile *file, nsIMsgFolderCacheElement **cacheElement)
 {
   nsresult result;
   NS_ENSURE_ARG_POINTER(file);
@@ -609,7 +609,7 @@ nsresult nsMsgDBFolder::ReadDBFolderInfo(bool force)
   // and, we might get stale info, so don't do it.
   if (!mInitializedFromCache)
   {
-    nsCOMPtr <nsILocalFile> dbPath;
+    nsCOMPtr <nsIFile> dbPath;
     result = GetFolderCacheKey(getter_AddRefs(dbPath), true /* createDBIfMissing */);
     if (dbPath)
     {
@@ -718,7 +718,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgStore(nsIMsgPluggableStore **aStore)
   return server->GetMsgStore(aStore);
 }
 
-nsresult nsMsgDBFolder::GetSummaryFile(nsILocalFile** aSummaryFile)
+nsresult nsMsgDBFolder::GetSummaryFile(nsIFile** aSummaryFile)
 {
   nsCOMPtr<nsIMsgPluggableStore> msgStore;
   nsresult rv = GetMsgStore(getter_AddRefs(msgStore));
@@ -728,7 +728,7 @@ nsresult nsMsgDBFolder::GetSummaryFile(nsILocalFile** aSummaryFile)
 
 NS_IMETHODIMP nsMsgDBFolder::GetOfflineStoreInputStream(nsIInputStream **stream)
 {
-  nsCOMPtr <nsILocalFile> localStore;
+  nsCOMPtr <nsIFile> localStore;
   nsresult rv = GetFilePath(getter_AddRefs(localStore));
   NS_ENSURE_SUCCESS(rv, rv);
   return NS_NewLocalFileInputStream(stream, localStore);
@@ -875,7 +875,7 @@ nsMsgDBFolder::GetMsgInputStream(nsIMsgDBHdr *aMsgHdr, bool *aReusable,
 
 // path coming in is the root path without the leaf name,
 // on the way out, it's the whole path.
-nsresult nsMsgDBFolder::CreateFileForDB(const nsAString& userLeafName, nsILocalFile *path, nsILocalFile **dbFile)
+nsresult nsMsgDBFolder::CreateFileForDB(const nsAString& userLeafName, nsIFile *path, nsIFile **dbFile)
 {
   NS_ENSURE_ARG_POINTER(dbFile);
 
@@ -893,7 +893,7 @@ nsresult nsMsgDBFolder::CreateFileForDB(const nsAString& userLeafName, nsILocalF
   // into Open().  this isn't ideal, since this is not atomic
   // but it will make do.
   nsresult rv;
-  nsCOMPtr <nsILocalFile> dbPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  nsCOMPtr <nsIFile> dbPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   dbPath->InitWithFile(path);
   proposedDBName.AppendLiteral(SUMMARY_SUFFIX);
@@ -1257,14 +1257,14 @@ NS_IMETHODIMP nsMsgDBFolder::ReadFromFolderCacheElem(nsIMsgFolderCacheElement *e
   return rv;
 }
 
-nsresult nsMsgDBFolder::GetFolderCacheKey(nsILocalFile **aFile, bool createDBIfMissing /* = false */)
+nsresult nsMsgDBFolder::GetFolderCacheKey(nsIFile **aFile, bool createDBIfMissing /* = false */)
 {
   nsresult rv;
-  nsCOMPtr <nsILocalFile> path;
+  nsCOMPtr <nsIFile> path;
   rv = GetFilePath(getter_AddRefs(path));
 
   // now we put a new file  in aFile, because we're going to change it.
-  nsCOMPtr <nsILocalFile> dbPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  nsCOMPtr <nsIFile> dbPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (dbPath)
@@ -1277,7 +1277,7 @@ nsresult nsMsgDBFolder::GetFolderCacheKey(nsILocalFile **aFile, bool createDBIfM
     // if it's a server, we don't need the .msf appended to the name
     if (!isServer)
     {
-      nsCOMPtr <nsILocalFile> summaryName;
+      nsCOMPtr <nsIFile> summaryName;
       rv = GetSummaryFileLocation(dbPath, getter_AddRefs(summaryName));
       dbPath->InitWithFile(summaryName);
 
@@ -1314,7 +1314,7 @@ NS_IMETHODIMP nsMsgDBFolder::WriteToFolderCache(nsIMsgFolderCache *folderCache, 
   if (folderCache)
   {
     nsCOMPtr <nsIMsgFolderCacheElement> cacheElement;
-    nsCOMPtr <nsILocalFile> dbPath;
+    nsCOMPtr <nsIFile> dbPath;
     rv = GetFolderCacheKey(getter_AddRefs(dbPath));
 #ifdef DEBUG_bienvenu1
     bool exists;
@@ -1714,7 +1714,7 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
     {
        mDatabase->MarkOffline(messageKey, false, nsnull);
        // we should truncate the offline store at messgeOffset
-       nsCOMPtr <nsILocalFile> localStore;
+       nsCOMPtr <nsIFile> localStore;
        rv = GetFilePath(getter_AddRefs(localStore));
        if (NS_SUCCEEDED(rv))
        {
@@ -2105,7 +2105,7 @@ NS_IMETHODIMP
 nsMsgDBFolder::GetStringProperty(const char *propertyName, nsACString& propertyValue)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
-  nsCOMPtr <nsILocalFile> dbPath;
+  nsCOMPtr <nsIFile> dbPath;
   nsresult rv = GetFolderCacheKey(getter_AddRefs(dbPath));
   if (dbPath)
   {
@@ -2133,7 +2133,7 @@ NS_IMETHODIMP
 nsMsgDBFolder::SetStringProperty(const char *propertyName, const nsACString& propertyValue)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
-  nsCOMPtr <nsILocalFile> dbPath;
+  nsCOMPtr <nsIFile> dbPath;
   GetFolderCacheKey(getter_AddRefs(dbPath));
   if (dbPath)
   {
@@ -3190,7 +3190,7 @@ nsMsgDBFolder::parseURI(bool needServer)
     }
 
     // now append munged path onto server path
-    nsCOMPtr<nsILocalFile> serverPath;
+    nsCOMPtr<nsIFile> serverPath;
     rv = server->GetLocalPath(getter_AddRefs(serverPath));
     if (NS_FAILED(rv)) return rv;
 
@@ -3588,7 +3588,7 @@ NS_IMETHODIMP nsMsgDBFolder::RecursiveDelete(bool deleteStorage, nsIMsgWindow *m
   // frees memory for the subfolders but NOT for _this_
 
   nsresult status = NS_OK;
-  nsCOMPtr <nsILocalFile> dbPath;
+  nsCOMPtr <nsIFile> dbPath;
 
   // first remove the deleted folder from the folder cache;
   nsresult result = GetFolderCacheKey(getter_AddRefs(dbPath));
@@ -3790,7 +3790,7 @@ nsMsgDBFolder::CheckIfFolderExists(const nsAString& newFolderName, nsIMsgFolder 
 
 
 nsresult
-nsMsgDBFolder::AddDirectorySeparator(nsILocalFile *path)
+nsMsgDBFolder::AddDirectorySeparator(nsIFile *path)
 {
   nsAutoString leafName;
   path->GetLeafName(leafName);
@@ -3802,11 +3802,11 @@ nsMsgDBFolder::AddDirectorySeparator(nsILocalFile *path)
    c:\Inbox, it will return c:\Inbox.sbd if it succeeds.  If that path doesn't
    currently exist then it will create it. Path is strictly an out parameter.
   */
-nsresult nsMsgDBFolder::CreateDirectoryForFolder(nsILocalFile **resultFile)
+nsresult nsMsgDBFolder::CreateDirectoryForFolder(nsIFile **resultFile)
 {
   nsresult rv = NS_OK;
 
-  nsCOMPtr<nsILocalFile> path;
+  nsCOMPtr<nsIFile> path;
   rv = GetFilePath(getter_AddRefs(path));
   if (NS_FAILED(rv)) return rv;
 
@@ -3841,14 +3841,11 @@ nsresult nsMsgDBFolder::CreateDirectoryForFolder(nsILocalFile **resultFile)
    drive. If that path doesn't currently exist then it will create it. Path is
    strictly an out parameter.
   */
-nsresult nsMsgDBFolder::CreateBackupDirectory(nsILocalFile **resultFile)
+nsresult nsMsgDBFolder::CreateBackupDirectory(nsIFile **resultFile)
 {
-  nsCOMPtr<nsIFile> pathIFile;
+  nsCOMPtr<nsIFile> path;
   nsresult rv = NS_GetSpecialDirectory(NS_OS_TEMP_DIR,
-                                       getter_AddRefs(pathIFile));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsILocalFile> path = do_QueryInterface(pathIFile, &rv);
+                                       getter_AddRefs(path));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = path->Append(NS_LITERAL_STRING("MozillaMailnews"));
@@ -3870,15 +3867,15 @@ nsresult nsMsgDBFolder::CreateBackupDirectory(nsILocalFile **resultFile)
   return rv;
 }
 
-nsresult nsMsgDBFolder::GetBackupSummaryFile(nsILocalFile **aBackupFile, const nsACString& newName)
+nsresult nsMsgDBFolder::GetBackupSummaryFile(nsIFile **aBackupFile, const nsACString& newName)
 {
-  nsCOMPtr<nsILocalFile> backupDir;
+  nsCOMPtr<nsIFile> backupDir;
   nsresult rv = CreateBackupDirectory(getter_AddRefs(backupDir));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // We use a dummy message folder file so we can use
   // GetSummaryFileLocation to get the db file name
-  nsCOMPtr<nsILocalFile> backupDBDummyFolder;
+  nsCOMPtr<nsIFile> backupDBDummyFolder;
   rv = CreateBackupDirectory(getter_AddRefs(backupDBDummyFolder));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -3888,7 +3885,7 @@ nsresult nsMsgDBFolder::GetBackupSummaryFile(nsILocalFile **aBackupFile, const n
   }
   else // if newName is null, use the folder name
   {
-    nsCOMPtr<nsILocalFile> folderPath;
+    nsCOMPtr<nsIFile> folderPath;
     rv = GetFilePath(getter_AddRefs(folderPath));
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -3899,7 +3896,7 @@ nsresult nsMsgDBFolder::GetBackupSummaryFile(nsILocalFile **aBackupFile, const n
   }
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> backupDBFile;
+  nsCOMPtr<nsIFile> backupDBFile;
   rv = GetSummaryFileLocation(backupDBDummyFolder, getter_AddRefs(backupDBFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -3909,7 +3906,7 @@ nsresult nsMsgDBFolder::GetBackupSummaryFile(nsILocalFile **aBackupFile, const n
 
 NS_IMETHODIMP nsMsgDBFolder::Rename(const nsAString& aNewName, nsIMsgWindow *msgWindow)
 {
-  nsCOMPtr<nsILocalFile> oldPathFile;
+  nsCOMPtr<nsIFile> oldPathFile;
   nsCOMPtr<nsIAtom> folderRenameAtom;
   nsresult rv = GetFilePath(getter_AddRefs(oldPathFile));
   if (NS_FAILED(rv))
@@ -3919,11 +3916,11 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const nsAString& aNewName, nsIMsgWindow *msg
   if (!parentFolder)
     return NS_ERROR_FAILURE;
   nsCOMPtr<nsISupports> parentSupport = do_QueryInterface(parentFolder);
-  nsCOMPtr<nsILocalFile> oldSummaryFile;
+  nsCOMPtr<nsIFile> oldSummaryFile;
   rv = GetSummaryFileLocation(oldPathFile, getter_AddRefs(oldSummaryFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> dirFile;
+  nsCOMPtr<nsIFile> dirFile;
   PRInt32 count = mSubFolders.Count();
 
   if (count > 0)
@@ -3939,7 +3936,7 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const nsAString& aNewName, nsIMsgWindow *msg
   }
   else
   {
-    nsCOMPtr <nsILocalFile> parentPathFile;
+    nsCOMPtr <nsIFile> parentPathFile;
     parentFolder->GetFilePath(getter_AddRefs(parentPathFile));
     NS_ENSURE_SUCCESS(rv,rv);
     bool isDirectory = false;
@@ -4642,20 +4639,20 @@ NS_IMETHODIMP nsMsgDBFolder::GetRootFolder(nsIMsgFolder * *aRootFolder)
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::SetFilePath(nsILocalFile *aFile)
+nsMsgDBFolder::SetFilePath(nsIFile *aFile)
 {
   mPath = aFile;
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::GetFilePath(nsILocalFile * *aFile)
+nsMsgDBFolder::GetFilePath(nsIFile * *aFile)
 {
   NS_ENSURE_ARG_POINTER(aFile);
   nsresult rv;
-  // make a new nsILocalFile object in case the caller
+  // make a new nsIFile object in case the caller
   // alters the underlying file object.
-  nsCOMPtr <nsILocalFile> file = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  nsCOMPtr <nsIFile> file = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   if (!mPath)
     parseURI(true);

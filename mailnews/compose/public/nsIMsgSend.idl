@@ -34,7 +34,7 @@ interface nsIMsgDBHdr;
 interface nsIMsgHdr;
 interface nsIDocShell;
 interface nsIFile;
-interface nsILocalFile;
+interface nsIFile;
 interface nsIOutputStream;
 interface nsIMsgComposeSecure;
 interface nsIMsgStatusFeedback;
@@ -100,7 +100,7 @@ interface nsIMsgAttachedFile : nsISupports
   attribute nsIURI origUrl;
 
   /// The tmp file in which the (possibly converted) data now resides.
-  attribute nsILocalFile tmpFile;
+  attribute nsIFile tmpFile;
 
   /// The type of the data in file_name (not necessarily the same as the type of orig_url.)
   attribute ACString type;
@@ -198,7 +198,7 @@ public:
 
   nsCOMPtr<nsIURI> m_origUrl; // Where it came from on the network (or even elsewhere on the local disk.)
 
-  nsCOMPtr<nsILocalFile>  m_tmpFile;    // The tmp file in which the (possibly converted) data now resides.
+  nsCOMPtr<nsIFile>  m_tmpFile;    // The tmp file in which the (possibly converted) data now resides.
 
   nsCString m_type;        // The type of the data in file_name (not necessarily the same as the type of orig_url.)
 

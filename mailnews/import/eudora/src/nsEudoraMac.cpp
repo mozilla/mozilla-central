@@ -143,7 +143,7 @@ bool nsEudoraMac::VerifyEudoraLocation(nsIFile **pFolder, bool findIni)
   {
     nsCOMPtr<nsISupports> aSupport;
     rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
-    nsCOMPtr<nsILocalFile> entry(do_QueryInterface(aSupport, &rv));
+    nsCOMPtr<nsIFile> entry(do_QueryInterface(aSupport, &rv));
     directoryEnumerator->HasMoreElements(&hasMore);
 
 
@@ -260,7 +260,7 @@ nsresult nsEudoraMac::IterateMailDir(nsIFile *pFolder, nsISupportsArray *pArray,
   {
     nsCOMPtr<nsISupports> aSupport;
     rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
-    nsCOMPtr<nsILocalFile> entry(do_QueryInterface(aSupport, &rv));
+    nsCOMPtr<nsIFile> entry(do_QueryInterface(aSupport, &rv));
     directoryEnumerator->HasMoreElements(&hasMore);
 
     bool isFolder;
@@ -337,12 +337,11 @@ nsresult nsEudoraMac::FoundMailbox(nsIFile *mailFile, const char *pName, nsISupp
     mailFile->GetFileSize(&sz);
     desc->SetDisplayName(displayName.get());
     desc->SetDepth(m_depth);
-    nsCOMPtr <nsILocalFile> pLocalFile;
+    nsCOMPtr <nsIFile> pLocalFile;
     desc->GetFile(getter_AddRefs(pLocalFile));
     if (pLocalFile)
     {
-      nsCOMPtr <nsILocalFile> localMailFile = do_QueryInterface(mailFile);
-      pLocalFile->InitWithFile(localMailFile);
+      pLocalFile->InitWithFile(mailFile);
     }
     rv = desc->QueryInterface(kISupportsIID, (void **) &pInterface);
     pArray->AppendElement(pInterface);
@@ -353,7 +352,7 @@ nsresult nsEudoraMac::FoundMailbox(nsIFile *mailFile, const char *pName, nsISupp
 }
 
 
-nsresult nsEudoraMac::FoundMailFolder(nsILocalFile *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport)
+nsresult nsEudoraMac::FoundMailFolder(nsIFile *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport)
 {
   nsAutoString          displayName;
   nsCOMPtr<nsIImportMailboxDescriptor>  desc;
@@ -378,7 +377,7 @@ nsresult nsEudoraMac::FoundMailFolder(nsILocalFile *mailFolder, const char *pNam
     desc->SetDisplayName(displayName.get());
     desc->SetDepth(m_depth);
     desc->SetSize(sz);
-    nsCOMPtr <nsILocalFile> pFile;
+    nsCOMPtr <nsIFile> pFile;
     desc->GetFile(getter_AddRefs(pFile));
     if (pFile)
       pFile->InitWithFile(mailFolder);
@@ -989,9 +988,7 @@ nsresult nsEudoraMac::GetAttachmentInfo(const char *pFileName, nsIFile *pFile, n
   memset(&fsRef, 0, sizeof(fsRef));
   {
     nsresult rv;
-    nsCOMPtr <nsILocalFile> pLocalFile = do_QueryInterface(pFile, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-    pLocalFile->InitWithNativePath(str);
+    rv = pFile->InitWithNativePath(str);
     if (NS_FAILED(rv))
     {
       IMPORT_LOG0("\tfailed to set native path\n");
@@ -1111,10 +1108,9 @@ nsresult nsEudoraMac::FindAddressBooks(nsIFile *pRoot, nsISupportsArray **ppArra
   // additional files in the Nicknames folder
   // Try and find the nickNames file
   nsresult rv;
-  nsCOMPtr<nsILocalFile> file = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  nsCOMPtr<nsIFile> file = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr<nsILocalFile> localRoot = do_QueryInterface(pRoot);
-  rv = file->InitWithFile(localRoot);
+  rv = file->InitWithFile(pRoot);
   if (NS_FAILED(rv))
     return rv;
   rv = NS_NewISupportsArray(ppArray);
@@ -1168,7 +1164,7 @@ nsresult nsEudoraMac::FindAddressBooks(nsIFile *pRoot, nsISupportsArray **ppArra
   }
 
   // Now try the directory of address books!
-  rv = file->InitWithFile(localRoot);
+  rv = file->InitWithFile(pRoot);
   if (NS_SUCCEEDED(rv))
     rv = file->AppendNative(NS_LITERAL_CSTRING("Nicknames Folder"));
   exists = false;
@@ -1196,7 +1192,7 @@ nsresult nsEudoraMac::FindAddressBooks(nsIFile *pRoot, nsISupportsArray **ppArra
   {
     nsCOMPtr<nsISupports> aSupport;
     rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
-    nsCOMPtr<nsILocalFile> entry(do_QueryInterface(aSupport, &rv));
+    nsCOMPtr<nsIFile> entry(do_QueryInterface(aSupport, &rv));
     directoryEnumerator->HasMoreElements(&hasMore);
 
     if (NS_SUCCEEDED(rv))

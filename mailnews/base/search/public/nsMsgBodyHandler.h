@@ -60,7 +60,7 @@ protected:
 
   nsIMsgSearchScopeTerm *m_scope;
   nsCOMPtr <nsILineInputStream> m_fileLineStream;
-  nsCOMPtr <nsILocalFile> m_localFile;
+  nsCOMPtr <nsIFile> m_localFile;
 
   /**
    * The number of lines in the message.  If |m_lineCountInBodyLines| then this

@@ -46,7 +46,7 @@ private:
   nsCString mCharsetOverride; // used by nsIMsgI18NUrl...
 
   nsCString mOriginalSpec;
-  nsCOMPtr <nsILocalFile>  m_filePath;
+  nsCOMPtr <nsIFile>  m_filePath;
 
   // used by save message to disk
   nsCOMPtr<nsIFile> m_messageFile;

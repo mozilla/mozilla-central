@@ -34,7 +34,7 @@ public:
     virtual ~nsRssIncomingServer();
 protected:
     nsresult FolderChanged(nsIMsgFolder *aFolder, bool aUnsubscribe);
-    nsresult FillInDataSourcePath(const nsAString& aDataSourceName, nsILocalFile ** aLocation);
+    nsresult FillInDataSourcePath(const nsAString& aDataSourceName, nsIFile ** aLocation);
     static nsrefcnt gInstanceCount;
 };
 

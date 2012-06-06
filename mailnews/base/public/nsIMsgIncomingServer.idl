@@ -16,7 +16,7 @@ interface nsISpamSettings;
 interface nsIMsgFilterPlugin;
 interface nsIUrlListener;
 interface nsIMsgDBHdr;
-interface nsILocalFile;
+interface nsIFile;
 interface nsIURI;
 interface nsIMsgPluggableStore;
 
@@ -132,7 +132,7 @@ interface nsIMsgIncomingServer : nsISupports {
   attribute boolean performingBiff; 
 
   /* the on-disk path to message storage for this server */
-  attribute nsILocalFile localPath;
+  attribute nsIFile localPath;
 
   /// message store to use for the folders under this server.
   readonly attribute nsIMsgPluggableStore msgStore;
@@ -225,7 +225,7 @@ interface nsIMsgIncomingServer : nsISupports {
   void setEditableFilterList(in nsIMsgFilterList aFilterList);
 
   /* we use this to set the default local path.  we use this when migrating prefs */
-  void setDefaultLocalPath(in nsILocalFile aDefaultLocalPath);
+  void setDefaultLocalPath(in nsIFile aDefaultLocalPath);
 
   /**
    * Verify that we can logon
@@ -311,8 +311,8 @@ interface nsIMsgIncomingServer : nsISupports {
    * @return        The value of the preference.
    * @{
    */
-  nsILocalFile getFileValue(in string relpref, in string abspref);
-  void setFileValue(in string relpref, in string abspref, in nsILocalFile aValue);
+  nsIFile getFileValue(in string relpref, in string abspref);
+  void setFileValue(in string relpref, in string abspref, in nsIFile aValue);
   /** @} */
 
   /**

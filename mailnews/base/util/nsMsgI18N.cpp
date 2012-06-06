@@ -298,7 +298,7 @@ bool nsMsgI18Ncheck_data_in_charset_range(const char *charset, const PRUnichar* 
 // Simple parser to parse META charset. 
 // It only supports the case when the description is within one line. 
 const char * 
-nsMsgI18NParseMetaCharset(nsILocalFile* file) 
+nsMsgI18NParseMetaCharset(nsIFile* file) 
 { 
   static char charset[nsIMimeConverter::MAX_CHARSET_NAME_LENGTH+1];
 

@@ -117,7 +117,7 @@ public:
   nsMsgAttachedFile   *messageBody;        // message body
   nsMsgAttachedFile   *curAttachment;       // temp
 
-  nsCOMPtr <nsILocalFile> tmpFile;
+  nsCOMPtr <nsIFile> tmpFile;
   nsCOMPtr <nsIOutputStream> tmpFileStream;      // output file handle
 
   MimeDecoderData     *decoder_data;

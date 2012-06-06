@@ -59,7 +59,7 @@ protected:
   nsCOMPtr<nsIStreamListener> m_mailboxCopyHandler;
 
   nsMailboxAction m_mailboxAction; // the action this url represents...parse mailbox, display messages, etc.
-  nsCOMPtr <nsILocalFile>  m_filePath;
+  nsCOMPtr <nsIFile>  m_filePath;
   char *m_messageID;
   PRUint32 m_messageSize;
   nsMsgKey m_messageKey;

@@ -6,7 +6,7 @@
 #ifndef profilemigratorbase___h___
 #define profilemigratorbase___h___
 
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIObserverService.h"
 #include "nsString.h"
 #include "nsITimer.h"

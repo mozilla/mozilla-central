@@ -2049,9 +2049,7 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFile *aFile,
         nsCOMPtr <nsIMsgParseMailMsgState> msgParser = do_CreateInstance(NS_PARSEMAILMSGSTATE_CONTRACTID, &rv);
         msgParser->SetMailDB(destDB);
 
-        nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(aFile);
-        if (NS_SUCCEEDED(rv))
-          rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), localFile);
+        rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), aFile);
         if (NS_SUCCEEDED(rv) && inputStream)
         {
           // now, copy the temp file to the offline store for the dest folder.
@@ -2836,20 +2834,20 @@ NS_IMETHODIMP nsImapService::NewChannel(nsIURI *aURI, nsIChannel **aRetVal)
   return rv;
 }
 
-NS_IMETHODIMP nsImapService::SetDefaultLocalPath(nsILocalFile *aPath)
+NS_IMETHODIMP nsImapService::SetDefaultLocalPath(nsIFile *aPath)
 {
   NS_ENSURE_ARG_POINTER(aPath);
 
   return NS_SetPersistentFile(PREF_MAIL_ROOT_IMAP_REL, PREF_MAIL_ROOT_IMAP, aPath);
 }
 
-NS_IMETHODIMP nsImapService::GetDefaultLocalPath(nsILocalFile **aResult)
+NS_IMETHODIMP nsImapService::GetDefaultLocalPath(nsIFile **aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = nsnull;
 
   bool havePref;
-  nsCOMPtr<nsILocalFile> localFile;
+  nsCOMPtr<nsIFile> localFile;
   nsresult rv = NS_GetPersistentFile(PREF_MAIL_ROOT_IMAP_REL,
                                      PREF_MAIL_ROOT_IMAP,
                                      NS_APP_IMAP_MAIL_50_DIR,

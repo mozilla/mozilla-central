@@ -10,10 +10,10 @@
 #include "nsIMessenger.h"
 #include "nsCOMPtr.h"
 #include "nsITransactionManager.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIDocShell.h"
 #include "nsIStringBundle.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsWeakReference.h"
 #include "nsIDOMWindow.h"
 
@@ -33,7 +33,7 @@ public:
   nsresult SaveAttachment(nsIFile *file, const nsACString& unescapedUrl,
                           const nsACString& messageUri, const nsACString& contentType, 
                           void *closure, nsIUrlListener *aListener);
-  nsresult PromptIfFileExists(nsILocalFile *file);
+  nsresult PromptIfFileExists(nsIFile *file);
   nsresult DetachAttachments(PRUint32 aCount,
                              const char ** aContentTypeArray,
                              const char ** aUrlArray,
@@ -59,14 +59,14 @@ protected:
   nsresult PromptIfDeleteAttachments(bool saveFirst, PRUint32 count, const char **displayNameArray);
 
 private:
-  nsresult GetLastSaveDirectory(nsILocalFile **aLastSaveAsDir);
+  nsresult GetLastSaveDirectory(nsIFile **aLastSaveAsDir);
   // if aLocalFile is a dir, we use it.  otherwise, we use the parent of aLocalFile.
-  nsresult SetLastSaveDirectory(nsILocalFile *aLocalFile);
+  nsresult SetLastSaveDirectory(nsIFile *aLocalFile);
 
   nsresult GetSaveAsFile(const nsAString& aMsgFilename, PRInt32 *aSaveAsFileType,
-                         nsILocalFile **aSaveAsFile);
+                         nsIFile **aSaveAsFile);
 
-  nsresult GetSaveToDir(nsILocalFile **aSaveToDir);
+  nsresult GetSaveToDir(nsIFile **aSaveToDir);
 
   nsString mId;
   nsCOMPtr<nsITransactionManager> mTxnMgr;

@@ -14,7 +14,7 @@
 #include "nsIImportABDescriptor.h"
 #include "nsIImportFieldMap.h"
 #include "nsStringGlue.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIAddrDatabase.h"
 #include "nsIAbManager.h"
 #include "nsIAbLDIFService.h"
@@ -523,7 +523,7 @@ already_AddRefed<nsIAddrDatabase> GetAddressBook(const PRUnichar *name,
 
   nsresult rv;
   nsIAddrDatabase *pDatabase = nsnull;
-  nsCOMPtr<nsILocalFile> dbPath;
+  nsCOMPtr<nsIFile> dbPath;
   nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv))
   {

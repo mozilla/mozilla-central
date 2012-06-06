@@ -11,7 +11,7 @@
 #include "nsIMsgFilterList.h"
 #include "msgCore.h"
 #include "nsIMsgFolder.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsCOMPtr.h"
 #include "nsWeakReference.h"
 #include "nsIMsgDatabase.h"
@@ -70,7 +70,7 @@ protected:
   nsresult InternalSetHostName(const nsACString& aHostname, const char * prefName);
 
   nsresult getProtocolInfo(nsIMsgProtocolInfo **aResult);
-  nsCOMPtr <nsILocalFile> mFilterFile;
+  nsCOMPtr <nsIFile> mFilterFile;
   nsCOMPtr <nsIMsgFilterList> mFilterList;
   nsCOMPtr <nsIMsgFilterList> mEditableFilterList;
   nsCOMPtr<nsIPrefBranch> mPrefBranch;

@@ -12,7 +12,7 @@
 #include "nsMsgImapCID.h"
 #include "nsImapMailFolder.h"
 #include "nsIEnumerator.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIFolderListener.h"
 #include "nsCOMPtr.h"
 #include "nsAutoPtr.h"
@@ -148,11 +148,10 @@ nsresult RecursiveCopy(nsIFile* srcDir, nsIFile* destDir)
       {
         if (isDir)
         {
-          nsCOMPtr<nsIFile> destClone;
-          rv = destDir->Clone(getter_AddRefs(destClone));
+          nsCOMPtr<nsIFile> newChild;
+          rv = destDir->Clone(getter_AddRefs(newChild));
           if (NS_SUCCEEDED(rv))
           {
-            nsCOMPtr<nsILocalFile> newChild(do_QueryInterface(destClone));
             nsAutoString leafName;
             dirEntry->GetLeafName(leafName);
             newChild->AppendRelativePath(leafName);
@@ -235,7 +234,7 @@ NS_IMPL_QUERY_HEAD(nsImapMailFolder)
     NS_IMPL_QUERY_BODY(nsIMsgFilterHitNotify)
 NS_IMPL_QUERY_TAIL_INHERITING(nsMsgDBFolder)
 
-nsresult nsImapMailFolder::AddDirectorySeparator(nsILocalFile *path)
+nsresult nsImapMailFolder::AddDirectorySeparator(nsIFile *path)
 {
   if (mURI.Equals(kImapRootURI))
   {
@@ -309,7 +308,7 @@ NS_IMETHODIMP nsImapMailFolder::AddSubfolder(const nsAString& aName, nsIMsgFolde
   nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(res, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr <nsILocalFile> path;
+  nsCOMPtr <nsIFile> path;
   rv = CreateDirectoryForFolder(getter_AddRefs(path));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -344,7 +343,7 @@ NS_IMETHODIMP nsImapMailFolder::AddSubfolder(const nsAString& aName, nsIMsgFolde
   return rv;
 }
 
-nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsILocalFile *dbPath,
+nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsIFile *dbPath,
                                              nsIMsgFolder **child, bool brandNew)
 {
   NS_ENSURE_ARG_POINTER(child);
@@ -430,7 +429,7 @@ nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsILocalFile *d
   return rv;
 }
 
-nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
+nsresult nsImapMailFolder::CreateSubFolders(nsIFile *path)
 {
   nsresult rv = NS_OK;
   nsAutoString currentFolderNameStr;    // online name
@@ -455,7 +454,7 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
     rv = children->HasMoreElements(&more);
     if (NS_FAILED(rv)) return rv;
 
-    nsCOMPtr <nsILocalFile> currentFolderPath = do_QueryInterface(dirEntry);
+    nsCOMPtr <nsIFile> currentFolderPath = do_QueryInterface(dirEntry);
     currentFolderPath->GetLeafName(currentFolderNameStr);
     if (nsShouldIgnoreFile(currentFolderNameStr))
       continue;
@@ -463,9 +462,9 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
     // OK, here we need to get the online name from the folder cache if we can.
     // If we can, use that to create the sub-folder
     nsCOMPtr <nsIMsgFolderCacheElement> cacheElement;
-    nsCOMPtr <nsILocalFile> curFolder = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+    nsCOMPtr <nsIFile> curFolder = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    nsCOMPtr <nsILocalFile> dbFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+    nsCOMPtr <nsIFile> dbFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     dbFile->InitWithFile(currentFolderPath);
     curFolder->InitWithFile(currentFolderPath);
@@ -511,7 +510,7 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
       }
     }
       // make the imap folder remember the file spec it was created with.
-    nsCOMPtr <nsILocalFile> msfFilePath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+    nsCOMPtr <nsIFile> msfFilePath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     msfFilePath->InitWithFile(currentFolderPath);
     if (NS_SUCCEEDED(rv) && msfFilePath)
@@ -542,7 +541,7 @@ NS_IMETHODIMP nsImapMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
 
   if (!m_initialized)
   {
-    nsCOMPtr<nsILocalFile> pathFile;
+    nsCOMPtr<nsIFile> pathFile;
     rv = GetFilePath(getter_AddRefs(pathFile));
     if (NS_FAILED(rv)) return rv;
 
@@ -888,7 +887,7 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
   nsresult rv = NS_OK;
 
   //Get a directory based on our current path.
-  nsCOMPtr <nsILocalFile> path;
+  nsCOMPtr <nsIFile> path;
   rv = CreateDirectoryForFolder(getter_AddRefs(path));
   if(NS_FAILED(rv))
     return rv;
@@ -934,7 +933,7 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsIMsgDatabase> unusedDB;
-  nsCOMPtr <nsILocalFile> dbFile;
+  nsCOMPtr <nsIFile> dbFile;
 
   // warning, path will be changed
   rv = CreateFileForDB(folderNameStr, path, getter_AddRefs(dbFile));
@@ -1598,11 +1597,11 @@ NS_IMETHODIMP nsImapMailFolder::Delete()
     mDatabase = nsnull;
   }
 
-  nsCOMPtr<nsILocalFile> path;
+  nsCOMPtr<nsIFile> path;
   rv = GetFilePath(getter_AddRefs(path));
   if (NS_SUCCEEDED(rv))
   {
-    nsCOMPtr<nsILocalFile> summaryLocation;
+    nsCOMPtr<nsIFile> summaryLocation;
     rv = GetSummaryFileLocation(path, getter_AddRefs(summaryLocation));
     if (NS_SUCCEEDED(rv))
     {
@@ -1714,11 +1713,11 @@ NS_IMETHODIMP nsImapMailFolder::RenameLocal(const nsACString& newName, nsIMsgFol
   CloseAndBackupFolderDB(leafname);
 
   nsresult rv = NS_OK;
-  nsCOMPtr<nsILocalFile> oldPathFile;
+  nsCOMPtr<nsIFile> oldPathFile;
   rv = GetFilePath(getter_AddRefs(oldPathFile));
   if (NS_FAILED(rv)) return rv;
 
-  nsCOMPtr<nsILocalFile> parentPathFile;
+  nsCOMPtr<nsIFile> parentPathFile;
   rv = parent->GetFilePath(getter_AddRefs(parentPathFile));
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1727,13 +1726,13 @@ NS_IMETHODIMP nsImapMailFolder::RenameLocal(const nsACString& newName, nsIMsgFol
   if (!isDirectory)
   AddDirectorySeparator(parentPathFile);
 
-  nsCOMPtr <nsILocalFile> dirFile;
+  nsCOMPtr <nsIFile> dirFile;
 
   PRInt32 count = mSubFolders.Count();
   if (count > 0)
     rv = CreateDirectoryForFolder(getter_AddRefs(dirFile));
 
-  nsCOMPtr <nsILocalFile> oldSummaryFile;
+  nsCOMPtr <nsIFile> oldSummaryFile;
   rv = GetSummaryFileLocation(oldPathFile, getter_AddRefs(oldSummaryFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -2708,7 +2707,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
   {
     NS_ASSERTION(imapUIDValidity == kUidUnknown,
                  "uid validity seems to have changed, blowing away db");
-    nsCOMPtr<nsILocalFile> pathFile;
+    nsCOMPtr<nsIFile> pathFile;
     rv = GetFilePath(getter_AddRefs(pathFile));
     if (NS_FAILED(rv)) return rv;
 
@@ -2740,7 +2739,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
     }
     mDatabase = nsnull;
 
-    nsCOMPtr <nsILocalFile> summaryFile;
+    nsCOMPtr <nsIFile> summaryFile;
     rv = GetSummaryFileLocation(pathFile, getter_AddRefs(summaryFile));
     // Remove summary file.
     if (NS_SUCCEEDED(rv) && summaryFile)
@@ -3246,8 +3245,8 @@ NS_IMETHODIMP nsImapMailFolder::BeginCopy(nsIMsgDBHdr *message)
   }
 
   nsCOMPtr<nsIOutputStream> fileOutputStream;
-  nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(m_copyState->m_tmpFile);
-  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(m_copyState->m_msgFileStream), localFile, -1, 00600);
+  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(m_copyState->m_msgFileStream),
+                                      m_copyState->m_tmpFile, -1, 00600);
   if (NS_FAILED(rv))
     PR_LOG(IMAP, PR_LOG_ALWAYS, ("couldn't create output file stream:%lx\n", rv));
 
@@ -4456,9 +4455,7 @@ nsImapMailFolder::SetupMsgWriteStream(nsIFile * aFile, bool addDummyEnvelope)
 {
   nsresult rv;
   aFile->Remove(false);
-  nsCOMPtr<nsILocalFile>  localFile = do_QueryInterface(aFile, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(m_tempMessageStream), localFile, PR_WRONLY | PR_CREATE_FILE | PR_TRUNCATE, 00700);
+  rv = MsgNewBufferedFileOutputStream(getter_AddRefs(m_tempMessageStream), aFile, PR_WRONLY | PR_CREATE_FILE | PR_TRUNCATE, 00700);
   if (m_tempMessageStream && addDummyEnvelope)
   {
     nsCAutoString result;
@@ -6595,14 +6592,14 @@ nsresult nsMsgIMAPFolderACL::CreateACLRightsString(nsAString& aRightsString)
   return rv;
 }
 
-NS_IMETHODIMP nsImapMailFolder::GetFilePath(nsILocalFile ** aPathName)
+NS_IMETHODIMP nsImapMailFolder::GetFilePath(nsIFile ** aPathName)
 {
   // this will return a copy of mPath, which is what we want.
   // this will also initialize mPath using parseURI if it isn't already done
   return nsMsgDBFolder::GetFilePath(aPathName);
 }
 
-NS_IMETHODIMP nsImapMailFolder::SetFilePath(nsILocalFile * aPathName)
+NS_IMETHODIMP nsImapMailFolder::SetFilePath(nsIFile * aPathName)
 {
   return nsMsgDBFolder::SetFilePath(aPathName);   // call base class so mPath will get set
 }
@@ -7861,14 +7858,14 @@ nsImapMailFolder::CopyFolder(nsIMsgFolder* srcFolder,
 
       srcFolder->ForceDBClosed();
 
-      nsCOMPtr<nsILocalFile> oldPathFile;
+      nsCOMPtr<nsIFile> oldPathFile;
       rv = srcFolder->GetFilePath(getter_AddRefs(oldPathFile));
       NS_ENSURE_SUCCESS(rv,rv);
 
-      nsCOMPtr <nsILocalFile> summaryFile;
+      nsCOMPtr <nsIFile> summaryFile;
       GetSummaryFileLocation(oldPathFile, getter_AddRefs(summaryFile));
 
-      nsCOMPtr<nsILocalFile> newPathFile;
+      nsCOMPtr<nsIFile> newPathFile;
       rv = GetFilePath(getter_AddRefs(newPathFile));
       NS_ENSURE_SUCCESS(rv,rv);
 
@@ -7910,7 +7907,7 @@ nsImapMailFolder::CopyFolder(nsIMsgFolder* srcFolder,
         nsCOMPtr <nsIMsgDatabase> srcDB; // we need to force closed the source db
         srcFolder->Delete();
 
-        nsCOMPtr<nsILocalFile> parentPathFile;
+        nsCOMPtr<nsIFile> parentPathFile;
         rv = msgParent->GetFilePath(getter_AddRefs(parentPathFile));
         NS_ENSURE_SUCCESS(rv,rv);
 
@@ -8218,7 +8215,7 @@ nsImapMailFolder::InitCopyState(nsISupports* srcSupport,
 }
 
 nsresult
-nsImapMailFolder::CopyFileToOfflineStore(nsILocalFile *srcFile, nsMsgKey msgKey)
+nsImapMailFolder::CopyFileToOfflineStore(nsIFile *srcFile, nsMsgKey msgKey)
 {
   nsCOMPtr<nsIMsgDatabase> db;
   nsresult rv = GetMsgDatabase(getter_AddRefs(db));
@@ -8331,7 +8328,7 @@ nsImapMailFolder::OnCopyCompleted(nsISupports *srcSupport, nsresult rv)
   // store, and add a kMoveResult offline op.
   if (NS_SUCCEEDED(rv) && m_copyState)
   {
-    nsCOMPtr<nsILocalFile> srcFile(do_QueryInterface(srcSupport));
+    nsCOMPtr<nsIFile> srcFile(do_QueryInterface(srcSupport));
     if (srcFile && (mFlags & nsMsgFolderFlags::Offline) && !WeAreOffline())
       (void) CopyFileToOfflineStore(srcFile, m_copyState->m_appendUID);
   }
@@ -8601,7 +8598,7 @@ NS_IMETHODIMP nsImapMailFolder::PerformExpand(nsIMsgWindow *aMsgWindow)
 NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFolder *msgFolder, const nsACString& oldName, const nsACString& newName)
 {
   nsresult rv;
-  nsCOMPtr<nsILocalFile> pathFile;
+  nsCOMPtr<nsIFile> pathFile;
   rv = GetFilePath(getter_AddRefs(pathFile));
   if (NS_FAILED(rv)) return rv;
 
@@ -8639,7 +8636,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgDatabase> unusedDB;
-  nsCOMPtr <nsILocalFile> dbFile;
+  nsCOMPtr <nsIFile> dbFile;
 
   // warning, path will be changed
   rv = CreateFileForDB(newLeafName, pathFile, getter_AddRefs(dbFile));
@@ -8740,11 +8737,11 @@ NS_IMETHODIMP nsImapMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, nsIMsg
     bool verified;
     folder->GetVerifiedAsOnlineFolder(&verified);
 
-    nsCOMPtr<nsILocalFile> oldPathFile;
+    nsCOMPtr<nsIFile> oldPathFile;
     rv = msgFolder->GetFilePath(getter_AddRefs(oldPathFile));
     if (NS_FAILED(rv)) return rv;
 
-    nsCOMPtr<nsILocalFile> newParentPathFile;
+    nsCOMPtr<nsIFile> newParentPathFile;
     rv = GetFilePath(getter_AddRefs(newParentPathFile));
     if (NS_FAILED(rv)) return rv;
 
@@ -8756,11 +8753,11 @@ NS_IMETHODIMP nsImapMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, nsIMsg
     nsCString newPathStr;
     newParentPathFile->GetNativePath(newPathStr);
 
-    nsCOMPtr<nsILocalFile> newPathFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+    nsCOMPtr<nsIFile> newPathFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     newPathFile->InitWithFile(newParentPathFile);
 
-    nsCOMPtr<nsILocalFile> dbFilePath = newPathFile;
+    nsCOMPtr<nsIFile> dbFilePath = newPathFile;
 
     nsCOMPtr<nsIMsgFolder> child;
 

@@ -93,7 +93,7 @@ NS_IMETHODIMP nsMsgFilterList::SaveToFile(nsIOutputStream *stream)
 
 NS_IMETHODIMP nsMsgFilterList::EnsureLogFile()
 {
-  nsCOMPtr <nsILocalFile> file;
+  nsCOMPtr <nsIFile> file;
   nsresult rv = GetLogFile(getter_AddRefs(file));
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -112,7 +112,7 @@ nsresult nsMsgFilterList::TruncateLog()
   nsresult rv = SetLogStream(nsnull);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCOMPtr <nsILocalFile> file;
+  nsCOMPtr <nsIFile> file;
   rv = GetLogFile(getter_AddRefs(file));
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -141,7 +141,7 @@ NS_IMETHODIMP nsMsgFilterList::ClearLog()
 }
 
 nsresult
-nsMsgFilterList::GetLogFile(nsILocalFile **aFile)
+nsMsgFilterList::GetLogFile(nsIFile **aFile)
 {
   NS_ENSURE_ARG_POINTER(aFile);
 
@@ -172,11 +172,11 @@ nsMsgFilterList::GetLogFile(nsILocalFile **aFile)
   // mcom.test.htm
   if (type.Equals("nntp") && !isServer)
   {
-    nsCOMPtr<nsILocalFile> thisFolder;
+    nsCOMPtr<nsIFile> thisFolder;
     rv = m_folder->GetFilePath(getter_AddRefs(thisFolder));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsILocalFile> filterLogFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+    nsCOMPtr<nsIFile> filterLogFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     rv = filterLogFile->InitWithFile(thisFolder);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -208,7 +208,7 @@ nsMsgFilterList::GetLogFile(nsILocalFile **aFile)
 NS_IMETHODIMP
 nsMsgFilterList::GetLogURL(nsACString &aLogURL)
 {
-  nsCOMPtr <nsILocalFile> file;
+  nsCOMPtr <nsIFile> file;
   nsresult rv = GetLogFile(getter_AddRefs(file));
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -243,7 +243,7 @@ nsMsgFilterList::GetLogStream(nsIOutputStream **aLogStream)
   nsresult rv;
 
   if (!m_logStream) {
-    nsCOMPtr <nsILocalFile> logFile;
+    nsCOMPtr <nsIFile> logFile;
     rv = GetLogFile(getter_AddRefs(logFile));
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -333,14 +333,14 @@ nsMsgFilterList::ApplyFiltersToHdr(nsMsgFilterTypeType filterType,
 }
 
 NS_IMETHODIMP
-nsMsgFilterList::SetDefaultFile(nsILocalFile *aFile)
+nsMsgFilterList::SetDefaultFile(nsIFile *aFile)
 {
   m_defaultFile = aFile;
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgFilterList::GetDefaultFile(nsILocalFile **aResult)
+nsMsgFilterList::GetDefaultFile(nsIFile **aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
 

@@ -67,7 +67,7 @@ protected:
     bool m_uidlDownload;
     bool m_buildMessageUri;
     bool m_downloadingToTempFile;
-    nsCOMPtr <nsILocalFile> m_tmpDownloadFile;
+    nsCOMPtr <nsIFile> m_tmpDownloadFile;
     nsCOMPtr<nsIMsgWindow> m_window;
     nsCString m_messageUri;
     nsCString m_baseMessageUri;

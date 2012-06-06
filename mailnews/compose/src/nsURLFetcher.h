@@ -56,7 +56,7 @@ protected:
 
 private:
   nsCOMPtr<nsIOutputStream>       mOutStream;               // the output file stream
-  nsCOMPtr<nsILocalFile>          mLocalFile;               // the output file itself
+  nsCOMPtr<nsIFile>          mLocalFile;               // the output file itself
   nsCOMPtr<nsIStreamListener>     mConverter;               // the stream converter, if needed
   nsCString                  mConverterContentType;    // The content type of the converter
   bool                            mStillRunning;  // Are we still running?

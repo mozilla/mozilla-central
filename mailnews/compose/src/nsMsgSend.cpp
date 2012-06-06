@@ -1433,33 +1433,29 @@ nsMsgComposeAndSend::GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData
       rv = fileUrl->GetFile(getter_AddRefs(aFile));
       if (NS_SUCCEEDED(rv) && aFile)
       {
-        nsCOMPtr<nsILocalFile> aLocalFile (do_QueryInterface(aFile));
-        if (aLocalFile)
+        rv = aFile->IsFile(&isAValidFile);
+        if (NS_FAILED(rv))
+          isAValidFile = false;
+        else
         {
-          rv = aLocalFile->IsFile(&isAValidFile);
-          if (NS_FAILED(rv))
-            isAValidFile = false;
-          else
+          if (anchor)
           {
-            if (anchor)
-            {
-              // One more test, if the anchor points to a local network server, let's check what the pref
-              // mail.compose.dont_attach_source_of_local_network_links tells us to do.
-              nsCAutoString urlSpec;
-              rv = attachment->m_url->GetSpec(urlSpec);
-              if (NS_SUCCEEDED(rv))
-                if (StringBeginsWith(urlSpec, NS_LITERAL_CSTRING("file://///")))
+            // One more test, if the anchor points to a local network server, let's check what the pref
+            // mail.compose.dont_attach_source_of_local_network_links tells us to do.
+            nsCAutoString urlSpec;
+            rv = attachment->m_url->GetSpec(urlSpec);
+            if (NS_SUCCEEDED(rv))
+              if (StringBeginsWith(urlSpec, NS_LITERAL_CSTRING("file://///")))
+              {
+                nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
+                if (pPrefBranch)
                 {
-                  nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
-                  if (pPrefBranch)
-                  {
-                    bool dontSend = false;
-                    rv = pPrefBranch->GetBoolPref(PREF_MAIL_DONT_ATTACH_SOURCE, &dontSend);
-                    if (dontSend)
-                      isAValidFile = false;
-                  }
+                  bool dontSend = false;
+                  rv = pPrefBranch->GetBoolPref(PREF_MAIL_DONT_ATTACH_SOURCE, &dontSend);
+                  if (dontSend)
+                    isAValidFile = false;
                 }
-            }
+              }
           }
         }
       }
@@ -2440,7 +2436,7 @@ nsMsgComposeAndSend::HackAttachments(nsIArray *attachments,
       // sniff the file and see if we can figure it out.
       if (!m_attachments[i].m_type.IsEmpty())
       {
-        nsCOMPtr<nsILocalFile> tmpFile;
+        nsCOMPtr<nsIFile> tmpFile;
         attachedFile->GetTmpFile(getter_AddRefs(tmpFile));
         if (m_attachments[i].m_type.LowerCaseEqualsLiteral(TEXT_HTML) && tmpFile)
         {
@@ -5168,14 +5164,14 @@ NS_IMETHODIMP nsMsgAttachedFile::SetOrigUrl(nsIURI *aOrigUrl)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgAttachedFile::GetTmpFile(nsILocalFile **aTmpFile)
+NS_IMETHODIMP nsMsgAttachedFile::GetTmpFile(nsIFile **aTmpFile)
 {
   NS_ENSURE_ARG_POINTER(aTmpFile);
   NS_IF_ADDREF(*aTmpFile = m_tmpFile);
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgAttachedFile::SetTmpFile(nsILocalFile *aTmpFile)
+NS_IMETHODIMP nsMsgAttachedFile::SetTmpFile(nsIFile *aTmpFile)
 {
   m_tmpFile = aTmpFile;
   return NS_OK;

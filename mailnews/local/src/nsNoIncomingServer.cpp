@@ -73,7 +73,7 @@ nsNoIncomingServer::SetFlagsOnDefaultMailboxes()
   return NS_OK;
 }
 
-NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDisk, nsILocalFile *parentDir)
+NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDisk, nsIFile *parentDir)
 {
   nsresult rv;
   bool exists;
@@ -156,8 +156,7 @@ NS_IMETHODIMP nsNoIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
   nsCOMPtr<nsIFile> parentDir;
   rv = path->GetParent(getter_AddRefs(parentDir));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr <nsILocalFile> parent = do_QueryInterface(parentDir);
-  rv = CopyDefaultMessages("Templates", parent);
+  rv = CopyDefaultMessages("Templates", parentDir);
   NS_ENSURE_SUCCESS(rv, rv);
 
   (void ) CreateLocalFolder(NS_LITERAL_STRING("Unsent Messages"));

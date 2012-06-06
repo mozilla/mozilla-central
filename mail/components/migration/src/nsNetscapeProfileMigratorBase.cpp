@@ -40,15 +40,12 @@ NS_IMPL_ISUPPORTS2(nsNetscapeProfileMigratorBase, nsIMailProfileMigrator,
                    nsITimerCallback)
 
 nsresult
-nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aDataDir,
+nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsIFile* aDataDir,
                                                              nsIMutableArray* aProfileNames,
                                                              nsIMutableArray* aProfileLocations)
 {
-  nsCOMPtr<nsIFile> dataDir;
-  nsresult rv = aDataDir->Clone(getter_AddRefs(dataDir));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsILocalFile> profileIni(do_QueryInterface(dataDir, &rv));
+  nsCOMPtr<nsIFile> profileIni;
+  nsresult rv = aDataDir->Clone(getter_AddRefs(profileIni));
   NS_ENSURE_SUCCESS(rv, rv);
 
   profileIni->Append(NS_LITERAL_STRING("profiles.ini"));
@@ -91,7 +88,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
       continue;
     }
 
-    nsCOMPtr<nsILocalFile> rootDir;
+    nsCOMPtr<nsIFile> rootDir;
     rv = NS_NewNativeLocalFile(EmptyCString(), true, getter_AddRefs(rootDir));
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -306,11 +303,10 @@ nsresult nsNetscapeProfileMigratorBase::RecursiveCopy(nsIFile* srcDir, nsIFile* 
       {
         if (isDir)
         {
-          nsCOMPtr<nsIFile> destClone;
-          rv = destDir->Clone(getter_AddRefs(destClone));
+          nsCOMPtr<nsIFile> newChild;
+          rv = destDir->Clone(getter_AddRefs(newChild));
           if (NS_SUCCEEDED(rv))
           {
-            nsCOMPtr<nsILocalFile> newChild(do_QueryInterface(destClone));
             nsAutoString leafName;
             dirEntry->GetLeafName(leafName);
             newChild->AppendRelativePath(leafName);

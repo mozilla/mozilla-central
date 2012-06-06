@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsMsgFileStream.h"
 #include "prerr.h"
 #include "prerror.h"
@@ -45,7 +45,7 @@ nsMsgFileStream::~nsMsgFileStream()
 
 NS_IMPL_ISUPPORTS3(nsMsgFileStream, nsIInputStream, nsIOutputStream, nsISeekableStream)
 
-nsresult nsMsgFileStream::InitWithFile(nsILocalFile *file)
+nsresult nsMsgFileStream::InitWithFile(nsIFile *file)
 {
   return file->OpenNSPRFileDesc(PR_RDWR|PR_CREATE_FILE, 0664, &mFileDesc);
 }

@@ -6,7 +6,7 @@
 #ifndef netscapeprofilemigratorbase___h___
 #define netscapeprofilemigratorbase___h___
 
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIMutableArray.h"
 #include "nsStringAPI.h"
 #include "nsTArray.h"
@@ -104,11 +104,11 @@ protected:
 
   // General Utility Methods
   nsresult GetSourceProfile(const PRUnichar* aProfile);
-  nsresult GetProfileDataFromProfilesIni(nsILocalFile* aDataDir,
+  nsresult GetProfileDataFromProfilesIni(nsIFile* aDataDir,
                                          nsIMutableArray* aProfileNames,
                                          nsIMutableArray* aProfileLocations);
   nsresult GetFileValue(nsIPrefBranch* aPrefBranch, const char* aRelPrefName,
-                        const char* aPrefName, nsILocalFile** aReturnFile);
+                        const char* aPrefName, nsIFile** aReturnFile);
   nsresult CopyFile(const char* aSourceFileName,
                     const char* aTargetFileName);
   nsresult RecursiveCopy(nsIFile* srcDir, nsIFile* destDir);
@@ -144,7 +144,7 @@ protected:
   void EndCopyFolders();
 
   // Source & Target profiles
-  nsCOMPtr<nsILocalFile> mSourceProfile;
+  nsCOMPtr<nsIFile> mSourceProfile;
   nsCOMPtr<nsIFile> mTargetProfile;
 
   // list of src/destination files we still have to copy into the new profile

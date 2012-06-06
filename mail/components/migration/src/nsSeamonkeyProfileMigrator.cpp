@@ -208,28 +208,28 @@ nsSeamonkeyProfileMigrator::FillProfileDataFromSeamonkeyRegistry()
   // Find the Seamonkey Registry
   nsCOMPtr<nsIProperties> fileLocator(
     do_GetService("@mozilla.org/file/directory_service;1"));
-  nsCOMPtr<nsILocalFile> seamonkeyData;
+  nsCOMPtr<nsIFile> seamonkeyData;
 #undef EXTRA_PREPEND
 
 #ifdef XP_WIN
 #define NEW_FOLDER "SeaMonkey"
 #define EXTRA_PREPEND "Mozilla"
 
-  fileLocator->Get(NS_WIN_APPDATA_DIR, NS_GET_IID(nsILocalFile),
+  fileLocator->Get(NS_WIN_APPDATA_DIR, NS_GET_IID(nsIFile),
                    getter_AddRefs(seamonkeyData));
   NS_ENSURE_TRUE(seamonkeyData, NS_ERROR_FAILURE);
 
 #elif defined(XP_MACOSX)
 #define NEW_FOLDER "SeaMonkey"
 #define EXTRA_PREPEND "Application Support"
-  fileLocator->Get(NS_MAC_USER_LIB_DIR, NS_GET_IID(nsILocalFile),
+  fileLocator->Get(NS_MAC_USER_LIB_DIR, NS_GET_IID(nsIFile),
                    getter_AddRefs(seamonkeyData));
   NS_ENSURE_TRUE(seamonkeyData, NS_ERROR_FAILURE);
 
 #elif defined(XP_UNIX)
 #define NEW_FOLDER "seamonkey"
 #define EXTRA_PREPEND ".mozilla"
-  fileLocator->Get(NS_UNIX_HOME_DIR, NS_GET_IID(nsILocalFile),
+  fileLocator->Get(NS_UNIX_HOME_DIR, NS_GET_IID(nsIFile),
                    getter_AddRefs(seamonkeyData));
   NS_ENSURE_TRUE(seamonkeyData, NS_ERROR_FAILURE);
 
@@ -237,7 +237,7 @@ nsSeamonkeyProfileMigrator::FillProfileDataFromSeamonkeyRegistry()
 #define NEW_FOLDER "SeaMonkey"
 #define EXTRA_PREPEND "Mozilla"
 
-  fileLocator->Get(NS_OS2_HOME_DIR, NS_GET_IID(nsILocalFile),
+  fileLocator->Get(NS_OS2_HOME_DIR, NS_GET_IID(nsIFile),
                    getter_AddRefs(seamonkeyData));
   NS_ENSURE_TRUE(seamonkeyData, NS_ERROR_FAILURE);
 
@@ -255,10 +255,7 @@ nsSeamonkeyProfileMigrator::FillProfileDataFromSeamonkeyRegistry()
 #endif
   newSeamonkeyData->Append(NS_LITERAL_STRING(NEW_FOLDER));
 
-  nsCOMPtr<nsILocalFile> newSmDataLocal(do_QueryInterface(newSeamonkeyData));
-  NS_ENSURE_TRUE(newSmDataLocal, NS_ERROR_FAILURE);
-
-  nsresult rv = GetProfileDataFromProfilesIni(newSmDataLocal,
+  nsresult rv = GetProfileDataFromProfilesIni(newSeamonkeyData,
                                               mProfileNames,
                                               mProfileLocations);
 
@@ -435,8 +432,8 @@ nsSeamonkeyProfileMigrator::CopySignatureFiles(PBStructArray &aIdentities,
     // below the seamonkey profile root
     if (StringEndsWith(prefName, nsDependentCString(".sig_file")))
     {
-      // turn the pref into a nsILocalFile
-      nsCOMPtr<nsILocalFile> srcSigFile =
+      // turn the pref into a nsIFile
+      nsCOMPtr<nsIFile> srcSigFile =
         do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
       srcSigFile->SetPersistentDescriptor(nsDependentCString(pref->stringValue));
 
@@ -456,8 +453,7 @@ nsSeamonkeyProfileMigrator::CopySignatureFiles(PBStructArray &aIdentities,
 
         // now write out the new descriptor
         nsCAutoString descriptorString;
-        nsCOMPtr<nsILocalFile> localFile = do_QueryInterface(targetSigFile);
-        localFile->GetPersistentDescriptor(descriptorString);
+        targetSigFile->GetPersistentDescriptor(descriptorString);
         NS_Free(pref->stringValue);
         pref->stringValue = ToNewCString(descriptorString);
       }
@@ -512,8 +508,8 @@ nsSeamonkeyProfileMigrator::CopyMailFolders(PBStructArray &aMailServers,
       nsCString serverType;
       serverBranch->GetCharPref("type", getter_Copies(serverType));
 
-      nsCOMPtr<nsILocalFile> sourceMailFolder;
-      serverBranch->GetComplexValue("directory", NS_GET_IID(nsILocalFile), getter_AddRefs(sourceMailFolder));
+      nsCOMPtr<nsIFile> sourceMailFolder;
+      serverBranch->GetComplexValue("directory", NS_GET_IID(nsIFile), getter_AddRefs(sourceMailFolder));
 
       // now based on type, we need to build a new destination path for the mail folders for this server
       nsCOMPtr<nsIFile> targetMailFolder;
@@ -551,8 +547,7 @@ nsSeamonkeyProfileMigrator::CopyMailFolders(PBStructArray &aMailServers,
         // transformed into the new profile's pref.js has the right file
         // location.
         nsCAutoString descriptorString;
-        nsCOMPtr<nsILocalFile> localFile = do_QueryInterface(targetMailFolder);
-        localFile->GetPersistentDescriptor(descriptorString);
+        targetMailFolder->GetPersistentDescriptor(descriptorString);
         NS_Free(pref->stringValue);
         pref->stringValue = ToNewCString(descriptorString);
       }
@@ -566,8 +561,8 @@ nsSeamonkeyProfileMigrator::CopyMailFolders(PBStructArray &aMailServers,
       mTargetProfile->Clone(getter_AddRefs(targetNewsRCFile));
       targetNewsRCFile->Append(NEWS_DIR_50_NAME);
 
-      // turn the pref into a nsILocalFile
-      nsCOMPtr<nsILocalFile> srcNewsRCFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
+      // turn the pref into a nsIFile
+      nsCOMPtr<nsIFile> srcNewsRCFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
       srcNewsRCFile->SetPersistentDescriptor(nsDependentCString(pref->stringValue));
 
       // now make the copy
@@ -582,8 +577,7 @@ nsSeamonkeyProfileMigrator::CopyMailFolders(PBStructArray &aMailServers,
 
         // now write out the new descriptor
         nsCAutoString descriptorString;
-        nsCOMPtr<nsILocalFile> localFile = do_QueryInterface(targetNewsRCFile);
-        localFile->GetPersistentDescriptor(descriptorString);
+        targetNewsRCFile->GetPersistentDescriptor(descriptorString);
         NS_Free(pref->stringValue);
         pref->stringValue = ToNewCString(descriptorString);
       }

@@ -106,7 +106,7 @@ private:
 private:
   nsTextAddress m_text;
   bool m_haveDelim;
-  nsCOMPtr<nsILocalFile> m_fileLoc;
+  nsCOMPtr<nsIFile> m_fileLoc;
   nsCOMPtr<nsIStringBundle> m_notProxyBundle;
   char m_delim;
   PRUint32 m_bytesImported;

@@ -20,9 +20,9 @@
 #include "nsINetUtil.h"
 #include "nsServiceManagerUtils.h"
 #include "nsUnicharUtils.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 
-class nsILocalFile;
+class nsIFile;
 class nsIPrefBranch;
 class nsIMsgFolder;
 class nsIMsgMessageService;
@@ -119,12 +119,12 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
                                           const char *absPrefName,
                                           const char *dirServiceProp, // Can be NULL
                                           bool& gotRelPref,
-                                          nsILocalFile **aFile,
+                                          nsIFile **aFile,
                                           nsIPrefBranch *prefBranch = nsnull);
 
 NS_MSG_BASE nsresult NS_SetPersistentFile(const char *relPrefName,
                                           const char *absPrefName,
-                                          nsILocalFile *aFile,
+                                          nsIFile *aFile,
                                           nsIPrefBranch *prefBranch = nsnull);
 
 NS_MSG_BASE nsresult IsRFC822HeaderFieldName(const char *aHdr, bool *aResult);
@@ -163,17 +163,17 @@ NS_MSG_BASE void MsgGenerateNowStr(nsACString &nowStr);
 
 // Appends the correct summary file extension onto the supplied fileLocation
 // and returns it in summaryLocation.
-NS_MSG_BASE nsresult GetSummaryFileLocation(nsILocalFile* fileLocation,
-                                            nsILocalFile** summaryLocation);
+NS_MSG_BASE nsresult GetSummaryFileLocation(nsIFile* fileLocation,
+                                            nsIFile** summaryLocation);
 
 // Gets a special directory and appends the supplied file name onto it.
 NS_MSG_BASE nsresult GetSpecialDirectoryWithFileName(const char* specialDirName,
                                                      const char* fileName,
                                                      nsIFile** result);
 
-NS_MSG_BASE nsresult MsgGetFileStream(nsILocalFile *file, nsIOutputStream **fileStream);
+NS_MSG_BASE nsresult MsgGetFileStream(nsIFile *file, nsIOutputStream **fileStream);
 
-NS_MSG_BASE nsresult MsgReopenFileStream(nsILocalFile *file, nsIInputStream *fileStream);
+NS_MSG_BASE nsresult MsgReopenFileStream(nsIFile *file, nsIInputStream *fileStream);
 
 // Automatically creates an output stream with a 4K buffer
 NS_MSG_BASE nsresult MsgNewBufferedFileOutputStream(nsIOutputStream **aResult, nsIFile *aFile, PRInt32 aIOFlags = -1, PRInt32 aPerm = -1);
@@ -184,8 +184,8 @@ NS_MSG_BASE bool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, P
 
 NS_MSG_BASE bool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains);
 
-// gets an nsILocalFile from a UTF-8 file:// path
-NS_MSG_BASE nsresult MsgGetLocalFileFromURI(const nsACString &aUTF8Path, nsILocalFile **aFile);
+// gets an nsIFile from a UTF-8 file:// path
+NS_MSG_BASE nsresult MsgGetLocalFileFromURI(const nsACString &aUTF8Path, nsIFile **aFile);
 
 NS_MSG_BASE void MsgStripQuotedPrintable (unsigned char *src);
 
@@ -272,10 +272,10 @@ NS_MSG_BASE PRUint64 ParseUint64Str(const char *str);
 /**
  * Detect charset of file
  *
- * @param      aFile    The target of nsILocalFile
+ * @param      aFile    The target of nsIFile
  * @param[out] aCharset The charset string
  */
-NS_MSG_BASE nsresult MsgDetectCharsetFromFile(nsILocalFile *aFile, nsACString &aCharset);
+NS_MSG_BASE nsresult MsgDetectCharsetFromFile(nsIFile *aFile, nsACString &aCharset);
 
 /*
  * Converts a buffer to plain text. Some conversions may

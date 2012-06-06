@@ -11,7 +11,7 @@
 #define nsMsgBrkMboxStore_h__
 
 #include "nsMsgLocalStoreUtils.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsInterfaceHashtable.h"
 #include "nsISeekableStream.h"
 
@@ -28,7 +28,7 @@ private:
 
 protected:
   nsresult AddSubFolders(nsIMsgFolder *parent, nsIFile *path, bool deep);
-  nsresult CreateDirectoryForFolder(nsILocalFile *path);
+  nsresult CreateDirectoryForFolder(nsIFile *path);
   nsresult GetOutputStream(nsIArray *aHdrArray,
                            nsCOMPtr<nsIOutputStream> &outputStream,
                            nsCOMPtr<nsISeekableStream> &seekableStream,

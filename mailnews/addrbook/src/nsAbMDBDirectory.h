@@ -49,7 +49,7 @@ public:
   NS_IMETHOD RemoveElementsFromAddressList();
   NS_IMETHOD RemoveEmailAddressAt(PRUint32 aIndex);
   NS_IMETHOD AddDirectory(const char *uriName, nsIAbDirectory **childDir);
-  NS_IMETHOD GetDatabaseFile(nsILocalFile **aResult);
+  NS_IMETHOD GetDatabaseFile(nsIFile **aResult);
   NS_IMETHOD GetDatabase(nsIAddrDatabase **aResult);
 
   // nsIAbDirectory methods:

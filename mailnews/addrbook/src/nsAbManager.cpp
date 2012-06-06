@@ -25,7 +25,7 @@
 #include "nsVCardObj.h"
 #include "nsIAbLDAPAttributeMap.h"
 #include "nsICommandLine.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
 #include "nsDirectoryServiceUtils.h"
@@ -421,7 +421,7 @@ NS_IMETHODIMP nsAbManager::NotifyDirectoryDeleted(nsIAbDirectory *aParentDirecto
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbManager::GetUserProfileDirectory(nsILocalFile **userDir)
+NS_IMETHODIMP nsAbManager::GetUserProfileDirectory(nsIFile **userDir)
 {
   NS_ENSURE_ARG_POINTER(userDir);
   *userDir = nsnull;
@@ -543,7 +543,7 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
   if (dialogResult == nsIFilePicker::returnCancel)
     return rv;
 
-  nsCOMPtr<nsILocalFile> localFile;
+  nsCOMPtr<nsIFile> localFile;
   rv = filePicker->GetFile(getter_AddRefs(localFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -610,7 +610,7 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
 }
 
 nsresult
-nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const char *aDelim, PRUint32 aDelimLen, nsILocalFile *aLocalFile)
+nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const char *aDelim, PRUint32 aDelimLen, nsIFile *aLocalFile)
 {
   nsCOMPtr <nsISimpleEnumerator> cardsEnumerator;
   nsCOMPtr <nsIAbCard> card;
@@ -792,7 +792,7 @@ nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const ch
 }
 
 nsresult
-nsAbManager::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *aLocalFile)
+nsAbManager::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsIFile *aLocalFile)
 {
   nsCOMPtr <nsISimpleEnumerator> cardsEnumerator;
   nsCOMPtr <nsIAbCard> card;

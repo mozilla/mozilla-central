@@ -203,7 +203,7 @@ NS_IMETHODIMP nsMsgNewsFolder::QueryInterface(REFNSIID aIID, void** aInstancePtr
 ////////////////////////////////////////////////////////////////////////////////
 
 nsresult
-nsMsgNewsFolder::CreateSubFolders(nsILocalFile *path)
+nsMsgNewsFolder::CreateSubFolders(nsIFile *path)
 {
   nsresult rv;
   bool isNewsServer = false;
@@ -296,13 +296,13 @@ nsMsgNewsFolder::AddNewsgroup(const nsACString &name, const nsACString& setStr,
   return rv;
 }
 
-nsresult nsMsgNewsFolder::ParseFolder(nsILocalFile *path)
+nsresult nsMsgNewsFolder::ParseFolder(nsIFile *path)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 nsresult
-nsMsgNewsFolder::AddDirectorySeparator(nsILocalFile *path)
+nsMsgNewsFolder::AddDirectorySeparator(nsIFile *path)
 {
   // don't concat the full separator with .sbd
   return (mURI.Equals(kNewsRootURI)) ?
@@ -320,7 +320,7 @@ nsMsgNewsFolder::GetSubFolders(nsISimpleEnumerator **aResult)
     // see bug #70494
     mInitialized = true;
 
-    nsCOMPtr<nsILocalFile> path;
+    nsCOMPtr<nsIFile> path;
     nsresult rv = GetFilePath(getter_AddRefs(path));
     if (NS_FAILED(rv)) return rv;
 
@@ -606,12 +606,12 @@ NS_IMETHODIMP nsMsgNewsFolder::Delete()
     mDatabase = nsnull;
   }
 
-  nsCOMPtr<nsILocalFile> folderPath;
+  nsCOMPtr<nsIFile> folderPath;
   rv = GetFilePath(getter_AddRefs(folderPath));
 
   if (NS_SUCCEEDED(rv))
   {
-    nsCOMPtr<nsILocalFile> summaryPath;
+    nsCOMPtr<nsIFile> summaryPath;
     rv = GetSummaryFileLocation(folderPath, getter_AddRefs(summaryPath));
     if (NS_SUCCEEDED(rv))
     {
@@ -1954,11 +1954,11 @@ nsMsgNewsFolder::GetFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **aRes
 
   if (!mFilterList)
   {
-    nsCOMPtr<nsILocalFile> thisFolder;
+    nsCOMPtr<nsIFile> thisFolder;
     nsresult rv = GetFilePath(getter_AddRefs(thisFolder));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr <nsILocalFile> filterFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+    nsCOMPtr <nsIFile> filterFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);;
     rv = filterFile->InitWithFile(thisFolder);
     NS_ENSURE_SUCCESS(rv, rv);

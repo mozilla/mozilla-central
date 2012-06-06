@@ -21,7 +21,7 @@
 #include <stdarg.h>
 
 #include "nsCOMPtr.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsStringGlue.h"
 
 #ifdef XP_WIN
@@ -85,7 +85,7 @@ static const nsDynamicFunctionLoad kXULFuncs[] = {
 
 static int do_main(const char *exePath, int argc, char* argv[])
 {
-  nsCOMPtr<nsILocalFile> appini;
+  nsCOMPtr<nsIFile> appini;
 #ifdef XP_WIN
   // exePath comes from mozilla::BinaryPath::Get, which returns a UTF-8
   // encoded path, so it is safe to convert it

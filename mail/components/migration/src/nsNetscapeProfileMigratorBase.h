@@ -6,7 +6,7 @@
 #ifndef netscapeprofilemigratorbase___h___
 #define netscapeprofilemigratorbase___h___
 
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIStringBundle.h"
 #include "nsStringGlue.h"
 #include "nsTArray.h"
@@ -86,7 +86,7 @@ protected:
   void CopyNextFolder();
   void EndCopyFolders();
 
-  nsresult GetProfileDataFromProfilesIni(nsILocalFile* aDataDir,
+  nsresult GetProfileDataFromProfilesIni(nsIFile* aDataDir,
                                          nsIMutableArray* aProfileNames,
                                          nsIMutableArray* aProfileLocations);
 
@@ -95,7 +95,7 @@ protected:
   nsresult GetSignonFileName(bool aReplace, char** aFileName);
   nsresult LocateSignonsFile(char** aResult);
 
-  nsCOMPtr<nsILocalFile> mSourceProfile;
+  nsCOMPtr<nsIFile> mSourceProfile;
   nsCOMPtr<nsIFile> mTargetProfile;
 
   // List of src/destination files we still have to copy into the new profile

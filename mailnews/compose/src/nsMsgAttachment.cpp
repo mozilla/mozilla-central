@@ -4,7 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "nsMsgAttachment.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsNetUtil.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgAttachment, nsIMsgAttachment)

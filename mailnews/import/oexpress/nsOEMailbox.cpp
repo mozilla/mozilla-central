@@ -93,10 +93,9 @@ bool CImportMailbox::ImportMailbox(PRUint32 *pDone, bool *pAbort,
 {
   bool    done = false;
   nsresult rv;
-  nsCOMPtr <nsILocalFile> localInFile = do_QueryInterface(inFile, &rv);
-  nsCOMPtr <nsILocalFile> idxFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  nsCOMPtr <nsIFile> idxFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv))
-    rv  = idxFile->InitWithFile(localInFile);
+    rv  = idxFile->InitWithFile(inFile);
   if (NS_FAILED(rv)) {
     IMPORT_LOG0("New file spec failed!\n");
     return false;

@@ -9,7 +9,7 @@
 
 #include "nscore.h"
 #include "nsStringGlue.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsISupportsArray.h"
 #include "nsEudoraMailbox.h"
 #include "nsEudoraAddress.h"

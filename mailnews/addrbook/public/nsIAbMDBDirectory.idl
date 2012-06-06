@@ -5,7 +5,7 @@
  
 #include "nsISupports.idl"
 
-interface nsILocalFile;
+interface nsIFile;
 interface nsIAbDirectory;
 interface nsIAbCard;
 interface nsIAddrDatabase;
@@ -24,12 +24,12 @@ interface nsIAbMDBDirectory : nsISupports {
 	nsIAbDirectory addDirectory(in string uriName);
 
   /**
-   * Supplies a nsILocalFile point to the database file for this directory
+   * Supplies a nsIFile point to the database file for this directory
    *
    * @exception NS_ERROR_NOT_INITIALIZED If there is no filename preference
    *                                     present or it is empty
    */
-  readonly attribute nsILocalFile databaseFile;
+  readonly attribute nsIFile databaseFile;
 
   /**
    * Supplies a nsIAddrDatabase that uses the databaseFile. See also

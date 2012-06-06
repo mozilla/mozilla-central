@@ -5,7 +5,7 @@
 
 #include "nsSpamSettings.h"
 #include "nsISupportsObsolete.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "plstr.h"
 #include "prmem.h"
 #include "nsIMsgHdr.h"
@@ -207,18 +207,15 @@ nsSpamSettings::GetLogStream(nsIOutputStream **aLogStream)
   nsresult rv;
 
   if (!mLogStream) {
-    nsCOMPtr <nsILocalFile> logFile = do_QueryInterface(mLogFile, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
-
     // append to the end of the log file
     rv = MsgNewBufferedFileOutputStream(getter_AddRefs(mLogStream),
-                                        logFile,
+                                        mLogFile,
                                         PR_CREATE_FILE | PR_WRONLY | PR_APPEND,
                                         0600);
     NS_ENSURE_SUCCESS(rv, rv);
 
     PRInt64 fileSize;
-    rv = logFile->GetFileSize(&fileSize);
+    rv = mLogFile->GetFileSize(&fileSize);
     NS_ENSURE_SUCCESS(rv, rv);
 
     PRUint32 fileLen;

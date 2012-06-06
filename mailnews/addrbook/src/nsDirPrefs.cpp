@@ -16,7 +16,7 @@
 #include "nsIAddrDatabase.h"
 #include "nsAbBaseCID.h"
 #include "nsIAbManager.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsWeakReference.h"
 #include "nsIAbMDBDirectory.h"
 #if defined(MOZ_LDAP_XPCOM)
@@ -617,7 +617,7 @@ nsresult DIR_DeleteServerFromList(DIR_Server *server)
     return NS_ERROR_NULL_POINTER;
 
   nsresult rv = NS_OK;
-  nsCOMPtr<nsILocalFile> dbPath;
+  nsCOMPtr<nsIFile> dbPath;
 
   nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv); 
   if (NS_SUCCEEDED(rv))
@@ -900,7 +900,7 @@ void DIR_SetFileName(char** fileName, const char* defaultName)
     return;
 
   nsresult rv = NS_OK;
-  nsCOMPtr<nsILocalFile> dbPath;
+  nsCOMPtr<nsIFile> dbPath;
 
   *fileName = nsnull;
 

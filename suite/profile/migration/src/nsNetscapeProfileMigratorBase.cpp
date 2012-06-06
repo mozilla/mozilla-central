@@ -241,7 +241,7 @@ nsNetscapeProfileMigratorBase::SetFile(PrefTransform* aTransform,
     if (NS_FAILED(rv)) {
       // Okay it wasn't a URL spec so assume it is a localfile,
       // if this fails then just don't set anything.
-      nsCOMPtr<nsILocalFile> localFile;
+      nsCOMPtr<nsIFile> localFile;
       rv = NS_NewNativeLocalFile(fileURL, false, getter_AddRefs(localFile));
       if (NS_FAILED(rv))
         return NS_OK;  
@@ -314,16 +314,13 @@ nsNetscapeProfileMigratorBase::GetSourceProfile(const PRUnichar* aProfile)
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aDataDir,
+nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsIFile* aDataDir,
                                                              nsIMutableArray* aProfileNames,
                                                              nsIMutableArray* aProfileLocations)
 {
   nsresult rv;
-  nsCOMPtr<nsIFile> dataDir;
-  rv = aDataDir->Clone(getter_AddRefs(dataDir));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsILocalFile> profileIni(do_QueryInterface(dataDir, &rv));
+  nsCOMPtr<nsIFile> profileIni;
+  rv = aDataDir->Clone(getter_AddRefs(profileIni));
   NS_ENSURE_SUCCESS(rv, rv);
 
   profileIni->Append(NS_LITERAL_STRING("profiles.ini"));
@@ -366,7 +363,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
       continue;
     }
 
-    nsCOMPtr<nsILocalFile> rootDir;
+    nsCOMPtr<nsIFile> rootDir;
     rv = NS_NewNativeLocalFile(EmptyCString(), true, getter_AddRefs(rootDir));
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -463,10 +460,9 @@ nsNetscapeProfileMigratorBase::RecursiveCopy(nsIFile* srcDir,
       rv = dirEntry->IsDirectory(&isDir);
       if (NS_SUCCEEDED(rv)) {
         if (isDir) {
-          nsCOMPtr<nsIFile> destClone;
-          rv = destDir->Clone(getter_AddRefs(destClone));
+          nsCOMPtr<nsIFile> newChild;
+          rv = destDir->Clone(getter_AddRefs(newChild));
           if (NS_SUCCEEDED(rv)) {
-            nsCOMPtr<nsILocalFile> newChild(do_QueryInterface(destClone));
             nsAutoString leafName;
             dirEntry->GetLeafName(leafName);
 
@@ -589,10 +585,10 @@ nsNetscapeProfileMigratorBase::WriteBranch(const char * branchName,
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::GetFileValue(nsIPrefBranch* aPrefBranch, const char* aRelPrefName, const char* aPrefName, nsILocalFile** aReturnFile)
+nsNetscapeProfileMigratorBase::GetFileValue(nsIPrefBranch* aPrefBranch, const char* aRelPrefName, const char* aPrefName, nsIFile** aReturnFile)
 {
   nsCString prefValue;
-  nsCOMPtr<nsILocalFile> theFile;
+  nsCOMPtr<nsIFile> theFile;
   nsresult rv = aPrefBranch->GetCharPref(aRelPrefName, getter_Copies(prefValue));
   if (NS_SUCCEEDED(rv)) {
     // The pref has the format: [ProfD]a/b/c
@@ -608,7 +604,7 @@ nsNetscapeProfileMigratorBase::GetFileValue(nsIPrefBranch* aPrefBranch, const ch
       return rv;
   } else {
     rv = aPrefBranch->GetComplexValue(aPrefName,
-                                      NS_GET_IID(nsILocalFile),
+                                      NS_GET_IID(nsIFile),
                                       getter_AddRefs(theFile));
   }
 
@@ -847,8 +843,8 @@ nsNetscapeProfileMigratorBase::CopySignatureFiles(PBStructArray &aIdentities,
     // multiple signatures that live below the seamonkey profile root
     if (StringEndsWith(prefName, NS_LITERAL_CSTRING(".sig_file")))
     {
-      // turn the pref into a nsILocalFile
-      nsCOMPtr<nsILocalFile> srcSigFile =
+      // turn the pref into a nsIFile
+      nsCOMPtr<nsIFile> srcSigFile =
         do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
       srcSigFile->SetPersistentDescriptor(nsDependentCString(pref->stringValue));
 
@@ -869,8 +865,7 @@ nsNetscapeProfileMigratorBase::CopySignatureFiles(PBStructArray &aIdentities,
 
         // now write out the new descriptor
         nsCAutoString descriptorString;
-        nsCOMPtr<nsILocalFile> localFile = do_QueryInterface(targetSigFile);
-        localFile->GetPersistentDescriptor(descriptorString);
+        targetSigFile->GetPersistentDescriptor(descriptorString);
         NS_Free(pref->stringValue);
         pref->stringValue = ToNewCString(descriptorString);
       }
@@ -917,7 +912,7 @@ nsNetscapeProfileMigratorBase::CopyMailFolderPrefs(PBStructArray &aMailServers,
       nsCString serverType;
       serverBranch->GetCharPref("type", getter_Copies(serverType));
 
-      nsCOMPtr<nsILocalFile> sourceMailFolder;
+      nsCOMPtr<nsIFile> sourceMailFolder;
       nsresult rv = GetFileValue(serverBranch, "directory-rel", "directory",
                                  getter_AddRefs(sourceMailFolder));
       NS_ENSURE_SUCCESS(rv, rv);
@@ -957,8 +952,7 @@ nsNetscapeProfileMigratorBase::CopyMailFolderPrefs(PBStructArray &aMailServers,
         // transformed into the new profile's pref.js has the right file
         // location.
         nsCAutoString descriptorString;
-        nsCOMPtr<nsILocalFile> localFile = do_QueryInterface(targetMailFolder);
-        localFile->GetPersistentDescriptor(descriptorString);
+        targetMailFolder->GetPersistentDescriptor(descriptorString);
         NS_Free(pref->stringValue);
         pref->stringValue = ToNewCString(descriptorString);
       }
@@ -971,8 +965,8 @@ nsNetscapeProfileMigratorBase::CopyMailFolderPrefs(PBStructArray &aMailServers,
       mTargetProfile->Clone(getter_AddRefs(targetNewsRCFile));
       targetNewsRCFile->Append(NEWS_DIR_50_NAME);
 
-      // turn the pref into a nsILocalFile
-      nsCOMPtr<nsILocalFile> srcNewsRCFile =
+      // turn the pref into a nsIFile
+      nsCOMPtr<nsIFile> srcNewsRCFile =
         do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
       srcNewsRCFile->SetPersistentDescriptor(
         nsDependentCString(pref->stringValue));
@@ -989,8 +983,7 @@ nsNetscapeProfileMigratorBase::CopyMailFolderPrefs(PBStructArray &aMailServers,
 
         // now write out the new descriptor
         nsCAutoString descriptorString;
-        nsCOMPtr<nsILocalFile> localFile = do_QueryInterface(targetNewsRCFile);
-        localFile->GetPersistentDescriptor(descriptorString);
+        targetNewsRCFile->GetPersistentDescriptor(descriptorString);
         NS_Free(pref->stringValue);
         pref->stringValue = ToNewCString(descriptorString);
       }

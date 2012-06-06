@@ -28,7 +28,7 @@
 
 
 void	
-MacGetFileType(nsILocalFile   *fs, 
+MacGetFileType(nsIFile   *fs, 
                bool         *useDefault, 
                char         **fileType, 
                char         **encoding)
@@ -93,7 +93,7 @@ int ap_encode_init( appledouble_encode_object *p_ap_encode_obj,
                     const char                *fname,
                     char                      *separator)
 {
-  nsCOMPtr <nsILocalFile> myFile;
+  nsCOMPtr <nsIFile> myFile;
   NS_NewNativeLocalFile(nsDependentCString(fname), true, getter_AddRefs(myFile));
   bool exists;
   if (myFile && NS_SUCCEEDED(myFile->Exists(&exists)) && !exists)

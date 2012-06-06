@@ -1313,7 +1313,7 @@ bool nsEudoraMailbox::AddAttachment(nsCString& fileName)
   IMPORT_LOG1("Found attachment: %s\n", fileName.get());
 
   nsresult rv;
-  nsCOMPtr <nsILocalFile>  pFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  nsCOMPtr <nsIFile>  pFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   if (NS_FAILED(rv))
     return false;
 

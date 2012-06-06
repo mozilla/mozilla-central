@@ -7,7 +7,7 @@
 #include "nsAbUtils.h"
 #include "nsStringGlue.h"
 #include "nsServiceManagerUtils.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIAbManager.h"
 #include "nsIAbMDBDirectory.h"
 #include "nsAbMDBDirFactory.h"
@@ -47,7 +47,7 @@ NS_IMETHODIMP nsAbMDBDirFactory::GetDirectories(const nsAString &aDirName,
   rv = directory->SetDirPrefId(aPrefName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> dbPath;
+  nsCOMPtr<nsIFile> dbPath;
   rv = abManager->GetUserProfileDirectory(getter_AddRefs(dbPath));
 
   nsCOMPtr<nsIAddrDatabase> listDatabase;

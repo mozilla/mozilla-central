@@ -516,7 +516,7 @@ ImportEudoraMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSource,
   }
 
 
-  nsCOMPtr <nsILocalFile>  inFile;
+  nsCOMPtr <nsIFile>  inFile;
   if (NS_FAILED(pSource->GetFile(getter_AddRefs(inFile))))
   {
     ReportError(EUDORAIMPORT_MAILBOX_BADSOURCEFILE, name, &error);

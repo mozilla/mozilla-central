@@ -70,7 +70,7 @@ private:
   nsresult  IterateMailDir(nsIFile *pFolder,
                            nsISupportsArray *pArray,
                            nsIImportService *pImport);
-  nsresult  FoundMailFolder(nsILocalFile *mailFolder,
+  nsresult  FoundMailFolder(nsIFile *mailFolder,
                             const char *pName,
                             nsISupportsArray *pArray,
                             nsIImportService *pImport);
@@ -113,7 +113,7 @@ private:
 
 private:
   PRUint32 m_depth;
-  nsCOMPtr <nsILocalFile> m_mailImportLocation;
+  nsCOMPtr <nsIFile> m_mailImportLocation;
   bool HasResourceFork(FSRef *fsRef);
 };
 

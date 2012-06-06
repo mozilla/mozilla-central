@@ -6,7 +6,7 @@
 #include "nsProfileMigrator.h"
 
 #include "nsIDOMWindow.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsISupportsPrimitives.h"
 #include "nsISupportsArray.h"
 #include "nsIToolkitProfile.h"
@@ -170,7 +170,7 @@ nsProfileMigrator::GetSuiteMigratorKey(nsACString& aKey,
     // By Querying the VERSIONINFO section for its Tranlations, we can find out
     // where the InternalName lives. (A file can have more than one translation
     // of its VERSIONINFO segment, but we just assume the first one).
-    nsCOMPtr<nsILocalFile> lf;
+    nsCOMPtr<nsIFile> lf;
     NS_NewLocalFile(filePath, true, getter_AddRefs(lf));
     if (!lf)
       return NS_ERROR_FAILURE;

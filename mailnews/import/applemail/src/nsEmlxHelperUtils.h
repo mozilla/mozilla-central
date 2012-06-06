@@ -10,7 +10,7 @@
 #include "nsStringGlue.h"
 
 class nsIOutputStream;
-class nsILocalFile;
+class nsIFile;
 
 class nsEmlxHelperUtils {
   /* All emlx messages have a "flags" number in the metadata. 
@@ -48,7 +48,7 @@ class nsEmlxHelperUtils {
   public:
 
   // add an .emlx message to the mbox output
-  static nsresult AddEmlxMessageToStream(nsILocalFile *aEmlxFile, nsIOutputStream *aOutoutStream); 
+  static nsresult AddEmlxMessageToStream(nsIFile *aEmlxFile, nsIOutputStream *aOutoutStream); 
 
 };
 

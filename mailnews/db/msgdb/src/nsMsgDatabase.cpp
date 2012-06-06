@@ -92,7 +92,7 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder,
   NS_ENSURE_ARG(aFolder);
   nsCOMPtr<nsIMsgPluggableStore> msgStore;
   nsCOMPtr<nsIMsgIncomingServer> incomingServer;
-  nsCOMPtr <nsILocalFile> summaryFilePath;
+  nsCOMPtr <nsIFile> summaryFilePath;
 
   nsresult rv = aFolder->GetServer(getter_AddRefs(incomingServer));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -175,7 +175,7 @@ NS_IMETHODIMP nsMsgDBService::AsyncOpenFolderDB(nsIMsgFolder *aFolder,
   nsCOMPtr<nsIMsgPluggableStore> msgStore;
   nsresult rv = aFolder->GetMsgStore(getter_AddRefs(msgStore));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr <nsILocalFile> summaryFilePath;
+  nsCOMPtr <nsIFile> summaryFilePath;
   rv = msgStore->GetSummaryFile(aFolder, getter_AddRefs(summaryFilePath));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -251,9 +251,9 @@ NS_IMETHODIMP nsMsgDBService::OpenMore(nsIMsgDatabase *aDB,
       NS_ENSURE_TRUE(mdbFactory, NS_ERROR_FAILURE);
       ret = mdbFactory->ThumbToOpenStore(msgDatabase->m_mdbEnv, msgDatabase->m_thumb, &msgDatabase->m_mdbStore);
       msgDatabase->m_thumb = nsnull;
-      nsCOMPtr<nsILocalFile> folderPath;
+      nsCOMPtr<nsIFile> folderPath;
       nsresult rv = msgDatabase->m_folder->GetFilePath(getter_AddRefs(folderPath));
-      nsCOMPtr <nsILocalFile> summaryFile;
+      nsCOMPtr <nsIFile> summaryFile;
       rv = GetSummaryFileLocation(folderPath, getter_AddRefs(summaryFile));
 
       if (NS_SUCCEEDED(ret))
@@ -313,7 +313,7 @@ void nsMsgDBService::FinishDBOpen(nsIMsgFolder *aFolder, nsMsgDatabase *aMsgDB)
 // having a corresponding nsIMsgFolder object.  This happens in a few
 // situations, including imap folder discovery, compacting local folders,
 // and copying local folders.
-NS_IMETHODIMP nsMsgDBService::OpenMailDBFromFile(nsILocalFile *aFolderName,
+NS_IMETHODIMP nsMsgDBService::OpenMailDBFromFile(nsIFile *aFolderName,
                                                  nsIMsgFolder *aFolder,
                                                  bool aCreate,
                                                  bool aLeaveInvalidDB,
@@ -322,7 +322,7 @@ NS_IMETHODIMP nsMsgDBService::OpenMailDBFromFile(nsILocalFile *aFolderName,
   if (!aFolderName)
     return NS_ERROR_NULL_POINTER;
 
-  nsCOMPtr <nsILocalFile>  dbPath;
+  nsCOMPtr <nsIFile>  dbPath;
   nsresult rv = GetSummaryFileLocation(aFolderName, getter_AddRefs(dbPath));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -355,7 +355,7 @@ NS_IMETHODIMP nsMsgDBService::CreateNewDB(nsIMsgFolder *aFolder,
   nsCOMPtr<nsIMsgPluggableStore> msgStore;
   rv = aFolder->GetMsgStore(getter_AddRefs(msgStore));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr<nsILocalFile> summaryFilePath;
+  nsCOMPtr<nsIFile> summaryFilePath;
   rv = msgStore->GetSummaryFile(aFolder, getter_AddRefs(summaryFilePath));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -926,7 +926,7 @@ nsMsgDatabase::CleanupCache()
 //----------------------------------------------------------------------
 // FindInCache - this addrefs the db it finds.
 //----------------------------------------------------------------------
-nsMsgDatabase* nsMsgDatabase::FindInCache(nsILocalFile *dbName)
+nsMsgDatabase* nsMsgDatabase::FindInCache(nsIFile *dbName)
 {
   nsTArray<nsMsgDatabase*>* dbCache = GetDBCache();
   PRUint32 length = dbCache->Length();
@@ -950,19 +950,19 @@ nsMsgDatabase* nsMsgDatabase::FindInCache(nsILocalFile *dbName)
 //----------------------------------------------------------------------
 nsIMsgDatabase* nsMsgDatabase::FindInCache(nsIMsgFolder *folder)
 {
-  nsCOMPtr<nsILocalFile> folderPath;
+  nsCOMPtr<nsIFile> folderPath;
 
   nsresult rv = folder->GetFilePath(getter_AddRefs(folderPath));
   NS_ENSURE_SUCCESS(rv, nsnull);
 
-  nsCOMPtr <nsILocalFile> summaryFile;
+  nsCOMPtr <nsIFile> summaryFile;
   rv = GetSummaryFileLocation(folderPath, getter_AddRefs(summaryFile));
   NS_ENSURE_SUCCESS(rv, nsnull);
 
   return (nsIMsgDatabase *) FindInCache(summaryFile);
 }
 
-bool nsMsgDatabase::MatchDbName(nsILocalFile *dbName)  // returns true if they match
+bool nsMsgDatabase::MatchDbName(nsIFile *dbName)  // returns true if they match
 {
   nsCString dbPath;
   dbName->GetNativePath(dbPath);
@@ -1106,14 +1106,14 @@ void nsMsgDatabase::GetMDBFactory(nsIMdbFactory ** aMdbFactory)
 // aLeaveInvalidDB: true if caller wants back a db even out of date.
 // If so, they'll extract out the interesting info from the db, close it,
 // delete it, and then try to open the db again, prior to reparsing.
-nsresult nsMsgDatabase::Open(nsILocalFile *aFolderName, bool aCreate,
+nsresult nsMsgDatabase::Open(nsIFile *aFolderName, bool aCreate,
                              bool aLeaveInvalidDB)
 {
   return nsMsgDatabase::OpenInternal(aFolderName, aCreate, aLeaveInvalidDB,
                                      true /* open synchronously */);
 }
 
-nsresult nsMsgDatabase::OpenInternal(nsILocalFile *summaryFile, bool aCreate,
+nsresult nsMsgDatabase::OpenInternal(nsIFile *summaryFile, bool aCreate,
                                      bool aLeaveInvalidDB, bool sync)
 {
   nsCAutoString summaryFilePath;
@@ -1146,7 +1146,7 @@ nsresult nsMsgDatabase::OpenInternal(nsILocalFile *summaryFile, bool aCreate,
 }
 
 nsresult nsMsgDatabase::CheckForErrors(nsresult err, bool sync,
-                                       nsILocalFile *summaryFile)
+                                       nsIFile *summaryFile)
 {
   nsCOMPtr<nsIDBFolderInfo> folderInfo;
   bool summaryFileExists;
@@ -1349,11 +1349,11 @@ NS_IMETHODIMP nsMsgDatabase::ForceFolderDBClosed(nsIMsgFolder *aFolder)
 {
   NS_ENSURE_ARG(aFolder);
 
-  nsCOMPtr<nsILocalFile> folderPath;
+  nsCOMPtr<nsIFile> folderPath;
   nsresult rv = aFolder->GetFilePath(getter_AddRefs(folderPath));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr <nsILocalFile> dbPath;
+  nsCOMPtr <nsIFile> dbPath;
   rv = GetSummaryFileLocation(folderPath, getter_AddRefs(dbPath));
   NS_ENSURE_SUCCESS(rv, rv);
 

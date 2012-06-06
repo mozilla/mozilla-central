@@ -290,7 +290,7 @@ NS_IMETHODIMP nsImportGenericMail::SetData(const char *dataId, nsISupports *item
     m_pSrcLocation = nsnull;
     if (item) {
       nsresult rv;
-      nsCOMPtr <nsILocalFile> location = do_QueryInterface(item, &rv);
+      nsCOMPtr <nsIFile> location = do_QueryInterface(item, &rv);
       NS_ENSURE_SUCCESS(rv,rv);
       m_pSrcLocation = location;
     }

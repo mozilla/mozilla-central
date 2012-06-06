@@ -35,7 +35,7 @@ nsMailDatabase::~nsMailDatabase()
 // caller passes in upgrading==true if they want back a db even if the db is out of date.
 // If so, they'll extract out the interesting info from the db, close it, delete it, and
 // then try to open the db again, prior to reparsing.
-nsresult nsMailDatabase::Open(nsILocalFile *aSummaryFile, bool aCreate,
+nsresult nsMailDatabase::Open(nsIFile *aSummaryFile, bool aCreate,
                               bool aUpgrading)
 {
 #ifdef DEBUG

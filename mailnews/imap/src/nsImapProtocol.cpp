@@ -5969,8 +5969,7 @@ void nsImapProtocol::UploadMessageFromFile (nsIFile* file,
     rv = file->GetFileSize(&fileSize);
     NS_ASSERTION(fileSize, "got empty file in UploadMessageFromFile");
     if (NS_FAILED(rv) || !fileSize) goto done;
-    nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(file);
-    rv = NS_NewLocalFileInputStream(getter_AddRefs(fileInputStream), localFile);
+    rv = NS_NewLocalFileInputStream(getter_AddRefs(fileInputStream), file);
     if (NS_FAILED(rv) || !fileInputStream) goto done;
     command.AppendInt((PRInt32)fileSize);
     if (hasLiteralPlus)

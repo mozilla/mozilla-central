@@ -144,7 +144,7 @@ static PLHashAllocOps gHashAllocOps = {
 static Pop3UidlHost*
 net_pop3_load_state(const char* searchhost,
                     const char* searchuser,
-                    nsILocalFile *mailDirectory)
+                    nsIFile *mailDirectory)
 {
   Pop3UidlHost* result = nsnull;
   Pop3UidlHost* current = nsnull;
@@ -167,11 +167,10 @@ net_pop3_load_state(const char* searchhost,
     return nsnull;
   }
 
-  nsCOMPtr <nsIFile> clonedDirectory;
-  mailDirectory->Clone(getter_AddRefs(clonedDirectory));
-  if (!clonedDirectory)
+  nsCOMPtr <nsIFile> popState;
+  mailDirectory->Clone(getter_AddRefs(popState));
+  if (!popState)
     return nsnull;
-  nsCOMPtr <nsILocalFile> popState = do_QueryInterface(clonedDirectory);
   popState->AppendNative(NS_LITERAL_CSTRING("popstate.dat"));
 
   nsCOMPtr<nsIInputStream> fileStream;
@@ -327,15 +326,14 @@ net_pop3_delete_old_msgs_mapper(PLHashEntry* he, PRIntn msgindex, void* arg)
 }
 
 static void
-net_pop3_write_state(Pop3UidlHost* host, nsILocalFile *mailDirectory)
+net_pop3_write_state(Pop3UidlHost* host, nsIFile *mailDirectory)
 {
   PRInt32 len = 0;
-  nsCOMPtr <nsIFile> clonedDirectory;
+  nsCOMPtr <nsIFile> popState;
 
-  mailDirectory->Clone(getter_AddRefs(clonedDirectory));
-  if (!clonedDirectory)
+  mailDirectory->Clone(getter_AddRefs(popState));
+  if (!popState)
     return;
-  nsCOMPtr <nsILocalFile> popState = do_QueryInterface(clonedDirectory);
   popState->AppendNative(NS_LITERAL_CSTRING("popstate.dat"));
 
   nsCOMPtr<nsIOutputStream> fileOutputStream;
@@ -407,7 +405,7 @@ void nsPop3Protocol::MarkMsgInHashTable(PLHashTable *hashTable, const Pop3UidlEn
 /* static */
 nsresult
 nsPop3Protocol::MarkMsgForHost(const char *hostName, const char *userName,
-                                      nsILocalFile *mailDirectory,
+                                      nsIFile *mailDirectory,
                                        nsVoidArray &UIDLArray)
 {
   if (!hostName || !userName || !mailDirectory)
@@ -1068,7 +1066,7 @@ nsresult nsPop3Protocol::LoadUrl(nsIURI* aURL, nsISupports * /* aConsumer */)
   if (pop3Url)
     pop3Url->GetPop3Sink(getter_AddRefs(m_nsIPop3Sink));
 
-  nsCOMPtr<nsILocalFile> mailDirectory;
+  nsCOMPtr<nsIFile> mailDirectory;
 
   nsCString hostName;
   nsCString userName;
@@ -2977,7 +2975,7 @@ PRInt32 nsPop3Protocol::GetMsg()
       nsresult rv;
       PRInt64 mailboxSpaceLeft = LL_Zero();
       nsCOMPtr <nsIMsgFolder> folder;
-      nsCOMPtr <nsILocalFile> path;
+      nsCOMPtr <nsIFile> path;
 
       // Get the path to the current mailbox
       //
@@ -2990,9 +2988,7 @@ PRInt32 nsPop3Protocol::GetMsg()
       // call GetDiskSpaceAvailable on the directory
       nsCOMPtr <nsIFile> parent;
       path->GetParent(getter_AddRefs(parent));
-      nsCOMPtr <nsILocalFile> localParent = do_QueryInterface(parent, &rv);
-      if (localParent)
-        rv = localParent->GetDiskSpaceAvailable(&mailboxSpaceLeft);
+      rv = parent->GetDiskSpaceAvailable(&mailboxSpaceLeft);
       if (NS_FAILED(rv))
       {
         // The call to GetDiskSpaceAvailable FAILED!
@@ -3707,7 +3703,7 @@ nsPop3Protocol::CommitState(bool remove_last_entry)
   if (!m_pop3ConData->only_check_for_new_mail)
   {
     nsresult rv;
-    nsCOMPtr<nsILocalFile> mailDirectory;
+    nsCOMPtr<nsIFile> mailDirectory;
 
     // get the mail directory
     nsCOMPtr<nsIMsgIncomingServer> server =

@@ -4,7 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "nsISupports.idl"
-#include "nsILocalFile.idl"
+#include "nsIFile.idl"
 
 /**
  * This interface contains all the personal outgoing mail information
@@ -89,7 +89,7 @@ interface nsIMsgIdentity : nsISupports {
   /**
    * The current signature file.
    */
-  attribute nsILocalFile signature;
+  attribute nsIFile signature;
 
   /**
    * Modification time of the signature file.

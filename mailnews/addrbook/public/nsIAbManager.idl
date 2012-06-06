@@ -10,7 +10,7 @@ interface nsIDOMWindow;
 interface nsIAbDirectory;
 interface nsIAbCard;
 interface nsIAbDirectoryProperties;
-interface nsILocalFile;
+interface nsIFile;
 interface nsISimpleEnumerator;
 interface nsIAbBooleanExpression;
 
@@ -137,7 +137,7 @@ interface nsIAbManager : nsISupports
    * Returns the user profile directory. NOTE: this should not be used
    * as it may go away soon.
    */
-  readonly attribute nsILocalFile userProfileDirectory;
+  readonly attribute nsIFile userProfileDirectory;
 
   /**
    * Finds out if the mailing list name exists in any *mork/MDB* based

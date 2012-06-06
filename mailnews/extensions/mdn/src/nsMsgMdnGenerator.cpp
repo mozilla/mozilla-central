@@ -372,10 +372,9 @@ nsresult nsMsgMdnGenerator::CreateMdnMsg()
     NS_ENSURE_SUCCESS(rv, rv);
 
     rv = m_file->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
-    nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(m_file);
     NS_ENSURE_SUCCESS(rv, rv);
     rv = NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream),
-                                     localFile,
+                                     m_file,
                                      PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
                                      0664);
     NS_ASSERTION(NS_SUCCEEDED(rv),"creating mdn: failed to output stream");

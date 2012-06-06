@@ -13,7 +13,7 @@
 
 #include "nsISupports.idl"
 
-interface nsILocalFile;
+interface nsIFile;
 
 [scriptable, uuid(69eba744-9c4f-4f79-a964-2134746b3656)]
 interface nsIImportMailboxDescriptor : nsISupports
@@ -26,7 +26,7 @@ interface nsIImportMailboxDescriptor : nsISupports
   void  SetDisplayName( [const] in wstring name);
 
   attribute boolean import;
-  readonly attribute nsILocalFile file;
+  readonly attribute nsIFile file;
 };
 
 

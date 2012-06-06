@@ -7,7 +7,7 @@
 
 #include "nsTArray.h"
 #include "nsStringGlue.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "MapiApi.h"
 #include "nsIMsgSend.h"
 
@@ -200,7 +200,7 @@ public:
 private:
   struct attach_data {
     nsCOMPtr<nsIURI> orig_url;
-    nsCOMPtr<nsILocalFile> tmp_file;
+    nsCOMPtr<nsIFile> tmp_file;
     char *type;
     char *encoding;
     char *real_name;
@@ -243,9 +243,9 @@ private:
   bool    FetchBody(void);
   void    FetchFlags(void);
 
-  static bool GetTmpFile(/*out*/ nsILocalFile **aResult);
-  static bool CopyMsgAttachToFile(LPATTACH lpAttach, /*out*/ nsILocalFile **tmp_file);
-  static bool CopyBinAttachToFile(LPATTACH lpAttach, nsILocalFile **tmp_file);
+  static bool GetTmpFile(/*out*/ nsIFile **aResult);
+  static bool CopyMsgAttachToFile(LPATTACH lpAttach, /*out*/ nsIFile **tmp_file);
+  static bool CopyBinAttachToFile(LPATTACH lpAttach, nsIFile **tmp_file);
 
   static void ClearAttachment(attach_data* data);
   void    ClearAttachments();

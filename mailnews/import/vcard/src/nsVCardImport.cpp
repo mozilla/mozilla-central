@@ -19,7 +19,7 @@
 #include "nsIImportGeneric.h"
 #include "nsCOMPtr.h"
 #include "nsIImportService.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsImportStringBundle.h"
 #include "nsMsgUtils.h"
 #include "nsComponentManagerUtils.h"
@@ -91,7 +91,7 @@ private:
 
 private:
   nsVCardAddress m_vCard;
-  nsCOMPtr<nsILocalFile> m_fileLoc;
+  nsCOMPtr<nsIFile> m_fileLoc;
   PRUint32 m_bytesImported;
   nsCOMPtr<nsIStringBundle> m_notProxyBundle;
 };

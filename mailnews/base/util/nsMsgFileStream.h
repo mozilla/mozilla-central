@@ -22,7 +22,7 @@ public:
   NS_DECL_NSIOUTPUTSTREAM
   NS_DECL_NSISEEKABLESTREAM
 
-  nsresult InitWithFile(nsILocalFile *localFile);
+  nsresult InitWithFile(nsIFile *localFile);
 protected:
   PRFileDesc *mFileDesc;
   bool mSeekedToEnd;

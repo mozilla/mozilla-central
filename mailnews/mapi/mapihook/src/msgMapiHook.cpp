@@ -456,9 +456,9 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 
     nsCAutoString Attachments ;
     nsCAutoString TempFiles ;
 
-    nsCOMPtr <nsILocalFile> pFile = do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv) ;
+    nsCOMPtr <nsIFile> pFile = do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv) ;
     if (NS_FAILED(rv) || (!pFile) ) return rv ;
-    nsCOMPtr <nsILocalFile> pTempDir = do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv) ;
+    nsCOMPtr <nsIFile> pTempDir = do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv) ;
     if (NS_FAILED(rv) || (!pTempDir) ) return rv ;
 
     for (int i=0 ; i < aFileCount ; i++)
@@ -478,9 +478,8 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 
             if (NS_FAILED(rv) || (!bExist) ) return NS_ERROR_FILE_TARGET_DOES_NOT_EXIST ;
 
             //Temp Directory
-            nsCOMPtr <nsIFile> pTempFileDir;
-            NS_GetSpecialDirectory(NS_OS_TEMP_DIR, getter_AddRefs(pTempFileDir));
-            nsCOMPtr <nsILocalFile> pTempDir = do_QueryInterface(pTempFileDir);
+            nsCOMPtr <nsIFile> pTempDir;
+            NS_GetSpecialDirectory(NS_OS_TEMP_DIR, getter_AddRefs(pTempDir));
 
             // create a new sub directory called moz_mapi underneath the temp directory
             pTempDir->AppendRelativePath(NS_LITERAL_STRING("moz_mapi"));
@@ -707,16 +706,15 @@ nsresult nsMapiHook::PopulateCompFieldsForSendDocs(nsIMsgCompFields * aCompField
     nsAutoString Subject ;
 
     // multiple files to be sent, delim specified
-    nsCOMPtr <nsILocalFile> pFile = do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv) ;
+    nsCOMPtr <nsIFile> pFile = do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv) ;
     if (NS_FAILED(rv) || (!pFile) ) return rv ;
 
     PRUnichar * newFilePaths = (PRUnichar *) strFilePaths.get() ;
     while (offset != kNotFound)
     {
       //Temp Directory
-      nsCOMPtr <nsIFile> pTempFileDir;
-      NS_GetSpecialDirectory(NS_OS_TEMP_DIR, getter_AddRefs(pTempFileDir));
-      nsCOMPtr <nsILocalFile> pTempDir = do_QueryInterface(pTempFileDir);
+      nsCOMPtr <nsIFile> pTempDir;
+      NS_GetSpecialDirectory(NS_OS_TEMP_DIR, getter_AddRefs(pTempDir));
 
       // if not already existing, create another temp dir for mapi within Win temp dir
       // this is windows only so we can do "\\"

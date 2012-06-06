@@ -7,7 +7,7 @@
 #define ThunderbirdProfileMigrator_h__
 
 #include "nsISuiteProfileMigrator.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIObserverService.h"
 #include "nsISupportsArray.h"
 #include "nsNetscapeProfileMigratorBase.h"

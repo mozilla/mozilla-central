@@ -369,7 +369,7 @@ nsMsgCopy::CreateIfMissing(nsIMsgFolder **folder, bool *waitForUrl)
     (*folder)->GetParent(getter_AddRefs(parent));
     if (!parent)
     {
-      nsCOMPtr <nsILocalFile> folderPath;
+      nsCOMPtr <nsIFile> folderPath;
       // for local folders, path is to the berkeley mailbox.
       // for imap folders, path needs to have .msf appended to the name
       (*folder)->GetFilePath(getter_AddRefs(folderPath));

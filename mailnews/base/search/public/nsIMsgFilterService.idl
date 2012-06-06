@@ -10,7 +10,7 @@ interface nsIMsgFilterList;
 interface nsIMsgWindow;
 interface nsIMsgFilterCustomAction;
 interface nsISimpleEnumerator;
-interface nsILocalFile;
+interface nsIFile;
 interface nsIMsgFolder;
 interface nsISupportsArray;
 interface nsIMsgSearchCustomTerm;
@@ -18,11 +18,11 @@ interface nsIMsgSearchCustomTerm;
 [scriptable, uuid(C1A5F1BB-4D6C-447a-B70F-A12BE767DC0A)]
 interface nsIMsgFilterService : nsISupports {
 
-    nsIMsgFilterList OpenFilterList(in nsILocalFile filterFile, in nsIMsgFolder rootFolder, in nsIMsgWindow msgWindow);
+    nsIMsgFilterList OpenFilterList(in nsIFile filterFile, in nsIMsgFolder rootFolder, in nsIMsgWindow msgWindow);
     void CloseFilterList(in nsIMsgFilterList filterList);
 
     void SaveFilterList(in nsIMsgFilterList filterList,
-                        in nsILocalFile filterFile);
+                        in nsIFile filterFile);
     
     void CancelFilterList(in nsIMsgFilterList filterList);
     nsIMsgFilterList getTempFilterList(in nsIMsgFolder aFolder);

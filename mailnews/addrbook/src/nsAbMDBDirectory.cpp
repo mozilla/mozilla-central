@@ -23,7 +23,7 @@
 #include "nsIPrefService.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsComponentManagerUtils.h"
 #include "nsMemory.h"
 #include "nsArrayUtils.h"
@@ -320,7 +320,7 @@ NS_IMETHODIMP nsAbMDBDirectory::AddDirectory(const char *uriName, nsIAbDirectory
   return rv;
 }
 
-NS_IMETHODIMP nsAbMDBDirectory::GetDatabaseFile(nsILocalFile **aResult)
+NS_IMETHODIMP nsAbMDBDirectory::GetDatabaseFile(nsIFile **aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -331,15 +331,12 @@ NS_IMETHODIMP nsAbMDBDirectory::GetDatabaseFile(nsILocalFile **aResult)
   if (fileName.IsEmpty())
     return NS_ERROR_NOT_INITIALIZED;
 
-  nsCOMPtr<nsIFile> profileDir;
+  nsCOMPtr<nsIFile> dbFile;
   rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR,
-                              getter_AddRefs(profileDir));
+                              getter_AddRefs(dbFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = profileDir->AppendNative(fileName);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsILocalFile> dbFile = do_QueryInterface(profileDir, &rv);
+  rv = dbFile->AppendNative(fileName);
   NS_ENSURE_SUCCESS(rv, rv);
 
   NS_ADDREF(*aResult = dbFile);
@@ -352,7 +349,7 @@ NS_IMETHODIMP nsAbMDBDirectory::GetDatabase(nsIAddrDatabase **aResult)
   NS_ENSURE_ARG_POINTER(aResult);
 
   nsresult rv;
-  nsCOMPtr<nsILocalFile> databaseFile;
+  nsCOMPtr<nsIFile> databaseFile;
   rv = GetDatabaseFile(getter_AddRefs(databaseFile));
   NS_ENSURE_SUCCESS(rv, rv);
 

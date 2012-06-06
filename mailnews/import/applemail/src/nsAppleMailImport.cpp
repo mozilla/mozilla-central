@@ -14,7 +14,7 @@
 #include "nsIImportService.h"
 #include "nsIImportMailboxDescriptor.h"
 #include "nsIImportGeneric.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIStringBundle.h"
 #include "nsIMsgFolder.h"
 #include "nsIMsgHdr.h"
@@ -165,7 +165,7 @@ NS_IMETHODIMP nsAppleMailImportMail::GetDefaultLocation(nsIFile **aLocation, boo
   *aUserVerify = true;
 
   // try to find current user's top-level Mail folder
-  nsCOMPtr<nsILocalFile> mailFolder(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
+  nsCOMPtr<nsIFile> mailFolder(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
   if (mailFolder) {
     nsresult rv = mailFolder->InitWithNativePath(NS_LITERAL_CSTRING(DEFAULT_MAIL_FOLDER));
     if (NS_SUCCEEDED(rv)) {
@@ -209,11 +209,9 @@ NS_IMETHODIMP nsAppleMailImportMail::FindMailboxes(nsIFile *aMailboxFile, nsISup
   if (NS_SUCCEEDED(rv)) {
     // 2. look for "global" mailboxes, that don't belong to any specific account. they are inside the
     //    root's Mailboxes/ folder
-    nsCOMPtr<nsILocalFile> mailboxesDir(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv));
+    nsCOMPtr<nsIFile> mailboxesDir(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv)) {  
-      nsCOMPtr<nsILocalFile> loc(do_QueryInterface(aMailboxFile, &rv));
-      if (NS_SUCCEEDED(rv)) {
-        mailboxesDir->InitWithFile(loc);
+        mailboxesDir->InitWithFile(aMailboxFile);
         rv = mailboxesDir->Append(NS_LITERAL_STRING("Mailboxes"));
         if (NS_SUCCEEDED(rv)) {
           IMPORT_LOG0("Looking for global Apple mailboxes");
@@ -222,7 +220,6 @@ NS_IMETHODIMP nsAppleMailImportMail::FindMailboxes(nsIFile *aMailboxFile, nsISup
           rv = FindMboxDirs(mailboxesDir, resultsArray, importService);
           mCurDepth--;
         }
-      }
     }
   }
 
@@ -245,7 +242,7 @@ void nsAppleMailImportMail::FindAccountMailDirs(nsIFile *aRoot, nsISupportsArray
   while (NS_SUCCEEDED(directoryEnumerator->HasMoreElements(&hasMore)) && hasMore) {
 
     // get the next file entry
-    nsCOMPtr<nsILocalFile> currentEntry;
+    nsCOMPtr<nsIFile> currentEntry;
     {
       nsCOMPtr<nsISupports> rawSupports;
       directoryEnumerator->GetNext(getter_AddRefs(rawSupports));
@@ -288,7 +285,7 @@ void nsAppleMailImportMail::FindAccountMailDirs(nsIFile *aRoot, nsISupportsArray
         desc->SetDisplayName(folderName.get());
         desc->SetIdentifier(kAccountMailboxID);
 
-        nsCOMPtr<nsILocalFile> mailboxDescFile;
+        nsCOMPtr<nsIFile> mailboxDescFile;
         rv = desc->GetFile(getter_AddRefs(mailboxDescFile));
         if (!mailboxDescFile)
           continue;
@@ -308,7 +305,7 @@ void nsAppleMailImportMail::FindAccountMailDirs(nsIFile *aRoot, nsISupportsArray
 }
 
 // adds the specified file as a mailboxdescriptor to the array
-nsresult nsAppleMailImportMail::AddMboxDir(nsILocalFile *aFolder, nsISupportsArray *aMailboxDescs, nsIImportService *aImportService)
+nsresult nsAppleMailImportMail::AddMboxDir(nsIFile *aFolder, nsISupportsArray *aMailboxDescs, nsIImportService *aImportService)
 {
   nsAutoString folderName;
   aFolder->GetLeafName(folderName);
@@ -347,7 +344,7 @@ nsresult nsAppleMailImportMail::AddMboxDir(nsILocalFile *aFolder, nsISupportsArr
           if (!rawSupports)
             continue;
 
-          nsCOMPtr<nsILocalFile> file(do_QueryInterface(rawSupports));
+          nsCOMPtr<nsIFile> file(do_QueryInterface(rawSupports));
           if (file) {
             bool isFile = false;
             file->IsFile(&isFile);
@@ -365,7 +362,7 @@ nsresult nsAppleMailImportMail::AddMboxDir(nsILocalFile *aFolder, nsISupportsArr
     IMPORT_LOG3("Will import %s with approx %d messages, depth is %d", NS_ConvertUTF16toUTF8(folderName).get(), numMessages, mCurDepth);
 
     // XXX: this is silly. there's no setter for the mailbox descriptor's file, so we need to get it, and then modify it.
-    nsCOMPtr<nsILocalFile> mailboxDescFile;
+    nsCOMPtr<nsIFile> mailboxDescFile;
     rv = desc->GetFile(getter_AddRefs(mailboxDescFile));
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -389,7 +386,7 @@ nsresult nsAppleMailImportMail::AddMboxDir(nsILocalFile *aFolder, nsISupportsArr
 //     MyChildMailbox.mbox/
 //     MyOtherChildMailbox.mbox/
 //
-nsresult nsAppleMailImportMail::FindMboxDirs(nsILocalFile *aFolder, nsISupportsArray *aMailboxDescs, nsIImportService *aImportService)
+nsresult nsAppleMailImportMail::FindMboxDirs(nsIFile *aFolder, nsISupportsArray *aMailboxDescs, nsIImportService *aImportService)
 {
   NS_ENSURE_ARG_POINTER(aFolder);
   NS_ENSURE_ARG_POINTER(aMailboxDescs);
@@ -410,7 +407,7 @@ nsresult nsAppleMailImportMail::FindMboxDirs(nsILocalFile *aFolder, nsISupportsA
   while (NS_SUCCEEDED(directoryEnumerator->HasMoreElements(&hasMore)) && hasMore) {
 
     // get the next file entry
-    nsCOMPtr<nsILocalFile> currentEntry;
+    nsCOMPtr<nsIFile> currentEntry;
     {
       nsCOMPtr<nsISupports> rawSupports;
       directoryEnumerator->GetNext(getter_AddRefs(rawSupports));
@@ -450,7 +447,7 @@ nsresult nsAppleMailImportMail::FindMboxDirs(nsILocalFile *aFolder, nsISupportsA
         siblingMailboxDirPath.SetLength(siblingMailboxDirPath.Length()-5);
 
       IMPORT_LOG1("trying to locate a '%s'", NS_ConvertUTF16toUTF8(siblingMailboxDirPath).get());
-      nsCOMPtr<nsILocalFile> siblingMailboxDir(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv));
+      nsCOMPtr<nsIFile> siblingMailboxDir(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv));
       if (NS_FAILED(rv))
         continue;
 
@@ -486,7 +483,7 @@ nsAppleMailImportMail::ImportMailbox(nsIImportMailboxDescriptor *aMailbox,
   nsAutoString mailboxName;
   aMailbox->GetDisplayName(getter_Copies(mailboxName));
 
-  nsCOMPtr<nsILocalFile> mboxFolder;
+  nsCOMPtr<nsIFile> mboxFolder;
   nsresult rv = aMailbox->GetFile(getter_AddRefs(mboxFolder));
   if (NS_FAILED(rv) || !mboxFolder) {
     ReportStatus(APPLEMAILIMPORT_MAILBOX_CONVERTERROR, mailboxName, errorLog);
@@ -543,7 +540,7 @@ nsAppleMailImportMail::ImportMailbox(nsIImportMailboxDescriptor *aMailbox,
 
     while (NS_SUCCEEDED(directoryEnumerator->HasMoreElements(&hasMore)) && hasMore) {
       // get the next file entry
-      nsCOMPtr<nsILocalFile> currentEntry;
+      nsCOMPtr<nsIFile> currentEntry;
       {
         nsCOMPtr<nsISupports> rawSupports;
         directoryEnumerator->GetNext(getter_AddRefs(rawSupports));

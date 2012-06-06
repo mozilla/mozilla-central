@@ -10,7 +10,7 @@
 #include "nsIPrefService.h"
 #include "windows.h"
 #include "shellapi.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsUnicharUtils.h"
 #include "nsIWinTaskbar.h"
@@ -118,9 +118,9 @@ GetHelperPath(nsAutoString& aPath)
     do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> appHelper;
+  nsCOMPtr<nsIFile> appHelper;
   rv = directoryService->Get(NS_XPCOM_CURRENT_PROCESS_DIR,
-                             NS_GET_IID(nsILocalFile),
+                             NS_GET_IID(nsIFile),
                              getter_AddRefs(appHelper));
   NS_ENSURE_SUCCESS(rv, rv);
 

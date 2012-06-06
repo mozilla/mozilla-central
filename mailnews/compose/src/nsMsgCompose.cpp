@@ -4006,7 +4006,7 @@ NS_IMETHODIMP nsMsgComposeSendListener::OnSecurityChange(nsIWebProgress *aWebPro
 }
 
 nsresult
-nsMsgCompose::ConvertHTMLToText(nsILocalFile *aSigFile, nsString &aSigData)
+nsMsgCompose::ConvertHTMLToText(nsIFile *aSigFile, nsString &aSigData)
 {
   nsAutoString origBuf;
 
@@ -4019,7 +4019,7 @@ nsMsgCompose::ConvertHTMLToText(nsILocalFile *aSigFile, nsString &aSigData)
 }
 
 nsresult
-nsMsgCompose::ConvertTextToHTML(nsILocalFile *aSigFile, nsString &aSigData)
+nsMsgCompose::ConvertTextToHTML(nsIFile *aSigFile, nsString &aSigData)
 {
   nsresult    rv;
   nsAutoString    origBuf;
@@ -4043,7 +4043,7 @@ nsMsgCompose::ConvertTextToHTML(nsILocalFile *aSigFile, nsString &aSigData)
 }
 
 nsresult
-nsMsgCompose::LoadDataFromFile(nsILocalFile *file, nsString &sigData,
+nsMsgCompose::LoadDataFromFile(nsIFile *file, nsString &sigData,
                                bool aAllowUTF8, bool aAllowUTF16)
 {
   PRInt32       readSize;
@@ -4184,7 +4184,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, bool aQuoted, nsString 
   bool         sig_bottom = true;
   bool          suppressSigSep = false;
 
-  nsCOMPtr<nsILocalFile> sigFile;
+  nsCOMPtr<nsIFile> sigFile;
   if (identity)
   {
     if (!CheckIncludeSignaturePrefs(identity))

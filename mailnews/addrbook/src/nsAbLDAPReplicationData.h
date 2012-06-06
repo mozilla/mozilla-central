@@ -11,7 +11,7 @@
 #include "nsIAbLDAPReplicationQuery.h"
 #include "nsAbLDAPListenerBase.h"
 #include "nsIAddrDatabase.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsDirPrefs.h"
 #include "nsIAbLDAPAttributeMap.h"
 #include "nsIAbLDAPDirectory.h"
@@ -40,8 +40,8 @@ protected:
   nsCOMPtr<nsIAbLDAPReplicationQuery> mQuery;
 
   nsCOMPtr<nsIAddrDatabase> mReplicationDB;
-  nsCOMPtr <nsILocalFile> mReplicationFile;
-  nsCOMPtr <nsILocalFile> mBackupReplicationFile;
+  nsCOMPtr <nsIFile> mReplicationFile;
+  nsCOMPtr <nsIFile> mBackupReplicationFile;
 
   // state of processing, protocol used and count of results
   PRInt32         mState;

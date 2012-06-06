@@ -4,7 +4,7 @@
 
 #include "nsISupports.idl"
 
-interface nsILocalFile;
+interface nsIFile;
 interface nsIRequestObserver;
 interface nsIPrefBranch;
 [scriptable, uuid(c961919b-980b-4adc-bcfe-dabe916d1acc)]
@@ -38,8 +38,8 @@ interface nsIMsgCloudFileProvider : nsISupports {
    *
    * @throws nsIMsgCloudFileProvider.offlineErr if we are offline.
    */
-  void uploadFile(in nsILocalFile aFile, in nsIRequestObserver aCallback);
-  ACString urlForFile(in nsILocalFile aFile);
+  void uploadFile(in nsIFile aFile, in nsIRequestObserver aCallback);
+  ACString urlForFile(in nsIFile aFile);
 
   /**
    * Cancels the upload of the passed in file, if it hasn't finished yet.
@@ -47,7 +47,7 @@ interface nsIMsgCloudFileProvider : nsISupports {
    *
    * @param aFile file whose upload we should cancel.
    */
-  void cancelFileUpload(in nsILocalFile aFile);
+  void cancelFileUpload(in nsIFile aFile);
 
   /**
    * Refresh the user info for this account. This will fill in the quota info,
@@ -70,7 +70,7 @@ interface nsIMsgCloudFileProvider : nsISupports {
    * @throws NS_ERROR_FAILURE if we don't know about the file.
    * @throws nsIMsgCloudFileProvider.offlineErr if we are offline.
    */
-  void deleteFile(in nsILocalFile aFile, in nsIRequestObserver aCallback);
+  void deleteFile(in nsIFile aFile, in nsIRequestObserver aCallback);
 
   /**
    * If the provider has an API for creating an account, this will start the

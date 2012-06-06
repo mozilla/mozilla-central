@@ -278,7 +278,7 @@ public:
                                   bool *changed);
 
   static nsresult MarkMsgForHost(const char *hostName, const char *userName,
-                                      nsILocalFile *mailDirectory,
+                                      nsIFile *mailDirectory,
                                       nsVoidArray  &UIDLArray);
 private:
   nsCString m_ApopTimestamp;

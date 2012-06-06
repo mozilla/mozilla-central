@@ -124,7 +124,7 @@ int ap_encode_file_infor(
 	char 		comment[256];
 	int	 		status;
     
-    nsCOMPtr <nsILocalFile> resFile;
+    nsCOMPtr <nsIFile> resFile;
     NS_NewNativeLocalFile(nsDependentCString(p_ap_encode_obj->fname), true,
                           getter_AddRefs(resFile));
     if (!resFile)
@@ -299,7 +299,7 @@ int ap_encode_header(
 		/*
 		** preparing to encode the resource fork.
 		*/
-        nsCOMPtr <nsILocalFile> myFile;
+        nsCOMPtr <nsIFile> myFile;
         NS_NewNativeLocalFile(nsDependentCString(p_ap_encode_obj->fname), true, getter_AddRefs(myFile));
         if (!myFile)
             return errFileOpen;
@@ -442,7 +442,7 @@ int ap_encode_data(
 		/*
 		** preparing to encode the data fork.
 		*/
-        nsCOMPtr <nsILocalFile> resFile;
+        nsCOMPtr <nsIFile> resFile;
         NS_NewNativeLocalFile(nsDependentCString(p_ap_encode_obj->fname), true,
                               getter_AddRefs(resFile));
         if (!resFile)

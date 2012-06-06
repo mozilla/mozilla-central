@@ -17,7 +17,7 @@
 #include "nsIDBChangeListener.h"
 #include "nsIMsgPluggableStore.h"
 #include "nsIURL.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsWeakReference.h"
 #include "nsIMsgFilterList.h"
 #include "nsIUrlListener.h"
@@ -77,9 +77,9 @@ public:
   void ChangeNumPendingUnread(PRInt32 delta);
   void ChangeNumPendingTotalMessages(PRInt32 delta);
 
-  nsresult CreateDirectoryForFolder(nsILocalFile **result);
-  nsresult CreateBackupDirectory(nsILocalFile **result);
-  nsresult GetBackupSummaryFile(nsILocalFile **result, const nsACString& newName);
+  nsresult CreateDirectoryForFolder(nsIFile **result);
+  nsresult CreateBackupDirectory(nsIFile **result);
+  nsresult GetBackupSummaryFile(nsIFile **result, const nsACString& newName);
   nsresult GetMsgPreviewTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputStream *stream);
   nsresult HandleAutoCompactEvent(nsIMsgWindow *aMsgWindow);
 protected:
@@ -114,15 +114,15 @@ protected:
   nsresult CheckWithNewMessagesStatus(bool messageAdded);
   void     UpdateNewMessages();
   nsresult OnHdrAddedOrDeleted(nsIMsgDBHdr *hdrChanged, bool added);
-  nsresult CreateFileForDB(const nsAString& userLeafName, nsILocalFile *baseDir,
-                           nsILocalFile **dbFile);
+  nsresult CreateFileForDB(const nsAString& userLeafName, nsIFile *baseDir,
+                           nsIFile **dbFile);
 
-  nsresult GetFolderCacheKey(nsILocalFile **aFile, bool createDBIfMissing = false);
-  nsresult GetFolderCacheElemFromFile(nsILocalFile *file, nsIMsgFolderCacheElement **cacheElement);
-  nsresult AddDirectorySeparator(nsILocalFile *path);
+  nsresult GetFolderCacheKey(nsIFile **aFile, bool createDBIfMissing = false);
+  nsresult GetFolderCacheElemFromFile(nsIFile *file, nsIMsgFolderCacheElement **cacheElement);
+  nsresult AddDirectorySeparator(nsIFile *path);
   nsresult CheckIfFolderExists(const nsAString& newFolderName, nsIMsgFolder *parentFolder, nsIMsgWindow *msgWindow);
 
-  nsresult GetSummaryFile(nsILocalFile** aSummaryFile);
+  nsresult GetSummaryFile(nsIFile** aSummaryFile);
 
   // Returns true if: a) there is no need to prompt or b) the user is already
   // logged in or c) the user logged in successfully.
@@ -225,7 +225,7 @@ protected:
   bool mIsServerIsValid;
   bool mIsServer;
   nsString mName;
-  nsCOMPtr<nsILocalFile> mPath;
+  nsCOMPtr<nsIFile> mPath;
   nsCString mBaseMessageURI; //The uri with the message scheme
 
   bool mInVFEditSearchScope ; // non persistant state used by the virtual folder UI

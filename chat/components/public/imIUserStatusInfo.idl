@@ -6,7 +6,7 @@
 #include "nsIObserver.idl"
 
 //forward declarations
-interface nsILocalFile;
+interface nsIFile;
 interface nsIFileURL;
 
 [scriptable, uuid(817918fa-1f4b-4254-9cdb-f906da91c45d)]
@@ -25,7 +25,7 @@ interface imIUserStatusInfo: nsISupports {
   void setStatus(in short aStatus, in AUTF8String aMessage);
 
   /* Will fire an user-icon-changed notificaton. */
-  void setUserIcon(in nsILocalFile aIconFile);
+  void setUserIcon(in nsIFile aIconFile);
 
   nsIFileURL getUserIcon();
 

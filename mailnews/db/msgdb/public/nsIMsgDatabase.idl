@@ -39,7 +39,7 @@ interface nsIMsgFolder;
 interface nsIMsgKeyArray;
 interface nsIOutputStream;
 interface nsIUrlListener;
-interface nsILocalFile;
+interface nsIFile;
 interface nsIArray;
 
 typedef unsigned long nsMsgRetainByPreference;
@@ -198,7 +198,7 @@ interface nsIMsgDBService : nsISupports
    * @see nsIMsgDBService::openFolderDB
    * @see nsIMsgDatabase::Open
    */
-  nsIMsgDatabase openMailDBFromFile(in nsILocalFile aFile,
+  nsIMsgDatabase openMailDBFromFile(in nsIFile aFile,
                                     in nsIMsgFolder aFolder,
                                     in boolean aCreate,
                                     in boolean aLeaveInvalidDB);

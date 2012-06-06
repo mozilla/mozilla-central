@@ -26,7 +26,7 @@ protected:
 
 protected:
   bool        m_isAppleSingle;
-  nsCOMPtr<nsILocalFile>   m_pInputFile;
+  nsCOMPtr<nsIFile>   m_pInputFile;
         nsCOMPtr<nsIInputStream> m_inputStream;
   int      m_encodeScanState;
   long      m_resourceForkSize;

@@ -277,7 +277,7 @@ public:
      *                    used in storing data from aFile into the local corpus.
      *
      */
-    nsresult UpdateData(nsILocalFile *aFile, bool aIsAdd,
+    nsresult UpdateData(nsIFile *aFile, bool aIsAdd,
                         PRUint32 aRemapCount, PRUint32 *aFromTraits,
                         PRUint32 *aToTraits);
 
@@ -293,12 +293,12 @@ protected:
     /**
      * return the local corpus storage file for junk traits
      */
-    nsresult getTrainingFile(nsILocalFile ** aFile);
+    nsresult getTrainingFile(nsIFile ** aFile);
 
     /**
      * return the local corpus storage file for non-junk traits
      */
-    nsresult getTraitFile(nsILocalFile ** aFile);
+    nsresult getTraitFile(nsIFile ** aFile);
 
     /**
      * read token strings from the data file
@@ -333,8 +333,8 @@ protected:
      */
     nsresult updateTrait(CorpusToken* token, PRUint32 aTraitId,
       PRInt32 aCountChange);
-    nsCOMPtr<nsILocalFile> mTrainingFile;  // file used to store junk training data
-    nsCOMPtr<nsILocalFile> mTraitFile;     // file used to store non-junk
+    nsCOMPtr<nsIFile> mTrainingFile;  // file used to store junk training data
+    nsCOMPtr<nsIFile> mTraitFile;     // file used to store non-junk
                                            // training data
     nsTArray<TraitPerToken> mTraitStore;   // memory for linked-list of counts
     PRUint32 mNextTraitIndex;              // index in mTraitStore to first empty

@@ -7,7 +7,7 @@
 #include "nsISupports.idl"
 
 interface nsIDOMElement;
-interface nsILocalFile;
+interface nsIFile;
 
 [scriptable, uuid(BEBB8B6A-8AF4-4CF2-85AC-022F7C6A87A9)]
 interface nsIShellService : nsISupports
@@ -96,11 +96,11 @@ interface nsIShellService : nsISupports
    * @param   uri
    *          The uri to be loaded by the application
    */
-  void openApplicationWithURI(in nsILocalFile aApplication, in ACString aURI);
+  void openApplicationWithURI(in nsIFile aApplication, in ACString aURI);
 
   /**
    * The default system handler for web feeds
    */
-  readonly attribute nsILocalFile defaultFeedReader;
+  readonly attribute nsIFile defaultFeedReader;
 };
 

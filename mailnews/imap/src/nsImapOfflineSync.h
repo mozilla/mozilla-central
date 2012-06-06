@@ -65,7 +65,7 @@ protected:
   nsCOMPtr <nsISupportsArray> m_allFolders;
   nsCOMPtr <nsIMsgIncomingServer> m_currentServer;
   nsCOMPtr <nsIEnumerator> m_serverEnumerator;
-  nsCOMPtr <nsILocalFile> m_curTempFile;
+  nsCOMPtr <nsIFile> m_curTempFile;
   
   nsTArray<nsMsgKey> m_CurrentKeys;
   nsCOMArray<nsIMsgOfflineImapOperation> m_currentOpsToClear;

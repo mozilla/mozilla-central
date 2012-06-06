@@ -643,7 +643,7 @@ NS_IMETHODIMP nsPop3IncomingServer::MarkMessages()
   {
     nsCString hostName;
     nsCString userName;
-    nsCOMPtr<nsILocalFile> localPath;
+    nsCOMPtr<nsIFile> localPath;
 
     GetLocalPath(getter_AddRefs(localPath));
 

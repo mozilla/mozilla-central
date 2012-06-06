@@ -144,7 +144,7 @@ nsLocalURI2Path(const char* rootURI, const char* uriStr,
 
   // now ask the server what it's root is
   // and begin pathResult with the mailbox root
-  nsCOMPtr<nsILocalFile> localPath;
+  nsCOMPtr<nsIFile> localPath;
   rv = server->GetLocalPath(getter_AddRefs(localPath));
   NS_ENSURE_SUCCESS(rv, rv);
 

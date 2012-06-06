@@ -37,7 +37,7 @@ nsMailboxService::~nsMailboxService()
 
 NS_IMPL_ISUPPORTS4(nsMailboxService, nsIMailboxService, nsIMsgMessageService, nsIProtocolHandler, nsIMsgMessageFetchPartService)
 
-nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsILocalFile *aMailboxPath, nsIStreamListener *aMailboxParser,
+nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsIFile *aMailboxPath, nsIStreamListener *aMailboxParser,
                     nsIUrlListener * aUrlListener, nsIURI ** aURL)
 {
   NS_ENSURE_ARG_POINTER(aMailboxPath);

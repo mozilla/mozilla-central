@@ -6,7 +6,7 @@
 #include "nsISupports.idl"
 
 interface nsIMutableArray;
-interface nsILocalFile;
+interface nsIFile;
 interface nsIAddrDatabase;
 interface nsIAbLDAPAttributeMap;
 interface nsILDAPURL;
@@ -84,7 +84,7 @@ interface nsIAbLDAPDirectory : nsISupports
   /**
    * The replication (offline) file that this database uses.
    */
-  readonly attribute nsILocalFile replicationFile;
+  readonly attribute nsIFile replicationFile;
 
   /**
    * A database that is set up for the replication file.

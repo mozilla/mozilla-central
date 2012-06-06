@@ -22,7 +22,7 @@
 #include "nsILDAPConnection.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsILDAPModification.h"
 #include "nsILDAPService.h"
 #include "nsIAbLDAPCard.h"
@@ -522,7 +522,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::UseForAutocomplete(const nsACString &aIdentityK
   {
     // Yes it does, one last check - does the replication file exist?
     nsresult rv;
-    nsCOMPtr<nsILocalFile> databaseFile;
+    nsCOMPtr<nsIFile> databaseFile;
     // If we can't get the file, then there is no database to use
     if (NS_FAILED(GetReplicationFile(getter_AddRefs(databaseFile))))
       return NS_OK;
@@ -657,7 +657,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetAttributeMap(nsIAbLDAPAttributeMap **aAttrib
   return mapSvc->GetMapForPrefBranch(m_DirPrefId, aAttributeMap);
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::GetReplicationFile(nsILocalFile **aResult)
+NS_IMETHODIMP nsAbLDAPDirectory::GetReplicationFile(nsIFile **aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -676,10 +676,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetReplicationFile(nsILocalFile **aResult)
   rv = profileDir->AppendNative(fileName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsILocalFile> replFile(do_QueryInterface(profileDir, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  NS_ADDREF(*aResult = replFile);
+  NS_ADDREF(*aResult = profileDir);
 
   return NS_OK;
 }
@@ -689,7 +686,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetReplicationDatabase(nsIAddrDatabase **aResul
   NS_ENSURE_ARG_POINTER(aResult);
 
   nsresult rv;
-  nsCOMPtr<nsILocalFile> databaseFile;
+  nsCOMPtr<nsIFile> databaseFile;
  rv = GetReplicationFile(getter_AddRefs(databaseFile));
   NS_ENSURE_SUCCESS(rv, rv);
 

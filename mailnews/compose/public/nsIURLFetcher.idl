@@ -6,7 +6,7 @@
 #include "nsISupports.idl"
 #include "nsIURI.idl"
 #include "nsIFileStreams.idl"
-#include "nsILocalFile.idl"
+#include "nsIFile.idl"
 
 %{ C++
 
@@ -30,7 +30,7 @@ interface nsIURLFetcher : nsISupports
 {
   boolean stillRunning();
 
-  void fireURLRequest(in nsIURI aURL, in nsILocalFile localFile, in nsIOutputStream fileStream, in nsAttachSaveCompletionCallback cb, in voidPtr tagData);
+  void fireURLRequest(in nsIURI aURL, in nsIFile localFile, in nsIOutputStream fileStream, in nsAttachSaveCompletionCallback cb, in voidPtr tagData);
 
-  void initialize(in nsILocalFile localFile, in nsIOutputStream fileStream, in nsAttachSaveCompletionCallback cb, in voidPtr tagData);
+  void initialize(in nsIFile localFile, in nsIOutputStream fileStream, in nsAttachSaveCompletionCallback cb, in voidPtr tagData);
 };

@@ -64,7 +64,7 @@ interface nsIMsgFilterList : nsISupports {
     // this is temporary so that we can save the filterlist to disk
     // without knowing where the filters were read from intially
     // (such as the filter list dialog)
-    attribute nsILocalFile defaultFile;
+    attribute nsIFile defaultFile;
     void saveToDefaultFile();
     
 

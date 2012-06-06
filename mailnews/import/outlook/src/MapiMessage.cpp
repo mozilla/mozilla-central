@@ -829,7 +829,7 @@ bool CMapiMessage::IterateAttachTable(LPMAPITABLE lpTable)
   return bResult;
 }
 
-bool CMapiMessage::GetTmpFile(/*out*/ nsILocalFile **aResult)
+bool CMapiMessage::GetTmpFile(/*out*/ nsIFile **aResult)
 {
   nsCOMPtr<nsIFile> tmpFile;
   nsresult rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
@@ -845,7 +845,7 @@ bool CMapiMessage::GetTmpFile(/*out*/ nsILocalFile **aResult)
   return NS_SUCCEEDED(CallQueryInterface(tmpFile, aResult));
 }
 
-bool CMapiMessage::CopyMsgAttachToFile(LPATTACH lpAttach, /*out*/ nsILocalFile **tmp_file)
+bool CMapiMessage::CopyMsgAttachToFile(LPATTACH lpAttach, /*out*/ nsIFile **tmp_file)
 {
   bool bResult = true;
   LPMESSAGE  lpMsg;
@@ -871,7 +871,7 @@ bool CMapiMessage::CopyMsgAttachToFile(LPATTACH lpAttach, /*out*/ nsILocalFile *
 }
 
 bool CMapiMessage::CopyBinAttachToFile(LPATTACH lpAttach,
-                                       nsILocalFile **tmp_file)
+                                       nsIFile **tmp_file)
 {
   nsCOMPtr<nsIFile> _tmp_file;
   nsresult rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,

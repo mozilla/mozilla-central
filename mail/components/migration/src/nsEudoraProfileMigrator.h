@@ -7,7 +7,7 @@
 #define eudoraprofilemigrator___h___
 
 #include "nsIMailProfileMigrator.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsIObserverService.h"
 #include "nsString.h"
 #include "nsITimer.h"

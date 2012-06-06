@@ -124,14 +124,14 @@ public:
    *                        The database is present (and was opened), but the
    *                        summary file is missing.
    */
-  virtual nsresult Open(nsILocalFile *aFolderName, bool aCreate,
+  virtual nsresult Open(nsIFile *aFolderName, bool aCreate,
                         bool aLeaveInvalidDB);
   virtual nsresult IsHeaderRead(nsIMsgDBHdr *hdr, bool *pRead);
   virtual nsresult MarkHdrReadInDB(nsIMsgDBHdr *msgHdr, bool bRead,
                                nsIDBChangeListener *instigator);
-  nsresult OpenInternal(nsILocalFile *aFolderName, bool aCreate,
+  nsresult OpenInternal(nsIFile *aFolderName, bool aCreate,
                         bool aLeaveInvalidDB, bool sync);
-  nsresult CheckForErrors(nsresult err, bool sync, nsILocalFile *summaryFile);
+  nsresult CheckForErrors(nsresult err, bool sync, nsIFile *summaryFile);
   virtual nsresult OpenMDB(const char *dbName, bool create, bool sync);
   virtual nsresult CloseMDB(bool commit);
   virtual nsresult CreateMsgHdr(nsIMdbRow* hdrRow, nsMsgKey key, nsIMsgDBHdr **result);
@@ -157,7 +157,7 @@ public:
   nsresult GetTableCreateIfMissing(const char *scope, const char *kind, nsIMdbTable **table, 
                                    mdb_token &scopeToken, mdb_token &kindToken);
 
-  static nsMsgDatabase* FindInCache(nsILocalFile *dbName);
+  static nsMsgDatabase* FindInCache(nsIFile *dbName);
   static nsIMsgDatabase* FindInCache(nsIMsgFolder *folder);
 
   //helper function to fill in nsStrings from hdr row cell contents.
@@ -255,7 +255,7 @@ protected:
     GetDBCache()->AppendElement(pMessageDB);
   }
   static void    RemoveFromCache(nsMsgDatabase* pMessageDB);
-  bool    MatchDbName(nsILocalFile *dbName);  // returns TRUE if they match
+  bool    MatchDbName(nsIFile *dbName);  // returns TRUE if they match
 
   // Flag handling routines
   virtual nsresult SetKeyFlag(nsMsgKey key, bool set, PRUint32 flag,

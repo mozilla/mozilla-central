@@ -10,7 +10,7 @@
 #include "nscore.h"
 #include "nsStringGlue.h"
 #include "nsVoidArray.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsISupportsArray.h"
 #include "nsCOMPtr.h"
 #include "nsIImportService.h"

@@ -8,12 +8,12 @@
 
 #include "nsMsgDatabase.h"
 #include "nsMsgMessageFlags.h"
-#include "nsILocalFile.h"
+#include "nsIFile.h"
 #include "nsTArray.h"
 
 // This is the subclass of nsMsgDatabase that handles local mail messages.
 class nsIOFileStream;
-class nsILocalFile;
+class nsIFile;
 class nsOfflineImapOperation;
 
 class nsMailDatabase : public nsMsgDatabase
@@ -27,7 +27,7 @@ public:
   NS_IMETHOD StartBatch();
   NS_IMETHOD EndBatch();
 
-  nsresult  Open(nsILocalFile *aSummaryFile, bool create, bool upgrading);
+  nsresult  Open(nsIFile *aSummaryFile, bool create, bool upgrading);
   virtual nsMailDatabase  *GetMailDB() {return this;}
 
   virtual PRUint32  GetCurVersion() {return kMsgDBVersion;}

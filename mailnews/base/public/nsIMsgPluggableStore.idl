@@ -5,7 +5,7 @@
 
 #include "nsISupports.idl"
 
-interface nsILocalFile;
+interface nsIFile;
 interface nsIMsgFolder;
 interface nsIMsgCopyServiceListener;
 interface nsIMsgDBHdr;
@@ -53,13 +53,13 @@ interface nsIMsgPluggableStore : nsISupports {
   nsIMsgFolder createFolder(in nsIMsgFolder aParent, in AString aFolderName);
 
   /**
-   * Get an nsILocalFile corresponding to the .msf file. This allows stores
+   * Get an nsIFile corresponding to the .msf file. This allows stores
    * to put the .msf files where they want.
    *
    * @param aFolder folder we want summary file for
    * @return summary file
    */
-  nsILocalFile getSummaryFile(in nsIMsgFolder aFolder);
+  nsIFile getSummaryFile(in nsIMsgFolder aFolder);
 
   /**
    * Delete the passed in folder. This is a real delete, not a move

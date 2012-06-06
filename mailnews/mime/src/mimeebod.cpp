@@ -176,7 +176,7 @@ MimeExternalBody_make_url(const char *ct,
 #ifdef XP_UNIX
     if (!PL_strcasecmp(at, "afs"))   /* only if there is a /afs/ directory */
     {
-      nsCOMPtr <nsILocalFile> fs = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
+      nsCOMPtr <nsIFile> fs = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
       bool exists = false;
       if (fs)
       {
@@ -489,7 +489,7 @@ MimeExternalBody_displayable_inline_p (MimeObjectClass *clazz,
 #ifdef XP_UNIX
   else if (!PL_strcasecmp(at, "afs"))   /* only if there is a /afs/ directory */
   {
-    nsCOMPtr <nsILocalFile> fs = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
+    nsCOMPtr <nsIFile> fs = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
     bool exists = false;
     if (fs)
     {

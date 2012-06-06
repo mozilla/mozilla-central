@@ -50,8 +50,8 @@ private:
  // Deal with quoting issues...
 	nsresult                      QuoteOriginalMessage(); // New template
   nsresult                      SetQuotingToFollow(bool aVal);
-  nsresult                      ConvertHTMLToText(nsILocalFile *aSigFile, nsString &aSigData);
-  nsresult                      ConvertTextToHTML(nsILocalFile *aSigFile, nsString &aSigData);
+  nsresult                      ConvertHTMLToText(nsIFile *aSigFile, nsString &aSigData);
+  nsresult                      ConvertTextToHTML(nsIFile *aSigFile, nsString &aSigData);
   bool                          IsEmbeddedObjectSafe(const char * originalScheme,
                                                      const char * originalHost,
                                                      const char * originalPath,
@@ -64,7 +64,7 @@ private:
 
   PRInt32                       mWhatHolder;
 
-  nsresult                      LoadDataFromFile(nsILocalFile *file,
+  nsresult                      LoadDataFromFile(nsIFile *file,
                                                  nsString &sigData,
                                                  bool aAllowUTF8 = true,
                                                  bool aAllowUTF16 = true);

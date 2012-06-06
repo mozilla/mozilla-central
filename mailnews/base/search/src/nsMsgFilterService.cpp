@@ -49,7 +49,7 @@ nsMsgFilterService::~nsMsgFilterService()
 {
 }
 
-NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsILocalFile *aFilterFile, nsIMsgFolder *rootFolder, nsIMsgWindow *aMsgWindow, nsIMsgFilterList **resultFilterList)
+NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsIFile *aFilterFile, nsIMsgFolder *rootFolder, nsIMsgWindow *aMsgWindow, nsIMsgFilterList **resultFilterList)
 {
   NS_ENSURE_ARG_POINTER(aFilterFile);
 
@@ -118,7 +118,7 @@ NS_IMETHODIMP nsMsgFilterService::CloseFilterList(nsIMsgFilterList *filterList)
 }
 
 /* save without deleting */
-NS_IMETHODIMP  nsMsgFilterService::SaveFilterList(nsIMsgFilterList *filterList, nsILocalFile *filterFile)
+NS_IMETHODIMP  nsMsgFilterService::SaveFilterList(nsIMsgFilterList *filterList, nsIFile *filterFile)
 {
   NS_ENSURE_ARG_POINTER(filterFile);
   NS_ENSURE_ARG_POINTER(filterList);
@@ -148,7 +148,7 @@ NS_IMETHODIMP nsMsgFilterService::CancelFilterList(nsIMsgFilterList *filterList)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-nsresult nsMsgFilterService::BackUpFilterFile(nsILocalFile *aFilterFile, nsIMsgWindow *aMsgWindow)
+nsresult nsMsgFilterService::BackUpFilterFile(nsIFile *aFilterFile, nsIMsgWindow *aMsgWindow)
 {
   AlertBackingUpFilterFile(aMsgWindow);
 
