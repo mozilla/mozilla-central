@@ -914,7 +914,7 @@ nsYouSendItFileUploader.prototype = {
                 .createInstance(Ci.nsIXMLHttpRequest);
     let resource = kItemCommitPath + "/" + this._urlInfo.itemId;
     // Not quite sure how we're going to not have expiration.
-    let args = "?sendEmailNotifications=false";  // &expiration=4000000
+    let args = "?sendEmailNotifications=false&expiration=0";  // &expiration=4000000
     let curDate = Date.now().toString();
 
     this.log.info("in commit send resource = " + resource);
