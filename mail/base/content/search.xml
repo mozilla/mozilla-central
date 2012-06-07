@@ -69,32 +69,16 @@
           var prefBranch =
               Components.classes['@mozilla.org/preferences-service;1'].
               getService(Components.interfaces.nsIPrefBranch);
+          prefBranch.addObserver("mailnews.database.global.indexer.enabled",
+                                 this._prefObserver, false);
+
           this.glodaCompleter =
             Components.classes["@mozilla.org/autocomplete/search;1?name=gloda"]
                       .getService()
                       .wrappedJSObject;
           var observerSvc = Cc["@mozilla.org/observer-service;1"]
                             .getService(Ci.nsIObserverService);
-
-          if ((typeof gSearchInputObserversRegistered != "undefined" &&
-              gSearchInputObserversRegistered == false)) {
-            // due to a bug in XBL that means that destructors don't get
-            // called reliably, the customize toolbar path will end up creating
-            // two clones of this widget, and never destroy them.  So the destructor
-            // isn't reliably called, and so we must use a global to avoid
-            // registering ourselves for the same event multiple times (twice
-            // per invocation of the customize-toolbar).
-
-            // We need to test for undefined above because if the widget is
-            // created from the customize toolbar, its namespace won't include
-            // a definition of gSearchInputObserversRegistered -- and we don't
-            // care, since we don't want to register observers in that scope.
-
-            prefBranch.addObserver("mailnews.database.global.indexer.enabled",
-                                   this._prefObserver, false);
-            observerSvc.addObserver(this, "autocomplete-did-enter-text", false);
-            gSearchInputObserversRegistered = true;
-          }
+          observerSvc.addObserver(this, "autocomplete-did-enter-text", false);
 
           this.glodaEnabled =
             prefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
@@ -199,7 +183,7 @@
         <parameter name="aData"/>
         <body><![CDATA[
         try {
-          if (aTopic == "autocomplete-did-enter-text") {
+          if (aTopic == "autocomplete-did-enter-text" && aSubject == this) {
             let selectedIndex = this.popup.selectedIndex;
             let curResult = this.glodaCompleter.curResult;
             if (! curResult)
