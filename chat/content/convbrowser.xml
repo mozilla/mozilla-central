@@ -135,6 +135,7 @@
                 readonly="true"/>
 
       <field name="magicCopyPref" readonly="true">"messenger.conversations.selections.magicCopyEnabled"</field>
+      <field name="magicCopyInitialized">false</field>
 
       <property name="magicCopyEnabled"
                 onget="return Services.prefs.getBoolPref(this.magicCopyPref);"
@@ -164,7 +165,6 @@
         <![CDATA[
           this.addEventListener("scroll", this.browserScroll);
           this.addEventListener("resize", this.browserResize);
-          Services.prefs.addObserver(this.magicCopyPref, this, false);
 
           if (!("cleanupImMarkup" in window))
             Components.utils.import("resource:///modules/imContentSink.jsm");
@@ -201,6 +201,9 @@
               // we polluted the global scope, so clean it up
               this._autoScrollPopup.parentNode.removeChild(this._autoScrollPopup);
             }
+
+            if (!this.magicCopyInitialized)
+              return;
 
             Services.prefs.removeObserver(this.magicCopyPref, this);
             if (this.magicCopyEnabled)
@@ -725,6 +728,10 @@
                       .QueryInterface(Components.interfaces.nsISelectionPrivate)
                       .addSelectionListener(this);
                 }
+              }
+              if (!this.magicCopyInitialized) {
+                Services.prefs.addObserver(this.magicCopyPref, this, false);
+                this.magicCopyInitialized = true;
               }
 
               // We need to reset these variables here to avoid a race
