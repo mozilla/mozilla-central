@@ -89,7 +89,7 @@
                 onselect="ImportSelectionChanged(); enableAdvance();" 
                 style="height: 0px;"/>
       <grid flex="1">
-        <columns><column/></columns>
+        <columns><column flex="1"/></columns>
         <rows>
           <row>
             <description control="moduleList" id="description" class="box-padded"/>
