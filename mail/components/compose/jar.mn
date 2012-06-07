@@ -11,7 +11,7 @@ messenger.jar:
     content/messenger/messengercompose/bigFileObserver.js          (content/bigFileObserver.js)
     content/messenger/messengercompose/cloudAttachmentLinkManager.js (content/cloudAttachmentLinkManager.js)
     content/messenger/messengercompose/EdImageOverlayOverlay.xul   (content/EdImageOverlayOverlay.xul)
-*   content/messenger/messengercompose/addressingWidgetOverlay.js  (content/addressingWidgetOverlay.js)
+    content/messenger/messengercompose/addressingWidgetOverlay.js  (content/addressingWidgetOverlay.js)
 
 comm.jar:
-*+  content/editor/editorOverlay.xul                               (content/editorOverlay.xul) 
++   content/editor/editorOverlay.xul                               (content/editorOverlay.xul) 

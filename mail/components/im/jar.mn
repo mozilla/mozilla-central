@@ -20,7 +20,7 @@ messenger.jar:
     content/messenger/chat/imAccounts.xul                (content/imAccounts.xul)
     content/messenger/chat/imAccountWizard.xul           (content/imAccountWizard.xul)
     content/messenger/chat/imAccountWizard.js            (content/imAccountWizard.js)
-*   content/messenger/chat/imContextMenu.js              (content/imContextMenu.js)
+    content/messenger/chat/imContextMenu.js              (content/imContextMenu.js)
     content/messenger/chat/imStatusSelector.js           (content/imStatusSelector.js)
     content/messenger/chat/imbuddytooltip.xml            (content/imbuddytooltip.xml)
     content/messenger/chat/imcontact.xml                 (content/imcontact.xml)

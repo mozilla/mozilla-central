@@ -9,10 +9,10 @@ messenger.jar:
 % overlay chrome://messenger/content/messenger.xul chrome://messenger-smime/content/msgReadSMIMEOverlay.xul
 % overlay chrome://messenger/content/messageWindow.xul chrome://messenger-smime/content/msgReadSMIMEOverlay.xul
 % overlay chrome://messenger/content/am-identity-edit.xul chrome://messenger/content/am-smimeIdentityEditOverlay.xul
-*  content/messenger-smime/msgReadSMIMEOverlay.xul                  (content/msgReadSMIMEOverlay.xul)
-*  content/messenger-smime/msgCompSMIMEOverlay.xul                  (content/msgCompSMIMEOverlay.xul)
-*  content/messenger-smime/msgCompSMIMEOverlay.js                   (content/msgCompSMIMEOverlay.js)
-*  content/messenger-smime/msgHdrViewSMIMEOverlay.js                (content/msgHdrViewSMIMEOverlay.js)
+   content/messenger-smime/msgReadSMIMEOverlay.xul                  (content/msgReadSMIMEOverlay.xul)
+   content/messenger-smime/msgCompSMIMEOverlay.xul                  (content/msgCompSMIMEOverlay.xul)
+   content/messenger-smime/msgCompSMIMEOverlay.js                   (content/msgCompSMIMEOverlay.js)
+   content/messenger-smime/msgHdrViewSMIMEOverlay.js                (content/msgHdrViewSMIMEOverlay.js)
    content/messenger-smime/msgHdrViewSMIMEOverlay.xul               (content/msgHdrViewSMIMEOverlay.xul)
    content/messenger/am-smime.xul                                   (/mailnews/extensions/smime/content/am-smime.xul)
    content/messenger/am-smime.js                                    (/mailnews/extensions/smime/content/am-smime.js)
