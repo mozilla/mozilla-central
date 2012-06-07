@@ -10,7 +10,7 @@ var dialog;
 
 function onLoad()
 {
-  var arguments = window.arguments[0];
+  var windowArgs = window.arguments[0];
 
   dialog = {};
 
@@ -18,20 +18,20 @@ function onLoad()
   dialog.nameField.focus();
 
   // call this when OK is pressed
-  dialog.okCallback = arguments.okCallback;
+  dialog.okCallback = windowArgs.okCallback;
 
   // pre select the folderPicker, based on what they selected in the folder pane
-  dialog.folder = arguments.folder;
+  dialog.folder = windowArgs.folder;
   try {
-    document.getElementById("MsgNewFolderPopup").selectFolder(arguments.folder);
+    document.getElementById("MsgNewFolderPopup").selectFolder(windowArgs.folder);
   } catch(ex) {
     // selected a child folder
       document.getElementById("msgNewFolderPicker")
-          .setAttribute("label", arguments.folder.prettyName);
+          .setAttribute("label", windowArgs.folder.prettyName);
   }
 
   // can folders contain both folders and messages?
-  if (arguments.dualUseFolders) {
+  if (windowArgs.dualUseFolders) {
     dialog.folderType = FOLDERS | MESSAGES;
 
     // hide the section when folder contain both folders and messages.

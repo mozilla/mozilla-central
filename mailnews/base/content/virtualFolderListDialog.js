@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 var gFolderPickerTree = null;
 
 function onLoad()
@@ -61,9 +63,8 @@ function processSearchSettingForFolder(aFolder, aCurrentSearchURIString)
 function generateFoldersToSearchList()
 {
   var uriSearchString = "";
-  
-  var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-  var allServers = accountManager.allServers;
+
+  var allServers = MailServices.accounts.allServers;
   var numServers = allServers.Count();
   for (var index = 0; index < numServers; index++)
   {
@@ -86,8 +87,7 @@ function resetFolderToSearchAttribute()
 {
   // iterates over all accounts and all folders, clearing out the inVFEditScope property in case
   // we set it.
-  var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-  var allServers = accountManager.allServers;
+  var allServers = MailServices.accounts.allServers;
   var numServers = allServers.Count();
   for (var index = 0; index < numServers; index++)
   {
@@ -156,4 +156,3 @@ function onSelectFolderTreeKeyPress(event)
       ReverseStateFromNode(k);
   }
 }
-

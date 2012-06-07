@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gSearchDateFormat = 0;
 var gSearchDateSeparator;
 var gSearchDateLeadingZeros;
@@ -82,11 +84,9 @@ function initializeSearchDateFormat()
 
   // get a search date format option and a seprator
   try {
-    var pref = Components.classes["@mozilla.org/preferences-service;1"]
-                                 .getService(Components.interfaces.nsIPrefBranch);
     gSearchDateFormat =
-               pref.getComplexValue("mailnews.search_date_format", 
-                                    Components.interfaces.nsIPrefLocalizedString);
+      Services.prefs.getComplexValue("mailnews.search_date_format",
+                                     Components.interfaces.nsIPrefLocalizedString);
     gSearchDateFormat = parseInt(gSearchDateFormat);
 
     // if the option is 0 then try to use the format of the current locale
@@ -98,16 +98,19 @@ function initializeSearchDateFormat()
       if ( gSearchDateFormat < 1 || gSearchDateFormat > 6 )
         gSearchDateFormat = 3;
 
-      gSearchDateSeparator = pref.getComplexValue("mailnews.search_date_separator", 
-                                  Components.interfaces.nsIPrefLocalizedString);
+      gSearchDateSeparator =
+        Services.prefs.getComplexValue("mailnews.search_date_separator",
+                                       Components.interfaces.nsIPrefLocalizedString);
 
-      gSearchDateLeadingZeros = (pref.getComplexValue("mailnews.search_date_leading_zeros", 
-                      Components.interfaces.nsIPrefLocalizedString).data == "true");
+      gSearchDateLeadingZeros =
+        (Services.prefs.getComplexValue(
+           "mailnews.search_date_leading_zeros",
+           Components.interfaces.nsIPrefLocalizedString).data == "true");
     }
   }
   catch (e)
   {
-    dump("initializeSearchDateFormat: caught an exception: "+e+"\n");
+    Components.utils.reportError("initializeSearchDateFormat: caught an exception: " + e);
     // set to mm/dd/yyyy in case of error
     gSearchDateFormat = 3;
     gSearchDateSeparator = "/";

@@ -5,6 +5,8 @@
 
 /* This is where functions related to the print engine are kept */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 /* globals for a particular window */
 var printEngineContractID      = "@mozilla.org/messenger/msgPrintEngine;1";
 var printEngineWindow;
@@ -71,9 +73,7 @@ function getBundle(aURI)
   var bundle = null;
   try
   {
-    var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].
-      getService(Components.interfaces.nsIStringBundleService);
-    bundle = strBundleService.createBundle(aURI);
+    bundle = Services.strings.createBundle(aURI);
   }
   catch (ex)
   {

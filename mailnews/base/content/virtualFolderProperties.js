@@ -11,29 +11,31 @@ var gSearchFolderURIs = "";
 
 var nsMsgSearchScope = Components.interfaces.nsMsgSearchScope;
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/virtualFolderWrapper.js");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
 function onLoad()
 {
-  var arguments = window.arguments[0];
+  var windowArgs = window.arguments[0];
   var acceptButton = document.documentElement.getButton("accept");
-  
+
   document.getElementById("name").focus();
 
   // call this when OK is pressed
-  msgWindow = arguments.msgWindow;
+  msgWindow = windowArgs.msgWindow;
 
   initializeSearchWidgets();
-  
+
   setSearchScope(nsMsgSearchScope.offlineMail);
-  if (arguments.editExistingFolder)
+  if (windowArgs.editExistingFolder)
   {
     acceptButton.label = 
         document.documentElement.getAttribute("editFolderAcceptButtonLabel");
     acceptButton.accesskey = 
         document.documentElement.getAttribute("editFolderAcceptButtonAccessKey");
-    InitDialogWithVirtualFolder(arguments.folder);
+    InitDialogWithVirtualFolder(windowArgs.folder);
   }
   else // we are creating a new virtual folder
   {
@@ -45,38 +47,38 @@ function onLoad()
     gSearchTermSession = Components.classes["@mozilla.org/messenger/searchSession;1"]
                                    .createInstance(Components.interfaces.nsIMsgSearchSession);
 
-    if (arguments.searchTerms) // then add them to our search session
+    if (windowArgs.searchTerms) // then add them to our search session
     {
-      for each (let searchTerm in fixIterator(arguments.searchTerms,
+      for each (let searchTerm in fixIterator(windowArgs.searchTerms,
                                               Components.interfaces.nsIMsgSearchTerm))
         gSearchTermSession.appendTerm(searchTerm);
     }
-    if (arguments.folder)
+    if (windowArgs.folder)
     {
       // pre select the folderPicker, based on what they selected in the folder pane
-      gPickedFolder = arguments.folder;
+      gPickedFolder = windowArgs.folder;
       try {
-        document.getElementById("msgNewFolderPopup").selectFolder(arguments.folder);
+        document.getElementById("msgNewFolderPopup").selectFolder(windowArgs.folder);
       } catch(ex) {
         document.getElementById("msgNewFolderPicker")
-                .setAttribute("label", arguments.folder.prettyName);
+                .setAttribute("label", windowArgs.folder.prettyName);
       }
 
       // if the passed in URI is not a server then pre-select it as the folder to search
-      if (!arguments.folder.isServer)
-        gSearchFolderURIs = arguments.folder.URI;
+      if (!windowArgs.folder.isServer)
+        gSearchFolderURIs = windowArgs.folder.URI;
     }
-    if (arguments.newFolderName)
-      document.getElementById("name").value = arguments.newFolderName;
-    if (arguments.searchFolderURIs)
-      gSearchFolderURIs = arguments.searchFolderURIs;
+    if (windowArgs.newFolderName)
+      document.getElementById("name").value = windowArgs.newFolderName;
+    if (windowArgs.searchFolderURIs)
+      gSearchFolderURIs = windowArgs.searchFolderURIs;
 
     setupSearchRows(gSearchTermSession.searchTerms);
     doEnabling(); // we only need to disable/enable the OK button for new virtual folders
   }
 
-  if (typeof arguments.searchOnline != "undefined")
-    document.getElementById('searchOnline').checked = arguments.searchOnline;
+  if (typeof windowArgs.searchOnline != "undefined")
+    document.getElementById('searchOnline').checked = windowArgs.searchOnline;
   updateOnlineSearchState();
   doSetOKCancel(onOK, onCancel);
 }
@@ -149,11 +151,8 @@ function onOK()
 
   if (!gSearchFolderURIs)
   {
-    var promptService =
-      Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                .getService(Components.interfaces.nsIPromptService);
-    promptService.alert(window, null,
-                        messengerBundle.getString('alertNoSearchFoldersSelected'));
+    Services.prompt.alert(window, null,
+                          messengerBundle.getString('alertNoSearchFoldersSelected'));
     return false;
   }
 
@@ -169,8 +168,7 @@ function onOK()
     virtualFolderWrapper.onlineSearch = searchOnline;
     virtualFolderWrapper.cleanUpMessageDatabase();
 
-    var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-    accountManager.saveVirtualFolders();
+    MailServices.accounts.saveVirtualFolders();
 
     if (window.arguments[0].onOKCallback)
       window.arguments[0].onOKCallback(virtualFolderWrapper.virtualFolder.URI);
@@ -181,28 +179,22 @@ function onOK()
   {
     // check to see if we already have a folder with the same name and alert the user if so...
     var parentFolder = GetMsgFolderFromUri(uri);
-    
+
     // sanity check the name based on the logic used by nsMsgBaseUtils.cpp. It can't start with a '.', it can't end with a '.', '~' or ' '.
     // it can't contain a ';' or '#'.
     if (/^\.|[\.\~ ]$|[\;\#]/.test(name))
     {
-      var promptService =
-        Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                  .getService(Components.interfaces.nsIPromptService);
-      promptService.alert(window, null,
-                          messengerBundle.getString('folderCreationFailed'));
+      Services.prompt.alert(window, null,
+                            messengerBundle.getString('folderCreationFailed'));
       return false;
     }
     else if (parentFolder.containsChildNamed(name))
     {
-      var promptService =
-        Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                  .getService(Components.interfaces.nsIPromptService);
-      promptService.alert(window, null,
-                          messengerBundle.getString('folderExists'));
+      Services.prompt.alert(window, null,
+                            messengerBundle.getString('folderExists'));
       return false;
     }
-    
+
     saveSearchTerms(gSearchTermSession.searchTerms, gSearchTermSession);
     VirtualFolderHelper.createNewVirtualFolder(name, parentFolder, gSearchFolderURIs,
                                                gSearchTermSession.searchTerms,

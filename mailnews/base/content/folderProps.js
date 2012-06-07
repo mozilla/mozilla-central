@@ -2,10 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/gloda/gloda.js");
+
 var gMsgFolder;
 var gLockedPref = null;
-
-Components.utils.import("resource:///modules/gloda/gloda.js");
 
 // The folderPropsSink is the class that gets notified of an imap folder's properties
 
@@ -239,9 +240,7 @@ function folderPropsOnLoad()
 
     // if gloda indexing is off, hide the related checkbox
     var glodaCheckbox = document.getElementById("folderIncludeInGlobalSearch");
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-      .getService(Components.interfaces.nsIPrefBranch);
-    var glodaEnabled = prefs
+    var glodaEnabled = Services.prefs
       .getBoolPref("mailnews.database.global.indexer.enabled");
     if (!glodaEnabled || (gMsgFolder.flags & (nsMsgFolderFlags.Queue |
                                               nsMsgFolderFlags.Newsgroup))) {

@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gSynchronizeTree = null;
 var gParentMsgWindow;
 var gMsgWindow;
@@ -10,18 +12,21 @@ var gMsgWindow;
 var gInitialFolderStates = {};
 
 function OnLoad()
-{	
+{
     if (window.arguments && window.arguments[0]) {
         if (window.arguments[0].msgWindow) {
             gParentMsgWindow = window.arguments[0].msgWindow;
         }
     }
-  	   		
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-    document.getElementById("syncMail").checked = prefs.getBoolPref("mailnews.offline_sync_mail");
-    document.getElementById("syncNews").checked = prefs.getBoolPref("mailnews.offline_sync_news");
-    document.getElementById("sendMessage").checked = prefs.getBoolPref("mailnews.offline_sync_send_unsent");
-    document.getElementById("workOffline").checked = prefs.getBoolPref("mailnews.offline_sync_work_offline");
+
+    document.getElementById("syncMail").checked =
+      Services.prefs.getBoolPref("mailnews.offline_sync_mail");
+    document.getElementById("syncNews").checked =
+      Services.prefs.getBoolPref("mailnews.offline_sync_news");
+    document.getElementById("sendMessage").checked =
+      Services.prefs.getBoolPref("mailnews.offline_sync_send_unsent");
+    document.getElementById("workOffline").checked =
+      Services.prefs.getBoolPref("mailnews.offline_sync_work_offline");
 
     return true;
 }
@@ -30,18 +35,18 @@ function syncOkButton()
 {
 
     var syncMail = document.getElementById("syncMail").checked;
-    var syncNews = document.getElementById("syncNews").checked;	
+    var syncNews = document.getElementById("syncNews").checked;
     var sendMessage = document.getElementById("sendMessage").checked;
     var workOffline = document.getElementById("workOffline").checked;
 
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-    prefs.setBoolPref("mailnews.offline_sync_mail", syncMail);
-    prefs.setBoolPref("mailnews.offline_sync_news", syncNews);
-    prefs.setBoolPref("mailnews.offline_sync_send_unsent", sendMessage);
-    prefs.setBoolPref("mailnews.offline_sync_work_offline", workOffline);
-    
+    Services.prefs.setBoolPref("mailnews.offline_sync_mail", syncMail);
+    Services.prefs.setBoolPref("mailnews.offline_sync_news", syncNews);
+    Services.prefs.setBoolPref("mailnews.offline_sync_send_unsent", sendMessage);
+    Services.prefs.setBoolPref("mailnews.offline_sync_work_offline", workOffline);
+
     if (syncMail || syncNews || sendMessage || workOffline) {
-        var offlineManager = Components.classes["@mozilla.org/messenger/offline-manager;1"].getService(Components.interfaces.nsIMsgOfflineManager);
+        var offlineManager = Components.classes["@mozilla.org/messenger/offline-manager;1"]
+                                       .getService(Components.interfaces.nsIMsgOfflineManager);
         if(offlineManager)
             offlineManager.synchronizeForOffline(syncNews, syncMail, sendMessage, workOffline, gParentMsgWindow)
     }
@@ -50,8 +55,9 @@ function syncOkButton()
 }
 
 function OnSelect()
-{	  
-   top.window.openDialog("chrome://messenger/content/msgSelectOffline.xul", "", "centerscreen,chrome,modal,titlebar,resizable=yes");
+{
+   top.window.openDialog("chrome://messenger/content/msgSelectOffline.xul", "",
+                         "centerscreen,chrome,modal,titlebar,resizable=yes");
    return true;
 }
 
@@ -157,7 +163,7 @@ function onSynchronizeClick(event)
         UpdateNode(GetFolderResource(gSynchronizeTree, row.value), row.value);
       }
     }
-}  
+}
 
 function onSynchronizeTreeKeyPress(event)
 {
@@ -184,7 +190,7 @@ function UpdateNode(resource, row)
     if (!(resource.Value in gInitialFolderStates)) {
       gInitialFolderStates[resource.Value] = folder.getFlag(Components.interfaces.nsMsgFolderFlags.Offline);
     }
-    
+
     folder.toggleFlag(Components.interfaces.nsMsgFolderFlags.Offline);
 }
 

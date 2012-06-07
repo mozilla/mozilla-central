@@ -25,6 +25,8 @@
   *   msgWindow
   */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 /*
  * determineActionsForJunkMsgs
  *
@@ -113,10 +115,9 @@ function determineActionsForJunkMsgs(aFolder)
       aFolder.markMessagesRead(aJunkMsgHdrs, true);
 
     if (actionParams.junkTargetFolder)
-      Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
-                .getService(Components.interfaces.nsIMsgCopyService)
-                .CopyMessages(aFolder, aJunkMsgHdrs, actionParams.junkTargetFolder,
-                  true /* isMove */, null, msgWindow, true /* allow undo */);
+      MailServices.copy
+                  .CopyMessages(aFolder, aJunkMsgHdrs, actionParams.junkTargetFolder,
+                    true /* isMove */, null, msgWindow, true /* allow undo */);
   }
 }
 
@@ -183,9 +184,7 @@ MessageClassifier.prototype =
     if (this.firstMessage)
     {
       this.firstMessage = false;
-      var junkService = Components.classes["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
-                                  .getService(Components.interfaces.nsIJunkMailPlugin);
-      junkService.classifyMessage(messageURI, msgWindow, this);
+      MailServices.junk.classifyMessage(messageURI, msgWindow, this);
     }
     else
       this.mMessageQueue.push(messageURI);
@@ -244,9 +243,7 @@ MessageClassifier.prototype =
             [percentStr]));
       }
 
-      var junkService = Components.classes["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
-                                  .getService(Components.interfaces.nsIJunkMailPlugin);
-      junkService.classifyMessage(nextMsgURI, msgWindow, this);
+      MailServices.junk.classifyMessage(nextMsgURI, msgWindow, this);
     }
     else
     {
