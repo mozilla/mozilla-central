@@ -99,10 +99,12 @@ MOZCONFIG_LOADER := build/autoconf/mozconfig2client-mk
 MOZCONFIG_FINDER := build/autoconf/mozconfig-find
 MOZCONFIG_MODULES := build/unix/uniq.pl
 
-run_for_side_effects := \
-  $(shell $(TOPSRCDIR)/$(MOZCONFIG_LOADER) $(TOPSRCDIR) $(TOPSRCDIR)/.mozconfig.mk > $(TOPSRCDIR)/.mozconfig.out)
+define CR
 
-include $(TOPSRCDIR)/.mozconfig.mk
+
+endef
+
+$(eval $(subst ||,$(CR),$(shell $(TOPSRCDIR)/$(MOZCONFIG_LOADER) $(TOPSRCDIR) 2> $(TOPSRCDIR)/.mozconfig.out | sed 's/$$/||/')))
 
 ifndef MOZ_OBJDIR
   MOZ_OBJDIR = obj-$(CONFIG_GUESS)
