@@ -169,9 +169,19 @@
           this.convView.destroy();
           this.convView.parentNode.removeChild(this.convView);
         }
+
+        // If the conversation we are destroying was selected, we should
+        // select something else, but the 'select' event handler of
+        // the listbox will choke while updating the Chat tab title if
+        // there are conversation nodes associated with a conversation
+        // that no longer exists from the chat core's point of view, so
+        // we do the actual selection change only after this conversation
+        // item is fully destroyed and removed from the list.
+        let newSelectedItem;
         let list = this.parentNode;
         if (list.selectedItem == this)
-          list.selectedItem = this.previousSibling;
+          newSelectedItem = this.previousSibling;
+
         if (this.log) {
           this.hidden = true;
           delete this.log;
@@ -180,6 +190,8 @@
           list.removeChild(this);
           delete this.conv;
         }
+        if (newSelectedItem)
+          list.selectedItem = newSelectedItem;
       ]]>
       </body>
      </method>
