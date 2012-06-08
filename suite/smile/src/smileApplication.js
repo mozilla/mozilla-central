@@ -652,6 +652,7 @@ Application.prototype = {
   QueryInterface : XPCOMUtils.generateQI(
                      [Components.interfaces.smileIApplication,
                       Components.interfaces.extIApplication,
+                      Components.interfaces.nsISupportsWeakReference,
                       Components.interfaces.nsIObserver]),
 
   // for nsIClassInfo
