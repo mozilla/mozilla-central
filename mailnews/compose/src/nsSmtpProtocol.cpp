@@ -376,6 +376,13 @@ NS_IMETHODIMP nsSmtpProtocol::OnStopRequest(nsIRequest *request, nsISupports *ct
   bool connDroppedDuringAuth = aStatus == NS_OK && !m_sendDone &&
       (m_nextStateAfterResponse == SMTP_AUTH_LOGIN_STEP0_RESPONSE ||
        m_nextStateAfterResponse == SMTP_AUTH_LOGIN_RESPONSE);
+  // ignore errors handling the QUIT command so fcc can continue.
+  if (m_sendDone && NS_FAILED(aStatus))
+  {
+    PR_LOG(SMTPLogModule, PR_LOG_ALWAYS,
+     ("SMTP connection error quitting %lx, ignoring ", aStatus));
+    aStatus = NS_OK;
+  }
   if (aStatus == NS_OK && !m_sendDone) {
     // if we are getting OnStopRequest() with NS_OK,
     // but we haven't finished clean, that's spells trouble.
