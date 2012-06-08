@@ -54,7 +54,7 @@ mozmill-one:
 # calling into the relevant mozilla dirs when necessary for the core tests.
 ifndef UNIVERSAL_BINARY
 PKG_STAGE = $(DIST)/test-package-stage
-package-tests:: stage-mozilla-tests stage-mozmill
+package-tests:: stage-mozilla-tests stage-mozmill stage-modules
 else
 # This staging area has been built for us by universal/flight.mk
 PKG_STAGE = $(DIST)/universal/test-package-stage
@@ -89,5 +89,10 @@ stage-mozilla-tests: make-stage-dir
 stage-mozmill: make-stage-dir
 	$(MAKE) -C $(DEPTH)/mail/test/mozmill stage-package
 
+# This will get replaced by actual logic in a subsequent patch.
+stage-modules: make-stage-dir
+	$(NSINSTALL) -D $(PKG_STAGE)/modules
+	$(TOUCH) $(PKG_STAGE)/modules/.dummy
+
 .PHONY: \
-  package-tests make-stage-dir stage-mozmill
+  package-tests make-stage-dir stage-mozmill stage-modules
