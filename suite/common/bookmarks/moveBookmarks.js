@@ -34,9 +34,9 @@ var gMoveBookmarksDialog = {
       if (this._nodes[i].parent.itemId == selectedFolderID)
         continue;
 
-      let txn = PlacesMoveItemTransaction(this._nodes[i].itemId,
-                                          selectedFolderID,
-                                          PlacesUtils.bookmarks.DEFAULT_INDEX);
+      let txn = new PlacesMoveItemTransaction(this._nodes[i].itemId,
+                                              selectedFolderID,
+                                              PlacesUtils.bookmarks.DEFAULT_INDEX);
       transactions.push(txn);
     }
 
