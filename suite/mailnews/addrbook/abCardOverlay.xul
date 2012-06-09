@@ -92,6 +92,15 @@
                          oninput="DisplayNameChanged()"/>
               </hbox>
             </hbox>
+            <hbox align="center">
+              <spacer flex="1"/>
+              <hbox class="CardEditWidth">
+                <checkbox id="preferDisplayName"
+                          label="&preferDisplayName.label;"
+                          accesskey="&preferDisplayName.accesskey;"/>
+              </hbox>
+            </hbox>
+
             <hbox id="nickNameContainer" align="center">
               <spacer flex="1"/>
               <label control="NickName" value="&NickName.label;"

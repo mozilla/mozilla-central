@@ -5,7 +5,7 @@
 
 const kNonVcardFields =
         ["nickNameContainer", "secondaryEmailContainer", "screenNameContainer",
-         "customFields", "allowRemoteContent"];
+         "customFields", "allowRemoteContent", "preferDisplayName"];
 
 const kPhoneticFields =
         ["PhoneticLastName", "PhoneticLabel1", "PhoneticSpacer1",
@@ -270,6 +270,9 @@ function OnLoadEditCard()
         document.getElementById("PreferMailFormatPopup").disabled = true;
         document.getElementById("allowRemoteContent").disabled = true;
 
+        // And the "prefer display name" checkbox.
+        document.getElementById("preferDisplayName").disabled = true;
+
         document.documentElement.buttons = "accept";
         document.documentElement.removeAttribute("ondialogaccept");
       }
@@ -439,6 +442,11 @@ function GetCardValues(cardproperty, doc)
     // getProperty may return a "1" or "0" string, we want a boolean
     allowRemoteContentEl.checked = cardproperty.getProperty("AllowRemoteContent", false) != false;
 
+  var preferDisplayNameEl = document.getElementById("preferDisplayName");
+  if (preferDisplayNameEl)
+    // getProperty may return a "1" or "0" string, we want a boolean
+    preferDisplayNameEl.checked = cardproperty.getProperty("PreferDisplayName", true) != false;
+
   // get phonetic fields if exist
   try {
     doc.getElementById("PhoneticFirstName").value = cardproperty.getProperty("PhoneticFirstName", "");
@@ -525,6 +533,10 @@ function CheckAndSetCardValues(cardproperty, doc, check)
   var allowRemoteContentEl = document.getElementById("allowRemoteContent");
   if (allowRemoteContentEl)
     cardproperty.setProperty("AllowRemoteContent", allowRemoteContentEl.checked);
+
+  var preferDisplayNameEl = document.getElementById("preferDisplayName");
+  if (preferDisplayNameEl)
+    cardproperty.setProperty("PreferDisplayName", preferDisplayNameEl.checked);
 
   // set phonetic fields if exist
   try {

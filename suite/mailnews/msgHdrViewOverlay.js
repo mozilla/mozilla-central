@@ -1170,7 +1170,12 @@ function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCardDetails)
 
   var displayName = "";
   if (condense && cardDetails.card)
-    displayName = cardDetails.card.displayName;
+  {
+    if (cardDetails.card.getProperty("PreferDisplayName", true) != true)
+      displayName = aDocumentNode.getAttribute("displayName");
+    if (!displayName)
+      displayName = cardDetails.card.displayName;
+  }
 
   if (displayName)
   {
