@@ -256,7 +256,16 @@
   </menupopup>
 
   <!-- Toolbox contains the toolbar and menubar -->
-    <toolbox id="event-toolbox" class="toolbox-top" mode="full">
+    <toolbox id="event-toolbox"
+             class="toolbox-top"
+             mode="full"
+             defaultmode="full"
+#ifdef XP_MACOSX
+             iconsize="small"
+             defaulticonsize="small"
+#endif
+             labelalign="end"
+             defaultlabelalign="end">
 
         <!-- Menubar -->
         <menubar id="event-menubar">
