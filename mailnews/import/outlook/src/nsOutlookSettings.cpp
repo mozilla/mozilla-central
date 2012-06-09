@@ -5,7 +5,7 @@
 
 /*
 
-  Outlook Express (Win32) settings
+  Outlook (Win32) settings
 
 */
 
@@ -16,7 +16,6 @@
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "nsIImportService.h"
-#include "nsOutlookRegUtil.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgAccount.h"
 #include "nsIImportSettings.h"
@@ -29,23 +28,50 @@
 #include "OutlookDebugLog.h"
 #include "nsIPop3IncomingServer.h"
 #include "nsMsgI18N.h"
+#include <windows.h>
+#include "nsIWindowsRegKey.h"
+#ifdef MOZILLA_INTERNAL_API
+#include "nsNativeCharsetUtils.h"
+#else
+#include "nsMsgI18N.h"
+#define NS_CopyNativeToUnicode(source, dest) \
+        nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(), source, dest)
+#define NS_CopyUnicodeToNative(source, dest) \
+        nsMsgI18NConvertFromUnicode(nsMsgI18NFileSystemCharset(), source, dest)
+#endif
 
 class OutlookSettings {
 public:
-  static HKEY FindAccountsKey(void);
+  static nsresult FindAccountsKey(nsIWindowsRegKey **aKey);
+  static nsresult QueryAccountSubKey(nsIWindowsRegKey **aKey);
+  static nsresult GetDefaultMailAccountName(nsAString &aName);
 
-  static bool DoImport(nsIMsgAccount **ppAccount);
+  static bool DoImport(nsIMsgAccount **aAccount);
 
-  static bool DoIMAPServer(nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
-  static bool DoPOP3Server(nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
+  static bool DoIMAPServer(nsIMsgAccountManager *aMgr,
+                           nsIWindowsRegKey *aKey,
+                           const nsString &aServerName,
+                           nsIMsgAccount **aAccount);
+  static bool DoPOP3Server(nsIMsgAccountManager *aMgr,
+                           nsIWindowsRegKey *aKey,
+                           const nsString &aServerName,
+                           nsIMsgAccount **aAccount);
 
-  static void SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, HKEY hKey);
-  static bool IdentityMatches(nsIMsgIdentity *pIdent, const char *pName, const char *pServer, const char *pEmail, const char *pReply, const char *pUserName);
+  static void SetIdentities(nsIMsgAccountManager *pMgr,
+                            nsIMsgAccount *pAcc,
+                            nsIWindowsRegKey *aKey);
 
-  static void SetSmtpServer(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, char *pServer, const nsCString& pUser);
-  static nsresult GetAccountName(HKEY hKey, char *defaultName, nsString &acctName);
+  static nsresult SetSmtpServer(nsIMsgAccountManager *aMgr,
+                                nsIMsgAccount *aAcc,
+                                const nsString &aServer,
+                                const nsString &aUser);
+  static nsresult GetAccountName(nsIWindowsRegKey *aKey,
+                                 const nsString &aDefaultName,
+                                 nsAString &aAccountName);
 };
 
+#define OUTLOOK2003_REGISTRY_KEY  "Software\\Microsoft\\Office\\Outlook\\OMI Account Manager"
+#define OUTLOOK98_REGISTRY_KEY  "Software\\Microsoft\\Office\\8.0\\Outlook\\OMI Account Manager"
 
 ////////////////////////////////////////////////////////////////////////
 nsresult nsOutlookSettings::Create(nsIImportSettings** aImport)
@@ -86,11 +112,8 @@ NS_IMETHODIMP nsOutlookSettings::AutoLocate(PRUnichar **description, nsIFile **l
     *location = nsnull;
 
   // look for the registry key for the accounts
-  HKEY key = OutlookSettings::FindAccountsKey();
-  if (key != nsnull) {
-    *_retval = true;
-    ::RegCloseKey(key);
-  }
+  nsCOMPtr<nsIWindowsRegKey> key;
+  *_retval = NS_SUCCEEDED(OutlookSettings::FindAccountsKey(getter_AddRefs(key)));
 
   return NS_OK;
 }
@@ -117,121 +140,133 @@ NS_IMETHODIMP nsOutlookSettings::Import(nsIMsgAccount **localMailAccount, bool *
 }
 
 
-HKEY OutlookSettings::FindAccountsKey(void)
+nsresult OutlookSettings::FindAccountsKey(nsIWindowsRegKey **aKey)
 {
-  HKEY  sKey;
-  if (::RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Office\\Outlook\\OMI Account Manager\\Accounts", 0, KEY_QUERY_VALUE | KEY_ENUMERATE_SUB_KEYS, &sKey) == ERROR_SUCCESS) {
-    return sKey;
-  }
-  if (::RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Office\\8.0\\Outlook\\OMI Account Manager\\Accounts", 0, KEY_QUERY_VALUE | KEY_ENUMERATE_SUB_KEYS, &sKey) == ERROR_SUCCESS) {
-    return sKey;
+  nsresult rv;
+  nsCOMPtr<nsIWindowsRegKey> key =
+    do_CreateInstance("@mozilla.org/windows-registry-key;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = key->Open(nsIWindowsRegKey::ROOT_KEY_CURRENT_USER,
+                 NS_LITERAL_STRING(OUTLOOK2003_REGISTRY_KEY),
+                 nsIWindowsRegKey::ACCESS_QUERY_VALUE |
+                 nsIWindowsRegKey::ACCESS_ENUMERATE_SUB_KEYS);
+
+  if (NS_FAILED(rv)) {
+    rv = key->Open(nsIWindowsRegKey::ROOT_KEY_CURRENT_USER,
+                   NS_LITERAL_STRING(OUTLOOK98_REGISTRY_KEY),
+                   nsIWindowsRegKey::ACCESS_QUERY_VALUE |
+                   nsIWindowsRegKey::ACCESS_ENUMERATE_SUB_KEYS);
   }
 
-  return nsnull;
+  if (NS_SUCCEEDED(rv))
+    key.forget(aKey);
+
+  return rv;
 }
 
-bool OutlookSettings::DoImport(nsIMsgAccount **ppAccount)
+nsresult OutlookSettings::QueryAccountSubKey(nsIWindowsRegKey **aKey)
 {
-  HKEY  hKey = FindAccountsKey();
-  if (hKey == nsnull) {
+  nsresult rv;
+  nsCOMPtr<nsIWindowsRegKey> key =
+    do_CreateInstance("@mozilla.org/windows-registry-key;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = key->Open(nsIWindowsRegKey::ROOT_KEY_CURRENT_USER,
+                 NS_LITERAL_STRING(OUTLOOK2003_REGISTRY_KEY),
+                 nsIWindowsRegKey::ACCESS_QUERY_VALUE |
+                 nsIWindowsRegKey::ACCESS_ENUMERATE_SUB_KEYS);
+  if (NS_SUCCEEDED(rv)) {
+    key.forget(aKey);
+    return rv;
+  }
+
+  rv = key->Open(nsIWindowsRegKey::ROOT_KEY_CURRENT_USER,
+                 NS_LITERAL_STRING(OUTLOOK98_REGISTRY_KEY),
+                 nsIWindowsRegKey::ACCESS_QUERY_VALUE |
+                 nsIWindowsRegKey::ACCESS_ENUMERATE_SUB_KEYS);
+  if (NS_SUCCEEDED(rv)) {
+    key.forget(aKey);
+    return rv;
+  }
+
+  return NS_ERROR_FAILURE;
+}
+
+nsresult OutlookSettings::GetDefaultMailAccountName(nsAString &aName)
+{
+  nsCOMPtr<nsIWindowsRegKey> key;
+  nsresult rv = QueryAccountSubKey(getter_AddRefs(key));
+  if (NS_FAILED(rv))
+    return rv;
+
+  return key->ReadStringValue(NS_LITERAL_STRING("Default Mail Account"), aName);
+}
+
+bool OutlookSettings::DoImport(nsIMsgAccount **aAccount)
+{
+  nsCOMPtr<nsIWindowsRegKey> key;
+  nsresult rv = OutlookSettings::FindAccountsKey(getter_AddRefs(key));
+  if (NS_FAILED(rv)) {
     IMPORT_LOG0("*** Error finding Outlook registry account keys\n");
     return false;
   }
 
-  nsresult  rv;
-
   nsCOMPtr<nsIMsgAccountManager> accMgr =
            do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-    if (NS_FAILED(rv)) {
+  if (NS_FAILED(rv)) {
     IMPORT_LOG0("*** Failed to create a account manager!\n");
     return false;
   }
 
-  HKEY    subKey = NULL;
-  nsCString  defMailName;
+  nsAutoString defMailName;
+  rv = GetDefaultMailAccountName(defMailName);
 
-  if (::RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Office\\Outlook\\OMI Account Manager", 0, KEY_QUERY_VALUE, &subKey) != ERROR_SUCCESS)
-    if (::RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Office\\8.0\\Outlook\\OMI Account Manager", 0, KEY_QUERY_VALUE, &subKey) != ERROR_SUCCESS)
-      subKey = NULL;
+  PRUint32 childCount;
+  key->GetChildCount(&childCount);
 
-  if (subKey != NULL) {
-    // First let's get the default mail account key name
-    BYTE *  pBytes = nsOutlookRegUtil::GetValueBytes(subKey, "Default Mail Account");
-    ::RegCloseKey(subKey);
-    if (pBytes) {
-      defMailName = (const char *)pBytes;
-      nsOutlookRegUtil::FreeValueBytes(pBytes);
-    }
-  }
+  PRUint32 accounts = 0;
+  PRUint32 popCount = 0;
+  for (PRUint32 i = 0; i < childCount; i++) {
+    nsAutoString keyName;
+    key->GetChildName(i, keyName);
+    nsCOMPtr<nsIWindowsRegKey> subKey;
+    rv = key->OpenChild(keyName,
+                        nsIWindowsRegKey::ACCESS_QUERY_VALUE,
+                        getter_AddRefs(subKey));
+    if (NS_FAILED(rv))
+      continue;
 
-  // Iterate the accounts looking for POP3 & IMAP accounts...
-  // Ignore LDAP & NNTP for now!
-  DWORD    index = 0;
-  DWORD    numChars;
-  TCHAR    keyName[256];
-  FILETIME  modTime;
-  LONG    result = ERROR_SUCCESS;
-  BYTE *    pBytes;
-  int      popCount = 0;
-  int      accounts = 0;
-  nsCString  keyComp;
+    // Get the values for this account.
+    nsCAutoString nativeKeyName;
+    NS_CopyUnicodeToNative(keyName, nativeKeyName);
+    IMPORT_LOG1("Opened Outlook account: %s\n", nativeKeyName.get());
 
-  while (result == ERROR_SUCCESS) {
-    numChars = 256;
-    result = ::RegEnumKeyEx(hKey, index, keyName, &numChars, NULL, NULL, NULL, &modTime);
-    index++;
-    if (result == ERROR_SUCCESS) {
-      if (::RegOpenKeyEx(hKey, keyName, 0, KEY_QUERY_VALUE, &subKey) == ERROR_SUCCESS) {
-        // Get the values for this account.
-        IMPORT_LOG1("Opened Outlook account: %s\n", (char *)keyName);
+    nsCOMPtr<nsIMsgAccount> account;
+    nsAutoString value;
+    rv = subKey->ReadStringValue(NS_LITERAL_STRING("IMAP Server"), value);
+    if (NS_SUCCEEDED(rv) &&
+        DoIMAPServer(accMgr, subKey, value, getter_AddRefs(account)))
+      accounts++;
 
-        nsIMsgAccount  *anAccount = nsnull;
-        pBytes = nsOutlookRegUtil::GetValueBytes(subKey, "IMAP Server");
-        if (pBytes) {
-          if (DoIMAPServer(accMgr, subKey, (char *)pBytes, &anAccount))
-            accounts++;
-          nsOutlookRegUtil::FreeValueBytes(pBytes);
-        }
-
-        pBytes = nsOutlookRegUtil::GetValueBytes(subKey, "POP3 Server");
-        if (pBytes) {
-          if (popCount == 0) {
-            if (DoPOP3Server(accMgr, subKey, (char *)pBytes, &anAccount)) {
-              popCount++;
-              accounts++;
-              if (ppAccount && anAccount) {
-                *ppAccount = anAccount;
-                NS_ADDREF(anAccount);
-              }
-            }
-          }
-          else {
-            if (DoPOP3Server(accMgr, subKey, (char *)pBytes, &anAccount)) {
-              popCount++;
-              accounts++;
-              // If we created a mail account, get rid of it since
-              // we have 2 POP accounts!
-              if (ppAccount && *ppAccount) {
-                NS_RELEASE(*ppAccount);
-                *ppAccount = nsnull;
-              }
-            }
-          }
-          nsOutlookRegUtil::FreeValueBytes(pBytes);
-        }
-
-        if (anAccount) {
-          // Is this the default account?
-          keyComp = keyName;
-          if (keyComp.Equals(defMailName)) {
-            accMgr->SetDefaultAccount(anAccount);
-          }
-          NS_RELEASE(anAccount);
-        }
-
-        ::RegCloseKey(subKey);
+    rv = subKey->ReadStringValue(NS_LITERAL_STRING("POP3 Server"), value);
+    if (NS_SUCCEEDED(rv) &&
+        DoPOP3Server(accMgr, subKey, value, getter_AddRefs(account))) {
+      popCount++;
+      accounts++;
+      if (aAccount && account) {
+        // If we created a mail account, get rid of it since
+        // we have 2 POP accounts!
+        if (popCount > 1)
+          NS_RELEASE(*aAccount);
+        else
+          NS_ADDREF(*aAccount = account);
       }
     }
+
+    // Is this the default account?
+    if (account && keyName.Equals(defMailName))
+      accMgr->SetDefaultAccount(account);
   }
 
   // Now save the new acct info to pref file.
@@ -241,278 +276,274 @@ bool OutlookSettings::DoImport(nsIMsgAccount **ppAccount)
   return accounts != 0;
 }
 
-nsresult OutlookSettings::GetAccountName(HKEY hKey, char *defaultName, nsString &acctName)
+nsresult OutlookSettings::GetAccountName(nsIWindowsRegKey *aKey,
+                                         const nsString &aDefaultName,
+                                         nsAString &aAccountName)
 {
-  BYTE *pAccName = nsOutlookRegUtil::GetValueBytes(hKey, "Account Name");
-  nsresult rv = NS_OK;
-  if (pAccName) {
-     rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(),
-                                    nsDependentCString(defaultName), acctName);
-    nsOutlookRegUtil::FreeValueBytes(pAccName);
-  }
-  else
-    acctName.AssignASCII(defaultName);
-  return rv;
+  nsresult rv;
+  rv = aKey->ReadStringValue(NS_LITERAL_STRING("Account Name"), aAccountName);
+  if (NS_FAILED(rv))
+    aAccountName.Assign(aDefaultName);
+
+  return NS_OK;
 }
 
-bool OutlookSettings::DoIMAPServer(nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
+bool OutlookSettings::DoIMAPServer(nsIMsgAccountManager *aMgr,
+                                   nsIWindowsRegKey *aKey,
+                                   const nsString &aServerName,
+                                   nsIMsgAccount **aAccount)
 {
-  if (ppAccount)
-    *ppAccount = nsnull;
-
-  BYTE *pBytes;
-  pBytes = nsOutlookRegUtil::GetValueBytes(hKey, "IMAP User Name");
-  if (!pBytes)
+  nsAutoString userName;
+  nsresult rv;
+  rv = aKey->ReadStringValue(NS_LITERAL_STRING("IMAP User Name"), userName);
+  if (NS_FAILED(rv))
     return false;
 
-  bool    result = false;
+  bool result = false;
 
   // I now have a user name/server name pair, find out if it already exists?
+  nsCAutoString nativeUserName;
+  NS_CopyUnicodeToNative(userName, nativeUserName);
+  nsCAutoString nativeServerName;
+  NS_CopyUnicodeToNative(aServerName, nativeServerName);
   nsCOMPtr<nsIMsgIncomingServer> in;
-  nsresult rv = pMgr->FindServer(nsDependentCString((const char *)pBytes), nsDependentCString(pServerName), NS_LITERAL_CSTRING("imap"), getter_AddRefs(in));
+  rv = aMgr->FindServer(nativeUserName,
+                        nativeServerName,
+                        NS_LITERAL_CSTRING("imap"),
+                        getter_AddRefs(in));
   if (NS_FAILED(rv) || (in == nsnull)) {
     // Create the incoming server and an account for it?
-    rv = pMgr->CreateIncomingServer(nsDependentCString((const char *)pBytes), nsDependentCString(pServerName), NS_LITERAL_CSTRING("imap"), getter_AddRefs(in));
+    rv = aMgr->CreateIncomingServer(nativeUserName,
+                                    nativeServerName,
+                                    NS_LITERAL_CSTRING("imap"),
+                                    getter_AddRefs(in));
     if (NS_SUCCEEDED(rv) && in) {
       rv = in->SetType(NS_LITERAL_CSTRING("imap"));
       // TODO SSL, auth method
 
-      IMPORT_LOG2("Created IMAP server named: %s, userName: %s\n", pServerName, (char *)pBytes);
+      IMPORT_LOG2("Created IMAP server named: %s, userName: %s\n",
+                  nativeServerName.get(), nativeUserName.get());
 
-      nsString prettyName;
-      if (NS_SUCCEEDED(GetAccountName(hKey, pServerName, prettyName)))
+      nsAutoString prettyName;
+      if (NS_SUCCEEDED(GetAccountName(aKey, aServerName, prettyName)))
         rv = in->SetPrettyName(prettyName);
       // We have a server, create an account.
       nsCOMPtr<nsIMsgAccount>  account;
-      rv = pMgr->CreateAccount(getter_AddRefs(account));
+      rv = aMgr->CreateAccount(getter_AddRefs(account));
       if (NS_SUCCEEDED(rv) && account) {
         rv = account->SetIncomingServer(in);
 
         IMPORT_LOG0("Created an account and set the IMAP server as the incoming server\n");
 
         // Fiddle with the identities
-        SetIdentities(pMgr, account, hKey);
+        SetIdentities(aMgr, account, aKey);
         result = true;
-        if (ppAccount)
-          account->QueryInterface(NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
+        if (aAccount)
+          account.forget(aAccount);
       }
     }
   }
   else
     result = true;
 
-  nsOutlookRegUtil::FreeValueBytes(pBytes);
-
   return result;
 }
 
-bool OutlookSettings::DoPOP3Server(nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
+bool OutlookSettings::DoPOP3Server(nsIMsgAccountManager *aMgr,
+                                   nsIWindowsRegKey *aKey,
+                                   const nsString &aServerName,
+                                   nsIMsgAccount **aAccount)
 {
-  if (ppAccount)
-    *ppAccount = nsnull;
-
-  BYTE *pBytes;
-  pBytes = nsOutlookRegUtil::GetValueBytes(hKey, "POP3 User Name");
-  if (!pBytes)
+  nsAutoString userName;
+  nsresult rv;
+  rv = aKey->ReadStringValue(NS_LITERAL_STRING("POP3 User Name"), userName);
+  if (NS_FAILED(rv))
     return false;
-
-  bool result = false;
 
   // I now have a user name/server name pair, find out if it already exists?
+  nsCAutoString nativeUserName;
+  NS_CopyUnicodeToNative(userName, nativeUserName);
+  nsCAutoString nativeServerName;
+  NS_CopyUnicodeToNative(aServerName, nativeServerName);
   nsCOMPtr<nsIMsgIncomingServer> in;
-  nsresult rv = pMgr->FindServer(nsDependentCString((const char *)pBytes), nsDependentCString(pServerName), NS_LITERAL_CSTRING("pop3"), getter_AddRefs(in));
-  if (NS_FAILED(rv) || (in == nsnull)) {
-    // Create the incoming server and an account for it?
-    rv = pMgr->CreateIncomingServer(nsDependentCString((const char *)pBytes), nsDependentCString(pServerName), NS_LITERAL_CSTRING("pop3"), getter_AddRefs(in));
-    if (NS_SUCCEEDED(rv) && in) {
-      rv = in->SetType(NS_LITERAL_CSTRING("pop3"));
+  rv = aMgr->FindServer(nativeUserName,
+                        nativeServerName,
+                        NS_LITERAL_CSTRING("pop3"),
+                        getter_AddRefs(in));
+  if (NS_SUCCEEDED(rv))
+    return true;
 
-      // TODO SSL, auth method
+  // Create the incoming server and an account for it?
+  rv = aMgr->CreateIncomingServer(nativeUserName,
+                                  nativeServerName,
+                                  NS_LITERAL_CSTRING("pop3"),
+                                  getter_AddRefs(in));
+  rv = in->SetType(NS_LITERAL_CSTRING("pop3"));
 
-        nsCOMPtr<nsIPop3IncomingServer> pop3Server = do_QueryInterface(in);
-        if (pop3Server) {
-            // set local folders as the Inbox to use for this POP3 server
-            nsCOMPtr<nsIMsgIncomingServer> localFoldersServer;
-            pMgr->GetLocalFoldersServer(getter_AddRefs(localFoldersServer));
+  // TODO SSL, auth method
 
-            if (!localFoldersServer)
-            {
-                // XXX: We may need to move this local folder creation code to the generic nsImportSettings code
-                // if the other import modules end up needing to do this too.
-                // if Local Folders does not exist already, create it
-                rv = pMgr->CreateLocalMailAccount();
-                if (NS_FAILED(rv)) {
-                    IMPORT_LOG0("*** Failed to create Local Folders!\n");
-                    return false;
-                }
-                pMgr->GetLocalFoldersServer(getter_AddRefs(localFoldersServer));
-            }
+  nsCOMPtr<nsIPop3IncomingServer> pop3Server = do_QueryInterface(in);
+  NS_ENSURE_SUCCESS(rv, false);
 
-            // now get the account for this server
-            nsCOMPtr<nsIMsgAccount> localFoldersAccount;
-            pMgr->FindAccountForServer(localFoldersServer, getter_AddRefs(localFoldersAccount));
-            if (localFoldersAccount)
-            {
-              nsCString localFoldersAcctKey;
-              localFoldersAccount->GetKey(localFoldersAcctKey);
-              pop3Server->SetDeferredToAccount(localFoldersAcctKey);
-              pop3Server->SetDeferGetNewMail(true);
-            }
-        }
+  // set local folders as the Inbox to use for this POP3 server
+  nsCOMPtr<nsIMsgIncomingServer> localFoldersServer;
+  aMgr->GetLocalFoldersServer(getter_AddRefs(localFoldersServer));
 
-        IMPORT_LOG2("Created POP3 server named: %s, userName: %s\n", pServerName, (char *)pBytes);
-
-        nsString prettyName;
-        if (NS_SUCCEEDED(GetAccountName(hKey, pServerName, prettyName)))
-          rv = in->SetPrettyName(prettyName);
-      // We have a server, create an account.
-      nsCOMPtr<nsIMsgAccount>  account;
-      rv = pMgr->CreateAccount(getter_AddRefs(account));
-      if (NS_SUCCEEDED(rv) && account) {
-        rv = account->SetIncomingServer(in);
-
-      IMPORT_LOG0("Created a new account and set the incoming server to the POP3 server.\n");
-
-        nsCOMPtr<nsIPop3IncomingServer> pop3Server = do_QueryInterface(in, &rv);
-        NS_ENSURE_SUCCESS(rv,rv);
-        BYTE *pLeaveOnServer = nsOutlookRegUtil::GetValueBytes(hKey, "Leave Mail On Server");
-        if (pLeaveOnServer)
-        {
-          pop3Server->SetLeaveMessagesOnServer(*pLeaveOnServer == 1 ? true : false);
-          nsOutlookRegUtil::FreeValueBytes(pLeaveOnServer);
-        }
-
-        // Fiddle with the identities
-        SetIdentities(pMgr, account, hKey);
-        result = true;
-        if (ppAccount)
-          account->QueryInterface(NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
-      }
+  if (!localFoldersServer) {
+    // XXX: We may need to move this local folder creation code to the generic nsImportSettings code
+    // if the other import modules end up needing to do this too.
+    // if Local Folders does not exist already, create it
+    rv = aMgr->CreateLocalMailAccount();
+    if (NS_FAILED(rv)) {
+      IMPORT_LOG0("*** Failed to create Local Folders!\n");
+      return false;
     }
+    aMgr->GetLocalFoldersServer(getter_AddRefs(localFoldersServer));
   }
-  else
-    result = true;
 
-  nsOutlookRegUtil::FreeValueBytes(pBytes);
+  // now get the account for this server
+  nsCOMPtr<nsIMsgAccount> localFoldersAccount;
+  aMgr->FindAccountForServer(localFoldersServer, getter_AddRefs(localFoldersAccount));
+  if (localFoldersAccount) {
+    nsCString localFoldersAcctKey;
+    localFoldersAccount->GetKey(localFoldersAcctKey);
+    pop3Server->SetDeferredToAccount(localFoldersAcctKey);
+    pop3Server->SetDeferGetNewMail(true);
+  }
 
-  return result;
-}
+  IMPORT_LOG2("Created POP3 server named: %s, userName: %s\n",
+              nativeServerName.get(),
+              nativeUserName.get());
 
-bool OutlookSettings::IdentityMatches(nsIMsgIdentity *pIdent, const char *pName, const char *pServer, const char *pEmail, const char *pReply, const char *pUserName)
-{
-  if (!pIdent)
+  nsString prettyName;
+  rv = GetAccountName(aKey, aServerName, prettyName);
+  if (NS_FAILED(rv))
     return false;
 
-  char *  pIName = nsnull;
-  nsCString pIEmail;
-  nsCString pIReply;
+  rv = in->SetPrettyName(prettyName);
+  // We have a server, create an account.
+  nsCOMPtr<nsIMsgAccount>  account;
+  rv = aMgr->CreateAccount(getter_AddRefs(account));
+  if (NS_FAILED(rv))
+    return false;
 
-  bool    result = true;
+  rv = account->SetIncomingServer(in);
 
-  // The test here is:
-  // If the smtp host is the same
-  //  and the email address is the same (if it is supplied)
-  //  and the reply to address is the same (if it is supplied)
-  //  then we match regardless of the full name.
+  IMPORT_LOG0("Created a new account and set the incoming server to the POP3 server.\n");
 
+  PRUint32 leaveOnServer;
+  rv = aKey->ReadIntValue(NS_LITERAL_STRING("Leave Mail On Server"), &leaveOnServer);
+  if (NS_SUCCEEDED(rv))
+    pop3Server->SetLeaveMessagesOnServer(leaveOnServer == 1 ? true : false);
 
-  nsresult rv;
-  rv = pIdent->GetEmail(pIEmail);
-  rv = pIdent->GetReplyTo(pIReply);
+  // Fiddle with the identities
+  SetIdentities(aMgr, account, aKey);
 
+  if (aAccount)
+    account.forget(aAccount);
 
-  // for now, if it's the same server and reply to and email then it matches
-  if (pReply && !pIReply.Equals(pReply, nsCaseInsensitiveCStringComparator()))
-    result = false;
-  if (pEmail && !pIEmail.Equals(pEmail, nsCaseInsensitiveCStringComparator()))
-    result = false;
-
-  return result;
+  return true;
 }
 
-void OutlookSettings::SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, HKEY hKey)
+void OutlookSettings::SetIdentities(nsIMsgAccountManager *aMgr,
+                                    nsIMsgAccount *aAcc,
+                                    nsIWindowsRegKey *aKey)
 {
   // Get the relevant information for an identity
-  char *pName = (char *)nsOutlookRegUtil::GetValueBytes(hKey, "SMTP Display Name");
-  char *pServer = (char *)nsOutlookRegUtil::GetValueBytes(hKey, "SMTP Server");
-  char *pEmail = (char *)nsOutlookRegUtil::GetValueBytes(hKey, "SMTP Email Address");
-  char *pReply = (char *)nsOutlookRegUtil::GetValueBytes(hKey, "SMTP Reply To Email Address");
-  nsCString userName;
-  userName.Adopt((char *)nsOutlookRegUtil::GetValueBytes(hKey, "SMTP User Name"));
-  char *pOrgName = (char *)nsOutlookRegUtil::GetValueBytes(hKey, "SMTP Organization Name");
+  nsAutoString name;
+  aKey->ReadStringValue(NS_LITERAL_STRING("SMTP Display Name"), name);
+
+  nsAutoString server;
+  aKey->ReadStringValue(NS_LITERAL_STRING("SMTP Server"), server);
+
+  nsAutoString email;
+  aKey->ReadStringValue(NS_LITERAL_STRING("SMTP Email Address"), email);
+
+  nsAutoString reply;
+  aKey->ReadStringValue(NS_LITERAL_STRING("SMTP Reply To Email Address"), reply);
+
+  nsAutoString userName;
+  aKey->ReadStringValue(NS_LITERAL_STRING("SMTP User Name"), userName);
+
+  nsAutoString orgName;
+  aKey->ReadStringValue(NS_LITERAL_STRING("SMTP Organization Name"), orgName);
 
   nsresult rv;
-
-  if (pEmail && pName && pServer) {
+  if (!email.IsEmpty() && !name.IsEmpty() && !server.IsEmpty()) {
     // The default identity, nor any other identities matched,
     // create a new one and add it to the account.
     nsCOMPtr<nsIMsgIdentity>  id;
-    rv = pMgr->CreateIdentity(getter_AddRefs(id));
+    rv = aMgr->CreateIdentity(getter_AddRefs(id));
     if (id) {
-      nsAutoString name, organization;
-      rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(),
-        nsDependentCString(pName), name);
-      if (NS_SUCCEEDED(rv))
-      {
-        id->SetFullName(name);
-        id->SetIdentityName(name);
+      id->SetFullName(name);
+      id->SetIdentityName(name);
+      id->SetOrganization(orgName);
+
+      nsCAutoString nativeEmail;
+      NS_CopyUnicodeToNative(email, nativeEmail);
+      id->SetEmail(nativeEmail);
+      if (!reply.IsEmpty()) {
+        nsCAutoString nativeReply;
+        NS_CopyUnicodeToNative(reply, nativeReply);
+        id->SetReplyTo(nativeReply);
       }
+      aAcc->AddIdentity(id);
 
-      if (pOrgName) {
-        rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(),
-          nsDependentCString(pOrgName), organization);
-        if (NS_SUCCEEDED(rv))
-          id->SetOrganization(organization);
-      }
-
-      id->SetEmail(nsDependentCString(pEmail));
-      if (pReply)
-        id->SetReplyTo(nsDependentCString(pReply));
-      pAcc->AddIdentity(id);
-
+      nsCAutoString nativeName;
+      NS_CopyUnicodeToNative(name, nativeName);
       IMPORT_LOG0("Created identity and added to the account\n");
-      IMPORT_LOG1("\tname: %s\n", pName);
-      IMPORT_LOG1("\temail: %s\n", pEmail);
+      IMPORT_LOG1("\tname: %s\n", nativeName.get());
+      IMPORT_LOG1("\temail: %s\n", nativeEmail.get());
     }
   }
 
   if (userName.IsEmpty()) {
-    nsCOMPtr <nsIMsgIncomingServer>  incomingServer;
-    rv = pAcc->GetIncomingServer(getter_AddRefs(incomingServer));
-    if (NS_SUCCEEDED(rv) && incomingServer)
-      rv = incomingServer->GetUsername(userName);
-    NS_ASSERTION(NS_SUCCEEDED(rv), "Unable to get UserName from incomingServer");
+    nsCOMPtr<nsIMsgIncomingServer>  incomingServer;
+    rv = aAcc->GetIncomingServer(getter_AddRefs(incomingServer));
+    if (NS_SUCCEEDED(rv) && incomingServer) {
+      nsCAutoString nativeUserName;
+      rv = incomingServer->GetUsername(nativeUserName);
+      NS_ASSERTION(NS_SUCCEEDED(rv), "Unable to get UserName from incomingServer");
+      NS_CopyNativeToUnicode(nativeUserName, userName);
+    }
   }
 
-  SetSmtpServer(pMgr, pAcc, pServer, userName);
-
-  nsOutlookRegUtil::FreeValueBytes((BYTE *)pName);
-  nsOutlookRegUtil::FreeValueBytes((BYTE *)pServer);
-  nsOutlookRegUtil::FreeValueBytes((BYTE *)pEmail);
-  nsOutlookRegUtil::FreeValueBytes((BYTE *)pReply);
+  SetSmtpServer(aMgr, aAcc, server, userName);
 }
 
-void OutlookSettings::SetSmtpServer(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, char *pServer,
-                                    const nsCString& user)
+nsresult OutlookSettings::SetSmtpServer(nsIMsgAccountManager *aMgr,
+                                        nsIMsgAccount *aAcc,
+                                        const nsString &aServer,
+                                        const nsString &aUser)
 {
   nsresult rv;
   nsCOMPtr<nsISmtpService> smtpService(do_GetService(NS_SMTPSERVICE_CONTRACTID, &rv));
-  if (NS_SUCCEEDED(rv) && smtpService) {
-    nsCOMPtr<nsISmtpServer> foundServer;
-    rv = smtpService->FindServer(user.get(), pServer, getter_AddRefs(foundServer));
-    if (NS_SUCCEEDED(rv) && foundServer) {
-      IMPORT_LOG1("SMTP server already exists: %s\n", pServer);
-      return;
-    }
-    nsCOMPtr<nsISmtpServer> smtpServer;
-    rv = smtpService->CreateSmtpServer(getter_AddRefs(smtpServer));
-    if (NS_SUCCEEDED(rv) && smtpServer) {
-      smtpServer->SetHostname(nsDependentCString(pServer));
-      if (!user.IsEmpty())
-        smtpServer->SetUsername(user);
-      // TODO SSL, auth method
-      IMPORT_LOG1("Ceated new SMTP server: %s\n", pServer);
-    }
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCAutoString nativeUserName;
+  NS_CopyUnicodeToNative(aUser, nativeUserName);
+  nsCAutoString nativeServerName;
+  NS_CopyUnicodeToNative(aServer, nativeServerName);
+  nsCOMPtr<nsISmtpServer> foundServer;
+  rv = smtpService->FindServer(nativeUserName.get(),
+                               nativeServerName.get(),
+                               getter_AddRefs(foundServer));
+  if (NS_SUCCEEDED(rv) && foundServer) {
+    IMPORT_LOG1("SMTP server already exists: %s\n",
+                nativeServerName.get());
+    return rv;
   }
+
+  nsCOMPtr<nsISmtpServer> smtpServer;
+  rv = smtpService->CreateSmtpServer(getter_AddRefs(smtpServer));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  smtpServer->SetHostname(nativeServerName);
+  if (!aUser.IsEmpty())
+    smtpServer->SetUsername(nativeUserName);
+  // TODO SSL, auth method
+  IMPORT_LOG1("Ceated new SMTP server: %s\n",
+              nativeServerName.get());
+  return NS_OK;
 }
 

@@ -19,7 +19,6 @@ endif
 
 
 CPPSRCS		= \
-		nsOutlookRegUtil.cpp		\
 		nsOutlookStringBundle.cpp	\
 		nsOutlookImport.cpp		\
 		nsOutlookSettings.cpp		\
