@@ -380,15 +380,23 @@ inline PRInt32 MsgFind(nsAString &str, const char *what, bool ignore_case, PRUin
   return str.Find(what, offset, ignore_case);
 }
 
-inline PRInt32 MsgFind(nsACString &str, const char *what, bool ignore_case, PRUint32 offset)
+inline PRInt32 MsgFind(nsACString &str, const char *what, bool ignore_case, PRInt32 offset)
 {
+  /* See Find_ComputeSearchRange from nsStringObsolete.cpp */
+  if (offset < 0) {
+    offset = 0;
+  }
   if (ignore_case)
-    return str.Find(what, offset, CaseInsensitiveCompare);
-  return str.Find(what, offset);
+    return str.Find(nsDependentCString(what), offset, CaseInsensitiveCompare);
+  return str.Find(nsDependentCString(what), offset);
 }
 
-inline PRInt32 MsgFind(nsACString &str, const nsACString &what, bool ignore_case, PRUint32 offset)
+inline PRInt32 MsgFind(nsACString &str, const nsACString &what, bool ignore_case, PRInt32 offset)
 {
+  /* See Find_ComputeSearchRange from nsStringObsolete.cpp */
+  if (offset < 0) {
+    offset = 0;
+  }
   if (ignore_case)
     return str.Find(what, offset, CaseInsensitiveCompare);
   return str.Find(what, offset);

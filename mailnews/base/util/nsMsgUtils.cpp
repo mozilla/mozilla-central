@@ -1897,7 +1897,11 @@ NS_MSG_BASE void MsgReplaceSubstring(nsACString &str, const char *what, const ch
   PRUint32 whatLength = strlen(what);
   PRInt32 i = 0;
 
-  while ((i = str.Find(what, i)) != kNotFound)
+  /* We have to create nsDependentCString from 'what' because there's no
+   * str.Find(char *what, int offset) but there is only
+   * str.Find(char *what, int length) */
+  nsDependentCString what_dependent(what);
+  while ((i = str.Find(what_dependent, i)) != kNotFound)
   {
     str.Replace(i, whatLength, replacement, replacementLength);
     i += replacementLength;
