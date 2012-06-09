@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1338423018000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1339191265000">
   <emItems>
       <emItem  blockID="i58" id="webmaster@buzzzzvideos.info">
                         <versionRange  minVersion="0" maxVersion="*">
@@ -35,6 +35,10 @@
                         <versionRange  minVersion="2.4.6.4" maxVersion="2.4.6.4" severity="1">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i17" id="{3252b9ae-c69a-4eaf-9502-dc9c1f6c009e}">
+                        <versionRange  minVersion="2.2" maxVersion="2.2">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i98" id="youtubeeing@youtuberie.com">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
@@ -63,6 +67,10 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i105" id="{95ff02bc-ffc6-45f0-a5c8-619b8226a9de}">
+                        <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i93" id="{68b8676b-99a5-46d1-b390-22411d8bcd61}">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
@@ -76,6 +84,10 @@
       <emItem  blockID="i10" id="{8CE11043-9A15-4207-A565-0C94C42D590D}">
                         </emItem>
       <emItem  blockID="i63" id="youtube@youtuber.com">
+                        <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i101" id="{3a12052a-66ef-49db-8c39-e5b0bd5c83fa}">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
@@ -105,8 +117,8 @@
                         <versionRange  minVersion="0.1" maxVersion="4.3.1.00" severity="1">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i53" id="{a3a5c777-f583-4fef-9380-ab4add1bc2a8}">
-                        <versionRange  minVersion="2.0.3" maxVersion="2.0.3">
+      <emItem  blockID="i100" id="{394DCBA4-1F92-4f8e-8EC9-8D2CB90CB69B}">
+                        <versionRange  minVersion="2.5.0" maxVersion="2.5.0" severity="1">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i83" id="flash@adobee.com">
@@ -119,6 +131,10 @@
                   </emItem>
       <emItem  blockID="i78" id="socialnetworktools@mozilla.doslash.org">
                         <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i53" id="{a3a5c777-f583-4fef-9380-ab4add1bc2a8}">
+                        <versionRange  minVersion="2.0.3" maxVersion="2.0.3">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i51" id="admin@youtubeplayer.com">
@@ -189,8 +205,8 @@
                         <versionRange  minVersion="0.1" maxVersion="5.2.0.7164" severity="1">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i17" id="{3252b9ae-c69a-4eaf-9502-dc9c1f6c009e}">
-                        <versionRange  minVersion="2.2" maxVersion="2.2">
+      <emItem  blockID="i104" id="yasd@youasdr3.com">
+                        <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i76" id="crossriderapp3924@crossrider.com">
@@ -207,6 +223,10 @@
                   </emItem>
       <emItem  blockID="i70" id="psid-vhvxQHMZBOzUZA@jetpack">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i103" id="kdrgun@gmail.com">
+                        <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i99" id="pfzPXmnzQRXX6@2iABkVe.com">
@@ -270,6 +290,9 @@
                   </pluginItem>
       <pluginItem  blockID="p94">
                   <match name="filename" exp="(NPSWF32\.dll)|(Flash\ Player\.plugin)" />                      <versionRange  minVersion="0" maxVersion="10.2.159.1" severity="0"></versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p102">
+                  <match name="filename" exp="npmozax\.dll" />                      <versionRange  minVersion="0" maxVersion="*"></versionRange>
                   </pluginItem>
     </pluginItems>
 
