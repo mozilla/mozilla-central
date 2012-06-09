@@ -26,36 +26,11 @@ setupIMAPPump();
 var gGotAlert = false;
 var gGotMsgAdded = false;
 
-var dummyDocShell =
-{
-  getInterface: function (iid) {
-    if (iid.equals(Ci.nsIAuthPrompt)) {
-      return Cc["@mozilla.org/login-manager/prompter;1"]
-               .getService(Ci.nsIAuthPrompt);
-    }
-
-    throw Components.results.NS_ERROR_FAILURE;
-  },
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIDocShell,
-                                         Ci.nsIInterfaceRequestor])
-}
-
 function alert(aDialogTitle, aText) {
   do_check_eq(aText.indexOf("Connection to server Mail for  timed out."), 0);
   gGotAlert = true;
   async_driver();
 }
-
-// Dummy message window so we can do the move as an offline operation.
-var dummyMsgWindow =
-{
-  rootDocShell: dummyDocShell,
-  promptDialog: alertUtilsPrompts,
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgWindow,
-                                         Ci.nsISupportsWeakReference])
-};
 
 var CopyListener = {
   OnStartCopy: function() {},
@@ -128,7 +103,7 @@ function moveMessageToTargetFolder()
   // This should cause the move to be done as an offline imap operation
   // that's played back immediately.
   copyService.CopyMessages(gIMAPInbox, messages, gTargetFolder, true,
-                           CopyListener, dummyMsgWindow, true);
+                           CopyListener, gDummyMsgWindow, true);
   yield false;
 }
 

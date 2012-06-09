@@ -8,32 +8,7 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 load("../../../resources/alertTestUtils.js");
 
-var dummyDocShell =
-{
-  getInterface: function (iid) {
-    if (iid.equals(Ci.nsIAuthPrompt)) {
-      return Cc["@mozilla.org/login-manager/prompter;1"]
-               .getService(Ci.nsIAuthPrompt);
-    }
-
-    throw Components.results.NS_ERROR_FAILURE;
-  },
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIDocShell,
-                                         Ci.nsIInterfaceRequestor])
-}
-
 var gGotAlert = false;
-
-// Dummy message window that ensures we get prompted for logins.
-var dummyMsgWindow =
-{
-  rootDocShell: dummyDocShell,
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgWindow,
-                                         Ci.nsISupportsWeakReference])
-};
-
 
 function alert(aDialogTitle, aText) {
   do_check_eq(aText.indexOf("Server Mail for  has disconnected"), 0);
@@ -74,7 +49,7 @@ function run_test() {
 
   registerAlertTestUtils();
 
-  gIMAPInbox.updateFolderWithListener(dummyMsgWindow, UrlListener);
+  gIMAPInbox.updateFolderWithListener(gDummyMsgWindow, UrlListener);
 }
 
 var UrlListener =

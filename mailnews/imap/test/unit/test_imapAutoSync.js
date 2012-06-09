@@ -47,32 +47,6 @@ var CopyListener = {
   }
 };
 
-var dummyDocShell =
-{
-  getInterface: function (iid) {
-    if (iid.equals(Ci.nsIAuthPrompt)) {
-      return Cc["@mozilla.org/login-manager/prompter;1"]
-               .getService(Ci.nsIAuthPrompt);
-    }
-
-    throw Components.results.NS_ERROR_FAILURE;
-  },
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIDocShell,
-                                         Ci.nsIInterfaceRequestor])
-}
-
-// Dummy message window so we can do the move as an offline operation.
-var dummyMsgWindow =
-{
-  rootDocShell: dummyDocShell,
-  promptDialog: alertUtilsPrompts,
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgWindow,
-                                         Ci.nsISupportsWeakReference])
-};
-
-
 // Definition of tests
 var tests = [
   test_createTargetFolder,

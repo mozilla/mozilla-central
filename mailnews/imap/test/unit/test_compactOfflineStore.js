@@ -33,33 +33,6 @@ const gMsgId3 = "4849BF7B.2030800@example.com";
 const gMsgId4 = "bugmail7.m47LtAEf007542@mrapp51.mozilla.org";
 const gMsgId5 = "bugmail6.m47LtAEf007542@mrapp51.mozilla.org";
 
-
-var dummyDocShell =
-{
-  getInterface: function (iid) {
-    if (iid.equals(Ci.nsIAuthPrompt)) {
-      return Cc["@mozilla.org/login-manager/prompter;1"]
-               .getService(Ci.nsIAuthPrompt);
-    }
-
-    throw Components.results.NS_ERROR_FAILURE;
-  },
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIDocShell,
-                                         Ci.nsIInterfaceRequestor])
-}
-
-// Dummy message window that ensures we get prompted for logins.
-var dummyMsgWindow =
-{
-  rootDocShell: dummyDocShell,
-  promptDialog: alertUtilsPrompts,
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgWindow,
-                                         Ci.nsISupportsWeakReference])
-};
-
-
 // Adds some messages directly to a mailbox (eg new mail)
 function addMessagesToServer(messages, mailbox)
 {
@@ -137,7 +110,7 @@ const gTestArray =
     // UrlListener will get called when both expunge and offline store
     // compaction are finished. dummyMsgWindow is required to make the backend
     // compact the offline store.
-    gIMAPInbox.compact(UrlListener, dummyMsgWindow);
+    gIMAPInbox.compact(UrlListener, gDummyMsgWindow);
   },
   function deleteOneMessage() {
     // check that nstmp file has been cleaned up.

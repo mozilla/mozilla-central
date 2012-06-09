@@ -8,6 +8,8 @@
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 
+load("../../../resources/alertTestUtils.js");
+
 var test = null;
 var server;
 var daemon;
@@ -19,18 +21,10 @@ const kUserName = "testpop3";
 const kInvalidPassword = "pop3test";
 const kValidPassword = "testpop3";
 
-// Dummy message window so we can pass in a non-null msgWindow.
-var dummyMsgWindow =
-{
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgWindow,
-                                         Ci.nsISupportsWeakReference])
-};
-
-
 function verifyPop3Logon(validPassword) {
   incomingServer.password = (validPassword) ? kValidPassword : kInvalidPassword;
   urlListener.expectSuccess = validPassword;
-  let uri = incomingServer.verifyLogon(urlListener, dummyMsgWindow);
+  let uri = incomingServer.verifyLogon(urlListener, gDummyMsgWindow);
   // clear msgWindow so url won't prompt for passwords.
   uri.QueryInterface(Ci.nsIMsgMailNewsUrl).msgWindow = null;
 

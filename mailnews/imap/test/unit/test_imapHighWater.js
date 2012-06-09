@@ -9,6 +9,7 @@ Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 load("../../../resources/logHelper.js");
 load("../../../resources/mailTestUtils.js");
+load("../../../resources/alertTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 load("../../../resources/messageGenerator.js");
 
@@ -16,30 +17,6 @@ var gIMAPDaemon, gServer, gIMAPIncomingServer;
 
 var gIMAPInbox;
 var gFolder1, gRootFolder;
-
-var dummyDocShell =
-{
-  getInterface: function (iid) {
-    if (iid.equals(Ci.nsIAuthPrompt)) {
-      return Cc["@mozilla.org/login-manager/prompter;1"]
-               .getService(Ci.nsIAuthPrompt);
-    }
-
-    throw Components.results.NS_ERROR_FAILURE;
-  },
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIDocShell,
-                                         Ci.nsIInterfaceRequestor])
-}
-
-// Dummy message window that ensures we get prompted for logins.
-var dummyMsgWindow =
-{
-  rootDocShell: dummyDocShell,
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgWindow,
-                                         Ci.nsISupportsWeakReference])
-};
 
 // Adds some messages directly to a mailbox (eg new mail)
 function addMessagesToServer(messages, mailbox)
@@ -136,11 +113,11 @@ function doMoves() {
   }
   // this will add dummy headers with keys > 0xffffff80
   MailServices.copy.CopyMessages(gIMAPInbox, headers1, gFolder1, true,
-                                 CopyListener, dummyMsgWindow, true);
+                                 CopyListener, gDummyMsgWindow, true);
   yield false;
   gIMAPInbox.updateFolderWithListener(null, UrlListener);
   yield false;
-  gFolder1.updateFolderWithListener(dummyMsgWindow, UrlListener);
+  gFolder1.updateFolderWithListener(gDummyMsgWindow, UrlListener);
   yield false;
   // Check that playing back offline events gets rid of dummy
   // headers, and thus highWater is recalculated.
@@ -159,7 +136,7 @@ function doMoves() {
   let msgHdr = gFolder1.msgDatabase.CreateNewHdr(0xfffffffd);
   gFolder1.msgDatabase.AddNewHdrToDB(msgHdr, false);
   MailServices.copy.CopyMessages(gIMAPInbox, headers1, gFolder1, true,
-                                 CopyListener, dummyMsgWindow, true);
+                                 CopyListener, gDummyMsgWindow, true);
   yield false;
   gServer.performTest("UID COPY");
 
@@ -167,7 +144,7 @@ function doMoves() {
   gIMAPInbox.updateFolderWithListener(null, UrlListener);
   yield false;
   // this should clear the dummy headers.
-  gFolder1.updateFolderWithListener(dummyMsgWindow, UrlListener);
+  gFolder1.updateFolderWithListener(gDummyMsgWindow, UrlListener);
   yield false;
   let serverSink = gIMAPIncomingServer.QueryInterface(Ci.nsIImapServerSink);
   do_check_eq(gFolder1.msgDatabase.dBFolderInfo.highWater, 11);

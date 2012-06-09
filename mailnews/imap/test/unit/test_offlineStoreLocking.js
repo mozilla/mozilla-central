@@ -22,31 +22,6 @@ var gCurTestNum;
 var gGotAlert = false;
 var gMovedMsgId;
 
-var dummyDocShell =
-{
-  getInterface: function (iid) {
-    if (iid.equals(Ci.nsIAuthPrompt)) {
-      return Cc["@mozilla.org/login-manager/prompter;1"]
-               .getService(Ci.nsIAuthPrompt);
-    }
-
-    throw Components.results.NS_ERROR_FAILURE;
-  },
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIDocShell,
-                                         Ci.nsIInterfaceRequestor])
-}
-
-// Dummy message window that ensures we get prompted for logins.
-var dummyMsgWindow =
-{
-  rootDocShell: dummyDocShell,
-  promptDialog: alertUtilsPrompts,
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgWindow,
-                                         Ci.nsISupportsWeakReference])
-};
-
 function alert(aDialogTitle, aText) {
 //  do_check_eq(aText.indexOf("Connection to server Mail for  timed out."), 0);
   gGotAlert = true;
@@ -120,7 +95,7 @@ const gTestArray =
     // UrlListener will get called when both expunge and offline store
     // compaction are finished. dummyMsgWindow is required to make the backend
     // compact the offline store.
-    gIMAPInbox.compact(UrlListener, dummyMsgWindow);
+    gIMAPInbox.compact(UrlListener, gDummyMsgWindow);
     // Stream the message w/o a stream listener in an attempt to get the url
     // started more quickly, while the compact is still going on.
     msgServ.streamMessage(msgURI, null, null, UrlListener2, false, "", false);
@@ -166,7 +141,7 @@ const gTestArray =
     const gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                           .getService(Ci.nsIMsgCopyService);
 
-    gIMAPInbox.compact(UrlListener, dummyMsgWindow);
+    gIMAPInbox.compact(UrlListener, gDummyMsgWindow);
     gCopyService.CopyMessages(gIMAPTrashFolder, array, gIMAPInbox, true,
                               CopyListener, null, true);
   },

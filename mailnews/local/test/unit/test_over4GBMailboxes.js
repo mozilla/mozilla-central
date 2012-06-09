@@ -22,21 +22,6 @@ const kSparseBlockSize = 102400000;
 var gGotAlert = false;
 var gLocalInboxSize;
 
-var dummyDocShell =
-{
-  getInterface: function (iid) {
-    if (iid.equals(Ci.nsIAuthPrompt)) {
-      return Cc["@mozilla.org/login-manager/prompter;1"]
-               .getService(Ci.nsIAuthPrompt);
-    }
-
-    throw Components.results.NS_ERROR_FAILURE;
-  },
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIDocShell,
-                                         Ci.nsIInterfaceRequestor])
-}
-
 // This alert() is triggered when file size becomes close (enough) to or
 // exceeds 4 GiB.
 // See hardcoded value in nsMsgBrkMBoxStore::HasSpaceAvailable().
@@ -45,16 +30,6 @@ function alert(aDialogTitle, aText) {
   do_check_eq(aText.indexOf("The folder Inbox is full, and can't hold any more messages."), 0);
   gGotAlert = true;
 }
-
-// Dummy message window so we can do the move as an offline operation.
-var dummyMsgWindow =
-{
-  rootDocShell: dummyDocShell,
-  promptDialog: alertUtilsPrompts,
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgWindow,
-                                         Ci.nsISupportsWeakReference])
-};
 
 function run_test()
 {
@@ -134,7 +109,7 @@ function run_test()
   // Use copyFileMessageInLocalFolder() to (try to) append another message
   //  to local inbox.
   let file = do_get_file("../../../data/multipart-complex2");
-  copyFileMessageInLocalFolder(file, 0, "", dummyMsgWindow,
+  copyFileMessageInLocalFolder(file, 0, "", gDummyMsgWindow,
                                function(aMessageHeadersKeys, aStatus) {
     do_check_false(Components.isSuccessCode(aStatus));
   });
@@ -151,7 +126,7 @@ function run_test()
   gLocalInboxFolder.msgDatabase.ForceClosed();
   gLocalInboxFolder.msgDatabase = null;
   try {
-    gLocalInboxFolder.getDatabaseWithReparse(ParseListener, dummyMsgWindow);
+    gLocalInboxFolder.getDatabaseWithReparse(ParseListener, gDummyMsgWindow);
   } catch (ex) {
     do_check_eq(ex.result, Cr.NS_ERROR_NOT_INITIALIZED);
   }
