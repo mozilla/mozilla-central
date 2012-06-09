@@ -298,9 +298,34 @@ function AbNewMessage()
       params.type = Components.interfaces.nsIMsgCompType.New;
       params.format = Components.interfaces.nsIMsgCompFormat.Default;
       if (DirPaneHasFocus())
-        composeFields.to = GetSelectedAddressesFromDirTree();
+      {
+        var directory = gDirectoryTreeView.getDirectoryAtIndex(gDirTree.currentIndex);
+        var hidesRecipients = false;
+        try
+        {
+          // This is a bit of hackery so that extensions can have mailing lists
+          // where recipients are sent messages via BCC.
+          hidesRecipients = directory.getBoolValue("HidesRecipients", false);
+        }
+        catch (e)
+        {
+          // Standard mailing lists do not have preferences
+          // associated with them, so we'll silently eat the error.
+        }
+
+        if (directory && directory.isMailList && hidesRecipients)
+          // Bug 669301 (https://bugzilla.mozilla.org/show_bug.cgi?id=669301)
+          // We're using BCC right now to hide recipients from one another.
+          // We should probably use group syntax, but that's broken
+          // right now, so this will have to do.
+          composeFields.bcc = GetSelectedAddressesFromDirTree();
+        else
+          composeFields.to = GetSelectedAddressesFromDirTree();
+      }
       else
+      {
         composeFields.to = GetSelectedAddresses();
+      }
       params.composeFields = composeFields;
       var msgComposeService =
         Components.classes["@mozilla.org/messengercompose;1"]
