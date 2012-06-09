@@ -192,10 +192,10 @@ daypicker-monthday {
 }
 
 .selection-bar {
-    background-color: #008080;
-    opacity: 0.2;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
+    background-color: rgba(0, 128, 128, .2);
+    border: 1px solid #008080;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
 }
 
 .freebusy-container {
