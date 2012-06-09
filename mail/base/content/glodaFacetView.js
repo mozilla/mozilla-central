@@ -19,7 +19,7 @@ const Cu = Components.utils;
 
 Cu.import("resource:///modules/gloda/log4moz.js");
 Cu.import("resource:///modules/StringBundle.js");
-Cu.import("resource:///modules/PluralForm.jsm");
+Cu.import("resource://gre/modules/PluralForm.jsm");
 Cu.import("resource:///modules/errUtils.js");
 Cu.import("resource:///modules/templateUtils.js");
 
