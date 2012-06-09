@@ -25,7 +25,7 @@
         <treeitem container="true"
                   id="lightningItem"
                   insertafter="mailnewsItem,navigatorItem"
-                  label="&lightning.taskLabel;"
+                  label="&lightning.preferencesLabel;"
                   prefpane="paneLightning">
             <treechildren id="lightningChildren">
                 <treeitem id="lightningAlarms"
@@ -43,7 +43,7 @@
 
     <prefwindow id="prefDialog">
         <prefpane id="paneLightning"
-                  label="&lightning.taskLabel;"
+                  label="&lightning.preferencesLabel;"
                   onpaneload="gCalendarGeneralPane.init(); gTimezonesPane.init();">
             <vbox id="calPreferencesBoxGeneral"/>
             <vbox id="calPreferencesBoxTimezones"/>
