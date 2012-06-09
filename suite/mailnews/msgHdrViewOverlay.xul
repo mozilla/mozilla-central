@@ -50,20 +50,34 @@
 </menupopup>
 
 <menupopup id="emailAddressPopup" popupanchor="bottomleft"
-       onpopupshowing="fillEmailAddressPopup(document.popupNode);
-                       goUpdateCommand('cmd_createFilterFromPopup');">
+           onpopupshowing="SetupEmailAddressPopup(document.popupNode);
+                           goUpdateCommand('cmd_createFilterFromPopup');">
   <menuitem id="emailAddressPlaceHolder" label="" disabled="true"/>
   <menuseparator/>
-  <menuitem label="&SendMailTo.label;"
+  <menuitem id="sendMailToItem"
+            label="&SendMailTo.label;"
             accesskey="&SendMailTo.accesskey;"
             oncommand="SendMailToNode(document.popupNode)"/>
-  <menuitem label="&CreateFilterFrom.label;"
+  <menuitem id="createFilterFromItem"
+            label="&CreateFilterFrom.label;"
             accesskey="&CreateFilterFrom.accesskey;"
             command="cmd_createFilterFromPopup"/>
-  <menuitem label="&AddToAddressBook.label;"
+  <menuitem id="addToAddressBookItem"
+            label="&AddToAddressBook.label;"
             accesskey="&AddToAddressBook.accesskey;"
-            oncommand="AddNodeToAddressBook(document.popupNode)"/>
-  <menuitem label="&CopyEmailAddress.label;"
+            oncommand="AddContact(document.popupNode);"/>
+  <menuitem id="editContactItem"
+            label="&EditContact.label;"
+            accesskey="&EditContact.accesskey;"
+            hidden="true"
+            oncommand="EditContact(document.popupNode);"/>
+  <menuitem id="viewContactItem"
+            label="&ViewContact.label;"
+            accesskey="&ViewContact.accesskey;"
+            hidden="true"
+            oncommand="EditContact(document.popupNode);"/>
+  <menuitem id="copyEmailAddressItem"
+            label="&CopyEmailAddress.label;"
             accesskey="&CopyEmailAddress.accesskey;"
             oncommand="CopyEmailAddress(document.popupNode)"/>
 </menupopup>

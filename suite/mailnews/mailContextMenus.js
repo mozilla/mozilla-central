@@ -415,11 +415,11 @@ function ShowSeparator(aSeparatorID)
 }
 
 // message pane context menu helper methods
-function AddNodeToAddressBook(emailAddressNode)
+function AddContact(aEmailAddressNode)
 {
-  if (emailAddressNode)
-    AddEmailToAddressBook(emailAddressNode.getAttribute("emailAddress"),
-                          emailAddressNode.getAttribute("displayName"));
+  if (aEmailAddressNode)
+    AddEmailToAddressBook(aEmailAddressNode.getAttribute("emailAddress"),
+                          aEmailAddressNode.getAttribute("displayName"));
 }
 
 function AddEmailToAddressBook(primaryEmail, displayName)
@@ -427,6 +427,17 @@ function AddEmailToAddressBook(primaryEmail, displayName)
     window.openDialog("chrome://messenger/content/addressbook/abNewCardDialog.xul",
                       "", "chrome,resizable=no,titlebar,modal,centerscreen",
                       {primaryEmail:primaryEmail, displayName:displayName});
+}
+
+function EditContact(aEmailAddressNode)
+{
+  if (aEmailAddressNode.cardDetails.card)
+  {
+    window.openDialog("chrome://messenger/content/addressbook/abEditCardDialog.xul",
+                      "", "chrome,resizable=no,modal,titlebar,centerscreen",
+                      { abURI: aEmailAddressNode.cardDetails.book.URI,
+                        card: aEmailAddressNode.cardDetails.card });
+  }
 }
 
 // SendMailToNode takes the email address title button, extracts

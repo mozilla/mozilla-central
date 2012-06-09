@@ -5,6 +5,10 @@
 <!-- Message Header View Popup -->
 <!ENTITY AddToAddressBook.label            "Add To Address Book…">
 <!ENTITY AddToAddressBook.accesskey        "B">
+<!ENTITY EditContact.label                 "Edit Contact…">
+<!ENTITY EditContact.accesskey             "E">
+<!ENTITY ViewContact.label                 "View Contact">
+<!ENTITY ViewContact.accesskey             "V">
 <!ENTITY SendMailTo.label                  "Compose Mail To…">
 <!ENTITY SendMailTo.accesskey              "s">
 <!ENTITY CopyEmailAddress.label            "Copy Email Address">
