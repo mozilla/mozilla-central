@@ -63,8 +63,11 @@ public:
 
   static nsresult SetSmtpServer(nsIMsgAccountManager *aMgr,
                                 nsIMsgAccount *aAcc,
+                                nsIMsgIdentity *aId,
                                 const nsString &aServer,
                                 const nsString &aUser);
+  static nsresult SetSmtpServerKey(nsIMsgIdentity *aId,
+                                   nsISmtpServer *aServer);
   static nsresult GetAccountName(nsIWindowsRegKey *aKey,
                                  const nsString &aDefaultName,
                                  nsAString &aAccountName);
@@ -469,10 +472,10 @@ void OutlookSettings::SetIdentities(nsIMsgAccountManager *aMgr,
   aKey->ReadStringValue(NS_LITERAL_STRING("SMTP Organization Name"), orgName);
 
   nsresult rv;
+  nsCOMPtr<nsIMsgIdentity>  id;
   if (!email.IsEmpty() && !name.IsEmpty() && !server.IsEmpty()) {
     // The default identity, nor any other identities matched,
     // create a new one and add it to the account.
-    nsCOMPtr<nsIMsgIdentity>  id;
     rv = aMgr->CreateIdentity(getter_AddRefs(id));
     if (id) {
       id->SetFullName(name);
@@ -508,11 +511,20 @@ void OutlookSettings::SetIdentities(nsIMsgAccountManager *aMgr,
     }
   }
 
-  SetSmtpServer(aMgr, aAcc, server, userName);
+  SetSmtpServer(aMgr, aAcc, id, server, userName);
+}
+
+nsresult OutlookSettings::SetSmtpServerKey(nsIMsgIdentity *aId,
+                                           nsISmtpServer *aServer)
+{
+  nsCAutoString smtpServerKey;
+  aServer->GetKey(getter_Copies(smtpServerKey));
+  return aId->SetSmtpServerKey(smtpServerKey);
 }
 
 nsresult OutlookSettings::SetSmtpServer(nsIMsgAccountManager *aMgr,
                                         nsIMsgAccount *aAcc,
+                                        nsIMsgIdentity *aId,
                                         const nsString &aServer,
                                         const nsString &aUser)
 {
@@ -529,6 +541,8 @@ nsresult OutlookSettings::SetSmtpServer(nsIMsgAccountManager *aMgr,
                                nativeServerName.get(),
                                getter_AddRefs(foundServer));
   if (NS_SUCCEEDED(rv) && foundServer) {
+    if (aId)
+      SetSmtpServerKey(aId, foundServer);
     IMPORT_LOG1("SMTP server already exists: %s\n",
                 nativeServerName.get());
     return rv;
@@ -541,6 +555,10 @@ nsresult OutlookSettings::SetSmtpServer(nsIMsgAccountManager *aMgr,
   smtpServer->SetHostname(nativeServerName);
   if (!aUser.IsEmpty())
     smtpServer->SetUsername(nativeUserName);
+
+  if (aId)
+    SetSmtpServerKey(aId, smtpServer);
+
   // TODO SSL, auth method
   IMPORT_LOG1("Ceated new SMTP server: %s\n",
               nativeServerName.get());
