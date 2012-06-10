@@ -692,13 +692,13 @@ Account.prototype = {
 
   _streamingRequest: null,
   _pendingData: "",
-  _receivedLength: 0,
   openStream: function() {
     let track = this.getString("track");
     this._streamingRequest =
       this.signAndSend("https://userstream.twitter.com/2/user.json",
                        null, track ? [["track", track]] : [],
                        this.openStream, this.onStreamError, this);
+    this._streamingRequest.responseType = "moz-chunked-text";
     this._streamingRequest.onprogress = this.onDataAvailable.bind(this);
   },
   onStreamError: function(aError) {
@@ -706,12 +706,10 @@ Account.prototype = {
     this.gotDisconnected(Ci.prplIAccount.ERROR_NETWORK_ERROR, aError);
   },
   onDataAvailable: function(aRequest) {
-    let text = aRequest.target.responseText;
-    let newText = this._pendingData + text.slice(this._receivedLength);
+    let newText = this._pendingData + aRequest.target.response;
     DEBUG("Received data: " + newText);
     let messages = newText.split(/\r\n?/);
     this._pendingData = messages.pop();
-    this._receivedLength = text.length;
     for each (let message in messages) {
       if (!message.trim())
         continue;
