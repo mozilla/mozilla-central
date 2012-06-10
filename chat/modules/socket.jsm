@@ -107,6 +107,9 @@ const Socket = {
    */
   // Synchronously open a connection.
   connect: function(aHost, aPort, aSecurity, aProxy) {
+    if (Services.io.offline)
+      throw Cr.NS_ERROR_FAILURE;
+
     this.log("Connecting to: " + aHost + ":" + aPort);
     this.host = aHost;
     this.port = aPort;

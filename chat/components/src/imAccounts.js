@@ -272,8 +272,13 @@ imAccount.prototype = {
   timeOfNextReconnect: 0,
   _reconnectTimer: null,
   _startReconnectTimer: function() {
+    if (Services.io.offline) {
+      Cu.reportError("_startReconnectTimer called while offline");
+      return;
+    }
+
     /* If the last successful connection is older than 10 seconds, reset the
-     number of reconnection attemps. */
+       number of reconnection attemps. */
     const kTimeBeforeSuccessfulConnection = 10;
     if (this.timeOfLastConnect &&
         this.timeOfLastConnect + kTimeBeforeSuccessfulConnection * 1000 < Date.now()) {
@@ -557,6 +562,12 @@ imAccount.prototype = {
     throw Cr.NS_ERROR_NOT_IMPLEMENTED;
   },
   connect: function() {
+    if (!this.prplAccount)
+      throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+
+    if (Services.io.offline)
+      throw Cr.NS_ERROR_FAILURE;
+
     if (this._passwordRequired) {
       // If the previous connection attempt failed because we have a wrong password,
       // clear the passwor cache so that if there's no password in the password
@@ -588,12 +599,11 @@ imAccount.prototype = {
           // Disconnect or reconnect the account automatically, otherwise notify
           // the prplAccount instance.
           let statusType = aSubject.statusType;
-          if (statusType == Ci.imIStatusInfo.STATUS_OFFLINE &&
-              this.connected)
-            this.prplAccount.disconnect();
-          else if (statusType == Ci.imIStatusInfo.STATUS_OFFLINE &&
-                   this._reconnectTimer)
+          if (statusType == Ci.imIStatusInfo.STATUS_OFFLINE) {
+            if (this.connected || this.connecting)
+              this.prplAccount.disconnect();
             this.cancelReconnection();
+          }
           else if (statusType > Ci.imIStatusInfo.STATUS_OFFLINE &&
                    this.disconnected)
             this.prplAccount.connect();
