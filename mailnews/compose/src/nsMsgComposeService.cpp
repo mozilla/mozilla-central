@@ -432,7 +432,7 @@ nsMsgComposeService::GetOrigWindowSelection(MSG_ComposeType type, nsIMsgWindow *
   if (sel && (requireMultipleWords || !charsOnlyIf.IsEmpty()))
   {
     nsAutoString selPlain;
-    rv = sel->ToString(getter_Copies(selPlain));
+    rv = sel->ToString(selPlain);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // If "mailnews.reply_quoting_selection.multi_word" is on, then there must be at least
