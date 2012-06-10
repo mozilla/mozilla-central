@@ -537,7 +537,8 @@ Account.prototype = {
 
     let track = this.getString("track");
     if (track) {
-      getParams = "?q=" + track.split(",").join(" OR ") + lastMsgParam;
+      let trackQuery = track.split(",").map(encodeURIComponent).join(" OR ");
+      getParams = "?q=" + trackQuery + lastMsgParam;
       let url = "http://search.twitter.com/search.json" + getParams;
       this._pendingRequests.push(doXHRequest(url, null, null,
                                              this.onSearchResultsReceived,
