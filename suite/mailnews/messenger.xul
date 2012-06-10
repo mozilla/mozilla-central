@@ -33,6 +33,7 @@
         toggletoolbar="true"
         lightweightthemes="true"
         lightweightthemesfooter="status-bar"
+        macanimationtype="document"
         windowtype="mail:3pane">
 
 <stringbundleset id="stringbundleset">

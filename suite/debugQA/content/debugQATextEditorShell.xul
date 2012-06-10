@@ -40,6 +40,7 @@
         lightweightthemes="true"
         lightweightthemesfooter="status-bar"
         windowtype="composer:text"
+        macanimationtype="document"
         width="640" height="480"
         screenX="10" screenY="10"
         persist="screenX screenY width height sizemode">

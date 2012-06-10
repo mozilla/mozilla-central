@@ -30,6 +30,7 @@
         toggletoolbar="true"
         lightweightthemes="true"
         lightweightthemesfooter="status-bar"
+        macanimationtype="document"
         windowtype="mail:messageWindow">
 
   <stringbundleset id="stringbundleset">
