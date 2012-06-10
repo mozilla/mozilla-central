@@ -56,6 +56,7 @@
         <menulist id="selectLangs" onsyncfrompreference="return gFontsDialog.readFontLanguageGroup();"
                   preference="font.language.group">
           <menupopup>
+            <menuitem value="x-unicode" label="&font.langGroup.unicode1;"/>
             <menuitem value="x-western" label="&font.langGroup.latin1;"/>
             <menuitem value="x-central-euro" label="&font.langGroup.latin2;"/>
             <menuitem value="ja" label="&font.langGroup.japanese;"/>
@@ -81,7 +82,6 @@
             <menuitem value="x-khmr" label="&font.langGroup.khmer;"/>
             <menuitem value="x-mlym" label="&font.langGroup.malayalam;"/>
             <menuitem value="x-cans" label="&font.langGroup.canadian;"/>
-            <menuitem value="x-unicode" label="&font.langGroup.unicode;"/>
             <menuitem value="x-user-def" label="&font.langGroup.user-def;"/>
           </menupopup>
         </menulist>
