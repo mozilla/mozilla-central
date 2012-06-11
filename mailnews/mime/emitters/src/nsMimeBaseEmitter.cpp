@@ -343,11 +343,9 @@ nsMimeBaseEmitter::SetOutputListener(nsIStreamListener *listener)
 NS_IMETHODIMP
 nsMimeBaseEmitter::GetOutputListener(nsIStreamListener **listener)
 {
-  if (listener)
-  {
-    *listener = mOutListener;
-    NS_IF_ADDREF(*listener);
-  }
+  NS_ENSURE_ARG_POINTER(listener);
+
+  NS_IF_ADDREF(*listener = mOutListener);
   return NS_OK;
 }
 
@@ -402,6 +400,8 @@ nsMimeBaseEmitter::AddAttachmentField(const char *field, const char *value)
 NS_IMETHODIMP
 nsMimeBaseEmitter::UtilityWrite(const char *buf)
 {
+  NS_ENSURE_ARG_POINTER(buf);
+
   PRUint32    written;
   Write(nsDependentCString(buf), &written);
   return NS_OK;
@@ -418,6 +418,8 @@ nsMimeBaseEmitter::UtilityWrite(const nsACString &buf)
 NS_IMETHODIMP
 nsMimeBaseEmitter::UtilityWriteCRLF(const char *buf)
 {
+  NS_ENSURE_ARG_POINTER(buf);
+
   PRUint32    written;
   Write(nsDependentCString(buf), &written);
   Write(NS_LITERAL_CSTRING(CRLF), &written);
@@ -481,9 +483,9 @@ nsMimeBaseEmitter::Write(const nsACString &buf, PRUint32 *amountWritten)
 nsresult
 nsMimeBaseEmitter::WriteHelper(const char *buf, PRUint32 count, PRUint32 *countWritten)
 {
-  nsresult rv;
+  NS_ENSURE_TRUE(mOutStream, NS_ERROR_NOT_INITIALIZED);
 
-  rv = mOutStream->Write(buf, count, countWritten);
+  nsresult rv = mOutStream->Write(buf, count, countWritten);
   if (rv == NS_BASE_STREAM_WOULD_BLOCK) {
     // pipe is full, push contents of pipe to listener...
     PRUint32 avail;
@@ -539,6 +541,8 @@ NS_IMETHODIMP
 nsMimeBaseEmitter::StartHeader(bool rootMailHeader, bool headerOnly, const char *msgID,
                                const char *outCharset)
 {
+  NS_ENSURE_ARG_POINTER(outCharset);
+
   mDocHeader = rootMailHeader;
 
   // If this is not the mail messages header, then we need to create
@@ -550,8 +554,7 @@ nsMimeBaseEmitter::StartHeader(bool rootMailHeader, bool headerOnly, const char 
       CleanupHeaderArray(mEmbeddedHeaderArray);
 
     mEmbeddedHeaderArray = new nsVoidArray();
-    if (!mEmbeddedHeaderArray)
-      return NS_ERROR_OUT_OF_MEMORY;
+    NS_ENSURE_TRUE(mEmbeddedHeaderArray, NS_ERROR_OUT_OF_MEMORY);
   }
 
   // If the main doc, check on updated character set
@@ -647,7 +650,7 @@ nsMimeBaseEmitter::AddAllHeaders(const nsACString &allheaders)
     if (msgurl)
     {
         nsCOMPtr<nsIMimeHeaders> mimeHeaders = do_CreateInstance(NS_IMIMEHEADERS_CONTRACTID, &rv);
-        NS_ENSURE_SUCCESS(rv,rv);
+        NS_ENSURE_SUCCESS(rv, rv);
         mimeHeaders->Initialize(allheaders.BeginReading(), allheaders.Length());
         msgurl->SetMimeHeaders(mimeHeaders);
     }

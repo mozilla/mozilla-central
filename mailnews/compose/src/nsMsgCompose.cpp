@@ -984,6 +984,8 @@ nsMsgCompose::Initialize(nsIMsgComposeParams *aParams,
 
 nsresult nsMsgCompose::SetDocumentCharset(const char *aCharset)
 {
+  NS_ENSURE_TRUE(m_compFields && m_editor, NS_ERROR_NOT_INITIALIZED);
+
   // Set charset, this will be used for the MIME charset labeling.
   m_compFields->SetCharacterSet(aCharset);
 
@@ -3165,8 +3167,9 @@ NS_IMETHODIMP nsMsgCompose::GetType(MSG_ComposeType *aType)
 NS_IMETHODIMP
 nsMsgCompose::QuoteMessage(const char *msgURI)
 {
-  nsresult    rv;
+  NS_ENSURE_ARG_POINTER(msgURI);
 
+  nsresult rv;
   mQuotingToFollow = false;
 
   // Create a mime parser (nsIStreamConverter)!

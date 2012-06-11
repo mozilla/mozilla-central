@@ -170,7 +170,6 @@ NS_IMETHODIMP nsMsgMailSession::OnItemRemoved(nsIMsgFolder *aParentItem,
   return NS_OK;
 }
 
-
 NS_IMETHODIMP nsMsgMailSession::OnItemEvent(nsIMsgFolder *aFolder,
                                             nsIAtom *aEvent)
 {
@@ -252,12 +251,12 @@ nsMsgMailSession::AlertUser(const nsAString &aMessage, nsIMsgMailNewsUrl *aUrl)
   return NS_OK;
 }
 
-nsresult nsMsgMailSession::GetTopmostMsgWindow(nsIMsgWindow* *aMsgWindow)
+nsresult nsMsgMailSession::GetTopmostMsgWindow(nsIMsgWindow **aMsgWindow)
 {
   NS_ENSURE_ARG_POINTER(aMsgWindow);
-  
+
   *aMsgWindow = nsnull;
- 
+
   PRUint32 count = mWindows.Count();
 
   if (count == 1)
@@ -354,11 +353,10 @@ nsresult nsMsgMailSession::GetTopmostMsgWindow(nsIMsgWindow* *aMsgWindow)
   return (*aMsgWindow) ? NS_OK : NS_ERROR_FAILURE;
 }
 
-
-
 NS_IMETHODIMP nsMsgMailSession::AddMsgWindow(nsIMsgWindow *msgWindow)
 {
   NS_ENSURE_ARG_POINTER(msgWindow);
+
   mWindows.AppendObject(msgWindow);
   return NS_OK;
 }
@@ -386,12 +384,12 @@ NS_IMETHODIMP nsMsgMailSession::RemoveMsgWindow(nsIMsgWindow *msgWindow)
 
 NS_IMETHODIMP nsMsgMailSession::IsFolderOpenInWindow(nsIMsgFolder *folder, bool *aResult)
 {
-  if (!aResult)
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(aResult);
+
   *aResult = false;
-  
+
   PRUint32 count = mWindows.Count();
-  
+
   for(PRUint32 i = 0; i < count; i++)
   {
     nsCOMPtr<nsIMsgFolder> openFolder;
@@ -402,33 +400,30 @@ NS_IMETHODIMP nsMsgMailSession::IsFolderOpenInWindow(nsIMsgFolder *folder, bool 
       break;
     }
   }
-  
+
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsMsgMailSession::ConvertMsgURIToMsgURL(const char *aURI, nsIMsgWindow *aMsgWindow, char **aURL)
 {
-  if ((!aURI) || (!aURL))
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(aURI);
+  NS_ENSURE_ARG_POINTER(aURL);
 
   // convert the rdf msg uri into a url that represents the message...
   nsCOMPtr <nsIMsgMessageService> msgService;
   nsresult rv = GetMessageServiceFromURI(nsDependentCString(aURI), getter_AddRefs(msgService));
-  if (NS_FAILED(rv)) 
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_SUCCESS(rv, NS_ERROR_NULL_POINTER);
 
   nsCOMPtr<nsIURI> tURI;
   rv = msgService->GetUrlForUri(aURI, getter_AddRefs(tURI), aMsgWindow);
-  if (NS_FAILED(rv)) 
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_SUCCESS(rv, NS_ERROR_NULL_POINTER);
 
   nsCAutoString urlString;
   if (NS_SUCCEEDED(tURI->GetSpec(urlString)))
   {
     *aURL = ToNewCString(urlString);
-    if (!(aURL))
-      return NS_ERROR_NULL_POINTER;
+    NS_ENSURE_ARG_POINTER(aURL);
   }
   return rv;
 }
@@ -439,65 +434,66 @@ nsMsgMailSession::ConvertMsgURIToMsgURL(const char *aURI, nsIMsgWindow *aMsgWind
 //----------------------------------------------------------------------------------------
 nsresult
 nsMsgMailSession::GetSelectedLocaleDataDir(nsIFile *defaultsDir)
-{                                                                               
-  NS_ENSURE_ARG_POINTER(defaultsDir);                                     
+{
+  NS_ENSURE_ARG_POINTER(defaultsDir);
 
-  nsresult rv;                                                                
-  bool baseDirExists = false;                                            
-  rv = defaultsDir->Exists(&baseDirExists);                               
-  NS_ENSURE_SUCCESS(rv,rv);                                                   
+  bool baseDirExists = false;
+  nsresult rv = defaultsDir->Exists(&baseDirExists);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  if (baseDirExists) {                                                        
+  if (baseDirExists) {
     nsCOMPtr<nsIXULChromeRegistry> packageRegistry =
       mozilla::services::GetXULChromeRegistryService();
-    if (packageRegistry) {                                                 
-      nsCAutoString localeName;                                           
+    if (packageRegistry) {
+      nsCAutoString localeName;
       rv = packageRegistry->GetSelectedLocale(NS_LITERAL_CSTRING("global-region"), localeName);
 
       if (NS_SUCCEEDED(rv) && !localeName.IsEmpty()) {
-        bool localeDirExists = false;                              
-        nsCOMPtr<nsIFile> localeDataDir;                                
-        
-        rv = defaultsDir->Clone(getter_AddRefs(localeDataDir));     
-        NS_ENSURE_SUCCESS(rv,rv);                                       
+        bool localeDirExists = false;
+        nsCOMPtr<nsIFile> localeDataDir;
+
+        rv = defaultsDir->Clone(getter_AddRefs(localeDataDir));
+        NS_ENSURE_SUCCESS(rv, rv);
 
         rv = localeDataDir->AppendNative(localeName);
-        NS_ENSURE_SUCCESS(rv,rv);                                       
+        NS_ENSURE_SUCCESS(rv, rv);
 
-        rv = localeDataDir->Exists(&localeDirExists);                   
-        NS_ENSURE_SUCCESS(rv,rv);                                       
+        rv = localeDataDir->Exists(&localeDirExists);
+        NS_ENSURE_SUCCESS(rv, rv);
 
-        if (localeDirExists) {                                          
-          // use locale provider instead                              
+        if (localeDirExists) {
+          // use locale provider instead
           rv = defaultsDir->AppendNative(localeName);
-          NS_ENSURE_SUCCESS(rv,rv);                                   
-        }                                                               
-      }                                                                   
-    }                                                                       
-  }                                                                           
-  return NS_OK;                                                               
-} 
+          NS_ENSURE_SUCCESS(rv, rv);
+        }
+      }
+    }
+  }
+  return NS_OK;
+}
 
 //----------------------------------------------------------------------------------------
-// GetDataFilesDir - Gets the application's default folder and then appends the 
-//                   subdirectory named passed in as param dirName. If there is a seleccted
+// GetDataFilesDir - Gets the application's default folder and then appends the
+//                   subdirectory named passed in as param dirName. If there is a selected
 //                   locale, will append that to the dir path before returning the value
 //----------------------------------------------------------------------------------------
 NS_IMETHODIMP
 nsMsgMailSession::GetDataFilesDir(const char* dirName, nsIFile **dataFilesDir)
-{                                                                                                                                                    
+{
+
+  NS_ENSURE_ARG_POINTER(dirName);
   NS_ENSURE_ARG_POINTER(dataFilesDir);
 
   nsresult rv;
-  nsCOMPtr<nsIProperties> directoryService = 
+  nsCOMPtr<nsIProperties> directoryService =
     do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIFile> defaultsDir;
-  rv = directoryService->Get(NS_APP_DEFAULTS_50_DIR, 
-                             NS_GET_IID(nsIFile), 
+  rv = directoryService->Get(NS_APP_DEFAULTS_50_DIR,
+                             NS_GET_IID(nsIFile),
                              getter_AddRefs(defaultsDir));
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   rv = defaultsDir->AppendNative(nsDependentCString(dirName));
   if (NS_SUCCEEDED(rv))
@@ -543,17 +539,17 @@ nsMsgShutdownService::~nsMsgShutdownService()
 nsresult nsMsgShutdownService::ProcessNextTask()
 {
   bool shutdownTasksDone = true;
-  
+
   PRInt32 count = mShutdownTasks.Count();
   if (mTaskIndex < count)
   {
     shutdownTasksDone = false;
 
-    nsCOMPtr<nsIMsgShutdownTask> curTask = mShutdownTasks[mTaskIndex];    
+    nsCOMPtr<nsIMsgShutdownTask> curTask = mShutdownTasks[mTaskIndex];
     nsString taskName;
     curTask->GetCurrentTaskName(taskName); 
     SetStatusText(taskName);
-   
+
     nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID);
     NS_ENSURE_TRUE(mailSession, NS_ERROR_FAILURE);
 
@@ -573,10 +569,11 @@ nsresult nsMsgShutdownService::ProcessNextTask()
 
   if (shutdownTasksDone)
   {
-    mMsgProgress->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, NS_OK);
+    if (mMsgProgress)
+      mMsgProgress->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, NS_OK);
     AttemptShutdown();
   }
-  
+
   return NS_OK;
 }
 
@@ -738,9 +735,12 @@ NS_IMETHODIMP nsMsgShutdownService::OnStopRunningUrl(nsIURI *url, nsresult aExit
 {
   mTaskIndex++;
 
-  PRInt32 numTasks = mShutdownTasks.Count();
-  mMsgProgress->OnProgressChange(nsnull, nsnull, 0, 0, mTaskIndex, numTasks);
-  
+  if (mMsgProgress)
+  {
+    PRInt32 numTasks = mShutdownTasks.Count();
+    mMsgProgress->OnProgressChange(nsnull, nsnull, 0, 0, mTaskIndex, numTasks);
+  }
+
   ProcessNextTask();
   return NS_OK;
 }
@@ -766,6 +766,7 @@ NS_IMETHODIMP nsMsgShutdownService::CancelShutdownTasks()
 NS_IMETHODIMP nsMsgShutdownService::SetStatusText(const nsAString & inStatusString)
 {
   nsString statusString(inStatusString);
-  mMsgProgress->OnStatusChange(nsnull, nsnull, NS_OK, statusString.get());
+  if (mMsgProgress)
+    mMsgProgress->OnStatusChange(nsnull, nsnull, NS_OK, nsString(statusString).get());
   return NS_OK;
 }

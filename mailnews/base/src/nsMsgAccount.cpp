@@ -54,7 +54,7 @@ nsMsgAccount::getPrefService()
 }
 
 NS_IMETHODIMP
-nsMsgAccount::GetIncomingServer(nsIMsgIncomingServer * *aIncomingServer)
+nsMsgAccount::GetIncomingServer(nsIMsgIncomingServer **aIncomingServer)
 {
   NS_ENSURE_ARG_POINTER(aIncomingServer);
 
@@ -73,8 +73,7 @@ nsMsgAccount::GetIncomingServer(nsIMsgIncomingServer * *aIncomingServer)
 nsresult
 nsMsgAccount::createIncomingServer()
 {
-  if (m_accountKey.IsEmpty())
-    return NS_ERROR_NOT_INITIALIZED;
+  NS_ENSURE_FALSE(m_accountKey.IsEmpty(), NS_ERROR_NOT_INITIALIZED);
 
   // from here, load mail.account.myaccount.server
   // Load the incoming server
@@ -82,7 +81,7 @@ nsMsgAccount::createIncomingServer()
   // ex) mail.account.myaccount.server = "myserver"
 
   nsresult rv = getPrefService();
-  if (NS_FAILED(rv)) return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // get the "server" pref
   nsCAutoString serverKeyPref("mail.account.");
@@ -90,7 +89,7 @@ nsMsgAccount::createIncomingServer()
   serverKeyPref += ".server";
   nsCString serverKey;
   rv = m_prefs->GetCharPref(serverKeyPref.get(), getter_Copies(serverKey));
-  if (NS_FAILED(rv)) return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // get the server from the account manager
   nsCOMPtr<nsIMsgAccountManager> accountManager =
@@ -110,8 +109,10 @@ nsMsgAccount::createIncomingServer()
 
 
 NS_IMETHODIMP
-nsMsgAccount::SetIncomingServer(nsIMsgIncomingServer * aIncomingServer)
+nsMsgAccount::SetIncomingServer(nsIMsgIncomingServer *aIncomingServer)
 {
+  NS_ENSURE_ARG_POINTER(aIncomingServer);
+
   nsCString key;
   nsresult rv = aIncomingServer->GetKey(key);
 
@@ -187,9 +188,8 @@ nsMsgAccount::GetIdentities(nsISupportsArray **_retval)
 nsresult
 nsMsgAccount::createIdentities()
 {
-  NS_ENSURE_TRUE(!m_accountKey.IsEmpty(), NS_ERROR_NOT_INITIALIZED);
-  if (m_identities)
-    return NS_ERROR_FAILURE;
+  NS_ENSURE_FALSE(m_accountKey.IsEmpty(), NS_ERROR_NOT_INITIALIZED);
+  NS_ENSURE_FALSE(m_identities, NS_ERROR_FAILURE);
 
   NS_NewISupportsArray(getter_AddRefs(m_identities));
 
@@ -245,9 +245,10 @@ NS_IMETHODIMP
 nsMsgAccount::GetDefaultIdentity(nsIMsgIdentity **aDefaultIdentity)
 {
   NS_ENSURE_ARG_POINTER(aDefaultIdentity);
+
   *aDefaultIdentity = nsnull;
   nsresult rv;
-  
+
   if (!m_identities)
   {
     rv = Init();
@@ -259,7 +260,7 @@ nsMsgAccount::GetDefaultIdentity(nsIMsgIdentity **aDefaultIdentity)
   NS_ENSURE_SUCCESS(rv, rv);
   if (count == 0)
     return NS_OK;
-  
+
   nsCOMPtr<nsIMsgIdentity> identity( do_QueryElementAt(m_identities, 0, &rv));
   identity.swap(*aDefaultIdentity);
   return rv;
@@ -267,7 +268,7 @@ nsMsgAccount::GetDefaultIdentity(nsIMsgIdentity **aDefaultIdentity)
 
 // todo - make sure this is in the identity array!
 NS_IMETHODIMP
-nsMsgAccount::SetDefaultIdentity(nsIMsgIdentity * aDefaultIdentity)
+nsMsgAccount::SetDefaultIdentity(nsIMsgIdentity *aDefaultIdentity)
 {
   NS_ENSURE_TRUE(m_identities, NS_ERROR_FAILURE);
 
@@ -286,6 +287,7 @@ nsresult
 nsMsgAccount::addIdentityInternal(nsIMsgIdentity *identity)
 {
   NS_ENSURE_TRUE(m_identities, NS_ERROR_FAILURE);
+
   return m_identities->AppendElement(identity);
 }
 
@@ -293,13 +295,13 @@ nsMsgAccount::addIdentityInternal(nsIMsgIdentity *identity)
 NS_IMETHODIMP
 nsMsgAccount::AddIdentity(nsIMsgIdentity *identity)
 {
+  NS_ENSURE_ARG_POINTER(identity);
+
   // hack hack - need to add this to the list of identities.
   // for now just treat this as a Setxxx accessor
   // when this is actually implemented, don't refcount the default identity
-  nsresult rv;
-
   nsCString key;
-  rv = identity->GetKey(key);
+  nsresult rv = identity->GetKey(key);
 
   if (NS_SUCCEEDED(rv)) {
 
@@ -356,12 +358,12 @@ nsMsgAccount::AddIdentity(nsIMsgIdentity *identity)
 
 /* void removeIdentity (in nsIMsgIdentity identity); */
 NS_IMETHODIMP
-nsMsgAccount::RemoveIdentity(nsIMsgIdentity * aIdentity)
+nsMsgAccount::RemoveIdentity(nsIMsgIdentity *aIdentity)
 {
   NS_ENSURE_ARG_POINTER(aIdentity);
   NS_ENSURE_TRUE(m_identities, NS_ERROR_FAILURE);
 
-  PRUint32 count =0;
+  PRUint32 count = 0;
   m_identities->Count(&count);
 
   NS_ENSURE_TRUE(count > 1, NS_ERROR_FAILURE); // you must have at least one identity
@@ -439,12 +441,11 @@ nsMsgAccount::ToString(nsAString& aResult)
 NS_IMETHODIMP
 nsMsgAccount::ClearAllValues()
 {
-  nsresult rv;
   nsCAutoString rootPref("mail.account.");
   rootPref += m_accountKey;
   rootPref += '.';
 
-  rv = getPrefService();
+  nsresult rv = getPrefService();
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRUint32 cntChild, i;
