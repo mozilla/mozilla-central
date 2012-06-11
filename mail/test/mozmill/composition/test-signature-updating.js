@@ -63,10 +63,16 @@ function plaintextComposeWindowSwitchSignatures(suppressSigSep) {
   prefBranch.setBoolPref("mail.identity.id2.suppress_signature_separator",
                          suppressSigSep);
 
+  let contentFrame = cwc.e("content-frame");
+  let mailBody = contentFrame.contentDocument.body;
+
+  // The first node in the body should be a BR node, which allows the user
+  // to insert text before / outside of the signature.
+  assert_equals(mailBody.firstChild.localName, "br");
+
   setupComposeWin("", "Plaintext compose window", "Body, first line.");
 
-  let contentFrame = cwc.e("content-frame");
-  let node = contentFrame.contentDocument.body.lastChild;
+  let node = mailBody.lastChild;
 
   // The last node is a BR - this allows users to put text after the
   // signature without it being styled like the signature.
