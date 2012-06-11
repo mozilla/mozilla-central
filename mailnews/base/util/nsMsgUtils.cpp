@@ -157,8 +157,8 @@ nsresult CreateStartupUrl(const char *uri, nsIURI** aUrl)
       rv = nntpUrl->QueryInterface(NS_GET_IID(nsIURI),
       (void**) aUrl);
   }
-  if (*aUrl)
-    rv = (*aUrl)->SetSpec(nsDependentCString(uri));
+  if (*aUrl) // SetSpec can fail, for mailbox urls, but we still have a url.
+    (void) (*aUrl)->SetSpec(nsDependentCString(uri));
   return rv;
 }
 
