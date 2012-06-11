@@ -327,7 +327,7 @@ txFormatNumberFunctionCall::evaluate(txIEvalContext* aContext,
                   (intDigits-1)/groupSize); // group separators
 
     PRInt32 i = bufIntDigits + maxFractionSize - 1;
-    MBool carry = (i+1 < buflen) && (buf[i+1] >= '5');
+    MBool carry = (0 <= i+1) && (i+1 < buflen) && (buf[i+1] >= '5');
     MBool hasFraction = MB_FALSE;
 
     PRUint32 resPos = res.Length()-1;
