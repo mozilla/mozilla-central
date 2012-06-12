@@ -10,6 +10,9 @@
 ifneq (,$(findstring ldap,$(MOZ_APP_COMPONENT_LIBS)))
 DEPENDENT_LIBS_LIST += \
     $(DLL_PREFIX)ldap60$(DLL_SUFFIX) \
+    $(DLL_PREFIX)nspr4$(DLL_SUFFIX) \
+    $(DLL_PREFIX)plc4$(DLL_SUFFIX) \
+    $(DLL_PREFIX)plds4$(DLL_SUFFIX) \
     $(DLL_PREFIX)prldap60$(DLL_SUFFIX) \
     $(DLL_PREFIX)ldif60$(DLL_SUFFIX) \
     $(NULL)
