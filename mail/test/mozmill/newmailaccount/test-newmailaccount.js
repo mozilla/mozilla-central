@@ -38,7 +38,7 @@ const kProvisionerUrl = "chrome://messenger/content/newmailaccount/accountProvis
 const kProvisionerEnabledPref = "mail.provider.enabled";
 const kSuggestFromNamePref = "mail.provider.suggestFromName";
 const kProviderListPref = "mail.provider.providerList";
-const kAcceptLangs = "intl.accept_languages";
+const kAcceptedLanguage = "general.useragent.locale";
 const kDefaultServerPort = 4444;
 const kDefaultServerRoot = "http://localhost:" + kDefaultServerPort;
 
@@ -56,7 +56,7 @@ var gProvisionerEnabled = Services.prefs.getBoolPref(kProvisionerEnabledPref);
 // Record what the original value of the mail.provider.enabled pref is so
 // that we can put it back once the tests are done.
 var gProvisionerEnabled = Services.prefs.getBoolPref(kProvisionerEnabledPref);
-var gOldAcceptLangs = Services.prefs.getComplexValue(kAcceptLangs, Ci.nsIPrefLocalizedString);
+var gOldAcceptLangs = Services.prefs.getCharPref(kAcceptedLanguage);
 var gNumAccounts;
 
 function setupModule(module) {
@@ -74,10 +74,8 @@ function setupModule(module) {
 
   // Make sure we enable the Account Provisioner.
   Services.prefs.setBoolPref(kProvisionerEnabledPref, true);
-  // First, restrict the user's language to just en-US
-  let langs = Cc["@mozilla.org/pref-localizedstring;1"].createInstance(Ci.nsIPrefLocalizedString);
-  langs.data = "en-US";
-  Services.prefs.setComplexValue(kAcceptLangs, Ci.nsIPrefLocalizedString, langs);
+  // Restrict the user's language to just en-US
+  Services.prefs.setCharPref(kAcceptedLanguage, "en-US");
 
   // Add a "bar" search engine that we can switch to be the default.
   Services.search.addEngineWithDetails("bar", null, null, null, "post",
@@ -88,7 +86,7 @@ function teardownModule(module) {
   // Put the mail.provider.enabled pref back the way it was.
   Services.prefs.setBoolPref(kProvisionerEnabledPref, gProvisionerEnabled);
   // And same with the user languages
-  Services.prefs.setComplexValue(kAcceptLangs, Ci.nsIPrefLocalizedString, gOldAcceptLangs);
+  Services.prefs.setCharPref(kAcceptedLanguage, gOldAcceptLangs);
 }
 
 /* Helper function that returns the number of accounts associated with the
@@ -1130,15 +1128,15 @@ function subtest_disabled_fields_when_searching(aController) {
 function test_search_button_disabled_if_no_lang_support() {
   // Set the user's supported language to something ridiculous (caching the
   // old one so we can put it back later).
-  let oldLangs = Services.prefs.getCharPref(kAcceptLangs);
-  Services.prefs.setCharPref(kAcceptLangs, "foo,bar,baz");
+  let oldLang = Services.prefs.getCharPref(kAcceptedLanguage);
+  Services.prefs.setCharPref(kAcceptedLanguage, "foo");
 
   plan_for_modal_dialog("AccountCreation",
                         subtest_search_button_disabled_on_init);
   open_provisioner_window();
   wait_for_modal_dialog("AccountCreation");
 
-  Services.prefs.setCharPref(kAcceptLangs, oldLangs);
+  Services.prefs.setCharPref(kAcceptedLanguage, oldLang);
 }
 
 /**
@@ -1150,6 +1148,43 @@ function subtest_search_button_disabled_on_init(aController) {
 
   // The search button should be disabled.
   wait_for_element_enabled(aController, aController.e("searchSubmit"), false);
+  close_dialog_immediately(aController);
+}
+
+/**
+ * Test that if the providerList contains entries with supported languages
+ * including "*", they are always displayed, even if the users locale pref
+ * is not set to "*".
+ */
+function test_provider_language_wildcard() {
+  let oldLang = Services.prefs.getCharPref(kAcceptedLanguage);
+  Services.prefs.setCharPref(kAcceptedLanguage, "foo-bar");
+
+  let original = Services.prefs.getCharPref(kProviderListPref);
+  Services.prefs.setCharPref(kProviderListPref, url + "providerListWildcard");
+
+  plan_for_modal_dialog("AccountCreation",
+                        subtest_provider_language_wildcard);
+  open_provisioner_window();
+  wait_for_modal_dialog("AccountCreation");
+  Services.prefs.setCharPref(kProviderListPref, original);
+  Services.prefs.setCharPref(kAcceptedLanguage, oldLang);
+}
+
+/**
+ * Subtest used by test_provider_language_wildcard, ensures that the
+ * "Universal" and "OtherUniversal" providers are displayed, but the French
+ * and German ones are not.
+ */
+function subtest_provider_language_wildcard(aController) {
+  wait_for_provider_list_loaded(aController);
+  let doc = aController.window.document;
+  // Check that the two universal providers are visible.
+  wait_for_element_visible(aController, "universal-check");
+  wait_for_element_visible(aController, "otherUniversal-check");
+  // The French and German providers should not be visible.
+  wait_for_element_invisible(aController, "french-check");
+  wait_for_element_invisible(aController, "german-check");
   close_dialog_immediately(aController);
 }
 

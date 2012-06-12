@@ -105,16 +105,10 @@ var EmailAccountProvisioner = {
   },
 
   /**
-   * Returns the languages that the user currently accepts.
+   * Returns the language that the user currently accepts.
    */
-  get userLanguages() {
-    let userLanguages =
-      Services.prefs.getComplexValue("intl.accept_languages",
-                                     Ci.nsIPrefLocalizedString)
-                                       .data
-                                       .toLowerCase()
-                                       .split(",");
-    return $.map(userLanguages, $.trim);
+  get userLanguage() {
+    return Services.prefs.getCharPref("general.useragent.locale");
   },
 
   /**
@@ -539,15 +533,13 @@ var EmailAccountProvisioner = {
       EmailAccountProvisioner.providers[provider.id] = provider;
 
       // Let's go through the array of languages for this provider, and
-      // check to see if at least one of them matches one of the accepted
-      // languages for this user profile.  If so, supportsSomeUserLang becomes
-      // true, and we'll show / select this provider by default.
+      // check to see if at least one of them matches general.useragent.locale.
+      // If so, we'll show / select this provider by default.
       let supportsSomeUserLang = provider
                                  .languages
                                  .some(function (x) {
-                                   return EmailAccountProvisioner
-                                          .userLanguages
-                                          .indexOf(x.toLowerCase()) >= 0
+                                   return x == "*" ||
+                                          x == EmailAccountProvisioner.userLanguage
                                  });
 
       let checkboxId = provider.id + "-check";

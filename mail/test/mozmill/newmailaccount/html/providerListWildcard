@@ -1,0 +1,37 @@
+[{"id": "universal",
+  "label": "Universal",
+  "paid": true,
+  "languages" : ["*"],
+  "api": "http://www.example.com/tbReg?first={firstname}&last={lastname}&email={email}",
+  "tos_url": "http://www.example.com/foo-tos",
+  "privacy_url": "http://www.example.com/foo-privacy",
+  "search_engine": "universal"
+ },
+{"id": "otherUniversal",
+  "label": "Other Universal",
+  "paid": true,
+  "languages" : ["*", "fr-FR"],
+  "api": "http://www.example.com/tbReg?first={firstname}&last={lastname}&email={email}",
+  "tos_url": "http://www.example.com/foo-tos",
+  "privacy_url": "http://www.example.com/foo-privacy",
+  "search_engine": "otherUniversal"
+ },
+ {"id": "French",
+  "label": "French Provider",
+  "paid": false,
+  "languages" : ["fr-FR"],
+  "api": "http://localhost:43336/registration.html",
+  "tos_url": "http://www.example.com/French-tos",
+  "privacy_url": "http://www.example.com/French-privacy",
+  "search_engine": "French"
+ },
+ {"id": "German",
+  "label": "German Provider",
+  "paid": false,
+  "languages" : ["de-DE"],
+  "api": "http://localhost:43336/registration.html",
+  "tos_url": "http://www.example.com/German-tos",
+  "privacy_url": "http://www.example.com/German-privacy",
+  "search_engine": "German"
+ }
+]
