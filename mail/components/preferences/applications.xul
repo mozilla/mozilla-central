@@ -168,7 +168,7 @@
                      value="&enableCloudFileAccountOffer.mb;"/>
             </hbox>
             <hbox flex="1">
-              <vbox flex="1" id="provider-listing">
+              <vbox id="provider-listing">
                 <richlistbox id="cloudFileView" orient="vertical" flex="1"
                              seltype="single"
                              onselect="gCloudFileTab.onSelectionChanged();">

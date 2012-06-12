@@ -152,14 +152,15 @@ a {
   text-align: right;
 }
 
-#provider-listing {
-  max-width: 150px;
-}
-
 #provider-space {
   text-align: right;
   margin-right: 200px;
   height: 100px;
+}
+
+#cloudFileView {
+  width: 150px;
+  overflow: hidden;
 }
 
 #upgrade {
