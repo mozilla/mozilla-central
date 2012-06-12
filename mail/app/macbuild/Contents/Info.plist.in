@@ -64,6 +64,8 @@
         </dict>
         <key>NSSupportsAutomaticGraphicsSwitching</key>
         <true/>
+        <key>NSPrincipalClass</key>
+        <string>GeckoNSApplication</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>
