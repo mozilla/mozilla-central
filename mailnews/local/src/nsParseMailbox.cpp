@@ -1707,7 +1707,7 @@ nsParseNewMailState::Init(nsIMsgFolder *serverFolder, nsIMsgFolder *downloadFold
   // the new mail parser isn't going to get the stream input, it seems, so we can't use
   // the OnStartRequest mechanism the mailbox parser uses. So, let's open the db right now.
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
-  if (msgDBService)
+  if (msgDBService && !m_mailDB)
     rv = msgDBService->OpenFolderDB(downloadFolder, false,
                                     getter_AddRefs(m_mailDB));
   NS_ENSURE_SUCCESS(rv, rv);
