@@ -53,8 +53,6 @@
 	</array>
 	<key>NSAppleScriptEnabled</key>
 	<true/>
-	<key>CGDisableCoalescedUpdates</key>
-	<true/>
         <key>LSMinimumSystemVersion</key>
         <string>10.5.0</string>
 	<key>LSMinimumSystemVersionByArchitecture</key>
