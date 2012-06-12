@@ -563,8 +563,10 @@ function ToggleMessageTagKey(keyNumber)
     return;
 
   let tagArray = MailServices.tags.getAllTags({});
-  let key = tagArray[keyNumber-1].key;
+  if (keyNumber > tagArray.length)
+    return;
 
+  let key = tagArray[keyNumber - 1].key;
   let curKeys = msgHdr.getStringProperty("keywords").split(" ");
   if (msgHdr.label)
     curKeys.push("$label" + msgHdr.label);
