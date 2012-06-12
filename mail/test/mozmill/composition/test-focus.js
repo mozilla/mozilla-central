@@ -78,7 +78,7 @@ function test_f6_no_attachment() {
 
 function test_f6_attachment() {
   let cwc = open_compose_new_mail();
-  add_attachment(cwc, "http://www.mozillamessaging.com/");
+  add_attachment(cwc, "http://www.mozilla.org/");
   check_element_cycling(cwc, true, false);
   close_compose_window(cwc);
 }
@@ -91,7 +91,7 @@ function test_ctrl_tab_no_attachment() {
 
 function test_ctrl_tab_attachment() {
   let cwc = open_compose_new_mail();
-  add_attachment(cwc, "http://www.mozillamessaging.com/");
+  add_attachment(cwc, "http://www.mozilla.org/");
   check_element_cycling(cwc, true, true);
   close_compose_window(cwc);
 }

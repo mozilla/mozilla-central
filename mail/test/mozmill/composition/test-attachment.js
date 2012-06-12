@@ -172,7 +172,7 @@ function test_file_attachment() {
 function test_webpage_attachment() {
   let cwc = open_compose_new_mail();
 
-  add_attachment(cwc, "http://www.mozillamessaging.com/");
+  add_attachment(cwc, "http://www.mozilla.org/");
   check_no_attachment_size(cwc, 0);
   check_total_attachment_size(cwc, 1);
 

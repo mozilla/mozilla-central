@@ -40,7 +40,7 @@
 # BrandFullNameInternal is used for some registry and file system values
 # instead of BrandFullName and typically should not be modified.
 !define BrandFullNameInternal "Mozilla Thunderbird"
-!define CompanyName           "Mozilla Messaging"
-!define URLInfoAbout          "http://www.mozillamessaging.com/${AB_CD}/"
-!define URLUpdateInfo         "http://www.mozillamessaging.com/${AB_CD}/thunderbird/"
+!define CompanyName           "Mozilla Corporation"
+!define URLInfoAbout          "http://www.mozilla.org/${AB_CD}/"
+!define URLUpdateInfo         "http://www.mozilla.org/${AB_CD}/thunderbird/"
 !define SurveyURL             "http://live.mozillamessaging.com/survey/uninstall/?locale=${AB_CD}&version=${AppVersion}"

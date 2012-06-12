@@ -15,6 +15,6 @@ pref("app.update.download.backgroundInterval", 600);
 // Give the user x seconds to react before showing the big UI. default=24 hours
 pref("app.update.promptWaitTime", 86400);
 
-pref("app.vendorURL", "http://www.mozillamessaging.com/%LOCALE%/%APP%/");
+pref("app.vendorURL", "http://www.mozilla.org/%LOCALE%/%APP%/");
 
 pref("browser.search.param.ms-pc", "MOZT");
