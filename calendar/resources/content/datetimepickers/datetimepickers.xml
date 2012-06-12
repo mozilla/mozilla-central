@@ -1533,11 +1533,11 @@
             if (probeArray != null) { 
               // Numeric month format
               for (var i = 1; i <= 3; i++) { 
-                switch (probeArray[i]) {
-                  case "02":    this.twoDigitYear = true; // fall thru
-                  case "2002":  this.yearIndex = i;       break;
-                  case "3":     this.monthIndex = i;      break;
-                  case "4":     this.dayIndex = i;        break;
+                switch (Number(probeArray[i])) {
+                  case 2:    this.twoDigitYear = true; // fall thru
+                  case 2002: this.yearIndex = i;       break;
+                  case 3:    this.monthIndex = i;      break;
+                  case 4:    this.dayIndex = i;        break;
                 }
               }
               // All three indexes are set (not -1) at this point.
@@ -1555,11 +1555,11 @@
               probeArray = this.parseShortDateRegex.exec(probeString);
               if (probeArray != null) {
                 for (var j = 1; j <= 3; j++) { 
-                  switch (probeArray[j]) {
-                    case "02":    this.twoDigitYear = true; // fall thru
-                    case "2002":  this.yearIndex = j;       break;
-                    case "4":     this.dayIndex = j;        break;
-                    default:    this.monthIndex = j;      break;
+                  switch (Number(probeArray[j])) {
+                    case 2:    this.twoDigitYear = true; // fall thru
+                    case 2002: this.yearIndex = j;       break;
+                    case 4:    this.dayIndex = j;        break;
+                    default:   this.monthIndex = j;      break;
                   }
                 }
                 if (this.yearIndex != -1 && this.dayIndex != -1 && this.monthIndex != -1) {
