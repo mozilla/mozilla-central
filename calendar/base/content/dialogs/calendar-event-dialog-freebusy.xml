@@ -725,12 +725,22 @@
                   (this.mEndHour - this.mStartHour) * 60 / step_in_minutes);
               let remain = count - 1;
               for (let day = 1; day <= num_days; day++) {
+                  let first = true;
                   while (remain--) {
                       let newNode = template.cloneNode(false);
+                      if (first) {
+                          newNode.className = "first-in-day";
+                          first = false;
+                      }
+
                       let value = formatter.formatTime(date);
                       newNode.setAttribute("value", value);
                       hours.appendChild(newNode);
                       date.minute += step_in_minutes;
+
+                      if (remain == 1) {
+                          newNode.className == "last-in-day"
+                      }
                   }
                   date.hour = this.mStartHour;
                   date.day++;
