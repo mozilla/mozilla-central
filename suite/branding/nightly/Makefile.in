@@ -29,8 +29,7 @@ DESKTOP_ICONS = \
 	abcardWindow \
 	ablistWindow \
 	addressbookWindow \
-	bmPropsWindow \
-	bookmark-window \
+	bookmarkproperties \
 	downloadManager \
 	editorWindow \
 	findBookmarkWindow \
@@ -40,6 +39,7 @@ DESKTOP_ICONS = \
 	main-window \
 	messengerWindow \
 	msgcomposeWindow \
+	places \
 	venkman-window \
 	$(NULL) 
 
