@@ -46,6 +46,9 @@ function OnMailWindowUnload()
 
   msgWindow.closeWindow();
 
+  msgWindow.msgHeaderSink = null;
+  msgWindow.notificationCallbacks = null;
+  gDBView = null;
   window.MsgStatusFeedback.unload();
   Components.classes["@mozilla.org/activity-manager;1"]
             .getService(Components.interfaces.nsIActivityManager)

@@ -618,6 +618,10 @@ function HideMenus()
 
 function OnUnloadMessageWindow()
 {
+  if (gFolderDisplay._magicTreeSelection) {
+    gFolderDisplay._magicTreeSelection.tree = null;
+    gFolderDisplay._magicTreeSelection = null;
+  }
   gFolderDisplay.close();
   UnloadCommandUpdateHandlers();
   // FIX ME - later we will be able to use onunload from the overlay
