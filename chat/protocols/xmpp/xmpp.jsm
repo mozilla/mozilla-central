@@ -871,8 +871,18 @@ const XMPPAccountPrototype = {
     if (!match)
       return null;
 
-    return {jid: match[0], node: match[1], domain: match[2],
-            resource: match[3]};
+    let result = {
+      node: match[1].toLowerCase(),
+      domain: match[2].toLowerCase(),
+      resource: match[3]
+    };
+    let jid = result.domain;
+    if (result.node)
+      jid = result.node + "@" + jid;
+    if (result.resource)
+      jid += "/" + result.resource;
+    result.jid = jid;
+    return result;
   },
 
   _onRosterItem: function(aItem, aNotifyOfUpdates) {
