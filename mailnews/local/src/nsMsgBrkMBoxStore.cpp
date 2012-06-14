@@ -51,12 +51,9 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::DiscoverSubFolders(nsIMsgFolder *aParentFolder,
                                                     bool aDeep)
 {
   NS_ENSURE_ARG_POINTER(aParentFolder);
-  bool isServer;
-  nsresult rv = aParentFolder->GetIsServer(&isServer);
-  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIFile> path;
-  rv = aParentFolder->GetFilePath(getter_AddRefs(path));
+  nsresult rv = aParentFolder->GetFilePath(getter_AddRefs(path));
   if (NS_FAILED(rv))
     return rv;
 
@@ -80,38 +77,7 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::DiscoverSubFolders(nsIMsgFolder *aParentFolder,
   }
 
   if (directory)
-  {
-    aParentFolder->SetFlag(nsMsgFolderFlags::Mail | nsMsgFolderFlags::Elided |
-                           nsMsgFolderFlags::Directory);
-
-    // now, discover those folders
     rv = AddSubFolders(aParentFolder, path, aDeep);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsILocalMailIncomingServer> localMailServer;
-
-    if (isServer)
-    {
-      nsCOMPtr<nsIMsgIncomingServer> server;
-      rv = aParentFolder->GetServer(getter_AddRefs(server));
-      NS_ENSURE_SUCCESS(rv, NS_MSG_INVALID_OR_MISSING_SERVER);
-      localMailServer = do_QueryInterface(server, &rv);
-      NS_ENSURE_SUCCESS(rv, NS_MSG_INVALID_OR_MISSING_SERVER);
-
-      // first create the folders on disk (as empty files)
-      rv = localMailServer->CreateDefaultMailboxes(path);
-      if (NS_FAILED(rv) && rv != NS_MSG_FOLDER_EXISTS)
-        return rv;
-
-      // now, discover those folders
-      rv = AddSubFolders(aParentFolder, path, aDeep);
-      NS_ENSURE_SUCCESS(rv, rv);
-      
-      rv = localMailServer->SetFlagsOnDefaultMailboxes();
-      if (NS_FAILED(rv))
-        return rv;
-    }
-  }
   return rv;
 }
 

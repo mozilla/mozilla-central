@@ -212,13 +212,10 @@ nsMsgLocalMailFolder::GetMsgDatabase(nsIMsgDatabase** aMsgDatabase)
 NS_IMETHODIMP
 nsMsgLocalMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
 {
-  bool isServer;
-  nsresult rv = GetIsServer(&isServer);
-
   if (!mInitialized)
   {
     nsCOMPtr<nsIMsgIncomingServer> server;
-    rv = GetServer(getter_AddRefs(server));
+    nsresult rv = GetServer(getter_AddRefs(server));
     NS_ENSURE_SUCCESS(rv, NS_MSG_INVALID_OR_MISSING_SERVER);
     nsCOMPtr<nsIMsgPluggableStore> msgStore;
     // need to set this flag here to avoid infinite recursion
@@ -233,37 +230,31 @@ nsMsgLocalMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
     if (NS_FAILED(rv))
       return rv;
 
-    bool exists, directory;
-    path->Exists(&exists);
-    if (!exists)
-      path->Create(nsIFile::DIRECTORY_TYPE, 0755);
-
+    bool directory;
     path->IsDirectory(&directory);
     if (directory)
     {
       SetFlag(nsMsgFolderFlags::Mail | nsMsgFolderFlags::Elided |
               nsMsgFolderFlags::Directory);
 
-      bool createdDefaultMailboxes = false;
-      nsCOMPtr<nsILocalMailIncomingServer> localMailServer;
-
+      bool isServer;
+      GetIsServer(&isServer);
       if (isServer)
       {
         nsCOMPtr<nsIMsgIncomingServer> server;
         rv = GetServer(getter_AddRefs(server));
         NS_ENSURE_SUCCESS(rv, NS_MSG_INVALID_OR_MISSING_SERVER);
+
+        nsCOMPtr<nsILocalMailIncomingServer> localMailServer;
         localMailServer = do_QueryInterface(server, &rv);
         NS_ENSURE_SUCCESS(rv, NS_MSG_INVALID_OR_MISSING_SERVER);
 
         // first create the folders on disk (as empty files)
         rv = localMailServer->CreateDefaultMailboxes(path);
-        NS_ENSURE_SUCCESS(rv, rv);
-        createdDefaultMailboxes = true;
-      }
+        if (NS_FAILED(rv) && rv != NS_MSG_FOLDER_EXISTS)
+          return rv;
 
-      // must happen after CreateSubFolders, or the folders won't exist.
-      if (createdDefaultMailboxes && isServer)
-      {
+        // must happen after CreateSubFolders, or the folders won't exist.
         rv = localMailServer->SetFlagsOnDefaultMailboxes();
         if (NS_FAILED(rv))
           return rv;

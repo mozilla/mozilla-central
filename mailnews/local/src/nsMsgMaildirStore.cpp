@@ -131,37 +131,9 @@ NS_IMETHODIMP nsMsgMaildirStore::DiscoverSubFolders(nsIMsgFolder *aParentFolder,
     GetDirectoryForFolder(path);
 
   path->IsDirectory(&directory);
-
   if (directory)
-  {
-    aParentFolder->SetFlag(nsMsgFolderFlags::Mail | nsMsgFolderFlags::Elided |
-                           nsMsgFolderFlags::Directory);
-
-    // discover existing folders
     rv = AddSubFolders(aParentFolder, path, aDeep);
-    NS_ENSURE_SUCCESS(rv, rv);
 
-    // if this is root folder - attempt to create default folders
-    if (isServer)
-    {
-      nsCOMPtr<nsIMsgIncomingServer> server;
-      rv = aParentFolder->GetServer(getter_AddRefs(server));
-      NS_ENSURE_SUCCESS(rv, NS_MSG_INVALID_OR_MISSING_SERVER);
-      nsCOMPtr<nsILocalMailIncomingServer> localMailServer;
-      localMailServer = do_QueryInterface(server, &rv);
-      NS_ENSURE_SUCCESS(rv, NS_MSG_INVALID_OR_MISSING_SERVER);
-
-      // first create the folders on disk
-      rv = localMailServer->CreateDefaultMailboxes(path);
-      NS_ENSURE_SUCCESS(rv, rv);
-      // now, discover those folders
-      rv = AddSubFolders(aParentFolder, path, aDeep);
-      NS_ENSURE_SUCCESS(rv, rv);
-      // and add flags on them
-      rv = localMailServer->SetFlagsOnDefaultMailboxes();
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
-  }
   return (rv == NS_MSG_FOLDER_EXISTS) ? NS_OK : rv;
 }
 
