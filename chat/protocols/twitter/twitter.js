@@ -317,6 +317,12 @@ Conversation.prototype = {
     this.notifyObservers(new nsSimpleEnumerator([chatBuddy]),
                          "chat-buddy-add");
   },
+  setTopic: function(aTopic, aTopicSetter) {
+    const kEntities = {amp: "&", gt: ">", lt: "<"};
+    let topic =
+      aTopic.replace(/&([gl]t|amp);/g, function(str, entity) kEntities[entity]);
+    GenericConvChatPrototype.setTopic.call(this, topic, aTopicSetter);
+  },
   get name() this.nick + " timeline",
   get title() _("timeline", this.nick),
   get nick() "@" + this._account.name
