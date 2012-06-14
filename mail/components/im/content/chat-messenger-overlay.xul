@@ -239,25 +239,27 @@
           <splitter id="contextSplitter" hidden="true" collapse="after"/>
           <vbox id="contextPane" hidden="true" width="250" persist="width">
             <toolbar class="conv-top-info" id="conv-top-info"/>
-            <vbox flex="1" class="conv-chat" width="150">
-              <hbox align="baseline" class="conv-nicklist-header">
-                <label class="conv-nicklist-header-label"
-                       id="participantLabel" control="participantCount"
-                       value="&chat.participants;"/>
-                <textbox flex="1" readonly="true" class="plain" id="participantCount"/>
-              </hbox>
-              <listbox id="nicklist" class="conv-nicklist"
-                       flex="1" seltype="multiple"
-                       tooltip="buddyTooltip"
-                       onclick="chatHandler.onNickClick(event);"
-                       onkeypress="chatHandler.onNicklistKeyPress(event);"/>
-            </vbox>
-            <splitter id="logsSplitter" class="conv-chat"/>
-            <vbox flex="1" id="previousConversations">
-              <label class="conv-logs-header-label"
-                     id="participantLabel"
-                     value="&chat.previousConversations;"/>
-              <listbox flex="1" id="logList" onselect="chatHandler.onLogSelect();"/>
+            <vbox id="contextPaneFlexibleBox" flex="1">
+              <vbox flex="1" class="conv-chat" width="150">
+                <hbox align="baseline" class="conv-nicklist-header">
+                  <label class="conv-nicklist-header-label"
+                         id="participantLabel" control="participantCount"
+                         value="&chat.participants;"/>
+                  <textbox flex="1" readonly="true" class="plain" id="participantCount"/>
+                </hbox>
+                <listbox id="nicklist" class="conv-nicklist"
+                         flex="1" seltype="multiple"
+                         tooltip="buddyTooltip"
+                         onclick="chatHandler.onNickClick(event);"
+                         onkeypress="chatHandler.onNicklistKeyPress(event);"/>
+              </vbox>
+              <splitter id="logsSplitter" class="conv-chat"/>
+              <vbox flex="1" id="previousConversations">
+                <label class="conv-logs-header-label"
+                       id="participantLabel"
+                       value="&chat.previousConversations;"/>
+                <listbox flex="1" id="logList" onselect="chatHandler.onLogSelect();"/>
+              </vbox>
             </vbox>
           </vbox>
         </hbox>

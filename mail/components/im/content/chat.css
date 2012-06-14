@@ -45,7 +45,11 @@ browser[type="content-conversation"] {
   -moz-binding: url("chrome://chat/content/convbrowser.xml#browser");
 }
 
-#contextPane:not([chat]) > .conv-chat {
+#contextPaneFlexibleBox {
+  overflow: hidden;
+}
+
+#contextPane:not([chat]) > vbox > .conv-chat {
   display: none;
 }
 
