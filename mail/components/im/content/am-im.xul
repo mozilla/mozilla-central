@@ -25,14 +25,14 @@
   <separator/>
 
   <hbox id="passwordBox" equalsize="always" align="baseline">
-    <label value="&account.password;" control="password" flex="1"/>
+    <label value="&account.password;" control="server.password" flex="1"/>
     <textbox id="server.password" flex="1" type="password"
              preftype="wstring" genericattr="true"/>
   </hbox>
   <separator class="groove"/>
 
   <hbox id="aliasBox" equalsize="always" align="baseline">
-    <label value="&account.alias;" control="alias" flex="1"/>
+    <label value="&account.alias;" control="server.alias" flex="1"/>
     <textbox id="server.alias" flex="1" preftype="wstring"
              wsm_persist="true" genericattr="true"/>
   </hbox>
@@ -40,7 +40,7 @@
   <separator class="groove" hidden="true" id="optionalSeparator"/>
 
   <vbox id="autojoinBox" hidden="true">
-    <label value="&account.autojoin;" control="autojoin" flex="1"/>
+    <label value="&account.autojoin;" control="server.autojoin" flex="1"/>
     <textbox id="server.autojoin" flex="1" preftype="wstring" genericattr="true"/>
   </vbox>
 
