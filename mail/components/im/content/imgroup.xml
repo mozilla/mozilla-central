@@ -16,6 +16,15 @@
       <xul:label flex="1" crop="end" xbl:inherits="value=name"/>
     </content>
     <implementation>
+     <constructor>
+      <![CDATA[
+        if (this.hasAttribute("closed"))
+          this.setAttribute("aria-expanded", "false");
+        else
+          this.setAttribute("aria-expanded", "true");
+      ]]>
+     </constructor>
+
      <!-- Takes as input two contact elements (imIContact type) and compares
           - their nicknames alphabetically (case insensitive). This method
           - behaves as a callback that Array.sort accepts as a parameter.
@@ -141,10 +150,12 @@
       <![CDATA[
         if (this.hasAttribute("closed")) {
           this.removeAttribute("closed");
+          this.setAttribute("aria-expanded", "true");
           this._updateClosedState(false);
         }
         else {
           this.setAttribute("closed", "true");
+          this.setAttribute("aria-expanded", "false");
           this._updateClosedState(true);
         }
 
