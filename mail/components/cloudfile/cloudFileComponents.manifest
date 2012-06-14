@@ -2,10 +2,6 @@ component {32fd439f-9eb6-4907-ac0b-2c88eb14d98d} nsYouSendIt.js
 contract @mozilla.org/mail/yousendit;1 {32fd439f-9eb6-4907-ac0b-2c88eb14d98d}
 category cloud-files YouSendIt @mozilla.org/mail/yousendit;1
 
-component {2fd8a64a-a496-4cf4-9d6b-d3f9800c6322} nsDropbox.js
-contract @mozilla.org/mail/dropbox;1 {2fd8a64a-a496-4cf4-9d6b-d3f9800c6322}
-category cloud-files Dropbox @mozilla.org/mail/dropbox;1
-
 component {9a44742b-a7b1-4f44-919e-6f3b28902c1a} nsUbuntuOne.js
 contract @mozilla.org/mail/ubuntuone;1 {9a44742b-a7b1-4f44-919e-6f3b28902c1a}
 category cloud-files UbuntuOne @mozilla.org/mail/ubuntuone;1

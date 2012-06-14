@@ -263,7 +263,6 @@ classic.jar:
   skin/classic/messenger/newmailaccount/success-compose.png             (mail/newmailaccount/success-compose.png)
   skin/classic/messenger/newmailaccount/success-signature.png           (mail/newmailaccount/success-signature.png)
   skin/classic/messenger/newmailaccount/search.png                      (mail/newmailaccount/search.png)
- skin/classic/messenger/icons/dropbox.png                    (mail/icons/dropbox.png)
  skin/classic/messenger/icons/ubuntuone.png                    (mail/icons/ubuntuone.png)
  skin/classic/messenger/icons/yousendit.png                  (mail/icons/yousendit.png)
 #ifdef XP_WIN
@@ -516,7 +515,6 @@ classic.jar:
   skin/classic/aero/messenger/newmailaccount/success-compose.png             (mail/newmailaccount/success-compose.png)
   skin/classic/aero/messenger/newmailaccount/success-signature.png           (mail/newmailaccount/success-signature.png)
   skin/classic/aero/messenger/newmailaccount/search.png                      (mail/newmailaccount/search.png)
-  skin/classic/aero/messenger/icons/dropbox.png                    (mail/icons/dropbox.png)
   skin/classic/aero/messenger/icons/ubuntuone.png                    (mail/icons/ubuntuone.png)
   skin/classic/aero/messenger/icons/yousendit.png                  (mail/icons/yousendit.png)
 #endif

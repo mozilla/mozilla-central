@@ -127,8 +127,6 @@
   locale/@AB_CD@/messenger/addressbook/replicationProgress.properties   (%chrome/messenger/addressbook/replicationProgress.properties)
   locale/@AB_CD@/messenger/cloudfile/addAccountDialog.dtd               (%chrome/messenger/cloudfile/addAccountDialog.dtd)
   locale/@AB_CD@/messenger/cloudfile/management.dtd                     (%chrome/messenger/cloudfile/management.dtd)
-  locale/@AB_CD@/messenger/cloudfile/Dropbox/management.dtd             (%chrome/messenger/cloudfile/Dropbox/management.dtd)
-  locale/@AB_CD@/messenger/cloudfile/Dropbox/settings.dtd               (%chrome/messenger/cloudfile/Dropbox/settings.dtd)
   locale/@AB_CD@/messenger/cloudfile/UbuntuOne/management.dtd           (%chrome/messenger/cloudfile/UbuntuOne/management.dtd)
   locale/@AB_CD@/messenger/cloudfile/UbuntuOne/settings.dtd             (%chrome/messenger/cloudfile/UbuntuOne/settings.dtd)
   locale/@AB_CD@/messenger/cloudfile/YouSendIt/management.dtd           (%chrome/messenger/cloudfile/YouSendIt/management.dtd)

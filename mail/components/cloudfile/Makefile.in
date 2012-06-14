@@ -13,7 +13,6 @@ MODULE    = cloudfile
 
 EXTRA_COMPONENTS = \
   nsYouSendIt.js \
-  nsDropbox.js \
   nsUbuntuOne.js \
   cloudFileComponents.manifest \
   $(NULL)

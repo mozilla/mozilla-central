@@ -95,17 +95,24 @@ var cloudFileAccounts = {
   // aExtraPrefs are prefs specific to an account provider.
   createAccount: function(aType, aRequestObserver, aExtraPrefs) {
     let key = this._createUniqueAccountKey();
-    Services.prefs
-            .setCharPref(ACCOUNT_ROOT + key + ".type", aType);
 
-    if (aExtraPrefs !== undefined)
-      this._processExtraPrefs(key, aExtraPrefs);
+    try {
+      Services.prefs
+              .setCharPref(ACCOUNT_ROOT + key + ".type", aType);
 
-    let provider = this._getInitedProviderForType(key, aType);
-    if (provider)
-      provider.createExistingAccount(aRequestObserver);
+      if (aExtraPrefs !== undefined)
+        this._processExtraPrefs(key, aExtraPrefs);
 
-    return provider;
+      let provider = this._getInitedProviderForType(key, aType);
+      if (provider)
+        provider.createExistingAccount(aRequestObserver);
+
+      return provider;
+    }
+    catch(e) {
+      Services.prefs.deleteBranch(ACCOUNT_ROOT + key);
+      throw e;
+    }
   },
 
   // Set provider-specific prefs

@@ -138,7 +138,7 @@ MockUbuntuOneServer.prototype = {
       allDone = true;
     });
     aController.waitFor(function () allDone,
-                        "Timed out waiting for Dropbox server to stop!",
+                        "Timed out waiting for UbuntuOne server to stop!",
                         10000);
   },
 

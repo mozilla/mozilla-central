@@ -60,6 +60,7 @@ components/nsBackgroundUpdateService.js
 components/nsCloseAllWindows.js
 components/nsComposerCmdLineHandler.js
 components/nsDownloadProgressListener.js
+components/nsDropbox.js
 components/nsExtensionManager.js
 components/nsInterfaceInfoToIDL.js
 components/nsLDAPPrefsService.js
