@@ -222,10 +222,11 @@ def switch_mozilla_repo():
 
     import ConfigParser, re
     config = ConfigParser.ConfigParser()
-    config.read([os.path.join(mozilla_path, '.hg', 'hgrc')])
+    config_path = os.path.join(mozilla_path, '.hg', 'hgrc')
+    config.read([config_path])
     if not config.has_option('paths', 'default'):
         # Abort, not to get into a possibly inconsistent state.
-        sys.exit("Error: default path in mozilla/.hg/hgrc is undefined!")
+        sys.exit("Error: default path in %s is undefined!" % config_path)
 
     # Compile the Mozilla repository regex.
     moz_old_regex = re.compile(SWITCH_MOZILLA_REPO_REGEXP, re.I)
@@ -516,10 +517,11 @@ def fixup_mozilla_repo_options(options):
             # Fallback to using .hgrc as hgtool/share needs the repo
             import ConfigParser, re
             config = ConfigParser.ConfigParser()
-            config.read([os.path.join('mozilla', '.hg', 'hgrc')])
+            config_path = os.path.join(topsrcdir, 'mozilla', '.hg', 'hgrc')
+            config.read([config_path])
             if not config.has_option('paths', 'default'):
                 # Abort, not to get into a possibly inconsistent state.
-                sys.exit("Error: default path in mozilla/.hg/hgrc is undefined!")
+                sys.exit("Error: default path in %s is undefined!" % config_path)
 
             options.mozilla_repo = config.get('paths', 'default')
 
