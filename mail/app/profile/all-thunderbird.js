@@ -156,6 +156,13 @@ pref("lightweightThemes.update.enabled", true);
 pref("xpinstall.whitelist.add", "addons.mozilla.org");
 pref("xpinstall.whitelist.add.36", "getpersonas.com");
 
+pref("general.smoothScroll", true);
+#ifdef UNIX_BUT_NOT_MAC
+pref("general.autoScroll", false);
+#else
+pref("general.autoScroll", true);
+#endif
+
 pref("mail.shell.checkDefaultClient", true);
 pref("mail.spellcheck.inline", true);
 

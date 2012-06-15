@@ -34,6 +34,14 @@
       <preference id="mail.preferences.advanced.selectedTabIndex"
                   name="mail.preferences.advanced.selectedTabIndex" type="int"/>
       <!-- General tab -->
+
+      <preference id="general.autoScroll"
+                  name="general.autoScroll"
+                  type="bool"/>
+      <preference id="general.smoothScroll"
+                  name="general.smoothScroll"
+                  type="bool"/>
+
       <preference id="mailnews.database.global.indexer.enabled" 
                   name="mailnews.database.global.indexer.enabled" 
                   type="bool"/>
@@ -144,6 +152,20 @@
                     oncommand="gAdvancedPane.showReturnReceipts();"/>
           </hbox>
 
+          <!-- Scrolling -->
+          <groupbox id="scrollingGroup">
+            <caption label="&scrolling.label;"/>
+
+            <checkbox id="useAutoScroll"
+                      label="&useAutoScroll.label;"
+                      accesskey="&useAutoScroll.accesskey;"
+                      preference="general.autoScroll"/>
+            <checkbox id="useSmoothScrolling"
+                      label="&useSmoothScrolling.label;"
+                      accesskey="&useSmoothScrolling.accesskey;"
+                      preference="general.smoothScroll"/>
+          </groupbox>
+
 #ifdef HAVE_SHELL_SERVICE
           <groupbox id="systemDefaultsGroup" orient="vertical">
             <caption label="&systemIntegration.label;"/>
@@ -180,7 +202,7 @@
                           label="&submitTelemetry.label;"
                           accesskey="&submitTelemetry.accesskey;"/>
               </hbox>
-              <hbox>
+              <hbox class="indent">
                 <label id="telemetryInfoLink"
                        class="text-link"
                        onclick="if (event.button == 0) openPrivacyPolicy('tab');"
