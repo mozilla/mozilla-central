@@ -404,7 +404,7 @@ o.add_option("--comm-rev", dest="comm_rev",
              help="Revision of comm (Calendar/Mail/Suite) repository to update to. Default: \"" + get_DEFAULT_tag('COMM_REV') + "\"")
 
 o.add_option("-z", "--mozilla-repo", dest="mozilla_repo",
-             default=DEFAULTS['MOZILLA_REPO'],
+             default=None,
              help="URL of Mozilla repository to pull from (default: use hg default in mozilla/.hg/hgrc; or if that file doesn't exist, use \"" + DEFAULTS['MOZILLA_REPO'] + "\".)")
 o.add_option("--skip-mozilla", dest="skip_mozilla",
              action="store_true", default=False,
@@ -509,10 +509,20 @@ def fixup_mozilla_repo_options(options):
 
     See fixup_comm_repo_options().
     """
-    if options.mozilla_repo is None and \
-            not os.path.exists(os.path.join(topsrcdir, 'mozilla')):
-        options.mozilla_repo = DEFAULTS['MOZILLA_REPO']
-    
+    if options.mozilla_repo is None:
+        if not os.path.exists(os.path.join(topsrcdir, 'mozilla')):
+            options.mozilla_repo = DEFAULTS['MOZILLA_REPO']
+        else:
+            # Fallback to using .hgrc as hgtool/share needs the repo
+            import ConfigParser, re
+            config = ConfigParser.ConfigParser()
+            config.read([os.path.join('mozilla', '.hg', 'hgrc')])
+            if not config.has_option('paths', 'default'):
+                # Abort, not to get into a possibly inconsistent state.
+                sys.exit("Error: default path in mozilla/.hg/hgrc is undefined!")
+
+            options.mozilla_repo = config.get('paths', 'default')
+
     if options.mozilla_rev is None:
         options.mozilla_rev = get_DEFAULT_tag("MOZILLA_REV")
 
