@@ -473,12 +473,9 @@
 
 ; shell icons
 #ifdef MOZ_GTK2
-@BINPATH@/chrome/icons/default/bmPropsWindow.png
-@BINPATH@/chrome/icons/default/bmPropsWindow16.png
-@BINPATH@/chrome/icons/default/bmPropsWindow48.png
-@BINPATH@/chrome/icons/default/bookmark-window.png
-@BINPATH@/chrome/icons/default/bookmark-window16.png
-@BINPATH@/chrome/icons/default/bookmark-window48.png
+@BINPATH@/chrome/icons/default/bookmarkproperties.png
+@BINPATH@/chrome/icons/default/bookmarkproperties16.png
+@BINPATH@/chrome/icons/default/bookmarkproperties48.png
 @BINPATH@/chrome/icons/default/default.png
 @BINPATH@/chrome/icons/default/default16.png
 @BINPATH@/chrome/icons/default/default48.png
@@ -503,11 +500,13 @@
 @BINPATH@/chrome/icons/default/main-window.png
 @BINPATH@/chrome/icons/default/main-window16.png
 @BINPATH@/chrome/icons/default/main-window48.png
+@BINPATH@/chrome/icons/default/places.png
+@BINPATH@/chrome/icons/default/places16.png
+@BINPATH@/chrome/icons/default/places48.png
 @BINPATH@/chrome/icons/default/seamonkey.png
 @BINPATH@/icons/updater.png
 #elifdef WIN_OR_OS2
-@BINPATH@/chrome/icons/default/bmPropsWindow.ico
-@BINPATH@/chrome/icons/default/bookmark-window.ico
+@BINPATH@/chrome/icons/default/bookmarkproperties.ico
 @BINPATH@/chrome/icons/default/downloadManager.ico
 @BINPATH@/chrome/icons/default/editorWindow.ico
 @BINPATH@/chrome/icons/default/findBookmarkWindow.ico
@@ -515,6 +514,7 @@
 @BINPATH@/chrome/icons/default/history-window.ico
 @BINPATH@/chrome/icons/default/JSConsoleWindow.ico
 @BINPATH@/chrome/icons/default/main-window.ico
+@BINPATH@/chrome/icons/default/places.ico
 #ifdef XP_WIN32
 @BINPATH@/chrome/icons/default/gif-file.ico
 @BINPATH@/chrome/icons/default/html-file.ico
