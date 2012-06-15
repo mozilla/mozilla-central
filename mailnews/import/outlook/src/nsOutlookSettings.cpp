@@ -30,6 +30,7 @@
 #include "nsMsgI18N.h"
 #include <windows.h>
 #include "nsIWindowsRegKey.h"
+#include "nsComponentManagerUtils.h"
 #ifdef MOZILLA_INTERNAL_API
 #include "nsNativeCharsetUtils.h"
 #else
