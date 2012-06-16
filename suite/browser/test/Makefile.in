@@ -15,15 +15,22 @@ _TEST_FILES =	test_feed_discovery.html \
 		feed_discovery.html \
 		test_bug395533.html \
 		bug395533-data.txt \
-		test_contextmenu.html \
-		subtst_contextmenu.html \
-		ctxmenu-image.png \
-		video.ogg \
 		test_bug364677.html \
 		bug364677-data.xml \
 		bug364677-data.xml^headers^ \
 		test_registerHandler.html \
 		$(NULL)
+
+# test_contextmenu.html is disabled on Linux due to bug 513558
+ifneq (gtk2,$(MOZ_WIDGET_TOOLKIT))
+_TEST_FILES += \
+		test_contextmenu.html \
+		subtst_contextmenu.html \
+		ctxmenu-image.png \
+		audio.ogg \
+		video.ogg \
+		$(NULL)
+endif
 
 _BROWSER_FILES = browser_bug413915.js \
                  browser_bug427559.js \

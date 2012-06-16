@@ -377,10 +377,26 @@ function runTest(testNum) {
                           "context-sendvideo",          true,
                           "context-video-saveimage",    true]);
         closeContextMenu();
-        openContextMenuFor(video_bad); // Invoke context menu for next test.
+        openContextMenuFor(audio_in_video); // Invoke context menu for next test.
         break;
 
     case 9:
+        // Context menu for a video (with an audio-only file)
+        checkContextMenu(["popupwindow-reject",         true,
+                          "---",                        null,
+                          "context-media-play",         true,
+                          "context-media-mute",         true,
+                          "context-media-showcontrols", true,
+                          "---",                        null,
+                          "context-copyaudiourl",       true,
+                          "---",                        null,
+                          "context-saveaudio",          true,
+                          "context-sendaudio",          true]);
+        closeContextMenu();
+        openContextMenuFor(video_bad); // Invoke context menu for next test.
+        break;
+
+    case 10:
         // Context menu for a video (with an INVALID media source)
         checkContextMenu(["popupwindow-reject",         true,
                           "---",                        null,
@@ -400,7 +416,7 @@ function runTest(testNum) {
         openContextMenuFor(video_bad2); // Invoke context menu for next test.
         break;
 
-    case 10:
+    case 11:
         // Context menu for a video (with an INVALID media source)
         checkContextMenu(["popupwindow-reject",         true,
                           "---",                        null,
@@ -420,7 +436,7 @@ function runTest(testNum) {
         openContextMenuFor(iframe); // Invoke context menu for next test.
         break;
 
-    case 11:
+    case 12:
         // Context menu for an iframe
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
@@ -456,7 +472,7 @@ function runTest(testNum) {
         openContextMenuFor(video_in_iframe); // Invoke context menu for next test.
         break;
 
-    case 12:
+    case 13:
         // Context menu for a video in an iframe
         checkContextMenu(["popupwindow-reject",         true,
                           "---",                        null,
@@ -490,7 +506,7 @@ function runTest(testNum) {
         openContextMenuFor(image_in_iframe); // Invoke context menu for next test.
         break;
 
-    case 13:
+    case 14:
         // Context menu for an image in an iframe
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
@@ -527,7 +543,7 @@ function runTest(testNum) {
         openContextMenuFor(textarea, false, true); // Invoke context menu for next test, but wait for the spellcheck.
         break;
 
-    case 14:
+    case 15:
         // Context menu for textarea
         checkContextMenu(["popupwindow-reject",  true,
                           "---",                 null,
@@ -556,7 +572,7 @@ function runTest(testNum) {
         openContextMenuFor(contenteditable); // Invoke context menu for next test.
         break;
 
-    case 15:
+    case 16:
         // Context menu for contenteditable
         checkContextMenu(["popupwindow-reject",  true,
                           "---",                 null,
@@ -585,7 +601,7 @@ function runTest(testNum) {
         openContextMenuFor(inputspell); // Invoke context menu for next test.
         break;
 
-    case 16:
+    case 17:
         // Context menu for spell-check input
         checkContextMenu(["popupwindow-reject",  true,
                           "---",                 null,
@@ -614,13 +630,13 @@ function runTest(testNum) {
         openContextMenuFor(link); // Invoke context menu for next test.
         break;
 
-    case 17:
+    case 18:
         executeCopyCommand("cmd_copyLink", "http://mozilla.com/");
         closeContextMenu();
         openContextMenuFor(pagemenu); // Invoke context menu for next test.
         break;
 
-    case 18:
+    case 19:
         // Context menu for element with assigned content context menu
         checkContextMenu(["+Plain item",          {type: "", icon: "", checked: false, disabled: false},
                           "+Disabled item",       {type: "", icon: "", checked: false, disabled: true},
@@ -664,7 +680,7 @@ function runTest(testNum) {
         openContextMenuFor(pagemenu, true); // Invoke context menu for next test.
         break;
 
-    case 19:
+    case 20:
         // Context menu for element with assigned content context menu
         // The shift key should bypass content context menu processing
         checkContextMenu(["popupwindow-reject",   true,
@@ -689,7 +705,7 @@ function runTest(testNum) {
         openContextMenuFor(img_link); // Invoke context menu for next test.
         break;
 
-    case 20:
+    case 21:
         // Context menu for an image with a link
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
@@ -718,7 +734,7 @@ function runTest(testNum) {
         openContextMenuFor(img_mailto); // Invoke context menu for next test.
         break;
 
-    case 21:
+    case 22:
         // Context menu for an image with a mailto: link
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
@@ -765,7 +781,8 @@ function runTest(testNum) {
 var testNum = 1;
 var subwindow, chromeWin, contextMenu, lastElement;
 var text, link, mailto, input, img, canvas, video_ok, video_bad, video_bad2,
-    iframe, video_in_iframe, image_in_iframe, textarea, contenteditable, inputspell, pagemenu;
+    iframe, video_in_iframe, image_in_iframe, textarea, contenteditable,
+    inputspell, pagemenu, audio_in_video;
 
 // SeaMonkey specific variables.
 var img_link, img_mailto;
@@ -798,6 +815,7 @@ function startTest() {
     img        = subwindow.document.getElementById("test-image");
     canvas     = subwindow.document.getElementById("test-canvas");
     video_ok   = subwindow.document.getElementById("test-video-ok");
+    audio_in_video = subwindow.document.getElementById("test-audio-in-video");
     video_bad  = subwindow.document.getElementById("test-video-bad");
     video_bad2 = subwindow.document.getElementById("test-video-bad2");
     iframe     = subwindow.document.getElementById("test-iframe");
