@@ -866,6 +866,7 @@ function openEditorContextMenu(popup)
 
 function updateEditItems()
 {
+  goUpdateCommand("cmd_paste");
   goUpdateCommand("cmd_pasteNoFormatting");
   goUpdateCommand("cmd_pasteQuote");
   goUpdateCommand("cmd_delete");
