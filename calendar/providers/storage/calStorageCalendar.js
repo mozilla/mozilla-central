@@ -29,25 +29,27 @@ function calStorageCalendar() {
 calStorageCalendar.prototype = {
     __proto__: cal.ProviderBase.prototype,
 
+    //
+    // nsIClassInfo interface
+    //
     classID: Components.ID("{b3eaa1c4-5dfe-4c0a-b62a-b3a514218461}"),
     contractID: "@mozilla.org/calendar/calendar;1?type=storage",
     classDescription: "Calendar Storage Provider",
     getInterfaces: function (count) {
         let ifaces = [
             Components.interfaces.nsISupports,
-            Components.interfaces.calICalendarManager,
-            Components.interfaces.calIStartupService,
-            Components.interfaces.nsIObserver,
+            Components.interfaces.calICalendar,
+            Components.interfaces.calICalendarProvider,
+            Components.interfaces.calIOfflineStorage,
+            Components.interfaces.calISyncWriteCalendar,
             Components.interfaces.nsIClassInfo
         ];
         count.value = ifaces.length;
         return ifaces;
     },
-
     getHelperForLanguage: function (language) {
         return null;
     },
-
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
     flags: 0,
 
@@ -65,10 +67,7 @@ calStorageCalendar.prototype = {
     // nsISupports interface
     //
     QueryInterface: function (aIID) {
-        return cal.doQueryInterface(this, calStorageCalendar.prototype, aIID,
-                                   [Components.interfaces.calICalendarProvider,
-                                    Components.interfaces.calIOfflineStorage,
-                                    Components.interfaces.calISyncWriteCalendar]);
+        return cal.doQueryInterface(this, calStorageCalendar.prototype, aIID, null, this);
     },
 
     //
