@@ -27,6 +27,7 @@ Var InstallType
 Var AddStartMenuSC
 Var AddQuickLaunchSC
 Var AddDesktopSC
+Var InstallMaintenanceService
 
 ; Other included files may depend upon these includes!
 ; The following includes are provided by NSIS.
