@@ -66,7 +66,6 @@
     <key id="key_print"/>
     <key id="key_close"/>
     <key id="key_closeWindow"/>
-    <key id="key_quit"/>
 
     <!-- Edit Menu -->
     <key id="key_undo"/>
@@ -134,7 +133,6 @@
     <command id="cmd_printSetup" oncommand="PrintUtils.showPageSetup();"/>
     <command id="cmd_print" oncommand="PrintUtils.print();"/>
     <command id="cmd_printpreview" oncommand="BrowserPrintPreview();"/>
-    <command id="cmd_quit"/>
     <command id="cmd_close" oncommand="BrowserCloseTabOrWindow()"/>
     <command id="cmd_closeOtherTabs" oncommand="BrowserCloseOtherTabs()"/>
     <command id="cmd_closeWindow" oncommand="BrowserTryToCloseWindow()"/>

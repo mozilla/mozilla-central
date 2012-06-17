@@ -29,7 +29,6 @@
                 key="key_quit" accesskey="&quitApplicationCmd.accesskey;" command="cmd_quit"/>
     </menupopup>
     <key id="key_quit"  key="&quitApplicationCmd.key;" command="cmd_quit" modifiers="accel"/>
-    <command id="cmd_quit" oncommand="goQuitApplication()"/>
   
     <!-- Edit Menu -->
     <key id="key_redo"  key="&redoCmd.key;" command="cmd_redo" modifiers="accel"/>

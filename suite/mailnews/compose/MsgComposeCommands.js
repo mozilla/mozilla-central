@@ -373,7 +373,6 @@ var defaultController =
       case "cmd_sendLater":
       case "cmd_printSetup":
       case "cmd_print":
-      case "cmd_quit":
 
       //Edit Menu
       case "cmd_account":
@@ -411,8 +410,6 @@ var defaultController =
         return !gWindowLocked;
       case "cmd_sendNow":
         return !(gWindowLocked || Services.io.offline);
-      case "cmd_quit":
-        return true;
 
       //Edit Menu
       case "cmd_account":

@@ -112,7 +112,6 @@
 <commandset id="mailCommands">
   <command id="cmd_newNavigator"/>
   <command id="cmd_newEditor"/>
-  <command id="cmd_quit"/>
   <command id="cmd_createFilterFromPopup" oncommand="goDoCommand('cmd_createFilterFromPopup')"/>
   <command id="cmd_pageSetup"/>
 </commandset>
@@ -314,7 +313,6 @@
   <key id="key_newNavigator"/>
   <key id="key_newBlankPage"/>
   <key id="key_close"/>
-  <key id="key_quit"/>
   <!-- Edit Menu -->
   <key id="key_undo"/>
   <key id="key_redo"/>

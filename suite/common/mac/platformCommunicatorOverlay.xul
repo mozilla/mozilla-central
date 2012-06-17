@@ -43,7 +43,6 @@
   </menupopup>
   <key id="key_quit"  key="&quitApplicationCmd.key;" command="cmd_quit" 
        modifiers="&quitApplicationCmd.modifiers;"/>
-  <command id="cmd_quit" oncommand="goQuitApplication()"/>
 
   <!-- Edit Menu -->
   <key id="key_redo"   key="&redoCmd.key;" command="cmd_redo" modifiers="shift, accel"/>

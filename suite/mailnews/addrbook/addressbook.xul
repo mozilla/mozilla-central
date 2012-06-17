@@ -77,7 +77,6 @@
     <command id="cmd_printPreviewCard" oncommand="AbPrintPreviewCard()"/>
     <command id="cmd_printAddressBook" oncommand="AbPrintAddressBook()"/>
     <command id="cmd_printPreviewAddressBook" oncommand="AbPrintPreviewAddressBook()"/>
-    <command id="cmd_quit"/>
     <command id="cmd_close" oncommand="AbClose()"/>
     <command id="cmd_properties" oncommand="goDoCommand('button_edit');"/>
     <command id="cmd_undo"/>
@@ -116,7 +115,6 @@
   <key id="key_printCard" key="&printContactViewCmd.key;"
        command="cmd_printCard" modifiers="accel"/>
   <key id="key_close"/>
-  <key id="key_quit"/>
   <!-- Edit Menu -->
   <key id="key_delete"/>
   <key id="key_delete2"/> <!-- secondary delete key -->

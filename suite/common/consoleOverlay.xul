@@ -22,14 +22,12 @@
 
   <commandset id="consoleCommands">
     <commandset id="tasksCommands"/>
-    <command id="cmd_quit"/>
   </commandset>
 
   <keyset id="consoleKeys">
     <keyset id="tasksKeys"/>
     <key id="key_copy"/>
     <key id="key_close2" disabled="true"/>
-    <key id="key_quit"/>
   </keyset>
 
   <toolbox id="console-toolbox">

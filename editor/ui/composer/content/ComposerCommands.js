@@ -154,7 +154,6 @@ function SetupComposerWindowCommands()
   commandTable.registerCommand("cmd_print",          nsPrintCommand);
   commandTable.registerCommand("cmd_printpreview",   nsPrintPreviewCommand);
   commandTable.registerCommand("cmd_printSetup",     nsPrintSetupCommand);
-  commandTable.registerCommand("cmd_quit",           nsQuitCommand);
   commandTable.registerCommand("cmd_close",          nsCloseCommand);
   commandTable.registerCommand("cmd_preferences",    nsPreferencesCommand);
 
@@ -2308,27 +2307,6 @@ var nsPrintSetupCommand =
     FinishHTMLSource();
     PrintUtils.showPageSetup();
   }
-};
-
-//-----------------------------------------------------------------------------------
-var nsQuitCommand =
-{
-  isCommandEnabled: function(aCommand, dummy)
-  {
-    return true;    // we can always do this
-  },
-
-  getCommandStateParams: function(aCommand, aParams, aRefCon) {},
-  doCommandParams: function(aCommand, aParams, aRefCon) {}
-
-  /* The doCommand is not used, since cmd_quit's oncommand="goQuitApplication()" in platformCommunicatorOverlay.xul
-  doCommand: function(aCommand)
-  {
-    // In editor.js
-    FinishHTMLSource();
-    goQuitApplication();
-  }
-  */
 };
 
 //-----------------------------------------------------------------------------------

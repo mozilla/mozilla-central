@@ -27,7 +27,6 @@
          modifiers="accel"/>
     <key id="key_print"/>
     <key id="key_close"/>
-    <key id="key_quit"/>
     <key id="key_undo"/>
     <key id="key_redo"/>
     <key id="key_cut"/>
@@ -121,7 +120,6 @@
     <command id="cmd_printSetup"   oncommand="goDoCommand('cmd_printSetup')"/>
     <command id="cmd_print"        oncommand="goDoCommand('cmd_print')"/>
     <command id="cmd_close"        oncommand="goDoCommand('cmd_close');"/>
-    <command id="cmd_quit"         oncommand="goDoCommand('cmd_quit')"/>
   </commandset>
 
   <commandset id="composerMenuItems"

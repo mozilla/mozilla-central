@@ -51,9 +51,7 @@
 
   <commandset id="editMenuCommands"/>
   <commandset id="placesCommands"/>
-  <commandset id="tasksCommands">
-    <command id="cmd_quit"/>
-  </commandset>
+  <commandset id="tasksCommands"/>
 
   <commandset id="organizerCommandSet">
     <command id="OrganizerCommand_find:all"
@@ -114,7 +112,6 @@
   </keyset>
   <keyset id="tasksKeys">
     <key id="key_close2" disabled="true"/>
-    <key id="key_quit"/>
   </keyset>
 
   <popupset id="placesPopupset">
