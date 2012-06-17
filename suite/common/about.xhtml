@@ -65,21 +65,26 @@
 
       // append user agent
       var ua = navigator.userAgent;
+      var list = document.getElementById("aboutPageList");
       if (ua) {
-        var list = document.getElementById("aboutPageList");
         var listItem = list.appendChild(document.createElement("li"));
         listItem.appendChild(document.createTextNode("&about.userAgent;"));
         listItem.appendChild(document.createTextNode(ua));
+        // append "\n    " to the aboutPageList children as a workaround
+        // for bug 319141.
+        list.appendChild(document.createTextNode("\n    "));
       }
 
       var buildId = Components.classes["@mozilla.org/xre/app-info;1"]
                                  .getService(Components.interfaces.nsIXULAppInfo)
                                  .appBuildID;
       if (buildId) {
-        var list = document.getElementById("aboutPageList");
         var listItem = list.appendChild(document.createElement("li"));
         listItem.appendChild(document.createTextNode("&about.buildIdentifier;"));
         listItem.appendChild(document.createTextNode(buildId));
+        // append "\n    " to the aboutPageList children as a workaround
+        // for bug 319141.
+        list.appendChild(document.createTextNode("\n    "));
       }
 
       // Determine and display current channel.
