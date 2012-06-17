@@ -53,7 +53,7 @@
            class="chromeclass-menubar"
            grippytooltiptext="&menuBar.tooltip;">
     <menu id="menu_file">
-      <menupopup id="filemenu-popup">
+      <menupopup id="menu_FilePopup">
         <menu id="menu_New" position="1">
           <menupopup id="menu_NewPopup">
             <menuitem id="menu_newNavigator"/>
