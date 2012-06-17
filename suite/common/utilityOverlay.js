@@ -1586,28 +1586,83 @@ function loadAddSearchEngines() {
 
 function FillInHTMLTooltip(tipElement)
 {
-  if (tipElement.namespaceURI == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul")
+  // Don't show the tooltip if the tooltip node is a document or disconnected.
+  if (!tipElement.ownerDocument ||
+      (tipElement.ownerDocument.compareDocumentPosition(tipElement) & document.DOCUMENT_POSITION_DISCONNECTED))
     return false;
 
-  while (tipElement instanceof Element) {
-    if (tipElement.hasAttribute("title")) {
-      var defView = tipElement.ownerDocument.defaultView;
-      var titleText = tipElement.getAttribute("title");
-      // XXX Work around bug 350679:
-      // "Tooltips can be fired in documents with no view".
-      if (!defView || !titleText)
-        return false;
+  var defView = tipElement.ownerDocument.defaultView;
+  // XXX Work around bug 350679:
+  // "Tooltips can be fired in documents with no view".
+  if (!defView)
+    return false;
 
-      var tipNode = document.getElementById("aHTMLTooltip");
-      tipNode.style.direction = defView.getComputedStyle(tipElement, "")
-                                       .getPropertyValue("direction");
-      tipNode.label = titleText;
-      return true;
+  const XLinkNS = "http://www.w3.org/1999/xlink";
+  const XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+
+  var titleText = null;
+  var XLinkTitleText = null;
+  var SVGTitleText = null;
+  var lookingForSVGTitle = true;
+  var direction = defView.getComputedStyle(tipElement, "")
+                         .getPropertyValue("direction");
+
+  // If the element is invalid per HTML5 Forms specifications and has no title,
+  // show the constraint validation error message.
+  if ((tipElement instanceof HTMLInputElement ||
+       tipElement instanceof HTMLTextAreaElement ||
+       tipElement instanceof HTMLSelectElement ||
+       tipElement instanceof HTMLButtonElement) &&
+      !tipElement.hasAttribute("title") &&
+      (!tipElement.form || !tipElement.form.noValidate)) {
+    // If the element is barred from constraint validation or is valid,
+    // the validation message will be the empty string.
+    titleText = tipElement.validationMessage || null;
+  }
+
+  while ((titleText == null) && (XLinkTitleText == null) &&
+         (SVGTitleText == null) && tipElement) {
+    if (tipElement.nodeType == Node.ELEMENT_NODE &&
+        tipElement.namespaceURI != XULNS) {
+      titleText = tipElement.getAttribute("title");
+      if ((tipElement instanceof HTMLAnchorElement ||
+           tipElement instanceof HTMLAreaElement ||
+           tipElement instanceof HTMLLinkElement ||
+           tipElement instanceof SVGAElement) && tipElement.href) {
+        XLinkTitleText = tipElement.getAttributeNS(XLinkNS, "title");
+      }
+      if (lookingForSVGTitle &&
+          (!(tipElement instanceof SVGElement) ||
+           tipElement.parentNode.nodeType == Node.DOCUMENT_NODE)) {
+        lookingForSVGTitle = false;
+      }
+      if (lookingForSVGTitle) {
+        let length = tipElement.childNodes.length;
+        for (let i = 0; i < length; i++) {
+          let childNode = tipElement.childNodes[i];
+          if (childNode instanceof SVGTitleElement) {
+            SVGTitleText = childNode.textContent;
+            break;
+          }
+        }
+      }
+      direction = defView.getComputedStyle(tipElement, "")
+                         .getPropertyValue("direction");
     }
     tipElement = tipElement.parentNode;
   }
 
-  return false;
+  var tipNode = document.getElementById("aHTMLTooltip");
+  tipNode.style.direction = direction;
+
+  return [titleText, XLinkTitleText, SVGTitleText].some(function (t) {
+    if (t && /\S/.test(t)) {
+      // Make CRLF and CR render one line break each.
+      tipNode.setAttribute("label", t.replace(/\r\n?/g, "\n"));
+      return true;
+    }
+    return false;
+  });
 }
 
 function GetFileFromString(aString)
