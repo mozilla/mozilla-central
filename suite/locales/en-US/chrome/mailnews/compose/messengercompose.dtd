@@ -83,6 +83,9 @@
 
 <!ENTITY returnReceiptMenu.label "Return Receipt">
 <!ENTITY returnReceiptMenu.accesskey "t">
+<!ENTITY dsnMenu.label "Delivery Status Notification">
+<!ENTITY dsnMenu.accesskey "N">
+
 <!ENTITY outputFormatMenu.label "Format">
 <!ENTITY outputFormatMenu.accesskey  "f">
 <!ENTITY autoFormatCmd.label "Auto-Detect">

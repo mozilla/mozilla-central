@@ -77,6 +77,7 @@ var gCharsetConvertManager;
 
 var gLastWindowToHaveFocus;
 var gReceiptOptionChanged;
+var gDSNOptionChanged;
 var gAttachVCardOptionChanged;
 
 var gMailSession;
@@ -116,6 +117,7 @@ function InitializeGlobalVariables()
 
   gLastWindowToHaveFocus = null;
   gReceiptOptionChanged = false;
+  gDSNOptionChanged = false;
   gAttachVCardOptionChanged = false;
 }
 InitializeGlobalVariables();
@@ -1312,6 +1314,8 @@ function ComposeStartup(recycled, aParams)
 
       document.getElementById("returnReceiptMenu")
               .setAttribute("checked", gMsgCompose.compFields.returnReceipt);
+      document.getElementById("dsnMenu")
+              .setAttribute('checked', gMsgCompose.compFields.DSN);
       document.getElementById("cmd_attachVCard")
               .setAttribute("checked", gMsgCompose.compFields.attachVCard);
       document.getElementById("menu_inlineSpellCheck")
@@ -2201,6 +2205,18 @@ function ToggleReturnReceipt(target)
     }
 }
 
+function ToggleDSN(target)
+{
+  var msgCompFields = gMsgCompose.compFields;
+
+  if (msgCompFields)
+  {
+    msgCompFields.DSN = !msgCompFields.DSN;
+    target.setAttribute('checked', msgCompFields.DSN);
+    gDSNOptionChanged = true;
+  }
+}
+
 function ToggleAttachVCard(target)
 {
   var msgCompFields = gMsgCompose.compFields;
@@ -2825,6 +2841,7 @@ function LoadIdentity(startup)
           var prevCc = "";
           var prevBcc = "";
           var prevReceipt = prevIdentity.requestReturnReceipt;
+          var prevDSN = prevIdentity.requestDSN;
           var prevAttachVCard = prevIdentity.attachVCard;
 
           if (prevIdentity.doCc)
@@ -2837,6 +2854,7 @@ function LoadIdentity(startup)
           var newCc = "";
           var newBcc = "";
           var newReceipt = gCurrentIdentity.requestReturnReceipt;
+          var newDSN = gCurrentIdentity.requestDSN;
           var newAttachVCard = gCurrentIdentity.attachVCard;
 
           if (gCurrentIdentity.doCc)
@@ -2854,6 +2872,14 @@ function LoadIdentity(startup)
           {
             msgCompFields.returnReceipt = newReceipt;
             document.getElementById("returnReceiptMenu").setAttribute('checked',msgCompFields.returnReceipt);
+          }
+
+          if (!gDSNOptionChanged &&
+              prevDSN == msgCompFields.DSN &&
+              prevDSN != newDSN)
+          {
+            msgCompFields.DSN = newDSN;
+            document.getElementById("dsnMenu").setAttribute('checked',msgCompFields.DSN);
           }
 
           if (!gAttachVCardOptionChanged &&

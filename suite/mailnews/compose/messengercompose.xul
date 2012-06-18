@@ -327,6 +327,12 @@
                         accesskey="&returnReceiptMenu.accesskey;"
                         checked="false"
                         oncommand="ToggleReturnReceipt(event.target)"/>
+              <menuitem id="dsnMenu"
+                        type="checkbox"
+                        label="&dsnMenu.label;"
+                        accesskey="&dsnMenu.accesskey;"
+                        checked="false"
+                        oncommand="ToggleDSN(event.target);"/>
               <menu id="outputFormatMenu"
                     label="&outputFormatMenu.label;"
                     accesskey="&outputFormatMenu.accesskey;"
