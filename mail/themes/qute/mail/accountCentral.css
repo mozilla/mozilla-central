@@ -14,12 +14,12 @@
   background-color: Window;
 }
 
-separator {
-  height: 5px;
+spacer {
+  max-height: .5em;
 }
 
-separator.thin {
-  height: 15px;
+spacer.big {
+  max-height: 4em;
 }
 
 /* ::::: rows ::::: */

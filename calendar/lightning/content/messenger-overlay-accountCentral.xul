@@ -15,18 +15,18 @@
 <overlay id="calendar-list-overlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <rows id="acctCentralRows">
+    <spacer id="lightning-newCalendar-separator"
+            flex="1"
+            insertbefore="AccountsSection.spacer"/>
     <row id="lightning-newCalendar-row"
          class="acctCentralRow"
-         insertbefore="AccountsSection.separator1">
+         insertbefore="AccountsSection.spacer">
       <hbox>
         <label class="acctCentralText acctCentralLinkText"
                value="&lightning.acctCentral.newCalendar.label;"
                chromedir="&locale.dir;"
-               onclick="window.parent.openCalendarWizard()"/>
+               onclick="window.parent.openCalendarWizard();"/>
       </hbox>
     </row>
-    <separator id="lightning-newCalendar-separator"
-               class="thin"
-               insertbefore="AccountsSection.separator1"/>
   </rows>
 </overlay>

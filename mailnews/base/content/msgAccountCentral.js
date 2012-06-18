@@ -135,9 +135,8 @@ function ArrangeAccountCentralItems(server, protocolInfo, msgFolder)
     /***** RSS header and items : End *****/
 
     // If either of above sections exists, show section separators
-    if (displayNewsHeader || displayEmailHeader || displayRssHeader) {
-        UncollapseSectionSeparators("MessagesSection.separator");
-    }
+    SetItemDisplay("MessagesSection",
+                   displayNewsHeader || displayEmailHeader || displayRssHeader);
 
     /***** Accounts : Begin *****/
 
@@ -198,9 +197,7 @@ function ArrangeAccountCentralItems(server, protocolInfo, msgFolder)
     /***** Advanced Featuers header and items : End *****/
 
     // If either of above features exist, show section separators
-    if (displayAdvFeatures) {
-        UncollapseSectionSeparators("AccountsSection.separator");
-    }
+    SetItemDisplay("AccountsSection", displayAdvFeatures);
 
     while (exceptions.length) {
         Components.utils.reportError("Error in setting AccountCentral Items: "
@@ -213,22 +210,12 @@ function SetItemDisplay(elemId, displayThisItem)
 {
     if (displayThisItem) {
         let elem = document.getElementById(elemId);
-        elem.setAttribute("collapsed", false);
+        if (elem)
+            elem.setAttribute("collapsed", false);
 
-        let separatorId = elemId + ".separator";
-        let elemSeparator = document.getElementById(separatorId);
-        if (elemSeparator)
-            elemSeparator.setAttribute("collapsed", false);
-    }
-}
-
-// Show section separators
-function UncollapseSectionSeparators(separatorBaseId)
-{
-    for (let i = 1; i <= 3; i++) {
-        var separatorId = separatorBaseId + i;
-        var separator = document.getElementById(separatorId);
-        separator.setAttribute("collapsed", false);
+        let elemSpacer = document.getElementById(elemId + ".spacer");
+        if (elemSpacer)
+            elemSpacer.setAttribute("collapsed", false);
     }
 }
 
