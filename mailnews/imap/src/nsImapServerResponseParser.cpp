@@ -1311,10 +1311,16 @@ void nsImapServerResponseParser::msg_fetch()
         if (imapAction == nsIImapUrl::nsImapUserDefinedFetchAttribute && !strcmp(userDefinedFetchAttribute.get(), fNextToken))
         {
           AdvanceToNextToken();
-          char *fetchResult = CreateParenGroup();
-          // look through the tokens until we find the closing ')'
-          // we can have a result like the following:
-          // ((A B) (C D) (E F))
+          char *fetchResult;
+          if (fNextToken[0] == '(') 
+            // look through the tokens until we find the closing ')'
+            // we can have a result like the following:
+            // ((A B) (C D) (E F))
+            fetchResult = CreateParenGroup();
+          else {
+            fetchResult = CreateAstring();
+            AdvanceToNextToken();
+          }          
           fServerConnection.GetCurrentUrl()->SetCustomAttributeResult(nsDependentCString(fetchResult));
           PR_Free(fetchResult);
         }
