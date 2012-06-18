@@ -2069,6 +2069,8 @@ function addRecipientsToIgnoreList(aAddressesToAdd)
     // i.e. Green Lantern or Lantern,Green.
     for (let i = 0; i < names.value.length; i++)
     {
+      if (!names.value[i])
+        continue;
       var splitNames = names.value[i].match(/[^\s,]+/g);
       if (splitNames)
         tokenizedNames = tokenizedNames.concat(splitNames);

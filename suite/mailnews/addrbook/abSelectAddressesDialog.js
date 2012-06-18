@@ -220,7 +220,7 @@ function AddCardIntoBucket(prefix, card)
 
 function AddAddressIntoBucket(prefix, address, email)
 {
-  if (email == "")
+  if (!email)
   {
     Services.prompt.alert(window,
                           gAddressBookBundle.getString("emptyEmailAddCardTitle"),
