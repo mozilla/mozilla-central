@@ -78,7 +78,6 @@ var EmailAccountProvisioner = {
   NewComposeMessage: window.arguments[0].NewComposeMessage,
   openAddonsMgr: window.arguments[0].openAddonsMgr,
   msgWindow: window.arguments[0].msgWindow,
-  okCallback: window.arguments[0].okCallback,
 
   get someProvidersChecked() {
     return this._someProvidersChecked;
@@ -267,16 +266,9 @@ var EmailAccountProvisioner = {
     $("button.existing").click(function() {
       EmailAccountProvisioner.saveName();
       EmailAccountProvisioner.NewMailAccount(EmailAccountProvisioner.msgWindow,
-                                             EmailAccountProvisioner.okCallback,
+                                             null,
                                              window.arguments[0]);
-      // Set the callback to null, so that we don't call it.
-      EmailAccountProvisioner.okCallback = null;
       window.close();
-    });
-
-    $(window).unload(function() {
-      if (EmailAccountProvisioner.okCallback)
-        EmailAccountProvisioner.okCallback();
     });
 
     // Handle Ctrl-W and Esc

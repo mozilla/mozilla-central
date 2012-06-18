@@ -101,7 +101,6 @@ function verifyAccounts(wizardCallback, needsIdentity, wizardOpen)
         var invalidAccounts = getInvalidAccounts(accounts);
         if (invalidAccounts.length > 0 && invalidAccounts.length == accountCount) {
             prefillAccount = invalidAccounts[0];
-        } else {
         }
 
         // if there are no accounts, or all accounts are "invalid"

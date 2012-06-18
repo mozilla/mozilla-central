@@ -309,13 +309,16 @@ function AutoConfigWizard(okCallback)
   }
 
   if (gPrefBranch.getBoolPref("mail.provider.enabled")) {
-    // We need to let the event loop pump a little so that the 3pane finishes
-    // opening - so we use setTimeout. The 200ms is a bit arbitrary, but seems
-    // to be enough time to let the 3pane do it's thing, and not pull focus
-    // when the Account Provisioner modal window closes.
-    setTimeout(function() {
-      NewMailAccountProvisioner(msgWindow, { okCallback: okCallback });
-    }, 200);
+    Services.obs.addObserver({
+      observe: function(aSubject, aTopic, aData) {
+        if (aTopic == "mail-tabs-session-restored" && aSubject === window) {
+          // We're done here, unregister this observer.
+          Services.obs.removeObserver(this, "mail-tabs-session-restored");
+          NewMailAccountProvisioner(msgWindow, { okCallback: null });
+        }
+      }
+    }, "mail-tabs-session-restored", false);
+    okCallback();
   }
   else
     NewMailAccount(msgWindow, okCallback);
@@ -385,11 +388,6 @@ function OnLoadMessenger()
     tabmail.openFirstTab();
   }
 
-  // verifyAccounts returns true if the callback won't be called
-  // We also don't want the account wizard to open if any sort of account exists
-  if (verifyAccounts(LoadPostAccountWizard, false, AutoConfigWizard))
-    LoadPostAccountWizard();
-
   // Install the light-weight theme handlers
   let panelcontainer = document.getElementById("tabpanelcontainer");
   if (panelcontainer) {
@@ -407,6 +405,11 @@ function OnLoadMessenger()
   specialTabs.openSpecialTabsOnStartup();
   webSearchTabType.initialize();
   tabmail.registerTabType(accountProvisionerTabType);
+
+  // verifyAccounts returns true if the callback won't be called
+  // We also don't want the account wizard to open if any sort of account exists
+  if (verifyAccounts(LoadPostAccountWizard, false, AutoConfigWizard))
+    LoadPostAccountWizard();
 
   // Set up the summary frame manager to handle loading pages in the
   // multi-message pane
@@ -430,6 +433,7 @@ function LoadPostAccountWizard()
   MailMigrator.migratePostAccountWizard();
 
   accountManager.setSpecialFolders();
+
   try {
     accountManager.loadVirtualFolders();
   } catch (e) {Components.utils.reportError(e);}
@@ -655,7 +659,7 @@ function atStartupRestoreTabs(aDontRestoreFirstTab) {
 
   // it's now safe to load extra Tabs.
   setTimeout(loadExtraTabs, 0);
-
+  Services.obs.notifyObservers(window, "mail-tabs-session-restored", null);
   return state ? true : false;
 }
 
@@ -746,12 +750,14 @@ function loadStartFolder(initialUri)
 
     // If a URI was explicitly specified, we'll just clobber the default tab
     let loadFolder = !atStartupRestoreTabs(!!initialUri);
+
     if (initialUri)
       loadFolder = true;
 
     //First get default account
     try
     {
+
         if(initialUri)
             startFolder = GetMsgFolderFromUri(initialUri);
         else
