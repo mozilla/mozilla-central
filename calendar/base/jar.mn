@@ -184,6 +184,7 @@ calendar.jar:
 
 # The following files are added for aero support on windows.
 #ifdef XP_WIN
+% style chrome://global/content/customizeToolbar.xul chrome://calendar-windows/skin/calendar-event-dialog.css os=WINNT
 % style chrome://calendar/content/calendar-event-dialog.xul chrome://calendar-windows/skin/calendar-event-dialog.css os=WINNT
 % style chrome://calendar/content/calendar-event-dialog-attendees.xul chrome://calendar-windows/skin/calendar-event-dialog.css os=WINNT
 % style chrome://calendar/content/calendar-occurrence-prompt.xul chrome://calendar-windows/skin/calendar.css os=WINNT osversion>=6
