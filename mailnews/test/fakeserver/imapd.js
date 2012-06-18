@@ -1214,8 +1214,9 @@ IMAP_RFC3501_handler.prototype = {
         // Brief explanation: an item like BODY[]<> can't be hardcoded easily,
         // so we go for the initial alphanumeric substring, passing in the
         // actual string as an optional second part.
-        var front = item.split(/[^A-Z0-9]/, 1)[0];
-        var functionName = "_FETCH_" + front;
+        var front = item.split(/[^A-Z0-9-]/, 1)[0];
+        var functionName = "_FETCH_" + front.replace(/-/g, "_"); // '-' is not allowed in js identifiers;     
+       
         if (!(functionName in this))
           return "BAD can't fetch " + front;
         try {
@@ -1576,6 +1577,27 @@ IMAP_RFC3501_handler.prototype = {
   },
   _FETCH_UID : function (message) {
     return "UID " + message.uid;
+  },
+  _FETCH_X_GM_MSGID : function (message) {
+    if (message.xGmMsgid) {
+        return "X-GM-MSGID " + message.xGmMsgid;
+    } else {
+        return "BAD can't fetch X-GM-MSGID";
+    }
+  },
+  _FETCH_X_GM_THRID : function (message) {
+    if (message.xGmThrid) {
+        return "X-GM-THRID " + message.xGmThrid;
+    } else {
+        return "BAD can't fetch X-GM-THRID";
+    }
+  },
+  _FETCH_X_GM_LABELS : function (message) {
+    if (message.xGmLabels) {
+        return "X-GM-LABELS " + message.xGmLabels;
+    } else {
+        return "BAD can't fetch X-GM-LABELS";
+    }
   }
 }
 
