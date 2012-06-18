@@ -17,8 +17,6 @@ messenger.jar:
     content/messenger/preferences/sendoptions.js
     content/messenger/preferences/security.xul
     content/messenger/preferences/security.js
-    content/messenger/preferences/junkLog.xul
-    content/messenger/preferences/junkLog.js
 *   content/messenger/preferences/advanced.js
 *   content/messenger/preferences/advanced.xul
 *   content/messenger/preferences/receipts.xul

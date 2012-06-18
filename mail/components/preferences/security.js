@@ -44,7 +44,8 @@ var gSecurityPane = {
 
   openJunkLog: function()
   {
-    document.documentElement.openWindow("mailnews:junklog", "chrome://messenger/content/preferences/junkLog.xul",
+    document.documentElement.openWindow("mailnews:junklog",
+                                        "chrome://messenger/content/junkLog.xul",
                                         "", null);
   },
 

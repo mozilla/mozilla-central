@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 
-<!-- This Source Code Form is subject to the terms of the Mozilla Public
+<!-- -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+   - This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 
@@ -11,12 +12,12 @@
 <dialog id="viewLogWindow"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         onload="onLoad();"
-        title="&junkLog.title;"
+        title="&adaptiveJunkLog.title;"
         windowtype="mailnews:junklog"
         buttons="accept"
         buttonlabelaccept="&closeLog.label;"
         buttonaccesskeyaccept="&closeLog.accesskey;"
-        ondialogaccept="window.close()"
+        ondialogaccept="window.close();"
         persist="screenX screenY width height"
         style="width: 40em; height: 25em;">
 
@@ -24,15 +25,22 @@
 
   <vbox flex="1">
     <hbox>
-      <label value="&junkLogInfo.label;"/>
+      <label value="&adaptiveJunkLogInfo.label;"/>
       <spacer flex="1"/>
-      <button label="&clearLog.label;" accesskey="&clearLog.accesskey;" oncommand="clearLog()"/>
+      <button label="&clearLog.label;"
+              accesskey="&clearLog.accesskey;"
+              oncommand="clearLog();"/>
     </hbox>
     <vbox flex="1">
       <spacer height="10px"/>
       <hbox flex="1">
         <spacer width="10px"/>
-        <browser id="logView" disablehistory="true" disablesecurity="true" src="about:blank" autofind="false" flex="1"/>
+        <browser id="logView"
+                 disablehistory="true"
+                 disablesecurity="true"
+                 src="about:blank"
+                 autofind="false"
+                 flex="1"/>
         <spacer width="10px"/>
       </hbox>
       <spacer height="10px"/>
