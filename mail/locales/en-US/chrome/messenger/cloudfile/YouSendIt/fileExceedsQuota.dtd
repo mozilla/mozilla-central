@@ -7,5 +7,5 @@
 <!ENTITY fileExceedsQuota.cancel "Cancel">
 <!ENTITY fileExceedsQuota.description "You have reached your account storage limit of 2GB.">
 <!ENTITY fileExceedsQuota.description1 "Your current storage usage is #XXX GB.">
-<!ENTITY fileExceedsQuota.description2 "Upgrade today to Pro Plus account to get unlimited storage!">
+<!ENTITY fileExceedsQuota.description2 "Upgrade today to Pro Plus account and get more storage.">
 <!ENTITY fileExceedsQuota.description3 "You can also choose to delete files in your account to create more space.">
