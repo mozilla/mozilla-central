@@ -71,7 +71,6 @@ public:
   bool       IsNumericString(const char *string);
   PRInt32    SizeOfMostRecentMessage();
   void       SetTotalDownloadSize(PRInt32 newSize) { fTotalDownloadSize = newSize; }
-  void       SetFetchingEverythingRFC822(bool fetchingEverythingRFC822) { fFetchEverythingRFC822 = fetchingEverythingRFC822;}
 
   nsImapSearchResultIterator *CreateSearchResultIterator();
   void ResetSearchResultSequence() {fSearchResults->ResetSequence();}
@@ -196,8 +195,6 @@ private:
   bool            fCurrentLineContainedFlagInfo;
   bool            fFetchingAllFlags;
   bool            fWaitingForMoreClientInput;
-  // when issuing a fetch command, are we fetching everything or just a part?
-  bool            fFetchEverythingRFC822;
   // Is the server a Netscape 3.x Messaging Server?
   bool            fServerIsNetscape3xServer;
   bool            fDownloadingHeaders;

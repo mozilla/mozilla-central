@@ -334,6 +334,7 @@ private:
   nsCOMPtr<nsIAsyncInputStream>   m_channelInputStream;
   nsCOMPtr<nsIAsyncOutputStream>  m_channelOutputStream;
   nsCOMPtr<nsIImapMockChannel>    m_mockChannel;   // this is the channel we should forward to people
+  PRUint32 m_bytesToChannel;
   //nsCOMPtr<nsIRequest> mAsyncReadRequest; // we're going to cancel this when we're done with the conn.
 
 

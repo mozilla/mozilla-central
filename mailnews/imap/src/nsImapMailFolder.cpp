@@ -4544,7 +4544,6 @@ NS_IMETHODIMP nsImapMailFolder::DownloadAllForOffline(nsIUrlListener *listener, 
 NS_IMETHODIMP
 nsImapMailFolder::ParseAdoptedMsgLine(const char *adoptedMessageLine,
                                       nsMsgKey uidOfMessage,
-                                      PRInt32 aMsgSize,
                                       nsIImapUrl *aImapUrl)
 {
   NS_ENSURE_ARG_POINTER(aImapUrl);
@@ -4558,7 +4557,6 @@ nsImapMailFolder::ParseAdoptedMsgLine(const char *adoptedMessageLine,
     if (NS_SUCCEEDED(rv) && !m_offlineHeader)
       rv = NS_ERROR_UNEXPECTED;
     NS_ENSURE_SUCCESS(rv, rv);
-    m_offlineHeader->SetMessageSize(aMsgSize);
     rv = StartNewOfflineMessage();
     NS_ENSURE_SUCCESS(rv, rv);
   }
@@ -4602,10 +4600,32 @@ void nsImapMailFolder::EndOfflineDownload()
 NS_IMETHODIMP
 nsImapMailFolder::NormalEndMsgWriteStream(nsMsgKey uidOfMessage,
                                           bool markRead,
-                                          nsIImapUrl *imapUrl)
+                                          nsIImapUrl *imapUrl,
+                                          PRInt32 updatedMessageSize)
 {
+  if (updatedMessageSize != -1) {
+    // retrieve the message header to update size, if we don't already have it
+    nsCOMPtr<nsIMsgDBHdr> msgHeader = m_offlineHeader;
+    if (!msgHeader)
+      GetMessageHeader(uidOfMessage, getter_AddRefs(msgHeader));
+    if (msgHeader) {
+      PRUint32 msgSize;
+      msgHeader->GetMessageSize(&msgSize);
+      PR_LOG(IMAP, PR_LOG_DEBUG, ("Updating stored message size from %u, new size %d",
+                                  msgSize, updatedMessageSize));
+      msgHeader->SetMessageSize(updatedMessageSize);
+      // only commit here if this isn't an offline message
+      // offline header gets committed in EndNewOfflineMessage() called below
+      if (mDatabase && !m_offlineHeader)
+        mDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
+    }
+    else
+      NS_WARNING("Failed to get message header when trying to update message size");
+  }
+
   if (m_offlineHeader)
     EndNewOfflineMessage();
+
   m_curMsgUid = uidOfMessage;
 
   // Apply filter now if it needed a body

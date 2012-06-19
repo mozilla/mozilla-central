@@ -22,14 +22,24 @@ interface nsIImapMessageSink : nsISupports {
    * @param aAdoptedMsgLine  a string with a lot of message lines,
    *                         separated by native line terminators.
    * @param aUidOfMsg        IMAP UID of the fetched message.
-   * @param aSizeOfMsg       RFC822.Size of the fetched message
    * @param aImapUrl         IMAP Url used to fetch the message.
    */
   void parseAdoptedMsgLine(in string aAdoptedMsgLine, in nsMsgKey aUidOfMsg,
-                           in long aSizeOfMsg, in nsIImapUrl aImapUrl);
+                           in nsIImapUrl aImapUrl);
 
+  /**
+   * Notify the backend that the imap protocol is done downloading a message
+   *
+   * @param aUidOfMsg           IMAP UID of the fetched message.
+   * @param aMarkMsgRead        Set the SEEN flag on the message.
+   * @param aImapUrl            IMAP Url used to fetch the message.
+   * @param aUpdatedMessageSize if this parameter is not -1, the stored size of the message
+   *                            should be set to this value to reflect the actual size of
+   *                            the downloaded message.
+   */
   void normalEndMsgWriteStream(in nsMsgKey aUidOfMessage,
-                               in boolean aMarkMsgRead, in nsIImapUrl aImapUrl);
+                               in boolean aMarkMsgRead, in nsIImapUrl aImapUrl,
+                               in long aUpdatedMessageSize);
 
   void abortMsgWriteStream();
 

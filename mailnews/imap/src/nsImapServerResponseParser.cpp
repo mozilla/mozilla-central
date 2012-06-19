@@ -30,7 +30,6 @@ nsImapServerResponseParser::nsImapServerResponseParser(nsImapProtocol &imapProto
     fReportingErrors(true),
     fCurrentFolderReadOnly(false),
     fCurrentLineContainedFlagInfo(false),
-    fFetchEverythingRFC822(false),
     fServerIsNetscape3xServer(false),
     fNumberOfUnseenMessages(0),
     fNumberOfExistingMessages(0),
@@ -3024,12 +3023,6 @@ bool nsImapServerResponseParser::msg_fetch_literal(bool chunk, PRInt32 origin)
 
   charsReadSoFar = 0;
   static bool lastCRLFwasCRCRLF = false;
-
-  // If we're fetching the whole message, the length of the returned literal
-  // must be the message size, and for servers like Exchange that only
-  // approximate the rfc822 size, we can use this size as the correct size.
-  if (lastChunk && fFetchEverythingRFC822)
-    fSizeOfMostRecentMessage = origin + numberOfCharsInThisChunk;
 
   while (ContinueParse() && !fServerConnection.DeathSignalReceived() && (charsReadSoFar < numberOfCharsInThisChunk))
   {

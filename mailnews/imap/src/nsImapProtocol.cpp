@@ -346,7 +346,6 @@ nsresult nsImapProtocol::GlobalInitialization(nsIPrefBranch *aPrefBranch)
 }
 
 nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
-    mLock("nsImapProtocol.mLock"),
     m_dataAvailableMonitor("imapDataAvailable"),
     m_urlReadyToRunMonitor("imapUrlReadyToRun"),
     m_pseudoInterruptMonitor("imapPseudoInterrupt"),
@@ -355,6 +354,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
     m_waitForBodyIdsMonitor("imapWaitForBodyIds"),
     m_fetchBodyListMonitor("imapFetchBodyList"),
     m_passwordReadyMonitor("imapPasswordReady"),
+    mLock("nsImapProtocol.mLock"),
     m_parser(*this)
 {
   m_urlInProgress = false;
@@ -1707,7 +1707,7 @@ bool nsImapProtocol::ProcessCurrentURL()
 
     if (imapState == nsIImapUrl::nsImapAuthenticatedState)
       ProcessAuthenticatedStateURL();
-    else   // must be a url that requires us to be in the selected stae
+    else   // must be a url that requires us to be in the selected state
       ProcessSelectedStateURL();
 
     if (m_retryUrlOnError)
@@ -3000,7 +3000,9 @@ nsresult nsImapProtocol::BeginMessageDownLoad(
   char *sizeString = PR_smprintf("OPEN Size: %ld", total_message_size);
   Log("STREAM",sizeString,"Begin Message Download Stream");
   PR_Free(sizeString);
-  //total_message_size));
+  // start counting how many bytes we see in this message after all transformations
+  m_bytesToChannel = 0;
+
   if (content_type)
   {
     m_fromHeaderSeen = false;
@@ -3273,7 +3275,6 @@ void nsImapProtocol::FetchMsgAttribute(const nsCString &messageIds, const nsCStr
     if (NS_SUCCEEDED(rv))
        ParseIMAPandCheckForNewMail(commandString.get());
     GetServerStateParser().SetFetchingFlags(false);
-    GetServerStateParser().SetFetchingEverythingRFC822(false); // always clear this flag after every fetch....
 }
 
 // this routine is used to fetch a message or messages, or headers for a
@@ -3308,7 +3309,6 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
   switch (whatToFetch) {
   case kEveryThingRFC822:
     m_flagChangeCount++;
-    GetServerStateParser().SetFetchingEverythingRFC822(true);
     if (m_trackingTime)
       AdjustChunkSize();      // we started another segment
     m_startTime = PR_Now();     // save start of download time
@@ -3355,7 +3355,6 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
       const char *formatString = "";
       eIMAPCapabilityFlags server_capabilityFlags = GetServerStateParser().GetCapabilityFlag();
 
-      GetServerStateParser().SetFetchingEverythingRFC822(true);
       if (server_capabilityFlags & kIMAP4rev1Capability)
       {
         // use body[].peek since rfc822.peek is not in IMAP4rev1
@@ -3546,7 +3545,6 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
       ParseIMAPandCheckForNewMail(protocolString);
     PR_Free(protocolString);
     GetServerStateParser().SetFetchingFlags(false);
-    GetServerStateParser().SetFetchingEverythingRFC822(false); // always clear this flag after every fetch....
     if (GetServerStateParser().LastCommandSuccessful() && CheckNeeded())
       Check();
   }
@@ -3681,6 +3679,7 @@ nsImapProtocol::PostLineDownLoadEvent(const char *line, PRUint32 uidOfMessage)
 {
   if (!GetServerStateParser().GetDownloadingHeaders())
   {
+    PRUint32 byteCount = PL_strlen(line);
     bool echoLineToMessageSink = false;
     // if we have a channel listener, then just spool the message
     // directly to the listener
@@ -3689,21 +3688,22 @@ nsImapProtocol::PostLineDownLoadEvent(const char *line, PRUint32 uidOfMessage)
       PRUint32 count = 0;
       if (m_channelOutputStream)
       {
-        nsresult rv = m_channelOutputStream->Write(line, PL_strlen(line), &count);
+        nsresult rv = m_channelOutputStream->Write(line, byteCount, &count);
+        NS_ASSERTION(count == byteCount, "IMAP channel pipe couldn't buffer entire write");
         if (NS_SUCCEEDED(rv))
         {
           nsCOMPtr<nsIRequest> request = do_QueryInterface(m_mockChannel);
           m_channelListener->OnDataAvailable(request, m_channelContext, m_channelInputStream, 0, count);
         }
+        // else some sort of explosion?
       }
     }
     if (m_runningUrl)
       m_runningUrl->GetStoreResultsOffline(&echoLineToMessageSink);
 
+    m_bytesToChannel += byteCount;
     if (m_imapMessageSink && line && echoLineToMessageSink && !GetPseudoInterrupted())
-      m_imapMessageSink->ParseAdoptedMsgLine(line, uidOfMessage,
-                                             GetServerStateParser().SizeOfMostRecentMessage(),
-                                             m_runningUrl);
+      m_imapMessageSink->ParseAdoptedMsgLine(line, uidOfMessage, m_runningUrl);
   }
   // ***** We need to handle the pseudo interrupt here *****
 }
@@ -3734,8 +3734,8 @@ void nsImapProtocol::HandleMessageDownLoadLine(const char *line, bool isPartialL
     // Do not assume that the line really ends in CRLF
     // to start with, even though it is supposed to be RFC822
 
-    // note: usually canonicalLineEnding==FALSE
-    bool canonicalLineEnding = false;
+    // normalize line endings to CRLF unless we are saving the message to disk
+    bool canonicalLineEnding = true;
     nsCOMPtr<nsIMsgMessageUrl> msgUrl = do_QueryInterface(m_runningUrl);
 
     if (m_imapAction == nsIImapUrl::nsImapSaveMessageToDisk && msgUrl)
@@ -3915,21 +3915,24 @@ void nsImapProtocol::NormalMessageEndDownload()
 
   if (!GetServerStateParser().GetDownloadingHeaders())
   {
-    if (m_channelListener)
-    {
-//      PRUint32 inlength = 0;
-//      m_channelInputStream->Available(&inlength);
-      //if (inlength > 0) // broadcast our batched up ODA changes
-//        m_channelListener->OnDataAvailable(m_mockChannel, m_channelContext, m_channelInputStream, 0, inlength);
+    PRInt32 updatedMessageSize = -1;
+    if (m_bytesToChannel != GetServerStateParser().SizeOfMostRecentMessage()) {
+      updatedMessageSize = m_bytesToChannel;
+#ifdef DEBUG
+      nsCAutoString message("Server's RFC822.SIZE ");
+      message.AppendInt(GetServerStateParser().SizeOfMostRecentMessage());
+      message += " actual size ";
+      message.AppendInt(m_bytesToChannel);
+      NS_WARNING(message.get());
+#endif
     }
-
     // need to know if we're downloading for display or not. We'll use action == nsImapMsgFetch for now
     nsImapAction imapAction = nsIImapUrl::nsImapSelectFolder; // just set it to some legal value
     if (m_runningUrl)
       m_runningUrl->GetImapAction(&imapAction);
 
     if (m_imapMessageSink)
-      m_imapMessageSink->NormalEndMsgWriteStream(m_downloadLineCache->CurrentUID(), imapAction == nsIImapUrl::nsImapMsgFetch, m_runningUrl);
+      m_imapMessageSink->NormalEndMsgWriteStream(m_downloadLineCache->CurrentUID(), imapAction == nsIImapUrl::nsImapMsgFetch, m_runningUrl, updatedMessageSize);
 
     if (m_runningUrl && m_imapMailFolderSink)
     {
@@ -8674,10 +8677,7 @@ NS_IMETHODIMP nsImapMockChannel::Close()
       nsCOMPtr<nsICacheEntryDescriptor>  cacheEntry;
       mailnewsUrl->GetMemCacheEntry(getter_AddRefs(cacheEntry));
       if (cacheEntry)
-      {
-        nsCOMPtr <nsIImapUrl> imapUrl = do_QueryInterface(m_url);
         cacheEntry->MarkValid();
-      }
       // remove the channel from the load group
       nsCOMPtr <nsILoadGroup> loadGroup;
       GetLoadGroup(getter_AddRefs(loadGroup));
@@ -8846,9 +8846,10 @@ nsImapMockChannel::OnCacheEntryAvailable(nsICacheEntryDescriptor *entry, nsCache
   NS_ENSURE_ARG(m_url); // kick out if m_url is null for some reason.
 
 #ifdef DEBUG_bienvenu
-      nsCAutoString entryKey;
-      entry->GetKey(entryKey);
-      printf("%s with access %ld status %ld\n", entryKey.get(), access, status);
+      nsCAutoString entryKey("null");
+      if (entry)
+        entry->GetKey(entryKey);
+      printf("*** OnCacheEntryAvailable %s with access %d status %u\n", entryKey.get(), access, status);
 #endif
   if (NS_SUCCEEDED(status))
   {
@@ -8868,7 +8869,6 @@ nsImapMockChannel::OnCacheEntryAvailable(nsICacheEntryDescriptor *entry, nsCache
     if (access & nsICache::ACCESS_WRITE && !(access & nsICache::ACCESS_READ))
     {
       // use a stream listener Tee to force data into the cache and to our current channel listener...
-      nsCOMPtr<nsIStreamListener> newListener;
       nsCOMPtr<nsIStreamListenerTee> tee = do_CreateInstance(NS_STREAMLISTENERTEE_CONTRACTID, &rv);
       if (NS_SUCCEEDED(rv))
       {
@@ -8881,6 +8881,8 @@ nsImapMockChannel::OnCacheEntryAvailable(nsICacheEntryDescriptor *entry, nsCache
           rv = tee->Init(m_channelListener, out, nsnull);
           m_channelListener = do_QueryInterface(tee);
         }
+        else
+          NS_WARNING("IMAP Protocol failed to open output stream to Necko cache");
       }
     }
     else
@@ -9023,7 +9025,12 @@ nsresult nsImapMockChannel::ReadFromMemCache(nsICacheEntryDescriptor *entry)
           PRUint32 messageSize;
           if (NS_SUCCEEDED(msgHdr->GetMessageSize(&messageSize)) &&
               messageSize != entrySize)
+          {
+            PR_LOG(IMAP, PR_LOG_WARN,
+                ("ReadFromMemCache size mismatch for %s: message %d, cache %d\n",
+                 entryKey.get(), messageSize, entrySize));
             shouldUseCacheEntry = false;
+          }
         }
       }
     }
@@ -9086,7 +9093,7 @@ nsresult nsImapMockChannel::ReadFromMemCache(nsICacheEntryDescriptor *entry)
       SetSecurityInfo(securityInfo);
       return NS_OK;
     } // if AsyncRead succeeded.
-  } // if contnet is not modified
+  } // if content is not modified
   else
     rv = NS_ERROR_FAILURE; // content is modified so return an error so we try to open it the old fashioned way
 

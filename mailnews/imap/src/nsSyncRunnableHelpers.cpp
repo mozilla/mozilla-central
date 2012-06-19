@@ -404,8 +404,8 @@ NS_SYNCRUNNABLEMETHOD2(ImapMailFolderSink, SetAppendMsgUid, nsMsgKey, nsIImapUrl
 NS_SYNCRUNNABLEMETHOD2(ImapMailFolderSink, GetMessageId, nsIImapUrl *, nsACString &)
 
 NS_SYNCRUNNABLEMETHOD2(ImapMessageSink, SetupMsgWriteStream, nsIFile *, bool)
-NS_SYNCRUNNABLEMETHOD4(ImapMessageSink, ParseAdoptedMsgLine, const char *, nsMsgKey, PRInt32, nsIImapUrl *)
-NS_SYNCRUNNABLEMETHOD3(ImapMessageSink, NormalEndMsgWriteStream, nsMsgKey, bool, nsIImapUrl *)
+NS_SYNCRUNNABLEMETHOD3(ImapMessageSink, ParseAdoptedMsgLine, const char *, nsMsgKey, nsIImapUrl *)
+NS_SYNCRUNNABLEMETHOD4(ImapMessageSink, NormalEndMsgWriteStream, nsMsgKey, bool, nsIImapUrl *, PRInt32)
 NS_SYNCRUNNABLEMETHOD0(ImapMessageSink, AbortMsgWriteStream)
 NS_SYNCRUNNABLEMETHOD0(ImapMessageSink, BeginMessageUpload)
 NS_SYNCRUNNABLEMETHOD4(ImapMessageSink, NotifyMessageFlags, PRUint32, const nsACString &, nsMsgKey, PRUint64)
