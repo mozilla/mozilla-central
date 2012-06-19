@@ -3313,6 +3313,8 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
       AdjustChunkSize();      // we started another segment
     m_startTime = PR_Now();     // save start of download time
     m_trackingTime = true;
+    PR_LOG(IMAP, PR_LOG_DEBUG, ("FetchMessage everything: curFetchSize %u numBytes %u",
+                                m_curFetchSize, numBytes));
     if (numBytes > 0)
       m_curFetchSize = numBytes;
 
@@ -3346,6 +3348,10 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
 
   case kEveryThingRFC822Peek:
     {
+      PR_LOG(IMAP, PR_LOG_DEBUG, ("FetchMessage peek: curFetchSize %u numBytes %u",
+                                  m_curFetchSize, numBytes));
+      if (numBytes > 0)
+        m_curFetchSize = numBytes;
       const char *formatString = "";
       eIMAPCapabilityFlags server_capabilityFlags = GetServerStateParser().GetCapabilityFlag();
 
@@ -3556,6 +3562,7 @@ void nsImapProtocol::FetchTryChunking(const nsCString &messageIds,
                                       bool tryChunking)
 {
   GetServerStateParser().SetTotalDownloadSize(downloadSize);
+  PR_LOG(IMAP, PR_LOG_DEBUG, ("FetchTryChunking: curFetchSize %u", downloadSize));
   m_curFetchSize = downloadSize; // we'll change this if chunking.
   if (m_fetchByChunks && tryChunking &&
         GetServerStateParser().ServerHasIMAP4Rev1Capability() &&
@@ -3567,22 +3574,12 @@ void nsImapProtocol::FetchTryChunking(const nsCString &messageIds,
       !GetServerStateParser().GetLastFetchChunkReceived() &&
       GetServerStateParser().ContinueParse())
     {
-      PRUint32 sizeToFetch = startByte + m_chunkSize > downloadSize ?
-        downloadSize - startByte : m_chunkSize;
       FetchMessage(messageIds,
              whatToFetch,
              nsnull,
-             startByte, sizeToFetch,
+             startByte, m_chunkSize,
              part);
-      startByte += sizeToFetch;
-      // adjust the message size based on rfc822 size, if we're fetching
-      // the whole message, and not just a mime part.
-      if (whatToFetch != kMIMEPart)
-      {
-        PRUint32 newMsgSize = GetServerStateParser().SizeOfMostRecentMessage();
-        if (newMsgSize > 0 && newMsgSize != downloadSize)
-          downloadSize = newMsgSize;
-      }
+      startByte += m_chunkSize;
     }
 
     // Only abort the stream if this is a normal message download
@@ -4605,23 +4602,6 @@ bool	nsImapProtocol::GetShouldFetchAllParts()
       return (contentModified == IMAP_CONTENT_FORCE_CONTENT_NOT_MODIFIED);
   }
   return true;
-}
-
-PRInt32 nsImapProtocol::OpenTunnel (PRInt32 maxNumberOfBytesToRead)
-{
-  return 0;
-}
-
-PRInt32 nsImapProtocol::GetTunnellingThreshold()
-{
-  return 0;
-//  return gTunnellingThreshold;
-}
-
-bool nsImapProtocol::GetIOTunnellingEnabled()
-{
-  return false;
-//  return gIOTunnelling;
 }
 
 // Adds a set of rights for a given user on a given mailbox on the current host.

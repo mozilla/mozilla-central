@@ -282,11 +282,6 @@ public:
   // this function does not ref count!!! be careful!!!
   nsIImapUrl  *GetCurrentUrl() {return m_runningUrl;}
 
-  // Tunnels
-  virtual PRInt32 OpenTunnel (PRInt32 maxNumberOfBytesToRead);
-  bool GetIOTunnellingEnabled();
-  PRInt32 GetTunnellingThreshold();
-
   // acl and namespace stuff
   // notifies libmsg that we have a new personal/default namespace that we're using
   void CommitNamespacesForHostEvent();
@@ -312,6 +307,8 @@ public:
   void UpdateFolderQuotaData(nsCString& aQuotaRoot, PRUint32 aUsed, PRUint32 aMax);
 
   bool GetPreferPlainText() { return m_preferPlainText; }
+
+  PRInt32 GetCurFetchSize() { return m_curFetchSize; }
 
 private:
   // the following flag is used to determine when a url is currently being run. It is cleared when we

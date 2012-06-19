@@ -108,7 +108,7 @@ function verifyContentLength(aMsgHdr)
   let attachmentChannel = gIOService.newChannelFromURI(attachmentURL);
   // Currently attachments have their content length set to the length of the
   // entire message
-  do_check_eq(channel.contentLength, gFile.fileSize);
+  do_check_eq(attachmentChannel.contentLength, gFile.fileSize);
 
   do_timeout_function(1000, endTest);
 }

@@ -169,7 +169,7 @@ protected:
   virtual void    msg_obsolete();
   virtual void    msg_fetch_headers(const char *partNum);
   virtual void    msg_fetch_content(bool chunk, PRInt32 origin, const char *content_type);
-  virtual bool    msg_fetch_quoted(bool chunk, PRInt32 origin);
+  virtual bool    msg_fetch_quoted();
   virtual bool    msg_fetch_literal(bool chunk, PRInt32 origin);
   virtual void    mailbox_list(bool discoveredFromLsub);
   virtual void    mailbox(nsImapMailboxSpec *boxSpec);

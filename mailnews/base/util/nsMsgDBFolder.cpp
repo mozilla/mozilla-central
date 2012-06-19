@@ -1724,7 +1724,15 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
          if (msgStore)
            msgStore->DiscardNewMessage(m_tempMessageStream, m_offlineHeader);
        }
-       NS_ERROR("offline message too small");
+#ifdef _DEBUG
+       nsCAutoString message("Offline message too small: messageSize=");
+       message.AppendInt(messageSize);
+       message.Append(" curStorePos=");
+       message.AppendInt(curStorePos);
+       message.Append(" numOfflineMsgLines=");
+       message.AppendInt(m_numOfflineMsgLines);
+       NS_ERROR(message.get());
+#endif
     }
     else
       m_offlineHeader->SetLineCount(m_numOfflineMsgLines);

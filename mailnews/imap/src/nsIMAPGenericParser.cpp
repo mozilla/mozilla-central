@@ -161,7 +161,6 @@ void nsIMAPGenericParser::AdvanceToNextLine()
   }
   else
   {
-     NS_ASSERTION(PL_strstr(fCurrentLine, CRLF) == fCurrentLine + strlen(fCurrentLine) - 2, "need exacly one CRLF, which must be at end of line");
      fNextToken = nsnull;
      // determine if there are any tokens (without calling AdvanceToNextToken);
      // otherwise we are already at end of line

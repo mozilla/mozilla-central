@@ -1227,13 +1227,6 @@ void nsImapServerResponseParser::msg_fetch()
             fReceivedHeaderOrSizeForUID = nsMsgKey_None;
           }
 
-          // if we are in the process of fetching everything RFC822 then we should
-          // turn around and force the total download size to be set to this value.
-          // this helps if the server gaves us a bogus size for the message in response to the 
-          // envelope command.
-          if (fFetchEverythingRFC822)
-            SetTotalDownloadSize(fSizeOfMostRecentMessage);
-          
           if (fSizeOfMostRecentMessage == 0 && CurrentResponseUID())
           {
             // on no, bogus Netscape 2.0 mail server bug
@@ -2076,17 +2069,17 @@ void nsImapServerResponseParser::msg_fetch_content(bool chunk, PRInt32 origin, c
     if (NS_FAILED(BeginMessageDownload(content_type)))
       return;
   }
-  
+
   if (PL_strcasecmp(fNextToken, "NIL"))
   {
     if (*fNextToken == '"')
-      fLastChunk = msg_fetch_quoted(chunk, origin);
+      fLastChunk = msg_fetch_quoted();
     else
       fLastChunk = msg_fetch_literal(chunk, origin);
   }
   else
     AdvanceToNextToken();	// eat "NIL"
-  
+
   if (fLastChunk && (GetFillingInShell() ? m_shell->GetGeneratingWholeMessage() : true))
   {
     // complete the message download
@@ -2115,25 +2108,26 @@ quoted          ::= <"> *QUOTED_CHAR <">
     quoted_specials ::= <"> / "\"
 */
 
-bool nsImapServerResponseParser::msg_fetch_quoted(bool chunk, PRInt32 origin)
+bool nsImapServerResponseParser::msg_fetch_quoted()
 {
-  
-#ifdef DEBUG_chrisf
-	 PR_ASSERT(!chunk);
-#endif
-         
-         char *q = CreateQuoted();
-         if (q)
-         {
-           fServerConnection.HandleMessageDownLoadLine(q, false, q);
-           PR_Free(q);
-         }
-         
-         AdvanceToNextToken();
-         
-         bool lastChunk = !chunk || ((origin + numberOfCharsInThisChunk) >= fTotalDownloadSize);
-         return lastChunk;
+  // *Should* never get a quoted string in response to a chunked download,
+  // but the RFCs don't forbid it
+  char *q = CreateQuoted();
+  if (q)
+  {
+    numberOfCharsInThisChunk = PL_strlen(q);
+    fServerConnection.HandleMessageDownLoadLine(q, false, q);
+    PR_Free(q);
+  }
+  else
+    numberOfCharsInThisChunk = 0;
+
+  AdvanceToNextToken();
+  bool lastChunk = ((fServerConnection.GetCurFetchSize() == 0) ||
+                    (numberOfCharsInThisChunk != fServerConnection.GetCurFetchSize()));
+  return lastChunk;
 }
+
 /* msg_obsolete    ::= "COPY" / ("STORE" SPACE msg_fetch)
 ;; OBSOLETE untagged data responses */
 void nsImapServerResponseParser::msg_obsolete()
@@ -2148,7 +2142,6 @@ void nsImapServerResponseParser::msg_obsolete()
   }
   else
     SetSyntaxError(true);
-  
 }
 
 void nsImapServerResponseParser::capability_data()
@@ -3016,71 +3009,72 @@ void nsImapServerResponseParser::ResetCapabilityFlag()
 // returns true if this is the last chunk and we should close the stream
 bool nsImapServerResponseParser::msg_fetch_literal(bool chunk, PRInt32 origin)
 {
-  numberOfCharsInThisChunk = atoi(fNextToken + 1); // might be the whole message
+  numberOfCharsInThisChunk = atoi(fNextToken + 1);
+  // If we didn't request a specific size, or the server isn't returning exactly
+  // as many octets as we requested, this must be the last or only chunk
+  bool lastChunk = (!chunk ||
+                    (numberOfCharsInThisChunk != fServerConnection.GetCurFetchSize()));
+
+#ifdef DEBUG
+  if (lastChunk)
+    PR_LOG(IMAP, PR_LOG_DEBUG, ("PARSER: fetch_literal chunk = %d, requested %d, receiving %d",
+                                chunk, fServerConnection.GetCurFetchSize(),
+                                numberOfCharsInThisChunk));
+#endif
+
   charsReadSoFar = 0;
   static bool lastCRLFwasCRCRLF = false;
-  
-  bool lastChunk = !chunk || (origin + numberOfCharsInThisChunk >= fTotalDownloadSize);
-  
-  nsImapAction imapAction; 
-  if (!fServerConnection.GetCurrentUrl())
-    return true;
-  fServerConnection.GetCurrentUrl()->GetImapAction(&imapAction);
-  if (!lastCRLFwasCRCRLF && 
-    fServerConnection.GetIOTunnellingEnabled() && 
-    (numberOfCharsInThisChunk > fServerConnection.GetTunnellingThreshold()) &&
-    (imapAction != nsIImapUrl::nsImapOnlineToOfflineCopy) &&
-    (imapAction != nsIImapUrl::nsImapOnlineToOfflineMove))
-  {
-    // One day maybe we'll make this smarter and know how to handle CR/LF boundaries across tunnels.
-    // For now, we won't, even though it might not be too hard, because it is very rare and will add
-    // some complexity.
-    charsReadSoFar = fServerConnection.OpenTunnel(numberOfCharsInThisChunk);
-  }
+
   // If we're fetching the whole message, the length of the returned literal
   // must be the message size, and for servers like Exchange that only
   // approximate the rfc822 size, we can use this size as the correct size.
-  if (!chunk && fFetchEverythingRFC822)
-    fSizeOfMostRecentMessage = numberOfCharsInThisChunk;
-  
-  // If we opened a tunnel, finish everything off here.  Otherwise, get everything here.
-  // (just like before)
-  
+  if (lastChunk && fFetchEverythingRFC822)
+    fSizeOfMostRecentMessage = origin + numberOfCharsInThisChunk;
+
   while (ContinueParse() && !fServerConnection.DeathSignalReceived() && (charsReadSoFar < numberOfCharsInThisChunk))
   {
     AdvanceToNextLine();
     if (ContinueParse())
     {
+      // When we split CRLF across two chunks, AdvanceToNextLine() turns the LF at the
+      // beginning of the next chunk into an empty line ending with CRLF, so discard
+      // that leading CR
+      bool specialLineEnding = false;
       if (lastCRLFwasCRCRLF && (*fCurrentLine == '\r'))
       {
         char *usableCurrentLine = PL_strdup(fCurrentLine + 1);
         PR_Free(fCurrentLine);
         fCurrentLine = usableCurrentLine;
+        specialLineEnding = true;
       }
       
-      if (ContinueParse())
+      // This *would* fail on data containing \0, but down below AdvanceToNextLine() in
+      // nsMsgLineStreamBuffer::ReadNextLine() we replace '\0' with ' ' (blank) because
+      // who cares about binary transparency, and anyways \0 in this context violates RFCs.
+      charsReadSoFar += strlen(fCurrentLine);
+      if (!fDownloadingHeaders && fCurrentCommandIsSingleMessageFetch)
       {
-        charsReadSoFar += strlen(fCurrentLine);
-        if (!fDownloadingHeaders && fCurrentCommandIsSingleMessageFetch)
-        {
-          fServerConnection.ProgressEventFunctionUsingId(IMAP_DOWNLOADING_MESSAGE);
-          if (fTotalDownloadSize > 0)
-            fServerConnection.PercentProgressUpdateEvent(0,charsReadSoFar + origin, fTotalDownloadSize);
-        }
-        if (charsReadSoFar > numberOfCharsInThisChunk)
-        {	// this is rare.  If this msg ends in the middle of a line then only display the actual message.
-          char *displayEndOfLine = (fCurrentLine + strlen(fCurrentLine) - (charsReadSoFar - numberOfCharsInThisChunk));
-          char saveit = *displayEndOfLine;
-          *displayEndOfLine = 0;
-          fServerConnection.HandleMessageDownLoadLine(fCurrentLine, !lastChunk);
-          *displayEndOfLine = saveit;
-          lastCRLFwasCRCRLF = (*(displayEndOfLine - 1) == '\r');
-        }
-        else
-        {
-          lastCRLFwasCRCRLF = (*(fCurrentLine + strlen(fCurrentLine) - 1) == '\r');
-          fServerConnection.HandleMessageDownLoadLine(fCurrentLine, !lastChunk && (charsReadSoFar == numberOfCharsInThisChunk), fCurrentLine);
-        }
+        fServerConnection.ProgressEventFunctionUsingId(IMAP_DOWNLOADING_MESSAGE);
+        if (fTotalDownloadSize > 0)
+          fServerConnection.PercentProgressUpdateEvent(0,charsReadSoFar + origin, fTotalDownloadSize);
+      }
+      if (charsReadSoFar > numberOfCharsInThisChunk)
+      {
+        // The chunk we are receiving doesn't end in CRLF, so the last line includes
+        // the CRLF that comes after the literal
+        char *displayEndOfLine = (fCurrentLine + strlen(fCurrentLine) - (charsReadSoFar - numberOfCharsInThisChunk));
+        char saveit = *displayEndOfLine;
+        *displayEndOfLine = 0;
+        fServerConnection.HandleMessageDownLoadLine(fCurrentLine, specialLineEnding || !lastChunk);
+        *displayEndOfLine = saveit;
+        lastCRLFwasCRCRLF = (*(displayEndOfLine - 1) == '\r');
+      }
+      else
+      {
+        lastCRLFwasCRCRLF = (*(fCurrentLine + strlen(fCurrentLine) - 1) == '\r');
+        fServerConnection.HandleMessageDownLoadLine(fCurrentLine,
+            specialLineEnding || (!lastChunk && (charsReadSoFar == numberOfCharsInThisChunk)),
+            fCurrentLine);
       }
     }
   }
@@ -3275,8 +3269,6 @@ void nsImapServerResponseParser::SetSyntaxError(bool error, const char *msg)
 
 nsresult nsImapServerResponseParser::BeginMessageDownload(const char *content_type)
 {
-  // if we're downloading a message, assert that we know its size.
-  NS_ASSERTION(fDownloadingHeaders || fSizeOfMostRecentMessage > 0, "most recent message has 0 or negative size");
   nsresult rv = fServerConnection.BeginMessageDownLoad(fSizeOfMostRecentMessage, 
     content_type);
   if (NS_FAILED(rv))
