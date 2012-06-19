@@ -402,7 +402,7 @@ o.add_option("--skip-comm", dest="skip_comm",
              help="Skip pulling the comm (Calendar/Mail/Suite) repository.")
 o.add_option("--comm-rev", dest="comm_rev",
              default=None,
-             help="Revision of comm (Calendar/Mail/Suite) repository to update to. Default: \"" + get_DEFAULT_tag('COMM_REV') + "\"")
+             help="Revision of comm (Calendar/Mail/Suite) repository to update to. If not present, COMM_REV from the environment will be used. If that doesn't exist the default is: \"" + get_DEFAULT_tag('COMM_REV') + "\"")
 
 o.add_option("-z", "--mozilla-repo", dest="mozilla_repo",
              default=None,
@@ -412,7 +412,7 @@ o.add_option("--skip-mozilla", dest="skip_mozilla",
              help="Skip pulling the Mozilla repository.")
 o.add_option("--mozilla-rev", dest="mozilla_rev",
              default=None,
-             help="Revision of Mozilla repository to update to. Default: \"" + get_DEFAULT_tag('MOZILLA_REV') + "\"")
+             help="Revision of Mozilla repository to update to. If not present, MOZILLA_REV from the environment will be used. If that doesn't exist the default is: \"" + get_DEFAULT_tag('MOZILLA_REV') + "\"")
 o.add_option("--known-good", dest="known_good",
              action="store_true", default=False,
              help="Use the last known-good Mozilla repository revision.")
@@ -503,7 +503,14 @@ def fixup_comm_repo_options(options):
         sys.exit(2)
 
     if options.comm_rev is None:
-        options.comm_rev = get_DEFAULT_tag("COMM_REV")
+        # If we weren't passed an explicit rev, try to find it from the
+        # environment. If that doesn't exist or is empty, grab the default.
+        envRev = os.environ.get("COMM_REV")
+        if envRev:
+            print "Using COMM_REV from environment (%s)" % envRev
+            options.comm_rev = envRev
+        else:
+            options.comm_rev = get_DEFAULT_tag("COMM_REV")
 
 def fixup_mozilla_repo_options(options):
     """Handle special case: initial checkout of Mozilla.
@@ -526,7 +533,14 @@ def fixup_mozilla_repo_options(options):
             options.mozilla_repo = config.get('paths', 'default')
 
     if options.mozilla_rev is None:
-        options.mozilla_rev = get_DEFAULT_tag("MOZILLA_REV")
+        # If we weren't passed an explicit rev, try to find it from the
+        # environment. If that doesn't exist or is empty, grab the default.
+        envRev = os.environ.get("MOZILLA_REV")
+        if envRev:
+            print "Using MOZILLA_REV from environment (%s)" % envRev
+            options.mozilla_rev = envRev
+        else:
+            options.mozilla_rev = get_DEFAULT_tag("MOZILLA_REV")
 
 def fixup_chatzilla_repo_options(options):
     """Handle special case: initial hg checkout of Chatzilla.
