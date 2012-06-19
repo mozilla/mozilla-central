@@ -1,0 +1,11 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this file,
+   - You can obtain one at http://mozilla.org/MPL/2.0/.  -->
+<!ENTITY fileExceedsQuota.title   "YouSendIt">
+<!ENTITY fileExceedsQuota.storageLimitReached   "Storage limit reached">
+<!ENTITY fileExceedsQuota.accept "Upgrade">
+<!ENTITY fileExceedsQuota.cancel "Cancel">
+<!ENTITY fileExceedsQuota.description "You have reached your account storage limit of 2GB.">
+<!ENTITY fileExceedsQuota.description1 "Your current storage usage is #XXX GB.">
+<!ENTITY fileExceedsQuota.description2 "Upgrade today to Pro Plus account to get unlimited storage!">
+<!ENTITY fileExceedsQuota.description3 "You can also choose to delete files in your account to create more space.">

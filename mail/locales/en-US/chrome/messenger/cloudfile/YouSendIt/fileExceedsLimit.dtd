@@ -1,0 +1,13 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this file,
+   - You can obtain one at http://mozilla.org/MPL/2.0/.  -->
+<!ENTITY fileExceedsLimit.title   "YouSendIt">
+<!ENTITY fileExceedsLimit.thatsBigFile   "Sending files larger than 50 MB">
+<!ENTITY fileExceedsLimit.thatsBigFile2   "is a premium feature.">
+<!ENTITY fileExceedsLimit.accept "Upgrade">
+<!ENTITY fileExceedsLimit.cancel "Cancel">
+<!ENTITY fileExceedsLimit.style "width: 40em; min-height: 20em;">
+<!ENTITY fileExceedsLimit.proIncludes "Upgrade now to send this file plus:">
+<!ENTITY fileExceedsLimit.pros1 "Send files and folders up to 2GB">
+<!ENTITY fileExceedsLimit.pros2 "Store unlimited files online">
+<!ENTITY fileExceedsLimit.pros3 "Access and share files from anywhere">

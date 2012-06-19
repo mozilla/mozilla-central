@@ -15,3 +15,8 @@ messenger.jar:
     content/messenger/cloudfile/YouSendIt/management.js (content/YouSendIt/management.js)
     content/messenger/cloudfile/YouSendIt/settings.js (content/YouSendIt/settings.js)
     content/messenger/cloudfile/YouSendIt/settings.xhtml (content/YouSendIt/settings.xhtml)
+    content/messenger/cloudfile/YouSendIt/fileExceedsLimit.xul (content/YouSendIt/fileExceedsLimit.xul)
+    content/messenger/cloudfile/YouSendIt/fileExceedsLimit.js (content/YouSendIt/fileExceedsLimit.js)
+    content/messenger/cloudfile/YouSendIt/fileExceedsQuota.xul (content/YouSendIt/fileExceedsQuota.xul)
+    content/messenger/cloudfile/YouSendIt/fileExceedsQuota.js (content/YouSendIt/fileExceedsQuota.js)
+    content/messenger/cloudfile/YouSendIt/fileExceeds2GB.xul (content/YouSendIt/fileExceeds2GB.xul)

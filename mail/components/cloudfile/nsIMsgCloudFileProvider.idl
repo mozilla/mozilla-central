@@ -135,4 +135,5 @@ interface nsIMsgCloudFileProvider : nsISupports {
   const unsigned long uploadWouldExceedQuota = 0x8055311b;
   const unsigned long uploadExceedsFileLimit = 0x8055311c;
   const unsigned long uploadCanceled = 0x8055311d;
+  const unsigned long uploadExceedsFileNameLimit = 0x8055311e;
 };

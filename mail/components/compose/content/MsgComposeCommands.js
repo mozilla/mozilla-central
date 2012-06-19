@@ -1044,6 +1044,12 @@ uploadListener.prototype = {
                                         [displayName,
                                          this.attachment.name]);
         break;
+      case this.cloudProvider.uploadExceedsFileNameLimit:
+        title = bundle.getString("errorCloudFileNameLimit.title");
+        msg = bundle.getFormattedString("errorCloudFileNameLimit.message",
+                                        [displayName,
+                                         this.attachment.name]);
+        break;
       case this.cloudProvider.uploadExceedsFileLimit:
         title = bundle.getString("errorCloudFileLimit.title");
         msg = bundle.getFormattedString("errorCloudFileLimit.message",

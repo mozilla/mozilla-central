@@ -1,0 +1,36 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+html, body {
+  font: message-box;
+  margin: 0;
+}
+
+#fileExceedsLimit {
+  padding-left: 15px;
+  padding-right: 13px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+#proIncludes {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+#title {
+  font-size: 20pt;
+  color: rgb(141,198,63);
+}
+
+#title2 {
+  font-size: 20pt;
+  color: rgb(141,198,63);
+  margin-top: -10px;
+  margin-bottom: 10px;
+}
+
+description {
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+}

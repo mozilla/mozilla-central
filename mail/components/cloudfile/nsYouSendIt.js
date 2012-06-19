@@ -21,9 +21,11 @@ var gServerUrl = "https://dpi.yousendit.com"; // Production url
 const kApiKey = "7spvjdt7m4kycr7jyhywrdn2";
 const kAuthPath = "/dpi/v1/auth";
 const kUserInfoPath = "/dpi/v2/user";
-const kItemPath = "/dpi/v1/item/";
-const kItemSendPath = kItemPath + "send";
-const kItemCommitPath = kItemPath + "commit";
+const kFolderPath = "/dpi/v1/folder/";
+const kFolderFilePath = "/dpi/v1/folder/file/";
+const kFolderInitUploadPath = kFolderPath + "file/initUpload";
+const kFolderCommitUploadPath = kFolderPath + "file/commitUpload";
+const kUrlTail = "s=4001583&cid=pm-4001583";
 
 function nsYouSendIt() {
   this.log = Log4Moz.getConfiguredLogger("YouSendIt");
@@ -51,6 +53,7 @@ nsYouSendIt.prototype = {
   _loggedIn: false,
   _userInfo: null,
   _file : null,
+  _folderId: "",
   _requestDate: null,
   _successCallback: null,
   _request: null,
@@ -87,6 +90,45 @@ nsYouSendIt.prototype = {
                                                 aAccountKey + ".");
     this._userName = this._prefBranch.getCharPref("username");
     this._loggedIn = this._cachedAuthToken != "";
+  },
+
+  /**
+   * Private function for retrieving or creating folder
+   * on YouSendIt website for uploading file.
+   *
+   * @param aCallback called if folder is ready.
+   */
+  _initFolder: function nsYouSendIt__initFolder(aCallback) {
+    this.log.info('_initFolder');
+    
+    let saveFolderId = function(aFolderId) {
+      this.log.info('saveFolderId');
+      this._folderId = aFolderId;
+      if (aCallback)
+        aCallback();
+    }.bind(this);
+
+    let createThunderbirdFolder = function(aParentFolderId) {
+      this._createFolder("Mozilla Thunderbird", aParentFolderId, saveFolderId);
+    }.bind(this);
+
+    let createAppsFolder = function(aParentFolderId) {
+      this._createFolder("Apps", aParentFolderId, createThunderbirdFolder);
+    }.bind(this);
+
+    let findThunderbirdFolder = function(aParentFolderId) {
+      this._findFolder("Mozilla Thunderbird", aParentFolderId,
+                       createThunderbirdFolder, saveFolderId);
+    }.bind(this);
+
+    let findAppsFolder = function() {
+      this._findFolder("Apps", 0, createAppsFolder, findThunderbirdFolder);
+    }.bind(this);
+
+    if (this._folderId == "")
+      findAppsFolder();
+    else
+      this._checkFolderExist(this._folderId, aCallback, findAppsFolder);
   },
 
   /**
@@ -135,6 +177,7 @@ nsYouSendIt.prototype = {
 
     // if we're uploading a file, queue this request.
     if (this._uploadingFile && this._uploadingFile != aFile) {
+      this.log.info("Adding file to queue");
       let uploader = new nsYouSendItFileUploader(this, aFile,
                                                  this._uploaderCallback
                                                      .bind(this),
@@ -146,10 +189,12 @@ nsYouSendIt.prototype = {
     this._uploadingFile = aFile;
     this._urlListener = aCallback;
 
-    this.log.info("Checking to see if we're logged in");
+    let finish = function() {
+      this._finishUpload(aFile, aCallback);
+    }.bind(this);
 
     let onGetUserInfoSuccess = function() {
-      this._finishUpload(aFile, aCallback);
+      this._initFolder(finish);
     }.bind(this);
 
     let onAuthFailure = function() {
@@ -157,6 +202,8 @@ nsYouSendIt.prototype = {
                                       Ci.nsIMsgCloudFileProvider.authErr);
     }.bind(this);
 
+    this.log.info("Checking to see if we're logged in");
+    
     if (!this._loggedIn) {
       let onLoginSuccess = function() {
         this._getUserInfo(onGetUserInfoSuccess, onAuthFailure);
@@ -168,7 +215,7 @@ nsYouSendIt.prototype = {
     if (!this._userInfo)
       return this._getUserInfo(onGetUserInfoSuccess, onAuthFailure);
 
-    this._finishUpload(aFile, aCallback);
+    onGetUserInfoSuccess();
   },
 
   /**
@@ -181,13 +228,13 @@ nsYouSendIt.prototype = {
    *                  states of the upload procedure.
    */
   _finishUpload: function nsYouSendIt__finishUpload(aFile, aCallback) {
-    let exceedsLimit = Ci.nsIMsgCloudFileProvider.uploadExceedsFileLimit;
-    let exceedsQuota = Ci.nsIMsgCloudFileProvider.uploadWouldExceedQuota;
-
+    if (aFile.fileSize > 2147483648)
+      return this._fileExceedsLimit(aCallback, '2GB', 0);
     if (aFile.fileSize > this._maxFileSize)
-      return aCallback.onStopRequest(null, null, exceedsLimit);
+      return this._fileExceedsLimit(aCallback, 'Limit', 0);
     if (aFile.fileSize > this._availableStorage)
-      return aCallback.onStopRequest(null, null, exceedsQuota);
+      return this._fileExceedsLimit(aCallback, 'Quota', 
+                                    aFile.fileSize + this._fileSpaceUsed);
 
     delete this._userInfo; // force us to update userInfo on every upload.
 
@@ -204,14 +251,38 @@ nsYouSendIt.prototype = {
   },
 
   /**
+   * A private function called when upload exceeds file limit.
+   *
+   * @param aCallback the nsIRequestObserver for monitoring the start and stop
+   *                  states of the upload procedure.
+   */
+  _fileExceedsLimit: function nsYouSendIt__fileExceedsLimit(aCallback, aType, aStorageSize) {
+    let cancel = Ci.nsIMsgCloudFileProvider.uploadCanceled;
+
+    let args = {storage: aStorageSize};
+    args.wrappedJSObject = args;
+    let ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                    .getService(Components.interfaces.nsIWindowWatcher);
+    ww.openWindow(null, 
+                  "chrome://messenger/content/cloudfile/YouSendIt/"
+                  + "fileExceeds" + aType + ".xul",
+                  "YouSendIt", "chrome,centerscreen,dialog,modal,resizable=yes", 
+                  args).focus(); 
+                  
+    return aCallback.onStopRequest(null, null, cancel);
+  },
+
+  /**
    * Cancels an in-progress file upload.
    *
    * @param aFile the nsILocalFile being uploaded.
    */
   cancelFileUpload: function nsYouSendIt_cancelFileUpload(aFile) {
     this.log.info("in cancel upload");
-    if (this._uploadingFile.equals(aFile))
+    if (this._uploadingFile != null && this._uploader != null && 
+        this._uploadingFile.equals(aFile)) {
       this._uploader.cancel();
+    }
     else {
       for (let i = 0; i < this._uploads.length; i++)
         if (this._uploads[i].file.equals(aFile)) {
@@ -256,14 +327,14 @@ nsYouSendIt.prototype = {
    */
   _getUserInfo: function nsYouSendIt_userInfo(successCallback, failureCallback) {
     this.log.info("getting user info");
-    let args = "?email=" + this._userName;
+    let args = "?email=" + this._userName + "&";
 
     let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
-    req.open("GET", gServerUrl + kUserInfoPath + args, true);
+    req.open("GET", gServerUrl + kUserInfoPath + args + kUrlTail, true);
 
     req.onload = function() {
-      if (req.status >= 200 && req.status <= 400) {
+      if (req.status >= 200 && req.status < 400) {
         this.log.info("request status = " + req.status +
                       " response = " + req.responseText);
         let docResponse = JSON.parse(req.responseText);
@@ -272,7 +343,7 @@ nsYouSendIt.prototype = {
           this.log.info("error status = " + docResponse.errorStatus.code);
 
         if (docResponse.errorStatus && docResponse.errorStatus.code > 200) {
-          if (docResponse.errorStatus.code >= 400) {
+          if (docResponse.errorStatus.code > 400) {
             // Our token has gone stale
             this.log.info("Our token has gone stale - requesting a new one.");
 
@@ -291,20 +362,18 @@ nsYouSendIt.prototype = {
         let account = docResponse.account;
         let storage = docResponse.storage;
         if (storage) {
-          this._fileSpaceUsed = storage.currentUsage;
-          this._availableStorage = storage.storageQuota - this._fileSpaceUsed;
+          this._fileSpaceUsed = parseInt(storage.currentUsage);
+          this._availableStorage = parseInt(storage.storageQuota) - this._fileSpaceUsed;
         }
-        else {
-          this._availableStorage = account.availableStorage;
-        }
+        else
+          this._availableStorage = parseInt(account.availableStorage);
 
-        this._maxFileSize = account.maxFileSize;
+        this._maxFileSize = docResponse.type == "BAS" ? 52428800 : (parseInt(account.maxFileSize));
         this.log.info("available storage = " + this._availableStorage + " max file size = " + this._maxFileSize);
         successCallback();
       }
-      else {
+      else
         failureCallback();
-      }
     }.bind(this);
 
     req.onerror = function() {
@@ -382,12 +451,12 @@ nsYouSendIt.prototype = {
       throw Ci.nsIMsgCloudFileProvider.offlineErr;
 
     let args = "?email=" + aEmailAddress + "&password=" + aPassword + "&firstname="
-               + aFirstName + "&lastname=" + aLastName;
+               + aFirstName + "&lastname=" + aLastName + "&";
 
     let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
 
-    req.open("POST", gServerUrl + kUserInfoPath + args, true);
+    req.open("POST", gServerUrl + kUserInfoPath + args + kUrlTail, true);
 
     req.onload = function() {
       if (req.status >= 200 &&
@@ -407,6 +476,142 @@ nsYouSendIt.prototype = {
     req.onerror = function() {
       this.log.info("getUserInfo failed - status = " + req.status);
       aRequestObserver.onStopRequest(null, null, Cr.NS_ERROR_FAILURE);
+    }.bind(this);
+    // Add a space at the end because http logging looks for two
+    // spaces in the X-Auth-Token header to avoid putting passwords
+    // in the log, and crashes if there aren't two spaces.
+    req.setRequestHeader("X-Auth-Token", this._cachedAuthToken + " ");
+    req.setRequestHeader("X-Api-Key", kApiKey);
+    req.setRequestHeader("Accept", "application/json");
+    req.send();
+  },
+
+  /**
+   * Attempt to find folder by name on YSI website.
+   *
+   * @param aFolderName name of folder
+   * @param aParentFolderId id of folder where we are looking
+   * @param aNotFoundCallback called if folder is not found
+   * @param aFoundCallback called if folder is found
+   */
+  _findFolder: function nsYouSendIt__findFolder(aFolderName,
+                                                aParentFolderId,
+                                                aNotFoundCallback,
+                                                aFoundCallback) {
+    
+    this.log.info("Find folder: " + aFolderName);
+    
+    let checkChildFolders = function(folders) {
+      this.log.info("Looking for a child folder");
+      let folderId = 0;
+      let folder = folders.folder;
+      for (let i in folder) {
+        if (folder[i].name == aFolderName) {
+          folderId = folder[i].id;
+          break;
+        }
+      }
+
+      if (!folderId && aNotFoundCallback)
+        aNotFoundCallback(aParentFolderId);
+
+      if (folderId && aFoundCallback)
+        aFoundCallback(folderId);
+    }.bind(this);
+
+    this._checkFolderExist(aParentFolderId, checkChildFolders);
+  },
+
+  /**
+   * Attempt to find folder by id on YSI website.
+   *
+   * @param aFolderId id of folder
+   * @param aNotFoundCallback called if folder is not found
+   * @param aFoundCallback called if folder is found
+   */
+  _checkFolderExist: function nsYouSendIt__checkFolderExist(aFolderId,
+                                                            aFoundCallback,
+                                                            aNotFoundCallback) {
+    this.log.info('checkFolderExist');
+    if (Services.io.offline)
+      throw Ci.nsIMsgCloudFileProvider.offlineErr;
+
+    let args = "?includeFiles=false&includeFolders=true&";
+
+    let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
+                .createInstance(Ci.nsIXMLHttpRequest);
+
+    req.open("GET",
+             gServerUrl + kFolderPath + aFolderId + args + kUrlTail,
+             true);
+
+    req.onload = function() {
+      let docResponse = JSON.parse(req.responseText);
+      if (req.status >= 200 && req.status < 400) {
+        this.log.info("request status = " + req + " response = " +
+                      req.responseText);
+		
+        if (aFoundCallback && docResponse.folders)
+          aFoundCallback(docResponse.folders);
+      }
+      else {
+        this._lastErrorText = docResponse.errorStatus.message;
+        this._lastErrorStatus = docResponse.errorStatus.code;
+        if (this._lastErrorStatus == 400 && this._lastErrorText == "Not Found" && aNotFoundCallback)
+          aNotFoundCallback();
+      }
+    }.bind(this);
+
+    req.onerror = function() {
+      this.log.info("_checkFolderExist failed - status = " + req.status);
+    }.bind(this);
+    // Add a space at the end because http logging looks for two
+    // spaces in the X-Auth-Token header to avoid putting passwords
+    // in the log, and crashes if there aren't two spaces.
+    req.setRequestHeader("X-Auth-Token", this._cachedAuthToken + " ");
+    req.setRequestHeader("X-Api-Key", kApiKey);
+    req.setRequestHeader("Accept", "application/json");
+    req.send();
+  },
+
+  /**
+   * Private function for creating folder on YSI website.
+   *
+   * @param aName name of folder
+   * @param aParent id of parent folder
+   * @param aSuccessCallback called when folder is created
+   */
+  _createFolder: function nsYouSendIt__createFolder(aName,
+                                                    aParent,
+                                                    aSuccessCallback) {
+    this.log.info("Create folder: " + aName);
+    if (Services.io.offline)
+      throw Ci.nsIMsgCloudFileProvider.offlineErr;
+
+    let args = "?name=" + aName + "&parentId=" + aParent + "&";
+
+    let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
+                .createInstance(Ci.nsIXMLHttpRequest);
+
+    req.open("POST", gServerUrl + kFolderPath.replace(/\/$/, '') + args + kUrlTail, true);
+
+    req.onload = function() {
+      let docResponse = JSON.parse(req.responseText);
+      if (req.status >= 200 && req.status < 400) {
+        this.log.info("request status = " + req + " response = " +
+                      req.responseText);
+		
+        if (aSuccessCallback)
+          aSuccessCallback(docResponse.id)
+      }
+      else {
+        this._lastErrorText = docResponse.errorStatus.message;
+        this._lastErrorStatus = docResponse.errorStatus.code;
+      }
+    }.bind(this);
+
+    req.onerror = function() {
+      this.log.info("createFolder failed - status = " + req.status);
     }.bind(this);
     // Add a space at the end because http logging looks for two
     // spaces in the X-Auth-Token header to avoid putting passwords
@@ -489,70 +694,61 @@ nsYouSendIt.prototype = {
 
     let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
-    let resource = kItemPath + uploadInfo.itemId;
 
-    req.open("DELETE", gServerUrl + resource, true);
+    let args = kFolderFilePath + uploadInfo.fileId + "?";
 
-    this.log.info("Sending request to: " + gServerUrl + resource);
+    req.open("DELETE", gServerUrl + args + kUrlTail, true);
+    this.log.info("Sending request to: " + gServerUrl + args);
 
-    req.onerror = function() {
-      this._lastErrorStatus = req.status;
-      this._lastErrorText = req.responseText;
+    req.onerror = function() {    
+      let response = JSON.parse(req.responseText);
+      this._lastErrorStatus = response.errorStatus.status;
+      this._lastErrorText = response.errorStatus.message;
       this.log.error("There was a problem deleting: " + this._lastErrorText);
       aCallback.onStopRequest(null, null, Cr.NS_ERROR_FAILURE);
     }.bind(this);
 
     req.onload = function() {
-      let response = req.responseText.replace(/<\?xml[^>]*\?>/, "");
+      // Response is the URL.
+      let response = req.responseText;
+      this.log.info("delete response = " + response);
+      let deleteInfo = JSON.parse(response);
 
-      if (req.status >= 200 && req.status < 400) {
-        this.log.info("Got back deletion response: " + response);
-        let docResponse = new XML(response);
-        this.log.info("docResponse = " + docResponse);
+      if (deleteInfo.errorStatus) {
+        // Argh - for some reason, on deletion, the error code for a stale
+        // token is 401 instead of 500.
+        if (deleteInfo.errorStatus.code == 401) {
+          this.log.warn("Token has gone stale! Will attempt to reauth.");
+          // Our token has gone stale
+          let onTokenRefresh = function() {
+            this.deleteFile(aFile, aCallback);
+          }.bind(this);
 
-        if ("errorStatus" in docResponse) {
-          // Argh - for some reason, on deletion, the error code for a stale
-          // token is 401 instead of 500.
-          if (docResponse.errorStatus.code == 401) {
-
-            this.log.warn("Token has gone stale! Will attempt to reauth.");
-            // Our token has gone stale
-            let onTokenRefresh = function() {
-              this.deleteFile(aFile, aCallback);
-            }.bind(this);
-
-            let onTokenRefreshFailure = function() {
-              aCallback.onStopRequest(null, null,
-                                      Ci.nsIMsgCloudFileProvider.authErr);
-            }
-            this._handleStaleToken(onTokenRefresh, onTokenRefreshFailure);
-            return;
+          let onTokenRefreshFailure = function() {
+            aCallback.onStopRequest(null, null,
+                                    Ci.nsIMsgCloudFileProvider.authErr);
           }
-
-          this.log.error("Server has returned a failure on our delete request.");
-          this.log.error("Error code: " + docResponse.errorStatus.code);
-          this.log.error("Error message: " + docResponse.errorStatus.message);
-          aCallback.onStopRequest(null, null,
-                                  Ci.nsIMsgCloudFileProvider.uploadErr);
+          this._handleStaleToken(onTokenRefresh, onTokenRefreshFailure);
           return;
         }
 
-        this.log.info("Delete was successful!");
-        // Success!
-        aCallback.onStopRequest(null, null, Cr.NS_OK);
+        this.log.error("Server has returned a failure on our delete request.");
+        this.log.error("Error code: " + deleteInfo.errorStatus.code);
+        this.log.error("Error message: " + deleteInfo.errorStatus.message);
+        //aCallback.onStopRequest(null, null,
+        //                        Ci.nsIMsgCloudFileProvider.uploadErr);
+        return;
       }
-      else {
-        this._lastErrorText = response;
-        this.log.error("Delete was not successful: " + this._lastErrorText);
-        this._lastErrorStatus = req.status;
-        aCallback.onStopRequest(null, null, Cr.NS_ERROR_FAILURE);
-      }
+
+      this.log.info("Delete was successful!");
+      // Success!
+      aCallback.onStopRequest(null, null, Cr.NS_OK);
     }.bind(this);
 
-    this.log.info("Sending delete request...");
     req.setRequestHeader("X-Auth-Token", this._cachedAuthToken + " ");
     req.setRequestHeader("X-Api-Key", kApiKey);
     req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    req.setRequestHeader("Accept", "application/json");
     req.send();
   },
 
@@ -585,7 +781,7 @@ nsYouSendIt.prototype = {
     let win = Services.wm.getMostRecentWindow(null);
 
     let authPrompter = Services.ww.getNewAuthPrompter(win);
-    var password = { value: "" };
+    let password = { value: "" };
     // Use the service name in the prompt text
     let serverUrl = gServerUrl;
     let userPos = gServerUrl.indexOf("//") + 2;
@@ -605,7 +801,7 @@ nsYouSendIt.prototype = {
 
     return "";
   },
-
+ 
   /**
    * Clears any saved YouSendIt passwords for this instance's account.
    */
@@ -628,13 +824,13 @@ nsYouSendIt.prototype = {
     this.log.info("Logging in, aWithUI = " + aWithUI);
     if (this._password == undefined || !this._password)
       this._password = this.getPassword(this._userName, !aWithUI);
-    let args = "?email=" + this._userName + "&password=" + this._password;
+    let args = "?email=" + this._userName + "&password=" + this._password + "&";
     this.log.info("Sending login information...");
     let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
     let curDate = Date.now().toString();
 
-    req.open("POST", gServerUrl + kAuthPath + args, true);
+    req.open("POST", gServerUrl + kAuthPath + args + kUrlTail, true);
     req.onerror = function() {
       this.log.info("logon failure");
       failureCallback();
@@ -712,6 +908,7 @@ nsYouSendItFileUploader.prototype = {
    */
   startUpload: function nsYSIFU_startUpload() {
     let curDate = Date.now().toString();
+
     this.requestObserver.onStartRequest(null, null);
 
     let onSuccess = function() {
@@ -734,14 +931,10 @@ nsYouSendItFileUploader.prototype = {
    */
   _prepareToSend: function nsYSIFU__prepareToSend(successCallback,
                                                   failureCallback) {
-    let args = "?email=" + this.youSendIt._userName + "&recipients=" +
-               encodeURIComponent(this.youSendIt._userName) +
-               "&secureUrl=true";
-
     let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
 
-    req.open("POST", gServerUrl + kItemSendPath + args, true);
+    req.open("POST", gServerUrl + kFolderInitUploadPath + "?" + kUrlTail, true);
 
     req.onerror = failureCallback;
 
@@ -751,8 +944,8 @@ nsYouSendItFileUploader.prototype = {
         this._urlInfo = JSON.parse(response);
         this.youSendIt._uploadInfo[this.file.path] = this._urlInfo;
         this.log.info("in prepare to send response = " + response);
-        this.log.info("urlInfo = " + this._urlInfo);
-        this.log.info("upload url = " + this._urlInfo.uploadUrl);
+        this.log.info("file id = " + this._urlInfo.fileId);
+        this.log.info("upload url = " + this._urlInfo.uploadUrl[0]);
         successCallback();
       }
       else {
@@ -771,7 +964,6 @@ nsYouSendItFileUploader.prototype = {
     req.setRequestHeader("X-Api-Key", kApiKey);
     req.setRequestHeader("Accept", "application/json");
     req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    this.log.info("Sending prepare request with args: " + args);
     req.send();
   },
 
@@ -784,9 +976,9 @@ nsYouSendItFileUploader.prototype = {
                 .createInstance(Ci.nsIXMLHttpRequest);
 
     let curDate = Date.now().toString();
-    this.log.info("upload url = " + this._urlInfo.uploadUrl);
+    this.log.info("upload url = " + this._urlInfo.uploadUrl[0]);
     this.request = req;
-    req.open("POST", this._urlInfo.uploadUrl, true);
+    req.open("POST", this._urlInfo.uploadUrl[0] + "?" + kUrlTail, true);
     req.onload = function() {
       this.cleanupTempFile();
       if (req.status >= 200 && req.status < 400) {
@@ -807,10 +999,9 @@ nsYouSendItFileUploader.prototype = {
           this.log.error(ex);
         }
       }
-      else {
+      else
         this.callback(this.requestObserver,
                       Ci.nsIMsgCloudFileProvider.uploadErr);
-      }
     }.bind(this);
 
     req.onerror = function () {
@@ -827,7 +1018,7 @@ nsYouSendItFileUploader.prototype = {
 
     let fileContents = "--" + boundary +
       "\r\nContent-Disposition: form-data; name=\"bid\"\r\n\r\n" +
-       this._urlInfo.itemId;
+       this._urlInfo.fileId;
 
     fileContents += "\r\n--" + boundary +
       "\r\nContent-Disposition: form-data; name=\"fname\"; filename=\"" +
@@ -910,16 +1101,15 @@ nsYouSendItFileUploader.prototype = {
    * to send a "commit" request - which this function does.
    */
   _commitSend: function nsYSIFU__commitSend() {
+    this.log.info("commit sending file " + this._urlInfo.fileId);
+    
     let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
-    let resource = kItemCommitPath + "/" + this._urlInfo.itemId;
-    // Not quite sure how we're going to not have expiration.
-    let args = "?sendEmailNotifications=false&expiration=0";  // &expiration=4000000
-    let curDate = Date.now().toString();
+    let args = "?name=" + this.file.leafName +
+               "&fileId=" + this._urlInfo.fileId +
+               "&parentId=" + this.youSendIt._folderId + "&";
 
-    this.log.info("in commit send resource = " + resource);
-
-    req.open("POST", gServerUrl + resource + args, true);
+    req.open("POST", gServerUrl + kFolderCommitUploadPath + args + kUrlTail, true);
 
     req.onerror = function() {
       this.log.info("error in commit send");
@@ -933,15 +1123,64 @@ nsYouSendItFileUploader.prototype = {
       this.log.info("commit response = " + response);
       let uploadInfo = JSON.parse(response);
 
-      if (uploadInfo.downloadUrl != null) {
-        this.youSendIt._urlsForFiles[this.file.path] = uploadInfo.downloadUrl;
-        // Success!
+      let succeed = function() {
         this.callback(this.requestObserver, Cr.NS_OK);
-        return;
+      }.bind(this);
+
+      let failed = function() {
+        this.callback(this.requestObserver, this.file.leafName.length > 120 
+                      ? Ci.nsIMsgCloudFileProvider.uploadExceedsFileNameLimit
+                      : Ci.nsIMsgCloudFileProvider.uploadErr);
+      }.bind(this);
+
+      if (uploadInfo.errorStatus) {
+        this.youSendIt._lastErrorText = uploadInfo.errorStatus.message;
+        this.youSendIt._lastErrorStatus = uploadInfo.errorStatus.code;
+        failed();
       }
-      this.youSendIt._lastErrorText = uploadInfo.errorStatus.message;
-      this.youSendIt._lastErrorStatus = uploadInfo.errorStatus.code;
-      this.callback(this.requestObserver, Ci.nsIMsgCloudFileProvider.uploadErr);
+      else if (uploadInfo.clickableDownloadUrl) {
+        this.youSendIt._urlsForFiles[this.file.path] = uploadInfo.clickableDownloadUrl;
+        succeed();
+      }
+      else
+        this._findDownloadUrl(uploadInfo.id, succeed, failed);
+    }.bind(this);
+
+    req.setRequestHeader("X-Auth-Token", this.youSendIt._cachedAuthToken + " ");
+    req.setRequestHeader("X-Api-Key", kApiKey);
+    req.setRequestHeader("Accept", "application/json");
+    req.send();
+  },
+
+  /**
+   * Attempt to find download url for file.
+   *
+   * @param aFileId id of file
+   * @param aSuccessCallback called if url is found
+   * @param aFailureCallback called if url is not found
+   */
+  _findDownloadUrl: function nsYSIFU__findDownloadUrl(aFileId, aSuccessCallback, aFailureCallback) {
+    let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
+                .createInstance(Ci.nsIXMLHttpRequest);
+
+    req.open("GET", gServerUrl + kFolderFilePath + aFileId, true);
+
+    req.onerror = function() {
+      this.log.info("error in findDownloadUrl");
+      aFailureCallback();
+    }.bind(this);
+
+    req.onload = function() {
+      let response = req.responseText;
+      this.log.info("findDownloadUrl response = " + response);
+      let fileInfo = JSON.parse(response);
+
+      if (fileInfo.errorStatus)
+        aFailureCallback();
+      else {
+        this.youSendIt._urlsForFiles[this.file.path] = fileInfo.clickableDownloadUrl;
+        aSuccessCallback();
+      }
     }.bind(this);
 
     req.setRequestHeader("X-Auth-Token", this.youSendIt._cachedAuthToken + " ");

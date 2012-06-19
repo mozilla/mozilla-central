@@ -22,11 +22,11 @@ const kServerPath = "";
 const kServerURL = kServerRoot + kServerPath;
 const kAuthPath = "/dpi/v1/auth";
 const kUserInfoPath = "/dpi/v2/user";
-const kFilePreparePath = "/dpi/v1/item/send";
+const kFolderPath = "/dpi/v1/folder/";
+const kFolderInitUploadPath = kFolderPath + "file/initUpload";
+const kFolderCommitUploadPath = kFolderPath + "file/commitUpload";
+const kDeletePath = kFolderPath + "file";
 const kDefaultFileUploadPath = "/uploads";
-const kCommitPath = "/dpi/v1/item/commit";
-const kDeletePath = "/dpi/v1/item";
-
 const kDownloadURLPrefix = "http://www.example.com/downloads";
 
 const kAuthResult = {
@@ -79,7 +79,7 @@ const kDefaultUser = {
 };
 
 const kDefaultFilePrepare = {
-  itemId: "",
+  fileId: "",
   uploadUrl: [
   ],
   status: null,
@@ -87,7 +87,7 @@ const kDefaultFilePrepare = {
 }
 
 const kDefaultCommitReturn = {
-  downloadUrl: "",
+  clickableDownloadUrl: "",
   errorStatus: null,
 }
 
@@ -310,21 +310,53 @@ function MockYouSendItPrepareSimple(aYouSendIt) {
 MockYouSendItPrepareSimple.prototype = {
   init: function(aServer) {
     this._server = aServer;
-    this._server.registerPathHandler(kFilePreparePath,
+    this._server.registerPathHandler(kFolderInitUploadPath,
                                      this._prepare.bind(this));
+    
+    this._foldersId = {
+      root: 0,
+      Apps: this._ysi.registry.createItemId(),
+      "Mozilla Thunderbird" : this._ysi.registry.createItemId()
+    };
+    
+    // Set up folders info
+    for (let i in this._foldersId) {
+      this._server.registerPathHandler(kFolderPath + this._foldersId[i],
+                                       this._getFolderInfo.bind(this));
+    }
   },
 
   shutdown: function() {
-    this._server.registerPathHandler(kFilePreparePath, null);
+    this._server.registerPathHandler(kFolderInitUploadPath, null);
+    for (let i in this._foldersId) {
+      this._server.registerPathHandler(kFolderPath + this._foldersId[i],
+                                       null);
+    }
     this._server = null;
   },
 
+  _getFolderInfo: function(aRequest, aResponse) {
+    let folderId = aRequest.path.substring(kFolderPath.length);
+    let nextFolder = folderId == (this._foldersId.root + "")
+                        ? "Apps" 
+                        : "Mozilla Thunderbird";
+    let response = {
+      folders: {
+        folder: [{name: nextFolder, id: this._foldersId[nextFolder]}]
+      },
+      status: 200
+    }
+    aResponse.setStatusLine(null, 200, "OK");
+    aResponse.setHeader("Content-Type", "application/json");
+    aResponse.write(JSON.stringify(response));
+  },
+
   _prepare: function(aRequest, aResponse) {
-    let itemId = this._ysi.registry.createItemId();
-    let uploadPath = kDefaultFileUploadPath + "/" + itemId;
+    let fileId = this._ysi.registry.createItemId();
+    let uploadPath = kDefaultFileUploadPath + "/" + fileId;
 
     let injectedData = {
-      itemId: itemId,
+      fileId: fileId,
       uploadUrl: [
         kServerURL + uploadPath,
       ]
@@ -337,7 +369,7 @@ MockYouSendItPrepareSimple.prototype = {
 
     // Set up the path that will accept file deletion
 
-    let deletePath = kDeletePath + "/" + itemId;
+    let deletePath = kDeletePath + "/" + fileId;
 
     this._server.registerPathHandler(deletePath,
                                      this._ysi.deleter.receiveDelete
@@ -398,7 +430,6 @@ MockYouSendItReceiverSimple.prototype = {
     let itemId = formData['bid'];
     // Tell the committer how to map the uuid to the filename
     this._ysi.registry.setMapping(itemId, filename);
-    this._ysi.committer.expectCommit(filename);
 
     // De-register this URL...
     this._server.registerPathHandler(aRequest.path, null);
@@ -441,18 +472,17 @@ function MockYouSendItCommitterSimple(aYouSendIt) {
 MockYouSendItCommitterSimple.prototype = {
   init: function(aServer) {
     this._server = aServer;
+    // Since fileId is in query, we need to register path only once.
+    this._server.registerPathHandler(kFolderCommitUploadPath, 
+                                     this.commit.bind(this));
   },
 
   shutdown: function() {
+    this._server.registerPathHandler(kFolderCommitUploadPath, 
+                                     null);
     this._server = null;
     this._itemIdMap = {};
     this._filenameURLMap = {};
-  },
-
-  expectCommit: function(aFilename) {
-    let itemId = this._ysi.registry.lookupItemId(aFilename);
-    let commitPath = kCommitPath + "/" + itemId;
-    this._server.registerPathHandler(commitPath, this.commit.bind(this));
   },
 
   prepareDownloadURL: function(aFilename, aURL) {
@@ -460,37 +490,36 @@ MockYouSendItCommitterSimple.prototype = {
   },
 
   commit: function(aRequest, aResponse) {
-    let itemId = aRequest.path.substring(kCommitPath.length + 1);
+    let fileId = aRequest.queryString;
+    fileId = fileId.substring(fileId.indexOf("fileId=") + 7);
+    fileId = fileId.substring(0, fileId.indexOf("&"));
 
-    if (!this._ysi.registry.hasItemId(itemId)) {
+    if (!this._ysi.registry.hasItemId(fileId)) {
       aResponse.setStatusLine(null, 500, "Bad request");
-      aResponse.write("The item ID " + itemId + " did not map to an item we "
+      aResponse.write("The item ID " + fileId + " did not map to an item we "
                       + "were prepared for committing");
       return;
     }
 
-    let filename = this._ysi.registry.lookupFilename(itemId);
+    let filename = this._ysi.registry.lookupFilename(fileId);
     let url;
-
+    
     if (filename in this._filenameURLMap)
       url = this._filenameURLMap[filename];
     else
       url = kDownloadURLPrefix + "/" + filename;
-
+    
     let injectedData = {
-      downloadUrl: url,
+      clickableDownloadUrl: url,
     }
     let data = overrideDefault(kDefaultCommitReturn, injectedData);
-
+    
     // Return the default share URL
     aResponse.setStatusLine(null, 200, "OK");
     aResponse.setHeader("Content-Type", "application/json");
     aResponse.write(JSON.stringify(data));
-
+    
     Services.obs.notifyObservers(null, "cloudfile:getFileURL", filename);
-
-    // Unregister this commit URL
-    this._server.registerPathHandler(aRequest.path, null);
   },
 };
 
@@ -514,30 +543,30 @@ MockYouSendItDeleterSimple.prototype = {
     }
 
 
-    let itemId = aRequest.path.substring(kDeletePath.length + 1);
+    let fileId = aRequest.path.substring(kDeletePath.length + 1);
 
-    if (!this._ysi.registry.hasItemId(itemId)) {
+    if (!this._ysi.registry.hasItemId(fileId)) {
       aResponse.setStatusLine(null, 500, "Bad request");
-      aResponse.write("The item ID " + itemId + " did not map to an item "
+      aResponse.write("The item ID " + fileId + " did not map to an item "
                       + "we were prepared for deleting");
       return;
     }
 
-    let filename = this._ysi.registry.lookupFilename(itemId);
+    let filename = this._ysi.registry.lookupFilename(fileId);
     let itemIndex = this._expectDelete.indexOf(filename);
     if (itemIndex == -1) {
       aResponse.setStatusLine(null, 500, "Bad request");
-      aRespones.write("Not prepared to delete file with filename: "
+      aResponse.write("Not prepared to delete file with filename: "
                       + filename);
       return;
     }
 
     this._expectDelete.splice(itemIndex, 1);
 
-    let response = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><delete><status>OK</status></delete>';
+    let response = {status: 200};
     aResponse.setStatusLine(null, 200, "OK");
-    aResponse.setHeader("Content-Type", "application/xml");
-    aResponse.write(response);
+    aResponse.setHeader("Content-Type", "application/json");
+    aResponse.write(JSON.stringify(response));
 
     Services.obs.notifyObservers(null, "cloudfile:deleteFile", filename);
     this._server.registerPathHandler(aRequest.path, null);
@@ -560,11 +589,11 @@ MockYouSendItDeleterStaleToken.prototype = {
   shutdown: function() {},
 
   receiveDelete: function(aRequest, aResponse) {
-    let data = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><delete><errorStatus><code>401</code><message>Invalid auth token</message></errorStatus></delete>';
+    let data = { errorStatus: { code: 401, message: "Invalid auth token" } };
 
-    aResponse.setStatusLine(null, 200, "OK");
+    aResponse.setStatusLine(null, 401, "Invalid auth token");
     aResponse.setHeader("Content-Type", "application/json");
-    aResponse.write(data);
+    aResponse.write(JSON.stringify(data));
   },
 
   prepareForDelete: function(aFilename) {},
@@ -691,11 +720,11 @@ function parseMultipartForm(request)
   // See if this is a multipart/form-data request, and if so, find the
   // boundary string
   if (request.hasHeader("Content-Type")) {
-    var contenttype = request.getHeader("Content-Type");
-    var bits = contenttype.split(";");
+    let contenttype = request.getHeader("Content-Type");
+    let bits = contenttype.split(";");
     if (bits[0] == "multipart/form-data") {
-      for (var i = 1; i < bits.length; i++) {
-        var b = bits[i].trimLeft();
+      for (let i = 1; i < bits.length; i++) {
+        let b = bits[i].trimLeft();
         if (b.indexOf("boundary=") == 0) {
           // grab everything after boundary=
           boundary = "--" + b.substring(9);
