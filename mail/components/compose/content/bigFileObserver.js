@@ -286,7 +286,7 @@ var gBigFileObserver = {
 
 };
 
-document.documentElement.addEventListener("compose-window-init",
-  gBigFileObserver.init.bind(gBigFileObserver), false);
-document.documentElement.addEventListener("compose-window-close",
-  gBigFileObserver.uninit.bind(gBigFileObserver), false);
+window.addEventListener("compose-window-init",
+  gBigFileObserver.init.bind(gBigFileObserver), true);
+window.addEventListener("compose-window-close",
+  gBigFileObserver.uninit.bind(gBigFileObserver), true);

@@ -502,9 +502,9 @@ var gCloudAttachmentLinkManager = {
   },
 };
 
-document.documentElement.addEventListener("compose-window-init",
-  gCloudAttachmentLinkManager.init.bind(gCloudAttachmentLinkManager), false);
-document.documentElement.addEventListener("compose-window-close",
-  gCloudAttachmentLinkManager.uninit.bind(gCloudAttachmentLinkManager), false);
-document.documentElement.addEventListener("compose-send-message",
-  gCloudAttachmentLinkManager.send.bind(gCloudAttachmentLinkManager), false);
+window.addEventListener("compose-window-init",
+  gCloudAttachmentLinkManager.init.bind(gCloudAttachmentLinkManager), true);
+window.addEventListener("compose-window-close",
+  gCloudAttachmentLinkManager.uninit.bind(gCloudAttachmentLinkManager), true);
+window.addEventListener("compose-send-message",
+  gCloudAttachmentLinkManager.send.bind(gCloudAttachmentLinkManager), true);
