@@ -9,7 +9,7 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE	= calendar
+MODULE = calendar
 DIRS = libical resources base providers import-export locales
 
 ifdef ENABLE_TESTS
