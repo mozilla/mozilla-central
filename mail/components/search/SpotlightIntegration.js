@@ -70,6 +70,15 @@ let SearchIntegration =
     return MailUtils.getFolderForFileInProfile(folderFile);
   },
 
+  _pathNeedsReindexing: function spotlight_pathNeedsReindexing(aPath) {
+    // We used to set permissions incorrectly (see bug 670566).
+    if (aPath.permissions != 0755) {
+      aPath.permissions = 0755;
+      return true;
+    }
+    return false;
+  },
+
   /**
    * These two functions won't do anything, as Spotlight integration is handled
    * using Info.plist files

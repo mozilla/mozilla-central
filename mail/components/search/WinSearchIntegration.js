@@ -138,6 +138,11 @@ let SearchIntegration =
     return MailUtils.getFolderForFileInProfile(aDir);
   },
 
+  _pathNeedsReindexing: function winsearch_pathNeedsReindexing(aPath) {
+    // only needed on MacOSX (see bug 670566).
+    return false;
+  },
+
   _init: function winsearch_init()
   {
     this._initLogging();

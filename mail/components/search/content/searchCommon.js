@@ -337,7 +337,7 @@ let SearchSupport =
           // Create the folder if it doesn't exist, so that we don't hit the
           // condition below later
           if (!searchPath.exists())
-            searchPath.create(Ci.nsIFile.DIRECTORY_TYPE, 0644);
+            searchPath.create(Ci.nsIFile.DIRECTORY_TYPE, 0755);
 
           yield folder;
           // We're back after yielding -- set the last folder indexed
@@ -354,7 +354,13 @@ let SearchSupport =
                             "corresponding search folder does not exist");
             // Create the folder, so that next time we're checking we don't hit
             // this
-            searchPath.create(Ci.nsIFile.DIRECTORY_TYPE, 0644);
+            searchPath.create(Ci.nsIFile.DIRECTORY_TYPE, 0755);
+            folder.setStringProperty(this._hdrIndexedProperty,
+                                     "" + (Date.now() / 1000));
+            yield folder;
+          }
+          // folder may need reindexing for other reasons
+          else if (this._pathNeedsReindexing(searchPath)) {
             folder.setStringProperty(this._hdrIndexedProperty,
                                      "" + (Date.now() / 1000));
             yield folder;
@@ -645,7 +651,7 @@ let SearchSupport =
           {
             try {
               // create the directory, if it doesn't exist
-              destFile.create(Ci.nsIFile.DIRECTORY_TYPE, 0644);
+              destFile.create(Ci.nsIFile.DIRECTORY_TYPE, 0755);
             }
             catch(ex) {SearchIntegration._log.warn(ex);}
           }
@@ -845,7 +851,7 @@ let SearchSupport =
           {
             try {
               // create the directory, if it doesn't exist
-              file.create(Ci.nsIFile.DIRECTORY_TYPE, 0644);
+              file.create(Ci.nsIFile.DIRECTORY_TYPE, 0755);
             }
             catch(ex) { this._log.error(ex); }
           }
