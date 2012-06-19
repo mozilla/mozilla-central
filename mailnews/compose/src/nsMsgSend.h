@@ -129,6 +129,8 @@
 #include "nsIMsgComposeSecure.h"
 #include "nsAutoPtr.h"
 #include "nsISupportsArray.h"
+#include "nsMsgAttachmentData.h"
+
 //
 // Some necessary defines...
 //

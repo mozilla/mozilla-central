@@ -17,14 +17,15 @@
 #include "nsIURI.h"
 #include "nsMsgI18N.h"
 #include "nsIOutputStream.h"
-
+#include "nsMsgAttachmentData.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgCompCID.h"
 #include "nsIArray.h"
 #include "nsIMsgCompose.h"
 #include "nsIMsgCompFields.h"
 #include "nsIMsgAccountManager.h"
-
+#include "nsIMsgSend.h"
+#include "nsImportEmbeddedImageData.h"
 #include "nsNetCID.h"
 #include "nsCRT.h"
 #include "nsOutlookCompose.h"
@@ -34,7 +35,6 @@
 #include "nsMimeTypes.h"
 #include "nsMsgUtils.h"
 
-#include "nsOutlookEditor.h"
 #include "nsAutoPtr.h"
 
 #include "nsMsgMessageFlags.h"
@@ -306,10 +306,10 @@ nsresult nsOutlookCompose::ComposeTheMessage(nsMsgDeliverMode mode, CMapiMessage
           embeddedObjects = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
           NS_ENSURE_SUCCESS(rv, rv);
         }
-        nsCOMPtr<nsIDOMHTMLImageElement> imageNode =
-          new nsOutlookHTMLImageElement(uri, NS_ConvertASCIItoUTF16(cid),
-                                             NS_ConvertASCIItoUTF16(name));
-        embeddedObjects->AppendElement(imageNode);
+        nsCOMPtr<nsIMsgEmbeddedImageData> imageData =
+          new nsImportEmbeddedImageData(uri, nsDependentCString(cid),
+                                     nsDependentCString(name));
+        embeddedObjects->AppendElement(imageData);
       }
     }
   }

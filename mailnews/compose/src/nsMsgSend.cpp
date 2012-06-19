@@ -1511,7 +1511,6 @@ nsMsgComposeAndSend::GetMultipartRelatedCount(bool forceToBeCalculated /*=false*
 
       PRInt32 i;
       nsCOMPtr<nsIDOMNode> node;
-      nsCOMPtr <nsISupports> isupp;
 
       for (i = count - 1, count = 0; i >= 0; i --)
       {
@@ -1520,11 +1519,20 @@ nsMsgComposeAndSend::GetMultipartRelatedCount(bool forceToBeCalculated /*=false*
         // now we need to get the element in the array and do the magic
         // to process this element.
         //
-        mEmbeddedObjectList->QueryElementAt(i, NS_GET_IID(nsIDOMNode), getter_AddRefs(node));
-        if (!node)
-          continue;
+        node = do_QueryElementAt(mEmbeddedObjectList, i, &rv);
         bool acceptObject = false;
-        rv = GetEmbeddedObjectInfo(node, &attachment, &acceptObject);
+        if (node)
+        {
+          rv = GetEmbeddedObjectInfo(node, &attachment, &acceptObject);
+        }
+        else // outlook/eudora import case
+        {
+          nsCOMPtr<nsIMsgEmbeddedImageData> imageData =
+            do_QueryElementAt(mEmbeddedObjectList, i, &rv);
+          if (!imageData)
+            continue;
+          acceptObject = true;
+        }
         if (NS_SUCCEEDED(rv) && acceptObject)
           count ++;
       }
@@ -1831,21 +1839,35 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
   nsCOMPtr<nsIDOMNode> node;
   for (i = mPreloadedAttachmentCount; i < (mPreloadedAttachmentCount + multipartCount);)
   {
-
     // Ok, now we need to get the element in the array and do the magic
     // to process this element.
     //
 
     locCount++;
     mEmbeddedObjectList->QueryElementAt(locCount, NS_GET_IID(nsIDOMNode), getter_AddRefs(node));
-    if (!node)
-      return NS_ERROR_MIME_MPART_ATTACHMENT_ERROR;
-
-    bool acceptObject = false;
-    rv = GetEmbeddedObjectInfo(node, &attachment, &acceptObject);
-    NS_ENSURE_SUCCESS(rv, NS_ERROR_MIME_MPART_ATTACHMENT_ERROR);
-    if (!acceptObject)
+    if (node)
+    {
+      bool acceptObject = false;
+      rv = GetEmbeddedObjectInfo(node, &attachment, &acceptObject);
+      NS_ENSURE_SUCCESS(rv, NS_ERROR_MIME_MPART_ATTACHMENT_ERROR);
+      if (!acceptObject)
         continue;
+      nsString nodeValue;
+      node->GetNodeValue(nodeValue);
+      LossyCopyUTF16toASCII(nodeValue, m_attachments[i].m_contentId);
+    }
+    else
+    {
+      nsCOMPtr<nsIMsgEmbeddedImageData> imageData = do_QueryElementAt(mEmbeddedObjectList, locCount, &rv);
+      if (!imageData)
+        return NS_ERROR_MIME_MPART_ATTACHMENT_ERROR;
+      imageData->GetUri(getter_AddRefs(attachment.m_url));
+      if (!attachment.m_url)
+        return NS_ERROR_MIME_MPART_ATTACHMENT_ERROR;
+      imageData->GetCid(m_attachments[i].m_contentId);
+      imageData->GetName(attachment.m_realName);
+    }
+
 
     // MUST set this to get placed in the correct part of the message
     m_attachments[i].mMHTMLPart = true;
@@ -1894,11 +1916,7 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
       if (m_attachments[i].mURL)
         msg_pick_real_name(&m_attachments[i], nsnull, mCompFields->GetCharacterSet());
 
-      nsString contentId;
-      node->GetNodeValue(contentId);
-      if (!contentId.IsEmpty())
-        m_attachments[i].m_contentId = NS_LossyConvertUTF16toASCII(contentId);
-      else
+      if (m_attachments[i].m_contentId.IsEmpty())
       {
         //
         // Next, generate a content id for use with this part
@@ -5337,4 +5355,3 @@ NS_IMETHODIMP nsMsgAttachedFile::SetMaxLineLength(PRUint32 aMaxLineLength)
   m_maxLineLength = aMaxLineLength;
   return NS_OK;
 }
-

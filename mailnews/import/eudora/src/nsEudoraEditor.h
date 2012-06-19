@@ -6,7 +6,6 @@
 #include "nscore.h"
 #include "nsIEditor.h"
 #include "nsIEditorMailSupport.h"
-#include "nsIDOMHTMLImageElement.h"
 #include "nsCOMPtr.h"
 #include "nsStringGlue.h"
 #include "nsIFile.h"
@@ -28,22 +27,3 @@ class nsEudoraEditor
     nsCOMPtr<nsISupportsArray>  m_EmbeddedObjectList; // Initialized when GetEmbeddedObjects is called
 };
 
-
-class nsEudoraHTMLImageElement : public nsIDOMHTMLImageElement
-{
-  public:
-    NS_DECL_ISUPPORTS
-    NS_DECL_NSIDOMNODE
-    NS_DECL_NSIDOMELEMENT
-    NS_DECL_NSIDOMHTMLELEMENT
-    NS_DECL_NSIDOMHTMLIMAGEELEMENT
-
-    nsEudoraHTMLImageElement(const nsAString & aSrc, const nsAString &aCID);
-
-  private:
-    ~nsEudoraHTMLImageElement();
-
-  protected:
-    nsString                    m_src;
-    nsString                    m_cidOrig;
-};

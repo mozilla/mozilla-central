@@ -36,6 +36,7 @@
 #include "nsIMsgCompFields.h"
 #include "nsMsgCompCID.h"
 #include "nsIMsgComposeService.h"
+#include "nsMsgAttachmentData.h"
 #include "nsMsgI18N.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsDirectoryServiceDefs.h"

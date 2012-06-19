@@ -14,6 +14,7 @@ MODULE		= msgcompose
 
 EXPORTS		= \
 		nsMsgCompCID.h \
+		nsMsgAttachmentData.h \
 		$(NULL)
 
 XPIDLSRCS	= \
