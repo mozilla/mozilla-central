@@ -131,36 +131,7 @@ then
 fi
 MOZ_BUILD_ROOT=`pwd`
 
-dnl Default to MSVC for win32 and gcc for darwin
-dnl ==============================================================
-if test -z "$CROSS_COMPILE"; then
-case "$target" in
-*-cygwin*|*-mingw*|*-msvc*|*-mks*)
-    if test -z "$CC"; then CC=cl; fi
-    if test -z "$CXX"; then CXX=cl; fi
-    if test -z "$CPP"; then CPP="cl -E -nologo"; fi
-    if test -z "$CXXCPP"; then CXXCPP="cl -TP -E -nologo"; ac_cv_prog_CXXCPP="$CXXCPP"; fi
-    if test -z "$LD"; then LD=link; fi
-    if test -z "$AS"; then
-        case "${target_cpu}" in
-        i*86)
-            AS=ml;
-            ;;
-        x86_64)
-            AS=ml64;
-            ;;
-        esac
-    fi
-    if test -z "$MIDL"; then MIDL=midl; fi
-    ;;
-*-darwin*)
-    # we prefer gcc-4.2 over gcc on older darwin, so
-    # use that specific version if it's available.
-    MOZ_PATH_PROGS(CC, $CC gcc-4.2 gcc)
-    MOZ_PATH_PROGS(CXX, $CXX g++-4.2 g++)
-    ;;
-esac
-fi
+MOZ_DEFAULT_COMPILER
 
 COMPILE_ENVIRONMENT=1
 MOZ_ARG_DISABLE_BOOL(compile-environment,
@@ -533,9 +504,6 @@ case "$target" in
         else
             AC_MSG_ERROR([This version ($CC_VERSION) of the MSVC compiler is unsupported. See https://developer.mozilla.org/en/Windows_Build_Prerequisites.])
         fi
-
-        _MOZ_RTTI_FLAGS_ON='-GR'
-        _MOZ_RTTI_FLAGS_OFF='-GR-'
 
         dnl Ensure that mt.exe is 'Microsoft (R) Manifest Tool',
         dnl not something else like "magnetic tape manipulation utility".
@@ -1383,8 +1351,6 @@ if test "$GNU_CC"; then
     DSO_CFLAGS=''
     DSO_PIC_CFLAGS='-fPIC'
     ASFLAGS="$ASFLAGS -fPIC"
-    _MOZ_RTTI_FLAGS_ON=-frtti
-    _MOZ_RTTI_FLAGS_OFF=-fno-rtti
 
     # Turn on GNU-specific warnings:
     # -Wall - turn on a lot of warnings
@@ -2672,6 +2638,7 @@ if test -z "$COMPILE_ENVIRONMENT"; then
     SKIP_LIBRARY_CHECKS=1
 fi
 
+MOZ_COMPILER_OPTS
 if test -z "$SKIP_COMPILER_CHECKS"; then
 dnl Checks for typedefs, structures, and compiler characteristics.
 dnl ========================================================
@@ -2826,23 +2793,6 @@ else
     AC_MSG_RESULT(no)
 fi
 
-dnl ========================================================
-dnl C++ rtti
-dnl Should be smarter and check that the compiler does indeed have rtti
-dnl ========================================================
-
-MOZ_ARG_ENABLE_BOOL(cpp-rtti,
-[  --enable-cpp-rtti       Enable C++ RTTI ],
-[ _MOZ_USE_RTTI=1 ],
-[ _MOZ_USE_RTTI= ])
-
-if test "$_MOZ_USE_RTTI"; then
-   _MOZ_RTTI_FLAGS=$_MOZ_RTTI_FLAGS_ON
-else
-   _MOZ_RTTI_FLAGS=$_MOZ_RTTI_FLAGS_OFF
-fi
-
-AC_SUBST(_MOZ_RTTI_FLAGS_ON)
 
 dnl Check whether we can use gcc's c++0x mode
 AC_LANG_CPLUSPLUS
@@ -2851,17 +2801,14 @@ if test "$GNU_CXX"; then
     _SAVE_CXXFLAGS=$CXXFLAGS
     CXXFLAGS="$CXXFLAGS -std=gnu++0x"
 
-    if test -z "$_MOZ_USE_RTTI"; then
-        CXXFLAGS="$CXXFLAGS $_MOZ_RTTI_FLAGS"
-        AC_CACHE_CHECK(for gcc c++0x headers bug without rtti,
-            ac_cv_cxx0x_headers_bug,
-            [AC_TRY_COMPILE([#include <memory>], [],
-                            ac_cv_cxx0x_headers_bug="no",
-                            ac_cv_cxx0x_headers_bug="yes")])
-        CXXFLAGS="$_SAVE_CXXFLAGS"
-        if test "$ac_cv_cxx0x_headers_bug" = "no"; then
-            CXXFLAGS="$CXXFLAGS -std=gnu++0x"
-        fi
+    AC_CACHE_CHECK(for gcc c++0x headers bug without rtti,
+        ac_cv_cxx0x_headers_bug,
+        [AC_TRY_COMPILE([#include <memory>], [],
+                        ac_cv_cxx0x_headers_bug="no",
+                        ac_cv_cxx0x_headers_bug="yes")])
+    CXXFLAGS="$_SAVE_CXXFLAGS"
+    if test "$ac_cv_cxx0x_headers_bug" = "no"; then
+        CXXFLAGS="$CXXFLAGS -std=gnu++0x"
     fi
 fi
 
@@ -6875,7 +6822,6 @@ CFLAGS=`echo \
 	$CFLAGS`
 
 CXXFLAGS=`echo \
-	$_MOZ_RTTI_FLAGS \
 	$_WARNINGS_CXXFLAGS \
 	$CXXFLAGS`
 
@@ -7114,11 +7060,11 @@ HAVE_WCRTOMB
 
 # Hack around an Apple bug that effects the egrep that comes with OS X 10.7.
 # "arch -arch i386 egrep" always uses the 32-bit Intel part of the egrep fat
-# binary, even on 64-bit systems.  It should work on OS X 10.4.5 and up.  We
-# (apparently) only need this hack when egrep's "pattern" is particularly
-# long (as in the following code).  See bug 655339.
+# binary, even on 64-bit systems. We (apparently) only need this hack when
+# egrep's "pattern" is particularly long (as in the following code).
+# See bug 655339.
 case "$host" in
-x86_64-apple-darwin*)
+*-apple-darwin11*)
     FIXED_EGREP="arch -arch i386 egrep"
     ;;
 *)
