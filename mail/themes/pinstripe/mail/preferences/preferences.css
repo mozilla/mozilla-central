@@ -63,7 +63,7 @@ radio[pane=paneAdvanced] {
 
 /* Attachments Pane */
 #MailPreferences[animated="true"] #handlersView {
-  height: 25em;
+  height: 17em;
 }
 
 #MailPreferences[animated="false"] #handlersView {
