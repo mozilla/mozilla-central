@@ -499,7 +499,7 @@ nsUbuntuOne.prototype = {
             this.log.info("Failed to transfer access token to Ubuntu One:" +
                           aResponseText);
             failureCallback();
-          }.bind(this). this);
+          }.bind(this), this);
       }.bind(this),
       function(aException, aResponseText, aRequest) {
         this.log.info("Failed to acquire an access token:" + aResponseText);
