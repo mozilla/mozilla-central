@@ -367,7 +367,8 @@ var EmailAccountProvisioner = {
       dataType: 'json',
       data: {"first_name": firstname,
              "last_name": lastname,
-             "providers": providerList},
+             "providers": providerList,
+             "version": 2},
       timeout: CONNECTION_TIMEOUT,
       success: EmailAccountProvisioner.onSearchResults})
       .error(EmailAccountProvisioner.showSearchError)
@@ -748,8 +749,20 @@ var EmailAccountProvisioner = {
         let tmplData = {
           address: address,
         };
+        if (address.address)
+          tmplData.address = address.address;
 
-        if (provider.price && provider.price != "0")
+        // Figure out the price to display on the address button, as so:
+        // If there is a per-address price of > 0, use that.
+        // Otherwise, if there is a per-address price of 0, use "Free",
+        // Otherwise, there's no per-address price,
+        //   so if the provider's price is > 0, use that.
+        //   Or if the provider's price is 0, use "Free".
+        if (address.price && address.price != "0")
+          tmplData.priceStr = stringBundle.get("price", [address.price])
+        else if (address.price && address.price == "0")
+          tmplData.priceStr = stringBundle.get("free");
+        else if (provider.price && provider.price != "0")
           tmplData.priceStr = stringBundle.get("price", [provider.price])
         else
           tmplData.priceStr = stringBundle.get("free");

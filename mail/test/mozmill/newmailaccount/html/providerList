@@ -33,18 +33,28 @@
   "tos_url": "http://www.example.com/German-tos",
   "privacy_url": "http://www.example.com/German-privacy",
   "search_engine": "German"
-},{"id": "corrupt",
+ },
+ {"id": "corrupt",
   "label": "Corrupt Provider",
   "paid": false,
   "languages" : ["en-US"],
   "api": "http://localhost:43336/registrationCorrupt.html",
   "tos_url": "http://www.example.com/corrupt-tos",
   "privacy_url": "http://www.example.com/corrupt-privacy"
-},{"id": "err",
+ },
+ {"id": "err",
   "label": "Error Provider",
   "paid": false,
   "languages" : ["en-US"],
   "api": "http://localhost:43336/registrationError.html",
   "tos_url": "http://www.example.com/err-tos",
   "privacy_url": "http://www.example.com/err-privacy"
-}]
+ },
+ {"id": "multi",
+  "label": "multi",
+  "paid": true,
+  "languages" : ["en-US"],
+  "api": "http://localhost:43336/registration.html",
+  "tos_url": "http://www.example.com/bar-tos",
+  "privacy_url": "http://www.example.com/bar-privacy"
+ }]

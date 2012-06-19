@@ -8,4 +8,6 @@
 {"product": "personalized_email", "addresses": ["corrupt@corrupt.nul"],
 "succeeded": true, "quote": "abcdefg", "price": 0, "provider": "corrupt"},
 {"product": "personalized_email", "addresses": ["error@error.nul"],
-"succeeded": true, "quote": "abcdefg", "price": 0, "provider": "err"}]
+"succeeded": true, "quote": "abcdefg", "price": 0, "provider": "err"},
+{"addresses": ["default@example.com", {"address": "cheap@example.com", "price": "0"},
+{"address": "expensive@example.com", "price": "$20.00"}], "succeeded": true, "price": "$20-$0", "provider": "multi"}]

@@ -1250,3 +1250,46 @@ function test_get_new_account_focuses_existing_ap_tab() {
   assert_selected_tab(apTab);
   mc.tabmail.closeTab(apTab);
 }
+
+/**
+ * Test that some prices can be per-address, instead of per-provider.
+ */
+function test_per_address_prices() {
+  plan_for_modal_dialog("AccountCreation", subtest_per_address_prices);
+  open_provisioner_window();
+  wait_for_modal_dialog("AccountCreation");
+}
+
+/**
+ * Subtest used by test_html_characters_and_ampersands.  This function puts
+ * a name with HTML tags into the search input, does a search, and ensures
+ * that the rendered name has escaped the HTML tags properly.
+ */
+function subtest_per_address_prices(w) {
+  wait_for_provider_list_loaded(w);
+  wait_for_search_ready(w);
+  let $ = w.window.$;
+
+  // Type a name with some HTML tags and an ampersand in there
+  // to see if we can trip up account provisioner.
+  type_in_search_name(w, "Joanna Finkelstein");
+
+  // Do the search.
+  $("#searchSubmit").click();
+
+  wait_for_search_results(w);
+
+  let prices = ["$20-$0 a year", "Free", "$20.00 a year"];
+
+  // Check that the multi-provider has the default price.
+  assert_true($(".provider:contains('multi') ~ .price").text(), prices[0].slice(0, 6));
+
+  // Click on the multi provider. This reveals the buttons with the prices.
+  $(".provider:contains('multi')").click();
+  mc.waitFor(function () $("button.create:visible").length > 0);
+
+  // For each button, make sure it has the correct price.
+  $("button.create:visible").text(function(index, text){
+    assert_equals(text, prices[index]);
+  });
+}
