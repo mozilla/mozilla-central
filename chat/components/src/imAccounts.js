@@ -222,8 +222,10 @@ imAccount.prototype = {
           this.prefBranch.prefHasUserValue(kPrefAccountAutoJoin)) {
         let autojoin = this.prefBranch.getCharPref(kPrefAccountAutoJoin);
         if (autojoin) {
-          for each (let room in autojoin.split(","))
-            this.joinChat(this.getChatRoomDefaultFieldValues(room));
+          for each (let room in autojoin.trim().split(/,\s*/)) {
+            if (room)
+              this.joinChat(this.getChatRoomDefaultFieldValues(room));
+          }
         }
       }
     }
