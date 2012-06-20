@@ -44,6 +44,11 @@
   border-top: none;
 }
 
+.mail-toolbox {
+  -moz-box-pack: center;
+  min-height: 41px;
+}
+
 #mail-bar3 {
   padding: 1px 0;
 }

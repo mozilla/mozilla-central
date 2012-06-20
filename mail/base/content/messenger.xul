@@ -542,9 +542,8 @@
   </statusbar>
 
   <svg:svg height="0">
-    <svg:clipPath id="tab-curve-clip-path">
-      <svg:path d="M30,31C21,31,2,31,2,31s0,0,0-1c9,0,11-5,13-13 C16,12,17,2,30,2L30,31z" />
-      <svg:rect x="30" y="2" width="1" height="30" />
+    <svg:clipPath id="tab-curve-clip-path" clipPathUnits="userSpaceOnUse">
+      <svg:path d="m 0,28 5,0 4,-3 3,-4 1,-5 1,-5 3,-5 4,-4 4,-2 5,0 0,31 -30,0 z"/>
     </svg:clipPath>
   </svg:svg>
 

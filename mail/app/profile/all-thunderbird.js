@@ -402,7 +402,7 @@ pref("mail.tabs.loadInBackground", true);
 
 // Tabs
 pref("mail.tabs.tabMinWidth", 100);
-pref("mail.tabs.tabMaxWidth", 250);
+pref("mail.tabs.tabMaxWidth", 210);
 pref("mail.tabs.tabClipWidth", 140);
 pref("mail.tabs.autoHide", false);
 pref("mail.tabs.closeWindowWithLastTab", true);

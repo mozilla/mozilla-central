@@ -14,7 +14,8 @@
   color: inherit;
 }
 
-.tabmail-tabs > .tabmail-tab:first-child > .tab-close-button {
+.tabmail-tabs > .tabmail-tab:first-child > .tab-stack > .tab-content >
+.tab-close-button {
   visibility: collapse;
 }
 
@@ -25,20 +26,15 @@
 .tabmail-tab {
   -moz-appearance: none;
   color: -moz-DialogText;
-  height: 30px;
-  margin: 0 -14px 0;
+  margin: 0 0 -1px;
   padding: 0;
+  border-radius: 0;
   border-width: 0;
   background: none;
 }
 
-.tabmail-tab:first-child {
-  -moz-margin-start: 0;
-}
-
 .tabmail-tab[selected] {
   position: relative;
-  z-index: 1;
   text-shadow: none;
 }
 
@@ -47,77 +43,59 @@
   text-shadow: inherit;
 }
 
-.tabmail-tab:hover {
-  background-repeat: no-repeat;
-  background-position: 29px 2px,
-                       left 0,
-                       30px 0,
-                       right 0;
-  background-size: -moz-calc(100% - 58px) 31px,
-                   30px 31px,
-                   -moz-calc(100% - 60px) 29px,
-                   30px 31px;
+.tab-stack {
+  height: 31px;
 }
 
-.tabmail-tab[selected] {
-  background-repeat: no-repeat;
-  background-position: 29px 2px,
-                       29px 2px,
-                       left 0,
+.tabmail-tab:hover > .tab-stack > .tab-background:not([selected=true]),
+.tab-background[selected=true] {
+  background-repeat: no-repeat,
+                     no-repeat,
+                     no-repeat;
+  background-position: left 0,
                        30px 0,
                        right 0;
-  background-size: -moz-calc(100% - 58px) 31px,
-                   -moz-calc(100% - 58px) 31px,
-                   30px 31px,
-                   -moz-calc(100% - 60px) 29px,
-                   30px 31px;
+  background-size: 30px 100%,
+                   -moz-calc(100% - 60px) 100%,
+                   30px 100%;
 }
 
-.tabmail-tab:hover {
-  background-image: -moz-linear-gradient(transparent, transparent),
-                    url(icons/tabBackgroundStart.png),
+.tabmail-tab:hover > .tab-stack > .tab-background:not([selected=true]) {
+  background-image: url(icons/tabBackgroundStart.png),
                     url(icons/tabBackgroundMiddle.png),
                     url(icons/tabBackgroundEnd.png);
 }
 
-.tabmail-tab[selected]:not(:-moz-lwtheme) {
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, .7),
-                    rgba(255, 255, 255, .5)),
-                    -moz-linear-gradient(-moz-dialog, -moz-dialog),
-                    url(icons/tabActiveStart.png),
-                    url(icons/tabActiveMiddle.png),
-                    url(icons/tabActiveEnd.png);
+.tab-background[selected=true] {
+  background-image: url(icons/tabActiveStart.svg),
+                    url(icons/tabActiveMiddle.svg),
+                    url(icons/tabActiveEnd.svg);
 }
 
-.tabmail-tab[selected]:-moz-lwtheme {
-  background-image: -moz-linear-gradient(top, rgba(255, 255, 255, .7),
-                    rgba(255, 255, 255, .5)),
-                    -moz-linear-gradient(rgba(255, 255, 255, .3),
-                    rgba(255, 255, 255, .3)),
-                    url(icons/tabActiveStart.png),
-                    url(icons/tabActiveMiddle.png),
-                    url(icons/tabActiveEnd.png);
-  background-position: 31px 2px,
-                       31px 2px,
-                       left 0,
-                       30px 0,
-                       right 0;
-  background-size: -moz-calc(100% - 62px) 31px,
-                   -moz-calc(100% - 62px) 31px,
-                   30px 31px,
-                   -moz-calc(100% - 60px) 29px,
-                   30px 31px;
+.tab-background[selected=true]:-moz-lwtheme {
+  opacity: .55;
+}
+
+@media (-moz-windows-default-theme) {
+  .tab-background[selected=true] {
+    background-image: url(icons/tabActiveStart.png),
+                      url(icons/tabActiveMiddle.png),
+                      url(icons/tabActiveEnd.png);
+  }
+  
+  .tab-background[selected=true]:-moz-lwtheme {
+    opacity: .5;
+  }
 }
 
 .tabmail-tab:not([selected]):not(:hover) +
-.tabmail-tab:not([selected]):not(:hover)::before,
-.tabmail-tab:last-child:not([selected]):not(:hover)::after {
+.tabmail-tab:not([selected]):not(:hover)::before {
   content: "";
   display: -moz-box;
   width: 2px;
   height: 28px;
-  -moz-margin-start: 12px;
-  -moz-margin-end: -14px;
+  -moz-margin-start: -2px;
+  -moz-margin-end: 0;
   background: -moz-linear-gradient(bottom, hsla(210, 23%, 10%, .4),
               hsla(210, 23%, 10%, .1) 80%, transparent),
               -moz-linear-gradient(bottom, hsla(0, 0%, 100%, .4),
@@ -127,57 +105,47 @@
   background-repeat: no-repeat;
 }
 
-.tabmail-tab:last-child:not([selected]):not(:hover)::after {
-  -moz-margin-start: -14px;
-  -moz-margin-end: 12px;
+.tab-content {
+  -moz-padding-start: 10px;
+  -moz-padding-end: 10px;
 }
 
-.tab-image-left,
-.tab-image-right {
-  width: 31px;
-  height: 30px;
+.tab-background {
+  -moz-margin-start: -14px;
+  -moz-margin-end: -14px;
+}
+
+.tab-background-start,
+.tab-background-end {
+  width: 30px;
   clip-path: url(chrome://messenger/content/messenger.xul#tab-curve-clip-path);
 }
 
-.tab-image-right:-moz-locale-dir(ltr),
-.tab-image-left:-moz-locale-dir(rtl) {
+.tab-background-end:-moz-locale-dir(ltr),
+.tab-background-start:-moz-locale-dir(rtl) {
   -moz-transform: scaleX(-1);
 }
 
-.tab-image-middle {
-  position: relative;
+.tab-background-middle {
+  -moz-box-flex: 1;
 }
 
-.tab-image-left[selected]:not(:-moz-lwtheme),
-.tab-image-right[selected]:not(:-moz-lwtheme) {
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, .7),
-                    rgba(255, 255, 255, .5)),
-                    -moz-linear-gradient(-moz-dialog, -moz-dialog);
+.tabmail-tab,
+.tab-background,
+.tab-content {
+  pointer-events: none;
 }
 
-.tab-image-left[selected]:-moz-lwtheme,
-.tab-image-right[selected]:-moz-lwtheme {
-  background-image: -moz-linear-gradient(top, rgba(255, 255, 255, .7),
-                    rgba(255, 255, 255, .5)),
-                    -moz-linear-gradient(rgba(255, 255, 255, .3),
-                    rgba(255, 255, 255, .3));
+.tab-background-start,
+.tab-background-middle,
+.tab-background-end,
+.tab-close-button {
+  pointer-events: auto;
 }
 
-@media (-moz-windows-default-theme) {
-  .tabmail-tab[selected]:not(:-moz-lwtheme) {
-    background-image: -moz-linear-gradient(top, hsl(204, 33%, 97%),
-                      hsl(210, 58%, 95%)),
-                      -moz-linear-gradient(transparent, transparent),
-                      url(icons/tabActiveStart.png),
-                      url(icons/tabActiveMiddle.png),
-                      url(icons/tabActiveEnd.png);
-  }
-
-  .tab-image-left[selected]:not(:-moz-lwtheme),
-  .tab-image-right[selected]:not(:-moz-lwtheme) {
-    background-image: -moz-linear-gradient(top, hsl(204, 33%, 97%),
-                      hsl(210, 58%, 95%));
-  }
+.tabmail-arrowscrollbox > scrollbox {
+  -moz-padding-start: 14px;
+  -moz-padding-end: 14px;
 }
 
 .tabmail-tab[busy],
@@ -190,14 +158,12 @@
   list-style-image: url("chrome://global/skin/icons/Search-glass.png");
 }
 
-.tabmail-tab[selected] > .tab-image-middle > .tab-text {
+.tabmail-tab[selected] > .tab-stack > .tab-content > .tab-text {
   opacity: 1.0 !important;
 }
 
 .tab-throbber,
 .tab-icon-image {
-  -moz-margin-start: -6px;
-  -moz-margin-end: 5px;
   margin-bottom: 1px;
   width: 16px;
   height: 16px;
@@ -213,19 +179,23 @@ tabpanels {
   background-color: transparent;
 }
 
+.tab-text {
+  -moz-padding-start: 5px;
+  -moz-padding-end: 5px;
+}
+
 /* tabmail-tab focus ring */
-.tabmail-tab > .tab-image-middle > .tab-text {
+.tabmail-tab > .tab-stack > .tab-content > .tab-text {
   border: 1px dotted transparent;
 }
 
-.tabmail-tab:focus > .tab-image-middle > .tab-text {
+.tabmail-tab:focus > .tab-stack > .tab-content > .tab-text {
   border: 1px dotted -moz-DialogText;
 }
 
 /* Tab DnD indicator */
 .tab-drop-indicator {
   list-style-image: url(chrome://messenger/skin/icons/tabDragIndicator.png);
-  -moz-padding-start: 26px;
   margin-bottom: -11px;
 }
 
@@ -246,27 +216,23 @@ tabpanels {
 }
 
 .tab-close-button {
-  margin-top: 2px;
-  -moz-padding-start: 5px !important;
+  -moz-padding-start: 0 !important;
   -moz-padding-end: 0 !important;
-  -moz-margin-end: -6px;
   position: relative;
-  z-index: 2;
+  z-index: 4;
 }
 
 .tab-close-button:hover,
-.tabs-closebutton:hover,
-.tabmail-tab[selected] > .tab-close-button:hover {
+.tabs-closebutton:hover {
   -moz-image-region: rect(0, 32px, 16px, 16px);
 }
 
 .tab-close-button:hover:active,
-.tabs-closebutton:hover:active,
-.tabmail-tab[selected] > .tab-close-button:hover:active {
+.tabs-closebutton:hover:active {
   -moz-image-region: rect(0, 48px, 16px, 32px);
 }
 
-.tabmail-tab[selected] > .tab-close-button {
+.tabmail-tab[selected] > .tab-stack > .tab-content > .tab-close-button {
   /* Make this button focusable so clicking on it will not focus the tab while
      it's getting closed */
   -moz-user-focus: normal;

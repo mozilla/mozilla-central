@@ -23,6 +23,11 @@
   background-color: -moz-Dialog;
 }
 
+.mail-toolbox {
+  -moz-box-pack: center;
+  min-height: 41px;
+}
+
 .mail-toolbox,
 .contentTabToolbox {
   border-bottom: 1px solid ThreeDShadow;
@@ -53,7 +58,6 @@
 
 .mail-toolbox:-moz-lwtheme,
 .contentTabToolbox:-moz-lwtheme {
-  background-color: rgba(255, 255, 255, 0.3) !important;
   background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5),
                     rgba(255, 255, 255, 0) 28px) !important;
 }
@@ -372,7 +376,6 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 
   #mail-toolbar-menubar2:-moz-lwtheme {
     background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5) 50%);
-    background-color: rgba(255, 255, 255, 0.3);
   }
 
   #navigation-toolbox > #mail-toolbar-menubar2:not(:-moz-lwtheme) {

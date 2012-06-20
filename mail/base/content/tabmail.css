@@ -26,15 +26,21 @@
   -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-close-tab-button");
 }
 
+.tab-stack {
+  vertical-align: top;
+}
+
 .tab-close-button {
   display: none;
 }
 
-.tabmail-tabs:not([closebuttons="noclose"]):not([closebuttons="closeatend"]) > .tabmail-tab[selected="true"]:not(:only-child) > .tab-close-button {
+.tabmail-tabs:not([closebuttons="noclose"]):not([closebuttons="closeatend"]) >
+.tabmail-tab[selected="true"]:not(:only-child) > .tab-stack > .tab-content > .tab-close-button {
   display: -moz-box;
 }
 
-.tabmail-tabs[closebuttons="alltabs"] > .tabmail-tab:not(:only-child) > .tab-close-button {
+.tabmail-tabs[closebuttons="alltabs"] > .tabmail-tab:not(:only-child) >
+.tab-stack > .tab-content > .tab-close-button {
   display: -moz-box;
 }
 

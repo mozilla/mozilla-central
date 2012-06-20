@@ -57,6 +57,11 @@ menulist > menupopup > menu > .menu-iconic-left {
   background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 19px);
 }
 
+.mail-toolbox:-moz-lwtheme,
+.contentTabToolbox:-moz-lwtheme {
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 19px);
+}
+
 .mail-toolbox > toolbar,
 .contentTabToolbox > toolbar {
   -moz-appearance: none;

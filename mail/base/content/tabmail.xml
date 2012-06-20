@@ -1459,17 +1459,35 @@
   <binding id="tabmail-tab" display="xul:box"
            extends="chrome://global/content/bindings/tabbox.xml#tab">
     <content closetabtext="&closeTab.label;" context="tabContextMenu">
-      <xul:hbox class="tab-image-left" xbl:inherits="selected"/>
-      <xul:hbox class="tab-image-middle box-inherit" align="center"
-                xbl:inherits="dir,pack,orient,selected" flex="1">
-        <xul:image class="tab-throbber" xbl:inherits="busy,thinking"/>
-        <xul:image class="tab-icon-image" xbl:inherits="validate,src=image"/>
-        <xul:label class="tab-text"
-                  xbl:inherits="value=label,accesskey,crop,disabled"
-                  crop="right" flex="1"/>
-      </xul:hbox>
-      <xul:toolbarbutton anonid="close-button" class="tab-close-button" tabindex="-1"/>
-      <xul:hbox class="tab-image-right" xbl:inherits="selected"/>
+      <xul:stack class="tab-stack" flex="1">
+        <xul:hbox xbl:inherits="pinned,selected,titlechanged"
+                  class="tab-background">
+          <xul:hbox xbl:inherits="pinned,selected,titlechanged"
+                    class="tab-background-start"/>
+          <xul:hbox xbl:inherits="pinned,selected,titlechanged"
+                    class="tab-background-middle"/>
+          <xul:hbox xbl:inherits="pinned,selected,titlechanged"
+                    class="tab-background-end"/>
+        </xul:hbox>
+        <xul:hbox xbl:inherits="pinned,selected,titlechanged"
+                  class="tab-content" align="center">
+          <xul:image xbl:inherits="fadein,pinned,busy,progress,selected"
+                     class="tab-throbber"
+                     role="presentation"/>
+          <xul:image xbl:inherits="validate,src=image,fadein,pinned,selected"
+                     class="tab-icon-image"
+                     role="presentation"/>
+          <xul:label flex="1"
+                     xbl:inherits="value=label,crop,accesskey,fadein,pinned,selected"
+                     class="tab-text tab-label"
+                     role="presentation"/>
+          <xul:toolbarbutton anonid="close-button"
+                             xbl:inherits="fadein,pinned,selected"
+                             tabindex="-1"
+                             clickthrough="never"
+                             class="tab-close-button"/>
+        </xul:hbox>
+      </xul:stack>
     </content>
 
     <implementation>
