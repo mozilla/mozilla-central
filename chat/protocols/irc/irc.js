@@ -1078,9 +1078,13 @@ ircAccount.prototype = {
     this.sendMessage("NICK", this._originalNickname);
 
     // Send the user message (section 3.1.3).
-    // Use brandShortName as the username.
-    let username =
-      l10nHelper("chrome://branding/locale/brand.properties")("brandShortName");
+    let username;
+    // Use a custom username in a hidden preference.
+    if (this.prefs.prefHasUserValue("username"))
+      username = this.getString("username");
+    // But fallback to brandShortName if no username is provided (or is empty).
+    if (!username)
+      username = l10nHelper("chrome://branding/locale/brand.properties")("brandShortName");
     this.sendMessage("USER", [username, this._mode.toString(), "*",
                               this._realname || this._originalNickname]);
   },
