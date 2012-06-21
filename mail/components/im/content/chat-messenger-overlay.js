@@ -366,7 +366,7 @@ var chatHandler = {
     if (list.selectedItem.getAttribute("id") != "searchResultConv")
       document.getElementById("goToConversation").hidden = false;
     let path = log.path;
-    if (this._displayedLog != path) {
+    if (!this._displayedLog || this._displayedLog != path) {
       this._displayedLog = path;
       this._showLog(log.getConversation());
     }
