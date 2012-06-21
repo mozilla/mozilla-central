@@ -343,6 +343,7 @@ const XMPPAccountBuddyPrototype = {
     this._account._connection.sendStanza(s);
   },
 
+  _photoHash: null,
   _saveIcon: function(aPhotoNode) {
     let type = aPhotoNode.getElement(["TYPE"]).innerText;
     const kExt = {"image/gif": "gif", "image/jpeg": "jpg", "image/png": "png"};
@@ -351,11 +352,21 @@ const XMPPAccountBuddyPrototype = {
 
     let data = aPhotoNode.getElement(["BINVAL"]).innerText;
     let content = atob(data.replace(/[^A-Za-z0-9\+\/\=]/g, ""));
+
+    // Store a sha1 hash of the photo we have just received.
+    let ch = Cc["@mozilla.org/security/hash;1"].createInstance(Ci.nsICryptoHash);
+    ch.init(ch.SHA1);
+    let dataArray = [content.charCodeAt(i) for (i in content)];
+    ch.update(dataArray, dataArray.length);
+    let hash = ch.finish(false);
+    function toHexString(charCode) ("0" + charCode.toString(16)).slice(-2)
+    this._photoHash = [toHexString(hash.charCodeAt(i)) for (i in hash)].join("");
+
     let istream = Cc["@mozilla.org/io/string-input-stream;1"]
                   .createInstance(Ci.nsIStringInputStream);
     istream.setData(content, content.length);
 
-    let fileName = this.normalizedName + "." + kExt[type];
+    let fileName = this._photoHash + "." + kExt[type];
     let file = FileUtils.getFile("ProfD", ["icons",
                                            this.account.protocol.normalizedName,
                                            this.account.normalizedName,
@@ -430,6 +441,17 @@ const XMPPAccountBuddyPrototype = {
         priority: priority,
         stanza: aStanza
       };
+    }
+
+    let photo = aStanza.getElement(["x", "photo"]);
+    if (photo && photo.uri == Stanza.NS.vcard_update) {
+      let hash = photo.innerText;
+      if (hash && hash != this._photoHash)
+        this._account._requestVCard(this.normalizedName);
+      else if (!hash && this._photoHash) {
+        delete this._photoHash;
+        this.buddyIconFilename = "";
+      }
     }
 
     for (let r in this._resources) {
@@ -858,11 +880,8 @@ const XMPPAccountPrototype = {
     let subscription =  "";
     if ("subscription" in aItem.attributes)
       subscription = aItem.attributes["subscription"];
-    if (subscription == "both" || subscription == "to") {
-      let s = Stanza.iq("get", null, jid,
-                        Stanza.node("vCard", Stanza.NS.vcard));
-      this._connection.sendStanza(s, this.onVCard, this);
-    }
+    if (subscription == "both" || subscription == "to")
+      this._requestVCard(jid);
     else if (subscription == "remove") {
       this._forgetRosterItem(jid);
       return "";
@@ -905,6 +924,11 @@ const XMPPAccountPrototype = {
   _forgetRosterItem: function(aJID) {
     Services.contacts.accountBuddyRemoved(this._buddies[aJID]);
     delete this._buddies[aJID];
+  },
+  _requestVCard: function(aJID) {
+    let s = Stanza.iq("get", null, aJID,
+                      Stanza.node("vCard", Stanza.NS.vcard));
+    this._connection.sendStanza(s, this.onVCard, this);
   },
 
   /* When the roster is received */
