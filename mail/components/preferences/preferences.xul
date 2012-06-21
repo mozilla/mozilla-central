@@ -7,7 +7,6 @@
 
 <?xml-stylesheet href="chrome://global/skin/global.css"?>
 <?xml-stylesheet href="chrome://messenger/skin/preferences/preferences.css"?>
-<?xml-stylesheet href="chrome://mozapps/content/preferences/preferences.css"?>
 <?xml-stylesheet href="chrome://messenger/content/messenger.css"?>
 
 <!-- XXX This should be in applications.xul, but bug 393953 means putting it

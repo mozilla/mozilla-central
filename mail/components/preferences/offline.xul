@@ -6,7 +6,6 @@
 
 <?xml-stylesheet href="chrome://global/skin/"?>
 <?xml-stylesheet href="chrome://messenger/skin/preferences/preferences.css"?>
-<?xml-stylesheet href="chrome://mozapps/content/preferences/preferences.css"?>
 
 <!DOCTYPE prefwindow [
   <!ENTITY % offlineDTD SYSTEM "chrome://messenger/locale/preferences/offline.dtd">
