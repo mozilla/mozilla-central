@@ -31,6 +31,9 @@ XPCOMUtils.defineLazyGetter(this, "NetUtil", function() {
   Components.utils.import("resource://gre/modules/NetUtil.jsm");
   return NetUtil;
 });
+XPCOMUtils.defineLazyServiceGetter(this, "imgTools",
+                                   "@mozilla.org/image/tools;1",
+                                   "imgITools");
 
 initLogModule("xmpp", this);
 
@@ -582,11 +585,14 @@ const XMPPAccountPrototype = {
           this._sendPresence();
       }).bind(this));
     }
-
-    if (aTopic != "status-changed")
-      return;
-
-    this._sendPresence();
+    else if (aTopic == "status-changed")
+      this._sendPresence();
+    else if (aTopic == "user-icon-changed") {
+      delete this._cachedUserIcon;
+      this._sendVCard();
+    }
+    else if (aTopic == "user-display-name-changed")
+      this._sendVCard();
   },
 
   /* GenericAccountPrototype events */
@@ -957,6 +963,7 @@ const XMPPAccountPrototype = {
         b.setStatus(Ci.imIStatusInfo.STATUS_OFFLINE, "");
     }
     this.reportConnected();
+    this._sendVCard();
   },
 
   /* Public methods */
@@ -1024,6 +1031,11 @@ const XMPPAccountPrototype = {
     this._connection.disconnect();
     delete this._connection;
 
+    // We won't receive "user-icon-changed" notifications while the
+    // account isn't connected, so clear the cache to avoid keeping an
+    // obsolete icon.
+    delete this._cachedUserIcon;
+
     this.reportDisconnected();
   },
 
@@ -1053,5 +1065,78 @@ const XMPPAccountPrototype = {
       children.push(Stanza.node("query", Stanza.NS.last, {seconds: time}));
     }
     this._connection.sendStanza(Stanza.presence({"xml:lang": "en"}, children));
+  },
+
+  _cachingUserIcon: false,
+  _cacheUserIcon: function() {
+    let userIcon = this.imAccount.statusInfo.getUserIcon();
+    if (!userIcon) {
+      this._cachedUserIcon = null;
+      this._sendVCard();
+      return;
+    }
+
+    this._cachingUserIcon = true;
+    let channel = Services.io.newChannelFromURI(userIcon);
+    NetUtil.asyncFetch(channel, (function(inputStream, resultCode) {
+      if (!Components.isSuccessCode(resultCode))
+        return;
+      try {
+        let readImage = {value: null};
+        let type = channel.contentType;
+        imgTools.decodeImageData(inputStream, type, readImage);
+        readImage = readImage.value;
+        let scaledImage;
+        if (readImage.width <= 96 && readImage.height <= 96)
+          scaledImage = imgTools.encodeImage(readImage, type);
+        else {
+          if (type != "image/jpeg")
+            type = "image/png";
+          scaledImage = imgTools.encodeScaledImage(readImage, type, 64, 64);
+        }
+
+        let bstream = Components.classes["@mozilla.org/binaryinputstream;1"].
+                      createInstance(Ci.nsIBinaryInputStream);
+        bstream.setInputStream(scaledImage);
+
+        let data = bstream.readBytes(bstream.available());
+        this._cachedUserIcon = {
+          type: type,
+          binval: btoa(data).replace(/.{74}/g, "$&\n")
+        };
+      } catch (e) {
+        Components.utils.reportError(e);
+        this._cachedUserIcon = null;
+      }
+      delete this._cachingUserIcon;
+      this._sendVCard();
+    }).bind(this));
+  },
+  _sendVCard: function() {
+    if (!this._connection)
+      return;
+
+    if (!this.hasOwnProperty("_cachedUserIcon")) {
+      if (!this._cachingUserIcon)
+        this._cacheUserIcon();
+      return;
+    }
+
+    let vCardEntries = [];
+    let displayName = this.imAccount.statusInfo.displayName;
+    if (displayName)
+      vCardEntries.push(Stanza.node("FN", Stanza.NS.vcard, null, displayName));
+    if (this._cachedUserIcon) {
+      let photoChildren = [
+        Stanza.node("TYPE", Stanza.NS.vcard, null, this._cachedUserIcon.type),
+        Stanza.node("BINVAL", Stanza.NS.vcard, null, this._cachedUserIcon.binval)
+      ];
+      vCardEntries.push(Stanza.node("PHOTO", Stanza.NS.vcard, null,
+                                    photoChildren));
+    }
+    let s = Stanza.iq("set", null, null,
+                      Stanza.node("vCard", Stanza.NS.vcard, null, vCardEntries));
+
+    this._connection.sendStanza(s);
   }
 };
