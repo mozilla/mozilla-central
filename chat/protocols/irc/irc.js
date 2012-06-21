@@ -657,6 +657,8 @@ ircAccount.prototype = {
       realname: null,
       server: null,
       connectedFrom: null,
+      registered: normalizeBool,
+      secure: normalizeBool,
       away: null,
       ircOp: normalizeBool,
       idleTime: null,
@@ -687,6 +689,21 @@ ircAccount.prototype = {
     let nick = this.normalize(aNick);
     if (!hasOwnProperty(this.whoisInformation, nick))
       this.whoisInformation[nick] = {"nick": aNick};
+  },
+  setWhois: function(aNick, aFields) {
+    let nick = this.normalize(aNick, this.userPrefixes);
+    // If the nickname isn't in the list yet, add it.
+    if (!hasOwnProperty(this.whoisInformation, nick))
+      this.whoisInformation[nick] = {};
+
+    // Set non-normalized nickname field.
+    this.whoisInformation[nick]["nick"] = aNick;
+
+    // Set the WHOIS fields.
+    for (let field in aFields)
+      this.whoisInformation[nick][field] = aFields[field];
+
+    return true;
   },
   // Write WHOIS information to a conversation.
   writeWhois: function(aConv, aNick, aTooltipInfo) {
@@ -1163,6 +1180,7 @@ function ircProtocol() {
   Cu.import("resource:///modules/ircServices.jsm", tempScope);
 
   // Extra features.
+  Cu.import("resource:///modules/ircNonStandard.jsm", tempScope);
   Cu.import("resource:///modules/ircWatchMonitor.jsm", tempScope);
 
   // Register default IRC handlers (IRC base, CTCP).
@@ -1179,6 +1197,7 @@ function ircProtocol() {
   ircHandlers.registerServicesHandler(tempScope.servicesBase);
 
   // Register extra features.
+  ircHandlers.registerHandler(tempScope.ircNonStandard);
   ircHandlers.registerHandler(tempScope.ircWATCH);
   ircHandlers.registerISUPPORTHandler(tempScope.isupportWATCH);
   ircHandlers.registerHandler(tempScope.ircMONITOR);

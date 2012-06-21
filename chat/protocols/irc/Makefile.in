@@ -16,11 +16,12 @@ EXTRA_COMPONENTS = \
 
 EXTRA_JS_MODULES = \
 		ircBase.jsm \
+		ircCommands.jsm \
 		ircCTCP.jsm \
 		ircDCC.jsm \
-		ircCommands.jsm \
 		ircHandlers.jsm \
 		ircISUPPORT.jsm \
+		ircNonStandard.jsm \
 		ircServices.jsm \
 		ircUtils.jsm \
 		ircWatchMonitor.jsm \
