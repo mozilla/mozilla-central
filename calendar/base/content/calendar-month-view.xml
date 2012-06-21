@@ -51,12 +51,17 @@
                     <xul:spacer flex="1"/>
                   </xul:vbox>
                   <xul:stack>
+                    <xul:hbox align="right">
+                      <xul:hbox anonid="alarm-icons-box"
+                                class="alarm-icons-box"
+                                pack="end"
+                                align="top"
+                                xbl:inherits="flashing"/>
+                      <xul:image anonid="item-classification-box"
+                                 class="item-classification-box"
+                                 pack="end"/>
+                    </xul:hbox>
                     <xul:calendar-category-box anonid="category-box" xbl:inherits="categories" pack="end"/>
-                    <xul:hbox anonid="alarm-icons-box"
-                              class="alarm-icons-box"
-                              align="center"
-                              pack="end"
-                              xbl:inherits="flashing"/>
                   </xul:stack>
                 </xul:hbox>
               </xul:stack>

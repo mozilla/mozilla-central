@@ -485,21 +485,21 @@
                                     accesskey="&event.menu.options.privacy.public.accesskey;"
                                     type="radio"
                                     privacy="PUBLIC"
-                                    oncommand="editPrivacy(this)"
+                                    oncommand="editPrivacy(this, event)"
                                     disable-on-readonly="true"/>
                           <menuitem id="options-privacy-confidential-menuitem"
                                     label="&event.menu.options.privacy.confidential.label;"
                                     accesskey="&event.menu.options.privacy.confidential.accesskey;"
                                     type="radio"
                                     privacy="CONFIDENTIAL"
-                                    oncommand="editPrivacy(this)"
+                                    oncommand="editPrivacy(this, event)"
                                     disable-on-readonly="true"/>
                           <menuitem id="options-privacy-private-menuitem"
                                     label="&event.menu.options.privacy.private.label;"
                                     accesskey="&event.menu.options.privacy.private.accesskey;"
                                     type="radio"
                                     privacy="PRIVATE"
-                                    oncommand="editPrivacy(this)"
+                                    oncommand="editPrivacy(this, event)"
                                     disable-on-readonly="true"/>
                       </menupopup>
                   </menu>
@@ -1089,15 +1089,12 @@
                       collapsed="true"
                       pack="start">
         <hbox id="status-privacy-public-box" privacy="PUBLIC">
-          <image id="button-privacy-public" class="cal-statusbar-1"/>
           <label value="&event.menu.options.privacy.public.label;"/>
         </hbox>
         <hbox id="status-privacy-confidential-box" privacy="CONFIDENTIAL">
-          <image id="button-privacy-confidential" class="cal-statusbar-1"/>
           <label value="&event.menu.options.privacy.confidential.label;"/>
         </hbox>
         <hbox id="status-privacy-private-box" privacy="PRIVATE">
-          <image id="button-privacy-private" class="cal-statusbar-1"/>
           <label value="&event.menu.options.privacy.private.label;"/>
         </hbox>
       </statusbarpanel>

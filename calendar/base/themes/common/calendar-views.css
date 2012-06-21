@@ -1089,3 +1089,21 @@ tab[calview] > .tab-middle {
 .today-navigation-button > .toolbarbutton-icon {
     display: none;
 }
+
+.item-classification-box {
+    list-style-image: url("chrome://calendar/skin/classification.png");
+    width: 11px;
+    height: 11px;
+}
+
+.item-classification-box[classification="PUBLIC"] {
+    display: none;
+}
+
+.item-classification-box[classification="PRIVATE"] {
+    -moz-image-region: rect(0 22px 11px 11px)
+}
+
+.item-classification-box[classification="CONFIDENTIAL"] {
+    -moz-image-region: rect(0 11px 11px 0)
+}

@@ -113,11 +113,11 @@ var testEventDialog = function () {
   event.assertValue(new elementslib.ID(event.window.document, "attendee-list"),
     attendee);
   
-  // make it private and verify icon visible
+  // make it private and verify label visible
   event.click(new elementslib.ID(event.window.document, "button-privacy"));
   event.click(new elementslib.ID(event.window.document, "event-privacy-private-menuitem"));
-  let icon = (new elementslib.ID(event.window.document, "button-privacy-private"));
-  event.assertJS(event.window.getComputedStyle(icon.getNode(), null).getPropertyValue("visibility") == "visible");
+  let label = (new elementslib.ID(event.window.document, "status-privacy-private-box"));
+  event.assertJS(event.window.getComputedStyle(label.getNode(), null).getPropertyValue("visibility") == "visible");
   
   // add attachment and verify added
   calUtils.handleAddingAttachment(event, url);

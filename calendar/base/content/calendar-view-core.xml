@@ -173,6 +173,12 @@
                               "suppressed");
           }
 
+          // Item classification / privacy
+          let classificationBox = document.getAnonymousElementByAttribute(this, "anonid", "item-classification-box");
+          if (classificationBox) {
+              classificationBox.setAttribute("classification", item.privacy || "PUBLIC");
+          }
+
           // Set up event box attributes for use in css selectors. Note if
           // something is added here, it should also be xbl:inherited correctly
           // in the <content> section of this binding, and all that inherit it.
