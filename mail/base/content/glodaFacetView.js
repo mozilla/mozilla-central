@@ -849,7 +849,7 @@ var FacetContext = {
   },
   onQueryCompleted: function(aCollection) {
     if (this.tab.query.completed &&
-        (!("IMQuery" in aTab) || this.tab.IMQuery.completed))
+        (!("IMQuery" in this.tab) || this.tab.IMQuery.completed))
       this.initialBuild();
   }
 };
