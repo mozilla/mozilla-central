@@ -512,7 +512,11 @@ imAccount.prototype = {
     let login = Cc["@mozilla.org/login-manager/loginInfo;1"]
                 .createInstance(Ci.nsILoginInfo);
     let passwordURI = "im://" + this.protocol.id;
-    login.init(passwordURI, null, passwordURI, this.normalizedName, "", "", "");
+    // The password is stored with the normalizedName. If the protocol
+    // plugin is missing, we can't access the normalizedName, but in
+    // lots of cases this.name is equivalent.
+    let name = this.prplAccount ? this.normalizedName : this.name;
+    login.init(passwordURI, null, passwordURI, name, "", "", "");
     let logins = LoginManager.findLogins({}, passwordURI, null, passwordURI);
     for each (let l in logins) {
       if (login.matches(l, true)) {

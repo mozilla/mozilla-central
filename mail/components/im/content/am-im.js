@@ -29,9 +29,15 @@ var account = {
     }
     else {
       passwordBox.hidden = false;
-      // Should we force layout here to ensure password.value works?
-      password.value = this.account.password;
-      password.setAttribute("wsm_persist", "true");
+      try {
+        // Should we force layout here to ensure password.value works?
+        // Will throw if we don't have a protocol plugin for the account.
+        password.value = this.account.password;
+        password.setAttribute("wsm_persist", "true");
+      } catch (e) {
+        passwordBox.hidden = true;
+        password.removeAttribute("wsm_persist");
+      }
     }
 
     document.getElementById("server.alias").value = this.account.alias;

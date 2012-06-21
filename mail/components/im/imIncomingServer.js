@@ -49,7 +49,10 @@ imIncomingServer.prototype = {
   forgetSessionPassword: function() { },
 
   // Shown in the "Remove Account" confirm prompt.
-  get prettyName() this.imAccount.protocol.name + " - " + this.imAccount.name,
+  get prettyName() {
+    let protocol = this.imAccount.protocol.name || this.imAccount.protocol.id;
+    return protocol + " - " + this.imAccount.name;
+  },
 
   //XXX Flo: I don't think these 2 names are visible in the UI:
   get constructedPrettyName() "constructedPrettyName FIXME",
@@ -213,7 +216,7 @@ imIncomingServer.prototype = {
     supportsCompaction: false
   },
 
-  get serverURI() "im://" + this.imAccount.protocol.id + "/" + this.imAccount.normalizedName,
+  get serverURI() "im://" + this.imAccount.protocol.id + "/" + this.imAccount.name,
   _rootFolder: null,
   get rootMsgFolder() this.rootFolder,
   get rootFolder() {
