@@ -2754,6 +2754,11 @@ nsXULDocument::LoadOverlayInternal(nsIURI* aURI, bool aIsDynamic,
         // Not there. Initiate a load.
         PR_LOG(gXULLog, PR_LOG_DEBUG, ("xul: overlay was not cached"));
 
+        if (mIsGoingAway) {
+            PR_LOG(gXULLog, PR_LOG_DEBUG, ("xul: ...and document already destroyed"));
+            return NS_ERROR_NOT_AVAILABLE;
+        }
+
         // We'll set the right principal on the proto doc when we get
         // OnStartRequest from the parser, so just pass in a null principal for
         // now.
