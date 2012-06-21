@@ -12,7 +12,7 @@
 #include "nsISupports.idl"
 #include "MailNewsTypes2.idl"
 
-[scriptable, uuid(e8fcaada-64b7-4e39-9f1d-10ddb0f1de64)]
+[scriptable, uuid(4aa3ed2e-5bb1-40b3-ad03-2f1cfef386c4)]
 interface nsIMsgKeyArray : nsISupports {
   /**
    * Get the key at the specified 0-based array index.
@@ -30,6 +30,12 @@ interface nsIMsgKeyArray : nsISupports {
    * @param key to append to the array.
    */
   void appendElement(in nsMsgKey aMsgKey);
+
+  /**
+   * Inserts a key into a previously sorted array
+   * @param key to insert into the array.
+   */
+  void insertElementSorted(in nsMsgKey aMsgKey);
 
   /**
    * Sort the array by key.

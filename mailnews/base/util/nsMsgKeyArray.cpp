@@ -48,6 +48,12 @@ NS_IMETHODIMP nsMsgKeyArray::AppendElement(nsMsgKey aKey)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgKeyArray::InsertElementSorted(nsMsgKey aKey)
+{
+  m_keys.InsertElementSorted(aKey);
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgKeyArray::GetArray(PRUint32 *aCount, nsMsgKey **aKeys)
 {
   NS_ENSURE_ARG_POINTER(aCount);
