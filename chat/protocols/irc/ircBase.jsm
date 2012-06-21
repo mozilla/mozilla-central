@@ -329,12 +329,6 @@ var ircBase = {
       let source = aMessage.nickname || aMessage.servername;
       let conversation = this.getConversation(aMessage.params[0]);
       let topic = aMessage.params[1];
-      let message;
-      if (topic)
-        message = _("message.topicChanged", source, topic);
-      else
-        message = _("message.topicCleared", source);
-      conversation.writeMessage(source, message, {system: true});
       // Set the topic in the conversation and update the UI.
       conversation.setTopic(topic ? ctcpFormatToText(topic) : "", source);
       return true;
@@ -778,9 +772,8 @@ var ircBase = {
     "331": function(aMessage) { // RPL_NOTOPIC
       // <channel> :No topic is set
       let conversation = this.getConversation(aMessage.params[1]);
-      conversation.setTopic(""); // Clear the topic.
-      let msg = _("message.topicNotSet", conversation.name);
-      conversation.writeMessage(null, msg, {system: true});
+       // Clear the topic.
+      conversation.setTopic("");
       return true;
     },
     "332": function(aMessage) { // RPL_TOPIC
@@ -789,13 +782,6 @@ var ircBase = {
       let conversation = this.getConversation(aMessage.params[1]);
       let topic = aMessage.params[2];
       conversation.setTopic(topic ? ctcpFormatToText(topic) : "");
-      // Send the topic as a message.
-      let message;
-      if (topic)
-        message = _("message.topic", conversation.name, topic);
-      else
-        message = _("message.topicNotSet", conversation.name);
-      conversation.writeMessage(null, message, {system: true});
       return true;
     },
     "333": function(aMessage) { // nonstandard

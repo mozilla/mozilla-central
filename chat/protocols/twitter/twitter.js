@@ -321,7 +321,7 @@ Conversation.prototype = {
     const kEntities = {amp: "&", gt: ">", lt: "<"};
     let topic =
       aTopic.replace(/&([gl]t|amp);/g, function(str, entity) kEntities[entity]);
-    GenericConvChatPrototype.setTopic.call(this, topic, aTopicSetter);
+    GenericConvChatPrototype.setTopic.call(this, topic, aTopicSetter, true);
   },
   get name() this.nick + " timeline",
   get title() _("timeline", this.nick),

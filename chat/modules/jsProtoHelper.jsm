@@ -22,6 +22,10 @@ Cu.import("resource:///modules/imServices.jsm");
 
 initLogModule("jsProtoHelper", this);
 
+XPCOMUtils.defineLazyGetter(this, "_", function()
+  l10nHelper("chrome://chat/locale/conversations.properties")
+);
+
 function normalize(aString) aString.replace(/[^a-z0-9]/gi, "").toLowerCase()
 
 const ForwardAccountPrototype = {
@@ -472,7 +476,7 @@ const GenericConvChatPrototype = {
   get topic() this._topic,
   get topicSettable() false,
   get topicSetter() this._topicSetter,
-  setTopic: function(aTopic, aTopicSetter) {
+  setTopic: function(aTopic, aTopicSetter, aQuiet) {
     // Only change the topic if the topic and/or topic setter has changed.
     if (this._topic == aTopic && this._topicSetter == aTopicSetter)
       return;
@@ -481,6 +485,26 @@ const GenericConvChatPrototype = {
     this._topicSetter = aTopicSetter;
 
     this.notifyObservers(null, "chat-update-topic");
+
+    if (aQuiet)
+      return;
+
+    // Send the topic as a message.
+    let message;
+    if (aTopicSetter) {
+      if (aTopic)
+        message = _("topicChanged", aTopicSetter, aTopic);
+      else
+        message = _("topicCleared", aTopicSetter);
+    }
+    else {
+      aTopicSetter = null;
+      if (aTopic)
+        message = _("topicSet", this.name, aTopic);
+      else
+        message = _("topicNotSet", this.name);
+    }
+    this.writeMessage(aTopicSetter, message, {system: true});
   },
 
   get nick() this._nick,
