@@ -155,14 +155,19 @@ var commands = [
     run: function(aMsg, aConv) simpleCommand(aConv, "INVITE", aMsg)
   },
   {
-    name: "j",
-    get helpString() _("command.join", "j"),
-    run: function(aMsg, aConv) simpleCommand(aConv, "JOIN", aMsg)
-  },
-  {
     name: "join",
     get helpString() _("command.join", "join"),
-    run: function(aMsg, aConv) simpleCommand(aConv, "JOIN", splitInput(aMsg))
+    run: function(aMsg, aConv) {
+      let params = aMsg.trim().split(/,\s*/);
+      if (!params[0])
+        return false;
+      let account = getAccount(aConv);
+      params.forEach(function(joinParam) {
+        if (joinParam)
+          account.joinChat(account.getChatRoomDefaultFieldValues(joinParam));
+      });
+      return true;
+    }
   },
   {
     name: "kick",

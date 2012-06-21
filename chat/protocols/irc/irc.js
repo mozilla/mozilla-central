@@ -167,6 +167,15 @@ function ircChannel(aAccount, aName, aNick) {
   this._init(aAccount, aName, aNick);
   this._modes = [];
   this._observedNicks = [];
+
+  // Ensure chatRoomFields information is available for reconnection.
+  let nName = aAccount.normalize(this.name);
+  if (hasOwnProperty(aAccount._chatRoomFieldsList, nName))
+    this._chatRoomFields = aAccount._chatRoomFieldsList[nName];
+  else {
+    WARN("Opening a MUC without storing its prplIChatRoomFieldValues first.");
+    this._chatRoomFields = aAccount.getChatRoomDefaultFieldValues(this.name);
+  }
 }
 ircChannel.prototype = {
   __proto__: GenericConvChatPrototype,
@@ -181,6 +190,11 @@ ircChannel.prototype = {
                                                aProperties);
   },
 
+  // Stores the prplIChatRoomFieldValues required to join this channel
+  // to enable later reconnections. If absent, the MUC will not be reconnected
+  // automatically after disconnections.
+  _chatRoomFields: null,
+
   // Section 3.2.2 of RFC 2812.
   part: function(aMessage) {
     let params = [this.name];
@@ -192,6 +206,9 @@ ircChannel.prototype = {
       params.push(msg);
 
     this._account.sendMessage("PART", params);
+
+    // Remove reconnection information.
+    delete this._chatRoomFields;
   },
 
   close: function() {
@@ -520,6 +537,7 @@ function ircAccount(aProtocol, aImAccount) {
   this._isOnQueue = [];
   this.pendingIsOnQueue = [];
   this.whoisInformation = {};
+  this._chatRoomFieldsList = {};
 }
 ircAccount.prototype = {
   __proto__: GenericAccountPrototype,
@@ -904,12 +922,22 @@ ircAccount.prototype = {
 
   createConversation: function(aName) this.getConversation(aName),
 
+  // Temporarily stores the prplIChatRoomFieldValues passed to joinChat for
+  // each channel to enable later reconnections.
+  _chatRoomFieldsList: {},
+
   // aComponents implements prplIChatRoomFieldValues.
   joinChat: function(aComponents) {
-    let params = [aComponents.getValue("channel")];
+    let channel = aComponents.getValue("channel");
+    if (!channel) {
+      ERROR("joinChat called without a channel name.");
+      return;
+    }
+    let params = [channel];
     let password = aComponents.getValue("password");
     if (password)
       params.push(password);
+    this._chatRoomFieldsList[this.normalize(channel)] = aComponents;
     this.sendMessage("JOIN", params);
   },
 
@@ -919,7 +947,7 @@ ircAccount.prototype = {
   },
 
   parseDefaultChatName: function(aDefaultName) {
-    let params = aDefaultName.split(" ");
+    let params = aDefaultName.trim().split(/\s+/);
     let chatFields = {channel: params[0]};
     if (params.length > 1)
       chatFields.password = params[1];
@@ -1074,7 +1102,7 @@ ircAccount.prototype = {
 
     // Clean up each conversation: mark as left and remove participant.
     for each (let conversation in this._conversations) {
-      if (conversation.isChat) {
+      if (conversation.isChat && !conversation.left) {
         // Remove the user's nick and mark the conversation as left as that's
         // the final known state of the room.
         conversation.removeParticipant(this._nickname, true);
