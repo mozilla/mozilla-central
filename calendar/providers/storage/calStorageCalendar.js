@@ -41,6 +41,7 @@ calStorageCalendar.prototype = {
             Components.interfaces.calICalendar,
             Components.interfaces.calICalendarProvider,
             Components.interfaces.calIOfflineStorage,
+            Components.interfaces.calISchedulingSupport,
             Components.interfaces.calISyncWriteCalendar,
             Components.interfaces.nsIClassInfo
         ];
