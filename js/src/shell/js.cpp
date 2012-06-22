@@ -2999,16 +2999,11 @@ EvalInContext(JSContext *cx, uintN argc, jsval *vp)
     {
         JSAutoEnterCompartment ac;
         uintN flags;
-        JSObject *unwrapped = UnwrapObject(sobj, &flags);
-        if (flags & Wrapper::CROSS_COMPARTMENT) {
-            sobj = unwrapped;
-            if (!ac.enter(cx, sobj))
-                return false;
-        }
-
-        OBJ_TO_INNER_OBJECT(cx, sobj);
-        if (!sobj)
+        JSObject *unwrapped = UnwrapObject(sobj, &flags, false);
+        sobj = unwrapped;
+        if (!ac.enter(cx, sobj))
             return false;
+
         if (!(sobj->getClass()->flags & JSCLASS_IS_GLOBAL)) {
             JS_ReportError(cx, "Invalid scope argument to evalcx");
             return false;
