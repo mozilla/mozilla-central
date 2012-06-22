@@ -36,6 +36,13 @@ wrap(JSContext *cx, JSObject *toWrap, JSObject *target)
 }
 
 static JSObject *
+SameCompartmentWrap(JSContext *cx, JSObject *obj)
+{
+    JS_GC(cx);
+    return obj;
+}
+
+static JSObject *
 PreWrap(JSContext *cx, JSObject *scope, JSObject *obj, uintN flags)
 {
     JS_GC(cx);
@@ -78,7 +85,7 @@ BEGIN_TEST(testBug604087)
         CHECK(next);
     }
 
-    JS_SetWrapObjectCallbacks(JS_GetRuntime(cx), Wrap, PreWrap);
+    JS_SetWrapObjectCallbacks(JS_GetRuntime(cx), Wrap, SameCompartmentWrap, PreWrap);
     CHECK(JS_TransplantObject(cx, outerObj, next));
     return true;
 }

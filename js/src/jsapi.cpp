@@ -724,6 +724,7 @@ JSRuntime::JSRuntime()
     trustedPrincipals_(NULL),
     shapeGen(0),
     wrapObjectCallback(NULL),
+    sameCompartmentWrapObjectCallback(NULL),
     preWrapObjectCallback(NULL),
     inOOMReport(0)
 {
@@ -1283,10 +1284,12 @@ JS_SetCompartmentCallback(JSRuntime *rt, JSCompartmentCallback callback)
 JS_PUBLIC_API(JSWrapObjectCallback)
 JS_SetWrapObjectCallbacks(JSRuntime *rt,
                           JSWrapObjectCallback callback,
+                          JSSameCompartmentWrapObjectCallback sccallback,
                           JSPreWrapCallback precallback)
 {
     JSWrapObjectCallback old = rt->wrapObjectCallback;
     rt->wrapObjectCallback = callback;
+    rt->sameCompartmentWrapObjectCallback = sccallback;
     rt->preWrapObjectCallback = precallback;
     return old;
 }
