@@ -5,49 +5,23 @@
 #include "nsOERegUtil.h"
 
 #include "OEDebugLog.h"
+#include <windows.h>
+#include "nsIWindowsRegKey.h"
+#include "nsComponentManagerUtils.h"
 
-BYTE * nsOERegUtil::GetValueBytes(HKEY hKey, const char *pValueName)
+nsresult nsOERegUtil::GetDefaultUserId(nsAString &aUserId)
 {
-  LONG  err;
-  DWORD  bufSz;
-  LPBYTE  pBytes = NULL;
-  DWORD  type = 0;
+  nsresult rv;
+  nsCOMPtr<nsIWindowsRegKey> key =
+    do_CreateInstance("@mozilla.org/windows-registry-key;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  err = ::RegQueryValueEx(hKey, pValueName, NULL, &type, NULL, &bufSz);
-  if (err == ERROR_SUCCESS) {
-    pBytes = new BYTE[bufSz];
-    err = ::RegQueryValueEx(hKey, pValueName, NULL, NULL, pBytes, &bufSz);
-    if (err != ERROR_SUCCESS) {
-      delete [] pBytes;
-      pBytes = NULL;
-    }
-    else {
-      if (type == REG_EXPAND_SZ) {
-        DWORD sz = bufSz;
-        LPBYTE pExpand = NULL;
-        DWORD  rSz;
+  rv = key->Open(nsIWindowsRegKey::ROOT_KEY_CURRENT_USER,
+                 NS_LITERAL_STRING("Identities"),
+                 nsIWindowsRegKey::ACCESS_QUERY_VALUE);
+  if (NS_FAILED(rv))
+    return rv;
 
-        do {
-          if (pExpand)
-            delete [] pExpand;
-          sz += 1024;
-          pExpand = new BYTE[sz];
-          rSz = ::ExpandEnvironmentStrings((LPCSTR) pBytes, (LPSTR) pExpand, sz);
-        } while (rSz > sz);
-
-        delete [] pBytes;
-
-        return pExpand;
-      }
-    }
-  }
-
-  return pBytes;
-}
-
-void nsOERegUtil::FreeValueBytes(BYTE *pBytes)
-{
-  if (pBytes)
-    delete [] pBytes;
+  return key->ReadStringValue(NS_LITERAL_STRING("Default User ID"), aUserId);
 }
 

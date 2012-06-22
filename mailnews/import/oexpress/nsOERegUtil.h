@@ -7,12 +7,12 @@
 #define nsOERegUtil_h___
 
 #include <windows.h>
+#include "nsStringGlue.h"
 
 class nsOERegUtil
 {
 public:
-  static BYTE *  GetValueBytes(HKEY hKey, const char *pValueName);
-  static void    FreeValueBytes(BYTE *pBytes);
+  static nsresult GetDefaultUserId(nsAString &aUserId);
 };
 
 

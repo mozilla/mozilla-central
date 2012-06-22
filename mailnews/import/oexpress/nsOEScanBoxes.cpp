@@ -16,6 +16,8 @@
 #include "nsIInputStream.h"
 #include "nsISeekableStream.h"
 #include "plstr.h"
+#include <windows.h>
+#include "nsIWindowsRegKey.h"
 
 #ifdef MOZILLA_INTERNAL_API
 #include "nsNativeCharsetUtils.h"
@@ -23,6 +25,8 @@
 #include "nsMsgI18N.h"
 #define NS_CopyNativeToUnicode(source, dest) \
         nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(), source, dest)
+#define NS_CopyUnicodeToNative(source, dest) \
+        nsMsgI18NConvertFromUnicode(nsMsgI18NFileSystemCharset(), source, dest)
 #endif
 
 /*
@@ -67,63 +71,71 @@ nsOEScanBoxes::~nsOEScanBoxes()
 
 bool nsOEScanBoxes::Find50Mail(nsIFile *pWhere)
 {
-  nsresult   rv;
-  bool      success = false;
-  HKEY    sKey;
+  nsAutoString userId;
+  nsresult rv = nsOERegUtil::GetDefaultUserId(userId);
+  if (NS_FAILED(rv))
+    return false;
 
-  if (::RegOpenKeyEx(HKEY_CURRENT_USER, "Identities", 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
-    BYTE *  pBytes = nsOERegUtil::GetValueBytes(sKey, "Default User ID");
-    ::RegCloseKey(sKey);
-    if (pBytes) {
-      nsCString  key("Identities\\");
-      key += (const char *)pBytes;
-      nsOERegUtil::FreeValueBytes(pBytes);
-      key += "\\Software\\Microsoft\\Outlook Express\\5.0";
-      if (::RegOpenKeyEx(HKEY_CURRENT_USER, key.get(), 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
-        pBytes = nsOERegUtil::GetValueBytes(sKey, "Store Root");
-        if (pBytes) {
-          pWhere->InitWithNativePath(nsDependentCString((const char *)pBytes));
+  nsAutoString path(NS_LITERAL_STRING("Identities\\"));
+  path.Append(userId);
+  path.AppendLiteral("\\Software\\Microsoft\\Outlook Express\\5.0");
 
-          IMPORT_LOG1("Setting native path: %s\n", pBytes);
+  nsCOMPtr<nsIWindowsRegKey> key =
+    do_CreateInstance("@mozilla.org/windows-registry-key;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-          nsOERegUtil::FreeValueBytes(pBytes);
-          bool    isDir = false;
-          rv = pWhere->IsDirectory(&isDir);
-          if (isDir && NS_SUCCEEDED(rv))
-            success = true;
-        }
-        ::RegCloseKey(sKey);
-      }
-    }
-  }
+  rv = key->Open(nsIWindowsRegKey::ROOT_KEY_CURRENT_USER,
+                 path,
+                 nsIWindowsRegKey::ACCESS_QUERY_VALUE);
+  if (NS_FAILED(rv))
+    return false;
 
-  return success;
+  nsAutoString storeRoot;
+  key->ReadStringValue(NS_LITERAL_STRING("Store Root"), storeRoot);
+  if (NS_FAILED(rv))
+    return false;
+
+  nsCOMPtr<nsIFile> localWhere = do_QueryInterface(pWhere);
+  localWhere->InitWithPath(storeRoot);
+
+  nsCAutoString nativeStoreRoot;
+  NS_CopyUnicodeToNative(storeRoot, nativeStoreRoot);
+  IMPORT_LOG1("Setting native path: %s\n", nativeStoreRoot.get());
+
+  bool isDir = false;
+  rv = localWhere->IsDirectory(&isDir);
+  return isDir;
 }
 
 bool nsOEScanBoxes::FindMail(nsIFile *pWhere)
 {
-  nsresult   rv;
-  bool      success = false;
-  HKEY    sKey;
-
   if (Find50Mail(pWhere))
     return true;
 
-  if (::RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Outlook Express", 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
-    LPBYTE  pBytes = nsOERegUtil::GetValueBytes(sKey, "Store Root");
-    if (pBytes) {
-      pWhere->InitWithNativePath(nsDependentCString((const char *) pBytes));
-      pWhere->AppendNative(NS_LITERAL_CSTRING("Mail"));
-      bool    isDir = false;
-      rv = pWhere->IsDirectory(&isDir);
-      if (isDir && NS_SUCCEEDED(rv))
-        success = true;
-      delete [] pBytes;
-    }
-    ::RegCloseKey(sKey);
-  }
+  nsresult rv;
+  nsCOMPtr<nsIWindowsRegKey> key =
+    do_CreateInstance("@mozilla.org/windows-registry-key;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  return success;
+  rv = key->Open(nsIWindowsRegKey::ROOT_KEY_CURRENT_USER,
+                 NS_LITERAL_STRING("Software\\Microsoft\\Outlook Express"),
+                 nsIWindowsRegKey::ACCESS_QUERY_VALUE);
+  if (NS_FAILED(rv))
+    return false;
+
+  nsAutoString storeRoot;
+  key->ReadStringValue(NS_LITERAL_STRING("Store Root"), storeRoot);
+  if (NS_FAILED(rv))
+    return false;
+
+  nsCOMPtr<nsIFile> localWhere = do_QueryInterface(pWhere);
+  localWhere->InitWithPath(storeRoot);
+  localWhere->AppendNative(NS_LITERAL_CSTRING("Mail"));
+
+  bool isDir = false;
+  rv = localWhere->IsDirectory(&isDir);
+
+  return isDir;
 }
 
 bool nsOEScanBoxes::GetMailboxes(nsIFile *pWhere, nsISupportsArray **pArray)
