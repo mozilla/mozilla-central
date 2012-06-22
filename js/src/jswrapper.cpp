@@ -79,11 +79,10 @@ JS_FRIEND_API(JSObject *)
 js::UnwrapObject(JSObject *wrapped, bool stopAtOuter, uintN *flagsp)
 {
     uintN flags = 0;
-    while (wrapped->isWrapper()) {
+    while (wrapped->isWrapper() &&
+           !JS_UNLIKELY(stopAtOuter && wrapped->getClass()->ext.innerObject)) {
         flags |= static_cast<Wrapper *>(GetProxyHandler(wrapped))->flags();
         wrapped = GetProxyPrivate(wrapped).toObjectOrNull();
-        if (stopAtOuter && wrapped->getClass()->ext.innerObject)
-            break;
     }
     if (flagsp)
         *flagsp = flags;
