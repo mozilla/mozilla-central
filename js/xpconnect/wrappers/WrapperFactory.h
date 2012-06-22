@@ -96,6 +96,10 @@ class WrapperFactory {
                             JSObject *parent,
                             uintN flags);
 
+    // Wrap an object for same-compartment access.
+    static JSObject *WrapForSameCompartment(JSContext *cx,
+                                            JSObject *obj);
+
     // Return true if this is a location object.
     static bool IsLocationObject(JSObject *obj);
 

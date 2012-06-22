@@ -2178,7 +2178,7 @@ XPCJSRuntime::XPCJSRuntime(nsXPConnect* aXPConnect)
         JS_SetGrayGCRootsTracer(mJSRuntime, TraceGrayJS, this);
         JS_SetWrapObjectCallbacks(mJSRuntime,
                                   xpc::WrapperFactory::Rewrap,
-                                  NULL,
+                                  xpc::WrapperFactory::WrapForSameCompartment,
                                   xpc::WrapperFactory::PrepareForWrapping);
 #ifdef MOZ_CRASHREPORTER
         JS_EnumerateDiagnosticMemoryRegions(DiagnosticMemoryCallback);
