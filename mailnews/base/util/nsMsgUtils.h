@@ -171,6 +171,13 @@ NS_MSG_BASE nsresult GetSpecialDirectoryWithFileName(const char* specialDirName,
                                                      const char* fileName,
                                                      nsIFile** result);
 
+// cleanup temp files with the given filename and extension, including
+// the consecutive -NNNN ones that we can find. If there are holes, e.g.,
+// <filename>-1-10,12.<extension> exist, but <filename>-11.<extension> does not
+// we'll clean up 1-10. If the leaks are common, I think the gaps will tend to
+// be filled.
+NS_MSG_BASE nsresult MsgCleanupTempFiles(const char *fileName, const char *extension);
+
 NS_MSG_BASE nsresult MsgGetFileStream(nsIFile *file, nsIOutputStream **fileStream);
 
 NS_MSG_BASE nsresult MsgReopenFileStream(nsIFile *file, nsIInputStream *fileStream);

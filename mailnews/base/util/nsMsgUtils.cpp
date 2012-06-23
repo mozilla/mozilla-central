@@ -38,6 +38,7 @@
 #include "nsICryptoHash.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsDirectoryServiceUtils.h"
+#include "nsDirectoryServiceDefs.h"
 #include "nsIRssIncomingServer.h"
 #include "nsIMsgFolder.h"
 #include "nsIMsgMessageService.h"
@@ -1359,6 +1360,38 @@ nsresult GetSpecialDirectoryWithFileName(const char* specialDirName,
   return (*result)->AppendNative(nsDependentCString(fileName));
 }
 
+// Cleans up temp files with matching names
+nsresult MsgCleanupTempFiles(const char *fileName, const char *extension)
+{
+  nsCOMPtr<nsIFile> tmpFile;
+  nsCString rootName(fileName);
+  rootName.Append(".");
+  rootName.Append(extension);
+  nsresult rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
+                                                rootName.get(),
+                                                getter_AddRefs(tmpFile));
+
+  NS_ENSURE_SUCCESS(rv, rv);
+  int index = 1;
+  bool exists;
+  do
+  {
+    tmpFile->Exists(&exists);
+    if (exists)
+    {
+      tmpFile->Remove(false);
+      nsCString leafName(fileName);
+      leafName.Append("-");
+      leafName.AppendInt(index);
+      leafName.Append(".");
+      leafName.Append(extension);
+        // start with "Picture-1.jpg" after "Picture.jpg" exists
+      tmpFile->SetNativeLeafName(leafName);
+    }
+  }
+  while (exists && ++index < 10000);
+  return NS_OK;
+}
 
 nsresult MsgGetFileStream(nsIFile *file, nsIOutputStream **fileStream)
 {

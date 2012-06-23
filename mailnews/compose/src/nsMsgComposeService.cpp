@@ -163,6 +163,11 @@ nsresult nsMsgComposeService::Init()
   Reset();
 
   AddGlobalHtmlDomains();
+  // Since the compose service should only be initialized once, we can
+  // be pretty sure there aren't any existing compose windows open.
+  MsgCleanupTempFiles("nsmail", "tmp");
+  MsgCleanupTempFiles("nsemail", "html");
+  MsgCleanupTempFiles("nscopy", "tmp");
   return rv;
 }
 
@@ -1682,3 +1687,4 @@ nsMsgComposeService::GetHelpInfo(nsACString& aResult)
   aResult.Assign(NS_LITERAL_CSTRING("  -compose           Compose a mail or news message.\n"));
   return NS_OK;
 }
+
