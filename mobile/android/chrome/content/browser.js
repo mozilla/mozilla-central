@@ -1435,8 +1435,16 @@ var NativeWindow = {
 
 
 var UserAgent = {
+  DESKTOP_UA: null,
+
   init: function ua_init() {
     Services.obs.addObserver(this, "http-on-modify-request", false);
+
+    // See https://developer.mozilla.org/en/Gecko_user_agent_string_reference
+    this.DESKTOP_UA = Cc["@mozilla.org/network/protocol;1?name=http"]
+                        .getService(Ci.nsIHttpProtocolHandler).userAgent
+                        .replace("Android; Mobile", "X11; Linux i686")
+                        .replace(/Gecko\/[0-9\.]+/, "Gecko/20100101");
   },
 
   uninit: function ua_uninit() {
@@ -1474,10 +1482,7 @@ var UserAgent = {
     let channelWindow = this.getWindowForRequest(channel);
     if (BrowserApp.getBrowserForWindow(channelWindow)) {
       if (channel.URI.host.indexOf("youtube") != -1) {
-        let ua = Cc["@mozilla.org/network/protocol;1?name=http"].getService(Ci.nsIHttpProtocolHandler).userAgent;
-#expand let version = "__MOZ_APP_VERSION__";
-        ua += " Fennec/" + version;
-        channel.setRequestHeader("User-Agent", ua, false);
+        channel.setRequestHeader("User-Agent", this.DESKTOP_UA, false);
       }
     }
   }
