@@ -7,7 +7,8 @@
 #define __IMPORTEMBEDDEDIMAGETDATA_H__
 
 #include "nsIMsgSend.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
+#include "nsCOMPtr.h"
 #include "nsIURI.h"
 
 class nsImportEmbeddedImageData : public nsIMsgEmbeddedImageData
