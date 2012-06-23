@@ -1943,7 +1943,10 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
       }
     }
     else
+    {
       m_attachments[i].m_contentId = m_attachments[duplicateOf].m_contentId;
+      m_attachments[i].SetMimeDeliveryState(nsnull);
+    }
 
     //
     // Ok, while we are here, we should whack the DOM with the generated

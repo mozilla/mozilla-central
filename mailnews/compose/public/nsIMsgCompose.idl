@@ -99,7 +99,7 @@ interface nsIMsgComposeRecyclingListener : nsISupports {
   void onReopen(in nsIMsgComposeParams params);
 };
 
-[scriptable, uuid(fc9dc1dc-7726-4d29-bb92-a0227f526651)]
+[scriptable, uuid(6d04ec94-0277-45f0-b71a-08606ad24916)]
 interface nsIMsgCompose : nsIMsgSendListener {
 
   /**
@@ -180,10 +180,15 @@ interface nsIMsgCompose : nsIMsgSendListener {
   */
   boolean checkCharsetConversion(in nsIMsgIdentity identity, out string fallbackCharset);
 
-  /* Retreive the message send object */
+  /* the message send object */
   readonly attribute nsIMsgSend messageSend;
-  
-	/* ... */
+
+  /*
+   * Clear the messageSend object to break any circular references
+   */
+   void clearMessageSend();
+
+  /* ... */
   readonly attribute nsIEditor editor;
 
 	/* ... */

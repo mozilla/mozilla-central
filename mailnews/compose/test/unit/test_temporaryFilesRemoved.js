@@ -63,18 +63,11 @@ function check_files_not_exist(files) {
   });
 }
 
-function check_files_exist(files) {
-  files.forEach(function(file) {
-    do_check_true(file.exists());
-  });
-}
-
 function check_result() {
-  check_files_exist(gExpectedFiles);
+  // temp files should be deleted as soon as the draft is finished saving.
+  check_files_not_exist(gExpectedFiles);
 
   gMsgCompose.CloseWindow(true);
-
-  check_files_not_exist(gExpectedFiles);
 
   do_test_finished();
 }

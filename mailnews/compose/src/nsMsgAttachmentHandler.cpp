@@ -1191,6 +1191,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
         if ( (!next->mURL) && (next->m_uri.IsEmpty()) )
         {
           attachments[i].m_done = true;
+          attachments[i].SetMimeDeliveryState(nsnull);
           m_mime_delivery_state->GetPendingAttachmentCount(&pendingAttachmentCount);
           m_mime_delivery_state->SetPendingAttachmentCount(pendingAttachmentCount - 1);
           next->mPartUserOmissionOverride = true;

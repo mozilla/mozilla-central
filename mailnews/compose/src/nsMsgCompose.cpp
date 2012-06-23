@@ -2270,6 +2270,12 @@ NS_IMETHODIMP nsMsgCompose::GetMessageSend(nsIMsgSend **_retval)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgCompose::ClearMessageSend()
+{
+  mMsgSend = nsnull;
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgCompose::SetCiteReference(nsString citeReference)
 {
   mCiteReference = citeReference;
@@ -3765,6 +3771,7 @@ nsMsgComposeSendListener::OnStopCopy(nsresult aStatus)
         msgCompose->CloseWindow(true);
       }
     }
+    msgCompose->ClearMessageSend();
   }
 
   return rv;
