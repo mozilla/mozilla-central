@@ -776,3 +776,15 @@ marquee[direction="up"], marquee[direction="down"] {
   marquee { -moz-binding: none; }
 
 }
+
+%ifdef ANDROID
+@-moz-document url("http://www.youtube.com/"),
+               url("https://www.youtube.com/")
+{
+
+  /* Bug 760098:  disable font size inflation on youtube.com */
+  html {
+    -moz-text-size-adjust: none;
+  }
+}
+%endif
