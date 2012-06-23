@@ -194,9 +194,14 @@ var ircBase = {
       return true;
     },
     "INVITE": function(aMessage) {
-      // INVITE  <nickname> <channel>
-      // TODO prompt user to join channel.
-      return false;
+      // INVITE <nickname> <channel>
+      // Auto-accept the invite.
+      this.joinChat(this.getChatRoomDefaultFieldValues(aMessage.params[1]));
+      this.getConversation(aMessage.params[1])
+          .writeMessage(aMessage.params[0],
+                        _("message.inviteReceived", aMessage.params[0],
+                          aMessage.params[1]), {system: true});
+      return true;
     },
     "JOIN": function(aMessage) {
       // JOIN ( <channel> *( "," <channel> ) [ <key> *( "," <key> ) ] ) / "0"
@@ -794,9 +799,13 @@ var ircBase = {
      */
     "341": function(aMessage) { // RPL_INVITING
       // <channel> <nick>
-      return serverMessage(this, aMessage,
-                           _("message.invited", aMessage.params[1],
-                             aMessage.params[0]));
+      // Note that servers reply with parameters in the reverse order from the
+      // above (which is as specified by RFC 2812).
+      this.getConversation(aMessage.params[2])
+          .writeMessage(aMessage.servername,
+                        _("message.invited", aMessage.params[1],
+                          aMessage.params[2]), {system: true});
+      return true;
     },
     "342": function(aMessage) { // RPL_SUMMONING
       // <user> :Summoning user to IRC

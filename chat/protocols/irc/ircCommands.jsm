@@ -152,7 +152,17 @@ var commands = [
   {
     name: "invite",
     get helpString() _("command.invite", "invite"),
-    run: function(aMsg, aConv) simpleCommand(aConv, "INVITE", aMsg)
+    run: function(aMsg, aConv) {
+      let params = splitInput(aMsg);
+      // If no parameters are given.
+      if (!params[0].length)
+        return false;
+      // If only a nick is given, append the current channel name.
+      if (params.length == 1)
+        params.push(aConv.name);
+
+      return simpleCommand(aConv, "INVITE", params);
+    }
   },
   {
     name: "join",
