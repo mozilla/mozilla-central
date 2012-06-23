@@ -17,6 +17,11 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+.mail-toolbox {
+  -moz-box-pack: center;
+  min-height: 41px;
+}
+
 /* Don't use the listbox appearance as that gives us a blue-grey top border
    that collides with the primary toolbar border */
 #threadTree, #folderTree {

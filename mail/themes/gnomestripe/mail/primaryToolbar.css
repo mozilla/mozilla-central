@@ -13,11 +13,6 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-.mail-toolbox {
-  -moz-box-pack: center;
-  min-height: 41px;
-}
-
 /* ::::: primary toolbar buttons ::::: */
 
 .toolbarbutton-1 {
