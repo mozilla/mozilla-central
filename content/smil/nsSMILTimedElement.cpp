@@ -1326,7 +1326,13 @@ nsSMILTimedElement::ClearSpecs(TimeValueSpecList& aSpecs,
                                InstanceTimeList& aInstances,
                                RemovalTestFunction aRemove)
 {
+  AutoIntervalUpdateBatcher(*this);
+
+  for (PRUint32 i = 0; i < aSpecs.Length(); ++i) {
+    aSpecs[i]->Unlink();
+  }
   aSpecs.Clear();
+
   RemoveByFunction removeByFunction(aRemove);
   RemoveInstanceTimes(aInstances, removeByFunction);
 }
