@@ -2409,7 +2409,6 @@
           <xul:box anonid="labeldaybox"
                    class="multiday-view-label-day-box"
                    flex="1"
-                   chromedir="&locale.dir;"
                    equalsize="always"/>
           <xul:box anonid="labelscrollbarspacer"/>
         </xul:box>

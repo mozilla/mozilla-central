@@ -35,12 +35,10 @@
         <spacer flex="1"/>
         <modehbox mode="mail,calendar" broadcaster="modeBroadcaster">
           <toolbarbutton id="folderview-cycler-prev"
-                         chromedir="&locale.dir;"
                          dir="prev"
                          class="folderview-cycler"
                          oncommand="TodayPane.cyclePaneView(-1);"/>
           <toolbarbutton id="folderview-cycler-next"
-                         chromedir="&locale.dir;"
                          dir="next"
                          class="folderview-cycler"
                          oncommand="TodayPane.cyclePaneView(1);"/>
@@ -106,7 +104,6 @@
                         <hbox pack="end">
                           <toolbarbutton id="previous-day-button"
                                          class="miniday-nav-buttons"
-                                         chromedir="&locale.dir;"
                                          tooltiptext="&onedaybackward.tooltip;"
                                          oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));"
                                          dir="-1"/>
@@ -116,7 +113,6 @@
                                          oncommand="TodayPane.setDay(now());"/>
                           <toolbarbutton id="next-day-button"
                                          class="miniday-nav-buttons"
-                                         chromedir="&locale.dir;"
                                          tooltiptext="&onedayforward.tooltip;"
                                          oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));"
                                          dir="1"/>

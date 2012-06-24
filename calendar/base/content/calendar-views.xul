@@ -28,7 +28,6 @@
                   <hbox pack="center">
                      <toolbarbutton id="previous-view-button"
                                     class="view-navigation-button"
-                                    chromedir="&locale.dir;"
                                     type="prev"
                                     tooltiptext-day="&calendar.navigation.prevday.tooltip;"
                                     tooltiptext-week="&calendar.navigation.prevweek.tooltip;"
@@ -42,7 +41,6 @@
                                     command="calendar_view_today_command"/>
                      <toolbarbutton id="next-view-button"
                                     class="view-navigation-button"
-                                    chromedir="&locale.dir;"
                                     type="next"
                                     tooltiptext-day="&calendar.navigation.nextday.tooltip;"
                                     tooltiptext-week="&calendar.navigation.nextweek.tooltip;"

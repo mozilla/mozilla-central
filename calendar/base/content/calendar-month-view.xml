@@ -342,7 +342,6 @@
       <xul:vbox anonid="mainbox" flex="1">
         <xul:hbox class="labeldaybox-container"
                   anonid="labeldaybox"
-                  chromedir="&locale.dir;"
                   equalsize="always"/>
 
         <xul:grid anonid="monthgrid" flex="1">

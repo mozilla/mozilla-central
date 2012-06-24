@@ -24,7 +24,6 @@
       <hbox>
         <label class="acctCentralText acctCentralLinkText"
                value="&lightning.acctCentral.newCalendar.label;"
-               chromedir="&locale.dir;"
                onclick="window.parent.openCalendarWizard();"/>
       </hbox>
     </row>

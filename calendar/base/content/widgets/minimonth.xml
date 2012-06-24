@@ -83,14 +83,12 @@
          <xul:spacer flex="1"/>
          <xul:toolbarbutton anonid="back-button" class="minimonth-nav-btns" dir="-1"
                             oncommand="this.kMinimonth.advanceMonth(parseInt(this.getAttribute('dir'), 10))"
-                            chromedir="&locale.dir;"
                             tooltiptext="&onemonthbackward.tooltip;"/>
          <xul:toolbarbutton anonid="today-button" class="minimonth-nav-btns" dir="0"
                             oncommand="this.kMinimonth.value = new Date();"
                             tooltiptext="&showToday.tooltip;"/>
          <xul:toolbarbutton anonid="forward-button" class="minimonth-nav-btns" dir="1"
                             oncommand="this.kMinimonth.advanceMonth(parseInt(this.getAttribute('dir'), 10))"
-                            chromedir="&locale.dir;"
                             tooltiptext="&onemonthforward.tooltip;"/>
        <xul:popupset anonid="minmonth-popupset">
          <xul:menupopup anonid="months-popup" position="after_start"
