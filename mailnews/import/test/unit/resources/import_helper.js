@@ -154,7 +154,7 @@ function AbImportHelper(aFile, aModuleSearchString, aAbName, aJsonName)
   if (endsWith(this.mFile.leafName.toLowerCase(), ".ldif")) {
     // LDIF: add PreferMailFormat
     this.mSupportedAttributes = supportedAttributes.concat(["PreferMailFormat"]);
-  } else {
+  } else if (endsWith(this.mFile.leafName.toLowerCase(), ".csv")) {
     this.mSupportedAttributes = supportedAttributes;
   }
   // get the "cards" from the JSON file, if necessary
