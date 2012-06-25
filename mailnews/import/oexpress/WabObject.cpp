@@ -602,7 +602,40 @@ void CWAB::GetValueTime(LPSPropValue pVal, PRTime& val)
   nsOE5File::FileTimeToPRTime(&pVal->Value.ft, &val);
 }
 
+bool CWAB::IsAvailable()
+{
+  if (!m_bInitialized || !m_lpAdrBook)
+    return false;
 
+  ULONG lpcbEID = 0;
+  LPENTRYID lpEID = NULL;
+  HRESULT hr = m_lpAdrBook->GetPAB(&lpcbEID, &lpEID);
+  if (HR_FAILED(hr))
+    return false;
+
+  ULONG ulObjType = 0;
+  LPABCONT lpContainer = NULL;
+  hr = m_lpAdrBook->OpenEntry(lpcbEID,
+                              (LPENTRYID)lpEID,
+                              NULL,
+                              0,
+                              &ulObjType,
+                              (LPUNKNOWN *)&lpContainer);
+  m_lpWABObject->FreeBuffer(lpEID);
+
+  LPMAPITABLE lpAB = NULL;
+  hr = lpContainer->GetContentsTable(0, &lpAB);
+  if(HR_FAILED(hr)) {
+    lpContainer->Release();
+    return false;
+  }
+
+  ULONG rowCount = 0;
+  hr = lpAB->GetRowCount(0, &rowCount);
+  lpContainer->Release();
+  lpAB->Release();
+  return (rowCount != 0);
+}
 
 /*
 BOOL CWabIterateProcess::SanitizeMultiLine(CString& val)

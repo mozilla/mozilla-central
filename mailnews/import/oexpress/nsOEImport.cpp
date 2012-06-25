@@ -42,6 +42,8 @@
 #include "nsOEStringBundle.h"
 #include "nsIStringBundle.h"
 #include "nsUnicharUtils.h"
+#include "nsDirectoryServiceUtils.h"
+#include "nsDirectoryServiceDefs.h"
 
 #include "OEDebugLog.h"
 
@@ -107,8 +109,7 @@ public:
 
   NS_IMETHOD GetNeedsFieldMap(nsIFile *pLoc, bool *_retval) { *_retval = false; return NS_OK;}
 
-  NS_IMETHOD GetDefaultLocation(nsIFile **location, bool *found, bool *userVerify)
-    { return NS_ERROR_FAILURE;}
+  NS_IMETHOD GetDefaultLocation(nsIFile **location, bool *found, bool *userVerify);
 
   NS_IMETHOD FindAddressBooks(nsIFile *location, nsISupportsArray **_retval);
 
@@ -479,6 +480,31 @@ ImportOEAddressImpl::~ImportOEAddressImpl()
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(ImportOEAddressImpl, nsIImportAddressBooks)
 
+NS_IMETHODIMP ImportOEAddressImpl::GetDefaultLocation(nsIFile **aLocation,
+                                                      bool *aFound,
+                                                      bool *aUserVerify)
+{
+  NS_ENSURE_ARG_POINTER(aLocation);
+  NS_ENSURE_ARG_POINTER(aFound);
+  NS_ENSURE_ARG_POINTER(aUserVerify);
+
+  *aLocation = nsnull;
+  *aUserVerify = true;
+
+  CWAB *wab = new CWAB(nsnull);
+  *aFound = wab->IsAvailable();
+  delete wab;
+
+  if (*aFound) {
+    // Unfortunately WAB interface has no function to obtain address book location.
+    // So we set a fake location here.
+    if (NS_SUCCEEDED(NS_GetSpecialDirectory(NS_XPCOM_CURRENT_PROCESS_DIR, aLocation)))
+      *aUserVerify = false;
+  }
+
+  return NS_OK;
+}
+
 NS_IMETHODIMP ImportOEAddressImpl::GetAutoFind(PRUnichar **description, bool *_retval)
 {
   NS_PRECONDITION(description != nsnull, "null ptr");
@@ -486,7 +512,7 @@ NS_IMETHODIMP ImportOEAddressImpl::GetAutoFind(PRUnichar **description, bool *_r
   if (! description || !_retval)
     return NS_ERROR_NULL_POINTER;
 
-  *_retval = true;
+  *_retval = false;
   nsString str;
   str.Append(nsOEStringBundle::GetStringByID(OEIMPORT_AUTOFIND));
   *description = ToNewUnicode(str);
@@ -510,7 +536,20 @@ NS_IMETHODIMP ImportOEAddressImpl::FindAddressBooks(nsIFile *location, nsISuppor
 
   if (m_pWab)
     delete m_pWab;
-  m_pWab = new CWAB(nsnull);
+
+  nsCOMPtr<nsIFile> currentProcessDir;
+  rv = NS_GetSpecialDirectory(NS_XPCOM_CURRENT_PROCESS_DIR,
+                              getter_AddRefs(currentProcessDir));
+  bool equals = false;
+  currentProcessDir->Equals(location, &equals);
+  // If the location is not a fake, use it.
+  if (location && !equals) {
+    nsCOMPtr<nsIFile> localFile = do_QueryInterface(location, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    m_pWab = new CWAB(localFile);
+  } else {
+    m_pWab = new CWAB(nsnull);
+  }
 
   nsIImportABDescriptor * pID;
   nsISupports * pInterface;

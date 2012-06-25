@@ -48,6 +48,7 @@ public:
   // Utility stuff used by iterate
   void      FreeProws(LPSRowSet prows);
 
+  bool      IsAvailable();
 
 private:
   PRUnichar *  m_pUniBuff;
