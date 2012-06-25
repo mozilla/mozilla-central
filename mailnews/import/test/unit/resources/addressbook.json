@@ -50,5 +50,14 @@
       "PrimaryEmail"     : "primaryemail@host.invalid",
       "WebPage1"         : "http://127.0.0.1"
     }
+  ],
+  "johndoe" :
+  [
+    {
+      "DisplayName"      : "John Doe",
+      "FirstName"        : "John",
+      "LastName"         : "Doe",
+      "PrimaryEmail"     : "johndoe@host.invalid"
+    }
   ]
 }
