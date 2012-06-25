@@ -783,8 +783,8 @@ MarkChildren(JSTracer *trc, JSObject *obj)
 void
 MarkChildren(JSTracer *trc, JSString *str)
 {
-    if (str->isDependent()) {
-        MarkString(trc, str->asDependent().base(), "base");
+    if (str->hasBase()) {
+        MarkString(trc, str->base(), "base");
     } else if (str->isRope()) {
         JSRope &rope = str->asRope();
         MarkString(trc, rope.leftChild(), "left child");

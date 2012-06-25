@@ -635,8 +635,8 @@ ToCStringBuf::~ToCStringBuf()
         UnwantedForeground::free_(dbuf);
 }
 
-JSString * JS_FASTCALL
-js_IntToString(JSContext *cx, int32 si)
+JSFixedString *
+js::Int32ToString(JSContext *cx, int32 si)
 {
     uint32 ui;
     if (si >= 0) {
@@ -649,7 +649,7 @@ js_IntToString(JSContext *cx, int32 si)
     }
 
     JSCompartment *c = cx->compartment;
-    if (JSString *str = c->dtoaCache.lookup(10, si))
+    if (JSFixedString *str = c->dtoaCache.lookup(10, si))
         return str;
 
     JSShortString *str = js_NewGCShortString(cx);

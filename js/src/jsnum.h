@@ -166,9 +166,6 @@ extern const char js_parseInt_str[];
 class JSString;
 class JSFixedString;
 
-extern JSString * JS_FASTCALL
-js_IntToString(JSContext *cx, jsint i);
-
 /*
  * When base == 10, this function implements ToString() as specified by
  * ECMA-262-5 section 9.8.1; but note that it handles integers specially for
@@ -178,6 +175,9 @@ extern JSString * JS_FASTCALL
 js_NumberToString(JSContext *cx, jsdouble d);
 
 namespace js {
+
+extern JSFixedString *
+Int32ToString(JSContext *cx, int32_t i);
 
 /*
  * Convert an integer or double (contained in the given value) to a string and

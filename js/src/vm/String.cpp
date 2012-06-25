@@ -52,7 +52,7 @@ bool
 JSString::isShort() const
 {
     bool is_short = (getAllocKind() == gc::FINALIZE_SHORT_STRING);
-    JS_ASSERT_IF(is_short, isFlat());
+    JS_ASSERT_IF(is_short, isFixed());
     return is_short;
 }
 
@@ -198,7 +198,8 @@ JSRope::flatten(JSContext *maybecx)
             wholeChars = const_cast<jschar *>(left.chars());
             size_t bits = left.d.lengthAndFlags;
             pos = wholeChars + (bits >> LENGTH_SHIFT);
-            left.d.lengthAndFlags = bits ^ (EXTENSIBLE_FLAGS | DEPENDENT_BIT);
+            JS_STATIC_ASSERT(!(EXTENSIBLE_FLAGS & DEPENDENT_FLAGS));
+            left.d.lengthAndFlags = bits ^ (EXTENSIBLE_FLAGS | DEPENDENT_FLAGS);
             left.d.s.u2.base = (JSLinearString *)this;  /* will be true on exit */
             goto visit_right_child;
         }
@@ -243,7 +244,7 @@ JSRope::flatten(JSContext *maybecx)
             return &this->asFlat();
         }
         size_t progress = str->d.lengthAndFlags;
-        str->d.lengthAndFlags = buildLengthAndFlags(pos - str->d.u1.chars, DEPENDENT_BIT);
+        str->d.lengthAndFlags = buildLengthAndFlags(pos - str->d.u1.chars, DEPENDENT_FLAGS);
         str->d.s.u2.base = (JSLinearString *)this;       /* will be true on exit */
         str = str->d.s.u3.parent;
         if (progress == 0x200)
@@ -305,9 +306,10 @@ JSDependentString::undepend(JSContext *cx)
 
     PodCopy(s, chars(), n);
     s[n] = 0;
-
-    d.lengthAndFlags = buildLengthAndFlags(n, FIXED_FLAGS);
     d.u1.chars = s;
+
+    /* TODO: explain why undepended. */
+    d.lengthAndFlags = buildLengthAndFlags(n, UNDEPENDED_FLAGS);
 
     return &this->asFixed();
 }

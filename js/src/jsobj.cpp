@@ -1934,7 +1934,7 @@ obj_keys(JSContext *cx, uintN argc, Value *vp)
         if (JSID_IS_STRING(id)) {
             JS_ALWAYS_TRUE(vals.append(StringValue(JSID_TO_STRING(id))));
         } else if (JSID_IS_INT(id)) {
-            JSString *str = js_IntToString(cx, JSID_TO_INT(id));
+            JSString *str = Int32ToString(cx, JSID_TO_INT(id));
             if (!str)
                 return false;
             vals.infallibleAppend(StringValue(str));
