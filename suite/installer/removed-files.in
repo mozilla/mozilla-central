@@ -295,6 +295,13 @@ modules/services-sync/ext/Preferences.js
 modules/services-sync/ext/StringBundle.js
 modules/services-sync/ext/Sync.js
 modules/services-sync/log4moz.js
+modules/services-sync/type_records/bookmark.js
+modules/services-sync/type_records/clients.js
+modules/services-sync/type_records/forms.js
+modules/services-sync/type_records/history.js
+modules/services-sync/type_records/passwords.js
+modules/services-sync/type_records/prefs.js
+modules/services-sync/type_records/tabs.js
 #ifdef MOZ_STATIC_JS
 @DLL_PREFIX@mozjs@DLL_SUFFIX@
 #endif
@@ -1036,13 +1043,6 @@ xpicleanup@BIN_SUFFIX@
   modules/services-sync/status.js
   modules/services-sync/stores.js
   modules/services-sync/trackers.js
-  modules/services-sync/type_records/bookmark.js
-  modules/services-sync/type_records/clients.js
-  modules/services-sync/type_records/forms.js
-  modules/services-sync/type_records/history.js
-  modules/services-sync/type_records/passwords.js
-  modules/services-sync/type_records/prefs.js
-  modules/services-sync/type_records/tabs.js
   modules/services-sync/util.js
   modules/templateUtils.js
   modules/traceHelper.js
