@@ -108,14 +108,6 @@ function ctcpCommand(aConv, aTarget, aCommand, aMsg) {
   return true;
 }
 
-function whoisCommand(aMsg, aConv) {
-  aMsg = aMsg.trim();
-  if (!aMsg || aMsg.indexOf(" ") != -1)
-    return false;
-  getConv(aConv).requestBuddyInfo(aMsg);
-  return true;
-}
-
 var commands = [
   {
     name: "action",
@@ -368,13 +360,13 @@ var commands = [
   {
     name: "whois",
     get helpString() _("command.whois", "whois"),
-    run: whoisCommand
-  },
-  {
-    name: "whowas",
-    get helpString() _("command.whowas", "whowas"),
-    // We can run whoisCommand here as that will automatically execute whowas
-    // if the nick is offline (and show the nick is actually online if not).
-    run: whoisCommand
+    run: function(aMsg, aConv) {
+      // Note that this will automatically run whowas is the nick is offline.
+      aMsg = aMsg.trim();
+      if (!aMsg || aMsg.indexOf(" ") != -1)
+        return false;
+      getConv(aConv).requestBuddyInfo(aMsg);
+      return true;
+    }
   }
 ];
