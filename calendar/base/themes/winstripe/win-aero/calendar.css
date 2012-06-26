@@ -29,11 +29,13 @@
 }
 
 #task-addition-box > box > #calendar-add-task-button {
-  list-style-image: url(chrome://calendar/skin/toolbar-small-aero.png);
+  list-style-image: url(chrome://calendar/skin/toolbar-aero.png);
+  -moz-image-region: rect(1px 71px 17px 55px);
 }
 
 #todaypane-new-event-button {
-  list-style-image: url(chrome://calendar/skin/toolbar-small-aero.png);
+  list-style-image: url(chrome://calendar/skin/toolbar-aero.png) !important;
+  -moz-image-region: rect(1px 35px 17px 19px) !important;
 }
 
 #unifinder-search-field,

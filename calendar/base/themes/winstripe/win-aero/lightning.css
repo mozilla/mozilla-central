@@ -7,16 +7,24 @@
   -moz-image-region: rect(1px 35px 17px 19px) !important;
 }
 
-#calendar-tab-button,
-.tabmail-tab[type="calendar"] {
+#calendar-tab-button {
   list-style-image: url(chrome://lightning/skin/mode-switch-icons-aero.png);
-  -moz-image-region: rect(0px 64px 16px 48px);
+  -moz-image-region: rect(0px 16px 16px 0px);
 }
 
-#task-tab-button,
+.tabmail-tab[type="calendar"] {
+  list-style-image: url(chrome://lightning/skin/mode-switch-icons-aero.png);
+  -moz-image-region: rect(16px 16px 32px 0px);
+}
+
+#task-tab-button {
+  list-style-image: url(chrome://lightning/skin/mode-switch-icons-aero.png);
+  -moz-image-region: rect(0px 32px 16px 16px);
+}
+
 .tabmail-tab[type="tasks"] {
   list-style-image: url(chrome://lightning/skin/mode-switch-icons-aero.png);
-  -moz-image-region: rect(0px 80px 16px 64px);
+  -moz-image-region: rect(16px 32px 32px 16px);
 }
 
 #button-newmsg #newMsgButton-calendar-menuitem,

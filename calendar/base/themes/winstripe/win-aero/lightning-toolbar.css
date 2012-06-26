@@ -5,13 +5,13 @@
 /* Lightning "Calendar" Toolbarbutton */
 #lightning-button-calendar {
   list-style-image: url(chrome://lightning/skin/mode-switch-icons-aero.png);
-  -moz-image-region: rect(0 64px 16px 48px);
+  -moz-image-region: rect(0px 16px 16px 0px);
 }
 
 /* Lightning "Tasks" Toolbarbutton */
 #lightning-button-tasks {
   list-style-image: url(chrome://lightning/skin/mode-switch-icons-aero.png);
-  -moz-image-region: rect(0 80px 16px 64px);
+  -moz-image-region: rect(0px 32px 16px 16px);
 }
 
 /* Toolbar buttons */
