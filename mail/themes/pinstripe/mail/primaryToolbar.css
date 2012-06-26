@@ -446,6 +446,13 @@ toolbar[mode="icons"] .toolbarbutton-1 > menupopup {
   -moz-image-region: rect(18px, 396px, 36px, 378px);
 }
 
+#button-chat[unreadMessages="true"] {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(36px, 396px, 54px, 378px);
+  color: #0969b2;
+  text-shadow: 0 1px 0 rgbra(255, 255, 255, 0.4);
+}
+
 /* ::::: end small primary toolbar buttons ::::: */
 
 #palette-box #qfb-show-filter-bar {

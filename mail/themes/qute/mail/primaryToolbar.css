@@ -361,6 +361,10 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-image-region: rect(48px 528px 72px 504px) !important;
 }
 
+#button-chat[unreadMessages="true"] {
+  -moz-image-region: rect(72px 528px 96px 504px);
+}
+
 /* ::::: small primary toolbar buttons ::::: */
 
 toolbar[iconsize="small"] #button-getmsg {
@@ -671,6 +675,10 @@ toolbar[iconsize="small"] #button-chat:hover {
 
 toolbar[iconsize="small"] #button-chat[disabled] {
   -moz-image-region: rect(32px 352px 48px 336px) !important;
+}
+
+toolbar[iconsize="small"] #button-chat[unreadMessages="true"] {
+  -moz-image-region: rect(48px 352px 64px 336px) !important;
 }
 
 /* ::::: end small primary toolbar buttons ::::: */

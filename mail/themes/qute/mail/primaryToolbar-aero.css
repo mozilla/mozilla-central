@@ -506,6 +506,11 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-image-region: rect(1px, 395px, 17px, 379px);
 }
 
+#button-chat[unreadMessages="true"] {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(19px, 395px, 35px, 379px);
+}
+
 #palette-box .toolbarbutton-1 {
   border: none;
   background: none;

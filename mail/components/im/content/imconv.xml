@@ -107,6 +107,7 @@
             this.conv.markAsRead();
             this.directedUnreadCount = 0;
             chatHandler.updateTitle();
+            chatHandler.updateChatButtonState();
           }
           this.setAttribute("unreadCount", "");
           this.removeAttribute("unread");
@@ -126,13 +127,8 @@
               unreadCount = directedMessages + "/" + unreadCount;
             }
             unreadCount = "(" + unreadCount + ")";
-            if (directedMessages > this.directedUnreadCount) {
-              if (!gChatTab) {
-                document.getElementById("tabmail").openTab("chat",
-                                                           {background: true});
-              }
+            if (directedMessages > this.directedUnreadCount)
               this.directedUnreadCount = directedMessages;
-            }
           }
           this.setAttribute("unreadCount", unreadCount);
           chatHandler.updateTitle();

@@ -100,7 +100,7 @@ var chatTabType = {
       document.getElementById("contactlistbox").selectedItem = item;
   },
   openTab: function(aTab, aArgs) {
-    if (!document.getElementById("conversationsGroup").nextSibling.localName == "imconv") {
+    if (document.getElementById("conversationsGroup").nextSibling.id == "searchResultConv") {
       let convs = imServices.conversations.getUIConversations();
       if (convs.length != 0) {
         convs.sort(function(a, b)
@@ -113,6 +113,7 @@ var chatTabType = {
     gChatTab = aTab;
     aTab.tabNode.setAttribute("image", "chrome://chat/skin/chat-16.png");
     this._handleArgs(aArgs);
+    chatHandler._updateSelectedConversation();
     chatHandler.updateTitle();
     chatHandler._updateFocus();
   },
@@ -125,13 +126,7 @@ var chatTabType = {
   showTab: function(aTab) {
     gChatTab = aTab;
     let list = document.getElementById("contactlistbox");
-    let convs = document.getElementById("conversationsGroup");
-    if (!list.selectedItem || list.selectedItem == convs) {
-      list.selectedItem =
-        convs.nextSibling.localName == "imconv" ? convs.nextSibling : convs;
-    }
-    else
-      chatHandler.onListItemSelected();
+    chatHandler._updateSelectedConversation();
     chatHandler._updateFocus();
   },
   closeTab: function(aTab) {
@@ -233,26 +228,56 @@ var chatHandler = {
     let elt = convs.addContact(aConv, "imconv");
     if (shouldSelect)
       list.selectedItem = elt;
-    return elt;
+
+    if (aConv.isChat || !aConv.buddy)
+      return;
+
+    let contact = aConv.buddy.buddy.contact;
+    elt.imContact = contact;
+    let groupName = (contact.online ? "on" : "off") + "linecontactsGroup";
+    let item = document.getElementById(groupName).removeContact(contact);
+    if (list.selectedItem == item)
+      list.selectedItem = elt;
   },
 
-  updateTitle: function() {
-    if (!gChatTab)
+  _chatButtonUpdatePending: false,
+  updateChatButtonState: function() {
+    if (this._chatButtonUpdatePending)
       return;
-    let list = document.getElementById("conversationsGroup");
+    this._chatButtonUpdatePending = true;
+    Services.tm.mainThread.dispatch(this._updateChatButtonState.bind(this),
+                                    Ci.nsIEventTarget.DISPATCH_NORMAL);
+  },
+  _updateChatButtonState: function() {
+    delete this._chatButtonUpdatePending;
+    let chatButton = document.getElementById("button-chat");
+    if (!chatButton)
+      return;
+    if (this.countUnreadMessages())
+      chatButton.setAttribute("unreadMessages", "true");
+    else
+      chatButton.removeAttribute("unreadMessages");
+  },
+
+  countUnreadMessages: function() {
+    let convs = imServices.conversations.getUIConversations();
     let unreadCount = 0;
-    for (let node = list.nextSibling; node.localName == "imconv"; node = node.nextSibling) {
-      let conv = node.conv;
-      if (!conv)
-        continue;
+    for each (let conv in convs) {
       if (conv.isChat)
         unreadCount += conv.unreadTargetedMessageCount;
       else
         unreadCount += conv.unreadIncomingMessageCount;
     }
-    
+    return unreadCount;
+  },
+
+  updateTitle: function() {
+    if (!gChatTab)
+      return;
+
     let title =
       document.getElementById("chatBundle").getString("chatTabTitle");
+    let unreadCount = this.countUnreadMessages();
     if (unreadCount)
       title += " (" + unreadCount + ")";
     let selectedItem = document.getElementById("contactlistbox").selectedItem;
@@ -673,16 +698,57 @@ var chatHandler = {
     }
     else {
       contactlist.disabled = false;
-      let selectedItem = contactlist.selectedItem;
-      if (!selectedItem || selectedItem.collapsed) {
-        for each (let id in groupIds) {
-          let item = document.getElementById(id + "Group");
-          if (item.collapsed)
-            continue;
-          contactlist.selectedItem = item;
-          break;
-        }
+      this._updateSelectedConversation();
+    }
+  },
+  _updateSelectedConversation: function() {
+    let list = document.getElementById("contactlistbox");
+    // We can't select anything if there's no account.
+    if (list.disabled)
+      return;
+
+    // If the selection is already a conversation with unread messages, keep it.
+    let selectedItem = list.selectedItem;
+    if (selectedItem && selectedItem.localName == "imconv" &&
+        selectedItem.directedUnreadCount) {
+      selectedItem.update();
+      return;
+    }
+
+    let firstConv;
+    let convs = document.getElementById("conversationsGroup");
+    let conv = convs.nextSibling;
+    while (conv.id != "searchResultConv") {
+      if (!firstConv)
+        firstConv = conv;
+      // If there is a conversation with unread messages, select it.
+      if (conv.directedUnreadCount) {
+        list.selectedItem = conv;
+        return;
       }
+      conv = conv.nextSibling;
+    }
+
+    // No unread messages, select the first conversation, but only if
+    // the existing selection is uninteresting (a section header).
+    if (firstConv) {
+      if (!selectedItem || selectedItem.localName == "imgroup")
+        list.selectedItem = firstConv;
+      return;
+    }
+
+    // No conversation, if a visible item is selected, keep it.
+    if (selectedItem && !selectedItem.collapsed)
+      return;
+
+    // Select the first visible group header.
+    let groupIds = ["conversations", "onlinecontacts", "offlinecontacts"];
+    for each (let id in groupIds) {
+      let item = document.getElementById(id + "Group");
+      if (item.collapsed)
+        continue;
+      list.selectedItem = item;
+      return;
     }
   },
   _updateFocus: function() {
@@ -765,22 +831,13 @@ var chatHandler = {
       }
       return;
     }
+    if (aTopic == "new-text") {
+      this.updateChatButtonState();
+      return;
+    }
     if (aTopic == "new-ui-conversation") {
-      if (!gChatTab) {
-        let tabmail = document.getElementById("tabmail");
-        tabmail.openTab("chat", {background: true, convType: "new",
-                                 conv: aSubject});
-      }
-      let conv = chatHandler._addConversation(aSubject);
-      if (!aSubject.isChat && aSubject.buddy) {
-        let contact = aSubject.buddy.buddy.contact;
-        conv.imContact = contact;
-        let groupName = (contact.online ? "on" : "off") + "linecontactsGroup";
-        let item = document.getElementById(groupName).removeContact(contact);
-        let list = document.getElementById("contactlistbox");
-        if (list.selectedItem == item)
-          list.selectedItem = conv;
-      }
+      if (gChatTab)
+        chatHandler._addConversation(aSubject);
       return;
     }
     if (aTopic == "ui-conversation-closed") {
@@ -840,6 +897,7 @@ var chatHandler = {
       });
     });
     group._updateGroupLabel();
+    imServices.obs.addObserver(this, "new-text", false);
     imServices.obs.addObserver(this, "new-ui-conversation", false);
     imServices.obs.addObserver(this, "ui-conversation-closed", false);
     imServices.obs.addObserver(this, "contact-signed-on", false);
