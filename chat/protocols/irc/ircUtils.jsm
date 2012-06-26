@@ -19,8 +19,20 @@ XPCOMUtils.defineLazyGetter(this, "TXTToHTML", function() {
   return function(aTXT) cs.scanTXT(aTXT, cs.kEntities);
 });
 
-// The supported formatting control characters, as described as deprecated in
-// http://www.invlogic.com/irc/ctcp.html#3.11
+/*
+ * The supported formatting control characters, as described in
+ * http://www.invlogic.com/irc/ctcp.html#3.11
+ * If a string is given, it will replace the control character; if null is
+ * given, the current HTML tag stack will be closed; if a function is given,
+ * it expects two parameters:
+ *  aStack  The ordered list of open HTML tags.
+ *  aInput  The current input string.
+ * There are three output values returned in an array:
+ *  The new ordered list of open HTML tags.
+ *  The new text output to append.
+ *  The number of characters (from the start of the input string) that the
+ *  function handled.
+ */
 const CTCP_TAGS = {"\x02": "b", // \002, ^B, Bold
                    "\x16": "i", // \026, ^V, Reverse or Inverse (Italics)
                    "\x1F": "u", // \037, ^_, Underline
@@ -28,12 +40,36 @@ const CTCP_TAGS = {"\x02": "b", // \002, ^B, Bold
                    "\x0F": null}; // \017, ^O, Clear all formatting
 
 // Generate an expression that will search for any of the control characters.
-const CTCP_TAGS_STRING = "[" + Object.keys(CTCP_TAGS).join("") + "]";
-const CTCP_TAGS_EXP = new RegExp(CTCP_TAGS_STRING);
-const CTCP_TAGS_EXP_GLOBAL = new RegExp(CTCP_TAGS_STRING, "g");
+const CTCP_TAGS_EXP = new RegExp("[" + Object.keys(CTCP_TAGS).join("") + "]");
 
 // Remove all CTCP formatting characters.
-function ctcpFormatToText(aString) aString.replace(CTCP_TAGS_EXP_GLOBAL, "")
+function ctcpFormatToText(aString) {
+  let next,
+      input = aString,
+      output = "",
+      length;
+
+  while ((next = CTCP_TAGS_EXP.exec(input))) {
+    if (next.index > 0)
+      output += input.substr(0, next.index);
+    // We assume one character will be stripped.
+    length = 1;
+    let tag = CTCP_TAGS[input[next.index]];
+    // If the tag is a function, calculate how many characters are handled.
+    if (typeof tag == "function")
+      [, , length] = tag([], input.substr(next.index));
+
+    // Avoid infinite loops.
+    length = Math.max(1, length);
+    // Skip to after the last match.
+    input = input.substr(next.index + length);
+  }
+  // Append the unmatched bits before returning the output.
+  return output + input;
+}
+
+function openStack(aStack)
+  aStack.map(function(aTag) "<" + aTag + ">").join("")
 
 // Close the tags in the opposite order they were opened.
 function closeStack(aStack)
@@ -49,6 +85,7 @@ function ctcpFormatToHTML(aString) {
       stack = [],
       input = TXTToHTML(aString),
       output = "",
+      newOutput,
       length;
 
   while ((next = CTCP_TAGS_EXP.exec(input))) {
@@ -62,7 +99,8 @@ function ctcpFormatToHTML(aString) {
       stack = [];
     }
     else if (typeof tag == "function") {
-      [stack, output, length] = tag(stack, input.substr(next.index), output);
+      [stack, newOutput, length] = tag(stack, input.substr(next.index));
+      output += newOutput;
     }
     else {
       let offset = stack.indexOf(tag);
@@ -75,15 +113,14 @@ function ctcpFormatToHTML(aString) {
         // Tag found; close existing tag (and all tags after it).
         output += closeStack(stack.slice(offset));
         // Reopen the tags that came after it.
-        stack.slice(offset + 1)
-             .forEach(function(aTag) output += "<" + aTag + ">");
+        output += openStack(stack.slice(offset + 1));
         // Remove the tag from the stack.
         stack.splice(offset, 1);
       }
     }
 
-    // Avoid infinite loops, if.
-    length = (length <= 0) ? 1 : length;
+    // Avoid infinite loops.
+    length = Math.max(1, length);
     // Skip to after the last match.
     input = input.substr(next.index + length);
   }
@@ -114,7 +151,7 @@ const M_IRC_COLOR_MAP = {
   "99": "transparent"
 };
 
-function mIRCColoring(aStack, aInput, aOutput) {
+function mIRCColoring(aStack, aInput) {
   function getColor(aKey) {
     let key = aKey;
     // Single digit numbers can (must?) be prefixed by a zero.
@@ -130,26 +167,28 @@ function mIRCColoring(aStack, aInput, aOutput) {
   let matches,
       stack = aStack,
       input = aInput,
-      output = aOutput,
+      output = "",
       length = 1;
 
   if ((matches = M_IRC_COLORS_EXP.exec(input))) {
     let format = ["font"];
 
+    // Only \003 was found with no formatting digits after it, close the
+    // first open font tag.
     if (!matches[1]) {
       // Find the first font tag.
       let offset = stack.map(function(aTag) aTag.indexOf("font") == 0)
                         .indexOf(true);
 
-      // Close all tags after the first font tag.
-      output += closeStack(stack.slice(offset));
+      // Close all tags from the first font tag on.
+      output = closeStack(stack.slice(offset));
       // Remove the font tags from the stack.
       stack = stack.filter(function(aTag) aTag.indexOf("font"));
       // Reopen the other tags.
-      stack.slice(offset)
-           .forEach(function(aTag) output += "<" + aTag + ">");
+      output += openStack(stack.slice(offset));
     }
     else {
+      // Otherwise we have a match and are setting new colors.
       // The foreground color.
       let color = getColor(matches[1]);
       if (color)
@@ -163,8 +202,9 @@ function mIRCColoring(aStack, aInput, aOutput) {
       }
 
       if (format.length > 1) {
-        output += "<" + format.join(" ") + ">";
-        stack.push(format.join(" "));
+        let tag = format.join(" ");
+        output = "<" + tag + ">";
+        stack.push(tag);
         length = matches[0].length;
       }
     }

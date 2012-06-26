@@ -24,7 +24,7 @@ const input = [
 
 function run_test() {
   add_test(test_mIRCColoring);
-  //add_test(test_ctcpFormatToText);
+  add_test(test_ctcpFormatToText);
 
   run_next_test();
 }
@@ -42,29 +42,27 @@ function test_mIRCColoring() {
     "<font color=\"green\" background=\"maroon\">colored text and background <font color=\"yellow\" background=\"orange\">other colored text and different background</font></font>"
   ];
 
-  let output = input.map(ctcpFormatToHTML);
-  for (let i = 0; i < output.length; i++)
-    do_check_eq(expectedOutput[i], output[i]);
+  for (let i = 0; i < input.length; i++)
+    do_check_eq(expectedOutput[i], ctcpFormatToHTML(input[i]));
 
   run_next_test();
 }
 
 function test_ctcpFormatToText() {
-  let expectedOutput = "The quick brown fox jumps over the lazy dog.";
+  let expectedOutput = [
+    "colored text and background",
+    "colored text",
+    "colored text more colored text and background",
+    "colored text and background other colored text but same background",
+    "colored text and background other colored text and different background",
+    "colored text and background. You sure about this?",
+    "So a ,8 attribute is not valid and thus ignored.",
+    "colored text and background other colored text but same background",
+    "colored text and background other colored text and different background",
+  ];
 
-  let output = input.map(ctcpFormatToText);
-  for (let i = 0; i < output.length; i++)
-    do_check_eq(expectedOutput, output[i]);
-
-  run_next_test();
-}
-
-function test_mIRCColor() {
-  let expectedOutput = "The quick brown fox jumps over the lazy dog.";
-
-  let output = input.map(ctcpFormatToText);
-  for (let i = 0; i < output.length; i++)
-    do_check_eq(expectedOutput, output[i]);
+  for (let i = 0; i < input.length; i++)
+    do_check_eq(expectedOutput[i], ctcpFormatToText(input[i]));
 
   run_next_test();
 }
