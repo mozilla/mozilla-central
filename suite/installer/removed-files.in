@@ -293,6 +293,7 @@ modules/services-sync/async.js
 modules/services-sync/ext/Observers.js
 modules/services-sync/ext/Preferences.js
 modules/services-sync/ext/StringBundle.js
+modules/services-sync/ext/Sync.js
 modules/services-sync/log4moz.js
 #ifdef MOZ_STATIC_JS
 @DLL_PREFIX@mozjs@DLL_SUFFIX@
@@ -1028,7 +1029,6 @@ xpicleanup@BIN_SUFFIX@
   modules/services-sync/engines/passwords.js
   modules/services-sync/engines/prefs.js
   modules/services-sync/engines/tabs.js
-  modules/services-sync/ext/Sync.js
   modules/services-sync/identity.js
   modules/services-sync/notifications.js
   modules/services-sync/resource.js
