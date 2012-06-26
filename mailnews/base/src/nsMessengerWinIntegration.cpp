@@ -601,11 +601,40 @@ nsMessengerWinIntegration::Observe(nsISupports* aSubject, const char* aTopic, co
   return NS_OK;
 }
 
+static void EscapeAmpersands(nsString& aToolTip)
+{
+  // First, check to see whether we have any ampersands.
+  PRInt32 pos = aToolTip.FindChar('&');
+  if (pos == kNotFound)
+    return;
+
+  // Next, see if we only have bare ampersands.
+  pos = MsgFind(aToolTip, "&&", false, pos);
+
+  // Windows tooltip code removes one ampersand from each run,
+  // then collapses pairs of amperands. This means that in the easy case,
+  // we need to replace each ampersand with three.
+  MsgReplaceSubstring(aToolTip, NS_LITERAL_STRING("&"), NS_LITERAL_STRING("&&&"));
+  if (pos == kNotFound)
+    return;
+
+  // We inserted too many ampersands. Remove some.
+  for (;;) {
+    pos = MsgFind(aToolTip, "&&&&&&", false, pos);
+    if (pos == kNotFound)
+      return;
+
+    aToolTip.Cut(pos, 1);
+    pos += 2;
+  }
+}
+
 void nsMessengerWinIntegration::FillToolTipInfo()
 {
   // iterate over all the folders in mFoldersWithNewMail
   nsString accountName;
   nsCString hostName;
+  nsString toolTipLine;
   nsAutoString toolTipText;
   nsAutoString animatedAlertText;
   nsCOMPtr<nsIMsgFolder> folder;
@@ -648,15 +677,17 @@ void nsMessengerWinIntegration::FillToolTipInfo()
         if (animatedAlertText.IsEmpty()) // if we haven't filled in the animated alert text yet
           animatedAlertText = finalText;
 
+        toolTipLine.Append(accountName);
+        toolTipLine.Append(' ');
+        toolTipLine.Append(finalText);
+        EscapeAmpersands(toolTipLine);
+
         // only add this new string if it will fit without truncation....
-        if (kMaxTooltipSize >= toolTipText.Length() + accountName.Length() + finalText.Length() + 2)
-        {
-          if (index > 0)
-            toolTipText.Append(PRUnichar('\n'));
-          toolTipText.Append(accountName);
-          toolTipText.Append(' ');
-          toolTipText.Append(finalText);
-        }
+        if (toolTipLine.Length() + toolTipText.Length() <= kMaxTooltipSize)
+          toolTipText.Append(toolTipLine);
+
+        // clear out the tooltip line for the next folder
+        toolTipLine.Assign('\n');
       } // if we got a bundle
     } // if we got a folder
   } // for each folder
