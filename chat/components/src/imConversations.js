@@ -198,6 +198,10 @@ UIConversation.prototype = {
     else {
       let status = Status.toLabel(statusType);
       let stringId = wasUnknown ? "statusChangedFromUnknown" : "statusChanged";
+      if (this._justReconnected) {
+        stringId = "statusKnown";
+        delete this._justReconnected;
+      }
       if (statusText) {
         msg = bundle.formatStringFromName(stringId + "WithStatusText",
                                           [this.title, status, statusText],
@@ -218,11 +222,22 @@ UIConversation.prototype = {
     if (this.contact)
       return; // handled by the contact observer.
 
-    this.systemMessage(bundle.GetStringFromName("accountDisconnected"));
+    if (this.isChat && this.left)
+      this._wasLeft = true;
+    else
+      this.systemMessage(bundle.GetStringFromName("accountDisconnected"));
     this.notifyObservers(this, "update-buddy-status");
   },
   connected: function() {
-    delete this._disconnected;
+    if (this._disconnected) {
+      delete this._disconnected;
+      if (!this.isChat)
+        this._justReconnected = true;
+      else if (!this._wasLeft)
+        this.systemMessage(bundle.GetStringFromName("accountReconnected"));
+      else
+        delete this._wasLeft;
+    }
     this.notifyObservers(this, "update-buddy-status");
   },
 
