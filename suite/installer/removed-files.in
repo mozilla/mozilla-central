@@ -290,6 +290,9 @@ modules/mailViewManager.js
 modules/quickSearchManager.js
 modules/searchSpec.js
 modules/services-sync/async.js
+modules/services-sync/base_records/collection.js
+modules/services-sync/base_records/crypto.js
+modules/services-sync/base_records/wbo.js
 modules/services-sync/ext/Observers.js
 modules/services-sync/ext/Preferences.js
 modules/services-sync/ext/StringBundle.js
@@ -1025,10 +1028,7 @@ xpicleanup@BIN_SUFFIX@
   modules/services-common/stringbundle.js
   modules/services-common/utils.js
   modules/services-sync/auth.js
-  modules/services-sync/base_records/collection.js
-  modules/services-sync/base_records/crypto.js
   modules/services-sync/base_records/keys.js
-  modules/services-sync/base_records/wbo.js
   modules/services-sync/constants.js
   modules/services-sync/engines/bookmarks.js
   modules/services-sync/engines/clients.js
@@ -1040,6 +1040,7 @@ xpicleanup@BIN_SUFFIX@
   modules/services-sync/engines/tabs.js
   modules/services-sync/identity.js
   modules/services-sync/notifications.js
+  modules/services-sync/record.js
   modules/services-sync/resource.js
   modules/services-sync/service.js
   modules/services-sync/status.js
