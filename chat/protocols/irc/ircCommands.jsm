@@ -255,7 +255,15 @@ var commands = [
   {
     name: "nick",
     get helpString() _("command.nick", "nick"),
-    run: function(aMsg, aConv) simpleCommand(aConv, "NICK", aMsg)
+    run: function(aMsg, aConv) {
+      let newNick = aMsg.trim();
+      if (newNick.indexOf(/\s+/) != -1)
+        return false;
+      // The user wants to change their nick, so overwrite the account
+      // nickname for this session.
+      getAccount(aConv)._requestedNickname = newNick;
+      return simpleCommand(aConv, "NICK", newNick);
+    }
   },
   {
     name: "nickserv",
