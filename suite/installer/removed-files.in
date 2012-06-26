@@ -295,6 +295,8 @@ modules/services-sync/ext/Preferences.js
 modules/services-sync/ext/StringBundle.js
 modules/services-sync/ext/Sync.js
 modules/services-sync/log4moz.js
+modules/services-sync/stores.js
+modules/services-sync/trackers.js
 modules/services-sync/type_records/bookmark.js
 modules/services-sync/type_records/clients.js
 modules/services-sync/type_records/forms.js
@@ -1041,8 +1043,6 @@ xpicleanup@BIN_SUFFIX@
   modules/services-sync/resource.js
   modules/services-sync/service.js
   modules/services-sync/status.js
-  modules/services-sync/stores.js
-  modules/services-sync/trackers.js
   modules/services-sync/util.js
   modules/templateUtils.js
   modules/traceHelper.js
