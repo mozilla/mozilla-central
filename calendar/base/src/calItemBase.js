@@ -150,6 +150,9 @@ calItemBase.prototype = {
         this.mCalendar = aParentItem.mCalendar;
         this.recurrenceId = aRecurrenceId;
 
+        // Make sure organizer is unset, as the getter checks for this.
+        this.mOrganizer = undefined;
+
         this.mImmutable = aParentItem.mImmutable;
     },
 
