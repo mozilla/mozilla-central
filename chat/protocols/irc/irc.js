@@ -42,33 +42,43 @@ function ircMessage(aData) {
   //     <parameter>: /[^ ]+/
   //     <last parameter>: /.+/
   // See http://joshualuckers.nl/2010/01/10/regular-expression-to-match-raw-irc-messages/
-  if ((temp = aData.match(/^(?::([^ ]+) )?([^ ]+)(?: ((?:[^: ][^ ]* ?)*))?(?: ?:(.*))?$/))) {
-    // Assume message is from the server if not specified
-    prefix = temp[1];
-    message.command = temp[2];
-    // Space separated parameters
-    message.params = temp[3] ? temp[3].trim().split(/ +/) : [];
-    // Last parameter can contain spaces or be an empty string.
-    if (temp[4] != undefined)
-      message.params.push(temp[4]);
-
-    // The source string can be split into multiple parts as:
-    //   :(server|nickname[[!user]@host]
-    // If the source contains a . or a :, assume it's a server name. See RFC
-    // 2812 Section 2.3 definition of servername vs. nickname.
-    if (prefix &&
-        (temp = prefix.match(/^([^ !@\.:]+)(?:!([^ @]+))?(?:@([^ ]+))?$/))) {
-      message.nickname = temp[1];
-      message.user = temp[2] || null; // Optional
-      message.host = temp[3] || null; // Optional
-      if (message.user)
-        message.source = message.user + "@" + message.host;
-      else
-        message.source = message.host; // Note: this can be null!
-    }
-    else if (prefix)
-      message.servername = prefix;
+  // Note that this expression is slightly more aggressive in matching than RFC
+  // 2812 would allow. It allows for empty parameters (besides the last
+  // parameter, which can always be empty), by allowing two spaces in a row.
+  // (This is for compatibility with Unreal's 432 response, which returns an
+  // empty first parameter.) It also allows a trailing space after the
+  // <parameter>s when no <last parameter> is present (also occurs with Unreal).
+  if (!(temp = aData.match(/^(?::([^ ]+) )?([^ ]+)((?: +[^: ][^ ]*)*)? ?(?::(.*))?$/))) {
+    ERROR("Couldn't parse message: \"" + aData + "\"");
+    return message;
   }
+
+  // Assume message is from the server if not specified
+  prefix = temp[1];
+  message.command = temp[2];
+  // Space separated parameters. Since we expect a space as the first thing
+  // here, we want to ignore the first value (which is empty).
+  message.params = temp[3] ? temp[3].split(" ").slice(1) : [];
+  // Last parameter can contain spaces or be an empty string.
+  if (temp[4] != undefined)
+    message.params.push(temp[4]);
+
+  // The source string can be split into multiple parts as:
+  //   :(server|nickname[[!user]@host]
+  // If the source contains a . or a :, assume it's a server name. See RFC
+  // 2812 Section 2.3 definition of servername vs. nickname.
+  if (prefix &&
+      (temp = prefix.match(/^([^ !@\.:]+)(?:!([^ @]+))?(?:@([^ ]+))?$/))) {
+    message.nickname = temp[1];
+    message.user = temp[2] || null; // Optional
+    message.host = temp[3] || null; // Optional
+    if (message.user)
+      message.source = message.user + "@" + message.host;
+    else
+      message.source = message.host; // Note: this can be null!
+  }
+  else if (prefix)
+    message.servername = prefix;
 
   return message;
 }

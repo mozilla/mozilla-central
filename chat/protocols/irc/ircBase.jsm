@@ -1125,8 +1125,20 @@ var ircBase = {
     },
     "432": function(aMessage) { // ERR_ERRONEUSNICKNAME
       // <nick> :Erroneous nickname
-      // TODO Prompt user for new nick? Autoclean characters?
-      return false;
+      let msg = _("error.erroneousNickname", aMessage.params[1]);
+      serverErrorMessage(this, aMessage, msg);
+      if (this._requestedNickname == this._accountNickname) {
+        // The account has been set up with an illegal nickname.
+        ERROR("Erroneous nickname " + aMessage.params[1] + ": " +
+              aMessage.params[2]);
+        this.gotDisconnected(Ci.prplIAccount.ERROR_INVALID_USERNAME, msg);
+      }
+      else {
+        // Reset original nickname to the account nickname in case of
+        // later reconnections.
+        this._requestedNickname = this._accountNickname;
+      }
+      return true;
     },
     "433": function(aMessage) { // ERR_NICKNAMEINUSE
       // <nick> :Nickname is already in use
