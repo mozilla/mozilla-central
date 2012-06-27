@@ -26,9 +26,6 @@
 
 #define kWhitespace    " \t\b\r\n"
 
-// If we get a line longer than 32K it's just toooooo bad!
-#define kTextAddressBufferSz    (64 * 1024)
-
 nsTextAddress::nsTextAddress()
 {
     m_database = nsnull;
@@ -351,54 +348,38 @@ nsresult nsTextAddress::DetermineDelim(nsIFile *aSrc)
     return rv;
   }
 
-  char *pLine = new char[kTextAddressBufferSz];
-  if (!pLine)
-    return NS_ERROR_OUT_OF_MEMORY;
-
-  PRUint32 bytesLeft = 0;
-  rv = inputStream->Available(&bytesLeft);
-  if (NS_FAILED(rv)) {
-    IMPORT_LOG0("*** Error checking address file for eof\n");
-    inputStream->Close();
-    delete [] pLine;
-    return rv;
-  }
-
-  PRUint32 left;
-  PRInt32 lineLen = 0;
   PRInt32 lineCount = 0;
   PRInt32 tabCount = 0;
   PRInt32 commaCount = 0;
   PRInt32 tabLines = 0;
   PRInt32 commaLines = 0;
+  nsCAutoString line;
+  bool more = true;
 
-  while (bytesLeft && NS_SUCCEEDED(rv) && (lineCount < 100)) {
-    left = 0;
-    rv = inputStream->Read(pLine, kTextAddressBufferSz, &left);
-    if (left)
-      pLine[kTextAddressBufferSz - 1] = 0;
+  nsCOMPtr<nsILineInputStream> lineStream(do_QueryInterface(inputStream, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
 
+  while (more && NS_SUCCEEDED(rv) && (lineCount < 100)) {
+    rv = lineStream->ReadLine(line, &more);
     if (NS_SUCCEEDED(rv)) {
-      lineLen = strlen(pLine);
-      tabCount = CountFields(pLine, lineLen, 9);
-      commaCount = CountFields(pLine, lineLen, ',');
+      tabCount = CountFields(line.get(), line.Length(), '\t');
+      commaCount = CountFields(line.get(), line.Length(), ',');
       if (tabCount > commaCount)
         tabLines++;
       else if (commaCount)
         commaLines++;
-      rv = inputStream->Available(&bytesLeft);
     }
     lineCount++;
   }
 
   rv = inputStream->Close();
 
-  delete [] pLine;
-
   if (tabLines > commaLines)
     m_delim = '\t';
   else
     m_delim = ',';
+
+  IMPORT_LOG2( "Tab count = %d, Comma count = %d\n", tabLines, commaLines);
 
   return rv;
 }
