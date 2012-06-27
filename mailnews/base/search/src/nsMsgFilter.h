@@ -51,15 +51,13 @@ public:
   nsMsgFilterTypeType  GetType() {return m_type;}
   void    SetType(nsMsgFilterTypeType  type) {m_type = type;}
   bool    GetEnabled() {return m_enabled;}
-  void    SetFilterScript(nsCString *filterName) ;
-  void    SetFilterList(nsIMsgFilterList* filterList);
+  void    SetFilterScript(nsCString *filterName);
 
   bool    IsScript() {return (m_type &
                                   (nsMsgFilterType::InboxJavaScript |
                                    nsMsgFilterType::NewsJavaScript)) != 0;}
 
   // filing routines.
-  nsresult  SaveToTextFile(nsIOutputStream *aStream);
   nsresult  SaveRule(nsIOutputStream *aStream);
 
   PRInt16   GetVersion();

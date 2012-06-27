@@ -41,7 +41,7 @@ interface nsIMsgRuleAction : nsISupports {
   
 };
 
-[scriptable, uuid(346C8CC6-35EA-4F44-B348-94E84D7C03E0)]
+[scriptable, uuid(ed4b7a8e-3190-4b0b-b842-d4f1ca65216f)]
 interface nsIMsgFilter : nsISupports {
     attribute nsMsgFilterTypeType filterType;
     /**
@@ -57,8 +57,8 @@ interface nsIMsgFilter : nsISupports {
     attribute ACString unparsedBuffer; //holds the entire filter if we don't know how to handle it
     attribute boolean unparseable;  //whether we could parse the filter or not
 
-    readonly attribute nsIMsgFilterList filterList; // owning filter list
-    
+    attribute nsIMsgFilterList filterList; // owning filter list
+
     void AddTerm(in nsMsgSearchAttribValue attrib,
                  in nsMsgSearchOpValue op,
                  in nsIMsgSearchValue value,
@@ -98,5 +98,6 @@ interface nsIMsgFilter : nsISupports {
     void clearActionList();
     void getSortedActionList(in nsISupportsArray actionList);  //will return an action list with moveAction (if present) as last one.
     readonly attribute nsISupportsArray actionList;
-};
 
+    void SaveToTextFile(in nsIOutputStream aStream);
+};

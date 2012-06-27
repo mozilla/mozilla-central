@@ -613,19 +613,20 @@ nsMsgFilter::MatchHdr(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder,
   return rv;
 }
 
-void
+NS_IMETHODIMP
 nsMsgFilter::SetFilterList(nsIMsgFilterList *filterList)
 {
   // doesn't hold a ref.
   m_filterList = filterList;
+  return NS_OK;
 }
 
-nsresult
+NS_IMETHODIMP
 nsMsgFilter::GetFilterList(nsIMsgFilterList **aResult)
 {
-    NS_ENSURE_ARG_POINTER(aResult);
-    NS_IF_ADDREF(*aResult = m_filterList);
-    return NS_OK;
+  NS_ENSURE_ARG_POINTER(aResult);
+  NS_IF_ADDREF(*aResult = m_filterList);
+  return NS_OK;
 }
 
 void nsMsgFilter::SetFilterScript(nsCString *fileName)
@@ -741,7 +742,8 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
   // set m_action.m_value.m_folderUri
 }
 
-nsresult nsMsgFilter::SaveToTextFile(nsIOutputStream *aStream)
+NS_IMETHODIMP
+nsMsgFilter::SaveToTextFile(nsIOutputStream *aStream)
 {
   NS_ENSURE_ARG_POINTER(aStream);
   if (m_unparseable)

@@ -35,13 +35,6 @@ static const PRUnichar unicodeFormatter[] = {
 nsMsgFilterList::nsMsgFilterList() :
     m_fileVersion(0)
 {
-  // I don't know how we're going to report this error if we failed to create the isupports array...
-#ifdef DEBUG
-  nsresult rv =
-#endif
-    NS_NewISupportsArray(getter_AddRefs(m_filters));
-  NS_ASSERTION(NS_SUCCEEDED(rv), "Fixme bug 180312: NS_NewISupportsArray() failed");
-
   m_loggingEnabled = false;
   m_startWritingToBuffer = false;
   m_temporaryList = false;
@@ -288,10 +281,10 @@ nsMsgFilterList::ApplyFiltersToHdr(nsMsgFilterTypeType filterType,
                                    nsIMsgFilterHitNotify *listener,
                                    nsIMsgWindow *msgWindow)
 {
-  nsCOMPtr <nsIMsgFilter>  filter;
-  PRUint32    filterCount = 0;
-  nsresult    rv = GetFilterCount(&filterCount);
-  NS_ENSURE_SUCCESS(rv,rv);
+  nsCOMPtr<nsIMsgFilter> filter;
+  PRUint32 filterCount = 0;
+  nsresult rv = GetFilterCount(&filterCount);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsMsgSearchScopeTerm* scope = new nsMsgSearchScopeTerm(nsnull, nsMsgSearchScope::offlineMail, folder);
   scope->AddRef();
@@ -585,7 +578,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
           nsTextFormatter::smprintf_free(unicodeString);
         }
         m_curFilter = filter;
-        m_filters->AppendElement(static_cast<nsISupports*>(filter));
+        m_filters.AppendElement(filter);
       }
       break;
     case nsIMsgFilterList::attribEnabled:
@@ -871,18 +864,19 @@ nsMsgFilterList::WriteWstrAttr(nsMsgFilterFileAttribValue attrib,
 
 nsresult nsMsgFilterList::SaveTextFilters(nsIOutputStream *aStream)
 {
-  nsresult  err = NS_OK;
   const char *attribStr;
-  PRUint32      filterCount;
-  m_filters->Count(&filterCount);
+  PRUint32   filterCount = 0;
+  nsresult   err = GetFilterCount(&filterCount);
+  NS_ENSURE_SUCCESS(err, err);
+  err = NS_OK;
 
   attribStr = GetStringForAttrib(nsIMsgFilterList::attribVersion);
   err = WriteIntAttr(nsIMsgFilterList::attribVersion, kFileVersion, aStream);
   err = WriteBoolAttr(nsIMsgFilterList::attribLogging, m_loggingEnabled, aStream);
   for (PRUint32 i = 0; i < filterCount; i ++)
   {
-    nsMsgFilter *filter;
-    if (GetMsgFilterAt(i, &filter) == NS_OK && filter != nsnull)
+    nsCOMPtr<nsIMsgFilter> filter;
+    if (NS_SUCCEEDED(GetFilterAt(i, getter_AddRefs(filter))) && filter)
     {
       filter->SetFilterList(this);
 
@@ -893,8 +887,6 @@ nsresult nsMsgFilterList::SaveTextFilters(nsIOutputStream *aStream)
         if ((err = filter->SaveToTextFile(aStream)) != NS_OK)
           break;
       }
-
-      NS_RELEASE(filter);
     }
     else
       break;
@@ -906,16 +898,6 @@ nsresult nsMsgFilterList::SaveTextFilters(nsIOutputStream *aStream)
 
 nsMsgFilterList::~nsMsgFilterList()
 {
-  // filters should be released for free, because only isupports array
-  // is holding onto them, right?
-//  PRUint32      filterCount;
-//  m_filters->Count(&filterCount);
-//  for (PRUint32 i = 0; i < filterCount; i++)
-//  {
-//    nsIMsgFilter *filter;
-//    if (GetFilterAt(i, &filter) == NS_OK)
-//      NS_RELEASE(filter);
-//  }
 }
 
 nsresult nsMsgFilterList::Close()
@@ -925,17 +907,9 @@ nsresult nsMsgFilterList::Close()
 
 nsresult nsMsgFilterList::GetFilterCount(PRUint32 *pCount)
 {
-  return m_filters->Count(pCount);
-}
+  NS_ENSURE_ARG_POINTER(pCount);
 
-nsresult nsMsgFilterList::GetMsgFilterAt(PRUint32 filterIndex, nsMsgFilter **filter)
-{
-  NS_ENSURE_ARG_POINTER(filter);
-
-  PRUint32      filterCount;
-  m_filters->Count(&filterCount);
-  NS_ENSURE_ARG(filterCount > filterIndex);
-  *filter = (nsMsgFilter *) m_filters->ElementAt(filterIndex);
+  *pCount = m_filters.Length();
   return NS_OK;
 }
 
@@ -943,12 +917,12 @@ nsresult nsMsgFilterList::GetFilterAt(PRUint32 filterIndex, nsIMsgFilter **filte
 {
   NS_ENSURE_ARG_POINTER(filter);
 
-  PRUint32      filterCount;
-  m_filters->Count(&filterCount);
-    NS_ENSURE_ARG(filterCount >= filterIndex);
+  PRUint32 filterCount = 0;
+  GetFilterCount(&filterCount);
+  NS_ENSURE_ARG_MAX(filterIndex, filterCount - 1);
 
-  return m_filters->QueryElementAt(filterIndex, NS_GET_IID(nsIMsgFilter),
-                                   (void **)filter);
+  NS_IF_ADDREF(*filter = m_filters[filterIndex]);
+  return NS_OK;
 }
 
 nsresult
@@ -956,19 +930,16 @@ nsMsgFilterList::GetFilterNamed(const nsAString &aName, nsIMsgFilter **aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
 
-    nsresult rv;
-    PRUint32 count=0;
-    m_filters->Count(&count);
+    PRUint32 count = 0;
+    nsresult rv = GetFilterCount(&count);
+    NS_ENSURE_SUCCESS(rv, rv);
 
     *aResult = nsnull;
-    PRUint32 i;
-    for (i=0; i<count; i++) {
-        nsCOMPtr<nsISupports> filterSupports;
-        rv = m_filters->GetElementAt(i, getter_AddRefs(filterSupports));
+    for (PRUint32 i = 0; i < count; i++) {
+        nsCOMPtr<nsIMsgFilter> filter;
+        rv = GetFilterAt(i, getter_AddRefs(filter));
         if (NS_FAILED(rv)) continue;
 
-        // cast is safe because array is private
-        nsIMsgFilter *filter = (nsIMsgFilter *)filterSupports.get();
         nsString filterName;
         filter->GetFilterName(filterName);
         if (filterName.Equals(aName))
@@ -984,29 +955,30 @@ nsMsgFilterList::GetFilterNamed(const nsAString &aName, nsIMsgFilter **aResult)
 
 nsresult nsMsgFilterList::SetFilterAt(PRUint32 filterIndex, nsIMsgFilter *filter)
 {
-  m_filters->ReplaceElementAt(filter, filterIndex);
+  m_filters[filterIndex] = filter;
   return NS_OK;
 }
 
 
 nsresult nsMsgFilterList::RemoveFilterAt(PRUint32 filterIndex)
 {
-  m_filters->RemoveElementAt(filterIndex);
+  m_filters.RemoveElementAt(filterIndex);
   return NS_OK;
 }
 
 nsresult
 nsMsgFilterList::RemoveFilter(nsIMsgFilter *aFilter)
 {
-  return m_filters->RemoveElement(static_cast<nsISupports*>(aFilter));
+  m_filters.RemoveElement(aFilter);
+  return NS_OK;
 }
 
 nsresult nsMsgFilterList::InsertFilterAt(PRUint32 filterIndex, nsIMsgFilter *aFilter)
 {
-  nsMsgFilter *filter = static_cast<nsMsgFilter *>(aFilter);
   if (!m_temporaryList)
-    filter->SetFilterList(this);
-  m_filters->InsertElementAt(aFilter, filterIndex);
+    aFilter->SetFilterList(this);
+  m_filters.InsertElementAt(filterIndex, aFilter);
+
   return NS_OK;
 }
 
@@ -1016,42 +988,54 @@ nsresult nsMsgFilterList::InsertFilterAt(PRUint32 filterIndex, nsIMsgFilter *aFi
 nsresult nsMsgFilterList::MoveFilterAt(PRUint32 filterIndex,
                                        nsMsgFilterMotionValue motion)
 {
-    NS_ENSURE_ARG((motion == nsMsgFilterMotion::up) ||
-                  (motion == nsMsgFilterMotion::down));
+  NS_ENSURE_ARG((motion == nsMsgFilterMotion::up) ||
+                (motion == nsMsgFilterMotion::down));
 
-  PRUint32      filterCount;
-  m_filters->Count(&filterCount);
+  PRUint32 filterCount = 0;
+  nsresult rv = GetFilterCount(&filterCount);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    NS_ENSURE_ARG(filterCount >= filterIndex);
+  NS_ENSURE_ARG_MAX(filterIndex, filterCount - 1);
 
-    PRUint32 newIndex = filterIndex;
+  PRUint32 newIndex = filterIndex;
 
   if (motion == nsMsgFilterMotion::up)
   {
-        newIndex = filterIndex - 1;
+    // are we already at the top?
+    if (filterIndex == 0)
+      return NS_OK;
 
-        // are we already at the top?
-    if (filterIndex == 0) return NS_OK;
+    newIndex = filterIndex - 1;
+
   }
   else if (motion == nsMsgFilterMotion::down)
   {
-        newIndex = filterIndex + 1;
+    // are we already at the bottom?
+    if (filterIndex == filterCount - 1)
+      return NS_OK;
 
-        // are we already at the bottom?
-    if (newIndex > filterCount - 1) return NS_OK;
+    newIndex = filterIndex + 1;
   }
-    m_filters->MoveElement(filterIndex,newIndex);
+
+  nsCOMPtr<nsIMsgFilter> tempFilter1;
+  rv = GetFilterAt(newIndex, getter_AddRefs(tempFilter1));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIMsgFilter> tempFilter2;
+  rv = GetFilterAt(filterIndex, getter_AddRefs(tempFilter2));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  SetFilterAt(newIndex, tempFilter2);
+  SetFilterAt(filterIndex, tempFilter1);
+
   return NS_OK;
 }
 
 nsresult nsMsgFilterList::MoveFilter(nsIMsgFilter *aFilter,
                                      nsMsgFilterMotionValue motion)
 {
-  PRInt32 filterIndex;
-  nsresult rv = m_filters->GetIndexOf(static_cast<nsISupports*>(aFilter),
-                           &filterIndex);
-  NS_ENSURE_SUCCESS(rv, rv);
-  NS_ENSURE_ARG_MIN(filterIndex,0);
+  PRInt32 filterIndex = m_filters.IndexOf(aFilter, 0);
+  NS_ENSURE_ARG(filterIndex != m_filters.NoIndex);
 
   return MoveFilterAt(filterIndex, motion);
 }
@@ -1068,15 +1052,16 @@ NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFo
 {
   NS_ENSURE_ARG_POINTER(found);
 
-  PRUint32 numFilters;
-  nsresult rv = m_filters->Count(&numFilters);
+  PRUint32 numFilters = 0;
+  nsresult rv = GetFilterCount(&numFilters);
   NS_ENSURE_SUCCESS(rv, rv);
+
   nsCOMPtr<nsIMsgFilter> filter;
   nsCString folderUri;
   *found = false;
   for (PRUint32 index = 0; index < numFilters; index++)
   {
-    filter = do_QueryElementAt(m_filters, index, &rv);
+    rv = GetFilterAt(index, getter_AddRefs(filter));
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsISupportsArray> filterActionList;
@@ -1142,43 +1127,42 @@ NS_IMETHODIMP nsMsgFilterList::GetShouldDownloadAllHeaders(bool *aResult)
 // leaves m_arbitraryHeaders filed in with the arbitrary headers.
 nsresult nsMsgFilterList::ComputeArbitraryHeaders()
 {
-  nsresult rv = NS_OK;
-  if (m_arbitraryHeaders.IsEmpty())
+  NS_ENSURE_TRUE (m_arbitraryHeaders.IsEmpty(), NS_OK);
+
+  PRUint32 numFilters = 0;
+  nsresult rv = GetFilterCount(&numFilters);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIMsgFilter> filter;
+  nsMsgSearchAttribValue attrib;
+  nsCString arbitraryHeader;
+  for (PRUint32 index = 0; index < numFilters; index++)
   {
-    PRUint32 numFilters;
-    rv = m_filters->Count(&numFilters);
-    NS_ENSURE_SUCCESS(rv,rv);
-    nsCOMPtr <nsIMsgFilter> filter;
-    nsMsgSearchAttribValue attrib;
-    nsCString arbitraryHeader;
-    for (PRUint32 index = 0; index < numFilters; index++)
+    rv = GetFilterAt(index, getter_AddRefs(filter));
+    if (!(NS_SUCCEEDED(rv) && filter)) continue;
+
+    nsCOMPtr <nsISupportsArray> searchTerms;
+    PRUint32 numSearchTerms=0;
+    filter->GetSearchTerms(getter_AddRefs(searchTerms));
+    if (searchTerms)
+      searchTerms->Count(&numSearchTerms);
+    for (PRUint32 i = 0; i < numSearchTerms; i++)
     {
-      filter = do_QueryElementAt(m_filters, index, &rv);
-      if (NS_SUCCEEDED(rv) && filter)
+      filter->GetTerm(i, &attrib, nsnull, nsnull, nsnull, arbitraryHeader);
+      if (!arbitraryHeader.IsEmpty())
       {
-        nsCOMPtr <nsISupportsArray> searchTerms;
-        PRUint32 numSearchTerms=0;
-        filter->GetSearchTerms(getter_AddRefs(searchTerms));
-        if (searchTerms)
-          searchTerms->Count(&numSearchTerms);
-        for (PRUint32 i=0; i< numSearchTerms;i++)
+        if (m_arbitraryHeaders.IsEmpty())
+          m_arbitraryHeaders.Assign(arbitraryHeader);
+        else if (m_arbitraryHeaders.Find(arbitraryHeader, CaseInsensitiveCompare) == -1)
         {
-          filter->GetTerm(i, &attrib, nsnull, nsnull, nsnull, arbitraryHeader);
-          if (!arbitraryHeader.IsEmpty())
-          {
-            if (m_arbitraryHeaders.IsEmpty())
-              m_arbitraryHeaders.Assign(arbitraryHeader);
-            else if (m_arbitraryHeaders.Find(arbitraryHeader, CaseInsensitiveCompare) == -1)
-            {
-              m_arbitraryHeaders.Append(" ");
-              m_arbitraryHeaders.Append(arbitraryHeader);
-            }
-          }
+          m_arbitraryHeaders.Append(" ");
+          m_arbitraryHeaders.Append(arbitraryHeader);
         }
       }
     }
   }
-  return rv;
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgFilterList::GetArbitraryHeaders(nsACString &aResult)
@@ -1206,25 +1190,4 @@ NS_IMETHODIMP nsMsgFilterList::FlushLogIfNecessary()
   }
   return rv;
 }
-
-#ifdef DEBUG
-void nsMsgFilterList::Dump()
-{
-  PRUint32      filterCount;
-  m_filters->Count(&filterCount);
-  printf("%d filters\n", filterCount);
-
-  for (PRUint32 i = 0; i < filterCount; i++)
-  {
-    nsMsgFilter *filter;
-    if (GetMsgFilterAt(i, &filter) == NS_OK)
-    {
-      filter->Dump();
-      NS_RELEASE(filter);
-    }
-  }
-
-}
-#endif
-
 // ------------ End FilterList methods ------------------

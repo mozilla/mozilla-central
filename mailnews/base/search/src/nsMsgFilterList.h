@@ -10,7 +10,7 @@
 #include "nsIMsgFolder.h"
 #include "nsIMsgFilterList.h"
 #include "nsCOMPtr.h"
-#include "nsISupportsArray.h"
+#include "nsIArray.h"
 #include "nsIFile.h"
 #include "nsIOutputStream.h"
 
@@ -45,12 +45,6 @@ public:
   bool m_temporaryList;
 
 protected:
-  // type-safe accessor when you really have to have an nsMsgFilter
-  nsresult GetMsgFilterAt(PRUint32 filterIndex, nsMsgFilter **filter);
-#ifdef DEBUG
-  void Dump();
-#endif
-protected:
   nsresult ComputeArbitraryHeaders();
   nsresult SaveTextFilters(nsIOutputStream *aStream);
   // file streaming methods
@@ -63,10 +57,10 @@ protected:
   PRInt16 m_fileVersion;
   bool m_loggingEnabled;
   bool m_startWritingToBuffer; //tells us when to start writing one whole filter to m_unparsedBuffer
-  nsCOMPtr <nsIMsgFolder> m_folder;
+  nsCOMPtr<nsIMsgFolder> m_folder;
   nsMsgFilter *m_curFilter; // filter we're filing in or out(?)
   nsCString m_filterFileName;
-  nsCOMPtr<nsISupportsArray> m_filters;
+  nsTArray<nsCOMPtr<nsIMsgFilter> > m_filters;
   nsCString m_arbitraryHeaders;
   nsCOMPtr<nsIFile> m_defaultFile;
   nsCString m_unparsedFilterBuffer; //holds one entire filter unparsed 
@@ -78,6 +72,3 @@ private:
 };
 
 #endif
-
-
-
