@@ -8,6 +8,7 @@
 load("../../../resources/logHelper.js");
 load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
+load("../../../resources/alertTestUtils.js");
 
 // IMAP pump
 load("../../../resources/IMAPpump.js");
@@ -32,7 +33,7 @@ function loadImapMessage()
 {
   gIMAPMailbox.addMessage(new imapMessage(specForFileName(gMessage),
                           gIMAPMailbox.uidnext++, []));
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  gIMAPInbox.updateFolderWithListener(gDummyMsgWindow, asyncUrlListener);
   yield false;
   do_check_eq(1, gIMAPInbox.getTotalMessages(false));
   let msgHdr = firstMsgHdr(gIMAPInbox);
