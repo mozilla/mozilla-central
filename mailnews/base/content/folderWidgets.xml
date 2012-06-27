@@ -254,59 +254,66 @@
           const Cc = Components.classes;
           const Ci = Components.interfaces;
 
-          var folders = [];
+          let folders = [];
 
           // Figure out which folders to build.  If we don't have a parent, then
           // we assume we should build the top-level accounts.  (Actually we
           // build the fake root folders for those accounts.)
           if (!this._parentFolder) {
-            var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"].
+            let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"].
                           getService(Ci.nsIMsgAccountManager);
-            var allServers = acctMgr.allServers;
-            var count = allServers.Count();
+            let count = acctMgr.accounts.Count();
 
             // Sadly, the accountMgr doesn't provide us we a sorted list of
-            // servers.  We have to get them in the right order on our own. To
+            // accounts.  We have to get them in the right order on our own. To
             // Do this, we'll stick them in an array, and then sort that array.
-            var servers = [];
-            for (var i = 0; i < count; i++)
-              servers.push(allServers.QueryElementAt(i, Ci.nsIMsgIncomingServer));
+            let accounts = [];
+            for (let i = 0; i < count; i++) {
+              let acct = acctMgr.accounts.GetElementAt(i).QueryInterface(Ci.nsIMsgAccount);
+
+              // This is a HACK to work around bug 41133. If we have one of the
+              // dummy "news" accounts there, that account won't have an
+              // incomingServer attached to it, and everything will blow up.
+              if (acct.incomingServer && acct.incomingServer.type != "im")
+                accounts.push(acct);
+            }
 
             /**
-             * This is our actual function for sorting servers.  Servers go
+             * This is our actual function for sorting accounts.  Accounts go
              * in the following order: (1) default account (2) other mail
              * accounts (3) Local Folders (4) news
              */
-            var defaultServerKey = acctMgr.defaultAccount.incomingServer.key;
-            function serverCompare(a, b) {
-              if (a.key == defaultServerKey)
+            var defaultAccountKey = acctMgr.defaultAccount.key;
+            function accountCompare(a, b) {
+              if (a.key == defaultAccountKey)
                 return -1;
-              if (b.key == defaultServerKey)
+              if (b.key == defaultAccountKey)
                 return 1;
-              var aIsNews = a.type == "nntp";
-              var bIsNews = b.type == "nntp";
+
+              let aIsNews = a.incomingServer.type == "nntp";
+              let bIsNews = b.incomingServer.type == "nntp";
               if (aIsNews && !bIsNews)
                 return 1;
               if (bIsNews && !aIsNews)
                 return -1;
 
-              var aIsLocal = a.type == "none";
-              var bIsLocal = b.type == "none";
+              let aIsLocal = a.incomingServer.type == "none";
+              let bIsLocal = b.incomingServer.type == "none";
               if (aIsLocal && !bIsLocal)
                 return 1;
               if (bIsLocal && !aIsLocal)
                 return -1;
               return 0;
             }
-            servers.sort(serverCompare);
+            accounts = accounts.sort(accountCompare);
 
             // Now generate our folder-list.  Note that we'll special case this
             // situation below, to avoid destroying the sort order we just made
-            folders = servers.map(function(s) s.rootFolder);
+            folders = accounts.map(function(acct) acct.incomingServer.rootFolder);
           } else {
             // If we do have a parent folder, then we just build based on those
             // subFolders for that parent
-            var myenum = this._parentFolder.subFolders;
+            let myenum = this._parentFolder.subFolders;
             while (myenum.hasMoreElements()) {
               folders.push(myenum.getNext().QueryInterface(Ci.nsIMsgFolder));
             }
