@@ -20,6 +20,9 @@ load("../../../resources/IMAPpump.js");
 
 setupIMAPPump();
 
+const kBiffStateAtom = Cc["@mozilla.org/atom-service;1"]
+                         .getService(Ci.nsIAtomService)
+                         .getAtom("BiffState");
 // Dummy message window so we can say the inbox is open in a window.
 var dummyMsgWindow =
 {
@@ -28,46 +31,16 @@ var dummyMsgWindow =
                                          Ci.nsISupportsWeakReference])
 };
 
-var mfnListener =
-{
-  _msgStreamed: false,
-  msgAdded: function msgAdded(aMsg)
-  {
-    if (!this._msgStreamed) {
-      // Try to fetch the message with UID 8. This will be the first header 
-      // downloaded iff we fetch the newest hdrs first.
-      let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
-      let msgURI = gIMAPInbox.getUriForMsg(aMsg);
-      do_check_eq(aMsg.messageKey, 8);
-      try {
-        let msgServ = messenger.messageServiceFromURI(msgURI);
-        msgServ.streamMessage(msgURI, gStreamListener, null, null, false, "", false);
-        this._msgStreamed = true;
-      }
-      catch (ex) {do_throw(ex);}
+var gFolderListener = {
+  _gotNewMailBiff: false,
+  OnItemIntPropertyChanged : function(aItem, aProperty, aOldValue, aNewValue) {
+    if (aProperty == kBiffStateAtom &&
+        aNewValue == Ci.nsIMsgFolder.nsMsgBiffState_NewMail) {
+      this._gotNewMailBiff = true;
+      async_driver();
     }
   }
 };
-
-gStreamListener = {
-  QueryInterface : XPCOMUtils.generateQI([Ci.nsIStreamListener]),
-  _stream : null,
-  _gotStartRequest : false,
-  onStartRequest : function (aRequest, aContext) {
-    this._gotStartRequest = true;
-  },
-  onStopRequest : function (aRequest, aContext, aStatusCode) {
-    async_driver();
-  },
-  onDataAvailable : function (aRequest, aContext, aInputStream, aOff, aCount) {
-    if (this._stream == null) {
-      this._stream = Cc["@mozilla.org/scriptableinputstream;1"].createInstance(Ci.nsIScriptableInputStream);
-      this._stream.init(aInputStream);
-    }
-    this._data += this._stream.read(aCount);
-  },
-};
-
 
 var tests = [
   uploadImapMessages,
@@ -97,6 +70,7 @@ function uploadImapMessages()
                                      null, null);
     imapInbox.addMessage(new imapMessage(dataUri.spec, imapInbox.uidnext++, []));
   });
+  // updateFolderWithListener with null for nsIMsgWindow makes biff notify.
   gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
@@ -104,7 +78,7 @@ function uploadImapMessages()
 function testMessageFetched() {
   // If we're really chunking, then the message fetch should have started before
   // we finished the updateFolder URL.
-  do_check_true(gStreamListener._gotStartRequest);
+  do_check_true(gFolderListener._gotNewMailBiff);
   // Should have only downloaded first chunk of headers when message
   // has finished streaming.
   do_check_eq(gIMAPInbox.msgDatabase.dBFolderInfo.numMessages, 3);
@@ -124,17 +98,11 @@ function endTest() {
 
 function run_test()
 {
-  // XXX Disable on windows for now as it is failing there.
-  if ("@mozilla.org/windows-registry-key;1" in Cc) {
-    dump("Disabled on windows due to permanent failures\n");
-    endTest();
-    return;
-  }
-
   // We need to register the dummyMsgWindow so that we'll think the
   // Inbox is open in a folder and fetch headers in chunks.
   MailServices.mailSession.AddMsgWindow(dummyMsgWindow);
-  MailServices.mfn.addListener(mfnListener, MailServices.mfn.msgAdded);
+  MailServices.mailSession.AddFolderListener(gFolderListener,
+                                             Ci.nsIFolderListener.intPropertyChanged);
 
   // Set chunk size to 3, so we'll have to chain 4 requests to get
   // 10 headers.
