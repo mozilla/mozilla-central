@@ -461,12 +461,12 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-image-region: rect(1px 215px 17px 199px);
 }
 
-#button-nextUnread, #button-nextMsg {
+#button-nextUnread {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(1px 233px 17px 217px);
 }
 
-#button-previousUnread, #button-previousMsg {
+#button-previousUnread {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(1px 251px 17px 235px);
 }
@@ -509,6 +509,16 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 #button-chat[unreadMessages="true"] {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(19px, 395px, 35px, 379px);
+}
+
+#button-nextMsg {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(1px, 413px, 17px, 397px);
+}
+
+#button-previousMsg {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(1px, 431px, 17px, 415px);
 }
 
 #palette-box .toolbarbutton-1 {

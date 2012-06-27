@@ -249,37 +249,31 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 
 #button-file[disabled] {
   -moz-image-region: rect(48px 288px 72px 264px) !important;
-} 
+}
 
-#button-nextUnread, #button-previousUnread:-moz-locale-dir(rtl),
-#button-nextMsg, #button-previousMsg:-moz-locale-dir(rtl) {
+#button-nextUnread {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 312px 24px 288px);
 }
 
-#button-nextUnread:hover, #button-previousUnread:hover:-moz-locale-dir(rtl),
-#button-nextMsg:hover, #button-previousMsg:hover:-moz-locale-dir(rtl) {
+#button-nextUnread:hover {
   -moz-image-region: rect(24px 312px 48px 288px);
 }
 
-#button-nextUnread[disabled], #button-previousUnread:-moz-locale-dir(rtl)[disabled],
-#button-nextMsg[disabled], #button-previousMsg:-moz-locale-dir(rtl)[disabled] {
+#button-nextUnread[disabled] {
   -moz-image-region: rect(48px 312px 72px 288px) !important;
 }
 
-#button-previousUnread, #button-nextUnread:-moz-locale-dir(rtl),
-#button-previousMsg, #button-nextMsg:-moz-locale-dir(rtl) {
+#button-previousUnread {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 336px 24px 312px);
 }
 
-#button-previousUnread:hover, #button-nextUnread:hover:-moz-locale-dir(rtl),
-#button-previousMsg:hover, #button-nextMsg:hover:-moz-locale-dir(rtl) {
+#button-previousUnread:hover {
   -moz-image-region: rect(24px 336px 48px 312px);
 }
 
-#button-previousUnread[disabled], #button-nextUnread:-moz-locale-dir(rtl)[disabled],
-#button-previousMsg[disabled], #button-nextMsg:-moz-locale-dir(rtl)[disabled] {
+#button-previousUnread[disabled] {
   -moz-image-region: rect(48px 336px 72px 312px) !important;
 }
 
@@ -363,6 +357,32 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 
 #button-chat[unreadMessages="true"] {
   -moz-image-region: rect(72px 528px 96px 504px);
+}
+
+#button-nextMsg {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 552px 24px 528px);
+}
+ 
+#button-nextMsg:hover {
+  -moz-image-region: rect(24px 552px 48px 528px);
+}
+ 
+#button-nextMsg[disabled] {
+  -moz-image-region: rect(48px 552px 72px 528px) !important;
+}
+
+#button-previousMsg {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 576px 24px 552px);
+}
+
+#button-previousMsg:hover {
+  -moz-image-region: rect(24px 576px 48px 552px);
+}
+
+#button-previousMsg[disabled] {
+  -moz-image-region: rect(48px 576px 72px 552px) !important;
 }
 
 /* ::::: small primary toolbar buttons ::::: */
@@ -524,66 +544,31 @@ toolbar[iconsize="small"] #button-file[disabled] {
   -moz-image-region: rect(32px 192px 48px 176px) !important;
 } 
 
-toolbar[iconsize="small"] #button-nextUnread,
-toolbar[iconsize="small"] #button-nextMsg {
+toolbar[iconsize="small"] #button-nextUnread {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 208px 16px 192px);
 }
 
-toolbar[iconsize="small"] #button-nextUnread:hover,
-toolbar[iconsize="small"] #button-nextMsg:hover {
+toolbar[iconsize="small"] #button-nextUnread:hover {
   -moz-image-region: rect(16px 208px 32px 192px);
 }
 
-toolbar[iconsize="small"] #button-nextUnread[disabled],
-toolbar[iconsize="small"] #button-nextMsg[disabled] {
+toolbar[iconsize="small"] #button-nextUnread[disabled] {
   -moz-image-region: rect(32px 208px 48px 192px) !important;
 }
 
-toolbar[iconsize="small"] #button-nextUnread:-moz-locale-dir(rtl),
-toolbar[iconsize="small"] #button-nextMsg:-moz-locale-dir(rtl) {
-  -moz-image-region: rect(0px 224px 16px 208px);
-}
-
-toolbar[iconsize="small"] #button-nextUnread:hover:-moz-locale-dir(rtl),
-toolbar[iconsize="small"] #button-nextMsg:hover:-moz-locale-dir(rtl) {
-  -moz-image-region: rect(16px 224px 32px 208px);
-}
-
-toolbar[iconsize="small"] #button-nextUnread:-moz-locale-dir(rtl)[disabled],
-toolbar[iconsize="small"] #button-nextMsg:-moz-locale-dir(rtl)[disabled] {
-  -moz-image-region: rect(32px 224px 48px 208px) !important;
-}
-
-toolbar[iconsize="small"] #button-previousUnread,
-toolbar[iconsize="small"] #button-previousMsg {
+toolbar[iconsize="small"] #button-previousUnread {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 224px 16px 208px);
 }
 
-toolbar[iconsize="small"] #button-previousUnread:hover,
-toolbar[iconsize="small"] #button-previousMsg:hover {
+toolbar[iconsize="small"] #button-previousUnread:hover {
   -moz-image-region: rect(16px 224px 32px 208px);
 }
 
-toolbar[iconsize="small"] #button-previousUnread[disabled],
-toolbar[iconsize="small"] #button-previousMsg[disabled] {
+toolbar[iconsize="small"] #button-previousUnread[disabled] {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(32px 224px 48px 208px) !important;
-}
-
-toolbar[iconsize="small"] #button-previousUnread:-moz-locale-dir(rtl),
-toolbar[iconsize="small"] #button-previousMsg:-moz-locale-dir(rtl) {
-  -moz-image-region: rect(0px 208px 16px 192px);
-}
-
-toolbar[iconsize="small"] #button-previousUnread:hover:-moz-locale-dir(rtl),
-toolbar[iconsize="small"] #button-previousMsg:hover:-moz-locale-dir(rtl) {
-  -moz-image-region: rect(16px 208px 32px 192px);
-}
-
-toolbar[iconsize="small"] #button-previousUnread:-moz-locale-dir(rtl)[disabled],
-toolbar[iconsize="small"] #button-previousMsg:-moz-locale-dir(rtl)[disabled] {
-  -moz-image-region: rect(32px 208px 48px 192px) !important;
 }
 
 toolbar[iconsize="small"] #button-mark {
@@ -679,6 +664,32 @@ toolbar[iconsize="small"] #button-chat[disabled] {
 
 toolbar[iconsize="small"] #button-chat[unreadMessages="true"] {
   -moz-image-region: rect(48px 352px 64px 336px) !important;
+}
+
+toolbar[iconsize="small"] #button-nextMsg {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 368px 16px 352px);
+}
+
+toolbar[iconsize="small"] #button-nextMsg:hover {
+  -moz-image-region: rect(16px 368px 32px 352px);
+}
+
+toolbar[iconsize="small"] #button-nextMsg[disabled] {
+  -moz-image-region: rect(32px 368px 48px 352px) !important;
+}
+
+toolbar[iconsize="small"] #button-previousMsg {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 384px 16px 368px);
+}
+
+toolbar[iconsize="small"] #button-previousMsg:hover {
+  -moz-image-region: rect(16px 384px 32px 368px);
+}
+
+toolbar[iconsize="small"] #button-previousMsg[disabled] {
+  -moz-image-region: rect(32px 384px 48px 368px) !important;
 }
 
 /* ::::: end small primary toolbar buttons ::::: */
