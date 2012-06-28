@@ -48,6 +48,11 @@ var ircNonStandard = {
       return false;
     },
 
+    "329": function(aMessage) { // RPL_CREATIONTIME (Bahamut & Unreal)
+      // <channel> <creation time>
+      return true;
+    },
+
     "378": function(aMessage) { // RPL_WHOISHOST (Unreal & Charybdis)
       // <nick> :is connecting from <host> <ip>
       let [host, ip] = aMessage.params[2].split(" ").slice(-2);
