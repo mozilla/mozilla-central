@@ -776,11 +776,14 @@ ircAccount.prototype = {
 
     // Count the number of bytes in a UTF-8 encoded string.
     function charCodeToByteCount(c) {
-      // Unicode characters with a code point >  127 are 2 bytes long.
-      // Unicode characters with a code point > 2047 are 3 bytes long.
-      // Unicode characters with a code point >= 32768 are on 4 bytes,
-      // split by JS to 2 UTF16 characters of 2 bytes.
-      return c < 128 ? 1 : (c < 2048 || c >= 32768) ? 2 : 3;
+      // UTF-8 stores:
+      // - code points below U+0080 on 1 byte,
+      // - code points below U+0800 on 2 bytes,
+      // - code points U+D800 through U+DFFF are UTF-16 surrogate halves
+      // (they indicate that JS has split a 4 bytes UTF-8 character
+      // in two halves of 2 bytes each),
+      // - other code points on 3 bytes.
+      return c < 0x80 ? 1 : (c < 0x800 || (c >= 0xD800 && c <= 0xDFFF)) ? 2 : 3;
     }
     let bytes = 0;
     for (let i = 0; i < aStr.length; i++)
