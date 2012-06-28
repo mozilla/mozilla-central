@@ -637,6 +637,7 @@ var chatHandler = {
     this._openDialog("joinchat");
   },
 
+  onlineContacts: {},
   _colorCache: {},
   // Duplicated code from imconversation.xml :-(
   _computeColor: function(aName) {
@@ -815,11 +816,13 @@ var chatHandler = {
     if (aTopic == "contact-signed-on") {
       document.getElementById("onlinecontactsGroup").addContact(aSubject);
       document.getElementById("offlinecontactsGroup").removeContact(aSubject);
+      this.onlineContacts[aSubject.preferredBuddy.normalizedName] = aSubject;
       return;
     }
     if (aTopic == "contact-signed-off") {
       document.getElementById("offlinecontactsGroup").addContact(aSubject);
       document.getElementById("onlinecontactsGroup").removeContact(aSubject);
+      delete this.onlineContacts[aSubject.preferredBuddy.normalizedName];
       return;
     }
     if (aTopic == "contact-added") {

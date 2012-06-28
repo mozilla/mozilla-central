@@ -975,7 +975,11 @@
                    context="emailAddressPopup"
                    onmousedown="event.preventDefault();"
                    onclick="onClickEmailStar(event, this.parentNode.parentNode);"
-                   xbl:inherits="hascard,tooltiptext=tooltipstar"/>
+                   xbl:inherits="hascard,tooltiptext=tooltipstar,chatStatus"/>
+        <xul:image class="emailPresence" anonid="emailPresence"
+                   onmousedown="event.preventDefault();"
+                   onclick="onClickEmailPresence(event, this.parentNode.parentNode);"
+                   xbl:inherits="chatStatus,tooltiptext=presenceTooltip"/>
       </xul:description>
     </content>
 

@@ -11,6 +11,8 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/gloda/utils.js");
+let {Status: statusUtils} =
+  Components.utils.import("resource:///modules/imStatusUtils.jsm");
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Warning: It's critical that the code in here for displaying the message
@@ -1273,6 +1275,47 @@ function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCardDetails) {
       document.getElementById("editContactItem").label);
   }
 
+  let chatAddresses = [aEmailAddress];
+  let card = cardDetails.card;
+  if (card) {
+    let gTalk = card.getProperty("_GoogleTalk", null);
+    if (gTalk)
+      chatAddresses.push(gTalk);
+    let jid = card.getProperty("_JabberId", null);
+    if (jid)
+      chatAddresses.push(jid);
+  }
+  let chatContact;
+  let onlineContacts = "chatHandler" in window ? chatHandler.onlineContacts : {};
+  for each (let chatAddress in chatAddresses) {
+    if (Object.prototype.hasOwnProperty.call(onlineContacts, chatAddresses)) {
+      chatContact = onlineContacts[chatAddress];
+      break;
+    }
+  }
+  if (aDocumentNode.chatContact) {
+    aDocumentNode.chatContact.removeObserver(aDocumentNode.chatContactObserver);
+    delete aDocumentNode.chatContact;
+    delete aDocumentNode.chatContactObserver;
+  }
+  if (chatContact) {
+    aDocumentNode.chatContact = chatContact;
+    aDocumentNode.chatContactObserver = function(aSubject, aTopic, aData) {
+      if (aTopic == "contact-removed") {
+        this.chatContact.removeObserver(this.chatContactObserver);
+        delete this.chatContact;
+        delete this.chatContactObserver;
+        this.removeAttribute("chatStatus");
+        this.removeAttribute("presenceTooltip");
+      }
+      else if (aTopic == "contact-status-changed") {
+        UpdateEmailPresenceDetails(this, this.chatContact);
+      }
+    }.bind(aDocumentNode);
+    chatContact.addObserver(aDocumentNode.chatContactObserver);
+  }
+  UpdateEmailPresenceDetails(aDocumentNode, chatContact);
+
   // When we are adding cards, we don't want to move the display around if the
   // user has clicked on the star, therefore if it is locked, just exit and
   // leave the display updates until later.
@@ -1292,6 +1335,29 @@ function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCardDetails) {
       aDocumentNode.getAttribute("fullAddress") ||
       aDocumentNode.getAttribute("displayName"));
   }
+}
+
+function UpdateEmailPresenceDetails(aDocumentNode, aChatContact) {
+  if (!aChatContact) {
+    aDocumentNode.removeAttribute("chatStatus");
+    aDocumentNode.removeAttribute("presenceTooltip");
+    return;
+  }
+
+  let statusType = aChatContact.statusType;
+  if (statusType < Ci.imIStatusInfo.STATUS_IDLE)
+    aDocumentNode.removeAttribute("chatStatus");
+  else if (statusType == Ci.imIStatusInfo.STATUS_AVAILABLE)
+    aDocumentNode.setAttribute("chatStatus", "available");
+  else
+    aDocumentNode.setAttribute("chatStatus", "away");
+
+  let tooltipText = aChatContact.preferredBuddy.protocol.name + "\n" +
+                    statusUtils.toLabel(aChatContact.statusType);
+  let statusText = aChatContact.statusText;
+  if (statusText)
+    tooltipText += " - " + statusText;
+  aDocumentNode.setAttribute("presenceTooltip", tooltipText);
 }
 
 function UpdateExtraAddressProcessing(aAddressData, aDocumentNode, aAction,
@@ -1450,6 +1516,18 @@ function onClickEmailStar(event, emailAddressNode)
   } else {
     AddContact(emailAddressNode);
   }
+}
+
+function onClickEmailPresence(event, emailAddressNode)
+{
+  // Only care about left-click events
+  if (event.button != 0)
+    return;
+
+  showChatTab();
+  let prplConv = emailAddressNode.chatContact.createConversation();
+  let uiConv = Services.conversations.getUIConversation(prplConv);
+  chatHandler.focusConversation(uiConv);
 }
 
 /**

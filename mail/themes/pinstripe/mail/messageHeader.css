@@ -638,6 +638,25 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
   -moz-image-region: rect(16px, 48px, 32px, 32px);
 }
 
+.emailPresence {
+  padding: 0px;
+  margin: 0px 2px;
+  -moz-image-region: rect(6px, 16px, 16px, 6px);
+}
+
+.emailStar[chatStatus],
+.emailPresence:not([chatStatus]) {
+  display: none;
+}
+
+.emailPresence[chatStatus="available"] {
+  list-style-image: url("chrome://chat/skin/available.png");
+}
+
+.emailPresence[chatStatus="away"] {
+  list-style-image: url("chrome://chat/skin/away.png");
+}
+
 .emailPopup {
   font-size: inherit;
   max-height: 7px; /* the height of the image */
