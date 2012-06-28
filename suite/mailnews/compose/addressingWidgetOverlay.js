@@ -20,8 +20,6 @@ var gMimeHeaderParser = null;
  var gMsgCompose;
  */
 
-var test_addresses_sequence = getPref("mail.debug.test_addresses_sequence");
-
 function awGetMaxRecipients()
 {
   return top.MAX_RECIPIENTS;
@@ -346,7 +344,7 @@ function awAddRecipient(recipientType, address)
 function awTestRowSequence()
 {
   /*
-    This function is for debug and testing purpose only, normal user should not run it!
+    This function is for debug and testing purpose only, normal users should not run it!
 
     Everytime we insert or delete a row, we must be sure we didn't break the ID sequence of
     the addressing widget rows. This function will run a quick test to see if the sequence still ok
@@ -354,7 +352,10 @@ function awTestRowSequence()
     You need to define the pref mail.debug.test_addresses_sequence to true in order to activate it
   */
 
-  if (! test_addresses_sequence)
+  var test_sequence;
+  if (gPrefs.getPrefType("mail.debug.test_addresses_sequence") == Components.interfaces.nsIPrefBranch.PREF_BOOL)
+    test_sequence = gPrefs.getBoolPref("mail.debug.test_addresses_sequence");
+  if (!test_sequence)
     return true;
 
   /* debug code to verify the sequence still good */
