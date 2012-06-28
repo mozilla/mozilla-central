@@ -18,6 +18,12 @@ function createWarning() {
   ]);
 }
 
+function getLoadContext() {
+  return window.QueryInterface(Ci.nsIInterfaceRequestor)
+               .getInterface(Ci.nsIWebNavigation)
+               .QueryInterface(Ci.nsILoadContext);
+}
+
 function getClipboardTransferable() {
   // Get the HTML and text representations for the important part of the page.
   let hidePrivateData = !document.getElementById("check-show-private-data").checked;
@@ -32,6 +38,7 @@ function getClipboardTransferable() {
 
   let transferable = Cc["@mozilla.org/widget/transferable;1"]
                        .createInstance(Ci.nsITransferable);
+  transferable.init(getLoadContext());
 
   // Add the HTML flavor.
   transferable.addDataFlavor("text/html");
