@@ -232,13 +232,6 @@ var tests = [
       wrongBrowserNotification.remove();
       ok(wrongBrowserNotificationObject.removedCallbackTriggered, "removed callback triggered");
       wrongBrowserNotification = null;
-    },
-    // XXX: the logic taken from bug 575957 fails to work here, work around it for now.
-    updateNotShowing: function () {
-      todo_is(PopupNotifications.isPanelOpen, true, "panel should be open");
-      gBrowser.selectedTab = this.oldSelectedTab;
-      wrongBrowserNotification.remove();
-      wrongBrowserNotification = null;
     }
   },
   // test that the removed notification isn't shown on browser re-select
