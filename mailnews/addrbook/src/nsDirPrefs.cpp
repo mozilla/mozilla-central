@@ -86,8 +86,9 @@ NS_IMPL_ISUPPORTS2(DirPrefObserver, nsISupportsWeakReference, nsIObserver)
 NS_IMETHODIMP DirPrefObserver::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *aData)
 {
   nsCOMPtr<nsIPrefBranch> prefBranch(do_QueryInterface(aSubject));
-
-  const char *prefname = NS_ConvertUTF16toUTF8(aData).get();
+  nsCString strPrefName;
+  strPrefName.Assign(NS_ConvertUTF16toUTF8(aData));
+  const char *prefname = strPrefName.get();
 
   DIR_PrefId id = DIR_AtomizePrefName(prefname);
 
