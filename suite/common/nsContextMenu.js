@@ -847,7 +847,7 @@ nsContextMenu.prototype = {
       let uri = makeURI(this.mediaURL);
       let url = uri.QueryInterface(Components.interfaces.nsIURL);
       if (url.fileBaseName)
-        name = url.fileBaseName + ".jpg";
+        name = decodeURI(url.fileBaseName) + ".jpg";
     } catch (e) { }
     var video = this.target;
     var canvas = document.createElementNS("http://www.w3.org/1999/xhtml", "canvas");
