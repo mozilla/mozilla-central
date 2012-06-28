@@ -248,15 +248,27 @@ var chatHandler = {
     Services.tm.mainThread.dispatch(this._updateChatButtonState.bind(this),
                                     Ci.nsIEventTarget.DISPATCH_NORMAL);
   },
+  // This is the unread count that was part of the latest
+  // unread-im-count-changed notification.
+  _notifiedUnreadCount: 0,
   _updateChatButtonState: function() {
     delete this._chatButtonUpdatePending;
     let chatButton = document.getElementById("button-chat");
     if (!chatButton)
       return;
-    if (this.countUnreadMessages())
+
+    let unreadCount = this.countUnreadMessages();
+    if (unreadCount)
       chatButton.setAttribute("unreadMessages", "true");
     else
       chatButton.removeAttribute("unreadMessages");
+    if (unreadCount != this._notifiedUnreadCount) {
+      let unreadInt = Components.classes["@mozilla.org/supports-PRInt32;1"]
+                                .createInstance(Ci.nsISupportsPRInt32);
+      unreadInt.data = unreadCount;
+      Services.obs.notifyObservers(unreadInt, "unread-im-count-changed", unreadCount);
+      this._notifiedUnreadCount = unreadCount;
+    }
   },
 
   countUnreadMessages: function() {

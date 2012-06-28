@@ -54,6 +54,7 @@ private:
   void InitUnreadCount();
 
   PRInt32 mUnreadTotal;
+  PRInt32 mUnreadChat;
   PRInt32 mNewTotal;
   bool mOnlyCountInboxes;
   bool mDoneInitialCount;

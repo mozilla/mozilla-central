@@ -56,9 +56,13 @@
 #import <Cocoa/Cocoa.h>
 
 #define kNewMailAlertIcon "chrome://messenger/skin/icons/new-mail-alert.png"
+#define kChatEnabledPref "mail.chat.enabled"
 #define kBiffShowAlertPref "mail.biff.show_alert"
+#define kBiffAnimateDockIconPref "mail.biff.animate_dock_icon"
 #define kCountInboxesPref "mail.notification.count.inbox_only"
 #define kMaxDisplayCount 10
+#define kNewChatMessageTopic "new-directed-incoming-message"
+#define kUnreadImCountChangedTopic "unread-im-count-changed"
 
 static PRLogModuleInfo *MsgDockCountsLogModule = nsnull;
 
@@ -164,6 +168,7 @@ nsMessengerOSXIntegration::nsMessengerOSXIntegration()
   mNewMailReceivedAtom = MsgGetAtom("NewMailReceived");
   mTotalUnreadMessagesAtom = MsgGetAtom("TotalUnreadMessages");
   mUnreadTotal = 0;
+  mUnreadChat = 0;
   mNewTotal = 0;
   mOnlyCountInboxes = true;
   mDoneInitialCount = false;
@@ -236,8 +241,18 @@ nsMessengerOSXIntegration::Observe(nsISupports* aSubject, const char* aTopic, co
   {
     nsresult rv;
     nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
-    if (NS_SUCCEEDED(rv))
+    if (NS_SUCCEEDED(rv)) {
       observerService->RemoveObserver(this, "mail-startup-done");
+
+      bool chatEnabled = false;
+      nsCOMPtr<nsIPrefBranch> pref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+      if (NS_SUCCEEDED(rv))
+        rv = pref->GetBoolPref(kChatEnabledPref, &chatEnabled);
+      if (NS_SUCCEEDED(rv) && chatEnabled) {
+        observerService->AddObserver(this, kNewChatMessageTopic, false);
+        observerService->AddObserver(this, kUnreadImCountChangedTopic, false);
+      }
+    }
     InitUnreadCount();
     BadgeDockIcon();
   }
@@ -263,6 +278,26 @@ nsMessengerOSXIntegration::Observe(nsISupports* aSubject, const char* aTopic, co
       }
     }
   }
+
+  if (!strcmp(aTopic, kNewChatMessageTopic)) {
+    // We don't have to bother about checking if the window is already focused
+    // before attempting to bounce the dock icon, as BounceDockIcon is
+    // implemented by a getAttention call which won't do anything if the window
+    // requesting attention is already focused.
+    return BounceDockIcon();
+  }
+
+  if (!strcmp(aTopic, kUnreadImCountChangedTopic)) {
+    nsresult rv;
+    nsCOMPtr<nsISupportsPRInt32> unreadCount = do_QueryInterface(aSubject, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = unreadCount->GetData(&mUnreadChat);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    return BadgeDockIcon();
+  }
+
   return NS_OK;
 }
 
@@ -397,11 +432,7 @@ nsMessengerOSXIntegration::ShowAlertMessage(const nsAString& aAlertTitle,
       }
     }
 
-    bool bounceDockIcon = false;
-    prefBranch->GetBoolPref("mail.biff.animate_dock_icon", &bounceDockIcon);
-
-    if (bounceDockIcon)
-      BounceDockIcon();
+    BounceDockIcon();
   }
 
   if (!showAlert || NS_FAILED(rv))
@@ -525,6 +556,17 @@ nsMessengerOSXIntegration::OnAlertFinished()
 nsresult
 nsMessengerOSXIntegration::BounceDockIcon()
 {
+  nsresult rv;
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  bool bounceDockIcon = false;
+  rv = prefBranch->GetBoolPref(kBiffAnimateDockIconPref, &bounceDockIcon);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (!bounceDockIcon)
+    return NS_OK;
+
   nsCOMPtr<nsIWindowMediator> mediator(do_GetService(NS_WINDOWMEDIATOR_CONTRACTID));
   if (mediator)
   {
@@ -558,8 +600,9 @@ nsMessengerOSXIntegration::BadgeDockIcon()
   bool useNewCount = false;
   prefBranch->GetBoolPref("mail.biff.use_new_count_in_mac_dock", &useNewCount);
 
+  PRInt32 unreadCount = (useNewCount ? mNewTotal : mUnreadTotal) + mUnreadChat;
   // If count is less than one, we should restore the original dock icon.
-  if ((!useNewCount && mUnreadTotal < 1) || (useNewCount && mNewTotal < 1))
+  if (unreadCount < 1)
   {
     RestoreDockIcon();
     return NS_OK;
@@ -586,12 +629,7 @@ nsMessengerOSXIntegration::BadgeDockIcon()
   }
 
   nsAutoString total;
-
-  if (useNewCount)
-    total.AppendInt(mNewTotal);
-  else
-    total.AppendInt(mUnreadTotal);
-
+  total.AppendInt(unreadCount);
   str->SetData(total);
   os->NotifyObservers(str, "before-unread-count-display",
                       total.get());
