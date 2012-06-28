@@ -25,7 +25,7 @@
 
 // QueryInterface, AddRef, and Release
 //
-NS_IMPL_ISUPPORTS2(nsStatusBarBiffManager, nsIStatusBarBiffManager, nsIFolderListener)
+NS_IMPL_ISUPPORTS3(nsStatusBarBiffManager, nsIStatusBarBiffManager, nsIFolderListener, nsIObserver)
 
 nsIAtom * nsStatusBarBiffManager::kBiffStateAtom = nsnull;
 
@@ -44,6 +44,9 @@ nsStatusBarBiffManager::~nsStatusBarBiffManager()
 #define PREF_NEW_MAIL_SOUND_TYPE         "mail.biff.play_sound.type"
 #define SYSTEM_SOUND_TYPE 0
 #define CUSTOM_SOUND_TYPE 1
+#define PREF_CHAT_ENABLED                "mail.chat.enabled"
+#define PREF_CHAT_PLAY_SOUND             "mail.chat.play_notification_sound"
+#define NEW_CHAT_MESSAGE_TOPIC           "new-directed-incoming-message"
 
 nsresult nsStatusBarBiffManager::Init()
 {
@@ -58,6 +61,19 @@ nsresult nsStatusBarBiffManager::Init()
     do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv); 
   if(NS_SUCCEEDED(rv))
     mailSession->AddFolderListener(this, nsIFolderListener::intPropertyChanged);
+
+  nsCOMPtr<nsIPrefBranch> pref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  bool chatEnabled = false;
+  if (NS_SUCCEEDED(rv))
+    rv = pref->GetBoolPref(PREF_CHAT_ENABLED, &chatEnabled);
+  if (NS_SUCCEEDED(rv) && chatEnabled) {
+    nsCOMPtr<nsIObserverService> observerService =
+      mozilla::services::GetObserverService();
+    if (observerService)
+      observerService->AddObserver(this, NEW_CHAT_MESSAGE_TOPIC, false);
+  }
 
   mInitialized = true;
   return NS_OK;
@@ -170,7 +186,7 @@ nsStatusBarBiffManager::OnItemIntPropertyChanged(nsIMsgFolder *item, nsIAtom *pr
       mozilla::services::GetObserverService();
       
     if (observerService)
-      observerService->NotifyObservers(this, "mail:biff-state-changed", nsnull);
+      observerService->NotifyObservers(static_cast<nsIStatusBarBiffManager*>(this), "mail:biff-state-changed", nsnull);
   }
   return NS_OK;
 }
@@ -198,6 +214,27 @@ nsStatusBarBiffManager::OnItemEvent(nsIMsgFolder *item, nsIAtom *event)
 {
   return NS_OK;
 }
+
+// nsIObserver implementation
+NS_IMETHODIMP
+nsStatusBarBiffManager::Observe(nsISupports *aSubject,
+                                const char *aTopic,
+                                const PRUnichar *aData)
+{
+  nsresult rv;
+  nsCOMPtr<nsIPrefBranch> pref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  bool playSound = false;
+  rv = pref->GetBoolPref(PREF_CHAT_PLAY_SOUND, &playSound);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (!playSound)
+    return NS_OK;
+
+  return PlayBiffSound();
+}
+
 // nsIStatusBarBiffManager method....
 NS_IMETHODIMP
 nsStatusBarBiffManager::GetBiffState(PRInt32 *aBiffState)

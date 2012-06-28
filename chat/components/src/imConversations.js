@@ -233,9 +233,15 @@ UIConversation.prototype = {
          (aTopic == "update-typing" &&
           this._purpleConv[aTargetId].typingState == Ci.prplIConvIM.TYPING)))
       this.target = this._purpleConv[aTargetId];
-    if (aTopic == "new-text")
-      Services.obs.notifyObservers(aSubject, aTopic, aData);
     this.notifyObservers(aSubject, aTopic, aData);
+    if (aTopic == "new-text") {
+      Services.obs.notifyObservers(aSubject, aTopic, aData);
+      if (aSubject.incoming && !aSubject.system &&
+          (!this.isChat || aSubject.containsNick)) {
+        this.notifyObservers(aSubject, "new-directed-incoming-message", aData);
+        Services.obs.notifyObservers(aSubject, "new-directed-incoming-message", aData);
+      }
+    }
   },
 
   systemMessage: function(aText, aIsError) {

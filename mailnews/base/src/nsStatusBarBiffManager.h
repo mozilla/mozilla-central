@@ -11,13 +11,16 @@
 #include "msgCore.h"
 #include "nsCOMPtr.h"
 #include "nsISound.h"
+#include "nsIObserver.h"
 
-class nsStatusBarBiffManager : public nsIStatusBarBiffManager
+class nsStatusBarBiffManager : public nsIStatusBarBiffManager,
+                               public nsIObserver
 {
 public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIFOLDERLISTENER
   NS_DECL_NSISTATUSBARBIFFMANAGER
+  NS_DECL_NSIOBSERVER
 
   nsStatusBarBiffManager(); 
   virtual ~nsStatusBarBiffManager();
