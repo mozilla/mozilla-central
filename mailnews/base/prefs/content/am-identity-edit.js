@@ -6,8 +6,6 @@
 var gIdentity = null;  // the identity we are editing (may be null for a new identity)
 var gAccount = null;   // the account the identity is (or will be) associated with
 
-const nsIFilePicker = Components.interfaces.nsIFilePicker;
-
 function onLoadIdentityProperties()
 {
   // extract the account
@@ -229,6 +227,8 @@ function saveAddressingAndCompositionSettings(identity)
 
 function selectFile()
 {
+  const nsIFilePicker = Components.interfaces.nsIFilePicker;
+
   var fp = Components.classes["@mozilla.org/filepicker;1"]
                      .createInstance(nsIFilePicker);
 

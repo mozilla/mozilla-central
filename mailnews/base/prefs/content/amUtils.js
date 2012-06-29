@@ -9,12 +9,11 @@
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 
-const nsIFilePicker = Components.interfaces.nsIFilePicker;
-const nsILocalFile = Components.interfaces.nsILocalFile;
-const LOCALFILE_CTRID = "@mozilla.org/file/local;1";
-
 function BrowseForLocalFolders()
 {
+  const nsIFilePicker = Components.interfaces.nsIFilePicker;
+  const nsILocalFile = Components.interfaces.nsILocalFile;
+
   var currentFolderTextBox = document.getElementById("server.localPath");
   var fp = Components.classes["@mozilla.org/filepicker;1"]
                      .createInstance(nsIFilePicker);
@@ -24,7 +23,7 @@ function BrowseForLocalFolders()
                   .getAttribute("filepickertitle"),
           nsIFilePicker.modeGetFolder);
 
-  var currentFolder = Components.classes[LOCALFILE_CTRID]
+  var currentFolder = Components.classes["@mozilla.org/file/local;1"]
                                 .createInstance(nsILocalFile);
   currentFolder.initWithPath(currentFolderTextBox.value);
   fp.displayDirectory = currentFolder;
@@ -76,16 +75,17 @@ function trim(string)
 /**
  * Return server/folder name formatted with server name if needed.
  *
- * @param target  nsIMsgFolder to format name for
- *                If target.isServer then only its name is returned.
- *                Otherwise return the name as <foldername> on <servername>.
- **/
-function prettyFolderName(target)
+ * @param aTargetFolder  nsIMsgFolder to format name for
+ *                       If target.isServer then only its name is returned.
+ *                       Otherwise return the name as "<foldername> on <servername>".
+ */
+function prettyFolderName(aTargetFolder)
 {
-  if (target.isServer)
-    return target.prettyName;
+  if (aTargetFolder.isServer)
+    return aTargetFolder.prettyName;
 
   return document.getElementById("bundle_messenger")
                  .getFormattedString("verboseFolderFormat",
-                                     [target.prettyName, target.server.prettyName]);
+                                     [aTargetFolder.prettyName,
+                                      aTargetFolder.server.prettyName]);
 }
