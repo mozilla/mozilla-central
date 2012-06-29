@@ -284,11 +284,6 @@ var commands = [
     run: function(aMsg, aConv) setMode(aMsg, aConv, "o", true)
   },
   {
-    name: "operwall",
-    get helpString() _("command.wallops", "operwall"),
-    run: function(aMsg, aConv) simpleCommand(aConv, "WALLOPS", aMsg)
-  },
-  {
     name: "operserv",
     get helpString() _("command.operserv", "operserv"),
     run: function(aMsg, aConv) privateMessage(aConv, aMsg, "OperServ")
@@ -362,11 +357,6 @@ var commands = [
     name: "voice",
     get helpString() _("command.voice", "voice"),
     run: function(aMsg, aConv) setMode(aMsg, aConv, "v", true)
-  },
-  {
-    name: "wallops",
-    get helpString() _("command.wallops", "wallops"),
-    run: function(aMsg, aConv) simpleCommand(aConv, "WALLOPS", aMsg)
   },
   {
     name: "whois",
