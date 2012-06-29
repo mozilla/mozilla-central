@@ -482,7 +482,8 @@ nsUbuntuOne.prototype = {
         this._connection = new OAuth(this.displayName, null, null,
                                      tokenInfo.token, tokenInfo.token_secret,
                                      tokenInfo.consumer_key,
-                                     tokenInfo.consumer_secret);
+                                     tokenInfo.consumer_secret,
+                                     "PLAINTEXT");
         this._connection.signAndSend(
           gSsoPingUrl, [], "POST", "",
           function(aResponseText, aRequest) {
@@ -538,7 +539,8 @@ nsUbuntuOne.prototype = {
         consumerKey.length && consumerSecret.length) {
       this._connection = new OAuth(this.displayName, null, null,
                                    authToken, authSecret,
-                                   consumerKey, consumerSecret);
+                                   consumerKey, consumerSecret,
+                                   "PLAINTEXT");
       haveTokenCb();
     }
     else {
