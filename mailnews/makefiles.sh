@@ -76,7 +76,6 @@ mailnews/mapi/mapihook/public/Makefile
 mailnews/mapi/mapihook/src/Makefile
 mailnews/mime/Makefile
 mailnews/mime/cthandlers/Makefile
-mailnews/mime/cthandlers/calendar/Makefile
 mailnews/mime/cthandlers/glue/Makefile
 mailnews/mime/cthandlers/smimestub/Makefile
 mailnews/mime/cthandlers/vcard/Makefile
