@@ -96,6 +96,9 @@ endif
 ifdef MOZ_MOVEMAIL
 DEFINES += -DMOZ_MOVEMAIL=1
 endif
+ifdef NECKO_WIFI
+DEFINES += -DNECKO_WIFI=1
+endif
 
 # Set MSVC dlls version to package, if any.
 ifdef WIN32_REDIST_DIR
