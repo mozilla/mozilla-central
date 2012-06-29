@@ -309,11 +309,6 @@ imconv[attention] {
 }
 %endif
 
-.textbox-textarea,
-notificationbox {
-  overflow-x: hidden;
-}
-
 %ifdef XP_MACOSX
 grippy {
   display: none;
