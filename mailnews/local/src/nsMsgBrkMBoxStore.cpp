@@ -57,28 +57,12 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::DiscoverSubFolders(nsIMsgFolder *aParentFolder,
   if (NS_FAILED(rv))
     return rv;
 
-  bool exists, directory;
+  bool exists;
   path->Exists(&exists);
   if (!exists)
     path->Create(nsIFile::DIRECTORY_TYPE, 0755);
 
-  path->IsDirectory(&directory);
-  if (!directory)
-  {
-    nsCOMPtr<nsIFile> dirFile;
-    rv = path->Clone(getter_AddRefs(dirFile));
-    NS_ENSURE_SUCCESS(rv, rv);
-    nsAutoString leafName;
-    dirFile->GetLeafName(leafName);
-    leafName.AppendLiteral(".sbd");
-    dirFile->SetLeafName(leafName);
-    path = do_QueryInterface(dirFile);
-    path->IsDirectory(&directory);
-  }
-
-  if (directory)
-    rv = AddSubFolders(aParentFolder, path, aDeep);
-  return rv;
+  return AddSubFolders(aParentFolder, path, aDeep);
 }
 
 NS_IMETHODIMP nsMsgBrkMBoxStore::CreateFolder(nsIMsgFolder *aParent,
@@ -1010,20 +994,32 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::ChangeKeywords(nsIArray *aHdrArray,
 // Iterates over the files in the "path" directory, and adds subfolders to
 // parent for each mailbox file found.
 nsresult
-nsMsgBrkMBoxStore::AddSubFolders(nsIMsgFolder *parent, nsIFile *path,
+nsMsgBrkMBoxStore::AddSubFolders(nsIMsgFolder *parent, nsCOMPtr<nsIFile> &path,
                                  bool deep)
 {
+  nsresult rv;
+  nsCOMPtr<nsIFile> tmp; // at top level so we can safely assign to path
+  bool isDirectory;
+  path->IsDirectory(&isDirectory);
+  if (!isDirectory)
+  {
+    rv = path->Clone(getter_AddRefs(tmp));
+    path = tmp;
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsAutoString leafName;
+    path->GetLeafName(leafName);
+    leafName.AppendLiteral(".sbd");
+    path->SetLeafName(leafName);
+    path->IsDirectory(&isDirectory);
+  }
+  if (!isDirectory)
+    return NS_OK;
   // first find out all the current subfolders and files, before using them
   // while creating new subfolders; we don't want to modify and iterate the same
   // directory at once.
   nsCOMArray<nsIFile> currentDirEntries;
-  bool isDirectory;
-  path->IsDirectory(&isDirectory);
-  if (!isDirectory)
-    return NS_OK;
-
   nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
-  nsresult rv = path->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
+  rv = path->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
   bool hasMore;

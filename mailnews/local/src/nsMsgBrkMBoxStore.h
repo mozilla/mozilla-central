@@ -27,7 +27,7 @@ private:
   ~nsMsgBrkMBoxStore();
 
 protected:
-  nsresult AddSubFolders(nsIMsgFolder *parent, nsIFile *path, bool deep);
+  nsresult AddSubFolders(nsIMsgFolder *parent, nsCOMPtr<nsIFile> &path, bool deep);
   nsresult CreateDirectoryForFolder(nsIFile *path);
   nsresult GetOutputStream(nsIArray *aHdrArray,
                            nsCOMPtr<nsIOutputStream> &outputStream,
