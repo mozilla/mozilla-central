@@ -165,8 +165,6 @@ function createHeaderEntry(prefix, headerListInfo)
 
 function initializeHeaderViewTables()
 {
-  var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefBranch);
   // Iterate over each header in our header list arrays and create header entries
   // for each one. These header entries are then stored in the appropriate header
   // table.
@@ -178,33 +176,33 @@ function initializeHeaderViewTables()
   }
 
   var extraHeaders =
-    prefBranch.getCharPref("mailnews.headers.extraExpandedHeaders").split(" ");
+    Services.prefs.getCharPref("mailnews.headers.extraExpandedHeaders").split(" ");
   for (index = 0; index < extraHeaders.length; index++) {
     var extraHeader = extraHeaders[index];
     gExpandedHeaderView[extraHeader.toLowerCase()] =
       new createNewHeaderView(extraHeader, extraHeader);
   }
 
-  if (prefBranch.getBoolPref("mailnews.headers.showOrganization")) {
+  if (Services.prefs.getBoolPref("mailnews.headers.showOrganization")) {
     var organizationEntry = { name: "organization",
                               outputFunction: updateHeaderValue };
     gExpandedHeaderView[organizationEntry.name] =
       new createHeaderEntry("expanded", organizationEntry);
   }
 
-  if (prefBranch.getBoolPref("mailnews.headers.showUserAgent")) {
+  if (Services.prefs.getBoolPref("mailnews.headers.showUserAgent")) {
     var userAgentEntry = { name: "user-agent", outputFunction: updateHeaderValue };
     gExpandedHeaderView[userAgentEntry.name] =
       new createHeaderEntry("expanded", userAgentEntry);
   }
 
-  if (prefBranch.getBoolPref("mailnews.headers.showMessageId")) {
+  if (Services.prefs.getBoolPref("mailnews.headers.showMessageId")) {
     var messageIdEntry = { name: "message-id", outputFunction: OutputMessageIds };
     gExpandedHeaderView[messageIdEntry.name] =
       new createHeaderEntry("expanded", messageIdEntry);
   }
 
-  if (prefBranch.getBoolPref("mailnews.headers.showSender")) {
+  if (Services.prefs.getBoolPref("mailnews.headers.showSender")) {
     var senderEntry = { name: "sender", outputFunction: OutputEmailAddresses };
     gExpandedHeaderView[senderEntry.name] =
       new createHeaderEntry("expanded", senderEntry);
@@ -231,10 +229,8 @@ function OnLoadMsgHeaderPane()
 
   // Add an address book listener so we can update the header view when things
   // change.
-  Components.classes["@mozilla.org/abmanager;1"]
-            .getService(Components.interfaces.nsIAbManager)
-            .addAddressBookListener(AddressBookListener,
-                                    Components.interfaces.nsIAbListener.all);
+  MailServices.ab.addAddressBookListener(AddressBookListener,
+                                         Components.interfaces.nsIAbListener.all);
 
   // If an invalid index is selected; reset to 0.  One way this can happen
   // is if a value of 1 was persisted to localStore.rdf by Tb2 (when there were
@@ -338,9 +334,7 @@ function OnUnloadMsgHeaderPane()
   pref.removeObserver("mail.showCondensedAddresses", MsgHdrViewObserver);
   pref.removeObserver("mailnews.headers.showReferences", MsgHdrViewObserver);
 
-  Components.classes["@mozilla.org/abmanager;1"]
-            .getService(Components.interfaces.nsIAbManager)
-            .removeAddressBookListener(AddressBookListener);
+  MailServices.ab.removeAddressBookListener(AddressBookListener);
 
   // dispatch an event letting any listeners know that we have unloaded
   // the message pane
@@ -539,15 +533,12 @@ var messageHeaderSink = {
       // Process message tags as if they were headers in the message.
       SetTagHeader();
 
-      var msgHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
-                                      .getService(Components.interfaces.nsIMsgHeaderParser);
-
       if (("from" in currentHeaderData) && ("sender" in currentHeaderData)) {
         var senderMailbox = kMailboxSeparator +
-          msgHeaderParser.extractHeaderAddressMailboxes(
+          MailServices.headerParser.extractHeaderAddressMailboxes(
             currentHeaderData.sender.headerValue) + kMailboxSeparator;
         var fromMailboxes = kMailboxSeparator +
-          msgHeaderParser.extractHeaderAddressMailboxes(
+          MailServices.headerParser.extractHeaderAddressMailboxes(
             currentHeaderData.from.headerValue) + kMailboxSeparator;
         if (fromMailboxes.indexOf(senderMailbox) >= 0)
           delete currentHeaderData.sender;
@@ -559,11 +550,11 @@ var messageHeaderSink = {
       if (("from" in currentHeaderData) &&
           ("to" in currentHeaderData) &&
           ("reply-to" in currentHeaderData)) {
-        var replyToMailbox = msgHeaderParser.extractHeaderAddressMailboxes(
+        var replyToMailbox = MailServices.headerParser.extractHeaderAddressMailboxes(
             currentHeaderData["reply-to"].headerValue);
-        var fromMailboxes = msgHeaderParser.extractHeaderAddressMailboxes(
+        var fromMailboxes = MailServices.headerParser.extractHeaderAddressMailboxes(
             currentHeaderData.from.headerValue);
-        var toMailboxes = msgHeaderParser.extractHeaderAddressMailboxes(
+        var toMailboxes = MailServices.headerParser.extractHeaderAddressMailboxes(
             currentHeaderData.to.headerValue);
 
         if (replyToMailbox == fromMailboxes || replyToMailbox == toMailboxes)
@@ -737,9 +728,7 @@ function SetTagHeader()
     return; // no msgHdr to add our tags to
 
   // get the list of known tags
-  var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                   .getService(Components.interfaces.nsIMsgTagService);
-  var tagArray = tagService.getAllTags({});
+  var tagArray = MailServices.tags.getAllTags({});
   var tagKeys = {};
   for each (var tagInfo in tagArray)
     if (tagInfo.tag)
@@ -1173,10 +1162,9 @@ function OutputEmailAddresses(headerEntry, emailAddresses)
   var names = {};
   var numAddresses =  0;
 
-  var msgHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
-                                  .getService(Components.interfaces.nsIMsgHeaderParser);
-  numAddresses = msgHeaderParser.parseHeadersWithArray(emailAddresses, addresses,
-                                                       names, fullNames);
+  numAddresses = MailServices.headerParser
+                             .parseHeadersWithArray(emailAddresses, addresses,
+                                                    names, fullNames);
   var index = 0;
   while (index < numAddresses) {
     // If we want to include short/long toggle views and we have a long view,
@@ -1482,9 +1470,7 @@ function getCardForEmail(emailAddress)
   // the cardForEmailAddress function.
   // Future expansion could be to domain matches
 
-  var books = Components.classes["@mozilla.org/abmanager;1"]
-                        .getService(Components.interfaces.nsIAbManager)
-                        .directories;
+  var books = MailServices.ab.directories;
 
   var result = { book: null, card: null };
 
@@ -1545,10 +1531,8 @@ function AddContact(emailAddressNode)
   // leaving something else there).
   emailAddressNode.setAttribute("updatingUI", true);
 
-  let abManager = Components.classes["@mozilla.org/abmanager;1"]
-                            .getService(Components.interfaces.nsIAbManager);
   const kPersonalAddressbookURI = "moz-abmdbdirectory://abook.mab";
-  let addressBook = abManager.getDirectory(kPersonalAddressbookURI);
+  let addressBook = MailServices.ab.getDirectory(kPersonalAddressbookURI);
 
   let card = Components.classes["@mozilla.org/addressbook/cardproperty;1"]
                        .createInstance(Components.interfaces.nsIAbCard);
@@ -2115,9 +2099,7 @@ function displayAttachmentsForExpandedView()
 
     var attachmentList = document.getElementById("attachmentList");
 
-    var viewMode = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefBranch)
-                             .getIntPref("mailnews.attachments.display.view");
+    var viewMode = Services.prefs.getIntPref("mailnews.attachments.display.view");
     var views = ["small", "large", "tile"];
     attachmentList.view = views[viewMode];
     attachmentList.controllers.appendController(AttachmentListController);
@@ -2670,9 +2652,7 @@ nsDummyMsgHeader.prototype =
 function onShowOtherActionsPopup()
 {
   // Enable/disable the Open Conversation button.
-  let prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefBranch);
-  let glodaEnabled = prefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
+  let glodaEnabled = Services.prefs.getBoolPref("mailnews.database.global.indexer.enabled");
 
   let openConversation = document.getElementById("otherActionsOpenConversation");
   openConversation.disabled = !glodaEnabled;
@@ -2707,9 +2687,8 @@ ConversationOpener.prototype = {
     }
   },
   isSelectedMessageIndexed: function() {
-    let prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch);
-    let glodaEnabled = prefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
+    let glodaEnabled = Services.prefs
+      .getBoolPref("mailnews.database.global.indexer.enabled");
 
     if (glodaEnabled && gFolderDisplay.selectedMessages.length > 0) {
       let message = gFolderDisplay.selectedMessages[0];
