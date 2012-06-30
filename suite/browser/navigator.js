@@ -192,7 +192,7 @@ const gFormSubmitObserver = {
 
 /**
 * Pref listener handler functions.
-* Both functions assume that observer.domain is set to 
+* Both functions assume that observer.domain is set to
 * the pref domain we want to start/stop listening to.
 */
 function addPrefListener(observer)
@@ -443,7 +443,7 @@ function Startup()
 
   gBrowser = document.getElementById("content");
   gURLBar = document.getElementById("urlbar");
-  
+
   SetPageProxyState("invalid", null);
 
   var webNavigation;
@@ -499,7 +499,7 @@ function Startup()
 
   window.browserContentListener =
     new nsBrowserContentListener(window, getBrowser());
-  
+
   // Add a capturing event listener to the content area
   // (rjc note: not the entire window, otherwise we'll get sidebar pane loads too!)
   //  so we'll be notified when onloads complete.
@@ -582,7 +582,7 @@ function Startup()
     if (uriArray.length > 0)
       window.setTimeout(function(arg) { for (var i in arg) gBrowser.addTab(arg[i]); }, 0, uriArray);
   }
-    
+
   if (/^\s*$/.test(uriToLoad))
     uriToLoad = "about:blank";
 
@@ -628,8 +628,8 @@ function Startup()
 
   // ensure login manager is loaded
   Components.classes["@mozilla.org/login-manager;1"].getService();
-  
-  // called when we go into full screen, even if it is 
+
+  // called when we go into full screen, even if it is
   // initiated by a web page script
   addEventListener("fullscreen", onFullScreen, true);
 
@@ -965,7 +965,7 @@ function BrowserHandleShiftBackspace()
     case 1:
       goDoCommand("cmd_scrollPageDown");
       break;
-  } 
+  }
 }
 
 function SetGroupHistory(popupMenu, direction)
@@ -1322,9 +1322,9 @@ function BrowserOpenTab()
 
     if (tabPref == 2)
       OpenSessionHistoryIn("tabfocused", 0);
-    else  
+    else
       gBrowser.selectedTab = gBrowser.addTab(uriToLoad);
-      
+
     if (uriToLoad == "about:blank" && isElementVisible(gURLBar))
       setTimeout(WindowFocusTimerCallback, 0, gURLBar);
     else
@@ -1337,7 +1337,7 @@ function BrowserOpenSyncTabs()
   switchToTabHavingURI("about:sync-tabs", true);
 }
 
-/* Show file picker dialog configured for opening a file, and return 
+/* Show file picker dialog configured for opening a file, and return
  * the selected nsIFileURL instance. */
 function selectFileToOpen(label, prefRoot)
 {
@@ -1520,7 +1520,7 @@ function BrowserCloseWindow()
   // to fix this eventually but by replicating the code here, we
   // provide a means of saving position (it just requires that the
   // user close the window via File->Close (vs. close box).
-  
+
   // Get the current window position/size.
   var x = window.screenX;
   var y = window.screenY;
@@ -2169,7 +2169,7 @@ function URLBarClickHandler(aEvent)
 function checkForDefaultBrowser()
 {
   const NS_SHELLSERVICE_CID = "@mozilla.org/suite/shell-service;1";
-  
+
   if (NS_SHELLSERVICE_CID in Components.classes) {
     const nsIShellService = Components.interfaces.nsIShellService;
     var shellService = Components.classes["@mozilla.org/suite/shell-service;1"]
@@ -2184,7 +2184,7 @@ function checkForDefaultBrowser()
       window.openDialog("chrome://communicator/content/defaultClientDialog.xul",
                         "DefaultClient",
                         "modal,centerscreen,chrome,resizable=no"); 
-      // Force the sidebar to build since the windows 
+      // Force the sidebar to build since the windows
       // integration dialog has come up.
       SidebarRebuild();
     }
@@ -2212,7 +2212,7 @@ function handleURLBarRevert()
   var throbberElement = document.getElementById("navigator-throbber");
 
   var isScrolling = gURLBar.userAction == "scrolling";
-  
+
   // don't revert to last valid url unless page is NOT loading
   // and user is NOT key-scrolling through autocomplete list
   if (!throbberElement.hasAttribute("busy") && !isScrolling) {
@@ -2291,7 +2291,7 @@ function handlePageProxyClick(aEvent)
 }
 
 function updateComponentBarBroadcaster()
-{ 
+{
   var compBarBroadcaster = document.getElementById('cmd_viewcomponentbar');
   var taskBarBroadcaster = document.getElementById('cmd_viewtaskbar');
   var compBar = document.getElementById('component-bar');
@@ -2359,7 +2359,7 @@ function StatusbarViewPopupManager()
     hostPort = getBrowser().selectedBrowser.currentURI.hostPort;
   }
   catch(ex) { }
-  
+
   // Open Data Manager permissions pane site and type prefilled to add.
   toDataManager(hostPort + "|permissions|add|popup");
 }
@@ -2448,7 +2448,7 @@ function WindowIsClosing()
 
   for (var i = 0; reallyClose && i < numtabs; ++i) {
     var ds = browser.getBrowserForTab(cn[i]).docShell;
-  
+
     if (ds.contentViewer && !ds.contentViewer.permitUnload())
       reallyClose = false;
   }
@@ -2768,7 +2768,7 @@ function AddKeywordForSearchField() {
       formData.push(encodeNameValuePair(el.name, "") + "%s");
       continue;
     }
-    
+
     type = el.type;
 
     if (((el instanceof HTMLInputElement && el.mozIsTextField(true)) ||
