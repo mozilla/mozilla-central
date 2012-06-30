@@ -57,8 +57,8 @@ static void DIR_GetPrefsForOneServer(DIR_Server *server);
 static void DIR_InitServer(DIR_Server *server, DirectoryType dirType = (DirectoryType)0);
 static DIR_PrefId  DIR_AtomizePrefName(const char *prefname);
 
-#define DIR_POS_APPEND                     0x80000000
-#define DIR_POS_DELETE                     0x80000001
+const PRInt32 DIR_POS_APPEND = -1;
+const PRInt32 DIR_POS_DELETE = -2;
 static bool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, PRInt32 position);
 
 /* These two routines should be called to initialize and save 

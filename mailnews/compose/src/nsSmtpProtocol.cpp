@@ -68,7 +68,7 @@ static PRLogModuleInfo *SMTPLogModule = nsnull;
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /* based on in NET_ExplainErrorDetails in mkmessag.c */
-nsresult nsExplainErrorDetails(nsISmtpUrl * aSmtpUrl, int code, ...)
+nsresult nsExplainErrorDetails(nsISmtpUrl * aSmtpUrl, nsresult code, ...)
 {
   NS_ENSURE_ARG(aSmtpUrl);
 
@@ -1428,7 +1428,7 @@ PRInt32 nsSmtpProtocol::SendMailResponse()
 
   if (m_responseCode/10 != 25)
   {
-    int errorcode;
+    nsresult errorcode;
     if (TestFlag(SMTP_EHLO_SIZE_ENABLED))
       errorcode = (m_responseCode == 452) ? NS_ERROR_SMTP_TEMP_SIZE_EXCEEDED :
                   (m_responseCode == 552) ? NS_ERROR_SMTP_PERM_SIZE_EXCEEDED_2 :
