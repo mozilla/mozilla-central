@@ -1147,6 +1147,7 @@
             let needsRefresh = false;
             let oldStart = this.mFilter.mStartDate;
             let oldEnd = this.mFilter.mEndDate;
+            let filterText = this.mFilter.filterText || "";
 
             if (aFilter) {
                 let props = this.mFilter.filterProperties;
@@ -1154,6 +1155,14 @@
                 needsRefresh = !props || !props.equals(this.mFilter.filterProperties);
             } else {
                 this.mFilter.updateFilterDates();
+            }
+
+            if (this.mTextFilterField) {
+                let field = document.getElementById(this.mTextFilterField);
+                if (field) {
+                    this.mFilter.filterText = field.value;
+                    needsRefresh = needsRefresh || filterText.toLowerCase() != this.mFilter.filterText.toLowerCase();
+                }
             }
 
             // we only need to refresh the tree if the filter properties or date range changed
@@ -1170,8 +1179,6 @@
       <method name="updateFilter">
         <parameter name="aFilter"/>
         <body><![CDATA[
-            this.mFilter.textFilterField = this.mTextFilterField;
-
             this.doUpdateFilter(aFilter);
         ]]></body>
       </method>

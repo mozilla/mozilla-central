@@ -151,7 +151,7 @@ calFilter.prototype = {
     mStartDate: null,
     mEndDate: null,
     mSelectedDate: null,
-    mTextFilterField: null,
+    mFilterText: "",
     mDefinedFilters: {},
     mFilterProperties: null,
     mToday: null,
@@ -316,19 +316,18 @@ calFilter.prototype = {
     },
 
     /**
-     * Checks if the item matches the filter text of the mTextFilterField element
+     * Checks if the item matches the current filter text
      *
      * @param aItem               The item to check.
-     * @return                    Returns true if the item matches the text filter
-     *                            or the mTextFilterField is not set, false otherwise.
+     * @return                    Returns true if the item matches the filter text or no
+     *                            filter text has been set, false otherwise.
      */
     textFilter: function cF_filterByText(aItem) {
-        if (!this.mTextFilterField) {
+        if (!this.mFilterText) {
             return true;
         }
 
-        let searchText = document.getElementById(this.mTextFilterField)
-                                 .value.toLowerCase();
+        let searchText = this.mFilterText.toLowerCase();
 
         if (!searchText.length || searchText.match(/^\s*$/)) {
             return true;
@@ -576,19 +575,19 @@ calFilter.prototype = {
     },
 
     /**
-     * Gets the ID of the DOM element used to perform the text filter.
+     * Gets the value used to perform the text filter.
      */
-    get textFilterField() {
-        return this.mTextFilterField;
+    get filterText() {
+        return this.mFilterText;
     },
 
     /**
-     * Sets the DOM element used to perform the text filter.
+     * Sets the value used to perform the text filter.
      *
-     * @param aId                 The Id of the DOM element.
+     * @param aValue              The string value to use for the text filter.
      */
-    set textFilterField(aId) {
-        return (this.mTextFilterField = aId);
+    set filterText(aValue) {
+        return (this.mFilterText = aValue);
     },
 
     /**
@@ -696,8 +695,7 @@ calFilter.prototype = {
 
     /**
      * Filters an array of items, returning a new array containing the items that match
-     * the currently applied filter properties and the filter text of the text filter
-     * element.
+     * the currently applied filter properties and text filter.
      *
      * @param aItems              The array of items to check.
      * @param aCallback           An optional callback function to be called with each item and 
@@ -722,8 +720,7 @@ calFilter.prototype = {
     },
 
     /**
-     * Checks if the item matches the currently applied filter properties and the 
-     * filter text of the text filter element.
+     * Checks if the item matches the currently applied filter properties and text filter.
      *
      * @param aItem               The item to check.
      * @return                    Returns true if the item matches the filters, 

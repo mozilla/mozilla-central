@@ -203,7 +203,6 @@ function prepareCalendarUnifinder() {
 
         // Set up the filter
         unifinderTreeView.mFilter = new calFilter();
-        unifinderTreeView.mFilter.textFilterField = "unifinder-search-field";
 
         // Set up the unifinder views.
         unifinderTreeView.treeElement = unifinderTree;
@@ -833,6 +832,11 @@ var unifinderTreeView = {
  * applying the current filter.
  */
 function refreshEventTree() {
+    let field = document.getElementById("unifinder-search-field");
+    if (field) {
+        unifinderTreeView.mFilter.filterText = field.value;
+    }
+
     addItemsFromCalendar(getCompositeCalendar(),
                          addItemsFromCompositeCalendarInternal);
 }
@@ -905,7 +909,7 @@ function addItemsFromCalendar(aCalendar, aAddItemsInternalFunc) {
     filter |= aCalendar.ITEM_FILTER_TYPE_EVENT;
 
     // Not all xul might be there yet...
-    if (!document.getElementById(unifinderTreeView.mFilter.textFilterField)) {
+    if (!document.getElementById("unifinder-search-field")) {
         return;
     }
     unifinderTreeView.mFilter.applyFilter(getCurrentUnifinderFilter());
