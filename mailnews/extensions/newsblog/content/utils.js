@@ -45,6 +45,8 @@ var FeedUtils = {
   get DC_LASTMODIFIED() { return this.rdf.GetResource(this.DC_NS + "lastModified") },
   get DC_IDENTIFIER()   { return this.rdf.GetResource(this.DC_NS + "identifier") },
 
+  MRSS_NS: "http://search.yahoo.com/mrss/",
+
   FZ_NS: "urn:forumzilla:",
   FZ_ITEM_NS: "urn:feeditem:",
   get FZ_ROOT()       { return this.rdf.GetResource(this.FZ_NS + "root") },

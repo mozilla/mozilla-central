@@ -22,8 +22,7 @@ FeedItem.prototype =
   feed: null,
   description: null,
   content: null,
-  // Currently only support one enclosure per feed item.
-  enclosure: null,
+  enclosures: [],
   // TO DO: this needs to be localized.
   title: "(no subject)",
   author: "anonymous",
@@ -351,24 +350,26 @@ FeedItem.prototype =
       'Content-Transfer-Encoding: 8bit\n' +
       'Content-Base: ' + this.mURL + '\n';
 
-    if (this.enclosure && this.enclosure.mFileName)
+    if (this.enclosures.length)
     {
-      let boundaryID = source.length + this.enclosure.mLength;
-      source += 'Content-Type: multipart/mixed;\n boundary="' +
+      let boundaryID = source.length;
+      source += 'Content-Type: multipart/mixed; boundary="' +
                 this.ENCLOSURE_HEADER_BOUNDARY_PREFIX + boundaryID + '"' + '\n\n' +
                 'This is a multi-part message in MIME format.\n' +
                 this.ENCLOSURE_BOUNDARY_PREFIX + boundaryID + '\n' +
                 'Content-Type: text/html; charset=' + this.characterSet + '\n' +
                 'Content-Transfer-Encoding: 8bit\n' +
                 this.content;
-      source += this.enclosure.convertToAttachment(boundaryID);
+
+      this.enclosures.forEach(function(enclosure) {
+        source += enclosure.convertToAttachment(boundaryID);
+      });
+
+      source += this.ENCLOSURE_BOUNDARY_PREFIX + boundaryID + '--' + '\n\n\n';
     }
     else
-    {
       source += 'Content-Type: text/html; charset=' + this.characterSet + '\n' +
-                '\n' + this.content;
-
-    }
+                this.content;
 
     FeedUtils.log.trace("FeedItem.writeToFolder: " + this.identity +
                         " is " + source.length + " characters long");
@@ -418,11 +419,12 @@ FeedItem.prototype =
 
 // A feed enclosure is to RSS what an attachment is for e-mail.  We make
 // enclosures look like attachments in the UI.
-function FeedEnclosure(aURL, aContentType, aLength)
+function FeedEnclosure(aURL, aContentType, aLength, aTitle)
 {
   this.mURL = aURL;
   this.mContentType = aContentType;
   this.mLength = aLength;
+  this.mTitle = aTitle;
 
   // Generate a fileName from the URL.
   if (this.mURL)
@@ -446,6 +448,7 @@ FeedEnclosure.prototype =
   mContentType: "",
   mLength: 0,
   mFileName: "",
+  mTitle: "",
   ENCLOSURE_BOUNDARY_PREFIX: "--------------", // 14 dashes
 
   // Returns a string that looks like an e-mail attachment which represents
@@ -455,11 +458,10 @@ FeedEnclosure.prototype =
     return '\n' +
       this.ENCLOSURE_BOUNDARY_PREFIX + aBoundaryID + '\n' +
       'Content-Type: ' + this.mContentType +
-                     '; name="' + this.mFileName +
+                     '; name="' + (this.mTitle || this.mFileName) +
                      (this.mLength ? '"; size=' + this.mLength : '"') + '\n' +
       'X-Mozilla-External-Attachment-URL: ' + this.mURL + '\n' +
       'Content-Disposition: attachment; filename="' + this.mFileName + '"\n\n' +
-      'This MIME attachment is stored separately from the message.\n' +
-      this.ENCLOSURE_BOUNDARY_PREFIX + aBoundaryID + '--' + '\n';
+      'This MIME attachment is stored separately from the message.\n';
   }
 };
