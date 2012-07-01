@@ -2,6 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 /**
  * Common initialization steps for calendar chrome windows.
  */
@@ -38,11 +41,6 @@ function commonInitCalendar() {
 
     // Set up window pref observers
     calendarWindowPrefs.init();
-
-    // Check if the system colors should be used
-    if (cal.getPrefSafe("calendar.view.useSystemColors", false)) {
-        document.documentElement.setAttribute("systemcolors", "true");
-    }
 
     /* Ensure the new items commands state can be setup properly even when no
      * calendar support refreshes (i.e. the "onLoad" notification) or when none
@@ -91,7 +89,10 @@ function onCalendarViewResize(aEvent) {
 }
 
 /**
- * Handler for observing preferences that are relevant for each window separately.
+ * TODO: The systemcolors pref observer really only needs to be set up once, so
+ * ideally this code should go into a component. This should be taken care of when
+ * there are more prefs that need to be observed on a global basis that don't fit
+ * into the calendar manager.
  */
 var calendarWindowPrefs = {
 
@@ -101,11 +102,16 @@ var calendarWindowPrefs = {
     /** Initialize the preference observers */
     init: function() {
         Services.prefs.addObserver("calendar.view.useSystemColors", this, false);
+        Services.ww.registerNotification(this);
+
+        // Trigger setting pref on all open windows
+        this.observe(null, "nsPref:changed", "calendar.view.useSystemColors");
     },
 
     /**  Cleanup the preference observers */
     cleanup: function() {
         Services.prefs.removeObserver("calendar.view.useSystemColors", this);
+        Services.ww.unregisterNotification(this);
     },
 
     /**
@@ -116,10 +122,20 @@ var calendarWindowPrefs = {
     observe: function (aSubject, aTopic, aData) {
         if (aTopic == "nsPref:changed") {
             switch (aData) {
-                case "calendar.view.useSystemColors":
-                    setElementValue(document.documentElement, cal.getPrefSafe(aData, false) && "true", "systemcolors");
+                case "calendar.view.useSystemColors": {
+                    let attributeValue = cal.getPrefSafe("calendar.view.useSystemColors", false) && "true";
+                    for each (let win in fixIterator(Services.ww.getWindowEnumerator())) {
+                        setElementValue(win.document.documentElement, attributeValue , "systemcolors");
+                    }
                     break;
+                }
             }
+        } else if (aTopic == "domwindowopened") {
+            let win = aSubject.QueryInterface(Components.interfaces.nsIDOMWindow);
+            win.addEventListener("load", function() {
+                let attributeValue = cal.getPrefSafe("calendar.view.useSystemColors", false) && "true";
+                setElementValue(win.document.documentElement, attributeValue , "systemcolors");
+            }, false);
         }
     }
 }

@@ -8,6 +8,7 @@ minimonth {
   padding: 4px;
 }
 
+dialog[systemcolors] minimonth,
 window[systemcolors] minimonth {
   background-color: -moz-field;
 }
@@ -17,6 +18,7 @@ window[systemcolors] minimonth {
   border: 1px dotted #C0C0C0;
 }
 
+dialog[systemcolors] .minimonth-month-box,
 window[systemcolors] .minimonth-month-box {
   background-color: -moz-Dialog;
   border: 1px dotted -moz-Dialog;
@@ -103,6 +105,7 @@ window[systemcolors] .minimonth-month-box {
   min-height: 16px;
 }
 
+dialog[systemcolors] .minimonth-day,
 window[systemcolors] .minimonth-day {
   color: WindowText;
   border: 1px solid Window;
@@ -115,6 +118,7 @@ window[systemcolors] .minimonth-day {
   border: 1px solid #F0F0F0;
 }
 
+dialog[systemcolors] .minimonth-day[othermonth="true"],
 window[systemcolors] .minimonth-day[othermonth="true"] {
   color: GrayText;
   background-color: ButtonFace;
@@ -126,6 +130,7 @@ window[systemcolors] .minimonth-day[othermonth="true"] {
   border: 1px solid #67ACD8;
 }
 
+dialog[systemcolors] .minimonth-day[today="true"],
 window[systemcolors] .minimonth-day[today="true"] {
   background-color: -moz-field;
   border: 1px solid Highlight;
@@ -142,7 +147,9 @@ window[systemcolors] .minimonth-day[today="true"] {
   border: 1px solid #67ACD8;
  }
  
+dialog[systemcolors] .minimonth-day[selected="true"],
 window[systemcolors] .minimonth-day[selected="true"],
+dialog[systemcolors] .minimonth-day[selected="true"][today="true"],
 window[systemcolors] .minimonth-day[selected="true"][today="true"] {
   background-color: Highlight;
   color: HighlightText;
@@ -163,7 +170,9 @@ window[systemcolors] .minimonth-day[selected="true"][today="true"] {
   color: HighlightText;
 }
 
+dialog[systemcolors] .minimonth-day:hover[interactive],
 window[systemcolors] .minimonth-day:hover[interactive],
+dialog[systemcolors] .minimonth-day:active[interactive],
 window[systemcolors] .minimonth-day:active[interactive] {
   cursor: pointer;
   color: HighlightText;
