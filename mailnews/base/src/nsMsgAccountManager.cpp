@@ -302,21 +302,68 @@ NS_IMETHODIMP nsMsgAccountManager::Observe(nsISupports *aSubject, const char *aT
 }
 
 void
-nsMsgAccountManager::getUniqueAccountKey(const char * prefix,
-                                         nsISupportsArray *accounts,
+nsMsgAccountManager::getUniqueAccountKey(nsISupportsArray *accounts,
                                          nsCString& aResult)
 {
-  PRInt32 i=1;
-  findAccountByKeyEntry findEntry;
-  findEntry.account = nsnull;
+  PRInt32 lastKey = 0;
+  nsresult rv;
+  nsCOMPtr<nsIPrefService> prefservice(do_GetService(NS_PREFSERVICE_CONTRACTID,
+                                       &rv));
+  if (NS_SUCCEEDED(rv)) {
+    nsCOMPtr<nsIPrefBranch> prefBranch;
+    prefservice->GetBranch("", getter_AddRefs(prefBranch));
 
-  do {
+    rv = prefBranch->GetIntPref("mail.account.lastKey", &lastKey);
+    if (NS_FAILED(rv) || lastKey == 0) {
+      // If lastKey pref does not contain a valid value, loop over existing
+      // pref names mail.account.* .
+      nsCOMPtr<nsIPrefBranch> prefBranchAccount;
+      rv = prefservice->GetBranch("mail.account.", getter_AddRefs(prefBranchAccount));
+      if (NS_SUCCEEDED(rv)) {
+        PRUint32 prefCount;
+        char **prefList;
+        rv = prefBranchAccount->GetChildList("", &prefCount, &prefList);
+        if (NS_SUCCEEDED(rv)) {
+          // Pref names are of the format accountX.
+          // Find the maximum value of 'X' used so far.
+          for (PRUint32 i = 0; i < prefCount; i++) {
+            nsCString prefName;
+            prefName.Assign(prefList[i]);
+            if (StringBeginsWith(prefName, NS_LITERAL_CSTRING(ACCOUNT_PREFIX))) {
+              PRInt32 dotPos = prefName.FindChar('.');
+              if (dotPos != kNotFound) {
+                nsCString keyString(Substring(prefName, strlen(ACCOUNT_PREFIX),
+                                              dotPos - strlen(ACCOUNT_PREFIX)));
+                PRInt32 thisKey = keyString.ToInteger(&rv);
+                if (NS_SUCCEEDED(rv))
+                  lastKey = NS_MAX(lastKey, thisKey);
+              }
+            }
+          }
+          NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(prefCount, prefList);
+        }
+      }
+    }
+
+    // Use next available key and store the value in the pref.
+    aResult.Assign(ACCOUNT_PREFIX);
+    aResult.AppendInt(++lastKey);
+    rv = prefBranch->SetIntPref("mail.account.lastKey", lastKey);
+  } else {
+    // If pref service is not working, try to find a free accountX key
+    // by checking which keys exist.
+    PRInt32 i = 1;
+    findAccountByKeyEntry findEntry;
     findEntry.account = nsnull;
-    aResult = prefix;
-    aResult.AppendInt(i++);
-    findEntry.key = aResult.get();
-    accounts->EnumerateForwards(findAccountByKey, (void *)&findEntry);
-  } while (findEntry.account);
+
+    do {
+      findEntry.account = nsnull;
+      aResult = ACCOUNT_PREFIX;
+      aResult.AppendInt(i++);
+      findEntry.key = aResult.get();
+      accounts->EnumerateForwards(findAccountByKey, (void *)&findEntry);
+    } while (findEntry.account);
+  }
 }
 
 nsresult
@@ -1621,7 +1668,7 @@ nsMsgAccountManager::CreateAccount(nsIMsgAccount **_retval)
   NS_ENSURE_ARG_POINTER(_retval);
 
   nsCAutoString key;
-  getUniqueAccountKey(ACCOUNT_PREFIX, m_accounts, key);
+  getUniqueAccountKey(m_accounts, key);
 
   return createKeyedAccount(key, _retval);
 }
