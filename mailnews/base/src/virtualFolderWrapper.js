@@ -13,6 +13,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource:///modules/iteratorUtils.jsm");
 
 var VirtualFolderHelper = {
@@ -54,9 +55,7 @@ var VirtualFolderHelper = {
     msgDatabase.Close(true);
 
     aParentFolder.NotifyItemAdded(msgFolder);
-    Cc["@mozilla.org/messenger/account-manager;1"]
-      .getService(Ci.nsIMsgAccountManager)
-      .saveVirtualFolders();
+    MailServices.accounts.saveVirtualFolders();
 
     return wrappedVirt;
   },
@@ -167,13 +166,10 @@ VirtualFolderWrapper.prototype = {
    *     nsIMsgSearchSession stand-in to some code.
    */
   get searchTermsSession() {
-    let filterService =
-      Cc["@mozilla.org/messenger/services/filters;1"]
-        .getService(Ci.nsIMsgFilterService);
     // Temporary means it doesn't get exposed to the UI and doesn't get saved to
     //  disk.  Which is good, because this is just a trick to parse the string
     //  into search terms.
-    let filterList = filterService.getTempFilterList(this.virtualFolder);
+    let filterList = MailServices.filters.getTempFilterList(this.virtualFolder);
     let tempFilter = filterList.createFilter("temp");
     filterList.parseCondition(tempFilter, this.searchString);
     return tempFilter;

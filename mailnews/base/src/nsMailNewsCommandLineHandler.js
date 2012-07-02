@@ -6,6 +6,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const MAPI_STARTUP_ARG = "MapiStartup";
@@ -70,11 +71,9 @@ var nsMailNewsCommandLineHandler =
       }
       else {
         // Necko URL, so convert it into a message header
-        let ioService = Cc["@mozilla.org/network/io-service;1"]
-                          .getService(Ci.nsIIOService);
         let neckoURL = null;
         try {
-          neckoURL = ioService.newURI(mailURL, null, null);
+          neckoURL = Services.io.newURI(mailURL, null, null);
         }
         catch (e) {
           // We failed to convert the URI. Oh well.
@@ -97,16 +96,12 @@ var nsMailNewsCommandLineHandler =
     let mailFlag = aCommandLine.handleFlag("mail", false);
     if (mailFlag) {
       // Focus the 3pane window if one is present, else open one
-      let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"]
-                             .getService(Ci.nsIWindowMediator);
-      let mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
+      let mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
       if (mail3PaneWindow) {
         mail3PaneWindow.focus();
       }
       else {
-        let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"]
-                              .getService(Ci.nsIWindowWatcher);
-        windowWatcher.openWindow(null, "chrome://messenger/content/", "_blank",
+        Services.ww.openWindow(null, "chrome://messenger/content/", "_blank",
             "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar,dialog=no",
             null);
       }

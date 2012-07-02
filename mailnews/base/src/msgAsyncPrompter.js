@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource:///modules/gloda/log4moz.js");
 
@@ -51,8 +52,6 @@ runnablePrompter.prototype = {
 
 function msgAsyncPrompter() {
   this._pendingPrompts = {};
-  this._threadManager = Cc["@mozilla.org/thread-manager;1"]
-                          .getService(Ci.nsIThreadManager);
   // By default, only log warnings to the error console and errors to dump().
   // You can use the preferences:
   //   msgAsyncPrompter.logging.console
@@ -70,7 +69,6 @@ msgAsyncPrompter.prototype = {
 
   _pendingPrompts: null,
   _asyncPromptInProgress: 0,
-  _threadManager: null,
   _log: null,
 
   queueAsyncAuthPrompt: function(aKey, aJumpQueue, aCaller) {
@@ -93,7 +91,7 @@ msgAsyncPrompter.prototype = {
       this._log.debug("Forcing runnablePrompter for " + aKey);
 
       let runnable = new runnablePrompter(this, aKey);
-      this._threadManager.mainThread.dispatch(runnable, Ci.nsIThread.DISPATCH_NORMAL);
+      Services.tm.mainThread.dispatch(runnable, Ci.nsIThread.DISPATCH_NORMAL);
     }
     else
       this._doAsyncAuthPrompt();
@@ -118,8 +116,7 @@ msgAsyncPrompter.prototype = {
     this._log.debug("Dispatching runnablePrompter for " + hashKey);
 
     let runnable = new runnablePrompter(this, hashKey);
-    this._threadManager.mainThread.dispatch(runnable,
-                                            Ci.nsIThread.DISPATCH_NORMAL);
+    Services.tm.mainThread.dispatch(runnable, Ci.nsIThread.DISPATCH_NORMAL);
   }
 };
 
