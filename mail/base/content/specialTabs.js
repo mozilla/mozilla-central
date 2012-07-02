@@ -567,6 +567,10 @@ var specialTabs = {
       clone.setAttribute("id", "contentTab" + this.lastBrowserId);
       clone.setAttribute("collapsed", false);
 
+      let toolbox = clone.firstChild;
+      toolbox.setAttribute("id", "contentTabToolbox" + this.lastBrowserId);
+      toolbox.firstChild.setAttribute("id", "contentTabToolbar" + this.lastBrowserId);
+
       aTab.panel.appendChild(clone);
       aTab.root = clone;
 
@@ -993,6 +997,10 @@ var specialTabs = {
 
       clone.setAttribute("id", "chromeTab" + this.lastBrowserId);
       clone.setAttribute("collapsed", false);
+
+      let toolbox = clone.firstChild;
+      toolbox.setAttribute("id", "chromeTabToolbox" + this.lastBrowserId);
+      toolbox.firstChild.setAttribute("id", "chromeTabToolbar" + this.lastBrowserId);
 
       aTab.panel.appendChild(clone);
 

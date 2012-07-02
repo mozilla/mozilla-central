@@ -33,8 +33,8 @@
 
   <vbox id="chromeTab" collapsed="true">
     <vbox flex="1" class="chromeTabInstance">
-      <toolbox id="dummycontenttoolbox" class="contentTabToolbox">
-        <toolbar id="dummycontenttoolbar" class="contentTabToolbar"></toolbar>
+      <toolbox id="dummychrometoolbox" class="contentTabToolbox">
+        <toolbar id="dummychrometoolbar" class="contentTabToolbar"></toolbar>
       </toolbox>
       <notificationbox flex="1">
         <browser id="dummychromebrowser" flex="1"
