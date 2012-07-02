@@ -143,6 +143,9 @@ SuiteGlue.prototype = {
       case "weave:service:ready":
         this._setSyncAutoconnectDelay();
         break;
+      case "weave:engine:clients:display-uri":
+        this._onDisplaySyncURI(subject);
+        break;
       case "session-save":
         this._setPrefToSaveSession();
         subject.QueryInterface(Components.interfaces.nsISupportsPRBool);
@@ -231,6 +234,7 @@ SuiteGlue.prototype = {
     Services.obs.addObserver(this, "browser-lastwindow-close-granted", false);
     Services.obs.addObserver(this, "console-api-log-event", false);
     Services.obs.addObserver(this, "weave:service:ready", false);
+    Services.obs.addObserver(this, "weave:engine:clients:display-uri", false);
     Services.obs.addObserver(this, "session-save", false);
     Services.obs.addObserver(this, "dl-done", false);
     Services.obs.addObserver(this, "places-init-complete", false);
@@ -259,6 +263,7 @@ SuiteGlue.prototype = {
     Services.obs.removeObserver(this, "browser-lastwindow-close-granted");
     Services.obs.removeObserver(this, "console-api-log-event");
     Services.obs.removeObserver(this, "weave:service:ready");
+    Services.obs.removeObserver(this, "weave:engine:clients:display-uri");
     Services.obs.removeObserver(this, "session-save");
     Services.obs.removeObserver(this, "dl-done");
     if (this._isIdleObserver)
@@ -996,6 +1001,27 @@ SuiteGlue.prototype = {
     }
   },
 
+  /**
+   * Called as an observer when Sync's "display URI" notification is fired.
+   */
+  _onDisplaySyncURI: function _onDisplaySyncURI(data) {
+    try {
+      var url = data.wrappedJSObject.object.uri;
+      var mostRecentBrowserWindow = Services.wm.getMostRecentWindow("navigator:browser");
+      if (mostRecentBrowserWindow) {
+        mostRecentBrowserWindow.getBrowser().addTab(url, { focusNewTab: true });
+        mostRecentBrowserWindow.content.focus();
+      } else {
+        var args = Components.classes["@mozilla.org/supports-string;1"]
+                             .createInstance(Components.interfaces.nsISupportsString);
+        args.data = url;
+        var chromeURL = Services.prefs.getCharPref("browser.chromeURL");
+        Services.ww.openWindow(null, chromeURL, "_blank", "chrome,all,dialog=no", args);
+      }
+    } catch (e) {
+      Components.utils.reportError("Error displaying tab received by Sync: " + e);
+    }
+  },
 
   // for XPCOM
   classID: Components.ID("{bbbbe845-5a1b-40ee-813c-f84b8faaa07c}"),
