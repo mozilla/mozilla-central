@@ -499,10 +499,9 @@ PRInt32 nsSmtpProtocol::SmtpResponse(nsIInputStream * inputStream, PRUint32 leng
     m_responseText += (PL_strlen(line) > 3) ? line + 4 : line;
   }
 
-  if (m_responseCode == 220 && m_responseText.Length() && !m_tlsInitiated)
-  {
+  if (m_responseCode == 220 && m_responseText.Length() && !m_tlsInitiated &&
+     !m_sendDone)
     m_nextStateAfterResponse = SMTP_EXTN_LOGIN_RESPONSE;
-  }
 
   if (m_continuationResponse == -1)  /* all done with this response? */
   {
