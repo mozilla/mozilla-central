@@ -373,6 +373,9 @@ pref("mail.default_sendlater_uri", "mailbox://nobody@Local%20Folders/Unsent%20Me
 pref("mail.smtpservers", "");
 pref("mail.accountmanager.accounts", "");
 
+// Last used account key value
+pref("mail.account.lastKey", 0);
+
 pref("mail.server.default.port", -1);
 pref("mail.server.default.offline_support_level", -1);
 pref("mail.server.default.leave_on_server", false);
