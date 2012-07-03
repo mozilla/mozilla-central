@@ -33,6 +33,7 @@
 #include "stdlib.h"
 #include <windows.h>
 #include "nsIWindowsRegKey.h"
+#include "nsComponentManagerUtils.h"
 
 #ifdef MOZILLA_INTERNAL_API
 #include "nsNativeCharsetUtils.h"
@@ -702,21 +703,24 @@ void OESettings::SetIncomingServerProperties(nsIMsgIncomingServer *aServer,
 {
   nsresult rv;
   PRUint32 secureConnection = 0;
-  rv = aKey->ReadIntValue(aKeyNamePrefix + NS_LITERAL_STRING("Secure Connection"),
-                          &secureConnection);
+  nsString keyName(aKeyNamePrefix);
+  keyName.AppendLiteral("Secure Connection");
+  rv = aKey->ReadIntValue(keyName, &secureConnection);
   if (NS_SUCCEEDED(rv) && secureConnection == 1)
     aServer->SetSocketType(nsMsgSocketType::SSL);
 
   PRUint32 port = 0;
-  rv = aKey->ReadIntValue(aKeyNamePrefix + NS_LITERAL_STRING("Port"),
-                          &port);
+  keyName.SetLength(aKeyNamePrefix.Length());
+  keyName.AppendLiteral("Port");
+  rv = aKey->ReadIntValue(keyName, &port);
   if (NS_SUCCEEDED(rv) && port)
     aServer->SetPort(static_cast<PRInt32>(port));
 
   PRInt32 authMethod;
   PRUint32 useSicily = 0;
-  rv = aKey->ReadIntValue(aKeyNamePrefix + NS_LITERAL_STRING("Use Sicily"),
-                          &useSicily);
+  keyName.SetLength(aKeyNamePrefix.Length());
+  keyName.AppendLiteral("Use Sicily");
+  rv = aKey->ReadIntValue(keyName, &useSicily);
   if (NS_SUCCEEDED(rv) && useSicily)
     authMethod = nsMsgAuthMethod::secure;
   else
