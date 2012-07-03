@@ -74,20 +74,27 @@ var Utilities = {
 
 //=================================================
 // Window implementation
+
+var smileWindowMap = new WeakMap();
+
+function getWindow(aWindow) {
+  let smileWindow = smileWindowMap.get(aWindow);
+  if (!smileWindow) {
+    smileWindow = new Window(aWindow);
+    smileWindowMap.set(aWindow, smileWindow);
+  }
+  return smileWindow;
+}
+
+// Don't call new Window() directly; use getWindow instead.
 function Window(aWindow) {
   this._window = aWindow;
-  this._tabbrowser = aWindow.getBrowser();
   this._events = new Events();
-  this._cleanup = {};
 
-  // Define '_event()' as bound once for all.
-  this._event = this.__event.bind(this);
   this._watch("TabOpen");
   this._watch("TabMove");
   this._watch("TabClose");
   this._watch("TabSelect");
-
-  gShutdown.push(this._shutdown.bind(this));
 }
 
 Window.prototype = {
@@ -95,47 +102,36 @@ Window.prototype = {
     return this._events;
   },
 
+  get _tabbrowser() {
+    return this._window.getBrowser();
+  },
+
   /*
    * Helper used to setup event handlers on the XBL element. Note that the events
    * are actually dispatched to tabs, so we capture them.
    */
   _watch : function win_watch(aType) {
-    this._tabbrowser.addEventListener(aType,
-      this._cleanup[aType] = this._event,
-      true);
+    this._tabbrowser.addEventListener(aType, this, true);
   },
 
-  /*
-   * Helper event callback used to redirect events made on the XBL element
-   */
-  __event : function win_event(aEvent) {
-    this._events.dispatch(aEvent.type, new BrowserTab(this, aEvent.originalTarget));
+  handleEvent: function win_handleEvent(aEvent) {
+    this._events.dispatch(aEvent.type, getBrowserTab(this, aEvent.originalTarget));
   },
 
   get tabs() {
     var tabs = [];
     var tabNodes = this._tabbrowser.tabs;
     for (var i = 0; i < tabNodes.length; i++)
-      tabs.push(new BrowserTab(this, tabNodes[i]));
+      tabs.push(getBrowserTab(this, tabNodes[i]));
     return tabs;
   },
 
   get activeTab() {
-    return new BrowserTab(this, this._tabbrowser.selectedTab);
+    return getBrowserTab(this, this._tabbrowser.selectedTab);
   },
 
   open : function win_open(aURI) {
-    return new BrowserTab(this, this._tabbrowser.addTab(aURI.spec));
-  },
-
-  _shutdown : function win_shutdown() {
-    for (var type in this._cleanup)
-      this._tabbrowser.removeEventListener(type, this._cleanup[type], true);
-    this._cleanup = null;
-
-    this._window = null;
-    this._tabbrowser = null;
-    this._events = null;
+    return getBrowserTab(this, this._tabbrowser.addTab(aURI.spec));
   },
 
   QueryInterface : XPCOMUtils.generateQI([Components.interfaces.smileIWindow])
@@ -145,22 +141,33 @@ Window.prototype = {
 //=================================================
 // BrowserTab implementation
 // SMILE deals with tabs whereas FUEL deals with browsers.
+
+var smileBrowserTabMap = new WeakMap();
+
+function getBrowserTab(aSMILEWindow, aTab) {
+  let smileBrowserTab = smileBrowserTabMap.get(aTab);
+  if (!smileBrowserTab) {
+    smileBrowserTab = new BrowserTab(aSMILEWindow, aTab);
+    smileBrowserTabMap.set(aTab, smileBrowserTab);
+  }
+  return smileBrowserTab;
+}
+
+// Don't call new BrowserTab() directly; call getBrowserTab instead.
 function BrowserTab(aSMILEWindow, aTab) {
   this._window = aSMILEWindow;
-  this._tabbrowser = aSMILEWindow._tabbrowser;
   this._browser = aTab.linkedBrowser;
   this._tab = aTab;
   this._events = new Events();
-  this._cleanup = {};
 
-  // Define '_event()' as bound once for all.
-  this._event = this.__event.bind(this);
   this._watch("load");
-
-  gShutdown.push(this._shutdown.bind(this));
 }
 
 BrowserTab.prototype = {
+  get _tabbrowser() {
+    return this._window._tabbrowser;
+  },
+
   get uri() {
     return this._browser.currentURI;
   },
@@ -190,15 +197,10 @@ BrowserTab.prototype = {
    * Helper used to setup event handlers on the XBL element
    */
   _watch : function bt_watch(aType) {
-    this._browser.addEventListener(aType,
-      this._cleanup[aType] = this._event,
-      true);
+    this._browser.addEventListener(aType, this, true);
   },
 
-  /*
-   * Helper event callback used to redirect events made on the XBL element
-   */
-  __event : function bt_event(aEvent) {
+  handleEvent: function bt_handleEvent(aEvent) {
     if (aEvent.type == "load") {
       if (!(aEvent.originalTarget instanceof Components.interfaces.nsIDOMDocument))
         return;
@@ -229,18 +231,6 @@ BrowserTab.prototype = {
 
   moveToEnd : function bt_moveend() {
     this._tabbrowser.moveTabTo(this._tab, this._tabbrowser.browsers.length);
-  },
-
-  _shutdown : function bt_shutdown() {
-    for (var type in this._cleanup)
-      this._browser.removeEventListener(type, this._cleanup[type], true);
-    this._cleanup = null;
-
-    this._window = null;
-    this._tabbrowser = null;
-    this._browser = null;
-    this._tab = null;
-    this._events = null;
   },
 
   QueryInterface : XPCOMUtils.generateQI([Components.interfaces.smileIBrowserTab])
@@ -686,13 +676,13 @@ Application.prototype = {
     var browserEnum = Utilities.windowMediator.getEnumerator("navigator:browser");
 
     while (browserEnum.hasMoreElements())
-      win.push(new Window(browserEnum.getNext()));
+      win.push(getWindow(browserEnum.getNext()));
 
     return win;
   },
 
   get activeWindow() {
-    return new Window(Utilities.windowMediator.getMostRecentWindow("navigator:browser"));
+    return getWindow(Utilities.windowMediator.getMostRecentWindow("navigator:browser"));
   },
 
   // For steelIApplication compatibility.
