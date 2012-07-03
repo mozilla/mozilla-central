@@ -20,6 +20,9 @@ const kCollectedAddressbookURI = "moz-abmdbdirectory://history.mab";
 // The default image for contacts
 var defaultPhotoURI = "chrome://messenger/skin/addressbook/icons/contact-generic.png";
 
+const PERMS_FILE = parseInt("0644", 8);
+const PERMS_DIRECTORY = parseInt("0755", 8);
+
 // Controller object for Dir Pane
 var DirPaneController =
 {
@@ -862,7 +865,7 @@ function getPhotosDir() {
   // Get the Photos directory
   file.append("Photos");
   if (!file.exists() || !file.isDirectory())
-    file.create(Components.interfaces.nsIFile.DIRECTORY_TYPE, 0777);
+    file.create(Components.interfaces.nsIFile.DIRECTORY_TYPE, PERMS_DIRECTORY);
   return file;
 }
 
@@ -906,7 +909,7 @@ function saveStreamToFile(aIStream, aFile) {
                           .createInstance(Components.interfaces.nsIFileOutputStream);
   var buffer  = Components.classes["@mozilla.org/network/buffered-output-stream;1"]
                           .createInstance(Components.interfaces.nsIBufferedOutputStream);
-  fstream.init(aFile, 0x04 | 0x08 | 0x20, 0600, 0); // write, create, truncate
+  fstream.init(aFile, 0x04 | 0x08 | 0x20, PERMS_FILE, 0); // write, create, truncate
   buffer.init(fstream, 8192);
 
   buffer.writeFrom(aIStream, aIStream.available());

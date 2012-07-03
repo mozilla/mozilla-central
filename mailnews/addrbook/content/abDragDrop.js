@@ -253,8 +253,8 @@ var abDirTreeObserver = {
       // Only move if we are not transferring to a mail list
       var actionIsMoving = (dragSession.dragAction & dragSession.DRAGDROP_ACTION_MOVE) && !directory.isMailList;
 
-      for (j = 0; j < numrows; j++) {
-        var card = gAbView.getCardFromRow(rows[j]);
+      for (let j = 0; j < numrows; j++) {
+        let card = gAbView.getCardFromRow(rows[j]);
         if (card.isMailList) {
           // This check ensures we haven't slipped through by mistake
           if (needToCopyCard && actionIsMoving) {

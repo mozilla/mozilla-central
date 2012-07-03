@@ -78,6 +78,8 @@ function directoryTreeView() {}
 directoryTreeView.prototype = {
   __proto__: new PROTO_TREE_VIEW(),
 
+  PERMS_FILE: parseInt("0644", 8),
+
   init: function dtv_init(aTree, aJSONFile) {
     const Cc = Components.classes;
     const Ci = Components.interfaces;
@@ -122,7 +124,7 @@ directoryTreeView.prototype = {
       let foStream = Cc["@mozilla.org/network/safe-file-output-stream;1"]
                     .createInstance(Ci.nsIFileOutputStream);
 
-      foStream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
+      foStream.init(file, 0x02 | 0x08 | 0x20, PERMS_FILE, 0);
       foStream.write(data, data.length);
       foStream.QueryInterface(Ci.nsISafeOutputStream).finish();
       foStream.close();
@@ -185,6 +187,8 @@ directoryTreeView.prototype = {
       } else if (aKey == "ab_name") {
         return aDir._directory.dirName;
       }
+      // This should never happen.
+      return null;
     }
 
     function abNameCompare(a, b) {
