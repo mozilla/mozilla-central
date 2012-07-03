@@ -747,6 +747,7 @@ nsMsgContentPolicy::ShouldProcess(PRUint32          aContentType,
                                   nsISupports      *aRequestingContext,
                                   const nsACString &aMimeGuess,
                                   nsISupports      *aExtra,
+                                  nsIPrincipal     *aRequestPrincipal,
                                   PRInt16          *aDecision)
 {
   // XXX Returning ACCEPT is presumably only a reasonable thing to do if we
