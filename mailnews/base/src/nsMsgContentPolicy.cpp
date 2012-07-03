@@ -164,6 +164,7 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
                                nsISupports      *aRequestingContext,
                                const nsACString &aMimeGuess,
                                nsISupports      *aExtra,
+                               nsIPrincipal     *aRequestPrincipal,
                                PRInt16          *aDecision)
 {
   nsresult rv = NS_OK;
