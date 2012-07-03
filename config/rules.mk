@@ -770,19 +770,19 @@ libs:: $(SUBMAKEFILES) $(MAKE_DIRS) $(HOST_LIBRARY) $(LIBRARY) $(SHARED_LIBRARY)
 ifndef NO_DIST_INSTALL
 ifdef LIBRARY
 ifdef EXPORT_LIBRARY # Stage libs that will be linked into a static build
-	$(INSTALL) $(IFLAGS1) $(LIBRARY) $(EXPORT_LIBRARY)
+	$(call install_cmd,$(IFLAGS1) $(LIBRARY) $(EXPORT_LIBRARY))
 endif # EXPORT_LIBRARY
 ifdef DIST_INSTALL
 ifdef IS_COMPONENT
 	$(error Shipping static component libs makes no sense.)
 else
-	$(INSTALL) $(IFLAGS1) $(LIBRARY) $(DIST)/lib
+	$(call install_cmd,$(IFLAGS1) $(LIBRARY) $(DIST)/lib)
 endif
 endif # DIST_INSTALL
 endif # LIBRARY
 ifdef SHARED_LIBRARY
 ifdef IS_COMPONENT
-	$(INSTALL) $(IFLAGS2) $(SHARED_LIBRARY) $(FINAL_TARGET)/components
+	$(call install_cmd,$(IFLAGS2) $(SHARED_LIBRARY) $(FINAL_TARGET)/components)
 	$(ELF_DYNSTR_GC) $(FINAL_TARGET)/components/$(SHARED_LIBRARY)
 ifndef NO_COMPONENTS_MANIFEST
 	@$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/chrome.manifest "manifest components/components.manifest"
@@ -794,31 +794,31 @@ endif
 else # ! IS_COMPONENT
 ifneq (,$(filter OS2 WINNT WINCE,$(OS_ARCH)))
 ifndef NO_INSTALL_IMPORT_LIBRARY
-	$(INSTALL) $(IFLAGS2) $(IMPORT_LIBRARY) $(DIST)/lib
+	$(call install_cmd,$(IFLAGS2) $(IMPORT_LIBRARY) $(DIST)/lib)
 endif
 else
-	$(INSTALL) $(IFLAGS2) $(SHARED_LIBRARY) $(DIST)/lib
+	$(call install_cmd,$(IFLAGS2) $(SHARED_LIBRARY) $(DIST)/lib)
 endif
-	$(INSTALL) $(IFLAGS2) $(SHARED_LIBRARY) $(FINAL_TARGET)
+	$(call install_cmd,$(IFLAGS2) $(SHARED_LIBRARY) $(FINAL_TARGET))
 ifdef BEOS_ADDON_WORKAROUND
 	( cd $(FINAL_TARGET) && $(CC) -nostart -o $(SHARED_LIBRARY).stub $(SHARED_LIBRARY) )
 endif
 endif # IS_COMPONENT
 endif # SHARED_LIBRARY
 ifdef PROGRAM
-	$(INSTALL) $(IFLAGS2) $(PROGRAM) $(FINAL_TARGET)
+	$(call install_cmd,$(IFLAGS2) $(PROGRAM) $(FINAL_TARGET))
 endif
 ifdef SIMPLE_PROGRAMS
-	$(INSTALL) $(IFLAGS2) $(SIMPLE_PROGRAMS) $(FINAL_TARGET)
+	$(call install_cmd,$(IFLAGS2) $(SIMPLE_PROGRAMS) $(FINAL_TARGET))
 endif
 ifdef HOST_PROGRAM
-	$(INSTALL) $(IFLAGS2) $(HOST_PROGRAM) $(DIST)/host/bin
+	$(call install_cmd,$(IFLAGS2) $(HOST_PROGRAM) $(DIST)/host/bin)
 endif
 ifdef HOST_SIMPLE_PROGRAMS
-	$(INSTALL) $(IFLAGS2) $(HOST_SIMPLE_PROGRAMS) $(DIST)/host/bin
+	$(call install_cmd,$(IFLAGS2) $(HOST_SIMPLE_PROGRAMS) $(DIST)/host/bin)
 endif
 ifdef HOST_LIBRARY
-	$(INSTALL) $(IFLAGS1) $(HOST_LIBRARY) $(DIST)/host/lib
+	$(call install_cmd,$(IFLAGS1) $(HOST_LIBRARY) $(DIST)/host/lib)
 endif
 endif # !NO_DIST_INSTALL
 	$(LOOP_OVER_DIRS)
@@ -1344,14 +1344,14 @@ endif
 ifndef NO_DIST_INSTALL
 ifneq (,$(EXPORTS))
 export:: $(EXPORTS)
-	$(INSTALL) $(IFLAGS1) $^ $(DIST)/include
+	$(call install_cmd,$(IFLAGS1) $^ $(DIST)/include)
 endif
 endif # NO_DIST_INSTALL
 
 define EXPORT_NAMESPACE_RULE
 ifndef NO_DIST_INSTALL
 export:: $(EXPORTS_$(namespace))
-	$(INSTALL) $(IFLAGS1) $$^ $(DIST)/include/$(namespace)
+	$(call install_cmd,$(IFLAGS1) $$^ $(DIST)/include/$(namespace))
 endif # NO_DIST_INSTALL
 endef
 
@@ -1399,7 +1399,7 @@ $(FINAL_TARGET)/defaults/autoconfig::
 
 ifndef NO_DIST_INSTALL
 export:: $(AUTOCFG_JS_EXPORTS) $(FINAL_TARGET)/defaults/autoconfig
-	$(INSTALL) $(IFLAGS1) $^
+	$(call install_cmd,$(IFLAGS1) $^)
 endif
 
 endif
@@ -1468,7 +1468,7 @@ endif # XPIDL_MODULE.xpt != XPIDLSRCS
 
 libs:: $(XPIDL_GEN_DIR)/$(XPIDL_MODULE).xpt
 ifndef NO_DIST_INSTALL
-	$(INSTALL) $(IFLAGS1) $(XPIDL_GEN_DIR)/$(XPIDL_MODULE).xpt $(FINAL_TARGET)/components
+	$(call install_cmd,$(IFLAGS1) $(XPIDL_GEN_DIR)/$(XPIDL_MODULE).xpt $(FINAL_TARGET)/components)
 ifndef NO_INTERFACES_MANIFEST
 	@$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/components/interfaces.manifest "interfaces $(XPIDL_MODULE).xpt"
 	@$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/chrome.manifest "manifest components/interfaces.manifest"
@@ -1485,10 +1485,10 @@ ifneq ($(XPIDLSRCS),)
 # export .idl files to $(IDL_DIR)
 ifndef NO_DIST_INSTALL
 export:: $(XPIDLSRCS) $(IDL_DIR)
-	$(INSTALL) $(IFLAGS1) $^
+	$(call install_cmd,$(IFLAGS1) $^)
 
 export:: $(patsubst %.idl,$(XPIDL_GEN_DIR)/%.h, $(XPIDLSRCS)) $(DIST)/include
-	$(INSTALL) $(IFLAGS1) $^
+	$(call install_cmd,$(IFLAGS1) $^)
 endif # NO_DIST_INSTALL
 
 endif # XPIDLSRCS
@@ -1510,7 +1510,7 @@ export-idl:: $(SUBMAKEFILES) $(MAKE_DIRS)
 ifneq ($(XPIDLSRCS),)
 ifndef NO_DIST_INSTALL
 export-idl:: $(XPIDLSRCS) $(IDL_DIR)
-	$(INSTALL) $(IFLAGS1) $^
+	$(call install_cmd,$(IFLAGS1) $^)
 endif
 endif
 	$(LOOP_OVER_PARALLEL_DIRS)
@@ -1530,7 +1530,7 @@ endif
 ifdef EXTRA_COMPONENTS
 libs:: $(EXTRA_COMPONENTS)
 ifndef NO_DIST_INSTALL
-	$(INSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/components
+	$(call install_cmd,$(IFLAGS1) $^ $(FINAL_TARGET)/components)
 endif
 
 endif
@@ -1560,7 +1560,7 @@ endif
 ifdef EXTRA_JS_MODULES
 libs:: $(EXTRA_JS_MODULES)
 ifndef NO_DIST_INSTALL
-	$(INSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/modules
+	$(call install_cmd,$(IFLAGS1) $^ $(FINAL_TARGET)/modules)
 endif
 
 endif
@@ -1588,7 +1588,7 @@ $(SDK_LIB_DIR)::
 
 ifndef NO_DIST_INSTALL
 libs:: $(SDK_LIBRARY) $(SDK_LIB_DIR)
-	$(INSTALL) $(IFLAGS2) $^
+	$(call install_cmd,$(IFLAGS2) $^)
 endif
 
 endif # SDK_LIBRARY
@@ -1599,7 +1599,7 @@ $(SDK_BIN_DIR)::
 
 ifndef NO_DIST_INSTALL
 libs:: $(SDK_BINARY) $(SDK_BIN_DIR)
-	$(INSTALL) $(IFLAGS2) $^
+	$(call install_cmd,$(IFLAGS2) $^)
 endif
 
 endif # SDK_BINARY

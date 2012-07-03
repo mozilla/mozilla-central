@@ -119,6 +119,10 @@ MKDIR ?= mkdir
 SLEEP ?= sleep
 TOUCH ?= touch
 
+ifdef .PYMAKE
+PYCOMMANDPATH += $(MOZILLA_SRCDIR)/config
+endif
+
 # determine debug-related options
 _DEBUG_CFLAGS :=
 _DEBUG_LDFLAGS :=
@@ -572,6 +576,11 @@ PWD := $(CURDIR)
 endif
 
 NSINSTALL_PY := $(PYTHON) $(call core_abspath,$(MOZILLA_SRCDIR)/config/nsinstall.py)
+# For Pymake, whereever we use nsinstall.py we're also going to try to make it
+# a native command where possible. Since native commands can't be used outside
+# of single-line commands, we continue to provide INSTALL for general use.
+# Single-line commands should be switched over to install_cmd.
+NSINSTALL_NATIVECMD := %nsinstall nsinstall
 
 ifdef NSINSTALL_BIN
 NSINSTALL = $(NSINSTALL_BIN)
@@ -587,8 +596,13 @@ endif # WINNT
 endif # OS2
 endif # NSINSTALL_BIN
 
+
 ifeq (,$(CROSS_COMPILE)$(filter-out WINNT OS2, $(OS_ARCH)))
 INSTALL = $(NSINSTALL) -t
+ifdef .PYMAKE
+install_cmd = $(NSINSTALL_NATIVECMD) -t $(1)
+endif # .PYMAKE
+
 else
 
 # This isn't laid out as conditional directives so that NSDISTMODE can be
@@ -597,11 +611,17 @@ INSTALL         = $(if $(filter copy, $(NSDISTMODE)), $(NSINSTALL) -t, $(if $(fi
 
 endif # WINNT/OS2
 
+# The default for install_cmd is simply INSTALL
+install_cmd ?= $(INSTALL) $(1)
+
 # Use nsinstall in copy mode to install files on the system
-SYSINSTALL	= $(NSINSTALL) -t
+SYSINSTALL  = $(NSINSTALL) -t
+# This isn't necessarily true, just here
+sysinstall_cmd = install_cmd
 
 # Directory nsinstall.
 DIR_INSTALL = $(INSTALL)
+dir_install_cmd = install_cmd
 
 ifeq ($(OS_ARCH),WINNT)
 ifneq (,$(CYGDRIVE_MOUNT))
