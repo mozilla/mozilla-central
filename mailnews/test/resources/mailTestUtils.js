@@ -186,15 +186,6 @@ function atob(str, c62, c63) {
  */
 var btoa = IOUtils.btoa;
 
-// Gets the first message header in a folder.
-function firstMsgHdr(folder)
-{
-  let enumerator = folder.msgDatabase.EnumerateMessages();
-  if (enumerator.hasMoreElements())
-    return enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
-  return null;
-}
-
 // Loads a file to a string
 // If aCharset is specified, treats the file as being of that charset
 function loadFileToString(aFile, aCharset) {
