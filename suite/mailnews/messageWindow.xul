@@ -108,10 +108,13 @@
 
  <!-- msg header view -->
 <vbox id="messagesBox" flex="1">
-  <vbox id="messagepanebox" flex="3" persist="collapsed"
-        ondragover="nsDragAndDrop.dragOver(event, messagepaneObserver);"
-        ondragdrop="nsDragAndDrop.drop(event, messagepaneObserver);"
-        ondragexit="nsDragAndDrop.dragExit(event, messagepaneObserver);">
+  <notificationbox id="messagepanebox"
+                   class="browser-notificationbox"
+                   flex="3"
+                   persist="collapsed"
+                   ondragover="nsDragAndDrop.dragOver(event, messagepaneObserver);"
+                   ondragdrop="nsDragAndDrop.drop(event, messagepaneObserver);"
+                   ondragexit="nsDragAndDrop.dragExit(event, messagepaneObserver);">
 
     <deck id="msgNotificationBar"/>
 
@@ -132,7 +135,7 @@
              type="content-primary"
              onresize="return messagePaneOnResize(event);"
              onclick="return messagePaneOnClick(event);"/>
-  </vbox>  
+  </notificationbox>
 </vbox>
 
   <statusbar class="chromeclass-status" id="status-bar"/>
