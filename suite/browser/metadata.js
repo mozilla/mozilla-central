@@ -240,7 +240,7 @@ function checkForLink(elem, htmllocalname)
 
         onLink = true;
     }
-    else if (elem.getAttributeNS(XLinkNS, "href") != "") {
+    else if (elem.getAttributeNS(XLinkNS, "href")) {
         setLink(makeHrefAbsolute(elem.getAttributeNS(XLinkNS, "href"), elem));
 
         switch (elem.getAttributeNS(XLinkNS,"show")) {
@@ -250,6 +250,7 @@ function checkForLink(elem, htmllocalname)
         case "new":
             setInfo("link-target", gMetadataBundle.getString("newWindowText"));
             break;
+        case null:
         case "":
         case "replace":
             if (elem.ownerDocument != elem.ownerDocument.defaultView.content.document)
