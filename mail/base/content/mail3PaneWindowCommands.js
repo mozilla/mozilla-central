@@ -189,6 +189,8 @@ var DefaultController =
       case "cmd_search":
       case "button_mark":
       case "cmd_tag":
+      case "cmd_addTag":
+      case "cmd_manageTags":
       case "cmd_removeTags":
       case "cmd_tag1":
       case "cmd_tag2":
@@ -391,6 +393,8 @@ var DefaultController =
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.deleteJunk);
       case "button_mark":
       case "cmd_tag":
+      case "cmd_addTag":
+      case "cmd_manageTags":
       case "cmd_removeTags":
       case "cmd_tag1":
       case "cmd_tag2":
@@ -793,6 +797,12 @@ var DefaultController =
         return;
       case "cmd_search":
         MsgSearchMessages();
+        return;
+      case "cmd_addTag":
+        AddTag();
+        return;
+      case "cmd_manageTags":
+        ManageTags();
         return;
       case "cmd_removeTags":
         RemoveAllMessageTags();

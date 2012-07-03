@@ -632,6 +632,11 @@ function AddTag()
                                  args);
 }
 
+function ManageTags()
+{
+  openOptionsDialog("paneDisplay", "tagTab");
+}
+
 function AddTagCallback(name, color)
 {
   var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
@@ -669,8 +674,10 @@ function InitMessageTags(menuPopup)
   var tagArray = tagService.getAllTags({});
   var tagCount = tagArray.length;
 
-  // remove any existing non-static entries...  (clear tags list before rebuilding it)
-  for (var i = menuPopup.childNodes.length; i > 4; --i)
+  // Remove any existing non-static entries... (clear tags list before rebuilding it)
+  // "5" is the number of menu items (including separators) on the top of the menu
+  // that should not be cleared.
+  for (let i = menuPopup.childNodes.length; i > 5; --i)
     menuPopup.removeChild(menuPopup.lastChild);
 
   // create label and accesskey for the static remove item

@@ -350,29 +350,32 @@ function toImport()
                     "chrome, modal, titlebar, centerscreen");
 }
 
-// aPaneID
-function openOptionsDialog(aPaneID, aTabID)
+/**
+ * Opens the Preferences (Options) dialog.
+ *
+ * @param aPaneID     ID of prefpane to select automatically.
+ * @param aTabID      ID of tab to select on the prefpane.
+ * @param aOtherArgs  other prefpane specific arguments
+ */
+function openOptionsDialog(aPaneID, aTabID, aOtherArgs)
 {
-  var instantApply = Services.prefs.getBoolPref("browser.preferences.instantApply");
-  var features = "chrome,titlebar,toolbar,centerscreen" + (instantApply ? ",dialog=no" : ",modal");
-
-  var win = Services.wm.getMostRecentWindow("Mail:Preferences");
-  if (win)
-  {
+  let win = Services.wm.getMostRecentWindow("Mail:Preferences");
+  if (win) {
+    // the dialog is already open
     win.focus();
-    if (aPaneID)
-    {
-      var pane = win.document.getElementById(aPaneID);
-      win.document.documentElement.showPane(pane);
-
-      // I don't know how to support aTabID for an arbitrary panel when the dialog is already open
-      // This is complicated because showPane is asynchronous (it could trigger a dynamic overlay)
-      // so our tab element may not be accessible right away...
+    if (aPaneID) {
+      let prefWindow = win.document.getElementById("MailPreferences");
+      win.selectPaneAndTab(prefWindow, aPaneID, aTabID);
     }
-  }
-  else {
+  } else {
+    // the dialog must be created
+    let instantApply = Services.prefs
+                               .getBoolPref("browser.preferences.instantApply");
+    let features = "chrome,titlebar,toolbar,centerscreen" +
+                   (instantApply ? ",dialog=no" : ",modal");
+
     openDialog("chrome://messenger/content/preferences/preferences.xul",
-               "Preferences", features, aPaneID, aTabID);
+               "Preferences", features, aPaneID, aTabID, aOtherArgs);
   }
 }
 

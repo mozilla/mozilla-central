@@ -12,11 +12,10 @@ var gAdvancedPane = {
     this.mPane = document.getElementById("paneAdvanced");
     this.updateMarkAsReadOptions(document.getElementById("automaticallyMarkAsRead").checked);
 
-    if ("arguments" in window && window.arguments[1] && document.getElementById(window.arguments[1]))
-      document.getElementById("advancedPrefs").selectedTab = document.getElementById(window.arguments[1]);
-    else 
+    if (!(("arguments" in window) && window.arguments[1]))
     {
-      var preference = document.getElementById("mail.preferences.advanced.selectedTabIndex");
+      // If no tab was specified, select the last used tab.
+      let preference = document.getElementById("mail.preferences.advanced.selectedTabIndex");
       if (preference.value)
         document.getElementById("advancedPrefs").selectedIndex = preference.value;
     }

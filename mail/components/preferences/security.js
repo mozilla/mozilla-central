@@ -19,9 +19,12 @@ var gSecurityPane = {
     // update the checkbox for downloading phishing url tables
     // this.updateDownloadedPhishingListState();
 
-    var preference = document.getElementById("mail.preferences.security.selectedTabIndex");
-    if (preference.value)
-      document.getElementById("securityPrefs").selectedIndex = preference.value;
+    if (!(("arguments" in window) && window.arguments[1])) {
+      // If no tab was specified, select the last used tab.
+      let preference = document.getElementById("mail.preferences.security.selectedTabIndex");
+      if (preference.value)
+        document.getElementById("securityPrefs").selectedIndex = preference.value;
+    }
     this.mInitialized = true;
   },
 

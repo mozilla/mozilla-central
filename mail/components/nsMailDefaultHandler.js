@@ -268,11 +268,15 @@ var nsMailDefaultHandler = {
 
     if (cmdLine.handleFlag("options", false)) {
       // Open the options window
-      var wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                             .getService(nsIWindowWatcher);
-      wwatch.openWindow(null,
-          "chrome://messenger/content/preferences/preferences.xul", "_blank",
-          "chrome,dialog=no,all", null);
+      let instantApply = Services.prefs
+                                 .getBoolPref("browser.preferences.instantApply");
+      let features = "chrome,titlebar,toolbar" +
+                     (instantApply ? ",dialog=no" : ",modal");
+
+      Services.ww.openWindow(null,
+        "chrome://messenger/content/preferences/preferences.xul",
+        "_blank", features, null);
+
     }
 
     // The URI might be passed as the argument to the file parameter

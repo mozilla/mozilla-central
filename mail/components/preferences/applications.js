@@ -434,8 +434,11 @@ var gApplicationsTabController = {
 
     gCloudFileTab.init();
 
-    let preference = document.getElementById("mail.preferences.applications.selectedTabIndex");
-    tabbox.selectedIndex = preference.value != null ? preference.value : this.mDefaultIndex;
+    if (!(("arguments" in window) && window.arguments[1])) {
+      // If no tab was specified, select the last used tab.
+      let preference = document.getElementById("mail.preferences.applications.selectedTabIndex");
+      tabbox.selectedIndex = preference.value != null ? preference.value : this.mDefaultIndex;
+    }
 
     this.mInitialized = true;
   },

@@ -281,13 +281,19 @@
                              label="&tagButton.label;"
                              tooltiptext="&tagButton.tooltip;"
                              command="cmd_tag">
-                <menupopup id="hdrTagDropdown" onpopupshowing="InitMessageTags(this)">
+                <menupopup id="hdrTagDropdown"
+                           onpopupshowing="InitMessageTags(this);">
                   <menuitem id="hdrTagDropdown-addNewTag"
                             label="&addNewTag.label;"
                             accesskey="&addNewTag.accesskey;"
-                            oncommand="AddTag();"/>
+                            command="cmd_addTag"/>
+                  <menuitem id="manageTags"
+                            label="&manageTags.label;"
+                            accesskey="&manageTags.accesskey;"
+                            command="cmd_manageTags"/>
                   <menuseparator id="hdrTagDropdown-sep-afterAddNewTag"/>
-                  <menuitem id="hdrTagDropdown-tagRemoveAll" oncommand="RemoveAllMessageTags();"/>
+                  <menuitem id="hdrTagDropdown-tagRemoveAll"
+                            command="cmd_removeTags"/>
                   <menuseparator id="hdrTagDropdown-sep-afterTagRemoveAll"/>
                 </menupopup>
               </toolbarbutton>

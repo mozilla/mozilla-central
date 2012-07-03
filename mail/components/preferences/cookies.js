@@ -48,10 +48,10 @@ var gCookiesWindow = {
       this._tree.view.selection.select(0);
 
     if (aInitialLoad) {
-      if ("arguments" in window && window.arguments[0] &&
-          window.arguments[0].filterString)
+      if (("arguments" in window) && window.arguments[2] &&
+          window.arguments[2].filterString)
       {
-        this.setFilter(window.arguments[0].filterString);
+        this.setFilter(window.arguments[2].filterString);
       }
     }
     else {

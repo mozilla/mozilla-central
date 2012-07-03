@@ -47,8 +47,8 @@
 
     <tabbox id="displayPrefs" flex="1" onselect="gDisplayPane.tabSelectionChanged();">
       <tabs>
-        <tab label="&itemFormatting.label;"/>
-        <tab label="&itemTags.label;"/>
+        <tab id="formattingTab" label="&itemFormatting.label;"/>
+        <tab id="tagTab" label="&itemTags.label;"/>
       </tabs>
 
       <tabpanels flex="1">

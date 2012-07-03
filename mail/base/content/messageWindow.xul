@@ -71,6 +71,7 @@
     <commandset id="mailMessageMenuItems"/>
     <commandset id="mailToolbarItems"/>
     <commandset id="mailGetMsgMenuItems"/>
+    <commandset id="mailTagMenuItems"/>
     <commandset id="mailMarkMenuItems"/>
     <commandset id="mailToolsMenuItems"/>
     <commandset id="mailEditContextMenuItems"/>

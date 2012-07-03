@@ -16,9 +16,13 @@ var gComposePane = {
 
     this.populateFonts();
 
-    var preference = document.getElementById("mail.preferences.compose.selectedTabIndex");
-    if (preference.value)
-      document.getElementById("composePrefs").selectedIndex = preference.value;
+    if (!(("arguments" in window) && window.arguments[1])) {
+      // If no tab was specified, select the last used tab.
+      let preference = document.getElementById("mail.preferences.compose.selectedTabIndex");
+      if (preference.value)
+        document.getElementById("composePrefs").selectedIndex = preference.value;
+    }
+
     this.mInitialized = true;
   },
 

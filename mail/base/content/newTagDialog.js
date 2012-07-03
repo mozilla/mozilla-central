@@ -6,13 +6,13 @@
 
 var dialog;
 
-/** 
+/**
  * Pass in keyToEdit as a window argument to turn this dialog into an edit
  * tag dialog.
  */
 function onLoad()
 {
-  var arguments = window.arguments[0];
+  let windowArgs = window.arguments[0];
 
   dialog = {};
 
@@ -21,9 +21,9 @@ function onLoad()
   dialog.nameField.focus();
 
   // call this when OK is pressed
-  dialog.okCallback = arguments.okCallback;
-  if (arguments.keyToEdit)
-    initializeForEditing(arguments.keyToEdit);
+  dialog.okCallback = windowArgs.okCallback;
+  if (windowArgs.keyToEdit)
+    initializeForEditing(windowArgs.keyToEdit);
 
   doEnabling();
 }

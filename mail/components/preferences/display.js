@@ -9,10 +9,12 @@ var gDisplayPane = {
 
   init: function ()
   {
-    var preference = document.getElementById("mail.preferences.display.selectedTabIndex");
-    if (preference.value)
-      document.getElementById("displayPrefs").selectedIndex = preference.value;
-
+    if (!(("arguments" in window) && window.arguments[1])) {
+      // If no tab was specified, select the last used tab.
+      let preference = document.getElementById("mail.preferences.display.selectedTabIndex");
+      if (preference.value)
+        document.getElementById("displayPrefs").selectedIndex = preference.value;
+    }
     this._rebuildFonts();
     var menulist = document.getElementById("defaultFont");
     if (menulist.selectedIndex == -1) {
@@ -173,19 +175,17 @@ var gDisplayPane = {
   // appends the tag to the tag list box
   appendTagItem: function(aTagName, aKey, aColor)
   {
-    var item = this.mTagListBox.appendItem(aTagName, aKey);
+    let item = this.mTagListBox.appendItem(aTagName, aKey);
     item.style.color = aColor;
     return item;
   },
 
   buildTagList: function()
   {
-    var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                               .getService(Components.interfaces.nsIMsgTagService);
-    var tagArray = tagService.getAllTags({});
-    for (var i = 0; i < tagArray.length; ++i)
+    let tagArray = MailServices.tags.getAllTags({});
+    for (let i = 0; i < tagArray.length; ++i)
     {
-      var taginfo = tagArray[i];
+      let taginfo = tagArray[i];
       this.appendTagItem(taginfo.tag, taginfo.key, taginfo.color);
     }
   },
@@ -196,8 +196,7 @@ var gDisplayPane = {
     if (index >= 0)
     {
       var itemToRemove = this.mTagListBox.getItemAtIndex(index);
-      var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"].getService(Components.interfaces.nsIMsgTagService);
-      tagService.deleteKey(itemToRemove.getAttribute("value"));
+      MailServices.tags.deleteKey(itemToRemove.getAttribute("value"));
       this.mTagListBox.removeItemAt(index);
       var numItemsInListBox = this.mTagListBox.getRowCount();
       this.mTagListBox.selectedIndex = index < numItemsInListBox ? index : numItemsInListBox - 1;
@@ -235,11 +234,9 @@ var gDisplayPane = {
 
 function addTagCallback(aName, aColor)
 {
-  var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                    .getService(Components.interfaces.nsIMsgTagService);
-  tagService.addTag(aName, aColor, "");
+  MailServices.tags.addTag(aName, aColor, "");
 
-  var item = gDisplayPane.appendTagItem(aName, tagService.getKeyForTag(aName), aColor);
+  var item = gDisplayPane.appendTagItem(aName, MailServices.tags.getKeyForTag(aName), aColor);
   var tagListBox = document.getElementById("tagList");
   tagListBox.ensureElementIsVisible(item);
   tagListBox.selectItem(item);
@@ -255,10 +252,8 @@ function editTagCallback()
   {
     var tagElToEdit = tagListEl.getItemAtIndex(index);
     var key = tagElToEdit.getAttribute("value");
-    var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                     .getService(Components.interfaces.nsIMsgTagService);
     // update the color and label elements
-    tagElToEdit.setAttribute("label", tagService.getTagForKey(key));
-    tagElToEdit.style.color = tagService.getColorForKey(key);
+    tagElToEdit.setAttribute("label", MailServices.tags.getTagForKey(key));
+    tagElToEdit.style.color = MailServices.tags.getColorForKey(key);
   }
 }

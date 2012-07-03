@@ -297,6 +297,16 @@
     <command id="cmd_viewNormalHeader" oncommand="goDoCommand('cmd_viewNormalHeader');" disabled="true"/>
 </commandset>
 
+<commandset id="mailTagMenuItems"
+            commandupdater="true"
+            events="create-menu-tag"
+            oncommandupdate="goUpdateMailMenuItems(this);">
+
+    <command id="cmd_addTag" oncommand="goDoCommand('cmd_addTag'); event.stopPropagation();"/>
+    <command id="cmd_manageTags" oncommand="goDoCommand('cmd_manageTags'); event.stopPropagation();"/>
+    <command id="cmd_removeTags" oncommand="goDoCommand('cmd_removeTags'); event.stopPropagation();"/>
+</commandset>
+
 <commandset id="mailToolsMenuItems"
               commandupdater="true"
               events="create-menu-tasks"
@@ -673,14 +683,18 @@
     <menuseparator id="mailContext-sep-reply"/>
     <menu id="mailContext-tags" label="&tagMenu.label;" accesskey="&tagMenu.accesskey;">
       <menupopup id="mailContext-tagpopup"
-                 onpopupshowing="InitMessageTags(this)">
+                 onpopupshowing="InitMessageTags(this);">
         <menuitem id="addNewTag"
                   label="&addNewTag.label;"
                   accesskey="&addNewTag.accesskey;"
-                  oncommand="AddTag();"/>
+                  command="cmd_addTag"/>
+        <menuitem id="manageTags"
+                  label="&manageTags.label;"
+                  accesskey="&manageTags.accesskey;"
+                  command="cmd_manageTags"/>
         <menuseparator id="mailContext-sep-afterTagAddNew"/>
         <menuitem id="mailContext-tagRemoveAll"
-                  oncommand="RemoveAllMessageTags();"/>
+                  command="cmd_removeTags"/>
         <menuseparator id="mailContext-sep-afterTagRemoveAll"/>
       </menupopup>
     </menu>
@@ -1512,11 +1526,19 @@
             </menu>
             <menuseparator id="messageAfterOpenMsgSeparator"/>
             <menu id="tagMenu" label="&tagMenu.label;" accesskey="&tagMenu.accesskey;" command="cmd_tag">
-              <menupopup id="tagMenu-tagpopup" onpopupshowing="InitMessageTags(this)">
-                <menuitem id="addNewTag" label="&addNewTag.label;" accesskey="&addNewTag.accesskey;"
-                          oncommand="AddTag();"/>
+              <menupopup id="tagMenu-tagpopup"
+                         onpopupshowing="InitMessageTags(this);">
+                <menuitem id="addNewTag"
+                          label="&addNewTag.label;"
+                          accesskey="&addNewTag.accesskey;"
+                          command="cmd_addTag"/>
+                <menuitem id="manageTags"
+                          label="&manageTags.label;"
+                          accesskey="&manageTags.accesskey;"
+                          command="cmd_manageTags"/>
                 <menuseparator id="tagMenu-sep-afterTagAddNew"/>
-                <menuitem id="tagMenu-tagRemoveAll" oncommand="RemoveAllMessageTags();"/>
+                <menuitem id="tagMenu-tagRemoveAll"
+                          command="cmd_removeTags"/>
                 <menuseparator id="tagMenuAfterRemoveSeparator"/>
               </menupopup>
             </menu>
@@ -1953,13 +1975,19 @@
                    label="&tagButton.label;"
                    tooltiptext="&tagButton.tooltip;"
                    command="cmd_tag">
-      <menupopup id="button-tagpopup" onpopupshowing="InitMessageTags(this)">
+      <menupopup id="button-tagpopup"
+                 onpopupshowing="InitMessageTags(this);">
         <menuitem id="addNewTag"
                   label="&addNewTag.label;"
                   accesskey="&addNewTag.accesskey;"
-                  oncommand="AddTag();"/>
+                  command="cmd_addTag"/>
+        <menuitem id="manageTags"
+                  label="&manageTags.label;"
+                  accesskey="&manageTags.accesskey;"
+                  command="cmd_manageTags"/>
         <menuseparator id="button-tagpopup-sep-afterTagAddNew"/>
-        <menuitem id="button-tagRemoveAll" oncommand="RemoveAllMessageTags();"/>
+        <menuitem id="button-tagRemoveAll"
+                  command="cmd_removeTags"/>
         <menuseparator id="button-afterTagRemoveAllSeparator"/>
       </menupopup>
     </toolbarbutton>

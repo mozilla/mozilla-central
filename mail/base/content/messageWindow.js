@@ -669,6 +669,8 @@ var MessageWindowController =
       case "cmd_shiftDelete":
       case "button_shiftDelete":
       case "cmd_tag":
+      case "cmd_addTag":
+      case "cmd_manageTags":
       case "cmd_removeTags":
       case "cmd_tag1":
       case "cmd_tag2":
@@ -824,6 +826,8 @@ var MessageWindowController =
       case "cmd_reload":
       case "cmd_find":
       case "cmd_tag":
+      case "cmd_addTag":
+      case "cmd_manageTags":
       case "cmd_removeTags":
       case "cmd_tag1":
       case "cmd_tag2":
@@ -1031,6 +1035,12 @@ var MessageWindowController =
       case "cmd_search":
         MsgSearchMessages();
         break;
+      case "cmd_addTag":
+        AddTag();
+        return;
+      case "cmd_manageTags":
+        ManageTags();
+        return;
       case "cmd_removeTags":
         RemoveAllMessageTags();
         return;
