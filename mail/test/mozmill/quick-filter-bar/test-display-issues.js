@@ -4,6 +4,9 @@
 
 /*
  * Test things of a visual nature.
+ * 
+ * Note: this test requires a screen resolution of 1280 x 1024 which is standard on
+ * the unit test machines (see also testing/machine-configuration.json).
  */
 
 var MODULE_NAME = 'test-keyboard-interface';
@@ -30,7 +33,7 @@ function setupModule(module) {
 
 function wait_for_resize(width) {
   mc.waitFor(function () (mc.window.outerWidth == width),
-             "Timeout waiting for resize", 1000, 50);
+             "Timeout waiting for resize (is the screen resolution 1280 x 1024?)", 1000, 50);
 }
 
 function resize_to(width, height) {
