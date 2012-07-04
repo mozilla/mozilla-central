@@ -41,7 +41,7 @@ ifneq (a,$(findstring a,$(SEAMONKEY_VERSION)))
 SEAMONKEY_MAXVERSION := $(shell echo $(SEAMONKEY_VERSION) | sed "s|\(^[0-9]*.[0-9]*\).*|\1|" ).*
 endif
 
-ifneq (,$(findstring pre,$(LIGHTNING_VERSION)))
+ifneq (,$(findstring a,$(LIGHTNING_VERSION)))
 DEFINES += -DLIGHTNING_PRERELEASE_VERSION=1
 endif
 
