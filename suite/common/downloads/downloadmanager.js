@@ -615,7 +615,7 @@ var dlTreeController = {
         var uris = [];
         for each (let dldata in selItemData)
           uris.push(dldata.uri);
-        clipboard.copyString(uris.join("\n"));
+        clipboard.copyString(uris.join("\n"), document);
         break;
       case "cmd_properties":
         showProperties(selItemData[0].dlid);

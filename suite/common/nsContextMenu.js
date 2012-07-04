@@ -1080,7 +1080,7 @@ nsContextMenu.prototype = {
   copyEmail: function() {
     var clipboard = this.getService("@mozilla.org/widget/clipboardhelper;1",
                                     Components.interfaces.nsIClipboardHelper);
-    clipboard.copyString(this.getEmail());
+    clipboard.copyString(this.getEmail(), this.target.ownerDocument);
   },
 
   bookmarkThisPage : function() {
@@ -1414,7 +1414,7 @@ nsContextMenu.prototype = {
   copyMediaLocation: function() {
     var clipboard = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
                     .getService(Components.interfaces.nsIClipboardHelper);
-    clipboard.copyString(this.mediaURL);
+    clipboard.copyString(this.mediaURL, this.target.ownerDocument);
   },
 
   get imageURL() {

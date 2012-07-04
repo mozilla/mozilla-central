@@ -360,7 +360,7 @@ var ProgressDlgController = {
       case "cmd_copyLocation":
         var clipboard = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
                                   .getService(Components.interfaces.nsIClipboardHelper);
-        clipboard.copyString(gDownload.source.spec);
+        clipboard.copyString(gDownload.source.spec, document);
         break;
     }
   },

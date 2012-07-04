@@ -1389,7 +1389,7 @@ function doCopy(isLinkMode)
 
   var text = getSelectedItems(isLinkMode);
 
-  gClipboardHelper.copyString(text.join("\n"));
+  gClipboardHelper.copyString(text.join("\n"), gDocument);
 }
 
 function doSelectAll()
