@@ -354,30 +354,23 @@ function AbCopyAddress()
             .copyString(addresses, document);
 }
 
-// XXX todo
-// could this be moved into utilityOverlay.js?
-function goToggleSplitter( id, elementID )
+/**
+ * Set up items in the View > Layout menupopup.  This function is responsible
+ * for updating the menu items' state to reflect reality.
+ *
+ * @param aEvent the event that caused the View > Layout menupopup to be shown
+ */
+function InitViewLayoutMenuPopup(aEvent)
 {
-  var splitter = document.getElementById( id );
-  var element = document.getElementById( elementID );
-  if ( splitter )
-  {
-    var attribValue = splitter.getAttribute("state") ;
-    if ( attribValue == "collapsed" )
-    {
-      splitter.setAttribute("state", "open" );
-      if ( element )
-        element.setAttribute("checked","true")
-    }
-    else
-    {
-      splitter.setAttribute("state", "collapsed");
-      if ( element )
-        element.setAttribute("checked","false")
-    }
-    document.persist(id, 'state');
-    document.persist(elementID, 'checked');
-  }
+  let dirTreeVisible = document.getElementById("dirTree-splitter")
+                               .getAttribute("state") != "collapsed";
+  document.getElementById("menu_showDirectoryPane")
+          .setAttribute("checked", dirTreeVisible);
+
+  let cardPaneVisible = document.getElementById("results-splitter")
+                                .getAttribute("state") != "collapsed";
+  document.getElementById("menu_showCardPane")
+          .setAttribute("checked", cardPaneVisible);
 }
 
 // Generate a list of cards from the selected mailing list 

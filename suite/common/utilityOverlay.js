@@ -1275,6 +1275,21 @@ function GetIntPref(aPrefName, aDefaultValue)
   return aDefaultValue;
 }
 
+/**
+ * Toggle a splitter to show or hide some piece of UI (e.g. the message preview
+ * pane).
+ *
+ * @param aSplitterId the splitter that should be toggled
+ */
+function togglePaneSplitter(aSplitterId)
+{
+  var splitter = document.getElementById(aSplitterId);
+  if (splitter.getAttribute("state") == "collapsed")
+    splitter.setAttribute("state", "open");
+  else
+    splitter.setAttribute("state", "collapsed");
+}
+
 // openUILink handles clicks on UI elements that cause URLs to load.
 function openUILink(url, e, ignoreButton, ignoreSave, allowKeywordFixup, postData, referrerUrl)
 {

@@ -283,21 +283,34 @@
           </menupopup>
         </menu>
         <menu id="menu_View">
-            <menupopup id="menu_View_Popup">
-                <menu id="menu_Toolbars">
-                    <menupopup id="view_toolbars_popup"
-                               onpopupshowing="onViewToolbarsPopupShowing(event)"
-                               oncommand="onViewToolbarCommand(event);">
-                        <menuitem id="menu_showTaskbar"/>
-                        <menuseparator/>
-                        <menuitem id="menu_showCardPane"
-                                  label="&showCardPane.label;"
-                                  accesskey="&showCardPane.accesskey;"
-                                  oncommand="goToggleSplitter('results-splitter', 'menu_showCardPane')"
-                                  checked="true" type="checkbox"/>
-                    </menupopup>
-                </menu>
-                <menuseparator/>
+          <menupopup id="menu_View_Popup">
+            <menu id="menu_Toolbars">
+              <menupopup id="view_toolbars_popup"
+                         onpopupshowing="onViewToolbarsPopupShowing(event);"
+                         oncommand="onViewToolbarCommand(event);">
+                <menuitem id="menu_showTaskbar"/>
+              </menupopup>
+            </menu>
+            <menu id="menu_Layout"
+                  label="&layoutMenu.label;"
+                  accesskey="&layoutMenu.accesskey;">
+              <menupopup id="view_layout_popup"
+                         onpopupshowing="InitViewLayoutMenuPopup(event);">
+                <menuitem id="menu_showDirectoryPane"
+                          label="&showDirectoryPane.label;"
+                          accesskey="&showDirectoryPane.accesskey;"
+                          oncommand="togglePaneSplitter('dirTree-splitter');"
+                          checked="true"
+                          type="checkbox"/>
+                <menuitem id="menu_showCardPane"
+                          label="&showContactPane2.label;"
+                          accesskey="&showContactPane2.accesskey;"
+                          oncommand="togglePaneSplitter('results-splitter');"
+                          checked="true"
+                          type="checkbox"/>
+              </menupopup>
+            </menu>
+            <menuseparator id="viewMenuAfterLayoutSeparator"/>
                 <menu id="menu_ShowNameAs" label="&menu_ShowNameAs.label;" accesskey="&menu_ShowNameAs.accesskey;">
                     <menupopup id="menuShowNameAsPopup">
                         <menuitem type="radio" name="shownameas"

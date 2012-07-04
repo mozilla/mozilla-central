@@ -47,10 +47,12 @@
 <!-- View Menu -->
 <!ENTITY showAbToolbarCmd.label                         "Address Book Toolbar"> 
 <!ENTITY showAbToolbarCmd.accesskey                     "o">  
-
-<!ENTITY showCardPane.label                             "Card Summary Pane">
-<!ENTITY showCardPane.accesskey                         "C">
-  
+<!ENTITY layoutMenu.label                               "Layout">
+<!ENTITY layoutMenu.accesskey                           "L">
+<!ENTITY showDirectoryPane.label                        "Directory Pane">
+<!ENTITY showDirectoryPane.accesskey                    "D">
+<!ENTITY showContactPane2.label                         "Contact Pane">
+<!ENTITY showContactPane2.accesskey                     "C">
 <!ENTITY menu_ShowNameAs.label                          "Show Name As"> 
 <!ENTITY menu_ShowNameAs.accesskey                      "n"> 
 <!ENTITY firstLastCmd.label                             "First Last">  
