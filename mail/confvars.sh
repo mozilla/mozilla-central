@@ -3,6 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+MOZ_APP_BASENAME=Thunderbird
 MOZ_APP_NAME=thunderbird
 MOZ_UPDATER=1
 MOZ_THUNDERBIRD=1
