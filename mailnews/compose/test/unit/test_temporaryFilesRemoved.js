@@ -30,11 +30,6 @@ var progressListener = {
   }
 };
 
-var dummyDocShell = {
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIDocShell,
-                                         Ci.nsISupportsWeakReference,])
-}
-
 function get_temporary_files_for(name) {
   let file = Cc["@mozilla.org/file/directory_service;1"]
                .getService(Ci.nsIProperties)
@@ -67,8 +62,6 @@ function check_result() {
   // temp files should be deleted as soon as the draft is finished saving.
   check_files_not_exist(gExpectedFiles);
 
-  gMsgCompose.CloseWindow(true);
-
   do_test_finished();
 }
 
@@ -98,7 +91,7 @@ function run_test() {
   params.composeFields = fields;
   params.format = Ci.nsIMsgCompFormat.HTML;
 
-  gMsgCompose.initialize(params, null, dummyDocShell);
+  gMsgCompose.initialize(params, null, null);
 
   let identity = getSmtpIdentity(null, getBasicSmtpServer());
 
