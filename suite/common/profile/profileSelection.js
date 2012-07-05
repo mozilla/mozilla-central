@@ -345,5 +345,8 @@ function HandleToolTipEvent(aEvent)
   var row = {};
 
   tree.treeBoxObject.getCellAt(aEvent.clientX, aEvent.clientY, row, {}, {});
-  treeTip.label = tree.view.getItemAtIndex(row.value).tooltip;
+  if (row.value < 0)
+    aEvent.preventDefault();
+  else
+    treeTip.label = tree.view.getItemAtIndex(row.value).tooltip;
 }
