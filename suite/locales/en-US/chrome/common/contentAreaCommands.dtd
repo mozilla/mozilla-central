@@ -122,7 +122,7 @@
 <!ENTITY spellAddToDictionary.label     "Add to Dictionary">
 <!ENTITY spellAddToDictionary.accesskey "n">
 <!ENTITY spellUndoAddToDictionary.label      "Undo Add to Dictionary">
-<!ENTITY spellUndoAddToDictionary.accesskey  "t">
+<!ENTITY spellUndoAddToDictionary.accesskey  "i">
 <!ENTITY spellIgnoreWord.label          "Ignore Word">
 <!ENTITY spellIgnoreWord.accesskey      "W">
 <!ENTITY spellCheckEnable.label         "Check Spelling">
