@@ -151,9 +151,8 @@ function assert_can_cancel_upload(aController, aProvider, aListener,
   // Bring up the context menu, and click cancel.
   let cmd = aController.e("cmd_cancelUpload");
   let menu = aController.getMenu("#" + kAttachmentItemContextID);
-  let elem = new elib.Elem(attachmentitem);
-  menu.open(elem);
-  wait_for_popup_to_open(aController.e(kAttachmentItemContextID));
+  aController.window.updateAttachmentItems();
+
   assert_false(cmd.hidden);
   assert_false(cmd.disabled);
   let cancelItem = aController.eid("context_cancelUpload");
