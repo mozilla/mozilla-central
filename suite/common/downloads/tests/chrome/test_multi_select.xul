@@ -129,6 +129,8 @@ function test()
                            .getService(Components.interfaces.nsIClipboard);
       var trans = Components.classes["@mozilla.org/widget/transferable;1"]
                             .createInstance(Components.interfaces.nsITransferable);
+
+      trans.init(null);
       trans.addDataFlavor("text/unicode");
       clip.getData(trans, clip.kGlobalClipboard);
       var str = {};

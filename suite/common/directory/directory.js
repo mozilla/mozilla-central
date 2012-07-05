@@ -232,6 +232,7 @@ function BeginDragTree (event)
     var genDataURL = 
       Components.classes[WSTRING_CONTRACTID].createInstance(nsISupportsString);
 
+    transferable.init(null);
     transferable.addDataFlavor("text/x-moz-url");
     transferable.addDataFlavor("text/html");
     transferable.addDataFlavor("text/unicode");

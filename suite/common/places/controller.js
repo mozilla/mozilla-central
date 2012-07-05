@@ -377,6 +377,7 @@ PlacesController.prototype = {
     var xferable = Components.classes["@mozilla.org/widget/transferable;1"]
                              .createInstance(Components.interfaces.nsITransferable);
 
+    xferable.init(null);
     xferable.addDataFlavor(PlacesUtils.TYPE_X_MOZ_URL);
     xferable.addDataFlavor(PlacesUtils.TYPE_UNICODE);
     clipboard.getData(xferable, Components.interfaces.nsIClipboard.kGlobalClipboard);
@@ -1128,6 +1129,7 @@ PlacesController.prototype = {
 
       let xferable = Components.classes["@mozilla.org/widget/transferable;1"]
                                .createInstance(Components.interfaces.nsITransferable);
+      xferable.init(null);
       let foundFolder = false, foundLink = false;
       let copiedFolders = [];
       let placeString, mozURLString, htmlString, unicodeString;
@@ -1221,6 +1223,8 @@ PlacesController.prototype = {
       var xferable =
           Components.classes["@mozilla.org/widget/transferable;1"]
                     .createInstance(Components.interfaces.nsITransferable);
+
+      xferable.init(null);
       for (var i = 0; i < types.length; ++i)
         xferable.addDataFlavor(types[i]);
       return xferable;

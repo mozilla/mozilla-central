@@ -1760,6 +1760,7 @@ function readFromClipboard()
     var trans = Components.classes["@mozilla.org/widget/transferable;1"]
                           .createInstance(Components.interfaces.nsITransferable);
 
+    trans.init(null);
     trans.addDataFlavor("text/unicode");
     // If available, use selection clipboard, otherwise global one
     if (clipboard.supportsSelectionClipboard())

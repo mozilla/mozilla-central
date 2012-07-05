@@ -505,6 +505,7 @@ PlacesController.prototype = {
 
       let xferable = Components.classes["@mozilla.org/widget/transferable;1"]
                                .createInstance(Components.interfaces.nsITransferable);
+      xferable.init(null);
       let foundFolder = false, foundLink = false;
       let copiedFolders = [];
       let placeString, mozURLString, htmlString, unicodeString;
