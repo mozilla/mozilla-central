@@ -49,6 +49,11 @@
                     rgba(255, 255, 255, 0) 28px);
 }
 
+.mail-toolbox {
+  -moz-box-pack: center;
+  min-height: 41px;
+}
+
 .mail-bar3 {
   padding: 4px 4px 0;
 }

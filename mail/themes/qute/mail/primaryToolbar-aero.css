@@ -27,6 +27,11 @@
   background-color: transparent !important;
 }
 
+.mail-toolbox {
+  -moz-box-pack: center;
+  min-height: 41px;
+}
+
 .mail-toolbox,
 .contentTabToolbox {
   border-bottom: 1px solid ThreeDShadow;
