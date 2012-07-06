@@ -54,8 +54,7 @@
         windowtype="mail:3pane"
         macanimationtype="document"
         lightweightthemes="true"
-        lightweightthemesfooter="status-bar"
-        chromemargin="0,2,2,2">
+        lightweightthemesfooter="status-bar">
 
 <stringbundleset id="stringbundleset">
   <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
@@ -253,21 +252,6 @@
 <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
 <tooltip id="tabmail-tabs-tooltip" onpopupshowing="document.getElementById('tabmail').createTooltip(event);"/>
 
-#ifdef CAN_DRAW_IN_TITLEBAR
-<vbox id="titlebar">
-  <hbox id="titlebar-content">
-    <spacer id="titlebar-spacer" flex="1"/>
-    <hbox id="titlebar-buttonbox-container" align="start">
-      <hbox id="titlebar-buttonbox">
-        <toolbarbutton class="titlebar-button" id="titlebar-min" oncommand="window.minimize();"/>
-        <toolbarbutton class="titlebar-button" id="titlebar-max" oncommand="onTitlebarMaxClick();"/>
-        <toolbarbutton class="titlebar-button" id="titlebar-close" command="cmd_quit"/>
-      </hbox>
-    </hbox>
-  </hbox>
-</vbox>
-#endif
-
   <!-- navigation-toolbox is augmented by mailWindowOverlay.xul -->
   <toolbox id="navigation-toolbox" class="toolbox-top">
 
@@ -308,9 +292,6 @@
                    id="alltabs-popup" position="after_end"
                    tabcontainer="tabcontainer"/>
       </toolbarbutton>
-#ifdef CAN_DRAW_IN_TITLEBAR
-      <hbox class="titlebar-placeholder" type="caption-buttons" ordinal="1000"/>
-#endif
     </toolbar>
 
   </toolbox>

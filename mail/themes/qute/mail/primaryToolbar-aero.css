@@ -23,10 +23,6 @@
   background-color: -moz-Dialog;
 }
 
-#navigation-toolbox {
-  background-color: transparent !important;
-}
-
 .mail-toolbox {
   -moz-box-pack: center;
   min-height: 41px;
@@ -53,7 +49,7 @@
 }
 
 #navigation-toolbox #tabs-toolbar:not(:-moz-lwtheme) {
-  border-bottom: 1px solid rgba(10, 31, 51, .35);
+  border-bottom: 1px solid ThreeDShadow;
 }
 
 #navigation-toolbox #tabs-toolbar:-moz-lwtheme {
@@ -72,6 +68,7 @@
 
 @media (-moz-windows-default-theme) {
   .mail-toolbox:not(:-moz-lwtheme),
+  #navigation-toolbox:not(:-moz-lwtheme),
   .contentTabToolbox:not(:-moz-lwtheme) {
     background-color: hsl(210, 75%, 92%);
   }
@@ -81,6 +78,11 @@
 .contentTabToolbox:not(:-moz-lwtheme) {
   background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
                     rgba(255, 255, 255, 0));
+}
+
+#navigation-toolbox:not(:-moz-lwtheme) {
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0),
+                    rgba(255, 255, 255, .5));
 }
 
 .chromeclass-toolbar {

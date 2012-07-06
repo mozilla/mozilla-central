@@ -32,7 +32,7 @@ messenger.jar:
     content/messenger/mailWidgets.xml               (content/mailWidgets.xml)
     content/messenger/editContactOverlay.js         (content/editContactOverlay.js)
 *   content/messenger/editContactOverlay.xul        (content/editContactOverlay.xul)
-*   content/messenger/msgMail3PaneWindow.js         (content/msgMail3PaneWindow.js)
+    content/messenger/msgMail3PaneWindow.js         (content/msgMail3PaneWindow.js)
     content/messenger/mail3PaneWindowCommands.js    (content/mail3PaneWindowCommands.js)
     content/messenger/mailCommands.js               (content/mailCommands.js)
 *   content/messenger/mailCore.js                   (content/mailCore.js)
