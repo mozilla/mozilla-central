@@ -60,7 +60,7 @@ var Utilities = {
     return this.windowMediator;
   },
 
-  makeURI : function(aSpec) {
+  makeURI: function smileutil_makeURI(aSpec) {
     if (!aSpec)
       return null;
     var ios = Components.classes["@mozilla.org/network/io-service;1"]
@@ -68,7 +68,7 @@ var Utilities = {
     return ios.newURI(aSpec, null, null);
   },
 
-  free : function() {
+  free: function smileutil_free() {
     delete this.bookmarks;
     delete this.bookmarksObserver;
     delete this.livemarks
@@ -117,7 +117,7 @@ Window.prototype = {
    * Helper used to setup event handlers on the XBL element. Note that the events
    * are actually dispatched to tabs, so we capture them.
    */
-  _watch : function win_watch(aType) {
+  _watch: function win_watch(aType) {
     this._tabbrowser.addEventListener(aType, this, true);
   },
 
@@ -137,11 +137,11 @@ Window.prototype = {
     return getBrowserTab(this, this._tabbrowser.selectedTab);
   },
 
-  open : function win_open(aURI) {
+  open: function win_open(aURI) {
     return getBrowserTab(this, this._tabbrowser.addTab(aURI.spec));
   },
 
-  QueryInterface : XPCOMUtils.generateQI([Components.interfaces.smileIWindow])
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.smileIWindow])
 };
 
 
@@ -203,7 +203,7 @@ BrowserTab.prototype = {
   /*
    * Helper used to setup event handlers on the XBL element
    */
-  _watch : function bt_watch(aType) {
+  _watch: function bt_watch(aType) {
     this._browser.addEventListener(aType, this, true);
   },
 
@@ -216,31 +216,32 @@ BrowserTab.prototype = {
           aEvent.originalTarget.defaultView.frameElement)
         return;
     }
+
     this._events.dispatch(aEvent.type, this);
   },
 
-  load : function bt_load(aURI) {
+  load: function bt_load(aURI) {
     this._browser.loadURI(aURI.spec, null, null);
   },
 
-  focus : function bt_focus() {
+  focus: function bt_focus() {
     this._tabbrowser.selectedTab = this._tab;
     this._tabbrowser.focus();
   },
 
-  close : function bt_close() {
+  close: function bt_close() {
     this._tabbrowser.removeTab(this._tab);
   },
 
-  moveBefore : function bt_movebefore(aBefore) {
+  moveBefore: function bt_movebefore(aBefore) {
     this._tabbrowser.moveTabTo(this._tab, aBefore.index);
   },
 
-  moveToEnd : function bt_moveend() {
+  moveToEnd: function bt_moveend() {
     this._tabbrowser.moveTabTo(this._tab, this._tabbrowser.browsers.length);
   },
 
-  QueryInterface : XPCOMUtils.generateQI([Components.interfaces.smileIBrowserTab])
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.smileIBrowserTab])
 };
 
 
@@ -255,26 +256,27 @@ Annotations.prototype = {
     return Utilities.annotations.getItemAnnotationNames(this._id);
   },
 
-  has : function ann_has(aName) {
+  has: function ann_has(aName) {
     return Utilities.annotations.itemHasAnnotation(this._id, aName);
   },
 
-  get : function(aName) {
+  get: function ann_get(aName) {
     if (this.has(aName))
       return Utilities.annotations.getItemAnnotation(this._id, aName);
+
     return null;
   },
 
-  set : function(aName, aValue, aExpiration) {
+  set: function ann_set(aName, aValue, aExpiration) {
     Utilities.annotations.setItemAnnotation(this._id, aName, aValue, 0, aExpiration);
   },
 
-  remove : function ann_remove(aName) {
+  remove: function ann_remove(aName) {
     if (aName)
       Utilities.annotations.removeItemAnnotation(this._id, aName);
   },
 
-  QueryInterface : XPCOMUtils.generateQI([Components.interfaces.smileIAnnotations])
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.smileIAnnotations])
 };
 
 
@@ -486,7 +488,7 @@ Bookmark.prototype = {
     return this._events;
   },
 
-  remove : function bm_remove() {
+  remove: function bm_remove() {
     Utilities.bookmarks.removeItem(this._id);
   },
 
@@ -639,25 +641,25 @@ BookmarkFolder.prototype = {
     return items;
   },
 
-  addBookmark : function bmf_addbm(aTitle, aUri) {
+  addBookmark: function bmf_addbm(aTitle, aUri) {
     var newBookmarkID = Utilities.bookmarks.insertBookmark(this._id, aUri, Utilities.bookmarks.DEFAULT_INDEX, aTitle);
     var newBookmark = new Bookmark(newBookmarkID, this, "bookmark");
     return newBookmark;
   },
 
-  addSeparator : function bmf_addsep() {
+  addSeparator: function bmf_addsep() {
     var newBookmarkID = Utilities.bookmarks.insertSeparator(this._id, Utilities.bookmarks.DEFAULT_INDEX);
     var newBookmark = new Bookmark(newBookmarkID, this, "separator");
     return newBookmark;
   },
 
-  addFolder : function bmf_addfolder(aTitle) {
+  addFolder: function bmf_addfolder(aTitle) {
     var newFolderID = Utilities.bookmarks.createFolder(this._id, aTitle, Utilities.bookmarks.DEFAULT_INDEX);
     var newFolder = new BookmarkFolder(newFolderID, this);
     return newFolder;
   },
 
-  remove : function bmf_remove() {
+  remove: function bmf_remove() {
     Utilities.bookmarks.removeItem(this._id);
   },
 
@@ -715,7 +717,7 @@ BookmarkRoots.prototype = {
     return this._unfiled;
   },
 
-  QueryInterface : XPCOMUtils.generateQI([Components.interfaces.smileIBookmarkRoots])
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.smileIBookmarkRoots])
 };
 
 
@@ -749,17 +751,17 @@ function Application() {
 // Application implementation
 Application.prototype = {
   // for XPCOMUtils
-  classID:          APPLICATION_CID,
+  classID: APPLICATION_CID,
 
   // redefine the default factory for XPCOMUtils
   _xpcom_factory: ApplicationFactory,
 
   // for nsISupports
-  QueryInterface : XPCOMUtils.generateQI(
-                     [Components.interfaces.smileIApplication,
-                      Components.interfaces.extIApplication,
-                      Components.interfaces.nsISupportsWeakReference,
-                      Components.interfaces.nsIObserver]),
+  QueryInterface: XPCOMUtils.generateQI(
+                    [Components.interfaces.smileIApplication,
+                     Components.interfaces.extIApplication,
+                     Components.interfaces.nsIObserver,
+                     Components.interfaces.nsISupportsWeakReference]),
 
   // for nsIClassInfo
   classInfo: XPCOMUtils.generateCI({
