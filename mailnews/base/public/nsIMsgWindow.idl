@@ -13,6 +13,7 @@ interface nsIDOMWindow;
 interface nsIMsgHeaderSink;
 interface nsIPrompt;
 interface nsIInterfaceRequestor;
+interface nsIAuthPrompt;
 
 [scriptable, uuid(7B8F4A65-CFC4-4b3f-BF5C-152AA8D5CD10)]
 interface nsIMsgWindowCommands : nsISupports {
@@ -43,7 +44,13 @@ interface nsIMsgWindow : nsISupports {
    * holding on to the docshell returned here outside the scope of your routine.
    */
   readonly attribute nsIDocShell messageWindowDocShell;
-  
+
+    /**
+     * Returns the auth prompt associtated with the window. This will only return
+     * a value if the rootDocShell has been set.
+     */
+  readonly attribute nsIAuthPrompt authPrompt;
+
   /**
    * These are currently used to set notification callbacks on
    * protocol channels to handle things like bad cert exceptions.

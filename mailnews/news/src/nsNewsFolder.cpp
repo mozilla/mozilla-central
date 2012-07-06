@@ -1354,10 +1354,7 @@ nsMsgNewsFolder::GetAuthenticationCredentials(nsIMsgWindow *aMsgWindow,
     nsCOMPtr<nsIAuthPrompt> dialog;
     if (aMsgWindow)
     {
-      nsCOMPtr<nsIDocShell> docShell;
-      rv = aMsgWindow->GetRootDocShell(getter_AddRefs(docShell));
-      NS_ENSURE_SUCCESS(rv, rv);
-      dialog = do_GetInterface(docShell, &rv);
+      rv = aMsgWindow->GetAuthPrompt(getter_AddRefs(dialog));
       NS_ENSURE_SUCCESS(rv, rv);
     }
     else

@@ -33,6 +33,7 @@
 #include "nsMsgContentPolicy.h"
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
+#include "nsIAuthPrompt.h"
 
 // used to dispatch urls to default protocol handlers
 #include "nsCExternalHandlerService.h"
@@ -209,6 +210,24 @@ NS_IMETHODIMP nsMsgWindow::GetRootDocShell(nsIDocShell * *aDocShell)
   else
     *aDocShell = nsnull;
   return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgWindow::GetAuthPrompt(nsIAuthPrompt * *aAuthPrompt)
+{
+  NS_ENSURE_ARG_POINTER(aAuthPrompt);
+  if (!mRootDocShellWeak)
+    return NS_ERROR_FAILURE;
+
+  nsresult rv;
+  nsCOMPtr<nsIDocShell> docShell(do_QueryReferent(mRootDocShellWeak.get(), &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIAuthPrompt> prompt = do_GetInterface(docShell, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  prompt.swap(*aAuthPrompt);
+
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgWindow::SetRootDocShell(nsIDocShell * aDocShell)

@@ -754,15 +754,12 @@ nsMsgIncomingServer::GetPasswordWithUI(const nsAString& aPromptMessage, const
     // aMsgWindow is required if we need to prompt
     if (aMsgWindow)
     {
-      // prompt the user for the password
-      nsCOMPtr<nsIDocShell> docShell;
-      rv = aMsgWindow->GetRootDocShell(getter_AddRefs(docShell));
-      NS_ENSURE_SUCCESS(rv, rv);
-      dialog = do_GetInterface(docShell, &rv);
+      rv = aMsgWindow->GetAuthPrompt(getter_AddRefs(dialog));
       NS_ENSURE_SUCCESS(rv, rv);
     }
     if (dialog)
     {
+      // prompt the user for the password
       nsCString serverUri;
       rv = GetLocalStoreType(serverUri);
       NS_ENSURE_SUCCESS(rv, rv);

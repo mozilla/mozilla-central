@@ -271,23 +271,9 @@ function registerAlertTestUtils()
                              alertUtilsPromptService);
 }
 
-var gDummyDocShell = {
-  getInterface: function(iid) {
-    if (iid.equals(Ci.nsIAuthPrompt)) {
-      return Cc["@mozilla.org/login-manager/prompter;1"]
-               .getService(Ci.nsIAuthPrompt);
-    }
-
-    throw Components.results.NS_ERROR_NO_INTERFACE;
-  },
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIDocShell,
-                                         Ci.nsIInterfaceRequestor])
-}
-
 // Dummy message window that ensures we get prompted for logins.
 var gDummyMsgWindow = {
-  rootDocShell: gDummyDocShell,
+  authPrompt: Cc["@mozilla.org/login-manager/prompter;1"].getService(Ci.nsIAuthPrompt),
   promptDialog: alertUtilsPrompts,
 
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgWindow,
