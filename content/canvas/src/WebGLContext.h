@@ -1630,7 +1630,7 @@ public:
     }
     
 
-    already_AddRefed<WebGLUniformLocation> GetUniformLocationObject(GLint glLocation);
+    already_AddRefed<WebGLUniformLocation> GetUniformLocationObject(WebGLProgram *prog, GLint glLocation);
 
     /* Called only after LinkProgram */
     bool UpdateInfo(gl::GLContext *gl);
@@ -2124,7 +2124,8 @@ public:
 
     WebGLUniformLocation(WebGLContext *context, WebGLProgram *program, GLint location) :
         WebGLContextBoundObject(context), mProgram(program), mProgramGeneration(program->Generation()),
-        mLocation(location) { }
+        mLocation(location),
+        mArrayLength(1) { }
 
     WebGLProgram *Program() const { return mProgram; }
     GLint Location() const { return mLocation; }
@@ -2139,6 +2140,10 @@ protected:
     WebGLObjectRefPtr<WebGLProgram> mProgram;
     PRUint32 mProgramGeneration;
     GLint mLocation;
+    PRUint32 mArrayLength;
+
+    friend class WebGLContext;
+    friend class WebGLProgram;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(WebGLUniformLocation, WEBGLUNIFORMLOCATION_PRIVATE_IID)

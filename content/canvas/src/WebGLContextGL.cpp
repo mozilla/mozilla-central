@@ -56,6 +56,8 @@
 
 #include "jstypedarray.h"
 
+#include "nsVariant.h"
+
 #if defined(USE_ANGLE)
 // shader translator
 #include "angle/ShaderLang.h"
@@ -122,7 +124,7 @@ NS_IMETHODIMP WebGLContext::name(t1 a1, t2 a2, t3 a3, t4 a4, t5 a5, t6 a6) { \
 }
 
 already_AddRefed<WebGLUniformLocation>
-WebGLProgram::GetUniformLocationObject(GLint glLocation)
+WebGLProgram::GetUniformLocationObject(WebGLProgram *prog, GLint glLocation)
 {
     WebGLUniformLocation *existingLocationObject;
     if (mMapUniformLocations.Get(glLocation, &existingLocationObject)) {
@@ -135,6 +137,21 @@ WebGLProgram::GetUniformLocationObject(GLint glLocation)
 
     nsRefPtr<WebGLUniformLocation> loc = new WebGLUniformLocation(mContext, this, glLocation);
     mMapUniformLocations.Put(glLocation, loc);
+
+    nsIVariant *uniformValue = nsnull;
+    mContext->GetUniform(prog, loc.get(), &uniformValue);
+
+    PRUint16 type;
+    nsIID iid;
+    PRUint32 count;
+    void *ptr = nsnull;
+    nsresult rv = uniformValue->GetAsArray(&type, &iid, &count, &ptr);
+
+    // GetAsArray succeeds if and only if the variant is an array
+    if (NS_SUCCEEDED(rv))
+        loc->mArrayLength = count;
+
+    NS_RELEASE(uniformValue);
     return loc.forget();
 }
 
@@ -2994,7 +3011,7 @@ WebGLContext::GetUniformLocation(nsIWebGLProgram *pobj, const nsAString& name, n
 
     GLint intlocation = gl->fGetUniformLocation(progname, NS_LossyConvertUTF16toASCII(name).get());
 
-    nsRefPtr<nsIWebGLUniformLocation> loc = prog->GetUniformLocationObject(intlocation);
+    nsRefPtr<nsIWebGLUniformLocation> loc = prog->GetUniformLocationObject(prog, intlocation);
     *retval = loc.forget().get();
 
     return NS_OK;
@@ -4112,7 +4129,8 @@ WebGLContext::name##_array(nsIWebGLUniformLocation *ploc, JSObject *wa) \
     if (JS_GetTypedArrayLength(wa) == 0 || JS_GetTypedArrayLength(wa) % cnt != 0)\
         return ErrorInvalidValue(#name ": array must be > 0 elements and have a length multiple of %d", cnt); \
     MakeContextCurrent();                                               \
-    gl->f##name(location, JS_GetTypedArrayLength(wa) / cnt, (ptrType *)JS_GetTypedArrayData(wa));            \
+    PRUint32 numElementsToUpload = NS_MIN(location_object->mArrayLength, JS_GetTypedArrayLength(wa) / cnt);     \
+    gl->f##name(location, numElementsToUpload, (ptrType *)JS_GetTypedArrayData(wa));            \
     return NS_OK;                                                       \
 }
 
@@ -4134,7 +4152,8 @@ WebGLContext::name##_array(nsIWebGLUniformLocation *ploc, WebGLboolean transpose
     if (transpose)                                                      \
         return ErrorInvalidValue(#name ": transpose must be FALSE as per the OpenGL ES 2.0 spec"); \
     MakeContextCurrent();                                               \
-    gl->f##name(location, JS_GetTypedArrayLength(wa) / (dim*dim), transpose, (ptrType *)JS_GetTypedArrayData(wa)); \
+    PRUint32 numElementsToUpload = NS_MIN(location_object->mArrayLength, JS_GetTypedArrayLength(wa) / (dim*dim));     \
+    gl->f##name(location, numElementsToUpload, transpose, (ptrType *)JS_GetTypedArrayData(wa)); \
     return NS_OK;                                                       \
 }
 
