@@ -139,17 +139,9 @@ WebGLProgram::GetUniformLocationObject(WebGLProgram *prog, GLint glLocation)
     mMapUniformLocations.Put(glLocation, loc);
 
     nsIVariant *uniformValue = nsnull;
+
+    // this queries the uniform's array length and stores it in the uniform location object
     mContext->GetUniform(prog, loc.get(), &uniformValue);
-
-    PRUint16 type;
-    nsIID iid;
-    PRUint32 count;
-    void *ptr = nsnull;
-    nsresult rv = uniformValue->GetAsArray(&type, &iid, &count, &ptr);
-
-    // GetAsArray succeeds if and only if the variant is an array
-    if (NS_SUCCEEDED(rv))
-        loc->mArrayLength = count;
 
     NS_RELEASE(uniformValue);
     return loc.forget();
@@ -2911,9 +2903,9 @@ WebGLContext::GetUniform(nsIWebGLProgram *pobj, nsIWebGLUniformLocation *ploc, n
     nsAutoArrayPtr<GLchar> uniformNameBracketIndex(new GLchar[uniformNameMaxLength + 16]);
 
     GLint index;
+    GLint size;
     for (index = 0; index < uniforms; ++index) {
         GLsizei length;
-        GLint size;
         gl->fGetActiveUniform(progname, index, uniformNameMaxLength, &length,
                               &size, &uniformType, uniformName);
         if (gl->fGetUniformLocation(progname, uniformName) == location->Location())
@@ -2939,6 +2931,8 @@ WebGLContext::GetUniform(nsIWebGLProgram *pobj, nsIWebGLUniformLocation *ploc, n
             if (found_it) break;
         }
     }
+
+    location->mArrayLength = size;
 
     if (index == uniforms)
         return NS_ERROR_FAILURE; // XXX GL error? shouldn't happen.
