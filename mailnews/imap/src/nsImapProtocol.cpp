@@ -2741,20 +2741,16 @@ void nsImapProtocol::ProcessSelectedStateURL()
           {
             //delete_message_struct *deleteMsg = (delete_message_struct *) PR_Malloc (sizeof(delete_message_struct));
             // convert name back from utf7
-            utf_name_struct *nameStruct = (utf_name_struct *) PR_Malloc(sizeof(utf_name_struct));
-            char *canonicalName = NULL;
-            if (nameStruct)
+            nsCString canonicalName;
+            const char *selectedMailboxName = GetServerStateParser().GetSelectedMailboxName();
+            if (selectedMailboxName)
             {
-              const char *selectedMailboxName = GetServerStateParser().GetSelectedMailboxName();
-              if (selectedMailboxName)
-              {
-                m_runningUrl->AllocateCanonicalPath(selectedMailboxName,
-                  kOnlineHierarchySeparatorUnknown, &canonicalName);
-              }
+              m_runningUrl->AllocateCanonicalPath(selectedMailboxName,
+                kOnlineHierarchySeparatorUnknown, getter_Copies(canonicalName));
             }
 
             if (m_imapMessageSink)
-              m_imapMessageSink->NotifyMessageDeleted(canonicalName, false, messageIdString.get());
+              m_imapMessageSink->NotifyMessageDeleted(canonicalName.get(), false, messageIdString.get());
             // notice we don't wait for this to finish...
           }
           else
@@ -2777,20 +2773,16 @@ void nsImapProtocol::ProcessSelectedStateURL()
             if (GetServerStateParser().LastCommandSuccessful())
             {
               // convert name back from utf7
-              utf_name_struct *nameStruct = (utf_name_struct *) PR_Malloc(sizeof(utf_name_struct));
-              char *canonicalName = NULL;
-              if (nameStruct)
+              nsCString canonicalName;
+              const char *selectedMailboxName = GetServerStateParser().GetSelectedMailboxName();
+              if (selectedMailboxName )
               {
-                const char *selectedMailboxName = GetServerStateParser().GetSelectedMailboxName();
-                if (selectedMailboxName )
-                {
-                  m_runningUrl->AllocateCanonicalPath(selectedMailboxName,
-                    kOnlineHierarchySeparatorUnknown, &canonicalName);
-                }
+                m_runningUrl->AllocateCanonicalPath(selectedMailboxName,
+                  kOnlineHierarchySeparatorUnknown, getter_Copies(canonicalName));
               }
 
               if (m_imapMessageSink)
-                m_imapMessageSink->NotifyMessageDeleted(canonicalName, true, nsnull);
+                m_imapMessageSink->NotifyMessageDeleted(canonicalName.get(), true, nsnull);
             }
 
           }
@@ -7199,11 +7191,9 @@ void nsImapProtocol::DiscoverMailboxList()
             boxSpec->mBoxFlags = kNoselect;
             boxSpec->mHierarchySeparator = ns->GetDelimiter();
             // Until |AllocateCanonicalPath()| gets updated:
-            char* allocatedPathStr;
             m_runningUrl->AllocateCanonicalPath(
                             ns->GetPrefix(), ns->GetDelimiter(),
-                            &allocatedPathStr);
-            boxSpec->mAllocatedPathName.Assign(allocatedPathStr);
+                            getter_Copies(boxSpec->mAllocatedPathName));
             boxSpec->mNamespaceForFolder = ns;
             boxSpec->mBoxFlags |= kNameSpace;
 
