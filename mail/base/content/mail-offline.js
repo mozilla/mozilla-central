@@ -3,17 +3,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var MailOfflineMgr = {
   offlineManager: null,
   offlineBundle: null,
 
   init: function()
   {
-    var os = Components.classes["@mozilla.org/observer-service;1"]
-              .getService(Components.interfaces.nsIObserverService);
-    os.addObserver(this, "network:offline-status-changed", false);
+    Services.obs.addObserver(this, "network:offline-status-changed", false);
 
-    this.offlineManager = Components.classes["@mozilla.org/messenger/offline-manager;1"]                 
+    this.offlineManager = Components.classes["@mozilla.org/messenger/offline-manager;1"]
                         .getService(Components.interfaces.nsIMsgOfflineManager);
     this.offlineBundle = document.getElementById("bundle_offlinePrompts");
 
@@ -23,9 +23,7 @@ var MailOfflineMgr = {
 
   uninit: function()
   {
-    var os = Components.classes["@mozilla.org/observer-service;1"]
-              .getService(Components.interfaces.nsIObserverService);
-    os.removeObserver(this, "network:offline-status-changed");
+    Services.obs.removeObserver(this, "network:offline-status-changed");
   },
 
   /**
@@ -33,9 +31,7 @@ var MailOfflineMgr = {
    */
    isOnline: function()
    {
-      var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                             .getService(Components.interfaces.nsIIOService);
-      return (!ioService.offline);
+     return (!Services.io.offline);
    },
 
   /**
@@ -45,22 +41,20 @@ var MailOfflineMgr = {
    */
   toggleOfflineStatus: function()
   {
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                      .getService(Components.interfaces.nsIIOService2);
-    // the offline manager(goOnline and synchronizeForOffline) actually does the dirty work of 
+    // the offline manager(goOnline and synchronizeForOffline) actually does the dirty work of
     // changing the offline state with the networking service.
-    if (!this.isOnline()) 
+    if (!this.isOnline())
     {
       // We do the go online stuff in our listener for the online state change.
-      ioService.offline = false;
+      Services.io.offline = false;
       // resume managing offline status now that we are going back online.
-      ioService.manageOfflineStatus = gPrefBranch.getBoolPref("offline.autoDetect");
+      Services.io.manageOfflineStatus = gPrefBranch.getBoolPref("offline.autoDetect");
     }
     else // going offline
     {
       // Stop automatic management of the offline status since the user has
       // decided to go offline.
-      ioService.manageOfflineStatus = false;
+      Services.io.manageOfflineStatus = false;
       var prefDownloadMessages = gPrefBranch.getIntPref("offline.download.download_messages");
       // 0 == Ask, 1 == Always Download, 2 == Never Download
       var downloadForOfflineUse = (prefDownloadMessages == 0 && this.confirmDownloadMessagesForOfflineUse())
@@ -102,11 +96,10 @@ var MailOfflineMgr = {
    */
   goOnlineToSendMessages: function(aMsgWindow)
   {
-    const nsIPS = Components.interfaces.nsIPromptService;
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(nsIPS);
-    var goOnlineToSendMsgs = promptService.confirm(window, 
-                                                   this.offlineBundle.getString('sendMessagesOfflineWindowTitle1'), 
-                                                   this.offlineBundle.getString('sendMessagesOfflineLabel1'));
+    let goOnlineToSendMsgs = Services.prompt.confirm(window,
+      this.offlineBundle.getString('sendMessagesOfflineWindowTitle1'),
+      this.offlineBundle.getString('sendMessagesOfflineLabel1'));
+
     if (goOnlineToSendMsgs)
       this.offlineManager.goOnline(true /* send unsent messages*/, false, aMsgWindow);
   },
@@ -119,20 +112,22 @@ var MailOfflineMgr = {
    */
   confirmSendUnsentMessages: function()
   {
-    const nsIPS = Components.interfaces.nsIPromptService;
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(nsIPS);
-    var alwaysAsk = {value: true};
-    var sendUnsentMessages = promptService.confirmEx(window, 
-                                                     this.offlineBundle.getString('sendMessagesWindowTitle1'), 
-                                                     this.offlineBundle.getString('sendMessagesLabel2'),
-                                                     nsIPS.STD_YES_NO_BUTTONS,
-                                                     null, null, null,
-                                                     this.offlineBundle.getString('sendMessagesCheckboxLabel1'), 
-                                                     alwaysAsk) == 0 ? true : false;
+    let alwaysAsk = {value: true};
+    let sendUnsentMessages = Services.prompt.confirmEx(window,
+      this.offlineBundle.getString('sendMessagesWindowTitle1'),
+      this.offlineBundle.getString('sendMessagesLabel2'),
+      (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_0) +
+      (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_1),
+      this.offlineBundle.getString('sendMessagesNow'),
+      this.offlineBundle.getString('processMessagesLater'),
+      null,
+      this.offlineBundle.getString('sendMessagesCheckboxLabel1'),
+      alwaysAsk) == 0 ? true : false;
 
     // if the user changed the ask me setting then update the global pref based on their yes / no answer
     if (!alwaysAsk.value)
       gPrefBranch.setIntPref("offline.send.unsent_messages", sendUnsentMessages ? 1 : 2);
+
     return sendUnsentMessages;
   },
 
@@ -165,21 +160,22 @@ var MailOfflineMgr = {
    */
   confirmDownloadMessagesForOfflineUse: function()
   {
-    const nsIPS = Components.interfaces.nsIPromptService;
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(nsIPS);
-    var alwaysAsk = {value: true};
-    var downloadMessages = promptService.confirmEx(window, 
-                                                   this.offlineBundle.getString('downloadMessagesWindowTitle1'), 
-                                                   this.offlineBundle.getString('downloadMessagesLabel1'),
-                                                   nsIPS.STD_YES_NO_BUTTONS,
-                                                   null, null, null,
-                                                   this.offlineBundle.getString('downloadMessagesCheckboxLabel1'), 
-                                                   alwaysAsk) == 0 ? true : false;
+    let alwaysAsk = {value: true};
+    let downloadMessages = Services.prompt.confirmEx(window,
+      this.offlineBundle.getString('downloadMessagesWindowTitle1'),
+      this.offlineBundle.getString('downloadMessagesLabel1'),
+      (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_0) +
+      (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_1),
+      this.offlineBundle.getString('downloadMessagesNow'),
+      this.offlineBundle.getString('processMessagesLater'),
+      null,
+      this.offlineBundle.getString('downloadMessagesCheckboxLabel1'),
+      alwaysAsk) == 0 ? true : false;
 
     // if the user changed the ask me setting then update the global pref based on their yes / no answer
     if (!alwaysAsk.value)
       gPrefBranch.setIntPref("offline.download.download_messages", downloadMessages ? 1 : 2);
-    return downloadMessages;      
+    return downloadMessages;
   },
 
   /** 
@@ -191,11 +187,10 @@ var MailOfflineMgr = {
    */
   getNewMail: function()
   {
-    const nsIPS = Components.interfaces.nsIPromptService;
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(nsIPS);
-    var goOnline =  promptService.confirm(window, 
-                                          this.offlineBundle.getString('getMessagesOfflineWindowTitle1'), 
-                                          this.offlineBundle.getString('getMessagesOfflineLabel1'));    
+    let goOnline = Services.prompt.confirm(window,
+      this.offlineBundle.getString('getMessagesOfflineWindowTitle1'),
+      this.offlineBundle.getString('getMessagesOfflineLabel1'));
+
     if (goOnline)
       this.offlineManager.goOnline(this.shouldSendUnsentMessages(),
                                    false /* playbackOfflineImapOperations */, msgWindow);
