@@ -56,6 +56,8 @@
 
 #include "jstypedarray.h"
 
+#include "nsVariant.h"
+
 #if defined(USE_ANGLE)
 // shader translator
 #include "angle/ShaderLang.h"
@@ -122,7 +124,7 @@ NS_IMETHODIMP WebGLContext::name(t1 a1, t2 a2, t3 a3, t4 a4, t5 a5, t6 a6) { \
 }
 
 already_AddRefed<WebGLUniformLocation>
-WebGLProgram::GetUniformLocationObject(GLint glLocation)
+WebGLProgram::GetUniformLocationObject(WebGLProgram *prog, GLint glLocation)
 {
     WebGLUniformLocation *existingLocationObject;
     if (mMapUniformLocations.Get(glLocation, &existingLocationObject)) {
@@ -135,6 +137,13 @@ WebGLProgram::GetUniformLocationObject(GLint glLocation)
 
     nsRefPtr<WebGLUniformLocation> loc = new WebGLUniformLocation(mContext, this, glLocation);
     mMapUniformLocations.Put(glLocation, loc);
+
+    nsIVariant *uniformValue = nsnull;
+
+    // this queries the uniform's array length and stores it in the uniform location object
+    mContext->GetUniform(prog, loc.get(), &uniformValue);
+
+    NS_RELEASE(uniformValue);
     return loc.forget();
 }
 
@@ -2894,9 +2903,9 @@ WebGLContext::GetUniform(nsIWebGLProgram *pobj, nsIWebGLUniformLocation *ploc, n
     nsAutoArrayPtr<GLchar> uniformNameBracketIndex(new GLchar[uniformNameMaxLength + 16]);
 
     GLint index;
+    GLint size;
     for (index = 0; index < uniforms; ++index) {
         GLsizei length;
-        GLint size;
         gl->fGetActiveUniform(progname, index, uniformNameMaxLength, &length,
                               &size, &uniformType, uniformName);
         if (gl->fGetUniformLocation(progname, uniformName) == location->Location())
@@ -2922,6 +2931,8 @@ WebGLContext::GetUniform(nsIWebGLProgram *pobj, nsIWebGLUniformLocation *ploc, n
             if (found_it) break;
         }
     }
+
+    location->mArrayLength = size;
 
     if (index == uniforms)
         return NS_ERROR_FAILURE; // XXX GL error? shouldn't happen.
@@ -2994,7 +3005,7 @@ WebGLContext::GetUniformLocation(nsIWebGLProgram *pobj, const nsAString& name, n
 
     GLint intlocation = gl->fGetUniformLocation(progname, NS_LossyConvertUTF16toASCII(name).get());
 
-    nsRefPtr<nsIWebGLUniformLocation> loc = prog->GetUniformLocationObject(intlocation);
+    nsRefPtr<nsIWebGLUniformLocation> loc = prog->GetUniformLocationObject(prog, intlocation);
     *retval = loc.forget().get();
 
     return NS_OK;
@@ -4111,8 +4122,17 @@ WebGLContext::name##_array(nsIWebGLUniformLocation *ploc, JSObject *wa) \
         return ErrorInvalidOperation(#name ": array must be " #arrayType);      \
     if (JS_GetTypedArrayLength(wa) == 0 || JS_GetTypedArrayLength(wa) % cnt != 0)\
         return ErrorInvalidValue(#name ": array must be > 0 elements and have a length multiple of %d", cnt); \
+    if (location_object->mArrayLength == 1 && cnt != JS_GetTypedArrayLength(wa))  {                                                   \
+        return ErrorInvalidOperation("%s: expected an array of length exactly %d" \
+                                     " (since this uniform is not an array uniform)," \
+                                     " got an array of length %d",              \
+                                 #name,                                         \
+                                 cnt,                           \
+                                 JS_GetTypedArrayLength(wa));                                  \
+    }                                                                           \
     MakeContextCurrent();                                               \
-    gl->f##name(location, JS_GetTypedArrayLength(wa) / cnt, (ptrType *)JS_GetTypedArrayData(wa));            \
+    PRUint32 numElementsToUpload = NS_MIN(location_object->mArrayLength, JS_GetTypedArrayLength(wa) / cnt);     \
+    gl->f##name(location, numElementsToUpload, (ptrType *)JS_GetTypedArrayData(wa));            \
     return NS_OK;                                                       \
 }
 
@@ -4133,8 +4153,17 @@ WebGLContext::name##_array(nsIWebGLUniformLocation *ploc, WebGLboolean transpose
         return ErrorInvalidValue(#name ": array length must be >0 and multiple of %d", dim*dim); \
     if (transpose)                                                      \
         return ErrorInvalidValue(#name ": transpose must be FALSE as per the OpenGL ES 2.0 spec"); \
+    if (location_object->mArrayLength == 1 && (dim*dim) != JS_GetTypedArrayLength(wa))  {                                                   \
+        return ErrorInvalidOperation("%s: expected an array of length exactly %d" \
+                                     " (since this uniform is not an array uniform)," \
+                                     " got an array of length %d",              \
+                                 #name,                                         \
+                                 (dim*dim),                           \
+                                 JS_GetTypedArrayLength(wa));                                  \
+    }                                                                           \
     MakeContextCurrent();                                               \
-    gl->f##name(location, JS_GetTypedArrayLength(wa) / (dim*dim), transpose, (ptrType *)JS_GetTypedArrayData(wa)); \
+    PRUint32 numElementsToUpload = NS_MIN(location_object->mArrayLength, JS_GetTypedArrayLength(wa) / (dim*dim));     \
+    gl->f##name(location, numElementsToUpload, transpose, (ptrType *)JS_GetTypedArrayData(wa)); \
     return NS_OK;                                                       \
 }
 
