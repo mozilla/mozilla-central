@@ -13,12 +13,18 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-#navigation-toolbox #tabs-toolbar {
+#navigation-toolbox {
   -moz-appearance: none;
-  border-bottom: 1px solid ThreeDShadow;
+  border-top-width: 0;
+  background-color: transparent;
 }
 
-#navigation-toolbox #tabs-toolbar:-moz-lwtheme {
+#tabs-toolbar {
+  -moz-appearance: none;
+  border-bottom: 1px solid rgba(10, 31, 51, .35);
+}
+
+#tabs-toolbar:-moz-lwtheme {
   border-bottom-color: transparent;
 }
 
