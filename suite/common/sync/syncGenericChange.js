@@ -225,6 +225,11 @@ let Change = {
   },
 
   _str: function Change__string(str) {
-    return this._stringBundle.GetStringFromName(str);
+    try {
+      return this._stringBundle.GetStringFromName(str);
+    } catch (e) {
+      Components.utils.reportError("Missing string: " + str);
+      throw e;
+    }
   }
 };
