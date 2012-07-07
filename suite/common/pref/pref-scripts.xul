@@ -36,6 +36,9 @@
       <preference id="plugin.disable"
                   name="plugin.disable"
                   type="bool" inverted="true"/>
+      <preference id="plugins.click_to_play"
+                  name="plugins.click_to_play"
+                  type="bool" inverted="true"/>
       <preference id="plugins.hide_infobar_for_missing_plugin"
                   name="plugins.hide_infobar_for_missing_plugin"
                   type="bool" inverted="true"/>
@@ -77,7 +80,7 @@
     </groupbox>
 
     <groupbox id="pluginPreferences">
-      <caption label="&enablePlugin.label;"/>
+      <caption label="&enablePlugins.label;"/>
       <checkbox id="pluginForSuite"
                 label="&enablePluginForSuite.label;"
                 accesskey="&enablePluginForSuite.accesskey;"
@@ -87,12 +90,15 @@
       -->
     </groupbox>
 
-    <groupbox id="pluginsNotificationPref">
-      <caption label="&whenPluginsRequired.label;"/>
-
-      <checkbox id="displayPluginsNotification"
-                label="&displayNotification.label;"
-                accesskey="&displayNotification.accesskey;"
+    <groupbox id="pageRequiresPlugins">
+      <caption label="&whenPageRequiresPlugins.label;"/>
+      <checkbox id="activateAllPlugins"
+                label="&activateAllPlugins.label;"
+                accesskey="&activateAllPlugins.accesskey;"
+                preference="plugins.click_to_play"/>
+      <checkbox id="warnPluginsRequired"
+                label="&warnPluginsRequired.label;"
+                accesskey="&warnPluginsRequired.accesskey;"
                 preference="plugins.hide_infobar_for_missing_plugin"/>
     </groupbox>
     
