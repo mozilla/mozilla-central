@@ -210,7 +210,7 @@
                  anonid="headerValue" flex="1" readonly="true" context="copyUrlPopup"/>
       </xul:hbox>
     </content>
-    
+
     <implementation>
       <method name="setDataTransfer">
         <parameter name="aEvent"/>
@@ -867,7 +867,7 @@
       <property name="label" onget="return document.getAnonymousNodes(this)[0].selectedItem.getAttribute('label');">
       </property>
       <property name="validMenuitem" readonly="true">
-      <!-- Prepare menulist selection, adding a missing hidden menuitem if needed, and 
+      <!-- Prepare menulist selection, adding a missing hidden menuitem if needed, and
         updating the disabled state of the menulist label. -->
         <getter>
           <![CDATA[
@@ -1585,7 +1585,7 @@
 
         // initialize the has attachment status picker
         this.initialize(document.getAnonymousNodes(this)[7], bundle);
-        
+
         // initialize the junk score origin picker
         this.initialize(document.getAnonymousNodes(this)[8], bundle);
 
@@ -1920,6 +1920,7 @@
           var server = msgFolder.server;
           var popupValue = null;
           // Use the full newsgroup name as tooltip for abbreviated newsgroups.
+          // Else show full cell content as tooltip for cropped cells.
           if (col.id == "folderNameCol" && !msgFolder.isServer &&
               !(msgFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual) &&
               (server instanceof Components.interfaces.nsINntpIncomingServer) &&
@@ -1927,7 +1928,6 @@
           {
             popupValue = msgFolder.name;
           }
-          // Show full cell content as tooltip for cropped cells.
           else if (folderTree.treeBoxObject.isCellCropped(row, col))
           {
             popupValue = folderTree.view.getCellText(row, col);
@@ -1937,18 +1937,13 @@
           {
             let tooltip = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "label");
             tooltip.setAttribute("value", popupValue);
-            tooltip.className = "tooltip-label";
             let folderSummary = document.getAnonymousNodes(this)[0];
             document.getAnonymousNodes(folderSummary)[0].appendChild(tooltip);
-            return true;
           }
 
-          // Disable extended alerts (sender/subject/preview) until implemented (bug 505056)
-          return false;
-/*
-          var asyncResults = {};
-          return document.getAnonymousNodes(this)[0].parseFolder(msgFolder, null, asyncResults);
-*/
+          var newMessages = document.getAnonymousNodes(this)[0]
+                                    .parseFolder(msgFolder, null, {});
+          return popupValue || newMessages;
         ]]>
       </handler>
 

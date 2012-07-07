@@ -196,3 +196,20 @@ treechildren::-moz-tree-image(syncCol, isServer-true) {
 #folderNameCol [sortDirection="descending"] {
   list-style-image: none;
 }
+
+/* ::::: Folder Summary Popup ::::: */
+
+.folderSummary-message-row {
+  /* This max width ends up dictating the overall width of the popup
+     because it controls how large the preview, subject and sender text can be
+     before cropping kicks in */
+  max-width: 450px;
+}
+
+.folderSummary-subject {
+  font-weight: bold; 
+}
+
+.folderSummary-previewText {
+  color: #8C99AB;
+}

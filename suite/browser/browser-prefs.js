@@ -314,6 +314,11 @@ pref("browser.offline-apps.notify", true);
 
 pref("browser.formfill.expire_days",        180);
 
+pref("mail.biff.alert.show_preview", true);
+pref("mail.biff.alert.show_subject", true);
+pref("mail.biff.alert.show_sender",  true);
+pref("mail.biff.alert.preview_length", 40);
+
 pref("mailnews.ui.deleteMarksRead", true);
 
 pref("spellchecker.dictionaries.download.url", "chrome://branding/locale/brand.properties");
