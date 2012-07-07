@@ -4122,6 +4122,14 @@ WebGLContext::name##_array(nsIWebGLUniformLocation *ploc, JSObject *wa) \
         return ErrorInvalidOperation(#name ": array must be " #arrayType);      \
     if (JS_GetTypedArrayLength(wa) == 0 || JS_GetTypedArrayLength(wa) % cnt != 0)\
         return ErrorInvalidValue(#name ": array must be > 0 elements and have a length multiple of %d", cnt); \
+    if (location_object->mArrayLength == 1 && cnt != JS_GetTypedArrayLength(wa))  {                                                   \
+        return ErrorInvalidOperation("%s: expected an array of length exactly %d" \
+                                     " (since this uniform is not an array uniform)," \
+                                     " got an array of length %d",              \
+                                 #name,                                         \
+                                 cnt,                           \
+                                 JS_GetTypedArrayLength(wa));                                  \
+    }                                                                           \
     MakeContextCurrent();                                               \
     PRUint32 numElementsToUpload = NS_MIN(location_object->mArrayLength, JS_GetTypedArrayLength(wa) / cnt);     \
     gl->f##name(location, numElementsToUpload, (ptrType *)JS_GetTypedArrayData(wa));            \
@@ -4145,6 +4153,14 @@ WebGLContext::name##_array(nsIWebGLUniformLocation *ploc, WebGLboolean transpose
         return ErrorInvalidValue(#name ": array length must be >0 and multiple of %d", dim*dim); \
     if (transpose)                                                      \
         return ErrorInvalidValue(#name ": transpose must be FALSE as per the OpenGL ES 2.0 spec"); \
+    if (location_object->mArrayLength == 1 && (dim*dim) != JS_GetTypedArrayLength(wa))  {                                                   \
+        return ErrorInvalidOperation("%s: expected an array of length exactly %d" \
+                                     " (since this uniform is not an array uniform)," \
+                                     " got an array of length %d",              \
+                                 #name,                                         \
+                                 (dim*dim),                           \
+                                 JS_GetTypedArrayLength(wa));                                  \
+    }                                                                           \
     MakeContextCurrent();                                               \
     PRUint32 numElementsToUpload = NS_MIN(location_object->mArrayLength, JS_GetTypedArrayLength(wa) / (dim*dim));     \
     gl->f##name(location, numElementsToUpload, transpose, (ptrType *)JS_GetTypedArrayData(wa)); \
