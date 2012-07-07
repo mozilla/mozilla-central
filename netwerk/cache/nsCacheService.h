@@ -279,6 +279,7 @@ private:
     nsTArray<nsISupports*>          mDoomedObjects;
     
     bool                            mInitialized;
+    bool                            mClearingEntries;
     
     bool                            mEnableMemoryDevice;
     bool                            mEnableDiskDevice;
