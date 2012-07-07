@@ -15,7 +15,6 @@ Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
 var gFolderJustSwitched = false;
 var gBeforeFolderLoadTime;
-var gRDFNamespace = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 var gVirtualFolderTerms;
 var gXFVirtualFolderTerms;
 var gCurrentVirtualFolderUri;

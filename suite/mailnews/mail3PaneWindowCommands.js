@@ -1044,12 +1044,6 @@ function SwitchPaneFocus(event)
   }
 }
 
-function SetFocusFolderPane()
-{
-    var folderTree = GetFolderTree();
-    folderTree.focus();
-}
-
 function SetFocusThreadPane()
 {
     var threadTree = GetThreadTree();
@@ -1062,11 +1056,6 @@ function SetFocusMessagePane()
     // on the message pane element then focus on the main content window
     GetMessagePane().focus();
     GetMessagePaneFrame().focus();
-}
-
-function is_collapsed(element) 
-{
-  return (element.getAttribute('state') == 'collapsed');
 }
 
 function isCommandEnabled(cmd)

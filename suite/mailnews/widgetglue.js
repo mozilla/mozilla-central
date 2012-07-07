@@ -16,17 +16,6 @@ Components.utils.import("resource:///modules/MailUtils.js");
 
 //NOTE: gMessengerBundle must be defined and set or this Overlay won't work
 
-function ConvertDOMListToResourceArray(nodeList)
-{
-    var result = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-
-    for (var i=0; i<nodeList.length; i++) {
-        result.AppendElement(nodeList[i].resource);
-    }
-
-    return result;
-}
-
 function GetSelectedFolderURI()
 {
   let folders = GetSelectedMsgFolders();

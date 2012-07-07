@@ -1143,11 +1143,6 @@ function GetTotalCountElement()
   return gTotalCount;
 }
 
-function FindMessenger()
-{
-  return messenger;
-}
-
 function ClearThreadPaneSelection()
 {
   try {
@@ -1177,14 +1172,6 @@ function ClearMessagePane()
     gMessageNotificationBar.clearMsgNotifications();
     ClearPendingReadTimer();
   }
-}
-
-function GetSelectedFolderIndex()
-{
-    var startIndex = {};
-    var endIndex = {};
-    GetFolderTree().view.selection.getRangeAt(0, startIndex, endIndex);
-    return startIndex.value;
 }
 
 // Function to change the highlighted row to where the mouse was clicked
@@ -1481,11 +1468,6 @@ function GetDBView()
 function GetFolderResource(tree, index)
 {
   return tree.builderView.getResourceAtIndex(index);
-}
-
-function GetFolderIndex(tree, resource)
-{
-  return tree.builderView.getIndexOfResource(resource);
 }
 
 // Some of the per account junk mail settings have been
