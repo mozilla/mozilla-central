@@ -24,6 +24,9 @@ Cu.import("resource:///modules/gloda/log4moz.js");
 Cu.import("resource:///modules/iteratorUtils.jsm");
 Cu.import("resource:///modules/MailUtils.js");
 
+const PERM_DIRECTORY = parseInt("0755", 8);
+const PERM_FILE = parseInt("0644", 8);
+
 let SearchSupport =
 {
   /**
@@ -327,6 +330,7 @@ let SearchSupport =
       let numFolders = allFolders.Count();
       this._log.debug("in find next folder, lastFolderIndexedUri = " +
                       this._lastFolderIndexedUri);
+
       for each (var folder in fixIterator(allFolders, Ci.nsIMsgFolder))
       {
         let searchPath = this._getSearchPathForFolder(folder);
@@ -337,7 +341,7 @@ let SearchSupport =
           // Create the folder if it doesn't exist, so that we don't hit the
           // condition below later
           if (!searchPath.exists())
-            searchPath.create(Ci.nsIFile.DIRECTORY_TYPE, 0755);
+            searchPath.create(Ci.nsIFile.DIRECTORY_TYPE, PERM_DIRECTORY);
 
           yield folder;
           // We're back after yielding -- set the last folder indexed
@@ -354,7 +358,7 @@ let SearchSupport =
                             "corresponding search folder does not exist");
             // Create the folder, so that next time we're checking we don't hit
             // this
-            searchPath.create(Ci.nsIFile.DIRECTORY_TYPE, 0755);
+            searchPath.create(Ci.nsIFile.DIRECTORY_TYPE, PERM_DIRECTORY);
             folder.setStringProperty(this._hdrIndexedProperty,
                                      "" + (Date.now() / 1000));
             yield folder;
@@ -651,7 +655,7 @@ let SearchSupport =
           {
             try {
               // create the directory, if it doesn't exist
-              destFile.create(Ci.nsIFile.DIRECTORY_TYPE, 0755);
+              destFile.create(Ci.nsIFile.DIRECTORY_TYPE, PERM_DIRECTORY);
             }
             catch(ex) {SearchIntegration._log.warn(ex);}
           }
@@ -851,14 +855,14 @@ let SearchSupport =
           {
             try {
               // create the directory, if it doesn't exist
-              file.create(Ci.nsIFile.DIRECTORY_TYPE, 0755);
+              file.create(Ci.nsIFile.DIRECTORY_TYPE, PERM_DIRECTORY);
             }
             catch(ex) { this._log.error(ex); }
           }
 
           file.appendRelativePath(messageId + SearchIntegration._fileExt);
           SearchIntegration._log.debug("file path = " + file.path);
-          file.create(0, 0644);
+          file.create(0, PERM_FILE);
           let uri = folder.getUriForMsg(msgHdr);
           let msgService = SearchIntegration._messenger
             .messageServiceFromURI(uri);

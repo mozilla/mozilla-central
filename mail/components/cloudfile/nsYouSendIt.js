@@ -1196,7 +1196,7 @@ nsYouSendItFileUploader.prototype = {
     let tempfile = Cc["@mozilla.org/file/directory_service;1"]
       .getService(Ci.nsIProperties).get("TmpD", Ci.nsIFile);
     tempfile.append(leafName)
-    tempfile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, 0666);
+    tempfile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, parseInt("0666", 8));
     // do whatever you need to the created file
     return tempfile.clone()
   },

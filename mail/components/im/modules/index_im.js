@@ -266,7 +266,7 @@ var GlodaIMIndexer = {
     cacheFile.append(kCacheFileName);
     if (cacheFile.exists()) {
       const PR_RDONLY = 0x01;
-      let fis = new FileInputStream(cacheFile, PR_RDONLY, 0444,
+      let fis = new FileInputStream(cacheFile, PR_RDONLY, parseInt("0444", 8),
                                     Ci.nsIFileInputStream.CLOSE_ON_EOF);
       let sis = new ScriptableInputStream(fis);
       let text = sis.read(sis.available());

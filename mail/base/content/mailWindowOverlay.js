@@ -1390,7 +1390,7 @@ BatchMessageMover.prototype = {
       }
       let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
 
-      let copyBatchKey = msgHdr.folder.URI + '\000' + monthFolderName;
+      let copyBatchKey = msgHdr.folder.URI + '\0' + monthFolderName;
       if (archiveGranularity >= Components.interfaces.nsIMsgIdentity
                                           .perMonthArchiveFolders)
         copyBatchKey += msgYear;

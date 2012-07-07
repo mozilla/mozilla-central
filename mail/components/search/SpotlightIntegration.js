@@ -72,8 +72,9 @@ let SearchIntegration =
 
   _pathNeedsReindexing: function spotlight_pathNeedsReindexing(aPath) {
     // We used to set permissions incorrectly (see bug 670566).
-    if (aPath.permissions != 0755) {
-      aPath.permissions = 0755;
+    const PERM_DIRECTORY = parseInt("0755", 8);
+    if (aPath.permissions != PERM_DIRECTORY) {
+      aPath.permissions = PERM_DIRECTORY;
       return true;
     }
     return false;
