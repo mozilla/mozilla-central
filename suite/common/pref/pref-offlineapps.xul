@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this file,
+   - You can obtain one at http://mozilla.org/MPL/2.0/.  -->
+
+<!DOCTYPE overlay [
+  <!ENTITY % prefOfflineCacheDTD SYSTEM "chrome://communicator/locale/pref/pref-offlineapps.dtd">
+  %prefOfflineCacheDTD;
+]>
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="offlineapps_pane"
+            label="&pref.offlineapps.title;"
+            script="chrome://communicator/content/pref/pref-offlineapps.js">
+
+    <preferences>
+      <preference id="browser.offline-apps.notify"
+                  name="browser.offline-apps.notify"
+                  type="bool"
+                  onchange="ReadOfflineNotify(!this.value);"/>
+    </preferences>
+
+    <groupbox id="offlineGroup" flex="1">
+      <caption label="&pref.offlineCache.caption;"/>
+
+      <hbox align="center">
+        <label id="appCacheSizeInfo" flex="1"/>
+        <button id="clearOfflineAppCache"
+                icon="clear"
+                label="&clearOfflineAppCache.label;"
+                accesskey="&clearOfflineAppCache.accesskey;"
+                oncommand="ClearOfflineAppCache();"/>
+      </hbox>
+      <hbox align="center">
+        <checkbox id="offlineNotify"
+                  flex="1"
+                  label="&offlineNotify.label;"
+                  accesskey="&offlineNotify.accesskey;"
+                  preference="browser.offline-apps.notify"/>
+        <button id="offlineNotifyPermissions"
+                label="&offlineNotifyPermissions.label;"
+                accesskey="&offlineNotifyPermissions.accesskey;"
+                oncommand="toDataManager('|permissions');"/>
+      </hbox>
+      <hbox flex="1">
+        <vbox flex="1">
+          <label id="offlineAppsListLabel">&offlineAppsList.label;</label>
+          <listbox id="offlineAppsList"
+                   flex="1"
+                   aria-labelledby="offlineAppsListLabel"
+                   onselect="OfflineAppSelected(this);">
+          </listbox>
+        </vbox>
+        <vbox pack="end">
+          <button id="offlineAppsListRemove"
+                  disabled="true"
+                  label="&offlineAppsListRemove.label;"
+                  accesskey="&offlineAppsListRemove.accesskey;" 
+                  oncommand="RemoveOfflineApp();"/>
+        </vbox>
+      </hbox>
+    </groupbox>
+
+  </prefpane>
+</overlay>

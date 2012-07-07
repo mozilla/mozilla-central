@@ -37,6 +37,7 @@ var permissionsTreeView = {
 
 var permissionsTree;
 var permissionType = "popup";
+var gManageCapability;
 
 var permissionsBundle;
 
@@ -60,6 +61,7 @@ function Startup() {
     document.getElementById("btnAllow").hidden = !params.allowVisible;
     setHost(params.prefilledHost);
     permissionType = params.permissionType;
+    gManageCapability = params.manageCapability;
     introText = params.introText;
     windowTitle = params.windowTitle;
   }
@@ -73,16 +75,15 @@ function Startup() {
   var dialogElement = document.getElementById("permissionsManager");
   dialogElement.setAttribute("windowtype", "permissions-" + permissionType);
 
-  if (permissionManager) {
-    handleHostInput(document.getElementById("url"));
-    loadPermissions();
-  }
-  else {
-    btnDisable(true);
-    document.getElementById("removeAllPermissions").disabled = true;
-    document.getElementById("url").disabled = true;
-    document.documentElement.getButton("accept").disabled = true;
-  }
+  var urlFieldVisible = params.blockVisible ||
+                        params.sessionVisible ||
+                        params.allowVisible;
+
+  document.getElementById("url").hidden = !urlFieldVisible;
+  document.getElementById("urlLabel").hidden = !urlFieldVisible;
+
+  handleHostInput(document.getElementById("url"));
+  loadPermissions();
 }
 
 function onAccept() {
@@ -133,7 +134,8 @@ function loadPermissions() {
   try {
     while (enumerator.hasMoreElements()) {
       permission = enumerator.getNext().QueryInterface(Components.interfaces.nsIPermission);
-      if (permission.type == permissionType)
+      if (permission.type == permissionType &&
+          (!gManageCapability || permission.capability == gManageCapability))
         permissionPush(count++, permission.host, permission.type,
                        capabilityString(permission.capability), permission.capability);
     }
@@ -256,9 +258,10 @@ function addPermission(aPermission) {
   var exists = false;
   for (var i in additions) {
     if (additions[i].rawHost == host) {
-      exists = true;
-      additions[i].capability = stringCapability;
-      additions[i].perm = aPermission;
+      // Avoid calling the permission manager if the capability settings are
+      // the same. Otherwise allow the call to the permissions manager to
+      // update the listbox for us.
+      exists = additions[i].perm == aPermission;
       break;
     }
   }

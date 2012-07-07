@@ -222,6 +222,11 @@
                     prefpane="cache_pane"
                     helpTopic="advanced_pref_cache"
                     url="chrome://communicator/content/pref/pref-cache.xul"/>
+          <treeitem id="offlineAppsItem"
+                    label="&offlineApps.label;"
+                    prefpane="offlineapps_pane"
+                    helpTopic="advanced_pref_offlineapps"
+                    url="chrome://communicator/content/pref/pref-offlineapps.xul"/>
           <treeitem id="proxiesItem"
                     label="&proxies.label;"
                     prefpane="proxies_pane"

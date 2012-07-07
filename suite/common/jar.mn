@@ -204,6 +204,8 @@ comm.jar:
    content/communicator/pref/pref-mousewheel.xul                    (pref/pref-mousewheel.xul)
    content/communicator/pref/pref-navigator.js                      (pref/pref-navigator.js)
    content/communicator/pref/pref-navigator.xul                     (pref/pref-navigator.xul)
+   content/communicator/pref/pref-offlineapps.js                    (pref/pref-offlineapps.js)
+   content/communicator/pref/pref-offlineapps.xul                   (pref/pref-offlineapps.xul)
    content/communicator/pref/pref-passwords.xul                     (pref/pref-passwords.xul)
    content/communicator/pref/pref-policies.xul                      (pref/pref-policies.xul)
    content/communicator/pref/pref-popups.js                         (pref/pref-popups.js)

@@ -9,3 +9,7 @@
 .listcell-iconic.handler-action[selected="true"] {
   -moz-binding: url("chrome://communicator/content/pref/prefpanels.xml#handler-action-selected");
 }
+
+#offlineAppsList > listitem {
+  -moz-binding: url("chrome://communicator/content/pref/prefpanels.xml#offlineapp");
+}

@@ -1227,8 +1227,8 @@ var gPerms = {
       this.addButton.disabled = true;
       this.addType.removeAllItems(); // Make sure list is clean.
       let permTypes = ["allowXULXBL", "cookie", "geo", "image", "install",
-                       "object", "password", "plugins", "popup", "script",
-                       "stylesheet"];
+                       "object", "offline-app", "password", "plugins",
+                       "popup", "script", "stylesheet"];
       for (let i = 0; i < permTypes.length; i++) {
         let typeDesc = permTypes[i];
         try {
@@ -1282,6 +1282,16 @@ var gPerms = {
         if (Services.prefs.getBoolPref("xpinstall.whitelist.required"))
           return Services.perms.DENY_ACTION;
         return Services.perms.ALLOW_ACTION;
+      case "offline-app":
+        try {
+          if (Services.prefs.getBoolPref("offline-apps.allow_by_default"))
+            return Services.perms.ALLOW_ACTION;
+        } catch(e) {
+          // this pref isn't set by default, ignore failures
+        }
+        if (Services.prefs.getBoolPref("browser.offline-apps.notify"))
+          return Services.perms.DENY_ACTION;
+        return Services.perms.UNKNOWN_ACTION;
       case "password":
         return Services.perms.ALLOW_ACTION;
       case "plugins":

@@ -49,4 +49,11 @@
     </implementation>
   </binding>
 
+  <binding id="offlineapp" extends="chrome://global/content/bindings/listbox.xml#listitem">
+    <content>
+      <xul:listcell xbl:inherits="label=host"/>
+      <xul:listcell xbl:inherits="label=usage"/>
+    </content>
+  </binding>
+
 </bindings>

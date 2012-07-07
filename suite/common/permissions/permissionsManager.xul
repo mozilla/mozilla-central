@@ -28,7 +28,10 @@
 
   <description id="permissionsText"/>
   <separator class="thin"/>
-  <label value="&address.label;" accesskey="&address.accesskey;" control="url"/>
+  <label id="urlLabel"
+         value="&address.label;"
+         accesskey="&address.accesskey;"
+         control="url"/>
   <hbox align="start">
     <textbox id="url" flex="1" oninput="handleHostInput(event.target);"/>
   </hbox>
