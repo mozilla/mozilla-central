@@ -87,8 +87,10 @@
       <preference id="mail.close_message_window.on_delete" 
                   name="mail.close_message_window.on_delete" type="bool"/>
       <!-- Network tab -->
-      <preference id="mail.prompt_purge_threshhold"          name="mail.prompt_purge_threshhold"    type="bool"/>
-      <preference id="mail.purge_threshhold_mb"              name="mail.purge_threshhold_mb"  type="int"/>
+      <preference id="mail.prompt_purge_threshhold"
+                  name="mail.prompt_purge_threshhold" type="bool"/>
+      <preference id="mail.purge_threshhold_mb"
+                  name="mail.purge_threshhold_mb" type="int"/>
       <preference id="browser.cache.disk.capacity"
                   name="browser.cache.disk.capacity" type="int"/>
       <!-- Update tab -->
@@ -132,6 +134,11 @@
     <stringbundle id="bundlePreferences" src="chrome://messenger/locale/preferences/preferences.properties"/>
     <stringbundle id="bundleBrand" src="chrome://branding/locale/brand.properties"/>
 #endif
+
+    <commandset id="networkTabCommandSet">
+      <command id="cmd_toggleCompact"
+               oncommand="gAdvancedPane.updateCompactOptions();"/>
+    </commandset>
 
     <tabbox id="advancedPrefs" flex="1" onselect="gAdvancedPane.tabSelectionChanged();">
       <tabs>
@@ -333,13 +340,17 @@
                       oncommand="gAdvancedPane.clearCache();"/>
             </hbox>
             <hbox align="center">
-                <checkbox id="offlineCompactFolder" label="&offlineCompact.label;" accesskey="&offlineCompact.accesskey;"
+                <checkbox id="offlineCompactFolder"
+                          label="&offlineCompactFolders.label;"
+                          accesskey="&offlineCompactFolders.accesskey;"
+                          command="cmd_toggleCompact"
+                          aria-labelledby="offlineCompactFolder offlineCompactFolderMin compactFolderMB"
                           preference="mail.prompt_purge_threshhold"/>
-                <textbox id="offlineCompactFolderMin" size="5" value="20"
+                <textbox id="offlineCompactFolderMin" size="4" value="20"
                          type="number" min="1" max="2048" increment="10"
                          preference="mail.purge_threshhold_mb"
                          aria-labelledby="offlineCompactFolder offlineCompactFolderMin compactFolderMB"/>
-                <label id="compactFolderMB" value="&mb.label;"/>
+                <label id="compactFolderMB" value="&offlineCompactFoldersMB.label;"/>
             </hbox>
           </groupbox>
         </tabpanel>

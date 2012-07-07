@@ -11,6 +11,7 @@ var gAdvancedPane = {
   {
     this.mPane = document.getElementById("paneAdvanced");
     this.updateMarkAsReadOptions(document.getElementById("automaticallyMarkAsRead").checked);
+    this.updateCompactOptions();
 
     if (!(("arguments" in window) && window.arguments[1]))
     {
@@ -313,6 +314,12 @@ var gAdvancedPane = {
     textbox.disabled = !document.getElementById('markAsReadAfterDelay').selected;
     if (!textbox.disabled && aFocusTextBox)
         textbox.focus();
+  },
+
+  updateCompactOptions: function(aCompactEnabled)
+  {
+    document.getElementById("offlineCompactFolderMin").disabled =
+      !document.getElementById("offlineCompactFolder").checked;
   },
 
   /**

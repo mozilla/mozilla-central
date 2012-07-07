@@ -91,10 +91,10 @@
 <!ENTITY showOffline.label             "Offline…">
 <!ENTITY showOffline.accesskey         "O">
 
-<!ENTITY Diskspace "Disk Space">
-<!ENTITY offlineCompact.label "Compact folders when it will save over">
-<!ENTITY offlineCompact.accesskey "a">
-<!ENTITY mb.label "MB">
+<!ENTITY Diskspace                       "Disk Space">
+<!ENTITY offlineCompactFolders.label     "Compact all folders when it will save over">
+<!ENTITY offlineCompactFolders.accesskey "a">
+<!ENTITY offlineCompactFoldersMB.label   "MB in total">
 
 <!-- LOCALIZATION NOTE:
   The entities useCacheBefore.label and useCacheAfter.label appear on a single

@@ -33,6 +33,6 @@
 <!ENTITY mailnewsTimeout.accesskey        "m">
 <!ENTITY mailnewsTimeoutSeconds.label     "seconds">
 <!ENTITY Diskspace                        "Disk Space">
-<!ENTITY offlineCompact.label             "Compact folders when it will save over">
-<!ENTITY offlineCompact.accesskey         "C">
-<!ENTITY mb.label                         "MB">
+<!ENTITY offlineCompactFolders.label      "Compact all folders when it will save over">
+<!ENTITY offlineCompactFolders.accesskey  "C">
+<!ENTITY offlineCompactFoldersMB.label    "MB in total">

@@ -101,20 +101,20 @@
       <caption label="&Diskspace;"/>
       <hbox align="center">
         <checkbox id="offlineCompactFolder"
-                  label="&offlineCompact.label;"
-                  accesskey="&offlineCompact.accesskey;"
+                  label="&offlineCompactFolders.label;"
+                  accesskey="&offlineCompactFolders.accesskey;"
                   preference="mail.prompt_purge_threshhold"
-                  aria-labelledby="offlineCompactFolder offlineCompactFolderMin kbLabel"/>
+                  aria-labelledby="offlineCompactFolder offlineCompactFolderMin offlineCompactFolderMB"/>
         <textbox id="offlineCompactFolderMin"
                  type="number"
-                 size="5"
+                 size="4"
                  min="1"
                  max="2048"
                  increment="10"
                  value="20"
                  preference="mail.purge_threshhold_mb"
-                 aria-labelledby="offlineCompactFolder offlineCompactFolderMin kbLabel"/>
-        <label id="offlineCompactFolderMB" value="&mb.label;"/>
+                 aria-labelledby="offlineCompactFolder offlineCompactFolderMin offlineCompactFolderMB"/>
+        <label id="offlineCompactFolderMB" value="&offlineCompactFoldersMB.label;"/>
       </hbox>
     </groupbox>
   </prefpane>
