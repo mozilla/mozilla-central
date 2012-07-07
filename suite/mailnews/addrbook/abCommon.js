@@ -624,7 +624,7 @@ function getPhotosDir() {
   // Get the Photos directory
   file.append("Photos");
   if (!file.exists() || !file.isDirectory())
-    file.create(Components.interfaces.nsIFile.DIRECTORY_TYPE, 0777);
+    file.create(Components.interfaces.nsIFile.DIRECTORY_TYPE, parseInt("0777", 8));
   return file;
 }
 
@@ -670,7 +670,7 @@ function saveStreamToFile(aIStream, aFile) {
                           .createInstance(Components.interfaces.nsIFileOutputStream);
   var buffer  = Components.classes["@mozilla.org/network/buffered-output-stream;1"]
                           .createInstance(Components.interfaces.nsIBufferedOutputStream);
-  fstream.init(aFile, 0x04 | 0x08 | 0x20, 0600, 0); // write, create, truncate
+  fstream.init(aFile, 0x04 | 0x08 | 0x20, parseInt("0600", 8), 0); // write, create, truncate
   buffer.init(fstream, 8192);
 
   buffer.writeFrom(aIStream, aIStream.available());

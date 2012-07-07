@@ -133,7 +133,7 @@ directoryTreeView.prototype =
       file.append(aJSONFile);
       let foStream = Components.classes["@mozilla.org/network/safe-file-output-stream;1"]
                                .createInstance(Components.interfaces.nsIFileOutputStream);
-      foStream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
+      foStream.init(file, 0x02 | 0x08 | 0x20, parseInt("0666", 8), 0);
       foStream.write(data, data.length);
       foStream.QueryInterface(Components.interfaces.nsISafeOutputStream).finish();
       foStream.close();

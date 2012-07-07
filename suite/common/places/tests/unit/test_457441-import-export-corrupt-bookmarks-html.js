@@ -65,7 +65,7 @@ function after_import(success) {
     bookmarksFile.append("bookmarks.exported.html");
     if (bookmarksFile.exists())
       bookmarksFile.remove(false);
-    bookmarksFile.create(Ci.nsILocalFile.NORMAL_FILE_TYPE, 0600);
+    bookmarksFile.create(Ci.nsILocalFile.NORMAL_FILE_TYPE, parseInt("0600", 8));
     if (!bookmarksFile.exists())
       do_throw("couldn't create file: bookmarks.exported.html");
     try {

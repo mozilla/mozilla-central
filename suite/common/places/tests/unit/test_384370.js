@@ -42,7 +42,7 @@ function run_test() {
   // create bookmarks.exported.json
   if (jsonFile.exists())
     jsonFile.remove(false);
-  jsonFile.create(Ci.nsILocalFile.NORMAL_FILE_TYPE, 0600);
+  jsonFile.create(Ci.nsILocalFile.NORMAL_FILE_TYPE, parseInt("0600", 8));
   if (!jsonFile.exists())
     do_throw("couldn't create file: bookmarks.exported.json");
 

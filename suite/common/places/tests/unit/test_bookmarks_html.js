@@ -124,7 +124,7 @@ add_test(function setup() {
   if (gBookmarksFileNew.exists()) {
     gBookmarksFileNew.remove(false);
   }
-  gBookmarksFileNew.create(Ci.nsILocalFile.NORMAL_FILE_TYPE, 0600);
+  gBookmarksFileNew.create(Ci.nsILocalFile.NORMAL_FILE_TYPE, parseInt("0600", 8));
   if (!gBookmarksFileNew.exists()) {
     do_throw("couldn't create file: bookmarks.exported.html");
   }

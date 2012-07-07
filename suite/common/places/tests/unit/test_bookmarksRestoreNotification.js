@@ -335,7 +335,7 @@ function createFile(aBasename) {
   file.append(aBasename);
   if (file.exists())
     file.remove(false);
-  file.create(file.NORMAL_FILE_TYPE, 0666);
+  file.create(file.NORMAL_FILE_TYPE, parseInt("0666", 8));
   if (!file.exists())
     do_throw("Couldn't create file: " + aBasename);
   return file;

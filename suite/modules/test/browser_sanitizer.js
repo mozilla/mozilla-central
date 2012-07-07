@@ -214,7 +214,7 @@ var sanTests = {
                            .getService(Components.interfaces.nsIProperties)
                            .get("TmpD", Components.interfaces.nsIFile);
       file.append("sanitizer.file");
-      file.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, 0666);
+      file.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, parseInt("0666", 8));
       var dest = ios.newFileURI(file);
 
       this.dm = Components.classes["@mozilla.org/download-manager;1"]
