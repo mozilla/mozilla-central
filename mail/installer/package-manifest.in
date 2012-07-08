@@ -408,6 +408,7 @@
 @BINPATH@/components/content_xtf.xpt
 @BINPATH@/components/html5.xpt
 @BINPATH@/components/htmlparser.xpt
+@BINPATH@/components/identity.xpt
 @BINPATH@/components/layout_base.xpt
 @BINPATH@/components/layout_forms.xpt
 #ifdef NS_PRINTING
