@@ -1,0 +1,58 @@
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsISupports.idl"
+
+interface mozINewMailListener;
+
+typedef long newMailListenerFlag;
+
+[scriptable, uuid(7fef9018-c9f1-4cbd-b57c-d6555cf3a668)]
+/** New mail notification service. This service watches all the relevant
+ * folder and message change events, preferences etc. and keeps track of
+ * the specific messages the user wants notifications for.
+ * NOTE: THIS INTERFACE IS UNDER ACTIVE DEVELOPMENT AND SUBJECT TO CHANGE,
+ * see https://bugzilla.mozilla.org/show_bug.cgi?id=715799
+ * Registered mozINewMailListeners are called when the message count or
+ * specific list of notified messages changes.
+ * ** Should also document the observer service callback that allows
+ *    plugins to override notifications by folder
+ */
+interface mozINewMailNotificationService : nsISupports {
+  /**
+   * @name Notification flags
+   * These flags determine which notifications will be sent.
+   * @{
+   */
+  /// mozINewMailListener::count notification
+  const newMailListenerFlag count = 0x1;
+
+  /// mozINewMailListener::messages notification
+  const newMailListenerFlag messages = 0x2;
+
+  /** @} */
+
+  /**
+   * addListener - Register a mozINewMailListener to receive callbacks
+   *               when the count or list of notification-worthy messages
+   *               changes.
+   * @param aListener   mozINewMailListener to call back
+   * @param flags       Bitmask of newMailListenerFlag values indicating
+   *                    the particular callbacks this listener wants.
+   *                    If the listener is already registered with the
+   *                    notification service, the existing set of flags is
+   *                    replaced by the values passed in this parameter.
+   */
+  void addListener(in mozINewMailListener aListener,
+                   in newMailListenerFlag flags);
+  /**
+   * removeListener - remove a listener from the service
+   * @param aListener  The listener to remove
+   */
+  void removeListener(in mozINewMailListener aListener);
+
+  /// The current count of notification-worth unread messages
+  readonly attribute long messageCount;
+};

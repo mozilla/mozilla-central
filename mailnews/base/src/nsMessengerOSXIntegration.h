@@ -14,6 +14,7 @@
 #include "nsStringGlue.h"
 #include "nsIObserver.h"
 #include "nsIAlertsService.h"
+#include "mozINewMailListener.h"
 
 #define NS_MESSENGEROSXINTEGRATION_CID \
   {0xaa83266, 0x4225, 0x4c4b, \
@@ -23,7 +24,8 @@ class nsIStringBundle;
 
 class nsMessengerOSXIntegration : public nsIMessengerOSIntegration,
                                   public nsIFolderListener,
-                                  public nsIObserver
+                                  public nsIObserver,
+                                  public mozINewMailListener
 {
 public:
   nsMessengerOSXIntegration();
@@ -34,11 +36,11 @@ public:
   NS_DECL_NSIMESSENGEROSINTEGRATION
   NS_DECL_NSIFOLDERLISTENER
   NS_DECL_NSIOBSERVER
+  NS_DECL_MOZINEWMAILLISTENER
 
 private:
   nsCOMPtr<nsIAtom> mBiffStateAtom;
   nsCOMPtr<nsIAtom> mNewMailReceivedAtom;
-  nsCOMPtr<nsIAtom> mTotalUnreadMessagesAtom;
   nsresult ShowAlertMessage(const nsAString& aAlertTitle, const nsAString& aAlertText, const nsACString& aFolderURI);
   nsresult OnAlertFinished();
   nsresult OnAlertClicked(const PRUnichar * aAlertCookie);
@@ -49,15 +51,9 @@ private:
   nsresult RestoreDockIcon();
   nsresult BounceDockIcon();
   nsresult GetNewMailAuthors(nsIMsgFolder* aFolder, nsString& aAuthors, PRInt32 aNewCount, PRInt32* aNotDisplayed);
-  nsresult GetTotalUnread(nsIMsgFolder* aFolder, bool deep, PRInt32* aTotal);
-  nsresult ConfirmShouldCount(nsIMsgFolder* aFolder, bool* aCountFolder);
-  void InitUnreadCount();
 
   PRInt32 mUnreadTotal;
   PRInt32 mUnreadChat;
-  PRInt32 mNewTotal;
-  bool mOnlyCountInboxes;
-  bool mDoneInitialCount;
 };
 
 #endif // __nsMessengerOSXIntegration_h

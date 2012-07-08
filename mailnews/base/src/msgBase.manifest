@@ -3,3 +3,6 @@ contract @mozilla.org/messenger/msgAsyncPrompter;1 {49b04761-23dd-45d7-903d-6194
 component {2f86d554-f9d9-4e76-8eb7-243f047333ee} nsMailNewsCommandLineHandler.js
 contract @mozilla.org/commandlinehandler/general-startup;1?type=mail {2f86d554-f9d9-4e76-8eb7-243f047333ee}
 category command-line-handler m-mail @mozilla.org/commandlinehandler/general-startup;1?type=mail
+component {740880E6-E299-4165-B82F-DF1DCAB3AE22} newMailNotificationService.js
+contract @mozilla.org/newMailNotificationService;1 {740880E6-E299-4165-B82F-DF1DCAB3AE22}
+category profile-after-change NewMailNotificationService @mozilla.org/newMailNotificationService;1 

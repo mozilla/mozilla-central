@@ -74,6 +74,8 @@ XPIDLSRCS	= \
 		nsIMsgUserFeedbackListener.idl \
 		nsIMsgAsyncPrompter.idl \
 		nsIMsgPluggableStore.idl \
+		mozINewMailNotificationService.idl \
+		mozINewMailListener.idl \
 		$(NULL)
 
 include $(topsrcdir)/config/rules.mk

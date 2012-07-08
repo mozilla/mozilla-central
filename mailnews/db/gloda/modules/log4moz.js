@@ -79,6 +79,8 @@ let Log4Moz = {
 
     let formatter = new Log4Moz.BasicFormatter();
 
+    level = level || Log4Moz.Level.Error;
+
     consoleLevel = consoleLevel || -1;
     dumpLevel = dumpLevel || -1;
     let branch = Cc["@mozilla.org/preferences-service;1"].
@@ -96,6 +98,7 @@ let Log4Moz = {
                           100 : Log4Moz.Level[consoleLevelString];
         }
       } catch (ex) {
+        // Ignore if preference is not found
       }
       try {
         let dumpLevelString = branch.getCharPref("dump");
@@ -107,6 +110,7 @@ let Log4Moz = {
                        100 : Log4Moz.Level[dumpLevelString];
         }
       } catch (ex) {
+        // Ignore if preference is not found
       }
     }
 
@@ -126,7 +130,7 @@ let Log4Moz = {
       log.addAppender(dapp);
     }
 
-    log.level = level || Math.min(consoleLevel, dumpLevel);
+    log.level = Math.min(level, Math.min(consoleLevel, dumpLevel));
 
     log._configured = true;
 
@@ -576,7 +580,7 @@ function Appender(formatter) {
   this._formatter = formatter? formatter : new BasicFormatter();
 }
 Appender.prototype = {
-  level: Log4Moz.Level.All,
+  _level: Log4Moz.Level.All,
 
   append: function App_append(message) {
     this.doAppend(this._formatter.format(message));
@@ -676,11 +680,16 @@ function ConsoleAppender(formatter) {
 ConsoleAppender.prototype = {
   __proto__: Appender.prototype,
 
-  doAppend: function CApp_doAppend(message) {
+  // override to send Error and higher level messages to Components.utils.reportError()
+  append: function CApp_append(message) {
+    let stringMessage = this._formatter.format(message);
     if (message.level > Log4Moz.Level.Warn) {
-      Cu.reportError(message);
-      return;
+      Cu.reportError(stringMessage);
     }
+    this.doAppend(stringMessage);
+  },
+
+  doAppend: function CApp_doAppend(message) {
     Cc["@mozilla.org/consoleservice;1"].
       getService(Ci.nsIConsoleService).logStringMessage(message);
   }

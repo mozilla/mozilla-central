@@ -522,4 +522,15 @@
 #define NS_MAILNEWSDLF_CONTRACTID \
   "@mozilla.org/mailnews/document-loader-factory;1"
 
+//
+// NewMailNotificationService
+//
+#define MOZ_NEWMAILNOTIFICATIONSERVICE_CID \
+{ /* 740880E6-E299-4165-B82F-DF1DCAB3AE22 */ \
+  0x740880E6, 0xE299, 0x4165, \
+    { 0xB8, 0x2F, 0xDF, 0x1D, 0xCA, 0xB3, 0xAE, 0x22 }}
+
+#define MOZ_NEWMAILNOTIFICATIONSERVICE_CONTRACTID \
+  "@mozilla.org/newMailNotificationService;1"
+
 #endif // nsMessageBaseCID_h__

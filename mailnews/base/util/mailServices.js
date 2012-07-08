@@ -67,3 +67,7 @@ XPCOMUtils.defineLazyServiceGetter(MailServices, "filters",
 XPCOMUtils.defineLazyServiceGetter(MailServices, "junk",
                                    "@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter",
                                    "nsIJunkMailPlugin");
+
+XPCOMUtils.defineLazyServiceGetter(MailServices, "newMailNotification",
+                                   "@mozilla.org/newMailNotificationService;1",
+                                   "mozINewMailNotificationService");

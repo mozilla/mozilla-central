@@ -785,6 +785,9 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/components/jsmimeemitter.js
 @BINPATH@/components/gloda.manifest
 
+; New message notification
+@BINPATH@/components/newMailNotificationService.js
+
 [chatzilla]
 #ifdef MOZ_OMNIJAR
 @BINPATH@/distribution/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}.xpi

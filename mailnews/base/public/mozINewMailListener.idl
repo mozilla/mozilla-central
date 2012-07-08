@@ -1,0 +1,22 @@
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsISupports.idl"
+
+[scriptable, uuid(e15f104f-a16d-4e51-a362-4b4c5efe05b9)]
+/**
+ * Callback interface for objects interested in receiving new mail notifications
+ * from mozINewMailNotificationService
+ * NOTE: THIS INTERFACE IS UNDER ACTIVE DEVELOPMENT AND SUBJECT TO CHANGE,
+ * see https://bugzilla.mozilla.org/show_bug.cgi?id=715799
+ */
+interface mozINewMailListener : nsISupports {
+  /** The new mail notification service will call this when the number of interesting
+   * messages has changed
+   *
+   * @param unreadCount   The number of unread messages the user cares to be notified about
+   */
+  void onCountChanged(in unsigned long count);
+};
