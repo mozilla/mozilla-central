@@ -462,7 +462,7 @@ pref("mail.compose.attachment_reminder_aggressive", true);
 pref("mail.compose.big_attachments.notify", true);
 // Size (in kB) to automatically prompt for conversion of attachments to
 // cloud links
-pref("mail.compose.big_attachments.threshold_kb", 1024);
+pref("mail.compose.big_attachments.threshold_kb", 5120);
 // True if the user should be notified that links will be inserted into
 // their message when the upload is completed
 pref("mail.compose.big_attachments.insert_notification", true);
