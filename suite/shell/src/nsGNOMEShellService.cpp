@@ -76,6 +76,12 @@ nsGNOMEShellService::SetShouldBeDefaultClientFor(PRUint16 aApps)
 }
 
 NS_IMETHODIMP
+nsGNOMEShellService::GetCanSetDesktopBackground(bool* aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
 nsGNOMEShellService::SetDesktopBackground(nsIDOMElement* aElement, 
                                           PRInt32 aPosition)
 {

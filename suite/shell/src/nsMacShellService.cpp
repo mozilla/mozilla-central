@@ -56,6 +56,12 @@ nsMacShellService::SetShouldBeDefaultClientFor(PRUint16 aApps)
 }
 
 NS_IMETHODIMP
+nsMacShellService::GetCanSetDesktopBackground(bool* aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
 nsMacShellService::SetDesktopBackground(nsIDOMElement* aElement,
                                             PRInt32 aPosition)
 {

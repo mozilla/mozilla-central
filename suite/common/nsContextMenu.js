@@ -160,14 +160,21 @@ nsContextMenu.prototype = {
                     this.onCanvas || this.onVideo || this.onAudio));
     // Set As Wallpaper depends on whether an image was clicked on,
     // and requires the shell service.
-    var hasShell = "@mozilla.org/suite/shell-service;1" in Components.classes;
+    var canSetDesktopBackground = false;
+    if ("@mozilla.org/suite/shell-service;1" in Components.classes) try {
+      canSetDesktopBackground =
+          Components.classes["@mozilla.org/suite/shell-service;1"]
+                    .getService(Components.interfaces.nsIShellService)
+                    .canSetDesktopBackground;
+    } catch (e) {
+    }
     this.showItem("context-setWallpaper",
-                  hasShell && (this.onLoadedImage || this.onStandaloneImage));
+                  canSetDesktopBackground && (this.onLoadedImage || this.onStandaloneImage));
 
     this.showItem("context-sep-image",
                   this.onLoadedImage || this.onStandaloneImage);
 
-    if (hasShell && this.onLoadedImage)
+    if (canSetDesktopBackground && this.onLoadedImage)
       // Disable the Set As Wallpaper menu item if we're still trying to load the image
       this.setItemAttr("context-setWallpaper", "disabled",
                        (("complete" in this.target) && !this.target.complete) ? "true" : null);

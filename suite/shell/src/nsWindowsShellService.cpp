@@ -639,6 +639,13 @@ nsWindowsShellService::SetShouldBeDefaultClientFor(PRUint16 aApps)
   return prefs->SetIntPref("shell.checkDefaultApps", aApps);
 }
 
+NS_IMETHODIMP
+nsWindowsShellService::GetCanSetDesktopBackground(bool* aResult)
+{
+  *aResult = true;
+  return NS_OK;
+}
+
 static nsresult
 WriteBitmap(nsIFile* aFile, imgIContainer* aImage)
 {

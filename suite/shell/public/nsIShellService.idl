@@ -9,7 +9,7 @@
 interface nsIDOMElement;
 interface nsIFile;
 
-[scriptable, uuid(BEBB8B6A-8AF4-4CF2-85AC-022F7C6A87A9)]
+[scriptable, uuid(4244d99e-0fbf-4cf3-903a-893634704e84)]
 interface nsIShellService : nsISupports
 {
   /**
@@ -62,6 +62,11 @@ interface nsIShellService : nsISupports
    * Saves/reads the default apps to/from the pref shell.checkDefaultApps
    */
   attribute unsigned short shouldBeDefaultClientFor;
+
+  /**
+   * Attempt to determine whether it is possible to change the wallpaper.
+   */
+  readonly attribute boolean canSetDesktopBackground;
 
   /**
    * Sets the desktop background image using either the HTML <IMG>
