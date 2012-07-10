@@ -89,10 +89,9 @@ stage-mozilla-tests: make-stage-dir
 stage-mozmill: make-stage-dir
 	$(MAKE) -C $(DEPTH)/mail/test/mozmill stage-package
 
-# This will get replaced by actual logic in a subsequent patch.
 stage-modules: make-stage-dir
 	$(NSINSTALL) -D $(PKG_STAGE)/modules
-	$(TOUCH) $(PKG_STAGE)/modules/.dummy
+	cp -RL $(DEPTH)/mozilla/_tests/modules $(PKG_STAGE)
 
 .PHONY: \
   package-tests make-stage-dir stage-mozmill stage-modules
