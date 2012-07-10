@@ -730,7 +730,9 @@
 @BINPATH@/maintenanceservice_installer.exe
 #endif
 
-; [crash reporter]
+; [Crash Reporter]
+;
+#ifdef MOZ_CRASHREPORTER
 #ifdef XP_MACOSX
 @BINPATH@/crashreporter.app/
 #else
@@ -739,6 +741,7 @@
 @BINPATH@/crashreporter.ini
 #ifdef XP_UNIX
 @BINPATH@/Throbber-small.gif
+#endif
 #endif
 #endif
 #endif
