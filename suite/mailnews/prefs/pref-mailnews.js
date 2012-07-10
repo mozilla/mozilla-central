@@ -30,20 +30,20 @@ function setHomePageToDefaultPage()
 
 function defaultClientSetup()
 {
-  if ("@mozilla.org/suite/shell-service;1" in Components.classes) {
+  if ("@mozilla.org/suite/shell-service;1" in Components.classes) try {
     var shellService = Components.classes["@mozilla.org/suite/shell-service;1"]
                                  .getService(nsIShellService);
 
-    document.getElementById("setDefaultMail").disabled =
-      shellService.isDefaultClient(false, nsIShellService.MAIL);
-
-    document.getElementById("setDefaultNews").disabled =
-      shellService.isDefaultClient(false, nsIShellService.NEWS);
-
-    document.getElementById("setDefaultFeed").disabled =
-      shellService.isDefaultClient(false, nsIShellService.RSS);
-
-    document.getElementById("defaultMailPrefs").hidden = false;
+    ["Mail", "News", "Rss"].forEach(function(aType) {
+      var button = document.getElementById("setDefault" + aType);
+      try {
+        button.disabled = shellService.isDefaultClient(false, nsIShellService[aType.toUpperCase()]);
+        document.getElementById("defaultMailPrefs").hidden = false;
+      } catch (e) {
+        button.hidden = true;
+      }
+    });
+  } catch (e) {
   }
 }
 
@@ -77,5 +77,5 @@ function onSetDefaultFeed()
   shellService.setDefaultClient(false, false, nsIShellService.RSS);
   shellService.shouldBeDefaultClientFor |= nsIShellService.RSS;
 
-  document.getElementById("setDefaultFeed").disabled = true;
+  document.getElementById("setDefaultRss").disabled = true;
 }

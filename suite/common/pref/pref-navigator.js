@@ -281,19 +281,21 @@ function InitPlatformIntegration()
 {
   const NS_SHELLSERVICE_CID = "@mozilla.org/suite/shell-service;1";
 
-  if (NS_SHELLSERVICE_CID in Components.classes) {
+  if (NS_SHELLSERVICE_CID in Components.classes) try {
     const nsIShellService = Components.interfaces.nsIShellService;
     var shellSvc = Components.classes["@mozilla.org/suite/shell-service;1"]
                              .getService(nsIShellService);
-    var desc = document.getElementById("defaultBrowserDesc");
-    document.getElementById("defaultBrowserGroup").hidden = false;
 
+    var desc = document.getElementById("defaultBrowserDesc");
     if (shellSvc.isDefaultClient(false, nsIShellService.BROWSER))
       desc.textContent = desc.getAttribute("desc1");
     else {
       desc.textContent = desc.getAttribute("desc0");
       document.getElementById("defaultBrowserButton").disabled = false;
     }
+
+    document.getElementById("defaultBrowserGroup").hidden = false;
+  } catch (e) {
   }
 }
 

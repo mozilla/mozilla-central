@@ -82,7 +82,7 @@
           <button id="setDefaultNews" accesskey="&setDefaultNews.accesskey;"
                   label="&setDefaultNews.label;" oncommand="onSetDefaultNews();"
                   preference="system.windows.lock_ui.defaultNewsClient"/>
-          <button id="setDefaultFeed"
+          <button id="setDefaultRss"
                   accesskey="&setDefaultFeed.accesskey;"
                   label="&setDefaultFeed.label;"
                   oncommand="onSetDefaultFeed();"

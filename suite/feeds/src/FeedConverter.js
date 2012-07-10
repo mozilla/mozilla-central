@@ -380,7 +380,7 @@ FeedResultService.prototype = {
       // Retrieving the shell service might fail on some systems, most
       // notably systems where GNOME is not installed.
       try {
-        var ss = Components.classes["@mozilla.org/suite/shell-feed-service;1"]
+        var ss = Components.classes["@mozilla.org/suite/shell-service;1"]
                            .getService(Components.interfaces.nsIShellService);
         ss.openApplicationWithURI(clientApp, spec);
       } catch(e) {

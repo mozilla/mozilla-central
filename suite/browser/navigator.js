@@ -2171,7 +2171,7 @@ function checkForDefaultBrowser()
 {
   const NS_SHELLSERVICE_CID = "@mozilla.org/suite/shell-service;1";
 
-  if (NS_SHELLSERVICE_CID in Components.classes) {
+  if (NS_SHELLSERVICE_CID in Components.classes) try {
     const nsIShellService = Components.interfaces.nsIShellService;
     var shellService = Components.classes["@mozilla.org/suite/shell-service;1"]
                                  .getService(nsIShellService);
@@ -2189,6 +2189,7 @@ function checkForDefaultBrowser()
       // integration dialog has come up.
       SidebarRebuild();
     }
+  } catch (e) {
   }
 }
 

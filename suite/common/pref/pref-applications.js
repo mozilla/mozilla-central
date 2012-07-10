@@ -34,8 +34,8 @@ var mimeSvc = Components.classes["@mozilla.org/mime;1"]
 var converterSvc = Components.classes["@mozilla.org/embeddor.implemented/web-content-handler-registrar;1"]
                              .getService(Components.interfaces.nsIWebContentConverterService);
 var shellSvc = null;
-if ("@mozilla.org/suite/shell-feed-service;1" in Components.classes)
-  shellSvc = Components.classes["@mozilla.org/suite/shell-feed-service;1"]
+if ("@mozilla.org/suite/shell-service;1" in Components.classes)
+  shellSvc = Components.classes["@mozilla.org/suite/shell-service;1"]
                        .getService(Components.interfaces.nsIShellService);
 
 const TYPE_MAYBE_FEED = "application/vnd.mozilla.maybe.feed";

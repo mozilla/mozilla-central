@@ -18,11 +18,16 @@ function onLoad()
      conjunction */
   for (var i = 0; i < defaultList.getRowCount(); i++) {
     var currentItem = defaultList.getItemAtIndex(i);
-    if (nsIShellService[currentItem.value] & appTypes)
-      currentItem.checked = true;
-
-    if (shellSvc.isDefaultClient(false, nsIShellService[currentItem.value]))
-      currentItem.disabled = true;
+    try {
+      if (shellSvc.isDefaultClient(false, nsIShellService[currentItem.value])) {
+        currentItem.checked = true;
+        currentItem.disabled = true;
+      }
+      else if (nsIShellService[currentItem.value] & appTypes)
+        currentItem.checked = true;
+    } catch (e) {
+      currentItem.hidden = true;
+    }
   }
 }
 
