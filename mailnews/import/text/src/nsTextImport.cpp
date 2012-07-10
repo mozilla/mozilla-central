@@ -101,14 +101,14 @@ private:
                       PRUnichar **pSuccess);
   static void ReportError(PRInt32 errorNum, nsString& name, nsString *pStream,
                           nsIStringBundle* pBundle);
-  static void SanitizeSampleData(nsCString& val);
+  static void SanitizeSampleData(nsString& val);
 
 private:
   nsTextAddress m_text;
   bool m_haveDelim;
   nsCOMPtr<nsIFile> m_fileLoc;
   nsCOMPtr<nsIStringBundle> m_notProxyBundle;
-  char m_delim;
+  PRUnichar m_delim;
   PRUint32 m_bytesImported;
 };
 
@@ -517,13 +517,13 @@ NS_IMETHODIMP ImportAddressImpl::GetNeedsFieldMap(nsIFile *aLocation, bool *_ret
   return NS_OK;
 }
 
-void ImportAddressImpl::SanitizeSampleData(nsCString& val)
+void ImportAddressImpl::SanitizeSampleData(nsString& val)
 {
   // remove any line-feeds...
-  PRInt32 offset = val.Find(NS_LITERAL_CSTRING("\x0D\x0A"));
+  PRInt32 offset = val.Find(NS_LITERAL_STRING("\x0D\x0A"));
   while (offset != -1) {
-    val.Replace(offset, 2, ", ");
-    offset = val.Find(NS_LITERAL_CSTRING("\x0D\x0A"), offset + 2);
+    val.Replace(offset, 2, NS_LITERAL_STRING(", "));
+    offset = val.Find(NS_LITERAL_STRING("\x0D\x0A"), offset + 2);
   }
   offset = val.FindChar(13);
   while (offset != -1) {
@@ -570,21 +570,17 @@ NS_IMETHODIMP ImportAddressImpl::GetSampleData(PRInt32 index, bool *pFound, PRUn
     return NS_OK;
   }
 
-  nsCString line;
+  nsAutoString line;
   rv = nsTextAddress::ReadRecordNumber(m_fileLoc, line, index);
   if (NS_SUCCEEDED(rv)) {
     nsString str;
-    nsCString field;
-    nsString uField;
+    nsString field;
     PRInt32 fNum = 0;
-    while (nsTextAddress::GetField(line.get(), line.Length(), fNum, field, m_delim)) {
+    while (nsTextAddress::GetField(line, fNum, field, m_delim)) {
       if (fNum)
         str.Append(PRUnichar('\n'));
       SanitizeSampleData(field);
-      rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(),
-                                     field, uField);
-
-      str.Append(uField);
+      str.Append(field);
       fNum++;
       field.Truncate();
     }

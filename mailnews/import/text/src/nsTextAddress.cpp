@@ -13,6 +13,9 @@
 #include "nsNetUtil.h"
 #include "nsMsgUtils.h"
 #include "mdb.h"
+#include "nsIConverterInputStream.h"
+#include "nsIUnicharLineInputStream.h"
+#include "nsMsgUtils.h"
 
 #include "TextDebugLog.h"
 #include "plstr.h"
@@ -38,6 +41,29 @@ nsTextAddress::~nsTextAddress()
 {
     NS_IF_RELEASE(m_database);
     NS_IF_RELEASE(m_fieldMap);
+}
+
+nsresult nsTextAddress::GetUnicharLineStreamForFile(nsIFile *aFile,
+                                                    nsIInputStream *aInputStream,
+                                                    nsIUnicharLineInputStream **aStream)
+{
+  nsCAutoString charset;
+  nsresult rv = MsgDetectCharsetFromFile(aFile, charset);
+  if (NS_FAILED(rv)) {
+    IMPORT_LOG0( "*** Error checking address file for charset detection\n");
+    return rv;
+  }
+
+  nsCOMPtr<nsIConverterInputStream> converterStream =
+    do_CreateInstance("@mozilla.org/intl/converter-input-stream;1", &rv);
+  if (NS_SUCCEEDED(rv)) {
+    rv = converterStream->Init(aInputStream,
+                               charset.get(),
+                               8192,
+                               nsIConverterInputStream::DEFAULT_REPLACEMENT_CHARACTER);
+  }
+
+  return CallQueryInterface(converterStream, aStream);
 }
 
 nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsIImportFieldMap *fieldMap, nsString& errors, PRUint32 *pProgress)
@@ -77,11 +103,15 @@ nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, ns
     return rv;
   }
 
-  nsCOMPtr<nsILineInputStream> lineStream(do_QueryInterface(inputStream, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIUnicharLineInputStream> lineStream;
+  rv = GetUnicharLineStreamForFile(pSrc, inputStream, getter_AddRefs(lineStream));
+  if (NS_FAILED(rv)) {
+    IMPORT_LOG0("*** Error opening converter stream for importer\n");
+    return rv;
+  }
 
   bool more = true;
-  nsCString line;
+  nsAutoString line;
 
   // Skip the first record if the user has requested it.
   if (skipRecord)
@@ -92,7 +122,7 @@ nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, ns
     rv = ReadRecord(lineStream, line, &more);
     if (NS_SUCCEEDED(rv)) {
       // Now proces it to add it to the database
-      rv = ProcessLine(line.get(), line.Length(), errors);
+      rv = ProcessLine(line, errors);
 
       if (NS_FAILED(rv)) {
         IMPORT_LOG0("*** Error processing text record.\n");
@@ -117,12 +147,14 @@ nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, ns
   return pDb->Commit(nsAddrDBCommitType::kLargeCommit);
 }
 
-nsresult nsTextAddress::ReadRecord(nsILineInputStream *aLineStream, nsCString &aLine, bool *aMore)
+nsresult nsTextAddress::ReadRecord(nsIUnicharLineInputStream *aLineStream,
+                                   nsAString &aLine,
+                                   bool *aMore)
 {
   bool more = true;
   PRUint32 numQuotes = 0;
   nsresult rv;
-  nsCString line;
+  nsAutoString line;
 
   // ensure aLine is empty
   aLine.Truncate();
@@ -140,7 +172,7 @@ nsresult nsTextAddress::ReadRecord(nsILineInputStream *aLineStream, nsCString &a
           aLine.AppendLiteral(MSG_LINEBREAK);
         aLine.Append(line);
 
-        numQuotes += MsgCountChar(line, '"');
+        numQuotes += line.CountChar(PRUnichar('"'));
       }
     }
     // Continue whilst everything is ok, and we have an odd number of quotes.
@@ -150,7 +182,7 @@ nsresult nsTextAddress::ReadRecord(nsILineInputStream *aLineStream, nsCString &a
   return rv;
 }
 
-nsresult nsTextAddress::ReadRecordNumber(nsIFile *aSrc, nsCString &aLine, PRInt32 rNum)
+nsresult nsTextAddress::ReadRecordNumber(nsIFile *aSrc, nsAString &aLine, PRInt32 rNum)
 {
   nsCOMPtr<nsIInputStream> inputStream;
   nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), aSrc);
@@ -169,8 +201,12 @@ nsresult nsTextAddress::ReadRecordNumber(nsIFile *aSrc, nsCString &aLine, PRInt3
     return rv;
   }
 
-  nsCOMPtr<nsILineInputStream> lineStream(do_QueryInterface(inputStream, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIUnicharLineInputStream> lineStream;
+  rv = GetUnicharLineStreamForFile(aSrc, inputStream, getter_AddRefs(lineStream));
+  if (NS_FAILED(rv)) {
+    IMPORT_LOG0("*** Error opening converter stream for importer\n");
+    return rv;
+  }
 
   bool more = true;
 
@@ -191,132 +227,121 @@ nsresult nsTextAddress::ReadRecordNumber(nsIFile *aSrc, nsCString &aLine, PRInt3
   return NS_ERROR_FAILURE;
 }
 
-PRInt32 nsTextAddress::CountFields(const char *pLine, PRInt32 maxLen, char delim)
+PRInt32 nsTextAddress::CountFields(const nsAString &aLine, PRUnichar delim)
 {
-    const char *pChar = pLine;
-    PRInt32 len = 0;
+    PRInt32 pos = 0;
+    PRInt32 maxLen = aLine.Length();
     PRInt32 count = 0;
-    char tab = '\t';
+    PRUnichar tab = PRUnichar('\t');
+    PRUnichar doubleQuote = PRUnichar('"');
 
     if (delim == tab)
-        tab = 0;
+        tab = PRUnichar('\0');
 
-    while (len < maxLen) {
-        while (((*pChar == ' ') || (*pChar == tab)) && (len < maxLen)) {
-            pChar++;
-            len++;
+    while (pos < maxLen) {
+        while (((aLine[pos] == PRUnichar(' ')) || (aLine[pos] == tab)) &&
+               (pos < maxLen)) {
+            pos++;
         }
-        if ((len < maxLen) && (*pChar == '"')) {
-            pChar++;
-            len++;
-            while ((len < maxLen) && (*pChar != '"')) {
-                len++;
-                pChar++;
-                if (((len + 1) < maxLen) && (*pChar == '"') && (*(pChar + 1) == '"')) {
-                    len += 2;
-                    pChar += 2;
+        if ((pos < maxLen) && (aLine[pos] == doubleQuote)) {
+            pos++;
+            while ((pos < maxLen) && (aLine[pos] != doubleQuote)) {
+                pos++;
+                if (((pos + 1) < maxLen) &&
+                    (aLine[pos] == doubleQuote) &&
+                    (aLine[pos + 1] == doubleQuote)) {
+                    pos += 2;
                 }
             }
-            if (len < maxLen) {
-                pChar++;
-                len++;
-            }
+            if (pos < maxLen)
+                pos++;
         }
-        while ((len < maxLen) && (*pChar != delim)) {
-            len++;
-            pChar++;
-        }
+        while ((pos < maxLen) && (aLine[pos] != delim))
+            pos++;
 
         count++;
-        pChar++;
-        len++;
+        pos++;
     }
 
     return count;
 }
 
-bool nsTextAddress::GetField(const char *pLine, PRInt32 maxLen, PRInt32 index, nsCString& field, char delim)
+bool nsTextAddress::GetField(const nsAString &aLine,
+                             PRInt32 index,
+                             nsString &field,
+                             PRUnichar delim)
 {
     bool result = false;
-    const char *pChar = pLine;
-    PRInt32 len = 0;
-    char tab = '\t';
+    PRInt32 pos = 0;
+    PRInt32 maxLen = aLine.Length();
+    PRUnichar tab = PRUnichar('\t');
+    PRUnichar doubleQuote = PRUnichar('"');
 
     field.Truncate();
 
     if (delim == tab)
         tab = 0;
 
-    while (index && (len < maxLen)) {
-        while (((*pChar == ' ') || (*pChar == tab)) && (len < maxLen)) {
-            pChar++;
-            len++;
+    while (index && (pos < maxLen)) {
+        while (((aLine[pos] == PRUnichar(' ')) || (aLine[pos] == tab)) &&
+               (pos < maxLen)) {
+            pos++;
         }
-        if (len >= maxLen)
+        if (pos >= maxLen)
             break;
-        if (*pChar == '"') {
+        if (aLine[pos] == doubleQuote) {
             do {
-                len++;
-                pChar++;
-                if (((len + 1) < maxLen) && (*pChar == '"') && (*(pChar + 1) == '"')) {
-                    len += 2;
-                    pChar += 2;
+                pos++;
+                if (((pos + 1) < maxLen) &&
+                    (aLine[pos] == doubleQuote) &&
+                    (aLine[pos + 1] == doubleQuote)) {
+                    pos += 2;
                 }
-            } while ((len < maxLen) && (*pChar != '"'));
-            if (len < maxLen) {
-                pChar++;
-                len++;
-            }
+            } while ((pos < maxLen) && (aLine[pos] != doubleQuote));
+            if (pos < maxLen)
+                pos++;
         }
-        if (len >= maxLen)
+        if (pos >= maxLen)
             break;
 
-        while ((len < maxLen) && (*pChar != delim)) {
-            len++;
-            pChar++;
-        }
+        while ((pos < maxLen) && (aLine[pos] != delim))
+            pos++;
 
-        if (len >= maxLen)
+        if (pos >= maxLen)
             break;
 
         index--;
-        pChar++;
-        len++;
+        pos++;
     }
 
-    if (len >= maxLen) {
+    if (pos >= maxLen)
         return result;
-    }
 
     result = true;
 
-    while ((len < maxLen) && ((*pChar == ' ') || (*pChar == tab))) {
-        len++;
-        pChar++;
-    }
+    while ((pos < maxLen) && ((aLine[pos] == ' ') || (aLine[pos] == tab)))
+        pos++;
 
-    const char *pStart = pChar;
-    PRInt32        fLen = 0;
-    bool          quoted = false;
-    if (*pChar == '"') {
-        pStart++;
+    PRInt32 fLen = 0;
+    PRInt32 startPos = pos;
+    bool    quoted = false;
+    if (aLine[pos] == '"') {
         fLen = -1;
         do {
-            pChar++;
-            len++;
+            pos++;
             fLen++;
-            if (((len + 1) < maxLen) && (*pChar == '"') && (*(pChar + 1) == '"')) {
+            if (((pos + 1) < maxLen) &&
+                (aLine[pos] == doubleQuote) &&
+                (aLine[pos + 1] == doubleQuote)) {
                 quoted = true;
-                len += 2;
-                pChar += 2;
+                pos += 2;
                 fLen += 2;
             }
-        } while ((len < maxLen) && (*pChar != '"'));
+        } while ((pos < maxLen) && (aLine[pos] != doubleQuote));
     }
     else {
-        while ((len < maxLen) && (*pChar != delim)) {
-            pChar++;
-            len++;
+        while ((pos < maxLen) && (aLine[pos] != delim)) {
+            pos++;
             fLen++;
         }
     }
@@ -325,14 +350,14 @@ bool nsTextAddress::GetField(const char *pLine, PRInt32 maxLen, PRInt32 index, n
         return result;
     }
 
-    field.Append(pStart, fLen);
+    field.Append(nsDependentSubstring(aLine, startPos, fLen));
     field.Trim(kWhitespace);
 
     if (quoted) {
       PRInt32 offset = field.Find(NS_LITERAL_CSTRING("\"\""));
       while (offset != -1) {
         field.Cut(offset, 1);
-        offset = field.Find(NS_LITERAL_CSTRING("\"\""), offset + 1);
+        offset = field.Find(NS_LITERAL_STRING("\"\""), offset + 1);
       }
     }
 
@@ -353,17 +378,21 @@ nsresult nsTextAddress::DetermineDelim(nsIFile *aSrc)
   PRInt32 commaCount = 0;
   PRInt32 tabLines = 0;
   PRInt32 commaLines = 0;
-  nsCAutoString line;
+  nsAutoString line;
   bool more = true;
 
-  nsCOMPtr<nsILineInputStream> lineStream(do_QueryInterface(inputStream, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIUnicharLineInputStream> lineStream;
+  rv = GetUnicharLineStreamForFile(aSrc, inputStream, getter_AddRefs(lineStream));
+  if (NS_FAILED(rv)) {
+    IMPORT_LOG0("*** Error opening converter stream for importer\n");
+    return rv;
+  }
 
   while (more && NS_SUCCEEDED(rv) && (lineCount < 100)) {
     rv = lineStream->ReadLine(line, &more);
     if (NS_SUCCEEDED(rv)) {
-      tabCount = CountFields(line.get(), line.Length(), '\t');
-      commaCount = CountFields(line.get(), line.Length(), ',');
+      tabCount = CountFields(line, PRUnichar('\t'));
+      commaCount = CountFields(line, PRUnichar(','));
       if (tabCount > commaCount)
         tabLines++;
       else if (commaCount)
@@ -375,9 +404,9 @@ nsresult nsTextAddress::DetermineDelim(nsIFile *aSrc)
   rv = inputStream->Close();
 
   if (tabLines > commaLines)
-    m_delim = '\t';
+    m_delim = PRUnichar('\t');
   else
-    m_delim = ',';
+    m_delim = PRUnichar(',');
 
   IMPORT_LOG2( "Tab count = %d, Comma count = %d\n", tabLines, commaLines);
 
@@ -388,7 +417,7 @@ nsresult nsTextAddress::DetermineDelim(nsIFile *aSrc)
     This is where the real work happens!
     Go through the field map and set the data in a new database row
 */
-nsresult nsTextAddress::ProcessLine(const char *pLine, PRInt32 len, nsString& errors)
+nsresult nsTextAddress::ProcessLine(const nsAString &aLine, nsString& errors)
 {
     if (!m_fieldMap) {
         IMPORT_LOG0("*** Error, text import needs a field map\n");
@@ -400,11 +429,10 @@ nsresult nsTextAddress::ProcessLine(const char *pLine, PRInt32 len, nsString& er
     // Wait until we get our first non-empty field, then create a new row,
     // fill in the data, then add the row to the database.
     nsCOMPtr<nsIMdbRow> newRow;
-    nsString    uVal;
-    nsCString    fieldVal;
+    nsAutoString   fieldVal;
     PRInt32        fieldNum;
     PRInt32        numFields = 0;
-    bool          active;
+    bool           active;
     rv = m_fieldMap->GetMapSize(&numFields);
     for (PRInt32 i = 0; (i < numFields) && NS_SUCCEEDED(rv); i++) {
         active = false;
@@ -412,7 +440,7 @@ nsresult nsTextAddress::ProcessLine(const char *pLine, PRInt32 len, nsString& er
         if (NS_SUCCEEDED(rv))
             rv = m_fieldMap->GetFieldActive(i, &active);
         if (NS_SUCCEEDED(rv) && active) {
-            if (GetField(pLine, len, i, fieldVal, m_delim)) {
+            if (GetField(aLine, i, fieldVal, m_delim)) {
                 if (!fieldVal.IsEmpty()) {
                     if (!newRow) {
                         rv = m_database->GetNewRow(getter_AddRefs(newRow));
@@ -421,8 +449,7 @@ nsresult nsTextAddress::ProcessLine(const char *pLine, PRInt32 len, nsString& er
                         }
                     }
                     if (newRow) {
-                        NS_CopyNativeToUnicode(fieldVal, uVal);
-                        rv = m_fieldMap->SetFieldValue(m_database, newRow, fieldNum, uVal.get());
+                        rv = m_fieldMap->SetFieldValue(m_database, newRow, fieldNum, fieldVal.get());
                     }
                 }
             }

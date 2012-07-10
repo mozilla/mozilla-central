@@ -15,7 +15,7 @@
 class nsIAddrDatabase;
 class nsIFile;
 class nsIInputStream;
-class nsILineInputStream;
+class nsIUnicharLineInputStream;
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
@@ -29,18 +29,21 @@ public:
   nsresult ImportAddresses(bool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsIImportFieldMap *fieldMap, nsString& errors, PRUint32 *pProgress);
 
   nsresult DetermineDelim(nsIFile *pSrc);
-  char GetDelim(void) { return m_delim;}
+  PRUnichar GetDelim(void) { return m_delim; }
 
-  static nsresult ReadRecordNumber(nsIFile *pSrc, nsCString &aLine, PRInt32 rNum);
-  static bool GetField(const char *pLine, PRInt32 maxLen, PRInt32 index, nsCString& field, char delim);
+  static nsresult ReadRecordNumber(nsIFile *pSrc, nsAString &aLine, PRInt32 rNum);
+  static bool GetField(const nsAString &aLine, PRInt32 index, nsString &field, PRUnichar delim);
 
 private:
-  nsresult ProcessLine(const char *pLine, PRInt32 len, nsString& errors);
+  nsresult ProcessLine(const nsAString &aLine, nsString &errors);
 
-  static PRInt32 CountFields(const char *pLine, PRInt32 maxLen, char delim);
-  static nsresult ReadRecord(nsILineInputStream *pSrc, nsCString &aLine, bool *aMore);
+  static PRInt32 CountFields(const nsAString &aLine, PRUnichar delim);
+  static nsresult ReadRecord(nsIUnicharLineInputStream *pSrc, nsAString &aLine, bool *aMore);
+  static nsresult GetUnicharLineStreamForFile(nsIFile *aFile,
+                                              nsIInputStream *aInputStream,
+                                              nsIUnicharLineInputStream **aStream);
 
-  char m_delim;
+  PRUnichar m_delim;
   PRInt32 m_LFCount;
   PRInt32 m_CRCount;
   nsIAddrDatabase *m_database;
