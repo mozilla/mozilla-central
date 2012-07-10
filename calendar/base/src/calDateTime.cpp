@@ -209,9 +209,9 @@ calDateTime::ToString(nsACString & aResult)
     mTimezone->GetTzid(tzid);
 
     PRUint32 const length = PR_snprintf(
-        buffer, sizeof(buffer), "%04hd/%02hd/%02hd %02hd:%02hd:%02hd %s isDate=%01hd",
+        buffer, sizeof(buffer), "%04hd/%02hd/%02hd %02hd:%02hd:%02hd %s isDate=%01hd nativeTime=%lld",
         mYear, mMonth + 1, mDay, mHour, mMinute, mSecond,
-        tzid.get(), static_cast<PRInt16>(mIsDate));
+        tzid.get(), static_cast<PRInt16>(mIsDate), mNativeTime);
     if (length != static_cast<PRUint32>(-1))
         aResult.Assign(buffer, length);
     return NS_OK;
