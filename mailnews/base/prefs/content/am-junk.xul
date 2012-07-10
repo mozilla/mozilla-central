@@ -80,9 +80,10 @@
              genericattr="true"
              prefstring="mail.server.%serverkey%.serverFilterName"/>
 
-      <checkbox id="spamLevel"
-                oncommand="updateSpamLevel();"
+      <checkbox id="server.spamLevel.visible"
+                oncommand="updateSpamLevel(this.checked);"
                 accesskey="&level.accesskey;"
+                prefstring="mail.server.%serverkey%.spamLevel"
                 label="&level.label;"/>
 
       <separator class="thin"/>
@@ -100,13 +101,14 @@
                   wsm_persist="true"
                   preftype="bool"
                   prefstring="mail.server.%serverkey%.useWhiteList"/>
-        <label value="&whitelistHeader.label;"
+        <label id="whiteListLabel"
+               value="&whitelistHeader.label;"
                accesskey="&whitelistHeader.accesskey;"
                control="whiteListAbURI"/>
         <listbox id="whiteListAbURI" rows="5"/>
       </vbox>
 
-      <separator class="thin"/>
+      <separator/>
 
       <vbox>
         <hbox>
@@ -117,7 +119,7 @@
                     pref="true"
                     wsm_persist="true"
                     preftype="bool"
-                    oncommand="onServerFilterToggle(this.checked);"
+                    oncommand="onCheckItem('useServerFilterList', [this.id]);"
                     prefstring="mail.server.%serverkey%.useServerFilter"/>
           <menulist id="useServerFilterList"
                     oncommand="onServerFilterListChange();"

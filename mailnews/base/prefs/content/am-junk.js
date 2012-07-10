@@ -12,7 +12,7 @@ var gPrefBranch = null;
 function onInit(aPageId, aServerId)
 {
   // manually adjust several pref UI elements
-  document.getElementById('spamLevel').checked =
+  document.getElementById('server.spamLevel.visible').checked =
     document.getElementById('server.spamLevel').value > 0;
 
   const am = MailServices.accounts;
@@ -93,7 +93,7 @@ function onInit(aPageId, aServerId)
 
     // Due to bug 448582, we have to use setAttribute to set the
     // checked value of the listitem.
-    abItem.setAttribute("checked",  (currentArray.indexOf(ab.URI) != -1));
+    abItem.setAttribute("checked", (currentArray.indexOf(ab.URI) != -1));
 
     abItems.push(abItem);
   }
@@ -110,6 +110,9 @@ function onInit(aPageId, aServerId)
   for (let i = 0; i < abItems.length; i++)
     wList.appendChild(abItems[i]);
 
+  // enable or disable the whitelist
+  onAdaptiveJunkToggle();
+
   // set up trusted IP headers
   var serverFilterList = document.getElementById("useServerFilterList");
   serverFilterList.value =
@@ -117,11 +120,10 @@ function onInit(aPageId, aServerId)
   if (!serverFilterList.selectedItem)
     serverFilterList.selectedIndex = 0;
 
-  updateMoveTargetMode(document.getElementById('server.moveOnSpam').checked);
-
   // enable or disable the useServerFilter checkbox
-  var checked = document.getElementById("server.useServerFilter").checked;
-  onServerFilterToggle(checked);
+  onCheckItem("useServerFilterList", ["server.useServerFilter"]);
+
+  updateMoveTargetMode(document.getElementById('server.moveOnSpam').checked);
 }
 
 function onPreInit(account, accountValues)
@@ -152,14 +154,22 @@ function updatePurgeSpam(aEnable, aPref)
     document.getElementById("server." + aPref).removeAttribute("disabled");
 }
 
-function updateSpamLevel()
+/**
+ * Called when someone checks or unchecks the adaptive junk mail checkbox.
+ * set the value of the hidden element accordingly
+ *
+ * @param  the boolean value of the checkbox
+ */
+function updateSpamLevel(aValue)
 {
-  document.getElementById('server.spamLevel').value =
-    document.getElementById('spamLevel').checked ? 100 : 0;
+  document.getElementById('server.spamLevel').value = aValue ? 100 : 0;
+  onAdaptiveJunkToggle();
 }
 
-// propagate changes to the server filter menu list back to 
-// our hidden wsm element.
+/**
+ * Propagate changes to the server filter menu list back to
+ * our hidden wsm element.
+ */
 function onServerFilterListChange()
 {
   document.getElementById('server.serverFilterName').value =
@@ -167,14 +177,23 @@ function onServerFilterListChange()
 }
 
 /**
- * Called when someone checks or unchecks the server-filter checkbox.  We need
- * to enable or disable the menulist accordingly
+ * Called when someone checks or unchecks the adaptive junk mail checkbox.
+ * We need to enable or disable the whitelist accordingly
  *
- * @param  the boolean value of the checkbox
+ * @param aValue  the boolean value of the checkbox
  */
-function onServerFilterToggle(aValue)
+function onAdaptiveJunkToggle()
 {
-  document.getElementById("useServerFilterList").disabled = !aValue;
+  onCheckItem("whiteListAbURI", ["server.spamLevel.visible"]);
+  onCheckItem("whiteListLabel", ["server.spamLevel.visible"]);
+
+  // Enable/disable individual listbox rows.
+  // Setting enable/disable on the parent listbox does not seem to work.
+  let wList = document.getElementById("whiteListAbURI");
+  let wListDisabled = wList.disabled;
+
+  for (let i = 0; i < wList.getRowCount(); i++)
+    wList.getItemAtIndex(i).disabled = wListDisabled;
 }
 
 function onSave()
@@ -182,8 +201,10 @@ function onSave()
   onSaveWhiteList();
 }
 
-// propagate changes to the whitelist menu list back to
-// our hidden wsm element.
+/**
+ * Propagate changes to the whitelist menu list back to
+ * our hidden wsm element.
+ */
 function onSaveWhiteList()
 {
   var wList = document.getElementById("whiteListAbURI");
