@@ -50,5 +50,21 @@
       "PrimaryEmail"     : "primaryemail@host.invalid",
       "WebPage1"         : "http://127.0.0.1"
     }
+  ],
+  "utf16_csv" :
+  [
+    {
+      "DisplayName"      : "John Doe",
+      "PrimaryEmail"     : "johndoe@host.invalid",
+      "FirstName"        : "John",
+      "LastName"         : "Doe"
+    }
+  ],
+  "shiftjis_csv" :
+  [
+    {
+      "DisplayName"      : "名無しの権兵衛",
+      "PrimaryEmail"     : "名無しの権兵衛@host.invalid"
+    }
   ]
 }
