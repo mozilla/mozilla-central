@@ -110,6 +110,13 @@ var DefaultController =
   {
     switch ( command )
     {
+      case "cmd_newFolder":
+      case "cmd_newVirtualFolder":
+      case "cmd_newMailAccount":
+      case "cmd_newExistingAccount":
+      case "cmd_newIMAccount":
+      case "cmd_newOtherAccount":
+      case "cmd_newIMContact":
       case "cmd_createFilterFromPopup":
       case "cmd_archive":
       case "button_archive":
@@ -257,6 +264,17 @@ var DefaultController =
 
     switch ( command )
     {
+      case "cmd_newFolder":
+      case "cmd_newVirtualFolder":
+        if (!gFolderDisplay || !gFolderDisplay.displayedFolder)
+          return false;
+
+        let selectedFolder = gFolderDisplay.displayedFolder;
+        let isInbox = selectedFolder.isSpecialFolder(nsMsgFolderFlags.Inbox);
+        let result = selectedFolder.canCreateSubfolders ||
+                     (isInbox &&
+                      !(selectedFolder.flags & nsMsgFolderFlags.Virtual));
+        return result;
       case "cmd_delete":
         UpdateDeleteCommand();
         // fall through
@@ -361,10 +379,22 @@ var DefaultController =
         if (GetNumSelectedMessages() == 1)
           return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.cmdRequiringMsgBody);
         return false;
+      case "cmd_newMailAccount":
+      case "cmd_newExistingAccount":
+      case "cmd_newIMAccount":
+      case "cmd_newOtherAccount":
       case "cmd_printSetup":
       case "cmd_viewAllHeader":
       case "cmd_viewNormalHeader":
         return true;
+
+      case "cmd_newIMContact":
+        for (let account in fixIterator(imServices.accounts.getAccounts()))
+          if (account.connected)
+            return true;
+
+        return false;
+
       case "cmd_markAsFlagged":
       case "button_file":
 	return GetNumSelectedMessages() > 0;
@@ -576,6 +606,27 @@ var DefaultController =
 
     switch ( command )
     {
+      case "cmd_newFolder":
+        gFolderTreeController.newFolder();
+        break;
+      case "cmd_newVirtualFolder":
+        gFolderTreeController.newVirtualFolder();
+        break;
+      case "cmd_newMailAccount":
+        NewMailAccountProvisioner(msgWindow);
+        break;
+      case "cmd_newExistingAccount":
+        NewMailAccount(msgWindow);
+        break;
+      case "cmd_newIMAccount":
+        openIMAccountWizard();
+        break;
+      case "cmd_newOtherAccount":
+        MsgAccountWizard();
+        break;
+      case "cmd_newIMContact":
+        chatHandler.addBuddy();
+        break;
       case "button_getNewMessages":
       case "cmd_getNewMessages":
         MsgGetMessage();

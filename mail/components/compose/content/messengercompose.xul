@@ -97,7 +97,7 @@
   <commandset id="composerTableMenuItems"/>
   <commandset id="composerListMenuItems"/>
   <!-- File Menu -->
-  <command id="cmd_new" oncommand="goDoCommand('cmd_newMessage')"/>
+  <command id="cmd_newMessage" oncommand="goDoCommand('cmd_newMessage')"/>
   <command id="cmd_attachFile" oncommand="goDoCommand('cmd_attachFile')"/>
   <command id="cmd_attachCloud" oncommand="attachToCloud(event.target.cloudProvider); event.stopPropagation();"/>
   <command id="cmd_attachPage" oncommand="goDoCommand('cmd_attachPage')"/>
@@ -161,11 +161,11 @@
 <keyset id="tasksKeys">
   <!-- File Menu -->
 #ifdef XP_MACOSX
-  <key id="key_newMessage" key="&newMessage.key;" oncommand="goOpenNewMessage();" modifiers="accel,shift"/>
-  <key id="key_newMessage2" key="&newMessageCmd2.key;" oncommand="goOpenNewMessage();" modifiers="accel"/>
+  <key id="key_newMessage" key="&newMessage.key;" command="cmd_newMessage" modifiers="accel,shift"/>
+  <key id="key_newMessage2" key="&newMessageCmd2.key;" command="cmd_newMessage" modifiers="accel"/>
 #else
-  <key id="key_newMessage" key="&newMessage.key;" oncommand="goOpenNewMessage();" modifiers="accel"/>
-  <key id="key_newMessage2" key="&newMessageCmd2.key;" oncommand="goOpenNewMessage();" modifiers="accel"/>
+  <key id="key_newMessage" key="&newMessage.key;" command="cmd_newMessage" modifiers="accel"/>
+  <key id="key_newMessage2" key="&newMessageCmd2.key;" command="cmd_newMessage" modifiers="accel"/>
 #endif
   <key id="key_attachFile" key="&attachFileCmd.key;" command="cmd_attachFile"
        modifiers="accel,shift"/>
@@ -384,7 +384,7 @@
             <menupopup id="menu_NewPopup">
               <menuitem id="menu_NewMessage"
                         label="&newMessage.label;" accesskey="&newMessage.accesskey;"
-                        key="key_newMessage2" oncommand="goOpenNewMessage();"/>
+                        key="key_newMessage2" command="cmd_newMessage"/>
               <menuseparator/>
               <menuitem id="menu_NewContact" label="&newContact.label;"
                         accesskey="&newContact.accesskey;"

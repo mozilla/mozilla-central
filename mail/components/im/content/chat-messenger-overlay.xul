@@ -113,7 +113,7 @@
           <toolbarbutton id="button-add-buddy"
                          class="toolbarbutton-1"
                          label="&addBuddyButton.label;"
-                         oncommand="chatHandler.addBuddy()"/>
+                         command="cmd_newIMContact"/>
           <toolbarbutton id="button-join-chat"
                          class="toolbarbutton-1"
                          label="&joinChatButton.label;"

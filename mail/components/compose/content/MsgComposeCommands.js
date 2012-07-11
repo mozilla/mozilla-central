@@ -397,6 +397,22 @@ var progressListener = {
 
 var defaultController = {
   commands: {
+    cmd_newMessage: {
+      isEnabled: function() {
+        return true;
+      },
+      doCommand: function() {
+        MailServices.compose.OpenComposeWindow(null, null, null,
+                                               Components.interfaces
+                                                         .nsIMsgCompType
+                                                         .New,
+                                               Components.interfaces
+                                                         .nsIMsgCompFormat
+                                                         .Default,
+                                               null, null);
+      }
+    },
+
     cmd_attachFile: {
       isEnabled: function() {
         return !gWindowLocked;
@@ -748,17 +764,6 @@ var attachmentBucketController = {
 
   onEvent: function(event) {},
 };
-
-/**
- * Start composing a new message.
- */
-function goOpenNewMessage()
-{
-  let identity = getCurrentIdentity();
-  MailServices.compose.OpenComposeWindow(null, null, null,
-    Components.interfaces.nsIMsgCompType.New,
-    Components.interfaces.nsIMsgCompFormat.Default, identity, null);
-}
 
 function QuoteSelectedMessage()
 {
