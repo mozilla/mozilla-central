@@ -1334,6 +1334,11 @@ nsTreeSanitizer::Sanitize(nsIContent* aFragment) {
       PRInt32 ns = nodeInfo->NamespaceID();
 
       if (MustPrune(ns, localName, elt)) {
+        RemoveAllAttributes(node);
+        nsIContent* descendant = node;
+        while ((descendant = descendant->GetNextNode(node))) {
+          RemoveAllAttributes(descendant);
+        }
         nsIContent* next = node->GetNextNonChildNode(aFragment);
         node->GetParent()->RemoveChild(node);
         node = next;
@@ -1377,6 +1382,7 @@ nsTreeSanitizer::Sanitize(nsIContent* aFragment) {
         continue;
       }
       if (MustFlatten(ns, localName)) {
+        RemoveAllAttributes(node);
         nsIContent* next = node->GetNextNode(aFragment);
         nsIContent* parent = node->GetParent();
         nsCOMPtr<nsIContent> child; // Must keep the child alive during move
@@ -1425,6 +1431,17 @@ nsTreeSanitizer::Sanitize(nsIContent* aFragment) {
       node->GetParent()->RemoveChild(node);
     }
     node = next;
+  }
+}
+
+void
+nsTreeSanitizer::RemoveAllAttributes(nsIContent* aElement)
+{
+  const nsAttrName* attrName;
+  while ((attrName = aElement->GetAttrNameAt(0))) {
+    PRInt32 attrNs = attrName->NamespaceID();
+    nsCOMPtr<nsIAtom> attrLocal = attrName->LocalName();
+    aElement->UnsetAttr(attrNs, attrLocal, false);
   }
 }
 
