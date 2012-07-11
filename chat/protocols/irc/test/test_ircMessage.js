@@ -117,6 +117,13 @@ const testData = [
 ];
 
 function run_test() {
+  add_test(testRFC2812Messages);
+  add_test(testBrokenUnrealMessages);
+
+  run_next_test();
+}
+
+function testRFC2812Messages() {
   for each (let expectedStringMessage in testData) {
     let message = irc.ircMessage(expectedStringMessage);
 
@@ -133,4 +140,45 @@ function run_test() {
 
     do_check_eq(stringMessage, expectedStringMessage);
   }
+
+  run_next_test();
+}
+
+function isEqual(aObject1, aObject2) {
+  let result = true;
+  for (let fieldName in aObject1) {
+    let field1 = aObject1[fieldName];
+    let field2 = aObject2[fieldName];
+    if (typeof field1 == "object")
+      result &= isEqual(field1, field2);
+    else if (Array.isArray(field1))
+      result &= field1.every(function(el, idx) el == field2[idx]);
+    else
+      result &= field1 == field2;
+  }
+  return result;
+}
+
+// Unreal sends a couple of broken messages, see ircMessage in irc.js for a
+// description of what's wrong.
+function testBrokenUnrealMessages() {
+  let messages = {
+    ":gravel.mozilla.org 432  #momo :Erroneous Nickname: Illegal characters": {
+      rawMessage: ":gravel.mozilla.org 432  #momo :Erroneous Nickname: Illegal characters",
+      command: "432",
+      params: ["", "#momo", "Erroneous Nickname: Illegal characters"],
+      servername: "gravel.mozilla.org"
+    },
+    ":gravel.mozilla.org MODE #tckk +n ":  {
+      rawMessage: ":gravel.mozilla.org MODE #tckk +n ",
+      command: "MODE",
+      params: ["#tckk", "+n"],
+      servername: "gravel.mozilla.org"
+    },
+  };
+
+  for (let messageStr in messages)
+    do_check_true(isEqual(messages[messageStr], irc.ircMessage(messageStr)));
+
+  run_next_test();
 }
