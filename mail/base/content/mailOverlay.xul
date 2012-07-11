@@ -10,16 +10,36 @@
 
   <script type="application/javascript">
   <![CDATA[
+    Components.utils.import("resource:///modules/mailServices.js");
     function openNewCardDialog()
       {
         window.openDialog("chrome://messenger/content/addressbook/abNewCardDialog.xul",
                           "", "chrome,modal,resizable=no,centerscreen");
       }
+
+    function goOpenNewMessage()
+      {
+        // if there is a MsgNewMessage function in scope
+        // and we should use it, so that we choose the proper
+        // identity, based on the selected message or folder
+        // if not, bring up the compose window to the default identity
+        if ("MsgNewMessage" in window) {
+          MsgNewMessage(null);
+          return;
+        }
+
+        MailServices.compose.OpenComposeWindow(null, null, null,
+          Components.interfaces.nsIMsgCompType.New,
+          Components.interfaces.nsIMsgCompFormat.Default,
+          null, null);
+      }
+
   ]]>
   </script>
 
   <!-- generic commands -->
   <commandset id="tasksCommands">
+    <command id="cmd_newMessage" oncommand="goOpenNewMessage();"/>
     <command id="cmd_newCard" oncommand="openNewCardDialog()"/>
   </commandset>
   <menuitem id="menu_newCard" label="&newContactCmd.label;"

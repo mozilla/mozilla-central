@@ -79,15 +79,9 @@
             events="create-menu-file"
             oncommandupdate="goUpdateMailMenuItems(this)">
 
-    <command id="cmd_newFolder" oncommand="goDoCommand('cmd_newFolder')" disabled="true"/>
-    <command id="cmd_newVirtualFolder" oncommand="goDoCommand('cmd_newVirtualFolder')" disabled="true"/>
-    <command id="cmd_newMailAccount" oncommand="goDoCommand('cmd_newMailAccount')" disabled="true"/>
-    <command id="cmd_newExistingAccount" oncommand="goDoCommand('cmd_newExistingAccount')" disabled="true"/>
-    <command id="cmd_newIMAccount" oncommand="goDoCommand('cmd_newIMAccount')" disabled="true"/>
-    <command id="cmd_newOtherAccount" oncommand="goDoCommand('cmd_newOtherAccount')" disabled="true"/>
-    <command id="cmd_newIMContact" oncommand="goDoCommand('cmd_newIMContact')" disabled="true"/>
     <command id="cmd_getNewMessages" oncommand="goDoCommand('cmd_getNewMessages')" disabled="true"/>
     <command id="cmd_open" oncommand="goDoCommand('cmd_open')"/>
+
     <command id="cmd_emptyTrash" oncommand="goDoCommand('cmd_emptyTrash')" disabled="true"/>
     <command id="cmd_compactFolder" oncommand="goDoCommand('cmd_compactFolder')" disabled="true"/>
     <command id="cmd_printSetup" oncommand="goDoCommand('cmd_printSetup')" disabled="true"/>
@@ -106,7 +100,6 @@
 </commandset>
 
 <commandset id="mailCommands">
-  <command id="cmd_newMessage" oncommand="MsgNewMessage(event);"/>
   <command id="cmd_quit"/>
   <!--The cmd_createFilterFromPopup is used to notify the email context popup -->
   <command id="cmd_createFilterFromPopup"/>
@@ -977,36 +970,36 @@
               <menuitem id="newNewMsgCmd" label="&newNewMsgCmd.label;"
                         accesskey="&newNewMsgCmd.accesskey;"
                         key="key_newMessage2"
-                        command="cmd_newMessage"/>
+                        oncommand="MsgNewMessage(null);"/>
               <menuitem id="menu_newFolder" label="&newFolderCmd.label;"
-                        command="cmd_newFolder"
-                        accesskey="&newFolderCmd.accesskey;"/>
+                         oncommand="gFolderTreeController.newFolder();"
+                         accesskey="&newFolderCmd.accesskey;"/>
               <menuitem id="menu_newVirtualFolder" label="&newVirtualFolderCmd.label;"
-                        command="cmd_newVirtualFolder"
-                        accesskey="&newVirtualFolderCmd.accesskey;"/>
+                         oncommand="gFolderTreeController.newVirtualFolder();"
+                         accesskey="&newVirtualFolderCmd.accesskey;"/>
               <menuseparator id="newAccountPopupMenuSeparator"/>
               <menuitem id="newCreateEmailAccountMenuItem"
                         label="&newCreateEmailAccountCmd.label;"
                         accesskey="&newCreateEmailAccountCmd.accesskey;"
-                        command="cmd_newMailAccount"/>
+                        oncommand="NewMailAccountProvisioner(msgWindow);"/>
               <menuitem id="newMailAccountMenuItem"
                         label="&newExistingEmailAccountCmd.label;"
                         accesskey="&newExistingEmailAccountCmd.accesskey;"
-                        command="cmd_newExistingAccount"/>
+                        oncommand="NewMailAccount(msgWindow);"/>
               <menuitem id="newIMAccountMenuItem"
                         label="&newIMAccountCmd.label;"
                         accesskey="&newIMAccountCmd.accesskey;"
-                        command="cmd_newIMAccount"/>
+                        oncommand="openIMAccountWizard();"/>
               <menuitem id="newAccountMenuItem"
                         label="&newOtherAccountsCmd.label;"
                         accesskey="&newOtherAccountsCmd.accesskey;"
-                        command="cmd_newOtherAccount"/>
+                        oncommand="MsgAccountWizard();"/>
               <menuseparator id="newPopupMenuSeparator"/>
               <menuitem id="menu_newCard"/>
               <menuitem id="newIMContactMenuItem"
                         label="&newIMContactCmd.label;"
                         accesskey="&newIMContactCmd.accesskey;"
-                        command="cmd_newIMContact"/>
+                        oncommand="chatHandler.addBuddy();"/>
             </menupopup>
           </menu>
           <menuitem id="openMessageFileMenuitem" label="&openMessageFileCmd.label;"
@@ -1772,7 +1765,7 @@
                    class="toolbarbutton-1"
                    label="&newMsgButton.label;"
                    tooltiptext="&newMsgButton.tooltip;"
-                   command="cmd_newMessage"/>
+                   oncommand="MsgNewMessage(event)"/>
     <toolbarbutton id="button-reply"
                    class="toolbarbutton-1"
                    label="&replyButton.label;"

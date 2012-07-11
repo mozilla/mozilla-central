@@ -216,63 +216,6 @@ function ComposeMessage(type, format, folder, messageArray)
   }
 }
 
-/**
- * Calls the ComposeMessage function with the desired type, and proper default
- * based on the event that fired it.
- *
- * @param aCompType  the nsIMsgCompType to pass to the function
- * @param aEvent (optional) the event that triggered the call
- */
-function composeMsgByType(aCompType, aEvent) {
-  // If we're the hidden window, then we're not going to have a gFolderDisplay
-  // to work out existing folders, so just use null.
-  let msgFolder = gFolderDisplay ? GetFirstSelectedMsgFolder() : null;
-  let msgUris = gFolderDisplay ? gFolderDisplay.selectedMessageUris : null;
-
-  if (aEvent && aEvent.shiftKey) {
-    ComposeMessage(aCompType,
-                   Components.interfaces.nsIMsgCompFormat.OppositeOfDefault,
-                   msgFolder, msgUris);
-  }
-  else {
-    ComposeMessage(aCompType, Components.interfaces.nsIMsgCompFormat.Default,
-                   msgFolder, msgUris);
-  }
-}
-
-function MsgNewMessage(event)
-{
-  composeMsgByType(Components.interfaces.nsIMsgCompType.New, event);
-}
-
-function MsgReplyMessage(event)
-{
-  if (gFolderDisplay.selectedMessageIsNews)
-    MsgReplyGroup(event);
-  else
-    MsgReplySender(event);
-}
-
-function MsgReplySender(event)
-{
-  composeMsgByType(Components.interfaces.nsIMsgCompType.ReplyToSender, event);
-}
-
-function MsgReplyGroup(event)
-{
-  composeMsgByType(Components.interfaces.nsIMsgCompType.ReplyToGroup, event);
-}
-
-function MsgReplyToAllMessage(event)
-{
-  composeMsgByType(Components.interfaces.nsIMsgCompType.ReplyAll, event);
-}
-
-function MsgReplyToListMessage(event)
-{
-  composeMsgByType(Components.interfaces.nsIMsgCompType.ReplyToList, event);
-}
-
 function NewMessageToSelectedAddresses(type, format, identity) {
   var abSidebarPanel = document.commandDispatcher.focusedWindow;
   var abResultsTree = abSidebarPanel.document.getElementById("abResultsTree");
