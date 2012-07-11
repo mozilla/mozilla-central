@@ -2576,9 +2576,35 @@ var gMessageNotificationBar =
     this.updateMsgNotificationBar(kMsgNotificationPhishingBar, phishingMsg);
   },
 
-  setMDNMsg: function(aMdnGenerator, aMsgHeader)
+  setMDNMsg: function(aMdnGenerator, aMsgHeader, aMimeHdr)
   {
     this.mdnGenerator = aMdnGenerator;
+    // Return receipts can be RFC 3798 "Disposition-Notification-To",
+    // or non-standard "Return-Receipt-To".
+    var mdnHdr = aMimeHdr.extractHeader("Disposition-Notification-To", false) ||
+                 aMimeHdr.extractHeader("Return-Receipt-To", false);
+    var fromHdr = aMimeHdr.extractHeader("From", false);
+
+    var mdnAddr = MailServices.headerParser
+                              .extractHeaderAddressMailboxes(mdnHdr);
+    var fromAddr = MailServices.headerParser
+                               .extractHeaderAddressMailboxes(fromHdr);
+
+    var authorName = MailServices.headerParser
+                                 .extractHeaderAddressName(aMsgHeader.mime2DecodedAuthor) ||
+                     aMsgHeader.author;
+
+    var barMsg;
+    // If the return receipt doesn't go to the sender address, note that in the
+    // notification.
+    if (mdnAddr != fromAddr)
+      barMsg = gMessengerBundle.getFormattedString("mdnBarMessageAddressDiffers",
+                                                   [authorName, mdnAddr]);
+    else
+      barMsg = gMessengerBundle.getFormattedString("mdnBarMessageNormal",
+                                                   [authorName]);
+    document.getElementById("mdnBarMessage").textContent = barMsg;
+
     this.updateMsgNotificationBar(kMsgNotificationMDN, true);
   },
 
@@ -2606,8 +2632,7 @@ var gMessageNotificationBar =
   },
 
   /**
-   * @param aFlag  kMsgNotificationPhishingBar, kMsgNotificationJunkBar, or
-   *               kMsgNotificationRemoteImages
+   * @param aFlag one of the |mBarFlagValues| values
    * @return true if aFlag is currently set for the loaded message
    */
   isFlagSet: function(aFlag)
@@ -2848,12 +2873,12 @@ function OnMsgLoaded(aUrl)
     HandleMDNResponse(aUrl);
 }
 
-//
-// This function handles all mdn response generation (ie, imap and pop).
-// For pop the msg uid can be 0 (ie, 1st msg in a local folder) so no
-// need to check uid here. No one seems to set mimeHeaders to null so
-// no need to check it either.
-//
+/*
+ * This function handles all mdn response generation (ie, imap and pop).
+ * For pop the msg uid can be 0 (ie, 1st msg in a local folder) so no
+ * need to check uid here. No one seems to set mimeHeaders to null so
+ * no need to check it either.
+ */
 function HandleMDNResponse(aUrl)
 {
   if (!aUrl)
@@ -2891,9 +2916,7 @@ function HandleMDNResponse(aUrl)
 
   // After a msg is downloaded it's already marked READ at this point so we must check if
   // the msg has a "Disposition-Notification-To" header and no MDN report has been sent yet.
-  var msgFlags = msgHdr.flags;
-  if ((msgFlags & Components.interfaces.nsMsgMessageFlags.IMAPDeleted) ||
-      (msgFlags & Components.interfaces.nsMsgMessageFlags.MDNReportSent))
+  if (msgHdr.flags & Components.interfaces.nsMsgMessageFlags.MDNReportSent)
     return;
 
   var DNTHeader = mimeHdr.extractHeader("Disposition-Notification-To", false);
@@ -2911,7 +2934,7 @@ function HandleMDNResponse(aUrl)
                                      mimeHdr,
                                      false);
   if (askUser)
-    gMessageNotificationBar.setMDNMsg(mdnGenerator, msgHdr);
+    gMessageNotificationBar.setMDNMsg(mdnGenerator, msgHdr, mimeHdr);
 }
 
 function SendMDNResponse()

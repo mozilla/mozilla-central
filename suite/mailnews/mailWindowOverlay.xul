@@ -2268,11 +2268,14 @@
         class="msgNotificationBar"
         align="center">
     <image id="mdnBarImage"/>
-    <description flex="1"
-                 class="msgNotificationBarText">&mdnBarMessage.label;</description>
+    <description id="mdnBarMessage"
+                 flex="1"
+                 class="msgNotificationBarText"/>
     <button label="&mdnBarIgnoreButton.label;"
+            accesskey="&mdnBarIgnoreButton.accesskey;"
             oncommand="IgnoreMDNResponse();"/>
     <button label="&mdnBarSendButton.label;"
+            accesskey="&mdnBarSendButton.accesskey;"
             oncommand="SendMDNResponse();"/>
   </hbox>
 </deck>

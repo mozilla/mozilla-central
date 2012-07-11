@@ -540,6 +540,7 @@
 <!ENTITY removePhishingBarButton.label "Not a Scam">
 
 <!-- MDN Bar -->
-<!ENTITY mdnBarMessage.label "The sender of this message has asked to be notified when you read this message. Do you wish to notify the sender?">
 <!ENTITY mdnBarIgnoreButton.label "Ignore Request">
+<!ENTITY mdnBarIgnoreButton.accesskey "I">
 <!ENTITY mdnBarSendButton.label "Send Receipt">
+<!ENTITY mdnBarSendButton.accesskey "S">
