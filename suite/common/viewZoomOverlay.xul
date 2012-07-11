@@ -27,7 +27,7 @@
     <command id="cmd_zoomReduce"  oncommand="FullZoom.reduce();"/>
     <command id="cmd_zoomEnlarge" oncommand="FullZoom.enlarge();"/>
     <command id="cmd_zoomReset"   oncommand="FullZoom.reset();"/>
-    <command id="cmd_zoomOther"   oncommand="setZoomOther();"/>
+    <command id="cmd_zoomOther"   oncommand="FullZoom.setOther();"/>
     <command id="cmd_fullZoomToggle" oncommand="ZoomManager.toggleZoom();"/>
   </commandset>
 

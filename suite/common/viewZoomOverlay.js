@@ -246,6 +246,21 @@ var FullZoom = {
     this._removePref();
   },
 
+  setOther: function setZoomOther() {
+    var zoomOther = document.getElementById("menu_zoomOther");
+    // open dialog and ask for new value
+    var o = {value: zoomOther.getAttribute("value"),
+             zoomMin: ZoomManager.MIN * 100,
+             zoomMax: ZoomManager.MAX * 100};
+    window.openDialog("chrome://communicator/content/askViewZoom.xul",
+                      "", "chrome,modal,centerscreen", o);
+    if (o.zoomOK) {
+      zoomOther.setAttribute("value", o.value);
+      ZoomManager.zoom = o.value / 100;
+      this._applySettingToPref();
+    }
+  },
+
   /**
    * Set the zoom level for the current tab.
    *
@@ -253,7 +268,7 @@ var FullZoom = {
    * without significant impact on performance, as the setting is only applied
    * if it differs from the current setting.  In fact getting the zoom and then
    * checking ourselves if it differs costs more.
-   * 
+   *
    * And perhaps we should always set the zoom even if it was more expensive,
    * since DocumentViewerImpl::SetTextZoom claims that child documents can have
    * a different text zoom (although it would be unusual), and it implies that
@@ -408,19 +423,5 @@ function updateZoomMenu() {
         item.removeAttribute("checked");
     }
     item = item.previousSibling;
-  }
-}
-
-function setZoomOther() {
-  var zoomOther = document.getElementById("menu_zoomOther");
-  // open dialog and ask for new value
-  var o = {value: zoomOther.getAttribute("value"),
-           zoomMin: ZoomManager.MIN * 100,
-           zoomMax: ZoomManager.MAX * 100};
-  window.openDialog("chrome://communicator/content/askViewZoom.xul",
-                    "", "chrome,modal,centerscreen", o);
-  if (o.zoomOK) {
-    zoomOther.setAttribute("value", o.value);
-    ZoomManager.zoom = o.value / 100;
   }
 }
