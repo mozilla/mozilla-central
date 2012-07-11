@@ -1102,7 +1102,6 @@ nsYouSendItFileUploader.prototype = {
    */
   _commitSend: function nsYSIFU__commitSend() {
     this.log.info("commit sending file " + this._urlInfo.fileId);
-    
     let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
                 .createInstance(Ci.nsIXMLHttpRequest);
     let args = "?name=" + this.file.leafName +
@@ -1139,7 +1138,9 @@ nsYouSendItFileUploader.prototype = {
         failed();
       }
       else if (uploadInfo.clickableDownloadUrl) {
-        this.youSendIt._urlsForFiles[this.file.path] = uploadInfo.clickableDownloadUrl;
+        // We need a kludge here because YSI is returning URLs without the scheme...
+        let url = this._ensureScheme(uploadInfo.clickableDownloadUrl);
+        this.youSendIt._urlsForFiles[this.file.path] = url;
         succeed();
       }
       else
@@ -1150,6 +1151,25 @@ nsYouSendItFileUploader.prototype = {
     req.setRequestHeader("X-Api-Key", kApiKey);
     req.setRequestHeader("Accept", "application/json");
     req.send();
+  },
+
+  /**
+   * If there's no scheme prefix for a URL, attaches an https:// prefix
+   * and returns the new result.
+   *
+   * @param aURL to ensure a scheme with
+   */
+  _ensureScheme: function nsYSIFU__ensureScheme(aURL) {
+    try {
+      let scheme = Services.io.extractScheme(aURL);
+      return aURL;
+    } catch(e) {
+      // If we got NS_ERROR_MALFORMED_URI back, there's no scheme here.
+      if (e.result == Cr.NS_ERROR_MALFORMED_URI)
+        return "https://" + aURL;
+      // Otherwise, we hit something different, and should throw.
+      throw e;
+    }
   },
 
   /**
@@ -1178,7 +1198,9 @@ nsYouSendItFileUploader.prototype = {
       if (fileInfo.errorStatus)
         aFailureCallback();
       else {
-        this.youSendIt._urlsForFiles[this.file.path] = fileInfo.clickableDownloadUrl;
+        // We need a kludge here because YSI is returning URLs without the scheme...
+        let url = this._ensureScheme(fileInfo.clickableDownloadUrl);
+        this.youSendIt._urlsForFiles[this.file.path] = url;
         aSuccessCallback();
       }
     }.bind(this);

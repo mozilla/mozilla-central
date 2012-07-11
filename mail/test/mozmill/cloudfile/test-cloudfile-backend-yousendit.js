@@ -286,3 +286,38 @@ function test_delete_refreshes_stale_token() {
   mc.waitFor(function() gServer.auth.count > 0,
              "Timed out waiting for authorization attempt");
 }
+
+/**
+ * Test for bug 771132 - if YouSendIt returns malformed URLs, prefix with
+ * https://.
+ */
+function test_bug771132_fix_no_scheme() {
+  const kMalformedUrl = "www.example.com/download/abcd1234";
+  const kExpectedUrl = "https://" + kMalformedUrl;
+
+  const kTopics = [kUploadFile, kGetFileURL];
+
+  gServer.planForUploadFile("testFile1");
+  gServer.planForGetFileURL("testFile1", {url: kMalformedUrl});
+
+  let requestObserver = gObsManager.create("test_simple_case - Upload 1");
+  let file = getFile("./data/testFile1", __file__);
+  let provider = gServer.getPreparedBackend("someAccountKey");
+  provider.uploadFile(file, requestObserver);
+
+  mc.waitFor(function () requestObserver.success);
+
+  let urlForFile = provider.urlForFile(file);
+  assert_equals(kExpectedUrl, urlForFile);
+
+  // Now make sure that we don't accidentally prefix with https when there's
+  // already a scheme.
+  gServer.planForUploadFile("testFile1");
+  gServer.planForGetFileURL("testFile1", {url: kExpectedUrl});
+  requestObserver = gObsManager.create("test_simple_case - Upload 2");
+  provider.uploadFile(file, requestObserver);
+  mc.waitFor(function () requestObserver.success);
+
+  urlForFile = provider.urlForFile(file);
+  assert_equals(kExpectedUrl, urlForFile);
+}
