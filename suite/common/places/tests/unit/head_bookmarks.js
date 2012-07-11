@@ -62,7 +62,7 @@ let (XULAppInfo = {
 }
 
 // Smart bookmarks constants.
-const SMART_BOOKMARKS_VERSION = 3;
+const SMART_BOOKMARKS_VERSION = 4;
 // 1 = "Most Visited".
 const SMART_BOOKMARKS_ON_TOOLBAR = 1;
 // 3 = "Recently Bookmarked", "Recent Tags", separator.
