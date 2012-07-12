@@ -1042,6 +1042,7 @@ xpicleanup@BIN_SUFFIX@
   modules/services-sync/engines/prefs.js
   modules/services-sync/engines/tabs.js
   modules/services-sync/identity.js
+  modules/services-sync/jpakeclient.js
   modules/services-sync/notifications.js
   modules/services-sync/record.js
   modules/services-sync/resource.js
