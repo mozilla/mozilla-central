@@ -1032,6 +1032,7 @@ xpicleanup@BIN_SUFFIX@
   modules/services-common/utils.js
   modules/services-crypto/WeaveCrypto.js
   modules/services-sync/constants.js
+  modules/services-sync/engines/apps.js
   modules/services-sync/engines/bookmarks.js
   modules/services-sync/engines/clients.js
   modules/services-sync/engines/forms.js
