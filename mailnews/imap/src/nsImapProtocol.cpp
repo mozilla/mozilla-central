@@ -411,10 +411,10 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
   m_nextUrlReadyToRun = false;
   m_trackingTime = false;
   m_curFetchSize = 0;
-  LL_I2L(m_startTime, 0);
-  LL_I2L(m_endTime, 0);
-  LL_I2L(m_lastActiveTime, 0);
-  LL_I2L(m_lastProgressTime, 0);
+  m_startTime = 0;
+  m_endTime = 0;
+  m_lastActiveTime = 0;
+  m_lastProgressTime = 0;
   ResetProgressInfo();
 
   m_tooFastTime = 0;
@@ -3079,12 +3079,8 @@ nsImapProtocol::GetArbitraryHeadersToDownload(nsCString &aResult)
 void
 nsImapProtocol::AdjustChunkSize()
 {
-  PRTime deltaTime;
   PRInt32 deltaInSeconds;
-
-  m_endTime = PR_Now();
-  LL_SUB(deltaTime, m_endTime, m_startTime);
-  PRTime2Seconds(deltaTime, &deltaInSeconds);
+  PRTime2Seconds(m_endTime - m_startTime, &deltaInSeconds);
   m_trackingTime = false;
   if (deltaInSeconds < 0)
     return;            // bogus for some reason
@@ -4999,7 +4995,7 @@ nsImapProtocol::AlertUserEventFromServer(const char * aServerEvent)
 
 void nsImapProtocol::ResetProgressInfo()
 {
-  LL_I2L(m_lastProgressTime, 0);
+  m_lastProgressTime = 0;
   m_lastPercent = -1;
   m_lastProgressStringId = (PRUint32) -1;
 }
@@ -5062,21 +5058,15 @@ nsImapProtocol::ProgressEventFunctionUsingIdWithString(PRUint32 aMsgId, const
 void
 nsImapProtocol::PercentProgressUpdateEvent(PRUnichar *message, PRInt64 currentProgress, PRInt64 maxProgress)
 {
-  PRInt64 nowMS = LL_ZERO;
+  PRInt64 nowMS = 0;
   PRInt32 percent = (100 * currentProgress) / maxProgress;
   if (percent == m_lastPercent)
     return; // hasn't changed, right? So just return. Do we need to clear this anywhere?
 
   if (percent < 100)  // always need to do 100%
   {
-    int64 minIntervalBetweenProgress;
-
-    LL_I2L(minIntervalBetweenProgress, 750);
-    int64 diffSinceLastProgress;
-    LL_I2L(nowMS, PR_IntervalToMilliseconds(PR_IntervalNow()));
-    LL_SUB(diffSinceLastProgress, nowMS, m_lastProgressTime); // r = a - b
-    LL_SUB(diffSinceLastProgress, diffSinceLastProgress, minIntervalBetweenProgress); // r = a - b
-    if (!LL_GE_ZERO(diffSinceLastProgress))
+    nowMS = PR_IntervalToMilliseconds(PR_IntervalNow());
+    if (nowMS - m_lastProgressTime < 750)
       return;
   }
 
@@ -8481,8 +8471,7 @@ bool nsImapProtocol::CheckNeeded()
   PRTime deltaTime;
   PRInt32 deltaInSeconds;
 
-  LL_SUB(deltaTime, PR_Now(), m_lastCheckTime);
-  PRTime2Seconds(deltaTime, &deltaInSeconds);
+  PRTime2Seconds(PR_Now() - m_lastCheckTime, &deltaInSeconds);
 
   return (deltaInSeconds >= kMaxSecondsBeforeCheck);
 }

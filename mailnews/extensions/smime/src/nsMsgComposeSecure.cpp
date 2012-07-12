@@ -87,9 +87,7 @@ GenerateGlobalRandomBytes(unsigned char *buf, PRInt32 len)
   {
     // Seed the random-number generator with current time so that
     // the numbers will be different every time we run.
-    PRInt32 aTime;
-    LL_L2I(aTime, PR_Now());
-    srand( (unsigned)aTime );
+    srand( (unsigned)PR_Now() );
     firstTime = false;
   }
   

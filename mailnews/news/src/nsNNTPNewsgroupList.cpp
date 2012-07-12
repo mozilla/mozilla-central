@@ -73,6 +73,7 @@ nsNNTPNewsgroupList::nsNNTPNewsgroupList()
   m_downloadAll(false),
   m_maxArticles(0),
   m_lastPercent(-1),
+  m_lastStatusUpdate(0),
   m_lastProcessedNumber(0),
   m_firstMsgNumber(0),
   m_lastMsgNumber(0),
@@ -81,7 +82,6 @@ nsNNTPNewsgroupList::nsNNTPNewsgroupList()
   m_set(nsnull)
 {
   memset(&m_knownArts, 0, sizeof(m_knownArts));
-  m_lastStatusUpdate = LL_Zero();
 }
 
 nsNNTPNewsgroupList::~nsNNTPNewsgroupList()

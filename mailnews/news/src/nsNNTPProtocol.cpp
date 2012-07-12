@@ -292,7 +292,7 @@ nsNNTPProtocol::nsNNTPProtocol(nsINntpIncomingServer *aServer, nsIURI *aURL,
   PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) creating",this));
   PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) initializing, so unset m_currentGroup",this));
   m_currentGroup.Truncate();
-  LL_I2L(m_lastActiveTimeStamp, 0);
+  m_lastActiveTimeStamp = 0;
 }
 
 nsNNTPProtocol::~nsNNTPProtocol()
@@ -1764,10 +1764,7 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommand(nsIURI * url)
       {
         char small_buf[64];
         PRExplodedTime  expandedTime;
-        PRTime t_usec, usec_per_sec;
-        LL_I2L(t_usec, last_update);
-        LL_I2L(usec_per_sec, PR_USEC_PER_SEC);
-        LL_MUL(t_usec, t_usec, usec_per_sec);
+        PRTime t_usec = (PRTime)last_update * PR_USEC_PER_SEC;
         PR_ExplodeTime(t_usec, PR_LocalTimeParameters, &expandedTime);
         PR_FormatTimeUSEnglish(small_buf, sizeof(small_buf),
                                "NEWGROUPS %y%m%d %H%M%S", &expandedTime);
@@ -2727,13 +2724,7 @@ static void ComputeRate(PRInt32 bytes, PRTime startTime, float *rate)
   // rate = (bytes / USECS since start) * RATE_CONSTANT
 
   // compute usecs since we started.
-  PRTime timeSinceStart;
-  PRTime now = PR_Now();
-  LL_SUB(timeSinceStart, now, startTime);
-
-  // convert PRTime to PRInt32
-  PRInt32 delta;
-  LL_L2I(delta, timeSinceStart);
+  PRInt32 delta = (PRInt32)(PR_Now() - startTime);
 
   // compute rate
   if (delta > 0) {

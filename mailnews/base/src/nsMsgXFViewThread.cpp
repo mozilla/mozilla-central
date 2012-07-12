@@ -260,7 +260,7 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
 //    if (NS_SUCCEEDED(rv) && topLevelHdr)
 //    {
 //      topLevelHdr->GetDate(&topLevelHdrDate);
-//      if (LL_CMP(newHdrDate, <, topLevelHdrDate))
+//      if (newHdrDate < topLevelHdrDate)
       
 //    }
 //  }

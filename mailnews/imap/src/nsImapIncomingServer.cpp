@@ -662,18 +662,11 @@ nsImapIncomingServer::ConnectionTimeOut(nsIImapProtocol* aConnection)
     SetTimeOutLimits(timeoutInMinutes);
   }
 
-  PRTime cacheTimeoutLimits;
-
-  LL_I2L(cacheTimeoutLimits, timeoutInMinutes * 60 * 1000000); // in
-                                                            // microseconds
+  PRTime cacheTimeoutLimits = timeoutInMinutes * 60 * PR_USEC_PER_SEC;
   PRTime lastActiveTimeStamp;
   rv = aConnection->GetLastActiveTimeStamp(&lastActiveTimeStamp);
 
-  PRTime elapsedTime;
-  LL_SUB(elapsedTime, PR_Now(), lastActiveTimeStamp);
-  PRTime t;
-  LL_SUB(t, elapsedTime, cacheTimeoutLimits);
-  if (LL_GE_ZERO(t))
+  if (PR_Now() - lastActiveTimeStamp < cacheTimeoutLimits)
   {
       nsCOMPtr<nsIImapProtocol> aProtocol(do_QueryInterface(aConnection,
                                                             &rv));

@@ -151,7 +151,7 @@ nsMsgDBFolder::nsMsgDBFolder(void)
 #endif
     initializeStrings();
     createCollationKeyGenerator();
-    LL_I2L(gtimeOfLastPurgeCheck, 0);
+    gtimeOfLastPurgeCheck = 0;
   }
 
   mProcessingFlag[0].bit = nsMsgProcessingFlags::ClassifyJunk;

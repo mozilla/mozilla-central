@@ -130,56 +130,30 @@ nsresult nsMsgGroupView::GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, PRUint32 * aAge
     *aAgeBucket = 1;
   }
   // figure out how many days ago this msg arrived
-  else if (LL_CMP(currentTime, >, dateOfMsg))
+  else if (currentTime > dateOfMsg)
   {
-    // some constants for calculation
-    static PRInt64 microSecondsPerSecond;
-    static PRInt64 microSecondsPerDay;
-    static PRInt64 secondsPerDay;
-    static PRInt64 microSecondsPer6Days;
-    static PRInt64 microSecondsPer13Days;
-
-    static bool bGotConstants = false;
-    if ( !bGotConstants )
-    {
-      // seeds
-      LL_I2L  ( microSecondsPerSecond,  PR_USEC_PER_SEC );
-      LL_UI2L ( secondsPerDay,          60 * 60 * 24 );
-
-      // derivees
-      LL_MUL( microSecondsPerDay,   secondsPerDay,      microSecondsPerSecond );
-      LL_MUL( microSecondsPer6Days, microSecondsPerDay, 6 );
-      LL_MUL( microSecondsPer13Days, microSecondsPerDay, 13 );
-      bGotConstants = true;
-    }
-
     // setting the time variables to local time
-    PRInt64 GMTLocalTimeShift;
-    LL_ADD( GMTLocalTimeShift, currentExplodedTime.tm_params.tp_gmt_offset, currentExplodedTime.tm_params.tp_dst_offset );
-    LL_MUL( GMTLocalTimeShift, GMTLocalTimeShift, microSecondsPerSecond );
-    LL_ADD( currentTime, currentTime, GMTLocalTimeShift );
-    LL_ADD( dateOfMsg, dateOfMsg, GMTLocalTimeShift );
+    PRInt64 GMTLocalTimeShift = currentExplodedTime.tm_params.tp_gmt_offset +
+      currentExplodedTime.tm_params.tp_dst_offset;
+    GMTLocalTimeShift *= PR_USEC_PER_SEC;
+    currentTime += GMTLocalTimeShift;
+    dateOfMsg += GMTLocalTimeShift;
 
     // the most recent midnight, counting from current time
-    PRInt64 todaysMicroSeconds, mostRecentMidnight;
-    LL_MOD( todaysMicroSeconds, currentTime, microSecondsPerDay );
-    LL_SUB( mostRecentMidnight, currentTime, todaysMicroSeconds );
-    PRInt64 yesterday;
-    LL_SUB( yesterday, mostRecentMidnight, microSecondsPerDay );
+    PRInt64 mostRecentMidnight = currentTime - currentTime % PR_USEC_PER_DAY;
+    PRInt64 yesterday = mostRecentMidnight - PR_USEC_PER_DAY;
     // most recent midnight minus 6 days
-    PRInt64 mostRecentWeek;
-    LL_SUB( mostRecentWeek, mostRecentMidnight, microSecondsPer6Days );
+    PRInt64 mostRecentWeek = mostRecentMidnight - (PR_USEC_PER_DAY * 6);
 
     // was the message sent yesterday?
-    if ( LL_CMP( dateOfMsg, >=, yesterday ) ) // yes ....
+    if (dateOfMsg >= yesterday) // yes ....
       *aAgeBucket = 2;
-    else if ( LL_CMP(dateOfMsg, >=, mostRecentWeek) )
+    else if (dateOfMsg >= mostRecentWeek)
       *aAgeBucket = 3;
     else
     {
-      PRInt64 lastTwoWeeks;
-      LL_SUB( lastTwoWeeks, mostRecentMidnight, microSecondsPer13Days);
-      *aAgeBucket = LL_CMP(dateOfMsg, >=, lastTwoWeeks) ? 4 : 5;
+      PRInt64 lastTwoWeeks = mostRecentMidnight - PR_USEC_PER_DAY * 13;
+      *aAgeBucket = (dateOfMsg >= lastTwoWeeks) ? 4 : 5;
     }
   }
   return NS_OK;

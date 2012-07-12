@@ -180,5 +180,8 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_MAILNEWS, value)
 #define NS_MSG_BASE
 #define NS_MSG_BASE_STATIC_MEMBER_(type) type
 
+/// The number of microseconds in a day. This comes up a lot.
+#define PR_USEC_PER_DAY (PRTime(PR_USEC_PER_SEC) * 60 * 60 * 24)
+
 #endif // msgCore_h__
 

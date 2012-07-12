@@ -75,6 +75,7 @@
 
 nsLocalMailCopyState::nsLocalMailCopyState() :
   m_flags(0),
+  m_lastProgressTime(PR_IntervalToMilliseconds(PR_IntervalNow())),
   m_curDstKey(0xffffffff),
   m_curCopyIndex(0),
   m_totalMsgCount(0),
@@ -86,7 +87,6 @@ nsLocalMailCopyState::nsLocalMailCopyState() :
   m_writeFailed(false),
   m_notifyFolderLoaded(false)
 {
-  LL_I2L(m_lastProgressTime, PR_IntervalToMilliseconds(PR_IntervalNow()));
 }
 
 nsLocalMailCopyState::~nsLocalMailCopyState()
@@ -3187,16 +3187,11 @@ nsresult nsMsgLocalMailFolder::DisplayMoveCopyStatusMsg()
       const PRUnichar * stringArray[] = { numMsgSoFarString.get(), totalMessagesString.get(), folderName.get() };
       rv = mCopyState->m_stringBundle->FormatStringFromID(statusMsgId, stringArray, 3,
                                                getter_Copies(finalString));
-      PRInt64 minIntervalBetweenProgress;
-      PRInt64 nowMS = LL_ZERO;
+      PRInt64 nowMS = PR_IntervalToMilliseconds(PR_IntervalNow());
 
       // only update status/progress every half second
-      LL_I2L(minIntervalBetweenProgress, 500);
-      PRInt64 diffSinceLastProgress;
-      LL_I2L(nowMS, PR_IntervalToMilliseconds(PR_IntervalNow()));
-      LL_SUB(diffSinceLastProgress, nowMS, mCopyState->m_lastProgressTime); // r = a - b
-      LL_SUB(diffSinceLastProgress, diffSinceLastProgress, minIntervalBetweenProgress); // r = a - b
-      if (!LL_GE_ZERO(diffSinceLastProgress) && mCopyState->m_curCopyIndex < mCopyState->m_totalMsgCount)
+      if (nowMS - mCopyState->m_lastProgressTime < 500 &&
+          mCopyState->m_curCopyIndex < mCopyState->m_totalMsgCount)
         return NS_OK;
 
       mCopyState->m_lastProgressTime = nowMS;

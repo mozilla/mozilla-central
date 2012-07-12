@@ -274,9 +274,7 @@ nsURLFetcher::OnStopRequest(nsIRequest *request, nsISupports * ctxt, nsresult aS
     /* In case of multipart/x-mixed-replace, we need to truncate the file to the current part size */
     if (MsgLowerCaseEqualsLiteral(mConverterContentType, MULTIPART_MIXED_REPLACE))
     {
-      PRInt64 fileSize;
-      LL_I2L(fileSize, mTotalWritten);
-      mLocalFile->SetFileSize(fileSize);
+      mLocalFile->SetFileSize(mTotalWritten);
     }
   }
 

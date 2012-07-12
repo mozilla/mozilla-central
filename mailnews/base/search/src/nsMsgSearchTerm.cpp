@@ -1283,16 +1283,9 @@ nsresult nsMsgSearchTerm::MatchAge (PRTime msgDate, bool *pResult)
   nsresult err = NS_OK;
 
   PRTime now = PR_Now();
-  PRTime cutOffDay;
+  PRTime cutOffDay = now - m_value.u.age * PR_USEC_PER_DAY;
 
-  PRInt64 microSecondsPerSecond, secondsInDays, microSecondsInDays;
-
-  LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
-  LL_I2L(secondsInDays, 60 * 60 * 24 * m_value.u.age);
-  LL_MUL(microSecondsInDays, secondsInDays, microSecondsPerSecond);
-  LL_SUB(cutOffDay, now, microSecondsInDays); // = now - term->m_value.u.age * 60 * 60 * 24;
-
-  bool cutOffDayInTheFuture = LL_CMP(m_value.u.age, <, 0);
+  bool cutOffDayInTheFuture = m_value.u.age < 0;
 
   // So now cutOffDay is the PRTime cut-off point.
   // Any msg with a time less than that will be past the age.
@@ -1300,13 +1293,13 @@ nsresult nsMsgSearchTerm::MatchAge (PRTime msgDate, bool *pResult)
   switch (m_operator)
   {
     case nsMsgSearchOp::IsGreaterThan: // is older than, or more in the future
-      if ((!cutOffDayInTheFuture && LL_CMP(msgDate, <, cutOffDay)) ||
-          (cutOffDayInTheFuture && LL_CMP(msgDate, >, cutOffDay)))
+      if ((!cutOffDayInTheFuture && msgDate < cutOffDay) ||
+          (cutOffDayInTheFuture && msgDate > cutOffDay))
         result = true;
       break;
     case nsMsgSearchOp::IsLessThan: // is younger than, or less in the future
-      if ((!cutOffDayInTheFuture && LL_CMP(msgDate, >, cutOffDay)) ||
-          (cutOffDayInTheFuture && LL_CMP(msgDate, <, cutOffDay)))
+      if ((!cutOffDayInTheFuture && msgDate > cutOffDay) ||
+          (cutOffDayInTheFuture && msgDate < cutOffDay))
         result = true;
       break;
     case nsMsgSearchOp::Is:

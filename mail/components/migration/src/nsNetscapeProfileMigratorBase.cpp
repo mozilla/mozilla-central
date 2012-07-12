@@ -31,8 +31,8 @@
 nsNetscapeProfileMigratorBase::nsNetscapeProfileMigratorBase()
 {
   mObserverService = do_GetService("@mozilla.org/observer-service;1");
-  mMaxProgress = LL_ZERO;
-  mCurrentProgress = LL_ZERO;
+  mMaxProgress = 0;
+  mCurrentProgress = 0;
   mFileCopyTransactionIndex = 0;
 }
 
@@ -349,7 +349,6 @@ void nsNetscapeProfileMigratorBase::CopyNextFolder()
 {
   if (mFileCopyTransactionIndex < mFileCopyTransactions.Length())
   {
-    PRUint32 percentage = 0;
     fileTransactionEntry fileTransaction =
       mFileCopyTransactions.ElementAt(mFileCopyTransactionIndex++);
 
@@ -360,14 +359,9 @@ void nsNetscapeProfileMigratorBase::CopyNextFolder()
     // add to our current progress
     PRInt64 fileSize;
     fileTransaction.srcFile->GetFileSize(&fileSize);
-    LL_ADD(mCurrentProgress, mCurrentProgress, fileSize);
+    mCurrentProgress += fileSize;
 
-    PRInt64 percentDone;
-    LL_MUL(percentDone, mCurrentProgress, 100);
-
-    LL_DIV(percentDone, percentDone, mMaxProgress);
-
-    LL_L2UI(percentage, percentDone);
+    PRUint32 percentage = (PRUint32)(mCurrentProgress * 100 / mMaxProgress);
 
     nsAutoString index;
     index.AppendInt(percentage);

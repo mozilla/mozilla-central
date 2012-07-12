@@ -329,7 +329,7 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
           PRTime curHdrDate;
 
           curHdr->GetDate(&curHdrDate);
-          if (LL_CMP(newHdrDate, <, curHdrDate))
+          if (newHdrDate < curHdrDate)
             moveIndex = childIndex;
         }
       }
@@ -348,7 +348,7 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
     if (NS_SUCCEEDED(rv) && topLevelHdr)
     {
       topLevelHdr->GetDate(&topLevelHdrDate);
-      if (LL_CMP(newHdrDate, <, topLevelHdrDate))
+      if (newHdrDate < topLevelHdrDate)
       {
         RerootThread(child, topLevelHdr, announcer);
         mdb_pos outPos;

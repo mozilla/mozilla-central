@@ -214,8 +214,7 @@ nsresult nsMsgPurgeService::PerformPurge()
                 PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("purging %s", curFolderUri.get()));
                 childFolder->ApplyRetentionSettings();
               }
-              PRIntervalTime elapsedTime;
-              LL_SUB(elapsedTime, PR_IntervalNow(), startTime);
+              PRIntervalTime elapsedTime = PR_IntervalNow() - startTime;
               // check if more than 500 milliseconds have elapsed in this purge process
               if (PR_IntervalToMilliseconds(elapsedTime) > 500)
               {

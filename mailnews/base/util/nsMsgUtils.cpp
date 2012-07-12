@@ -1294,29 +1294,17 @@ NS_MSG_BASE nsresult NS_GetLocalizedUnicharPreferenceWithDefault(nsIPrefBranch *
 
 void PRTime2Seconds(PRTime prTime, PRUint32 *seconds)
 {
-  PRInt64 microSecondsPerSecond, intermediateResult;
-
-  LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
-  LL_DIV(intermediateResult, prTime, microSecondsPerSecond);
-  LL_L2UI((*seconds), intermediateResult);
+  *seconds = (PRUint32)(prTime / PR_USEC_PER_SEC);
 }
 
 void PRTime2Seconds(PRTime prTime, PRInt32 *seconds)
 {
-  PRInt64 microSecondsPerSecond, intermediateResult;
-
-  LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
-  LL_DIV(intermediateResult, prTime, microSecondsPerSecond);
-  LL_L2I((*seconds), intermediateResult);
+  *seconds = (PRInt32)(prTime / PR_USEC_PER_SEC);
 }
 
 void Seconds2PRTime(PRUint32 seconds, PRTime *prTime)
 {
-  PRInt64 microSecondsPerSecond, intermediateResult;
-
-  LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
-  LL_UI2L(intermediateResult, seconds);
-  LL_MUL((*prTime), intermediateResult, microSecondsPerSecond);
+  *prTime = (PRTime)seconds * PR_USEC_PER_SEC;
 }
 
 nsresult GetSummaryFileLocation(nsIFile* fileLocation, nsIFile** summaryLocation)
@@ -2141,12 +2129,9 @@ NS_MSG_BASE nsresult MsgPromptLoginFailed(nsIMsgWindow *aMsgWindow,
 
 NS_MSG_BASE PRTime MsgConvertAgeInDaysToCutoffDate(PRInt32 ageInDays)
 {
-  PRInt64 secondsInDays, microSecondsInDay;
   PRTime now = PR_Now();
 
-  secondsInDays = 60 * 60 * 24 * ageInDays;
-  microSecondsInDay = secondsInDays * PR_USEC_PER_SEC;
-  return now - microSecondsInDay;
+  return now - PR_USEC_PER_DAY * ageInDays;
 }
 
 NS_MSG_BASE nsresult MsgTermListToString(nsISupportsArray *aTermList, nsCString &aOutString)

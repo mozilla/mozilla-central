@@ -101,7 +101,7 @@ nsSeamonkeyProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup
     fileTransactionEntry fileTransaction = mFileCopyTransactions.ElementAt(i);
     PRInt64 fileSize;
     fileTransaction.srcFile->GetFileSize(&fileSize);
-    LL_ADD(mMaxProgress, mMaxProgress, fileSize);
+    mMaxProgress += fileSize;
   }
 
   CopyNextFolder();

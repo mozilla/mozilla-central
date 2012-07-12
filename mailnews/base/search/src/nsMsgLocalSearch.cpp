@@ -740,8 +740,7 @@ nsresult nsMsgSearchOfflineMail::Search (bool *aDone)
           {
             AddResultElement (msgDBHdr);
           }
-          PRIntervalTime elapsedTime;
-          LL_SUB(elapsedTime, PR_IntervalNow(), startTime);
+          PRIntervalTime elapsedTime = PR_IntervalNow() - startTime;
           // check if more than kTimeSliceInMS milliseconds have elapsed in this time slice started
           if (PR_IntervalToMilliseconds(elapsedTime) > kTimeSliceInMS)
             break;

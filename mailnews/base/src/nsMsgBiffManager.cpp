@@ -282,10 +282,8 @@ nsresult nsMsgBiffManager::SetupNextBiff()
 
     if (currentTime > biffEntry.nextBiffTime)
     {
-      PRInt64 microSecondsPerSecond;
-
-      LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
-      LL_MUL(biffDelay, 30, microSecondsPerSecond); //let's wait 30 seconds before firing biff again
+      // Let's wait 30 seconds before firing biff again
+      biffDelay = 30 * PR_USEC_PER_SEC;
     }
     else
       biffDelay = biffEntry.nextBiffTime - currentTime;

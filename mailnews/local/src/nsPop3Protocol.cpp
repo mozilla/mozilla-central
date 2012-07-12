@@ -63,13 +63,7 @@ net_pop3_remove_messages_marked_delete(PLHashEntry* he,
 
 PRUint32 TimeInSecondsFromPRTime(PRTime prTime)
 {
-  PRUint32 retTimeInSeconds;
-
-  PRInt64 microSecondsPerSecond, intermediateResult;
-  LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
-  LL_DIV(intermediateResult, prTime, microSecondsPerSecond);
-  LL_L2UI(retTimeInSeconds, intermediateResult);
-  return retTimeInSeconds;
+  return (PRUint32)(prTime / PR_USEC_PER_SEC);
 }
 
 static void
@@ -2973,7 +2967,7 @@ PRInt32 nsPop3Protocol::GetMsg()
     if (m_totalDownloadSize > 0) // skip all this if there aren't any messages
     {
       nsresult rv;
-      PRInt64 mailboxSpaceLeft = LL_Zero();
+      PRInt64 mailboxSpaceLeft = 0;
       nsCOMPtr <nsIMsgFolder> folder;
       nsCOMPtr <nsIFile> path;
 
@@ -3015,14 +3009,7 @@ PRInt32 nsPop3Protocol::GetMsg()
         * etc. The space "available" may be greater than the actual space
         * usable. */
 
-        PRInt64 llResult;
-        PRInt64 llExtraSafetySpace;
-        PRInt64 llTotalDownloadSize;
-        LL_I2L(llExtraSafetySpace, EXTRA_SAFETY_SPACE);
-        LL_I2L(llTotalDownloadSize, m_totalDownloadSize);
-
-        LL_ADD(llResult, llTotalDownloadSize, llExtraSafetySpace);
-        if (LL_CMP(llResult, >, mailboxSpaceLeft))
+        if (m_totalDownloadSize + PRInt64(EXTRA_SAFETY_SPACE) > mailboxSpaceLeft)
         {
           // Not enough disk space!
 #ifdef DEBUG

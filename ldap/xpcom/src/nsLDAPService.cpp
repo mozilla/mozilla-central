@@ -31,11 +31,11 @@ static NS_DEFINE_CID(kLDAPOperationCID, NS_LDAPOPERATION_CID);
 //
 nsLDAPServiceEntry::nsLDAPServiceEntry()
     : mLeases(0),
+      mTimestamp(0),
       mDelete(false),
       mRebinding(false)
 
 {
-    mTimestamp = LL_Zero();
 }
 
 // Init function

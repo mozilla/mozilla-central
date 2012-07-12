@@ -26,9 +26,9 @@
 #define MSGFEEDBACK_TIMER_INTERVAL 500
 
 nsMsgStatusFeedback::nsMsgStatusFeedback() :
-  m_lastPercent(0)
+  m_lastPercent(0),
+  m_lastProgressTime(0)
 {
-  LL_I2L(m_lastProgressTime, 0);
 
   nsresult rv;
   nsCOMPtr<nsIStringBundleService> bundleService =
@@ -215,18 +215,11 @@ nsMsgStatusFeedback::ShowProgress(PRInt32 aPercentage)
   
   m_lastPercent = aPercentage;
 
-  PRInt64 nowMS;
-  LL_I2L(nowMS, 0);
+  PRInt64 nowMS = 0;
   if (aPercentage < 100)	// always need to do 100%
   {
-    int64 minIntervalBetweenProgress;
-
-    LL_I2L(minIntervalBetweenProgress, 250);
-    int64 diffSinceLastProgress;
-    LL_I2L(nowMS, PR_IntervalToMilliseconds(PR_IntervalNow()));
-    LL_SUB(diffSinceLastProgress, nowMS, m_lastProgressTime); // r = a - b
-    LL_SUB(diffSinceLastProgress, diffSinceLastProgress, minIntervalBetweenProgress); // r = a - b
-    if (!LL_GE_ZERO(diffSinceLastProgress))
+    nowMS = PR_IntervalToMilliseconds(PR_IntervalNow());
+    if (nowMS < m_lastProgressTime + 250)
       return NS_OK;
   }
 

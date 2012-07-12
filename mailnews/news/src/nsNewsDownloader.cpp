@@ -62,7 +62,7 @@ nsNewsDownloader::nsNewsDownloader(nsIMsgWindow *window, nsIMsgDatabase *msgDB, 
   m_listener = listener;
   m_window = window;
   m_lastPercent = -1;
-  LL_I2L(m_lastProgressTime, 0);
+  m_lastProgressTime = 0;
   // not the perfect place for this, but I think it will work.
   if (m_window)
     m_window->SetStopped(false);
@@ -168,17 +168,11 @@ bool nsNewsDownloader::GetNextHdrToRetrieve()
     PRInt32 percent;
     percent = (100 * m_numwrote) / (PRInt32) m_keysToDownload.Length();
 
-    PRInt64 nowMS = LL_ZERO;
+    PRInt64 nowMS = 0;
     if (percent < 100)  // always need to do 100%
     {
-      int64 minIntervalBetweenProgress;
-
-      LL_I2L(minIntervalBetweenProgress, 750);
-      int64 diffSinceLastProgress;
-      LL_I2L(nowMS, PR_IntervalToMilliseconds(PR_IntervalNow()));
-      LL_SUB(diffSinceLastProgress, nowMS, m_lastProgressTime); // r = a - b
-      LL_SUB(diffSinceLastProgress, diffSinceLastProgress, minIntervalBetweenProgress); // r = a - b
-      if (!LL_GE_ZERO(diffSinceLastProgress))
+      nowMS = PR_IntervalToMilliseconds(PR_IntervalNow());
+      if (nowMS - m_lastProgressTime < 750)
         return true;
     }
 

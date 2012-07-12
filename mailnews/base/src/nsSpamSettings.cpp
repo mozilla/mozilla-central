@@ -218,10 +218,8 @@ nsSpamSettings::GetLogStream(nsIOutputStream **aLogStream)
     rv = mLogFile->GetFileSize(&fileSize);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRUint32 fileLen;
-    LL_L2UI(fileLen, fileSize);
     // write the header at the start
-    if (fileLen == 0)
+    if (fileSize == 0)
     {
       PRUint32 writeCount;
 

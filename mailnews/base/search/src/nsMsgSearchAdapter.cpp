@@ -472,13 +472,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
         // we need to adjust the date so we get greater than and not greater than or equal to which
         // is what the IMAP server wants to search on
         // won't work on Mac.
-        // ack, is this right? is PRTime seconds or microseconds?
-        PRInt64 microSecondsPerSecond, secondsInDay, microSecondsInDay;
-
-        LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
-        LL_UI2L(secondsInDay, 60 * 60 * 24);
-        LL_MUL(microSecondsInDay, secondsInDay, microSecondsPerSecond);
-        LL_ADD(adjustedDate, adjustedDate, microSecondsInDay); // bump up to the day after this one...
+        adjustedDate += PR_USEC_PER_DAY;
       }
 
       PRExplodedTime exploded;
@@ -498,15 +492,8 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
         searchValue->GetAge(&ageInDays);
 
         PRTime now = PR_Now();
-        PRTime matchDay;
+        PRTime matchDay = now - ageInDays * PR_USEC_PER_DAY;
 
-        PRInt64 microSecondsPerSecond, secondsInDays, microSecondsInDay;
-
-        LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
-        LL_I2L(secondsInDays, 60 * 60 * 24 * ageInDays);
-        LL_MUL(microSecondsInDay, secondsInDays, microSecondsPerSecond);
-
-        LL_SUB(matchDay, now, microSecondsInDay); // = now - term->m_value.u.age * 60 * 60 * 24;
         PRExplodedTime exploded;
         PR_ExplodeTime(matchDay, PR_LocalTimeParameters, &exploded);
         PR_FormatTimeUSEnglish(dateBuf, sizeof(dateBuf), "%d-%b-%Y", &exploded);

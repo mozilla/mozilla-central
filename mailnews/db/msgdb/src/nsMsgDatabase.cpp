@@ -5233,16 +5233,8 @@ nsresult nsMsgDatabase::PurgeMessagesOlderThan(PRUint32 daysToKeepHdrs,
     return rv;
   bool hasMore = false;
 
-  PRTime now = PR_Now();
-  PRTime cutOffDay;
+  PRTime cutOffDay = PR_Now() - daysToKeepHdrs * PR_USEC_PER_DAY;
 
-  PRInt64 microSecondsPerSecond, secondsInDays, microSecondsInDay;
-
-  LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
-  LL_UI2L(secondsInDays, 60 * 60 * 24 * daysToKeepHdrs);
-  LL_MUL(microSecondsInDay, secondsInDays, microSecondsPerSecond);
-
-  LL_SUB(cutOffDay, now, microSecondsInDay); // = now - term->m_value.u.age * 60 * 60 * 24;
   // so now cutOffDay is the PRTime cut-off point. Any msg with a date less than that will get purged.
   while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && hasMore)
   {
@@ -5273,7 +5265,7 @@ nsresult nsMsgDatabase::PurgeMessagesOlderThan(PRUint32 daysToKeepHdrs,
     {
       PRTime date;
       pHeader->GetDate(&date);
-      if (LL_CMP(date, <, cutOffDay))
+      if (date < cutOffDay)
         purgeHdr = true;
     }
     if (purgeHdr)

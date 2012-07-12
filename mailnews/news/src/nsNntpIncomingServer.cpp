@@ -452,17 +452,10 @@ nsNntpIncomingServer::ConnectionTimeOut(nsINNTPProtocol* aConnection)
     if (!aConnection) return retVal;
     nsresult rv;
 
-    PRTime cacheTimeoutLimits;
-
-    LL_I2L(cacheTimeoutLimits, 170 * 1000000); // 170 seconds in microseconds
     PRTime lastActiveTimeStamp;
     rv = aConnection->GetLastActiveTimeStamp(&lastActiveTimeStamp);
 
-    PRTime elapsedTime;
-    LL_SUB(elapsedTime, PR_Now(), lastActiveTimeStamp);
-    PRTime t;
-    LL_SUB(t, elapsedTime, cacheTimeoutLimits);
-    if (LL_GE_ZERO(t))
+    if (PR_Now() - lastActiveTimeStamp >= PRTime(170) * PR_USEC_PER_SEC)
     {
 #ifdef DEBUG_seth
       printf("XXX connection timed out, close it, and remove it from the connection cache\n");
@@ -790,9 +783,7 @@ nsNntpIncomingServer::WriteHostInfoFile()
 {
   if (!mHostInfoHasChanged)
     return NS_OK;
-  PRInt32 firstnewdate;
-
-  LL_L2I(firstnewdate, mFirstNewDate);
+  PRInt32 firstnewdate = (PRInt32)mFirstNewDate;
 
   mLastUpdatedTime = PRUint32(PR_Now() / PR_USEC_PER_SEC);
 
@@ -1243,8 +1234,7 @@ nsNntpIncomingServer::HandleLine(const char* line, PRUint32 line_size)
       if (PL_strcmp(line, "lastgroupdate") == 0) {
         mLastUpdatedTime = strtoul(equalPos, nsnull, 10);
       } else if (PL_strcmp(line, "firstnewdate") == 0) {
-        PRInt32 firstnewdate = strtol(equalPos, nsnull, 16);
-        LL_I2L(mFirstNewDate, firstnewdate);
+        mFirstNewDate = strtol(equalPos, nsnull, 16);
       } else if (PL_strcmp(line, "uniqueid") == 0) {
         mUniqueId = strtol(equalPos, nsnull, 16);
       } else if (PL_strcmp(line, "version") == 0) {

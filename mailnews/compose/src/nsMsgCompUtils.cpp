@@ -709,9 +709,7 @@ GenerateGlobalRandomBytes(unsigned char *buf, PRInt32 len)
   {
     // Seed the random-number generator with current time so that
     // the numbers will be different every time we run.
-    PRInt32 aTime;
-    LL_L2I(aTime, PR_Now());
-    srand( (unsigned)aTime );
+    srand( (unsigned)PR_Now() );
     firstTime = false;
   }
 
@@ -1085,13 +1083,7 @@ static bool isValidHost( const char* host )
 char *
 msg_generate_message_id (nsIMsgIdentity *identity)
 {
-  PRUint32 now;
-  PRTime prNow = PR_Now();
-  PRInt64 microSecondsPerSecond, intermediateResult;
-
-  LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
-  LL_DIV(intermediateResult, prNow, microSecondsPerSecond);
-    LL_L2UI(now, intermediateResult);
+  PRUint32 now = (PRUint32)(PR_Now() / PR_USEC_PER_SEC);
 
   PRUint32 salt = 0;
   const char *host = 0;

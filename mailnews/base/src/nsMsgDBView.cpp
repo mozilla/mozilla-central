@@ -712,46 +712,24 @@ nsresult nsMsgDBView::FetchDate(nsIMsgDBHdr * aHdr, nsAString &aDateString, bool
   // the following chunk of code allows us to show a day instead of a number if the message was received
   // within the last 7 days. i.e. Mon 5:10pm. (depending on the mail.ui.display.dateformat.thisweek pref)
   // The concrete format used is dependent on a preference setting (see InitDisplayFormats).
-  else if (LL_CMP(currentTime, >, dateOfMsg))
+  else if (currentTime > dateOfMsg)
   {
-    // some constants for calculation
-    static PRInt64 microSecondsPerSecond;
-    static PRInt64 secondsPerDay;
-    static PRInt64 microSecondsPerDay;
-    static PRInt64 microSecondsPer6Days;
+    // Convert the times from GMT to local time
+    PRInt64 GMTLocalTimeShift = PR_USEC_PER_SEC *
+      PRInt64(explodedCurrentTime.tm_params.tp_gmt_offset +
+       explodedCurrentTime.tm_params.tp_dst_offset);
+    currentTime += GMTLocalTimeShift;
+    dateOfMsgLocal = dateOfMsg + GMTLocalTimeShift;
 
-    static bool bGotConstants = false;
-    if ( !bGotConstants )
-    {
-      // seeds
-      LL_I2L  ( microSecondsPerSecond,  PR_USEC_PER_SEC );
-      LL_UI2L ( secondsPerDay,          60 * 60 * 24 );
-
-      // derivees
-      LL_MUL( microSecondsPerDay,   secondsPerDay,      microSecondsPerSecond );
-      LL_MUL( microSecondsPer6Days, microSecondsPerDay, 6 );
-
-      bGotConstants = true;
-    }
-
-    // setting the time variables to local time
-    PRInt64 GMTLocalTimeShift;
-    LL_ADD( GMTLocalTimeShift, explodedCurrentTime.tm_params.tp_gmt_offset, explodedCurrentTime.tm_params.tp_dst_offset );
-    LL_MUL( GMTLocalTimeShift, GMTLocalTimeShift, microSecondsPerSecond );
-    LL_ADD( currentTime, currentTime, GMTLocalTimeShift );
-    LL_ADD( dateOfMsgLocal, dateOfMsg, GMTLocalTimeShift );
-
-    // the most recent midnight, counting from current time
-    PRInt64 todaysMicroSeconds, mostRecentMidnight;
-    LL_MOD( todaysMicroSeconds, currentTime, microSecondsPerDay );
-    LL_SUB( mostRecentMidnight, currentTime, todaysMicroSeconds );
+    // Find the most recent midnight
+    PRInt64 todaysMicroSeconds = currentTime % PR_USEC_PER_DAY;
+    PRInt64 mostRecentMidnight = currentTime - todaysMicroSeconds;
 
     // most recent midnight minus 6 days
-    PRInt64 mostRecentWeek;
-    LL_SUB( mostRecentWeek, mostRecentMidnight, microSecondsPer6Days );
+    PRInt64 mostRecentWeek = mostRecentMidnight - (PR_USEC_PER_DAY * 6);
 
     // was the message sent during the last week?
-    if ( LL_CMP( dateOfMsgLocal, >=, mostRecentWeek ) )
+    if (dateOfMsgLocal >= mostRecentWeek)
     { // yes ....
       dateFormat = m_dateFormatThisWeek;
     }

@@ -600,7 +600,7 @@ NS_IMETHODIMP nsParseMailMessageState::Clear()
   ClearAggregateHeader (m_ccList);
   m_headers.ResetWritePos();
   m_envelope.ResetWritePos();
-  m_receivedTime = LL_ZERO;
+  m_receivedTime = 0;
   for (PRUint32 i = 0; i < m_customDBHeaders.Length(); i++)
     m_customDBHeaderValues[i].length = 0;
 
@@ -1118,7 +1118,7 @@ SEARCH_NEWLINE:
       while (header->length > 0 &&
         IS_SPACE (header->value [header->length - 1]))
         ((char *) header->value) [--header->length] = 0;
-      if (header == &receivedBy && LL_IS_ZERO(m_receivedTime))
+      if (header == &receivedBy && m_receivedTime == 0)
       {
         // parse Received: header for date.
         // We trust the first header as that is closest to recipient,
@@ -1580,7 +1580,7 @@ int nsParseMailMessageState::FinalizeHeaders()
           PRTime resultTime = PR_Now();
           m_newMsgHdr->SetDate(resultTime);
         }
-        if (!LL_IS_ZERO(m_receivedTime))
+        if (m_receivedTime != 0)
         {  // Upgrade 'Received' to Received: ?
           PRTime2Seconds(m_receivedTime, &rcvTimeSecs);
         }

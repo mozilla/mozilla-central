@@ -42,7 +42,7 @@ void nsMsgHdr::Init()
   m_statusOffset = 0xffffffff;
   m_messageKey = nsMsgKey_None;
   m_messageSize = 0;
-  m_date = LL_ZERO;
+  m_date = 0;
   m_flags = 0;
   m_mdbRow = NULL;
   m_threadId = nsMsgKey_None;
