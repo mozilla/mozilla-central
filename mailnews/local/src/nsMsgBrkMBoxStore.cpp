@@ -721,8 +721,8 @@ nsMsgBrkMBoxStore::GetMsgInputStream(nsIMsgFolder *aMsgFolder,
                                      const nsACString &aMsgToken,
                                      PRInt64 *aOffset,
                                      nsIMsgDBHdr *aMsgHdr,
-                                     bool *aReusable NS_OUTPARAM,
-                                     nsIInputStream **aResult NS_OUTPARAM)
+                                     bool *aReusable,
+                                     nsIInputStream **aResult)
 {
   NS_ENSURE_ARG_POINTER(aMsgFolder);
   NS_ENSURE_ARG_POINTER(aResult);
