@@ -1045,6 +1045,7 @@ xpicleanup@BIN_SUFFIX@
   modules/services-sync/notifications.js
   modules/services-sync/record.js
   modules/services-sync/resource.js
+  modules/services-sync/rest.js
   modules/services-sync/service.js
   modules/services-sync/status.js
   modules/services-sync/util.js
