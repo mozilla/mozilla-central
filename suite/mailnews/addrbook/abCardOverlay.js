@@ -4,7 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 const kNonVcardFields =
-        ["nickNameContainer", "secondaryEmailContainer", "screenNameContainer",
+        ["NickNameContainer", "SecondaryEmailContainer", "ScreenNameContainer",
          "customFields", "allowRemoteContent", "preferDisplayName"];
 
 const kPhoneticFields =
@@ -57,10 +57,11 @@ const kVcardFields =
 
 const kDefaultYear = 2000;
 var gEditCard;
-var gOnSaveListeners = new Array();
+var gOnSaveListeners = [];
+var gOnLoadListeners = [];
 var gOkCallback = null;
 var gHideABPicker = false;
-var gOriginalPhotoURI = "";
+var gPhotoHandlers = {};
 
 function OnLoadNewCard()
 {
@@ -174,28 +175,38 @@ function EditCardOKButton()
   }
 
   var listDirectoriesCount = directory.addressLists.length;
-  var foundDirectories = new Array();
-  var foundDirectoriesCount = 0;
-  var i;
+  var foundDirectories = [];
+
   // create a list of mailing lists and the index where the card is at.
-  for ( i=0;  i < listDirectoriesCount; i++ ) {
+  for (let i = 0; i < listDirectoriesCount; i++)
+  {
     var subdirectory = directory.addressLists.queryElementAt(i, Components.interfaces.nsIAbDirectory);
-    try {
-      var index = subdirectory.indexOf(gEditCard);
-      foundDirectories[foundDirectoriesCount] = {directory:subdirectory, index:index};
-      foundDirectoriesCount++;
-    } catch (ex) {}
+    if (subdirectory.isMailList)
+    {
+      // See if any card in this list is the one we edited.
+      // Must compare card contents using .equals() instead of .indexOf()
+      // because gEditCard is not really a member of the .addressLists array.
+      let listCardsCount = subdir.addressLists.length;
+      for (let index = 0; index < listCardsCount; index++)
+      {
+        let card = subdirectory.addressLists.queryElementAt(index, Components.interfaces.nsIAbCard);
+        if (card.equals(gEditCard.card))
+          foundDirectories.push({directory:subdir, cardIndex:index});
+      }
+    }
   }
-  
+ 
   CheckAndSetCardValues(gEditCard.card, document, false);
 
   directory.modifyCard(gEditCard.card);
-  
-  for (i=0; i<foundDirectoriesCount; i++) {
-      // Update the addressLists item for this card
-      foundDirectories[i].directory.addressLists
-                         .replaceElementAt(gEditCard.card, foundDirectories[i].index, false);
+ 
+  while (foundDirectories.length)
+  {
+    // Update the addressLists item for this card
+    let foundItem = foundDirectories.pop();
+    foundItem.directory.addressLists.replaceElementAt(gEditCard.card, foundItem.cardIndex, false);
   }
+
   NotifySaveListeners(directory);
 
   // callback to allow caller to update
@@ -284,22 +295,58 @@ function OnLoadEditCard()
   }
 }
 
-// this is used by people who extend the ab card dialog
-// like Netscape does for screenname
-function RegisterSaveListener(func)
+/* Registers functions that are called when loading the card
+ * values into the contact editor dialog.  This is useful if
+ * extensions have added extra fields to the nsIAbCard, and
+ * need to display them in the contact editor.
+ */
+function RegisterLoadListener(aFunc)
 {
-  gOnSaveListeners[gOnSaveListeners.length] = func;
+  gOnLoadListeners.push(aFunc);
 }
 
-// this is used by people who extend the ab card dialog
-// like Netscape does for screenname
+function UnregisterLoadListener(aFunc)
+{
+  var fIndex = gOnLoadListeners.indexOf(aFunc);
+  if (fIndex != -1)
+    gOnLoadListeners.splice(fIndex, 1);
+}
+
+// Notifies load listeners that an nsIAbCard is being loaded.
+function NotifyLoadListeners(aCard, aDoc)
+{
+  if (!gOnLoadListeners.length)
+    return;
+
+  for (let listener of gOnLoadListeners)
+    listener(aCard, aDoc);
+}
+
+/* Registers functions that are called when saving the card
+ * values.  This is useful if extensions have added extra
+ * fields to the user interface, and need to set those values
+ * in their nsIAbCard.
+ */
+function RegisterSaveListener(aFunc)
+{
+  gOnSaveListeners.push(aFunc);
+}
+
+function UnregisterSaveListener(aFunc)
+{
+  var fIndex = gOnSaveListeners.indexOf(aFunc);
+  if (fIndex != -1)
+    gOnSaveListeners.splice(fIndex, 1);
+}
+
+// Notifies save listeners that an nsIAbCard is being saved.
 function NotifySaveListeners(directory)
 {
   if (!gOnSaveListeners.length)
     return;
 
-  for ( var i = 0; i < gOnSaveListeners.length; i++ )
-    gOnSaveListeners[i]();
+  for (let listener of gOnSaveListeners)
+    listener(gEditCard.card, document);
 
   // the save listeners might have tweaked the card
   // in which case we need to commit it.
@@ -375,8 +422,9 @@ function NewCardOKButton()
       // replace gEditCard.card with the card we added
       // so that save listeners can get / set attributes on
       // the card that got created.
-      gEditCard.card = GetDirectoryFromURI(uri).addCard(gEditCard.card);
-      NotifySaveListeners();
+      var directory = GetDirectoryFromURI(uri);
+      gEditCard.card = directory.addCard(gEditCard.card);
+      NotifySaveListeners(directory);
       if ("arguments" in window && window.arguments[0] &&
           "allowRemoteContent" in window.arguments[0])
         // getProperty may return a "1" or "0" string, we want a boolean
@@ -393,6 +441,10 @@ function GetCardValues(cardproperty, doc)
 {
   if (!cardproperty)
     return;
+
+  // Pass the nsIAbCard and the Document through the listeners
+  // to give extensions a chance to populate custom fields.
+  NotifyLoadListeners(cardproperty, doc);
 
   for (var i = kVcardFields.length; i-- > 0; ) {
     doc.getElementById(kVcardFields[i][0]).value =
@@ -457,32 +509,10 @@ function GetCardValues(cardproperty, doc)
   // Store the original photo URI and update the photo
   // Select the type if there is a valid value stored for that type, otherwise
   // select the generic photo
-  gOriginalPhotoURI = cardproperty.getProperty("PhotoURI", "");
-  switch (cardproperty.getProperty("PhotoType", "")) {
-    case "file":
-      try {
-        var file = Components.classes["@mozilla.org/network/io-service;1"]
-                             .getService(Components.interfaces.nsIIOService)
-                             .newURI(gOriginalPhotoURI, null, null)
-                             .QueryInterface(Components.interfaces.nsIFileURL)
-                             .file;
-      } catch (e) {}
-      if (file) {
-        document.getElementById("PhotoFile").file = file;
-        updatePhoto("file");
-      }
-      else
-        updatePhoto("generic");
-      break;
-    case "web":
-      document.getElementById("PhotoURI").value = gOriginalPhotoURI;
-      updatePhoto("web");
-      break;
-    default:
-      if (gOriginalPhotoURI)
-        document.getElementById("GenericPhotoList").value = gOriginalPhotoURI;
-      updatePhoto("generic");
-  }
+  var photoType = cardproperty.getProperty("PhotoType", "");
+  document.getElementById("PhotoType").value = photoType;
+  loadPhoto(cardproperty);
+  setCardEditorPhoto(photoType, cardproperty);
 }
 
 // when the ab card dialog is being loaded to show a vCard,
@@ -545,37 +575,7 @@ function CheckAndSetCardValues(cardproperty, doc, check)
   }
   catch (ex) {}
 
-  var type = document.getElementById("PhotoType").value;
-  var photoURI = gOriginalPhotoURI;
-  if (type == "file" && document.getElementById("PhotoFile").file)
-    photoURI = Components.classes["@mozilla.org/network/io-service;1"]
-                         .getService(Components.interfaces.nsIIOService)
-                         .newFileURI(document.getElementById("PhotoFile").file)
-                         .spec;
-  else if (type == "web" && document.getElementById("PhotoURI").value)
-    photoURI = document.getElementById("PhotoURI").value;
-  else {
-    type = "generic";
-    photoURI = document.getElementById("GenericPhotoList").value;
-  }
-  cardproperty.setProperty("PhotoType", type);
-  if (photoURI != gOriginalPhotoURI) {
-    // Store the original URI
-    cardproperty.setProperty("PhotoURI", photoURI);
-    // Save the photo if it isn't one of the generic photos
-    if (type == "generic") {
-      // Remove the original, if any
-      removePhoto(cardproperty.getProperty("PhotoName", null));
-    } else {
-      // Save the new file and store its URI as PhotoName 
-      var file = savePhoto(photoURI);
-      if (file) {
-        // Remove the original, if any
-        removePhoto(cardproperty.getProperty("PhotoName", null));
-        cardproperty.setProperty("PhotoName", file.leafName);
-      }
-    }
-  }
+  savePhoto(cardproperty);
 
   return true;
 }
@@ -876,36 +876,69 @@ function modifyDatepicker(aDatepicker) {
 }
 
 /**
- * Updates the photo by setting the src attribute of the photo element.
+ * Updates the photo displayed in the contact editor based on the
+ * type of photo selected.  If the type is not recognized, the
+ * photo will automatically switch to the generic photo.
  *
- * @param aType Optional. The type of photo (web, file, or generic).
- *              If supplied the corresponding radio button will be selected.
- *              If not supplied the type will be determined by the currently
- *              selected type.
+ * @param aType The type of photo (web, file, or generic available
+ *              by default).
+ * @param aCard The nsIAbCard being edited
+ *
  */
-function updatePhoto(aType) {
-  if (aType)
-    // Select the type's radio button
+function setCardEditorPhoto(aType, aCard)
+{
+  if (!gPhotoHandlers[aType] ||
+      !gPhotoHandlers[aType].onShow(aCard, document, "photo"))
+    gPhotoHandlers["generic"].onShow(aCard, document, "photo");
+}
+
+/**
+ * Extract the photo information from an nsIAbCard, and populate
+ * the appropriate input fields in the contact editor.  If the
+ * nsIAbCard returns an unrecognized PhotoType, the generic
+ * display photo is switched to.
+ *
+ * @param aCard The nsIAbCard to extract the information from.
+ *
+ */
+function loadPhoto(aCard)
+{
+  var type = aCard.getProperty("PhotoType", "")
+  if (!gPhotoHandlers[type] ||
+      !gPhotoHandlers[type].onLoad(aCard, document))
+    gPhotoHandlers["generic"].onLoad(aCard, document);
+}
+
+/**
+ * Given the fields in the current contact editor, commit
+ * the photo to an nsIAbCard.  If the photo cannot be saved,
+ * the generic contact photo is saved instead.
+ *
+ * @param aType
+ *
+ */
+function savePhoto(aCard)
+{
+  var type = document.getElementById("PhotoType").value;
+  if (!gPhotoHandlers[type] ||
+      !gPhotoHandlers[type].onSave(aCard, document))
+    gPhotoHandlers["generic"].onSave(aCard, document);
+}
+
+/**
+ * Event handler for when the user switches the type of
+ * photo for the nsIAbCard being edited.  Called from
+ * abCardOverlay.xul.
+ */
+function onSwitchPhotoType(aType)
+{
+  if (!gEditCard)
+    return;
+
+  if (aType != document.getElementById("PhotoType").value)
     document.getElementById("PhotoType").value = aType;
   else
-    aType = document.getElementById("PhotoType").value;
-
-  var value;
-  switch (aType) {
-    case "file":
-      var file = document.getElementById("PhotoFile").file;
-      value = file ? Components.classes["@mozilla.org/network/io-service;1"]
-                               .getService(Components.interfaces.nsIIOService)
-                               .newFileURI(file)
-                               .spec : "";
-      break;
-    case "web":
-      value = document.getElementById("PhotoURI").value;
-      break;
-    default:
-      value = document.getElementById("GenericPhotoList").value;
-  }
-  document.getElementById("photo").setAttribute("src", value || defaultPhotoURI);
+    setCardEditorPhoto(aType, gEditCard.card);
 }
 
 /**
@@ -949,8 +982,187 @@ function browsePhoto() {
 
   if (fp.show() == nsIFilePicker.returnOK) {
     document.getElementById("PhotoFile").file = fp.file;
-    updatePhoto("file");
+    onSwitchPhotoType(document.getElementById("FilePhotoType").value);
     return true;
   }
   return false;
 }
+
+/* A photo handler defines the behaviour of the contact editor
+ * for a particular photo type. Each photo handler must implement
+ * the following interface:
+ *
+ * onLoad: function(aCard, aDocument):
+ *   Called when the editor wants to populate the contact editor
+ *   input fields with information about aCard's photo.  Note that
+ *   this does NOT make aCard's photo appear in the contact editor -
+ *   this is left to the onShow function.  Returns true on success.
+ *   If the function returns false, the generic photo handler onLoad
+ *   function will be called.
+ *
+ * onShow: function(aCard, aDocument, aTargetID):
+ *   Called when the editor wants to show this photo type.
+ *   The onShow method should take the input fields in the document,
+ *   and render the requested photo in the IMG tag with id
+ *   aTargetID.  Note that onShow does NOT save the photo for aCard -
+ *   this job is left to the onSave function.  Returns true on success.
+ *   If the function returns false, the generic photo handler onShow
+ *   function will be called.
+ *
+ * onSave: function(aCard, aDocument)
+ *   Called when the editor wants to save this photo type.  The
+ *   onSave method is responsible for analyzing the photo of this
+ *   type requested by the user, and storing it, as well as the
+ *   other fields required by onLoad/onShow to retrieve and display
+ *   the photo again.  Returns true on success.  If the function
+ *   returns false, the generic photo handler onSave function will
+ *   be called.
+ */
+
+var gGenericPhotoHandler =
+{
+
+  onLoad: function(aCard, aDocument)
+  {
+    return true;
+  },
+
+  onShow: function(aCard, aDocument, aTargetID)
+  {
+    aDocument.getElementById(aTargetID)
+             .setAttribute("src", defaultPhotoURI);
+    return true;
+  },
+
+  onSave: function(aCard, aDocument)
+  {
+    // If we had the photo saved locally, clear it.
+    removePhoto(aCard.getProperty("PhotoName", null));
+    aCard.setProperty("PhotoName", "");
+    aCard.setProperty("PhotoURI", "");
+    aCard.setProperty("PhotoType", "generic");
+    return true;
+  }
+};
+
+var gFilePhotoHandler =
+{
+
+  onLoad: function(aCard, aDocument)
+  {
+    var photoURI = aCard.getProperty("PhotoURI", "");
+    try
+    {
+      var file = Components.classes["@mozilla.org/network/io-service;1"]
+                           .getService(Components.interfaces.nsIIOService)
+                           .newURI(photoURI, null, null)
+                           .QueryInterface(Components.interfaces.nsIFileURL)
+                           .file;
+    } catch (e) {}
+
+    if (!file)
+      return false;
+
+    aDocument.getElementById("PhotoFile").file = file;
+    return true;
+  },
+
+  onShow: function(aCard, aDocument, aTargetID)
+  {
+    var file = aDocument.getElementById("PhotoFile").file;
+    try
+    {
+      var value = Components.classes["@mozilla.org/network/io-service;1"]
+                            .getService(Components.interfaces.nsIIOService)
+                            .newFileURI(file)
+                            .spec;
+    } catch (e) {}
+
+    if (!value)
+      return false;
+
+    aDocument.getElementById(aTargetID).setAttribute("src", value);
+    return true;
+  },
+
+  onSave: function(aCard, aDocument)
+  {
+    var file = aDocument.getElementById("PhotoFile").file;
+    if (!file)
+      return false;
+
+    var photoURI = Components.classes["@mozilla.org/network/io-service;1"]
+                             .getService(Components.interfaces.nsIIOService)
+                             .newFileURI(file)
+                             .spec;
+
+    var file = storePhoto(photoURI);
+
+    if (!file)
+      return false;
+
+    // Remove the original, if any
+    removePhoto(aCard.getProperty("PhotoName", null));
+    aCard.setProperty("PhotoName", file.leafName);
+    aCard.setProperty("PhotoType", "file");
+    aCard.setProperty("PhotoURI", photoURI);
+    return true;
+  }
+};
+
+var gWebPhotoHandler =
+{
+
+  onLoad: function(aCard, aDocument)
+  {
+    var photoURI = aCard.getProperty("PhotoURI", null);
+
+    if (!photoURI)
+      return false;
+
+    aDocument.getElementById("PhotoURI").value = photoURI;
+    return true;
+  },
+
+  onShow: function(aCard, aDocument, aTargetID)
+  {
+    var photoURI = aDocument.getElementById("PhotoURI").value;
+
+    if (!photoURI)
+      return false;
+
+    aDocument.getElementById(aTargetID).setAttribute("src", photoURI);
+    return true;
+  },
+
+  onSave: function(aCard, aDocument)
+  {
+    var photoURI = aDocument.getElementById("PhotoURI").value;
+
+    var file = storePhoto(photoURI);
+    if (!file)
+      return false;
+
+    // Remove the original, if any
+    removePhoto(aCard.getProperty("PhotoName", null));
+    aCard.setProperty("PhotoName", file.leafName);
+    aCard.setProperty("PhotoURI", photoURI);
+    aCard.setProperty("PhotoType", "web");
+    return true;
+  }
+};
+
+/* In order for other photo handlers to be recognized for
+ * a particular type, they must be registered through this
+ * function.
+ * @param aType the type of photo to handle
+ * @param aPhotoHandler the photo handler to register
+ */
+function registerPhotoHandler(aType, aPhotoHandler)
+{
+  gPhotoHandlers[aType] = aPhotoHandler;
+}
+
+registerPhotoHandler("generic", gGenericPhotoHandler);
+registerPhotoHandler("web", gWebPhotoHandler);
+registerPhotoHandler("file", gFilePhotoHandler);

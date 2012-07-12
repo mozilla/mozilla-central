@@ -27,7 +27,7 @@
     </columns>
 
     <rows>
-      <row align="center">
+      <row id="ListNameContainer" align="center">
         <label control="ListName"
                class="CardEditLabel"
                value="&ListName.label;"
@@ -35,7 +35,7 @@
         <textbox id="ListName"/>
       </row>
 
-      <row align="center">
+      <row id="ListNickNameContainer" align="center">
         <label control="ListNickName"
                class="CardEditLabel"
                value="&ListNickName.label;"
@@ -43,7 +43,7 @@
         <textbox id="ListNickName"/>
       </row>
 
-      <row align="center">
+      <row id="ListDescriptionContainer" align="center">
         <label control="ListDescription"
                class="CardEditLabel"
                value="&ListDescription.label;"

@@ -701,7 +701,7 @@ function saveStreamToFile(aIStream, aFile) {
  *
  * @return An nsIFile representation of the photo.
  */
-function savePhoto(aUri) {
+function storePhoto(aUri) {
   if (!aUri)
     return false;
 
