@@ -1029,6 +1029,7 @@ xpicleanup@BIN_SUFFIX@
   modules/services-common/preferences.js
   modules/services-common/rest.js
   modules/services-common/stringbundle.js
+  modules/services-common/tokenserverclient.js
   modules/services-common/utils.js
   modules/services-crypto/WeaveCrypto.js
   modules/services-sync/constants.js
