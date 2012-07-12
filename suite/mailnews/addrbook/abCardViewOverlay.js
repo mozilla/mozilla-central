@@ -11,7 +11,7 @@ gPrefs = gPrefs.QueryInterface(Components.interfaces.nsIPrefBranch);
 
 var gProfileDirURL;
 
-var gMapItURLFormat = GetLocalizedStringPref("mail.addr_book.mapit_url.format");
+var gMapItURLFormat;
 
 var gFileHandler = Services.io.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 var gPhotoDisplayHandlers = {};
@@ -37,6 +37,8 @@ var cvData;
 
 function OnLoadCardView()
 {
+  gMapItURLFormat = GetLocalizedStringPref("mail.addr_book.mapit_url.format");
+
   zPrimaryEmail = gAddressBookBundle.getString("propertyPrimaryEmail");
   zSecondaryEmail = gAddressBookBundle.getString("propertySecondaryEmail");
   zScreenName = gAddressBookBundle.getString("propertyScreenName");
