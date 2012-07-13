@@ -69,6 +69,8 @@
 #include "nsICharsetConverterManager.h"
 #include "nsIDocumentEncoder.h"
 #include "mozilla/Services.h"
+#include "mozilla/Util.h"
+using namespace mozilla;
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
 static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
@@ -502,7 +504,7 @@ nsresult FormatFileSize(PRUint64 size, bool useKB, nsAString &formattedSize)
 
   // Convert to next unit if it needs 4 digits (after rounding), but only if
   // we know the name of the next unit
-  while ((unitSize >= 999.5) && (unitIndex < NS_ARRAY_LENGTH(sizeAbbrNames)))
+  while ((unitSize >= 999.5) && (unitIndex < ArrayLength(sizeAbbrNames)))
   {
       unitSize /= 1024;
       unitIndex++;

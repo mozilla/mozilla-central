@@ -26,6 +26,8 @@
 #include "nsArrayEnumerator.h"
 #include "prmem.h"
 #include "mozilla/Services.h"
+#include "mozilla/Util.h"
+using namespace mozilla;
 
 #define PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST "mail.addr_book.lastnamefirst"
 
@@ -1029,18 +1031,18 @@ nsresult nsAbCardProperty::AppendCityStateZip(const AppendItem &aItem,
 
   if (!cityResult.IsEmpty() && !stateResult.IsEmpty() && !zipResult.IsEmpty()) {
     const PRUnichar *formatStrings[] = { cityResult.get(), stateResult.get(), zipResult.get() };
-    rv = aBundle->FormatStringFromName(NS_LITERAL_STRING("cityAndStateAndZip").get(), formatStrings, NS_ARRAY_LENGTH(formatStrings), getter_Copies(formattedString));
+    rv = aBundle->FormatStringFromName(NS_LITERAL_STRING("cityAndStateAndZip").get(), formatStrings, ArrayLength(formatStrings), getter_Copies(formattedString));
     NS_ENSURE_SUCCESS(rv,rv);
   }
   else if (!cityResult.IsEmpty() && !stateResult.IsEmpty() && zipResult.IsEmpty()) {
     const PRUnichar *formatStrings[] = { cityResult.get(), stateResult.get() };
-    rv = aBundle->FormatStringFromName(NS_LITERAL_STRING("cityAndStateNoZip").get(), formatStrings, NS_ARRAY_LENGTH(formatStrings), getter_Copies(formattedString));
+    rv = aBundle->FormatStringFromName(NS_LITERAL_STRING("cityAndStateNoZip").get(), formatStrings, ArrayLength(formatStrings), getter_Copies(formattedString));
     NS_ENSURE_SUCCESS(rv,rv);
   }
   else if ((!cityResult.IsEmpty() && stateResult.IsEmpty() && !zipResult.IsEmpty()) ||
           (cityResult.IsEmpty() && !stateResult.IsEmpty() && !zipResult.IsEmpty())) {
     const PRUnichar *formatStrings[] = { cityResult.IsEmpty() ? stateResult.get() : cityResult.get(), zipResult.get() };
-    rv = aBundle->FormatStringFromName(NS_LITERAL_STRING("cityOrStateAndZip").get(), formatStrings, NS_ARRAY_LENGTH(formatStrings), getter_Copies(formattedString));
+    rv = aBundle->FormatStringFromName(NS_LITERAL_STRING("cityOrStateAndZip").get(), formatStrings, ArrayLength(formatStrings), getter_Copies(formattedString));
     NS_ENSURE_SUCCESS(rv,rv);
   }
   else {

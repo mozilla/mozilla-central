@@ -37,6 +37,8 @@
 #include "nsIIOService.h"
 #include "nsAbQueryStringToExpression.h"
 #include "mozilla/Services.h"
+#include "mozilla/Util.h"
+using namespace mozilla;
 
 struct ExportAttributesTableStruct
 {
@@ -642,7 +644,7 @@ nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const ch
   nsCString revisedName;
   nsString columnName;
 
-  for (i = 0; i < NS_ARRAY_LENGTH(EXPORT_ATTRIBUTES_TABLE); i++) {
+  for (i = 0; i < ArrayLength(EXPORT_ATTRIBUTES_TABLE); i++) {
     if (EXPORT_ATTRIBUTES_TABLE[i].plainTextStringID != 0) {
 
       // We don't need to truncate the string here as getter_Copies will
@@ -662,7 +664,7 @@ nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const ch
       if (revisedName.Length() != writeCount)
         return NS_ERROR_FAILURE;
 
-      if (i < NS_ARRAY_LENGTH(EXPORT_ATTRIBUTES_TABLE) - 1) {
+      if (i < ArrayLength(EXPORT_ATTRIBUTES_TABLE) - 1) {
         rv = outputStream->Write(aDelim, aDelimLen, &writeCount);
         NS_ENSURE_SUCCESS(rv,rv);
 
@@ -699,7 +701,7 @@ nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const ch
           nsString value;
           nsCString valueCStr;
 
-          for (i = 0; i < NS_ARRAY_LENGTH(EXPORT_ATTRIBUTES_TABLE); i++) {
+          for (i = 0; i < ArrayLength(EXPORT_ATTRIBUTES_TABLE); i++) {
             if (EXPORT_ATTRIBUTES_TABLE[i].plainTextStringID != 0) {
               rv = card->GetPropertyAsAString(EXPORT_ATTRIBUTES_TABLE[i].abPropertyName, value);
               if (NS_FAILED(rv))
@@ -765,7 +767,7 @@ nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const ch
               continue; // go to next field
             }
 
-            if (i < NS_ARRAY_LENGTH(EXPORT_ATTRIBUTES_TABLE) - 1) {
+            if (i < ArrayLength(EXPORT_ATTRIBUTES_TABLE) - 1) {
               rv = outputStream->Write(aDelim, aDelimLen, &writeCount);
               NS_ENSURE_SUCCESS(rv,rv);
               if (aDelimLen != writeCount)
@@ -868,7 +870,7 @@ nsAbManager::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsIFile *aLocalFi
 
           nsCAutoString ldapAttribute;
 
-          for (i = 0; i < NS_ARRAY_LENGTH(EXPORT_ATTRIBUTES_TABLE); i++) {
+          for (i = 0; i < ArrayLength(EXPORT_ATTRIBUTES_TABLE); i++) {
             if (NS_SUCCEEDED(attrMap->GetFirstAttribute(nsDependentCString(EXPORT_ATTRIBUTES_TABLE[i].abPropertyName),
                                                         ldapAttribute)) &&
                 !ldapAttribute.IsEmpty()) {

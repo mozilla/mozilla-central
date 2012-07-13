@@ -7,6 +7,8 @@
 #include "nsStringGlue.h"
 #include "nsAbOSXCard.h"
 #include "nsMemory.h"
+#include "mozilla/Util.h"
+using namespace mozilla;
 
 #include <AddressBook/AddressBook.h>
 #if (MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_3)
@@ -115,4 +117,4 @@ const nsAbOSXPropertyMap nsAbOSXUtils::kPropertyMap[] = {
 };
 
 const PRUint32 nsAbOSXUtils::kPropertyMapSize =
-    NS_ARRAY_LENGTH(nsAbOSXUtils::kPropertyMap);
+    ArrayLength(nsAbOSXUtils::kPropertyMap);
