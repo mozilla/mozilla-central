@@ -224,6 +224,7 @@
 @BINPATH@/components/gfx.xpt
 @BINPATH@/components/html5.xpt
 @BINPATH@/components/htmlparser.xpt
+@BINPATH@/components/identity.xpt
 @BINPATH@/components/imgicon.xpt
 @BINPATH@/components/imglib2.xpt
 @BINPATH@/components/inspector.xpt
