@@ -336,6 +336,7 @@
 
 ; JavaScript components
 @BINPATH@/components/addonManager.js
+@BINPATH@/components/AitcComponents.manifest
 @BINPATH@/components/AlarmsManager.js
 @BINPATH@/components/AlarmsManager.manifest
 @BINPATH@/components/amContentHandler.js
