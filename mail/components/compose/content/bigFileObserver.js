@@ -6,10 +6,12 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/cloudFileAccounts.js");
 
 const kUploadNotificationValue = "bigAttachmentUploading";
+const kPrivacyWarningNotificationValue = "bigAttachmentPrivacyWarning";
 
 var gBigFileObserver = {
   bigFiles: [],
   sessionHidden: false,
+  privacyWarned: false,
 
   get hidden() {
     return this.sessionHidden ||
@@ -35,6 +37,7 @@ var gBigFileObserver = {
     bucket.addEventListener("attachments-converted", this, false);
 
     this.sessionHidden = false;
+    this.privacyWarned = false;
     this.bigFiles = [];
   },
 
@@ -48,9 +51,16 @@ var gBigFileObserver = {
     bucket.removeEventListener("attachments-converted", this, false);
 
     let nb = document.getElementById("attachmentNotificationBox");
-    let notification = nb.getNotificationWithValue(kUploadNotificationValue);
-    if (notification)
-      nb.removeNotification(notification);
+
+    let removeValues = [kUploadNotificationValue,
+                        kPrivacyWarningNotificationValue];
+
+    for each (let [, value] in Iterator(removeValues)) {
+      let notification = nb.getNotificationWithValue(value);
+      if (notification) {
+        nb.removeNotification(notification);
+      }
+    };
   },
 
   handleEvent: function(event) {
@@ -129,8 +139,14 @@ var gBigFileObserver = {
   },
 
   attachmentUploaded: function(aAttachment) {
-    if (!this._anyUploadsInProgress())
+    if (!this._anyUploadsInProgress()) {
       this.hideUploadingNotification();
+
+      if (!this.privacyWarned) {
+        this.showPrivacyNotification();
+        this.privacyWarned = true;
+      }
+    }
   },
 
   attachmentUploadFailed: function(aAttachment, aStatusCode) {
@@ -271,6 +287,21 @@ var gBigFileObserver = {
         }, notification.timeout - now);
       }
     }
+  },
+
+  showPrivacyNotification: function() {
+    const kPrivacyNotificationValue = "bigAttachmentPrivacyWarning";
+
+    let nb = document.getElementById("attachmentNotificationBox");
+    let notification = nb.getNotificationWithValue(kPrivacyNotificationValue);
+
+    if (notification)
+      return;
+
+    let message = this.formatString("cloudFilePrivacyNotification");
+    nb.appendNotification(message, kPrivacyNotificationValue, "null",
+                          nb.PRIORITY_WARNING_MEDIUM, null);
+
   },
 
   _anyUploadsInProgress: function() {

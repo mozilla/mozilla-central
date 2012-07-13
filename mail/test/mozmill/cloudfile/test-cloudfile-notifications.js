@@ -84,10 +84,30 @@ function assert_upload_notification_displayed(aController, aDisplayed) {
 }
 
 /**
+ * A helper function to assert that the Filelink privacy warning notification
+ * is either displayed or not displayed.
+ *
+ * @param aController the controller of the compose window to check.
+ * @param aDisplayed true if the notification should be displayed, false
+ *                   otherwise.
+ */
+function assert_privacy_warning_notification_displayed(aController, aDisplayed) {
+  assert_notification_displayed(aController, "bigAttachmentPrivacyWarning",
+                                aDisplayed);
+}
+
+/**
  * A helper function to close the Filelink upload notification.
  */
 function close_upload_notification(aController) {
   close_notification(aController, "bigAttachmentUploading");
+}
+
+/**
+ * A helper function to close the Filelink privacy warning notification.
+ */
+function close_privacy_warning_notification(aController) {
+  close_notification(aController, "bigAttachmentPrivacyWarning");
 }
 
 function test_no_notification_for_small_file() {
@@ -306,4 +326,129 @@ function test_offer_then_upload_notifications() {
 
   // Now put the old threshold back.
   Services.prefs.setIntPref(kOfferThreshold, maxSize);
+}
+
+/**
+ * Test that when we first upload some files, we get the privacy warning
+ * message. We should only get this the first time.
+ */
+function test_privacy_warning_notification() {
+  gMockPromptService.register();
+  gMockPromptService.returnValue = false;
+  gMockFilePicker.returnFiles = collectFiles(['./data/testFile1',
+                                              './data/testFile2'], __file__);
+  let provider = new MockCloudfileAccount();
+  provider.init("aKey");
+
+  provider.uploadFile = function(aFile, aListener) {
+    aListener.onStartRequest(null, null);
+    cwc.window.setTimeout(function() {
+      aListener.onStopRequest(null, null,
+                              Ci.nsIMsgCloudFileProvider.NS_OK);
+    }, 500);
+  }
+  let cwc = open_compose_new_mail(mc);
+  cwc.window.attachToCloud(provider);
+
+  assert_upload_notification_displayed(cwc, true);
+  wait_for_notification_to_stop(cwc, "bigAttachmentUploading");
+
+  // Assert that the warning is displayed.
+  assert_privacy_warning_notification_displayed(cwc, true);
+
+  // Close the privacy warning notification...
+  close_privacy_warning_notification(cwc);
+
+  // And now upload some more files. We shouldn't get the warning again.
+  gMockFilePicker.returnFiles = collectFiles(['./data/testFile3',
+                                              './data/testFile4'], __file__);
+  cwc.window.attachToCloud(provider);
+  assert_privacy_warning_notification_displayed(cwc, false);
+  gMockPromptService.unregister();
+}
+
+/**
+ * Test that the privacy warning notification does not persist when closing
+ * and re-opening a compose window.
+ */
+function test_privacy_warning_notification_no_persist() {
+  gMockPromptService.register();
+  gMockPromptService.returnValue = false;
+  gMockFilePicker.returnFiles = collectFiles(['./data/testFile1',
+                                              './data/testFile2'], __file__);
+  let provider = new MockCloudfileAccount();
+  provider.init("aKey");
+
+  provider.uploadFile = function(aFile, aListener) {
+    aListener.onStartRequest(null, null);
+    cwc.window.setTimeout(function() {
+      aListener.onStopRequest(null, null,
+                              Ci.nsIMsgCloudFileProvider.NS_OK);
+    }, 500);
+  }
+  let cwc = open_compose_new_mail(mc);
+  cwc.window.attachToCloud(provider);
+
+  assert_upload_notification_displayed(cwc, true);
+  wait_for_notification_to_stop(cwc, "bigAttachmentUploading");
+
+  // Assert that the warning is displayed.
+  assert_privacy_warning_notification_displayed(cwc, true);
+
+  // Close the compose window
+  close_compose_window(cwc);
+
+  // Open a new compose window
+  cwc = open_compose_new_mail(mc);
+
+  // We shouldn't be displaying the privacy warning.
+  assert_privacy_warning_notification_displayed(cwc, false);
+  gMockPromptService.unregister();
+}
+
+/**
+ * Test that if we close the privacy warning in a composer, it will still
+ * spawn in a new one.
+ */
+function test_privacy_warning_notification_open_after_close() {
+  gMockPromptService.register();
+  gMockPromptService.returnValue = false;
+  gMockFilePicker.returnFiles = collectFiles(['./data/testFile1',
+                                              './data/testFile2'], __file__);
+  let provider = new MockCloudfileAccount();
+  provider.init("aKey");
+
+  provider.uploadFile = function(aFile, aListener) {
+    aListener.onStartRequest(null, null);
+    cwc.window.setTimeout(function() {
+      aListener.onStopRequest(null, null,
+                              Ci.nsIMsgCloudFileProvider.NS_OK);
+    }, 500);
+  }
+  let cwc = open_compose_new_mail(mc);
+  cwc.window.attachToCloud(provider);
+
+  assert_upload_notification_displayed(cwc, true);
+  wait_for_notification_to_stop(cwc, "bigAttachmentUploading");
+
+  // Assert that the warning is displayed.
+  assert_privacy_warning_notification_displayed(cwc, true);
+
+  // Close the privacy warning notification...
+  close_privacy_warning_notification(cwc);
+
+  // Open a new compose window
+  cwc = open_compose_new_mail(mc);
+
+  gMockFilePicker.returnFiles = collectFiles(['./data/testFile3',
+                                              './data/testFile4'], __file__);
+  cwc.window.attachToCloud(provider);
+
+  assert_upload_notification_displayed(cwc, true);
+  wait_for_notification_to_stop(cwc, "bigAttachmentUploading");
+
+  // Assert that the privacy warning notification is displayed again.
+  assert_privacy_warning_notification_displayed(cwc, true);
+
+  gMockPromptService.unregister();
 }
