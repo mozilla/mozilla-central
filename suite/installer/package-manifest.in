@@ -336,8 +336,10 @@
 
 ; JavaScript components
 @BINPATH@/components/addonManager.js
+#ifdef MOZ_SERVICES_AITC
 @BINPATH@/components/Aitc.js
 @BINPATH@/components/AitcComponents.manifest
+#endif
 @BINPATH@/components/AlarmsManager.js
 @BINPATH@/components/AlarmsManager.manifest
 @BINPATH@/components/amContentHandler.js
@@ -367,6 +369,9 @@
 @BINPATH@/components/messageWakeupService.manifest
 @BINPATH@/components/NetworkGeolocationProvider.js
 @BINPATH@/components/NetworkGeolocationProvider.manifest
+#ifdef MOZ_SERVICES_NOTIFICATIONS
+@BINPATH@/components/NotificationsComponents.manifest
+#endif
 @BINPATH@/components/nsAbout.js
 @BINPATH@/components/nsBadCertHandler.js
 @BINPATH@/components/nsBadCertHandler.manifest
@@ -443,12 +448,16 @@
 @BINPATH@/components/smileApplication.manifest
 @BINPATH@/components/storage-Legacy.js
 @BINPATH@/components/storage-mozStorage.js
+#ifdef MOZ_SERVICES_SYNC
 @BINPATH@/components/SyncComponents.manifest
+#endif
 @BINPATH@/components/TelemetryPing.js
 @BINPATH@/components/TelemetryPing.manifest
 @BINPATH@/components/txEXSLTRegExFunctions.js
 @BINPATH@/components/txEXSLTRegExFunctions.manifest
+#ifdef MOZ_SERVICES_SYNC
 @BINPATH@/components/Weave.js
+#endif
 @BINPATH@/components/Webapps.js
 @BINPATH@/components/Webapps.manifest
 @BINPATH@/components/WebContentConverter.js
@@ -557,8 +566,15 @@
 #ifdef LIBXUL_SDK
 @BINPATH@/@PREF_DIR@/channel-prefs.js
 #endif
+#ifdef MOZ_SERVICES_AITC
 @BINPATH@/@PREF_DIR@/services-aitc.js
+#endif
+#ifdef MOZ_SERVICES_NOTIFICATIONS
+@BINPATH@/@PREF_DIR@/services-notifications.js
+#endif
+#ifdef MOZ_SERVICES_SYNC
 @BINPATH@/@PREF_DIR@/services-sync.js
+#endif
 @BINPATH@/@PREF_DIR@/composer.js
 @BINPATH@/greprefs.js
 @BINPATH@/defaults/autoconfig/platform.js

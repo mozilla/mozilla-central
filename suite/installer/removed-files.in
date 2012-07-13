@@ -721,6 +721,8 @@ xpicleanup@BIN_SUFFIX@
   defaults/pref/composer.js
   defaults/pref/mailnews.js
   defaults/pref/mdn.js
+  defaults/pref/services-aitc.js
+  defaults/pref/services-notifications.js
   defaults/pref/services-sync.js
   defaults/pref/smime.js
   defaults/pref/suite-l10n.js
@@ -1119,7 +1121,22 @@ xpicleanup@BIN_SUFFIX@
     update.locale
   #endif
 #else
+  #ifndef MOZ_SERVICES_AITC
+    components/Aitc.js
+  #endif
   components/binary.manifest
+  #ifndef MOZ_SERVICES_SYNC
+    components/Weave.js
+  #endif
+  #ifndef MOZ_SERVICES_AITC
+    defaults/pref/services-aitc.js
+  #endif
+  #ifndef MOZ_SERVICES_NOTIFICATIONS
+    defaults/pref/services-notifications.js
+  #endif
+  #ifndef MOZ_SERVICES_SYNC
+    defaults/pref/services-sync.js
+  #endif
   omni.ja
 #endif
 
