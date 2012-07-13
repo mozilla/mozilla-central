@@ -613,6 +613,7 @@ xpicleanup@BIN_SUFFIX@
   chrome/nonlocalized.manifest
   chrome/localized.manifest
   components/addonManager.js
+  components/Aitc.js
   components/AlarmsManager.js
   components/amContentHandler.js
   components/amWebInstallListener.js
