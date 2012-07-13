@@ -80,8 +80,8 @@ void
 JSLinearString::mark(JSTracer *)
 {
     JSLinearString *str = this;
-    while (str->markIfUnmarked() && str->isDependent())
-        str = str->asDependent().base();
+    while (str->markIfUnmarked() && str->hasBase())
+        str = str->base();
 }
 
 size_t
