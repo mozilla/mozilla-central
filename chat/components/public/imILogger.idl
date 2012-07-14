@@ -45,6 +45,7 @@ interface imILog: nsISupports {
 [scriptable, uuid(ab38c01c-2245-4279-9437-1d6bcc69d556)]
 interface imILogger: nsISupports {
   imILog getLogFromFile(in nsIFile aFile);
+  nsIFile getLogFileForOngoingConversation(in prplIConversation aConversation);
   nsISimpleEnumerator getLogsForAccountBuddy(in imIAccountBuddy aAccountBuddy);
   nsISimpleEnumerator getLogsForBuddy(in imIBuddy aBuddy);
   nsISimpleEnumerator getLogsForContact(in imIContact aContact);

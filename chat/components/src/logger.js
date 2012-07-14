@@ -69,6 +69,7 @@ function ConversationLog(aConversation)
 }
 ConversationLog.prototype = {
   _log: null,
+  file: null,
   format: "txt",
   _init: function cl_init() {
     let file = getLogFolderForAccount(this._conv.account, true);
@@ -81,6 +82,7 @@ ConversationLog.prototype = {
     if (Services.prefs.getCharPref("purple.logging.format") == "json")
       this.format = "json";
     file.append(getNewLogFileName(this.format));
+    this.file = file;
     let os = Cc["@mozilla.org/network/file-output-stream;1"].
              createInstance(Ci.nsIFileOutputStream);
     const PR_WRITE_ONLY   = 0x02;
@@ -176,11 +178,13 @@ ConversationLog.prototype = {
     if (this._log) {
       this._log.close();
       this._log = null;
+      this.file = null;
     }
   }
 };
 
 const dummyConversationLog = {
+  file: null,
   logMessage: function() {},
   close: function() {}
 };
@@ -392,6 +396,8 @@ Logger.prototype = {
     return new LogEnumerator([file.directoryEntries]);
   },
   getLogFromFile: function logger_getLogFromFile(aFile) new Log(aFile),
+  getLogFileForOngoingConversation: function logger_getLogFileForOngoingConversation(aConversation)
+    getLogForConversation(aConversation).file,
   getLogsForContact: function logger_getLogsForContact(aContact) {
     let entries = [];
     aContact.getBuddies().forEach(function (aBuddy) {
