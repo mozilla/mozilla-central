@@ -321,32 +321,3 @@ function test_bug771132_fix_no_scheme() {
   urlForFile = provider.urlForFile(file);
   assert_equals(kExpectedUrl, urlForFile);
 }
-
-/**
- * Test for bug 765575 - if Yousendit fails on some non-ASCII attachments
- */
-function test_bug765575_fix_non_ascii() {
-  const kExpectedUrl = "http://www.example.com/expectedUrl";
-  const kTopics = [kUploadFile, kGetFileURL];
-
-  gServer.planForUploadFile("%E2%88%80.eml");
-  gServer.planForGetFileURL("%E2%88%80.eml", {url: kExpectedUrl});
-
-  let obs = new ObservationRecorder();
-  for each (let [, topic] in Iterator(kTopics)) {
-    obs.planFor(topic);
-    Services.obs.addObserver(obs, topic, false);
-  }
-
-  let requestObserver = gObsManager.create("test_simple_case - Upload 1");
-  let file = getFile("./data/∀.eml", __file__);
-  let provider = gServer.getPreparedBackend("someAccountKey");
-  provider.uploadFile(file, requestObserver);
-
-  mc.waitFor(function () requestObserver.success);
-
-  let urlForFile = provider.urlForFile(file);
-  assert_equals(kExpectedUrl, urlForFile);
-  assert_equals(1, obs.numSightings(kUploadFile));
-  assert_equals(1, obs.numSightings(kGetFileURL));
-}

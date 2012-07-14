@@ -1020,13 +1020,9 @@ nsYouSendItFileUploader.prototype = {
       "\r\nContent-Disposition: form-data; name=\"bid\"\r\n\r\n" +
        this._urlInfo.fileId;
 
-    let fileName = /^[\040-\176]+$/.test(this.file.leafName) 
-        ? this.file.leafName 
-        : encodeURIComponent(this.file.leafName);
-
     fileContents += "\r\n--" + boundary +
       "\r\nContent-Disposition: form-data; name=\"fname\"; filename=\"" +
-      fileName + "\"\r\nContent-Type: application/octet-stream" +
+      this.file.leafName + "\"\r\nContent-Type: application/octet-stream" +
       "\r\n\r\n";
 
     // Since js doesn't like binary data in strings, we're going to create
