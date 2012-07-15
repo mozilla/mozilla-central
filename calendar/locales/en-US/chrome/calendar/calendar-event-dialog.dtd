@@ -180,6 +180,16 @@
 <!ENTITY event.description.accesskey                      "p">
 <!ENTITY event.attachments.label                          "Attachments:" >
 <!ENTITY event.attachments.accesskey                      "h" >
+
+<!-- LOCALIZATION NOTE - These 4 strings are not in production yet,
+  but I want to land Filelink support for Lightning soon. The attach
+  button will become a dropdown button that allows to attach links
+  as usual, but also files via the Filelink providers. -->
+<!ENTITY event.attachments.menubutton.label               "Attach">
+<!ENTITY event.attachments.menubutton.accesskey           "A">
+<!ENTITY event.attachments.url.label                      "Webpage…">
+<!ENTITY event.attachments.url.accesskey                  "W">
+
 <!ENTITY event.attachments.popup.remove.label             "Remove" >
 <!ENTITY event.attachments.popup.remove.accesskey         "R" >
 <!ENTITY event.attachments.popup.open.label               "Open" >
