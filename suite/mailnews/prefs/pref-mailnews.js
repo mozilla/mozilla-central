@@ -47,35 +47,13 @@ function defaultClientSetup()
   }
 }
 
-function onSetDefaultMail()
+function onSetDefault(aButton, aType)
 {
   var shellService = Components.classes["@mozilla.org/suite/shell-service;1"]
                                .getService(nsIShellService);
 
-  shellService.setDefaultClient(false, false, nsIShellService.MAIL);
-  shellService.shouldBeDefaultClientFor |= nsIShellService.MAIL;
+  shellService.setDefaultClient(false, false, nsIShellService[aType]);
+  shellService.shouldBeDefaultClientFor |= nsIShellService[aType];
 
-  document.getElementById("setDefaultMail").disabled = true;
-}
-
-function onSetDefaultNews()
-{
-  var shellService = Components.classes["@mozilla.org/suite/shell-service;1"]
-                               .getService(nsIShellService);
-
-  shellService.setDefaultClient(false, false, nsIShellService.NEWS);
-  shellService.shouldBeDefaultClientFor |= nsIShellService.NEWS;
-
-  document.getElementById("setDefaultNews").disabled = true;
-}
-
-function onSetDefaultFeed()
-{
-  var shellService = Components.classes["@mozilla.org/suite/shell-service;1"]
-                               .getService(nsIShellService);
-
-  shellService.setDefaultClient(false, false, nsIShellService.RSS);
-  shellService.shouldBeDefaultClientFor |= nsIShellService.RSS;
-
-  document.getElementById("setDefaultRss").disabled = true;
+  aButton.disabled = true;
 }

@@ -76,16 +76,20 @@
 
         <description>&defaultMailSettings.description;</description>
         <hbox class="indent" align="center">
-          <button id="setDefaultMail" accesskey="&setDefaultMail.accesskey;"
-                  label="&setDefaultMail.label;" oncommand="onSetDefaultMail();"
+          <button id="setDefaultMail"
+                  accesskey="&setDefaultMail.accesskey;"
+                  label="&setDefaultMail.label;"
+                  oncommand="onSetDefault(this, 'MAIL');"
                   preference="system.windows.lock_ui.defaultMailClient"/>
-          <button id="setDefaultNews" accesskey="&setDefaultNews.accesskey;"
-                  label="&setDefaultNews.label;" oncommand="onSetDefaultNews();"
+          <button id="setDefaultNews"
+                  accesskey="&setDefaultNews.accesskey;"
+                  label="&setDefaultNews.label;"
+                  oncommand="onSetDefault(this, 'NEWS');"
                   preference="system.windows.lock_ui.defaultNewsClient"/>
           <button id="setDefaultRss"
                   accesskey="&setDefaultFeed.accesskey;"
                   label="&setDefaultFeed.label;"
-                  oncommand="onSetDefaultFeed();"
+                  oncommand="onSetDefault(this, 'RSS');"
                   preference="system.windows.lock_ui.defaultFeedClient"/>
         </hbox>
       </vbox>
