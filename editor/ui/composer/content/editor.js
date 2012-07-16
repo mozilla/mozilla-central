@@ -18,7 +18,6 @@ const kDisplayModeMenuIDs = ["viewNormalMode", "viewAllTagsMode", "viewSourceMod
 const kDisplayModeTabIDS = ["NormalModeButton", "TagModeButton", "SourceModeButton", "PreviewModeButton"];
 const kNormalStyleSheet = "chrome://editor/content/EditorContent.css";
 const kAllTagsStyleSheet = "chrome://editor/content/EditorAllTags.css";
-const kParagraphMarksStyleSheet = "chrome://editor/content/EditorParagraphMarks.css";
 const kContentEditableStyleSheet = "resource://gre/res/contenteditable.css";
 
 const kTextMimeType = "text/plain";
@@ -1829,28 +1828,6 @@ function SetDisplayMode(mode)
   
 
   return true;
-}
-
-function EditorToggleParagraphMarks()
-{
-  var menuItem = document.getElementById("viewParagraphMarks");
-  if (menuItem)
-  {
-    // Note that the 'type="checbox"' mechanism automatically
-    //  toggles the "checked" state before the oncommand is called,
-    //  so if "checked" is true now, it was just switched to that mode
-    var checked = menuItem.getAttribute("checked");
-    try {
-      var editor = GetCurrentEditor();
-      editor.QueryInterface(nsIEditorStyleSheets);
-
-      if (checked == "true")
-        editor.addOverrideStyleSheet(kParagraphMarksStyleSheet);
-      else
-        editor.enableStyleSheet(kParagraphMarksStyleSheet, false);
-    }
-    catch(e) { return; }
-  }
 }
 
 function UpdateWindowTitle()

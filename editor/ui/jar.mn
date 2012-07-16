@@ -89,7 +89,6 @@ comm.jar:
       content/editor/EditorContextMenu.js                      (composer/content/EditorContextMenu.js)
       content/editor/EditorContextMenuOverlay.xul              (composer/content/EditorContextMenuOverlay.xul)
       content/editor/EditorAllTags.css                         (composer/content/EditorAllTags.css)
-      content/editor/EditorParagraphMarks.css                  (composer/content/EditorParagraphMarks.css)
       content/editor/editorOverlay.xul                         (composer/content/editorOverlay.xul) 
       content/editor/editingOverlay.xul                        (composer/content/editingOverlay.xul)
       content/editor/composerOverlay.xul                       (composer/content/composerOverlay.xul)
