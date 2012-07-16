@@ -315,6 +315,7 @@
   locale/@AB_CD@/messenger/search-operators.properties                      (%chrome/mailnews/search-operators.properties)
   locale/@AB_CD@/messenger/shutdownWindow.properties                        (%chrome/mailnews/shutdownWindow.properties)
   locale/@AB_CD@/messenger/smime.properties                                 (%chrome/mailnews/smime.properties)
+  locale/@AB_CD@/messenger/pgpmime.properties                               (%chrome/mailnews/pgpmime.properties)
   locale/@AB_CD@/messenger/smtpEditOverlay.dtd                              (%chrome/mailnews/pref/smtpEditOverlay.dtd)
   locale/@AB_CD@/messenger/start.dtd                                        (%chrome/mailnews/start.dtd)
   locale/@AB_CD@/messenger/subscribe.dtd                                    (%chrome/mailnews/subscribe.dtd)

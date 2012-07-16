@@ -16,6 +16,9 @@ endif
 
 PARALLEL_DIRS += glue vcard
 
+# pgpmime depends on glue
+DIRS += pgpmime
+
 ifndef BUILD_SMIME
 # smimestub always depends on glue, so always build that afterwards
 DIRS += smimestub

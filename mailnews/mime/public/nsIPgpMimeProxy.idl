@@ -1,0 +1,59 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsIStreamListener.idl"
+
+%{C++
+typedef int (*MimeDecodeCallbackFun)(const char *buf, PRInt32 buf_size, void *output_closure);
+
+#define NS_PGPMIMEPROXY_CLASSNAME "PGP/Mime Decryption"
+#define NS_PGPMIMEPROXY_CONTRACTID "@mozilla.org/mime/pgp-mime-decrypt;1"
+
+#define NS_PGPMIMEPROXY_CID                     \
+{ /* c200d239-6dad-434f-a614-1b58a58c61ec */      \
+   0xc200d239, 0x6dad, 0x434f,                    \
+{0xa6, 0x14, 0x1b, 0x58, 0xa5, 0x8c, 0x61, 0xec } }
+%}
+
+native MimeDecodeCallbackFun(MimeDecodeCallbackFun);
+
+/**
+ * nsIPgpMimeProxy is a proxy for a (JS-)addon for OpenPGP/MIME decryption
+ */
+
+[scriptable, uuid(c200d239-6dad-434f-a614-1b58a58c61ec)]
+interface nsIPgpMimeProxy : nsIStreamListener
+{
+  /**
+   * set the decoder callback into mimelib
+   */
+  [noscript] void setMimeCallback(in MimeDecodeCallbackFun outputFun,
+                                  in voidPtr outputClosure);
+
+  /**
+   * init function
+   */
+  void init();
+
+  /**
+   * process encoded data received from mimelib
+   */
+  void write(in string buf, in unsigned long count);
+
+  /**
+   * finish writing (EOF) from mimelib
+   */
+  void finish();
+
+  /**
+   * the listener that receives the OpenPGP/MIME data stream and decrypts
+   * the message
+   */
+  attribute nsIStreamListener     decryptor;
+
+  attribute ACString              contentType;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////

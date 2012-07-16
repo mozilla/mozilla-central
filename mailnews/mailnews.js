@@ -814,3 +814,6 @@ pref("mail.nntp.qos", 0);
 // default value for IMAP4
 // in a DSCP environment this should be 56 (0x38, or AF13), ibid.
 pref("mail.imap.qos", 0);
+
+// PgpMime Addon
+pref("mail.pgpmime.addon_url", "https://addons.mozilla.org/addon/enigmail/");

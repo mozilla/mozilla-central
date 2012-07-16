@@ -2,7 +2,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
- 
+
 /*
  * This interface is implemented by content type handlers that will be
  * called upon by libmime to process various attachments types. The primary
@@ -11,8 +11,8 @@
  *
  * Note: These will all register by their content type prefixed by the
  *       following:  mimecth:text/vcard
- * 
- *       libmime will then use the XPCOM Component Manager to 
+ *
+ *       libmime will then use the XPCOM Component Manager to
  *       locate the appropriate Content Type handler
  */
 #ifndef nsIMimeContentTypeHandler_h_
@@ -44,16 +44,21 @@ typedef struct {
       { 0x20dabdac, 0xf8b5, 0x11d2, \
       { 0xFF, 0xe0, 0x0, 0xaf, 0x19, 0xa7, 0xd1, 0x44 } }
 
+#define NS_PGPMIME_CONTENT_TYPE_HANDLER_CID \
+      { 0x212f415f, 0xf8b5, 0x11d2, \
+      { 0xFF, 0xe0, 0x0, 0xaf, 0x19, 0xa7, 0xd1, 0x44 } }
+
+
 class nsIMimeContentTypeHandler : public nsISupports {
-public: 
+public:
   NS_DECLARE_STATIC_IID_ACCESSOR(NS_IMIME_CONTENT_TYPE_HANDLER_IID)
 
   NS_IMETHOD    GetContentType(char **contentType) = 0;
 
-  NS_IMETHOD    CreateContentTypeHandlerClass(const char *content_type, 
-                                              contentTypeHandlerInitStruct *initStruct, 
+  NS_IMETHOD    CreateContentTypeHandlerClass(const char *content_type,
+                                              contentTypeHandlerInitStruct *initStruct,
                                               MimeObjectClass **objClass) = 0;
-}; 
+};
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIMimeContentTypeHandler,
                               NS_IMIME_CONTENT_TYPE_HANDLER_IID)

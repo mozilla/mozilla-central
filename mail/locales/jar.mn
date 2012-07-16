@@ -82,6 +82,7 @@
   locale/@AB_CD@/messenger/mime.properties                              (%chrome/messenger/mime.properties)
   locale/@AB_CD@/messenger/mimeheader.properties                        (%chrome/messenger/mimeheader.properties)
   locale/@AB_CD@/messenger/smime.properties                             (%chrome/messenger/smime.properties)
+  locale/@AB_CD@/messenger/pgpmime.properties                           (%chrome/messenger/pgpmime.properties)
   locale/@AB_CD@/messenger/markByDate.dtd                               (%chrome/messenger/markByDate.dtd)
   locale/@AB_CD@/messenger/am-mdn.dtd                                   (%chrome/messenger/am-mdn.dtd)
   locale/@AB_CD@/messenger/am-mdn.properties                            (%chrome/messenger/am-mdn.properties)

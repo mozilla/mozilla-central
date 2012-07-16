@@ -27,6 +27,7 @@ XPIDLSRCS	= \
 		nsIMimeHeaders.idl \
 		nsIMimeConverter.idl \
 		nsISimpleMimeConverter.idl \
+		nsIPgpMimeProxy.idl \
 		$(NULL)
 
 include $(topsrcdir)/config/rules.mk

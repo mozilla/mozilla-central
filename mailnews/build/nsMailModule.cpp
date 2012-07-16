@@ -296,6 +296,11 @@
 #include "nsFts3Tokenizer.h"
 
 ////////////////////////////////////////////////////////////////////////////////
+// PGP/MIME includes
+////////////////////////////////////////////////////////////////////////////////
+#include "nsPgpMimeProxy.h"
+
+////////////////////////////////////////////////////////////////////////////////
 // mailnews base factories
 ////////////////////////////////////////////////////////////////////////////////
 using namespace mozilla::mailnews;
@@ -772,6 +777,38 @@ static nsresult nsVCardMimeContentTypeHandlerConstructor(nsISupports *aOuter,
   return rv;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// PGP/MIME factories
+////////////////////////////////////////////////////////////////////////////////
+
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsPgpMimeProxy, Init)
+
+NS_DEFINE_NAMED_CID(NS_PGPMIMEPROXY_CID);
+
+NS_DEFINE_NAMED_CID(NS_PGPMIME_CONTENT_TYPE_HANDLER_CID);
+
+extern "C" MimeObjectClass *
+MIME_PgpMimeCreateContentTypeHandlerClass(const char *content_type,
+                                        contentTypeHandlerInitStruct *initStruct);
+
+static nsresult
+nsPgpMimeMimeContentTypeHandlerConstructor(nsISupports *aOuter,
+                                         REFNSIID aIID,
+                                         void **aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  NS_ENSURE_FALSE(aOuter, NS_ERROR_NO_AGGREGATION);
+  *aResult = nsnull;
+
+  nsRefPtr<nsMimeContentTypeHandler> inst(
+    new nsMimeContentTypeHandler("mulitpart/encrypted",
+                                 &MIME_PgpMimeCreateContentTypeHandlerClass));
+
+  NS_ENSURE_TRUE(inst, NS_ERROR_OUT_OF_MEMORY);
+
+  return inst->QueryInterface(aIID, aResult);
+}
+
 const mozilla::Module::CIDEntry kMailNewsCIDs[] = {
   // MailNews Base Entries
   { &kNS_MESSENGERBOOTSTRAP_CID, false, NULL, nsMessengerBootstrapConstructor },
@@ -971,6 +1008,9 @@ const mozilla::Module::CIDEntry kMailNewsCIDs[] = {
   { &kNS_MSGMDNGENERATOR_CID, false, NULL, nsMsgMdnGeneratorConstructor },
   // Vcard Entries
   { &kNS_VCARD_CONTENT_TYPE_HANDLER_CID, false, NULL, nsVCardMimeContentTypeHandlerConstructor},
+  // PGP/MIME Entries
+  { &kNS_PGPMIME_CONTENT_TYPE_HANDLER_CID, false, NULL, nsPgpMimeMimeContentTypeHandlerConstructor },
+  { &kNS_PGPMIMEPROXY_CID, false, NULL, nsPgpMimeProxyConstructor },
   // Tokenizer Entries
   { NULL }
 };
@@ -1201,6 +1241,9 @@ const mozilla::Module::ContractIDEntry kMailNewsContracts[] = {
   { NS_MSGMDNGENERATOR_CONTRACTID, &kNS_MSGMDNGENERATOR_CID },
   // Vcard Entries
   { "@mozilla.org/mimecth;1?type=text/x-vcard", &kNS_VCARD_CONTENT_TYPE_HANDLER_CID },
+  // PGP/MIME Entries
+  { "@mozilla.org/mimecth;1?type=multipart/encrypted", &kNS_PGPMIME_CONTENT_TYPE_HANDLER_CID },
+  { NS_PGPMIMEPROXY_CONTRACTID, &kNS_PGPMIMEPROXY_CID },
   // Tokenizer Entries
   { NULL }
 };
