@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<!DOCTYPE html [
+  <!ENTITY % htmlDTD PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd"> %htmlDTD;
+  <!ENTITY % managementDTD SYSTEM "chrome://messenger/locale/cloudfile/management.dtd"> %managementDTD;
+  <!ENTITY % boxDTD SYSTEM "chrome://messenger/locale/cloudfile/Box/management.dtd"> %boxDTD;
+]>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <script type="application/javascript;version=1.8"
+            src="chrome://messenger/content/protovis-r2.6-modded.js"/>
+    <script type="text/javascript;version=1.8"
+            src="chrome://messenger/content/cloudfile/Box/management.js"/>
+    <link rel="stylesheet"
+        type="text/css"
+        href="chrome://messenger/skin/preferences/preferences.css" />
+  </head>
+  <body id="provider-management">
+    <div id="provider-header">
+      <div id="provider-terms">
+      <a href="http://www.box.com/static/html/privacy.html">&cloudfileMgmt.privacyPolicy;</a>
+      <a href="https://www.box.com/static/html/terms.html">&cloudfileMgmt.termsOfService;</a>
+      </div>
+      <div id="provider-name">
+      <h1>Box</h1>
+      </div>
+    </div>
+
+    <div id="provider-spacebox">
+      <div id="provider-space-visuals"></div>
+      <div id="provider-space">
+        <div>
+          <label>&cloudfileMgmt.usedSpace;</label>
+          <span id="file-space-used"/>
+          <span id="file-space-used-swatch" class="space-swatch"/>
+        </div>
+        <div>
+          <label>&cloudfileMgmt.unusedSpace;</label>
+          <span id="remaining-file-space"/>
+          <span id="remaining-file-space-swatch" class="space-swatch"/>
+        </div>
+        <div id="upgrade"><a href="https://www.box.com/pricing/">&cloudfileMgmt.upgradeOffer;</a></div>
+      </div>
+      </div>
+    <div id="provider-account-settings"><a href="https://www.box.com/settings">&boxMgmt.viewSettings;</a></div>
+  </body>
+</html>

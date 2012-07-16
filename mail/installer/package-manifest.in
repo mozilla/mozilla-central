@@ -177,6 +177,7 @@
 @BINPATH@/components/nsActivityManagerUI.js
 @BINPATH@/components/nsYouSendIt.js
 @BINPATH@/components/nsUbuntuOne.js
+@BINPATH@/components/nsBox.js
 @BINPATH@/components/cloudFileAccounts.js
 @BINPATH@/components/nsAddrbook.manifest
 @BINPATH@/components/nsMailNewsCommandLineHandler.js
