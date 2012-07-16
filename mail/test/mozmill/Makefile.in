@@ -56,7 +56,8 @@ mozmill-virtualenv:
 	$(DIR_INSTALL) $(topsrcdir)/mail/test/resources $(_DEST_DIR)
 	rm -rf $(VIRTUALENV_DIR) && \
 	mkdir $(VIRTUALENV_DIR) && \
-	MACOSX_DEPLOYMENT_TARGET= $(PYTHON) $(_DEST_DIR)/resources/installmozmill.py $(VIRTUALENV_DIR)
+	unset MACOSX_DEPLOYMENT_TARGET && \
+	$(PYTHON) $(_DEST_DIR)/resources/installmozmill.py $(VIRTUALENV_DIR)
 
 libs:: mozmill-virtualenv
 
