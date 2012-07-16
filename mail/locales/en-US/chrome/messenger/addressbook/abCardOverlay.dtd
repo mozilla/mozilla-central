@@ -69,7 +69,7 @@ content in HTML messages from this contact.">
 <!ENTITY Home.tab                       "Private">
 <!ENTITY Home.accesskey                 "P">
 <!ENTITY HomeAddress.label              "Address:">
-<!ENTITY HomeAddress.accesskey          "A">
+<!ENTITY HomeAddress.accesskey          "d">
 <!ENTITY HomeAddress2.label             "">
 <!ENTITY HomeAddress2.accesskey         "">
 <!ENTITY HomeCity.label                 "City:">
@@ -99,7 +99,7 @@ content in HTML messages from this contact.">
 <!ENTITY Company.label                  "Organization:">
 <!ENTITY Company.accesskey              "n">
 <!ENTITY WorkAddress.label              "Address:">
-<!ENTITY WorkAddress.accesskey          "A">
+<!ENTITY WorkAddress.accesskey          "d">
 <!ENTITY WorkAddress2.label             "">
 <!ENTITY WorkAddress2.accesskey         "">
 <!ENTITY WorkCity.label                 "City:">
