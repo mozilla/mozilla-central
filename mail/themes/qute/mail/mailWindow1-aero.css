@@ -11,6 +11,14 @@
 }
 
 @media (-moz-windows-compositor) {
+  #messengerWindow[sizemode="normal"] > #titlebar {
+    -moz-appearance: -moz-window-titlebar;
+  }
+
+  #messengerWindow[sizemode="maximized"] > #titlebar {
+    -moz-appearance: -moz-window-titlebar-maximized;
+  }
+
   #messengerWindow[sizemode="normal"] > #titlebar > #titlebar-content {
     border-top-width: 0;
   }
@@ -29,12 +37,13 @@
     display: none;
   }
 
-  #main-window[sizemode="maximized"] #titlebar-buttonbox {
-    -moz-margin-end: 3px;
+  #titlebar-buttonbox {
+    -moz-appearance: -moz-window-button-box;
   }
 
-  #titlebar-buttonbox-container:-moz-lwtheme {
-    -moz-appearance: -moz-window-button-box;
+  #messengerWindow[sizemode="maximized"] #titlebar-buttonbox {
+    -moz-appearance: -moz-window-button-box-maximized;
+    -moz-margin-end: 3px;
   }
 
   #messengerWindow:not(:-moz-lwtheme) {
