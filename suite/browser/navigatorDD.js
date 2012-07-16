@@ -40,25 +40,35 @@ var RDFUtils = {
   }
 }
 
-var proxyIconDNDObserver = {
-  onDragStart: function (aEvent, aXferData, aDragAction)
-    {
-      var urlBar = document.getElementById("urlbar");
-
-      // XXX - do we want to allow the user to set a blank page to their homepage?
-      //       if so then we want to modify this a little to set about:blank as
-      //       the homepage in the event of an empty urlbar.
-      if (!urlBar.value) return;
-
-      var urlString = urlBar.value + "\n" + window.content.document.title;
-      var htmlString = "<a href=\"" + urlBar.value + "\">" + urlBar.value + "</a>";
-
-      aXferData.data = new TransferData();
-      aXferData.data.addDataForFlavour("text/x-moz-url", urlString);
-      aXferData.data.addDataForFlavour("text/unicode", urlBar.value);
-      aXferData.data.addDataForFlavour("text/html", htmlString);
-    }
+function htmlEscape(aString)
+{
+  return aString.replace(/&/g, "&amp;")
+                .replace(/>/g, "&gt;")
+                .replace(/</g, "&lt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&apos;");
 }
+
+function BeginDragLink(aEvent, aHref, aTitle)
+{
+  var dt = aEvent.dataTransfer;
+  dt.setData("text/x-moz-url", aHref + "\n" + aTitle);
+  dt.setData("text/uri-list", aHref);
+  dt.setData("text/html", "<a href=\"" + htmlEscape(aHref) + 
+                          "\">" + htmlEscape(aTitle) + "</a>");
+  dt.setData("text/plain", aHref);
+}
+
+var proxyIconDNDObserver = {
+  onDragStart: function (aEvent)
+  {
+    if (gProxyButton.getAttribute("pageproxystate") != "valid")
+      return;
+
+    BeginDragLink(aEvent, window.content.location.href,
+                  window.content.document.title);
+  }
+};
 
 var homeButtonObserver = {
   onDragStart: function (aEvent, aXferData, aDragAction)

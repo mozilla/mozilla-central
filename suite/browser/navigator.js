@@ -2269,15 +2269,6 @@ function SetPageProxyState(aState, aURI)
   }
 }
 
-function PageProxyDragGesture(aEvent)
-{
-  if (gProxyButton.getAttribute("pageproxystate") == "valid") {
-    nsDragAndDrop.startDrag(aEvent, proxyIconDNDObserver);
-    return true;
-  }
-  return false;
-}
-
 function handlePageProxyClick(aEvent)
 {
   switch (aEvent.button) {
