@@ -86,6 +86,8 @@ interface nsIShellService : nsISupports
   const long BACKGROUND_TILE      = 1;
   const long BACKGROUND_STRETCH   = 2;
   const long BACKGROUND_CENTER    = 3;
+  const long BACKGROUND_FILL      = 4;
+  const long BACKGROUND_FIT       = 5;
 
   /**
    * The desktop background color, visible when no background image is

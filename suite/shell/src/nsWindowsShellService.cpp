@@ -22,6 +22,7 @@
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
+#include "nsIWindowsRegKey.h"
 #include "nsIWinTaskbar.h"
 #include "nsISupportsPrimitives.h"
 #include <mbstring.h>
@@ -787,44 +788,41 @@ nsWindowsShellService::SetDesktopBackground(nsIDOMElement* aElement,
 
   // if the file was written successfully, set it as the system wallpaper
   if (NS_SUCCEEDED(rv)) {
-     bool result = false;
-     DWORD  dwDisp = 0;
-     HKEY   key;
-     // Try to create/open a subkey under HKCU.
-     DWORD res = ::RegCreateKeyExW(HKEY_CURRENT_USER,
-                                   L"Control Panel\\Desktop",
-                                   0, NULL, REG_OPTION_NON_VOLATILE,
-                                   KEY_WRITE, NULL, &key, &dwDisp);
-     if (REG_SUCCEEDED(res)) {
-       PRUnichar tile[2], style[2];
-       switch (aPosition) {
-         case BACKGROUND_TILE:
-           tile[0] = '1';
-           style[0] = '1';
-           break;
-         case BACKGROUND_CENTER:
-           tile[0] = '0';
-           style[0] = '0';
-           break;
-         case BACKGROUND_STRETCH:
-           tile[0] = '0';
-           style[0] = '2';
-           break;
-       }
-       tile[1] = '\0';
-       style[1] = '\0';
+    nsCOMPtr<nsIWindowsRegKey> key(do_CreateInstance("@mozilla.org/windows-registry-key;1", &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
 
-       // The size is always 2 unicode characters.
-       PRInt32 size = 2 * sizeof(PRUnichar);
-       ::RegSetValueExW(key, L"TileWallpaper",
-                        0, REG_SZ, (const BYTE *)tile, size);
-       ::RegSetValueExW(key, L"WallpaperStyle",
-                        0, REG_SZ, (const BYTE *)style, size);
-       ::SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, (PVOID)path.get(),
-                               SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE);
-      // Close the key we opened.
-      ::RegCloseKey(key);
+    rv = key->Create(nsIWindowsRegKey::ROOT_KEY_CURRENT_USER,
+                     NS_LITERAL_STRING("Control Panel\\Desktop"),
+                     nsIWindowsRegKey::ACCESS_SET_VALUE);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    int style = 0;
+    switch (aPosition) {
+      case BACKGROUND_STRETCH:
+        style = 2;
+        break;
+      case BACKGROUND_FILL:
+        style = 10;
+        break;
+      case BACKGROUND_FIT:
+        style = 6;
+        break;
     }
+
+    nsString value;
+    value.AppendInt(style);
+    rv = key->WriteStringValue(NS_LITERAL_STRING("WallpaperStyle"), value);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    value.Assign(aPosition == BACKGROUND_TILE ? '1' : '0');
+    rv = key->WriteStringValue(NS_LITERAL_STRING("TileWallpaper"), value);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = key->Close();
+    NS_ENSURE_SUCCESS(rv, rv);
+
+   ::SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, (PVOID)path.get(),
+                           SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE);
   }
   return rv;
 }
@@ -840,7 +838,7 @@ nsWindowsShellService::GetDesktopBackgroundColor(PRUint32* aColor)
 NS_IMETHODIMP
 nsWindowsShellService::SetDesktopBackgroundColor(PRUint32 aColor)
 {
-  int parameter = COLOR_BACKGROUND;
+  int parameter = COLOR_DESKTOP;
   BYTE r = (aColor >> 16);
   BYTE g = (aColor << 16) >> 24;
   BYTE b = (aColor << 24) >> 24;
@@ -848,26 +846,22 @@ nsWindowsShellService::SetDesktopBackgroundColor(PRUint32 aColor)
 
   ::SetSysColors(1, &parameter, &color);
 
-  bool result = false;
-  DWORD  dwDisp = 0;
-  HKEY   key;
-  // Try to create/open a subkey under HKCU.
-  DWORD rv = ::RegCreateKeyExW(HKEY_CURRENT_USER,
-                               L"Control Panel\\Colors", 0, NULL,
-                               REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL,
-                               &key, &dwDisp);
-  if (REG_SUCCEEDED(rv)) {
-    char rgb[12];
-    sprintf((char*)rgb, "%u %u %u\0", r, g, b);
-    NS_ConvertUTF8toUTF16 backColor(rgb);
-    ::RegSetValueExW(key, L"Background",
-                     0, REG_SZ, (const BYTE *)backColor.get(),
-                     (backColor.Length() + 1) * sizeof(PRUnichar));
-  }
+  nsresult rv;
+  nsCOMPtr<nsIWindowsRegKey> key(do_CreateInstance("@mozilla.org/windows-registry-key;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  // Close the key we opened.
-  ::RegCloseKey(key);
-  return NS_OK;
+  rv = key->Create(nsIWindowsRegKey::ROOT_KEY_CURRENT_USER,
+                   NS_LITERAL_STRING("Control Panel\\Colors"),
+                   nsIWindowsRegKey::ACCESS_SET_VALUE);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRUnichar rgb[12];
+  _snwprintf(rgb, 12, L"%u %u %u", r, g, b);
+  rv = key->WriteStringValue(NS_LITERAL_STRING("Background"),
+                             nsDependentString(rgb));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return key->Close();
 }
 
 NS_IMETHODIMP
@@ -894,27 +888,18 @@ nsWindowsShellService::GetDefaultFeedReader(nsIFile** _retval)
 {
   *_retval = nsnull;
 
-  HKEY theKey;
-  nsresult rv = OpenKeyForReading(HKEY_CLASSES_ROOT, 
-                                  L"feed\\shell\\open\\command",
-                                  &theKey);
+  nsresult rv;
+  nsCOMPtr<nsIWindowsRegKey> key(do_CreateInstance("@mozilla.org/windows-registry-key;1", &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  DWORD buf;
-  LONG res = ::RegQueryValueExW(theKey, NULL, NULL, NULL, NULL, &buf);
+  rv = key->Open(nsIWindowsRegKey::ROOT_KEY_CLASSES_ROOT,
+                 NS_LITERAL_STRING("feed\\shell\\open\\command"),
+                 nsIWindowsRegKey::ACCESS_READ);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  if (REG_FAILED(res))
-    return NS_ERROR_FAILURE;
-
-  // Buffer size must be a multiple of 2
-  NS_ENSURE_STATE(buf % 2 == 0);
-  nsAutoString path;
-  path.SetLength(buf / 2 - 1);
-  res = ::RegQueryValueExW(theKey, NULL, NULL, NULL, (LPBYTE)path.BeginWriting(), &buf);
-  ::RegCloseKey(theKey);
-  if (REG_FAILED(res))
-    return NS_ERROR_FAILURE;
-
+  nsString path;
+  rv = key->ReadStringValue(EmptyString(), path);
+  NS_ENSURE_SUCCESS(rv, rv);
   if (path.IsEmpty())
     return NS_ERROR_FAILURE;
 
