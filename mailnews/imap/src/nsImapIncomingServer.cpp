@@ -666,7 +666,7 @@ nsImapIncomingServer::ConnectionTimeOut(nsIImapProtocol* aConnection)
   PRTime lastActiveTimeStamp;
   rv = aConnection->GetLastActiveTimeStamp(&lastActiveTimeStamp);
 
-  if (PR_Now() - lastActiveTimeStamp < cacheTimeoutLimits)
+  if (PR_Now() - lastActiveTimeStamp >= cacheTimeoutLimits)
   {
       nsCOMPtr<nsIImapProtocol> aProtocol(do_QueryInterface(aConnection,
                                                             &rv));
