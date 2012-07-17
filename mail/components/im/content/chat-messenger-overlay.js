@@ -908,13 +908,19 @@ var chatHandler = {
     }
   },
   initContactList: function() {
-    let group = document.getElementById("offlinecontactsGroup");
+    let onGroup = document.getElementById("onlinecontactsGroup");
+    let offGroup = document.getElementById("offlinecontactsGroup");
+
     imServices.tags.getTags().forEach(function (aTag) {
       aTag.getContacts().forEach(function(aContact) {
+        let group = aContact.online ? onGroup : offGroup;
         group.addContact(aContact);
       });
     });
-    group._updateGroupLabel();
+
+    onGroup._updateGroupLabel();
+    offGroup._updateGroupLabel();
+
     imServices.obs.addObserver(this, "new-text", false);
     imServices.obs.addObserver(this, "new-ui-conversation", false);
     imServices.obs.addObserver(this, "ui-conversation-closed", false);
