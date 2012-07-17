@@ -316,7 +316,12 @@ GetHelperPath(nsString& aPath)
   rv = appHelper->AppendNative(NS_LITERAL_CSTRING("helper.exe"));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return appHelper->GetPath(aPath);
+  rv = appHelper->GetPath(aPath);
+
+  aPath.Insert('"', 0);
+  aPath.Append('"');
+
+  return rv;
 }
 
 nsresult
@@ -547,25 +552,10 @@ NS_IMETHODIMP
 nsWindowsShellService::SetDefaultClient(bool aForAllUsers,
                                         bool aClaimAllTypes, PRUint16 aApps)
 {
-  nsresult rv;
-  nsCOMPtr<nsIProperties> directoryService = 
-    do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIFile> appHelper;
-  rv = directoryService->Get(NS_XPCOM_CURRENT_PROCESS_DIR, NS_GET_IID(nsIFile), getter_AddRefs(appHelper));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = appHelper->AppendNative(NS_LITERAL_CSTRING("uninstall"));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = appHelper->AppendNative(NS_LITERAL_CSTRING("helper.exe"));
-  NS_ENSURE_SUCCESS(rv, rv);
-
   nsAutoString appHelperPath;
-  rv = appHelper->GetPath(appHelperPath);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
+  if (NS_FAILED(GetHelperPath(appHelperPath)))
+    return NS_ERROR_UNEXPECTED;
+
   if (aForAllUsers)
     appHelperPath.AppendLiteral(" /SetAsDefaultAppGlobal");
   else {
