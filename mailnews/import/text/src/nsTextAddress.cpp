@@ -172,7 +172,7 @@ nsresult nsTextAddress::ReadRecord(nsIUnicharLineInputStream *aLineStream,
           aLine.AppendLiteral(MSG_LINEBREAK);
         aLine.Append(line);
 
-        numQuotes += line.CountChar(PRUnichar('"'));
+        numQuotes += MsgCountChar(line, PRUnichar('"'));
       }
     }
     // Continue whilst everything is ok, and we have an odd number of quotes.
@@ -354,10 +354,10 @@ bool nsTextAddress::GetField(const nsAString &aLine,
     field.Trim(kWhitespace);
 
     if (quoted) {
-      PRInt32 offset = field.Find(NS_LITERAL_CSTRING("\"\""));
+      PRInt32 offset = field.Find("\"\"");
       while (offset != -1) {
         field.Cut(offset, 1);
-        offset = field.Find(NS_LITERAL_STRING("\"\""), offset + 1);
+        offset = MsgFind(field, "\"\"", false, offset + 1);
       }
     }
 

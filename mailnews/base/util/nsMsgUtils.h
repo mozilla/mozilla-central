@@ -511,6 +511,18 @@ PRUint32 MsgCountChar(nsACString &aString, PRUnichar aChar) {
   return num_chars;
 }
 
+inline
+PRUint32 MsgCountChar(nsAString &aString, PRUnichar aChar) {
+  const PRUnichar *begin, *end;
+  PRUint32 num_chars = 0;
+  aString.BeginReading(&begin, &end);
+  for (const PRUnichar *current = begin; current < end; ++current) {
+      if (*current == aChar)
+        ++num_chars;
+  }
+  return num_chars;
+}
+
 #endif
 
 #endif
