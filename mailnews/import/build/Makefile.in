@@ -80,8 +80,6 @@ EXTRA_DSO_LDOPTS += \
 else
 EXTRA_DSO_LDOPTS += \
 	$(LIBS_DIR) \
-	$(ZLIB_LIBS) \
-	$(MOZ_ZLIB_LIBS) \
 	$(MOZ_JS_LIBS) \
 	$(XPCOM_GLUE_LDOPTS) \
 	$(call EXPAND_LIBNAME_PATH,unicharutil_external_s,$(LIBXUL_DIST)/lib) \

@@ -71,8 +71,6 @@ EXTRA_DSO_LDOPTS = \
 else
 EXTRA_DSO_LDOPTS = \
 	$(LIBS_DIR) \
-	$(ZLIB_LIBS) \
-	$(MOZ_ZLIB_LIBS) \
 	$(MOZ_JS_LIBS) \
 	$(XPCOM_GLUE_LDOPTS) \
 	$(call EXPAND_LIBNAME_PATH,unicharutil_external_s,$(LIBXUL_DIST)/lib) \
@@ -80,6 +78,12 @@ EXTRA_DSO_LDOPTS = \
 	$(NSPR_LIBS) \
 	$(XPCOM_LIBS) \
 	$(NULL)
+ifneq (WINNT,$(OS_ARCH))
+EXTRA_DSO_LDOPTS += \
+	$(ZLIB_LIBS) \
+	$(MOZ_ZLIB_LIBS) \
+	$(NULL)
+endif
 endif
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
