@@ -493,6 +493,9 @@ var chatHandler = {
       this.observedContact = null;
       return;
     }
+
+    this._hideContextPane(false);
+
     if (item.getAttribute("id") == "searchResultConv") {
       let path = "logs/" + item.log.path;
       let file = FileUtils.getFile("ProfD", path.split("/"));
@@ -546,6 +549,7 @@ var chatHandler = {
       }
       else
         item.convView.onConvResize();
+
       convDeck.selectedPanel = item.convView;
       item.convView.updateConvStatus();
       item.update();
@@ -589,7 +593,6 @@ var chatHandler = {
           document.getElementById("noPreviousConvScreen");
       }
     }
-    this._hideContextPane(false);
     this.updateTitle();
   },
 
