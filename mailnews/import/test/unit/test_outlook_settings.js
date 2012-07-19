@@ -97,61 +97,7 @@ let expectedImapAccount = {
   }
 };
 
-function check_smtp_server(expected, actual) {
-  do_check_eq(expected.username, actual.username);
-}
-
-function check_identity(expected, actual) {
-  do_check_eq(expected.fullName, actual.fullName);
-  do_check_eq(expected.email, actual.email);
-  do_check_eq(expected.replyTo, actual.replyTo);
-  do_check_eq(expected.organization, actual.organization);
-}
-
-function check_pop3_incoming_server(expected, actual) {
-  do_check_eq(expected.leaveMessagesOnServer, actual.leaveMessagesOnServer);
-}
-
-function check_incoming_server(expected, actual) {
-  do_check_eq(expected.type, actual.type);
-  do_check_eq(expected.username, actual.username);
-
-  if (expected.type == "pop3")
-    check_pop3_incoming_server(expected, actual.QueryInterface(Ci.nsIPop3IncomingServer));
-}
-
-function check_account(expected, actual) {
-  check_incoming_server(expected.incomingServer, actual.incomingServer);
-  do_check_eq(1, actual.identities.Count());
-  let actualIdentity = actual.identities.QueryElementAt(0, Ci.nsIMsgIdentity);
-  check_identity(expected.identity, actualIdentity);
-
-  let actualSmtpServer = MailServices.smtp.getServerByKey(actualIdentity.smtpServerKey);
-  check_smtp_server(expected.smtpServer, actualSmtpServer);
-}
-
-function get_interface() {
-  let importService = Cc["@mozilla.org/import/import-service;1"]
-                        .getService(Ci.nsIImportService);
-  let count = importService.GetModuleCount("settings");
-  let settingsInterface;
-  for (let i = 0; i < count; i++) {
-    if (importService.GetModuleName("settings", i) == "Outlook") {
-      return importService.GetModule("settings", i)
-                          .GetImportInterface("settings")
-                          .QueryInterface(Ci.nsIImportSettings);
-    }
-  }
-}
-
 function teardown() {
-  let accounts = MailServices.accounts.accounts;
-
-  for (let i = 0; i < accounts.Count(); i++) {
-    let account = accounts.QueryElementAt(i, Ci.nsIMsgAccount);
-    MailServices.accounts.removeAccount(account);
-  }
-
   let smtpServers = MailServices.smtp.smtpServers;
 
   while (smtpServers.hasMoreElements()) {
@@ -162,20 +108,10 @@ function teardown() {
   teardown_mock_registry();
 }
 
-function _import() {
-  let settings = get_interface();
-  do_check_eq(true, settings.AutoLocate({}, {}));
-  do_check_eq(true, settings.Import({}));
-}
-
 function _test(registry, expectedAccount) {
   try {
     setup_mock_registry(registry);
-    _import();
-    let accounts = MailServices.accounts.accounts;
-    let lastIndex = accounts.Count() - 1;
-    let actualAccount = accounts.QueryElementAt(lastIndex, Ci.nsIMsgAccount);
-    check_account(expectedAccount, actualAccount);
+    new SettingsImportHelper(null, "Outlook", [expectedAccount]).beginImport();
   } catch(e) {
     teardown();
     do_throw(e);
