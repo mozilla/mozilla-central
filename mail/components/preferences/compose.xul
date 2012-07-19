@@ -56,7 +56,7 @@
     <tabbox id="composePrefs" flex="1" onselect="gComposePane.tabSelectionChanged();">
       <tabs>
         <tab label="&itemGeneral.label;"/>
-        <tab label="&itemAutoComplete.label;"/>
+        <tab id="addressingTab" label="&itemAutoComplete.label;"/>
         <tab label="&itemSpellCheck.label;"/>
       </tabs>
 

@@ -94,6 +94,8 @@
              valueItems="&deleteItemsCmd.label;"
              disabled="true"/>
     <command id="cmd_selectAll" oncommand="goDoCommand('cmd_selectAll')" disabled="true"/>
+    <command id="cmd_preferences"
+             oncommand="openOptionsDialog('paneCompose', 'addressingTab');"/>
 #ifdef XP_MACOSX
     <!-- Mac Window menu -->
     <command id="minimizeWindow" label="&minimizeWindow.label;" oncommand="window.minimize();"/>
@@ -379,7 +381,7 @@
 #ifndef XP_MACOSX
         <menuseparator id="prefSep"/>
         <menuitem id="menu_preferences" label="&preferencesCmdUnix.label;" accesskey="&preferencesCmdUnix.accesskey;"
-                  oncommand="openOptionsDialog()"/>
+                  command="cmd_preferences"/>
 #endif
 #endif
           </menupopup>
@@ -527,11 +529,11 @@
 #ifndef XP_UNIX
         <menuseparator id="prefSep"/>
             <menuitem id="menu_preferences" label="&preferencesCmd.label;" accesskey="&preferencesCmd.accesskey;"
-                      oncommand="openOptionsDialog()"/>
+                      command="cmd_preferences"/>
 #else
 #ifdef XP_MACOSX
         <menuitem id="menu_preferences" label="&preferencesCmd.label;" accesskey="&preferencesCmd.accesskey;"
-                  oncommand="openOptionsDialog()"/>
+                  command="cmd_preferences"/>
 #endif
 #endif
           </menupopup>
