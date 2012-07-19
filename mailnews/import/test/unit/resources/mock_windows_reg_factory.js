@@ -1,3 +1,10 @@
+const CONTRACT_ID = "@mozilla.org/windows-registry-key;1";
+const REGISTRAR = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
+
+let gOriginalCID = Components.manager.contractIDToCID(CONTRACT_ID);
+let gFactory;
+let gUuid;
+
 function MockWindowsRegKey(registryData) {
   this._registryData = registryData;
 }
@@ -71,3 +78,24 @@ MockWindowsRegFactory.prototype = {
   },
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIFactory])
 };
+
+function setup_mock_registry(mockRegistry) {
+  gUuid = Cc["@mozilla.org/uuid-generator;1"]
+            .getService(Ci.nsIUUIDGenerator)
+            .generateUUID()
+            .toString();
+  gFactory = new MockWindowsRegFactory(mockRegistry);
+  REGISTRAR.registerFactory(Components.ID(gUuid),
+                            "Mock Windows Registry Implementation",
+                            CONTRACT_ID,
+                            gFactory);
+}
+
+function teardown_mock_registry() {
+  REGISTRAR.unregisterFactory(Components.ID(gUuid),
+                              gFactory);
+  REGISTRAR.registerFactory(gOriginalCID,
+                            "",
+                            CONTRACT_ID,
+                            null);
+}

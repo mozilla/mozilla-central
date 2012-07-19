@@ -2,15 +2,10 @@
  * Basic tests for importing accounts of Outlook Express 4.0/5.0.
  */
 
+load("resources/mock_windows_reg_factory.js");
+
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
-
-const CONTRACT_ID = "@mozilla.org/windows-registry-key;1";
-const REGISTRAR = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
-
-let gOriginalCID = Components.manager.contractIDToCID(CONTRACT_ID);
-let factory;
-let uuid;
 
 function POP3Account() {}
 
@@ -191,91 +186,6 @@ let expectedNntpAccount = {
   }
 };
 
-function MockWindowsRegKey(registryData) {
-  this._registryData = registryData;
-}
-
-MockWindowsRegKey.prototype = {
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIWindowsRegKey]),
-
-  open: function(aRootKey, aRelPath, aMode) {
-    if (!this._registryData[aRelPath])
-      throw Cr.NS_ERROR_FAILURE;
-    this._keyPath = aRelPath;
-  },
-
-  close: function() {
-  },
-
-  openChild: function(aRelPath, aMode) {
-    if (!this._registryData[this._keyPath][aRelPath])
-      throw Cr.NS_ERROR_FAILURE;
-    child = new MockWindowsRegKey({});
-    let newKeyPath = this._keyPath + "\\" + aRelPath;
-    child._keyPath = newKeyPath;
-    child._registryData[newKeyPath] =
-      this._registryData[this._keyPath][aRelPath];
-    return child;
-  },
-
-  get childCount() {
-    let count = 0;
-    for (let i in this._registryData[this._keyPath])
-      count++;
-    return count;
-  },
-
-  getChildName: function(aIndex) {
-    let count = 0;
-    for (let name in this._registryData[this._keyPath]) {
-      if (count == aIndex)
-        return name;
-      count++;
-    }
-    throw Cr.NS_ERROR_FAILURE;
-  },
-
-  _readValue: function(aName) {
-    if (!this._registryData[this._keyPath][aName])
-      throw Cr.NS_ERROR_FAILURE;
-    return this._registryData[this._keyPath][aName];
-  },
-
-  readIntValue: function(aName) {
-    return this._readValue(aName);
-  },
-
-  readStringValue: function(aName) {
-    return this._readValue(aName);
-  }
-};
-
-function MockWindowsRegFactory(registryData) {
-  this._registryData = registryData;
-}
-
-MockWindowsRegFactory.prototype = {
-  createInstance: function(aOuter, aIid) {
-    if (aOuter)
-      do_throw(Cr.NS_ERROR_NO_AGGREGATION);
-
-    let key = new MockWindowsRegKey(this._registryData);
-    return key.QueryInterface(aIid);
-  },
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIFactory])
-};
-
-function setup_registry(registry) {
-  uuid = Cc["@mozilla.org/uuid-generator;1"]
-           .getService(Ci.nsIUUIDGenerator)
-           .generateUUID().toString();
-  factory = new MockWindowsRegFactory(registry);
-  REGISTRAR.registerFactory(Components.ID(uuid),
-                            "Mock Windows Registry Implementation",
-                            CONTRACT_ID,
-                            factory);
-}
-
 function check_smtp_server(expected, actual) {
   do_check_eq(expected.port, actual.port);
   do_check_eq(expected.username, actual.username);
@@ -352,12 +262,7 @@ function teardown() {
     MailServices.smtp.deleteSmtpServer(server);
   }
 
-  REGISTRAR.unregisterFactory(Components.ID(uuid),
-                              factory);
-  REGISTRAR.registerFactory(gOriginalCID,
-                            "",
-                            CONTRACT_ID,
-                            null);
+  teardown_mock_registry();
 }
 
 function _import() {
@@ -368,7 +273,7 @@ function _import() {
 
 function _test(registry, expectedAccount) {
   try {
-    setup_registry(registry);
+    setup_mock_registry(registry);
     _import();
     let accounts = MailServices.accounts.accounts;
     let lastIndex = accounts.Count() - 1;

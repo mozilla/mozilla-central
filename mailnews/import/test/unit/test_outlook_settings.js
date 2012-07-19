@@ -3,13 +3,6 @@ Components.utils.import("resource:///modules/mailServices.js");
 
 load("resources/mock_windows_reg_factory.js");
 
-const CONTRACT_ID = "@mozilla.org/windows-registry-key;1";
-const REGISTRAR = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
-
-let gOriginalCID = Components.manager.contractIDToCID(CONTRACT_ID);
-let factory;
-let uuid;
-
 function POP3Account() {}
 
 POP3Account.prototype = {
@@ -104,17 +97,6 @@ let expectedImapAccount = {
   }
 };
 
-function setup_registry(registry) {
-  uuid = Cc["@mozilla.org/uuid-generator;1"]
-           .getService(Ci.nsIUUIDGenerator)
-           .generateUUID().toString();
-  factory = new MockWindowsRegFactory(registry);
-  REGISTRAR.registerFactory(Components.ID(uuid),
-                            "Mock Windows Registry Implementation",
-                            CONTRACT_ID,
-                            factory);
-}
-
 function check_smtp_server(expected, actual) {
   do_check_eq(expected.username, actual.username);
 }
@@ -177,12 +159,7 @@ function teardown() {
     MailServices.smtp.deleteSmtpServer(server);
   }
 
-  REGISTRAR.unregisterFactory(Components.ID(uuid),
-                              factory);
-  REGISTRAR.registerFactory(gOriginalCID,
-                            "",
-                            CONTRACT_ID,
-                            null);
+  teardown_mock_registry();
 }
 
 function _import() {
@@ -193,7 +170,7 @@ function _import() {
 
 function _test(registry, expectedAccount) {
   try {
-    setup_registry(registry);
+    setup_mock_registry(registry);
     _import();
     let accounts = MailServices.accounts.accounts;
     let lastIndex = accounts.Count() - 1;
