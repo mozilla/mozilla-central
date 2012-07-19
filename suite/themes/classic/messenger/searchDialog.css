@@ -46,6 +46,10 @@ textbox {
   margin: 1px 4px;
 }
 
+.filler {
+  -moz-padding-end: 22px;
+}
+
 .small-button {
   min-width: 3em;
   padding: 0px;

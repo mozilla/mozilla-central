@@ -60,6 +60,10 @@ menulist {
   width: 18em;
 }
 
+.filler {
+  -moz-padding-end: 22px;
+}
+
 .search-menulist {
   width: 12em;
 }

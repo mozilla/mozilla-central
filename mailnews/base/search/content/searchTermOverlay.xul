@@ -4,7 +4,7 @@
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 
-<!DOCTYPE overlay SYSTEM "chrome://messenger/locale/searchTermOverlay.dtd" >
+<!DOCTYPE overlay SYSTEM "chrome://messenger/locale/searchTermOverlay.dtd">
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
@@ -17,11 +17,14 @@
 
     <radiogroup id="booleanAndGroup" orient="horizontal" value="and"
                 oncommand="booleanChanged(event);">
-      <radio value="and" label="&matchAll.label;" accesskey="&matchAll.accesskey;"/>
-      <radio value="or" label="&matchAny.label;" accesskey="&matchAny.accesskey;"/>
-      <radio value="matchAll" id="matchAllItem" label="&matchAllMsgs.label;" accesskey="&matchAllMsgs.accesskey;"/>
+      <radio value="and" label="&matchAll.label;"
+             accesskey="&matchAll.accesskey;"/>
+      <radio value="or" label="&matchAny.label;"
+             accesskey="&matchAny.accesskey;"/>
+      <radio value="matchAll" id="matchAllItem" label="&matchAllMsgs.label;"
+             accesskey="&matchAllMsgs.accesskey;"/>
     </radiogroup>
-    
+
     <hbox flex="1">
       <hbox id="searchterms"/>
       <listbox flex="1" id="searchTermList" rows="4" minheight="35%">
@@ -29,8 +32,7 @@
           <listcol flex="&searchTermListAttributesFlexValue;"/>
           <listcol flex="&searchTermListOperatorsFlexValue;"/>
           <listcol flex="&searchTermListValueFlexValue;"/>
-          <listcol flex="&searchTermListButtonsFlexValue;"/>
-          <listcol/>
+          <listcol class="filler"/>
         </listcols>
 
         <!-- this is what the listitems will look like:
@@ -56,7 +58,7 @@
           </listitem>
         -->
       </listbox>
-      
+
     </hbox>
   </vbox>
 

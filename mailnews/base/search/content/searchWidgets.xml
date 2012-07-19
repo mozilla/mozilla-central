@@ -235,21 +235,23 @@
 
   <binding id="ruleaction">
     <content allowevents="true">
-      <xul:listcell class="ruleactiontype"/>
+      <xul:listcell class="ruleactiontype"
+                    orient="vertical" align="stretch" pack="center"/>
       <xul:listcell class="ruleactiontarget" xbl:inherits="type=value"
-                    orient="vertical" align="start" pack="center"/>
+                    orient="vertical" align="stretch" pack="center"/>
       <xul:listcell>
-        <xul:button class="small-button"
-                    label="+"
-                    tooltiptext="&addAction.tooltip;"
-                    oncommand="this.parentNode.parentNode.addRow();"/>
-        <xul:button class="small-button"
-                    label="&#x2212;"
-                    tooltiptext="&removeAction.tooltip;"
-                    oncommand="this.parentNode.parentNode.removeRow();"
-                    anonid="removeButton"/>
+        <xul:hbox align="start">
+          <xul:button class="small-button"
+                      label="+"
+                      tooltiptext="&addAction.tooltip;"
+                      oncommand="this.parentNode.parentNode.parentNode.addRow();"/>
+          <xul:button class="small-button"
+                      label="&#x2212;"
+                      tooltiptext="&removeAction.tooltip;"
+                      oncommand="this.parentNode.parentNode.parentNode.removeRow();"
+                      anonid="removeButton"/>
+        </xul:hbox>
       </xul:listcell>
-      <xul:listcell/>
     </content>
 
     <implementation>

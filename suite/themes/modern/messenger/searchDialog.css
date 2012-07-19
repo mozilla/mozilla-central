@@ -43,12 +43,15 @@ menulist > menupopup > menuitem {
   -moz-padding-end: 2px;
 }
 
+.filler {
+  -moz-padding-end: 22px;
+}
+
 .small-button {
   min-width: 3em;
   padding: 0px;
   margin: 0px 1px;
 }
-
 
 listbox {
   padding-top: 2px;

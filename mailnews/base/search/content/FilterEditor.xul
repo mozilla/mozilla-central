@@ -78,13 +78,13 @@
 
   <vbox flex="1">
     <label value="&filterActionDesc.label;" accesskey="&filterActionDesc.accesskey;" control="filterActionList"/>
-        <listbox id="filterActionList" flex="1" rows="4" minheight="35%">
-          <listcols>
-            <listcol/>
-            <listcol flex="1"/>
-            <listcol class="filler"/>
-          </listcols>      
-        </listbox>
+    <listbox id="filterActionList" flex="1" rows="4" minheight="35%">
+      <listcols>
+        <listcol flex="&filterActionTypeFlexValue;"/>
+        <listcol flex="&filterActionTargetFlexValue;"/>
+        <listcol class="filler"/>
+      </listcols>
+    </listbox>
   </vbox>
 
 </dialog>
