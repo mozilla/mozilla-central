@@ -227,8 +227,10 @@ function test_message_pane_height_persistence() {
 
   // Check that the moving of the threadpane-splitter resulted in the correct height.
   let actualHeight = mc.e("messagepaneboxwrapper").boxObject.height;
-  assert_equals(newHeight, actualHeight, "The message pane height should be " +
-    newHeight + ", but is actually " + actualHeight);
+
+  assert_equals(newHeight, actualHeight,
+    "The message pane height should be " + newHeight + ", but is actually " +
+    actualHeight + ". The oldHeight was: " + oldHeight);
 
   // Make sure we have a different window open, so that we don't start shutting
   // down just because the last window was closed.
@@ -242,8 +244,10 @@ function test_message_pane_height_persistence() {
   assert_message_pane_visible();
 
   let actualHeight = mc.e("messagepaneboxwrapper").boxObject.height;
-  assert_equals(newHeight, actualHeight, "The message pane height should be " +
-    newHeight + ", but is actually " + actualHeight);
+
+  assert_equals(newHeight, actualHeight,
+    "The message pane height should be " + newHeight + ", but is actually " +
+    actualHeight + ". The oldHeight was: " + oldHeight);
 
   // The old height is restored.
   _move_splitter(mc.e("threadpane-splitter"), 0, -diffHeight);
@@ -256,8 +260,9 @@ function test_message_pane_height_persistence() {
   assert_message_pane_visible();
 
   let actualHeight = mc.e("messagepaneboxwrapper").boxObject.height;
-  assert_equals(oldHeight, actualHeight, "The message pane height should be " +
-    oldHeight + ", but is actually " + actualHeight);
+  assert_equals(oldHeight, actualHeight,
+    "The message pane height should be " + oldHeight + ", but is actually " +
+    actualHeight);
 
   // We don't need the address book window any more.
   plan_for_window_close(abwc);
@@ -300,13 +305,10 @@ function test_message_pane_width_persistence() {
   // But this test case is not for testing moving around a splitter but for
   // persistency. Therefore it is enough if the actual width is equal to the
   // the requested width plus/minus one pixel.
-  assert_true((Math.abs(newWidth - actualWidth) <= 1),
+  assert_equals_fuzzy(newWidth, actualWidth, 1,
     "The message pane width should be " + newWidth + ", but is actually " +
     actualWidth + ". The oldWidth was: " + oldWidth);
   newWidth = actualWidth;
-
-  assert_equals(newWidth, actualWidth, "The message pane width should be " +
-    newWidth + ", but is actually " + actualWidth);
 
   // Make sure we have a different window open, so that we don't start shutting
   // down just because the last window was closed
@@ -328,11 +330,11 @@ function test_message_pane_width_persistence() {
   _move_splitter(mc.e("threadpane-splitter"), -diffWidth, 0);
   let actualWidth = mc.e("messagepaneboxwrapper").boxObject.width;
 
-  // FIXME: For whatever reasons the new width is off by one pixel on Mac OSX
+  // FIXME: For whatever reasons the new width is off by two pixels on Mac OSX
   // But this test case is not for testing moving around a splitter but for
   // persistency. Therefore it is enough if the actual width is equal to the
-  // the requested width plus/minus one pixel.
-  assert_true((Math.abs(oldWidth - actualWidth) <= 1),
+  // the requested width plus/minus two pixels.
+  assert_equals_fuzzy(oldWidth, actualWidth, 2,
     "The message pane width should be " + oldWidth + ", but is actually " +
     actualWidth);
   oldWidth = actualWidth;
@@ -477,12 +479,25 @@ function test_clean_shutdown_session_persistence_simple() {
 function _move_splitter(aSplitter, aDiffX, aDiffY) {
 
   // catch the splitter in the middle
-  EventUtils.synthesizeMouse(aSplitter, 0, 0, {type:"mousedown"}, mc.window);
+  EventUtils.synthesizeMouse(aSplitter, 1, 0, {type:"mousedown"}, mc.window);
   EventUtils.synthesizeMouse(aSplitter, aDiffX, aDiffY, {type:"mousemove"},
                              mc.window);
   // release the splitter in the middle
   EventUtils.synthesizeMouse(aSplitter, 0, 0, {type:"mouseup"}, mc.window);
 
+}
+
+/**
+ * Helper function that checks the fuzzy equivalence of two numeric
+ * values against some given tolerance.
+ *
+ * @param aLeft one value to check equivalence with
+ * @param aRight the other value to check equivalence with
+ * @param aTolerance how fuzzy can our equivalence be?
+ * @param aMessage the message to give off if we're outside of tolerance.
+ */
+function assert_equals_fuzzy(aLeft, aRight, aTolerance, aMessage) {
+  assert_true(Math.abs(aLeft - aRight) <= aTolerance, aMessage);
 }
 
 // XXX todo
