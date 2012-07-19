@@ -10,26 +10,19 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
+load("../../../resources/logHelper.js");
+load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 
 load("../../../resources/messageGenerator.js");
 load("../../../resources/messageModifier.js");
 load("../../../resources/messageInjection.js");
+load("../../../resources/IMAPpump.js");
 
 var gMessageGenerator = new MessageGenerator();
 var gScenarioFactory = new MessageScenarioFactory(gMessageGenerator);
 
 const nsMsgMessageFlags = Ci.nsMsgMessageFlags;
-
-var gServer;
-var gIMAPDaemon;
-var gIMAPInbox;
-var gIMAPIncomingServer;
-var gIMAPTrashFolder;
-var gMessenger;
-var gMsgWindow;
-var gRootFolder;
-var gCurTestNum;
 
 var gMsgFile1 = do_get_file("../../../data/bugmail10");
 const gMsgId1 = "200806061706.m56H6RWT004933@mrapp54.mozilla.org";
@@ -88,67 +81,24 @@ function addMessagesToServer(messages, mailbox, localFolder)
   });
 }
 
-var incomingServer, server;
-function run_test() {
-  // The server doesn't support more than one connection
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefBranch);
-  prefBranch.setIntPref("mail.server.server1.max_cached_connections", 1);
-  // Make sure no biff notifications happen
-  prefBranch.setBoolPref("mail.biff.play_sound", false);
-  prefBranch.setBoolPref("mail.biff.show_alert", false);
-  prefBranch.setBoolPref("mail.biff.show_tray_icon", false);
-  prefBranch.setBoolPref("mail.biff.animate_dock_icon", false);
+function setup() {
   // We aren't interested in downloading messages automatically
-  prefBranch.setBoolPref("mail.server.server1.download_on_biff", false);
-  prefBranch.setBoolPref("mail.server.server1.autosync_offline_stores", false);
-  prefBranch.setBoolPref("mail.server.server1.offline_download", true);
+  Services.prefs.setBoolPref("mail.server.server1.autosync_offline_stores", false);
+  Services.prefs.setBoolPref("mail.server.server1.offline_download", true);
   // make small threshhold for mpod so our test messages don't have to be big.
   // XXX We can't set this pref until the fake server supports body structure.
   // So for now, we'll leave it at the default value, which is larger than any of
   // our test messages.
-  // prefBranch.setIntPref("mail.imap.mime_parts_on_demand_threshold", 3000);
+  // Services.prefs.setIntPref("mail.imap.mime_parts_on_demand_threshold", 3000);
 
-  gIMAPDaemon = new imapDaemon();
-  gServer = makeServer(gIMAPDaemon, "");
+  setupIMAPPump();
 
-  gIMAPIncomingServer = createLocalIMAPServer();
-
-  loadLocalMailAccount();
-
-  // We need an identity so that updateFolder doesn't fail
-  let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-  let localAccount = acctMgr.createAccount();
-  let identity = acctMgr.createIdentity();
-  localAccount.addIdentity(identity);
-  localAccount.defaultIdentity = identity;
-  localAccount.incomingServer = gLocalIncomingServer;
-  acctMgr.defaultAccount = localAccount;
-
-  // Let's also have another account, using the same identity
-  let imapAccount = acctMgr.createAccount();
-  imapAccount.addIdentity(identity);
-  imapAccount.defaultIdentity = identity;
-  imapAccount.incomingServer = gIMAPIncomingServer;
-
-  gMessenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
-
-  gMsgWindow = Cc["@mozilla.org/messenger/msgwindow;1"]
-                  .createInstance(Components.interfaces.nsIMsgWindow);
-
-  // Get the server list...
-  gIMAPIncomingServer.performExpand(null);
-
-  gRootFolder = gIMAPIncomingServer.rootFolder;
-  gIMAPInbox = gRootFolder.getChildNamed("INBOX");
-  let msgImapFolder = gIMAPInbox.QueryInterface(Ci.nsIMsgImapMailFolder);
   // these hacks are required because we've created the inbox before
   // running initial folder discovery, and adding the folder bails
   // out before we set it as verified online, so we bail out, and
   // then remove the INBOX folder since it's not verified.
-  msgImapFolder.hierarchyDelimiter = '/';
-  msgImapFolder.verifiedAsOnlineFolder = true;
+  gIMAPInbox.hierarchyDelimiter = '/';
+  gIMAPInbox.verifiedAsOnlineFolder = true;
 
 
   // Add a couple of messages to the INBOX
@@ -159,19 +109,15 @@ function run_test() {
 //                         {file: gMsgFile5, messageId: gMsgId5},
                       ],
                         gIMAPDaemon.getMailbox("INBOX"), gIMAPInbox);
-  // "Master" do_test_pending(), paired with a do_test_finished() at the end of
-  // all the operations.
-  do_test_pending();
-  //start first test
-  doTest(1);
 }
 
 var gIMAPService;
 
-const gTestArray =
-[
+var tests = [
+  setup,
   function updateFolder() {
-    gIMAPInbox.updateFolderWithListener(null, URLListener);
+    gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+    yield false;
   },
   function selectFirstMsg() {
 
@@ -186,9 +132,10 @@ const gTestArray =
     gIMAPService.DisplayMessage(gIMAPInbox.getUriForMsg(msg1),
                                             streamListener,
                                             null,
-                                            URLListener,
+                                            asyncUrlListener,
                                             null,
                                             url);
+    yield false;
   },
   function select2ndMsg() {
     let msg1 = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId1);
@@ -199,9 +146,10 @@ const gTestArray =
     gIMAPService.DisplayMessage(gIMAPInbox.getUriForMsg(msg2),
                                             streamListener,
                                             null,
-                                            URLListener,
+                                            asyncUrlListener,
                                             null,
                                             url);
+    yield false;
   },
   function select3rdMsg() {
     let msg2 = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId2);
@@ -212,15 +160,15 @@ const gTestArray =
     gIMAPService.DisplayMessage(gIMAPInbox.getUriForMsg(msg3),
                                             streamListener,
                                             null,
-                                            URLListener,
+                                            asyncUrlListener,
                                             null,
                                             url);
+    yield false;
   },
   function verify3rdMsg() {
     let msg3 = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId3);
     // can't turn this on because our fake server doesn't support body structure.
 //    do_check_eq(msg3.flags & nsMsgMessageFlags.Offline, 0);
-    do_timeout(0, function(){doTest(++gCurTestNum)});
   },
   function addNewMsgs() {
     let mbox = gIMAPDaemon.getMailbox("INBOX")
@@ -247,7 +195,8 @@ const gTestArray =
                                      null, null);
       mbox.addMessage(new imapMessage(dataUri.spec, mbox.uidnext++, []));
     });
-    gIMAPInbox.updateFolderWithListener(null, URLListener);
+    gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+    yield false;
   },
   function testQueuedOfflineDownload()
   {
@@ -260,25 +209,25 @@ const gTestArray =
     let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
     let msgServ = messenger.messageServiceFromURI(msgURI);
     msgServ.streamMessage(msgURI, gStreamListener, null, null, false, "", false);
-    let msgs = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
-    msgs.appendElement(gIMAPInbox.GetMessageHeader(gFirstNewMsg), false);
-    gIMAPInbox.DownloadMessagesForOffline(msgs, null);
+    yield false;
   },
   function firstStreamFinished()
   {
-    dump("first stream finished\n");
-    // Wait for a couple seconds for the second download to either start
-    // writing to the offline store (failure case), or complete instantly.
-    // If DownloadMessagesForOffline took a listener, we wouldn't have to
-    // do this.
-    do_timeout(2000, function(){doTest(++gCurTestNum);});
+    // nsIMsgFolder.DownloadMessagesForOffline does not take a listener, so
+    // we invoke nsIImapService.downloadMessagesForOffline directly with a 
+    // listener.
+    MailServices.imap.downloadMessagesForOffline(gFirstNewMsg,
+                                                 gIMAPInbox,
+                                                 asyncUrlListener,
+                                                 null);
+    yield false;
   },
   function checkOfflineStoreSize()
   {
     dump("checking offline store size\n");
     do_check_true(gIMAPInbox.filePath.fileSize <= gImapInboxOfflineStoreSize);
-    do_timeout(0, function(){doTest(++gCurTestNum);});
   },
+  teardown
 ]
 
 gStreamListener = {
@@ -289,7 +238,7 @@ gStreamListener = {
     this._data = "";
   },
   onStopRequest : function (aRequest, aContext, aStatusCode) {
-    do_timeout(0, function(){doTest(++gCurTestNum);});
+    async_driver();
   },
   onDataAvailable : function (aRequest, aContext, aInputStream, aOff, aCount) {
     if (this._stream == null) {
@@ -300,65 +249,14 @@ gStreamListener = {
   },
 };
 
-function doTest(test)
-{
-  if (test <= gTestArray.length)
-  {
-    dump("Doing test " + test + "\n");
-    gCurTestNum = test;
+asyncUrlListener.callback = function(aUrl, aExitCode) {
+  do_check_eq(aExitCode, 0);
+};
 
-    var testFn = gTestArray[test - 1];
-    // Set a limit of ten seconds; if the notifications haven't arrived by then there's a problem.
-    do_timeout(10000, function(){
-          if (gCurTestNum == test)
-          do_throw("Notifications not received in 10000 ms for operation " + testFn.name);
-        }
-      );
-    try {
-    testFn();
-    } catch(ex) {
-      gServer.stop();
-      do_throw ('TEST FAILED ' + ex);
-    }
-  }
-  else
-  {
-    do_timeout(1000, endTest);
-  }
+function teardown() {
+  teardownIMAPPump();
 }
 
-// nsIURLListener implementation - runs next test
-var URLListener =
-{
-  OnStartRunningUrl: function(aURL) {},
-  OnStopRunningUrl: function(aURL, aStatus)
-  {
-    dump("in OnStopRunningURL " + gCurTestNum + "\n");
-    do_check_eq(aStatus, 0);
-    do_timeout(0, function(){doTest(++gCurTestNum);});
-  }
-}
-
-function endTest()
-{
-  // Cleanup, null out everything, close all cached connections and stop the
-  // server
-//  gMessages.clear();
-  gMessenger = null;
-  gMsgWindow = null;
-  gRootFolder = null;
-  gIMAPInbox = null;
-  gIMAPTrashFolder = null;
-  gServer.resetTest();
-  gIMAPIncomingServer.closeCachedConnections();
-  gIMAPIncomingServer = null;
-  gLocalInboxFolder = null;
-  gLocalIncomingServer = null;
-  gServer.performTest();
-  gServer.stop();
-  let thread = gThreadManager.currentThread;
-  while (thread.hasPendingEvents())
-    thread.processNextEvent(true);
-
-  do_test_finished(); // for the one in run_test()
+function run_test() {
+  async_run_tests(tests);
 }

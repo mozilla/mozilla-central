@@ -2,7 +2,12 @@
  * Test bug 460636 - nsMsgSaveAsListener sometimes inserts extra LF characters
  */
 
-var gIMAPDaemon, gServer, gIMAPIncomingServer, gSavedMsgFile;
+load("../../../resources/logHelper.js");
+load("../../../resources/mailTestUtils.js");
+load("../../../resources/asyncTestUtils.js");
+load("../../../resources/IMAPpump.js");
+
+var gSavedMsgFile;
 
 const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
                        .getService(Ci.nsIMsgMessageService);
@@ -10,26 +15,14 @@ const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
 const gFileName = "bug460636";
 const gMsgFile = do_get_file("../../../data/" + gFileName);
                      
-function run_test()
-{
-  /*
-   * Set up an IMAP server. The bug is only triggered when nsMsgSaveAsListener
-   * is used (i.e., for IMAP and NNTP).
-   */
-  gIMAPDaemon = new imapDaemon();
-  gServer = makeServer(gIMAPDaemon, "");
-  gIMAPIncomingServer = createLocalIMAPServer();
+var tests = [
+  setup,
+  checkSavedMessage,
+  teardown
+];
 
-  // pref tuning: one connection only, turn off notifications
-  var prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefBranch);
-  prefBranch.setIntPref("mail.server.server1.max_cached_connections", 1);
-  prefBranch.setBoolPref("mail.biff.play_sound", false);
-  prefBranch.setBoolPref("mail.biff.show_alert", false);
-  prefBranch.setBoolPref("mail.biff.show_tray_icon", false);
-  prefBranch.setBoolPref("mail.biff.animate_dock_icon", false);
-
-  var inbox = gIMAPDaemon.getMailbox("INBOX");
+function setup() {
+  setupIMAPPump();
 
   /*
    * Ok, prelude done. Read the original message from disk
@@ -39,7 +32,9 @@ function run_test()
                      .getService(Ci.nsIIOService)
                      .newFileURI(gMsgFile).QueryInterface(Ci.nsIFileURL);
 
-  inbox.addMessage(new imapMessage(msgfileuri.spec, inbox.uidnext++, []));
+  gIMAPMailbox.addMessage(new imapMessage(msgfileuri.spec, gIMAPMailbox.uidnext++, []));
+  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  yield false;
 
   /*
    * Save the message to a local file. IMapMD corresponds to
@@ -52,13 +47,6 @@ function run_test()
                   .get("IMapMD", Ci.nsILocalFile);
   gSavedMsgFile.append(gFileName + ".eml");
 
-  do_test_pending();
-  do_timeout(10000, function(){
-      do_throw('SaveMessageToDisk did not complete within 10 seconds' +
-        '(incorrect messageURI?). ABORTING.');
-      }
-    );
-
   /*
    * From nsIMsgMessageService.idl:
    * void SaveMessageToDisk(in string aMessageURI, in nsIFile aFile,
@@ -70,18 +58,16 @@ function run_test()
    * test also runs successfully on platforms not using CRLF by default.
    */
   gIMAPService.SaveMessageToDisk("imap-message://user@localhost/INBOX#"
-                                 + (inbox.uidnext-1), gSavedMsgFile,
-                                 false, UrlListener, {}, true, null);
+                                 + (gIMAPMailbox.uidnext-1), gSavedMsgFile,
+                                 false, asyncUrlListener, {}, true, null);
+  yield false;
 }
 
-function endTest()
-{
-  gIMAPIncomingServer.closeCachedConnections();
-  gServer.stop();
-  var thread = gThreadManager.currentThread;
-  while (thread.hasPendingEvents())
-    thread.processNextEvent(true);
+function checkSavedMessage() {
+  do_check_eq(loadFileToString(gMsgFile), loadFileToString(gSavedMsgFile));
+}
 
+function teardown() {
   try {
     gSavedMsgFile.remove(false);
   }
@@ -89,19 +75,9 @@ function endTest()
     dump(ex);
     do_throw(ex);
   }
-  do_test_finished();
+  teardownIMAPPump();
 }
 
-var UrlListener = 
-{
-  OnStartRunningUrl: function(url) { },
-  OnStopRunningUrl: function(url, rc)
-  {
-    do_check_eq(loadFileToString(gMsgFile), loadFileToString(gSavedMsgFile));
-
-    // The file doesn't get closed straight away, but does after a little bit.
-    // So wait, and then remove it. We need to test this to ensure we don't
-    // indefinitely lock the file.
-    do_timeout(1000, endTest);
-  }
-};
+function run_test() {
+  async_run_tests(tests);
+}

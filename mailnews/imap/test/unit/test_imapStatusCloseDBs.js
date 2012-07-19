@@ -1,58 +1,54 @@
 // This file tests that checking folders for new mail with STATUS
 // doesn't leave db's open.
 
-var gServer, gImapServer;
-var gIMAPInbox, gIMAPFolder1, gIMAPFolder2;
+load("../../../resources/logHelper.js");
+load("../../../resources/mailTestUtils.js");
+load("../../../resources/asyncTestUtils.js");
+load("../../../resources/IMAPpump.js");
 
-function run_test() {
-  var daemon = new imapDaemon();
-  daemon.createMailbox("folder 1", {subscribed : true});
-  daemon.createMailbox("folder 2", {subscribed : true});
-  gServer = makeServer(daemon, "");
+var gFolder1, gFolder2;
 
-  gImapServer = createLocalIMAPServer();
-  gImapServer.maximumConnectionsNumber = 1;
+var tests = [
+  setup,
+  check,
+  teardown
+];
 
-  // Get the folder list...
-  gImapServer.performExpand(null);
-  gServer.performTest("SUBSCRIBE");
+function setup() {
+  Services.prefs.setBoolPref("mail.check_all_imap_folders_for_new", true);
 
-  // pref tuning: one connection only, turn off notifications
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefBranch);
-  prefBranch.setBoolPref("mail.check_all_imap_folders_for_new", true);
-  // Make sure no biff notifications happen
-  prefBranch.setBoolPref("mail.biff.play_sound", false);
-  prefBranch.setBoolPref("mail.biff.show_alert", false);
-  prefBranch.setBoolPref("mail.biff.show_tray_icon", false);
-  prefBranch.setBoolPref("mail.biff.animate_dock_icon", false);
+  setupIMAPPump();
 
-  let rootFolder = gImapServer.rootFolder;
-  gIMAPInbox = rootFolder.getFolderWithFlags(Ci.nsMsgFolderFlags.Inbox);
+  gIMAPDaemon.createMailbox("folder 1", {subscribed : true});
+  gIMAPDaemon.createMailbox("folder 2", {subscribed : true});
+
+  gIMAPServer.performTest("SUBSCRIBE");
+
+  let rootFolder = gIMAPIncomingServer.rootFolder;
   gFolder1 = rootFolder.getChildNamed("folder 1");
   gFolder2 = rootFolder.getChildNamed("folder 2");
-  do_test_pending();
+
   gIMAPInbox.getNewMessages(null, null);
-  gServer.performTest("STATUS");
+  gIMAPServer.performTest("STATUS");
   // don't know if this will work, but we'll try. Wait for
   // second status response
-  gServer.performTest("STATUS");
-  do_timeout_function(1000, endTest);
+  gIMAPServer.performTest("STATUS");
+  do_timeout_function(1000, async_driver);
+  yield false;
 }
 
-function endTest()
-{
+function check() {
   const gDbService = Cc["@mozilla.org/msgDatabase/msgDBService;1"]
                        .getService(Ci.nsIMsgDBService);
   do_check_neq(gDbService.cachedDBForFolder(gIMAPInbox), null);
   do_check_eq(gDbService.cachedDBForFolder(gFolder1), null);
   do_check_eq(gDbService.cachedDBForFolder(gFolder2), null);
+}
 
-  // Clean up the server in preparation
-  gServer.resetTest();
-  gImapServer.closeCachedConnections();
-  gServer.performTest();
-  gServer.stop();
+function teardown() {
+  teardownIMAPPump();
+}
 
-  do_test_finished();
+function run_test() {
+  async_run_tests(tests);
 }

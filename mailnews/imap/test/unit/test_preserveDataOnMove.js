@@ -36,7 +36,7 @@ function createSubfolder()
   yield false; 
   gSubfolder = gIMAPIncomingServer.rootFolder.getChildNamed("Subfolder");
   do_check_true(gSubfolder instanceof Ci.nsIMsgImapMailFolder);
-  gSubfolder.updateFolderWithListener(null, UrlListener);
+  gSubfolder.updateFolderWithListener(null, asyncUrlListener);
   dl('wait for OnStopRunningURL');
   yield false;
 }  
@@ -85,19 +85,9 @@ function moveMessageToSubfolder()
   yield false;
 }
 
-var UrlListener = {
-  OnStartRunningUrl: function _OnStartRunningUrl(aUrl) {
-    dl('OnStartRunningUrl');
-  },
-  OnStopRunningUrl: function _OnStopRunningUrl(aUrl, aExitCode) {
-    dl('OnStopRunningUrl');
-    async_driver();
-  }
-};
-
 function testPropertyOnMove()
 {
-  gSubfolder.updateFolderWithListener(null, UrlListener);
+  gSubfolder.updateFolderWithListener(null, asyncUrlListener);
   dl('wait for msgAdded');
   yield false; // wait for msgAdded notification
   dl('wait for OnStopRunningURL');

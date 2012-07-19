@@ -6,7 +6,9 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
+load("../../../resources/logHelper.js");
 load("../../../resources/alertTestUtils.js");
+load("../../../resources/asyncTestUtils.js");
 
 var gGotAlert = false;
 
@@ -15,7 +17,13 @@ function alert(aDialogTitle, aText) {
   gGotAlert = true;
 }
 
-function run_test() {
+var tests = [
+  setup,
+  check_alert,
+  teardown
+];
+
+function setup() {
   // set up IMAP fakeserver and incoming server
   gIMAPDaemon = new imapDaemon();
   gIMAPServer = makeServer(gIMAPDaemon, "", {dropOnStartTLS: true});
@@ -45,32 +53,29 @@ function run_test() {
   gIMAPInbox = gIMAPIncomingServer.rootFolder.getChildNamed("Inbox")
                                   .QueryInterface(Ci.nsIMsgImapMailFolder);
 
-  do_test_pending();
-
   registerAlertTestUtils();
 
-  gIMAPInbox.updateFolderWithListener(gDummyMsgWindow, UrlListener);
+  gIMAPInbox.updateFolderWithListener(gDummyMsgWindow, asyncUrlListener);
+  yield false;
 }
 
-var UrlListener =
-{
-  OnStartRunningUrl: function(url) { },
-  OnStopRunningUrl: function(url, rc)
-  {
-    // Check for failure.
-    do_check_false(Components.isSuccessCode(rc));
-    do_timeout_function(1000, endTest);
-  }
+asyncUrlListener.callback = function(aUrl, aExitCode) {
+  do_check_false(Components.isSuccessCode(aExitCode));
 };
 
-function endTest() {
+function check_alert() {
   do_check_true(gGotAlert);
+}
+
+function teardown() {
   gIMAPIncomingServer.closeCachedConnections();
   gIMAPServer.stop();
 
   var thread = gThreadManager.currentThread;
   while (thread.hasPendingEvents())
     thread.processNextEvent(true);
+}
 
-  do_test_finished();
+function run_test() {
+  async_run_tests(tests);
 }

@@ -59,7 +59,7 @@ function loadImapMessage()
   let imapInbox =  gIMAPDaemon.getMailbox("INBOX")
   let message = new imapMessage(msgURI.spec, imapInbox.uidnext++, []);
   gIMAPMailbox.addMessage(message);
-  gIMAPInbox.updateFolderWithListener(null, UrlListener);
+  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
   do_check_eq(1, gIMAPInbox.getTotalMessages(false));
   let msgHdr = firstMsgHdr(gIMAPInbox);
@@ -133,15 +133,6 @@ SaveAttachmentCallback.prototype = {
   }
 }
 let gCallbackObject = new SaveAttachmentCallback();
-
-var UrlListener = {
-  OnStartRunningUrl: function _OnStartRunningUrl(aUrl) {
-  },
-  OnStopRunningUrl: function _OnStopRunningUrl(aUrl, aExitCode) {
-    async_driver();
-  }
-};
-
 
 function run_test()
 {

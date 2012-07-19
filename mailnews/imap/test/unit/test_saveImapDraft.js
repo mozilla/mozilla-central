@@ -37,7 +37,7 @@ function createDraftsFolder()
   yield false;
   gDraftsFolder = gIMAPIncomingServer.rootFolder.getChildNamed("Drafts");
   do_check_true(gDraftsFolder instanceof Ci.nsIMsgImapMailFolder);
-  gDraftsFolder.updateFolderWithListener(null, urlListener);
+  gDraftsFolder.updateFolderWithListener(null, asyncUrlListener);
   dl('wait for OnStopRunningURL');
   yield false;
 }
@@ -71,7 +71,7 @@ function saveDraft()
 function updateDrafts()
 {
   dump("updating drafts\n");
-  gDraftsFolder.updateFolderWithListener(null, urlListener);
+  gDraftsFolder.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 
@@ -108,18 +108,6 @@ function run_test()
   //start first test
   async_run_tests(tests);
 }
-
-var urlListener = {
-  OnStartRunningUrl: function _OnStartRunningUrl(aUrl) {
-    // funny but this never seems to get called.
-    dl('OnStartRunningUrl');
-  },
-  OnStopRunningUrl: function _OnStopRunningUrl(aUrl, aExitCode) {
-    dl('OnStopRunningUrl');
-    dump("got on stop running url\n");
-    async_driver();
-  }
-};
 
 var mfnListener =
 {

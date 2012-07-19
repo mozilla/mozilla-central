@@ -41,7 +41,7 @@ function loadImapMessage()
   let imapInbox =  gIMAPDaemon.getMailbox("INBOX")
   let message = new imapMessage(msgURI.spec, imapInbox.uidnext++, []);
   gIMAPMailbox.addMessage(message);
-  gIMAPInbox.updateFolderWithListener(null, UrlListener);
+  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
   MailServices.mfn.addListener(mfnListener, MailServices.mfn.msgAdded);
   yield true;
@@ -85,14 +85,6 @@ function saveAsTemplate() {
   templates.createStorageIfMissing(new saveAsUrlListener(uri, identity));
   yield false;
 }
-
-var UrlListener = {
-  OnStartRunningUrl: function _OnStartRunningUrl(aUrl) {
-  },
-  OnStopRunningUrl: function _OnStopRunningUrl(aUrl, aExitCode) {
-    async_driver();
-  }
-};
 
 // listener for saveAsTemplate adding a message to the templates folder.
 mfnListener =

@@ -7,16 +7,17 @@
 // Original Author: David Bienvenu <bienvenu@nventure.com>
 
 
+load("../../../resources/logHelper.js");
+load("../../../resources/mailTestUtils.js");
+load("../../../resources/asyncTestUtils.js");
+load("../../../resources/IMAPpump.js");
+
 var gRootFolder;
-var gIMAPInbox, gIMAPTrashFolder;
-var gIMAPDaemon, gServer, gIMAPIncomingServer;
 var gLastKey;
 var gMessages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
 var gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                 .getService(Ci.nsIMsgCopyService);
-var gMessenger;
 var gMsgWindow;
-var gCurTestNum;
 
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
@@ -67,21 +68,24 @@ alertListener.prototype = {
   }
 };
 
-const gTestArray =
-[
+var tests = [
+  setup,
   function updateFolder() {
-    gIMAPInbox.updateFolderWithListener(null, URLListener);
+    gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+    yield false;
   },
   function deleteMessage() {
     let msgToDelete = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId1);
     gMessages.appendElement(msgToDelete, false);
-    // This delete happens offline, so we need to wait for playback before
-    // doing the expunge. Playback happens 500 ms after the operation starts.
-    gIMAPInbox.deleteMessages(gMessages, gMsgWindow, false, true, null, true);
-    do_timeout(1500, function(){doTest(++gCurTestNum);});
+    gIMAPInbox.deleteMessages(gMessages, gMsgWindow, false, true, asyncCopyListener, true);
+    yield false;
   },
   function expunge() {
-    gIMAPInbox.expunge(URLListener, gMsgWindow);
+    gIMAPInbox.expunge(asyncUrlListener, gMsgWindow);
+    yield false;
+
+    // Ensure that the message has been surely deleted.
+    do_check_eq(gIMAPInbox.msgDatabase.dBFolderInfo.numMessages, 3);
   },
   function undoDelete() {
     gMsgWindow.transactionManager.undoTransaction();
@@ -90,43 +94,23 @@ const gTestArray =
     // delete offline.
     let trash = gRootFolder.getChildNamed("Trash");
     trash.QueryInterface(Ci.nsIMsgImapMailFolder)
-         .updateFolderWithListener(null, URLListener);
+         .updateFolderWithListener(null, asyncUrlListener);
+    yield false;
   },
   function goBackToInbox() {
-    gIMAPInbox.updateFolderWithListener(gMsgWindow, URLListener);
+    gIMAPInbox.updateFolderWithListener(gMsgWindow, asyncUrlListener);
+    yield false;
   },
   function verifyFolders() {
     let msgRestored = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId1);
     do_check_neq(msgRestored, null);
     do_check_eq(gIMAPInbox.msgDatabase.dBFolderInfo.numMessages, 4);
-    doTest(++gCurTestNum);
   },
+  teardown
 ];
 
-function run_test()
-{
-  gIMAPDaemon = new imapDaemon();
-  gServer = makeServer(gIMAPDaemon, "");
-
-  gIMAPIncomingServer = createLocalIMAPServer();
-
-  loadLocalMailAccount();
-
-  // We need an identity so that updateFolder doesn't fail
-  let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-  let localAccount = acctMgr.createAccount();
-  let identity = acctMgr.createIdentity();
-  localAccount.addIdentity(identity);
-  localAccount.defaultIdentity = identity;
-  localAccount.incomingServer = gLocalIncomingServer;
-  acctMgr.defaultAccount = localAccount;
-
-  // Let's also have another account, using the same identity
-  let imapAccount = acctMgr.createAccount();
-  imapAccount.addIdentity(identity);
-  imapAccount.defaultIdentity = identity;
-  imapAccount.incomingServer = gIMAPIncomingServer;
+function setup() {
+  setupIMAPPump();
 
   var mailSession = Cc["@mozilla.org/messenger/services/session;1"]
     .getService(Ci.nsIMsgMailSession);
@@ -135,136 +119,44 @@ function run_test()
 
   mailSession.addUserFeedbackListener(listener1);
 
-  // The server doesn't support more than one connection
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefBranch);
-  prefBranch.setIntPref("mail.server.server1.max_cached_connections", 1);
-  // Make sure no biff notifications happen
-  prefBranch.setBoolPref("mail.biff.play_sound", false);
-  prefBranch.setBoolPref("mail.biff.show_alert", false);
-  prefBranch.setBoolPref("mail.biff.show_tray_icon", false);
-  prefBranch.setBoolPref("mail.biff.animate_dock_icon", false);
-  // We aren't interested in downloading messages automatically
-  prefBranch.setBoolPref("mail.server.server1.download_on_biff", false);
-  prefBranch.setBoolPref("mail.server.server1.autosync_offline_stores", false);
-  prefBranch.setBoolPref("mail.server.server1.offline_download", false);
-  gMessenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
+  Services.prefs.setBoolPref("mail.server.server1.autosync_offline_stores", false);
+  Services.prefs.setBoolPref("mail.server.server1.offline_download", false);
 
   gMsgWindow = Cc["@mozilla.org/messenger/msgwindow;1"]
                   .createInstance(Components.interfaces.nsIMsgWindow);
 
-  // Get the server list...
-  gIMAPIncomingServer.performExpand(null);
-
   gRootFolder = gIMAPIncomingServer.rootFolder;
-  gIMAPInbox = gRootFolder.getChildNamed("INBOX");
-  let msgImapFolder = gIMAPInbox.QueryInterface(Ci.nsIMsgImapMailFolder);
   // these hacks are required because we've created the inbox before
   // running initial folder discovery, and adding the folder bails
   // out before we set it as verified online, so we bail out, and
   // then remove the INBOX folder since it's not verified.
-  msgImapFolder.hierarchyDelimiter = '/';
-  msgImapFolder.verifiedAsOnlineFolder = true;
+  gIMAPInbox.hierarchyDelimiter = '/';
+  gIMAPInbox.verifiedAsOnlineFolder = true;
 
 
   // Add a couple of messages to the INBOX
   // this is synchronous, afaik
   addMessagesToServer([{file: gMsgFile1, messageId: gMsgId1},
-                        {file: gMsgFile4, messageId: gMsgId4},
-                         {file: gMsgFile5, messageId: gMsgId5},
-                        {file: gMsgFile2, messageId: gMsgId2}],
-                        gIMAPDaemon.getMailbox("INBOX"), gIMAPInbox);
-  // "Master" do_test_pending(), paired with a do_test_finished() at the end of
-  // all the operations.
-  do_test_pending();
-  //start first test
-  doTest(1);
+                       {file: gMsgFile4, messageId: gMsgId4},
+                       {file: gMsgFile5, messageId: gMsgId5},
+                       {file: gMsgFile2, messageId: gMsgId2}],
+                      gIMAPMailbox, gIMAPInbox);
 }
 
-function doTest(test)
-{
-  if (test <= gTestArray.length)
-  {
-    dump("Doing test " + test + "\n");
-    gCurTestNum = test;
-
-    var testFn = gTestArray[test - 1];
-    // Set a limit of ten seconds; if the notifications haven't arrived by then there's a problem.
-    do_timeout(10000, function(){
-        if (gCurTestNum == test)
-          do_throw("Notifications not received in 10000 ms for operation " + testFn.name);
-        }
-      );
-    try {
-    testFn();
-    } catch(ex) {
-      gServer.stop();
-      do_throw ('TEST FAILED ' + ex);
-    }
-  }
-  else
-  {
-    do_timeout(1000, endTest);
-  }
-}
-
-// nsIMsgCopyServiceListener implementation - runs next test when copy
-// is completed.
-var CopyListener =
-{
-  OnStartCopy: function() {},
-  OnProgress: function(aProgress, aProgressMax) {},
-  SetMessageKey: function(aKey)
-  {
-    gLastKey = aKey;
-  },
-  SetMessageId: function(aMessageId) {},
-  OnStopCopy: function(aStatus)
-  {
-    dump("in OnStopCopy " + gCurTestNum + "\n");
-    // Check: message successfully copied.
-    do_check_eq(aStatus, 0);
-    // Ugly hack: make sure we don't get stuck in a JS->C++->JS->C++... call stack
-    // This can happen with a bunch of synchronous functions grouped together, and
-    // can even cause tests to fail because they're still waiting for the listener
-    // to return
-    do_timeout(0, function(){doTest(++gCurTestNum);});
-  }
+asyncUrlListener.callback = function(aUrl, aExitCode) {
+  do_check_eq(aExitCode, 0);
 };
 
-
-// nsIURLListener implementation - runs next test
-var URLListener =
-{
-  OnStartRunningUrl: function(aURL) {},
-  OnStopRunningUrl: function(aURL, aStatus)
-  {
-    dump("in OnStopRunningURL " + gCurTestNum + "\n");
-    do_check_eq(aStatus, 0);
-    do_timeout(0, function(){doTest(++gCurTestNum);});
-  }
-}
-
-function endTest()
-{
+function teardown() {
   // Cleanup, null out everything, close all cached connections and stop the
   // server
   gMessages.clear();
-  gMessenger = null;
+  gMsgWindow.closeWindow();
   gMsgWindow = null;
   gRootFolder = null;
-  gIMAPInbox = null;
-  gIMAPTrashFolder = null;
-  gServer.resetTest();
-  gIMAPIncomingServer.closeCachedConnections();
-  gIMAPIncomingServer = null;
-  gLocalInboxFolder = null;
-  gLocalIncomingServer = null;
-  gServer.performTest();
-  gServer.stop();
-  let thread = gThreadManager.currentThread;
-  while (thread.hasPendingEvents())
-    thread.processNextEvent(true);
+  teardownIMAPPump();
+}
 
-  do_test_finished(); // for the one in run_test()
+function run_test() {
+  async_run_tests(tests);
 }

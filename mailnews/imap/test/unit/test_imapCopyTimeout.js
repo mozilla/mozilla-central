@@ -60,7 +60,7 @@ function createTargetFolder()
   yield false; 
   gTargetFolder = gIMAPIncomingServer.rootFolder.getChildNamed("targetFolder");
   do_check_true(gTargetFolder instanceof Ci.nsIMsgImapMailFolder);
-  gTargetFolder.updateFolderWithListener(null, UrlListener);
+  gTargetFolder.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }  
 
@@ -118,17 +118,9 @@ function waitForOfflinePlayback()
 
 function updateTargetFolder()
 {
-  gTargetFolder.updateFolderWithListener(null, UrlListener);
+  gTargetFolder.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
-
-var UrlListener = {
-  OnStartRunningUrl: function _OnStartRunningUrl(aUrl) {
-  },
-  OnStopRunningUrl: function _OnStopRunningUrl(aUrl, aExitCode) {
-    async_driver();
-  }
-};
 
 // Cleanup
 function endTest()

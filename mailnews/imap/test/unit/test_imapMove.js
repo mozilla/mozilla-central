@@ -45,7 +45,7 @@ function startTest()
   let imapMsg = new imapMessage(dataUri.spec, gIMAPMailbox.uidnext++, []);
   gIMAPMailbox.addMessage(imapMsg);
 
-  gIMAPInbox.updateFolderWithListener(null, UrlListener);
+  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 
@@ -64,19 +64,11 @@ function doMove() {
 
 function testMove() {
   do_check_eq(gIMAPInbox.getTotalMessages(false), 0);
-  gFolder1.updateFolderWithListener(null, UrlListener);
+  gFolder1.updateFolderWithListener(null, asyncUrlListener);
   yield false;
   do_check_eq(gFolder1.getTotalMessages(false), 1);
   yield true;
 }
-
-var UrlListener = {
-  OnStartRunningUrl: function _OnStartRunningUrl(aUrl) {
-  },
-  OnStopRunningUrl: function _OnStopRunningUrl(aUrl, aExitCode) {
-    async_driver();
-  }
-};
 
 var mfnListener =
 {

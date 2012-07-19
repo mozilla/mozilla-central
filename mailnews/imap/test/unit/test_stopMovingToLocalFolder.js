@@ -36,13 +36,6 @@ var asyncCopyListener = {
   }
 };
 
-var urlListener = {
-  OnStartRunningUrl: function _OnStartRunningUrl(aUrl) {},
-  OnStopRunningUrl: function _OnStopRunningUrl(aUrl, aExitCode) {
-    async_driver();
-  }
-};
-
 var tests = [
   setup_messages,
   move_messages,
@@ -59,7 +52,7 @@ function setup_messages() {
   let imapMsg = new imapMessage(dataUri.spec, gIMAPMailbox.uidnext++, []);
   gIMAPMailbox.addMessage(imapMsg);
 
-  gIMAPInbox.updateFolderWithListener(null, urlListener);
+  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 
