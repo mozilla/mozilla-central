@@ -106,7 +106,7 @@ int fill_apple_mime_header(
 			"\"\r\nContent-Disposition: inline; filename=\"%s\"\r\n\r\n\r\n--=\r\n",
 			p_ap_encode_obj->fname);
 #endif /* 0 */
-	PR_snprintf(tmpstr, sizeof(tmpstr), "--%s"CRLF, p_ap_encode_obj->boundary);
+	PR_snprintf(tmpstr, sizeof(tmpstr), "--%s" CRLF, p_ap_encode_obj->boundary);
 	status = write_stream(p_ap_encode_obj, 
 						tmpstr, 
 						strlen(tmpstr));
@@ -347,7 +347,7 @@ int ap_encode_header(
 		** write out the boundary 
 		*/
 		PR_snprintf(rd_buff, sizeof(rd_buff),
-						CRLF"--%s"CRLF, 
+						CRLF "--%s" CRLF, 
 						p_ap_encode_obj->boundary);
 					
 		status = write_stream(p_ap_encode_obj,
@@ -488,7 +488,7 @@ int ap_encode_data(
         nsCAutoString leafName;
         resFile->GetNativeLeafName(leafName);
 		PR_snprintf(rd_buff, sizeof(rd_buff),
-			"Content-Type: %s; name=\"%s\"" CRLF "Content-Transfer-Encoding: base64" CRLF "Content-Disposition: inline; filename=\"%s\""CRLF CRLF,
+			"Content-Type: %s; name=\"%s\"" CRLF "Content-Transfer-Encoding: base64" CRLF "Content-Disposition: inline; filename=\"%s\"" CRLF CRLF,
 			magic_type,
 			leafName.get(),
 			leafName.get());
@@ -531,7 +531,7 @@ int ap_encode_data(
 		/* write out the boundary 	*/
 		
 		PR_snprintf(rd_buff, sizeof(rd_buff),
-						CRLF"--%s--"CRLF CRLF, 
+						CRLF "--%s--" CRLF CRLF, 
 						p_ap_encode_obj->boundary);
 	
 		status = write_stream(p_ap_encode_obj,

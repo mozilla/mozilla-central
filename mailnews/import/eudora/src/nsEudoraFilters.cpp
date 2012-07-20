@@ -563,15 +563,15 @@ static const char* gStandardHeaders[] =
 {
 // Eudora string        nsMsgSearchAttribValue
 // -------------        ----------------------
-    "Subject:",              // Subject
-    "From:",                 // Sender
-    LDAQ"Body"RDAQ,          // Body
-    "Date:",                 // Date
-    "X-Priority:",           // Priority
-    "",                      // MsgStatus
-    "To:",                   // To
-    "Cc:",                   // CC
-    LDAQ"Any Recipient"RDAQ, // ToOrCC
+    "Subject:",                // Subject
+    "From:",                   // Sender
+    LDAQ "Body" RDAQ,          // Body
+    "Date:",                   // Date
+    "X-Priority:",             // Priority
+    "",                        // MsgStatus
+    "To:",                     // To
+    "Cc:",                     // CC
+    LDAQ "Any Recipient" RDAQ, // ToOrCC
     NULL
 };
 
