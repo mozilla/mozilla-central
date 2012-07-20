@@ -453,3 +453,4 @@ function test_apply_to_folder_and_children() {
   be_in_folder(folderChild2);
   assert_visible_columns(conExtra);
 }
+test_apply_to_folder_and_children.EXCLUDED_PLATFORMS = ["linux"];
