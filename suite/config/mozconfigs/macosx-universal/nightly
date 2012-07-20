@@ -16,8 +16,6 @@ fi
 
 if test -n $oldtopsrcdir; then
   export topsrcdir=$oldtopsrcdir
-  unset CC
-  unset CXX
 fi
 
 ac_add_options --enable-application=suite
