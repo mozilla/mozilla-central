@@ -120,9 +120,11 @@
                          oncommand="chatHandler.joinChat()"/>
           <toolbaritem id="chat-status-selector"
                        orient="horizontal"
-                       class="toolbarbutton-1"
                        align="center" flex="1">
-            <button type="menu" id="statusTypeIcon" status="available">
+            <toolbarbutton type="menu"
+                           id="statusTypeIcon"
+                           class="toolbarbutton-1"
+                           status="available">
               <menupopup id="setStatusTypeMenupopup"
                          oncommand="statusSelector.editStatus(event);">
                 <menuitem id="statusTypeAvailable" label="&status.available;"
@@ -133,8 +135,9 @@
                 <menuitem id="statusTypeOffline" label="&status.offline;"
                           status="offline" class="menuitem-iconic"/>
               </menupopup>
-            </button>
+            </toolbarbutton>
             <label id="statusMessage" crop="end" flex="1" value=""
+                   class="statusMessageToolbarItem"
                    onclick="statusSelector.statusMessageClick();"/>
           </toolbaritem>
           <toolbarbutton id="button-chat-accounts"

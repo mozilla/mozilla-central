@@ -493,30 +493,30 @@ imgroup[closed] .twisty {
   list-style-image: url('chrome://chat/skin/offline-16.png');
 }
 
-
 #statusTypeIcon {
-  margin: 0 0;
-  width: 16px;
-  height: 16px;
-  min-height: 16px;
-  min-width: 16px;
+  min-width: 40px;
+}
+
+/* show the status icon also in text mode */
+toolbar[mode="text"] #statusTypeIcon > .toolbarbutton-icon {
+  display: -moz-box;
+}
+
+.statusMessageToolbarItem {
+  margin: 2px 4px;
+  -moz-margin-start: -1px;
+  padding: 3px 5px 4px;
+  border: 1px solid transparent;
+}
+
+#chat-status-selector:hover > .statusMessageToolbarItem {
+  border-color: ThreeDShadow;
+}
+
+#chat-status-selector > .statusMessageToolbarItem[editing] {
   -moz-appearance: none;
-  background: transparent;
-  box-shadow: none;
-  border: none;
-}
-
-#statusTypeIcon dropmarker {
-  display: none;
-}
-
-%ifdef XP_WIN
-#statusTypeIcon .button-box {
-  padding: 0 0;
-  border: none;
-}
-%endif
-
-#statusMessage {
-  margin: 0 8px;
+  -moz-padding-start: 4px;
+  -moz-padding-end: 4px;
+  border-color: ThreeDShadow;
+  background-color: -moz-field;
 }

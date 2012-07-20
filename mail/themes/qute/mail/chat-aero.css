@@ -4,6 +4,13 @@
 
 %include chat.css
 
+.statusMessageToolbarItem {
+  margin: 0 1px;
+  -moz-margin-start: -2px;
+  padding: 3px 3px 4px;
+  border-radius: 2px;
+}
+
 #chat-toobar {
   padding: 1px 0;
 }
@@ -63,6 +70,25 @@
 }
 
 @media (-moz-windows-default-theme) {
+  #statusTypeIcon .toolbarbutton-menu-dropmarker {
+    padding: 1px 3px;
+    list-style-image: url("chrome://messenger/skin/icons/toolbarbutton-arrow.png");
+  }
+
+  #chat-status-selector:hover > .statusMessageToolbarItem {
+    border-color: hsla(210, 54%, 20%, .25) hsla(210, 54%, 20%, .27)
+                  hsla(210, 54%, 20%, .3);
+  }
+
+  #chat-status-selector > .statusMessageToolbarItem[editing] {
+    -moz-appearance: none;
+    -moz-padding-start: 2px;
+    -moz-padding-end: 2px;
+    border-color: hsla(206, 100%, 60%, .65) hsla(206, 100%, 55%, .65)
+                  hsla(206, 100%, 50%, .65);
+    background-color: -moz-field;
+  }
+
   #listPaneBox {
     background-color: rgb(238,243,250);
   }

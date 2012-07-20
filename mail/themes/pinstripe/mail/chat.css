@@ -4,6 +4,22 @@
 
 %include ../../../components/im/themes/chat.css
 
+#statusTypeIcon > .toolbarbutton-text {
+  display: none;
+}
+
+.statusMessageToolbarItem {
+  -moz-margin-start: -6px;
+}
+
+#chat-status-selector:hover > .statusMessageToolbarItem {
+  border-color: #AAAAAA;
+}
+
+#chat-status-selector > .statusMessageToolbarItem[editing] {
+  border-color: #888888;
+}
+
 /* Adaptation of #folderpane_splitter */
 #listSplitter {
   background-image: none;
