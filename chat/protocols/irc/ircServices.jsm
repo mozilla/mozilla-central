@@ -114,7 +114,7 @@ var servicesBase = {
       // If we have a queue of messages, we're waiting for authentication.
       if (this.nickservMessageQueue) {
         if (text == "Password accepted - you are now recognized." || // Anope.
-          text == "You are now identified for \x02" + aMessage.params[0] + "\x02.") { // Atheme.
+            text == "You are now identified for \x02" + aMessage.params[0] + "\x02.") { // Atheme.
           // Password successfully accepted by NickServ, don't display the
           // queued messages.
           LOG("Successfully authenticated with NickServ.");
@@ -132,6 +132,7 @@ var servicesBase = {
 
       // NickServ wants us to identify.
       if (text == "This nick is owned by someone else.  Please choose another." || // Anope.
+          text == "This nickname is registered and protected.  If it is your" || // Anope (SECURE enabled).
           text == "This nickname is registered. Please choose a different nickname, or identify via \x02/msg NickServ identify <password>\x02.") { // Atheme.
         LOG("Authentication requested by NickServ.");
 
