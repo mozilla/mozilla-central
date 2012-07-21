@@ -1,0 +1,17 @@
+ac_add_options --enable-application=suite
+ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
+ac_add_options --enable-update-packaging
+ac_add_options --enable-jemalloc
+ac_add_options --enable-tests
+
+# For NSS symbols
+export MOZ_DEBUG_SYMBOLS=1
+
+# Needed to enable breakpad in application.ini
+export MOZILLA_OFFICIAL=1
+
+# To enable MSVC 2010 building
+. $topsrcdir/build/win32/mozconfig.vs2010
+
+# Enable parallel compiling
+# mk_add_options MOZ_MAKE_FLAGS="-j2"
