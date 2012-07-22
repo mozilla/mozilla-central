@@ -63,6 +63,13 @@
   }
 }
 
+/* give the toolbox a min-height of 41px for Australis theme */
+.mail-toolbox:not([mode="full"]) > toolbar:only-of-type,
+.mail-toolbox[mode="full"][labelalign="end"] > toolbar:only-of-type {
+  margin-top: 6px !important;
+  margin-bottom: 6px !important;
+}
+
 #subjectCol {
   -moz-padding-start: 20px;
 }

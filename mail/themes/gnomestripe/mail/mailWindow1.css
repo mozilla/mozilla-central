@@ -17,9 +17,23 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-.mail-toolbox {
-  -moz-box-pack: center;
-  min-height: 41px;
+/* give the toolbox a min-height of 41px for Australis theme */
+.mail-toolbox:not([mode="full"]) > toolbar:only-of-type,
+.mail-toolbox[mode="full"][labelalign="end"] > toolbar:only-of-type {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.mail-toolbox[iconsize="large"]:not([mode="full"]) > toolbar:only-of-type,
+.mail-toolbox[iconsize="large"][mode="full"][labelalign="end"] >
+toolbar:only-of-type {
+  margin-top: 2px;
+  margin-bottom: 3px;
+}
+
+.mail-toolbox[mode="text"]:not([mode="full"]) > toolbar:only-of-type {
+  margin-top: 3px;
+  margin-bottom: 3px;
 }
 
 #viewPickerLabel:not(:-moz-lwtheme) {

@@ -217,6 +217,7 @@ toolbar[mode="icons"] .toolbarbutton-1 > menupopup {
 }
 
 .mail-toolbox > toolbar {
+  -moz-appearance: none;
   /* force iconsize="small" on these toolbars */
   counter-reset: smallicons;
 }

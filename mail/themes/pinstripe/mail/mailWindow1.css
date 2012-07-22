@@ -17,9 +17,11 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-.mail-toolbox {
-  -moz-box-pack: center;
-  min-height: 41px;
+/* give the toolbox a min-height of 41px for Australis theme */
+.mail-toolbox:not([mode="full"]) > toolbar:only-of-type,
+.mail-toolbox[mode="full"][labelalign="end"] > toolbar:only-of-type {
+  margin-top: 6px;
+  margin-bottom: 4px;
 }
 
 /* ::::::::: Global override :::::::::: */
