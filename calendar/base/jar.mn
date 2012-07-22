@@ -152,6 +152,7 @@ calendar.jar:
     skin/calendar/common/dialogs/calendar-event-dialog.css (themes/common/dialogs/calendar-event-dialog.css)
     skin/calendar/common/widgets/calendar-widgets.css      (themes/common/widgets/calendar-widgets.css)
     skin/calendar/cal-icon32.png                           (themes/@THEME@/images/cal-icon32.png)
+    skin/calendar/cal-icon24.png                           (themes/@THEME@/images/cal-icon24.png)
     skin/calendar/calendar-alarm-dialog.css                (themes/@THEME@/dialogs/calendar-alarm-dialog.css)
     skin/calendar/calendar-daypicker.css                   (themes/@THEME@/calendar-daypicker.css)
     skin/calendar/calendar-event-dialog.css                (themes/@THEME@/dialogs/calendar-event-dialog.css)

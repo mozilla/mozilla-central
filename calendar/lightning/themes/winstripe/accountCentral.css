@@ -7,8 +7,5 @@
 }
 
 #lightning-newCalendar-row > hbox > label {
-  background: url(chrome://calendar/skin/cal-icon32.png) no-repeat !important;
-  padding-top: .55em;
-  padding-bottom: .55em;
-  -moz-padding-start: 45px;
+  background: url(chrome://calendar/skin/cal-icon24.png) no-repeat !important;
 }

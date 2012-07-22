@@ -67,6 +67,10 @@ spacer {
 
 .acctCentralLinkText {
   cursor: pointer;
+  -moz-padding-start: 50px;
+  font-size: 11px;
+  padding-top: 7px;
+  min-height: 32px;
 }
 
 .acctCentralLinkText:hover {
@@ -80,78 +84,44 @@ spacer {
 
 #ReadMessages label {
   background: url("chrome://messenger/skin/accountcentral/mailbox.png")  no-repeat !important;
-  -moz-padding-start: 50px;
-  font-size: 11px;
-  padding-top: 7px;
 }
 
 #ComposeMessage label {
   background: url("chrome://messenger/skin/accountcentral/writemail.png")  no-repeat !important;
-  -moz-padding-start: 50px;
-  font-size: 11px;
-  padding-top: 7px;
 }
 
 #JunkSettingsMail label {
   background: url("chrome://messenger/skin/accountcentral/junk.png")  no-repeat !important;
-  -moz-padding-start: 50px;
-  font-size: 11px;
-  padding-top: 7px;
-  visibility: visible;
 }
 
 #SubscribeNewsgroups label {
   background: url("chrome://messenger/skin/accountcentral/manage-subscriptions.png")  no-repeat !important;
-  -moz-padding-start: 50px;
-  font-size: 11px;
-  padding-top: 7px;
 }
 
 #AccountSettings label {
   background: url("chrome://messenger/skin/accountcentral/accountsettings.png")  no-repeat !important;
-  -moz-padding-start: 50px;
-  font-size: 11px;
-  padding-top: 7px;
 }
 
 #CreateAccount label {
   background: url("chrome://messenger/skin/accountcentral/newaccount.png")  no-repeat !important;
-  -moz-padding-start: 50px;
-  font-size: 11px;
-  padding-top: 7px;
 }
 
 #SearchMessages label {
   background: url("chrome://messenger/skin/accountcentral/search-messages.png")  no-repeat !important;
-  -moz-padding-start: 50px;
-  font-size: 11px;
-  padding-top: 7px;
 }
 
 #CreateFilters label {
   background: url("chrome://messenger/skin/accountcentral/mailbox.png")  no-repeat !important;
-  -moz-padding-start: 50px;
-  font-size: 11px;
-  padding-top: 7px;
 }
 
 #SubscribeImapFolders label {
   background: url("chrome://messenger/skin/accountcentral/folder.png")  no-repeat !important;
-  -moz-padding-start: 50px;
-  font-size: 11px;
-  padding-top: 7px;
 }
 
 #SubscribeRSS label {
   background: url("chrome://messenger/skin/accountcentral/manage-rss.png")  no-repeat !important;
-  -moz-padding-start: 50px;
-  font-size: 11px;
-  padding-top: 7px;
 }
 
 #OfflineSettings label {
   background: url("chrome://messenger/skin/accountcentral/offline.png")  no-repeat !important;
-  -moz-padding-start: 50px;
-  font-size: 11px;
-  padding-top: 7px;
 }
