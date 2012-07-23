@@ -83,8 +83,14 @@ var chatTabType = {
   },
 
   _handleArgs: function(aArgs) {
-    if (!aArgs || !("convType" in aArgs) || aArgs.convType != "log")
+    if (!aArgs || !("convType" in aArgs) ||
+        (aArgs.convType != "log" && aArgs.convType != "focus"))
       return;
+
+    if (aArgs.convType == "focus") {
+      chatHandler.focusConversation(aArgs.conv);
+      return;
+    }
 
     let item = document.getElementById("searchResultConv");
     item.log = aArgs.conv;
@@ -649,7 +655,6 @@ var chatHandler = {
     this._openDialog("joinchat");
   },
 
-  onlineContacts: {},
   _colorCache: {},
   // Duplicated code from imconversation.xml :-(
   _computeColor: function(aName) {
@@ -781,13 +786,6 @@ var chatHandler = {
     document.getElementById(focusId).focus();
   },
   observe: function(aSubject, aTopic, aData) {
-    if (aTopic == "browser-request") {
-      imServices.ww.openWindow(null,
-                               "chrome://chat/content/browserRequest.xul",
-                               null, "chrome", aSubject);
-      return;
-    }
-
     if (aTopic == "conversation-loaded") {
       let browser = document.getElementById("conv-log-browser");
       if (aSubject != browser)
@@ -830,7 +828,6 @@ var chatHandler = {
         document.getElementById("onlinecontactsGroup").addContact(aSubject);
         document.getElementById("offlinecontactsGroup").removeContact(aSubject);
       }
-      this.onlineContacts[aSubject.preferredBuddy.normalizedName] = aSubject;
       return;
     }
     if (aTopic == "contact-signed-off") {
@@ -838,7 +835,6 @@ var chatHandler = {
         document.getElementById("offlinecontactsGroup").addContact(aSubject);
         document.getElementById("onlinecontactsGroup").removeContact(aSubject);
       }
-      delete this.onlineContacts[aSubject.preferredBuddy.normalizedName];
       return;
     }
     if (aTopic == "contact-added") {
@@ -920,7 +916,7 @@ var chatHandler = {
       return;
     }
   },
-  initContactList: function() {
+  initAfterChatCore: function() {
     let onGroup = document.getElementById("onlinecontactsGroup");
     let offGroup = document.getElementById("offlinecontactsGroup");
 
@@ -946,6 +942,9 @@ var chatHandler = {
     imServices.obs.addObserver(this, "account-disconnected", false);
     imServices.obs.addObserver(this, "account-added", false);
     imServices.obs.addObserver(this, "account-removed", false);
+
+    chatHandler._updateNoConvPlaceHolder();
+    statusSelector.init();
   },
   init: function() {
     if (!Services.prefs.getBoolPref("mail.chat.enabled")) {
@@ -960,8 +959,6 @@ var chatHandler = {
       return;
     }
 
-    Components.utils.import("resource:///modules/index_im.js");
-
     // initialize the customizeDone method on the customizeable toolbar
     var toolbox = document.getElementById("chat-view-toolbox");
     toolbox.customizeDone = function(aEvent) {
@@ -970,7 +967,6 @@ var chatHandler = {
 
     let tabmail = document.getElementById("tabmail");
     tabmail.registerTabType(chatTabType);
-    imServices.obs.addObserver(this, "browser-request", false);
     imServices.obs.addObserver(this, "buddy-authorization-request", false);
     imServices.obs.addObserver(this, "buddy-authorization-request-canceled", false);
     let listbox = document.getElementById("contactlistbox");
@@ -1000,50 +996,13 @@ var chatHandler = {
     document.getElementById("conversationsGroup").sortComparator =
       function(a, b) a.title.toLowerCase().localeCompare(b.title.toLowerCase());
 
-    // The initialization of the im core may trigger a master password prompt,
-    // so wrap it with the async prompter service.
-    Components.classes["@mozilla.org/messenger/msgAsyncPrompter;1"]
-              .getService(Components.interfaces.nsIMsgAsyncPrompter)
-              .queueAsyncAuthPrompt("im", false, {
-      onPromptStart: function() {
-        imServices.core.init();
-
-        // Find the accounts that exist in the im account service but
-        // not in nsMsgAccountManager. They have probably been lost if
-        // the user has used an older version of Thunderbird on a
-        // profile with IM accounts. See bug 736035.
-        let accountsById = {};
-        for each (let account in fixIterator(imServices.accounts.getAccounts()))
-          accountsById[account.numericId] = account;
-        let mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                            .getService(Ci.nsIMsgAccountManager);
-        for each (let account in fixIterator(mgr.accounts, Ci.nsIMsgAccount)) {
-          let incomingServer = account.incomingServer;
-          if (!incomingServer || incomingServer.type != "im")
-            continue;
-          delete accountsById[incomingServer.wrappedJSObject.imAccount.numericId];
-        }
-        // Let's recreate each of them...
-        for each (let account in accountsById) {
-          let inServer = mgr.createIncomingServer(account.name,
-                                                  account.protocol.id, // hostname
-                                                  "im");
-          inServer.wrappedJSObject.imAccount = account;
-          let acc = mgr.createAccount();
-          // Avoid new folder notifications.
-          inServer.valid = false;
-          acc.incomingServer = inServer;
-          inServer.valid = true;
-          mgr.notifyServerLoaded(inServer);
-        }
-        chatHandler.initContactList();
-        chatHandler._updateNoConvPlaceHolder();
-        statusSelector.init();
-        return true;
-      },
-      onPromptAuthAvailable : function() { },
-      onPromptCanceled : function() { }
-    });
+    Components.utils.import("resource:///modules/chatHandler.jsm", this);
+    if (this.ChatCore.initialized)
+      this.initAfterChatCore();
+    else {
+      this.ChatCore.init();
+      imServices.obs.addObserver(this.initAfterChatCore.bind(this), "chat-core-initialized", false);
+    }
   }
 };
 

@@ -1274,7 +1274,11 @@ function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCardDetails) {
       chatAddresses.push(jid);
   }
   let chatContact;
-  let onlineContacts = "chatHandler" in window ? chatHandler.onlineContacts : {};
+  if (!("chatHandler" in window)) {
+    window.chatHandler = {};
+    Components.utils.import("resource:///modules/chatHandler.jsm", chatHandler);
+  }
+  let onlineContacts = chatHandler.onlineContacts;
   for each (let chatAddress in chatAddresses) {
     if (Object.prototype.hasOwnProperty.call(onlineContacts, chatAddresses)) {
       chatContact = onlineContacts[chatAddress];
@@ -1510,10 +1514,25 @@ function onClickEmailPresence(event, emailAddressNode)
   if (event.button != 0)
     return;
 
-  showChatTab();
   let prplConv = emailAddressNode.chatContact.createConversation();
   let uiConv = Services.conversations.getUIConversation(prplConv);
-  chatHandler.focusConversation(uiConv);
+
+  let win = window;
+  if (!("focusConversation" in chatHandler)) {
+    win = Services.wm.getMostRecentWindow("mail:3pane");
+    if (win)
+      win.focus();
+    else {
+      window.openDialog("chrome://messenger/content/", "_blank",
+                        "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar", null,
+                        {tabType: "chat",
+                         tabParams: {convType: "focus", conv: uiConv}});
+      return;
+    }
+  }
+
+  win.showChatTab();
+  win.chatHandler.focusConversation(uiConv);
 }
 
 /**

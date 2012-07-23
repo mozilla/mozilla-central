@@ -16,6 +16,7 @@ EXTRA_COMPONENTS = \
 		$(NULL)
 
 EXTRA_JS_MODULES = \
+		modules/chatHandler.jsm \
 		modules/index_im.js \
 		modules/search_im.js \
 		$(NULL)
