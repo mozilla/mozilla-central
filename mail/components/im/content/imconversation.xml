@@ -1169,11 +1169,6 @@
              this.addMsg(aSubject);
            break;
 
-         case "update-typing":
-           if (this.tab && this.tab.selected)
-             this.updateTyping();
-           break;
-
          case "status-text-changed":
            this._statusText = aData;
            this.displayStatusText();
@@ -1191,6 +1186,7 @@
          case "update-buddy-status":
          case "update-buddy-icon":
          case "update-conv-chatleft":
+         case "update-typing":
            if (this.tab && this.tab.selected)
              this.updateConvStatus();
            break;
