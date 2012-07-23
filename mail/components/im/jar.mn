@@ -12,6 +12,7 @@ messenger.jar:
     content/messenger/am-im.xul                          (content/am-im.xul)
     content/messenger/chat/addbuddy.js                   (content/addbuddy.js)
     content/messenger/chat/addbuddy.xul                  (content/addbuddy.xul)
+    content/messenger/chat/badgebutton.xml               (content/badgebutton.xml)
     content/messenger/chat/joinchat.js                   (content/joinchat.js)
     content/messenger/chat/joinchat.xul                  (content/joinchat.xul)
     content/messenger/chat/imAccount.xml                 (content/imAccount.xml)

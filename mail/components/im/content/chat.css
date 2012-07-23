@@ -78,3 +78,42 @@ browser[type="content-conversation"] {
   -moz-appearance: textfield;
   -moz-binding: url('chrome://global/content/bindings/textbox.xml#textbox');
 }
+
+#button-chat {
+  -moz-binding: url('chrome://messenger/content/chat/badgebutton.xml#badgebutton');
+}
+
+toolbar[mode="text"] #button-chat {
+  -moz-box-orient: horizontal;
+}
+
+.badgeButton-badge {
+  display: none;
+  background-color: red;
+  border: 1px solid white;
+  border-radius: 12px;
+  box-shadow: 1px 1px 1px black;
+  color: white;
+  font: 0.6em Helvetica, Verdana, Tahoma;
+  height: 10px;
+  min-width: 10px;
+  text-align: center;
+  margin-top: -1px;
+  -moz-margin-start: 6px;
+  -moz-margin-end: 0;
+  margin-bottom: 6px;
+  padding: 1px 2px;
+}
+
+toolbar[iconsize="large"] .badgeButton-badge {
+  -moz-margin-start: 12px;
+  margin-bottom: 12px;
+}
+
+toolbar[mode="text"] .badgeButton-badge {
+  margin: 0;
+}
+
+#button-chat[unreadMessages="true"] > stack > .badgeButton-badge {
+  display: block;
+}

@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<!DOCTYPE bindings>
+
+<bindings id="badgebuttonBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="badgebutton"
+           extends="chrome://global/content/bindings/toolbarbutton.xml#toolbarbutton"
+           display="xul:button">
+    <content>
+      <children includes="observes|template|menupopup|panel|tooltip"/>
+      <xul:stack>
+        <xul:hbox>
+          <xul:image class="toolbarbutton-icon" xbl:inherits="validate,src=image,label"/>
+        </xul:hbox>
+        <xul:label class="badgeButton-badge" anonid="badge"/>
+      </xul:stack>
+      <xul:label class="toolbarbutton-text" crop="right" flex="1"
+                 xbl:inherits="value=label,accesskey,crop"/>
+    </content>
+    <implementation implements="nsIAccessibleProvider">
+      <field name="_badgeCount">
+      0
+      </field>
+      <property name="accessibleType" readonly="true">
+        <getter>
+          return Components.interfaces.nsIAccessibleProvider.XULToolbarButton;
+        </getter>
+      </property>
+
+      <property name="badgeCount" onget="return this._badgeCount;"
+                                  onset="return this._setBadgeCount(val);">
+      </property>
+
+      <method name="_setBadgeCount">
+        <parameter name="aNewCount"/>
+        <body>
+        <![CDATA[
+          this._badgeCount = aNewCount;
+          let badge = document.getAnonymousElementByAttribute(this, "anonid", "badge");
+          badge.value = this._badgeCount;
+
+          if (this._badgeCount > 0)
+            this.setAttribute("unreadMessages", "true");
+          else
+            this.removeAttribute("unreadMessages");
+        ]]>
+        </body>
+      </method>
+    </implementation>
+
+  </binding>
+</bindings>

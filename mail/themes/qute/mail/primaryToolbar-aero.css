@@ -504,6 +504,11 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-image-region: rect(19px, 395px, 35px, 379px);
 }
 
+toolbar[iconsize="large"]:not([mode="text"]) .badgeButton-badge {
+  -moz-margin-start: 6px;
+  margin-bottom: 6px;
+}
+
 #button-nextMsg {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(1px, 413px, 17px, 397px);

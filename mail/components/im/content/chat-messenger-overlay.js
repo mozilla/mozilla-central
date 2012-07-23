@@ -271,10 +271,7 @@ var chatHandler = {
       return;
 
     let unreadCount = this.countUnreadMessages();
-    if (unreadCount)
-      chatButton.setAttribute("unreadMessages", "true");
-    else
-      chatButton.removeAttribute("unreadMessages");
+    chatButton.badgeCount = unreadCount;
     if (unreadCount != this._notifiedUnreadCount) {
       let unreadInt = Components.classes["@mozilla.org/supports-PRInt32;1"]
                                 .createInstance(Ci.nsISupportsPRInt32);
