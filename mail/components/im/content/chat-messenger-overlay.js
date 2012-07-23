@@ -969,6 +969,20 @@ var chatHandler = {
     });
     listbox.addEventListener("select", this.onListItemSelected.bind(this));
     listbox.addEventListener("click", this.onListItemClick.bind(this));
+    document.getElementById("chatTabPanel").addEventListener("keypress", function(aEvent) {
+      let accelKeyPressed = Application.platformIsMac ? aEvent.metaKey : aEvent.ctrlKey;
+      if (!accelKeyPressed ||
+          (aEvent.keyCode != aEvent.DOM_VK_DOWN && aEvent.keyCode != aEvent.DOM_VK_UP))
+        return;
+      listbox._userSelecting = true;
+      listbox.moveByOffset(aEvent.keyCode == aEvent.DOM_VK_DOWN ? 1 : -1, true, false);
+      listbox._userSelecting = false;
+      let item = listbox.selectedItem;
+      if (item.localName == "imconv" && item.convView)
+        item.convView.focus();
+      else
+        listbox.focus();
+    });
     window.addEventListener("resize", this.onConvResize.bind(this));
     document.getElementById("conversationsGroup").sortComparator =
       function(a, b) a.title.toLowerCase().localeCompare(b.title.toLowerCase());
