@@ -469,6 +469,7 @@ var chatHandler = {
     cti.setAttribute("statusMessage", statusString + statusText);
     cti.setAttribute("status", Status.toAttribute(statusType));
     cti.setAttribute("statusTypeTooltiptext", statusString);
+    cti.setAttribute("statusTooltiptext", statusString + statusText);
     cti.removeAttribute("typing");
     cti.removeAttribute("typed");
 
