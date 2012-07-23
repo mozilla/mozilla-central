@@ -962,6 +962,7 @@ xpicleanup@BIN_SUFFIX@
   modules/AddonManager.jsm
   modules/AddonRepository.jsm
   modules/AddonUpdateChecker.jsm
+  modules/BrowserElementPromptService.jsm
   modules/CertUtils.jsm
   modules/CommonDialog.jsm
   modules/CrashSubmit.jsm
