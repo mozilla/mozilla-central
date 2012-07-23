@@ -1202,7 +1202,7 @@ function test_search_button_disabled_if_no_query_on_init() {
     .getService(Ci.nsIDOMStorageManager);
 
   let uri = Services.io.newURI(url, "", null);
-  let principal = ssm.getCodebasePrincipal(uri);
+  let principal = ssm.getNoAppCodebasePrincipal(uri);
   let storage = dsm.getLocalStorageForPrincipal(principal, url);
 
   // Ok, got it. Now let's blank out the name.

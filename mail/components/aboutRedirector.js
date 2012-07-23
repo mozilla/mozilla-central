@@ -51,7 +51,7 @@ AboutRedirector.prototype = {
     if (this._redirMap[name].flags & Ci.nsIAboutModule.URI_SAFE_FOR_UNTRUSTED_CONTENT) {
       let secMan = Cc["@mozilla.org/scriptsecuritymanager;1"]
                      .getService(Ci.nsIScriptSecurityManager);
-      let principal = secMan.getCodebasePrincipal(aURI);
+      let principal = secMan.getNoAppCodebasePrincipal(aURI);
       channel.owner = principal;
     }
 

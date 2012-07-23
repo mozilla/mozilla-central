@@ -43,7 +43,7 @@ function getLocalStorage(page) {
     .getService(Ci.nsIDOMStorageManager);
 
   var uri = Services.io.newURI(url, "", null);
-  var principal = ssm.getCodebasePrincipal(uri);
+  var principal = ssm.getNoAppCodebasePrincipal(uri);
   return dsm.getLocalStorageForPrincipal(principal, url);
 }
 
