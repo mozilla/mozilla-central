@@ -1,0 +1,21 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsISupports.idl"
+
+interface nsIDOMWindow;
+
+[scriptable, uuid(bc873177-ea0c-4714-b26c-f89c071107ce)]
+interface nsIMailGlue : nsISupports
+{
+  /** 
+   * Deletes privacy sensitive data according to user preferences
+   *
+   * @param aParentWindow an optionally null window which is the parent of the 
+   *        sanitization dialog
+   *
+   */
+  void sanitize(in nsIDOMWindow aParentWindow);
+
+};

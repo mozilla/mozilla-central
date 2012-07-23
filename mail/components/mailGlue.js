@@ -20,6 +20,13 @@ Cu.import("resource:///modules/mailMigrator.js");
  */
 
 function MailGlue() {
+	XPCOMUtils.defineLazyGetter(this, "_sanitizer",
+		function() {
+		let sanitizerScope = {};
+		Services.scriptloader.loadSubScript("chrome://messenger/content/sanitize.js", sanitizerScope);
+		return sanitizerScope.Sanitizer;
+	});
+
   this._init();
 }
 
@@ -51,6 +58,11 @@ MailGlue.prototype = {
       this._onMailStartupDone();
       break;
     }
+  },
+
+	//nsIMailGlue implementation
+	sanitize: function MG_sanitize(aParentWindow) {
+		this._sanitizer.sanitize(aParentWindow);
   },
 
   _onProfileStartup: function MailGlue__onProfileStartup() {
@@ -95,7 +107,8 @@ MailGlue.prototype = {
 
   // for XPCOM
   classID: Components.ID("{eb239c82-fac9-431e-98d7-11cacd0f71b8}"),
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver]),
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver,
+                                         Ci.nsIMailGlue]),
 };
 
 var components = [MailGlue];

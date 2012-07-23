@@ -350,6 +350,13 @@ function toImport()
                     "chrome, modal, titlebar, centerscreen");
 }
 
+function toSanitize()
+{
+   Components.classes["@mozilla.org/mail/mailglue;1"]
+             .getService(Components.interfaces.nsIMailGlue)
+             .sanitize(window);
+}
+
 /**
  * Opens the Preferences (Options) dialog.
  *

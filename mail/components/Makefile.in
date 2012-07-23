@@ -10,6 +10,13 @@ VPATH   = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
+MODULE = mailcomps
+XPIDL_MODULE = mailcompsbase
+
+XPIDLSRCS = \
+      nsIMailGlue.idl \
+      $(NULL)
+
 # Only Mac and Windows have search integration components, but we include at
 # least one module from search/ on all platforms
 DIRS    = compose cloudfile preferences addrbook migration activity search about-support wintaskbar newmailaccount im

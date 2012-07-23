@@ -763,5 +763,17 @@ pref("mail.cloud_files.enabled", true);
 pref("mail.cloud_files.inserted_urls.footer.link", "http://www.getthunderbird.com");
 pref("mail.cloud_files.learn_more_url", "https://support.mozillamessaging.com/kb/filelink-large-attachments");
 
+// Sanitize dialog window
+pref("privacy.cpd.cookies", true);
+pref("privacy.cpd.cache", true);
+
+// What default should we use for the time span in the sanitizer:
+// 0 - Clear everything
+// 1 - Last Hour
+// 2 - Last 2 Hours
+// 3 - Last 4 Hours
+// 4 - Today
+pref("privacy.sanitize.timeSpan", 1);
+
 // PgpMime Proxy
 pref("mail.pgpmime.addon_url", "https://addons.mozilla.org/thunderbird/addon/enigmail/");

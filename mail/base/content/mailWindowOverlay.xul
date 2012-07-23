@@ -1695,6 +1695,10 @@
                   accesskey="&importCmd.accesskey;"
                   oncommand="toImport();"/>
         <menuitem id="javascriptConsole" label="&errorConsoleCmd.label;" accesskey="&errorConsoleCmd.accesskey;" key="key_errorConsole" oncommand="toJavaScriptConsole();"/>
+        <menuitem id="sanitizeHistory"
+                  label="&clearRecentHistory.label;"                       
+                  accesskey="&clearRecentHistory.accesskey;"
+                  oncommand="toSanitize();"/>
 #ifndef XP_UNIX
         <menuseparator id="prefSep"/>
         <menuitem id="menu_accountmgr" label="&accountManagerCmd.label;" accesskey="&accountManagerCmd.accesskey;" oncommand="MsgAccountManager(null);"/>
