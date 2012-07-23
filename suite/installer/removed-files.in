@@ -644,6 +644,7 @@ xpicleanup@BIN_SUFFIX@
   components/nsContentDispatchChooser.js
   components/nsContentPrefService.js
   components/nsDefaultCLH.js
+  components/nsDOMIdentity.js
   #ifdef UNIX_BUT_NOT_MAC
     components/nsFilePicker.js
   #endif
@@ -651,6 +652,7 @@ xpicleanup@BIN_SUFFIX@
   components/nsFormHistory.js
   components/nsHandlerService.js
   components/nsHelperAppDlg.js
+  components/nsIDService.js
   components/nsINIProcessor.js
   components/nsInputListAutoComplete.js
   components/nsLivemarkService.js

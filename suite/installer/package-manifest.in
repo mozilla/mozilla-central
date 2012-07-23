@@ -364,6 +364,7 @@
 @BINPATH@/components/FeedWriter.js
 @BINPATH@/components/GPSDGeolocationProvider.js
 @BINPATH@/components/GPSDGeolocationProvider.manifest
+@BINPATH@/components/Identity.manifest
 @BINPATH@/components/jsconsole-clhandler.js
 @BINPATH@/components/jsconsole-clhandler.manifest
 @BINPATH@/components/messageWakeupService.js
@@ -386,6 +387,7 @@
 @BINPATH@/components/nsContentPrefService.manifest
 @BINPATH@/components/nsDefaultCLH.js
 @BINPATH@/components/nsDefaultCLH.manifest
+@BINPATH@/components/nsDOMIdentity.js
 #ifdef MOZ_GTK2
 @BINPATH@/components/nsFilePicker.js
 @BINPATH@/components/nsFilePicker.manifest
@@ -396,6 +398,7 @@
 @BINPATH@/components/nsHandlerService.manifest
 @BINPATH@/components/nsHelperAppDlg.js
 @BINPATH@/components/nsHelperAppDlg.manifest
+@BINPATH@/components/nsIDService.js
 @BINPATH@/components/nsINIProcessor.js
 @BINPATH@/components/nsINIProcessor.manifest
 @BINPATH@/components/nsInputListAutoComplete.js
