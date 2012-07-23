@@ -367,10 +367,8 @@ Account.prototype = {
       let result = prefValue[this.consumerKey];
       this.token = result.oauth_token;
       this.tokenSecret = result.oauth_token_secret;
-      if (result.screen_name && result.screen_name != this.name) {
-        this.onError(_("connection.error.userMismatch"));
+      if (!this.fixAccountName(result))
         return;
-      }
     }
 
     // Get a new token if needed...
@@ -760,11 +758,14 @@ Account.prototype = {
   },
   requestAuthorization: function() {
     this.reportConnecting(_("connection.requestAuth"));
-    let url = this.baseURI + "oauth/authorize?oauth_token=";
+    let url = this.baseURI + "oauth/authorize?" +
+      "force_login=true&" + // ignore cookies
+      "screen_name=" + this.name + "&" + // prefill the user name input box
+      "oauth_token=" + this.token;
     this._browserRequest = {
       get promptText() _("authPrompt"),
       account: this,
-      url: url + this.token,
+      url: url,
       _active: true,
       cancelled: function() {
         if (!this._active)
@@ -843,10 +844,8 @@ Account.prototype = {
   onAccessTokenReceived: function(aData) {
     LOG("Received access token.");
     let result = this._parseURLData(aData);
-    if (result.screen_name && result.screen_name != this.name) {
-      this.onError(_("connection.error.userMismatch"));
+    if (!this.fixAccountName(result))
       return;
-    }
 
     let prefValue = {};
     try {
@@ -860,7 +859,20 @@ Account.prototype = {
 
     this.getTimelines();
   },
+  fixAccountName: function(aAuthResult) {
+    if (!aAuthResult.screen_name || aAuthResult.screen_name == this.name)
+      return true;
 
+    if (aAuthResult.screen_name.toLowerCase() != this.name.toLowerCase()) {
+      this.onError(_("connection.error.userMismatch"));
+      return false;
+    }
+
+    LOG("Fixing the case of the account name: " +
+        this.name + " -> " + aAuthResult.screen_name);
+    this.__defineGetter__("name", function() aAuthResult.screen_name);
+    return true;
+  },
 
   cleanUp: function() {
     this.finishAuthorizationRequest();
