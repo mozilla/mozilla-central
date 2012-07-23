@@ -240,6 +240,13 @@ var chatHandler = {
       list.selectedItem = elt;
   },
 
+  _hasConversationForContact: function(aContact) {
+    let convs = document.getElementById("conversationsGroup").contacts;
+    return convs.some(function(aConversation)
+      aConversation.hasOwnProperty("imContact") &&
+      aConversation.imContact.id == aContact.id);
+  },
+
   _chatButtonUpdatePending: false,
   updateChatButtonState: function() {
     if (this._chatButtonUpdatePending)
@@ -817,14 +824,18 @@ var chatHandler = {
     }
 
     if (aTopic == "contact-signed-on") {
-      document.getElementById("onlinecontactsGroup").addContact(aSubject);
-      document.getElementById("offlinecontactsGroup").removeContact(aSubject);
+      if (!this._hasConversationForContact(aSubject)) {
+        document.getElementById("onlinecontactsGroup").addContact(aSubject);
+        document.getElementById("offlinecontactsGroup").removeContact(aSubject);
+      }
       this.onlineContacts[aSubject.preferredBuddy.normalizedName] = aSubject;
       return;
     }
     if (aTopic == "contact-signed-off") {
-      document.getElementById("offlinecontactsGroup").addContact(aSubject);
-      document.getElementById("onlinecontactsGroup").removeContact(aSubject);
+      if (!this._hasConversationForContact(aSubject)) {
+        document.getElementById("offlinecontactsGroup").addContact(aSubject);
+        document.getElementById("onlinecontactsGroup").removeContact(aSubject);
+      }
       delete this.onlineContacts[aSubject.preferredBuddy.normalizedName];
       return;
     }
