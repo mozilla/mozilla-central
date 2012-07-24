@@ -2578,15 +2578,13 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndMessage(nsMsgKey key)
 
   // I think this is always true for online to offline copy
   mCopyState->m_dummyEnvelopeNeeded = true;
-  if (mCopyState->m_dummyEnvelopeNeeded)
-  {
-    nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(mCopyState->m_fileStream, &rv);
-    seekableStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
-    PRUint32 bytesWritten;
-     mCopyState->m_fileStream->Write(MSG_LINEBREAK, MSG_LINEBREAK_LEN, &bytesWritten);
-    if (mCopyState->m_parseMsgState)
-      mCopyState->m_parseMsgState->ParseAFolderLine(CRLF, MSG_LINEBREAK_LEN);
-  }
+  nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(mCopyState->m_fileStream, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  seekableStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
+  PRUint32 bytesWritten;
+  mCopyState->m_fileStream->Write(MSG_LINEBREAK, MSG_LINEBREAK_LEN, &bytesWritten);
+  if (mCopyState->m_parseMsgState)
+    mCopyState->m_parseMsgState->ParseAFolderLine(CRLF, MSG_LINEBREAK_LEN);
 
   // CopyFileMessage() and CopyMessages() from servers other than mailbox
   if (mCopyState->m_parseMsgState)
