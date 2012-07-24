@@ -1,16 +1,49 @@
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+# ***** BEGIN LICENSE BLOCK *****
+# Version: MPL 1.1/GPL 2.0/LGPL 2.1
+#
+# The contents of this file are subject to the Mozilla Public License Version
+# 1.1 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS" basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# The Original Code is Mozilla Corporation Code.
+#
+# The Initial Developer of the Original Code is
+# Mikeal Rogers.
+# Portions created by the Initial Developer are Copyright (C) 2008
+# the Initial Developer. All Rights Reserved.
+#
+# Contributor(s):
+#  Mikeal Rogers <mikeal.rogers@gmail.com>
+#  Henrik Skupin <hskupin@mozilla.com>
+#  Clint Talbert <ctalbert@mozilla.com>
+#
+# Alternatively, the contents of this file may be used under the terms of
+# either the GNU General Public License Version 2 or later (the "GPL"), or
+# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+# in which case the provisions of the GPL or the LGPL are applicable instead
+# of those above. If you wish to allow use of your version of this file only
+# under the terms of either the GPL or the LGPL, and not to allow others to
+# use your version of this file under the terms of the MPL, indicate your
+# decision by deleting the provisions above and replace them with the notice
+# and other provisions required by the GPL or the LGPL. If you do not delete
+# the provisions above, a recipient may use your version of this file under
+# the terms of any one of the MPL, the GPL or the LGPL.
+#
+# ***** END LICENSE BLOCK *****
 
 import copy
-import httplib
 import imp
 import os
 import socket
 import sys
 import traceback
-import urllib
-import urlparse
+import urllib2
 
 from datetime import datetime, timedelta
 import manifestparser
@@ -417,27 +450,22 @@ class MozMill(object):
             now = datetime.utcnow()
             results['time_upload'] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-            # Parse URL fragments and send data
-            url_fragments = urlparse.urlparse(report_url)
-            connection = httplib.HTTPConnection(url_fragments.netloc)
-            connection.request("POST", url_fragments.path, json.dumps(results),
-                               {"Content-type": "application/json"})
-        
-            # Get response which contains the id of the new document
-            response = connection.getresponse()
-            data = json.loads(response.read())
-            connection.close()
+            # Send a POST request to the DB; the POST is implied by the body data
+            body = json.dumps(results)
+            request = urllib2.Request(report_url, body, {"Content-Type": "application/json"})
 
-            # Check if the report has been created
-            if not data['ok']:
-                print "Creating report document failed (%s)" % data
-                return data
+            # Get response which contains the id of the new document
+            response = urllib2.urlopen(request)
+            data = json.loads(response.read())
 
             # Print document location to the console and return
             print "Report document created at '%s%s'" % (report_url, data['id'])
             return data
-        except Exception, e:
-            print "Sending results to '%s' failed (%s)." % (report_url, e)
+        except urllib2.HTTPError, e:
+            data = json.loads(e.read())
+            print "Sending results to '%s' failed (%s)." % (report_url, data['reason'])
+        except urllib2.URLError, e:
+            print "Sending results to '%s' failed (%s)." % (report_url, e.reason)
 
     def report(self, report_url):
         """print statistics and send the JSON report"""
@@ -706,24 +734,6 @@ class CLI(jsbridge.CLI):
 
         self.tests = []
 
-        # read tests from manifests
-        if self.options.manifests:
-            manifest_parser = manifestparser.TestManifest(manifests=self.options.manifests)
-
-            self.tests.extend(manifest_parser.test_paths())
-
-        # expand user directory for individual tests
-        for test in self.options.test:
-            test = os.path.expanduser(test)
-            self.tests.append(test)
-                
-        # check existence for the tests
-        missing = [ test for test in self.tests
-                    if not os.path.exists(test) ]
-        if missing:
-            raise IOError("Not a valid test file/directory: %s" % ', '.join(["'%s'" % test for test in missing]))
-
-
         # setup log formatting
         self.mozmill.add_global_listener(LoggerListener())
         log_options = { 'format': "%(levelname)s | %(message)s",
@@ -744,6 +754,23 @@ class CLI(jsbridge.CLI):
         return profile
 
     def run(self):
+
+        # read tests from manifests
+        if self.options.manifests:
+            manifest_parser = manifestparser.TestManifest(manifests=self.options.manifests)
+
+            self.tests.extend(manifest_parser.test_paths())
+
+        # expand user directory for individual tests
+        for test in self.options.test:
+            test = os.path.expanduser(test)
+            self.tests.append(test)
+                
+        # check existence for the tests
+        missing = [ test for test in self.tests
+                    if not os.path.exists(test) ]
+        if missing:
+            raise IOError("Not a valid test file/directory: %s" % ', '.join(["'%s'" % test for test in missing]))
 
         # create a Mozrunner
         runner = self.create_runner()
@@ -807,6 +834,9 @@ class ThunderbirdCLI(CLI):
     profile_class = mozrunner.ThunderbirdProfile
     runner_class = mozrunner.ThunderbirdRunner
 
+class ThunderbirdRestartCLI(RestartCLI):
+    profile_class = mozrunner.ThunderbirdProfile
+    runner_class = mozrunner.ThunderbirdRunner
 
 def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
@@ -820,3 +850,6 @@ def tbird_cli():
 
 def restart_cli():
     RestartCLI().run()
+
+def tbird_restart_cli():
+    ThunderbirdRestartCLI().run()

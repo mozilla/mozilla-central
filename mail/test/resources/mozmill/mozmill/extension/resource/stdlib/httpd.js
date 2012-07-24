@@ -10,15 +10,35 @@
  * httpd.js.
  */
 
+const EXPORTED_SYMBOLS = [
+  "HTTP_400",
+  "HTTP_401",
+  "HTTP_402",
+  "HTTP_403",
+  "HTTP_404",
+  "HTTP_405",
+  "HTTP_406",
+  "HTTP_407",
+  "HTTP_408",
+  "HTTP_409",
+  "HTTP_410",
+  "HTTP_411",
+  "HTTP_412",
+  "HTTP_413",
+  "HTTP_414",
+  "HTTP_415",
+  "HTTP_417",
+  "HTTP_500",
+  "HTTP_501",
+  "HTTP_502",
+  "HTTP_503",
+  "HTTP_504",
+  "HTTP_505",
+  "HttpError",
+  "HttpServer",
+];
+
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-
-var EXPORTED_SYMBOLS = ['getServer'];
-
-/**
- * Overwrite both dump functions because we do not wanna have this output for Mozmill
- */
-function dump() {}
-function dumpn() {}
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -493,12 +513,12 @@ nsHttpServer.prototype =
     this._host = host;
 
     // The listen queue needs to be long enough to handle
-    // network.http.max-connections-per-server concurrent connections,
+    // network.http.max-persistent-connections-per-server concurrent connections,
     // plus a safety margin in case some other process is talking to
     // the server as well.
     var prefs = getRootPrefBranch();
     var maxConnections =
-      prefs.getIntPref("network.http.max-connections-per-server") + 5;
+      prefs.getIntPref("network.http.max-persistent-connections-per-server") + 5;
 
     try
     {
@@ -585,6 +605,14 @@ nsHttpServer.prototype =
   registerPathHandler: function(path, handler)
   {
     this._handler.registerPathHandler(path, handler);
+  },
+
+  //
+  // see nsIHttpServer.registerPrefixHandler
+  //
+  registerPrefixHandler: function(prefix, handler)
+  {
+    this._handler.registerPrefixHandler(prefix, handler);
   },
 
   //
@@ -759,6 +787,10 @@ nsHttpServer.prototype =
     // Fire a pending server-stopped notification if it's our responsibility.
     if (!this._hasOpenConnections() && this._socketClosed)
       this._notifyStopped();
+    // Bug 508125: Add a GC here else we'll use gigabytes of memory running
+    // mochitests. We can't rely on xpcshell doing an automated GC, as that
+    // would interfere with testing GC stuff...
+    Components.utils.forceGC();
   },
 
   /**
@@ -772,6 +804,7 @@ nsHttpServer.prototype =
   }
 };
 
+var HttpServer = nsHttpServer;
 
 //
 // RFC 2396 section 3.2.2:
@@ -1606,7 +1639,10 @@ RequestReader.prototype =
     // between fields, even though only a single SP is required (section 19.3)
     var request = line.split(/[ \t]+/);
     if (!request || request.length != 3)
+    {
+      dumpn("*** No request in line");
       throw HTTP_400;
+    }
 
     metadata._method = request[0];
 
@@ -1614,7 +1650,10 @@ RequestReader.prototype =
     var ver = request[2];
     var match = ver.match(/^HTTP\/(\d+\.\d+)$/);
     if (!match)
+    {
+      dumpn("*** No HTTP version in line");
       throw HTTP_400;
+    }
 
     // determine HTTP version
     try
@@ -1639,7 +1678,10 @@ RequestReader.prototype =
     {
       // No absolute paths in the request line in HTTP prior to 1.1
       if (!metadata._httpVersion.atLeast(nsHttpVersion.HTTP_1_1))
+      {
+        dumpn("*** Metadata version too low");
         throw HTTP_400;
+      }
 
       try
       {
@@ -1653,11 +1695,18 @@ RequestReader.prototype =
         if (port === -1)
         {
           if (scheme === "http")
+          {
             port = 80;
+          }
           else if (scheme === "https")
+          {
             port = 443;
+          }
           else
+          {
+            dumpn("*** Unknown scheme: " + scheme);
             throw HTTP_400;
+          }
         }
       }
       catch (e)
@@ -1665,11 +1714,15 @@ RequestReader.prototype =
         // If the host is not a valid host on the server, the response MUST be a
         // 400 (Bad Request) error message (section 5.2).  Alternately, the URI
         // is malformed.
+        dumpn("*** Threw when dealing with URI: " + e);
         throw HTTP_400;
       }
 
       if (!serverIdentity.has(scheme, host, port) || fullPath.charAt(0) != "/")
+      {
+        dumpn("*** serverIdentity unknown or path does not start with '/'");
         throw HTTP_400;
+      }
     }
 
     var splitter = fullPath.indexOf("?");
@@ -1713,6 +1766,8 @@ RequestReader.prototype =
     var line = {};
     while (true)
     {
+      dumpn("*** Last name: '" + lastName + "'");
+      dumpn("*** Last val: '" + lastVal + "'");
       NS_ASSERT(!((lastVal === undefined) ^ (lastName === undefined)),
                 lastName === undefined ?
                   "lastVal without lastName?  lastVal: '" + lastVal + "'" :
@@ -1727,6 +1782,7 @@ RequestReader.prototype =
       }
 
       var lineText = line.value;
+      dumpn("*** Line text: '" + lineText + "'");
       var firstChar = lineText.charAt(0);
 
       // blank line means end of headers
@@ -1741,7 +1797,7 @@ RequestReader.prototype =
           }
           catch (e)
           {
-            dumpn("*** e == " + e);
+            dumpn("*** setHeader threw on last header, e == " + e);
             throw HTTP_400;
           }
         }
@@ -1759,7 +1815,7 @@ RequestReader.prototype =
         // multi-line header if we've already seen a header line
         if (!lastName)
         {
-          // we don't have a header to continue!
+          dumpn("We don't have a header to continue!");
           throw HTTP_400;
         }
 
@@ -1778,7 +1834,7 @@ RequestReader.prototype =
           }
           catch (e)
           {
-            dumpn("*** e == " + e);
+            dumpn("*** setHeader threw on a header, e == " + e);
             throw HTTP_400;
           }
         }
@@ -1786,7 +1842,7 @@ RequestReader.prototype =
         var colon = lineText.indexOf(":"); // first colon must be splitter
         if (colon < 1)
         {
-          // no colon or missing header field-name
+          dumpn("*** No colon or missing header field-name");
           throw HTTP_400;
         }
 
@@ -1811,12 +1867,14 @@ const CR = 0x0D, LF = 0x0A;
  *   character; the first CRLF is the lowest index i where
  *   |array[i] == "\r".charCodeAt(0)| and |array[i+1] == "\n".charCodeAt(0)|,
  *   if such an |i| exists, and -1 otherwise
+ * @param start : uint
+ *   start index from which to begin searching in array
  * @returns int
  *   the index of the first CRLF if any were present, -1 otherwise
  */
-function findCRLF(array)
+function findCRLF(array, start)
 {
-  for (var i = array.indexOf(CR); i >= 0; i = array.indexOf(CR, i + 1))
+  for (var i = array.indexOf(CR, start); i >= 0; i = array.indexOf(CR, i + 1))
   {
     if (array[i + 1] == LF)
       return i;
@@ -1833,6 +1891,9 @@ function LineData()
 {
   /** An array of queued bytes from which to get line-based characters. */
   this._data = [];
+
+  /** Start index from which to search for CRLF. */
+  this._start = 0;
 }
 LineData.prototype =
 {
@@ -1842,7 +1903,22 @@ LineData.prototype =
    */
   appendBytes: function(bytes)
   {
-    Array.prototype.push.apply(this._data, bytes);
+    var count = bytes.length;
+    var quantum = 262144; // just above half SpiderMonkey's argument-count limit
+    if (count < quantum)
+    {
+      Array.prototype.push.apply(this._data, bytes);
+      return;
+    }
+
+    // Large numbers of bytes may cause Array.prototype.push to be called with
+    // more arguments than the JavaScript engine supports.  In that case append
+    // bytes in fixed-size amounts until all bytes are appended.
+    for (var start = 0; start < count; start += quantum)
+    {
+      var slice = bytes.slice(start, Math.min(start + quantum, count));
+      Array.prototype.push.apply(this._data, slice);
+    }
   },
 
   /**
@@ -1860,23 +1936,38 @@ LineData.prototype =
   readLine: function(out)
   {
     var data = this._data;
-    var length = findCRLF(data);
+    var length = findCRLF(data, this._start);
     if (length < 0)
+    {
+      this._start = data.length;
+
+      // But if our data ends in a CR, we have to back up one, because
+      // the first byte in the next packet might be an LF and if we
+      // start looking at data.length we won't find it.
+      if (data.length > 0 && data[data.length - 1] === CR)
+        --this._start;
+
       return false;
+    }
+
+    // Reset for future lines.
+    this._start = 0;
 
     //
     // We have the index of the CR, so remove all the characters, including
-    // CRLF, from the array with splice, and convert the removed array into the
-    // corresponding string, from which we then strip the trailing CRLF.
+    // CRLF, from the array with splice, and convert the removed array
+    // (excluding the trailing CRLF characters) into the corresponding string.
     //
-    // Getting the line in this matter acknowledges that substring is an O(1)
-    // operation in SpiderMonkey because strings are immutable, whereas two
-    // splices, both from the beginning of the data, are less likely to be as
-    // cheap as a single splice plus two extra character conversions.
-    //
-    var line = String.fromCharCode.apply(null, data.splice(0, length + 2));
-    out.value = line.substring(0, length);
+    var leading = data.splice(0, length + 2);
+    var quantum = 262144;
+    var line = "";
+    for (var start = 0; start < length; start += quantum)
+    {
+      var slice = leading.slice(start, Math.min(start + quantum, length));
+      line += String.fromCharCode.apply(null, slice);
+    }
 
+    out.value = line;
     return true;
   },
 
@@ -2148,7 +2239,16 @@ function ServerHandler(server)
    * @see ServerHandler.prototype._defaultPaths
    */
   this._overridePaths = {};
-  
+
+  /**
+   * Custom request handlers for the path prefixes on the server in which this
+   * resides.  Path-handler pairs are stored as property-value pairs in this
+   * property.
+   *
+   * @see ServerHandler.prototype._defaultPaths
+   */
+  this._overridePrefixes = {};
+
   /**
    * Custom request handlers for the error handlers in the server in which this
    * resides.  Path-handler pairs are stored as property-value pairs in this
@@ -2213,7 +2313,23 @@ ServerHandler.prototype =
         }
         else
         {
-          this._handleDefault(request, response);
+          var longestPrefix = "";
+          for (let prefix in this._overridePrefixes) {
+            if (prefix.length > longestPrefix.length &&
+                path.substr(0, prefix.length) == prefix)
+            {
+              longestPrefix = prefix;
+            }
+          }
+          if (longestPrefix.length > 0)
+          {
+            dumpn("calling prefix override for " + longestPrefix);
+            this._overridePrefixes[longestPrefix](request, response);
+          }
+          else
+          {
+            this._handleDefault(request, response);
+          }
         }
       }
       catch (e)
@@ -2316,6 +2432,18 @@ ServerHandler.prototype =
       throw Cr.NS_ERROR_INVALID_ARG;
 
     this._handlerToField(handler, this._overridePaths, path);
+  },
+
+  //
+  // see nsIHttpServer.registerPrefixHandler
+  //
+  registerPrefixHandler: function(path, handler)
+  {
+    // XXX true path validation!
+    if (path.charAt(0) != "/" || path.charAt(path.length - 1) != "/")
+      throw Cr.NS_ERROR_INVALID_ARG;
+
+    this._handlerToField(handler, this._overridePrefixes, path);
   },
 
   //
@@ -2458,7 +2586,10 @@ ServerHandler.prototype =
     {
       var rangeMatch = metadata.getHeader("Range").match(/^bytes=(\d+)?-(\d+)?$/);
       if (!rangeMatch)
+      {
+        dumpn("*** Range header bogosity: '" + metadata.getHeader("Range") + "'");
         throw HTTP_400;
+      }
 
       if (rangeMatch[1] !== undefined)
         start = parseInt(rangeMatch[1], 10);
@@ -2467,7 +2598,10 @@ ServerHandler.prototype =
         end = parseInt(rangeMatch[2], 10);
 
       if (start === undefined && end === undefined)
+      {
+        dumpn("*** More Range header bogosity: '" + metadata.getHeader("Range") + "'");
         throw HTTP_400;
+      }
 
       // No start given, so the end is really the count of bytes from the
       // end of the file.
@@ -2573,6 +2707,10 @@ ServerHandler.prototype =
         s.importFunction(function setObjectState(k, v)
         {
           self._setObjectState(k, v);
+        });
+        s.importFunction(function registerPathHandler(p, h)
+        {
+          self.registerPathHandler(p, h);
         });
 
         // Make it possible for sjs files to access their location
@@ -2878,6 +3016,7 @@ ServerHandler.prototype =
     }
     catch (e)
     {
+      dumpn("*** toInternalPath threw " + e);
       throw HTTP_400; // malformed path
     }
 
@@ -4569,7 +4708,10 @@ const headerUtils =
   normalizeFieldName: function(fieldName)
   {
     if (fieldName == "")
+    {
+      dumpn("*** Empty fieldName");
       throw Cr.NS_ERROR_INVALID_ARG;
+    }
 
     for (var i = 0, sz = fieldName.length; i < sz; i++)
     {
@@ -4620,9 +4762,13 @@ const headerUtils =
     val = val.replace(/^ +/, "").replace(/ +$/, "");
 
     // that should have taken care of all CTLs, so val should contain no CTLs
+    dumpn("*** Normalized value: '" + val + "'");
     for (var i = 0, len = val.length; i < len; i++)
       if (isCTL(val.charCodeAt(i)))
+      {
+        dump("*** Char " + i + " has charcode " + val.charCodeAt(i));
         throw Cr.NS_ERROR_INVALID_ARG;
+      }
 
     // XXX disallows quoted-pair where CHAR is a CTL -- will not invalidly
     //     normalize, however, so this can be construed as a tightening of the
@@ -5086,10 +5232,8 @@ Request.prototype =
 
 
 // XPCOM trappings
-if (XPCOMUtils.generateNSGetFactory)
-  var NSGetFactory = XPCOMUtils.generateNSGetFactory([nsHttpServer]);
-else
-  var NSGetModule = XPCOMUtils.generateNSGetModule([nsHttpServer]);
+
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([nsHttpServer]);
 
 /**
  * Creates a new HTTP server listening for loopback traffic on the given port,
@@ -5146,21 +5290,4 @@ function server(port, basePath)
     thread.processNextEvent(true);
 
   DEBUG = false;
-}
-
-function getServer (port, basePath) {
-  if (basePath) {
-    var lp = Cc["@mozilla.org/file/local;1"]
-               .createInstance(Ci.nsILocalFile);
-    lp.initWithPath(basePath);
-   }
-
-   var srv = new nsHttpServer();
-   if (lp)
-     srv.registerDirectory("/", lp);
-   srv.registerContentType("sjs", SJS_TYPE);
-   srv.identity.setPrimary("http", "localhost", port);
-   srv._port = port;
-
-   return srv;
 }

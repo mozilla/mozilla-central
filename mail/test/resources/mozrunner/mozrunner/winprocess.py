@@ -203,6 +203,22 @@ DEBUG_ONLY_THIS_PROCESS = 0x00000002
 DEBUG_PROCESS = 0x00000001
 DETACHED_PROCESS = 0x00000008
 
+# SetInformationJobObject
+SetInformationJobObjectProto = WINFUNCTYPE(BOOL, # Return Type
+                                           HANDLE, # Job Handle
+                                           DWORD, # Type of Class next param is
+                                           LPVOID, # Job Object Class
+                                           DWORD # Job Object Class Length
+                                          )
+SetInformationJobObjectProtoFlags = ((1, "hJob", None),
+                                     (1, "JobObjectInfoClass", None),
+                                     (1, "lpJobObjectInfo", None),
+                                     (1, "cbJobObjectInfoLength", 0))
+SetInformationJobObject = SetInformationJobObjectProto(("SetInformationJobObject",
+                                                        windll.kernel32),
+                                                        SetInformationJobObjectProtoFlags)
+SetInformationJobObject.errcheck = ErrCheckBool
+
 # CreateJobObject()
 
 CreateJobObjectProto = WINFUNCTYPE(HANDLE,             # Return type

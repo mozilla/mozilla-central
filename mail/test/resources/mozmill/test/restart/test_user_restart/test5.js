@@ -1,12 +1,8 @@
-var setupModule = function(module) {
+var setupModule = function () {
   controller = mozmill.getBrowserController();
 }
 
-/**
- * This test should fail and then exit with a 'Disconnect Error: Application Unexpectedly Closed'
- */
-var testRestartAfterTimeout = function(){
+var teardownModule = function () {
   controller.startUserShutdown(1000, true);
-  controller.sleep(2000);
   controller.window.Application.restart();
 }

@@ -72,7 +72,10 @@ except ImportError:
 mswindows = (sys.platform == "win32")
 
 if mswindows:
+    from ctypes import sizeof, addressof, c_ulong, byref, POINTER, WinError, c_longlong
     import winprocess
+    from qijo import JobObjectExtendedLimitInformation, JOBOBJECT_BASIC_LIMIT_INFORMATION,\
+    JOBOBJECT_EXTENDED_LIMIT_INFORMATION, IO_COUNTERS
 else:
     import signal
 
@@ -157,6 +160,34 @@ class Popen(subprocess.Popen):
                 # We create a new job for this process, so that we can kill
                 # the process and any sub-processes 
                 self._job = winprocess.CreateJobObject()
+                # Allow subprocesses to break away from us - necessary for
+                # flash with protected mode
+                jbli = JOBOBJECT_BASIC_LIMIT_INFORMATION(
+                                c_longlong(0), # per process time limit (ignored)
+                                c_longlong(0), # per job user time limit (ignored)
+                                winprocess.JOB_OBJECT_LIMIT_BREAKAWAY_OK,
+                                0, # min working set (ignored)
+                                0, # max working set (ignored)
+                                0, # active process limit (ignored)
+                                None, # affinity (ignored)
+                                0, # Priority class (ignored)
+                                0, # Scheduling class (ignored)
+                                )
+
+                iocntr = IO_COUNTERS()
+                jeli = JOBOBJECT_EXTENDED_LIMIT_INFORMATION(
+                                jbli, # basic limit info struct
+                                iocntr,    # io_counters (ignored)
+                                0,    # process mem limit (ignored)
+                                0,    # job mem limit (ignored)
+                                0,    # peak process limit (ignored)
+                                0)    # peak job limit (ignored)
+
+                winprocess.SetInformationJobObject(self._job,
+                                JobObjectExtendedLimitInformation,
+                                addressof(jeli),
+                                sizeof(jeli)
+                                )
                 winprocess.AssignProcessToJobObject(self._job, int(hp))
             else:
                 self._job = None
@@ -189,6 +220,16 @@ class Popen(subprocess.Popen):
                 except: pass
             else:
                 os.kill(self.pid, signal.SIGKILL)
+
+            # If we don't call os.wait() we end up with zombie processes
+            # see bug 658509, but it seems to traceback on linux
+            if sys.platform == "darwin":
+                try:
+                    os.wait()
+                except OSError, e:
+                    # The process doesn't exist anymore so we can ignore it
+                    pass
+
             self.returncode = -9
 
     def wait(self, timeout=None, group=True):

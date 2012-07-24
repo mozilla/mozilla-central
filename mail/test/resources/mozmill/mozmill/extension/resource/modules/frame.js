@@ -39,7 +39,8 @@ var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','eve
                         'jsbridge', 'runTestDirectory', 'runTestFile', 'log', 'getThread',
                         'timers', 'persisted'];
 
-var httpd = {};   Components.utils.import('resource://mozmill/stdlib/httpd.js', httpd);
+Components.utils.import('resource://mozmill/stdlib/httpd.js');
+
 var os = {};      Components.utils.import('resource://mozmill/stdlib/os.js', os);
 var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js', strings);
 var arrays = {};  Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
@@ -69,7 +70,8 @@ arrayRemove = function(array, from, to) {
   return array.push.apply(array, rest);
 };
 
-mozmill = undefined; elementslib = undefined;
+mozmill = undefined; elementslib = undefined; modules = undefined;
+
 var loadTestResources = function () {
   if (mozmill == undefined) {
     mozmill = {};
@@ -108,7 +110,12 @@ var loadFile = function(path, collector) {
                   Ci: Components.interfaces,
                   Cu: Components.utils }
     });
-    return loader.require(mod);
+    if (modules != undefined) {
+        loader.modules = modules;
+    }
+    var retval = loader.require(mod);
+    modules = loader.modules;
+    return retval;
   }
   
   if (collector != undefined) {
@@ -323,8 +330,6 @@ if (jsbridge) {
   events.addListener('', function (name, obj) {jsbridge.fireEvent('mozmill.'+name, obj)} );
 }
 
-var http_server = httpd.getServer(43336);
-
 function Collector () {
   this.test_modules_by_filename = {};
   this.test_modules_by_name = {};
@@ -342,25 +347,45 @@ Collector.prototype.getModule = function (name) {
   return this.test_modules_by_name[name];
 }
 
+Collector.prototype.getServer = function (port, basePath) {
+  if (basePath) {
+    var lp = Cc["@mozilla.org/file/local;1"]
+             .createInstance(Ci.nsILocalFile);
+    lp.initWithPath(basePath);
+  }
+
+  var srv = new HttpServer();
+  if (lp) {
+    srv.registerDirectory("/", lp);
+  }
+
+  srv.registerContentType("sjs", "sjs");
+  srv.identity.setPrimary("http", "localhost", port);
+  srv._port = port;
+
+  return srv;
+}
+
 Collector.prototype.startHttpd = function () {
   while (this.httpd == undefined) {
     try {
+      var http_server = this.getServer(this.http_port);
       http_server.start(this.http_port);
       this.httpd = http_server;
-    } catch(e) { // Failure most likely due to port conflict
+    } catch (e) {
+      // Failure most likely due to port conflict
       this.http_port++;
-      http_server = httpd.getServer(this.http_port);
-    }; 
-    
-    
+    }
   }
 }
+
 Collector.prototype.stopHttpd = function () {
   if (this.httpd) {
     this.httpd.stop(function(){});  // Callback needed to pause execution until the server has been properly shutdown
     this.httpd = null;
   }
 }
+
 Collector.prototype.addHttpResource = function (directory, ns) {
   if (!this.httpd) {
     this.startHttpd();
@@ -590,8 +615,10 @@ Runner.prototype._runTestModule = function (module) {
   for (var i in module) {
     attrs.push(i);
   }
-  
+
   events.setModule(module);
+  var observer = new AppQuitObserver();
+
   module.__status__ = 'running';
   if (module.__setupModule__) { 
     events.setState('setupModule');
@@ -603,7 +630,6 @@ Runner.prototype._runTestModule = function (module) {
     var setupModulePassed = true;
   }
   if (setupModulePassed) {
-    var observer = new AppQuitObserver();
     for (var i in module.__tests__) {
       events.appQuit = false;
       var test = module.__tests__[i];
@@ -635,7 +661,6 @@ Runner.prototype._runTestModule = function (module) {
       }
       events.endTest(test)
     }
-    observer.unregister();
   } else {
     for each(var test in module.__tests__) {
       events.setTest(test);
@@ -649,8 +674,12 @@ Runner.prototype._runTestModule = function (module) {
     this.wrapper(module.__teardownModule__, module);
     events.endTest(module.__teardownModule__);
   }
+
+  observer.unregister();
+
   module.__status__ = 'done';
 }
+
 Runner.prototype.runTestModule = function (module) {
   if (module.__requirements__ != undefined && module.__force_skip__ == undefined) {
     if (!arrays.inArray(this.collector.loaded_directories, module.__root_path__)) {
