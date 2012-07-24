@@ -35,7 +35,7 @@
   /* splitter grip area */
   width: 5px;
   /* make only the splitter border visible */
-  -moz-margin-start: -5px;
+  -moz-margin-start: -4px;
   /* because of the negative margin needed to make the splitter visible */
   position: relative;
   z-index: 10;
