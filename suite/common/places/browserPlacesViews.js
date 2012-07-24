@@ -776,6 +776,9 @@ PlacesViewBase.prototype = {
         aPopup.removeChild(aPopup._endOptSeparator);
         aPopup._endOptSeparator = null;
         aPopup._endMarker--;
+        aPopup._endMarker -= aPopup._placesNode.childCount;
+        if (aPopup._endMarker < -1)
+          aPopup._endMarker = -1;
       }
     }
     else if (!aPopup._endOptOpenAllInTabs) {
@@ -796,6 +799,7 @@ PlacesViewBase.prototype = {
         gNavigatorBundle.getString("menuOpenAllInTabs.label"));
       aPopup.appendChild(aPopup._endOptOpenAllInTabs);
       aPopup._endMarker++;
+      aPopup._endMarker += aPopup._placesNode.childCount;
     }
   },
 
