@@ -11,8 +11,7 @@ const MODULE_NAME = 'cloudfile-ubuntuone-helpers';
 const RELATIVE_ROOT = '../shared-modules';
 const MODULE_REQUIRES = [];
 
-let httpd = {};
-Cu.import('resource://mozmill/stdlib/httpd.js', httpd);
+Cu.import('resource://mozmill/stdlib/httpd.js');
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource:///modules/cloudFileAccounts.js');
 
@@ -123,7 +122,7 @@ MockUbuntuOneServer.prototype = {
 
   init: function MU1S_init(aConfig) {
     this._config = this._overrideDefault(kDefaultConfig, aConfig);
-    this._server = httpd.getServer(this._config.port, '');
+    this._server = new HttpServer();
     this._pathInfo = {}
     this._wireSso();
   },

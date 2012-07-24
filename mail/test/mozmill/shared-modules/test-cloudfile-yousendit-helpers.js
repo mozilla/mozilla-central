@@ -11,8 +11,7 @@ const MODULE_NAME = 'cloudfile-yousendit-helpers';
 const RELATIVE_ROOT = '../shared-modules';
 const MODULE_REQUIRES = [];
 
-let httpd = {};
-Cu.import('resource://mozmill/stdlib/httpd.js', httpd);
+Cu.import('resource://mozmill/stdlib/httpd.js');
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource:///modules/cloudFileAccounts.js');
 
@@ -132,7 +131,7 @@ MockYouSendItServer.prototype = {
 
     this._config = overrideDefault(kDefaultConfig, aConfig);
 
-    this._server = httpd.getServer(this._config.port, '');
+    this._server = new HttpServer();
     this.auth.init(this._server);
     this.userInfo.init(this._server);
     this.registry.init(this._server);
