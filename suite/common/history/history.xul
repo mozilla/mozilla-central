@@ -111,9 +111,7 @@
         flex="1" type="places"
         enableColumnDrag="true"
         onselect="historyOnSelect();"
-        onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) PlacesUIUtils.openNodeWithEvent(gHistoryTree.selectedNode, event);"
-        ondblclick="if (event.button == 0) PlacesUIUtils.openNodeWithEvent(gHistoryTree.selectedNode, event);"
-        onclick="if (event.button == 1) PlacesUIUtils.openNodeWithEvent(gHistoryTree.selectedNode, event);">
+        onkeypress="if (event.keyCode == KeyEvent.DOM_VK_RETURN) PlacesUIUtils.openNodeWithEvent(gHistoryTree.selectedNode, event);">
     <treecols context="">
       <treecol label="&col.title.label;" id="Name" flex="4"
                persist="width hidden ordinal sortActive sortDirection"/>
@@ -127,7 +125,8 @@
       <treecol label="&col.visitcount.label;" id="VisitCount" flex="1" hidden="true"
                persist="width hidden ordinal sortActive sortDirection"/>
     </treecols>
-    <treechildren/>
+    <treechildren ondblclick="if (event.button == 0) PlacesUIUtils.openNodeWithEvent(gHistoryTree.selectedNode, event);"
+                  onclick="if (event.button == 1) PlacesUIUtils.openNodeWithEvent(gHistoryTree.selectedNode, event);"/>
   </tree>
   <statusbar id="status-bar" class="chromeclass-status">
     <statusbarpanel id="statusbar-display" flex="1"/>
