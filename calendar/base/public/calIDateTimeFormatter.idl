@@ -87,20 +87,34 @@ interface calIDateTimeFormatter : nsISupports
     AUTF8String formatItemInterval(in calIItemBase aItem);
 
     /**
-     * Format a time interval. The returned string may assume that the dates
-     * are so close to each other, that it can leave out some parts of the
-     * part string denoting the end date
+     * Format a time interval like formatItemInterval, but only show times.
      *
-     * @param aStartDate
-     *      The start of the interval
-     * @param aEndDate
-     *      The end of the interval
-     * @returns
-     *      A String describing the interval in a legible form
+     * @param aItem     The item providing the interval
+     * @return          The string describing the interval
+     */
+     AUTF8String formatItemTimeInterval(in calIItemBase aItem);
+
+    /**
+     * Format a date/time interval. The returned string may assume that the
+     * dates are so close to each other, that it can leave out some parts of the
+     * part string denoting the end date.
+     *
+     * @param aStartDate        The start of the interval
+     * @param aEndDate          The end of the interval
+     * @return                  A String describing the interval in a legible form
      */
     AUTF8String formatInterval(in calIDateTime aStartDate,
                                in calIDateTime aEndDate);
 
+    /**
+     * Format a time interval like formatInterval, but show only the time.
+     *
+     * @param aStartDate        The start of the interval.
+     * @param aEndDate          The end of the interval.
+     * @return                  The formatted time interval.
+     */
+    AUTF8String formatTimeInterval(in calIDateTime aStartTime,
+                                   in calIDateTime aEndTime);
     /**
      * Get the month name
      *

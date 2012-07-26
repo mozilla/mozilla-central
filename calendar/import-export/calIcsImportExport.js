@@ -2,16 +2,22 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
+/**
+ * ICS Import and Export Plugin
+ */
 
 // Shared functions
 function getIcsFileTypes(aCount) {
     aCount.value = 1;
-    let wildmat = '*.ics';
-    let label = cal.calGetString("calendar", 'filterIcs', [wildmat]);
-    return [{ defaultExtension: 'ics',
-              extensionFilter: wildmat,
-              description: label }];
+    return [{
+        QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIFileType]),
+        defaultExtension: 'ics',
+        extensionFilter: '*.ics',
+        description: cal.calGetString("calendar", 'filterIcs', ['*.ics'])
+    }];
 }
 
 // Importer
@@ -19,29 +25,15 @@ function calIcsImporter() {
 }
 
 calIcsImporter.prototype = {
-    getInterfaces: function (count) {
-        const ifaces = [
-            Components.interfaces.nsISupports,
-            Components.interfaces.nsIClassInfo,
-            Components.interfaces.calIImporter,
-        ];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function (language) {
-        return null;
-    },
-
-    contractID: "@mozilla.org/calendar/import;1?type=ics",
-    classDescription: "Calendar ICS Importer",
     classID: Components.ID("{1e3e33dc-445a-49de-b2b6-15b2a050bb9d}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIImporter]),
 
-    QueryInterface: function QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calIcsImporter.prototype, aIID, null, this);
-    },
+    classInfo: XPCOMUtils.generateCI({
+        classID: Components.ID("{1e3e33dc-445a-49de-b2b6-15b2a050bb9d}"),
+        contractID: "@mozilla.org/calendar/import;1?type=ics",
+        classDescription: "Calendar ICS Importer",
+        interfaces: [Components.interfaces.calIImporter]
+    }),
 
     getFileTypes: getIcsFileTypes,
 
@@ -58,29 +50,15 @@ function calIcsExporter() {
 }
 
 calIcsExporter.prototype = {
-    getInterfaces: function (count) {
-        const ifaces = [
-            Components.interfaces.nsISupports,
-            Components.interfaces.nsIClassInfo,
-            Components.interfaces.calIExporter,
-        ];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function (language) {
-        return null;
-    },
-
-    contractID: "@mozilla.org/calendar/export;1?type=ics",
-    classDescription: "Calendar ICS Exporter",
     classID: Components.ID("{a6a524ce-adff-4a0f-bb7d-d1aaad4adc60}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIExporter]),
 
-    QueryInterface: function QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calIcsExporter.prototype, aIID, null, this);
-    },
+    classInfo: XPCOMUtils.generateCI({
+        classID: Components.ID("{a6a524ce-adff-4a0f-bb7d-d1aaad4adc60}"),
+        contractID: "@mozilla.org/calendar/export;1?type=ics",
+        classDescription: "Calendar ICS Exporter",
+        interfaces: [Components.interfaces.calIExporter]
+    }),
 
     getFileTypes: getIcsFileTypes,
 

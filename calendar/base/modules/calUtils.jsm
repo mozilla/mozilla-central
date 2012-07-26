@@ -349,6 +349,20 @@ let cal = {
         return calDateTime.nativeTime;
     },
 
+    userWeekStart: function userWeekStart(dt) {
+        let wkst = cal.getPrefSafe("calendar.week.start", 0);
+        let wkstDate = dt.clone();
+        wkstDate.day -= (wkstDate.weekday - wkst + 7) % 7;
+        return wkstDate;
+    },
+
+    userWeekEnd: function userWeekEnd(dt) {
+        let wkst = cal.getPrefSafe("calendar.week.start", 0);
+        let wkendDate = dt.clone();
+        wkendDate.day += (7 - wkendDate.weekday) + wkst;
+        return wkendDate;
+    },
+
     sortEntry: function cal_sortEntry(aItem) {
         let key = cal.getItemSortKey(aItem, this.mSortKey, this.mSortStartedDate);
         return { mSortKey : key, mItem: aItem };

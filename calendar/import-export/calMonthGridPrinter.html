@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+   "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title id="title"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="chrome://calendar/skin/calendar-printing.css"/>
+    <style type="text/css" id="sheet">
+      .main-table { font-size: 26px; font-weight: bold; }
+      .day-name { border: 1px solid black; background-color: white; font-size: 12px; font-weight: bold; }
+      .day-box { border: 1px solid black; vertical-align: top; }
+      .out-of-month { background-color: white !important; }
+      .day-off { background-color: white !important; }
+  </style>
+  </head>
+  <body>
+    <div id="month-container"/>
+    <div id="tasks-list-box" hidden="true">
+      <h3 id="tasks-title"/>
+      <ul class="taskList" id="task-container"/>
+    </div>
+
+    <!-- Templates follow -->
+    <div id="templates" hidden="true">
+      <li id="task-template">
+        <input type="checkbox" class="task-checkbox" disabled="true"/>
+        <s class="task-title"/>
+      </li>
+      <tr id="item-template">
+        <td valign="top" style="font-size: 11px; text-align: left;" class="category-color-box calendar-color-box">
+          <span class="item-interval"/>
+          <span class="item-title"/>
+        </td>
+      </tr>
+      <div id="month-template" style="page-break-after: always;">
+        <table border="0" width="100%" class="main-table">
+          <tr>
+            <td align="center" valign="bottom" class="month-name"/>
+          </tr>
+        </table>
+        <table style="border:1px solid black;" width="100%" class="week-container">
+          <tr>
+            <td class="day-name day1-title" align="center" />
+            <td class="day-name day2-title" align="center" />
+            <td class="day-name day3-title" align="center" />
+            <td class="day-name day4-title" align="center" />
+            <td class="day-name day5-title" align="center" />
+            <td class="day-name day6-title" align="center" />
+            <td class="day-name day7-title" align="center" />
+          </tr>
+        </table>
+      </div>
+      <div id="week-template">
+        <tr>
+          <td align="left" valign="top" class="day1-box day-box" height="100" width="100">
+            <table valign="top" style="font-size: 10px;" class="day1-container">
+              <tr valign="top">
+                <td valign="top" align="left" class="day1-number"/>
+              </tr>
+            </table>
+          </td>
+          <td align="left" valign="top" class="day2-box day-box" height="100" width="100">
+            <table valign="top" style="font-size: 10px;" class="day2-container">
+              <tr valign="top">
+                <td valign="top" align="left" class="day2-number"/>
+              </tr>
+            </table>
+          </td>
+          <td align="left" valign="top" class="day3-box day-box" height="100" width="100">
+            <table valign="top" style="font-size: 10px;" class="day3-container">
+              <tr valign="top">
+                <td valign="top" align="left" class="day3-number"/>
+              </tr>
+            </table>
+          </td>
+          <td align="left" valign="top" class="day4-box day-box" height="100" width="100">
+            <table valign="top" style="font-size: 10px;" class="day4-container">
+              <tr valign="top">
+                <td valign="top" align="left" class="day4-number"/>
+              </tr>
+            </table>
+          </td>
+          <td align="left" valign="top" class="day5-box day-box" height="100" width="100">
+            <table valign="top" style="font-size: 10px;" class="day5-container">
+              <tr valign="top">
+                <td valign="top" align="left" class="day5-number"/>
+              </tr>
+            </table>
+          </td>
+          <td align="left" valign="top" class="day6-box day-box" height="100" width="100">
+            <table valign="top" style="font-size: 10px;" class="day6-container">
+              <tr valign="top">
+                <td valign="top" align="left" class="day6-number"/>
+              </tr>
+            </table>
+          </td>
+          <td align="left" valign="top" class="day7-box day-box" height="100" width="100">
+            <table valign="top" style="font-size: 10px;" class="day7-container">
+              <tr valign="top">
+                <td valign="top" align="left" class="day7-number"/>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </div>
+    </div>
+  </body>
+</html>

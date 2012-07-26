@@ -1,0 +1,5 @@
+#filter substitution
+calendar.jar:
+    skin/calendar/printing/calWeekPrinter.html             (calWeekPrinter.html)
+    skin/calendar/printing/calMonthGridPrinter.html        (calMonthGridPrinter.html)
+    skin/calendar/printing/calHtmlExport.html              (calHtmlExport.html)

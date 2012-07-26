@@ -2,6 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://calendar/modules/calXMLUtils.jsm");
 Components.utils.import("resource://calendar/modules/calPrintUtils.jsm");
 
 /**
@@ -11,306 +15,193 @@ function calMonthPrinter() {
 }
 
 calMonthPrinter.prototype = {
-    getInterfaces: function (count) {
-        const ifaces = [
-            Components.interfaces.nsISupports,
-            Components.interfaces.nsIClassInfo,
-            Components.interfaces.calIPrintFormatter,
-        ];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function (language) {
-        return null;
-    },
-
-    contractID: "@mozilla.org/calendar/printformatter;1?type=monthgrid",
-    classDescription: "Calendar Month Grid Print Formatter",
     classID: Components.ID("{f42d5132-92c4-487b-b5c8-38bf292d74c1}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIPrintFormatter]),
 
-    QueryInterface: function QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calMonthPrinter.prototype, aIID, null, this);
-    },
+    classInfo: XPCOMUtils.generateCI({
+        classID: Components.ID("{f42d5132-92c4-487b-b5c8-38bf292d74c1}"),
+        contractID: "@mozilla.org/calendar/printformatter;1?type=monthgrid",
+        classDescription: "Calendar Month Grid Print Formatter",
+        interfaces: [Components.interfaces.calIPrintFormatter]
+    }),
 
-    get name() {
-        return cal.calGetString("calendar", "monthPrinterName");
-    },
+    get name() cal.calGetString("calendar", "monthPrinterName"),
 
     formatToHtml: function monthPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
-        let html = <html/>
-        html.appendChild(
-                <head>
-                    <title>{aTitle}</title>
-                    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
-                    <link rel='stylesheet' type='text/css' href='chrome://calendar/skin/calendar-printing.css'/>
-                </head>);
-        html.head.style = ".main-table { font-size: 26px; font-weight: bold; }\n";
-        html.head.style += ".day-name { border: 1px solid black; background-color: white; font-size: 12px; font-weight: bold; }\n";
-        html.head.style += ".day-box { border: 1px solid black; vertical-align: top; }\n";
-        html.head.style += ".out-of-month { background-color: white !important; }\n";
-        html.head.style += ".day-off { background-color: white !important; }\n";
+        let document = cal.xml.parseFile("chrome://calendar/skin/printing/calMonthGridPrinter.html");
 
-        // If aStart or aEnd weren't passed in, we need to calculate them based on
-        // aItems data.
+        // Set page title
+        document.getElementById("title").textContent = aTitle;
 
-        let start = aStart;
-        let end = aEnd;
-        if (!start || !end) {
-            for each (let item in aItems) {
-                let itemStart = item[cal.calGetStartDateProp(item)];
-                let itemEnd = item[cal.calGetEndDateProp(item)];
-                if (!start || (itemStart && start.compare(itemStart) == 1)) {
-                    start = itemStart;
-                }
-                if (!end || (itemEnd && end.compare(itemEnd) == -1)) {
-                    end = itemEnd;
-                }
+        // Table that maps YYYY-MM-DD to the DOM node container where items are to be added
+        let dayTable = {};
+
+        // Make sure to create tables from start to end, if passed
+        if (aStart && aEnd) {
+            // Make sure the start date is really a date.
+            let startDate = aStart.clone();
+            startDate.isDate = true;
+
+            // Copy end date, which is exclusive. For our calculations, we will
+            // only be handling dates and the below code is much cleaner with
+            // the range being inclusive.
+            let endDate = aEnd.clone();
+            endDate.isDate = true;
+
+            // Find out if the start date is also shown in the first week of the
+            // following month. This means we can spare a month printout.
+            let probeDate = startDate.clone();
+            probeDate.month++;
+            probeDate.day = 1;
+            if (cal.userWeekStart(probeDate).compare(startDate) <= 0) {
+                startDate = probeDate;
+            } else {
+                startDate = startDate.startOfMonth;
+            }
+
+            // Find out if the end date is also shown in the last week of the
+            // previous month. This also means we can spare a month printout.
+            probeDate = endDate.clone();
+            probeDate.month--;
+            probeDate = probeDate.endOfMonth;
+            if (cal.userWeekEnd(probeDate).compare(endDate) >= 0) {
+                endDate = probeDate;
+            }
+
+            // Now set up all the months we need to
+            for (let current = startDate.clone(); cal.userWeekEnd(current).compare(endDate) <= 0; current.month += 1) {
+                this.setupMonth(document, current, dayTable);
             }
         }
 
-        // Play around with aStart and aEnd to determine the minimal number of
-        // months we can show to still technically meet their requirements.  This
-        // is most useful when someone printed 'Current View' in the month view. If
-        // we take the aStart and aEnd literally, we'll print 3 months (because of
-        // the extra days at the start/end), but we should avoid that.
-        //
-        // Basically, we check whether aStart falls in the same week as the start
-        // of a month (ie aStart  is Jan 29, which often is in the same week as
-        // Feb 1), and similarly whether aEnd falls in the same week as the end of
-        // a month.
-        let weekStart = cal.getPrefSafe("calendar.week.start", 0);
-        let maybeNewStart = start.clone();
-        maybeNewStart.day = 1;
-        maybeNewStart.month = start.month+1;
+        for each (let item in aItems) {
+            let boxDate = item[cal.calGetStartDateProp(item)] || item[cal.calGetEndDateProp(item)];
 
-        let dt = start.clone();
-
-        // First we have to adjust the end date for comparison, as the
-        // provided end date is exclusive, i.e. will not be displayed.
-
-        let realEnd = end.clone();
-        realEnd.day -= 1;
-
-        if (start.compare(realEnd) <= 0) {
-            // Only adjust dates if start date is earlier than end date.
-
-            if ((start.month != realEnd.month) || (start.year != realEnd.year)) {
-                // We only need to adjust if start and end are in different months.
-
-                // We want to check whether or not the start day is in the same
-                // week as the beginning of the next month. To do this, we take
-                // the start date, add seven days and subtract the "day of week"
-                // value (which has to be corrected in case we do not start on
-                // Sunday).
-                let testBegin = start.clone();
-                let startWeekday = testBegin.weekday;
-                if (startWeekday < weekStart) {
-                    startWeekday += 7;
-                }
-                testBegin.day += 7 + weekStart - startWeekday;
-                if (testBegin.compare(maybeNewStart) > 0) {
-                    start = maybeNewStart;
-                    dt = start.clone();
-                }
+            // Ignore items outside of the range, i.e tasks without start date
+            // where the end date is somewhere else.
+            if (aStart && aEnd && boxDate &&
+                (boxDate.compare(aStart) < 0 || boxDate.compare(aEnd) >= 0)) {
+                continue;
             }
-            if ((start.month != realEnd.month) || (start.year != realEnd.year)) {
-                // We only need to adjust if start and end are in different months.
 
-                // Next, we want to check whether or not the end day is in the same
-                // week as the end of the previous month. So we have to get the
-                // "day of week" value for the end of the previous month, adjust it
-                // if necessary (when start of week is not Sunday) and check if the
-                // end day is in the same week.
+            if (boxDate) {
+                let boxDateKey = cal.print.getDateKey(boxDate);
 
-                let lastDayOfPreviousMonth = end.clone();
-                lastDayOfPreviousMonth.day = 0;
-                let lastDayWeekday = lastDayOfPreviousMonth.weekday;
-                if (lastDayWeekday < weekStart) {
-                    lastDayWeekday += 7;
-                }
-                if (dt.month != end.month) {
-                    dt.day = 1;
-                }
-                if ((lastDayWeekday + end.day - 1) < (7 + weekStart)) {
-                    dt.day = end.day;
+                if (!(boxDateKey in dayTable)) {
+                    // Doesn't exist, we need to create a new table for it
+                    let startOfMonth = boxDate.startOfMonth;
+                    this.setupMonth(document, startOfMonth, dayTable);
                 }
 
-                // Finally, we have to check whether we adjusted the dates too
-                // well so that nothing is printed. That happens if you print just
-                // one week which has the last day of a month in it.
+                let dayBoxes = dayTable[boxDateKey];
+                let addSingleItem = cal.print.addItemToDaybox.bind(cal.print, document, item);
 
-                if (dt.compare(end) >= 0) {
-                    dt.day = 1;
+                if (Array.isArray(dayBoxes)) {
+                    dayBoxes.forEach(addSingleItem);
+                } else {
+                    addSingleItem(dayBoxes);
                 }
             } else {
-                dt.day = 1;
+                cal.print.addItemToDayboxNodate(document, item);
             }
-        } else {
-             // If start date is after end date, just print empty month.
-             dt = realEnd.clone();
         }
 
-        let body = <body/>
+        // Remove templates from HTML, no longer needed
+        let templates = document.getElementById("templates");
+        templates.parentNode.removeChild(templates);
 
-        while (dt.compare(end) < 0) {
-            let monthName = cal.calGetString("dateFormat", "month." + (dt.month +1) + ".name");
-            monthName += " " + dt.year;
-            body.appendChild(
-                         <table border='0' width='100%' class='main-table'>
-                             <tr>
-                                 <td align='center' valign='bottom'>{monthName}</td>
-                             </tr>
-                         </table>);
-            body.appendChild(this.getStringForMonth(dt, aItems));
-            // Make sure each month gets put on its own page
-            body.appendChild(<br style="page-break-after:always;"/>);
-            dt.month++;
-        }
-        let tasks = cal.print.getTasksWithoutDueDate(aItems, dt);
-        body.appendChild(tasks);
-        html.appendChild(body);
+        // Stream out the resulting HTML
+        let html = cal.xml.serializeDOM(document);
         let convStream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
                                    .createInstance(Components.interfaces.nsIConverterOutputStream);
         convStream.init(aStream, 'UTF-8', 0, 0x0000);
-        convStream.writeString(html.toXMLString());
+        convStream.writeString(html);
     },
 
-    getStringForMonth: function monthPrint_getStringForMonth(aStart, aItems) {
-        let weekStart = cal.getPrefSafe("calendar.week.start", 0);
+    setupMonth: function setupMonth(document, startOfMonth, dayTable) {
+        let monthTemplate = document.getElementById("month-template");
+        let monthContainer = document.getElementById("month-container");
 
-        let monthTable = <table style='border:1px solid black;' width='100%'/>
-        let dayNameRow = <tr/>
-        for (let i = 0; i < 7; i++) {
-            let dayName = cal.calGetString("dateFormat", "day."+ (((weekStart+i)%7)+1) + ".Mmm");
-            dayNameRow.appendChild(<td class='day-name' align='center'>{dayName}</td>);
-        }
-        monthTable.appendChild(dayNameRow);
+        // Clone the template month and make sure it doesn't have an id
+        let currentMonth = monthTemplate.cloneNode(true);
+        currentMonth.removeAttribute("id");
+        currentMonth.item = startOfMonth.clone();
 
-        // Set up the item-list so it's easy to work with.
-        function hasUsableDate(item) item.startDate || item.entryDate || item.dueDate;
-        let filteredItems = aItems.filter(hasUsableDate);
+        // Set up the month title
+        let monthName = cal.formatMonth(startOfMonth.month + 1, "calendar", "monthInYear");
+        let monthTitle = cal.calGetString("calendar", "monthInYear", [monthName, startOfMonth.year]);
+        currentMonth.querySelector(".month-name").textContent = monthTitle;
 
-        function compareItems(a, b) {
-            // Sort tasks before events
-            if (cal.isEvent(a) && cal.isToDo(b)) {
-                return 1;
-            }
-            if (cal.isToDo(a) && cal.isEvent(b)) {
-                return -1;
-            }
-            if (cal.isEvent(a)) {
-                let startCompare = a.startDate.compare(b.startDate);
-                if (startCompare != 0) {
-                    return startCompare;
-                }
-                return a.endDate.compare(b.endDate);
-            }
-            let aDate = a.entryDate || a.dueDate;
-            let bDate = b.entryDate || b.dueDate;
-            return aDate.compare(bDate);
-        }
-        let sortedList = filteredItems.sort(compareItems);
-        let firstDate = aStart.startOfMonth.startOfWeek.clone();
-        firstDate.day += weekStart;
-        if (aStart.startOfMonth.weekday < weekStart) {
-            // Go back one week to make sure we display this day
-            firstDate.day -= 7;
+        // Set up the weekday titles
+        let wkst = cal.getPrefSafe("calendar.week.start", 0);
+        for (let i = 1; i <= 7; i++) {
+            let dayNumber = ((i + wkst - 1) % 7) + 1;
+            let dayTitle = currentMonth.querySelector(".day" + i + "-title");
+            dayTitle.textContent = cal.calGetString("dateFormat", "day." + dayNumber + ".Mmm");
         }
 
-        let lastDate = aStart.endOfMonth.endOfWeek.clone();
-        if (aStart.endOfMonth.weekday < weekStart) {
-            // Go back one week so we don't display any extra days
-            lastDate.day -= 7;
-        }
-        firstDate.isDate = true;
-        lastDate.isDate = true;
+        // Set up each week
+        let endOfMonthView = cal.userWeekEnd(startOfMonth.endOfMonth);
+        let startOfMonthView = cal.userWeekStart(startOfMonth);
+        let mainMonth = startOfMonth.month;
+        let weekContainer = currentMonth.querySelector(".week-container");
 
-        let dt = firstDate.clone();
-        let itemListIndex = 0;
-        while (dt.compare(lastDate) != 1) {
-            monthTable.appendChild(this.makeHTMLWeek(dt, sortedList, aStart.month));
+        for (let weekStart = startOfMonthView; weekStart.compare(endOfMonthView) < 0; weekStart.day += 7) {
+            this.setupWeek(document, weekContainer, weekStart, mainMonth, dayTable);
         }
-        return monthTable;
+
+        // Now insert the month into the page container, sorting by date (and therefore by month)
+        function compareDates(a, b) {
+            if (!a || !b) return -1;
+            let res = a.compare(b);
+            return res;
+        }
+
+        cal.binaryInsertNode(monthContainer, currentMonth, currentMonth.item, compareDates);
     },
 
-    makeHTMLWeek: function makeHTMLWeek(dt, sortedList, targetMonth) {
-        let weekRow = <tr/>;
-        const weekPrefix = "calendar.week.";
-        let prefNames = ["d0sundaysoff", "d1mondaysoff", "d2tuesdaysoff",
-                         "d3wednesdaysoff", "d4thursdaysoff", "d5fridaysoff", "d6saturdaysoff"];
-        let defaults = [true, false, false, false, false, false, true];
-        let daysOff = [];
-        for (let i in prefNames) {
-            if (cal.getPrefSafe(weekPrefix+prefNames[i], defaults[i])) {
-                daysOff.push(Number(i));
+    setupWeek: function setupWeek(document, weekContainer, startOfWeek, mainMonth, dayTable) {
+        const weekdayMap = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        let weekTemplate = document.getElementById("week-template");
+
+        // Clone the template week and make sure it doesn't have an id
+        let currentWeek = weekTemplate.cloneNode(true);
+        currentWeek.removeAttribute("id");
+
+        // Set up day numbers for all days in this week
+        let currentDate = startOfWeek.clone();
+        for (let i = 1; i <= 7; i++) {
+            let dayNumber = currentWeek.querySelector(".day" + i + "-number");
+            let dayContainer =  currentWeek.querySelector(".day" + i + "-container");
+            let dayBox = currentWeek.querySelector(".day" + i + "-box");
+            let dateKey = cal.print.getDateKey(currentDate);
+            dayNumber.textContent = currentDate.day;
+
+            // We need to support adding multiple boxes, since the months have
+            // overlapping days.
+            if (dateKey in dayTable) {
+                if (Array.isArray(dayTable[dateKey])) {
+                    dayTable[dateKey].push(dayContainer);
+                } else {
+                    dayTable[dateKey] = [dayTable[dateKey], dayContainer];
+                }
+            } else {
+                dayTable[dateKey] = dayContainer;
             }
+
+            let weekDay = currentDate.weekday;
+            let dayOffPrefName = "calendar.week.d" + weekDay + weekdayMap[weekDay] + "soff";
+            if (cal.getPrefSafe(dayOffPrefName, false)) {
+                dayBox.className += " day-off";
+            }
+
+            if (currentDate.month != mainMonth) {
+                dayBox.className += " out-of-month";
+            }
+            currentDate.day++;
         }
 
-        for (let i = 0; i < 7; i++) {
-            let myClass = 'day-box';
-            if (dt.month != targetMonth) {
-                myClass += ' out-of-month';
-            } else if (daysOff.some(function(a) { return a == dt.weekday; })) {
-                myClass += ' day-off';
-            }
-            let day = <td align='left' valign='top' class={myClass} height='100' width='100'/>
-            let innerTable = <table valign='top' style='font-size: 10px;'/>
-            let dateLabel = <tr valign='top'>
-                                <td valign='top' align='left'>{dt.day}</td>
-                            </tr>
-            innerTable.appendChild(dateLabel);
-            let defaultTimezone = cal.calendarDefaultTimezone();
-            for each (let item in sortedList) {
-                let sDate = item.startDate || item.entryDate || item.dueDate;
-                let eDate = item.endDate || item.dueDate || item.entryDate;
-                if (sDate) {
-                    sDate = sDate.getInTimezone(defaultTimezone);
-                }
-                if (eDate) {
-                    eDate = eDate.getInTimezone(defaultTimezone);
-                }
-
-                // end dates are exclusive
-                if (sDate.isDate) {
-                    eDate = eDate.clone();
-                    eDate.day -= 1;
-                }
-                if (!eDate || eDate.compare(dt) == -1) {
-                    continue;
-                }
-                let itemListIndex = i;
-                if (!sDate || sDate.compare(dt) == 1) {
-                    break;
-                }
-
-                let time = (!sDate.isDate ? cal.getDateFormatter().formatTime(sDate) : "");
-                let calColor = item.calendar.getProperty('color') || "#A8C2E1";
-                let pb2 = Components.classes["@mozilla.org/preferences-service;1"]
-                                    .getService(Components.interfaces.nsIPrefBranch);
-                let catColor;
-                for each (let cat in item.getCategories({})) {
-                    try {
-                        catColor = pb2.getCharPref("calendar.category.color." + cal.formatStringForCSSRule(cat));
-                        break; // take first matching
-                    } catch (ex) {}
-                }
-
-                let style = 'font-size: 11px; text-align: left;';
-                style += ' background-color: ' + calColor + ';';
-                style += ' color: ' + cal.getContrastingTextColor(calColor) + ';';
-                if (catColor) {
-                    style += ' border: solid ' + catColor + ' 2px;';
-                }
-                let tableRow = <tr><td valign='top' style={style}>{time} {item.title}</td></tr>;
-                innerTable.appendChild(tableRow);
-            }
-            day.appendChild(innerTable);
-            weekRow.appendChild(day);
-            dt.day++;
-        }
-        return weekRow;
+        // No need for sorting, setupWeek will be called in sequence
+        weekContainer.appendChild(currentWeek);
     }
 };

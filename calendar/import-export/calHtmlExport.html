@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+   "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title id="title"></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style type="text/css" id="sheet">
+      .vevent {
+        border: 1px solid black;
+        padding: 0;
+        margin-bottom: 10px;
+      }
+
+      .key {
+        font-style: italic;
+        margin-left: 3px;
+      }
+
+      .value {
+        margin-left: 20px;
+      }
+
+      abbr {
+        border: none;
+      }
+
+      .summarykey {
+        display: none;
+      }
+
+      .summary {
+        font-weight: bold;
+        margin: 0;
+        padding: 3px;
+      }
+
+      .description {
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body id="item-container">
+    <!-- Note on the use of the summarykey class:
+         This node is hidden by default for better readability. If you would
+         like to show the key, remove the display style above. -->
+    <div id="templates">
+      <div class="vevent" id="item-template">
+        <div class="row summaryrow">
+          <div class="key summarykey"></div>
+          <div class="value summary"></div>
+        </div>
+        <div class="row intervalrow">
+          <div class="key intervalkey"></div>
+          <div class="value">
+            <abbr class="dtstart"></abbr>
+          </div>
+        </div>
+        <div class="row locationrow">
+          <div class="key locationkey"></div>
+          <div class="value location"></div>
+        </div>
+        <div class="row descriptionrow">
+          <div class="key descriptionkey"></div>
+          <div class="value description"></div>
+        </div>
+
+      </div>
+    </div>
+  </body>
+</html>

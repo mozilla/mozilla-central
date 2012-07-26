@@ -59,15 +59,75 @@ function loadCalendarPrintDialog() {
 }
 
 /**
- * Gets the settings from the dialog's UI widgets.
- * notifies an Object with title, layoutCId, eventList, start, and end
- *          properties containing the appropriate values.
+ * Retrieves a settings object containing info on what to print. The
+ * receiverFunc will be called with the settings object containing various print
+ * settings.
+ *
+ * @param receiverFunc  The callback function to call on completion.
  */
-function getEventsAndDialogSettings(receiverFunc) {
-    let settings = getWhatToPrintSettings();
-    if (settings.eventList.length != 0) {
-        receiverFunc(settings);
-    } else {
+function getPrintSettings(receiverFunc) {
+    let tempTitle = document.getElementById("title-field").value;
+    let settings = new Object();
+    let requiresFetch = true;
+    settings.title = (tempTitle || calGetString("calendar", "Untitled"));
+    settings.layoutCId = document.getElementById("layout-field").value;
+    settings.start = null;
+    settings.end = null;
+    settings.eventList = [];
+    settings.printEvents = document.getElementById("events").checked;
+    settings.printTasks = document.getElementById("tasks").checked;
+    settings.printCompletedTasks = document.getElementById("completed-tasks").checked;
+    settings.printTasksWithNoDueDate = document.getElementById("tasks-with-no-due-date").checked;
+    var theView = getCalendarView();
+    switch (document.getElementById("view-field").selectedItem.value) {
+    case 'currentView':
+    case '': //just in case
+        settings.start = theView.startDay.clone();
+        settings.end = theView.endDay.clone();
+        settings.end.day += 1;
+        settings.start.isDate = false;
+        settings.end.isDate = false;
+        break;
+    case 'selected': {
+        let selectedItems = theView.getSelectedItems({});
+        settings.eventList = selectedItems.filter(function(item) {
+            if (cal.isEvent(item) && !settings.printEvents) return false;
+            if (cal.isToDo(item) && !settings.printTasks) return false;
+            return true;
+        });
+
+        // If tasks should be printed, also include selected tasks from the
+        // opening window.
+        if (settings.printTasks) {
+            let selectedTasks = window.opener.getSelectedTasks();
+            for each (var task in selectedTasks) {
+                settings.eventList.push(task);
+            }
+        }
+
+        // We've set the event list above, no need to fetch items below.
+        requiresFetch = false;
+        break;
+    }
+    case 'custom':
+        // We return the time from the timepickers using the selected
+        // timezone, as not doing so in timezones with a positive offset
+        // from UTC may cause the printout to include the wrong days.
+        var currentTimezone = calendarDefaultTimezone();
+        settings.start = jsDateToDateTime(document.getElementById("start-date-picker").value);
+        settings.start = settings.start.getInTimezone(currentTimezone);
+        settings.end = jsDateToDateTime(document.getElementById("end-date-picker").value);
+        settings.end = settings.end.getInTimezone(currentTimezone);
+        settings.end = settings.end.clone();
+        settings.end.day += 1;
+        break ;
+    default:
+        dump("Error : no case in printDialog.js::printCalendar()");
+    }
+
+    // Some filters above might have filled the events list themselves. If not,
+    // then fetch the items here.
+    if (requiresFetch) {
         let listener = {
             onOperationComplete:
             function onOperationComplete(aCalendar, aStatus, aOperationType, aId, aDateTime) {
@@ -87,63 +147,16 @@ function getEventsAndDialogSettings(receiverFunc) {
                 }
             }
         };
-        window.opener.getCompositeCalendar().getItems(getFilter(settings), 0, settings.start, settings.end, listener);
-    }
-}
-
-/**
- * Retrieves a settings object containing info on what to print
- *
- * @return      The settings object with all print settings
- */
-function getWhatToPrintSettings() {
-    let tempTitle = document.getElementById("title-field").value;
-    let settings = new Object();
-    settings.title = (tempTitle || calGetString("calendar", "Untitled"));
-    settings.layoutCId = document.getElementById("layout-field").value;
-    settings.start = null;
-    settings.end = null;
-    settings.eventList = [];
-    settings.printEvents = document.getElementById("events").checked;
-    settings.printTasks = document.getElementById("tasks").checked;
-    settings.printCompletedTasks = document.getElementById("completed-tasks").checked;
-    settings.printTasksWithNoDueDate = document.getElementById("tasks-with-no-due-date").checked;
-    var theView = getCalendarView();
-    switch (document.getElementById("view-field").selectedItem.value) {
-    case 'currentView':
-    case '': //just in case
-        settings.start = theView.startDay;
-        settings.end = theView.endDay;
-        settings.end = settings.end.clone();
-        settings.end.day += 1;
-        break;
-    case 'selected':
-        if (settings.printEvents) {
-            settings.eventList = theView.getSelectedItems({});
+        let filter = getFilter(settings);
+        if (filter) {
+            window.opener.getCompositeCalendar().getItems(filter, 0, settings.start, settings.end, listener);
+        } else {
+            // No filter means no items, just complete with the empty list set above
+            receiverFunc(settings);
         }
-        if (settings.printTasks) {
-            let selectedTasks = window.opener.document.getElementById("unifinder-todo-tree").selectedTasks;
-            for each (var task in selectedTasks) {
-                settings.eventList.push(task);
-            }
-        }
-        break;
-    case 'custom':
-        // We return the time from the timepickers using the selected
-        // timezone, as not doing so in timezones with a positive offset
-        // from UTC may cause the printout to include the wrong days.
-        var currentTimezone = calendarDefaultTimezone();
-        settings.start = jsDateToDateTime(document.getElementById("start-date-picker").value);
-        settings.start = settings.start.getInTimezone(currentTimezone);
-        settings.end = jsDateToDateTime(document.getElementById("end-date-picker").value);
-        settings.end = settings.end.getInTimezone(currentTimezone);
-        settings.end = settings.end.clone();
-        settings.end.day += 1;
-        break ;
-    default:
-        dump("Error : no case in printDialog.js::printCalendar()");
+    } else {
+        receiverFunc(settings);
     }
-    return settings;
 }
 
 /**
@@ -176,15 +189,7 @@ function getFilter(settings) {
  * dialog UI element has changed, since we'll want to refresh the preview.
  */
 function refreshHtml(finishFunc) {
-    if (document.documentElement.getButton("accept").disabled) {
-        // If the accept button is disabled, then something wants us to not
-        // print. Bail out before refreshing the html, otherwise errors might
-        // occur. Don't call the finish func, its expected to be called on
-        // success.
-        return;
-    }
-    getEventsAndDialogSettings(
-        function getEventsAndDialogSettings_response(settings) {
+    getPrintSettings(function getSettingsResponse(settings) {
             document.title = calGetString("calendar", "PrintPreviewWindowTitle", [settings.title]);
 
             let printformatter = Components.classes[settings.layoutCId]
@@ -286,18 +291,5 @@ function printAndClose() {
  */
 function onDatePick() {
     calRadioGroupSelectItem("view-field", "custom-range");
-    refreshHtml();
-}
-
-/**
- * Update the disabled state of the controls on the dialog, if not all print
- * parameters are set (i.e nothing to print).
- */
-function updatePrintState() {
-    let columns = document.getElementById("columns-for-events-and-tasks");
-    let cboxes = columns.getElementsByTagName("checkbox");
-
-    // If no checkboxes are checked, disable the print button
-    let someChecked = Array.slice(cboxes).some(function(x) x.checked);
-    document.documentElement.getButton("accept").disabled = !someChecked;
+    setTimeout(refreshHtml, 0);
 }

@@ -5,6 +5,7 @@
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://calendar/modules/calXMLUtils.jsm");
 
 function ltnMimeConverter() {
 }
@@ -62,22 +63,6 @@ ltnMimeConverter.prototype = {
     },
 
     /**
-     * Synchronously read the given uri and return its xml document
-     *
-     * @param uri       The uri to read.
-     * @return          The response DOM Document.
-     */
-    readChromeUri: function readChromeUri(uri) {
-        let req = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
-                            .createInstance(Components.interfaces.nsIXMLHttpRequest);
-
-        req.open('GET', uri, false);
-        req.overrideMimeType("text/xml");
-        req.send(null);
-        return req.responseXML;
-    },
-
-    /**
      * Returns the html representation of the event as a DOM document.
      *
      * @param event     The calIItemBase to parse into html.
@@ -85,7 +70,7 @@ ltnMimeConverter.prototype = {
      */
     createHtml: function createHtml(event) {
         // Creates HTML using the Node strings in the properties file
-        let doc = this.readChromeUri("chrome://lightning/content/lightning-invitation.xhtml");
+        let doc = cal.xml.parseFile("chrome://lightning/content/lightning-invitation.xhtml");
         let self = this;
         function field(field, contentText, linkify) {
             let descr = doc.getElementById("imipHtml-" + field + "-descr");

@@ -2,41 +2,27 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 /**
- * A thin wrapper that is a print formatter, and just calls the html (list)
- * exporter
+ * A thin wrapper around the html list exporter for the list print format.
  */
 function calListFormatter() {
 }
 
 calListFormatter.prototype = {
-    getInterfaces: function (count) {
-        const ifaces = [
-            Components.interfaces.nsISupports,
-            Components.interfaces.nsIClassInfo,
-            Components.interfaces.calIPrintFormatter,
-        ];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function (language) {
-        return null;
-    },
-
-    contractID: "@mozilla.org/calendar/printformatter;1?type=list",
-    classDescription: "Calendar List Print Formatter",
     classID: Components.ID("{9ae04413-fee3-45b9-8bbb-1eb39a4cbd1b}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIPrintFormatter]),
 
-    QueryInterface: function QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calListFormatter.prototype, aIID, null, this);
-    },
+    classInfo: XPCOMUtils.generateCI({
+        classID: Components.ID("{9ae04413-fee3-45b9-8bbb-1eb39a4cbd1b}"),
+        contractID: "@mozilla.org/calendar/printformatter;1?type=list",
+        classDescription: "Calendar List Print Formatter",
+        interfaces: [Components.interfaces.calIPrintFormatter]
+    }),
 
-    get name() {
-        return cal.calGetString("calendar", "formatListName");
-    },
+    get name() cal.calGetString("calendar", "formatListName"),
 
     formatToHtml: function list_formatToHtml(aStream, aStart, aEnd, aCount, aItems, aTitle) {
         let htmlexporter = Components.classes["@mozilla.org/calendar/export;1?type=htmllist"]

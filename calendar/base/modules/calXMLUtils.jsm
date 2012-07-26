@@ -2,11 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* Helper functions for parsing and serializing XML */
+/** Helper functions for parsing and serializing XML */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
-EXPORTED_SYMBOLS = ["cal"]
+EXPORTED_SYMBOLS = ["cal"];
 cal.xml = {} || cal.xml;
 
 /**
@@ -45,7 +45,7 @@ cal.xml.evalXPath = function evaluateXPath(aNode, aExpr, aResolver, aType) {
         case XPR.ORDERED_NODE_ITERATOR_TYPE:
         case XPR.ORDERED_NODE_ITERATOR_TYPE:
             returnResult = [];
-            while (next = result.iterateNext()) {
+            while ((next = result.iterateNext())) {
                 if (next instanceof Components.interfaces.nsIDOMText) {
                     returnResult.push(next.wholeText);
                 } else if (next instanceof Components.interfaces.nsIDOMAttr) {
@@ -122,6 +122,23 @@ cal.xml.parseString = function(str, docUri, baseUri) {
                  .createInstance(Components.interfaces.nsIDOMParser);
     parser.init(null, docUri, baseUri);
     return parser.parseFromString(str, "application/xml");
+};
+
+/**
+ * Read an XML file synchronously. This method should be avoided, consider
+ * rewriting the caller to be asynchronous.
+ *
+ * @param uri       The URI to read.
+ * @return          The DOM Document resulting from the file.
+ */
+cal.xml.parseFile = function(uri) {
+    let req = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
+                        .createInstance(Components.interfaces.nsIXMLHttpRequest);
+
+    req.open('GET', uri, false);
+    req.overrideMimeType("text/xml");
+    req.send(null);
+    return req.responseXML;
 };
 
 /**

@@ -152,6 +152,17 @@ calDateTimeFormatter.prototype = {
         }
     },
 
+    formatTimeInterval: function formatTimeInterval(aStartDate, aEndDate) {
+        if (!aStartDate && aEndDate) return this.formatTime(aEndDate);
+        if (!aEndDate && aStartDate) return this.formatTime(aStartDate);
+        if (!aStartDate && !aEndDate) return "";
+
+        // TODO do we need l10n for this?
+        // TODO should we check for the same day? The caller should know what
+        // he is doing...
+        return this.formatTime(aStartDate) + "\u2013" + this.formatTime(aEndDate);
+    },
+
     formatInterval: function formatInterval(aStartDate, aEndDate) {
         // Check for tasks without start and/or due date
         if (aEndDate == null && aStartDate == null ) {
@@ -219,7 +230,7 @@ calDateTimeFormatter.prototype = {
         }
     },
 
-    formatItemInterval: function formatItemInterval(aItem) {
+    _getItemDates: function _getItemDates(aItem) {
         let start = aItem[calGetStartDateProp(aItem)];
         let end = aItem[calGetEndDateProp(aItem)];
         let kDefaultTimezone = calendarDefaultTimezone();
@@ -235,7 +246,16 @@ calDateTimeFormatter.prototype = {
         if (start && start.isDate && end) {
             end.day -= 1;
         }
-        return this.formatInterval(start, end);
+
+        return [start, end];
+    },
+
+    formatItemInterval: function formatItemInterval(aItem) {
+        return this.formatInterval.apply(this, this._getItemDates(aItem));
+    },
+
+    formatItemTimeInterval: function formatItemTimeInterval(aItem) {
+        return this.formatTimeInterval.apply(this, this._getItemDates(aItem));
     },
 
     monthName: function monthName(aMonthIndex) {
