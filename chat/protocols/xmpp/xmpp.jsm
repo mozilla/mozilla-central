@@ -600,9 +600,11 @@ const XMPPAccountPrototype = {
       this._sendPresence();
     else if (aTopic == "user-icon-changed") {
       delete this._cachedUserIcon;
+      this._forceUserIconUpdate = true;
       this._sendVCard();
     }
     else if (aTopic == "user-display-name-changed")
+      this._forceUserDisplayNameUpdate = true;
       this._sendVCard();
   },
 
@@ -1067,6 +1069,9 @@ const XMPPAccountPrototype = {
     // account isn't connected, so clear the cache to avoid keeping an
     // obsolete icon.
     delete this._cachedUserIcon;
+    // Also clear the cached user vCard, as we will want to redownload it
+    // after reconnecting.
+    delete this._userVCard;
 
     this.reportDisconnected();
   },
@@ -1099,8 +1104,40 @@ const XMPPAccountPrototype = {
     this._connection.sendStanza(Stanza.presence({"xml:lang": "en"}, children));
   },
 
+  _downloadingUserVCard: false,
+  _downloadUserVCard: function() {
+    // If a download is already in progress, don't start another one.
+    if (this._downloadingUserVCard)
+      return;
+    this._downloadingUserVCard = true;
+    let s = Stanza.iq("get", null, null,
+                      Stanza.node("vCard", Stanza.NS.vcard));
+    this._connection.sendStanza(s, this.onUserVCard, this);
+  },
+
+  onUserVCard: function(aStanza) {
+    delete this._downloadingUserVCard;
+    this._userVCard = aStanza.getElement(["vCard"]) || null;
+    // If a user icon exists in the vCard we received from the server,
+    // we need to ensure the line breaks in its binval are exactly the
+    // same as those we would include if we sent the icon, and that
+    // there isn't any other whitespace.
+    if (this._userVCard) {
+      let binval = this._userVCard.getElement(["PHOTO", "BINVAL"]);
+      if (binval && binval.children.length) {
+        binval = binval.children[0];
+        binval.text = binval.text.replace(/[^A-Za-z0-9\+\/\=]/g, "")
+                                 .replace(/.{74}/g, "$&\n");
+      }
+    }
+    this._sendVCard();
+  },
+
   _cachingUserIcon: false,
   _cacheUserIcon: function() {
+    if (this._cachingUserIcon)
+      return;
+
     let userIcon = this.imAccount.statusInfo.getUserIcon();
     if (!userIcon) {
       this._cachedUserIcon = null;
@@ -1148,27 +1185,80 @@ const XMPPAccountPrototype = {
     if (!this._connection)
       return;
 
-    if (!this.hasOwnProperty("_cachedUserIcon")) {
-      if (!this._cachingUserIcon)
-        this._cacheUserIcon();
+    // We have to download the user's existing vCard before updating it.
+    // This lets us preserve the fields that we don't change or don't know.
+    // Some servers may reject a new vCard if we don't do this first.
+    if (!this.hasOwnProperty("_userVCard")) {
+      // The download of the vCard is asyncronous and will call _sendVCard back
+      // when the user's vCard has been received.
+      this._downloadUserVCard();
       return;
     }
 
-    let vCardEntries = [];
+    // Read the local user icon asynchronously from the disk.
+    // _cacheUserIcon will call _sendVCard back once the icon is ready.
+    if (!this.hasOwnProperty("_cachedUserIcon")) {
+      this._cacheUserIcon();
+      return;
+    }
+
+    // If the user currently doesn't have any vCard on the server or
+    // the download failed, an empty new one.
+    if (!this._userVCard)
+      this._userVCard = Stanza.node("vCard", Stanza.NS.vcard);
+
+    // Keep a serialized copy of the existing user vCard so that we
+    // can avoid resending identical data to the server.
+    let existingVCard = this._userVCard.getXML();
+
+    let fn = this._userVCard.getElement(["FN"]);
     let displayName = this.imAccount.statusInfo.displayName;
-    if (displayName)
-      vCardEntries.push(Stanza.node("FN", Stanza.NS.vcard, null, displayName));
+    if (displayName) {
+      // If a display name is set locally, update or add an FN field to the vCard.
+      if (!fn)
+        this._userVCard.addChild(Stanza.node("FN", Stanza.NS.vcard, null, displayName));
+      else {
+        if (fn.children.length)
+          fn.children[0].text = displayName;
+        else
+          fn.addText(displayName);
+      }
+    }
+    else if ("_forceUserDisplayNameUpdate" in this) {
+      // We remove a display name stored on the server without replacing
+      // it with a new value only if this _sendVCard call is the result of
+      // a user action. This is to avoid removing data from the server each
+      // time the user connects from a new profile.
+      this._userVCard.children =
+        this._userVCard.children.filter(function (n) n.qName != "FN");
+    }
+    delete this._forceUserDisplayNameUpdate;
+
     if (this._cachedUserIcon) {
+      // If we have a local user icon, update or add it in the PHOTO field.
       let photoChildren = [
         Stanza.node("TYPE", Stanza.NS.vcard, null, this._cachedUserIcon.type),
         Stanza.node("BINVAL", Stanza.NS.vcard, null, this._cachedUserIcon.binval)
       ];
-      vCardEntries.push(Stanza.node("PHOTO", Stanza.NS.vcard, null,
-                                    photoChildren));
+      let photo = this._userVCard.getElement(["PHOTO"]);
+      if (photo)
+        photo.children = photoChildren;
+      else
+        this._userVCard.addChild(Stanza.node("PHOTO", Stanza.NS.vcard, null,
+                                             photoChildren));
     }
-    let s = Stanza.iq("set", null, null,
-                      Stanza.node("vCard", Stanza.NS.vcard, null, vCardEntries));
+    else if ("_forceUserIconUpdate" in this) {
+      // Like for the display name, we remove a photo without
+      // replacing it only if the call is caused by a user action.
+      this._userVCard.children =
+        this._userVCard.children.filter(function (n) n.qName != "PHOTO");
+    }
+    delete this._forceUserIconUpdate;
 
-    this._connection.sendStanza(s);
+    // Send the vCard only if it has really changed.
+    if (this._userVCard.getXML() != existingVCard)
+      this._connection.sendStanza(Stanza.iq("set", null, null, this._userVCard));
+    else
+      LOG("Not sending the vCard because the server stored vCard is identical.");
   }
 };
