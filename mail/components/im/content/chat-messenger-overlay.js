@@ -99,7 +99,6 @@ var chatTabType = {
     else
       delete item.searchTerm;
     item.hidden = false;
-    item.shouldDisplayConversation = true;
     if (item.selected)
       chatHandler.onListItemSelected();
     else
@@ -339,8 +338,11 @@ var chatHandler = {
     document.getElementById("logDisplayDeck").selectedPanel =
       document.getElementById("logDisplayBrowserBox");
   },
-  _showLog: function(aConversation, aSearchTerm) {
+  _showLog: function(aConversation, aPath, aSearchTerm) {
     this._showLogPanel();
+    if (this._displayedLog == aPath)
+      return;
+    this._displayedLog = aPath;
     let browser = document.getElementById("conv-log-browser");
     browser._autoScrollEnabled = false;
     if (this._pendingLogBrowserLoad) {
@@ -412,11 +414,7 @@ var chatHandler = {
     let list = document.getElementById("contactlistbox");
     if (list.selectedItem.getAttribute("id") != "searchResultConv")
       document.getElementById("goToConversation").hidden = false;
-    let path = log.path;
-    if (!this._displayedLog || this._displayedLog != path) {
-      this._displayedLog = path;
-      this._showLog(log.getConversation());
-    }
+    this._showLog(log.getConversation(), log.path);
   },
 
   _contactObserver: {
@@ -514,10 +512,7 @@ var chatHandler = {
       document.getElementById("goToConversation").hidden = true;
       document.getElementById("contextPane").removeAttribute("chat");
       let conv = log.getConversation();
-      if (item.shouldDisplayConversation) {
-        this._displayedLog = log.path;
-        this._showLog(conv, item.searchTerm || undefined);
-      }
+      this._showLog(conv, file.path, item.searchTerm || undefined);
       let cti = document.getElementById("conv-top-info");
       cti.setAttribute("displayName", conv.title);
       cti.removeAttribute("userIcon");
@@ -527,21 +522,15 @@ var chatHandler = {
       cti.removeAttribute("statusTypeTooltiptext");
 
       let logs = this._showLogList(imServices.logs.getSimilarLogs(log));
-      if (item.shouldDisplayConversation) {
-        let time = log.time;
-        let list = document.getElementById("logList");
-        let logItem = list.firstChild;
-        while (logItem) {
-          if (logItem.log.time == time) {
-            list.selectedItem = logItem;
-            break;
-          }
-          logItem = logItem.nextSibling;
+      let time = log.time;
+      let list = document.getElementById("logList");
+      let logItem = list.firstChild;
+      while (logItem) {
+        if (logItem.log.time == time) {
+          list.selectedItem = logItem;
+          break;
         }
-        delete item.shouldDisplayConversation;
-      }
-      else {
-        this._showLogPanel();
+        logItem = logItem.nextSibling;
       }
 
       this.observedContact = null;

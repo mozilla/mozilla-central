@@ -241,11 +241,12 @@
      </method>
     </implementation>
     <handlers>
-     <handler event="mousedown">
+     <handler event="mousedown" phase="capturing">
        <![CDATA[
          let anonid = event.originalTarget.getAttribute("anonid");
          if (anonid == "closeConversationButton") {
            closeConversation();
+           event.stopPropagation();
            event.preventDefault();
          }
        ]]>
