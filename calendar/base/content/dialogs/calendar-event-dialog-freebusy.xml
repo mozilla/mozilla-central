@@ -68,9 +68,7 @@
         <xul:text class="freebusy-timebar-title"
                   style="font-weight:bold;"
                   anonid="day"/>
-        <xul:box equalsize="always" anonid="hours">
-          <xul:text class="freebusy-timebar-hour"/>
-        </xul:box>
+        <xul:box equalsize="always" anonid="hours"/>
       </xul:box>
     </content>
 
@@ -89,12 +87,8 @@
         ]]></getter>
         <setter><![CDATA[
           this.mZoomFactor = val;
-          var hours =
-              document.getAnonymousElementByAttribute(
-                  this, "anonid", "hours");
-          while (hours.childNodes.length > 1) {
-              hours.removeChild(hours.lastChild);
-          }
+          let hours = document.getAnonymousElementByAttribute(this, "anonid", "hours");
+          removeChildren(hours);
           return val;
         ]]></setter>
       </property>
@@ -107,13 +101,8 @@
           this.mForce24Hours = val;
           this.initTimeRange();
 
-          var hours =
-              document.getAnonymousElementByAttribute(
-                  this, "anonid", "hours");
-          while (hours.childNodes.length > 1) {
-              hours.removeChild(hours.lastChild);
-          }
-
+          let hours = document.getAnonymousElementByAttribute(this, "anonid", "hours");
+          removeChildren(hours);
           return val;
         ]]></setter>
       </property>
@@ -191,20 +180,27 @@
               document.getAnonymousElementByAttribute(
                   this, "anonid", "hours");
           date.hour = this.mStartHour;
-          if (hours.childNodes.length <= 1) {
-              var template = hours.childNodes[0];
-              var time = this.mDateFormatter.formatTime(date);
-              template.setAttribute("value", time);
-              date.minute += step_in_minutes;
+          if (hours.childNodes.length <= 0) {
+              var template = createXULElement("text");
+              template.className = "freebusy-timebar-hour";
               var count = Math.ceil(
                   (this.mEndHour - this.mStartHour) * 60 / step_in_minutes);
-              var remain = count - 1;
+              var remain = count;
+              let first = true;
               while (remain--) {
                   var newNode = template.cloneNode(false);
                   var value = this.mDateFormatter.formatTime(date);
+                  if (first) {
+                      newNode.className += " first-in-day";
+                      first = false;
+                  }
                   newNode.setAttribute("value", value);
                   hours.appendChild(newNode);
                   date.minute += step_in_minutes;
+
+                  if (remain == 0) {
+                      newNode.className += " last-in-day"
+                  }
               }
           }
 
@@ -230,7 +226,9 @@
         <xul:listcols>
           <xul:listcol anonid="day-column" flex="1"/>
         </xul:listcols>
-        <xul:listitem anonid="item" allowevents="true">
+        <xul:listitem anonid="item"
+                      class="freebusy-listitem"
+                      allowevents="true">
           <xul:listcell >
             <xul:scroll-container anonid="container">
               <xul:freebusy-day anonid="template"/>
@@ -537,9 +535,7 @@
   <binding id="freebusy-row" extends="xul:box">
     <content>
       <xul:scroll-container flex="1" anonid="container">
-        <xul:box equalsize="always" anonid="hours">
-          <xul:text class="freebusy-grid"/>
-        </xul:box>
+        <xul:box equalsize="always" anonid="hours"/>
       </xul:scroll-container>
     </content>
 
@@ -562,13 +558,8 @@
         <setter><![CDATA[
           this.mZoomFactor = val;
 
-          var hours =
-              document.getAnonymousElementByAttribute(
-                  this, "anonid", "hours");
-          while (hours.childNodes.length > 1) {
-              hours.removeChild(hours.lastChild);
-          }
-
+          let hours = document.getAnonymousElementByAttribute(this, "anonid", "hours");
+          removeChildren(hours);
           this.onLoad();
 
           return val;
@@ -583,13 +574,8 @@
           this.mForce24Hours = val;
           this.initTimeRange();
 
-          var hours =
-              document.getAnonymousElementByAttribute(
-                  this, "anonid", "hours");
-          while (hours.childNodes.length > 1) {
-              hours.removeChild(hours.lastChild);
-          }
-
+          let hours = document.getAnonymousElementByAttribute(this, "anonid", "hours");
+          removeChildren(hours);
           this.onLoad();
 
           return val;
@@ -714,23 +700,31 @@
           let hours =
               document.getAnonymousElementByAttribute(
                   this, "anonid", "hours");
-          if (hours.childNodes.length <= 1) {
-              let template = hours.childNodes[0];
-              let time = formatter.formatTime(date);
-              template.setAttribute("value", time);
-              date.minute += step_in_minutes;
+          if (hours.childNodes.length <= 0) {
+              let template = createXULElement("text");
+              template.className = "freebusy-grid";
               // TODO: hardcoded value
               let num_days = Math.max(2, 4 * this.mZoomFactor / 100);
               let count = Math.ceil(
                   (this.mEndHour - this.mStartHour) * 60 / step_in_minutes);
-              let remain = count - 1;
+              let remain = count;
               for (let day = 1; day <= num_days; day++) {
+                  let first = true;
                   while (remain--) {
                       let newNode = template.cloneNode(false);
                       let value = formatter.formatTime(date);
+                      if (first) {
+                          newNode.className += " first-in-day";
+                          first = false;
+                      }
+
                       newNode.setAttribute("value", value);
                       hours.appendChild(newNode);
                       date.minute += step_in_minutes;
+
+                      if (remain == 0) {
+                          newNode.className += " last-in-day"
+                      }
                   }
                   date.hour = this.mStartHour;
                   date.day++;

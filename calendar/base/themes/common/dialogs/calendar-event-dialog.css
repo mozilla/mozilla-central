@@ -163,8 +163,32 @@ daypicker-monthday {
  *-------------------------------------------------------------------*/
 
 .listbox-noborder {
+    -moz-appearance: none;
     margin: 0px 0px;
-    border-style: none;
+    border: 1px solid #8D8E90;
+}
+
+dialog[systemcolors] .listbox-noborder {
+    border: 1px solid ThreeDShadow;
+}
+
+#timebar > .listbox-noborder {
+    border-bottom-style: none;
+}
+
+#freebusy-grid > .listbox-noborder {
+    border-top-color: transparent;
+}
+
+/* remove on Windows the double border with the splitter */
+@media (-moz-windows-theme) {
+    #attendees-list > .listbox-noborder {
+        -moz-border-end-style: none;
+    }
+    #timebar > .listbox-noborder,
+    #freebusy-grid > .listbox-noborder {
+        -moz-border-start-style: none;
+    }
 }
 
 .selection-bar {
@@ -179,19 +203,55 @@ daypicker-monthday {
     clip: rect(0px 0px 0px 0px);
 }
 
+.freebusy-listitem {
+    border-width: 0px;
+}
+
+freebusy-day {
+    -moz-margin-end: 2px;
+    -moz-border-start: 1px solid #8D8E90;
+    -moz-border-end: 1px solid #8D8E90;
+    border-bottom: 1px solid #8D8E90;
+}
+
+dialog[systemcolors] freebusy-day {
+    -moz-border-start: 1px solid ThreeDShadow;
+    -moz-border-end: 1px solid ThreeDShadow;
+    border-bottom: 1px solid ThreeDShadow;
+}
+
+freebusy-day:first-child,
+dialog[systemcolors] freebusy-day:first-child {
+    -moz-border-start: 1px solid transparent;
+}
+
+freebusy-day:last-child,
+dialog[systemcolors] freebusy-day:last-child {
+    -moz-border-end: 1px solid transparent;
+}
+
+/* negative margins to clear freebusy-day's border and margin */
+freebusy-day > box {
+    -moz-margin-start: -1px;
+    -moz-margin-end: -3px;
+}
+
 .freebusy-content {
     overflow: hidden;
     clip: rect(0px 0px 0px 0px);
 }
 
-/* -moz-margin-end 1px is needed to take border-right from the grid elements into account */
+/* -moz-margin-end 2px is needed to take border-right from the grid elements into account */
 .freebusy-timebar-title {
-    -moz-margin-end: 1px;
+    -moz-margin-end: 2px;
+    -moz-padding-start: 2px;
 }
 
 .freebusy-timebar-hour {
-    -moz-margin-end: 1px;
-    margin-bottom: 5px;
+    -moz-padding-start: 2px;
+    -moz-padding-end: 3px;
+    margin-top: 2px;
+    margin-bottom: 3px;
 }
 
 .freebusy-timebar-hour[scheduled="true"] {
@@ -205,10 +265,15 @@ daypicker-monthday {
 }
 
 .freebusy-grid {
-    border-right: 1px solid #BDBEC0;
+    -moz-border-start: 1px solid #BDBEC0;
     background-color: #E09EBD;
     color: #E09EBD;
     min-height: 16px;
+    -moz-padding-start: 1px;
+}
+
+dialog[systemcolors] .freebusy-grid {
+    -moz-border-start: 1px solid ThreeDShadow;
 }
 
 .freebusy-grid[state="busy"] {
@@ -229,6 +294,20 @@ daypicker-monthday {
 .freebusy-grid[state="free"] {
     background-color: #EBEBE4;
     color: #EBEBE4;
+}
+
+.freebusy-grid:first-child,
+dialog[systemcolors] .freebusy-grid:first-child {
+    -moz-border-start: 1px solid transparent;
+}
+
+.freebusy-grid.last-in-day {
+    -moz-border-end: 1px solid #8D8E90;
+    -moz-margin-end: 2px;
+}
+
+dialog[systemcolors] .freebusy-grid.last-in-day {
+    -moz-border-end: 1px solid ThreeDShadow;
 }
 
 #dialog-box {
@@ -267,13 +346,16 @@ daypicker-monthday {
     padding: 0px;
 }
 
+dialog[systemcolors] .addressingWidgetCell {
+    border-bottom: 1px solid ThreeDShadow;
+}
+
 .addressingWidgetCell:first-child {
     border-top: none;
 }
 
 .dummy-row-cell:first-child {
     border-top: none;
-    border-bottom: 1px solid #CACAFF;
 }
 
 .person-icon {

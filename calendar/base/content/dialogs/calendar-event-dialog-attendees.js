@@ -39,24 +39,6 @@ function onLoad() {
 
     onChangeCalendar(calendar);
 
-    // we need to enforce several layout constraints which can't be modelled
-    // with plain xul and css, at least as far as i know.
-    const kStylesheet = "chrome://calendar/skin/calendar-event-dialog.css";
-    for each (var stylesheet in document.styleSheets) {
-        if (stylesheet.href == kStylesheet) {
-            // make the dummy-spacer #1 [top] the same height as the timebar
-            var timebar = document.getElementById("timebar");
-            stylesheet.insertRule(
-                ".attendee-spacer-top { height: "
-                    + timebar.boxObject.height+"px; }", 0);
-            // make the dummy-spacer #2 [bottom] the same height as the scrollbar
-            var scrollbar = document.getElementById("horizontal-scrollbar");
-            stylesheet.insertRule(
-                ".attendee-spacer-bottom { height: "
-                    + scrollbar.boxObject.height+"px; }", 0);
-            break;
-        }
-    }
 
     let zoom = document.getElementById("zoom-menulist");
     let zoomOut = document.getElementById("zoom-out-button");
@@ -88,6 +70,25 @@ function onLoad() {
     propagateDateTime();
 
     updateButtons();
+
+    // we need to enforce several layout constraints which can't be modelled
+    // with plain xul and css, at least as far as i know.
+    const kStylesheet = "chrome://calendar/skin/calendar-event-dialog.css";
+    for each (var stylesheet in document.styleSheets) {
+        if (stylesheet.href == kStylesheet) {
+            // make the dummy-spacer #1 [top] the same height as the timebar
+            var timebar = document.getElementById("timebar");
+            stylesheet.insertRule(
+                ".attendee-spacer-top { height: "
+                    + timebar.boxObject.height+"px; }", 0);
+            // make the dummy-spacer #2 [bottom] the same height as the scrollbar
+            var scrollbar = document.getElementById("horizontal-scrollbar");
+            stylesheet.insertRule(
+                ".attendee-spacer-bottom { height: "
+                    + scrollbar.boxObject.height+"px; }", 0);
+            break;
+        }
+    }
 
     // attach an observer to get notified of changes
     // that are relevant to this dialog.
