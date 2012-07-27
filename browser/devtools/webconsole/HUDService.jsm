@@ -5013,18 +5013,21 @@ JSTerm.prototype = {
         output = type;
         break;
       default:
-        if (aResult.toSource) {
-          try {
+        try {
+          if (aResult.toSource) {
             output = aResult.toSource();
-          } catch (ex) { }
+          }
+          if (!output || output == "({})") {
+            output = aResult + "";
+          }
         }
-        if (!output || output == "({})") {
-          output = aResult.toString();
+        catch (ex) {
+          output = ex;
         }
         break;
     }
 
-    return output;
+    return output + "";
   },
 
   /**

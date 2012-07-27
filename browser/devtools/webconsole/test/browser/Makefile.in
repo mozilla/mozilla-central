@@ -151,6 +151,7 @@ _BROWSER_TEST_FILES = \
 	browser_gcli_web.js \
 	browser_webconsole_bug_658368_time_methods.js \
 	browser_webconsole_window_zombie.js \
+	browser_result_format_as_string.js \
 	head.js \
 	$(NULL)
 
@@ -223,6 +224,7 @@ _BROWSER_TEST_PAGES = \
 	test-file-location.js \
 	browser_gcli_inspect.html \
 	test-bug-658368-time-methods.html \
+	test-result-format-as-string.html \
 	$(NULL)
 
 libs:: $(_BROWSER_TEST_FILES)
