@@ -96,12 +96,11 @@
   <tabpanels id="tabpanelcontainer">
     <vbox>
       <toolbox id="chat-view-toolbox" class="mail-toolbox"
+               mode="full" defaultmode="full"
                labelalign="end" defaultlabelalign="end">
         <toolbar class="inline-toolbar chromeclass-toolbar"
                  id="chat-toobar"
                  fullscreentoolbar="true"
-                 mode="full"
-                 defaultmode="full"
                  customizable="true"
                  context="chat-toolbar-context-menu"
 #ifdef XP_MACOSX
