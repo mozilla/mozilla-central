@@ -340,8 +340,8 @@ Account.prototype = {
 
   get maxMessageLength() 140,
 
-  consumerKey: "TSuyS1ieRAkB3qWv8yyEw",
-  consumerSecret: "DKtKaSf5a7pBNhdBsSZHTnI5Y03hRlPFYWmb4xXBlkU",
+  consumerKey: Services.prefs.getCharPref("chat.twitter.consumerKey"),
+  consumerSecret: Services.prefs.getCharPref("chat.twitter.consumerSecret"),
   completionURI: "http://oauthcallback.local/",
   baseURI: "https://api.twitter.com/",
   _lastMsgId: "",
