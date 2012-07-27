@@ -10,23 +10,6 @@
     min-width: 21px;
 }
 
-#event-toolbar {
-    -moz-appearance: menubar;
-}
-
-#event-toolbox toolbarbutton {
-    color: MenuText;
-}
-
-#event-toolbox toolbarbutton:hover:not([disabled]) .toolbarbutton-text {
-    color: -moz-buttonhovertext;
-}
-
-#event-toolbox toolbarbutton[open="true"],
-#event-toolbox toolbarbutton:hover:active:not([disabled]) .toolbarbutton-text {
-    color: ButtonText;
-}
-
 #timezone-endtime {
     -moz-margin-start: 16px;
 }
