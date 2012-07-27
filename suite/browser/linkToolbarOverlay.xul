@@ -54,6 +54,7 @@
 
   <toolbox id="navigator-toolbox">
     <toolbar id="linktoolbar"
+             grippytooltiptext="&linkToolbar.tooltip;"
              class="chromeclass-directories"
              hidden="true"
              hasitems="false"
