@@ -417,8 +417,7 @@ const XMPPAccountBuddyPrototype = {
       if (preferred == resource)
         preferred = undefined;
     }
-    else if (type != "unsubscribe" && type != "unsubscribed" &&
-             type != "subscribed") {
+    else {
       let statusType = Ci.imIStatusInfo.STATUS_AVAILABLE;
       let show = aStanza.getElement(["show"]);
       if (show) {
@@ -720,10 +719,8 @@ const XMPPAccountPrototype = {
         if (qe.uri != Stanza.NS.roster)
           continue;
 
-        for each (let item in qe.getChildren("item")) {
+        for each (let item in qe.getChildren("item"))
           this._onRosterItem(item, true);
-          let jid = item.attributes["jid"];
-        }
         return;
       }
     }
@@ -743,22 +740,8 @@ const XMPPAccountPrototype = {
     DEBUG("Received presence stanza for " + from);
 
     let jid = this._normalizeJID(from);
-    if (jid in this._buddies)
-      this._buddies[jid].onPresenceStanza(aStanza);
-    else if (jid in this._mucs) {
-      if (typeof(this._mucs[jid]) == "string") {
-        // We have attempted to join, but not created the conversation yet.
-        if (aStanza.attributes["type"] == "error") {
-          delete this._mucs[jid];
-          ERROR("Failed to join MUC: " + aStanza.convertToString());
-          return;
-        }
-        let nick = this._mucs[jid];
-        this._mucs[jid] = new this._MUCConversationConstructor(this, jid, nick);
-      }
-      this._mucs[jid].onPresenceStanza(aStanza);
-    }
-    else if (aStanza.attributes["type"] == "subscribe") {
+    let type = aStanza.attributes["type"];
+    if (type == "subscribe") {
       let authRequest = {
         _account: this,
         get account() this._account.imAccount,
@@ -784,6 +767,27 @@ const XMPPAccountPrototype = {
       Services.obs.notifyObservers(authRequest, "buddy-authorization-request",
                                    null);
       this._pendingAuthRequests.push(authRequest);
+    }
+    else if (type == "unsubscribe" || type == "unsubscribed" ||
+             type == "subscribed") {
+      // Nothing useful to do for these presence stanzas, as we will also
+      // receive a roster push containing more or less the same information
+      return;
+    }
+    else if (jid in this._buddies)
+      this._buddies[jid].onPresenceStanza(aStanza);
+    else if (jid in this._mucs) {
+      if (typeof(this._mucs[jid]) == "string") {
+        // We have attempted to join, but not created the conversation yet.
+        if (aStanza.attributes["type"] == "error") {
+          delete this._mucs[jid];
+          ERROR("Failed to join MUC: " + aStanza.convertToString());
+          return;
+        }
+        let nick = this._mucs[jid];
+        this._mucs[jid] = new this._MUCConversationConstructor(this, jid, nick);
+      }
+      this._mucs[jid].onPresenceStanza(aStanza);
     }
     else if (from != this._connection._jid.jid)
       WARN("received presence stanza for unknown buddy " + from);
