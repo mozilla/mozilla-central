@@ -70,6 +70,10 @@ imconv[attention] {
   -moz-margin-end: 0;
 }
 
+imcontact[aliasing] .contactDisplayName {
+  -moz-binding: url("chrome://global/content/bindings/textbox.xml#textbox");
+}
+
 .contactStatusText,
 .convStatusText {
   -moz-margin-start: 0;

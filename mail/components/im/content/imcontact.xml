@@ -139,14 +139,19 @@
       <parameter name="aSave"/>
       <body>
       <![CDATA[
+        // Cache the parentNode because when we change the contact alias, we
+        // trigger a re-order (and a removeContact call), which sets
+        // this.parentNode to undefined.
+        let listbox = this.parentNode;
         if (aSave) {
-          this.contact.alias =
-            document.getAnonymousElementByAttribute(this, "anonid", "displayname").value;
+          this.contact.alias = document.getAnonymousElementByAttribute(this, "anonid",
+                                                                       "displayname").value;
         }
         this.removeAttribute("aliasing");
-        this.parentNode.removeEventListener("select", this._parentSelectListener, false);
+        listbox.removeEventListener("select", this._parentSelectListener,
+                                    false);
         delete this._parentSelectListener;
-        this.parentNode.focus();
+        listbox.focus();
       ]]>
       </body>
      </method>
