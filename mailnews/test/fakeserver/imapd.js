@@ -1626,7 +1626,7 @@ var configurations = {
   Exchange: ["RFC2342", "RFC2195"],
   LEMONADE: ["RFC2342", "RFC2195"],
   CUSTOM1: ["RFCMOVE", "RFC4315"],
-  GMail: ["RFC2197", "RFC4315"]
+  GMail: ["RFCGMAIL", "RFC2197", "RFC4315"]
 };
 
 function mixinExtension(handler, extension) {
@@ -1721,6 +1721,79 @@ var IMAP_RFCMOVE_extension = {
   // Enabled in SELECTED state
   _enabledCommands: { 2: ["MOVE"] }
 };
+
+// Support for Gmail extensions (imapPump requires the string "RFC").
+var IMAP_RFCGMAIL_extension = {  
+  preload: function (toBeThis) {
+    toBeThis._preRFCGMAIL_STORE = toBeThis.STORE;
+    toBeThis._preRFCGMAIL_STORE_argFormat = toBeThis._argFormat.STORE;  
+    toBeThis._argFormat.STORE = ["number", "atom", "..."];
+  },
+  STORE : function (args, uid) {
+    let regex = /[+-]?FLAGS.*/;
+    if (regex.test(args[1])) {
+      // if we are storing flags, use the method that was overridden
+      this._argFormat = this._preRFCGMAIL_STORE_argFormat;
+      args = this._treatArgs(args, "STORE");
+      return this._preRFCGMAIL_STORE(args, uid);
+    }
+    // otherwise, handle gmail specific cases
+    let ids = [];
+    let messages = this._parseSequenceSet(args[0], uid, ids);
+    args[2] = formatArg(args[2], "string|(string)");
+    for (let i = 0; i < args[2].length; i++) {
+      if (args[2][i].indexOf(' ') > -1) {
+        args[2][i] = '"' + args[2][i] + '"';
+      }      
+    }
+    let response = "";
+    for (let i = 0; i < messages.length; i++) {
+      let message = messages[i];
+      switch (args[1]) {
+      case "X-GM-LABELS":
+        if (message.xGmLabels) {
+          do_print("replacing [" + message.xGmLabels + "] with [" + args[2] + "]");
+          message.xGmLabels = args[2];
+          do_print(message.xGmLabels);
+        } else {
+          return "BAD can't store X-GM-LABELS";
+        }
+        break;
+      case "+X-GM-LABELS":
+        if (message.xGmLabels) {
+          do_print("adding [" + args[2] + "] to [" + message.xGmLabels + "]");
+          message.xGmLabels = message.xGmLabels.concat(args[2]);
+          do_print(message.xGmLabels);
+        } else {
+          return "BAD can't store X-GM-LABELS";
+        }
+        break;
+      case "-X-GM-LABELS":      
+        if (message.xGmLabels) {
+          do_print("removing [" + args[2] + "] from [" + message.xGmLabels + "]");
+          for (let i = 0; i < args[2].length; i++) {
+            let idx = message.xGmLabels.indexOf(args[2][i]);
+            if (idx != -1) {
+              message.xGmLabels.splice(idx,1);
+            }
+          }
+          do_print(message.xGmLabels);
+        } else {
+          return "BAD can't store X-GM-LABELS";
+        }
+        break;
+      default:
+        return "BAD change what now?";
+      }
+      response += "* " + ids[i] + " FETCH (X-GM-LABELS (";
+      response += message.xGmLabels.join(' ');
+      response += '))\0';
+    }
+    return response + 'OK STORE completed';
+  },
+  kCapabilities: ["XLIST", "X-GM-EXT-1"]
+};
+
 
 // RFC 2197: ID
 var IMAP_RFC2197_extension = {
