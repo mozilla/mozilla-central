@@ -772,6 +772,11 @@ var chatHandler = {
     document.getElementById(focusId).focus();
   },
   observe: function(aSubject, aTopic, aData) {
+    if (aTopic == "chat-core-initialized") {
+      this.initAfterChatCore();
+      return;
+    }
+
     if (aTopic == "conversation-loaded") {
       let browser = document.getElementById("conv-log-browser");
       if (aSubject != browser)
@@ -916,21 +921,24 @@ var chatHandler = {
     onGroup._updateGroupLabel();
     offGroup._updateGroupLabel();
 
-    imServices.obs.addObserver(this, "new-text", false);
-    imServices.obs.addObserver(this, "new-ui-conversation", false);
-    imServices.obs.addObserver(this, "ui-conversation-closed", false);
-    imServices.obs.addObserver(this, "contact-signed-on", false);
-    imServices.obs.addObserver(this, "contact-signed-off", false);
-    imServices.obs.addObserver(this, "contact-added", false);
-    imServices.obs.addObserver(this, "contact-removed", false);
-    imServices.obs.addObserver(this, "contact-no-longer-dummy", false);
-    imServices.obs.addObserver(this, "account-connected", false);
-    imServices.obs.addObserver(this, "account-disconnected", false);
-    imServices.obs.addObserver(this, "account-added", false);
-    imServices.obs.addObserver(this, "account-removed", false);
+    ["new-text", "new-ui-conversation", "ui-conversation-closed",
+     "contact-signed-on", "contact-signed-off",
+     "contact-added", "contact-removed", "contact-no-longer-dummy",
+     "account-connected", "account-disconnected",
+     "account-added","account-removed"
+    ].forEach(chatHandler._addObserver);
 
     chatHandler._updateNoConvPlaceHolder();
     statusSelector.init();
+  },
+  _observedTopics: [],
+  _addObserver: function(aTopic) {
+    imServices.obs.addObserver(chatHandler, aTopic, false);
+    chatHandler._observedTopics.push(aTopic);
+  },
+  _removeObservers: function() {
+    for each (let topic in this._observedTopics)
+      imServices.obs.removeObserver(this, topic);
   },
   init: function() {
     if (!Services.prefs.getBoolPref("mail.chat.enabled")) {
@@ -945,6 +953,8 @@ var chatHandler = {
       return;
     }
 
+    window.addEventListener("unload", this._removeObservers.bind(this));
+
     // initialize the customizeDone method on the customizeable toolbar
     var toolbox = document.getElementById("chat-view-toolbox");
     toolbox.customizeDone = function(aEvent) {
@@ -953,8 +963,8 @@ var chatHandler = {
 
     let tabmail = document.getElementById("tabmail");
     tabmail.registerTabType(chatTabType);
-    imServices.obs.addObserver(this, "buddy-authorization-request", false);
-    imServices.obs.addObserver(this, "buddy-authorization-request-canceled", false);
+    this._addObserver("buddy-authorization-request");
+    this._addObserver("buddy-authorization-request-canceled");
     let listbox = document.getElementById("contactlistbox");
     listbox.addEventListener("keypress", function(aEvent) {
       let item = listbox.selectedItem;
@@ -987,7 +997,7 @@ var chatHandler = {
       this.initAfterChatCore();
     else {
       this.ChatCore.init();
-      imServices.obs.addObserver(this.initAfterChatCore.bind(this), "chat-core-initialized", false);
+      this._addObserver("chat-core-initialized");
     }
   }
 };
