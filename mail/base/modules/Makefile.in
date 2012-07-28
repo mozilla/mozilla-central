@@ -20,7 +20,6 @@ EXTRA_JS_MODULES = \
   searchSpec.js \
   MsgHdrSyntheticView.js \
   sessionStoreManager.js \
-  msgDBCacheManager.js \
   summaryFrameManager.js \
   mailMigrator.js \
   mailInstrumentation.js \

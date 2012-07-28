@@ -67,6 +67,7 @@ EXTRA_JS_MODULES = \
 		IOUtils.js \
 		mailnewsMigrator.js \
 		mailServices.js \
+		msgDBCacheManager.js \
 		$(NULL)
 
 # we don't want the shared lib, but we want to force the creation of a static lib.

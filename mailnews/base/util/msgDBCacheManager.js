@@ -38,13 +38,13 @@ var msgDBCacheManager =
    */
   init: function dbcachemgr_init()
   {
+    if (this._initialized)
+      return;
 
     // we listen for "quit-application-granted" instead of
     // "quit-application-requested" because other observers of the
     // latter can cancel the shutdown.
-    var observerSvc = Cc["@mozilla.org/observer-service;1"]
-                      .getService(Ci.nsIObserverService);
-    observerSvc.addObserver(this, "quit-application-granted", false);
+    Services.obs.addObserver(this, "quit-application-granted", false);
 
     this.startPeriodicCheck();
 
