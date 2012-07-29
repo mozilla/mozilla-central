@@ -8,8 +8,7 @@
 <!DOCTYPE overlay SYSTEM "chrome://messenger/locale/addressbook/abCardOverlay.dtd">
 
 <overlay id="editcardOverlay"
-     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-     xmlns:html="http://www.w3.org/1999/xhtml">
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <stringbundleset id="stringbundleset">
   <stringbundle id="bundle_addressBook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>
@@ -441,9 +440,9 @@
 
       <!-- ** Photo Tab ** -->
       <hbox id="abPhotoTab" align="center">
-        <description style="min-width: 25ch; max-width: 25ch; text-align: center">
-          <html:img id="photo" style="max-width: 25ch; max-height: 25ch;"/>
-        </description>
+        <vbox align="center" style="min-width: 25ch; max-width: 25ch;">
+          <image id="photo" style="max-width: 25ch; max-height: 25ch;"/>
+        </vbox>
         <groupbox flex="1">
           <caption label="&PhotoDesc.label;"/>
           <radiogroup id="PhotoType" onselect="onSwitchPhotoType();">

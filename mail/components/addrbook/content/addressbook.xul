@@ -704,11 +704,8 @@
           <vbox id="CardViewInnerBox" collapsed="true" flex="1">
             <description id="CardTitle"/>
             <hbox flex="1">
-              <vbox id="cvbPhoto" class="cardViewGroup">
-                <description style="min-width: 10ch; max-width: 10ch; text-align: center;">
-                  <html:img id="cvPhoto"
-                            style="max-width: 10ch; max-height: 10ch;"/>
-                </description>
+              <vbox id="cvbPhoto" class="cardViewGroup" align="center">
+                <image id="cvPhoto" style="max-width: 10ch; max-height: 10ch;"/>
               </vbox>
               <vbox flex="1">
                 <vbox id="cvbContact" class="cardViewGroup">
