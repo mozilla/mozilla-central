@@ -1308,7 +1308,8 @@ void nsImapServerResponseParser::msg_fetch()
         fServerConnection.GetCurrentUrl()->GetImapAction(&imapAction);
         nsCAutoString userDefinedFetchAttribute;
         fServerConnection.GetCurrentUrl()->GetCustomAttributeToFetch(userDefinedFetchAttribute);
-        if (imapAction == nsIImapUrl::nsImapUserDefinedFetchAttribute && !strcmp(userDefinedFetchAttribute.get(), fNextToken))
+        if ((imapAction == nsIImapUrl::nsImapUserDefinedFetchAttribute && !strcmp(userDefinedFetchAttribute.get(), fNextToken)) ||
+            imapAction == nsIImapUrl::nsImapUserDefinedMsgCommand)
         {
           AdvanceToNextToken();
           char *fetchResult;
@@ -1320,8 +1321,11 @@ void nsImapServerResponseParser::msg_fetch()
           else {
             fetchResult = CreateAstring();
             AdvanceToNextToken();
-          }          
-          fServerConnection.GetCurrentUrl()->SetCustomAttributeResult(nsDependentCString(fetchResult));
+          }
+          if (imapAction == nsIImapUrl::nsImapUserDefinedFetchAttribute)
+            fServerConnection.GetCurrentUrl()->SetCustomAttributeResult(nsDependentCString(fetchResult));
+          if (imapAction == nsIImapUrl::nsImapUserDefinedMsgCommand)
+            fServerConnection.GetCurrentUrl()->SetCustomCommandResult(nsDependentCString(fetchResult));
           PR_Free(fetchResult);
         }
         else
