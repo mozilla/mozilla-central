@@ -9,7 +9,7 @@ var nsIMsgCompDeliverMode = Components.interfaces.nsIMsgCompDeliverMode;
 var dialog;
 
 // the msgProgress is a nsIMsgProgress object
-var msgProgress = null; 
+var msgProgress = null;
 
 // random global variables...
 var itsASaveOperation = false;
@@ -24,7 +24,7 @@ var progressListener = {
         // Put progress meter in undetermined mode.
         dialog.progress.setAttribute("mode", "undetermined");
       }
-      
+
       if (aStateFlags & Components.interfaces.nsIWebProgressListener.STATE_STOP)
       {
         // we are done sending/saving the message...
@@ -45,7 +45,7 @@ var progressListener = {
         window.close();
       }
     },
-    
+
     onProgressChange: function(aWebProgress, aRequest, aCurSelfProgress, aMaxSelfProgress, aCurTotalProgress, aMaxTotalProgress)
     {
       // Calculate percentage.
@@ -55,17 +55,17 @@ var progressListener = {
         percent = Math.round(aCurTotalProgress / aMaxTotalProgress * 100);
         if (percent > 100)
           percent = 100;
-        
+
         dialog.progress.removeAttribute("mode");
-        
+
         // Advance progress meter.
         dialog.progress.setAttribute("value", percent);
 
         // Update percentage label on progress meter.
         var percentMsg = gSendProgressStringBundle.getFormattedString("percentMsg", [percent]);
         dialog.progressText.setAttribute("value", percentMsg);
-      } 
-      else 
+      }
+      else
       {
         // Progress meter should be barber-pole in this case.
         dialog.progress.setAttribute("mode", "undetermined");
@@ -74,7 +74,7 @@ var progressListener = {
       }
     },
 
-	  onLocationChange: function(aWebProgress, aRequest, aLocation, aFlags)
+    onLocationChange: function(aWebProgress, aRequest, aLocation, aFlags)
     {
       // we can ignore this notification
     },
@@ -96,7 +96,7 @@ var progressListener = {
           iid.equals(Components.interfaces.nsISupportsWeakReference) ||
           iid.equals(Components.interfaces.nsISupports))
         return this;
-     
+
       throw Components.results.NS_NOINTERFACE;
     }
 };
@@ -104,12 +104,20 @@ var progressListener = {
 function onLoad()
 {
     // Set global variables.
-    var subject = "";
+    let subject = "";
     gSendProgressStringBundle = document.getElementById("sendProgressStringBundle");
+
     msgProgress = window.arguments[0];
+    if (!msgProgress)
+    {
+      Components.utils.reportError("Invalid argument to sendProgress.xul.");
+      window.close();
+      return;
+    }
+
     if (window.arguments[1])
     {
-      var progressParams = window.arguments[1].QueryInterface(Components.interfaces.nsIMsgComposeProgressParams)
+      let progressParams = window.arguments[1].QueryInterface(Components.interfaces.nsIMsgComposeProgressParams);
       if (progressParams)
       {
         itsASaveOperation = (progressParams.deliveryMode != nsIMsgCompDeliverMode.Now);
@@ -117,11 +125,12 @@ function onLoad()
       }
     }
 
-    if (!msgProgress)
-    {
-      dump("Invalid argument to sendProgress.xul\n");
-      window.close()
-      return;
+    if (subject) {
+      let title = itsASaveOperation ? "titleSaveMsgSubject" : "titleSendMsgSubject";
+      document.title = gSendProgressStringBundle.getFormattedString(title, [subject]);
+    } else {
+      let title = itsASaveOperation ? "titleSaveMsg" : "titleSendMsg";
+      document.title = gSendProgressStringBundle.getString(title);
     }
 
     dialog = {};
@@ -131,12 +140,9 @@ function onLoad()
 
     // set our web progress listener on the helper app launcher
     msgProgress.registerListener(progressListener);
-
-    var prefix = itsASaveOperation ? "titlePrefixSave" : "titlePrefixSend";
-    document.title = gSendProgressStringBundle.getString(prefix) + " " + subject;
 }
 
-function onUnload() 
+function onUnload()
 {
   if (msgProgress)
   {
@@ -149,7 +155,7 @@ function onUnload()
 }
 
 // If the user presses cancel, tell the app launcher and close the dialog...
-function onCancel () 
+function onCancel()
 {
   // Cancel app launcher.
   try
@@ -159,7 +165,7 @@ function onCancel ()
   {
     return true;
   }
-    
+
   // don't Close up dialog by returning false, the backend will close the dialog when everything will be aborted.
   return false;
 }

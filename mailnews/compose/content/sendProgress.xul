@@ -10,22 +10,24 @@
 
 <dialog id="sendProgress"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        title="&sendWindow.title;"
-        style="width: 36em;"
-        onload="onLoad()"
-        onunload="onUnload()"
+        title="&sendDialog.title;"
+        style="width: 56ch;"
+        onload="onLoad();"
+        onunload="onUnload();"
         buttons="cancel"
         ondialogcancel="return onCancel();">
 
-  <script type="application/javascript" src="chrome://messenger/content/messengercompose/sendProgress.js"/>
-  <stringbundle id="sendProgressStringBundle" src="chrome://messenger/locale/messengercompose/sendProgress.properties"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/messengercompose/sendProgress.js"/>
+  <stringbundle id="sendProgressStringBundle"
+                src="chrome://messenger/locale/messengercompose/sendProgress.properties"/>
 
     <grid flex="1">
       <columns>
         <column/>
         <column flex="1"/>
       </columns>
-      
+
       <rows>
         <row>
           <hbox pack="end">
@@ -33,7 +35,7 @@
           </hbox>
           <label id="dialog.status" crop="center"/>
         </row>
-        <row class="thin-separator">             
+        <row class="thin-separator">
           <hbox pack="end">
             <label value="&progress.label;"/>
           </hbox>
