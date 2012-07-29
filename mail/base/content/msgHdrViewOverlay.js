@@ -117,6 +117,7 @@ var currentHeaderData = {};
  */
 var currentAttachments = new Array();
 
+const nsIAbDirectory = Components.interfaces.nsIAbDirectory;
 const nsIAbListener = Components.interfaces.nsIAbListener;
 const nsIAbCard = Components.interfaces.nsIAbCard;
 
@@ -372,8 +373,8 @@ var AddressBookListener =
   },
   onItemRemoved: function(aParentDir, aItem) {
     OnAddressBookDataChanged(aItem instanceof nsIAbCard ?
-                             nsIAbListener.directoryItemRemoved :
-                             nsIAbListener.directoryRemoved,
+                               nsIAbListener.directoryItemRemoved :
+                               nsIAbListener.directoryRemoved,
                              aParentDir, aItem);
   },
   onItemPropertyChanged: function(aItem, aProperty, aOldValue, aNewValue) {
@@ -1192,7 +1193,6 @@ function updateEmailAddressNode(emailAddressNode, address)
   emailAddressNode.setAttribute("emailAddress", address.emailAddress);
   emailAddressNode.setAttribute("fullAddress", address.fullAddress);
   emailAddressNode.setAttribute("displayName", address.displayName);
-  emailAddressNode.removeAttribute("tooltiptext");
 
   UpdateEmailNodeDetails(address.emailAddress, emailAddressNode);
 }
@@ -1249,8 +1249,7 @@ function FormatDisplayName(aEmailAddress, aHeaderDisplayName, aContext, aCard)
 
 function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCardDetails) {
   // If we haven't been given specific details, search for a card.
-  var cardDetails = aCardDetails ? aCardDetails :
-                                   getCardForEmail(aEmailAddress);
+  var cardDetails = aCardDetails || getCardForEmail(aEmailAddress);
   aDocumentNode.cardDetails = cardDetails;
 
   if (!cardDetails.card) {
@@ -1320,13 +1319,13 @@ function UpdateEmailNodeDetails(aEmailAddress, aDocumentNode, aCardDetails) {
                                       aDocumentNode.cardDetails.card);
 
   if (gShowCondensedEmailAddresses && displayName) {
-    aDocumentNode.setAttribute("label", displayName);
     aDocumentNode.setAttribute("tooltiptext", aEmailAddress);
   } else {
-    aDocumentNode.setAttribute("label",
-      aDocumentNode.getAttribute("fullAddress") ||
-      aDocumentNode.getAttribute("displayName"));
+    aDocumentNode.removeAttribute("tooltiptext");
+    displayName = aDocumentNode.getAttribute("fullAddress") ||
+                  aDocumentNode.getAttribute("displayName");
   }
+  aDocumentNode.setAttribute("label", displayName);
 }
 
 function UpdateEmailPresenceDetails(aDocumentNode, aChatContact) {
@@ -1377,7 +1376,7 @@ function UpdateExtraAddressProcessing(aAddressData, aDocumentNode, aAction,
     break;
   case nsIAbListener.itemAdded:
     // Is it a new address book?
-    if (aItem instanceof Components.interfaces.nsIAbDirectory) {
+    if (aItem instanceof nsIAbDirectory) {
       // If we don't have a match, search again for updates (e.g. a interface
       // to an existing book may just have been added).
       if (!aDocumentNode.cardDetails.card)
@@ -1387,8 +1386,8 @@ function UpdateExtraAddressProcessing(aAddressData, aDocumentNode, aAction,
       // If we don't have a card, does this new one match?
       if (!aDocumentNode.cardDetails.card &&
           aItem.hasEmailAddress(aAddressData.emailAddress)) {
-        // Just in case we have a bogus parent directory
-        if (aParentDir instanceof Components.interfaces.nsIAbDirectory) {
+        // Just in case we have a bogus parent directory.
+        if (aParentDir instanceof nsIAbDirectory) {
           var cardDetails = { book: aParentDir, card: aItem };
           UpdateEmailNodeDetails(aAddressData.emailAddress, aDocumentNode,
                                  cardDetails);
@@ -1479,8 +1478,7 @@ function getCardForEmail(emailAddress)
   var result = { book: null, card: null };
 
   while (!result.card && books.hasMoreElements()) {
-    var ab = books.getNext()
-                  .QueryInterface(Components.interfaces.nsIAbDirectory);
+    var ab = books.getNext().QueryInterface(nsIAbDirectory);
     try {
       var card = ab.cardForEmailAddress(emailAddress);
       if (card) {
