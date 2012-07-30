@@ -497,6 +497,11 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
 {
   nsresult  err = NS_OK;
   PRUint32 bytesAvailable;
+
+  nsCOMPtr<nsIInputStream> bufStream;
+  err = NS_NewBufferedInputStream(getter_AddRefs(bufStream), aStream, 10240);
+  NS_ENSURE_SUCCESS(err, err);
+
   nsMsgFilterFileAttribValue attrib;
   nsCOMPtr<nsIMsgRuleAction> currentFilterAction;
   // We'd really like to move lot's of these into the objects that they refer to.
@@ -506,10 +511,10 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
     nsresult intToStringResult;
 
     char curChar;
-    curChar = LoadAttrib(attrib, aStream);
+    curChar = LoadAttrib(attrib, bufStream);
     if (curChar == (char) -1)  //reached eof
       break;
-    err = LoadValue(value, aStream);
+    err = LoadValue(value, bufStream);
     if (err != NS_OK)
       break;
     switch(attrib)
@@ -693,7 +698,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
       break;
 
     }
-  } while (NS_SUCCEEDED(aStream->Available(&bytesAvailable)));
+  } while (NS_SUCCEEDED(bufStream->Available(&bytesAvailable)));
 
   if (m_curFilter)
   {
