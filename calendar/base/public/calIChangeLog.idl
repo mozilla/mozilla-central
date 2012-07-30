@@ -132,7 +132,7 @@ interface calIChangeLog : nsISupports {
     void resetLog();
 
     /**
-     * Instructs the calendar to replay remote changes into the given
+     * Instructs the calendar to replay remote changes into the above offlineStorage
      * calendar. The calendar itself is responsible for storing anything needed
      * to keep track of what items need updating.
      *
@@ -144,44 +144,4 @@ interface calIChangeLog : nsISupports {
      * @param aListener         The listener to notify when the operation completes.
      */
     calIOperation replayChangesOn(in calIGenericOperationListener aListener);
-
-    /**
-     * addItemOrUseCache: same as calICalendar::addItem
-     *
-     * @param useCache          use the cache for handling availability errors
-     *
-     * When 'useCache' is set, failure to perform the operation will result in
-     * a write in the cache with the corresponding offline operation, when the
-     * backend supports it. In that case, the listener will thus always
-     * receive a success code. When unset, the behaviour is similar to the
-     * corresponding addItem() invocation.
-     */
-    calIOperation addItemOrUseCache(in calIItemBase aItem,
-                                    in boolean useCache,
-                                    in calIOperationListener aListener);
-    /**
-     * adoptItemOrUseCache: same as calICalendar::adoptItem
-     *
-     * @param useCache          use the cache for handling availability errors
-     */
-    calIOperation adoptItemOrUseCache(in calIItemBase aItem,
-                                      in boolean useCache,
-                                      in calIOperationListener aListener);
-    /**
-     * modifyItemOrUseCache: same as calICalendar::modifyItem
-     *
-     * @param useCache          use the cache for handling availability errors
-     */
-    calIOperation modifyItemOrUseCache(in calIItemBase aNewItem,
-                                       in calIItemBase aOldItem,
-                                       in boolean useCache,
-                                       in calIOperationListener aListener);
-    /**
-     * deleteItemOrUseCache: same as calICalendar::deleteItem
-     *
-     * @param useCache          use the cache for handling availability errors
-     */
-    calIOperation deleteItemOrUseCache(in calIItemBase aItem,
-                                       in boolean useCache,
-                                       in calIOperationListener aListener);
 };

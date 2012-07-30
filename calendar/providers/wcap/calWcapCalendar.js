@@ -122,8 +122,7 @@ calWcapCalendar.prototype = {
     getProperty: function calWcapCalendar_getProperty(aName) {
         switch (aName) {
             case "cache.supported":
-                return false; // TODO Sorry, but until we implement the new
-                              // calIChangeLog interfaces, we must disable the cache for wcap.
+                return true;
             case "timezones.provider":
                 return ((this.m_session && this.session.isLoggedIn) ? this.session : null);
             case "organizerId":
