@@ -162,10 +162,10 @@
                 valueSave="&saveImageCmd.label;"
                 accesskey="&saveImageCmd.accesskey;"
                 oncommand="gContextMenu.saveMedia();"/>
-      <menuitem id="context-setWallpaper"
-                label="&setWallpaperCmd.label;"
-                accesskey="&setWallpaperCmd.accesskey;"
-                oncommand="gContextMenu.setWallpaper();"/>
+      <menuitem id="context-setDesktopBackground"
+                label="&setDesktopBackgroundCmd.label;"
+                accesskey="&setDesktopBackgroundCmd.accesskey;"
+                oncommand="gContextMenu.setDesktopBackground();"/>
       <menuitem id="context-savevideo"
                 label="&saveVideoCmd.label;"
                 accesskey="&saveVideoCmd.accesskey;"

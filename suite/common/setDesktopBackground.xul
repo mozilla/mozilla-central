@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
+
+<!DOCTYPE dialog SYSTEM "chrome://communicator/locale/setDesktopBackground.dtd">
+
+<dialog id="setDesktopBackground"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        onload="onLoad();"
+        buttons="accept,extra2"
+        buttoniconaccept="close"
+        buttonlabelaccept="&close.label;"
+        buttoniconextra2="apply"
+        buttonlabelextra2="&apply.label;"
+        buttonaccesskeyextra2="&apply.accesskey;"
+        ondialogextra2="onApply();"
+        title="&setDesktopBackground.title;">
+
+  <script type="text/javascript"
+          src="chrome://communicator/content/setDesktopBackground.js"/>
+
+  <hbox align="center">
+    <label value="&position.label;" accesskey="&position.accesskey;"/>
+    <menulist id="position"
+              value="BACKGROUND_STRETCH"
+              persist="value"
+              oncommand="updatePosition();">
+      <menupopup>
+        <menuitem value="BACKGROUND_TILE" label="&position.tile.label;"/>
+        <menuitem value="BACKGROUND_STRETCH" label="&position.stretch.label;"/>
+        <menuitem value="BACKGROUND_CENTER" label="&position.center.label;"/>
+        <menuitem value="BACKGROUND_FILL" label="&position.fill.label;"/>
+        <menuitem value="BACKGROUND_FIT" label="&position.fit.label;"/>
+      </menupopup>
+    </menulist>
+    <hbox flex="1" pack="end">
+      <label value="&picker.label;" accesskey="&picker.accesskey;"/>
+      <colorpicker id="picker" type="button" onchange="updateColor();"/>
+    </hbox>
+  </hbox>
+
+  <groupbox flex="1">
+    <caption label="&preview.caption;"/>
+    <spacer id="desktop" flex="1"/>
+  </groupbox>
+</dialog>

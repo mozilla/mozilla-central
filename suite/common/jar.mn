@@ -78,6 +78,8 @@ comm.jar:
    content/communicator/safeMode.js
    content/communicator/safeMode.xul
    content/communicator/sanitize.xul
+   content/communicator/setDesktopBackground.js
+   content/communicator/setDesktopBackground.xul
    content/communicator/tasksOverlay.js
    content/communicator/tasksOverlay.xul
    content/communicator/utilityOverlay.js

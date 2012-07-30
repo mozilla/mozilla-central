@@ -158,7 +158,7 @@ nsContextMenu.prototype = {
     this.showItem("context-sep-properties",
                   !(this.inDirList || this.isContentSelected || this.onTextInput ||
                     this.onCanvas || this.onVideo || this.onAudio));
-    // Set As Wallpaper depends on whether an image was clicked on,
+    // Set Desktop Background depends on whether an image was clicked on,
     // and requires the shell service.
     var canSetDesktopBackground = false;
     if ("@mozilla.org/suite/shell-service;1" in Components.classes) try {
@@ -168,15 +168,15 @@ nsContextMenu.prototype = {
                     .canSetDesktopBackground;
     } catch (e) {
     }
-    this.showItem("context-setWallpaper",
+    this.showItem("context-setDesktopBackground",
                   canSetDesktopBackground && (this.onLoadedImage || this.onStandaloneImage));
 
     this.showItem("context-sep-image",
                   this.onLoadedImage || this.onStandaloneImage);
 
     if (canSetDesktopBackground && this.onLoadedImage)
-      // Disable the Set As Wallpaper menu item if we're still trying to load the image
-      this.setItemAttr("context-setWallpaper", "disabled",
+      // Disable the Set Desktop Background menu item if we're still trying to load the image
+      this.setItemAttr("context-setDesktopBackground", "disabled",
                        (("complete" in this.target) && !this.target.complete) ? "true" : null);
 
     this.showItem("context-fitimage", this.onStandaloneImage &&
@@ -888,28 +888,9 @@ nsContextMenu.prototype = {
       openUILinkIn(this.bgImageURL, where, null, null, doc.documentURIObject);
   },
 
-  setWallpaper: function() {
-    // Confirm since it's annoying if you hit this accidentally.
-    var navigatorBundle = document.getElementById("bundle_navigator");
-    var promptTitle = navigatorBundle.getString("wallpaperConfirmTitle");
-    var promptMsg = navigatorBundle.getString("wallpaperConfirmMsg");
-    var promptConfirmButton = navigatorBundle.getString("wallpaperConfirmButton");
-
-    if (Services.prompt.confirmEx(window, promptTitle, promptMsg,
-                                  (Services.prompt.BUTTON_TITLE_IS_STRING *
-                                   Services.prompt.BUTTON_POS_0) +
-                                  (Services.prompt.BUTTON_TITLE_CANCEL *
-                                   Services.prompt.BUTTON_POS_1),
-                                  promptConfirmButton, null, null, null,
-                                  {value: false}) != 0)
-      return;
-
-    const nsIShellService = Components.interfaces.nsIShellService;
-
-    Components.classes["@mozilla.org/suite/shell-service;1"]
-              .getService(nsIShellService)
-              .setDesktopBackground(this.target,
-                                    nsIShellService.BACKGROUND_STRETCH);
+  setDesktopBackground: function() {
+    openDialog("chrome://communicator/content/setDesktopBackground.xul",
+               "_blank", "chrome,modal,titlebar,centerscreen", this.target);
   },
 
   // Save URL of clicked-on frame.
