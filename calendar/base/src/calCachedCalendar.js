@@ -730,6 +730,7 @@ calCachedCalendar.prototype = {
                     // The item couldn't be added to the (remote) location,
                     // this is like being offline. Add the item to the cached
                     // calendar instead.
+                    cal.LOG("[calCachedCalendar] Calendar " + calendar.name + " is unavailable, adding item offline");
                     self.adoptOfflineItem(item, listener);
                 } else if (Components.isSuccessCode(status)) {
                     // On success, add the item to the cache.
@@ -804,6 +805,7 @@ calCachedCalendar.prototype = {
                     // The item couldn't be modified at the (remote) location,
                     // this is like being offline. Add the item to the cache
                     // instead.
+                    cal.LOG("[calCachedCalendar] Calendar " + calendar.name + " is unavailable, modifying item offline");
                     self.modifyOfflineItem(newItem, oldItem, listener);
                 } else if (Components.isSuccessCode(status)) {
                     // On success, modify the item in the cache
@@ -884,6 +886,7 @@ calCachedCalendar.prototype = {
                     // The item couldn't be deleted at the (remote) location,
                     // this is like being offline. Mark the item deleted in the
                     // cache instead.
+                    cal.LOG("[calCachedCalendar] Calendar " + calendar.name + " is unavailable, deleting item offline");
                     self.deleteOfflineItem(item, listener);
                 } else if (Components.isSuccessCode(status)) {
                     // On success, delete the item from the cache

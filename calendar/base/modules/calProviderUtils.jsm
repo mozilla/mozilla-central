@@ -640,11 +640,11 @@ cal.ProviderBase.prototype = {
         }
     },
 
-    notifyOperationComplete: function cPB_notifyOperationComplete(aListener,
-                                                                  aStatus,
-                                                                  aOperationType,
-                                                                  aId,
-                                                                  aDetail) {
+    notifyPureOperationComplete: function cPB_notifyPureOperationComplete(aListener,
+                                                                          aStatus,
+                                                                          aOperationType,
+                                                                          aId,
+                                                                          aDetail) {
         if (aListener) {
             try {
                 aListener.onOperationComplete(this.superCalendar, aStatus, aOperationType, aId, aDetail);
@@ -652,6 +652,17 @@ cal.ProviderBase.prototype = {
                 cal.ERROR(exc);
             }
         }
+
+    },
+
+    notifyOperationComplete: function cPB_notifyOperationComplete(aListener,
+                                                                  aStatus,
+                                                                  aOperationType,
+                                                                  aId,
+                                                                  aDetail,
+                                                                  aExtraMessage) {
+        this.notifyPureOperationComplete(aListener, aStatus, aOperationType, aId, aDetail);
+
         if (aStatus == Components.interfaces.calIErrors.OPERATION_CANCELLED) {
             return; // cancellation doesn't change current status, no notification
         }
@@ -666,7 +677,7 @@ cal.ProviderBase.prototype = {
             this.notifyError(aOperationType == Components.interfaces.calIOperationListener.GET
                              ? Components.interfaces.calIErrors.READ_FAILED
                              : Components.interfaces.calIErrors.MODIFICATION_FAILED,
-                             "");
+                             aExtraMessage || "");
         }
     },
 
