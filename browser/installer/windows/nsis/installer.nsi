@@ -685,7 +685,7 @@ Function LaunchApp
   ${GetOptions} "$0" "/UAC:" $1
   ${If} ${Errors}
     ${ManualCloseAppPrompt} "${WindowClass}" "$(WARN_MANUALLY_CLOSE_APP_LAUNCH)"
-    Exec "$INSTDIR\${FileMainEXE}"
+    Exec "$\"$INSTDIR\${FileMainEXE}$\""
   ${Else}
     GetFunctionAddress $0 LaunchAppFromElevatedProcess
     UAC::ExecCodeSegment $0
@@ -704,7 +704,7 @@ Function LaunchAppFromElevatedProcess
   ; Set our current working directory to the application's install directory
   ; otherwise the 7-Zip temp directory will be in use and won't be deleted.
   SetOutPath "$1"
-  Exec "$0"
+  Exec "$\"$0$\""
 FunctionEnd
 
 ################################################################################
