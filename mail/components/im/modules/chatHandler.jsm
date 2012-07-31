@@ -2,14 +2,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const EXPORTED_SYMBOLS = ["onlineContacts", "ChatCore"];
+const EXPORTED_SYMBOLS = ["allContacts", "onlineContacts", "ChatCore"];
 
 Components.utils.import("resource:///modules/imServices.jsm");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
-var onlineContacts = {};
+let allContacts = {};
+let onlineContacts = {};
 
-var ChatCore = {
+let ChatCore = {
   initialized: false,
   _initializing: false,
   init: function() {
@@ -22,6 +23,8 @@ var ChatCore = {
     Services.obs.addObserver(this, "browser-request", false);
     Services.obs.addObserver(this, "contact-signed-on", false);
     Services.obs.addObserver(this, "contact-signed-off", false);
+    Services.obs.addObserver(this, "contact-added", false);
+    Services.obs.addObserver(this, "contact-removed", false);
 
     // The initialization of the im core may trigger a master password prompt,
     // so wrap it with the async prompter service.
@@ -59,6 +62,14 @@ var ChatCore = {
           inServer.valid = true;
           mgr.notifyServerLoaded(inServer);
         }
+
+        Services.tags.getTags().forEach(function (aTag) {
+          aTag.getContacts().forEach(function(aContact) {
+            let name = aContact.preferredBuddy.normalizedName;
+            allContacts[name] = aContact;
+          });
+        });
+
         ChatCore.initialized = true;
         Services.obs.notifyObservers(null, "chat-core-initialized", null);
         ChatCore._initializing = false;
@@ -83,6 +94,16 @@ var ChatCore = {
 
     if (aTopic == "contact-signed-off") {
       delete onlineContacts[aSubject.preferredBuddy.normalizedName];
+      return;
+    }
+
+    if (aTopic == "contact-added") {
+      allContacts[aSubject.preferredBuddy.normalizedName] = aSubject;
+      return;
+    }
+
+    if (aTopic == "contact-removed") {
+      delete allContacts[aSubject.preferredBuddy.normalizedName];
       return;
     }
   }

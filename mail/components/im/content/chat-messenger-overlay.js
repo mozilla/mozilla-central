@@ -911,12 +911,10 @@ var chatHandler = {
     let onGroup = document.getElementById("onlinecontactsGroup");
     let offGroup = document.getElementById("offlinecontactsGroup");
 
-    imServices.tags.getTags().forEach(function (aTag) {
-      aTag.getContacts().forEach(function(aContact) {
-        let group = aContact.online ? onGroup : offGroup;
-        group.addContact(aContact);
-      });
-    });
+    for each (let contact in chatHandler.allContacts) {
+      let group = contact.online ? onGroup : offGroup;
+      group.addContact(contact);
+    }
 
     onGroup._updateGroupLabel();
     offGroup._updateGroupLabel();

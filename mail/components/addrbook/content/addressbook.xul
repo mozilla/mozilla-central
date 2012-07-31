@@ -104,6 +104,7 @@
 #endif
     <command id="cmd_CustomizeABToolbar"
              oncommand="CustomizeMailToolbar('ab-toolbox', 'CustomizeABToolbar')"/>
+    <command id="cmd_chatWithCard" oncommand="goDoCommand('cmd_chatWithCard')" disabled="true" />
 </commandset>
 
 <broadcasterset id="abBroadcasters">
@@ -204,7 +205,7 @@
   <menuitem id="abResultsTreeContext-newim"
             label="&newIM.label;"
             accesskey="&newIM.accesskey;"
-            oncommand="AbIMSelected()"/>
+            command="cmd_chatWithCard"/>
   <menuseparator/>
   <menuitem id="abResultsTreeContext-delete"
             label="&deleteButton2.label;"
@@ -560,7 +561,7 @@
                      tooltiptext="&editButton2.tooltip;"
                      oncommand="goDoCommand('button_edit');"/>
       <toolbarbutton class="toolbarbutton-1" id="button-newmessage" label="&newmsgButton.label;" tooltiptext="&newmsgButton.tooltip;" oncommand="AbNewMessage();"/>
-      <toolbarbutton class="toolbarbutton-1" id="button-newim" label="&newIM.label;" tooltiptext="&newIM.tooltip;" oncommand="AbIMSelected();"/>
+      <toolbarbutton class="toolbarbutton-1" id="button-newim" label="&newIM.label;" tooltiptext="&newIM.tooltip;" command="cmd_chatWithCard"/>
       <toolbarbutton class="toolbarbutton-1" id="button-abdelete"
                      observes="button_delete" label="&deleteButton2.label;"
                      tooltiptext="&deleteButton2.tooltip;"
