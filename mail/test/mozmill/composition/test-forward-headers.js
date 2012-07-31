@@ -53,7 +53,7 @@ function forward_selected_messages_and_go_to_drafts_folder(f) {
     });
 
   // quit -> do you want to save ?
-  cwc.keypress(null, "w", {shiftKey: false, accelKey: true});
+  cwc.window.goDoCommand('cmd_close');
   // wait for the modal dialog to return
   wait_for_modal_dialog();
   // actually quite the window
