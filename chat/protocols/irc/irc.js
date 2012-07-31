@@ -525,7 +525,9 @@ ircAccountBuddy.prototype = {
 
   get normalizedName() this._account.normalize(this.userName),
 
-  // Can not send messages to buddies who appear offline.
+  // Allow sending of messages to buddies even if they are not online since IRC
+  // does not always provide status information in a timely fashion. (Note that
+  // this is OK since the server will throw an error if the user is not online.)
   get canSendMessage() this.account.connected,
 
   // Called when the user wants to chat with the buddy.
