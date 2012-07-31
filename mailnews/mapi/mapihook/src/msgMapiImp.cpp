@@ -415,11 +415,11 @@ STDMETHODIMP CMapiImp::FindNext(unsigned long aSession, unsigned long ulUIParam,
 STDMETHODIMP CMapiImp::ReadMail(unsigned long aSession, unsigned long ulUIParam, LPTSTR lpszMessageID,
                               unsigned long flFlags, unsigned long ulReserved, lpnsMapiMessage *lppMessage)
 {
-  PRInt32 irv;
+  nsresult irv;
   nsCAutoString keyString((char *) lpszMessageID);
   PR_LOG(MAPI, PR_LOG_DEBUG, ("CMapiImp::ReadMail asking for key %s\n", (char *) lpszMessageID));
   nsMsgKey msgKey = keyString.ToInteger(&irv);
-  if (irv)
+  if (NS_FAILED(irv))
   {
     NS_ASSERTION(false, "invalid lpszMessageID");
     return MAPI_E_INVALID_MESSAGE;
@@ -441,10 +441,11 @@ STDMETHODIMP CMapiImp::ReadMail(unsigned long aSession, unsigned long ulUIParam,
 STDMETHODIMP CMapiImp::DeleteMail(unsigned long aSession, unsigned long ulUIParam, LPTSTR lpszMessageID,
                               unsigned long flFlags, unsigned long ulReserved)
 {
-  PRInt32 irv;
+  nsresult irv;
   nsCAutoString keyString((char *) lpszMessageID);
   nsMsgKey msgKey = keyString.ToInteger(&irv);
-  if (irv)
+  // XXX Why do we return success on failure?
+  if (NS_FAILED(irv))
     return SUCCESS_SUCCESS;
   MsgMapiListContext *listContext;
   LONG ret = InitContext(aSession, &listContext);
