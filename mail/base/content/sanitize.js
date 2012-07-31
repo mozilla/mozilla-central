@@ -209,9 +209,9 @@ Sanitizer._prefs = null;
 Sanitizer.__defineGetter__("prefs", function() 
 {
   return Sanitizer._prefs ? Sanitizer._prefs
-    : Sanitizer._prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefService)
-                         .getBranch(Sanitizer.prefDomain);
+    : Sanitizer._prefs = Services.prefs
+                                 .getBranch(Sanitizer
+                                 .prefDomain);
 });
 
 // Shows sanitization UI

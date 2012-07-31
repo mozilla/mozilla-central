@@ -20,12 +20,12 @@ Cu.import("resource:///modules/mailMigrator.js");
  */
 
 function MailGlue() {
-	XPCOMUtils.defineLazyGetter(this, "_sanitizer",
-		function() {
-		let sanitizerScope = {};
-		Services.scriptloader.loadSubScript("chrome://messenger/content/sanitize.js", sanitizerScope);
-		return sanitizerScope.Sanitizer;
-	});
+  XPCOMUtils.defineLazyGetter(this, "_sanitizer",
+    function() {
+      let sanitizerScope = {};
+      Services.scriptloader.loadSubScript("chrome://messenger/content/sanitize.js", sanitizerScope);
+      return sanitizerScope.Sanitizer;
+    });
 
   this._init();
 }
@@ -60,9 +60,9 @@ MailGlue.prototype = {
     }
   },
 
-	//nsIMailGlue implementation
-	sanitize: function MG_sanitize(aParentWindow) {
-		this._sanitizer.sanitize(aParentWindow);
+  //nsIMailGlue implementation
+  sanitize: function MG_sanitize(aParentWindow) {
+    this._sanitizer.sanitize(aParentWindow);
   },
 
   _onProfileStartup: function MailGlue__onProfileStartup() {

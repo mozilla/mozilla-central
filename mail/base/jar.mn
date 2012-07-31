@@ -107,10 +107,10 @@ messenger.jar:
     content/messenger/browserRequest.xul            (content/browserRequest.xul)
 *   content/messenger/safeMode.xul                  (content/safeMode.xul)
     content/messenger/safeMode.js                   (content/safeMode.js)
-	content/messenger/sanitize.xul					(content/sanitize.xul)
-	content/messenger/sanitize.js					(content/sanitize.js)
-	content/messenger/sanitizeDialog.css			(content/sanitizeDialog.css)
-	content/messenger/sanitizeDialog.js				(content/sanitizeDialog.js)
+    content/messenger/sanitize.xul                  (content/sanitize.xul)
+    content/messenger/sanitize.js                   (content/sanitize.js)
+    content/messenger/sanitizeDialog.css            (content/sanitizeDialog.css)
+    content/messenger/sanitizeDialog.js             (content/sanitizeDialog.js)
 # the following files are mail-specific overrides
 *+  content/messenger/license.html                  (/mozilla/toolkit/content/license.html)
 % override chrome://global/content/license.html chrome://messenger/content/license.html

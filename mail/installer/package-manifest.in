@@ -168,6 +168,7 @@
 @BINPATH@/components/msgnews.xpt
 @BINPATH@/components/msgsearch.xpt
 @BINPATH@/components/import.xpt
+@BINPATH@/components/mailcompsbase.xpt
 @BINPATH@/components/mailview.xpt
 @BINPATH@/components/mailprofilemigration.xpt
 @BINPATH@/components/messageWakeupService.js
