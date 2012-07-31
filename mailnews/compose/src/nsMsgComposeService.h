@@ -8,6 +8,7 @@
 #include "nsIMsgComposeService.h"
 #include "nsCOMPtr.h"
 #include "nsIDOMWindow.h"
+#include "nsIXULWindow.h"
 #include "nsIObserver.h"
 #include "nsWeakReference.h"
 #include "nsIMimeStreamConverter.h"
@@ -19,9 +20,10 @@
 class nsMsgCachedWindowInfo
 {
 public:
-  void Initialize(nsIDOMWindow *aWindow, nsIMsgComposeRecyclingListener *aListener, bool aHtmlCompose)
+  void Initialize(nsIDOMWindow *aWindow, nsIXULWindow *aXULWindow, nsIMsgComposeRecyclingListener *aListener, bool aHtmlCompose)
   {
     window = aWindow;
+    xulWindow = aXULWindow;
     listener = aListener;
     htmlCompose = aHtmlCompose;
   }
@@ -33,6 +35,7 @@ public:
   }
   
   nsCOMPtr<nsIDOMWindow>                    window;
+  nsCOMPtr<nsIXULWindow>                    xulWindow;
   nsCOMPtr<nsIMsgComposeRecyclingListener>  listener;
   bool                                      htmlCompose;
 };
@@ -81,7 +84,7 @@ private:
                                       bool overrideComposeFormat,
                                       nsIMsgWindow *aMsgWindow);
 
-  nsresult ShowCachedComposeWindow(nsIDOMWindow *aComposeWindow, bool aShow);
+  nsresult ShowCachedComposeWindow(nsIDOMWindow *aComposeWindow, nsIXULWindow *aXULWindow, bool aShow);
 
   // hash table mapping dom windows to nsIMsgCompose objects
   nsInterfaceHashtable<nsISupportsHashKey, nsIWeakReference> mOpenComposeWindows;

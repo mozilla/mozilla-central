@@ -256,7 +256,8 @@ nsMsgComposeService::OpenComposeWindowWithParams(const char *chrome,
              clear the cache entry if everything goes well
           */
           nsCOMPtr<nsIDOMWindow> domWindow(mCachedWindows[i].window);
-          rv = ShowCachedComposeWindow(domWindow, true);
+          nsCOMPtr<nsIXULWindow> xulWindow(mCachedWindows[i].xulWindow);
+          rv = ShowCachedComposeWindow(domWindow, xulWindow, true);
           if (NS_SUCCEEDED(rv))
           {
             mCachedWindows[i].listener->OnReopen(params);
@@ -817,6 +818,14 @@ nsMsgComposeService::CacheWindow(nsIDOMWindow *aWindow, bool aComposeHTML, nsIMs
   NS_ENSURE_ARG_POINTER(aListener);
 
   nsresult rv;
+  nsCOMPtr<nsPIDOMWindow> window(do_QueryInterface(aWindow, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIDocShellTreeItem> treeItem(do_QueryInterface(window->GetDocShell(), &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIXULWindow> xulWindow(do_GetInterface(treeItem, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   PRInt32 i;
   PRInt32 sameTypeId = -1;
@@ -826,9 +835,9 @@ nsMsgComposeService::CacheWindow(nsIDOMWindow *aWindow, bool aComposeHTML, nsIMs
   {
     if (!mCachedWindows[i].window)
     {
-      rv = ShowCachedComposeWindow(aWindow, false);
+      rv = ShowCachedComposeWindow(aWindow, xulWindow, false);
       if (NS_SUCCEEDED(rv))
-        mCachedWindows[i].Initialize(aWindow, aListener, aComposeHTML);
+        mCachedWindows[i].Initialize(aWindow, xulWindow, aListener, aComposeHTML);
 
       return rv;
     }
@@ -854,9 +863,9 @@ nsMsgComposeService::CacheWindow(nsIDOMWindow *aWindow, bool aComposeHTML, nsIMs
     CloseHiddenCachedWindow(mCachedWindows[oppositeTypeId].window);
     mCachedWindows[oppositeTypeId].Clear();
 
-    rv = ShowCachedComposeWindow(aWindow, false);
+    rv = ShowCachedComposeWindow(aWindow, xulWindow, false);
     if (NS_SUCCEEDED(rv))
-      mCachedWindows[oppositeTypeId].Initialize(aWindow, aListener, aComposeHTML);
+      mCachedWindows[oppositeTypeId].Initialize(aWindow, xulWindow, aListener, aComposeHTML);
 
     return rv;
   }
@@ -1241,7 +1250,7 @@ nsMsgComposeService::ForwardMessage(const nsAString &forwardTo,
   return folder->AddMessageDispositionState(aMsgHdr, nsIMsgFolder::nsMsgDispositionState_Forwarded);
 }
 
-nsresult nsMsgComposeService::ShowCachedComposeWindow(nsIDOMWindow *aComposeWindow, bool aShow)
+nsresult nsMsgComposeService::ShowCachedComposeWindow(nsIDOMWindow *aComposeWindow, nsIXULWindow *aXULWindow, bool aShow)
 {
   nsresult rv = NS_OK;
 
@@ -1279,19 +1288,16 @@ nsresult nsMsgComposeService::ShowCachedComposeWindow(nsIDOMWindow *aComposeWind
     baseWindow->SetEnabled(aShow);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsCOMPtr <nsIXULWindow> xulWindow = do_GetInterface(treeOwner, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
-
     nsCOMPtr<nsIWindowMediator> windowMediator =
 	         do_GetService(NS_WINDOWMEDIATOR_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
     // if showing, reinstate the window with the mediator
     if (aShow) {
-      rv = windowMediator->RegisterWindow(xulWindow);
+      rv = windowMediator->RegisterWindow(aXULWindow);
       NS_ENSURE_SUCCESS(rv,rv);
 
-      obs->NotifyObservers(xulWindow, "xul-window-registered", nsnull);
+      obs->NotifyObservers(aXULWindow, "xul-window-registered", nsnull);
     }
 
     // hide (show) the cached window
@@ -1301,10 +1307,10 @@ nsresult nsMsgComposeService::ShowCachedComposeWindow(nsIDOMWindow *aComposeWind
     // if hiding, remove the window from the mediator,
     // so that it will be removed from the task list
     if (!aShow) {
-      rv = windowMediator->UnregisterWindow(xulWindow);
+      rv = windowMediator->UnregisterWindow(aXULWindow);
       NS_ENSURE_SUCCESS(rv,rv);
 
-      obs->NotifyObservers(xulWindow, "xul-window-destroyed", nsnull);
+      obs->NotifyObservers(aXULWindow, "xul-window-destroyed", nsnull);
     }
   }
   else {
