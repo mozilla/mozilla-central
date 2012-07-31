@@ -143,6 +143,11 @@ const XMPPMUCConversationPrototype = {
       flags.system = true;
       from = this.name;
     }
+    else if (aStanza.attributes["type"] == "error") {
+      aMsg = _("connection.error.incorrectResponse");
+      flags.system = true;
+      flags.error = true;
+    }
     else if (from == this._nick)
       flags.outgoing = true;
     else
@@ -265,7 +270,14 @@ const XMPPConversationPrototype = {
   incomingMessage: function(aMsg, aStanza, aDate) {
     let from = aStanza.attributes["from"];
     this._targetResource = this._account._parseJID(from).resource;
-    let flags = {incoming: true, _alias: this.buddy.contactDisplayName};
+    let flags = {};
+    if (aStanza.attributes["type"] == "error") {
+      aMsg = _("connection.error.incorrectResponse");
+      flags.system = true;
+      flags.error = true;
+    }
+    else
+      flags = {incoming: true, _alias: this.buddy.contactDisplayName};
     if (aDate) {
       flags.time = aDate / 1000;
       flags.delayed = true;
@@ -781,6 +793,7 @@ const XMPPAccountPrototype = {
   onMessageStanza: function(aStanza) {
     let norm = this._normalizeJID(aStanza.attributes["from"]);
 
+    let type = aStanza.attributes["type"];
     let body;
     let b = aStanza.getElement(["body"]);
     if (b)
@@ -794,7 +807,8 @@ const XMPPAccountPrototype = {
       }
       if (date && isNaN(date))
         date = undefined;
-      if (aStanza.attributes["type"] == "groupchat") {
+      if (type == "groupchat" ||
+          (type == "error" && this._mucs.hasOwnProperty(norm))) {
         if (!this._mucs.hasOwnProperty(norm)) {
           WARN("Received a groupchat message for unknown MUC " + norm);
           return;
@@ -810,6 +824,10 @@ const XMPPAccountPrototype = {
 
     // Don't create a conversation to only display the typing notifications.
     if (!this._conv.hasOwnProperty(norm))
+      return;
+
+    // Ignore errors while delivering typing notifications.
+    if (type == "error")
       return;
 
     let state;
