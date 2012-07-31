@@ -102,9 +102,8 @@
                   preftype="bool"
                   prefstring="mail.server.%serverkey%.useWhiteList"/>
         <label id="whiteListLabel"
-               value="&whitelistHeader.label;"
                accesskey="&whitelistHeader.accesskey;"
-               control="whiteListAbURI"/>
+               control="whiteListAbURI">&whitelistHeader.label;</label>
         <listbox id="whiteListAbURI" rows="5"/>
       </vbox>
 
