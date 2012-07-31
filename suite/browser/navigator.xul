@@ -316,9 +316,8 @@
                 default="true"
                 oncommand="handleURLBarCommand('none', event);"
                 onclick="checkForMiddleClick(this, event);"
-                ondragover="nsDragAndDrop.dragOver(event, goButtonObserver);"
-                ondragdrop="nsDragAndDrop.drop(event, goButtonObserver);"
-                ondragexit="nsDragAndDrop.dragExit(event, goButtonObserver);"/>
+                ondragover="goButtonObserver.onDragOver(event);"
+                ondragdrop="goButtonObserver.onDrop(event);"/>
       </toolbaritem>
 
       <toolbaritem id="search-button-container"
@@ -329,9 +328,8 @@
                 label="&searchButton.label;"
                 tooltiptext="&searchButton.tooltip;"
                 oncommand="BrowserSearch.loadSearch(QualifySearchTerm());"
-                ondragover="nsDragAndDrop.dragOver(event, searchButtonObserver);"
-                ondragdrop="nsDragAndDrop.drop(event, searchButtonObserver);"
-                ondragexit="nsDragAndDrop.dragExit(event, searchButtonObserver);"/>
+                ondragover="searchButtonObserver.onDragOver(event);"
+                ondragdrop="searchButtonObserver.onDrop(event);"/>
       </toolbaritem>
 
       <toolbaritem id="search-container" title="&searchItem.title;"

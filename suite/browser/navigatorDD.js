@@ -132,69 +132,26 @@ function openHomeDialog(aURL)
 }
 
 var goButtonObserver = {
-  onDragOver: function(aEvent, aFlavour, aDragSession)
-    {
-      aEvent.target.setAttribute("dragover", "true");
-      return true;
-    },
-  onDragExit: function (aEvent, aDragSession)
-    {
-      aEvent.target.removeAttribute("dragover");
-    },
-  onDrop: function (aEvent, aXferData, aDragSession)
-    {
-      var xferData = aXferData.data.split("\n");
-      var draggedText = xferData[0] || xferData[1];
-      nsDragAndDrop.dragDropSecurityCheck(aEvent, aDragSession, draggedText);
+  onDragOver: DragLinkOver,
 
-      var uri;
-      try {
-        uri = makeURI(draggedText);
-      } catch (ex) { }
-      if (uri) {
-        // we have a valid url, so do a security check for javascript.
-        const nsIScriptSecMan = Components.interfaces.nsIScriptSecurityManager;
-        urlSecurityCheck(uri, content.document.nodePrincipal,
-                         nsIScriptSecMan.DISALLOW_SCRIPT_OR_DATA);
-      }
-
-      var postData = {};
-      var url = getShortcutOrURI(draggedText, postData);
+  onDrop: function (aEvent)
+  {
+    var url = Services.droppedLinkHandler.dropLink(aEvent, {});
+    var postData = {};
+    url = getShortcutOrURI(url, postData);
+    if (url)
       loadURI(url, null, postData.value, true);
-    },
-  getSupportedFlavours: function ()
-    {
-      var flavourSet = new FlavourSet();
-      flavourSet.appendFlavour("application/x-moz-file", "nsIFile");
-      flavourSet.appendFlavour("text/x-moz-url");
-      flavourSet.appendFlavour("text/unicode");
-      return flavourSet;
-    }
-}
+  }
+};
 
 var searchButtonObserver = {
-  onDragOver: function(aEvent, aFlavour, aDragSession)
-    {
-      aEvent.target.setAttribute("dragover", "true");
-      return true;
-    },
-  onDragExit: function (aEvent, aDragSession)
-    {
-      aEvent.target.removeAttribute("dragover");
-    },
-  onDrop: function (aEvent, aXferData, aDragSession)
-    {
-      var xferData = aXferData.data.split("\n");
-      var uri = xferData[1] ? xferData[1] : xferData[0];
-      if (uri)
-        BrowserSearch.loadSearch(uri);
-    },
-  getSupportedFlavours: function ()
-    {
-      var flavourSet = new FlavourSet();
-      flavourSet.appendFlavour("application/x-moz-file", "nsIFile");
-      flavourSet.appendFlavour("text/x-moz-url");
-      flavourSet.appendFlavour("text/unicode");
-      return flavourSet;
-    }
-}
+  onDragOver: DragLinkOver,
+
+  onDrop: function (aEvent)
+  {
+    var name = {};
+    var url = Services.droppedLinkHandler.dropLink(aEvent, name);
+    if (url)
+      BrowserSearch.loadSearch(name.value || url);
+  }
+};
