@@ -72,6 +72,7 @@
 #include "nsContentUtils.h"
 #include "nsJSUtils.h"
 #include "jsfriendapi.h"
+#include "nsContentUtils.h"
 
 static nsresult
 GetContextFromStack(nsIJSContextStack *aStack, JSContext **aContext)
@@ -203,6 +204,14 @@ nsresult
 nsLocation::CheckURL(nsIURI* aURI, nsIDocShellLoadInfo** aLoadInfo)
 {
   *aLoadInfo = nsnull;
+  JSContext* cx;
+  if ((cx = nsContentUtils::GetCurrentJSContext())) {
+    nsIScriptSecurityManager* ssm = nsContentUtils::GetSecurityManager();
+    NS_ENSURE_STATE(ssm);
+    // Check to see if URI is allowed.
+    nsresult rv = ssm->CheckLoadURIFromScript(cx, aURI);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
   nsCOMPtr<nsIDocShell> docShell(do_QueryReferent(mDocShell));
   NS_ENSURE_TRUE(docShell, NS_ERROR_NOT_AVAILABLE);
@@ -212,8 +221,6 @@ nsLocation::CheckURL(nsIURI* aURI, nsIDocShellLoadInfo** aLoadInfo)
   nsCOMPtr<nsIJSContextStack>
     stack(do_GetService("@mozilla.org/js/xpc/ContextStack;1", &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-
-  JSContext *cx;
 
   NS_ENSURE_SUCCESS(GetContextFromStack(stack, &cx), NS_ERROR_FAILURE);
 
