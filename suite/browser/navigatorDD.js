@@ -59,6 +59,12 @@ function BeginDragLink(aEvent, aHref, aTitle)
   dt.setData("text/plain", aHref);
 }
 
+function DragLinkOver(aEvent)
+{
+  if (Services.droppedLinkHandler.canDropLink(aEvent, true))
+    aEvent.preventDefault();
+}
+
 var proxyIconDNDObserver = {
   onDragStart: function (aEvent)
   {
@@ -71,55 +77,44 @@ var proxyIconDNDObserver = {
 };
 
 var homeButtonObserver = {
-  onDragStart: function (aEvent, aXferData, aDragAction)
-    {
-      var homepage = nsPreferences.getLocalizedUnicharPref("browser.startup.homepage", "about:blank");
+  onDragStart: function (aEvent)
+  {
+    var homepage = GetLocalizedStringPref("browser.startup.homepage",
+                                          "about:blank");
 
-      if (homepage)
-        {
-          // XXX find a readable title string for homepage, perhaps do a history lookup.
-          var htmlString = "<a href=\"" + homepage + "\">" + homepage + "</a>";
-          aXferData.data = new TransferData();
-          aXferData.data.addDataForFlavour("text/x-moz-url", homepage + "\n" + homepage);
-          aXferData.data.addDataForFlavour("text/html", htmlString);
-          aXferData.data.addDataForFlavour("text/unicode", homepage);
-        }
-    },
-
-  onDrop: function (aEvent, aXferData, aDragSession)
+    if (homepage)
     {
-      var url = transferUtils.retrieveURLFromData(aXferData.data, aXferData.flavour.contentType);
-      setTimeout(openHomeDialog, 0, url);
-    },
-
-  onDragOver: function (aEvent, aFlavour, aDragSession)
-    {
-      const nsIDragService = Components.interfaces.nsIDragService;
-      if (aEvent.target == aDragSession.dataTransfer.mozSourceNode)
-        {
-          aDragSession.dragAction = nsIDragService.DRAGDROP_ACTION_NONE;
-          return;
-        }
-      var statusTextFld = document.getElementById("statusbar-display");
-      statusTextFld.label = gNavigatorBundle.getString("droponhomebutton");
-      aDragSession.dragAction = nsIDragService.DRAGDROP_ACTION_LINK;
-    },
-
-  onDragExit: function (aEvent, aDragSession)
-    {
-      var statusTextFld = document.getElementById("statusbar-display");
-      statusTextFld.label = "";
-    },
-
-  getSupportedFlavours: function ()
-    {
-      var flavourSet = new FlavourSet();
-      flavourSet.appendFlavour("application/x-moz-file", "nsIFile");
-      flavourSet.appendFlavour("text/x-moz-url");
-      flavourSet.appendFlavour("text/unicode");
-      return flavourSet;
+      // XXX find a readable title string for homepage,
+      // perhaps do a history lookup.
+      BeginDragLink(aEvent, homepage, homepage);
     }
-}
+  },
+
+  onDrop: function (aEvent)
+  {
+    aEvent.stopPropagation();
+    // disallow setting home pages that inherit the principal
+    var url = Services.droppedLinkHandler.dropLink(aEvent, {}, true);
+    setTimeout(openHomeDialog, 0, url);
+  },
+
+  onDragOver: function (aEvent)
+  {
+    if (aEvent.target == aEvent.dataTransfer.mozSourceNode)
+      return;
+
+    DragLinkOver(aEvent);
+    aEvent.dropEffect = "link";
+    var statusTextFld = document.getElementById("statusbar-display");
+    statusTextFld.label = gNavigatorBundle.getString("droponhomebutton");
+  },
+
+  onDragExit: function (aEvent)
+  {
+    aEvent.stopPropagation();
+    document.getElementById("statusbar-display").label = "";
+  }
+};
 
 function openHomeDialog(aURL)
 {
@@ -133,7 +128,7 @@ function openHomeDialog(aURL)
                                  Services.prompt.BUTTON_POS_1),
                                 okButton, null, null, null,
                                 {value: false}) == 0)
-    nsPreferences.setUnicharPref("browser.startup.homepage", aURL);
+    SetStringPref("browser.startup.homepage", aURL);
 }
 
 var goButtonObserver = {

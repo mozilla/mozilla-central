@@ -242,11 +242,11 @@
                      oncommand="BrowserHome(event);"
                      onclick="if (event.button == 1) BrowserHome(event);"
                      tooltip="home-button-tooltip"
-                     ondraggesture="nsDragAndDrop.startDrag(event, homeButtonObserver)"
-                     ondragdrop="nsDragAndDrop.drop(event, homeButtonObserver); event.stopPropagation()"
-                     ondragenter="event.stopPropagation()"
-                     ondragexit="nsDragAndDrop.dragExit(event, homeButtonObserver); event.stopPropagation()"
-                     ondragover="nsDragAndDrop.dragOver(event, homeButtonObserver); event.stopPropagation()"/>
+                     ondragstart="homeButtonObserver.onDragStart(event);"
+                     ondragdrop="homeButtonObserver.onDrop(event);"
+                     ondragenter="event.stopPropagation();"
+                     ondragexit="homeButtonObserver.onDragExit(event);"
+                     ondragover="homeButtonObserver.onDragOver(event);"/>
 
       <toolbaritem id="nav-bar-inner"
                    flex="4"
