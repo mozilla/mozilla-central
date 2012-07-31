@@ -249,8 +249,14 @@ const Socket = {
     }
 
     if (aProxyInfo) {
-      this.log("using " + aProxyInfo.type + " proxy: " +
-               aProxyInfo.host + ":" + aProxyInfo.port);
+      if (aProxyInfo.type == "http") {
+        this.log("ignoring http proxy");
+        aProxyInfo = null;
+      }
+      else {
+        this.log("using " + aProxyInfo.type + " proxy: " +
+                 aProxyInfo.host + ":" + aProxyInfo.port);
+      }
     }
     this._createTransport(aProxyInfo);
     delete this._proxyCancel;
