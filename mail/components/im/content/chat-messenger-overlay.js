@@ -76,6 +76,7 @@ var gChatTab = null;
 var chatTabType = {
   name: "chat",
   panelId: "chatTabPanel",
+  hasBeenOpened: false,
   modes: {
     chat: {
       type: "chat"
@@ -105,7 +106,7 @@ var chatTabType = {
       document.getElementById("contactlistbox").selectedItem = item;
   },
   openTab: function(aTab, aArgs) {
-    if (document.getElementById("conversationsGroup").nextSibling.id == "searchResultConv") {
+    if (!this.hasBeenOpened) {
       let convs = imServices.conversations.getUIConversations();
       if (convs.length != 0) {
         convs.sort(function(a, b)
@@ -121,6 +122,7 @@ var chatTabType = {
     chatHandler._updateSelectedConversation();
     chatHandler.updateTitle();
     chatHandler._updateFocus();
+    this.hasBeenOpened = true;
   },
   shouldSwitchTo: function(aArgs) {
     if (!gChatTab)
@@ -854,7 +856,7 @@ var chatHandler = {
       return;
     }
     if (aTopic == "new-ui-conversation") {
-      if (gChatTab)
+      if (chatTabType.hasBeenOpened)
         chatHandler._addConversation(aSubject);
       return;
     }
