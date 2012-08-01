@@ -8025,7 +8025,7 @@ nsHTMLEditRules::RemoveEmptyNodes()
   nsresult res = iter->Init(mDocChangeRange);
   NS_ENSURE_SUCCESS(res, res);
   
-  nsTArray<nsIDOMNode*> skipList;
+  nsTArray<nsCOMPtr<nsIDOMNode> > skipList;
 
   // check for empty nodes
   while (!iter->IsDone())
