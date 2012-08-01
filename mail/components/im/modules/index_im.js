@@ -24,6 +24,10 @@ const ScriptableInputStream = CC("@mozilla.org/scriptableinputstream;1",
                                  "nsIScriptableInputStream",
                                  "init");
 
+// kIndexingDelay is how long we wait from the point of scheduling an indexing
+// job to actually carrying it out.
+const kIndexingDelay = 5000; // in milliseconds
+
 XPCOMUtils.defineLazyGetter(this, "MailFolder", function()
   Cc["@mozilla.org/rdf/resource-factory;1?name=mailbox"].createInstance(Ci.nsIMsgFolder)
 );
@@ -228,11 +232,14 @@ var GlodaIMIndexer = {
   enable: function() {
     Services.obs.addObserver(this, "new-text", false);
     Services.obs.addObserver(this, "conversation-closed", false);
-
+    Services.obs.addObserver(this, "new-ui-conversation", false);
+    Services.obs.addObserver(this, "ui-conversation-closed", false);
   },
   disable: function() {
     Services.obs.removeObserver(this, "new-text");
     Services.obs.removeObserver(this, "conversation-closed");
+    Services.obs.removeObserver(this, "new-ui-conversation");
+    Services.obs.removeObserver(this, "ui-conversation-closed");
   },
 
   _knownFiles: {},
@@ -261,20 +268,40 @@ var GlodaIMIndexer = {
   },
 
   _knownConversations: {},
-  observe: function logger_observe(aSubject, aTopic, aData) {
-    if (aTopic == "conversation-closed") {
-      delete this._knownConversations[aSubject.id];
-      return;
+
+  _scheduleIndexingJob: function(aConversation) {
+    let convId = aConversation.id;
+
+    // If we've already scheduled this conversation to be indexed, let's
+    // not repeat.
+    if (!(convId in this._knownConversations)) {
+      this._knownConversations[convId] = {
+        scheduledIndex: null,
+        logFile: null,
+        convObj: {}
+      };
     }
 
-    if (aTopic != "new-text" || aSubject.noLog)
-      return;
+    if (this._knownConversations[convId].scheduledIndex == null) {
+      // Ok, let's schedule the job.
+      this._knownConversations[convId].scheduledIndex = setTimeout(
+        this._beginIndexingJob.bind(this, aConversation),
+        kIndexingDelay);
+    }
+  },
 
-    let conv = aSubject.conversation;
-    let convId = conv.id;
-    if (!(convId in this._knownConversations)) {
-      let logFile = Services.logs.getLogFileForOngoingConversation(conv);
+  _beginIndexingJob: function(aConversation) {
+    let convId = aConversation.id;
 
+    // In the event that we're triggering this indexing job manually, without
+    // bothering to schedule it (for example, when a conversation is closed),
+    // we give the conversation an entry in _knownConversations, which would
+    // normally have been done in _scheduleIndexingJob.
+    if (!(convId in this._knownConversations))
+      this._knownConversations[convId] = {};
+
+    if (!this._knownConversations[convId].logFile) {
+      let logFile = Services.logs.getLogFileForOngoingConversation(aConversation);
       let folder = logFile.parent;
       let convName = folder.leafName;
       folder = folder.parent;
@@ -290,17 +317,74 @@ var GlodaIMIndexer = {
       if (!Object.prototype.hasOwnProperty.call(accountObj, convName))
         accountObj[convName] = {};
 
-      this._knownConversations[convId] =
-        {indexPending: false, logFile: logFile, convObj: accountObj[convName]};
+      this._knownConversations[convId].logFile = logFile;
+      this._knownConversations[convId].convObj = accountObj[convName];
     }
 
-    if (this._knownConversations[convId].indexPending)
-      return;
-
-    this._knownConversations[convId].indexPending = true;
     let job = new IndexingJob("indexIMConversation", null);
     job.conversation = this._knownConversations[convId];
     GlodaIndexer.indexJob(job);
+    // Now clear the job, so we can index in the future.
+    this._knownConversations[convId].scheduledIndex = null;
+  },
+
+  observe: function logger_observe(aSubject, aTopic, aData) {
+    if (aTopic == "new-ui-conversation") {
+      // Add ourselves to the ui-conversation's list of observers for the
+      // unread-message-count-changed notification.
+      // For this notification, aSubject is the ui-conversation that is opened.
+      aSubject.addObserver(this);
+      return;
+    }
+
+    if (aTopic == "ui-conversation-closed") {
+      aSubject.removeObserver(this);
+    }
+
+    if (aTopic == "unread-message-count-changed") {
+      // We get this notification by attaching observers to conversations
+      // directly (see the new-ui-conversation handler for when we attach).
+      if (aSubject.unreadIncomingMessageCount == 0) {
+        // The unread message count changed to 0, meaning that a conversation
+        // that had been in the background and receiving messages was suddenly
+        // moved to the foreground and displayed to the user. We schedule an
+        // indexing job on this conversation now, since we want to index messages
+        // that the user has seen.
+        this._scheduleIndexingJob(aSubject.target);
+      }
+      return;
+    }
+
+    if (aTopic == "conversation-closed") {
+      let convId = aSubject.id;
+      // If there's a scheduled indexing job, cancel it, because we're going
+      // to index now.
+      if (convId in this._knownConversations &&
+          this._knownConversations[convId].scheduledIndex != null) {
+        clearTimeout(this._knownConversations[convId].scheduledIndex);
+      }
+
+      this._beginIndexingJob(aSubject);
+      delete this._knownConversations[convId];
+      return;
+    }
+
+    if (aTopic == "new-text" && !aSubject.noLog) {
+      // Ok, some new text is about to be put into a conversation. For this
+      // notification, aSubject is a prplIMessage.
+      let conv = aSubject.conversation;
+      let uiConv = Services.conversations.getUIConversation(conv);
+
+      // We only want to schedule an indexing job if this message is
+      // immediately visible to the user. We figure this out by finding
+      // the unread message count on the associated UIConversation for this
+      // message. If the unread count is 0, we know that the message has been
+      // displayed to the user.
+      if (uiConv.unreadIncomingMessageCount == 0)
+        this._scheduleIndexingJob(conv);
+
+      return;
+    }
   },
 
   /* aGlodaConv is an optional inout param that lets the caller save and reuse
