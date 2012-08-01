@@ -245,15 +245,16 @@ function AbResultsPaneOnClick(event)
     var sortDirection;
     var currentDirection = t.getAttribute("sortDirection");
 
-    sortDirection = currentDirection == kDefaultDescending ?
-                                        kDefaultAscending : kDefaultDescending;
+    // Revert the sort order. If none is set, use Ascending.
+    sortDirection = currentDirection == kDefaultAscending ?
+                                        kDefaultDescending : kDefaultAscending;
 
     SortAndUpdateIndicators(t.id, sortDirection);
   }
   else if (t.localName == "treechildren") {
     // figure out what row the click was in
     var row = gAbResultsTree.treeBoxObject.getRowAt(event.clientX,
-						    event.clientY);
+                                                    event.clientY);
     if (row == -1)
       return;
 
