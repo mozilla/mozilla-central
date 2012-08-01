@@ -837,6 +837,16 @@ mime_create (const char *content_type, MimeHeaders *hdrs,
   MimeObject *obj = 0;
   char *override_content_type = 0;
 
+  /* We've had issues where the incoming content_type is invalid, of a format:
+     content_type="=?windows-1252?q?application/pdf" (bug 659355)
+     We decided to fix that by simply trimming the stuff before the ?
+  */
+  if (content_type)
+  {
+    const char *lastQuestion = strrchr(content_type, '?');
+    if (lastQuestion)
+      content_type = lastQuestion + 1;  // the substring after the last '?'
+  }
 
   /* There are some clients send out all attachments with a content-type
    of application/octet-stream.  So, if we have an octet-stream attachment,
