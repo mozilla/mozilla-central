@@ -171,8 +171,22 @@ CommandsService.prototype = {
     return function(c) c.usageContext & usageContext;
   },
   _findCommands: function(aConversation, aName) {
-    if (!(this._commands.hasOwnProperty(aName)))
-      return [];
+    // The command doesn't exist, check if the given command is a partial match
+    // to a single other command.
+    if (!(this._commands.hasOwnProperty(aName))) {
+      let commandNames = Object.keys(this._commands);
+      // Find all full command names that start with the given command.
+      commandNames =
+        commandNames.filter(function(aCommand) aCommand.indexOf(aName) == 0);
+
+      // If a single full command name matches the given partial command name,
+      // return the results for that command name. Otherwise, return an empty
+      // array (don't assume a certain command).
+      if (commandNames.length == 1)
+        return this._findCommands(aConversation, commandNames[0]);
+      else
+        return [];
+    }
 
     // Get the 2 possible commands (the global and the proto specific)
     let cmdArray = [];
