@@ -14,9 +14,6 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-Cu.import("resource:///modules/IOUtils.js");
-Cu.import("resource:///modules/iteratorUtils.jsm");
-Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 
 /**
@@ -66,6 +63,7 @@ var msgDBCacheManager =
     // than the last 3pane window closing requested the application be
     // shutdown. For example, when the user quits via the file menu.
     case "quit-application-granted":
+      Services.obs.removeObserver(this, "quit-application-granted");
       this.stopPeriodicCheck();
       break;
     }
