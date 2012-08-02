@@ -7,6 +7,7 @@ const EXPORTED_SYMBOLS = ["cloudFileAccounts"];
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
+const Cr = Components.results;
 
 const CATEGORY = "cloud-files";
 const PREF_ROOT = "mail.cloud_files.";
@@ -42,11 +43,13 @@ var cloudFileAccounts = {
 
   _getInitedProviderForType: function(aAccountKey, aType) {
     let provider = this.getProviderForType(aType);
-    try {
-      provider.init(aAccountKey);
-    } catch (e) {
-      Components.utils.reportError(e);
-      provider = null;
+    if (provider) {
+      try {
+        provider.init(aAccountKey);
+      } catch (e) {
+        Components.utils.reportError(e);
+        provider = null;
+      }
     }
     return provider;
   },
@@ -79,17 +82,19 @@ var cloudFileAccounts = {
   },
 
   getProviderForType: function(aType) {
-    let className;
-
     try {
-      className = categoryManager.getCategoryEntry(CATEGORY, aType);
-    } catch(e) {
+      let className = categoryManager.getCategoryEntry(CATEGORY, aType);
+      let provider = Cc[className].createInstance(Ci.nsIMsgCloudFileProvider);
+
+      return provider;
+    } catch (e if e.result == Cr.NS_ERROR_NOT_AVAILABLE) {
+      // If a provider is not available we swallow the error message.
+    } catch (e) {
+      // Otherwise at least notify, so developers can fix things.
       Cu.reportError(e);
-      return null;
     }
 
-    let provider = Cc[className].createInstance(Ci.nsIMsgCloudFileProvider);
-    return provider;
+    return null;
   },
 
   // aExtraPrefs are prefs specific to an account provider.
