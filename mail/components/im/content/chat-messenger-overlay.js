@@ -271,27 +271,32 @@ var chatHandler = {
     if (!chatButton)
       return;
 
-    let unreadCount = this.countUnreadMessages();
-    chatButton.badgeCount = unreadCount;
-    if (unreadCount != this._notifiedUnreadCount) {
+    let [unreadTargettedCount, unreadTotalCount] = this.countUnreadMessages();
+    chatButton.badgeCount = unreadTargettedCount;
+
+    if (unreadTotalCount)
+      chatButton.setAttribute("unreadMessages", "true");
+    else
+      chatButton.removeAttribute("unreadMessages");
+
+    if (unreadTargettedCount != this._notifiedUnreadCount) {
       let unreadInt = Components.classes["@mozilla.org/supports-PRInt32;1"]
                                 .createInstance(Ci.nsISupportsPRInt32);
-      unreadInt.data = unreadCount;
-      Services.obs.notifyObservers(unreadInt, "unread-im-count-changed", unreadCount);
-      this._notifiedUnreadCount = unreadCount;
+      unreadInt.data = unreadTargettedCount;
+      Services.obs.notifyObservers(unreadInt, "unread-im-count-changed", unreadTargettedCount);
+      this._notifiedUnreadCount = unreadTargettedCount;
     }
   },
 
   countUnreadMessages: function() {
     let convs = imServices.conversations.getUIConversations();
-    let unreadCount = 0;
+    let unreadTargettedCount = 0;
+    let unreadTotalCount = 0;
     for each (let conv in convs) {
-      if (conv.isChat)
-        unreadCount += conv.unreadTargetedMessageCount;
-      else
-        unreadCount += conv.unreadIncomingMessageCount;
+      unreadTargettedCount += conv.unreadTargetedMessageCount;
+      unreadTotalCount += conv.unreadIncomingMessageCount;
     }
-    return unreadCount;
+    return [unreadTargettedCount, unreadTotalCount];
   },
 
   updateTitle: function() {
@@ -300,9 +305,9 @@ var chatHandler = {
 
     let title =
       document.getElementById("chatBundle").getString("chatTabTitle");
-    let unreadCount = this.countUnreadMessages();
-    if (unreadCount)
-      title += " (" + unreadCount + ")";
+    let [unreadTargettedCount] = this.countUnreadMessages();
+    if (unreadTargettedCount)
+      title += " (" + unreadTargettedCount + ")";
     let selectedItem = document.getElementById("contactlistbox").selectedItem;
     if (selectedItem && selectedItem.localName == "imconv" &&
         !selectedItem.hidden)

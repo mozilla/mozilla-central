@@ -47,9 +47,9 @@
           badge.value = this._badgeCount;
 
           if (this._badgeCount > 0)
-            this.setAttribute("unreadMessages", "true");
+            this.setAttribute("showingBadge", "true");
           else
-            this.removeAttribute("unreadMessages");
+            this.removeAttribute("showingBadge");
         ]]>
         </body>
       </method>

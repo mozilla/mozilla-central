@@ -114,6 +114,6 @@ toolbar[mode="text"] .badgeButton-badge {
   margin: 0;
 }
 
-#button-chat[unreadMessages="true"] > stack > .badgeButton-badge {
+#button-chat[showingBadge="true"] > stack > .badgeButton-badge {
   display: block;
 }
