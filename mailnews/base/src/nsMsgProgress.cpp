@@ -92,7 +92,7 @@ NS_IMETHODIMP nsMsgProgress::OpenProgressDialog(nsIDOMWindow *parent,
 NS_IMETHODIMP nsMsgProgress::CloseProgressDialog(bool forceClose)
 {
   m_closeProgress = true;
-  return OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, forceClose ? NS_ERROR_FAILURE : NS_OK);
+  return OnStateChange(nullptr, nullptr, nsIWebProgressListener::STATE_STOP, forceClose ? NS_ERROR_FAILURE : NS_OK);
 }
 
 /* attribute boolean processCanceledByUser; */
@@ -105,7 +105,7 @@ NS_IMETHODIMP nsMsgProgress::GetProcessCanceledByUser(bool *aProcessCanceledByUs
 NS_IMETHODIMP nsMsgProgress::SetProcessCanceledByUser(bool aProcessCanceledByUser)
 {
   m_processCanceled = aProcessCanceledByUser;
-  OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, NS_BINDING_ABORTED);
+  OnStateChange(nullptr, nullptr, nsIWebProgressListener::STATE_STOP, NS_BINDING_ABORTED);
   return NS_OK;
 }
 
@@ -119,12 +119,12 @@ NS_IMETHODIMP nsMsgProgress::RegisterListener(nsIWebProgressListener * listener)
 
   m_listenerList.AppendObject(listener);
   if (m_closeProgress || m_processCanceled)
-    listener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, 0);
+    listener->OnStateChange(nullptr, nullptr, nsIWebProgressListener::STATE_STOP, 0);
   else
   {
-    listener->OnStatusChange(nsnull, nsnull, 0, m_pendingStatus.get());
+    listener->OnStatusChange(nullptr, nullptr, 0, m_pendingStatus.get());
     if (m_pendingStateFlags != -1)
-      listener->OnStateChange(nsnull, nsnull, m_pendingStateFlags, m_pendingStateValue);
+      listener->OnStateChange(nullptr, nullptr, m_pendingStateFlags, m_pendingStateValue);
   }
 
   return NS_OK;
@@ -148,7 +148,7 @@ NS_IMETHODIMP nsMsgProgress::OnStateChange(nsIWebProgress *aWebProgress, nsIRequ
   if (aStateFlags == nsIWebProgressListener::STATE_STOP && msgWindow && NS_FAILED(aStatus))
   {
     msgWindow->StopUrls();
-    msgWindow->SetStatusFeedback(nsnull);
+    msgWindow->SetStatusFeedback(nullptr);
   }
 
   for (PRInt32 i = m_listenerList.Count() - 1; i >= 0; i --)
@@ -195,12 +195,12 @@ nsresult nsMsgProgress::ReleaseListeners()
 
 NS_IMETHODIMP nsMsgProgress::ShowStatusString(const nsAString& aStatus)
 {
-  return OnStatusChange(nsnull, nsnull, NS_OK, PromiseFlatString(aStatus).get());
+  return OnStatusChange(nullptr, nullptr, NS_OK, PromiseFlatString(aStatus).get());
 }
 
 NS_IMETHODIMP nsMsgProgress::SetStatusString(const nsAString& aStatus)
 {
-  return OnStatusChange(nsnull, nsnull, NS_OK, PromiseFlatString(aStatus).get());
+  return OnStatusChange(nullptr, nullptr, NS_OK, PromiseFlatString(aStatus).get());
 }
 
 /* void startMeteors (); */
@@ -239,7 +239,7 @@ NS_IMETHODIMP nsMsgProgress::GetMsgWindow(nsIMsgWindow **aMsgWindow)
   if (m_msgWindow)
     CallQueryReferent(m_msgWindow.get(), aMsgWindow);
   else
-    *aMsgWindow = nsnull;
+    *aMsgWindow = nullptr;
 
   return NS_OK;
 }
@@ -249,7 +249,7 @@ NS_IMETHODIMP nsMsgProgress::OnProgress(nsIRequest *request, nsISupports* ctxt,
 {
   // XXX: What should the nsIWebProgress be?
   // XXX: This truncates 64-bit to 32-bit
-  return OnProgressChange(nsnull, request, PRInt32(aProgress), PRInt32(aProgressMax),
+  return OnProgressChange(nullptr, request, PRInt32(aProgress), PRInt32(aProgressMax),
                           PRInt32(aProgress) /* current total progress */, PRInt32(aProgressMax) /* max total progress */);
 }
 

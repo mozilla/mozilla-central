@@ -114,7 +114,7 @@ MimeInlineTextPlain_parse_begin (MimeObject *obj)
       // Viewing
       text->mQuotedSizeSetting = 0;   // mail.quoted_size
       text->mQuotedStyleSetting = 0;  // mail.quoted_style
-      text->mCitationColor = nsnull;  // mail.citation_color
+      text->mCitationColor = nullptr;  // mail.citation_color
       bool graphicalQuote = true; // mail.quoted_graphical
 
       nsIPrefBranch *prefBranch = GetPrefBranch(obj->options);

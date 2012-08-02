@@ -189,7 +189,7 @@ nsLDAPConnection::Close()
                   ldap_err2string(rc)));
       }
 #endif
-      mConnectionHandle = nsnull;
+      mConnectionHandle = nullptr;
   }
 
   PR_LOG(gLDAPLogModule, PR_LOG_DEBUG, ("unbound\n"));

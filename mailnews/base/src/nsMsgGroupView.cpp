@@ -260,7 +260,7 @@ nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, bool *pNew
   nsString hashKey;
   nsresult rv = HashHdr(msgHdr, hashKey);
   if (NS_FAILED(rv))
-    return nsnull;
+    return nullptr;
 
 //  if (m_sortType == nsMsgViewSortType::byDate)
 //    msgKey = ((nsPRUint32Key *) hashKey)->GetValue();
@@ -282,7 +282,7 @@ nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, bool *pNew
       // Something is wrong with the group table. Remove the old group and
       // insert a new one.
       m_groupsTable.Remove(hashKey);
-      foundThread = nsnull;
+      foundThread = nullptr;
       *pNewThread = newThread = true;
     }
   }
@@ -648,7 +648,7 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aP
   NS_ENSURE_SUCCESS(rv, rv);
   nsMsgViewIndex viewIndexOfThread = GetIndexOfFirstDisplayedKeyInThread(
                                        thread, true); // yes to dummy node
-  thread->RemoveChildHdr(aHdrDeleted, nsnull);
+  thread->RemoveChildHdr(aHdrDeleted, nullptr);
 
   nsMsgGroupThread *groupThread = static_cast<nsMsgGroupThread *>((nsIMsgThread *) thread);
 
@@ -901,7 +901,7 @@ NS_IMETHODIMP nsMsgGroupView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsI
 
   nsString hashKey;
   nsresult rv = HashHdr(msgHdr, hashKey);
-  *pThread = nsnull;
+  *pThread = nullptr;
   if (NS_SUCCEEDED(rv))
   {
     nsCOMPtr<nsIMsgThread> thread;

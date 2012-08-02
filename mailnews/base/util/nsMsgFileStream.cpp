@@ -33,7 +33,7 @@ ErrorAccordingToNSPR()
 
 nsMsgFileStream::nsMsgFileStream() 
 {
-  mFileDesc = nsnull;
+  mFileDesc = nullptr;
   mSeekedToEnd = false;
 }
 
@@ -53,7 +53,7 @@ nsresult nsMsgFileStream::InitWithFile(nsIFile *file)
 NS_IMETHODIMP
 nsMsgFileStream::Seek(PRInt32 whence, PRInt64 offset)
 {
-  if (mFileDesc == nsnull)
+  if (mFileDesc == nullptr)
     return NS_BASE_STREAM_CLOSED;
 
   bool seekingToEnd = whence == PR_SEEK_END && offset == 0;
@@ -72,7 +72,7 @@ nsMsgFileStream::Seek(PRInt32 whence, PRInt64 offset)
 NS_IMETHODIMP
 nsMsgFileStream::Tell(PRInt64 *result)
 {
-  if (mFileDesc == nsnull)
+  if (mFileDesc == nullptr)
     return NS_BASE_STREAM_CLOSED;
   
   PRInt64 cnt = PR_Seek64(mFileDesc, 0, PR_SEEK_CUR);
@@ -86,7 +86,7 @@ nsMsgFileStream::Tell(PRInt64 *result)
 NS_IMETHODIMP
 nsMsgFileStream::SetEOF()
 {
-  if (mFileDesc == nsnull)
+  if (mFileDesc == nullptr)
     return NS_BASE_STREAM_CLOSED;
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -97,7 +97,7 @@ NS_IMETHODIMP nsMsgFileStream::Close()
   nsresult rv = NS_OK;
   if (mFileDesc && (PR_Close(mFileDesc) == PR_FAILURE))
         rv = NS_BASE_STREAM_OSERROR;
-    mFileDesc = nsnull;
+    mFileDesc = nullptr;
   return rv;
 }
 
@@ -148,7 +148,7 @@ NS_IMETHODIMP nsMsgFileStream::IsNonBlocking(bool *aNonBlocking)
 NS_IMETHODIMP
 nsMsgFileStream::Write(const char *buf, PRUint32 count, PRUint32 *result)
 {
-  if (mFileDesc == nsnull)
+  if (mFileDesc == nullptr)
     return NS_BASE_STREAM_CLOSED;
   
   PRInt32 cnt = PR_Write(mFileDesc, buf, count);
@@ -162,7 +162,7 @@ nsMsgFileStream::Write(const char *buf, PRUint32 count, PRUint32 *result)
 NS_IMETHODIMP
 nsMsgFileStream::Flush(void)
 {
-  if (mFileDesc == nsnull)
+  if (mFileDesc == nullptr)
     return NS_BASE_STREAM_CLOSED;
   
   PRInt32 cnt = PR_Sync(mFileDesc);

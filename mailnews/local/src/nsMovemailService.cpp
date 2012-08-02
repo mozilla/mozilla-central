@@ -47,7 +47,7 @@
 //
 // export NSPR_LOG_MODULES=Movemail:5
 //
-static PRLogModuleInfo *gMovemailLog = nsnull;
+static PRLogModuleInfo *gMovemailLog = nullptr;
 #define LOG(args) PR_LOG(gMovemailLog, PR_LOG_DEBUG, args)
 #else
 #define LOG(args)
@@ -122,7 +122,7 @@ nsMovemailService::Error(PRInt32 errorCode,
     bundle->GetStringFromID(errorCode, getter_Copies(errStr));
 
   if (!errStr.IsEmpty()) {
-    dialog->Alert(nsnull, errStr.get());
+    dialog->Alert(nullptr, errStr.get());
   }
 }
 
@@ -365,7 +365,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
   if (spoolPath.IsEmpty())
     rv = LocateSpoolFile(spoolPath);
   if (NS_FAILED(rv) || spoolPath.IsEmpty()) {
-    Error(MOVEMAIL_SPOOL_FILE_NOT_FOUND, nsnull, 0);
+    Error(MOVEMAIL_SPOOL_FILE_NOT_FOUND, nullptr, 0);
     return NS_ERROR_FAILURE;
   }
 
@@ -448,7 +448,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
       // finish prev header, if any.
       if (newHdr) {
         outputStream->Flush();
-        newMailParser->PublishMsgHeader(nsnull);
+        newMailParser->PublishMsgHeader(nullptr);
         msgStore->FinishNewMessage(outputStream, newHdr);
         newMailParser->Clear();
       }
@@ -457,7 +457,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
       NS_ENSURE_SUCCESS(rv, rv);
       nsCOMPtr <nsIInputStream> inputStream = do_QueryInterface(outputStream);
       rv = newMailParser->Init(serverFolder, inbox,
-                               nsnull, newHdr, outputStream);
+                               nullptr, newHdr, outputStream);
       NS_ENSURE_SUCCESS(rv, rv);
       
     }
@@ -476,8 +476,8 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
   }
   if (outputStream) {
     outputStream->Flush();
-    newMailParser->PublishMsgHeader(nsnull);
-    newMailParser->OnStopRequest(nsnull, nsnull, NS_OK);
+    newMailParser->PublishMsgHeader(nullptr);
+    newMailParser->OnStopRequest(nullptr, nullptr, NS_OK);
     msgStore->FinishNewMessage(outputStream, newHdr);
     outputStream->Close();
   }
@@ -518,7 +518,7 @@ NS_IMETHODIMP
 nsMovemailService::GetDefaultLocalPath(nsIFile ** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = nsnull;
+  *aResult = nullptr;
 
   nsresult rv;
   bool havePref;

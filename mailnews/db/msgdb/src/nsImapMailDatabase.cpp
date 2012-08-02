@@ -15,7 +15,7 @@ struct mdbOid gAllPendingHdrsTableOID;
 
 nsImapMailDatabase::nsImapMailDatabase()
 {
-  m_mdbAllPendingHdrsTable = nsnull;
+  m_mdbAllPendingHdrsTable = nullptr;
 }
 
 nsImapMailDatabase::~nsImapMailDatabase()
@@ -86,7 +86,7 @@ nsresult nsImapMailDatabase::AdjustExpungedBytesOnDelete(nsIMsgDBHdr *msgHdr)
 
 NS_IMETHODIMP nsImapMailDatabase::ForceClosed()
 {
-  m_mdbAllPendingHdrsTable = nsnull;
+  m_mdbAllPendingHdrsTable = nullptr;
   return nsMailDatabase::ForceClosed();
 }
 
@@ -143,7 +143,7 @@ NS_IMETHODIMP nsImapMailDatabase::UpdatePendingAttributes(nsIMsgDBHdr* aNewHdr)
       nsIMdbRow *row = msgHdr->GetMDBRow();
       for (mdb_count cellIndex = 1; cellIndex < numCells; cellIndex++)
       {
-        mdb_err err = pendingRow->SeekCellYarn(GetEnv(), cellIndex, &cellColumn, nsnull);
+        mdb_err err = pendingRow->SeekCellYarn(GetEnv(), cellIndex, &cellColumn, nullptr);
         if (err == 0)
         {
           err = pendingRow->AliasCellYarn(GetEnv(), cellColumn, &cellYarn);

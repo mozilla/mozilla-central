@@ -578,7 +578,7 @@ void nsMsgContentPolicy::ComposeShouldLoad(nsIMsgCompose *aMsgCompose,
     nsCOMPtr<nsIMsgDBHdr> msgHdr;
     rv = GetMsgDBHdrFromURI(originalMsgURI.get(), getter_AddRefs(msgHdr));
     NS_ENSURE_SUCCESS(rv, );
-    *aDecision = ShouldAcceptRemoteContentForMsgHdr(msgHdr, nsnull,
+    *aDecision = ShouldAcceptRemoteContentForMsgHdr(msgHdr, nullptr,
                                                     aContentLocation);
 
     // Special case image elements. When replying to a message, we want to allow
@@ -609,21 +609,21 @@ already_AddRefed<nsIMsgCompose> nsMsgContentPolicy::GetMsgComposeForContext(nsIS
 
   nsIDocShell *shell = NS_CP_GetDocShellFromContext(aRequestingContext);
   nsCOMPtr<nsIDocShellTreeItem> docShellTreeItem(do_QueryInterface(shell, &rv));
-  NS_ENSURE_SUCCESS(rv, nsnull);
+  NS_ENSURE_SUCCESS(rv, nullptr);
 
   nsCOMPtr<nsIDocShellTreeItem> rootItem;
   rv = docShellTreeItem->GetSameTypeRootTreeItem(getter_AddRefs(rootItem));
-  NS_ENSURE_SUCCESS(rv, nsnull);
+  NS_ENSURE_SUCCESS(rv, nullptr);
 
   nsCOMPtr<nsIDocShell> docShell(do_QueryInterface(rootItem, &rv));
-  NS_ENSURE_SUCCESS(rv, nsnull);
+  NS_ENSURE_SUCCESS(rv, nullptr);
 
   nsCOMPtr<nsIMsgComposeService> composeService(do_GetService(NS_MSGCOMPOSESERVICE_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, nsnull);
+  NS_ENSURE_SUCCESS(rv, nullptr);
 
-  nsIMsgCompose* msgCompose = nsnull;
+  nsIMsgCompose* msgCompose = nullptr;
   // Don't bother checking rv, as GetMsgComposeForDocShell returns NS_ERROR_FAILURE
-  // for not found. We default to nsnull, so we're still returning a valid value.
+  // for not found. We default to nullptr, so we're still returning a valid value.
   composeService->GetMsgComposeForDocShell(docShell, &msgCompose);
   return msgCompose;
 }

@@ -43,7 +43,7 @@ nsMsgStatusFeedback::nsMsgStatusFeedback() :
 
 nsMsgStatusFeedback::~nsMsgStatusFeedback()
 {
-  mBundle = nsnull;
+  mBundle = nullptr;
 }
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgStatusFeedback)
@@ -260,7 +260,7 @@ NS_IMETHODIMP nsMsgStatusFeedback::OnProgress(nsIRequest *request, nsISupports* 
 {
   // XXX: What should the nsIWebProgress be?
   // XXX: this truncates 64-bit to 32-bit
-  return OnProgressChange(nsnull, request, PRInt32(aProgress), PRInt32(aProgressMax), 
+  return OnProgressChange(nullptr, request, PRInt32(aProgress), PRInt32(aProgressMax), 
                           PRInt32(aProgress) /* current total progress */, PRInt32(aProgressMax) /* max total progress */);
 }
 

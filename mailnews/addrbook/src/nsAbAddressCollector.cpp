@@ -45,20 +45,20 @@ nsAbAddressCollector::GetCardFromProperty(const char *aName,
 {
   nsresult rv;
   nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, nsnull);
+  NS_ENSURE_SUCCESS(rv, nullptr);
 
   nsCOMPtr<nsISimpleEnumerator> enumerator;
   rv = abManager->GetDirectories(getter_AddRefs(enumerator));
-  NS_ENSURE_SUCCESS(rv, nsnull);
+  NS_ENSURE_SUCCESS(rv, nullptr);
 
   bool hasMore;
   nsCOMPtr<nsISupports> supports;
   nsCOMPtr<nsIAbDirectory> directory;
-  nsIAbCard *result = nsnull;
+  nsIAbCard *result = nullptr;
   while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
   {
     rv = enumerator->GetNext(getter_AddRefs(supports));
-    NS_ENSURE_SUCCESS(rv, nsnull);
+    NS_ENSURE_SUCCESS(rv, nullptr);
 
     directory = do_QueryInterface(supports, &rv);
     if (NS_FAILED(rv))
@@ -77,7 +77,7 @@ nsAbAddressCollector::GetCardFromProperty(const char *aName,
       return result;
     }
   }
-  return nsnull;
+  return nullptr;
 }
 
 NS_IMETHODIMP
@@ -343,7 +343,7 @@ nsAbAddressCollector::SetUpAbFromPrefs(nsIPrefBranch *aPrefBranch)
   if (abURI == mABURI)
     return;
 
-  mDirectory = nsnull;
+  mDirectory = nullptr;
   mABURI = abURI;
 
   nsresult rv;
@@ -363,6 +363,6 @@ nsAbAddressCollector::SetUpAbFromPrefs(nsIPrefBranch *aPrefBranch)
   {
     NS_ERROR("Address Collection book preferences is set to a read-only book. "
              "Address collection will not take place.");
-    mDirectory = nsnull;
+    mDirectory = nullptr;
   }
 }

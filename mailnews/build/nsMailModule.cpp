@@ -753,7 +753,7 @@ static nsresult nsVCardMimeContentTypeHandlerConstructor(nsISupports *aOuter,
                                                         void **aResult)
 {
   nsresult rv;
-  nsMimeContentTypeHandler *inst = nsnull;
+  nsMimeContentTypeHandler *inst = nullptr;
 
   if (NULL == aResult)
   {
@@ -798,7 +798,7 @@ nsPgpMimeMimeContentTypeHandlerConstructor(nsISupports *aOuter,
 {
   NS_ENSURE_ARG_POINTER(aResult);
   NS_ENSURE_FALSE(aOuter, NS_ERROR_NO_AGGREGATION);
-  *aResult = nsnull;
+  *aResult = nullptr;
 
   nsRefPtr<nsMimeContentTypeHandler> inst(
     new nsMimeContentTypeHandler("mulitpart/encrypted",
@@ -946,13 +946,13 @@ const mozilla::Module::CIDEntry kMailNewsCIDs[] = {
   { &kNS_MSGCOMPUTILS_CID, false, NULL, nsMsgCompUtilsConstructor},
   // Imap Entries
   { &kNS_IMAPURL_CID, false, NULL, nsImapUrlConstructor },
-  { &kNS_IMAPPROTOCOL_CID, false, nsnull, nsImapProtocolConstructor },
-  { &kNS_IMAPMOCKCHANNEL_CID, false, nsnull, nsImapMockChannelConstructor },
-  { &kNS_IIMAPHOSTSESSIONLIST_CID, false, nsnull, nsIMAPHostSessionListConstructor },
-  { &kNS_IMAPINCOMINGSERVER_CID, false, nsnull, nsImapIncomingServerConstructor },
-  { &kNS_IMAPRESOURCE_CID, false, nsnull, nsImapMailFolderConstructor },
-  { &kNS_IMAPSERVICE_CID, false, nsnull, nsImapServiceConstructor },
-  { &kNS_AUTOSYNCMANAGER_CID, false, nsnull, nsAutoSyncManagerConstructor },
+  { &kNS_IMAPPROTOCOL_CID, false, nullptr, nsImapProtocolConstructor },
+  { &kNS_IMAPMOCKCHANNEL_CID, false, nullptr, nsImapMockChannelConstructor },
+  { &kNS_IIMAPHOSTSESSIONLIST_CID, false, nullptr, nsIMAPHostSessionListConstructor },
+  { &kNS_IMAPINCOMINGSERVER_CID, false, nullptr, nsImapIncomingServerConstructor },
+  { &kNS_IMAPRESOURCE_CID, false, nullptr, nsImapMailFolderConstructor },
+  { &kNS_IMAPSERVICE_CID, false, nullptr, nsImapServiceConstructor },
+  { &kNS_AUTOSYNCMANAGER_CID, false, nullptr, nsAutoSyncManagerConstructor },
   // Local Entries
   { &kNS_MAILBOXURL_CID, false, NULL, nsMailboxUrlConstructor },
   { &kNS_MAILBOXSERVICE_CID, false, NULL, nsMailboxServiceConstructor },

@@ -209,7 +209,7 @@ nsresult nsOEAddressIterator::EnumList(const PRUnichar * pName, LPENTRYID pEid, 
 
             m_database->AddListCardColumnsToRow(userCard, listRow, ++numListElems,
                                                 getter_AddRefs(newCard),
-                                                true, nsnull, nsnull);
+                                                true, nullptr, nullptr);
           }
           m_pWab->FreeProperty(pProp);
           m_pWab->ReleaseUser(pUser);
@@ -360,7 +360,7 @@ bool nsOEAddressIterator::BuildCard(const PRUnichar * pName, nsIMdbRow *newRow, 
   
   nsCOMPtr<nsIImportService> impSvc(do_GetService(NS_IMPORTSERVICE_CONTRACTID, &rv));
   if (NS_SUCCEEDED(rv)) {
-    nsIImportFieldMap *    pFieldMap = nsnull;
+    nsIImportFieldMap *    pFieldMap = nullptr;
     rv = impSvc->CreateNewFieldMap(&pFieldMap);
     if (NS_SUCCEEDED(rv) && pFieldMap) {
       int max = sizeof(gMapiFields) / sizeof(MAPIFields);

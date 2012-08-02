@@ -36,7 +36,7 @@ nsresult nsImapMoveCoalescer::AddMove(nsIMsgFolder *folder, nsMsgKey key)
 {
   m_hasPendingMoves = true;
   PRInt32 folderIndex = m_destFolders.IndexOf(folder);
-  nsTArray<nsMsgKey> *keysToAdd = nsnull;
+  nsTArray<nsMsgKey> *keysToAdd = nullptr;
 
   if (folderIndex >= 0)
     keysToAdd = &(m_sourceKeyArrays[folderIndex]);
@@ -82,7 +82,7 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(bool doNewMailNotification /* = fals
     nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
     for (PRUint32 keyIndex = 0; keyIndex < keysToAdd.Length(); keyIndex++)
     {
-      nsCOMPtr<nsIMsgDBHdr> mailHdr = nsnull;
+      nsCOMPtr<nsIMsgDBHdr> mailHdr = nullptr;
       rv = m_sourceFolder->GetMessageHeader(keysToAdd.ElementAt(keyIndex), getter_AddRefs(mailHdr));
       if (NS_SUCCEEDED(rv) && mailHdr)
       {
@@ -158,7 +158,7 @@ nsTArray<nsMsgKey> *nsImapMoveCoalescer::GetKeyBucket(PRUint32 keyArrayIndex)
 {
   if (keyArrayIndex >= m_keyBuckets.Length() &&
       !m_keyBuckets.SetLength(keyArrayIndex + 1))
-    return nsnull;
+    return nullptr;
 
   return &(m_keyBuckets[keyArrayIndex]);
 }
@@ -217,13 +217,13 @@ NS_IMETHODIMP nsMoveCoalescerCopyListener::OnStopCopy(nsresult aStatus)
         NS_ENSURE_SUCCESS(rv, rv);
         nsCOMPtr <nsIURI> url;
         nsCOMPtr <nsIUrlListener> listener = do_QueryInterface(m_coalescer);
-        rv = imapService->SelectFolder(m_destFolder, listener, nsnull, getter_AddRefs(url));
+        rv = imapService->SelectFolder(m_destFolder, listener, nullptr, getter_AddRefs(url));
       }
     }
     else // give junk filters a chance to run on new msgs in destination local folder
     {
       bool filtersRun;
-      m_destFolder->CallFilterPlugins(nsnull, &filtersRun);
+      m_destFolder->CallFilterPlugins(nullptr, &filtersRun);
     }
   }
   return rv;

@@ -42,7 +42,7 @@ nsLDAPSSLFreeSocketClosure(nsLDAPSSLSocketClosure **aClosure)
 {
     if (aClosure && *aClosure) {
 	nsMemory::Free(*aClosure);
-	*aClosure = nsnull;
+	*aClosure = nullptr;
     }
 }
 
@@ -93,7 +93,7 @@ nsLDAPSSLConnect(const char *hostlist, int defport, int timeout,
 {
     PRLDAPSocketInfo socketInfo;
     PRLDAPSessionInfo sessionInfo;
-    nsLDAPSSLSocketClosure *socketClosure = nsnull;
+    nsLDAPSSLSocketClosure *socketClosure = nullptr;
     nsLDAPSSLSessionClosure *sessionClosure;
     int	intfd = -1;
     nsCOMPtr <nsISupports> securityInfo;
@@ -114,7 +114,7 @@ nsLDAPSSLConnect(const char *hostlist, int defport, int timeout,
     //
     memset(&sessionInfo, 0, sizeof(sessionInfo));
     sessionInfo.seinfo_size = PRLDAP_SESSIONINFO_SIZE;
-    if (prldap_get_session_info(nsnull, sessionarg, &sessionInfo) 
+    if (prldap_get_session_info(nullptr, sessionarg, &sessionInfo) 
 	!= LDAP_SUCCESS) {
 	NS_ERROR("nsLDAPSSLConnect(): unable to get session info");
         return -1;
@@ -176,7 +176,7 @@ nsLDAPSSLConnect(const char *hostlist, int defport, int timeout,
     //
     rv = tlsSocketProvider->AddToSocket(PR_AF_INET,
                                         sessionClosure->hostname, defport,
-                                        nsnull, 0, 0, socketInfo.soinfo_prfd,
+                                        nullptr, 0, 0, socketInfo.soinfo_prfd,
                                         getter_AddRefs(securityInfo));
     if (NS_FAILED(rv)) {
 	NS_ERROR("nsLDAPSSLConnect(): unable to add SSL layer to socket");
@@ -235,13 +235,13 @@ nsLDAPSSLFreeSessionClosure(nsLDAPSSLSessionClosure **aSessionClosure)
 	//
 	if ( (*aSessionClosure)->hostname ) {
 	    PL_strfree((*aSessionClosure)->hostname);
-	    (*aSessionClosure)->hostname = nsnull;
+	    (*aSessionClosure)->hostname = nullptr;
 	}
 
 	// free the structure itself
 	//
 	nsMemory::Free(*aSessionClosure);
-	*aSessionClosure = nsnull;
+	*aSessionClosure = nullptr;
     }
 }
 
@@ -257,7 +257,7 @@ nsLDAPSSLDisposeHandle(LDAP *ld, struct lextiof_session_private *sessionarg)
 
     memset(&sessionInfo, 0, sizeof(sessionInfo));
     sessionInfo.seinfo_size = PRLDAP_SESSIONINFO_SIZE;
-    if (prldap_get_session_info(ld, nsnull, &sessionInfo) == LDAP_SUCCESS) {
+    if (prldap_get_session_info(ld, nullptr, &sessionInfo) == LDAP_SUCCESS) {
 	sessionClosure = reinterpret_cast<nsLDAPSSLSessionClosure *>
                                   (sessionInfo.seinfo_appdata);
 	disposehdl_fn = sessionClosure->realDisposeHandle;
@@ -329,7 +329,7 @@ nsLDAPInstallSSL( LDAP *ld, const char *aHostName)
     sessionInfo.seinfo_size = PRLDAP_SESSIONINFO_SIZE;
     sessionInfo.seinfo_appdata = reinterpret_cast<prldap_session_private *>
                                                  (sessionClosure);
-    if (prldap_set_session_info(ld, nsnull, &sessionInfo) != LDAP_SUCCESS) {
+    if (prldap_set_session_info(ld, nullptr, &sessionInfo) != LDAP_SUCCESS) {
 	NS_ERROR("nsLDAPInstallSSL(): error setting prldap session info");
 	nsMemory::Free(sessionClosure);
 	return NS_ERROR_UNEXPECTED;

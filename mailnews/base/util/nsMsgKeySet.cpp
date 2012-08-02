@@ -278,7 +278,7 @@ nsMsgKeySet::Output(char **outputStr)
   char *s, *s_end;
   PRInt32 last_art = -1;
 
-  *outputStr = nsnull;
+  *outputStr = nullptr;
 
   size = m_length;
   head = m_data;

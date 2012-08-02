@@ -62,7 +62,7 @@ nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
   NS_ENSURE_ARG_POINTER(aNodeList);
 
   // Check to see if we were already called
-  if (m_EmbeddedObjectList != nsnull)
+  if (m_EmbeddedObjectList != nullptr)
   {
     *aNodeList = m_EmbeddedObjectList;
     return NS_OK;

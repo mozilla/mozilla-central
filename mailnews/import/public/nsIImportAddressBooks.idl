@@ -103,7 +103,7 @@ interface nsIImportAddressBooks : nsISupports
    *                        import.
    * @param aFieldMap       The field map containing the mapping of fields to be
    *                        used in cvs and tab type imports.
-   * @param aSupportService An optional proxy support service (nsnull is
+   * @param aSupportService An optional proxy support service (nullptr is
    *                        acceptable if it is not required), may be required
    *                        for certain import types (e.g. nsIAbLDIFService for
    *                        LDIF import).

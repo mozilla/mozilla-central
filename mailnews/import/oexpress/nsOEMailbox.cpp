@@ -29,7 +29,7 @@ public:
   PRUint32  BytesProcessed(void) { return m_didBytes;}
 
 protected:
-  bool    WriteMailItem(PRUint32 flags, PRUint32 offset, PRUint32 size, PRUint32 *pTotalMsgSize = nsnull);
+  bool    WriteMailItem(PRUint32 flags, PRUint32 offset, PRUint32 size, PRUint32 *pTotalMsgSize = nullptr);
   virtual void  CleanUp(void);
 
 private:
@@ -183,8 +183,8 @@ CMbxScanner::CMbxScanner(nsString& name, nsIFile* mbxFile,
   m_name = name;
   m_mbxFile = mbxFile;
   m_dstFolder = dstFolder;
-  m_pInBuffer = nsnull;
-  m_pOutBuffer = nsnull;
+  m_pInBuffer = nullptr;
+  m_pOutBuffer = nullptr;
   m_bufSz = 0;
   m_fatalError = false;
   m_didBytes = 0;
@@ -270,10 +270,10 @@ void CMbxScanner::CleanUp(void)
     m_dstOutputStream->Close();
 
   delete [] m_pInBuffer;
-  m_pInBuffer = nsnull;
+  m_pInBuffer = nullptr;
 
   delete [] m_pOutBuffer;
-  m_pOutBuffer = nsnull;
+  m_pOutBuffer = nullptr;
 }
 
 
@@ -309,7 +309,7 @@ bool CMbxScanner::WriteMailItem(PRUint32 flags, PRUint32 offset, PRUint32 size,
     return false;
   }
 
-  if (pTotalMsgSize != nsnull)
+  if (pTotalMsgSize != nullptr)
     *pTotalMsgSize = values[2];
 
   nsCOMPtr<nsIMsgDBHdr> msgHdr;
@@ -335,7 +335,7 @@ bool CMbxScanner::WriteMailItem(PRUint32 flags, PRUint32 offset, PRUint32 size,
   if (!reusable)
   {
     m_dstOutputStream->Close();
-    m_dstOutputStream = nsnull;
+    m_dstOutputStream = nullptr;
   }
   return copyOK;
 }

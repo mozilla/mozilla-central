@@ -23,14 +23,14 @@ nsresult
 do_test(const char *aBuffer, const PRUint32 aSize)
 {
   nsresult rv;
-  MimeEncoderData *encodeData = nsnull;
+  MimeEncoderData *encodeData = nullptr;
   PRInt32 written = 0;
 
   nsCOMPtr<nsIMimeConverter> converter =
     do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = converter->QPEncoderInit(mime_encoder_output_fn, nsnull, &encodeData);
+  rv = converter->QPEncoderInit(mime_encoder_output_fn, nullptr, &encodeData);
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = converter->EncoderWrite(encodeData, aBuffer, aSize, &written);

@@ -31,7 +31,7 @@ nsMsgSearchSession::nsMsgSearchSession()
   m_idxRunningScope = 0;
   m_urlQueueIndex = 0;
   m_handlingError = false;
-  m_expressionTree = nsnull;
+  m_expressionTree = nullptr;
   m_searchPaused = false;
   NS_NewISupportsArray(getter_AddRefs(m_termList));
 }
@@ -64,7 +64,7 @@ nsMsgSearchSession::AddSearchTerm(nsMsgSearchAttribValue attrib,
   m_termList->AppendElement(pTerm);
   // force the expression tree to rebuild whenever we change the terms
   delete m_expressionTree;
-  m_expressionTree = nsnull;
+  m_expressionTree = nullptr;
   return NS_OK;
 }
 
@@ -74,7 +74,7 @@ nsMsgSearchSession::AppendTerm(nsIMsgSearchTerm *aTerm)
     NS_ENSURE_ARG_POINTER(aTerm);
     NS_ENSURE_TRUE(m_termList, NS_ERROR_NOT_INITIALIZED);
     delete m_expressionTree;
-    m_expressionTree = nsnull;
+    m_expressionTree = nullptr;
     return m_termList->AppendElement(aTerm);
 }
 
@@ -158,7 +158,7 @@ nsMsgSearchSession::GetNthSearchScope(PRInt32 which,
   NS_ENSURE_ARG_POINTER(scopeId);
   NS_ENSURE_ARG_POINTER(folder);
 
-  nsMsgSearchScopeTerm *scopeTerm = m_scopeList.SafeElementAt(which, nsnull);
+  nsMsgSearchScopeTerm *scopeTerm = m_scopeList.SafeElementAt(which, nullptr);
   NS_ENSURE_ARG(scopeTerm);
 
   *scopeId = scopeTerm->m_attribute;
@@ -187,7 +187,7 @@ nsMsgSearchSession::AddScopeTerm(nsMsgSearchScopeValue scope,
 NS_IMETHODIMP
 nsMsgSearchSession::AddDirectoryScopeTerm(nsMsgSearchScopeValue scope)
 {
-  nsMsgSearchScopeTerm *pScopeTerm = new nsMsgSearchScopeTerm(this, scope, nsnull);
+  nsMsgSearchScopeTerm *pScopeTerm = new nsMsgSearchScopeTerm(this, scope, nullptr);
   NS_ENSURE_TRUE(pScopeTerm, NS_ERROR_OUT_OF_MEMORY);
 
   m_scopeList.AppendElement(pScopeTerm);
@@ -267,7 +267,7 @@ NS_IMETHODIMP nsMsgSearchSession::InterruptSearch()
     m_backgroundTimer->Cancel();
     NotifyListenersDone(NS_MSG_SEARCH_INTERRUPTED);
 
-    m_backgroundTimer = nsnull;
+    m_backgroundTimer = nullptr;
   }
   return NS_OK;
 }
@@ -326,7 +326,7 @@ NS_IMETHODIMP nsMsgSearchSession::SetWindow(nsIMsgWindow *aWindow)
 NS_IMETHODIMP nsMsgSearchSession::GetWindow(nsIMsgWindow **aWindow)
 {
   NS_ENSURE_ARG_POINTER(aWindow);
-  *aWindow = nsnull;
+  *aWindow = nullptr;
   nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
   msgWindow.swap(*aWindow);
   return NS_OK;
@@ -370,7 +370,7 @@ nsresult nsMsgSearchSession::Initialize()
   // 2. Most of the protocols are only capable of searching one scope at a
   //    time, so we'll do each scope in a separate adapter on the client
 
-  nsMsgSearchScopeTerm *scopeTerm = nsnull;
+  nsMsgSearchScopeTerm *scopeTerm = nullptr;
   nsresult rv = NS_OK;
 
   PRUint32 numTerms;
@@ -497,7 +497,7 @@ void nsMsgSearchSession::TimerCallback(nsITimer *aTimer, void *aClosure)
   {
     if (aTimer)
       aTimer->Cancel();
-    searchSession->m_backgroundTimer = nsnull;
+    searchSession->m_backgroundTimer = nullptr;
     if (searchSession->m_idxRunningScope < searchSession->m_scopeList.Length())
       searchSession->DoNextSearch();
     else
@@ -527,7 +527,7 @@ NS_IMETHODIMP
 nsMsgSearchSession::GetRunningAdapter(nsIMsgSearchAdapter **aSearchAdapter)
 {
   NS_ENSURE_ARG_POINTER(aSearchAdapter);
-  *aSearchAdapter = nsnull;
+  *aSearchAdapter = nullptr;
   nsMsgSearchScopeTerm *scope = GetRunningScope();
   if (scope)
   {
@@ -573,7 +573,7 @@ nsresult nsMsgSearchSession::NotifyListenersDone(nsresult aStatus)
 
 void nsMsgSearchSession::DestroyScopeList()
 {
-  nsMsgSearchScopeTerm *scope = nsnull;
+  nsMsgSearchScopeTerm *scope = nullptr;
 
   for (PRInt32 i = m_scopeList.Length() - 1; i >= 0; i--)
   {
@@ -594,7 +594,7 @@ void nsMsgSearchSession::DestroyTermList()
 
 nsMsgSearchScopeTerm *nsMsgSearchSession::GetRunningScope()
 {
-  return m_scopeList.SafeElementAt(m_idxRunningScope, nsnull);
+  return m_scopeList.SafeElementAt(m_idxRunningScope, nullptr);
 }
 
 nsresult nsMsgSearchSession::TimeSlice(bool *aDone)
@@ -623,7 +623,7 @@ void nsMsgSearchSession::ReleaseFolderDBRef()
   /*we don't null out the db reference for inbox because inbox is like the "main" folder
     and performance outweighs footprint */
   if (!isOpen && !(nsMsgFolderFlags::Inbox & flags))
-    folder->SetMsgDatabase(nsnull);
+    folder->SetMsgDatabase(nullptr);
 }
 nsresult nsMsgSearchSession::TimeSliceSerial(bool *aDone)
 {
@@ -679,7 +679,7 @@ nsMsgSearchSession::EnableFolderNotifications(bool aEnable)
 NS_IMETHODIMP
 nsMsgSearchSession::MatchHdr(nsIMsgDBHdr *aMsgHdr, nsIMsgDatabase *aDatabase, bool *aResult)
 {
-  nsMsgSearchScopeTerm *scope = m_scopeList.SafeElementAt(0, nsnull);
+  nsMsgSearchScopeTerm *scope = m_scopeList.SafeElementAt(0, nullptr);
   if (scope)
   {
     if (!scope->m_adapter)

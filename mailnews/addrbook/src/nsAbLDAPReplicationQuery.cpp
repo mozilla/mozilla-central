@@ -99,7 +99,7 @@ nsresult nsAbLDAPReplicationQuery::ConnectToLDAPServer()
     NS_ENSURE_SUCCESS(rv, rv);
 
     // initialize the LDAP connection
-    return mConnection->Init(mURL, mLogin, mDp, nsnull, protocolVersion);
+    return mConnection->Init(mURL, mLogin, mDp, nullptr, protocolVersion);
 }
 
 NS_IMETHODIMP nsAbLDAPReplicationQuery::Init(nsIAbLDAPDirectory *aDirectory,

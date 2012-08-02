@@ -32,7 +32,7 @@ nsresult createNode(const PRUnichar *str, nsIRDFNode **node, nsIRDFService *rdfS
 
 nsresult createIntNode(PRInt32 value, nsIRDFNode **node, nsIRDFService *rdfService)
 {
-  *node = nsnull;
+  *node = nullptr;
   nsresult rv; 
   if (!rdfService) return NS_ERROR_NULL_POINTER;  
   nsCOMPtr<nsIRDFInt> num;
@@ -49,7 +49,7 @@ nsresult createBlobNode(PRUint8 *value, PRUint32 &length, nsIRDFNode **node, nsI
   NS_ENSURE_ARG_POINTER(node);
   NS_ENSURE_ARG_POINTER(rdfService);
   
-  *node = nsnull;
+  *node = nullptr;
   nsCOMPtr<nsIRDFBlob> blob;
   nsresult rv = rdfService->GetBlobLiteral(value, length, getter_AddRefs(blob));
   NS_ENSURE_SUCCESS(rv,rv);

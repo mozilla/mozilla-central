@@ -142,9 +142,9 @@ NS_IMPL_ISUPPORTS1(nsMsgCopy, nsIUrlListener)
 
 nsMsgCopy::nsMsgCopy()
 {
-  mFile = nsnull;
+  mFile = nullptr;
   mMode = nsIMsgSend::nsMsgDeliverNow;
-  mSavePref = nsnull;
+  mSavePref = nullptr;
 }
 
 nsMsgCopy::~nsMsgCopy()
@@ -308,7 +308,7 @@ nsMsgCopy::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
   nsresult rv = aExitCode;
   if (NS_SUCCEEDED(aExitCode))
   {
-    rv = DoCopy(mFile, mDstFolder, mMsgToReplace, mIsDraft, nsnull, mMsgSendObj);
+    rv = DoCopy(mFile, mDstFolder, mMsgToReplace, mIsDraft, nullptr, mMsgSendObj);
   }
   return rv;
 }
@@ -404,7 +404,7 @@ LocateMessageFolder(nsIMsgIdentity   *userIdentity,
   nsresult                  rv = NS_OK;
 
   if (!msgFolder) return NS_ERROR_NULL_POINTER;
-  *msgFolder = nsnull;
+  *msgFolder = nullptr;
 
   if (!aFolderURI || !*aFolderURI)
     return NS_ERROR_INVALID_ARG;

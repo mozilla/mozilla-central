@@ -181,7 +181,7 @@ morkFactory::OpenOldFile(nsIMdbEnv* mev, nsIMdbHeap* ioHeap,
 {
   mdb_err outErr = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
-  morkFile* file = nsnull;
+  morkFile* file = nullptr;
   if ( ev )
   {
     if ( !ioHeap )
@@ -210,7 +210,7 @@ morkFactory::CreateNewFile(nsIMdbEnv* mev, nsIMdbHeap* ioHeap,
 {
   mdb_err outErr = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
-  morkFile* file = nsnull;
+  morkFile* file = nullptr;
   if ( ev )
   {
     if ( !ioHeap )

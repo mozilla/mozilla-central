@@ -142,7 +142,7 @@ nsresult NS_MsgGetAttributeFromString(const char *string, PRInt16 *attrib, nsACS
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIPrefBranch> prefBranch;
-    rv = prefService->GetBranch(nsnull, getter_AddRefs(prefBranch));
+    rv = prefService->GetBranch(nullptr, getter_AddRefs(prefBranch));
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCString headers;
@@ -348,7 +348,7 @@ PRInt32 NS_MsgGetStatusValueFromName(char *name)
 nsMsgSearchTerm::nsMsgSearchTerm()
 {
     // initialize this to zero
-    m_value.string=nsnull;
+    m_value.string=nullptr;
     m_value.attribute=0;
     m_value.u.priority=0;
     m_attribute = nsMsgSearchAttrib::Default;
@@ -852,7 +852,7 @@ NS_IMETHODIMP nsMsgSearchTerm::MatchHdrProperty(nsIMsgDBHdr *aHdr, bool *aResult
 
   nsCString dbHdrValue;
   aHdr->GetStringProperty(m_hdrProperty.get(), getter_Copies(dbHdrValue));
-  nsresult rv = MatchString(dbHdrValue.get(), nsnull, aResult);
+  nsresult rv = MatchString(dbHdrValue.get(), nullptr, aResult);
   return rv;
 }
 
@@ -939,7 +939,7 @@ nsresult nsMsgSearchTerm::MatchBody (nsIMsgSearchScopeTerm *scope, PRUint64 offs
   // bug fix #314637: for stateful charsets like ISO-2022-JP, we don't
   // want to decode quoted printable since it contains '='.
   bool isQuotedPrintable = !nsMsgI18Nstateful_charset(folderCharset) &&
-    (PL_strchr (m_value.string, '=') == nsnull);
+    (PL_strchr (m_value.string, '=') == nullptr);
 
   nsCString compare;
   while (!endOfFile && result == boolContinueLoop)
@@ -1000,7 +1000,7 @@ nsresult nsMsgSearchTerm::InitializeAddressBook()
 
     if (!uri.Equals(m_value.string))
       // clear out the directory....we are no longer pointing to the right one
-      mDirectory = nsnull;
+      mDirectory = nullptr;
   }
   if (!mDirectory)
   {
@@ -1025,7 +1025,7 @@ nsresult nsMsgSearchTerm::MatchInAddressBook(const char * aAddress, bool *pResul
 
   if (mDirectory)
   {
-    nsIAbCard* cardForAddress = nsnull;
+    nsIAbCard* cardForAddress = nullptr;
     rv = mDirectory->CardForEmailAddress(nsDependentCString(aAddress),
                                          &cardForAddress);
     if (NS_FAILED(rv) && rv != NS_ERROR_NOT_IMPLEMENTED)
@@ -1059,7 +1059,7 @@ nsresult nsMsgSearchTerm::MatchRfc2047String (const char * rfc2047string,
     }
     else
     res = MatchString(stringToMatch ? stringToMatch : rfc2047string,
-                      nsnull, pResult);
+                      nullptr, pResult);
 
     PR_Free(stringToMatch);
 
@@ -1085,7 +1085,7 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
                  "m_value.string is not UTF-8");
     CopyUTF8toUTF16(nsDependentCString(m_value.string), needle);
 
-    if (charset != nsnull)
+    if (charset != nullptr)
     {
       ConvertToUnicode(charset, stringToMatch ? stringToMatch : "",
                        utf16StrToMatch);
@@ -1161,7 +1161,7 @@ NS_IMETHODIMP nsMsgSearchTerm::GetMatchAllBeforeDeciding (bool *aResult)
    // returns a catenated string of null-terminated strings, which we walk
    // across, tring to match the target string to either the name OR the address
 
-   char *names = nsnull, *addresses = nsnull;
+   char *names = nullptr, *addresses = nullptr;
 
    // Change the sense of the loop so we don't bail out prematurely
    // on negative terms. i.e. opDoesntContain must look at all recipients
@@ -1827,7 +1827,7 @@ nsMsgSearchScopeTerm::~nsMsgSearchScopeTerm ()
 {
   if (m_inputStream)
     m_inputStream->Close();
-  m_inputStream = nsnull;
+  m_inputStream = nullptr;
 }
 
 NS_IMPL_ISUPPORTS1(nsMsgSearchScopeTerm, nsIMsgSearchScopeTerm)
@@ -1868,7 +1868,7 @@ NS_IMETHODIMP nsMsgSearchScopeTerm::CloseInputStream()
   if (m_inputStream)
 {
     m_inputStream->Close();
-    m_inputStream = nsnull;
+    m_inputStream = nullptr;
   }
   return NS_OK;
 }
@@ -1926,7 +1926,7 @@ nsresult nsMsgSearchScopeTerm::InitializeAdapter (nsISupportsArray *termList)
 
 char *nsMsgSearchScopeTerm::GetStatusBarName ()
 {
-  return nsnull;
+  return nullptr;
 }
 
 

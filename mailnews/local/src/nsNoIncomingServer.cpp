@@ -183,7 +183,7 @@ nsNoIncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlListener *aUrlLis
   }
   // listener might be counting on us to send a notification.
   else if (aUrlListener)
-    aUrlListener->OnStopRunningUrl(nsnull, NS_OK);
+    aUrlListener->OnStopRunningUrl(nullptr, NS_OK);
   return rv;
 }
 

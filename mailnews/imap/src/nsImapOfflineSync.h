@@ -21,7 +21,7 @@ class nsImapOfflineSync : public nsIUrlListener,
                           public nsIDBChangeListener {
 public: // set to one folder to playback one folder only
   nsImapOfflineSync(nsIMsgWindow *window, nsIUrlListener *listener,
-                    nsIMsgFolder *singleFolderOnly = nsnull,
+                    nsIMsgFolder *singleFolderOnly = nullptr,
                     bool isPseudoOffline = false);
 
   virtual ~nsImapOfflineSync();
@@ -36,7 +36,7 @@ public: // set to one folder to playback one folder only
   void      SetCurrentUIDValidity(PRInt32 uidvalidity) { mCurrentUIDValidity = uidvalidity; }
 
   void      SetPseudoOffline(bool pseudoOffline) {m_pseudoOffline = pseudoOffline;}
-  bool      ProcessingStaleFolderUpdate() { return m_singleFolderToUpdate != nsnull; }
+  bool      ProcessingStaleFolderUpdate() { return m_singleFolderToUpdate != nullptr; }
 
   bool      CreateOfflineFolder(nsIMsgFolder *folder);
   void      SetWindow(nsIMsgWindow *window);

@@ -107,16 +107,16 @@ nsMsgCreateTempFileName(const char *tFileName)
                                                 tFileName,
                                                 getter_AddRefs(tmpFile));
   if (NS_FAILED(rv))
-    return nsnull;
+    return nullptr;
 
   rv = tmpFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
   if (NS_FAILED(rv))
-    return nsnull;
+    return nullptr;
 
   nsCString tempString;
   rv = tmpFile->GetNativePath(tempString);
   if (NS_FAILED(rv))
-    return nsnull;
+    return nullptr;
 
   char *tString = ToNewCString(tempString);
   if (!tString)
@@ -259,7 +259,7 @@ mime_generate_headers (nsMsgCompFields *fields,
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   if (NS_FAILED(rv)) {
     *status = rv;
-    return nsnull;
+    return nullptr;
   }
 
   bool usemime = nsMsgMIMEGetConformToStandard();
@@ -292,7 +292,7 @@ mime_generate_headers (nsMsgCompFields *fields,
 
   NS_ASSERTION (fields, "null fields");
   if (!fields)
-    return nsnull;
+    return nullptr;
 
   pFrom = fields->GetFrom();
   if (pFrom)
@@ -328,7 +328,7 @@ mime_generate_headers (nsMsgCompFields *fields,
 
   buffer = (char *) PR_Malloc (size);
   if (!buffer)
-    return nsnull; /* NS_ERROR_OUT_OF_MEMORY */
+    return nullptr; /* NS_ERROR_OUT_OF_MEMORY */
 
   buffer_tail = buffer;
 
@@ -466,7 +466,7 @@ mime_generate_headers (nsMsgCompFields *fields,
     char *duppedNewsGrp = PL_strdup(pNewsGrp);
     if (!duppedNewsGrp) {
       PR_FREEIF(buffer);
-      return nsnull; /* NS_ERROR_OUT_OF_MEMORY */
+      return nullptr; /* NS_ERROR_OUT_OF_MEMORY */
     }
     char *n2 = nsMsgStripLine(duppedNewsGrp);
 
@@ -502,7 +502,7 @@ mime_generate_headers (nsMsgCompFields *fields,
     nsCOMPtr <nsINntpService> nntpService = do_GetService("@mozilla.org/messenger/nntpservice;1");
     if (NS_FAILED(rv) || !nntpService) {
       *status = NS_ERROR_FAILURE;
-      return nsnull;
+      return nullptr;
     }
 
     nsCString newsgroupsHeaderVal;
@@ -511,7 +511,7 @@ mime_generate_headers (nsMsgCompFields *fields,
     if (NS_FAILED(rv)) 
     {
       *status = rv;
-      return nsnull;
+      return nullptr;
     }
 
     // fixme:the newsgroups header had better be encoded as the server-side
@@ -545,7 +545,7 @@ mime_generate_headers (nsMsgCompFields *fields,
     char *duppedFollowup = PL_strdup(pFollow);
     if (!duppedFollowup) {
       PR_FREEIF(buffer);
-      return nsnull; /* NS_ERROR_OUT_OF_MEMORY */
+      return nullptr; /* NS_ERROR_OUT_OF_MEMORY */
     }
     char *n2 = nsMsgStripLine (duppedFollowup);
 
@@ -692,7 +692,7 @@ mime_generate_headers (nsMsgCompFields *fields,
   }
 
   if (buffer_tail > buffer + size - 1)
-    return nsnull;
+    return nullptr;
 
   /* realloc it smaller... */
   buffer = (char*)PR_REALLOC (buffer, buffer_tail - buffer + 1);
@@ -766,7 +766,7 @@ mime_generate_attachment_headers (const char *type,
     prefs->GetIntPref("mail.strictly_mime.parm_folding", &parmFolding);
 
   /* Let's encode the real name */
-  char *encodedRealName = nsnull;
+  char *encodedRealName = nullptr;
   nsCString charset;   // actual charset used for MIME encode
   nsAutoString realName;
   if (real_name)
@@ -784,7 +784,7 @@ mime_generate_attachment_headers (const char *type,
         charset.Assign("UTF-8"); // set to UTF-8 if fails again
     }
 
-    encodedRealName = RFC2231ParmFolding("filename", charset, nsnull,
+    encodedRealName = RFC2231ParmFolding("filename", charset, nullptr,
                                          realName);
     // somehow RFC2231ParamFolding failed. fall back to legacy method
     if (!encodedRealName || !*encodedRealName) {
@@ -1073,11 +1073,11 @@ static bool isValidHost( const char* host )
          && *s != '.'
          )
       {
-       host = nsnull;
+       host = nullptr;
        break;
       }
 
-  return nsnull != host;
+  return nullptr != host;
 }
 
 char *
@@ -1133,7 +1133,7 @@ inline static bool is7bitCharset(const nsCString& charset)
 RFC2231ParmFolding(const char *parmName, const nsCString& charset,
                    const char *language, const nsString& parmValue)
 {
-  NS_ENSURE_TRUE(parmName && *parmName && !parmValue.IsEmpty(), nsnull);
+  NS_ENSURE_TRUE(parmName && *parmName && !parmValue.IsEmpty(), nullptr);
 
   bool needEscape;
   nsCString dupParm;
@@ -1152,7 +1152,7 @@ RFC2231ParmFolding(const char *parmName, const nsCString& charset,
   }
 
   if (dupParm.IsEmpty())
-    return nsnull;
+    return nullptr;
 
   PRInt32 parmNameLen = PL_strlen(parmName);
   PRInt32 parmValueLen = dupParm.Length();
@@ -1164,7 +1164,7 @@ RFC2231ParmFolding(const char *parmName, const nsCString& charset,
 
   PRInt32 languageLen = language ?  PL_strlen(language) : 0;
   PRInt32 charsetLen = charset.Length();
-  char *foldedParm = nsnull;
+  char *foldedParm = nullptr;
 
   if ((parmValueLen + parmNameLen + charsetLen + languageLen) <
       PR_MAX_FOLDING_LEN)
@@ -1241,25 +1241,25 @@ RFC2231ParmFolding(const char *parmName, const nsCString& charset,
         // check to see if we are in the middle of escaped char
         if (*end == '%')
         {
-          tmp = '%'; *end = nsnull;
+          tmp = '%'; *end = nullptr;
         }
         else if (end-1 > start && *(end-1) == '%')
         {
-          end -= 1; tmp = '%'; *end = nsnull;
+          end -= 1; tmp = '%'; *end = nullptr;
         }
         else if (end-2 > start && *(end-2) == '%')
         {
-          end -= 2; tmp = '%'; *end = nsnull;
+          end -= 2; tmp = '%'; *end = nullptr;
         }
         else
         {
-          tmp = *end; *end = nsnull;
+          tmp = *end; *end = nullptr;
         }
       }
       else
       {
         // XXX should check if we are in the middle of escaped char (RFC 822)
-        tmp = *end; *end = nsnull;
+        tmp = *end; *end = nullptr;
       }
       NS_MsgSACat(&foldedParm, start);
       if (!needEscape)
@@ -1698,20 +1698,20 @@ nsresult
 nsMsgNewURL(nsIURI** aInstancePtrResult, const char * aSpec)
 {
   nsresult rv = NS_OK;
-  if (nsnull == aInstancePtrResult)
+  if (nullptr == aInstancePtrResult)
     return NS_ERROR_NULL_POINTER;
   nsCOMPtr<nsIIOService> pNetService =
     mozilla::services::GetIOService();
   NS_ENSURE_TRUE(pNetService, NS_ERROR_UNEXPECTED);
-  if (PL_strstr(aSpec, "://") == nsnull && strncmp(aSpec, "data:", 5))
+  if (PL_strstr(aSpec, "://") == nullptr && strncmp(aSpec, "data:", 5))
   {
     //XXXjag Temporary fix for bug 139362 until the real problem(bug 70083) get fixed
     nsCAutoString uri(NS_LITERAL_CSTRING("http://"));
     uri.Append(aSpec);
-    rv = pNetService->NewURI(uri, nsnull, nsnull, aInstancePtrResult);
+    rv = pNetService->NewURI(uri, nullptr, nullptr, aInstancePtrResult);
   }
   else
-    rv = pNetService->NewURI(nsDependentCString(aSpec), nsnull, nsnull, aInstancePtrResult);
+    rv = pNetService->NewURI(nsDependentCString(aSpec), nullptr, nullptr, aInstancePtrResult);
   return rv;
 }
 
@@ -1750,18 +1750,18 @@ char
 char *
 nsMsgParseURLHost(const char *url)
 {
-  nsIURI        *workURI = nsnull;
+  nsIURI        *workURI = nullptr;
   nsresult      rv;
 
   rv = nsMsgNewURL(&workURI, url);
   if (NS_FAILED(rv) || !workURI)
-    return nsnull;
+    return nullptr;
 
   nsCAutoString host;
   rv = workURI->GetHost(host);
   NS_IF_RELEASE(workURI);
   if (NS_FAILED(rv))
-    return nsnull;
+    return nullptr;
 
   return ToNewCString(host);
 }
@@ -1773,15 +1773,15 @@ GenerateFileNameFromURI(nsIURI *aURL)
   nsCString file;
   nsCString spec;
   char        *returnString;
-  char        *cp = nsnull;
-  char        *cp1 = nsnull;
+  char        *cp = nullptr;
+  char        *cp1 = nullptr;
 
   rv = aURL->GetPath(file);
   if ( NS_SUCCEEDED(rv) && !file.IsEmpty())
   {
     char *newFile = ToNewCString(file);
     if (!newFile)
-      return nsnull;
+      return nullptr;
 
     // strip '/'
     cp = PL_strrchr(newFile, '/');
@@ -1803,11 +1803,11 @@ GenerateFileNameFromURI(nsIURI *aURL)
       }
     }
     else
-      return nsnull;
+      return nullptr;
   }
 
-  cp = nsnull;
-  cp1 = nsnull;
+  cp = nullptr;
+  cp1 = nullptr;
 
 
   rv = aURL->GetSpec(spec);
@@ -1815,7 +1815,7 @@ GenerateFileNameFromURI(nsIURI *aURL)
   {
     char *newSpec = ToNewCString(spec);
     if (!newSpec)
-      return nsnull;
+      return nullptr;
 
     char *cp2 = NULL, *cp3=NULL ;
 
@@ -1843,7 +1843,7 @@ GenerateFileNameFromURI(nsIURI *aURL)
     return returnString;
   }
 
-  return nsnull;
+  return nullptr;
 }
 
 //
@@ -1861,7 +1861,7 @@ mime_gen_content_id(PRUint32 aPartNum, const char *aEmailAddress)
   PRInt32           randLen = 5;
   unsigned char     rand_buf1[5];
   unsigned char     rand_buf2[5];
-  const char        *domain = nsnull;
+  const char        *domain = nullptr;
   const char        *defaultDomain = "@netscape.com";
 
   memset(rand_buf1, 0, randLen-1);

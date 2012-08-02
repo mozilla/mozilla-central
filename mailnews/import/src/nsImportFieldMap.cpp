@@ -21,7 +21,7 @@ NS_METHOD nsImportFieldMap::Create(nsIStringBundle *aBundle, nsISupports *aOuter
     return NS_ERROR_NO_AGGREGATION;
 
   nsImportFieldMap *it = new nsImportFieldMap(aBundle);
-  if (it == nsnull)
+  if (it == nullptr)
     return NS_ERROR_OUT_OF_MEMORY;
 
   NS_ADDREF(it);
@@ -37,8 +37,8 @@ NS_IMPL_GETSET(nsImportFieldMap, SkipFirstRecord, bool, m_skipFirstRecord)
 nsImportFieldMap::nsImportFieldMap(nsIStringBundle *aBundle)
 {
   m_numFields = 0;
-  m_pFields = nsnull;
-  m_pActive = nsnull;
+  m_pFields = nullptr;
+  m_pActive = nullptr;
   m_allocated = 0;
   // need to init the description array
   m_mozFieldCount = 0;
@@ -75,7 +75,7 @@ nsImportFieldMap::~nsImportFieldMap()
 
 NS_IMETHODIMP nsImportFieldMap::GetNumMozFields(PRInt32 *aNumFields)
 {
-    NS_PRECONDITION(aNumFields != nsnull, "null ptr");
+    NS_PRECONDITION(aNumFields != nullptr, "null ptr");
   if (!aNumFields)
     return NS_ERROR_NULL_POINTER;
 
@@ -85,7 +85,7 @@ NS_IMETHODIMP nsImportFieldMap::GetNumMozFields(PRInt32 *aNumFields)
 
 NS_IMETHODIMP nsImportFieldMap::GetMapSize(PRInt32 *aNumFields)
 {
-    NS_PRECONDITION(aNumFields != nsnull, "null ptr");
+    NS_PRECONDITION(aNumFields != nullptr, "null ptr");
   if (!aNumFields)
     return NS_ERROR_NULL_POINTER;
 
@@ -95,11 +95,11 @@ NS_IMETHODIMP nsImportFieldMap::GetMapSize(PRInt32 *aNumFields)
 
 NS_IMETHODIMP nsImportFieldMap::GetFieldDescription(PRInt32 index, PRUnichar **_retval)
 {
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
+    NS_PRECONDITION(_retval != nullptr, "null ptr");
   if (!_retval)
     return NS_ERROR_NULL_POINTER;
 
-  *_retval = nsnull;
+  *_retval = nullptr;
   if ((index < 0) || (index >= m_descriptions.Count()))
     return NS_ERROR_FAILURE;
 
@@ -134,7 +134,7 @@ NS_IMETHODIMP nsImportFieldMap::DefaultFieldMap(PRInt32 size)
 
 NS_IMETHODIMP nsImportFieldMap::GetFieldMap(PRInt32 index, PRInt32 *_retval)
 {
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
+    NS_PRECONDITION(_retval != nullptr, "null ptr");
   if (!_retval)
     return NS_ERROR_NULL_POINTER;
 
@@ -169,7 +169,7 @@ NS_IMETHODIMP nsImportFieldMap::SetFieldMap(PRInt32 index, PRInt32 fieldNum)
 
 NS_IMETHODIMP nsImportFieldMap::SetFieldMapByDescription(PRInt32 index, const PRUnichar *fieldDesc)
 {
-    NS_PRECONDITION(fieldDesc != nsnull, "null ptr");
+    NS_PRECONDITION(fieldDesc != nullptr, "null ptr");
   if (!fieldDesc)
     return NS_ERROR_NULL_POINTER;
 
@@ -183,7 +183,7 @@ NS_IMETHODIMP nsImportFieldMap::SetFieldMapByDescription(PRInt32 index, const PR
 
 NS_IMETHODIMP nsImportFieldMap::GetFieldActive(PRInt32 index, bool *active)
 {
-    NS_PRECONDITION(active != nsnull, "null ptr");
+    NS_PRECONDITION(active != nullptr, "null ptr");
   if (!active)
     return NS_ERROR_NULL_POINTER;
   if ((index < 0) || (index >= m_numFields))
@@ -205,9 +205,9 @@ NS_IMETHODIMP nsImportFieldMap::SetFieldActive(PRInt32 index, bool active)
 
 NS_IMETHODIMP nsImportFieldMap::SetFieldValue(nsIAddrDatabase *database, nsIMdbRow *row, PRInt32 fieldNum, const PRUnichar *value)
 {
-  NS_PRECONDITION(database != nsnull, "null ptr");
-  NS_PRECONDITION(row != nsnull, "null ptr");
-  NS_PRECONDITION(value != nsnull, "null ptr");
+  NS_PRECONDITION(database != nullptr, "null ptr");
+  NS_PRECONDITION(row != nullptr, "null ptr");
+  NS_PRECONDITION(value != nullptr, "null ptr");
   if (!database || !row || !value)
     return NS_ERROR_NULL_POINTER;
 
@@ -352,7 +352,7 @@ NS_IMETHODIMP nsImportFieldMap::SetFieldValue(nsIAddrDatabase *database, nsIMdbR
 
 NS_IMETHODIMP nsImportFieldMap::SetFieldValueByDescription(nsIAddrDatabase *database, nsIMdbRow *row, const PRUnichar *fieldDesc, const PRUnichar *value)
 {
-    NS_PRECONDITION(fieldDesc != nsnull, "null ptr");
+    NS_PRECONDITION(fieldDesc != nullptr, "null ptr");
   if (!fieldDesc)
     return NS_ERROR_NULL_POINTER;
   PRInt32 i = FindFieldNum(fieldDesc);
@@ -510,7 +510,7 @@ NS_IMETHODIMP nsImportFieldMap::GetFieldValue(nsIAbCard *card, PRInt32 fieldNum,
 
 NS_IMETHODIMP nsImportFieldMap::GetFieldValueByDescription(nsIAbCard *card, const PRUnichar *fieldDesc, PRUnichar **_retval)
 {
-    NS_PRECONDITION(fieldDesc != nsnull, "null ptr");
+    NS_PRECONDITION(fieldDesc != nullptr, "null ptr");
   if (!fieldDesc)
     return NS_ERROR_NULL_POINTER;
   PRInt32 i = FindFieldNum(fieldDesc);

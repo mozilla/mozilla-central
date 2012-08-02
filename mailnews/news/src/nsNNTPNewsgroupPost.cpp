@@ -19,10 +19,10 @@ nsNNTPNewsgroupPost::nsNNTPNewsgroupPost()
 {
   int i;
   for (i=0; i <= HEADER_LAST; i++)
-    m_header[i]=nsnull;
+    m_header[i]=nullptr;
 
-  m_body=nsnull;
-  m_messageBuffer=nsnull;
+  m_body=nullptr;
+  m_messageBuffer=nullptr;
 
   m_isControl=false;
 }

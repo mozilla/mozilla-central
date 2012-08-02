@@ -155,7 +155,7 @@ nsNetscapeProfileMigratorBase::CopyHomePageData(bool aReplace)
   mTargetProfile->Clone(getter_AddRefs(targetPrefsFile));
   targetPrefsFile->AppendNative(nsDependentCString(FILE_NAME_PREFS));
 
-  // Don't use nsnull here as we're too early in the cycle for the prefs
+  // Don't use nullptr here as we're too early in the cycle for the prefs
   // service to get its default file (because the NS_GetDirectoryService items
   // aren't fully set up yet).
   psvc->ReadUserPrefs(targetPrefsFile);
@@ -505,7 +505,7 @@ nsNetscapeProfileMigratorBase::ReadBranch(const char * branchName,
   aPrefService->GetBranch(branchName, getter_AddRefs(branch));
 
   PRUint32 count;
-  char** prefs = nsnull;
+  char** prefs = nullptr;
 
   nsresult rv = branch->GetChildList("", &count, &prefs);
   if (NS_FAILED(rv))
@@ -563,7 +563,7 @@ nsNetscapeProfileMigratorBase::WriteBranch(const char * branchName,
     case nsIPrefBranch::PREF_STRING:
       branch->SetCharPref(pref->prefName, pref->stringValue);
       NS_Free(pref->stringValue);
-      pref->stringValue = nsnull;
+      pref->stringValue = nullptr;
       break;
     case nsIPrefBranch::PREF_BOOL:
       branch->SetBoolPref(pref->prefName, pref->boolValue);
@@ -577,9 +577,9 @@ nsNetscapeProfileMigratorBase::WriteBranch(const char * branchName,
       break;
     }
     NS_Free(pref->prefName);
-    pref->prefName = nsnull;
+    pref->prefName = nullptr;
     delete pref;
-    pref = nsnull;
+    pref = nullptr;
   }
   aPrefs.Clear();
 }
@@ -660,7 +660,7 @@ nsNetscapeProfileMigratorBase::CopyPasswords(bool aReplace)
 
   nsCOMPtr<nsILoginManagerStorage>
       lms(do_GetService("@mozilla.org/login-manager/storage/mozStorage;1"));
-  return lms->InitWithFile(seamonkeyPasswordsFile, nsnull);
+  return lms->InitWithFile(seamonkeyPasswordsFile, nullptr);
 }
 
 nsresult
@@ -1089,5 +1089,5 @@ nsNetscapeProfileMigratorBase::EndCopyFolders()
   index.AppendInt(nsISuiteProfileMigrator::MAILDATA);
   NOTIFY_OBSERVERS(MIGRATION_ITEMAFTERMIGRATE, index.get());
 
-  NOTIFY_OBSERVERS(MIGRATION_ENDED, nsnull);
+  NOTIFY_OBSERVERS(MIGRATION_ENDED, nullptr);
 }

@@ -31,8 +31,8 @@
 
 nsTextAddress::nsTextAddress()
 {
-    m_database = nsnull;
-    m_fieldMap = nsnull;
+    m_database = nullptr;
+    m_fieldMap = nullptr;
     m_LFCount = 0;
     m_CRCount = 0;
 }

@@ -51,16 +51,16 @@ nsPop3Sink::nsPop3Sink()
 {
     m_authed = false;
     m_downloadingToTempFile = false;
-    m_accountUrl = nsnull;
+    m_accountUrl = nullptr;
     m_biffState = 0;
     m_numNewMessages = 0;
     m_numNewMessagesInFolder = 0;
     m_numMsgsDownloaded = 0;
     m_senderAuthed = false;
-    m_outputBuffer = nsnull;
+    m_outputBuffer = nullptr;
     m_outputBufferSize = 0;
-    m_popServer = nsnull;
-    m_outFileStream = nsnull;
+    m_popServer = nullptr;
+    m_outFileStream = nullptr;
     m_uidlDownload = false;
     m_buildMessageUri = false;
     if (!POP3LOGMODULE)
@@ -122,7 +122,7 @@ nsPop3Sink::GetMailAccountURL(char* *urlString)
 }
 
 partialRecord::partialRecord() :
-  m_msgDBHdr(nsnull)
+  m_msgDBHdr(nullptr)
 {
 }
 
@@ -213,7 +213,7 @@ nsPop3Sink::CheckPartialMessages(nsIPop3Protocol *protocol)
     if (!found && partialMsg->m_msgDBHdr)
     {
       if (m_newMailParser)
-        m_newMailParser->m_mailDB->DeleteHeader(partialMsg->m_msgDBHdr, nsnull, false, true);
+        m_newMailParser->m_mailDB->DeleteHeader(partialMsg->m_msgDBHdr, nullptr, false, true);
       deleted = true;
     }
     delete partialMsg;
@@ -284,7 +284,7 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
   {
     if (m_outFileStream)
       m_outFileStream->Flush();  // try this.
-    m_newMailParser->OnStopRequest(nsnull, nsnull, NS_OK);
+    m_newMailParser->OnStopRequest(nullptr, nullptr, NS_OK);
     m_newMailParser->EndMsgDownload();
   }
   if (m_outFileStream)
@@ -295,7 +295,7 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
   if (m_inboxOutputStream)
   {
     m_inboxOutputStream->Close();
-    m_inboxOutputStream = nsnull;
+    m_inboxOutputStream = nullptr;
   }
 
   if (m_downloadingToTempFile)
@@ -310,7 +310,7 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
   NS_ASSERTION(NS_SUCCEEDED(rv),"folder lock not released successfully");
 
   bool filtersRun;
-  m_folder->CallFilterPlugins(nsnull, &filtersRun); // ??? do we need msgWindow?
+  m_folder->CallFilterPlugins(nullptr, &filtersRun); // ??? do we need msgWindow?
   PRInt32 numNewMessagesInFolder;
   // if filters have marked msgs read or deleted, the num new messages count
   // will go negative by the number of messages marked read or deleted,
@@ -338,7 +338,7 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
   if (server)
   {
     nsCOMPtr <nsIMsgFilterList> filterList;
-    rv = server->GetFilterList(nsnull, getter_AddRefs(filterList));
+    rv = server->GetFilterList(nullptr, getter_AddRefs(filterList));
     NS_ENSURE_SUCCESS(rv, rv);
 
     if (filterList)
@@ -380,7 +380,7 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
             // this will actually fix the problem.
             openFolder->GetLocked(&isLocked);
             if(!isLocked)
-              openFolder->CallFilterPlugins(nsnull, &filtersRun);
+              openFolder->CallFilterPlugins(nullptr, &filtersRun);
           }
         }
       }
@@ -426,7 +426,7 @@ nsPop3Sink::AbortMailDelivery(nsIPop3Protocol *protocol)
   if (m_inboxOutputStream)
   {
     m_inboxOutputStream->Close();
-    m_inboxOutputStream = nsnull;
+    m_inboxOutputStream = nullptr;
   }
 
   if (m_downloadingToTempFile && m_tmpDownloadFile)
@@ -548,7 +548,7 @@ nsPop3Sink::IncorporateBegin(const char* uidlString,
 
   if (NS_FAILED(rv))
   {
-    m_newMailParser = nsnull;
+    m_newMailParser = nullptr;
     rv = NS_OK;
   }
   else
@@ -644,7 +644,7 @@ nsPop3Sink::GetServerFolder(nsIMsgFolder **aFolder)
     if (incomingServer)
       return incomingServer->GetRootFolder(aFolder);
   }
-  *aFolder = nsnull;
+  *aFolder = nullptr;
   return NS_ERROR_NULL_POINTER;
 }
 
@@ -757,15 +757,15 @@ nsresult nsPop3Sink::HandleTempDownloadFailed(nsIMsgWindow *msgWindow)
   {
     PRInt32 dlgResult  = -1;
     bool dummyValue = false;
-    rv = promptService->ConfirmEx(parentWindow, nsnull, confirmString.get(),
+    rv = promptService->ConfirmEx(parentWindow, nullptr, confirmString.get(),
                       nsIPromptService::STD_YES_NO_BUTTONS,
-                      nsnull,
-                      nsnull,
-                      nsnull,
-                      nsnull,
+                      nullptr,
+                      nullptr,
+                      nullptr,
+                      nullptr,
                       &dummyValue,
                       &dlgResult);
-    m_newMailParser->m_newMsgHdr = nsnull;
+    m_newMailParser->m_newMsgHdr = nullptr;
 
     return (dlgResult == 0) ? NS_OK : NS_MSG_ERROR_COPYING_FROM_TMP_DOWNLOAD;
   }

@@ -160,17 +160,17 @@ class nsAutoSyncManager : public nsIObserver,
                           nsCOMArray<nsIAutoSyncState> &aChainedQ);
     static
     nsIAutoSyncState* SearchQForSibling(const nsCOMArray<nsIAutoSyncState> &aQueue,
-                          nsIAutoSyncState *aAutoSyncStateObj, PRInt32 aStartIdx, PRInt32 *aIndex = nsnull);
+                          nsIAutoSyncState *aAutoSyncStateObj, PRInt32 aStartIdx, PRInt32 *aIndex = nullptr);
     static
     bool DoesQContainAnySiblingOf(const nsCOMArray<nsIAutoSyncState> &aQueue, 
                           nsIAutoSyncState *aAutoSyncStateObj, const PRInt32 aState, 
-                          PRInt32 *aIndex = nsnull);
+                          PRInt32 *aIndex = nullptr);
     static 
     nsIAutoSyncState* GetNextSibling(const nsCOMArray<nsIAutoSyncState> &aQueue, 
-                          nsIAutoSyncState *aAutoSyncStateObj, PRInt32 *aIndex = nsnull);
+                          nsIAutoSyncState *aAutoSyncStateObj, PRInt32 *aIndex = nullptr);
     static 
     nsIAutoSyncState* GetHighestPrioSibling(const nsCOMArray<nsIAutoSyncState> &aQueue, 
-                          nsIAutoSyncState *aAutoSyncStateObj, PRInt32 *aIndex = nsnull);
+                          nsIAutoSyncState *aAutoSyncStateObj, PRInt32 *aIndex = nullptr);
 
     /// timer to process existing keys and updates
     void InitTimer();

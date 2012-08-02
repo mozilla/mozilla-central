@@ -139,7 +139,7 @@ static void
 Finalize(MimeObject *obj)
 {
     MimeSimpleStub *ssobj = (MimeSimpleStub *)obj;
-    ssobj->innerScriptable = nsnull;
+    ssobj->innerScriptable = nullptr;
     delete ssobj->buffer;
 }
 

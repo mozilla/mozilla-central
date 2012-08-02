@@ -14,11 +14,11 @@
 
 
 nsIMAPGenericParser::nsIMAPGenericParser() :
-fNextToken(nsnull),
-fCurrentLine(nsnull),
-fLineOfTokens(nsnull),
-fStartOfLineOfTokens(nsnull),
-fCurrentTokenPlaceHolder(nsnull),
+fNextToken(nullptr),
+fCurrentLine(nullptr),
+fLineOfTokens(nullptr),
+fStartOfLineOfTokens(nullptr),
+fCurrentTokenPlaceHolder(nullptr),
 fAtEndOfLine(false),
 fParserState(stateOK)
 {
@@ -40,7 +40,7 @@ void nsIMAPGenericParser::ResetLexAnalyzer()
   PR_FREEIF( fCurrentLine );
   PR_FREEIF( fStartOfLineOfTokens );
   
-  fNextToken = fCurrentLine = fLineOfTokens = fStartOfLineOfTokens = fCurrentTokenPlaceHolder = nsnull;
+  fNextToken = fCurrentLine = fLineOfTokens = fStartOfLineOfTokens = fCurrentTokenPlaceHolder = nullptr;
   fAtEndOfLine = false;
 }
 
@@ -149,9 +149,9 @@ void nsIMAPGenericParser::AdvanceToNextLine()
   if (!ok)
   {
     SetConnected(false);
-    fStartOfLineOfTokens = nsnull;
-    fLineOfTokens = nsnull;
-    fCurrentTokenPlaceHolder = nsnull;
+    fStartOfLineOfTokens = nullptr;
+    fLineOfTokens = nullptr;
+    fCurrentTokenPlaceHolder = nullptr;
     fAtEndOfLine = true;
     fNextToken = CRLF;
   }
@@ -161,7 +161,7 @@ void nsIMAPGenericParser::AdvanceToNextLine()
   }
   else
   {
-     fNextToken = nsnull;
+     fNextToken = nullptr;
      // determine if there are any tokens (without calling AdvanceToNextToken);
      // otherwise we are already at end of line
      NS_ASSERTION(strlen(WHITESPACE) == 3, "assume 3 chars of whitespace");
@@ -233,7 +233,7 @@ char *nsIMAPGenericParser::CreateAtom(bool isAstring)
   if (!rv)
   {
     HandleMemoryFailure();
-    return nsnull;
+    return nullptr;
   }
   // We wish to stop at the following characters (in decimal ascii)
   // 1-31 (CTL), 32 (SP), 34 '"', 37 '%', 40-42 "()*", 92 '\\', 123 '{'
@@ -246,7 +246,7 @@ char *nsIMAPGenericParser::CreateAtom(bool isAstring)
   if (rv == last) {
      SetSyntaxError(true, "no atom characters found");
      PL_strfree(rv);
-     return nsnull;
+     return nullptr;
   }
   if (*last)
   {
@@ -323,7 +323,7 @@ char *nsIMAPGenericParser::CreateQuoted(bool /*skipToEnd*/)
     if (!returnString.CharAt(charIndex))
     {
       SetSyntaxError(true, "no closing '\"' found in quoted");
-      return nsnull;
+      return nullptr;
     }
     else if (returnString.CharAt(charIndex) == '\\')
     {
@@ -354,12 +354,12 @@ char *nsIMAPGenericParser::CreateLiteral()
   uint32 numBytes = numberOfCharsInMessage + 1;
   NS_ASSERTION(numBytes, "overflow!");
   if (!numBytes)
-    return nsnull;
+    return nullptr;
   char *returnString = (char *)PR_Malloc(numBytes);
   if (!returnString)
   {
     HandleMemoryFailure();
-    return nsnull;
+    return nullptr;
   }
 
   int32 currentLineLength = 0;
@@ -474,7 +474,7 @@ char *nsIMAPGenericParser::CreateParenGroup()
   if (numOpenParens != 0 || !ContinueParse())
   {
     SetSyntaxError(true, "closing ')' not found in paren group");
-    return nsnull;
+    return nullptr;
   }
 
   returnString.Append(parenGroupStart, fCurrentTokenPlaceHolder - parenGroupStart);

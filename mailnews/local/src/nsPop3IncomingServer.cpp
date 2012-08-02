@@ -180,7 +180,7 @@ NS_IMETHODIMP nsPop3IncomingServer::GetDeferredToAccount(nsACString& aRetVal)
                                                     getter_AddRefs(dest));
                     if (dest)
                       dest->CopyMessages(subFolder, hdrsToCopy, false,
-                                         nsnull, nsnull, false,false);
+                                         nullptr, nullptr, false,false);
                     // Should we copy the folder if the dest doesn't exist?
                   }
                 }
@@ -206,7 +206,7 @@ NS_IMETHODIMP nsPop3IncomingServer::SetDeferredToAccount(const nsACString& aAcco
 {
   nsCString deferredToAccount;
   GetDeferredToAccount(deferredToAccount);
-  m_rootMsgFolder = nsnull; // clear this so we'll recalculate it on demand.
+  m_rootMsgFolder = nullptr; // clear this so we'll recalculate it on demand.
   //Notify listeners who listen to every folder
 
   nsresult rv =  SetCharValue("deferred_to_account", aAccountKey);
@@ -260,7 +260,7 @@ NS_IMETHODIMP nsPop3IncomingServer::SetDeferredToAccount(const nsACString& aAcco
                   rv = server->GetRootFolder(getter_AddRefs(rootFolder));
                   NS_ENSURE_SUCCESS(rv, rv);
                   // this will fail if it already exists, which is fine.
-                  rootFolder->CreateSubfolder(NS_LITERAL_STRING("Inbox"), nsnull);
+                  rootFolder->CreateSubfolder(NS_LITERAL_STRING("Inbox"), nullptr);
                 }
               }
             }
@@ -357,10 +357,10 @@ nsresult nsPop3IncomingServer::GetInbox(nsIMsgWindow *msgWindow, nsIMsgFolder **
     rv = (*inbox)->GetMsgDatabase(getter_AddRefs(db));
     if (NS_FAILED(rv))
     {
-      (*inbox)->SetMsgDatabase(nsnull);
+      (*inbox)->SetMsgDatabase(nullptr);
       (void) localInbox->SetCheckForNewMessagesAfterParsing(true);
       // this will cause a reparse of the mail folder.
-      localInbox->GetDatabaseWithReparse(nsnull, msgWindow, getter_AddRefs(db));
+      localInbox->GetDatabaseWithReparse(nullptr, msgWindow, getter_AddRefs(db));
       rv = NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE;
     }
   }
@@ -404,7 +404,7 @@ NS_IMETHODIMP nsPop3IncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
       if (NS_SUCCEEDED(rv) && db)
         rv = db->GetSummaryValid(&valid);
       if (NS_SUCCEEDED(rv) && valid)
-        rv = pop3Service->GetNewMail(aMsgWindow, urlListener, inbox, this, nsnull);
+        rv = pop3Service->GetNewMail(aMsgWindow, urlListener, inbox, this, nullptr);
       else
       {
         bool isLocked;
@@ -417,7 +417,7 @@ NS_IMETHODIMP nsPop3IncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
     }
   }
   else
-    rv = pop3Service->CheckForNewMail(aMsgWindow, urlListener, inbox, this, nsnull);
+    rv = pop3Service->CheckForNewMail(aMsgWindow, urlListener, inbox, this, nullptr);
   return NS_OK;
 }
 
@@ -742,7 +742,7 @@ nsresult nsPop3GetMailChainer::RunNextGetNewMail()
       }
     }
   }
-  rv = m_listener ? m_listener->OnStopRunningUrl(nsnull, NS_OK) : NS_OK;
+  rv = m_listener ? m_listener->OnStopRunningUrl(nullptr, NS_OK) : NS_OK;
   Release(); // release ref to ourself.
   return rv;
 }

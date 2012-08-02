@@ -68,9 +68,9 @@ static MimeHeadersState MIME_HeaderType;
 static bool MIME_WrapLongLines;
 static bool MIME_VariableWidthPlaintext;
 
-mime_stream_data::mime_stream_data() : url_name(nsnull), orig_url_name(nsnull),
-  pluginObj2(nsnull), istream(nsnull), obj(nsnull), options(nsnull),
-  headers(nsnull), output_emitter(nsnull), firstCheck(false)
+mime_stream_data::mime_stream_data() : url_name(nullptr), orig_url_name(nullptr),
+  pluginObj2(nullptr), istream(nullptr), obj(nullptr), options(nullptr),
+  headers(nullptr), output_emitter(nullptr), firstCheck(false)
 {
 }
 
@@ -104,8 +104,8 @@ ProcessBodyAsAttachment(MimeObject *obj, nsMsgAttachmentData **data)
 {
   nsMsgAttachmentData   *tmp;
   PRInt32               n;
-  char                  *disp = nsnull;
-  char                  *charset = nsnull;
+  char                  *disp = nullptr;
+  char                  *charset = nullptr;
 
   // Ok, this is the special case when somebody sends an "attachment" as the
   // body of an RFC822 message...I really don't think this is the way this
@@ -155,9 +155,9 @@ ProcessBodyAsAttachment(MimeObject *obj, nsMsgAttachmentData **data)
   tmp->m_displayableInline = obj->clazz->displayable_inline_p(obj->clazz,
                                                               obj->headers);
 
-  char  *tmpURL = nsnull;
-  char  *id = nsnull;
-  char  *id_imap = nsnull;
+  char  *tmpURL = nullptr;
+  char  *id = nullptr;
+  char  *id_imap = nullptr;
 
   id = mime_part_address (obj);
   if (obj->options->missing_parts)
@@ -180,13 +180,13 @@ ProcessBodyAsAttachment(MimeObject *obj, nsMsgAttachmentData **data)
     {
       // if this is an IMAP part.
       tmpURL = mime_set_url_imap_part(url, id_imap, id);
-      rv = nsMimeNewURI(getter_AddRefs(tmp->m_url), tmpURL, nsnull);
+      rv = nsMimeNewURI(getter_AddRefs(tmp->m_url), tmpURL, nullptr);
     }
     else
     {
       // This is just a normal MIME part as usual.
       tmpURL = mime_set_url_part(url, id, true);
-      rv = nsMimeNewURI(getter_AddRefs(tmp->m_url), tmpURL, nsnull);
+      rv = nsMimeNewURI(getter_AddRefs(tmp->m_url), tmpURL, nullptr);
     }
 
     if (!tmp->m_url || NS_FAILED(rv))
@@ -292,7 +292,7 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   if (options->missing_parts)
     imappart.Adopt(mime_imap_part_address(object));
 
-  char *urlSpec = nsnull;
+  char *urlSpec = nullptr;
   if (!imappart.IsEmpty())
   {
     isIMAPPart = true;
@@ -301,7 +301,7 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   else
   {
     isIMAPPart = false;
-    char *no_part_url = nsnull;
+    char *no_part_url = nullptr;
     if (options->part_to_load && options->format_out == nsMimeOutput::nsMimeMessageBodyDisplay)
       no_part_url = mime_get_base_url(aMessageURL);
     if (no_part_url) {
@@ -340,18 +340,18 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   PR_FREEIF(part_addr);
 
   PRInt32 i;
-  char *charset = nsnull;
+  char *charset = nullptr;
   char *disp = MimeHeaders_get(object->headers, HEADER_CONTENT_DISPOSITION, false, false);
   if (disp)
   {
-    tmp->m_realName.Adopt(MimeHeaders_get_parameter(disp, "filename", &charset, nsnull));
+    tmp->m_realName.Adopt(MimeHeaders_get_parameter(disp, "filename", &charset, nullptr));
     if (isAnAppleDoublePart)
       for (i = 0; i < 2 && tmp->m_realName.IsEmpty(); i ++)
       {
         PR_FREEIF(disp);
         nsMemory::Free(charset);
         disp = MimeHeaders_get(((MimeContainer *)object)->children[i]->headers, HEADER_CONTENT_DISPOSITION, false, false);
-        tmp->m_realName.Adopt(MimeHeaders_get_parameter(disp, "filename", &charset, nsnull));
+        tmp->m_realName.Adopt(MimeHeaders_get_parameter(disp, "filename", &charset, nullptr));
       }
 
     if (!tmp->m_realName.IsEmpty())
@@ -362,7 +362,7 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
       // But old Netscape 4.x and Outlook Express etc. use RFC2047.
       // So we should parse both types.
 
-      char *fname = nsnull;
+      char *fname = nullptr;
       fname = mime_decode_filename(tmp->m_realName.get(), charset, options);
       nsMemory::Free(charset);
 
@@ -376,12 +376,12 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   disp = MimeHeaders_get(object->headers, HEADER_CONTENT_TYPE, false, false);
   if (disp)
   {
-    tmp->m_xMacType.Adopt(MimeHeaders_get_parameter(disp, PARAM_X_MAC_TYPE, nsnull, nsnull));
-    tmp->m_xMacCreator.Adopt(MimeHeaders_get_parameter(disp, PARAM_X_MAC_CREATOR, nsnull, nsnull));
+    tmp->m_xMacType.Adopt(MimeHeaders_get_parameter(disp, PARAM_X_MAC_TYPE, nullptr, nullptr));
+    tmp->m_xMacCreator.Adopt(MimeHeaders_get_parameter(disp, PARAM_X_MAC_CREATOR, nullptr, nullptr));
 
     if (tmp->m_realName.IsEmpty())
     {
-      tmp->m_realName.Adopt(MimeHeaders_get_parameter(disp, "name", &charset, nsnull));
+      tmp->m_realName.Adopt(MimeHeaders_get_parameter(disp, "name", &charset, nullptr));
       if (isAnAppleDoublePart)
         // the data fork is the 2nd part, and we should ALWAYS look there first for the file name
         for (i = 1; i >= 0 && tmp->m_realName.IsEmpty(); i --)
@@ -389,7 +389,7 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
           PR_FREEIF(disp);
           nsMemory::Free(charset);
           disp = MimeHeaders_get(((MimeContainer *)object)->children[i]->headers, HEADER_CONTENT_TYPE, false, false);
-          tmp->m_realName.Adopt(MimeHeaders_get_parameter(disp, "name", &charset, nsnull));
+          tmp->m_realName.Adopt(MimeHeaders_get_parameter(disp, "name", &charset, nullptr));
           tmp->m_realType.Adopt(
             MimeHeaders_get(((MimeContainer *)object)->children[i]->headers,
                             HEADER_CONTENT_TYPE, true, false));
@@ -403,7 +403,7 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
         // But old Netscape 4.x and Outlook Express etc. use RFC2047.
         // So we should parse both types.
 
-        char *fname = nsnull;
+        char *fname = nullptr;
         fname = mime_decode_filename(tmp->m_realName.get(), charset, options);
         nsMemory::Free(charset);
 
@@ -469,7 +469,7 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
       tmp->m_realName = "ForwardedMessage.eml";
   }
 
-  nsresult rv = nsMimeNewURI(getter_AddRefs(tmp->m_url), urlString.get(), nsnull);
+  nsresult rv = nsMimeNewURI(getter_AddRefs(tmp->m_url), urlString.get(), nullptr);
 
   PR_FREEIF(urlSpec);
 
@@ -523,7 +523,7 @@ BuildAttachmentList(MimeObject *anObject, nsMsgAttachmentData *aAttachData, cons
       char * disp = MimeHeaders_get (child->headers,
                                      HEADER_CONTENT_DISPOSITION,
                                      true, false);
-      if (MimeHeaders_get_name(child->headers, nsnull) &&
+      if (MimeHeaders_get_name(child->headers, nullptr) &&
           (!disp || PL_strcasecmp(disp, "attachment")))
         // it has a filename and isn't being displayed inline
         skip = false;
@@ -579,7 +579,7 @@ MimeGetAttachmentList(MimeObject *tobj, const char *aMessageURL, nsMsgAttachment
 
   if (!data)
     return 0;
-  *data = nsnull;
+  *data = nullptr;
 
   obj = mime_get_main_object(tobj);
   if (!obj)
@@ -696,14 +696,14 @@ nsMimeNewURI(nsIURI** aInstancePtrResult, const char *aSpec, nsIURI *aBase)
 {
   nsresult  res;
 
-  if (nsnull == aInstancePtrResult)
+  if (nullptr == aInstancePtrResult)
     return NS_ERROR_NULL_POINTER;
 
   nsCOMPtr<nsIIOService> pService =
     mozilla::services::GetIOService();
   NS_ENSURE_TRUE(pService, NS_ERROR_FACTORY_NOT_REGISTERED);
 
-  return pService->NewURI(nsDependentCString(aSpec), nsnull, aBase, aInstancePtrResult);
+  return pService->NewURI(nsDependentCString(aSpec), nullptr, aBase, aInstancePtrResult);
 }
 
 extern "C" nsresult
@@ -763,8 +763,8 @@ static void ResetMsgHeaderSinkProps(nsIURI *uri)
 static char *
 mime_file_type (const char *filename, void *stream_closure)
 {
-  char        *retType = nsnull;
-  char        *ext = nsnull;
+  char        *retType = nullptr;
+  char        *ext = nullptr;
   nsresult    rv;
 
   ext = PL_strrchr(filename, '.');
@@ -809,7 +809,7 @@ int ConvertUsingEncoderAndDecoder(const char *stringToUse, PRInt32 inLength,
     unichars = localbuf;
     unicharLength = klocalbufsize+1;
   }
-  if (unichars == nsnull) {
+  if (unichars == nullptr) {
     rv = NS_ERROR_OUT_OF_MEMORY;
   }
   else {
@@ -857,13 +857,13 @@ int ConvertUsingEncoderAndDecoder(const char *stringToUse, PRInt32 inLength,
     rv = encoder->GetMaxLength(unichars, totalChars, &dstLength);
     // allocale an output buffer
     dstPtr = (char *) PR_Malloc(dstLength + 1);
-    if (dstPtr == nsnull) {
+    if (dstPtr == nullptr) {
       rv = NS_ERROR_OUT_OF_MEMORY;
     }
     else {
       PRInt32 buffLength = dstLength;
       // convert from unicode
-      rv = encoder->SetOutputErrorBehavior(nsIUnicodeEncoder::kOnError_Replace, nsnull, '?');
+      rv = encoder->SetOutputErrorBehavior(nsIUnicodeEncoder::kOnError_Replace, nullptr, '?');
       if (NS_SUCCEEDED(rv)) {
         rv = encoder->Convert(unichars, &totalChars, dstPtr, &dstLength);
         if (NS_SUCCEEDED(rv)) {
@@ -1121,9 +1121,9 @@ public:
 
 mime_image_stream_data::mime_image_stream_data()
 {
-  url = nsnull;
-  istream = nsnull;
-  msd = nsnull;
+  url = nullptr;
+  istream = nullptr;
+  msd = nullptr;
   m_shouldCacheImage = false;
 }
 
@@ -1135,7 +1135,7 @@ mime_image_begin(const char *image_url, const char *content_type,
   class mime_image_stream_data *mid;
 
   mid = new mime_image_stream_data;
-  if (!mid) return nsnull;
+  if (!mid) return nullptr;
 
 
   mid->msd = msd;
@@ -1144,7 +1144,7 @@ mime_image_begin(const char *image_url, const char *content_type,
   if (!mid->url)
   {
     PR_Free(mid);
-    return nsnull;
+    return nullptr;
   }
 
   if (msd->channel)
@@ -1184,7 +1184,7 @@ mime_image_begin(const char *image_url, const char *content_type,
               entry->SetMetaDataElement("contentType", content_type);
 
               rv = entry->OpenOutputStream(0, getter_AddRefs(mid->memCacheOutputStream));
-              if (NS_FAILED(rv)) return nsnull;
+              if (NS_FAILED(rv)) return nullptr;
             }
           }
         }
@@ -1315,7 +1315,7 @@ mime_get_main_object(MimeObject* obj)
         if (cobj->nchildren > 0)
           obj = cobj->children[0];
         else
-          obj = nsnull;
+          obj = nullptr;
       }
       else
       {
@@ -1326,7 +1326,7 @@ mime_get_main_object(MimeObject* obj)
       }
     }
   }
-  return nsnull;
+  return nullptr;
 }
 
 static
@@ -1393,7 +1393,7 @@ nsIPrefBranch *
 GetPrefBranch(MimeDisplayOptions *opt)
 {
   if (!opt)
-    return nsnull;
+    return nullptr;
 
   return opt->m_prefBranch;
 }
@@ -1403,16 +1403,16 @@ mozITXTToHTMLConv *
 GetTextConverter(MimeDisplayOptions *opt)
 {
   if (!opt)
-    return nsnull;
+    return nullptr;
 
   return opt->conv;
 }
 
 MimeDisplayOptions::MimeDisplayOptions()
 {
-  conv = nsnull;        // For text conversion...
+  conv = nullptr;        // For text conversion...
   format_out = 0;   // The format out type
-  url = nsnull;
+  url = nullptr;
 
   memset(&headers,0, sizeof(headers));
   fancy_headers_p = false;
@@ -1422,46 +1422,46 @@ MimeDisplayOptions::MimeDisplayOptions()
   variable_width_plaintext_p = false;
   wrap_long_lines_p = false;
   rot13_p = false;
-  part_to_load = nsnull;
+  part_to_load = nullptr;
 
   write_html_p = false;
 
   decrypt_p = false;
 
   whattodo = 0 ;
-  default_charset = nsnull;
+  default_charset = nullptr;
   override_charset = false;
   force_user_charset = false;
-  stream_closure = nsnull;
+  stream_closure = nullptr;
 
   /* For setting up the display stream, so that the MIME parser can inform
    the caller of the type of the data it will be getting. */
-  output_init_fn = nsnull;
-  output_fn = nsnull;
+  output_init_fn = nullptr;
+  output_fn = nullptr;
 
-  output_closure = nsnull;
+  output_closure = nullptr;
 
-  charset_conversion_fn = nsnull;
+  charset_conversion_fn = nullptr;
   rfc1522_conversion_p = false;
 
-  file_type_fn = nsnull;
+  file_type_fn = nullptr;
 
-  passwd_prompt_fn = nsnull;
+  passwd_prompt_fn = nullptr;
 
-  html_closure = nsnull;
+  html_closure = nullptr;
 
-  generate_header_html_fn = nsnull;
-  generate_post_header_html_fn = nsnull;
-  generate_footer_html_fn = nsnull;
-  generate_reference_url_fn = nsnull;
-  generate_mailto_url_fn = nsnull;
-  generate_news_url_fn = nsnull;
+  generate_header_html_fn = nullptr;
+  generate_post_header_html_fn = nullptr;
+  generate_footer_html_fn = nullptr;
+  generate_reference_url_fn = nullptr;
+  generate_mailto_url_fn = nullptr;
+  generate_news_url_fn = nullptr;
 
-  image_begin = nsnull;
-  image_end = nsnull;
-  image_write_buffer = nsnull;
-  make_image_html = nsnull;
-  state = nsnull;
+  image_begin = nullptr;
+  image_end = nullptr;
+  image_write_buffer = nullptr;
+  make_image_html = nullptr;
+  state = nullptr;
 
 #ifdef MIME_DRAFTS
   decompose_file_p = false;
@@ -1471,10 +1471,10 @@ MimeDisplayOptions::MimeDisplayOptions()
 
   signed_p = false;
   caller_need_root_headers = false;
-  decompose_headers_info_fn = nsnull;
-  decompose_file_init_fn = nsnull;
-  decompose_file_output_fn = nsnull;
-  decompose_file_close_fn = nsnull;
+  decompose_headers_info_fn = nullptr;
+  decompose_file_init_fn = nullptr;
+  decompose_file_output_fn = nullptr;
+  decompose_file_close_fn = nullptr;
 #endif /* MIME_DRAFTS */
 
   attachment_icon_layer_id = 0;
@@ -1510,7 +1510,7 @@ mime_bridge_create_display_stream(
   nsMIMESession             *stream = 0;
 
   if (!uri)
-    return nsnull;
+    return nullptr;
 
   msd = new mime_stream_data;
   if (!msd)
@@ -1559,7 +1559,7 @@ mime_bridge_create_display_stream(
   if (NS_FAILED(rv))
   {
     delete msd;
-    return nsnull;
+    return nullptr;
   }
 
   // Need the text converter...
@@ -1568,7 +1568,7 @@ mime_bridge_create_display_stream(
   {
     msd->options->m_prefBranch = 0;
     delete msd;
-    return nsnull;
+    return nullptr;
   }
 
   //
@@ -1747,7 +1747,7 @@ mime_stream_data *
 GetMSD(MimeDisplayOptions *opt)
 {
   if (!opt)
-    return nsnull;
+    return nullptr;
   mime_stream_data  *msd = (mime_stream_data *)opt->stream_closure;
   return msd;
 }
@@ -2093,7 +2093,7 @@ ResetChannelCharset(MimeObject *obj)
         if ( (msd) && (msd->format_out == nsMimeOutput::nsMimeMessageSaveAs) )
         {
           // Extract the charset alone
-          char  *cSet = nsnull;
+          char  *cSet = nullptr;
           if (*(ptr+8) == '"')
             cSet = strdup(ptr+9);
           else

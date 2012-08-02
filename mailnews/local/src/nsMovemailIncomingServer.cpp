@@ -71,7 +71,7 @@ nsMovemailIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
            if (NS_SUCCEEDED(rv) && valid)
            {
                rv = movemailService->GetNewMail(aMsgWindow, urlListener, inbox,
-                                                this, nsnull);
+                                                this, nullptr);
            }
            else
            {
@@ -90,7 +90,7 @@ nsMovemailIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
     }
     else
     {
-        movemailService->CheckForNewMail(urlListener, inbox, this, nsnull); 
+        movemailService->CheckForNewMail(urlListener, inbox, this, nullptr); 
     }
 
     return NS_OK;

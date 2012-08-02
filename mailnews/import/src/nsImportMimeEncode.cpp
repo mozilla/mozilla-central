@@ -18,10 +18,10 @@
 
 nsImportMimeEncode::nsImportMimeEncode()
 {
-  m_pOut = nsnull;
+  m_pOut = nullptr;
   m_state = kNoState;
   m_bytesProcessed = 0;
-  m_pInputBuf = nsnull;
+  m_pInputBuf = nullptr;
 }
 
 nsImportMimeEncode::~nsImportMimeEncode()
@@ -349,8 +349,8 @@ bool nsImportMimeEncode::WriteFileName(nsCString& fName, bool wasTrans, const ch
 //////////////////////////////////////////////////////////////////////////////
 nsIImportMimeEncodeImpl::nsIImportMimeEncodeImpl()
 {
-  m_pOut = nsnull;
-  m_pEncode = nsnull;
+  m_pOut = nullptr;
+  m_pEncode = nullptr;
 }
 
 nsIImportMimeEncodeImpl::~nsIImportMimeEncodeImpl()

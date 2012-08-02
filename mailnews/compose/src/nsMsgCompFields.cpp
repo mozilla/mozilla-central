@@ -24,7 +24,7 @@ nsMsgCompFields::nsMsgCompFields()
 {
   PRInt16 i;
   for (i = 0; i < MSG_MAX_HEADERS; i ++)
-    m_headers[i] = nsnull;
+    m_headers[i] = nullptr;
 
   m_body.Truncate();
 
@@ -40,7 +40,7 @@ nsMsgCompFields::nsMsgCompFields()
 
   // Get the default charset from pref, use this as a mail charset.
   nsString charset;
-  NS_GetLocalizedUnicharPreferenceWithDefault(nsnull, "mailnews.send_default_charset", 
+  NS_GetLocalizedUnicharPreferenceWithDefault(nullptr, "mailnews.send_default_charset", 
                                               NS_LITERAL_STRING("ISO-8859-1"), charset);
 
   LossyCopyUTF16toASCII(charset, m_DefaultCharacterSet); // Charsets better be ASCII
@@ -74,7 +74,7 @@ nsresult nsMsgCompFields::SetAsciiHeader(MsgHeaderID header, const char *value)
            rv = NS_ERROR_OUT_OF_MEMORY;
     }
     else 
-      m_headers[header] = nsnull;
+      m_headers[header] = nullptr;
 
     PR_FREEIF(old);
   }
@@ -542,7 +542,7 @@ nsMsgCompFields::SplitRecipients(const nsAString &aRecipients,
   NS_ENSURE_ARG_POINTER(aResult);
 
   *aLength = 0;
-  *aResult = nsnull;
+  *aResult = nullptr;
 
   nsresult rv;
   nsCOMPtr<nsIMsgHeaderParser> parser =

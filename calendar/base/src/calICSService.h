@@ -97,8 +97,8 @@ class calIcalComponent : public calIIcalComponent,
     friend class calIcalProperty;
 public:
     calIcalComponent(icalcomponent *ical, calIIcalComponent *parent,
-                     calITimezoneProvider *tzProvider = nsnull)
-        : mComponent(ical), mTimezone(nsnull), mTzProvider(tzProvider), mParent(parent)
+                     calITimezoneProvider *tzProvider = nullptr)
+        : mComponent(ical), mTimezone(nullptr), mTzProvider(tzProvider), mParent(parent)
     {
         mReferencedTimezones.Init();
     }
@@ -126,7 +126,7 @@ protected:
             calIIcalComponent * const p = that->mParent;
             that = static_cast<calIcalComponent const *>(p);
         }
-        return nsnull;
+        return nullptr;
     }
 
     calIcalComponent * getParentVCalendarOrThis() {

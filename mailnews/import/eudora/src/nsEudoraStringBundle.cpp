@@ -16,7 +16,7 @@
 
 #define EUDORA_MSGS_URL       "chrome://messenger/locale/eudoraImportMsgs.properties"
 
-nsIStringBundle *  nsEudoraStringBundle::m_pBundle = nsnull;
+nsIStringBundle *  nsEudoraStringBundle::m_pBundle = nullptr;
 
 nsIStringBundle *nsEudoraStringBundle::GetStringBundle(void)
 {
@@ -24,7 +24,7 @@ nsIStringBundle *nsEudoraStringBundle::GetStringBundle(void)
     return m_pBundle;
 
   const char*       propertyURL = EUDORA_MSGS_URL;
-  nsIStringBundle*  sBundle = nsnull;
+  nsIStringBundle*  sBundle = nullptr;
 
   nsCOMPtr<nsIStringBundleService> sBundleService =
     mozilla::services::GetStringBundleService();
@@ -50,7 +50,7 @@ PRUnichar *nsEudoraStringBundle::GetStringByID(PRInt32 stringID)
 
   if (m_pBundle)
   {
-    PRUnichar *ptrv = nsnull;
+    PRUnichar *ptrv = nullptr;
     nsresult rv = m_pBundle->GetStringFromID(stringID, &ptrv);
 
     if (NS_SUCCEEDED(rv) && ptrv)
@@ -86,5 +86,5 @@ void nsEudoraStringBundle::Cleanup(void)
 {
   if (m_pBundle)
     m_pBundle->Release();
-  m_pBundle = nsnull;
+  m_pBundle = nullptr;
 }

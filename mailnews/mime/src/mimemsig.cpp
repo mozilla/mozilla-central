@@ -409,7 +409,7 @@ MimeMultipartSigned_parse_line (const char *line, PRInt32 length, MimeObject *ob
       /* Feed this line into the signature verification routines. */
 
       if (sig->sig_decoder_data)
-      status = MimeDecoderWrite (sig->sig_decoder_data, line, length, nsnull);
+      status = MimeDecoderWrite (sig->sig_decoder_data, line, length, nullptr);
       else
       status = (((MimeMultipartSignedClass *) obj->clazz)
             ->crypto_signature_hash (line, length,
@@ -612,7 +612,7 @@ MimeMultipartSigned_emit_child (MimeObject *obj)
       obj->options->generate_post_header_html_fn &&
       !obj->options->state->post_header_html_run_p)
     {
-      MimeHeaders *outer_headers=nsnull;
+      MimeHeaders *outer_headers=nullptr;
       MimeObject *p;
       for (p = obj; p->parent; p = p->parent)
       outer_headers = p->headers;

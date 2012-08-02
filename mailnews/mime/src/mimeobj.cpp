@@ -155,7 +155,7 @@ MimeObject_finalize (MimeObject *obj)
   if (obj->options && obj->options->state)
   {
     delete obj->options->state;
-    obj->options->state = nsnull;
+    obj->options->state = nullptr;
   }
 }
 

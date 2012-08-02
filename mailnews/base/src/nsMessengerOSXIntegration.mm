@@ -64,7 +64,7 @@
 #define kNewChatMessageTopic "new-directed-incoming-message"
 #define kUnreadImCountChangedTopic "unread-im-count-changed"
 
-static PRLogModuleInfo *MsgDockCountsLogModule = nsnull;
+static PRLogModuleInfo *MsgDockCountsLogModule = nullptr;
 
 // HACK: Limitations in Focus/SetFocus on Mac (see bug 465446)
 nsresult FocusAppNative()

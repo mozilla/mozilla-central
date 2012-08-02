@@ -71,13 +71,13 @@ typedef struct MimeCMSdata
   nsCOMPtr<nsIMsgSMIMEHeaderSink> smimeHeaderSink;
   
   MimeCMSdata()
-  :output_fn(nsnull),
-  output_closure(nsnull),
+  :output_fn(nullptr),
+  output_closure(nullptr),
   ci_is_encrypted(false),
-  sender_addr(nsnull),
+  sender_addr(nullptr),
   decoding_failed(false),
   decoded_bytes(0),
-  self(nsnull),
+  self(nullptr),
   parent_is_encrypted_p(false),
   parent_holds_stamp_p(false)
   {
@@ -367,7 +367,7 @@ int MIMEGetRelativeCryptoNestLevel(MimeObject *obj)
 
   // if we are showing the toplevel message, aTopMessageNestLevel == 0
   int aTopMessageNestLevel = 0;
-  MimeObject *aTopShownObject = nsnull;
+  MimeObject *aTopShownObject = nullptr;
   if (obj && obj->options->part_to_load) {
     bool aAlreadyFoundTop = false;
     for (MimeObject *walker = obj; walker; walker = walker->parent) {
@@ -700,7 +700,7 @@ MimeCMS_eof (void *crypto_closure, bool abort_p)
                                                from_addr.get(), from_name.get(),
                                                sender_addr.get(), sender_name.get(),
                                                data->smimeHeaderSink, aRelativeNestLevel, 
-                                               nsnull, 0);
+                                               nullptr, 0);
     }
   }
 
@@ -728,6 +728,6 @@ MimeCMS_free (void *crypto_closure)
 static char *
 MimeCMS_generate (void *crypto_closure)
 {
-  return nsnull;
+  return nullptr;
 }
 

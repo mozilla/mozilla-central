@@ -656,7 +656,7 @@ nsLDAPService::EstablishConnection(nsLDAPServiceEntry *aEntry,
         return NS_ERROR_FAILURE;
     }
 
-    rv = conn->Init(url, binddn, this, nsnull, protocolVersion);
+    rv = conn->Init(url, binddn, this, nullptr, protocolVersion);
     if (NS_FAILED(rv)) {
         switch (rv) {
         // Only pass along errors we are aware of
@@ -724,7 +724,7 @@ nsLDAPService::EstablishConnection(nsLDAPServiceEntry *aEntry,
         return NS_ERROR_FAILURE;
     }
 
-    rv = operation->Init(conn, this, nsnull);
+    rv = operation->Init(conn, this, nullptr);
     if (NS_FAILED(rv)) {
         return NS_ERROR_UNEXPECTED; // this should never happen
     }

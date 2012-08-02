@@ -69,8 +69,8 @@ static const char *p_test_body =
 "Hello world?\n\
 ";
 #else
-#define p_test_headers nsnull
-#define p_test_body nsnull
+#define p_test_headers nullptr
+#define p_test_body nullptr
 #endif
 
 #define kWhitespace "\b\t\r\n "
@@ -116,7 +116,7 @@ class OutlookSendListener : public nsIMsgSendListener
 public:
   OutlookSendListener() {
     m_done = false;
-    m_location = nsnull;
+    m_location = nullptr;
   }
 
   virtual ~OutlookSendListener() { NS_IF_RELEASE(m_location); }
@@ -159,7 +159,7 @@ NS_IMPL_THREADSAFE_ISUPPORTS1(OutlookSendListener, nsIMsgSendListener)
 
 nsresult OutlookSendListener::CreateSendListener(nsIMsgSendListener **ppListener)
 {
-  NS_PRECONDITION(ppListener != nsnull, "null ptr");
+  NS_PRECONDITION(ppListener != nullptr, "null ptr");
   NS_ENSURE_ARG_POINTER(ppListener);
 
   *ppListener = new OutlookSendListener();
@@ -186,8 +186,8 @@ nsresult OutlookSendListener::CreateSendListener(nsIMsgSendListener **ppListener
 
 nsOutlookCompose::nsOutlookCompose()
 {
-  m_pListener = nsnull;
-  m_pMsgFields = nsnull;
+  m_pListener = nullptr;
+  m_pMsgFields = nullptr;
 
   m_optimizationBufferSize = 16*1024;
   m_optimizationBuffer = new char[m_optimizationBufferSize];
@@ -206,7 +206,7 @@ nsOutlookCompose::~nsOutlookCompose()
   delete[] m_optimizationBuffer;
 }
 
-nsIMsgIdentity * nsOutlookCompose::m_pIdentity = nsnull;
+nsIMsgIdentity * nsOutlookCompose::m_pIdentity = nullptr;
 
 nsresult nsOutlookCompose::CreateIdentity(void)
 {

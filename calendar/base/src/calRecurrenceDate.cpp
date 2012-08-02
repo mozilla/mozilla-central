@@ -60,7 +60,7 @@ calRecurrenceDate::Clone(calIRecurrenceItem **_retval)
     if (mDate)
         mDate->Clone(getter_AddRefs(crd->mDate));
     else
-        crd->mDate = nsnull;
+        crd->mDate = nullptr;
 
     NS_ADDREF(*_retval = crd);
     return NS_OK;
@@ -130,7 +130,7 @@ calRecurrenceDate::GetNextOccurrence(calIDateTime *aStartTime,
         }
     }
 
-    *_retval = nsnull;
+    *_retval = nullptr;
     return NS_OK;
 }
 
@@ -158,7 +158,7 @@ calRecurrenceDate::GetOccurrences(calIDateTime *aStartTime,
         }
     }
 
-    *aDates = nsnull;
+    *aDates = nullptr;
     *aCount = 0;
     return NS_OK;
 }
@@ -197,7 +197,7 @@ calRecurrenceDate::SetIcalProperty(calIIcalProperty *aProp)
             icalperiodtype const period = icalvalue_get_period(value);
             // take only period's start date and skip end date, but continue parsing;
             // open bug 489747:
-            mDate = new calDateTime(&period.start, nsnull /* detect timezone */);
+            mDate = new calDateTime(&period.start, nullptr /* detect timezone */);
             return NS_OK;
         }
     } else if (name.EqualsLiteral("EXDATE"))

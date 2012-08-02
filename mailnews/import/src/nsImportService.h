@@ -46,7 +46,7 @@ private:
 
 class ImportModuleDesc {
 public:
-  ImportModuleDesc() { m_pModule = nsnull;}
+  ImportModuleDesc() { m_pModule = nullptr;}
   ~ImportModuleDesc() { ReleaseModule();  }
 
   void  SetCID(const nsCID& cid) { m_cid = cid;}
@@ -74,7 +74,7 @@ private:
 
 class nsImportModuleList {
 public:
-  nsImportModuleList() { m_pList = nsnull; m_alloc = 0; m_count = 0;}
+  nsImportModuleList() { m_pList = nullptr; m_alloc = 0; m_count = 0;}
   ~nsImportModuleList() { ClearList(); }
 
   void  AddModule(const nsCID& cid, const char *pSupports, const PRUnichar *pName, const PRUnichar *pDesc);
@@ -84,7 +84,7 @@ public:
   PRInt32  GetCount(void) { return m_count;}
 
   ImportModuleDesc *  GetModuleDesc(PRInt32 idx)
-    { if ((idx < 0) || (idx >= m_count)) return nsnull; else return m_pList[idx];}
+    { if ((idx < 0) || (idx >= m_count)) return nullptr; else return m_pList[idx];}
 
 private:
 

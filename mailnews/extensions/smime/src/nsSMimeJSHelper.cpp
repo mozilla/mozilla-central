@@ -99,13 +99,13 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
           i < mailbox_count;
           ++i, ++iEA, ++iCV, ++iCII, ++iCEI, ++iCert, walk += strlen(walk) + 1)
       {
-        *iCert = nsnull;
+        *iCert = nullptr;
         *iCV = 0;
-        *iCII = nsnull;
-        *iCEI = nsnull;
+        *iCII = nullptr;
+        *iCEI = nullptr;
 
         if (memory_failure) {
-          *iEA = nsnull;
+          *iEA = nullptr;
           continue;
         }
 
@@ -120,7 +120,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
         ToLowerCase(email, email_lowercase);
 
         nsCOMPtr<nsIX509Cert> cert;
-        if (NS_SUCCEEDED(certdb->FindCertByEmailAddress(nsnull, email_lowercase.get(), getter_AddRefs(cert)))
+        if (NS_SUCCEEDED(certdb->FindCertByEmailAddress(nullptr, email_lowercase.get(), getter_AddRefs(cert)))
             && cert)
         {
           *iCert = cert;
@@ -229,7 +229,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetNoCertAddresses(
   if (!mailbox_count)
   {
     *count = 0;
-    *emailAddresses = nsnull;
+    *emailAddresses = nullptr;
     if (mailbox_list) {
       nsMemory::Free(mailbox_list);
     }
@@ -267,7 +267,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetNoCertAddresses(
       ToLowerCase(email, email_lowercase);
 
       nsCOMPtr<nsIX509Cert> cert;
-      if (NS_SUCCEEDED(certdb->FindCertByEmailAddress(nsnull, email_lowercase.get(), getter_AddRefs(cert)))
+      if (NS_SUCCEEDED(certdb->FindCertByEmailAddress(nullptr, email_lowercase.get(), getter_AddRefs(cert)))
           && cert)
       {
         PRUint32 verification_result;
@@ -311,7 +311,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetNoCertAddresses(
         if (!haveCert[i])
         {
           if (memory_failure) {
-            *iEA = nsnull;
+            *iEA = nullptr;
           }
           else {
             *iEA = ToNewUnicode(NS_ConvertUTF8toUTF16(walk));
@@ -334,7 +334,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetNoCertAddresses(
   }
   else
   {
-    *emailAddresses = nsnull;
+    *emailAddresses = nullptr;
   }
 
   delete [] haveCert;
@@ -375,7 +375,7 @@ nsresult nsSMimeJSHelper::getMailboxList(nsIMsgCompFields *compFields, PRUint32 
   if (NS_FAILED(res))
     return res;
 
-  *mailbox_list = nsnull;
+  *mailbox_list = nullptr;
   *mailbox_count = 0;
 
   {

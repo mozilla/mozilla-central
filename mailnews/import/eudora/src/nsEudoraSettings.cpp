@@ -26,7 +26,7 @@
 ////////////////////////////////////////////////////////////////////////
 nsresult nsEudoraSettings::Create(nsIImportSettings** aImport)
 {
-    NS_PRECONDITION(aImport != nsnull, "null ptr");
+    NS_PRECONDITION(aImport != nullptr, "null ptr");
     if (! aImport)
         return NS_ERROR_NULL_POINTER;
 
@@ -50,13 +50,13 @@ NS_IMPL_ISUPPORTS1(nsEudoraSettings, nsIImportSettings)
 
 NS_IMETHODIMP nsEudoraSettings::AutoLocate(PRUnichar **description, nsIFile **location, bool *_retval)
 {
-    NS_PRECONDITION(description != nsnull, "null ptr");
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
-    NS_PRECONDITION(location != nsnull, "null ptr");
+    NS_PRECONDITION(description != nullptr, "null ptr");
+    NS_PRECONDITION(_retval != nullptr, "null ptr");
+    NS_PRECONDITION(location != nullptr, "null ptr");
   if (!description || !_retval || !location)
     return NS_ERROR_NULL_POINTER;
 
-  *description = nsnull;
+  *description = nullptr;
   *_retval = false;
 
   nsresult  rv;
@@ -80,7 +80,7 @@ NS_IMETHODIMP nsEudoraSettings::SetLocation(nsIFile *location)
 
 NS_IMETHODIMP nsEudoraSettings::Import(nsIMsgAccount **localMailAccount, bool *_retval)
 {
-  NS_PRECONDITION(_retval != nsnull, "null ptr");
+  NS_PRECONDITION(_retval != nullptr, "null ptr");
 
   *_retval = false;
 
@@ -91,7 +91,7 @@ NS_IMETHODIMP nsEudoraSettings::Import(nsIMsgAccount **localMailAccount, bool *_
                 m_pLocation =  do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv)) {
       if (!nsEudoraWin32::FindSettingsFile(getter_AddRefs(m_pLocation))) {
-        m_pLocation = nsnull;
+        m_pLocation = nullptr;
       }
     }
 #endif

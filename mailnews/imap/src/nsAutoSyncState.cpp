@@ -382,7 +382,7 @@ NS_IMETHODIMP nsAutoSyncState::ProcessExistingHeaders(PRUint32 aNumOfHdrsToProce
     mLastSyncTime = PR_Now();
     mExistingHeadersQ.Clear();
     mProcessPointer = 0;
-    folder->SetMsgDatabase(nsnull);
+    folder->SetMsgDatabase(nullptr);
   }
 
   return rv;
@@ -404,7 +404,7 @@ NS_IMETHODIMP nsAutoSyncState::UpdateFolder()
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryReferent(mOwnerFolder, &rv);
   SetState(nsAutoSyncState::stUpdateIssued);
-  return imapFolder->UpdateFolderWithListener(nsnull, autoSyncMgrListener);
+  return imapFolder->UpdateFolderWithListener(nullptr, autoSyncMgrListener);
 }
 
 NS_IMETHODIMP nsAutoSyncState::OnStartRunningUrl(nsIURI* aUrl)
@@ -457,15 +457,15 @@ NS_IMETHODIMP nsAutoSyncState::OnStopRunningUrl(nsIURI* aUrl, nsresult aExitCode
               serverTotal, mLastServerTotal, serverRecent, mLastServerRecent));
       SetServerCounts(serverTotal, serverRecent, serverUnseen, serverNextUID);
       SetState(nsAutoSyncState::stUpdateIssued);
-      return imapFolder->UpdateFolderWithListener(nsnull, autoSyncMgrListener);
+      return imapFolder->UpdateFolderWithListener(nullptr, autoSyncMgrListener);
     }
     else
     {
-      ownerFolder->SetMsgDatabase(nsnull);
+      ownerFolder->SetMsgDatabase(nullptr);
       // nothing more to do.
       SetState(nsAutoSyncState::stCompletedIdle);
       // autoSyncMgr needs this notification, so manufacture it.
-      return autoSyncMgrListener->OnStopRunningUrl(nsnull, NS_OK);
+      return autoSyncMgrListener->OnStopRunningUrl(nullptr, NS_OK);
     }
   }
   //XXXemre how we recover from this error?
@@ -510,7 +510,7 @@ NS_IMETHODIMP nsAutoSyncState::SetState(PRInt32 aState)
       ownerFolder->GetFlags(&folderFlags);
       session->IsFolderOpenInWindow(ownerFolder, &folderOpen);
       if (!folderOpen && ! (folderFlags & nsMsgFolderFlags::Inbox))
-        ownerFolder->SetMsgDatabase(nsnull);
+        ownerFolder->SetMsgDatabase(nullptr);
     }
   }
   nsCString logStr("Sync State set to ");
@@ -650,7 +650,7 @@ NS_IMETHODIMP nsAutoSyncState::DownloadMessagesForOffline(nsIArray *aMessagesLis
   rv = imapService->DownloadMessagesForOffline(messageIds, 
                                                folder, 
                                                this, 
-                                               nsnull);
+                                               nullptr);
   if (NS_SUCCEEDED(rv))
     SetState(stDownloadInProgress);                                              
 

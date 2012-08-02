@@ -40,7 +40,7 @@ protected:
                  nsMailboxAction aMailboxAction, nsIMailboxUrl ** aMailboxUrl,
                  nsIMsgWindow *msgWindow);
 
-  nsresult RunMailboxUrl(nsIURI * aMailboxUrl, nsISupports * aDisplayConsumer = nsnull);
+  nsresult RunMailboxUrl(nsIURI * aMailboxUrl, nsISupports * aDisplayConsumer = nullptr);
 
   nsresult FetchMessage(const char* aMessageURI,
                         nsISupports * aDisplayConsumer,

@@ -14,23 +14,23 @@
 extern "C" MimeEncoderData *
 MIME_B64EncoderInit(nsresult (*output_fn) (const char *buf, PRInt32 size, void *closure), void *closure)
 {
-  MimeEncoderData *returnEncoderData = nsnull;
+  MimeEncoderData *returnEncoderData = nullptr;
   nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
-  NS_ENSURE_TRUE(converter, nsnull);
+  NS_ENSURE_TRUE(converter, nullptr);
 
   nsresult res = converter->B64EncoderInit(output_fn, closure, &returnEncoderData);
-  return NS_SUCCEEDED(res) ? returnEncoderData : nsnull;
+  return NS_SUCCEEDED(res) ? returnEncoderData : nullptr;
 }
 
 extern "C" MimeEncoderData *
 MIME_QPEncoderInit(nsresult (*output_fn) (const char *buf, PRInt32 size, void *closure), void *closure)
 {
-  MimeEncoderData *returnEncoderData = nsnull;
+  MimeEncoderData *returnEncoderData = nullptr;
   nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
-  NS_ENSURE_TRUE(converter, nsnull);
+  NS_ENSURE_TRUE(converter, nullptr);
 
   nsresult res = converter->QPEncoderInit(output_fn, closure, &returnEncoderData);
-  return NS_SUCCEEDED(res) ? returnEncoderData : nsnull;
+  return NS_SUCCEEDED(res) ? returnEncoderData : nullptr;
 }
 
 extern "C" nsresult

@@ -29,11 +29,11 @@
 
 nsNntpUrl::nsNntpUrl()
 {
-  m_newsgroupPost = nsnull;
+  m_newsgroupPost = nullptr;
   m_newsAction = nsINntpUrl::ActionUnknown;
   m_addDummyEnvelope = false;
   m_canonicalLineEnding = false;
-  m_filePath = nsnull;
+  m_filePath = nullptr;
   m_getOldMessages = false;
   m_key = nsMsgKey_None;
 }
@@ -435,7 +435,7 @@ nsNntpUrl::GetServer(nsIMsgIncomingServer **aServer)
   // No authority -> no server
   if (host.IsEmpty())
   {
-    *aServer = nsnull;
+    *aServer = nullptr;
     return NS_OK;
   }
 
@@ -456,7 +456,7 @@ nsNntpUrl::GetServer(nsIMsgIncomingServer **aServer)
   // Ignoring return results: it is perfectly acceptable for the server to not
   // exist, but FindServer (and not FindRealServer) throws NS_ERROR_UNEXPECTED
   // in this case.
-  *aServer = nsnull;
+  *aServer = nullptr;
   if (tryReal)
     accountManager->FindRealServer(user, host, NS_LITERAL_CSTRING("nntp"), 0,
       aServer);
@@ -488,7 +488,7 @@ NS_IMETHODIMP nsNntpUrl::GetFolder(nsIMsgFolder **msgFolder)
   // Need a server and a group to get the folder
   if (!server || m_group.IsEmpty())
   {
-    *msgFolder = nsnull;
+    *msgFolder = nullptr;
     return NS_OK;
   }
 
@@ -502,7 +502,7 @@ NS_IMETHODIMP nsNntpUrl::GetFolder(nsIMsgFolder **msgFolder)
 
   if (!hasGroup)
   {
-    *msgFolder = nsnull;
+    *msgFolder = nullptr;
     return NS_OK;
   }
 
@@ -544,7 +544,7 @@ NS_IMETHODIMP nsNntpUrl::GetCharsetOverRide(char ** aCharacterSet)
   if (!mCharsetOverride.IsEmpty())
     *aCharacterSet = ToNewCString(mCharsetOverride);
   else
-    *aCharacterSet = nsnull;
+    *aCharacterSet = nullptr;
   return NS_OK;
 }
 

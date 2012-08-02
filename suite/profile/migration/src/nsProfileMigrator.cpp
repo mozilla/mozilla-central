@@ -62,7 +62,7 @@ nsProfileMigrator::Migrate(nsIProfileStartup* aStartup, const nsACString& aKey)
   params->AppendElement(aStartup);
 
   nsCOMPtr<nsIDOMWindow> migrateWizard;
-  return ww->OpenWindow(nsnull,
+  return ww->OpenWindow(nullptr,
                         MIGRATION_WIZARD_FE_URL,
                         "_blank",
                         MIGRATION_WIZARD_FE_FEATURES,
@@ -108,7 +108,7 @@ nsresult
 nsProfileMigrator::GetSuiteMigratorKey(nsACString& aKey,
                                        nsISuiteProfileMigrator** spm)
 {
-  *spm = nsnull;
+  *spm = nullptr;
 
   // Declare these here because of the #if - we need them in both bits
   bool exists = false;

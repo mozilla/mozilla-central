@@ -22,10 +22,10 @@ nsNNTPArticleList::~nsNNTPArticleList()
   if (m_newsDB) {
     m_newsDB->Commit(nsMsgDBCommitType::kSessionCommit);
     m_newsDB->Close(true);
-    m_newsDB = nsnull;
+    m_newsDB = nullptr;
   }
 
-  m_newsFolder = nsnull;
+  m_newsFolder = nullptr;
 }
 
 NS_IMETHODIMP

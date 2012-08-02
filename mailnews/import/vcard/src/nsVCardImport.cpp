@@ -28,7 +28,7 @@
 #include "nsVCardAddress.h"
 #include "nsVCardImport.h"
 
-PRLogModuleInfo *VCARDLOGMODULE = nsnull;
+PRLogModuleInfo *VCARDLOGMODULE = nullptr;
 static NS_DEFINE_IID(kISupportsIID, NS_ISUPPORTS_IID);
 
 class ImportVCardAddressImpl : public nsIImportAddressBooks
@@ -149,12 +149,12 @@ NS_IMETHODIMP nsVCardImport::GetImportInterface(
 {
   NS_ENSURE_ARG_POINTER(pImportType);
   NS_ENSURE_ARG_POINTER(ppInterface);
-  *ppInterface = nsnull;
+  *ppInterface = nullptr;
   if (!strcmp(pImportType, "addressbook")) {
     nsresult rv;
     // create the nsIImportMail interface and return it!
-    nsIImportAddressBooks *pAddress = nsnull;
-    nsIImportGeneric *pGeneric = nsnull;
+    nsIImportAddressBooks *pAddress = nullptr;
+    nsIImportGeneric *pGeneric = nullptr;
     rv = ImportVCardAddressImpl::Create(&pAddress, m_stringBundle);
     if (NS_SUCCEEDED(rv)) {
       nsCOMPtr<nsIImportService> impSvc(
@@ -220,7 +220,7 @@ NS_IMETHODIMP ImportVCardAddressImpl::GetDefaultLocation(
   NS_ENSURE_ARG_POINTER(ppLoc);
   NS_ENSURE_ARG_POINTER(userVerify);
 
-  *ppLoc = nsnull;
+  *ppLoc = nullptr;
   *found = false;
   *userVerify = true;
   return NS_OK;
@@ -232,7 +232,7 @@ NS_IMETHODIMP ImportVCardAddressImpl::FindAddressBooks(
   NS_ENSURE_ARG_POINTER(pLoc);
   NS_ENSURE_ARG_POINTER(ppArray);
 
-  *ppArray = nsnull;
+  *ppArray = nullptr;
   bool exists = false;
   nsresult rv = pLoc->Exists(&exists);
   if (NS_FAILED(rv) || !exists)

@@ -11,13 +11,13 @@
 #include "nsIServiceManager.h"
 #include "nsCOMPtr.h"
 
-nsMAPIConfiguration *nsMAPIConfiguration::m_pSelfRef = nsnull;
+nsMAPIConfiguration *nsMAPIConfiguration::m_pSelfRef = nullptr;
 PRUint32 nsMAPIConfiguration::session_generator = 0;
 PRUint32 nsMAPIConfiguration::sessionCount = 0;
 
 nsMAPIConfiguration *nsMAPIConfiguration::GetMAPIConfiguration()
 {
-  if (m_pSelfRef == nsnull)
+  if (m_pSelfRef == nullptr)
     m_pSelfRef = new nsMAPIConfiguration();
 
   return m_pSelfRef;
@@ -65,15 +65,15 @@ PRInt16 nsMAPIConfiguration::RegisterSession(PRUint32 aHwnd,
     return -1;
   }
 
-  if (aUserName != nsnull && aUserName[0] != '\0')
+  if (aUserName != nullptr && aUserName[0] != '\0')
     m_ProfileMap.Get(nsDependentString(aUserName), &n_SessionId);
 
   // try to share a session; if not create a session
   if (n_SessionId > 0)
   {
-    nsMAPISession *pTemp = nsnull;
+    nsMAPISession *pTemp = nullptr;
     m_SessionMap.Get(n_SessionId, &pTemp);
-    if (pTemp != nsnull)
+    if (pTemp != nullptr)
     {
       pTemp->IncrementSession();
       *aSession = n_SessionId;
@@ -83,11 +83,11 @@ PRInt16 nsMAPIConfiguration::RegisterSession(PRUint32 aHwnd,
   else if (aNewSession || n_SessionId == 0) // checking for n_SessionId is a concession
   {
     // create a new session; if new session is specified OR there is no session
-    nsMAPISession *pTemp = nsnull;
+    nsMAPISession *pTemp = nullptr;
     pTemp = new nsMAPISession(aHwnd, aUserName,
                            aPassword, aForceDownLoad, aIdKey);
 
-    if (pTemp != nsnull)
+    if (pTemp != nullptr)
     {
       session_generator++;
 
@@ -97,7 +97,7 @@ PRInt16 nsMAPIConfiguration::RegisterSession(PRUint32 aHwnd,
       if (session_generator == 0)
           session_generator++;
       m_SessionMap.Put(session_generator, pTemp);
-      if (aUserName != nsnull && aUserName[0] != '\0')
+      if (aUserName != nullptr && aUserName[0] != '\0')
         m_ProfileMap.Put(nsDependentString(aUserName), session_generator);
       *aSession = session_generator;
       sessionCount++;
@@ -117,14 +117,14 @@ bool nsMAPIConfiguration::UnRegisterSession(PRUint32 aSessionID)
 
   if (aSessionID != 0)
   {
-    nsMAPISession *pTemp = nsnull;
+    nsMAPISession *pTemp = nullptr;
     m_SessionMap.Get(aSessionID, &pTemp);
 
-    if (pTemp != nsnull)
+    if (pTemp != nullptr)
     {
       if (pTemp->DecrementSession() == 0)
       {
-        if (pTemp->m_pProfileName.get() != nsnull)
+        if (pTemp->m_pProfileName.get() != nullptr)
           m_ProfileMap.Remove(pTemp->m_pProfileName);
         m_SessionMap.Remove(aSessionID);
         sessionCount--;
@@ -150,13 +150,13 @@ bool nsMAPIConfiguration::IsSessionValid(PRUint32 aSessionID)
 
 PRUnichar *nsMAPIConfiguration::GetPassword(PRUint32 aSessionID)
 {
-  PRUnichar *pResult = nsnull;
+  PRUnichar *pResult = nullptr;
 
   PR_Lock(m_Lock);
 
   if (aSessionID != 0)
   {
-    nsMAPISession *pTemp = nsnull;
+    nsMAPISession *pTemp = nullptr;
     m_SessionMap.Get(aSessionID, &pTemp);
 
     if (pTemp)
@@ -168,13 +168,13 @@ PRUnichar *nsMAPIConfiguration::GetPassword(PRUint32 aSessionID)
 
 void *nsMAPIConfiguration::GetMapiListContext(PRUint32 aSessionID)
 {
-  void *pResult = nsnull;
+  void *pResult = nullptr;
 
   PR_Lock(m_Lock);
 
   if (aSessionID != 0)
   {
-    nsMAPISession *pTemp = nsnull;
+    nsMAPISession *pTemp = nullptr;
     m_SessionMap.Get(aSessionID, &pTemp);
     if (pTemp)
       pResult = pTemp->GetMapiListContext();
@@ -190,7 +190,7 @@ void nsMAPIConfiguration::SetMapiListContext(PRUint32 aSessionID, void *mapiList
 
   if (aSessionID != 0)
   {
-    nsMAPISession *pTemp = nsnull;
+    nsMAPISession *pTemp = nullptr;
     m_SessionMap.Get(aSessionID, &pTemp);
     if (pTemp)
       pTemp->SetMapiListContext(mapiListContext);
@@ -204,7 +204,7 @@ void nsMAPIConfiguration::GetIdKey(PRUint32 aSessionID, nsCString& aKey)
   PR_Lock(m_Lock);
   if (aSessionID != 0)
   {
-    nsMAPISession *pTemp = nsnull;
+    nsMAPISession *pTemp = nullptr;
     m_SessionMap.Get(aSessionID, &pTemp);
     if (pTemp)
       pTemp->GetIdKey(aKey);

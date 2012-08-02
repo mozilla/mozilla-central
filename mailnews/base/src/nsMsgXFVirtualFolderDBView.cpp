@@ -240,7 +240,7 @@ void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForPrevSearchedFolders(nsIMsg
     {
       // this must be a folder that had no hits with the current search.
       // So all cached hits, if any, need to be removed.
-      UpdateCacheAndViewForFolder(m_foldersSearchingOver[0], 0, nsnull);
+      UpdateCacheAndViewForFolder(m_foldersSearchingOver[0], 0, nullptr);
       m_foldersSearchingOver.RemoveObjectAt(0);
     }
   }
@@ -295,7 +295,7 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
 
   // handle any non verified hits we haven't handled yet.
   if (NS_SUCCEEDED(status) && !m_doingQuickSearch && status != NS_MSG_SEARCH_INTERRUPTED)
-    UpdateCacheAndViewForPrevSearchedFolders(nsnull);
+    UpdateCacheAndViewForPrevSearchedFolders(nullptr);
 
   m_doingSearch = false;
   //we want to set imap delete model once the search is over because setting next
@@ -342,7 +342,7 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
     Sort(m_sortType, m_sortOrder);
   }
   m_foldersSearchingOver.Clear();
-  m_curFolderGettingHits = nsnull;
+  m_curFolderGettingHits = nullptr;
   return rv;
 }
 
@@ -457,7 +457,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
     mTree->EndUpdateBatch();
 
   m_curFolderStartKeyIndex = 0;
-  m_curFolderGettingHits = nsnull;
+  m_curFolderGettingHits = nullptr;
   m_curFolderHasCachedHits = false;
 
   // if we have cached hits, sort them.

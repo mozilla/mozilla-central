@@ -72,7 +72,7 @@ const char * MainChecks(nsImapFlagAndUidState* flagState, struct msgState *expec
                   numUnread);
       return errorMsg;
   }
-  return nsnull;
+  return nullptr;
 }
 
 // General note about return values:

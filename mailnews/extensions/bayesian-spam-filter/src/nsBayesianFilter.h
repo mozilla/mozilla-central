@@ -154,7 +154,7 @@ private:
     void tokenize_ascii_word(char * word);
     void tokenize_japanese_word(char* chunk);
     inline void addTokenForHeader(const char * aTokenPrefix, nsACString& aValue,
-        bool aTokenizeValue = false, const char* aDelimiters = nsnull);
+        bool aTokenizeValue = false, const char* aDelimiters = nullptr);
     nsresult stripHTML(const nsAString& inString, nsAString& outString);
     // helper function to escape \n, \t, etc from a CString
     void UnescapeCString(nsCString& aCString);

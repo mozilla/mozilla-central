@@ -137,7 +137,7 @@ protected:
                                                         void* aArg);
   virtual nsMsgGroupThread *CreateGroupThread(nsIMsgDatabase *db);
   nsresult GetXFThreadFromMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread,
-                                 bool *foundByMessageId = nsnull);
+                                 bool *foundByMessageId = nullptr);
   nsresult GetThreadFromHash(nsCString &reference, nsIMsgThread **thread);
   nsresult GetMsgHdrFromHash(nsCString &reference, nsIMsgDBHdr **hdr);
   nsresult AddRefToHash(nsCString &reference, nsIMsgThread *thread);

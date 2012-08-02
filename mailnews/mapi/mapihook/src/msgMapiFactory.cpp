@@ -26,7 +26,7 @@ STDMETHODIMP CMapiFactory::QueryInterface(const IID& aIid, void** aPpv)
     }
     else
     {
-        *aPpv = nsnull;
+        *aPpv = nullptr;
         return E_NOINTERFACE;
     }
     reinterpret_cast<IUnknown*>(*aPpv)->AddRef();
@@ -57,7 +57,7 @@ STDMETHODIMP CMapiFactory::CreateInstance(IUnknown* aUnknownOuter,
 {
     // Cannot aggregate.
 
-    if (aUnknownOuter != nsnull)
+    if (aUnknownOuter != nullptr)
     {
         return CLASS_E_NOAGGREGATION ;
     }
@@ -65,7 +65,7 @@ STDMETHODIMP CMapiFactory::CreateInstance(IUnknown* aUnknownOuter,
     // Create component.
 
     CMapiImp* pImp = new CMapiImp();
-    if (pImp == nsnull)
+    if (pImp == nullptr)
     {
         return E_OUTOFMEMORY ;
     }

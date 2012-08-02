@@ -86,7 +86,7 @@ MimeInlineImage_parse_begin (MimeObject *obj)
     part = mime_part_address(obj);
     if (!part) return MIME_OUT_OF_MEMORY;
 
-      char *no_part_url = nsnull;
+      char *no_part_url = nullptr;
       if (obj->options->part_to_load && obj->options->format_out == nsMimeOutput::nsMimeMessageBodyDisplay)
         no_part_url = mime_get_base_url(obj->options->url);
 

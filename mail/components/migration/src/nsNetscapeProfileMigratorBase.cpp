@@ -389,7 +389,7 @@ void nsNetscapeProfileMigratorBase::EndCopyFolders()
   index.AppendInt(nsIMailProfileMigrator::MAILDATA);
   NOTIFY_OBSERVERS(MIGRATION_ITEMAFTERMIGRATE, index.get());
 
-  NOTIFY_OBSERVERS(MIGRATION_ENDED, nsnull);
+  NOTIFY_OBSERVERS(MIGRATION_ENDED, nullptr);
 }
 
 NS_IMETHODIMP

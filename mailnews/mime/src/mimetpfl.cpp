@@ -27,7 +27,7 @@ static int MimeInlineTextPlainFlowed_parse_begin (MimeObject *);
 static int MimeInlineTextPlainFlowed_parse_line (const char *, PRInt32, MimeObject *);
 static int MimeInlineTextPlainFlowed_parse_eof (MimeObject *, bool);
 
-static MimeInlineTextPlainFlowedExData *MimeInlineTextPlainFlowedExDataList = nsnull;
+static MimeInlineTextPlainFlowedExData *MimeInlineTextPlainFlowedExDataList = nullptr;
 
 // From mimetpla.cpp
 extern "C" void MimeTextBuildPrefixCSS(
@@ -111,7 +111,7 @@ MimeInlineTextPlainFlowed_parse_begin (MimeObject *obj)
   //  Quotes
   text->mQuotedSizeSetting = 0;   // mail.quoted_size
   text->mQuotedStyleSetting = 0;  // mail.quoted_style
-  text->mCitationColor = nsnull;  // mail.citation_color
+  text->mCitationColor = nullptr;  // mail.citation_color
 
   nsIPrefBranch *prefBranch = GetPrefBranch(obj->options);
   if (prefBranch)
@@ -186,7 +186,7 @@ static int
 MimeInlineTextPlainFlowed_parse_eof (MimeObject *obj, bool abort_p)
 {
   int status = 0;
-  struct MimeInlineTextPlainFlowedExData *exdata = nsnull;
+  struct MimeInlineTextPlainFlowedExData *exdata = nullptr;
 
   bool quoting = ( obj->options
     && ( obj->options->format_out == nsMimeOutput::nsMimeMessageQuoting ||
@@ -207,7 +207,7 @@ MimeInlineTextPlainFlowed_parse_eof (MimeObject *obj, bool abort_p)
   struct MimeInlineTextPlainFlowedExData **prevexdata;
   prevexdata = &MimeInlineTextPlainFlowedExDataList;
 
-  while ((exdata = *prevexdata) != nsnull) {
+  while ((exdata = *prevexdata) != nullptr) {
     if (exdata->ownerobj == obj) {
       // Fill hole
       *prevexdata = exdata->next;
@@ -245,7 +245,7 @@ EarlyOut:
   // Free mCitationColor
   MimeInlineTextPlainFlowed *text = (MimeInlineTextPlainFlowed *) obj;
   PR_FREEIF(text->mCitationColor);
-  text->mCitationColor = nsnull;
+  text->mCitationColor = nullptr;
 
   return status;
 }

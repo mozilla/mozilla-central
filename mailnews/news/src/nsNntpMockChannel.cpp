@@ -15,7 +15,7 @@ nsNntpMockChannel::nsNntpMockChannel(nsIURI *aUri, nsIMsgWindow *aMsgWindow)
 : m_url(aUri),
   m_msgWindow(aMsgWindow),
   m_channelState(CHANNEL_UNOPENED),
-  m_protocol(nsnull),
+  m_protocol(nullptr),
   m_cancelStatus(NS_OK),
   m_loadFlags(0),
   m_contentLength(-1)
@@ -28,7 +28,7 @@ nsNntpMockChannel::nsNntpMockChannel(nsIURI *aUri, nsIMsgWindow *aMsgWindow,
   m_context(aConsumer),
   m_msgWindow(aMsgWindow),
   m_channelState(CHANNEL_OPEN_WITH_LOAD),
-  m_protocol(nsnull),
+  m_protocol(nullptr),
   m_cancelStatus(NS_OK),
   m_loadFlags(0),
   m_contentLength(-1)

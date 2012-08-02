@@ -67,7 +67,7 @@ nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsIFile *aMail
     if (aUrlListener)
       url->RegisterListener(aUrlListener);
 
-    rv = RunMailboxUrl(url, nsnull);
+    rv = RunMailboxUrl(url, nullptr);
     NS_ENSURE_SUCCESS(rv, rv);
 
     if (aURL)
@@ -90,7 +90,7 @@ nsresult nsMailboxService::CopyMessage(const char * aSrcMailboxURI,
     nsMailboxAction mailboxAction = nsIMailboxUrl::ActionMoveMessage;
     if (!moveMessage)
         mailboxAction = nsIMailboxUrl::ActionCopyMessage;
-  return FetchMessage(aSrcMailboxURI, aMailboxCopyHandler, aMsgWindow, aUrlListener, nsnull, mailboxAction, nsnull, aURL);
+  return FetchMessage(aSrcMailboxURI, aMailboxCopyHandler, aMsgWindow, aUrlListener, nullptr, mailboxAction, nullptr, aURL);
 }
 
 nsresult nsMailboxService::CopyMessages(PRUint32 aNumKeys,
@@ -270,7 +270,7 @@ NS_IMETHODIMP nsMailboxService::DisplayMessage(const char* aMessageURI,
                                                nsIURI ** aURL)
 {
   return FetchMessage(aMessageURI, aDisplayConsumer,
-    aMsgWindow,aUrlListener, nsnull,
+    aMsgWindow,aUrlListener, nullptr,
     nsIMailboxUrl::ActionFetchMessage, aCharsetOveride, aURL);
 }
 
@@ -296,8 +296,8 @@ nsMailboxService::StreamMessage(const char *aMessageURI,
       aURIString += aAdditionalHeader;
     }
 
-    return FetchMessage(aURIString.get(), aConsumer, aMsgWindow, aUrlListener, nsnull,
-                                        nsIMailboxUrl::ActionFetchMessage, nsnull, aURL);
+    return FetchMessage(aURIString.get(), aConsumer, aMsgWindow, aUrlListener, nullptr,
+                                        nsIMailboxUrl::ActionFetchMessage, nullptr, aURL);
 }
 
 NS_IMETHODIMP nsMailboxService::StreamHeaders(const char *aMessageURI,
@@ -410,7 +410,7 @@ NS_IMETHODIMP nsMailboxService::GetUrlForUri(const char *aMessageURI, nsIURI **a
 
   nsresult rv = NS_OK;
   nsCOMPtr<nsIMailboxUrl> mailboxurl;
-  rv = PrepareMessageUrl(aMessageURI, nsnull, nsIMailboxUrl::ActionFetchMessage, getter_AddRefs(mailboxurl), aMsgWindow);
+  rv = PrepareMessageUrl(aMessageURI, nullptr, nsIMailboxUrl::ActionFetchMessage, getter_AddRefs(mailboxurl), aMsgWindow);
   if (NS_SUCCEEDED(rv) && mailboxurl)
     rv = CallQueryInterface(mailboxurl, aURL);
   return rv;
@@ -611,8 +611,8 @@ nsresult nsMailboxService::DisplayMessageForPrinting(const char* aMessageURI,
                                                      nsIURI ** aURL)
 {
   mPrintingOperation = true;
-  nsresult rv = FetchMessage(aMessageURI, aDisplayConsumer, aMsgWindow,aUrlListener, nsnull,
-    nsIMailboxUrl::ActionFetchMessage, nsnull, aURL);
+  nsresult rv = FetchMessage(aMessageURI, aDisplayConsumer, aMsgWindow,aUrlListener, nullptr,
+    nsIMailboxUrl::ActionFetchMessage, nullptr, aURL);
   mPrintingOperation = false;
   return rv;
 }

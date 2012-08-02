@@ -38,7 +38,7 @@ nsMsgFilterList::nsMsgFilterList() :
   m_loggingEnabled = false;
   m_startWritingToBuffer = false;
   m_temporaryList = false;
-  m_curFilter = nsnull;
+  m_curFilter = nullptr;
 }
 
 NS_IMPL_ADDREF(nsMsgFilterList)
@@ -102,7 +102,7 @@ NS_IMETHODIMP nsMsgFilterList::EnsureLogFile()
 nsresult nsMsgFilterList::TruncateLog()
 {
   // this will flush and close the steam
-  nsresult rv = SetLogStream(nsnull);
+  nsresult rv = SetLogStream(nullptr);
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsCOMPtr <nsIFile> file;
@@ -284,7 +284,7 @@ nsMsgFilterList::ApplyFiltersToHdr(nsMsgFilterTypeType filterType,
   nsresult rv = GetFilterCount(&filterCount);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsMsgSearchScopeTerm* scope = new nsMsgSearchScopeTerm(nsnull, nsMsgSearchScope::offlineMail, folder);
+  nsMsgSearchScopeTerm* scope = new nsMsgSearchScopeTerm(nullptr, nsMsgSearchScope::offlineMail, folder);
   scope->AddRef();
   if (!scope) return NS_ERROR_OUT_OF_MEMORY;
 
@@ -307,7 +307,7 @@ nsMsgFilterList::ApplyFiltersToHdr(nsMsgFilterTypeType filterType,
 
         filter->SetScope(scope);
         matchTermStatus = filter->MatchHdr(msgHdr, folder, db, headers, headersSize, &result);
-        filter->SetScope(nsnull);
+        filter->SetScope(nullptr);
         if (NS_SUCCEEDED(matchTermStatus) && result && listener)
         {
           bool applyMore = true;
@@ -445,7 +445,7 @@ const char *nsMsgFilterList::GetStringForAttrib(nsMsgFilterFileAttribValue attri
     if (attrib == FilterFileAttribTable[tableIndex].attrib)
       return FilterFileAttribTable[tableIndex].attribName;
   }
-  return nsnull;
+  return nullptr;
 }
 
 nsresult nsMsgFilterList::LoadValue(nsCString &value, nsIInputStream *aStream)
@@ -556,7 +556,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
           m_unparsedFilterBuffer = nextFilterPart;
         }
         nsMsgFilter *filter = new nsMsgFilter;
-        if (filter == nsnull)
+        if (filter == nullptr)
         {
           err = NS_ERROR_OUT_OF_MEMORY;
           break;
@@ -748,7 +748,7 @@ NS_IMETHODIMP nsMsgFilterList::ParseCondition(nsIMsgFilter *aFilter, const char 
     if (orTermPos && orTermPos < openParen) // make sure OR term falls before the '('
       ANDTerm = false;
 
-    char *termDup = nsnull;
+    char *termDup = nullptr;
     if (openParen)
     {
       bool foundEndTerm = false;
@@ -833,7 +833,7 @@ nsMsgFilterList::WriteStrAttr(nsMsgFilterFileAttribValue attrib,
   nsresult rv = NS_OK;
   if (aStr && *aStr && aStream) // only proceed if we actually have a string to write out.
   {
-    char *escapedStr = nsnull;
+    char *escapedStr = nullptr;
     if (PL_strchr(aStr, '"'))
       escapedStr = nsMsgSearchTerm::EscapeQuotesInStr(aStr);
 
@@ -937,7 +937,7 @@ nsMsgFilterList::GetFilterNamed(const nsAString &aName, nsIMsgFilter **aResult)
     nsresult rv = GetFilterCount(&count);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    *aResult = nsnull;
+    *aResult = nullptr;
     for (PRUint32 i = 0; i < count; i++) {
         nsCOMPtr<nsIMsgFilter> filter;
         rv = GetFilterAt(i, getter_AddRefs(filter));
@@ -1151,7 +1151,7 @@ nsresult nsMsgFilterList::ComputeArbitraryHeaders()
       searchTerms->Count(&numSearchTerms);
     for (PRUint32 i = 0; i < numSearchTerms; i++)
     {
-      filter->GetTerm(i, &attrib, nsnull, nsnull, nsnull, arbitraryHeader);
+      filter->GetTerm(i, &attrib, nullptr, nullptr, nullptr, arbitraryHeader);
       if (!arbitraryHeader.IsEmpty())
       {
         if (m_arbitraryHeaders.IsEmpty())

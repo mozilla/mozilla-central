@@ -62,7 +62,7 @@ nsresult nsMsgI18NConvertFromUnicode(const char* aCharset,
   else
     rv = ccm->GetUnicodeEncoder(aCharset, getter_AddRefs(encoder));
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = encoder->SetOutputErrorBehavior(nsIUnicodeEncoder::kOnError_Replace, nsnull, '?');
+  rv = encoder->SetOutputErrorBehavior(nsIUnicodeEncoder::kOnError_Replace, nullptr, '?');
   NS_ENSURE_SUCCESS(rv, rv);
 
   const PRUnichar *originalSrcPtr = inString.get();
@@ -208,14 +208,14 @@ char * nsMsgI18NEncodeMimePartIIStr(const char *header, bool structured, const c
       return PL_strdup(header);
   }
 
-  char *encodedString = nsnull;
+  char *encodedString = nullptr;
   nsresult res;
   nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &res);
-  if (NS_SUCCEEDED(res) && nsnull != converter)
+  if (NS_SUCCEEDED(res) && nullptr != converter)
     res = converter->EncodeMimePartIIStr_UTF8(nsDependentCString(header), structured, charset,
       fieldnamelen, nsIMimeConverter::MIME_ENCODED_WORD_SIZE, &encodedString);
 
-  return NS_SUCCEEDED(res) ? encodedString : nsnull;
+  return NS_SUCCEEDED(res) ? encodedString : nullptr;
 }
 
 // Return True if a charset is stateful (e.g. JIS).
@@ -335,7 +335,7 @@ nsMsgI18NParseMetaCharset(nsIFile* file)
         curLine.Find("CONTENT-TYPE") != -1 && 
        curLine.Find("CHARSET") != -1) { 
       char *cp = (char *) PL_strchr(PL_strstr(curLine.get(), "CHARSET"), '=');
-      char *token = nsnull;
+      char *token = nullptr;
       if (cp)
       {
         char *newStr = cp + 1;
@@ -371,13 +371,13 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
   NS_ENSURE_ARG_POINTER(inString);
   NS_ENSURE_ARG_POINTER(outString);
 
-  *outString = nsnull;
+  *outString = nullptr;
 
   if (NS_IsAscii(inString)) {
     if (isAsciiOnly)
       *isAsciiOnly = true;
     *outString = ToNewCString(NS_LossyConvertUTF16toASCII(inString));
-    return (nsnull != *outString) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+    return (nullptr != *outString) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
   }
   if (isAsciiOnly)
     *isAsciiOnly = false;
@@ -455,7 +455,7 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
 
     // get the actual charset used for the conversion
     if (NS_FAILED(conv->GetCharset(fallbackCharset)))
-      *fallbackCharset = nsnull;
+      *fallbackCharset = nullptr;
   }
   // In case of HTML, non ASCII may be encoded as CER, NCR.
   // Exclude stateful charset which is 7 bit but not ASCII only.
@@ -483,7 +483,7 @@ nsresult nsMsgI18NShrinkUTF8Str(const nsCString &inString,
   const char* end = start + inString.Length();
   const char* last = start + aMaxLength;
   const char* cur = start;
-  const char* prev = nsnull;
+  const char* prev = nullptr;
   bool err = false;
   while (cur < last) {
     prev = cur;

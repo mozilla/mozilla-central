@@ -131,7 +131,7 @@ nsresult CreateStartupUrl(const char *uri, nsIURI** aUrl)
 {
   nsresult rv = NS_ERROR_NULL_POINTER;
   if (!uri || !*uri || !aUrl) return rv;
-  *aUrl = nsnull;
+  *aUrl = nullptr;
 
   // XXX fix this, so that base doesn't depend on imap, local or news.
   // we can't do NS_NewURI(uri, aUrl), because these are imap-message://, mailbox-message://, news-message:// uris.
@@ -608,7 +608,7 @@ bool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubje
   // get localizedRe pref
   nsresult rv;
   nsString utf16LocalizedRe;
-  NS_GetLocalizedUnicharPreferenceWithDefault(nsnull,
+  NS_GetLocalizedUnicharPreferenceWithDefault(nullptr,
                                               "mailnews.localizedRe",
                                               EmptyString(),
                                               utf16LocalizedRe);
@@ -630,7 +630,7 @@ bool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubje
     mimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv))
       rv = mimeConverter->DecodeMimeHeaderToCharPtr(
-        *stringP, nsnull, false, true, getter_Copies(decodedString));
+        *stringP, nullptr, false, true, getter_Copies(decodedString));
   }
 
   s = !decodedString.IsEmpty() ? decodedString.get() : *stringP;
@@ -733,12 +733,12 @@ char * NS_MsgSACopy (char **destination, const char *source)
     *destination = 0;
   }
   if (! source)
-    *destination = nsnull;
+    *destination = nullptr;
   else
   {
     *destination = (char *) PR_Malloc (PL_strlen(source) + 1);
-    if (*destination == nsnull)
-      return(nsnull);
+    if (*destination == nullptr)
+      return(nullptr);
 
     PL_strcpy (*destination, source);
   }
@@ -754,16 +754,16 @@ char * NS_MsgSACat (char **destination, const char *source)
     {
       int length = PL_strlen (*destination);
       *destination = (char *) PR_Realloc (*destination, length + PL_strlen(source) + 1);
-      if (*destination == nsnull)
-        return(nsnull);
+      if (*destination == nullptr)
+        return(nullptr);
 
       PL_strcpy (*destination + length, source);
     }
     else
     {
       *destination = (char *) PR_Malloc (PL_strlen(source) + 1);
-      if (*destination == nsnull)
-        return(nsnull);
+      if (*destination == nullptr)
+        return(nullptr);
 
       PL_strcpy (*destination, source);
     }
@@ -801,7 +801,7 @@ nsresult GetExistingFolder(const nsCString& aFolderURI, nsIMsgFolder **aFolder)
 {
   NS_ENSURE_ARG_POINTER(aFolder);
 
-  *aFolder = nsnull;
+  *aFolder = nullptr;
 
   nsresult rv;
   nsCOMPtr<nsIRDFService> rdf(do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
@@ -977,10 +977,10 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
       // we always call the listener
       // this code should move into local folder's version of CreateStorageIfMissing()
       if (!isImapFolder && aListener) {
-        rv = aListener->OnStartRunningUrl(nsnull);
+        rv = aListener->OnStartRunningUrl(nullptr);
         NS_ENSURE_SUCCESS(rv,rv);
 
-        rv = aListener->OnStopRunningUrl(nsnull, NS_OK);
+        rv = aListener->OnStopRunningUrl(nullptr, NS_OK);
         NS_ENSURE_SUCCESS(rv,rv);
       }
     }
@@ -989,10 +989,10 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
     // if the folder exists, we should set the junk flag on it
     // which is what the listener will do
     if (aListener) {
-      rv = aListener->OnStartRunningUrl(nsnull);
+      rv = aListener->OnStartRunningUrl(nullptr);
       NS_ENSURE_SUCCESS(rv,rv);
 
-      rv = aListener->OnStopRunningUrl(nsnull, NS_OK);
+      rv = aListener->OnStopRunningUrl(nullptr, NS_OK);
       NS_ENSURE_SUCCESS(rv,rv);
     }
   }
@@ -1159,7 +1159,7 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
                                           nsIPrefBranch *prefBranch)
 {
     NS_ENSURE_ARG_POINTER(aFile);
-    *aFile = nsnull;
+    *aFile = nullptr;
     NS_ENSURE_ARG(relPrefName);
     NS_ENSURE_ARG(absPrefName);
     gotRelPref = false;
@@ -1168,7 +1168,7 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
     if (!prefBranch) {
         nsCOMPtr<nsIPrefService> prefService(do_GetService(NS_PREFSERVICE_CONTRACTID));
         if (!prefService) return NS_ERROR_FAILURE;
-        prefService->GetBranch(nsnull, getter_AddRefs(mainBranch));
+        prefService->GetBranch(nullptr, getter_AddRefs(mainBranch));
         if (!mainBranch) return NS_ERROR_FAILURE;
         prefBranch = mainBranch;
     }
@@ -1223,7 +1223,7 @@ NS_MSG_BASE nsresult NS_SetPersistentFile(const char *relPrefName,
     if (!prefBranch) {
         nsCOMPtr<nsIPrefService> prefService(do_GetService(NS_PREFSERVICE_CONTRACTID));
         if (!prefService) return NS_ERROR_FAILURE;
-        prefService->GetBranch(nsnull, getter_AddRefs(mainBranch));
+        prefService->GetBranch(nullptr, getter_AddRefs(mainBranch));
         if (!mainBranch) return NS_ERROR_FAILURE;
         prefBranch = mainBranch;
     }
@@ -1699,11 +1699,11 @@ NS_MSG_BASE nsresult MsgEscapeURL(const nsACString &aStr, PRUint32 aFlags,
 
 NS_MSG_BASE char *MsgEscapeHTML(const char *string)
 {
-  char *rv = nsnull;
+  char *rv = nullptr;
   /* XXX Hardcoded max entity len. The +1 is for the trailing null. */
   PRUint32 len = PL_strlen(string);
   if (len >= (PR_UINT32_MAX / 6))
-    return nsnull;
+    return nullptr;
 
   rv = (char *)NS_Alloc( (6 * len) + 1 );
   char *ptr = rv;
@@ -1772,7 +1772,7 @@ NS_MSG_BASE PRUnichar *MsgEscapeHTML2(const PRUnichar *aSourceBuffer,
   /* XXX Hardcoded max entity len. */
   if (aSourceBufferLen >=
     ((PR_UINT32_MAX - sizeof(PRUnichar)) / (6 * sizeof(PRUnichar))) )
-      return nsnull;
+      return nullptr;
 
   PRUnichar *resultBuffer = (PRUnichar *)nsMemory::Alloc(aSourceBufferLen *
                             6 * sizeof(PRUnichar) + sizeof(PRUnichar('\0')));
@@ -1883,7 +1883,7 @@ NS_MSG_BASE void MsgReplaceChar(nsCString& str, const char needle, const char re
 NS_MSG_BASE nsIAtom* MsgNewAtom(const char* aString)
 {
   nsCOMPtr<nsIAtomService> atomService(do_GetService("@mozilla.org/atom-service;1"));
-  nsIAtom* atom = nsnull;
+  nsIAtom* atom = nullptr;
 
   if (atomService)
     atomService->GetAtomUTF8(aString, &atom);
@@ -1893,7 +1893,7 @@ NS_MSG_BASE nsIAtom* MsgNewAtom(const char* aString)
 NS_MSG_BASE nsIAtom* MsgNewPermanentAtom(const char* aString)
 {
   nsCOMPtr<nsIAtomService> atomService(do_GetService("@mozilla.org/atom-service;1"));
-  nsIAtom* atom = nsnull;
+  nsIAtom* atom = nullptr;
 
   if (atomService)
     atomService->GetPermanentAtomUTF8(aString, &atom);
@@ -2124,7 +2124,7 @@ NS_MSG_BASE nsresult MsgPromptLoginFailed(nsIMsgWindow *aMsgWindow,
     (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
     (nsIPrompt::BUTTON_TITLE_CANCEL * nsIPrompt::BUTTON_POS_1) +
     (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_2),
-    button0.get(), nsnull, button2.get(), nsnull, &dummyValue, aResult);
+    button0.get(), nullptr, button2.get(), nullptr, &dummyValue, aResult);
 }
 
 NS_MSG_BASE PRTime MsgConvertAgeInDaysToCutoffDate(PRInt32 ageInDays)
@@ -2185,7 +2185,7 @@ NS_MSG_BASE PRUint64 ParseUint64Str(const char *str)
     return _strtoui64(str, &endPtr, 10);
   }
 #else
-  return strtoull(str, nsnull, 10);
+  return strtoull(str, nullptr, 10);
 #endif
 }
 
@@ -2220,7 +2220,7 @@ MsgStreamMsgHeaders(nsIInputStream *aInputStream, nsIStreamListener *aConsumer)
   rv = NS_NewInputStreamPump(getter_AddRefs(pump), hdrsStream);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return pump->AsyncRead(aConsumer, nsnull);
+  return pump->AsyncRead(aConsumer, nullptr);
 
 }
 
@@ -2253,7 +2253,7 @@ MsgDetectCharsetFromFile(nsIFile *aFile, nsACString &aCharset)
   if (!detector) {
     // No universal charset detector, try the default charset detector
     nsString detectorName;
-    NS_GetLocalizedUnicharPreferenceWithDefault(nsnull, "intl.charset.detector",
+    NS_GetLocalizedUnicharPreferenceWithDefault(nullptr, "intl.charset.detector",
                                                 EmptyString(), detectorName);
     if (!detectorName.IsEmpty()) {
       nsCAutoString detectorContractID;

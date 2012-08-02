@@ -106,7 +106,7 @@ NS_IMETHODIMP
 nsMsgIdentity::GetSignature(nsIFile **sig)
 {
   bool gotRelPref;
-  nsresult rv = NS_GetPersistentFile("sig_file" REL_FILE_PREF_SUFFIX, "sig_file", nsnull, gotRelPref, sig, mPrefBranch);
+  nsresult rv = NS_GetPersistentFile("sig_file" REL_FILE_PREF_SUFFIX, "sig_file", nullptr, gotRelPref, sig, mPrefBranch);
   if (NS_SUCCEEDED(rv) && !gotRelPref)
   {
     rv = NS_SetPersistentFile("sig_file" REL_FILE_PREF_SUFFIX, "sig_file", *sig, mPrefBranch);

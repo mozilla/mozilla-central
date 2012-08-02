@@ -456,7 +456,7 @@ nsresult nsEudoraMac::FindTOCFile(nsIFile *pMailFile, nsIFile **ppTOCFile, bool 
   nsresult    rv;
 
   *pDeleteToc = false;
-  *ppTOCFile = nsnull;
+  *ppTOCFile = nullptr;
   nsCString leaf;
   rv = pMailFile->GetNativeLeafName(leaf);
   if (NS_FAILED(rv))
@@ -505,7 +505,7 @@ static StringPtr GetStringFromHandle(Handle aResource,
                                      ResourceIndex aId)
 {
   if (!aResource)
-    return nsnull;
+    return nullptr;
 
   PRUint8 *data = *(PRUint8**)aResource;
   PRUint16 count = *(PRUint16*)data;
@@ -515,7 +515,7 @@ static StringPtr GetStringFromHandle(Handle aResource,
 
   // First 2 bytes are the count of string that this resource has.
   if (count < aId)
-    return nsnull;
+    return nullptr;
 
   // skip count
   data += 2;
@@ -679,7 +679,7 @@ bool nsEudoraMac::ImportSettings(nsIFile *pIniFile, nsIMsgAccount **localMailAcc
     isIMAP = false;
     if (GetSettingsFromResource(pIniFile, baseResId, pStrs, &isIMAP))
     {
-      pAccount = nsnull;
+      pAccount = nullptr;
       if (!isIMAP)
       {
         // This is a POP account
@@ -750,7 +750,7 @@ bool nsEudoraMac::FindFiltersFile(nsIFile **pFiltersFile)
 bool nsEudoraMac::BuildPOPAccount(nsIMsgAccountManager *accMgr, nsCString **pStrs, nsIMsgAccount **ppAccount, nsString& accName)
 {
   if (ppAccount)
-    *ppAccount = nsnull;
+    *ppAccount = nullptr;
 
 
   if (!pStrs[kPopServerStr]->Length() || !pStrs[kPopAccountNameStr]->Length())
@@ -761,7 +761,7 @@ bool nsEudoraMac::BuildPOPAccount(nsIMsgAccountManager *accMgr, nsCString **pStr
   // I now have a user name/server name pair, find out if it already exists?
   nsCOMPtr<nsIMsgIncomingServer> in;
   nsresult rv = accMgr->FindServer(*(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("pop3"), getter_AddRefs(in));
-  if (NS_FAILED(rv) || (in == nsnull))
+  if (NS_FAILED(rv) || (in == nullptr))
   {
     // Create the incoming server and an account for it?
     rv = accMgr->CreateIncomingServer(*(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("pop3"), getter_AddRefs(in));
@@ -812,7 +812,7 @@ bool nsEudoraMac::BuildIMAPAccount(nsIMsgAccountManager *accMgr, nsCString **pSt
 
   nsCOMPtr<nsIMsgIncomingServer>  in;
   nsresult rv = accMgr->FindServer(*(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("imap"), getter_AddRefs(in));
-  if (NS_FAILED(rv) || (in == nsnull))
+  if (NS_FAILED(rv) || (in == nullptr))
   {
     // Create the incoming server and an account for it?
     rv = accMgr->CreateIncomingServer(*(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("imap"), getter_AddRefs(in));
@@ -1027,7 +1027,7 @@ bool nsEudoraMac::HasResourceFork(FSRef *fsRef)
   FSCatalogInfo catalogInfo;
   OSErr err = FSGetCatalogInfo(fsRef,
                                kFSCatInfoDataSizes + kFSCatInfoRsrcSizes,
-                               &catalogInfo, nsnull, nsnull, nsnull);
+                               &catalogInfo, nullptr, nullptr, nullptr);
   return (err == noErr && catalogInfo.rsrcLogicalSize != 0);
 }
 

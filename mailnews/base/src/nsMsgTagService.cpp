@@ -123,7 +123,7 @@ NS_IMPL_ISUPPORTS1(nsMsgTagService, nsIMsgTagService)
 
 nsMsgTagService::nsMsgTagService()
 {
-  m_tagPrefBranch = nsnull;
+  m_tagPrefBranch = nullptr;
   nsCOMPtr<nsIPrefService> prefService(do_GetService(NS_PREFSERVICE_CONTRACTID));
   if (prefService)
     prefService->GetBranch("mailnews.tags.", getter_AddRefs(m_tagPrefBranch));
@@ -193,7 +193,7 @@ NS_IMETHODIMP nsMsgTagService::GetTopKey(const nsACString & keyList, nsACString 
   nsTArray<nsCString> keyArray;
   ParseString(keyList, ' ', keyArray);
   PRUint32 keyCount = keyArray.Length();
-  nsCString *topKey = nsnull, *key, topOrdinal, ordinal;
+  nsCString *topKey = nullptr, *key, topOrdinal, ordinal;
   for (PRUint32 i = 0; i < keyCount; ++i)
   {
     key = &keyArray[i];
@@ -345,7 +345,7 @@ NS_IMETHODIMP nsMsgTagService::GetAllTags(PRUint32 *aCount, nsIMsgTag ***aTagArr
 
   // preset harmless default values
   *aCount = 0;
-  *aTagArray = nsnull;
+  *aTagArray = nullptr;
 
   // get the actual tag definitions
   nsresult rv;
@@ -354,7 +354,7 @@ NS_IMETHODIMP nsMsgTagService::GetAllTags(PRUint32 *aCount, nsIMsgTag ***aTagArr
   rv = m_tagPrefBranch->GetChildList("", &prefCount, &prefList);
   NS_ENSURE_SUCCESS(rv, rv);
   // sort them by key for ease of processing
-  NS_QuickSort(prefList, prefCount, sizeof(char*), CompareMsgTagKeys, nsnull);
+  NS_QuickSort(prefList, prefCount, sizeof(char*), CompareMsgTagKeys, nullptr);
 
   // build an array of nsIMsgTag elements from the orderered list
   // it's at max the same size as the preflist, but usually only about half
@@ -410,7 +410,7 @@ NS_IMETHODIMP nsMsgTagService::GetAllTags(PRUint32 *aCount, nsIMsgTag ***aTagArr
 
   // sort the non-null entries by ordinal
   NS_QuickSort(tagArray, currentTagIndex, sizeof(nsMsgTag*), CompareMsgTags,
-               nsnull);
+               nullptr);
 
   // All done, now return the values (the idl's size_is(count) parameter
   // ensures that the array is cut accordingly).

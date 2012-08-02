@@ -127,7 +127,7 @@ NS_IMETHODIMP
 nsMacShellService::GetDefaultFeedReader(nsIFile** _retval)
 {
   nsresult rv = NS_ERROR_FAILURE;
-  *_retval = nsnull;
+  *_retval = nullptr;
 
   CFStringRef defaultHandlerID = ::LSCopyDefaultHandlerForURLScheme(CFSTR("feed"));
   if (!defaultHandlerID) {

@@ -78,7 +78,7 @@ interface nsIMimeConverter : nsISupports {
    *     charset labeling other than UTF-8.
    * @param eatContinuations If true, unfold headers.
    *
-   * @return UTF-8 encoded value if conversion was required, nsnull if no
+   * @return UTF-8 encoded value if conversion was required, nullptr if no
    *     conversion was required.
    */
   [noscript]

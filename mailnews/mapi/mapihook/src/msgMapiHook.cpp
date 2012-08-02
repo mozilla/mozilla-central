@@ -82,7 +82,7 @@ public:
 	/* void OnSendNotPerformed */
 	NS_IMETHOD OnSendNotPerformed(const char *aMsgID, nsresult aStatus)
 	{
-		return OnStopSending(aMsgID, aStatus, nsnull, nsnull) ;
+		return OnStopSending(aMsgID, aStatus, nullptr, nullptr) ;
 	}
 
     /* void OnGetDraftFolderURI (); */
@@ -168,9 +168,9 @@ bool nsMapiHook::DisplayLoginDialog(bool aLogin, PRUnichar **aUsername,
       if (NS_FAILED(rv) || loginText.IsEmpty()) return false;
 
       bool dummyValue = false;
-      rv = dlgService->PromptUsernameAndPassword(nsnull, loginTitle.get(),
+      rv = dlgService->PromptUsernameAndPassword(nullptr, loginTitle.get(),
                                                  loginText.get(), aUsername, aPassword,
-                                                 nsnull, &dummyValue, &btnResult);
+                                                 nullptr, &dummyValue, &btnResult);
     }
     else
     {
@@ -185,8 +185,8 @@ bool nsMapiHook::DisplayLoginDialog(bool aLogin, PRUnichar **aUsername,
       if (NS_FAILED(rv)) return false;
 
       bool dummyValue = false;
-      rv = dlgService->PromptPassword(nsnull, loginTitle.get(), loginText.get(),
-                                      aPassword, nsnull, &dummyValue, &btnResult);
+      rv = dlgService->PromptPassword(nullptr, loginTitle.get(), loginText.get(),
+                                      aPassword, nullptr, &dummyValue, &btnResult);
     }
   }
 
@@ -274,7 +274,7 @@ nsMapiHook::IsBlindSendAllowed()
 
   bool continueToWarn = true;
   bool okayToContinue = false;
-  dlgService->ConfirmCheck(nsnull, nsnull, warningMsg.get(), dontShowAgainMessage.get(), &continueToWarn, &okayToContinue);
+  dlgService->ConfirmCheck(nullptr, nullptr, warningMsg.get(), dontShowAgainMessage.get(), &continueToWarn, &okayToContinue);
 
   if (!continueToWarn && okayToContinue && prefBranch)
     prefBranch->SetBoolPref(PREF_MAPI_WARN_PRIOR_TO_BLIND_SEND, false);
@@ -344,12 +344,12 @@ nsresult nsMapiHook::BlindSendMail (unsigned long aSession, nsIMsgCompFields * a
 
   /** initialize nsIMsgCompose, Send the message, wait for send completion response **/
 
-  rv = pMsgCompose->Initialize(pMsgComposeParams, hiddenWindow, nsnull);
+  rv = pMsgCompose->Initialize(pMsgComposeParams, hiddenWindow, nullptr);
   if (NS_FAILED(rv)) return rv ;
 
   // If we're in offline mode, we'll need to queue it for later. No point in trying to send it.
   return pMsgCompose->SendMsg(WeAreOffline() ? nsIMsgSend::nsMsgQueueForLater : nsIMsgSend::nsMsgDeliverNow,
-			      pMsgId, nsnull, nsnull, nsnull);
+			      pMsgId, nullptr, nullptr, nullptr);
   if (NS_FAILED(rv)) return rv ;
 
   // assign to interface pointer from nsCOMPtr to facilitate typecast below
@@ -827,7 +827,7 @@ nsresult nsMapiHook::ShowComposerWindow (unsigned long aSession, nsIMsgCompField
     nsCOMPtr <nsIMsgComposeService> compService = do_GetService (NS_MSGCOMPOSESERVICE_CONTRACTID) ;
     if (NS_FAILED(rv)|| (!compService) ) return rv ;
 
-    rv = compService->OpenComposeWindowWithParams(nsnull, pMsgComposeParams) ;
+    rv = compService->OpenComposeWindowWithParams(nullptr, pMsgComposeParams) ;
     if (NS_FAILED(rv)) return rv ;
 
     return rv ;

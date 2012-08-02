@@ -145,9 +145,9 @@ nsLDAPOperation::GetConnection(nsILDAPConnection* *aConnection)
 void
 nsLDAPOperation::Clear()
 {
-  mMessageListener = nsnull;
-  mClosure = nsnull;
-  mConnection = nsnull;
+  mMessageListener = nullptr;
+  mClosure = nullptr;
+  mConnection = nullptr;
 }
 
 NS_IMETHODIMP
@@ -181,10 +181,10 @@ nsLDAPOperation::SaslBind(const nsACString &service,
 
   creds.bv_val = NULL;
   mAuthModule->Init(PromiseFlatCString(service).get(),
-                    nsIAuthModule::REQ_DEFAULT, nsnull,
-                    NS_ConvertUTF8toUTF16(bindName).get(), nsnull);
+                    nsIAuthModule::REQ_DEFAULT, nullptr,
+                    NS_ConvertUTF8toUTF16(bindName).get(), nullptr);
 
-  rv = mAuthModule->GetNextToken(nsnull, 0, (void **)&creds.bv_val,
+  rv = mAuthModule->GetNextToken(nullptr, 0, (void **)&creds.bv_val,
                                  &credlen);
   if (NS_FAILED(rv) || !creds.bv_val)
     return rv;
@@ -443,7 +443,7 @@ nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope,
     // convert to a char array and add a last NULL element.
     nsTArray<nsCString> attrArray;
     ParseString(aAttributes, ',', attrArray);
-    char **attrs = nsnull;
+    char **attrs = nullptr;
     PRUint32 origLength = attrArray.Length();
     if (origLength)
     {

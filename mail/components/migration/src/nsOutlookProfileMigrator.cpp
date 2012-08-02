@@ -26,7 +26,7 @@ nsOutlookProfileMigrator::~nsOutlookProfileMigrator()
 
 nsresult nsOutlookProfileMigrator::ContinueImport()
 {
-  return Notify(nsnull);
+  return Notify(nullptr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@ nsOutlookProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup, 
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  NOTIFY_OBSERVERS(MIGRATION_STARTED, nsnull);
+  NOTIFY_OBSERVERS(MIGRATION_STARTED, nullptr);
 
   rv = ImportSettings(mImportModule);
 
@@ -123,6 +123,6 @@ nsOutlookProfileMigrator::GetSourceHasMultipleProfiles(bool* aResult)
 NS_IMETHODIMP
 nsOutlookProfileMigrator::GetSourceProfiles(nsIArray** aResult)
 {
-  *aResult = nsnull;
+  *aResult = nullptr;
   return NS_OK;
 }

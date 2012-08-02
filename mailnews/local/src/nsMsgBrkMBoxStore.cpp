@@ -386,20 +386,20 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::RenameFolder(nsIMsgFolder *aFolder,
 
   aFolder->ForceDBClosed();
   //save off dir name before appending .msf
-  rv = oldPathFile->MoveTo(nsnull, safeName);
+  rv = oldPathFile->MoveTo(nullptr, safeName);
   if (NS_FAILED(rv))
     return rv;
 
   nsString dbName(safeName);
   dbName += NS_LITERAL_STRING(SUMMARY_SUFFIX);
-  oldSummaryFile->MoveTo(nsnull, dbName);
+  oldSummaryFile->MoveTo(nullptr, dbName);
 
   if (numChildren > 0)
   {
     // rename "*.sbd" directory
     nsAutoString newNameDirStr(safeName);
     newNameDirStr += NS_LITERAL_STRING(".sbd");
-    dirFile->MoveTo(nsnull, newNameDirStr);
+    dirFile->MoveTo(nullptr, newNameDirStr);
   }
 
   return parentFolder->AddSubfolder(safeName, aNewFolder);
@@ -422,7 +422,7 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::CopyFolder(nsIMsgFolder *aSrcFolder,
   if (localSrcFolder)
     localSrcFolder->GetDatabaseWOReparse(getter_AddRefs(srcDB));
   bool summaryValid = !!srcDB;
-  srcDB = nsnull;
+  srcDB = nullptr;
   aSrcFolder->ForceDBClosed();
 
   nsCOMPtr<nsIFile> oldPath;
@@ -550,7 +550,7 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::CopyFolder(nsIMsgFolder *aSrcFolder,
 
     nsCOMPtr<nsIMsgFolder> msgParent;
     aSrcFolder->GetParent(getter_AddRefs(msgParent));
-    aSrcFolder->SetParent(nsnull);
+    aSrcFolder->SetParent(nullptr);
     if (msgParent)
     {
       // The files have already been moved, so delete storage false
@@ -584,7 +584,7 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::CopyFolder(nsIMsgFolder *aSrcFolder,
       nsCOMPtr<nsIMsgFolder> msgParent;
       newMsgFolder->ForceDBClosed();
       newMsgFolder->GetParent(getter_AddRefs(msgParent));
-      newMsgFolder->SetParent(nsnull);
+      newMsgFolder->SetParent(nullptr);
       if (msgParent)
       {
         msgParent->PropagateDelete(newMsgFolder, false, aMsgWindow);
@@ -679,7 +679,7 @@ nsMsgBrkMBoxStore::DiscardNewMessage(nsIOutputStream *aOutputStream,
   NS_ENSURE_ARG_POINTER(aOutputStream);
   NS_ENSURE_ARG_POINTER(aNewHdr);
 #ifdef _DEBUG
-  m_streamOutstandingFolder = nsnull;
+  m_streamOutstandingFolder = nullptr;
 #endif
   PRUint64 hdrOffset;
   aNewHdr->GetMessageOffset(&hdrOffset);
@@ -697,7 +697,7 @@ nsMsgBrkMBoxStore::FinishNewMessage(nsIOutputStream *aOutputStream,
                                      nsIMsgDBHdr *aNewHdr)
 {
 #ifdef _DEBUG
-  m_streamOutstandingFolder = nsnull;
+  m_streamOutstandingFolder = nullptr;
 #endif
   NS_ENSURE_ARG_POINTER(aOutputStream);
 //  NS_ENSURE_ARG_POINTER(aNewHdr);
@@ -765,7 +765,7 @@ nsMsgBrkMBoxStore::CopyMessages(bool isMove, nsIArray *aHdrArray,
   NS_ENSURE_ARG_POINTER(aHdrArray);
   NS_ENSURE_ARG_POINTER(aDstFolder);
   NS_ENSURE_ARG_POINTER(aCopyDone);
-  *aUndoAction = nsnull;
+  *aUndoAction = nullptr;
   *aCopyDone = false;
   return NS_OK;
 }
@@ -826,7 +826,7 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::RebuildIndex(nsIMsgFolder *aFolder,
   NS_ENSURE_SUCCESS(rv, rv);
 
   return mailboxService->ParseMailbox(aMsgWindow, pathFile, parser, aListener,
-                                      nsnull);
+                                      nullptr);
 }
 
 nsresult
@@ -850,7 +850,7 @@ nsMsgBrkMBoxStore::GetOutputStream(nsIArray *aHdrArray,
     rv = seekableStream->Tell(&restorePos);
     if (NS_FAILED(rv))
     {
-      outputStream = nsnull;
+      outputStream = nullptr;
       m_outputStreams.Remove(URI);
     }
   }

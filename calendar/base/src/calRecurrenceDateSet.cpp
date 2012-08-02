@@ -104,7 +104,7 @@ NS_IMETHODIMP
 calRecurrenceDateSet::GetDates(PRUint32 *aCount, calIDateTime ***aDates)
 {
     if (mDates.Count() == 0) {
-        *aDates = nsnull;
+        *aDates = nullptr;
         *aCount = 0;
         return NS_OK;
     }
@@ -166,7 +166,7 @@ void
 calRecurrenceDateSet::EnsureSorted()
 {
     if (!mSorted) {
-        mDates.Sort(calDateTimeComparator, nsnull);
+        mDates.Sort(calDateTimeComparator, nullptr);
         mSorted = true;
     }
 }
@@ -193,7 +193,7 @@ calRecurrenceDateSet::GetNextOccurrence(calIDateTime *aStartTime,
         }
     }
 
-    *_retval = nsnull;
+    *_retval = nullptr;
     return NS_OK;
 }
 
@@ -245,7 +245,7 @@ calRecurrenceDateSet::GetOccurrences(calIDateTime *aStartTime,
         }
         *aDates = dateArray;
     } else {
-        *aDates = nsnull;
+        *aDates = nullptr;
     }
     *aCount = count;
 
@@ -258,7 +258,7 @@ calRecurrenceDateSet::GetOccurrences(calIDateTime *aStartTime,
 NS_IMETHODIMP
 calRecurrenceDateSet::GetIcalProperty(calIIcalProperty **aProp)
 {
-    icalproperty *dateset = nsnull;
+    icalproperty *dateset = nullptr;
 
     for (int i = 0; i < mDates.Count(); i++) {
         if (mIsNegative)

@@ -26,7 +26,7 @@
 #include "nsEmlxHelperUtils.h"
 #include "nsAppleMailImport.h"
 
-PRLogModuleInfo *APPLEMAILLOGMODULE = nsnull;
+PRLogModuleInfo *APPLEMAILLOGMODULE = nullptr;
 
 // some hard-coded strings
 #define DEFAULT_MAIL_FOLDER "~/Library/Mail/"
@@ -100,7 +100,7 @@ NS_IMETHODIMP nsAppleMailImportModule::GetImportInterface(const char *aImportTyp
 {
   NS_ENSURE_ARG_POINTER(aImportType);
   NS_ENSURE_ARG_POINTER(aInterface);
-  *aInterface = nsnull;
+  *aInterface = nullptr;
   nsresult rv = NS_ERROR_NOT_AVAILABLE;
 
   if (!strcmp(aImportType, "mail")) {
@@ -160,7 +160,7 @@ NS_IMETHODIMP nsAppleMailImportMail::GetDefaultLocation(nsIFile **aLocation, boo
   NS_ENSURE_ARG_POINTER(aLocation);
   NS_ENSURE_ARG_POINTER(aUserVerify);
 
-  *aLocation = nsnull;
+  *aLocation = nullptr;
   *aFound = false;
   *aUserVerify = true;
 

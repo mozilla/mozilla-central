@@ -53,7 +53,7 @@ NS_MSG_BASE bool nsMsgI18Nmultibyte_charset(const char *charset);
  *                    False if one or more characters cannot be converted to the target charset.
  */
 NS_MSG_BASE bool      nsMsgI18Ncheck_data_in_charset_range(const char *charset, const PRUnichar* inString,
-                                                           char **fallbackCharset=nsnull);
+                                                           char **fallbackCharset=nullptr);
 
 /**
  * Return charset name of file system (OS dependent).
@@ -121,7 +121,7 @@ NS_MSG_BASE const char *nsMsgI18NParseMetaCharset(nsIFile* file);
  */
 NS_MSG_BASE nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char* charset, 
                                             const PRUnichar* inString, char** outString, 
-                                            char **fallbackCharset=nsnull, bool *isAsciiOnly=nsnull);
+                                            char **fallbackCharset=nullptr, bool *isAsciiOnly=nullptr);
 
 /**
  * Shrink the aStr to aMaxLength bytes. Note that this doesn't check whether

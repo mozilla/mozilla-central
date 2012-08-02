@@ -64,7 +64,7 @@ NS_IMETHODIMP nsMsgOfflineManager::SetWindow(nsIMsgWindow * aWindow)
   if (m_window)
     m_window->GetStatusFeedback(getter_AddRefs(m_statusFeedback));
   else
-    m_statusFeedback = nsnull;
+    m_statusFeedback = nullptr;
   return NS_OK;
 }
 
@@ -341,7 +341,7 @@ nsMsgOfflineManager::OnStartRunningUrl(nsIURI * aUrl)
 NS_IMETHODIMP
 nsMsgOfflineManager::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
 {
-  mOfflineImapSync = nsnull;
+  mOfflineImapSync = nullptr;
 
   AdvanceToNextState(aExitCode);
   return NS_OK;

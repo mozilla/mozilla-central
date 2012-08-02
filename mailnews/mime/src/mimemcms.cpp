@@ -86,10 +86,10 @@ typedef struct MimeMultCMSdata
 
   MimeMultCMSdata()
   :hash_type(0),
-  sender_addr(nsnull),
+  sender_addr(nullptr),
   decoding_failed(false),
-  item_data(nsnull),
-  self(nsnull),
+  item_data(nullptr),
+  self(nullptr),
   parent_is_encrypted_p(false),
   parent_holds_stamp_p(false)
   {
@@ -339,7 +339,7 @@ MimeMultCMS_sig_init (void *crypto_closure,
   data->sig_decoder_context = do_CreateInstance(NS_CMSDECODER_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return 0;
 
-  rv = data->sig_decoder_context->Start(nsnull, nsnull);
+  rv = data->sig_decoder_context->Start(nullptr, nullptr);
   if (NS_FAILED(rv)) {
     status = PR_GetError();
     if (status >= 0) status = -1;
@@ -410,7 +410,7 @@ MimeMultCMS_generate (void *crypto_closure)
   int aRelativeNestLevel = MIMEGetRelativeCryptoNestLevel(data->self);
 
   if (aRelativeNestLevel < 0)
-    return nsnull;
+    return nullptr;
 
   PRInt32 maxNestLevel = 0;
   if (data->smimeHeaderSink && aRelativeNestLevel >= 0)
@@ -418,7 +418,7 @@ MimeMultCMS_generate (void *crypto_closure)
     data->smimeHeaderSink->MaxWantedNesting(&maxNestLevel);
 
     if (aRelativeNestLevel > maxNestLevel)
-      return nsnull;
+      return nullptr;
   }
 
   if (data->self->options->missing_parts)
@@ -429,8 +429,8 @@ MimeMultCMS_generate (void *crypto_closure)
     if (data->smimeHeaderSink)
       data->smimeHeaderSink->SignedStatus(aRelativeNestLevel,
                                           nsICMSMessageErrors::VERIFY_NOT_YET_ATTEMPTED,
-                                          nsnull);
-    return nsnull;
+                                          nullptr);
+    return nullptr;
   }
 
   if (!data->content_info)
@@ -440,7 +440,7 @@ MimeMultCMS_generate (void *crypto_closure)
      before the signature part, or we ran out of memory, or something
      awful has happened.
      */
-     return nsnull;
+     return nullptr;
   }
 
   nsCString from_addr;
@@ -468,5 +468,5 @@ MimeMultCMS_generate (void *crypto_closure)
 #endif
   }
 
-  return nsnull;
+  return nullptr;
 }

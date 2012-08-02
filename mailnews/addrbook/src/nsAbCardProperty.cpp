@@ -682,7 +682,7 @@ nsresult nsAbCardProperty::ConvertToEscapedVCard(nsACString &aResult)
         myAddPropValue(vObj, VCURLProp, str.get(), &vCardHasData);
     }
 
-    myAddPropValue(vObj, VCVersionProp, NS_LITERAL_STRING("2.1").get(), nsnull);
+    myAddPropValue(vObj, VCVersionProp, NS_LITERAL_STRING("2.1").get(), nullptr);
 
     if (!vCardHasData) {
         aResult.Truncate();
@@ -733,7 +733,7 @@ nsresult nsAbCardProperty::ConvertToBase64EncodedXML(nsACString &result)
   xmlStr.Append(xmlSubstr);
   xmlStr.AppendLiteral("</directory>\n");
 
-  char *tmpRes = PL_Base64Encode(NS_ConvertUTF16toUTF8(xmlStr).get(), 0, nsnull);
+  char *tmpRes = PL_Base64Encode(NS_ConvertUTF16toUTF8(xmlStr).get(), 0, nullptr);
   result.Assign(tmpRes);
   PR_Free(tmpRes);
   return NS_OK;
@@ -818,7 +818,7 @@ nsresult nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
     nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr <nsIAbDirectory> mailList = nsnull;
+    nsCOMPtr <nsIAbDirectory> mailList = nullptr;
     rv = abManager->GetDirectory(m_MailListURI, getter_AddRefs(mailList));
     NS_ENSURE_SUCCESS(rv, rv);
 

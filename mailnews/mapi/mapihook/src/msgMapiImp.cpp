@@ -65,7 +65,7 @@ STDMETHODIMP CMapiImp::QueryInterface(const IID& aIid, void** aPpv)
     }
     else
     {
-        *aPpv = nsnull;
+        *aPpv = nullptr;
         return E_NOINTERFACE;
     }
 
@@ -117,7 +117,7 @@ STDMETHODIMP CMapiImp::Initialize()
     // Initialize MAPI Configuration
 
     nsMAPIConfiguration *pConfig = nsMAPIConfiguration::GetMAPIConfiguration();
-    if (pConfig != nsnull)
+    if (pConfig != nullptr)
       hr = S_OK;
 
     PR_Unlock(m_Lock);
@@ -137,7 +137,7 @@ STDMETHODIMP CMapiImp::Login(unsigned long aUIArg, LOGIN_PW_TYPE aLogin, LOGIN_P
         bNewSession = true;
 
     // Check For Profile Name
-    if (aLogin != nsnull && aLogin[0] != '\0')
+    if (aLogin != nullptr && aLogin[0] != '\0')
     {
         if (!nsMapiHook::VerifyUserName(nsString(aLogin), id_key))
         {
@@ -169,7 +169,7 @@ STDMETHODIMP CMapiImp::Login(unsigned long aUIArg, LOGIN_PW_TYPE aLogin, LOGIN_P
     PRInt16 nResult = 0;
 
     nsMAPIConfiguration *pConfig = nsMAPIConfiguration::GetMAPIConfiguration();
-    if (pConfig != nsnull)
+    if (pConfig != nullptr)
         nResult = pConfig->RegisterSession(aUIArg, aLogin, aPassWord,
                                            (aFlags & MAPI_FORCE_DOWNLOAD), bNewSession,
                                            &nSession_Id, id_key.get());
@@ -512,7 +512,7 @@ MsgMapiListContext::IsIMAPHost(void)
     return FALSE;
   nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_folder);
 
-  return imapFolder != nsnull;
+  return imapFolder != nullptr;
 }
 
 nsMsgKey MsgMapiListContext::GetNext ()
@@ -562,7 +562,7 @@ nsresult MsgMapiListContext::MarkRead (nsMsgKey key, bool read)
   nsresult err = NS_ERROR_FAILURE;
   NS_ASSERTION(m_db, "no db");
   if (m_db)
-    err = m_db->MarkRead (key, read, nsnull);
+    err = m_db->MarkRead (key, read, nullptr);
   return err;
 }
 
@@ -598,7 +598,7 @@ lpnsMapiMessage MsgMapiListContext::GetMessage (nsMsgKey key, unsigned long flFl
       
       nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
       if (!parser)
-        return nsnull;
+        return nullptr;
       // Pull out the author/originator info
       message->lpOriginator = (lpnsMapiRecipDesc) CoTaskMemAlloc (sizeof(nsMapiRecipDesc));
       memset(message->lpOriginator, 0, sizeof(nsMapiRecipDesc));
@@ -614,9 +614,9 @@ lpnsMapiMessage MsgMapiListContext::GetMessage (nsMsgKey key, unsigned long flFl
 
       PRUint32 numToRecips;
       PRUint32 numCCRecips;
-      parser->ParseHeaderAddresses(recipients.get(), nsnull, nsnull,
+      parser->ParseHeaderAddresses(recipients.get(), nullptr, nullptr,
 				   &numToRecips);
-      parser->ParseHeaderAddresses(ccList.get(), nsnull, nsnull, &numCCRecips);
+      parser->ParseHeaderAddresses(ccList.get(), nullptr, nullptr, &numCCRecips);
 
       message->lpRecips = (lpnsMapiRecipDesc) CoTaskMemAlloc ((numToRecips + numCCRecips) * sizeof(MapiRecipDesc));
       memset(message->lpRecips, 0, (numToRecips + numCCRecips) * sizeof(MapiRecipDesc));
@@ -635,7 +635,7 @@ lpnsMapiMessage MsgMapiListContext::GetMessage (nsMsgKey key, unsigned long flFl
       
     }
     if (! (flFlags & (MAPI_PEEK | MAPI_ENVELOPE_ONLY)))
-      m_db->MarkRead(key, true, nsnull);
+      m_db->MarkRead(key, true, nullptr);
   }
   return message;
 }
@@ -660,8 +660,8 @@ char *MsgMapiListContext::ConvertDateToMapiFormat (time_t ourTime)
 void MsgMapiListContext::ConvertRecipientsToMapiFormat (nsIMsgHeaderParser *parser, const char *recipients, lpnsMapiRecipDesc mapiRecips,
                                                         int mapiRecipClass)
 {
-  char *names = nsnull;
-  char *addresses = nsnull;
+  char *names = nullptr;
+  char *addresses = nullptr;
   
   if (!parser)
     return ;
@@ -714,7 +714,7 @@ char *MsgMapiListContext::ConvertBodyToMapiFormat (nsIMsgDBHdr *hdr)
   nsCOMPtr <nsIMsgFolder> folder;
   hdr->GetFolder(getter_AddRefs(folder));
   if (!folder)
-    return nsnull;
+    return nullptr;
 
   nsCOMPtr <nsIInputStream> inputStream;
   nsCOMPtr <nsIFile> localFile;
@@ -722,7 +722,7 @@ char *MsgMapiListContext::ConvertBodyToMapiFormat (nsIMsgDBHdr *hdr)
 
   nsresult rv;
   nsCOMPtr<nsIFileInputStream> fileStream = do_CreateInstance(NS_LOCALFILEINPUTSTREAM_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, nsnull);
+  NS_ENSURE_SUCCESS(rv, nullptr);
 
   rv = fileStream->Init(localFile,  PR_RDONLY, 0664, false);  //just have to read the messages
   inputStream = do_QueryInterface(fileStream);
@@ -731,7 +731,7 @@ char *MsgMapiListContext::ConvertBodyToMapiFormat (nsIMsgDBHdr *hdr)
   {
     nsCOMPtr <nsILineInputStream> fileLineStream = do_QueryInterface(inputStream);
     if (!fileLineStream)
-      return nsnull;
+      return nullptr;
     // ### really want to skip past headers...
     PRUint64 messageOffset;
     PRUint32 lineCount;
@@ -757,7 +757,7 @@ char *MsgMapiListContext::ConvertBodyToMapiFormat (nsIMsgDBHdr *hdr)
     char *body = (char*) CoTaskMemAlloc (msgSize + 1);
 
     if (!body)
-      return nsnull;
+      return nullptr;
     PRInt32 bytesCopied = 0;
     for (hasMore = TRUE; lineCount > 0 && hasMore && NS_SUCCEEDED(rv); lineCount--)
     {
@@ -777,7 +777,7 @@ char *MsgMapiListContext::ConvertBodyToMapiFormat (nsIMsgDBHdr *hdr)
     body[bytesCopied] = '\0';   // rhp - fix last line garbage...
     return body;
   }
-  return nsnull;
+  return nullptr;
 }
 
 
@@ -823,13 +823,13 @@ extern "C" void MSG_FreeMapiMessage (lpMapiMessage msg)
       msg_FreeMAPIRecipient(msg->lpOriginator);
     
     for (i=0; i<msg->nRecipCount; i++)
-      if (&(msg->lpRecips[i]) != nsnull)
+      if (&(msg->lpRecips[i]) != nullptr)
         msg_FreeMAPIRecipient(&(msg->lpRecips[i]));
       
       CoTaskMemFree(msg->lpRecips);
       
       for (i=0; i<msg->nFileCount; i++)
-        if (&(msg->lpFiles[i]) != nsnull)
+        if (&(msg->lpFiles[i]) != nullptr)
           msg_FreeMAPIFile(&(msg->lpFiles[i]));
         
       CoTaskMemFree(msg->lpFiles);
@@ -863,7 +863,7 @@ MsgMapiListContext::DeleteMessage(nsMsgKey key)
   
   if ( !IsIMAPHost() )
   {
-    return NS_SUCCEEDED((m_db->DeleteMessages(1, &key, nsnull)));
+    return NS_SUCCEEDED((m_db->DeleteMessages(1, &key, nullptr)));
   }
 #if 0 
   else if ( m_folder->GetIMAPFolderInfoMail() )
@@ -872,7 +872,7 @@ MsgMapiListContext::DeleteMessage(nsMsgKey key)
     messageKeys.AppendElement(key);
 
     (m_folder->GetIMAPFolderInfoMail())->DeleteSpecifiedMessages(pane, messageKeys, nsMsgKey_None);
-    m_db->DeleteMessage(key, nsnull, FALSE);
+    m_db->DeleteMessage(key, nullptr, FALSE);
     return TRUE;
   }
 #endif

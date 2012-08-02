@@ -10,8 +10,8 @@
 
 nsMsgFolderCacheElement::nsMsgFolderCacheElement()
 {
-  m_mdbRow = nsnull;
-  m_owningCache = nsnull;
+  m_mdbRow = nullptr;
+  m_owningCache = nullptr;
 }
 
 nsMsgFolderCacheElement::~nsMsgFolderCacheElement()

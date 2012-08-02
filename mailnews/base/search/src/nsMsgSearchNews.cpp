@@ -97,10 +97,10 @@ char *nsMsgSearchNews::EncodeTerm (nsIMsgSearchTerm *term)
 
   NS_ASSERTION(term, "null term");
   if (!term)
-    return nsnull;
+    return nullptr;
 
   // Find a string to represent the attribute
-  const char *attribEncoding = nsnull;
+  const char *attribEncoding = nullptr;
   nsMsgSearchAttribValue attrib;
 
   term->GetAttrib(&attrib);
@@ -119,7 +119,7 @@ char *nsMsgSearchNews::EncodeTerm (nsIMsgSearchTerm *term)
     if (header.IsEmpty())
     {
       NS_ASSERTION(false,"malformed search"); // malformed search term?
-      return nsnull;
+      return nullptr;
     }
     attribEncoding = header.get();
   }
@@ -150,7 +150,7 @@ char *nsMsgSearchNews::EncodeTerm (nsIMsgSearchTerm *term)
     break;
   default:
     NS_ASSERTION(false,"malformed search"); // malformed search term?
-    return nsnull;
+    return nullptr;
   }
 
     // ### i18N problem Get the csid from FE, which is the correct csid for term
@@ -162,17 +162,17 @@ char *nsMsgSearchNews::EncodeTerm (nsIMsgSearchTerm *term)
 
   nsresult rv = term->GetValue(getter_AddRefs(searchValue));
   if (NS_FAILED(rv) || !searchValue)
-    return nsnull;
+    return nullptr;
 
 
   nsString intlNonRFC1522Value;
   rv = searchValue->GetStr(intlNonRFC1522Value);
   if (NS_FAILED(rv) || intlNonRFC1522Value.IsEmpty())
-    return nsnull;
+    return nullptr;
 
   PRUnichar *caseInsensitiveValue = EncodeToWildmat (intlNonRFC1522Value.get());
   if (!caseInsensitiveValue)
-    return nsnull;
+    return nullptr;
 
   // TO DO: Do INTL_FormatNNTPXPATInRFC1522Format trick for non-ASCII string
   // Unfortunately, we currently do not handle xxx or xxx search in XPAT
@@ -182,7 +182,7 @@ char *nsMsgSearchNews::EncodeTerm (nsIMsgSearchTerm *term)
   PRUnichar *escapedValue = EscapeSearchUrl (caseInsensitiveValue);
   nsMemory::Free(caseInsensitiveValue);
   if (!escapedValue)
-    return nsnull;
+    return nullptr;
 
 #if 0
   // We also need to apply NET_Escape to it since we have to pass 8-bits data
@@ -192,11 +192,11 @@ char *nsMsgSearchNews::EncodeTerm (nsIMsgSearchTerm *term)
   NS_Free(escapedValue);
 
   if (! urlEncoded)
-    return nsnull;
+    return nullptr;
 
   char *pattern = new char [NS_strlen(urlEncoded) + overhead];
   if (!pattern)
-    return nsnull;
+    return nullptr;
   else
     pattern[0] = '\0';
 #else
@@ -414,7 +414,7 @@ void nsMsgSearchNews::ReportHit (nsIMsgDBHdr *pHeaders, nsIMsgFolder *folder)
 
 nsresult nsMsgSearchValidityManager::InitNewsTable()
 {
-  NS_ASSERTION (nsnull == m_newsTable,"don't call this twice!");
+  NS_ASSERTION (nullptr == m_newsTable,"don't call this twice!");
   nsresult rv = NewTable (getter_AddRefs(m_newsTable));
 
   if (NS_SUCCEEDED(rv))
@@ -460,7 +460,7 @@ nsresult nsMsgSearchValidityManager::InitNewsTable()
 
 nsresult nsMsgSearchValidityManager::InitNewsFilterTable()
 {
-  NS_ASSERTION (nsnull == m_newsFilterTable, "news filter table already initted");
+  NS_ASSERTION (nullptr == m_newsFilterTable, "news filter table already initted");
   nsresult rv = NewTable (getter_AddRefs(m_newsFilterTable));
 
   if (NS_SUCCEEDED(rv))

@@ -365,7 +365,7 @@ nsresult nsAbLDAPProcessChangeLogData::OnSearchRootDSEDone()
            return rv;
         mState = kFindingChanges;
         if(mListener)
-            mListener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_START, false);
+            mListener->OnStateChange(nullptr, nullptr, nsIWebProgressListener::STATE_START, false);
     }
     else {
         rv = mQuery->QueryAllEntries();
@@ -373,7 +373,7 @@ nsresult nsAbLDAPProcessChangeLogData::OnSearchRootDSEDone()
            return rv;
         mState = kReplicatingAll;
         if(mListener)
-            mListener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_START, true);
+            mListener->OnStateChange(nullptr, nullptr, nsIWebProgressListener::STATE_START, true);
     }
 
     rv = mDirectory->SetLastChangeNumber(mRootDSEEntry.lastChangeNumber);
@@ -420,7 +420,7 @@ nsresult nsAbLDAPProcessChangeLogData::ParseChangeLogEntries(nsILDAPMessage *aMe
 
     mChangeLogEntriesCount++;
     if(!(mChangeLogEntriesCount % 10)) { // Inform the listener every 10 entries
-        mListener->OnProgressChange(nsnull,nsnull,mChangeLogEntriesCount, -1, mChangeLogEntriesCount, -1);
+        mListener->OnProgressChange(nullptr,nullptr,mChangeLogEntriesCount, -1, mChangeLogEntriesCount, -1);
         // In case if the LDAP Connection thread is starved and causes problem
         // uncomment this one and try.
         // PR_Sleep(PR_INTERVAL_NO_WAIT); // give others a chance
@@ -502,7 +502,7 @@ nsresult nsAbLDAPProcessChangeLogData::OnFindingChangesDone()
         return rv;
 
     if(mListener && NS_SUCCEEDED(rv))
-        mListener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_START, true);
+        mListener->OnStateChange(nullptr, nullptr, nsIWebProgressListener::STATE_START, true);
 
     mState = kReplicatingChanges;
     return rv;

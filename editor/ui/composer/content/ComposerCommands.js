@@ -3655,7 +3655,7 @@ var nsNormalizeTableCommand =
 
   doCommand: function(aCommand)
   {
-    // Use nsnull to let editor find table enclosing current selection
+    // Use nullptr to let editor find table enclosing current selection
     try {
       GetCurrentTableEditor().normalizeTable(null);   
     } catch (e) {}

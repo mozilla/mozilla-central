@@ -27,7 +27,7 @@ interface nsIMsgMessageService : nsISupports {
    * If you want a handle on the running task, pass in a valid nsIURI 
    * ptr. You can later interrupt this action by asking the netlib 
    * service manager to interrupt the url you are given back. 
-   * Remember to release aURL when you are done with it. Pass nsnull
+   * Remember to release aURL when you are done with it. Pass nullptr
    * in for aURL if you don't care about the returned URL.
    */
 

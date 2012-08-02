@@ -246,7 +246,7 @@ nsMsgMailSession::AlertUser(const nsAString &aMessage, nsIMsgMailNewsUrl *aUrl)
   }
 
   if (dialog)
-    return dialog->Alert(nsnull, PromiseFlatString(aMessage).get());
+    return dialog->Alert(nullptr, PromiseFlatString(aMessage).get());
 
   return NS_OK;
 }
@@ -255,7 +255,7 @@ nsresult nsMsgMailSession::GetTopmostMsgWindow(nsIMsgWindow **aMsgWindow)
 {
   NS_ENSURE_ARG_POINTER(aMsgWindow);
 
-  *aMsgWindow = nsnull;
+  *aMsgWindow = nullptr;
 
   PRUint32 count = mWindows.Count();
 
@@ -280,9 +280,9 @@ nsresult nsMsgMailSession::GetTopmostMsgWindow(nsIMsgWindow **aMsgWindow)
 #if defined (XP_UNIX)
     // The window managers under Unix/X11 do not support ZOrder information,
     // so we have to use the normal enumeration call here.
-    rv = windowMediator->GetEnumerator(nsnull, getter_AddRefs(windowEnum));
+    rv = windowMediator->GetEnumerator(nullptr, getter_AddRefs(windowEnum));
 #else
-    rv = windowMediator->GetZOrderDOMWindowEnumerator(nsnull, true,
+    rv = windowMediator->GetZOrderDOMWindowEnumerator(nullptr, true,
                                                       getter_AddRefs(windowEnum));
 #endif
 
@@ -562,7 +562,7 @@ nsresult nsMsgShutdownService::ProcessNextTask()
     {
       // We have failed, let's go on to the next task.
       mTaskIndex++;
-      mMsgProgress->OnProgressChange(nsnull, nsnull, 0, 0, mTaskIndex, count);
+      mMsgProgress->OnProgressChange(nullptr, nullptr, 0, 0, mTaskIndex, count);
       ProcessNextTask();
     }
   }
@@ -570,7 +570,7 @@ nsresult nsMsgShutdownService::ProcessNextTask()
   if (shutdownTasksDone)
   {
     if (mMsgProgress)
-      mMsgProgress->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, NS_OK);
+      mMsgProgress->OnStateChange(nullptr, nullptr, nsIWebProgressListener::STATE_STOP, NS_OK);
     AttemptShutdown();
   }
 
@@ -679,7 +679,7 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
     {
       // First see if there is a window open. 
       nsCOMPtr<nsIWindowMediator> winMed = do_GetService(NS_WINDOWMEDIATOR_CONTRACTID);
-      winMed->GetMostRecentWindow(nsnull, getter_AddRefs(internalDomWin));
+      winMed->GetMostRecentWindow(nullptr, getter_AddRefs(internalDomWin));
       
       //If not use the hidden window.
       if (!internalDomWin)
@@ -704,7 +704,7 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
 
     mMsgProgress->OpenProgressDialog(internalDomWin, topMsgWindow, 
                                      "chrome://messenger/content/shutdownWindow.xul", 
-                                     false, nsnull);
+                                     false, nullptr);
 
     if (mQuitForced)
     {
@@ -738,7 +738,7 @@ NS_IMETHODIMP nsMsgShutdownService::OnStopRunningUrl(nsIURI *url, nsresult aExit
   if (mMsgProgress)
   {
     PRInt32 numTasks = mShutdownTasks.Count();
-    mMsgProgress->OnProgressChange(nsnull, nsnull, 0, 0, mTaskIndex, numTasks);
+    mMsgProgress->OnProgressChange(nullptr, nullptr, 0, 0, mTaskIndex, numTasks);
   }
 
   ProcessNextTask();
@@ -767,6 +767,6 @@ NS_IMETHODIMP nsMsgShutdownService::SetStatusText(const nsAString & inStatusStri
 {
   nsString statusString(inStatusString);
   if (mMsgProgress)
-    mMsgProgress->OnStatusChange(nsnull, nsnull, NS_OK, nsString(statusString).get());
+    mMsgProgress->OnStatusChange(nullptr, nullptr, NS_OK, nsString(statusString).get());
   return NS_OK;
 }

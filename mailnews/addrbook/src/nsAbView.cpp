@@ -57,12 +57,12 @@ nsAbView::~nsAbView()
 
 NS_IMETHODIMP nsAbView::ClearView()
 {
-  mDirectory = nsnull;
-  mAbViewListener = nsnull;
+  mDirectory = nullptr;
+  mAbViewListener = nullptr;
   if (mTree)
-    mTree->SetView(nsnull);
-  mTree = nsnull;
-  mTreeSelection = nsnull;
+    mTree->SetView(nullptr);
+  mTree = nullptr;
+  mTreeSelection = nullptr;
 
   if (mInitialized)
   {
@@ -166,12 +166,12 @@ NS_IMETHODIMP nsAbView::SetView(nsIAbDirectory *aAddressBook,
   // Ensure we are initialized
   nsresult rv = Initialize();
 
-  mAbViewListener = nsnull;
+  mAbViewListener = nullptr;
   if (mTree)
   {
     // Try and speed deletion of old cards by disconnecting the tree from us.
     mTreeSelection->ClearSelection();
-    mTree->SetView(nsnull);
+    mTree->SetView(nullptr);
   }
 
   // Clear out old cards
@@ -549,7 +549,7 @@ NS_IMETHODIMP nsAbView::PerformActionOnCell(const PRUnichar *action, PRInt32 row
 
 NS_IMETHODIMP nsAbView::GetCardFromRow(PRInt32 row, nsIAbCard **aCard)
 {
-  *aCard = nsnull;  
+  *aCard = nullptr;  
   if (mCards.Count() <= row) {
     return NS_OK;
   }

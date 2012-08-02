@@ -28,18 +28,18 @@ ImportOutFile::ImportOutFile()
 {
   m_ownsFileAndBuffer = false;
   m_pos = 0;
-  m_pBuf = nsnull;
+  m_pBuf = nullptr;
   m_bufSz = 0;
-  m_pTrans = nsnull;
-  m_pTransOut = nsnull;
-  m_pTransBuf = nsnull;
+  m_pTrans = nullptr;
+  m_pTransOut = nullptr;
+  m_pTransBuf = nullptr;
 }
 
 ImportOutFile::ImportOutFile(nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz)
 {
-  m_pTransBuf = nsnull;
-  m_pTransOut = nsnull;
-  m_pTrans = nsnull;
+  m_pTransBuf = nullptr;
+  m_pTransOut = nullptr;
+  m_pTrans = nullptr;
   m_ownsFileAndBuffer = false;
   InitOutFile(pFile, pBuf, sz);
 }
@@ -92,11 +92,11 @@ bool ImportOutFile::End8bitTranslation(bool *pEngaged, nsCString& useCharset, ns
     useCharset.Truncate();
   *pEngaged = m_engaged;
   delete m_pTrans;
-  m_pTrans = nsnull;
+  m_pTrans = nullptr;
   delete m_pTransOut;
-  m_pTransOut = nsnull;
+  m_pTransOut = nullptr;
   delete m_pTransBuf;
-  m_pTransBuf = nsnull;
+  m_pTransBuf = nullptr;
 
   return bResult;
 }
@@ -120,7 +120,7 @@ bool ImportOutFile::InitOutFile(nsIFile *pFile, PRUint32 bufSz)
     {
       IMPORT_LOG0("Couldn't create outfile\n");
       delete [] m_pBuf;
-      m_pBuf = nsnull;
+      m_pBuf = nullptr;
       return false;
     }
   }

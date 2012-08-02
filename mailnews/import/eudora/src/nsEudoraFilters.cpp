@@ -63,7 +63,7 @@ NS_IMETHODIMP nsEudoraFilters::AutoLocate(PRUnichar **aDescription, nsIFile **aL
   NS_ENSURE_ARG_POINTER(aLocation);
   NS_ENSURE_ARG_POINTER(_retval);
 
-  *aDescription = nsnull;
+  *aDescription = nullptr;
   *_retval = false;
 
   nsresult rv;
@@ -97,7 +97,7 @@ NS_IMETHODIMP nsEudoraFilters::Import(PRUnichar **aError, bool *_retval)
   nsresult rv;
 
   *_retval = false;
-  *aError = nsnull;
+  *aError = nullptr;
 
   // Get the settings file if it doesn't exist
   if (!m_pLocation)
@@ -106,11 +106,11 @@ NS_IMETHODIMP nsEudoraFilters::Import(PRUnichar **aError, bool *_retval)
     NS_ENSURE_SUCCESS(rv, rv);
 #if defined(XP_WIN) || defined(XP_OS2)
     if (!nsEudoraWin32::FindFiltersFile(getter_AddRefs(m_pLocation)))
-      m_pLocation = nsnull;
+      m_pLocation = nullptr;
 #endif
 #ifdef XP_MACOSX
     if (!nsEudoraMac::FindFiltersFile(getter_AddRefs(m_pLocation)))
-      m_pLocation = nsnull;
+      m_pLocation = nullptr;
 #endif
   }
 
@@ -426,7 +426,7 @@ nsresult nsEudoraFilters::LoadServers()
             // Pre-fetch filters now so that if there's any problem reading up the
             // filter file we know about it in advance and can stop importing
             nsCOMPtr<nsIMsgFilterList> filterList;
-            rv = server->GetFilterList(nsnull, getter_AddRefs(filterList));
+            rv = server->GetFilterList(nullptr, getter_AddRefs(filterList));
             NS_ENSURE_SUCCESS(rv, rv);
 
             m_pServerArray->AppendElement(server);
@@ -452,7 +452,7 @@ nsresult nsEudoraFilters::SaveFilters()
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr <nsIMsgFilterList> filterList;
-    rv = server->GetFilterList(nsnull, getter_AddRefs(filterList));
+    rv = server->GetFilterList(nullptr, getter_AddRefs(filterList));
     NS_ENSURE_SUCCESS(rv, rv);
 
     rv = filterList->SaveToDefaultFile();
@@ -480,7 +480,7 @@ nsresult nsEudoraFilters::CreateNewFilter(const char* pName)
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr <nsIMsgFilterList> filterList;
-    rv = server->GetFilterList(nsnull, getter_AddRefs(filterList));
+    rv = server->GetFilterList(nullptr, getter_AddRefs(filterList));
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIMsgFilter> newFilter;
@@ -760,7 +760,7 @@ nsresult nsEudoraFilters::AddTerm(const char* pHeader, const char* pVerb, const 
       if (NS_SUCCEEDED(rv) && term)
       {
         term->SetBooleanAnd(true);
-        term = nsnull;
+        term = nullptr;
       }
     }
 
@@ -786,7 +786,7 @@ nsresult nsEudoraFilters::AddTerm(const char* pHeader, const char* pVerb, const 
 }
 
 nsresult nsEudoraFilters::AddAction(nsMsgRuleActionType actionType, PRInt32 junkScore /*= 0*/, nsMsgLabelValue label/*= 0*/,
-                                    nsMsgPriorityValue priority/*= 0*/, const char* strValue/*= nsnull*/, const char* targetFolderUri/*= nsnull*/)
+                                    nsMsgPriorityValue priority/*= 0*/, const char* strValue/*= nullptr*/, const char* targetFolderUri/*= nullptr*/)
 {
   nsresult rv;
 
@@ -882,7 +882,7 @@ nsresult nsEudoraFilters::AddMailboxAction(const char* pMailboxPath, bool isTran
   if (NS_FAILED(rv))
     return NS_ERROR_INVALID_ARG;
 
-  rv = AddAction(isTransfer? (nsMsgRuleActionType)nsMsgFilterAction::MoveToFolder : (nsMsgRuleActionType)nsMsgFilterAction::CopyToFolder, 0, 0, 0, nsnull, folderURI.get());
+  rv = AddAction(isTransfer? (nsMsgRuleActionType)nsMsgFilterAction::MoveToFolder : (nsMsgRuleActionType)nsMsgFilterAction::CopyToFolder, 0, 0, 0, nullptr, folderURI.get());
 
   if (NS_SUCCEEDED(rv) && isTransfer)
     m_hasTransfer = true;
@@ -898,7 +898,7 @@ nsresult nsEudoraFilters::GetMailboxFolder(const char* pNameHierarchy, nsIMsgFol
 
   // We've already grabbed the pointer on incoming, so now ensure
   // *ppFolder is null on outgoing if there is an error
-  *ppFolder = nsnull;
+  *ppFolder = nullptr;
   
   nsCAutoString name(pNameHierarchy + 1);
   PRInt32 sepIndex = name.FindChar(*pNameHierarchy);

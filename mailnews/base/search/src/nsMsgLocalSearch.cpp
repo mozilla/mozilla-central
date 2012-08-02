@@ -60,10 +60,10 @@ nsMsgSearchBoolExpression * nsMsgSearchBoolExpression::AddExpressionTree(nsMsgSe
 
 nsMsgSearchBoolExpression::nsMsgSearchBoolExpression()
 {
-    m_term = nsnull;
+    m_term = nullptr;
     m_boolOp = nsMsgSearchBooleanOp::BooleanAND;
-    m_leftChild = nsnull;
-    m_rightChild = nsnull;
+    m_leftChild = nullptr;
+    m_rightChild = nullptr;
 }
 
 nsMsgSearchBoolExpression::nsMsgSearchBoolExpression (nsIMsgSearchTerm * newTerm, char * encodingStr)
@@ -76,8 +76,8 @@ nsMsgSearchBoolExpression::nsMsgSearchBoolExpression (nsIMsgSearchTerm * newTerm
     m_boolOp = nsMsgSearchBooleanOp::BooleanAND;
 
     // this expression does not contain sub expressions
-    m_leftChild = nsnull;
-    m_rightChild = nsnull;
+    m_leftChild = nullptr;
+    m_rightChild = nullptr;
 }
 
 
@@ -89,7 +89,7 @@ nsMsgSearchBoolExpression::nsMsgSearchBoolExpression (nsMsgSearchBoolExpression 
     m_rightChild = expr2;
     m_boolOp = boolOp;
 
-    m_term = nsnull;
+    m_term = nullptr;
 }
 
 nsMsgSearchBoolExpression::~nsMsgSearchBoolExpression()
@@ -328,7 +328,7 @@ nsMsgSearchOfflineMail::MatchTermsForSearch(nsIMsgDBHdr *msgToMatch,
                                             bool *pResult)
 {
 
-    return MatchTerms(msgToMatch, termList, defaultCharset, scope, db, nsnull, 0, false, aExpressionTree, pResult);
+    return MatchTerms(msgToMatch, termList, defaultCharset, scope, db, nullptr, 0, false, aExpressionTree, pResult);
 }
 
 nsresult nsMsgSearchOfflineMail::ConstructExpressionTree(nsISupportsArray * termList,
@@ -376,7 +376,7 @@ nsresult nsMsgSearchOfflineMail::ConstructExpressionTree(nsISupportsArray * term
       }
       else
       {
-        finalExpression = nsMsgSearchBoolExpression::AddSearchTerm(finalExpression, pTerm, nsnull);    // add the term to the expression tree
+        finalExpression = nsMsgSearchBoolExpression::AddSearchTerm(finalExpression, pTerm, nullptr);    // add the term to the expression tree
 
         if (endsGrouping)
           break;
@@ -697,7 +697,7 @@ nsresult nsMsgSearchOfflineMail::Search (bool *aDone)
   NS_ENSURE_ARG(aDone);
   nsresult dbErr = NS_OK;
   nsCOMPtr<nsIMsgDBHdr> msgDBHdr;
-  nsMsgSearchBoolExpression *expressionTree = nsnull;
+  nsMsgSearchBoolExpression *expressionTree = nullptr;
 
   const PRUint32 kTimeSliceInMS = 200;
 
@@ -766,10 +766,10 @@ void nsMsgSearchOfflineMail::CleanUpScope()
   // Let go of the DB when we're done with it so we don't kill the db cache
   if (m_db)
   {
-    m_listContext = nsnull;
+    m_listContext = nullptr;
     m_db->Close(false);
   }
-  m_db = nsnull;
+  m_db = nullptr;
 
   if (m_scope)
     m_scope->CloseInputStream();
@@ -796,7 +796,7 @@ nsMsgSearchOfflineMail::Abort ()
     // Let go of the DB when we're done with it so we don't kill the db cache
     if (m_db)
         m_db->Close(true /* commit in case we downloaded new headers */);
-    m_db = nsnull;
+    m_db = nullptr;
     return nsMsgSearchAdapter::Abort ();
 }
 
@@ -977,7 +977,7 @@ nsresult SetLocalNews(nsIMsgSearchValidityTable* aTable)
 
 nsresult nsMsgSearchValidityManager::InitLocalNewsTable()
 {
-  NS_ASSERTION (nsnull == m_localNewsTable, "already have local news validity table");
+  NS_ASSERTION (nullptr == m_localNewsTable, "already have local news validity table");
   nsresult rv = NewTable(getter_AddRefs(m_localNewsTable));
   NS_ENSURE_SUCCESS(rv, rv);
   return SetLocalNews(m_localNewsTable);
@@ -985,7 +985,7 @@ nsresult nsMsgSearchValidityManager::InitLocalNewsTable()
 
 nsresult nsMsgSearchValidityManager::InitLocalNewsBodyTable()
 {
-  NS_ASSERTION (nsnull == m_localNewsBodyTable, "already have local news+body validity table");
+  NS_ASSERTION (nullptr == m_localNewsBodyTable, "already have local news+body validity table");
   nsresult rv = NewTable(getter_AddRefs(m_localNewsBodyTable));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = SetLocalNews(m_localNewsBodyTable);
@@ -995,7 +995,7 @@ nsresult nsMsgSearchValidityManager::InitLocalNewsBodyTable()
 
 nsresult nsMsgSearchValidityManager::InitLocalNewsJunkTable()
 {
-  NS_ASSERTION (nsnull == m_localNewsJunkTable, "already have local news+junk validity table");
+  NS_ASSERTION (nullptr == m_localNewsJunkTable, "already have local news+junk validity table");
   nsresult rv = NewTable(getter_AddRefs(m_localNewsJunkTable));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = SetLocalNews(m_localNewsJunkTable);
@@ -1005,7 +1005,7 @@ nsresult nsMsgSearchValidityManager::InitLocalNewsJunkTable()
 
 nsresult nsMsgSearchValidityManager::InitLocalNewsJunkBodyTable()
 {
-  NS_ASSERTION (nsnull == m_localNewsJunkBodyTable, "already have local news+junk+body validity table");
+  NS_ASSERTION (nullptr == m_localNewsJunkBodyTable, "already have local news+junk+body validity table");
   nsresult rv = NewTable(getter_AddRefs(m_localNewsJunkBodyTable));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = SetLocalNews(m_localNewsJunkBodyTable);

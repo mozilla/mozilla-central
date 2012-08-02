@@ -249,7 +249,7 @@ protected:
 #endif
 #ifdef DEBUG
     nsCOMPtr<nsIMsgDatabase> msgDB = pMessageDB->m_folder ?
-                               dont_AddRef(FindInCache(pMessageDB->m_folder)) : nsnull;
+                               dont_AddRef(FindInCache(pMessageDB->m_folder)) : nullptr;
     NS_ASSERTION(!msgDB, "shouldn't have db in cache");
 #endif
     GetDBCache()->AppendElement(pMessageDB);

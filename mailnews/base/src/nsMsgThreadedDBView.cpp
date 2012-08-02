@@ -115,7 +115,7 @@ nsresult nsMsgThreadedDBView::InitThreadedView(PRInt32 *pCount)
     char     levelArray[kIdChunkSize];
 
     rv = ListThreadIds(&startMsg, (m_viewFlags & nsMsgViewFlagsType::kUnreadOnly) != 0, idArray, flagArray, 
-      levelArray, kIdChunkSize, &numListed, nsnull);
+      levelArray, kIdChunkSize, &numListed, nullptr);
     if (NS_SUCCEEDED(rv))
     {
       PRInt32 numAdded = AddKeys(idArray, flagArray, levelArray, m_sortType, numListed);
@@ -307,7 +307,7 @@ NS_IMETHODIMP nsMsgThreadedDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgVi
       else
       {
         // set sort info in anticipation of what Init will do.
-        InitThreadedView(nsnull);	// build up thread list.
+        InitThreadedView(nullptr);	// build up thread list.
         if (sortOrder != nsMsgViewSortOrder::ascending)
           Sort(sortType, sortOrder);
         
@@ -378,7 +378,7 @@ nsresult nsMsgThreadedDBView::ListThreadIds(nsMsgKey *startMsg, bool unreadOnly,
   
   if (*startMsg > 0)
   {
-    NS_ASSERTION(m_threadEnumerator != nsnull, "where's our iterator?");	// for now, we'll just have to rely on the caller leaving
+    NS_ASSERTION(m_threadEnumerator != nullptr, "where's our iterator?");	// for now, we'll just have to rely on the caller leaving
     // the iterator in the right place.
   }
   else
@@ -401,7 +401,7 @@ nsresult nsMsgThreadedDBView::ListThreadIds(nsMsgKey *startMsg, bool unreadOnly,
     rv = m_threadEnumerator->GetNext(getter_AddRefs(supports));
     if (NS_FAILED(rv))
     {
-      threadHdr = nsnull;
+      threadHdr = nullptr;
       break;
     }
     threadHdr = do_QueryInterface(supports);
@@ -424,7 +424,7 @@ nsresult nsMsgThreadedDBView::ListThreadIds(nsMsgKey *startMsg, bool unreadOnly,
         rv = threadHdr->GetFirstUnreadChild(getter_AddRefs(msgHdr));
       else
         rv = threadHdr->GetRootHdr(&unusedRootIndex, getter_AddRefs(msgHdr));
-      if (NS_SUCCEEDED(rv) && msgHdr != nsnull && WantsThisThread(threadHdr))
+      if (NS_SUCCEEDED(rv) && msgHdr != nullptr && WantsThisThread(threadHdr))
       {
         PRUint32 msgFlags;
         PRUint32 newMsgFlags;
@@ -469,8 +469,8 @@ nsresult nsMsgThreadedDBView::ListThreadIds(nsMsgKey *startMsg, bool unreadOnly,
     nsCOMPtr <nsIDBChangeListener> dbListener = do_QueryInterface(m_threadEnumerator);
     // this is needed to make the thread enumerator release its reference to the db.
     if (dbListener)
-      dbListener->OnAnnouncerGoingAway(nsnull);
-    m_threadEnumerator = nsnull;
+      dbListener->OnAnnouncerGoingAway(nullptr);
+    m_threadEnumerator = nullptr;
   }
   *pNumListed = numListed;
   return rv;
@@ -637,10 +637,10 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
       {
         // this header is the new king! try collapsing the existing thread,
         // removing it, installing this header as king, and expanding it.
-        CollapseByIndex(threadIndex, nsnull);
+        CollapseByIndex(threadIndex, nullptr);
         // call base class, so child won't get promoted.
         // nsMsgDBView::RemoveByIndex(threadIndex);
-        ExpandByIndex(threadIndex, nsnull);
+        ExpandByIndex(threadIndex, nullptr);
       }
     }
     else if (aParentKey == nsMsgKey_None)
@@ -656,7 +656,7 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
     if (msgFlags & nsMsgMessageFlags::New &&
         m_flags[threadIndex] & nsMsgMessageFlags::Elided &&
         threadRootIsDisplayed)
-      ExpandByIndex(threadIndex, nsnull);
+      ExpandByIndex(threadIndex, nullptr);
 
     if (moveThread)
       MoveThreadAt(threadIndex);
@@ -857,7 +857,7 @@ nsresult nsMsgThreadedDBView::RemoveByIndex(nsMsgViewIndex index)
         // unreadOnly
         nsCOMPtr<nsIMsgDBHdr> msgHdr;
         rv = threadHdr->GetChildHdrAt(0, getter_AddRefs(msgHdr));
-        if (msgHdr != nsnull)
+        if (msgHdr != nullptr)
         {
           PRUint32 flag = 0;
           msgHdr->GetFlags(&flag);
@@ -901,7 +901,7 @@ nsresult nsMsgThreadedDBView::RemoveByIndex(nsMsgViewIndex index)
     // Otherwise, the first one (which just got promoted).
     nsCOMPtr<nsIMsgDBHdr> msgHdr;
     rv = threadHdr->GetChildHdrAt(0, getter_AddRefs(msgHdr));
-    if (msgHdr != nsnull)
+    if (msgHdr != nullptr)
     {
       msgHdr->GetMessageKey(&m_keys[index]);
 

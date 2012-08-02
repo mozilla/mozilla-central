@@ -26,7 +26,7 @@
 
 static NS_DEFINE_CID(kStatusBarBiffManagerCID, NS_STATUSBARBIFFMANAGER_CID);
 
-static PRLogModuleInfo *MsgBiffLogModule = nsnull;
+static PRLogModuleInfo *MsgBiffLogModule = nullptr;
 
 NS_IMPL_ISUPPORTS4(nsMsgBiffManager, nsIMsgBiffManager,
                    nsIIncomingServerListener, nsIObserver,
@@ -103,7 +103,7 @@ NS_IMETHODIMP nsMsgBiffManager::Shutdown()
   if (mBiffTimer) 
   {
     mBiffTimer->Cancel();
-    mBiffTimer = nsnull;
+    mBiffTimer = nullptr;
   }
 
   nsresult rv;
@@ -122,7 +122,7 @@ NS_IMETHODIMP nsMsgBiffManager::Observe(nsISupports *aSubject, const char *aTopi
   if (!strcmp(aTopic, "sleep_notification") && mBiffTimer)
   {
     mBiffTimer->Cancel();
-    mBiffTimer = nsnull;
+    mBiffTimer = nullptr;
   }
   else if (!strcmp(aTopic, "wake_notification"))
   {
@@ -345,7 +345,7 @@ nsresult nsMsgBiffManager::PerformBiff()
       {
         nsCString serverKey;
         current.server->GetKey(serverKey);
-        nsresult rv = current.server->PerformBiff(nsnull);
+        nsresult rv = current.server->PerformBiff(nullptr);
         PR_LOG(MsgBiffLogModule, PR_LOG_ALWAYS, ("biffing server %s rv = %x\n", serverKey.get(), rv));
       }
       else

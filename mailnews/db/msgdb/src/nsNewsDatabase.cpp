@@ -15,7 +15,7 @@
 
 nsNewsDatabase::nsNewsDatabase()
 {
-  m_readSet = nsnull;
+  m_readSet = nullptr;
 }
 
 nsNewsDatabase::~nsNewsDatabase()
@@ -28,7 +28,7 @@ NS_IMPL_RELEASE_INHERITED(nsNewsDatabase, nsMsgDatabase)
 NS_IMETHODIMP nsNewsDatabase::QueryInterface(REFNSIID aIID, void** aInstancePtr)
 {
   if (!aInstancePtr) return NS_ERROR_NULL_POINTER;
-  *aInstancePtr = nsnull;
+  *aInstancePtr = nullptr;
 
   if (aIID.Equals(NS_GET_IID(nsINewsDatabase)))
   {
@@ -201,7 +201,7 @@ bool nsNewsDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, bool bRead)
         rv = m_readSet->Remove(messageKey);
         if (NS_FAILED(rv)) return false;
 
-        rv = NotifyReadChanged(nsnull);
+        rv = NotifyReadChanged(nullptr);
         if (NS_FAILED(rv)) return false;
       }
       else {
@@ -212,7 +212,7 @@ bool nsNewsDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, bool bRead)
         rv = m_readSet->Add(messageKey);
         if (NS_FAILED(rv)) return false;
 
-        rv = NotifyReadChanged(nsnull);
+        rv = NotifyReadChanged(nullptr);
         if (NS_FAILED(rv)) return false;
       }
     }
@@ -281,7 +281,7 @@ nsresult nsNewsDatabase::SyncWithReadSet()
       // If DB and readSet disagree on Read/Unread, fix DB
       if (readInNewsrc!=isReadInDB)
       {
-        MarkHdrRead(header, readInNewsrc, nsnull);
+        MarkHdrRead(header, readInNewsrc, nullptr);
         changed = true;
       }
   }

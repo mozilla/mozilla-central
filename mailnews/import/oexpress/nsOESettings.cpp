@@ -96,7 +96,7 @@ static bool     checkNewMail;    // OE global setting, let's default to false
 ////////////////////////////////////////////////////////////////////////
 nsresult nsOESettings::Create(nsIImportSettings** aImport)
 {
-    NS_PRECONDITION(aImport != nsnull, "null ptr");
+    NS_PRECONDITION(aImport != nullptr, "null ptr");
     if (! aImport)
         return NS_ERROR_NULL_POINTER;
 
@@ -120,15 +120,15 @@ NS_IMPL_ISUPPORTS1(nsOESettings, nsIImportSettings)
 
 NS_IMETHODIMP nsOESettings::AutoLocate(PRUnichar **description, nsIFile **location, bool *_retval)
 {
-  NS_PRECONDITION(description != nsnull, "null ptr");
-  NS_PRECONDITION(_retval != nsnull, "null ptr");
+  NS_PRECONDITION(description != nullptr, "null ptr");
+  NS_PRECONDITION(_retval != nullptr, "null ptr");
   if (!description || !_retval)
     return NS_ERROR_NULL_POINTER;
 
   *description = nsOEStringBundle::GetStringByID(OEIMPORT_NAME);
 
   if (location)
-    *location = nsnull;
+    *location = nullptr;
 
   *_retval = false;
   nsCOMPtr<nsIWindowsRegKey> key;
@@ -149,7 +149,7 @@ NS_IMETHODIMP nsOESettings::SetLocation(nsIFile *location)
 
 NS_IMETHODIMP nsOESettings::Import(nsIMsgAccount **localMailAccount, bool *_retval)
 {
-  NS_PRECONDITION(_retval != nsnull, "null ptr");
+  NS_PRECONDITION(_retval != nullptr, "null ptr");
 
   if (OESettings::DoImport(localMailAccount)) {
     *_retval = true;
@@ -346,7 +346,7 @@ bool OESettings::DoImport(nsIMsgAccount **aAccount)
     IMPORT_LOG1("Opened Outlook Express account: %s\n",
                 nativeKeyName.get());
 
-    nsIMsgAccount  *anAccount = nsnull;
+    nsIMsgAccount  *anAccount = nullptr;
     nsAutoString value;
     rv = subKey->ReadStringValue(NS_LITERAL_STRING("IMAP Server"), value);
     if (NS_SUCCEEDED(rv) && DoIMAPServer(accMgr, subKey, value, &anAccount))
@@ -394,7 +394,7 @@ bool OESettings::DoIMAPServer(nsIMsgAccountManager *aMgr,
                               nsIMsgAccount **ppAccount)
 {
   if (ppAccount)
-    *ppAccount = nsnull;
+    *ppAccount = nullptr;
 
   nsAutoString userName;
   nsresult rv;
@@ -482,7 +482,7 @@ bool OESettings::DoPOP3Server(nsIMsgAccountManager *aMgr,
                               nsIMsgAccount **ppAccount)
 {
   if (ppAccount)
-    *ppAccount = nsnull;
+    *ppAccount = nullptr;
 
   nsAutoString userName;
   nsresult rv;
@@ -614,7 +614,7 @@ bool OESettings::DoNNTPServer(nsIMsgAccountManager *aMgr,
                               nsIMsgAccount **ppAccount)
 {
   if (ppAccount)
-    *ppAccount = nsnull;
+    *ppAccount = nullptr;
 
   nsAutoString userName;
   nsresult rv;
@@ -632,7 +632,7 @@ bool OESettings::DoNNTPServer(nsIMsgAccountManager *aMgr,
                         nativeServerName,
                         NS_LITERAL_CSTRING("nntp"),
                         getter_AddRefs(in));
-  if (NS_FAILED(rv) || (in == nsnull)) {
+  if (NS_FAILED(rv) || (in == nullptr)) {
     // Create the incoming server and an account for it?
     rv = aMgr->CreateIncomingServer(EmptyCString(),
                                     nativeServerName,

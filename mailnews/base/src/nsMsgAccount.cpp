@@ -139,7 +139,7 @@ nsMsgAccount::SetIncomingServer(nsIMsgIncomingServer *aIncomingServer)
     nsCOMPtr<nsIFolderListener> mailSession =
              do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    mailSession->OnItemAdded(nsnull, rootFolder);
+    mailSession->OnItemAdded(nullptr, rootFolder);
     nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
     notifier->NotifyFolderAdded(rootFolder);
@@ -246,7 +246,7 @@ nsMsgAccount::GetDefaultIdentity(nsIMsgIdentity **aDefaultIdentity)
 {
   NS_ENSURE_ARG_POINTER(aDefaultIdentity);
 
-  *aDefaultIdentity = nsnull;
+  *aDefaultIdentity = nullptr;
   nsresult rv;
 
   if (!m_identities)
@@ -380,7 +380,7 @@ nsMsgAccount::RemoveIdentity(nsIMsgIdentity *aIdentity)
 
   // if we just deleted the default identity, clear it out so we pick a new one
   if (m_defaultIdentity == aIdentity)
-    m_defaultIdentity = nsnull;
+    m_defaultIdentity = nullptr;
 
   // now rebuild the identity pref
   nsCAutoString identitiesKeyPref("mail.account.");

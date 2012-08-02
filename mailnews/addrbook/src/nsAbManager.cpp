@@ -426,7 +426,7 @@ NS_IMETHODIMP nsAbManager::NotifyDirectoryDeleted(nsIAbDirectory *aParentDirecto
 NS_IMETHODIMP nsAbManager::GetUserProfileDirectory(nsIFile **userDir)
 {
   NS_ENSURE_ARG_POINTER(userDir);
-  *userDir = nsnull;
+  *userDir = nullptr;
 
   nsresult rv;
   nsCOMPtr<nsIFile> profileDir;
@@ -1096,7 +1096,7 @@ nsresult nsAbManager::AppendProperty(const char *aProperty, const PRUnichar *aVa
     aResult.Append(NS_LossyConvertUTF16toASCII(aValue));
   }
   else {
-    char *base64Str = PL_Base64Encode(NS_ConvertUTF16toUTF8(aValue).get(), 0, nsnull);
+    char *base64Str = PL_Base64Encode(NS_ConvertUTF16toUTF8(aValue).get(), 0, nullptr);
     if (!base64Str)
       return NS_ERROR_OUT_OF_MEMORY;
 
@@ -1246,8 +1246,8 @@ nsAbManager::Handle(nsICommandLine* aCmdLine)
   NS_ENSURE_TRUE(wwatch, NS_ERROR_FAILURE);
 
   nsCOMPtr<nsIDOMWindow> opened;
-  wwatch->OpenWindow(nsnull, "chrome://messenger/content/addressbook/addressbook.xul",
-                     "_blank", "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar", nsnull, getter_AddRefs(opened));
+  wwatch->OpenWindow(nullptr, "chrome://messenger/content/addressbook/addressbook.xul",
+                     "_blank", "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar", nullptr, getter_AddRefs(opened));
   aCmdLine->SetPreventDefault(true);
   return NS_OK;
 }

@@ -77,7 +77,7 @@ public:
 
   // create a struct mailbox_spec from our info, used in
   // libmsg c interface
-  nsImapMailboxSpec *CreateCurrentMailboxSpec(const char *mailboxName = nsnull);
+  nsImapMailboxSpec *CreateCurrentMailboxSpec(const char *mailboxName = nullptr);
 
   // Resets the flags state.
   void ResetFlagInfo();
@@ -183,7 +183,7 @@ protected:
   // from the open socket.
   virtual bool    GetNextLineForParser(char **nextLine);
   // overriden to do logging
-  virtual void    SetSyntaxError(bool error, const char *msg = nsnull);
+  virtual void    SetSyntaxError(bool error, const char *msg = nullptr);
 
 private:
   bool            fProcessingTaggedResponse;

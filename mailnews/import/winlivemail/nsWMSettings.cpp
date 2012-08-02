@@ -76,7 +76,7 @@ static bool    checkNewMail;    // WM global setting, let's default to false
 ////////////////////////////////////////////////////////////////////////
 nsresult nsWMSettings::Create(nsIImportSettings** aImport)
 {
-    NS_PRECONDITION(aImport != nsnull, "null ptr");
+    NS_PRECONDITION(aImport != nullptr, "null ptr");
     if (! aImport)
         return NS_ERROR_NULL_POINTER;
 
@@ -101,8 +101,8 @@ NS_IMPL_ISUPPORTS1(nsWMSettings, nsIImportSettings)
 NS_IMETHODIMP nsWMSettings::AutoLocate(PRUnichar **description,
                                        nsIFile **location, bool *_retval)
 {
-  NS_PRECONDITION(description != nsnull, "null ptr");
-  NS_PRECONDITION(_retval != nsnull, "null ptr");
+  NS_PRECONDITION(description != nullptr, "null ptr");
+  NS_PRECONDITION(_retval != nullptr, "null ptr");
   if (!description || !_retval)
     return NS_ERROR_NULL_POINTER;
 
@@ -110,7 +110,7 @@ NS_IMETHODIMP nsWMSettings::AutoLocate(PRUnichar **description,
   *_retval = false;
 
   if (location)
-    *location = nsnull;
+    *location = nullptr;
   nsCOMPtr<nsIWindowsRegKey> key;
   if (NS_SUCCEEDED(nsWMUtils::FindWMKey(getter_AddRefs(key))))
     *_retval = true;
@@ -126,7 +126,7 @@ NS_IMETHODIMP nsWMSettings::SetLocation(nsIFile *location)
 NS_IMETHODIMP nsWMSettings::Import(nsIMsgAccount **localMailAccount,
                                    bool *_retval)
 {
-  NS_PRECONDITION(_retval != nsnull, "null ptr");
+  NS_PRECONDITION(_retval != nullptr, "null ptr");
 
   if (WMSettings::DoImport(localMailAccount)) {
     *_retval = true;
@@ -237,7 +237,7 @@ bool WMSettings::DoIMAPServer(nsIMsgAccountManager *pMgr,
   PRInt32 authMethod;   // Secure Password Authentication (SPA)
   nsresult errorCode;
   if (ppAccount)
-    *ppAccount = nsnull;
+    *ppAccount = nullptr;
 
   nsAutoString userName, value;
   if (NS_FAILED(nsWMUtils::GetValueForTag(xmlDoc,
@@ -251,7 +251,7 @@ bool WMSettings::DoIMAPServer(nsIMsgAccountManager *pMgr,
                                  NS_ConvertUTF16toUTF8(serverName),
                                  NS_LITERAL_CSTRING("imap"),
                                  getter_AddRefs(in));
-  if (NS_FAILED(rv) || (in == nsnull)) {
+  if (NS_FAILED(rv) || (in == nullptr)) {
     // Create the incoming server and an account for it?
     rv = pMgr->CreateIncomingServer(NS_ConvertUTF16toUTF8(userName),
                                     NS_ConvertUTF16toUTF8(serverName),
@@ -346,7 +346,7 @@ bool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
   PRInt32 authMethod;   // Secure Password Authentication (SPA)
   nsresult errorCode;
   if (ppAccount)
-    *ppAccount = nsnull;
+    *ppAccount = nullptr;
 
   nsAutoString userName, value;
   if (NS_FAILED(nsWMUtils::GetValueForTag(xmlDoc,
@@ -360,7 +360,7 @@ bool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
                                  NS_ConvertUTF16toUTF8(serverName),
                                  NS_LITERAL_CSTRING("pop3"),
                                  getter_AddRefs(in));
-  if (NS_FAILED(rv) || (in == nsnull)) {
+  if (NS_FAILED(rv) || (in == nullptr)) {
     // Create the incoming server and an account for it?
     rv = pMgr->CreateIncomingServer(NS_ConvertUTF16toUTF8(userName),
                                     NS_ConvertUTF16toUTF8(serverName),
@@ -507,7 +507,7 @@ bool WMSettings::DoNNTPServer(nsIMsgAccountManager *pMgr,
   PRInt32 authMethod;
   nsresult errorCode;
   if (ppAccount)
-    *ppAccount = nsnull;
+    *ppAccount = nullptr;
 
   nsAutoString userName, value;
   // this only exists if NNTP server requires it or not, anonymous login
@@ -521,7 +521,7 @@ bool WMSettings::DoNNTPServer(nsIMsgAccountManager *pMgr,
                          NS_ConvertUTF16toUTF8(serverName),
                          NS_LITERAL_CSTRING("nntp"),
                          getter_AddRefs(in));
-  if (NS_FAILED(rv) || (in == nsnull)) {
+  if (NS_FAILED(rv) || (in == nullptr)) {
     // Create the incoming server and an account for it?
     rv = pMgr->CreateIncomingServer(nsDependentCString(""),
                                     NS_ConvertUTF16toUTF8(serverName),

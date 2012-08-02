@@ -128,9 +128,9 @@ calPeriod::ToIcalPeriod(struct icalperiodtype *icalp)
 void
 calPeriod::FromIcalPeriod(struct icalperiodtype const* icalp)
 {
-    mStart = new calDateTime(&(icalp->start), nsnull);
+    mStart = new calDateTime(&(icalp->start), nullptr);
     mStart->MakeImmutable();
-    mEnd = new calDateTime(&(icalp->end), nsnull);
+    mEnd = new calDateTime(&(icalp->end), nullptr);
     mEnd->MakeImmutable();
     return;
 }
@@ -160,7 +160,7 @@ calPeriod::SetIcalString(const nsACString& aIcalString)
     struct icalperiodtype ip;
     ip = icalperiodtype_from_string(PromiseFlatCString(aIcalString).get());
     //XXX Shortcut. Assumes nobody tried to overrule our impl. of calIDateTime
-    mStart = new calDateTime(&ip.start, nsnull);
-    mEnd = new calDateTime(&ip.end, nsnull);
+    mStart = new calDateTime(&ip.start, nullptr);
+    mEnd = new calDateTime(&ip.end, nullptr);
     return NS_OK;
 }

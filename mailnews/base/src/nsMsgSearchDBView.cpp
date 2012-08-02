@@ -73,7 +73,7 @@ NS_IMETHODIMP nsMsgSearchDBView::Open(nsIMsgFolder *folder,
 
     if (pCount)
       *pCount = 0;
-    m_folder = nsnull;
+    m_folder = nullptr;
     return rv;
 }
 
@@ -233,13 +233,13 @@ nsMsgSearchDBView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey,
     if (thread)
     {
       nsMsgXFViewThread *viewThread = static_cast<nsMsgXFViewThread*>(thread.get());
-      viewThread->RemoveChildHdr(aHdrDeleted, nsnull);
+      viewThread->RemoveChildHdr(aHdrDeleted, nullptr);
       if (deletedIndex == nsMsgViewIndex_None && viewThread->MsgCount() == 1)
       {
         // remove the last child of a collapsed thread. Need to find the root,
         // and remove the thread flags on it.
         nsCOMPtr<nsIMsgDBHdr> rootHdr;
-        thread->GetRootHdr(nsnull, getter_AddRefs(rootHdr));
+        thread->GetRootHdr(nullptr, getter_AddRefs(rootHdr));
         if (rootHdr)
         {
           nsMsgViewIndex threadIndex = GetThreadRootIndex(rootHdr);
@@ -254,7 +254,7 @@ nsMsgSearchDBView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey,
         if (savedFlags & nsMsgMessageFlags::Elided)
         {
           nsCOMPtr<nsIMsgDBHdr> rootHdr;
-          nsresult rv = thread->GetRootHdr(nsnull, getter_AddRefs(rootHdr));
+          nsresult rv = thread->GetRootHdr(nullptr, getter_AddRefs(rootHdr));
           NS_ENSURE_SUCCESS(rv, rv);
           nsMsgKey msgKey;
           PRUint32 msgFlags;
@@ -350,7 +350,7 @@ void nsMsgSearchDBView::SetMsgHdrAt(nsIMsgDBHdr *hdr, nsMsgViewIndex index,
 bool nsMsgSearchDBView::InsertEmptyRows(nsMsgViewIndex viewIndex, PRInt32 numRows)
 {
   for (PRInt32 i = 0; i < numRows; i++)
-    if (!m_folders.InsertObjectAt(nsnull, viewIndex + i))
+    if (!m_folders.InsertObjectAt(nullptr, viewIndex + i))
       return false;
   return nsMsgDBView::InsertEmptyRows(viewIndex, numRows);
 }
@@ -1108,7 +1108,7 @@ nsresult nsMsgSearchDBView::ProcessRequestsInAllFolders(nsIMsgWindow *window)
            do_QueryElementAt(m_hdrsForEachFolder, folderIndex);
     NS_ASSERTION(messageArray, "messageArray is null");
 
-    curFolder->DeleteMessages(messageArray, window, true /* delete storage */, false /* is move*/, nsnull/*copyServListener*/, false /*allowUndo*/ );
+    curFolder->DeleteMessages(messageArray, window, true /* delete storage */, false /* is move*/, nullptr/*copyServListener*/, false /*allowUndo*/ );
   }
   return NS_OK;
 }
@@ -1260,12 +1260,12 @@ nsresult nsMsgSearchDBView::GetXFThreadFromMsgHdr(nsIMsgDBHdr *msgHdr,
 
   nsCAutoString messageId;
   msgHdr->GetMessageId(getter_Copies(messageId));
-  *pThread = nsnull;
+  *pThread = nullptr;
   m_threadsTable.Get(messageId, pThread);
   // The caller may want to know if we found the thread by the msgHdr's
   // messageId
   if (foundByMessageId)
-    *foundByMessageId = *pThread != nsnull;
+    *foundByMessageId = *pThread != nullptr;
   if (!*pThread)
   {
     PRUint16 numReferences = 0;

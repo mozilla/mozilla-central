@@ -19,8 +19,8 @@ class nsAbLDAPListenerBase : public nsILDAPMessageListener
 public:
   // Note that the directoryUrl is the details of the ldap directory
   // without any search params or attributes specified.
-  nsAbLDAPListenerBase(nsILDAPURL* directoryUrl = nsnull,
-                       nsILDAPConnection* connection = nsnull,
+  nsAbLDAPListenerBase(nsILDAPURL* directoryUrl = nullptr,
+                       nsILDAPConnection* connection = nullptr,
                        const nsACString &login = EmptyCString(),
                        const PRInt32 timeOut = 0);
   virtual ~nsAbLDAPListenerBase();

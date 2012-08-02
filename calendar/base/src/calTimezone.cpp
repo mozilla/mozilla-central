@@ -45,7 +45,7 @@ calTimezone::GetLongitude(nsACString & _retval) {
 NS_IMETHODIMP
 calTimezone::GetProvider(calITimezoneProvider ** _retval) {
     NS_ENSURE_ARG_POINTER(_retval);
-    *_retval = nsnull;
+    *_retval = nullptr;
     return NS_OK;
 }
 

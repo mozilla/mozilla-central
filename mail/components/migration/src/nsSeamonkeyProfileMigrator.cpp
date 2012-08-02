@@ -74,7 +74,7 @@ nsSeamonkeyProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup
       return NS_ERROR_FAILURE;
   }
 
-  NOTIFY_OBSERVERS(MIGRATION_STARTED, nsnull);
+  NOTIFY_OBSERVERS(MIGRATION_STARTED, nullptr);
 
   COPY_DATA(CopyPreferences,  aReplace, nsIMailProfileMigrator::SETTINGS);
 
@@ -619,7 +619,7 @@ nsSeamonkeyProfileMigrator::ReadBranch(const char *branchName,
   aPrefService->GetBranch(branchName, getter_AddRefs(branch));
 
   PRUint32 count;
-  char** prefs = nsnull;
+  char** prefs = nullptr;
   nsresult rv = branch->GetChildList("", &count, &prefs);
   if (NS_FAILED(rv))
     return;
@@ -671,7 +671,7 @@ nsSeamonkeyProfileMigrator::WriteBranch(const char *branchName,
     case nsIPrefBranch::PREF_STRING:
       rv = branch->SetCharPref(pref->prefName, pref->stringValue);
       NS_Free(pref->stringValue);
-      pref->stringValue = nsnull;
+      pref->stringValue = nullptr;
       break;
     case nsIPrefBranch::PREF_BOOL:
       rv = branch->SetBoolPref(pref->prefName, pref->boolValue);
@@ -685,9 +685,9 @@ nsSeamonkeyProfileMigrator::WriteBranch(const char *branchName,
       break;
     }
     NS_Free(pref->prefName);
-    pref->prefName = nsnull;
+    pref->prefName = nullptr;
     delete pref;
-    pref = nsnull;
+    pref = nullptr;
   }
   aPrefs.Clear();
 }

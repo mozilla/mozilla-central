@@ -182,7 +182,7 @@ FindParameter(icalproperty *prop, const nsACString &param, icalparameter_kind ki
         if (param.Equals(icalparameter_get_xname(icalparam)))
             return icalparam;
     }
-    return nsnull;
+    return nullptr;
 }
 
 NS_IMETHODIMP
@@ -195,7 +195,7 @@ calIcalProperty::GetParameter(const nsACString &param, nsACString &value)
     if (paramkind == ICAL_NO_PARAMETER)
         return NS_ERROR_INVALID_ARG;
 
-    const char *icalstr = nsnull;
+    const char *icalstr = nullptr;
     if (paramkind == ICAL_X_PARAMETER) {
         icalparameter *icalparam = FindParameter(mProperty, param, ICAL_X_PARAMETER);
         if (icalparam)
@@ -278,7 +278,7 @@ calIcalProperty::SetParameter(const nsACString &param, const nsACString &value)
 static nsresult
 FillParameterName(icalparameter *icalparam, nsACString &name)
 {
-    const char *propname = nsnull;
+    const char *propname = nullptr;
     if (icalparam) {
         icalparameter_kind paramkind = icalparameter_isa(icalparam);
         if (paramkind == ICAL_X_PARAMETER)
@@ -362,7 +362,7 @@ nsresult calIcalProperty::getDatetime_(calIcalComponent * parent,
     }
     icaltimetype itt = icalvalue_get_datetime(val);
 
-    char const* tzid_ = nsnull;
+    char const* tzid_ = nullptr;
     if (!itt.is_utc) {
         if (itt.zone) {
             tzid_ = icaltimezone_get_tzid(const_cast<icaltimezone *>(itt.zone));
@@ -380,7 +380,7 @@ nsresult calIcalProperty::getDatetime_(calIcalComponent * parent,
     nsCOMPtr<calITimezone> tz;
     if (tzid_) {
         nsDependentCString const tzid(tzid_);
-        calIcalComponent * comp = nsnull;
+        calIcalComponent * comp = nullptr;
         if (parent) {
             comp = parent->getParentVCalendarOrThis();
         }
@@ -431,7 +431,7 @@ nsresult calIcalProperty::getDatetime_(calIcalComponent * parent,
                         tz = new calTimezone(tzid, tzComp);
                         CAL_ENSURE_MEMORY(tz);
                     } else { // install phantom timezone, so the data could be repaired:
-                        tz = new calTimezone(tzid, nsnull);
+                        tz = new calTimezone(tzid, nullptr);
                         CAL_ENSURE_MEMORY(tz);
                     }
                 }
@@ -499,7 +499,7 @@ calIcalComponent::GetReferencedTimezones(PRUint32 * aCount, calITimezone *** aTi
     PRUint32 const count = mReferencedTimezones.Count();
     if (count == 0) {
         *aCount = 0;
-        *aTimezones = nsnull;
+        *aTimezones = nullptr;
         return NS_OK;
     }
 
@@ -563,7 +563,7 @@ calIcalComponent::Get##Attrname(nsACString &str)                        \
 NS_IMETHODIMP                                                           \
 calIcalComponent::Set##Attrname(const nsACString &str)                  \
 {                                                                       \
-    icalproperty *prop = nsnull;                                        \
+    icalproperty *prop = nullptr;                                        \
     if (!str.IsVoid()) {                                                \
         icalproperty_##lcname val =                                     \
             icalproperty_string_to_##lcname(PromiseFlatCString(str).get()); \
@@ -659,7 +659,7 @@ nsresult calIcalComponent::GetStringProperty(icalproperty_kind kind, nsACString 
 nsresult calIcalComponent::SetStringProperty(icalproperty_kind kind,
                                              const nsACString &str)
 {
-    icalvalue *val = nsnull;
+    icalvalue *val = nullptr;
     if (!str.IsVoid()) {
         val = icalvalue_new_string(PromiseFlatCString(str).get());
         if (!val)
@@ -692,7 +692,7 @@ nsresult calIcalComponent::GetDateTimeAttribute(icalproperty_kind kind,
     NS_ENSURE_ARG_POINTER(dtp);
     icalproperty *prop = icalcomponent_get_first_property(mComponent, kind);
     if (!prop) {
-        *dtp = nsnull;  /* invalid date */
+        *dtp = nullptr;  /* invalid date */
         return NS_OK;
     }
     return calIcalProperty::getDatetime_(this, prop, dtp);
@@ -796,7 +796,7 @@ calIcalComponent::Get##Attrname(calIDuration **dtp)                     \
         icalcomponent_get_first_property(mComponent,                    \
                                          ICAL_##ICALNAME##_PROPERTY);   \
     if (!prop) {                                                        \
-        *dtp = nsnull;  /* invalid duration */                          \
+        *dtp = nullptr;  /* invalid duration */                          \
         return NS_OK;                                                   \
     }                                                                   \
     struct icaldurationtype idt =                                       \
@@ -854,7 +854,7 @@ calIcalComponent::GetFirstSubcomponent(const nsACString& kind,
     icalcomponent *ical =
         icalcomponent_get_first_component(mComponent, compkind);
     if (!ical) {
-        *subcomp = nsnull;
+        *subcomp = nullptr;
         return NS_OK;
     }
 
@@ -880,7 +880,7 @@ calIcalComponent::GetNextSubcomponent(const nsACString& kind,
     icalcomponent *ical =
         icalcomponent_get_next_component(mComponent, compkind);
     if (!ical) {
-        *subcomp = nsnull;
+        *subcomp = nullptr;
         return NS_OK;
     }
 
@@ -1013,10 +1013,10 @@ calIcalComponent::Clone(calIIcalComponent **_retval)
 {
     NS_ENSURE_ARG_POINTER(_retval);
     icalcomponent * cloned = icalcomponent_new_clone(mComponent);
-    if (cloned == nsnull)
+    if (cloned == nullptr)
         return NS_ERROR_OUT_OF_MEMORY;
-    calIcalComponent * const comp = new calIcalComponent(cloned, nsnull, getTzProvider());
-    if (comp == nsnull) {
+    calIcalComponent * const comp = new calIcalComponent(cloned, nullptr, getTzProvider());
+    if (comp == nullptr) {
         icalcomponent_free(cloned);
         return NS_ERROR_OUT_OF_MEMORY;
     }
@@ -1041,7 +1041,7 @@ calIcalComponent::AddSubcomponent(calIIcalComponent *comp)
     calIcalComponent * const ical = toIcalComponent(comp);
 
     PRUint32 tzCount = 0;
-    calITimezone ** timezones = nsnull;
+    calITimezone ** timezones = nullptr;
     nsresult rv = ical->GetReferencedTimezones(&tzCount, &timezones);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1076,7 +1076,7 @@ calIcalComponent::AddSubcomponent(calIIcalComponent *comp)
 //     NS_ENSURE_ARG_POINTER(comp);
 //     calIcalComponent *ical = static_cast<calIcalComponent *>(comp);
 //     icalcomponent_remove_component(mComponent, ical->mComponent);
-//     ical->mParent = nsnull;
+//     ical->mParent = nullptr;
 //     return NS_OK;
 // }
 
@@ -1092,7 +1092,7 @@ calIcalComponent::GetFirstProperty(const nsACString &kind,
     if (propkind == ICAL_NO_PROPERTY)
         return NS_ERROR_INVALID_ARG;
 
-    icalproperty *icalprop = nsnull;
+    icalproperty *icalprop = nullptr;
     if (propkind == ICAL_X_PROPERTY) {
         for (icalprop =
                  icalcomponent_get_first_property(mComponent, ICAL_X_PROPERTY);
@@ -1108,7 +1108,7 @@ calIcalComponent::GetFirstProperty(const nsACString &kind,
     }
 
     if (!icalprop) {
-        *prop = nsnull;
+        *prop = nullptr;
         return NS_OK;
     }
 
@@ -1128,7 +1128,7 @@ calIcalComponent::GetNextProperty(const nsACString &kind, calIIcalProperty **pro
 
     if (propkind == ICAL_NO_PROPERTY)
         return NS_ERROR_INVALID_ARG;
-    icalproperty *icalprop = nsnull;
+    icalproperty *icalprop = nullptr;
     if (propkind == ICAL_X_PROPERTY) {
         for (icalprop =
                  icalcomponent_get_next_property(mComponent, ICAL_X_PROPERTY);
@@ -1144,7 +1144,7 @@ calIcalComponent::GetNextProperty(const nsACString &kind, calIIcalProperty **pro
     }
 
     if (!icalprop) {
-        *prop = nsnull;
+        *prop = nullptr;
         return NS_OK;
     }
 
@@ -1189,7 +1189,7 @@ calIcalComponent::AddProperty(calIIcalProperty * prop)
 //     // XXX like AddSubcomponent, this is questionable
 //     calIcalProperty *ical = static_cast<calIcalProperty *>(prop);
 //     icalcomponent_remove_property(mComponent, ical->mProperty);
-//     ical->mParent = nsnull;
+//     ical->mParent = nullptr;
 //     return NS_OK;
 // }
 
@@ -1220,7 +1220,7 @@ calICSService::ParseICS(const nsACString& serialized,
         // so no need for a conversion table or anything.
         return calIErrors::ICS_ERROR_BASE + icalerrno;
     }
-    calIcalComponent *comp = new calIcalComponent(ical, nsnull, tzProvider);
+    calIcalComponent *comp = new calIcalComponent(ical, nullptr, tzProvider);
     if (!comp) {
         icalcomponent_free(ical);
         return NS_ERROR_OUT_OF_MEMORY;
@@ -1235,10 +1235,10 @@ calICSService::ParserWorker::Run()
     icalcomponent *ical =
         icalparser_parse_string(PromiseFlatCString(mString).get());
     nsresult status = NS_OK;
-    calIIcalComponent *comp = nsnull;
+    calIIcalComponent *comp = nullptr;
 
     if (ical) {
-        comp = new calIcalComponent(ical, nsnull, mProvider);
+        comp = new calIcalComponent(ical, nullptr, mProvider);
         if (!comp) {
             icalcomponent_free(ical);
             status = NS_ERROR_OUT_OF_MEMORY;
@@ -1295,7 +1295,7 @@ calICSService::CreateIcalComponent(const nsACString &kind, calIIcalComponent **c
     if (!ical)
         return NS_ERROR_OUT_OF_MEMORY; // XXX translate
 
-    *comp = new calIcalComponent(ical, nsnull);
+    *comp = new calIcalComponent(ical, nullptr);
     if (!*comp) {
         icalcomponent_free(ical);
         return NS_ERROR_OUT_OF_MEMORY;
@@ -1322,7 +1322,7 @@ calICSService::CreateIcalProperty(const nsACString &kind, calIIcalProperty **pro
     if (propkind == ICAL_X_PROPERTY)
         icalproperty_set_x_name(icalprop, PromiseFlatCString(kind).get());
 
-    *prop = new calIcalProperty(icalprop, nsnull);
+    *prop = new calIcalProperty(icalprop, nullptr);
     CAL_ENSURE_MEMORY(*prop);
     NS_ADDREF(*prop);
     return NS_OK;

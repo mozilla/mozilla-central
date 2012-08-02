@@ -149,13 +149,13 @@ nsresult ProxyForceDBClosed(nsIMsgFolder *aFolder);
 
 nsresult NS_NewGenericMail(nsIImportGeneric** aImportGeneric)
 {
-    NS_PRECONDITION(aImportGeneric != nsnull, "null ptr");
+    NS_PRECONDITION(aImportGeneric != nullptr, "null ptr");
     if (! aImportGeneric)
         return NS_ERROR_NULL_POINTER;
 
   nsImportGenericMail *pGen = new nsImportGenericMail();
 
-  if (pGen == nsnull)
+  if (pGen == nullptr)
     return NS_ERROR_OUT_OF_MEMORY;
 
   NS_ADDREF(pGen);
@@ -170,15 +170,15 @@ nsImportGenericMail::nsImportGenericMail()
   m_found = false;
   m_userVerify = false;
   m_gotLocation = false;
-  m_pInterface = nsnull;
-  m_pMailboxes = nsnull;
-  m_pSuccessLog = nsnull;
-  m_pErrorLog = nsnull;
+  m_pInterface = nullptr;
+  m_pMailboxes = nullptr;
+  m_pSuccessLog = nullptr;
+  m_pErrorLog = nullptr;
   m_totalSize = 0;
   m_doImport = false;
-  m_pThreadData = nsnull;
+  m_pThreadData = nullptr;
 
-  m_pDestFolder = nsnull;
+  m_pDestFolder = nullptr;
   m_deleteDestFolder = false;
   m_createdFolder = false;
     m_performingMigration = false;
@@ -197,7 +197,7 @@ nsImportGenericMail::~nsImportGenericMail()
 {
   if (m_pThreadData) {
     m_pThreadData->DriverAbort();
-    m_pThreadData = nsnull;
+    m_pThreadData = nullptr;
   }
 
   NS_IF_RELEASE(m_pDestFolder);
@@ -216,11 +216,11 @@ NS_IMETHODIMP nsImportGenericMail::GetData(const char *dataId, nsISupports **_re
 {
   nsresult rv = NS_OK;
 
-  NS_PRECONDITION(_retval != nsnull, "null ptr");
+  NS_PRECONDITION(_retval != nullptr, "null ptr");
   if (!_retval)
     return NS_ERROR_NULL_POINTER;
 
-  *_retval = nsnull;
+  *_retval = nullptr;
   if (!PL_strcasecmp(dataId, "mailInterface")) {
     *_retval = m_pInterface;
     NS_IF_ADDREF(m_pInterface);
@@ -270,7 +270,7 @@ NS_IMETHODIMP nsImportGenericMail::GetData(const char *dataId, nsISupports **_re
 NS_IMETHODIMP nsImportGenericMail::SetData(const char *dataId, nsISupports *item)
 {
   nsresult rv = NS_OK;
-  NS_PRECONDITION(dataId != nsnull, "null ptr");
+  NS_PRECONDITION(dataId != nullptr, "null ptr");
   if (!dataId)
     return NS_ERROR_NULL_POINTER;
 
@@ -287,7 +287,7 @@ NS_IMETHODIMP nsImportGenericMail::SetData(const char *dataId, nsISupports *item
 
   if (!PL_strcasecmp(dataId, "mailLocation")) {
     NS_IF_RELEASE(m_pMailboxes);
-    m_pSrcLocation = nsnull;
+    m_pSrcLocation = nullptr;
     if (item) {
       nsresult rv;
       nsCOMPtr <nsIFile> location = do_QueryInterface(item, &rv);
@@ -323,8 +323,8 @@ NS_IMETHODIMP nsImportGenericMail::SetData(const char *dataId, nsISupports *item
 
 NS_IMETHODIMP nsImportGenericMail::GetStatus(const char *statusKind, PRInt32 *_retval)
 {
-  NS_PRECONDITION(statusKind != nsnull, "null ptr");
-  NS_PRECONDITION(_retval != nsnull, "null ptr");
+  NS_PRECONDITION(statusKind != nullptr, "null ptr");
+  NS_PRECONDITION(_retval != nullptr, "null ptr");
   if (!statusKind || !_retval)
     return NS_ERROR_NULL_POINTER;
 
@@ -389,13 +389,13 @@ void nsImportGenericMail::GetDefaultDestination(void)
 
 NS_IMETHODIMP nsImportGenericMail::WantsProgress(bool *_retval)
 {
-  NS_PRECONDITION(_retval != nsnull, "null ptr");
+  NS_PRECONDITION(_retval != nullptr, "null ptr");
     if (!_retval)
         return NS_ERROR_NULL_POINTER;
 
   if (m_pThreadData) {
     m_pThreadData->DriverAbort();
-    m_pThreadData = nsnull;
+    m_pThreadData = nullptr;
   }
 
   if (!m_pMailboxes) {
@@ -460,7 +460,7 @@ void nsImportGenericMail::GetMailboxName(PRUint32 index, nsISupportsString *pStr
 
 NS_IMETHODIMP nsImportGenericMail::BeginImport(nsISupportsString *successLog, nsISupportsString *errorLog, bool *_retval)
 {
-  NS_PRECONDITION(_retval != nsnull, "null ptr");
+  NS_PRECONDITION(_retval != nullptr, "null ptr");
     if (!_retval)
         return NS_ERROR_NULL_POINTER;
 
@@ -495,7 +495,7 @@ NS_IMETHODIMP nsImportGenericMail::BeginImport(nsISupportsString *successLog, ns
 
   if (m_pThreadData) {
     m_pThreadData->DriverAbort();
-    m_pThreadData = nsnull;
+    m_pThreadData = nullptr;
   }
 
   NS_IF_RELEASE(m_pSuccessLog);
@@ -533,7 +533,7 @@ NS_IMETHODIMP nsImportGenericMail::BeginImport(nsISupportsString *successLog, ns
     m_pThreadData->ThreadDelete();
     m_pThreadData->abort = true;
     m_pThreadData->DriverAbort();
-    m_pThreadData = nsnull;
+    m_pThreadData = nullptr;
     *_retval = false;
     nsImportStringBundle::GetStringByID(IMPORT_ERROR_MB_NOTHREAD,
                                         m_stringBundle, error);
@@ -549,7 +549,7 @@ NS_IMETHODIMP nsImportGenericMail::BeginImport(nsISupportsString *successLog, ns
 
 NS_IMETHODIMP nsImportGenericMail::ContinueImport(bool *_retval)
 {
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
+    NS_PRECONDITION(_retval != nullptr, "null ptr");
     if (!_retval)
         return NS_ERROR_NULL_POINTER;
 
@@ -567,7 +567,7 @@ NS_IMETHODIMP nsImportGenericMail::GetProgress(PRInt32 *_retval)
 {
   // This returns the progress from the the currently
   // running import mail or import address book thread.
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
+    NS_PRECONDITION(_retval != nullptr, "null ptr");
     if (!_retval)
         return NS_ERROR_NULL_POINTER;
 
@@ -640,7 +640,7 @@ NS_IMETHODIMP nsImportGenericMail::CancelImport(void)
   if (m_pThreadData) {
     m_pThreadData->abort = true;
     m_pThreadData->DriverAbort();
-    m_pThreadData = nsnull;
+    m_pThreadData = nullptr;
   }
 
   return NS_OK;
@@ -655,13 +655,13 @@ ImportThreadData::ImportThreadData()
   abort = false;
   currentTotal = 0;
   currentSize = 0;
-  destRoot = nsnull;
+  destRoot = nullptr;
   ownsDestRoot = false;
-  boxes = nsnull;
-  mailImport = nsnull;
-  successLog = nsnull;
-  errorLog = nsnull;
-  stringBundle = nsnull;
+  boxes = nullptr;
+  mailImport = nullptr;
+  successLog = nullptr;
+  errorLog = nullptr;
+  stringBundle = nullptr;
 }
 
 ImportThreadData::~ImportThreadData()
@@ -692,7 +692,7 @@ void ImportThreadData::DriverAbort()
 {
   if (abort && !threadAlive && destRoot) {
     if (ownsDestRoot) {
-      destRoot->RecursiveDelete(true, nsnull);
+      destRoot->RecursiveDelete(true, nullptr);
     }
     else {
       // FIXME: just delete the stuff we created?
@@ -798,7 +798,7 @@ ImportMailThread(void *stuff)
         }
       }
       depth = newDepth;
-      pName = nsnull;
+      pName = nullptr;
       box->GetDisplayName(&pName);
       if (pName) {
         lastName = pName;
@@ -821,7 +821,7 @@ ImportMailThread(void *stuff)
       // or "Unsent Folders, UnsentFolders0"
       if (exists && !pData->performingMigration) {
         nsString subName;
-        ProxyGenerateUniqueSubfolderName(curFolder, lastName, nsnull, subName);
+        ProxyGenerateUniqueSubfolderName(curFolder, lastName, nullptr, subName);
         if (!subName.IsEmpty())
           lastName.Assign(subName);
       }
@@ -839,8 +839,8 @@ ImportMailThread(void *stuff)
       if (size && import && newFolder && NS_SUCCEEDED(rv)) {
         bool fatalError = false;
         pData->currentSize = size;
-        PRUnichar *pSuccess = nsnull;
-        PRUnichar *pError = nsnull;
+        PRUnichar *pSuccess = nullptr;
+        PRUnichar *pError = nullptr;
         rv = pData->mailImport->ImportMailbox(box, newFolder, &pError, &pSuccess, &fatalError);
         if (pError) {
           error.Append(pError);
@@ -885,7 +885,7 @@ ImportMailThread(void *stuff)
     IMPORT_LOG0("*** ImportMailThread: Abort or fatalError flag was set\n");
     if (pData->ownsDestRoot) {
       IMPORT_LOG0("Calling destRoot->RecursiveDelete\n");
-      destRoot->RecursiveDelete(true, nsnull);
+      destRoot->RecursiveDelete(true, nullptr);
     }
     else {
       // FIXME: just delete the stuff we created?
@@ -903,7 +903,7 @@ ImportMailThread(void *stuff)
 bool nsImportGenericMail::CreateFolder(nsIMsgFolder **ppFolder)
 {
   nsresult rv;
-  *ppFolder = nsnull;
+  *ppFolder = nullptr;
 
   nsCOMPtr<nsIStringBundle> bundle;
   nsCOMPtr<nsIStringBundleService> bundleService =
@@ -962,7 +962,7 @@ bool nsImportGenericMail::CreateFolder(nsIMsgFolder **ppFolder)
         rv = localRootFolder->ContainsChildNamed(folderName, &exists);
         if (exists) {
           nsString name;
-          localRootFolder->GenerateUniqueSubfolderName(folderName, nsnull, name);
+          localRootFolder->GenerateUniqueSubfolderName(folderName, nullptr, name);
           if (!name.IsEmpty())
             folderName.Assign(name);
           else {
@@ -976,7 +976,7 @@ bool nsImportGenericMail::CreateFolder(nsIMsgFolder **ppFolder)
         // A working Thunderbird client can have mail in Local Folders and a
         // subsequent import 'Everything' will trigger a migration which
         // overwrites existing mailboxes with the imported mailboxes.
-        rv = localRootFolder->CreateSubfolder(folderName, nsnull);
+        rv = localRootFolder->CreateSubfolder(folderName, nullptr);
         if (NS_SUCCEEDED(rv)) {
           rv = localRootFolder->GetChildNamed(folderName, ppFolder);
           if (*ppFolder) {
@@ -1180,7 +1180,7 @@ CreateSubfolderRunnable::CreateSubfolderRunnable(nsIMsgFolder *aFolder,
 
 NS_IMETHODIMP CreateSubfolderRunnable::Run()
 {
-  return m_folder->CreateSubfolder(m_name, nsnull);
+  return m_folder->CreateSubfolder(m_name, nullptr);
 }
 
 

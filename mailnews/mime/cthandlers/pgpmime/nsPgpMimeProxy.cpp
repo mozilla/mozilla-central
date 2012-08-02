@@ -116,8 +116,8 @@ public:
   nsCOMPtr<nsIPgpMimeProxy> mimeDecrypt;
 
   MimePgpeData()
-    : output_fn(nsnull),
-      output_closure(nsnull)
+    : output_fn(nullptr),
+      output_closure(nullptr)
   {
   }
 
@@ -135,18 +135,18 @@ MimePgpe_init(MimeObject *obj,
               void *output_closure)
 {
   if (!(obj && obj->options && output_fn))
-    return nsnull;
+    return nullptr;
 
   MimeDisplayOptions *opts;
   opts = obj->options;
 
   MimePgpeData* data = new MimePgpeData();
-  NS_ENSURE_TRUE(data, nsnull);
+  NS_ENSURE_TRUE(data, nullptr);
 
   data->self = obj;
   data->output_fn = output_fn;
   data->output_closure = output_closure;
-  data->mimeDecrypt = nsnull;
+  data->mimeDecrypt = nullptr;
 
   nsresult rv;
   data->mimeDecrypt = do_GetService(NS_PGPMIMEPROXY_CONTRACTID, &rv);
@@ -161,10 +161,10 @@ MimePgpe_init(MimeObject *obj,
   PR_Free(ct);
 
   if (NS_FAILED(rv))
-    return nsnull;
+    return nullptr;
 
   if (NS_FAILED(data->mimeDecrypt->SetMimeCallback(output_fn, output_closure)))
-    return nsnull;
+    return nullptr;
 
   return data;
 }
@@ -196,7 +196,7 @@ MimePgpe_eof(void* output_closure, bool abort_p)
   if (NS_FAILED(data->mimeDecrypt->Finish()))
     return -1;
 
-  data->mimeDecrypt = nsnull;
+  data->mimeDecrypt = nullptr;
   return 0;
 }
 
@@ -228,8 +228,8 @@ NS_IMPL_THREADSAFE_ISUPPORTS5(nsPgpMimeProxy,
 // nsPgpMimeProxy implementation
 nsPgpMimeProxy::nsPgpMimeProxy()
   : mInitialized(false),
-    mDecryptor(nsnull),
-    mLoadGroup(nsnull),
+    mDecryptor(nullptr),
+    mLoadGroup(nullptr),
     mLoadFlags(LOAD_NORMAL),
     mCancelStatus(NS_OK)
 {
@@ -262,7 +262,7 @@ nsPgpMimeProxy::SetMimeCallback(MimeDecodeCallbackFun outputFun,
   mByteBuf.Truncate();
 
   if (mDecryptor)
-    return mDecryptor->OnStartRequest((nsIRequest*) this, nsnull);
+    return mDecryptor->OnStartRequest((nsIRequest*) this, nullptr);
 
   return NS_OK;
 }
@@ -289,7 +289,7 @@ nsPgpMimeProxy::Write(const char *buf, PRUint32 buf_size)
   mStreamOffset = 0;
 
   if (mDecryptor)
-    return mDecryptor->OnDataAvailable((nsIRequest*) this, nsnull, (nsIInputStream*) this,
+    return mDecryptor->OnDataAvailable((nsIRequest*) this, nullptr, (nsIInputStream*) this,
                                       0, buf_size);
 
   return NS_OK;
@@ -300,7 +300,7 @@ nsPgpMimeProxy::Finish() {
   NS_ENSURE_TRUE(mInitialized, NS_ERROR_NOT_INITIALIZED);
 
   if (mDecryptor) {
-    return mDecryptor->OnStopRequest((nsIRequest*) this, nsnull, NS_OK);
+    return mDecryptor->OnStopRequest((nsIRequest*) this, nullptr, NS_OK);
   }
   else {
     nsCString temp;
@@ -317,7 +317,7 @@ nsPgpMimeProxy::Finish() {
     int status = mOutputFun(temp.get(), temp.Length(), mOutputClosure);
     if (status < 0) {
       PR_SetError(status, 0);
-      mOutputFun = nsnull;
+      mOutputFun = nullptr;
       return NS_ERROR_FAILURE;
     }
   }
@@ -557,7 +557,7 @@ nsPgpMimeProxy::OnDataAvailable(nsIRequest* aRequest, nsISupports* aContext,
     int status = mOutputFun(buf, readCount, mOutputClosure);
     if (status < 0) {
       PR_SetError(status, 0);
-      mOutputFun = nsnull;
+      mOutputFun = nullptr;
       return NS_ERROR_FAILURE;
     }
 

@@ -375,7 +375,7 @@ nsWindowsShellService::ShortcutMaintenance()
     return NS_ERROR_UNEXPECTED;
 
   nsCOMPtr<nsIPrefBranch> prefBranch;
-  prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
+  prefs->GetBranch(nullptr, getter_AddRefs(prefBranch));
   if (!prefBranch)
     return NS_ERROR_UNEXPECTED;
 
@@ -876,7 +876,7 @@ nsWindowsShellService::OpenApplicationWithURI(nsIFile* aApplication,
 NS_IMETHODIMP
 nsWindowsShellService::GetDefaultFeedReader(nsIFile** _retval)
 {
-  *_retval = nsnull;
+  *_retval = nullptr;
 
   nsresult rv;
   nsCOMPtr<nsIWindowsRegKey> key(do_CreateInstance("@mozilla.org/windows-registry-key;1", &rv));

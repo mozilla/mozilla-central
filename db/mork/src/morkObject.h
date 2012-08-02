@@ -68,7 +68,7 @@ public: // morkNode virtual methods
     array -= 3;
     orkinHeap *heap = (orkinHeap *) *array;
     if (heap)
-      heap->Free(nsnull, ioAddress);
+      heap->Free(nullptr, ioAddress);
   }
 #endif
 

@@ -113,7 +113,7 @@ NS_IMETHODIMP nsMsgComposeContentHandler::HandleContent(const char * aContentTyp
       nsCOMPtr<nsIMsgComposeService> composeService = 
                do_GetService(kMsgComposeServiceCID, &rv);
       if (NS_SUCCEEDED(rv))
-        rv = composeService->OpenComposeWindowWithURI(nsnull, aUri, identity);
+        rv = composeService->OpenComposeWindowWithURI(nullptr, aUri, identity);
     }
   } else {
     // The content-type was not application/x-mailto...

@@ -54,7 +54,7 @@ PRLogModuleInfo *MAILBOX;
 nsMailboxProtocol::nsMailboxProtocol(nsIURI * aURI)
     : nsMsgProtocol(aURI)
 {
-  m_lineStreamBuffer =nsnull;
+  m_lineStreamBuffer =nullptr;
 
   // initialize the pr log if it hasn't been initialiezed already
   if (!MAILBOX)
@@ -159,7 +159,7 @@ nsresult nsMailboxProtocol::Initialize(nsIURI * aURL)
           rv = OpenFileSocketForReuse(aURL, m_msgOffset, aMsgSize);
           // if we're running multiple msg url, we clear the event sink because the multiple
           // msg urls will handle setting the progress.
-          mProgressEventSink = nsnull;
+          mProgressEventSink = nullptr;
         }
         else
         {
@@ -352,7 +352,7 @@ NS_IMETHODIMP nsMailboxProtocol::OnStopRequest(nsIRequest *request, nsISupports 
                 
                 NS_ASSERTION(NS_SUCCEEDED(rv), "AsyncRead failed");
                 if (m_loadGroup)
-                  m_loadGroup->RemoveRequest(static_cast<nsIRequest *>(this), nsnull, aStatus);
+                  m_loadGroup->RemoveRequest(static_cast<nsIRequest *>(this), nullptr, aStatus);
                 m_socketIsOpen = true; // mark the channel as open
                 return aStatus;
               }
@@ -387,7 +387,7 @@ NS_IMETHODIMP nsMailboxProtocol::OnStopRequest(nsIRequest *request, nsISupports 
   if (m_multipleMsgMoveCopyStream)
   {
     m_multipleMsgMoveCopyStream->Close();
-    m_multipleMsgMoveCopyStream = nsnull;
+    m_multipleMsgMoveCopyStream = nullptr;
   }
   nsMsgProtocol::OnStopRequest(request, ctxt, aStatus);
   return CloseSocket(); 
@@ -563,7 +563,7 @@ PRInt32 nsMailboxProtocol::ReadFolderResponse(nsIInputStream * inputStream, PRUi
   if (m_mailboxParser)
   {
     nsCOMPtr <nsIURI> url = do_QueryInterface(m_runningUrl);
-    rv = m_mailboxParser->OnDataAvailable(nsnull, url, inputStream, sourceOffset, length); // let the parser deal with it...
+    rv = m_mailboxParser->OnDataAvailable(nullptr, url, inputStream, sourceOffset, length); // let the parser deal with it...
   }
   if (NS_FAILED(rv))
   {
@@ -584,7 +584,7 @@ PRInt32 nsMailboxProtocol::ReadFolderResponse(nsIInputStream * inputStream, PRUi
 
 PRInt32 nsMailboxProtocol::ReadMessageResponse(nsIInputStream * inputStream, PRUint32 sourceOffset, PRUint32 length)
 {
-  char *line = nsnull;
+  char *line = nullptr;
   PRUint32 status = 0;
   nsresult rv = NS_OK;
   mCurrentProgress += length;
@@ -677,13 +677,13 @@ nsresult nsMailboxProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * 
     switch(m_nextState) 
     {
     case MAILBOX_READ_MESSAGE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(MAILBOX_PAUSE_FOR_READ);
       else
         status = ReadMessageResponse(inputStream, offset, length);
       break;
     case MAILBOX_READ_FOLDER:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(MAILBOX_PAUSE_FOR_READ);   // wait for file socket to read in the next chunk...
       else
         status = ReadFolderResponse(inputStream, offset, length);
@@ -726,8 +726,8 @@ nsresult nsMailboxProtocol::CloseSocket()
 {
   // how do you force a release when closing the connection??
   nsMsgProtocol::CloseSocket(); 
-  m_runningUrl = nsnull;
-  m_mailboxParser = nsnull;
+  m_runningUrl = nullptr;
+  m_mailboxParser = nullptr;
   return 0;
 }
 

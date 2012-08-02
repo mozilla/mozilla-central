@@ -14,7 +14,7 @@
 
 #define WM_MSGS_URL       "chrome://messenger/locale/wmImportMsgs.properties"
 
-nsIStringBundle *  nsWMStringBundle::m_pBundle = nsnull;
+nsIStringBundle *  nsWMStringBundle::m_pBundle = nullptr;
 
 nsIStringBundle *nsWMStringBundle::GetStringBundle(void)
 {
@@ -22,7 +22,7 @@ nsIStringBundle *nsWMStringBundle::GetStringBundle(void)
     return m_pBundle;
 
   char*        propertyURL = WM_MSGS_URL;
-  nsIStringBundle*  sBundle = nsnull;
+  nsIStringBundle*  sBundle = nullptr;
 
   nsCOMPtr<nsIStringBundleService> sBundleService =
     mozilla::services::GetStringBundleService();
@@ -48,7 +48,7 @@ PRUnichar *nsWMStringBundle::GetStringByID(PRInt32 stringID)
     m_pBundle = GetStringBundle();
 
   if (m_pBundle) {
-    PRUnichar *ptrv = nsnull;
+    PRUnichar *ptrv = nullptr;
     nsresult rv = m_pBundle->GetStringFromID(stringID, &ptrv);
 
     if (NS_SUCCEEDED(rv) && ptrv)
@@ -67,5 +67,5 @@ void nsWMStringBundle::Cleanup(void)
 {
   if (m_pBundle)
     m_pBundle->Release();
-  m_pBundle = nsnull;
+  m_pBundle = nullptr;
 }

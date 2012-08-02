@@ -89,7 +89,7 @@ nsSubscribeDataSource::Init()
 NS_IMETHODIMP 
 nsSubscribeDataSource::GetURI(char * *aURI)
 {
-  if ((*aURI = strdup("rdf:subscribe")) == nsnull)
+  if ((*aURI = strdup("rdf:subscribe")) == nullptr)
     return NS_ERROR_OUT_OF_MEMORY;
   else
     return NS_OK;
@@ -98,19 +98,19 @@ nsSubscribeDataSource::GetURI(char * *aURI)
 NS_IMETHODIMP 
 nsSubscribeDataSource::GetSource(nsIRDFResource *property, nsIRDFNode *target, bool tv, nsIRDFResource **source)
 {
-    NS_PRECONDITION(property != nsnull, "null ptr");
+    NS_PRECONDITION(property != nullptr, "null ptr");
     if (! property)
         return NS_ERROR_NULL_POINTER;
 
-    NS_PRECONDITION(target != nsnull, "null ptr");
+    NS_PRECONDITION(target != nullptr, "null ptr");
     if (! target)
         return NS_ERROR_NULL_POINTER;
 
-    NS_PRECONDITION(source != nsnull, "null ptr");
+    NS_PRECONDITION(source != nullptr, "null ptr");
     if (! source)
         return NS_ERROR_NULL_POINTER;
 
-    *source = nsnull;
+    *source = nullptr;
     return NS_RDF_NO_VALUE;
 }
 
@@ -122,19 +122,19 @@ nsSubscribeDataSource::GetTarget(nsIRDFResource *source,
 {
 	nsresult rv = NS_RDF_NO_VALUE;
 
-	NS_PRECONDITION(source != nsnull, "null ptr");
+	NS_PRECONDITION(source != nullptr, "null ptr");
 	if (! source)
 		return NS_ERROR_NULL_POINTER;
 
-	NS_PRECONDITION(property != nsnull, "null ptr");
+	NS_PRECONDITION(property != nullptr, "null ptr");
 	if (! property)
 		return NS_ERROR_NULL_POINTER;
 
-	NS_PRECONDITION(target != nsnull, "null ptr");
+	NS_PRECONDITION(target != nullptr, "null ptr");
 	if (! target)
 		return NS_ERROR_NULL_POINTER;
 
-	*target = nsnull;
+	*target = nullptr;
 
 	// we only have positive assertions in the subscribe data source.
 	if (! tv) return NS_RDF_NO_VALUE;
@@ -229,19 +229,19 @@ nsSubscribeDataSource::GetTargets(nsIRDFResource *source,
 {
 	nsresult rv = NS_OK;
 
-	NS_PRECONDITION(source != nsnull, "null ptr");
+	NS_PRECONDITION(source != nullptr, "null ptr");
 	if (! source)
 		return NS_ERROR_NULL_POINTER;
 
-	NS_PRECONDITION(property != nsnull, "null ptr");
+	NS_PRECONDITION(property != nullptr, "null ptr");
 	if (! property)
 		return NS_ERROR_NULL_POINTER;
 
-	NS_PRECONDITION(targets != nsnull, "null ptr");
+	NS_PRECONDITION(targets != nullptr, "null ptr");
 	if (! targets)
 		return NS_ERROR_NULL_POINTER;
 
-    *targets = nsnull;
+    *targets = nullptr;
 
 	// we only have positive assertions in the subscribe data source.
 	if (!tv) return NS_RDF_NO_VALUE;
@@ -371,7 +371,7 @@ nsSubscribeDataSource::GetServerAndRelativePathFromResource(nsIRDFResource *sour
 {
     nsresult rv = NS_OK;
 
-    const char *sourceURI = nsnull;
+    const char *sourceURI = nullptr;
     rv = source->GetValueConst(&sourceURI);
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -393,7 +393,7 @@ nsSubscribeDataSource::GetServerAndRelativePathFromResource(nsIRDFResource *sour
  
     PRUint32 serverURILen = serverURI.Length();
     if (serverURILen == strlen(sourceURI))
-      *relativePath = nsnull;
+      *relativePath = nullptr;
     else {
       // XXX : perhaps, have to unescape before returning 
       *relativePath = strdup(sourceURI + serverURILen + 1);
@@ -413,19 +413,19 @@ nsSubscribeDataSource::HasAssertion(nsIRDFResource *source,
 {
     nsresult rv = NS_OK;
 
-	NS_PRECONDITION(source != nsnull, "null ptr");
+	NS_PRECONDITION(source != nullptr, "null ptr");
 	if (! source)
 		return NS_ERROR_NULL_POINTER;
 
-	NS_PRECONDITION(property != nsnull, "null ptr");
+	NS_PRECONDITION(property != nullptr, "null ptr");
 	if (! property)
 		return NS_ERROR_NULL_POINTER;
 
-	NS_PRECONDITION(target != nsnull, "null ptr");
+	NS_PRECONDITION(target != nullptr, "null ptr");
 	if (! target)
 		return NS_ERROR_NULL_POINTER;
 
-	NS_PRECONDITION(hasAssertion != nsnull, "null ptr");
+	NS_PRECONDITION(hasAssertion != nullptr, "null ptr");
 	if (! hasAssertion)
 		return NS_ERROR_NULL_POINTER;
 
@@ -532,11 +532,11 @@ nsSubscribeDataSource::ArcLabelsOut(nsIRDFResource *source,
 {
     nsresult rv = NS_OK;
 
-    NS_PRECONDITION(source != nsnull, "null ptr");
+    NS_PRECONDITION(source != nullptr, "null ptr");
     if (! source)
 	return NS_ERROR_NULL_POINTER;
 
-    NS_PRECONDITION(labels != nsnull, "null ptr");
+    NS_PRECONDITION(labels != nullptr, "null ptr");
     if (! labels)
 	return NS_ERROR_NULL_POINTER;
 
@@ -581,7 +581,7 @@ nsSubscribeDataSource::GetAllResources(nsISimpleEnumerator** aCursor)
 NS_IMETHODIMP
 nsSubscribeDataSource::AddObserver(nsIRDFObserver *n)
 {
-    NS_PRECONDITION(n != nsnull, "null ptr");
+    NS_PRECONDITION(n != nullptr, "null ptr");
     if (! n)
         return NS_ERROR_NULL_POINTER;
 
@@ -599,7 +599,7 @@ nsSubscribeDataSource::AddObserver(nsIRDFObserver *n)
 NS_IMETHODIMP
 nsSubscribeDataSource::RemoveObserver(nsIRDFObserver *n)
 {
-    NS_PRECONDITION(n != nsnull, "null ptr");
+    NS_PRECONDITION(n != nullptr, "null ptr");
     if (! n)
         return NS_ERROR_NULL_POINTER;
 
@@ -712,7 +712,7 @@ nsSubscribeDataSource::changeEnumFunc(nsISupports *aElement, void *aData)
   observer->OnChange(note->datasource,
                      note->subject,
                      note->property,
-                     nsnull, note->object);
+                     nullptr, note->object);
   return true;
 }
 

@@ -278,8 +278,8 @@ char* nsAbLDIFService::str_getline(char **next) const
   char    *lineStr;
   char    c;
 
-  if ( *next == nsnull || **next == '\n' || **next == '\0' ) {
-    return( nsnull);
+  if ( *next == nullptr || **next == '\n' || **next == '\0' ) {
+    return( nullptr);
   }
 
   lineStr = *next;
@@ -368,7 +368,7 @@ void nsAbLDIFService::AddLdifRowToDatabase(nsIAddrDatabase *aDatabase,
   char* typeSlot = 0; 
   char* valueSlot = 0; 
   int length = 0;  // the length  of an ldif attribute
-  while ( (line = str_getline(&cursor)) != nsnull)
+  while ( (line = str_getline(&cursor)) != nullptr)
   {
     if ( str_parse_line(line, &typeSlot, &valueSlot, &length) == 0) {
       AddLdifColToDatabase(aDatabase, newRow, typeSlot, valueSlot, bIsList);
@@ -756,7 +756,7 @@ static const char *const sLDIFFields[] = {
     "cn",
     "givenName",
     "mail",
-    nsnull
+    nullptr
 };
 #define kMaxLDIFLen        14
 

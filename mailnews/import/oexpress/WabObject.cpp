@@ -150,7 +150,7 @@ CWAB::CWAB(nsIFile *file)
             HRESULT hr = E_FAIL;
             WAB_PARAM wp = {0};
             wp.cbSize = sizeof(WAB_PARAM);
-            if (file != nsnull) {
+            if (file != nullptr) {
                 nsCString path;
               file->GetNativePath(path);
               wp.szFileName = (LPTSTR) ToNewCString(path);

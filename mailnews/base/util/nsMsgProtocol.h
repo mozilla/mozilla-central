@@ -65,7 +65,7 @@ public:
   // then calls the base class which opens the socket if it needs opened. If the socket is 
   // already opened then we just call ProcessProtocolState to start the churning process.
   // aConsumer is the consumer for the url. It can be null if this argument is not appropriate
-  virtual nsresult LoadUrl(nsIURI * aURL, nsISupports * aConsumer = nsnull);
+  virtual nsresult LoadUrl(nsIURI * aURL, nsISupports * aConsumer = nullptr);
 
   virtual nsresult SetUrl(nsIURI * aURL); // sometimes we want to set the url before we load it
 
@@ -97,7 +97,7 @@ protected:
 
   nsresult GetTopmostMsgWindow(nsIMsgWindow **aWindow);
 
-  virtual const char* GetType() {return nsnull;}
+  virtual const char* GetType() {return nullptr;}
   nsresult GetQoSBits(PRUint8 *aQoSBits);
 
   // a Protocol typically overrides this method. They free any of their own connection state and then

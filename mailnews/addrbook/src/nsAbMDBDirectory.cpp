@@ -210,7 +210,7 @@ nsresult nsAbMDBDirectory::NotifyItemChanged(nsISupports *item)
   nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = abManager->NotifyItemPropertyChanged(item, nsnull, nsnull, nsnull);
+  rv = abManager->NotifyItemPropertyChanged(item, nullptr, nullptr, nullptr);
   NS_ENSURE_SUCCESS(rv,rv);
   return rv;
 }
@@ -258,7 +258,7 @@ NS_IMETHODIMP nsAbMDBDirectory::ClearDatabase()
   if (mDatabase)
   {
     mDatabase->RemoveListener(this);
-    mDatabase = nsnull; 
+    mDatabase = nullptr; 
   }
   return NS_OK; 
 }
@@ -278,7 +278,7 @@ NS_IMETHODIMP nsAbMDBDirectory::RemoveElementsFromAddressList()
     for (i = count - 1; i >= 0; i--)
       m_AddressList->RemoveElementAt(i);
   }
-  m_AddressList = nsnull;
+  m_AddressList = nullptr;
   return NS_OK;
 }
 
@@ -549,7 +549,7 @@ NS_IMETHODIMP nsAbMDBDirectory::HasCard(nsIAbCard *cards, bool *hasCard)
 
   if (mIsQueryURI)
   {
-    *hasCard = mSearchCache.Get(cards, nsnull);
+    *hasCard = mSearchCache.Get(cards, nullptr);
     return NS_OK;
   }
 
@@ -856,7 +856,7 @@ NS_IMETHODIMP nsAbMDBDirectory::OnListEntryChange
       rv = list->GetDirName(listName);
       NS_ENSURE_SUCCESS(rv,rv);
 
-      rv = NotifyPropertyChanged(list, "DirName", nsnull, listName.get());
+      rv = NotifyPropertyChanged(list, "DirName", nullptr, listName.get());
       NS_ENSURE_SUCCESS(rv,rv);
     }
   }
@@ -1063,7 +1063,7 @@ NS_IMETHODIMP nsAbMDBDirectory::GetCardFromProperty(const char *aProperty,
   NS_ENSURE_ARG(aProperty);
   NS_ENSURE_ARG_POINTER(result);
 
-  *result = nsnull;
+  *result = nullptr;
 
   // If the value is empty, don't match.
   if (aValue.IsEmpty())
@@ -1092,7 +1092,7 @@ NS_IMETHODIMP nsAbMDBDirectory::GetCardsFromProperty(const char *aProperty,
   NS_ENSURE_ARG(aProperty);
   NS_ENSURE_ARG_POINTER(result);
 
-  *result = nsnull;
+  *result = nullptr;
 
   if (aValue.IsEmpty())
     return NS_OK;

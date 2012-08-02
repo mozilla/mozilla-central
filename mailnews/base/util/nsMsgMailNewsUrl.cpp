@@ -29,7 +29,7 @@
 nsMsgMailNewsUrl::nsMsgMailNewsUrl()
 {
   // nsIURI specific state
-  m_errorMessage = nsnull;
+  m_errorMessage = nullptr;
   m_runningUrl = false;
   m_updatingFolder = false;
   m_addContentToCache = false;
@@ -181,7 +181,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetServer(nsIMsgIncomingServer ** aIncomingServe
 NS_IMETHODIMP nsMsgMailNewsUrl::GetMsgWindow(nsIMsgWindow **aMsgWindow)
 {
   NS_ENSURE_ARG_POINTER(aMsgWindow);
-  *aMsgWindow = nsnull;
+  *aMsgWindow = nullptr;
   
   nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
   msgWindow.swap(*aMsgWindow);
@@ -201,7 +201,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetStatusFeedback(nsIMsgStatusFeedback **aMsgFee
 {
   // note: it is okay to return a null status feedback and not return an error
   // it's possible the url really doesn't have status feedback
-  *aMsgFeedback = nsnull;
+  *aMsgFeedback = nullptr;
   if (!m_statusFeedbackWeak)
   {
     nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
@@ -237,7 +237,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::SetMaxProgress(PRInt64 aMaxProgress)
 
 NS_IMETHODIMP nsMsgMailNewsUrl::GetLoadGroup(nsILoadGroup **aLoadGroup)
 {
-  *aLoadGroup = nsnull;
+  *aLoadGroup = nullptr;
   // note: it is okay to return a null load group and not return an error
   // it's possible the url really doesn't have load group
   nsCOMPtr<nsILoadGroup> loadGroup (do_QueryReferent(m_loadGroupWeak));
@@ -544,7 +544,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::Clone(nsIURI **_retval)
   NS_ENSURE_TRUE(ioService, NS_ERROR_UNEXPECTED);
   rv = GetSpec(urlSpec);
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = ioService->NewURI(urlSpec, nsnull, nsnull, _retval);
+  rv = ioService->NewURI(urlSpec, nullptr, nullptr, _retval);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // add the msg window to the cloned url
@@ -704,7 +704,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl:: GetMemCacheEntry(nsICacheEntryDescriptor **memC
   }
   else
   {
-    *memCacheEntry = nsnull;
+    *memCacheEntry = nullptr;
     return NS_ERROR_NULL_POINTER;
   }
 

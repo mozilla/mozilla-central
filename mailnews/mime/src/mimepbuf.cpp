@@ -80,13 +80,13 @@ MimePartBufferClose (MimePartBufferData *data)
   if (data->input_file_stream)
   {
     data->input_file_stream->Close();
-    data->input_file_stream = nsnull;
+    data->input_file_stream = nullptr;
   }
 
   if (data->output_file_stream)
   {
     data->output_file_stream->Close();
-    data->output_file_stream = nsnull;
+    data->output_file_stream = nullptr;
   }
 }
 
@@ -103,19 +103,19 @@ MimePartBufferReset (MimePartBufferData *data)
   if (data->input_file_stream)
   {
     data->input_file_stream->Close();
-    data->input_file_stream = nsnull;
+    data->input_file_stream = nullptr;
   }
 
   if (data->output_file_stream)
   {
     data->output_file_stream->Close();
-    data->output_file_stream = nsnull;
+    data->output_file_stream = nullptr;
   }
 
   if (data->file_buffer)
   {
     data->file_buffer->Remove(false);
-    data->file_buffer = nsnull;
+    data->file_buffer = nullptr;
   }
 }
 

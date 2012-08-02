@@ -88,7 +88,7 @@
 #define DOMAIN_DELIMITER                           ','
 
 #ifdef MSGCOMP_TRACE_PERFORMANCE
-static PRLogModuleInfo *MsgComposeLogModule = nsnull;
+static PRLogModuleInfo *MsgComposeLogModule = nullptr;
 
 static PRUint32 GetMessageSizeFromURI(const char * originalMsgURI)
 {
@@ -120,7 +120,7 @@ nsMsgComposeService::nsMsgComposeService()
 #endif
 
   mMaxRecycledWindows = 0;
-  mCachedWindows = nsnull;
+  mCachedWindows = nullptr;
 }
 
 NS_IMPL_ISUPPORTS4(nsMsgComposeService,
@@ -179,7 +179,7 @@ void nsMsgComposeService::Reset()
   {
     DeleteCachedWindows();
     delete [] mCachedWindows;
-    mCachedWindows = nsnull;
+    mCachedWindows = nullptr;
     mMaxRecycledWindows = 0;
   }
 
@@ -419,7 +419,7 @@ nsMsgComposeService::GetOrigWindowSelection(MSG_ComposeType type, nsIMsgWindow *
 
   nsCOMPtr<nsIDocShellTreeItem> childAsItem;
   rv = rootDocShellAsNode->FindChildWithName(NS_LITERAL_STRING("messagepane").get(),
-                                             true, false, nsnull, nsnull, getter_AddRefs(childAsItem));
+                                             true, false, nullptr, nullptr, getter_AddRefs(childAsItem));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIDocShell> docShell(do_QueryInterface(childAsItem, &rv));
@@ -697,7 +697,7 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
   } // if we had a url...
 
   // if we got here we must have encountered an error
-  *aParams = nsnull;
+  *aParams = nullptr;
   return NS_ERROR_FAILURE;
 }
 
@@ -742,7 +742,7 @@ NS_IMETHODIMP
 nsMsgComposeService::GetDefaultIdentity(nsIMsgIdentity **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
-  *_retval = nsnull;
+  *_retval = nullptr;
 
   nsresult rv;
   nsCOMPtr<nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
@@ -984,12 +984,12 @@ NS_IMETHODIMP nsMsgTemplateReplyHelper::OnStopRunningUrl(nsIURI *aUrl, nsresult 
 
   /** initialize nsIMsgCompose, Send the message, wait for send completion response **/
 
-  rv = pMsgCompose->Initialize(pMsgComposeParams, parentWindow, nsnull);
+  rv = pMsgCompose->Initialize(pMsgComposeParams, parentWindow, nullptr);
   NS_ENSURE_SUCCESS(rv,rv);
 
   Release();
 
-  return pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, identity, nsnull, nsnull, nsnull) ;
+  return pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, identity, nullptr, nullptr, nullptr) ;
 }
 
 NS_IMETHODIMP
@@ -1142,7 +1142,7 @@ NS_IMETHODIMP nsMsgComposeService::ReplyWithTemplate(nsIMsgDBHdr *aMsgHdr, const
   rv = msgService->StreamMessage(templateMsgHdrUri.get(), listenerSupports,
                                  aMsgWindow, helper,
                                  false, // convert data
-                                 EmptyCString(), false, nsnull);
+                                 EmptyCString(), false, nullptr);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgFolder> folder;
@@ -1236,10 +1236,10 @@ nsMsgComposeService::ForwardMessage(const nsAString &forwardTo,
   NS_ENSURE_SUCCESS(rv, rv);
 
   /** initialize nsIMsgCompose, Send the message, wait for send completion response **/
-  rv = pMsgCompose->Initialize(pMsgComposeParams, parentWindow, nsnull);
+  rv = pMsgCompose->Initialize(pMsgComposeParams, parentWindow, nullptr);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, identity, nsnull, nsnull, nsnull);
+  rv = pMsgCompose->SendMsg(nsIMsgSend::nsMsgDeliverNow, identity, nullptr, nullptr, nullptr);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // nsMsgCompose::ProcessReplyFlags usually takes care of marking messages
@@ -1297,7 +1297,7 @@ nsresult nsMsgComposeService::ShowCachedComposeWindow(nsIDOMWindow *aComposeWind
       rv = windowMediator->RegisterWindow(aXULWindow);
       NS_ENSURE_SUCCESS(rv,rv);
 
-      obs->NotifyObservers(aXULWindow, "xul-window-registered", nsnull);
+      obs->NotifyObservers(aXULWindow, "xul-window-registered", nullptr);
     }
 
     // hide (show) the cached window
@@ -1310,7 +1310,7 @@ nsresult nsMsgComposeService::ShowCachedComposeWindow(nsIDOMWindow *aComposeWind
       rv = windowMediator->UnregisterWindow(aXULWindow);
       NS_ENSURE_SUCCESS(rv,rv);
 
-      obs->NotifyObservers(aXULWindow, "xul-window-destroyed", nsnull);
+      obs->NotifyObservers(aXULWindow, "xul-window-destroyed", nullptr);
     }
   }
   else {
@@ -1590,17 +1590,17 @@ nsMsgComposeService::RunMessageThroughMimeDraft(
   }
 
   nsCOMPtr<nsIChannel> channel;
-  rv = NS_NewInputStreamChannel(getter_AddRefs(channel), url, nsnull);
+  rv = NS_NewInputStreamChannel(getter_AddRefs(channel), url, nullptr);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIStreamConverter> converter = do_QueryInterface(mimeConverter);
-  rv = converter->AsyncConvertData(nsnull, nsnull, nsnull, channel);
+  rv = converter->AsyncConvertData(nullptr, nullptr, nullptr, channel);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Now, just plug the two together and get the hell out of the way!
   nsCOMPtr<nsIStreamListener> streamListener = do_QueryInterface(mimeConverter);
   return messageService->DisplayMessage(PromiseFlatCString(aMsgURI).get(), streamListener,
-                                        aMsgWindow, nsnull, mailCharset.get(), nsnull);;
+                                        aMsgWindow, nullptr, mailCharset.get(), nullptr);;
 }
 
 NS_IMETHODIMP
@@ -1679,7 +1679,7 @@ nsMsgComposeService::Handle(nsICommandLine* aCmdLine)
       arg->SetData(uristr);
 
     nsCOMPtr<nsIDOMWindow> opened;
-    wwatch->OpenWindow(nsnull, DEFAULT_CHROME, "_blank",
+    wwatch->OpenWindow(nullptr, DEFAULT_CHROME, "_blank",
                        "chrome,dialog=no,all", arg, getter_AddRefs(opened));
 
     aCmdLine->SetPreventDefault(true);

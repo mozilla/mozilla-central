@@ -71,7 +71,7 @@ nsresult nsVCardAddress::ImportAddresses(
       rv = ab->EscapedVCardToAbCard(record.get(), getter_AddRefs(cardFromVCard));
       NS_ENSURE_SUCCESS(rv, rv);
 
-      rv = pDb->CreateNewCardAndAddToDB(cardFromVCard, false, nsnull);
+      rv = pDb->CreateNewCardAndAddToDB(cardFromVCard, false, nullptr);
       NS_ENSURE_SUCCESS(rv, rv);
 
       if (NS_FAILED(rv)) {

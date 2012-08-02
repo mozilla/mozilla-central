@@ -30,18 +30,18 @@ nsMsgSendPart::nsMsgSendPart(nsIMsgSend* state, const char *part_charset)
 {
   PL_strncpy(m_charset_name, (part_charset ? part_charset : "us-ascii"), sizeof(m_charset_name)-1);
   m_charset_name[sizeof(m_charset_name)-1] = '\0';
-  m_children = nsnull;
+  m_children = nullptr;
   m_numchildren = 0;
   // if we're not added as a child, the default part number will be "1".
   m_partNum = "1";
   SetMimeDeliveryState(state);
 
-  m_parent = nsnull;
-  m_buffer = nsnull;
-  m_type = nsnull;
-  m_other = nsnull;
+  m_parent = nullptr;
+  m_buffer = nullptr;
+  m_type = nullptr;
+  m_other = nullptr;
   m_strip_sensitive_headers = false;
-  m_encoder_data = nsnull;
+  m_encoder_data = nullptr;
   
   m_firstBlock = false;
   m_needIntlConversion = false;
@@ -55,7 +55,7 @@ nsMsgSendPart::~nsMsgSendPart()
 {
   if (m_encoder_data) {
     MIME_EncoderDestroy(m_encoder_data, false);
-    m_encoder_data = nsnull;
+    m_encoder_data = nullptr;
   }
   for (int i=0 ; i < m_numchildren; i++)
     delete m_children[i];
@@ -159,7 +159,7 @@ int nsMsgSendPart::AddChild(nsMsgSendPart* child)
 {
   m_numchildren++;
   nsMsgSendPart** tmp = new nsMsgSendPart* [m_numchildren];
-  if (tmp == nsnull) return NS_ERROR_OUT_OF_MEMORY;
+  if (tmp == nullptr) return NS_ERROR_OUT_OF_MEMORY;
   for (int i=0 ; i<m_numchildren-1 ; i++) {
     tmp[i] = m_children[i];
   }
@@ -176,7 +176,7 @@ int nsMsgSendPart::AddChild(nsMsgSendPart* child)
 
 nsMsgSendPart * nsMsgSendPart::DetachChild(PRInt32 whichOne)
 {
-  nsMsgSendPart *returnValue = nsnull;
+  nsMsgSendPart *returnValue = nullptr;
   
   NS_ASSERTION(whichOne >= 0 && whichOne < m_numchildren, "parameter out of range");
   if (whichOne >= 0 && whichOne < m_numchildren) 
@@ -186,7 +186,7 @@ nsMsgSendPart * nsMsgSendPart::DetachChild(PRInt32 whichOne)
     if (m_numchildren > 1)
     {
       nsMsgSendPart** tmp = new nsMsgSendPart* [m_numchildren-1];
-      if (tmp != nsnull) 
+      if (tmp != nullptr) 
       {
         // move all the other kids over
         for (int i=0 ; i<m_numchildren-1 ; i++) 
@@ -204,13 +204,13 @@ nsMsgSendPart * nsMsgSendPart::DetachChild(PRInt32 whichOne)
     else 
     {
       delete [] m_children;
-      m_children = nsnull;
+      m_children = nullptr;
       m_numchildren = 0;
     }
   }
   
   if (returnValue)
-    returnValue->m_parent = nsnull;
+    returnValue->m_parent = nullptr;
   
   return returnValue;
 }
@@ -221,7 +221,7 @@ nsMsgSendPart* nsMsgSendPart::GetChild(PRInt32 which)
   if (which >= 0 && which < m_numchildren) {
     return m_children[which];
   }
-  return nsnull;
+  return nullptr;
 }
 
 
@@ -441,7 +441,7 @@ int
 nsMsgSendPart::Write()
 {
   int     status = 0;
-  char    *separator = nsnull;
+  char    *separator = nullptr;
   bool    needToWriteCRLFAfterEncodedBody  = false;
 
 #define PUSHLEN(str, length)                  \
@@ -466,7 +466,7 @@ nsMsgSendPart::Write()
     {
       // The "insert HTML links" code requires a memory buffer,
       // so read the file into memory.
-      NS_ASSERTION(m_buffer == nsnull, "not-null buffer");
+      NS_ASSERTION(m_buffer == nullptr, "not-null buffer");
       PRInt32           length = 0;
       PRInt64 fileSize;
       if (NS_SUCCEEDED(m_file->GetFileSize(&fileSize)))
@@ -736,7 +736,7 @@ nsMsgSendPart::Write()
   if (m_encoder_data)
   {
     nsresult rv  = MIME_EncoderDestroy(m_encoder_data, false);
-    m_encoder_data = nsnull;
+    m_encoder_data = nullptr;
     needToWriteCRLFAfterEncodedBody = !m_parent;
     if (NS_FAILED(rv))
     {

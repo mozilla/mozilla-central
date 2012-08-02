@@ -54,7 +54,7 @@ nsProfileMigrator::Migrate(nsIProfileStartup* aStartup, const nsACString& aKey)
   params->AppendElement(aStartup, false);
 
   nsCOMPtr<nsIDOMWindow> migrateWizard;
-  return ww->OpenWindow(nsnull,
+  return ww->OpenWindow(nullptr,
                         MIGRATION_WIZARD_FE_URL,
                         "_blank",
                         MIGRATION_WIZARD_FE_FEATURES,
@@ -128,7 +128,7 @@ nsProfileMigrator::GetDefaultMailMigratorKey(nsACString& aKey, nsCOMPtr<nsIMailP
     mailMigrator->GetSourceExists(&exists);
     if (exists)
     {
-      mailMigrator = nsnull;
+      mailMigrator = nullptr;
       return NS_OK;
     }
   }

@@ -107,7 +107,7 @@ NS_IMETHODIMP nsAbLDAPChangeLogQuery::QueryAuthDN(const nsACString & aValueUsedT
     // XXX We really should be using LDAP_NO_ATTRS here once its exposed via
     // the XPCOM layer of the directory code.
     return mOperation->SearchExt(dn, nsILDAPURL::SCOPE_SUBTREE, filter, 
-                               0, nsnull,
+                               0, nullptr,
                                0, 0);
 }
 

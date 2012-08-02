@@ -261,7 +261,7 @@ morkRowCellCursor::NextCell( // get next cell in the row
   }
   else
   {
-    *acqCell = nsnull;
+    *acqCell = nullptr;
     pos = -1;
   }
  if ( outPos )

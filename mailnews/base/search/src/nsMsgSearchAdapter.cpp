@@ -95,7 +95,7 @@ NS_IMETHODIMP nsMsgSearchAdapter::ClearScope()
   if (m_scope)
   {
     m_scope->CloseInputStream();
-    m_scope = nsnull;
+    m_scope = nullptr;
   }
   return NS_OK;
 }
@@ -150,7 +150,7 @@ NS_IMETHODIMP nsMsgSearchAdapter::AddHit(nsMsgKey key)
 char *
 nsMsgSearchAdapter::GetImapCharsetParam(const PRUnichar *destCharset)
 {
-  char *result = nsnull;
+  char *result = nullptr;
 
   // Specify a character set unless we happen to be US-ASCII.
   if (NS_strcmp(destCharset, NS_LITERAL_STRING("us-ascii").get()))
@@ -167,7 +167,7 @@ nsMsgSearchAdapter::GetImapCharsetParam(const PRUnichar *destCharset)
 */
 PRUnichar *nsMsgSearchAdapter::EscapeSearchUrl (const PRUnichar *nntpCommand)
 {
-  return nntpCommand ? NS_strdup(nntpCommand) : nsnull;
+  return nntpCommand ? NS_strdup(nntpCommand) : nullptr;
 }
 
 /*
@@ -179,7 +179,7 @@ PRUnichar *nsMsgSearchAdapter::EscapeSearchUrl (const PRUnichar *nntpCommand)
 PRUnichar *
 nsMsgSearchAdapter::EscapeImapSearchProtocol(const PRUnichar *imapCommand)
 {
-  return imapCommand ? NS_strdup(imapCommand) : nsnull;
+  return imapCommand ? NS_strdup(imapCommand) : nullptr;
 }
 
 /*
@@ -191,7 +191,7 @@ nsMsgSearchAdapter::EscapeImapSearchProtocol(const PRUnichar *imapCommand)
 PRUnichar *
 nsMsgSearchAdapter::EscapeQuoteImapSearchProtocol(const PRUnichar *imapCommand)
 {
-  return imapCommand ? NS_strdup(imapCommand) : nsnull;
+  return imapCommand ? NS_strdup(imapCommand) : nullptr;
 }
 
 char *nsMsgSearchAdapter::UnEscapeSearchUrl (const char *commandSpecificData)
@@ -300,10 +300,10 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
   bool useQuotes = false;
   bool ignoreValue = false;
   nsCAutoString arbitraryHeader;
-  const char *whichMnemonic = nsnull;
-  const char *orHeaderMnemonic = nsnull;
+  const char *whichMnemonic = nullptr;
+  const char *orHeaderMnemonic = nullptr;
 
-  *ppOutTerm = nsnull;
+  *ppOutTerm = nullptr;
 
   nsCOMPtr <nsIMsgSearchValue> searchValue;
   nsresult rv = term->GetValue(getter_AddRefs(searchValue));
@@ -451,7 +451,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
       }
     }
 
-    char *value = nsnull;
+    char *value = nullptr;
     char dateBuf[100];
     dateBuf[0] = '\0';
 
@@ -662,7 +662,7 @@ nsresult nsMsgSearchAdapter::EncodeImap (char **ppOutEncoding, nsISupportsArray 
   // the new code generates the same encoding string as the old code.....
 
   nsresult err = NS_OK;
-  *ppOutEncoding = nsnull;
+  *ppOutEncoding = nullptr;
 
   PRUint32 termCount;
   searchTerms->Count(&termCount);
@@ -684,7 +684,7 @@ nsresult nsMsgSearchAdapter::EncodeImap (char **ppOutEncoding, nsISupportsArray 
     if (matchAll)
       continue;
     err = EncodeImapTerm (pTerm, reallyDredd, srcCharset, destCharset, &termEncoding);
-    if (NS_SUCCEEDED(err) && nsnull != termEncoding)
+    if (NS_SUCCEEDED(err) && nullptr != termEncoding)
     {
       expression = nsMsgSearchBoolExpression::AddSearchTerm(expression, pTerm, termEncoding);
       delete [] termEncoding;
@@ -715,10 +715,10 @@ char *nsMsgSearchAdapter::TransformSpacesToStars (const char *spaceString, msg_T
 
   if (transformType == kOverwrite)
   {
-    if ((starString = strdup(spaceString)) != nsnull)
+    if ((starString = strdup(spaceString)) != nullptr)
     {
       char *star = starString;
-      while ((star = PL_strchr(star, ' ')) != nsnull)
+      while ((star = PL_strchr(star, ' ')) != nullptr)
         *star = '*';
     }
   }
@@ -740,7 +740,7 @@ char *nsMsgSearchAdapter::TransformSpacesToStars (const char *spaceString, msg_T
 
     if (count > 0)
     {
-      if ((starString = (char *)PR_Malloc(i + count + 1)) != nsnull)
+      if ((starString = (char *)PR_Malloc(i + count + 1)) != nullptr)
       {
         int j;
 
@@ -955,7 +955,7 @@ NS_IMETHODIMP nsMsgSearchValidityManager::GetTable (int whichTable, nsIMsgSearch
   NS_ENSURE_ARG_POINTER(ppOutTable);
 
   nsresult rv;
-  *ppOutTable = nsnull;
+  *ppOutTable = nullptr;
 
   nsCOMPtr<nsIPrefBranch> pref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   nsCString customHeaders;

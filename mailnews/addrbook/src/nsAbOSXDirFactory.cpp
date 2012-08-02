@@ -22,7 +22,7 @@ nsAbOSXDirFactory::GetDirectories(const nsAString &aDirName,
 {
   NS_ENSURE_ARG_POINTER(aDirectories);
   
-  *aDirectories = nsnull;
+  *aDirectories = nullptr;
 
   nsresult rv;
   nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));

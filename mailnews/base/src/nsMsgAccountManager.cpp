@@ -104,7 +104,7 @@ struct findServerEntry {
       type(aType),
       port(aPort),
       useRealSetting(aUseRealSetting),
-      server(nsnull)
+      server(nullptr)
     {}
 };
 
@@ -235,7 +235,7 @@ nsresult nsMsgAccountManager::Shutdown()
   if (NS_SUCCEEDED(rv) && purgeService)
     purgeService->Shutdown();
 
-  m_msgFolderCache = nsnull;
+  m_msgFolderCache = nullptr;
   m_haveShutdown = true;
   return NS_OK;
 }
@@ -354,10 +354,10 @@ nsMsgAccountManager::getUniqueAccountKey(nsISupportsArray *accounts,
     // by checking which keys exist.
     PRInt32 i = 1;
     findAccountByKeyEntry findEntry;
-    findEntry.account = nsnull;
+    findEntry.account = nullptr;
 
     do {
-      findEntry.account = nsnull;
+      findEntry.account = nullptr;
       aResult = ACCOUNT_PREFIX;
       aResult.AppendInt(i++);
       findEntry.key = aResult.get();
@@ -389,7 +389,7 @@ nsMsgAccountManager::GetIdentity(const nsACString& key, nsIMsgIdentity **_retval
 {
   NS_ENSURE_ARG_POINTER(_retval);
   nsresult rv = NS_OK;
-  *_retval = nsnull;
+  *_retval = nullptr;
 
   if (!key.IsEmpty())
   {
@@ -511,7 +511,7 @@ nsMsgAccountManager::RemoveIncomingServer(nsIMsgIncomingServer *aServer,
 
   // invalidate the FindServer() cache if we are removing the cached server
   if (m_lastFindServerResult == aServer)
-    SetLastServerFound(nsnull, EmptyCString(), EmptyCString(), 0, EmptyCString());
+    SetLastServerFound(nullptr, EmptyCString(), EmptyCString(), 0, EmptyCString());
 
   m_incomingServers.Remove(serverKey);
 
@@ -554,7 +554,7 @@ nsMsgAccountManager::RemoveIncomingServer(nsIMsgIncomingServer *aServer,
   if (notifier)
     notifier->NotifyFolderDeleted(rootFolder);
   if (mailSession)
-    mailSession->OnItemRemoved(nsnull, rootFolder);
+    mailSession->OnItemRemoved(nullptr, rootFolder);
 
   mFolderListeners->EnumerateForwards(removeListenerFromFolder, (void*)rootFolder);
   NotifyServerUnloaded(aServer);
@@ -582,7 +582,7 @@ nsMsgAccountManager::createKeyedServer(const nsACString& key,
                                        nsIMsgIncomingServer ** aServer)
 {
   nsresult rv;
-  *aServer = nsnull;
+  *aServer = nullptr;
 
   //construct the contractid
   nsCAutoString serverContractID(NS_MSGINCOMINGSERVER_CONTRACTID_PREFIX);
@@ -661,7 +661,7 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
 
   // if it's the default, clear the default account
   if (m_defaultAccount.get() == aAccount)
-    SetDefaultAccount(nsnull);
+    SetDefaultAccount(nullptr);
 
   // XXX - need to figure out if this is the last time this server is
   // being used, and only send notification then.
@@ -752,7 +752,7 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount **aDefaultAccount)
   if (!m_defaultAccount) {
     m_accounts->Count(&count);
     if (!count) {
-      *aDefaultAccount = nsnull;
+      *aDefaultAccount = nullptr;
       return NS_ERROR_FAILURE;
     }
 
@@ -852,7 +852,7 @@ nsMsgAccountManager::notifyDefaultServerChange(nsIMsgAccount *aOldAccount,
       mozilla::services::GetObserverService();
 
     if (observerService)
-      observerService->NotifyObservers(nsnull,"mailDefaultAccountChanged",nsnull);
+      observerService->NotifyObservers(nullptr,"mailDefaultAccountChanged",nullptr);
   }
 
   return NS_OK;
@@ -1002,7 +1002,7 @@ hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>
                  inboxFolder->GetFlags(&flags);
                  if (flags & nsMsgFolderFlags::Inbox)
                  {
-                   rv = inboxFolder->Compact(urlListener, nsnull /* msgwindow */);
+                   rv = inboxFolder->Compact(urlListener, nullptr /* msgwindow */);
                    if (NS_SUCCEEDED(rv))
                      accountManager->SetFolderDoingCleanupInbox(inboxFolder);
                    break;
@@ -1013,7 +1013,7 @@ hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>
 
            if (emptyTrashOnExit)
            {
-             rv = folder->EmptyTrash(nsnull, urlListener);
+             rv = folder->EmptyTrash(nullptr, urlListener);
              if (isImap && NS_SUCCEEDED(rv))
                accountManager->SetFolderDoingEmptyTrash(folder);
            }
@@ -1392,7 +1392,7 @@ nsMsgAccountManager::LoadAccounts()
 
     findAccountByKeyEntry entry;
     entry.key = serverKey;
-    entry.account = nsnull;
+    entry.account = nullptr;
 
     m_accounts->EnumerateForwards(findAccountByServerKey, (void *)&entry);
     // If we have an existing account with the same server, ignore this account
@@ -1460,7 +1460,7 @@ nsMsgAccountManager::LoadAccounts()
   {
     findAccountByKeyEntry entry;
     entry.key = localFoldersServerKey;
-    entry.account = nsnull;
+    entry.account = nullptr;
 
     nsCOMPtr<nsIMsgIncomingServer> server;
     rv = GetIncomingServer(localFoldersServerKey, getter_AddRefs(server));
@@ -1584,10 +1584,10 @@ NS_IMETHODIMP
 nsMsgAccountManager::UnloadAccounts()
 {
   // release the default account
-  kDefaultServerAtom = nsnull;
-  mFolderFlagAtom = nsnull;
+  kDefaultServerAtom = nullptr;
+  mFolderFlagAtom = nullptr;
 
-  m_defaultAccount=nsnull;
+  m_defaultAccount=nullptr;
   m_incomingServers.Enumerate(hashUnloadServer, this);
 
   m_accounts->Clear();          // will release all elements
@@ -1595,21 +1595,21 @@ nsMsgAccountManager::UnloadAccounts()
   m_incomingServers.Clear();
   m_accountsLoaded = false;
   mAccountKeyList.Truncate();
-  SetLastServerFound(nsnull, EmptyCString(), EmptyCString(), 0, EmptyCString());
+  SetLastServerFound(nullptr, EmptyCString(), EmptyCString(), 0, EmptyCString());
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsMsgAccountManager::ShutdownServers()
 {
-  m_incomingServers.Enumerate(hashShutdown, nsnull);
+  m_incomingServers.Enumerate(hashShutdown, nullptr);
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsMsgAccountManager::CloseCachedConnections()
 {
-  m_incomingServers.Enumerate(hashCloseCachedConnections, nsnull);
+  m_incomingServers.Enumerate(hashCloseCachedConnections, nullptr);
   return NS_OK;
 }
 
@@ -1621,7 +1621,7 @@ nsMsgAccountManager::CleanupOnExit()
   if (m_shutdownInProgress)
     return NS_OK;
   m_shutdownInProgress = true;
-  m_incomingServers.Enumerate(hashCleanupOnExit, nsnull);
+  m_incomingServers.Enumerate(hashCleanupOnExit, nullptr);
   // Try to do this early on in the shutdown process before
   // necko shuts itself down.
   CloseCachedConnections();
@@ -1680,14 +1680,14 @@ nsMsgAccountManager::GetAccount(const nsACString& key, nsIMsgAccount **_retval)
 
   findAccountByKeyEntry findEntry;
   findEntry.key = key;
-  findEntry.account = nsnull;
+  findEntry.account = nullptr;
 
   m_accounts->EnumerateForwards(findAccountByKey, (void *)&findEntry);
 
   if (findEntry.account)
     NS_ADDREF(*_retval = findEntry.account);
   else
-    *_retval = nsnull;
+    *_retval = nullptr;
 
   // not found, create on demand
   return NS_OK;
@@ -1791,7 +1791,7 @@ NS_IMETHODIMP nsMsgAccountManager::NotifyServerUnloaded(nsIMsgIncomingServer *se
   NS_ENSURE_ARG_POINTER(server);
 
   PRInt32 count = m_incomingServerListeners.Count();
-  server->SetFilterList(nsnull); // clear this to cut shutdown leaks. we are always passing valid non-null server here.
+  server->SetFilterList(nullptr); // clear this to cut shutdown leaks. we are always passing valid non-null server here.
 
   for(PRInt32 i = 0; i < count; i++)
   {
@@ -1917,7 +1917,7 @@ nsMsgAccountManager::FindRealServer(const nsACString& username,
                                     PRInt32 port,
                                     nsIMsgIncomingServer** aResult)
 {
-  *aResult = nsnull;
+  *aResult = nullptr;
   findServerInternal(username, hostname, type, port, true, aResult);
   return NS_OK;
 }
@@ -1959,7 +1959,7 @@ nsMsgAccountManager::FindAccountForServer(nsIMsgIncomingServer *server,
 
   if (!server)
   {
-    (*aResult) = nsnull;
+    (*aResult) = nullptr;
     return NS_OK;
   }
 
@@ -1971,7 +1971,7 @@ nsMsgAccountManager::FindAccountForServer(nsIMsgIncomingServer *server,
 
   findAccountByKeyEntry entry;
   entry.key = key;
-  entry.account = nsnull;
+  entry.account = nullptr;
 
   m_accounts->EnumerateForwards(findAccountByServerKey, (void *)&entry);
 
@@ -2060,7 +2060,7 @@ nsMsgAccountManager::GetFirstIdentityForServer(nsIMsgIncomingServer *aServer, ns
     identity.swap(*aIdentity);
   }
   else
-    *aIdentity = nsnull;
+    *aIdentity = nullptr;
   return rv;
 }
 
@@ -2484,7 +2484,7 @@ nsMsgAccountManager::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
             PR_CNotifyAll(m_folderDoingCleanupInbox);
             m_cleanupInboxInProgress = false;
             PR_CExitMonitor(m_folderDoingCleanupInbox);
-            m_folderDoingCleanupInbox=nsnull;   //reset to nsnull
+            m_folderDoingCleanupInbox=nullptr;   //reset to nullptr
           }
           break;
         case nsIImapUrl::nsImapDeleteAllMsgs:
@@ -2494,7 +2494,7 @@ nsMsgAccountManager::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
             PR_CNotifyAll(m_folderDoingEmptyTrash);
             m_emptyTrashInProgress = false;
             PR_CExitMonitor(m_folderDoingEmptyTrash);
-            m_folderDoingEmptyTrash = nsnull;  //reset to nsnull;
+            m_folderDoingEmptyTrash = nullptr;  //reset to nullptr;
           }
           break;
         default:
@@ -2554,7 +2554,7 @@ nsMsgAccountManager::SaveAccountInfo()
   nsresult rv;
   nsCOMPtr<nsIPrefService> pref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv,rv);
-  return pref->SavePrefFile(nsnull);
+  return pref->SavePrefFile(nullptr);
 }
 
 NS_IMETHODIMP
@@ -3054,7 +3054,7 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
         if (Substring(buffer, 0, 4).Equals("uri="))
         {
           buffer.Cut(0, 4);
-          dbFolderInfo = nsnull;
+          dbFolderInfo = nullptr;
 
           rv = rdf->GetResource(buffer, getter_AddRefs(resource));
           NS_ENSURE_SUCCESS(rv, rv);
@@ -3305,7 +3305,7 @@ nsresult nsMsgAccountManager::AddVFListenersForVF(nsIMsgFolder *virtualFolder,
     dbListener->m_folderWatching = realFolder;
     if (NS_FAILED(dbListener->Init()))
     {
-      dbListener = nsnull;
+      dbListener = nullptr;
       continue;
     }
     m_virtualFolderListeners.AppendElement(dbListener);
@@ -3573,8 +3573,8 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemRemoved(nsIMsgFolder *parentItem, nsISu
         // if saved search is empty now, delete it.
         if (searchURI.IsEmpty())
         {
-          db = nsnull;
-          dbFolderInfo = nsnull;
+          db = nullptr;
+          dbFolderInfo = nullptr;
 
           nsCOMPtr<nsIMsgFolder> parent;
           rv = savedSearch->GetParent(getter_AddRefs(parent));
@@ -3582,7 +3582,7 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemRemoved(nsIMsgFolder *parentItem, nsISu
 
           if (!parent)
             continue;
-          parent->PropagateDelete(savedSearch, true, nsnull);
+          parent->PropagateDelete(savedSearch, true, nullptr);
         }
         else
         {

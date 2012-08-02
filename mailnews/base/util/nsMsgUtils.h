@@ -94,7 +94,7 @@ NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
  * 
  * @note This API is insane and should be fixed.
  */
-NS_MSG_BASE bool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubject=nsnull);
+NS_MSG_BASE bool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubject=nullptr);
 
 NS_MSG_BASE char * NS_MsgSACopy(char **destination, const char *source);
 
@@ -120,12 +120,12 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
                                           const char *dirServiceProp, // Can be NULL
                                           bool& gotRelPref,
                                           nsIFile **aFile,
-                                          nsIPrefBranch *prefBranch = nsnull);
+                                          nsIPrefBranch *prefBranch = nullptr);
 
 NS_MSG_BASE nsresult NS_SetPersistentFile(const char *relPrefName,
                                           const char *absPrefName,
                                           nsIFile *aFile,
-                                          nsIPrefBranch *prefBranch = nsnull);
+                                          nsIPrefBranch *prefBranch = nullptr);
 
 NS_MSG_BASE nsresult IsRFC822HeaderFieldName(const char *aHdr, bool *aResult);
 

@@ -380,7 +380,7 @@ BuildSearchElements(nsIAbBooleanExpression *aExpression,
   NS_ASSERTION(count > 1 && operation != nsIAbBooleanOperationTypes::NOT,
                "This doesn't make sense!");
   
-  NSMutableArray *array = nsnull;
+  NSMutableArray *array = nullptr;
   if (count > 1)
     array = [[NSMutableArray alloc] init];
   
@@ -388,7 +388,7 @@ BuildSearchElements(nsIAbBooleanExpression *aExpression,
   nsCOMPtr<nsIAbBooleanConditionString> condition;
   nsCOMPtr<nsIAbBooleanExpression> subExpression;
   for (i = 0; i < count; ++i) {
-    ABSearchElement *element = nsnull;
+    ABSearchElement *element = nullptr;
     
     condition = do_QueryElementAt(expressions, i);
     if (condition) {
@@ -445,7 +445,7 @@ Search(nsIAbBooleanExpression *aExpression, NSArray **aResult)
 }
 
 static PRUint32 sObserverCount = 0;
-static ABChangedMonitor *sObserver = nsnull;
+static ABChangedMonitor *sObserver = nullptr;
 
 nsAbOSXDirectory::nsAbOSXDirectory()
 {
@@ -1015,7 +1015,7 @@ nsAbOSXDirectory::GetCardFromProperty(const char *aProperty,
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
-  *aResult = nsnull;
+  *aResult = nullptr;
 
   if (aValue.IsEmpty())
     return NS_OK;
@@ -1063,7 +1063,7 @@ nsAbOSXDirectory::GetCardsFromProperty(const char *aProperty,
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
-  *aResult = nsnull;
+  *aResult = nullptr;
 
   if (aValue.IsEmpty())
     return NS_NewEmptyEnumerator(aResult);
@@ -1111,7 +1111,7 @@ nsAbOSXDirectory::CardForEmailAddress(const nsACString &aEmailAddress,
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
-  *aResult = nsnull;
+  *aResult = nullptr;
 
   if (aEmailAddress.IsEmpty())
     return NS_OK;

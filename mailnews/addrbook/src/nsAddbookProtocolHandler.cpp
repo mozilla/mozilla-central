@@ -131,7 +131,7 @@ nsAddbookProtocolHandler::NewChannel(nsIURI *aURI, nsIChannel **_retval)
       nsCOMPtr<nsIAsyncOutputStream> pipeOut;
       nsCOMPtr<nsIPipe> pipe = do_CreateInstance("@mozilla.org/pipe;1");
       
-      rv = pipe->Init(false, false, 0, 0, nsnull);
+      rv = pipe->Init(false, false, 0, 0, nullptr);
       NS_ENSURE_SUCCESS(rv, rv);
 
       pipe->GetInputStream(getter_AddRefs(pipeIn));
@@ -252,7 +252,7 @@ nsAddbookProtocolHandler::BuildDirectoryXML(nsIAbDirectory *aDirectory,
   nsString sortColumn;
   nsCOMPtr <nsIAbView> view = do_CreateInstance("@mozilla.org/addressbook/abview;1", &rv);
   
-  view->SetView(aDirectory, nsnull, NS_LITERAL_STRING("GeneratedName"),
+  view->SetView(aDirectory, nullptr, NS_LITERAL_STRING("GeneratedName"),
                 NS_LITERAL_STRING("ascending"), sortColumn);
 
   PRInt32 numRows;

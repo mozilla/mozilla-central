@@ -38,12 +38,12 @@ static NS_DEFINE_CID(kCImapHostSessionListCID, NS_IIMAPHOSTSESSIONLIST_CID);
 
 nsImapUrl::nsImapUrl() : mLock("nsImapUrl.mLock")
 {
-  m_listOfMessageIds = nsnull;
-  m_sourceCanonicalFolderPathSubString = nsnull;
-  m_destinationCanonicalFolderPathSubString = nsnull;
-  m_listOfMessageIds = nsnull;
-  m_tokenPlaceHolder = nsnull;
-  m_searchCriteriaString = nsnull;
+  m_listOfMessageIds = nullptr;
+  m_sourceCanonicalFolderPathSubString = nullptr;
+  m_destinationCanonicalFolderPathSubString = nullptr;
+  m_listOfMessageIds = nullptr;
+  m_tokenPlaceHolder = nullptr;
+  m_searchCriteriaString = nullptr;
   m_idsAreUids = false;
   m_mimePartSelectorDetected = false;
   m_allowContentChange = true;  // assume we can do MPOD.
@@ -62,10 +62,10 @@ nsImapUrl::nsImapUrl() : mLock("nsImapUrl.mLock")
   m_onlineSubDirSeparator = '/';
 
   // ** jt - the following are not ref counted
-  m_copyState = nsnull;
-  m_file = nsnull;
-  m_imapMailFolderSink = nsnull;
-  m_imapMessageSink = nsnull;
+  m_copyState = nullptr;
+  m_file = nullptr;
+  m_imapMailFolderSink = nullptr;
+  m_imapMessageSink = nullptr;
   m_addDummyEnvelope = false;
   m_canonicalLineEnding = false;
 }
@@ -246,7 +246,7 @@ NS_IMETHODIMP nsImapUrl::CreateSearchCriteriaString(char ** aResult)
 {
   // this method should only be called from the imap thread...
   // o.t. add lock protection..
-  if (nsnull == aResult || !m_searchCriteriaString)
+  if (nullptr == aResult || !m_searchCriteriaString)
     return  NS_ERROR_NULL_POINTER;
   *aResult = strdup(m_searchCriteriaString);
   return NS_OK;
@@ -713,11 +713,11 @@ void nsImapUrl::ParseImapPart(char *imapPartOfUrl)
       // if we're not adding a keyword, m_tokenPlaceHolder will now look like >keywordToSubtract>
       // and strtok will leave flagsPtr pointing to keywordToSubtract. So detect this
       // case and only set the customSubtractFlags.
-      char *flagsPtr = m_tokenPlaceHolder ? NS_strtok(IMAP_URL_TOKEN_SEPARATOR, &m_tokenPlaceHolder) : (char *)nsnull;
+      char *flagsPtr = m_tokenPlaceHolder ? NS_strtok(IMAP_URL_TOKEN_SEPARATOR, &m_tokenPlaceHolder) : (char *)nullptr;
       if (addKeyword)
       {
         m_customAddFlags.Assign(flagsPtr);
-        flagsPtr = m_tokenPlaceHolder ? NS_strtok(IMAP_URL_TOKEN_SEPARATOR, &m_tokenPlaceHolder) : (char *)nsnull;
+        flagsPtr = m_tokenPlaceHolder ? NS_strtok(IMAP_URL_TOKEN_SEPARATOR, &m_tokenPlaceHolder) : (char *)nullptr;
       }
       m_customSubtractFlags.Assign(flagsPtr);
     }
@@ -735,7 +735,7 @@ NS_IMETHODIMP nsImapUrl::AddOnlineDirectoryIfNecessary(const char *onlineMailbox
 {
   nsresult rv;
   nsString onlineDirString;
-  char *newOnlineName = nsnull;
+  char *newOnlineName = nullptr;
 
   nsCOMPtr<nsIImapHostSessionList> hostSessionList =
     do_GetService(kCImapHostSessionListCID, &rv);
@@ -744,7 +744,7 @@ NS_IMETHODIMP nsImapUrl::AddOnlineDirectoryIfNecessary(const char *onlineMailbox
   nsCAutoString onlineDir;
   LossyCopyUTF16toASCII(onlineDirString, onlineDir);
 
-  nsIMAPNamespace *ns = nsnull;
+  nsIMAPNamespace *ns = nullptr;
   rv = hostSessionList->GetNamespaceForMailboxForHost(m_serverKey.get(),
                                                       onlineMailboxName, ns);
   if (!ns)
@@ -830,7 +830,7 @@ NS_IMETHODIMP nsImapUrl::AllocateServerPath(const char * canonicalPath, char onl
 
   if (delimiterToUse != '/')
     UnescapeSlashes(rv);
-  char *onlineNameAdded = nsnull;
+  char *onlineNameAdded = nullptr;
   AddOnlineDirectoryIfNecessary(rv, &onlineNameAdded);
   if (onlineNameAdded)
   {
@@ -941,7 +941,7 @@ NS_IMETHODIMP nsImapUrl::AllocateCanonicalPath(const char *serverPath, char onli
 {
   nsresult rv = NS_ERROR_NULL_POINTER;
   char delimiterToUse = onlineDelimiter;
-  char *serverKey = nsnull;
+  char *serverKey = nullptr;
   nsString aString;
   char *currentPath = (char *) serverPath;
   nsCAutoString onlineDir;
@@ -950,7 +950,7 @@ NS_IMETHODIMP nsImapUrl::AllocateCanonicalPath(const char *serverPath, char onli
   nsCOMPtr<nsIImapHostSessionList> hostSessionList =
     do_GetService(kCImapHostSessionListCID, &rv);
 
-  *allocatedPath = nsnull;
+  *allocatedPath = nullptr;
 
   if (onlineDelimiter == kOnlineHierarchySeparatorUnknown ||
     onlineDelimiter == 0)
@@ -1150,7 +1150,7 @@ NS_IMETHODIMP nsImapUrl::GetMockChannel(nsIImapMockChannel ** aChannel)
 {
   NS_ENSURE_ARG_POINTER(aChannel);
   NS_WARN_IF_FALSE(NS_IsMainThread(), "should only access mock channel on ui thread");
-  *aChannel = nsnull;
+  *aChannel = nullptr;
   nsCOMPtr<nsIImapMockChannel> channel(do_QueryReferent(m_channelWeakPtr));
   channel.swap(*aChannel);
   return *aChannel ? NS_OK : NS_ERROR_FAILURE;
@@ -1196,7 +1196,7 @@ NS_IMETHODIMP nsImapUrl::GetUri(char** aURI)
     *aURI = ToNewCString(mURI);
   else
   {
-    *aURI = nsnull;
+    *aURI = nullptr;
     PRUint32 key = m_listOfMessageIds ? atoi(m_listOfMessageIds) : 0;
     nsCString canonicalPath;
     AllocateCanonicalPath(m_sourceCanonicalFolderPathSubString, m_onlineSubDirSeparator, (getter_Copies(canonicalPath)));
@@ -1319,7 +1319,7 @@ void nsImapUrl::ParseFolderPath(char **resultingCanonicalPath)
     m_validUrl = false;
     return;
   }
-  NS_ASSERTION(*resultingCanonicalPath == nsnull, "whoops, mem leak");
+  NS_ASSERTION(*resultingCanonicalPath == nullptr, "whoops, mem leak");
 
   char dirSeparator = *resultPath;
 
@@ -1425,7 +1425,7 @@ void nsImapUrl::ParseListOfMessageIds()
 
 void nsImapUrl::ParseCustomMsgFetchAttribute()
 {
-  m_msgFetchAttribute = m_tokenPlaceHolder ? NS_strtok(IMAP_URL_TOKEN_SEPARATOR, &m_tokenPlaceHolder) : (char *)nsnull;
+  m_msgFetchAttribute = m_tokenPlaceHolder ? NS_strtok(IMAP_URL_TOKEN_SEPARATOR, &m_tokenPlaceHolder) : (char *)nullptr;
 }
 
 void nsImapUrl::ParseNumBytes()
@@ -1481,7 +1481,7 @@ NS_IMETHODIMP nsImapUrl::GetCharsetOverRide(char ** aCharacterSet)
   if (!mCharsetOverride.IsEmpty())
     *aCharacterSet = ToNewCString(mCharsetOverride);
   else
-    *aCharacterSet = nsnull;
+    *aCharacterSet = nullptr;
   return NS_OK;
 }
 

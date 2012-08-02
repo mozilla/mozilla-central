@@ -374,7 +374,7 @@ NS_IMETHODIMP nsMsgMaildirStore::RenameFolder(nsIMsgFolder *aFolder,
   aFolder->ForceDBClosed();
 
   // rename folder
-  rv = oldPathFile->MoveTo(nsnull, safeName);
+  rv = oldPathFile->MoveTo(nullptr, safeName);
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (numChildren > 0)
@@ -382,12 +382,12 @@ NS_IMETHODIMP nsMsgMaildirStore::RenameFolder(nsIMsgFolder *aFolder,
     // rename "*.sbd" directory
     nsAutoString sbdName = safeName;
     sbdName += NS_LITERAL_STRING(FOLDER_SUFFIX);
-    sbdPathFile->MoveTo(nsnull, sbdName);
+    sbdPathFile->MoveTo(nullptr, sbdName);
   }
 
   // rename summary
   safeName += NS_LITERAL_STRING(SUMMARY_SUFFIX);
-  oldSummaryFile->MoveTo(nsnull, safeName);
+  oldSummaryFile->MoveTo(nullptr, safeName);
 
   nsCOMPtr<nsIMsgFolder> parentFolder;
   rv = aFolder->GetParent(getter_AddRefs(parentFolder));
@@ -517,7 +517,7 @@ NS_IMETHODIMP nsMsgMaildirStore::CopyFolder(nsIMsgFolder *aSrcFolder,
 
     nsCOMPtr<nsIMsgFolder> msgParent;
     aSrcFolder->GetParent(getter_AddRefs(msgParent));
-    aSrcFolder->SetParent(nsnull);
+    aSrcFolder->SetParent(nullptr);
     if (msgParent)
     {
       // The files have already been moved, so delete storage false
@@ -550,7 +550,7 @@ NS_IMETHODIMP nsMsgMaildirStore::CopyFolder(nsIMsgFolder *aSrcFolder,
       nsCOMPtr<nsIMsgFolder> msgParent;
       newMsgFolder->ForceDBClosed();
       newMsgFolder->GetParent(getter_AddRefs(msgParent));
-      newMsgFolder->SetParent(nsnull);
+      newMsgFolder->SetParent(nullptr);
       if (msgParent)
       {
         msgParent->PropagateDelete(newMsgFolder, false, aMsgWindow);
@@ -949,7 +949,7 @@ nsMsgMaildirStore::CopyMessages(bool aIsMove, nsIArray *aHdrArray,
     for (PRUint32 i = 0; i < messageCount; ++i)
     {
       nsCOMPtr<nsIMsgDBHdr> msgDBHdr(do_QueryElementAt(aHdrArray, i, &rv));
-      rv = srcDB->DeleteHeader(msgDBHdr, nsnull, false, true);
+      rv = srcDB->DeleteHeader(msgDBHdr, nullptr, false, true);
     }
   }
   *aCopyDone = true;
@@ -1038,7 +1038,7 @@ nsresult MaildirStoreParser::ParseNextMessage(nsIFile *aFile)
     msgParser->SetState(nsIMsgParseMailMsgState::ParseHeadersState);
     msgParser->SetEnvelopePos(0);
     bool needMoreData = false;
-    char * newLine = nsnull;
+    char * newLine = nullptr;
     PRUint32 numBytesInLine = 0;
     // we only have to read the headers, because we know the message size
     // from the file size. So we can do this in one time slice.

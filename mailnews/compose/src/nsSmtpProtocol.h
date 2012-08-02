@@ -81,7 +81,7 @@ public:
     nsSmtpProtocol(nsIURI * aURL);
     virtual ~nsSmtpProtocol();
 
-    virtual nsresult LoadUrl(nsIURI * aURL, nsISupports * aConsumer = nsnull);
+    virtual nsresult LoadUrl(nsIURI * aURL, nsISupports * aConsumer = nullptr);
     virtual nsresult SendData(const char * dataBuffer, bool aSuppressLogging = false);
 
     ////////////////////////////////////////////////////////////////////////////////////////

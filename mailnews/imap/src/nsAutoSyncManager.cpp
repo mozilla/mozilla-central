@@ -264,7 +264,7 @@ void nsAutoSyncManager::StopTimer()
   if (mTimer)
   {
     mTimer->Cancel();
-    mTimer = nsnull;
+    mTimer = nullptr;
   }
 }
 
@@ -431,7 +431,7 @@ nsAutoSyncManager::SearchQForSibling(const nsCOMArray<nsIAutoSyncState> &aQueue,
       }
     }
   }
-  return nsnull;  
+  return nullptr;  
 }
 
 /**
@@ -469,7 +469,7 @@ nsAutoSyncManager::GetNextSibling(const nsCOMArray<nsIAutoSyncState> &aQueue,
       }
     }
   }
-  return nsnull;  
+  return nullptr;  
 }
 
 /** 
@@ -489,7 +489,7 @@ bool nsAutoSyncManager::DoesQContainAnySiblingOf(const nsCOMArray<nsIAutoSyncSta
                                                    const PRInt32 aState, PRInt32 *aIndex)
 {
   if (aState == -1)
-    return (nsnull != SearchQForSibling(aQueue, aAutoSyncStateObj, 0, aIndex));
+    return (nullptr != SearchQForSibling(aQueue, aAutoSyncStateObj, 0, aIndex));
     
   PRInt32 offset = 0;
   nsIAutoSyncState *autoSyncState;
@@ -505,7 +505,7 @@ bool nsAutoSyncManager::DoesQContainAnySiblingOf(const nsCOMArray<nsIAutoSyncSta
   if (aIndex)
     *aIndex = offset;
     
-  return (nsnull != autoSyncState);
+  return (nullptr != autoSyncState);
 }
 
 /**
@@ -570,7 +570,7 @@ NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const
     if (mTimer)
     {
        mTimer->Cancel();
-       mTimer = nsnull;
+       mTimer = nullptr;
     }
     // unsubscribe from idle service
     if (mIdleService)
@@ -1040,7 +1040,7 @@ nsresult nsAutoSyncManager::HandleDownloadErrorFor(nsIAutoSyncState *aAutoSyncSt
   {
     // switch to the next folder in the chain and continue downloading
     nsIAutoSyncState *autoSyncStateObj = aAutoSyncStateObj;
-    nsIAutoSyncState *nextAutoSyncStateObj = nsnull;
+    nsIAutoSyncState *nextAutoSyncStateObj = nullptr;
     while ( (nextAutoSyncStateObj = GetNextSibling(mPriorityQ, autoSyncStateObj)) )
     {
       autoSyncStateObj = nextAutoSyncStateObj;
@@ -1265,7 +1265,7 @@ nsAutoSyncManager::OnDownloadCompleted(nsIAutoSyncState *aAutoSyncStateObj, nsre
   rv = autoSyncStateObj->GetPendingMessageCount(&count);
   NS_ENSURE_SUCCESS(rv, rv);
   
-  nsIAutoSyncState *nextFolderToDownload = nsnull;
+  nsIAutoSyncState *nextFolderToDownload = nullptr;
   if (count > 0)
   {
     autoSyncStateObj->SetState(nsAutoSyncState::stReadyToDownload);

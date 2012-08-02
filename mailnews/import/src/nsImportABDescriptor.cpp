@@ -15,7 +15,7 @@ NS_METHOD nsImportABDescriptor::Create(nsISupports *aOuter, REFNSIID aIID, void 
     return NS_ERROR_NO_AGGREGATION;
 
   nsImportABDescriptor *it = new nsImportABDescriptor();
-  if (it == nsnull)
+  if (it == nullptr)
     return NS_ERROR_OUT_OF_MEMORY;
 
   NS_ADDREF(it);

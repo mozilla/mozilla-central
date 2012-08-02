@@ -188,7 +188,7 @@ mime_locate_external_content_handler(const char *content_type,
                                      contentTypeHandlerInitStruct  *ctHandlerInfo)
 {
   if (!content_type || !*(content_type)) // null or empty content type
-    return nsnull;
+    return nullptr;
 
   MimeObjectClass               *newObj = NULL;
   nsresult rv;
@@ -203,22 +203,22 @@ mime_locate_external_content_handler(const char *content_type,
     nsCOMPtr<nsICategoryManager> catman =
       do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
     if (NS_FAILED(rv))
-      return nsnull;
+      return nullptr;
 
     nsCString value;
     rv = catman->GetCategoryEntry(NS_SIMPLEMIMECONVERTERS_CATEGORY,
                                   content_type, getter_Copies(value));
     if (NS_FAILED(rv) || value.IsEmpty())
-      return nsnull;
+      return nullptr;
     rv = MIME_NewSimpleMimeConverterStub(content_type,
                                          getter_AddRefs(ctHandler));
     if (NS_FAILED(rv) || !ctHandler)
-      return nsnull;
+      return nullptr;
   }
 
   rv = ctHandler->CreateContentTypeHandlerClass(content_type, ctHandlerInfo, &newObj);
   if (NS_FAILED(rv))
-    return nsnull;
+    return nullptr;
 
   add_content_type_attribs(content_type, ctHandlerInfo);
   return newObj;
@@ -367,7 +367,7 @@ bool mime_is_allowed_class(const MimeObjectClass *clazz,
 
 void getMsgHdrForCurrentURL(MimeDisplayOptions *opts, nsIMsgDBHdr ** aMsgHdr)
 {
-  *aMsgHdr = nsnull;
+  *aMsgHdr = nullptr;
 
   if (!opts)
     return;
@@ -735,9 +735,9 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
              || !PL_strcasecmp(content_type, APPLICATION_PKCS7_MIME)) {
         char *ct = (hdrs ? MimeHeaders_get(hdrs, HEADER_CONTENT_TYPE,
                                            false, false)
-                           : nsnull);
+                           : nullptr);
         char *st = (ct ? MimeHeaders_get_parameter(ct, "smime-type", NULL, NULL)
-                         : nsnull);
+                         : nullptr);
 
         /* by default, assume that it is an encrypted message */
         clazz = (MimeObjectClass *)&mimeEncryptedCMSClass;
@@ -752,7 +752,7 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
         else {
           /* look at the file extension... less reliable, but still covered
              by the S/MIME specification (RFC 3851, section 3.2.1)  */
-          char *name = (hdrs ? MimeHeaders_get_name(hdrs, opts) : nsnull);
+          char *name = (hdrs ? MimeHeaders_get_name(hdrs, opts) : nullptr);
           if (name) {
             char *suf = PL_strrchr(name, '.');
             if (suf &&
@@ -870,7 +870,7 @@ mime_create (const char *content_type, MimeHeaders *hdrs,
       // appledouble isn't a valid override content type, and makes
       // attachments invisible.
       if (!PL_strcasecmp(override_content_type, MULTIPART_APPLEDOUBLE))
-        override_content_type = nsnull;
+        override_content_type = nullptr;
       PR_FREEIF(name);
 
       // Workaroung for saving '.eml" file encoded with base64.
@@ -883,7 +883,7 @@ mime_create (const char *content_type, MimeHeaders *hdrs,
                                        HEADER_CONTENT_TRANSFER_ENCODING,
                                        true, false));
         if (encoding.EqualsLiteral(ENCODING_BASE64))
-          override_content_type = nsnull;
+          override_content_type = nullptr;
       }
 
       // If we get here and it is not the unknown content type from the
@@ -969,7 +969,7 @@ mime_create (const char *content_type, MimeHeaders *hdrs,
       else
       {
         /* If there's a name, then write this as an attachment. */
-        char *name = (hdrs ? MimeHeaders_get_name(hdrs, opts) : nsnull);
+        char *name = (hdrs ? MimeHeaders_get_name(hdrs, opts) : nullptr);
         if (name)
         {
           clazz = (MimeObjectClass *)&mimeExternalObjectClass;
@@ -1836,7 +1836,7 @@ MimeObject_output_init(MimeObject *obj, const char *content_type)
         }
 
         if (!(obj->options->override_charset)) {
-          char *charset = MimeHeaders_get_parameter(ct, "charset", nsnull, nsnull);
+          char *charset = MimeHeaders_get_parameter(ct, "charset", nullptr, nullptr);
           if (charset)
           {
             PR_FREEIF(obj->options->default_charset);
@@ -1883,7 +1883,7 @@ char *
 mime_get_base_url(const char *url)
 {
   if (!url)
-    return nsnull;
+    return nullptr;
 
   const char *s = strrchr(url, '?');
   if (s && !strncmp(s, "?type=application/x-message-display", sizeof("?type=application/x-message-display") - 1))
@@ -1901,7 +1901,7 @@ mime_get_base_url(const char *url)
   char *result = (char *) PR_MALLOC(strlen(url) + 1);
   NS_ASSERTION(result, "out of memory");
   if (!result)
-    return nsnull;
+    return nullptr;
 
   memcpy(result, url, s - url);
   result[s - url] = 0;

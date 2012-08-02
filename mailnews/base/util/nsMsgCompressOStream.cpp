@@ -9,7 +9,7 @@
 #define BUFFER_SIZE 16384
 
 nsMsgCompressOStream::nsMsgCompressOStream() :
-  m_zbuf(nsnull)
+  m_zbuf(nullptr)
 {
 }
 
@@ -54,10 +54,10 @@ NS_IMETHODIMP nsMsgCompressOStream::Close()
 {
   if (m_oStream)
   {
-    m_oStream = nsnull;
+    m_oStream = nullptr;
     deflateEnd(&m_zstream);
   }
-  m_zbuf = nsnull;
+  m_zbuf = nullptr;
 
   return NS_OK;
 }

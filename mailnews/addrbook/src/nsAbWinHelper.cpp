@@ -254,7 +254,7 @@ nsAbWinHelper::nsAbWinHelper(void)
 nsAbWinHelper::~nsAbWinHelper(void)
 {
   if (!--mUseCount)
-    mMutex = nsnull;
+    mMutex = nullptr;
   MOZ_COUNT_DTOR(nsAbWinHelper) ;
 }
 

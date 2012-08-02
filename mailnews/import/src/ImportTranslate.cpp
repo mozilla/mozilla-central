@@ -100,6 +100,6 @@ nsImportTranslator *ImportTranslate::GetMatchingTranslator(const char *pCharSet)
     return new CSJis2JisTranslator;
 */
 
-  return nsnull;
+  return nullptr;
 }
 

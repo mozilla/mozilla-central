@@ -177,8 +177,8 @@ MimeInlineText_finalize (MimeObject *obj)
   obj->clazz->parse_eof (obj, false);
   obj->clazz->parse_end (obj, false);
 
-  text->inputDecoder = nsnull;
-  text->utf8Encoder = nsnull;
+  text->inputDecoder = nullptr;
+  text->utf8Encoder = nullptr;
   PR_FREEIF(text->charset);
 
   /* Should have been freed by parse_eof, but just in case... */
@@ -227,7 +227,7 @@ MimeInlineText_parse_eof (MimeObject *obj, bool abort_p)
     {
       //we haven't find charset yet? Do it before return
       if (text->inputAutodetect)
-        status = MimeInlineText_open_dam(nsnull, 0, obj);
+        status = MimeInlineText_open_dam(nullptr, 0, obj);
 
       obj->closed_p = true;
       return status;
@@ -236,7 +236,7 @@ MimeInlineText_parse_eof (MimeObject *obj, bool abort_p)
 
   //we haven't find charset yet? now its the time
   if (text->inputAutodetect)
-     status = MimeInlineText_open_dam(nsnull, 0, obj);
+     status = MimeInlineText_open_dam(nullptr, 0, obj);
  
   return ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_eof (obj, abort_p);
 }
@@ -365,13 +365,13 @@ MimeInlineText_convert_and_parse_line(char *line, PRInt32 length, MimeObject *ob
   }
 
   //initiate decoder if not yet
-  if (text->inputDecoder == nsnull)
+  if (text->inputDecoder == nullptr)
     MIME_get_unicode_decoder(text->charset, getter_AddRefs(text->inputDecoder));
   // If no decoder found, use ""UTF-8"", that will map most non-US-ASCII chars as invalid
   // A pure-ASCII only decoder would be better, but there is none
-  if (text->inputDecoder == nsnull)
+  if (text->inputDecoder == nullptr)
     MIME_get_unicode_decoder("UTF-8", getter_AddRefs(text->inputDecoder));
-  if (text->utf8Encoder == nsnull)
+  if (text->utf8Encoder == nullptr)
     MIME_get_unicode_encoder("UTF-8", getter_AddRefs(text->utf8Encoder));
 
   bool useInputCharsetConverter = obj->options->m_inputCharsetToUnicodeDecoder && !PL_strcasecmp(text->charset, obj->options->charsetForCachedInputDecoder.get());
@@ -419,7 +419,7 @@ static int
 MimeInlineText_open_dam(char *line, PRInt32 length, MimeObject *obj)
 {
   MimeInlineText *text = (MimeInlineText *) obj;
-  const char* detectedCharset = nsnull;
+  const char* detectedCharset = nullptr;
   nsresult res = NS_OK;
   int status = 0;
   PRInt32 i;
@@ -464,8 +464,8 @@ MimeInlineText_open_dam(char *line, PRInt32 length, MimeObject *obj)
 
   PR_Free(text->lineDamPtrs);
   PR_Free(text->lineDamBuffer);
-  text->lineDamPtrs = nsnull;
-  text->lineDamBuffer = nsnull;
+  text->lineDamPtrs = nullptr;
+  text->lineDamBuffer = nullptr;
   text->inputAutodetect = false;
 
   return status;

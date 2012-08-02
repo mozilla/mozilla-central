@@ -402,7 +402,7 @@ NS_IMETHODIMP nsAbDirProperty::SetDirPrefId(const nsACString &aDirPrefId)
     m_DirPrefId.Assign(aDirPrefId);
     // Clear the directory pref branch so that it is re-initialized next
     // time its required.
-    m_DirectoryPrefs = nsnull;
+    m_DirectoryPrefs = nullptr;
   }
   return NS_OK;
 }

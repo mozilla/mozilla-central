@@ -20,7 +20,7 @@ nsSuiteDirectoryProvider::GetFile(const char *aKey,
   // NOTE: This function can be reentrant through the NS_GetSpecialDirectory
   // call, so be careful not to cause infinite recursion.
   // i.e. the check for supported files must come first.
-  const char* leafName = nsnull;
+  const char* leafName = nullptr;
 
   if (!strcmp(aKey, NS_APP_BOOKMARKS_50_FILE))
     leafName = "bookmarks.html";
@@ -104,7 +104,7 @@ NS_IMPL_ISUPPORTS1(nsSuiteDirectoryProvider::AppendingEnumerator,
 NS_IMETHODIMP
 nsSuiteDirectoryProvider::AppendingEnumerator::HasMoreElements(bool *aResult)
 {
-  *aResult = mNext != nsnull;
+  *aResult = mNext != nullptr;
   return NS_OK;
 }
 
@@ -129,7 +129,7 @@ nsSuiteDirectoryProvider::AppendingEnumerator::GetNext()
       return;
   }
 
-  mNext = nsnull;
+  mNext = nullptr;
 }
 
 NS_IMETHODIMP
@@ -138,7 +138,7 @@ nsSuiteDirectoryProvider::AppendingEnumerator::GetNext(nsISupports* *aResult)
   NS_ENSURE_ARG_POINTER(aResult);
 
   if (!mNext) {
-    *aResult = nsnull;
+    *aResult = nullptr;
     return NS_ERROR_FAILURE;
   }
 

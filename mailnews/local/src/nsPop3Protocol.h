@@ -262,7 +262,7 @@ public:
   NS_DECL_NSIMSGASYNCPROMPTLISTENER
 
   nsresult Initialize(nsIURI * aURL);
-  virtual nsresult LoadUrl(nsIURI *aURL, nsISupports * aConsumer = nsnull);
+  virtual nsresult LoadUrl(nsIURI *aURL, nsISupports * aConsumer = nullptr);
   void Cleanup();
 
   const char* GetUsername() { return m_username.get(); }

@@ -135,7 +135,7 @@ MimeEncrypted_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
    the child of this object. */
 
   if (enc->decoder_data)
-  return MimeDecoderWrite (enc->decoder_data, buffer, size, nsnull);
+  return MimeDecoderWrite (enc->decoder_data, buffer, size, nullptr);
   else
   return ((MimeEncryptedClass *)obj->clazz)->parse_decoded_buffer (buffer,
                                    size,
@@ -439,7 +439,7 @@ MimeEncrypted_emit_buffered_child(MimeObject *obj)
       obj->options->generate_post_header_html_fn &&
       !obj->options->state->post_header_html_run_p)
     {
-      MimeHeaders *outer_headers = nsnull;
+      MimeHeaders *outer_headers = nullptr;
       MimeObject *p;
       for (p = obj; p->parent; p = p->parent)
         outer_headers = p->headers;

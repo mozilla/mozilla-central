@@ -50,7 +50,7 @@ MacGetFileType(nsIFile   *fs,
   FSCatalogInfo catalogInfo;
   OSErr err = errFileOpen;
   if (NS_SUCCEEDED(macFile->GetFSRef(&fsRef)))
-    err = ::FSGetCatalogInfo(&fsRef, kFSCatInfoFinderInfo, &catalogInfo, nsnull, nsnull, nsnull);
+    err = ::FSGetCatalogInfo(&fsRef, kFSCatInfoFinderInfo, &catalogInfo, nullptr, nullptr, nullptr);
 
   if ( (err != noErr) || (((FileInfo*)(&catalogInfo.finderInfo))->fileType == 'TEXT') )
     *fileType = strdup(APPLICATION_OCTET_STREAM);

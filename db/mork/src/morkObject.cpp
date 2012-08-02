@@ -62,7 +62,7 @@ morkObject::morkObject(const morkUsage& inUsage, nsIMdbHeap* ioHeap,
 : morkBead(inUsage, ioHeap, inBeadColor)
 , mObject_Handle( 0 )
 {
-  mMorkEnv = nsnull;
+  mMorkEnv = nullptr;
 }
 
 /*public non-poly*/

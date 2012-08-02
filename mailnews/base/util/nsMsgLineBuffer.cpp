@@ -253,7 +253,7 @@ nsMsgLineStreamBuffer::nsMsgLineStreamBuffer(PRUint32 aBufferSize, bool aAllocat
            : m_eatCRLFs(aEatCRLFs), m_allocateNewLines(aAllocateNewLines), m_lineToken(aLineToken)
 {
   NS_PRECONDITION(aBufferSize > 0, "invalid buffer size!!!");
-  m_dataBuffer = nsnull;
+  m_dataBuffer = nullptr;
   m_startPos = 0;
     m_numBytesInBuffer = 0;
 
@@ -306,14 +306,14 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
   // initialize out values
   aPauseForMoreData = false;
   aNumBytesInLine = 0;
-  char * endOfLine = nsnull;
+  char * endOfLine = nullptr;
   char * startOfLine = m_dataBuffer+m_startPos;
   
   if (m_numBytesInBuffer > 0) // any data in our internal buffer?
     endOfLine = PL_strchr(startOfLine, m_lineToken); // see if we already have a line ending...
   
   // it's possible that we got here before the first time we receive data from the server
-  // so aInputStream will be nsnull...
+  // so aInputStream will be nullptr...
   if (!endOfLine && aInputStream) // get some more data from the server
   {
     nsresult rv;
@@ -327,7 +327,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
       if (prv)
         *prv = rv;
       aNumBytesInLine = -1;
-      return nsnull;
+      return nullptr;
     }
     if (!nonBlockingStream && numBytesInStream == 0) // if no data available,
       numBytesInStream = m_dataBufferSize / 2; // ask for half the data buffer size.
@@ -356,7 +356,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
         nsresult rv = GrowBuffer(m_dataBufferSize + growBy);
         // if we can't grow the buffer, we have to bail.
         if (NS_FAILED(rv))
-          return nsnull;
+          return nullptr;
         startOfLine = m_dataBuffer;
         numFreeBytesInBuffer += growBy;
       }
@@ -403,7 +403,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
     {
       aNumBytesInLine = 0;
       aPauseForMoreData = true;
-      return nsnull;
+      return nullptr;
     }
     
     memcpy(newLine, startOfLine, aNumBytesInLine); // copy the string into the new line buffer
@@ -427,7 +427,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
   }
   
   aPauseForMoreData = true;
-  return nsnull; // if we somehow got here. we don't have another line in the buffer yet...need to wait for more data...
+  return nullptr; // if we somehow got here. we don't have another line in the buffer yet...need to wait for more data...
 }
 
 bool nsMsgLineStreamBuffer::NextLineAvailable()

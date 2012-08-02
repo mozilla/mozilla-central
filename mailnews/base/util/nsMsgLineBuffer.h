@@ -89,7 +89,7 @@ public:
   // aEndOfLinetoken -- delimiter used to denote the end of a line.
   // aNumBytesInLine -- The number of bytes in the line returned
   // aPauseForMoreData -- There is not enough data in the stream to make a line at this time...
-  char * ReadNextLine(nsIInputStream * aInputStream, PRUint32 &anumBytesInLine, bool &aPauseForMoreData, nsresult *rv = nsnull, bool addLineTerminator = false);
+  char * ReadNextLine(nsIInputStream * aInputStream, PRUint32 &anumBytesInLine, bool &aPauseForMoreData, nsresult *rv = nullptr, bool addLineTerminator = false);
   nsresult GrowBuffer(PRInt32 desiredSize);
   void ClearBuffer();
   bool NextLineAvailable();

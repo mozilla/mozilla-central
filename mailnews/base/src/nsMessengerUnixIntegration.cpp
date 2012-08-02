@@ -483,8 +483,8 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
     return;
 
   nsCOMPtr<nsIWeakReference> weakReference;
-  nsCOMPtr<nsIMsgFolder> folder = nsnull;
-  nsCOMPtr<nsIMsgFolder> folderWithNewMail = nsnull;
+  nsCOMPtr<nsIMsgFolder> folder = nullptr;
+  nsCOMPtr<nsIMsgFolder> folderWithNewMail = nullptr;
 
   PRUint32 i;
   for (i = 0; i < count && !folderWithNewMail; i++)
@@ -557,7 +557,7 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
 
     // Sort the message headers by dateInSeconds, in ascending
     // order
-    newMsgHdrs.Sort(nsMsgDbHdrTimestampComparator, nsnull);
+    newMsgHdrs.Sort(nsMsgDbHdrTimestampComparator, nullptr);
 
     nsString alertBody;
 
@@ -793,7 +793,7 @@ nsresult
 nsMessengerUnixIntegration::GetMRUTimestampForFolder(nsIMsgFolder *aFolder,
                                                      PRUint32 *aLastMRUTime)
 {
-  nsCOMPtr<nsIMsgFolder> rootFolder = nsnull;
+  nsCOMPtr<nsIMsgFolder> rootFolder = nullptr;
   nsresult rv = aFolder->GetRootFolder(getter_AddRefs(rootFolder));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -811,7 +811,7 @@ nsMessengerUnixIntegration::PutMRUTimestampForFolder(nsIMsgFolder *aFolder,
                                                      PRUint32 aLastMRUTime)
 {
   nsresult rv;
-  nsCOMPtr<nsIMsgFolder> rootFolder = nsnull;
+  nsCOMPtr<nsIMsgFolder> rootFolder = nullptr;
   rv = aFolder->GetRootFolder(getter_AddRefs(rootFolder));
   NS_ENSURE_SUCCESS(rv, rv);
 

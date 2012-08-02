@@ -534,7 +534,7 @@ NS_IMETHODIMP nsSpamSettings::GetSpamFolderURI(char **aSpamFolderURI)
   // search by URI - if we find a junk folder, use its URI.
   nsCOMPtr<nsIMsgFolder> junkFolder;
   folderURI.Append("/Junk");
-  if (NS_SUCCEEDED(server->GetMsgFolderFromURI(nsnull, folderURI,
+  if (NS_SUCCEEDED(server->GetMsgFolderFromURI(nullptr, folderURI,
                                                getter_AddRefs(junkFolder))) &&
       junkFolder)
     junkFolder->GetURI(folderURI);
@@ -570,7 +570,7 @@ NS_IMETHODIMP nsSpamSettings::GetServerFilterName(nsACString &aFilterName)
 NS_IMETHODIMP nsSpamSettings::SetServerFilterName(const nsACString &aFilterName)
 {
   mServerFilterName = aFilterName;
-  mServerFilterFile = nsnull; // clear out our stored location value
+  mServerFilterFile = nullptr; // clear out our stored location value
   return NS_OK;
 }
 
@@ -655,7 +655,7 @@ NS_IMETHODIMP nsSpamSettings::LogJunkHit(nsIMsgDBHdr *aMsgHdr, bool aMoveMessage
       return NS_ERROR_FAILURE;
     }
   }
-  mDateFormatter->FormatPRExplodedTime(nsnull, kDateFormatShort,
+  mDateFormatter->FormatPRExplodedTime(nullptr, kDateFormatShort,
                                       kTimeFormatSeconds, &exploded,
                                       dateValue);
 

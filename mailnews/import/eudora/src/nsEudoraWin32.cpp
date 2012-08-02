@@ -57,7 +57,7 @@ BYTE * nsEudoraWin32::GetValueBytes(HKEY hKey, const char *pValueName)
 
 nsEudoraWin32::nsEudoraWin32()
 {
-  m_pMimeSection = nsnull;
+  m_pMimeSection = nullptr;
 }
 
 nsEudoraWin32::~nsEudoraWin32()
@@ -172,7 +172,7 @@ nsresult nsEudoraWin32::ScanMailDir(nsIFile *pFolder, nsISupportsArray *pArray, 
 {
   bool            exists = false;
   bool            isFile = false;
-  char *          pContents = nsnull;
+  char *          pContents = nullptr;
   PRInt32          len = 0;
   nsCOMPtr<nsIFile>  descMap;
   nsresult        rv;
@@ -450,7 +450,7 @@ nsresult nsEudoraWin32::FoundMailbox(nsIFile *mailFile, const char *pName, nsISu
     desc->SetDisplayName(displayName.get());
     desc->SetDepth(m_depth);
     desc->SetSize(sz);
-    nsCOMPtr <nsIFile> pFile = nsnull;
+    nsCOMPtr <nsIFile> pFile = nullptr;
     desc->GetFile(getter_AddRefs(pFile));
     if (pFile)
     {
@@ -490,7 +490,7 @@ nsresult nsEudoraWin32::FoundMailFolder(nsIFile *mailFolder, const char *pName, 
     desc->SetDisplayName(displayName.get());
     desc->SetDepth(m_depth);
     desc->SetSize(sz);
-    nsCOMPtr <nsIFile> pFile = nsnull;
+    nsCOMPtr <nsIFile> pFile = nullptr;
     desc->GetFile(getter_AddRefs(pFile));
     if (pFile)
     {
@@ -511,7 +511,7 @@ nsresult nsEudoraWin32::FindTOCFile(nsIFile *pMailFile, nsIFile **ppTOCFile, boo
   nsCAutoString  leaf;
 
   *pDeleteToc = false;
-  *ppTOCFile = nsnull;
+  *ppTOCFile = nullptr;
   rv = pMailFile->GetNativeLeafName(leaf);
   if (NS_FAILED(rv))
     return rv;
@@ -587,7 +587,7 @@ bool nsEudoraWin32::ImportSettings(nsIFile *pIniFile, nsIMsgAccount **localMailA
   {
     if (!sectionName.IsEmpty())
     {
-      pAccount = nsnull;
+      pAccount = nullptr;
       valInt = ::GetPrivateProfileInt(sectionName.get(), "UsesPOP", 1, iniPath.get());
       if (valInt)
       {
@@ -792,7 +792,7 @@ void nsEudoraWin32::GetAccountName(const char *pSection, nsString& str)
 bool nsEudoraWin32::BuildPOPAccount(nsIMsgAccountManager *accMgr, const char *pSection, const char *pIni, nsIMsgAccount **ppAccount)
 {
   if (ppAccount)
-    *ppAccount = nsnull;
+    *ppAccount = nullptr;
 
   char valBuff[kIniValueSize];
   nsCString serverName;
@@ -868,7 +868,7 @@ bool nsEudoraWin32::BuildIMAPAccount(nsIMsgAccountManager *accMgr, const char *p
 
   nsCOMPtr<nsIMsgIncomingServer> in;
   nsresult rv = accMgr->FindServer(userName, serverName, NS_LITERAL_CSTRING("imap"), getter_AddRefs(in));
-  if (NS_FAILED(rv) || (in == nsnull))
+  if (NS_FAILED(rv) || (in == nullptr))
   {
     // Create the incoming server and an account for it?
     rv = accMgr->CreateIncomingServer(userName, serverName, NS_LITERAL_CSTRING("imap"), getter_AddRefs(in));
@@ -1511,7 +1511,7 @@ nsresult nsEudoraWin32::ScanAddressDir(nsIFile *pDir, nsISupportsArray *pArray, 
           entry->IsFile(&isFile);
           if (isFile)
           {
-            rv = FoundAddressBook(entry, nsnull, pArray, impSvc);
+            rv = FoundAddressBook(entry, nullptr, pArray, impSvc);
             if (NS_FAILED(rv))
               return rv;
           }

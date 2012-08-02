@@ -104,7 +104,7 @@ bool nsOE5File::IsLocalMailFile(nsIFile *pFile)
 
 bool nsOE5File::ReadIndex(nsIInputStream *pInputStream, PRUint32 **ppIndex, PRUint32 *pSize)
 {
-  *ppIndex = nsnull;
+  *ppIndex = nullptr;
   *pSize = 0;
 
   char    signature[4];

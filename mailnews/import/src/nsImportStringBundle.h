@@ -13,12 +13,12 @@ class nsImportStringBundle
 {
 public:
   static PRUnichar* GetStringByID(PRInt32 aStringID,
-                                  nsIStringBundle *aBundle = nsnull);
+                                  nsIStringBundle *aBundle = nullptr);
   static void GetStringByID(PRInt32 aStringID,
                             nsIStringBundle *aBundle,
                             nsString &aResult);
   static PRUnichar* GetStringByName(const char *aName,
-                                    nsIStringBundle *aBundle = nsnull);
+                                    nsIStringBundle *aBundle = nullptr);
   static void GetStringByName(const char *aName,
                                 nsIStringBundle *aBundle,
                                 nsString &aResult);

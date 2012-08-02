@@ -66,7 +66,7 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
 
   MimeInlineTextHTML  *textHTML = (MimeInlineTextHTML *) obj;
 
-  textHTML->charset = nsnull;
+  textHTML->charset = nullptr;
 
   /* If this HTML part has a Content-Base header, and if we're displaying
    to the screen (that is, not writing this part "raw") then translate
@@ -160,7 +160,7 @@ MimeInlineTextHTML_parse_line (const char *line, PRInt32 length, MimeObject *obj
         // there fore, we ignore them if somehow we got that value
         // 6 == strlen("UTF-16") or strlen("UTF-32"), this will cover
         // UTF-16, UTF-16BE, UTF-16LE, UTF-32, UTF-32BE, UTF-32LE
-        if ((charset != nsnull) &&
+        if ((charset != nullptr) &&
             PL_strncasecmp(charset, "UTF-16", 6) &&
             PL_strncasecmp(charset, "UTF-32", 6))
         {

@@ -112,7 +112,7 @@ void GetMigrateDataFromArray(MigrationData* aDataArray,
 void
 GetProfilePath(nsIProfileStartup* aStartup, nsIFile** aProfileDir)
 {
-  *aProfileDir = nsnull;
+  *aProfileDir = nullptr;
 
   if (aStartup) {
     aStartup->GetDirectory(aProfileDir);

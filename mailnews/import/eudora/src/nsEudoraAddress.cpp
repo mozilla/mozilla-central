@@ -179,7 +179,7 @@ void nsEudoraAddress::ProcessLine(const char *pLine, PRInt32 len, nsString& erro
     if (cnt) {
       pLine += cnt;
       len -= cnt;
-      if ((pEntry = ProcessAlias(pLine, len, errors)) != nsnull)
+      if ((pEntry = ProcessAlias(pLine, len, errors)) != nullptr)
         m_alias.AppendElement(pEntry);
     }
   }
@@ -326,7 +326,7 @@ void nsEudoraAddress::ProcessNote(const char *pLine, PRInt32 len, nsString& erro
     return;
 
   // Find the alias for this note and store the note data there!
-  CAliasEntry *pEntry = nsnull;
+  CAliasEntry *pEntry = nullptr;
   PRInt32  idx = FindAlias(name);
   if (idx == -1)
     return;
@@ -573,7 +573,7 @@ CAliasEntry *nsEudoraAddress::ResolveAlias(nsCString& name)
       return pEntry;
   }
 
-  return nsnull;
+  return nullptr;
 }
 
 void nsEudoraAddress::ResolveEntries(nsCString& name, nsVoidArray& list,
@@ -592,7 +592,7 @@ void nsEudoraAddress::ResolveEntries(nsCString& name, nsVoidArray& list,
         pData = (CAliasData *)list.ElementAt(i);
         // resolve the email to an existing alias!
         if (!name.Equals(pData->m_email, nsCaseInsensitiveCStringComparator()) &&
-             ((pEntry = ResolveAlias(pData->m_fullEntry)) != nsnull)) {
+             ((pEntry = ResolveAlias(pData->m_fullEntry)) != nullptr)) {
             // This new entry has all of the entries for this puppie.
             // Resolve all of it's entries!
             numResolved++;  // Track the number of entries resolved
@@ -761,7 +761,7 @@ void nsEudoraAddress::AddSingleCard(CAliasEntry *pEntry, nsVoidArray &emailList,
   // We always have a nickname and everything else is optional.
   // Map both home and work related fields to our address card. Eudora
   // fields that can't be mapped will be left in the 'note' field!
-  nsIMdbRow* newRow = nsnull;
+  nsIMdbRow* newRow = nullptr;
   pDb->GetNewRow(&newRow);
   if (!newRow)
     return;
@@ -863,7 +863,7 @@ void nsEudoraAddress::AddSingleCard(CAliasEntry *pEntry, nsVoidArray &emailList,
     }
   }
 
-  CAliasData *pData = emailList.Count() ? (CAliasData *)emailList.ElementAt(0) : nsnull;
+  CAliasData *pData = emailList.Count() ? (CAliasData *)emailList.ElementAt(0) : nullptr;
 
   if (pData && !pData->m_realName.IsEmpty())
     displayName = pData->m_realName;

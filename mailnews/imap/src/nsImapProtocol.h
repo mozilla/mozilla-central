@@ -168,7 +168,7 @@ public:
   virtual void AdjustChunkSize();
   virtual void FetchMessage(const nsCString &messageIds, 
     nsIMAPeFetchFields whatToFetch,
-    const char *fetchModifier = nsnull,
+    const char *fetchModifier = nullptr,
     PRUint32 startByte = 0, PRUint32 numBytes = 0,
     char *part = 0);
   void FetchTryChunking(const nsCString &messageIds,
@@ -182,7 +182,7 @@ public:
   // used when streaming a message fetch
   virtual nsresult BeginMessageDownLoad(PRUint32 totalSize, // for user, headers and body
     const char *contentType);     // some downloads are header only
-  virtual void HandleMessageDownLoadLine(const char *line, bool isPartialLine, char *lineCopy=nsnull);
+  virtual void HandleMessageDownLoadLine(const char *line, bool isPartialLine, char *lineCopy=nullptr);
   virtual void NormalMessageEndDownload();
   virtual void AbortMessageDownLoad();
   virtual void PostLineDownLoadEvent(const char *line, PRUint32 uid);
@@ -384,7 +384,7 @@ private:
   virtual bool ProcessCurrentURL();
   void EstablishServerConnection();
   virtual void ParseIMAPandCheckForNewMail(const char* commandString =
-    nsnull, bool ignoreBadNOResponses = false);
+    nullptr, bool ignoreBadNOResponses = false);
   // biff
   void  PeriodicBiff();
   void  SendSetBiffIndicatorEvent(nsMsgBiffState newState);

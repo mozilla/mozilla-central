@@ -67,7 +67,7 @@ nsresult nsProfileMigratorBase::ImportAddressBook(nsIImportModule * aImportModul
   bool importResult;
   bool wantsProgress;
   mGenericImporter->WantsProgress(&wantsProgress);
-  rv = mGenericImporter->BeginImport(nsnull, nsnull, &importResult);
+  rv = mGenericImporter->BeginImport(nullptr, nullptr, &importResult);
 
   if (wantsProgress)
     ContinueImport();
@@ -111,7 +111,7 @@ nsresult nsProfileMigratorBase::ImportMailData(nsIImportModule * aImportModule)
   bool importResult;
   bool wantsProgress;
   mGenericImporter->WantsProgress(&wantsProgress);
-  rv = mGenericImporter->BeginImport(nsnull, nsnull, &importResult);
+  rv = mGenericImporter->BeginImport(nullptr, nullptr, &importResult);
 
   mProcessingMailFolders = true;
 
@@ -155,7 +155,7 @@ nsresult nsProfileMigratorBase::ImportFilters(nsIImportModule * aImportModule)
   }
 
   // migration is now done...notify the UI.
-  NOTIFY_OBSERVERS(MIGRATION_ENDED, nsnull);
+  NOTIFY_OBSERVERS(MIGRATION_ENDED, nullptr);
 
   return rv;
 }

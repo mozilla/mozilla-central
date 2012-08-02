@@ -48,7 +48,7 @@ nsGNOMEShellService::Init()
 
   // Check G_BROKEN_FILENAMES.  If it's set, then filenames in glib use
   // the locale encoding.  If it's not set, they use UTF-8.
-  mUseLocaleFilenames = PR_GetEnv("G_BROKEN_FILENAMES") != nsnull;
+  mUseLocaleFilenames = PR_GetEnv("G_BROKEN_FILENAMES") != nullptr;
 
   nsCOMPtr<nsIFile> appPath;
   rv = NS_GetSpecialDirectory(NS_XPCOM_CURRENT_PROCESS_DIR,

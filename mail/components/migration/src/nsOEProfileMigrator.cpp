@@ -31,7 +31,7 @@ nsOEProfileMigrator::~nsOEProfileMigrator()
 
 nsresult nsOEProfileMigrator::ContinueImport()
 {
-  return Notify(nsnull);
+  return Notify(nullptr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -78,7 +78,7 @@ nsOEProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup, const
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  NOTIFY_OBSERVERS(MIGRATION_STARTED, nsnull);
+  NOTIFY_OBSERVERS(MIGRATION_STARTED, nullptr);
   rv = ImportSettings(mImportModule);
 
   // now import address books
@@ -129,7 +129,7 @@ nsOEProfileMigrator::GetSourceHasMultipleProfiles(bool* aResult)
 NS_IMETHODIMP
 nsOEProfileMigrator::GetSourceProfiles(nsIArray** aResult)
 {
-  *aResult = nsnull;
+  *aResult = nullptr;
   return NS_OK;
 }
 

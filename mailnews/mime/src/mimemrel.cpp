@@ -167,8 +167,8 @@ MimeMultipartRelated_initialize(MimeObject* obj)
 
   if (!relobj->hash) return MIME_OUT_OF_MEMORY;
 
-  relobj->input_file_stream = nsnull;
-  relobj->output_file_stream = nsnull;
+  relobj->input_file_stream = nullptr;
+  relobj->output_file_stream = nullptr;
 
   return ((MimeObjectClass*)&MIME_SUPERCLASS)->initialize(obj);
 }
@@ -209,24 +209,24 @@ MimeMultipartRelated_finalize (MimeObject *obj)
   if (relobj->input_file_stream)
   {
     relobj->input_file_stream->Close();
-    relobj->input_file_stream = nsnull;
+    relobj->input_file_stream = nullptr;
   }
 
   if (relobj->output_file_stream)
   {
     relobj->output_file_stream->Close();
-    relobj->output_file_stream = nsnull;
+    relobj->output_file_stream = nullptr;
   }
 
   if (relobj->file_buffer)
   {
     relobj->file_buffer->Remove(false);
-    relobj->file_buffer = nsnull;
+    relobj->file_buffer = nullptr;
   }
   
   if (relobj->headobj) {
     mime_free(relobj->headobj);
-    relobj->headobj = nsnull;
+    relobj->headobj = nullptr;
   }
 
   ((MimeObjectClass*)&MIME_SUPERCLASS)->finalize(obj);
@@ -378,26 +378,26 @@ MimeThisIsStartPart(MimeObject *obj, MimeObject* child)
 char *
 MakeAbsoluteURL(char *base_url, char *relative_url)
 {
-  char            *retString = nsnull;
-  nsIURI          *base = nsnull;
+  char            *retString = nullptr;
+  nsIURI          *base = nullptr;
 
   // if either is NULL, just return the relative if safe...
   if (!base_url || !relative_url)
   {
     if (!relative_url)
-      return nsnull;
+      return nullptr;
 
     NS_MsgSACopy(&retString, relative_url);
     return retString;
   }
 
-  nsresult err = nsMimeNewURI(&base, base_url, nsnull);
+  nsresult err = nsMimeNewURI(&base, base_url, nullptr);
   if (err != NS_OK)
-    return nsnull;
+    return nullptr;
 
   nsCAutoString spec;
 
-  nsIURI    *url = nsnull;
+  nsIURI    *url = nullptr;
   err = nsMimeNewURI(&url, relative_url, base);
   if (err != NS_OK)
     goto done;
@@ -405,7 +405,7 @@ MakeAbsoluteURL(char *base_url, char *relative_url)
   err = url->GetSpec(spec);
   if (err)
   {
-    retString = nsnull;
+    retString = nullptr;
     goto done;
   }
   retString = ToNewCString(spec);
@@ -485,7 +485,7 @@ MimeMultipartRelated_output_child_p(MimeObject *obj, MimeObject* child)
             part = mime_set_url_imap_part(obj->options->url, imappartnum.get(), partnum.get());
           else
           {
-            char *no_part_url = nsnull;
+            char *no_part_url = nullptr;
             if (obj->options->part_to_load && obj->options->format_out == nsMimeOutput::nsMimeMessageBodyDisplay)
               no_part_url = mime_get_base_url(obj->options->url);
             if (no_part_url)
@@ -739,7 +739,7 @@ real_write(MimeMultipartRelated* relobj, const char* buf, PRInt32 size)
 
     mime_draft_data *mdd = (mime_draft_data *) obj->options->stream_closure;
     MimeDecoderData* old_decoder_data = mdd->decoder_data;
-    mdd->decoder_data = nsnull;
+    mdd->decoder_data = nullptr;
     int status = obj->options->decompose_file_output_fn
                  (buf, size, (void *)mdd);
     mdd->decoder_data = old_decoder_data;
@@ -868,12 +868,12 @@ flush_tag(MimeMultipartRelated* relobj)
 
         /* See if we have a mailbox part URL
            corresponding to this cid. */
-        part_url = nsnull;
-        MimeHashValue * value = nsnull;
+        part_url = nullptr;
+        MimeHashValue * value = nullptr;
         if (absolute)
         {
           value = (MimeHashValue *)PL_HashTableLookup(relobj->hash, buf);
-          part_url = value ? value->m_url : nsnull;
+          part_url = value ? value->m_url : nullptr;
           PR_FREEIF(absolute);
         }
 
@@ -910,7 +910,7 @@ flush_tag(MimeMultipartRelated* relobj)
           value = (MimeHashValue *)PL_HashTableLookup(relobj->hash, absolute);
         else
           value = (MimeHashValue *)PL_HashTableLookup(relobj->hash, buf);
-        realout = value ? value->m_url : nsnull;
+        realout = value ? value->m_url : nullptr;
 
         *ptr2 = holder;
         PR_FREEIF(absolute);

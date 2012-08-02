@@ -97,7 +97,7 @@ nsImapFlagAndUidState::nsImapFlagAndUidState(PRInt32 numberOfMessages)
 nsImapFlagAndUidState::~nsImapFlagAndUidState()
 {
   if (m_customFlagsHash.IsInitialized())
-    m_customFlagsHash.EnumerateRead(FreeCustomFlags, nsnull);
+    m_customFlagsHash.EnumerateRead(FreeCustomFlags, nullptr);
 }
 
 NS_IMETHODIMP
@@ -123,7 +123,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::Reset()
   PR_CEnterMonitor(this);
   fNumberDeleted = 0;
   if (m_customFlagsHash.IsInitialized())
-    m_customFlagsHash.EnumerateRead(FreeCustomFlags, nsnull);
+    m_customFlagsHash.EnumerateRead(FreeCustomFlags, nullptr);
   m_customFlagsHash.Clear();
   fUids.Clear();
   fFlags.Clear();
@@ -248,7 +248,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidCustomFlagPair(PRUint32 uid, const ch
   if (!m_customFlagsHash.IsInitialized())
     return NS_ERROR_OUT_OF_MEMORY;
   char *ourCustomFlags;
-  char *oldValue = nsnull;
+  char *oldValue = nullptr;
   m_customFlagsHash.Get(uid, &oldValue);
   if (oldValue)
   {
@@ -287,7 +287,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::GetCustomFlags(PRUint32 uid, char **customF
   MutexAutoLock mon(mLock);
   if (m_customFlagsHash.IsInitialized())
   {
-    char *value = nsnull;
+    char *value = nullptr;
     m_customFlagsHash.Get(uid, &value);
     if (value)
     {
@@ -295,7 +295,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::GetCustomFlags(PRUint32 uid, char **customF
       return (*customFlags) ? NS_OK : NS_ERROR_FAILURE;
     }
   }
-  *customFlags = nsnull;
+  *customFlags = nullptr;
   return NS_OK;
 }
 

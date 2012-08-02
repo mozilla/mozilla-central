@@ -16,7 +16,7 @@ nsresult logError(PRUnichar const* msg) {
     nsresult rc;
     nsCOMPtr<nsIScriptError> const scriptError(do_CreateInstance("@mozilla.org/scripterror;1", &rc));
     NS_ENSURE_SUCCESS(rc, rc);
-    rc = scriptError->Init(msg, nsnull, nsnull, 0, 0, nsIScriptError::errorFlag, "calendar");
+    rc = scriptError->Init(msg, nullptr, nullptr, 0, 0, nsIScriptError::errorFlag, "calendar");
     return getConsoleService()->LogMessage(scriptError);
 }
 
@@ -24,7 +24,7 @@ nsresult logWarning(PRUnichar const* msg) {
     nsresult rc;
     nsCOMPtr<nsIScriptError> const scriptError(do_CreateInstance("@mozilla.org/scripterror;1", &rc));
     NS_ENSURE_SUCCESS(rc, rc);
-    rc = scriptError->Init(msg, nsnull, nsnull, 0, 0, nsIScriptError::warningFlag, "calendar");
+    rc = scriptError->Init(msg, nullptr, nullptr, 0, 0, nsIScriptError::warningFlag, "calendar");
     return getConsoleService()->LogMessage(scriptError);
 }
 
@@ -66,10 +66,10 @@ void logMissingTimezone(char const* tzid) {
 }
 
 icaltimezone * getIcalTimezone(calITimezone * tz) {
-    icaltimezone * icaltz = nsnull;
+    icaltimezone * icaltz = nullptr;
     if (!tz) {
         NS_ASSERTION(false, "No Timezone passed to getIcalTimezone");
-        return nsnull;
+        return nullptr;
     }
 
     bool b;

@@ -110,8 +110,8 @@ nsresult nsSimpleZipper::AddToZip(nsIZipWriter *aZipWriter,
 // Class implementation...
 //
 nsMsgAttachmentHandler::nsMsgAttachmentHandler() :
-  mRequest(nsnull),
-  mCompFields(nsnull),   // Message composition fields for the sender
+  mRequest(nullptr),
+  mCompFields(nullptr),   // Message composition fields for the sender
   m_bogus_attachment(false),
   m_done(false),
   m_already_encoded_p(false),
@@ -138,7 +138,7 @@ nsMsgAttachmentHandler::nsMsgAttachmentHandler() :
   m_file_analyzed(false),
 
   // Mime
-  m_encoder_data(nsnull)
+  m_encoder_data(nullptr)
 {
 }
 
@@ -159,7 +159,7 @@ nsMsgAttachmentHandler::CleanupTempFile()
 #ifdef XP_MACOSX
   if (mEncodedWorkingFile) {
     mEncodedWorkingFile->Remove(false);
-    mEncodedWorkingFile = nsnull;
+    mEncodedWorkingFile = nullptr;
   }
 #endif // XP_MACOSX
 }
@@ -447,9 +447,9 @@ FetcherURLDoneCallback(nsresult aStatus,
                        const PRUnichar* aMsg, void *tagData)
 {
   nsMsgAttachmentHandler *ma = (nsMsgAttachmentHandler *) tagData;
-  NS_ASSERTION(ma != nsnull, "not-null mime attachment");
+  NS_ASSERTION(ma != nullptr, "not-null mime attachment");
 
-  if (ma != nsnull)
+  if (ma != nullptr)
   {
     ma->m_size = totalSize;
     if (!aContentType.IsEmpty())
@@ -545,8 +545,8 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
       {
         mimeConverter->SetMimeOutputType(nsMimeOutput::nsMimeMessageDecrypt);
         mimeConverter->SetForwardInline(false);
-        mimeConverter->SetIdentity(nsnull);
-        mimeConverter->SetOriginalMsgURI(nsnull);
+        mimeConverter->SetIdentity(nullptr);
+        mimeConverter->SetOriginalMsgURI(nullptr);
       }
 
       nsCOMPtr<nsIStreamListener> convertedListener = do_QueryInterface(m_mime_parser, &rv);
@@ -554,9 +554,9 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
         goto done;
 
       nsCOMPtr<nsIURI> aURL;
-      rv = messageService->GetUrlForUri(uri.get(), getter_AddRefs(aURL), nsnull);
+      rv = messageService->GetUrlForUri(uri.get(), getter_AddRefs(aURL), nullptr);
 
-      rv = NS_NewInputStreamChannel(getter_AddRefs(m_converter_channel), aURL, nsnull);
+      rv = NS_NewInputStreamChannel(getter_AddRefs(m_converter_channel), aURL, nullptr);
       if (NS_FAILED(rv))
         goto done;
 
@@ -565,7 +565,7 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
       if (NS_FAILED(rv))
         goto done;
 
-      rv = messageService->DisplayMessage(uri.get(), convertedListener, nsnull, nsnull, nsnull, nsnull);
+      rv = messageService->DisplayMessage(uri.get(), convertedListener, nullptr, nullptr, nullptr, nullptr);
     }
   }
 done:
@@ -574,13 +574,13 @@ done:
       if (mOutFile)
       {
         mOutFile->Close();
-        mOutFile = nsnull;
+        mOutFile = nullptr;
       }
 
       if (mTmpFile)
       {
         mTmpFile->Remove(false);
-        mTmpFile = nsnull;
+        mTmpFile = nullptr;
       }
   }
 
@@ -591,7 +591,7 @@ done:
 bool nsMsgAttachmentHandler::HasResourceFork(FSRef *fsRef)
 {
   FSCatalogInfo catalogInfo;
-  OSErr err = FSGetCatalogInfo(fsRef, kFSCatInfoDataSizes + kFSCatInfoRsrcSizes, &catalogInfo, nsnull, nsnull, nsnull);
+  OSErr err = FSGetCatalogInfo(fsRef, kFSCatInfoDataSizes + kFSCatInfoRsrcSizes, &catalogInfo, nullptr, nullptr, nullptr);
   return (err == noErr && catalogInfo.rsrcLogicalSize != 0);
 }
 #endif
@@ -629,7 +629,7 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
       }
     }
     mTmpFile->Remove(false);
-    mTmpFile = nsnull;
+    mTmpFile = nullptr;
     return NS_MSG_UNABLE_TO_OPEN_TMP_FILE;
   }
 
@@ -799,7 +799,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
     AppleDoubleEncodeObject     *obj = new (AppleDoubleEncodeObject);
     if (obj == NULL)
     {
-      mEncodedWorkingFile = nsnull;
+      mEncodedWorkingFile = nullptr;
       PR_FREEIF(separator);
       return NS_ERROR_OUT_OF_MEMORY;
     }
@@ -814,7 +814,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
 
     PRInt32     bSize = AD_WORKING_BUFF_SIZE;
 
-    char  *working_buff = nsnull;
+    char  *working_buff = nullptr;
     while (!working_buff && (bSize >= 512))
     {
       working_buff = (char *)PR_CALLOC(bSize);
@@ -967,10 +967,10 @@ nsMsgAttachmentHandler::Abort()
   {
     if (mDeleteFile)
       mTmpFile->Remove(false);
-    mTmpFile = nsnull;
+    mTmpFile = nullptr;
   }
 
-  NS_ASSERTION(m_mime_delivery_state != nsnull, "not-null m_mime_delivery_state");
+  NS_ASSERTION(m_mime_delivery_state != nullptr, "not-null m_mime_delivery_state");
 
   if (m_done)
     return NS_OK;
@@ -981,7 +981,7 @@ nsMsgAttachmentHandler::Abort()
     if (m_mime_delivery_state)
     {
       m_mime_delivery_state->SetStatus(NS_ERROR_ABORT);
-      m_mime_delivery_state->NotifyListenerOnStopSending(nsnull, NS_ERROR_ABORT, 0, nsnull);
+      m_mime_delivery_state->NotifyListenerOnStopSending(nullptr, NS_ERROR_ABORT, 0, nullptr);
     }
   return NS_OK;
 
@@ -990,13 +990,13 @@ nsMsgAttachmentHandler::Abort()
 nsresult
 nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
 {
-  NS_ASSERTION(m_mime_delivery_state != nsnull, "not-null m_mime_delivery_state");
+  NS_ASSERTION(m_mime_delivery_state != nullptr, "not-null m_mime_delivery_state");
 
   // Close the file, but don't delete the disk file (or the file spec.)
   if (mOutFile)
   {
     mOutFile->Close();
-    mOutFile = nsnull;
+    mOutFile = nullptr;
   }
   // this silliness is because Windows nsIFile caches its file size
   // so if an output stream writes to it, it will still return the original
@@ -1007,7 +1007,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     mTmpFile->Clone(getter_AddRefs(tmpFile));
     mTmpFile = do_QueryInterface(tmpFile);
   }
-  mRequest = nsnull;
+  mRequest = nullptr;
 
   // First things first, we are now going to see if this is an HTML
   // Doc and if it is, we need to see if we can determine the charset
@@ -1033,7 +1033,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     bool              keepOnGoing = true;
     nsCString    turl;
     nsString     msg;
-    PRUnichar         *printfString = nsnull;
+    PRUnichar         *printfString = nullptr;
     nsresult rv;
     nsCOMPtr<nsIStringBundleService> bundleService =
       mozilla::services::GetStringBundleService();
@@ -1077,9 +1077,9 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
       status = NS_ERROR_ABORT;
       m_mime_delivery_state->SetStatus(status);
       nsresult ignoreMe;
-      m_mime_delivery_state->Fail(status, nsnull, &ignoreMe);
-      m_mime_delivery_state->NotifyListenerOnStopSending(nsnull, status, 0, nsnull);
-      SetMimeDeliveryState(nsnull);
+      m_mime_delivery_state->Fail(status, nullptr, &ignoreMe);
+      m_mime_delivery_state->NotifyListenerOnStopSending(nullptr, status, 0, nullptr);
+      SetMimeDeliveryState(nullptr);
       return status;
     }
   }
@@ -1170,7 +1170,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
      */
     PRUint32 i;
     nsMsgAttachmentHandler *next = 0;
-    nsMsgAttachmentHandler *attachments = nsnull;
+    nsMsgAttachmentHandler *attachments = nullptr;
     PRUint32 attachmentCount = 0;
 
     m_mime_delivery_state->GetAttachmentCount(&attachmentCount);
@@ -1191,11 +1191,11 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
         if ( (!next->mURL) && (next->m_uri.IsEmpty()) )
         {
           attachments[i].m_done = true;
-          attachments[i].SetMimeDeliveryState(nsnull);
+          attachments[i].SetMimeDeliveryState(nullptr);
           m_mime_delivery_state->GetPendingAttachmentCount(&pendingAttachmentCount);
           m_mime_delivery_state->SetPendingAttachmentCount(pendingAttachmentCount - 1);
           next->mPartUserOmissionOverride = true;
-          next = nsnull;
+          next = nullptr;
           continue;
         }
 
@@ -1209,9 +1209,9 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
       if (NS_FAILED(status))
       {
         nsresult ignoreMe;
-        m_mime_delivery_state->Fail(status, nsnull, &ignoreMe);
-        m_mime_delivery_state->NotifyListenerOnStopSending(nsnull, status, 0, nsnull);
-        SetMimeDeliveryState(nsnull);
+        m_mime_delivery_state->Fail(status, nullptr, &ignoreMe);
+        m_mime_delivery_state->NotifyListenerOnStopSending(nullptr, status, 0, nullptr);
+        SetMimeDeliveryState(nullptr);
         return NS_ERROR_UNEXPECTED;
       }
     }
@@ -1227,8 +1227,8 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     {
       nsresult ignoreMe;
       m_mime_delivery_state->Fail(status, aMsg, &ignoreMe);
-      m_mime_delivery_state->NotifyListenerOnStopSending(nsnull, status, aMsg, nsnull);
-      SetMimeDeliveryState(nsnull);
+      m_mime_delivery_state->NotifyListenerOnStopSending(nullptr, status, aMsg, nullptr);
+      SetMimeDeliveryState(nullptr);
       return NS_ERROR_UNEXPECTED;
     }
     else
@@ -1238,8 +1238,8 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
       {
         nsresult ignoreMe;
         m_mime_delivery_state->Fail(status, aMsg, &ignoreMe);
-        m_mime_delivery_state->NotifyListenerOnStopSending(nsnull, status, aMsg, nsnull);
-        SetMimeDeliveryState(nsnull);
+        m_mime_delivery_state->NotifyListenerOnStopSending(nullptr, status, aMsg, nullptr);
+        SetMimeDeliveryState(nullptr);
         return NS_ERROR_UNEXPECTED;
       }
     }
@@ -1255,7 +1255,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     }
   }
 
-  SetMimeDeliveryState(nsnull);
+  SetMimeDeliveryState(nullptr);
   return NS_OK;
 }
 

@@ -38,7 +38,7 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTy
     return NS_ERROR_NULL_POINTER;
   if (pCount)
     *pCount = 0;
-  m_viewFolder = nsnull;
+  m_viewFolder = nullptr;
   return InitThreadedView(pCount);
 }
 
@@ -98,7 +98,7 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::DoCommand(nsMsgViewCommandTypeValue aComma
     {
       nsCOMPtr<nsIMsgDBHdr> msgHdr;
       m_db->GetMsgHdrForKey(m_keys[i],getter_AddRefs(msgHdr)); 
-      rv = m_db->MarkHdrRead(msgHdr, true, nsnull);
+      rv = m_db->MarkHdrRead(msgHdr, true, nullptr);
     }
 
     m_folder->EnableNotifications(nsIMsgFolder::allMessageCountNotifications, true, true /*dbBatching*/);
@@ -106,7 +106,7 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::DoCommand(nsMsgViewCommandTypeValue aComma
     nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_folder);
     if (NS_SUCCEEDED(rv) && imapFolder)
       rv = imapFolder->StoreImapFlags(kImapMsgSeenFlag, true, m_keys.Elements(), 
-                                      m_keys.Length(), nsnull);
+                                      m_keys.Length(), nullptr);
 
     m_db->SetSummaryValid(true);
     return rv;
@@ -129,7 +129,7 @@ nsresult nsMsgQuickSearchDBView::AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *res
   // protect against duplication.
   if (m_origKeys.BinaryIndexOf(msgKey) == m_origKeys.NoIndex)
   {
-    nsMsgViewIndex insertIndex = GetInsertIndexHelper(msgHdr, m_origKeys, nsnull,
+    nsMsgViewIndex insertIndex = GetInsertIndexHelper(msgHdr, m_origKeys, nullptr,
                     nsMsgViewSortOrder::ascending, nsMsgViewSortType::byId);
     m_origKeys.InsertElementAt(insertIndex, msgKey);
   }
@@ -158,7 +158,7 @@ nsresult nsMsgQuickSearchDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aPare
       // show the newly added header.
       nsMsgKey newKey;
       (void) newHdr->GetMessageKey(&newKey);
-      nsMsgViewIndex insertIndex = GetInsertIndexHelper(newHdr, m_origKeys, nsnull,
+      nsMsgViewIndex insertIndex = GetInsertIndexHelper(newHdr, m_origKeys, nullptr,
                       nsMsgViewSortOrder::ascending, nsMsgViewSortType::byId);
       m_origKeys.InsertElementAt(insertIndex, newKey);
       nsMsgThreadedDBView::OnNewHeader(newHdr, aParentKey, ensureListed); // do not add a new message if there isn't a match.
@@ -517,7 +517,7 @@ nsresult nsMsgQuickSearchDBView::SortThreads(nsMsgViewSortTypeValue sortType, ns
       threadHdr->GetChildHdrAt(0, getter_AddRefs(rootHdr));
       if (!rootHdr)
         continue;
-      threadRootIndex = GetInsertIndexHelper(rootHdr, threadRootIds, nsnull,
+      threadRootIndex = GetInsertIndexHelper(rootHdr, threadRootIds, nullptr,
                                              nsMsgViewSortOrder::ascending,
                                              nsMsgViewSortType::byId);
       threadRootIds.InsertElementAt(threadRootIndex, rootKey);
@@ -632,7 +632,7 @@ nsresult nsMsgQuickSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgV
   {
     nsCOMPtr<nsIMsgDBHdr> msgHdr;
     threadHdr->GetChildHdrAt(i, getter_AddRefs(msgHdr));
-    if (msgHdr != nsnull)
+    if (msgHdr != nullptr)
     {
       nsMsgKey msgKey;
       msgHdr->GetMessageKey(&msgKey);

@@ -323,7 +323,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
 
 void MimeMultipart_notify_emitter(MimeObject *obj)
 {
-  char *ct = nsnull;
+  char *ct = nullptr;
 
   NS_ASSERTION(obj->options, "MimeMultipart_notify_emitter called with null options");
   if (! obj->options)

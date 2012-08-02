@@ -27,7 +27,7 @@
 //
 NS_IMPL_ISUPPORTS3(nsStatusBarBiffManager, nsIStatusBarBiffManager, nsIFolderListener, nsIObserver)
 
-nsIAtom * nsStatusBarBiffManager::kBiffStateAtom = nsnull;
+nsIAtom * nsStatusBarBiffManager::kBiffStateAtom = nullptr;
 
 nsStatusBarBiffManager::nsStatusBarBiffManager()
 : mInitialized(false), mCurrentBiffState(nsIMsgFolder::nsMsgBiffState_Unknown)
@@ -186,7 +186,7 @@ nsStatusBarBiffManager::OnItemIntPropertyChanged(nsIMsgFolder *item, nsIAtom *pr
       mozilla::services::GetObserverService();
       
     if (observerService)
-      observerService->NotifyObservers(static_cast<nsIStatusBarBiffManager*>(this), "mail:biff-state-changed", nsnull);
+      observerService->NotifyObservers(static_cast<nsIStatusBarBiffManager*>(this), "mail:biff-state-changed", nullptr);
   }
   return NS_OK;
 }

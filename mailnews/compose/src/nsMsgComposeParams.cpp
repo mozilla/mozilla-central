@@ -111,7 +111,7 @@ NS_IMETHODIMP nsMsgComposeParams::GetComposeFields(nsIMsgCompFields * *aComposeF
      NS_ADDREF(*aComposeFields);
   }
   else
-    *aComposeFields = nsnull;
+    *aComposeFields = nullptr;
   return NS_OK;
 }
 NS_IMETHODIMP nsMsgComposeParams::SetComposeFields(nsIMsgCompFields * aComposeFields)
@@ -145,7 +145,7 @@ NS_IMETHODIMP nsMsgComposeParams::GetSendListener(nsIMsgSendListener * *aSendLis
      NS_ADDREF(*aSendListener);
   }
   else
-    *aSendListener = nsnull;
+    *aSendListener = nullptr;
   return NS_OK;
 }
 NS_IMETHODIMP nsMsgComposeParams::SetSendListener(nsIMsgSendListener * aSendListener)

@@ -40,7 +40,7 @@ nsSmtpServer::GetKey(char * *aKey)
 {
     if (!aKey) return NS_ERROR_NULL_POINTER;
     if (mKey.IsEmpty())
-        *aKey = nsnull;
+        *aKey = nullptr;
     else
         *aKey = ToNewCString(mKey);
     return NS_OK;
@@ -152,7 +152,7 @@ nsSmtpServer::GetDisplayname(char * *aDisplayname)
     nsCString hostname;
     rv = mPrefBranch->GetCharPref("hostname", getter_Copies(hostname));
     if (NS_FAILED(rv)) {
-        *aDisplayname=nsnull;
+        *aDisplayname=nullptr;
         return NS_OK;
     }
     PRInt32 port;
@@ -193,7 +193,7 @@ nsSmtpServer::GetHelloArgument(char * *aHelloArgument)
     {
         rv = mDefPrefBranch->GetCharPref("hello_argument", aHelloArgument);
         if (NS_FAILED(rv))
-            *aHelloArgument = nsnull;
+            *aHelloArgument = nullptr;
     }
     return NS_OK;
 }

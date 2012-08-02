@@ -40,7 +40,7 @@ nsLocalMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsIMsgFolder* dstFolder,
     rv = SetDstFolder(dstFolder);
     m_isMove = isMove;
 
-    mUndoFolderListener = nsnull;
+    mUndoFolderListener = nullptr;
 
     nsCString protocolType;
     rv = srcFolder->GetURI(protocolType);
@@ -126,16 +126,16 @@ nsLocalMoveCopyMsgTxn::UndoImapDeleteFlag(nsIMsgFolder* folder,
     // when executing the imap url; we don't want to load the
     // folder so use lite select to do the trick
     rv = imapService->LiteSelectFolder(folder,
-                                       urlListener, nsnull, nsnull);
+                                       urlListener, nullptr, nullptr);
     if (!deleteFlag)
         rv =imapService->AddMessageFlags(folder,
-                                         urlListener, nsnull,
+                                         urlListener, nullptr,
                                          msgIds,
                                          kImapMsgDeletedFlag,
                                          true);
     else
         rv = imapService->SubtractMessageFlags(folder,
-                                               urlListener, nsnull,
+                                               urlListener, nullptr,
                                                msgIds,
                                                kImapMsgDeletedFlag,
                                                true);
@@ -200,7 +200,7 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
     NS_ENSURE_SUCCESS(rv,rv);
     
     NS_RELEASE(mUndoFolderListener);
-    mUndoFolderListener = nsnull;
+    mUndoFolderListener = nullptr;
   }
 
   nsCOMPtr<nsIMsgDatabase> srcDB;
@@ -304,13 +304,13 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
       srcFolder->AddFolderListener(this);
       m_undoing = true;
       return srcFolder->CopyMessages(dstFolder, dstMessages,
-                                     true, nsnull, nsnull, false,
+                                     true, nullptr, nullptr, false,
                                      false);
     }
     srcDB->SetSummaryValid(true);
   }
 
-  dstDB->DeleteMessages(m_dstKeyArray.Length(), m_dstKeyArray.Elements(), nsnull);
+  dstDB->DeleteMessages(m_dstKeyArray.Length(), m_dstKeyArray.Elements(), nullptr);
   dstDB->SetSummaryValid(true);
 
   return rv;
@@ -390,7 +390,7 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
       if (localFolder)
         localFolder->MarkMsgsOnPop3Server(srcMessages, POP3_DELETE /*deleteMsgs*/);
 
-      rv = srcDB->DeleteMessages(m_srcKeyArray.Length(), m_srcKeyArray.Elements(), nsnull);
+      rv = srcDB->DeleteMessages(m_srcKeyArray.Length(), m_srcKeyArray.Elements(), nullptr);
       srcDB->SetSummaryValid(true);
     }
     else
@@ -411,8 +411,8 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
       }
       dstFolder->AddFolderListener(this);
       m_undoing = false;
-      return dstFolder->CopyMessages(srcFolder, srcMessages, true, nsnull,
-                                     nsnull, false, false);
+      return dstFolder->CopyMessages(srcFolder, srcMessages, true, nullptr,
+                                     nullptr, false, false);
     }
   }
 

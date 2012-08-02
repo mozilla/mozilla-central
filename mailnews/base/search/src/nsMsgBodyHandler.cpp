@@ -411,7 +411,7 @@ void nsMsgBodyHandler::SniffPossibleMIMEHeader(nsCString &line)
  */
 void nsMsgBodyHandler::Base64Decode (nsCString &pBufInOut)
 {
-  char *decodedBody = PL_Base64Decode(pBufInOut.get(), pBufInOut.Length(), nsnull);
+  char *decodedBody = PL_Base64Decode(pBufInOut.get(), pBufInOut.Length(), nullptr);
   if (decodedBody)
     pBufInOut.Adopt(decodedBody);
 

@@ -71,7 +71,7 @@ nsIMAPBodyShell::nsIMAPBodyShell(nsImapProtocol *protocolConnection,
   
   SetContentModified(GetShowAttachmentsInline() ? IMAP_CONTENT_MODIFIED_VIEW_INLINE : IMAP_CONTENT_MODIFIED_VIEW_AS_LINKS);
 
-  SetIsValid(m_message != nsnull);
+  SetIsValid(m_message != nullptr);
 }
 
 nsIMAPBodyShell::~nsIMAPBodyShell()
@@ -249,7 +249,7 @@ PRInt32 nsIMAPBodyShell::Generate(char *partNum)
         m_protocolConnection->BeginMessageDownLoad(contentLength, MESSAGE_RFC822);
       if (NS_FAILED(rv))
       {
-        m_generatingPart = nsnull;
+        m_generatingPart = nullptr;
         m_protocolConnection->AbortMessageDownLoad();
         return 0;
       }
@@ -1279,18 +1279,18 @@ nsIMAPBodyShell *nsIMAPBodyShellCache::FindShellForUID(nsCString &UID, const cha
   nsRefPtr<nsIMAPBodyShell> foundShell;
   m_shellHash.Get(UID, getter_AddRefs(foundShell));
   if (!foundShell)
-    return nsnull;
+    return nullptr;
   // Make sure the content-modified types are compatible.
   // This allows us to work seamlessly while people switch between
   // View Attachments Inline and View Attachments As Links.
   // Enforce the invariant that any cached shell we use
   // match the current content-modified settings.
   if (modType != foundShell->GetContentModified())
-    return nsnull;
+    return nullptr;
 
   // mailbox names must match also.
   if (PL_strcmp(mailboxName, foundShell->GetFolderName()))
-    return nsnull;
+    return nullptr;
 
   // adjust the LRU stuff. This defeats the performance gain of the hash if
   // it actually is found since this is linear.

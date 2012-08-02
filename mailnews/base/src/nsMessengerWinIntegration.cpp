@@ -252,7 +252,7 @@ nsMessengerWinIntegration::~nsMessengerWinIntegration()
 {
   if (mUnreadCountUpdateTimer) {
     mUnreadCountUpdateTimer->Cancel();
-    mUnreadCountUpdateTimer = nsnull;
+    mUnreadCountUpdateTimer = nullptr;
   }
 
   // one last attempt, update the registry
@@ -361,7 +361,7 @@ nsMessengerWinIntegration::Init()
 
   // get application path
   WCHAR appPath[_MAX_PATH] = {0};
-  ::GetModuleFileNameW(nsnull, appPath, sizeof(appPath));
+  ::GetModuleFileNameW(nullptr, appPath, sizeof(appPath));
   mAppName.Assign((PRUnichar *)appPath);
 
   rv = ResetCurrent();

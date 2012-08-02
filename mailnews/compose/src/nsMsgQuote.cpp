@@ -82,7 +82,7 @@ nsresult nsMsgQuoteListener::OnHeadersReady(nsIMimeHeaders * headers)
 nsMsgQuote::nsMsgQuote()
 {
   mQuoteHeaders = false;
-  mQuoteListener = nsnull;
+  mQuoteListener = nullptr;
 }
 
 nsMsgQuote::~nsMsgQuote()
@@ -127,7 +127,7 @@ nsMsgQuote::QuoteMessage(const char *msgURI, bool quoteHeaders,
 
   nsCAutoString msgUri(msgURI);
   bool fileUrl = !strncmp(msgURI, "file:", 5);
-  bool forwardedMessage = PL_strstr(msgURI, "&realtype=message/rfc822") != nsnull;
+  bool forwardedMessage = PL_strstr(msgURI, "&realtype=message/rfc822") != nullptr;
   nsCOMPtr<nsIURI> aURL;
   if (fileUrl)
   {
@@ -145,7 +145,7 @@ nsMsgQuote::QuoteMessage(const char *msgURI, bool quoteHeaders,
     nsCOMPtr <nsIMsgMessageService> msgService;
     rv = GetMessageServiceFromURI(nsDependentCString(msgURI), getter_AddRefs(msgService));
     if (NS_FAILED(rv)) return rv;
-    rv = msgService->GetUrlForUri(msgURI, getter_AddRefs(aURL), nsnull);
+    rv = msgService->GetUrlForUri(msgURI, getter_AddRefs(aURL), nullptr);
   }
   if (NS_FAILED(rv)) return rv;
 
@@ -185,7 +185,7 @@ nsMsgQuote::QuoteMessage(const char *msgURI, bool quoteHeaders,
   NS_IF_RELEASE(supports);
 
   // now we want to create a necko channel for this url and we want to open it
-  mQuoteChannel = nsnull;
+  mQuoteChannel = nullptr;
   nsCOMPtr<nsIIOService> netService =
     mozilla::services::GetIOService();
   NS_ENSURE_TRUE(netService, NS_ERROR_UNEXPECTED);

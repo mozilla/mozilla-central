@@ -42,7 +42,7 @@ NS_IMETHODIMP
 nsNoneService::GetDefaultLocalPath(nsIFile ** aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
-    *aResult = nsnull;
+    *aResult = nullptr;
     
     bool havePref;
     nsCOMPtr<nsIFile> localFile;    

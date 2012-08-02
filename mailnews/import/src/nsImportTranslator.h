@@ -15,7 +15,7 @@ class ImportOutFile;
 class UMimeEncode {
 public:
   static PRUint32  GetBufferSize(PRUint32 inByes);
-  static PRUint32  ConvertBuffer(const PRUint8 * pIn, PRUint32 inLen, PRUint8 *pOut, PRUint32 maxLen = 72, PRUint32 firstLineLen = 72, const char * pEolStr = nsnull);
+  static PRUint32  ConvertBuffer(const PRUint8 * pIn, PRUint32 inLen, PRUint8 *pOut, PRUint32 maxLen = 72, PRUint32 firstLineLen = 72, const char * pEolStr = nullptr);
 };
 
 
@@ -25,7 +25,7 @@ public:
   virtual bool      Supports8bitEncoding(void) { return false;}
   virtual PRUint32  GetMaxBufferSize(PRUint32 inLen) { return inLen + 1;}
   virtual void    ConvertBuffer(const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut) { memcpy(pOut, pIn, inLen); pOut[inLen] = 0;}
-  virtual bool      ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
+  virtual bool      ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nullptr);
   virtual bool      FinishConvertToFile(ImportOutFile * /* pOutFile */) { return true;}
 
   virtual void  GetCharset(nsCString& charSet) { charSet = "us-ascii";}
@@ -39,7 +39,7 @@ class CMHTranslator : public nsImportTranslator {
 public:
   virtual PRUint32  GetMaxBufferSize(PRUint32 inLen) { return (inLen * 3) + 1;}
   virtual void    ConvertBuffer(const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut);
-  virtual bool      ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
+  virtual bool      ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nullptr);
 };
 
 // Specialized encoder, not a vaild language translator, used for mail headers
@@ -52,7 +52,7 @@ public:
 
   void  SetUseQuotedPrintable(void) { m_useQuotedPrintable = true;}
 
-  virtual bool    ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
+  virtual bool    ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nullptr);
   bool    ConvertToFileQ(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed);
 
 protected:

@@ -101,8 +101,8 @@ bool nsImportEncodeScan::InitEncodeScan(bool appleSingleEncode, nsIFile *fileLoc
 void nsImportEncodeScan::CleanUpEncodeScan(void)
 {
   m_pInputStream->Close();
-  m_pInputStream = nsnull;
-  m_pInputFile = nsnull;
+  m_pInputStream = nullptr;
+  m_pInputFile = nullptr;
 }
 
 
@@ -301,7 +301,7 @@ bool nsImportEncodeScan::Scan(bool *pDone)
           if (!result)
             return false;
           m_inputStream->Close();
-                                        m_inputStream = nsnull;
+                                        m_inputStream = nullptr;
           m_encodeScanState = kDoneWithFile;
           return true;
         }
@@ -320,7 +320,7 @@ bool nsImportEncodeScan::Scan(bool *pDone)
           if (!result)
             return false;
           m_inputStream->Close();
-                                        m_inputStream = nsnull;
+                                        m_inputStream = nullptr;
           m_encodeScanState = kBeginDataFork;
           return true;
         }

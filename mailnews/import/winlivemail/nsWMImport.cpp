@@ -41,7 +41,7 @@
 #include "WMDebugLog.h"
 
 static NS_DEFINE_IID(kISupportsIID, NS_ISUPPORTS_IID);
-PRLogModuleInfo *WMLOGMODULE = nsnull;
+PRLogModuleInfo *WMLOGMODULE = nullptr;
 
 class ImportWMMailImpl : public nsIImportMail
 {
@@ -120,7 +120,7 @@ NS_IMETHODIMP nsWMImport::GetDescription(PRUnichar **name)
 
 NS_IMETHODIMP nsWMImport::GetSupports(char **supports)
 {
-  NS_PRECONDITION(supports != nsnull, "null ptr");
+  NS_PRECONDITION(supports != nullptr, "null ptr");
   if (! supports)
       return NS_ERROR_NULL_POINTER;
 
@@ -130,7 +130,7 @@ NS_IMETHODIMP nsWMImport::GetSupports(char **supports)
 
 NS_IMETHODIMP nsWMImport::GetSupportsUpgrade(bool *pUpgrade)
 {
-  NS_PRECONDITION(pUpgrade != nsnull, "null ptr");
+  NS_PRECONDITION(pUpgrade != nullptr, "null ptr");
   if (! pUpgrade)
     return NS_ERROR_NULL_POINTER;
 
@@ -144,11 +144,11 @@ NS_IMETHODIMP nsWMImport::GetImportInterface(const char *pImportType,
   NS_ENSURE_ARG_POINTER(pImportType);
   NS_ENSURE_ARG_POINTER(ppInterface);
 
-  *ppInterface = nsnull;
+  *ppInterface = nullptr;
   nsresult rv;
 
   if (!strcmp(pImportType, "settings")) {
-    nsIImportSettings *pSettings = nsnull;
+    nsIImportSettings *pSettings = nullptr;
     rv = nsWMSettings::Create(&pSettings);
     if (NS_SUCCEEDED(rv)) {
       pSettings->QueryInterface(kISupportsIID, (void **)ppInterface);

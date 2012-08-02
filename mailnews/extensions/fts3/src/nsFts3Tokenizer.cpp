@@ -41,7 +41,7 @@ nsFts3Tokenizer::RegisterTokenizer(mozIStorageConnection *connection)
     getter_AddRefs(selectStatement));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  const sqlite3_tokenizer_module* module = nsnull;
+  const sqlite3_tokenizer_module* module = nullptr;
   sqlite3Fts3PorterTokenizerModule(&module);
   if (!module)
     return NS_ERROR_FAILURE;

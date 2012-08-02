@@ -46,9 +46,9 @@ static const char * kLocaleColumnName = "locale";
 
 #define kMAILNEWS_VIEW_DEFAULT_CHARSET        "mailnews.view_default_charset"
 #define kMAILNEWS_DEFAULT_CHARSET_OVERRIDE    "mailnews.force_charset_override"
-static nsCString* gDefaultCharacterSet = nsnull;
+static nsCString* gDefaultCharacterSet = nullptr;
 static bool       gDefaultCharacterOverride;
-static nsIObserver *gFolderCharsetObserver = nsnull;
+static nsIObserver *gFolderCharsetObserver = nullptr;
 
 // observer for charset related preference notification
 class nsFolderCharsetObserver : public nsIObserver {
@@ -71,7 +71,7 @@ NS_IMETHODIMP nsFolderCharsetObserver::Observe(nsISupports *aSubject, const char
   if (NS_FAILED(rv)) return rv;
 
   nsCOMPtr<nsIPrefBranch> prefBranch;
-  rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
+  rv = prefs->GetBranch(nullptr, getter_AddRefs(prefBranch));
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (!strcmp(aTopic, NS_PREFBRANCH_PREFCHANGE_TOPIC_ID))
@@ -105,7 +105,7 @@ NS_IMETHODIMP nsFolderCharsetObserver::Observe(nsISupports *aSubject, const char
     rv = prefBranch->RemoveObserver(kMAILNEWS_DEFAULT_CHARSET_OVERRIDE, this);
     NS_IF_RELEASE(gFolderCharsetObserver);
     delete gDefaultCharacterSet;
-    gDefaultCharacterSet = nsnull;
+    gDefaultCharacterSet = nullptr;
   }
   return rv;
 }
@@ -120,7 +120,7 @@ nsDBFolderInfo::QueryInterface(REFNSIID iid, void** result)
   if (! result)
     return NS_ERROR_NULL_POINTER;
 
-  *result = nsnull;
+  *result = nullptr;
   if(iid.Equals(NS_GET_IID(nsIDBFolderInfo)) ||
     iid.Equals(NS_GET_IID(nsISupports)))
   {
@@ -164,7 +164,7 @@ nsDBFolderInfo::nsDBFolderInfo(nsMsgDatabase *mdb)
     nsCOMPtr<nsIPrefBranch> prefBranch;
     if (NS_SUCCEEDED(rv))
     {
-      rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
+      rv = prefs->GetBranch(nullptr, getter_AddRefs(prefBranch));
     }
     if (NS_SUCCEEDED(rv))
     {
@@ -242,14 +242,14 @@ void nsDBFolderInfo::ReleaseExternalReferences()
     if (m_mdbTable)
     {
       NS_RELEASE(m_mdbTable);
-      m_mdbTable = nsnull;
+      m_mdbTable = nullptr;
     }
     if (m_mdbRow)
     {
       NS_RELEASE(m_mdbRow);
-      m_mdbRow = nsnull;
+      m_mdbRow = nullptr;
     }
-    m_mdb = nsnull;
+    m_mdb = nullptr;
   }
 }
 
@@ -262,7 +262,7 @@ nsresult nsDBFolderInfo::AddToNewMDB()
     nsIMdbStore *store = m_mdb->GetStore();
     // create the unique table for the dbFolderInfo.
     mdb_err err = store->NewTable(m_mdb->GetEnv(), m_rowScopeToken,
-      m_tableKindToken, true, nsnull, &m_mdbTable);
+      m_tableKindToken, true, nullptr, &m_mdbTable);
 
     // make sure the oid of the table is 1.
     struct mdbOid folderInfoTableOID;
@@ -907,7 +907,7 @@ public:
   nsTArray<nsCString> m_values;
 };
 
-nsTransferDBFolderInfo::nsTransferDBFolderInfo() : nsDBFolderInfo(nsnull)
+nsTransferDBFolderInfo::nsTransferDBFolderInfo() : nsDBFolderInfo(nullptr)
 {
 }
 
@@ -928,14 +928,14 @@ NS_IMETHODIMP nsDBFolderInfo::GetTransferInfo(nsIDBFolderInfo **transferInfo)
   mdbYarn cellYarn;
   mdb_column cellColumn;
   char columnName[100];
-  mdbYarn cellName = { columnName, 0, sizeof(columnName), 0, 0, nsnull };
+  mdbYarn cellName = { columnName, 0, sizeof(columnName), 0, 0, nullptr };
 
   NS_ASSERTION(m_mdbRow, "null row in getTransferInfo");
   m_mdbRow->GetCount(m_mdb->GetEnv(), &numCells);
   // iterate over the cells in the dbfolderinfo remembering attribute names and values.
   for (mdb_count cellIndex = 0; cellIndex < numCells; cellIndex++)
   {
-    mdb_err err = m_mdbRow->SeekCellYarn(m_mdb->GetEnv(), cellIndex, &cellColumn, nsnull);
+    mdb_err err = m_mdbRow->SeekCellYarn(m_mdb->GetEnv(), cellIndex, &cellColumn, nullptr);
     if (!err)
     {
       err = m_mdbRow->AliasCellYarn(m_mdb->GetEnv(), cellColumn, &cellYarn);

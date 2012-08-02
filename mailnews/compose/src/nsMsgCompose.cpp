@@ -154,12 +154,12 @@ nsMsgCompose::nsMsgCompose()
   mQuotingToFollow = false;
   mInsertingQuotedContent = false;
   mWhatHolder = 1;
-  m_window = nsnull;
-  m_editor = nsnull;
-  mQuoteStreamListener=nsnull;
+  m_window = nullptr;
+  m_editor = nullptr;
+  mQuoteStreamListener=nullptr;
   mCharsetOverride = false;
   mDeleteDraft = false;
-  m_compFields = nsnull;    //m_compFields will be set during nsMsgCompose::Initialize
+  m_compFields = nullptr;    //m_compFields will be set during nsMsgCompose::Initialize
   mType = nsIMsgCompType::New;
 
   // For TagConvertible
@@ -404,7 +404,7 @@ nsresult nsMsgCompose::ResetUrisForEmbeddedObjects()
         if (NS_FAILED(rv))
           continue;
         nsCOMPtr<nsIURI> newUrl;
-        rv = msgService->GetUrlForUri(newURI.get(), getter_AddRefs(newUrl), nsnull);
+        rv = msgService->GetUrlForUri(newURI.get(), getter_AddRefs(newUrl), nullptr);
         if (!newUrl)
           continue;
         nsCString spec;
@@ -464,7 +464,7 @@ nsresult nsMsgCompose::TagEmbeddedObjects(nsIEditorMailSupport *aEditor)
   rv = GetMessageServiceFromURI(mOriginalMsgURI, getter_AddRefs(msgService));
   if (NS_SUCCEEDED(rv))
   {
-    rv = msgService->GetUrlForUri(mOriginalMsgURI.get(), getter_AddRefs(originalUrl), nsnull);
+    rv = msgService->GetUrlForUri(mOriginalMsgURI.get(), getter_AddRefs(originalUrl), nullptr);
     if (NS_SUCCEEDED(rv) && originalUrl)
     {
       originalUrl->GetScheme(originalScheme);
@@ -772,8 +772,8 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
           break;
         }
 
-        nsCOMPtr<nsISelection> selection = nsnull;
-        nsCOMPtr<nsIDOMNode>      parent = nsnull;
+        nsCOMPtr<nsISelection> selection = nullptr;
+        nsCOMPtr<nsIDOMNode>      parent = nullptr;
         PRInt32                   offset;
         nsresult                  rv;
 
@@ -1083,7 +1083,7 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
           bool isAsciiOnly;
           rv = nsMsgI18NSaveAsCharset(attachment1_type, m_compFields->GetCharacterSet(),
                                       NS_ConvertUTF8toUTF16(bodyString).get(), &outCString,
-                                      nsnull, &isAsciiOnly);
+                                      nullptr, &isAsciiOnly);
           if (NS_SUCCEEDED(rv))
           {
             if (m_compFields->GetForceMsgEncoding())
@@ -1122,23 +1122,23 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
 
       // If we are composing HTML, then this should be sent as
       // multipart/related which means we pass the editor into the
-      // backend...if not, just pass nsnull
+      // backend...if not, just pass nullptr
       //
       nsCOMPtr<nsIMsgSendListener> sendListener = do_QueryInterface(composeSendListener);
       rv = mMsgSend->CreateAndSendMessage(
-                    m_composeHTML ? m_editor.get() : nsnull,
+                    m_composeHTML ? m_editor.get() : nullptr,
                     identity,
                     accountKey,
                     m_compFields,
                     false,                           // bool                              digest_p,
                     false,                           // bool                              dont_deliver_p,
                     (nsMsgDeliverMode)deliverMode,      // nsMsgDeliverMode                  mode,
-                    nsnull,                             // nsIMsgDBHdr                       *msgToReplace,
+                    nullptr,                             // nsIMsgDBHdr                       *msgToReplace,
                     m_composeHTML?TEXT_HTML:TEXT_PLAIN, // const char                        *attachment1_type,
                     bodyString,                         // const char                        *attachment1_body,
                     bodyLength,                         // PRUint32                          attachment1_body_length,
-                    nsnull,                             // nsIArray  *attachments,
-                    nsnull,                             // nsIArray preloaded_attachments,
+                    nullptr,                             // nsIArray  *attachments,
+                    nullptr,                             // nsIArray preloaded_attachments,
                     m_window,                           // nsIDOMWindow                      *parentWindow;
                     mProgress,                          // nsIMsgProgress                    *progress,
                     sendListener,                       // listener
@@ -1184,7 +1184,7 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
       // Reset message body previously stored in the compose fields
       // There is 2 nsIMsgCompFields::SetBody() functions using a pointer as argument,
       // therefore a casting is required.
-      m_compFields->SetBody((const char *)nsnull);
+      m_compFields->SetBody((const char *)nullptr);
 
       const char *charset = m_compFields->GetCharacterSet();
       if(UseFormatFlowed(charset))
@@ -1279,7 +1279,7 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
       }
     }
 
-    mProgress->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_START, NS_OK);
+    mProgress->OnStateChange(nullptr, nullptr, nsIWebProgressListener::STATE_START, NS_OK);
   }
 
   bool attachVCard = false;
@@ -1301,7 +1301,7 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
           vCardUrl = "data:text/x-vcard;charset=utf-8;base64,";
           nsCString unescapedData;
           MsgUnescapeString(escapedVCard, 0, unescapedData);
-          char *result = PL_Base64Encode(unescapedData.get(), 0, nsnull);
+          char *result = PL_Base64Encode(unescapedData.get(), 0, nullptr);
           vCardUrl += result;
           PR_Free(result);
 
@@ -1431,7 +1431,7 @@ bool nsMsgCompose::IsLastWindow()
   if (NS_SUCCEEDED(rv))
   {
     nsCOMPtr<nsISimpleEnumerator> windowEnumerator;
-    rv = windowMediator->GetEnumerator(nsnull,
+    rv = windowMediator->GetEnumerator(nullptr,
                getter_AddRefs(windowEnumerator));
     if (NS_SUCCEEDED(rv))
     {
@@ -1455,11 +1455,11 @@ NS_IMETHODIMP nsMsgCompose::CloseWindow(bool recycleIt)
   // unregister the compose object with the compose service
   rv = composeService->UnregisterComposeDocShell(mDocShell);
   NS_ENSURE_SUCCESS(rv, rv);
-  mDocShell = nsnull;
+  mDocShell = nullptr;
 
   // ensure that the destructor of nsMsgSend is invoked to remove
   // temporary files.
-  mMsgSend = nsnull;
+  mMsgSend = nullptr;
 
   recycleIt = recycleIt && !IsLastWindow();
   if (recycleIt)
@@ -1516,10 +1516,10 @@ NS_IMETHODIMP nsMsgCompose::CloseWindow(bool recycleIt)
         /* The editor will be destroyed during yje close window.
          * Set it to null to be sure we won't use it anymore
          */
-      m_editor = nsnull;
+      m_editor = nullptr;
     }
     nsIBaseWindow * window = m_baseWindow;
-    m_baseWindow = nsnull;
+    m_baseWindow = nullptr;
     rv = window->Destroy();
   }
 
@@ -1545,7 +1545,7 @@ nsresult nsMsgCompose::GetEditor(nsIEditor * *aEditor)
 
 nsresult nsMsgCompose::ClearEditor()
 {
-  m_editor = nsnull;
+  m_editor = nullptr;
   return NS_OK;
 }
 
@@ -2272,7 +2272,7 @@ NS_IMETHODIMP nsMsgCompose::GetMessageSend(nsIMsgSend **_retval)
 
 NS_IMETHODIMP nsMsgCompose::ClearMessageSend()
 {
-  mMsgSend = nsnull;
+  mMsgSend = nullptr;
   return NS_OK;
 }
 
@@ -2327,7 +2327,7 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
   mHeadersOnly = headersOnly;
   mIdentity = identity;
   mUnicodeBufferCharacterLength = 0;
-  mUnicodeConversionBuffer = nsnull;
+  mUnicodeConversionBuffer = nullptr;
   mQuoteOriginal = quoteOriginal;
   mHtmlToQuote = htmlToQuote;
 
@@ -2425,7 +2425,7 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
                 if (NS_SUCCEEDED(rv))
                 {
                   // take care "On %s"
-                  PRUnichar *formatedString = nsnull;
+                  PRUnichar *formatedString = nullptr;
                   formatedString = nsTextFormatter::smprintf(replyHeaderOndate.get(),
                                                              NS_ConvertUTF16toUTF8(formattedDateString.get()).get());
                   if (formatedString)
@@ -2453,7 +2453,7 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
           nsCString authorName;
           rv = parser->ExtractHeaderAddressName(author, authorName);
           // take care "%s wrote"
-          PRUnichar *formattedString = nsnull;
+          PRUnichar *formattedString = nullptr;
           if (NS_SUCCEEDED(rv) && !authorName.IsEmpty()) 
           {
             nsCString decodedAuthor;
@@ -3303,7 +3303,7 @@ NS_IMETHODIMP nsMsgCompose::RememberQueuedDisposition()
   // need to find the msg hdr in the saved folder and then set a property on
   // the header that we then look at when we actually send the message.
 
-  const char *dispositionSetting = nsnull;
+  const char *dispositionSetting = nullptr;
 
   if (mType == nsIMsgCompType::Reply ||
       mType == nsIMsgCompType::ReplyAll ||
@@ -3405,7 +3405,7 @@ nsresult nsMsgCompose::ProcessReplyFlags()
       nsCString msgUri (mOriginalMsgURI);
       char *newStr = msgUri.BeginWriting();
       char *uri;
-      while (nsnull != (uri = NS_strtok(",", &newStr)))
+      while (nullptr != (uri = NS_strtok(",", &newStr)))
       {
         nsCOMPtr <nsIMsgDBHdr> msgHdr;
         rv = GetMsgDBHdrFromURI(uri, getter_AddRefs(msgHdr));
@@ -3804,7 +3804,7 @@ nsresult
 nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, bool calledByCopy)
 {
   nsresult rv;
-  nsCOMPtr <nsIMsgCompFields> compFields = nsnull;
+  nsCOMPtr <nsIMsgCompFields> compFields = nullptr;
 
   rv = compObj->GetCompFields(getter_AddRefs(compFields));
   NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't get compose fields");
@@ -3849,7 +3849,7 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, bool
             rv = messageArray->AppendElement(msgDBHdr, false);
             NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't append msg header to array.");
             if (NS_SUCCEEDED(rv))
-              rv = msgFolder->DeleteMessages(messageArray, nsnull, true, false, nsnull, false /*allowUndo*/);
+              rv = msgFolder->DeleteMessages(messageArray, nullptr, true, false, nullptr, false /*allowUndo*/);
             NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't delete message.");
           }
         }
@@ -3892,7 +3892,7 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, bool
             if (messageID != nsMsgKey_None)
             {
               rv = imapFolder->StoreImapFlags(kImapMsgDeletedFlag, true,
-                                              &messageID, 1, nsnull);
+                                              &messageID, 1, nullptr);
             }
           }
         }
@@ -3975,7 +3975,7 @@ NS_IMETHODIMP nsMsgComposeSendListener::OnStateChange(nsIWebProgress *aWebProgre
           NS_ENSURE_SUCCESS(rv, rv);
           nsString msg;
           bundle->GetStringFromID(NS_ERROR_GET_CODE(NS_MSG_CANCELLING), getter_Copies(msg));
-          progress->OnStatusChange(nsnull, nsnull, 0, msg.get());
+          progress->OnStatusChange(nullptr, nullptr, 0, msg.get());
         }
       }
 
@@ -5367,11 +5367,11 @@ nsresult nsMsgCompose::BodyConvertible(PRInt32 *_retval)
 
     nsCOMPtr<nsIDOMElement> rootElement;
     rv = m_editor->GetRootElement(getter_AddRefs(rootElement));
-    if (NS_FAILED(rv) || nsnull == rootElement)
+    if (NS_FAILED(rv) || nullptr == rootElement)
       return rv;
 
     nsCOMPtr<nsIDOMNode> node = do_QueryInterface(rootElement);
-    if (nsnull == node)
+    if (nullptr == node)
       return NS_ERROR_FAILURE;
 
     return _BodyConvertible(node, _retval);
@@ -5399,7 +5399,7 @@ nsMsgCompose::SetIdentity(nsIMsgIdentity *aIdentity)
 
   nsCOMPtr<nsIDOMElement> rootElement;
   rv = m_editor->GetRootElement(getter_AddRefs(rootElement));
-  if (NS_FAILED(rv) || nsnull == rootElement)
+  if (NS_FAILED(rv) || nullptr == rootElement)
     return rv;
 
   //First look for the current signature, if we have one
@@ -5409,7 +5409,7 @@ nsMsgCompose::SetIdentity(nsIMsgIdentity *aIdentity)
   nsAutoString tagLocalName;
 
   rv = rootElement->GetLastChild(getter_AddRefs(lastNode));
-  if (NS_SUCCEEDED(rv) && nsnull != lastNode)
+  if (NS_SUCCEEDED(rv) && nullptr != lastNode)
   {
     node = lastNode;
     // In html, the signature is inside an element with

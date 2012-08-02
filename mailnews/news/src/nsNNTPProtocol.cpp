@@ -267,15 +267,15 @@ nsNNTPProtocol::nsNNTPProtocol(nsINntpIncomingServer *aServer, nsIURI *aURL,
   if (!NNTP)
     NNTP = PR_NewLogModule("NNTP");
 
-  m_ProxyServer = nsnull;
-  m_lineStreamBuffer = nsnull;
-  m_responseText = nsnull;
-  m_dataBuf = nsnull;
+  m_ProxyServer = nullptr;
+  m_lineStreamBuffer = nullptr;
+  m_responseText = nullptr;
+  m_dataBuf = nullptr;
 
-  m_cancelFromHdr = nsnull;
-  m_cancelNewsgroups = nsnull;
-  m_cancelDistribution = nsnull;
-  m_cancelID = nsnull;
+  m_cancelFromHdr = nullptr;
+  m_cancelNewsgroups = nullptr;
+  m_cancelDistribution = nullptr;
+  m_cancelID = nullptr;
 
   m_key = nsMsgKey_None;
 
@@ -287,7 +287,7 @@ nsNNTPProtocol::nsNNTPProtocol(nsINntpIncomingServer *aServer, nsIURI *aURL,
     m_msgWindow = aMsgWindow;
   }
 
-  m_runningURL = nsnull;
+  m_runningURL = nullptr;
   m_fromCache = false;
   PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) creating",this));
   PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) initializing, so unset m_currentGroup",this));
@@ -307,7 +307,7 @@ nsNNTPProtocol::~nsNNTPProtocol()
   }
   if (mUpdateTimer) {
     mUpdateTimer->Cancel();
-    mUpdateTimer = nsnull;
+    mUpdateTimer = nullptr;
   }
   Cleanup();
 }
@@ -436,10 +436,10 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI *aURL, nsIMsgWindow *aMsgWindow)
 
     nsCOMPtr<nsIProxyInfo> proxyInfo;
     rv = MsgExamineForProxy("nntp", hostName.get(), port, getter_AddRefs(proxyInfo));
-    if (NS_FAILED(rv)) proxyInfo = nsnull;
+    if (NS_FAILED(rv)) proxyInfo = nullptr;
 
     rv = OpenNetworkSocketWithInfo(hostName.get(), port,
-           (socketType == nsMsgSocketType::SSL) ? "ssl" : nsnull,
+           (socketType == nsMsgSocketType::SSL) ? "ssl" : nullptr,
            proxyInfo, ir);
 
     NS_ENSURE_SUCCESS(rv,rv);
@@ -457,7 +457,7 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI *aURL, nsIMsgWindow *aMsgWindow)
   m_typeWanted = 0;
   m_responseCode = 0;
   m_previousResponseCode = 0;
-  m_responseText = nsnull;
+  m_responseText = nullptr;
 
   m_firstArticle = 0;
   m_lastArticle = 0;
@@ -470,10 +470,10 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI *aURL, nsIMsgWindow *aMsgWindow)
 
   m_articleNumber = 0;
   m_originalContentLength = 0;
-  m_cancelID = nsnull;
-  m_cancelFromHdr = nsnull;
-  m_cancelNewsgroups = nsnull;
-  m_cancelDistribution = nsnull;
+  m_cancelID = nullptr;
+  m_cancelFromHdr = nullptr;
+  m_cancelNewsgroups = nullptr;
+  m_cancelDistribution = nullptr;
   return NS_OK;
 }
 
@@ -521,7 +521,7 @@ NS_IMETHODIMP nsNNTPProtocol::LoadNewsUrl(nsIURI * aURL, nsISupports * aConsumer
 {
   // clear the previous channel listener and use the new one....
   // don't reuse an existing channel listener
-  m_channelListener = nsnull;
+  m_channelListener = nullptr;
   m_channelListener = do_QueryInterface(aConsumer);
   nsCOMPtr<nsINntpUrl> newsUrl (do_QueryInterface(aURL));
   newsUrl->GetNewsAction(&m_newsAction);
@@ -589,7 +589,7 @@ nsNntpCacheStreamListener::OnStartRequest(nsIRequest *request, nsISupports * aCt
   if (mChannelToUse)
     mChannelToUse->GetLoadGroup(getter_AddRefs(loadGroup));
   if (loadGroup)
-    loadGroup->AddRequest(ourRequest, nsnull /* context isupports */);
+    loadGroup->AddRequest(ourRequest, nullptr /* context isupports */);
   return (mListener) ? mListener->OnStartRequest(ourRequest, aCtxt) : NS_OK;
 }
 
@@ -606,19 +606,19 @@ nsNntpCacheStreamListener::OnStopRequest(nsIRequest *request, nsISupports * aCtx
   if (mChannelToUse)
     mChannelToUse->GetLoadGroup(getter_AddRefs(loadGroup));
   if (loadGroup)
-    loadGroup->RemoveRequest(ourRequest, nsnull, aStatus);
+    loadGroup->RemoveRequest(ourRequest, nullptr, aStatus);
 
   // clear out mem cache entry so we're not holding onto it.
   if (mRunningUrl)
-    mRunningUrl->SetMemCacheEntry(nsnull);
+    mRunningUrl->SetMemCacheEntry(nullptr);
 
-  mListener = nsnull;
+  mListener = nullptr;
   nsCOMPtr <nsINNTPProtocol> nntpProtocol = do_QueryInterface(mChannelToUse);
   if (nntpProtocol) {
     rv = nntpProtocol->SetIsBusy(false);
     NS_ENSURE_SUCCESS(rv,rv);
   }
-  mChannelToUse = nsnull;
+  mChannelToUse = nullptr;
   return rv;
 }
 
@@ -723,7 +723,7 @@ nsresult nsNNTPProtocol::ReadFromMemCache(nsICacheEntryDescriptor *entry)
     if (NS_SUCCEEDED(rv)) // ONLY if we succeeded in actually starting the read should we return
     {
       // we're not calling nsMsgProtocol::AsyncRead(), which calls nsNNTPProtocol::LoadUrl, so we need to take care of some stuff it does.
-      m_channelListener = nsnull;
+      m_channelListener = nullptr;
       return rv;
     }
   }
@@ -794,7 +794,7 @@ bool nsNNTPProtocol::ReadFromLocalCache()
         if (NS_SUCCEEDED(rv)) // ONLY if we succeeded in actually starting the read should we return
         {
           m_ContentType.Truncate();
-          m_channelListener = nsnull;
+          m_channelListener = nullptr;
           NNTP_LOG_NOTE("Loading message from offline storage");
           return true;
         }
@@ -842,7 +842,7 @@ nsNNTPProtocol::OnCacheEntryAvailable(nsICacheEntryDescriptor *entry, nsCacheAcc
       rv = entry->OpenOutputStream(0, getter_AddRefs(out));
       NS_ENSURE_SUCCESS(rv, rv);
 
-      rv = tee->Init(m_channelListener, out, nsnull);
+      rv = tee->Init(m_channelListener, out, nullptr);
       m_channelListener = do_QueryInterface(tee);
       NS_ENSURE_SUCCESS(rv, rv);
     }
@@ -1011,7 +1011,7 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
       if (!dialog)
       {
          nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
-         wwatch->GetNewPrompter(nsnull, getter_AddRefs(dialog));
+         wwatch->GetNewPrompter(nullptr, getter_AddRefs(dialog));
       }
 
       nsString statusString, confirmText;
@@ -1036,7 +1036,7 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
       NS_ENSURE_SUCCESS(rv,rv);
 
       bool confirmResult = false;
-      rv = dialog->Confirm(nsnull, confirmText.get(), &confirmResult);
+      rv = dialog->Confirm(nullptr, confirmText.get(), &confirmResult);
       NS_ENSURE_SUCCESS(rv, rv);
 
       if (confirmResult)
@@ -1089,7 +1089,7 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
     // load group here, by generating the start request notification. nsMsgProtocol::OnStartRequest
     // ignores the first parameter (which is supposed to be the channel) so we'll pass in null.
     if (m_fromCache)
-      nsMsgProtocol::OnStartRequest(nsnull, aURL);
+      nsMsgProtocol::OnStartRequest(nullptr, aURL);
 
       /* At this point, we're all done parsing the URL, and know exactly
       what we want to do with it.
@@ -1109,7 +1109,7 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
 FAIL:
     if (NS_FAILED(rv))
     {
-      AlertError(rv, nsnull);
+      AlertError(rv, nullptr);
       return rv;
     }
     else
@@ -1176,7 +1176,7 @@ NS_IMETHODIMP nsNNTPProtocol::OnStopRequest(nsIRequest *request, nsISupports * a
     // nsMsgProtocol::OnStopRequest() has called m_channelListener. There is
     // no need to be called again in CloseSocket(). Let's clear it here.
     if (m_channelListener) {
-        m_channelListener = nsnull;
+        m_channelListener = nullptr;
     }
 
   // okay, we've been told that the send is done and the connection is going away. So
@@ -1231,7 +1231,7 @@ nsNNTPProtocol::ParseURL(nsIURI *aURL, nsCString &aGroup, nsCString &aMessageID)
     }
     else {
         // clear this, we'll set it later.
-        m_newsFolder = nsnull;
+        m_newsFolder = nullptr;
         m_currentGroup.Truncate();
     }
 
@@ -1302,7 +1302,7 @@ PRInt32 nsNNTPProtocol::NewsResponse(nsIInputStream * inputStream, PRUint32 leng
 {
   PRUint32 status = 0;
 
-  NS_PRECONDITION(nsnull != inputStream, "invalid input stream");
+  NS_PRECONDITION(nullptr != inputStream, "invalid input stream");
 
   bool pauseForMoreData = false;
   char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
@@ -1921,7 +1921,7 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommandResponse()
       m_nextState = NNTP_ERROR;
     // if we have no channel listener, then we're likely downloading
     // the message for offline use (or at least not displaying it)
-    bool savingArticleOffline = (m_channelListener == nsnull);
+    bool savingArticleOffline = (m_channelListener == nullptr);
 
     if (m_runningURL)
       FinishMemCacheEntry(false);  // cleanup mem cache entry
@@ -2103,7 +2103,7 @@ PRInt32 nsNNTPProtocol::BeginArticle()
   if (m_channelListener) {
       nsresult rv;
       nsCOMPtr<nsIPipe> pipe = do_CreateInstance("@mozilla.org/pipe;1");
-      rv = pipe->Init(false, false, 4096, PR_UINT32_MAX, nsnull);
+      rv = pipe->Init(false, false, 4096, PR_UINT32_MAX, nullptr);
       NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create pipe");
       // TODO: return on failure?
 
@@ -2184,7 +2184,7 @@ PRInt32 nsNNTPProtocol::ReadArticle(nsIInputStream * inputStream, PRUint32 lengt
     return DisplayArticle(inputStream, length);
 
 
-  char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData, nsnull, true);
+  char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData, nullptr, true);
   if (m_newsFolder && line)
   {
     const char *unescapedLine = line;
@@ -2532,7 +2532,7 @@ NS_IMETHODIMP nsNNTPProtocol::OnPromptAuthAvailable()
   // Now we have our password details accessible from the group, so just call
   // into the state machine to start the process going again.
   m_nextState = NNTP_BEGIN_AUTHORIZE;
-  return ProcessProtocolState(nsnull, nsnull, 0, 0);
+  return ProcessProtocolState(nullptr, nullptr, 0, 0);
 }
 
 NS_IMETHODIMP nsNNTPProtocol::OnPromptCanceled()
@@ -2546,7 +2546,7 @@ NS_IMETHODIMP nsNNTPProtocol::OnPromptCanceled()
   // Since the prompt was canceled, we can no longer continue the connection.
   // Thus, we need to go to the NNTP_ERROR state.
   m_nextState = NNTP_ERROR;
-  return ProcessProtocolState(nsnull, nsnull, 0, 0);
+  return ProcessProtocolState(nullptr, nullptr, 0, 0);
 }
 
 PRInt32 nsNNTPProtocol::DisplayNewsgroups()
@@ -2870,7 +2870,7 @@ PRInt32 nsNNTPProtocol::ReadNewsList(nsIInputStream * inputStream, PRUint32 leng
     m_readNewsListCount = 0;
     if (mUpdateTimer) {
       mUpdateTimer->Cancel();
-      mUpdateTimer = nsnull;
+      mUpdateTimer = nullptr;
     }
     mUpdateTimer = do_CreateInstance("@mozilla.org/timer;1", &rv);
     NS_ASSERTION(NS_SUCCEEDED(rv),"failed to create timer");
@@ -2909,7 +2909,7 @@ NS_IMETHODIMP
 nsNNTPProtocol::Notify(nsITimer *timer)
 {
   NS_ASSERTION(timer == mUpdateTimer.get(), "Hey, this ain't my timer!");
-  mUpdateTimer = nsnull;    // release my hold
+  mUpdateTimer = nullptr;    // release my hold
   TimerCallback();
   return NS_OK;
 }
@@ -2930,7 +2930,7 @@ void nsNNTPProtocol::TimerCallback()
   // counted (i.e., two suspends requires two resumes before the
   // request will actually be resumed).
   //
-  ProcessProtocolState(nsnull, mInputStream, 0,0);
+  ProcessProtocolState(nullptr, mInputStream, 0,0);
 
   // resume necko request
   // might not have a request if someone called CloseSocket()
@@ -3223,7 +3223,7 @@ PRInt32 nsNNTPProtocol::ProcessXover()
   list->CallFilters();
   PRInt32 status = 0;
   rv = list->FinishXOVERLINE(0, &status);
-  m_newsgroupList = nsnull;
+  m_newsgroupList = nullptr;
   if (NS_SUCCEEDED(rv) && status < 0) return status;
 
   m_nextState = NEWS_DONE;
@@ -3407,7 +3407,7 @@ nsresult nsNNTPProtocol::GetNewsStringByID(PRInt32 stringID, PRUnichar **aString
   }
 
   if (m_stringBundle) {
-    PRUnichar *ptrv = nsnull;
+    PRUnichar *ptrv = nullptr;
     rv = m_stringBundle->GetStringFromID(stringID, &ptrv);
 
     if (NS_FAILED(rv)) {
@@ -3446,7 +3446,7 @@ nsresult nsNNTPProtocol::GetNewsStringByName(const char *aName, PRUnichar **aStr
     nsAutoString unicodeName;
     CopyASCIItoUTF16(nsDependentCString(aName), unicodeName);
 
-    PRUnichar *ptrv = nsnull;
+    PRUnichar *ptrv = nullptr;
     rv = m_stringBundle->GetStringFromName(unicodeName.get(), &ptrv);
 
     if (NS_FAILED(rv))
@@ -3612,11 +3612,11 @@ PRInt32 nsNNTPProtocol::DoCancel()
     PRInt32 status = 0;
     bool failure = false;
     nsresult rv = NS_OK;
-    char *id = nsnull;
-    char *subject = nsnull;
-    char *newsgroups = nsnull;
-    char *distribution = nsnull;
-    char *body = nsnull;
+    char *id = nullptr;
+    char *subject = nullptr;
+    char *newsgroups = nullptr;
+    char *distribution = nullptr;
+    char *body = nullptr;
     cancelInfoEntry cancelInfo;
     bool requireConfirmationForCancel = true;
     bool showAlertAfterCancel = true;
@@ -3672,10 +3672,10 @@ PRInt32 nsNNTPProtocol::DoCancel()
   NS_ASSERTION (id && newsgroups, "null ptr");
   if (!id || !newsgroups) return -1; /* "unknown error"... */
 
-  m_cancelNewsgroups = nsnull;
-  m_cancelDistribution = nsnull;
-  m_cancelFromHdr = nsnull;
-  m_cancelID = nsnull;
+  m_cancelNewsgroups = nullptr;
+  m_cancelDistribution = nullptr;
+  m_cancelFromHdr = nullptr;
+  m_cancelID = nullptr;
 
   L = PL_strlen (id);
 
@@ -3715,7 +3715,7 @@ PRInt32 nsNNTPProtocol::DoCancel()
 
       if (cancelInfo.from.IsEmpty()) {
           GetNewsStringByName("cancelDisallowed", getter_Copies(alertText));
-          rv = dialog->Alert(nsnull, alertText.get());
+          rv = dialog->Alert(nullptr, alertText.get());
           // XXX:  todo, check rv?
 
 /* After the cancel is disallowed, Make the status update to be the same as though the
@@ -3741,8 +3741,8 @@ reported here */
     /* Last chance to cancel the cancel.*/
     GetNewsStringByName("cancelConfirm", getter_Copies(confirmText));
     bool dummyValue = false;
-    rv = dialog->ConfirmEx(nsnull, confirmText.get(), nsIPrompt::STD_YES_NO_BUTTONS,
-                           nsnull, nsnull, nsnull, nsnull, &dummyValue, &confirmCancelResult);
+    rv = dialog->ConfirmEx(nullptr, confirmText.get(), nsIPrompt::STD_YES_NO_BUTTONS,
+                           nullptr, nullptr, nullptr, nullptr, &dummyValue, &confirmCancelResult);
     if (NS_FAILED(rv))
     	confirmCancelResult = 1; // Default to No.
   }
@@ -3814,7 +3814,7 @@ reported here */
     rv = prefBranch->GetBoolPref(PREF_NEWS_CANCEL_ALERT_ON_SUCCESS, &showAlertAfterCancel);
     if (NS_FAILED(rv) || showAlertAfterCancel) {
       GetNewsStringByName("messageCancelled", getter_Copies(alertText));
-      rv = dialog->Alert(nsnull, alertText.get());
+      rv = dialog->Alert(nullptr, alertText.get());
       // XXX:  todo, check rv?
     }
 
@@ -4160,7 +4160,7 @@ PRInt32 nsNNTPProtocol::ListXActiveResponse(nsIInputStream * inputStream, PRUint
         }
         else
         {
-          m_newsFolder = nsnull;
+          m_newsFolder = nullptr;
         }
       }
       bool listpname;
@@ -4247,7 +4247,7 @@ PRInt32 nsNNTPProtocol::SendListGroupResponse(nsIInputStream * inputStream, PRUi
     {
       rv = m_articleList->FinishAddingArticleKeys();
       NS_ASSERTION(NS_SUCCEEDED(rv), "finish adding article key failed");
-      m_articleList = nsnull;
+      m_articleList = nullptr;
       m_nextState = NEWS_DONE;   /* ### dmb - don't really know */
       ClearFlag(NNTP_PAUSE_FOR_READ);
       PR_FREEIF(line);
@@ -4386,7 +4386,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
     switch(m_nextState)
     {
     case NNTP_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = NewsResponse(inputStream, length);
@@ -4396,7 +4396,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       // that core netlib will now be managing that information.
 
     case NNTP_LOGIN_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = LoginResponse();
@@ -4407,7 +4407,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       break;
 
     case NNTP_SEND_MODE_READER_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = SendModeReaderResponse();
@@ -4417,7 +4417,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       status = SendListExtensions();
       break;
     case SEND_LIST_EXTENSIONS_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = SendListExtensionsResponse(inputStream, length);
@@ -4426,7 +4426,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       status = SendListSearches();
       break;
     case SEND_LIST_SEARCHES_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = SendListSearchesResponse(inputStream, length);
@@ -4435,7 +4435,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       status = SendListSearchHeaders();
       break;
     case NNTP_LIST_SEARCH_HEADERS_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = SendListSearchHeadersResponse(inputStream, length);
@@ -4444,7 +4444,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       status = GetProperties();
       break;
     case NNTP_GET_PROPERTIES_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = GetPropertiesResponse(inputStream, length);
@@ -4453,7 +4453,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       status = SendListSubscriptions();
       break;
     case SEND_LIST_SUBSCRIPTIONS_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = SendListSubscriptionsResponse(inputStream, length);
@@ -4463,7 +4463,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       status = SendFirstNNTPCommand(url);
       break;
     case SEND_FIRST_NNTP_COMMAND_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = SendFirstNNTPCommandResponse();
@@ -4473,7 +4473,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       status = SendGroupForArticle();
       break;
     case NNTP_SEND_GROUP_FOR_ARTICLE_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = SendGroupForArticleResponse();
@@ -4491,14 +4491,14 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       break;
 
     case NNTP_AUTHORIZE_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = AuthorizationResponse();
       break;
 
     case NNTP_PASSWORD_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = PasswordResponse();
@@ -4549,7 +4549,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       break;
 
     case NNTP_XOVER_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = ReadXoverResponse();
@@ -4576,7 +4576,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       break;
 
     case NNTP_READ_GROUP_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = ReadNewsgroupResponse();
@@ -4590,7 +4590,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       status = PostData();
       break;
     case NNTP_SEND_POST_DATA_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = PostDataResponse();
@@ -4614,7 +4614,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       status = XPATSend();
       break;
     case NNTP_XPAT_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = XPATResponse(inputStream, length);
@@ -4625,7 +4625,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       status = Search();
       break;
     case NNTP_SEARCH_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = SearchResponse();
@@ -4639,7 +4639,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       status = ListPrettyNames();
       break;
     case NNTP_LIST_PRETTY_NAMES_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = ListPrettyNamesResponse(inputStream, length);
@@ -4648,7 +4648,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       status = ListXActive();
       break;
     case NNTP_LIST_XACTIVE_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = ListXActiveResponse(inputStream, length);
@@ -4657,7 +4657,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       status = SendListGroup();
       break;
     case NNTP_LIST_GROUP_RESPONSE:
-      if (inputStream == nsnull)
+      if (inputStream == nullptr)
         SetFlag(NNTP_PAUSE_FOR_READ);
       else
         status = SendListGroupResponse(inputStream, length);
@@ -4723,14 +4723,14 @@ NS_IMETHODIMP nsNNTPProtocol::CloseConnection()
 
   if (m_nntpServer) {
     m_nntpServer->RemoveConnection(this);
-    m_nntpServer = nsnull;
+    m_nntpServer = nullptr;
   }
   CloseSocket();
-  m_newsFolder = nsnull;
+  m_newsFolder = nullptr;
 
   if (m_articleList) {
     m_articleList->FinishAddingArticleKeys();
-    m_articleList = nsnull;
+    m_articleList = nullptr;
   }
 
   m_key = nsMsgKey_None;
@@ -4743,7 +4743,7 @@ nsresult nsNNTPProtocol::CleanupNewsgroupList()
     if (!m_newsgroupList) return NS_OK;
   PRInt32 status = 0;
     rv = m_newsgroupList->FinishXOVERLINE(0,&status);
-    m_newsgroupList = nsnull;
+    m_newsgroupList = nullptr;
     NS_ASSERTION(NS_SUCCEEDED(rv), "FinishXOVERLINE failed");
     return rv;
 }
@@ -4767,7 +4767,7 @@ nsresult nsNNTPProtocol::CleanupAfterRunningUrl()
     rv = m_channelListener->OnStopRequest(this, m_channelContext, NS_OK);
 
   if (m_loadGroup)
-    m_loadGroup->RemoveRequest(static_cast<nsIRequest *>(this), nsnull, NS_OK);
+    m_loadGroup->RemoveRequest(static_cast<nsIRequest *>(this), nullptr, NS_OK);
   CleanupNewsgroupList();
 
   // clear out mem cache entry so we're not holding onto it.
@@ -4777,21 +4777,21 @@ nsresult nsNNTPProtocol::CleanupAfterRunningUrl()
     if (mailnewsurl)
     {
       mailnewsurl->SetUrlState(false, NS_OK);
-      mailnewsurl->SetMemCacheEntry(nsnull);
+      mailnewsurl->SetMemCacheEntry(nullptr);
     }
   }
 
   Cleanup();
 
-  mDisplayInputStream = nsnull;
-  mDisplayOutputStream = nsnull;
-  mProgressEventSink = nsnull;
-  SetOwner(nsnull);
+  mDisplayInputStream = nullptr;
+  mDisplayOutputStream = nullptr;
+  mProgressEventSink = nullptr;
+  SetOwner(nullptr);
 
-  m_channelContext = nsnull;
-  m_channelListener = nsnull;
-  m_loadGroup = nsnull;
-  mCallbacks = nsnull;
+  m_channelContext = nullptr;
+  m_channelListener = nullptr;
+  m_loadGroup = nullptr;
+  mCallbacks = nullptr;
 
   // disable timeout before caching.
   nsCOMPtr<nsISocketTransport> strans = do_QueryInterface(m_transport);
@@ -4811,7 +4811,7 @@ nsresult nsNNTPProtocol::CloseSocket()
 
   if (m_nntpServer) {
     m_nntpServer->RemoveConnection(this);
-    m_nntpServer = nsnull;
+    m_nntpServer = nullptr;
   }
 
   CleanupAfterRunningUrl(); // is this needed?
@@ -4876,7 +4876,7 @@ nsNNTPProtocol::AlertError(PRInt32 errorCode, const char *text)
       alertText.Append(' ');
       alertText.Append(NS_ConvertASCIItoUTF16(text));
     }
-    rv = dialog->Alert(nsnull, alertText.get());
+    rv = dialog->Alert(nullptr, alertText.get());
     NS_ENSURE_SUCCESS(rv, rv);
   }
   return rv;

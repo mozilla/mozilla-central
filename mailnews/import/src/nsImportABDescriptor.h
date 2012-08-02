@@ -67,7 +67,7 @@ public:
 
   NS_IMETHOD SetAbFile(nsIFile *aFile) {
     if (!aFile) {
-      mFile = nsnull;
+      mFile = nullptr;
       return NS_OK;
     }
 

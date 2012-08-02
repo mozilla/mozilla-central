@@ -211,7 +211,7 @@ NS_IMETHODIMP nsMsgHdr::MarkHasAttachments(bool bHasAttachments)
     nsMsgKey key;
     rv = GetMessageKey(&key);
     if(NS_SUCCEEDED(rv))
-      rv = m_mdb->MarkHasAttachments(key, bHasAttachments, nsnull);
+      rv = m_mdb->MarkHasAttachments(key, bHasAttachments, nullptr);
   }
   return rv;
 }
@@ -225,7 +225,7 @@ NS_IMETHODIMP nsMsgHdr::MarkRead(bool bRead)
     nsMsgKey key;
     rv = GetMessageKey(&key);
     if(NS_SUCCEEDED(rv))
-      rv = m_mdb->MarkRead(key, bRead, nsnull);
+      rv = m_mdb->MarkRead(key, bRead, nullptr);
   }
   return rv;
 }
@@ -239,7 +239,7 @@ NS_IMETHODIMP nsMsgHdr::MarkFlagged(bool bFlagged)
     nsMsgKey key;
     rv = GetMessageKey(&key);
     if(NS_SUCCEEDED(rv))
-      rv = m_mdb->MarkMarked(key, bFlagged, nsnull);
+      rv = m_mdb->MarkMarked(key, bFlagged, nullptr);
   }
   return rv;
 }
@@ -334,7 +334,7 @@ NS_IMETHODIMP nsMsgHdr::GetStringReference(PRInt32 refNum, nsACString& resultRef
   nsresult err = NS_OK;
 
   if(!(m_initedValues & REFERENCES_INITED))
-    GetNumReferences(nsnull); // it can handle the null
+    GetNumReferences(nullptr); // it can handle the null
 
   if ((PRUint32)refNum < m_references.Length())
     resultReference = m_references.ElementAt(refNum);
@@ -741,7 +741,7 @@ NS_IMETHODIMP nsMsgHdr::GetFolder(nsIMsgFolder **result)
     NS_ADDREF(*result);
   }
   else
-    *result = nsnull;
+    *result = nullptr;
   return NS_OK;
 }
 
@@ -814,8 +814,8 @@ const char *nsMsgHdr::GetNextReference(const char *startNextRef,
                                        bool acceptNonDelimitedReferences)
 {
   const char *ptr = startNextRef;
-  const char *whitespaceEndedAt = nsnull;
-  const char *firstMessageIdChar = nsnull;
+  const char *whitespaceEndedAt = nullptr;
+  const char *firstMessageIdChar = nullptr;
 
   // make the reference result string empty by default; we will set it to
   //  something valid if the time comes.
@@ -910,7 +910,7 @@ bool nsMsgHdr::IsAncestorOf(nsIMsgDBHdr *possibleChild)
   nsCString messageId;
   // should put < > around message id to make strstr strictly match
   GetMessageId(getter_Copies(messageId));
-  return (strstr(references, messageId.get()) != nsnull);
+  return (strstr(references, messageId.get()) != nullptr);
 }
 
 NS_IMETHODIMP nsMsgHdr::GetIsRead(bool *isRead)
@@ -1111,7 +1111,7 @@ nsMsgPropertyEnumerator::~nsMsgPropertyEnumerator()
 {
   // Need to clear this before the nsMsgHdr and its corresponding
   // nsIMdbRow potentially go away.
-  mRowCellCursor = nsnull;
+  mRowCellCursor = nullptr;
 }
 
 NS_IMPL_ISUPPORTS1(nsMsgPropertyEnumerator, nsIUTF8StringEnumerator)
@@ -1125,7 +1125,7 @@ NS_IMETHODIMP nsMsgPropertyEnumerator::GetNext(nsACString& aItem)
     return NS_ERROR_NOT_INITIALIZED;
   mNextPrefetched = false;
   char columnName[100];
-  struct mdbYarn colYarn = {columnName, 0, sizeof(columnName), 0, 0, nsnull};
+  struct mdbYarn colYarn = {columnName, 0, sizeof(columnName), 0, 0, nullptr};
   // Get the column of the cell
   nsresult rv = m_mdbStore->TokenToString(m_mdbEnv, mNextColumn, &colYarn);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1149,13 +1149,13 @@ void nsMsgPropertyEnumerator::PrefetchNext(void)
   {
     mNextPrefetched = true;
     nsCOMPtr<nsIMdbCell> cell;
-    mRowCellCursor->NextCell(m_mdbEnv, getter_AddRefs(cell), &mNextColumn, nsnull);
+    mRowCellCursor->NextCell(m_mdbEnv, getter_AddRefs(cell), &mNextColumn, nullptr);
     if (mNextColumn == NULL_MORK_COLUMN)
     {
       // free up references
-      m_mdbStore = nsnull;
-      m_mdbEnv = nsnull;
-      mRowCellCursor = nsnull;
+      m_mdbStore = nullptr;
+      m_mdbEnv = nullptr;
+      mRowCellCursor = nullptr;
     }
   }
 }

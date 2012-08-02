@@ -60,7 +60,7 @@ morkEnv::~morkEnv() /*i*/ // assert CloseEnv() executed earlier
       array -= 3;
       // null out heap ptr in mem block so we won't crash trying to use it to
       // delete the env.
-      *array = nsnull;
+      *array = nullptr;
 #endif // MORK_DEBUG_HEAP_STATS
       // whoops, this is our heap - hmm. Can't delete it, or not allocate env's from
       // an orkinHeap.

@@ -13,7 +13,7 @@
 #define MIGRATION_PROGRESS          "Migration:Progress"
 
 #define NOTIFY_OBSERVERS(message, item) \
-  mObserverService->NotifyObservers(nsnull, message, item)
+  mObserverService->NotifyObservers(nullptr, message, item)
 
 #define COPY_DATA(func, replace, itemIndex) \
   if (NS_SUCCEEDED(rv) && (aItems & itemIndex || !aItems)) { \

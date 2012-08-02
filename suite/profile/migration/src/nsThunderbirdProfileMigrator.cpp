@@ -64,7 +64,7 @@ nsThunderbirdProfileMigrator::Migrate(PRUint16 aItems,
       return NS_ERROR_FILE_NOT_FOUND;
   }
 
-  NOTIFY_OBSERVERS(MIGRATION_STARTED, nsnull);
+  NOTIFY_OBSERVERS(MIGRATION_STARTED, nullptr);
 
   COPY_DATA(CopyPreferences,  aReplace, nsISuiteProfileMigrator::SETTINGS);
   COPY_DATA(CopyCookies,      aReplace, nsISuiteProfileMigrator::COOKIES);
@@ -563,7 +563,7 @@ nsThunderbirdProfileMigrator::TransformPreferences(
   mTargetProfile->Clone(getter_AddRefs(targetPrefsFile));
   targetPrefsFile->AppendNative(nsDependentCString(aTargetPrefFileName));
 
-  // Don't use nsnull here as we're too early in the cycle for the prefs
+  // Don't use nullptr here as we're too early in the cycle for the prefs
   // service to get its default file (because the NS_GetDirectoryService items
   // aren't fully set up yet).
   psvc->ReadUserPrefs(targetPrefsFile);

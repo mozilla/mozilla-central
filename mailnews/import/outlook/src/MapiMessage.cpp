@@ -584,7 +584,7 @@ bool CMapiMessage::CheckBodyInCharsetRange(const char* charset)
   // get an unicode converter
   rv = ccm->GetUnicodeEncoder(charset, getter_AddRefs(encoder));
   NS_ENSURE_SUCCESS(rv, false);
-  rv = encoder->SetOutputErrorBehavior(nsIUnicodeEncoder::kOnError_Signal, nsnull, 0);
+  rv = encoder->SetOutputErrorBehavior(nsIUnicodeEncoder::kOnError_Signal, nullptr, 0);
   NS_ENSURE_SUCCESS(rv, false);
 
   const wchar_t *txt = m_body.get();

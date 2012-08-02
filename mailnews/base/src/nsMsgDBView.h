@@ -213,7 +213,7 @@ protected:
   nsresult GenerateURIForMsgKey(nsMsgKey aMsgKey, nsIMsgFolder *folder, nsACString &aURI);
 // routines used in building up view
   virtual bool WantsThisThread(nsIMsgThread * thread);
-  virtual nsresult AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *resultIndex = nsnull);
+  virtual nsresult AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *resultIndex = nullptr);
   bool GetShowingIgnored() {return (m_viewFlags & nsMsgViewFlagsType::kShowIgnored) != 0;}
   bool OperateOnMsgsInCollapsedThreads();
 
@@ -255,12 +255,12 @@ protected:
   virtual nsresult GetFirstMessageHdrToDisplayInThread(nsIMsgThread *threadHdr, nsIMsgDBHdr **result);
   virtual nsMsgViewIndex ThreadIndexOfMsg(nsMsgKey msgKey,
                             nsMsgViewIndex msgIndex = nsMsgViewIndex_None,
-                            PRInt32 *pThreadCount = nsnull,
-                            PRUint32 *pFlags = nsnull);
+                            PRInt32 *pThreadCount = nullptr,
+                            PRUint32 *pFlags = nullptr);
   nsMsgViewIndex ThreadIndexOfMsgHdr(nsIMsgDBHdr *msgHdr,
                                  nsMsgViewIndex msgIndex = nsMsgViewIndex_None,
-                                 PRInt32 *pThreadCount = nsnull,
-                                 PRUint32 *pFlags = nsnull);
+                                 PRInt32 *pThreadCount = nullptr,
+                                 PRUint32 *pFlags = nullptr);
   nsMsgKey GetKeyOfFirstMsgInThread(nsMsgKey key);
   PRInt32 CountExpandedThread(nsMsgViewIndex index);
   virtual  nsresult ExpansionDelta(nsMsgViewIndex index, PRInt32 *expansionDelta);
@@ -347,9 +347,9 @@ protected:
   // for sorting
   nsresult GetFieldTypeAndLenForSort(nsMsgViewSortTypeValue sortType, PRUint16 *pMaxLen, eFieldType *pFieldType);
   nsresult GetCollationKey(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue sortType, PRUint8 **result, 
-                          PRUint32 *len, nsIMsgCustomColumnHandler* colHandler = nsnull);
+                          PRUint32 *len, nsIMsgCustomColumnHandler* colHandler = nullptr);
   nsresult GetLongField(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue sortType, PRUint32 *result, 
-                          nsIMsgCustomColumnHandler* colHandler = nsnull);
+                          nsIMsgCustomColumnHandler* colHandler = nullptr);
   static int FnSortIdKey(const void *pItem1, const void *pItem2, void *privateData);
   static int FnSortIdKeyPtr(const void *pItem1, const void *pItem2, void *privateData);
   static int FnSortIdUint32(const void *pItem1, const void *pItem2, void *privateData);

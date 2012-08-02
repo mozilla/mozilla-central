@@ -25,7 +25,7 @@ NS_IMPL_ISUPPORTS2(nsRssService,
 NS_IMETHODIMP nsRssService::GetDefaultLocalPath(nsIFile * *aDefaultLocalPath)
 {
     NS_ENSURE_ARG_POINTER(aDefaultLocalPath);
-    *aDefaultLocalPath = nsnull;
+    *aDefaultLocalPath = nullptr;
     
     nsCOMPtr<nsIFile> localFile;
     nsCOMPtr<nsIProperties> dirService(do_GetService("@mozilla.org/file/directory_service;1"));

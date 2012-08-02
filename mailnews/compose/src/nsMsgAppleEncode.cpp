@@ -136,7 +136,7 @@ int ap_encode_file_infor(
         return errFileOpen;
 
     FSCatalogInfo catalogInfo;
-    if (::FSGetCatalogInfo(&ref, kFSCatInfoFinderInfo, &catalogInfo, nsnull, nsnull, nsnull) != noErr)
+    if (::FSGetCatalogInfo(&ref, kFSCatInfoFinderInfo, &catalogInfo, nullptr, nullptr, nullptr) != noErr)
 	{
 		return errFileOpen;
 	}

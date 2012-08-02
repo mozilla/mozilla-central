@@ -41,7 +41,7 @@ SetACookie(nsICookieService *aCookieService, const char *aSpec1, const char *aSp
         NS_NewURI(getter_AddRefs(uri2), aSpec2);
 
     sBuffer = PR_sprintf_append(sBuffer, "    for host \"%s\": SET ", aSpec1);
-    nsresult rv = aCookieService->SetCookieStringFromHttp(uri1, uri2, nsnull, (char *)aCookieString, aServerTime, nsnull);
+    nsresult rv = aCookieService->SetCookieStringFromHttp(uri1, uri2, nullptr, (char *)aCookieString, aServerTime, nullptr);
     // the following code is useless. the cookieservice blindly returns NS_OK
     // from SetCookieString. we have to call GetCookie to see if the cookie was
     // set correctly...
@@ -60,7 +60,7 @@ SetACookieNoHttp(nsICookieService *aCookieService, const char *aSpec, const char
     NS_NewURI(getter_AddRefs(uri), aSpec);
 
     sBuffer = PR_sprintf_append(sBuffer, "    for host \"%s\": SET ", aSpec);
-    nsresult rv = aCookieService->SetCookieString(uri, nsnull, (char *)aCookieString, nsnull);
+    nsresult rv = aCookieService->SetCookieString(uri, nullptr, (char *)aCookieString, nullptr);
     // the following code is useless. the cookieservice blindly returns NS_OK
     // from SetCookieString. we have to call GetCookie to see if the cookie was
     // set correctly...
@@ -83,7 +83,7 @@ GetACookie(nsICookieService *aCookieService, const char *aSpec1, const char *aSp
         NS_NewURI(getter_AddRefs(uri2), aSpec2);
 
     sBuffer = PR_sprintf_append(sBuffer, "             \"%s\": GOT ", aSpec1);
-    nsresult rv = aCookieService->GetCookieStringFromHttp(uri1, uri2, nsnull, aCookie);
+    nsresult rv = aCookieService->GetCookieStringFromHttp(uri1, uri2, nullptr, aCookie);
     if (NS_FAILED(rv)) {
       sBuffer = PR_sprintf_append(sBuffer, "XXX GetCookieString() failed!\n");
     }
@@ -92,7 +92,7 @@ GetACookie(nsICookieService *aCookieService, const char *aSpec1, const char *aSp
     } else {
         sBuffer = PR_sprintf_append(sBuffer, "\"%s\"\n", *aCookie);
     }
-    return *aCookie != nsnull;
+    return *aCookie != nullptr;
 }
 
 // returns true if cookie(s) for the given host were found; else false.
@@ -104,7 +104,7 @@ GetACookieNoHttp(nsICookieService *aCookieService, const char *aSpec, char **aCo
     NS_NewURI(getter_AddRefs(uri), aSpec);
 
     sBuffer = PR_sprintf_append(sBuffer, "             \"%s\": GOT ", aSpec);
-    nsresult rv = aCookieService->GetCookieString(uri, nsnull, aCookie);
+    nsresult rv = aCookieService->GetCookieString(uri, nullptr, aCookie);
     if (NS_FAILED(rv)) {
       sBuffer = PR_sprintf_append(sBuffer, "XXX GetCookieString() failed!\n");
     }
@@ -113,7 +113,7 @@ GetACookieNoHttp(nsICookieService *aCookieService, const char *aSpec, char **aCo
     } else {
         sBuffer = PR_sprintf_append(sBuffer, "\"%s\"\n", *aCookie);
     }
-    return *aCookie != nsnull;
+    return *aCookie != nullptr;
 }
 
 // some #defines for comparison rules
@@ -127,7 +127,7 @@ GetACookieNoHttp(nsICookieService *aCookieService, const char *aSpec, char **aCo
 // takes one of the #defined rules above, and performs the appropriate test.
 // true means the test passed; false means the test failed.
 static inline bool
-CheckResult(const char *aLhs, PRUint32 aRule, const char *aRhs = nsnull)
+CheckResult(const char *aLhs, PRUint32 aRule, const char *aRhs = nullptr)
 {
     switch (aRule) {
         case MUST_BE_NULL:
@@ -140,10 +140,10 @@ CheckResult(const char *aLhs, PRUint32 aRule, const char *aRhs = nsnull)
             return PL_strcmp(aLhs, aRhs);
 
         case MUST_CONTAIN:
-            return PL_strstr(aLhs, aRhs) != nsnull;
+            return PL_strstr(aLhs, aRhs) != nullptr;
 
         case MUST_NOT_CONTAIN:
-            return PL_strstr(aLhs, aRhs) == nsnull;
+            return PL_strstr(aLhs, aRhs) == nullptr;
 
         default:
             return false; // failure
@@ -190,11 +190,11 @@ InitPrefs(nsIPrefBranch *aPrefBranch)
 class ScopedXPCOM
 {
 public:
-  ScopedXPCOM() : rv(NS_InitXPCOM2(nsnull, nsnull, nsnull)) { }
+  ScopedXPCOM() : rv(NS_InitXPCOM2(nullptr, nullptr, nullptr)) { }
   ~ScopedXPCOM()
   {
     if (NS_SUCCEEDED(rv))
-      NS_ShutdownXPCOM(nsnull);
+      NS_ShutdownXPCOM(nullptr);
   }
 
   nsresult rv;
@@ -272,18 +272,18 @@ main(PRInt32 argc, char *argv[])
       // test some mailnews cookies to ensure blockage.
       // we use null firstURI's deliberately, since we have hacks to deal with
       // this situation...
-      SetACookie(cookieService, "mailbox://mail.co.uk/", nsnull, "test=mailnews", nsnull);
-      GetACookie(cookieService, "mailbox://mail.co.uk/", nsnull, getter_Copies(cookie));
+      SetACookie(cookieService, "mailbox://mail.co.uk/", nullptr, "test=mailnews", nullptr);
+      GetACookie(cookieService, "mailbox://mail.co.uk/", nullptr, getter_Copies(cookie));
       rv[0] = CheckResult(cookie.get(), MUST_BE_NULL);
-      GetACookie(cookieService, "http://mail.co.uk/", nsnull, getter_Copies(cookie));
+      GetACookie(cookieService, "http://mail.co.uk/", nullptr, getter_Copies(cookie));
       rv[1] = CheckResult(cookie.get(), MUST_BE_NULL);
-      SetACookie(cookieService, "http://mail.co.uk/", nsnull, "test=mailnews", nsnull);
-      GetACookie(cookieService, "mailbox://mail.co.uk/", nsnull, getter_Copies(cookie));
+      SetACookie(cookieService, "http://mail.co.uk/", nullptr, "test=mailnews", nullptr);
+      GetACookie(cookieService, "mailbox://mail.co.uk/", nullptr, getter_Copies(cookie));
       rv[2] = CheckResult(cookie.get(), MUST_BE_NULL);
-      GetACookie(cookieService, "http://mail.co.uk/", nsnull, getter_Copies(cookie));
+      GetACookie(cookieService, "http://mail.co.uk/", nullptr, getter_Copies(cookie));
       rv[3] = CheckResult(cookie.get(), MUST_EQUAL, "test=mailnews");
-      SetACookie(cookieService, "http://mail.co.uk/", nsnull, "test=mailnews; max-age=0", nsnull);
-      GetACookie(cookieService, "http://mail.co.uk/", nsnull, getter_Copies(cookie));
+      SetACookie(cookieService, "http://mail.co.uk/", nullptr, "test=mailnews; max-age=0", nullptr);
+      GetACookie(cookieService, "http://mail.co.uk/", nullptr, getter_Copies(cookie));
       rv[4] = CheckResult(cookie.get(), MUST_BE_NULL);
 
       allTestsPassed = PrintResult(rv, 5) && allTestsPassed;
@@ -301,7 +301,7 @@ main(PRInt32 argc, char *argv[])
     }
 
     PR_smprintf_free(sBuffer);
-    sBuffer = nsnull;
+    sBuffer = nullptr;
 
     return 0;
 }

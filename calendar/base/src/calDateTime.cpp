@@ -101,7 +101,7 @@ calDateTime::Reset()
     mWeekday = 4;
     mYearday = 1;
     mIsDate = false;
-    mTimezone = nsnull;
+    mTimezone = nullptr;
     mNativeTime = 0;
     mIsValid = true;
     return NS_OK;
@@ -396,7 +396,7 @@ calDateTime::SetIcalString(nsACString const& aIcalString)
     if (icaltime_is_null_time(icalt)) {
         return calIErrors::ICS_ERROR_BASE + icalerrno;
     }
-    FromIcalTime(&icalt, nsnull);
+    FromIcalTime(&icalt, nullptr);
     return NS_OK;
 }
 
@@ -417,7 +417,7 @@ void calDateTime::Normalize()
 void
 calDateTime::ensureTimezone()
 {
-    if (mTimezone == nsnull) {
+    if (mTimezone == nullptr) {
         mTimezone = cal::UTC();
     }
 }
@@ -474,7 +474,7 @@ void calDateTime::FromIcalTime(icaltimetype const* icalt, calITimezone * tz)
     if (tz) {
         mTimezone = tz;
     } else {
-        mTimezone = cal::detectTimezone(t, nsnull);
+        mTimezone = cal::detectTimezone(t, nullptr);
     }
 #if defined(DEBUG)
     if (mTimezone) {

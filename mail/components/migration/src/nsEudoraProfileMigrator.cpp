@@ -34,7 +34,7 @@ nsEudoraProfileMigrator::~nsEudoraProfileMigrator()
 
 nsresult nsEudoraProfileMigrator::ContinueImport()
 {
-  return Notify(nsnull);
+  return Notify(nullptr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -81,7 +81,7 @@ nsEudoraProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup, c
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  NOTIFY_OBSERVERS(MIGRATION_STARTED, nsnull);
+  NOTIFY_OBSERVERS(MIGRATION_STARTED, nullptr);
   rv = ImportSettings(mImportModule);
 
   // now import address books
@@ -132,7 +132,7 @@ nsEudoraProfileMigrator::GetSourceHasMultipleProfiles(bool* aResult)
 NS_IMETHODIMP
 nsEudoraProfileMigrator::GetSourceProfiles(nsIArray** aResult)
 {
-  *aResult = nsnull;
+  *aResult = nullptr;
   return NS_OK;
 }
 

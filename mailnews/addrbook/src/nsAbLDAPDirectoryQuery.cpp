@@ -204,7 +204,7 @@ nsresult nsAbQueryLDAPMessageListener::DoTask()
   mOperation = do_CreateInstance(NS_LDAPOPERATION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = mOperation->Init(mConnection, this, nsnull);
+  rv = mOperation->Init(mConnection, this, nullptr);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCAutoString dn;
@@ -552,7 +552,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   // Now lets initialize the LDAP connection properly. We'll kick
   // off the bind operation in the callback function, |OnLDAPInit()|.
   rv = mConnection->Init(mDirectoryUrl, mCurrentLogin,
-                         mListener, nsnull, mCurrentProtocolVersion);
+                         mListener, nullptr, mCurrentProtocolVersion);
   NS_ENSURE_SUCCESS(rv, rv);
 
   return rv;

@@ -272,7 +272,7 @@ MimeMessage_close_headers (MimeObject *obj)
     nsCString contentType;
     contentType.Adopt(MimeHeaders_get(msg->hdrs, HEADER_CONTENT_TYPE, false, false));
     if (!contentType.IsEmpty())
-      charset.Adopt(MimeHeaders_get_parameter(contentType.get(), "charset", nsnull, nsnull));
+      charset.Adopt(MimeHeaders_get_parameter(contentType.get(), "charset", nullptr, nullptr));
 
     // If we've got a charset, use nsMsgI18NConvertToUnicode to magically decode
     // the munged subject.
@@ -285,10 +285,10 @@ MimeMessage_close_headers (MimeObject *obj)
       if (NS_SUCCEEDED(rv))
         obj->headers->munged_subject = ToNewUTF8String(dest);
       else
-        obj->headers->munged_subject = nsnull;
+        obj->headers->munged_subject = nullptr;
     } else {
       PR_Free(obj->headers->munged_subject);
-      obj->headers->munged_subject = nsnull;
+      obj->headers->munged_subject = nullptr;
     }
   }
 
@@ -645,7 +645,7 @@ MimeMessage_add_child (MimeObject *parent, MimeObject *child)
 char *
 DetermineMailCharset(MimeMessage *msg)
 {
-  char          *retCharset = nsnull;
+  char          *retCharset = nullptr;
 
   if ( (msg) && (msg->hdrs) )
   {

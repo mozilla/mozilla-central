@@ -42,7 +42,7 @@ NS_IMPL_ISUPPORTS5(nsFolderCompactState, nsIMsgFolderCompactor, nsIRequestObserv
 
 nsFolderCompactState::nsFolderCompactState()
 {
-  m_fileStream = nsnull;
+  m_fileStream = nullptr;
   m_size = 0;
   m_curIndex = 0;
   m_status = NS_OK;
@@ -70,7 +70,7 @@ void nsFolderCompactState::CloseOutputStream()
   if (m_fileStream)
   {
     m_fileStream->Close();
-    m_fileStream = nsnull;
+    m_fileStream = nullptr;
   }
 
 }
@@ -130,13 +130,13 @@ NS_IMETHODIMP nsFolderCompactState::CompactFolders(nsIArray *aArrayOfFoldersToCo
   {
     m_folderArray = aOfflineFolderArray;
     m_compactingOfflineFolders = true;
-    aOfflineFolderArray = nsnull;
+    aOfflineFolderArray = nullptr;
   }
   if (!m_folderArray)
     return NS_OK;
  
   m_compactAll = true;
-  m_compactOfflineAlso = aOfflineFolderArray != nsnull;
+  m_compactOfflineAlso = aOfflineFolderArray != nullptr;
   if (m_compactOfflineAlso)
     m_offlineFolderArray = aOfflineFolderArray;
 
@@ -319,7 +319,7 @@ NS_IMETHODIMP nsFolderCompactState::OnStopRunningUrl(nsIURI *url, nsresult statu
     nsCOMPtr <nsIMsgFolder> prevFolder = do_QueryElementAt(m_folderArray,
                                                            m_folderIndex);
     if (prevFolder)
-      prevFolder->SetMsgDatabase(nsnull);
+      prevFolder->SetMsgDatabase(nullptr);
     CompactNextFolder();
   }
   else if (m_listener)
@@ -347,7 +347,7 @@ nsresult nsFolderCompactState::StartCompacting()
   if (notifier)
     notifier->NotifyItemEvent(m_folder,
                               NS_LITERAL_CSTRING("FolderCompactStart"),
-                              nsnull);
+                              nullptr);
   if (m_size > 0)
   {
     nsCOMPtr<nsIURI> notUsed;
@@ -355,7 +355,7 @@ nsresult nsFolderCompactState::StartCompacting()
     AddRef();
     rv = m_messageService->CopyMessages(m_size, m_keyArray->m_keys.Elements(),
                                         m_folder, this,
-                                        false, nsnull, m_window,
+                                        false, nullptr, m_window,
                                         getter_AddRefs(notUsed));
   }
   else
@@ -397,14 +397,14 @@ nsFolderCompactState::FinishCompact()
     // and its database; then rename the temp folder and database
   m_fileStream->Flush();
   m_fileStream->Close();
-  m_fileStream = nsnull;
+  m_fileStream = nullptr;
 
   // make sure the new database is valid.
   // Close it so we can rename the .msf file.
   if (m_db)
   {
     m_db->ForceClosed();
-    m_db = nsnull;
+    m_db = nullptr;
   }
 
   nsCOMPtr <nsIFile> newSummaryFile;
@@ -440,12 +440,12 @@ nsFolderCompactState::FinishCompact()
       {
         // rename the copied folder and database to be the original folder and
         // database 
-        rv = m_file->MoveToNative((nsIFile *) nsnull, leafName);
+        rv = m_file->MoveToNative((nsIFile *) nullptr, leafName);
         NS_ASSERTION(NS_SUCCEEDED(rv), "error renaming compacted folder");
         if (NS_SUCCEEDED(rv))
         {
           folderRenameSucceeded = true;
-          rv = newSummaryFile->MoveToNative((nsIFile *) nsnull, dbName);
+          rv = newSummaryFile->MoveToNative((nsIFile *) nullptr, dbName);
           NS_ASSERTION(NS_SUCCEEDED(rv), "error renaming compacted folder's db");
           msfRenameSucceeded = NS_SUCCEEDED(rv);
         }
@@ -479,7 +479,7 @@ nsFolderCompactState::FinishCompact()
   }
   if (m_db)
     m_db->Close(true);
-  m_db = nsnull;
+  m_db = nullptr;
 
   // Notify that compaction of the folder is completed.
   nsCOMPtr<nsIMsgFolderNotificationService>
@@ -487,7 +487,7 @@ nsFolderCompactState::FinishCompact()
   if (notifier)
     notifier->NotifyItemEvent(m_folder,
                               NS_LITERAL_CSTRING("FolderCompactFinish"),
-                              nsnull);
+                              nullptr);
   m_folder->NotifyCompactCompleted();
 
   if (m_compactAll)
@@ -503,7 +503,7 @@ void nsFolderCompactState::CompactCompleted(nsresult exitCode)
   NS_WARN_IF_FALSE(NS_SUCCEEDED(exitCode),
                    "nsFolderCompactState::CompactCompleted failed");
   if (m_listener)
-    m_listener->OnStopRunningUrl(nsnull, exitCode);
+    m_listener->OnStopRunningUrl(nullptr, exitCode);
   ShowDoneStatus();
 }
 
@@ -594,11 +594,11 @@ nsFolderCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt,
   }
   else
   {
-    EndCopy(nsnull, status);
+    EndCopy(nullptr, status);
     if (m_curIndex >= m_size)
     {
-      msgHdr = nsnull;
-      newMsgHdr = nsnull;
+      msgHdr = nullptr;
+      newMsgHdr = nullptr;
       // no more to copy finish it up
       FinishCompact();
     }
@@ -897,8 +897,8 @@ nsresult nsOfflineStoreCompactState::CopyNextMessage(bool &done)
     m_startOfMsg = true;
     nsCOMPtr<nsISupports> thisSupports;
     QueryInterface(NS_GET_IID(nsISupports), getter_AddRefs(thisSupports));
-    rv = m_messageService->StreamMessage(m_messageUri.get(), thisSupports, m_window, nsnull,
-                                    false, EmptyCString(), true, nsnull);
+    rv = m_messageService->StreamMessage(m_messageUri.get(), thisSupports, m_window, nullptr,
+                                    false, EmptyCString(), true, nullptr);
     // if copy fails, we clear the offline flag on the source message.
     if (NS_FAILED(rv))
     {
@@ -970,8 +970,8 @@ nsOfflineStoreCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt
   if (done)
   {
     m_db->Commit(nsMsgDBCommitType::kCompressCommit);
-    msgHdr = nsnull;
-    newMsgHdr = nsnull;
+    msgHdr = nullptr;
+    newMsgHdr = nullptr;
     // no more to copy finish it up
     ReleaseFolderLock();
     FinishCompact();
@@ -1010,7 +1010,7 @@ nsOfflineStoreCompactState::FinishCompact()
     // and its database; then rename the temp folder and database
     m_fileStream->Flush();
     m_fileStream->Close();
-    m_fileStream = nsnull;
+    m_fileStream = nullptr;
   }
 
     // make sure the new database is valid
@@ -1028,7 +1028,7 @@ nsOfflineStoreCompactState::FinishCompact()
   path->Remove(false);
 
     // rename the copied folder to be the original folder 
-  m_file->MoveToNative((nsIFile *) nsnull, leafName);
+  m_file->MoveToNative((nsIFile *) nullptr, leafName);
 
   ShowStatusMsg(EmptyString());
   m_folder->NotifyCompactCompleted();
@@ -1094,7 +1094,7 @@ nsFolderCompactState::EndCopy(nsISupports *url, nsresult aStatus)
     m_db->CopyHdrFromExistingHdr(key, m_curSrcHdr, true,
                                  getter_AddRefs(newMsgHdr));
   }
-  m_curSrcHdr = nsnull;
+  m_curSrcHdr = nullptr;
   if (newMsgHdr)
   {
     if ( m_statusOffset != 0)

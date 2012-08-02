@@ -162,7 +162,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     //
     nsCOMPtr<nsIDOMWindow> abDOMWindow;
     rv = windowWatcherSvc->GetWindowByName(NS_LITERAL_STRING("addressbookWindow").get(),
-                                           nsnull,
+                                           nullptr,
                                            getter_AddRefs(abDOMWindow));
     if (NS_FAILED(rv))
     {
@@ -231,7 +231,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     return rv;
   }
 
-  rv = mOperation->Init(mConnection, this, nsnull);
+  rv = mOperation->Init(mConnection, this, nullptr);
   if (NS_FAILED(rv))
   {
     NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit(): failed to Initialise operation");
@@ -333,7 +333,7 @@ nsresult nsAbLDAPListenerBase::OnLDAPMessageBind(nsILDAPMessage *aMessage)
       // the user that the login failed here, rather than just bringing 
       // up the password dialog again, which is what calling OnLDAPInit()
       // does.
-      return OnLDAPInit(nsnull, NS_OK);
+      return OnLDAPInit(nullptr, NS_OK);
     }
 
     // Don't know how to handle this, so use the message error code in

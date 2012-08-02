@@ -70,11 +70,11 @@ nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar **
   NS_ENSURE_ARG(aParser);
   nsresult rv = NS_OK;
 
-  *aOutgoingFullName = nsnull;
-  *aOutgoingEmailAddress = nsnull;
-  *aOutgoingName = nsnull;
+  *aOutgoingFullName = nullptr;
+  *aOutgoingEmailAddress = nullptr;
+  *aOutgoingName = nullptr;
 
-  char * result = nsnull;
+  char * result = nullptr;
   if (aAddress && aAddress[0])
   {
     result = MIME_DecodeMimeHeader(aAddress, NULL, false, true);
@@ -95,7 +95,7 @@ nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar **
                                       getter_Copies(fullAddress));
   if (NS_SUCCEEDED(rv) && !fullAddress.IsEmpty())
   {
-    result = MIME_DecodeMimeHeader(fullAddress.get(), nsnull, false, true);
+    result = MIME_DecodeMimeHeader(fullAddress.get(), nullptr, false, true);
     if (result)
       fullAddress.Adopt(result);
     aParser->UnquotePhraseOrAddr(fullAddress.get(), true, getter_Copies(unquotedAddress));
@@ -104,7 +104,7 @@ nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar **
     *aOutgoingFullName = ToNewUnicode(NS_ConvertUTF8toUTF16(fullAddress));
   }
   else
-    *aOutgoingFullName = nsnull;
+    *aOutgoingFullName = nullptr;
 
   return rv;
 }
@@ -112,8 +112,8 @@ nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar **
 NS_IMETHODIMP nsMsgHeaderParser::ParseHeadersWithArray(const PRUnichar * aLine, PRUnichar *** aEmailAddresses,
                                                        PRUnichar *** aNames, PRUnichar *** aFullNames, PRUint32 * aNumAddresses)
 {
-  char * names = nsnull;
-  char * addresses = nsnull;
+  char * names = nullptr;
+  char * addresses = nullptr;
   PRUint32 numAddresses = 0;
   nsresult rv = NS_OK;
 
@@ -139,7 +139,7 @@ NS_IMETHODIMP nsMsgHeaderParser::ParseHeadersWithArray(const PRUnichar * aLine, 
     PRUint32 index = 0;
     const char * currentName = names;
     const char * currentAddress = addresses;
-    char * unquotedName = nsnull;
+    char * unquotedName = nullptr;
     while (index < numAddresses)
     {
       if (NS_SUCCEEDED(UnquotePhraseOrAddr(currentName, true, &unquotedName)))
@@ -223,7 +223,7 @@ nsresult nsMsgHeaderParser::UnquotePhraseOrAddrWString (const PRUnichar *line, b
   if (NS_SUCCEEDED(rv))
   {
     *result = ToNewUnicode(NS_ConvertUTF8toUTF16(utf8Str.get()));
-    if (*result == nsnull)
+    if (*result == nullptr)
       rv = NS_ERROR_OUT_OF_MEMORY;
   }
 
@@ -233,7 +233,7 @@ nsresult nsMsgHeaderParser::UnquotePhraseOrAddrWString (const PRUnichar *line, b
 nsresult nsMsgHeaderParser::ReformatUnquotedAddresses (const PRUnichar *line, PRUnichar ** result)
 {
   NS_ENSURE_ARG_POINTER(result);
-  *result = nsnull;
+  *result = nullptr;
   bool badInput = false;
 
   NS_ConvertUTF16toUTF8 convertedLine(line);
@@ -325,7 +325,7 @@ nsresult nsMsgHeaderParser::ReformatUnquotedAddresses (const PRUnichar *line, PR
   if (!badInput)
     *result = ToNewUnicode(NS_ConvertUTF8toUTF16(outputStr));
   PR_Free(outputStr);
-  if (*result == nsnull)
+  if (*result == nullptr)
     return NS_ERROR_OUT_OF_MEMORY;
   if (badInput)
     return NS_ERROR_INVALID_ARG;
@@ -337,8 +337,8 @@ nsresult nsMsgHeaderParser::ReformatUnquotedAddresses (const PRUnichar *line, PR
 nsresult NS_NewHeaderParser(nsIMsgHeaderParser ** aInstancePtrResult)
 {
   /* note this new macro for assertions...they can take a string describing the assertion */
-  NS_PRECONDITION(nsnull != aInstancePtrResult, "nsnull ptr");
-  if (nsnull != aInstancePtrResult)
+  NS_PRECONDITION(nullptr != aInstancePtrResult, "nullptr ptr");
+  if (nullptr != aInstancePtrResult)
   {
     nsMsgHeaderParser* parser = new nsMsgHeaderParser();
     if (parser)
@@ -998,9 +998,9 @@ msg_unquote_phrase_or_addr(const char *line, bool preserveIntegrity, char **line
   /* in preserveIntegrity mode, we must preserve the quote if the name contains a comma */
   if (preserveIntegrity)
   {
-    const char * open_quote = nsnull;
-    const char * comma = nsnull;;
-    const char * at_sign = nsnull;
+    const char * open_quote = nullptr;
+    const char * comma = nullptr;;
+    const char * at_sign = nullptr;
     const char * readPos = line + 1;
 
     while (*readPos)
@@ -1020,7 +1020,7 @@ msg_unquote_phrase_or_addr(const char *line, bool preserveIntegrity, char **line
         if (!open_quote)
           open_quote = readPos;
         else
-          open_quote = nsnull;
+          open_quote = nullptr;
       }
 
       readPos ++;

@@ -40,16 +40,16 @@
 #include "nsIMutableArray.h"
 #include "nsISupportsArray.h"
 
-PRLogModuleInfo *IMPORTLOGMODULE = nsnull;
+PRLogModuleInfo *IMPORTLOGMODULE = nullptr;
 
-static nsIImportService *  gImportService = nsnull;
+static nsIImportService *  gImportService = nullptr;
 static const char *  kWhitespace = "\b\t\r\n ";
 
 
 ////////////////////////////////////////////////////////////////////////
 
 
-nsImportService::nsImportService() : m_pModules(nsnull)
+nsImportService::nsImportService() : m_pModules(nullptr)
 {
   // Init logging module.
   if (!IMPORTLOGMODULE)
@@ -57,8 +57,8 @@ nsImportService::nsImportService() : m_pModules(nsnull)
   IMPORT_LOG0("* nsImport Service Created\n");
 
   m_didDiscovery = false;
-  m_pDecoder = nsnull;
-  m_pEncoder = nsnull;
+  m_pDecoder = nullptr;
+  m_pEncoder = nullptr;
 
   nsresult rv = nsImportStringBundle::GetStringBundle(IMPORT_MSGS_URL, getter_AddRefs(m_stringBundle));
   if (NS_FAILED(rv))
@@ -71,9 +71,9 @@ nsImportService::~nsImportService()
   NS_IF_RELEASE(m_pDecoder);
   NS_IF_RELEASE(m_pEncoder);
 
-  gImportService = nsnull;
+  gImportService = nullptr;
 
-    if (m_pModules != nsnull)
+    if (m_pModules != nullptr)
         delete m_pModules;
 
   IMPORT_LOG0("* nsImport Service Deleted\n");
@@ -92,24 +92,24 @@ NS_IMETHODIMP nsImportService::DiscoverModules(void)
 
 NS_IMETHODIMP nsImportService::CreateNewFieldMap(nsIImportFieldMap **_retval)
 {
-  return nsImportFieldMap::Create(m_stringBundle, nsnull, NS_GET_IID(nsIImportFieldMap), (void**)_retval);
+  return nsImportFieldMap::Create(m_stringBundle, nullptr, NS_GET_IID(nsIImportFieldMap), (void**)_retval);
 }
 
 NS_IMETHODIMP nsImportService::CreateNewMailboxDescriptor(nsIImportMailboxDescriptor **_retval)
 {
-  return nsImportMailboxDescriptor::Create(nsnull, NS_GET_IID(nsIImportMailboxDescriptor), (void**)_retval);
+  return nsImportMailboxDescriptor::Create(nullptr, NS_GET_IID(nsIImportMailboxDescriptor), (void**)_retval);
 }
 
 NS_IMETHODIMP nsImportService::CreateNewABDescriptor(nsIImportABDescriptor **_retval)
 {
-  return nsImportABDescriptor::Create(nsnull, NS_GET_IID(nsIImportABDescriptor), (void**)_retval);
+  return nsImportABDescriptor::Create(nullptr, NS_GET_IID(nsIImportABDescriptor), (void**)_retval);
 }
 
 extern nsresult NS_NewGenericMail(nsIImportGeneric** aImportGeneric);
 
 NS_IMETHODIMP nsImportService::CreateNewGenericMail(nsIImportGeneric **_retval)
 {
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
+    NS_PRECONDITION(_retval != nullptr, "null ptr");
     if (! _retval)
         return NS_ERROR_NULL_POINTER;
 
@@ -120,7 +120,7 @@ extern nsresult NS_NewGenericAddressBooks(nsIImportGeneric** aImportGeneric);
 
 NS_IMETHODIMP nsImportService::CreateNewGenericAddressBooks(nsIImportGeneric **_retval)
 {
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
+    NS_PRECONDITION(_retval != nullptr, "null ptr");
     if (! _retval)
         return NS_ERROR_NULL_POINTER;
 
@@ -130,13 +130,13 @@ NS_IMETHODIMP nsImportService::CreateNewGenericAddressBooks(nsIImportGeneric **_
 
 NS_IMETHODIMP nsImportService::GetModuleCount(const char *filter, PRInt32 *_retval)
 {
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
+    NS_PRECONDITION(_retval != nullptr, "null ptr");
     if (! _retval)
         return NS_ERROR_NULL_POINTER;
 
   DoDiscover();
 
-  if (m_pModules != nsnull) {
+  if (m_pModules != nullptr) {
     ImportModuleDesc *  pDesc;
     PRInt32  count = 0;
     for (PRInt32 i = 0; i < m_pModules->GetCount(); i++) {
@@ -154,15 +154,15 @@ NS_IMETHODIMP nsImportService::GetModuleCount(const char *filter, PRInt32 *_retv
 
 NS_IMETHODIMP nsImportService::GetModuleWithCID(const nsCID& cid, nsIImportModule **ppModule)
 {
-  NS_PRECONDITION(ppModule != nsnull, "null ptr");
+  NS_PRECONDITION(ppModule != nullptr, "null ptr");
   if (!ppModule)
     return NS_ERROR_NULL_POINTER;
 
-  *ppModule = nsnull;
+  *ppModule = nullptr;
   nsresult rv = DoDiscover();
   if (NS_FAILED(rv))
     return rv;
-  if (m_pModules == nsnull)
+  if (m_pModules == nullptr)
     return NS_ERROR_FAILURE;
   PRInt32  cnt = m_pModules->GetCount();
   ImportModuleDesc *pDesc;
@@ -175,7 +175,7 @@ NS_IMETHODIMP nsImportService::GetModuleWithCID(const nsCID& cid, nsIImportModul
 
       IMPORT_LOG0("* nsImportService::GetSpecificModule - attempted to load module\n");
 
-      if (*ppModule == nsnull)
+      if (*ppModule == nullptr)
         return NS_ERROR_FAILURE;
       return NS_OK;
     }
@@ -188,13 +188,13 @@ NS_IMETHODIMP nsImportService::GetModuleWithCID(const nsCID& cid, nsIImportModul
 
 NS_IMETHODIMP nsImportService::GetModuleInfo(const char *filter, PRInt32 index, PRUnichar **name, PRUnichar **moduleDescription)
 {
-    NS_PRECONDITION(name != nsnull, "null ptr");
-    NS_PRECONDITION(moduleDescription != nsnull, "null ptr");
+    NS_PRECONDITION(name != nullptr, "null ptr");
+    NS_PRECONDITION(moduleDescription != nullptr, "null ptr");
     if (!name || !moduleDescription)
         return NS_ERROR_NULL_POINTER;
 
-  *name = nsnull;
-  *moduleDescription = nsnull;
+  *name = nullptr;
+  *moduleDescription = nullptr;
 
     DoDiscover();
     if (!m_pModules)
@@ -223,11 +223,11 @@ NS_IMETHODIMP nsImportService::GetModuleInfo(const char *filter, PRInt32 index, 
 
 NS_IMETHODIMP nsImportService::GetModuleName(const char *filter, PRInt32 index, PRUnichar **_retval)
 {
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
+    NS_PRECONDITION(_retval != nullptr, "null ptr");
     if (!_retval)
         return NS_ERROR_NULL_POINTER;
 
-  *_retval = nsnull;
+  *_retval = nullptr;
 
     DoDiscover();
     if (!m_pModules)
@@ -256,11 +256,11 @@ NS_IMETHODIMP nsImportService::GetModuleName(const char *filter, PRInt32 index, 
 
 NS_IMETHODIMP nsImportService::GetModuleDescription(const char *filter, PRInt32 index, PRUnichar **_retval)
 {
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
+    NS_PRECONDITION(_retval != nullptr, "null ptr");
     if (!_retval)
         return NS_ERROR_NULL_POINTER;
 
-  *_retval = nsnull;
+  *_retval = nullptr;
 
     DoDiscover();
     if (!m_pModules)
@@ -370,10 +370,10 @@ nsImportService::CreateRFC822Message(nsIMsgIdentity *aIdentity,
 
 NS_IMETHODIMP nsImportService::GetModule(const char *filter, PRInt32 index, nsIImportModule **_retval)
 {
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
+    NS_PRECONDITION(_retval != nullptr, "null ptr");
     if (!_retval)
         return NS_ERROR_NULL_POINTER;
-  *_retval = nsnull;
+  *_retval = nullptr;
 
     DoDiscover();
     if (!m_pModules)
@@ -407,7 +407,7 @@ nsresult nsImportService::DoDiscover(void)
   if (m_didDiscovery)
     return NS_OK;
 
-  if (m_pModules != nsnull)
+  if (m_pModules != nullptr)
     m_pModules->ClearList();
 
   nsresult rv;
@@ -441,7 +441,7 @@ nsresult nsImportService::LoadModuleInfo(const char *pClsId, const char *pSuppor
   if (!pClsId || !pSupports)
     return NS_OK;
 
-  if (m_pModules == nsnull)
+  if (m_pModules == nullptr)
     m_pModules = new nsImportModuleList();
 
   // load the component and get all of the info we need from it....
@@ -485,8 +485,8 @@ nsIImportModule *ImportModuleDesc::GetModule(bool keepLoaded)
   rv = CallCreateInstance(m_cid, &m_pModule);
   if (NS_FAILED(rv))
   {
-    m_pModule = nsnull;
-    return nsnull;
+    m_pModule = nullptr;
+    return nullptr;
   }
 
   if (keepLoaded)
@@ -497,7 +497,7 @@ nsIImportModule *ImportModuleDesc::GetModule(bool keepLoaded)
   else
   {
     nsIImportModule *pModule = m_pModule;
-    m_pModule = nsnull;
+    m_pModule = nullptr;
     return pModule;
   }
 }
@@ -507,7 +507,7 @@ void ImportModuleDesc::ReleaseModule(void)
   if (m_pModule)
   {
     m_pModule->Release();
-    m_pModule = nsnull;
+    m_pModule = nullptr;
   }
 }
 
@@ -541,11 +541,11 @@ void nsImportModuleList::ClearList(void)
     for (int i = 0; i < m_count; i++)
     {
       delete m_pList[i];
-      m_pList[i] = nsnull;
+      m_pList[i] = nullptr;
     }
     m_count = 0;
     delete [] m_pList;
-    m_pList = nsnull;
+    m_pList = nullptr;
     m_alloc = 0;
   }
 

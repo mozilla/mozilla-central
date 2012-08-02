@@ -93,7 +93,7 @@ nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, PRUint32 *
     else
       keyStr = Substring(uriStr, keySeparator + 1);
 
-    *key = strtoul(keyStr.get(), nsnull, 10);
+    *key = strtoul(keyStr.get(), nullptr, 10);
 
     if (part && keyEndSeparator != -1)
     {
@@ -147,7 +147,7 @@ nsImapMailboxSpec::nsImapMailboxSpec()
   mDiscoveredFromLsub = false;
   
   mOnlineVerified = false;
-  mNamespaceForFolder = nsnull;
+  mNamespaceForFolder = nullptr;
 }
 
 nsImapMailboxSpec::~nsImapMailboxSpec()
@@ -257,7 +257,7 @@ void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount,
 
   // a partial fetch flag state doesn't help us, so don't use it.
   if (flagState && flagState->GetPartialUIDFetch())
-    flagState = nsnull;
+    flagState = nullptr;
 
   
   for (PRUint32 keyIndex = 0; keyIndex < total; keyIndex++)
@@ -351,7 +351,7 @@ void ParseUidString(const char *uidString, nsTArray<nsMsgKey> &keys)
 
     // we don't need to null terminate currentKeyToken because strtoul
     // stops at non-numeric chars.
-    curToken = strtoul(currentKeyToken, nsnull, 10);
+    curToken = strtoul(currentKeyToken, nullptr, 10);
     if (isRange)
     {
       while (saveStartToken < curToken)

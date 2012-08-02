@@ -12,7 +12,7 @@ nsImportScanFile::nsImportScanFile()
 {
   m_allocated = false;
   m_eof = false;
-  m_pBuf = nsnull;
+  m_pBuf = nullptr;
 }
 
 nsImportScanFile::~nsImportScanFile()
@@ -32,7 +32,7 @@ void nsImportScanFile::InitScan(nsIInputStream *pInputStream, PRUint8 * pBuf, PR
 
 void nsImportScanFile::CleanUpScan(void)
 {
-  m_pInputStream = nsnull;
+  m_pInputStream = nullptr;
   if (m_allocated) {
     delete [] m_pBuf;
     m_pBuf = NULL;

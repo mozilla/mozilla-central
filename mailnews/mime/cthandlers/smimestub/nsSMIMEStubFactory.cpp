@@ -29,7 +29,7 @@ nsSMimeMimeContentTypeHandlerConstructor(nsISupports *aOuter,
                                          void **aResult)
 {
   nsresult rv;
-  nsMimeContentTypeHandler *inst = nsnull;
+  nsMimeContentTypeHandler *inst = nullptr;
 
   if (NULL == aResult) {
     rv = NS_ERROR_NULL_POINTER;

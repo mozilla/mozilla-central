@@ -91,7 +91,7 @@ nsMsgSendReport::~nsMsgSendReport()
 {
   PRUint32 i;
   for (i = 0; i <= SEND_LAST_PROCESS; i ++)
-    mProcessReport[i] = nsnull;
+    mProcessReport[i] = nullptr;
 }
 
 /* attribute long currentProcess; */

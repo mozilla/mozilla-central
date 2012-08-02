@@ -33,7 +33,7 @@
 #include "nsTextFormatter.h"
 #include "mozilla/Services.h"
 
-static PRLogModuleInfo * gMimeEmitterLogModule = nsnull;
+static PRLogModuleInfo * gMimeEmitterLogModule = nullptr;
 
 #define   MIME_HEADER_URL      "chrome://messenger/locale/mimeheader.properties"
 #define   MIME_URL             "chrome://messenger/locale/mime.properties"
@@ -52,29 +52,29 @@ nsMimeBaseEmitter::nsMimeBaseEmitter()
   // Initialize data output vars...
   mFirstHeaders = true;
 
-  mBufferMgr = nsnull;
+  mBufferMgr = nullptr;
   mTotalWritten = 0;
   mTotalRead = 0;
-  mInputStream = nsnull;
-  mOutStream = nsnull;
-  mOutListener = nsnull;
+  mInputStream = nullptr;
+  mOutStream = nullptr;
+  mOutListener = nullptr;
 
   // Display output control vars...
   mDocHeader = false;
-  m_stringBundle = nsnull;
-  mURL = nsnull;
+  m_stringBundle = nullptr;
+  mURL = nullptr;
   mHeaderDisplayType = nsMimeHeaderDisplayTypes::NormalHeaders;
 
   // Setup array for attachments
   mAttachCount = 0;
   mAttachArray = new nsVoidArray();
-  mCurrentAttachment = nsnull;
+  mCurrentAttachment = nullptr;
 
   // Header cache...
   mHeaderArray = new nsVoidArray();
 
   // Embedded Header Cache...
-  mEmbeddedHeaderArray = nsnull;
+  mEmbeddedHeaderArray = nullptr;
 
   // HTML Header Data...
 //  mHTMLHeaders = "";
@@ -104,7 +104,7 @@ nsMimeBaseEmitter::~nsMimeBaseEmitter(void)
   if (mBufferMgr)
   {
     delete mBufferMgr;
-    mBufferMgr = nsnull;
+    mBufferMgr = nullptr;
   }
 
   // Clean up the attachment array structures...
@@ -127,10 +127,10 @@ nsMimeBaseEmitter::~nsMimeBaseEmitter(void)
 
   // Cleanup allocated header arrays...
   CleanupHeaderArray(mHeaderArray);
-  mHeaderArray = nsnull;
+  mHeaderArray = nullptr;
 
   CleanupHeaderArray(mEmbeddedHeaderArray);
-  mEmbeddedHeaderArray = nsnull;
+  mEmbeddedHeaderArray = nullptr;
 }
 
 NS_IMETHODIMP nsMimeBaseEmitter::GetInterface(const nsIID & aIID, void * *aInstancePtr)
@@ -225,7 +225,7 @@ nsMimeBaseEmitter::MimeGetStringByName(const char *aHeaderName)
                                                   getter_Copies(val));
 
     if (NS_FAILED(res))
-      return nsnull;
+      return nullptr;
 
     // Here we need to return a new copy of the string
     // This returns a UTF-8 string so the caller needs to perform a conversion
@@ -235,7 +235,7 @@ nsMimeBaseEmitter::MimeGetStringByName(const char *aHeaderName)
   }
   else
   {
-    return nsnull;
+    return nullptr;
   }
 }
 
@@ -261,12 +261,12 @@ nsMimeBaseEmitter::MimeGetStringByID(PRInt32 aID)
     res = m_stringBundle->GetStringFromID(aID, getter_Copies(val));
 
     if (NS_FAILED(res))
-      return nsnull;
+      return nullptr;
 
     return ToNewUTF8String(val);
   }
   else
-    return nsnull;
+    return nullptr;
 }
 
 //
@@ -278,7 +278,7 @@ nsMimeBaseEmitter::MimeGetStringByID(PRInt32 aID)
 char *
 nsMimeBaseEmitter::LocalizeHeaderName(const char *aHeaderName, const char *aDefaultName)
 {
-  char *retVal = nsnull;
+  char *retVal = nullptr;
 
   // prefer to use translated strings if not for quoting
   if (mFormat != nsMimeOutput::nsMimeMessageQuoting &&
@@ -379,7 +379,7 @@ nsMimeBaseEmitter::EndAttachment()
   if ( (mCurrentAttachment) && (mAttachArray) )
   {
     mAttachArray->AppendElement(mCurrentAttachment);
-    mCurrentAttachment = nsnull;
+    mCurrentAttachment = nullptr;
   }
 
   return NS_OK;
@@ -507,11 +507,11 @@ const char *
 nsMimeBaseEmitter::GetHeaderValue(const char  *aHeaderName)
 {
   PRInt32     i;
-  char        *retVal = nsnull;
+  char        *retVal = nullptr;
   nsVoidArray *array = mDocHeader? mHeaderArray : mEmbeddedHeaderArray;
 
   if (!array)
-    return nsnull;
+    return nullptr;
 
   for (i = 0; i < array->Count(); i++)
   {
@@ -732,7 +732,7 @@ nsMimeBaseEmitter::GenerateDateString(const char * dateString,
   nsAutoString formattedDateString;
   if (NS_SUCCEEDED(rv))
   {
-    rv = mDateFormatter->FormatPRExplodedTime(nsnull /* nsILocale* locale */,
+    rv = mDateFormatter->FormatPRExplodedTime(nullptr /* nsILocale* locale */,
                                               dateFormat,
                                               kTimeFormatNoSeconds,
                                               &explodedCompTime,
@@ -764,7 +764,7 @@ nsMimeBaseEmitter::GenerateDateString(const char * dateString,
 char*
 nsMimeBaseEmitter::GetLocalizedDateString(const char * dateString)
 {
-  char *i18nValue = nsnull;
+  char *i18nValue = nullptr;
 
   bool displayOriginalDate = false;
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
@@ -791,8 +791,8 @@ nsMimeBaseEmitter::GetLocalizedDateString(const char * dateString)
 nsresult
 nsMimeBaseEmitter::WriteHeaderFieldHTML(const char *field, const char *value)
 {
-  char *newValue = nsnull;
-  char *i18nValue = nsnull;
+  char *newValue = nullptr;
+  char *i18nValue = nullptr;
 
   if ( (!field) || (!value) )
     return NS_OK;
@@ -819,7 +819,7 @@ nsMimeBaseEmitter::WriteHeaderFieldHTML(const char *field, const char *value)
 
     // we're going to need a converter to convert
     nsresult rv = mUnicodeConverter->DecodeMimeHeaderToCharPtr(
-      i18nValue, nsnull, false, true, getter_Copies(tValue));
+      i18nValue, nullptr, false, true, getter_Copies(tValue));
     if (NS_SUCCEEDED(rv) && !tValue.IsEmpty())
       newValue = MsgEscapeHTML(tValue.get());
     else

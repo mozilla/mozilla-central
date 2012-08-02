@@ -70,8 +70,8 @@ static char *p_test_body =
 "Hello world?\n\
 ";
 #else
-#define p_test_headers nsnull
-#define p_test_body nsnull
+#define p_test_headers nullptr
+#define p_test_body nullptr
 #endif
 
 
@@ -87,7 +87,7 @@ static char *p_test_body =
 // from Eudora over 5x on my computer (test importing of my email went from
 // 6.5 hours to less than 1.2 hours). Importing from Eudora is still slow
 // in my opinion, but bearably slow now.
-nsIMsgIdentity * nsEudoraCompose::s_pIdentity = nsnull;
+nsIMsgIdentity * nsEudoraCompose::s_pIdentity = nullptr;
 
 
 // First off, a listener
@@ -128,7 +128,7 @@ public:
 
   static nsresult CreateSendListener(nsIMsgSendListener **ppListener);
 
-  void Reset() { m_done = false;  m_location = nsnull;}
+  void Reset() { m_done = false;  m_location = nullptr;}
 
 public:
   bool m_done;
@@ -157,9 +157,9 @@ nsresult EudoraSendListener::CreateSendListener(nsIMsgSendListener **ppListener)
 
 nsEudoraCompose::nsEudoraCompose()
 {
-  m_pAttachments = nsnull;
-  m_pListener = nsnull;
-  m_pMsgFields = nsnull;
+  m_pAttachments = nullptr;
+  m_pListener = nullptr;
+  m_pMsgFields = nullptr;
   m_pHeaders = p_test_headers;
   if (m_pHeaders)
     m_headerLen = strlen(m_pHeaders);
@@ -499,7 +499,7 @@ void nsEudoraCompose::ExtractType(nsString& str)
 nsresult nsEudoraCompose::GetLocalAttachments(nsIArray **aArray)
 {
   /*
-  nsIURI      *url = nsnull;
+  nsIURI      *url = nullptr;
   */
   nsresult rv;
   nsCOMPtr<nsIMutableArray> attachments (do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
@@ -527,13 +527,13 @@ nsresult nsEudoraCompose::GetLocalAttachments(nsIArray **aArray)
 
     nsCOMPtr <nsIURI> uri;
     nsresult rv = NS_NewFileURI(getter_AddRefs(uri), pAttach->pAttachment);
-    NS_ENSURE_SUCCESS(rv, nsnull);
+    NS_ENSURE_SUCCESS(rv, nullptr);
     uri->GetSpec(urlStr);
     if (urlStr.IsEmpty())
       return NS_ERROR_FAILURE;
 
     nsCOMPtr<nsIURI> origUrl;
-    rv = m_pIOService->NewURI(urlStr, nsnull, nsnull, getter_AddRefs(origUrl));
+    rv = m_pIOService->NewURI(urlStr, nullptr, nullptr, getter_AddRefs(origUrl));
     NS_ENSURE_SUCCESS(rv, rv);
     a->SetOrigUrl(origUrl);
     a->SetType(nsDependentCString(pAttach->mimeType));
@@ -583,7 +583,7 @@ nsresult nsEudoraCompose::SendTheMessage(nsIFile *pMailImportLocation, nsIFile *
       if (m_defCharset.IsEmpty())
       {
         nsString defaultCharset;
-        NS_GetLocalizedUnicharPreferenceWithDefault(nsnull, "mailnews.view_default_charset",
+        NS_GetLocalizedUnicharPreferenceWithDefault(nullptr, "mailnews.view_default_charset",
                                                     NS_LITERAL_STRING("ISO-8859-1"), defaultCharset);
         m_defCharset = defaultCharset;
       }

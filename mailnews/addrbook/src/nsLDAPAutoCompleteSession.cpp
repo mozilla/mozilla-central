@@ -561,7 +561,7 @@ nsLDAPAutoCompleteSession::DoTask()
     }
 
     // Initialize the LDAP operation object.
-    rv = mOperation->Init(mConnection, this, nsnull);
+    rv = mOperation->Init(mConnection, this, nullptr);
     if (NS_FAILED(rv)) {
         NS_ERROR("nsLDAPAutoCompleteSession::DoTask(): couldn't "
                  "initialize LDAP operation");
@@ -811,7 +811,7 @@ nsLDAPAutoCompleteSession::InitConnection()
     // Initialize the connection. This will cause an asynchronous DNS
     // lookup to occur, and we'll finish the binding of the connection
     // in the OnLDAPInit() listener function.
-    rv = mConnection->Init(mDirectoryUrl, mLogin, this, nsnull, mVersion);
+    rv = mConnection->Init(mDirectoryUrl, mLogin, this, nullptr, mVersion);
     if (NS_FAILED(rv)) {
         switch (rv) {
 

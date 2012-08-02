@@ -205,23 +205,23 @@ NS_IMETHODIMP
 nsMsgIncomingServer::Shutdown()
 {
   nsresult rv = CloseCachedConnections();
-  mFilterPlugin = nsnull;
+  mFilterPlugin = nullptr;
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (mFilterList)
   {
     // close the filter log stream
-    rv = mFilterList->SetLogStream(nsnull);
+    rv = mFilterList->SetLogStream(nullptr);
     NS_ENSURE_SUCCESS(rv,rv);
-    mFilterList = nsnull;
+    mFilterList = nullptr;
   }
 
   if (mSpamSettings)
   {
     // close the spam log stream
-    rv = mSpamSettings->SetLogStream(nsnull);
+    rv = mSpamSettings->SetLogStream(nullptr);
     NS_ENSURE_SUCCESS(rv,rv);
-    mSpamSettings = nsnull;
+    mSpamSettings = nullptr;
   }
   return rv;
 }
@@ -687,7 +687,7 @@ nsresult nsMsgIncomingServer::GetPasswordWithoutUI()
   NS_ConvertUTF8toUTF16 currServer(currServerUri);
 
   PRUint32 numLogins = 0;
-  nsILoginInfo** logins = nsnull;
+  nsILoginInfo** logins = nullptr;
   rv = loginMgr->FindLogins(&numLogins, currServer, EmptyString(),
                             currServer, &logins);
 
@@ -785,7 +785,7 @@ nsMsgIncomingServer::GetPasswordWithUI(const nsAString& aPromptMessage, const
       // we pass in the previously used password, if any, into PromptPassword
       // so that it will appear as ******. This means we can't use an nsString
       // and getter_Copies.
-      PRUnichar *uniPassword = nsnull;
+      PRUnichar *uniPassword = nullptr;
       if (!aPassword.IsEmpty())
         uniPassword = ToNewUnicode(NS_ConvertASCIItoUTF16(aPassword));
 

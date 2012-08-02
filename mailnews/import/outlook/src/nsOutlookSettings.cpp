@@ -80,7 +80,7 @@ public:
 ////////////////////////////////////////////////////////////////////////
 nsresult nsOutlookSettings::Create(nsIImportSettings** aImport)
 {
-    NS_PRECONDITION(aImport != nsnull, "null ptr");
+    NS_PRECONDITION(aImport != nullptr, "null ptr");
     if (! aImport)
         return NS_ERROR_NULL_POINTER;
 
@@ -104,8 +104,8 @@ NS_IMPL_ISUPPORTS1(nsOutlookSettings, nsIImportSettings)
 
 NS_IMETHODIMP nsOutlookSettings::AutoLocate(PRUnichar **description, nsIFile **location, bool *_retval)
 {
-    NS_PRECONDITION(description != nsnull, "null ptr");
-    NS_PRECONDITION(_retval != nsnull, "null ptr");
+    NS_PRECONDITION(description != nullptr, "null ptr");
+    NS_PRECONDITION(_retval != nullptr, "null ptr");
   if (!description || !_retval)
     return NS_ERROR_NULL_POINTER;
 
@@ -113,7 +113,7 @@ NS_IMETHODIMP nsOutlookSettings::AutoLocate(PRUnichar **description, nsIFile **l
   *_retval = false;
 
   if (location)
-    *location = nsnull;
+    *location = nullptr;
 
   // look for the registry key for the accounts
   nsCOMPtr<nsIWindowsRegKey> key;
@@ -129,7 +129,7 @@ NS_IMETHODIMP nsOutlookSettings::SetLocation(nsIFile *location)
 
 NS_IMETHODIMP nsOutlookSettings::Import(nsIMsgAccount **localMailAccount, bool *_retval)
 {
-  NS_PRECONDITION(_retval != nsnull, "null ptr");
+  NS_PRECONDITION(_retval != nullptr, "null ptr");
 
   if (OutlookSettings::DoImport(localMailAccount)) {
     *_retval = true;
@@ -315,7 +315,7 @@ bool OutlookSettings::DoIMAPServer(nsIMsgAccountManager *aMgr,
                         nativeServerName,
                         NS_LITERAL_CSTRING("imap"),
                         getter_AddRefs(in));
-  if (NS_FAILED(rv) || (in == nsnull)) {
+  if (NS_FAILED(rv) || (in == nullptr)) {
     // Create the incoming server and an account for it?
     rv = aMgr->CreateIncomingServer(nativeUserName,
                                     nativeServerName,

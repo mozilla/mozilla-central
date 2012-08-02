@@ -50,7 +50,7 @@ public:
 
 class SimpleBufferTonyRCopiedOnce {
 public:
-  SimpleBufferTonyRCopiedOnce() {m_pBuffer = nsnull; m_size = 0; m_growBy = 4096; m_writeOffset = 0;
+  SimpleBufferTonyRCopiedOnce() {m_pBuffer = nullptr; m_size = 0; m_growBy = 4096; m_writeOffset = 0;
           m_bytesInBuf = 0; m_convertCRs = false;}
   ~SimpleBufferTonyRCopiedOnce() { if (m_pBuffer) delete [] m_pBuffer;}
 
@@ -71,7 +71,7 @@ public:
     if (newSize <= m_size) return true;
     char *pOldBuffer = m_pBuffer;
     PRInt32  oldSize = m_size;
-    m_pBuffer = nsnull;
+    m_pBuffer = nullptr;
     while (m_size < newSize) m_size += m_growBy;
     if (Allocate(m_size)) {
       if (pOldBuffer) { memcpy(m_pBuffer, pOldBuffer, oldSize); delete [] pOldBuffer;}

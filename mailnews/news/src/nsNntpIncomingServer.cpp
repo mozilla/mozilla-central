@@ -119,7 +119,7 @@ nsNntpIncomingServer::~nsNntpIncomingServer()
 
     if (mNewsrcSaveTimer) {
         mNewsrcSaveTimer->Cancel();
-        mNewsrcSaveTimer = nsnull;
+        mNewsrcSaveTimer = nullptr;
     }
     rv = ClearInner();
     NS_ASSERTION(NS_SUCCEEDED(rv), "ClearInner failed");
@@ -219,7 +219,7 @@ NS_IMETHODIMP
 nsNntpIncomingServer::GetNewsrcRootPath(nsIFile **aNewsrcRootPath)
 {
     NS_ENSURE_ARG_POINTER(aNewsrcRootPath);
-    *aNewsrcRootPath = nsnull;
+    *aNewsrcRootPath = nullptr;
 
     bool havePref;
     nsresult rv = NS_GetPersistentFile(PREF_MAIL_NEWSRC_ROOT_REL,
@@ -282,7 +282,7 @@ nsNntpIncomingServer::GetCharset(nsACString & aCharset)
   //mailnews.view_default_charset setting and set it as per-server preference.
   if(aCharset.IsEmpty()){
     nsString defaultCharset;
-    rv = NS_GetLocalizedUnicharPreferenceWithDefault(nsnull,
+    rv = NS_GetLocalizedUnicharPreferenceWithDefault(nullptr,
          PREF_MAILNEWS_VIEW_DEFAULT_CHARSET,
          NS_LITERAL_STRING("ISO-8859-1"), defaultCharset);
     LossyCopyUTF16toASCII(defaultCharset, aCharset);
@@ -521,13 +521,13 @@ nsNntpIncomingServer::GetNntpConnection(nsIURI * aUri, nsIMsgWindow *aMsgWindow,
       connection->GetIsBusy(&isBusy);
       if (!isBusy)
         break;
-      connection = nsnull;
+      connection = nullptr;
     }
   }
 
   if (ConnectionTimeOut(connection))
   {
-    connection = nsnull;
+    connection = nullptr;
     // We have one less connection, since we closed this one.
     --cnt;
   }
@@ -548,7 +548,7 @@ nsNntpIncomingServer::GetNntpConnection(nsIURI * aUri, nsIMsgWindow *aMsgWindow,
   {
     // We maxed out our connection count. The caller must therefore enqueue the
     // call.
-    *aNntpConnection = nsnull;
+    *aNntpConnection = nullptr;
     return NS_OK;
   }
 
@@ -666,7 +666,7 @@ nsNntpIncomingServer::DownloadMail(nsIMsgWindow *aMsgWindow)
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIMsgFolder> group(do_QueryInterface(nextGroup));
-    rv = group->GetNewMessages(aMsgWindow, nsnull);
+    rv = group->GetNewMessages(aMsgWindow, nullptr);
     NS_ENSURE_SUCCESS(rv, rv);
   }
   return rv;
@@ -753,7 +753,7 @@ nsNntpIncomingServer::SubscribeToNewsgroup(const nsACString &aName)
     if (NS_FAILED(rv)) return rv;
     if (!msgfolder) return NS_ERROR_FAILURE;
 
-    rv = msgfolder->CreateSubfolder(NS_ConvertUTF8toUTF16(aName), nsnull);
+    rv = msgfolder->CreateSubfolder(NS_ConvertUTF8toUTF16(aName), nullptr);
     if (NS_FAILED(rv)) return rv;
 
     return NS_OK;
@@ -860,10 +860,10 @@ nsNntpIncomingServer::LoadHostInfoFile()
 
   nsCOMPtr<nsIInputStream> fileStream;
   rv = NS_NewLocalFileInputStream(getter_AddRefs(fileStream), mHostInfoFile);
-  NS_ENSURE_SUCCESS(rv, nsnull);
+  NS_ENSURE_SUCCESS(rv, nullptr);
 
   nsCOMPtr<nsILineInputStream> lineInputStream(do_QueryInterface(fileStream, &rv));
-  NS_ENSURE_SUCCESS(rv, nsnull);
+  NS_ENSURE_SUCCESS(rv, nullptr);
 
   bool more = true;
   nsCString line;
@@ -1015,13 +1015,13 @@ nsNntpIncomingServer::ClearInner()
     nsresult rv = NS_OK;
 
     if (mInner) {
-        rv = mInner->SetSubscribeListener(nsnull);
+        rv = mInner->SetSubscribeListener(nullptr);
         NS_ENSURE_SUCCESS(rv,rv);
 
-        rv = mInner->SetIncomingServer(nsnull);
+        rv = mInner->SetIncomingServer(nullptr);
         NS_ENSURE_SUCCESS(rv,rv);
 
-        mInner = nsnull;
+        mInner = nullptr;
     }
     return NS_OK;
 }
@@ -1184,7 +1184,7 @@ nsNntpIncomingServer::Unsubscribe(const PRUnichar *aUnicharName)
   if (!newsgroupFolder)
     return NS_ERROR_FAILURE;
 
-  rv = serverFolder->PropagateDelete(newsgroupFolder, true /* delete storage */, nsnull);
+  rv = serverFolder->PropagateDelete(newsgroupFolder, true /* delete storage */, nullptr);
   if (NS_FAILED(rv))
     return rv;
 
@@ -1232,13 +1232,13 @@ nsNntpIncomingServer::HandleLine(const char* line, PRUint32 line_size)
     if (equalPos) {
       *equalPos++ = '\0';
       if (PL_strcmp(line, "lastgroupdate") == 0) {
-        mLastUpdatedTime = strtoul(equalPos, nsnull, 10);
+        mLastUpdatedTime = strtoul(equalPos, nullptr, 10);
       } else if (PL_strcmp(line, "firstnewdate") == 0) {
-        mFirstNewDate = strtol(equalPos, nsnull, 16);
+        mFirstNewDate = strtol(equalPos, nullptr, 16);
       } else if (PL_strcmp(line, "uniqueid") == 0) {
-        mUniqueId = strtol(equalPos, nsnull, 16);
+        mUniqueId = strtol(equalPos, nullptr, 16);
       } else if (PL_strcmp(line, "version") == 0) {
-        mVersion = strtol(equalPos, nsnull, 16);
+        mVersion = strtol(equalPos, nullptr, 16);
       }
     }
   }
@@ -1543,7 +1543,7 @@ nsNntpIncomingServer::GroupNotFound(nsIMsgWindow *aMsgWindow,
 
   if (!prompt) {
     nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
-    rv = wwatch->GetNewPrompter(nsnull, getter_AddRefs(prompt));
+    rv = wwatch->GetNewPrompter(nullptr, getter_AddRefs(prompt));
     NS_ENSURE_SUCCESS(rv,rv);
   }
 
@@ -1571,7 +1571,7 @@ nsNntpIncomingServer::GroupNotFound(nsIMsgWindow *aMsgWindow,
   NS_ENSURE_SUCCESS(rv,rv);
 
   bool confirmResult = false;
-  rv = prompt->Confirm(nsnull, confirmText.get(), &confirmResult);
+  rv = prompt->Confirm(nullptr, confirmText.get(), &confirmResult);
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (confirmResult) {

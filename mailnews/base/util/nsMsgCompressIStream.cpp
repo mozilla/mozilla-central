@@ -10,7 +10,7 @@
 #define BUFFER_SIZE 16384
 
 nsMsgCompressIStream::nsMsgCompressIStream() :
-  m_dataptr(nsnull),
+  m_dataptr(nullptr),
   m_dataleft(0),
   m_inflateAgain(false)
 {
@@ -107,14 +107,14 @@ NS_IMETHODIMP nsMsgCompressIStream::CloseWithStatus(nsresult reason)
       rv = asyncInputStream->CloseWithStatus(reason);
 
     // tidy up
-    m_iStream = nsnull;
+    m_iStream = nullptr;
     inflateEnd(&m_zstream);
   }
 
   // clean up all the buffers
-  m_zbuf = nsnull;
-  m_databuf = nsnull;
-  m_dataptr = nsnull;
+  m_zbuf = nullptr;
+  m_databuf = nullptr;
+  m_dataptr = nullptr;
   m_dataleft = 0;
 
   return rv;

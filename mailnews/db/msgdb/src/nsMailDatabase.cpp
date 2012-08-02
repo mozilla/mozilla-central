@@ -25,7 +25,7 @@ struct mdbOid gAllOfflineOpsTableOID;
 
 nsMailDatabase::nsMailDatabase() : m_reparse(false)
 {
-  m_mdbAllOfflineOpsTable = nsnull;
+  m_mdbAllOfflineOpsTable = nullptr;
 }
 
 nsMailDatabase::~nsMailDatabase()
@@ -50,7 +50,7 @@ nsresult nsMailDatabase::Open(nsIFile *aSummaryFile, bool aCreate,
 
 NS_IMETHODIMP nsMailDatabase::ForceClosed()
 {
-  m_mdbAllOfflineOpsTable = nsnull;
+  m_mdbAllOfflineOpsTable = nullptr;
   return nsMsgDatabase::ForceClosed();
 }
 
@@ -273,7 +273,7 @@ NS_IMETHODIMP nsMailDatabase::ListAllOfflineDeletes(nsTArray<nsMsgKey> *offlineD
       
       err = rowCursor->NextRow(GetEnv(), &offlineOpRow, &outPos);
       // is this right? Mork is returning a 0 id, but that should valid.
-      if (outPos < 0 || offlineOpRow == nsnull)	
+      if (outPos < 0 || offlineOpRow == nullptr)	
         break;
       if (err == NS_OK)
       {
@@ -330,7 +330,7 @@ protected:
 };
 
 nsMsgOfflineOpEnumerator::nsMsgOfflineOpEnumerator(nsMailDatabase* db)
-    : mDB(db), mRowCursor(nsnull), mDone(false)
+    : mDB(db), mRowCursor(nullptr), mDone(false)
 {
   NS_ADDREF(mDB);
   mNextPrefetched = false;

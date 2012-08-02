@@ -53,10 +53,10 @@ nsMsgRDFDataSource::Init()
 
 void nsMsgRDFDataSource::Cleanup()
 {
-  mRDFService = nsnull;
+  mRDFService = nullptr;
 
   // release the window
-  mWindow = nsnull;
+  mWindow = nullptr;
 
   mInitialized = false;
 }
@@ -302,7 +302,7 @@ nsMsgRDFDataSource::getRDFService()
     if (!mRDFService && !m_shuttingDown) {
         nsresult rv;
         mRDFService = do_GetService(kRDFServiceCID, &rv);
-        if (NS_FAILED(rv)) return nsnull;
+        if (NS_FAILED(rv)) return nullptr;
     }
 
     return mRDFService;
@@ -311,7 +311,7 @@ nsMsgRDFDataSource::getRDFService()
 nsresult nsMsgRDFDataSource::NotifyPropertyChanged(nsIRDFResource *resource,
                                                    nsIRDFResource *propertyResource,
                                                    nsIRDFNode *newNode,
-                                                   nsIRDFNode *oldNode /* = nsnull */)
+                                                   nsIRDFNode *oldNode /* = nullptr */)
 {
 
   NotifyObservers(resource, propertyResource, newNode, oldNode, false, true);
@@ -375,7 +375,7 @@ nsMsgRDFDataSource::GetTransactionManager(nsISupportsArray *aSources, nsITransac
   if(!aTransactionManager)
     return NS_ERROR_NULL_POINTER;
 
-  *aTransactionManager = nsnull;
+  *aTransactionManager = nullptr;
   nsresult rv = NS_OK;
 
   nsCOMPtr<nsITransactionManager> transactionManager;

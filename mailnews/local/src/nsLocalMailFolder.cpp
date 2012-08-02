@@ -105,7 +105,7 @@ nsLocalMailCopyState::~nsLocalMailCopyState()
   }
 }
 
-nsLocalFolderScanState::nsLocalFolderScanState() : m_uidl(nsnull)
+nsLocalFolderScanState::nsLocalFolderScanState() : m_uidl(nullptr)
 {
 }
 
@@ -118,7 +118,7 @@ nsLocalFolderScanState::~nsLocalFolderScanState()
 ///////////////////////////////////////////////////////////////////////////////
 
 nsMsgLocalMailFolder::nsMsgLocalMailFolder(void)
-  : mCopyState(nsnull), mHaveReadNameFromDB(false),
+  : mCopyState(nullptr), mHaveReadNameFromDB(false),
     mInitialized(false),
     mCheckForNewMessagesAfterParsing(false), m_parsingFolder(false),
     mDownloadState(DOWNLOAD_STATE_NONE)
@@ -157,7 +157,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CreateLocalSubfolder(const nsAString &aFolde
                                                          nsIMsgFolder **aChild)
 {
   NS_ENSURE_ARG_POINTER(aChild);
-  nsresult rv = CreateSubfolderInternal(aFolderName, nsnull, aChild);
+  nsresult rv = CreateSubfolderInternal(aFolderName, nullptr, aChild);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgFolderNotificationService> notifier(
@@ -343,7 +343,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWithReparse(nsIUrlListener *aRepa
           dbFolderInfo->SetNumUnreadMessages(0);
           dbFolderInfo->GetTransferInfo(getter_AddRefs(transferInfo));
         }
-        dbFolderInfo = nsnull;
+        dbFolderInfo = nullptr;
 
         // A backup message database might have been created earlier, for example
         // if the user requested a reindex. We'll use the earlier one if we can,
@@ -354,13 +354,13 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWithReparse(nsIUrlListener *aRepa
           if (NS_FAILED(OpenBackupMsgDatabase()) && mBackupDatabase)
           {
             mBackupDatabase->RemoveListener(this);
-            mBackupDatabase = nsnull;
+            mBackupDatabase = nullptr;
           }
         }
         else
           mDatabase->ForceClosed();
 
-        mDatabase = nsnull;
+        mDatabase = nullptr;
       }
       nsCOMPtr <nsIFile> summaryFile;
       rv = GetSummaryFileLocation(pathFile, getter_AddRefs(summaryFile));
@@ -397,7 +397,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDatabaseWithReparse(nsIUrlListener *aRepa
           if (rv == NS_MSG_FOLDER_BUSY)
           {
             mDatabase->RemoveListener(this);  //we need to null out the db so that parsing gets kicked off again.
-            mDatabase = nsnull;
+            mDatabase = nullptr;
             ThrowAlertMsg("parsingFolderFailed", aMsgWindow);
           }
           return rv;
@@ -520,7 +520,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CreateStorageIfMissing(nsIUrlListener* aUrlL
   {
     nsString folderName;
     GetName(folderName);
-    rv = msgParent->CreateSubfolder(folderName, nsnull);
+    rv = msgParent->CreateSubfolder(folderName, nullptr);
     // by definition, this is OK.
     if (rv == NS_MSG_FOLDER_EXISTS)
       return NS_OK;
@@ -628,7 +628,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CompactAll(nsIUrlListener *aListener,
   }
   nsCOMPtr <nsIMsgFolderCompactor> folderCompactor =  do_CreateInstance(NS_MSGLOCALFOLDERCOMPACTOR_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  return folderCompactor->CompactFolders(folderArray, nsnull,
+  return folderCompactor->CompactFolders(folderArray, nullptr,
                                          aListener, aMsgWindow);
 }
 
@@ -676,9 +676,9 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EmptyTrash(nsIMsgWindow *msgWindow,
     {
       nsCOMPtr <nsIDBFolderInfo> transferInfo;
       trashFolder->GetDBTransferInfo(getter_AddRefs(transferInfo));
-      trashFolder->SetParent(nsnull);
+      trashFolder->SetParent(nullptr);
       parentFolder->PropagateDelete(trashFolder, true, msgWindow);
-      parentFolder->CreateSubfolder(NS_LITERAL_STRING("Trash"), nsnull);
+      parentFolder->CreateSubfolder(NS_LITERAL_STRING("Trash"), nullptr);
       nsCOMPtr<nsIMsgFolder> newTrashFolder;
       rv = GetTrashFolder(getter_AddRefs(newTrashFolder));
       if (NS_SUCCEEDED(rv) && newTrashFolder)
@@ -760,7 +760,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Delete()
   if (mDatabase)
   {
     mDatabase->ForceClosed();
-    mDatabase = nsnull;
+    mDatabase = nullptr;
   }
 
   nsCOMPtr<nsIMsgIncomingServer> server;
@@ -806,7 +806,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DeleteSubFolders(nsIArray *folders, nsIMsgWi
     {
       nsCOMPtr<nsIMsgCopyService> copyService(do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv));
       NS_ENSURE_SUCCESS(rv, rv);
-      rv = copyService->CopyFolders(folders, trashFolder, true, nsnull, msgWindow);
+      rv = copyService->CopyFolders(folders, trashFolder, true, nullptr, msgWindow);
     }
   }
   return rv;
@@ -867,7 +867,7 @@ nsresult nsMsgLocalMailFolder::ConfirmFolderDeletion(nsIMsgWindow *aMsgWindow,
         bool dummyValue = false;
         rv = dialog->ConfirmEx(deleteFolderDialogTitle.get(), confirmationStr.get(),
                                buttonFlags,  deleteFolderButtonLabel.get(),
-                               nsnull, nsnull, nsnull, &dummyValue,
+                               nullptr, nullptr, nullptr, &dummyValue,
                                &buttonPressed);
         NS_ENSURE_SUCCESS(rv, rv);
         *aResult = !buttonPressed; // "ok" is in position 0
@@ -927,17 +927,17 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
         newFolder->RenameSubFolders(msgWindow, this);
 
       // Discover the subfolders inside this folder (this is recursive)
-      newFolder->GetSubFolders(nsnull);
+      newFolder->GetSubFolders(nullptr);
 
       // the newFolder should have the same flags
       newFolder->SetFlags(mFlags);
       if (parentFolder)
       {
-        SetParent(nsnull);
+        SetParent(nullptr);
         parentFolder->PropagateDelete(this, false, msgWindow);
         parentFolder->NotifyItemAdded(newFolder);
       }
-      SetFilePath(nsnull); // forget our path, since this folder object renamed itself
+      SetFilePath(nullptr); // forget our path, since this folder object renamed itself
       nsCOMPtr<nsIAtom> folderRenameAtom = MsgGetAtom("RenameCompleted");
       newFolder->NotifyFolderEvent(folderRenameAtom);
 
@@ -1036,17 +1036,17 @@ nsresult nsMsgLocalMailFolder::OpenDatabase()
       {
         UpdateSummaryTotals(true);
         db->Close(true);
-        mDatabase = nsnull;
-        db = nsnull;
+        mDatabase = nullptr;
+        db = nullptr;
         rv = msgDBService->OpenFolderDB(this, false,
                                         getter_AddRefs(mDatabase));
         if (NS_FAILED(rv))
-          mDatabase = nsnull;
+          mDatabase = nullptr;
       }
     }
   }
   else if (NS_FAILED(rv))
-    mDatabase = nsnull;
+    mDatabase = nullptr;
 
   return rv;
 }
@@ -1233,7 +1233,7 @@ nsMsgLocalMailFolder::DeleteMessages(nsIArray *messages,
         for (PRUint32 i = 0; i < messageCount; ++i)
         {
               msgDBHdr = do_QueryElementAt(messages, i, &rv);
-              rv = mDatabase->DeleteHeader(msgDBHdr, nsnull, false, true);
+              rv = mDatabase->DeleteHeader(msgDBHdr, nullptr, false, true);
             }
           }
         }
@@ -1344,7 +1344,7 @@ nsMsgLocalMailFolder::InitCopyState(nsISupports* aSupport,
 NS_IMETHODIMP nsMsgLocalMailFolder::OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigator)
 {
   if (mCopyState)
-    mCopyState->m_destDB = nsnull;
+    mCopyState->m_destDB = nullptr;
   return nsMsgDBFolder::OnAnnouncerGoingAway(instigator);
 }
 
@@ -1376,7 +1376,7 @@ nsMsgLocalMailFolder::OnCopyCompleted(nsISupports *srcSupport, bool moveCopySucc
   }
 
   delete mCopyState;
-  mCopyState = nsnull;
+  mCopyState = nullptr;
   nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   return copyService->NotifyCompletion(srcSupport, this, moveCopySucceeded ? NS_OK : NS_ERROR_FAILURE);
@@ -1737,7 +1737,7 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
     }
 
     bool match = false;
-    rv = srcFolder->MatchOrChangeFilterDestination(nsnull, false, &match);
+    rv = srcFolder->MatchOrChangeFilterDestination(nullptr, false, &match);
     if (match && msgWindow)
     {
       bool confirmed = false;
@@ -1770,13 +1770,13 @@ nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile,
 {
   NS_ENSURE_ARG_POINTER(aFile);
   nsresult rv = NS_ERROR_NULL_POINTER;
-  nsParseMailMessageState* parseMsgState = nsnull;
+  nsParseMailMessageState* parseMsgState = nullptr;
   PRInt64 fileSize = 0;
 
   nsCOMPtr<nsISupports> fileSupport(do_QueryInterface(aFile, &rv));
 
   aFile->GetFileSize(&fileSize);
-  if (!CheckIfSpaceForCopy(msgWindow, nsnull, fileSupport, false, fileSize))
+  if (!CheckIfSpaceForCopy(msgWindow, nullptr, fileSupport, false, fileSize))
     return NS_OK;
 
   nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
@@ -1823,7 +1823,7 @@ nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile,
 
      mCopyState->m_wholeMsgInStream = true;
      if (NS_SUCCEEDED(rv))
-      rv = BeginCopy(nsnull);
+      rv = BeginCopy(nullptr);
 
     if (NS_SUCCEEDED(rv))
       rv = CopyData(inputStream, (PRInt32) fileSize);
@@ -1861,7 +1861,7 @@ nsresult nsMsgLocalMailFolder::DeleteMessage(nsISupports *message,
     {
       GetDatabase();
       if (mDatabase)
-        rv = mDatabase->DeleteHeader(msgDBHdr, nsnull, commit, true);
+        rv = mDatabase->DeleteHeader(msgDBHdr, nullptr, commit, true);
     }
   }
   return rv;
@@ -1880,7 +1880,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetNewMessages(nsIMsgWindow *aWindow, nsIUrl
   // so that we don't have to have RSS foo here.
   nsCOMPtr<nsIRssIncomingServer> rssServer = do_QueryInterface(server, &rv);
   if (NS_SUCCEEDED(rv))
-    return localMailServer->GetNewMail(aWindow, aListener, this, nsnull);
+    return localMailServer->GetNewMail(aWindow, aListener, this, nullptr);
 
   nsCOMPtr<nsIMsgFolder> inbox;
   nsCOMPtr<nsIMsgFolder> rootFolder;
@@ -1895,11 +1895,11 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetNewMessages(nsIMsgWindow *aWindow, nsIUrl
     bool valid = false;
     nsCOMPtr <nsIMsgDatabase> db;
     // this will kick off a reparse if the db is out of date.
-    rv = localInbox->GetDatabaseWithReparse(nsnull, aWindow, getter_AddRefs(db));
+    rv = localInbox->GetDatabaseWithReparse(nullptr, aWindow, getter_AddRefs(db));
     if (NS_SUCCEEDED(rv))
     {
       db->GetSummaryValid(&valid);
-      rv = valid ? localMailServer->GetNewMail(aWindow, aListener, inbox, nsnull) :
+      rv = valid ? localMailServer->GetNewMail(aWindow, aListener, inbox, nullptr) :
                    localInbox->SetCheckForNewMessagesAfterParsing(true);
     }
   }
@@ -2307,7 +2307,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(bool aCopySucceeded)
       }
       // we can do undo with the dest folder db, see bug #198909
       //else
-      //  mCopyState->m_undoMsgTxn = nsnull; //null out the transaction because we can't undo w/o the msg db
+      //  mCopyState->m_undoMsgTxn = nullptr; //null out the transaction because we can't undo w/o the msg db
     }
 
     // if we plan on allowing undo, (if we have a mCopyState->m_parseMsgState or not)
@@ -2379,7 +2379,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(bool aCopySucceeded)
       // msgDb->Commit(nsMsgDBCommitType::kLargeCommit);
     }
     else
-      mCopyState->m_undoMsgTxn = nsnull; //null out the transaction because we can't undo w/o the msg db
+      mCopyState->m_undoMsgTxn = nullptr; //null out the transaction because we can't undo w/o the msg db
 
     mCopyState->m_parseMsgState->Clear();
     if (mCopyState->m_listener) // CopyFileMessage() only
@@ -2421,7 +2421,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(bool aCopySucceeded)
         nsCOMPtr<nsIMsgFolder> srcFolder;
         srcFolder = do_QueryInterface(mCopyState->m_srcSupport);
         if (mCopyState->m_isFolder)
-          CopyAllSubFolders(srcFolder, nsnull, nsnull);  //Copy all subfolders then notify completion
+          CopyAllSubFolders(srcFolder, nullptr, nullptr);  //Copy all subfolders then notify completion
 
         if (mCopyState->m_msgWindow && mCopyState->m_undoMsgTxn)
         {
@@ -2526,7 +2526,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndMove(bool moveSucceeded)
       }
     }
     // lets delete these all at once - much faster that way
-    rv = srcFolder->DeleteMessages(mCopyState->m_messages, mCopyState->m_msgWindow, true, true, nsnull, mCopyState->m_allowUndo);
+    rv = srcFolder->DeleteMessages(mCopyState->m_messages, mCopyState->m_msgWindow, true, true, nullptr, mCopyState->m_allowUndo);
     AutoCompact(mCopyState->m_msgWindow);
 
     // enable the dest folder
@@ -2622,7 +2622,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndMessage(nsMsgKey key)
         }
       }
       else
-        mCopyState->m_undoMsgTxn = nsnull; //null out the transaction because we can't undo w/o the msg db
+        mCopyState->m_undoMsgTxn = nullptr; //null out the transaction because we can't undo w/o the msg db
     }
     mCopyState->m_parseMsgState->Clear();
 
@@ -2654,7 +2654,7 @@ nsresult nsMsgLocalMailFolder::CopyMessagesTo(nsIArray *messages, nsTArray<nsMsg
   nsCOMPtr<nsIMsgFolder> srcFolder(do_QueryInterface(mCopyState->m_srcSupport, &rv));
   NS_ENSURE_SUCCESS(rv, NS_ERROR_NO_INTERFACE);
 
-  rv = copyStreamListener->Init(srcFolder, copyListener, nsnull);
+  rv = copyStreamListener->Init(srcFolder, copyListener, nullptr);
   if (NS_FAILED(rv))
     return rv;
 
@@ -2684,8 +2684,8 @@ nsresult nsMsgLocalMailFolder::CopyMessagesTo(nsIArray *messages, nsTArray<nsMsg
     rv = mCopyState->m_messageService->CopyMessages(keyArray.Length(),
                                                     keyArray.Elements(),
                                                     srcFolder, streamListener,
-                                                    isMove, nsnull, aMsgWindow,
-                                                    nsnull);
+                                                    isMove, nullptr, aMsgWindow,
+                                                    nullptr);
   }
   return rv;
 }
@@ -2715,7 +2715,7 @@ nsresult nsMsgLocalMailFolder::CopyMessageTo(nsISupports *message,
   nsCOMPtr<nsICopyMessageListener> copyListener(do_QueryInterface(dstFolder, &rv));
   NS_ENSURE_SUCCESS(rv, NS_ERROR_NO_INTERFACE);
 
-  rv = copyStreamListener->Init(srcFolder, copyListener, nsnull);
+  rv = copyStreamListener->Init(srcFolder, copyListener, nullptr);
   if (NS_FAILED(rv))
     return rv;
 
@@ -2726,7 +2726,7 @@ nsresult nsMsgLocalMailFolder::CopyMessageTo(nsISupports *message,
   {
     nsCOMPtr<nsIStreamListener> streamListener(do_QueryInterface(copyStreamListener, &rv));
     NS_ENSURE_SUCCESS(rv, NS_ERROR_NO_INTERFACE);
-    rv = mCopyState->m_messageService->CopyMessage(uri.get(), streamListener, isMove, nsnull, aMsgWindow, nsnull);
+    rv = mCopyState->m_messageService->CopyMessage(uri.get(), streamListener, isMove, nullptr, aMsgWindow, nullptr);
   }
   return rv;
 }
@@ -2858,7 +2858,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DeleteDownloadMsg(nsIMsgDBHdr *aMsgHdr, bool
     {
       nsresult rv;
       nsCOMPtr<nsIMsgDBHdr> msgDBHdr (do_QueryElementAt(mDownloadMessages, i, &rv));
-      char *oldMsgId = nsnull;
+      char *oldMsgId = nullptr;
       msgDBHdr->GetMessageId(&oldMsgId);
 
       // Delete the first match and remove it from the array
@@ -2874,12 +2874,12 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DeleteDownloadMsg(nsIMsgDBHdr *aMsgHdr, bool
         msgDBHdr->GetMessageKey(&mDownloadOldKey);
         msgDBHdr->GetThreadParent(&mDownloadOldParent);
         msgDBHdr->GetFlags(&mDownloadOldFlags);
-        mDatabase->DeleteHeader(msgDBHdr, nsnull, false, false);
+        mDatabase->DeleteHeader(msgDBHdr, nullptr, false, false);
         // Tell caller we want to select this message
         if (aDoSelect)
           *aDoSelect = true;
 #else
-        mDatabase->DeleteHeader(msgDBHdr, nsnull, false, true);
+        mDatabase->DeleteHeader(msgDBHdr, nullptr, false, true);
         // Tell caller we want to select this message
         if (aDoSelect && mDownloadState == DOWNLOAD_STATE_GOTMSG)
           *aDoSelect = true;
@@ -2902,7 +2902,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::SelectDownloadMsg()
     if (!mDatabase)
       return rv;
     }
-    mDatabase->NotifyKeyDeletedAll(mDownloadOldKey, mDownloadOldParent, mDownloadOldFlags, nsnull);
+    mDatabase->NotifyKeyDeletedAll(mDownloadOldKey, mDownloadOldParent, mDownloadOldFlags, nullptr);
   }
 #endif
 
@@ -2954,7 +2954,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DownloadMessagesForOffline(nsIArray *aMessag
 
   nsCOMPtr<nsILocalMailIncomingServer> localMailServer = do_QueryInterface(server, &rv);
   NS_ENSURE_SUCCESS(rv, NS_MSG_INVALID_OR_MISSING_SERVER);
-  return localMailServer->GetNewMail(aWindow, this, this, nsnull);
+  return localMailServer->GetNewMail(aWindow, this, this, nullptr);
 }
 
 NS_IMETHODIMP nsMsgLocalMailFolder::NotifyDelete()
@@ -3059,8 +3059,8 @@ nsMsgLocalMailFolder::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
   if (mDownloadState != DOWNLOAD_STATE_NONE)
   {
     mDownloadState = DOWNLOAD_STATE_NONE;
-    mDownloadMessages = nsnull;
-    mDownloadWindow = nsnull;
+    mDownloadMessages = nullptr;
+    mDownloadWindow = nullptr;
     return nsMsgDBFolder::OnStopRunningUrl(aUrl, aExitCode);
   }
 
@@ -3091,7 +3091,7 @@ nsMsgLocalMailFolder::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
           {
             GetDatabase();
             if (mDatabase)
-              mDatabase->DeleteHeader(msgDBHdr, nsnull, true, true);
+              mDatabase->DeleteHeader(msgDBHdr, nullptr, true, true);
           }
 
           nsCOMPtr<nsIPop3Sink> pop3sink;
@@ -3119,7 +3119,7 @@ nsMsgLocalMailFolder::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
         bool valid;
         mDatabase->GetSummaryValid(&valid);
         if (valid && msgWindow)
-          rv = GetNewMessages(msgWindow, nsnull);
+          rv = GetNewMessages(msgWindow, nullptr);
         mCheckForNewMessagesAfterParsing = false;
       }
     }
@@ -3133,7 +3133,7 @@ nsMsgLocalMailFolder::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
     if (mReparseListener)
     {
       nsCOMPtr<nsIUrlListener> saveReparseListener = mReparseListener;
-      mReparseListener = nsnull;
+      mReparseListener = nullptr;
       saveReparseListener->OnStopRunningUrl(aUrl, aExitCode);
     }
   }
@@ -3366,7 +3366,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
               // NS_ENSURE_SUCCESS(rv,rv);
               // mSpamKeysToMove.AppendElement(msgKey);
               // willMoveMessage = true;
-              rv = GetOrCreateFolder(spamFolderURI, nsnull /* aListener */);
+              rv = GetOrCreateFolder(spamFolderURI, nullptr /* aListener */);
               NS_ASSERTION(NS_SUCCEEDED(rv), "GetOrCreateFolder failed");
             }
           }
@@ -3380,7 +3380,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
   else // end of batch
   {
     // Parent will apply post bayes filters.
-    nsMsgDBFolder::OnMessageClassified(nsnull, nsnull, nsnull);
+    nsMsgDBFolder::OnMessageClassified(nullptr, nullptr, nullptr);
     nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
     if (!mSpamKeysToMove.IsEmpty())
     {
@@ -3413,7 +3413,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
         NS_ENSURE_SUCCESS(rv,rv);
 
         rv = copySvc->CopyMessages(this, messages, folder, true,
-          /*nsIMsgCopyServiceListener* listener*/ nsnull, nsnull, false /*allowUndo*/);
+          /*nsIMsgCopyServiceListener* listener*/ nullptr, nullptr, false /*allowUndo*/);
         NS_ASSERTION(NS_SUCCEEDED(rv), "CopyMessages failed");
         if (NS_FAILED(rv))
         {
@@ -3443,7 +3443,7 @@ nsMsgLocalMailFolder::GetFolderScanState(nsLocalFolderScanState *aState)
 
   nsresult rv = GetMsgStore(getter_AddRefs(aState->m_msgStore));
   NS_ENSURE_SUCCESS(rv, rv);
-    aState->m_uidl = nsnull;
+    aState->m_uidl = nullptr;
   return rv;
 }
 
@@ -3452,7 +3452,7 @@ nsMsgLocalMailFolder::GetUidlFromFolder(nsLocalFolderScanState *aState, nsIMsgDB
 {
   bool more = false;
   PRUint32 size = 0, len = 0;
-  const char *accountKey = nsnull;
+  const char *accountKey = nullptr;
   nsresult rv = GetMsgInputStream(aMsgDBHdr, &aState->m_streamReusable,
                                   getter_AddRefs(aState->m_inputStream));
   aState->m_seekableStream = do_QueryInterface(aState->m_inputStream);
@@ -3462,7 +3462,7 @@ nsMsgLocalMailFolder::GetUidlFromFolder(nsLocalFolderScanState *aState, nsIMsgDB
 
   rv = NS_InitLineBuffer(&lineBuffer);
   NS_ENSURE_SUCCESS(rv, rv);
-  aState->m_uidl = nsnull;
+  aState->m_uidl = nullptr;
 
   aMsgDBHdr->GetMessageSize(&len);
   while (len > 0)
@@ -3499,7 +3499,7 @@ nsMsgLocalMailFolder::GetUidlFromFolder(nsLocalFolderScanState *aState, nsIMsgDB
   if (!aState->m_streamReusable)
   {
     aState->m_inputStream->Close();
-    aState->m_inputStream = nsnull;
+    aState->m_inputStream = nullptr;
   }
   PR_Free(lineBuffer);
   return rv;
@@ -3569,7 +3569,7 @@ nsMsgLocalMailFolder::AddMessageBatch(PRUint32 aMessageCount,
                                       getter_AddRefs(outFileStream));
       NS_ENSURE_SUCCESS(rv, rv);
       rv = newMailParser->Init(rootFolder, this,
-                               nsnull, newHdr, outFileStream);
+                               nullptr, newHdr, outFileStream);
 
       PRUint32 bytesWritten, messageLen = strlen(aMessages[i]);
       outFileStream->Write(aMessages[i], messageLen, &bytesWritten);
@@ -3577,9 +3577,9 @@ nsMsgLocalMailFolder::AddMessageBatch(PRUint32 aMessageCount,
 
       msgStore->FinishNewMessage(outFileStream, newHdr);
       outFileStream->Close();
-      outFileStream = nsnull;
+      outFileStream = nullptr;
       newMailParser->EndMsgDownload();
-      newMailParser->OnStopRequest(nsnull, nsnull, NS_OK);
+      newMailParser->OnStopRequest(nullptr, nullptr, NS_OK);
       hdrArray->AppendElement(newHdr, false);
     }
     NS_ADDREF(*aHdrArray = hdrArray);

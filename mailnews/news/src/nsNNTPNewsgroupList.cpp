@@ -79,7 +79,7 @@ nsNNTPNewsgroupList::nsNNTPNewsgroupList()
   m_lastMsgNumber(0),
   m_firstMsgToDownload(0),
   m_lastMsgToDownload(0),
-  m_set(nsnull)
+  m_set(nullptr)
 {
   memset(&m_knownArts, 0, sizeof(m_knownArts));
 }
@@ -191,19 +191,19 @@ nsNNTPNewsgroupList::CleanUp()
     }
     m_newsDB->Commit(nsMsgDBCommitType::kSessionCommit);
     m_newsDB->Close(true);
-    m_newsDB = nsnull;
+    m_newsDB = nullptr;
   }
 
   if (m_knownArts.set)
   {
     delete m_knownArts.set;
-    m_knownArts.set = nsnull;
+    m_knownArts.set = nullptr;
   }
   if (m_newsFolder)
     m_newsFolder->NotifyFinishedDownloadinghdrs();
 
-  m_newsFolder = nsnull;
-  m_runningURL = nsnull;
+  m_newsFolder = nullptr;
+  m_runningURL = nullptr;
 
   return NS_OK;
 }
@@ -500,8 +500,8 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
 {
   nsresult rv = NS_OK;
   nsCOMPtr <nsIMsgDBHdr> newMsgHdr;
-  char *dateStr = nsnull;  // keep track of date str, for filters
-  char *authorStr = nsnull; // keep track of author str, for filters
+  char *dateStr = nullptr;  // keep track of date str, for filters
+  char *authorStr = nullptr; // keep track of author str, for filters
 
   if (!line || !message_number) {
     return NS_ERROR_NULL_POINTER;
@@ -655,10 +655,10 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
         m_addHdrToDB = false;
         break;
       case nsMsgFilterAction::MarkRead:
-        m_newsDB->MarkHdrRead(m_newMsgHdr, true, nsnull);
+        m_newsDB->MarkHdrRead(m_newMsgHdr, true, nullptr);
         break;
       case nsMsgFilterAction::MarkUnread:
-        m_newsDB->MarkHdrRead(m_newMsgHdr, false, nsnull);
+        m_newsDB->MarkHdrRead(m_newMsgHdr, false, nullptr);
         break;
       case nsMsgFilterAction::KillThread:
         m_newMsgHdr->SetUint32Property("ProtoThreadFlags", nsMsgMessageFlags::Ignored);
@@ -727,7 +727,7 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
         NS_ENSURE_TRUE(messageArray, rv);
         messageArray->AppendElement(m_newMsgHdr, false);
 
-        customAction->Apply(messageArray, value, nsnull,
+        customAction->Apply(messageArray, value, nullptr,
                             nsMsgFilterType::NewsRule, aMsgWindow);
       }
       break;
@@ -763,7 +763,7 @@ nsNNTPNewsgroupList::ProcessXOVERLINE(const char *line, PRUint32 *status)
       return NS_ERROR_OUT_OF_MEMORY;
     rv = ParseLine(xoverline, &message_number);
     PL_strfree(xoverline);
-    xoverline = nsnull;
+    xoverline = nullptr;
     if (NS_FAILED(rv))
       return rv;
   }
@@ -867,7 +867,7 @@ nsNNTPNewsgroupList::FinishXOVERLINE(int status, int *newstatus)
     m_finishingXover = true;
 
     // XXX is this correct?
-    m_runningURL = nsnull;
+    m_runningURL = nullptr;
 
     if (m_lastMsgNumber > 0) {
       nsAutoString firstStr;

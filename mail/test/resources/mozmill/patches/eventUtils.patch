@@ -161,7 +161,7 @@ index 27fbbc7..0329d47 100644
 -
    var utils = _getDOMWindowUtils(aWindow);
    if (!utils) {
-     return nsnull;
+     return nullptr;
 @@ -707,8 +715,6 @@ function synthesizeQuerySelectedText(aWindow)
   */
  function synthesizeQueryTextContent(aOffset, aLength, aWindow)
@@ -170,7 +170,7 @@ index 27fbbc7..0329d47 100644
 -
    var utils = _getDOMWindowUtils(aWindow);
    if (!utils) {
-     return nsnull;
+     return nullptr;
 @@ -728,8 +734,6 @@ function synthesizeQueryTextContent(aOffset, aLength, aWindow)
   */
  function synthesizeQueryCaretRect(aOffset, aWindow)
@@ -179,7 +179,7 @@ index 27fbbc7..0329d47 100644
 -
    var utils = _getDOMWindowUtils(aWindow);
    if (!utils) {
-     return nsnull;
+     return nullptr;
 @@ -751,8 +755,6 @@ function synthesizeQueryCaretRect(aOffset, aWindow)
   */
  function synthesizeQueryTextRect(aOffset, aLength, aWindow)
@@ -188,7 +188,7 @@ index 27fbbc7..0329d47 100644
 -
    var utils = _getDOMWindowUtils(aWindow);
    if (!utils) {
-     return nsnull;
+     return nullptr;
 @@ -770,8 +772,6 @@ function synthesizeQueryTextRect(aOffset, aLength, aWindow)
   */
  function synthesizeQueryEditorRect(aWindow)
@@ -197,7 +197,7 @@ index 27fbbc7..0329d47 100644
 -
    var utils = _getDOMWindowUtils(aWindow);
    if (!utils) {
-     return nsnull;
+     return nullptr;
 @@ -789,8 +789,6 @@ function synthesizeQueryEditorRect(aWindow)
   */
  function synthesizeCharAtPoint(aX, aY, aWindow)
@@ -206,7 +206,7 @@ index 27fbbc7..0329d47 100644
 -
    var utils = _getDOMWindowUtils(aWindow);
    if (!utils) {
-     return nsnull;
+     return nullptr;
 @@ -813,8 +811,6 @@ function synthesizeCharAtPoint(aX, aY, aWindow)
   */
  function synthesizeSelectionSet(aOffset, aLength, aReverse, aWindow)

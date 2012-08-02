@@ -30,8 +30,8 @@ public:
     
   void Clear()
   {
-    window = nsnull;
-    listener = nsnull;
+    window = nullptr;
+    listener = nullptr;
   }
   
   nsCOMPtr<nsIDOMWindow>                    window;

@@ -311,7 +311,7 @@ public:
   virtual ~nsMsgUnreadFoldersDataSource() {}
   virtual nsresult NotifyPropertyChanged(nsIRDFResource *resource, 
                     nsIRDFResource *propertyResource, nsIRDFNode *newNode, 
-                    nsIRDFNode *oldNode = nsnull);
+                    nsIRDFNode *oldNode = nullptr);
 protected:
   virtual bool WantsThisFolder(nsIMsgFolder *folder);
 };

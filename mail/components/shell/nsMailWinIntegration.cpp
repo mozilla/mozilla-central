@@ -190,7 +190,7 @@ nsWindowsShellService::ShortcutMaintenance()
     return NS_ERROR_UNEXPECTED;
 
   nsCOMPtr<nsIPrefBranch> prefBranch;
-  prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
+  prefs->GetBranch(nullptr, getter_AddRefs(prefBranch));
   if (!prefBranch)
     return NS_ERROR_UNEXPECTED;
 

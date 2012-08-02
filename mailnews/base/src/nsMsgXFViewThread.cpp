@@ -81,7 +81,7 @@ nsMsgXFViewThread::AddChild(nsIMsgDBHdr *aNewHdr, nsIMsgDBHdr *aInReplyTo,
                             bool aThreadInThread, nsIDBChangeAnnouncer *aAnnouncer)
 {
   PRUint32 whereInserted;
-  return AddHdr(aNewHdr, false, whereInserted, nsnull);
+  return AddHdr(aNewHdr, false, whereInserted, nullptr);
 }
 
 // Returns the parent of the newly added header. If reparentChildren
@@ -118,7 +118,7 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
     m_levels.InsertElementAt(0, 0);
     m_folders.InsertObjectAt(newHdrFolder, 0);
     if (outParent)
-      *outParent = nsnull;
+      *outParent = nullptr;
     whereInserted = 0;
     return NS_OK;
   }
@@ -148,7 +148,7 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
       if (parentIndex == -1)
       {
         NS_ERROR("how did we get in the wrong thread?");
-        parent = nsnull;
+        parent = nullptr;
       }
       break;
     }
@@ -219,7 +219,7 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
   else
   {
     if (outParent)
-      *outParent = nsnull;
+      *outParent = nullptr;
     nsCOMPtr<nsIMsgDBHdr> rootHdr;
     GetChildHdrAt(0, getter_AddRefs(rootHdr));
     // If the new header is a parent of the root then it should be promoted. 
@@ -256,7 +256,7 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
 //    PRTime topLevelHdrDate;
 
 //    nsCOMPtr<nsIMsgDBHdr> topLevelHdr;
-//    rv = GetRootHdr(nsnull, getter_AddRefs(topLevelHdr));
+//    rv = GetRootHdr(nullptr, getter_AddRefs(topLevelHdr));
 //    if (NS_SUCCEEDED(rv) && topLevelHdr)
 //    {
 //      topLevelHdr->GetDate(&topLevelHdrDate);

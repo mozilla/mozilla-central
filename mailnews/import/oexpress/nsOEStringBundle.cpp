@@ -14,7 +14,7 @@
 
 #define OE_MSGS_URL       "chrome://messenger/locale/oeImportMsgs.properties"
 
-nsIStringBundle *  nsOEStringBundle::m_pBundle = nsnull;
+nsIStringBundle *  nsOEStringBundle::m_pBundle = nullptr;
 
 nsIStringBundle *nsOEStringBundle::GetStringBundle(void)
 {
@@ -22,7 +22,7 @@ nsIStringBundle *nsOEStringBundle::GetStringBundle(void)
     return m_pBundle;
 
   char*        propertyURL = OE_MSGS_URL;
-  nsIStringBundle*  sBundle = nsnull;
+  nsIStringBundle*  sBundle = nullptr;
 
   nsCOMPtr<nsIStringBundleService> sBundleService =
     mozilla::services::GetStringBundleService();
@@ -48,7 +48,7 @@ PRUnichar *nsOEStringBundle::GetStringByID(PRInt32 stringID)
     m_pBundle = GetStringBundle();
 
   if (m_pBundle) {
-    PRUnichar *ptrv = nsnull;
+    PRUnichar *ptrv = nullptr;
     nsresult rv = m_pBundle->GetStringFromID(stringID, &ptrv);
 
     if (NS_SUCCEEDED(rv) && ptrv)
@@ -67,5 +67,5 @@ void nsOEStringBundle::Cleanup(void)
 {
   if (m_pBundle)
     m_pBundle->Release();
-  m_pBundle = nsnull;
+  m_pBundle = nullptr;
 }

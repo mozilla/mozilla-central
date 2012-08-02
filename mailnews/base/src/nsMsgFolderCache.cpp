@@ -17,13 +17,13 @@ const char *kFoldersTableKind = "ns:msg:db:table:kind:folders";
 
 nsMsgFolderCache::nsMsgFolderCache()
 {
-  m_mdbEnv = nsnull;
-  m_mdbStore = nsnull;
-  m_mdbAllFoldersTable = nsnull;
+  m_mdbEnv = nullptr;
+  m_mdbStore = nullptr;
+  m_mdbAllFoldersTable = nullptr;
 }
 
 // should this, could this be an nsCOMPtr ?
-static nsIMdbFactory *gMDBFactory = nsnull;
+static nsIMdbFactory *gMDBFactory = nullptr;
 
 nsMsgFolderCache::~nsMsgFolderCache()
 {
@@ -83,7 +83,7 @@ nsresult nsMsgFolderCache::InitNewDB()
     // create the unique table for the dbFolderInfo.
     mdb_err mdberr;
     mdberr = (nsresult) store->NewTable(GetEnv(), m_folderRowScopeToken,
-    m_folderTableKindToken, false, nsnull, &m_mdbAllFoldersTable);
+    m_folderTableKindToken, false, nullptr, &m_mdbAllFoldersTable);
   }
   return err;
 }
@@ -97,7 +97,7 @@ nsresult nsMsgFolderCache::InitExistingDB()
   err = GetStore()->GetTable(GetEnv(), &m_allFoldersTableOID, &m_mdbAllFoldersTable);
   if (NS_SUCCEEDED(err) && m_mdbAllFoldersTable)
   {
-    nsIMdbTableRowCursor* rowCursor = nsnull;
+    nsIMdbTableRowCursor* rowCursor = nullptr;
     err = m_mdbAllFoldersTable->GetTableRowCursor(GetEnv(), -1, &rowCursor);
     if (NS_SUCCEEDED(err) && rowCursor)
     {
@@ -112,7 +112,7 @@ nsresult nsMsgFolderCache::InitExistingDB()
         if (NS_FAILED(rv) || !hdrRow)
           break;
 
-        rv = AddCacheElement(EmptyCString(), hdrRow, nsnull);
+        rv = AddCacheElement(EmptyCString(), hdrRow, nullptr);
         hdrRow->Release();
         if (NS_FAILED(rv))
           return rv;
@@ -133,10 +133,10 @@ nsresult nsMsgFolderCache::OpenMDB(const nsACString& dbName, bool exists)
   GetMDBFactory(getter_AddRefs(mdbFactory));
   if (mdbFactory)
   {
-    ret = mdbFactory->MakeEnv(nsnull, &m_mdbEnv);
+    ret = mdbFactory->MakeEnv(nullptr, &m_mdbEnv);
     if (NS_SUCCEEDED(ret))
     {
-      nsIMdbThumb *thumb = nsnull;
+      nsIMdbThumb *thumb = nullptr;
       nsIMdbHeap* dbHeap = 0;
       mdb_bool dbFrozen = mdbBool_kFalse; // not readonly, we want modifiable
 
@@ -314,7 +314,7 @@ NS_IMETHODIMP nsMsgFolderCache::Close()
 NS_IMETHODIMP nsMsgFolderCache::Commit(bool compress)
 {
   nsresult ret = NS_OK;
-  nsIMdbThumb *commitThumb = nsnull;
+  nsIMdbThumb *commitThumb = nullptr;
   if (m_mdbStore)
   {
     if (compress)

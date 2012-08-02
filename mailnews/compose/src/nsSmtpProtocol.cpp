@@ -50,7 +50,7 @@
 #include <stdarg.h>
 #endif /* !XP_UNIX */
 
-static PRLogModuleInfo *SMTPLogModule = nsnull;
+static PRLogModuleInfo *SMTPLogModule = nullptr;
 
 /* the output_buffer_size must be larger than the largest possible line
  * 2000 seems good for news
@@ -112,7 +112,7 @@ nsresult nsExplainErrorDetails(nsISmtpUrl * aSmtpUrl, nsresult code, ...)
 
   if (msg)
   {
-    rv = dialog->Alert(nsnull, msg);
+    rv = dialog->Alert(nullptr, msg);
     nsTextFormatter::smprintf_free(msg);
   }
 
@@ -250,8 +250,8 @@ void nsSmtpProtocol::Initialize(nsIURI * aURL)
     m_previousResponseCode = 0;
     m_continuationResponse = -1;
     m_tlsEnabled = false;
-    m_addressCopy = nsnull;
-    m_addresses = nsnull;
+    m_addressCopy = nullptr;
+    m_addresses = nullptr;
     m_addressesLeft = 0;
 
 #ifdef UNREADY_CODE
@@ -305,11 +305,11 @@ void nsSmtpProtocol::Initialize(nsIURI * aURL)
         if (NS_FAILED(rv) && m_prefSocketType == nsMsgSocketType::trySTARTTLS)
         {
             m_prefSocketType = nsMsgSocketType::plain;
-            rv = OpenNetworkSocket(aURL, nsnull, callbacks);
+            rv = OpenNetworkSocket(aURL, nullptr, callbacks);
         }
     }
     else
-        rv = OpenNetworkSocket(aURL, nsnull, callbacks);
+        rv = OpenNetworkSocket(aURL, nullptr, callbacks);
 }
 
 void nsSmtpProtocol::AppendHelloArgument(nsACString& aResult)
@@ -391,10 +391,10 @@ NS_IMETHODIMP nsSmtpProtocol::OnStopRequest(nsIRequest *request, nsISupports *ct
     PR_LOG(SMTPLogModule, PR_LOG_ALWAYS,
  ("SMTP connection dropped after %ld total bytes read", m_totalAmountRead));
     if (!connDroppedDuringAuth)
-      nsMsgAsyncWriteProtocol::OnStopRequest(nsnull, ctxt, NS_ERROR_NET_INTERRUPT);
+      nsMsgAsyncWriteProtocol::OnStopRequest(nullptr, ctxt, NS_ERROR_NET_INTERRUPT);
   }
   else
-    nsMsgAsyncWriteProtocol::OnStopRequest(nsnull, ctxt, aStatus);
+    nsMsgAsyncWriteProtocol::OnStopRequest(nullptr, ctxt, aStatus);
 
   // okay, we've been told that the send is done and the connection is going away. So
   // we need to release all of our state
@@ -405,7 +405,7 @@ NS_IMETHODIMP nsSmtpProtocol::OnStopRequest(nsIRequest *request, nsISupports *ct
   if (connDroppedDuringAuth)
   {
     nsCOMPtr<nsIURI> runningURI = do_QueryInterface(m_runningURL);
-    PRInt32 rv = AuthLoginResponse(nsnull, 0);
+    PRInt32 rv = AuthLoginResponse(nullptr, 0);
     if (rv < 0)
       return rv;
     return LoadUrl(runningURI, ctxt);
@@ -452,7 +452,7 @@ void nsSmtpProtocol::UpdateStatusWithString(const PRUnichar * aStatusString)
  */
 PRInt32 nsSmtpProtocol::SmtpResponse(nsIInputStream * inputStream, PRUint32 length)
 {
-  char * line = nsnull;
+  char * line = nullptr;
   char cont_char;
   PRUint32 ln = 0;
   bool pauseForMoreData = false;
@@ -591,11 +591,11 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
   nsCString fullAddress;
   if (parser)
   {
-    // pass nsnull for the name, since we just want the email.
+    // pass nullptr for the name, since we just want the email.
     //
     // seems a little weird that we are passing in the emailAddress
     // when that's the out parameter
-    parser->MakeFullAddressString(nsnull, emailAddress.get(),
+    parser->MakeFullAddressString(nullptr, emailAddress.get(),
                                   getter_Copies(fullAddress));
   }
 
@@ -614,7 +614,7 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
       NS_ENSURE_SUCCESS(rv,rv);
 
       nsCOMPtr<nsIPrefBranch> prefBranch;
-      rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
+      rv = prefs->GetBranch(nullptr, getter_AddRefs(prefBranch));
       NS_ENSURE_SUCCESS(rv,rv);
 
       bool requestRetFull = false;
@@ -1099,7 +1099,7 @@ PRInt32 nsSmtpProtocol::AuthLoginResponse(nsIInputStream * stream, PRUint32 leng
           NS_ENSURE_SUCCESS(rv, rv);
 
           PRInt32 buttonPressed = 1;
-          if (NS_SUCCEEDED(MsgPromptLoginFailed(nsnull, hostname,
+          if (NS_SUCCEEDED(MsgPromptLoginFailed(nullptr, hostname,
                                                 &buttonPressed)))
           {
             if (buttonPressed == 1) // Cancel button
@@ -1254,7 +1254,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep1()
   nsresult rv;
   PRInt32 status = 0;
   nsCString username;
-  char *base64Str = nsnull;
+  char *base64Str = nullptr;
   nsCAutoString password;
   nsCOMPtr<nsISmtpServer> smtpServer;
   rv = m_runningURL->GetSmtpServer(getter_AddRefs(smtpServer));
@@ -1307,14 +1307,14 @@ PRInt32 nsSmtpProtocol::AuthLoginStep1()
     PR_snprintf(&plain_string[len], 511-len, "%s", password.get());
     len += password.Length();
 
-    base64Str = PL_Base64Encode(plain_string, len, nsnull);
+    base64Str = PL_Base64Encode(plain_string, len, nullptr);
     PR_snprintf(buffer, sizeof(buffer), "AUTH PLAIN %.256s" CRLF, base64Str);
   }
   else if (m_currentAuthMethod == SMTP_AUTH_LOGIN_ENABLED)
   {
     PR_LOG(SMTPLogModule, PR_LOG_DEBUG, ("LOGIN auth"));
     base64Str = PL_Base64Encode(username.get(),
-        username.Length(), nsnull);
+        username.Length(), nullptr);
     PR_snprintf(buffer, sizeof(buffer), "%.256s" CRLF, base64Str);
   }
   else
@@ -1356,7 +1356,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep2()
       PR_LOG(SMTPLogModule, PR_LOG_DEBUG, ("CRAM auth, step 2"));
       unsigned char digest[DIGEST_LENGTH];
       char * decodedChallenge = PL_Base64Decode(m_responseText.get(),
-        m_responseText.Length(), nsnull);
+        m_responseText.Length(), nullptr);
 
       if (decodedChallenge)
         rv = MSGCramMD5(decodedChallenge, strlen(decodedChallenge), password.get(), password.Length(), digest);
@@ -1383,7 +1383,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep2()
         rv = smtpServer->GetUsername(userName);
 
         PR_snprintf(buffer, sizeof(buffer), "%s %s", userName.get(), encodedDigest.get());
-        char *base64Str = PL_Base64Encode(buffer, strlen(buffer), nsnull);
+        char *base64Str = PL_Base64Encode(buffer, strlen(buffer), nullptr);
         PR_snprintf(buffer, sizeof(buffer), "%s" CRLF, base64Str);
         NS_Free(base64Str);
       }
@@ -1402,7 +1402,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep2()
              m_currentAuthMethod == SMTP_AUTH_LOGIN_ENABLED)
     {
       PR_LOG(SMTPLogModule, PR_LOG_DEBUG, ("PLAIN/LOGIN auth, step 2"));
-      char *base64Str = PL_Base64Encode(password.get(), password.Length(), nsnull);
+      char *base64Str = PL_Base64Encode(password.get(), password.Length(), nullptr);
       PR_snprintf(buffer, sizeof(buffer), "%.256s" CRLF, base64Str);
       NS_Free(base64Str);
     }
@@ -1451,7 +1451,7 @@ PRInt32 nsSmtpProtocol::SendMailResponse()
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsCOMPtr<nsIPrefBranch> prefBranch;
-  rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
+  rv = prefs->GetBranch(nullptr, getter_AddRefs(prefBranch));
   NS_ENSURE_SUCCESS(rv,rv);
 
   bool requestOnSuccess = false;
@@ -1584,7 +1584,7 @@ nsresult nsSmtpProtocol::SendData(const char *dataBuffer, bool aSuppressLogging)
 PRInt32 nsSmtpProtocol::SendDataResponse()
 {
   PRInt32 status = 0;
-  char *command = nsnull;
+  char *command = nullptr;
 
   if (m_responseCode != 354)
   {
@@ -1746,7 +1746,7 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
       // full RFC822 address specs, and we will still send the right
       // thing in the SMTP RCPT command.
       if (!addrs1.IsEmpty())
-        parser->ParseHeaderAddresses(addrs1.get(), nsnull, &addrs2,
+        parser->ParseHeaderAddresses(addrs1.get(), nullptr, &addrs2,
                                      &m_addressesLeft);
 
       // hmm no addresses to send message to...
@@ -1784,7 +1784,7 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
      switch(m_nextState)
      {
      case SMTP_RESPONSE:
-       if (inputStream == nsnull)
+       if (inputStream == nullptr)
          SetFlag(SMTP_PAUSE_FOR_READ);
        else
          status = SmtpResponse(inputStream, length);
@@ -1799,26 +1799,26 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
        SetFlag(SMTP_PAUSE_FOR_READ);
        break;
      case SMTP_TLS_RESPONSE:
-       if (inputStream == nsnull)
+       if (inputStream == nullptr)
          SetFlag(SMTP_PAUSE_FOR_READ);
        else
          status = SendTLSResponse();
        break;
      case SMTP_EXTN_LOGIN_RESPONSE:
-       if (inputStream == nsnull)
+       if (inputStream == nullptr)
          SetFlag(SMTP_PAUSE_FOR_READ);
        else
          status = ExtensionLoginResponse(inputStream, length);
        break;
 
      case SMTP_SEND_HELO_RESPONSE:
-       if (inputStream == nsnull)
+       if (inputStream == nullptr)
          SetFlag(SMTP_PAUSE_FOR_READ);
        else
          status = SendHeloResponse(inputStream, length);
        break;
      case SMTP_SEND_EHLO_RESPONSE:
-       if (inputStream == nsnull)
+       if (inputStream == nullptr)
          SetFlag(SMTP_PAUSE_FOR_READ);
        else
          status = SendEhloResponse(inputStream, length);
@@ -1845,7 +1845,7 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
 
       case SMTP_AUTH_EXTERNAL_RESPONSE:
       case SMTP_AUTH_LOGIN_RESPONSE:
-        if (inputStream == nsnull)
+        if (inputStream == nullptr)
           SetFlag(SMTP_PAUSE_FOR_READ);
         else
           status = AuthLoginResponse(inputStream, length);
@@ -1861,21 +1861,21 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
 
 
       case SMTP_SEND_MAIL_RESPONSE:
-        if (inputStream == nsnull)
+        if (inputStream == nullptr)
           SetFlag(SMTP_PAUSE_FOR_READ);
         else
           status = SendMailResponse();
         break;
 
       case SMTP_SEND_RCPT_RESPONSE:
-        if (inputStream == nsnull)
+        if (inputStream == nullptr)
           SetFlag(SMTP_PAUSE_FOR_READ);
         else
           status = SendRecipientResponse();
         break;
 
       case SMTP_SEND_DATA_RESPONSE:
-        if (inputStream == nsnull)
+        if (inputStream == nullptr)
           SetFlag(SMTP_PAUSE_FOR_READ);
         else
           status = SendDataResponse();
@@ -1886,7 +1886,7 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
         break;
 
       case SMTP_SEND_MESSAGE_RESPONSE:
-        if (inputStream == nsnull)
+        if (inputStream == nullptr)
           SetFlag(SMTP_PAUSE_FOR_READ);
         else
           status = SendMessageResponse();
@@ -1960,7 +1960,7 @@ nsSmtpProtocol::GetPassword(nsCString &aPassword)
     NS_ENSURE_SUCCESS(rv,rv);
 
     nsCOMPtr<nsIPrefBranch> prefBranch;
-    rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
+    rv = prefs->GetBranch(nullptr, getter_AddRefs(prefBranch));
     NS_ENSURE_SUCCESS(rv,rv);
 
     nsCString username;
@@ -2063,7 +2063,7 @@ nsSmtpProtocol::GetUsernamePassword(nsACString &aUsername,
     const PRUnichar *formatStrings[] =
     {
       NS_ConvertASCIItoUTF16(hostname).get(),
-      nsnull
+      nullptr
     };
 
     rv = PromptForPassword(smtpServer, smtpUrl, formatStrings, aPassword);

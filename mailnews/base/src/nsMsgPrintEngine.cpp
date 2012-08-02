@@ -106,10 +106,10 @@ nsMsgPrintEngine::OnStateChange(nsIWebProgress* aWebProgress,
       }
       nsCOMPtr<nsIWebProgressListener> wpl(do_QueryInterface(mPrintPromptService));
       if (wpl) {
-        wpl->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP|nsIWebProgressListener::STATE_IS_DOCUMENT, nsnull);
-        mPrintProgressListener = nsnull;
-        mPrintProgress         = nsnull;
-        mPrintProgressParams   = nsnull;
+        wpl->OnStateChange(nullptr, nullptr, nsIWebProgressListener::STATE_STOP|nsIWebProgressListener::STATE_IS_DOCUMENT, nullptr);
+        mPrintProgressListener = nullptr;
+        mPrintProgress         = nullptr;
+        mPrintProgressParams   = nullptr;
       }
 
       bool isPrintingCancelled = false;
@@ -139,7 +139,7 @@ nsMsgPrintEngine::OnStateChange(nsIWebProgress* aWebProgress,
           if (!aChannel) return NS_ERROR_FAILURE;
 
           // Make sure this isn't just "about:blank" finishing....
-          nsCOMPtr<nsIURI> originalURI = nsnull;
+          nsCOMPtr<nsIURI> originalURI = nullptr;
           if (NS_SUCCEEDED(aChannel->GetOriginalURI(getter_AddRefs(originalURI))) && originalURI)
           {
             nsCAutoString spec;
@@ -245,7 +245,7 @@ nsMsgPrintEngine::SetWindow(nsIDOMWindow *aWin)
 
   nsCOMPtr<nsIDocShellTreeItem> childItem;
   rootAsNode->FindChildWithName(NS_LITERAL_STRING("content").get(), true,
-				false, nsnull, nsnull,
+				false, nullptr, nullptr,
 				getter_AddRefs(childItem));
 
   mDocShell = do_QueryInterface(childItem);
@@ -378,7 +378,7 @@ nsMsgPrintEngine::ShowProgressDialog(bool aIsForPrinting, bool& aDoNotify)
                                             &aDoNotify);
       if (NS_SUCCEEDED(rv)) {
 
-        showProgressDialog = mPrintProgressListener != nsnull && mPrintProgressParams != nsnull;
+        showProgressDialog = mPrintProgressListener != nullptr && mPrintProgressParams != nullptr;
 
         if (showProgressDialog) 
         {
@@ -496,7 +496,7 @@ nsMsgPrintEngine::FireThatLoadOperation(const nsString& uri)
   }
 
   if (NS_SUCCEEDED(rv) && messageService)
-    rv = messageService->DisplayMessageForPrinting(uriCStr.get(), mDocShell, nsnull, nsnull, nsnull);
+    rv = messageService->DisplayMessageForPrinting(uriCStr.get(), mDocShell, nullptr, nullptr, nullptr);
   //If it's not something we know about, then just load try loading it directly.
   else
   {
@@ -504,9 +504,9 @@ nsMsgPrintEngine::FireThatLoadOperation(const nsString& uri)
     if (webNav)
       rv = webNav->LoadURI(uri.get(),                        // URI string
                            nsIWebNavigation::LOAD_FLAGS_NONE, // Load flags
-                           nsnull,                            // Referring URI
-                           nsnull,                            // Post data
-                           nsnull);                           // Extra headers
+                           nullptr,                            // Referring URI
+                           nullptr,                            // Post data
+                           nullptr);                           // Extra headers
   }
   return rv;
 }
@@ -608,14 +608,14 @@ nsMsgPrintEngine::PrintMsgWindow()
       // don't show the actual url when printing mail messages or addressbook cards.
       // for mail, it can review the salt.  for addrbook, it's a data:// url, which
       // means nothing to the end user.
-      // needs to be " " and not "" or nsnull, otherwise, we'll still print the url
+      // needs to be " " and not "" or nullptr, otherwise, we'll still print the url
       mPrintSettings->SetDocURL(NS_LITERAL_STRING(" ").get());
 
       nsresult rv = NS_ERROR_FAILURE;
       if (mIsDoingPrintPreview) 
       {
         if (mStartupPPObs) {
-          rv = mStartupPPObs->Observe(nsnull, nsnull, nsnull);
+          rv = mStartupPPObs->Observe(nullptr, nullptr, nullptr);
         }
       } 
       else 
@@ -634,8 +634,8 @@ nsMsgPrintEngine::PrintMsgWindow()
 
       if (NS_FAILED(rv))
       {
-        mWebBrowserPrint = nsnull;
-        mContentViewer = nsnull;
+        mWebBrowserPrint = nullptr;
+        mContentViewer = nullptr;
         bool isPrintingCancelled = false;
         if (mPrintSettings)
         {

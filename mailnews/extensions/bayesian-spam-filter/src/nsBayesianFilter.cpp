@@ -53,7 +53,7 @@
 #include "nsIMsgTraitService.h"
 #include "mozilla/Services.h"
 
-static PRLogModuleInfo *BayesianFilterLogModule = nsnull;
+static PRLogModuleInfo *BayesianFilterLogModule = nullptr;
 
 #define kDefaultJunkThreshold .99 // we override this value via a pref
 static const char* kBayesianFilterTokenDelimiters = " \t\n\r\f.";
@@ -138,7 +138,7 @@ inline bool TokenEnumeration::hasMoreTokens()
 
 inline BaseToken* TokenEnumeration::nextToken()
 {
-    BaseToken* token = nsnull;
+    BaseToken* token = nullptr;
     PRUint32 entrySize = mEntrySize;
     char *entryAddr = mEntryAddr, *entryLimit = mEntryLimit;
     while (entryAddr < entryLimit) {
@@ -182,7 +182,7 @@ TokenHash::TokenHash(PRUint32 aEntrySize)
 {
     mEntrySize = aEntrySize;
     PL_INIT_ARENA_POOL(&mWordPool, "Words Arena", 16384);
-    bool ok = PL_DHashTableInit(&mTokenTable, &gTokenTableOps, nsnull,
+    bool ok = PL_DHashTableInit(&mTokenTable, &gTokenTableOps, nullptr,
                                   aEntrySize, 256);
     NS_ASSERTION(ok, "mTokenTable failed to initialize");
     if (!ok)
@@ -205,7 +205,7 @@ nsresult TokenHash::clearTokens()
     {
         PL_DHashTableFinish(&mTokenTable);
         PL_FreeArenaPool(&mWordPool);
-        ok = PL_DHashTableInit(&mTokenTable, &gTokenTableOps, nsnull,
+        ok = PL_DHashTableInit(&mTokenTable, &gTokenTableOps, nullptr,
                                mEntrySize, 256);
         NS_ASSERTION(ok, "mTokenTable failed to initialize");
         if (!ok)
@@ -237,7 +237,7 @@ BaseToken* TokenHash::add(const char* word)
     if (!word || !*word)
     {
       NS_ERROR("Trying to add a null word");
-      return nsnull;
+      return nullptr;
     }
 
     PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG, ("add word: %s", word));
@@ -571,13 +571,13 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
 
           // extract the charset parameter
           nsCString parameterValue;
-          mimehdrpar->GetParameterInternal(headerValue.get(), "charset", nsnull, nsnull, getter_Copies(parameterValue));
+          mimehdrpar->GetParameterInternal(headerValue.get(), "charset", nullptr, nullptr, getter_Copies(parameterValue));
           addTokenForHeader("charset", parameterValue);
 
           // create a token containing just the content type
-          mimehdrpar->GetParameterInternal(headerValue.get(), "type", nsnull, nsnull, getter_Copies(parameterValue));
+          mimehdrpar->GetParameterInternal(headerValue.get(), "type", nullptr, nullptr, getter_Copies(parameterValue));
           if (!parameterValue.Length())
-            mimehdrpar->GetParameterInternal(headerValue.get(), nsnull /* use first unnamed param */, nsnull, nsnull, getter_Copies(parameterValue));
+            mimehdrpar->GetParameterInternal(headerValue.get(), nullptr /* use first unnamed param */, nullptr, nullptr, getter_Copies(parameterValue));
           addTokenForHeader("content-type/type", parameterValue);
 
           // XXX: should we add a token for the entire content-type header as well or just these parts we have extracted?
@@ -1198,7 +1198,7 @@ nsBayesianFilter::nsBayesianFilter()
 
     nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
     NS_ASSERTION(NS_SUCCEEDED(rv),"failed accessing preferences service");
-    rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
+    rv = prefs->GetBranch(nullptr, getter_AddRefs(prefBranch));
     NS_ASSERTION(NS_SUCCEEDED(rv),"failed getting preferences branch");
 
     rv = prefBranch->GetIntPref("mailnews.bayesian_spam_filter.flush.minimum_interval",&mMinFlushInterval);
@@ -1253,7 +1253,7 @@ nsBayesianFilter::~nsBayesianFilter()
     if (mTimer)
     {
         mTimer->Cancel();
-        mTimer = nsnull;
+        mTimer = nullptr;
     }
     // call shutdown when we are going away in case we need
     // to flush the training set to disk
@@ -1301,8 +1301,8 @@ public:
     :   mFilter(aFilter),
         mJunkMailPlugin(aFilter),
         mJunkListener(aJunkListener),
-        mTraitListener(nsnull),
-        mDetailListener(nsnull),
+        mTraitListener(nullptr),
+        mDetailListener(nullptr),
         mMsgWindow(aMsgWindow)
     {
       mCurMessageToClassify = 0;
@@ -1346,10 +1346,10 @@ public:
       {
         // call all listeners with null parameters to signify end of batch
         if (mJunkListener)
-          mJunkListener->OnMessageClassified(nsnull, nsnull, nsnull);
+          mJunkListener->OnMessageClassified(nullptr, nullptr, nullptr);
         if (mTraitListener)
-          mTraitListener->OnMessageTraitsClassified(nsnull, nsnull, nsnull, nsnull);
-        mTokenListener = nsnull; // this breaks the circular ref that keeps this object alive
+          mTraitListener->OnMessageTraitsClassified(nullptr, nullptr, nullptr, nullptr);
+        mTokenListener = nullptr; // this breaks the circular ref that keeps this object alive
                                  // so we will be destroyed as a result.
       }
     }
@@ -1378,8 +1378,8 @@ nsresult nsBayesianFilter::tokenizeMessage(const char* aMessageURI, nsIMsgWindow
 
     aAnalyzer->setSource(aMessageURI);
     return msgService->StreamMessage(aMessageURI, aAnalyzer->mTokenListener,
-                                     aMsgWindow, nsnull, true /* convert data */,
-                                     NS_LITERAL_CSTRING("filter"), false, nsnull);
+                                     aMsgWindow, nullptr, true /* convert data */,
+                                     NS_LITERAL_CSTRING("filter"), false, nullptr);
 }
 
 // a TraitAnalysis is the per-token representation of the statistical
@@ -1507,7 +1507,7 @@ void nsBayesianFilter::classifyMessage(
 
       // pro trait
       PRUint32 proAliasesLength = 0;
-      PRUint32* proAliases = nsnull;
+      PRUint32* proAliases = nullptr;
       PRUint32 proTrait = aProTraits[traitIndex];
       if (traitService)
       {
@@ -1527,7 +1527,7 @@ void nsBayesianFilter::classifyMessage(
 
       // anti trait
       PRUint32 antiAliasesLength = 0;
-      PRUint32* antiAliases = nsnull;
+      PRUint32* antiAliases = nullptr;
       PRUint32 antiTrait = aAntiTraits[traitIndex];
       if (traitService)
       {
@@ -1791,7 +1791,7 @@ void nsBayesianFilter::classifyMessage(
   proTraits.AppendElement(kJunkTrait);
   antiTraits.AppendElement(kGoodTrait);
   classifyMessage(tokens, messageURI, proTraits, antiTraits,
-    aJunkListener, nsnull, nsnull);
+    aJunkListener, nullptr, nullptr);
 }
 
 NS_IMETHODIMP
@@ -1941,7 +1941,7 @@ NS_IMETHODIMP nsBayesianFilter::ClassifyTraitsInMessages(
   antiTraits.AppendElements(aAntiTraits, aTraitCount);
 
   MessageClassifier* analyzer = new MessageClassifier(this, aJunkListener,
-    aTraitListener, nsnull, proTraits, antiTraits, aMsgWindow, aCount, aMsgURIs);
+    aTraitListener, nullptr, proTraits, antiTraits, aMsgWindow, aCount, aMsgURIs);
   NS_ENSURE_TRUE(analyzer, NS_ERROR_OUT_OF_MEMORY);
 
   TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
@@ -1970,7 +1970,7 @@ public:
     mFilter->observeMessage(tokenizer, mTokenSource.get(), mOldClassifications,
                             mNewClassifications, mJunkListener, mTraitListener);
     // release reference to listener, which will allow us to go away as well.
-    mTokenListener = nsnull;
+    mTokenListener = nullptr;
   }
 
 private:
@@ -2095,7 +2095,7 @@ void nsBayesianFilter::observeMessage(
           traits.Length(), traits.Elements(), percents.Elements());
     }
 
-    if (mTrainingDataDirty && !trainingDataWasDirty && ( mTimer != nsnull ))
+    if (mTrainingDataDirty && !trainingDataWasDirty && ( mTimer != nullptr ))
     {
         // if training data became dirty just now, schedule flush
         // mMinFlushInterval msec from now
@@ -2136,7 +2136,7 @@ NS_IMETHODIMP nsBayesianFilter::SetMessageClassification(
     newClassifications.AppendElement(kGoodTrait);
 
   MessageObserver* analyzer = new MessageObserver(this, oldClassifications,
-    newClassifications, aListener, nsnull);
+    newClassifications, aListener, nullptr);
   NS_ENSURE_TRUE(analyzer, NS_ERROR_OUT_OF_MEMORY);
 
   TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
@@ -2162,8 +2162,8 @@ NS_IMETHODIMP nsBayesianFilter::DetailMessage(const char *aMsgURI,
   proTraits.AppendElement(aProTrait);
   antiTraits.AppendElement(aAntiTrait);
 
-  MessageClassifier* analyzer = new MessageClassifier(this, nsnull,
-    nsnull, aDetailListener, proTraits, antiTraits, aMsgWindow, 1, &aMsgURI);
+  MessageClassifier* analyzer = new MessageClassifier(this, nullptr,
+    nullptr, aDetailListener, proTraits, antiTraits, aMsgWindow, 1, &aMsgURI);
   NS_ENSURE_TRUE(analyzer, NS_ERROR_OUT_OF_MEMORY);
 
   TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
@@ -2592,7 +2592,7 @@ void CorpusStore::readTrainingData()
   if (NS_FAILED(rv) || !exists)
     return;
 
-  rv = UpdateData(mTraitFile, true, 0, nsnull, nsnull);
+  rv = UpdateData(mTraitFile, true, 0, nullptr, nullptr);
 
   if (NS_FAILED(rv))
   {

@@ -189,7 +189,7 @@ NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(const nsAString &aDirName,
    * is more general.
    *
    */
-  DIR_Server* server = nsnull;
+  DIR_Server* server = nullptr;
   rv = DIR_AddNewAddressBook(aDirName, EmptyCString(), URI,
                              (DirectoryType)aType, aPrefName, &server);
   NS_ENSURE_SUCCESS (rv, rv);
@@ -217,7 +217,7 @@ NS_IMETHODIMP nsAbBSDirectory::CreateDirectoryByURI(const nsAString &aDisplayNam
   if (StringBeginsWith(aURI, NS_LITERAL_CSTRING(kMDBDirectoryRoot)))
     fileName = Substring(aURI, kMDBDirectoryRootLen);
 
-  DIR_Server * server = nsnull;
+  DIR_Server * server = nullptr;
   rv = DIR_AddNewAddressBook(aDisplayName, fileName, aURI,
                              PABDirectory, EmptyCString(), &server);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -255,7 +255,7 @@ NS_IMETHODIMP nsAbBSDirectory::DeleteDirectory(nsIAbDirectory *directory)
   nsresult rv = EnsureInitialized();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  DIR_Server *server = nsnull;
+  DIR_Server *server = nullptr;
   mServers.Get(directory, &server);
 
   if (!server)
@@ -307,7 +307,7 @@ NS_IMETHODIMP nsAbBSDirectory::HasDirectory(nsIAbDirectory *dir, bool *hasDir)
   nsresult rv = EnsureInitialized();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  DIR_Server *dirServer = nsnull;
+  DIR_Server *dirServer = nullptr;
   mServers.Get(dir, &dirServer);
   return DIR_ContainsServer(dirServer, hasDir);
 }

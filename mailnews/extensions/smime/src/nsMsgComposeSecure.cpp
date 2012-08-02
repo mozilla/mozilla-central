@@ -39,30 +39,30 @@ static char *mime_make_separator(const char *prefix);
 MimeEncoderData *
 MIME_B64EncoderInit(nsresult (* output_fn) (const char *buf, PRInt32 size, void *closure), void *closure)
 {
-  MimeEncoderData *returnEncoderData = nsnull;
+  MimeEncoderData *returnEncoderData = nullptr;
   nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
-  NS_ENSURE_TRUE(converter, nsnull);
+  NS_ENSURE_TRUE(converter, nullptr);
 
   nsresult res = converter->B64EncoderInit(output_fn, closure, &returnEncoderData);
-  return NS_SUCCEEDED(res) ? returnEncoderData : nsnull;
+  return NS_SUCCEEDED(res) ? returnEncoderData : nullptr;
 }
 
 MimeEncoderData *
 MIME_QPEncoderInit(nsresult (* output_fn) (const char *buf, PRInt32 size, void *closure), void *closure) 
 {
-  MimeEncoderData *returnEncoderData = nsnull;
+  MimeEncoderData *returnEncoderData = nullptr;
   nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
-  NS_ENSURE_TRUE(converter, nsnull);
+  NS_ENSURE_TRUE(converter, nullptr);
 
   nsresult res = converter->QPEncoderInit(output_fn, closure, &returnEncoderData);
-  return NS_SUCCEEDED(res) ? returnEncoderData : nsnull;
+  return NS_SUCCEEDED(res) ? returnEncoderData : nullptr;
 }
 
 nsresult
 MIME_EncoderDestroy(MimeEncoderData *data, bool abort_p) 
 {
   nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
-  NS_ENSURE_TRUE(converter, nsnull);
+  NS_ENSURE_TRUE(converter, nullptr);
 
   return converter->EncoderDestroy(data, abort_p);
 }
@@ -212,7 +212,7 @@ NS_IMETHODIMP nsMsgComposeSecure::RequiresCryptoEncapsulation(nsIMsgIdentity * a
 nsresult nsMsgComposeSecure::GetSMIMEBundleString(const PRUnichar *name,
                                                   PRUnichar **outString)
 {
-  *outString = nsnull;
+  *outString = nullptr;
 
   NS_ENSURE_ARG_POINTER(name);
 
@@ -603,7 +603,7 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (bool aOuter, nsIMsgSendR
   nsCOMPtr<nsICMSEncoder> encoder = do_CreateInstance(NS_CMSENCODER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  char * header = nsnull;
+  char * header = nullptr;
   nsCOMPtr<nsIStringBundleService> bundleSvc =
     mozilla::services::GetStringBundleService();
   NS_ENSURE_TRUE(bundleSvc, NS_ERROR_UNEXPECTED);
@@ -834,13 +834,13 @@ nsresult nsMsgComposeSecure::MimeCryptoHackCerts(const char *aRecipients,
   certdb->FindEmailSigningCert(mSigningCertName, getter_AddRefs(mSelfSigningCert));
 
   // must have both the signing and encryption certs to sign
-  if ((mSelfSigningCert == nsnull) && aSign) {
+  if ((mSelfSigningCert == nullptr) && aSign) {
     SetError(sendReport, NS_LITERAL_STRING("NoSenderSigningCert").get());
     res = NS_ERROR_FAILURE;
     goto FAIL;
   }
 
-  if ((mSelfEncryptionCert == nsnull) && aEncrypt) {
+  if ((mSelfEncryptionCert == nullptr) && aEncrypt) {
     SetError(sendReport, NS_LITERAL_STRING("NoSenderEncryptionCert").get());
     res = NS_ERROR_FAILURE;
     goto FAIL;
@@ -874,7 +874,7 @@ nsresult nsMsgComposeSecure::MimeCryptoHackCerts(const char *aRecipients,
       nsCString mailbox_lowercase;
       ToLowerCase(nsDependentCString(mailbox), mailbox_lowercase);
       nsCOMPtr<nsIX509Cert> cert;
-      certdb->FindCertByEmailAddress(nsnull, mailbox_lowercase.get(), getter_AddRefs(cert));
+      certdb->FindCertByEmailAddress(nullptr, mailbox_lowercase.get(), getter_AddRefs(cert));
       bool foundValidCert = false;
 
       if (cert) {

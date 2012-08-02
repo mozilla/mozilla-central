@@ -77,7 +77,7 @@ nsresult nsMsgWindow::Init()
 
 NS_IMETHODIMP nsMsgWindow::GetMessageWindowDocShell(nsIDocShell ** aDocShell)
 {
-  *aDocShell = nsnull;
+  *aDocShell = nullptr;
   nsCOMPtr<nsIDocShell> docShell(do_QueryReferent(mMessageWindowDocShellWeak));
   if (!docShell)
   {
@@ -89,7 +89,7 @@ NS_IMETHODIMP nsMsgWindow::GetMessageWindowDocShell(nsIDocShell ** aDocShell)
       nsCOMPtr<nsIDocShellTreeItem> msgDocShellItem;
       if(rootAsNode)
          rootAsNode->FindChildWithName(NS_LITERAL_STRING("messagepane").get(),
-                                       true, false, nsnull, nsnull,
+                                       true, false, nullptr, nullptr,
                                        getter_AddRefs(msgDocShellItem));
       NS_ENSURE_TRUE(msgDocShellItem, NS_ERROR_FAILURE);
       docShell = do_QueryInterface(msgDocShellItem);
@@ -108,8 +108,8 @@ NS_IMETHODIMP nsMsgWindow::CloseWindow()
   if (dispatcher) // on shut down it's possible dispatcher will be null.
     rv = dispatcher->UnRegisterContentListener(this);
 
-  mMsgWindowCommands = nsnull;
-  mStatusFeedback = nsnull;
+  mMsgWindowCommands = nullptr;
+  mStatusFeedback = nullptr;
 
   StopUrls();
 
@@ -118,13 +118,13 @@ NS_IMETHODIMP nsMsgWindow::CloseWindow()
   {
     nsCOMPtr<nsIURIContentListener> listener(do_GetInterface(messagePaneDocShell));
     if (listener)
-      listener->SetParentContentListener(nsnull);
-    SetRootDocShell(nsnull);
-    mMessageWindowDocShellWeak = nsnull;
+      listener->SetParentContentListener(nullptr);
+    SetRootDocShell(nullptr);
+    mMessageWindowDocShellWeak = nullptr;
   }
 
   // in case nsMsgWindow leaks, make sure other stuff doesn't leak.
-  mTransactionManager = nsnull;
+  mTransactionManager = nullptr;
   return NS_OK;
 }
 
@@ -208,7 +208,7 @@ NS_IMETHODIMP nsMsgWindow::GetRootDocShell(nsIDocShell * *aDocShell)
   if (mRootDocShellWeak)
     CallQueryReferent(mRootDocShellWeak.get(), aDocShell);
   else
-    *aDocShell = nsnull;
+    *aDocShell = nullptr;
   return NS_OK;
 }
 
@@ -250,7 +250,7 @@ NS_IMETHODIMP nsMsgWindow::SetRootDocShell(nsIDocShell * aDocShell)
   }
   
   // Query for the doc shell and release it
-  mRootDocShellWeak = nsnull;
+  mRootDocShellWeak = nullptr;
   if (aDocShell)
   {
     mRootDocShellWeak = do_GetWeakReference(aDocShell);
@@ -314,7 +314,7 @@ NS_IMETHODIMP nsMsgWindow::GetDomWindow(nsIDOMWindow **aWindow)
   if (mDomWindow)
     CallQueryReferent(mDomWindow.get(), aWindow);
   else
-    *aWindow = nsnull;
+    *aWindow = nullptr;
   return NS_OK;
 }
 
@@ -324,7 +324,7 @@ NS_IMETHODIMP nsMsgWindow::SetDomWindow(nsIDOMWindow * aWindow)
   mDomWindow = do_GetWeakReference(aWindow);
 
   nsCOMPtr<nsPIDOMWindow> win(do_QueryInterface(aWindow));
-  nsIDocShell *docShell = nsnull;
+  nsIDocShell *docShell = nullptr;
   if (win)
     docShell = win->GetDocShell();
 
@@ -436,7 +436,7 @@ NS_IMETHODIMP nsMsgWindow::CanHandleContent(const char * aContentType,
 NS_IMETHODIMP nsMsgWindow::GetParentContentListener(nsIURIContentListener** aParent)
 {
   NS_ENSURE_ARG_POINTER(aParent);
-  *aParent = nsnull;
+  *aParent = nullptr;
   return NS_OK;
 }
 
@@ -448,7 +448,7 @@ NS_IMETHODIMP nsMsgWindow::SetParentContentListener(nsIURIContentListener* aPare
 NS_IMETHODIMP nsMsgWindow::GetLoadCookie(nsISupports ** aLoadCookie)
 {
   NS_ENSURE_ARG_POINTER(aLoadCookie);
-  *aLoadCookie = nsnull;
+  *aLoadCookie = nullptr;
   return NS_OK;
 }
 
@@ -482,7 +482,7 @@ nsMsgWindow::DisplayHTMLInMessagePane(const nsAString& title, const nsAString& b
   htmlStr.Append(body);
   htmlStr.Append(NS_LITERAL_STRING("</body></html>").get());
 
-  char *encodedHtml = PL_Base64Encode(NS_ConvertUTF16toUTF8(htmlStr).get(), 0, nsnull);
+  char *encodedHtml = PL_Base64Encode(NS_ConvertUTF16toUTF8(htmlStr).get(), 0, nullptr);
   if (!encodedHtml)
     return NS_ERROR_OUT_OF_MEMORY;
 
@@ -501,7 +501,7 @@ nsMsgWindow::DisplayHTMLInMessagePane(const nsAString& title, const nsAString& b
 
   return webNav->LoadURI(NS_ConvertASCIItoUTF16(dataSpec).get(),
                          nsIWebNavigation::LOAD_FLAGS_NONE,
-                         nsnull, nsnull, nsnull);
+                         nullptr, nullptr, nullptr);
 }
 
 NS_IMPL_GETSET(nsMsgWindow, Stopped, bool, m_stopped)

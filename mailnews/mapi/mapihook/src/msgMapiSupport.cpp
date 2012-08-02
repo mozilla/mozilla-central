@@ -50,7 +50,7 @@ nsMapiSupport::Observe(nsISupports *aSubject, const char *aTopic, const PRUnicha
 
 nsMapiSupport::nsMapiSupport()
 : m_dwRegister(0),
-  m_nsMapiFactory(nsnull)
+  m_nsMapiFactory(nullptr)
 {
 }
 
@@ -61,13 +61,13 @@ nsMapiSupport::~nsMapiSupport()
 NS_IMETHODIMP
 nsMapiSupport::InitializeMAPISupport()
 {
-    ::OleInitialize(nsnull) ;
+    ::OleInitialize(nullptr) ;
 
-    if (m_nsMapiFactory == nsnull)    // No Registering if already done.  Sanity Check!!
+    if (m_nsMapiFactory == nullptr)    // No Registering if already done.  Sanity Check!!
     {
         m_nsMapiFactory = new CMapiFactory();
 
-        if (m_nsMapiFactory != nsnull)
+        if (m_nsMapiFactory != nullptr)
         {
             HRESULT hr = ::CoRegisterClassObject(CLSID_CMapiImp, \
                                                  m_nsMapiFactory, \
@@ -78,7 +78,7 @@ nsMapiSupport::InitializeMAPISupport()
             if (FAILED(hr))
             {
                 m_nsMapiFactory->Release() ;
-                m_nsMapiFactory = nsnull;
+                m_nsMapiFactory = nullptr;
                 return NS_ERROR_FAILURE;
             }
         }
@@ -93,10 +93,10 @@ nsMapiSupport::ShutdownMAPISupport()
     if (m_dwRegister != 0)
         ::CoRevokeClassObject(m_dwRegister);
 
-    if (m_nsMapiFactory != nsnull)
+    if (m_nsMapiFactory != nullptr)
     {
         m_nsMapiFactory->Release();
-        m_nsMapiFactory = nsnull;
+        m_nsMapiFactory = nullptr;
     }
 
     ::OleUninitialize();

@@ -180,7 +180,7 @@ NS_IMETHODIMP nsPop3Service::VerifyLogon(nsIMsgIncomingServer *aServer,
   NS_ENSURE_TRUE(urlSpec, NS_ERROR_OUT_OF_MEMORY);
 
   nsCOMPtr<nsIURI> url;
-  rv = BuildPop3Url(urlSpec, nsnull, popServer, aUrlListener,
+  rv = BuildPop3Url(urlSpec, nullptr, popServer, aUrlListener,
                     getter_AddRefs(url), aMsgWindow);
   PR_smprintf_free(urlSpec);
 
@@ -401,7 +401,7 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
     NS_ENSURE_SUCCESS(rv, rv);
 
     rv = BuildPop3Url(popSpec.get(), folder, popServer,
-                      urlListener, _retval, nsnull);
+                      urlListener, _retval, nullptr);
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(*_retval, &rv);
@@ -457,7 +457,7 @@ void nsPop3Service::AlertServerBusy(nsIMsgMailNewsUrl *url)
   nsString alertString;
   bundle->GetStringFromID(POP3_MESSAGE_FOLDER_BUSY, getter_Copies(alertString));
   if (!alertString.IsEmpty())
-    dialog->Alert(nsnull, alertString.get());
+    dialog->Alert(nullptr, alertString.get());
 }
 
 NS_IMETHODIMP nsPop3Service::NewChannel(nsIURI *aURI, nsIChannel **_retval)
@@ -510,7 +510,7 @@ NS_IMETHODIMP
 nsPop3Service::GetDefaultLocalPath(nsIFile **aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
-    *aResult = nsnull;
+    *aResult = nullptr;
 
     bool havePref;
     nsCOMPtr<nsIFile> localFile;

@@ -27,7 +27,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
 
-static PRLogModuleInfo *MsgPurgeLogModule = nsnull;
+static PRLogModuleInfo *MsgPurgeLogModule = nullptr;
 
 NS_IMPL_ISUPPORTS2(nsMsgPurgeService, nsIMsgPurgeService, nsIMsgSearchNotify)
 
@@ -92,7 +92,7 @@ NS_IMETHODIMP nsMsgPurgeService::Shutdown()
   if (mPurgeTimer)
   {
     mPurgeTimer->Cancel();
-    mPurgeTimer = nsnull;
+    mPurgeTimer = nullptr;
   }
 
   mHaveShutdown = true;
@@ -419,7 +419,7 @@ nsresult nsMsgPurgeService::SearchFolderToPurge(nsIMsgFolder *folder, PRInt32 pu
   }
 
   mSearchFolder = folder;
-  return mSearchSession->Search(nsnull);
+  return mSearchSession->Search(nullptr);
 }
 
 NS_IMETHODIMP nsMsgPurgeService::OnNewSearch()
@@ -482,7 +482,7 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchDone(nsresult status)
     if (count > 0) {
       PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("delete messages"));
       if (mSearchFolder)
-        rv = mSearchFolder->DeleteMessages(mHdrsToDelete, nsnull, false /*delete storage*/, false /*isMove*/, nsnull, false /*allowUndo*/);
+        rv = mSearchFolder->DeleteMessages(mHdrsToDelete, nullptr, false /*delete storage*/, false /*isMove*/, nullptr, false /*allowUndo*/);
     }
   }
   if (mHdrsToDelete)
@@ -492,7 +492,7 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchDone(nsresult status)
   // don't cache the session
   // just create another search session next time we search, rather than clearing scopes, terms etc.
   // we also use mSearchSession to determine if the purge service is "busy"
-  mSearchSession = nsnull;
-  mSearchFolder = nsnull;
+  mSearchSession = nullptr;
+  mSearchFolder = nullptr;
   return NS_OK;
 }

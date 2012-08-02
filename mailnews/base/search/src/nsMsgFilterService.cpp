@@ -83,7 +83,7 @@ NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsIFile *aFilterFile, nsIMsgFol
   if (NS_SUCCEEDED(rv) && size > 0)
     rv = filterList->LoadTextFilters(fileStream);
   fileStream->Close();
-  fileStream =nsnull;
+  fileStream =nullptr;
   if (NS_SUCCEEDED(rv))
   {
     *resultFilterList = filterList;
@@ -216,7 +216,7 @@ nsMsgFilterService::ThrowAlertMsg(const char*aMsgName, nsIMsgWindow *aMsgWindow)
     {
       nsCOMPtr<nsIPrompt> dialog(do_GetInterface(docShell));
       if (dialog && !alertString.IsEmpty())
-        dialog->Alert(nsnull, alertString.get());
+        dialog->Alert(nullptr, alertString.get());
     }
   }
   return rv;
@@ -253,7 +253,7 @@ public:
   nsresult  AdvanceToNextFolder();  // kicks off the process
 protected:
   virtual   nsresult  RunNextFilter();
-  nsresult  ApplyFilter(bool *aApplyMore = nsnull);
+  nsresult  ApplyFilter(bool *aApplyMore = nullptr);
   nsresult  OnEndExecution(nsresult executionStatus); // do what we have to do to cleanup.
   bool      ContinueExecutionPrompt();
   nsresult  DisplayConfirmationPrompt(nsIMsgWindow *msgWindow, const PRUnichar *confirmString, bool *confirmed);
@@ -478,7 +478,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
         // and we rely on the listener getting called to continue the filter application.
         // This means we're going to end up firing off the delete, and then subsequently
         // issuing a search for the next filter, which will block until the delete finishes.
-        m_curFolder->DeleteMessages(m_searchHitHdrs, m_msgWindow, false, false, nsnull, false /*allow Undo*/ );
+        m_curFolder->DeleteMessages(m_searchHitHdrs, m_msgWindow, false, false, nullptr, false /*allow Undo*/ );
         for (PRUint32 i = 0; i < m_searchHits.Length(); i++)
           m_curFolder->OrProcessingFlags(m_searchHits[i], nsMsgProcessingFlags::FilterToMove);
         //if we are deleting then we couldn't care less about applying remaining filter actions
@@ -574,9 +574,9 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
               {
                 msgThread->GetThreadKey(&threadKey);
                 if (actionType == nsMsgFilterAction::KillThread)
-                  m_curFolderDB->MarkThreadIgnored(msgThread, threadKey, true, nsnull);
+                  m_curFolderDB->MarkThreadIgnored(msgThread, threadKey, true, nullptr);
                 else
-                  m_curFolderDB->MarkThreadWatched(msgThread, threadKey, true, nsnull);
+                  m_curFolderDB->MarkThreadWatched(msgThread, threadKey, true, nullptr);
               }
             }
           }
@@ -589,7 +589,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
             nsCOMPtr <nsIMsgDBHdr> msgHdr;
             m_searchHitHdrs->QueryElementAt(msgIndex, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(msgHdr));
             if (msgHdr)
-              m_curFolderDB->MarkHeaderKilled(msgHdr, true, nsnull);
+              m_curFolderDB->MarkHeaderKilled(msgHdr, true, nullptr);
           }
         }
         break;
@@ -705,7 +705,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
               }
             }
             if (partialMsgs)
-              m_curFolder->DeleteMessages(partialMsgs, m_msgWindow, true, false, nsnull, false);
+              m_curFolder->DeleteMessages(partialMsgs, m_msgWindow, true, false, nullptr, false);
           }
         }
         break;
@@ -828,7 +828,7 @@ nsMsgFilterService::GetCustomAction(const nsACString & aId,
       return NS_OK;
     }
   }
-  aResult = nsnull;
+  aResult = nullptr;
   return NS_ERROR_FAILURE;
 }
 
@@ -861,7 +861,7 @@ nsMsgFilterService::GetCustomTerm(const nsACString& aId,
       return NS_OK;
     }
   }
-  aResult = nsnull;
+  aResult = nullptr;
   // we use a null result to indicate failure to find a term
   return NS_OK;
 }
@@ -918,7 +918,7 @@ nsresult nsMsgApplyFiltersToMessages::RunNextFilter()
     if (!isEnabled)
       continue;
 
-    nsCOMPtr<nsIMsgSearchScopeTerm> scope(new nsMsgSearchScopeTerm(nsnull, nsMsgSearchScope::offlineMail, m_curFolder));
+    nsCOMPtr<nsIMsgSearchScopeTerm> scope(new nsMsgSearchScopeTerm(nullptr, nsMsgSearchScope::offlineMail, m_curFolder));
     if (!scope)
       return NS_ERROR_OUT_OF_MEMORY;
     m_curFilter->SetScope(scope);
@@ -929,7 +929,7 @@ nsresult nsMsgApplyFiltersToMessages::RunNextFilter()
       nsIMsgDBHdr* msgHdr = m_msgHdrList[i];
       bool matched;
 
-      rv = m_curFilter->MatchHdr(msgHdr, m_curFolder, m_curFolderDB, nsnull, 0, &matched);
+      rv = m_curFilter->MatchHdr(msgHdr, m_curFolder, m_curFolderDB, nullptr, 0, &matched);
 
       if (NS_SUCCEEDED(rv) && matched)
       {
@@ -939,7 +939,7 @@ nsresult nsMsgApplyFiltersToMessages::RunNextFilter()
         OnSearchHit(msgHdr, m_curFolder);
       }
     }
-    m_curFilter->SetScope(nsnull);
+    m_curFilter->SetScope(nullptr);
 
     if (m_searchHits.Length() > 0)
     {
@@ -1076,7 +1076,7 @@ nsMsgFilterAfterTheFact::DisplayConfirmationPrompt(nsIMsgWindow *msgWindow, cons
     {
       nsCOMPtr<nsIPrompt> dialog(do_GetInterface(docShell));
       if (dialog && confirmString)
-        dialog->Confirm(nsnull, confirmString, confirmed);
+        dialog->Confirm(nullptr, confirmString, confirmed);
     }
   }
   return NS_OK;

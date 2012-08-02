@@ -108,7 +108,7 @@ NS_IMETHODIMP nsMailWinSearchHelper::GetFoldersInCrawlScope(bool* aResult)
 NS_IMETHODIMP nsMailWinSearchHelper::GetServiceRunning(bool* aResult)
 {
   *aResult = false;
-  SC_HANDLE hSCManager = OpenSCManager(nsnull, SERVICES_ACTIVE_DATABASE, SERVICE_QUERY_STATUS);
+  SC_HANDLE hSCManager = OpenSCManager(nullptr, SERVICES_ACTIVE_DATABASE, SERVICE_QUERY_STATUS);
   if (!hSCManager)
     return NS_ERROR_FAILURE;
 

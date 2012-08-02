@@ -80,7 +80,7 @@ nsresult nsIMAPNamespaceList::InitFromString(const char *nameSpaceString, EIMAPN
 	nsresult rv = NS_OK;
 	if (nameSpaceString)
 	{
-		int numNamespaces = UnserializeNamespaces(nameSpaceString, nsnull, 0);
+		int numNamespaces = UnserializeNamespaces(nameSpaceString, nullptr, 0);
 		char **prefixes = (char**) PR_CALLOC(numNamespaces * sizeof(char*));
 		if (prefixes)
 		{
@@ -241,7 +241,7 @@ nsIMAPNamespace *nsIMAPNamespaceList::GetNamespaceNumber(int nodeIndex, EIMAPNam
         return nspace;
     }
   }
-  return nsnull;
+  return nullptr;
 }
 
 nsIMAPNamespace *nsIMAPNamespaceList::GetNamespaceForMailbox(const char *boxname)
@@ -257,7 +257,7 @@ nsIMAPNamespace *nsIMAPNamespaceList::GetNamespaceForMailbox(const char *boxname
   
   int lengthMatched = -1;
   int currentMatchedLength = -1;
-  nsIMAPNamespace *rv = nsnull;
+  nsIMAPNamespace *rv = nullptr;
   int nodeIndex = 0;
   
   if (!PL_strcasecmp(boxname, "INBOX"))
@@ -297,7 +297,7 @@ nsresult nsIMAPNamespaceList::SerializeNamespaces(char **prefixes, int len, nsCS
 	{
 		for (int i = 0; i < len; i++)
 		{
-			char *temp = nsnull;
+			char *temp = nullptr;
 			if (i == 0)
 			{
 				serializedNamespaces += "\"";
@@ -336,7 +336,7 @@ int nsIMAPNamespaceList::UnserializeNamespaces(const char *str, char **prefixes,
       if (ourstr)
       {
         char *token = NS_strtok(SERIALIZER_SEPARATORS, &ourstr );
-        while (token != nsnull)
+        while (token != nullptr)
         {
           token = NS_strtok(SERIALIZER_SEPARATORS, &ourstr );
           count++;
@@ -361,7 +361,7 @@ int nsIMAPNamespaceList::UnserializeNamespaces(const char *str, char **prefixes,
       if (ourstr)
       {
         char *token = NS_strtok(SERIALIZER_SEPARATORS, &ourstr );
-        while ((count < len) && (token != nsnull))
+        while ((count < len) && (token != nullptr))
         {
           
           char *current = PL_strdup(token), *where = current;
@@ -386,7 +386,7 @@ int nsIMAPNamespaceList::UnserializeNamespaces(const char *str, char **prefixes,
 
 char *nsIMAPNamespaceList::AllocateCanonicalFolderName(const char *onlineFolderName, char delimiter)
 {
-  char *canonicalPath = nsnull;
+  char *canonicalPath = nullptr;
   if (delimiter)
     canonicalPath = nsImapUrl::ReplaceCharsInCopiedString(onlineFolderName, delimiter , '/');
   else
@@ -424,7 +424,7 @@ char* nsIMAPNamespaceList::GetFolderNameWithoutNamespace(nsIMAPNamespace *namesp
   NS_ASSERTION(namespaceForFolder || !PL_strcasecmp(canonicalFolderName, "INBOX"), "need namespace or INBOX");
 #endif
   
-  char *retFolderName = nsnull;
+  char *retFolderName = nullptr;
   
   if (!PL_strcasecmp(canonicalFolderName, "INBOX"))
     return PL_strdup(canonicalFolderName);
@@ -433,7 +433,7 @@ char* nsIMAPNamespaceList::GetFolderNameWithoutNamespace(nsIMAPNamespace *namesp
   char *convertedFolderName = nsIMAPNamespaceList::AllocateServerFolderName(canonicalFolderName, namespaceForFolder->GetDelimiter());
   if (convertedFolderName)
   {
-    char *beginFolderPath = nsnull;
+    char *beginFolderPath = nullptr;
     if (strlen(convertedFolderName) <= strlen(namespaceForFolder->GetPrefix()))
       beginFolderPath = convertedFolderName;
     else
@@ -453,9 +453,9 @@ nsIMAPNamespace* nsIMAPNamespaceList::GetNamespaceForFolder(const char *hostName
                                                     char delimiter)
 {
   if (!hostName || !canonicalFolderName)
-    return nsnull;
+    return nullptr;
   
-  nsIMAPNamespace *resultNamespace = nsnull;
+  nsIMAPNamespace *resultNamespace = nullptr;
   nsresult rv;
   char *convertedFolderName = nsIMAPNamespaceList::AllocateServerFolderName(canonicalFolderName, delimiter);
 
@@ -465,7 +465,7 @@ nsIMAPNamespace* nsIMAPNamespaceList::GetNamespaceForFolder(const char *hostName
     nsCOMPtr<nsIImapHostSessionList> hostSessionList = 
              do_GetService(kCImapHostSessionListCID, &rv);
     if (NS_FAILED(rv)) 
-      return nsnull;
+      return nullptr;
     hostSessionList->GetNamespaceForMailboxForHost(hostName, convertedFolderName, resultNamespace);
     PR_Free(convertedFolderName);
   }
@@ -499,10 +499,10 @@ char *nsIMAPNamespaceList::GetFolderOwnerNameFromPath(nsIMAPNamespace *namespace
   if (!namespaceForFolder || !canonicalFolderName)
   {
     NS_ASSERTION(false,"null namespace or canonical folder name");
-    return nsnull;
+    return nullptr;
   }
   
-  char *rv = nsnull;
+  char *rv = nullptr;
   
   // convert the canonical path to the online path
   char *convertedFolderName = AllocateServerFolderName(canonicalFolderName, namespaceForFolder->GetDelimiter());
@@ -612,11 +612,11 @@ char *nsIMAPNamespaceList::GenerateFullFolderNameWithDefaultNamespace(const char
 
   nsCOMPtr<nsIImapHostSessionList> hostSession = 
            do_GetService(kCImapHostSessionListCID, &rv);
-  NS_ENSURE_SUCCESS(rv, nsnull);
+  NS_ENSURE_SUCCESS(rv, nullptr);
   nsIMAPNamespace *ns;
-  char *fullFolderName = nsnull;
+  char *fullFolderName = nullptr;
   rv = hostSession->GetDefaultNamespaceOfTypeForHost(hostName, nsType, ns);
-  NS_ENSURE_SUCCESS(rv, nsnull);
+  NS_ENSURE_SUCCESS(rv, nullptr);
   if (ns)
   {
     if (nsUsed)
@@ -625,7 +625,7 @@ char *nsIMAPNamespaceList::GenerateFullFolderNameWithDefaultNamespace(const char
     char *convertedFolderName = AllocateServerFolderName(canonicalFolderName, ns->GetDelimiter());
     if (convertedFolderName)
     {
-      char *convertedReturnName = nsnull;
+      char *convertedReturnName = nullptr;
       if (owner)
       {
         convertedReturnName = PR_smprintf("%s%s%c%s", prefix, owner, ns->GetDelimiter(), convertedFolderName);

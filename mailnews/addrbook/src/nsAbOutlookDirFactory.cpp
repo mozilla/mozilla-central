@@ -43,7 +43,7 @@ nsAbOutlookDirFactory::GetDirectories(const nsAString &aDirName,
 {
   NS_ENSURE_ARG_POINTER(aDirectories);
 
-  *aDirectories = nsnull;
+  *aDirectories = nullptr;
   nsresult rv = NS_OK;
   nsCString stub;
   nsCString entry;

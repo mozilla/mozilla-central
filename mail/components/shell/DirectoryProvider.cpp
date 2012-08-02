@@ -194,7 +194,7 @@ DirectoryProvider::GetFiles(const char *aKey, nsISimpleEnumerator* *aResult)
     if (NS_FAILED(rv))
       return rv;
 
-    static char const *const kAppendSPlugins[] = {"searchplugins", nsnull};
+    static char const *const kAppendSPlugins[] = {"searchplugins", nullptr};
 
     nsCOMPtr<nsISimpleEnumerator> extEnum =
       new AppendingEnumerator(list, kAppendSPlugins);
@@ -222,7 +222,7 @@ DirectoryProvider::AppendingEnumerator::GetNext(nsISupports* *aResult)
   if (aResult)
     NS_ADDREF(*aResult = mNext);
 
-  mNext = nsnull;
+  mNext = nullptr;
 
   nsresult rv;
   bool more;
@@ -250,7 +250,7 @@ DirectoryProvider::AppendingEnumerator::GetNext(nsISupports* *aResult)
     if (NS_SUCCEEDED(rv) && exists)
       break;
 
-    mNext = nsnull;
+    mNext = nullptr;
   }
 
   return NS_OK;
@@ -263,7 +263,7 @@ DirectoryProvider::AppendingEnumerator::AppendingEnumerator
   mAppendList(aAppendList)
 {
   // Initialize mNext to begin.
-  GetNext(nsnull);
+  GetNext(nullptr);
 }
 
 } // namespace mail

@@ -8,7 +8,7 @@
 #include "prmem.h"
 
 nsMimeHeaders::nsMimeHeaders() :
-  mHeaders(nsnull)
+  mHeaders(nullptr)
 {
 }
 

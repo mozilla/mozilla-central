@@ -370,7 +370,7 @@ nsresult nsOutlookMail::ImportMailbox(PRUint32 *pDoneSoFar, bool *pAbort,
   ULONG    cbEid;
   LPENTRYID  lpEid;
   ULONG    oType;
-  LPMESSAGE  lpMsg = nsnull;
+  LPMESSAGE  lpMsg = nullptr;
   ULONG    totalCount;
   PRFloat64  doneCalc;
 
@@ -557,7 +557,7 @@ nsresult nsOutlookMail::ImportAddresses(PRUint32 *pCount, PRUint32 *pTotal, cons
           if (pVal)
             m_mapi.GetStringFromProp(pVal, subject);
 
-          nsIMdbRow* newRow = nsnull;
+          nsIMdbRow* newRow = nullptr;
           pDb->GetNewRow(&newRow);
           // FIXME: Check with Candice about releasing the newRow if it
           // isn't added to the database.  Candice's code in nsAddressBook
@@ -682,7 +682,7 @@ nsresult nsOutlookMail::CreateList(const PRUnichar * pName,
         //add card list
         pDb->AddListCardColumnsToRow(userCard,
                                      newListRow,idx+1, getter_AddRefs(newCard),
-                                     true, nsnull, nsnull);
+                                     true, nullptr, nullptr);
       }
     }
   }

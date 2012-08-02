@@ -67,7 +67,7 @@ NS_IMPL_THREADSAFE_ISUPPORTS3(nsIMAPHostSessionList,
 nsIMAPHostSessionList::nsIMAPHostSessionList()
 {
   gCachedHostInfoMonitor = PR_NewMonitor(/* "accessing-hostlist-monitor"*/);
-  fHostInfoList = nsnull;
+  fHostInfoList = nullptr;
 }
 
 nsIMAPHostSessionList::~nsIMAPHostSessionList()
@@ -380,7 +380,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::SetNamespaceFromPrefForHost(const char *ser
   {
     if (namespacePref)
     {
-      int numNamespaces = host->fNamespaceList->UnserializeNamespaces(namespacePref, nsnull, 0);
+      int numNamespaces = host->fNamespaceList->UnserializeNamespaces(namespacePref, nullptr, 0);
       char **prefixes = (char**) PR_CALLOC(numNamespaces * sizeof(char*));
       if (prefixes)
       {

@@ -57,7 +57,7 @@
   violate abstrations... Even if we set output_p on a child before adding it to
   the parent, the parse_begin function resets it. The kluge I came up with to
   prevent that was to give the child a separate options object and set
-  output_fn to nsnull in it, because that causes parse_begin to set output_p to
+  output_fn to nullptr in it, because that causes parse_begin to set output_p to
   false. This seemed like the least onerous way to accomplish this, although I
   can't say it's a solution I'm particularly fond of.
 
@@ -130,8 +130,8 @@ MimeMultipartAlternative_initialize (MimeObject *obj)
   NS_ASSERTION(!malt->buffered_hdrs, "object initialized multiple times");
   malt->pending_parts = 0;
   malt->max_parts = 0;
-  malt->buffered_hdrs = nsnull;
-  malt->part_buffers = nsnull;
+  malt->buffered_hdrs = nullptr;
+  malt->part_buffers = nullptr;
   
   return ((MimeObjectClass*)&MIME_SUPERCLASS)->initialize(obj);
 }
@@ -438,7 +438,7 @@ MimeMultipartAlternative_display_cached_part(MimeObject *obj,
      it that we mean business, we set output_fn to null if we don't
      want output. */
   if (! do_display)
-    body->options->output_fn = nsnull;
+    body->options->output_fn = nullptr;
 
 #ifdef MIME_DRAFTS
   /* if this object is a child of a multipart/related object, the parent is

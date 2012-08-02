@@ -47,7 +47,7 @@ nsMailDirProvider::GetFile(const char *aKey, bool *aPersist,
   // NOTE: This function can be reentrant through the NS_GetSpecialDirectory
   // call, so be careful not to cause infinite recursion.
   // i.e. the check for supported files must come first.
-  const char* leafName = nsnull;
+  const char* leafName = nullptr;
   bool isDirectory = true;
 
   if (!strcmp(aKey, NS_APP_MAIL_50_DIR))
@@ -150,11 +150,11 @@ nsMailDirProvider::AppendingEnumerator::GetNext(nsISupports* *aResult)
   if (mNextWithLocale)
   {
     mNext = mNextWithLocale;
-    mNextWithLocale = nsnull;
+    mNextWithLocale = nullptr;
     return NS_OK;
   }
 
-  mNext = nsnull;
+  mNext = nullptr;
 
   // Ignore all errors
 
@@ -182,12 +182,12 @@ nsMailDirProvider::AppendingEnumerator::GetNext(nsISupports* *aResult)
         mNextWithLocale->AppendNative(mLocale);
         rv = mNextWithLocale->Exists(&exists);
         if (NS_FAILED(rv) || !exists)
-          mNextWithLocale = nsnull; // clear out mNextWithLocale, so we don't try to iterate over it
+          mNextWithLocale = nullptr; // clear out mNextWithLocale, so we don't try to iterate over it
       } 
       break;
     }
 
-    mNext = nsnull;
+    mNext = nullptr;
   }
 
   return NS_OK;
@@ -202,5 +202,5 @@ nsMailDirProvider::AppendingEnumerator::AppendingEnumerator
   if (packageRegistry)
     packageRegistry->GetSelectedLocale(NS_LITERAL_CSTRING("global"), mLocale);
   // Initialize mNext to begin
-  GetNext(nsnull);
+  GetNext(nullptr);
 }

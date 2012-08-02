@@ -74,14 +74,14 @@ NS_IMETHODIMP nsAbLDAPReplicationService::StartReplication(nsIAbLDAPDirectory *a
   }
 
   if (progressListener && NS_FAILED(rv))
-    progressListener->OnStateChange(nsnull, nsnull,
+    progressListener->OnStateChange(nullptr, nullptr,
 				    nsIWebProgressListener::STATE_STOP,
 				    false);
 
   if (NS_FAILED(rv))
   {
-    mDirectory = nsnull;
-    mQuery = nsnull;
+    mDirectory = nullptr;
+    mQuery = nullptr;
   }
 
   return rv;
@@ -112,8 +112,8 @@ NS_IMETHODIMP nsAbLDAPReplicationService::Done(bool aSuccess)
   mReplicating = false;
   if (mQuery)
   {
-    mQuery = nsnull;  // Release query obj
-    mDirectory = nsnull; // Release directory
+    mQuery = nullptr;  // Release query obj
+    mDirectory = nullptr; // Release directory
   }
 
   return NS_OK;

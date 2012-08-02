@@ -182,12 +182,12 @@ calRecurrenceRule::GetUntilDate(calIDateTime * *aRecurEnd)
         return NS_ERROR_FAILURE;
 
     if (!icaltime_is_null_time(mIcalRecur.until)) {
-        *aRecurEnd = new calDateTime(&mIcalRecur.until, nsnull);
+        *aRecurEnd = new calDateTime(&mIcalRecur.until, nullptr);
         CAL_ENSURE_MEMORY(*aRecurEnd);
         NS_ADDREF(*aRecurEnd);
     } else {
         // infinite recurrence
-        *aRecurEnd = nsnull; 
+        *aRecurEnd = nullptr; 
     }
     return NS_OK;
 }
@@ -267,7 +267,7 @@ calRecurrenceRule::GetComponent(const nsACString &aComponentType, PRUint32 *aCou
                                                   count * sizeof(PRInt16)); \
             if (!*aValues) return NS_ERROR_OUT_OF_MEMORY;               \
         } else {                                                        \
-            *aValues = nsnull;                                          \
+            *aValues = nullptr;                                          \
         }                                                               \
         *aCount = count;                                                \
     }
@@ -356,7 +356,7 @@ calRecurrenceRule::GetNextOccurrence(calIDateTime *aStartTime,
     icalrecur_iterator_free(recur_iter);
 
     if (icaltime_is_null_time(next)) {
-        *_retval = nsnull;
+        *_retval = nullptr;
         return NS_OK;
     }
 
@@ -424,7 +424,7 @@ calRecurrenceRule::GetOccurrences(calIDateTime *aStartTime,
         // if the start of the recurrence is past the end,
         // we have no dates
         if (icaltime_compare (dtstart, dtend) >= 0) {
-            *aDates = nsnull;
+            *aDates = nullptr;
             *aCount = 0;
             return NS_OK;
         }
@@ -481,7 +481,7 @@ calRecurrenceRule::GetOccurrences(calIDateTime *aStartTime,
         }
         *aDates = dateArray;
     } else {
-        *aDates = nsnull;
+        *aDates = nullptr;
     }
 
     *aCount = count;
@@ -497,7 +497,7 @@ calRecurrenceRule::GetIcalProperty(calIIcalProperty **prop)
 {
     icalproperty * const rrule = icalproperty_new_rrule(mIcalRecur);
     CAL_ENSURE_MEMORY(rrule);
-    *prop = new calIcalProperty(rrule, nsnull);
+    *prop = new calIcalProperty(rrule, nullptr);
     if (!*prop) {
         icalproperty_free(rrule);
         return NS_ERROR_FAILURE;

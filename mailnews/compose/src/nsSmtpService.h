@@ -48,7 +48,7 @@ private:
     static bool findServerByHostname(nsISmtpServer *aServer, void *aData);
     
     nsresult createKeyedServer(const char* key,
-                               nsISmtpServer **aResult = nsnull);
+                               nsISmtpServer **aResult = nullptr);
     nsresult saveKeyList();
     
     nsCOMArray<nsISmtpServer> mSmtpServers;

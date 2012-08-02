@@ -202,7 +202,7 @@ nsresult nsAbModifyLDAPMessageListener::DoTask()
   mModifyOperation = do_CreateInstance(NS_LDAPOPERATION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = mModifyOperation->Init (mConnection, this, nsnull);
+  rv = mModifyOperation->Init (mConnection, this, nullptr);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // XXX do we need the search controls?
@@ -367,6 +367,6 @@ nsresult nsAbLDAPDirectoryModify::DoModify(nsIAbLDAPDirectory *directory,
   // Now lets initialize the LDAP connection properly. We'll kick
   // off the bind operation in the callback function, |OnLDAPInit()|.
   return ldapConnection->Init(currentUrl, login,
-                              _messageListener, nsnull, protocolVersion);
+                              _messageListener, nullptr, protocolVersion);
 }
 

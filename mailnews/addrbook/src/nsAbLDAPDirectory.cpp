@@ -172,7 +172,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::HasCard(nsIAbCard* card, bool* hasCard)
   // Enter lock
   MutexAutoLock lock (mLock);
 
-  *hasCard = mCache.Get(card, nsnull);
+  *hasCard = mCache.Get(card, nullptr);
   if (!*hasCard && mPerformingQuery)
     return NS_ERROR_NOT_AVAILABLE;
 
@@ -218,7 +218,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetLDAPURL(nsILDAPURL** aResult)
   NS_ENSURE_TRUE(ioService, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr<nsIURI> result;
-  rv = ioService->NewURI(URI, nsnull, nsnull, getter_AddRefs(result));
+  rv = ioService->NewURI(URI, nullptr, nullptr, getter_AddRefs(result));
   NS_ENSURE_SUCCESS(rv, rv);
 
   return CallQueryInterface(result, aResult);
@@ -809,7 +809,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::DeleteCards(nsIArray *aCards)
     realCard->SetDirectoryId(EmptyCString());
    
     // Launch query
-    rv = DoModify(this, nsILDAPModification::MOD_DELETE, cardDN, nsnull,
+    rv = DoModify(this, nsILDAPModification::MOD_DELETE, cardDN, nullptr,
                   EmptyCString(), EmptyCString());
     NS_ENSURE_SUCCESS(rv, rv);
   }
@@ -928,7 +928,7 @@ nsresult nsAbLDAPDirectory::SplitStringList(
   nsTArray<nsCString> strarr;
   ParseString(aString, ',', strarr);
 
-  char **cArray = nsnull;
+  char **cArray = nullptr;
   if (!(cArray = static_cast<char **>(nsMemory::Alloc(
       strarr.Length() * sizeof(char *)))))
     return NS_ERROR_OUT_OF_MEMORY;

@@ -40,7 +40,7 @@ static NS_DEFINE_IID(kISupportsIID,      NS_ISUPPORTS_IID);
 
 nsOEScanBoxes::nsOEScanBoxes()
 {
-  m_pFirst = nsnull;
+  m_pFirst = nullptr;
 }
 
 nsOEScanBoxes::~nsOEScanBoxes()
@@ -196,7 +196,7 @@ void nsOEScanBoxes::Reset(void)
     delete pEntry;
   }
   m_entryArray.Clear();
-  m_pFirst = nsnull;
+  m_pFirst = nullptr;
 }
 
 
@@ -328,7 +328,7 @@ bool nsOEScanBoxes::Find50MailBoxes(nsIFile* descFile)
   char *      pDataSource;
 
   MailboxEntry *  pEntry;
-  MailboxEntry *  pLastEntry = nsnull;
+  MailboxEntry *  pLastEntry = nullptr;
 
   PRUint32  localStoreId = 0;
 
@@ -351,8 +351,8 @@ bool nsOEScanBoxes::Find50MailBoxes(nsIFile* descFile)
     id = 0;
     parent = 0;
     numMessages = 0;
-    pFileName = nsnull;
-    pDataSource = nsnull;
+    pFileName = nullptr;
+    pDataSource = nullptr;
     dataOffset = 4;
     while (dataOffset < strOffset) {
       tag = (PRUint8) pBytes[dataOffset];
@@ -445,7 +445,7 @@ nsOEScanBoxes::MailboxEntry *nsOEScanBoxes::NewMailboxEntry(PRUint32 id, PRUint3
 {
   MailboxEntry *pEntry = new MailboxEntry();
   if (!pEntry)
-    return nsnull;
+    return nullptr;
 
   pEntry->index = id;
   pEntry->parent = parent;
@@ -504,8 +504,8 @@ void nsOEScanBoxes::AddChildEntry(MailboxEntry *pEntry, PRUint32 rootIndex)
     return;
   }
 
-  MailboxEntry *  pParent = nsnull;
-  MailboxEntry *  pSibling = nsnull;
+  MailboxEntry *  pParent = nullptr;
+  MailboxEntry *  pSibling = nullptr;
   if (pEntry->parent == rootIndex) {
     pSibling = m_pFirst;
   }
@@ -568,7 +568,7 @@ bool nsOEScanBoxes::Scan50MailboxDir(nsIFile * srcDir)
     isFile = false;
     rv = entry->IsFile(&isFile);
     if (NS_SUCCEEDED(rv) && isFile) {
-      pLeaf = nsnull;
+      pLeaf = nullptr;
       rv = entry->GetNativeLeafName(fName);
       if (NS_SUCCEEDED(rv)  &&
         (StringEndsWith(fName, NS_LITERAL_CSTRING(".dbx")))) {
@@ -666,8 +666,8 @@ void nsOEScanBoxes::ScanMailboxDir(nsIFile * srcDir)
 
 PRUint32 nsOEScanBoxes::CountMailboxes(MailboxEntry *pBox)
 {
-  if (pBox == nsnull) {
-    if (m_pFirst != nsnull)
+  if (pBox == nullptr) {
+    if (m_pFirst != nullptr)
       pBox = m_pFirst;
     else {
       if (m_entryArray.Count() > 0)
@@ -681,14 +681,14 @@ PRUint32 nsOEScanBoxes::CountMailboxes(MailboxEntry *pBox)
     count++;
     if (pBox->child) {
       pChild = GetIndexEntry(pBox->child);
-      if (pChild != nsnull)
+      if (pChild != nullptr)
         count += CountMailboxes(pChild);
     }
     if (pBox->sibling != -1) {
       pBox = GetIndexEntry(pBox->sibling);
     }
     else
-      pBox = nsnull;
+      pBox = nullptr;
   }
 
   return count;
@@ -702,15 +702,15 @@ bool nsOEScanBoxes::GetMailboxList(nsIFile * root, nsISupportsArray **pArray)
     return false;
   }
 
-  BuildMailboxList(nsnull, root, 1, *pArray);
+  BuildMailboxList(nullptr, root, 1, *pArray);
 
   return true;
 }
 
 void nsOEScanBoxes::BuildMailboxList(MailboxEntry *pBox, nsIFile * root, PRInt32 depth, nsISupportsArray *pArray)
 {
-  if (pBox == nsnull) {
-    if (m_pFirst != nsnull) {
+  if (pBox == nullptr) {
+    if (m_pFirst != nullptr) {
       pBox = m_pFirst;
 
       IMPORT_LOG0("Assigning start of mailbox list to m_pFirst\n");
@@ -723,7 +723,7 @@ void nsOEScanBoxes::BuildMailboxList(MailboxEntry *pBox, nsIFile * root, PRInt32
       }
     }
 
-    if (pBox == nsnull) {
+    if (pBox == nullptr) {
       IMPORT_LOG0("ERROR ASSIGNING STARTING MAILBOX\n");
     }
 
@@ -762,14 +762,14 @@ void nsOEScanBoxes::BuildMailboxList(MailboxEntry *pBox, nsIFile * root, PRInt32
 
     if (pBox->child) {
       pChild = GetIndexEntry(pBox->child);
-      if (pChild != nsnull)
+      if (pChild != nullptr)
         BuildMailboxList(pChild, root, depth + 1, pArray);
     }
     if (pBox->sibling != -1) {
       pBox = GetIndexEntry(pBox->sibling);
     }
     else
-      pBox = nsnull;
+      pBox = nullptr;
   }
 
 }
@@ -785,7 +785,7 @@ nsOEScanBoxes::MailboxEntry * nsOEScanBoxes::GetIndexEntry(PRUint32 index)
       return pEntry;
   }
 
-  return nsnull;
+  return nullptr;
 }
 
 

@@ -169,8 +169,8 @@ NS_IMETHODIMP nsMsgRuleAction::GetCustomAction(nsIMsgFilterCustomAction **aCusto
 nsMsgFilter::nsMsgFilter():
     m_temporary(false),
     m_unparseable(false),
-    m_filterList(nsnull),
-    m_expressionTree(nsnull)
+    m_filterList(nullptr),
+    m_expressionTree(nullptr)
 {
   NS_NewISupportsArray(getter_AddRefs(m_termList));
   NS_NewISupportsArray(getter_AddRefs(m_actionList));
@@ -243,7 +243,7 @@ NS_IMETHODIMP nsMsgFilter::AppendTerm(nsIMsgSearchTerm * aTerm)
     NS_ENSURE_TRUE(aTerm, NS_ERROR_NULL_POINTER);
     // invalidate expression tree if we're changing the terms
     delete m_expressionTree;
-    m_expressionTree = nsnull;
+    m_expressionTree = nullptr;
     return m_termList->AppendElement(static_cast<nsISupports*>(aTerm));
 }
 
@@ -426,7 +426,7 @@ NS_IMETHODIMP nsMsgFilter::GetSearchTerms(nsISupportsArray **aResult)
     NS_ENSURE_ARG_POINTER(aResult);
     // caller can change m_termList, which can invalidate m_expressionTree.
     delete m_expressionTree;
-    m_expressionTree = nsnull;
+    m_expressionTree = nullptr;
     NS_IF_ADDREF(*aResult = m_termList);
     return NS_OK;
 }
@@ -434,7 +434,7 @@ NS_IMETHODIMP nsMsgFilter::GetSearchTerms(nsISupportsArray **aResult)
 NS_IMETHODIMP nsMsgFilter::SetSearchTerms(nsISupportsArray *aSearchList)
 {
     delete m_expressionTree;
-    m_expressionTree = nsnull;
+    m_expressionTree = nullptr;
     m_termList = aSearchList;
     return NS_OK;
 }
@@ -490,7 +490,7 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
         return NS_ERROR_FAILURE;
       }
     }
-    mDateFormatter->FormatPRExplodedTime(nsnull, kDateFormatShort,
+    mDateFormatter->FormatPRExplodedTime(nullptr, kDateFormatShort,
                                          kTimeFormatSeconds, &exploded,
                                          dateValue);
 

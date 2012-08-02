@@ -18,7 +18,7 @@ NS_METHOD nsImportMailboxDescriptor::Create(nsISupports *aOuter, REFNSIID aIID, 
     return NS_ERROR_NO_AGGREGATION;
 
   nsImportMailboxDescriptor *it = new nsImportMailboxDescriptor();
-  if (it == nsnull)
+  if (it == nullptr)
     return NS_ERROR_OUT_OF_MEMORY;
 
   NS_ADDREF(it);

@@ -32,7 +32,7 @@ nsMsgThread::nsMsgThread(nsMsgDatabase *db, nsIMdbTable *table)
 #endif
   if (table && db)
   {
-    table->GetMetaRow(db->GetEnv(), nsnull, nsnull, getter_AddRefs(m_metaRow));
+    table->GetMetaRow(db->GetEnv(), nullptr, nullptr, getter_AddRefs(m_metaRow));
     InitCachedValues();
   }
 }
@@ -63,9 +63,9 @@ nsMsgThread::~nsMsgThread()
 
 void nsMsgThread::Clear()
 {
-  m_mdbTable = nsnull;
-  m_metaRow = nsnull;
-  m_mdbDB = nsnull;
+  m_mdbTable = nullptr;
+  m_metaRow = nullptr;
+  m_mdbDB = nullptr;
 }
 
 nsresult nsMsgThread::InitCachedValues()
@@ -317,7 +317,7 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
 
           // OK, this is a reparenting - need to send notification
           if (announcer)
-            announcer->NotifyParentChangedAll(msgKey, oldThreadParent, newHdrKey, nsnull);
+            announcer->NotifyParentChangedAll(msgKey, oldThreadParent, newHdrKey, nullptr);
 #ifdef DEBUG_bienvenu1
           if (newHdrKey != m_threadKey)
             printf("adding second level child\n");
@@ -344,7 +344,7 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
     PRTime topLevelHdrDate;
 
     nsCOMPtr <nsIMsgDBHdr> topLevelHdr;
-    rv = GetRootHdr(nsnull, getter_AddRefs(topLevelHdr));
+    rv = GetRootHdr(nullptr, getter_AddRefs(topLevelHdr));
     if (NS_SUCCEEDED(rv) && topLevelHdr)
     {
       topLevelHdr->GetDate(&topLevelHdrDate);
@@ -383,7 +383,7 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
   bool isKilled;
   child->GetIsKilled(&isKilled);
   if ((m_flags & nsMsgMessageFlags::Ignored || isKilled) && m_mdbDB)
-    m_mdbDB->MarkHdrRead(child, true, nsnull);
+    m_mdbDB->MarkHdrRead(child, true, nullptr);
 #ifdef DEBUG_David_Bienvenu
   nsMsgKey msgHdrThreadKey;
   child->GetThreadId(&msgHdrThreadKey);
@@ -422,7 +422,7 @@ nsresult nsMsgThread::ReparentNonReferenceChildrenOf(nsIMsgDBHdr *oldTopLevelHdr
         curHdr->SetThreadParent(newParentKey);
         // OK, this is a reparenting - need to send notification
         if (announcer)
-          announcer->NotifyParentChangedAll(curHdrKey, oldThreadParent, newParentKey, nsnull);
+          announcer->NotifyParentChangedAll(curHdrKey, oldThreadParent, newParentKey, nullptr);
       }
     }
   }
@@ -456,7 +456,7 @@ NS_IMETHODIMP nsMsgThread::GetChildHdrAt(PRInt32 aIndex, nsIMsgDBHdr **result)
   mdbOid oid;
   nsresult rv = m_mdbTable->PosToOid( m_mdbDB->GetEnv(), aIndex, &oid);
   NS_ENSURE_SUCCESS(rv, NS_MSG_MESSAGE_NOT_FOUND);
-  nsIMdbRow *hdrRow = nsnull;
+  nsIMdbRow *hdrRow = nullptr;
   rv = m_mdbTable->PosToRow(m_mdbDB->GetEnv(), aIndex, &hdrRow);
   NS_ENSURE_TRUE(NS_SUCCEEDED(rv) && hdrRow, NS_ERROR_FAILURE);
   // CreateMsgHdr takes ownership of the hdrRow reference.
@@ -481,7 +481,7 @@ NS_IMETHODIMP nsMsgThread::GetChild(nsMsgKey msgKey, nsIMsgDBHdr **result)
 
   if (NS_SUCCEEDED(rv) && hasOid && m_mdbDB && m_mdbDB->m_mdbStore)
   {
-    nsIMdbRow *hdrRow = nsnull;
+    nsIMdbRow *hdrRow = nullptr;
     rv = m_mdbDB->m_mdbStore->GetRow(m_mdbDB->GetEnv(), &rowObjectId,  &hdrRow);
     NS_ENSURE_TRUE(NS_SUCCEEDED(rv) && hdrRow, NS_ERROR_FAILURE);
     rv = m_mdbDB->CreateMsgHdr(hdrRow,  msgKey, result);
@@ -573,7 +573,7 @@ nsresult nsMsgThread::ReparentChildrenOf(nsMsgKey oldParent, nsMsgKey newParent,
           curHdr->SetThreadParent(newParent);
           curHdr->GetMessageKey(&curKey);
           if (announcer)
-            announcer->NotifyParentChangedAll(curKey, oldParent, newParent, nsnull);
+            announcer->NotifyParentChangedAll(curKey, oldParent, newParent, nullptr);
           // if the old parent was the root of the thread, then only the first child gets
           // promoted to root, and other children become children of the new root.
           if (newParent == nsMsgKey_None)
@@ -628,7 +628,7 @@ protected:
 
 nsMsgThreadEnumerator::nsMsgThreadEnumerator(nsMsgThread *thread, nsMsgKey startKey,
                                              nsMsgThreadEnumeratorFilter filter, void* closure)
-                                             : mRowCursor(nsnull), mDone(false),
+                                             : mRowCursor(nullptr), mDone(false),
                                              mFilter(filter), mClosure(closure), mFoundChildren(false)
 {
   mThreadParentKey = startKey;
@@ -637,7 +637,7 @@ nsMsgThreadEnumerator::nsMsgThreadEnumerator(nsMsgThread *thread, nsMsgKey start
   mNeedToPrefetch = true;
   mFirstMsgKey = nsMsgKey_None;
 
-  nsresult rv = mThread->GetRootHdr(nsnull, getter_AddRefs(mResultHdr));
+  nsresult rv = mThread->GetRootHdr(nullptr, getter_AddRefs(mResultHdr));
 
   if (NS_SUCCEEDED(rv) && mResultHdr)
     mResultHdr->GetMessageKey(&mFirstMsgKey);
@@ -767,7 +767,7 @@ NS_IMETHODIMP nsMsgThreadEnumerator::GetNext(nsISupports **aItem)
 nsresult nsMsgThreadEnumerator::Prefetch()
 {
   nsresult rv=NS_OK;          // XXX or should this default to an error?
-  mResultHdr = nsnull;
+  mResultHdr = nullptr;
   if (mThreadParentKey == nsMsgKey_None)
   {
     rv = mThread->GetRootHdr(&mChildIndex, getter_AddRefs(mResultHdr));
@@ -788,7 +788,7 @@ nsresult nsMsgThreadEnumerator::Prefetch()
         nsMsgKey curKey;
 
         if (mFilter && NS_FAILED(mFilter(mResultHdr, mClosure))) {
-          mResultHdr = nsnull;
+          mResultHdr = nullptr;
           continue;
         }
 
@@ -801,7 +801,7 @@ nsresult nsMsgThreadEnumerator::Prefetch()
           (parentKey == nsMsgKey_None
           && mThreadParentKey == mFirstMsgKey && curKey != mThreadParentKey))
           break;
-        mResultHdr = nsnull;
+        mResultHdr = nullptr;
       }
       else
         NS_ASSERTION(false, "better be able to get child");
@@ -843,7 +843,7 @@ NS_IMETHODIMP nsMsgThreadEnumerator::HasMoreElements(bool *aResult)
 
 NS_IMETHODIMP nsMsgThread::EnumerateMessages(nsMsgKey parentKey, nsISimpleEnumerator* *result)
 {
-  nsMsgThreadEnumerator* e = new nsMsgThreadEnumerator(this, parentKey, nsnull, nsnull);
+  nsMsgThreadEnumerator* e = new nsMsgThreadEnumerator(this, parentKey, nullptr, nullptr);
   NS_ENSURE_TRUE(e, NS_ERROR_OUT_OF_MEMORY);
   NS_ADDREF(*result = e);
   return NS_OK;
@@ -890,7 +890,7 @@ NS_IMETHODIMP nsMsgThread::GetRootHdr(PRInt32 *resultIndex, nsIMsgDBHdr **result
 {
   NS_ENSURE_ARG_POINTER(result);
 
-  *result = nsnull;
+  *result = nullptr;
   nsresult rv = NS_OK;
 
   if (m_threadRootKey != nsMsgKey_None)
@@ -1055,7 +1055,7 @@ nsresult nsMsgThread::GetChildHdrForKey(nsMsgKey desiredKey, nsIMsgDBHdr **resul
                 // Message is in one thread but has a different thread id.
                 // Remove it from the thread and then rethread it.
                 RemoveChild(msgKey);
-                threadKeyThread->RemoveChildHdr(otherThreadHdr, nsnull);
+                threadKeyThread->RemoveChildHdr(otherThreadHdr, nullptr);
                 bool newThread;
                 nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(otherThreadHdr.get());
                 m_mdbDB->ThreadNewHdr(msgHdr, newThread);
