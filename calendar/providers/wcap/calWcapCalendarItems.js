@@ -583,10 +583,7 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request) {
             }
             var items = this_.parseItems(icalRootComp, calICalendar.ITEM_FILTER_ALL_ITEMS,
                                          0, null, null, true /* bLeaveMutable */);
-            if (items.length < 1) {
-                throw new Components.Exception("empty VCALENDAR returned!");
-            }
-            if (items.length > 1) {
+            if (items.length != 1) {
                 this_.notifyError(NS_ERROR_UNEXPECTED,
                                   "unexpected number of items: " + items.length);
             }
@@ -651,7 +648,7 @@ function calWcapCalendar_adoptItem(item, listener) {
                                           calIOperationListener.ADD,
                                           err ? item.id : newItem.id,
                                           err ? err : newItem);
-            if (!err) {
+            if (!err && this_ == this_.superCalendar) {
                 this_.notifyObservers("onAddItem", [newItem]);
             }
         },
@@ -679,7 +676,7 @@ function calWcapCalendar_modifyItem(newItem, oldItem, listener) {
                                           getResultCode(err),
                                           calIOperationListener.MODIFY,
                                           newItem.id, err ? err : item);
-            if (!err) {
+            if (!err && this_ == this_.superCalendar) {
                 this_.notifyObservers("onModifyItem", [item, oldItem]);
             }
         },
@@ -762,7 +759,7 @@ function calWcapCalendar_deleteItem(item, listener) {
                                           getResultCode(err),
                                           calIOperationListener.DELETE,
                                           item.id, err ? err : item);
-            if (!err) {
+            if (!err && this_ == this_.superCalendar) {
                 this_.notifyObservers("onDeleteItem", [item]);
             }
         },
@@ -1315,13 +1312,15 @@ function calWcapCalendar_getItems(itemFilter, maxResults, rangeStart, rangeEnd, 
     return request;
 };
 
+calWcapCalendar.prototype.offlineStorage = null;
+
 calWcapCalendar.prototype.resetLog =
 function calWcapCalendar_resetLog() {
     this.deleteProperty("replay.last_stamp");
 };
 
 calWcapCalendar.prototype.replayChangesOn =
-function calWcapCalendar_replayChangesOn(destCal, listener) {
+function calWcapCalendar_replayChangesOn(listener) {
     var this_ = this;
     var itemFilter = calICalendar.ITEM_FILTER_ALL_ITEMS;
     var dtFrom = getDatetimeFromIcalString(this.getProperty("replay.last_stamp"));
@@ -1337,8 +1336,8 @@ function calWcapCalendar_replayChangesOn(destCal, listener) {
                 this_.setProperty("replay.last_stamp", getIcalUTC(now));
                 log("new replay stamp: " + getIcalUTC(now), this_);
             }
-            if (opListener) {
-                opListener.onResult(request, null);
+            if (listener) {
+                listener.onResult(request, null);
             }
         },
         log("replayChangesOn():\n\titemFilter=0x" + itemFilter.toString(0x10) +
@@ -1362,13 +1361,13 @@ function calWcapCalendar_replayChangesOn(destCal, listener) {
                     modifiedIds[item.id] = true;
                     if (bAdd) {
                         log("replayChangesOn(): new item " + item.id, this_);
-                        if (destCal) {
-                            destCal.addItem(item, writeListener);
+                        if (this_.offlineStorage) {
+                            this_.offlineStorage.addItem(item, writeListener);
                         }
                     } else {
                         log("replayChangesOn(): modified item " + item.id, this_);
-                        if (destCal) {
-                            destCal.modifyItem(item, null, writeListener);
+                        if (this_.offlineStorage) {
+                            this_.modifyItem(item, null, writeListener);
                         }
                     }
                 }
@@ -1378,16 +1377,16 @@ function calWcapCalendar_replayChangesOn(destCal, listener) {
                         log("replayChangesOn(): skipping deletion of " + item.id, this_);
                     } else if (isParent(item)) {
                         log("replayChangesOn(): deleted item " + item.id, this_);
-                        if (destCal) {
-                            destCal.deleteItem(item, writeListener);
+                        if (this_.offlineStorage) {
+                            this_.offlineStorage.deleteItem(item, writeListener);
                         }
                     } else { // modify parent instead of
                              // straight-forward deleteItem(). WTF.
                         var parent = item.parentItem.clone();
                         parent.recurrenceInfo.removeOccurrenceAt(item.recurrenceId);
                         log("replayChangesOn(): modified parent "+ parent.id, this_);
-                        if (destCal) {
-                            destCal.modifyItem(parent, item, writeListener);
+                        if (this_.offlineStorage) {
+                            this_.offlineStorage.modifyItem(parent, item, writeListener);
                         }
                     }
                 }
