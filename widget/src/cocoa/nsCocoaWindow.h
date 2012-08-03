@@ -53,6 +53,9 @@ class nsCocoaWindow;
 class nsChildView;
 class nsMenuBarX;
 
+// Value copied from BITMAP_MAX_AREA, used in nsNativeThemeCocoa.mm
+#define CUIDRAW_MAX_AREA 500000
+
 typedef struct _nsCocoaWindowList {
   _nsCocoaWindowList() : prev(NULL), window(NULL) {}
   struct _nsCocoaWindowList *prev;
