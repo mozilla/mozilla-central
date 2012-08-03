@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gIdentityListBox;                 // the root <listbox> node
 var gAddButton;
 var gEditButton;
@@ -59,7 +61,8 @@ function openIdentityEditor(identity)
   var result = false;
   var args = { identity: identity, account: gAccount, result: result };
 
-  window.openDialog("am-identity-edit.xul", "", "chrome,modal,resizable=no,centerscreen", args);
+  window.openDialog("am-identity-edit.xul", "",
+                    "chrome,modal,resizable=no,centerscreen", args);
 
   var selectedItemIndex = gIdentityListBox.selectedIndex;
 
@@ -111,7 +114,23 @@ function onDelete(event)
   if (gIdentityListBox.getRowCount() <= 1)  // don't support deleting the last identity
     return;
 
-  gAccount.removeIdentity(getSelectedIdentity());
+  // get delete confirmation
+  let selectedIdentity = getSelectedIdentity();
+
+  let prefsBundle = document.getElementById("bundle_prefs");
+  let confirmTitle = prefsBundle.getFormattedString("identity-delete-confirm-title",
+                                                    [window.arguments[0].accountName]);
+  let confirmText = prefsBundle.getFormattedString("identity-delete-confirm",
+                                                   [selectedIdentity.identityName]);
+  let confirmButton = prefsBundle.getString("identity-delete-confirm-button");
+
+  if (Services.prompt.confirmEx(window, confirmTitle, confirmText,
+                                (Services.prompt.BUTTON_POS_0 * Services.prompt.BUTTON_TITLE_IS_STRING) +
+                                (Services.prompt.BUTTON_POS_1 * Services.prompt.BUTTON_TITLE_CANCEL),
+                                confirmButton, null, null, null, {}))
+    return;
+
+  gAccount.removeIdentity(selectedIdentity);
   // rebuild the list
   refreshIdentityList();
 }
