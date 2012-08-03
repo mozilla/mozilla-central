@@ -492,7 +492,11 @@ function getHTMLForMessage(aMsg, aTheme, aIsNext, aIsContext)
     html = aTheme.html[html];
     replacements = messageReplacements;
     let meRegExp = /^((<[^>]+>)*)\/me /;
-    if (meRegExp.test(aMsg.message)) {
+    // We must test originalMessage here as aMsg.message loses its /me
+    // in the following, so if getHTMLForMessage is called a second time for
+    // the same aMsg (e.g. because it follows the unread ruler), the test
+    // would fail otherwise.
+    if (meRegExp.test(aMsg.originalMessage)) {
       aMsg.message = aMsg.message.replace(meRegExp, "$1");
       let actionMessageTemplate = "* %message% *";
       if (hasMetadataKey(aTheme, "ActionMessageTemplate"))
