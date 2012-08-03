@@ -576,14 +576,15 @@
             if (!("_lastScrollHeight" in this) ||
                 this._lastScrollHeight != this.scrollHeight ||
                 this._lastScrollWidth != this.scrollWidth) {
-              // if the scrollheight changed, we are resizing the content area,
-              // don't stop the auto scroll.
+              // Ensure scroll events triggered by a change of the
+              // content area size (eg. resizing the window or moving the
+              // textbox splitter) don't affect the auto-scroll behavior.
               this._lastScrollHeight = this.scrollHeight;
               this._lastScrollWidth = this.scrollWidth;
               return;
             }
 
-            // Enable or disable auto-scroll based on the scrollbar position
+            // Enable or disable auto-scroll based on the scrollbar position.
             this._updateAutoScrollEnabled();
           ]]>
          </body>
@@ -713,6 +714,9 @@
                   Components.utils.reportError(e);
                 }
                 this._loadState = 1;
+
+                // Expose scrollToElement to the message styles.
+                this.contentWindow.scrollToElement = this._scrollToElement.bind(this);
                 return;
               }
               this.removeProgressListener(this);
