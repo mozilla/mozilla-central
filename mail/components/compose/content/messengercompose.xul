@@ -794,7 +794,7 @@
           </hbox>
         </vbox>
         <splitter id="attachmentbucket-sizer" collapsed="true" collapse="after"/>
-        <vbox id="attachments-box" collapsed="true">
+        <vbox id="attachments-box" collapsed="true" persist="width">
           <hbox>
             <label id="attachmentBucketCount" control="attachmentBucket"
                    crop="right" accesskey="&attachments.accesskey;" flex="1"/>

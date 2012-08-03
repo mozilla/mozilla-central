@@ -18,6 +18,7 @@
 
 #attachmentBucket {
   width: 15em;
+  min-width: 15em;
 }
 
 #compose-toolbox toolbarbutton[checked="true"] {

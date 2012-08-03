@@ -19,6 +19,7 @@
 
 #attachmentBucket {
   width: 15em;
+  min-width: 15em;
 }
 
 /* ::::: primary toolbar buttons ::::: */

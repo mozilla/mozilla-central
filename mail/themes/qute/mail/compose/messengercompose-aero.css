@@ -23,6 +23,7 @@
   background-color: -moz-Field;
   color: -moz-FieldText;
   width: 15em;
+  min-width: 15em;
 }
 
 /* :::: Toolbar :::: */
