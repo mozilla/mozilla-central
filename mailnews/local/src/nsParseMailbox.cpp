@@ -1053,7 +1053,7 @@ int nsParseMailMessageState::ParseHeaders ()
 SEARCH_NEWLINE:
     // move past any non terminating characters, rewriting them if folding white space
     // exists
-    while (*buf != 0 && *buf != '\r' && *buf != '\n')
+    while (buf < buf_end && *buf != '\r' && *buf != '\n')
     {
       if (writeOffset)
         *(buf - writeOffset) = *buf;
