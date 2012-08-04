@@ -1096,20 +1096,6 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
   {
     //
     // Conversion to plain text desired.
-    //
-    PRInt32       width = 72;
-    nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
-    if (pPrefBranch)
-      pPrefBranch->GetIntPref("mailnews.wraplength", &width);
-    // Let sanity reign!
-    if (width == 0)
-      width = 72;
-    else if (width < 10)
-      width = 10;
-    else if (width > 30000)
-      width = 30000;
-
-    //
     // Now use the converter service here to do the right
     // thing and convert this data to plain text for us!
     //
