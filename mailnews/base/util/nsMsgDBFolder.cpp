@@ -67,6 +67,7 @@
 #include "nsIMsgFilterService.h"
 #include "nsDirectoryServiceUtils.h"
 #include "mozilla/Services.h"
+#include "nsMimeTypes.h"
 
 static PRTime gtimeOfLastPurgeCheck;    //variable to know when to check for purge_threshhold
 
@@ -5503,7 +5504,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIInputStream *stream, const 
       if (!encodingHdr.IsEmpty())
         mimeHdrParam->GetParameter(encodingHdr, nullptr, EmptyCString(), false, nullptr, encoding);
 
-      if (encoding.LowerCaseEqualsLiteral("base64"))
+      if (encoding.LowerCaseEqualsLiteral(ENCODING_BASE64))
         isBase64 = true;
     }
 
@@ -5607,7 +5608,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIInputStream *stream, const 
  */
 void nsMsgDBFolder::decodeMsgSnippet(const nsACString& aEncodingType, bool aIsComplete, nsCString& aMsgSnippet)
 {
-  if (MsgLowerCaseEqualsLiteral(aEncodingType, "base64"))
+  if (MsgLowerCaseEqualsLiteral(aEncodingType, ENCODING_BASE64))
   {
     PRInt32 base64Len = aMsgSnippet.Length();
     if (aIsComplete)
@@ -5616,7 +5617,7 @@ void nsMsgDBFolder::decodeMsgSnippet(const nsACString& aEncodingType, bool aIsCo
     if (decodedBody)
       aMsgSnippet.Adopt(decodedBody);
   }
-  else if (MsgLowerCaseEqualsLiteral(aEncodingType, "quoted-printable"))
+  else if (MsgLowerCaseEqualsLiteral(aEncodingType, ENCODING_QUOTED_PRINTABLE))
   {
     // giant hack - decode in place, and truncate string.
     MsgStripQuotedPrintable((unsigned char *) aMsgSnippet.get());

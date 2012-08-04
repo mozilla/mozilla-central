@@ -1911,7 +1911,7 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
       m_attachments[i].m_xMacCreator = attachment.m_xMacCreator;
 
       m_attachments[i].m_charset = mCompFields->GetCharacterSet();
-      m_attachments[i].m_encoding = "7bit";
+      m_attachments[i].m_encoding = ENCODING_7BIT;
 
       if (m_attachments[i].mURL)
         msg_pick_real_name(&m_attachments[i], nullptr, mCompFields->GetCharacterSet());
@@ -2336,7 +2336,7 @@ nsMsgComposeAndSend::AddCompFieldRemoteAttachments(PRUint32   aStartLocation,
           if (!isAMessageAttachment)
             nsMsgNewURL(getter_AddRefs(m_attachments[newLoc].mURL), url.get());
 
-          m_attachments[newLoc].m_encoding = "7bit";
+          m_attachments[newLoc].m_encoding = ENCODING_7BIT;
 
           attachment->GetMacType(getter_Copies(m_attachments[newLoc].m_xMacType));
           attachment->GetMacCreator(getter_Copies(m_attachments[newLoc].m_xMacCreator));
@@ -2551,7 +2551,7 @@ nsMsgComposeAndSend::HackAttachments(nsIArray *attachments,
       attachment->GetRealName(m_attachments[i].m_realName);
       attachment->GetXMacType(m_attachments[i].m_xMacType);
       attachment->GetXMacCreator(m_attachments[i].m_xMacCreator);
-      m_attachments[i].m_encoding = "7bit";
+      m_attachments[i].m_encoding = ENCODING_7BIT;
 
       // real name is set in the case of vcard so don't change it.  XXX STILL NEEDED?
       // m_attachments[i].m_real_name = 0;
@@ -3222,7 +3222,7 @@ nsMsgComposeAndSend::SnarfAndCopyBody(const char  *attachment1_body,
   PR_FREEIF(m_attachment1_type);
   m_attachment1_type = PL_strdup (attachment1_type);
   PR_FREEIF(m_attachment1_encoding);
-  m_attachment1_encoding = PL_strdup ("8bit");
+  m_attachment1_encoding = PL_strdup (ENCODING_8BIT);
   return NS_OK;
 }
 

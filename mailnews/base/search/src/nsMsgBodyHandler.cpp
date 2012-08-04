@@ -15,6 +15,7 @@
 #include "nsIFile.h"
 #include "plbase64.h"
 #include "prmem.h"
+#include "nsMimeTypes.h"
 
 nsMsgBodyHandler::nsMsgBodyHandler (nsIMsgSearchScopeTerm * scope,
                                     PRUint32 numLines,
@@ -398,7 +399,7 @@ void nsMsgBodyHandler::SniffPossibleMIMEHeader(nsCString &line)
 
   if (StringBeginsWith(lowerCaseLine,
                        NS_LITERAL_CSTRING("content-transfer-encoding:")) &&
-      lowerCaseLine.Find("base64", CaseInsensitiveCompare) != kNotFound)
+      lowerCaseLine.Find(ENCODING_BASE64, CaseInsensitiveCompare) != kNotFound)
     m_base64part = true;
 }
 
