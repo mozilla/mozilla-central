@@ -104,7 +104,8 @@ ConversationLog.prototype = {
                              name: this._conv.name,
                              title: this._conv.title,
                              account: account.normalizedName,
-                             protocol: account.protocol.normalizedName
+                             protocol: account.protocol.normalizedName,
+                             isChat: this._conv.isChat
                             }) + "\n";
     }
     return "Conversation with " + this._conv.name +
@@ -325,6 +326,7 @@ function LogConversation(aLineInputStreams)
       this.title = data.title;
       this._accountName = data.account;
       this._protocolName = data.protocol;
+      this._isChat = data.isChat;
       firstFile = false;
     }
 
@@ -344,7 +346,7 @@ function LogConversation(aLineInputStreams)
 }
 LogConversation.prototype = {
   __proto__: ClassInfo("imILogConversation", "Log conversation object"),
-  get isChat() false,
+  get isChat() this._isChat,
   get buddy() null,
   get account() ({
     alias: "",
