@@ -147,7 +147,7 @@ const gFormSubmitObserver = {
     // We could check for clicks but a click already removes the popup.
     function blurHandler() {
       gFormSubmitObserver.panel.hidePopup();
-    };
+    }
     function inputHandler(e) {
       if (e.originalTarget.validity.valid) {
         gFormSubmitObserver.panel.hidePopup();
@@ -160,7 +160,7 @@ const gFormSubmitObserver = {
             e.originalTarget.validationMessage;
         }
       }
-    };
+    }
     element.addEventListener("input", inputHandler, false);
     element.addEventListener("blur", blurHandler, false);
 
@@ -225,7 +225,7 @@ function addFormSubmitObserver(observer)
 
 function removeFormSubmitObserver(observer)
 {
-  Services.obs.removeObserver(observer, "invalidformsubmit", false);
+  Services.obs.removeObserver(observer, "invalidformsubmit");
 }
 
 /**
@@ -1739,7 +1739,7 @@ function handleDroppedLink(event, url, name)
   // Keep the event from being handled by the dragDrop listeners
   // built-in to gecko if they happen to be above us.
   event.preventDefault();
-};
+}
 
 function readFromClipboard()
 {
