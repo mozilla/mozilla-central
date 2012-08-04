@@ -1,0 +1,66 @@
+Return-Path: <notifier.mars@krw.rzd>
+Received: from [10.95.185.198] (HELO mars)
+  by cgbe1.sf.icc.krsk.krw.rzd (CommuniGate Pro SMTP 5.4.2)
+  with ESMTP id 197561; Sat, 03 Dec 2011 17:07:41 +0400
+Subject: CS-MARS Incident Notification (red, Rule Name: System Rule: DoS: Network - Success Likely)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
+Date: Sat, 3 Dec 2011 17:07:41 +0400
+From: notifier.mars@krw.rzd
+Message-Id: <1322917661.14@mars>
+To: LyukshinRA@krw.rzd,
+    biakus@krw.rzd,
+    
+
+The following incident occurred on "mars"
+
+Start time:     Sat Dec  3 16:52:33 2011
+End time:       Sat Dec  3 17:07:35 2011
+Fired Rule Id:  3354883
+Fired Rule:     System Rule: DoS: Network - Success Likely
+Incident Id:    24500896822
+Incident Severity:red
+
+Top 3 src-dest address pairs sorted by severity and count (showing 3 of 319):
+1. N/A   -> 10.88.21.45  Severity: red  Count: 16
+2. 10.89.234.223   -> N/A  Severity: red  Count: 16
+3. 10.144.58.124   -> 10.92.23.37  Severity: green  Count: 1
+
+Top 3 src ip's address sorted by severity and count (showing 3 of 10):
+1. N/A   -> Severity: red  Count: 16
+2. 10.89.234.223   -> Severity: red  Count: 16
+3. 10.132.51.53   -> Severity: green  Count: 48
+
+Top 3 dest ip's address sorted by severity and count (showing 3 of 319):
+1. 10.88.21.45   -> Severity: red  Count: 16
+2. N/A   -> Severity: red  Count: 16
+3. 10.92.23.37   -> Severity: green  Count: 1
+
+Top 3 dest TCP/UDP ports sorted by severity and count (showing 0 of 0):
+
+Top 3 event types sorted by severity and count (showing 2 of 2):
+1. Sudden increase of traffic to a port   Severity: red  Count: 32 
+2. Deny packet due to security policy   Severity: green  Count: 317 
+
+Top 3 reporting devices sorted by count (showing 3 of 11):
+1. KRW-EXP3	Count: 152
+2. kzi-spd-asa.secadm.m.krw.rzd	Count: 151
+3. mars	Count: 32
+
+
+
+For more details about this incident please go to:
+  https://mars/Incidents/IncidentDetails.jsp?Incident_Id=24500896822
+  https://mars.secadm.m.krw.rzd/Incidents/IncidentDetails.jsp?Incident_Id=24500896822
+  https://mars.krw.rzd/Incidents/IncidentDetails.jsp?Incident_Id=24500896822
+  https://10.95.185.198/Incidents/IncidentDetails.jsp?Incident_Id=24500896822
+  https://10.95.185.130/Incidents/IncidentDetails.jsp?Incident_Id=24500896822
+
+For all incidents occurred recently please go to:
+  https://mars/Incidents/
+  https://mars.secadm.m.krw.rzd/Incidents/
+  https://mars.krw.rzd/Incidents/
+  https://10.95.185.198/Incidents/
+  https://10.95.185.130/Incidents/
+
