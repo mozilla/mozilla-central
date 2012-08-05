@@ -33,11 +33,13 @@
 #define DGB_OPTIONS DG_BACKGROUND "/picture_options"
 #define DGB_IMAGE DG_BACKGROUND "/picture_filename"
 #define DGB_DRAWBG DG_BACKGROUND "/draw_background"
+#define DGB_COLOR DG_BACKGROUND "/primary_color"
 
 #define OGDB_SCHEMA "org.gnome.desktop.background"
 #define OGDB_OPTIONS "picture-options"
 #define OGDB_IMAGE "picture-uri"
 #define OGDB_DRAWBG "draw-background"
+#define OGDB_COLOR "primary-color"
 
 NS_IMPL_ISUPPORTS1(nsGNOMEShellService, nsIShellService)
 
@@ -126,7 +128,7 @@ nsGNOMEShellService::SetDesktopBackground(nsIDOMElement* aElement,
   NS_ENSURE_SUCCESS(rv, rv);
 
   // build the file name
-  nsCAutoString filePath(PR_GetEnv("HOME"));
+  nsCString filePath(PR_GetEnv("HOME"));
   filePath.Append('/');
   filePath.Append(NS_ConvertUTF16toUTF8(brandName));
   filePath.AppendLiteral("_wallpaper.png");
@@ -219,16 +221,71 @@ nsGNOMEShellService::SetDesktopBackground(nsIDOMElement* aElement,
   return NS_OK;
 }
 
+#define COLOR_16_TO_8_BIT(_c) ((_c) >> 8)
+
 NS_IMETHODIMP
 nsGNOMEShellService::GetDesktopBackgroundColor(PRUint32 *aColor)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  nsCOMPtr<nsIGSettingsService> gsettings(do_GetService(NS_GSETTINGSSERVICE_CONTRACTID));
+  nsCOMPtr<nsIGSettingsCollection> background_settings;
+
+  if (gsettings)
+    gsettings->GetCollectionForSchema(NS_LITERAL_CSTRING(OGDB_SCHEMA),
+                                      getter_AddRefs(background_settings));
+
+  nsCString background;
+  if (background_settings)
+    background_settings->GetString(NS_LITERAL_CSTRING(OGDB_COLOR),
+                                   background);
+  else {
+    nsCOMPtr<nsIGConfService> gconf(do_GetService(NS_GCONFSERVICE_CONTRACTID));
+    if (gconf)
+      gconf->GetString(NS_LITERAL_CSTRING(DGB_COLOR), background);
+  }
+
+  if (background.IsEmpty())
+    return NS_ERROR_FAILURE;
+
+  GdkColor color;
+  NS_ENSURE_TRUE(gdk_color_parse(background.get(), &color), NS_ERROR_FAILURE);
+
+  *aColor = COLOR_16_TO_8_BIT(color.red) << 16 |
+            COLOR_16_TO_8_BIT(color.green) << 8 |
+            COLOR_16_TO_8_BIT(color.blue);
+  return NS_OK;
 }
+
+#define COLOR_8_TO_16_BIT(_c) ((_c) << 8 | (_c))
 
 NS_IMETHODIMP
 nsGNOMEShellService::SetDesktopBackgroundColor(PRUint32 aColor)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  NS_ENSURE_ARG_MAX(aColor, 0xFFFFFF);
+
+  PRUint8 red = aColor >> 16;
+  PRUint8 green = aColor >> 8;
+  PRUint8 blue = aColor;
+  char colorString[14];
+  sprintf(colorString, "#%04x%04x%04x", COLOR_8_TO_16_BIT(red),
+          COLOR_8_TO_16_BIT(green), COLOR_8_TO_16_BIT(blue));
+
+  nsCOMPtr<nsIGSettingsService> gsettings(do_GetService(NS_GSETTINGSSERVICE_CONTRACTID));
+  if (gsettings) {
+    nsCOMPtr<nsIGSettingsCollection> background_settings;
+    gsettings->GetCollectionForSchema(NS_LITERAL_CSTRING(OGDB_SCHEMA),
+                                      getter_AddRefs(background_settings));
+    if (background_settings) {
+      background_settings->SetString(NS_LITERAL_CSTRING(OGDB_COLOR),
+                                     nsDependentCString(colorString));
+      return NS_OK;
+    }
+  }
+
+  nsCOMPtr<nsIGConfService> gconf = do_GetService(NS_GCONFSERVICE_CONTRACTID);
+  if (gconf)
+    gconf->SetString(NS_LITERAL_CSTRING(DGB_COLOR), nsDependentCString(colorString));
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP
