@@ -392,6 +392,44 @@ const XMPPAccountBuddyPrototype = {
   /* Display name of the buddy */
   get contactDisplayName() this.buddy.contact.displayName || this.displayName,
 
+  get tag() this._tag,
+  set tag(aNewTag) {
+    let oldTag = this._tag;
+    if (oldTag.name == aNewTag.name) {
+      ERROR("attempting to set the tab to the same value");
+      return;
+    }
+
+    this._tag = aNewTag;
+    Services.contacts.accountBuddyMoved(this, oldTag, aNewTag);
+
+    if (!this._rosterItem) {
+      ERROR("attempting to change the tag of an account buddy without roster item");
+      return;
+    }
+
+    let item = this._rosterItem;
+    let oldXML = item.getXML();
+    // Remove the old tag if it was listed in the roster item.
+    item.children =
+      item.children.filter(function (c) c.qName != "group" ||
+                                        c.innerText != oldTag.name);
+    // Ensure the new tag is listed.
+    let newTagName = aNewTag.name;
+    if (!item.getChildren("group").some(function (g) g.innerText == newTagName))
+      item.addChild(Stanza.node("group", null, null, newTagName));
+    // Avoid sending anything to the server if the roster item hasn't changed.
+    // It's possible that the roster item hasn't changed if the roster
+    // item had several groups and the user moved locally the contact
+    // to another group where it already was on the server.
+    if (item.getXML() == oldXML)
+      return;
+
+    let s = Stanza.iq("set", null, null,
+                      Stanza.node("query", Stanza.NS.roster, null, item));
+    this._account._connection.sendStanza(s);
+  },
+
   remove: function() {
     if (!this._account.connected)
       return;
@@ -982,8 +1020,24 @@ const XMPPAccountPrototype = {
     }
 
     let buddy;
-    if (this._buddies.hasOwnProperty(jid))
+    if (this._buddies.hasOwnProperty(jid)) {
       buddy = this._buddies[jid];
+      let groups = aItem.getChildren("group");
+      if (groups.length) {
+        // If the server specified at least one group, ensure the group we use
+        // as the account buddy's tag is still a group on the server...
+        let tagName = buddy.tag.name;
+        if (!groups.some(function (g) g.innerText == tagName)) {
+          // ... otherwise we need to move our account buddy to a new group.
+          tagName = groups[0].innerText;
+          if (tagName) { // Should always be true, but check just in case...
+            let oldTag = buddy.tag;
+            buddy._tag = Services.tags.createTag(tagName);
+            Services.contacts.accountBuddyMoved(buddy, oldTag, buddy._tag);
+          }
+        }
+      }
+    }
     else {
       let tagName = _("defaultGroup");
       for each (let group in aItem.getChildren("group")) {
