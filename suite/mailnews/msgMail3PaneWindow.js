@@ -966,20 +966,18 @@ function InitializeDataSources()
   SetupMoveCopyMenus('goMenu', accountManagerDataSource, folderDataSource);
 }
 
-function OnFolderUnreadColAttrModified(event)
+function AddMutationObserver(callback)
 {
-  if (event.attrName == "hidden")
-  {
-    var folderNameCell = document.getElementById("folderNameCell");
-    var label = {"true": "?folderTreeName", "false": "?folderTreeSimpleName"};
-    folderNameCell.setAttribute("label", label[event.newValue]);
-  }
+  new MutationObserver(callback).observe(callback(), {attributes: true, attributeFilter: ["hidden"]});
 }
 
-function OnAttachmentColAttrModified(event)
+function UpdateFolderUnreadCol()
 {
-  if (event.attrName == "hidden")
-    UpdateAttachmentCol(false);
+  var folderUnreadCol = document.getElementById("folderUnreadCol");
+  var folderNameCell = document.getElementById("folderNameCell");
+  var label = {true: "?folderTreeName", false: "?folderTreeSimpleName"};
+  folderNameCell.setAttribute("label", label[folderUnreadCol.hidden]);
+  return folderUnreadCol;
 }
 
 function UpgradeFolderPaneUI()
@@ -992,15 +990,7 @@ function UpgradeFolderPaneUI()
 function OnLoadFolderPane()
 {
     UpgradeFolderPaneUI();
-
-    var folderUnreadCol = document.getElementById("folderUnreadCol");
-    var hidden = folderUnreadCol.getAttribute("hidden");
-    if (hidden != "true")
-    {
-        var folderNameCell = document.getElementById("folderNameCell");
-        folderNameCell.setAttribute("label", "?folderTreeSimpleName");
-    }
-    folderUnreadCol.addEventListener("DOMAttrModified", OnFolderUnreadColAttrModified, false);
+    AddMutationObserver(UpdateFolderUnreadCol);
 
     //Add folderDataSource and accountManagerDataSource to folderPane
     var database = GetFolderDatasource();
@@ -1032,18 +1022,16 @@ function UpgradeThreadPaneUI()
 function OnLoadThreadPane()
 {
   UpgradeThreadPaneUI();
-  UpdateAttachmentCol(true);
+  AddMutationObserver(UpdateAttachmentCol);
 }
 
-function UpdateAttachmentCol(aFirstTimeFlag)
+function UpdateAttachmentCol()
 {
   var attachmentCol = document.getElementById("attachmentCol");
   var threadTree = GetThreadTree();
   threadTree.setAttribute("noattachcol", attachmentCol.getAttribute("hidden"));
-  if (aFirstTimeFlag)
-    attachmentCol.addEventListener("DOMAttrModified", OnAttachmentColAttrModified, false);
-  else
-    threadTree.treeBoxObject.clearStyleAndImageCaches();
+  threadTree.treeBoxObject.clearStyleAndImageCaches();
+  return attachmentCol;
 }
 
 function OnLoadLocationTree()
