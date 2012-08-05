@@ -36,22 +36,24 @@
   </keyset>
 
   <hbox align="center">
-    <label value="&filtersForPrefix.label;" 
+    <label value="&filtersForPrefix.label;"
            accesskey="&filtersForPrefix.accesskey;" control="serverMenu"/>
 
-      <menulist id="serverMenu"
-                class="folderMenuItem"
-                IsServer="true"
-                IsSecure="false"
-                ServerType="none"
-                oncommand="onFilterFolderClick(event.target._folder);">
-        <menupopup id="serverMenuPopup" type="folder" mode="filters"
-          expandFolders="nntp" headlabels="&choosethisnewsserver.label;" />
-      </menulist>
-      <spacer flex="1"/> 
-      <vbox>
-        <button label="&viewLogButton.label;" accesskey="&viewLogButton.accesskey;" oncommand="viewLog();"/>
-      </vbox>
+    <menulist id="serverMenu"
+              class="folderMenuItem"
+              IsServer="true"
+              IsSecure="false"
+              ServerType="none"
+              oncommand="onFilterFolderClick(event.target._folder);">
+      <menupopup id="serverMenuPopup" type="folder" mode="filters"
+                 expandFolders="nntp" headlabels="&choosethisnewsserver.label;"/>
+    </menulist>
+    <textbox id="searchBox"
+             flex="1"
+             type="search"
+             oncommand="onFindFilter(true);"
+             emptytext="&searchBox.emptyText;"
+             isempty="true"/>
   </hbox>
 
   <grid flex="1">
@@ -64,7 +66,14 @@
         <separator class="thin"/>
       </row>
       <row>
-        <label control="filterTree">&filterHeader.label;</label>
+        <hbox>
+          <label id="filterListLabel"
+                 control="filterList"
+                 value="&filterHeader.label;"
+                 crop="end"
+                 flex="1"/>
+          <label id="countBox"/>
+        </hbox>
       </row>
 
       <row flex="1">
@@ -80,19 +89,38 @@
         </vbox>
 
         <vbox>
-          <button id="newButton" label="&newButton.label;" accesskey="&newButton.accesskey;"
+          <button id="newButton"
+                  label="&newButton.label;"
+                  accesskey="&newButton.accesskey;"
                   oncommand="onNewFilter(null);"/>
-          <button id="editButton" label="&editButton.label;" accesskey="&editButton.accesskey;" 
+          <button id="editButton" label="&editButton.label;"
+                  accesskey="&editButton.accesskey;"
                   oncommand="onEditFilter();"/>
-          <button id="deleteButton" label="&deleteButton.label;" accesskey="&deleteButton.accesskey;" 
+          <button id="deleteButton"
+                  label="&deleteButton.label;"
+                  accesskey="&deleteButton.accesskey;"
                   oncommand="onDeleteFilter();"/>
           <spacer flex="1"/>
-          <button id="reorderUpButton" label="&reorderUpButton.label;" accesskey="&reorderUpButton.accesskey;" 
+          <button id="reorderTopButton"
+                  label="&reorderTopButton;"
+                  accesskey="&reorderTopButton.accessKey;"
+                  tooltiptext="&reorderTopButton.toolTip;"
+                  oncommand="onTop(event);"/>
+          <button id="reorderUpButton"
+                  label="&reorderUpButton.label;"
+                  accesskey="&reorderUpButton.accesskey;"
                   class="up"
                   oncommand="onUp(event);"/>
-          <button id="reorderDownButton" label="&reorderDownButton.label;" accesskey="&reorderDownButton.accesskey;" 
+          <button id="reorderDownButton"
+                  label="&reorderDownButton.label;"
+                  accesskey="&reorderDownButton.accesskey;"
                   class="down"
                   oncommand="onDown(event);"/>
+          <button id="reorderBottomButton"
+                  label="&reorderBottomButton;"
+                  accesskey="&reorderBottomButton.accessKey;"
+                  tooltiptext="&reorderBottomButton.toolTip;"
+                  oncommand="onBottom(event);"/>
           <spacer flex="1"/>
         </vbox>
       </row>
@@ -100,7 +128,7 @@
         <vbox>
           <separator class="thin"/>
           <hbox align="center">
-            <label id="folderPickerPrefix" value="&folderPickerPrefix.label;" 
+            <label id="folderPickerPrefix" value="&folderPickerPrefix.label;"
                    accesskey="&folderPickerPrefix.accesskey;"
                    disabled="true" control="runFiltersFolder"/>
             <menulist id="runFiltersFolder" disabled="true" flex="1"
@@ -109,18 +137,22 @@
                          showFileHereLabel="true"
                          fileHereLabel="&filemessageschoosethis.label;"/>
             </menulist>
+          <button id="runFiltersButton"
+                  label="&runFilters.label;"
+                  accesskey="&runFilters.accesskey;"
+                  runlabel="&runFilters.label;"
+                  runaccesskey="&runFilters.accesskey;"
+                  stoplabel="&stopFilters.label;"
+                  stopaccesskey="&stopFilters.accesskey;"
+                  oncommand="runSelectedFilters();" disabled="true"/>
           </hbox>
         </vbox>
         <vbox>
           <separator class="thin"/>
-          <button id="runFiltersButton" 
-                  label="&runFilters.label;" 
-                  accesskey="&runFilters.accesskey;" 
-                  runlabel="&runFilters.label;" 
-                  runaccesskey="&runFilters.accesskey;" 
-                  stoplabel="&stopFilters.label;" 
-                  stopaccesskey="&stopFilters.accesskey;"
-                  oncommand="runSelectedFilters();" disabled="true"/>
+            <button label="&viewLogButton.label;"
+                    accesskey="&viewLogButton.accesskey;"
+                    oncommand="viewLog();"/>
+
         </vbox>
       </row>
     </rows>
@@ -133,7 +165,7 @@
     <statusbarpanel class="statusbarpanel-progress" collapsed="true" id="statusbar-progresspanel">
       <progressmeter class="progressmeter-statusbar" id="statusbar-icon" mode="normal" value="0"/>
     </statusbarpanel>
-  </statusbar> 
+  </statusbar>
 
 </window>
 
