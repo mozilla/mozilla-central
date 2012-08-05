@@ -29,6 +29,7 @@
   padding-bottom: 1px;
   -moz-padding-start: 6px;
   -moz-padding-end: 2px;
+  height: auto;
 }
 
 .sidebarheader-main:-moz-lwtheme {
