@@ -434,12 +434,7 @@ Contact.prototype = {
     if (!this.hasTag(aTag) || this._isTagInherited(aTag))
       return;
 
-    let statement = DBConn.createStatement("DELETE FROM contact_tag " +
-                                           "WHERE contact_id = :contactId " +
-                                           "AND tag_id = :tagId");
-    statement.params.contactId = this.id;
-    statement.params.tagId = aTag.id;
-    statement.executeAsync();
+    this._removeContactTagRow(aTag);
 
     this._tags = this._tags.filter(function(tag) tag.id != aTag.id);
     aTag = TagsById[aTag.id];
@@ -449,6 +444,14 @@ Contact.prototype = {
     for each (let observer in this._observers)
       observer.observe(aTag, "contact-moved-out", null);
     Services.obs.notifyObservers(this, "contact-tag-removed", aTag.id);
+  },
+  _removeContactTagRow: function(aTag) {
+    let statement = DBConn.createStatement("DELETE FROM contact_tag " +
+                                           "WHERE contact_id = :contactId " +
+                                           "AND tag_id = :tagId");
+    statement.params.contactId = this.id;
+    statement.params.tagId = aTag.id;
+    statement.executeAsync();
   },
   hasTag: function(aTag) this._tags.some(function (t) t.id == aTag.id),
   _massMove: false,
@@ -1346,8 +1349,14 @@ ContactsService.prototype = {
     statement.params.newTagId = aNewTag.id;
     statement.execute();
 
+    let contact = ContactsById[buddy.contact.id];
+
+    // aNewTag is now inherited by the contact from an account buddy, so avoid
+    // keeping direct tag <-> contact links in the contact_tag table.
+    contact._removeContactTagRow(aNewTag);
+
     buddy.observe(aAccountBuddy, "account-buddy-moved");
-    ContactsById[buddy.contact.id]._moved(aOldTag, aNewTag);
+    contact._moved(aOldTag, aNewTag);
   },
 
   storeAccount: function(aId, aUserName, aPrplId) {
