@@ -887,8 +887,21 @@ const XMPPAccountPrototype = {
     let type = aStanza.attributes["type"];
     let body;
     let b = aStanza.getElement(["body"]);
-    if (b)
-      body = b.getXML();
+    if (b) {
+      // If there's a <body> child we have more than just typing notifications.
+      // Prefer HTML (in <html><body>) and use plain text (<body>) as fallback.
+      let htmlBody = aStanza.getElement(["html", "body"]);
+      if (htmlBody)
+        body = htmlBody.innerXML;
+      else {
+        // Even if the message is in plain text, the prplIMessage
+        // should contain a string that's correctly escaped for
+        // insertion in an HTML document.
+        body = Components.classes["@mozilla.org/txttohtmlconv;1"]
+                         .getService(Ci.mozITXTToHTMLConv)
+                         .scanTXT(b.innerText, Ci.mozITXTToHTMLConv.kEntities);
+      }
+    }
     if (body) {
       let date;
       let delay = aStanza.getElement(["delay"]);

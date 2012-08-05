@@ -267,10 +267,11 @@ XMLNode.prototype = {
   /* Returns the XML */
   getXML: function() {
     let s = "<" + this.qName + this._getXmlns() + this._getAttributeText();
-    let innerXML = this.children.map(function(c) c.getXML()).join("");
+    let innerXML = this.innerXML;
     return s + (innerXML ? ">" + innerXML + "</" + this.qName : "/") + ">";
   },
 
+  get innerXML() this.children.map(function(c) c.getXML()).join(""),
   get innerText() this.children.map(function(c) c.innerText).join(""),
 
   /* Private methods */
