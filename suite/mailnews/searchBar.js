@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
+
 var gSearchSession = null;
 var gPreQuickSearchView = null;
 var gSearchTimer = null;
@@ -21,15 +23,15 @@ function SetQSStatusText(aNumHits)
   var statusMsg;
   // if there are no hits, it means no matches were found in the search.
   if (aNumHits == 0)
-    statusMsg = gSearchBundle.getString("searchFailureMessage");
-  else 
   {
-    if (aNumHits == 1) 
-      statusMsg = gSearchBundle.getString("searchSuccessMessage");
-    else
-      statusMsg = gSearchBundle.getFormattedString("searchSuccessMessages", [aNumHits]);
+    statusMsg = gSearchBundle.getString("noMatchesFound");
   }
-
+  else
+  {
+    statusMsg = PluralForm.get(aNumHits,
+                               gSearchBundle.getString("matchesFound"));
+    statusMsg = statusMsg.replace("#1", aNumHits);
+  }
   statusFeedback.showStatusString(statusMsg);
 }
 
