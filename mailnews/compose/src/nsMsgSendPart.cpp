@@ -235,7 +235,8 @@ nsresult nsMsgSendPart::PushBody(const char* buffer, PRInt32 length)
   {
     nsresult rv = MIME_EncoderWrite(m_encoder_data, encoded_data, length);
     if (NS_FAILED(rv))
-      status = -1;
+      // XXX -1 is not a valid nsresult
+      status = static_cast<nsresult>(-1);
   }
   else
   {
@@ -246,7 +247,8 @@ nsresult nsMsgSendPart::PushBody(const char* buffer, PRInt32 length)
 
 
     buffer = mime_get_stream_write_buffer();
-    NS_ENSURE_TRUE(buffer, -1);
+    // XXX -1 is not a valid nsresult
+    NS_ENSURE_TRUE(buffer, static_cast<nsresult>(-1));
 
     NS_ASSERTION(encoded_data != buffer, "encoded_data == buffer");
     out = buffer;
@@ -458,7 +460,8 @@ nsMsgSendPart::Write()
        ( (!m_buffer) || (!*m_buffer) ) &&
        (!m_file) &&
        (!m_mainpart) )
-    return SKIP_EMPTY_PART;
+    // XXX SKIP_EMPTY_PART (= 1966) is not a valid nsresult
+    return static_cast<nsresult>(SKIP_EMPTY_PART);
 
   if (m_mainpart && m_type && PL_strcmp(m_type, TEXT_HTML) == 0) 
   {     
@@ -740,7 +743,8 @@ nsMsgSendPart::Write()
     needToWriteCRLFAfterEncodedBody = !m_parent;
     if (NS_FAILED(rv))
     {
-      status = -1;
+      // XXX -1 is not a valid nsresult
+      status = static_cast<nsresult>(-1);
       goto FAIL;
     }
   }
@@ -768,7 +772,8 @@ nsMsgSendPart::Write()
       if (NS_FAILED(status))
         goto FAIL;
 
-      if (status == SKIP_EMPTY_PART)
+      // XXX SKIP_EMPTY_PART (= 1966) is not a valid nsresult
+      if (status == static_cast<nsresult>(SKIP_EMPTY_PART))
         writeSeparator = false;
       else
         writeSeparator = true;

@@ -942,7 +942,9 @@ const char output[] = "\
   else if (mBridgeStream)
   {
     nsMIMESession   *tSession = (nsMIMESession *) mBridgeStream;
-    rc = tSession->put_block((nsMIMESession *)mBridgeStream, buf, readLen);
+    // XXX Casting int to nsresult
+    rc = static_cast<nsresult>(
+      tSession->put_block((nsMIMESession *)mBridgeStream, buf, readLen));
   }
 
   PR_FREEIF(buf);

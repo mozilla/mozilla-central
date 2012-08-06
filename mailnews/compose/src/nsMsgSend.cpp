@@ -2644,8 +2644,14 @@ nsMsgComposeAndSend::HackAttachments(nsIArray *attachments,
           const PRUnichar *params[] = { attachmentFileName.get() };
           mComposeBundle->FormatStringFromID(NS_ERROR_GET_CODE(NS_MSG_ERROR_ATTACHING_FILE), params, 1, getter_Copies(errorMsg));
           mSendReport->SetMessage(nsIMsgSendReport::process_Current, errorMsg.get(), false);
-          mSendReport->SetError(nsIMsgSendReport::process_Current, NS_MSG_GENERATE_FAILURE(NS_MSG_ERROR_ATTACHING_FILE) /* status */,
-                                false);
+          mSendReport->SetError(nsIMsgSendReport::process_Current,
+              // XXX The following applies NS_ERROR_GENERATE_FAILURE twice,
+              // which doesn't make sense.  Just NS_MSG_ERROR_ATTACHING_FILE is
+              // surely what was intended.
+              NS_ERROR_GENERATE_FAILURE(
+                NS_ERROR_MODULE_MAILNEWS,
+                static_cast<PRUint32>(NS_MSG_ERROR_ATTACHING_FILE)),
+              false);
         }
         return NS_MSG_ERROR_ATTACHING_FILE;
       }

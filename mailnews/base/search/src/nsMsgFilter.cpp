@@ -313,7 +313,8 @@ nsMsgFilter::GetSortedActionList(nsISupportsArray *actionList)
       case nsMsgFilterAction::FetchBodyFromPop3Server:
       {
         // always insert in front
-        rv = actionList->InsertElementAt(action, 0);
+        // XXX Cast from bool to nsresult
+        rv = static_cast<nsresult>(actionList->InsertElementAt(action, 0));
         NS_ENSURE_SUCCESS(rv, rv);
         ++nextIndexForNormal;
         ++nextIndexForCopy;
@@ -324,7 +325,8 @@ nsMsgFilter::GetSortedActionList(nsISupportsArray *actionList)
       case nsMsgFilterAction::CopyToFolder:
       {
         // insert into copy actions block, in order of appearance
-        rv = actionList->InsertElementAt(action, nextIndexForCopy);
+        // XXX Cast from bool to nsresult
+        rv = static_cast<nsresult>(actionList->InsertElementAt(action, nextIndexForCopy));
         NS_ENSURE_SUCCESS(rv, rv);
         ++nextIndexForCopy;
         ++nextIndexForMove;
@@ -335,7 +337,8 @@ nsMsgFilter::GetSortedActionList(nsISupportsArray *actionList)
       case nsMsgFilterAction::Delete:
       {
         // insert into move/delete action block
-        rv = actionList->InsertElementAt(action, nextIndexForMove);
+        // XXX Cast from bool to nsresult
+        rv = static_cast<nsresult>(actionList->InsertElementAt(action, nextIndexForMove));
         NS_ENSURE_SUCCESS(rv, rv);
         ++nextIndexForMove;
         break;
@@ -344,7 +347,8 @@ nsMsgFilter::GetSortedActionList(nsISupportsArray *actionList)
       case nsMsgFilterAction::StopExecution:
       {
         // insert into stop action block
-        rv = actionList->AppendElement(action);
+        // XXX Cast from bool to nsresult
+        rv = static_cast<nsresult>(actionList->AppendElement(action));
         NS_ENSURE_SUCCESS(rv, rv);
         break;
       }
@@ -352,7 +356,8 @@ nsMsgFilter::GetSortedActionList(nsISupportsArray *actionList)
       default:
       {
         // insert into normal action block, in order of appearance
-        rv = actionList->InsertElementAt(action, nextIndexForNormal);
+        // XXX Cast from bool to nsresult
+        rv = static_cast<nsresult>(actionList->InsertElementAt(action, nextIndexForNormal));
         NS_ENSURE_SUCCESS(rv, rv);
         ++nextIndexForNormal;
         ++nextIndexForCopy;

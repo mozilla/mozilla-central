@@ -99,23 +99,27 @@ morkCursor::GetStrongRefCount(nsIMdbEnv* mev, // strong refs
 NS_IMETHODIMP
 morkCursor::AddWeakRef(nsIMdbEnv* mev)
 {
-  return morkNode::AddWeakRef((morkEnv *) mev);
+  // XXX Casting mork_refs to nsresult
+  return static_cast<nsresult>(morkNode::AddWeakRef((morkEnv *) mev));
 }
 NS_IMETHODIMP
 morkCursor::AddStrongRef(nsIMdbEnv* mev)
 {
-  return morkNode::AddStrongRef((morkEnv *) mev);
+  // XXX Casting mork_uses to nsresult
+  return static_cast<nsresult>(morkNode::AddStrongRef((morkEnv *) mev));
 }
 
 NS_IMETHODIMP
 morkCursor::CutWeakRef(nsIMdbEnv* mev)
 {
-  return morkNode::CutWeakRef((morkEnv *) mev);
+  // XXX Casting mork_refs to nsresult
+  return static_cast<nsresult>(morkNode::CutWeakRef((morkEnv *) mev));
 }
 NS_IMETHODIMP
 morkCursor::CutStrongRef(nsIMdbEnv* mev)
 {
-  return morkNode::CutStrongRef((morkEnv *) mev);
+  // XXX Casting mork_uses to nsresult
+  return static_cast<nsresult>(morkNode::CutStrongRef((morkEnv *) mev));
 }
 
   

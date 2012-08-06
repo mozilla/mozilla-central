@@ -663,7 +663,8 @@ NS_IMETHODIMP nsIMAPHostSessionList::AddShellToCacheForHost(const char *serverKe
 		{
 			bool rv = host->fShellCache->AddShellToCache(shell);
 			PR_ExitMonitor(gCachedHostInfoMonitor);
-			return rv;
+			// XXX Cast of bool to nsresult
+			return static_cast<nsresult>(rv);
 		}
 		else
 		{

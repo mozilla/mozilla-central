@@ -1310,24 +1310,28 @@ NS_IMETHODIMP
 morkStore::AddWeakRef(nsIMdbEnv* mev)
 {
   morkEnv *ev  = morkEnv::FromMdbEnv(mev);
-  return morkNode::AddWeakRef(ev);
+  // XXX Casting mork_refs to nsresult
+  return static_cast<nsresult>(morkNode::AddWeakRef(ev));
 }
 NS_IMETHODIMP
 morkStore::AddStrongRef(nsIMdbEnv* mev)
 {
-  return AddRef();
+  // XXX Casting nsrefcnt to nsresult
+  return static_cast<nsresult>(AddRef());
 }
 
 NS_IMETHODIMP
 morkStore::CutWeakRef(nsIMdbEnv* mev)
 {
   morkEnv *ev  = morkEnv::FromMdbEnv(mev);
-  return morkNode::CutWeakRef(ev);
+  // XXX Casting mork_refs to nsresult
+  return static_cast<nsresult>(morkNode::CutWeakRef(ev));
 }
 NS_IMETHODIMP
 morkStore::CutStrongRef(nsIMdbEnv* mev)
 {
-  return Release();
+  // XXX Casting nsrefcnt to nsresult
+  return static_cast<nsresult>(Release());
 }
 
 NS_IMETHODIMP

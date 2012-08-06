@@ -454,7 +454,8 @@ nsNNTPNewsgroupList::AddToKnownArticles(PRInt32 first, PRInt32 last)
       return NS_ERROR_OUT_OF_MEMORY;
   }
 
-  status = m_knownArts.set->AddRange(first, last);
+  // XXX Casting int to nsresult
+  status = static_cast<nsresult>(m_knownArts.set->AddRange(first, last));
 
   if (m_newsDB) {
     nsresult rv = NS_OK;

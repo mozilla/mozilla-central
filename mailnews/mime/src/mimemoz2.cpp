@@ -593,7 +593,8 @@ MimeGetAttachmentList(MimeObject *tobj, const char *aMessageURL, nsMsgAttachment
   cobj = (MimeContainer*) obj;
   n = CountTotalMimeAttachments(cobj);
   if (n <= 0)
-    return n;
+    // XXX n is a regular number here, not meaningful as an nsresult
+    return static_cast<nsresult>(n);
 
   // in case of an inline message (as body), we need an extra slot for the
   // message itself that we will fill later...

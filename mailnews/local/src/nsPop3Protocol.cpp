@@ -3563,7 +3563,9 @@ nsPop3Protocol::HandleLine(char *line, PRUint32 line_length)
             // fixed to return errors)
 
             if (NS_FAILED(rv))
-              return (Error((rv == NS_MSG_ERROR_COPYING_FROM_TMP_DOWNLOAD)
+              // XXX Error() returns -1, which is not a valid nsresult
+              return static_cast<nsresult>(Error(
+                             (rv == NS_MSG_ERROR_COPYING_FROM_TMP_DOWNLOAD)
                              ? POP3_TMP_DOWNLOAD_FAILED
                              : POP3_MESSAGE_WRITE_ERROR));
 
@@ -3729,7 +3731,8 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
   if(m_username.IsEmpty())
   {
     // net_pop3_block = false;
-    return(Error(POP3_USERNAME_UNDEFINED));
+    // XXX Error() returns -1, which is not a valid nsresult
+    return static_cast<nsresult>(Error(POP3_USERNAME_UNDEFINED));
   }
 
   while(!m_pop3ConData->pause_for_read)

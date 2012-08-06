@@ -198,7 +198,8 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteDirectory(nsIAbDirectory *directory)
   PRUint32 dirIndex;
   if (m_AddressList && NS_SUCCEEDED(m_AddressList->IndexOf(0, directory, &dirIndex)))
     m_AddressList->RemoveElementAt(dirIndex);
-  rv = mSubDirectories.RemoveObject(directory);
+  // XXX Cast from bool to nsresult
+  rv = static_cast<nsresult>(mSubDirectories.RemoveObject(directory));
 
   NotifyItemDeleted(directory);
   return rv;

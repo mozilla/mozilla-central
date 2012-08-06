@@ -1570,7 +1570,8 @@ PRInt32 nsSmtpProtocol::SendRecipientResponse()
 
 nsresult nsSmtpProtocol::SendData(const char *dataBuffer, bool aSuppressLogging)
 {
-  if (!dataBuffer) return -1;
+  // XXX -1 is not a valid nsresult
+  if (!dataBuffer) return static_cast<nsresult>(-1);
 
   if (!aSuppressLogging) {
       PR_LOG(SMTPLogModule, PR_LOG_ALWAYS, ("SMTP Send: %s", dataBuffer));

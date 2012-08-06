@@ -699,7 +699,9 @@ nsMimeBaseEmitter::GenerateDateString(const char * dateString,
     dateFormatPrefs->SetBoolPref("date_senders_timezone", true);
 
   PRExplodedTime explodedMsgTime;
-  rv = PR_ParseTimeStringToExplodedTime(dateString, false, &explodedMsgTime);
+  // XXX Casting PRStatus to nsresult
+  rv = static_cast<nsresult>(
+    PR_ParseTimeStringToExplodedTime(dateString, false, &explodedMsgTime));
   /**
    * To determine the date format to use, comparison of current and message
    * time has to be made. If displaying in local time, both timestamps have

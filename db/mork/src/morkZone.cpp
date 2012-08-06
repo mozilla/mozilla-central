@@ -499,7 +499,8 @@ morkZone::Alloc(nsIMdbEnv* mev, // allocate a piece of memory
     outErr = ev->AsErr();
   }
   else
-    outErr = 1;
+    // XXX 1 is not a valid mdb_err (= nsresult)
+    outErr = static_cast<mdb_err>(1);
     
   if ( outBlock )
     *outBlock = block;
@@ -521,7 +522,8 @@ morkZone::Free(nsIMdbEnv* mev, // free block allocated earlier by Alloc()
       outErr = ev->AsErr();
     }
     else
-      outErr = 1;
+      // XXX 1 is not a valid mdb_err (= nsresult)
+      outErr = static_cast<mdb_err>(1);
   }
     
   return outErr;

@@ -206,8 +206,10 @@ nsresult nsAbLDAPProcessReplicationData::DoTask()
   mState = kReplicatingAll;
 
   if (mListener && NS_SUCCEEDED(rv))
+    // XXX Cast from bool to nsresult
     mListener->OnStateChange(nullptr, nullptr,
-                             nsIWebProgressListener::STATE_START, true);
+                             nsIWebProgressListener::STATE_START,
+                             static_cast<nsresult>(true));
 
   return mOperation->SearchExt(dn, scope, urlFilter, attributes, 0, 0);
 }
@@ -468,7 +470,10 @@ void nsAbLDAPProcessReplicationData::Done(bool aSuccess)
      mQuery->Done(aSuccess);
 
    if (mListener)
-       mListener->OnStateChange(nullptr, nullptr, nsIWebProgressListener::STATE_STOP, aSuccess);
+       // XXX Cast from bool to nsresult
+       mListener->OnStateChange(nullptr, nullptr,
+           nsIWebProgressListener::STATE_STOP,
+           static_cast<nsresult>(aSuccess));
 
    // since this is called when all is done here, either on success,
    // failure or abort release the query now.

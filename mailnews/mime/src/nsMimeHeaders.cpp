@@ -28,7 +28,8 @@ nsresult nsMimeHeaders::Initialize(const char *aAllHeaders, PRInt32 allHeadersSi
 
   mHeaders = MimeHeaders_new();
   if (mHeaders)
-    return MimeHeaders_parse_line(aAllHeaders, allHeadersSize, mHeaders);
+    // XXX This function returns -1 in some paths, not nsresult
+    return static_cast<nsresult>(MimeHeaders_parse_line(aAllHeaders, allHeadersSize, mHeaders));
 
   return NS_ERROR_OUT_OF_MEMORY;
 }

@@ -219,7 +219,8 @@ nsresult nsMsgComposeSecure::GetSMIMEBundleString(const PRUnichar *name,
   if (!InitializeSMIMEBundle())
     return NS_ERROR_FAILURE;
 
-  return NS_SUCCEEDED(mSMIMEBundle->GetStringFromName(name, outString));
+  // XXX Cast of bool to nsresult
+  return static_cast<nsresult>(NS_SUCCEEDED(mSMIMEBundle->GetStringFromName(name, outString)));
 }
 
 nsresult
@@ -402,7 +403,8 @@ NS_IMETHODIMP nsMsgComposeSecure::BeginCryptoEncapsulation(nsIOutputStream * aSt
   case mime_crypto_none:
     /* This can happen if mime_crypto_hack_certs() decided to turn off
      encryption (by asking the user.) */
-    rv = 1;
+    // XXX 1 is not a valid nsresult
+    rv = static_cast<nsresult>(1);
     break;
   default:
     PR_ASSERT(0);
@@ -461,7 +463,8 @@ nsresult nsMsgComposeSecure::MimeInitMultipartSigned(bool aOuter, nsIMsgSendRepo
     PRUint32 n;
     rv = mStream->Write(header, L, &n);
     if (NS_FAILED(rv) || n < L) {
-      rv = MK_MIME_ERROR_WRITING_FILE;
+      // XXX This is -1, not an nsresult
+      rv = static_cast<nsresult>(MK_MIME_ERROR_WRITING_FILE);
     }
   } else {
     /* If this is an inner block, feed it through the crypto stream. */
@@ -659,7 +662,8 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (bool aOuter, nsIMsgSendR
     PRUint32 n;
     rv = mStream->Write(header, L, &n);
     if (NS_FAILED(rv) || n < L) {
-      rv = MK_MIME_ERROR_WRITING_FILE;
+      // XXX This is -1, not an nsresult
+      rv = static_cast<nsresult>(MK_MIME_ERROR_WRITING_FILE);
     } 
   } else {
     /* If this is an inner block, feed it through the crypto stream. */
@@ -738,7 +742,8 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (bool aOuter, nsIMsgSendR
     PRUint32 n;
     rv = mStream->Write(header, L, &n);
     if (NS_FAILED(rv) || n < L)
-      rv = MK_MIME_ERROR_WRITING_FILE;
+      // XXX This is -1, not an nsresult
+      rv = static_cast<nsresult>(MK_MIME_ERROR_WRITING_FILE);
   } else {
     /* If this is an inner block, feed it through the crypto stream. */
     rv = MimeCryptoWriteBlock (header, L);
@@ -852,7 +857,8 @@ nsresult nsMsgComposeSecure::MimeCryptoHackCerts(const char *aRecipients,
 
   pHeader->ParseHeaderAddresses(mailboxes.get(), 0, &mailbox_list, &count);
 
-  if (count < 0) return count;
+  // XXX This is not a valid use of nsresult
+  if (count < 0) return static_cast<nsresult>(count);
 
   if (aEncrypt && mSelfEncryptionCert) {
     // Make sure self's configured cert is prepared for being used
@@ -942,9 +948,12 @@ NS_IMETHODIMP nsMsgComposeSecure::MimeCryptoWriteBlock (const char *buf, PRInt32
   */
   if (size >= 5 && buf[0] == 'F' && !strncmp(buf, "From ", 5)) {
     char mangle[] = ">";
-    status = MimeCryptoWriteBlock (mangle, 1);
-    if (status < 0)
-    return status;
+    nsresult res = MimeCryptoWriteBlock (mangle, 1);
+    if (NS_FAILED(res))
+      return res;
+    // This value will actually be cast back to an nsresult before use, so this
+    // cast is reasonable under the circumstances.
+    status = static_cast<int>(res);
   }
 
   /* If we're signing, or signing-and-encrypting, feed this data into
@@ -993,11 +1002,14 @@ NS_IMETHODIMP nsMsgComposeSecure::MimeCryptoWriteBlock (const char *buf, PRInt32
     PRUint32 n;
     rv = mStream->Write(buf, size, &n);
     if (NS_FAILED(rv) || n < size) {
-      return MK_MIME_ERROR_WRITING_FILE;
+      // XXX MK_MIME_ERROR_WRITING_FILE is -1, which is not a valid nsresult
+      return static_cast<nsresult>(MK_MIME_ERROR_WRITING_FILE);
     }
   }
  FAIL:
-  return status;
+  // XXX status sometimes has invalid nsresults like -1 or PR_GetError()
+  // assigned to it
+  return static_cast<nsresult>(status);
 }
 
 /* Returns a string consisting of a Content-Type header, and a boundary
