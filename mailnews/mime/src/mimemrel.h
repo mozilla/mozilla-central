@@ -10,6 +10,7 @@
 #include "plhash.h"
 #include "prio.h"
 #include "nsNetUtil.h"
+#include "nsIMimeConverter.h" // for MimeConverterOutputCallback
 
 /* The MimeMultipartRelated class implements the multipart/related MIME
    container, which allows `sibling' sub-parts to refer to each other.
@@ -48,7 +49,7 @@ struct MimeMultipartRelated {
 
   PLHashTable    *hash;
 
-  int (*real_output_fn) (const char *buf, PRInt32 size, void *stream_closure);
+  MimeConverterOutputCallback real_output_fn;
   void* real_output_closure;
 
   char* curtag;

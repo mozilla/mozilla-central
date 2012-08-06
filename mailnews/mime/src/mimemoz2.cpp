@@ -913,7 +913,7 @@ mime_convert_charset (const char *input_line, PRInt32 input_length,
   return 0;
 }
 
-static int
+static nsresult
 mime_output_fn(const char *buf, PRInt32 size, void *stream_closure)
 {
   PRUint32  written = 0;

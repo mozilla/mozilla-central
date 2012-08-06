@@ -47,6 +47,7 @@
 #include "nsIMsgHeaderParser.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
+#include "nsIMimeConverter.h" // for MimeConverterOutputCallback
 
 //
 // Header strings...
@@ -1868,7 +1869,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
   // for the message. This way, we have native data
   if (creatingMsgBody)
   {
-    MimeDecoderData *(*fn) (nsresult (*) (const char*, PRInt32, void*), void*) = 0;
+    MimeDecoderData *(*fn) (MimeConverterOutputCallback, void*) = 0;
 
     //
     // Initialize a decoder if necessary.
@@ -1877,9 +1878,9 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
       fn = &MimeB64DecoderInit;
     else if (newAttachment->m_encoding.LowerCaseEqualsLiteral(ENCODING_QUOTED_PRINTABLE))
     {
-      mdd->decoder_data = MimeQPDecoderInit (/* The (nsresult (*) ...) cast is to turn the `void' argument into `MimeObject'. */
-                              ((nsresult (*) (const char *, PRInt32, void *))
-                              dummy_file_write), mdd->tmpFileStream);
+      mdd->decoder_data = MimeQPDecoderInit (/* The (MimeConverterOutputCallback) cast is to turn the `void' argument into `MimeObject'. */
+                              ((MimeConverterOutputCallback) dummy_file_write),
+                              mdd->tmpFileStream);
       if (!mdd->decoder_data)
         return MIME_OUT_OF_MEMORY;
     }
@@ -1893,9 +1894,10 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
 
     if (fn)
     {
-      mdd->decoder_data = fn (/* The (nsresult (*) ...) cast is to turn the `void' argument into `MimeObject'. */
-                              ((nsresult (*) (const char *, PRInt32, void *))
-                              dummy_file_write), mdd->tmpFileStream);
+      mdd->decoder_data = fn (/* The (MimeConverterOutputCallback) cast is to
+                                 turn the `void' argument into `MimeObject'. */
+                              ((MimeConverterOutputCallback) dummy_file_write),
+                              mdd->tmpFileStream);
       if (!mdd->decoder_data)
         return MIME_OUT_OF_MEMORY;
     }

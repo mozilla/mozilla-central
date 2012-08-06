@@ -481,10 +481,9 @@ MimeMultipartAlternative_display_cached_part(MimeObject *obj,
 #endif /* MIME_DRAFTS */
 
   status = MimePartBufferRead (buffer,
-                  /* The (nsresult (*) ...) cast is to turn the
+                  /* The MimeConverterOutputCallback cast is to turn the
                    `void' argument into `MimeObject'. */
-                  ((nsresult (*) (const char *, PRInt32, void *))
-                  body->clazz->parse_buffer),
+                  ((MimeConverterOutputCallback) body->clazz->parse_buffer),
                   body);
 
   if (status < 0) return status;

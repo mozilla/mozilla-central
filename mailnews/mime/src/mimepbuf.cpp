@@ -232,7 +232,7 @@ MimePartBufferWrite (MimePartBufferData *data,
 
 int
 MimePartBufferRead (MimePartBufferData *data,
-          nsresult (*read_fn) (const char *buf, PRInt32 size, void *closure),
+          MimeConverterOutputCallback read_fn,
           void *closure)
 {
   int status = 0;

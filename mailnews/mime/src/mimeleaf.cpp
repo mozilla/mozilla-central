@@ -87,7 +87,7 @@ static int
 MimeLeaf_parse_begin (MimeObject *obj)
 {
   MimeLeaf *leaf = (MimeLeaf *) obj;
-  MimeDecoderData *(*fn) (nsresult (*) (const char*, PRInt32, void*), void*) = 0;
+  MimeDecoderData *(*fn) (MimeConverterOutputCallback, void*) = 0;
 
   /* Initialize a decoder if necessary.
    */
@@ -97,7 +97,7 @@ MimeLeaf_parse_begin (MimeObject *obj)
   fn = &MimeB64DecoderInit;
   else if (!PL_strcasecmp(obj->encoding, ENCODING_QUOTED_PRINTABLE))
   leaf->decoder_data = 
-          MimeQPDecoderInit(((nsresult (*) (const char *, PRInt32, void *))
+          MimeQPDecoderInit(((MimeConverterOutputCallback)
                         ((MimeLeafClass *)obj->clazz)->parse_decoded_buffer),
                         obj, obj);
   else if (!PL_strcasecmp(obj->encoding, ENCODING_UUENCODE) ||
@@ -111,9 +111,9 @@ MimeLeaf_parse_begin (MimeObject *obj)
   if (fn)
   {
     leaf->decoder_data =
-    fn (/* The (nsresult (*) ...) cast is to turn the `void' argument
-         into `MimeObject'. */
-      ((nsresult (*) (const char *, PRInt32, void *))
+    fn (/* The MimeConverterOutputCallback cast is to turn the `void' argument
+           into `MimeObject'. */
+      ((MimeConverterOutputCallback)
        ((MimeLeafClass *)obj->clazz)->parse_decoded_buffer),
       obj);
 

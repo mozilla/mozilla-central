@@ -12,6 +12,7 @@
 #include "plstr.h"
 #include "prlog.h"
 #include "mimemult.h"
+#include "nsIMimeConverter.h" // for MimeConverterOutputCallback
 
 
 #define MIME_SUPERCLASS mimeContainerClass
@@ -67,7 +68,7 @@ static int
 MimeEncrypted_parse_begin (MimeObject *obj)
 {
   MimeEncrypted *enc = (MimeEncrypted *) obj;
-  MimeDecoderData *(*fn) (nsresult (*) (const char*, PRInt32, void*), void*) = 0;
+  MimeDecoderData *(*fn) (MimeConverterOutputCallback, void*) = 0;
 
   if (enc->crypto_closure)
   return -1;
@@ -87,9 +88,9 @@ MimeEncrypted_parse_begin (MimeObject *obj)
   else if (!PL_strcasecmp(obj->encoding, ENCODING_QUOTED_PRINTABLE))
   {
     enc->decoder_data =
-    MimeQPDecoderInit (/* The (int (*) ...) cast is to turn the `void' argument
-         into `MimeObject'. */
-      ((nsresult (*) (const char *, PRInt32, void *))
+    MimeQPDecoderInit (/* The (MimeConverterOutputCallback) cast is to turn the
+                          `void' argument into `MimeObject'. */
+      ((MimeConverterOutputCallback)
        ((MimeEncryptedClass *)obj->clazz)->parse_decoded_buffer),
       obj);
 
@@ -106,9 +107,9 @@ MimeEncrypted_parse_begin (MimeObject *obj)
   if (fn)
   {
     enc->decoder_data =
-    fn (/* The (int (*) ...) cast is to turn the `void' argument
-         into `MimeObject'. */
-      ((nsresult (*) (const char *, PRInt32, void *))
+    fn (/* The (MimeConverterOutputCallback) cast is to turn the `void'
+           argument into `MimeObject'. */
+      ((MimeConverterOutputCallback)
        ((MimeEncryptedClass *)obj->clazz)->parse_decoded_buffer),
       obj);
 
@@ -525,19 +526,18 @@ MimeEncrypted_emit_buffered_child(MimeObject *obj)
 #ifdef MIME_DRAFTS
     if (obj->options->decompose_file_p && !obj->options->is_multipart_msg)
     status = MimePartBufferRead(enc->part_buffer,
-                /* The (nsresult (*) ...) cast is to turn the `void'
+                /* The (MimeConverterOutputCallback) cast is to turn the `void'
                    argument into `MimeObject'. */
-                 ((nsresult (*) (const char *, PRInt32, void *))
+                 ((MimeConverterOutputCallback)
                 obj->options->decompose_file_output_fn),
                 obj->options->stream_closure);
     else
 #endif /* MIME_DRAFTS */
 
   status = MimePartBufferRead(enc->part_buffer,
-                /* The (nsresult (*) ...) cast is to turn the `void'
+                /* The (MimeConverterOutputCallback) cast is to turn the `void'
                    argument into `MimeObject'. */
-                 ((nsresult (*) (const char *, PRInt32, void *))
-                 body->clazz->parse_buffer),
+                 ((MimeConverterOutputCallback) body->clazz->parse_buffer),
                 body);
   if (status < 0) return status;
 

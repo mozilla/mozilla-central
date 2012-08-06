@@ -13,6 +13,8 @@
 
 #include "prtypes.h"
 #include "nsError.h"
+#include "nscore.h" // for nullptr
+#include "nsIMimeConverter.h" // for MimeConverterOutputCallback
 
 /* This file defines interfaces to generic implementations of Base64,
    Quoted-Printable, and UU decoders; and of Base64 and Quoted-Printable
@@ -29,33 +31,23 @@ struct MimeObject;
 
 /* functions for creating that opaque data.
  */
-MimeDecoderData *MimeB64DecoderInit(nsresult (*output_fn) (const char *buf,PRInt32 size, void *closure),
+MimeDecoderData *MimeB64DecoderInit(MimeConverterOutputCallback output_fn,
                   void *closure);
 
-MimeDecoderData *MimeQPDecoderInit (nsresult (*output_fn) (const char *buf, PRInt32 size, void *closure),
+MimeDecoderData *MimeQPDecoderInit (MimeConverterOutputCallback output_fn,
                   void *closure, MimeObject *object = nullptr);
 
-MimeDecoderData *MimeUUDecoderInit (nsresult (*output_fn) (const char *buf,
-                            PRInt32 size,
-                            void *closure),
+MimeDecoderData *MimeUUDecoderInit (MimeConverterOutputCallback output_fn,
                   void *closure);
-MimeDecoderData *MimeYDecoderInit (nsresult (*output_fn) (const char *buf,
-                            PRInt32 size,
-                            void *closure),
+MimeDecoderData *MimeYDecoderInit (MimeConverterOutputCallback output_fn,
                   void *closure);
 
-MimeEncoderData *MimeB64EncoderInit(nsresult (*output_fn) (const char *buf,
-                            PRInt32 size,
-                            void *closure),
+MimeEncoderData *MimeB64EncoderInit(MimeConverterOutputCallback output_fn,
                   void *closure);
-MimeEncoderData *MimeQPEncoderInit (nsresult (*output_fn) (const char *buf,
-                            PRInt32 size,
-                            void *closure),
+MimeEncoderData *MimeQPEncoderInit (MimeConverterOutputCallback output_fn,
                   void *closure);
 MimeEncoderData *MimeUUEncoderInit (const char *filename,
-                  nsresult (*output_fn) (const char *buf,
-                            PRInt32 size,
-                            void *closure),
+                  MimeConverterOutputCallback output_fn,
                   void *closure);
 
 /* Push data through the encoder/decoder, causing the above-provided write_fn

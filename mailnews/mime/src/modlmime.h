@@ -19,6 +19,7 @@
 #include "nsIPrefBranch.h"
 #include "mozITXTToHTMLConv.h"
 #include "nsCOMPtr.h"
+#include "nsIMimeConverter.h" // for MimeConverterOutputCallback
 
 #define MIME_DRAFTS
 
@@ -207,7 +208,7 @@ public:
              void *stream_closure);
 
   /* How the MIME parser feeds its output (HTML or raw) back to the caller. */
-  int (*output_fn) (const char *buf, PRInt32 size, void *closure);
+  MimeConverterOutputCallback output_fn;
 
   /* Closure to pass to the above output_fn.  If NULL, then the
    stream_closure is used. */
@@ -338,8 +339,7 @@ public:
   nsresult (*decompose_file_init_fn) (void *stream_closure,
                  MimeHeaders *headers );
 
-  nsresult (*decompose_file_output_fn) (const char *buf, PRInt32 size,
-                   void *stream_closure);
+  MimeConverterOutputCallback decompose_file_output_fn;
 
   nsresult (*decompose_file_close_fn) (void *stream_closure);
 #endif /* MIME_DRAFTS */

@@ -37,7 +37,7 @@ static char *mime_make_separator(const char *prefix);
 // mscott --> FIX ME...for now cloning code from compose\nsMsgEncode.h/.cpp
 
 MimeEncoderData *
-MIME_B64EncoderInit(nsresult (* output_fn) (const char *buf, PRInt32 size, void *closure), void *closure)
+MIME_B64EncoderInit(MimeConverterOutputCallback output_fn, void *closure)
 {
   MimeEncoderData *returnEncoderData = nullptr;
   nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
@@ -48,7 +48,7 @@ MIME_B64EncoderInit(nsresult (* output_fn) (const char *buf, PRInt32 size, void 
 }
 
 MimeEncoderData *
-MIME_QPEncoderInit(nsresult (* output_fn) (const char *buf, PRInt32 size, void *closure), void *closure) 
+MIME_QPEncoderInit(MimeConverterOutputCallback output_fn, void *closure)
 {
   MimeEncoderData *returnEncoderData = nullptr;
   nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);

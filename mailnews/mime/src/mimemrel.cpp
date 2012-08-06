@@ -950,7 +950,7 @@ flush_tag(MimeMultipartRelated* relobj)
 
 
 
-static int
+static nsresult
 mime_multipart_related_output_fn(const char* buf, PRInt32 size, void *stream_closure)
 {
   MimeMultipartRelated *relobj = (MimeMultipartRelated *) stream_closure;

@@ -113,8 +113,8 @@ nsMimeConverter::EncodeMimePartIIStr_UTF8(const nsACString &header,
 
 
 nsresult
-nsMimeConverter::B64EncoderInit(nsresult (*output_fn) (const char *buf,
-                                PRInt32 size, void *closure), void *closure,
+nsMimeConverter::B64EncoderInit(MimeConverterOutputCallback output_fn,
+                                void *closure,
                                 MimeEncoderData **returnEncoderData)
 {
   NS_ENSURE_ARG_POINTER(returnEncoderData);
@@ -129,8 +129,8 @@ nsMimeConverter::B64EncoderInit(nsresult (*output_fn) (const char *buf,
 }
 
 nsresult
-nsMimeConverter::QPEncoderInit(nsresult (*output_fn) (const char *buf,
-                               PRInt32 size, void *closure), void *closure,
+nsMimeConverter::QPEncoderInit(MimeConverterOutputCallback output_fn,
+                               void *closure,
                                MimeEncoderData **returnEncoderData)
 {
   NS_ENSURE_ARG_POINTER(returnEncoderData);
