@@ -299,8 +299,8 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
   bool isHttp;
   bool isHttps;
   rv = originatorLocation->SchemeIs("http", &isHttp);
-  rv |= originatorLocation->SchemeIs("https", &isHttps);
-  if (NS_SUCCEEDED(rv) && (isHttp || isHttps))
+  nsresult rv2 = originatorLocation->SchemeIs("https", &isHttps);
+  if (NS_SUCCEEDED(rv) && NS_SUCCEEDED(rv2) && (isHttp || isHttps))
   {
     *aDecision = nsIContentPolicy::ACCEPT;
     return NS_OK;
@@ -330,9 +330,10 @@ nsMsgContentPolicy::IsSafeRequestingLocation(nsIURI *aRequestingLocation)
   bool isFile;
 
   nsresult rv = aRequestingLocation->SchemeIs("chrome", &isChrome);
-  rv |= aRequestingLocation->SchemeIs("resource", &isRes);
-  rv |= aRequestingLocation->SchemeIs("file", &isFile);
-
+  NS_ENSURE_SUCCESS(rv, false);
+  rv = aRequestingLocation->SchemeIs("resource", &isRes);
+  NS_ENSURE_SUCCESS(rv, false);
+  rv = aRequestingLocation->SchemeIs("file", &isFile);
   NS_ENSURE_SUCCESS(rv, false);
 
   if (isChrome || isRes || isFile)
@@ -382,9 +383,10 @@ nsMsgContentPolicy::IsExposedProtocol(nsIURI *aContentLocation)
   bool isChrome;
   bool isRes;
   rv = aContentLocation->SchemeIs("chrome", &isChrome);
-  rv |= aContentLocation->SchemeIs("resource", &isRes);
-  rv |= aContentLocation->SchemeIs("data", &isData);
-
+  NS_ENSURE_SUCCESS(rv, false);
+  rv = aContentLocation->SchemeIs("resource", &isRes);
+  NS_ENSURE_SUCCESS(rv, false);
+  rv = aContentLocation->SchemeIs("data", &isData);
   NS_ENSURE_SUCCESS(rv, false);
 
   return isChrome || isRes || isData;
@@ -399,11 +401,12 @@ nsMsgContentPolicy::ShouldBlockUnexposedProtocol(nsIURI *aContentLocation)
   bool isHttp;
   bool isHttps;
   bool isFile;
-  nsresult rv = aContentLocation->SchemeIs("http", &isHttp);
-  rv |= aContentLocation->SchemeIs("https", &isHttps);
-  rv |= aContentLocation->SchemeIs("file", &isFile);
-
   // Error condition - we must return true so that we block.
+  nsresult rv = aContentLocation->SchemeIs("http", &isHttp);
+  NS_ENSURE_SUCCESS(rv, true);
+  rv = aContentLocation->SchemeIs("https", &isHttps);
+  NS_ENSURE_SUCCESS(rv, true);
+  rv = aContentLocation->SchemeIs("file", &isFile);
   NS_ENSURE_SUCCESS(rv, true);
 
   return !isHttp && !isHttps && !isFile;

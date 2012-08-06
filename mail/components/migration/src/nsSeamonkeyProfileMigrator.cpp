@@ -594,18 +594,42 @@ nsSeamonkeyProfileMigrator::CopyPreferences(bool aReplace)
   if (!aReplace)
     return rv;
 
-  rv |= TransformPreferences(FILE_NAME_PREFS, FILE_NAME_PREFS);
-  rv |= CopyFile(FILE_NAME_USER_PREFS, FILE_NAME_USER_PREFS);
+  nsresult tmp = TransformPreferences(FILE_NAME_PREFS, FILE_NAME_PREFS);
+  if (NS_FAILED(tmp)) {
+    rv = tmp;
+  }
+  tmp = CopyFile(FILE_NAME_USER_PREFS, FILE_NAME_USER_PREFS);
+  if (NS_FAILED(tmp)) {
+    rv = tmp;
+  }
 
   // Security Stuff
-  rv |= CopyFile(FILE_NAME_CERT8DB, FILE_NAME_CERT8DB);
-  rv |= CopyFile(FILE_NAME_KEY3DB, FILE_NAME_KEY3DB);
-  rv |= CopyFile(FILE_NAME_SECMODDB, FILE_NAME_SECMODDB);
+  tmp = CopyFile(FILE_NAME_CERT8DB, FILE_NAME_CERT8DB);
+  if (NS_FAILED(tmp)) {
+    rv = tmp;
+  }
+  tmp = CopyFile(FILE_NAME_KEY3DB, FILE_NAME_KEY3DB);
+  if (NS_FAILED(tmp)) {
+    rv = tmp;
+  }
+  tmp = CopyFile(FILE_NAME_SECMODDB, FILE_NAME_SECMODDB);
+  if (NS_FAILED(tmp)) {
+    rv = tmp;
+  }
 
   // User MIME Type overrides
-  rv |= CopyFile(FILE_NAME_MIMETYPES, FILE_NAME_MIMETYPES);
-  rv |= CopyFile(FILE_NAME_PERSONALDICTIONARY, FILE_NAME_PERSONALDICTIONARY);
-  rv |= CopyFile(FILE_NAME_MAILVIEWS, FILE_NAME_MAILVIEWS);
+  tmp = CopyFile(FILE_NAME_MIMETYPES, FILE_NAME_MIMETYPES);
+  if (NS_FAILED(tmp)) {
+    rv = tmp;
+  }
+  tmp = CopyFile(FILE_NAME_PERSONALDICTIONARY, FILE_NAME_PERSONALDICTIONARY);
+  if (NS_FAILED(tmp)) {
+    rv = tmp;
+  }
+  tmp = CopyFile(FILE_NAME_MAILVIEWS, FILE_NAME_MAILVIEWS);
+  if (NS_FAILED(tmp)) {
+    rv = tmp;
+  }
   return rv;
 }
 

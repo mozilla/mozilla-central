@@ -144,11 +144,15 @@ nsMailGNOMEIntegration::SetDefaultClient(bool aForAllUsers, PRUint16 aApps)
 {
   nsresult rv = NS_OK;
   for (unsigned int i = 0; i < NS_ARRAY_LENGTH(sAppTypes); i++) {
-    if (aApps & sAppTypes[i].type)
-      rv |= MakeDefault(sAppTypes[i].protocols,
-                        NS_ARRAY_LENGTH(sAppTypes[i].protocols),
-                        sAppTypes[i].mimeType,
-                        sAppTypes[i].extensions);
+    if (aApps & sAppTypes[i].type) {
+      nsresult tmp = MakeDefault(sAppTypes[i].protocols,
+                                 NS_ARRAY_LENGTH(sAppTypes[i].protocols),
+                                 sAppTypes[i].mimeType,
+                                 sAppTypes[i].extensions);
+      if (NS_FAILED(tmp)) {
+        rv = tmp;
+      }
+    }
   }
 
   return rv;	
