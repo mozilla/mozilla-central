@@ -176,7 +176,7 @@ NS_IMETHODIMP
 morkTable::GetSeed(nsIMdbEnv* mev,
   mdb_seed* outSeed)    // member change count
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -259,7 +259,7 @@ morkTable::DropActivity( // tell collection usage no longer expected
 NS_IMETHODIMP
 morkTable::SetTablePriority(nsIMdbEnv* mev, mdb_priority inPrio)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -275,7 +275,7 @@ morkTable::SetTablePriority(nsIMdbEnv* mev, mdb_priority inPrio)
 NS_IMETHODIMP
 morkTable::GetTablePriority(nsIMdbEnv* mev, mdb_priority* outPrio)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mork_priority prio = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -305,7 +305,7 @@ morkTable:: GetTableBeVerbose(nsIMdbEnv* mev, mdb_bool* outBeVerbose)
 NS_IMETHODIMP
 morkTable::SetTableBeVerbose(nsIMdbEnv* mev, mdb_bool inBeVerbose)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -338,7 +338,7 @@ morkTable::GetTableKind(nsIMdbEnv* mev, mdb_kind* outTableKind)
 NS_IMETHODIMP
 morkTable::GetRowScope(nsIMdbEnv* mev, mdb_scope* outRowScope)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mdb_scope rowScope = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -383,7 +383,7 @@ morkTable::GetMetaRow( nsIMdbEnv* mev,
   // it will be different from inOptionalMetaRowOid when the meta row was
   // already given a different oid earlier.
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbRow* outRow = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -418,7 +418,7 @@ morkTable::GetTableRowCursor( // make a cursor, starting iteration at inRowPos
   mdb_pos inRowPos, // zero-based ordinal position of row in table
   nsIMdbTableRowCursor** acqCursor) // acquire new cursor instance
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbTableRowCursor* outCursor = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -449,7 +449,7 @@ morkTable::PosToOid( // get row member for a table position
   mdb_pos inRowPos, // zero-based ordinal position of row in table
   mdbOid* outOid) // row oid at the specified position
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mdbOid roid;
   roid.mOid_Scope = 0;
   roid.mOid_Id = (mork_id) -1;
@@ -474,7 +474,7 @@ morkTable::OidToPos( // test for the table position of a row member
   const mdbOid* inOid, // row to find in table
   mdb_pos* outPos) // zero-based ordinal position of row in table
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -492,7 +492,7 @@ morkTable::PosToRow( // get row member for a table position
   mdb_pos inRowPos, // zero-based ordinal position of row in table
   nsIMdbRow** acqRow) // acquire row at table position inRowPos
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbRow* outRow = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -514,7 +514,7 @@ morkTable::RowToPos( // test for the table position of a row member
   nsIMdbRow* ioRow, // row to find in table
   mdb_pos* outPos) // zero-based ordinal position of row in table
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mork_pos pos = -1;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -547,7 +547,7 @@ morkTable::HasOid( // test for the table position of a row member
   const mdbOid* inOid, // row to find in table
   mdb_bool* outHasOid) // whether inOid is a member row
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -563,7 +563,7 @@ morkTable::CutOid( // make sure the row with inOid is not a member
   nsIMdbEnv* mev, // context
   const mdbOid* inOid) // row to remove from table
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -589,7 +589,7 @@ morkTable::NewRow( // create a new row instance in table
   mdbOid* ioOid, // please use zero (unbound) rowId for db-assigned IDs
   nsIMdbRow** acqRow) // create new row
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbRow* outRow = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -620,7 +620,7 @@ morkTable::AddRow( // make sure the row with inOid is a table member
   nsIMdbEnv* mev, // context
   nsIMdbRow* ioRow) // row to ensure membership in table
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -638,7 +638,7 @@ morkTable::HasRow( // test for the table position of a row member
   nsIMdbRow* ioRow, // row to find in table
   mdb_bool* outBool) // zero-based ordinal position of row in table
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -657,7 +657,7 @@ morkTable::CutRow( // make sure the row with inOid is not a member
   nsIMdbEnv* mev, // context
   nsIMdbRow* ioRow) // row to remove from table
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -673,7 +673,7 @@ NS_IMETHODIMP
 morkTable::CutAllRows( // remove all rows from the table 
   nsIMdbEnv* mev) // context
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -837,7 +837,7 @@ morkTable::MoveOid( // change position of row in unsorted table
   mdb_pos inToPos,       // desired new position for row inOid
   mdb_pos* outActualPos) // actual new position of row in table
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mdb_pos actualPos = -1; // meaning it was never found in table
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -867,7 +867,7 @@ morkTable::MoveRow( // change position of row in unsorted table
   mdb_pos* outActualPos) // actual new position of row in table
 {
   mdb_pos actualPos = -1; // meaning it was never found in table
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {

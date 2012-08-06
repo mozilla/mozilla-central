@@ -254,7 +254,7 @@ mime_generate_headers (nsMsgCompFields *fields,
                        nsMsgDeliverMode deliver_mode, nsIPrompt * aPrompt, PRInt32 *status)
 {
   nsresult rv;
-  *status = 0;
+  *status = NS_OK;
 
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   if (NS_FAILED(rv)) {

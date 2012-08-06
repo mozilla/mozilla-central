@@ -43,7 +43,7 @@ nsresult nsByteArray::GrowBuffer(PRUint32 desired_size, PRUint32 quantum)
     m_buffer = new_buf;
     m_bufferSize += increment;
   }
-  return 0;
+  return NS_OK;
 }
 
 nsresult nsByteArray::AppendString(const char *string)

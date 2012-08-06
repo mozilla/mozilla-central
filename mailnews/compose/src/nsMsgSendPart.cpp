@@ -76,7 +76,7 @@ int nsMsgSendPart::CopyString(char** dest, const char* src)
   else
     *dest = PL_strdup(src);
   
-  return *dest? 0 : NS_ERROR_OUT_OF_MEMORY;
+  return *dest? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
 
@@ -98,7 +98,7 @@ int nsMsgSendPart::SetType(const char* type)
 {
   PR_FREEIF(m_type);
   m_type = PL_strdup(type);
-  return m_type ? 0 : NS_ERROR_OUT_OF_MEMORY;
+  return m_type ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
 
@@ -119,7 +119,7 @@ int nsMsgSendPart::SetMimeDeliveryState(nsIMsgSend *state)
         part->SetMimeDeliveryState(state);
     }
   }
-  return 0;
+  return NS_OK;
 }
 
 int nsMsgSendPart::AppendOtherHeaders(const char* more)
@@ -128,7 +128,7 @@ int nsMsgSendPart::AppendOtherHeaders(const char* more)
     return SetOtherHeaders(more);
 
   if (!more || !*more)
-    return 0;
+    return NS_OK;
 
   char* tmp = (char *) PR_Malloc(sizeof(char) * (PL_strlen(m_other) + PL_strlen(more) + 2));
   if (!tmp)
@@ -139,20 +139,20 @@ int nsMsgSendPart::AppendOtherHeaders(const char* more)
   PR_FREEIF(m_other);
   m_other = tmp;
 
-  return 0;
+  return NS_OK;
 }
 
 
 int nsMsgSendPart::SetEncoderData(MimeEncoderData* data)
 {
   m_encoder_data = data;
-  return 0;
+  return NS_OK;
 }
 
 int nsMsgSendPart::SetMainPart(bool value)
 {
   m_mainpart = value;
-  return 0;
+  return NS_OK;
 }
 
 int nsMsgSendPart::AddChild(nsMsgSendPart* child)
@@ -171,7 +171,7 @@ int nsMsgSendPart::AddChild(nsMsgSendPart* child)
   partNum.Append(".");
   partNum.AppendInt(m_numchildren);
   child->m_partNum = partNum;
-  return 0;
+  return NS_OK;
 }
 
 nsMsgSendPart * nsMsgSendPart::DetachChild(PRInt32 whichOne)
@@ -330,7 +330,7 @@ divide_content_headers(const char *headers,
       L = PL_strlen(headers);
     
     if (L == 0)
-      return 0;
+      return NS_OK;
     
     *message_headers = (char *)PR_Malloc(L+1);
     if (!*message_headers)
@@ -432,7 +432,7 @@ divide_content_headers(const char *headers,
     }
 #endif // DEBUG
     
-    return 0;
+    return NS_OK;
 }
 
 #define     SKIP_EMPTY_PART   1966

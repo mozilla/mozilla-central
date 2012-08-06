@@ -106,7 +106,7 @@ nsMsgPrintEngine::OnStateChange(nsIWebProgress* aWebProgress,
       }
       nsCOMPtr<nsIWebProgressListener> wpl(do_QueryInterface(mPrintPromptService));
       if (wpl) {
-        wpl->OnStateChange(nullptr, nullptr, nsIWebProgressListener::STATE_STOP|nsIWebProgressListener::STATE_IS_DOCUMENT, nullptr);
+        wpl->OnStateChange(nullptr, nullptr, nsIWebProgressListener::STATE_STOP|nsIWebProgressListener::STATE_IS_DOCUMENT, NS_OK);
         mPrintProgressListener = nullptr;
         mPrintProgress         = nullptr;
         mPrintProgressParams   = nullptr;

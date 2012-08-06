@@ -179,7 +179,7 @@ morkFactory::OpenOldFile(nsIMdbEnv* mev, nsIMdbHeap* ioHeap,
   // files must be opened is considered a subclass specific detail, and
   // other portions or Mork source code don't want to know how it's done.
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   morkFile* file = nullptr;
   if ( ev )
@@ -208,7 +208,7 @@ morkFactory::CreateNewFile(nsIMdbEnv* mev, nsIMdbHeap* ioHeap,
   // files must be opened is considered a subclass specific detail, and
   // other portions or Mork source code don't want to know how it's done.
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   morkFile* file = nullptr;
   if ( ev )
@@ -234,7 +234,7 @@ NS_IMETHODIMP
 morkFactory::MakeEnv(nsIMdbHeap* ioHeap, nsIMdbEnv** acqEnv)
 // ioHeap can be nil, causing a MakeHeap() style heap instance to be used
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbEnv* outEnv = 0;
   mork_bool ownsHeap = (ioHeap == 0);
   if ( !ioHeap )
@@ -273,7 +273,7 @@ morkFactory::MakeEnv(nsIMdbHeap* ioHeap, nsIMdbEnv** acqEnv)
 NS_IMETHODIMP
 morkFactory::MakeHeap(nsIMdbEnv* mev, nsIMdbHeap** acqHeap)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbHeap* outHeap = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -319,7 +319,7 @@ morkFactory::CanOpenFilePort(
   mdb_bool* outCanOpen, // whether OpenFilePort() might succeed
   mdbYarn* outFormatVersion)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   if ( outFormatVersion )
   {
     outFormatVersion->mYarn_Fill = 0;
@@ -355,7 +355,7 @@ morkFactory::OpenFilePort(
 {
   NS_ASSERTION(false, "this doesn't look implemented");
   MORK_USED_1(ioHeap);
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbThumb* outThumb = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
    if ( ev )
@@ -381,7 +381,7 @@ morkFactory::ThumbToOpenPort( // redeeming a completed thumb from OpenFilePort()
   nsIMdbThumb* ioThumb, // thumb from OpenFilePort() with done status
   nsIMdbPort** acqPort)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbPort* outPort = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -466,7 +466,7 @@ morkFactory::CanOpenFileStore(
   {
     outFormatVersion->mYarn_Fill = 0;
   }
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -499,7 +499,7 @@ morkFactory::OpenFileStore( // open an existing database
   const mdbOpenPolicy* inOpenPolicy, // runtime policies for using db
   nsIMdbThumb** acqThumb)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbThumb* outThumb = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -545,7 +545,7 @@ morkFactory::ThumbToOpenStore( // redeem completed thumb from OpenFileStore()
   nsIMdbThumb* ioThumb, // thumb from OpenFileStore() with done status
   nsIMdbStore** acqStore)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbStore* outStore = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -583,7 +583,7 @@ morkFactory::CreateNewFileStore( // create a new db with minimal content
   const mdbOpenPolicy* inOpenPolicy, // runtime policies for using db
   nsIMdbStore** acqStore)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbStore* outStore = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )

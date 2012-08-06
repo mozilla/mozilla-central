@@ -1154,14 +1154,14 @@ DoGrowBuffer(PRInt32 desired_size, PRInt32 element_size, PRInt32 quantum,
     *buffer = new_buf;
     *size += increment;
   }
-  return 0;
+  return NS_OK;
 }
 
 #define do_grow_headers(desired_size) \
   (((desired_size) >= m_headersSize) ? \
    DoGrowBuffer ((desired_size), sizeof(char), 1024, \
            &m_headers, &m_headersSize) \
-   : 0)
+   : NS_OK)
 
 nsresult
 nsMsgSendLater::DeliverQueuedLine(char *line, PRInt32 length)

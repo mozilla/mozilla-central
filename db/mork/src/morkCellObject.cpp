@@ -300,7 +300,7 @@ NS_IMETHODIMP morkCellObject::GetBlobFill(nsIMdbEnv* mev,
 NS_IMETHODIMP morkCellObject::SetYarn(nsIMdbEnv* mev, 
   const mdbYarn* inYarn)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkCell* cell = 0;
   morkEnv* ev = this->CanUseCell(mev, /*inMutable*/ morkBool_kTrue,
     &outErr, &cell);
@@ -330,7 +330,7 @@ NS_IMETHODIMP morkCellObject::SetYarn(nsIMdbEnv* mev,
 NS_IMETHODIMP morkCellObject::GetYarn(nsIMdbEnv* mev, 
   mdbYarn* outYarn)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkCell* cell = 0;
   morkEnv* ev = this->CanUseCell(mev, /*inMutable*/ morkBool_kTrue,
     &outErr, &cell);
@@ -348,7 +348,7 @@ NS_IMETHODIMP morkCellObject::GetYarn(nsIMdbEnv* mev,
 NS_IMETHODIMP morkCellObject::AliasYarn(nsIMdbEnv* mev, 
   mdbYarn* outYarn)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkCell* cell = 0;
   morkEnv* ev = this->CanUseCell(mev, /*inMutable*/ morkBool_kTrue,
     &outErr, &cell);
@@ -378,7 +378,7 @@ NS_IMETHODIMP morkCellObject::SetColumn(nsIMdbEnv* mev, mdb_column inColumn)
 
 NS_IMETHODIMP morkCellObject::GetColumn(nsIMdbEnv* mev, mdb_column* outColumn)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mdb_column col = 0;
   morkCell* cell = 0;
   morkEnv* ev = this->CanUseCell(mev, /*inMutable*/ morkBool_kTrue,
@@ -410,7 +410,7 @@ NS_IMETHODIMP morkCellObject::GetCellInfo(  // all cell metainfo except actual c
 NS_IMETHODIMP morkCellObject::GetRow(nsIMdbEnv* mev, // parent row for this cell
   nsIMdbRow** acqRow)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbRow* outRow = 0;
   morkCell* cell = 0;
   morkEnv* ev = this->CanUseCell(mev, /*inMutable*/ morkBool_kTrue,
@@ -429,7 +429,7 @@ NS_IMETHODIMP morkCellObject::GetRow(nsIMdbEnv* mev, // parent row for this cell
 NS_IMETHODIMP morkCellObject::GetPort(nsIMdbEnv* mev, // port containing cell
   nsIMdbPort** acqPort)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbPort* outPort = 0;
   morkCell* cell = 0;
   morkEnv* ev = this->CanUseCell(mev, /*inMutable*/ morkBool_kTrue,
@@ -459,7 +459,7 @@ NS_IMETHODIMP morkCellObject::HasAnyChild( // does cell have a child instead of 
   mdbOid* outOid,  // out id of row or table (or unbound if no child)
   mdb_bool* outIsRow) // nonzero if child is a row (rather than a table)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mdb_bool isRow = morkBool_kFalse;
   outOid->mOid_Scope = 0;
   outOid->mOid_Id = morkId_kMinusOne;

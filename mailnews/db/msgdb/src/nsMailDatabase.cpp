@@ -346,7 +346,7 @@ NS_IMPL_ISUPPORTS1(nsMsgOfflineOpEnumerator, nsISimpleEnumerator)
 
 nsresult nsMsgOfflineOpEnumerator::GetRowCursor()
 {
-  nsresult rv = 0;
+  nsresult rv = NS_OK;
   mDone = false;
 
   if (!mDB || !mDB->m_mdbAllOfflineOpsTable)

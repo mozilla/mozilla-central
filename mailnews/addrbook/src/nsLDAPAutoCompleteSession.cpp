@@ -89,7 +89,7 @@ nsLDAPAutoCompleteSession::OnStartLookup(const PRUnichar *searchString,
           mCjkMinStringLength && NS_strlen(searchString) < 
           mCjkMinStringLength ) ) {
 
-        FinishAutoCompleteLookup(nsIAutoCompleteStatus::ignored, 0, mState);
+        FinishAutoCompleteLookup(nsIAutoCompleteStatus::ignored, NS_OK, mState);
         return NS_OK;
     } else {
         mSearchString = searchString;        // save it for later use
@@ -392,7 +392,7 @@ nsLDAPAutoCompleteSession::OnLDAPMessage(nsILDAPMessage *aMessage)
 void
 nsLDAPAutoCompleteSession::InitFailed(bool aCancelled)
 {
-  FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, 0,
+  FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, NS_OK,
                            UNBOUND);
 }
 

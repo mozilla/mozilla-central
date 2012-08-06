@@ -578,12 +578,12 @@ MimeGetAttachmentList(MimeObject *tobj, const char *aMessageURL, nsMsgAttachment
   bool                  isAnInlineMessage;
 
   if (!data)
-    return 0;
+    return NS_OK;
   *data = nullptr;
 
   obj = mime_get_main_object(tobj);
   if (!obj)
-    return 0;
+    return NS_OK;
 
   if (!mime_subclass_p(obj->clazz, (MimeObjectClass*) &mimeContainerClass))
     return ProcessBodyAsAttachment(obj, data);

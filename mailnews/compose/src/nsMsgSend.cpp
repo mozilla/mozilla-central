@@ -272,7 +272,7 @@ nsMsgComposeAndSend::nsMsgComposeAndSend() :
   m_attachment_count = 0;
   m_attachment_pending_count = 0;
   m_attachments = nullptr;
-  m_status = 0;
+  m_status = NS_OK;
   m_plaintext = nullptr;
   m_related_part = nullptr;
   m_related_body_part = nullptr;
@@ -4897,7 +4897,7 @@ nsresult
 nsMsgComposeAndSend::SetStatusMessage(const nsString &aMsgString)
 {
   if (mSendProgress)
-    mSendProgress->OnStatusChange(nullptr, nullptr, 0, aMsgString.get());
+    mSendProgress->OnStatusChange(nullptr, nullptr, NS_OK, aMsgString.get());
   return NS_OK;
 }
 

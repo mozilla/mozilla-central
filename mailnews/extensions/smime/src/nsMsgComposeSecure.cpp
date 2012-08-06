@@ -62,7 +62,7 @@ nsresult
 MIME_EncoderDestroy(MimeEncoderData *data, bool abort_p) 
 {
   nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
-  NS_ENSURE_TRUE(converter, nullptr);
+  NS_ENSURE_TRUE(converter, NS_OK);
 
   return converter->EncoderDestroy(data, abort_p);
 }
@@ -479,7 +479,7 @@ nsresult nsMsgComposeSecure::MimeInitMultipartSigned(bool aOuter, nsIMsgSendRepo
 
   PR_SetError(0,0);
   mDataHash = do_CreateInstance("@mozilla.org/security/hash;1", &rv);
-  if (NS_FAILED(rv)) return 0;
+  if (NS_FAILED(rv)) return NS_OK;
 
   rv = mDataHash->Init(mHashType);
   if (NS_FAILED(rv)) {

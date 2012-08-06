@@ -35,7 +35,7 @@ nsMsgProgress::nsMsgProgress()
   m_closeProgress = false;
   m_processCanceled = false;
   m_pendingStateFlags = -1;
-  m_pendingStateValue = 0;
+  m_pendingStateValue = NS_OK;
 }
 
 nsMsgProgress::~nsMsgProgress()
@@ -119,10 +119,10 @@ NS_IMETHODIMP nsMsgProgress::RegisterListener(nsIWebProgressListener * listener)
 
   m_listenerList.AppendObject(listener);
   if (m_closeProgress || m_processCanceled)
-    listener->OnStateChange(nullptr, nullptr, nsIWebProgressListener::STATE_STOP, 0);
+    listener->OnStateChange(nullptr, nullptr, nsIWebProgressListener::STATE_STOP, NS_OK);
   else
   {
-    listener->OnStatusChange(nullptr, nullptr, 0, m_pendingStatus.get());
+    listener->OnStatusChange(nullptr, nullptr, NS_OK, m_pendingStatus.get());
     if (m_pendingStateFlags != -1)
       listener->OnStateChange(nullptr, nullptr, m_pendingStateFlags, m_pendingStateValue);
   }

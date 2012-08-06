@@ -76,7 +76,7 @@ NS_IMETHODIMP nsAbLDAPReplicationService::StartReplication(nsIAbLDAPDirectory *a
   if (progressListener && NS_FAILED(rv))
     progressListener->OnStateChange(nullptr, nullptr,
 				    nsIWebProgressListener::STATE_STOP,
-				    false);
+				    NS_OK);
 
   if (NS_FAILED(rv))
   {

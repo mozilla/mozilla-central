@@ -111,7 +111,7 @@ morkTableRowCursor::CloseTableRowCursor(morkEnv* ev)
 /*virtual*/ mdb_err
 morkTableRowCursor::GetCount(nsIMdbEnv* mev, mdb_count* outCount)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mdb_count count = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -169,7 +169,7 @@ morkTableRowCursor::GetDoFailOnSeedOutOfSync(nsIMdbEnv* mev, mdb_bool* outFail)
 NS_IMETHODIMP
 morkTableRowCursor::GetTable(nsIMdbEnv* mev, nsIMdbTable** acqTable)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbTable* outTable = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -192,7 +192,7 @@ morkTableRowCursor::NextRowOid( // get row id of next row in the table
   mdbOid* outOid, // out row oid
   mdb_pos* outRowPos)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mork_pos pos = -1;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -216,7 +216,7 @@ morkTableRowCursor::PrevRowOid( // get row id of previous row in the table
   mdbOid* outOid, // out row oid
   mdb_pos* outRowPos)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mork_pos pos = -1;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -242,7 +242,7 @@ morkTableRowCursor::NextRow( // get row cells from table for cells already in ro
   nsIMdbRow** acqRow, // acquire next row in table
   mdb_pos* outRowPos)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbRow* outRow = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -269,7 +269,7 @@ morkTableRowCursor::PrevRow( // get row cells from table for cells already in ro
   nsIMdbRow** acqRow, // acquire previous row in table
   mdb_pos* outRowPos)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbRow* outRow = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -298,7 +298,7 @@ NS_IMETHODIMP
 morkTableRowCursor::CanHaveDupRowMembers(nsIMdbEnv* mev, // cursor might hold dups?
   mdb_bool* outCanHaveDups)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mdb_bool canHaveDups = mdbBool_kFalse;
   
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
@@ -338,7 +338,7 @@ morkTableRowCursor::MakeUniqueCursor( // clone cursor, removing duplicate rows
   // delay calling MakeUniqueCursor() when possible, until a user interface
   // element actually demands the creation of an explicit set representation.
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbTableRowCursor* outCursor = 0;
   
   morkEnv* ev = morkEnv::FromMdbEnv(mev);

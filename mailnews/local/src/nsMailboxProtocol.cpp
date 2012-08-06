@@ -728,7 +728,7 @@ nsresult nsMailboxProtocol::CloseSocket()
   nsMsgProtocol::CloseSocket(); 
   m_runningUrl = nullptr;
   m_mailboxParser = nullptr;
-  return 0;
+  return NS_OK;
 }
 
 // vim: ts=2 sw=2

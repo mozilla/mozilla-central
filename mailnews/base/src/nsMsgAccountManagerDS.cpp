@@ -336,7 +336,7 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
         NS_ENSURE_TRUE(sourceValue && (strlen(sourceValue) > strlen(NC_RDF_PAGETITLE_PREFIX)), NS_ERROR_UNEXPECTED);
 
         nsCOMPtr<nsIMsgAccountManager> am = do_QueryReferent(mAccountManager, &rv);
-        NS_ENSURE_SUCCESS(rv, false);
+        NS_ENSURE_SUCCESS(rv, NS_OK);
 
         // turn NC#PageTitlefoobar into foobar, so we can get the am-foobar.properties bundle
         nsCString chromePackageName;

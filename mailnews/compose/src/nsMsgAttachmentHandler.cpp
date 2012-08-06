@@ -1069,7 +1069,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
 
     if (keepOnGoing)
     {
-      status = 0;
+      status = NS_OK;
       m_bogus_attachment = true; //That will cause this attachment to be ignored.
     }
     else

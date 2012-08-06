@@ -326,7 +326,7 @@ morkPortTableCursor::SetPort(nsIMdbEnv* mev, nsIMdbPort* ioPort)
 NS_IMETHODIMP
 morkPortTableCursor::GetPort(nsIMdbEnv* mev, nsIMdbPort** acqPort)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbPort* outPort = 0;
   morkEnv* ev =
     this->CanUsePortTableCursor(mev, /*inMutable*/ morkBool_kFalse, &outErr);
@@ -345,7 +345,7 @@ NS_IMETHODIMP
 morkPortTableCursor::SetRowScope(nsIMdbEnv* mev, // sets pos to -1
   mdb_scope inRowScope)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev =
     this->CanUsePortTableCursor(mev, /*inMutable*/ morkBool_kFalse, &outErr);
   if ( ev )
@@ -361,7 +361,7 @@ morkPortTableCursor::SetRowScope(nsIMdbEnv* mev, // sets pos to -1
 NS_IMETHODIMP
 morkPortTableCursor::GetRowScope(nsIMdbEnv* mev, mdb_scope* outRowScope)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mdb_scope rowScope = 0;
   morkEnv* ev =
     this->CanUsePortTableCursor(mev, /*inMutable*/ morkBool_kFalse, &outErr);
@@ -379,7 +379,7 @@ NS_IMETHODIMP
 morkPortTableCursor::SetTableKind(nsIMdbEnv* mev, // sets pos to -1
   mdb_kind inTableKind)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev =
     this->CanUsePortTableCursor(mev, /*inMutable*/ morkBool_kFalse, &outErr);
   if ( ev )
@@ -396,7 +396,7 @@ NS_IMETHODIMP
 morkPortTableCursor::GetTableKind(nsIMdbEnv* mev, mdb_kind* outTableKind)
 // setting table kind to zero iterates over all table kinds in row scope
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mdb_kind tableKind = 0;
   morkEnv* ev =
     this->CanUsePortTableCursor(mev, /*inMutable*/ morkBool_kFalse, &outErr);
@@ -416,7 +416,7 @@ morkPortTableCursor::NextTable( // get table at next position in the db
   nsIMdbEnv* mev, // context
   nsIMdbTable** acqTable)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbTable* outTable = 0;
   morkEnv* ev =
     CanUsePortTableCursor(mev, /*inMutable*/ morkBool_kFalse, &outErr);

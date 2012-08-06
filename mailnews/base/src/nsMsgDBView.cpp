@@ -609,7 +609,7 @@ nsresult nsMsgDBView::FetchRecipients(nsIMsgDBHdr * aHdr, nsAString &aRecipients
       nsCOMPtr<nsISimpleEnumerator> enumerator;
       nsCOMPtr<nsIAbManager>
         abManager(do_GetService("@mozilla.org/abmanager;1", &rv));
-      NS_ENSURE_SUCCESS(rv, false);
+      NS_ENSURE_SUCCESS(rv, NS_OK);
 
       // go through each email address in the recipients and
       // compute its display name.

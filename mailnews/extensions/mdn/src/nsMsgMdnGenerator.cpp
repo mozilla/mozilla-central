@@ -780,7 +780,6 @@ nsresult nsMsgMdnGenerator::OutputAllHeaders()
     char *buf = (char *) all_headers.get(),
         *buf_end = (char *) all_headers.get()+all_headers_size;
     char *start = buf, *end = buf;
-    PRInt32 count = 0;
 
     while (buf < buf_end)
     {
@@ -846,7 +845,7 @@ nsresult nsMsgMdnGenerator::OutputAllHeaders()
             buf = start;
         }
     }
-    return count;
+    return NS_OK;
 }
 
 nsresult nsMsgMdnGenerator::SendMdnMsg()

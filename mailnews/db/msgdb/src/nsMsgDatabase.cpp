@@ -3211,7 +3211,7 @@ NS_IMETHODIMP nsMsgDBThreadEnumerator::OnJunkScoreChanged(nsIDBChangeListener *a
 
 nsresult nsMsgDBThreadEnumerator::GetTableCursor(void)
 {
-  nsresult rv = 0;
+  nsresult rv = NS_OK;
 
   if (!mDB || !mDB->m_mdbStore)
     return NS_ERROR_NULL_POINTER;

@@ -1001,10 +1001,10 @@ nsMsgNewsFolder::LoadNewsrcFileAndCreateNewsgroups()
 
   nsCOMPtr<nsIInputStream> fileStream;
   rv = NS_NewLocalFileInputStream(getter_AddRefs(fileStream), mNewsrcFilePath);
-  NS_ENSURE_SUCCESS(rv, nullptr);
+  NS_ENSURE_SUCCESS(rv, NS_OK);
 
   nsCOMPtr<nsILineInputStream> lineInputStream(do_QueryInterface(fileStream, &rv));
-  NS_ENSURE_SUCCESS(rv, nullptr);
+  NS_ENSURE_SUCCESS(rv, NS_OK);
 
   bool more = true;
   nsCString line;

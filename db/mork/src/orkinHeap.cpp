@@ -56,7 +56,7 @@ orkinHeap::Alloc(nsIMdbEnv* mev, // allocate a piece of memory
 #endif /*MORK_DEBUG_HEAP_STATS*/
 
   MORK_USED_1(mev);
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   void* block = malloc(inSize);
   if ( !block )
     outErr = morkEnv_kOutOfMemoryError;
@@ -135,21 +135,21 @@ orkinHeap::Free(nsIMdbEnv* mev, // free block allocated earlier by Alloc()
     
     free(inBlock);
   }
-  return 0;
+  return NS_OK;
 }
 
 /*virtual*/ mdb_err
 orkinHeap::HeapAddStrongRef(nsIMdbEnv* ev) // does nothing
 {
   MORK_USED_1(ev);
-  return 0;
+  return NS_OK;
 }
 
 /*virtual*/ mdb_err
 orkinHeap::HeapCutStrongRef(nsIMdbEnv* ev) // does nothing
 {
   MORK_USED_1(ev);
-  return 0;
+  return NS_OK;
 }
 
 // } ===== end nsIMdbHeap methods =====

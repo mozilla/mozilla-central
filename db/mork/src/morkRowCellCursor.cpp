@@ -142,7 +142,7 @@ morkRowCellCursor::NonRowCellCursorTypeError(morkEnv* ev)
 NS_IMETHODIMP
 morkRowCellCursor::SetRow(nsIMdbEnv* mev, nsIMdbRow* ioRow)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkRow* row = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -171,7 +171,7 @@ morkRowCellCursor::SetRow(nsIMdbEnv* mev, nsIMdbRow* ioRow)
 NS_IMETHODIMP
 morkRowCellCursor::GetRow(nsIMdbEnv* mev, nsIMdbRow** acqRow)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbRow* outRow = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -196,7 +196,7 @@ morkRowCellCursor::MakeCell( // get cell at current pos in the row
   mdb_pos* outPos, // position of cell in row sequence
   nsIMdbCell** acqCell)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbCell* outCell = 0;
   mdb_pos pos = 0;
   mdb_column col = 0;

@@ -826,7 +826,7 @@ nsNNTPNewsgroupList::ResetXOVER()
 {
   m_lastMsgNumber = m_firstMsgNumber;
   m_lastProcessedNumber = m_lastMsgNumber;
-  return 0;
+  return NS_OK;
 }
 
 nsresult

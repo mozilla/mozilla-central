@@ -668,7 +668,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::AddShellToCacheForHost(const char *serverKe
 		else
 		{
 			PR_ExitMonitor(gCachedHostInfoMonitor);
-			return false;
+			return NS_OK;
 		}
 	}
 	PR_ExitMonitor(gCachedHostInfoMonitor);

@@ -3975,7 +3975,7 @@ NS_IMETHODIMP nsMsgComposeSendListener::OnStateChange(nsIWebProgress *aWebProgre
           NS_ENSURE_SUCCESS(rv, rv);
           nsString msg;
           bundle->GetStringFromID(NS_ERROR_GET_CODE(NS_MSG_CANCELLING), getter_Copies(msg));
-          progress->OnStatusChange(nullptr, nullptr, 0, msg.get());
+          progress->OnStatusChange(nullptr, nullptr, NS_OK, msg.get());
         }
       }
 

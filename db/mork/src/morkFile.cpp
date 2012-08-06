@@ -260,7 +260,7 @@ morkFile::WriteNewlines(morkEnv* ev, mork_count inNewlines)
 NS_IMETHODIMP
 morkFile::Eof(nsIMdbEnv* mev, mdb_pos* outPos)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mdb_pos pos = -1;
   morkEnv *ev = morkEnv::FromMdbEnv(mev);
   pos = Length(ev);
@@ -290,7 +290,7 @@ NS_IMETHODIMP
 morkFile::Put(nsIMdbEnv* mev, const void* inBuf, mdb_size inSize,
   mdb_pos inPos, mdb_size* outActualSize)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   *outActualSize = 0;
   morkEnv *ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -309,7 +309,7 @@ morkFile::Put(nsIMdbEnv* mev, const void* inBuf, mdb_size inSize,
 NS_IMETHODIMP
 morkFile::Path(nsIMdbEnv* mev, mdbYarn* outFilePath)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   if ( outFilePath )
     outFilePath->mYarn_Fill = 0;
   morkEnv *ev = morkEnv::FromMdbEnv(mev);
@@ -329,7 +329,7 @@ morkFile::Path(nsIMdbEnv* mev, mdbYarn* outFilePath)
 NS_IMETHODIMP
 morkFile::Thief(nsIMdbEnv* mev, nsIMdbFile** acqThief)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbFile* outThief = 0;
   morkEnv *ev = morkEnv::FromMdbEnv(mev);
   if ( ev )

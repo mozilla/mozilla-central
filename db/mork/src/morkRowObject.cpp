@@ -93,7 +93,7 @@ NS_IMETHODIMP
 morkRowObject::GetSeed(nsIMdbEnv* mev,
   mdb_seed* outSeed)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -106,7 +106,7 @@ NS_IMETHODIMP
 morkRowObject::GetCount(nsIMdbEnv* mev,
   mdb_count* outCount)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -120,7 +120,7 @@ NS_IMETHODIMP
 morkRowObject::GetPort(nsIMdbEnv* mev,
   nsIMdbPort** acqPort)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbPort* outPort = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -197,7 +197,7 @@ morkRowObject::GetRowCellCursor( // make a cursor starting iteration at inCellPo
   mdb_pos inPos, // zero-based ordinal position of cell in row
   nsIMdbRowCellCursor** acqCursor)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   nsIMdbRowCellCursor* outCursor = 0;
   if ( ev )
@@ -258,7 +258,7 @@ NS_IMETHODIMP
 morkRowObject::CutAllColumns( // remove all columns from the row
   nsIMdbEnv* mev)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -276,7 +276,7 @@ morkRowObject::NewCell( // get cell for specified column, or add new one
   mdb_column inColumn, // column to add
   nsIMdbCell** acqCell)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -307,7 +307,7 @@ morkRowObject::AddCell( // copy a cell from another row to this row
   nsIMdbEnv* mev, // context
   const nsIMdbCell* inCell)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -354,7 +354,7 @@ morkRowObject::GetCell( // find a cell in this row
   mdb_column inColumn, // column to find
   nsIMdbCell** acqCell)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbCell* outCell = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
 
@@ -383,7 +383,7 @@ NS_IMETHODIMP
 morkRowObject::EmptyAllCells( // make all cells in row empty of content
   nsIMdbEnv* mev)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -400,7 +400,7 @@ morkRowObject::AddRow( // add all cells in another row to this one
   nsIMdbEnv* mev, // context
   nsIMdbRow* ioSourceRow)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -419,7 +419,7 @@ morkRowObject::SetRow( // make exact duplicate of another row
   nsIMdbEnv* mev, // context
   nsIMdbRow* ioSourceRow)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -442,7 +442,7 @@ morkRowObject::SetCellYarn( // synonym for AddColumn()
   mdb_column inColumn, // column to add
   const mdbYarn* inYarn)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -460,7 +460,7 @@ morkRowObject::GetCellYarn(
   mdbYarn* outYarn)  // writes some yarn slots 
 // copy content into the yarn buffer, and update mYarn_Fill and mYarn_Form
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -482,7 +482,7 @@ morkRowObject::AliasCellYarn(
     mdb_column inColumn, // column to alias
     mdbYarn* outYarn) // writes ALL yarn slots
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -514,7 +514,7 @@ morkRowObject::NextCellYarn(nsIMdbEnv* mev, // iterative version of GetCellYarn(
 // and the iteration has ended, ioColumn will return a zero token again.
 // So iterating over cells starts and ends with a zero column token.
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {
@@ -538,7 +538,7 @@ morkRowObject::SeekCellYarn( // resembles nsIMdbRowCellCursor::SeekCell()
 // able to ignore outYarn when the pointer is nil; please do not crash.
 
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
   {

@@ -490,7 +490,7 @@ morkZone::Alloc(nsIMdbEnv* mev, // allocate a piece of memory
   mdb_size inSize,   // requested size of new memory block 
   void** outBlock)  // memory block of inSize bytes, or nil
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   void* block = 0;
   morkEnv* ev = morkEnv::FromMdbEnv(mev);
   if ( ev )
@@ -511,7 +511,7 @@ morkZone::Alloc(nsIMdbEnv* mev, // allocate a piece of memory
 morkZone::Free(nsIMdbEnv* mev, // free block allocated earlier by Alloc()
   void* inBlock)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   if ( inBlock )
   {
     morkEnv* ev = morkEnv::FromMdbEnv(mev);
@@ -531,14 +531,14 @@ morkZone::Free(nsIMdbEnv* mev, // free block allocated earlier by Alloc()
 morkZone::HeapAddStrongRef(nsIMdbEnv* mev) // does nothing
 {
   MORK_USED_1(mev);
-  return 0;
+  return NS_OK;
 }
 
 /*virtual*/ mdb_err
 morkZone::HeapCutStrongRef(nsIMdbEnv* mev) // does nothing
 {
   MORK_USED_1(mev);
-  return 0;
+  return NS_OK;
 }
 
 // } ===== end nsIMdbHeap methods =====

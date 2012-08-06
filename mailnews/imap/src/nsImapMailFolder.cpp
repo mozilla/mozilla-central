@@ -4997,7 +4997,7 @@ nsresult nsImapMailFolder::GetTrashFolder(nsIMsgFolder **pTrashFolder)
 // store nsMsgMessageFlags::IMAPDeleted in the specified mailhdr records
 void nsImapMailFolder::SetIMAPDeletedFlag(nsIMsgDatabase *mailDB, const nsTArray<nsMsgKey> &msgids, bool markDeleted)
 {
-  nsresult markStatus = 0;
+  nsresult markStatus = NS_OK;
   PRUint32 total = msgids.Length();
 
   for (PRUint32 msgIndex=0; !markStatus && (msgIndex < total); msgIndex++)
@@ -7038,7 +7038,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
 {
   NS_ENSURE_ARG(messages);
   nsresult rv;
-  nsresult stopit = 0;
+  nsresult stopit = NS_OK;
   nsCOMPtr <nsIMsgDatabase> sourceMailDB;
   nsCOMPtr <nsIDBFolderInfo> srcDbFolderInfo;
   srcFolder->GetDBFolderInfoAndDB(getter_AddRefs(srcDbFolderInfo), getter_AddRefs(sourceMailDB));
@@ -7614,7 +7614,7 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
 done:
   if (NS_FAILED(rv))
   {
-    (void) OnCopyCompleted(srcSupport, false);
+    (void) OnCopyCompleted(srcSupport, NS_OK);
     if (isMove)
     {
       srcFolder->EnableNotifications(allMessageCountNotifications, true, true/* dbBatching*/);  //enable message count notification

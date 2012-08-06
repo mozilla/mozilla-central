@@ -226,7 +226,7 @@ morkHandle::CanUseHandle(nsIMdbEnv* mev, mork_bool inMutable,
 /*virtual*/ mdb_err
 morkHandle::Handle_IsFrozenMdbObject(nsIMdbEnv* mev, mdb_bool* outIsReadonly)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mdb_bool readOnly = mdbBool_kTrue;
   
   morkEnv* ev = CanUseHandle(mev, /*inMutable*/ morkBool_kFalse,
@@ -250,7 +250,7 @@ morkHandle::Handle_IsFrozenMdbObject(nsIMdbEnv* mev, mdb_bool* outIsReadonly)
 /*virtual*/ mdb_err
 morkHandle::Handle_GetMdbFactory(nsIMdbEnv* mev, nsIMdbFactory** acqFactory)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   nsIMdbFactory* handle = 0;
   
   morkEnv* ev = CanUseHandle(mev, /*inMutable*/ morkBool_kFalse,
@@ -282,7 +282,7 @@ morkHandle::Handle_GetMdbFactory(nsIMdbEnv* mev, nsIMdbFactory** acqFactory)
 morkHandle::Handle_GetWeakRefCount(nsIMdbEnv* mev, // weak refs
   mdb_count* outCount)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mdb_count count = 0;
   
   morkEnv* ev = CanUseHandle(mev, /*inMutable*/ morkBool_kFalse,
@@ -303,7 +303,7 @@ morkHandle::Handle_GetWeakRefCount(nsIMdbEnv* mev, // weak refs
 morkHandle::Handle_GetStrongRefCount(nsIMdbEnv* mev, // strong refs
   mdb_count* outCount)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   mdb_count count = 0;
   
   morkEnv* ev = CanUseHandle(mev, /*inMutable*/ morkBool_kFalse,
@@ -324,7 +324,7 @@ morkHandle::Handle_GetStrongRefCount(nsIMdbEnv* mev, // strong refs
 /*virtual*/ mdb_err
 morkHandle::Handle_AddWeakRef(nsIMdbEnv* mev)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   
   morkEnv* ev = CanUseHandle(mev, /*inMutable*/ morkBool_kFalse,
     /*inClosedOkay*/ morkBool_kTrue, &outErr);
@@ -339,7 +339,7 @@ morkHandle::Handle_AddWeakRef(nsIMdbEnv* mev)
 /*virtual*/ mdb_err
 morkHandle::Handle_AddStrongRef(nsIMdbEnv* mev)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   
   morkEnv* ev = CanUseHandle(mev, /*inMutable*/ morkBool_kFalse,
     /*inClosedOkay*/ morkBool_kFalse, &outErr);
@@ -355,7 +355,7 @@ morkHandle::Handle_AddStrongRef(nsIMdbEnv* mev)
 /*virtual*/ mdb_err
 morkHandle::Handle_CutWeakRef(nsIMdbEnv* mev)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   
   morkEnv* ev = CanUseHandle(mev, /*inMutable*/ morkBool_kFalse,
     /*inClosedOkay*/ morkBool_kTrue, &outErr);
@@ -370,7 +370,7 @@ morkHandle::Handle_CutWeakRef(nsIMdbEnv* mev)
 /*virtual*/ mdb_err
 morkHandle::Handle_CutStrongRef(nsIMdbEnv* mev)
 {
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   morkEnv* ev = CanUseHandle(mev, /*inMutable*/ morkBool_kFalse,
     /*inClosedOkay*/ morkBool_kTrue, &outErr);
   if ( ev )
@@ -389,7 +389,7 @@ morkHandle::Handle_CloseMdbObject(nsIMdbEnv* mev)
   if (mNode_Uses == 1)
     return Handle_CutStrongRef(mev);
 
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   
   if ( this->IsNode() && this->IsOpenNode() )
   {
@@ -412,7 +412,7 @@ morkHandle::Handle_CloseMdbObject(nsIMdbEnv* mev)
 morkHandle::Handle_IsOpenMdbObject(nsIMdbEnv* mev, mdb_bool* outOpen)
 {
   MORK_USED_1(mev);
-  mdb_err outErr = 0;
+  mdb_err outErr = NS_OK;
   
   MORK_ASSERT(outOpen);
   if ( outOpen )
