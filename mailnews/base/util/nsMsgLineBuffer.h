@@ -42,7 +42,7 @@ public:
   nsMsgLineBuffer(nsMsgLineBufferHandler *handler, bool convertNewlinesP);
   
   virtual    ~nsMsgLineBuffer();
-  PRInt32     BufferInput(const char *net_buffer, PRInt32 net_buffer_size);
+  nsresult    BufferInput(const char *net_buffer, PRInt32 net_buffer_size);
   // Not sure why anyone cares, by NNTPHost seems to want to know the buf pos.
   PRUint32    GetBufferPos() {return m_bufferPos;}
   

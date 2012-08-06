@@ -66,7 +66,7 @@ nsMsgSendPart::~nsMsgSendPart()
   PR_FREEIF(m_type);
 }
 
-int nsMsgSendPart::CopyString(char** dest, const char* src)
+nsresult nsMsgSendPart::CopyString(char** dest, const char* src)
 {
   NS_ASSERTION(src, "src null");
   
@@ -87,14 +87,14 @@ nsresult nsMsgSendPart::SetFile(nsIFile *file)
 }
 
 
-int nsMsgSendPart::SetBuffer(const char* buffer)
+nsresult nsMsgSendPart::SetBuffer(const char* buffer)
 {
   PR_FREEIF(m_buffer);
   return CopyString(&m_buffer, buffer);
 }
 
 
-int nsMsgSendPart::SetType(const char* type)
+nsresult nsMsgSendPart::SetType(const char* type)
 {
   PR_FREEIF(m_type);
   m_type = PL_strdup(type);
@@ -102,12 +102,12 @@ int nsMsgSendPart::SetType(const char* type)
 }
 
 
-int nsMsgSendPart::SetOtherHeaders(const char* other)
+nsresult nsMsgSendPart::SetOtherHeaders(const char* other)
 {
   return CopyString(&m_other, other);
 }
 
-int nsMsgSendPart::SetMimeDeliveryState(nsIMsgSend *state)
+nsresult nsMsgSendPart::SetMimeDeliveryState(nsIMsgSend *state)
 {
   m_state = state;
   if (GetNumChildren() > 0)
@@ -122,7 +122,7 @@ int nsMsgSendPart::SetMimeDeliveryState(nsIMsgSend *state)
   return NS_OK;
 }
 
-int nsMsgSendPart::AppendOtherHeaders(const char* more)
+nsresult nsMsgSendPart::AppendOtherHeaders(const char* more)
 {
   if (!m_other)
     return SetOtherHeaders(more);
@@ -143,19 +143,19 @@ int nsMsgSendPart::AppendOtherHeaders(const char* more)
 }
 
 
-int nsMsgSendPart::SetEncoderData(MimeEncoderData* data)
+nsresult nsMsgSendPart::SetEncoderData(MimeEncoderData* data)
 {
   m_encoder_data = data;
   return NS_OK;
 }
 
-int nsMsgSendPart::SetMainPart(bool value)
+nsresult nsMsgSendPart::SetMainPart(bool value)
 {
   m_mainpart = value;
   return NS_OK;
 }
 
-int nsMsgSendPart::AddChild(nsMsgSendPart* child)
+nsresult nsMsgSendPart::AddChild(nsMsgSendPart* child)
 {
   m_numchildren++;
   nsMsgSendPart** tmp = new nsMsgSendPart* [m_numchildren];
@@ -226,9 +226,9 @@ nsMsgSendPart* nsMsgSendPart::GetChild(PRInt32 which)
 
 
 
-int nsMsgSendPart::PushBody(const char* buffer, PRInt32 length)
+nsresult nsMsgSendPart::PushBody(const char* buffer, PRInt32 length)
 {
-  int status = 0;
+  nsresult status = NS_OK;
   const char* encoded_data = buffer;
 
   if (m_encoder_data)
@@ -268,7 +268,7 @@ int nsMsgSendPart::PushBody(const char* buffer, PRInt32 length)
         
         status = mime_write_message_body(m_state, buffer,
           out - buffer);
-        if (status < 0) return status;
+        if (NS_FAILED(status)) return status;
         out = buffer;
         
         if (*in == '\r') {
@@ -285,7 +285,7 @@ int nsMsgSendPart::PushBody(const char* buffer, PRInt32 length)
         if (out - buffer >= MIME_BUFFER_SIZE)
         {
           status = mime_write_message_body(m_state, buffer, out - buffer);
-          if (status < 0) return status;
+          if (NS_FAILED(status)) return status;
           
           out = buffer;
         }
@@ -297,7 +297,7 @@ int nsMsgSendPart::PushBody(const char* buffer, PRInt32 length)
     /* Flush the last line. */
     if (out > buffer) {
       status = mime_write_message_body(m_state, buffer, out - buffer);
-      if (status < 0) return status;
+      if (NS_FAILED(status)) return status;
       out = buffer;
     }
   }
@@ -317,7 +317,7 @@ itself.  (This relies on the fact that all body-related headers begin with
 
   (How many header parsers are in this program now?)
   */
-static int 
+static nsresult
 divide_content_headers(const char *headers,
                         char **message_headers,
                         char **content_headers,
@@ -437,17 +437,17 @@ divide_content_headers(const char *headers,
 
 #define     SKIP_EMPTY_PART   1966
 
-int 
+nsresult
 nsMsgSendPart::Write()
 {
-  int     status = 0;
+  nsresult status = NS_OK;
   char    *separator = nullptr;
   bool    needToWriteCRLFAfterEncodedBody  = false;
 
 #define PUSHLEN(str, length)                  \
   do {                            \
     status = mime_write_message_body(m_state, str, length); \
-    if (status < 0) goto FAIL;                \
+    if (NS_FAILED(status)) goto FAIL;                \
   } while (0)                         \
 
 #define PUSH(str) PUSHLEN(str, PL_strlen(str))
@@ -509,7 +509,7 @@ nsMsgSendPart::Write()
                                     &message_headers,
                                     &content_headers,
                                     &content_type_header);
-    if (status < 0)
+    if (NS_FAILED(status))
       goto FAIL;
     
       /* First, write out all of the headers that refer to the message
@@ -526,7 +526,7 @@ nsMsgSendPart::Write()
        (it may want to wrap the body in an envelope.)           */
     if (!m_parent) {
       status = m_state->BeginCryptoEncapsulation();
-      if (status < 0) goto FAIL;
+      if (NS_FAILED(status)) goto FAIL;
     }
           
     /* Now make sure there's a Content-Type header.
@@ -617,7 +617,7 @@ nsMsgSendPart::Write()
   if (m_buffer) 
   {
     status = PushBody(m_buffer, PL_strlen(m_buffer));
-    if (status < 0)
+    if (NS_FAILED(status))
       goto FAIL;
   }
   else if (m_file) 
@@ -708,7 +708,7 @@ nsMsgSendPart::Write()
       PR_Free(lineBuffer);
     }
 
-    while (status >= 0) 
+    while (NS_SUCCEEDED(status))
     {
       PRUint32 bytesRead;
       nsresult rv = inputStream->Read(buffer, MIME_BUFFER_SIZE, &bytesRead);
@@ -726,7 +726,7 @@ nsMsgSendPart::Write()
         }
       }
       status = PushBody(buffer, bytesRead);
-      if (status < 0)
+      if (NS_FAILED(status))
         goto FAIL;
       if (bytesRead < MIME_BUFFER_SIZE)
         break;
@@ -765,7 +765,7 @@ nsMsgSendPart::Write()
       }
 
       status = m_children[i]->Write();
-      if (status < 0)
+      if (NS_FAILED(status))
         goto FAIL;
 
       if (status == SKIP_EMPTY_PART)

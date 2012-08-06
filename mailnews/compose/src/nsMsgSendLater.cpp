@@ -1133,7 +1133,7 @@ SEARCH_NEWLINE:
   return NS_OK;
 }
 
-int
+nsresult
 DoGrowBuffer(PRInt32 desired_size, PRInt32 element_size, PRInt32 quantum,
             char **buffer, PRInt32 *size)
 {

@@ -408,7 +408,7 @@ PRInt32 nsMailboxProtocol::DoneReadingMessage()
   return rv;
 }
 
-PRInt32 nsMailboxProtocol::SetupMessageExtraction()
+nsresult nsMailboxProtocol::SetupMessageExtraction()
 {
   // Determine the number of bytes we are going to need to read out of the 
   // mailbox url....

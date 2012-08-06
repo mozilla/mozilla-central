@@ -59,7 +59,7 @@ nsresult nsMsgCompFields::SetAsciiHeader(MsgHeaderID header, const char *value)
   NS_ASSERTION(header >= 0 && header < MSG_MAX_HEADERS,
                "Invalid message header index!");
 
-  int rv = NS_OK;
+  nsresult rv = NS_OK;
   char* old = m_headers[header]; /* Done with careful paranoia, in case the
                                     value given is the old value (or worse,
                                     a substring of the old value, as does

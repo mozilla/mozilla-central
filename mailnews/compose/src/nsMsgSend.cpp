@@ -434,7 +434,7 @@ NS_IMETHODIMP
 nsMsgComposeAndSend::GatherMimeAttachments()
 {
   bool shouldDeleteDeliveryState = true;
-  PRInt32 status;
+  nsresult status;
   PRUint32    i;
   char *headers = 0;
   PRFileDesc  *in_file = 0;
@@ -489,7 +489,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
   }
 
   status = m_status;
-  if (status < 0)
+  if (NS_FAILED(status))
     goto FAIL;
 
   if (!m_attachment1_type) {
@@ -620,7 +620,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
 
   NS_ASSERTION(mainbody->GetBuffer() == nullptr, "not-null buffer");
   status = mainbody->SetBuffer(m_attachment1_body ? m_attachment1_body : "");
-  if (status < 0)
+  if (NS_FAILED(status))
     goto FAIL;
 
   /*
@@ -669,10 +669,10 @@ nsMsgComposeAndSend::GatherMimeAttachments()
     if (!plainpart)
       goto FAILMEM;
     status = plainpart->SetType(TEXT_PLAIN);
-    if (status < 0)
+    if (NS_FAILED(status))
       goto FAIL;
     status = plainpart->SetFile(m_plaintext->mTmpFile);
-    if (status < 0)
+    if (NS_FAILED(status))
       goto FAIL;
 
     m_plaintext->mMainBody = true;
@@ -699,7 +699,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
     status = plainpart->SetOtherHeaders(hdrs);
     PR_Free(hdrs);
     hdrs = nullptr;
-    if (status < 0)
+    if (NS_FAILED(status))
       goto FAIL;
 
     if (mCompFields->GetUseMultipartAlternative())
@@ -711,15 +711,15 @@ nsMsgComposeAndSend::GatherMimeAttachments()
 
       // Setup the maincontainer stuff...
       status = maincontainer->SetType(MULTIPART_ALTERNATIVE);
-      if (status < 0)
+      if (NS_FAILED(status))
         goto FAIL;
 
       status = maincontainer->AddChild(plainpart);
-      if (status < 0)
+      if (NS_FAILED(status))
         goto FAIL;
 
       status = maincontainer->AddChild(htmlpart);
-      if (status < 0)
+      if (NS_FAILED(status))
         goto FAIL;
 
       // Create the encoder for the plaintext part here,
@@ -777,11 +777,11 @@ nsMsgComposeAndSend::GatherMimeAttachments()
       goto FAILMEM;
 
     status = toppart->SetType(m_digest_p ? MULTIPART_DIGEST : MULTIPART_MIXED);
-    if (status < 0)
+    if (NS_FAILED(status))
       goto FAIL;
 
     status = toppart->AddChild(maincontainer);
-    if (status < 0)
+    if (NS_FAILED(status))
       goto FAIL;
   }
   else
@@ -794,7 +794,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
   if (!m_crypto_closure && toppart_type && !PL_strncasecmp(toppart_type, "multipart/", 10))
   {
     status = toppart->SetBuffer(MIME_MULTIPART_BLURB);
-    if (status < 0)
+    if (NS_FAILED(status))
       goto FAIL;
   }
 
@@ -802,7 +802,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
    */
   headers = mime_generate_headers (mCompFields, mCompFields->GetCharacterSet(),
                                    m_deliver_mode, promptObject, &status);
-  if (status < 0)
+  if (NS_FAILED(status))
     goto FAIL;
 
   if (!headers)
@@ -830,7 +830,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
     status = toppart->SetOtherHeaders(headers);
   PR_Free(headers);
   headers = nullptr;
-  if (status < 0)
+  if (NS_FAILED(status))
     goto FAIL;
 
   // Set up the first part (user-typed.)  For now, do it even if the first
@@ -877,7 +877,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
     if (!hdrs)
       goto FAILMEM;
     status = mainbody->AppendOtherHeaders(hdrs);
-    if (status < 0)
+    if (NS_FAILED(status))
       goto FAIL;
   }
 
@@ -885,7 +885,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
 
   status = mainbody->SetEncoderData(m_attachment1_encoder_data);
   m_attachment1_encoder_data = nullptr;
-  if (status < 0)
+  if (NS_FAILED(status))
     goto FAIL;
 
   //
@@ -954,7 +954,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
 
   // OK, now actually write the structure we've carefully built up.
   status = toppart->Write();
-  if (status < 0)
+  if (NS_FAILED(status))
     goto FAIL;
 
   /* Close down encryption stream */
@@ -1036,7 +1036,7 @@ FAIL:
 
   if (shouldDeleteDeliveryState)
   {
-    if (status < 0)
+    if (NS_FAILED(status))
     {
       m_status = status;
       nsresult ignoreMe;

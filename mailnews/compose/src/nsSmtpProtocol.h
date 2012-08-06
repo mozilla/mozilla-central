@@ -174,7 +174,7 @@ private:
     PRInt32 AuthLoginStep0Response();
     PRInt32 AuthLoginStep1();
     PRInt32 AuthLoginStep2();
-    PRInt32 AuthLoginResponse(nsIInputStream * stream, PRUint32 length);
+    nsresult AuthLoginResponse(nsIInputStream * stream, PRUint32 length);
 
     PRInt32 SendTLSResponse();
     PRInt32 SendMailResponse();

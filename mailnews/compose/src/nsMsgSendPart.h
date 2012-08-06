@@ -19,30 +19,30 @@ public:
     virtual ~nsMsgSendPart();	  // Note that the destructor also destroys
 								                // any children that were added.
 
-    virtual int       Write();
+    virtual nsresult  Write();
 
     virtual nsresult    SetFile(nsIFile *filename);
     const nsIFile  *GetFile() {return m_file;}
 
-    virtual int       SetBuffer(const char* buffer);
+    virtual nsresult  SetBuffer(const char* buffer);
     const char        *GetBuffer() {return m_buffer;}
 
-    virtual int       SetType(const char* type);
+    virtual nsresult  SetType(const char* type);
     const char        *GetType() {return m_type;}
     
     const char        *GetCharsetName() {return m_charset_name;}
 
-    virtual int       SetOtherHeaders(const char* other);
+    virtual nsresult  SetOtherHeaders(const char* other);
     const char        *SetOtherHeaders() {return m_other;}
-	  virtual int       AppendOtherHeaders(const char* moreother);
+	  virtual nsresult  AppendOtherHeaders(const char* moreother);
 
-	  virtual int       SetMimeDeliveryState(nsIMsgSend* state);
+	  virtual nsresult  SetMimeDeliveryState(nsIMsgSend* state);
 
 	// Note that the nsMsgSendPart class will take over ownership of the
 	// MimeEncoderData* object, deleting it when it chooses.  (This is
 	// necessary because deleting these objects is the only current way to
 	// flush out the data in them.)
-	int                 SetEncoderData(MimeEncoderData* data);
+	nsresult            SetEncoderData(MimeEncoderData* data);
 	MimeEncoderData     *GetEncoderData() {return m_encoder_data;}
 
 	int                 SetStripSensitiveHeaders(bool value) 
@@ -52,21 +52,21 @@ public:
 	                    }
 	bool                GetStripSensitiveHeaders() {return m_strip_sensitive_headers;}
 
-  virtual int         AddChild(nsMsgSendPart* child);
+  virtual nsresult    AddChild(nsMsgSendPart* child);
 
 	PRInt32             GetNumChildren() {return m_numchildren;}
 	nsMsgSendPart       *GetChild(PRInt32 which);
 	nsMsgSendPart       *DetachChild(PRInt32 which);
 
-	virtual int         SetMainPart(bool value);
+	virtual nsresult    SetMainPart(bool value);
 	bool                IsMainPart() 
                       {
                         return m_mainpart;
                       }
   nsCString           m_partNum;
 protected:
-	int                 CopyString(char** dest, const char* src);
-	int                 PushBody(const char* buffer, PRInt32 length);
+	nsresult            CopyString(char** dest, const char* src);
+	nsresult            PushBody(const char* buffer, PRInt32 length);
 
 	nsCOMPtr<nsIMsgSend> m_state;
 	nsMsgSendPart       *m_parent;

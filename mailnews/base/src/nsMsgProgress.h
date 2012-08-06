@@ -39,7 +39,7 @@ private:
   bool                               m_processCanceled;
   nsString                           m_pendingStatus;
   PRInt32                            m_pendingStateFlags;
-  PRInt32                            m_pendingStateValue;
+  nsresult                           m_pendingStateValue;
   nsWeakPtr                          m_msgWindow;
   nsCOMArray<nsIWebProgressListener> m_listenerList;
 };

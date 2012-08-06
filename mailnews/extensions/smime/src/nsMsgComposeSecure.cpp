@@ -29,7 +29,7 @@ static void mime_crypto_write_base64 (void *closure, const char *buf,
               unsigned long size);
 static nsresult mime_encoder_output_fn(const char *buf, PRInt32 size, void *closure);
 static nsresult mime_nested_encoder_output_fn (const char *buf, PRInt32 size, void *closure);
-static int make_multipart_signed_header_string(bool outer_p,
+static nsresult make_multipart_signed_header_string(bool outer_p,
                   char **header_return,
                   char **boundary_return);
 static char *mime_make_separator(const char *prefix);
@@ -1005,7 +1005,7 @@ NS_IMETHODIMP nsMsgComposeSecure::MimeCryptoWriteBlock (const char *buf, PRInt32
    of a multipart object.  The boundary itself is also returned (so that
    the caller knows what to write to close it off.)
  */
-static int
+static nsresult
 make_multipart_signed_header_string(bool outer_p,
 									char **header_return,
 									char **boundary_return)
@@ -1053,7 +1053,7 @@ make_multipart_signed_header_string(bool outer_p,
 	  return NS_ERROR_OUT_OF_MEMORY;
 	}
 
-  return 0;
+  return NS_OK;
 }
 
 /* Used as the output function of a SEC_PKCS7EncoderContext -- we feed

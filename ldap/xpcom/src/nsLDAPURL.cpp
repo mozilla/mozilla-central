@@ -95,7 +95,7 @@ nsLDAPURL::GetPathInternal(nsCString &aPath)
 nsresult
 nsLDAPURL::SetPathInternal(const nsCString &aPath)
 {
-  PRUint32 rv;
+  nsresult rv;
   LDAPURLDesc *desc;
 
   // This is from the LDAP C-SDK, which currently doesn't

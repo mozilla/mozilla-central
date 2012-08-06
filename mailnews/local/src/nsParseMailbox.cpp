@@ -317,7 +317,7 @@ void nsMsgMailboxParser::UpdateProgressPercent ()
   }
 }
 
-int nsMsgMailboxParser::ProcessMailboxInputStream(nsIURI* aURL, nsIInputStream *aIStream, PRUint32 aLength)
+nsresult nsMsgMailboxParser::ProcessMailboxInputStream(nsIURI* aURL, nsIInputStream *aIStream, PRUint32 aLength)
 {
   nsresult ret = NS_OK;
 

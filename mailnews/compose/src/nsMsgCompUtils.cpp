@@ -251,7 +251,7 @@ nsMsgStripLine (char * string)
 char *
 mime_generate_headers (nsMsgCompFields *fields,
                        const char *charset,
-                       nsMsgDeliverMode deliver_mode, nsIPrompt * aPrompt, PRInt32 *status)
+                       nsMsgDeliverMode deliver_mode, nsIPrompt * aPrompt, nsresult *status)
 {
   nsresult rv;
   *status = NS_OK;

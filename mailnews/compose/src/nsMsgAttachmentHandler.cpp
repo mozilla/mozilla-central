@@ -1191,7 +1191,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
 
     if (next)
     {
-      int status = next->SnarfAttachment(mCompFields);
+      nsresult status = next->SnarfAttachment(mCompFields);
       if (NS_FAILED(status))
       {
         nsresult ignoreMe;

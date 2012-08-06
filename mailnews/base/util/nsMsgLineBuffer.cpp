@@ -85,17 +85,19 @@ nsMsgLineBuffer::SetLookingForCRLF(bool b)
   m_lookingForCRLF = b;
 }
 
-PRInt32  nsMsgLineBuffer::BufferInput(const char *net_buffer, PRInt32 net_buffer_size)
+nsresult nsMsgLineBuffer::BufferInput(const char *net_buffer, PRInt32 net_buffer_size)
 {
-    int status = 0;
+    nsresult status = NS_OK;
     if (m_bufferPos > 0 && m_buffer && m_buffer[m_bufferPos - 1] == '\r' &&
         net_buffer_size > 0 && net_buffer[0] != '\n') {
         /* The last buffer ended with a CR.  The new buffer does not start
            with a LF.  This old buffer should be shipped out and discarded. */
         PR_ASSERT(m_bufferSize > m_bufferPos);
-        if (m_bufferSize <= m_bufferPos) return -1;
-        status = ConvertAndSendBuffer();
-        if (status < 0) 
+        // XXX -1 is not a valid nsresult
+        if (m_bufferSize <= m_bufferPos) return static_cast<nsresult>(-1);
+        // XXX This returns -1 on error, not an nsresult
+        status = static_cast<nsresult>(ConvertAndSendBuffer());
+        if (NS_FAILED(status))
            return status;
         m_bufferPos = 0;
     }
@@ -151,7 +153,7 @@ PRInt32  nsMsgLineBuffer::BufferInput(const char *net_buffer, PRInt32 net_buffer
             if (desired_size >= m_bufferSize)
             {
                 status = GrowBuffer (desired_size, 1024);
-                if (status < 0) 
+                if (NS_FAILED(status))
                     return status;
             }
             memcpy (m_buffer + m_bufferPos, net_buffer, (end - net_buffer));
@@ -165,16 +167,17 @@ PRInt32  nsMsgLineBuffer::BufferInput(const char *net_buffer, PRInt32 net_buffer
            Then go around the loop again, until we drain the incoming data.
            */
         if (!newline)
-            return 0;
-        
-        status = ConvertAndSendBuffer();
-        if (status < 0) return status;
+            return NS_OK;
+
+        // XXX This returns -1 on error, not an nsresult
+        status = static_cast<nsresult>(ConvertAndSendBuffer());
+        if (NS_FAILED(status)) return status;
         
         net_buffer_size -= (newline - net_buffer);
         net_buffer = newline;
         m_bufferPos = 0;
     }
-    return 0;
+    return NS_OK;
 }
 
 PRInt32 nsMsgLineBuffer::HandleLine(char *line, PRUint32 line_length)

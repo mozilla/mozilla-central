@@ -95,7 +95,7 @@ private:
                         PRUint32 sourceOffset, PRUint32 length);
   virtual nsresult CloseSocket();
 
-  PRInt32 SetupMessageExtraction();
+  nsresult SetupMessageExtraction();
   nsresult OpenMultipleMsgTransport(PRUint64 offset, PRInt32 size);
   nsresult OpenFileSocketForReuse(nsIURI * aURL, PRUint64 aStartPosition, PRInt32 aReadCount);
   bool RunningMultipleMsgUrl();

@@ -445,7 +445,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
 nsresult
 nsNNTPNewsgroupList::AddToKnownArticles(PRInt32 first, PRInt32 last)
 {
-  int status;
+  nsresult status;
 
   if (!m_knownArts.set)
   {

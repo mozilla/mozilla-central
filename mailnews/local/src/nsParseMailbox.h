@@ -156,7 +156,7 @@ public:
   void    SetDB (nsIMsgDatabase *mailDB) {m_mailDB = mailDB; }
 
   // message socket libnet callbacks, which come through folder pane
-  virtual int ProcessMailboxInputStream(nsIURI* aURL, nsIInputStream *aIStream, PRUint32 aLength);
+  nsresult ProcessMailboxInputStream(nsIURI* aURL, nsIInputStream *aIStream, PRUint32 aLength);
 
   virtual void  DoneParsingFolder(nsresult status);
   virtual void  AbortNewHeader();

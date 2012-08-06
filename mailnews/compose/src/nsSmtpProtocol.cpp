@@ -405,8 +405,8 @@ NS_IMETHODIMP nsSmtpProtocol::OnStopRequest(nsIRequest *request, nsISupports *ct
   if (connDroppedDuringAuth)
   {
     nsCOMPtr<nsIURI> runningURI = do_QueryInterface(m_runningURL);
-    PRInt32 rv = AuthLoginResponse(nullptr, 0);
-    if (rv < 0)
+    nsresult rv = AuthLoginResponse(nullptr, 0);
+    if (NS_FAILED(rv))
       return rv;
     return LoadUrl(runningURI, ctxt);
   }
@@ -1055,10 +1055,10 @@ PRInt32 nsSmtpProtocol::ProcessAuth()
 
 
 
-PRInt32 nsSmtpProtocol::AuthLoginResponse(nsIInputStream * stream, PRUint32 length)
+nsresult nsSmtpProtocol::AuthLoginResponse(nsIInputStream * stream, PRUint32 length)
 {
   PR_LOG(SMTPLogModule, PR_LOG_DEBUG, ("SMTP Login response, code %d", m_responseCode));
-  PRInt32 status = 0;
+  nsresult status = NS_OK;
 
   switch (m_responseCode/100)
   {
@@ -1527,7 +1527,7 @@ PRInt32 nsSmtpProtocol::SendRecipientResponse()
 
   if (m_responseCode / 10 != 25)
   {
-    int errorcode;
+    nsresult errorcode;
     if (TestFlag(SMTP_EHLO_SIZE_ENABLED))
       errorcode = (m_responseCode == 452) ? NS_ERROR_SMTP_TEMP_SIZE_EXCEEDED :
                   (m_responseCode == 552) ? NS_ERROR_SMTP_PERM_SIZE_EXCEEDED_2 :
