@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 
 var gDirTree = 0;
@@ -9,9 +10,6 @@ var abList = null;
 var gAbResultsTree = null;
 var gAbView = null;
 var gAddressBookBundle;
-
-var gPrefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-var gHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
 
 const kDefaultSortColumn = "GeneratedName";
 const kDefaultAscending = "ascending";
@@ -75,7 +73,7 @@ var DirPaneController =
             var disable = false;
             try {
               var prefName = selectedDir.substr(kLdapUrlPrefix.length);
-              disable = gPrefs.getBoolPref(prefName + ".disable_delete");
+              disable = Services.prefs.getBoolPref(prefName + ".disable_delete");
             }
             catch(ex) {
               // if this preference is not set its ok.
@@ -184,8 +182,6 @@ function AbDeleteSelectedDirectory()
 
 function AbDeleteDirectory(aURI)
 {
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-
   var directory = GetDirectoryFromURI(aURI);
   var confirmDeleteMessage;
   var clearPrefsRequired = false;
@@ -194,10 +190,10 @@ function AbDeleteDirectory(aURI)
     confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteMailingList");
   else {
     // Check if this address book is being used for collection
-    if (gPrefs.getCharPref("mail.collect_addressbook") == aURI &&
-        (gPrefs.getBoolPref("mail.collect_email_address_outgoing") ||
-         gPrefs.getBoolPref("mail.collect_email_address_incoming") ||
-         gPrefs.getBoolPref("mail.collect_email_address_newsgroup"))) {
+    if (Services.prefs.getCharPref("mail.collect_addressbook") == aURI &&
+        (Services.prefs.getBoolPref("mail.collect_email_address_outgoing") ||
+         Services.prefs.getBoolPref("mail.collect_email_address_incoming") ||
+         Services.prefs.getBoolPref("mail.collect_email_address_newsgroup"))) {
       var brandShortName = document.getElementById("bundle_brand").getString("brandShortName");
 
       confirmDeleteMessage = gAddressBookBundle.getFormattedString("confirmDeleteCollectionAddressbook", [brandShortName]);
@@ -208,23 +204,22 @@ function AbDeleteDirectory(aURI)
     }
   }
 
-  if (!promptService.confirm(window,
-                             gAddressBookBundle.getString(
-                                                directory.isMailList ?
-                                                "confirmDeleteMailingListTitle" :
-                                                "confirmDeleteAddressbookTitle"),
-                             confirmDeleteMessage))
+  let title = gAddressBookBundle.getString(directory.isMailList ?
+                                             "confirmDeleteMailingListTitle" :
+                                             "confirmDeleteAddressbookTitle");
+  if (!Services.prompt.confirm(window, title, confirmDeleteMessage))
     return;
 
   // First clear all the prefs if required
   if (clearPrefsRequired) {
-    gPrefs.setBoolPref("mail.collect_email_address_outgoing", false);
-    gPrefs.setBoolPref("mail.collect_email_address_incoming", false);
-    gPrefs.setBoolPref("mail.collect_email_address_newsgroup", false);
+    Services.prefs.setBoolPref("mail.collect_email_address_outgoing", false);
+    Services.prefs.setBoolPref("mail.collect_email_address_incoming", false);
+    Services.prefs.setBoolPref("mail.collect_email_address_newsgroup", false);
 
     // Also reset the displayed value so that we don't get a blank item in the
     // prefs dialog if it gets enabled.
-    gPrefs.setCharPref("mail.collect_addressbook", kPersonalAddressbookURI);
+    Services.prefs.setCharPref("mail.collect_addressbook",
+                               kPersonalAddressbookURI);
   }
 
   MailServices.ab.deleteAddressBook(aURI);
@@ -240,7 +235,7 @@ function InitCommonJS()
 function UpgradeAddressBookResultsPaneUI(prefName)
 {
   // placeholder in case any new columns get added to the address book
-  // var resultsPaneUIVersion = gPrefs.getIntPref(prefName);
+  // var resultsPaneUIVersion = Services.prefs.getIntPref(prefName);
 }
 
 function AbDelete()
@@ -250,7 +245,6 @@ function AbDelete()
   if (types == kNothingSelected)
     return;
 
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
   // If at least one mailing list is selected then prompt users for deletion.
   if (types != kCardsOnly)
   {
@@ -261,7 +255,7 @@ function AbDelete()
       confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteMailingLists");
     else
       confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteMailingList");
-    if (!promptService.confirm(window, null, confirmDeleteMessage))
+    if (!Services.prompt.confirm(window, null, confirmDeleteMessage))
       return;
   }
 
@@ -327,10 +321,7 @@ function AbNewMessage()
         composeFields.to = GetSelectedAddresses();
       }
       params.composeFields = composeFields;
-      var msgComposeService =
-        Components.classes["@mozilla.org/messengercompose;1"]
-                  .getService(Components.interfaces.nsIMsgComposeService);
-      msgComposeService.OpenComposeWindowWithParams(null, params);
+      MailServices.compose.OpenComposeWindowWithParams(null, params);
     }
   }
 }
@@ -571,7 +562,7 @@ function GenerateAddressFromCard(card)
   }
   else 
     email = card.primaryEmail;
-  return gHeaderParser.makeFullAddress(card.displayName, email);
+  return MailServices.headerParser.makeFullAddress(card.displayName, email);
 }
 
 function GetDirectoryFromURI(uri)
@@ -618,9 +609,7 @@ function GetSelectedDirectory()
  * This will create the directory if it does not yet exist.
  */
 function getPhotosDir() {
-  var file = Components.classes["@mozilla.org/file/directory_service;1"]
-                       .getService(Components.interfaces.nsIProperties)
-                       .get("ProfD", Components.interfaces.nsIFile);
+  var file = Services.dirsvc.get("ProfD", Components.interfaces.nsIFile);
   // Get the Photos directory
   file.append("Photos");
   if (!file.exists() || !file.isDirectory())
@@ -649,9 +638,7 @@ function getPhotoURI(aPhotoName) {
   }
   if (!file.exists())
     return defaultPhotoURI;
-  return Components.classes["@mozilla.org/network/io-service;1"]
-                   .getService(Components.interfaces.nsIIOService)
-                   .newFileURI(file).spec;
+  return Services.io.newFileURI(file).spec;
 }
 
 /**
@@ -709,9 +696,7 @@ function storePhoto(aUri) {
   var file = getPhotosDir();
 
   // Create a channel from the URI and open it as an input stream
-  var ios = Components.classes["@mozilla.org/network/io-service;1"]
-                      .getService(Components.interfaces.nsIIOService);
-  var channel = ios.newChannelFromURI(ios.newURI(aUri, null, null));
+  var channel = Services.io.newChannelFromURI(Services.io.newURI(aUri, null, null));
   var istream = channel.open();
 
   // Get the photo file

@@ -7,8 +7,6 @@
  * depends on jsTreeView.js being loaded before this script is loaded.
  */
 
-Components.utils.import("resource:///modules/mailServices.js");
-
 /**
  * Each abDirTreeItem corresponds to one row in the tree view.
  */
@@ -92,9 +90,7 @@ directoryTreeView.prototype =
   {
     if (aJSONFile) {
       // Parse our persistent-open-state json file
-      let file = Components.classes["@mozilla.org/file/directory_service;1"]
-                           .getService(Components.interfaces.nsIProperties)
-                           .get("ProfD", Components.interfaces.nsIFile);
+      let file = Services.dirsvc.get("ProfD", Components.interfaces.nsIFile);
       file.append(aJSONFile);
 
       if (file.exists())
@@ -127,9 +123,7 @@ directoryTreeView.prototype =
     {
       // Write out our json file...
       let data = JSON.stringify(this._persistOpenMap);
-      let file = Components.classes["@mozilla.org/file/directory_service;1"]
-                           .getService(Components.interfaces.nsIProperties)
-                           .get("ProfD", Components.interfaces.nsIFile);
+      let file = Services.dirsvc.get("ProfD", Components.interfaces.nsIFile);
       file.append(aJSONFile);
       let foStream = Components.classes["@mozilla.org/network/safe-file-output-stream;1"]
                                .createInstance(Components.interfaces.nsIFileOutputStream);

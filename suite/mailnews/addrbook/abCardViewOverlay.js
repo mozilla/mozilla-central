@@ -5,10 +5,6 @@
 
 //NOTE: gAddressBookBundle must be defined and set or this Overlay won't work
 
-var gPrefs = Components.classes["@mozilla.org/preferences-service;1"];
-gPrefs = gPrefs.getService();
-gPrefs = gPrefs.QueryInterface(Components.interfaces.nsIPrefBranch);
-
 var gProfileDirURL;
 
 var gMapItURLFormat;
@@ -157,7 +153,7 @@ function GetAddressesFromURI(uri)
 
 function DisplayCardViewPane(realCard)
 {
-  var generatedName = realCard.generateName(gPrefs.getIntPref("mail.addr_book.lastnamefirst"));
+  var generatedName = realCard.generateName(Services.prefs.getIntPref("mail.addr_book.lastnamefirst"));
 		
   var data = top.cvData;
   var visible;
@@ -331,7 +327,7 @@ function DisplayCardViewPane(realCard)
 function setBuddyIcon(card, buddyIcon)
 {
   try {
-    var myScreenName = gPrefs.getCharPref("aim.session.screenname");
+    var myScreenName = Services.prefs.getCharPref("aim.session.screenname");
     if (myScreenName && card.primaryEmail) {
       if (!gProfileDirURL) {
         // lazily create these file urls, and keep them around

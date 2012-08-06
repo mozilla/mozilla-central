@@ -2,13 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-Components.utils.import("resource:///modules/mailServices.js");
-
 const nsIAbListener = Components.interfaces.nsIAbListener;
 const kPrefMailAddrBookLastNameFirst = "mail.addr_book.lastnamefirst";
 const kPersistCollapseMapStorage = "directoryTree.json";
 
-var cvPrefs = 0;
 var gSearchTimer = null;
 var gStatusText = null;
 var gQueryURIFormat = null;
@@ -77,7 +74,7 @@ function OnLoadAddressBook()
   SelectFirstAddressBook();
 
   // if the pref is locked disable the menuitem New->LDAP directory
-  if (gPrefs.prefIsLocked("ldap_2.disable_button_add"))
+  if (Services.prefs.prefIsLocked("ldap_2.disable_button_add"))
     document.getElementById("addLDAP").setAttribute("disabled", "true");
 
   // Add a listener, so we can switch directories if the current directory is
@@ -98,15 +95,9 @@ function OnLoadAddressBook()
 
 function GetCurrentPrefs()
 {
-	// prefs
-	if ( cvPrefs == 0 )
-		cvPrefs = new Object;
-
-	cvPrefs.prefs = gPrefs;
-	
 	// check "Show Name As" menu item based on pref
 	var menuitemID;
-	switch (gPrefs.getIntPref(kPrefMailAddrBookLastNameFirst))
+	switch (Services.prefs.getIntPref(kPrefMailAddrBookLastNameFirst))
 	{
 		case kFirstNameFirst:
 			menuitemID = 'firstLastCmd';
@@ -148,7 +139,7 @@ function SetNameColumn(cmd)
     break;
   }
 
-  cvPrefs.prefs.setIntPref(kPrefMailAddrBookLastNameFirst, prefValue);
+  Services.prefs.setIntPref(kPrefMailAddrBookLastNameFirst, prefValue);
 }
 
 function CommandUpdate_AddressBook()

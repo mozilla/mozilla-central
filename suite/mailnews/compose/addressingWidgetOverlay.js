@@ -353,8 +353,8 @@ function awTestRowSequence()
   */
 
   var test_sequence;
-  if (gPrefs.getPrefType("mail.debug.test_addresses_sequence") == Components.interfaces.nsIPrefBranch.PREF_BOOL)
-    test_sequence = gPrefs.getBoolPref("mail.debug.test_addresses_sequence");
+  if (Services.prefs.getPrefType("mail.debug.test_addresses_sequence") == Components.interfaces.nsIPrefBranch.PREF_BOOL)
+    test_sequence = Services.prefs.getBoolPref("mail.debug.test_addresses_sequence");
   if (!test_sequence)
     return true;
 

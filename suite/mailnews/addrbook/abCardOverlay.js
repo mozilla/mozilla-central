@@ -120,10 +120,7 @@ function OnLoadNewCard()
     if ("escapedVCardStr" in window.arguments[0]) {
       // hide non vcard values
       HideNonVcardFields();
-      gEditCard.card =
-        Components.classes["@mozilla.org/abmanager;1"]
-                  .getService(Components.interfaces.nsIAbManager)
-                  .escapedVCardToAbCard(window.arguments[0].escapedVCardStr);
+      gEditCard.card = MailServices.ab.escapedVCardToAbCard(window.arguments[0].escapedVCardStr);
     }
 
     if ("titleProperty" in window.arguments[0])
@@ -356,8 +353,8 @@ function NotifySaveListeners(directory)
 function InitPhoneticFields()
 {
   var showPhoneticFields =
-        gPrefs.getComplexValue("mail.addr_book.show_phonetic_fields", 
-                               Components.interfaces.nsIPrefLocalizedString).data;
+    Services.prefs.getComplexValue("mail.addr_book.show_phonetic_fields", 
+      Components.interfaces.nsIPrefLocalizedString).data;
 
   // hide phonetic fields if indicated by the pref
   if (showPhoneticFields == "true")
@@ -376,16 +373,14 @@ function InitEditCard()
   //   file.
   gEditCard = new Object();
 
-  gEditCard.prefs = gPrefs;
-
   // get specific prefs that gEditCard will need
   try {
     var displayLastNameFirst =
-        gPrefs.getComplexValue("mail.addr_book.displayName.lastnamefirst", 
-                               Components.interfaces.nsIPrefLocalizedString).data;
+      Services.prefs.getComplexValue("mail.addr_book.displayName.lastnamefirst", 
+        Components.interfaces.nsIPrefLocalizedString).data;
     gEditCard.displayLastNameFirst = (displayLastNameFirst == "true");
     gEditCard.generateDisplayName =
-      gPrefs.getBoolPref("mail.addr_book.displayName.autoGeneration");
+      Services.prefs.getBoolPref("mail.addr_book.displayName.autoGeneration");
   }
   catch (ex) {
     dump("ex: failed to get pref" + ex + "\n");
@@ -609,13 +604,9 @@ function CheckCardRequiredDataPresence(doc)
       doc.getElementById("DisplayName").textLength == 0 &&
       doc.getElementById("Company").textLength == 0)
   {
-    Components
-      .classes["@mozilla.org/embedcomp/prompt-service;1"]
-      .getService(Components.interfaces.nsIPromptService)
-      .alert(
-        window,
-        gAddressBookBundle.getString("cardRequiredDataMissingTitle"),
-        gAddressBookBundle.getString("cardRequiredDataMissingMessage"));
+    Services.prompt.alert(window,
+      gAddressBookBundle.getString("cardRequiredDataMissingTitle"),
+      gAddressBookBundle.getString("cardRequiredDataMissingMessage"));
 
     return false;
   }
@@ -625,13 +616,9 @@ function CheckCardRequiredDataPresence(doc)
   // as some other field must have something as per the check above.
   if (primaryEmail.textLength != 0 && !/.@./.test(primaryEmail.value))
   {
-    Components
-      .classes["@mozilla.org/embedcomp/prompt-service;1"]
-      .getService(Components.interfaces.nsIPromptService)
-      .alert(
-        window,
-        gAddressBookBundle.getString("incorrectEmailAddressFormatTitle"),
-        gAddressBookBundle.getString("incorrectEmailAddressFormatMessage"));
+    Services.prompt.alert(window,
+      gAddressBookBundle.getString("incorrectEmailAddressFormatTitle"),
+      gAddressBookBundle.getString("incorrectEmailAddressFormatMessage"));
 
     // Focus the dialog field, to help the user.
     document.getElementById("abTabs").selectedIndex = 0;
@@ -1053,11 +1040,9 @@ var gFilePhotoHandler =
     var photoURI = aCard.getProperty("PhotoURI", "");
     try
     {
-      var file = Components.classes["@mozilla.org/network/io-service;1"]
-                           .getService(Components.interfaces.nsIIOService)
-                           .newURI(photoURI, null, null)
-                           .QueryInterface(Components.interfaces.nsIFileURL)
-                           .file;
+      var file = Services.io.newURI(photoURI, null, null)
+                            .QueryInterface(Components.interfaces.nsIFileURL)
+                            .file;
     } catch (e) {}
 
     if (!file)
@@ -1072,10 +1057,7 @@ var gFilePhotoHandler =
     var file = aDocument.getElementById("PhotoFile").file;
     try
     {
-      var value = Components.classes["@mozilla.org/network/io-service;1"]
-                            .getService(Components.interfaces.nsIIOService)
-                            .newFileURI(file)
-                            .spec;
+      var value = Services.io.newFileURI(file).spec;
     } catch (e) {}
 
     if (!value)
@@ -1091,10 +1073,7 @@ var gFilePhotoHandler =
     if (!file)
       return false;
 
-    var photoURI = Components.classes["@mozilla.org/network/io-service;1"]
-                             .getService(Components.interfaces.nsIIOService)
-                             .newFileURI(file)
-                             .spec;
+    var photoURI = Services.io.newFileURI(file).spec;
 
     var file = storePhoto(photoURI);
 
