@@ -199,18 +199,14 @@ var gAccountManager = {
   connect: function am_connect() {
     let account = this.accountList.selectedItem.account;
     if (account.disconnected) {
-      let disconnect = document.getElementById("cmd_disconnect");
-      disconnect.setAttribute("disabled", "true");
-      this.restoreButtonTimer();
+      this.temporarilyDisableButtons();
       account.connect();
     }
   },
   disconnect: function am_disconnect() {
     let account = this.accountList.selectedItem.account;
     if (account.connected || account.connecting) {
-      let connect = document.getElementById("cmd_connect");
-      connect.setAttribute("disabled", "true");
-      this.restoreButtonTimer();
+      this.temporarilyDisableButtons();
       account.disconnect();
     }
   },
@@ -221,9 +217,13 @@ var gAccountManager = {
         item.refreshConnectedLabel();
     }
   },
-  /* This function restores the disabled attribute of the currently visible
-     button (and context menu item) after `this._disabledDelay` ms */
-  restoreButtonTimer: function am_restoreButtonTimer() {
+  /* This function disables the connect/disconnect buttons for
+   * `this._disabledDelay` ms before calling disableCommandItems to restore
+   * the state of the buttons.
+   */
+  temporarilyDisableButtons: function am_temporarilyDisableButtons() {
+    document.getElementById("cmd_disconnect").setAttribute("disabled", "true");
+    document.getElementById("cmd_connect").setAttribute("disabled", "true");
     clearTimeout(this.disableTimerID);
     this.accountList.focus();
     this.disableTimerID = setTimeout(function(aItem) {
@@ -293,44 +293,39 @@ var gAccountManager = {
       return;
 
     let account = selectedItem.account;
-    let activeCommandName =
-      (this.isOffline || account.disconnected) ? "connect" : "disconnect";
-    let activeCommandElt = document.getElementById("cmd_" + activeCommandName);
     let isCommandDisabled =
       (this.isOffline ||
        (account.disconnected &&
         account.connectionErrorReason == Ci.imIAccount.ERROR_UNKNOWN_PRPL));
-    
-    [[activeCommandElt, isCommandDisabled],
-     [document.getElementById("cmd_moveup"), accountList.selectedIndex == 0],
-     [document.getElementById("cmd_movedown"),
-      accountList.selectedIndex == accountList.itemCount - 1]
-    ].forEach(function (aEltArray) {
-      let [elt, state] = aEltArray;
+
+    let disabledItems = {
+      connect: isCommandDisabled,
+      disconnect: isCommandDisabled,
+      moveup: accountList.selectedIndex == 0,
+      movedown: accountList.selectedIndex == accountList.itemCount - 1
+    };
+    for each (let [name, state] in Iterator(disabledItems)) {
+      let elt = document.getElementById("cmd_" + name);
       if (state)
         elt.setAttribute("disabled", "true");
       else
         elt.removeAttribute("disabled");
-    });
+    }
   },
   onContextMenuShowing: function am_onContextMenuShowing() {
     let targetElt = document.popupNode;
     let isAccount = targetElt instanceof Ci.nsIDOMXULSelectControlItemElement;
     document.getElementById("contextAccountsItems").hidden = !isAccount;
     if (isAccount) {
-       /* we want to hide either "connect" or "disconnect" depending on the
-          context and we can't use the broadcast of the command element here
-          because the item already observes "contextAccountsItems" */
-      let itemNameToHide, itemNameToShow;
-      if (targetElt.account.disconnected)
-        [itemNameToHide, itemNameToShow] = ["disconnect",  "connect"];
-      else
-        [itemNameToHide, itemNameToShow] = ["connect", "disconnect"];
-      document.getElementById("context_" + itemNameToHide).hidden = true;
-      document.getElementById("context_" + itemNameToShow).hidden = false;
-
-      document.getElementById("context_cancelReconnection").hidden =
-        !targetElt.hasAttribute("reconnectPending");
+      let account = targetElt.account;
+      let hiddenItems = {
+        connect: !account.disconnected,
+        disconnect: account.disconnected || account.disconnecting,
+        cancelReconnection: !targetElt.hasAttribute("reconnectPending"),
+        accountsItemsSeparator: account.disconnecting
+      };
+      for (let name in hiddenItems)
+        document.getElementById("context_" + name).hidden = hiddenItems[name];
     }
   },
 
