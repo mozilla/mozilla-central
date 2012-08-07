@@ -198,8 +198,7 @@ bool nsNewsDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, bool bRead)
         printf("remove %d from the set\n",messageKey);
 #endif
 
-        rv = m_readSet->Remove(messageKey);
-        if (NS_FAILED(rv)) return false;
+        m_readSet->Remove(messageKey);
 
         rv = NotifyReadChanged(nullptr);
         if (NS_FAILED(rv)) return false;
@@ -209,8 +208,7 @@ bool nsNewsDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, bool bRead)
         printf("add %d to the set\n",messageKey);
 #endif
 
-        rv = m_readSet->Add(messageKey);
-        if (NS_FAILED(rv)) return false;
+        if (m_readSet->Add(messageKey) < 0) return false;
 
         rv = NotifyReadChanged(nullptr);
         if (NS_FAILED(rv)) return false;

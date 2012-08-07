@@ -641,7 +641,7 @@ nsSmtpService::DeleteSmtpServer(nsISmtpServer *aServer)
     nsCString serverKey;
     aServer->GetKey(getter_Copies(serverKey));
     
-    nsresult rv = mSmtpServers.RemoveObjectAt(idx);
+    mSmtpServers.RemoveObjectAt(idx);
 
     if (mDefaultSmtpServer.get() == aServer)
         mDefaultSmtpServer = nullptr;

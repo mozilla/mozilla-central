@@ -27,6 +27,9 @@
 #include "nsIAddrDatabase.h" // for kPriEmailColumn
 #include "nsMsgUtils.h"
 #include "mozilla/Services.h"
+#include "mozilla/Util.h" // for DebugOnly
+
+using namespace mozilla;
 
 #define CARD_NOT_FOUND -1
 #define ALL_ROWS -1
@@ -263,8 +266,8 @@ nsresult nsAbView::EnumerateCards()
         // If we knew how many cards there was going to be
         // we could allocate an array of the size,
         // instead of growing and copying as we append.
-        rv = mCards.AppendElement((void *)abcard);
-        NS_ASSERTION(NS_SUCCEEDED(rv), "failed to append card");
+        DebugOnly<bool> didAppend = mCards.AppendElement((void *)abcard);
+        NS_ASSERTION(didAppend, "failed to append card");
       }
     }
   }
@@ -809,9 +812,8 @@ nsresult nsAbView::AddCard(AbCard *abcard, bool selectCardAfterAdding, PRInt32 *
   NS_ENSURE_ARG_POINTER(abcard);
   
   *index = FindIndexForInsert(abcard);
-  rv = mCards.InsertElementAt((void *)abcard, *index);
-  NS_ENSURE_SUCCESS(rv,rv);
-    
+  mCards.InsertElementAt((void *)abcard, *index);
+
   // This needs to happen after we insert the card, as RowCountChanged() will call GetRowCount()
   if (mTree)
     rv = mTree->RowCountChanged(*index, 1);

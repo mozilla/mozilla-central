@@ -279,7 +279,7 @@ NS_IMETHODIMP nsAbBSDirectory::DeleteDirectory(nsIAbDirectory *directory)
     nsCOMPtr<nsIAbDirectory> d = getDirectories.directories[i];
 
     mServers.Remove(d);
-    rv = mSubDirectories.RemoveObject(d);
+    mSubDirectories.RemoveObject(d);
 
     if (abManager)
       abManager->NotifyDirectoryDeleted(this, d);

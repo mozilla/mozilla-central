@@ -2121,7 +2121,7 @@ nsMsgAccountManager::findIdentitiesForServer(nsISupports* element, void *aData)
     nsCOMPtr<nsISupportsArray> theseIdentities;
     rv = account->GetIdentities(getter_AddRefs(theseIdentities));
     if (NS_SUCCEEDED(rv))
-      rv = entry->identities->AppendElements(theseIdentities);
+      entry->identities->AppendElements(theseIdentities);
   }
 
   return true;

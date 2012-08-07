@@ -464,17 +464,12 @@ nsLDAPAutoCompleteSession::OnLDAPSearchEntry(nsILDAPMessage *aMessage)
       break;
   }
 
-  rv = mResultsArray->InsertElementAt(item, insertPosition);
-    if (NS_FAILED(rv)) {
-        NS_ERROR("nsLDAPAutoCompleteSession::OnLDAPSearchEntry(): "
-                 "mResultsArray->InsertElementAt() failed");
-        return NS_ERROR_FAILURE;
-    }
+  mResultsArray->InsertElementAt(item, insertPosition);
 
-    // Remember that something has been returned.
-    mEntriesReturned++;
+  // Remember that something has been returned.
+  mEntriesReturned++;
 
-    return NS_OK;
+  return NS_OK;
 }
 
 nsresult
