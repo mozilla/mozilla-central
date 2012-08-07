@@ -321,6 +321,11 @@ pref("mail.biff.alert.preview_length", 40);
 
 pref("mailnews.ui.deleteMarksRead", true);
 
+// The maximum amount of decoded image data we'll willingly keep around (we
+// might keep around more than this, but we'll try to get down to this value).
+// (This is intentionally on the high side; see bugs 746055 and 768015.)
+pref("image.mem.max_decoded_image_kb", 256000);
+
 pref("spellchecker.dictionaries.download.url", "chrome://branding/locale/brand.properties");
 
 // this will automatically enable inline spellchecking (if it is available) for
