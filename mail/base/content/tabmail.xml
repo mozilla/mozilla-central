@@ -411,8 +411,7 @@
           //  contents will set themselves up correctly.
           if (this.tabInfo.length == 0) {
             let firstTab = {mode: this.defaultTabMode, busy: false,
-                            canClose: false,
-                            _ext: {}};
+                            canClose: false, thinking: false, _ext: {}};
             firstTab.mode.tabs.push(firstTab);
 
             this.tabInfo[0] = this.currentTabInfo = firstTab;
