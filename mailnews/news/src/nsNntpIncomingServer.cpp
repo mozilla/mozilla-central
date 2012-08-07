@@ -1805,7 +1805,7 @@ nsNntpIncomingServer::GetLevel(PRInt32 index, PRInt32 *_retval)
     return NS_OK;
 }
 
-nsresult
+bool
 nsNntpIncomingServer::IsValidRow(PRInt32 row)
 {
   return ((row >= 0) && (row < (PRInt32)mSubscribeSearchResult.Length()));

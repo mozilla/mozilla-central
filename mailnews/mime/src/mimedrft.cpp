@@ -62,9 +62,9 @@
 // Forward declarations...
 //
 extern "C" char     *MIME_StripContinuations(char *original);
-nsresult            mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers );
-nsresult            mime_decompose_file_output_fn ( const char *buf, PRInt32 size, void *stream_closure );
-nsresult            mime_decompose_file_close_fn ( void *stream_closure );
+int                 mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers );
+int                 mime_decompose_file_output_fn ( const char *buf, PRInt32 size, void *stream_closure );
+int                 mime_decompose_file_close_fn ( void *stream_closure );
 extern int          MimeHeaders_build_heads_list(MimeHeaders *hdrs);
 
 // CID's
@@ -1671,7 +1671,7 @@ make_mime_headers_copy ( void *closure, MimeHeaders *headers )
   return 0;
 }
 
-nsresult
+int
 mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
 {
   mime_draft_data *mdd = (mime_draft_data *) stream_closure;
@@ -1906,7 +1906,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
   return 0;
 }
 
-nsresult
+int
 mime_decompose_file_output_fn (const char     *buf,
                                PRInt32  size,
                                void     *stream_closure )
@@ -1916,10 +1916,10 @@ mime_decompose_file_output_fn (const char     *buf,
 
   NS_ASSERTION (mdd && buf, "missing mime draft data and/or buf");
   if (!mdd || !buf) return -1;
-  if (!size) return NS_OK;
+  if (!size) return 0;
 
   if ( !mdd->tmpFileStream )
-    return NS_OK;
+    return 0;
 
   if (mdd->decoder_data) {
     PRInt32 outsize;
@@ -1936,10 +1936,10 @@ mime_decompose_file_output_fn (const char     *buf,
     mdd->curAttachment->m_size += size;
   }
 
-  return NS_OK;
+  return 0;
 }
 
-nsresult
+int
 mime_decompose_file_close_fn ( void *stream_closure )
 {
   mime_draft_data *mdd = (mime_draft_data *) stream_closure;

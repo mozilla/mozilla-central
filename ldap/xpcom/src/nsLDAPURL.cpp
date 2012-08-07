@@ -95,27 +95,27 @@ nsLDAPURL::GetPathInternal(nsCString &aPath)
 nsresult
 nsLDAPURL::SetPathInternal(const nsCString &aPath)
 {
-  nsresult rv;
   LDAPURLDesc *desc;
 
   // This is from the LDAP C-SDK, which currently doesn't
   // support everything from RFC 2255... :(
   //
-  rv = ldap_url_parse(aPath.get(), &desc);
-  switch (rv) {
-  case LDAP_SUCCESS:
+  int err = ldap_url_parse(aPath.get(), &desc);
+  switch (err) {
+  case LDAP_SUCCESS: {
     // The base URL can pick up the host & port details and deal with them
     // better than we can
     mDN = desc->lud_dn;
     mScope = desc->lud_scope;
     mFilter = desc->lud_filter;
     mOptions = desc->lud_options;
-    rv = SetAttributeArray(desc->lud_attrs);
+    nsresult rv = SetAttributeArray(desc->lud_attrs);
     if (NS_FAILED(rv))
       return rv;
 
     ldap_free_urldesc(desc);
     return NS_OK;
+  }
 
   case LDAP_URL_ERR_NOTLDAP:
   case LDAP_URL_ERR_NODN:

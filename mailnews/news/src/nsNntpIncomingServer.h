@@ -135,7 +135,7 @@ private:
     nsCOMPtr <nsISubscribableServer> mInner;
     nsresult EnsureInner();
     nsresult ClearInner();
-    nsresult IsValidRow(PRInt32 row);
+    bool IsValidRow(PRInt32 row);
     nsCOMPtr<nsIFile> mNewsrcFilePath;
 };
 

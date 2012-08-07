@@ -138,8 +138,8 @@ protected:
   virtual nsMsgGroupThread *CreateGroupThread(nsIMsgDatabase *db);
   nsresult GetXFThreadFromMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread,
                                  bool *foundByMessageId = nullptr);
-  nsresult GetThreadFromHash(nsCString &reference, nsIMsgThread **thread);
-  nsresult GetMsgHdrFromHash(nsCString &reference, nsIMsgDBHdr **hdr);
+  bool     GetThreadFromHash(nsCString &reference, nsIMsgThread **thread);
+  bool     GetMsgHdrFromHash(nsCString &reference, nsIMsgDBHdr **hdr);
   nsresult AddRefToHash(nsCString &reference, nsIMsgThread *thread);
   nsresult AddMsgToHashTables(nsIMsgDBHdr *msgHdr, nsIMsgThread *thread);
   nsresult RemoveRefFromHash(nsCString &reference);

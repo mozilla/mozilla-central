@@ -4521,9 +4521,11 @@ bool nsImapProtocol::DeathSignalReceived()
   if (NS_SUCCEEDED(returnValue)) // check the other way of cancelling.
   {
     ReentrantMonitorAutoEnter threadDeathMon(m_threadDeathMonitor);
-    returnValue = m_threadShouldDie;
+    // XXX Casting bool to nsresult
+    returnValue = static_cast<nsresult>(m_threadShouldDie);
   }
-  return returnValue;
+  // XXX Casting nsresult to bool
+  return static_cast<bool>(returnValue);
 }
 
 NS_IMETHODIMP nsImapProtocol::ResetToAuthenticatedState()

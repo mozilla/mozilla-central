@@ -1293,12 +1293,12 @@ nsresult nsMsgSearchDBView::GetXFThreadFromMsgHdr(nsIMsgDBHdr *msgHdr,
   return (*pThread) ? NS_OK : NS_ERROR_FAILURE;
 }
 
-nsresult nsMsgSearchDBView::GetMsgHdrFromHash(nsCString &reference, nsIMsgDBHdr **hdr)
+bool nsMsgSearchDBView::GetMsgHdrFromHash(nsCString &reference, nsIMsgDBHdr **hdr)
 {
   return m_hdrsTable.Get(reference, hdr);
 }
 
-nsresult nsMsgSearchDBView::GetThreadFromHash(nsCString &reference, 
+bool nsMsgSearchDBView::GetThreadFromHash(nsCString &reference,
                                               nsIMsgThread **thread)
 {
   return m_threadsTable.Get(reference, thread);

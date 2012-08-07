@@ -1051,7 +1051,7 @@ PRInt32
 nsMsgComposeAndSend::PreProcessPart(nsMsgAttachmentHandler  *ma,
                                     nsMsgSendPart           *toppart) // The very top most container of the message
 {
-  nsresult        status;
+  int             status;
   char            *hdrs = 0;
   nsMsgSendPart   *part = nullptr;
 

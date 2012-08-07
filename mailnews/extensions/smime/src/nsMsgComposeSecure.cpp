@@ -27,8 +27,8 @@
 
 static void mime_crypto_write_base64 (void *closure, const char *buf,
               unsigned long size);
-static nsresult mime_encoder_output_fn(const char *buf, PRInt32 size, void *closure);
-static nsresult mime_nested_encoder_output_fn (const char *buf, PRInt32 size, void *closure);
+static int mime_encoder_output_fn(const char *buf, PRInt32 size, void *closure);
+static int mime_nested_encoder_output_fn (const char *buf, PRInt32 size, void *closure);
 static nsresult make_multipart_signed_header_string(bool outer_p,
                   char **header_return,
                   char **boundary_return);
@@ -1090,7 +1090,7 @@ mime_crypto_write_base64 (void *closure, const char *buf, unsigned long size)
    the signature for a multipart/signed object, this is used to write the
    base64-encoded representation of the signature to the file.
  */
-nsresult mime_encoder_output_fn(const char *buf, PRInt32 size, void *closure)
+int mime_encoder_output_fn(const char *buf, PRInt32 size, void *closure)
 {
   nsMsgComposeSecure *state = (nsMsgComposeSecure *) closure;
   nsCOMPtr<nsIOutputStream> stream;
@@ -1108,9 +1108,10 @@ nsresult mime_encoder_output_fn(const char *buf, PRInt32 size, void *closure)
    signature should be fed into the crypto engine, rather than being written
    directly to the file.
  */
-static nsresult
+static int
 mime_nested_encoder_output_fn (const char *buf, PRInt32 size, void *closure)
 {
   nsMsgComposeSecure *state = (nsMsgComposeSecure *) closure;
-  return state->MimeCryptoWriteBlock ((char *) buf, size);
+  // XXX MimeCryptoWriteBlock doesn't really return an nsresult, cast to int
+  return static_cast<int>(state->MimeCryptoWriteBlock ((char *) buf, size));
 }
