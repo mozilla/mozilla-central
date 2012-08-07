@@ -16,6 +16,7 @@ let Cr = Components.results;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/NetUtil.jsm");
+Cu.import("resource://gre/modules/JXON.js");
 
 /**
  * This is an observer that watches all HTTP requests for one where the
@@ -175,10 +176,9 @@ TracingListener.prototype = {
     try {
       // Attempt to construct the downloaded data into XML
       let data = this.chunks.join("");
-      let xml = new XML(data);
 
       // Attempt to derive email account information
-      let accountConfig = accountCreationFuncs.readFromXML(xml);
+      let accountConfig = accountCreationFuncs.readFromXML(JXON.build(data));
       accountCreationFuncs.replaceVariables(accountConfig,
                                             this.params.realName,
                                             this.params.email);

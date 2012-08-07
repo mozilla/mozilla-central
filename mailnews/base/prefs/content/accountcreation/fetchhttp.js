@@ -15,6 +15,8 @@
  * but not for bigger file downloads.
  */
 
+Components.utils.import("resource://gre/modules/JXON.js");
+
 /**
  * Set up a fetch.
  *
@@ -135,11 +137,8 @@ FetchHTTP.prototype =
             mimetype == "application/xml" ||
             mimetype == "text/rdf")
         {
-          // Bug 270553 prevents usage of .responseXML
-          var text = this._request.responseText;
-           // Bug 336551 trips over <?xml ... >
-          text = text.replace(/<\?xml[^>]*\?>/, "");
-          this.result = new XML(text);
+          this._request.overrideMimeType("text/xml");
+          this.result = JXON.build(this._request.responseXML);
         }
         else
         {

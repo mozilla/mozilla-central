@@ -980,17 +980,7 @@ nsYouSendItFileUploader.prototype = {
       this.cleanupTempFile();
       if (req.status >= 200 && req.status < 400) {
         try {
-          let response = req.responseText.replace(/<\?xml[^>]*\?>/, "");
-          this.log.info("upload response = " + response);
-          let docResponse = new XML(response);
-          this.log.info("docResponse = " + docResponse);
-          this._uploadResponse = docResponse;
-          let ysiError = docResponse['ysi-error'];
-          let uploadStatus = docResponse['upload-status'];
-          this.log.info("upload status = " + uploadStatus);
-          this.log.info("ysi error = " + ysiError);
-          let errorCode = docResponse['error-code'];
-          this.log.info("error code = " + errorCode);
+          this.log.info("upload response = " + req.responseText);
           this._commitSend();
         } catch (ex) {
           this.log.error(ex);

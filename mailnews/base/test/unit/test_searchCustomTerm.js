@@ -34,12 +34,12 @@ var customTerm =
   getEnabled: function(scope, op)
     {
       return scope == Ci.nsMsgSearchScope.offlineMail &&
-             op == Ci.nsMsgSearchOp::Is
+             op == Ci.nsMsgSearchOp.Is
     },
   getAvailable: function(scope, op)
     {
       return scope == Ci.nsMsgSearchScope.offlineMail &&
-             op == Ci.nsMsgSearchOp::Is
+             op == Ci.nsMsgSearchOp.Is
     },
   getAvailableOperators: function(scope, length)
     {

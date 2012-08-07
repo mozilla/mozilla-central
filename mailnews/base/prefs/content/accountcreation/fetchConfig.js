@@ -10,6 +10,8 @@
  */
 
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/JXON.js");
+
 
 function fetchConfigFromDisk(domain, successCallback, errorCallback)
 {
@@ -23,9 +25,10 @@ function fetchConfigFromDisk(domain, successCallback, errorCallback)
 
       var contents =
         readURLasUTF8(Services.io.newFileURI(configLocation));
-       // Bug 336551 trips over <?xml ... >
-      contents = contents.replace(/<\?xml[^>]*\?>/, "");
-      successCallback(readFromXML(new XML(contents)));
+      let domParser = Cc["@mozilla.org/xmlextras/domparser;1"]
+                       .createInstance(Ci.nsIDOMParser);
+      successCallback(readFromXML(JXON.build(
+        domParser.parseFromString(contents, "text/xml"))));
     } catch (e) { errorCallback(e); }
   }));
 }

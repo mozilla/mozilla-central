@@ -11,8 +11,6 @@
 #endif
 #endif
 
-pref("javascript.options.xml.chrome", true);
-
 pref("general.useragent.locale", "@AB_CD@");
 pref("general.skins.selectedSkin", "classic/1.0");
 
@@ -385,8 +383,6 @@ pref("browser.download.manager.openDelay", 100);
 pref("browser.download.manager.focusWhenStarting", false);
 pref("browser.download.manager.flashCount", 0);
 pref("browser.download.manager.addToRecentDocs", true);
-
-pref("javascript.options.showInConsole",    true);
 
 pref("spellchecker.dictionary", "");
 // Dictionary download preference

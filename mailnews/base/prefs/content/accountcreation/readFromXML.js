@@ -4,7 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /**
- * Takes an XML snipplet (as E4X) and reads the values into
+ * Takes an XML snipplet (as JXON) and reads the values into
  * a new AccountConfig object.
  * It does so securely (or tries to), by trying to avoid remote execution
  * and similar holes which can appear when reading too naively.
@@ -14,31 +14,35 @@
  * The XML format is documented at
  * <https://wiki.mozilla.org/Thunderbird:Autoconfiguration:ConfigFileFormat>
  *
- * @param clientConfigXML {E4X}  The <clientConfig> node.
+ * @param clientConfigXML {JXON}  The <clientConfig> node.
  * @return AccountConfig   object filled with the data from XML
  */
 function readFromXML(clientConfigXML)
 {
+  function array_or_undef(value) {
+    return value === undefined ? [] : value;
+  }
   var exception;
-  if (typeof(clientConfigXML) != "xml" ||
-      !("emailProvider" in clientConfigXML))
+  if (typeof(clientConfigXML) != "object" ||
+      !("clientConfig" in clientConfigXML) ||
+      !("emailProvider" in clientConfigXML.clientConfig))
   {
-    dump("client config xml = " + clientConfigXML + "\n");
+    dump("client config xml = " + JSON.stringify(clientConfigXML) + "\n");
     var stringBundle = getStringBundle(
         "chrome://messenger/locale/accountCreationModel.properties");
     throw stringBundle.GetStringFromName("no_emailProvider.error");
   }
-  var xml = clientConfigXML.emailProvider;
+  var xml = clientConfigXML.clientConfig.emailProvider;
 
   var d = new AccountConfig();
   d.source = AccountConfig.kSourceXML;
 
-  d.id = sanitize.hostname(xml.@id);
+  d.id = sanitize.hostname(xml["@id"]);
   d.displayName = d.id;
   try {
-    d.displayName = sanitize.label(xml.displayName[0]);
+    d.displayName = sanitize.label(xml.displayName);
   } catch (e) { logException(e); }
-  for each (var domain in xml.domain)
+  for (var domain of xml.$domain)
   {
     try {
       d.domains.push(sanitize.hostname(domain));
@@ -49,23 +53,23 @@ function readFromXML(clientConfigXML)
   exception = null;
 
   // incoming server
-  for each (let iX in xml.incomingServer) // input (XML)
+  for (let iX of array_or_undef(xml.$incomingServer)) // input (XML)
   {
     let iO = d.createNewIncoming(); // output (object)
     try {
       // throws if not supported
-      iO.type = sanitize.enum(iX.@type, ["pop3", "imap", "nntp"]);
-      iO.hostname = sanitize.hostname(iX.hostname[0]);
-      iO.port = sanitize.integerRange(iX.port[0], 1, 65535);
+      iO.type = sanitize.enum(iX["@type"], ["pop3", "imap", "nntp"]);
+      iO.hostname = sanitize.hostname(iX.hostname);
+      iO.port = sanitize.integerRange(iX.port, 1, 65535);
       // We need a username even for Kerberos, need it even internally.
-      iO.username = sanitize.string(iX.username[0]); // may be a %VARIABLE%
+      iO.username = sanitize.string(iX.username); // may be a %VARIABLE%
 
       if ("password" in iX) {
         d.rememberPassword = true;
-        iO.password = sanitize.string(iX.password[0]);
+        iO.password = sanitize.string(iX.password);
       }
 
-      for each (let iXsocketType in iX.socketType)
+      for (let iXsocketType of array_or_undef(iX.$socketType))
       {
         try {
           iO.socketType = sanitize.translate(iXsocketType,
@@ -77,7 +81,7 @@ function readFromXML(clientConfigXML)
         throw exception ? exception : "need proper <socketType> in XML";
       exception = null;
 
-      for each (let iXauth in iX.authentication)
+      for (let iXauth of array_or_undef(iX.$authentication))
       {
         try {
           iO.auth = sanitize.translate(iXauth,
@@ -100,15 +104,15 @@ function readFromXML(clientConfigXML)
       if (iO.type == "pop3" && "pop3" in iX)
       {
         try {
-          if ("leaveMessagesOnServer" in iX.pop3[0])
+          if ("leaveMessagesOnServer" in iX.pop3)
             iO.leaveMessagesOnServer =
                 sanitize.boolean(iX.pop3.leaveMessagesOnServer);
-          if ("daysToLeaveMessagesOnServer" in iX.pop3[0])
+          if ("daysToLeaveMessagesOnServer" in iX.pop3)
             iO.daysToLeaveMessagesOnServer =
                 sanitize.integer(iX.pop3.daysToLeaveMessagesOnServer);
         } catch (e) { logException(e); }
         try {
-          if ("downloadOnBiff" in iX.pop3[0])
+          if ("downloadOnBiff" in iX.pop3)
             iO.downloadOnBiff = sanitize.boolean(iX.pop3.downloadOnBiff);
         } catch (e) { logException(e); }
       }
@@ -126,20 +130,20 @@ function readFromXML(clientConfigXML)
   exception = null;
 
   // outgoing server
-  for each (let oX in xml.outgoingServer) // input (XML)
+  for (let oX of array_or_undef(xml.$outgoingServer)) // input (XML)
   {
     let oO = d.createNewOutgoing(); // output (object)
     try {
-      if (oX.@type != "smtp")
+      if (oX["@type"] != "smtp")
       {
         var stringBundle = getStringBundle(
             "chrome://messenger/locale/accountCreationModel.properties");
         throw stringBundle.GetStringFromName("outgoing_not_smtp.error");
       }
-      oO.hostname = sanitize.hostname(oX.hostname[0]);
-      oO.port = sanitize.integerRange(oX.port[0], 1, 65535);
+      oO.hostname = sanitize.hostname(oX.hostname);
+      oO.port = sanitize.integerRange(oX.port, 1, 65535);
 
-      for each (let oXsocketType in oX.socketType)
+      for (let oXsocketType of array_or_undef(oX.$socketType))
       {
         try {
           oO.socketType = sanitize.translate(oXsocketType,
@@ -151,7 +155,7 @@ function readFromXML(clientConfigXML)
         throw exception ? exception : "need proper <socketType> in XML";
       exception = null;
 
-      for each (let oXauth in oX.authentication)
+      for (let oXauth of array_or_undef(oX.$authentication))
       {
         try {
           oO.auth = sanitize.translate(oXauth,
@@ -182,11 +186,11 @@ function readFromXML(clientConfigXML)
           // so go there anyways and throw.
           oO.auth == Ci.nsMsgAuthMethod.passwordCleartext ||
           oO.auth == Ci.nsMsgAuthMethod.passwordEncrypted)
-        oO.username = sanitize.string(oX.username[0]);
+        oO.username = sanitize.string(oX.username);
 
       if ("password" in oX) {
         d.rememberPassword = true;
-        oO.password = sanitize.string(oX.password[0]);
+        oO.password = sanitize.string(oX.password);
       }
 
       try {
@@ -211,14 +215,14 @@ function readFromXML(clientConfigXML)
   exception = null;
 
   d.inputFields = new Array();
-  for each (let inputField in xml.inputField)
+  for (let inputField of array_or_undef(xml.$inputField))
   {
     try {
       var fieldset =
       {
-        varname : sanitize.alphanumdash(inputField.@key).toUpperCase(),
-        displayName : sanitize.label(inputField.@label),
-        exampleValue : sanitize.label(inputField.text())
+        varname : sanitize.alphanumdash(inputField["@key"]).toUpperCase(),
+        displayName : sanitize.label(inputField["@label"]),
+        exampleValue : sanitize.label(inputField.value)
       };
       d.inputFields.push(fieldset);
     } catch (e) { logException(e); } // for now, don't throw,
