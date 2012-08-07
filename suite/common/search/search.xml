@@ -63,29 +63,17 @@
       </xul:textbox>
     </content>
 
-    <implementation implements="nsIObserver">
+    <implementation implements="nsIObserver, nsIBrowserSearchInitObserver">
       <constructor><![CDATA[
         if (this.parentNode.parentNode.localName == "toolbarpaletteitem")
           return;
-        setTimeout(function (a) { a.init(); }, 0, this);
+
+        this.searchService.init(this);
+        var os = Components.classes["@mozilla.org/observer-service;1"]
+                           .getService(Components.interfaces.nsIObserverService);
+        os.addObserver(this, "browser-search-engine-modified", false);
+        this._addedObserver = true;
       ]]></constructor>
-
-      <method name="init">
-        <body><![CDATA[
-          // Make sure we rebuild the popup in onpopupshowing
-          this._needToBuildPopup = true;
-
-          // Refresh the display (updating icon, etc)
-          this.updateDisplay();
-
-          var os =
-               Components.classes["@mozilla.org/observer-service;1"]
-                         .getService(Components.interfaces.nsIObserverService);
-          os.addObserver(this, "browser-search-engine-modified", false);
-
-          this._addedObserver = true;
-        ]]></body>
-      </method>
 
       <destructor><![CDATA[
         if (this._addedObserver) {
@@ -95,7 +83,7 @@
           this._addedObserver = false;
         }
 
-        // Make sure to break the cycle from _texbox to us. Otherwise we leak
+        // Make sure to break the cycle from _textbox to us. Otherwise we leak
         // the world. But make sure it's actually pointing to us.
         if (this._textbox.mController.input == this)
           this._textbox.mController.input = null;
@@ -115,6 +103,7 @@
       </field>
       <field name="_addedObserver">false</field>
       <field name="_engines">null</field>
+      <field name="_needToBuildPopup">true</field>
 
       <property name="engines" readonly="true">
         <getter><![CDATA[
@@ -153,6 +142,18 @@
       <method name="select">
         <body><![CDATA[
           this._textbox.select();
+        ]]></body>
+      </method>
+
+      <method name="onInitComplete">
+        <parameter name="aStatus"/>
+        <body><![CDATA[
+          if (Components.isSuccessCode(aStatus)) {
+            // Refresh the display (updating icon, etc)
+            this.updateDisplay();
+          } else {
+            Components.utils.reportError("Cannot initialize search service, bailing out: " + aStatus);
+          }
         ]]></body>
       </method>
 
@@ -457,13 +458,10 @@
       <handler event="command"><![CDATA[
         const target = event.originalTarget;
         if (target.classList.contains("addengine-item")) {
-          var searchService =
-            Components.classes["@mozilla.org/browser/search-service;1"]
-                      .getService(Components.interfaces.nsIBrowserSearchService);
           // We only detect OpenSearch files
           var type = Components.interfaces.nsISearchEngine.DATA_XML;
-          searchService.addEngine(target.getAttribute("uri"), type,
-                                  target.getAttribute("image"), false);
+          this.searchService.addEngine(target.getAttribute("uri"), type,
+                                       target.getAttribute("image"), false);
         }
         else if (target.engine)
           this.currentEngine = target.engine;

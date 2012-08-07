@@ -12,6 +12,11 @@ function Startup() {
   menulist = document.getElementById("sidebar-search-engines");
   textbox = document.getElementById("sidebar-search-text");
 
+  LoadEngineList();
+  Services.obs.addObserver(engineObserver, SEARCH_ENGINE_TOPIC, false);
+}
+
+function LoadEngineList() {
   // Make sure the popup is empty.
   menulist.removeAllItems();
 
@@ -26,8 +31,6 @@ function Startup() {
     menuitem.engine = engines[i];
   }
   menulist.value = Services.search.currentEngine.name;
-
-  Services.obs.addObserver(engineObserver, SEARCH_ENGINE_TOPIC, false);
 }
 
 function Shutdown() {

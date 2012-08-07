@@ -109,6 +109,7 @@ SuiteGlue.prototype = {
         this._onProfileStartup();
         this._promptForMasterPassword();
         this._checkForNewAddons();
+        Services.search.init();
         break;
       case "sessionstore-windows-restored":
         this._onBrowserStartup(subject);
