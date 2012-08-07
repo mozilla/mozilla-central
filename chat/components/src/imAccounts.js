@@ -567,9 +567,6 @@ imAccount.prototype = {
     if (!this.prplAccount)
       throw Cr.NS_ERROR_NOT_IMPLEMENTED;
 
-    if (Services.io.offline)
-      throw Cr.NS_ERROR_FAILURE;
-
     if (this._passwordRequired) {
       // If the previous connection attempt failed because we have a wrong password,
       // clear the passwor cache so that if there's no password in the password
@@ -617,14 +614,18 @@ imAccount.prototype = {
       this.statusInfo.addObserver(this._statusObserver);
     }
 
-    this._ensurePrplAccount.connect();
+    if (!Services.io.offline &&
+        this.statusInfo.statusType > Ci.imIStatusInfo.STATUS_OFFLINE &&
+        this.disconnected)
+      this.prplAccount.connect();
   },
   disconnect: function() {
     if (this._statusObserver) {
       this.statusInfo.removeObserver(this._statusObserver);
       delete this._statusObserver;
     }
-    this._ensurePrplAccount.disconnect();
+    if (!this.disconnected)
+      this._ensurePrplAccount.disconnect();
   },
 
   get disconnected() this.connectionState == Ci.imIAccount.STATE_DISCONNECTED,
@@ -790,12 +791,6 @@ AccountsService.prototype = {
       return;
     }
 
-    /* If the application was started offline, disable auto-login */
-    if (!Services.io.manageOfflineStatus && Services.io.offline) {
-      this.autoLoginStatus = Ci.imIAccountsService.AUTOLOGIN_START_OFFLINE;
-      return;
-    }
-
     /* Check if we crashed at the last startup during autologin */
     let autoLoginPending;
     if (prefs.getPrefType(kPrefAutologinPending) == prefs.PREF_INVALID ||
@@ -867,9 +862,6 @@ AccountsService.prototype = {
   },
 
   processAutoLogin: function() {
-    if (Services.io.offline)
-      throw Cr.NS_ERROR_FAILURE;
-
     for each (let account in this._accounts)
       account.checkAutoLogin();
 
