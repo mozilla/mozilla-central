@@ -480,6 +480,8 @@ var chatHandler = {
     cti.setAttribute("statusTooltiptext", statusString + statusText);
     cti.removeAttribute("typing");
     cti.removeAttribute("typed");
+    cti.removeAttribute("topicEditable");
+    cti.removeAttribute("noTopic");
 
     let bundle = document.getElementById("chatBundle");
     let button = document.getElementById("goToConversation");
@@ -527,6 +529,9 @@ var chatHandler = {
       cti.removeAttribute("statusMessage");
       cti.removeAttribute("status");
       cti.removeAttribute("statusTypeTooltiptext");
+      cti.removeAttribute("statusTooltiptext");
+      cti.removeAttribute("topicEditable");
+      cti.removeAttribute("noTopic");
 
       let logs = this._showLogList(imServices.logs.getSimilarLogs(log));
       let time = log.time;

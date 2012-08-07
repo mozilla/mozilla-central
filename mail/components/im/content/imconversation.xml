@@ -1094,6 +1094,8 @@
             cti.setAttribute("status", Status.toAttribute(statusType));
             cti.setAttribute("statusTypeTooltiptext", statusString);
             cti.setAttribute("statusTooltiptext", statusString + statusText);
+            cti.removeAttribute("topicEditable");
+            cti.removeAttribute("noTopic");
             this.updateTyping();
           }
        ]]>
@@ -1337,17 +1339,24 @@
          if (!this.hasAttribute("editing"))
            return;
 
+         let convBinding =
+           document.getElementById("conversationsDeck").selectedPanel;
+
          let elt = this.topic;
          if (aSave) {
            // apply the new topic only if it is different from the current one
            if (elt.value != elt.getAttribute("value"))
-             document.getBindingParent(this)._conv.topic = elt.value;
+             convBinding._conv.topic = elt.value;
          }
          this.removeAttribute("editing");
          elt.removeEventListener("keypress", this._topicKeyPress, true);
          delete this._topicKeyPress;
          elt.removeEventListener("blur", this._topicBlur, false);
          delete this._topicBlur;
+
+         // After removing the "editing" attribute, the focus is on an element
+         // that can't receive keyboard events, so move it to somewhere else.
+         convBinding.editor.focus();
        ]]>
        </body>
      </method>

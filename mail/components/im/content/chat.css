@@ -70,11 +70,11 @@ browser[type="content-conversation"] {
   width: 15em;
 }
 
-#statusMessage:not([statusType="offline"]) {
+#statusMessage:not([statusType="offline"]), .statusMessage[editable] {
   cursor: text;
 }
 
-#statusMessage[editing] {
+#statusMessage[editing], .statusMessage[editing] {
   -moz-appearance: textfield;
   -moz-binding: url('chrome://global/content/bindings/textbox.xml#textbox');
 }
