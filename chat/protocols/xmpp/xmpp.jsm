@@ -343,6 +343,52 @@ const XMPPAccountBuddyPrototype = {
   },
 
   get normalizedName() this.userName,
+
+  // _rosterAlias is the value stored in the roster on the XMPP
+  // server. For most servers we will be read/write.
+  _rosterAlias: "",
+  set rosterAlias(aNewAlias) {
+    let old = this.displayName;
+    this._rosterAlias = aNewAlias;
+    if (old != this.displayName)
+      this._notifyObservers("display-name-changed", old);
+  },
+  // _vCardFormattedName is the display name the contact has set for
+  // himself in his vCard. It's read-only from our point of view.
+  _vCardFormattedName: "",
+  set vCardFormattedName(aNewFormattedName) {
+    let old = this.displayName;
+    this._vCardFormattedName = aNewFormattedName;
+    if (old != this.displayName)
+      this._notifyObservers("display-name-changed", old);
+  },
+
+  // _serverAlias is set by jsProtoHelper to the value we cached in sqlite.
+  // Use it only if we have neither of the other two values; usually because
+  // we haven't connected to the server yet.
+  get serverAlias() this._rosterAlias || this._vCardFormattedName || this._serverAlias,
+  set serverAlias(aNewAlias) {
+    if (!this._rosterItem) {
+      ERROR("attempting to update the server alias of an account buddy for " +
+            "which we haven't received a roster item.");
+      return;
+    }
+
+    let item = this._rosterItem;
+    if (aNewAlias)
+      item.attributes["name"] = aNewAlias;
+    else if ("name" in item.attributes)
+      delete item.attributes["name"];
+
+    let s = Stanza.iq("set", null, null,
+                      Stanza.node("query", Stanza.NS.roster, null, item));
+    this._account._connection.sendStanza(s);
+
+    // If we are going to change the alias on the server, discard the cached
+    // value that we got from our local sqlite storage at startup.
+    delete this._serverAlias;
+  },
+
   /* Display name of the buddy */
   get contactDisplayName() this.buddy.contact.displayName || this.displayName,
 
@@ -861,7 +907,8 @@ const XMPPAccountPrototype = {
   },
 
   /* Callbacks for Query stanzas */
-  /* When a vCard is recieved */
+  /* When a vCard is received */
+  _vCardReceived: false,
   onVCard: function(aStanza) {
     let jid = this._normalizeJID(aStanza.attributes["from"]);
     if (!jid || !this._buddies.hasOwnProperty(jid))
@@ -872,14 +919,20 @@ const XMPPAccountPrototype = {
     if (!vCard)
       return;
 
+    let foundFormattedName = false;
     for each (let c in vCard.children) {
       if (c.type != "node")
         continue;
-      if (c.localName == "FN")
-        buddy.serverAlias = c.innerText;
+      if (c.localName == "FN") {
+        buddy.vCardFormattedName = c.innerText;
+        foundFormattedName = true;
+      }
       if (c.localName == "PHOTO")
         buddy._saveIcon(c);
     }
+    if (!foundFormattedName && buddy._vCardFormattedName)
+      buddy.vCardFormattedName = "";
+    buddy._vCardReceived = true;
   },
 
   _normalizeJID: function(aJID) {
@@ -920,9 +973,7 @@ const XMPPAccountPrototype = {
     let subscription =  "";
     if ("subscription" in aItem.attributes)
       subscription = aItem.attributes["subscription"];
-    if (subscription == "both" || subscription == "to")
-      this._requestVCard(jid);
-    else if (subscription == "remove") {
+    if (subscription == "remove") {
       this._forgetRosterItem(jid);
       return "";
     }
@@ -944,13 +995,21 @@ const XMPPAccountPrototype = {
       buddy = new this._accountBuddyConstructor(this, null, tag, jid);
     }
 
+    // We request the vCard only if we haven't received it yet and are
+    // subscribed to presence for that contact.
+    if ((subscription == "both" || subscription == "to") && !buddy._vCardReceived)
+      this._requestVCard(jid);
+
     let alias = "name" in aItem.attributes ? aItem.attributes["name"] : "";
     if (alias) {
       if (aNotifyOfUpdates && this._buddies.hasOwnProperty(jid))
-        buddy.serverAlias = alias;
+        buddy.rosterAlias = alias;
       else
-        buddy._serverAlias = alias;
+        buddy._rosterAlias = alias;
     }
+    else if (buddy._rosterAlias)
+      buddy.rosterAlias = "";
+
     if (subscription)
       buddy.subscription = subscription;
     if (!this._buddies.hasOwnProperty(jid)) {
@@ -959,6 +1018,11 @@ const XMPPAccountPrototype = {
     }
     else if (aNotifyOfUpdates)
       buddy._notifyObservers("status-detail-changed");
+
+    // Keep the xml nodes of the item so that we don't have to
+    // recreate them when changing something (eg. the alias) in it.
+    buddy._rosterItem = aItem;
+
     return jid;
   },
   _forgetRosterItem: function(aJID) {
