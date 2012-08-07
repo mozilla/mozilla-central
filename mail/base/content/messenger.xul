@@ -54,8 +54,7 @@
         windowtype="mail:3pane"
         macanimationtype="document"
         lightweightthemes="true"
-        lightweightthemesfooter="status-bar"
-        chromemargin="0,2,2,2">
+        lightweightthemesfooter="status-bar">
 
 <stringbundleset id="stringbundleset">
   <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>

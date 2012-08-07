@@ -39,19 +39,19 @@
 }
 
 @media (-moz-windows-theme: luna-blue) {
-  .tabmail-tab:not([selected]):not(:-moz-lwtheme) {
+  #messengerWindow[tabsintitlebar] .tabmail-tab:not([selected]):not(:-moz-lwtheme) {
     color: white;
   }
 }
 
 @media (-moz-windows-theme: royale) {
-  .tabmail-tab:not([selected]):not(:-moz-lwtheme) {
+  #messengerWindow[tabsintitlebar] .tabmail-tab:not([selected]):not(:-moz-lwtheme) {
     color: white;
   }
 }
 
 @media (-moz-windows-theme: zune) {
-  .tabmail-tab:not([selected]):not(:-moz-lwtheme) {
+  #messengerWindow[tabsintitlebar] .tabmail-tab:not([selected]):not(:-moz-lwtheme) {
     color: white;
   }
 }
@@ -245,25 +245,25 @@ tabpanels {
 }
 
 @media (-moz-windows-theme: luna-blue) {
-  .tabmail-tab:not([selected]) > .tab-stack > .tab-content >
-  .tab-close-button:not(:hover):not(:active),
-  .tabs-closebutton {
+  #messengerWindow[tabsintitlebar] .tabs-closebutton,
+  #messengerWindow[tabsintitlebar] .tabmail-tab:not([selected]) > .tab-stack >
+    .tab-content > .tab-close-button:not(:hover):not(:active) {
     -moz-image-region: rect(0, 64px, 16px, 48px);
   }
 }
 
 @media (-moz-windows-theme: royale) {
-  .tabmail-tab:not([selected]) > .tab-stack > .tab-content >
-  .tab-close-button:not(:hover):not(:active),
-  .tabs-closebutton {
+  #messengerWindow[tabsintitlebar] .tabs-closebutton,
+  #messengerWindow[tabsintitlebar] .tabmail-tab:not([selected]) > .tab-stack >
+    .tab-content > .tab-close-button:not(:hover):not(:active) {
     -moz-image-region: rect(0, 64px, 16px, 48px);
   }
 }
 
 @media (-moz-windows-theme: zune) {
-  .tabmail-tab:not([selected]) > .tab-stack > .tab-content >
-  .tab-close-button:not(:hover):not(:active),
-  .tabs-closebutton {
+  #messengerWindow[tabsintitlebar] .tabs-closebutton,
+  #messengerWindow[tabsintitlebar] .tabmail-tab:not([selected]) > .tab-stack >
+    .tab-content > .tab-close-button:not(:hover):not(:active) {
     -moz-image-region: rect(0, 64px, 16px, 48px);
   }
 }
@@ -392,19 +392,22 @@ tabpanels {
 }
 
 @media (-moz-windows-theme: luna-blue) {
-  .tabs-alltabs-button:not(:hover) > .toolbarbutton-menu-dropmarker:not(:-moz-lwtheme) {
+  #messengerWindow[tabsintitlebar] .tabs-alltabs-button:not(:hover) >
+    .toolbarbutton-menu-dropmarker:not(:-moz-lwtheme) {
     list-style-image: url(chrome://messenger/skin/icons/mainwindow-dropdown-arrow-inverted.png);
   }
 }
 
 @media (-moz-windows-theme: royale) {
-  .tabs-alltabs-button:not(:-moz-lwtheme) > .toolbarbutton-menu-dropmarker:not(:-moz-lwtheme) {
+  #messengerWindow[tabsintitlebar] .tabs-alltabs-button:not(:hover) >
+    .toolbarbutton-menu-dropmarker:not(:-moz-lwtheme) {
     list-style-image: url(chrome://messenger/skin/icons/mainwindow-dropdown-arrow-inverted.png);
   }
 }
 
 @media (-moz-windows-theme: zune) {
-  .tabs-alltabs-button:not(:-moz-lwtheme) > .toolbarbutton-menu-dropmarker:not(:-moz-lwtheme) {
+  #messengerWindow[tabsintitlebar] .tabs-alltabs-button:not(:hover) >
+    .toolbarbutton-menu-dropmarker:not(:-moz-lwtheme) {
     list-style-image: url(chrome://messenger/skin/icons/mainwindow-dropdown-arrow-inverted.png);
   }
 }

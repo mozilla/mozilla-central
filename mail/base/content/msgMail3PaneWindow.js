@@ -1596,6 +1596,9 @@ let TabsInTitlebar = {
   init: function () {
 #ifdef CAN_DRAW_IN_TITLEBAR
     // Don't trust the initial value of the sizemode attribute; wait for the resize event.
+    this._readPref();
+    Services.prefs.addObserver(this._prefName, this, false);
+
     this.allowedBy("sizemode", false);
     window.addEventListener("resize", function (event) {
       if (event.target != window)
@@ -1625,37 +1628,62 @@ let TabsInTitlebar = {
 
   _initialized: false,
   _disallowed: {},
+  _prefName: 'mail.tabs.drawInTitlebar',
 
-  _update: function () {
+  get enabled() {
+    return document.documentElement.getAttribute('tabsintitlebar') == 'true';
+  },
+
+  _readPref: function() {
+    this.allowedBy('pref', Services.prefs.getBoolPref(this._prefName));
+  },
+
+  observe: function(aSubject, aTopic, aData) {
+    if (aTopic == 'nsPref:changed')
+      this._readPref();
+  },
+
+  _update: function() {
 #ifdef CAN_DRAW_IN_TITLEBAR
     if (!this._initialized || window.fullScreen)
+      return;
+
+    let allowed = Object.keys(this._disallowed).length == 0;
+    if (allowed == this.enabled)
       return;
 
     function $(id) document.getElementById(id);
     let titlebar = $("titlebar");
 
-    function rect(ele)   ele.getBoundingClientRect();
+    if (allowed) {
+      document.documentElement.setAttribute('tabsintitlebar', 'true');
+      document.documentElement.setAttribute('chromemargin', '0,2,2,2');
+      function rect(ele) ele.getBoundingClientRect();
 
-    let titlebar       = $("titlebar");
-    let captionButtonsBox = $("titlebar-buttonbox");
-    this._sizePlaceholder("caption-buttons", rect(captionButtonsBox).width);
+      let captionButtonsBox = $("titlebar-buttonbox");
+      this._sizePlaceholder("caption-buttons", rect(captionButtonsBox).width);
 
-    let titlebarRect = rect(titlebar);
-    titlebar.style.marginBottom = - (titlebarRect.height - 16) + "px";
+      let titlebarRect = rect(titlebar);
+      titlebar.style.marginBottom = - (titlebarRect.height - 16) + "px";
+    } else {
+      document.documentElement.removeAttribute('tabsintitlebar');
+      document.documentElement.removeAttribute('chromemargin');
+      titlebar.style.marginBottom = "";
+    }
 #endif
   },
 
-#ifdef CAN_DRAW_IN_TITLEBAR
   _sizePlaceholder: function (type, width) {
-
+#ifdef CAN_DRAW_IN_TITLEBAR
     Array.forEach(document.querySelectorAll(".titlebar-placeholder[type='"+ type +"']"),
                   function (node) { node.width = width; });
-  },
 #endif
+  },
 
   uninit: function () {
 #ifdef CAN_DRAW_IN_TITLEBAR
     this._initialized = false;
+    Services.prefs.removeObserver(this._prefName, this);
 #endif
   }
 };

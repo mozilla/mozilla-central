@@ -5,7 +5,7 @@
 %include mailWindow1.css
 
 @media (-moz-windows-default-theme) {
-  #messengerWindow[sizemode="maximized"] > #navigation-toolbox{
+  #messengerWindow[tabsintitlebar][sizemode="maximized"] > #navigation-toolbox{
     margin-top: -6px;
   }
 }
@@ -48,7 +48,7 @@
 
   #messengerWindow:not(:-moz-lwtheme) {
     -moz-appearance: -moz-win-borderless-glass;
-    background-color: transparent;
+    background-color: transparent !important;
   }
 }
 

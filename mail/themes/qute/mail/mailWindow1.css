@@ -407,32 +407,36 @@ treechildren::-moz-tree-cell-text(subjectCol) {
 /* ..... Draw in titlebar ..... */
 
 @media (-moz-windows-default-theme) {
-  #messengerWindow {
+  #messengerWindow[tabsintitlebar] {
     background-color: ActiveCaption;
   }
 
-  #messengerWindow:-moz-window-inactive {
+  #messengerWindow[tabsintitlebar]:-moz-window-inactive {
     background-color: InactiveCaption;
   }
 }
 
 /* Luna silver needs special colors. Default doesn't look good */
 @media (-moz-windows-theme: luna-silver) {
-  #messengerWindow {
+  #messengerWindow[tabsintitlebar] {
     background-color: #D6D8E1;
   }
 
-  #messengerWindow:-moz-window-inactive {
+  #messengerWindow[tabsintitlebar]:-moz-window-inactive {
     background-color: #E8E9F1;
   }
 }
 
-#messengerWindow:-moz-lwtheme {
+#messengerWindow[tabsintitlebar]:-moz-lwtheme {
   background-color: transparent;
 }
 
 #titlebar {
   -moz-binding: url("chrome://global/content/bindings/general.xml#windowdragbox");
+}
+
+#messengerWindow:not([tabsintitlebar]) #titlebar {
+  visibility: collapse;
 }
 
 #titlebar:-moz-lwtheme {
@@ -479,7 +483,7 @@ treechildren::-moz-tree-cell-text(subjectCol) {
   -moz-appearance: -moz-window-button-close;
 }
 
-.titlebar-placeholder[type="caption-buttons"] {
+#messengerWindow[tabsintitlebar] .titlebar-placeholder[type="caption-buttons"] {
   margin-left: 10px; /* additional space for Aero Snap */
 }
 
@@ -520,23 +524,23 @@ treechildren::-moz-tree-cell-text(subjectCol) {
 
 /* Black on dark background doesn't look good */
 @media (-moz-windows-theme: luna-blue) {
-  menubar:not(:-moz-lwtheme) > menu {
+  #messengerWindow[tabsintitlebar] menubar:not(:-moz-lwtheme) > menu {
     color: white;
   }
 }
 
 @media (-moz-windows-theme: royale) {
-  menubar:not(:-moz-lwtheme) > menu {
+  #messengerWindow[tabsintitlebar] menubar:not(:-moz-lwtheme) > menu {
     color: white;
   }
 }
 
 @media (-moz-windows-theme: zune) {
-  menubar:not(:-moz-lwtheme) > menu {
+  #messengerWindow[tabsintitlebar] menubar:not(:-moz-lwtheme) > menu {
     color: white;
   }
 }
 
-#messengerWindow[sizemode="maximized"] > #navigation-toolbox{
+#messengerWindow[tabsintitlebar][sizemode="maximized"] > #navigation-toolbox{
   margin-top: -12px;
 }
