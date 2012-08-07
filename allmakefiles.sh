@@ -25,6 +25,7 @@ fi
 #
 add_makefiles "
 Makefile
+comm-config.h
 config/autoconf.mk
 "
 

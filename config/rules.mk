@@ -1311,20 +1311,20 @@ ifdef AS_PERL
 CYGWIN_TOPSRCDIR = -nowrap -p $(topsrcdir) -wrap
 endif
 
-# Note: Passing depth to make-makefile is optional.
-#       It saves the script some work, though.
 Makefile: Makefile.in
-	@$(PERL) $(AUTOCONF_TOOLS)/make-makefile -t $(topsrcdir) -d $(DEPTH) $(CYGWIN_TOPSRCDIR)
+	@$(PYTHON) $(DEPTH)/config.status -n --file=Makefile
+	@$(TOUCH) $@
 
 ifdef SUBMAKEFILES
 # VPATH does not work on some machines in this case, so add $(srcdir)
 $(SUBMAKEFILES): % : $(srcdir)/%.in
-	$(PERL) $(AUTOCONF_TOOLS)/make-makefile -t $(topsrcdir) -d $(DEPTH) $(CYGWIN_TOPSRCDIR) $@
+	$(PYTHON) $(DEPTH)/config.status -n --file=$@
+	@$(TOUCH) $@
 endif
 
 ifdef AUTOUPDATE_CONFIGURE
 $(topsrcdir)/configure: $(topsrcdir)/configure.in
-	(cd $(topsrcdir) && $(AUTOCONF)) && (cd $(DEPTH) && ./config.status --recheck)
+	(cd $(topsrcdir) && $(AUTOCONF)) && $(PYTHON) $(DEPTH)/config.status -n --recheck
 endif
 
 ###############################################################################
