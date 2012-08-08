@@ -444,7 +444,7 @@ toolbar[mode="icons"] .toolbarbutton-1 > menupopup {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(36px, 396px, 54px, 378px);
   color: #0969b2;
-  text-shadow: 0 1px 0 rgbra(255, 255, 255, 0.4);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 #button-nextMsg {
