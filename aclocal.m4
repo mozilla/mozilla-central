@@ -3,6 +3,7 @@ dnl Local autoconf macros used with mozilla
 dnl The contents of this file are under the Public Domain.
 dnl
 
+builtin(include, mozilla/build/autoconf/toolchain.m4)dnl
 builtin(include, mozilla/build/autoconf/ccache.m4)dnl
 builtin(include, mozilla/build/autoconf/config.status.m4)dnl
 builtin(include, mozilla/build/autoconf/nspr.m4)dnl
