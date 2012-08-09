@@ -196,7 +196,20 @@ calDavCalendar.prototype = {
                 "mCtag", "mWebdavSyncToken", "mSupportedItemTypes",
                 "mPrincipalUrl", "mCalHomeSet",
                 "mShouldPollInbox", "hasAutoScheduling", "mHaveScheduling",
-                "mCalendarUserAddress", "mShouldPollInbox", "mOutboxUrl" ];
+                "mCalendarUserAddress", "mShouldPollInbox", "mOutboxUrl",
+                "hasFreeBusy"];
+    },
+
+    get checkedServerInfo() {
+        if (Services.io.offline) {
+            return true;
+        } else {
+            return this.mCheckedServerInfo;
+        }
+    },
+
+    set checkedServerInfo(val) {
+        return (this.mCheckedServerInfo = val);
     },
 
     saveCalendarProperties: function caldav_saveCalendarProperties() {
@@ -219,7 +232,7 @@ calDavCalendar.prototype = {
 
     // in calIGenericOperationListener aListener
     replayChangesOn: function caldav_replayChangesOn(aChangeLogListener) {
-        if (!this.mCheckedServerInfo) {
+        if (!this.checkedServerInfo) {
             // If we haven't refreshed yet, then we should check the resource
             // type first. This will call refresh() again afterwards.
             this.checkDavResourceType(aChangeLogListener);
@@ -240,6 +253,7 @@ calDavCalendar.prototype = {
         }
     },
     fetchCachedMetaData: function caldav_fetchCachedMetaData() {
+        cal.LOG("CalDAV: Retrieving server info from cache for " + this.name);
         var cacheIds = {};
         var cacheValues = {};
         this.mOfflineStorage.getAllMetaData({}, cacheIds, cacheValues);
@@ -258,11 +272,10 @@ calDavCalendar.prototype = {
                 this.mOfflineStorage.deleteMetaData("sync-token");
             } else if (itemId == "calendar-properties") {
                 this.restoreCalendarProperties(itemData);
-                this.mCheckedServerInfo = true;
                 this.setProperty("currentStatus", Components.results.NS_OK);
                 this.readOnly = false;
                 this.disabled = false;
-                if (this.mHaveScheduling || this.hasAutoScheduling) {
+                if (this.mHaveScheduling || this.hasAutoScheduling || this.hasFreeBusy) {
                     cal.getFreeBusyService().addProvider(this);
                 }
             } else {
@@ -370,6 +383,7 @@ calDavCalendar.prototype = {
         return (this.mHaveScheduling = (getPrefSafe("calendar.caldav.sched.enabled", false) && value));
     },
     hasAutoScheduling: false, // Whether server automatically takes care of scheduling
+    hasFreebusy: false,
 
     mAuthScheme: null,
 
@@ -707,8 +721,8 @@ calDavCalendar.prototype = {
                     // There is a response status, but we haven't handled it yet. Any
                     // error occurring here should consider being handled!
                     cal.ERROR("CalDAV: Unexpected status modifying item to " +
-                            thisCalendar.name + ": " + responseStatus + "\n" +
-                            modifiedItemICS);
+                              thisCalendar.name + ": " + responseStatus + "\n" +
+                              modifiedItemICS);
 
                     listenerStatus = Components.results.NS_ERROR_FAILURE;
                     listenerDetail = "Server Replied with " + responseStatus;
@@ -1196,7 +1210,7 @@ calDavCalendar.prototype = {
                                              null);
             }
         } else {
-            if (!this.mCheckedServerInfo) {
+            if (!this.checkedServerInfo) {
                 this.mQueuedQueries.push(arguments);
             } else {
                 this.mOfflineStorage.getItems.apply(this.mOfflineStorage, arguments);
@@ -1737,7 +1751,12 @@ calDavCalendar.prototype = {
                 // if another calendar with the same principal-URL has already
                 // done so. We also shouldn't register with the fb service if we
                 // don't have an outbox.
-                getFreeBusyService().addProvider(thisCalendar);
+                if (!thisCalendar.hasFreeBusy) {
+                    // This may have already been set by fetchCachedMetaData,
+                    // we only want to add the freebusy provider once.
+                    thisCalendar.hasFreeBusy = true;
+                    getFreeBusyService().addProvider(thisCalendar);
+                }
                 thisCalendar.findPrincipalNS(aChangeLogListener);
             } else {
                 cal.LOG("CalDAV: Server does not support CalDAV scheduling.");
@@ -2034,7 +2053,7 @@ calDavCalendar.prototype = {
         if (Components.isSuccessCode(aError)) {
             // "undefined" is a successcode, so all is good
             this.saveCalendarProperties();
-            this.mCheckedServerInfo = true;
+            this.checkedServerInfo  = true;
             this.setProperty("currentStatus", Components.results.NS_OK);
 
             if (this.isCached) {
