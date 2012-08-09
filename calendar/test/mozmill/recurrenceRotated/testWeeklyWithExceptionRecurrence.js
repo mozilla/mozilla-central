@@ -17,7 +17,7 @@ var setupModule = function(module) {
   calUtils.createCalendar(controller, calendar);
 }
 
-var testWeeklyWithExceptionRecursion = function () {
+var testWeeklyWithExceptionRecurrence = function () {
   controller.click(new elementslib.ID(controller.window.document, "calendar-tab-button"));
   calUtils.switchToView(controller, "day");
   calUtils.goToDate(controller, 2009, 1, 5);

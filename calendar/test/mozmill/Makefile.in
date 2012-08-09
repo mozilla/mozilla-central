@@ -1,0 +1,67 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+DEPTH		= ../../..
+topsrcdir	= @top_srcdir@
+srcdir		= @srcdir@
+VPATH		= @srcdir@
+
+include $(DEPTH)/config/autoconf.mk
+
+MOZMILLDIR=$(DEPTH)/mozilla/_tests/mozmill
+ifeq ($(OS_ARCH),WINNT)
+VIRTUALENV_BIN = $(MOZMILLDIR)/../mozmill-virtualenv/Scripts
+else
+VIRTUALENV_BIN = $(MOZMILLDIR)/../mozmill-virtualenv/bin
+endif
+MOZMILLPYTHON = $(call core_abspath,$(VIRTUALENV_BIN)/python$(BIN_SUFFIX))
+
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
+# Mac options
+APP_NAME = $(MOZ_APP_DISPLAYNAME)
+ifdef MOZ_DEBUG
+APP_NAME := $(APP_NAME)Debug
+endif
+MOZMILLPROGRAM = $(DIST)/$(APP_NAME).app/
+else
+# Non-mac options
+MOZMILLPROGRAM = $(DIST)/bin/thunderbird$(BIN_SUFFIX)
+endif
+
+check-no-solo = $(foreach solo,SOLO_TEST SOLO_FILE,$(if $($(solo)),$(error $(subst SOLOVAR,$(solo),$(1)))))
+find-solo-test = $(if $(and $(SOLO_TEST),$(SOLO_FILE)),$(error Both SOLO_TEST and SOLO_FILE are specified. You may only specify one.),$(if $(SOLO_TEST),$(SOLO_TEST),$(if $(SOLO_FILE),$(SOLO_FILE),$(error SOLO_TEST or SOLO_FILE needs to be specified.))))
+
+include $(topsrcdir)/config/rules.mk
+
+# Calendar uses both its own shared modules and those from Thunderbird. Since
+# the build system and mozmill is not set up to include files from two different
+# locations, we have to stuff them into the same directory. There might be
+# problems if the names are the same, but I propose we boycott those modules!
+mozmill-stage: MOZMILL_STAGE=$(MOZMILLDIR)/stage
+mozmill-stage: MOZMILL_STAGE_SHARED=$(MOZMILL_STAGE)/shared-modules
+mozmill-stage: $(MOZMILL_SHARED)
+	$(INSTALL) -D $(MOZMILL_STAGE)
+	$(INSTALL) -D $(MOZMILL_STAGE_SHARED)
+	$(INSTALL) $(addprefix $(srcdir)/,$(shell cat $(srcdir)/mozmilltests.list)) $(MOZMILL_STAGE)
+
+	$(INSTALL) $(wildcard $(topsrcdir)/mail/test/mozmill/shared-modules/*.js) $(MOZMILL_STAGE_SHARED)
+	$(INSTALL) $(wildcard $(srcdir)/shared-modules/*.js) $(MOZMILL_STAGE_SHARED)
+
+mozmill: mozmill-stage
+	unset PYTHONHOME && cd $(MOZMILLDIR) && unset MACOSX_DEPLOYMENT_TARGET && \
+	$(MOZMILLPYTHON) runtestlist.py --list=$(srcdir)/mozmilltests.list \
+	--binary=$(MOZMILLPROGRAM) \
+	--dir=$(call core_abspath,$(MOZMILLDIR))/stage \
+	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
+	$(MOZMILL_EXTRA)
+
+mozmill-one: solo-test = $(find-solo-test)
+mozmill-one: mozmill-stage
+	unset PYTHONHOME && cd $(MOZMILLDIR) && unset MACOSX_DEPLOYMENT_TARGET && \
+	$(MOZMILLPYTHON) runtest.py \
+	--test=$(call core_abspath,$(MOZMILLDIR))/stage/$(solo-test) \
+	--binary=$(MOZMILLPROGRAM) \
+	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
+	$(MOZMILL_EXTRA)
+

@@ -14,17 +14,11 @@ var setupModule = function(module) {
   calUtils.createCalendar(controller, calendar);
 }
 
-var testLastDayOfMonthRecursion = function () {
+var testLastDayOfMonthRecurrence = function () {
   var eventPath = '/{"tooltip":"itemTooltip","calendar":"' + calendar.toLowerCase() + '"}';
   controller.click(new elementslib.ID(controller.window.document, "calendar-tab-button"));
   calUtils.switchToView(controller, "day");
   calUtils.goToDate(controller, 2008, 1, 31); // start with a leap year
-  
-  // rotate view
-  controller.mainMenu.click("#ltnViewRotated");
-  controller.waitFor(function() {
-    let view = (new elementslib.ID(controller.window.document, "day-view")).getNode();
-    return view.orient == "horizontal"});
   
   // create monthly recurring event
   controller.doubleClick(new elementslib.Lookup(controller.window.document,
@@ -96,17 +90,11 @@ var testLastDayOfMonthRecursion = function () {
   calUtils.switchToView(controller, "day");
   box = calUtils.getEventBoxPath(controller, "day", calUtils.EVENT_BOX,
     undefined, 1, hour) + eventPath;
-  calUtils.handleParentDeletion(false);
+  calUtils.handleParentDeletion(controller, false);
   controller.waitThenClick(new elementslib.Lookup(controller.window.document, box));
   controller.keypress(new elementslib.ID(controller.window.document, "day-view"),
     "VK_DELETE", {});
   controller.waitForElementNotPresent(new elementslib.Lookup(controller.window.document, box));
-  
-  // reset view
-  controller.mainMenu.click("#ltnViewRotated");
-  controller.waitFor(function() {
-    let view = (new elementslib.ID(controller.window.document, "day-view")).getNode();
-    return view.orient == "vertical"});
 }
 
 function setRecurrence(recurrence){

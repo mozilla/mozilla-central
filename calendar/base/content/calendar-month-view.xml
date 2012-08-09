@@ -50,7 +50,7 @@
                                  wrap="true"/>
                     <xul:spacer flex="1"/>
                   </xul:vbox>
-                  <xul:stack>
+                  <xul:stack anonid="category-box-stack">
                     <xul:hbox align="right">
                       <xul:hbox anonid="alarm-icons-box"
                                 class="alarm-icons-box"

@@ -13,18 +13,12 @@ var setupModule = function(module) {
   calUtils.createCalendar(controller, calendar);
 }
 
-var testBiweeklyRecursion = function () {
+var testBiweeklyRecurrence = function () {
   var eventPath = '/{"tooltip":"itemTooltip","calendar":"' + calendar.toLowerCase() + '"}';
   
   controller.click(new elementslib.ID(controller.window.document, "calendar-tab-button"));
   calUtils.switchToView(controller, "day");
   calUtils.goToDate(controller, 2009, 1, 31);
-  
-  // rotate view
-  controller.mainMenu.click("#ltnViewRotated");
-  controller.waitFor(function() {
-    let view = (new elementslib.ID(controller.window.document, "day-view")).getNode();
-    return view.orient == "horizontal"});
   
   // create biweekly event
   controller.doubleClick(new elementslib.Lookup(controller.window.document,
@@ -54,7 +48,7 @@ var testBiweeklyRecursion = function () {
     + eventPath;
   for(let i = 0; i < 4; i++){
     controller.assertNode(new elementslib.Lookup(controller.window.document, box));
-    calUtils.forward(2);
+    calUtils.forward(controller, 2);
   }
 
   // check multiweek view
@@ -101,17 +95,10 @@ var testBiweeklyRecursion = function () {
 
   // delete event
   controller.click(new elementslib.Lookup(controller.window.document, box));
-  calUtils.handleParentDeletion(false);
+  calUtils.handleParentDeletion(controller, false);
   controller.keypress(new elementslib.ID(controller.window.document, "month-view"),
     "VK_DELETE", {});
   controller.waitForElementNotPresent(new elementslib.Lookup(controller.window.document, box));
-  
-  // reset view
-  calUtils.switchToView(controller, "day");
-  controller.mainMenu.click("#ltnViewRotated");
-  controller.waitFor(function() {
-    let view = (new elementslib.ID(controller.window.document, "day-view")).getNode();
-    return view.orient == "vertical"});
 }
 
 var teardownTest = function(module) {

@@ -2,8 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var calUtils = require("./shared-modules/calendar-utils");
-var prefs = require("./shared-modules/prefs");
+var calUtils = require("../shared-modules/calendar-utils");
+var prefs = require("../shared-modules/prefs");
+// needed to set utf8 values in prefs
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 var sleep = 500;
 var UTF8string = "õäöü";
@@ -11,12 +13,8 @@ var UTF8string = "õäöü";
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
   calUtils.createCalendar(controller, UTF8string);
-  prefs.preferences.setPref("calendar.categories.names", UTF8string);
+  cal.setLocalizedPref("calendar.categories.names", UTF8string);
 }
-
-/***
- ** NOTE: This test will fail until Mozmill bug 506760 is fixed.
- ***/
 
 var testUTF8 = function () {
   let eventDialog = '/id("calendar-event-dialog")/id("event-grid")/id("event-grid-rows")/';

@@ -2,8 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var modalDialog = require("modal-dialog");
-var utils = require("utils");
+var MODULE_NAME = "calendar-utils";
+var MODULE_REQUIRES = ["window-helpers"];
+
+var os = {};      Components.utils.import('resource://mozmill/stdlib/os.js', os);
+var frame = {};      Components.utils.import('resource://mozmill/modules/frame.js', frame);
+
+var modalDialog = require("test-window-helpers");
 
 const sleep = 500;
 const EVENT_BOX = 0; // Use when you need an event box
@@ -14,31 +19,30 @@ const ALLDAY = 2; // Use when you need an allday canvas or event box
  *  Accept to send notification email with event to attendees
  *  @param controller - Mozmill window controller
  */
-function acceptSendingNotificationMail(controller){
-  let md = new modalDialog.modalDialog(controller.window);
-  md.start(
-    function(dialog){
+function acceptSendingNotificationMail(controller) {
+  modalDialog.plan_for_modal_dialog("commonDialog", function(dialog) {
       dialog.waitThenClick(new elementslib.Lookup(dialog.window.document, '/id("commonDialog")/'
         + 'anon({"anonid":"buttons"})/{"dlgtype":"accept"}'));
     }
   );
+
+  modalDialog.wait_for_modal_dialog("commonDialog");
 }
 
 /**
  *  Add an attachment with url
  *  @param controller - Mozmill window controller
  */
-function handleAddingAttachment(controller, url){
-  let md = new modalDialog.modalDialog(controller.window);
-  md.start(
-    function(attachment){
-      let input = new elementslib.ID(attachment.window.document, 'loginTextbox');
-      attachment.waitForElement(input);
-      input.getNode().value = url;
-      attachment.click(new elementslib.Lookup(attachment.window.document, '/id("commonDialog")/'
-        + 'anon({"anonid":"buttons"})/{"dlgtype":"accept"}'));
-    }
-  );
+function handleAddingAttachment(controller, url) {
+  modalDialog.plan_for_modal_dialog("commonDialog",function(attachment) {
+    let input = new elementslib.ID(attachment.window.document, 'loginTextbox');
+    attachment.waitForElement(input);
+    input.getNode().value = url;
+    attachment.click(new elementslib.Lookup(attachment.window.document, '/id("commonDialog")/'
+      + 'anon({"anonid":"buttons"})/{"dlgtype":"accept"}'));
+  });
+
+  modalDialog.wait_for_modal_dialog("commonDialog");
 }
 
 /**
@@ -46,7 +50,7 @@ function handleAddingAttachment(controller, url){
  *  @param controller - Mozmill window controller
  *  @param attendees - whether there are attendees that can be notified or not
  */
-function handleOccurrenceDeletion(controller, attendees){
+function handleOccurrenceDeletion(controller, attendees) {
   let md = new modalDialog.modalDialog(controller.window);
   md.start(
     function(dialog){
@@ -630,6 +634,26 @@ function setData(controller, data) {
   controller.sleep(sleep);
 }
 
+function open_lightning_prefs(aCallback, aParentController, collector, windowTimeout) {
+  function paneLoadedChecker() {
+    let pane = prefsController.window.document.getElementById("paneLightning");
+    return pane.loaded;
+  }
+
+  let timeout = windowTimeout || 30000;
+  aParentController.window.openOptionsDialog("paneLightning");
+  aParentController.waitFor(function() {return mozmill.utils.getWindows("Mail:Preferences").length == 1},
+                            "Error opening preferences window", timeout);
+  let prefsController = new mozmill.controller.MozMillController(mozmill.utils.getWindows("Mail:Preferences")[0]);
+  prefsController.waitFor(paneLoadedChecker, "Timed out waiting for lightning prefpane to load.");
+
+  aCallback(prefsController);
+
+  prefsController.window.close();
+  aParentController.waitFor(function() {return mozmill.utils.getWindows("Mail:Preferences").length == 0},
+                            "Error closing preferences window", timeout);
+}
+
 // Export of constants
 exports.ALLDAY = ALLDAY;
 exports.CANVAS_BOX = CANVAS_BOX;
@@ -651,3 +675,4 @@ exports.handleParentDeletion = handleParentDeletion;
 exports.handleParentModification = handleParentModification;
 exports.setData = setData;
 exports.switchToView = switchToView;
+exports.open_lightning_prefs = open_lightning_prefs;

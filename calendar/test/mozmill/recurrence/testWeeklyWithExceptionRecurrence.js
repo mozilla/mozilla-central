@@ -17,7 +17,7 @@ var setupModule = function(module) {
   calUtils.createCalendar(controller, calendar);
 }
 
-var testWeeklyWithExceptionRecursion = function () {
+var testWeeklyWithExceptionRecurrence = function () {
   controller.click(new elementslib.ID(controller.window.document, "calendar-tab-button"));
   calUtils.switchToView(controller, "day");
   calUtils.goToDate(controller, 2009, 1, 5);
@@ -196,7 +196,7 @@ var testWeeklyWithExceptionRecursion = function () {
   path = calUtils.getEventBoxPath(controller, "day", calUtils.EVENT_BOX, undefined, 1, hour)
     + eventPath;
   controller.click(new elementslib.Lookup(controller.window.document, path));
-  calUtils.handleParentDeletion(false);
+  calUtils.handleParentDeletion(controller, false);
   controller.keypress(new elementslib.ID(controller.window.document, "day-view"),
     "VK_DELETE", {});
   controller.waitForElementNotPresent(new elementslib.Lookup(controller.window.document, path));

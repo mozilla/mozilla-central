@@ -2,9 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var calUtils = require("./shared-modules/calendar-utils");
-var modalDialog = require("./shared-modules/modal-dialog");
-var prefs = require("./shared-modules/prefs");
+var calUtils = require("../shared-modules/calendar-utils");
+var modalDialog = require("../shared-modules/modal-dialog");
+var prefs = require("../shared-modules/prefs");
 
 const sleep = 500;
 var calendar = "Mozmill";
@@ -84,15 +84,16 @@ var testEventDialogModificationPrompt = function () {
   event = new mozmill.controller.MozMillController(mozmill.utils
     .getWindows("Calendar:EventDialog")[0]);
   
-  md = new modalDialog.modalDialog(event.window);
-  md.start(handleSavePrompt);
-  
   // change all values
   calUtils.setData(event, data[1]);
   
   // edit all values back to original
   calUtils.setData(event, data[0]);
   
+  // this is set up after data entry because otherwise it tries to handle attachment dialog
+  md = new modalDialog.modalDialog(event.window);
+  md.start(handleSavePrompt);
+
   // escape the event window, there should be no prompt to save event
   event.keypress(undefined, "VK_ESCAPE", {});
   controller.sleep(sleep); 
@@ -109,7 +110,7 @@ var testEventDialogModificationPrompt = function () {
   for(let i = 0; i < newlines.length; i++) {
     // test set i
     controller.doubleClick(new elementslib.Lookup(controller.window.document,
-      calUtils.getEventBoxPath(controller, "day", calUtils.CANVAS_BOX, undefined, 1, 8)));
+      calUtils.getEventBoxPath(controller, "day", calUtils.CANVAS_BOX, undefined, 1, 8)), 1, 1);
     controller.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length > 0}, sleep);
     event = new mozmill.controller.MozMillController(mozmill.utils
       .getWindows("Calendar:EventDialog")[0]);
@@ -132,8 +133,10 @@ var testEventDialogModificationPrompt = function () {
     md.stop();
     
     // delete it
-    controller.click(new elementslib.Lookup(controller.window.document,
-      calUtils.getEventBoxPath(controller, "day", calUtils.EVENT_BOX, undefined, 1, 8)));
+    // XXX somehow the event is selected at this point, this didn't use to be the case
+    // and can't be reproduced manually
+    /*controller.click(new elementslib.Lookup(controller.window.document,
+      calUtils.getEventBoxPath(controller, "day", calUtils.EVENT_BOX, undefined, 1, 8)));*/
     controller.keypress(new elementslib.ID(controller.window.document, "day-view"),
       "VK_DELETE", {});
     controller.waitForElementNotPresent(new elementslib.Lookup(controller.window.document,

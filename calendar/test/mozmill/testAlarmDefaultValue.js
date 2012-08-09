@@ -7,11 +7,16 @@
  * @litmus 2510
  */
 
-var prefs = require("./shared-modules/prefs");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
-Components.utils.import("resource://gre/modules/PluralForm.jsm");
+Components.utils.import("resource:///modules/PluralForm.jsm");
+Components.utils.import("resource:///modules/Services.jsm");
+
+var MODULE_NAME = "testAlarmDefaultValue";
+var RELATIVE_ROOT = "./shared-modules";
+var MODULE_REQUIRES = ["calendar-utils"];
 
 var calendarController;
+var calUtils = require("shared-modules/calendar-utils");
 
 function setupModule(module) {
   calendarController = mozmill.getMail3PaneController();
@@ -32,47 +37,9 @@ function testDefaultAlarms() {
   let expectedTaskReminder = cal.calGetString("calendar-alarms",
                                               "reminderCustomTitle",
                                               [unitString, originStringTask]);
-  
-  // Open preferences
-  calendarController.mainMenu.click("#menu_preferences");
 
-  calendarController.waitFor(function() {
-    return mozmill.utils.getWindows("Mail:Preferences").length > 0});
-  
-  // Set up prefs controller
-  let prefWindow = mozmill.utils.getWindows("Mail:Preferences")[0];
-  let prefsController = new mozmill.controller.MozMillController(prefWindow);
-
-  // Open lightning prefs, but only if we are on lightning.
-  prefsController.click(new elementslib.Lookup(prefsController.window.document,
-                          '/id("MailPreferences")/anon({"orient":"vertical"})/' + 
-                          'anon({"anonid":"selector"})/{"pane":"paneLightning"}'));
-
-  // Click on the alarms tab
-  prefsController.click(new elementslib.ID(prefsController.window.document, "calPreferencesTabAlarms"));
-  
-  // Turn on alarms for events and tasks
-  prefsController.waitThenClick(new elementslib.ID(prefsController.window.document, "eventdefalarm"));
-  prefsController.click(new elementslib.ID(prefsController.window.document, "eventdefalarmon"));
-  prefsController.click(new elementslib.ID(prefsController.window.document, "tododefalarm"));
-  prefsController.click(new elementslib.ID(prefsController.window.document, "tododefalarmon"));
-  
-  // Sets default alarm length for events to "50"
-  prefsController.keypress(new elementslib.ID(prefsController.window.document, "eventdefalarmlen"),
-                           "a", {ctrlKey:true});
-  prefsController.type(new elementslib.ID(prefsController.window.document, "calendar.alarms.eventalarmlen"),"50");
-  prefsController.keypress(new elementslib.ID(prefsController.window.document, "tododefalarmlen"),
-                           "a", {ctrlKey:true});
-  prefsController.type(new elementslib.ID(prefsController.window.document, "calendar.alarms.todoalarmlen"),"50");
-
-  // Selects "days" as a unit
-  prefsController.select(new elementslib.ID(prefsController.window.document, "eventdefalarmunit"),
-                         null, null, "days");
-  prefsController.select(new elementslib.ID(prefsController.window.document, "tododefalarmunit"),
-                         null, null, "days");
-  
-  // Close the preferences dialog
-  prefsController.window.close();
+  // Configure the lightning preferences
+  calUtils.open_lightning_prefs(handle_pref_dialog, calendarController, collector);
 
   // Create New Event
   calendarController.click(new elementslib.ID(calendarController.window.document, "newMsgButton-calendar-menuitem"));
@@ -116,11 +83,36 @@ function testDefaultAlarms() {
   calendarController.waitFor(function() {return mozmill.utils.getWindows("Calendar:EventDialog").length == 0});
 }
 
+function handle_pref_dialog(prefsController) {
+  // Click on the alarms tab
+  prefsController.click(new elementslib.ID(prefsController.window.document, "calPreferencesTabAlarms"));
+
+  // Turn on alarms for events and tasks
+  prefsController.waitThenClick(new elementslib.ID(prefsController.window.document, "eventdefalarm"));
+  prefsController.click(new elementslib.ID(prefsController.window.document, "eventdefalarmon"));
+  prefsController.click(new elementslib.ID(prefsController.window.document, "tododefalarm"));
+  prefsController.click(new elementslib.ID(prefsController.window.document, "tododefalarmon"));
+
+  // Selects "days" as a unit
+  prefsController.select(new elementslib.ID(prefsController.window.document, "tododefalarmunit"),
+                         null, null, "days");
+  prefsController.select(new elementslib.ID(prefsController.window.document, "eventdefalarmunit"),
+                         null, null, "days");
+
+  // Sets default alarm length for events to "50"
+  let eventdefalarmlen = new elementslib.ID(prefsController.window.document, "eventdefalarmlen");
+  let tododefalarmlen = new elementslib.ID(prefsController.window.document, "tododefalarmlen");
+  prefsController.keypress(eventdefalarmlen, "a", {accelKey:true});
+  prefsController.type(eventdefalarmlen ,"50");
+  prefsController.keypress(tododefalarmlen, "a", {accelKey:true});
+  prefsController.type(tododefalarmlen ,"50");
+}
+
 function teardownTest(module) {
-  prefs.preferences.clearUserPref("calendar.alarms.eventalarmlen");
-  prefs.preferences.clearUserPref("calendar.alarms.eventalarmunit");
-  prefs.preferences.clearUserPref("calendar.alarms.onforevents");
-  prefs.preferences.clearUserPref("calendar.alarms.onfortodos");
-  prefs.preferences.clearUserPref("calendar.alarms.todoalarmlen");
-  prefs.preferences.clearUserPref("calendar.alarms.todoalarmunit");
+  Services.prefs.clearUserPref("calendar.alarms.eventalarmlen");
+  Services.prefs.clearUserPref("calendar.alarms.eventalarmunit");
+  Services.prefs.clearUserPref("calendar.alarms.onforevents");
+  Services.prefs.clearUserPref("calendar.alarms.onfortodos");
+  Services.prefs.clearUserPref("calendar.alarms.todoalarmlen");
+  Services.prefs.clearUserPref("calendar.alarms.todoalarmunit");
 }

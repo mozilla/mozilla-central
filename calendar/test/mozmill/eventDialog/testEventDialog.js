@@ -2,9 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var calUtils = require("./shared-modules/calendar-utils");
-var modalDialog = require("./shared-modules/modal-dialog");
-var utils = require("./shared-modules/utils");
+var calUtils = require("../shared-modules/calendar-utils");
+var modalDialog = require("../shared-modules/modal-dialog");
+var utils = require("../shared-modules/utils");
 
 var sleep = 500;
 var calendar = "Mozmill";
@@ -29,12 +29,13 @@ var testEventDialog = function () {
     + 'id("tabpanelcontainer")/id("calendarTabPanel")/id("calendarContent")/id("ltnSidebar")/'
     + 'id("minimonth-pane")/{"align":"center"}/id("calMinimonthBox")/id("calMinimonth")/';
   let eventDialog = '/id("calendar-event-dialog")/id("event-grid")/id("event-grid-rows")/';
+
   let eventBox = monthView + 'anon({"anonid":"mainbox"})/anon({"anonid":"monthgrid"})/'
     + 'anon({"anonid":"monthgridrows"})/[rowNumber]/[columnNumber]/'
     + '{"tooltip":"itemTooltip","calendar":"' + calendar.toLowerCase() + '"}/anon({"flex":"1"})/'
     + '[0]/anon({"anonid":"event-container"})/{"class":"calendar-event-selection"}/'
     + 'anon({"anonid":"eventbox"})/{"class":"calendar-event-details"}';
-  
+
   // open month view
   controller.click(new elementslib.ID(controller.window.document, "calendar-tab-button"));
   controller.waitThenClick(new elementslib.ID(controller.window.document, "calendar-month-view-button"));
@@ -65,15 +66,24 @@ var testEventDialog = function () {
   
   // check that the start time is correct
   // next full hour except last hour hour of the day
-  let hour = new Date().getHours();
+  let now = new Date();
+  let hour = now.getHours();
   let startHour = (hour == 23)? hour : (hour + 1) % 24;
-  let startTime = startHour + ':00';
-  let endTime = ((startHour + 1) % 24) + ':00';
+  let ampm = "";
+  if (now.toLocaleTimeString().match(/AM|PM/)) {
+    ampm = (hour >= 12 ? " PM" : " AM")
+    startHour = startHour % 12;
+    if (startHour == 0) startHour = 12;
+  }
+
+  let startTime = startHour + ':00' + ampm;
+  let endTime = ((startHour + 1) % 24) + ':00' + ampm;
   let startTimeInput = new elementslib.Lookup(event.window.document, eventDialog
     + 'id("event-grid-startdate-row")/id("event-grid-startdate-picker-box")/'
     + 'id("event-starttime")/anon({"anonid":"hbox"})/anon({"anonid":"time-picker"})/'
-    + 'anon({"class":"timepicker-box-class"})/anon({"class":"timepicker-text-class"})/'
-    + 'anon({"flex":"1"})/anon({"anonid":"input"})');
+    + 'anon({"class":"timepicker-box-class"})/id("timepicker-text")/'
+    + 'anon({"class":"menulist-editable-box textbox-input-box"})/anon({"anonid":"input"})'
+    );
   event.waitForElement(startTimeInput);
   event.assertValue(startTimeInput, startTime);
   
@@ -220,8 +230,8 @@ function handleAttendees(attendees){
 }
 
 function checkIcon(eventBox, row, col){
-  let icon = new elementslib.Lookup(controller.window.document, 
-    (eventBox + '/[3]/{"class":"alarm-icons-box"}/{"class":"reminder-icon"}')
+  let icon = new elementslib.Lookup(controller.window.document,
+    (eventBox + '/anon({"anonid":"category-box-stack"})/anon({"align": "right"})/anon({"class":"alarm-icons-box"})/anon({"class": "reminder-icon"})')
     .replace("rowNumber", row).replace("columnNumber", col));
   controller.assertJS(icon.getNode().getAttribute("value") == "DISPLAY");
 }

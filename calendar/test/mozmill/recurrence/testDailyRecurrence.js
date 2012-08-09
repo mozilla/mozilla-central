@@ -13,7 +13,7 @@ var setupModule = function(module) {
   calUtils.createCalendar(controller, calendar);
 }
 
-var testDailyRecursion = function () {
+var testDailyRecurrence = function () {
   let eventPath = '/{"tooltip":"itemTooltip","calendar":"' + calendar.toLowerCase() + '"}';
   
   controller.click(new elementslib.ID(controller.window.document, "calendar-tab-button"));
@@ -194,7 +194,7 @@ var testDailyRecursion = function () {
   let day = calUtils.getEventBoxPath(controller, "month", calUtils.EVENT_BOX, 1, 5, undefined)
     + eventPath;
   controller.click(new elementslib.Lookup(controller.window.document, day));
-  calUtils.handleParentDeletion(false);
+  calUtils.handleParentDeletion(controller, false);
   controller.keypress(new elementslib.ID(controller.window.document, "month-view"),
     "VK_DELETE", {});
   controller.waitForElementNotPresent(new elementslib.Lookup(controller.window.document, day));

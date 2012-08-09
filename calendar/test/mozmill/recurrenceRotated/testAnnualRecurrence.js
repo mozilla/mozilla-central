@@ -14,14 +14,18 @@ var setupModule = function(module) {
   calUtils.createCalendar(controller, calendar);
 }
 
-var testAnnualRecursion = function () {
+var testAnnualRecurrence = function () {
   var eventPath = '/{"tooltip":"itemTooltip","calendar":"' + calendar.toLowerCase() + '"}';
   
   controller.click(new elementslib.ID(controller.window.document, "calendar-tab-button"));
-  controller.sleep(sleep);
-  
   calUtils.switchToView(controller, "day");
   calUtils.goToDate(controller, startYear, 1, 1);
+  
+  // rotate view
+  controller.mainMenu.click("#ltnViewRotated");
+  controller.waitFor(function() {
+    let view = (new elementslib.ID(controller.window.document, "day-view")).getNode();
+    return view.orient == "horizontal"});
   
   // create yearly recurring all-day event
   controller.doubleClick(new elementslib.Lookup(controller.window.document,
@@ -77,6 +81,12 @@ var testAnnualRecursion = function () {
   controller.keypress(new elementslib.ID(controller.window.document, "day-view"),
     "VK_DELETE", {});
   controller.waitForElementNotPresent(new elementslib.Lookup(controller.window.document, box));
+  
+  // reset view
+  controller.mainMenu.click("#ltnViewRotated");
+  controller.waitFor(function() {
+    let view = (new elementslib.ID(controller.window.document, "day-view")).getNode();
+    return view.orient == "vertical"});
 }
 
 var teardownTest = function(module) {

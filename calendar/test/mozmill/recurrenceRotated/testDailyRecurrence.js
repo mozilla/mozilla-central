@@ -13,7 +13,7 @@ var setupModule = function(module) {
   calUtils.createCalendar(controller, calendar);
 }
 
-var testDailyRecursion = function () {
+var testDailyRecurrence = function () {
   let eventPath = '/{"tooltip":"itemTooltip","calendar":"' + calendar.toLowerCase() + '"}';
   
   controller.click(new elementslib.ID(controller.window.document, "calendar-tab-button"));
@@ -131,7 +131,7 @@ var testDailyRecursion = function () {
   // go to previous day to edit event to occur only on weekdays
   calUtils.back(controller, 1);
   
-  calUtils.handleParentModification(false);
+  calUtils.handleParentModification(controller, false);
   controller.doubleClick(new elementslib.Lookup(controller.window.document,
     calUtils.getEventBoxPath(controller, "day", calUtils.EVENT_BOX, undefined, 1, hour)
       + eventPath));

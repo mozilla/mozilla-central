@@ -2,11 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+const MODULE_NAME = "testLocalICS";
+const RELATIVE_ROOT = "./shared-modules";
+const MODULE_REQUIRES = ["calendar-utils", "window-helpers"];
+
 var calUtils = require("./shared-modules/calendar-utils");
-var modalDialog = require("./shared-modules/modal-dialog");
+var modalDialog; // Initialized in setupModule
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 const sleep = 500;
+const TIMEOUT_MODAL_DIALOG = 30000;
 var hour = 8;
 var calendar;
 var uri;
@@ -15,6 +20,7 @@ var title;
 
 var setupModule = function(module) {
   controller = mozmill.getMail3PaneController();
+  modalDialog = collector.getModule('window-helpers');
   
   // unique name needed as deleting a calendar only unsubscribes from it
   // and if same file were used on next testrun then previously created event would show up
@@ -34,10 +40,9 @@ var testLocalICS = function () {
   controller.click(new elementslib.ID(controller.window.document,"calendar-tab-button"));
   calUtils.switchToView(controller, "day");
   
-  let md = new modalDialog.modalDialog(controller.window);
-  md.start(handleNewCalendarWizard);
+  modalDialog.plan_for_modal_dialog("Calendar:NewCalendarWizard", handleNewCalendarWizard);
   controller.mainMenu.click("#ltnNewCalendar");
-  controller.sleep(sleep);
+  modalDialog.wait_for_modal_dialog("Calendar:NewCalendarWizard", TIMEOUT_MODAL_DIALOG);
   
   // create new event
   controller.doubleClick(new elementslib.Lookup(controller.window.document,
@@ -89,18 +94,14 @@ var teardownTest = function(module) {
 }
 
 function handleNewCalendarWizard(wizard) {
-  let buttonDeck = '/id("calendar-wizard")/anon({"anonid":"Buttons"})/'
-    + 'anon({"class":"wizard-buttons-box-1"})/{"class":"wizard-buttons-box-2"}/'
-    + 'anon({"anonid":"WizardButtonDeck"})';
-  let nextButton = buttonDeck + '/[1]/{"dlgtype":"next"}';
-  let finishButton = buttonDeck + '/[0]/{"dlgtype":"finish"}';
+  let docEl = wizard.window.document.documentElement;
   
   // choose network calendar
   let remoteOption = new elementslib.Lookup(wizard.window.document, '/id("calendar-wizard")/'
     + '{"pageid":"initialPage"}/id("calendar-type")/{"value":"remote"}');
   wizard.waitForElement(remoteOption);
   wizard.radio(remoteOption);
-  wizard.click(new elementslib.Lookup(wizard.window.document, nextButton));
+  docEl.getButton("next").doCommand();
   
   // choose ical
   let icalOption = new elementslib.Lookup(wizard.window.document, '/id("calendar-wizard")/'
@@ -112,13 +113,12 @@ function handleNewCalendarWizard(wizard) {
     + '{"pageid":"locationPage"}/[1]/[1]/{"align":"center"}/id("calendar-uri")/'
     + 'anon({"class":"textbox-input-box"})/anon({"anonid":"input"})'),
     uri);
-  wizard.click(new elementslib.Lookup(wizard.window.document, nextButton));
+  docEl.getButton("next").doCommand();
   
   // name is filled in automatically using filename
-  wizard.waitFor(function() {return (new elementslib.Lookup(wizard.window.document, nextButton))
-                                                    .getNode().disabled == false});
-  wizard.click(new elementslib.Lookup(wizard.window.document, nextButton));
+  wizard.waitFor(function() {return docEl.getButton("next").disabled == false});
+  docEl.getButton("next").doCommand();
   
   // finish
-  wizard.waitThenClick(new elementslib.Lookup(wizard.window.document, finishButton));
+  docEl.getButton("finish").doCommand();
 }

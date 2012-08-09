@@ -2,8 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var calUtils = require("./shared-modules/calendar-utils");
-var utils = require("./shared-modules/utils");
+var calUtils = require("../shared-modules/calendar-utils");
+var utils = require("../shared-modules/utils");
 
 var sleep = 500;
 var calendar = "Mozmill";
@@ -64,9 +64,8 @@ var testTaskView = function () {
                                  return countBefore + 1 == countAfter});
   
   // last added task is automatically selected so verify detail window data
-  controller.assertValue(new elementslib.ID(controller.window.document,
-    "calendar-task-details-title"),
-    title);
+  controller.assertJSProperty(new elementslib.ID(controller.window.document,
+    "calendar-task-details-title"), "textContent", title);
   
   // open added task
   // doubleclick on completion checkbox is ignored as opening action, so don't click at immediate
@@ -92,8 +91,7 @@ var testTaskView = function () {
     + 'id("event-grid-todo-status-row")/id("event-grid-todo-status-picker-box")/'
     + 'id("percent-complete-textbox")/anon({"class":"textbox-input-box numberbox-input-box"})/'
     + 'anon({"anonid":"input"})'),
-    "VK_BACK_SPACE",
-    {});
+    "VK_DELETE", {});
   task.type(new elementslib.Lookup(task.window.document, taskDialog
     + 'id("event-grid-todo-status-row")/id("event-grid-todo-status-picker-box")/'
     + 'id("percent-complete-textbox")/anon({"class":"textbox-input-box numberbox-input-box"})/'
@@ -134,16 +132,15 @@ var testTaskView = function () {
   let priority = utils.getProperty("chrome://calendar/locale/calendar.properties",
     "highPriority");
   
-  controller.assertJS(toolTipName.getNode().textContent == title);
-  controller.assertJS(toolTipCalendar.getNode().textContent == calendar);
-  controller.assertJS(toolTipPriority.getNode().textContent == priority);
+  controller.assertJSProperty(toolTipName, "textContent", title);
+  controller.assertJSProperty(toolTipCalendar, "textContent", calendar);
+  controller.assertJSProperty(toolTipPriority, "textContent", priority);
   controller.assertJS(toolTipStatus.getNode().textContent.toLowerCase() == status.toLowerCase());
-  controller.assertJS(toolTipComplete.getNode().textContent == percentComplete + '%');
+  controller.assertJSProperty(toolTipComplete, "textContent", percentComplete + '%');
   
   // mark completed, verify
-  controller.click(new elementslib.Lookup(controller.window.document, taskView
-    + '[1]/id("calendar-task-details-container")/id("calendar-task-details")/'
-    + 'id("other-actions-box")/id("task-actions-markcompleted")/anon({"anonid":"button"})'));
+  controller.click(new elementslib.ID(controller.window.document,
+                                      "task-actions-markcompleted"));
   controller.sleep(sleep);
   
   status = utils.getProperty("chrome://calendar/locale/calendar.properties",
