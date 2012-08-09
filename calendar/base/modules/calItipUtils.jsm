@@ -5,14 +5,11 @@
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
-/*
- * Scheduling and iTIP helper code;
- * don't use deliberately, because it'll be moved into interfaces/components.
- *
- * May replace the current calItipProcessor.js code soon.
+/**
+ * Scheduling and iTIP helper code
  */
-
 EXPORTED_SYMBOLS = ["cal"]; // even though it's defined in calUtils.jsm, import needs this
 cal.itip = {
     /**
@@ -185,7 +182,6 @@ cal.itip = {
         }
     },
 
-
     /**
      * Scope: iTIP message receiver
      *
@@ -248,7 +244,6 @@ cal.itip = {
             data[btn] = { label: null, actionMethod: "" };
         }
 
-
         if (Components.isSuccessCode(rc) && !actionFunc) {
             // This case, they clicked on an old message that has already been
             // added/updated, we want to tell them that.
@@ -300,7 +295,6 @@ cal.itip = {
 
         return data;
     },
-
 
     /**
      * Scope: iTIP message receiver
@@ -380,7 +374,6 @@ cal.itip = {
         return null;
     },
 
-
     /**
      * Scope: iTIP message receiver
      *
@@ -455,9 +448,27 @@ cal.itip = {
     },
 
     /**
+     * Clean up after the given iTIP item. This needs to be called once for each
+     * time processItipItem is called. May be called with a null itipItem in
+     * which case it will do nothing.
+     *
+     * @param itipItem      The iTIP item to clean up for.
+     */
+    cleanupItipItem: function cleanupItipItem(itipItem) {
+        if (itipItem) {
+            let itemList = itipItem.getItemList({});
+            if (itemList.length > 0) {
+                // Again, we can assume the id is the same over all items per spec
+                ItipItemFinderFactory.cleanup(itemList[0].id);
+            }
+        }
+    },
+
+    /**
      * Scope: iTIP message receiver
      *
      * Checks the passed iTIP item and calls the passed function with options offered.
+     * Be sure to call cleanupItipItem at least once after calling this function.
      *
      * @param itipItem iTIP item
      * @param optionsFunc function being called with parameters: itipItem, resultCode, actionFunc
@@ -482,8 +493,7 @@ cal.itip = {
                 // same ID, this simplifies our searching, we can just look for Item[0].id
                 let itemList = itipItem.getItemList({});
                 if (itemList.length > 0) {
-                    itipItem.targetCalendar.getItem(itemList[0].id,
-                                                    new ItipFindItemListener(itipItem, optionsFunc));
+                    ItipItemFinderFactory.findItem(itemList[0].id, itipItem, optionsFunc);
                 } else if (optionsFunc) {
                     optionsFunc(itipItem, Components.results.NS_OK);
                 }
@@ -935,27 +945,142 @@ function addScheduleAgentClient(item, calendar) {
      }
 }
 
+var ItipItemFinderFactory = {
+    /**  Map to save finder instances for given ids */
+    _findMap: {},
+
+    /**
+     * Create an item finder and track its progress. Be sure to clean up the
+     * finder for this id at some point.
+     *
+     * @param aId           The item id to search for
+     * @param aItipItem     The iTIP item used for processing
+     * @param aOptionsFunc  The options function used for processing the found item
+     */
+    findItem: function findItem(aId, aItipItem, aOptionsFunc) {
+        this.cleanup(aId);
+        let finder = new ItipItemFinder(aId, aItipItem, aOptionsFunc);
+        this._findMap[aId] = finder;
+        finder.findItem();
+    },
+
+    /**
+     * Clean up tracking for the given id. This needs to be called once for
+     * every time findItem is called.
+     *
+     * @param aId           The item id to clean up for
+     */
+    cleanup: function cleanup(aId) {
+        if (aId in this._findMap) {
+            let finder = this._findMap[aId];
+            finder.destroy();
+            delete this._findMap[aId];
+        }
+    }
+};
+
 /** local to this module file
  * An operation listener triggered by cal.itip.processItipItem() for lookup of the sent iTIP item's UID.
  *
  * @param itipItem sent iTIP item
  * @param optionsFunc options func, see cal.itip.processItipItem()
  */
-function ItipFindItemListener(itipItem, optionsFunc) {
+function ItipItemFinder(aId, itipItem, optionsFunc) {
     this.mItipItem = itipItem;
     this.mOptionsFunc = optionsFunc;
-    this.mFoundItems = [];
+    this.mSearchId = aId;
 }
-ItipFindItemListener.prototype = {
+
+ItipItemFinder.prototype = {
+
+    QueryInterface: XPCOMUtils.generateQI([
+        Components.interfaces.calIObserver,
+        Components.interfaces.calIOperationListener
+    ]),
+
+    mSearchId: null,
     mItipItem: null,
     mOptionsFunc: null,
     mFoundItems: null,
 
-    onOperationComplete: function ItipFindItemListener_onOperationComplete(aCalendar,
-                                                                           aStatus,
-                                                                           aOperationType,
-                                                                           aId,
-                                                                           aDetail) {
+    findItem: function findItem() {
+        this.mFoundItems = [];
+        this._unobserveChanges();
+        this.mItipItem.targetCalendar.getItem(this.mSearchId, this);
+    },
+
+    _observeChanges: function _observeChanges(aCalendar) {
+        this._unobserveChanges();
+        this.mObservedCalendar = aCalendar;
+
+        if (this.mObservedCalendar) this.mObservedCalendar.addObserver(this);
+    },
+    _unobserveChanges: function _unobserveChanges() {
+        if (this.mObservedCalendar) {
+            this.mObservedCalendar.removeObserver(this);
+            this.mObservedCalendar = null;
+        }
+    },
+
+    onStartBatch: function() {},
+    onEndBatch: function() {},
+    onError: function() {},
+    onPropertyChanged: function() {},
+    onPropertyDeleting: function() {},
+    onLoad: function onLoad(aCalendar) {
+        // Its possible that the item was updated. We need to re-retrieve the
+        // items now.
+        this.findItem();
+    },
+
+    onModifyItem: function onModifyItem(aNewItem, aOldItem) {
+        let refItem = aOldItem || aNewItem;
+        if (refItem.id == this.mSearchId) {
+            // Check existing found items to see if it already exists
+            let found = false;
+            for (let [idx, item] in Iterator(this.mFoundItems)) {
+                if (item.id == refItem.id && item.calendar.id == refItem.calendar.id) {
+                    if (aNewItem) {
+                        this.mFoundItems.splice(idx, 1, aNewItem);
+                    } else {
+                        this.mFoundItems.splice(idx, 1);
+                    }
+                    found = true;
+                    break;
+                }
+            }
+
+            // If it hasn't been found and there isto add a item, add it to the end
+            if (!found && aNewItem) {
+                this.mFoundItems.push(aNewItem);
+            }
+            this.processFoundItems();
+        }
+    },
+
+    onAddItem: function onAddItem(aItem) {
+        // onModifyItem is set up to also handle additions
+        this.onModifyItem(aItem, null);
+    },
+
+    onDeleteItem: function onDeleteItem(aItem) {
+        // onModifyItem is set up to also handle deletions
+        this.onModifyItem(null, aItem);
+    },
+
+    onOperationComplete: function onOperationComplete(aCalendar,
+                                                      aStatus,
+                                                      aOperationType,
+                                                      aId,
+                                                      aDetail) {
+        this.processFoundItems();
+    },
+
+    destroy: function destroy() {
+        this._unobserveChanges();
+    },
+
+    processFoundItems: function processFoundItems() {
         let rc = Components.results.NS_OK;
         const method = this.mItipItem.receivedMethod.toUpperCase();
         let actionMethod = method;
@@ -964,6 +1089,7 @@ ItipFindItemListener.prototype = {
         if (this.mFoundItems.length > 0) {
             // Save the target calendar on the itip item
             this.mItipItem.targetCalendar = this.mFoundItems[0].calendar;
+            this._observeChanges(this.mItipItem.targetCalendar);
 
             cal.LOG("iTIP on " + method + ": found " + this.mFoundItems.length + " items.");
             switch (method) {
@@ -1124,9 +1250,13 @@ ItipFindItemListener.prototype = {
                     rc = Components.results.NS_ERROR_NOT_IMPLEMENTED;
                     break;
             }
-
         } else { // not found:
             cal.LOG("iTIP on " + method + ": no existing items.");
+
+            // If the item was not found, observe the target calendar anyway.
+            // It will likely be the composite calendar, so we should update
+            // if an item was added or removed
+            this._observeChanges(this.mItipItem.targetCalendar);
 
             for each (let itipItemItem in this.mItipItem.getItemList({})) {
                 switch (method) {
@@ -1195,12 +1325,12 @@ ItipFindItemListener.prototype = {
         this.mOptionsFunc(this.mItipItem, rc, actionFunc, this.mFoundItems);
     },
 
-    onGetResult: function ItipFindItemListener_onGetResult(aCalendar,
-                                                           aStatus,
-                                                           aItemType,
-                                                           aDetail,
-                                                           aCount,
-                                                           aItems) {
+    onGetResult: function onGetResult(aCalendar,
+                                      aStatus,
+                                      aItemType,
+                                      aDetail,
+                                      aCount,
+                                      aItems) {
         if (Components.isSuccessCode(aStatus)) {
             this.mFoundItems = this.mFoundItems.concat(aItems);
         }

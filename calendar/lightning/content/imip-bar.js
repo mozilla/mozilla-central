@@ -31,6 +31,7 @@ var ltnImipBar = {
 
     /**
      * Load Handler called to initialize the imip bar
+     * NOTE: This function is called without a valid this-context!
      */
     load: function ltnImipOnLoad() {
         // Add a listener to gMessageListeners defined in msgHdrViewOverlay.js
@@ -51,12 +52,13 @@ var ltnImipBar = {
 
     /**
      * Unload handler to clean up after the imip bar
+     * NOTE: This function is called without a valid this-context!
      */
     unload: function ltnImipOnUnload() {
         removeEventListener("messagepane-loaded", ltnImipBar.load, true);
         removeEventListener("messagepane-unloaded", ltnImipBar.unload, true);
 
-        ltnImipBar.itipItem = null;
+        ltnImipBar.hideBar();
         Services.obs.removeObserver(ltnImipBar, "onItipItemCreation");
     },
 
@@ -98,10 +100,22 @@ var ltnImipBar = {
         hideElement("imip-button1");
         hideElement("imip-button2");
         hideElement("imip-button3");
+
         // Clear our iMIP/iTIP stuff so it doesn't contain stale information.
+        cal.itip.cleanupItipItem(ltnImipBar.itipItem);
         ltnImipBar.itipItem = null;
     },
 
+    /**
+     * This is our callback function that is called each time the itip bar UI needs updating.
+     * NOTE: This function is called without a valid this-context!
+     *
+     * @param itipItem      The iTIP item to set up for
+     * @param rc            The status code from processing
+     * @param actionFunc    The action function called for execution
+     * @param foundItems    An array of items found while searching for the item
+     *                        in subscribed calendars
+     */
     setupOptions: function setupOptions(itipItem, rc, actionFunc, foundItems) {
         let imipBar =  document.getElementById("imip-bar");
         let data = cal.itip.getOptionsText(itipItem, rc, actionFunc);
