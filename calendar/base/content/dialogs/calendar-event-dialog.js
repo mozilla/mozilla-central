@@ -22,6 +22,7 @@ var gConfirmCancel = true;
 var gLastRepeatSelection = 0;
 var gIgnoreUpdate = false;
 var gShowTimeAs = null;
+var gWarning = false;
 
 var eventDialogQuitObserver = {
   observe: function(aSubject, aTopic, aData) {
@@ -235,7 +236,7 @@ function onEventDialogUnload() {
 function onAccept() {
     dispose();
     onCommandSave(true);
-    return true;
+    return !gWarning;
 }
 
 /**
@@ -247,7 +248,8 @@ function onAccept() {
  * @return    Returns true if the window should be closed.
  */
 function onCommandCancel() {
-    if (!isItemChanged()) {
+    // Allow closing if the item has not changed and no warning dialog has to be showed.
+    if (!isItemChanged() && !gWarning) {
         return true;
     }
 
@@ -284,6 +286,8 @@ function onCommandCancel() {
             onCommandSave(true);
             return true;
         case 2: // Don't save
+            // Don't show any warning dialog when closing without saving.
+            gWarning = false;
             return true;
         default: // Cancel
             return false;
@@ -302,7 +306,10 @@ function onCancel() {
 
     if (!gConfirmCancel || (gConfirmCancel && onCommandCancel())) {
         dispose();
-        return true;
+        // Don't allow closing the dialog when the user inputs a wrong
+        // date then closes the dialog and answers with "Save" in
+        // the "Save Event" dialog.
+        return !gWarning;
     }
     return false;
 }
@@ -622,6 +629,7 @@ function dateTimeControls2State(aStartDatepicker) {
     updateTimezone();
 
     if (warning) {
+        gWarning = true;
         var callback = function func() {
             var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                 .getService(Components.interfaces.nsIPromptService);
@@ -629,6 +637,7 @@ function dateTimeControls2State(aStartDatepicker) {
                 null,
                 document.title,
                 calGetString("calendar", "warningEndBeforeStart"));
+                gWarning = false;
         }
         setTimeout(callback, 1);
     }
@@ -2306,6 +2315,11 @@ function onCommandSave(aIsClosing) {
     // validation of the values just edited, with the keyboard, but not yet
     // confirmed (i.e. not followed by a click, a tab or enter keys pressure).
     document.documentElement.focus();
+
+    // Don't save if a warning dialog about a wrong input date must be showed.
+    if (gWarning) {
+        return;
+    }
 
     let originalItem = window.calendarItem;
     let item = saveItem();
