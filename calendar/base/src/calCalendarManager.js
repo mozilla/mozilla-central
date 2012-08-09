@@ -10,113 +10,31 @@ Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
 const REGISTRY_BRANCH = "calendar.registry.";
 const DB_SCHEMA_VERSION = 10;
 
-function getPrefBranchFor(id) {
-    return (REGISTRY_BRANCH + id + ".");
-}
-
-/**
- * Helper function to flush the preferences file. If the application crashes
- * after a calendar has been created using the prefs registry, then the calendar
- * won't show up. Writing the prefs helps counteract.
- */
-function flushPrefs() {
-    Components.classes["@mozilla.org/preferences-service;1"]
-              .getService(Components.interfaces.nsIPrefService)
-              .savePrefFile(null);
-}
-
-
-/**
- * Callback object for the refresh timer. Should be called as an object, i.e
- * let foo = new timerCallback(calendar);
- *
- * @param aCalendar     The calendar to refresh on notification
- */
-function timerCallback(aCalendar) {
-    this.notify = function refreshNotify(aTimer) {
-        if (!aCalendar.getProperty("disabled") && aCalendar.canRefresh) {
-            aCalendar.refresh();
-        }
-    }
-}
-
-var gCalendarManagerAddonListener = {
-    onDisabling: function(aAddon, aNeedsRestart) {
-        if (!this.queryUninstallProvider(aAddon)) {
-            // If the addon should not be disabled, then re-enable it.
-            aAddon.userDisabled = false;
-        }
-    },
-
-    onUninstalling: function(aAddon, aNeedsRestart) {
-        if (!this.queryUninstallProvider(aAddon)) {
-            // If the addon should not be uninstalled, then cancel the uninstall.
-            aAddon.cancelUninstall();
-        }
-    },
-
-    queryUninstallProvider: function(aAddon) {
-        const uri = "chrome://calendar/content/calendar-providerUninstall-dialog.xul";
-        const features = "chrome,titlebar,resizable,modal";
-        let calMgr = cal.getCalendarManager();
-        let affectedCalendars =
-            [ calendar for each (calendar in calMgr.getCalendars({}))
-              if (calendar.providerID == aAddon.id) ];
-        if (!affectedCalendars.length) {
-            // If no calendars are affected, then everything is fine.
-            return true;
-        }
-
-        let args = { shouldUninstall: false, extension: aAddon };
-
-        // Now find a window. The best choice would be the most recent
-        // addons window, otherwise the most recent calendar window, or we
-        // create a new toplevel window.
-        let win = Services.wm.getMostRecentWindow("Extension:Manager") ||
-                  cal.getCalendarWindow();
-        if (win) {
-            win.openDialog(uri, "CalendarProviderUninstallDialog", features, args);
-        } else {
-            // Use the window watcher to open a parentless window.
-            Services.ww.openWindow(null, uri, "CalendarProviderUninstallWindow", features, args);
-        }
-
-        // Now that we are done, check if the dialog was accepted or canceled.
-        return args.shouldUninstall;
-    }
-};
-
 function calCalendarManager() {
     this.wrappedJSObject = this;
     this.mObservers = new calListenerBag(Components.interfaces.calICalendarManagerObserver);
+    this.mCalendarObservers = new calListenerBag(Components.interfaces.calIObserver);
 }
 
 calCalendarManager.prototype = {
-    contractID: "@mozilla.org/calendar/manager;1",
-    classDescription: "Calendar Manager",
     classID: Components.ID("{f42585e7-e736-4600-985d-9624c1c51992}"),
+    QueryInterface: XPCOMUtils.generateQI([
+        Components.interfaces.calICalendarManager,
+        Components.interfaces.calIStartupService,
+        Components.interfaces.nsIObserver,
+    ]),
 
-    getInterfaces: function (count) {
-        let ifaces = [
-            Components.interfaces.nsISupports,
+    classInfo: XPCOMUtils.generateCI({
+        classID: Components.ID("{f42585e7-e736-4600-985d-9624c1c51992}"),
+        contractID: "@mozilla.org/calendar/manager;1",
+        classDescription: "Calendar Manager",
+        interfaces: [
             Components.interfaces.calICalendarManager,
             Components.interfaces.calIStartupService,
             Components.interfaces.nsIObserver,
-            Components.interfaces.nsIClassInfo
-        ];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function (language) {
-        return null;
-    },
-
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: Components.interfaces.nsIClassInfo.SINGLETON,
-    QueryInterface: function (aIID) {
-        return cal.doQueryInterface(this, calCalendarManager.prototype, aIID, null, this);
-    },
+        ],
+        flags: Components.interfaces.nsIClassInfo.SINGLETON
+    }),
 
     get networkCalendarCount() {
         return this.mNetworkCalendarCount;
@@ -561,10 +479,6 @@ calCalendarManager.prototype = {
         }
     },
 
-    notifyObservers: function(functionName, args) {
-        this.mObservers.notify(functionName, args);
-    },
-
     /**
      * calICalendarManager interface
      */
@@ -590,6 +504,7 @@ calCalendarManager.prototype = {
                 case Components.interfaces.calIErrors.STORAGE_UNKNOWN_SCHEMA_ERROR:
                     // For now we alert and quit on schema errors like we've done before:
                     this.alertAndQuit();
+                    return;
                 case Components.interfaces.calIErrors.STORAGE_UNKNOWN_TIMEZONES_ERROR:
                     uiMessage = calGetString("calendar", "unknownTimezonesError", [uri.spec]);
                     break;
@@ -775,10 +690,8 @@ calCalendarManager.prototype = {
             this.mCache = {};
             this.mCalObservers = {};
 
-            let prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                        .getService(Components.interfaces.nsIPrefBranch);
             let allCals = {};
-            for each (let key in prefService.getChildList(REGISTRY_BRANCH)) { // merge down all keys
+            for each (let key in Services.prefs.getChildList(REGISTRY_BRANCH)) { // merge down all keys
                 allCals[key.substring(0, key.indexOf(".", REGISTRY_BRANCH.length))] = true;
             }
 
@@ -789,7 +702,7 @@ calCalendarManager.prototype = {
 
                 try {
                     if (!ctype || !curi) { // sanity check
-                        prefService.deleteBranch(calBranch + ".");
+                        Services.prefs.deleteBranch(calBranch + ".");
                         continue;
                     }
 
@@ -852,11 +765,8 @@ calCalendarManager.prototype = {
         cal.ASSERT(name && name.length > 0, "Pref Name must be non-empty!");
 
         let branch = (getPrefBranchFor(calendar.id) + name);
-
-        let prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                    .getService(Components.interfaces.nsIPrefBranch);
-        // delete before to allow pref-type changes:
-        prefService.deleteBranch(branch);
+        // Delete before to allow pref-type changes:
+        Services.prefs.deleteBranch(branch);
 
         if ( name === "name" ) {
             cal.setLocalizedPref(branch, value);
@@ -869,20 +779,18 @@ calCalendarManager.prototype = {
         cal.ASSERT(calendar, "Invalid Calendar!");
         cal.ASSERT(calendar.id !== null, "Calendar id needs to be set!");
         cal.ASSERT(name && name.length > 0, "Pref Name must be non-empty!");
-
-        let prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                    .getService(Components.interfaces.nsIPrefBranch);
-        prefService.deleteBranch(getPrefBranchFor(calendar.id) + name);
+        Services.prefs.deleteBranch(getPrefBranchFor(calendar.id) + name);
     },
 
     mObservers: null,
-    addObserver: function(aObserver) {
-        this.mObservers.add(aObserver);
-    },
+    addObserver: function(aObserver) this.mObservers.add(aObserver),
+    removeObserver: function(aObserver) this.mObservers.remove(aObserver),
+    notifyObservers: function(functionName, args) this.mObservers.notify(functionName, args),
 
-    removeObserver: function(aObserver) {
-        this.mObservers.remove(aObserver);
-    }
+    mCalendarObservers: null,
+    addCalendarObserver: function(aObserver) this.mCalendarObservers.add(aObserver),
+    removeCalendarObserver: function(aObserver) this.mCalendarObservers.remove(aObserver),
+    notifyCalendarObservers: function(functionName, args) this.mCalendarObservers.notify(functionName, args)
 };
 
 function equalMessage(msg1, msg2) {
@@ -907,24 +815,25 @@ calMgrCalendarObserver.prototype = {
     storedReadOnly: null,
     calMgr: null,
 
-    QueryInterface: function mBL_QueryInterface(aIID) {
-        return doQueryInterface(this, calMgrCalendarObserver.prototype, aIID,
-                                [Components.interfaces.nsIWindowMediatorListener,
-                                 Components.interfaces.calIObserver]);
-    },
+    QueryInterface: XPCOMUtils.generateQI([
+        Components.interfaces.nsIWindowMediatorListener,
+        Components.interfaces.calIObserver
+    ]),
 
     // calIObserver:
-    onStartBatch: function() {},
-    onEndBatch: function() {},
-    onLoad: function(calendar) {},
-    onAddItem: function(aItem) {},
-    onModifyItem: function(aNewItem, aOldItem) {},
-    onDeleteItem: function(aDeletedItem) {},
+    onStartBatch: function() this.calMgr.notifyCalendarObservers("onStartBatch", arguments),
+    onEndBatch: function() this.calMgr.notifyCalendarObservers("onEndBatch", arguments),
+    onLoad: function(calendar) this.calMgr.notifyCalendarObservers("onLoad", arguments),
+    onAddItem: function(aItem) this.calMgr.notifyCalendarObservers("onAddItem", arguments),
+    onModifyItem: function(aNewItem, aOldItem) this.calMgr.notifyCalendarObservers("onModifyItem", arguments),
+    onDeleteItem: function(aDeletedItem) this.calMgr.notifyCalendarObservers("onDeleteItem", arguments),
     onError: function(aCalendar, aErrNo, aMessage) {
+        this.calMgr.notifyCalendarObservers("onError", arguments);
         this.announceError(aCalendar, aErrNo, aMessage);
     },
 
     onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
+        this.calMgr.notifyCalendarObservers("onPropertyChanged", arguments);
         switch (aName) {
             case "requiresNetwork":
                 this.calMgr.mNetworkCalendarCount += (aValue ? 1 : -1);
@@ -936,60 +845,7 @@ calMgrCalendarObserver.prototype = {
                 this.calMgr.setupRefreshTimer(aCalendar);
                 break;
             case "cache.enabled":
-                aOldValue = aOldValue || false;
-                aValue = aValue || false;
-
-                if (aOldValue != aValue) {
-
-                    // Try to find the current sort order
-                    let sortOrderPref = cal.getPrefSafe("calendar.list.sortOrder", "").split(" ");
-                    let initialSortOrderPos = null;
-                    for (let i = 0; i < sortOrderPref.length; ++i) {
-                        if (sortOrderPref[i] == aCalendar.id) {
-                            initialSortOrderPos = i;
-                        }
-                    }
-                    // Enabling or disabling cache on a calendar re-creates
-                    // it so the registerCalendar call can wrap/unwrap the
-                    // calCachedCalendar facade saving the user the need to
-                    // restart Thunderbird and making sure a new Id is used.
-                    this.calMgr.unregisterCalendar(aCalendar);
-                    this.calMgr.deleteCalendar(aCalendar);
-                    var newCal = this.calMgr.createCalendar(aCalendar.type,aCalendar.uri);
-                    newCal.name = aCalendar.name;
-
-                    // TODO: if properties get added this list will need to be adjusted,
-                    // ideally we should add a "getProperties" method to calICalendar.idl
-                    // to retrieve all non-transient properties for a calendar.
-                    let propsToCopy = [ "color",
-                                        "disabled",
-                                        "auto-enabled",
-                                        "cache.enabled",
-                                        "refreshInterval",
-                                        "suppressAlarms",
-                                        "calendar-main-in-composite",
-                                        "calendar-main-default",
-                                        "readOnly",
-                                        "imip.identity.key"];
-                    for each (let prop in propsToCopy ) {
-                      newCal.setProperty(prop,
-                                         aCalendar.getProperty(prop));
-                    }
-
-                    if (initialSortOrderPos != null) {
-                        newCal.setProperty("initialSortOrderPos",
-                                           initialSortOrderPos);
-                    }
-                    this.calMgr.registerCalendar(newCal);
-                }
-                else {
-                    if (aCalendar.wrappedJSObject instanceof calCachedCalendar) {
-                        // any attempt to switch this flag will reset the cached calendar;
-                        // could be useful for users in case the cache may be corrupted.
-                        aCalendar.wrappedJSObject.setupCachedCalendar();
-                    }
-                }
-                break;
+                this.changeCalendarCache.apply(this, arguments);
             case "disabled":
                 if (!aValue && aCalendar.canRefresh) {
                     aCalendar.refresh();
@@ -998,12 +854,65 @@ calMgrCalendarObserver.prototype = {
         }
     },
 
+    changeCalendarCache: function(aCalendar, aName, aValue, aOldValue) {
+        aOldValue = aOldValue || false;
+        aValue = aValue || false;
+
+        if (aOldValue != aValue) {
+            // Try to find the current sort order
+            let sortOrderPref = cal.getPrefSafe("calendar.list.sortOrder", "").split(" ");
+            let initialSortOrderPos = null;
+            for (let i = 0; i < sortOrderPref.length; ++i) {
+                if (sortOrderPref[i] == aCalendar.id) {
+                    initialSortOrderPos = i;
+                }
+            }
+            // Enabling or disabling cache on a calendar re-creates
+            // it so the registerCalendar call can wrap/unwrap the
+            // calCachedCalendar facade saving the user the need to
+            // restart Thunderbird and making sure a new Id is used.
+            this.calMgr.unregisterCalendar(aCalendar);
+            this.calMgr.deleteCalendar(aCalendar);
+            var newCal = this.calMgr.createCalendar(aCalendar.type,aCalendar.uri);
+            newCal.name = aCalendar.name;
+
+            // TODO: if properties get added this list will need to be adjusted,
+            // ideally we should add a "getProperties" method to calICalendar.idl
+            // to retrieve all non-transient properties for a calendar.
+            let propsToCopy = [ "color",
+                                "disabled",
+                                "auto-enabled",
+                                "cache.enabled",
+                                "refreshInterval",
+                                "suppressAlarms",
+                                "calendar-main-in-composite",
+                                "calendar-main-default",
+                                "readOnly",
+                                "imip.identity.key"];
+            for each (let prop in propsToCopy ) {
+              newCal.setProperty(prop,
+                                 aCalendar.getProperty(prop));
+            }
+
+            if (initialSortOrderPos != null) {
+                newCal.setProperty("initialSortOrderPos",
+                                   initialSortOrderPos);
+            }
+            this.calMgr.registerCalendar(newCal);
+        } else {
+            if (aCalendar.wrappedJSObject instanceof calCachedCalendar) {
+                // any attempt to switch this flag will reset the cached calendar;
+                // could be useful for users in case the cache may be corrupted.
+                aCalendar.wrappedJSObject.setupCachedCalendar();
+            }
+        }
+    },
+
     onPropertyDeleting: function(aCalendar, aName) {
         this.onPropertyChanged(aCalendar, aName, false, true);
     },
 
     // Error announcer specific functions
-
     announceError: function(aCalendar, aErrNo, aMessage) {
 
         var paramBlock = Components.classes["@mozilla.org/embedcomp/dialogparam;1"]
@@ -1139,5 +1048,80 @@ calDummyCalendar.prototype = {
             default:
                 return this.__proto__.__proto__.getProperty.apply(this, arguments);
         }
+    }
+};
+
+function getPrefBranchFor(id) {
+    return (REGISTRY_BRANCH + id + ".");
+}
+
+/**
+ * Helper function to flush the preferences file. If the application crashes
+ * after a calendar has been created using the prefs registry, then the calendar
+ * won't show up. Writing the prefs helps counteract.
+ */
+function flushPrefs() {
+    Components.classes["@mozilla.org/preferences-service;1"]
+              .getService(Components.interfaces.nsIPrefService)
+              .savePrefFile(null);
+}
+
+/**
+ * Callback object for the refresh timer. Should be called as an object, i.e
+ * let foo = new timerCallback(calendar);
+ *
+ * @param aCalendar     The calendar to refresh on notification
+ */
+function timerCallback(aCalendar) {
+    this.notify = function refreshNotify(aTimer) {
+        if (!aCalendar.getProperty("disabled") && aCalendar.canRefresh) {
+            aCalendar.refresh();
+        }
+    }
+}
+
+var gCalendarManagerAddonListener = {
+    onDisabling: function(aAddon, aNeedsRestart) {
+        if (!this.queryUninstallProvider(aAddon)) {
+            // If the addon should not be disabled, then re-enable it.
+            aAddon.userDisabled = false;
+        }
+    },
+
+    onUninstalling: function(aAddon, aNeedsRestart) {
+        if (!this.queryUninstallProvider(aAddon)) {
+            // If the addon should not be uninstalled, then cancel the uninstall.
+            aAddon.cancelUninstall();
+        }
+    },
+
+    queryUninstallProvider: function(aAddon) {
+        const uri = "chrome://calendar/content/calendar-providerUninstall-dialog.xul";
+        const features = "chrome,titlebar,resizable,modal";
+        let calMgr = cal.getCalendarManager();
+        let affectedCalendars =
+            [ calendar for each (calendar in calMgr.getCalendars({}))
+              if (calendar.providerID == aAddon.id) ];
+        if (!affectedCalendars.length) {
+            // If no calendars are affected, then everything is fine.
+            return true;
+        }
+
+        let args = { shouldUninstall: false, extension: aAddon };
+
+        // Now find a window. The best choice would be the most recent
+        // addons window, otherwise the most recent calendar window, or we
+        // create a new toplevel window.
+        let win = Services.wm.getMostRecentWindow("Extension:Manager") ||
+                  cal.getCalendarWindow();
+        if (win) {
+            win.openDialog(uri, "CalendarProviderUninstallDialog", features, args);
+        } else {
+            // Use the window watcher to open a parentless window.
+            Services.ww.openWindow(null, uri, "CalendarProviderUninstallWindow", features, args);
+        }
+
+        // Now that we are done, check if the dialog was accepted or canceled.
+        return args.shouldUninstall;
     }
 };

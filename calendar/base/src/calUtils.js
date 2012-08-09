@@ -1288,12 +1288,14 @@ function getProgressAtom(aTask) {
 /**
  * Returns true if we are Sunbird (according to our UUID), false otherwise.
  */
-function isSunbird()
-{
+function isSunbird() {
     if (isSunbird.mIsSunbird === undefined) {
-        var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                                .getService(Components.interfaces.nsIXULAppInfo);
-        isSunbird.mIsSunbird = (appInfo.ID == "{718e30fb-e89b-41dd-9da7-e25a45638b28}");
+        try {
+            isSunbird.mIsSunbird = (Services.appinfo.ID == "{718e30fb-e89b-41dd-9da7-e25a45638b28}");
+        } catch (e) {
+            dump("### Warning: Could not access appinfo, using unreliable check for Lightning\n");
+            isSunbird.mIsSunbird = !("@mozilla.org/lightning/mime-converter;1" in Components.classes);
+        }
     }
     return isSunbird.mIsSunbird;
 }

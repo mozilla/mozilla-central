@@ -5,12 +5,13 @@
 #include "nsISupports.idl"
 
 interface calICalendar;
+interface calIObserver;
 interface nsIURI;
 interface nsIVariant;
 
 interface calICalendarManagerObserver;
 
-[scriptable, uuid(43a71d40-7807-4e2f-b741-2926ee73f89a)]
+[scriptable, uuid(613fb99f-359c-4a12-9c87-10b2b968f8cd)]
 interface calICalendarManager : nsISupports
 {
   /**
@@ -49,6 +50,15 @@ interface calICalendarManager : nsISupports
   void getCalendars(out PRUint32 count,
                     [array, size_is(count), retval] out calICalendar aCalendars);
 
+  /** Add an observer for the calendar manager, i.e when calendars are registered */
+  void addObserver(in calICalendarManagerObserver aObserver);
+  /** Remove an observer for the calendar manager */
+  void removeObserver(in calICalendarManagerObserver aObserver);
+
+  /** Add an observer to handle changes to all calendars (even disabled or unchecked ones) */
+  void addCalendarObserver(in calIObserver aObserver);
+  /** Remove an observer to handle changes to all calendars */
+  void removeCalendarObserver(in calIObserver aObserver);
 
   /* XXX private, don't use:
          will vanish as soon as providers will directly read/write from moz prefs
@@ -61,19 +71,23 @@ interface calICalendarManager : nsISupports
   void deleteCalendarPref_(in calICalendar aCalendar,
                            in AUTF8String aName);
   
-  void addObserver(in calICalendarManagerObserver aObserver);
-  void removeObserver(in calICalendarManagerObserver aObserver);
 };
 
+/**
+ * Observer to handle actions done by the calendar manager
+ *
+ * NOTE: When adding methods here, please also add them in calUtils.jsm's
+ * createAdapter() method.
+ */
 [scriptable, uuid(383f36f1-e669-4ca4-be7f-06b43910f44a)]
 interface calICalendarManagerObserver : nsISupports
 {
-  // called after the calendar is registered
+  /** Called after the calendar is registered */
   void onCalendarRegistered(in calICalendar aCalendar);
 
-  // called before the unregister actually takes place
+  /** Called before the unregister actually takes place */
   void onCalendarUnregistering(in calICalendar aCalendar);
 
-  // called before the delete actually takes place
+  /** Called before the delete actually takes place */
   void onCalendarDeleting(in calICalendar aCalendar);
 };

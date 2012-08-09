@@ -6,6 +6,8 @@
 
 var gCalThreadingEnabled;
 
+Components.utils.import("resource:///modules/XPCOMUtils.jsm");
+
 EXPORTED_SYMBOLS = ["cal"];
 let cal = {
     // new code should land here,
@@ -64,6 +66,56 @@ let cal = {
         } else {
             func();
         }
+    },
+
+    /**
+     * Create an adapter for the given interface. If passed, methods will be
+     * added to the template object, otherwise a new object will be returned.
+     *
+     * @param iface     The interface to adapt (Components.interfaces...)
+     * @param template  (optional) A template object to extend
+     * @return          If passed the adapted template object, otherwise a
+     *                    clean adapter.
+     *
+     * Currently supported interfaces are:
+     *  - calIObserver
+     *  - calICalendarManagerObserver
+     *  - calIOperationListener
+     *  - calICompositeObserver
+     */
+    createAdapter: function createAdapter(iface, template) {
+        let methods;
+        let adapter = template || {};
+        switch (iface) {
+            case Components.interfaces.calIObserver:
+                methods = ["onStartBatch", "onEndBatch", "onLoad", "onAddItem",
+                           "onModifyItem", "onDeleteItem", "onError",
+                           "onPropertyChanged", "onPropertyDeleting"];
+                break;
+            case Components.interfaces.calICalendarManagerObserver:
+                methods = ["onCalendarRegistered", "onCalendarUnregistering",
+                           "onCalendarDeleting"];
+                break;
+            case Components.interfaces.calIOperationListener:
+                methods = ["onGetResult", "onOperationComplete"];
+                break;
+            case Components.interfaces.calICompositeObserver:
+                methods = ["onCalendarAdded", "onCalendarRemoved",
+                           "onDefaultCalendarChanged"];
+                break;
+            default:
+                methods = [];
+                break;
+        }
+
+        for each (let method in methods) {
+            if (!(method in template)) {
+                adapter[method] = function() {};
+            }
+        }
+        adapter.QueryInterface = XPCOMUtils.generateQI([iface]);
+
+        return adapter;
     },
 
     get threadingEnabled() {
