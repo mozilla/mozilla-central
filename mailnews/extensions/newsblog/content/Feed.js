@@ -146,9 +146,9 @@ Feed.prototype =
     let lastModified = this.lastModified;
     // Some servers, if sent If-Modified-Since, will send 304 if subsequently
     // not sent If-Modified-Since, as in the case of an unsubscribe and new
-    // subscribe.  Send 0 to force a download.
+    // subscribe.  Send 1 to force a download.
     this.request.setRequestHeader("If-Modified-Since",
-                                  lastModified ? lastModified : 0);
+                                  lastModified ? lastModified : 1);
 
     // Only order what you're going to eat...
     this.request.responseType = "document";
@@ -178,9 +178,10 @@ Feed.prototype =
 
     // If the server sends a Last-Modified header, store the property on the
     // feed so we can use it when making future requests, to avoid downloading
-    // and parsing feeds that have not changed.
+    // and parsing feeds that have not changed.  Don't update if merely checking
+    // the url, as for subscribe move/copy, as a subsequent refresh may get a 304.
     let lastModifiedHeader = request.getResponseHeader("Last-Modified");
-    if (lastModifiedHeader)
+    if (lastModifiedHeader && feed.parseItems)
       feed.lastModified = lastModifiedHeader;
 
     // The download callback is called asynchronously when parse() is done.
