@@ -224,7 +224,7 @@
 <!ENTITY viewFeedSummaryFeedPropsPref.accesskey "D">
 
 <!ENTITY viewAttachmentsInlineCmd.label "Display Attachments Inline">
-<!ENTITY viewAttachmentsInlineCmd.accesskey "A">
+<!ENTITY viewAttachmentsInlineCmd.accesskey "D">
 <!ENTITY reloadCmd.label "Reload">
 <!ENTITY reloadCmd.accesskey "R">
 <!ENTITY stopCmd.label "Stop">
