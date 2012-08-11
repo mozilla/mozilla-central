@@ -97,7 +97,7 @@ function PlacesController(aView) {
   XPCOMUtils.defineLazyServiceGetter(this, "clipboard",
                                      "@mozilla.org/widget/clipboard;1",
                                      "nsIClipboard");
-  this._cachedLivemarkInfoObjects = new WeakMap();
+  this._cachedLivemarkInfoObjects = new Map();
 }
 
 PlacesController.prototype = {
