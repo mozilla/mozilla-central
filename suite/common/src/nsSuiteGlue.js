@@ -286,7 +286,7 @@ SuiteGlue.prototype = {
                              "_blank", "chrome,centerscreen,modal,resizable=no", null);
     }
   },
-  
+
   // profile startup handler (contains profile initialization routines)
   _onProfileStartup: function()
   {
@@ -1045,7 +1045,9 @@ ContentPermissionPrompt.prototype = {
       return;
 
     var path, host;
-    var requestingURI = aRequest.uri;
+    var requestingPrincipal = aRequest.principal;
+    var requestingURI = requestingPrincipal.URI;
+
     if (requestingURI instanceof Components.interfaces.nsIFileURL)
       path = requestingURI.file.path;
     else if (requestingURI instanceof Components.interfaces.nsIStandardURL)
@@ -1054,7 +1056,7 @@ ContentPermissionPrompt.prototype = {
     else
       return;
 
-    switch (Services.perms.testExactPermission(requestingURI, "geo")) {
+    switch (Services.perms.testExactPermissionFromPrincipal(requestingPrincipal, "geo")) {
       case Services.perms.ALLOW_ACTION:
         aRequest.allow();
         return;
@@ -1065,13 +1067,13 @@ ContentPermissionPrompt.prototype = {
 
     function allowCallback(remember) {
       if (remember)
-        Services.perms.add(requestingURI, "geo", Services.perms.ALLOW_ACTION);
+        Services.perms.addFromPrincipal(requestingPrincipal, "geo", Services.perms.ALLOW_ACTION);
       aRequest.allow();
     }
 
     function cancelCallback(remember) {
       if (remember)
-        Services.perms.add(requestingURI, "geo", Services.perms.DENY_ACTION);
+        Services.perms.addFromPrincipal(requestingPrincipal, "geo", Services.perms.DENY_ACTION);
       aRequest.cancel();
     }
 
