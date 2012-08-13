@@ -397,17 +397,17 @@ toolbarbutton.formatting-button {
 }
 
 #outdentButton {
-  list-style-image: url("moz-icon://stock/gtk-unindent-ltr?size=menu") !important;
+  list-style-image: url("moz-icon://stock/gtk-unindent?size=menu") !important;
 }
 #outdentButton[disabled="true"] {
-  list-style-image: url("moz-icon://stock/gtk-unindent-ltr?size=menu&state=disabled") !important;
+  list-style-image: url("moz-icon://stock/gtk-unindent?size=menu&state=disabled") !important;
 }
 
 #indentButton {
-  list-style-image: url("moz-icon://stock/gtk-unindent-rtl?size=menu") !important;
+  list-style-image: url("moz-icon://stock/gtk-indent?size=menu") !important;
 }
 #indentButton[disabled="true"] {
-  list-style-image: url("moz-icon://stock/gtk-unindent-rtl?size=menu&state=disabled") !important;
+  list-style-image: url("moz-icon://stock/gtk-indent?size=menu&state=disabled") !important;
 }
 
 #AlignPopupButton {
