@@ -448,7 +448,7 @@ nsPgpMimeProxy::SetLoadFlags(nsLoadFlags aLoadFlags)
 ///////////////////////////////////////////////////////////////////////////////
 
 NS_IMETHODIMP
-nsPgpMimeProxy::Available(PRUint32* _retval)
+nsPgpMimeProxy::Available(PRUint64* _retval)
 {
   NS_ENSURE_ARG(_retval);
 

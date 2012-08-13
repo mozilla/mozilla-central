@@ -383,7 +383,7 @@ char nsMsgFilterList::ReadChar(nsIInputStream *aStream)
   nsresult rv = aStream->Read(&newChar, 1, &bytesRead);
   if (NS_FAILED(rv) || !bytesRead)
     return -1;
-  PRUint32 bytesAvailable;
+  PRUint64 bytesAvailable;
   rv = aStream->Available(&bytesAvailable);
   if (NS_FAILED(rv))
     return -1;
@@ -496,7 +496,7 @@ nsresult nsMsgFilterList::LoadValue(nsCString &value, nsIInputStream *aStream)
 nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
 {
   nsresult  err = NS_OK;
-  PRUint32 bytesAvailable;
+  PRUint64 bytesAvailable;
 
   nsCOMPtr<nsIInputStream> bufStream;
   err = NS_NewBufferedInputStream(getter_AddRefs(bufStream), aStream, 10240);

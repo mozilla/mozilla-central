@@ -61,7 +61,7 @@ void nsImportScanFile::ShiftBuffer(void)
 
 bool nsImportScanFile::FillBufferFromFile(void)
 {
-  PRUint32 available;
+  PRUint64 available;
   nsresult rv = m_pInputStream->Available(&available);
   if (NS_FAILED(rv))
     return false;
@@ -91,7 +91,7 @@ bool nsImportScanFile::FillBufferFromFile(void)
 
 bool nsImportScanFile::Scan(bool *pDone)
 {
-  PRUint32 available;
+  PRUint64 available;
   nsresult rv = m_pInputStream->Available(&available);
   if (NS_FAILED(rv))
         {

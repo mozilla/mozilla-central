@@ -194,15 +194,15 @@ nsresult nsEudoraWin32::ScanMailDir(nsIFile *pFolder, nsISupportsArray *pArray, 
     if (NS_FAILED(rv))
       return rv;
 
-    PRUint32 bytesLeft = 0;
-
-    rv = inputStream->Available(&bytesLeft);
+    PRUint64 bytesLeft64;
+    rv = inputStream->Available(&bytesLeft64);
     if (NS_FAILED(rv))
     {
       IMPORT_LOG0("*** Error checking address file for eof\n");
       inputStream->Close();
       return rv;
     }
+    PRUint32 bytesLeft = NS_MIN(PR_UINT32_MAX - 1, bytesLeft64);
     pContents = (char *) PR_Malloc(bytesLeft + 1);
     if (!pContents)
       return NS_ERROR_OUT_OF_MEMORY;

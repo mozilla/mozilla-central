@@ -120,8 +120,8 @@ NS_IMETHODIMP nsMsgCompressIStream::CloseWithStatus(nsresult reason)
   return rv;
 }
 
-/* unsigned long available (); */
-NS_IMETHODIMP nsMsgCompressIStream::Available(PRUint32 *aResult)
+/* unsigned long long available (); */
+NS_IMETHODIMP nsMsgCompressIStream::Available(PRUint64 *aResult)
 {
   if (!m_iStream) 
     return NS_BASE_STREAM_CLOSED;

@@ -1104,7 +1104,7 @@ NS_IMETHODIMP nsImapProtocol::OnInputStreamReady(nsIAsyncInputStream *inStr)
   // should we check if it's a close vs. data available?
   if (m_idle)
   {
-    PRUint32 bytesAvailable = 0;
+    PRUint64 bytesAvailable = 0;
     (void) inStr->Available(&bytesAvailable);
     // check if data available - might be a close
     if (bytesAvailable != 0)
@@ -9041,7 +9041,7 @@ nsresult nsImapMockChannel::ReadFromMemCache(nsICacheEntryDescriptor *entry)
     rv = entry->OpenInputStream(0, getter_AddRefs(in));
     NS_ENSURE_SUCCESS(rv, rv);
      // if mem cache entry is broken or empty, return error.
-    PRUint32 bytesAvailable;
+    PRUint64 bytesAvailable;
     rv = in->Available(&bytesAvailable);
     NS_ENSURE_SUCCESS(rv, rv);
     if (!bytesAvailable)

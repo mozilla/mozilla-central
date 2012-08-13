@@ -86,7 +86,7 @@ nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, ns
   // Here we use this to work out the size of the file, so we can update
   // an integer as we go through the file which will update a progress
   // bar if required by the caller.
-  PRUint32 bytesLeft = 0;
+  PRUint64 bytesLeft = 0;
   rv = inputStream->Available(&bytesLeft);
   if (NS_FAILED(rv)) {
     IMPORT_LOG0("*** Error checking address file for size\n");
@@ -94,7 +94,7 @@ nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, ns
     return rv;
   }
 
-  PRUint32 totalBytes = bytesLeft;
+  PRUint64 totalBytes = bytesLeft;
   bool skipRecord = false;
 
   rv = m_fieldMap->GetSkipFirstRecord(&skipRecord);
@@ -133,7 +133,7 @@ nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, ns
       // considering that lineStream won't give us how many bytes
       // are actually left.
       bytesLeft -= line.Length();
-      *pProgress = totalBytes - bytesLeft;
+      *pProgress = NS_MIN(totalBytes - bytesLeft, PR_UINT32_MAX);
     }
   }
 
@@ -192,7 +192,7 @@ nsresult nsTextAddress::ReadRecordNumber(nsIFile *aSrc, nsAString &aLine, PRInt3
   }
 
   PRInt32 rIndex = 0;
-  PRUint32 bytesLeft = 0;
+  PRUint64 bytesLeft = 0;
 
   rv = inputStream->Available(&bytesLeft);
   if (NS_FAILED(rv)) {

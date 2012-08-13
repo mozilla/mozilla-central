@@ -488,10 +488,11 @@ nsMimeBaseEmitter::WriteHelper(const char *buf, PRUint32 count, PRUint32 *countW
   nsresult rv = mOutStream->Write(buf, count, countWritten);
   if (rv == NS_BASE_STREAM_WOULD_BLOCK) {
     // pipe is full, push contents of pipe to listener...
-    PRUint32 avail;
+    PRUint64 avail;
     rv = mInputStream->Available(&avail);
     if (NS_SUCCEEDED(rv) && avail) {
-      mOutListener->OnDataAvailable(mChannel, mURL, mInputStream, 0, avail);
+      mOutListener->OnDataAvailable(mChannel, mURL, mInputStream, 0, 
+                                    NS_MIN(avail, PR_UINT32_MAX));
 
       // try writing again...
       rv = mOutStream->Write(buf, count, countWritten);
@@ -1050,13 +1051,13 @@ nsMimeBaseEmitter::Complete()
 
   if (mOutListener)
   {
-    PRUint32 bytesInStream = 0;
+    PRUint64 bytesInStream = 0;
     nsresult rv2 = mInputStream->Available(&bytesInStream);
     NS_ASSERTION(NS_SUCCEEDED(rv2), "Available failed");
     if (bytesInStream)
     {
       nsCOMPtr<nsIRequest> request = do_QueryInterface(mChannel);
-      rv2 = mOutListener->OnDataAvailable(request, mURL, mInputStream, 0, bytesInStream);
+      mOutListener->OnDataAvailable(request, mURL, mInputStream, 0, NS_MIN(bytesInStream, PR_UINT32_MAX));
     }
   }
 

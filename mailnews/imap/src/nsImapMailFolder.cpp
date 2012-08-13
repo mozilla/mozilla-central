@@ -9210,7 +9210,7 @@ NS_IMETHODIMP nsImapMailFolder::FetchMsgPreviewText(nsMsgKey *aKeysToFetch, PRUi
       rv = cacheEntry->OpenInputStream(0, getter_AddRefs(inputStream));
       if (NS_SUCCEEDED(rv))
       {
-        PRUint32 bytesAvailable = 0;
+        PRUint64 bytesAvailable = 0;
         rv = inputStream->Available(&bytesAvailable);
         if (!bytesAvailable)
           continue;

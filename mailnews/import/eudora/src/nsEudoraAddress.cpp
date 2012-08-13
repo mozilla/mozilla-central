@@ -98,7 +98,7 @@ nsresult nsEudoraAddress::ImportAddresses(PRUint32 *pBytes, bool *pAbort,
     return rv;
   }
 
-  PRUint32 bytesLeft = 0;
+  PRUint64 bytesLeft = 0;
 
   rv = inputStream->Available(&bytesLeft);
   if (NS_FAILED(rv)) {

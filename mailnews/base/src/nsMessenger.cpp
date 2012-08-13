@@ -1903,13 +1903,14 @@ nsSaveMsgListener::OnDataAvailable(nsIRequest* request,
   if (m_dataBuffer && m_outputStream)
   {
     mProgress += count;
-    PRUint32 available, readCount, maxReadCount = FOUR_K;
+    PRUint64 available;
+    PRUint32 readCount, maxReadCount = FOUR_K;
     PRUint32 writeCount;
     rv = inStream->Available(&available);
     while (NS_SUCCEEDED(rv) && available)
     {
       if (maxReadCount > available)
-        maxReadCount = available;
+        maxReadCount = (PRUint32)available;
       rv = inStream->Read(m_dataBuffer, maxReadCount, &readCount);
 
       // rhp:

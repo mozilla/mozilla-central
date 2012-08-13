@@ -1041,7 +1041,7 @@ public:
         NS_ASSERTION(mInStream, "not initialized");
 
         nsresult rv;
-        PRUint32 avail;
+        PRUint64 avail;
 
         // Write whatever is available in the pipe. If the pipe is empty, then
         // return NS_BASE_STREAM_WOULD_BLOCK; we will resume the write when there
@@ -1068,7 +1068,7 @@ public:
 
         if (avail)
         {
-          rv = aOutStream->WriteFrom(mInStream, NS_MIN(avail, 4096U), &bytesWritten);
+          rv = aOutStream->WriteFrom(mInStream, NS_MIN(avail, 4096), &bytesWritten);
           // if were full at the time, the input stream may be backed up and we need to read any remains from the last ODA call
           // before we'll get more ODA calls
           if (protInst->mSuspendedRead)
@@ -1390,7 +1390,7 @@ nsresult nsMsgAsyncWriteProtocol::UnblockPostReader()
     // (1) attempt to write out any remaining read bytes we need in order to unblock the reader
     if (mSuspendedReadBytes > 0 && mPostDataStream)
     {
-      PRUint32 avail = 0;
+      PRUint64 avail = 0;
       mPostDataStream->Available(&avail);
 
       m_outputStream->WriteFrom(mPostDataStream, NS_MIN(avail, mSuspendedReadBytes), &amountWritten);

@@ -8,7 +8,7 @@
 #include "prmem.h"
 #include "nsMsgLineBuffer.h"
 #include "nsAlgorithm.h"
-
+#include "nsMsgUtils.h"
 #include "nsIInputStream.h" // used by nsMsgLineStreamBuffer
 
 nsByteArray::nsByteArray()
@@ -317,7 +317,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
   if (!endOfLine && aInputStream) // get some more data from the server
   {
     nsresult rv;
-    PRUint32 numBytesInStream = 0;
+    PRUint64 numBytesInStream = 0;
     PRUint32 numBytesCopied = 0;
     bool nonBlockingStream;
     aInputStream->IsNonBlocking(&nonBlockingStream);
@@ -351,7 +351,10 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
       // If we didn't make enough space (or any), grow the buffer
       if (numBytesInStream >= numFreeBytesInBuffer)
       {
-        PRInt32 growBy = (numBytesInStream - numFreeBytesInBuffer) * 2 + 1;
+        PRInt64 growBy = (numBytesInStream - numFreeBytesInBuffer) * 2 + 1;
+        // GrowBuffer cannot handles over 4GB size
+        if (m_dataBufferSize + growBy > PR_UINT32_MAX)
+          return nullptr;
         // try growing buffer by twice as much as we need.
         nsresult rv = GrowBuffer(m_dataBufferSize + growBy);
         // if we can't grow the buffer, we have to bail.

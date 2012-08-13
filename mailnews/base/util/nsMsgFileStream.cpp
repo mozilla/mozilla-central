@@ -101,13 +101,13 @@ NS_IMETHODIMP nsMsgFileStream::Close()
   return rv;
 }
 
-/* unsigned long available (); */
-NS_IMETHODIMP nsMsgFileStream::Available(PRUint32 *aResult)
+/* unsigned long long available (); */
+NS_IMETHODIMP nsMsgFileStream::Available(PRUint64 *aResult)
 {
   if (!mFileDesc) 
     return NS_BASE_STREAM_CLOSED;
   
-  PRInt32 avail = PR_Available(mFileDesc);
+  PRInt64 avail = PR_Available64(mFileDesc);
   if (avail == -1)
     return ErrorAccordingToNSPR();
 

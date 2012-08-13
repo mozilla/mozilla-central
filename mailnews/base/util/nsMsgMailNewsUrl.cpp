@@ -824,7 +824,7 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
                                   PRUint32 count)
 {
   nsresult rv;
-  PRUint32 available;
+  PRUint64 available;
   rv = inStream->Available(&available);
   if (!m_writtenData)
   {

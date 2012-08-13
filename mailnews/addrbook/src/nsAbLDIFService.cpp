@@ -75,7 +75,7 @@ NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSr
   nsVoidArray listSizeArray;  // size of the list/group info
   PRInt32 savedStartPos = 0;
   PRInt32 filePos = 0;
-  PRUint32 bytesLeft = 0;
+  PRUint64 bytesLeft = 0;
 
   nsCOMPtr<nsIInputStream> inputStream;
   nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), aSrc);

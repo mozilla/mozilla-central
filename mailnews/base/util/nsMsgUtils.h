@@ -295,6 +295,16 @@ NS_MSG_BASE nsresult MsgDetectCharsetFromFile(nsIFile *aFile, nsACString &aChars
  */
 NS_MSG_BASE nsresult ConvertBufToPlainText(nsString &aConBuf, bool formatFlowed, bool formatOutput);
 
+inline uint32_t NS_MIN(uint32_t a, uint64_t b)
+{
+  return b < a ? (uint32_t)b : a;
+}
+
+inline uint32_t NS_MIN(uint64_t a, uint32_t b)
+{
+  return b < a ? b : (uint32_t)a;
+}
+
 /**
  * The following definitons exist for compatibility between the internal and
  * external APIs. Where possible they just forward to the existing API.

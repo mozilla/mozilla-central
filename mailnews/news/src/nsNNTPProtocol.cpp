@@ -2127,10 +2127,10 @@ PRInt32 nsNNTPProtocol::DisplayArticle(nsIInputStream * inputStream, PRUint32 le
     char *line = m_lineStreamBuffer->ReadNextLine(inputStream, line_length, pauseForMoreData, &rv, true);
     if (pauseForMoreData)
     {
-      PRUint32 inlength = 0;
+      PRUint64 inlength = 0;
       mDisplayInputStream->Available(&inlength);
       if (inlength > 0) // broadcast our batched up ODA changes
-        m_channelListener->OnDataAvailable(this, m_channelContext, mDisplayInputStream, 0, inlength);
+        m_channelListener->OnDataAvailable(this, m_channelContext, mDisplayInputStream, 0, NS_MIN(inlength, PR_UINT32_MAX));
       SetFlag(NNTP_PAUSE_FOR_READ);
       PR_Free(line);
       return line_length;
@@ -2146,10 +2146,10 @@ PRInt32 nsNNTPProtocol::DisplayArticle(nsIInputStream * inputStream, PRUint32 le
 
       ClearFlag(NNTP_PAUSE_FOR_READ);
 
-      PRUint32 inlength = 0;
+      PRUint64 inlength = 0;
       mDisplayInputStream->Available(&inlength);
       if (inlength > 0) // broadcast our batched up ODA changes
-        m_channelListener->OnDataAvailable(this, m_channelContext, mDisplayInputStream, 0, inlength);
+        m_channelListener->OnDataAvailable(this, m_channelContext, mDisplayInputStream, 0, NS_MIN(inlength, PR_UINT32_MAX));
       PR_Free(line);
       return line_length;
     }

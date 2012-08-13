@@ -4803,7 +4803,7 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
   // It's unfortunate that we end up writing the FCC file a line
   // at a time, but it's the easiest way...
   //
-  PRUint32 available;
+  PRUint64 available;
   rv = inputFile->Available(&available);
   NS_ENSURE_SUCCESS(rv, rv);
   while (available > 0)

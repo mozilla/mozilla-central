@@ -1021,7 +1021,8 @@ nsMsgTemplateReplyHelper::OnDataAvailable(nsIRequest* request,
 
   char readBuf[1024];
 
-  PRUint32 available, readCount;
+  PRUint64 available;
+  PRUint32 readCount;
   PRUint32 maxReadCount = sizeof(readBuf) - 1;
 
   rv = inStream->Available(&available);
@@ -1035,7 +1036,7 @@ nsMsgTemplateReplyHelper::OnDataAvailable(nsIRequest* request,
       maxReadCount -= 3;
     }
     if (maxReadCount > available)
-      maxReadCount = available;
+      maxReadCount = (PRUint32)available;
     memset(readBuf, 0, sizeof(readBuf));
     rv = inStream->Read(readBuf + readOffset, maxReadCount, &readCount);
     available -= readCount;
