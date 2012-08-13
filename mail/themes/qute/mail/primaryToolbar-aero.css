@@ -375,6 +375,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
     background-color: hsl(210, 75%, 92%);
     background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
                       rgba(255, 255, 255, .5));
+    border-bottom: 1px solid #AABCCF;
   }
 
   #tabs-toolbar {
