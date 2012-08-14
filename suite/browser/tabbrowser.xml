@@ -533,6 +533,7 @@
             mLocationChangeCount : 0,
 
             onLocationChange: function(aWebProgress, aRequest, aLocation, aFlags) {
+              const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
               if (aRequest && aWebProgress.DOMWindow == this.mBrowser.contentWindow) {
                 this.mBrowser.mIconURL = "";
                 this.mFeeds = [];
@@ -548,7 +549,7 @@
 
                 // Clear the value if this was a user document or an error page.
                 if (this.mBrowser.userTypedClear > 0 ||
-                    !Components.isSuccessCode(aRequest.status))
+                    aFlags & nsIWebProgressListener.LOCATION_CHANGE_ERROR_PAGE)
                   this.mBrowser.userTypedValue = null;
               }
 
@@ -557,7 +558,8 @@
 
               if (this.mTabBrowser.mCurrentTab == this.mTab)
                 this.mTabBrowser.updateUrlBar(aWebProgress, aRequest, aLocation,
-                                              null, this.mBrowser, this.mFeeds);
+                                              aFlags, null, this.mBrowser,
+                                              this.mFeeds);
 
               this.mTabBrowser._callProgressListeners(this.mBrowser, "onLocationChange",
                                                       [aWebProgress, aRequest, aLocation, aFlags],
@@ -853,6 +855,7 @@
         <parameter name="aWebProgress"/>
         <parameter name="aRequest"/>
         <parameter name="aLocation"/>
+        <parameter name="aFlags"/>
         <parameter name="aSecurityUI"/>
         <parameter name="aBrowser"/>
         <parameter name="aFeeds"/>
@@ -862,7 +865,7 @@
               function notifyUrlBar(element) {
                 try {
                   if ("onLocationChange" in element)
-                    element.onLocationChange(aWebProgress, aRequest, aLocation, 0);
+                    element.onLocationChange(aWebProgress, aRequest, aLocation, aFlags);
                   // If switching tabs, the security may have changed.
                   if (aSecurityUI && "onSecurityChange" in element)
                     element.onSecurityChange(aWebProgress, null, aSecurityUI.state);
@@ -991,7 +994,7 @@
 
             // Update the URL bar.
             this.updateUrlBar(newBrowser.webProgress,
-                              null,
+                              null, 0,
                               newBrowser.currentURI,
                               newBrowser.securityUI,
                               newBrowser,

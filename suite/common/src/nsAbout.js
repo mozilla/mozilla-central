@@ -40,7 +40,7 @@ About.prototype = {
     var channel = Services.io.newChannel(this[module + "URI"], null, null);
     channel.originalURI = aURI;
     if (this[module + "Flags"] & UNTRUSTED)
-      channel.owner = Services.scriptSecurityManager.getCodebasePrincipal(aURI);
+      channel.owner = null;
     return channel;
   }
 };
