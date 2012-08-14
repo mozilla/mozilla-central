@@ -38,6 +38,6 @@ MOZ_OFFICIAL_BRANDING_DIRECTORY=other-licenses/branding/thunderbird
 # This should usually be the same as the value MAR_CHANNEL_ID.
 # If more than one ID is needed, then you should use a comma separated list
 # of values.
-# ACCEPTED_MAR_CHANNEL_IDS=thunderbird-comm-central
+ACCEPTED_MAR_CHANNEL_IDS=thunderbird-comm-central
 # The MAR_CHANNEL_ID must not contain the following 3 characters: ",\t "
-# MAR_CHANNEL_ID=thunderbird-comm-central
+MAR_CHANNEL_ID=thunderbird-comm-central
