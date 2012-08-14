@@ -145,19 +145,6 @@
         </body>
       </method>
 
-      <method name="numVisibleActions">
-        <body>
-          <![CDATA[
-            var numVisibleActions = 0;
-            // only count the items that are visible
-            for (var index = 0; index < this.menuitems.length; index++)
-              if (!this.menuitems[index].hidden)
-                numVisibleActions++;
-            return numVisibleActions;
-          ]]>
-        </body>
-      </method>
-
       <!-- returns a hash containing all of the filter actions which are currently being used by other filteractionrows -->
       <method name="usedActionsList">
         <body>
@@ -460,16 +447,13 @@
       <method name="addRow">
         <body>
           <![CDATA[
-            if (this.mListBox.getRowCount() < document.getAnonymousNodes(this)[0].numVisibleActions())
-            {
-              let listItem = document.createElement('listitem');
-              listItem.className = 'ruleaction';
-              this.mListBox.insertBefore(listItem, this.nextSibling);
-              this.mListBox.ensureElementIsVisible(listItem);
+            let listItem = document.createElement('listitem');
+            listItem.className = 'ruleaction';
+            this.mListBox.insertBefore(listItem, this.nextSibling);
+            this.mListBox.ensureElementIsVisible(listItem);
 
-              // make sure the first remove button is enabled
-              this.updateRemoveButton();
-            }
+            // make sure the first remove button is enabled
+            this.updateRemoveButton();
           ]]>
         </body>
       </method>
