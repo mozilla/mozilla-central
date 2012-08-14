@@ -4153,8 +4153,11 @@ nsCanvasRenderingContext2D::GetCanvasLayer(nsDisplayListBuilder* aBuilder,
                                            CanvasLayer *aOldLayer,
                                            LayerManager *aManager)
 {
-    if (!EnsureSurface()) 
+    // If we don't have anything to draw, don't bother.
+    if (!mValid || !mSurface || mSurface->CairoStatus() || !mThebes ||
+        !mSurfaceCreated) {
         return nsnull;
+    }
 
     if (!mResetLayer && aOldLayer &&
         aOldLayer->HasUserData(&g2DContextLayerUserData)) {
