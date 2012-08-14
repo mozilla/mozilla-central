@@ -18,7 +18,6 @@ load("../../../resources/messageGenerator.js");
 mimeMsg = {};
 Components.utils.import("resource:///modules/gloda/mimemsg.js", mimeMsg);
 
-var gEnumerator;
 var gSecondMsg;
 
 // IMAP pump
@@ -95,15 +94,16 @@ function startMime()
 // test that we don't mark all inline messages as read.
 function testAllInlineMessage()
 {
-  if (gEnumerator.hasMoreElements())
+  let enumerator = gIMAPInbox.msgDatabase.EnumerateMessages();
+
+  if (enumerator.hasMoreElements())
   {
-    gSecondMsg = gEnumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+    gSecondMsg = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
     mimeMsg.MsgHdrToMimeMessage(gSecondMsg, this, function (aMsgHdr, aMimeMessage) {
       async_driver();
     }, true /* allowDownload */, { partsOnDemand: true });
     yield false;
   }
-  gEnumerator = null;
 }
 
 function updateCounts()
@@ -133,12 +133,4 @@ function endTest()
 function run_test()
 {
   async_run_tests(tests);
-}
-
-// get the first message header found in a folder
-function firstMsgHdr(folder) {
-  gEnumerator = folder.msgDatabase.EnumerateMessages();
-  if (gEnumerator.hasMoreElements())
-    return gEnumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
-  return null;
 }

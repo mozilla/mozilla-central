@@ -74,11 +74,3 @@ function endTest() {
   gIMAPServer.performTest("UID STORE");
   teardownIMAPPump();
 }
-
-// get the first message header found in a folder
-function firstMsgHdr(folder) {
-  let enumerator = folder.msgDatabase.EnumerateMessages();
-  if (enumerator.hasMoreElements())
-    return enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
-  return null;
-}

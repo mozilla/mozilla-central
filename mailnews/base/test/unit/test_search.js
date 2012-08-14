@@ -262,11 +262,3 @@ function testSearch()
     do_test_finished();
   }
 }
-
-// get the first message header found in a folder
-function firstMsgHdr(folder) {
-  let enumerator = folder.msgDatabase.EnumerateMessages();
-  if (enumerator.hasMoreElements())
-    return enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
-  return null;
-}

@@ -225,11 +225,3 @@ function getContentFromMessage(aMsgHdr) {
   sis.init(streamListener.inputStream);
   return sis.read(MAX_MESSAGE_LENGTH);
 }
-
-// get the first message header found in a folder
-function firstMsgHdr(folder) {
-  let enumerator = folder.msgDatabase.EnumerateMessages();
-  if (enumerator.hasMoreElements())
-    return enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
-  return null;
-}

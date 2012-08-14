@@ -203,12 +203,3 @@ function specForFileName(aFileName)
 function dl(text) {
   dump(text + '\n');
 }
-
-// get the first message header found in a folder
-function firstMsgHdr(folder) {
-  let enumerator = folder.messages;
-  if (enumerator.hasMoreElements())
-    return enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
-  dl('firstMsgHdr returned null!');
-  return null;
-}
