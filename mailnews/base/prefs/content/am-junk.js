@@ -8,63 +8,75 @@ Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
 const KEY_ISP_DIRECTORY_LIST = "ISPDL";
 var gPrefBranch = null;
+let gDeferredToAccount = "";
 
 function onInit(aPageId, aServerId)
 {
+  const kMoveFolderJunk = 0;
+  const kMoveFolderOther = 1;
+
   // manually adjust several pref UI elements
-  document.getElementById('server.spamLevel.visible').checked =
-    document.getElementById('server.spamLevel').value > 0;
+  document.getElementById('server.spamLevel.visible').setAttribute("checked",
+    document.getElementById('server.spamLevel').value > 0);
 
-  const am = MailServices.accounts;
+  let deferredToURI = null;
+  if (gDeferredToAccount)
+    deferredToURI = MailServices.accounts
+                                .getAccount(gDeferredToAccount)
+                                .incomingServer.serverURI;
 
-  var spamActionTargetAccount = document.getElementById('server.spamActionTargetAccount').value;
-  try {
-    GetMsgFolderFromUri(spamActionTargetAccount + "/Junk", false).server;
-  } catch (e) {
-    // spamActionTargetAccount is not valid, reseting to default behavior to NOT move junk messages.
-    if (document.getElementById('server.moveTargetMode').value == 0)
-      document.getElementById('server.moveOnSpam').checked = false;
-    spamActionTargetAccount = null;
+  let spamActionTargetAccountElement =
+    document.getElementById("server.spamActionTargetAccount");
+  let spamActionTargetFolderElement =
+    document.getElementById("server.spamActionTargetFolder");
+
+  let spamActionTargetAccount = spamActionTargetAccountElement.value;
+  let spamActionTargetFolder = spamActionTargetFolderElement.value;
+
+  // check if folder targets are valid
+  spamActionTargetAccount = checkJunkTargetFolder(spamActionTargetAccount, true);
+  spamActionTargetFolder = checkJunkTargetFolder(spamActionTargetFolder, false);
+
+  let moveCheckbox = document.getElementById("server.moveOnSpam");
+  let moveTargetModeValue = document.getElementById("server.moveTargetMode").value;
+
+  if (!spamActionTargetAccount) {
+    // spamActionTargetAccount is not valid,
+    // reset to default behavior to NOT move junk messages...
+    if (moveTargetModeValue == kMoveFolderJunk)
+      moveCheckbox.setAttribute("checked", false);
+
+    // ... and find a good default target.
+    spamActionTargetAccount = chooseJunkTargetFolder(deferredToURI || aServerId, true);
+    spamActionTargetAccountElement.value = spamActionTargetAccount;
   }
 
-  var spamActionTargetFolder = document.getElementById('server.spamActionTargetFolder').value;
-  try {
-    GetMsgFolderFromUri(spamActionTargetFolder, true).server;
-  } catch (e) {
-    // spamActionTargetFolder is not valid, reseting to default behavior to NOT move junk messages.
-    if (document.getElementById('server.moveTargetMode').value == 1)
-      document.getElementById('server.moveOnSpam').checked = false;
-    spamActionTargetFolder = null;
+  if (!spamActionTargetFolder) {
+    // spamActionTargetFolder is not valid,
+    // reset to default behavior to NOT move junk messages...
+    if (moveTargetModeValue == kMoveFolderOther)
+      moveCheckbox.setAttribute("checked", false);
+
+    // ... and find a good default target.
+    spamActionTargetFolder = chooseJunkTargetFolder(deferredToURI || aServerId, false);
+    spamActionTargetFolderElement.value = spamActionTargetFolder;
   }
 
-  if (!spamActionTargetAccount)
-  {
-    let server = GetMsgFolderFromUri(aServerId, false).server;
-    if (server.canCreateFoldersOnServer && server.canSearchMessages)
-      spamActionTargetAccount = aServerId;
-    else
-      spamActionTargetAccount = am.localFoldersServer.serverURI;
-    document.getElementById('server.spamActionTargetAccount').value = spamActionTargetAccount;
-  }
-
-  if (!spamActionTargetFolder)
-  {
-    spamActionTargetFolder = am.localFoldersServer.serverURI + "/Junk";
-    document.getElementById('server.spamActionTargetFolder').value = spamActionTargetFolder;
-  }
-
-  let server = GetMsgFolderFromUri(spamActionTargetAccount);
+  let server = GetMsgFolderFromUri(spamActionTargetAccount, false);
   document.getElementById("actionTargetAccount")
           .setAttribute("label", prettyFolderName(server));
   document.getElementById("actionAccountPopup").selectFolder(server);
 
-  try
-  {
-    let folder = GetMsgFolderFromUri(spamActionTargetFolder);
-    document.getElementById("actionTargetFolder")
-            .setAttribute("label", prettyFolderName(folder));
+  let folder = null;
+  try {
+    folder = GetMsgFolderFromUri(spamActionTargetFolder, true);
+    document.getElementById("actionFolderPopup").selectFolder(folder);
+  } catch (e) {
+    // OK for folder to not exist.
+    folder = GetMsgFolderFromUri(spamActionTargetFolder, false);
   }
-  catch (e) { /* OK for folder to not exist */ }
+  document.getElementById("actionTargetFolder")
+          .setAttribute("label", prettyFolderName(folder));
 
   var currentArray = [];
   if (document.getElementById("server.useWhiteList").checked)
@@ -132,6 +144,12 @@ function onPreInit(account, accountValues)
                           .getService(Components.interfaces.nsIPrefService)
                           .getBranch("mail.server." +
                                       account.incomingServer.key + ".");
+
+  if (getAccountValue(account, accountValues, "server", "type", null, false) == "pop3")
+    gDeferredToAccount = getAccountValue(account, accountValues,
+                                         "pop3", "deferredToAccount",
+                                         null, false);
+
   buildServerFilterMenuList();
 }
 
