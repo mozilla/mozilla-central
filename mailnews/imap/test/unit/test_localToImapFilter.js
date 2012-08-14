@@ -163,8 +163,5 @@ function teardown() {
 }
 
 function run_test() {
-  // XXX Disabled due to intermittent failures, bug 502928 will fix.
-  return 0;
-
   async_run_tests(tests);
 }

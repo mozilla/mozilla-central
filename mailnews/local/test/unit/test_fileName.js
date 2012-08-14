@@ -7,11 +7,6 @@
 var server;
 
 function run_test() {
-  // Currently, we're only doing a mac-specific test. If we extend
-  // this test to include other platforms, we'd need to only do the
-  // ':' file name test on the mac.
-  if (! ("nsILocalFileMac" in Components.interfaces))
-    return;
   // test file with ':' in the name (generated from Mozilla 1.8 branch).
   let bugmail = do_get_file("../../../data/bugmail-1");
   let bugmailmsf = do_get_file("../../../data/bugmail-1.msf");

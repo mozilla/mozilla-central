@@ -380,10 +380,6 @@ var otherTests = [
 ];
 
 function run_test() {
-  // Only run on Windows.
-  if (!("@mozilla.org/windows-registry-key;1" in Components.classes))
-    return;
-
   reset_font_prefs();
 
   for (let [, [version, verifier]] in Iterator(kWindowsVersions)) {

@@ -22,12 +22,6 @@ var gMoveMailInbox;
 
 function run_test()
 {
-  // disable test on windows.
-  if ("@mozilla.org/windows-registry-key;1" in Cc) {
-    do_test_finished();
-    return;
-  }
-
   loadLocalMailAccount();
   
   let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]

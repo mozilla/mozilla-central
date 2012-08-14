@@ -18,9 +18,6 @@ var server;
 var localserver;
 
 function run_test() {
-  // XXX The server doesn't support returning sizes!
-  return;
-
   type = "RFC 977";
   localserver = setupLocalServer(NNTP_PORT);
   server = makeServer(NNTP_RFC977_handler, daemon);
