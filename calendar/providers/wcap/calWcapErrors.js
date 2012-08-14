@@ -44,7 +44,7 @@ function checkErrorCode(err, rcBits, maskBits) {
 
 // Cannot perform operation, because user is offline.
 // The following error codes have been adopted from
-// netwerk/base/public/nsNetError.h
+// xpcom/base/nsError.h
 // and ought to be defined in IDL. xxx todo
 
 // The requested action could not be completed while the networking

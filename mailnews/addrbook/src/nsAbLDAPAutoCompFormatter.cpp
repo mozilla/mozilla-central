@@ -13,7 +13,7 @@
 #include "nsIStringBundle.h"
 #include "nsXPCOM.h"
 #include "nsISupportsPrimitives.h"
-#include "nsNetError.h"
+#include "nsError.h"
 #include "nsMemory.h"
 #include "nsILDAPErrors.h"
 #include "nsMsgUtils.h"

@@ -57,7 +57,7 @@
 #include "nsILoadGroup.h"
 #include "nsMsgSendReport.h"
 #include "nsNetCID.h"
-#include "nsNetError.h"
+#include "nsError.h"
 #include "nsMsgUtils.h"
 #include "nsIMsgMdnGenerator.h"
 #include "nsISmtpServer.h"

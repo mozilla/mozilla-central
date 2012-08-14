@@ -98,7 +98,7 @@ ICALContentHandler.prototype = {
 
         // Cancel the request ...
         let uri = channel.URI;
-        const NS_BINDING_ABORTED = 0x804b0002 // from nsNetError.h
+        const NS_BINDING_ABORTED = 0x804b0002 // from nsError.h
         aRequest.cancel(NS_BINDING_ABORTED);
 
         // ... Subscribe to the uri ...

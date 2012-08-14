@@ -9,7 +9,7 @@
 #include "nsIMsgCompose.h"
 #include "nsMsgCompCID.h"
 #include "nsMsgPrompts.h"
-#include "nsNetError.h"
+#include "nsError.h"
 #include "nsComposeStrings.h"
 #include "nsIStringBundle.h"
 #include "nsServiceManagerUtils.h"

@@ -15,7 +15,7 @@
 #include "nsIDNSService.h"
 #include "nsIDNSRecord.h"
 #include "nsIRequestObserver.h"
-#include "nsNetError.h"
+#include "nsError.h"
 #include "nsLDAPOperation.h"
 #include "nsILDAPErrors.h"
 #include "nsIClassInfoImpl.h"

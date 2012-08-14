@@ -49,7 +49,7 @@ const EXPORTED_SYMBOLS = ["Socket"];
 const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
 Cu.import("resource://gre/modules/Services.jsm");
 
-// Network errors see: netwerk/base/public/nsNetError.h
+// Network errors see: xpcom/base/nsError.h
 const NS_ERROR_MODULE_NETWORK = 2152398848;
 const NS_ERROR_CONNECTION_REFUSED = NS_ERROR_MODULE_NETWORK + 13;
 const NS_ERROR_NET_TIMEOUT = NS_ERROR_MODULE_NETWORK + 14;
