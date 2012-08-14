@@ -1809,11 +1809,6 @@ var GlodaMsgIndexer = {
         (folderFlags & Ci.nsMsgFolderFlags.Virtual))
       return false;
 
-    // we only index local or IMAP folders
-    if (!(aMsgFolder instanceof nsIMsgLocalMailFolder) &&
-        !(aMsgFolder instanceof nsIMsgImapMailFolder))
-      return false;
-
     // Some folders do not really exist; we can detect this by getStringProperty
     //  exploding when we call it.  This is primarily a concern because
     //  _mapFolder calls said exploding method, but we also don't want to
