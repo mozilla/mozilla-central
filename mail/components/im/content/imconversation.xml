@@ -145,6 +145,7 @@
             let buddy = this.buddies[name];
             color = buddy.color;
             buddy.removeAttribute("inactive");
+            this._activeBuddies[name] = true;
           }
           else {
             // Buddy no longer in the room
@@ -852,6 +853,15 @@
        </body>
      </method>
 
+     <method name="_isBuddyActive">
+       <parameter name="aBuddyName"/>
+       <body>
+       <![CDATA[
+         return Object.prototype.hasOwnProperty.call(this._activeBuddies, aBuddyName);
+       ]]>
+       </body>
+     </method>
+
      <!-- Add a buddy in the visible list of participants -->
      <method name="addBuddy">
        <parameter name="aBuddy"/>
@@ -869,7 +879,8 @@
          var color = this._computeColor(name);
          var style = "color: hsl(" + color + ", 100%, 40%);";
          item.setAttribute("style", style);
-         item.setAttribute("inactive", "true");
+         if (!this._isBuddyActive(name))
+           item.setAttribute("inactive", "true");
          item.color = color;
          this.buddies[name] = item;
 
@@ -922,6 +933,14 @@
            return;
          }
 
+         if (this._isBuddyActive(aOldName)) {
+           delete this._activeBuddies[aOldName];
+           this._activeBuddies[aBuddy.name] = true;
+         }
+
+         if (!this.tab.selected)
+           return;
+
          // Is aOldName is not null, then we are renaming the buddy
          if (!this._hasBuddy(aOldName))
            throw "Updating a chat buddy that does not exist?!";
@@ -950,6 +969,8 @@
          var item = this.buddies[aName];
          item.parentNode.removeChild(item);
          delete this.buddies[aName];
+         if (this._isBuddyActive(aName))
+           delete this._activeBuddies[aName];
        ]]>
        </body>
      </method>
@@ -1130,6 +1151,7 @@
            cti.setAttribute("displayName", this._conv.title);
            cti.setAttribute("status", "chat");
 
+           this._activeBuddies = {};
            this.showParticipants();
          }
 
@@ -1166,9 +1188,6 @@
            return;
          }
 
-         if (aTopic.indexOf("chat-buddy-") == 0 && !this.tab.selected)
-           return;
-
          switch(aTopic) {
          case "new-text":
            if (this.loaded)
@@ -1198,6 +1217,8 @@
            break;
 
          case "chat-buddy-add":
+           if (!this.tab.selected)
+             break;
            aSubject.QueryInterface(Ci.nsISimpleEnumerator);
            while (aSubject.hasMoreElements())
              this.addBuddy(aSubject.getNext());
@@ -1206,6 +1227,14 @@
 
          case "chat-buddy-remove":
            aSubject.QueryInterface(Ci.nsISimpleEnumerator);
+           if (!this.tab.selected) {
+             while (aSubject.hasMoreElements()) {
+               let name = aSubject.getNext().QueryInterface(Ci.nsISupportsString).toString();
+               if (this._isBuddyActive(name))
+                 delete this._activeBuddies[name];
+             }
+             break;
+           }
            while (aSubject.hasMoreElements()) {
              let nick = aSubject.getNext();
              nick.QueryInterface(Ci.nsISupportsString);
@@ -1217,8 +1246,10 @@
          case "chat-buddy-update":
            this.updateBuddy(aSubject, aData);
            break;
+
          case "chat-update-topic":
-           this.updateTopic();
+           if (this.tab.selected)
+             this.updateTopic();
            break;
          }
        ]]>
