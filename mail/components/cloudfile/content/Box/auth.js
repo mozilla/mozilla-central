@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+/* Modeled on browserRequest used by the OAuth module */
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
@@ -9,11 +11,15 @@ const Cr = Components.results;
 
 Cu.import("resource:///modules/http.jsm");
 Cu.import("resource:///modules/gloda/log4moz.js");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const wpl = Ci.nsIWebProgressListener;
 
 const kApiKey = "exs8m0agj1fa5728lxvn288ymz01dnzn";
 const kServerUrl = "https://www.box.com/api/1.0/rest";
+const kAuthUrl = "https://www.box.com/api/1.0/auth/";
+
+const log = Log4Moz.getConfiguredLogger("BoxAuth");
 
 var reporterListener = {
   _isBusy: false,
@@ -22,13 +28,9 @@ var reporterListener = {
     return this.securityButton = document.getElementById("security-button");
   },
 
-  QueryInterface: function(aIID) {
-    if (aIID.equals(Components.interfaces.nsIWebProgressListener)   ||
-        aIID.equals(Components.interfaces.nsISupportsWeakReference) ||
-        aIID.equals(Components.interfaces.nsISupports))
-      return this;
-    throw Components.results.NS_NOINTERFACE;
-  },
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIWebProgressListener,
+                                         Ci.nsISupportsWeakReference,
+                                         Ci.nsISupports]),
 
   onStateChange: function(/*in nsIWebProgress*/ aWebProgress,
                      /*in nsIRequest*/ aRequest,
@@ -66,7 +68,7 @@ var reporterListener = {
                               wpl.STATE_SECURE_MED |
                               wpl.STATE_SECURE_LOW;
     let browser = document.getElementById("requestFrame");
-    var level;
+    let level;
 
     switch (aState & wpl_security_bits) {
       case wpl.STATE_IS_SECURE | wpl.STATE_SECURE_HIGH:
@@ -82,6 +84,7 @@ var reporterListener = {
     }
     if (level) {
       this.securityButton.setAttribute("level", level);
+      this.securityButton.removeAttribute("loading");
       this.securityButton.hidden = false;
     } else {
       this.securityButton.hidden = true;
@@ -92,29 +95,46 @@ var reporterListener = {
   }
 }
 
+/**
+ * The authorization process is:
+ * - We load this window and immediately make a ticket request
+ * - With the returned ticket, we make a url and load it into the browser
+ * - The user logs in, and our opener listens for a redirect url
+ * - The redirect url contains the ticket and the auth token
+ * - The opener, when satisfied it has what it needs, closes this window
+ * - If the ticket call produces an error, we try again
+ */
+
 function onLoad()
 {
+  document.getElementById("security-button").setAttribute("loading", "true");
   let request = window.arguments[0].wrappedJSObject;
   document.getElementById("headerMessage").textContent = request.promptText;
-  //let account = request.account;
-  
-  // headerImage does not exist in the XUL. I wonder if the original intention was security-button?
-  // I wonder, should we set the url-bar-type url holder to have the service icon?
-  //if (request.iconURI != "")
-  //  document.getElementById("headerImage").src = request.iconURI;
 
-  nsBoxAuth.getSessionTicket(function(aTicket) {
-                               var authUrl = "https://www.box.com/api/1.0/auth/" + aTicket;
-                               loadRequestedUrl(authUrl);
-                             },
-                             function (aReq) {
-                               alert("get_ticket failed - status = " + aReq.status);
-                               // XX TODO Handle this some way in the auth window
-                               // Any ideas?
-                               // OR
-                               // Just close the window and let the opener handle the failure
-                               // cancelRequest();
-                             });
+  nsBoxAuth.numTries = 0;
+  setupTicketRequest();
+}
+
+function setupTicketRequest()
+{
+  let successCallback = function (aTicket) {
+    let authUrl = kAuthUrl + aTicket;
+    loadRequestedUrl(authUrl);
+  };
+  let failureCallback = function (aReq) {
+    // retry
+    if (nsBoxAuth.numTries < 3) {
+      log.error("get_ticket failed, trying again - status = " + aReq.status);
+      setupTicketRequest();
+    }
+    else {
+      // give up after 3 tries
+      log.error("get_ticket failed, giving up - status = " + aReq.status);
+      cancelRequest();
+    }
+  };
+
+  nsBoxAuth.getSessionTicket(successCallback, failureCallback);
 }
 
 function cancelRequest()
@@ -132,14 +152,10 @@ function reportUserClosed()
 function loadRequestedUrl(aUrl)
 {
   let request = window.arguments[0].wrappedJSObject;
-  /*document.getElementById("headerMessage").textContent = request.promptText;
-  let account = request.account;
-  if (request.iconURI != "")
-    document.getElementById("headerImage").src = request.iconURI;*/
 
-  var browser = document.getElementById("requestFrame");
+  let browser = document.getElementById("requestFrame");
   browser.addProgressListener(reporterListener,
-                              Components.interfaces.nsIWebProgress.NOTIFY_ALL);
+                              Ci.nsIWebProgress.NOTIFY_ALL);
   if (aUrl != "") {
     browser.setAttribute("src", aUrl);
     document.getElementById("headerMessage").textContent = aUrl;
@@ -149,47 +165,63 @@ function loadRequestedUrl(aUrl)
 
 var nsBoxAuth = {
 
-  log : Log4Moz.getConfiguredLogger("BoxAuth"),
+  numTries : 0,
 
   /**
-   * A function for retrieving a new ticket needed for other API calls.
-   * The lifespan of a ticket is only a few minutes for authentication
+   * A function for retrieving a new ticket to use in the url for logging in
+   * The lifespan of a ticket is only a few minutes
    *
-   * @param ...
+   * @param successCallback a callback fired if retrieving the ticket
+   *                        is successful.
+   * @param failureCallback a callback fired if retrieving the ticket
+   *                        fails.
   */
   getSessionTicket: function(successCallback, failureCallback) {
-      let args = "?action=get_ticket&api_key=" + kApiKey;
-      let requestUrl = kServerUrl + args;
+    let args = "?action=get_ticket&api_key=" + kApiKey;
+    let requestUrl = kServerUrl + args;
 
-      // Request to get the ticket
-      doXHRequest(requestUrl, 
-                  null,
-                  null,
-                  function(aResponseText, aRequest) {
-                    this.log.info("get_ticket request response = " + aResponseText);
-                    let doc = aRequest.responseXML;
-                    let docResponse = doc.documentElement;
-                    if (docResponse && docResponse.nodeName == "response") {
-                      let docStatus = doc.getElementsByTagName("status")[0].firstChild.nodeValue;
-                      this.log.info("status = " + docStatus);
-                      if (docStatus != "get_ticket_ok") {
-                        failureCallback(null, aResponseText, aRequest);
-                        return;
-                      }
-                      var ticket = doc.getElementsByTagName("ticket")[0].firstChild.nodeValue;
-                      this.log.info("Auth ticket = " + ticket);
-                      successCallback(ticket);
-                    }
-                    else {
-                      failureCallback("", aResponseText, aRequest);
-                    }
-                }.bind(this),
-                function(aException, aResponseText, aRequest) {
-                  this.log.info("Failed to acquire a ticket:" + aResponseText);
-                  failureCallback(aException, aResponseText, aRequest);
-                }.bind(this),
+    let ticketSuccess = function(aResponseText, aRequest) {
+      log.info("get_ticket request response = " + aResponseText);
+      try {
+        let doc = aRequest.responseXML;
+        let docResponse = doc.documentElement;
+        if (docResponse && docResponse.nodeName == "response") {
+          let docStatus = doc.getElementsByTagName("status")[0].firstChild.nodeValue;
+          log.info("status = " + docStatus);
+          if (docStatus != "get_ticket_ok") {
+            failureCallback(aRequest);
+            return;
+          }
+          let ticket = doc.getElementsByTagName("ticket")[0].firstChild.nodeValue;
+          log.info("Auth ticket = " + ticket);
+          successCallback(ticket);
+        }
+        else {
+          log.error("Failed to acquire a ticket: " + aResponseText);
+          failureCallback(aRequest);
+        }
+      }
+      catch(e) {
+        // most likely bad XML
+        log.error("Failed to parse ticket response: " + e);
+        log.error("Ticket response: " + aResponseText);
+        failureCallback(aRequest);
+      }
+    }.bind(this);
+    let ticketFailure = function(aException, aResponseText, aRequest) {
+      log.error("Ticket acquisition error: " + aResponseText);
+      failureCallback(aRequest);
+    }.bind(this)
+
+    // Request to get the ticket
+    doXHRequest(requestUrl,
+                null,
+                null,
+                ticketSuccess,
+                ticketFailure,
                 this,
                 "GET");
+    this.numTries++;
   }
 
 };

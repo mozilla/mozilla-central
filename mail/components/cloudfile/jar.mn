@@ -12,7 +12,6 @@ messenger.jar:
     content/messenger/cloudfile/Box/management.js (content/Box/management.js)
     content/messenger/cloudfile/Box/auth.xul (content/Box/auth.xul)
     content/messenger/cloudfile/Box/auth.js (content/Box/auth.js)
-    content/messenger/cloudfile/Box/loader.gif (content/Box/loader.gif)
     content/messenger/cloudfile/UbuntuOne/management.js (content/UbuntuOne/management.js)
     content/messenger/cloudfile/UbuntuOne/management.xhtml (content/UbuntuOne/management.xhtml)
     content/messenger/cloudfile/UbuntuOne/settings.js (content/UbuntuOne/settings.js)

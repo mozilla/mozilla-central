@@ -17,6 +17,12 @@
 #security-button[level="broken"] {
   background-image: url("chrome://messenger/skin/icons/insecure.png");
 }
+
+#security-button[loading="true"] {
+  margin-top: 3px;
+  margin-left: 4px;
+  background-image: url("chrome://global/skin/icons/loading_16.png");
+}
 /*
 #header {
   overflow: hidden;
