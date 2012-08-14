@@ -75,7 +75,8 @@
     list-style-image: url("chrome://messenger/skin/icons/toolbarbutton-arrow.png");
   }
 
-  #chat-status-selector:hover > .statusMessageToolbarItem {
+  #chat-status-selector:hover > .statusMessageToolbarItem,
+  .statusMessageToolbarItem:focus {
     border-color: hsla(210, 54%, 20%, .25) hsla(210, 54%, 20%, .27)
                   hsla(210, 54%, 20%, .3);
   }

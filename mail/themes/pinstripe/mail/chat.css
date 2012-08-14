@@ -12,7 +12,8 @@
   -moz-margin-start: -6px;
 }
 
-#chat-status-selector:hover > .statusMessageToolbarItem {
+#chat-status-selector:hover > .statusMessageToolbarItem,
+.statusMessageToolbarItem:focus {
   border-color: #AAAAAA;
 }
 

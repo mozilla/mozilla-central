@@ -78,15 +78,14 @@ var statusSelector = {
   },
 
   statusMessageClick: function ss_statusMessageClick() {
+    let elt = document.getElementById("statusMessage");
     let statusType =
       document.getElementById("statusTypeIcon").getAttribute("status");
-    if (statusType == "offline")
+    if (statusType == "offline" || elt.disabled)
       return;
 
-    let elt = document.getElementById("statusMessage");
     if (!elt.hasAttribute("editing")) {
       elt.setAttribute("editing", "true");
-      elt.addEventListener("keypress", this.statusMessageKeyPress);
       elt.addEventListener("blur", this.statusMessageBlur);
       if (elt.hasAttribute("usingDefault")) {
         if ("_statusTypeBeforeEditing" in this &&
@@ -120,6 +119,14 @@ var statusSelector = {
   },
 
   statusMessageKeyPress: function ss_statusMessageKeyPress(aEvent) {
+    if (!this.hasAttribute("editing")) {
+      if (aEvent.keyCode == aEvent.DOM_VK_DOWN) {
+        let button = document.getElementById("statusTypeIcon");
+        document.getElementById("setStatusTypeMenupopup").openPopup(button);
+      }
+      return;
+    }
+
     switch (aEvent.keyCode) {
       case aEvent.DOM_VK_RETURN:
       case aEvent.DOM_VK_ENTER:
@@ -167,8 +174,14 @@ var statusSelector = {
       elt.setAttribute("value", elt.getAttribute("usingDefault"));
     TextboxSpellChecker.unregisterTextbox(elt);
     elt.removeAttribute("editing");
-    elt.removeEventListener("keypress", this.statusMessageKeyPress, false);
     elt.removeEventListener("blur", this.statusMessageBlur, false);
+
+    // We need to put the focus back on the label after the textbox
+    // binding has been detached, otherwise the focus gets lost (it's
+    // on none of the elements in the document), but before that we
+    // need to flush the layout.
+    elt.getBoundingClientRect();
+    elt.focus();
   },
 
   userIconClick: function ss_userIconClick() {
@@ -255,6 +268,10 @@ var statusSelector = {
       events.push("user-icon-changed");
       statusSelector.displayUserIcon();
     }
+
+    let statusMessage = document.getElementById("statusMessage");
+    if (statusMessage)
+      statusMessage.addEventListener("keypress", this.statusMessageKeyPress);
 
     for each (let event in events)
       Services.obs.addObserver(statusSelector, event, false);

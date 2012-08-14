@@ -513,8 +513,14 @@ toolbar[mode="text"] #statusTypeIcon > .toolbarbutton-icon {
   border: 1px solid transparent;
 }
 
-#chat-status-selector:hover > .statusMessageToolbarItem {
+#chat-status-selector:hover > .statusMessageToolbarItem,
+.statusMessageToolbarItem:focus {
   border-color: ThreeDShadow;
+}
+
+.statusMessageToolbarItem[statusType="offline"],
+.statusMessageToolbarItem[disabled] {
+  border: none;
 }
 
 #chat-status-selector > .statusMessageToolbarItem[editing] {

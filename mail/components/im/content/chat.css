@@ -61,8 +61,7 @@ browser[type="content-conversation"] {
   -moz-binding: url("chrome://messenger/content/search.xml#glodaSearch");
 }
 
-
-#statusTypeIcon {
+#statusTypeIcon:not([disabled]) {
   cursor: pointer;
 }
 
@@ -70,7 +69,7 @@ browser[type="content-conversation"] {
   width: 15em;
 }
 
-#statusMessage:not([statusType="offline"]), .statusMessage[editable] {
+#statusMessage:not([statusType="offline"]):not([disabled]), .statusMessage[editable] {
   cursor: text;
 }
 

@@ -719,6 +719,11 @@ var chatHandler = {
       this._placeHolderButtonId =
         hasAccount ? "openIMAccountManagerButton" : "openIMAccountWizardButton";
     }
+    for each (let id in ["statusTypeIcon", "statusMessage", "button-chat-accounts"]) {
+      let elt = document.getElementById(id);
+      if (elt)
+        elt.disabled = !hasAccount;
+    }
     for each (let id in ["button-add-buddy", "newIMContactMenuItem"]) {
       let elt = document.getElementById(id);
       if (elt)
