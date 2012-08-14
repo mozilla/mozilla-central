@@ -670,7 +670,7 @@ nsSmtpService::DeleteSmtpServer(nsISmtpServer *aServer)
 
     mServerKeyList = newServerList;
     saveKeyList();
-    return rv;
+    return NS_OK;
 }
 
 bool
