@@ -161,11 +161,13 @@ sidebarheader .toolbarbutton-text:not([value]) {
 }
 
 #searchInput,
+#IMSearchInput,
 .remote-gloda-search {
   padding: 2px;
 }
 
 #searchInput:-moz-lwtheme:not([focused="true"]),
+#IMSearchInput:-moz-lwtheme:not([focused="true"]),
 .remote-gloda-search:-moz-lwtheme:not([focused="true"]) {
   opacity: .85;
 }
