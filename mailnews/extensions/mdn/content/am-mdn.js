@@ -146,3 +146,12 @@ function disableIfLocked( prefstrArray )
     }
   }
 }
+
+/**
+ * Opens Preferences (Options) dialog on the pane and tab where
+ * the global receipts settings can be found.
+ */
+function showGlobalReceipts() {
+  openPrefsFromAccountManager("paneAdvanced", "generalTab",
+                              {subdialog: "showReturnReceipts"}, "receipts_pane");
+}

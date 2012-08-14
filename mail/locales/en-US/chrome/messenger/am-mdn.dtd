@@ -5,6 +5,8 @@
 <!ENTITY pane.title                   "Return Receipts">
 <!ENTITY useGlobalPrefs.label         "Use my global return receipt preferences for this account">
 <!ENTITY useGlobalPrefs.accesskey     "U">
+<!ENTITY globalReceipts.label         "Global Preferences…">
+<!ENTITY globalReceipts.accesskey     "G">
 <!ENTITY useCustomPrefs.label         "Customize return receipts for this account">
 <!ENTITY useCustomPrefs.accesskey     "C">
 <!ENTITY requestReceipt.label         "When sending messages, always request a return receipt">

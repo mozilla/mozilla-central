@@ -89,3 +89,27 @@ function prettyFolderName(aTargetFolder)
                                      [aTargetFolder.prettyName,
                                       aTargetFolder.server.prettyName]);
 }
+
+/**
+ * Opens Preferences (Options) dialog on the Advanced pane, General tab
+ * so that the user sees where the global receipts settings can be found.
+ *
+ * @param aTBPaneId     Thunderbird pref paneID to open.
+ * @param aTBTabId      Thunderbird tabID to open.
+ * @param aTBOtherArgs  Other arguments to send to the pref tab.
+ * @param aSMPaneId     Seamonkey pref pane to open.
+ */
+function openPrefsFromAccountManager(aTBPaneId, aTBTabId, aTBOtherArgs, aSMPaneId) {
+  let win = Services.wm.getMostRecentWindow("mail:3pane") ||
+            Services.wm.getMostRecentWindow("mail:messageWindow") ||
+            Services.wm.getMostRecentWindow("msgcompose");
+  if (!win)
+    return;
+
+  // If openOptionsDialog() exists, we are in Thunderbird.
+  if (typeof win.openOptionsDialog == "function")
+    win.openOptionsDialog(aTBPaneId, aTBTabId, aTBOtherArgs);
+  // If goPreferences() exists, we are in Seamonkey.
+  if (typeof win.goPreferences == "function")
+    win.goPreferences(aSMPaneId);
+}

@@ -142,7 +142,7 @@
 
     <tabbox id="advancedPrefs" flex="1" onselect="gAdvancedPane.tabSelectionChanged();">
       <tabs>
-        <tab label="&itemGeneral.label;"/>
+        <tab id="generalTab" label="&itemGeneral.label;"/>
         <tab label="&itemDisplay.label;"/>
         <tab id="networkingTab" label="&itemNetworking.label;"/>
         <tab label="&itemUpdate.label;"/>
@@ -154,7 +154,8 @@
         <tabpanel orient="vertical">
           <hbox align="center">
             <description flex="1">&returnReceiptsInfo.label;</description>
-            <button label="&showReturnReceipts.label;"
+            <button id="showReturnReceipts"
+                    label="&showReturnReceipts.label;"
                     accesskey="&showReturnReceipts.accesskey;"
                     oncommand="gAdvancedPane.showReturnReceipts();"/>
           </hbox>

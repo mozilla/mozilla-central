@@ -11,11 +11,13 @@
 <!DOCTYPE page SYSTEM "chrome://messenger/locale/am-mdn.dtd">
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-    onload="parent.onPanelLoaded('am-mdn.xul');">
+      title="&pane.title;"
+      onload="parent.onPanelLoaded('am-mdn.xul');">
 
   <vbox flex="1" style="overflow: auto;">
     <stringbundle id="bundle_smime" src="chrome://messenger/locale/am-mdn.properties"/>
     <script type="application/javascript" src="chrome://messenger/content/AccountManager.js"/>
+    <script type="application/javascript" src="chrome://messenger/content/amUtils.js"/>
     <script type="application/javascript" src="chrome://messenger/content/am-mdn.js"/>
 
     <dialogheader title="&pane.title;"/>
@@ -24,13 +26,24 @@
 
       <caption label="&pane.title;"/>
 
-      <hbox id="prefChoices" align="center">
+      <hbox id="prefChoices" align="center" flex="1">
         <radiogroup id="identity.use_custom_prefs" wsm_persist="true" genericattr="true"
                     preftype="bool" prefstring="mail.identity.%identitykey%.use_custom_prefs"
-                    oncommand="EnableDisableCustomSettings();">
-          <radio id="identity.select_global_prefs" value="false" label="&useGlobalPrefs.label;"
+                    oncommand="EnableDisableCustomSettings();" flex="1">
+          <radio id="identity.select_global_prefs"
+                 value="false"
+                 label="&useGlobalPrefs.label;"
                  accesskey="&useGlobalPrefs.accesskey;"/>
-          <radio id="identity.select_custom_prefs" value="true" label="&useCustomPrefs.label;"
+          <hbox flex="1">
+            <spacer flex="1"/>
+            <button id="globalReceiptsLink"
+                    label="&globalReceipts.label;"
+                    accesskey="&globalReceipts.accesskey;"
+                    oncommand="showGlobalReceipts();"/>
+          </hbox>
+          <radio id="identity.select_custom_prefs"
+                 value="true"
+                 label="&useCustomPrefs.label;"
                  accesskey="&useCustomPrefs.accesskey;"/>
         </radiogroup>
       </hbox>
