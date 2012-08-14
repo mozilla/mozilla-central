@@ -161,6 +161,7 @@ sidebarheader .toolbarbutton-text:not([value]) {
 
 treechildren::-moz-tree-cell-text {
   -moz-padding-start: 5px;
+  padding-bottom: 2px;
 }
 
 @media not all and (-moz-windows-default-theme) {
