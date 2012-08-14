@@ -226,5 +226,13 @@ PROTO_TREE_VIEW.prototype = {
       if (this._persistOpenMap.indexOf(this._rowMap[i].id) != -1)
         this.toggleOpenState(i);
     }
+  },
+
+  QueryInterface: function QueryInterface(aIID) {
+    if (aIID.equals(Components.interfaces.nsITreeView) ||
+        aIID.equals(Components.interfaces.nsISupports))
+      return this;
+ 
+    throw Components.results.NS_ERROR_NO_INTERFACE;
   }
 };

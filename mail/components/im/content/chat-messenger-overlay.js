@@ -100,7 +100,7 @@ var chatTabType = {
     else
       delete item.searchTerm;
     item.hidden = false;
-    if (item.selected)
+    if (item.getAttribute("selected"))
       chatHandler.onListItemSelected();
     else
       document.getElementById("contactlistbox").selectedItem = item;
@@ -389,38 +389,57 @@ var chatHandler = {
     return bundle.getFormattedString("dateTime", [date, time]);
   },
 
-  _showLogList: function(aLogs) {
-    let listbox = document.getElementById("logList");
-    while (listbox.firstChild)
-      listbox.removeChild(listbox.firstChild);
-    let logs = [];
-    for (let log in fixIterator(aLogs))
-      logs.push(log);
-    logs.sort(function(log1, log2) log2.time - log1.time);
-    for each (let log in logs) {
-      if (log.format != "json")
-        continue;
-      let elt = document.createElement("listitem");
-      elt.setAttribute("label",
-                       this._makeFriendlyDate(new Date(log.time * 1000)));
-      elt.log = log;
-      listbox.appendChild(elt);
-    }
-    return logs;
-  },
-  onLogSelect: function() {
-    let selectedItem = document.getElementById("logList").selectedItem;
-    if (!selectedItem)
-      return;
-    let log = selectedItem.log;
-    if (!log) {
-      let item = document.getElementById("contactlistbox").selectedItem;
-      if (item) {
-        document.getElementById("conversationsDeck").selectedPanel =
-          item.convView;
+  /**
+   * Display a list of logs into a tree, and optionally handle a default selection.
+   *
+   * @param aLogs An nsISimpleEnumerator of imILog.
+   * @param aShouldSelect Either a boolean (true means select the first log
+   * of the list, false or undefined means don't mess with the selection) or a log
+   * item that needs to be selected.
+   * @returns true if there's at least one log in the list, false if empty.
+   */
+  _showLogList: function(aLogs, aShouldSelect) {
+    let logTree = document.getElementById("logTree");
+    let treeView = this._treeView = new chatLogTreeView(logTree, aLogs);
+    if (!treeView._rowMap.length)
+      return false;
+    if (aShouldSelect) {
+      if (aShouldSelect === true) {
+        // Open the first group (index 0)
+        treeView.toggleOpenState(0);
+        // Select the first log of the first group (index 1)
+        logTree.view.selection.select(1);
       }
-      return;
+      else {
+        let logTime = aShouldSelect.time;
+        for (let index = 0; index < treeView._rowMap.length; ++index) {
+          if (!treeView._rowMap[index].children.some(function (i) i.log.time == logTime))
+            continue;
+          treeView.toggleOpenState(index);
+          ++index;
+          while (index < treeView._rowMap.length && treeView._rowMap[index].log.time != logTime)
+            ++index;
+          if (treeView._rowMap[index].log.time == logTime) {
+            logTree.view.selection.select(index);
+            logTree.treeBoxObject.ensureRowIsVisible(index);
+          }
+          return true;
+        }
+      }
     }
+    return true;
+  },
+
+  onLogSelect: function() {
+    let selection = this._treeView.selection;
+    let currentIndex = selection.currentIndex;
+    // The current (focused) row may not be actually selected...
+    if (!selection.isSelected(currentIndex))
+      return;
+
+    let log = this._treeView._rowMap[currentIndex].log;
+    if (!log)
+      return;
 
     let list = document.getElementById("contactlistbox");
     if (list.selectedItem.getAttribute("id") != "searchResultConv")
@@ -454,8 +473,11 @@ var chatHandler = {
     let item = document.getElementById("contactlistbox").selectedItem;
     if (!item)
       return;
-    if (item.localName == "imconv")
+    if (item.localName == "imconv") {
       document.getElementById("conversationsDeck").selectedPanel = item.convView;
+      document.getElementById("logTree").view.selection.clearSelection();
+      item.convView.focus();
+    }
     else if (item.localName == "imcontact")
       item.openConversation();
   },
@@ -537,18 +559,7 @@ var chatHandler = {
       cti.removeAttribute("topicEditable");
       cti.removeAttribute("noTopic");
 
-      let logs = this._showLogList(imServices.logs.getSimilarLogs(log));
-      let time = log.time;
-      let list = document.getElementById("logList");
-      let logItem = list.firstChild;
-      while (logItem) {
-        if (logItem.log.time == time) {
-          list.selectedItem = logItem;
-          break;
-        }
-        logItem = logItem.nextSibling;
-      }
-
+      this._showLogList(imServices.logs.getSimilarLogs(log), log);
       this.observedContact = null;
     }
     else if (item.localName == "imconv") {
@@ -599,11 +610,7 @@ var chatHandler = {
 
       document.getElementById("contextPane").removeAttribute("chat");
 
-      let logs = this._showLogList(imServices.logs.getLogsForContact(contact));
-      let listbox = document.getElementById("logList");
-      if (logs.length)
-        listbox.selectedItem = listbox.firstChild;
-      else {
+      if (!this._showLogList(imServices.logs.getLogsForContact(contact), true)) {
         document.getElementById("conversationsDeck").selectedPanel =
           document.getElementById("logDisplay");
         document.getElementById("logDisplayDeck").selectedPanel =
@@ -1013,6 +1020,126 @@ var chatHandler = {
       this.ChatCore.init();
       this._addObserver("chat-core-initialized");
     }
+  }
+};
+
+function chatLogTreeGroupItem(aTitle, aLogItems) {
+  this._title = aTitle;
+  this._children = aLogItems;
+  for each (let child in this._children)
+    child._parent = this;
+  this._open = false;
+}
+chatLogTreeGroupItem.prototype = {
+  getText: function() this._title,
+  get id() this._title,
+  get open() this._open,
+  get level() 0,
+  get _parent() null,
+  get children() this._children,
+  getProperties: function(aProps) {}
+};
+
+function chatLogTreeLogItem(aLog, aText) {
+  this.log = aLog;
+  this._text = aText;
+}
+chatLogTreeLogItem.prototype = {
+  getText: function() this._text,
+  get id() this.log.title,
+  get open() false,
+  get level() 1,
+  get children() [],
+  getProperties: function(aProps) {}
+};
+
+function chatLogTreeView(aTree, aLogs) {
+  this._tree = aTree;
+  this._logs = aLogs;
+  this._tree.view = this;
+  this._rebuild();
+}
+chatLogTreeView.prototype = {
+  __proto__: new PROTO_TREE_VIEW(),
+
+  _rebuild: function cLTV__rebuild() {
+    // Drop the old rowMap.
+    if (this._tree)
+      this._tree.rowCountChanged(0, -this._rowMap.length);
+    this._rowMap = [];
+
+    // The keys used in the 'groups' object should match string ids in
+    // messenger.properties, except 'other' that has a special handling.
+    let groups = {
+      today: [],
+      yesterday: [],
+      lastWeek: [],
+      twoWeeksAgo: [],
+      other: []
+    };
+
+    // Some date helpers...
+    const kDayInMsecs = 24 * 60 * 60 * 1000;
+    const kWeekInMsecs = 7 * kDayInMsecs;
+    const kTwoWeeksInMsecs = 2 * kWeekInMsecs;
+    let dts = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
+                        .getService(Ci.nsIScriptableDateFormat);
+    let formatDate = function(aDate) {
+      return dts.FormatDate("", dts.dateFormatShort, aDate.getFullYear(),
+                            aDate.getMonth() + 1, aDate.getDate());
+    };
+    let nowDate = new Date();
+    let todayDate = new Date(nowDate.getFullYear(), nowDate.getMonth(),
+                             nowDate.getDate());
+
+    // Build a chatLogTreeLogItem for each log, and put it in the right group.
+    let chatBundle = document.getElementById("chatBundle");
+    for each (let log in fixIterator(this._logs)) {
+      let logDate = new Date(log.time * 1000);
+      let timeFromToday = todayDate - logDate;
+      let title = dts.FormatTime("", dts.timeFormatNoSeconds,
+                                 logDate.getHours(), logDate.getMinutes(), 0);
+      if (timeFromToday > kDayInMsecs) {
+        title = chatBundle.getFormattedString("dateTime",
+                                              [formatDate(logDate), title]);
+      }
+      let group;
+      if (timeFromToday <= 0)
+        group = groups.today;
+      else if (timeFromToday <= kDayInMsecs)
+        group = groups.yesterday;
+      else if (timeFromToday <= kWeekInMsecs)
+        group = groups.lastWeek;
+      else if (timeFromToday <= kTwoWeeksInMsecs)
+        group = groups.twoWeeksAgo;
+      else
+        group = groups.other;
+      group.push(new chatLogTreeLogItem(log, title));
+    }
+
+    // Create a chatLogTreeGroupItem for each group.
+    let msgBundle = document.getElementById("bundle_messenger");
+    for each (let [groupId, group] in Iterator(groups)) {
+      if (!group.length)
+        continue;
+      group.sort(function(l1, l2) l2.log.time - l1.log.time);
+      let groupName;
+      if (groupId == "other") {
+        groupName = formatDate(new Date(group[0].log.time * 1000));
+        if (group.length > 1) {
+          let fromDate = new Date(group[group.length - 1].log.time * 1000);
+          groupName += " - " + formatDate(fromDate);
+        }
+      }
+      else {
+        groupName = msgBundle.getString(groupId);
+      }
+      this._rowMap.push(new chatLogTreeGroupItem(groupName, group));
+    }
+
+    // Finally, notify the tree.
+    if (this._tree)
+      this._tree.rowCountChanged(0, this._rowMap.length);
   }
 };
 

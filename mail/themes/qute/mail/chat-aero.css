@@ -181,7 +181,6 @@
     color: -moz-dialogtext !important;
   }
 
-  #logList > listitem,
   #nicklist > listitem {
     border-width: 1px !important;
     outline: none !important;

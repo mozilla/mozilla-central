@@ -20,7 +20,8 @@
 
 <overlay id="chat-messenger-overlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-
+  <script type="application/javascript"
+          src="chrome://messenger/content/jsTreeView.js"/>
   <script type="application/javascript"
           src="chrome://messenger/content/chat/chat-messenger-overlay.js"/>
   <script type="application/javascript"
@@ -259,12 +260,19 @@
                          onclick="chatHandler.onNickClick(event);"
                          onkeypress="chatHandler.onNicklistKeyPress(event);"/>
               </vbox>
-              <splitter id="logsSplitter" class="conv-chat"/>
+              <splitter id="logsSplitter" class="conv-chat" collapse="after"/>
               <vbox flex="1" id="previousConversations">
                 <label class="conv-logs-header-label"
                        id="participantLabel"
                        value="&chat.previousConversations;"/>
-                <listbox flex="1" id="logList" onselect="chatHandler.onLogSelect();"/>
+                <tree id="logTree" flex="1" hidecolumnpicker="true" seltype="single"
+                      context="logTreeContext" onselect="chatHandler.onLogSelect();">
+                  <treecols>
+                    <treecol id="logCol" flex="1" primary="true" hideheader="true"
+                             crop="center" ignorecolumnpicker="true"/>
+                  </treecols>
+                  <treechildren/>
+                </tree>
               </vbox>
             </vbox>
           </vbox>
