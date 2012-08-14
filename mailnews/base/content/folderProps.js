@@ -264,11 +264,23 @@ function folderPropsOnLoad()
   initCommonRetentionSettings(retentionSettings);
   document.getElementById("retention.useDefault").checked = retentionSettings.useServerDefaults;
 
+  // set folder sizes
+  let numberOfMsgs = gMsgFolder.getTotalMessages(false);
+  if (numberOfMsgs >= 0)
+    document.getElementById("numberOfMessages").value = numberOfMsgs;
+
+  try {
+    let sizeOnDisk = Components.classes["@mozilla.org/messenger;1"]
+                               .createInstance(Components.interfaces.nsIMessenger)
+                               .formatFileSize(gMsgFolder.sizeOnDisk, true);
+    document.getElementById("sizeOnDisk").value = sizeOnDisk;
+  } catch (e) { }
+
   // select the initial tab
   if (window.arguments[0].tabID) {
     try {
       document.getElementById("folderPropTabBox").selectedTab =
-                           document.getElementById(window.arguments[0].tabID);
+        document.getElementById(window.arguments[0].tabID);
     }
     catch (ex) {}
   }

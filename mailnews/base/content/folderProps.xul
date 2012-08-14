@@ -15,9 +15,9 @@
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
   title="&folderProps.windowtitle.label;"
   buttons="accept,cancel"
-  onload="folderPropsOnLoad()" style="width: 36em;"
+  onload="folderPropsOnLoad();" style="width: 56ch;"
   ondialogaccept="return folderPropsOKButton();">
- 
+
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
   <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
   <script type="application/javascript" src="chrome://messenger/content/retention.js"/>
@@ -50,6 +50,17 @@
                accesskey="&folderProps.location.accesskey;"/>
         <textbox id="location" readonly="true" flex="1"  class="uri-element"/>
       </hbox>
+      <vbox>
+        <spacer height="2"/>
+        <hbox align="center">
+          <label value="&numberOfMessages.label;"/>
+          <label id="numberOfMessages" value="&numberUnknown.label;"/>
+          <spacer flex="1"/>
+          <label value="&sizeOnDisk.label;"/>
+          <label id="sizeOnDisk" value="&sizeUnknown.label;"/>
+        </hbox>
+        <spacer height="2"/>
+      </vbox>
       <checkbox id="folderIncludeInGlobalSearch" hidefor="nntp"
                 label="&folderIncludeInGlobalSearch.label;"
                 accesskey="&folderIncludeInGlobalSearch.accesskey;"/>
