@@ -250,7 +250,11 @@ var GlodaIMIndexer = {
     this._cacheSaveTimer = setTimeout(this._saveCacheNow, 5000);
   },
   _saveCacheNow: function() {
-    let data = JSON.stringify(GlodaIMIndexer._knownFiles);
+    let data = {
+      knownFiles: GlodaIMIndexer._knownFiles,
+      datastoreID: Gloda.datastoreID,
+    };
+
     let file = FileUtils.getFile("ProfD", ["logs", kCacheFileName]);
     let ostream = FileUtils.openSafeFileOutputStream(file);
 
@@ -259,10 +263,10 @@ var GlodaIMIndexer = {
     converter.charset = "UTF-8";
 
     // Asynchronously copy the data to the file.
-    let istream = converter.convertToInputStream(data);
+    let istream = converter.convertToInputStream(JSON.stringify(data));
     NetUtil.asyncCopy(istream, ostream, function(rc) {
       if (!Components.isSuccessCode(rc)) {
-        dump("Failed to write cache file\n");
+        Cu.reportError("Failed to write cache file");
       }
     });
   },
@@ -461,7 +465,20 @@ var GlodaIMIndexer = {
       let sis = new ScriptableInputStream(fis);
       let text = sis.read(sis.available());
       sis.close();
-      this._knownFiles = JSON.parse(text);
+
+      let data = JSON.parse(text);
+
+      // Check to see if the Gloda datastore ID matches the one that we saved
+      // in the cache. If so, we can trust it. If not, that means that the
+      // cache is likely invalid now, so we ignore it (and eventually
+      // overwrite it).
+      if ("datastoreID" in data &&
+          Gloda.datastoreID &&
+          data.datastoreID === Gloda.datastoreID) {
+        // Ok, the cache's datastoreID matches the one we expected, so it's
+        // still valid.
+        this._knownFiles = data.knownFiles;
+      }
     }
 
     let children = dir.directoryEntries;

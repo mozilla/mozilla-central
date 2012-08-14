@@ -1001,6 +1001,12 @@ var GlodaDatastore = {
   _prefBranch: null,
 
   /**
+   * The unique ID assigned to an index when it has been built. This value
+   * changes once the index has been rebuilt.
+   */
+  _datastoreID: null,
+
+  /**
    * Initialize logging, create the database if it doesn't exist, "upgrade" it
    *  if it does and it's not up-to-date, fill our authoritative folder uri/id
    *  mapping.
@@ -1101,6 +1107,14 @@ var GlodaDatastore = {
           this._log.debug("Migration call completed.");
         }
         // else: this database is juuust right.
+
+        // If we never had a datastore ID, make sure to create one now.
+        if (!this._prefBranch.prefHasUserValue("id")) {
+          this._datastoreID = this._generateDatastoreID();
+          this._prefBranch.setCharPref("id", this._datastoreID);
+        } else {
+          this._datastoreID = this._prefBranch.getCharPref("id");
+        }
       }
       // Handle corrupt databases, other oddities
       catch (ex) {
@@ -1248,6 +1262,19 @@ var GlodaDatastore = {
     this.syncConnection = null;
   },
 
+  /**
+   * Generates and returns a UUID.
+   *
+   * @return a UUID as a string, ex: "c4dd0159-9287-480f-a648-a4613e147fdb"
+   */
+  _generateDatastoreID: function gloda_ds_generateDatastoreID() {
+    let uuidGen = Cc["@mozilla.org/uuid-generator;1"]
+                    .getService(Ci.nsIUUIDGenerator);
+    let uuid = uuidGen.generateUUID().toString();
+    // We snip off the { and } from each end of the UUID.
+    return uuid.substring(1, uuid.length - 2);
+  },
+
   _determineCachePages: function gloda_ds_determineCachePages(aDBConn) {
     try {
       // For the details of the computations, one should read
@@ -1304,6 +1331,12 @@ var GlodaDatastore = {
     var tokenizer = Cc["@mozilla.org/messenger/fts3tokenizer;1"].
                       getService(Ci.nsIFts3Tokenizer);
     tokenizer.registerTokenizer(dbConnection);
+
+    // We're creating a new database, so let's generate a new ID for this
+    // version of the datastore. This way, indexers can know when the index
+    // has been rebuilt in the event that they need to rebuild dependent data.
+    this._datastoreID = this._generateDatastoreID();
+    this._prefBranch.setCharPref("id", this._datastoreID);
 
     dbConnection.beginTransaction();
     try {

@@ -28,6 +28,11 @@ gPrefs.setBoolPref("mailnews.database.global.indexer.perform_initial_sweep",
 // yes to debug output
 gPrefs.setBoolPref("mailnews.database.global.logging.dump", true);
 
+// We'll start with this datastore ID, and make sure it gets overwritten
+// when the index is rebuilt.
+const kDatastoreIDPref = "mailnews.database.global.datastore.id";
+const kOriginalDatastoreID = "47e4bad6-fedc-4931-bf3f-d2f4146ac63e";
+gPrefs.setCharPref(kDatastoreIDPref, kOriginalDatastoreID);
 
 // -- Add a logger listener that throws when we give it a warning/error.
 Components.utils.import("resource:///modules/gloda/log4moz.js");
@@ -107,6 +112,19 @@ function test_corrupt_databases_get_reported_and_blown_away() {
 
   // - make sure the datastore has an actual database
   Components.utils.import("resource:///modules/gloda/datastore.js");
+
+  // Make sure that the datastoreID was overwritten
+  do_check_neq(Gloda.datastoreID, kOriginalDatastoreID);
+  // And for good measure, make sure that the pref was also overwritten
+  let currentDatastoreID = gPrefs.getCharPref(kDatastoreIDPref);
+  do_check_neq(currentDatastoreID, kOriginalDatastoreID);
+  // We'll also ensure that the Gloda.datastoreID matches the one stashed
+  // in prefs...
+  do_check_eq(currentDatastoreID, Gloda.datastoreID);
+  // And finally, we'll make sure that the datastoreID is a string with length
+  // greater than 0.
+  do_check_eq(typeof(Gloda.datastoreID), "string");
+  do_check_true(Gloda.datastoreID.length > 0);
 
   if (!GlodaDatastore.asyncConnection)
     do_throw("No database connection suggests no database!");

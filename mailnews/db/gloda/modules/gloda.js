@@ -256,6 +256,17 @@ var Gloda = {
   kWorkDoneWithResult: 4,
 
   /**
+   * Callers should access the unique ID for the GlodaDatastore
+   * with this getter. If the GlodaDatastore has not been
+   * initialized, this value is null.
+   *
+   * @return a UUID as a string, ex: "c4dd0159-9287-480f-a648-a4613e147fdb"
+   */
+  get datastoreID() {
+    return GlodaDatastore._datastoreID;
+  },
+
+  /**
    * Lookup a gloda message from an nsIMsgDBHdr, with the result returned as a
    *  collection.  Keep in mind that the message may not be indexed, so you
    *  may end up with an empty collection.  (Also keep in mind that this query
