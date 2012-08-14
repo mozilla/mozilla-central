@@ -408,6 +408,10 @@ var GlodaIMIndexer = {
 
     let log = Services.logs.getLogFromFile(aFile);
     let conv = log.getConversation();
+    // Ignore corrupted log files.
+    if (!conv)
+      return Gloda.kWorkDone;
+
     let content = conv.getMessages()
                       .map(function(m) (m.alias || m.who) + ": " + MailFolder.convertMsgSnippetToPlainText(m.message))
                       .join("\n\n");

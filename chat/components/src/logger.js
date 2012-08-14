@@ -318,8 +318,13 @@ function LogConversation(aLineInputStream)
     more = aLineInputStream.readLine(line);
     if (!line.value)
       break;
-    let data = JSON.parse(line.value);
-    this._messages.push(new LogMessage(data, this));
+    try {
+      let data = JSON.parse(line.value);
+      this._messages.push(new LogMessage(data, this));
+    } catch (e) {
+      // if a message line contains junk, just ignore the error and
+      // continue reading the conversation.
+    }
   }
 }
 LogConversation.prototype = {
@@ -347,6 +352,11 @@ function Log(aFile)
   this.path = aFile.path;
   const regexp = /([0-9]{4})-([0-9]{2})-([0-9]{2}).([0-9]{2})([0-9]{2})([0-9]{2})([+-])([0-9]{2})([0-9]{2}).*\.([a-z]+)$/;
   let r = aFile.leafName.match(regexp);
+  if (!r) {
+    this.format = "invalid";
+    this.time = 0;
+    return;
+  }
   let date = new Date(r[1], r[2] - 1, r[3], r[4], r[5], r[6]);
   let offset = r[7] * 60 + r[8];
   if (r[6] == -1)
@@ -365,7 +375,16 @@ Log.prototype = {
                                   Ci.nsIFileInputStream.CLOSE_ON_EOF);
     let lis = new ConverterInputStream(fis, "UTF-8", 1024, 0x0);
     lis.QueryInterface(Ci.nsIUnicharLineInputStream);
-    return new LogConversation(lis);
+    try {
+      return new LogConversation(lis);
+    } catch (e) {
+      // If the file contains some junk (invalid JSON), the
+      // LogConversation code will still read the messages it can parse.
+      // If the first line of meta data is corrupt, there's really no
+      // useful data we can extract from the file so the
+      // LogConversation constructor will throw.
+      return null;
+    }
   }
 };
 

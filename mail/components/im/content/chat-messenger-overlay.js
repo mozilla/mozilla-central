@@ -346,6 +346,8 @@ var chatHandler = {
       document.getElementById("logDisplayBrowserBox");
   },
   _showLog: function(aConversation, aPath, aSearchTerm) {
+    if (!aConversation)
+      return;
     this._showLogPanel();
     if (this._displayedLog == aPath)
       return;
@@ -396,6 +398,8 @@ var chatHandler = {
       logs.push(log);
     logs.sort(function(log1, log2) log2.time - log1.time);
     for each (let log in logs) {
+      if (log.format != "json")
+        continue;
       let elt = document.createElement("listitem");
       elt.setAttribute("label",
                        this._makeFriendlyDate(new Date(log.time * 1000)));
