@@ -113,18 +113,20 @@
     -   boolean or a localized string explaining what you are thinking about.
     -
     - Tab contributing code should define a tab type object and register it
-    -  with us by calling registerTabType.  Each tab type can provide multiple
-    -  tab modes.  The rationale behind this organization is that Thunderbird
-    -  historically/currently uses a single 3-pane view to display both
-    -  three-pane folder browsing and single message browsing across multiple
-    -  tabs.  Each tab type has the ability to use a single tab panel for all
-    -  of its display needs.  So Thunderbird's "mail" tab type covers both the
-    -  "folder" (3-pane folder-based browsing)  and "message" (just a single
-    -  message) tab modes.  Likewise, calendar/lightning currently displays both
-    -  its calendar and tasks in the same panel.  A tab type can also create a
-    -  new tabpanel for each tab as it is created.  In that case, the tab type 
-    -  should probably only have a single mode unless there are a number of
-    -  similar modes that can gain from code sharing.
+    -  with us by calling registerTabType. You can remove a registered tab
+    -  type (eg when unloading a restartless addon) by calling unregisterTabType.
+    -  Each tab type can provide multiple tab modes. The rationale behind this
+    -  organization is that Thunderbird historically/currently uses a single
+    -  3-pane view to display both three-pane folder browsing and single message
+    -  browsing across multiple tabs. Each tab type has the ability to use a
+    -  single tab panel for all of its display needs. So Thunderbird's "mail"
+    -  tab type covers both the "folder" (3-pane folder-based browsing) and
+    -  "message" (just a single message) tab modes. Likewise, calendar/lightning
+    -  currently displays both its calendar and tasks in the same panel. A tab
+    -  type can also create a new tabpanel for each tab as it is created. In
+    -  that case, the tab type should probably only have a single mode unless
+    -  there are a number of similar modes that can gain from code sharing
+    -
     - The tab type definition should include the following attributes:
     - * name: The name of the tab-type, mainly to aid in debugging.
     - * panelId or perTabPanel: If using a single tab panel, the id of the
@@ -348,6 +350,26 @@
               this.defaultTabMode = modeDetails;
           }
           aTabType.panel = document.getElementById(aTabType.panelId);
+        ]]></body>
+      </method>
+      <method name="unregisterTabType">
+        <parameter name="aTabType"/>
+        <body><![CDATA[
+          // we can skip if the tab type was never registered...
+          if (!(aTabType.name in this.tabTypes))
+             return;
+
+          // ... if the tab type is still in use, we can not remove it without
+          // breaking the UI. So we throw an exception.
+          for (let [modeName] in Iterator(aTabType.modes))
+            if (this.tabModes[modeName].tabs.length)
+              throw new Error("Tab mode " + modeName + " still in use. Close tabs");
+
+          // ... finally get rid of the tab type
+          for (let [modeName] in Iterator(aTabType.modes))
+            delete this.tabModes[modeName];
+
+          delete this.tabTypes[aTabType.name];
         ]]></body>
       </method>
       <method name="registerTabMonitor">
