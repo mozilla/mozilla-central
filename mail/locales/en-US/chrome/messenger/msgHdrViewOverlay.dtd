@@ -68,6 +68,10 @@
 <!ENTITY otherActionsPrint1.label "Print…">
 <!ENTITY otherActionsPrint1.accesskey "P">
 
+<!-- Attachment bar context menu items -->
+<!ENTITY startExpandedCmd.label    "Initially Show Attachment Pane">
+<!ENTITY startExpandedCmd.accesskey    "S">
+
 <!-- Attachment context menu items -->
 <!ENTITY openAttachmentCmd.label    "Open">
 <!ENTITY openAttachmentCmd.accesskey    "O">

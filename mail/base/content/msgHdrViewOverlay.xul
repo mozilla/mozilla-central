@@ -114,7 +114,13 @@
             accesskey="&customizeToolbar.accesskey;"/>
 </menupopup>
 
-<menupopup id="attachment-toolbar-context-menu">
+<menupopup id="attachment-toolbar-context-menu"
+           onpopupshowing="return onShowAttachmentToolbarContextMenu(event);">
+  <menuitem id="context-expandAttachmentBar" type="checkbox"
+            label="&startExpandedCmd.label;"
+            accesskey="&startExpandedCmd.accesskey;"
+            oncommand="Services.prefs.setBoolPref('mailnews.attachments.display.start_expanded', this.getAttribute('checked'));"/>
+  <menuseparator/>
   <menuitem id="CustomizeAttachmentToolbar"
             oncommand="CustomizeMailToolbar('attachment-view-toolbox', 'CustomizeAttachmentToolbar')"
             label="&customizeToolbar.label;"

@@ -257,6 +257,7 @@ pref("mail.ui-rdf.version", 0);
 /////////////////////////////////////////////////////////////////
 pref("mail.showCondensedAddresses", true); // show the friendly display name for people I know
 
+pref("mailnews.attachments.display.start_expanded", false);
 // hidden pref for changing how we present attachments in the message pane
 pref("mailnews.attachments.display.view", 0);
 pref("mail.pane_config.dynamic",            0);

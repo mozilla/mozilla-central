@@ -128,6 +128,18 @@ var setupModule = function (module) {
     add_message_to_folder(folder, create_message(messages[i]));
 };
 
+/**
+ * Set the pref to ensure that the attachments pane starts out (un)expanded
+ *
+ * @param expand true if the attachment pane should start out expanded,
+ *        false otherwise
+ */
+function ensure_starts_expanded(expand) {
+  Components.classes["@mozilla.org/preferences-service;1"]
+            .getService(Components.interfaces.nsIPrefBranch2)
+            .setBoolPref("mailnews.attachments.display.start_expanded", expand);
+}
+
 function test_attachment_view_collapsed() {
   be_in_folder(folder);
 
@@ -330,7 +342,19 @@ function test_attachment_list_expansion() {
               "collapsed after clicking save button!");
 }
 
+function test_attachment_list_starts_expanded() {
+  ensure_starts_expanded(true);
+  be_in_folder(folder);
+
+  select_click_row(2);
+  assert_selected_and_displayed(2);
+
+  assert_true(!mc.e("attachmentList").collapsed,
+              "Attachment list should start out expanded!");
+}
+
 function test_selected_attachments_are_cleared() {
+  ensure_starts_expanded(false);
   be_in_folder(folder);
   // First, select the message with two attachments.
   select_click_row(3);

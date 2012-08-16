@@ -663,6 +663,12 @@ var messageHeaderSink = {
     {
       gMessageDisplay.onLoadCompleted();
 
+      let expanded = Services.prefs.getBoolPref(
+        "mailnews.attachments.display.start_expanded");
+
+      if (expanded)
+        toggleAttachmentList(true);
+
       // if we don't have any attachments, turn off the attachments flag
       if (!this.mSaveHdr) {
         var messageUrl = url.QueryInterface(Components.interfaces.nsIMsgMessageUrl);
@@ -1892,6 +1898,14 @@ function ContentTypeIsSMIME(contentType)
   // S/MIME is application/pkcs7-mime and application/pkcs7-signature
   // - also match application/x-pkcs7-mime and application/x-pkcs7-signature.
   return /application\/(x-)?pkcs7-(mime|signature)/.test(contentType);
+}
+
+function onShowAttachmentToolbarContextMenu()
+{
+  let expandBar = document.getElementById("context-expandAttachmentBar");
+  let expanded = Services.prefs.getBoolPref(
+    "mailnews.attachments.display.start_expanded");
+  expandBar.setAttribute("checked", expanded);
 }
 
 /**
