@@ -549,7 +549,8 @@ calCalendarManager.prototype = {
         cal.setPref(getPrefBranchFor(calendar.id) + "uri", calendar.uri.spec);
 
         if ((calendar.getProperty("cache.supported") !== false) &&
-            calendar.getProperty("cache.enabled")) {
+            (calendar.getProperty("cache.enabled") ||
+             calendar.getProperty("cache.always"))) {
             calendar = new calCachedCalendar(calendar);
         }
 
@@ -716,7 +717,8 @@ calCalendarManager.prototype = {
                         }
 
                         if ((calendar.getProperty("cache.supported") !== false) &&
-                            calendar.getProperty("cache.enabled")) {
+                            (calendar.getProperty("cache.enabled") ||
+                             calendar.getProperty("cache.always"))) {
                             calendar = new calCachedCalendar(calendar);
                         }
                     } else { // create dummy calendar that stays disabled for this run:

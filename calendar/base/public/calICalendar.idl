@@ -122,6 +122,10 @@ interface calICalendar : nsISupports
    *                                   e.g. this generally applies to network calendars;
    *                                   default is true (if not present).
    *   [boolean]  cache.enabled      If true, the calendar is cached; default is false.
+   *   [boolean]  cache.always       If true, the cache will always be enabled
+   *                                   and the user cannot turn it off. For
+   *                                   backward compatibility, return true for
+   *                                   cache.enabled too.
    *
    *   [nsresult] currentStatus      The current error status of the calendar (transient).
    *

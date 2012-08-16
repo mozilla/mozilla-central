@@ -462,7 +462,8 @@ var calendarController = {
                     selected_events_readonly++;
                 }
                 if (item.calendar.getProperty("requiresNetwork") &&
-                    !item.calendar.getProperty("cache.enabled")) {
+                    !item.calendar.getProperty("cache.enabled") &&
+                    !item.calendar.getProperty("cache.always")) {
                     selected_events_requires_network++;
                 }
 
@@ -556,7 +557,7 @@ var calendarController = {
         let calMgr = getCalendarManager();
         let calendars = calMgr.getCalendars({});
         for each (let calendar in calendars) {
-            if (calendar.getProperty("cache.enabled")) {
+            if (calendar.getProperty("cache.enabled") || calendar.getProperty("cache.always")) {
                 return true;
             }
         }

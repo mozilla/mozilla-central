@@ -49,7 +49,7 @@
             <rows>
                 <row>
                     <label value="&calendarproperties.format.label;" control="calendar-format"/>
-                    <radiogroup id="calendar-format">
+                    <radiogroup id="calendar-format" onselect="onSelectProvider(this.value)">
                         <radio value="ics" label="&calendarproperties.webdav.label;" selected="true" />
                         <radio value="caldav" label="&calendarproperties.caldav.label;"/>
                         <radio id="wcap-radio" value="wcap" label="&calendarproperties.wcap.label;"/>
@@ -70,7 +70,7 @@
                 <row>
                      <label/>
                      <checkbox id="cache"
-                               label="&calendarproperties.cache2.label;"/>
+                               label="&calendarproperties.cache3.label;"/>
                 </row>
                 <notificationbox id="location-notifications" flex="1"/>
                 <!--

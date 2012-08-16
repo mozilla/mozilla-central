@@ -8,7 +8,7 @@ Components.utils.import("resource://gre/modules/PluralForm.jsm");
 /**
  * The calendar to modify, is retrieved from window.arguments[0].calendar
  */
-var gCalendar;
+let gCalendar;
 
 /**
  * This function gets called when the calendar properties dialog gets opened. To
@@ -19,7 +19,7 @@ function onLoad() {
     gCalendar = window.arguments[0].calendar;
 
     document.getElementById("calendar-name").value = gCalendar.name;
-    var calColor = gCalendar.getProperty('color');
+    let calColor = gCalendar.getProperty('color');
     if (calColor) {
        document.getElementById("calendar-color").color = calColor;
     }
@@ -30,17 +30,19 @@ function onLoad() {
     initRefreshInterval();
 
     // Set up the cache field
-    var cacheBox = document.getElementById("cache");
-    var canCache = (gCalendar.getProperty("cache.supported") !== false);
-    if (!canCache) {
+    let cacheBox = document.getElementById("cache");
+    let canCache = (gCalendar.getProperty("cache.supported") !== false);
+    let alwaysCache = (gCalendar.getProperty("cache.always"))
+    if (!canCache || alwaysCache) {
         cacheBox.setAttribute("disable-capability", "true");
+        cacheBox.hidden = true;
         cacheBox.disabled = true;
     }
-    cacheBox.checked = (canCache && gCalendar.getProperty("cache.enabled"));
+    cacheBox.checked = (alwaysCache || (canCache && gCalendar.getProperty("cache.enabled")));
 
     // Set up the show alarms row and checkbox
-    var suppressAlarmsRow = document.getElementById("calendar-suppressAlarms-row");
-    var suppressAlarms = gCalendar.getProperty('suppressAlarms');
+    let suppressAlarmsRow = document.getElementById("calendar-suppressAlarms-row");
+    let suppressAlarms = gCalendar.getProperty('suppressAlarms');
     document.getElementById("fire-alarms").checked = !suppressAlarms;
 
     suppressAlarmsRow.hidden =
@@ -91,7 +93,10 @@ function onAcceptDialog() {
     }
 
     // Save cache options
-    gCalendar.setProperty("cache.enabled", document.getElementById("cache").checked);
+    let alwaysCache = (gCalendar.getProperty("cache.always"))
+    if (!alwaysCache) {
+        gCalendar.setProperty("cache.enabled", document.getElementById("cache").checked);
+    }
 
     if (!gCalendar.getProperty("force-disabled")) {
         // Save disabled option (should do this last), remove auto-enabled
@@ -107,9 +112,9 @@ function onAcceptDialog() {
  * When the calendar is disabled, we need to disable a number of other elements
  */
 function setupEnabledCheckbox() {
-    var isEnabled = document.getElementById("calendar-enabled-checkbox").checked;
-    var els = document.getElementsByAttribute("disable-with-calendar", "true");
-    for (var i = 0; i < els.length; i++) {
+    let isEnabled = document.getElementById("calendar-enabled-checkbox").checked;
+    let els = document.getElementsByAttribute("disable-with-calendar", "true");
+    for (let i = 0; i < els.length; i++) {
         els[i].disabled = !isEnabled || (els[i].getAttribute("disable-capability") == "true");
     }
 }

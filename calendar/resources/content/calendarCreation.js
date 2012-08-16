@@ -63,6 +63,31 @@ function setNotification(aReason) {
 }
 
 /**
+ * Called when a provider is selected in the network calendar list. Makes sure
+ * the page is set up for the provider.
+ *
+ * @param type      The provider type selected
+ */
+function onSelectProvider(type) {
+    let cache = document.getElementById("cache");
+    let tempCal;
+    try {
+        tempCal = Components.classes["@mozilla.org/calendar/calendar;1?type=" + type]
+                            .createInstance(Components.interfaces.calICalendar);
+    } catch (e) {}
+
+    if (tempCal && tempCal.getProperty("cache.always")) {
+        cache.oldValue = cache.checked;
+        cache.checked = true;
+        cache.disabled = true;
+    } else {
+        cache.checked = cache.oldValue || false;
+        cache.oldValue = null;
+        cache.disabled = false;
+    }
+}
+
+/**
  * Checks if the required information is set so that the wizard can advance. On
  * an error, notifications are shown and the wizard can not be advanced.
  */
@@ -145,7 +170,9 @@ function doCreateCalendar() {
 
     gCalendar.name = cal_name;
     gCalendar.setProperty('color', cal_color);
-    gCalendar.setProperty("cache.enabled", document.getElementById("cache").checked);
+    if (!gCalendar.getProperty("cache.always")) {
+        gCalendar.setProperty("cache.enabled", document.getElementById("cache").checked);
+    }
 
     if (!document.getElementById("fire-alarms").checked) {
         gCalendar.setProperty('suppressAlarms', true);

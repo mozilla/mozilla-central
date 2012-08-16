@@ -675,6 +675,18 @@ calCachedCalendar.prototype = {
     get canRefresh() { // enable triggering sync using the reload button
         return true;
     },
+
+    getProperty: function(aName) {
+        switch (aName) {
+            case "cache.enabled":
+                if (this.mUncachedCalendar.getProperty("cache.always")) {
+                    return true;
+                }
+                break;
+        }
+
+        return this.mUncachedCalendar.getProperty(aName);
+    },
     refresh: function() {
         if (this.offline) {
             this.downstreamRefresh();
@@ -942,7 +954,7 @@ calCachedCalendar.prototype = {
     }
 
     defineForwards(calCachedCalendar.prototype, "mUncachedCalendar",
-                   ["getProperty", "setProperty", "deleteProperty",
+                   ["setProperty", "deleteProperty",
                     "isInvitation", "getInvitedAttendee", "canNotify"],
                    ["type", "aclManager", "aclEntry"],
                    ["id", "name", "uri", "readOnly"]);

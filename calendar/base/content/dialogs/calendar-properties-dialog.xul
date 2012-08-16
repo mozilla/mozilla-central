@@ -106,7 +106,7 @@
            align="center">
         <spacer/>
         <checkbox id="cache"
-                  label="&calendarproperties.cache2.label;"
+                  label="&calendarproperties.cache3.label;"
                   disable-with-calendar="true"/>
       </row>
       <spacer/>

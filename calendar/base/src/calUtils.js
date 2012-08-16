@@ -315,6 +315,7 @@ function isCalendarWritable(aCalendar) {
             !aCalendar.readOnly &&
             (!getIOService().offline ||
              aCalendar.getProperty("cache.enabled") ||
+             aCalendar.getProperty("cache.always") ||
              aCalendar.getProperty("requiresNetwork") === false));
 }
 
