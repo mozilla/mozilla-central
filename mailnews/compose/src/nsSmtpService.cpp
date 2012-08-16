@@ -517,7 +517,7 @@ nsSmtpService::GetDefaultServer(nsISmtpServer **aServer)
         // (which will add it to the array & prefs anyway)
         if (mSmtpServers.Count() == 0)
           // if there are no smtp servers then don't create one for the default.
-          return nullptr;
+          return NS_OK;
 
         mDefaultSmtpServer = mSmtpServers[0];
         NS_ENSURE_TRUE(mDefaultSmtpServer, NS_ERROR_NULL_POINTER);
