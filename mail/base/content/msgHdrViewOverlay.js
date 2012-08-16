@@ -2428,6 +2428,23 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
 }
 
 /**
+ * Open an attachment from the attachment bar.
+ *
+ * @param event the event that triggered this action
+ */
+function OpenAttachmentFromBar(event)
+{
+  if (event.button == 0) {
+    // Only open on the first click; ignore double-clicks so that the user
+    // doesn't end up with the attachment opened multiple times.
+    if (event.detail == 1)
+      TryHandleAllAttachments('open');
+    RestoreFocusAfterHdrButton();
+    event.stopPropagation();
+  }
+}
+
+/**
  * Handle all the attachments in this message (save them, open them, etc).
  *
  * @param action one of "open", "save", "saveAs", "detach", or "delete"

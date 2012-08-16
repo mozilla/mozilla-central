@@ -519,7 +519,7 @@
       <label id="attachmentCount"/>
       <label id="attachmentName" crop="center" flex="1"
              tooltiptext="&openAttachment.tooltip;"
-             onclick="if (event.button == 0) { TryHandleAllAttachments('open'); RestoreFocusAfterHdrButton(); event.stopPropagation(); }"
+             onclick="OpenAttachmentFromBar(event);"
              ondraggesture="nsDragAndDrop.startDrag(event,attachmentNameDNDObserver);"/>
       <label id="attachmentSize"/>
     </hbox>
