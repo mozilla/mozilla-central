@@ -45,10 +45,10 @@ interface nsIMsgWindow : nsISupports {
    */
   readonly attribute nsIDocShell messageWindowDocShell;
 
-    /**
-     * Returns the auth prompt associtated with the window. This will only return
-     * a value if the rootDocShell has been set.
-     */
+  /**
+   * Returns the auth prompt associated with the window. This will only return
+   * a value if the rootDocShell has been set.
+   */
   readonly attribute nsIAuthPrompt authPrompt;
 
   /**
