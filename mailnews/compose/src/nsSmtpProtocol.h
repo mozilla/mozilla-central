@@ -162,35 +162,34 @@ private:
     //						group them together based on functionality. 
     ////////////////////////////////////////////////////////////////////////////////////////
 
-    PRInt32 SmtpResponse(nsIInputStream * inputStream, PRUint32 length); 
-    PRInt32 ExtensionLoginResponse(nsIInputStream * inputStream, PRUint32 length);
-    PRInt32 SendHeloResponse(nsIInputStream * inputStream, PRUint32 length);
-    PRInt32 SendEhloResponse(nsIInputStream * inputStream, PRUint32 length);	
-    PRInt32 SendQuit(SmtpState aNextStateAfterResponse = SMTP_DONE);
+    nsresult SmtpResponse(nsIInputStream * inputStream, PRUint32 length); 
+    nsresult ExtensionLoginResponse(nsIInputStream * inputStream, PRUint32 length);
+    nsresult SendHeloResponse(nsIInputStream * inputStream, PRUint32 length);
+    nsresult SendEhloResponse(nsIInputStream * inputStream, PRUint32 length);	
+    nsresult SendQuit(SmtpState aNextStateAfterResponse = SMTP_DONE);
 
-    PRInt32 AuthGSSAPIFirst();
-    PRInt32 AuthGSSAPIStep();
-    PRInt32 AuthLoginStep0();
-    PRInt32 AuthLoginStep0Response();
-    PRInt32 AuthLoginStep1();
-    PRInt32 AuthLoginStep2();
+    nsresult AuthGSSAPIFirst();
+    nsresult AuthGSSAPIStep();
+    nsresult AuthLoginStep0();
+    void     AuthLoginStep0Response();
+    nsresult AuthLoginStep1();
+    nsresult AuthLoginStep2();
     nsresult AuthLoginResponse(nsIInputStream * stream, PRUint32 length);
 
-    PRInt32 SendTLSResponse();
-    PRInt32 SendMailResponse();
-    PRInt32 SendRecipientResponse();
-    PRInt32 SendDataResponse();
-    PRInt32 SendPostData();
-    PRInt32 SendMessageResponse();
-    PRInt32 CramMD5LoginResponse();
-    PRInt32 ProcessAuth();
+    nsresult SendTLSResponse();
+    nsresult SendMailResponse();
+    nsresult SendRecipientResponse();
+    nsresult SendDataResponse();
+    void     SendPostData();
+    nsresult SendMessageResponse();
+    nsresult ProcessAuth();
 
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // End of Protocol Methods
     ////////////////////////////////////////////////////////////////////////////////////////
 
-    PRInt32 SendMessageInFile();
+    void SendMessageInFile();
 
     void AppendHelloArgument(nsACString& aResult);
     nsresult GetPassword(nsCString &aPassword);

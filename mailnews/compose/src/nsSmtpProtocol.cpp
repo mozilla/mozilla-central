@@ -447,10 +447,8 @@ void nsSmtpProtocol::UpdateStatusWithString(const PRUnichar * aStatusString)
 /*
  * gets the response code from the SMTP server and the
  * response line
- *
- * returns the TCP return code from the read
  */
-PRInt32 nsSmtpProtocol::SmtpResponse(nsIInputStream * inputStream, PRUint32 length)
+nsresult nsSmtpProtocol::SmtpResponse(nsIInputStream * inputStream, PRUint32 length)
 {
   char * line = nullptr;
   char cont_char;
@@ -458,7 +456,8 @@ PRInt32 nsSmtpProtocol::SmtpResponse(nsIInputStream * inputStream, PRUint32 leng
   bool pauseForMoreData = false;
 
   if (!m_lineStreamBuffer)
-    return -1; // this will force an error and at least we won't crash
+    // this will force an error and at least we won't crash
+    return NS_ERROR_NULL_POINTER;
 
   line = m_lineStreamBuffer->ReadNextLine(inputStream, ln, pauseForMoreData);
 
@@ -466,7 +465,7 @@ PRInt32 nsSmtpProtocol::SmtpResponse(nsIInputStream * inputStream, PRUint32 leng
   {
     SetFlag(SMTP_PAUSE_FOR_READ); /* pause */
     PR_Free(line);
-    return(ln);
+    return NS_OK;
   }
 
   m_totalAmountRead += ln;
@@ -510,12 +509,12 @@ PRInt32 nsSmtpProtocol::SmtpResponse(nsIInputStream * inputStream, PRUint32 leng
   }
 
   PR_Free(line);
-  return(0);  /* everything ok */
+  return NS_OK;
 }
 
-PRInt32 nsSmtpProtocol::ExtensionLoginResponse(nsIInputStream * inputStream, PRUint32 length)
+nsresult nsSmtpProtocol::ExtensionLoginResponse(nsIInputStream * inputStream, PRUint32 length)
 {
-  PRInt32 status = 0;
+  nsresult status = NS_OK;
 
   if (m_responseCode != 220)
   {
@@ -543,9 +542,9 @@ PRInt32 nsSmtpProtocol::ExtensionLoginResponse(nsIInputStream * inputStream, PRU
   return(status);
 }
 
-PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 length)
+nsresult nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 length)
 {
-  PRInt32 status = 0;
+  nsresult status = NS_OK;
   nsCAutoString buffer;
   nsresult rv;
 
@@ -653,9 +652,9 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
   return(status);
 }
 
-PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 length)
+nsresult nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 length)
 {
-    PRInt32 status = 0;
+    nsresult status = NS_OK;
 
     if (m_responseCode != 250)
     {
@@ -782,7 +781,7 @@ PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 
 }
 
 
-PRInt32 nsSmtpProtocol::SendTLSResponse()
+nsresult nsSmtpProtocol::SendTLSResponse()
 {
   // only tear down our existing connection and open a new one if we received a 220 response
   // from the smtp server after we issued the STARTTLS
@@ -925,9 +924,9 @@ void nsSmtpProtocol::ResetAuthMethods()
   m_failedAuthMethods = 0;
 }
 
-PRInt32 nsSmtpProtocol::ProcessAuth()
+nsresult nsSmtpProtocol::ProcessAuth()
 {
-    PRInt32 status = 0;
+    nsresult status = NS_OK;
     nsCAutoString buffer;
 
     if (!m_tlsEnabled)
@@ -1146,7 +1145,7 @@ nsresult nsSmtpProtocol::AuthLoginResponse(nsIInputStream * stream, PRUint32 len
   return (status);
 }
 
-PRInt32 nsSmtpProtocol::AuthGSSAPIFirst()
+nsresult nsSmtpProtocol::AuthGSSAPIFirst()
 {
   NS_ASSERTION(m_currentAuthMethod == SMTP_AUTH_GSSAPI_ENABLED, "called in invalid state");
   nsCAutoString command("AUTH GSSAPI ");
@@ -1177,7 +1176,7 @@ PRInt32 nsSmtpProtocol::AuthGSSAPIFirst()
     PR_LOG(SMTPLogModule, PR_LOG_ERROR, ("SMTP: GSSAPI step 1 failed early"));
     MarkAuthMethodAsFailed(SMTP_AUTH_GSSAPI_ENABLED);
     m_nextState = SMTP_AUTH_PROCESS_STATE;
-    return 0;
+    return NS_OK;
   }
   else
     command.Append(resp);
@@ -1190,7 +1189,7 @@ PRInt32 nsSmtpProtocol::AuthGSSAPIFirst()
 
 // GSSAPI may consist of multiple round trips
 
-PRInt32 nsSmtpProtocol::AuthGSSAPIStep()
+nsresult nsSmtpProtocol::AuthGSSAPIStep()
 {
   PR_LOG(SMTPLogModule, PR_LOG_DEBUG, ("SMTP: GSSAPI auth step 2"));
   NS_ASSERTION(m_currentAuthMethod == SMTP_AUTH_GSSAPI_ENABLED, "called in invalid state");
@@ -1200,7 +1199,7 @@ PRInt32 nsSmtpProtocol::AuthGSSAPIStep()
   // Check to see what the server said
   if (m_responseCode / 100 != 3) {
     m_nextState = SMTP_AUTH_LOGIN_RESPONSE;
-    return 0;
+    return NS_OK;
   }
 
   rv = DoGSSAPIStep2(m_responseText, cmd);
@@ -1220,7 +1219,7 @@ PRInt32 nsSmtpProtocol::AuthGSSAPIStep()
 // but by non-RFC2821 compliant implementation in MS servers) not two as
 // PLAIN or CRAM-MD5, so we've to start here and continue with AuthStep1
 // if the server responds with with a 3xx code to "AUTH LOGIN" or "AUTH MSN"
-PRInt32 nsSmtpProtocol::AuthLoginStep0()
+nsresult nsSmtpProtocol::AuthLoginStep0()
 {
     NS_ASSERTION(m_currentAuthMethod == SMTP_AUTH_MSN_ENABLED ||
         m_currentAuthMethod == SMTP_AUTH_LOGIN_ENABLED,
@@ -1235,7 +1234,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep0()
     return SendData(command.get());
 }
 
-PRInt32 nsSmtpProtocol::AuthLoginStep0Response()
+void nsSmtpProtocol::AuthLoginStep0Response()
 {
     NS_ASSERTION(m_currentAuthMethod == SMTP_AUTH_MSN_ENABLED ||
         m_currentAuthMethod == SMTP_AUTH_LOGIN_ENABLED,
@@ -1244,15 +1243,13 @@ PRInt32 nsSmtpProtocol::AuthLoginStep0Response()
     // continue with step 1 instead of 2 in case of a code 3xx
     m_nextState = (m_responseCode/100 == 3) ?
                   SMTP_SEND_AUTH_LOGIN_STEP1 : SMTP_AUTH_LOGIN_RESPONSE;
-
-    return 0;
 }
 
-PRInt32 nsSmtpProtocol::AuthLoginStep1()
+nsresult nsSmtpProtocol::AuthLoginStep1()
 {
   char buffer[512]; // TODO nsCAutoString
   nsresult rv;
-  PRInt32 status = 0;
+  nsresult status = NS_OK;
   nsCString username;
   char *base64Str = nullptr;
   nsCAutoString password;
@@ -1329,14 +1326,14 @@ PRInt32 nsSmtpProtocol::AuthLoginStep1()
   return (status);
 }
 
-PRInt32 nsSmtpProtocol::AuthLoginStep2()
+nsresult nsSmtpProtocol::AuthLoginStep2()
 {
   /* use cached smtp password first
   * if not then use cached pop password
   * if pop password undefined
   * sync with smtp password
   */
-  PRInt32 status = 0;
+  nsresult status = NS_OK;
   nsresult rv;
   nsCAutoString password;
 
@@ -1416,13 +1413,14 @@ PRInt32 nsSmtpProtocol::AuthLoginStep2()
     return (status);
   }
 
-  return -1;
+  // XXX -1 is not a valid nsresult
+  return static_cast<nsresult>(-1);
 }
 
 
-PRInt32 nsSmtpProtocol::SendMailResponse()
+nsresult nsSmtpProtocol::SendMailResponse()
 {
-  PRInt32 status = 0;
+  nsresult status = NS_OK;
   nsCAutoString buffer;
   nsresult rv;
 
@@ -1519,9 +1517,9 @@ PRInt32 nsSmtpProtocol::SendMailResponse()
     return(status);
 }
 
-PRInt32 nsSmtpProtocol::SendRecipientResponse()
+nsresult nsSmtpProtocol::SendRecipientResponse()
 {
-  PRInt32 status = 0;
+  nsresult status = NS_OK;
   nsCAutoString buffer;
   nsresult rv;
 
@@ -1552,7 +1550,7 @@ PRInt32 nsSmtpProtocol::SendRecipientResponse()
     // fake to 250 because SendMailResponse() can't handle 251
     m_responseCode = 250;
     m_nextState = SMTP_SEND_MAIL_RESPONSE;
-    return(0);
+    return NS_OK;
   }
 
   /* else send the DATA command */
@@ -1582,9 +1580,9 @@ nsresult nsSmtpProtocol::SendData(const char *dataBuffer, bool aSuppressLogging)
 }
 
 
-PRInt32 nsSmtpProtocol::SendDataResponse()
+nsresult nsSmtpProtocol::SendDataResponse()
 {
-  PRInt32 status = 0;
+  nsresult status = NS_OK;
   char *command = nullptr;
 
   if (m_responseCode != 354)
@@ -1609,7 +1607,7 @@ PRInt32 nsSmtpProtocol::SendDataResponse()
   return(status);
 }
 
-PRInt32 nsSmtpProtocol::SendMessageInFile()
+void nsSmtpProtocol::SendMessageInFile()
 {
   nsCOMPtr<nsIFile> file;
   nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
@@ -1627,15 +1625,12 @@ PRInt32 nsSmtpProtocol::SendMessageInFile()
   UpdateStatus(SMTP_DELIV_MAIL);
   m_nextState = SMTP_RESPONSE;
   m_nextStateAfterResponse = SMTP_SEND_MESSAGE_RESPONSE;
-  return(0);
 }
 
-PRInt32 nsSmtpProtocol::SendPostData()
+void nsSmtpProtocol::SendPostData()
 {
 	// mscott: as a first pass, I'm writing everything at once and am not
 	// doing it in chunks...
-
-    PRInt32 status = 0;
 
 	/* returns 0 on done and negative on error
 	 * positive if it needs to continue.
@@ -1646,7 +1641,7 @@ PRInt32 nsSmtpProtocol::SendPostData()
 	m_runningURL->GetPostMessage(&postMessageInFile);
 	if (postMessageInFile)
 	{
-		return SendMessageInFile();
+		SendMessageInFile();
 	}
 
 	/* Update the thermo and the status bar.  This is done by hand, rather
@@ -1655,13 +1650,11 @@ PRInt32 nsSmtpProtocol::SendPostData()
 	   when all the data has arrived.  At the end, we want to show the
 	   "message sent; waiting for reply" status; FE_GraphProgress gets in
 	   the way of that.  See bug #23414. */
-
-    return(status);
 }
 
 
 
-PRInt32 nsSmtpProtocol::SendMessageResponse()
+nsresult nsSmtpProtocol::SendMessageResponse()
 {
   if((m_responseCode/10 != 25))
   {
@@ -1678,7 +1671,7 @@ PRInt32 nsSmtpProtocol::SendMessageResponse()
   return SendQuit();
 }
 
-PRInt32 nsSmtpProtocol::SendQuit(SmtpState aNextStateAfterResponse)
+nsresult nsSmtpProtocol::SendQuit(SmtpState aNextStateAfterResponse)
 {
   m_sendDone = true;
   m_nextState = SMTP_RESPONSE;
@@ -1775,7 +1768,7 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
  nsresult nsSmtpProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
    PRUint32 sourceOffset, PRUint32 length)
  {
-   PRInt32 status = 0;
+   nsresult status = NS_OK;
    ClearFlag(SMTP_PAUSE_FOR_READ); /* already paused; reset */
 
    while(!TestFlag(SMTP_PAUSE_FOR_READ))
@@ -1841,7 +1834,8 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
         break;
 
       case SMTP_AUTH_LOGIN_STEP0_RESPONSE:
-        status = AuthLoginStep0Response();
+        AuthLoginStep0Response();
+        status = NS_OK;
         break;
 
       case SMTP_AUTH_EXTERNAL_RESPONSE:
@@ -1883,7 +1877,8 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
         break;
 
       case SMTP_SEND_POST_DATA:
-        status = SendPostData();
+        SendPostData();
+        status = NS_OK;
         break;
 
       case SMTP_SEND_MESSAGE_RESPONSE:
@@ -1924,8 +1919,7 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
     /* check for errors during load and call error
     * state if found
     */
-    if(status < 0 && m_nextState != SMTP_FREE)
-    {
+    if (NS_FAILED(status) && m_nextState != SMTP_FREE) {
       // send a quit command to close the connection with the server.
       if (SendQuit(SMTP_ERROR_DONE) < 0)
       {
