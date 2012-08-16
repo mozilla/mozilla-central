@@ -14,12 +14,12 @@ if [ "$COMM_BUILD" ]; then
   MOZ_LDAP_XPCOM=1
 fi
 MOZ_COMPOSER=1
-#if test "$OS_ARCH" = "WINNT"; then
-#  if ! test "$HAVE_64BIT_OS"; then
-#    MOZ_VERIFY_MAR_SIGNATURE=1
+if test "$OS_ARCH" = "WINNT"; then
+  if ! test "$HAVE_64BIT_OS"; then
+    MOZ_VERIFY_MAR_SIGNATURE=1
 #    MOZ_MAINTENANCE_SERVICE=1
-#  fi
-#fi
+  fi
+fi
 
 MOZ_SAFE_BROWSING=1
 MOZ_MORK=1
