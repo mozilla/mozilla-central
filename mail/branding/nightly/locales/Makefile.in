@@ -6,7 +6,7 @@ DEPTH          = ../../../..
 topsrcdir      = @top_srcdir@
 srcdir         = @srcdir@
 VPATH          = @srcdir@
-relativesrcdir = mail/branding/unofficial/locales
+relativesrcdir = mail/branding/nightly/locales
 
 include $(DEPTH)/config/autoconf.mk
 

@@ -7,7 +7,7 @@ DEPTH		= ../../..
 topsrcdir	= @top_srcdir@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
-relativesrcdir = mail/test/mozmill/
+relativesrcdir = mail/test/mozmill
 
 include $(DEPTH)/config/autoconf.mk
 
