@@ -534,9 +534,11 @@
 
             onLocationChange: function(aWebProgress, aRequest, aLocation, aFlags) {
               const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
-              if (aRequest && aWebProgress.DOMWindow == this.mBrowser.contentWindow) {
-                this.mBrowser.mIconURL = "";
-                this.mFeeds = [];
+              if (aWebProgress.DOMWindow == this.mBrowser.contentWindow) {
+                if (!(aFlags & nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT)) {
+                  this.mBrowser.mIconURL = "";
+                  this.mFeeds = [];
+                }
 
                 if (this.mLocationChangeCount > 0 ||
                     aLocation.spec != "about:blank")
@@ -993,9 +995,11 @@
             var tabListener = this.mTabListeners[this.tabContainer.selectedIndex];
 
             // Update the URL bar.
+            const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
             this.updateUrlBar(newBrowser.webProgress,
-                              null, 0,
+                              null,
                               newBrowser.currentURI,
+                              nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT,
                               newBrowser.securityUI,
                               newBrowser,
                               tabListener.mFeeds);
@@ -1007,7 +1011,6 @@
             this.fastFind.setDocShell(this.mCurrentBrowser.docShell);
 
             // Send the state, status and progress to all progress listeners.
-            const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
             var flags = tabListener.mStateFlags &
                 (nsIWebProgressListener.STATE_START |
                  nsIWebProgressListener.STATE_STOP);

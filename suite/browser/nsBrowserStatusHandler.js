@@ -337,9 +337,8 @@ nsBrowserStatusHandler.prototype =
 
       // Only dismiss notifications if this onLocationChange represents an
       // actual load (or an error page).
-      if (aRequest && this.popupNotifications &&
-          (aWebProgress.isLoadingDocument ||
-           aFlags & nsIWebProgressListener.LOCATION_CHANGE_ERROR_PAGE))
+      if (this.popupNotifications &&
+          !(aFlags & nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT))
         this.popupNotifications.locationChange();
 
       PlacesStarButton.updateState();
