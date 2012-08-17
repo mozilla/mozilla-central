@@ -401,7 +401,9 @@ var GlodaIMIndexer = {
    * dealing with old conversations doesn't care. */
   indexIMConversation: function(aCallbackHandle, aFile, aCache, aGlodaConv) {
     let fileName = aFile.leafName;
-    let lastModifiedTime = aFile.lastModifiedTime;
+    // We need to make sure we're using the most up-to-date lastModifiedTime,
+    // so we use nsIFile.clone to make sure we don't use any cached data.
+    let lastModifiedTime = aFile.clone().lastModifiedTime;
     let isNew = true;
     if (Object.prototype.hasOwnProperty.call(aCache, fileName)) {
       if (aCache[fileName] == lastModifiedTime)
