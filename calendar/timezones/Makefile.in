@@ -21,7 +21,7 @@
 #    b)  This will read the current timezones.properties and dump out which identifiers
 #        are obsolete and which ones are to be added.
 
-DEPTH = ../..
+DEPTH = @DEPTH@
 topsrcdir = @top_srcdir@
 srcdir = @srcdir@
 VPATH = @srcdir@

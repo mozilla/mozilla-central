@@ -4,7 +4,7 @@
 
 # Branding Makefile for nightlies/unofficial branding
 
-DEPTH = ../../..
+DEPTH = @DEPTH@
 topsrcdir = @top_srcdir@
 srcdir = @srcdir@
 VPATH = @srcdir@

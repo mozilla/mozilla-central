@@ -3,7 +3,7 @@
 #  - copies artwork to appropriate places in objdir for bundling into app 
 #    resources
 
-DEPTH = ../../..
+DEPTH = @DEPTH@
 topsrcdir = @top_srcdir@
 srcdir = @srcdir@
 VPATH = @srcdir@
