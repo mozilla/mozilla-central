@@ -7,4 +7,5 @@ add_makefiles "
 ldap/xpcom/Makefile
 ldap/xpcom/public/Makefile
 ldap/xpcom/src/Makefile
+ldap/xpcom/tests/Makefile
 "

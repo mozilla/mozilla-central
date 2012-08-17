@@ -79,6 +79,7 @@ mailnews/mime/cthandlers/Makefile
 mailnews/mime/cthandlers/glue/Makefile
 mailnews/mime/cthandlers/smimestub/Makefile
 mailnews/mime/cthandlers/vcard/Makefile
+mailnews/mime/cthandlers/pgpmime/Makefile
 mailnews/mime/emitters/Makefile
 mailnews/mime/emitters/src/Makefile
 mailnews/mime/public/Makefile
