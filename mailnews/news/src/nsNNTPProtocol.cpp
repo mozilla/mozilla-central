@@ -4351,7 +4351,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
 {
   PRInt32 status = 0;
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
-  if (!mailnewsurl || !m_nntpServer)
+  if (inputStream && (!mailnewsurl || !m_nntpServer))
   {
     // In these cases, we are going to return since our data is effectively
     // invalid. However, nsInputStream would really rather that we at least read
@@ -4374,7 +4374,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
     // already closed our socket and we are merely flushing out the socket
     // receive queue. Since the user told us to stop, don't process any more
     // input.
-    return inputStream->Close();
+    return inputStream ? inputStream->Close() : NS_OK;
   }
 
   ClearFlag(NNTP_PAUSE_FOR_READ);
