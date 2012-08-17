@@ -32,5 +32,5 @@ LIBS += 	\
 		../../base/util/$(LIB_PREFIX)msgbsutl_s.$(LIB_SUFFIX) \
 		$(XPCOM_LIBS) \
 		$(NSPR_LIBS) \
-		$(ZLIB_LIBS) \
+		$(MOZ_ZLIB_LIBS) \
 		$(NULL)

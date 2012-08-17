@@ -65,7 +65,6 @@ EXTRA_DSO_LDOPTS = \
 		$(MOZ_JS_LIBS) \
 		$(MOZ_UNICHARUTIL_LIBS) \
 		$(MOZ_COMPONENT_LIBS) \
-		$(ZLIB_LIBS) \
 		$(MOZ_ZLIB_LIBS) \
 		$(NULL)
 else
@@ -80,7 +79,6 @@ EXTRA_DSO_LDOPTS = \
 	$(NULL)
 ifneq (WINNT,$(OS_ARCH))
 EXTRA_DSO_LDOPTS += \
-	$(ZLIB_LIBS) \
 	$(MOZ_ZLIB_LIBS) \
 	$(NULL)
 endif
