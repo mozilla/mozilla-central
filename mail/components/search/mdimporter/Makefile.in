@@ -27,7 +27,8 @@ endif
 
 BUILDSTYLE = Release
 
-unexport CC CXX
+CC  := $(shell which $(firstword $(CC)))
+CXX := $(shell which $(firstword $(CXX)))
 
 # for objdir builds, copy the project, and symlink the sources
 ABS_topsrcdir   := $(shell cd $(topsrcdir); pwd)
