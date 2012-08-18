@@ -80,7 +80,7 @@ var AboutSupport = {
       accountDetails.push({
         key: account.key,
         name: server.prettyName,
-        hostDetails: "(" + server.type + ") " + server.hostName +
+        hostDetails: "(" + server.type + ") " + server.realHostName +
                      (server.port != -1 ? (":" + server.port) : ""),
         socketType: server.socketType,
         authMethod: server.authMethod,
