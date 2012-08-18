@@ -350,6 +350,7 @@
 @BINPATH@/components/AppsService.manifest
 @BINPATH@/components/BrowserElementParent.js
 @BINPATH@/components/BrowserElementParent.manifest
+@BINPATH@/components/ColorAnalyzer.js
 @BINPATH@/components/ConsoleAPI.js
 @BINPATH@/components/ConsoleAPI.manifest
 @BINPATH@/components/ContactManager.js
