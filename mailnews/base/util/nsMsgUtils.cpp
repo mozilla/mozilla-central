@@ -497,14 +497,14 @@ nsresult FormatFileSize(PRUint64 size, bool useKB, nsAString &formattedSize)
   if (useKB) {
     // Start by formatting in kilobytes
     unitSize /= 1024;
-    if (unitSize < 0.1)
+    if (unitSize < 0.1 && unitSize != 0)
       unitSize = 0.1;
     unitIndex++;
   }
 
   // Convert to next unit if it needs 4 digits (after rounding), but only if
   // we know the name of the next unit
-  while ((unitSize >= 999.5) && (unitIndex < ArrayLength(sizeAbbrNames)))
+  while ((unitSize >= 999.5) && (unitIndex < ArrayLength(sizeAbbrNames) - 1))
   {
       unitSize /= 1024;
       unitIndex++;
@@ -518,10 +518,9 @@ nsresult FormatFileSize(PRUint64 size, bool useKB, nsAString &formattedSize)
 
   // Get rid of insignificant bits by truncating to 1 or 0 decimal points
   // 0.1 -> 0.1; 1.2 -> 1.2; 12.3 -> 12.3; 123.4 -> 123; 234.5 -> 235
-  nsTextFormatter::ssprintf(formattedSize,
-                            sizeAbbr.get(),
-                            (unitIndex != 0) && (unitSize < 99.95) ? 1 : 0,
-                            unitSize);
+  nsTextFormatter::ssprintf(
+    formattedSize, sizeAbbr.get(),
+    (unitIndex != 0) && (unitSize < 99.95 && unitSize != 0) ? 1 : 0, unitSize);
   return NS_OK;
 }
 
