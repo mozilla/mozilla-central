@@ -32,6 +32,7 @@
     onload="OnLoadAddressBook()"
     onunload="OnUnloadAddressBook()"
     lightweightthemes="true"
+    fullscreenbutton="true"
     lightweightthemesfooter="status-bar">
 
   <stringbundleset id="stringbundleset">

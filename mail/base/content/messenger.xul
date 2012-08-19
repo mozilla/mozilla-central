@@ -54,6 +54,7 @@
         windowtype="mail:3pane"
         macanimationtype="document"
         lightweightthemes="true"
+        fullscreenbutton="true"
         lightweightthemesfooter="status-bar">
 
 <stringbundleset id="stringbundleset">

@@ -37,6 +37,7 @@
         windowtype="mail:messageWindow"
         macanimationtype="document"
         lightweightthemes="true"
+        fullscreenbutton="true"
         lightweightthemesfooter="status-bar">
 
   <stringbundleset id="stringbundleset">

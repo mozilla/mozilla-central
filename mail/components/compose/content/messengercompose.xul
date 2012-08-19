@@ -38,6 +38,7 @@
         toggletoolbar="true"
         persist="screenX screenY width height sizemode"
         lightweightthemes="true"
+        fullscreenbutton="true"
         lightweightthemesfooter="status-bar">
 
 <stringbundleset id="stringbundleset">
