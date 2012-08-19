@@ -1051,7 +1051,7 @@ int32_t
 nsMsgComposeAndSend::PreProcessPart(nsMsgAttachmentHandler  *ma,
                                     nsMsgSendPart           *toppart) // The very top most container of the message
 {
-  int             status;
+  nsresult        status;
   char            *hdrs = 0;
   nsMsgSendPart   *part = nullptr;
 
@@ -1170,9 +1170,7 @@ nsMsgComposeAndSend::PreProcessPart(nsMsgAttachmentHandler  *ma,
 
   if (ma->m_type.LowerCaseEqualsLiteral(MESSAGE_RFC822) ||
       ma->m_type.LowerCaseEqualsLiteral(MESSAGE_NEWS)) {
-    status = part->SetStripSensitiveHeaders(true);
-    if (NS_FAILED(status))
-      return 0;
+    part->SetStripSensitiveHeaders(true);
   }
 
   return 1;

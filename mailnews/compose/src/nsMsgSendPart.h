@@ -45,10 +45,9 @@ public:
 	nsresult            SetEncoderData(MimeEncoderData* data);
 	MimeEncoderData     *GetEncoderData() {return m_encoder_data;}
 
-	int                 SetStripSensitiveHeaders(bool value) 
+	void                SetStripSensitiveHeaders(bool value)
                       {
 		                    m_strip_sensitive_headers = value;
-		                    return 0;
 	                    }
 	bool                GetStripSensitiveHeaders() {return m_strip_sensitive_headers;}
 
