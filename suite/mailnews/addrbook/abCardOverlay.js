@@ -103,7 +103,7 @@ function OnLoadNewCard()
       // if we've got a display name, don't generate
       // a display name (and stomp on the existing display name)
       // when the user types a first or last name
-      if (gEditCard.card.displayName.length)
+      if (gEditCard.card.displayName)
         gEditCard.generateDisplayName = false;
     }
     if ("aimScreenName" in window.arguments[0])
