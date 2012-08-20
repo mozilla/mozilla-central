@@ -405,7 +405,7 @@ function resetDialogId(aDialog) {
  * @return              The calIAlarm with information from the menuitem.
  */
 function createReminderFromMenuitem(aMenuitem) {
-    let reminder = cal.createAlarm();
+    let reminder = aMenuitem.reminder || cal.createAlarm();
     let offset = cal.createDuration();
     offset[aMenuitem.getAttribute("unit")] = aMenuitem.getAttribute("length");
     offset.normalize();
@@ -540,6 +540,7 @@ function matchCustomReminderToMenuitem(reminder) {
                 let length = menuitem.getAttribute("length") * unitMult;
 
                 if (Math.abs(reminder.offset.inSeconds) == length) {
+                    menuitem.reminder = reminder.clone();
                     reminderList.selectedItem = menuitem;
                     // We've selected an item, so we are done here.
                     return true;
