@@ -85,12 +85,6 @@ nsresult nsStatusBarBiffManager::PlayBiffSound()
   nsCOMPtr<nsIPrefBranch> pref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv,rv);
   
-  bool playSoundOnBiff = false;
-  rv = pref->GetBoolPref(PREF_PLAY_SOUND_ON_NEW_MAIL, &playSoundOnBiff);
-  NS_ENSURE_SUCCESS(rv,rv);
-  
-  if (!playSoundOnBiff)
-    return NS_OK;
 
   // lazily create the sound instance
   if (!mSound)
@@ -176,8 +170,16 @@ nsStatusBarBiffManager::OnItemIntPropertyChanged(nsIMsgFolder *item, nsIAtom *pr
     // if we fail along the way, don't return.
     // we still need to update the UI.    
     if (newValue == nsIMsgFolder::nsMsgBiffState_NewMail) {
-      // if we fail to play the biff sound, keep going.
-      (void)PlayBiffSound();
+      nsresult rv;
+      nsCOMPtr<nsIPrefBranch> pref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+      NS_ENSURE_SUCCESS(rv, rv);
+      bool playSoundOnBiff = false;
+      rv = pref->GetBoolPref(PREF_PLAY_SOUND_ON_NEW_MAIL, &playSoundOnBiff);
+      NS_ENSURE_SUCCESS(rv, rv);
+      if (playSoundOnBiff) {
+        // if we fail to play the biff sound, keep going.
+        (void)PlayBiffSound();
+      }
     }
     mCurrentBiffState = newValue;
 
