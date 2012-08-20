@@ -39,7 +39,7 @@ GenericImportHelper.prototype =
    * checkProgress of child class to check the data,
    */
   beginImport: function() {
-    do_check_true(this.mFile instanceof Ci.nsIFile && this.mFile.exists())
+    do_check_true(this.mFile instanceof Ci.nsIFile && this.mFile.exists());
 
     if (this.mModuleType == "addressbook")
       this.mInterface.SetData("addressLocation", this.mFile);
@@ -105,7 +105,7 @@ GenericImportHelper.prototype =
    */
   checkResults: function() {
   }
-}
+};
 
 function endsWith(string, suffix) {
   return string.indexOf(suffix, string.length - suffix.length) != -1;
@@ -151,13 +151,18 @@ function AbImportHelper(aFile, aModuleSearchString, aAbName, aJsonName)
      "WorkState", "WorkZipCode", "WorkCountry", "JobTitle", "Department",
      "Company", "BirthYear", "BirthMonth", "BirthDay", "WebPage1", "WebPage2",
      "Custom1", "Custom2", "Custom3", "Custom4", "Notes", "_AimScreenName"];
+
   // get the extra attributes supported for the given type of import
   if (endsWith(this.mFile.leafName.toLowerCase(), ".ldif")) {
     // LDIF: add PreferMailFormat
     this.mSupportedAttributes = supportedAttributes.concat(["PreferMailFormat"]);
   } else if (endsWith(this.mFile.leafName.toLowerCase(), ".csv")) {
     this.mSupportedAttributes = supportedAttributes;
-  }
+    this.setFieldMap(this.getDefaultFieldMap(true));
+  } else if (endsWith(this.mFile.leafName.toLowerCase(), ".vcf")) {
+    this.mSupportedAttributes = supportedAttributes;
+  };
+
   // get the "cards" from the JSON file, if necessary
   if (aJsonName)
     this.mJsonCards = this.getJsonCards(aJsonName);
@@ -321,7 +326,7 @@ AbImportHelper.prototype =
     do_check_true(arr && arr.length > 0);
     return arr;
   }
-}
+};
 AbImportHelper.prototype.__proto__ = GenericImportHelper.prototype;
 
 /**

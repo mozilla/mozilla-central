@@ -66,5 +66,29 @@
       "DisplayName"      : "名無しの権兵衛",
       "PrimaryEmail"     : "名無しの権兵衛@host.invalid"
     }
+  ],
+  "vcard_import" :
+  [
+    {
+      "DisplayName"      : "John Doe",
+      "FirstName"        : "John",
+      "LastName"         : "Doe",
+      "PrimaryEmail"     : "john.doe@genericemail.com"
+    },
+    {
+      "DisplayName"      : "Jane Doe",
+      "FirstName"        : "Jane",
+      "LastName"         : "Doe",
+      "PrimaryEmail"     : "jane.doe@genericemail.com"
+    }
+  ],
+  "csv_import" :
+  [
+    {
+      "DisplayName"      : "John Doe",
+      "FirstName"        : "John",
+      "LastName"         : "Doe",
+      "PrimaryEmail"     : "johndoe@host.invalid"
+    }
   ]
 }

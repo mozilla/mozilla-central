@@ -1,0 +1,18 @@
+
+
+BEGIN:VCARD
+VERSION:2.1
+FN:John Doe
+N:Doe;John;;;
+EMAIL;TYPE=INTERNET:john.doe@genericemail.com
+END:VCARD
+
+
+BEGIN:VCARD
+VERSION:2.1
+FN:Jane Doe
+N:Doe;Jane;;;
+EMAIL;TYPE=INTERNET:jane.doe@genericemail.com
+END:VCARD
+
+

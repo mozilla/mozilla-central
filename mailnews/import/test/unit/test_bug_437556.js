@@ -9,6 +9,7 @@ function run_test()
                   .createInstance(Ci.nsISupportsString);
   // get the Address Book text import interface and make sure it succeeded
   var helper = new AbImportHelper(file, "Text file");
+  helper.setFieldMap(null);
   helper.setAddressBookLocation(file);
 
   var abInterface = helper.getInterface();
