@@ -166,7 +166,12 @@ nsMsgHeaderParser::ParseHeaderAddresses(const char *aLine, char **aNames,
                                         PRUint32 *aNumAddresses)
 {
   NS_ENSURE_ARG_POINTER(aNumAddresses);
-  *aNumAddresses = msg_parse_Header_addresses(aLine, aNames, aAddresses);
+
+  int status = msg_parse_Header_addresses(aLine, aNames, aAddresses);
+  if (status < 0)
+    return NS_ERROR_FAILURE;
+
+  *aNumAddresses = static_cast<PRUint32>(status);
   return NS_OK;
 }
 
