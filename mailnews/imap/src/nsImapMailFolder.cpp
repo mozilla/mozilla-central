@@ -5524,10 +5524,6 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
     }
     // give base class a chance to send folder loaded notification...
     rv = nsMsgDBFolder::OnStopRunningUrl(aUrl, aExitCode);
-    // query it for a mailnews interface for now....
-    if (mailUrl)
-      rv = mailUrl->UnRegisterListener(this);
-
   }
   // if we're not running a url, we must not be getting new mail.
   SetGettingNewMessages(false);
