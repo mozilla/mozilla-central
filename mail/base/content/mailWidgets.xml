@@ -190,13 +190,9 @@
           const XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
           let item = this.ownerDocument.createElementNS(XULNS, "attachmentitem");
           item.setAttribute("name", name || attachment.name);
-
-          let size;
           if (attachment.size != null && attachment.size != -1)
-            size = this.messenger.formatFileSize(attachment.size);
-          else // Use a zero-width space so the size label has the right height.
-            size = "\u200b";
-          item.setAttribute("size", size);
+            item.setAttribute("size", this.messenger.formatFileSize(
+                              attachment.size));
 
           // Pick out some nice icons (small and large) for the attachment
           if (attachment.contentType == "text/x-moz-deleted") {
@@ -367,17 +363,11 @@
     <implementation>
       <method name="setOptimumWidth">
         <body><![CDATA[
-          if (this._childNodes.length == 0)
-            return;
-
           let width = 0;
-          let border = this._childNodes[0].boxObject.width -
-                       this._childNodes[0].clientWidth;
-
-          for (let child of this._childNodes)
-            width = Math.max(width, child.scrollWidth);
-          for (let child of this._childNodes)
-            child.width = width + border;
+          for (let i = 0; i < this._childNodes.length; i++)
+            width = Math.max(width, this._childNodes[i].scrollWidth);
+          for (let i = 0; i < this._childNodes.length; i++)
+            this._childNodes[i].width = width;
         ]]></body>
       </method>
     </implementation>
