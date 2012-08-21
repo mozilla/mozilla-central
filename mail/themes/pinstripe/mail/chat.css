@@ -132,6 +132,7 @@
 #statusTypeAvailable,
 .statusTypeIcon[status="available"],
 #imStatusAvailable,
+#appmenu_imStatusAvailable,
 richlistitem[state="connected"] .accountStateIcon {
   list-style-image: url("chrome://messenger/skin/icons/status.png");
   -moz-image-region: rect(0px 16px 16px 0px);
@@ -149,6 +150,7 @@ richlistitem[state="connected"] .accountStateIcon {
 .statusTypeIcon[status="offline"],
 .statusTypeIcon[status="invisible"],
 #imStatusOffline,
+#appmenu_imStatusOffline,
 richlistitem[state="disconnected"] .accountStateIcon {
   list-style-image: url("chrome://messenger/skin/icons/status.png");
   -moz-image-region: rect(0px 48px 16px 32px);
@@ -159,7 +161,8 @@ richlistitem[state="disconnected"] .accountStateIcon {
 #statusTypeUnavailable,
 .statusTypeIcon[status="unavailable"],
 .statusTypeIcon[status="away"],
-#imStatusUnavailable {
+#imStatusUnavailable,
+#appmenu_imStatusUnavailable {
   list-style-image: url("chrome://messenger/skin/icons/status.png");
   -moz-image-region: rect(0px 64px 16px 48px);
 }

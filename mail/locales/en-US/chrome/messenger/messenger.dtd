@@ -550,6 +550,7 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY folderLocationToolbarItem.title "Folder Location">
 <!ENTITY tagButton.label "Tag">
 <!ENTITY compactButton.label "Compact">
+<!ENTITY appmenuButton.label "AppMenu">
 
 <!-- Mail Toolbar Tooltips-->
 <!ENTITY advancedButton.tooltip "Advanced message search">
@@ -580,6 +581,14 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY chatButton.tooltip "Show the Chat tab">
 <!ENTITY tagButton.tooltip "Tag messages">
 <!ENTITY compactButton.tooltip "Remove deleted messages from selected folder">
+<!ENTITY appmenuButton.tooltip "Displays the Application Menu">
+
+<!-- AppMenu Popup -->
+<!ENTITY appmenuNewMsgCmd.label "New Message">
+<!ENTITY appmenuNewContactCmd.label "Address Book Contact…">
+<!ENTITY appmenuEditMenu.label "Edit">
+<!ENTITY appmenuQFBMenu.label "Quick Filter Bar">
+<!ENTITY appmenuToolbarLayout.label "Toolbar Layout…">
 
 <!-- Tags Menu Popup -->
 <!ENTITY addNewTag.label "New Tag…">

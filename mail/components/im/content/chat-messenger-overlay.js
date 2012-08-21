@@ -330,6 +330,11 @@ var chatHandler = {
       return;
     }
 
+    if (target.getAttribute("id") == "appmenu_imStatusShowAccounts") {
+      openIMAccountMgr();
+      return;
+    }
+
     let status = target.getAttribute("status");
     if (!status)
       return; // Can status really be null? Maybe because of an add-on...
@@ -724,12 +729,14 @@ var chatHandler = {
       if (elt)
         elt.disabled = !hasAccount;
     }
-    for each (let id in ["button-add-buddy", "newIMContactMenuItem"]) {
+    for each (let id in ["button-add-buddy", "newIMContactMenuItem",
+                         "appmenu_newIMContactMenuItem"]) {
       let elt = document.getElementById(id);
       if (elt)
         elt.disabled = !connected;
     }
-    for each (let id in ["button-join-chat", "joinChatMenuItem"]) {
+    for each (let id in ["button-join-chat", "joinChatMenuItem",
+                         "appmenu_joinChatMenuItem"]) {
       let elt = document.getElementById(id);
       if (elt)
         elt.disabled = !canJoinChat;
@@ -969,8 +976,9 @@ var chatHandler = {
   init: function() {
     if (!Services.prefs.getBoolPref("mail.chat.enabled")) {
       ["button-chat", "menu_goChat", "goChatSeparator",
-       "imAccountsStatus", "joinChatMenuItem",
-       "newIMAccountMenuItem", "newIMContactMenuItem"].forEach(function(aId) {
+       "imAccountsStatus", "joinChatMenuItem", "newIMAccountMenuItem",
+       "newIMContactMenuItem", "appmenu_joinChatMenuItem",
+       "appmenu_newIMAccountMenuItem", "appmenu_newIMContactMenuItem"].forEach(function(aId) {
          let elt = document.getElementById(aId);
          if (elt)
            elt.hidden = true;

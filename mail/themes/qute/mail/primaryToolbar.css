@@ -386,6 +386,29 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-image-region: rect(48px 576px 72px 552px) !important;
 }
 
+#button-appmenu {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 600px 24px 576px);
+  min-width: 35px;
+}
+
+#button-previousMsg:hover {
+  -moz-image-region: rect(24px 600px 48px 576px);
+}
+
+#button-previousMsg[disabled] {
+  -moz-image-region: rect(48px 600px 72px 576px) !important;
+}
+
+#button-appmenu .toolbarbutton-text,
+#button-appmenu .toolbarbutton-menu-dropmarker {
+  display: none;
+}
+
+toolbar[mode="text"] #button-appmenu .toolbarbutton-icon {
+  display: -moz-box;
+}
+
 /* ::::: small primary toolbar buttons ::::: */
 
 toolbar[iconsize="small"] #button-getmsg {
@@ -693,6 +716,19 @@ toolbar[iconsize="small"] #button-previousMsg[disabled] {
   -moz-image-region: rect(32px 384px 48px 368px) !important;
 }
 
+toolbar[iconsize="small"] #button-appmenu {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 400px 16px 384px);
+}
+
+toolbar[iconsize="small"] #button-previousMsg:hover {
+  -moz-image-region: rect(16px 400px 32px 384px);
+}
+
+toolbar[iconsize="small"] #button-previousMsg[disabled] {
+  -moz-image-region: rect(32px 400px 48px 384px) !important;
+}
+
 /* ::::: end small primary toolbar buttons ::::: */
 
 /* ::::: toolbar buttons on tabbar toolbar ::::: */
@@ -766,4 +802,131 @@ toolbar[iconsize="small"] #button-previousMsg[disabled] {
 
 #mdnBarImage {
   list-style-image: url("chrome://global/skin/icons/question-24.png");
+}
+
+/* AppMenu styling */
+
+.splitmenu-menuitem {
+  -moz-margin-end: 1px;
+}
+
+.splitmenu-menu {
+  -moz-box-pack: end;
+}
+
+.appmenu-edit-button {
+  -moz-appearance: none;
+  border: 1px solid transparent;
+  padding: 2px;
+  background: transparent;
+  border-radius: 3px;
+}
+
+.appmenu-edit-button[disabled="true"] {
+  opacity: .3;
+}
+
+#appmenuPrimaryPane {
+  -moz-border-end: 1px solid ThreeDShadow;
+}
+
+@media (-moz-windows-default-theme) {
+  #appmenu-popup {
+    -moz-appearance: none;
+    background: white;
+    border: 1px solid ThreeDShadow;
+  }
+  #appmenuPrimaryPane {
+    background-color: rgba(255, 255, 255, .5);
+    padding: 2px;
+    -moz-border-end: none;
+  }
+  #appmenuSecondaryPane {
+    background-color: #f1f5fb;
+    box-shadow: 1px 0 2px rgb(204, 214, 234) inset;
+    -moz-padding-start: 3px;
+    -moz-padding-end: 2px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    font-family: "Segoe UI Semibold", "Segoe UI", sans-serif;
+  }
+  #appmenuSecondaryPane:-moz-locale-dir(rtl) {
+    box-shadow: -1px 0 2px rgb(204, 214, 234) inset;
+  }
+
+  #appmenuSecondaryPane menupopup {
+    -moz-appearance: none;
+    background-color: #f1f5fb;
+    border: 1px solid ThreeDShadow;
+    padding: 2px;
+  }
+
+  .appmenu-menuseparator {
+    -moz-appearance: none;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    -moz-margin-start: -moz-calc(1.45em + 4px);
+    padding: 0;
+    border-top: 1px solid #d6e5f5;
+    border-bottom: none;
+  }
+
+  .appmenu-edit-button:not([disabled]):hover {
+    border: 1px solid #b8d6fb;
+    box-shadow: inset 0 0 1px white;
+    background: -moz-linear-gradient(#fafbfd, #ebf3fd);
+    transition: .2s ease-in;
+  }
+}
+
+.appmenuPane-spacer {
+  min-height: 1em;
+}
+
+#appmenu-editmenu {
+  -moz-box-pack: end;
+}
+
+#appmenu_print,
+#appmenu_print_popup,
+.appmenu-edit-button,
+#appmenu-editmenu-cut,
+#appmenu-editmenu-copy,
+#appmenu-editmenu-paste,
+#appmenu-quit {
+  list-style-image: url("icons/appmenu-icons.png");
+}
+
+#appmenu-cut,
+#appmenu-editmenu-cut {
+  -moz-image-region: rect(0 16px 16px 0);
+}
+
+#appmenu-copy,
+#appmenu-editmenu-copy {
+  -moz-image-region: rect(0 32px 16px 16px);
+}
+
+#appmenu-paste,
+#appmenu-editmenu-paste {
+  -moz-image-region: rect(0 48px 16px 32px);
+}
+
+#appmenu_print,
+#appmenu_print_popup {
+  -moz-image-region: rect(0 64px 16px 48px);
+}
+
+#appmenu-quit {
+  -moz-image-region: rect(0 80px 16px 64px);
+}
+
+#appmenu-edit-label {
+  -moz-appearance: none;
+  background: transparent;
+  font-style: italic;
+}
+
+#appmenu_addons {
+  list-style-image: url("chrome://mozapps/skin/extensions/extensionGeneric-16.png");
 }

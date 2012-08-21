@@ -99,7 +99,7 @@ var MailMigrator = {
   _migrateUI: function MailMigrator__migrateUI() {
     // The code for this was ported from
     // mozilla/browser/components/nsBrowserGlue.js
-    const UI_VERSION = 4;
+    const UI_VERSION = 5;
     const MESSENGER_DOCURL = "chrome://messenger/content/messenger.xul#";
     const UI_VERSION_PREF = "mail.ui-rdf.version";
     let currentUIVersion = 0;
@@ -224,6 +224,36 @@ var MailMigrator = {
             }
             this._setPersist(barResource, currentSetResource, currentSet);
           }
+        }
+      }
+
+      // In UI version 5, we add the AppMenu button to the mail toolbar and
+      // collapse the main menu by default.
+      if (currentUIVersion < 5) {
+
+        // First, we'll add the button to the mail toolbar...
+        let barResource = this._rdf.GetResource(MESSENGER_DOCURL + "mail-bar3");
+        if (barResource !== null) {
+          let currentSetResource = this._rdf.GetResource("currentset");
+          let currentSet = this._getPersist(barResource, currentSetResource);
+
+          if (currentSet
+              && currentSet.indexOf("button-appmenu") == -1) {
+
+            dirty = true;
+            // Put the AppMenu button at the end.
+            currentSet = currentSet + ",button-appmenu";
+            this._setPersist(barResource, currentSetResource, currentSet);
+          }
+        }
+
+        // ... and now we'll collapse the main menu.
+        let menuResource = this._rdf.GetResource(MESSENGER_DOCURL +
+                                                 "mail-toolbar-menubar2");
+        if (menuResource !== null) {
+          let autohideResource = this._rdf.GetResource("autohide");
+          dirty = true;
+          this._setPersist(menuResource, autohideResource, "true");
         }
       }
 

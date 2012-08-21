@@ -617,6 +617,13 @@ var messageHeaderSink = {
 
         // convert the uri into a hdr
         this.mSaveHdr.markHasAttachments(true);
+        // we also do the same on appmenu
+        let appmenunode = document.getElementById("appmenu_fileAttachmentMenu");
+        if (appmenunode)
+          appmenunode.removeAttribute("disabled");
+
+        // convert the uri into a hdr
+        this.mSaveHdr.markHasAttachments(true);
       }
     },
 
@@ -1110,6 +1117,7 @@ function HideMessageHeaderPane()
 
   // disable the File/Attachments menuitem
   document.getElementById("fileAttachmentMenu").setAttribute("disabled", "true");
+  document.getElementById("appmenu_fileAttachmentMenu").setAttribute("disabled", "true");
   // disable the attachment box
   document.getElementById("attachmentView").collapsed = true;
   document.getElementById("attachment-splitter").collapsed = true;
@@ -2595,6 +2603,10 @@ function ClearAttachmentList()
   var node = document.getElementById("fileAttachmentMenu");
   if (node)
     node.setAttribute("disabled", "true");
+  // we also do the same on appmenu
+  let appmenunode = document.getElementById("appmenu_fileAttachmentMenu");
+  if (appmenunode)
+    appmenunode.setAttribute("disabled", "true");
 
   // clear selection
   var list = document.getElementById("attachmentList");

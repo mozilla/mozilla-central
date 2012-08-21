@@ -17,6 +17,7 @@ message-header
 message-window
 migration-to-rdf-ui-2
 migration-to-rdf-ui-3
+migration-to-rdf-ui-5
 newmailaccount
 notification
 pref-window

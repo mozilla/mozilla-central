@@ -485,18 +485,6 @@ imgroup[closed] .twisty {
 %endif
 }
 
-#imStatusAvailable {
-  list-style-image: url('chrome://chat/skin/available-16.png');
-}
-
-#imStatusUnavailable {
-  list-style-image: url('chrome://chat/skin/away-16.png');
-}
-
-#imStatusOffline {
-  list-style-image: url('chrome://chat/skin/offline-16.png');
-}
-
 #statusTypeIcon {
   min-width: 40px;
 }

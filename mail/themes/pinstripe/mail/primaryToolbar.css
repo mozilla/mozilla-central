@@ -467,6 +467,31 @@ toolbar[mode="icons"] .toolbarbutton-1 > menupopup {
   -moz-image-region: rect(18px, 432px, 36px, 414px);
 }
 
+#button-appmenu {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 450px, 18px, 432px);
+  min-width: 35px;
+}
+
+#button-appmenu:not([disabled="true"]):active {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(18px, 450px, 36px, 432px);
+}
+
+#button-appmenu[open="true"] {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(36px, 450px, 54px, 432px);
+}
+
+#button-appmenu .toolbarbutton-text,
+#button-appmenu .toolbarbutton-menu-dropmarker {
+  display: none;
+}
+
+toolbar[mode="text"] #button-appmenu .toolbarbutton-icon {
+  display: -moz-box;
+}
+
 /* ::::: end small primary toolbar buttons ::::: */
 
 #palette-box #qfb-show-filter-bar {
@@ -586,4 +611,171 @@ toolbar[mode="icons"] .toolbarbutton-1 > menupopup {
 
 #mail-bar3:-moz-lwtheme {
   padding-bottom: 0px;
+}
+
+/* AppMenu styling */
+
+.splitmenu-menuitem {
+  -moz-appearance: menuitem;
+  -moz-box-align: center;
+  color: MenuText;
+  font: -moz-pull-down-menu;
+  list-style-image: none;
+  -moz-image-region: auto;
+  -moz-margin-end: 1px;
+  padding-bottom: 2px;
+  -moz-padding-start: 10px;
+  -moz-padding-end: 0;
+}
+
+.splitmenu-menuitem[_moz-menuactive="true"] {
+  color: -moz-mac-menutextselect;
+  background-color: Highlight;
+}
+
+.splitmenu-menuitem[disabled="true"],
+.splitmenu-menu[_moz-menuactive="true"][disabled="true"],
+.splitmenu-menuitem[_moz-menuactive="true"][disabled="true"] {
+  -moz-appearance: none;
+  color: -moz-mac-menutextdisable;
+  background-color: transparent;
+}
+
+.splitmenu-menuitem[iconic="true"] {
+  /* 2px higher than those without icons */
+  padding-top: 1px;
+  padding-bottom: 3px;
+  list-style-image: inherit;
+  -moz-image-region: inherit;
+}
+
+.splitmenu-menuitem[iconic="true"] > .menu-iconic-left > .menu-iconic-icon {
+  -moz-margin-start: 0;
+  width: 16px;
+}
+
+.appmenu-edit-button {
+  -moz-appearance: none;
+  border-width: 0;
+  padding: 0 2px;
+}
+
+.appmenu-edit-button[disabled="true"] {
+  opacity: .3;
+}
+
+#appmenu-popup {
+  -moz-appearance: none;
+}
+
+#appmenu-popup * {
+  font-size: 12px;
+}
+
+#appmenu-popup > .popup-internal-box {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+#appmenuPrimaryPane {
+  padding: 2px;
+}
+
+#appmenuSecondaryPane {
+  background-color: #f1f5fb;
+  box-shadow: 1px 0 2px rgb(204, 214, 234) inset;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  -moz-padding-start: 3px;
+  -moz-padding-end: 2px;
+}
+
+#appmenuSecondaryPane:-moz-locale-dir(rtl) {
+  box-shadow: -1px 0 2px rgb(204, 214, 234) inset;
+}
+
+#appmenuPrimaryPane > menu > .menu-right,
+#appmenuSecondaryPane > menu > .menu-right {
+  -moz-margin-start: 0;
+}
+
+#appmenuPrimaryPane > :-moz-any(menu, menuitem),
+#appmenuSecondaryPane > :-moz-any(menu, menuitem) {
+  -moz-padding-start: 10px;
+  -moz-padding-end: 15px;
+}
+
+.appmenuPane-spacer {
+  min-height: 1em;
+}
+
+#appmenuSecondaryPane > :-moz-any(menu, menuitem):not([_moz-menuactive]),
+#appmenuSecondaryPane > :-moz-any(menu, menuitem)[_moz-menuactive][disabled],
+#appmenuSecondaryPane > splitmenu >
+  :-moz-any(.splitmenu-menu, .splitmenu-menuitem):not([_moz-menuactive]) {
+  -moz-appearance: none;
+  background-color: transparent;
+}
+
+.splitmenu-menu,
+#appmenu-editmenu {
+  -moz-box-pack: end;
+  -moz-padding-start: 5px;
+  -moz-padding-end: 15px;
+}
+
+.splitmenu-menu > .menu-accel-container,
+#appmenu-editmenu > .menu-accel-container {
+  margin: 0;
+}
+
+.splitmenu-menu > .menu-right,
+#appmenu-editmenu > .menu-right {
+  -moz-margin-start: 5px;
+}
+
+#appmenu_print,
+#appmenu_print_popup,
+.appmenu-edit-button,
+#appmenu-editmenu-cut,
+#appmenu-editmenu-copy,
+#appmenu-editmenu-paste,
+#appmenu-quit {
+  list-style-image: url("icons/appmenu-icons.png");
+}
+
+#appmenu-cut,
+#appmenu-editmenu-cut {
+  -moz-image-region: rect(0 16px 16px 0);
+}
+
+#appmenu-copy,
+#appmenu-editmenu-copy {
+  -moz-image-region: rect(0 32px 16px 16px);
+}
+
+#appmenu-paste,
+#appmenu-editmenu-paste {
+  -moz-image-region: rect(0 48px 16px 32px);
+}
+
+#appmenu_print,
+#appmenu_print_popup {
+  -moz-image-region: rect(0 64px 16px 48px);
+}
+
+#appmenu-quit {
+  -moz-image-region: rect(0 80px 16px 64px);
+}
+
+#appmenu-edit-label {
+  -moz-appearance: none;
+  background: transparent;
+  font-style: italic;
+  -moz-padding-start: 10px;
+  -moz-padding-end: 0;
+}
+
+#appmenu_addons {
+  list-style-image: url("chrome://mozapps/skin/extensions/extensionGeneric-16.png");
 }

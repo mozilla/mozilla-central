@@ -128,6 +128,27 @@ function InitEditMessagesMenu()
   }
 }
 
+function InitAppEditMessagesMenu()
+{
+  goSetMenuValue('cmd_delete', 'valueDefault');
+  goSetAccessKey('cmd_delete', 'valueDefaultAccessKey');
+  document.commandDispatcher.updateCommands('create-menu-edit');
+
+  // initialize the favorite Folder checkbox in the appmenu menu
+  let favoriteAppFolderMenu = document.getElementById('appmenu_favoriteFolder');
+  if (!favoriteAppFolderMenu.disabled) {
+    let folders = gFolderTreeView.getSelectedFolders();
+    if (folders.length == 1 && !folders[0].isServer) {
+      const kFavoriteFlag = Components.interfaces.nsMsgFolderFlags.Favorite;
+      // Adjust the checked state on the menu item.
+      favoriteAppFolderMenu.setAttribute("checked", folders[0].getFlag(kFavoriteFlag));
+      favoriteAppFolderMenu.hidden = false;
+    } else {
+      favoriteAppFolderMenu.hidden = true;
+    }
+  }
+}
+
 function InitGoMessagesMenu()
 {
   document.commandDispatcher.updateCommands('create-menu-go');
@@ -156,8 +177,11 @@ function view_init()
 
   // Disable some menus if account manager is showing
   document.getElementById("viewSortMenu").disabled = accountCentralDisplayed;
+  document.getElementById("appmenu_viewSortMenu").disabled = accountCentralDisplayed;
   document.getElementById("viewMessageViewMenu").disabled = accountCentralDisplayed;
+  document.getElementById("appmenu_viewMessageViewMenu").disabled = accountCentralDisplayed;
   document.getElementById("viewMessagesMenu").disabled = accountCentralDisplayed;
+  document.getElementById("appmenu_viewMessagesMenu").disabled = accountCentralDisplayed;
 
   // Hide the views menu item if the user doesn't have the views toolbar button
   // visible.
@@ -166,14 +190,19 @@ function view_init()
 
   // Initialize the Message Body menuitem
   document.getElementById('viewBodyMenu').hidden = isFeed;
+  document.getElementById('appmenu_viewBodyMenu').hidden = isFeed;
 
   // Initialize the Show Feed Summary menu
   var viewFeedSummary = document.getElementById('viewFeedSummary');
+  let appmenuViewFeedSummary = document.getElementById('appmenu_viewFeedSummary');
   var winType = document.documentElement.getAttribute('windowtype');
-  if (winType != "mail:3pane")
+  if (winType != "mail:3pane") {
     viewFeedSummary.hidden = !gShowFeedSummary;
-  else
+    appmenuViewFeedSummary.hidden = !gShowFeedSummary;
+  } else {
     viewFeedSummary.hidden = !isFeed;
+    appmenuViewFeedSummary.hidden = !isFeed;
+  }
 
   var viewRssMenuItemIds = ["bodyFeedGlobalWebPage",
                             "bodyFeedGlobalSummary",
@@ -274,6 +303,55 @@ function InitViewSortByMenu()
   groupBySortOrderMenuItem.setAttribute("checked", grouped);
 }
 
+function InitAppViewSortByMenu()
+{
+  let sortType = gFolderDisplay.view.primarySortType;
+
+  setSortByMenuItemCheckState("appmenu_sortByDateMenuitem", (sortType == nsMsgViewSortType.byDate));
+  setSortByMenuItemCheckState("appmenu_sortByReceivedMenuitem", (sortType == nsMsgViewSortType.byReceived));
+  setSortByMenuItemCheckState("appmenu_sortByFlagMenuitem", (sortType == nsMsgViewSortType.byFlagged));
+  setSortByMenuItemCheckState("appmenu_sortByOrderReceivedMenuitem", (sortType == nsMsgViewSortType.byId));
+  setSortByMenuItemCheckState("appmenu_sortByPriorityMenuitem", (sortType == nsMsgViewSortType.byPriority));
+  setSortByMenuItemCheckState("appmenu_sortBySizeMenuitem", (sortType == nsMsgViewSortType.bySize));
+  setSortByMenuItemCheckState("appmenu_sortByStatusMenuitem", (sortType == nsMsgViewSortType.byStatus));
+  setSortByMenuItemCheckState("appmenu_sortBySubjectMenuitem", (sortType == nsMsgViewSortType.bySubject));
+  setSortByMenuItemCheckState("appmenu_sortByUnreadMenuitem", (sortType == nsMsgViewSortType.byUnread));
+  setSortByMenuItemCheckState("appmenu_sortByTagsMenuitem", (sortType == nsMsgViewSortType.byTags));
+  setSortByMenuItemCheckState("appmenu_sortByJunkStatusMenuitem", (sortType == nsMsgViewSortType.byJunkStatus));
+  setSortByMenuItemCheckState("appmenu_sortByFromMenuitem", (sortType == nsMsgViewSortType.byAuthor));
+  setSortByMenuItemCheckState("appmenu_sortByRecipientMenuitem", (sortType == nsMsgViewSortType.byRecipient));
+  setSortByMenuItemCheckState("appmenu_sortByAttachmentsMenuitem", (sortType == nsMsgViewSortType.byAttachments));
+
+  let sortOrder = gFolderDisplay.view.primarySortOrder;
+  let sortTypeSupportsGrouping = (sortType == nsMsgViewSortType.byAuthor ||
+                                  sortType == nsMsgViewSortType.byDate ||
+                                  sortType == nsMsgViewSortType.byReceived ||
+                                  sortType == nsMsgViewSortType.byPriority ||
+                                  sortType == nsMsgViewSortType.bySubject ||
+                                  sortType == nsMsgViewSortType.byTags ||
+                                  sortType == nsMsgViewSortType.byRecipient ||
+                                  sortType == nsMsgViewSortType.byAccount ||
+                                  sortType == nsMsgViewSortType.byStatus ||
+                                  sortType == nsMsgViewSortType.byFlagged ||
+                                  sortType == nsMsgViewSortType.byAttachments);
+
+  setSortByMenuItemCheckState("appmenu_sortAscending", (sortOrder == nsMsgViewSortOrder.ascending));
+  setSortByMenuItemCheckState("appmenu_sortDescending", (sortOrder == nsMsgViewSortOrder.descending));
+
+  let grouped = gFolderDisplay.view.showGroupedBySort;
+  let threaded = gFolderDisplay.view.showThreaded;
+  let sortThreadedMenuItem = document.getElementById("appmenu_sortThreaded");
+  let sortUnthreadedMenuItem = document.getElementById("appmenu_sortUnthreaded");
+
+  sortThreadedMenuItem.setAttribute("checked", threaded);
+  sortUnthreadedMenuItem.setAttribute("checked", !threaded && !grouped);
+
+  let groupBySortOrderMenuItem = document.getElementById("appmenu_groupBySort");
+
+  groupBySortOrderMenuItem.setAttribute("disabled", !sortTypeSupportsGrouping);
+  groupBySortOrderMenuItem.setAttribute("checked", grouped);
+}
+
 function InitViewMessagesMenu()
 {
   document.getElementById("viewAllMessagesMenuItem").setAttribute("checked",
@@ -290,6 +368,25 @@ function InitViewMessagesMenu()
     gFolderDisplay.view.specialViewWatchedThreadsWithUnread);
 
   document.getElementById("viewIgnoredThreadsMenuItem").setAttribute("checked",
+    gFolderDisplay.view.showIgnored);
+}
+
+function InitAppmenuViewMessagesMenu()
+{
+  document.getElementById("appmenu_viewAllMessagesMenuItem").setAttribute("checked",
+    !gFolderDisplay.view.showUnreadOnly &&
+    !gFolderDisplay.view.specialView);
+
+  document.getElementById("appmenu_viewUnreadMessagesMenuItem").setAttribute("checked",
+    gFolderDisplay.view.showUnreadOnly);
+
+  document.getElementById("appmenu_viewThreadsWithUnreadMenuItem").setAttribute("checked",
+    gFolderDisplay.view.specialViewThreadsWithUnread);
+
+  document.getElementById("appmenu_viewWatchedThreadsWithUnreadMenuItem").setAttribute("checked",
+    gFolderDisplay.view.specialViewWatchedThreadsWithUnread);
+
+  document.getElementById("appmenu_viewIgnoredThreadsMenuItem").setAttribute("checked",
     gFolderDisplay.view.showIgnored);
 }
 
@@ -353,6 +450,68 @@ function InitMessageMenu()
   // Disable mark menu when we're not in a folder.
   document.getElementById("markMenu").disabled = gMessageDisplay.isDummy;
 
+  document.commandDispatcher.updateCommands('create-menu-message');
+}
+
+function InitAppMessageMenu()
+{
+  let selectedMsg = gFolderDisplay.selectedMessage;
+  let isNews = gFolderDisplay.selectedMessageIsNews;
+  let isFeed = gFolderDisplay.selectedMessageIsFeed;
+
+  // We show reply to Newsgroups only for news messages.
+  document.getElementById("appmenu_replyNewsgroupMainMenu").hidden = !isNews;
+
+  // For mail messages we say reply. For news we say ReplyToSender.
+  document.getElementById("appmenu_replyMainMenu").hidden = isNews;
+  document.getElementById("appmenu_replySenderMainMenu").hidden = !isNews;
+
+  // We only kill and watch threads for news.
+  document.getElementById("appmenu_threadItemsSeparator").hidden = !isNews;
+  document.getElementById("appmenu_killThread").hidden = !isNews;
+  document.getElementById("appmenu_killSubthread").hidden = !isNews;
+  document.getElementById("appmenu_watchThread").hidden = !isNews;
+  document.getElementById("appmenu_cancel").hidden = !isNews;
+
+  // Disable the move and copy menus if there are no messages selected or if
+  // the message is a dummy - e.g. opening a message in the standalone window.
+  let messageStoredInternally = selectedMsg && !gMessageDisplay.isDummy;
+  // Disable the move menu if we can't delete msgs from the folder.
+  let canMove = messageStoredInternally &&
+                gFolderDisplay.canDeleteSelectedMessages;
+  document.getElementById("appmenu_moveMenu").disabled = !canMove;
+
+  // Also disable copy when no folder is loaded (like for .eml files).
+  let canCopy = selectedMsg && (!gMessageDisplay.isDummy ||
+                                window.arguments[0].scheme == "file");
+  document.getElementById("appmenu_copyMenu").disabled = !canCopy;
+
+  initMoveToFolderAgainMenu(document.getElementById("appmenu_moveToFolderAgain"));
+
+  // Disable the Forward As menu item if no message is selected.
+  document.getElementById("appmenu_forwardAsMenu").disabled = !selectedMsg;
+
+  // Disable the Tag menu item if no message is selected or when we're
+  // not in a folder.
+  document.getElementById("appmenu_tagMenu").disabled = !messageStoredInternally;
+
+  // Initialize the Open Message menuitem
+  let winType = document.documentElement.getAttribute('windowtype');
+  if (winType == "mail:3pane")
+    document.getElementById('appmenu_openMessageWindowMenuitem').hidden = isFeed;
+
+  // Initialize the Open Feed Message handler menu
+  let index = GetFeedOpenHandler();
+  document.getElementById("appmenu_openFeedMessage")
+          .childNodes[index]
+          .setAttribute("checked", true);
+  let openRssMenu = document.getElementById("appmenu_openFeedMessage");
+  openRssMenu.hidden = !isFeed;
+  if (winType != "mail:3pane")
+    openRssMenu.hidden = true;
+
+  // Disable mark menu when we're not in a folder.
+  document.getElementById("appmenu_markMenu").disabled = gMessageDisplay.isDummy;
   document.commandDispatcher.updateCommands('create-menu-message');
 }
 
@@ -466,6 +625,66 @@ function InitViewBodyMenu()
     Sanitized_menuitem.hidden = !gShowFeedSummary;
     AsPlaintext_menuitem.hidden = !gShowFeedSummary;
     document.getElementById("viewFeedSummarySeparator").hidden = !gShowFeedSummary;
+  }
+}
+
+function InitAppmenuViewBodyMenu()
+{
+  let html_as = 0;
+  let prefer_plaintext = false;
+  let disallow_classes = 0;
+  let isFeed = gFolderDisplay.selectedMessageIsFeed;
+  const kDefaultIDs = ["appmenu_bodyAllowHTML",
+                       "appmenu_bodySanitized",
+                       "appmenu_bodyAsPlaintext",
+                       "appmenu_bodyAllParts"];
+  const kRssIDs = ["appmenu_bodyFeedSummaryAllowHTML",
+                   "appmenu_bodyFeedSummarySanitized",
+                   "appmenu_bodyFeedSummaryAsPlaintext"];
+  let menuIDs = isFeed ? kRssIDs : kDefaultIDs;
+  // Get prefs
+  if (isFeed) {
+    prefer_plaintext = pref.getBoolPref("rss.display.prefer_plaintext");
+    html_as = pref.getIntPref("rss.display.html_as");
+    disallow_classes = pref.getIntPref("rss.display.disallow_mime_handlers");
+  } else {
+    prefer_plaintext = pref.getBoolPref("mailnews.display.prefer_plaintext");
+    html_as = pref.getIntPref("mailnews.display.html_as");
+    disallow_classes = pref.getIntPref("mailnews.display.disallow_mime_handlers");
+  }
+
+  if (disallow_classes > 0)
+    gDisallow_classes_no_html = disallow_classes;
+  // else gDisallow_classes_no_html keeps its inital value (see top)
+
+  let AllowHTML_menuitem = document.getElementById(menuIDs[0]);
+  let Sanitized_menuitem = document.getElementById(menuIDs[1]);
+  let AsPlaintext_menuitem = document.getElementById(menuIDs[2]);
+  let AllBodyParts_menuitem = menuIDs[3] ? document.getElementById(menuIDs[3])
+                                         : null;
+
+  document.getElementById("appmenu_bodyAllParts").hidden =
+    !pref.getBoolPref("mailnews.display.show_all_body_parts_menu");
+
+  if (!prefer_plaintext && !html_as && !disallow_classes &&
+      AllowHTML_menuitem)
+    AllowHTML_menuitem.setAttribute("checked", true);
+  else if (!prefer_plaintext && html_as == 3 && disallow_classes > 0 &&
+           Sanitized_menuitem)
+    Sanitized_menuitem.setAttribute("checked", true);
+  else if (prefer_plaintext && html_as == 1 && disallow_classes > 0 &&
+           AsPlaintext_menuitem)
+    AsPlaintext_menuitem.setAttribute("checked", true);
+  else if (!prefer_plaintext && html_as == 4 && !disallow_classes &&
+           AllBodyParts_menuitem)
+    AllBodyParts_menuitem.setAttribute("checked", true);
+  // else (the user edited prefs/user.js) check none of the radio menu items
+
+  if (isFeed) {
+    AllowHTML_menuitem.hidden = !gShowFeedSummary;
+    Sanitized_menuitem.hidden = !gShowFeedSummary;
+    AsPlaintext_menuitem.hidden = !gShowFeedSummary;
+    document.getElementById("appmenu_viewFeedSummarySeparator").hidden = !gShowFeedSummary;
   }
 }
 
@@ -3279,4 +3498,15 @@ function FeedSetContentView(val)
             .loadURI(contentBase.headerValue, null, null);
     gShowFeedSummaryToggle = false;
   }
+}
+
+function initAppMenuPopup()
+{
+  file_init();
+  view_init();
+  InitGoMessagesMenu();
+  menu_new_init();
+  CommandUpdate_UndoRedo();
+  InitAppEditMessagesMenu();
+  document.commandDispatcher.updateCommands('create-menu-tasks');
 }

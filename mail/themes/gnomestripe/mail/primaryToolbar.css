@@ -278,6 +278,26 @@ toolbar[iconsize="large"]:not([mode="text"]) .badgeButton-badge {
   -moz-image-region: rect(24px 408px 48px 384px);
 }
 
+#button-appmenu {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 432px 24px 408px);
+  min-width: 35px;
+}
+
+#button-previousMsg[disabled] {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(24px 432px 48px 408px);
+}
+
+#button-appmenu .toolbarbutton-text,
+#button-appmenu .toolbarbutton-menu-dropmarker {
+  display: none;
+}
+
+toolbar[mode="text"] #button-appmenu .toolbarbutton-icon {
+  display: -moz-box;
+}
+
 /* ::::: small primary toolbar buttons ::::: */
 
 toolbar[iconsize="small"] #button-getmsg {
@@ -488,6 +508,15 @@ toolbar[iconsize="small"] #button-previousMsg[disabled] {
   -moz-image-region: rect(16px 272px 32px 256px);
 }
 
+toolbar[iconsize="small"] #button-appmenu {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 288px 16px 272px);
+}
+
+toolbar[iconsize="small"] #button-previousMsg[disabled] {
+  -moz-image-region: rect(16px 288px 32px 272px) !important;
+}
+
 /* ::::: end small primary toolbar buttons ::::: */
 
 #palette-box #qfb-show-filter-bar {
@@ -538,4 +567,51 @@ toolbar[iconsize="small"] #button-previousMsg[disabled] {
 
 #mdnBarImage {
   list-style-image: url("moz-icon://stock/gtk-dialog-question?size=toolbar");
+}
+
+/* AppMenu styling */
+
+.splitmenu-menuitem {
+  -moz-margin-end: 1px;
+  -moz-image-region: auto;
+}
+
+#appmenuSecondaryPane {
+  -moz-border-start: 1px solid ThreeDShadow;
+}
+
+.appmenuPane-spacer {
+  min-height: 1em;
+}
+
+.appmenu-edit-button {
+  -moz-image-region: auto;
+}
+
+.appmenu-edit-button[disabled="true"] {
+  opacity: .3;
+}
+
+#appmenu-cut,
+#appmenu-editmenu-cut {
+  list-style-image: url("moz-icon://stock/gtk-cut?size=menu");
+}
+
+#appmenu-copy,
+#appmenu-editmenu-copy {
+  list-style-image: url("moz-icon://stock/gtk-copy?size=menu");
+}
+
+#appmenu-paste,
+#appmenu-editmenu-paste {
+  list-style-image: url("moz-icon://stock/gtk-paste?size=menu");
+}
+
+#appmenu_print,
+#appmenu_print_popup {
+  list-style-image: url("moz-icon://stock/gtk-print?size=menu");
+}
+
+#appmenu_addons {
+  list-style-image: url("chrome://mozapps/skin/extensions/extensionGeneric-16.png");
 }

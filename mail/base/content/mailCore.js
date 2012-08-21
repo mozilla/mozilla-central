@@ -227,7 +227,7 @@ function MailToolboxCustomizeDone(aEvent, customizePopupId)
   }
 }
 
-function onViewToolbarsPopupShowing(aEvent, toolboxIds)
+function onViewToolbarsPopupShowing(aEvent, toolboxIds, aInsertPoint)
 {
   if (!Array.isArray(toolboxIds))
     toolboxIds = [toolboxIds];
@@ -244,8 +244,9 @@ function onViewToolbarsPopupShowing(aEvent, toolboxIds)
       popup.removeChild(deadItem);
   }
 
-  // We'll insert the menuitems before the first item in the list.
-  let firstMenuItem = popup.firstChild;
+  // We'll insert the menuitems before the first item in the list if no insert
+  // point is defined.
+  let firstMenuItem = aInsertPoint || popup.firstChild;
 
   for (let [, toolboxId] in Iterator(toolboxIds)) {
     let toolbox = document.getElementById(toolboxId);
