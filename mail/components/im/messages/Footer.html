@@ -69,107 +69,16 @@ function toggle_groupEvents(aEvent)
   }
 }
 
-function prettyPrintTime(aValue, aNoSeconds) {
-  if (aValue < 60 && aNoSeconds)
-    return "";
-
-  if (aNoSeconds)
-    aValue -= aValue % 60;
-
-  let valuesAndUnits = window.convertTimeUnits(aValue);
-  if (!valuesAndUnits[2])
-    valuesAndUnits.splice(2, 2);
-  return valuesAndUnits.join(" ");
-}
-
-const shadow = 3;
-const coef = 3;
-const timebeforetextdisplay = 5 * 60;
-
-function computeSpace(aInterval)
-  Math.round(coef * Math.log(aInterval + 1))
-
-function refreshIntervals()
-{
-  var pixels = 1;
-  var previousTime = 0;
-  while (true) {
-    var time = Math.exp((pixels - 0.49999) / coef) - 1;
-    if (time >= timebeforetextdisplay)
-      break;
-
-    time = Math.round(time * 1000);
-    var result = time - previousTime;
-    previousTime = time;
-    yield result;
-    ++pixels;
-  }
-  while (true)
-    yield 60 * 1000;
-}
-
-var lastMessageTimeout;
-function handleLastMessage(aGenerator)
-{
-  var interval = Math.round(Date.now() / 1000) - lastInsertTime;
-  var p = document.getElementById("lastMessage");
-  var margin = computeSpace(interval);
-  var text = "";
-  if (interval >= timebeforetextdisplay) {
-    p.style.lineHeight = (margin + shadow) + "px";
-    p.setAttribute("class", "interval");
-    text = prettyPrintTime(interval, true);
-    margin = 0;
-  }
-  p.textContent = text;
-  p.style.marginTop = (margin - shadow) + "px";
-  var body = document.getElementsByTagName("body")[0];
-  if (body.scrollHeight <= body.scrollTop + body.clientHeight + p.clientHeight + 10)
-    p.scrollIntoView(true);
-  lastMessageTimeout =
-    setTimeout(handleLastMessage, aGenerator.next(), aGenerator);
-}
-
-var lastInsertTime = 0;
 function checkNewText(aEvent)
 {
   var target = aEvent.originalTarget;
   if (!(target instanceof HTMLElement))
     return;
 
-  if (target.tagName == "DIV" && target.className.substring(0, 6) == "bubble") {
-    var insertTime = document.getElementById("insert").getAttribute("time");
-    if (lastInsertTime && insertTime >= lastInsertTime) {
-      var interval = insertTime - lastInsertTime;
-      var margin = computeSpace(interval);
-      if (interval >= timebeforetextdisplay) {
-        var p = document.createElement("p");
-        p.style.lineHeight = (margin + shadow) + "px";
-        p.style.marginTop = -shadow + "px";
-        p.setAttribute("class", "interval");
-        p.textContent = prettyPrintTime(interval);
-        target.parentNode.insertBefore(p, target);
-        margin = 0;
-      }
-      target.style.marginTop = margin + "px";
-    }
-    lastInsertTime = insertTime;
-  }
-  else if (target.tagName == "DIV" && target.id == "insert") {
-    lastInsertTime = document.getElementById("insert").getAttribute("time");
-  }
-  else if (target.tagName == "P" && target.className == "event") {
+  if (target.tagName == "P" && target.className == "event")
     groupEvents(target.parentNode);
-    lastInsertTime = document.getElementById("insert").getAttribute("time");
-  }
-  if (lastInsertTime) {
-    clearTimeout(lastMessageTimeout);
-    lastMessageTimeout = setTimeout(handleLastMessage, 0, refreshIntervals());
-  }
 }
 
 document.getElementById("ibcontent")
         .addEventListener("DOMNodeInserted", checkNewText);
 </script>
-
-<p id="lastMessage"/>

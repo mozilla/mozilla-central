@@ -2,98 +2,90 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-body {
-  margin: 0;
-  padding: 0;
-  background: #f3f3f2;
+#Chat {
+  white-space: normal;
 }
 
-p {
-  font-family: sans-serif;
-  margin: 0;
-  padding: 0;
-}
-
-.bubble {
-  margin: 2px 20px;
-  padding: 0;
-}
-
-.bubble:not(.context):not(.event) {
-  -moz-animation-duration: 0.5s;
-  -moz-animation-name: fadein;
-  -moz-animation-iteration-count: 1;
-}
-
-@-moz-keyframes fadein {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1.0;
-  }
-}
-
-.indicator {
-  padding: 10px;
-  -moz-margin-start: 60px;
-}
-
-.pseudo {
-  font-size: smaller;
-  font-weight: bold;
-}
-
-.time {
-  display: block;
-  float: right;
-  color: #aeafac;
-  font-weight: normal;
-}
-
-.bubble.event > hr,
-.bubble > .indicator > hr {
-  margin: 2px 0 0;
-  height: 2px;
-  border-style: none;
-  border-top: 1px solid #ffffff;
-  border-bottom: 1px solid #dbddd7;
-}
-
-.interval, #lastMessage {
-  text-align: center;
-  color: hsl(0, 0%, 60%);
+/* The "#chat " is required to override "#Chat *" from conv.css */
+#Chat .pseudo {
+  overflow-x: hidden !important;
 }
 
 .message {
-  padding: 5px 0 0;
+  clear: both;
 }
 
-#lastMessage {
-  line-height: 20px;
-}
-
-p.nick {
+.pseudo {
   font-weight: bold;
+  float: left;
+  width: 147px;
+  text-align: right;
+  padding-bottom: 5px;
+  display: block;
+  text-overflow: ellipsis;
 }
 
-p.action {
-  font-style: italic;
+.outgoing > .pseudo {
+  color: rgb(80, 80, 200);
 }
 
-p.action:before {
-  content: "*** ";
+.incoming > .pseudo {
+  color: rgb(200, 80, 80);
+}
+
+.message:not(.action) > .next {
+  visibility: hidden;
+}
+
+.date {
+  font-style: normal;
+  font-weight: normal;
+  float: right;
+  color: GrayText;
+}
+
+.message > .ib-msg-txt,
+.event {
+  display: block;
+  margin-left: 150px;
+  padding-bottom: 5px;
 }
 
 p.event {
-  color: hsl(0, 0%, 60%);
-  margin: 3px 15px;
+  margin-left: 0;
 }
 
-#Chat {
-  white-space: normal;
-  padding-top: 18px;
+.usericon {
+  display: none;
+}
+
+.event {
+  color: GrayText;
+  clear: both;
+}
+
+.nick {
+  font-weight: bold;
+}
+
+.nick > .pseudo {
+  text-decoration: underline;
+}
+
+.action {
+  font-style: italic;
+}
+
+.context {
+  color: rgb(91, 91, 91);
+}
+
+.context > .pseudo {
+  opacity: 0.7;
+}
+
+p {
+  margin: 0px auto;
 }
 
 p *:-moz-any-link img {
@@ -101,78 +93,84 @@ p *:-moz-any-link img {
   border-bottom: solid 1px;
 }
 
+hr {
+  display: none !important;
+}
+
 /* used by javascript */
 .button {
   cursor: pointer;
-  min-height: 20px;
-  -moz-margin-start: -10px;
-  margin-bottom: -3px;
-  -moz-padding-start: 24px;
+  min-height: 22px;
+  -moz-margin-start: -20px;
+  margin-bottom: -5px;
+  -moz-padding-start: 20px;
 }
 
 .hide {
-  background: url('Bitmaps/plus.png') no-repeat left top;
+  background: url('Bitmaps/plus.png') no-repeat left center;
 }
 
 .hide:hover {
-  background: url('Bitmaps/plus-hover.png') no-repeat left top;
+  background: url('Bitmaps/plus-hover.png') no-repeat left center;
 }
 
 .hide:after {
   content: "...";
-  color: hsl(0, 0%, 60%);
+  color: GrayText;
 }
 
 .show {
-  background: url('Bitmaps/minus.png') no-repeat left top;
-  margin-bottom: -20px;
-  width: 0;
+  background: url('Bitmaps/minus.png') no-repeat left center;
+  margin-bottom: -22px;
+  width: 0px;
 }
 
 .show:hover {
-  background: url('Bitmaps/minus-hover.png') no-repeat left top;
+  background: url('Bitmaps/minus-hover.png') no-repeat left center;
 }
 
-.usericon {
+/* We style Twitter differently from other types of chat */
+
+.message:-moz-any([prpl="Twitter"], [prpl="twitter"]) {
+  background-color: hsl(0, 0%, 99%);
+  border-radius: 5px;
+  border: 1px solid hsl(0, 0%, 85%);
+  min-height: 48px;
+  padding: 6px;
+  margin-left: 0px;
+  margin-bottom: 6px;
+}
+
+.message:-moz-any([prpl="Twitter"], [prpl="twitter"]) > .pseudo {
+  float: none;
+  text-align: left;
+  display: block;
+  width: auto;
+  padding-left: 64px;
+}
+
+.message:-moz-any([prpl="Twitter"], [prpl="twitter"]) > .next {
+  visibility: visible;
+}
+
+.message:-moz-any([prpl="Twitter"], [prpl="twitter"]) > .ib-msg-txt {
+  margin-left: 0px;
+  padding-left: 64px;
+}
+
+.message:-moz-any([prpl="Twitter"], [prpl="twitter"]) > .usericon {
   position: absolute;
+  display: block;
   max-width: 48px;
   max-height: 48px;
-  margin-top: -10px;
-  -moz-margin-start: -70px;
+  margin-right: 6px;
   border-radius: 5px;
 }
 
-.bubble.event,
-.indicator {
-  border: 1px solid hsl(0, 0%, 85%);
-  border-radius: 5px;
-  background-color: hsl(0, 0%, 99%);
+.message:-moz-any([prpl="Twitter"], [prpl="twitter"]) ~ .event {
+  margin-left: 71px;
 }
 
-.nick > .indicator {
-  border-color: Highlight;
-}
-
-@media (max-height: 500px) {
-  .bubble {
-    margin-top: 3px !important;
-  }
-
-  .indicator {
-    padding: 5px 10px;
-    -moz-margin-start: 0;
-  }
-
-  .usericon {
-    display: none;
-  }
-
-  .message {
-    padding: 2px 0 0;
-  }
-
-  .interval, #lastMessage {
-    line-height: -moz-initial !important;
-    margin: -2px 0 -3px !important;
-  }
+.message:-moz-any([prpl="Twitter"], [prpl="twitter"]) ~ .event > .date {
+  margin-right: 7px;
 }

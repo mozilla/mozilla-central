@@ -3,35 +3,27 @@
 <plist version="1.0">
 <dict>
   <key>ActionMessageTemplate</key>
-  <string>%sender% %message%</string>
-  
+  <string>%message%</string>
   <key>CFBundleDevelopmentRegion</key>
   <string>English</string>
-  
   <key>CFBundleGetInfoString</key>
-  <string>Instantbird Bubbles Message Style</string>
-  
+  <string>Thunderbird Message Style</string>
   <key>CFBundleIdentifier</key>
-  <string>org.instantbird.bubbles.message.style</string>
-  
+  <string>org.mozilla.thunderbird.message.style</string>
   <key>CFBundleInfoDictionaryVersion</key>
   <string>1.0</string>
-  
   <key>CFBundleName</key>
-  <string>Bubbles</string>
-  
+  <string>Minimal</string>
   <key>CFBundlePackageType</key>
   <string>AdIM</string>
-  
   <key>DefaultBackgroundColor</key>
   <string>FFFFFF</string>
-  
+  <key>DefaultVariant</key>
+  <string>Normal</string>
   <key>DisableCustomBackground</key>
   <false/>
-  
   <key>MessageViewVersion</key>
   <integer>4</integer>
-  
   <key>ShowsUserIcons</key>
   <true/>
 </dict>
