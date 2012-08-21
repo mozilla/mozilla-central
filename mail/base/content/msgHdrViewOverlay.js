@@ -28,7 +28,6 @@ var gViewAllHeaders = false;
 var gMinNumberOfHeaders = 0;
 var gDummyHeaderIdIndex = 0;
 var gBuildAttachmentsForCurrentMsg = false;
-var gBuildAttachmentPopupForCurrentMsg = true;
 var gBuiltExpandedView = false;
 var gHeadersShowReferences = false;
 
@@ -274,6 +273,8 @@ function OnLoadMsgHeaderPane()
                     "CustomizeAttachmentToolbar", function () {
                       updateSaveAllAttachmentsButton();
                     });
+
+  top.controllers.appendController(AttachmentMenuController);
 }
 
 /**
@@ -431,7 +432,6 @@ var messageHeaderSink = {
       ClearCurrentHeaders();
       gBuiltExpandedView = false;
       gBuildAttachmentsForCurrentMsg = false;
-      gBuildAttachmentPopupForCurrentMsg = true;
       ClearAttachmentList();
       ClearEditMessageBox();
       gMessageNotificationBar.clearMsgNotifications();
@@ -1976,31 +1976,6 @@ function onHideAttachmentItemContextMenu()
 }
 
 /**
- * Set up the attachment list context menu, showing or hiding the appropriate
- * menu items.
- */
-function onShowAttachmentListContextMenu()
-{
-  var openAllMenu   = document.getElementById("context-openAllAttachments");
-  var saveAllMenu   = document.getElementById("context-saveAllAttachments");
-  var detachAllMenu = document.getElementById("context-detachAllAttachments");
-  var deleteAllMenu = document.getElementById("context-deleteAllAttachments");
-
-  var allDetached = currentAttachments.every(function(attachment) {
-    return attachment.isExternalAttachment;
-  });
-  var allDeleted = currentAttachments.every(function(attachment) {
-    return !attachment.hasFile;
-  });
-  var canDetachAll = CanDetachAttachments() && !allDetached && !allDeleted;
-
-  saveAllMenu.disabled = allDeleted;
-  openAllMenu.disabled = allDeleted;
-  detachAllMenu.disabled = !canDetachAll;
-  deleteAllMenu.disabled = !canDetachAll;
-}
-
-/**
  * Enable/disable menu items as appropriate for the single-attachment save all
  * toolbar button.
  */
@@ -2120,6 +2095,95 @@ var AttachmentListController =
   onEvent: function(event)
   {}
 };
+
+let AttachmentMenuController = {
+  commands: {
+    cmd_openAllAttachments: {
+      isEnabled: function() {
+        return AttachmentMenuController._someFilesAvailable();
+      },
+
+      doCommand: function() {
+        HandleAllAttachments("open");
+      },
+    },
+
+    cmd_saveAllAttachments: {
+      isEnabled: function() {
+        return AttachmentMenuController._someFilesAvailable();
+      },
+
+      doCommand: function() {
+        HandleAllAttachments("save");
+      },
+    },
+
+    cmd_detachAllAttachments: {
+      isEnabled: function() {
+        return AttachmentMenuController._canDetachFiles();
+      },
+
+      doCommand: function() {
+        HandleAllAttachments("detach");
+      },
+    },
+
+    cmd_deleteAllAttachments: {
+      isEnabled: function() {
+        return AttachmentMenuController._canDetachFiles();
+      },
+
+      doCommand: function() {
+        HandleAllAttachments("delete");
+      },
+    },
+  },
+
+  _canDetachFiles: function() {
+    let someNotDetached = currentAttachments.some(function(aAttachment) {
+      return !aAttachment.isExternalAttachment;
+    });
+
+    return CanDetachAttachments() &&
+           someNotDetached &&
+           this._someFilesAvailable();
+  },
+
+  _someFilesAvailable: function() {
+    return currentAttachments.some(function(aAttachment) {
+      return aAttachment.hasFile;
+    });
+  },
+
+  supportsCommand: function(aCommand) {
+    return (aCommand in this.commands);
+  },
+
+  isCommandEnabled: function(aCommand) {
+    if (!this.supportsCommand(aCommand))
+      return false;
+
+    return this.commands[aCommand].isEnabled();
+  },
+
+  doCommand: function(aCommand) {
+    if (!this.supportsCommand(aCommand))
+      return;
+    let cmd = this.commands[aCommand];
+    if (!cmd.isEnabled())
+      return;
+    cmd.doCommand();
+  },
+
+  onEvent: function(aEvent) {}
+};
+
+function goUpdateAttachmentCommands() {
+  goUpdateCommand('cmd_openAllAttachments');
+  goUpdateCommand('cmd_saveAllAttachments');
+  goUpdateCommand('cmd_detachAllAttachments');
+  goUpdateCommand('cmd_deleteAllAttachments');
+}
 
 function displayAttachmentsForExpandedView()
 {
@@ -2305,39 +2369,15 @@ function getIconForAttachment(attachment)
 /**
  * Public method called when we create the attachments file menu
  */
-function FillAttachmentListPopup(popup)
+function FillAttachmentListPopup(aEvent, aPopup)
 {
-  // The FE sometimes call this routine TWICE...I haven't been able to figure
-  // out why yet... Protect against it...
-  if (!gBuildAttachmentPopupForCurrentMsg)
-    return;
-
-  // otherwise we need to build the attachment view...
   // First clear out the old view...
-  ClearAttachmentMenu(popup);
+  ClearAttachmentMenu(aPopup);
 
   for each (let [attachmentIndex, attachment] in Iterator(currentAttachments))
-    addAttachmentToPopup(popup, attachment, attachmentIndex);
+    addAttachmentToPopup(aPopup, attachment, attachmentIndex);
 
-  gBuildAttachmentPopupForCurrentMsg = false;
-
-  var allDetached = currentAttachments.every(function(attachment) {
-    return attachment.isExternalAttachment;
-  });
-  var allDeleted = currentAttachments.every(function(attachment) {
-    return !attachment.hasFile;
-  });
-  var canDetachAll = CanDetachAttachments() && !allDetached && !allDeleted;
-
-  var openAllMenu = document.getElementById("file-openAllAttachments");
-  var saveAllMenu = document.getElementById("file-saveAllAttachments");
-  var detachAllMenu = document.getElementById("file-detachAllAttachments");
-  var deleteAllMenu = document.getElementById("file-deleteAllAttachments");
-
-  saveAllMenu.disabled = allDeleted;
-  openAllMenu.disabled = allDeleted;
-  detachAllMenu.disabled = !canDetachAll;
-  deleteAllMenu.disabled = !canDetachAll;
+  goUpdateAttachmentCommands();
 }
 
 // Public method used to clear the file attachment menu
@@ -2392,6 +2432,9 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
   // saving, deleting, detaching, etc.
   var openpopup = document.createElement("menupopup");
   openpopup = item.appendChild(openpopup);
+  openpopup.addEventListener("popupshowing", function(aEvent) {
+    aEvent.stopPropagation();
+  });
 
   // Due to Bug #314228, we must append our menupopup to the new attachment
   // menu item before we inserting the attachment menu into the popup. If we

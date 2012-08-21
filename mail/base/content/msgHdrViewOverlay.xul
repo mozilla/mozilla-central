@@ -22,6 +22,23 @@
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
 </stringbundleset>
 
+<commandset id="mailCommands">
+  <commandset id="attachmentCommands">
+    <command id="cmd_openAllAttachments"
+             oncommand="goDoCommand('cmd_openAllAttachments');"
+             disabled="true"/>
+    <command id="cmd_saveAllAttachments"
+             oncommand="goDoCommand('cmd_saveAllAttachments');"
+             disabled="true"/>
+    <command id="cmd_detachAllAttachments"
+             oncommand="goDoCommand('cmd_detachAllAttachments');"
+             disabled="true"/>
+    <command id="cmd_deleteAllAttachments"
+             oncommand="goDoCommand('cmd_deleteAllAttachments');"
+             disabled="true"/>
+  </commandset>
+</commandset>
+
 <menupopup id="messageIdContext" popupanchor="bottomleft"
            onpopupshowing="FillMessageIdContextMenu(document.popupNode);">
   <menuitem id="messageIdContext-messageIdTarget"
@@ -66,45 +83,56 @@
             oncommand="HandleMultipleAttachments(this.parentNode.attachments, 'delete');"/>
 </menupopup>
 
-<menupopup id="attachmentListContext"
-           onpopupshowing="return onShowAttachmentListContextMenu(event);">
+<menupopup id="attachmentListContext" onpopupshowing="goUpdateAttachmentCommands();">
   <menuitem id="context-openAllAttachments"
             label="&openAllAttachmentsCmd.label;"
             accesskey="&openAllAttachmentsCmd.accesskey;"
-            oncommand="HandleAllAttachments('open');"/>
+            command="cmd_openAllAttachments"/>
   <menuitem id="context-saveAllAttachments"
             label="&saveAllAttachmentsCmd.label;"
             accesskey="&saveAllAttachmentsCmd.accesskey;"
-            oncommand="HandleAllAttachments('save');"/>
+            command="cmd_saveAllAttachments"/>
   <menuseparator id="context-menu-separator-all"/>
   <menuitem id="context-detachAllAttachments"
             label="&detachAllAttachmentsCmd.label;"
             accesskey="&detachAllAttachmentsCmd.accesskey;"
-            oncommand="HandleAllAttachments('detach');"/>
+            command="cmd_detachAllAttachments"/>
   <menuitem id="context-deleteAllAttachments"
             label="&deleteAllAttachmentsCmd.label;"
             accesskey="&deleteAllAttachmentsCmd.accesskey;"
-            oncommand="HandleAllAttachments('delete');"/>
- </menupopup>
- 
- <menupopup id="attachmentMenuList">
+            command="cmd_deleteAllAttachments"/>
+</menupopup>
+
+<menupopup id="attachmentMenuList" onpopupshowing="FillAttachmentListPopup(event, this);">
    <menuseparator/>
-   <menuitem id="file-openAllAttachments"
-             label="&openAllAttachmentsCmd.label;"
+   <menuitem label="&openAllAttachmentsCmd.label;"
              accesskey="&openAllAttachmentsCmd.accesskey;"
-             oncommand="HandleAllAttachments('open');" />
-   <menuitem id="file-saveAllAttachments"
-             label="&saveAllAttachmentsCmd.label;"
+             command="cmd_openAllAttachments" />
+   <menuitem label="&saveAllAttachmentsCmd.label;"
              accesskey="&saveAllAttachmentsCmd.accesskey;"
-             oncommand="HandleAllAttachments('save');"/>
-   <menuitem id="file-detachAllAttachments"
-             label="&detachAllAttachmentsCmd.label;"
+             command="cmd_saveAllAttachments"/>
+   <menuitem label="&detachAllAttachmentsCmd.label;"
              accesskey="&detachAllAttachmentsCmd.accesskey;"
-             oncommand="HandleAllAttachments('detach');" />
-   <menuitem id="file-deleteAllAttachments"
-             label="&deleteAllAttachmentsCmd.label;"
+             command="cmd_detachAllAttachments" />
+   <menuitem label="&deleteAllAttachmentsCmd.label;"
              accesskey="&deleteAllAttachmentsCmd.accesskey;"
-             oncommand="HandleAllAttachments('delete');" />
+             command="cmd_deleteAllAttachments" />
+</menupopup>
+
+<menupopup id="appmenu_attachmentMenuList" onpopupshowing="FillAttachmentListPopup(event, this);">
+   <menuseparator/>
+   <menuitem label="&openAllAttachmentsCmd.label;"
+             accesskey="&openAllAttachmentsCmd.accesskey;"
+             command="cmd_openAllAttachments" />
+   <menuitem label="&saveAllAttachmentsCmd.label;"
+             accesskey="&saveAllAttachmentsCmd.accesskey;"
+             command="cmd_saveAllAttachments"/>
+   <menuitem label="&detachAllAttachmentsCmd.label;"
+             accesskey="&detachAllAttachmentsCmd.accesskey;"
+             command="cmd_detachAllAttachments" />
+   <menuitem label="&deleteAllAttachmentsCmd.label;"
+             accesskey="&deleteAllAttachmentsCmd.accesskey;"
+             command="cmd_deleteAllAttachments" />
 </menupopup>
 
 <menupopup id="header-toolbar-context-menu">
