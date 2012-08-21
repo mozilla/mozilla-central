@@ -4,7 +4,7 @@ function test() {
   var exampleUri = ioserv.newURI("http://example.com/", null, null);
   var secman = Components.classes["@mozilla.org/scriptsecuritymanager;1"].
                getService(Components.interfaces.nsIScriptSecurityManager);
-  var principal = secman.getCodebasePrincipal(exampleUri);
+  var principal = secman.getSimpleCodebasePrincipal(exampleUri);
 
   function testIsFeed(aTitle, aHref, aType, aKnown) {
     var link = { title: aTitle, href: aHref, type: aType };
