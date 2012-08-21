@@ -1453,7 +1453,7 @@ XPIDL_DEPS = \
 $(XPIDL_GEN_DIR)/%.h: %.idl $(XPIDL_DEPS) $(XPIDL_GEN_DIR)/.done
 	$(REPORT_BUILD)
 	$(PYTHON) -u $(MOZILLA_DIR)/config/pythonpath.py \
-	  -I$(MOZILLA_DIR)/other-licenses/ply \
+	  $(PLY_INCLUDE) \
 	  $(LIBXUL_DIST)/sdk/bin/header.py $(XPIDL_FLAGS) $(_VPATH_SRCS) -d $(MDDEPDIR)/$(@F).pp -o $@
 	@if test -n "$(findstring $*.h, $(EXPORTS))"; \
 	  then echo "*** WARNING: file $*.h generated from $*.idl overrides $(srcdir)/$*.h"; else true; fi
@@ -1464,7 +1464,7 @@ ifndef NO_GEN_XPT
 $(XPIDL_GEN_DIR)/%.xpt: %.idl $(XPIDL_DEPS) $(XPIDL_GEN_DIR)/.done
 	$(REPORT_BUILD)
 	$(PYTHON) -u $(MOZILLA_DIR)/config/pythonpath.py \
-	  -I$(MOZILLA_DIR)/other-licenses/ply \
+	  $(PLY_INCLUDE) \
 	  -I$(MOZILLA_DIR)/xpcom/typelib/xpt/tools \
 	  $(LIBXUL_DIST)/sdk/bin/typelib.py $(XPIDL_FLAGS) $(_VPATH_SRCS) -d $(MDDEPDIR)/$(@F).pp -o $@
 

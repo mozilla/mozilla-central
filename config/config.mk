@@ -726,6 +726,11 @@ endif
 EXPAND_LIBNAME_PATH = $(foreach lib,$(1),$(2)/$(LIB_PREFIX)$(lib).$(LIB_SUFFIX))
 EXPAND_MOZLIBNAME = $(foreach lib,$(1),$(DIST)/lib/$(LIB_PREFIX)$(lib).$(LIB_SUFFIX))
 
+# Include internal ply only if needed
+ifndef MOZ_SYSTEM_PLY
+PLY_INCLUDE = -I$(MOZILLA_DIR)/other-licenses/ply
+endif
+ 
 # autoconf.mk sets OBJ_SUFFIX to an error to avoid use before including
 # this file
 OBJ_SUFFIX := $(_OBJ_SUFFIX)
