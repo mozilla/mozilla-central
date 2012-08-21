@@ -161,9 +161,20 @@ var commands = [
     get helpString() _("command.join", "join"),
     run: function(aMsg, aConv) {
       let params = aMsg.trim().split(/,\s*/);
-      if (!params[0])
-        return false;
       let account = getAccount(aConv);
+      if (!params[0]) {
+        let conv = getConv(aConv);
+        if (!conv.isChat || !conv.left)
+          return false;
+        // Rejoin the current channel. If the channel was explicitly parted
+        // by the user, _chatRoomFields will have been deleted.
+        // Otherwise, make use of it (e.g. if the user was kicked).
+        if (conv._chatRoomFields) {
+          account.joinChat(conv._chatRoomFields);
+          return true;
+        }
+        params = [conv.name];
+      }
       params.forEach(function(joinParam) {
         if (joinParam)
           account.joinChat(account.getChatRoomDefaultFieldValues(joinParam));
