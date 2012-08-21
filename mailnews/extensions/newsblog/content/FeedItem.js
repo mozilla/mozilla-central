@@ -8,8 +8,8 @@ function FeedItem()
   this.mDate = new Date().toString();
   this.mUnicodeConverter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].
                            createInstance(Ci.nsIScriptableUnicodeConverter);
-  this.mUnescapeHTML = Cc["@mozilla.org/feed-unescapehtml;1"].
-                       getService(Ci.nsIScriptableUnescapeHTML);
+  this.mParserUtils = Cc["@mozilla.org/parserutils;1"].
+                      getService(Ci.nsIParserUtils);
 }
 
 FeedItem.prototype =
@@ -309,7 +309,11 @@ FeedItem.prototype =
 
     // The subject may contain HTML entities.  Convert these to their unencoded
     // state. i.e. &amp; becomes '&'.
-    title = this.mUnescapeHTML.unescape(title);
+    title = this.mParserUtils.convertToPlainText(
+        title,
+        Ci.nsIDocumentEncoder.OutputSelectionOnly |
+        Ci.nsIDocumentEncoder.OutputAbsoluteLinks,
+        0);
 
     // Compress white space in the subject to make it look better.  Trim
     // leading/trailing spaces to prevent mbox header folding issue at just
