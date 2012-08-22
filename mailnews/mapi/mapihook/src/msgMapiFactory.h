@@ -8,6 +8,7 @@
 #include <windows.h>
 #include <objbase.h>
 #include "nspr.h"
+#include "mozilla/StandardInteger.h"
 
 
 class CMapiFactory : public IClassFactory
