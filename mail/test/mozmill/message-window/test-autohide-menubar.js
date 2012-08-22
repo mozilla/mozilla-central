@@ -26,6 +26,10 @@ function setupModule(module) {
 
   menuFolder = create_folder("menuFolder");
   make_new_sets_in_folder(menuFolder, [{count: 1}]);
+
+  // Make the menubar not autohide by default.
+  let menubar = mc.e("mail-toolbar-menubar2");
+  menubar.setAttribute("autohide", false);
 }
 
 /**
