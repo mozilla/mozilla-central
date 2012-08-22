@@ -3727,10 +3727,14 @@ nsSVGFEMorphologyElement::Filter(nsSVGFilterInstance *instance,
     return NS_OK;
   }
 
+  // Clamp radii to prevent completely insane values:
+  rx = NS_MIN(rx, 100000);
+  ry = NS_MIN(ry, 100000);
+
   PRUint8* sourceData = aSources[0]->mImage->Data();
   PRUint8* targetData = aTarget->mImage->Data();
-  PRUint32 stride = aTarget->mImage->Stride();
-  PRUint32 xExt[4], yExt[4];  // X, Y indices of RGBA extrema
+  PRInt32 stride = aTarget->mImage->Stride();
+  PRInt32 xExt[4], yExt[4];  // X, Y indices of RGBA extrema
   PRUint8 extrema[4];         // RGBA magnitude of extrema
   PRUint16 op = mEnumAttributes[OPERATOR].GetAnimValue();
 
@@ -3742,25 +3746,25 @@ nsSVGFEMorphologyElement::Filter(nsSVGFilterInstance *instance,
    * not fall within the current kernel or if we are starting a new row.
    */
   for (PRInt32 y = rect.y; y < rect.YMost(); y++) {
-    PRUint32 startY = NS_MAX(0, y - ry);
+    PRInt32 startY = NS_MAX(0, y - ry);
     // We need to read pixels not just in 'rect', which is limited to
     // the dirty part of our filter primitive subregion, but all pixels in
     // the given radii from the source surface, so use the surface size here.
-    PRUint32 endY = NS_MIN(y + ry, instance->GetSurfaceHeight() - 1);
+    PRInt32 endY = NS_MIN(y + ry, instance->GetSurfaceHeight() - 1);
     for (PRInt32 x = rect.x; x < rect.XMost(); x++) {
-      PRUint32 startX = NS_MAX(0, x - rx);
-      PRUint32 endX = NS_MIN(x + rx, instance->GetSurfaceWidth() - 1);
-      PRUint32 targIndex = y * stride + 4 * x;
+      PRInt32 startX = NS_MAX(0, x - rx);
+      PRInt32 endX = NS_MIN(x + rx, instance->GetSurfaceWidth() - 1);
+      PRInt32 targIndex = y * stride + 4 * x;
 
       // We need to scan the entire kernel
       if (x == rect.x || xExt[0]  <= startX || xExt[1] <= startX ||
           xExt[2] <= startX || xExt[3] <= startX) {
-        PRUint32 i;
+        PRInt32 i;
         for (i = 0; i < 4; i++) {
           extrema[i] = sourceData[targIndex + i];
         }
-        for (PRUint32 y1 = startY; y1 <= endY; y1++) {
-          for (PRUint32 x1 = startX; x1 <= endX; x1++) {
+        for (PRInt32 y1 = startY; y1 <= endY; y1++) {
+          for (PRInt32 x1 = startX; x1 <= endX; x1++) {
             for (i = 0; i < 4; i++) {
               PRUint8 pixel = sourceData[y1 * stride + 4 * x1 + i];
               if ((extrema[i] >= pixel &&
@@ -3775,8 +3779,8 @@ nsSVGFEMorphologyElement::Filter(nsSVGFilterInstance *instance,
           }
         }
       } else { // We only need to look at the newest column
-        for (PRUint32 y1 = startY; y1 <= endY; y1++) {
-          for (PRUint32 i = 0; i < 4; i++) {
+        for (PRInt32 y1 = startY; y1 <= endY; y1++) {
+          for (PRInt32 i = 0; i < 4; i++) {
             PRUint8 pixel = sourceData[y1 * stride + 4 * endX + i];
             if ((extrema[i] >= pixel &&
                  op == nsSVGFEMorphologyElement::SVG_OPERATOR_ERODE) ||
