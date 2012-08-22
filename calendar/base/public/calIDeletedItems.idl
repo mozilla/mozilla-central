@@ -1,0 +1,26 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "nsISupports.idl"
+
+interface calIDateTime;
+
+[scriptable, uuid(2414729b-37dc-456e-ba72-f9c33891e6ee)]
+interface calIDeletedItems : nsISupports
+{
+    /**
+     * Clean the database of all deleted items older than an internal threshold.
+     */
+    void flush();
+
+    /**
+     * Gets the time the item with given id was deleted at. If passed, the
+     * search will be restricted to a certain calendar
+     *
+     * @param aId       The ID of the item to search for.
+     * @param aCalId    The calendar id to restrict the search to.
+     * @return          The date/time the item was deleted, or null if not found.
+     */
+    calIDateTime getDeletedDate(in AUTF8String aId, [optional] in AUTF8String aCalId);
+};

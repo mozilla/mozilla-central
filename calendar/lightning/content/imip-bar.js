@@ -146,42 +146,56 @@ var ltnImipBar = {
                 let item = items[0].isMutable ? items[0] : items[0].clone();
                 modifyEventWithDialog(item);
             }
-        } else if (cal.itip.promptCalendar(ltnImipBar.actionFunc.method, ltnImipBar.itipItem, window)) {
-            // hide the buttons now, to disable pressing them twice...
-            hideElement("imip-button1");
-            hideElement("imip-button2");
-            hideElement("imip-button3");
-
-            let opListener = {
-                onOperationComplete: function ltnItipActionListener_onOperationComplete(aCalendar,
-                                                                                        aStatus,
-                                                                                        aOperationType,
-                                                                                        aId,
-                                                                                        aDetail) {
-                    // For now, we just state the status for the user something very simple
-                    let imipBar = document.getElementById("imip-bar");
-                    let label = cal.itip.getCompleteText(aStatus, aOperationType);
-                    imipBar.setAttribute("label", label);
-
-                    if (!Components.isSuccessCode(aStatus)) {
-                        showError(label);
-                    }
-                },
-                onGetResult: function ltnItipActionListener_onGetResult(aCalendar,
-                                                                        aStatus,
-                                                                        aItemType,
-                                                                        aDetail,
-                                                                        aCount,
-                                                                        aItems) {
+        } else {
+            let delmgr = Components.classes["@mozilla.org/calendar/deleted-items-manager;1"]
+                                   .getService(Components.interfaces.calIDeletedItems);
+            let items = ltnImipBar.itipItem.getItemList({});
+            if (items && items.length) {
+                let delTime = delmgr.getDeletedDate(items[0].id);
+                let dialogText = ltnGetString("lightning", "confirmProcessInvitation");
+                let dialogTitle = ltnGetString("lightning", "confirmProcessInvitationTitle");
+                if (delTime && !Services.prompt.confirm(window, dialogTitle, dialogText)) {
+                    return false;
                 }
-            };
-
-            try {
-                ltnImipBar.actionFunc(opListener, partStat);
-            } catch (exc) {
-                Components.utils.reportError(exc);
             }
-            return true;
+
+            if (cal.itip.promptCalendar(ltnImipBar.actionFunc.method, ltnImipBar.itipItem, window)) {
+                // hide the buttons now, to disable pressing them twice...
+                hideElement("imip-button1");
+                hideElement("imip-button2");
+                hideElement("imip-button3");
+
+                let opListener = {
+                    onOperationComplete: function ltnItipActionListener_onOperationComplete(aCalendar,
+                                                                                            aStatus,
+                                                                                            aOperationType,
+                                                                                            aId,
+                                                                                            aDetail) {
+                        // For now, we just state the status for the user something very simple
+                        let imipBar = document.getElementById("imip-bar");
+                        let label = cal.itip.getCompleteText(aStatus, aOperationType);
+                        imipBar.setAttribute("label", label);
+
+                        if (!Components.isSuccessCode(aStatus)) {
+                            showError(label);
+                        }
+                    },
+                    onGetResult: function ltnItipActionListener_onGetResult(aCalendar,
+                                                                            aStatus,
+                                                                            aItemType,
+                                                                            aDetail,
+                                                                            aCount,
+                                                                            aItems) {
+                    }
+                };
+
+                try {
+                    ltnImipBar.actionFunc(opListener, partStat);
+                } catch (exc) {
+                    Components.utils.reportError(exc);
+                }
+                return true;
+            }
         }
         return false;
     }

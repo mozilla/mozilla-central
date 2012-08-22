@@ -28,6 +28,7 @@ XPIDLSRCS = calICalendarACLManager.idl \
             calIDateTime.idl \
             calIDateTimeFormatter.idl \
             calIDuration.idl \
+            calIDeletedItems.idl \
             calIErrors.idl \
             calIEvent.idl \
             calIFreeBusyProvider.idl \

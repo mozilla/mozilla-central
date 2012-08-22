@@ -53,6 +53,7 @@ EXTRA_SCRIPTS = \
     calCalendarManager.js \
     calCachedCalendar.js \
     calDateTimeFormatter.js \
+    calDeletedItems.js \
     calEvent.js \
     calFilter.js \
     calIcsParser.js \
