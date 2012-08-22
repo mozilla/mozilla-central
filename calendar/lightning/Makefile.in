@@ -30,10 +30,12 @@ SEAMONKEY_VERSION := $(shell cat $(topsrcdir)/suite/config/version.txt)
 
 # For extensions we require a max version that is compatible across security releases.
 # THUNDERBIRD_MAXVERSION and SEAMONKEY_MAXVERSION is our method for doing that.
-# 10.0a1 and 10.0a2 aren't affected, 10.0 becomes 10.0.*, 10.0.1 becomes 10.0.*
+# Alpha versions 10.0a1 and 10.0a2 aren't affected
+# For Seamonkey, 2.17 becomes 2.17.*, 2.17.1 becomes 2.17.*
+# For Thunderbird, 10.0 becomes 10.*, 10.0.1 becomes 10.*
 THUNDERBIRD_MAXVERSION := $(THUNDERBIRD_VERSION)
 ifneq (a,$(findstring a,$(THUNDERBIRD_VERSION)))
-THUNDERBIRD_MAXVERSION := $(shell echo $(THUNDERBIRD_VERSION) | sed "s|\(^[0-9]*.[0-9]*\).*|\1|" ).*
+THUNDERBIRD_MAXVERSION := $(shell echo $(THUNDERBIRD_VERSION) | sed "s|\(^[0-9]*\)\.\([0-9]*\).*|\1|" ).*
 endif
 
 SEAMONKEY_MAXVERSION := $(SEAMONKEY_VERSION)
