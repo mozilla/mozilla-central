@@ -48,7 +48,7 @@ public:
 
   NS_IMETHOD SetData(const char *dataId, nsISupports *pData);
 
-  NS_IMETHOD GetStatus(const char *statusKind, PRInt32 *_retval);
+  NS_IMETHOD GetStatus(const char *statusKind, int32_t *_retval);
 
   NS_IMETHOD WantsProgress(bool *_retval);
 
@@ -56,7 +56,7 @@ public:
 
   NS_IMETHOD ContinueImport(bool *_retval);
 
-  NS_IMETHOD GetProgress(PRInt32 *_retval);
+  NS_IMETHOD GetProgress(int32_t *_retval);
 
   NS_IMETHOD CancelImport(void);
 
@@ -83,7 +83,7 @@ private:
   bool              m_userVerify;
   nsISupportsString *    m_pSuccessLog;
   nsISupportsString *    m_pErrorLog;
-  PRUint32          m_totalSize;
+  uint32_t          m_totalSize;
   bool              m_doImport;
   AddressThreadData *      m_pThreadData;
   char *            m_pDestinationUri;
@@ -96,8 +96,8 @@ public:
   bool              threadAlive;
   bool              abort;
   bool              fatalError;
-  PRUint32          currentTotal;
-  PRUint32          currentSize;
+  uint32_t          currentTotal;
+  uint32_t          currentSize;
   nsISupportsArray *      books;
   nsCOMArray<nsIAddrDatabase>* dBs;
   nsCOMPtr<nsIAbLDIFService> ldifService;
@@ -233,7 +233,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::GetData(const char *dataId, nsISuppor
   if (!PL_strncasecmp(dataId, "sampleData-", 11)) {
     // extra the record number
     const char *pNum = dataId + 11;
-    PRInt32  rNum = 0;
+    int32_t  rNum = 0;
     while (*pNum) {
       rNum *= 10;
       rNum += (*pNum - '0');
@@ -316,7 +316,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::SetData(const char *dataId, nsISuppor
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImportGenericAddressBooks::GetStatus(const char *statusKind, PRInt32 *_retval)
+NS_IMETHODIMP nsImportGenericAddressBooks::GetStatus(const char *statusKind, int32_t *_retval)
 {
   NS_PRECONDITION(statusKind != nullptr, "null ptr");
   NS_PRECONDITION(_retval != nullptr, "null ptr");
@@ -327,31 +327,31 @@ NS_IMETHODIMP nsImportGenericAddressBooks::GetStatus(const char *statusKind, PRI
 
   if (!PL_strcasecmp(statusKind, "isInstalled")) {
     GetDefaultLocation();
-    *_retval = (PRInt32) m_found;
+    *_retval = (int32_t) m_found;
   }
 
   if (!PL_strcasecmp(statusKind, "canUserSetLocation")) {
     GetDefaultLocation();
-    *_retval = (PRInt32) m_userVerify;
+    *_retval = (int32_t) m_userVerify;
   }
 
   if (!PL_strcasecmp(statusKind, "autoFind")) {
     GetDefaultLocation();
-    *_retval = (PRInt32) m_autoFind;
+    *_retval = (int32_t) m_autoFind;
   }
 
   if (!PL_strcasecmp(statusKind, "supportsMultiple")) {
     bool      multi = false;
     if (m_pInterface)
       m_pInterface->GetSupportsMultiple(&multi);
-    *_retval = (PRInt32) multi;
+    *_retval = (int32_t) multi;
   }
 
   if (!PL_strcasecmp(statusKind, "needsFieldMap")) {
     bool      needs = false;
     if (m_pInterface && m_pLocation)
       m_pInterface->GetNeedsFieldMap(m_pLocation, &needs);
-    *_retval = (PRInt32) needs;
+    *_retval = (int32_t) needs;
   }
 
   return NS_OK;
@@ -414,7 +414,7 @@ void nsImportGenericAddressBooks::GetDefaultFieldMap(void)
   if (NS_FAILED(rv))
     return;
 
-  PRInt32  sz = 0;
+  int32_t  sz = 0;
   rv = m_pFieldMap->GetNumMozFields(&sz);
   if (NS_SUCCEEDED(rv))
     rv = m_pFieldMap->DefaultFieldMap(sz);
@@ -436,15 +436,15 @@ NS_IMETHODIMP nsImportGenericAddressBooks::WantsProgress(bool *_retval)
   GetDefaultLocation();
   GetDefaultBooks();
 
-  PRUint32    totalSize = 0;
+  uint32_t    totalSize = 0;
   bool        result = false;
 
   if (m_pBooks) {
-    PRUint32    count = 0;
+    uint32_t    count = 0;
     nsresult     rv = m_pBooks->Count(&count);
-    PRUint32    i;
+    uint32_t    i;
     bool        import;
-    PRUint32    size;
+    uint32_t    size;
 
     for (i = 0; i < count; i++) {
       nsCOMPtr<nsIImportABDescriptor> book =
@@ -654,13 +654,13 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
   if (m_pDestinationUri)
     m_pThreadData->pDestinationUri = strdup(m_pDestinationUri);
 
-  PRUint32 count = 0;
+  uint32_t count = 0;
   m_pBooks->Count(&count);
   // Create/obtain any address books that we need here, so that we don't need
   // to do so inside the import thread which would just proxy the create
   // operations back to the main thread anyway.
   nsCOMPtr<nsIAddrDatabase> db = GetAddressBookFromUri(m_pDestinationUri);
-  for (PRUint32 i = 0; i < count; ++i)
+  for (uint32_t i = 0; i < count; ++i)
   {
     nsCOMPtr<nsIImportABDescriptor> book = do_QueryElementAt(m_pBooks, i);
     if (book)
@@ -705,7 +705,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::ContinueImport(bool *_retval)
 }
 
 
-NS_IMETHODIMP nsImportGenericAddressBooks::GetProgress(PRInt32 *_retval)
+NS_IMETHODIMP nsImportGenericAddressBooks::GetProgress(int32_t *_retval)
 {
   // This returns the progress from the the currently
   // running import mail or import address book thread.
@@ -718,7 +718,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::GetProgress(PRInt32 *_retval)
     return NS_OK;
   }
 
-  PRUint32 sz = 0;
+  uint32_t sz = 0;
   if (m_pThreadData->currentSize && m_pInterface) {
     if (NS_FAILED(m_pInterface->GetImportProgress(&sz)))
       sz = 0;
@@ -804,11 +804,11 @@ static void ImportAddressThread(void *stuff)
   IMPORT_LOG0("In Begin ImportAddressThread\n");
 
   AddressThreadData *pData = (AddressThreadData *)stuff;
-  PRUint32  count = 0;
+  uint32_t  count = 0;
   nsresult   rv = pData->books->Count(&count);
-  PRUint32          i;
+  uint32_t          i;
   bool              import;
-  PRUint32          size;
+  uint32_t          size;
 
   nsString          success;
   nsString          error;
@@ -837,12 +837,12 @@ static void ImportAddressThread(void *stuff)
 
           /*
           if (pData->fieldMap) {
-            PRInt32    sz = 0;
-            PRInt32    mapIndex;
+            int32_t    sz = 0;
+            int32_t    mapIndex;
             bool      active;
             pData->fieldMap->GetMapSize(&sz);
             IMPORT_LOG1("**** Field Map Size: %d\n", (int) sz);
-            for (PRInt32 i = 0; i < sz; i++) {
+            for (int32_t i = 0; i < sz; i++) {
               pData->fieldMap->GetFieldMap(i, &mapIndex);
               pData->fieldMap->GetFieldActive(i, &active);
               IMPORT_LOG3("Field map #%d: index=%d, active=%d\n", (int) i, (int) mapIndex, (int) active);

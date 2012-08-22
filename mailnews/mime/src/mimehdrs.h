@@ -25,7 +25,7 @@ extern MimeHeaders *MimeHeaders_new (void);
    block to be parsed, one line at a time.  Feed it a blank line when
    you're done.  Returns negative on allocation-related failure.
  */
-extern int MimeHeaders_parse_line (const char *buffer, PRInt32 size,
+extern int MimeHeaders_parse_line (const char *buffer, int32_t size,
                    MimeHeaders *hdrs);
 
 

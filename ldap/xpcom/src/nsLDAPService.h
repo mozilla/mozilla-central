@@ -35,7 +35,7 @@ class nsLDAPServiceEntry
     virtual ~nsLDAPServiceEntry() {};
     bool Init();
 
-    inline PRUint32 GetLeases();
+    inline uint32_t GetLeases();
     inline void IncrementLeases();
     inline bool DecrementLeases();
 
@@ -60,7 +60,7 @@ class nsLDAPServiceEntry
     inline bool DeleteEntry();
 
   protected:
-    PRUint32 mLeases;         // The number of leases currently granted
+    uint32_t mLeases;         // The number of leases currently granted
     PRTime mTimestamp;        // Last time this server was "used"
     bool mDelete;           // This entry is due for deletion
     bool mRebinding;        // Keep state if we are rebinding or not
@@ -104,7 +104,7 @@ class nsLDAPService : public nsILDAPService, public nsILDAPMessageListener
     // createFilter; note that unlike with NextToken, these params
     // are copies, not references.
     //
-    PRUint32 CountTokens(const char * aIter, const char * aIterEnd);
+    uint32_t CountTokens(const char * aIter, const char * aIterEnd);
                    
     
     mozilla::Mutex mLock;       // Lock mechanism

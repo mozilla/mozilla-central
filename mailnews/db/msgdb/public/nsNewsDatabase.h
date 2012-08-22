@@ -26,7 +26,7 @@ public:
   NS_IMETHOD Close(bool forceCommit);
   NS_IMETHOD ForceClosed();
   NS_IMETHOD Commit(nsMsgDBCommit commitType);
-  virtual PRUint32 GetCurVersion();
+  virtual uint32_t GetCurVersion();
 
   // methods to get and set docsets for ids.
   NS_IMETHOD  IsRead(nsMsgKey key, bool *pRead);
@@ -34,7 +34,7 @@ public:
 
   NS_IMETHOD         GetHighWaterArticleNum(nsMsgKey *key);
   NS_IMETHOD         GetLowWaterArticleNum(nsMsgKey *key);
-  NS_IMETHOD         MarkAllRead(PRUint32 *aNumMarked, nsMsgKey **thoseMarked);
+  NS_IMETHOD         MarkAllRead(uint32_t *aNumMarked, nsMsgKey **thoseMarked);
 
   virtual nsresult    ExpireUpTo(nsMsgKey expireKey);
   virtual nsresult    ExpireRange(nsMsgKey startRange, nsMsgKey endRange);

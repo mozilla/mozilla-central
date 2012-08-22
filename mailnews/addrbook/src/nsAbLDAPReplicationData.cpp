@@ -77,14 +77,14 @@ NS_IMETHODIMP nsAbLDAPProcessReplicationData::Init(
   return rv;
 }
 
-NS_IMETHODIMP nsAbLDAPProcessReplicationData::GetReplicationState(PRInt32 *aReplicationState) 
+NS_IMETHODIMP nsAbLDAPProcessReplicationData::GetReplicationState(int32_t *aReplicationState) 
 {
     NS_ENSURE_ARG_POINTER(aReplicationState);
     *aReplicationState = mState; 
     return NS_OK; 
 }
 
-NS_IMETHODIMP nsAbLDAPProcessReplicationData::GetProtocolUsed(PRInt32 *aProtocolUsed) 
+NS_IMETHODIMP nsAbLDAPProcessReplicationData::GetProtocolUsed(int32_t *aProtocolUsed) 
 {
     NS_ENSURE_ARG_POINTER(aProtocolUsed);
     *aProtocolUsed = mProtocol; 
@@ -98,7 +98,7 @@ NS_IMETHODIMP nsAbLDAPProcessReplicationData::OnLDAPMessage(nsILDAPMessage *aMes
   if (!mInitialized)
     return NS_ERROR_NOT_INITIALIZED;
 
-  PRInt32 messageType;
+  int32_t messageType;
   nsresult rv = aMessage->GetType(&messageType);
   if (NS_FAILED(rv)) {
     Done(false);
@@ -193,7 +193,7 @@ nsresult nsAbLDAPProcessReplicationData::DoTask()
   if (dn.IsEmpty())
     return NS_ERROR_UNEXPECTED;
 
-  PRInt32 scope;
+  int32_t scope;
   rv = mDirectoryUrl->GetScope(&scope);
   if (NS_FAILED(rv))
     return rv;
@@ -296,7 +296,7 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchResult(nsILDAPMessage *aMes
     if(!mInitialized) 
         return NS_ERROR_NOT_INITIALIZED;
 
-    PRInt32 errorCode;
+    int32_t errorCode;
     nsresult rv = aMessage->GetErrorCode(&errorCode);
 
     if(NS_SUCCEEDED(rv)) {

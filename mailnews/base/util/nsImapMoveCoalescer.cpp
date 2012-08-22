@@ -35,7 +35,7 @@ nsImapMoveCoalescer::~nsImapMoveCoalescer()
 nsresult nsImapMoveCoalescer::AddMove(nsIMsgFolder *folder, nsMsgKey key)
 {
   m_hasPendingMoves = true;
-  PRInt32 folderIndex = m_destFolders.IndexOf(folder);
+  int32_t folderIndex = m_destFolders.IndexOf(folder);
   nsTArray<nsMsgKey> *keysToAdd = nullptr;
 
   if (folderIndex >= 0)
@@ -56,7 +56,7 @@ nsresult nsImapMoveCoalescer::AddMove(nsIMsgFolder *folder, nsMsgKey key)
 
 nsresult nsImapMoveCoalescer::PlaybackMoves(bool doNewMailNotification /* = false */)
 {
-  PRInt32 numFolders = m_destFolders.Count();
+  int32_t numFolders = m_destFolders.Count();
   // Nothing to do, so don't change the member variables.
   if (numFolders == 0)
     return NS_OK;
@@ -66,7 +66,7 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(bool doNewMailNotification /* = fals
   m_doNewMailNotification = doNewMailNotification;
   m_outstandingMoves = 0;
 
-  for (PRInt32 i = 0; i < numFolders; ++i)
+  for (int32_t i = 0; i < numFolders; ++i)
   {
     // XXX TODO
     // JUNK MAIL RELATED
@@ -74,13 +74,13 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(bool doNewMailNotification /* = fals
     // (and has proper flags?), before we start copying?
     nsCOMPtr <nsIMsgFolder> destFolder(m_destFolders[i]);
     nsTArray<nsMsgKey>& keysToAdd = m_sourceKeyArrays[i];
-    PRInt32 numNewMessages = 0;
-    PRInt32 numKeysToAdd = keysToAdd.Length();
+    int32_t numNewMessages = 0;
+    int32_t numKeysToAdd = keysToAdd.Length();
     if (numKeysToAdd == 0)
       continue;
 
     nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
-    for (PRUint32 keyIndex = 0; keyIndex < keysToAdd.Length(); keyIndex++)
+    for (uint32_t keyIndex = 0; keyIndex < keysToAdd.Length(); keyIndex++)
     {
       nsCOMPtr<nsIMsgDBHdr> mailHdr = nullptr;
       rv = m_sourceFolder->GetMessageHeader(keysToAdd.ElementAt(keyIndex), getter_AddRefs(mailHdr));
@@ -93,7 +93,7 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(bool doNewMailNotification /* = fals
           numNewMessages++;
       }
     }
-    PRUint32 destFlags;
+    uint32_t destFlags;
     destFolder->GetFlags(&destFlags);
     if (! (destFlags & nsMsgFolderFlags::Junk)) // don't set has new on junk folder
     {
@@ -102,7 +102,7 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(bool doNewMailNotification /* = fals
         destFolder->SetHasNewMessages(true);
     }
     // adjust the new message count on the source folder
-    PRInt32 oldNewMessageCount = 0;
+    int32_t oldNewMessageCount = 0;
     m_sourceFolder->GetNumNewMessages(false, &oldNewMessageCount);
     if (oldNewMessageCount >= numKeysToAdd)
       oldNewMessageCount -= numKeysToAdd;
@@ -154,7 +154,7 @@ nsImapMoveCoalescer::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
   return NS_OK;
 }
 
-nsTArray<nsMsgKey> *nsImapMoveCoalescer::GetKeyBucket(PRUint32 keyArrayIndex)
+nsTArray<nsMsgKey> *nsImapMoveCoalescer::GetKeyBucket(uint32_t keyArrayIndex)
 {
   if (keyArrayIndex >= m_keyBuckets.Length() &&
       !m_keyBuckets.SetLength(keyArrayIndex + 1))
@@ -181,14 +181,14 @@ NS_IMETHODIMP nsMoveCoalescerCopyListener::OnStartCopy()
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* void OnProgress (in PRUint32 aProgress, in PRUint32 aProgressMax); */
-NS_IMETHODIMP nsMoveCoalescerCopyListener::OnProgress(PRUint32 aProgress, PRUint32 aProgressMax)
+/* void OnProgress (in uint32_t aProgress, in uint32_t aProgressMax); */
+NS_IMETHODIMP nsMoveCoalescerCopyListener::OnProgress(uint32_t aProgress, uint32_t aProgressMax)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* void SetMessageKey (in PRUint32 aKey); */
-NS_IMETHODIMP nsMoveCoalescerCopyListener::SetMessageKey(PRUint32 aKey)
+/* void SetMessageKey (in uint32_t aKey); */
+NS_IMETHODIMP nsMoveCoalescerCopyListener::SetMessageKey(uint32_t aKey)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -209,7 +209,7 @@ NS_IMETHODIMP nsMoveCoalescerCopyListener::OnStopCopy(nsresult aStatus)
     nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_destFolder);
     if (imapFolder)
     {
-      PRUint32 folderFlags;
+      uint32_t folderFlags;
       m_destFolder->GetFlags(&folderFlags);
       if (!(folderFlags & (nsMsgFolderFlags::Junk | nsMsgFolderFlags::Trash)))
       {

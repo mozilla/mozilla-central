@@ -65,13 +65,13 @@ public:
     // determine if the end result is true or false.
   bool OfflineEvaluate(nsIMsgDBHdr *msgToMatch,
           const char *defaultCharset, nsIMsgSearchScopeTerm *scope,
-          nsIMsgDatabase *db, const char *headers, PRUint32 headerSize,
+          nsIMsgDatabase *db, const char *headers, uint32_t headerSize,
           bool Filtering);
 
     // assuming the expression is for online
     // searches, determine the length of the
     // resulting IMAP/NNTP encoding string
-  PRInt32 CalcEncodeStrSize();
+  int32_t CalcEncodeStrSize();
 
     // fills pre-allocated
     // memory in buffer with

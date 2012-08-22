@@ -22,7 +22,7 @@ public:
 
 protected:
   nsresult                      ParseUrl();         
-  PRInt32                       mOperationType;     // the internal ID for the operation
+  int32_t                       mOperationType;     // the internal ID for the operation
 
   nsCOMPtr<nsIURI>              m_baseURL;          // the base URL for the object
 };

@@ -32,9 +32,9 @@ protected:
   nsresult GetOutputStream(nsIArray *aHdrArray,
                            nsCOMPtr<nsIOutputStream> &outputStream,
                            nsCOMPtr<nsISeekableStream> &seekableStream,
-                           PRInt64 &restorePos);
+                           int64_t &restorePos);
   void GetMailboxModProperties(nsIMsgFolder *aFolder,
-                               PRInt64 *aSize, PRUint32 *aDate);
+                               int64_t *aSize, uint32_t *aDate);
   void SetDBValid(nsIMsgDBHdr *aHdr);
   // We don't want to keep re-opening an output stream when downloading
   // multiple pop3 messages, or adjusting x-mozilla-status headers, so

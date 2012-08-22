@@ -32,7 +32,7 @@ public:
   nsresult Init();
 
 private:
-  PRInt32 mOperation;
+  int32_t mOperation;
   nsCString mType;
   nsCOMPtr<nsIMutableArray> mValues;
   mozilla::Mutex mValuesLock;

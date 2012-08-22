@@ -80,8 +80,8 @@ nsresult nsMsgMaildirStore::AddSubFolders(nsIMsgFolder *parent, nsIFile *path,
   }
 
   // add the folders
-  PRInt32 count = currentDirEntries.Count();
-  for (PRInt32 i = 0; i < count; ++i)
+  int32_t count = currentDirEntries.Count();
+  for (int32_t i = 0; i < count; ++i)
   {
     nsCOMPtr<nsIFile> currentFile(currentDirEntries[i]);
 
@@ -235,7 +235,7 @@ NS_IMETHODIMP nsMsgMaildirStore::CreateFolder(nsIMsgFolder *aParent,
 }
 
 NS_IMETHODIMP nsMsgMaildirStore::HasSpaceAvailable(nsIMsgFolder *aFolder,
-                                                   PRInt64 aSpaceRequested,
+                                                   int64_t aSpaceRequested,
                                                    bool *aResult)
 {
   // This should probably check disk space available, though the caller
@@ -270,7 +270,7 @@ NS_IMETHODIMP nsMsgMaildirStore::IsSummaryFileValid(nsIMsgFolder *aFolder,
     newFile->Exists(&exists);
     if (!exists)
     {
-      PRInt32 numMessages;
+      int32_t numMessages;
       dbFolderInfo->GetNumMessages(&numMessages);
       if (!numMessages)
         *aResult = true;
@@ -351,7 +351,7 @@ NS_IMETHODIMP nsMsgMaildirStore::RenameFolder(nsIMsgFolder *aFolder,
 
   // old sbd directory
   nsCOMPtr<nsIFile> sbdPathFile;
-  PRUint32 numChildren;
+  uint32_t numChildren;
   aFolder->GetNumSubFolders(&numChildren);
   if (numChildren > 0)
   {
@@ -444,7 +444,7 @@ NS_IMETHODIMP nsMsgMaildirStore::CopyFolder(nsIMsgFolder *aSrcFolder,
   {
     // Test if the file is not empty
     bool exists;
-    PRInt64 fileSize;
+    int64_t fileSize;
     summaryFile->Exists(&exists);
     summaryFile->GetFileSize(&fileSize);
     if (exists && fileSize > 0)
@@ -459,7 +459,7 @@ NS_IMETHODIMP nsMsgMaildirStore::CopyFolder(nsIMsgFolder *aSrcFolder,
   NS_ENSURE_SUCCESS(rv, rv);
 
   newMsgFolder->SetPrettyName(folderName);
-  PRUint32 flags;
+  uint32_t flags;
   aSrcFolder->GetFlags(&flags);
   newMsgFolder->SetFlags(flags);
   bool changed = false;
@@ -767,7 +767,7 @@ nsMsgMaildirStore::MoveNewlyDownloadedMessage(nsIMsgDBHdr *aNewHdr,
 NS_IMETHODIMP
 nsMsgMaildirStore::GetMsgInputStream(nsIMsgFolder *aMsgFolder,
                                      const nsACString &aMsgToken,
-                                     PRInt64 *aOffset,
+                                     int64_t *aOffset,
                                      nsIMsgDBHdr *aMsgHdr,
                                      bool *aReusable,
                                      nsIInputStream **aResult)
@@ -809,12 +809,12 @@ nsMsgMaildirStore::GetMsgInputStream(nsIMsgFolder *aMsgFolder,
 
 NS_IMETHODIMP nsMsgMaildirStore::DeleteMessages(nsIArray *aHdrArray)
 {
-  PRUint32 messageCount;
+  uint32_t messageCount;
   nsresult rv = aHdrArray->GetLength(&messageCount);
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsIMsgFolder> folder;
 
-  for (PRUint32 i = 0; i < messageCount; i++)
+  for (uint32_t i = 0; i < messageCount; i++)
   {
     nsCOMPtr<nsIMsgDBHdr> msgHdr = do_QueryElementAt(aHdrArray, i, &rv);
     if (NS_FAILED(rv))
@@ -857,7 +857,7 @@ nsMsgMaildirStore::CopyMessages(bool aIsMove, nsIArray *aHdrArray,
   NS_ENSURE_ARG_POINTER(aDstFolder);
   NS_ENSURE_ARG_POINTER(aCopyDone);
   NS_ENSURE_ARG_POINTER(aUndoAction);
-  PRUint32 messageCount;
+  uint32_t messageCount;
   nsresult rv = aHdrArray->GetLength(&messageCount);
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsIMsgFolder> srcFolder;
@@ -885,7 +885,7 @@ nsMsgMaildirStore::CopyMessages(bool aIsMove, nsIArray *aHdrArray,
 
   nsCOMPtr<nsIMutableArray> dstHdrs(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  for (PRUint32 i = 0; i < messageCount; i++)
+  for (uint32_t i = 0; i < messageCount; i++)
   {
     nsCOMPtr<nsIMsgDBHdr> msgHdr = do_QueryElementAt(aHdrArray, i, &rv);
     if (NS_FAILED(rv))
@@ -946,7 +946,7 @@ nsMsgMaildirStore::CopyMessages(bool aIsMove, nsIArray *aHdrArray,
                                           dstHdrs);
   if (aIsMove)
   {
-    for (PRUint32 i = 0; i < messageCount; ++i)
+    for (uint32_t i = 0; i < messageCount; ++i)
     {
       nsCOMPtr<nsIMsgDBHdr> msgDBHdr(do_QueryElementAt(aHdrArray, i, &rv));
       rv = srcDB->DeleteHeader(msgDBHdr, nullptr, false, true);
@@ -1029,17 +1029,17 @@ nsresult MaildirStoreParser::ParseNextMessage(nsIFile *aFile)
   rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), aFile);
   if (NS_SUCCEEDED(rv) && inputStream)
   {
-    PRInt32 inputBufferSize = 10240;
+    int32_t inputBufferSize = 10240;
     nsMsgLineStreamBuffer *inputStreamBuffer =
       new nsMsgLineStreamBuffer(inputBufferSize, true, false);
-    PRInt64 fileSize;
+    int64_t fileSize;
     aFile->GetFileSize(&fileSize);
     msgParser->SetNewMsgHdr(newMsgHdr);
     msgParser->SetState(nsIMsgParseMailMsgState::ParseHeadersState);
     msgParser->SetEnvelopePos(0);
     bool needMoreData = false;
     char * newLine = nullptr;
-    PRUint32 numBytesInLine = 0;
+    uint32_t numBytesInLine = 0;
     // we only have to read the headers, because we know the message size
     // from the file size. So we can do this in one time slice.
     do
@@ -1055,7 +1055,7 @@ nsresult MaildirStoreParser::ParseNextMessage(nsIFile *aFile)
 
     msgParser->FinishHeader();
     // A single message needs to be less than 4GB
-    newMsgHdr->SetMessageSize((PRUint32) fileSize);
+    newMsgHdr->SetMessageSize((uint32_t) fileSize);
     m_db->AddNewHdrToDB(newMsgHdr, true);
     nsCAutoString storeToken;
     aFile->GetNativeLeafName(storeToken);
@@ -1139,16 +1139,16 @@ NS_IMETHODIMP nsMsgMaildirStore::RebuildIndex(nsIMsgFolder *aFolder,
 }
 
 NS_IMETHODIMP nsMsgMaildirStore::ChangeFlags(nsIArray *aHdrArray,
-                                             PRUint32 aFlags,
+                                             uint32_t aFlags,
                                              bool aSet)
 {
   NS_ENSURE_ARG_POINTER(aHdrArray);
 
-  PRUint32 messageCount;
+  uint32_t messageCount;
   nsresult rv = aHdrArray->GetLength(&messageCount);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  for (PRUint32 i = 0; i < messageCount; i++)
+  for (uint32_t i = 0; i < messageCount; i++)
   {
     nsCOMPtr<nsIMsgDBHdr> msgHdr = do_QueryElementAt(aHdrArray, i, &rv);
     // get output stream for header
@@ -1199,7 +1199,7 @@ NS_IMETHODIMP nsMsgMaildirStore::ChangeKeywords(nsIArray *aHdrArray,
   nsCOMPtr<nsIOutputStream> outputStream;
   nsCOMPtr<nsISeekableStream> seekableStream;
 
-  PRUint32 messageCount;
+  uint32_t messageCount;
   nsresult rv = aHdrArray->GetLength(&messageCount);
   NS_ENSURE_SUCCESS(rv, rv);
   if (!messageCount)
@@ -1212,7 +1212,7 @@ NS_IMETHODIMP nsMsgMaildirStore::ChangeKeywords(nsIArray *aHdrArray,
   nsTArray<nsCString> keywordArray;
   ParseString(aKeywords, ' ', keywordArray);
 
-  for (PRUint32 i = 0; i < messageCount; ++i) // for each message
+  for (uint32_t i = 0; i < messageCount; ++i) // for each message
   {
     nsCOMPtr<nsIMsgDBHdr> message = do_QueryElementAt(aHdrArray, i, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -1224,9 +1224,9 @@ NS_IMETHODIMP nsMsgMaildirStore::ChangeKeywords(nsIArray *aHdrArray,
     NS_ENSURE_SUCCESS(rv, rv);
     nsCOMPtr <nsISeekableStream> seekableStream(do_QueryInterface(inputStream, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
-    PRUint32 statusOffset = 0;
+    uint32_t statusOffset = 0;
     (void)message->GetStatusOffset(&statusOffset);
-    PRUint64 desiredOffset = statusOffset;
+    uint64_t desiredOffset = statusOffset;
 
     ChangeKeywordsHelper(message, desiredOffset, lineBuffer, keywordArray,
                          aAdd, outputStream, seekableStream, inputStream);

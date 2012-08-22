@@ -33,12 +33,12 @@ nsImapURI2FullName(const char* rootURI, const char* hostName, const char* uriStr
       return NS_ERROR_FAILURE;
     fullName = Substring(uri, strlen(rootURI));
     uri = fullName;
-    PRInt32 hostStart = uri.Find(hostName);
+    int32_t hostStart = uri.Find(hostName);
     if (hostStart <= 0) 
       return NS_ERROR_FAILURE;
     fullName = Substring(uri, hostStart);
     uri = fullName;
-    PRInt32 hostEnd = uri.FindChar('/');
+    int32_t hostEnd = uri.FindChar('/');
     if (hostEnd <= 0) 
       return NS_ERROR_FAILURE;
     fullName = Substring(uri, hostEnd + 1);
@@ -49,13 +49,13 @@ nsImapURI2FullName(const char* rootURI, const char* hostName, const char* uriStr
 }
 
 /* parses ImapMessageURI */
-nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, PRUint32 *key, char **part)
+nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, uint32_t *key, char **part)
 {
   if(!key)
     return NS_ERROR_NULL_POINTER;
 
   nsCAutoString uriStr(uri);
-  PRInt32 folderEnd = -1;
+  int32_t folderEnd = -1;
   // imap-message uri's can have imap:// url strings tacked on the end,
   // e.g., when opening/saving attachments. We don't want to look for '#'
   // in that part of the uri, if the attachment name contains '#',
@@ -63,20 +63,20 @@ nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, PRUint32 *
   if (StringBeginsWith(uriStr, NS_LITERAL_CSTRING("imap-message")))
     folderEnd = uriStr.Find("imap://");
 
-  PRInt32 keySeparator = MsgRFindChar(uriStr, '#', folderEnd);
+  int32_t keySeparator = MsgRFindChar(uriStr, '#', folderEnd);
   if(keySeparator != -1)
   {
-    PRInt32 keyEndSeparator = MsgFindCharInSet(uriStr, "/?&", keySeparator);
+    int32_t keyEndSeparator = MsgFindCharInSet(uriStr, "/?&", keySeparator);
     nsAutoString folderPath;
     folderURI = StringHead(uriStr, keySeparator);
     folderURI.Cut(4, 8); // cut out the _message part of imap-message:
     // folder uri's don't have fully escaped usernames.
-    PRInt32 atPos = folderURI.FindChar('@');
+    int32_t atPos = folderURI.FindChar('@');
     if (atPos != -1)
     {
       nsCString unescapedName, escapedName;
-      PRInt32 userNamePos = folderURI.Find("//") + 2;
-      PRUint32 origUserNameLen = atPos - userNamePos;
+      int32_t userNamePos = folderURI.Find("//") + 2;
+      uint32_t origUserNameLen = atPos - userNamePos;
       if (NS_SUCCEEDED(MsgUnescapeString(Substring(folderURI, userNamePos,
                                                    origUserNameLen),
                                          0, unescapedName)))
@@ -97,7 +97,7 @@ nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, PRUint32 *
 
     if (part && keyEndSeparator != -1)
     {
-      PRInt32 partPos = MsgFind(uriStr, "part=", false, keyEndSeparator);
+      int32_t partPos = MsgFind(uriStr, "part=", false, keyEndSeparator);
       if (partPos != -1)
       {
         *part = ToNewCString(Substring(uriStr, keyEndSeparator));
@@ -107,7 +107,7 @@ nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, PRUint32 *
   return NS_OK;
 }
 
-nsresult nsBuildImapMessageURI(const char *baseURI, PRUint32 key, nsCString& uri)
+nsresult nsBuildImapMessageURI(const char *baseURI, uint32_t key, nsCString& uri)
 {
   uri.Append(baseURI);
   uri.Append('#');
@@ -154,18 +154,18 @@ nsImapMailboxSpec::~nsImapMailboxSpec()
 {
 }
 
-NS_IMPL_GETSET(nsImapMailboxSpec, Folder_UIDVALIDITY, PRInt32, mFolder_UIDVALIDITY)
-NS_IMPL_GETSET(nsImapMailboxSpec, HighestModSeq, PRUint64, mHighestModSeq)
-NS_IMPL_GETSET(nsImapMailboxSpec, NumMessages, PRInt32, mNumOfMessages)
-NS_IMPL_GETSET(nsImapMailboxSpec, NumUnseenMessages, PRInt32, mNumOfUnseenMessages)
-NS_IMPL_GETSET(nsImapMailboxSpec, NumRecentMessages, PRInt32, mNumOfRecentMessages)
-NS_IMPL_GETSET(nsImapMailboxSpec, NextUID, PRInt32, mNextUID)
+NS_IMPL_GETSET(nsImapMailboxSpec, Folder_UIDVALIDITY, int32_t, mFolder_UIDVALIDITY)
+NS_IMPL_GETSET(nsImapMailboxSpec, HighestModSeq, uint64_t, mHighestModSeq)
+NS_IMPL_GETSET(nsImapMailboxSpec, NumMessages, int32_t, mNumOfMessages)
+NS_IMPL_GETSET(nsImapMailboxSpec, NumUnseenMessages, int32_t, mNumOfUnseenMessages)
+NS_IMPL_GETSET(nsImapMailboxSpec, NumRecentMessages, int32_t, mNumOfRecentMessages)
+NS_IMPL_GETSET(nsImapMailboxSpec, NextUID, int32_t, mNextUID)
 NS_IMPL_GETSET(nsImapMailboxSpec, HierarchyDelimiter, char, mHierarchySeparator)
 NS_IMPL_GETSET(nsImapMailboxSpec, FolderSelected, bool, mFolderSelected)
 NS_IMPL_GETSET(nsImapMailboxSpec, DiscoveredFromLsub, bool, mDiscoveredFromLsub)
 NS_IMPL_GETSET(nsImapMailboxSpec, OnlineVerified, bool, mOnlineVerified)
-NS_IMPL_GETSET(nsImapMailboxSpec, SupportedUserFlags, PRUint32, mSupportedUserFlags)
-NS_IMPL_GETSET(nsImapMailboxSpec, Box_flags, PRUint32, mBoxFlags)
+NS_IMPL_GETSET(nsImapMailboxSpec, SupportedUserFlags, uint32_t, mSupportedUserFlags)
+NS_IMPL_GETSET(nsImapMailboxSpec, Box_flags, uint32_t, mBoxFlags)
 NS_IMPL_GETSET(nsImapMailboxSpec, NamespaceForFolder, nsIMAPNamespace *, mNamespaceForFolder)
 
 NS_IMETHODIMP nsImapMailboxSpec::GetAllocatedPathName(nsACString &aAllocatedPathName)
@@ -247,23 +247,23 @@ nsImapMailboxSpec& nsImapMailboxSpec::operator= (const nsImapMailboxSpec& aCopy)
 
 // use the flagState to determine if the gaps in the msgUids correspond to gaps in the mailbox,
 // in which case we can still use ranges. If flagState is null, we won't do this.
-void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount, 
+void AllocateImapUidString(uint32_t *msgUids, uint32_t &msgCount, 
                            nsImapFlagAndUidState *flagState, nsCString &returnString)
 {
-  PRUint32 startSequence = (msgCount > 0) ? msgUids[0] : 0xFFFFFFFF;
-  PRUint32 curSequenceEnd = startSequence;
-  PRUint32 total = msgCount;
-  PRInt32  curFlagStateIndex = -1;
+  uint32_t startSequence = (msgCount > 0) ? msgUids[0] : 0xFFFFFFFF;
+  uint32_t curSequenceEnd = startSequence;
+  uint32_t total = msgCount;
+  int32_t  curFlagStateIndex = -1;
 
   // a partial fetch flag state doesn't help us, so don't use it.
   if (flagState && flagState->GetPartialUIDFetch())
     flagState = nullptr;
 
   
-  for (PRUint32 keyIndex = 0; keyIndex < total; keyIndex++)
+  for (uint32_t keyIndex = 0; keyIndex < total; keyIndex++)
   {
-    PRUint32 curKey = msgUids[keyIndex];
-    PRUint32 nextKey = (keyIndex + 1 < total) ? msgUids[keyIndex + 1] : 0xFFFFFFFF;
+    uint32_t curKey = msgUids[keyIndex];
+    uint32_t nextKey = (keyIndex + 1 < total) ? msgUids[keyIndex + 1] : 0xFFFFFFFF;
     bool lastKey = (nextKey == 0xFFFFFFFF);
 
     if (lastKey)
@@ -294,7 +294,7 @@ void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount,
           }
         }
         curFlagStateIndex++;
-        PRUint32 nextUidInFlagState;
+        uint32_t nextUidInFlagState;
         nsresult rv = flagState->GetUidOfMessage(curFlagStateIndex, &nextUidInFlagState);
         if (NS_SUCCEEDED(rv) && nextUidInFlagState == nextKey)
         {
@@ -305,9 +305,9 @@ void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount,
     }
     if (curSequenceEnd > startSequence)
     {
-      returnString.AppendInt((PRInt64) startSequence);
+      returnString.AppendInt((int64_t) startSequence);
       returnString += ':';
-      returnString.AppendInt((PRInt64) curSequenceEnd);
+      returnString.AppendInt((int64_t) curSequenceEnd);
       startSequence = nextKey;
       curSequenceEnd = startSequence;
       curFlagStateIndex = -1;
@@ -316,7 +316,7 @@ void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount,
     {
       startSequence = nextKey;
       curSequenceEnd = startSequence;
-      returnString.AppendInt((PRInt64) msgUids[keyIndex]);
+      returnString.AppendInt((int64_t) msgUids[keyIndex]);
       curFlagStateIndex = -1;
     }
     // check if we've generated too long a string - if there's no flag state,
@@ -339,8 +339,8 @@ void ParseUidString(const char *uidString, nsTArray<nsMsgKey> &keys)
   // This is in the form <id>,<id>, or <id1>:<id2>
   char curChar = *uidString;
   bool isRange = false;
-  PRUint32 curToken;
-  PRUint32 saveStartToken = 0;
+  uint32_t curToken;
+  uint32_t saveStartToken = 0;
 
   for (const char *curCharPtr = uidString; curChar && *curCharPtr;)
   {
@@ -364,7 +364,7 @@ void ParseUidString(const char *uidString, nsTArray<nsMsgKey> &keys)
   }
 }
 
-void AppendUid(nsCString &msgIds, PRUint32 uid)
+void AppendUid(nsCString &msgIds, uint32_t uid)
 {
   char buf[20];
   PR_snprintf(buf, sizeof(buf), "%u", uid);

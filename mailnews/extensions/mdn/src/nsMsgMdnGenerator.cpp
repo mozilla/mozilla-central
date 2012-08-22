@@ -166,7 +166,7 @@ nsresult nsMsgMdnGenerator::ClearMDNNeededFlag(nsIMsgFolder *folder,
 bool nsMsgMdnGenerator::ProcessSendMode()
 {
     DEBUG_MDN("nsMsgMdnGenerator::ProcessSendMode");
-    PRInt32 miscState = 0;
+    int32_t miscState = 0;
 
     if (m_identity)
     {
@@ -770,7 +770,7 @@ nsresult nsMsgMdnGenerator::OutputAllHeaders()
 {
     DEBUG_MDN("nsMsgMdnGenerator::OutputAllHeaders");
     nsCString all_headers;
-    PRInt32 all_headers_size = 0;
+    int32_t all_headers_size = 0;
     nsresult rv = NS_OK;
 
     rv = m_headers->GetAllHeaders(getter_Copies(all_headers));
@@ -866,8 +866,8 @@ nsresult nsMsgMdnGenerator::SendMdnMsg()
 nsresult nsMsgMdnGenerator::WriteString( const char *str )
 {
   NS_ENSURE_ARG (str);
-  PRUint32 len = strlen(str);
-  PRUint32 wLen = 0;
+  uint32_t len = strlen(str);
+  uint32_t wLen = 0;
 
   return m_outputStream->Write(str, len, &wLen);
 }
@@ -906,10 +906,10 @@ nsresult nsMsgMdnGenerator::InitAndProcess(bool *needToAskUser)
             {
               nsCOMPtr<nsIMsgIdentity> ident;
               nsCString identEmail;
-              PRUint32 count = 0;
+              uint32_t count = 0;
               servIdentities->Count(&count);
               // First check in the "To:" header
-              for (PRUint32 i = 0; i < count; i++)
+              for (uint32_t i = 0; i < count; i++)
               {
                 rv = servIdentities->QueryElementAt(i, NS_GET_IID(nsIMsgIdentity),getter_AddRefs(ident));
                 if (NS_FAILED(rv))
@@ -925,7 +925,7 @@ nsresult nsMsgMdnGenerator::InitAndProcess(bool *needToAskUser)
               // If no match, check the "Cc:" header
               if (!m_identity)
               {
-                for (PRUint32 i = 0; i < count; i++)
+                for (uint32_t i = 0; i < count; i++)
                 {
                   rv = servIdentities->QueryElementAt(i, NS_GET_IID(nsIMsgIdentity),getter_AddRefs(ident));
                   if (NS_FAILED(rv))

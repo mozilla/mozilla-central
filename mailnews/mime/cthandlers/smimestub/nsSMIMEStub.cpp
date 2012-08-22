@@ -14,7 +14,7 @@
 #define SMIME_PROPERTIES_URL          "chrome://messenger/locale/smime.properties"
 #define SMIME_STR_NOT_SUPPORTED_ID    1000
 
-static char *SMimeGetStringByID(PRInt32 aMsgId)
+static char *SMimeGetStringByID(int32_t aMsgId)
 {
   nsCOMPtr<nsIStringBundleService> stringBundleService =
     mozilla::services::GetStringBundleService();
@@ -32,7 +32,7 @@ static char *SMimeGetStringByID(PRInt32 aMsgId)
   return strdup("???");
 }
 
-static int MimeInlineTextSMIMEStub_parse_line (const char *, PRInt32, MimeObject *);
+static int MimeInlineTextSMIMEStub_parse_line (const char *, int32_t, MimeObject *);
 static int MimeInlineTextSMIMEStub_parse_eof (MimeObject *, bool);
 static int MimeInlineTextSMIMEStub_parse_begin (MimeObject *obj);
 
@@ -105,7 +105,7 @@ MimeInlineTextSMIMEStub_parse_begin(MimeObject *obj)
 }
 
 static int
-MimeInlineTextSMIMEStub_parse_line(const char *line, PRInt32 length, MimeObject *obj)
+MimeInlineTextSMIMEStub_parse_line(const char *line, int32_t length, MimeObject *obj)
 {
  /*
   * This routine gets fed each line of data, one at a time. We just buffer

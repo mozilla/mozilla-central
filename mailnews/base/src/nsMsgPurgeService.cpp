@@ -64,12 +64,12 @@ NS_IMETHODIMP nsMsgPurgeService::Init()
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   if (NS_SUCCEEDED(rv))
   {
-    PRInt32 min_delay;
+    int32_t min_delay;
     rv = prefBranch->GetIntPref("mail.purge.min_delay", &min_delay);
     if (NS_SUCCEEDED(rv) &&  min_delay)
       mMinDelayBetweenPurges = min_delay;
 
-    PRInt32 purge_timer_interval;
+    int32_t purge_timer_interval;
     rv = prefBranch->GetIntPref("mail.purge.timer_interval", &purge_timer_interval);
     if (NS_SUCCEEDED(rv) &&  purge_timer_interval)
       mPurgeTimerInterval = purge_timer_interval;
@@ -104,7 +104,7 @@ nsresult nsMsgPurgeService::SetupNextPurge()
   PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("setting to check again in %d minutes",mPurgeTimerInterval));
 
   // Convert mPurgeTimerInterval into milliseconds
-  PRUint32 timeInMSUint32 = mPurgeTimerInterval * 60000;
+  uint32_t timeInMSUint32 = mPurgeTimerInterval * 60000;
 
   // Can't currently reset a timer when it's in the process of
   // calling Notify. So, just release the timer here and create a new one.
@@ -141,12 +141,12 @@ nsresult nsMsgPurgeService::PerformPurge()
   rv = accountManager->GetAllServers(getter_AddRefs(allServers));
   if (NS_SUCCEEDED(rv) && allServers)
   {
-    PRUint32 numServers;
+    uint32_t numServers;
     rv = allServers->Count(&numServers);
     PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("%d servers", numServers));
     nsCOMPtr<nsIMsgFolder> folderToPurge;
     PRIntervalTime startTime = PR_IntervalNow();
-    PRInt32 purgeIntervalToUse;
+    int32_t purgeIntervalToUse;
     PRTime oldestPurgeTime = 0; // we're going to pick the least-recently purged folder
 
     // apply retention settings to folders that haven't had retention settings
@@ -155,7 +155,7 @@ nsresult nsMsgPurgeService::PerformPurge()
     // this code won't open db's for folders until it decides it needs
     // to apply retention settings, and since nsIMsgFolder::ApplyRetentionSettings
     // will close any db's it opens, this code won't leave db's open.
-    for (PRUint32 serverIndex=0; serverIndex < numServers; serverIndex++)
+    for (uint32_t serverIndex=0; serverIndex < numServers; serverIndex++)
     {
       nsCOMPtr <nsIMsgIncomingServer> server =
         do_QueryElementAt(allServers, serverIndex, &rv);
@@ -171,19 +171,19 @@ nsresult nsMsgPurgeService::PerformPurge()
           NS_ENSURE_SUCCESS(rv, rv);
           rv = rootFolder->ListDescendents(childFolders);
 
-          PRUint32 cnt = 0;
+          uint32_t cnt = 0;
           childFolders->Count(&cnt);
 
           nsCOMPtr<nsISupports> supports;
           nsCOMPtr<nsIUrlListener> urlListener;
           nsCOMPtr<nsIMsgFolder> childFolder;
 
-          for (PRUint32 index = 0; index < cnt; index++)
+          for (uint32_t index = 0; index < cnt; index++)
           {
             childFolder = do_QueryElementAt(childFolders, index);
             if (childFolder)
             {
-              PRUint32 folderFlags;
+              uint32_t folderFlags;
               (void) childFolder->GetFlags(&folderFlags);
               if (folderFlags & nsMsgFolderFlags::Virtual)
                 continue;
@@ -195,7 +195,7 @@ nsresult nsMsgPurgeService::PerformPurge()
 
               if (!curFolderLastPurgeTimeString.IsEmpty())
               {
-                PRInt64 theTime;
+                int64_t theTime;
                 PR_ParseTimeString(curFolderLastPurgeTimeString.get(), false, &theTime);
                 curFolderLastPurgeTime = theTime;
               }
@@ -206,8 +206,8 @@ nsresult nsMsgPurgeService::PerformPurge()
               // check if this folder is due to purge
               // has to have been purged at least mMinDelayBetweenPurges minutes ago
               // we don't want to purge the folders all the time - once a day is good enough
-              PRInt64 minDelayBetweenPurges(mMinDelayBetweenPurges);
-              PRInt64 microSecondsPerMinute(60000000);
+              int64_t minDelayBetweenPurges(mMinDelayBetweenPurges);
+              int64_t microSecondsPerMinute(60000000);
               PRTime nextPurgeTime = curFolderLastPurgeTime + (minDelayBetweenPurges * microSecondsPerMinute);
               if (nextPurgeTime < PR_Now())
               {
@@ -243,7 +243,7 @@ nsresult nsMsgPurgeService::PerformPurge()
         rv = server->GetSpamSettings(getter_AddRefs(spamSettings));
         NS_ENSURE_SUCCESS(rv, rv);
 
-        PRInt32 spamLevel;
+        int32_t spamLevel;
         spamSettings->GetLevel(&spamLevel);
         PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] spamLevel=%d (if 0, don't purge)", serverIndex, spamLevel));
         if (!spamLevel)
@@ -286,7 +286,7 @@ nsresult nsMsgPurgeService::PerformPurge()
 
         if (!curJunkFolderLastPurgeTimeString.IsEmpty())
         {
-          PRInt64 theTime;
+          int64_t theTime;
           PR_ParseTimeString(curJunkFolderLastPurgeTimeString.get(), false, &theTime);
           curJunkFolderLastPurgeTime = theTime;
         }
@@ -322,7 +322,7 @@ nsresult nsMsgPurgeService::PerformPurge()
           PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] (passwordPromptRequired? %s)", serverIndex, passwordPromptRequired ? "true" : "false"));
           if (canSearchMessages && !mSearchSession && !serverBusy && (!serverRequiresPassword || !passwordPromptRequired))
           {
-            PRInt32 purgeInterval;
+            int32_t purgeInterval;
             spamSettings->GetPurgeInterval(&purgeInterval);
 
             if ((oldestPurgeTime == 0) || (curJunkFolderLastPurgeTime < oldestPurgeTime))
@@ -355,7 +355,7 @@ nsresult nsMsgPurgeService::PerformPurge()
   return rv;
 }
 
-nsresult nsMsgPurgeService::SearchFolderToPurge(nsIMsgFolder *folder, PRInt32 purgeInterval)
+nsresult nsMsgPurgeService::SearchFolderToPurge(nsIMsgFolder *folder, int32_t purgeInterval)
 {
   nsresult rv;
   mSearchSession = do_CreateInstance(NS_MSGSEARCHSESSION_CONTRACTID, &rv);
@@ -395,7 +395,7 @@ nsresult nsMsgPurgeService::SearchFolderToPurge(nsIMsgFolder *folder, PRInt32 pu
     if (searchValue)
     {
       searchValue->SetAttrib(nsMsgSearchAttrib::AgeInDays);
-      searchValue->SetAge((PRUint32) purgeInterval);
+      searchValue->SetAge((uint32_t) purgeInterval);
       searchTerm->SetValue(searchValue);
     }
     searchTerm->SetBooleanAnd(false);
@@ -411,7 +411,7 @@ nsresult nsMsgPurgeService::SearchFolderToPurge(nsIMsgFolder *folder, PRInt32 pu
   }
   else
   {
-    PRUint32 count;
+    uint32_t count;
     mHdrsToDelete->GetLength(&count);
     NS_ASSERTION(count == 0, "mHdrsToDelete is not empty");
     if (count > 0)
@@ -474,7 +474,7 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchDone(nsresult status)
   nsresult rv = NS_OK;
   if (NS_SUCCEEDED(status))
   {
-    PRUint32 count;
+    uint32_t count;
     if (mHdrsToDelete)
       mHdrsToDelete->GetLength(&count);
     PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("%d messages to delete", count));

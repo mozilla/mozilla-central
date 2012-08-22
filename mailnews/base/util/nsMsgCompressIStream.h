@@ -28,7 +28,7 @@ protected:
   nsAutoArrayPtr<char> m_zbuf;
   nsAutoArrayPtr<char> m_databuf;
   char *m_dataptr;
-  PRUint32 m_dataleft;
+  uint32_t m_dataleft;
   bool m_inflateAgain;
   z_stream m_zstream;
 };

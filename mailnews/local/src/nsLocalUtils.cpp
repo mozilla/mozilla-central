@@ -185,16 +185,16 @@ nsLocalURI2Path(const char* rootURI, const char* uriStr,
  */
 nsresult nsParseLocalMessageURI(const char* uri,
                                 nsCString& folderURI,
-                                PRUint32 *key)
+                                uint32_t *key)
 {
   if(!key)
     return NS_ERROR_NULL_POINTER;
 
   nsCAutoString uriStr(uri);
-  PRInt32 keySeparator = uriStr.FindChar('#');
+  int32_t keySeparator = uriStr.FindChar('#');
   if(keySeparator != -1)
   {
-    PRInt32 keyEndSeparator = MsgFindCharInSet(uriStr, "?&", keySeparator);
+    int32_t keyEndSeparator = MsgFindCharInSet(uriStr, "?&", keySeparator);
     folderURI = StringHead(uriStr, keySeparator);
     folderURI.Cut(7, 8);    // cut out the -message part of mailbox-message:
 
@@ -205,14 +205,14 @@ nsresult nsParseLocalMessageURI(const char* uri,
     else
       keyStr = StringTail(uriStr, uriStr.Length() - (keySeparator + 1));
 
-    *key = (PRUint32) ParseUint64Str(keyStr.get());
+    *key = (uint32_t) ParseUint64Str(keyStr.get());
     return NS_OK;
   }
   return NS_ERROR_FAILURE;
 
 }
 
-nsresult nsBuildLocalMessageURI(const char *baseURI, PRUint32 key, nsCString& uri)
+nsresult nsBuildLocalMessageURI(const char *baseURI, uint32_t key, nsCString& uri)
 {
   
   // need to convert mailbox://hostname/.. to mailbox-message://hostname/..

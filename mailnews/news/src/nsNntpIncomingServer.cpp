@@ -252,9 +252,9 @@ nsNntpIncomingServer::GetNewsrcRootPath(nsIFile **aNewsrcRootPath)
 
 nsresult nsNntpIncomingServer::SetupNewsrcSaveTimer()
 {
-  PRInt64 ms(300000);   // hard code, 5 minutes.
+  int64_t ms(300000);   // hard code, 5 minutes.
   //Convert biffDelay into milliseconds
-  PRUint32 timeInMSUint32 = (PRUint32)ms;
+  uint32_t timeInMSUint32 = (uint32_t)ms;
   //Can't currently reset a timer when it's in the process of
   //calling Notify. So, just release the timer here and create a new one.
   if(mNewsrcSaveTimer)
@@ -327,7 +327,7 @@ nsNntpIncomingServer::WriteNewsrcFile()
         nsCOMPtr <nsIMsgNewsFolder> newsFolder = do_QueryInterface(rootFolder, &rv);
         if (NS_FAILED(rv)) return rv;
 
-        PRUint32 bytesWritten;
+        uint32_t bytesWritten;
         nsCString optionLines;
         rv = newsFolder->GetOptionLines(optionLines);
         if (NS_SUCCEEDED(rv) && !optionLines.IsEmpty()) {
@@ -415,9 +415,9 @@ nsNntpIncomingServer::CloseCachedConnections()
   nsCOMPtr<nsINNTPProtocol> connection;
 
   // iterate through the connection cache and close the connections.
-  PRInt32 cnt = mConnectionCache.Count();
+  int32_t cnt = mConnectionCache.Count();
 
-  for (PRInt32 i = 0; i < cnt; ++i)
+  for (int32_t i = 0; i < cnt; ++i)
   {
     connection = mConnectionCache[0];
     if (connection)
@@ -496,7 +496,7 @@ nsNntpIncomingServer::GetNntpConnection(nsIURI * aUri, nsIMsgWindow *aMsgWindow,
 {
   // Get our maximum connection count. We need at least 1. If the value is 0,
   // we use the default. If it's negative, we treat that as 1.
-  PRInt32 maxConnections = kMaxConnectionsPerHost;
+  int32_t maxConnections = kMaxConnectionsPerHost;
   nsresult rv = GetMaximumConnectionsNumber(&maxConnections);
   if (NS_FAILED(rv) || maxConnections == 0)
   {
@@ -511,8 +511,8 @@ nsNntpIncomingServer::GetNntpConnection(nsIURI * aUri, nsIMsgWindow *aMsgWindow,
 
   // Find a non-busy connection
   nsCOMPtr<nsINNTPProtocol> connection;
-  PRInt32 cnt = mConnectionCache.Count();
-  for (PRInt32 i = 0; i < cnt; i++)
+  int32_t cnt = mConnectionCache.Count();
+  for (int32_t i = 0; i < cnt; i++)
   {
     connection = mConnectionCache[i];
     if (connection)
@@ -673,7 +673,7 @@ nsNntpIncomingServer::DownloadMail(nsIMsgWindow *aMsgWindow)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::DisplaySubscribedGroup(nsIMsgNewsFolder *aMsgFolder, PRInt32 aFirstMessage, PRInt32 aLastMessage, PRInt32 aTotalMessages)
+nsNntpIncomingServer::DisplaySubscribedGroup(nsIMsgNewsFolder *aMsgFolder, int32_t aFirstMessage, int32_t aLastMessage, int32_t aTotalMessages)
 {
   nsresult rv;
 
@@ -774,7 +774,7 @@ writeGroupToHostInfoFile(nsCString &aElement, void *aData)
 
 void nsNntpIncomingServer::WriteLine(nsIOutputStream *stream, nsCString &str)
 {
-  PRUint32 bytesWritten;
+  uint32_t bytesWritten;
   str.Append(MSG_LINEBREAK);
   stream->Write(str.get(), str.Length(), &bytesWritten);
 }
@@ -783,9 +783,9 @@ nsNntpIncomingServer::WriteHostInfoFile()
 {
   if (!mHostInfoHasChanged)
     return NS_OK;
-  PRInt32 firstnewdate = (PRInt32)mFirstNewDate;
+  int32_t firstnewdate = (int32_t)mFirstNewDate;
 
-  mLastUpdatedTime = PRUint32(PR_Now() / PR_USEC_PER_SEC);
+  mLastUpdatedTime = uint32_t(PR_Now() / PR_USEC_PER_SEC);
 
   nsCString hostname;
   nsresult rv = GetHostName(hostname);
@@ -823,10 +823,10 @@ nsNntpIncomingServer::WriteHostInfoFile()
   WriteLine(hostInfoStream, header);
 
   // XXX todo, sort groups first?
-  PRUint32 length = mGroupsOnServer.Length();
-  for (PRUint32 i = 0; i < length; ++i)
+  uint32_t length = mGroupsOnServer.Length();
+  for (uint32_t i = 0; i < length; ++i)
   {
-    PRUint32 bytesWritten;
+    uint32_t bytesWritten;
     hostInfoStream->Write(mGroupsOnServer[i].get(), mGroupsOnServer[i].Length(),
                           &bytesWritten);
     hostInfoStream->Write(MSG_LINEBREAK, MSG_LINEBREAK_LEN, &bytesWritten);
@@ -1077,8 +1077,8 @@ nsNntpIncomingServer::UpdateSubscribed()
   nsresult rv = EnsureInner();
   NS_ENSURE_SUCCESS(rv,rv);
   mTempSubscribed.Clear();
-  PRUint32 length = mSubscribedNewsgroups.Length();
-  for (PRUint32 i = 0; i < length; ++i)
+  uint32_t length = mSubscribedNewsgroups.Length();
+  for (uint32_t i = 0; i < length; ++i)
     SetAsSubscribed(mSubscribedNewsgroups[i]);
   return NS_OK;
 }
@@ -1196,8 +1196,8 @@ nsNntpIncomingServer::Unsubscribe(const PRUnichar *aUnicharName)
   return NS_OK;
 }
 
-PRInt32
-nsNntpIncomingServer::HandleLine(const char* line, PRUint32 line_size)
+int32_t
+nsNntpIncomingServer::HandleLine(const char* line, uint32_t line_size)
 {
   NS_ASSERTION(line, "line is null");
   if (!line) return 0;
@@ -1439,14 +1439,14 @@ nsNntpIncomingServer::SetPostingAllowed(bool aPostingAllowed)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetLastUpdatedTime(PRUint32 *aLastUpdatedTime)
+nsNntpIncomingServer::GetLastUpdatedTime(uint32_t *aLastUpdatedTime)
 {
   *aLastUpdatedTime = mLastUpdatedTime;
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::SetLastUpdatedTime(PRUint32 aLastUpdatedTime)
+nsNntpIncomingServer::SetLastUpdatedTime(uint32_t aLastUpdatedTime)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1598,7 +1598,7 @@ nsNntpIncomingServer::GetCanSearchMessages(bool *canSearchMessages)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetOfflineSupportLevel(PRInt32 *aSupportLevel)
+nsNntpIncomingServer::GetOfflineSupportLevel(int32_t *aSupportLevel)
 {
     NS_ENSURE_ARG_POINTER(aSupportLevel);
     nsresult rv;
@@ -1648,8 +1648,8 @@ nsNntpIncomingServer::SetSearchValue(const nsAString &searchValue)
   }
 
   mSubscribeSearchResult.Clear();
-  PRUint32 length = mGroupsOnServer.Length();
-  for (PRUint32 i = 0; i < length; i++)
+  uint32_t length = mGroupsOnServer.Length();
+  for (uint32_t i = 0; i < length; i++)
   {
     if (CaseInsensitiveFindInReadable(mSearchValue, NS_ConvertUTF8toUTF16(mGroupsOnServer[i])))
       mSubscribeSearchResult.AppendElement(mGroupsOnServer[i]);
@@ -1675,7 +1675,7 @@ nsNntpIncomingServer::GetSupportsSubscribeSearch(bool *retVal)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetRowCount(PRInt32 *aRowCount)
+nsNntpIncomingServer::GetRowCount(int32_t *aRowCount)
 {
     *aRowCount = mSubscribeSearchResult.Length();
     return NS_OK;
@@ -1697,13 +1697,13 @@ nsNntpIncomingServer::SetSelection(nsITreeSelection * aSelection)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetRowProperties(PRInt32 index, nsISupportsArray *properties)
+nsNntpIncomingServer::GetRowProperties(int32_t index, nsISupportsArray *properties)
 {
     return NS_OK;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetCellProperties(PRInt32 row, nsITreeColumn* col, nsISupportsArray *properties)
+nsNntpIncomingServer::GetCellProperties(int32_t row, nsITreeColumn* col, nsISupportsArray *properties)
 {
     if (!IsValidRow(row))
       return NS_ERROR_UNEXPECTED;
@@ -1738,26 +1738,26 @@ nsNntpIncomingServer::GetColumnProperties(nsITreeColumn* col, nsISupportsArray *
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::IsContainer(PRInt32 index, bool *_retval)
+nsNntpIncomingServer::IsContainer(int32_t index, bool *_retval)
 {
     *_retval = false;
     return NS_OK;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::IsContainerOpen(PRInt32 index, bool *_retval)
+nsNntpIncomingServer::IsContainerOpen(int32_t index, bool *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::IsContainerEmpty(PRInt32 index, bool *_retval)
+nsNntpIncomingServer::IsContainerEmpty(int32_t index, bool *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::IsSeparator(PRInt32 index, bool *_retval)
+nsNntpIncomingServer::IsSeparator(int32_t index, bool *_retval)
 {
     *_retval = false;
     return NS_OK;
@@ -1770,8 +1770,8 @@ nsNntpIncomingServer::IsSorted(bool *_retval)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::CanDrop(PRInt32 index,
-                              PRInt32 orientation,
+nsNntpIncomingServer::CanDrop(int32_t index,
+                              int32_t orientation,
                               nsIDOMDataTransfer *dataTransfer,
                               bool *_retval)
 {
@@ -1779,58 +1779,58 @@ nsNntpIncomingServer::CanDrop(PRInt32 index,
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::Drop(PRInt32 row,
-                           PRInt32 orientation,
+nsNntpIncomingServer::Drop(int32_t row,
+                           int32_t orientation,
                            nsIDOMDataTransfer *dataTransfer)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetParentIndex(PRInt32 rowIndex, PRInt32 *_retval)
+nsNntpIncomingServer::GetParentIndex(int32_t rowIndex, int32_t *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::HasNextSibling(PRInt32 rowIndex, PRInt32 afterIndex, bool *_retval)
+nsNntpIncomingServer::HasNextSibling(int32_t rowIndex, int32_t afterIndex, bool *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetLevel(PRInt32 index, PRInt32 *_retval)
+nsNntpIncomingServer::GetLevel(int32_t index, int32_t *_retval)
 {
     *_retval = 0;
     return NS_OK;
 }
 
 bool
-nsNntpIncomingServer::IsValidRow(PRInt32 row)
+nsNntpIncomingServer::IsValidRow(int32_t row)
 {
-  return ((row >= 0) && (row < (PRInt32)mSubscribeSearchResult.Length()));
+  return ((row >= 0) && (row < (int32_t)mSubscribeSearchResult.Length()));
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetImageSrc(PRInt32 row, nsITreeColumn* col, nsAString& _retval)
-{
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsNntpIncomingServer::GetProgressMode(PRInt32 row, nsITreeColumn* col, PRInt32* _retval)
+nsNntpIncomingServer::GetImageSrc(int32_t row, nsITreeColumn* col, nsAString& _retval)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetCellValue(PRInt32 row, nsITreeColumn* col, nsAString& _retval)
+nsNntpIncomingServer::GetProgressMode(int32_t row, nsITreeColumn* col, int32_t* _retval)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetCellText(PRInt32 row, nsITreeColumn* col, nsAString& _retval)
+nsNntpIncomingServer::GetCellValue(int32_t row, nsITreeColumn* col, nsAString& _retval)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsNntpIncomingServer::GetCellText(int32_t row, nsITreeColumn* col, nsAString& _retval)
 {
     if (!IsValidRow(row))
       return NS_ERROR_UNEXPECTED;
@@ -1881,7 +1881,7 @@ nsNntpIncomingServer::SetTree(nsITreeBoxObject *tree)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::ToggleOpenState(PRInt32 index)
+nsNntpIncomingServer::ToggleOpenState(int32_t index)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1912,33 +1912,33 @@ nsNntpIncomingServer::SelectionChanged()
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::CycleCell(PRInt32 row, nsITreeColumn* col)
+nsNntpIncomingServer::CycleCell(int32_t row, nsITreeColumn* col)
 {
     return NS_OK;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::IsEditable(PRInt32 row, nsITreeColumn* col, bool *_retval)
-{
-    *_retval = false;
-    return NS_OK;
-}
-
-NS_IMETHODIMP
-nsNntpIncomingServer::IsSelectable(PRInt32 row, nsITreeColumn* col, bool *_retval)
+nsNntpIncomingServer::IsEditable(int32_t row, nsITreeColumn* col, bool *_retval)
 {
     *_retval = false;
     return NS_OK;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::SetCellValue(PRInt32 row, nsITreeColumn* col, const nsAString& value)
+nsNntpIncomingServer::IsSelectable(int32_t row, nsITreeColumn* col, bool *_retval)
+{
+    *_retval = false;
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+nsNntpIncomingServer::SetCellValue(int32_t row, nsITreeColumn* col, const nsAString& value)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::SetCellText(PRInt32 row, nsITreeColumn* col, const nsAString& value)
+nsNntpIncomingServer::SetCellText(int32_t row, nsITreeColumn* col, const nsAString& value)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1950,13 +1950,13 @@ nsNntpIncomingServer::PerformAction(const PRUnichar *action)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::PerformActionOnRow(const PRUnichar *action, PRInt32 row)
+nsNntpIncomingServer::PerformActionOnRow(const PRUnichar *action, int32_t row)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::PerformActionOnCell(const PRUnichar *action, PRInt32 row, nsITreeColumn* col)
+nsNntpIncomingServer::PerformActionOnCell(const PRUnichar *action, int32_t row, nsITreeColumn* col)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1997,7 +1997,7 @@ nsNntpIncomingServer::GetSearchScope(nsMsgSearchScopeValue *searchScope)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetSocketType(PRInt32 *aSocketType)
+nsNntpIncomingServer::GetSocketType(int32_t *aSocketType)
 {
   NS_ENSURE_ARG_POINTER(aSocketType);
   if (!mPrefBranch)
@@ -2034,7 +2034,7 @@ nsNntpIncomingServer::GetSocketType(PRInt32 *aSocketType)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::SetSocketType(PRInt32 aSocketType)
+nsNntpIncomingServer::SetSocketType(int32_t aSocketType)
 {
   if (!mPrefBranch)
     return NS_ERROR_NOT_INITIALIZED;
@@ -2106,8 +2106,8 @@ nsNntpIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName,
     return NS_OK;
 
   // Now unsubscribe & subscribe.
-  PRUint32 i;
-  PRUint32 cnt = groupList.Length();
+  uint32_t i;
+  uint32_t cnt = groupList.Length();
   nsCAutoString cname;
   for (i = 0; i < cnt; i++)
   {

@@ -30,7 +30,7 @@ nsresult createNode(const PRUnichar *str, nsIRDFNode **node, nsIRDFService *rdfS
   return rv;
 }
 
-nsresult createIntNode(PRInt32 value, nsIRDFNode **node, nsIRDFService *rdfService)
+nsresult createIntNode(int32_t value, nsIRDFNode **node, nsIRDFService *rdfService)
 {
   *node = nullptr;
   nsresult rv; 
@@ -44,7 +44,7 @@ nsresult createIntNode(PRInt32 value, nsIRDFNode **node, nsIRDFService *rdfServi
   return rv;
 }
 
-nsresult createBlobNode(PRUint8 *value, PRUint32 &length, nsIRDFNode **node, nsIRDFService *rdfService)
+nsresult createBlobNode(uint8_t *value, uint32_t &length, nsIRDFNode **node, nsIRDFService *rdfService)
 {
   NS_ENSURE_ARG_POINTER(node);
   NS_ENSURE_ARG_POINTER(rdfService);

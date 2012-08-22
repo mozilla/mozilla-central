@@ -45,10 +45,10 @@ nsMsgOfflineImapOperation::nsMsgOfflineImapOperation(nsMsgDatabase *db, nsIMdbRo
   NS_ADDREF(m_mdb);
   m_mdbRow = row;
   m_newFlags = 0;
-  m_mdb->GetUint32Property(m_mdbRow, PROP_OPERATION, (PRUint32 *) &m_operation, 0);
+  m_mdb->GetUint32Property(m_mdbRow, PROP_OPERATION, (uint32_t *) &m_operation, 0);
   m_mdb->GetUint32Property(m_mdbRow, PROP_MESSAGE_KEY, &m_messageKey, 0);
   m_mdb->GetUint32Property(m_mdbRow, PROP_OPERATION_FLAGS, &m_operationFlags, 0);
-  m_mdb->GetUint32Property(m_mdbRow, PROP_NEW_FLAGS, (PRUint32 *) &m_newFlags, 0);
+  m_mdb->GetUint32Property(m_mdbRow, PROP_NEW_FLAGS, (uint32_t *) &m_newFlags, 0);
 }
 
 nsMsgOfflineImapOperation::~nsMsgOfflineImapOperation()
@@ -146,7 +146,7 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::SetFlagOperation(imapMessageFlagsType a
 NS_IMETHODIMP nsMsgOfflineImapOperation::GetNewFlags(imapMessageFlagsType *aNewFlags)
 {
   NS_ENSURE_ARG(aNewFlags);
-  PRUint32 flags;
+  uint32_t flags;
   nsresult rv = m_mdb->GetUint32Property(m_mdbRow, PROP_NEW_FLAGS, &flags, 0);
   *aNewFlags = m_newFlags = (imapMessageFlagsType) flags;
   return rv;
@@ -221,7 +221,7 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::GetKeywordsToRemove(char * *aKeywords)
 nsresult nsMsgOfflineImapOperation::AddKeyword(const char *aKeyword, nsCString &addList, const char *addProp,
                                                nsCString &removeList, const char *removeProp)
 {
-  PRInt32 startOffset, keywordLength;
+  int32_t startOffset, keywordLength;
   if (!MsgFindKeyword(nsDependentCString(aKeyword), addList, &startOffset, &keywordLength))
   {
     if (!addList.IsEmpty())
@@ -266,8 +266,8 @@ nsresult nsMsgOfflineImapOperation::GetCopiesFromDB()
   // use 0x1 as the delimiter between folder names since it's not a legal character
   if (NS_SUCCEEDED(rv) && !copyDests.IsEmpty())
   {
-    PRInt32 curCopyDestStart = 0;
-    PRInt32 nextCopyDestPos = 0;
+    int32_t curCopyDestStart = 0;
+    int32_t nextCopyDestPos = 0;
 
     while (nextCopyDestPos != -1)
     {
@@ -289,7 +289,7 @@ nsresult nsMsgOfflineImapOperation::SetCopiesToDB()
   nsCAutoString copyDests;
 
   // use 0x1 as the delimiter between folders
-  for (PRUint32 i = 0; i < m_copyDestinations.Length(); i++)
+  for (uint32_t i = 0; i < m_copyDestinations.Length(); i++)
   {
     if (i > 0)
       copyDests.Append(FOLDER_SEP_CHAR);
@@ -299,7 +299,7 @@ nsresult nsMsgOfflineImapOperation::SetCopiesToDB()
 }
 
 /* attribute long numberOfCopies; */
-NS_IMETHODIMP nsMsgOfflineImapOperation::GetNumberOfCopies(PRInt32 *aNumberOfCopies)
+NS_IMETHODIMP nsMsgOfflineImapOperation::GetNumberOfCopies(int32_t *aNumberOfCopies)
 {
   NS_ENSURE_ARG(aNumberOfCopies);
   nsresult rv = GetCopiesFromDB();
@@ -309,25 +309,25 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::GetNumberOfCopies(PRInt32 *aNumberOfCop
 }
 
 /* string getCopyDestination (in long copyIndex); */
-NS_IMETHODIMP nsMsgOfflineImapOperation::GetCopyDestination(PRInt32 copyIndex, char **retval)
+NS_IMETHODIMP nsMsgOfflineImapOperation::GetCopyDestination(int32_t copyIndex, char **retval)
 {
   NS_ENSURE_ARG(retval);
   nsresult rv = GetCopiesFromDB();
   NS_ENSURE_SUCCESS(rv, rv);
-  if (copyIndex >= (PRInt32)m_copyDestinations.Length())
+  if (copyIndex >= (int32_t)m_copyDestinations.Length())
     return NS_ERROR_ILLEGAL_VALUE;
   *retval = ToNewCString(m_copyDestinations.ElementAt(copyIndex));
   return (*retval) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
 /* attribute unsigned log msgSize; */
-NS_IMETHODIMP nsMsgOfflineImapOperation::GetMsgSize(PRUint32 *aMsgSize)
+NS_IMETHODIMP nsMsgOfflineImapOperation::GetMsgSize(uint32_t *aMsgSize)
 {
   NS_ENSURE_ARG(aMsgSize);
   return m_mdb->GetUint32Property(m_mdbRow, PROP_MSG_SIZE, aMsgSize, 0);
 }
 
-NS_IMETHODIMP nsMsgOfflineImapOperation::SetMsgSize(PRUint32 aMsgSize)
+NS_IMETHODIMP nsMsgOfflineImapOperation::SetMsgSize(uint32_t aMsgSize)
 {
   return m_mdb->SetUint32Property(m_mdbRow, PROP_MSG_SIZE, aMsgSize);
 }

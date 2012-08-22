@@ -44,7 +44,7 @@ protected:
    */
   nsresult InitDirectoryPrefs();
 
-	PRUint32 m_LastModifiedDate;
+	uint32_t m_LastModifiedDate;
 
 	nsString m_ListDirName;
 	nsString m_ListName;

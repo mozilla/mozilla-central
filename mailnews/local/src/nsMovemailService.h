@@ -27,7 +27,7 @@ public:
   NS_DECL_NSIMSGPROTOCOLINFO
   
 private:
-  void Error(PRInt32 errorCode, const PRUnichar **params, PRUint32 length);
+  void Error(int32_t errorCode, const PRUnichar **params, uint32_t length);
   nsCOMPtr<nsIMsgWindow> mMsgWindow;
 };
 

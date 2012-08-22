@@ -125,7 +125,7 @@ nsSmtpServer::SetDescription(const nsACString &aDescription)
 
 // if GetPort returns 0, it means default port
 NS_IMETHODIMP
-nsSmtpServer::GetPort(PRInt32 *aPort)
+nsSmtpServer::GetPort(int32_t *aPort)
 {
   NS_ENSURE_ARG_POINTER(aPort);
   if (NS_FAILED(mPrefBranch->GetIntPref("port", aPort)))
@@ -134,7 +134,7 @@ nsSmtpServer::GetPort(PRInt32 *aPort)
 }
 
 NS_IMETHODIMP
-nsSmtpServer::SetPort(PRInt32 aPort)
+nsSmtpServer::SetPort(int32_t aPort)
 {
   if (aPort)
     return mPrefBranch->SetIntPref("port", aPort);
@@ -155,7 +155,7 @@ nsSmtpServer::GetDisplayname(char * *aDisplayname)
         *aDisplayname=nullptr;
         return NS_OK;
     }
-    PRInt32 port;
+    int32_t port;
     rv = mPrefBranch->GetIntPref("port", &port);
     if (NS_FAILED(rv))
         port = 0;
@@ -170,7 +170,7 @@ nsSmtpServer::GetDisplayname(char * *aDisplayname)
 }
 
 NS_IMETHODIMP
-nsSmtpServer::GetSocketType(PRInt32 *socketType)
+nsSmtpServer::GetSocketType(int32_t *socketType)
 {
   NS_ENSURE_ARG_POINTER(socketType);
   getIntPrefWithDefault("try_ssl", socketType, 0);
@@ -178,7 +178,7 @@ nsSmtpServer::GetSocketType(PRInt32 *socketType)
 }
 
 NS_IMETHODIMP
-nsSmtpServer::SetSocketType(PRInt32 socketType)
+nsSmtpServer::SetSocketType(int32_t socketType)
 {
     return mPrefBranch->SetIntPref("try_ssl", socketType);
 }
@@ -199,7 +199,7 @@ nsSmtpServer::GetHelloArgument(char * *aHelloArgument)
 }
 
 NS_IMETHODIMP
-nsSmtpServer::GetAuthMethod(PRInt32 *authMethod)
+nsSmtpServer::GetAuthMethod(int32_t *authMethod)
 {
   NS_ENSURE_ARG_POINTER(authMethod);
   getIntPrefWithDefault("authMethod", authMethod, 3);
@@ -208,8 +208,8 @@ nsSmtpServer::GetAuthMethod(PRInt32 *authMethod)
 
 void
 nsSmtpServer::getIntPrefWithDefault(const char *prefName,
-                                    PRInt32 *val,
-                                    PRInt32 defVal)
+                                    int32_t *val,
+                                    int32_t defVal)
 {
   nsresult rv = mPrefBranch->GetIntPref(prefName, val);
   if (NS_SUCCEEDED(rv))
@@ -222,7 +222,7 @@ nsSmtpServer::getIntPrefWithDefault(const char *prefName,
 }
 
 NS_IMETHODIMP
-nsSmtpServer::SetAuthMethod(PRInt32 authMethod)
+nsSmtpServer::SetAuthMethod(int32_t authMethod)
 {
     return mPrefBranch->SetIntPref("authMethod", authMethod);
 }
@@ -298,7 +298,7 @@ nsSmtpServer::GetPassword(nsACString& aPassword)
             if (useMatchingHostNameServer)
               // pass in empty type and port=0, to match imap and pop3.
               accountManager->FindRealServer(userName, hostName, EmptyCString(), 0, getter_AddRefs(incomingServerToUse));
-            PRInt32 dotPos = -1;
+            int32_t dotPos = -1;
             if (!incomingServerToUse && useMatchingDomainServer
               && (dotPos = hostName.FindChar('.')) != kNotFound)
             {
@@ -307,9 +307,9 @@ nsSmtpServer::GetPassword(nsACString& aPassword)
               accountManager->GetAllServers(getter_AddRefs(allServers));
               if (allServers)
               {
-                PRUint32 count = 0;
+                uint32_t count = 0;
                 allServers->Count(&count);
-                PRUint32 i;
+                uint32_t i;
                 for (i = 0; i < count; i++)
                 {
                   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, i);
@@ -321,7 +321,7 @@ nsSmtpServer::GetPassword(nsACString& aPassword)
                     server->GetRealHostName(serverHostName);
                     if (serverUserName.Equals(userName))
                     {
-                      PRInt32 serverDotPos = serverHostName.FindChar('.');
+                      int32_t serverDotPos = serverHostName.FindChar('.');
                       if (serverDotPos != kNotFound)
                       {
                         serverHostName.Cut(0, serverDotPos);
@@ -483,7 +483,7 @@ nsSmtpServer::ForgetPassword()
     serverUri.Append(escapedHostname);
   }
 
-  PRUint32 count;
+  uint32_t count;
   nsILoginInfo** logins;
 
   NS_ConvertUTF8toUTF16 currServer(serverUri);
@@ -501,7 +501,7 @@ nsSmtpServer::ForgetPassword()
   // There should only be one-login stored for this url, however just in case
   // there isn't.
   nsString username;
-  for (PRUint32 i = 0; i < count; ++i)
+  for (uint32_t i = 0; i < count; ++i)
   {
     if (NS_SUCCEEDED(logins[i]->GetUsername(username)) &&
         username.Equals(serverUsername))

@@ -11,20 +11,20 @@
 
 /* parses NewsMessageURI */
 nsresult
-nsParseNewsMessageURI(const char* uri, nsCString& group, PRUint32 *key)
+nsParseNewsMessageURI(const char* uri, nsCString& group, uint32_t *key)
 {
   NS_ENSURE_ARG_POINTER(uri);
   NS_ENSURE_ARG_POINTER(key);
 
   nsCAutoString uriStr(uri);
-  PRInt32 keySeparator = uriStr.FindChar('#');
+  int32_t keySeparator = uriStr.FindChar('#');
   if(keySeparator != -1)
   {
-    PRInt32 keyEndSeparator = MsgFindCharInSet(uriStr, "?&", keySeparator);
+    int32_t keyEndSeparator = MsgFindCharInSet(uriStr, "?&", keySeparator);
 
     // Grab between the last '/' and the '#' for the key
     group = StringHead(uriStr, keySeparator);
-    PRInt32 groupSeparator = group.RFind("/");
+    int32_t groupSeparator = group.RFind("/");
     if (groupSeparator == -1)
       return NS_ERROR_FAILURE;
 

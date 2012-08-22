@@ -31,7 +31,7 @@ const char* kStartupDoneNotification = "mail-startup-done";
 PRLogModuleInfo *gAutoSyncLog;
 
 // recommended size of each group of messages per download
-static const PRUint32 kDefaultGroupSize = 50U*1024U /* 50K */;
+static const uint32_t kDefaultGroupSize = 50U*1024U /* 50K */;
 
 nsDefaultAutoSyncMsgStrategy::nsDefaultAutoSyncMsgStrategy()
 {
@@ -46,7 +46,7 @@ NS_IMETHODIMP nsDefaultAutoSyncMsgStrategy::Sort(nsIMsgFolder *aFolder,
 {
   NS_ENSURE_ARG_POINTER(aDecision);
 
-  PRUint32 msgSize1 = 0, msgSize2 = 0;
+  uint32_t msgSize1 = 0, msgSize2 = 0;
   PRTime msgDate1 = 0, msgDate2 = 0;
   
   if (!aMsgHdr1 || !aMsgHdr2)
@@ -101,10 +101,10 @@ NS_IMETHODIMP nsDefaultAutoSyncMsgStrategy::IsExcluded(nsIMsgFolder *aFolder,
   nsresult rv = aFolder->GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsIImapIncomingServer> imapServer(do_QueryInterface(server, &rv));
-  PRInt32 offlineMsgAgeLimit = -1;
+  int32_t offlineMsgAgeLimit = -1;
   imapServer->GetAutoSyncMaxAgeDays(&offlineMsgAgeLimit);
   NS_ENSURE_SUCCESS(rv, rv);
-  PRInt64 msgDate;
+  int64_t msgDate;
   aMsgHdr->GetDate(&msgDate);
   *aDecision = offlineMsgAgeLimit > 0 &&
     msgDate < MsgConvertAgeInDaysToCutoffDate(offlineMsgAgeLimit);
@@ -185,7 +185,7 @@ nsDefaultAutoSyncFolderStrategy::IsExcluded(nsIMsgFolder *aFolder, bool *aDecisi
 {
   NS_ENSURE_ARG_POINTER(aDecision);
   NS_ENSURE_ARG_POINTER(aFolder);
-  PRUint32 folderFlags;
+  uint32_t folderFlags;
   aFolder->GetFlags(&folderFlags);
   // exclude saved search
   *aDecision = (folderFlags & nsMsgFolderFlags::Virtual);
@@ -293,7 +293,7 @@ void nsAutoSyncManager::TimerCallback(nsITimer *aTimer, void *aClosure)
     nsCOMPtr<nsIAutoSyncState> autoSyncStateObj(autoSyncMgr->mDiscoveryQ[0]);
     if (autoSyncStateObj)
     {
-      PRUint32 leftToProcess;
+      uint32_t leftToProcess;
       nsresult rv = autoSyncStateObj->ProcessExistingHeaders(kNumberOfHeadersToProcess, &leftToProcess);
 
       nsCOMPtr<nsIMsgFolder> folder;
@@ -317,7 +317,7 @@ void nsAutoSyncManager::TimerCallback(nsITimer *aTimer, void *aClosure)
       nsCOMPtr<nsIAutoSyncState> autoSyncStateObj(autoSyncMgr->mUpdateQ[0]);
       if (autoSyncStateObj)
       {
-        PRInt32 state;
+        int32_t state;
         nsresult rv = autoSyncStateObj->GetState(&state);
         if (NS_SUCCEEDED(rv) && (state == nsAutoSyncState::stCompletedIdle ||
                                  state == nsAutoSyncState::stUpdateNeeded))
@@ -367,13 +367,13 @@ void nsAutoSyncManager::ChainFoldersInQ(const nsCOMArray<nsIAutoSyncState> &aQue
   if (aQueue.Count() > 0)
     aChainedQ.AppendObject(aQueue[0]);
   
-  PRInt32 pqElemCount = aQueue.Count();
-  for (PRInt32 pqidx = 1; pqidx < pqElemCount; pqidx++)
+  int32_t pqElemCount = aQueue.Count();
+  for (int32_t pqidx = 1; pqidx < pqElemCount; pqidx++)
   {
     bool chained = false;
-    PRInt32 needToBeReplacedWith = -1;
-    PRInt32 elemCount = aChainedQ.Count();
-    for (PRInt32 idx = 0; idx < elemCount; idx++)
+    int32_t needToBeReplacedWith = -1;
+    int32_t elemCount = aChainedQ.Count();
+    for (int32_t idx = 0; idx < elemCount; idx++)
     {
       bool isSibling;
       nsresult rv = aChainedQ[idx]->IsSibling(aQueue[pqidx], &isSibling);
@@ -384,7 +384,7 @@ void nsAutoSyncManager::ChainFoldersInQ(const nsCOMArray<nsIAutoSyncState> &aQue
         // download-in-progress state with a higher priority one. 
         // we have to wait until its download is completed before 
         // switching to new one. 
-        PRInt32 state;
+        int32_t state;
         aQueue[pqidx]->GetState(&state);
         if (aQueue[pqidx] != aChainedQ[idx] && 
             state == nsAutoSyncState::stDownloadInProgress)
@@ -409,7 +409,7 @@ void nsAutoSyncManager::ChainFoldersInQ(const nsCOMArray<nsIAutoSyncState> &aQue
  */
 nsIAutoSyncState* 
 nsAutoSyncManager::SearchQForSibling(const nsCOMArray<nsIAutoSyncState> &aQueue, 
-                          nsIAutoSyncState *aAutoSyncStateObj, PRInt32 aStartIdx, PRInt32 *aIndex)
+                          nsIAutoSyncState *aAutoSyncStateObj, int32_t aStartIdx, int32_t *aIndex)
 {
   if (aIndex)
     *aIndex = -1;
@@ -417,8 +417,8 @@ nsAutoSyncManager::SearchQForSibling(const nsCOMArray<nsIAutoSyncState> &aQueue,
   if (aAutoSyncStateObj)
   {
     bool isSibling;
-    PRInt32 elemCount = aQueue.Count();
-    for (PRInt32 idx = aStartIdx; idx < elemCount; idx++)
+    int32_t elemCount = aQueue.Count();
+    for (int32_t idx = aStartIdx; idx < elemCount; idx++)
     {
       nsresult rv = aAutoSyncStateObj->IsSibling(aQueue[idx], &isSibling);
       
@@ -440,7 +440,7 @@ nsAutoSyncManager::SearchQForSibling(const nsCOMArray<nsIAutoSyncState> &aQueue,
  */
 nsIAutoSyncState* 
 nsAutoSyncManager::GetNextSibling(const nsCOMArray<nsIAutoSyncState> &aQueue, 
-                                          nsIAutoSyncState *aAutoSyncStateObj, PRInt32 *aIndex)
+                                          nsIAutoSyncState *aAutoSyncStateObj, int32_t *aIndex)
 { 
 
   if (aIndex)
@@ -450,8 +450,8 @@ nsAutoSyncManager::GetNextSibling(const nsCOMArray<nsIAutoSyncState> &aQueue,
   {
     bool located = false;
     bool isSibling;
-    PRInt32 elemCount = aQueue.Count();
-    for (PRInt32 idx = 0; idx < elemCount; idx++)
+    int32_t elemCount = aQueue.Count();
+    for (int32_t idx = 0; idx < elemCount; idx++)
     {
       if (!located)
       {
@@ -486,16 +486,16 @@ nsAutoSyncManager::GetNextSibling(const nsCOMArray<nsIAutoSyncState> &aQueue,
  */
 bool nsAutoSyncManager::DoesQContainAnySiblingOf(const nsCOMArray<nsIAutoSyncState> &aQueue, 
                                                    nsIAutoSyncState *aAutoSyncStateObj,
-                                                   const PRInt32 aState, PRInt32 *aIndex)
+                                                   const int32_t aState, int32_t *aIndex)
 {
   if (aState == -1)
     return (nullptr != SearchQForSibling(aQueue, aAutoSyncStateObj, 0, aIndex));
     
-  PRInt32 offset = 0;
+  int32_t offset = 0;
   nsIAutoSyncState *autoSyncState;
   while ((autoSyncState = SearchQForSibling(aQueue, aAutoSyncStateObj, offset, &offset)))
   {
-    PRInt32 state;
+    int32_t state;
     nsresult rv = autoSyncState->GetState(&state);
     if (NS_SUCCEEDED(rv) && aState == state)
       break;
@@ -514,7 +514,7 @@ bool nsAutoSyncManager::DoesQContainAnySiblingOf(const nsCOMArray<nsIAutoSyncSta
  */
 nsIAutoSyncState* 
 nsAutoSyncManager::GetHighestPrioSibling(const nsCOMArray<nsIAutoSyncState> &aQueue, 
-                                      nsIAutoSyncState *aAutoSyncStateObj, PRInt32 *aIndex)
+                                      nsIAutoSyncState *aAutoSyncStateObj, int32_t *aIndex)
 {
   return SearchQForSibling(aQueue, aAutoSyncStateObj, 0, aIndex);
 }
@@ -673,14 +673,14 @@ nsresult nsAutoSyncManager::StartIdleProcessing()
   nsCOMArray<nsIAutoSyncState> foldersToBeRemoved;
   
   // process folders in the priority queue 
-  PRInt32 elemCount = queue->Count();
-  for (PRInt32 idx = 0; idx < elemCount; idx++)
+  int32_t elemCount = queue->Count();
+  for (int32_t idx = 0; idx < elemCount; idx++)
   {
     nsCOMPtr<nsIAutoSyncState> autoSyncStateObj((*queue)[idx]);
     if (!autoSyncStateObj)
       continue;
     
-    PRInt32 state;
+    int32_t state;
     autoSyncStateObj->GetState(&state);
     
     //TODO: Test cached-connection availability in parallel mode
@@ -707,7 +707,7 @@ nsresult nsAutoSyncManager::StartIdleProcessing()
   
   // remove folders with no pending messages from the priority queue
   elemCount = foldersToBeRemoved.Count();
-  for (PRInt32 idx = 0; idx < elemCount; idx++)
+  for (int32_t idx = 0; idx < elemCount; idx++)
   {
     nsCOMPtr<nsIAutoSyncState> autoSyncStateObj(foldersToBeRemoved[idx]);
     if (!autoSyncStateObj)
@@ -745,10 +745,10 @@ nsresult nsAutoSyncManager::AutoUpdateFolders()
   rv = accountManager->GetAccounts(getter_AddRefs(accounts));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  PRUint32 accountCount;
+  uint32_t accountCount;
   accounts->Count(&accountCount);
 
-  for (PRUint32 i = 0; i < accountCount; ++i) 
+  for (uint32_t i = 0; i < accountCount; ++i) 
   {
     nsCOMPtr<nsIMsgAccount> account(do_QueryElementAt(accounts, i, &rv));
     if (!account)
@@ -785,18 +785,18 @@ nsresult nsAutoSyncManager::AutoUpdateFolders()
       if (!allDescendents)
         continue;
 
-      PRUint32 cnt = 0;
+      uint32_t cnt = 0;
       rv = allDescendents->Count(&cnt);
       if (NS_FAILED(rv))
         continue;
 
-      for (PRUint32 i = 0; i < cnt; i++)
+      for (uint32_t i = 0; i < cnt; i++)
       {
         nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(allDescendents, i, &rv));
         if (NS_FAILED(rv))
           continue;
 
-        PRUint32 folderFlags;
+        uint32_t folderFlags;
         rv = folder->GetFlags(&folderFlags);
         // Skip this folder if not offline or is a saved search or is no select.
         if (NS_FAILED(rv) || !(folderFlags & nsMsgFolderFlags::Offline) ||
@@ -828,7 +828,7 @@ nsresult nsAutoSyncManager::AutoUpdateFolders()
         if (!autoSyncState)
           continue;
 
-        PRInt32 state;
+        int32_t state;
         rv = autoSyncState->GetState(&state);
 
         if (NS_SUCCEEDED(rv) && nsAutoSyncState::stCompletedIdle == state)
@@ -906,7 +906,7 @@ void nsAutoSyncManager::ScheduleFolderForOfflineDownload(nsIAutoSyncState *aAuto
     else
     {
       // find the right spot for the given folder      
-      PRUint32 qidx = mPriorityQ.Count();
+      uint32_t qidx = mPriorityQ.Count();
       while (qidx > 0) 
       {
         --qidx;
@@ -945,12 +945,12 @@ void nsAutoSyncManager::ScheduleFolderForOfflineDownload(nsIAutoSyncState *aAuto
 /**
  * Zero aSizeLimit means no limit 
  */
-nsresult nsAutoSyncManager::DownloadMessagesForOffline(nsIAutoSyncState *aAutoSyncStateObj, PRUint32 aSizeLimit)
+nsresult nsAutoSyncManager::DownloadMessagesForOffline(nsIAutoSyncState *aAutoSyncStateObj, uint32_t aSizeLimit)
 {
   if (!aAutoSyncStateObj)
     return NS_ERROR_INVALID_ARG;
 
-  PRInt32 count;
+  int32_t count;
   nsresult rv = aAutoSyncStateObj->GetPendingMessageCount(&count);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -960,7 +960,7 @@ nsresult nsAutoSyncManager::DownloadMessagesForOffline(nsIAutoSyncState *aAutoSy
     return NS_ERROR_NOT_AVAILABLE;
 
   nsCOMPtr<nsIMutableArray> messagesToDownload;
-  PRUint32 totalSize = 0;
+  uint32_t totalSize = 0;
   rv = aAutoSyncStateObj->GetNextGroupOfMessages(mGroupSize, &totalSize, getter_AddRefs(messagesToDownload));
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -979,13 +979,13 @@ nsresult nsAutoSyncManager::DownloadMessagesForOffline(nsIAutoSyncState *aAutoSy
   if (aSizeLimit && aSizeLimit < totalSize)
     return NS_ERROR_FAILURE;
 
-  PRUint32 length;
+  uint32_t length;
   rv = messagesToDownload->GetLength(&length);
   if (NS_SUCCEEDED(rv) && length > 0)
   {
     rv = aAutoSyncStateObj->DownloadMessagesForOffline(messagesToDownload);
 
-    PRInt32 totalCount;
+    int32_t totalCount;
     (void) aAutoSyncStateObj->GetTotalMessageCount(&totalCount);
 
     nsCOMPtr<nsIMsgFolder> folder;
@@ -1059,7 +1059,7 @@ nsresult nsAutoSyncManager::HandleDownloadErrorFor(nsIAutoSyncState *aAutoSyncSt
   return NS_OK;
 }
 
-PRUint32 nsAutoSyncManager::GetUpdateIntervalFor(nsIAutoSyncState *aAutoSyncStateObj)
+uint32_t nsAutoSyncManager::GetUpdateIntervalFor(nsIAutoSyncState *aAutoSyncStateObj)
 {
   nsCOMPtr<nsIMsgFolder> folder;
   nsresult rv = aAutoSyncStateObj->GetOwnerFolder(getter_AddRefs(folder));
@@ -1073,23 +1073,23 @@ PRUint32 nsAutoSyncManager::GetUpdateIntervalFor(nsIAutoSyncState *aAutoSyncStat
 
   if (server)
   {
-    PRInt32 interval;
+    int32_t interval;
     rv = server->GetBiffMinutes(&interval);
     
     if (NS_SUCCEEDED(rv))
-      return (PRUint32)interval;
+      return (uint32_t)interval;
   }
 
   return kDefaultUpdateInterval;
 }
 
-NS_IMETHODIMP nsAutoSyncManager::GetGroupSize(PRUint32 *aGroupSize)
+NS_IMETHODIMP nsAutoSyncManager::GetGroupSize(uint32_t *aGroupSize)
 {
   NS_ENSURE_ARG_POINTER(aGroupSize);
   *aGroupSize = mGroupSize;
   return NS_OK;
 }
-NS_IMETHODIMP nsAutoSyncManager::SetGroupSize(PRUint32 aGroupSize)
+NS_IMETHODIMP nsAutoSyncManager::SetGroupSize(uint32_t aGroupSize)
 {
   mGroupSize = aGroupSize ? aGroupSize : kDefaultGroupSize;
   return NS_OK;
@@ -1142,7 +1142,7 @@ nsAutoSyncManager::DoesMsgFitDownloadCriteria(nsIMsgDBHdr *aMsgHdr, bool *aResul
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
-  PRUint32 msgFlags = 0;
+  uint32_t msgFlags = 0;
   aMsgHdr->GetFlags(&msgFlags);
 
   // check whether this message is marked imap deleted or not 
@@ -1261,7 +1261,7 @@ nsAutoSyncManager::OnDownloadCompleted(nsIAutoSyncState *aAutoSyncStateObj, nsre
   if (folder)
     NOTIFY_LISTENERS(OnDownloadCompleted, (folder));
       
-  PRInt32 count;
+  int32_t count;
   rv = autoSyncStateObj->GetPendingMessageCount(&count);
   NS_ENSURE_SUCCESS(rv, rv);
   
@@ -1280,9 +1280,9 @@ nsAutoSyncManager::OnDownloadCompleted(nsIAutoSyncState *aAutoSyncStateObj, nsre
     {
       // switch to higher priority folder and continue to download, 
       // if any added recently
-      PRInt32 myIndex = mPriorityQ.IndexOf(autoSyncStateObj);
+      int32_t myIndex = mPriorityQ.IndexOf(autoSyncStateObj);
       
-      PRInt32 siblingIndex;
+      int32_t siblingIndex;
       nsIAutoSyncState *sibling = GetHighestPrioSibling(mPriorityQ, autoSyncStateObj, &siblingIndex);
       
       // lesser index = higher priority
@@ -1317,13 +1317,13 @@ nsAutoSyncManager::OnDownloadCompleted(nsIAutoSyncState *aAutoSyncStateObj, nsre
   return rv;
 }
 
-NS_IMETHODIMP nsAutoSyncManager::GetDownloadModel(PRInt32 *aDownloadModel)
+NS_IMETHODIMP nsAutoSyncManager::GetDownloadModel(int32_t *aDownloadModel)
 {
   NS_ENSURE_ARG_POINTER(aDownloadModel);
   *aDownloadModel = mDownloadModel;
   return NS_OK;
 }
-NS_IMETHODIMP nsAutoSyncManager::SetDownloadModel(PRInt32 aDownloadModel)
+NS_IMETHODIMP nsAutoSyncManager::SetDownloadModel(int32_t aDownloadModel)
 {
   mDownloadModel = aDownloadModel;
   return NS_OK;
@@ -1344,7 +1344,7 @@ NS_IMETHODIMP nsAutoSyncManager::RemoveListener(nsIAutoSyncMgrListener *aListene
 }
 
 /* readonly attribute unsigned long discoveryQLength; */
-NS_IMETHODIMP nsAutoSyncManager::GetDiscoveryQLength(PRUint32 *aDiscoveryQLength)
+NS_IMETHODIMP nsAutoSyncManager::GetDiscoveryQLength(uint32_t *aDiscoveryQLength)
 {
   NS_ENSURE_ARG_POINTER(aDiscoveryQLength);
   *aDiscoveryQLength = mDiscoveryQ.Count();
@@ -1352,7 +1352,7 @@ NS_IMETHODIMP nsAutoSyncManager::GetDiscoveryQLength(PRUint32 *aDiscoveryQLength
 }
 
 /* readonly attribute unsigned long uploadQLength; */
-NS_IMETHODIMP nsAutoSyncManager::GetUpdateQLength(PRUint32 *aUpdateQLength)
+NS_IMETHODIMP nsAutoSyncManager::GetUpdateQLength(uint32_t *aUpdateQLength)
 {
   NS_ENSURE_ARG_POINTER(aUpdateQLength);
   *aUpdateQLength = mUpdateQ.Count();
@@ -1360,7 +1360,7 @@ NS_IMETHODIMP nsAutoSyncManager::GetUpdateQLength(PRUint32 *aUpdateQLength)
 }
 
 /* readonly attribute unsigned long downloadQLength; */
-NS_IMETHODIMP nsAutoSyncManager::GetDownloadQLength(PRUint32 *aDownloadQLength)
+NS_IMETHODIMP nsAutoSyncManager::GetDownloadQLength(uint32_t *aDownloadQLength)
 {
   NS_ENSURE_ARG_POINTER(aDownloadQLength);
   *aDownloadQLength = mPriorityQ.Count();

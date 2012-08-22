@@ -21,7 +21,7 @@ class nsIFile;
  * @param usemime      [IN] If false then apply charset conversion only no MIME encoding.
  * @return             Encoded buffer (in C string) or NULL in case of error.
  */
-NS_MSG_BASE char      *nsMsgI18NEncodeMimePartIIStr(const char *header, bool structured, const char *charset, PRInt32 fieldnamelen, bool usemime);
+NS_MSG_BASE char      *nsMsgI18NEncodeMimePartIIStr(const char *header, bool structured, const char *charset, int32_t fieldnamelen, bool usemime);
 
 /**
  * Check if given charset is stateful (e.g. ISO-2022-JP).
@@ -133,7 +133,7 @@ NS_MSG_BASE nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char*
  * @return           nsresult
  */
 NS_MSG_BASE nsresult nsMsgI18NShrinkUTF8Str(const nsCString &inString,
-                                            PRUint32 aMaxLength,
+                                            uint32_t aMaxLength,
                                             nsACString &outString);
 
 /*

@@ -74,7 +74,7 @@ NS_IMETHODIMP nsMailWinSearchHelper::GetFoldersInCrawlScope(bool* aResult)
     return NS_ERROR_FAILURE;
 
   // We need to create appropriate URLs to check with the crawl scope manager.
-  for (PRUint32 i = 0; i < NS_ARRAY_LENGTH(sFoldersToIndex); i++)
+  for (uint32_t i = 0; i < NS_ARRAY_LENGTH(sFoldersToIndex); i++)
   {
     nsCOMPtr<nsIFile> subdir;
     rv = mProfD->Clone(getter_AddRefs(subdir));

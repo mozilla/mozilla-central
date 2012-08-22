@@ -58,7 +58,7 @@ interface nsIJunkMailClassificationListener : nsISupports
    */
   void onMessageClassified(in string aMsgURI,
                            in nsMsgJunkStatus aClassification,
-                           in PRUint32 aJunkPercent);
+                           in uint32_t aJunkPercent);
 };
 
 [scriptable, uuid(AF247D07-72F0-482d-9EAB-5A786407AA4C)]

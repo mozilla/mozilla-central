@@ -26,7 +26,7 @@ testStripRe(const char *encodedInput, char *expectedOutput,
   char *modifiedSubject;
   bool didModify;
   const char *encodedInout = encodedInput;
-  PRUint32 length = strlen(encodedInout);
+  uint32_t length = strlen(encodedInout);
   didModify = NS_MsgStripRE(&encodedInout, &length, &modifiedSubject);
   
   // make sure we got the right results

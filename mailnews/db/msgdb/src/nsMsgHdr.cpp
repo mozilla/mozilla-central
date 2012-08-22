@@ -58,7 +58,7 @@ nsresult nsMsgHdr::InitCachedValues()
 
   if (!(m_initedValues & CACHED_VALUES_INITED))
   {
-    PRUint32 uint32Value;
+    uint32_t uint32Value;
     mdbOid outOid;
     if (m_mdbRow->GetOid(m_mdb->GetEnv(), &outOid) == NS_OK)
       m_messageKey = outOid.mOid_Id;
@@ -149,7 +149,7 @@ NS_IMETHODIMP nsMsgHdr::SetMessageKey(nsMsgKey value)
   return NS_OK;
 }
 
-nsresult nsMsgHdr::GetRawFlags(PRUint32 *result)
+nsresult nsMsgHdr::GetRawFlags(uint32_t *result)
 {
   if (!(m_initedValues & FLAGS_INITED))
     InitFlags();
@@ -157,7 +157,7 @@ nsresult nsMsgHdr::GetRawFlags(PRUint32 *result)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgHdr::GetFlags(PRUint32 *result)
+NS_IMETHODIMP nsMsgHdr::GetFlags(uint32_t *result)
 {
   if (!(m_initedValues & FLAGS_INITED))
     InitFlags();
@@ -171,7 +171,7 @@ NS_IMETHODIMP nsMsgHdr::GetFlags(PRUint32 *result)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgHdr::SetFlags(PRUint32 flags)
+NS_IMETHODIMP nsMsgHdr::SetFlags(uint32_t flags)
 {
 #ifdef DEBUG_bienvenu
   NS_ASSERTION(! (flags & (nsMsgMessageFlags::Elided)), "shouldn't set this flag on db");
@@ -182,7 +182,7 @@ NS_IMETHODIMP nsMsgHdr::SetFlags(PRUint32 flags)
   return SetUInt32Column(m_flags & ~nsMsgMessageFlags::New, m_mdb->m_flagsColumnToken);
 }
 
-NS_IMETHODIMP nsMsgHdr::OrFlags(PRUint32 flags, PRUint32 *result)
+NS_IMETHODIMP nsMsgHdr::OrFlags(uint32_t flags, uint32_t *result)
 {
   if (!(m_initedValues & FLAGS_INITED))
     InitFlags();
@@ -192,7 +192,7 @@ NS_IMETHODIMP nsMsgHdr::OrFlags(PRUint32 flags, PRUint32 *result)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgHdr::AndFlags(PRUint32 flags, PRUint32 *result)
+NS_IMETHODIMP nsMsgHdr::AndFlags(uint32_t flags, uint32_t *result)
 {
   if (!(m_initedValues & FLAGS_INITED))
     InitFlags();
@@ -276,7 +276,7 @@ NS_IMETHODIMP nsMsgHdr::GetStringProperty(const char *propertyName, char **aProp
   return m_mdb->GetProperty(m_mdbRow, propertyName, aPropertyValue);
 }
 
-NS_IMETHODIMP nsMsgHdr::GetUint32Property(const char *propertyName, PRUint32 *pResult)
+NS_IMETHODIMP nsMsgHdr::GetUint32Property(const char *propertyName, uint32_t *pResult)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
   if (!m_mdb || !m_mdbRow)
@@ -284,7 +284,7 @@ NS_IMETHODIMP nsMsgHdr::GetUint32Property(const char *propertyName, PRUint32 *pR
   return m_mdb->GetUint32Property(m_mdbRow, propertyName, pResult);
 }
 
-NS_IMETHODIMP nsMsgHdr::SetUint32Property(const char *propertyName, PRUint32 value)
+NS_IMETHODIMP nsMsgHdr::SetUint32Property(const char *propertyName, uint32_t value)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
   if (!m_mdb || !m_mdbRow)
@@ -293,7 +293,7 @@ NS_IMETHODIMP nsMsgHdr::SetUint32Property(const char *propertyName, PRUint32 val
 }
 
 
-NS_IMETHODIMP nsMsgHdr::GetNumReferences(PRUint16 *result)
+NS_IMETHODIMP nsMsgHdr::GetNumReferences(uint16_t *result)
 {
   if (!(m_initedValues & REFERENCES_INITED))
   {
@@ -329,14 +329,14 @@ nsresult nsMsgHdr::ParseReferences(const char *references)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgHdr::GetStringReference(PRInt32 refNum, nsACString& resultReference)
+NS_IMETHODIMP nsMsgHdr::GetStringReference(int32_t refNum, nsACString& resultReference)
 {
   nsresult err = NS_OK;
 
   if(!(m_initedValues & REFERENCES_INITED))
     GetNumReferences(nullptr); // it can handle the null
 
-  if ((PRUint32)refNum < m_references.Length())
+  if ((uint32_t)refNum < m_references.Length())
     resultReference = m_references.ElementAt(refNum);
   else
     err = NS_ERROR_ILLEGAL_VALUE;
@@ -352,7 +352,7 @@ NS_IMETHODIMP nsMsgHdr::GetDate(PRTime *result)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgHdr::GetDateInSeconds(PRUint32 *aResult)
+NS_IMETHODIMP nsMsgHdr::GetDateInSeconds(uint32_t *aResult)
 {
   return GetUInt32Column(m_mdb->m_dateColumnToken, aResult);
 }
@@ -396,7 +396,7 @@ NS_IMETHODIMP nsMsgHdr::SetRecipients(const char *recipients)
   return SetStringColumn(recipients, m_mdb->m_recipientsColumnToken);
 }
 
-nsresult nsMsgHdr::BuildRecipientsFromArray(const char *names, const char *addresses, PRUint32 numAddresses, nsCAutoString& allRecipients)
+nsresult nsMsgHdr::BuildRecipientsFromArray(const char *names, const char *addresses, uint32_t numAddresses, nsCAutoString& allRecipients)
 {
   NS_ENSURE_ARG_POINTER(names);
   NS_ENSURE_ARG_POINTER(addresses);
@@ -405,7 +405,7 @@ nsresult nsMsgHdr::BuildRecipientsFromArray(const char *names, const char *addre
   const char *curAddress = addresses;
   nsIMsgHeaderParser *headerParser = m_mdb->GetHeaderParser();
 
-  for (PRUint32 i = 0; i < numAddresses; i++, curName += strlen(curName) + 1, curAddress += strlen(curAddress) + 1)
+  for (uint32_t i = 0; i < numAddresses; i++, curName += strlen(curName) + 1, curAddress += strlen(curAddress) + 1)
   {
     if (i > 0)
       allRecipients += ", ";
@@ -440,7 +440,7 @@ nsresult nsMsgHdr::BuildRecipientsFromArray(const char *names, const char *addre
   return ret;
 }
 
-NS_IMETHODIMP nsMsgHdr::SetRecipientsArray(const char *names, const char *addresses, PRUint32 numAddresses)
+NS_IMETHODIMP nsMsgHdr::SetRecipientsArray(const char *names, const char *addresses, uint32_t numAddresses)
 {
 	nsresult ret;
 	nsCAutoString	allRecipients;
@@ -459,7 +459,7 @@ NS_IMETHODIMP nsMsgHdr::SetCcList(const char *ccList)
 }
 
 // ###should make helper routine that takes column token!
-NS_IMETHODIMP nsMsgHdr::SetCCListArray(const char *names, const char *addresses, PRUint32 numAddresses)
+NS_IMETHODIMP nsMsgHdr::SetCCListArray(const char *names, const char *addresses, uint32_t numAddresses)
 {
 	nsresult ret;
 	nsCAutoString	allRecipients;
@@ -480,7 +480,7 @@ NS_IMETHODIMP nsMsgHdr::SetBccList(const char *bccList)
 NS_IMETHODIMP
 nsMsgHdr::SetBCCListArray(const char *names,
                           const char *addresses,
-                          PRUint32 numAddresses)
+                          uint32_t numAddresses)
 {
   nsCAutoString allRecipients;
 
@@ -491,35 +491,35 @@ nsMsgHdr::SetBCCListArray(const char *names,
   return SetBccList(allRecipients.get());
 }
 
-NS_IMETHODIMP nsMsgHdr::SetMessageSize(PRUint32 messageSize)
+NS_IMETHODIMP nsMsgHdr::SetMessageSize(uint32_t messageSize)
 {
   SetUInt32Column(messageSize, m_mdb->m_messageSizeColumnToken);
   m_messageSize = messageSize;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgHdr::GetOfflineMessageSize(PRUint32 *result)
+NS_IMETHODIMP nsMsgHdr::GetOfflineMessageSize(uint32_t *result)
 {
-  PRUint32 size;
+  uint32_t size;
   nsresult res = GetUInt32Column(m_mdb->m_offlineMessageSizeColumnToken, &size);
 
   *result = size;
   return res;
 }
 
-NS_IMETHODIMP nsMsgHdr::SetOfflineMessageSize(PRUint32 messageSize)
+NS_IMETHODIMP nsMsgHdr::SetOfflineMessageSize(uint32_t messageSize)
 {
   return SetUInt32Column(messageSize, m_mdb->m_offlineMessageSizeColumnToken);
 }
 
 
-NS_IMETHODIMP nsMsgHdr::SetLineCount(PRUint32 lineCount)
+NS_IMETHODIMP nsMsgHdr::SetLineCount(uint32_t lineCount)
 {
   SetUInt32Column(lineCount, m_mdb->m_numLinesColumnToken);
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgHdr::SetStatusOffset(PRUint32 statusOffset)
+NS_IMETHODIMP nsMsgHdr::SetStatusOffset(uint32_t statusOffset)
 {
   return SetUInt32Column(statusOffset, m_mdb->m_statusOffsetColumnToken);
 }
@@ -527,14 +527,14 @@ NS_IMETHODIMP nsMsgHdr::SetStatusOffset(PRUint32 statusOffset)
 NS_IMETHODIMP nsMsgHdr::SetDate(PRTime date)
 {
   m_date = date;
-  PRUint32 seconds;
+  uint32_t seconds;
   PRTime2Seconds(date, &seconds);
-  return SetUInt32Column((PRUint32) seconds, m_mdb->m_dateColumnToken);
+  return SetUInt32Column((uint32_t) seconds, m_mdb->m_dateColumnToken);
 }
 
-NS_IMETHODIMP nsMsgHdr::GetStatusOffset(PRUint32 *result)
+NS_IMETHODIMP nsMsgHdr::GetStatusOffset(uint32_t *result)
 {
-  PRUint32 offset = 0;
+  uint32_t offset = 0;
   nsresult res = GetUInt32Column(m_mdb->m_statusOffsetColumnToken, &offset);
 
   *result = offset;
@@ -543,7 +543,7 @@ NS_IMETHODIMP nsMsgHdr::GetStatusOffset(PRUint32 *result)
 
 NS_IMETHODIMP nsMsgHdr::SetPriority(nsMsgPriorityValue priority)
 {
-  SetUInt32Column((PRUint32) priority, m_mdb->m_priorityColumnToken);
+  SetUInt32Column((uint32_t) priority, m_mdb->m_priorityColumnToken);
   return NS_OK;
 }
 
@@ -552,7 +552,7 @@ NS_IMETHODIMP nsMsgHdr::GetPriority(nsMsgPriorityValue *result)
   if (!result)
     return NS_ERROR_NULL_POINTER;
 
-  PRUint32 priority = 0;
+  uint32_t priority = 0;
   nsresult rv = GetUInt32Column(m_mdb->m_priorityColumnToken, &priority);
   if (NS_FAILED(rv)) return rv;
 
@@ -562,7 +562,7 @@ NS_IMETHODIMP nsMsgHdr::GetPriority(nsMsgPriorityValue *result)
 
 NS_IMETHODIMP nsMsgHdr::SetLabel(nsMsgLabelValue label)
 {
-  SetUInt32Column((PRUint32) label, m_mdb->m_labelColumnToken);
+  SetUInt32Column((uint32_t) label, m_mdb->m_labelColumnToken);
   return NS_OK;
 }
 
@@ -591,7 +591,7 @@ NS_IMETHODIMP nsMsgHdr::GetAccountKey(char **aResult)
 }
 
 
-NS_IMETHODIMP nsMsgHdr::GetMessageOffset(PRUint64 *result)
+NS_IMETHODIMP nsMsgHdr::GetMessageOffset(uint64_t *result)
 {
   NS_ENSURE_ARG(result);
 
@@ -602,25 +602,25 @@ NS_IMETHODIMP nsMsgHdr::GetMessageOffset(PRUint64 *result)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgHdr::SetMessageOffset(PRUint64 offset)
+NS_IMETHODIMP nsMsgHdr::SetMessageOffset(uint64_t offset)
 {
   SetUInt64Column(offset, m_mdb->m_offlineMsgOffsetColumnToken);
   return NS_OK;
 }
 
 
-NS_IMETHODIMP nsMsgHdr::GetMessageSize(PRUint32 *result)
+NS_IMETHODIMP nsMsgHdr::GetMessageSize(uint32_t *result)
 {
-  PRUint32 size;
+  uint32_t size;
   nsresult res = GetUInt32Column(m_mdb->m_messageSizeColumnToken, &size);
 
   *result = size;
   return res;
 }
 
-NS_IMETHODIMP nsMsgHdr::GetLineCount(PRUint32 *result)
+NS_IMETHODIMP nsMsgHdr::GetLineCount(uint32_t *result)
 {
-  PRUint32 linecount;
+  uint32_t linecount;
   nsresult res = GetUInt32Column(m_mdb->m_numLinesColumnToken, &linecount);
   *result = linecount;
   return res;
@@ -683,17 +683,17 @@ NS_IMETHODIMP nsMsgHdr::GetMime2DecodedRecipients(nsAString &resultRecipients)
 }
 
 
-NS_IMETHODIMP nsMsgHdr::GetAuthorCollationKey(PRUint32 *len, PRUint8 **resultAuthor)
+NS_IMETHODIMP nsMsgHdr::GetAuthorCollationKey(uint32_t *len, uint8_t **resultAuthor)
 {
   return m_mdb->RowCellColumnToAddressCollationKey(GetMDBRow(), m_mdb->m_senderColumnToken, resultAuthor, len);
 }
 
-NS_IMETHODIMP nsMsgHdr::GetSubjectCollationKey(PRUint32 *len, PRUint8 **resultSubject)
+NS_IMETHODIMP nsMsgHdr::GetSubjectCollationKey(uint32_t *len, uint8_t **resultSubject)
 {
   return m_mdb->RowCellColumnToCollationKey(GetMDBRow(), m_mdb->m_subjectColumnToken, resultSubject, len);
 }
 
-NS_IMETHODIMP nsMsgHdr::GetRecipientsCollationKey(PRUint32 *len, PRUint8 **resultRecipients)
+NS_IMETHODIMP nsMsgHdr::GetRecipientsCollationKey(uint32_t *len, uint8_t **resultRecipients)
 {
   return m_mdb->RowCellColumnToCollationKey(GetMDBRow(), m_mdb->m_recipientsColumnToken, resultRecipients, len);
 }
@@ -751,22 +751,22 @@ nsresult nsMsgHdr::SetStringColumn(const char *str, mdb_token token)
   return m_mdb->CharPtrToRowCellColumn(m_mdbRow, token, str);
 }
 
-nsresult nsMsgHdr::SetUInt32Column(PRUint32 value, mdb_token token)
+nsresult nsMsgHdr::SetUInt32Column(uint32_t value, mdb_token token)
 {
   return m_mdb->UInt32ToRowCellColumn(m_mdbRow, token, value);
 }
 
-nsresult nsMsgHdr::GetUInt32Column(mdb_token token, PRUint32 *pvalue, PRUint32 defaultValue)
+nsresult nsMsgHdr::GetUInt32Column(mdb_token token, uint32_t *pvalue, uint32_t defaultValue)
 {
   return m_mdb->RowCellColumnToUInt32(GetMDBRow(), token, pvalue, defaultValue);
 }
 
-nsresult nsMsgHdr::SetUInt64Column(PRUint64 value, mdb_token token)
+nsresult nsMsgHdr::SetUInt64Column(uint64_t value, mdb_token token)
 {
   return m_mdb->UInt64ToRowCellColumn(m_mdbRow, token, value);
 }
 
-nsresult nsMsgHdr::GetUInt64Column(mdb_token token, PRUint64 *pvalue, PRUint64 defaultValue)
+nsresult nsMsgHdr::GetUInt64Column(mdb_token token, uint64_t *pvalue, uint64_t defaultValue)
 {
   return m_mdb->RowCellColumnToUInt64(GetMDBRow(), token, pvalue, defaultValue);
 }
@@ -873,7 +873,7 @@ const char *nsMsgHdr::GetNextReference(const char *startNextRef,
 
 bool nsMsgHdr::IsParentOf(nsIMsgDBHdr *possibleChild)
 {
-  PRUint16 referenceToCheck = 0;
+  uint16_t referenceToCheck = 0;
   possibleChild->GetNumReferences(&referenceToCheck);
   nsCAutoString reference;
 
@@ -934,7 +934,7 @@ NS_IMETHODIMP nsMsgHdr::GetIsFlagged(bool *isFlagged)
 void nsMsgHdr::ReparentInThread(nsIMsgThread *thread)
 {
   NS_WARNING("Borked message header, attempting to fix!");
-  PRUint32 numChildren;
+  uint32_t numChildren;
   thread->GetNumChildren(&numChildren);
   // bail out early for the singleton thread case.
   if (numChildren == 1)
@@ -946,7 +946,7 @@ void nsMsgHdr::ReparentInThread(nsIMsgThread *thread)
   {
     nsCOMPtr<nsIMsgDBHdr> curHdr;
     // loop through thread, looking for our proper parent.
-    for (PRUint32 childIndex = 0; childIndex < numChildren; childIndex++)
+    for (uint32_t childIndex = 0; childIndex < numChildren; childIndex++)
     {
       thread->GetChildHdrAt(childIndex, getter_AddRefs(curHdr));
       // closed system, cast ok
@@ -961,7 +961,7 @@ void nsMsgHdr::ReparentInThread(nsIMsgThread *thread)
     }
     // we didn't find it. So either the root header is our parent,
     // or we're the root.
-    PRInt32 rootIndex;
+    int32_t rootIndex;
     nsCOMPtr<nsIMsgDBHdr> rootHdr;
     thread->GetRootHdr(&rootIndex, getter_AddRefs(rootHdr));
     NS_ASSERTION(rootHdr, "thread has no root hdr - shouldn't happen");
@@ -975,7 +975,7 @@ void nsMsgHdr::ReparentInThread(nsIMsgThread *thread)
   }
 }
 
-bool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
+bool nsMsgHdr::IsAncestorKilled(uint32_t ancestorsToCheck)
 {
   if (!(m_initedValues & FLAGS_INITED))
     InitFlags();
@@ -1051,7 +1051,7 @@ NS_IMETHODIMP nsMsgHdr::GetIsKilled(bool *isKilled)
   (void) m_mdb->GetThreadContainingMsgHdr(this, getter_AddRefs(thread));
   // if we can't find the thread, let's at least check one level; maybe
   // the header hasn't been added to a thread yet.
-  PRUint32 numChildren = 1;
+  uint32_t numChildren = 1;
   if (thread)
     thread->GetNumChildren(&numChildren);
   if (!numChildren)

@@ -104,7 +104,7 @@ interface nsIMsgNewsFolder : nsISupports {
   void forgetAuthenticationCredentials();
   /// @}
   
-  void moveFolder(in nsIMsgFolder aNewsgroupToMove, in nsIMsgFolder aRefNewsgroup, in PRInt32 aOrientation);
+  void moveFolder(in nsIMsgFolder aNewsgroupToMove, in nsIMsgFolder aRefNewsgroup, in int32_t aOrientation);
 
   nsIMsgFolder addNewsgroup(in AUTF8String newsgroupName, in ACString setStr);
 

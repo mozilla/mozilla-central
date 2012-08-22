@@ -85,7 +85,7 @@ NS_IMETHODIMP nsRssService::GetCanDuplicate(bool *aCanDuplicate)
     return NS_OK;
 }
 
-NS_IMETHODIMP nsRssService::GetDefaultServerPort(bool isSecure, PRInt32 *_retval)
+NS_IMETHODIMP nsRssService::GetDefaultServerPort(bool isSecure, int32_t *_retval)
 {
     *_retval = -1;
     return NS_OK;

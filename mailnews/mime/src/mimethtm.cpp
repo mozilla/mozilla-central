@@ -16,7 +16,7 @@
 MimeDefClass(MimeInlineTextHTML, MimeInlineTextHTMLClass,
        mimeInlineTextHTMLClass, &MIME_SUPERCLASS);
 
-static int MimeInlineTextHTML_parse_line (const char *, PRInt32, MimeObject *);
+static int MimeInlineTextHTML_parse_line (const char *, int32_t, MimeObject *);
 static int MimeInlineTextHTML_parse_eof (MimeObject *, bool);
 static int MimeInlineTextHTML_parse_begin (MimeObject *obj);
 
@@ -48,8 +48,8 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
       nsMimeOutput::nsMimeMessagePrintOutput == obj->options->format_out)
   {
     char buf[256];            // local buffer for html tag
-    PRInt32 fontSize;         // default font size
-    PRInt32 fontSizePercentage;   // size percentage
+    int32_t fontSize;         // default font size
+    int32_t fontSizePercentage;   // size percentage
     nsCAutoString fontLang;       // langgroup of the font.
     if (NS_SUCCEEDED(GetMailNewsFont(obj, false, &fontSize, &fontSizePercentage,fontLang)))
     {
@@ -88,7 +88,7 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
 
     if (base_hdr)
     {
-      PRUint32 buflen = strlen(base_hdr) + 20;
+      uint32_t buflen = strlen(base_hdr) + 20;
       char *buf = (char *) PR_MALLOC(buflen);
       const char *in;
       char *out;
@@ -128,7 +128,7 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
 
 
 static int
-MimeInlineTextHTML_parse_line (const char *line, PRInt32 length, MimeObject *obj)
+MimeInlineTextHTML_parse_line (const char *line, int32_t length, MimeObject *obj)
 {
   MimeInlineTextHTML  *textHTML = (MimeInlineTextHTML *) obj;
 

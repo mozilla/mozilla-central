@@ -7,7 +7,7 @@
 #include "nsStringGlue.h"
 #include "MapiMimeTypes.h"
 
-PRUint8 CMimeTypes::m_mimeBuffer[kMaxMimeTypeSize];
+uint8_t CMimeTypes::m_mimeBuffer[kMaxMimeTypeSize];
 
 
 BOOL CMimeTypes::GetKey(HKEY root, LPCTSTR pName, PHKEY pKey)
@@ -55,14 +55,14 @@ BOOL CMimeTypes::GetMimeTypeFromReg(const nsCString& ext, LPBYTE *ppBytes)
   return result;
 }
 
-PRUint8 * CMimeTypes::GetMimeType(const nsString& theExt)
+uint8_t * CMimeTypes::GetMimeType(const nsString& theExt)
 {
   nsCString ext;
   LossyCopyUTF16toASCII(theExt, ext);
   return GetMimeType(ext);
 }
 
-PRUint8 * CMimeTypes::GetMimeType(const nsCString& theExt)
+uint8_t * CMimeTypes::GetMimeType(const nsCString& theExt)
 {
   nsCString  ext = theExt;
   if (ext.Length()) {

@@ -25,7 +25,7 @@ public:
 	NS_IMETHOD GetChildNodes(nsISimpleEnumerator* *result);
   NS_IMETHOD CreateNewDirectory(const nsAString &aDirName,
                                 const nsACString &aURI,
-                                PRUint32 aType,
+                                uint32_t aType,
                                 const nsACString &aPrefName,
                                 nsACString &aResult);
   NS_IMETHOD CreateDirectoryByURI(const nsAString &aDisplayName,

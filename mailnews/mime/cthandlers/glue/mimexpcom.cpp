@@ -98,10 +98,10 @@ COM_GetmimeMultipartSignedClass(void)
 }
 
 extern "C" int  
-COM_MimeObject_write(void *mimeObject, char *data, PRInt32 length, 
+COM_MimeObject_write(void *mimeObject, char *data, int32_t length, 
                      bool user_visible_p)
 {
-  PRInt32 rc = -1;
+  int32_t rc = -1;
 
   nsresult res;
   nsCOMPtr<nsIMimeObjectClassAccess> objAccess =

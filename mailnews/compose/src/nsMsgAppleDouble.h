@@ -167,7 +167,7 @@ typedef struct _appledouble_decode_object
 	nsCOMPtr <nsIFile> tmpFile;		/* the temp file to hold the decode data fork 	*/
 								                      /* when doing the binhex exporting.				*/
   nsCOMPtr <nsIOutputStream> tmpFileStream; /* The output File Stream */
-	PRInt32	            data_size;			/* the size of the data in the tmp file.		*/
+	int32_t	            data_size;			/* the size of the data in the tmp file.		*/
 
 } appledouble_decode_object;
 
@@ -184,8 +184,8 @@ int ap_encode_init(appledouble_encode_object *p_ap_encode_obj,
 
 int ap_encode_next(appledouble_encode_object* p_ap_encode_obj, 
 					char 	*to_buff,
-					PRInt32 	buff_size,
-					PRInt32*	real_size);
+					int32_t 	buff_size,
+					int32_t*	real_size);
 
 int ap_encode_end(appledouble_encode_object* p_ap_encode_obj,
 					bool	is_aborting);
@@ -197,7 +197,7 @@ int ap_decode_init(appledouble_decode_object* p_ap_decode_obj,
 
 int ap_decode_next(appledouble_decode_object* p_ap_decode_obj, 
 					char 	*in_buff, 
-					PRInt32 	buff_size);
+					int32_t 	buff_size);
 
 int ap_decode_end(appledouble_decode_object* p_ap_decode_obj, 
 				 	bool is_aborting);

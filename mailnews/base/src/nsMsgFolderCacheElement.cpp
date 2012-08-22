@@ -55,7 +55,7 @@ NS_IMETHODIMP nsMsgFolderCacheElement::GetStringProperty(const char *propertyNam
   return ret;
 }
 
-NS_IMETHODIMP nsMsgFolderCacheElement::GetInt32Property(const char *propertyName, PRInt32 *aResult)
+NS_IMETHODIMP nsMsgFolderCacheElement::GetInt32Property(const char *propertyName, int32_t *aResult)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
   NS_ENSURE_ARG_POINTER(aResult);
@@ -66,11 +66,11 @@ NS_IMETHODIMP nsMsgFolderCacheElement::GetInt32Property(const char *propertyName
   if (resultStr.IsEmpty())
     return NS_ERROR_FAILURE;
 
-  PRInt32 result = 0;
-  for (PRUint32 index = 0; index < resultStr.Length(); index++)
+  int32_t result = 0;
+  for (uint32_t index = 0; index < resultStr.Length(); index++)
   {
     char C = resultStr.CharAt(index);
-    PRInt8 unhex = ((C >= '0' && C <= '9') ? C - '0' :
+    int8_t unhex = ((C >= '0' && C <= '9') ? C - '0' :
     ((C >= 'A' && C <= 'F') ? C - 'A' + 10 :
      ((C >= 'a' && C <= 'f') ? C - 'a' + 10 : -1)));
     if (unhex < 0)
@@ -111,7 +111,7 @@ NS_IMETHODIMP nsMsgFolderCacheElement::SetStringProperty(const char *propertyNam
   return rv;
 }
 
-NS_IMETHODIMP nsMsgFolderCacheElement::SetInt32Property(const char *propertyName, PRInt32 propertyValue)
+NS_IMETHODIMP nsMsgFolderCacheElement::SetInt32Property(const char *propertyName, int32_t propertyValue)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
   NS_ENSURE_TRUE(m_mdbRow, NS_ERROR_FAILURE);

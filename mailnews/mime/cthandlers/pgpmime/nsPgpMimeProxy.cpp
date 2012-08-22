@@ -44,9 +44,9 @@ MIME_PgpMimeCreateContentTypeHandlerClass(
 }
 
 static void *MimePgpe_init(MimeObject *,
-                           int (*output_fn) (const char *, PRInt32, void *),
+                           int (*output_fn) (const char *, int32_t, void *),
                            void *);
-static int MimePgpe_write (const char *, PRInt32, void *);
+static int MimePgpe_write (const char *, int32_t, void *);
 static int MimePgpe_eof (void *, bool);
 static char* MimePgpe_generate (void *);
 static void MimePgpe_free (void *);
@@ -109,7 +109,7 @@ class MimePgpeData : public nsISupports
 public:
   NS_DECL_ISUPPORTS
 
-  int (*output_fn) (const char *buf, PRInt32 buf_size, void *output_closure);
+  int (*output_fn) (const char *buf, int32_t buf_size, void *output_closure);
   void *output_closure;
   MimeObject *self;
 
@@ -130,7 +130,7 @@ NS_IMPL_ISUPPORTS0(MimePgpeData)
 
 static void*
 MimePgpe_init(MimeObject *obj,
-              int (*output_fn) (const char *buf, PRInt32 buf_size,
+              int (*output_fn) (const char *buf, int32_t buf_size,
                                 void *output_closure),
               void *output_closure)
 {
@@ -170,7 +170,7 @@ MimePgpe_init(MimeObject *obj,
 }
 
 static int
-MimePgpe_write(const char *buf, PRInt32 buf_size, void *output_closure)
+MimePgpe_write(const char *buf, int32_t buf_size, void *output_closure)
 {
   MimePgpeData* data = (MimePgpeData *) output_closure;
 
@@ -281,7 +281,7 @@ nsPgpMimeProxy::Init()
 }
 
 NS_IMETHODIMP
-nsPgpMimeProxy::Write(const char *buf, PRUint32 buf_size)
+nsPgpMimeProxy::Write(const char *buf, uint32_t buf_size)
 {
   NS_ENSURE_TRUE(mInitialized, NS_ERROR_NOT_INITIALIZED);
 
@@ -448,7 +448,7 @@ nsPgpMimeProxy::SetLoadFlags(nsLoadFlags aLoadFlags)
 ///////////////////////////////////////////////////////////////////////////////
 
 NS_IMETHODIMP
-nsPgpMimeProxy::Available(PRUint64* _retval)
+nsPgpMimeProxy::Available(uint64_t* _retval)
 {
   NS_ENSURE_ARG(_retval);
 
@@ -461,18 +461,18 @@ nsPgpMimeProxy::Available(PRUint64* _retval)
 }
 
 NS_IMETHODIMP
-nsPgpMimeProxy::Read(char* buf, PRUint32 count,
-                         PRUint32 *readCount)
+nsPgpMimeProxy::Read(char* buf, uint32_t count,
+                         uint32_t *readCount)
 {
   NS_ENSURE_TRUE(mInitialized, NS_ERROR_NOT_INITIALIZED);
 
   if (!buf || !readCount)
     return NS_ERROR_NULL_POINTER;
 
-  PRInt32 avail = (mByteBuf.Length() > mStreamOffset) ?
+  int32_t avail = (mByteBuf.Length() > mStreamOffset) ?
                    mByteBuf.Length() - mStreamOffset : 0;
 
-  PRUint32 readyCount = ((PRUint32) avail > count) ? count : avail;
+  uint32_t readyCount = ((uint32_t) avail > count) ? count : avail;
 
   if (readyCount) {
     memcpy(buf, mByteBuf.get()+mStreamOffset, readyCount);
@@ -486,8 +486,8 @@ nsPgpMimeProxy::Read(char* buf, PRUint32 count,
 
 NS_IMETHODIMP
 nsPgpMimeProxy::ReadSegments(nsWriteSegmentFun writer,
-                          void * aClosure, PRUint32 count,
-                          PRUint32 *readCount)
+                          void * aClosure, uint32_t count,
+                          uint32_t *readCount)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -536,8 +536,8 @@ nsPgpMimeProxy::OnStopRequest(nsIRequest* aRequest, nsISupports* aContext,
 NS_IMETHODIMP
 nsPgpMimeProxy::OnDataAvailable(nsIRequest* aRequest, nsISupports* aContext,
                               nsIInputStream *aInputStream,
-                              PRUint32 aSourceOffset,
-                              PRUint32 aLength)
+                              uint32_t aSourceOffset,
+                              uint32_t aLength)
 {
   NS_ENSURE_TRUE(mInitialized, NS_ERROR_NOT_INITIALIZED);
 
@@ -545,7 +545,7 @@ nsPgpMimeProxy::OnDataAvailable(nsIRequest* aRequest, nsISupports* aContext,
   NS_ENSURE_ARG_MIN(aLength, 0);
 
   char buf[kCharMax];
-  PRUint32 readCount, readMax;
+  uint32_t readCount, readMax;
 
   while (aLength > 0) {
     readMax = (aLength < kCharMax) ? aLength : kCharMax;

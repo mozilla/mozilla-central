@@ -59,7 +59,7 @@ protected:
   bool m_idsAreUids;
   bool m_isMove;
   bool m_srcIsPop3;
-  nsTArray<PRUint32> m_srcSizeArray;
+  nsTArray<uint32_t> m_srcSizeArray;
   // this is used when we chain urls for imap undo, since "this" needs
   // to be the listener, but the folder may need to also be notified.
   nsWeakPtr m_onStopListener;
@@ -81,11 +81,11 @@ public:
   NS_IMETHOD UndoTransaction(void);
   NS_IMETHOD RedoTransaction(void);
   void SetAddFlags(bool addFlags) {m_addFlags = addFlags;}
-  void SetFlags(PRUint32 flags) {m_flags = flags;}
+  void SetFlags(uint32_t flags) {m_flags = flags;}
 protected:
   nsOfflineImapOperationType m_opType;
   // these two are used to undo flag changes, which we don't currently do.
   bool m_addFlags;
-  PRUint32 m_flags;
+  uint32_t m_flags;
 };
 #endif

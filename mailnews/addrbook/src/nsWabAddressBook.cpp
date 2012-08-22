@@ -17,7 +17,7 @@ static PRLogModuleInfo* gWabAddressBookLog
 using namespace mozilla;
 
 HMODULE nsWabAddressBook::mLibrary = NULL ;
-PRInt32 nsWabAddressBook::mLibUsage = 0 ;
+int32_t nsWabAddressBook::mLibUsage = 0 ;
 LPWABOPEN nsWabAddressBook::mWABOpen = NULL ;
 LPWABOBJECT nsWabAddressBook::mRootSession = NULL ;
 LPADRBOOK nsWabAddressBook::mRootBook = NULL ;

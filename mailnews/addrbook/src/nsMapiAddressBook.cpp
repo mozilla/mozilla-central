@@ -16,7 +16,7 @@ static PRLogModuleInfo* gMapiAddressBookLog
 using namespace mozilla;
 
 HMODULE nsMapiAddressBook::mLibrary = NULL ;
-PRInt32 nsMapiAddressBook::mLibUsage = 0 ;
+int32_t nsMapiAddressBook::mLibUsage = 0 ;
 LPMAPIINITIALIZE nsMapiAddressBook::mMAPIInitialize = NULL ;
 LPMAPIUNINITIALIZE nsMapiAddressBook::mMAPIUninitialize = NULL ;
 LPMAPIALLOCATEBUFFER nsMapiAddressBook::mMAPIAllocateBuffer = NULL ;

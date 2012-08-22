@@ -13,7 +13,7 @@ public:
   nsImportScanFile();
   virtual ~nsImportScanFile();
 
-  void  InitScan(nsIInputStream *pInputStream, PRUint8 * pBuf, PRUint32 sz);
+  void  InitScan(nsIInputStream *pInputStream, uint8_t * pBuf, uint32_t sz);
 
   void  CleanUpScan(void);
 
@@ -26,10 +26,10 @@ protected:
 
 protected:
   nsCOMPtr <nsIInputStream> m_pInputStream;
-  PRUint8 *    m_pBuf;
-  PRUint32    m_bufSz;
-  PRUint32    m_bytesInBuf;
-  PRUint32    m_pos;
+  uint8_t *    m_pBuf;
+  uint32_t    m_bufSz;
+  uint32_t    m_bytesInBuf;
+  uint32_t    m_pos;
   bool        m_eof;
   bool        m_allocated;
 };
@@ -40,7 +40,7 @@ public:
 
   void  ResetLineScan(void) { m_needEol = false;}
 
-  virtual bool ProcessLine(PRUint8 * /* pLine */, PRUint32 /* len */, bool * /* pDone */) {return true;}
+  virtual bool ProcessLine(uint8_t * /* pLine */, uint32_t /* len */, bool * /* pDone */) {return true;}
 
 protected:
   virtual bool    ScanBuffer(bool *pDone);

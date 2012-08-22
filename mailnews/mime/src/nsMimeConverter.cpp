@@ -77,8 +77,8 @@ nsresult
 nsMimeConverter::EncodeMimePartIIStr(const char       *header,
                                            bool       structured,
                                            const char *mailCharset,
-                                           PRInt32    fieldnamelen,
-                                           PRInt32    encodedWordSize,
+                                           int32_t    fieldnamelen,
+                                           int32_t    encodedWordSize,
                                            char       **encodedString)
 {
   NS_ENSURE_ARG_POINTER(encodedString);
@@ -96,8 +96,8 @@ nsresult
 nsMimeConverter::EncodeMimePartIIStr_UTF8(const nsACString &header,
                                           bool             structured,
                                           const char       *mailCharset,
-                                          PRInt32          fieldnamelen,
-                                          PRInt32          encodedWordSize,
+                                          int32_t          fieldnamelen,
+                                          int32_t          encodedWordSize,
                                           char             **encodedString)
 {
   NS_ENSURE_ARG_POINTER(encodedString);
@@ -153,11 +153,11 @@ nsMimeConverter::EncoderDestroy(MimeEncoderData *data, bool abort_p)
 
 nsresult
 nsMimeConverter::EncoderWrite(MimeEncoderData *data, const char *buffer,
-                              PRInt32 size, PRInt32 *written)
+                              int32_t size, int32_t *written)
 {
   NS_ENSURE_ARG_POINTER(written);
 
-  PRInt32 writeCount;
+  int32_t writeCount;
   writeCount = MimeEncoderWrite(data, buffer, size);
   *written = writeCount;
   return NS_OK;

@@ -124,14 +124,14 @@ NS_IMETHODIMP nsAbLDAPChangeLogQuery::QueryRootDSE()
                                  sChangeLogRootDSEAttribs, 0, 0);
 }
 
-NS_IMETHODIMP nsAbLDAPChangeLogQuery::QueryChangeLog(const nsACString & aChangeLogDN, PRInt32 aLastChangeNo)
+NS_IMETHODIMP nsAbLDAPChangeLogQuery::QueryChangeLog(const nsACString & aChangeLogDN, int32_t aLastChangeNo)
 {
   if (!mInitialized)
     return NS_ERROR_NOT_INITIALIZED;
   if (aChangeLogDN.IsEmpty()) 
     return NS_ERROR_UNEXPECTED;
 
-  PRInt32 lastChangeNumber;
+  int32_t lastChangeNumber;
   nsresult rv = mDirectory->GetLastChangeNumber(&lastChangeNumber);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -161,7 +161,7 @@ NS_IMETHODIMP nsAbLDAPChangeLogQuery::QueryChangedEntries(const nsACString & aCh
     if(NS_FAILED(rv)) 
         return rv;
 
-    PRInt32 scope;
+    int32_t scope;
     rv = mURL->GetScope(&scope);
     if(NS_FAILED(rv)) 
         return rv;

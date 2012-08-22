@@ -56,7 +56,7 @@ nsMimePlainEmitter::EndHeader()
 }
 
 NS_IMETHODIMP
-nsMimePlainEmitter::WriteBody(const nsACString &buf, PRUint32 *amountWritten)
+nsMimePlainEmitter::WriteBody(const nsACString &buf, uint32_t *amountWritten)
 {
   Write(buf, amountWritten);
   return NS_OK;

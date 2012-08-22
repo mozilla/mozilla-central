@@ -38,7 +38,7 @@ private:
   nsresult    BuildDirectoryXML(nsIAbDirectory *aDirectory, 
                                    nsString &aOutput);
 
-  PRInt32     mAddbookOperation;
+  int32_t     mAddbookOperation;
 };
 
 #endif /* nsAddbookProtocolHandler_h___ */

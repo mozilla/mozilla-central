@@ -31,7 +31,7 @@ public:
   virtual ~nsAbOutlookDirectory(void);
 
   // nsAbDirProperty methods
-  NS_IMETHOD GetDirType(PRInt32 *aDirType);
+  NS_IMETHOD GetDirType(int32_t *aDirType);
   NS_IMETHOD GetURI(nsACString &aURI);
   NS_IMETHOD GetChildCards(nsISimpleEnumerator **aCards);
   NS_IMETHOD GetChildNodes(nsISimpleEnumerator **aNodes);
@@ -56,8 +56,8 @@ public:
   // Perform a MAPI query (function executed in a separate thread)
   nsresult ExecuteQuery(SRestriction &aRestriction,
                         nsIAbDirSearchListener *aListener,
-                        PRInt32 aResultLimit, PRInt32 aTimeout,
-                        PRInt32 aThreadId);
+                        int32_t aResultLimit, int32_t aTimeout,
+                        int32_t aThreadId);
 
 protected:
   // Retrieve hierarchy as cards, with an optional restriction
@@ -77,13 +77,13 @@ protected:
   nsMapiEntry *mMapiData;
   // Container for the query threads
   nsDataHashtable<nsUint32HashKey, PRThread*> mQueryThreads;
-  PRInt32 mCurrentQueryId;
+  int32_t mCurrentQueryId;
   PRLock *mProtector;
   // Data for the search interfaces
   nsInterfaceHashtable<nsISupportsHashKey, nsIAbCard> mCardList;
-  PRInt32 mSearchContext;
+  int32_t mSearchContext;
   // Windows AB type
-  PRUint32 mAbWinType;
+  uint32_t mAbWinType;
 };
 
 enum

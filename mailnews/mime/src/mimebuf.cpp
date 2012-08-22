@@ -20,13 +20,13 @@
 #include "nsMimeStringResources.h"
 
 extern "C" int
-mime_GrowBuffer (PRUint32 desired_size, PRUint32 element_size, PRUint32 quantum,
-        char **buffer, PRInt32 *size)
+mime_GrowBuffer (uint32_t desired_size, uint32_t element_size, uint32_t quantum,
+        char **buffer, int32_t *size)
 {
-  if ((PRUint32) *size <= desired_size)
+  if ((uint32_t) *size <= desired_size)
   {
     char *new_buf;
-    PRUint32 increment = desired_size - *size;
+    uint32_t increment = desired_size - *size;
     if (increment < quantum) /* always grow by a minimum of N bytes */
     increment = quantum;
 
@@ -50,16 +50,16 @@ mime_GrowBuffer (PRUint32 desired_size, PRUint32 element_size, PRUint32 quantum,
    in the very last call to this function.)
  */
 extern "C" int
-mime_ReBuffer (const char *net_buffer, PRInt32 net_buffer_size,
-        PRUint32 desired_buffer_size,
-        char **bufferP, PRInt32 *buffer_sizeP, PRUint32 *buffer_fpP,
-        PRInt32 (*per_buffer_fn) (char *buffer, PRUint32 buffer_size,
+mime_ReBuffer (const char *net_buffer, int32_t net_buffer_size,
+        uint32_t desired_buffer_size,
+        char **bufferP, int32_t *buffer_sizeP, uint32_t *buffer_fpP,
+        int32_t (*per_buffer_fn) (char *buffer, uint32_t buffer_size,
                     void *closure),
         void *closure)
 {
   int status = 0;
 
-  if (desired_buffer_size >= (PRUint32) (*buffer_sizeP))
+  if (desired_buffer_size >= (uint32_t) (*buffer_sizeP))
   {
     status = mime_GrowBuffer (desired_buffer_size, sizeof(char), 1024,
                  bufferP, buffer_sizeP);
@@ -68,7 +68,7 @@ mime_ReBuffer (const char *net_buffer, PRInt32 net_buffer_size,
 
   do
   {
-    PRInt32 size = *buffer_sizeP - *buffer_fpP;
+    int32_t size = *buffer_sizeP - *buffer_fpP;
     if (size > net_buffer_size)
     size = net_buffer_size;
     if (size > 0)
@@ -94,8 +94,8 @@ mime_ReBuffer (const char *net_buffer, PRInt32 net_buffer_size,
 
 static int
 convert_and_send_buffer(char* buf, int length, bool convert_newlines_p,
-              PRInt32 (* per_line_fn) (char *line,
-                          PRUint32 line_length,
+              int32_t (* per_line_fn) (char *line,
+                          uint32_t line_length,
                           void *closure),
               void *closure)
 {
@@ -153,10 +153,10 @@ convert_and_send_buffer(char* buf, int length, bool convert_newlines_p,
 }
 
 extern "C" int
-mime_LineBuffer (const char *net_buffer, PRInt32 net_buffer_size,
-        char **bufferP, PRInt32 *buffer_sizeP, PRUint32 *buffer_fpP,
+mime_LineBuffer (const char *net_buffer, int32_t net_buffer_size,
+        char **bufferP, int32_t *buffer_sizeP, uint32_t *buffer_fpP,
         bool convert_newlines_p,
-        PRInt32 (* per_line_fn) (char *line, PRUint32 line_length,
+        int32_t (* per_line_fn) (char *line, uint32_t line_length,
                     void *closure),
         void *closure)
 {
@@ -165,8 +165,8 @@ mime_LineBuffer (const char *net_buffer, PRInt32 net_buffer_size,
     net_buffer_size > 0 && net_buffer[0] != '\n') {
   /* The last buffer ended with a CR.  The new buffer does not start
      with a LF.  This old buffer should be shipped out and discarded. */
-  NS_ASSERTION((PRUint32) *buffer_sizeP > *buffer_fpP, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
-  if ((PRUint32) *buffer_sizeP <= *buffer_fpP) return -1;
+  NS_ASSERTION((uint32_t) *buffer_sizeP > *buffer_fpP, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
+  if ((uint32_t) *buffer_sizeP <= *buffer_fpP) return -1;
   status = convert_and_send_buffer(*bufferP, *buffer_fpP,
                      convert_newlines_p,
                      per_line_fn, closure);
@@ -213,9 +213,9 @@ mime_LineBuffer (const char *net_buffer, PRInt32 net_buffer_size,
      chunk of data to it. */
     {
     const char *end = (newline ? newline : net_buffer_end);
-    PRUint32 desired_size = (end - net_buffer) + (*buffer_fpP) + 1;
+    uint32_t desired_size = (end - net_buffer) + (*buffer_fpP) + 1;
 
-    if (desired_size >= (PRUint32) (*buffer_sizeP))
+    if (desired_size >= (uint32_t) (*buffer_sizeP))
       {
       status = mime_GrowBuffer (desired_size, sizeof(char), 1024,
                    bufferP, buffer_sizeP);

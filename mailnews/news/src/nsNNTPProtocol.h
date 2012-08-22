@@ -172,7 +172,7 @@ private:
    * advised to suspend the request before using this state.
    */
   virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
-    PRUint32 sourceOffset, PRUint32 length);
+    uint32_t sourceOffset, uint32_t length);
   virtual nsresult CloseSocket();
 
   // we have our own implementation of SendData which writes to the nntp log
@@ -208,25 +208,25 @@ private:
   // after the next response? What was the last response code? etc.
   StatesEnum  m_nextState;
   StatesEnum  m_nextStateAfterResponse;
-  PRInt32     m_typeWanted;     /* Article, List, or Group */
-  PRInt32     m_responseCode;    /* code returned from NNTP server */
-  PRInt32   m_previousResponseCode;
+  int32_t     m_typeWanted;     /* Article, List, or Group */
+  int32_t     m_responseCode;    /* code returned from NNTP server */
+  int32_t   m_previousResponseCode;
   char       *m_responseText;   /* text returned from NNTP server */
 
   char    *m_dataBuf;
-  PRUint32   m_dataBufSize;
+  uint32_t   m_dataBufSize;
 
   /* for group command */
   nsCString m_currentGroup;     /* current group */
 
-  PRInt32   m_firstArticle;
-  PRInt32   m_lastArticle;
-  PRInt32   m_firstPossibleArticle;
-  PRInt32   m_lastPossibleArticle;
+  int32_t   m_firstArticle;
+  int32_t   m_lastArticle;
+  int32_t   m_firstPossibleArticle;
+  int32_t   m_lastPossibleArticle;
 
-  PRInt32    m_numArticlesLoaded;  /* How many articles we got XOVER lines for. */
-  PRInt32    m_numArticlesWanted; /* How many articles we wanted to get XOVER lines for. */
-  PRInt32   m_maxArticles;        /* max articles to get during an XOVER */
+  int32_t    m_numArticlesLoaded;  /* How many articles we got XOVER lines for. */
+  int32_t    m_numArticlesWanted; /* How many articles we wanted to get XOVER lines for. */
+  int32_t   m_maxArticles;        /* max articles to get during an XOVER */
 
   // Cancelation specific state. In particular, the headers that should be
   // used for the cancelation message.
@@ -235,32 +235,32 @@ private:
   char     *m_cancelNewsgroups;
   char     *m_cancelDistribution;
   char     *m_cancelID;
-  PRInt32    m_cancelStatus;
+  int32_t    m_cancelStatus;
 
   // variable for ReadNewsList
-  PRInt32   m_readNewsListCount;
+  int32_t   m_readNewsListCount;
 
   // Per news article state information. (article number, author, subject, id, etc
   nsCString m_messageID;
-  PRInt32   m_articleNumber;   /* current article number */
+  int32_t   m_articleNumber;   /* current article number */
   nsCString m_searchData;
 
-  PRInt32   m_originalContentLength; /* the content length at the time of calling graph progress */
+  int32_t   m_originalContentLength; /* the content length at the time of calling graph progress */
 
   nsCOMPtr<nsIStringBundle> m_stringBundle;
 
   nsCOMPtr<nsINntpIncomingServer> m_nntpServer;
 
   nsresult GetNewsStringByName(const char *aName, PRUnichar **aString);
-  nsresult GetNewsStringByID(PRInt32 stringID, PRUnichar **aString);
+  nsresult GetNewsStringByID(int32_t stringID, PRUnichar **aString);
 
-  PRInt32 PostMessageInFile(nsIFile * filePath);
+  int32_t PostMessageInFile(nsIFile * filePath);
 
   //////////////////////////////////////////////////////////////////////////////
   // Communication methods --> Reading and writing protocol
   //////////////////////////////////////////////////////////////////////////////
 
-  PRInt32 ReadLine(nsIInputStream * inputStream, PRUint32 length, char ** line);
+  int32_t ReadLine(nsIInputStream * inputStream, uint32_t length, char ** line);
 
   //////////////////////////////////////////////////////////////////////////////
   // Protocol Methods --> This protocol is state driven so each protocol method
@@ -270,46 +270,46 @@ private:
 
   // gets the response code from the nntp server and the response line. Returns the TCP return code
   // from the read.
-  PRInt32 NewsResponse(nsIInputStream * inputStream, PRUint32 length);
+  int32_t NewsResponse(nsIInputStream * inputStream, uint32_t length);
 
   // Interpret the server response after the connect.
   // Returns negative if the server responds unexpectedly
-  PRInt32 LoginResponse();
-  PRInt32 SendModeReader();
-  PRInt32 SendModeReaderResponse();
+  int32_t LoginResponse();
+  int32_t SendModeReader();
+  int32_t SendModeReaderResponse();
 
-  PRInt32 SendListExtensions();
-  PRInt32 SendListExtensionsResponse(nsIInputStream * inputStream, PRUint32 length);
+  int32_t SendListExtensions();
+  int32_t SendListExtensionsResponse(nsIInputStream * inputStream, uint32_t length);
 
-  PRInt32 SendListSearches();
-  PRInt32 SendListSearchesResponse(nsIInputStream * inputStream, PRUint32 length);
+  int32_t SendListSearches();
+  int32_t SendListSearchesResponse(nsIInputStream * inputStream, uint32_t length);
 
-  PRInt32 SendListSearchHeaders();
-  PRInt32 SendListSearchHeadersResponse(nsIInputStream * inputStream, PRUint32 length);
+  int32_t SendListSearchHeaders();
+  int32_t SendListSearchHeadersResponse(nsIInputStream * inputStream, uint32_t length);
 
-  PRInt32 GetProperties();
-  PRInt32 GetPropertiesResponse(nsIInputStream * inputStream, PRUint32 length);
+  int32_t GetProperties();
+  int32_t GetPropertiesResponse(nsIInputStream * inputStream, uint32_t length);
 
-  PRInt32 SendListSubscriptions();
-  PRInt32 SendListSubscriptionsResponse(nsIInputStream * inputStream, PRUint32 length);
+  int32_t SendListSubscriptions();
+  int32_t SendListSubscriptionsResponse(nsIInputStream * inputStream, uint32_t length);
 
   // Figure out what the first command is and send it.
   // Returns the status from the NETWrite.
-  PRInt32 SendFirstNNTPCommand(nsIURI * url);
+  int32_t SendFirstNNTPCommand(nsIURI * url);
 
   // Interprets the server response from the first command sent.
   // returns negative if the server responds unexpectedly.
-  PRInt32 SendFirstNNTPCommandResponse();
+  int32_t SendFirstNNTPCommandResponse();
 
-  PRInt32 SetupForTransfer();
+  int32_t SetupForTransfer();
 
-  PRInt32 SendGroupForArticle();
-  PRInt32 SendGroupForArticleResponse();
+  int32_t SendGroupForArticle();
+  int32_t SendGroupForArticleResponse();
 
-  PRInt32 SendArticleNumber();
-  PRInt32 BeginArticle();
-  PRInt32 ReadArticle(nsIInputStream * inputStream, PRUint32 length);
-  PRInt32 DisplayArticle(nsIInputStream * inputStream, PRUint32 length);
+  int32_t SendArticleNumber();
+  int32_t BeginArticle();
+  int32_t ReadArticle(nsIInputStream * inputStream, uint32_t length);
+  int32_t DisplayArticle(nsIInputStream * inputStream, uint32_t length);
 
   //////////////////////////////////////////////////////////////////////////////
   // News authentication code
@@ -323,7 +323,7 @@ private:
    * Followed by: NNTP_AUTHORIZE_RESPONSE if the username was sent
    *              NNTP_SUSPENDED          if we need to wait for the password
    */
-  PRInt32 BeginAuthorization();
+  int32_t BeginAuthorization();
   /**
    * Sends the password if necessary, the state NNTP_AUTHORIZE_RESPONSE.
    * This also reads the result of the username.
@@ -332,28 +332,28 @@ private:
    *              SEND_FIRST_NNTP_COMMAND if any other command needed auth
    *              NNTP_ERROR              if the username was rejected
    */
-  PRInt32 AuthorizationResponse();
+  int32_t AuthorizationResponse();
   /**
    * This state, NNTP_PASSWORD_RESPONSE, reads the password.
    * Followed by: NNTP_SEND_MODE_READER   if MODE READER needed auth
    *              SEND_FIRST_NNTP_COMMAND if any other command needed auth
    *              NNTP_ERROR              if the password was rejected
    */
-  PRInt32 PasswordResponse();
+  int32_t PasswordResponse();
 
-  PRInt32 BeginReadNewsList();
-  PRInt32 ReadNewsList(nsIInputStream * inputStream, PRUint32 length);
+  int32_t BeginReadNewsList();
+  int32_t ReadNewsList(nsIInputStream * inputStream, uint32_t length);
 
   // Newsgroup specific protocol handlers
-  PRInt32 DisplayNewsgroups();
-  PRInt32 BeginNewsgroups();
-  PRInt32 ProcessNewsgroups(nsIInputStream * inputStream, PRUint32 length);
+  int32_t DisplayNewsgroups();
+  int32_t BeginNewsgroups();
+  int32_t ProcessNewsgroups(nsIInputStream * inputStream, uint32_t length);
 
   // Protocol handlers used for posting data
-  PRInt32 PostData();
-  PRInt32 PostDataResponse();
+  int32_t PostData();
+  int32_t PostDataResponse();
 
-  PRInt32 CheckForArticle();
+  int32_t CheckForArticle();
 
   /////////////////////////////////////////////////////////////////////////////
   // XHDR, XOVER, HEAD filtering process handlers
@@ -365,7 +365,7 @@ private:
    * This method sets up m_newsgroupList.
    * Followed by: NNTP_FIGURE_NEXT_CHUNK
    */
-  PRInt32 BeginReadXover();
+  int32_t BeginReadXover();
   /**
    * The loop control for filtering, the state NNTP_FIGURE_NEXT_CHUNK.
    * This method contacts the newsgroupList to figure out which articles to
@@ -374,26 +374,26 @@ private:
    *              NNTP_READ_GROUP          if XOVER doesn't work
    *              NNTP_XOVER_SEND          if XOVER does work
    */
-  PRInt32 FigureNextChunk();
+  int32_t FigureNextChunk();
 
   // The XOVER process core
   /**
    * The state NNTP_XOVER_SEND, which actually sends the message.
    * Followed by: NNTP_XOVER_RESPONSE
    */
-  PRInt32 XoverSend();
+  int32_t XoverSend();
   /**
    * This state, NNTP_XOVER_RESPONSE, actually checks the XOVER capabiliity.
    * Followed by: NNTP_XOVER               if XOVER is supported
    *              NNTP_READ_GROUP          if it isn't
    */
-  PRInt32 ReadXoverResponse();
+  int32_t ReadXoverResponse();
   /**
    * This state, NNTP_XOVER, processes the results from the XOVER command.
    * It asks nsNNTPNewsgroupList to process the line using ProcessXOVERLINE.
    * Followed by: NNTP_XHDR_SEND
    */
-  PRInt32 ReadXover(nsIInputStream * inputStream, PRUint32 length);
+  int32_t ReadXover(nsIInputStream * inputStream, uint32_t length);
 
   // The XHDR process core
   /**
@@ -403,7 +403,7 @@ private:
    * Followed by: NNTP_XHDR_RESPONSE       if there is a header to be sent
    *              NNTP_FIGURE_NEXT_CHUNK   if all headers have been sent
    */
-  PRInt32 XhdrSend();
+  int32_t XhdrSend();
   /**
    * This state, NNTP_XHDR_RESPONSE, processes the XHDR response.
    * It mostly passes the information off to nsNNTPNewsgroupList, and only does
@@ -413,7 +413,7 @@ private:
    * Followed by: NNTP_READ_GROUP          if XHDR doesn't work properly
    *              NNTP_XHDR_SEND           when finished processing XHR.
    */
-  PRInt32 XhdrResponse(nsIInputStream *inputStream);
+  int32_t XhdrResponse(nsIInputStream *inputStream);
 
   // HEAD processing core
   /**
@@ -423,7 +423,7 @@ private:
    * Followed by: NNTP_FIGURE_NEXT_CHUNK   when it is finished 
    *              NNTP_READ_GROUP_RESPONSE when it is not
    */
-  PRInt32 ReadHeaders();
+  int32_t ReadHeaders();
   /**
    * This state, NNTP_READ_GROUP_RESPONSE, checks if the article exists.
    * Because it is required by NNTP, if it doesn't work, the only problem would
@@ -432,13 +432,13 @@ private:
    * Followed by: NNTP_READ_GROUP_BODY     if the article exists
    *              NNTP_READ_GROUP          if it doesn't.
    */
-  PRInt32 ReadNewsgroupResponse();
+  int32_t ReadNewsgroupResponse();
   /**
    * This state, NNTP_READ_GROUP_BODY, reads the body of the HEAD command.
    * Once again, it passes information off to nsNNTPNewsgroupList.
    * Followed by: NNTP_READ_GROUP
    */
-  PRInt32 ReadNewsgroupBody(nsIInputStream * inputStream, PRUint32 length);
+  int32_t ReadNewsgroupBody(nsIInputStream * inputStream, uint32_t length);
 
   /**
    * This state, NNTP_PROCESS_XOVER, is the final step of the filter-processing
@@ -446,31 +446,31 @@ private:
    * filters, both via nsNNTPNewsgroupList.
    * Followed by: NEWS_DONE
    */
-  PRInt32 ProcessXover();
+  int32_t ProcessXover();
 
 
 
   // Canceling
-  PRInt32 StartCancel();
-  PRInt32 DoCancel();
+  int32_t StartCancel();
+  int32_t DoCancel();
 
   // XPAT
-  PRInt32 XPATSend();
-  PRInt32 XPATResponse(nsIInputStream * inputStream, PRUint32 length);
-  PRInt32 ListPrettyNames();
-  PRInt32 ListPrettyNamesResponse(nsIInputStream * inputStream, PRUint32 length);
+  int32_t XPATSend();
+  int32_t XPATResponse(nsIInputStream * inputStream, uint32_t length);
+  int32_t ListPrettyNames();
+  int32_t ListPrettyNamesResponse(nsIInputStream * inputStream, uint32_t length);
 
-  PRInt32 ListXActive();
-  PRInt32 ListXActiveResponse(nsIInputStream * inputStream, PRUint32 length);
+  int32_t ListXActive();
+  int32_t ListXActiveResponse(nsIInputStream * inputStream, uint32_t length);
 
   // for "?list-ids"
-  PRInt32 SendListGroup();
-  PRInt32 SendListGroupResponse(nsIInputStream * inputStream, PRUint32 length);
+  int32_t SendListGroup();
+  int32_t SendListGroupResponse(nsIInputStream * inputStream, uint32_t length);
 
   // Searching Protocol....
-  PRInt32 Search();
-  PRInt32 SearchResponse();
-  PRInt32 SearchResults(nsIInputStream *inputStream, PRUint32 length);
+  int32_t Search();
+  int32_t SearchResponse();
+  int32_t SearchResults(nsIInputStream *inputStream, uint32_t length);
 
   //////////////////////////////////////////////////////////////////////////////
   // End of Protocol Methods
@@ -478,7 +478,7 @@ private:
 
   nsresult ParseURL(nsIURI *aURL, nsCString &aGroup, nsCString &aMessageID);
 
-  void SetProgressBarPercent(PRUint32 aProgress, PRUint32 aProgressMax);
+  void SetProgressBarPercent(uint32_t aProgress, uint32_t aProgressMax);
   nsresult SetProgressStatus(const PRUnichar *aMessage);
   nsresult InitializeNewsFolderFromUri(const char *uri);
   void TimerCallback();
@@ -486,11 +486,11 @@ private:
   void HandleAuthenticationFailure();
   nsCOMPtr <nsIInputStream> mInputStream;
   nsCOMPtr <nsITimer> mUpdateTimer;
-  nsresult AlertError(PRInt32 errorCode, const char *text);
-  PRInt32 mBytesReceived;
-  PRInt32 mBytesReceivedSinceLastStatusUpdate;
+  nsresult AlertError(int32_t errorCode, const char *text);
+  int32_t mBytesReceived;
+  int32_t mBytesReceivedSinceLastStatusUpdate;
   PRTime m_startTime;
-  PRInt32 mNumGroupsListed;
+  int32_t mNumGroupsListed;
   nsMsgKey m_key;
 
   nsresult SetCurrentGroup(); /* sets m_currentGroup.  should be called after doing a successful GROUP command */

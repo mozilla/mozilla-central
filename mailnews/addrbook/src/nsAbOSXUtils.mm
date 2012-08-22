@@ -116,5 +116,5 @@ const nsAbOSXPropertyMap nsAbOSXUtils::kPropertyMap[] = {
     DONT_MAP("LastModifiedDate", modifytimestamp, nil, nil)
 };
 
-const PRUint32 nsAbOSXUtils::kPropertyMapSize =
+const uint32_t nsAbOSXUtils::kPropertyMapSize =
     ArrayLength(nsAbOSXUtils::kPropertyMap);

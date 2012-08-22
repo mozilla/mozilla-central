@@ -87,7 +87,7 @@ class nsIMsgFolder;
  */
 class nsDefaultAutoSyncMsgStrategy : public nsIAutoSyncMsgStrategy
 {
-  static const PRUint32 kFirstPassMessageSize = 60U*1024U; // 60K
+  static const uint32_t kFirstPassMessageSize = 60U*1024U; // 60K
 
   public:
     NS_DECL_ISUPPORTS
@@ -124,13 +124,13 @@ class nsAutoSyncManager : public nsIObserver,
                           public nsIAutoSyncManager
 {
   static const PRTime kAutoSyncFreq = 60UL * (PR_USEC_PER_SEC * 60UL);  // 1hr
-  static const PRUint32 kDefaultUpdateInterval = 10UL;                  // 10min
-  static const PRInt32 kTimerIntervalInMs = 400;
-  static const PRUint32 kNumberOfHeadersToProcess = 250U;
+  static const uint32_t kDefaultUpdateInterval = 10UL;                  // 10min
+  static const int32_t kTimerIntervalInMs = 400;
+  static const uint32_t kNumberOfHeadersToProcess = 250U;
   // enforced size of the first group that will be downloaded before idle time
-  static const PRUint32 kFirstGroupSizeLimit = 60U*1024U /* 60K */; 
-  static const PRInt32 kIdleTimeInSec = 10;
-  static const PRUint32 kGroupRetryCount = 3;
+  static const uint32_t kFirstGroupSizeLimit = 60U*1024U /* 60K */; 
+  static const int32_t kIdleTimeInSec = 10;
+  static const uint32_t kGroupRetryCount = 3;
 
   enum IdleState { systemIdle, appIdle, notIdle };
   enum UpdateState { initiated, completed };
@@ -151,7 +151,7 @@ class nsAutoSyncManager : public nsIObserver,
     nsresult StartIdleProcessing();
     nsresult AutoUpdateFolders(); 
     void ScheduleFolderForOfflineDownload(nsIAutoSyncState *aAutoSyncStateObj);
-    nsresult DownloadMessagesForOffline(nsIAutoSyncState *aAutoSyncStateObj, PRUint32 aSizeLimit = 0);
+    nsresult DownloadMessagesForOffline(nsIAutoSyncState *aAutoSyncStateObj, uint32_t aSizeLimit = 0);
     nsresult HandleDownloadErrorFor(nsIAutoSyncState *aAutoSyncStateObj, const nsresult error);
 
     // Helper methods for priority Q operations
@@ -160,17 +160,17 @@ class nsAutoSyncManager : public nsIObserver,
                           nsCOMArray<nsIAutoSyncState> &aChainedQ);
     static
     nsIAutoSyncState* SearchQForSibling(const nsCOMArray<nsIAutoSyncState> &aQueue,
-                          nsIAutoSyncState *aAutoSyncStateObj, PRInt32 aStartIdx, PRInt32 *aIndex = nullptr);
+                          nsIAutoSyncState *aAutoSyncStateObj, int32_t aStartIdx, int32_t *aIndex = nullptr);
     static
     bool DoesQContainAnySiblingOf(const nsCOMArray<nsIAutoSyncState> &aQueue, 
-                          nsIAutoSyncState *aAutoSyncStateObj, const PRInt32 aState, 
-                          PRInt32 *aIndex = nullptr);
+                          nsIAutoSyncState *aAutoSyncStateObj, const int32_t aState, 
+                          int32_t *aIndex = nullptr);
     static 
     nsIAutoSyncState* GetNextSibling(const nsCOMArray<nsIAutoSyncState> &aQueue, 
-                          nsIAutoSyncState *aAutoSyncStateObj, PRInt32 *aIndex = nullptr);
+                          nsIAutoSyncState *aAutoSyncStateObj, int32_t *aIndex = nullptr);
     static 
     nsIAutoSyncState* GetHighestPrioSibling(const nsCOMArray<nsIAutoSyncState> &aQueue, 
-                          nsIAutoSyncState *aAutoSyncStateObj, PRInt32 *aIndex = nullptr);
+                          nsIAutoSyncState *aAutoSyncStateObj, int32_t *aIndex = nullptr);
 
     /// timer to process existing keys and updates
     void InitTimer();
@@ -179,7 +179,7 @@ class nsAutoSyncManager : public nsIObserver,
     void StartTimerIfNeeded();
 
     /// pref helpers
-    PRUint32 GetUpdateIntervalFor(nsIAutoSyncState *aAutoSyncStateObj);
+    uint32_t GetUpdateIntervalFor(nsIAutoSyncState *aAutoSyncStateObj);
 
   protected:
     nsCOMPtr<nsIAutoSyncMsgStrategy> mMsgStrategyImpl;
@@ -203,9 +203,9 @@ class nsAutoSyncManager : public nsIObserver,
     bool mStartupDone;
 
   private:
-    PRUint32 mGroupSize;
+    uint32_t mGroupSize;
     IdleState mIdleState;
-    PRInt32 mDownloadModel;
+    int32_t mDownloadModel;
     nsCOMPtr<nsIIdleService> mIdleService;
     nsCOMPtr<nsITimer> mTimer;
     nsTObserverArray<nsCOMPtr<nsIAutoSyncMgrListener> > mListeners;

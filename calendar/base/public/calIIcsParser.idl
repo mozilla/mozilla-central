@@ -74,7 +74,7 @@ interface calIIcsParser : nsISupports
    * @param aItems
    *    The items
    */
-  void getItems(out PRUint32 aCount,
+  void getItems(out uint32_t aCount,
                 [array,size_is(aCount),retval] out calIItemBase aItems);
 
   /**
@@ -87,7 +87,7 @@ interface calIIcsParser : nsISupports
    * @param aItems
    *    The items
    */
-  void getParentlessItems(out PRUint32 aCount,
+  void getParentlessItems(out uint32_t aCount,
                           [array,size_is(aCount),retval] out calIItemBase aItems);
 
   /**
@@ -97,7 +97,7 @@ interface calIIcsParser : nsISupports
    * @param aProperties
    *    The properties
    */
-  void getProperties(out PRUint32 aCount,
+  void getProperties(out uint32_t aCount,
                      [array,size_is(aCount),retval] out calIIcalProperty aProperties);
 
   /**
@@ -107,6 +107,6 @@ interface calIIcsParser : nsISupports
    * @param aComponents
    *    The components
    */
-  void getComponents(out PRUint32 aCount,
+  void getComponents(out uint32_t aCount,
                      [array,size_is(aCount),retval] out calIIcalComponent aComponents);
 };

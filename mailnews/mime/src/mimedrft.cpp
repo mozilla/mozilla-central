@@ -63,7 +63,7 @@
 //
 extern "C" char     *MIME_StripContinuations(char *original);
 int                 mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers );
-int                 mime_decompose_file_output_fn ( const char *buf, PRInt32 size, void *stream_closure );
+int                 mime_decompose_file_output_fn ( const char *buf, int32_t size, void *stream_closure );
 int                 mime_decompose_file_close_fn ( void *stream_closure );
 extern int          MimeHeaders_build_heads_list(MimeHeaders *hdrs);
 
@@ -131,7 +131,7 @@ typedef enum {
 extern "C" void
 mime_dump_attachments ( nsMsgAttachmentData *attachData )
 {
-  PRInt32     i = 0;
+  int32_t     i = 0;
   class nsMsgAttachmentData  *tmp = attachData;
 
   while ( (tmp) && (tmp->m_url) )
@@ -437,19 +437,19 @@ CreateCompositionFields(const char        *from,
 }
 
 static int
-dummy_file_write( char *buf, PRInt32 size, void *fileHandle )
+dummy_file_write( char *buf, int32_t size, void *fileHandle )
 {
   if (!fileHandle)
     return NS_ERROR_FAILURE;
 
   nsIOutputStream  *tStream = (nsIOutputStream *) fileHandle;
-  PRUint32 bytesWritten;
+  uint32_t bytesWritten;
   tStream->Write(buf, size, &bytesWritten);
   return (int) bytesWritten;
 }
 
 static int
-mime_parse_stream_write ( nsMIMESession *stream, const char *buf, PRInt32 size )
+mime_parse_stream_write ( nsMIMESession *stream, const char *buf, int32_t size )
 {
   mime_draft_data *mdd = (mime_draft_data *) stream->data_object;
   NS_ASSERTION ( mdd, "null mime draft data!" );
@@ -497,7 +497,7 @@ mime_draft_process_attachments(mime_draft_data *mdd)
   if (!mdd->attachments.Length() && !bodyAsAttachment)
     return nullptr;
 
-  PRInt32 totalCount = mdd->attachments.Length();
+  int32_t totalCount = mdd->attachments.Length();
   if (bodyAsAttachment)
     totalCount++;
   attachData = new nsMsgAttachmentData[totalCount + 1];
@@ -605,7 +605,7 @@ mime_intl_insert_message_header_1(char        **body,
 }
 
 char *
-MimeGetNamedString(PRInt32 id)
+MimeGetNamedString(int32_t id)
 {
   static char   retString[256];
 
@@ -1104,7 +1104,7 @@ mime_insert_forwarded_message_headers(char            **body,
   if (!body || !headers)
     return;
 
-  PRInt32     show_headers = 0;
+  int32_t     show_headers = 0;
   nsresult    res;
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &res));
@@ -1299,7 +1299,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
         // whether the draft/template has request for either MDN or DNS or both
         // return receipt; since the DNS is out of the picture we now use the
         // header type - 1 to tell whether user has requested the return receipt
-        fields->SetReceiptHeaderType(((PRInt32)receiptType) - 1);
+        fields->SetReceiptHeaderType(((int32_t)receiptType) - 1);
       }
       PR_FREEIF(parm);
       parm = MimeHeaders_get_parameter(draftInfo, "DSN", NULL, NULL);
@@ -1351,11 +1351,11 @@ mime_parse_stream_complete (nsMIMESession *stream)
         composeFormat = nsIMsgCompFormat::PlainText;
 
       char *body = nullptr;
-      PRUint32 bodyLen = 0;
+      uint32_t bodyLen = 0;
 
       if (!bodyAsAttachment)
       {
-        PRInt64 fileSize;
+        int64_t fileSize;
         nsCOMPtr<nsIFile> tempFileCopy;
         mdd->messageBody->m_tmpFile->Clone(getter_AddRefs(tempFileCopy));
         mdd->messageBody->m_tmpFile = do_QueryInterface(tempFileCopy);
@@ -1367,7 +1367,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
         {
           memset (body, 0, bodyLen+1);
 
-          PRUint32 bytesRead;
+          uint32_t bytesRead;
           nsCOMPtr <nsIInputStream> inputStream;
 
           nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), mdd->messageBody->m_tmpFile);
@@ -1430,7 +1430,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
               }
 
                //+13 chars for <pre> & </pre> tags and CRLF
-              PRUint32 newbodylen = bodyLen + 14;
+              uint32_t newbodylen = bodyLen + 14;
               char* newbody = (char *)PR_MALLOC (newbodylen);
               if (newbody)
               {
@@ -1814,7 +1814,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
     // the content type may contain a charset. i.e. text/html; ISO-2022-JP...we want to strip off the charset
     // before we ask the mime service for a mime info for this content type.
     nsCAutoString contentType (newAttachment->m_type);
-    PRInt32 pos = contentType.FindChar(';');
+    int32_t pos = contentType.FindChar(';');
     if (pos > 0)
       contentType.SetLength(pos);
     nsresult  rv = NS_OK;
@@ -1908,7 +1908,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
 
 int
 mime_decompose_file_output_fn (const char     *buf,
-                               PRInt32  size,
+                               int32_t  size,
                                void     *stream_closure )
 {
   mime_draft_data *mdd = (mime_draft_data *) stream_closure;
@@ -1922,14 +1922,14 @@ mime_decompose_file_output_fn (const char     *buf,
     return 0;
 
   if (mdd->decoder_data) {
-    PRInt32 outsize;
+    int32_t outsize;
     ret = MimeDecoderWrite(mdd->decoder_data, buf, size, &outsize);
     if (ret == -1) return -1;
     mdd->curAttachment->m_size += outsize;
   }
   else
   {
-    PRUint32 bytesWritten;
+    uint32_t bytesWritten;
     mdd->tmpFileStream->Write(buf, size, &bytesWritten);
     if (bytesWritten < size)
       return MIME_ERROR_WRITING_FILE;
@@ -2009,7 +2009,7 @@ mime_bridge_create_draft_stream(
 
   if (NS_SUCCEEDED(aURL->GetSpec(urlString)))
   {
-    PRInt32 typeIndex = urlString.Find("&type=application/x-message-display");
+    int32_t typeIndex = urlString.Find("&type=application/x-message-display");
     if (typeIndex != -1)
       urlString.Cut(typeIndex, sizeof("&type=application/x-message-display") - 1);
 

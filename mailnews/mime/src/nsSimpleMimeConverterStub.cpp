@@ -52,7 +52,7 @@ BeginGather(MimeObject *obj)
 }
 
 static int
-GatherLine(const char *line, PRInt32 length, MimeObject *obj)
+GatherLine(const char *line, int32_t length, MimeObject *obj)
 {
     MimeSimpleStub *ssobj = (MimeSimpleStub *)obj;
 

@@ -34,7 +34,7 @@ struct MimeContainer {
   MimeObject object;    /* superclass variables */
 
   MimeObject **children;  /* list of contained objects */
-  PRInt32 nchildren;      /* how many */
+  int32_t nchildren;      /* how many */
 };
 
 #endif /* _MIMECONT_H_ */

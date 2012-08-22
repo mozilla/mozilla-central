@@ -209,7 +209,7 @@ nsLDAPOperation::SaslBind(const nsACString &service,
 }
 
 NS_IMETHODIMP
-nsLDAPOperation::SaslStep(const char *token, PRUint32 tokenLen)
+nsLDAPOperation::SaslStep(const char *token, uint32_t tokenLen)
 {
   nsresult rv;
   nsCAutoString bindName;
@@ -262,7 +262,7 @@ nsLDAPOperation::SimpleBind(const nsACString& passwd)
     // See https://bugzilla.mozilla.org/show_bug.cgi?id=557928#c1
     nsresult rv;
     nsCAutoString bindName;
-    PRInt32 originalMsgID = mMsgID;
+    int32_t originalMsgID = mMsgID;
     // Ugly hack alert:
     // the first time we get called with a passwd, remember it.
     // Then, if we get called again w/o a password, use the
@@ -330,7 +330,7 @@ static nsresult
 convertControlArray(nsIArray *aXpcomArray, LDAPControl ***aArray)
 {
     // get the size of the original array
-    PRUint32 length;
+    uint32_t length;
     nsresult rv  = aXpcomArray->GetLength(&length);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -357,7 +357,7 @@ convertControlArray(nsIArray *aXpcomArray, LDAPControl ***aArray)
     rv = enumerator->HasMoreElements(&moreElements);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRUint32 i = 0;
+    uint32_t i = 0;
     while (moreElements) {
 
         // get the next array element
@@ -397,10 +397,10 @@ convertControlArray(nsIArray *aXpcomArray, LDAPControl ***aArray)
 }
 
 NS_IMETHODIMP
-nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope,
+nsLDAPOperation::SearchExt(const nsACString& aBaseDn, int32_t aScope,
                            const nsACString& aFilter,
                            const nsACString &aAttributes,
-                           PRIntervalTime aTimeOut, PRInt32 aSizeLimit)
+                           PRIntervalTime aTimeOut, int32_t aSizeLimit)
 {
     if (!mMessageListener) {
         NS_ERROR("nsLDAPOperation::SearchExt(): mMessageListener not set");
@@ -444,14 +444,14 @@ nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope,
     nsTArray<nsCString> attrArray;
     ParseString(aAttributes, ',', attrArray);
     char **attrs = nullptr;
-    PRUint32 origLength = attrArray.Length();
+    uint32_t origLength = attrArray.Length();
     if (origLength)
     {
       attrs = static_cast<char **> (NS_Alloc((origLength + 1) * sizeof(char *)));
       if (!attrs)
         return NS_ERROR_OUT_OF_MEMORY;
 
-      for (PRUint32 i = 0; i < origLength; ++i)
+      for (uint32_t i = 0; i < origLength; ++i)
         attrs[i] = ToNewCString(attrArray[i]);
 
       attrs[origLength] = 0;
@@ -495,7 +495,7 @@ nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope,
 }
 
 NS_IMETHODIMP
-nsLDAPOperation::GetMessageID(PRInt32 *aMsgID)
+nsLDAPOperation::GetMessageID(int32_t *aMsgID)
 {
     if (!aMsgID) {
         return NS_ERROR_ILLEGAL_VALUE;
@@ -598,7 +598,7 @@ nsLDAPOperation::AddExt(const char *base,
 
   LDAPMod **attrs = 0;
   int retVal = LDAP_SUCCESS;
-  PRUint32 modCount = 0;
+  uint32_t modCount = 0;
   nsresult rv = mods->GetLength(&modCount);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -611,7 +611,7 @@ nsLDAPOperation::AddExt(const char *base,
     }
 
     nsCAutoString type;
-    PRUint32 index;
+    uint32_t index;
     for (index = 0; index < modCount && NS_SUCCEEDED(rv); ++index) {
       attrs[index] = new LDAPMod();
 
@@ -623,7 +623,7 @@ nsLDAPOperation::AddExt(const char *base,
         break;
 
 #ifdef NS_DEBUG
-      PRInt32 operation;
+      int32_t operation;
       NS_ASSERTION(NS_SUCCEEDED(modif->GetOperation(&operation)) &&
                    ((operation & ~LDAP_MOD_BVALUES) == LDAP_MOD_ADD),
                    "AddExt can only add.");
@@ -653,7 +653,7 @@ nsLDAPOperation::AddExt(const char *base,
       modCount = index;
   }
 
-  for (PRUint32 counter = 0; counter < modCount; ++counter)
+  for (uint32_t counter = 0; counter < modCount; ++counter)
     delete attrs[counter];
 
   nsMemory::Free(attrs);
@@ -763,7 +763,7 @@ nsLDAPOperation::ModifyExt(const char *base,
 
   LDAPMod **attrs = 0;
   int retVal = 0;
-  PRUint32 modCount = 0;
+  uint32_t modCount = 0;
   nsresult rv = mods->GetLength(&modCount);
   NS_ENSURE_SUCCESS(rv, rv);
   if (modCount && mods) {
@@ -775,7 +775,7 @@ nsLDAPOperation::ModifyExt(const char *base,
     }
 
     nsCAutoString type;
-    PRUint32 index;
+    uint32_t index;
     for (index = 0; index < modCount && NS_SUCCEEDED(rv); ++index) {
       attrs[index] = new LDAPMod();
       if (!attrs[index])
@@ -785,7 +785,7 @@ nsLDAPOperation::ModifyExt(const char *base,
       if (NS_FAILED(rv))
         break;
 
-      PRInt32 operation;
+      int32_t operation;
       nsresult rv = modif->GetOperation(&operation);
       if (NS_FAILED(rv))
         break;
@@ -815,7 +815,7 @@ nsLDAPOperation::ModifyExt(const char *base,
 
   }
 
-  for (PRUint32 counter = 0; counter < modCount; ++counter)
+  for (uint32_t counter = 0; counter < modCount; ++counter)
     delete attrs[counter];
 
   nsMemory::Free(attrs);
@@ -935,7 +935,7 @@ nsLDAPOperation::CopyValues(nsILDAPModification* aMod, berval*** aBValues)
   nsresult rv = aMod->GetValues(getter_AddRefs(values));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRUint32 valuesCount;
+  uint32_t valuesCount;
   rv = values->GetLength(&valuesCount);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -945,13 +945,13 @@ nsLDAPOperation::CopyValues(nsILDAPModification* aMod, berval*** aBValues)
   if (!*aBValues)
     return NS_ERROR_OUT_OF_MEMORY;
 
-  PRUint32 valueIndex;
+  uint32_t valueIndex;
   for (valueIndex = 0; valueIndex < valuesCount; ++valueIndex) {
     nsCOMPtr<nsILDAPBERValue> value(do_QueryElementAt(values, valueIndex, &rv));
 
     berval* bval = new berval;
     if (NS_FAILED(rv) || !bval) {
-      for (PRUint32 counter = 0;
+      for (uint32_t counter = 0;
            counter < valueIndex && counter < valuesCount;
            ++counter)
         delete (*aBValues)[valueIndex];
@@ -960,8 +960,8 @@ nsLDAPOperation::CopyValues(nsILDAPModification* aMod, berval*** aBValues)
       delete bval;
       return NS_ERROR_OUT_OF_MEMORY;
     }
-    value->Get((PRUint32*)&bval->bv_len,
-               (PRUint8**)&bval->bv_val);
+    value->Get((uint32_t*)&bval->bv_len,
+               (uint8_t**)&bval->bv_val);
     (*aBValues)[valueIndex] = bval;
   }
 

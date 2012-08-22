@@ -66,12 +66,12 @@ calDateTime::Clone(calIDateTime **aResult)
 }
 
 NS_IMETHODIMP
-calDateTime::ResetTo(PRInt16 year,
-                     PRInt16 month,
-                     PRInt16 day,
-                     PRInt16 hour,
-                     PRInt16 minute,
-                     PRInt16 second,
+calDateTime::ResetTo(int16_t year,
+                     int16_t month,
+                     int16_t day,
+                     int16_t hour,
+                     int16_t minute,
+                     int16_t second,
                      calITimezone * tz)
 {
     NS_ENSURE_FALSE(mImmutable, NS_ERROR_OBJECT_IS_IMMUTABLE);
@@ -107,17 +107,17 @@ calDateTime::Reset()
     return NS_OK;
 }
 
-CAL_VALUETYPE_ATTR(calDateTime, PRInt16, Year)
-CAL_VALUETYPE_ATTR(calDateTime, PRInt16, Month)
-CAL_VALUETYPE_ATTR(calDateTime, PRInt16, Day)
-CAL_VALUETYPE_ATTR(calDateTime, PRInt16, Hour)
-CAL_VALUETYPE_ATTR(calDateTime, PRInt16, Minute)
-CAL_VALUETYPE_ATTR(calDateTime, PRInt16, Second)
+CAL_VALUETYPE_ATTR(calDateTime, int16_t, Year)
+CAL_VALUETYPE_ATTR(calDateTime, int16_t, Month)
+CAL_VALUETYPE_ATTR(calDateTime, int16_t, Day)
+CAL_VALUETYPE_ATTR(calDateTime, int16_t, Hour)
+CAL_VALUETYPE_ATTR(calDateTime, int16_t, Minute)
+CAL_VALUETYPE_ATTR(calDateTime, int16_t, Second)
 CAL_VALUETYPE_ATTR(calDateTime, bool, IsDate)
 CAL_VALUETYPE_ATTR_GETTER(calDateTime, bool, IsValid)
 CAL_VALUETYPE_ATTR_GETTER(calDateTime, PRTime, NativeTime)
-CAL_VALUETYPE_ATTR_GETTER(calDateTime, PRInt16, Weekday)
-CAL_VALUETYPE_ATTR_GETTER(calDateTime, PRInt16, Yearday)
+CAL_VALUETYPE_ATTR_GETTER(calDateTime, int16_t, Weekday)
+CAL_VALUETYPE_ATTR_GETTER(calDateTime, int16_t, Yearday)
 
 
 NS_IMETHODIMP
@@ -141,7 +141,7 @@ calDateTime::SetTimezone(calITimezone *aValue)
 }
 
 NS_IMETHODIMP
-calDateTime::GetTimezoneOffset(PRInt32 *aResult)
+calDateTime::GetTimezoneOffset(int32_t *aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
     icaltimetype icalt;
@@ -191,7 +191,7 @@ calDateTime::SubtractDate(calIDateTime *aDate, calIDuration **aDuration)
     // for a duration, need to convert the difference in microseconds (prtime)
     // to seconds (libical), so divide by one million.
     icaldurationtype const idt = icaldurationtype_from_int(
-        static_cast<int>((mNativeTime - t2t) / PRInt64(PR_USEC_PER_SEC)));
+        static_cast<int>((mNativeTime - t2t) / int64_t(PR_USEC_PER_SEC)));
 
     calDuration * const dur = new calDuration(&idt);
     CAL_ENSURE_MEMORY(dur);
@@ -208,11 +208,11 @@ calDateTime::ToString(nsACString & aResult)
     ensureTimezone();
     mTimezone->GetTzid(tzid);
 
-    PRUint32 const length = PR_snprintf(
+    uint32_t const length = PR_snprintf(
         buffer, sizeof(buffer), "%04hd/%02hd/%02hd %02hd:%02hd:%02hd %s isDate=%01hd nativeTime=%lld",
         mYear, mMonth + 1, mDay, mHour, mMinute, mSecond,
-        tzid.get(), static_cast<PRInt16>(mIsDate), mNativeTime);
-    if (length != static_cast<PRUint32>(-1))
+        tzid.get(), static_cast<int16_t>(mIsDate), mNativeTime);
+    if (length != static_cast<uint32_t>(-1))
         aResult.Assign(buffer, length);
     return NS_OK;
 }
@@ -464,12 +464,12 @@ void calDateTime::FromIcalTime(icaltimetype const* icalt, calITimezone * tz)
         t = icaltime_normalize(t);
     }
 
-    mYear = static_cast<PRInt16>(t.year);
-    mMonth = static_cast<PRInt16>(t.month - 1);
-    mDay = static_cast<PRInt16>(t.day);
-    mHour = static_cast<PRInt16>(t.hour);
-    mMinute = static_cast<PRInt16>(t.minute);
-    mSecond = static_cast<PRInt16>(t.second);
+    mYear = static_cast<int16_t>(t.year);
+    mMonth = static_cast<int16_t>(t.month - 1);
+    mDay = static_cast<int16_t>(t.day);
+    mHour = static_cast<int16_t>(t.hour);
+    mMinute = static_cast<int16_t>(t.minute);
+    mSecond = static_cast<int16_t>(t.second);
 
     if (tz) {
         mTimezone = tz;
@@ -495,8 +495,8 @@ void calDateTime::FromIcalTime(icaltimetype const* icalt, calITimezone * tz)
     }
 #endif
 
-    mWeekday = static_cast<PRInt16>(icaltime_day_of_week(t) - 1);
-    mYearday = static_cast<PRInt16>(icaltime_day_of_year(t));
+    mWeekday = static_cast<int16_t>(icaltime_day_of_week(t) - 1);
+    mYearday = static_cast<int16_t>(icaltime_day_of_year(t));
 
     // mNativeTime: not moving the existing date to UTC,
     // but merely representing it a UTC-based way.
@@ -533,9 +533,9 @@ PRTime calDateTime::IcaltimeToPRTime(icaltimetype const* icalt, icaltimezone con
         et.tm_min = tt.minute;
         et.tm_hour = tt.hour;
     }
-    et.tm_mday = static_cast<PRInt16>(tt.day);
-    et.tm_month = static_cast<PRInt16>(tt.month-1);
-    et.tm_year = static_cast<PRInt16>(tt.year);
+    et.tm_mday = static_cast<int16_t>(tt.day);
+    et.tm_month = static_cast<int16_t>(tt.month-1);
+    et.tm_year = static_cast<int16_t>(tt.year);
 
     return PR_ImplodeTime(&et);
 }
@@ -573,7 +573,7 @@ void calDateTime::PRTimeToIcaltime(PRTime time, bool isdate,
 }
 
 NS_IMETHODIMP
-calDateTime::Compare(calIDateTime * aOther, PRInt32 * aResult)
+calDateTime::Compare(calIDateTime * aOther, int32_t * aResult)
 {
     NS_ENSURE_ARG_POINTER(aOther);
     NS_ENSURE_ARG_POINTER(aResult);

@@ -42,7 +42,7 @@ nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyAr
   nsCOMPtr<nsIMsgDatabase> srcDB;
   rv = srcFolder->GetMsgDatabase(getter_AddRefs(srcDB));
   NS_ENSURE_SUCCESS(rv, rv);
-  PRUint32 i, count = m_srcKeyArray.Length();
+  uint32_t i, count = m_srcKeyArray.Length();
   nsCOMPtr<nsIMsgDBHdr> srcHdr;
   nsCOMPtr<nsIMsgDBHdr> copySrcHdr;
   nsCString messageId;
@@ -58,7 +58,7 @@ nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyAr
       if (MsgLowerCaseEqualsLiteral(protocolType, "mailbox"))
       {
         m_srcIsPop3 = true;
-        PRUint32 msgSize;
+        uint32_t msgSize;
         rv = srcHdr->GetMessageSize(&msgSize);
         if (NS_SUCCEEDED(rv))
           m_srcSizeArray.AppendElement(msgSize);
@@ -268,7 +268,7 @@ nsImapMoveCopyMsgTxn::SetCopyResponseUid(const char* aMsgIdString)
   m_dstMsgIdString = aMsgIdString;
   if (m_dstMsgIdString.Last() == ']')
   {
-    PRInt32 len = m_dstMsgIdString.Length();
+    int32_t len = m_dstMsgIdString.Length();
     m_dstMsgIdString.SetLength(len - 1);
   }
   return NS_OK;
@@ -286,7 +286,7 @@ nsImapMoveCopyMsgTxn::AddDstKey(nsMsgKey aKey)
 {
     if (!m_dstMsgIdString.IsEmpty())
         m_dstMsgIdString.Append(",");
-    m_dstMsgIdString.AppendInt((PRInt32) aKey);
+    m_dstMsgIdString.AppendInt((int32_t) aKey);
     return NS_OK;
 }
 
@@ -310,8 +310,8 @@ nsImapMoveCopyMsgTxn::UndoMailboxDelete()
         rv = dstFolder->GetMsgDatabase(getter_AddRefs(dstDB));
         if (NS_FAILED(rv)) return rv;
         
-        PRUint32 count = m_srcKeyArray.Length();
-        PRUint32 i;
+        uint32_t count = m_srcKeyArray.Length();
+        uint32_t i;
         nsCOMPtr<nsIMsgDBHdr> oldHdr;
         nsCOMPtr<nsIMsgDBHdr> newHdr;
         for (i = 0; i < count; i++)
@@ -404,7 +404,7 @@ NS_IMETHODIMP nsImapMoveCopyMsgTxn::OnStopRunningUrl(nsIURI *aUrl, nsresult aExi
     NS_ENSURE_SUCCESS(rv, rv);
     if (imapAction == nsIImapUrl::nsImapSubtractMsgFlags)
     {
-      PRInt32 extraStatus;
+      int32_t extraStatus;
       imapUrl->GetExtraStatus(&extraStatus);
       if (extraStatus != nsIImapUrl::ImapStatusNone)
       {
@@ -449,8 +449,8 @@ NS_IMETHODIMP nsImapMoveCopyMsgTxn::OnStopRunningUrl(nsIURI *aUrl, nsresult aExi
     {
       // Now we should have the headers from the dest folder.
       // Look them up and move them back to the source folder.
-      PRUint32 count = m_srcMessageIds.Length();
-      PRUint32 i;
+      uint32_t count = m_srcMessageIds.Length();
+      uint32_t i;
       nsCString messageId;
       nsTArray<nsMsgKey> dstKeys;
       nsCOMPtr<nsIMsgDatabase> destDB;
@@ -502,7 +502,7 @@ nsImapOfflineTxn::nsImapOfflineTxn(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* 
     {
       nsMsgKey pseudoKey;
       nsCOMPtr <nsIMsgDBHdr> copySrcHdr;
-      PRInt32 i = srcHdrs.Count();
+      int32_t i = srcHdrs.Count();
       for (i = 0; i < srcHdrs.Count(); i++)
       {
         srcDB->GetNextPseudoMsgKey(&pseudoKey);
@@ -571,7 +571,7 @@ NS_IMETHODIMP nsImapOfflineTxn::UndoTransaction(void)
       nsMsgKey msgKey;
       if (m_opType == nsIMsgOfflineImapOperation::kAddedHeader)
       {
-        for (PRInt32 i = 0; i < m_srcHdrs.Count(); i++)
+        for (int32_t i = 0; i < m_srcHdrs.Count(); i++)
         {
           m_srcHdrs[i]->GetMessageKey(&msgKey);
           nsCOMPtr<nsIMsgDBHdr> mailHdr;
@@ -583,7 +583,7 @@ NS_IMETHODIMP nsImapOfflineTxn::UndoTransaction(void)
       }
       else if (m_opType == nsIMsgOfflineImapOperation::kDeletedMsg)
       {
-        for (PRInt32 i = 0; i < m_srcHdrs.Count(); i++)
+        for (int32_t i = 0; i < m_srcHdrs.Count(); i++)
         {
           nsCOMPtr<nsIMsgDBHdr> undeletedHdr = m_srcHdrs[i];
           m_srcHdrs[i]->GetMessageKey(&msgKey);
@@ -601,7 +601,7 @@ NS_IMETHODIMP nsImapOfflineTxn::UndoTransaction(void)
     case nsIMsgOfflineImapOperation::kMsgMarkedDeleted:
       {
         nsMsgKey msgKey;
-        for (PRInt32 i = 0; i < m_srcHdrs.Count(); i++)
+        for (int32_t i = 0; i < m_srcHdrs.Count(); i++)
         {
           m_srcHdrs[i]->GetMessageKey(&msgKey);
           srcDB->MarkImapDeleted(msgKey, false, nullptr);
@@ -635,7 +635,7 @@ NS_IMETHODIMP nsImapOfflineTxn::RedoTransaction(void)
   {
   case nsIMsgOfflineImapOperation::kMsgMoved:
   case nsIMsgOfflineImapOperation::kMsgCopy:
-    for (PRInt32 i = 0; i < m_srcHdrs.Count(); i++)
+    for (int32_t i = 0; i < m_srcHdrs.Count(); i++)
     {
       nsMsgKey hdrKey;
       m_srcHdrs[i]->GetMessageKey(&hdrKey);
@@ -671,7 +671,7 @@ NS_IMETHODIMP nsImapOfflineTxn::RedoTransaction(void)
       nsCOMPtr<nsIMsgFolder> dstFolder = do_QueryReferent(m_dstFolder, &rv);
       rv = srcFolder->GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(destDB));
       NS_ENSURE_SUCCESS(rv, rv);
-      for (PRInt32 i = 0; i < m_srcHdrs.Count(); i++)
+      for (int32_t i = 0; i < m_srcHdrs.Count(); i++)
       {
         nsCOMPtr<nsIMsgDBHdr> restoreHdr;
         nsMsgKey msgKey;
@@ -690,7 +690,7 @@ NS_IMETHODIMP nsImapOfflineTxn::RedoTransaction(void)
     }
     break;
   case nsIMsgOfflineImapOperation::kDeletedMsg:
-    for (PRInt32 i = 0; i < m_srcHdrs.Count(); i++)
+    for (int32_t i = 0; i < m_srcHdrs.Count(); i++)
     {
       nsMsgKey msgKey;
       m_srcHdrs[i]->GetMessageKey(&msgKey);
@@ -698,7 +698,7 @@ NS_IMETHODIMP nsImapOfflineTxn::RedoTransaction(void)
     }
     break;
   case nsIMsgOfflineImapOperation::kMsgMarkedDeleted:
-    for (PRInt32 i = 0; i < m_srcHdrs.Count(); i++)
+    for (int32_t i = 0; i < m_srcHdrs.Count(); i++)
     {
       nsMsgKey msgKey;
       m_srcHdrs[i]->GetMessageKey(&msgKey);
@@ -706,7 +706,7 @@ NS_IMETHODIMP nsImapOfflineTxn::RedoTransaction(void)
     }
     break;
   case nsIMsgOfflineImapOperation::kFlagsChanged:
-    for (PRInt32 i = 0; i < m_srcHdrs.Count(); i++)
+    for (int32_t i = 0; i < m_srcHdrs.Count(); i++)
     {
       nsMsgKey msgKey;
       m_srcHdrs[i]->GetMessageKey(&msgKey);

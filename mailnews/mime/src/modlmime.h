@@ -30,8 +30,8 @@
 typedef struct MimeHeaders
 {
   char *all_headers;      /* A char* of the entire header section. */
-  PRInt32 all_headers_fp;      /* The length (it is not NULL-terminated.) */
-  PRInt32 all_headers_size;    /* The size of the allocated block. */
+  int32_t all_headers_fp;      /* The length (it is not NULL-terminated.) */
+  int32_t all_headers_size;    /* The size of the allocated block. */
 
   bool done_p;        /* Whether we've read the end-of-headers marker
                    (the terminating blank line.) */
@@ -44,13 +44,13 @@ typedef struct MimeHeaders
                    This is not initialized until all the
                    headers have been read.
                  */
-  PRInt32 heads_size;        /* The length (and consequently, how many
+  int32_t heads_size;        /* The length (and consequently, how many
                    distinct headers are in here.) */
 
 
   char *obuffer;        /* This buffer is used for output. */
-  PRInt32 obuffer_size;
-  PRInt32 obuffer_fp;
+  int32_t obuffer_size;
+  int32_t obuffer_fp;
 
   char *munged_subject;      /* What a hack.  This is a place to write down
                    the subject header, after it's been
@@ -175,7 +175,7 @@ public:
                  dexlate it before sending it.
                */
 
-  PRUint32 whattodo ;       /* from the prefs, we'll get if the user wants to do glyph or structure substitutions and set this member variable. */
+  uint32_t whattodo ;       /* from the prefs, we'll get if the user wants to do glyph or structure substitutions and set this member variable. */
 
   char *default_charset;  /* If this is non-NULL, then it is the charset to
                  assume when no other one is specified via a
@@ -232,9 +232,9 @@ public:
      NULL-terminated.).
    */
   int (*charset_conversion_fn) (const char *input_line,
-                PRInt32 input_length, const char *input_charset,
+                int32_t input_length, const char *input_charset,
                 const char *output_charset,
-                char **output_ret, PRInt32 *output_size_ret,
+                char **output_ret, int32_t *output_size_ret,
                 void *stream_closure, nsIUnicodeDecoder *decoder, nsIUnicodeEncoder *encoder);
 
   /* If true, perform both charset-conversion and decoding of
@@ -292,7 +292,7 @@ public:
   void (*image_end) (void *image_closure, int status);
 
   /* Dump some raw image data down the stream. */
-  int (*image_write_buffer) (const char *buf, PRInt32 size, void *image_closure);
+  int (*image_write_buffer) (const char *buf, int32_t size, void *image_closure);
 
   /* What HTML should be dumped out for this image. */
   char *(*make_image_html) (void *image_closure);
@@ -344,7 +344,7 @@ public:
   int (*decompose_file_close_fn) (void *stream_closure);
 #endif /* MIME_DRAFTS */
 
-  PRInt32 attachment_icon_layer_id; /* Hackhackhack.  This is zero if we have
+  int32_t attachment_icon_layer_id; /* Hackhackhack.  This is zero if we have
                    not yet emitted the attachment layer
                    stuff.  If we have, then this is the
                    id number for that layer, which is a
@@ -361,7 +361,7 @@ public:
   bool quote_attachment_inline_p; /* Whether or not we should include inlined attachments in
                          quotes of replies) */
 
-  PRInt32 html_as_p; /* How we should display HTML, which allows us to know if we should display all body parts */
+  int32_t html_as_p; /* How we should display HTML, which allows us to know if we should display all body parts */
 
   /**
    * Should StartBody/EndBody events be generated for nested MimeMessages.  If

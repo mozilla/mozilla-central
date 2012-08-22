@@ -92,7 +92,7 @@ bool nsEudoraWin32::FindEudoraLocation(nsIFile **pFolder, bool findIni)
       if (findIni)
       {
         // find the string coming after the last space
-        PRInt32 index = str.RFind(" ");
+        int32_t index = str.RFind(" ");
         if (index != -1)
         {
           index++; // skip the space
@@ -173,7 +173,7 @@ nsresult nsEudoraWin32::ScanMailDir(nsIFile *pFolder, nsISupportsArray *pArray, 
   bool            exists = false;
   bool            isFile = false;
   char *          pContents = nullptr;
-  PRInt32          len = 0;
+  int32_t          len = 0;
   nsCOMPtr<nsIFile>  descMap;
   nsresult        rv;
 
@@ -194,7 +194,7 @@ nsresult nsEudoraWin32::ScanMailDir(nsIFile *pFolder, nsISupportsArray *pArray, 
     if (NS_FAILED(rv))
       return rv;
 
-    PRUint64 bytesLeft64;
+    uint64_t bytesLeft64;
     rv = inputStream->Available(&bytesLeft64);
     if (NS_FAILED(rv))
     {
@@ -202,11 +202,11 @@ nsresult nsEudoraWin32::ScanMailDir(nsIFile *pFolder, nsISupportsArray *pArray, 
       inputStream->Close();
       return rv;
     }
-    PRUint32 bytesLeft = NS_MIN(PR_UINT32_MAX - 1, bytesLeft64);
+    uint32_t bytesLeft = NS_MIN(PR_UINT32_MAX - 1, bytesLeft64);
     pContents = (char *) PR_Malloc(bytesLeft + 1);
     if (!pContents)
       return NS_ERROR_OUT_OF_MEMORY;
-    PRUint32 bytesRead;
+    uint32_t bytesRead;
     rv = inputStream->Read(pContents, bytesLeft, &bytesRead);
     if (bytesRead != bytesLeft)
       return NS_ERROR_FAILURE;
@@ -297,7 +297,7 @@ nsresult nsEudoraWin32::IterateMailDir(nsIFile *pFolder, nsISupportsArray *pArra
   return rv;
 }
 
-nsresult nsEudoraWin32::ScanDescmap(nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport, const char *pData, PRInt32 len)
+nsresult nsEudoraWin32::ScanDescmap(nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport, const char *pData, int32_t len)
 {
   // use this to find stuff in the directory.
 
@@ -311,8 +311,8 @@ nsresult nsEudoraWin32::ScanDescmap(nsIFile *pFolder, nsISupportsArray *pArray, 
   //  Type = M or S for mailbox
   //       = F for folder
 
-  PRInt32      fieldLen;
-  PRInt32      pos = 0;
+  int32_t      fieldLen;
+  int32_t      pos = 0;
   const char * pStart;
   nsCString    name;
   nsCString    fName;
@@ -445,7 +445,7 @@ nsresult nsEudoraWin32::FoundMailbox(nsIFile *mailFile, const char *pName, nsISu
   nsresult rv = pImport->CreateNewMailboxDescriptor(getter_AddRefs(desc));
   if (NS_SUCCEEDED(rv))
   {
-    PRInt64 sz = 0;
+    int64_t sz = 0;
     mailFile->GetFileSize(&sz);
     desc->SetDisplayName(displayName.get());
     desc->SetDepth(m_depth);
@@ -486,7 +486,7 @@ nsresult nsEudoraWin32::FoundMailFolder(nsIFile *mailFolder, const char *pName, 
   nsresult rv = pImport->CreateNewMailboxDescriptor(getter_AddRefs(desc));
   if (NS_SUCCEEDED(rv))
   {
-    PRUint32    sz = 0;
+    uint32_t    sz = 0;
     desc->SetDisplayName(displayName.get());
     desc->SetDepth(m_depth);
     desc->SetSize(sz);
@@ -680,7 +680,7 @@ bool nsEudoraWin32::GetMailboxNameHierarchy(const nsACString& pEudoraLocation, c
   nsCOMPtr<nsILineInputStream> lineStream(do_QueryInterface(inputStream, &rv));
   NS_ENSURE_SUCCESS(rv, false);
 
-  PRInt32 pathLength;
+  int32_t pathLength;
   const char* backslash = strchr(pEudoraFilePath, '\\');
   if (backslash)
     pathLength = backslash - pEudoraFilePath;
@@ -694,11 +694,11 @@ bool nsEudoraWin32::GetMailboxNameHierarchy(const nsACString& pEudoraLocation, c
     rv = lineStream->ReadLine(buf, &more);
     NS_ENSURE_SUCCESS(rv, false);
 
-    PRInt32 iNameEnd = buf.FindChar(',');
+    int32_t iNameEnd = buf.FindChar(',');
     if (iNameEnd < 0)
       continue;
     const nsACString& name = Substring(buf, 0, iNameEnd);
-    PRInt32 iPathEnd = buf.FindChar(',', iNameEnd + 1);
+    int32_t iPathEnd = buf.FindChar(',', iNameEnd + 1);
     if (iPathEnd < 0)
       continue;
     const nsACString& path = Substring(buf, iNameEnd + 1, iPathEnd - iNameEnd - 1);
@@ -1050,7 +1050,7 @@ nsresult nsEudoraWin32::GetAttachmentInfo(const char *pFileName, nsIFile *pFile,
     if (name.Length() > 4)
     {
       nsCString ext;
-      PRInt32 idx = name.RFindChar('.');
+      int32_t idx = name.RFindChar('.');
       if (idx != -1)
       {
         ext = Substring(name, idx);
@@ -1123,7 +1123,7 @@ bool nsEudoraWin32::FindMimeIniFile(nsIFile *pFile)
             if (found)
             {
               // which one of these files is newer?
-              PRInt64  modDate1, modDate2;
+              int64_t  modDate1, modDate2;
               entry->GetLastModifiedTime(&modDate2);
               pFile->GetLastModifiedTime(&modDate1);
               if (modDate2 > modDate1)
@@ -1422,7 +1422,7 @@ nsresult nsEudoraWin32::FindAddressBooks(nsIFile *pRoot, nsISupportsArray **ppAr
   nsCString  dirs(pBuffer);
   delete [] pBuffer;
   dirs.Trim(kWhitespace);
-  PRInt32  idx = 0;
+  int32_t  idx = 0;
   nsCString  currentDir;
   while ((idx = dirs.FindChar(';')) != -1)
   {
@@ -1549,10 +1549,10 @@ nsresult nsEudoraWin32::FoundAddressBook(nsIFile *file, const PRUnichar *pName, 
   rv = impSvc->CreateNewABDescriptor(getter_AddRefs(desc));
   if (NS_SUCCEEDED(rv))
   {
-    PRInt64 sz = 0;
+    int64_t sz = 0;
     file->GetFileSize(&sz);
     desc->SetPreferredName(name);
-    desc->SetSize((PRUint32) sz);
+    desc->SetSize((uint32_t) sz);
     desc->SetAbFile(file);
     rv = desc->QueryInterface(kISupportsIID, (void **) &pInterface);
     pArray->AppendElement(pInterface);
@@ -1572,8 +1572,8 @@ void nsEudoraWin32::ConvertPath(nsCString& str)
 {
   nsCString  temp;
   nsCString  path;
-  PRInt32    idx = 0;
-  PRInt32    start = 0;
+  int32_t    idx = 0;
+  int32_t    start = 0;
   nsCString  search;
 
   idx = str.FindChar('\\', idx);

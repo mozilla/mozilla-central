@@ -22,7 +22,7 @@ public:
   NS_IMETHOD Search (bool *aDone);
   NS_IMETHOD GetEncoding (char **result);
   NS_IMETHOD AddHit(nsMsgKey key);
-  NS_IMETHOD CurrentUrlDone(PRInt32 exitCode);
+  NS_IMETHOD CurrentUrlDone(int32_t exitCode);
 
   virtual nsresult Encode (nsCString *outEncoding);
   virtual char *EncodeTerm (nsIMsgSearchTerm *);

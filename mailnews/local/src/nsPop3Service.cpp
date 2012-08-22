@@ -83,7 +83,7 @@ nsresult nsPop3Service::GetMail(bool downloadNewMail,
 {
 
   NS_ENSURE_ARG_POINTER(aInbox);
-  PRInt32 popPort = -1;
+  int32_t popPort = -1;
 
   nsCOMPtr<nsIMsgIncomingServer> server;
   nsCOMPtr<nsIURI> url;
@@ -150,7 +150,7 @@ NS_IMETHODIMP nsPop3Service::VerifyLogon(nsIMsgIncomingServer *aServer,
   NS_ENSURE_ARG_POINTER(aServer);
   nsCString popHost;
   nsCString popUser;
-  PRInt32 popPort = -1;
+  int32_t popPort = -1;
 
   nsresult rv = aServer->GetHostName(popHost);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -281,14 +281,14 @@ NS_IMETHODIMP nsPop3Service::GetScheme(nsACString &aScheme)
     return NS_OK;
 }
 
-NS_IMETHODIMP nsPop3Service::GetDefaultPort(PRInt32 *aDefaultPort)
+NS_IMETHODIMP nsPop3Service::GetDefaultPort(int32_t *aDefaultPort)
 {
     NS_ENSURE_ARG_POINTER(aDefaultPort);
     *aDefaultPort = nsIPop3URL::DEFAULT_POP3_PORT;
     return NS_OK;
 }
 
-NS_IMETHODIMP nsPop3Service::AllowPort(PRInt32 port, const char *scheme, bool *_retval)
+NS_IMETHODIMP nsPop3Service::AllowPort(int32_t port, const char *scheme, bool *_retval)
 {
     *_retval = true; // allow pop on any port
     return NS_OK;
@@ -302,7 +302,7 @@ NS_IMETHODIMP nsPop3Service::GetDefaultDoBiff(bool *aDoBiff)
     return NS_OK;
 }
 
-NS_IMETHODIMP nsPop3Service::GetProtocolFlags(PRUint32 *result)
+NS_IMETHODIMP nsPop3Service::GetProtocolFlags(uint32_t *result)
 {
     NS_ENSURE_ARG_POINTER(result);
     *result = URI_NORELATIVE | URI_DANGEROUS_TO_LOAD | ALLOWS_PROXY |
@@ -319,7 +319,7 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
 
     nsCAutoString folderUri(aSpec);
     nsCOMPtr<nsIRDFResource> resource;
-    PRInt32 offset = folderUri.FindChar('?');
+    int32_t offset = folderUri.FindChar('?');
     if (offset != kNotFound)
       folderUri.SetLength(offset);
 
@@ -380,7 +380,7 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
     server->GetHostName(hostname);
     server->GetUsername(username);
 
-    PRInt32 port;
+    int32_t port;
     server->GetPort(&port);
     if (port == -1) port = nsIPop3URL::DEFAULT_POP3_PORT;
 
@@ -609,7 +609,7 @@ nsPop3Service::GetShowComposeMsgLink(bool *showComposeMsgLink)
 }
 
 NS_IMETHODIMP
-nsPop3Service::GetDefaultServerPort(bool isSecure, PRInt32 *aPort)
+nsPop3Service::GetDefaultServerPort(bool isSecure, int32_t *aPort)
 {
     NS_ENSURE_ARG_POINTER(aPort);
 
@@ -636,8 +636,8 @@ nsPop3Service::NotifyDownloadStarted(nsIMsgFolder *aFolder)
 
 NS_IMETHODIMP
 nsPop3Service::NotifyDownloadProgress(nsIMsgFolder *aFolder,
-                                      PRUint32 aNumMessages,
-                                      PRUint32 aNumTotalMessages)
+                                      uint32_t aNumMessages,
+                                      uint32_t aNumTotalMessages)
 {
   nsTObserverArray<nsCOMPtr<nsIPop3ServiceListener> >::ForwardIterator
     iter(mListeners);
@@ -651,7 +651,7 @@ nsPop3Service::NotifyDownloadProgress(nsIMsgFolder *aFolder,
 
 NS_IMETHODIMP
 nsPop3Service::NotifyDownloadCompleted(nsIMsgFolder *aFolder,
-                                       PRUint32 aNumMessages)
+                                       uint32_t aNumMessages)
 {
   nsTObserverArray<nsCOMPtr<nsIPop3ServiceListener> >::ForwardIterator
     iter(mListeners);

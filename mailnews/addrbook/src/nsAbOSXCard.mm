@@ -104,13 +104,13 @@ MapDate(nsAbOSXCard *aCard, NSDate *aDate, const char *aYearPropName,
   NSCalendarDate *date = [aDate dateWithCalendarFormat:nil timeZone:nil];
   
   nsAutoString value;
-  value.AppendInt(static_cast<PRInt32>([date yearOfCommonEra]));
+  value.AppendInt(static_cast<int32_t>([date yearOfCommonEra]));
   SetStringProperty(aCard, value, aYearPropName, aNotify, aAbManager);
   value.Truncate();
-  value.AppendInt(static_cast<PRInt32>([date monthOfYear]));
+  value.AppendInt(static_cast<int32_t>([date monthOfYear]));
   SetStringProperty(aCard, value, aMonthPropName, aNotify, aAbManager);
   value.Truncate();
-  value.AppendInt(static_cast<PRInt32>([date dayOfMonth]));
+  value.AppendInt(static_cast<int32_t>([date dayOfMonth]));
   SetStringProperty(aCard, value, aDayPropName, aNotify, aAbManager);
 }
 
@@ -197,7 +197,7 @@ nsAbOSXCard::Update(bool aNotify)
   
   bool foundHome = false, foundWork = false;
   
-  PRUint32 i;
+  uint32_t i;
   for (i = 0; i < nsAbOSXUtils::kPropertyMapSize; ++i) {
     const nsAbOSXPropertyMap &propertyMap = nsAbOSXUtils::kPropertyMap[i];
     if (!propertyMap.mOSXProperty)
@@ -357,7 +357,7 @@ nsAbOSXCard::Update(bool aNotify)
   date = [card valueForProperty:kABModificationDateProperty];
   if (date) 
     SetPropertyAsUint32("LastModifiedDate",
-                        PRUint32([date timeIntervalSince1970]));
+                        uint32_t([date timeIntervalSince1970]));
     // XXX No way to notify about this?
   
   return NS_OK;

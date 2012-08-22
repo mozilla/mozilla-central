@@ -48,7 +48,7 @@
 class OESettings {
 public:
   static nsresult GetDefaultMailAccount(nsAString &aMailAccount);
-  static nsresult GetCheckMailInterval(PRUint32 *aInterval);
+  static nsresult GetCheckMailInterval(uint32_t *aInterval);
   static nsresult Find50Key(nsIWindowsRegKey **aKey);
   static nsresult Find40Key(nsIWindowsRegKey **aKey);
   static nsresult FindAccountsKey(nsIWindowsRegKey **aKey);
@@ -76,19 +76,19 @@ public:
                             nsIMsgAccount *aAccount,
                             nsIWindowsRegKey *aKey,
                             const nsString &aIncomgUserName,
-                            PRInt32 authMethodIncoming, bool isNNTP);
+                            int32_t authMethodIncoming, bool isNNTP);
   static void SetSmtpServer(const nsString &aSmtpServer,
                             nsIWindowsRegKey *aKey,
                             nsIMsgIdentity *aId,
                             const nsString &aIncomgUserName,
-                            PRInt32 authMethodIncoming);
+                            int32_t authMethodIncoming);
   static nsresult GetAccountName(nsIWindowsRegKey *aKey,
                                  const nsString &aDefaultName,
                                  nsAString &aAccountName);
   static bool IsKB933612Applied();
 };
 
-static PRUint32 checkNewMailTime;// OE global setting, let's default to 30
+static uint32_t checkNewMailTime;// OE global setting, let's default to 30
 static bool     checkNewMail;    // OE global setting, let's default to false
                                  // This won't cause unwanted autodownloads-
                                  // user can set prefs after import
@@ -199,7 +199,7 @@ nsresult OESettings::GetDefaultMailAccount(nsAString &aMailAccount)
   return key->ReadStringValue(NS_LITERAL_STRING("Default Mail Account"), aMailAccount);
 }
 
-nsresult OESettings::GetCheckMailInterval(PRUint32 *aInterval)
+nsresult OESettings::GetCheckMailInterval(uint32_t *aInterval)
 {
   nsCOMPtr<nsIWindowsRegKey> key;
   // 'poll for messages' setting in OE is a global setting
@@ -221,7 +221,7 @@ nsresult OESettings::GetCheckMailInterval(PRUint32 *aInterval)
   if (NS_FAILED(rv))
     return rv;
 
-  PRUint32 intValue;
+  uint32_t intValue;
   rv = subKey->ReadIntValue(NS_LITERAL_STRING("Poll For Mail"), &intValue);
   if (NS_SUCCEEDED(rv) && intValue != PR_UINT32_MAX)
     *aInterval = intValue / 60000;
@@ -326,11 +326,11 @@ bool OESettings::DoImport(nsIMsgAccount **aAccount)
 
   // Iterate the accounts looking for POP3 & IMAP accounts...
   // Ignore LDAP for now!
-  PRUint32 accounts = 0;
+  uint32_t accounts = 0;
   nsAutoString keyComp;
-  PRUint32 childCount = 0;
+  uint32_t childCount = 0;
   key->GetChildCount(&childCount);
-  for (PRUint32 i = 0; i < childCount; i++) {
+  for (uint32_t i = 0; i < childCount; i++) {
     nsAutoString keyName;
     key->GetChildName(i, keyName);
 
@@ -422,7 +422,7 @@ bool OESettings::DoIMAPServer(nsIMsgAccountManager *aMgr,
 
     IMPORT_LOG0("Created an identity and added to existing IMAP incoming server\n");
     // Fiddle with the identities
-    PRInt32 authMethod;
+    int32_t authMethod;
     in->GetAuthMethod(&authMethod);
     SetIdentities(aMgr, account, aKey, userName, authMethod, false);
     if (ppAccount)
@@ -465,7 +465,7 @@ bool OESettings::DoIMAPServer(nsIMsgAccountManager *aMgr,
     IMPORT_LOG0("Created an account and set the IMAP server as the incoming server\n");
 
     // Fiddle with the identities
-    PRInt32 authMethod;
+    int32_t authMethod;
     in->GetAuthMethod(&authMethod);
     SetIdentities(aMgr, account, aKey, userName, authMethod, false);
     if (ppAccount)
@@ -511,7 +511,7 @@ bool OESettings::DoPOP3Server(nsIMsgAccountManager *aMgr,
     if (NS_SUCCEEDED(rv) && account) {
       IMPORT_LOG0("Created identity and added to existing POP3 incoming server.\n");
       // Fiddle with the identities
-      PRInt32 authMethod;
+      int32_t authMethod;
       in->GetAuthMethod(&authMethod);
       SetIdentities(aMgr, account, aKey, userName, authMethod, false);
       if (ppAccount)
@@ -559,7 +559,7 @@ bool OESettings::DoPOP3Server(nsIMsgAccountManager *aMgr,
       pop3Server->SetDeferredToAccount(localFoldersAcctKey);
     }
 
-    PRUint32 intValue;
+    uint32_t intValue;
     rv = aKey->ReadIntValue(NS_LITERAL_STRING("POP3 Skip Account"), &intValue);
     // OE:0=='Include this account when receiving mail or synchronizing'==
     // TB:1==AM:Server:advanced:Include this server when getting new mail
@@ -580,7 +580,7 @@ bool OESettings::DoPOP3Server(nsIMsgAccountManager *aMgr,
     rv = aKey->ReadIntValue(NS_LITERAL_STRING("Expire Days"),
                             &intValue);
     if (NS_SUCCEEDED(rv))
-      pop3Server->SetNumDaysToLeaveOnServer(static_cast<PRInt32>(intValue));
+      pop3Server->SetNumDaysToLeaveOnServer(static_cast<int32_t>(intValue));
   }
   IMPORT_LOG2("Created POP3 server named: %s, userName: %s\n",
               nativeServerName.get(), nativeUserName.get());
@@ -595,7 +595,7 @@ bool OESettings::DoPOP3Server(nsIMsgAccountManager *aMgr,
     rv = account->SetIncomingServer(in);
     IMPORT_LOG0("Created a new account and set the incoming server to the POP3 server.\n");
 
-    PRInt32 authMethod;
+    int32_t authMethod;
     in->GetAuthMethod(&authMethod);
     // Fiddle with the identities
     SetIdentities(aMgr, account, aKey, userName, authMethod, false);
@@ -639,11 +639,11 @@ bool OESettings::DoNNTPServer(nsIMsgAccountManager *aMgr,
                                     NS_LITERAL_CSTRING("nntp"),
                                     getter_AddRefs(in));
     if (NS_SUCCEEDED(rv) && in) {
-      PRUint32 port = 0;
+      uint32_t port = 0;
       rv = aKey->ReadIntValue(NS_LITERAL_STRING("NNTP Port"),
                               &port);
       if (NS_SUCCEEDED(rv) && port && port != 119)
-        in->SetPort(static_cast<PRInt32>(port));
+        in->SetPort(static_cast<int32_t>(port));
 
       nsCAutoString nativeUserName;
       NS_CopyUnicodeToNative(userName, nativeUserName);
@@ -702,22 +702,22 @@ void OESettings::SetIncomingServerProperties(nsIMsgIncomingServer *aServer,
                                              const nsString &aKeyNamePrefix)
 {
   nsresult rv;
-  PRUint32 secureConnection = 0;
+  uint32_t secureConnection = 0;
   nsString keyName(aKeyNamePrefix);
   keyName.AppendLiteral("Secure Connection");
   rv = aKey->ReadIntValue(keyName, &secureConnection);
   if (NS_SUCCEEDED(rv) && secureConnection == 1)
     aServer->SetSocketType(nsMsgSocketType::SSL);
 
-  PRUint32 port = 0;
+  uint32_t port = 0;
   keyName.SetLength(aKeyNamePrefix.Length());
   keyName.AppendLiteral("Port");
   rv = aKey->ReadIntValue(keyName, &port);
   if (NS_SUCCEEDED(rv) && port)
-    aServer->SetPort(static_cast<PRInt32>(port));
+    aServer->SetPort(static_cast<int32_t>(port));
 
-  PRInt32 authMethod;
-  PRUint32 useSicily = 0;
+  int32_t authMethod;
+  uint32_t useSicily = 0;
   keyName.SetLength(aKeyNamePrefix.Length());
   keyName.AppendLiteral("Use Sicily");
   rv = aKey->ReadIntValue(keyName, &useSicily);
@@ -735,7 +735,7 @@ void OESettings::SetIdentities(nsIMsgAccountManager *aMgr,
                                nsIMsgAccount *pAcc,
                                nsIWindowsRegKey *aKey,
                                const nsString &aIncomgUserName,
-                               PRInt32 authMethodIncoming,
+                               int32_t authMethodIncoming,
                                bool isNNTP)
 {
   // Get the relevant information for an identity
@@ -801,7 +801,7 @@ void OESettings::SetSmtpServer(const nsString &aSmtpServer,
                                nsIWindowsRegKey *aKey,
                                nsIMsgIdentity *aId,
                                const nsString &aIncomgUserName,
-                               PRInt32 authMethodIncoming)
+                               int32_t authMethodIncoming)
 {
   // set the id.smtpserver accordingly
   // first we have to calculate the smtp user name which is based on sicily
@@ -809,7 +809,7 @@ void OESettings::SetSmtpServer(const nsString &aSmtpServer,
     return;
   nsCString smtpServerKey;
   // smtp user name depends on sicily which may or not exist
-  PRUint32 useSicily = 0;
+  uint32_t useSicily = 0;
   nsresult rv = aKey->ReadIntValue(NS_LITERAL_STRING("SMTP Use Sicily"),
                                    &useSicily);
   nsAutoString userName;
@@ -851,14 +851,14 @@ void OESettings::SetSmtpServer(const nsString &aSmtpServer,
       nsCOMPtr<nsISmtpServer> smtpServer;
       rv = smtpService->CreateSmtpServer(getter_AddRefs(smtpServer));
       if (NS_SUCCEEDED(rv) && smtpServer) {
-        PRUint32 port = 0;
+        uint32_t port = 0;
         rv = aKey->ReadIntValue(NS_LITERAL_STRING("SMTP Port"),
                                 &port);
         if (NS_SUCCEEDED(rv) && port)
-          smtpServer->SetPort(static_cast<PRInt32>(port));
+          smtpServer->SetPort(static_cast<int32_t>(port));
 
-        PRInt32 socketType = nsMsgSocketType::plain;
-        PRUint32 secureConnection = 0;
+        int32_t socketType = nsMsgSocketType::plain;
+        uint32_t secureConnection = 0;
         rv = aKey->ReadIntValue(NS_LITERAL_STRING("SMTP Secure Connection"),
                                 &secureConnection);
         if (NS_SUCCEEDED(rv) && secureConnection == 1) {

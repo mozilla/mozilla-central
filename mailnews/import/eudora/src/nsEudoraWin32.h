@@ -52,7 +52,7 @@ public:
 private:
   nsresult  ScanMailDir(nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
   nsresult  IterateMailDir(nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
-  nsresult  ScanDescmap(nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport, const char *pData, PRInt32 len);
+  nsresult  ScanDescmap(nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport, const char *pData, int32_t len);
   nsresult  FoundMailFolder(nsIFile *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
   nsresult  FoundMailbox(nsIFile *mailFile, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
   bool      FindMimeIniFile(nsIFile *pFile);
@@ -77,7 +77,7 @@ private:
   static void    ConvertPath(nsCString& str);
 
 private:
-  PRUint32    m_depth;
+  uint32_t    m_depth;
   nsCOMPtr <nsIFile>  m_addressImportFolder;
   char *      m_pMimeSection;
 };

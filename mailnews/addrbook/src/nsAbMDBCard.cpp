@@ -35,7 +35,7 @@ NS_IMETHODIMP nsAbMDBCard::Equals(nsIAbCard *card, bool *result)
   // true result. If not, then DbRowID should be unset and we can definitively
   // return false.
 
-  PRUint32 row;
+  uint32_t row;
   nsresult rv = card->GetPropertyAsUint32("DbRowID", &row);
   if (NS_FAILED(rv))
   {
@@ -43,7 +43,7 @@ NS_IMETHODIMP nsAbMDBCard::Equals(nsIAbCard *card, bool *result)
     return NS_OK;
   }
 
-  PRUint32 ourRow;
+  uint32_t ourRow;
   rv = GetPropertyAsUint32("DbRowID", &ourRow);
   NS_ENSURE_SUCCESS(rv, rv);
 

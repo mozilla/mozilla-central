@@ -81,12 +81,12 @@ interface calICalendarView : nsISupports
   /**
    * Zoom view in one level. Defaults to one level.
    */
-  void zoomIn([optional] in PRUint32 level);
+  void zoomIn([optional] in uint32_t level);
 
   /**
    * Zoom view out one level. Defaults to one level.
    */
-  void zoomOut([optional] in PRUint32 level);
+  void zoomOut([optional] in uint32_t level);
 
   /**
    * Reset view zoom.

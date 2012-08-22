@@ -10,7 +10,7 @@
 #include "prprf.h" /* should be defined into msgCore.h? */
 #include "nsMsgSend.h"
 
-typedef int (*MSG_SendPartWriteFunc)(const char* line, PRInt32 size,
+typedef int (*MSG_SendPartWriteFunc)(const char* line, int32_t size,
 									                   bool isheader, void* closure);
 
 class nsMsgSendPart {
@@ -54,9 +54,9 @@ public:
 
   virtual nsresult    AddChild(nsMsgSendPart* child);
 
-	PRInt32             GetNumChildren() {return m_numchildren;}
-	nsMsgSendPart       *GetChild(PRInt32 which);
-	nsMsgSendPart       *DetachChild(PRInt32 which);
+	int32_t             GetNumChildren() {return m_numchildren;}
+	nsMsgSendPart       *GetChild(int32_t which);
+	nsMsgSendPart       *DetachChild(int32_t which);
 
 	virtual nsresult    SetMainPart(bool value);
 	bool                IsMainPart() 
@@ -66,7 +66,7 @@ public:
   nsCString           m_partNum;
 protected:
 	nsresult            CopyString(char** dest, const char* src);
-	nsresult            PushBody(const char* buffer, PRInt32 length);
+	nsresult            PushBody(const char* buffer, int32_t length);
 
 	nsCOMPtr<nsIMsgSend> m_state;
 	nsMsgSendPart       *m_parent;
@@ -79,7 +79,7 @@ protected:
 	MimeEncoderData     *m_encoder_data;  /* Opaque state for base64/qp encoder. */
 
 	nsMsgSendPart       **m_children;
-	PRInt32             m_numchildren;
+	int32_t             m_numchildren;
 
 	// Data used while actually writing.
   bool                m_firstBlock;
@@ -89,7 +89,7 @@ protected:
 
 	bool                m_just_hit_CR;
 
-	static PRInt32      M_counter;
+	static int32_t      M_counter;
 };
 
 #endif /* _MsgSendPart_H_ */

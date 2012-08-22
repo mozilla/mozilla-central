@@ -14,17 +14,17 @@
 #include "TestHarness.h"
 
 nsresult
-mime_encoder_output_fn(const char *buf, PRInt32 size, void *closure)
+mime_encoder_output_fn(const char *buf, int32_t size, void *closure)
 {
   return NS_OK;
 }
 
 nsresult
-do_test(const char *aBuffer, const PRUint32 aSize)
+do_test(const char *aBuffer, const uint32_t aSize)
 {
   nsresult rv;
   MimeEncoderData *encodeData = nullptr;
-  PRInt32 written = 0;
+  int32_t written = 0;
 
   nsCOMPtr<nsIMimeConverter> converter =
     do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
   // By using mmap()/PR_MemMap(), end of buffer that is last in the page
   // sets LF.
 
-  PRUint32 bufsize = PR_GetPageSize();
+  uint32_t bufsize = PR_GetPageSize();
   PRFileMap *fm = PR_OpenAnonFileMap(".", bufsize, PR_PROT_READWRITE);
   if (!fm)
     return 1;

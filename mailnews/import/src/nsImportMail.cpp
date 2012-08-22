@@ -64,7 +64,7 @@ public:
 
   NS_IMETHOD SetData(const char *dataId, nsISupports *pData);
 
-  NS_IMETHOD GetStatus(const char *statusKind, PRInt32 *_retval);
+  NS_IMETHOD GetStatus(const char *statusKind, int32_t *_retval);
 
   NS_IMETHOD WantsProgress(bool *_retval);
 
@@ -72,7 +72,7 @@ public:
 
   NS_IMETHOD ContinueImport(bool *_retval);
 
-  NS_IMETHOD GetProgress(PRInt32 *_retval);
+  NS_IMETHOD GetProgress(int32_t *_retval);
 
   NS_IMETHOD CancelImport(void);
 
@@ -81,11 +81,11 @@ private:
   void  GetDefaultMailboxes(void);
   void  GetDefaultLocation(void);
   void  GetDefaultDestination(void);
-  void  GetMailboxName(PRUint32 index, nsISupportsString *pStr);
+  void  GetMailboxName(uint32_t index, nsISupportsString *pStr);
 
 public:
   static void  SetLogs(nsString& success, nsString& error, nsISupportsString *pSuccess, nsISupportsString *pError);
-  static void ReportError(PRInt32 id, const PRUnichar *pName, nsString *pStream, nsIStringBundle* aBundle);
+  static void ReportError(int32_t id, const PRUnichar *pName, nsString *pStream, nsIStringBundle* aBundle);
 
 private:
   nsString      m_pName;  // module name that created this interface
@@ -100,7 +100,7 @@ private:
   nsISupportsArray *  m_pMailboxes;
   nsISupportsString *m_pSuccessLog;
   nsISupportsString *m_pErrorLog;
-  PRUint32      m_totalSize;
+  uint32_t      m_totalSize;
   bool          m_doImport;
   ImportThreadData *  m_pThreadData;
     bool          m_performingMigration;
@@ -113,15 +113,15 @@ public:
   bool            threadAlive;
   bool            abort;
   bool            fatalError;
-  PRUint32        currentTotal;
-  PRUint32        currentSize;
+  uint32_t        currentTotal;
+  uint32_t        currentSize;
   nsIMsgFolder *      destRoot;
   bool            ownsDestRoot;
   nsISupportsArray *    boxes;
   nsIImportMail *      mailImport;
   nsISupportsString *  successLog;
   nsISupportsString *  errorLog;
-  PRUint32        currentMailbox;
+  uint32_t        currentMailbox;
     bool            performingMigration;
   nsIStringBundle *stringBundle;
 
@@ -321,7 +321,7 @@ NS_IMETHODIMP nsImportGenericMail::SetData(const char *dataId, nsISupports *item
   return rv;
 }
 
-NS_IMETHODIMP nsImportGenericMail::GetStatus(const char *statusKind, PRInt32 *_retval)
+NS_IMETHODIMP nsImportGenericMail::GetStatus(const char *statusKind, int32_t *_retval)
 {
   NS_PRECONDITION(statusKind != nullptr, "null ptr");
   NS_PRECONDITION(_retval != nullptr, "null ptr");
@@ -332,12 +332,12 @@ NS_IMETHODIMP nsImportGenericMail::GetStatus(const char *statusKind, PRInt32 *_r
 
   if (!PL_strcasecmp(statusKind, "isInstalled")) {
     GetDefaultLocation();
-    *_retval = (PRInt32) m_found;
+    *_retval = (int32_t) m_found;
   }
 
   if (!PL_strcasecmp(statusKind, "canUserSetLocation")) {
     GetDefaultLocation();
-    *_retval = (PRInt32) m_userVerify;
+    *_retval = (int32_t) m_userVerify;
   }
 
   return NS_OK;
@@ -407,15 +407,15 @@ NS_IMETHODIMP nsImportGenericMail::WantsProgress(bool *_retval)
     GetDefaultDestination();
   }
 
-  PRUint32    totalSize = 0;
+  uint32_t    totalSize = 0;
   bool        result = false;
 
   if (m_pMailboxes) {
-    PRUint32    i;
+    uint32_t    i;
     bool        import;
-    PRUint32    count = 0;
+    uint32_t    count = 0;
     nsresult    rv;
-    PRUint32    size;
+    uint32_t    size;
 
     rv = m_pMailboxes->Count(&count);
 
@@ -444,7 +444,7 @@ NS_IMETHODIMP nsImportGenericMail::WantsProgress(bool *_retval)
   return NS_OK;
 }
 
-void nsImportGenericMail::GetMailboxName(PRUint32 index, nsISupportsString *pStr)
+void nsImportGenericMail::GetMailboxName(uint32_t index, nsISupportsString *pStr)
 {
   if (m_pMailboxes) {
     nsCOMPtr<nsIImportMailboxDescriptor> box(do_QueryElementAt(m_pMailboxes, index));
@@ -563,7 +563,7 @@ NS_IMETHODIMP nsImportGenericMail::ContinueImport(bool *_retval)
 }
 
 
-NS_IMETHODIMP nsImportGenericMail::GetProgress(PRInt32 *_retval)
+NS_IMETHODIMP nsImportGenericMail::GetProgress(int32_t *_retval)
 {
   // This returns the progress from the the currently
   // running import mail or import address book thread.
@@ -576,22 +576,22 @@ NS_IMETHODIMP nsImportGenericMail::GetProgress(PRInt32 *_retval)
     return NS_OK;
   }
 
-  PRUint32 sz = 0;
+  uint32_t sz = 0;
   if (m_pThreadData->currentSize && m_pInterface) {
     if (NS_FAILED(m_pInterface->GetImportProgress(&sz)))
       sz = 0;
   }
 
 
-  // *_retval = (PRInt32) (((PRUint32)(m_pThreadData->currentTotal + sz) * (PRUint32)100) / m_totalSize);
+  // *_retval = (int32_t) (((uint32_t)(m_pThreadData->currentTotal + sz) * (uint32_t)100) / m_totalSize);
 
   if (m_totalSize) {
-    PRFloat64  perc;
-    perc = (PRFloat64) m_pThreadData->currentTotal;
+    double  perc;
+    perc = (double) m_pThreadData->currentTotal;
     perc += sz;
     perc *= 100;
     perc /= m_totalSize;
-    *_retval = (PRInt32) perc;
+    *_retval = (int32_t) perc;
     if (*_retval > 100)
       *_retval = 100;
   }
@@ -605,7 +605,7 @@ NS_IMETHODIMP nsImportGenericMail::GetProgress(PRInt32 *_retval)
   return NS_OK;
 }
 
-void nsImportGenericMail::ReportError(PRInt32 id, const PRUnichar *pName, nsString *pStream, nsIStringBundle *aBundle)
+void nsImportGenericMail::ReportError(int32_t id, const PRUnichar *pName, nsString *pStream, nsIStringBundle *aBundle)
 {
   if (!pStream)
     return;
@@ -716,14 +716,14 @@ ImportMailThread(void *stuff)
 
   nsCOMPtr<nsIMsgFolder>    destRoot(pData->destRoot);
 
-  PRUint32  count = 0;
+  uint32_t  count = 0;
   rv = pData->boxes->Count(&count);
 
-  PRUint32    i;
+  uint32_t    i;
   bool        import;
-  PRUint32    size;
-  PRUint32    depth = 1;
-  PRUint32    newDepth;
+  uint32_t    size;
+  uint32_t    depth = 1;
+  uint32_t    newDepth;
   nsString    lastName;
   PRUnichar *    pName;
 

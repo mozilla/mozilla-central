@@ -550,12 +550,12 @@ _class::Set##_postfix(bool bvalue)                          \
 
 #define NS_IMPL_SERVERPREF_INT(_class, _postfix, _prefname)\
 NS_IMETHODIMP                                              \
-_class::Get##_postfix(PRInt32 *retval)                     \
+_class::Get##_postfix(int32_t *retval)                     \
 {                                                          \
   return GetIntValue(_prefname, retval);                   \
 }                                                          \
 NS_IMETHODIMP                                              \
-_class::Set##_postfix(PRInt32 ivalue)                      \
+_class::Set##_postfix(int32_t ivalue)                      \
 {                                                          \
   return SetIntValue(_prefname, ivalue);                   \
 }

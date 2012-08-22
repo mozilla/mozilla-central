@@ -76,7 +76,7 @@ private:
   nsresult GetStringBundle(nsIStringBundle **aBundle);
   nsCOMPtr<nsISupportsArray> mFoldersWithNewMail;  // keep track of all the root folders with pending new mail
   nsCOMPtr<nsIAtom> mBiffStateAtom;
-  PRUint32 mCurrentBiffState;
+  uint32_t mCurrentBiffState;
 
   bool mBiffIconVisible;
   bool mBiffIconInitialized;
@@ -113,8 +113,8 @@ private:
 
   nsString mProfilePath;
 
-  PRInt32   mCurrentUnreadCount;
-  PRInt32   mLastUnreadCountWrittenToRegistry;
+  int32_t   mCurrentUnreadCount;
+  int32_t   mLastUnreadCountWrittenToRegistry;
 };
 
 #endif // __nsMessengerWinIntegration_h

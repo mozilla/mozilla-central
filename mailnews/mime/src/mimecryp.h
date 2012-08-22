@@ -106,15 +106,15 @@ struct MimeEncryptedClass {
 
   /* Duplicated from MimeLeaf, see comments above.
      This is the callback that is handed to the decoder. */
-  int (*parse_decoded_buffer) (const char *buf, PRInt32 size, MimeObject *obj);
+  int (*parse_decoded_buffer) (const char *buf, int32_t size, MimeObject *obj);
 
 
   /* Callbacks used by decryption module. */
   void * (*crypto_init) (MimeObject *obj,
-             int (*output_fn) (const char *data, PRInt32 data_size,
+             int (*output_fn) (const char *data, int32_t data_size,
                        void *output_closure),
              void *output_closure);
-  int (*crypto_write) (const char *data, PRInt32 data_size,
+  int (*crypto_write) (const char *data, int32_t data_size,
              void *crypto_closure);
   int (*crypto_eof) (void *crypto_closure, bool abort_p);
   char * (*crypto_generate_html) (void *crypto_closure);

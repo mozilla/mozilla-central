@@ -38,7 +38,7 @@ void SetProxyPref(const nsAString& aHostPort, const char* aPref,
 {
   nsCOMPtr<nsIURI> uri;
   nsCAutoString host;
-  PRInt32 portValue;
+  int32_t portValue;
 
   // try parsing it as a URI first
   if (NS_SUCCEEDED(NS_NewURI(getter_AddRefs(uri), aHostPort)) &&
@@ -50,7 +50,7 @@ void SetProxyPref(const nsAString& aHostPort, const char* aPref,
   }
   else {
     nsAutoString hostPort(aHostPort);
-    PRInt32 portDelimOffset = hostPort.RFindChar(':');
+    int32_t portDelimOffset = hostPort.RFindChar(':');
     if (portDelimOffset > 0) {
       SetUnicharPref(aPref, Substring(hostPort, 0, portDelimOffset), aPrefs);
       nsAutoString port(Substring(hostPort, portDelimOffset + 1));
@@ -70,7 +70,7 @@ void ParseOverrideServers(const nsAString& aServers, nsIPrefBranch* aBranch)
   // or "<local>". Mozilla's format is server,server,server, and <local>
   // must be translated to "localhost,127.0.0.1"
   nsAutoString override(aServers);
-  PRInt32 left = 0, right = 0;
+  int32_t left = 0, right = 0;
   for (;;) {
     right = override.FindChar(';', right);
     const nsAString& host =
@@ -87,9 +87,9 @@ void ParseOverrideServers(const nsAString& aServers, nsIPrefBranch* aBranch)
 }
 
 void GetMigrateDataFromArray(MigrationData* aDataArray,
-                             PRInt32 aDataArrayLength,
+                             int32_t aDataArrayLength,
                              bool aReplace, nsIFile* aSourceProfile,
-                             PRUint16* aResult)
+                             uint16_t* aResult)
 {
   nsCOMPtr<nsIFile> sourceFile;
   bool exists;
@@ -149,18 +149,18 @@ AnnotatePersonalToolbarFolder(nsIFile* aSourceBookmarksFile,
   nsCAutoString sourceBuffer;
   nsCAutoString targetBuffer;
   bool moreData = false;
-  PRUint32 bytesWritten = 0;
+  uint32_t bytesWritten = 0;
   do {
     lineInputStream->ReadLine(sourceBuffer, &moreData);
     if (!moreData)
       break;
 
-    PRInt32 nameOffset = sourceBuffer.Find(aToolbarFolderName);
+    int32_t nameOffset = sourceBuffer.Find(aToolbarFolderName);
     if (nameOffset >= 0) {
       // Found the personal toolbar name on a line, check to make sure it's
       // actually a folder.
       NS_NAMED_LITERAL_CSTRING(folderPrefix, "<DT><H3 ");
-      PRInt32 folderPrefixOffset = sourceBuffer.Find(folderPrefix);
+      int32_t folderPrefixOffset = sourceBuffer.Find(folderPrefix);
       if (folderPrefixOffset >= 0)
         sourceBuffer.Insert(
           NS_LITERAL_CSTRING("PERSONAL_TOOLBAR_FOLDER=\"true\" "),

@@ -41,7 +41,7 @@
 NS_IMPL_THREADSAFE_ISUPPORTS0(nsIMAPBodyShell)
 
 nsIMAPBodyShell::nsIMAPBodyShell(nsImapProtocol *protocolConnection,
-                                 nsIMAPBodypartMessage *message, PRUint32 UID,
+                                 nsIMAPBodypartMessage *message, uint32_t UID,
                                  const char *folderName)
 {
   m_isValid = false;
@@ -204,11 +204,11 @@ bool nsIMAPBodyShell::PreflightCheckAllInline()
 // contains, for instance.
 
 
-PRInt32 nsIMAPBodyShell::Generate(char *partNum)
+int32_t nsIMAPBodyShell::Generate(char *partNum)
 {
   m_isBeingGenerated = true;
   m_generatingPart = partNum;
-  PRInt32 contentLength = 0;
+  int32_t contentLength = 0;
   
   if (!GetIsValid() || PreflightCheckAllInline())
   {
@@ -217,11 +217,11 @@ PRInt32 nsIMAPBodyShell::Generate(char *partNum)
     NS_ASSERTION(GetIsValid());
 #endif
     m_generatingWholeMessage = true;
-    PRUint32 messageSize = m_protocolConnection->GetMessageSize(GetUID().get(), true);
+    uint32_t messageSize = m_protocolConnection->GetMessageSize(GetUID().get(), true);
     m_protocolConnection->SetContentModified(IMAP_CONTENT_NOT_MODIFIED);	// So that when we cache it, we know we have the whole message
     if (!DeathSignalReceived())
       m_protocolConnection->FallbackToFetchWholeMsg(GetUID(), messageSize);
-    contentLength = (PRInt32) messageSize;	// ugh
+    contentLength = (int32_t) messageSize;	// ugh
   }
   else
   {
@@ -392,7 +392,7 @@ void nsIMAPBodypart::QueuePrefetchMIMEHeader(nsIMAPBodyShell *aShell)
   aShell->AddPrefetchToQueue(kMIMEHeader, m_partNumberString);
 }
 
-PRInt32 nsIMAPBodypart::GenerateMIMEHeader(nsIMAPBodyShell *aShell, bool stream, bool prefetch)
+int32_t nsIMAPBodypart::GenerateMIMEHeader(nsIMAPBodyShell *aShell, bool stream, bool prefetch)
 {
   if (prefetch && !m_headerData)
   {
@@ -401,7 +401,7 @@ PRInt32 nsIMAPBodypart::GenerateMIMEHeader(nsIMAPBodyShell *aShell, bool stream,
   }
   else if (m_headerData)
   {
-    PRInt32 mimeHeaderLength = 0;
+    int32_t mimeHeaderLength = 0;
     
     if (!ShouldFetchInline(aShell))
     {
@@ -435,7 +435,7 @@ PRInt32 nsIMAPBodypart::GenerateMIMEHeader(nsIMAPBodyShell *aShell, bool stream,
   }
 }
 
-PRInt32 nsIMAPBodypart::GeneratePart(nsIMAPBodyShell *aShell, bool stream, bool prefetch)
+int32_t nsIMAPBodypart::GeneratePart(nsIMAPBodyShell *aShell, bool stream, bool prefetch)
 {
   if (prefetch)
     return 0;	// don't need to prefetch anything
@@ -463,7 +463,7 @@ PRInt32 nsIMAPBodypart::GeneratePart(nsIMAPBodyShell *aShell, bool stream, bool 
   }
 }
 
-PRInt32 nsIMAPBodypart::GenerateBoundary(nsIMAPBodyShell *aShell, bool stream, bool prefetch, bool lastBoundary)
+int32_t nsIMAPBodypart::GenerateBoundary(nsIMAPBodyShell *aShell, bool stream, bool prefetch, bool lastBoundary)
 {
   if (prefetch)
     return 0;	// don't need to prefetch anything
@@ -489,7 +489,7 @@ PRInt32 nsIMAPBodypart::GenerateBoundary(nsIMAPBodyShell *aShell, bool stream, b
           aShell->GetConnection()->Log("SHELL","GENERATE-Boundary-Last",m_partNumberString);
           aShell->GetConnection()->HandleMessageDownLoadLine(lastBoundaryData, false);
         }
-        PRInt32 rv = PL_strlen(lastBoundaryData);
+        int32_t rv = PL_strlen(lastBoundaryData);
         PR_Free(lastBoundaryData);
         return rv;
       }
@@ -504,7 +504,7 @@ PRInt32 nsIMAPBodypart::GenerateBoundary(nsIMAPBodyShell *aShell, bool stream, b
     return 0;
 }
 
-PRInt32 nsIMAPBodypart::GenerateEmptyFilling(nsIMAPBodyShell *aShell, bool stream, bool prefetch)
+int32_t nsIMAPBodypart::GenerateEmptyFilling(nsIMAPBodyShell *aShell, bool stream, bool prefetch)
 {
   if (prefetch)
     return 0;	// don't need to prefetch anything
@@ -548,7 +548,7 @@ nsIMAPBodypartLeaf::nsIMAPBodypartLeaf(char *partNum,
                                        nsIMAPBodypart *parentPart,
                                        char *bodyType, char *bodySubType,
                                        char *bodyID, char *bodyDescription,
-                                       char *bodyEncoding, PRInt32 partLength,
+                                       char *bodyEncoding, int32_t partLength,
                                        bool preferPlainText)
   : nsIMAPBodypart(partNum, parentPart), mPreferPlainText(preferPlainText)
 {
@@ -570,9 +570,9 @@ nsIMAPBodypartType nsIMAPBodypartLeaf::GetType()
   return IMAP_BODY_LEAF;
 }
 
-PRInt32 nsIMAPBodypartLeaf::Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch)
+int32_t nsIMAPBodypartLeaf::Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch)
 {
-  PRInt32 len = 0;
+  int32_t len = 0;
   
   if (GetIsValid())
   {
@@ -785,7 +785,7 @@ nsIMAPBodypartMessage::nsIMAPBodypartMessage(char *partNum,
                                              char *bodyID,
                                              char *bodyDescription,
                                              char *bodyEncoding,
-                                             PRInt32 partLength,
+                                             int32_t partLength,
                                              bool preferPlainText)
  : nsIMAPBodypartLeaf(partNum, parentPart, bodyType, bodySubType, bodyID,
                       bodyDescription, bodyEncoding, partLength,
@@ -830,7 +830,7 @@ nsIMAPBodypartMessage::~nsIMAPBodypartMessage()
   delete m_body;
 }
 
-PRInt32 nsIMAPBodypartMessage::Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch)
+int32_t nsIMAPBodypartMessage::Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch)
 {
   if (!GetIsValid())
     return 0;
@@ -987,9 +987,9 @@ nsIMAPBodypartMultipart::SetBodySubType(char *bodySubType)
 }
 
 
-PRInt32 nsIMAPBodypartMultipart::Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch)
+int32_t nsIMAPBodypartMultipart::Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch)
 {
-  PRInt32 len = 0;
+  int32_t len = 0;
   
   if (GetIsValid())
   {
@@ -1155,7 +1155,7 @@ void nsIMAPMessageHeaders::QueuePrefetchMessageHeaders(nsIMAPBodyShell *aShell)
     aShell->AddPrefetchToQueue(kRFC822HeadersOnly, NULL);
 }
 
-PRInt32 nsIMAPMessageHeaders::Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch)
+int32_t nsIMAPMessageHeaders::Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch)
 {
   // prefetch the header
   if (prefetch && !m_partData && !aShell->DeathSignalReceived())

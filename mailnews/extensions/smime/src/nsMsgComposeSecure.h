@@ -64,13 +64,13 @@ private:
 				PRUnichar **outString);
   nsresult SMIMEBundleFormatStringFromName(const PRUnichar *name,
 					   const PRUnichar **params,
-					   PRUint32 numParams,
+					   uint32_t numParams,
 					   PRUnichar **outString);
   nsresult ExtractEncryptionState(nsIMsgIdentity * aIdentity, nsIMsgCompFields * aComposeFields, bool * aSignMessage, bool * aEncrypt);
 
   mimeDeliveryCryptoState mCryptoState;
   nsCOMPtr<nsIOutputStream> mStream;
-  PRInt16 mHashType;
+  int16_t mHashType;
   nsCOMPtr<nsICryptoHash> mDataHash;
   MimeEncoderData *mSigEncoderData;
   char *mMultipartSignedBoundary;
@@ -88,7 +88,7 @@ private:
 
   enum {eBufferSize = 8192};
   char *mBuffer;
-  PRUint32 mBufferedBytes;
+  uint32_t mBufferedBytes;
 
   bool mErrorAlreadyReported;
   void SetError(nsIMsgSendReport *sendReport, const PRUnichar *bundle_string);

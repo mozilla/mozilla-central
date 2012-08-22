@@ -36,7 +36,7 @@ bool ImportTranslate::ConvertString(const nsCString& inStr, nsCString& outStr, b
   set.Truncate();
   lang.Truncate();
 
-  PRUint8 *  pBuf;
+  uint8_t *  pBuf;
   /*
   pBuf = (P_U8) outStr.GetBuffer(maxLen);
   if (!pBuf) {
@@ -54,8 +54,8 @@ bool ImportTranslate::ConvertString(const nsCString& inStr, nsCString& outStr, b
   // encoder.
 
   pTrans = new CMHTranslator;
-  pBuf = new PRUint8[pTrans->GetMaxBufferSize(outStr.Length())];
-  pTrans->ConvertBuffer((const PRUint8 *)(outStr.get()), outStr.Length(), pBuf);
+  pBuf = new uint8_t[pTrans->GetMaxBufferSize(outStr.Length())];
+  pTrans->ConvertBuffer((const uint8_t *)(outStr.get()), outStr.Length(), pBuf);
   delete pTrans;
   outStr.Truncate();
   if (mimeHeader) {

@@ -89,7 +89,7 @@
  */
 extern int                        MIME_MimeObject_write(MimeObject *,
                                                         const char *data,
-                                                        PRInt32 length,
+                                                        int32_t length,
                                                         bool user_visible_p);
 /*
  * The following group of calls expose the pointers for the object

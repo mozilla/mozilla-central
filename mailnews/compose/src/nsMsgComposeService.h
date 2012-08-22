@@ -63,7 +63,7 @@ public:
 private:
   bool mLogComposePerformance;
 
-  PRInt32 mMaxRecycledWindows;
+  int32_t mMaxRecycledWindows;
   nsMsgCachedWindowInfo *mCachedWindows;
   
   void CloseHiddenCachedWindow(nsIDOMWindow *domWindow);

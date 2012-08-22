@@ -24,7 +24,7 @@ public:
 
   virtual const char * GetViewName(void) {return "XFVirtualFolderView"; }
   NS_IMETHOD Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder, 
-        nsMsgViewFlagsTypeValue viewFlags, PRInt32 *pCount);
+        nsMsgViewFlagsTypeValue viewFlags, int32_t *pCount);
   NS_IMETHOD CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, 
                          nsIMsgDBViewCommandUpdater *aCmdUpdater, nsIMsgDBView **_retval);
   NS_IMETHOD CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMessengerInstance, 
@@ -33,24 +33,24 @@ public:
   NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
   NS_IMETHOD DoCommand(nsMsgViewCommandTypeValue command);
   NS_IMETHOD SetViewFlags(nsMsgViewFlagsTypeValue aViewFlags);
-  NS_IMETHOD OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, bool aPreChange, PRUint32 *aStatus, 
+  NS_IMETHOD OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, bool aPreChange, uint32_t *aStatus, 
                                  nsIDBChangeListener * aInstigator);
   NS_IMETHOD GetMsgFolder(nsIMsgFolder **aMsgFolder);
 
   virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey parentKey, bool ensureListed);
   void UpdateCacheAndViewForPrevSearchedFolders(nsIMsgFolder *curSearchFolder);
-  void UpdateCacheAndViewForFolder(nsIMsgFolder *folder, nsMsgKey *newHits, PRUint32 numNewHits);
+  void UpdateCacheAndViewForFolder(nsIMsgFolder *folder, nsMsgKey *newHits, uint32_t numNewHits);
   void RemovePendingDBListeners();
 
 protected:
 
   virtual nsresult GetMessageEnumerator(nsISimpleEnumerator **enumerator);
 
-  PRUint32 m_cachedFolderArrayIndex; // array index of next folder with cached hits to deal with.
+  uint32_t m_cachedFolderArrayIndex; // array index of next folder with cached hits to deal with.
   nsCOMArray<nsIMsgFolder> m_foldersSearchingOver;
   nsCOMArray<nsIMsgDBHdr> m_hdrHits;
   nsCOMPtr <nsIMsgFolder> m_curFolderGettingHits;
-  PRUint32 m_curFolderStartKeyIndex; // keeps track of the index of the first hit from the cur folder
+  uint32_t m_curFolderStartKeyIndex; // keeps track of the index of the first hit from the cur folder
   bool m_curFolderHasCachedHits;
   bool m_doingSearch;
   // Are we doing a quick search on top of the virtual folder search?

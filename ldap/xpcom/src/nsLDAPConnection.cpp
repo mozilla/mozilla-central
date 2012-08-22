@@ -69,7 +69,7 @@ NS_IMPL_CI_INTERFACE_GETTER4(nsLDAPConnection, nsILDAPConnection,
 NS_IMETHODIMP
 nsLDAPConnection::Init(nsILDAPURL *aUrl, const nsACString &aBindName,
                        nsILDAPMessageListener *aMessageListener,
-                       nsISupports *aClosure, PRUint32 aVersion)
+                       nsISupports *aClosure, uint32_t aVersion)
 {
   NS_ENSURE_ARG_POINTER(aUrl);
   NS_ENSURE_ARG_POINTER(aMessageListener);
@@ -104,7 +104,7 @@ nsLDAPConnection::Init(nsILDAPURL *aUrl, const nsACString &aBindName,
   rv = aUrl->GetPort(&mPort);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRUint32 options;
+  uint32_t options;
   rv = aUrl->GetOptions(&options);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -144,7 +144,7 @@ nsLDAPConnection::Init(nsILDAPURL *aUrl, const nsACString &aBindName,
   // at least the first one work.
   LdapCompressWhitespace(mDNSHost);
 
-  PRInt32 spacePos = mDNSHost.FindChar(' ');
+  int32_t spacePos = mDNSHost.FindChar(' ');
   // trim off trailing host(s)
   if (spacePos != kNotFound)
     mDNSHost.SetLength(spacePos);
@@ -211,7 +211,7 @@ nsLDAPConnection::Close()
   * \param userArg pointer to nsTArray<nsILDAPOperation*>
   */
 PLDHashOperator
-GetListOfPendingOperations(const PRUint32 &key, nsILDAPOperation *op, void *userArg)
+GetListOfPendingOperations(const uint32_t &key, nsILDAPOperation *op, void *userArg)
 {
   nsTArray<nsILDAPOperation*>* pending_operations = static_cast<nsTArray<nsILDAPOperation*>* >(userArg);
   pending_operations->AppendElement(op);
@@ -232,7 +232,7 @@ nsLDAPConnection::Observe(nsISupports *aSubject, const char *aTopic,
        */
       nsTArray<nsILDAPOperation*> pending_operations;
       mPendingOperations.EnumerateRead(GetListOfPendingOperations, (void *) (&pending_operations));
-      for (PRUint32 i = 0; i < pending_operations.Length(); i++) {
+      for (uint32_t i = 0; i < pending_operations.Length(); i++) {
         pending_operations[i]->AbandonExt();
       }
     }
@@ -277,7 +277,7 @@ nsLDAPConnection::GetBindName(nsACString& _retval)
 //
 NS_IMETHODIMP
 nsLDAPConnection::GetLdErrno(nsACString& matched, nsACString& errString,
-                             PRInt32 *_retval)
+                             int32_t *_retval)
 {
     char *match, *err;
 
@@ -321,13 +321,13 @@ nsLDAPConnection::GetErrorString(PRUnichar **_retval)
  * nsLDAPOperation code.
  */
 nsresult
-nsLDAPConnection::AddPendingOperation(PRUint32 aOperationID, nsILDAPOperation *aOperation)
+nsLDAPConnection::AddPendingOperation(uint32_t aOperationID, nsILDAPOperation *aOperation)
 {
   NS_ENSURE_ARG_POINTER(aOperation);
 
   nsIRunnable* runnable = new nsLDAPConnectionRunnable(aOperationID, aOperation,
                                                        this);
-  mPendingOperations.Put((PRUint32)aOperationID, aOperation);
+  mPendingOperations.Put((uint32_t)aOperationID, aOperation);
 
   nsresult rv;
   if (!mThread)
@@ -360,7 +360,7 @@ nsLDAPConnection::AddPendingOperation(PRUint32 aOperationID, nsILDAPOperation *a
  * void removePendingOperation(in nsILDAPOperation aOperation);
  */
 nsresult
-nsLDAPConnection::RemovePendingOperation(PRUint32 aOperationID)
+nsLDAPConnection::RemovePendingOperation(uint32_t aOperationID)
 {
   NS_ENSURE_TRUE(aOperationID > 0, NS_ERROR_UNEXPECTED);
 
@@ -426,7 +426,7 @@ NS_IMETHODIMP nsOnLDAPInitMessageRunnable::Run()
 nsresult
 nsLDAPConnection::InvokeMessageCallback(LDAPMessage *aMsgHandle,
                                         nsILDAPMessage *aMsg,
-                                        PRInt32 aOperation,
+                                        int32_t aOperation,
                                         bool aRemoveOpFromConnQ)
 {
 #if defined(DEBUG)
@@ -437,7 +437,7 @@ nsLDAPConnection::InvokeMessageCallback(LDAPMessage *aMsgHandle,
   nsresult rv;
   // Get the operation.
   nsCOMPtr<nsILDAPOperation> operation;
-  mPendingOperations.Get((PRUint32)aOperation, getter_AddRefs(operation));
+  mPendingOperations.Get((uint32_t)aOperation, getter_AddRefs(operation));
 
   NS_ENSURE_TRUE(operation, NS_ERROR_NULL_POINTER);
 
@@ -491,7 +491,7 @@ nsLDAPConnection::OnLookupComplete(nsICancelable *aRequest,
         //
         mResolvedIP.Truncate();
 
-        PRInt32 index = 0;
+        int32_t index = 0;
         char addrbuf[64];
         PRNetAddr addr;
 
@@ -623,7 +623,7 @@ nsLDAPConnection::OnLookupComplete(nsICancelable *aRequest,
     return rv;
 }
 
-nsLDAPConnectionRunnable::nsLDAPConnectionRunnable(PRInt32 aOperationID,
+nsLDAPConnectionRunnable::nsLDAPConnectionRunnable(int32_t aOperationID,
                                                    nsILDAPOperation *aOperation,
                                                    nsLDAPConnection *aConnection)
   : mOperationID(aOperationID),  mConnection(aConnection)
@@ -650,7 +650,7 @@ NS_IMETHODIMP nsLDAPConnectionRunnable::Run()
   struct timeval timeout = { 0, 0 };
 
   nsCOMPtr<nsIThread> thread = do_GetCurrentThread();
-  PRInt32 returnCode = ldap_result(mConnection->mConnectionHandle, mOperationID, LDAP_MSG_ONE, &timeout, &msgHandle);
+  int32_t returnCode = ldap_result(mConnection->mConnectionHandle, mOperationID, LDAP_MSG_ONE, &timeout, &msgHandle);
   switch (returnCode)
   {
     // timeout
@@ -679,7 +679,7 @@ NS_IMETHODIMP nsLDAPConnectionRunnable::Run()
       {
         case NS_OK:
         {
-          PRInt32 errorCode;
+          int32_t errorCode;
           msg->GetErrorCode(&errorCode);
 
           // maybe a version error, e.g., using v3 on a v2 server.
@@ -712,7 +712,7 @@ NS_IMETHODIMP nsLDAPConnectionRunnable::Run()
               &creds, 0);
 
             nsCOMPtr<nsILDAPOperation> operation;
-            mConnection->mPendingOperations.Get((PRUint32)mOperationID, getter_AddRefs(operation));
+            mConnection->mPendingOperations.Get((uint32_t)mOperationID, getter_AddRefs(operation));
 
             NS_ENSURE_TRUE(operation, NS_ERROR_NULL_POINTER);
 

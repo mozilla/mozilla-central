@@ -34,28 +34,28 @@ protected:
   void                  Init();
   void                  Clear();
   virtual nsresult      InitCachedValues();
-  nsresult              ChangeChildCount(PRInt32 delta);
-  nsresult              ChangeUnreadChildCount(PRInt32 delta);
+  nsresult              ChangeChildCount(int32_t delta);
+  nsresult              ChangeUnreadChildCount(int32_t delta);
   nsresult              RemoveChild(nsMsgKey msgKey);
   nsresult              SetThreadRootKey(nsMsgKey threadRootKey);
   nsresult              GetChildHdrForKey(nsMsgKey desiredKey, 
-                                          nsIMsgDBHdr **result, PRInt32 *resultIndex); 
+                                          nsIMsgDBHdr **result, int32_t *resultIndex); 
   nsresult              RerootThread(nsIMsgDBHdr *newParentOfOldRoot, nsIMsgDBHdr *oldRoot, nsIDBChangeAnnouncer *announcer);
   nsresult              ReparentChildrenOf(nsMsgKey oldParent, nsMsgKey newParent, nsIDBChangeAnnouncer *announcer);
   
   nsresult              ReparentNonReferenceChildrenOf(nsIMsgDBHdr *topLevelHdr, nsMsgKey newParentKey,
                                                        nsIDBChangeAnnouncer *announcer);
-  nsresult              ReparentMsgsWithInvalidParent(PRUint32 numChildren, nsMsgKey threadParentKey);
+  nsresult              ReparentMsgsWithInvalidParent(uint32_t numChildren, nsMsgKey threadParentKey);
 
   nsMsgKey              m_threadKey; 
-  PRUint32              m_numChildren;
-  PRUint32              m_numUnreadChildren;
-  PRUint32              m_flags;
+  uint32_t              m_numChildren;
+  uint32_t              m_numUnreadChildren;
+  uint32_t              m_flags;
   nsCOMPtr<nsIMdbTable> m_mdbTable;
   nsCOMPtr<nsIMdbRow>   m_metaRow;
   bool                  m_cachedValuesInitialized;
   nsMsgKey              m_threadRootKey;
-  PRUint32              m_newestMsgDate;
+  uint32_t              m_newestMsgDate;
 };
 
 #endif

@@ -116,11 +116,11 @@ private:
   nsCOMPtr <nsIMsgIncomingServer> m_lastFindServerResult;
   nsCString m_lastFindServerHostName;
   nsCString m_lastFindServerUserName;
-  PRInt32 m_lastFindServerPort;
+  int32_t m_lastFindServerPort;
   nsCString m_lastFindServerType;
 
   void SetLastServerFound(nsIMsgIncomingServer *server, const nsACString& hostname,
-                          const nsACString& username, const PRInt32 port, const nsACString& type);
+                          const nsACString& username, const int32_t port, const nsACString& type);
 
   // Cache the results of the last call to FolderUriFromDirInProfile
   nsCOMPtr<nsIFile> m_lastPathLookedUp;
@@ -193,7 +193,7 @@ private:
   nsresult findServerInternal(const nsACString& username,
                               const nsACString& hostname,
                               const nsACString& type,
-                              PRInt32 port,
+                              int32_t port,
                               bool aRealFlag,
                               nsIMsgIncomingServer** aResult);
 
@@ -215,7 +215,7 @@ private:
 
 
   nsresult RemoveFolderFromSmartFolder(nsIMsgFolder *aFolder,
-                                       PRUint32 flagsChanged);
+                                       uint32_t flagsChanged);
 
   nsresult SetSendLaterUriPref(nsIMsgIncomingServer *server);
 

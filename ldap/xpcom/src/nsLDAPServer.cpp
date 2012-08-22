@@ -76,7 +76,7 @@ NS_IMETHODIMP nsLDAPServer::SetBinddn(const nsACString& aBindDN)
 }
 
 // attribute unsigned long sizelimit;
-NS_IMETHODIMP nsLDAPServer::GetSizelimit(PRUint32 *_retval)
+NS_IMETHODIMP nsLDAPServer::GetSizelimit(uint32_t *_retval)
 {
     if (!_retval) {
         NS_ERROR("nsLDAPServer::GetSizelimit: null pointer ");
@@ -86,7 +86,7 @@ NS_IMETHODIMP nsLDAPServer::GetSizelimit(PRUint32 *_retval)
     *_retval = mSizeLimit;
     return NS_OK;
 }
-NS_IMETHODIMP nsLDAPServer::SetSizelimit(PRUint32 aSizeLimit)
+NS_IMETHODIMP nsLDAPServer::SetSizelimit(uint32_t aSizeLimit)
 {
     mSizeLimit = aSizeLimit;
     return NS_OK;
@@ -110,7 +110,7 @@ NS_IMETHODIMP nsLDAPServer::SetUrl(nsILDAPURL *aURL)
 }
 
 // attribute long protocolVersion
-NS_IMETHODIMP nsLDAPServer::GetProtocolVersion(PRUint32 *_retval)
+NS_IMETHODIMP nsLDAPServer::GetProtocolVersion(uint32_t *_retval)
 {
     if (!_retval) {
         NS_ERROR("nsLDAPServer::GetProtocolVersion: null pointer ");
@@ -120,7 +120,7 @@ NS_IMETHODIMP nsLDAPServer::GetProtocolVersion(PRUint32 *_retval)
     *_retval = mProtocolVersion;
     return NS_OK;
 }
-NS_IMETHODIMP nsLDAPServer::SetProtocolVersion(PRUint32 aVersion)
+NS_IMETHODIMP nsLDAPServer::SetProtocolVersion(uint32_t aVersion)
 {
     if (aVersion != nsILDAPConnection::VERSION2 &&
         aVersion != nsILDAPConnection::VERSION3) {

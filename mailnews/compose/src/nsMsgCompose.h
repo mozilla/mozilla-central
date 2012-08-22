@@ -62,7 +62,7 @@ private:
   nsCString                     mQuoteCharset;
   nsCString                     mOriginalMsgURI; // used so we can mark message disposition flags after we send the message
 
-  PRInt32                       mWhatHolder;
+  int32_t                       mWhatHolder;
 
   nsresult                      LoadDataFromFile(nsIFile *file,
                                                  nsString &sigData,
@@ -84,8 +84,8 @@ private:
   nsresult BuildMailListArray(nsIAbDirectory* parentDir,
                               nsISupportsArray* array);
   nsresult GetMailListAddresses(nsString& name, nsISupportsArray* mailListArray, nsIMutableArray** addresses);
-  nsresult TagConvertible(nsIDOMNode *node,  PRInt32 *_retval);
-  nsresult _BodyConvertible(nsIDOMNode *node, PRInt32 *_retval);
+  nsresult TagConvertible(nsIDOMNode *node,  int32_t *_retval);
+  nsresult _BodyConvertible(nsIDOMNode *node, int32_t *_retval);
 
   bool IsLastWindow();
  
@@ -169,7 +169,7 @@ private:
     nsString                  mCiteReference;
     nsCOMPtr<nsIMimeConverter> mMimeConverter;
     nsCOMPtr<nsIUnicodeDecoder> mUnicodeDecoder;
-    PRInt32                   mUnicodeBufferCharacterLength;
+    int32_t                   mUnicodeBufferCharacterLength;
     PRUnichar*                mUnicodeConversionBuffer;
     bool                      mQuoteOriginal;
     nsCString                 mHtmlToQuote;

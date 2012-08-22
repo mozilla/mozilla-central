@@ -43,33 +43,33 @@
 */
 typedef struct ap_header 
 {
-	PRInt32 	magic;
-	PRInt32	version;
+	int32_t 	magic;
+	int32_t	version;
 	char 	fill[16];
-	PRInt16 	entries;
+	int16_t 	entries;
 
 } ap_header;
 
 typedef struct ap_entry 
 {
-	PRInt32  id;
-	PRInt32	offset;
-	PRInt32	length;
+	int32_t  id;
+	int32_t	offset;
+	int32_t	length;
 	
 } ap_entry;
 
 typedef struct ap_dates 
 {
-	PRInt32 create, modify, backup, access;
+	int32_t create, modify, backup, access;
 
 } ap_dates;
 
 typedef struct myFInfo			/* the mac FInfo structure for the cross platform. */
 {	
-	PRInt32	fdType, fdCreator;
-	PRInt16	fdFlags;
-	PRInt32	fdLocation;			/* it really should  be a pointer, but just a place-holder  */
-	PRInt16	fdFldr;	
+	int32_t	fdType, fdCreator;
+	int16_t	fdFlags;
+	int32_t	fdLocation;			/* it really should  be a pointer, but just a place-holder  */
+	int16_t	fdFldr;	
 
 }	myFInfo;
 

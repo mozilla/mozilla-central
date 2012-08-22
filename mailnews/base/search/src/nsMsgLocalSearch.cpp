@@ -128,7 +128,7 @@ nsMsgSearchBoolExpression::leftToRightAddTerm(nsIMsgSearchTerm * newTerm, char *
 // returns true or false depending on what the current expression evaluates to.
 bool nsMsgSearchBoolExpression::OfflineEvaluate(nsIMsgDBHdr *msgToMatch, const char *defaultCharset,
   nsIMsgSearchScopeTerm *scope, nsIMsgDatabase *db, const char *headers,
-  PRUint32 headerSize, bool Filtering)
+  uint32_t headerSize, bool Filtering)
 {
     bool result = true;    // always default to false positives
     bool isAnd;
@@ -168,7 +168,7 @@ bool nsMsgSearchBoolExpression::OfflineEvaluate(nsIMsgDBHdr *msgToMatch, const c
 const int sizeOfORTerm = 6+1;  // 6 bytes if we are combining two sub expressions with an OR term
 const int sizeOfANDTerm = 1+1; // 1 byte if we are combining two sub expressions with an AND term
 
-PRInt32 nsMsgSearchBoolExpression::CalcEncodeStrSize()
+int32_t nsMsgSearchBoolExpression::CalcEncodeStrSize()
 // recursively examine each sub expression and calculate a final size for the entire IMAP/NNTP encoding
 {
     if (!m_term && (!m_leftChild || !m_rightChild))   // is the expression empty?
@@ -205,7 +205,7 @@ void nsMsgSearchBoolExpression::GenerateEncodeStr(nsCString * buffer)
 
         // HACK ALERT!!! if last returned character in the buffer is now a ' ' then we need to remove it because we don't want
         // a ' ' to preceded the closing paren in the OR encoding.
-        PRUint32 lastCharPos = buffer->Length() - 1;
+        uint32_t lastCharPos = buffer->Length() - 1;
         if (buffer->CharAt(lastCharPos) == ' ')
         {
             buffer->SetLength(lastCharPos);
@@ -310,7 +310,7 @@ nsMsgSearchOfflineMail::MatchTermsForFilter(nsIMsgDBHdr *msgToMatch,
                                             nsIMsgSearchScopeTerm * scope,
                                             nsIMsgDatabase * db,
                                             const char * headers,
-                                            PRUint32 headerSize,
+                                            uint32_t headerSize,
                                             nsMsgSearchBoolExpression ** aExpressionTree,
                                             bool *pResult)
 {
@@ -332,8 +332,8 @@ nsMsgSearchOfflineMail::MatchTermsForSearch(nsIMsgDBHdr *msgToMatch,
 }
 
 nsresult nsMsgSearchOfflineMail::ConstructExpressionTree(nsISupportsArray * termList,
-                                            PRUint32 termCount,
-                                            PRUint32 &aStartPosInList,
+                                            uint32_t termCount,
+                                            uint32_t &aStartPosInList,
                                             nsMsgSearchBoolExpression ** aExpressionTree)
 {
   nsMsgSearchBoolExpression * finalExpression = *aExpressionTree;
@@ -396,7 +396,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
                                             nsIMsgSearchScopeTerm * scope,
                                             nsIMsgDatabase * db,
                                             const char * headers,
-                                            PRUint32 headerSize,
+                                            uint32_t headerSize,
                                             bool Filtering,
                       bool *pResult)
 {
@@ -407,7 +407,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
     nsCString  msgCharset;
     const char *charset;
     bool charsetOverride = false; /* XXX BUG 68706 */
-    PRUint32 msgFlags;
+    uint32_t msgFlags;
     bool result;
     bool matchAll;
 
@@ -489,8 +489,8 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
       }
       case nsMsgSearchAttrib::Body:
        {
-         PRUint64 messageOffset;
-         PRUint32 lineCount;
+         uint64_t messageOffset;
+         uint32_t lineCount;
          msgToMatch->GetMessageOffset(&messageOffset);
          msgToMatch->GetLineCount(&lineCount);
          err = aTerm->MatchBody (scope, messageOffset, lineCount, charset, msgToMatch, db, &result);
@@ -517,7 +517,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
       }
       case nsMsgSearchAttrib::Size:
       {
-        PRUint32 messageSize;
+        uint32_t messageSize;
         msgToMatch->GetMessageSize(&messageSize);
         err = aTerm->MatchSize (messageSize, &result);
         break;
@@ -571,7 +571,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
       {
         // When the junk status is set by the plugin, use junkpercent (if available)
         // Otherwise, use the limits (0 or 100) depending on the junkscore.
-        PRUint32 junkPercent;
+        uint32_t junkPercent;
         nsresult rv;
         nsCString junkScoreOriginStr;
         nsCString junkPercentStr;
@@ -639,9 +639,9 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
           if (attrib >= nsMsgSearchAttrib::OtherHeader &&
               attrib < nsMsgSearchAttrib::kNumMsgSearchAttributes)
           {
-            PRUint32 lineCount;
+            uint32_t lineCount;
             msgToMatch->GetLineCount(&lineCount);
-            PRUint64 messageOffset;
+            uint64_t messageOffset;
             msgToMatch->GetMessageOffset(&messageOffset);
             err = aTerm->MatchArbitraryHeader(scope, lineCount,charset,
                                               charsetOverride, msgToMatch, db,
@@ -662,7 +662,7 @@ nsresult nsMsgSearchOfflineMail::MatchTerms(nsIMsgDBHdr *msgToMatch,
                                             nsIMsgSearchScopeTerm * scope,
                                             nsIMsgDatabase * db,
                                             const char * headers,
-                                            PRUint32 headerSize,
+                                            uint32_t headerSize,
                                             bool Filtering,
                                             nsMsgSearchBoolExpression ** aExpressionTree,
                                             bool *pResult)
@@ -672,8 +672,8 @@ nsresult nsMsgSearchOfflineMail::MatchTerms(nsIMsgDBHdr *msgToMatch,
 
   if (!*aExpressionTree)
   {
-    PRUint32 initialPos = 0;
-    PRUint32 count;
+    uint32_t initialPos = 0;
+    uint32_t count;
     termList->Count(&count);
     err = ConstructExpressionTree(termList, count, initialPos, aExpressionTree);
     if (NS_FAILED(err))
@@ -699,7 +699,7 @@ nsresult nsMsgSearchOfflineMail::Search (bool *aDone)
   nsCOMPtr<nsIMsgDBHdr> msgDBHdr;
   nsMsgSearchBoolExpression *expressionTree = nullptr;
 
-  const PRUint32 kTimeSliceInMS = 200;
+  const uint32_t kTimeSliceInMS = 200;
 
   *aDone = false;
   // Try to open the DB lazily. This will set up a parser if one is required

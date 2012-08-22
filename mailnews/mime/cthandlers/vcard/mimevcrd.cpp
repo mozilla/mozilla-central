@@ -14,7 +14,7 @@
 #include "prprf.h"
 #include "nsServiceManagerUtils.h"
 
-static int MimeInlineTextVCard_parse_line (const char *, PRInt32, MimeObject *);
+static int MimeInlineTextVCard_parse_line (const char *, int32_t, MimeObject *);
 static int MimeInlineTextVCard_parse_eof (MimeObject *, bool);
 static int MimeInlineTextVCard_parse_begin (MimeObject *obj);
 
@@ -102,7 +102,7 @@ char *strcpySafe (char *dest, const char *src, size_t destLength)
 }
 
 static int
-MimeInlineTextVCard_parse_line (const char *line, PRInt32 length, MimeObject *obj)
+MimeInlineTextVCard_parse_line (const char *line, int32_t length, MimeObject *obj)
 {
   // This routine gets fed each line of data, one at a time.
   char* linestring;

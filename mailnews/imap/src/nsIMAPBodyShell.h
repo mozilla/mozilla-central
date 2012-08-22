@@ -37,7 +37,7 @@ public:
 
 	// Generation
     // Generates an HTML representation of this part.  Returns content length generated, -1 if failed.
-    virtual PRInt32 Generate(nsIMAPBodyShell *aShell, bool /*stream*/, bool /* prefetch */) { return -1; }
+    virtual int32_t Generate(nsIMAPBodyShell *aShell, bool /*stream*/, bool /* prefetch */) { return -1; }
     virtual void AdoptPartDataBuffer(char *buf);    // Adopts storage for part data buffer.  If NULL, sets isValid to false.
     virtual void AdoptHeaderDataBuffer(char *buf);  // Adopts storage for header data buffer.  If NULL, sets isValid to false.
     virtual bool ShouldFetchInline(nsIMAPBodyShell *aShell) { return true; }  // returns true if this part should be fetched inline for generation.
@@ -50,15 +50,15 @@ public:
 protected:
     // If stream is false, simply returns the content length that will be generated
     // the body of the part itself
-    virtual PRInt32 GeneratePart(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
+    virtual int32_t GeneratePart(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
     // the MIME headers of the part
-    virtual PRInt32 GenerateMIMEHeader(nsIMAPBodyShell *aShell, bool stream, bool prefetch); 
+    virtual int32_t GenerateMIMEHeader(nsIMAPBodyShell *aShell, bool stream, bool prefetch); 
     // Generates the MIME boundary wrapper for this part.
-    virtual PRInt32 GenerateBoundary(nsIMAPBodyShell *aShell, bool stream, bool prefetch, bool lastBoundary);
+    virtual int32_t GenerateBoundary(nsIMAPBodyShell *aShell, bool stream, bool prefetch, bool lastBoundary);
     // lastBoundary indicates whether or not this should be the boundary for the
     // final MIME part of the multipart message.
     // Generates (possibly empty) filling for a part that won't be filled in inline.
-    virtual PRInt32 GenerateEmptyFilling(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
+    virtual int32_t GenerateEmptyFilling(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
 
 	// Part Numbers / Hierarchy
 public:
@@ -90,8 +90,8 @@ protected:
 	char	*m_partData;			// data for this part.  NULL if not filled in yet.
 	char	*m_headerData;			// data for this part's MIME header.  NULL if not filled in yet.
 	char	*m_boundaryData;		// MIME boundary for this part
-	PRInt32	m_partLength;
-	PRInt32	m_contentLength;		// Total content length which will be Generate()'d.  -1 if not filled in yet.
+	int32_t	m_partLength;
+	int32_t	m_contentLength;		// Total content length which will be Generate()'d.  -1 if not filled in yet.
 	nsIMAPBodypart	*m_parentPart;	// Parent of this part
 
 	// Fields	- Filled in from parsed BODYSTRUCTURE response (as well as others)
@@ -116,7 +116,7 @@ public:
     nsIMAPMessageHeaders(char *partNum, nsIMAPBodypart *parentPart);
 	virtual nsIMAPBodypartType	GetType();
     // Generates an HTML representation of this part.  Returns content length generated, -1 if failed.
-    virtual PRInt32 Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
+    virtual int32_t Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
     virtual bool ShouldFetchInline(nsIMAPBodyShell *aShell);
     virtual void QueuePrefetchMessageHeaders(nsIMAPBodyShell *aShell);
 };
@@ -131,7 +131,7 @@ public:
     virtual bool ShouldFetchInline(nsIMAPBodyShell *aShell);
     virtual bool PreflightCheckAllInline(nsIMAPBodyShell *aShell);
     // Generates an HTML representation of this part.  Returns content length generated, -1 if failed.
-    virtual PRInt32 Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
+    virtual int32_t Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
 	virtual nsIMAPBodypart	*FindPartWithNumber(const char *partNum);	// Returns the part object with the given number
         virtual bool IsLastTextPart(const char *partNumberString);
     void AppendPart(nsIMAPBodypart *part)  { m_partList->AppendElement(part); }
@@ -149,11 +149,11 @@ class nsIMAPBodypartLeaf : public nsIMAPBodypart
 public:
   nsIMAPBodypartLeaf(char *partNum, nsIMAPBodypart *parentPart, char *bodyType,
                      char *bodySubType, char *bodyID, char *bodyDescription,
-                     char *bodyEncoding, PRInt32 partLength,
+                     char *bodyEncoding, int32_t partLength,
                      bool preferPlainText);
 	virtual nsIMAPBodypartType	GetType();
     // Generates an HTML representation of this part.  Returns content length generated, -1 if failed.
-    virtual PRInt32 Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
+    virtual int32_t Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
     // returns true if this part should be fetched inline for generation.
     virtual bool ShouldFetchInline(nsIMAPBodyShell *aShell);
     virtual bool PreflightCheckAllInline(nsIMAPBodyShell *aShell);
@@ -169,11 +169,11 @@ public:
                         bool topLevelMessage, char *bodyType,
                         char *bodySubType, char *bodyID,
                         char *bodyDescription, char *bodyEncoding,
-                        PRInt32 partLength, bool preferPlainText);
+                        int32_t partLength, bool preferPlainText);
     void SetBody(nsIMAPBodypart *body);
 	virtual nsIMAPBodypartType	GetType();
 	virtual ~nsIMAPBodypartMessage();
-    virtual PRInt32 Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
+    virtual int32_t Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
     virtual bool ShouldFetchInline(nsIMAPBodyShell *aShell);
     virtual bool PreflightCheckAllInline(nsIMAPBodyShell *aShell);
 	virtual nsIMAPBodypart	*FindPartWithNumber(const char *partNum);	// Returns the part object with the given number
@@ -206,7 +206,7 @@ class nsIMAPBodyShell : public nsISupports
 public:
   NS_DECL_ISUPPORTS
   nsIMAPBodyShell(nsImapProtocol *protocolConnection,
-                  nsIMAPBodypartMessage *message, PRUint32 UID,
+                  nsIMAPBodypartMessage *message, uint32_t UID,
                   const char *folderName);
   virtual ~nsIMAPBodyShell();
   // To be used after a shell is uncached
@@ -236,7 +236,7 @@ public:
   // Returns number of bytes generated, or -1 if invalid.
   // If partNum is not NULL, then this works to generates a MIME part that hasn't been downloaded yet
   // and leaves out all other parts.  By default, to generate a normal message, partNum should be NULL.
-  virtual PRInt32 Generate(char *partNum);
+  virtual int32_t Generate(char *partNum);
 
   // Returns TRUE if the user has the pref "Show Attachments Inline" set.
   // Returns FALSE if the setting is "Show Attachments as Links"
@@ -313,8 +313,8 @@ protected:
   // cache, clearing up a new space.  Returns true if it found an entry
   // to eject, false otherwise.
   bool EjectEntry();
-  PRUint32 GetSize() { return m_shellList->Count(); }
-  PRUint32 GetMaxSize() { return 20; }
+  uint32_t GetSize() { return m_shellList->Count(); }
+  uint32_t GetMaxSize() { return 20; }
   nsVoidArray *m_shellList; // For maintenance
   // For quick lookup based on UID
   nsRefPtrHashtableMT <nsCStringHashKey, nsIMAPBodyShell> m_shellHash;

@@ -67,12 +67,12 @@ class nsAppleMailImportMail : public nsIImportMail
   nsresult AddMboxDir(nsIFile *aFolder, nsISupportsArray *aMailboxDescs, nsIImportService *aImportService);
     
   // aInfoString is the format to a "foo %s" string. It may be NULL if the error string needs no such format.
-  void ReportStatus(PRInt32 aErrorNum, nsString &aName, nsAString &aStream);
+  void ReportStatus(int32_t aErrorNum, nsString &aName, nsAString &aStream);
   static void SetLogs(const nsAString& success, const nsAString& error, PRUnichar **aOutErrorLog, PRUnichar **aSuccessLog);
 
   nsCOMPtr<nsIStringBundle>  mBundle;
-  PRUint32                   mProgress;
-  PRUint16                   mCurDepth;
+  uint32_t                   mProgress;
+  uint16_t                   mCurDepth;
 };
 
 #endif /* nsAppleMailImport_h___ */

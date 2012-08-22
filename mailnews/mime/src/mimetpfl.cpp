@@ -16,23 +16,23 @@
 #include "prprf.h"
 #include "nsMsgI18N.h"
 
-static const PRUint32 kSpacesForATab = 4; // Must be at least 1.
-static const PRUint32 kInitialBufferSize = 100;
+static const uint32_t kSpacesForATab = 4; // Must be at least 1.
+static const uint32_t kInitialBufferSize = 100;
 
 #define MIME_SUPERCLASS mimeInlineTextClass
 MimeDefClass(MimeInlineTextPlainFlowed, MimeInlineTextPlainFlowedClass,
        mimeInlineTextPlainFlowedClass, &MIME_SUPERCLASS);
 
 static int MimeInlineTextPlainFlowed_parse_begin (MimeObject *);
-static int MimeInlineTextPlainFlowed_parse_line (const char *, PRInt32, MimeObject *);
+static int MimeInlineTextPlainFlowed_parse_line (const char *, int32_t, MimeObject *);
 static int MimeInlineTextPlainFlowed_parse_eof (MimeObject *, bool);
 
 static MimeInlineTextPlainFlowedExData *MimeInlineTextPlainFlowedExDataList = nullptr;
 
 // From mimetpla.cpp
 extern "C" void MimeTextBuildPrefixCSS(
-                       PRInt32 quotedSizeSetting,      // mail.quoted_size
-                       PRInt32    quotedStyleSetting,  // mail.quoted_style
+                       int32_t quotedSizeSetting,      // mail.quoted_size
+                       int32_t    quotedStyleSetting,  // mail.quoted_style
                        char       *citationColor,      // mail.citation_color
                        nsACString &style);
 // Definition below
@@ -140,8 +140,8 @@ MimeInlineTextPlainFlowed_parse_begin (MimeObject *obj)
   if (nsMimeOutput::nsMimeMessageBodyDisplay == obj->options->format_out ||
       nsMimeOutput::nsMimeMessagePrintOutput == obj->options->format_out)
   {
-    PRInt32 fontSize;       // default font size
-    PRInt32 fontSizePercentage;   // size percentage
+    int32_t fontSize;       // default font size
+    int32_t fontSizePercentage;   // size percentage
     nsresult rv = GetMailNewsFont(obj, exdata->fixedwidthfont,
                                   &fontSize, &fontSizePercentage, fontLang);
     if (NS_SUCCEEDED(rv))
@@ -252,7 +252,7 @@ EarlyOut:
 
 
 static int
-MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObject *obj)
+MimeInlineTextPlainFlowed_parse_line (const char *aLine, int32_t length, MimeObject *obj)
 {
   int status;
   bool quoting = ( obj->options
@@ -300,7 +300,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
   // be the case always.
   bool flowed = false;
   bool sigSeparator = false;
-  PRInt32 index = length-1;
+  int32_t index = length-1;
   while(index >= 0 && ('\r' == line[index] || '\n' == line[index])) {
     index--;
   }
@@ -338,7 +338,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
     // Convert only if the source string is not empty
     if (length - (linep - line) > 0)
     {
-      PRUint32 whattodo = obj->options->whattodo;
+      uint32_t whattodo = obj->options->whattodo;
       if (plainHTML)
       {
         if (quoting)
@@ -549,8 +549,8 @@ static void Convert_whitespace(const PRUnichar a_current_char,
   NS_ASSERTION('\t' == a_current_char || ' ' == a_current_char,
                "Convert_whitespace got something else than a whitespace!");
 
-  PRUint32 number_of_nbsp = 0;
-  PRUint32 number_of_space = 1; // Assume we're going to output one space.
+  uint32_t number_of_nbsp = 0;
+  uint32_t number_of_space = 1; // Assume we're going to output one space.
 
   /* Output the spaces for a tab. All but the last are made into &nbsp;.
      The last is treated like a normal space.
@@ -593,7 +593,7 @@ nsresult Line_convert_whitespace(const nsString& a_line,
   bool in_quote_in_tag = false;
   PRUnichar quote_char;
 
-  for (PRUint32 i = 0; a_line.Length() > i; i++)
+  for (uint32_t i = 0; a_line.Length() > i; i++)
   {
     const PRUnichar ic = a_line[i];  // Cache
 

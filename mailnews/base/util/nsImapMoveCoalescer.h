@@ -36,7 +36,7 @@ public:
   nsresult PlaybackMoves(bool doNewMailNotification = false);
   // this lets the caller store keys in an arbitrary number of buckets. If the bucket
   // for the passed in index doesn't exist, it will get created.
-  nsTArray<nsMsgKey> *GetKeyBucket(PRUint32 keyArrayIndex);
+  nsTArray<nsMsgKey> *GetKeyBucket(uint32_t keyArrayIndex);
   nsIMsgWindow *GetMsgWindow() {return m_msgWindow;}
   bool HasPendingMoves() {return m_hasPendingMoves;}
 protected:
@@ -48,7 +48,7 @@ protected:
   bool m_doNewMailNotification;
   bool m_hasPendingMoves;
   nsTArray<nsTArray<nsMsgKey> > m_keyBuckets;
-  PRInt32 m_outstandingMoves;
+  int32_t m_outstandingMoves;
 };
 
 class nsMoveCoalescerCopyListener : public nsIMsgCopyServiceListener

@@ -33,9 +33,9 @@ public:
 
     // helper
     nsresult AddSrcKey(nsMsgKey aKey);
-    nsresult AddSrcStatusOffset(PRUint32 statusOffset);
+    nsresult AddSrcStatusOffset(uint32_t statusOffset);
     nsresult AddDstKey(nsMsgKey aKey);
-    nsresult AddDstMsgSize(PRUint32 msgSize);
+    nsresult AddDstMsgSize(uint32_t msgSize);
     nsresult SetSrcFolder(nsIMsgFolder* srcFolder);
     nsresult GetSrcIsImap(bool *isImap);
     nsresult SetDstFolder(nsIMsgFolder* dstFolder);
@@ -55,15 +55,15 @@ public:
 private:
     nsWeakPtr m_srcFolder;
     nsTArray<nsMsgKey> m_srcKeyArray; // used when src is local or imap
-    nsTArray<PRUint32> m_srcStatusOffsetArray; // used when src is local
+    nsTArray<uint32_t> m_srcStatusOffsetArray; // used when src is local
     nsWeakPtr m_dstFolder;
     nsTArray<nsMsgKey> m_dstKeyArray;
     bool m_isMove;
     bool m_srcIsImap4;
     bool m_canUndelete;
-    nsTArray<PRUint32> m_dstSizeArray;
+    nsTArray<uint32_t> m_dstSizeArray;
     bool m_undoing; // if false, re-doing
-    PRInt32 m_numHdrsCopied;
+    int32_t m_numHdrsCopied;
     nsTArray<nsCString> m_copiedMsgIds;
     nsLocalUndoFolderListener *mUndoFolderListener;
 };

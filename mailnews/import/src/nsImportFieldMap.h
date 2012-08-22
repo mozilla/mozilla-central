@@ -29,17 +29,17 @@ public:
    static NS_METHOD Create(nsIStringBundle *aBundle, nsISupports *aOuter, REFNSIID aIID, void **aResult);
 
 private:
-  nsresult  Allocate(PRInt32 newSize);
-  PRInt32    FindFieldNum(const PRUnichar *pDesc);
+  nsresult  Allocate(int32_t newSize);
+  int32_t    FindFieldNum(const PRUnichar *pDesc);
 
 
 private:
-  PRInt32    m_numFields;
-  PRInt32  *  m_pFields;
+  int32_t    m_numFields;
+  int32_t  *  m_pFields;
   bool *  m_pActive;
-  PRInt32    m_allocated;
+  int32_t    m_allocated;
   nsVoidArray  m_descriptions;
-  PRInt32    m_mozFieldCount;
+  int32_t    m_mozFieldCount;
   bool        m_skipFirstRecord;
 };
 

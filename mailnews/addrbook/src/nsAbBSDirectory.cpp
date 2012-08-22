@@ -111,8 +111,8 @@ nsresult nsAbBSDirectory::EnsureInitialized()
   if (!directories)
     return NS_ERROR_FAILURE;
     
-  PRInt32 count = directories->Count();
-  for (PRInt32 i = 0; i < count; i++)
+  int32_t count = directories->Count();
+  for (int32_t i = 0; i < count; i++)
   {
     DIR_Server *server = (DIR_Server *)(directories->ElementAt(i));
       
@@ -122,7 +122,7 @@ nsresult nsAbBSDirectory::EnsureInitialized()
     // note, the filename might be na2 for 4.x LDAP directories
     // (we used the .na2 file for replication), and we don't want to skip
     // those.  see bug #127007
-    PRUint32 fileNameLen = strlen(server->fileName);
+    uint32_t fileNameLen = strlen(server->fileName);
     if (((fileNameLen > kABFileName_PreviousSuffixLen) && 
       strcmp(server->fileName + fileNameLen - kABFileName_PreviousSuffixLen,
              kABFileName_PreviousSuffix) == 0) &&
@@ -164,7 +164,7 @@ nsresult nsAbBSDirectory::EnsureInitialized()
 
 NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(const nsAString &aDirName,
                                                   const nsACString &aURI,
-                                                  PRUint32 aType,
+                                                  uint32_t aType,
                                                   const nsACString &aPrefName,
                                                   nsACString &aResult)
 {
@@ -271,11 +271,11 @@ NS_IMETHODIMP nsAbBSDirectory::DeleteDirectory(nsIAbDirectory *directory)
     do_GetService(NS_ABDIRFACTORYSERVICE_CONTRACTID,&rv);
   NS_ENSURE_SUCCESS (rv, rv);
 
-  PRUint32 count = getDirectories.directories.Count();
+  uint32_t count = getDirectories.directories.Count();
 
   nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID);
 
-  for (PRUint32 i = 0; i < count; i++) {
+  for (uint32_t i = 0; i < count; i++) {
     nsCOMPtr<nsIAbDirectory> d = getDirectories.directories[i];
 
     mServers.Remove(d);

@@ -37,16 +37,16 @@ void SetProxyPref(const nsACString& aHostPort, const char* aPref,
 
 struct MigrationData { 
   PRUnichar* fileName; 
-  PRUint32 sourceFlag;
+  uint32_t sourceFlag;
   bool replaceOnly;
 };
 
 class nsIFile;
 void GetMigrateDataFromArray(MigrationData* aDataArray, 
-                             PRInt32 aDataArrayLength,
+                             int32_t aDataArrayLength,
                              bool aReplace,
                              nsIFile* aSourceProfile, 
-                             PRUint16* aResult);
+                             uint16_t* aResult);
 
 
 // get the base directory of the *target* profile

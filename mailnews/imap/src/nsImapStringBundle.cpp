@@ -17,7 +17,7 @@
 
 extern "C" 
 nsresult
-IMAPGetStringByID(PRInt32 stringID, PRUnichar **aString)
+IMAPGetStringByID(int32_t stringID, PRUnichar **aString)
 {
   nsresult res=NS_OK;
   nsCOMPtr <nsIStringBundle> sBundle;

@@ -94,9 +94,9 @@ nsMovemailService::CheckForNewMail(nsIUrlListener * aUrlListener,
 }
 
 void
-nsMovemailService::Error(PRInt32 errorCode,
+nsMovemailService::Error(int32_t errorCode,
                          const PRUnichar **params,
-                         PRUint32 length)
+                         uint32_t length)
 {
   if (!mMsgWindow) return;
 
@@ -326,7 +326,7 @@ LocateSpoolFile(nsACString & spoolPath)
     // Try to build the mailbox path from the username and a number
     // of guessed spool directory paths.
     nsCAutoString tmpPath;
-    PRUint32 i;
+    uint32_t i;
     for (i = 0; i < NUM_DEFAULT_SPOOL_PATHS; i++) {
       tmpPath = gDefaultSpoolPaths[i];
       tmpPath += userEnv;
@@ -430,7 +430,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
   // MIDDLE of the FUN : consume the mailbox data.
   bool isMore = true;
   nsCAutoString buffer;
-  PRUint32 bytesWritten;
+  uint32_t bytesWritten;
 
   while (isMore &&
          NS_SUCCEEDED(lineInputStream->ReadLine(buffer, &isMore)))
@@ -619,7 +619,7 @@ nsMovemailService::GetDefaultDoBiff(bool *aDoBiff)
 }
 
 NS_IMETHODIMP
-nsMovemailService::GetDefaultServerPort(bool isSecure, PRInt32 *aDefaultPort)
+nsMovemailService::GetDefaultServerPort(bool isSecure, int32_t *aDefaultPort)
 {
   NS_ENSURE_ARG_POINTER(aDefaultPort);
   *aDefaultPort = -1;

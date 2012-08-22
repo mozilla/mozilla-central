@@ -80,7 +80,7 @@ STDMETHODIMP_(ULONG) CMapiImp::AddRef()
 
 STDMETHODIMP_(ULONG) CMapiImp::Release() 
 {
-    PRInt32 temp;
+    int32_t temp;
     temp = PR_ATOMIC_DECREMENT(&m_cRef);
     if (m_cRef == 0)
     {
@@ -165,8 +165,8 @@ STDMETHODIMP CMapiImp::Login(unsigned long aUIArg, LOGIN_PW_TYPE aLogin, LOGIN_P
     }
 
     // finally register(create) the session.
-    PRUint32 nSession_Id;
-    PRInt16 nResult = 0;
+    uint32_t nSession_Id;
+    int16_t nResult = 0;
 
     nsMAPIConfiguration *pConfig = nsMAPIConfiguration::GetMAPIConfiguration();
     if (pConfig != nullptr)
@@ -469,7 +469,7 @@ STDMETHODIMP CMapiImp::Logoff (unsigned long aSession)
 {
     nsMAPIConfiguration *pConfig = nsMAPIConfiguration::GetMAPIConfiguration();
 
-    if (pConfig->UnRegisterSession((PRUint32)aSession))
+    if (pConfig->UnRegisterSession((uint32_t)aSession))
         return S_OK;
 
     return E_FAIL;
@@ -540,7 +540,7 @@ nsMsgKey MsgMapiListContext::GetNext ()
         
         // If this is an IMAP message, we have to make sure we have a valid
         // body to work with.
-        PRUint32  flags = 0;
+        uint32_t  flags = 0;
         
         (void) msgHdr->GetFlags(&flags);
         if (flags & nsMsgMessageFlags::Offline) 
@@ -583,13 +583,13 @@ lpnsMapiMessage MsgMapiListContext::GetMessage (nsMsgKey key, unsigned long flFl
       msgHdr->GetSubject (getter_Copies(subject));
       message->lpszSubject = (char *) CoTaskMemAlloc(subject.Length() + 1);
       strcpy((char *) message->lpszSubject, subject.get());
-      PRUint32 date;
+      uint32_t date;
       (void) msgHdr->GetDateInSeconds(&date);
       message->lpszDateReceived = ConvertDateToMapiFormat (date);
       
       // Pull out the flags info
       // anything to do with MAPI_SENT? Since we're only reading the Inbox, I guess not
-      PRUint32 ourFlags;
+      uint32_t ourFlags;
       (void) msgHdr->GetFlags(&ourFlags);
       if (!(ourFlags & nsMsgMessageFlags::Read))
         message->flFlags |= MAPI_UNREAD;
@@ -612,8 +612,8 @@ lpnsMapiMessage MsgMapiListContext::GetMessage (nsMsgKey key, unsigned long flFl
       msgHdr->GetRecipients(getter_Copies(recipients));
       msgHdr->GetCcList(getter_Copies(ccList));
 
-      PRUint32 numToRecips;
-      PRUint32 numCCRecips;
+      uint32_t numToRecips;
+      uint32_t numCCRecips;
       parser->ParseHeaderAddresses(recipients.get(), nullptr, nullptr,
 				   &numToRecips);
       parser->ParseHeaderAddresses(ccList.get(), nullptr, nullptr, &numCCRecips);
@@ -665,7 +665,7 @@ void MsgMapiListContext::ConvertRecipientsToMapiFormat (nsIMsgHeaderParser *pars
   
   if (!parser)
     return ;
-  PRUint32 numAddresses = 0;
+  uint32_t numAddresses = 0;
   parser->ParseHeaderAddresses(recipients, &names, &addresses, &numAddresses);
   
   if (numAddresses > 0)
@@ -733,8 +733,8 @@ char *MsgMapiListContext::ConvertBodyToMapiFormat (nsIMsgDBHdr *hdr)
     if (!fileLineStream)
       return nullptr;
     // ### really want to skip past headers...
-    PRUint64 messageOffset;
-    PRUint32 lineCount;
+    uint64_t messageOffset;
+    uint32_t lineCount;
     hdr->GetMessageOffset(&messageOffset);
     hdr->GetLineCount(&lineCount);
     nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(inputStream);
@@ -749,7 +749,7 @@ char *MsgMapiListContext::ConvertBodyToMapiFormat (nsIMsgDBHdr *hdr)
       if (NS_FAILED(rv) || EMPTY_MESSAGE_LINE(curLine))
         break;
     }
-    PRUint32 msgSize;
+    uint32_t msgSize;
     hdr->GetMessageSize(&msgSize);
     if (msgSize > kBufLen)
       msgSize = kBufLen - 1;
@@ -758,7 +758,7 @@ char *MsgMapiListContext::ConvertBodyToMapiFormat (nsIMsgDBHdr *hdr)
 
     if (!body)
       return nullptr;
-    PRInt32 bytesCopied = 0;
+    int32_t bytesCopied = 0;
     for (hasMore = TRUE; lineCount > 0 && hasMore && NS_SUCCEEDED(rv); lineCount--)
     {
       rv = fileLineStream->ReadLine(curLine, &hasMore);

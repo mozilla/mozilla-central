@@ -29,7 +29,7 @@ public:
       nsIFile *pSrc,
       nsIAddrDatabase *pDb,
       nsString& errors,
-      PRUint32 *pProgress);
+      uint32_t *pProgress);
 
 private:
   static nsresult ReadRecord(

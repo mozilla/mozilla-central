@@ -24,8 +24,8 @@ private:
   nsCOMPtr<nsIPrefBranch> mDefPrefBranch;
 
 protected:
-  nsresult getFolderPref(const char *pref, nsCString&, const char *, PRUint32);
-  nsresult setFolderPref(const char *pref, const nsACString&, PRUint32);
+  nsresult getFolderPref(const char *pref, nsCString&, const char *, uint32_t);
+  nsresult setFolderPref(const char *pref, const nsACString&, uint32_t);
 };
 
 
@@ -67,12 +67,12 @@ nsMsgIdentity::Set##_postfix(bool value)           \
 
 #define NS_IMPL_IDPREF_INT(_postfix, _prefname)     \
 NS_IMETHODIMP                                       \
-nsMsgIdentity::Get##_postfix(PRInt32 *retval)       \
+nsMsgIdentity::Get##_postfix(int32_t *retval)       \
 {                                                   \
   return GetIntAttribute(_prefname, retval);        \
 }                                                   \
 NS_IMETHODIMP                                       \
-nsMsgIdentity::Set##_postfix(PRInt32 value)         \
+nsMsgIdentity::Set##_postfix(int32_t value)         \
 {                                                   \
   return mPrefBranch->SetIntPref(_prefname, value); \
 }

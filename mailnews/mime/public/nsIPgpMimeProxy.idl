@@ -5,7 +5,7 @@
 #include "nsIStreamListener.idl"
 
 %{C++
-typedef int (*MimeDecodeCallbackFun)(const char *buf, PRInt32 buf_size, void *output_closure);
+typedef int (*MimeDecodeCallbackFun)(const char *buf, int32_t buf_size, void *output_closure);
 
 #define NS_PGPMIMEPROXY_CLASSNAME "PGP/Mime Decryption"
 #define NS_PGPMIMEPROXY_CONTRACTID "@mozilla.org/mime/pgp-mime-decrypt;1"

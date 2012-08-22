@@ -31,43 +31,43 @@ public:
   
   // FirstNonMember() returns the lowest non-member of the set that is
   // greater than 0.
-  PRInt32 FirstNonMember();
+  int32_t FirstNonMember();
 
   // Output() converts to a string representation suitable for writing to a
   // .newsrc file.  
   nsresult Output(char **outputStr);    
 
   // IsMember() returns whether the given article is a member of this set.
-  bool IsMember(PRInt32 art);
+  bool IsMember(int32_t art);
   
   // Add() adds the given article to the set.  (Returns 1 if a change was
   // made, 0 if it was already there, and negative on error.)
-  int Add(PRInt32 art);
+  int Add(int32_t art);
   
   // Remove() removes the given article from the set. 
-  int Remove(PRInt32 art);
+  int Remove(int32_t art);
   
   // AddRange() adds the (inclusive) given range of articles to the set.
-  int AddRange(PRInt32 first, PRInt32 last);
+  int AddRange(int32_t first, int32_t last);
   
   // CountMissingInRange() takes an inclusive range of articles and returns
   // the number of articles in that range which are not in the set.
-  PRInt32 CountMissingInRange(PRInt32 start, PRInt32 end);
+  int32_t CountMissingInRange(int32_t start, int32_t end);
   
   // FirstMissingRange() takes an inclusive range and finds the first range
   // of articles that are not in the set.  If none, return zeros. 
-  int FirstMissingRange(PRInt32 min, PRInt32 max, PRInt32* first, PRInt32* last);
+  int FirstMissingRange(int32_t min, int32_t max, int32_t* first, int32_t* last);
   
 
   // LastMissingRange() takes an inclusive range and finds the last range
   // of articles that are not in the set.  If none, return zeros. 
-  int LastMissingRange(PRInt32 min, PRInt32 max, PRInt32* first, PRInt32* last);
+  int LastMissingRange(int32_t min, int32_t max, int32_t* first, int32_t* last);
   
-  PRInt32 GetLastMember();
-  PRInt32 GetFirstMember();
-  void  SetLastMember(PRInt32 highWaterMark);
+  int32_t GetLastMember();
+  int32_t GetFirstMember();
+  void  SetLastMember(int32_t highWaterMark);
   // For debugging only...
-  PRInt32 getLength() {return m_length;}
+  int32_t getLength() {return m_length;}
 
 /**
  * Fill the passed in aArray with the keys in the message key set.
@@ -91,12 +91,12 @@ protected:
   static void test_member(bool with_cache);
 #endif
   
-  PRInt32 *m_data;          /* the numbers composing the `chunks' */
-  PRInt32 m_data_size;        /* size of that malloc'ed block */
-  PRInt32 m_length;        /* active area */
+  int32_t *m_data;          /* the numbers composing the `chunks' */
+  int32_t m_data_size;        /* size of that malloc'ed block */
+  int32_t m_length;        /* active area */
   
-  PRInt32 m_cached_value;      /* a potential set member, or -1 if unset*/
-  PRInt32 m_cached_value_index;    /* the index into `data' at which a search
+  int32_t m_cached_value;      /* a potential set member, or -1 if unset*/
+  int32_t m_cached_value_index;    /* the index into `data' at which a search
                      to determine whether `cached_value' was
                      a member of the set ended. */
 #ifdef NEWSRC_DOES_HOST_STUFF

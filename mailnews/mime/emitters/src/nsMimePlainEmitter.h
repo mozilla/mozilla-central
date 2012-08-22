@@ -25,7 +25,7 @@ public:
     NS_IMETHOD    AddHeaderField(const char *field, const char *value);
     NS_IMETHOD    EndHeader();
 
-    NS_IMETHOD    WriteBody(const nsACString &buf, PRUint32 *amountWritten);
+    NS_IMETHOD    WriteBody(const nsACString &buf, uint32_t *amountWritten);
 };
 
 #endif /* _nsMimePlainEmitter_h_ */

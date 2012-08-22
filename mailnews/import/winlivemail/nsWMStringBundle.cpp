@@ -35,14 +35,14 @@ nsIStringBundle *nsWMStringBundle::GetStringBundle(void)
   return sBundle;
 }
 
-void nsWMStringBundle::GetStringByID(PRInt32 stringID, nsString& result)
+void nsWMStringBundle::GetStringByID(int32_t stringID, nsString& result)
 {
   PRUnichar *ptrv = GetStringByID(stringID);
   result = ptrv;
   FreeString(ptrv);
 }
 
-PRUnichar *nsWMStringBundle::GetStringByID(PRInt32 stringID)
+PRUnichar *nsWMStringBundle::GetStringByID(int32_t stringID)
 {
   if (!m_pBundle)
     m_pBundle = GetStringBundle();

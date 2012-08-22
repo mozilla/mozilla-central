@@ -33,14 +33,14 @@ public:
   bool ShouldAbort() const { return m_abort; }
 
 protected:
-  virtual PRInt32 Write(const char * /*block*/, PRInt32 length) {return length;}
+  virtual int32_t Write(const char * /*block*/, int32_t length) {return length;}
   virtual void Abort();
   virtual void Complete();
   virtual bool GetNextHdrToRetrieve();
   virtual nsresult DownloadNext(bool firstTimeP);
-  virtual PRInt32 FinishDownload() {return 0;}
-  virtual PRInt32  StartDownload() {return 0;}
-  virtual nsresult ShowProgress(const PRUnichar *progressString, PRInt32 percent);
+  virtual int32_t FinishDownload() {return 0;}
+  virtual int32_t  StartDownload() {return 0;}
+  virtual nsresult ShowProgress(const PRUnichar *progressString, int32_t percent);
 
   nsTArray<nsMsgKey>      m_keysToDownload;
   nsCOMPtr <nsIMsgFolder>  m_folder;
@@ -51,13 +51,13 @@ protected:
   bool m_wroteAnyP;
   bool m_summaryValidP;
   bool m_abort;
-  PRInt32     m_numwrote;
+  int32_t     m_numwrote;
   nsMsgKey    m_keyToDownload;
   nsCOMPtr <nsIMsgWindow> m_window;
   nsCOMPtr <nsIMsgStatusFeedback> m_statusFeedback;
   nsCOMPtr <nsIMsgSearchSession> m_searchSession;
-  PRInt32 m_lastPercent;
-  PRInt64 m_lastProgressTime;
+  int32_t m_lastPercent;
+  int64_t m_lastProgressTime;
   nsresult  m_status;
 };
 
@@ -72,8 +72,8 @@ public:
   NS_IMETHOD OnStartRunningUrl(nsIURI* url);
   NS_IMETHOD OnStopRunningUrl(nsIURI* url, nsresult exitCode);
 protected:
-  virtual PRInt32  StartDownload();
-  virtual PRInt32 FinishDownload();
+  virtual int32_t  StartDownload();
+  virtual int32_t FinishDownload();
   virtual bool GetNextHdrToRetrieve();
 
   nsCOMPtr <nsISimpleEnumerator>  m_headerEnumerator;

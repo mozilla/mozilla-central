@@ -28,14 +28,14 @@ public:
   NS_IMETHOD GetMailboxCopyHandler(nsIStreamListener ** aConsumer);
 
   NS_IMETHOD GetMessageKey(nsMsgKey* aMessageKey);
-  NS_IMETHOD GetMessageSize(PRUint32 *aMessageSize);
-  NS_IMETHOD SetMessageSize(PRUint32 aMessageSize);
+  NS_IMETHOD GetMessageSize(uint32_t *aMessageSize);
+  NS_IMETHOD SetMessageSize(uint32_t aMessageSize);
   NS_IMPL_CLASS_GETSET(MailboxAction, nsMailboxAction, m_mailboxAction)
-  NS_IMETHOD IsUrlType(PRUint32 type, bool *isType);
-  NS_IMETHOD SetMoveCopyMsgKeys(nsMsgKey *keysToFlag, PRInt32 numKeys);
-  NS_IMETHOD GetMoveCopyMsgHdrForIndex(PRUint32 msgIndex, nsIMsgDBHdr **msgHdr);
-  NS_IMETHOD GetNumMoveCopyMsgs(PRUint32 *numMsgs);
-  NS_IMPL_CLASS_GETSET(CurMoveCopyMsgIndex, PRUint32, m_curMsgIndex)
+  NS_IMETHOD IsUrlType(uint32_t type, bool *isType);
+  NS_IMETHOD SetMoveCopyMsgKeys(nsMsgKey *keysToFlag, int32_t numKeys);
+  NS_IMETHOD GetMoveCopyMsgHdrForIndex(uint32_t msgIndex, nsIMsgDBHdr **msgHdr);
+  NS_IMETHOD GetNumMoveCopyMsgs(uint32_t *numMsgs);
+  NS_IMPL_CLASS_GETSET(CurMoveCopyMsgIndex, uint32_t, m_curMsgIndex)
 
   NS_IMETHOD GetFolder(nsIMsgFolder **msgFolder);
 
@@ -61,7 +61,7 @@ protected:
   nsMailboxAction m_mailboxAction; // the action this url represents...parse mailbox, display messages, etc.
   nsCOMPtr <nsIFile>  m_filePath;
   char *m_messageID;
-  PRUint32 m_messageSize;
+  uint32_t m_messageSize;
   nsMsgKey m_messageKey;
   nsCString m_file;
   // This is currently only set when we're doing something with a .eml file.
@@ -76,7 +76,7 @@ protected:
 
   // for multiple msg move/copy
   nsTArray<nsMsgKey> m_keys;
-  PRInt32 m_curMsgIndex;
+  int32_t m_curMsgIndex;
 
   // truncated message support
   nsCString m_originalSpec;

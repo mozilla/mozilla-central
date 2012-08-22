@@ -60,13 +60,13 @@ public:
   void OnNewHeaderFetchCompleted(const nsTArray<nsMsgKey> &aMsgKeyList);
 
   /// Sets the last sync time in lower precision (seconds)
-  void SetLastSyncTimeInSec(PRInt32 aLastSyncTime);
+  void SetLastSyncTimeInSec(int32_t aLastSyncTime);
 
   /// Manages storage space for auto-sync operations 
   nsresult ManageStorageSpace();
 
-  void SetServerCounts(PRInt32 total, PRInt32 recent, PRInt32 unseen,
-                       PRInt32 nextUID);
+  void SetServerCounts(int32_t total, int32_t recent, int32_t unseen,
+                       int32_t nextUID);
 
  private:
   ~nsAutoSyncState();
@@ -74,29 +74,29 @@ public:
   nsresult PlaceIntoDownloadQ(const nsTArray<nsMsgKey> &aMsgKeyList);
   nsresult SortQueueBasedOnStrategy(nsTArray<nsMsgKey> &aQueue);
   nsresult SortSubQueueBasedOnStrategy(nsTArray<nsMsgKey> &aQueue, 
-                                    PRUint32 aStartingOffset);
+                                    uint32_t aStartingOffset);
 
   void LogOwnerFolderName(const char *s);
-  void LogQWithSize(nsTArray<nsMsgKey>& q, PRUint32 toOffset = 0);
-  void LogQWithSize(nsIMutableArray *q, PRUint32 toOffset = 0);
+  void LogQWithSize(nsTArray<nsMsgKey>& q, uint32_t toOffset = 0);
+  void LogQWithSize(nsIMutableArray *q, uint32_t toOffset = 0);
 
  private:
-  PRInt32 mSyncState;
+  int32_t mSyncState;
   nsWeakPtr mOwnerFolder;
-  PRUint32 mOffset;
-  PRUint32 mLastOffset;
+  uint32_t mOffset;
+  uint32_t mLastOffset;
 
   // used to tell if the Server counts have changed.
-  PRInt32 mLastServerTotal;
-  PRInt32 mLastServerRecent;
-  PRInt32 mLastServerUnseen;
-  PRInt32 mLastNextUID;
+  int32_t mLastServerTotal;
+  int32_t mLastServerRecent;
+  int32_t mLastServerUnseen;
+  int32_t mLastNextUID;
 
   PRTime mLastSyncTime;
   PRTime mLastUpdateTime;
-  PRUint32 mProcessPointer;
+  uint32_t mProcessPointer;
   bool mIsDownloadQChanged;
-  PRUint32 mRetryCounter;
+  uint32_t mRetryCounter;
   nsTArray<nsMsgKey> mDownloadQ;
   nsTArray<nsMsgKey> mExistingHeadersQ;
 };

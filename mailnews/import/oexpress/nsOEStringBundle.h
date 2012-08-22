@@ -11,8 +11,8 @@ class nsIStringBundle;
 
 class nsOEStringBundle {
 public:
-  static PRUnichar     *    GetStringByID(PRInt32 stringID);
-  static void          GetStringByID(PRInt32 stringID, nsString& result);
+  static PRUnichar     *    GetStringByID(int32_t stringID);
+  static void          GetStringByID(int32_t stringID, nsString& result);
   static nsIStringBundle *  GetStringBundle(void); // don't release
   static void          FreeString(PRUnichar *pStr) { NS_Free(pStr);}
   static void          Cleanup(void);

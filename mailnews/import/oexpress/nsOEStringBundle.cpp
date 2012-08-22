@@ -36,13 +36,13 @@ nsIStringBundle *nsOEStringBundle::GetStringBundle(void)
 }
 
 
-void nsOEStringBundle::GetStringByID(PRInt32 stringID, nsString& result)
+void nsOEStringBundle::GetStringByID(int32_t stringID, nsString& result)
 {
   PRUnichar *ptrv = GetStringByID(stringID);
   result.Adopt(ptrv);
 }
 
-PRUnichar *nsOEStringBundle::GetStringByID(PRInt32 stringID)
+PRUnichar *nsOEStringBundle::GetStringByID(int32_t stringID)
 {
   if (!m_pBundle)
     m_pBundle = GetStringBundle();

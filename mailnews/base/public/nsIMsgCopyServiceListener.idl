@@ -21,8 +21,8 @@ interface nsIMsgCopyServiceListener : nsISupports {
      * aProgress -
      * aProgressMax -
      */
-    void OnProgress(in PRUint32 aProgress, 
-                    in PRUint32 aProgressMax);
+    void OnProgress(in uint32_t aProgress, 
+                    in uint32_t aProgressMax);
 
     /**
      * Setting newly created message key. This method is taylored specifically
@@ -31,7 +31,7 @@ interface nsIMsgCopyServiceListener : nsISupports {
      * created message.
      * aKey -
      */
-    void SetMessageKey(in PRUint32 aKey);
+    void SetMessageKey(in uint32_t aKey);
 
     /**
      * Getting the file message message ID. This method is taylored

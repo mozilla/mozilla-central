@@ -15,7 +15,7 @@
 
 
 extern "C" bool
-EmitThisHeaderForPrefSetting(PRInt32 dispType, const char *header)
+EmitThisHeaderForPrefSetting(int32_t dispType, const char *header)
 {
   if (nsMimeHeaderDisplayTypes::AllHeaders == dispType)
     return true;

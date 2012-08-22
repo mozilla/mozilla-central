@@ -97,8 +97,8 @@ public:
 protected:
     HRESULT mLastError ;
     LPADRBOOK mAddressBook ;
-    static PRUint32 mEntryCounter ;
-    static PRUint32 mUseCount ;
+    static uint32_t mEntryCounter ;
+    static uint32_t mUseCount ;
     static nsAutoPtr<mozilla::Mutex> mMutex ;
 
     // Retrieve the contents of a container, with an optional restriction
@@ -131,7 +131,7 @@ enum nsAbWinType
 class nsAbWinHelperGuard 
 {
 public :
-    nsAbWinHelperGuard(PRUint32 aType) ;
+    nsAbWinHelperGuard(uint32_t aType) ;
     ~nsAbWinHelperGuard(void) ;
 
     nsAbWinHelper *operator ->(void) { return mHelper ; }
@@ -148,7 +148,7 @@ extern const char *kOutlookCardScheme ;
 
 nsAbWinType getAbWinType(const char *aScheme, const char *aUri, 
                          nsCString& aStub, nsCString& aEntry) ;
-void buildAbWinUri(const char *aScheme, PRUint32 aType, nsCString& aUri) ;
+void buildAbWinUri(const char *aScheme, uint32_t aType, nsCString& aUri) ;
 
 #endif // nsAbWinHelper_h___
 

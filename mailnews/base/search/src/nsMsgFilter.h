@@ -30,7 +30,7 @@ private:
     nsMsgPriorityValue  m_priority;  /* priority to set rule to */
     nsMsgLabelValue         m_label;  /* label to set rule to */
     nsCString    m_folderUri;
-    PRInt32             m_junkScore;  /* junk score (or arbitrary int value?) */
+    int32_t             m_junkScore;  /* junk score (or arbitrary int value?) */
     // arbitrary string value. Currently, email address to forward to
     nsCString           m_strValue;
     nsCString           m_customId;
@@ -60,7 +60,7 @@ public:
   // filing routines.
   nsresult  SaveRule(nsIOutputStream *aStream);
 
-  PRInt16   GetVersion();
+  int16_t   GetVersion();
 #ifdef DEBUG
   void      Dump();
 #endif

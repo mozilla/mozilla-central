@@ -10,21 +10,21 @@
 #include "nsMsgMessageFlags.h"
 
 struct msgState {
-  PRUint32 uid;
-  PRUint16 flag;
-  PRUint32 index;
+  uint32_t uid;
+  uint16_t flag;
+  uint32_t index;
 };
 
 char errorMsg[200];
 
 const char * MainChecks(nsImapFlagAndUidState* flagState, struct msgState *expectedState,
-               PRUint32 numMessages, PRUint32 expectedNumUnread)
+               uint32_t numMessages, uint32_t expectedNumUnread)
 {
   // Verify that flag state matches the expected state.
-  for (PRUint32 i = 0; i < numMessages; i ++)
+  for (uint32_t i = 0; i < numMessages; i ++)
   {
-    PRUint32 uid;
-    PRUint16 flag;
+    uint32_t uid;
+    uint16_t flag;
     flagState->GetUidOfMessage(expectedState[i].index, &uid);
     flagState->GetMessageFlags(expectedState[i].index, &flag);
     if (uid != expectedState[i].uid)
@@ -42,14 +42,14 @@ const char * MainChecks(nsImapFlagAndUidState* flagState, struct msgState *expec
       return errorMsg;
     }
   }
-  PRInt32 numMsgsInFlagState;
-  PRInt32 numUnread = 0;
-  PRInt32 expectedMsgIndex = 0;
+  int32_t numMsgsInFlagState;
+  int32_t numUnread = 0;
+  int32_t expectedMsgIndex = 0;
 
   flagState->GetNumberOfMessages(&numMsgsInFlagState);
-  for (PRInt32 msgIndex = 0; msgIndex < numMsgsInFlagState; msgIndex++)
+  for (int32_t msgIndex = 0; msgIndex < numMsgsInFlagState; msgIndex++)
   {
-    PRUint32 uidOfMessage;
+    uint32_t uidOfMessage;
     flagState->GetUidOfMessage(msgIndex, &uidOfMessage);
     if (!uidOfMessage || uidOfMessage == nsMsgKey_None)
       continue;
@@ -91,8 +91,8 @@ int main(int argc, char** argv)
   {18, kImapMsgSeenFlag, 4}};
 
   nsRefPtr<nsImapFlagAndUidState> flagState = new nsImapFlagAndUidState(10);
-  PRInt32 numMsgs = sizeof(msgState1) / sizeof(msgState1[0]);
-  for (PRInt32 i = 0; i < numMsgs; i++)
+  int32_t numMsgs = sizeof(msgState1) / sizeof(msgState1[0]);
+  for (int32_t i = 0; i < numMsgs; i++)
         flagState->AddUidFlagPair(msgState1[i].uid, msgState1[i].flag,
                                   msgState1[i].index);
 
@@ -113,7 +113,7 @@ int main(int argc, char** argv)
     {71, kImapMsgSeenFlag, 70},
     {73, kImapMsgSeenFlag, 71}};
   numMsgs = sizeof(msgState2) / sizeof(msgState2[0]);
-  for (PRInt32 i = 0; i < numMsgs; i++)
+  for (int32_t i = 0; i < numMsgs; i++)
     flagState->AddUidFlagPair(msgState2[i].uid, msgState2[i].flag,
                               msgState2[i].index);
   error = MainChecks(flagState, msgState2, numMsgs, 0);
@@ -137,13 +137,13 @@ int main(int argc, char** argv)
 
   flagState->SetPartialUIDFetch(false);
   numMsgs = sizeof(msgState3) / sizeof(msgState3[0]);
-  for (PRInt32 i = 0; i < numMsgs; i++)
+  for (int32_t i = 0; i < numMsgs; i++)
     flagState->AddUidFlagPair(msgState3[i].uid, msgState3[i].flag,
                               msgState3[i].index);
   flagState->ExpungeByIndex(2);
   nsCString uidString;
-  PRUint32 msgUids[] = {69,71};
-  PRUint32 msgCount = 2;
+  uint32_t msgUids[] = {69,71};
+  uint32_t msgCount = 2;
   AllocateImapUidString(&msgUids[0], msgCount, flagState, uidString);
   if (!uidString.EqualsLiteral("71"))
   {
@@ -162,11 +162,11 @@ int main(int argc, char** argv)
 
   flagState->SetPartialUIDFetch(false);
   numMsgs = sizeof(msgState4) / sizeof(msgState4[0]);
-  for (PRInt32 i = 0; i < numMsgs; i++)
+  for (int32_t i = 0; i < numMsgs; i++)
     flagState->AddUidFlagPair(msgState4[i].uid, msgState4[i].flag,
                               msgState4[i].index);
   flagState->ExpungeByIndex(4);
-  PRUint32 msgUids2[] = {69,71,73};
+  uint32_t msgUids2[] = {69,71,73};
   msgCount = 3;
   nsCString uidString2;
 

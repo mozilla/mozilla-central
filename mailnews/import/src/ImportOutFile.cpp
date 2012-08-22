@@ -35,7 +35,7 @@ ImportOutFile::ImportOutFile()
   m_pTransBuf = nullptr;
 }
 
-ImportOutFile::ImportOutFile(nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz)
+ImportOutFile::ImportOutFile(nsIFile *pFile, uint8_t * pBuf, uint32_t sz)
 {
   m_pTransBuf = nullptr;
   m_pTransOut = nullptr;
@@ -101,12 +101,12 @@ bool ImportOutFile::End8bitTranslation(bool *pEngaged, nsCString& useCharset, ns
   return bResult;
 }
 
-bool ImportOutFile::InitOutFile(nsIFile *pFile, PRUint32 bufSz)
+bool ImportOutFile::InitOutFile(nsIFile *pFile, uint32_t bufSz)
 {
   if (!bufSz)
     bufSz = 32 * 1024;
   if (!m_pBuf)
-    m_pBuf = new PRUint8[ bufSz];
+    m_pBuf = new uint8_t[ bufSz];
 
   if (!m_outputStream)
   {
@@ -131,7 +131,7 @@ bool ImportOutFile::InitOutFile(nsIFile *pFile, PRUint32 bufSz)
   return true;
 }
 
-void ImportOutFile::InitOutFile(nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz)
+void ImportOutFile::InitOutFile(nsIFile *pFile, uint8_t * pBuf, uint32_t sz)
 {
   m_ownsFileAndBuffer = false;
   m_pFile = pFile;
@@ -147,7 +147,7 @@ bool ImportOutFile::Flush(void)
   if (!m_pos)
     return true;
 
-  PRUint32  transLen;
+  uint32_t  transLen;
   bool      duddleyDoWrite = false;
 
   // handle translations if appropriate
@@ -173,8 +173,8 @@ bool ImportOutFile::Flush(void)
     }
     else {
       // should we engage?
-      PRUint8 *  pChar = m_pBuf;
-      PRUint32  len = m_pos;
+      uint8_t *  pChar = m_pBuf;
+      uint32_t  len = m_pos;
       while (len) {
         if (!ImportCharSet::IsUSAscii(*pChar))
           break;
@@ -185,7 +185,7 @@ bool ImportOutFile::Flush(void)
         m_engaged = true;
         if (m_supports8to7) {
           // allocate our translation output buffer and file...
-          m_pTransBuf = new PRUint8[m_bufSz];
+          m_pTransBuf = new uint8_t[m_bufSz];
           m_pTransOut = new ImportOutFile(m_pFile, m_pTransBuf, m_bufSz);
           return Flush();
         }
@@ -201,9 +201,9 @@ bool ImportOutFile::Flush(void)
     duddleyDoWrite = true;
 
   if (duddleyDoWrite) {
-    PRUint32 written = 0;
-    nsresult rv = m_outputStream->Write((const char *)m_pBuf, (PRInt32)m_pos, &written);
-    if (NS_FAILED(rv) || ((PRUint32)written != m_pos))
+    uint32_t written = 0;
+    nsresult rv = m_outputStream->Write((const char *)m_pBuf, (int32_t)m_pos, &written);
+    if (NS_FAILED(rv) || ((uint32_t)written != m_pos))
       return false;
     m_pos = 0;
   }
@@ -211,7 +211,7 @@ bool ImportOutFile::Flush(void)
   return true;
 }
 
-bool ImportOutFile::WriteU8NullTerm(const PRUint8 * pSrc, bool includeNull)
+bool ImportOutFile::WriteU8NullTerm(const uint8_t * pSrc, bool includeNull)
 {
   while (*pSrc) {
     if (m_pos >= m_bufSz) {
@@ -241,7 +241,7 @@ bool ImportOutFile::SetMarker(int markerID)
   }
 
   if (markerID < kMaxMarkers) {
-    PRInt64 pos = 0;
+    int64_t pos = 0;
     if (m_outputStream)
                 {
                   // do we need to flush for the seek to give us the right pos?
@@ -255,7 +255,7 @@ bool ImportOutFile::SetMarker(int markerID)
         return false;
       }
     }
-    m_markers[markerID] = (PRUint32)pos + m_pos;
+    m_markers[markerID] = (uint32_t)pos + m_pos;
   }
 
   return true;
@@ -274,7 +274,7 @@ bool ImportOutFile::WriteStrAtMarker(int markerID, const char *pStr)
 
   if (!Flush())
     return false;
-  PRInt64    pos;
+  int64_t    pos;
         m_outputStream->Flush();
         nsresult rv;
         nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(m_outputStream, &rv);
@@ -282,10 +282,10 @@ bool ImportOutFile::WriteStrAtMarker(int markerID, const char *pStr)
   rv = seekStream->Tell(&pos);
   if (NS_FAILED(rv))
     return false;
-  rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, (PRInt32) m_markers[markerID]);
+  rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, (int32_t) m_markers[markerID]);
   if (NS_FAILED(rv))
     return false;
-  PRUint32 written;
+  uint32_t written;
   rv = m_outputStream->Write(pStr, strlen(pStr), &written);
   if (NS_FAILED(rv))
     return false;

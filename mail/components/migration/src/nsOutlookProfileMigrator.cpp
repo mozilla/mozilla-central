@@ -35,7 +35,7 @@ nsresult nsOutlookProfileMigrator::ContinueImport()
 NS_IMETHODIMP
 nsOutlookProfileMigrator::Notify(nsITimer *timer)
 {
-  PRInt32 progress;
+  int32_t progress;
   mGenericImporter->GetProgress(&progress);
 
   nsAutoString index;
@@ -63,7 +63,7 @@ nsOutlookProfileMigrator::Notify(nsITimer *timer)
 // nsIMailProfileMigrator
 
 NS_IMETHODIMP
-nsOutlookProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup, const PRUnichar* aProfile)
+nsOutlookProfileMigrator::Migrate(uint16_t aItems, nsIProfileStartup* aStartup, const PRUnichar* aProfile)
 {
   nsresult rv = NS_OK;
 
@@ -87,7 +87,7 @@ nsOutlookProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup, 
 }
 
 NS_IMETHODIMP
-nsOutlookProfileMigrator::GetMigrateData(const PRUnichar* aProfile, bool aReplace, PRUint16* aResult)
+nsOutlookProfileMigrator::GetMigrateData(const PRUnichar* aProfile, bool aReplace, uint16_t* aResult)
 {
   // There's no harm in assuming everything is available.
   *aResult = nsIMailProfileMigrator::ACCOUNT_SETTINGS | nsIMailProfileMigrator::ADDRESSBOOK_DATA |

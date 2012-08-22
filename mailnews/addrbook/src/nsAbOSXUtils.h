@@ -30,7 +30,7 @@ class nsAbOSXUtils
 {
 public:
     static const nsAbOSXPropertyMap kPropertyMap[];
-    static const PRUint32 kPropertyMapSize;
+    static const uint32_t kPropertyMapSize;
 };
 
 #endif // nsAbOSXUtils_h___

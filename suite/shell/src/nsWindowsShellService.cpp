@@ -418,7 +418,7 @@ nsWindowsShellService::ShortcutMaintenance()
    testing each key to see if we are handling it.
 */
 bool
-nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
+nsWindowsShellService::TestForDefault(SETTING aSettings[], int32_t aSize)
 {
   PRUnichar currValue[MAX_BUF];
   SETTING* end = aSettings + aSize;
@@ -428,10 +428,10 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
     NS_ConvertUTF8toUTF16 key(settings->keyName);
     NS_ConvertUTF8toUTF16 value(settings->valueName);
     if (settings->flags & APP_PATH_SUBSTITUTION) {
-      PRInt32 offset = dataLongPath.Find("%APPPATH%");
+      int32_t offset = dataLongPath.Find("%APPPATH%");
       dataLongPath.Replace(offset, 9, mAppLongPath);
       // Remove the quotes around %APPPATH% in VAL_OPEN for short paths
-      PRInt32 offsetQuoted = dataShortPath.Find("\"%APPPATH%\"");
+      int32_t offsetQuoted = dataShortPath.Find("\"%APPPATH%\"");
       if (offsetQuoted != -1)
         dataShortPath.Replace(offsetQuoted, 11, mAppShortPath);
       else
@@ -480,7 +480,7 @@ nsresult nsWindowsShellService::Init()
 }
 
 bool
-nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, bool* aIsDefaultClient)
+nsWindowsShellService::IsDefaultClientVista(uint16_t aApps, bool* aIsDefaultClient)
 {
   IApplicationAssociationRegistration* pAAR;
 
@@ -510,7 +510,7 @@ nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, bool* aIsDefaultClie
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool *aIsDefaultClient)
+nsWindowsShellService::IsDefaultClient(bool aStartupCheck, uint16_t aApps, bool *aIsDefaultClient)
 {
   // If this is the first application window, maintain internal state that we've
   // checked this session (so that subsequent window opens don't show the
@@ -550,7 +550,7 @@ nsWindowsShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool 
 
 NS_IMETHODIMP
 nsWindowsShellService::SetDefaultClient(bool aForAllUsers,
-                                        bool aClaimAllTypes, PRUint16 aApps)
+                                        bool aClaimAllTypes, uint16_t aApps)
 {
   nsAutoString appHelperPath;
   if (NS_FAILED(GetHelperPath(appHelperPath)))
@@ -610,19 +610,19 @@ nsWindowsShellService::SetShouldCheckDefaultClient(bool aShouldCheck)
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::GetShouldBeDefaultClientFor(PRUint16* aApps)
+nsWindowsShellService::GetShouldBeDefaultClientFor(uint16_t* aApps)
 {
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  PRInt32 result;
+  int32_t result;
   rv = prefs->GetIntPref("shell.checkDefaultApps", &result);
   *aApps = result;
   return rv;
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::SetShouldBeDefaultClientFor(PRUint16 aApps)
+nsWindowsShellService::SetShouldBeDefaultClientFor(uint16_t aApps)
 {
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
@@ -646,14 +646,14 @@ WriteBitmap(nsIFile* aFile, imgIContainer* aImage)
                                   getter_AddRefs(image));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRInt32 width = image->Width();
-  PRInt32 height = image->Height();
+  int32_t width = image->Width();
+  int32_t height = image->Height();
 
-  PRUint8* bits = image->Data();
-  PRUint32 length = image->GetDataSize();
-  PRUint32 bpr = PRUint32(image->Stride());
+  uint8_t* bits = image->Data();
+  uint32_t length = image->GetDataSize();
+  uint32_t bpr = uint32_t(image->Stride());
 
-  PRInt32 bitCount = bpr / width;
+  int32_t bitCount = bpr / width;
 
   // initialize these bitmap structs which we will later
   // serialize directly to the head of the bitmap file
@@ -685,14 +685,14 @@ WriteBitmap(nsIFile* aFile, imgIContainer* aImage)
   // write the bitmap headers and rgb pixel data to the file
   rv = NS_ERROR_FAILURE;
   if (stream) {
-    PRUint32 written;
+    uint32_t written;
     stream->Write((const char*)&bf, sizeof(BITMAPFILEHEADER), &written);
     if (written == sizeof(BITMAPFILEHEADER)) {
       stream->Write((const char*)&bmi, sizeof(BITMAPINFOHEADER), &written);
       if (written == sizeof(BITMAPINFOHEADER)) {
         // write out the image data backwards because the desktop won't
         // show bitmaps with negative heights for top-to-bottom
-        PRUint32 i = length;
+        uint32_t i = length;
         rv = NS_OK;
         do {
           i -= bpr;
@@ -714,7 +714,7 @@ WriteBitmap(nsIFile* aFile, imgIContainer* aImage)
 
 NS_IMETHODIMP
 nsWindowsShellService::SetDesktopBackground(nsIDOMElement* aElement,
-                                            PRInt32 aPosition)
+                                            int32_t aPosition)
 {
   nsresult rv;
 
@@ -818,15 +818,15 @@ nsWindowsShellService::SetDesktopBackground(nsIDOMElement* aElement,
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::GetDesktopBackgroundColor(PRUint32* aColor)
+nsWindowsShellService::GetDesktopBackgroundColor(uint32_t* aColor)
 {
-  PRUint32 color = ::GetSysColor(COLOR_DESKTOP);
+  uint32_t color = ::GetSysColor(COLOR_DESKTOP);
   *aColor = (GetRValue(color) << 16) | (GetGValue(color) << 8) | GetBValue(color);
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::SetDesktopBackgroundColor(PRUint32 aColor)
+nsWindowsShellService::SetDesktopBackgroundColor(uint32_t aColor)
 {
   int parameter = COLOR_DESKTOP;
   BYTE r = (aColor >> 16);

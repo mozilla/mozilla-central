@@ -23,7 +23,7 @@ MimeDefClass(MimeInlineTextPlain, MimeInlineTextPlainClass,
        mimeInlineTextPlainClass, &MIME_SUPERCLASS);
 
 static int MimeInlineTextPlain_parse_begin (MimeObject *);
-static int MimeInlineTextPlain_parse_line (const char *, PRInt32, MimeObject *);
+static int MimeInlineTextPlain_parse_line (const char *, int32_t, MimeObject *);
 static int MimeInlineTextPlain_parse_eof (MimeObject *, bool);
 
 static int
@@ -39,8 +39,8 @@ MimeInlineTextPlainClassInitialize(MimeInlineTextPlainClass *clazz)
 
 extern "C"
 void
-MimeTextBuildPrefixCSS(PRInt32    quotedSizeSetting,   // mail.quoted_size
-                       PRInt32    quotedStyleSetting,  // mail.quoted_style
+MimeTextBuildPrefixCSS(int32_t    quotedSizeSetting,   // mail.quoted_size
+                       int32_t    quotedStyleSetting,  // mail.quoted_style
                        char       *citationColor,      // mail.citation_color
                        nsACString &style)
 {
@@ -143,8 +143,8 @@ MimeInlineTextPlain_parse_begin (MimeObject *obj)
         if (nsMimeOutput::nsMimeMessageBodyDisplay == obj->options->format_out ||
             nsMimeOutput::nsMimeMessagePrintOutput == obj->options->format_out)
         {
-          PRInt32 fontSize;       // default font size
-          PRInt32 fontSizePercentage;   // size percentage
+          int32_t fontSize;       // default font size
+          int32_t fontSizePercentage;   // size percentage
           nsresult rv = GetMailNewsFont(obj,
                              !obj->options->variable_width_plaintext_p,
                              &fontSize, &fontSizePercentage, fontLang);
@@ -270,7 +270,7 @@ MimeInlineTextPlain_parse_eof (MimeObject *obj, bool abort_p)
 
 
 static int
-MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *obj)
+MimeInlineTextPlain_parse_line (const char *line, int32_t length, MimeObject *obj)
 {
   int status;
   bool quoting = ( obj->options
@@ -328,14 +328,14 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
     nsCAutoString prefaceResultStr;  // Quoting stuff before the real text
 
     // Recognize quotes
-    PRUint32 oldCiteLevel = text->mCiteLevel;
-    PRUint32 logicalLineStart = 0;
+    uint32_t oldCiteLevel = text->mCiteLevel;
+    uint32_t logicalLineStart = 0;
     rv = conv->CiteLevelTXT(lineSourceStr.get(),
                             &logicalLineStart, &(text->mCiteLevel));
     NS_ENSURE_SUCCESS(rv, -1);
 
     // Find out, which recognitions to do
-    PRUint32 whattodo = obj->options->whattodo;
+    uint32_t whattodo = obj->options->whattodo;
     if (plainHTML)
     {
       if (quoting)
@@ -353,7 +353,7 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
     if (text->mCiteLevel > oldCiteLevel)
     {
       prefaceResultStr += "</pre>";
-      for (PRUint32 i = 0; i < text->mCiteLevel - oldCiteLevel; i++)
+      for (uint32_t i = 0; i < text->mCiteLevel - oldCiteLevel; i++)
       {
         nsCAutoString style;
         MimeTextBuildPrefixCSS(text->mQuotedSizeSetting, text->mQuotedStyleSetting,
@@ -372,7 +372,7 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
     else if (text->mCiteLevel < oldCiteLevel)
     {
       prefaceResultStr += "</pre>";
-      for (PRUint32 i = 0; i < oldCiteLevel - text->mCiteLevel; i++)
+      for (uint32_t i = 0; i < oldCiteLevel - text->mCiteLevel; i++)
         prefaceResultStr += "</blockquote>";
       prefaceResultStr += "<pre wrap>\n";
     }

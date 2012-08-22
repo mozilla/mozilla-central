@@ -24,14 +24,14 @@ nsLDAPBERValue::~nsLDAPBERValue()
 // void get (out unsigned long aCount, 
 //           [array, size_is (aCount), retval] out octet aRetVal); */
 NS_IMETHODIMP 
-nsLDAPBERValue::Get(PRUint32 *aCount, PRUint8 **aRetVal)
+nsLDAPBERValue::Get(uint32_t *aCount, uint8_t **aRetVal)
 {
     // if mSize = 0, return a count of a 0 and a null pointer
 
     if (mSize) {
         // get a buffer to hold a copy of the data
         //
-        PRUint8 *array = static_cast<PRUint8 *>(nsMemory::Alloc(mSize));
+        uint8_t *array = static_cast<uint8_t *>(nsMemory::Alloc(mSize));
 
         if (!array) {
             return NS_ERROR_OUT_OF_MEMORY;
@@ -52,7 +52,7 @@ nsLDAPBERValue::Get(PRUint32 *aCount, PRUint8 **aRetVal)
 // void set(in unsigned long aCount, 
 //          [array, size_is(aCount)] in octet aValue);
 NS_IMETHODIMP
-nsLDAPBERValue::Set(PRUint32 aCount, PRUint8 *aValue)
+nsLDAPBERValue::Set(uint32_t aCount, uint8_t *aValue)
 {
     // get rid of any old value being held here
     //
@@ -65,7 +65,7 @@ nsLDAPBERValue::Set(PRUint32 aCount, PRUint8 *aValue)
     if (aCount) { 
         // get a buffer to hold a copy of this data
         //
-        mValue = static_cast<PRUint8 *>(nsMemory::Alloc(aCount));
+        mValue = static_cast<uint8_t *>(nsMemory::Alloc(aCount));
         if (!mValue) {
             return NS_ERROR_OUT_OF_MEMORY;
         }
@@ -98,7 +98,7 @@ nsLDAPBERValue::SetFromUTF8(const nsACString & aValue)
     //
     mSize = aValue.Length();
     if (mSize) {
-        mValue = reinterpret_cast<PRUint8 *>(ToNewCString(aValue));
+        mValue = reinterpret_cast<uint8_t *>(ToNewCString(aValue));
     } else {
         mValue = 0;
     }

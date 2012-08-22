@@ -17,7 +17,7 @@ class nsEudoraEditor
     nsEudoraEditor(const char * pBody, nsIFile * pMailImportLocation);
     ~nsEudoraEditor();
 
-    bool GetEmbeddedImageCID(PRUint32 aCIDHash, const nsAString & aOldRef, nsString &aCID);
+    bool GetEmbeddedImageCID(uint32_t aCIDHash, const nsAString & aOldRef, nsString &aCID);
     bool HasEmbeddedContent();
     nsresult GetEmbeddedObjects(nsISupportsArray ** aNodeList);
     nsresult GetBody(nsAString & _retval) {_retval = m_body; return NS_OK;}

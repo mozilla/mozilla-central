@@ -86,7 +86,7 @@ void nsFolderCompactState::CleanupTempFilesAfterError()
   summaryFile->Remove(false);
 }
 
-nsresult nsFolderCompactState::BuildMessageURI(const char *baseURI, PRUint32 key, nsCString& uri)
+nsresult nsFolderCompactState::BuildMessageURI(const char *baseURI, uint32_t key, nsCString& uri)
 {
   uri.Append(baseURI);
   uri.Append('#');
@@ -417,7 +417,7 @@ nsFolderCompactState::FinishCompact()
   m_folder->ForceDBClosed();
 
   nsCOMPtr<nsIFile> cloneFile;
-  PRInt64 fileSize;
+  int64_t fileSize;
   m_file->Clone(getter_AddRefs(cloneFile));
   cloneFile->GetFileSize(&fileSize);
   bool tempFileRightSize = (fileSize == m_totalMsgSize);
@@ -535,7 +535,7 @@ nsresult
 nsFolderCompactState::CompactNextFolder()
 {
   m_folderIndex++;
-  PRUint32 cnt = 0;
+  uint32_t cnt = 0;
   nsresult rv = m_folderArray->GetLength(&cnt);
   NS_ENSURE_SUCCESS(rv, rv);
   // m_folderIndex might be > cnt if we compact offline stores,
@@ -618,17 +618,17 @@ nsFolderCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt,
 NS_IMETHODIMP
 nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
                                       nsIInputStream *inStr,
-                                      PRUint32 sourceOffset, PRUint32 count)
+                                      uint32_t sourceOffset, uint32_t count)
 {
   if (!m_fileStream || !inStr) 
     return NS_ERROR_FAILURE;
 
   nsresult rv = NS_OK;
-  PRUint32 msgFlags;
+  uint32_t msgFlags;
   bool checkForKeyword = m_startOfMsg;
   bool addKeywordHdr = false;
-  PRUint32 needToGrowKeywords = 0;
-  PRUint32 statusOffset;
+  uint32_t needToGrowKeywords = 0;
+  uint32_t statusOffset;
   nsCString msgHdrKeywords;
 
   if (m_startOfMsg)
@@ -661,10 +661,10 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
     }
     m_startOfMsg = false;
   }
-  PRUint32 maxReadCount, readCount, writeCount;
-  PRUint32 bytesWritten;
+  uint32_t maxReadCount, readCount, writeCount;
+  uint32_t bytesWritten;
   
-  while (NS_SUCCEEDED(rv) && (PRInt32) count > 0)
+  while (NS_SUCCEEDED(rv) && (int32_t) count > 0)
   {
     maxReadCount = count > sizeof(m_dataBuffer) - 1 ? sizeof(m_dataBuffer) - 1 : count;
     writeCount = 0;
@@ -691,7 +691,7 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
         }
         checkForKeyword = false;
       }
-      PRUint32 blockOffset = 0;
+      uint32_t blockOffset = 0;
       if (m_needStatusLine)
       {
         m_needStatusLine = false;
@@ -776,7 +776,7 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
           MsgAdvanceToNextLine(m_dataBuffer, blockOffset, readCount); // skip x-mozilla-status hdr
         if (!strncmp(m_dataBuffer + blockOffset, X_MOZILLA_STATUS2, X_MOZILLA_STATUS2_LEN))
           MsgAdvanceToNextLine(m_dataBuffer, blockOffset, readCount); // skip x-mozilla-status2 hdr
-        PRUint32 preKeywordBlockOffset = blockOffset;
+        uint32_t preKeywordBlockOffset = blockOffset;
         if (!strncmp(m_dataBuffer + blockOffset, HEADER_X_MOZILLA_KEYWORDS, sizeof(HEADER_X_MOZILLA_KEYWORDS) - 1))
         {
           do
@@ -786,7 +786,7 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
           }
           while (m_dataBuffer[blockOffset] == ' ');
         }
-        PRInt32 oldKeywordSize = blockOffset - preKeywordBlockOffset;
+        int32_t oldKeywordSize = blockOffset - preKeywordBlockOffset;
 
         // rewrite the headers up to and including the x-mozilla-status2 header
         m_fileStream->Write(m_dataBuffer, preKeywordBlockOffset, &writeCount);
@@ -794,9 +794,9 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
         // instead of worrying about which are missing.
         bool done = false;
         nsCAutoString keywordHdr(HEADER_X_MOZILLA_KEYWORDS ": ");
-        PRInt32 nextBlankOffset = 0;
-        PRInt32 curHdrLineStart = 0;
-        PRInt32 newKeywordSize = 0;
+        int32_t nextBlankOffset = 0;
+        int32_t curHdrLineStart = 0;
+        int32_t newKeywordSize = 0;
         while (!done)
         {
           nextBlankOffset = msgHdrKeywords.FindChar(' ', nextBlankOffset);
@@ -883,7 +883,7 @@ nsresult nsOfflineStoreCompactState::CopyNextMessage(bool &done)
       m_curIndex++;
       // Turn off offline flag for message, since after the compact is completed;
       // we won't have the message in the offline store.
-      PRUint32 resultFlags;
+      uint32_t resultFlags;
       hdr->AndFlags(~nsMsgMessageFlags::Offline, &resultFlags);
       // We need to clear this in case the user changes the offline retention
       // settings.
@@ -906,7 +906,7 @@ nsresult nsOfflineStoreCompactState::CopyNextMessage(bool &done)
       GetMessage(getter_AddRefs(hdr));
       if (hdr)
       {
-        PRUint32 resultFlags;
+        uint32_t resultFlags;
         hdr->AndFlags(~nsMsgMessageFlags::Offline, &resultFlags);
       }
       m_curIndex++;
@@ -953,7 +953,7 @@ nsOfflineStoreCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt
     }
     else
     {
-      PRUint32 resultFlags;
+      uint32_t resultFlags;
       msgHdr->AndFlags(~nsMsgMessageFlags::Offline, &resultFlags);
     }
   }
@@ -995,7 +995,7 @@ nsOfflineStoreCompactState::FinishCompact()
 {
   // All okay time to finish up the compact process
   nsCOMPtr<nsIFile> path;
-  PRUint32 flags;
+  uint32_t flags;
 
     // get leaf name and database name of the folder
   m_folder->GetFlags(&flags);
@@ -1019,7 +1019,7 @@ nsOfflineStoreCompactState::FinishCompact()
   if (dbFolderInfo)
     dbFolderInfo->SetExpungedBytes(0);
   // this forces the m_folder to update mExpungedBytes from the db folder info.
-  PRUint32 expungedBytes;
+  uint32_t expungedBytes;
   m_folder->GetExpungedBytes(&expungedBytes);
   m_folder->UpdateSummaryTotals(true);
   m_db->SetSummaryValid(true);
@@ -1057,7 +1057,7 @@ nsFolderCompactState::StartMessage()
     // but it doesn't, and I'm afraid to change that nsIFileStream.cpp code anymore.
     seekableStream->Seek(nsISeekableStream::NS_SEEK_CUR, 0);
     // record the new message key for the message
-    PRInt64 curStreamPos;
+    int64_t curStreamPos;
     seekableStream->Tell(&curStreamPos);
     m_startOfNewMsg = curStreamPos;
     rv = NS_OK;
@@ -1105,7 +1105,7 @@ nsFolderCompactState::EndCopy(nsISupports *url, nsresult aStatus)
     newMsgHdr->SetStringProperty("storeToken", storeToken);
     newMsgHdr->SetMessageOffset(m_startOfNewMsg);
 
-    PRUint32 msgSize;
+    uint32_t msgSize;
     (void) newMsgHdr->GetMessageSize(&msgSize);
     if (m_addedHeaderSize)
     {
@@ -1149,7 +1149,7 @@ nsresult nsOfflineStoreCompactState::StartCompacting()
 NS_IMETHODIMP
 nsOfflineStoreCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
                                             nsIInputStream *inStr,
-                                            PRUint32 sourceOffset, PRUint32 count)
+                                            uint32_t sourceOffset, uint32_t count)
 {
   if (!m_fileStream || !inStr) 
     return NS_ERROR_FAILURE;
@@ -1168,10 +1168,10 @@ nsOfflineStoreCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ct
       NS_ENSURE_SUCCESS(rv, rv);
     }
   }
-  PRUint32 maxReadCount, readCount, writeCount;
-  PRUint32 bytesWritten;
+  uint32_t maxReadCount, readCount, writeCount;
+  uint32_t bytesWritten;
 
-  while (NS_SUCCEEDED(rv) && (PRInt32) count > 0)
+  while (NS_SUCCEEDED(rv) && (int32_t) count > 0)
   {
     maxReadCount = count > sizeof(m_dataBuffer) - 1 ? sizeof(m_dataBuffer) - 1 : count;
     writeCount = 0;

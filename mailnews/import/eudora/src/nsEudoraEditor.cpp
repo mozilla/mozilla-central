@@ -18,10 +18,10 @@ static char *     sEudoraEmbeddedContentLines[] = {
 };
 
 // Lightly adapted from code in Windows Eudora that hashes the img src cid.
-static PRUint32 EudoraHashString(const char* pszStr)
+static uint32_t EudoraHashString(const char* pszStr)
 {
-  PRUint32        ulSum = 0;
-  const PRUint32  kKRHashPrime = 2147483629;
+  uint32_t        ulSum = 0;
+  const uint32_t  kKRHashPrime = 2147483629;
 
   // algorithm: KRHash---derived from Karp & Rabin, Harvard Center for Research
   // in Computing Technology Tech. Report TR-31-81. The constant prime number,
@@ -30,7 +30,7 @@ static PRUint32 EudoraHashString(const char* pszStr)
 
   for (; *pszStr; pszStr++)
   {
-    for (PRInt32 nBit = 0x80; nBit != 0; nBit >>= 1)
+    for (int32_t nBit = 0x80; nBit != 0; nBit >>= 1)
     {
       ulSum += ulSum;
       if (ulSum >= kKRHashPrime)
@@ -95,7 +95,7 @@ nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
   // valid "Embedded Content" lines. (In practice this is not super important,
   // but there were some proof of concept exploits at one point where "Embedded
   // Content" lines were faked in the body of messages).
-  PRInt32     startLastClosingTag = m_body.RFind("</");
+  int32_t     startLastClosingTag = m_body.RFind("</");
   if (startLastClosingTag == kNotFound)
     startLastClosingTag = 0;
   bool        foundEmbeddedContentLines = false;
@@ -103,11 +103,11 @@ nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
   // Search for various translations of "Embedded Content" - as of this writing only
   // one that I know of, but then again I didn't realize that Eudora translators had
   // ever translated "Attachment Converted" as suggested by other Eudora importing code.
-  for (PRInt32 i = 0; *sEudoraEmbeddedContentLines[i] != '\0'; i++)
+  for (int32_t i = 0; *sEudoraEmbeddedContentLines[i] != '\0'; i++)
   {
     // Search for "Embedded Content: " lines starting after last closing tag (if any)
-    PRInt32   startEmbeddedContentLine = startLastClosingTag;
-    PRInt32   lenEmbeddedContentTag = strlen(sEudoraEmbeddedContentLines[i]);
+    int32_t   startEmbeddedContentLine = startLastClosingTag;
+    int32_t   lenEmbeddedContentTag = strlen(sEudoraEmbeddedContentLines[i]);
 
     while ((startEmbeddedContentLine = m_body.Find(sEudoraEmbeddedContentLines[i],
                                                    true,
@@ -118,8 +118,8 @@ nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
       foundEmbeddedContentLines = true;
 
       // Extract the file name from the embedded content line
-      PRInt32   startFileName = startEmbeddedContentLine + lenEmbeddedContentTag;
-      PRInt32   endFileName = m_body.Find(":", false, startFileName);
+      int32_t   startFileName = startEmbeddedContentLine + lenEmbeddedContentTag;
+      int32_t   endFileName = m_body.Find(":", false, startFileName);
 
       // Create the file spec for the embedded image
       embeddedFolderSpec->Clone(getter_AddRefs(embeddedImageSpec));
@@ -134,12 +134,12 @@ nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
         continue;
 
       // Extract CID hash from the embedded content line
-      PRInt32     cidHashValue;
-      PRInt32     startCIDHash = m_body.Find(",", false, endFileName);
+      int32_t     cidHashValue;
+      int32_t     startCIDHash = m_body.Find(",", false, endFileName);
       if (startCIDHash != kNotFound)
       {
         startCIDHash++;
-        PRInt32   endCIDHash = m_body.Find(",", false, startCIDHash);
+        int32_t   endCIDHash = m_body.Find(",", false, startCIDHash);
 
         if (endCIDHash != kNotFound)
         {
@@ -175,7 +175,7 @@ nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
       // Append the embedded image node to the list
       m_EmbeddedObjectList->AppendElement(imageData);
 
-      PRInt32   endEmbeddedContentLine = m_body.Find("\r\n", true, startEmbeddedContentLine+1);
+      int32_t   endEmbeddedContentLine = m_body.Find("\r\n", true, startEmbeddedContentLine+1);
       if (endEmbeddedContentLine != kNotFound)
       {
         // We recognized the "Embedded Content" line correctly and found the associated image.
@@ -195,11 +195,11 @@ nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
   return NS_OK;
 }
 
-bool nsEudoraEditor::GetEmbeddedImageCID(PRUint32 aCIDHash, const nsAString & aOldRef, nsString &aCID)
+bool nsEudoraEditor::GetEmbeddedImageCID(uint32_t aCIDHash, const nsAString & aOldRef, nsString &aCID)
 {
   bool      foundMatch = false;
-  PRInt32   startImageTag = 0;
-  PRInt32   closeImageTag = 0;
+  int32_t   startImageTag = 0;
+  int32_t   closeImageTag = 0;
 
   while ((startImageTag = m_body.Find("<img", true, closeImageTag)) != kNotFound)
   {
@@ -210,7 +210,7 @@ bool nsEudoraEditor::GetEmbeddedImageCID(PRUint32 aCIDHash, const nsAString & aO
       break;
 
     // Find the source attribute and make sure it's for our image tag
-    PRInt32   startSrcValue = m_body.Find("src", true, startImageTag);
+    int32_t   startSrcValue = m_body.Find("src", true, startImageTag);
     if ((startSrcValue == kNotFound) || (startSrcValue > closeImageTag))
       continue;
 
@@ -240,8 +240,8 @@ bool nsEudoraEditor::GetEmbeddedImageCID(PRUint32 aCIDHash, const nsAString & aO
     // Move past the quote
     ++startSrcValue;
 
-    PRInt32   endSrcValue = m_body.FindChar(quoteChar, startSrcValue);
-    PRInt32   srcLength = endSrcValue - startSrcValue;
+    int32_t   endSrcValue = m_body.FindChar(quoteChar, startSrcValue);
+    int32_t   srcLength = endSrcValue - startSrcValue;
 
     nsString  srcValue;
     aCID.Assign(Substring(m_body, startSrcValue, srcLength));
@@ -255,7 +255,7 @@ bool nsEudoraEditor::GetEmbeddedImageCID(PRUint32 aCIDHash, const nsAString & aO
       // Remove "cid:" from the start
       aCID.Cut(0, 4);
 
-      PRUint32  hashValue = EudoraHashString(NS_LossyConvertUTF16toASCII(aCID).get());
+      uint32_t  hashValue = EudoraHashString(NS_LossyConvertUTF16toASCII(aCID).get());
       foundMatch = (hashValue == aCIDHash);
     }
     else
@@ -273,7 +273,7 @@ bool nsEudoraEditor::HasEmbeddedContent()
   // Simple quick test to see if there's any embedded content lines
   bool     bHasEmbeddedContent = false;
 
-  for (PRInt32 i = 0; *sEudoraEmbeddedContentLines[i] != '\0'; i++)
+  for (int32_t i = 0; *sEudoraEmbeddedContentLines[i] != '\0'; i++)
   {
     bHasEmbeddedContent = (m_body.Find(sEudoraEmbeddedContentLines[i], true, 0) != kNotFound);
 

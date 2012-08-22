@@ -81,17 +81,17 @@ public:
 
   void  ClearList(void);
 
-  PRInt32  GetCount(void) { return m_count;}
+  int32_t  GetCount(void) { return m_count;}
 
-  ImportModuleDesc *  GetModuleDesc(PRInt32 idx)
+  ImportModuleDesc *  GetModuleDesc(int32_t idx)
     { if ((idx < 0) || (idx >= m_count)) return nullptr; else return m_pList[idx];}
 
 private:
 
 private:
     ImportModuleDesc **  m_pList;
-  PRInt32        m_alloc;
-  PRInt32        m_count;
+  int32_t        m_alloc;
+  int32_t        m_count;
 };
 
 #endif // nsImportService_h__

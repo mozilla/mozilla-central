@@ -41,7 +41,7 @@ struct MimeDecoderData {
 
 static int
 mime_decode_qp_buffer (MimeDecoderData *data, const char *buffer,
-          PRInt32 length, PRInt32 *outSize)
+          int32_t length, int32_t *outSize)
 {
   /* Warning, we are overwriting the buffer which was passed in.
    This is ok, because decoding these formats will never result
@@ -221,7 +221,7 @@ mime_decode_base64_token (const char *in, char *out)
 
 static int
 mime_decode_base64_buffer (MimeDecoderData *data,
-               const char *buffer, PRInt32 length, PRInt32 *outSize)
+               const char *buffer, int32_t length, int32_t *outSize)
 {
   /* Warning, we are overwriting the buffer which was passed in.
    This is ok, because decoding these formats will never result
@@ -307,7 +307,7 @@ mime_decode_base64_buffer (MimeDecoderData *data,
 
 static int
 mime_decode_uue_buffer (MimeDecoderData *data,
-            const char *input_buffer, PRInt32 input_length, PRInt32 *outSize)
+            const char *input_buffer, int32_t input_length, int32_t *outSize)
 {
   /* First, copy input_buffer into state->line_buffer until we have
    a complete line.
@@ -427,7 +427,7 @@ mime_decode_uue_buffer (MimeDecoderData *data,
     {
       /* We're in DS_BODY.  Decode the line. */
       char *in, *out;
-      PRInt32 i;
+      int32_t i;
       long lost;
 
       NS_ASSERTION (data->ds_state == DS_BODY, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
@@ -544,7 +544,7 @@ mime_decode_uue_buffer (MimeDecoderData *data,
 
 static int
 mime_decode_yenc_buffer (MimeDecoderData *data,
-            const char *input_buffer, PRInt32 input_length, PRInt32 *outSize)
+            const char *input_buffer, int32_t input_length, int32_t *outSize)
 {
   /* First, copy input_buffer into state->line_buffer until we have
    a complete line.
@@ -811,8 +811,8 @@ MimeYDecoderInit (MimeConverterOutputCallback output_fn,
 }
 
 int
-MimeDecoderWrite (MimeDecoderData *data, const char *buffer, PRInt32 size,
-          PRInt32 *outSize)
+MimeDecoderWrite (MimeDecoderData *data, const char *buffer, int32_t size,
+          int32_t *outSize)
 {
   NS_ASSERTION(data, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
   if (!data) return -1;
@@ -841,13 +841,13 @@ struct MimeEncoderData {
 
   /* Buffer for the base64 encoder. */
   unsigned char in_buffer[3];
-  PRInt32 in_buffer_count;
+  int32_t in_buffer_count;
 
   /* Buffer for uuencoded data. (Need a line because of the length byte.) */
   unsigned char uue_line_buf[128];
   bool uue_wrote_begin;
 
-  PRInt32 current_column, line_byte_count;
+  int32_t current_column, line_byte_count;
 
   char *filename; /* filename for use with uuencoding */
 
@@ -859,15 +859,15 @@ struct MimeEncoderData {
 
 int
 mime_encode_base64_buffer (MimeEncoderData *data,
-               const char *buffer, PRInt32 size)
+               const char *buffer, int32_t size)
 {
   int status = 0;
   const unsigned char *in = (unsigned char *) buffer;
   const unsigned char *end = in + size;
   char out_buffer[80];
   char *out = out_buffer;
-  PRUint32 i = 0, n = 0;
-  PRUint32 off;
+  uint32_t i = 0, n = 0;
+  uint32_t off;
 
   if (size == 0)
   return 0;
@@ -916,7 +916,7 @@ mime_encode_base64_buffer (MimeEncoderData *data,
    */
   while (in < end)
   {
-    PRInt32 j;
+    int32_t j;
 
     while (i < 3)
     {
@@ -963,7 +963,7 @@ mime_encode_base64_buffer (MimeEncoderData *data,
 
 
 int
-mime_encode_qp_buffer (MimeEncoderData *data, const char *buffer, PRInt32 size)
+mime_encode_qp_buffer (MimeEncoderData *data, const char *buffer, int32_t size)
 {
   int status = 0;
   static const char hexdigits[] = "0123456789ABCDEF";
@@ -1121,11 +1121,11 @@ MimeEncoderDestroy (MimeEncoderData *data, bool abort_p)
     char *out = buf;
     int j;
     /* fixed bug 55998, 61302, 61866
-     * type casting to PRUint32 before shifting
+     * type casting to uint32_t before shifting
      */
-    PRUint32 n = ((PRUint32) data->in_buffer[0]) << 16;
+    uint32_t n = ((uint32_t) data->in_buffer[0]) << 16;
     if (data->in_buffer_count > 1)
-    n = n | (((PRUint32) data->in_buffer[1]) << 8);
+    n = n | (((uint32_t) data->in_buffer[1]) << 8);
 
     buf2[0] = '\r';
     buf2[1] = '\n';
@@ -1199,7 +1199,7 @@ MimeUUEncoderInit (const char *filename,
 }
 
 int
-MimeEncoderWrite (MimeEncoderData *data, const char *buffer, PRInt32 size)
+MimeEncoderWrite (MimeEncoderData *data, const char *buffer, int32_t size)
 {
   NS_ASSERTION(data, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
   if (!data) return -1;

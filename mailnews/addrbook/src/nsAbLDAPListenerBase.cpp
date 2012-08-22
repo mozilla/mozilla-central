@@ -22,7 +22,7 @@ using namespace mozilla;
 nsAbLDAPListenerBase::nsAbLDAPListenerBase(nsILDAPURL* url,
                                            nsILDAPConnection* connection,
                                            const nsACString &login,
-                                           const PRInt32 timeOut) :
+                                           const int32_t timeOut) :
   mDirectoryUrl(url), mConnection(connection), mLogin(login),
   mTimeOut(timeOut), mBound(false), mInitialized(false),
   mLock("nsAbLDAPListenerBase.mLock")
@@ -281,7 +281,7 @@ nsresult nsAbLDAPListenerBase::OnLDAPMessageBind(nsILDAPMessage *aMessage)
 
   // see whether the bind actually succeeded
   //
-  PRInt32 errCode;
+  int32_t errCode;
   nsresult rv = aMessage->GetErrorCode(&errCode);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -308,7 +308,7 @@ nsresult nsAbLDAPListenerBase::OnLDAPMessageBind(nsILDAPMessage *aMessage)
       rv = mDirectoryUrl->GetPrePath(prePath);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      PRUint32 count;
+      uint32_t count;
       nsILoginInfo** logins;
 
       rv = loginMgr->FindLogins(&count, NS_ConvertUTF8toUTF16(prePath),
@@ -318,7 +318,7 @@ nsresult nsAbLDAPListenerBase::OnLDAPMessageBind(nsILDAPMessage *aMessage)
 
       // Typically there should only be one-login stored for this url, however,
       // just in case there isn't.
-      for (PRUint32 i = 0; i < count; ++i)
+      for (uint32_t i = 0; i < count; ++i)
       {
         rv = loginMgr->RemoveLogin(logins[i]);
         if (NS_FAILED(rv))

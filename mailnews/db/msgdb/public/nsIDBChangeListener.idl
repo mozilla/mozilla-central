@@ -95,7 +95,7 @@ interface  nsIDBChangeListener : nsISupports {
    * @param aStatus      storage location provided by calling routine for status
    * @param aInstigator  object that initiated the change
    */   
-  void onHdrPropertyChanged(in nsIMsgDBHdr aHdrToChange, in boolean aPreChange, inout PRUint32 aStatus,
+  void onHdrPropertyChanged(in nsIMsgDBHdr aHdrToChange, in boolean aPreChange, inout uint32_t aStatus,
                        in nsIDBChangeListener aInstigator);
 
   /**

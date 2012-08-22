@@ -391,10 +391,10 @@ extern int MimeObject_output_init(MimeObject *obj, const char *content_type);
    HTML or whitespace ("<P>", "</TABLE>", etc.)  This information is used
    when making the decision of whether a separating <HR> is needed.
  */
-extern int MimeObject_write(MimeObject *, const char *data, PRInt32 length,
+extern int MimeObject_write(MimeObject *, const char *data, int32_t length,
                             bool user_visible_p);
 extern int MimeOptions_write(MimeDisplayOptions *, nsCString &name,
-                             const char *data, PRInt32 length,
+                             const char *data, int32_t length,
                              bool user_visible_p);
 
 /* Writes out the right kind of HR (or rather, queues it for writing.) */

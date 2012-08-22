@@ -85,26 +85,26 @@ void CMapiMessage::FormatDateTime(SYSTEMTIME& tm, nsCString& s, bool includeTZ)
   long offset = _timezone;
   s += sDaysOfWeek[tm.wDayOfWeek];
   s += ", ";
-  s.AppendInt((PRInt32) tm.wDay);
+  s.AppendInt((int32_t) tm.wDay);
   s += " ";
   s += sMonths[tm.wMonth - 1];
   s += " ";
-  s.AppendInt((PRInt32) tm.wYear);
+  s.AppendInt((int32_t) tm.wYear);
   s += " ";
   int val = tm.wHour;
   if (val < 10)
     s += "0";
-  s.AppendInt((PRInt32) val);
+  s.AppendInt((int32_t) val);
   s += ":";
   val = tm.wMinute;
   if (val < 10)
     s += "0";
-  s.AppendInt((PRInt32) val);
+  s.AppendInt((int32_t) val);
   s += ":";
   val = tm.wSecond;
   if (val < 10)
     s += "0";
-  s.AppendInt((PRInt32) val);
+  s.AppendInt((int32_t) val);
   if (includeTZ) {
     s += " ";
     if (offset < 0) {
@@ -117,11 +117,11 @@ void CMapiMessage::FormatDateTime(SYSTEMTIME& tm, nsCString& s, bool includeTZ)
     val = (int) (offset / 60);
     if (val < 10)
       s += "0";
-    s.AppendInt((PRInt32) val);
+    s.AppendInt((int32_t) val);
     val = (int) (offset % 60);
     if (val < 10)
       s += "0";
-    s.AppendInt((PRInt32) val);
+    s.AppendInt((int32_t) val);
   }
 }
 
@@ -588,7 +588,7 @@ bool CMapiMessage::CheckBodyInCharsetRange(const char* charset)
   NS_ENSURE_SUCCESS(rv, false);
 
   const wchar_t *txt = m_body.get();
-  PRInt32 txtLen = m_body.Length();
+  int32_t txtLen = m_body.Length();
   const wchar_t *currentSrcPtr = txt;
   int srcLength;
   int dstLength;
@@ -1045,7 +1045,7 @@ bool CMapiMessage::AddAttachment(DWORD aNum)
       if (fname.IsEmpty()) {
         // If no description use "Attachment i" format.
         fname = L"Attachment ";
-        fname.AppendInt(static_cast<PRUint32>(aNum));
+        fname.AppendInt(static_cast<uint32_t>(aNum));
       }
       data->real_name = ToNewUTF8String(fname);
 
@@ -1058,7 +1058,7 @@ bool CMapiMessage::AddAttachment(DWORD aNum)
         CMapiApi::GetStringFromProp(pVal, tmp);
         MAPI_TRACE1("\t\t\t--- Mime type: %s\r\n", tmp.get());
         if (tmp.IsEmpty()) {
-          PRUint8 *pType = NULL;
+          uint8_t *pType = NULL;
           if (!fext.IsEmpty()) {
             pType = CMimeTypes::GetMimeType(fext);
           }
@@ -1447,7 +1447,7 @@ void CMapiMessageHeaders::write_to_stream::operator () (const CHeaderField* f)
   if (!f || NS_FAILED(m_rv))
     return;
 
-  PRUint32 written;
+  uint32_t written;
   m_rv = m_pDst->Write(f->fname(), strlen(f->fname()), &written);
   NS_ENSURE_SUCCESS(m_rv,);
   if (f->fbody()) {
@@ -1462,7 +1462,7 @@ nsresult CMapiMessageHeaders::ToStream(nsIOutputStream *pDst) const
   nsresult rv = std::for_each(m_headerFields.begin(), m_headerFields.end(),
                               write_to_stream(pDst));
   if (NS_SUCCEEDED(rv)) {
-    PRUint32 written;
+    uint32_t written;
     rv = pDst->Write("\x0D\x0A", 2, &written); // Separator line
   }
   return rv;

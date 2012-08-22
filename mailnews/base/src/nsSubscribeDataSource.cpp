@@ -391,7 +391,7 @@ nsSubscribeDataSource::GetServerAndRelativePathFromResource(nsIRDFResource *sour
     rv = incomingServer->GetServerURI(serverURI);
     NS_ENSURE_SUCCESS(rv,rv);
  
-    PRUint32 serverURILen = serverURI.Length();
+    uint32_t serverURILen = serverURI.Length();
     if (serverURILen == strlen(sourceURI))
       *relativePath = nullptr;
     else {
@@ -622,7 +622,7 @@ nsSubscribeDataSource::GetHasObservers(bool *hasObservers)
         return NS_OK;
     }
     
-    PRUint32 count = 0;
+    uint32_t count = 0;
     rv = mObservers->Count(&count);
     NS_ENSURE_SUCCESS(rv,rv);
 

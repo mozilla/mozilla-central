@@ -93,7 +93,7 @@ nsresult nsMailboxService::CopyMessage(const char * aSrcMailboxURI,
   return FetchMessage(aSrcMailboxURI, aMailboxCopyHandler, aMsgWindow, aUrlListener, nullptr, mailboxAction, nullptr, aURL);
 }
 
-nsresult nsMailboxService::CopyMessages(PRUint32 aNumKeys,
+nsresult nsMailboxService::CopyMessages(uint32_t aNumKeys,
                                         nsMsgKey* aMsgKeys,
                                         nsIMsgFolder *srcFolder,
                                         nsIStreamListener * aMailboxCopyHandler,
@@ -159,7 +159,7 @@ nsresult nsMailboxService::FetchMessage(const char* aMessageURI,
 
   if (!strncmp(aMessageURI, "file:", 5))
   {
-    PRInt64 fileSize;
+    int64_t fileSize;
     nsCOMPtr<nsIURI> fileUri;
     rv = NS_NewURI(getter_AddRefs(fileUri), aMessageURI);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -179,7 +179,7 @@ nsresult nsMailboxService::FetchMessage(const char* aMessageURI,
     {
       msgUrl->SetMsgWindow(aMsgWindow);
       nsCOMPtr <nsIMailboxUrl> mailboxUrl = do_QueryInterface(msgUrl, &rv);
-      mailboxUrl->SetMessageSize((PRUint32) fileSize);
+      mailboxUrl->SetMessageSize((uint32_t) fileSize);
       nsCOMPtr <nsIMsgHeaderSink> headerSink;
        // need to tell the header sink to capture some headers to create a fake db header
        // so we can do reply to a .eml file or a rfc822 msg attachment.
@@ -190,7 +190,7 @@ nsresult nsMailboxService::FetchMessage(const char* aMessageURI,
         nsCOMPtr <nsIMsgDBHdr> dummyHeader;
         headerSink->GetDummyMsgHeader(getter_AddRefs(dummyHeader));
         if (dummyHeader)
-          dummyHeader->SetMessageSize((PRUint32) fileSize);
+          dummyHeader->SetMessageSize((uint32_t) fileSize);
       }
     }
   }
@@ -198,7 +198,7 @@ nsresult nsMailboxService::FetchMessage(const char* aMessageURI,
   {
     // this happens with forward inline of message/rfc822 attachment
     // opened in a stand-alone msg window.
-    PRInt32 typeIndex = uriString.Find("&type=application/x-message-display");
+    int32_t typeIndex = uriString.Find("&type=application/x-message-display");
     if (typeIndex != -1)
     {
       uriString.Cut(typeIndex, sizeof("&type=application/x-message-display") - 1);
@@ -316,8 +316,8 @@ NS_IMETHODIMP nsMailboxService::StreamHeaders(const char *aMessageURI,
     return NS_MSG_MESSAGE_NOT_FOUND;
 
   nsCOMPtr<nsIInputStream> inputStream;
-  PRInt64 messageOffset;
-  PRUint32 messageSize;
+  int64_t messageOffset;
+  uint32_t messageSize;
   rv = folder->GetOfflineFileStream(msgKey, &messageOffset, &messageSize, getter_AddRefs(inputStream));
   NS_ENSURE_SUCCESS(rv, rv);
   return MsgStreamMsgHeaders(inputStream, aConsumer);
@@ -509,14 +509,14 @@ NS_IMETHODIMP nsMailboxService::GetScheme(nsACString &aScheme)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMailboxService::GetDefaultPort(PRInt32 *aDefaultPort)
+NS_IMETHODIMP nsMailboxService::GetDefaultPort(int32_t *aDefaultPort)
 {
   NS_ENSURE_ARG_POINTER(aDefaultPort);
   *aDefaultPort = -1;  // mailbox doesn't use a port!!!!!
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMailboxService::AllowPort(PRInt32 port, const char *scheme, bool *_retval)
+NS_IMETHODIMP nsMailboxService::AllowPort(int32_t port, const char *scheme, bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
   // don't override anything.
@@ -524,7 +524,7 @@ NS_IMETHODIMP nsMailboxService::AllowPort(PRInt32 port, const char *scheme, bool
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMailboxService::GetProtocolFlags(PRUint32 *result)
+NS_IMETHODIMP nsMailboxService::GetProtocolFlags(uint32_t *result)
 {
   NS_ENSURE_ARG_POINTER(result);
   *result = URI_STD | URI_FORBIDS_AUTOMATIC_DOCUMENT_REPLACEMENT |

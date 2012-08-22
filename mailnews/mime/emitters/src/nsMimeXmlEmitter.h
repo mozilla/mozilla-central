@@ -41,7 +41,7 @@ protected:
 
     // For header determination...
     bool                mXMLHeaderStarted; 
-    PRInt32             mAttachCount;
+    int32_t             mAttachCount;
 };
 
 #endif /* _nsMimeXmlEmitter_h_ */

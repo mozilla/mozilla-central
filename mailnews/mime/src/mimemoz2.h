@@ -40,7 +40,7 @@ typedef unsigned int
 #define MAX_WRITE_READY (((unsigned) (~0) << 1) >> 1)   /* must be <= than MAXINT!!!!! */
 
 typedef int
-(*MKSessionWriteFunc) (nsMIMESession *stream, const char *str, PRInt32 len);
+(*MKSessionWriteFunc) (nsMIMESession *stream, const char *str, int32_t len);
 
 typedef void
 (*MKSessionCompleteFunc) (nsMIMESession *stream);
@@ -142,7 +142,7 @@ void         *mime_bridge_create_display_stream(nsIMimeEmitter      *newEmitter,
                                                 nsStreamConverter   *newPluginObj2,
                                                 nsIURI              *uri,
                                                 nsMimeOutputType    format_out,
-                                                PRUint32            whattodo,
+                                                uint32_t            whattodo,
                                                 nsIChannel          *aChannel);
 
 // To get the mime emitter...
@@ -152,7 +152,7 @@ extern "C" nsIMimeEmitter   *GetMimeEmitter(MimeDisplayOptions *opt);
 extern "C" nsresult     mimeSetNewURL(nsMIMESession *stream, char *url);
 extern "C" nsresult     mimeEmitterAddAttachmentField(MimeDisplayOptions *opt, const char *field, const char *value);
 extern "C" nsresult     mimeEmitterAddHeaderField(MimeDisplayOptions *opt, const char *field, const char *value);
-extern "C" nsresult     mimeEmitterAddAllHeaders(MimeDisplayOptions *opt, const char *allheaders, const PRInt32 allheadersize);
+extern "C" nsresult     mimeEmitterAddAllHeaders(MimeDisplayOptions *opt, const char *allheaders, const int32_t allheadersize);
 extern "C" nsresult     mimeEmitterStartAttachment(MimeDisplayOptions *opt, const char *name, const char *contentType, const char *url,
                                                    bool aIsExternalAttachment);
 extern "C" nsresult     mimeEmitterEndAttachment(MimeDisplayOptions *opt);
@@ -174,11 +174,11 @@ mozITXTToHTMLConv           *GetTextConverter(MimeDisplayOptions *opt);
 
 nsresult
 HTML2Plaintext(const nsString& inString, nsString& outString,
-               PRUint32 flags, PRUint32 wrapCol);
+               uint32_t flags, uint32_t wrapCol);
 nsresult
 HTMLSanitize(const nsString& inString, nsString& outString);
 
-extern "C" char             *MimeGetStringByID(PRInt32 stringID);
+extern "C" char             *MimeGetStringByID(int32_t stringID);
 extern "C" char             *MimeGetStringByName(const PRUnichar *stringName);
 
 // Utility to create a nsIURI object...
@@ -186,7 +186,7 @@ extern "C" nsresult         nsMimeNewURI(nsIURI** aInstancePtrResult, const char
 
 extern "C" nsresult SetMailCharacterSetToMsgWindow(MimeObject *obj, const char *aCharacterSet);
 
-extern "C"  nsresult GetMailNewsFont(MimeObject *obj, bool styleFixed, PRInt32 *fontPixelSize, PRInt32 *fontSizePercentage, nsCString& fontLang);
+extern "C"  nsresult GetMailNewsFont(MimeObject *obj, bool styleFixed, int32_t *fontPixelSize, int32_t *fontSizePercentage, nsCString& fontLang);
 
 
 #ifdef __cplusplus

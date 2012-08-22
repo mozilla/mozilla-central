@@ -12,8 +12,8 @@
 #include "nsCOMPtr.h"
 
 nsMAPIConfiguration *nsMAPIConfiguration::m_pSelfRef = nullptr;
-PRUint32 nsMAPIConfiguration::session_generator = 0;
-PRUint32 nsMAPIConfiguration::sessionCount = 0;
+uint32_t nsMAPIConfiguration::session_generator = 0;
+uint32_t nsMAPIConfiguration::sessionCount = 0;
 
 nsMAPIConfiguration *nsMAPIConfiguration::GetMAPIConfiguration()
 {
@@ -47,13 +47,13 @@ void nsMAPIConfiguration::OpenConfiguration()
   return;
 }
 
-PRInt16 nsMAPIConfiguration::RegisterSession(PRUint32 aHwnd,
+int16_t nsMAPIConfiguration::RegisterSession(uint32_t aHwnd,
                 const PRUnichar *aUserName, const PRUnichar *aPassword,
                 bool aForceDownLoad, bool aNewSession,
-                PRUint32 *aSession, const char *aIdKey)
+                uint32_t *aSession, const char *aIdKey)
 {
-  PRInt16 nResult = 0;
-  PRUint32 n_SessionId = 0;
+  int16_t nResult = 0;
+  uint32_t n_SessionId = 0;
 
   PR_Lock(m_Lock);
 
@@ -109,7 +109,7 @@ PRInt16 nsMAPIConfiguration::RegisterSession(PRUint32 aHwnd,
   return nResult;
 }
 
-bool nsMAPIConfiguration::UnRegisterSession(PRUint32 aSessionID)
+bool nsMAPIConfiguration::UnRegisterSession(uint32_t aSessionID)
 {
   bool bResult = false;
 
@@ -137,7 +137,7 @@ bool nsMAPIConfiguration::UnRegisterSession(PRUint32 aSessionID)
   return bResult;
 }
 
-bool nsMAPIConfiguration::IsSessionValid(PRUint32 aSessionID)
+bool nsMAPIConfiguration::IsSessionValid(uint32_t aSessionID)
 {
   if (aSessionID == 0)
     return false;
@@ -148,7 +148,7 @@ bool nsMAPIConfiguration::IsSessionValid(PRUint32 aSessionID)
   return retValue;
 }
 
-PRUnichar *nsMAPIConfiguration::GetPassword(PRUint32 aSessionID)
+PRUnichar *nsMAPIConfiguration::GetPassword(uint32_t aSessionID)
 {
   PRUnichar *pResult = nullptr;
 
@@ -166,7 +166,7 @@ PRUnichar *nsMAPIConfiguration::GetPassword(PRUint32 aSessionID)
   return pResult;
 }
 
-void *nsMAPIConfiguration::GetMapiListContext(PRUint32 aSessionID)
+void *nsMAPIConfiguration::GetMapiListContext(uint32_t aSessionID)
 {
   void *pResult = nullptr;
 
@@ -184,7 +184,7 @@ void *nsMAPIConfiguration::GetMapiListContext(PRUint32 aSessionID)
   return pResult;
 }
 
-void nsMAPIConfiguration::SetMapiListContext(PRUint32 aSessionID, void *mapiListContext)
+void nsMAPIConfiguration::SetMapiListContext(uint32_t aSessionID, void *mapiListContext)
 {
   PR_Lock(m_Lock);
 
@@ -199,7 +199,7 @@ void nsMAPIConfiguration::SetMapiListContext(PRUint32 aSessionID, void *mapiList
   PR_Unlock(m_Lock);
 }
 
-void nsMAPIConfiguration::GetIdKey(PRUint32 aSessionID, nsCString& aKey)
+void nsMAPIConfiguration::GetIdKey(uint32_t aSessionID, nsCString& aKey)
 {
   PR_Lock(m_Lock);
   if (aSessionID != 0)
@@ -264,7 +264,7 @@ HRESULT nsMAPIConfiguration::GetMAPIErrorFromNSError (nsresult res)
 }
 
 
-nsMAPISession::nsMAPISession(PRUint32 aHwnd, const PRUnichar *aUserName,
+nsMAPISession::nsMAPISession(uint32_t aHwnd, const PRUnichar *aUserName,
                              const PRUnichar *aPassword, 
                              bool aForceDownLoad, const char *aKey)
 : m_bIsForcedDownLoad(aForceDownLoad),
@@ -281,17 +281,17 @@ nsMAPISession::~nsMAPISession()
 {
 }
 
-PRUint32 nsMAPISession::IncrementSession()
+uint32_t nsMAPISession::IncrementSession()
 {
   return ++m_nShared;
 }
 
-PRUint32 nsMAPISession::DecrementSession()
+uint32_t nsMAPISession::DecrementSession()
 {
   return --m_nShared;
 }
 
-PRUint32 nsMAPISession::GetSessionCount()
+uint32_t nsMAPISession::GetSessionCount()
 {
   return m_nShared;
 }

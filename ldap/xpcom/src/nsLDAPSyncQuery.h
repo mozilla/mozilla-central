@@ -37,7 +37,7 @@ class nsLDAPSyncQuery : public nsILDAPSyncQuery,
     nsCOMPtr<nsILDAPURL> mServerURL;         // LDAP URL
     bool mFinished;                        // control variable for eventQ
     nsString mResults;                       // values to return
-    PRUint32 mProtocolVersion;               // LDAP version to use
+    uint32_t mProtocolVersion;               // LDAP version to use
 
     nsresult InitConnection();
     // check that we bound ok and start then call StartLDAPSearch

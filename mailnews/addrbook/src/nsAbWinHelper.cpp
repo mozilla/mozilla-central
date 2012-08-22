@@ -140,7 +140,7 @@ static unsigned char Base64To6Bits(char aBase64)
     return 0 ;
 }
 
-static void Base64ToUnsigned(const char *& aBase64, PRUint32 aNbBase64, 
+static void Base64ToUnsigned(const char *& aBase64, uint32_t aNbBase64, 
                              unsigned char *&aUnsigned)
 {
     // By design of the encoding, we must have at least two characters to use
@@ -178,7 +178,7 @@ void nsMapiEntry::Assign(const nsCString& aString)
     }
     const char *currentSource = aString.get() ;
     unsigned char *currentTarget = new unsigned char [byteCount] ;
-    PRUint32 i = 0 ;
+    uint32_t i = 0 ;
 
     mByteCount = byteCount ;
     mEntryId = reinterpret_cast<LPENTRYID>(currentTarget) ;
@@ -232,9 +232,9 @@ void nsMapiEntryArray::CleanUp(void)
 
 using namespace mozilla;
 
-PRUint32 nsAbWinHelper::mEntryCounter = 0;
+uint32_t nsAbWinHelper::mEntryCounter = 0;
 nsAutoPtr<mozilla::Mutex> nsAbWinHelper::mMutex;
-PRUint32 nsAbWinHelper::mUseCount = 0;
+uint32_t nsAbWinHelper::mUseCount = 0;
 // There seems to be a deadlock/auto-destruction issue
 // in MAPI when multiple threads perform init/release 
 // operations at the same time. So I've put a mutex
@@ -938,7 +938,7 @@ void nsAbWinHelper::MyFreeProws(LPSRowSet aRowset)
     FreeBuffer(aRowset) ;
 }
 
-nsAbWinHelperGuard::nsAbWinHelperGuard(PRUint32 aType)
+nsAbWinHelperGuard::nsAbWinHelperGuard(uint32_t aType)
 : mHelper(NULL) 
 {
     switch(aType) {
@@ -966,7 +966,7 @@ nsAbWinType getAbWinType(const char *aScheme, const char *aUri, nsCString& aStub
 {
     aStub.Truncate() ;
     aEntry.Truncate() ;
-    PRUint32 schemeLength = strlen(aScheme) ;
+    uint32_t schemeLength = strlen(aScheme) ;
 
     if (strncmp(aUri, aScheme, schemeLength) == 0) {
         if (strncmp(aUri + schemeLength, kOutlookStub, kOutlookStubLength) == 0) {
@@ -983,7 +983,7 @@ nsAbWinType getAbWinType(const char *aScheme, const char *aUri, nsCString& aStub
     return nsAbWinType_Unknown ;   
 }
 
-void buildAbWinUri(const char *aScheme, PRUint32 aType, nsCString& aUri)
+void buildAbWinUri(const char *aScheme, uint32_t aType, nsCString& aUri)
 {
     aUri.Assign(aScheme) ;
     switch(aType) {

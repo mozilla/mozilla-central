@@ -69,7 +69,7 @@ interface calIItemBase : nsISupports
   //
   // the generation number of this item
   //
-  attribute PRUint32 generation;
+  attribute uint32_t generation;
 
   // the time when this item was created
   readonly attribute calIDateTime creationDate;
@@ -115,7 +115,7 @@ interface calIItemBase : nsISupports
    * @param count       The number of alarms
    * @param aAlarms     The array of calIAlarms
    */
-  void getAlarms(out PRUint32 count, [array, size_is(count), retval] out calIAlarm aAlarms);
+  void getAlarms(out uint32_t count, [array, size_is(count), retval] out calIAlarm aAlarms);
 
    /**
    * Add an alarm to the item
@@ -259,7 +259,7 @@ interface calIItemBase : nsISupports
 
   // The array returned here is not live; it will not reflect calls to
   // removeAttendee/addAttendee that follow the call to getAttendees.
-  void getAttendees(out PRUint32 count,
+  void getAttendees(out uint32_t count,
                     [array,size_is(count),retval] out calIAttendee attendees);
 
   /**
@@ -275,7 +275,7 @@ interface calIItemBase : nsISupports
   //
   // Attachments
   //
-  void getAttachments(out PRUint32 count,
+  void getAttachments(out uint32_t count,
                       [array,size_is(count),retval] out calIAttachment attachments);
   void addAttachment(in calIAttachment attachment);
   void removeAttachment(in calIAttachment attachment);
@@ -288,13 +288,13 @@ interface calIItemBase : nsISupports
   /**
    * Gets the array of categories this item belongs to.
    */
-  void getCategories(out PRUint32 aCount,
+  void getCategories(out uint32_t aCount,
                      [array, size_is(aCount), retval] out wstring aCategories);
 
   /**
    * Sets the array of categories this item belongs to.
    */
-  void setCategories(in PRUint32 aCount,
+  void setCategories(in uint32_t aCount,
                      [array, size_is(aCount)] in wstring aCategories);
 
   //
@@ -305,7 +305,7 @@ interface calIItemBase : nsISupports
    * This gives back every relation where the item is neighter the owner of the
    * relation nor the referred relation
    */
-  void getRelations(out PRUint32 count,
+  void getRelations(out uint32_t count,
                     [array,size_is(count),retval] out calIRelation relations);
 
   /**
@@ -331,7 +331,7 @@ interface calIItemBase : nsISupports
    * returned are the same type as this one, as proxies.
    */
   void getOccurrencesBetween (in calIDateTime aStartDate, in calIDateTime aEndDate,
-                              out PRUint32 aCount,
+                              out uint32_t aCount,
                               [array,size_is(aCount),retval] out calIItemBase aOccurrences);
 
   /**

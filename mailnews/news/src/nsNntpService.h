@@ -58,8 +58,8 @@ protected:
   nsresult CreateMessageIDURL(nsIMsgFolder *folder, nsMsgKey key, char **url);
   nsresult GetMessageFromUrl(nsIURI *aUrl, nsIMsgWindow *aMsgWindow, nsISupports *aDisplayConsumer);
   // a convience routine used to put together news urls
-  nsresult ConstructNntpUrl(const char * urlString, nsIUrlListener *aUrlListener,  nsIMsgWindow * aMsgWindow, const char *originalMessageUri, PRInt32 action, nsIURI ** aUrl);
-  nsresult CreateNewsAccount(const char *aHostname, bool aIsSecure, PRInt32 aPort, nsIMsgIncomingServer **aServer);
+  nsresult ConstructNntpUrl(const char * urlString, nsIUrlListener *aUrlListener,  nsIMsgWindow * aMsgWindow, const char *originalMessageUri, int32_t action, nsIURI ** aUrl);
+  nsresult CreateNewsAccount(const char *aHostname, bool aIsSecure, int32_t aPort, nsIMsgIncomingServer **aServer);
   nsresult GetServerForUri(nsIURI *aUri, nsINntpIncomingServer **aProtocol);
   // a convience routine to run news urls
   nsresult RunNewsUrl (nsIURI * aUrl, nsIMsgWindow *aMsgWindow, nsISupports * aConsumer);

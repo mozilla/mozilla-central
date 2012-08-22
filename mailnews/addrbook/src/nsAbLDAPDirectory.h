@@ -56,12 +56,12 @@ protected:
   nsresult Initiate();
 
   nsresult SplitStringList(const nsACString& aString,
-                           PRUint32 *aCount,
+                           uint32_t *aCount,
                            char ***aValues);
 
   bool mPerformingQuery;
-  PRInt32 mContext;
-  PRInt32 mMaxHits;
+  int32_t mContext;
+  int32_t mMaxHits;
 
   nsInterfaceHashtable<nsISupportsHashKey, nsIAbCard> mCache;
 

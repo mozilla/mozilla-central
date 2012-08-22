@@ -130,7 +130,7 @@ nsAbContentHandler::HandleContent(const char *aContentType,
 NS_IMETHODIMP
 nsAbContentHandler::OnStreamComplete(nsIStreamLoader *aLoader,
                                      nsISupports *aContext, nsresult aStatus,
-                                     PRUint32 datalen, const PRUint8 *data)
+                                     uint32_t datalen, const uint8_t *data)
 {
   NS_ENSURE_ARG_POINTER(aContext);
   NS_ENSURE_SUCCESS(aStatus, aStatus); // don't process the vcard if we got a status error
@@ -143,7 +143,7 @@ nsAbContentHandler::OnStreamComplete(nsIStreamLoader *aLoader,
     nsAutoPtr<VObject> vObj(vCardService->Parse_MIME((const char *)data, datalen));
     if (vObj)
     {
-      PRInt32 len = 0;
+      int32_t len = 0;
       nsCString vCard;
       vCard.Adopt(vCardService->WriteMemoryVObjects(0, &len, vObj, false));
 

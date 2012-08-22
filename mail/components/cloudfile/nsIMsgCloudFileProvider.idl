@@ -120,7 +120,7 @@ interface nsIMsgCloudFileProvider : nsISupports {
   readonly attribute long long fileSpaceUsed;
 
   /// This is used by our test harness to override the urls the provider uses.
-  void overrideUrls(in PRUint32 aNumUrls, [array, size_is(aNumUrls)] in string aUrls);
+  void overrideUrls(in uint32_t aNumUrls, [array, size_is(aNumUrls)] in string aUrls);
 
   // Error handling
   // If the cloud provider gets textual errors back from the server,

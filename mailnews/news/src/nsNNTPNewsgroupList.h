@@ -37,8 +37,8 @@ typedef struct MSG_NewsKnown {
                        marked read and we're only viewing
                        unread messages. */
 
-  PRInt32 first_possible; /* The oldest article in this group. */
-  PRInt32 last_possible; /* The newest article in this group. */
+  int32_t first_possible; /* The oldest article in this group. */
+  int32_t last_possible; /* The newest article in this group. */
 
   bool shouldGetOldest;
 } MSG_NewsKnown;
@@ -67,20 +67,20 @@ private:
 #ifdef HAVE_CHANGELISTENER
   virtual void OnAnnouncerGoingAway (ChangeAnnouncer *instigator);
 #endif
-  nsresult ParseLine(char *line, PRUint32 *message_number);
+  nsresult ParseLine(char *line, uint32_t *message_number);
   nsresult GetDatabase(const char *uri, nsIMsgDatabase **db);
-  void SetProgressBarPercent(PRInt32 percent);
+  void SetProgressBarPercent(int32_t percent);
   void SetProgressStatus(const PRUnichar *message);
 
-  void UpdateStatus(bool filtering, PRInt32 numDled, PRInt32 totToDL);
+  void UpdateStatus(bool filtering, int32_t numDled, int32_t totToDL);
 
   nsresult AddHeader(const char * header, const char * value);
 protected:
   bool m_getOldMessages;
   bool m_promptedAlready;
   bool m_downloadAll;
-  PRInt32 m_maxArticles;
-  PRInt32 m_lastPercent;
+  int32_t m_maxArticles;
+  int32_t m_lastPercent;
   PRTime m_lastStatusUpdate;
 
   nsCOMPtr <nsIMsgNewsFolder> m_newsFolder;
@@ -98,13 +98,13 @@ protected:
   /**
    * The endpoints of the message chunk we are capable of downloading.
    */
-  PRInt32 m_firstMsgToDownload, m_lastMsgToDownload;
+  int32_t m_firstMsgToDownload, m_lastMsgToDownload;
   
   struct MSG_NewsKnown m_knownArts;
   nsMsgKeySet *m_set;
 
   nsTArray<nsCString> m_filterHeaders;
-  PRUint32 m_currentXHDRIndex;
+  uint32_t m_currentXHDRIndex;
   nsCString m_lastHeader;
   nsCString m_thisLine;
 

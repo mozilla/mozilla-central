@@ -20,7 +20,7 @@ nsMsgReadStateTxn::~nsMsgReadStateTxn()
 
 nsresult
 nsMsgReadStateTxn::Init(nsIMsgFolder *aParentFolder,
-                        PRUint32 aNumKeys,
+                        uint32_t aNumKeys,
                         nsMsgKey *aMsgKeyArray)
 {
   NS_ENSURE_ARG_POINTER(aParentFolder);
@@ -51,8 +51,8 @@ nsMsgReadStateTxn::MarkMessages(bool aAsRead)
     do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRUint32 length = mMarkedMessages.Length();
-  for (PRUint32 i = 0; i < length; i++) {
+  uint32_t length = mMarkedMessages.Length();
+  for (uint32_t i = 0; i < length; i++) {
     nsCOMPtr<nsIMsgDBHdr> curMsgHdr;
     rv = mParentFolder->GetMessageHeader(mMarkedMessages[i], 
                                          getter_AddRefs(curMsgHdr));

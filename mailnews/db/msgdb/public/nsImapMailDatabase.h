@@ -27,11 +27,11 @@ public:
   NS_IMETHOD    SetAttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property,
                                   const char *propertyVal);
   NS_IMETHOD    SetUint32AttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property,
-                                  PRUint32 propertyVal);
+                                  uint32_t propertyVal);
   NS_IMETHOD    SetUint64AttributeOnPendingHdr(nsIMsgDBHdr *aPendingHdr,
                                                const char *aProperty,
-                                               PRUint64 aPropertyVal);
-  NS_IMETHOD    DeleteMessages(PRUint32 aNumKeys, nsMsgKey* nsMsgKeys,
+                                               uint64_t aPropertyVal);
+  NS_IMETHOD    DeleteMessages(uint32_t aNumKeys, nsMsgKey* nsMsgKeys,
                                nsIDBChangeListener *instigator);
   NS_IMETHOD    UpdatePendingAttributes(nsIMsgDBHdr* aNewHdr);
 

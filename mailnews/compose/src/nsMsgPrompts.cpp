@@ -15,7 +15,7 @@
 #include "mozilla/Services.h"
 
 nsresult
-nsMsgGetMessageByID(PRInt32 aMsgID, nsString& aResult)
+nsMsgGetMessageByID(int32_t aMsgID, nsString& aResult)
 {
   nsresult rv;
   nsCOMPtr<nsIStringBundleService> bundleService =
@@ -64,7 +64,7 @@ nsMsgBuildMessageWithTmpFile(nsIFile *aFile, nsString& aResult)
 }
 
 nsresult
-nsMsgDisplayMessageByID(nsIPrompt * aPrompt, PRInt32 msgID, const PRUnichar * windowTitle)
+nsMsgDisplayMessageByID(nsIPrompt * aPrompt, int32_t msgID, const PRUnichar * windowTitle)
 {
   nsresult rv;
   nsCOMPtr<nsIStringBundleService> bundleService =

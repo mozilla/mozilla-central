@@ -32,7 +32,7 @@ public:
   NS_IMETHOD GetDownloadMessagesAtStartup(bool *getMessages);
   NS_IMETHOD GetCanBeDefaultServer(bool *canBeDefaultServer);
   NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages);
-  NS_IMETHOD GetOfflineSupportLevel(PRInt32 *aSupportLevel);
+  NS_IMETHOD GetOfflineSupportLevel(int32_t *aSupportLevel);
   NS_IMETHOD CloseCachedConnections();
   NS_IMETHOD GetRootMsgFolder(nsIMsgFolder **aRootMsgFolder);
   NS_IMETHOD GetCanFileMessagesOnServer(bool *aCanFileMessagesOnServer);
@@ -46,7 +46,7 @@ protected:
   nsresult GetInbox(nsIMsgWindow *msgWindow, nsIMsgFolder **inbox);
 
 private:
-  PRUint32 m_capabilityFlags;
+  uint32_t m_capabilityFlags;
   bool m_authenticated;
   nsCOMPtr <nsIPop3Protocol> m_runningProtocol;
   nsCOMPtr <nsIMsgFolder> m_rootMsgFolder;

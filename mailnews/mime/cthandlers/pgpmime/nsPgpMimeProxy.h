@@ -55,7 +55,7 @@ protected:
   nsLoadFlags                   mLoadFlags;
   nsresult                      mCancelStatus;
 
-  PRUint32                      mStreamOffset;
+  uint32_t                      mStreamOffset;
   nsCString                     mByteBuf;
   nsCString                     mContentType;
 

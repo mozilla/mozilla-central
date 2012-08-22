@@ -42,7 +42,7 @@ interface calIItipTransport : nsISupports
      * @param recipientArray    array of recipients
      * @param calIItipItem      set of calIItems encapsulated as calIItipItems
      */
-    void sendItems(in PRUint32 count,
+    void sendItems(in uint32_t count,
                    [array, size_is(count)] in calIAttendee recipientArray,
                    in calIItipItem item);
 };

@@ -15,9 +15,9 @@ class nsIMsgFolder;
 
 class CImportMailbox {
 public:
-  static bool ImportMailbox(PRUint32 *pDone, bool *pAbort, nsString& name,
+  static bool ImportMailbox(uint32_t *pDone, bool *pAbort, nsString& name,
                             nsIFile * inFile, nsIMsgFolder * outFolder,
-                            PRUint32 *pCount);
+                            uint32_t *pCount);
 
 private:
   static bool    GetIndexFile(nsIFile* mbxFile);

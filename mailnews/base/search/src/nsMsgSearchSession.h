@@ -51,7 +51,7 @@ protected:
   nsCOMPtr <nsISupportsArray> m_termList;
 
   nsTArray<nsCOMPtr<nsIMsgSearchNotify> > m_listenerList;
-  nsTArray<PRInt32> m_listenerFlagList;
+  nsTArray<int32_t> m_listenerFlagList;
   /**
    * Iterator index for m_listenerList/m_listenerFlagList.  We used to use an
    * nsTObserverArray for m_listenerList but its auto-adjusting iterator was
@@ -68,7 +68,7 @@ protected:
    * is in progress (and the iteration process to abort if the value transitions
    * to -1, which we always set on conclusion of our loop).
    */
-  PRInt32 m_iListener;
+  int32_t m_iListener;
 
   void DestroyTermList ();
   void DestroyScopeList ();
@@ -79,10 +79,10 @@ protected:
   nsresult TimeSliceParallel ();
 
   nsMsgSearchAttribValue m_sortAttribute;
-  PRUint32 m_idxRunningScope;
+  uint32_t m_idxRunningScope;
   nsMsgSearchType m_searchType;
   bool m_handlingError;
-  PRUint32 m_urlQueueIndex;
+  uint32_t m_urlQueueIndex;
   nsTArray<nsCString> m_urlQueue;
   nsCOMPtr <nsITimer> m_backgroundTimer;
   bool m_searchPaused;

@@ -32,7 +32,7 @@ NS_IMETHODIMP nsNewsDownloadDialogArgs::SetGroupName(const nsAString & aGroupNam
  
      return NS_OK;
  }
-NS_IMETHODIMP nsNewsDownloadDialogArgs::GetArticleCount(PRInt32 *aArticleCount)
+NS_IMETHODIMP nsNewsDownloadDialogArgs::GetArticleCount(int32_t *aArticleCount)
 {
     NS_ENSURE_ARG_POINTER(aArticleCount);
 
@@ -40,7 +40,7 @@ NS_IMETHODIMP nsNewsDownloadDialogArgs::GetArticleCount(PRInt32 *aArticleCount)
 
     return NS_OK;
 }
-NS_IMETHODIMP nsNewsDownloadDialogArgs::SetArticleCount(PRInt32 aArticleCount)
+NS_IMETHODIMP nsNewsDownloadDialogArgs::SetArticleCount(int32_t aArticleCount)
 {
     mArticleCount = aArticleCount;
 

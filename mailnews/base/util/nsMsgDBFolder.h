@@ -71,11 +71,11 @@ public:
   // we don't want to do an expensive select until the user actually opens that folder
   // These functions are called when MSG_Master::GetFolderLineById is populating a MSG_FolderLine
   // struct used by the FE
-  PRInt32 GetNumPendingUnread();
-  PRInt32 GetNumPendingTotalMessages();
+  int32_t GetNumPendingUnread();
+  int32_t GetNumPendingTotalMessages();
 
-  void ChangeNumPendingUnread(PRInt32 delta);
-  void ChangeNumPendingTotalMessages(PRInt32 delta);
+  void ChangeNumPendingUnread(int32_t delta);
+  void ChangeNumPendingTotalMessages(int32_t delta);
 
   nsresult CreateDirectoryForFolder(nsIFile **result);
   nsresult CreateBackupDirectory(nsIFile **result);
@@ -102,7 +102,7 @@ protected:
   nsresult ThrowConfirmationPrompt(nsIMsgWindow *msgWindow, const nsAString& confirmString, bool *confirmed);
   nsresult GetWarnFilterChanged(bool *aVal);
   nsresult SetWarnFilterChanged(bool aVal);
-  nsresult CreateCollationKey(const nsString &aSource,  PRUint8 **aKey, PRUint32 *aLength);
+  nsresult CreateCollationKey(const nsString &aSource,  uint8_t **aKey, uint32_t *aLength);
 
 protected:
   // all children will override this to create the right class of object.
@@ -110,7 +110,7 @@ protected:
   virtual nsresult ReadDBFolderInfo(bool force);
   virtual nsresult FlushToFolderCache();
   virtual nsresult GetDatabase() = 0;
-  virtual nsresult SendFlagNotifications(nsIMsgDBHdr *item, PRUint32 oldFlags, PRUint32 newFlags);
+  virtual nsresult SendFlagNotifications(nsIMsgDBHdr *item, uint32_t oldFlags, uint32_t newFlags);
   nsresult CheckWithNewMessagesStatus(bool messageAdded);
   void     UpdateNewMessages();
   nsresult OnHdrAddedOrDeleted(nsIMsgDBHdr *hdrChanged, bool added);
@@ -137,17 +137,17 @@ protected:
   // this is a helper routine that ignores whether nsMsgMessageFlags::Offline is set for the folder
   nsresult MsgFitsDownloadCriteria(nsMsgKey msgKey, bool *result);
   nsresult GetPromptPurgeThreshold(bool *aPrompt);
-  nsresult GetPurgeThreshold(PRInt32 *aThreshold);
+  nsresult GetPurgeThreshold(int32_t *aThreshold);
   nsresult ApplyRetentionSettings(bool deleteViaFolder);
   bool     VerifyOfflineMessage(nsIMsgDBHdr *msgHdr, nsIInputStream *fileStream);
   nsresult AddMarkAllReadUndoAction(nsIMsgWindow *msgWindow,
-                                    nsMsgKey *thoseMarked, PRUint32 numMarked);
+                                    nsMsgKey *thoseMarked, uint32_t numMarked);
 
   nsresult PerformBiffNotifications(void); // if there are new, non spam messages, do biff
   nsresult CloseDBIfFolderNotOpen();
 
   virtual nsresult SpamFilterClassifyMessage(const char *aURI, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
-  virtual nsresult SpamFilterClassifyMessages(const char **aURIArray, PRUint32 aURICount, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
+  virtual nsresult SpamFilterClassifyMessages(const char **aURIArray, uint32_t aURICount, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
   // Helper function for Move code to call to update the MRU and MRM time.
   void    UpdateTimestamps(bool allowUndo);
   void    SetMRUTime();
@@ -171,8 +171,8 @@ protected:
   nsMsgKey mLastMessageLoaded;
 
   nsCOMPtr <nsIMsgDBHdr> m_offlineHeader;
-  PRInt32 m_numOfflineMsgLines;
-  PRInt32 m_bytesAddedToLocalMsg;
+  int32_t m_numOfflineMsgLines;
+  int32_t m_bytesAddedToLocalMsg;
   // this is currently used when we do a save as of an imap or news message..
   nsCOMPtr<nsIOutputStream> m_tempMessageStream;
 
@@ -181,12 +181,12 @@ protected:
   static NS_MSG_BASE_STATIC_MEMBER_(nsrefcnt) mInstanceCount;
 
 protected:
-  PRUint32 mFlags;
+  uint32_t mFlags;
   nsWeakPtr mParent;     //This won't be refcounted for ownership reasons.
-  PRInt32 mNumUnreadMessages;        /* count of unread messages (-1 means unknown; -2 means unknown but we already tried to find out.) */
-  PRInt32 mNumTotalMessages;         /* count of existing messages. */
+  int32_t mNumUnreadMessages;        /* count of unread messages (-1 means unknown; -2 means unknown but we already tried to find out.) */
+  int32_t mNumTotalMessages;         /* count of existing messages. */
   bool mNotifyCountChanges;
-  PRUint32 mExpungedBytes;
+  uint32_t mExpungedBytes;
   nsCOMArray<nsIMsgFolder> mSubFolders;
   // This can't be refcounted due to ownsership issues
   nsTObserverArray<nsIFolderListener*> mListeners;
@@ -200,11 +200,11 @@ protected:
   // These values are used for tricking the front end into thinking that we have more 
   // messages than are really in the DB.  This is usually after and IMAP message copy where
   // we don't want to do an expensive select until the user actually opens that folder
-  PRInt32 mNumPendingUnreadMessages;
-  PRInt32 mNumPendingTotalMessages;
-  PRUint32 mFolderSize;
+  int32_t mNumPendingUnreadMessages;
+  int32_t mNumPendingTotalMessages;
+  uint32_t mFolderSize;
 
-  PRInt32 mNumNewBiffMessages;
+  int32_t mNumNewBiffMessages;
   bool mIsCachable;
 
   // these are previous set of new msgs, which we might
@@ -258,7 +258,7 @@ protected:
   // store of keys that have a processing flag set
   struct
   {
-    PRUint32 bit;
+    uint32_t bit;
     nsMsgKeySetU* keys;
   } mProcessingFlag[nsMsgProcessingFlags::NumberOfFlags];
 
@@ -279,7 +279,7 @@ protected:
   bool mBayesTraitClassifying;
 };
 
-// This class is a kludge to allow nsMsgKeySet to be used with PRUint32 keys
+// This class is a kludge to allow nsMsgKeySet to be used with uint32_t keys
 class nsMsgKeySetU
 {
 public:
@@ -287,12 +287,12 @@ public:
   static nsMsgKeySetU* Create();
   ~nsMsgKeySetU();
   // IsMember() returns whether the given key is a member of this set.
-  bool IsMember(PRUint32 key);
+  bool IsMember(uint32_t key);
   // Add() adds the given key to the set.  (Returns 1 if a change was
   // made, 0 if it was already there, and negative on error.)
-  int Add(PRUint32 key);
+  int Add(uint32_t key);
   // Remove() removes the given article from the set. 
-  int Remove(PRUint32 key);
+  int Remove(uint32_t key);
   // Add the keys in the set to aArray.
   nsresult ToMsgKeyArray(nsTArray<nsMsgKey> &aArray);
 

@@ -55,7 +55,7 @@ public:
     prefConverter prefSetterFunc;
     bool          prefHasValue;
     union {
-      PRInt32     intValue;
+      int32_t     intValue;
       bool        boolValue;
       char*       stringValue;
     };
@@ -63,10 +63,10 @@ public:
 
   struct PrefBranchStruct {
     char*         prefName;
-    PRInt32       type;
+    int32_t       type;
     union {
       char*       stringValue;
-      PRInt32     intValue;
+      int32_t     intValue;
       bool        boolValue;
     };
   };
@@ -101,10 +101,10 @@ protected:
   // List of src/destination files we still have to copy into the new profile
   // directory.
   nsTArray<fileTransactionEntry> mFileCopyTransactions;
-  PRUint32 mFileCopyTransactionIndex;
+  uint32_t mFileCopyTransactionIndex;
 
-  PRInt64 mMaxProgress;
-  PRInt64 mCurrentProgress;
+  int64_t mMaxProgress;
+  int64_t mCurrentProgress;
 
   nsCOMPtr<nsIObserverService> mObserverService;
   nsCOMPtr<nsITimer> mFileIOTimer;

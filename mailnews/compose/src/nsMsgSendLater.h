@@ -67,31 +67,31 @@ public:
   nsresult                  SetOrigMsgDisposition();
   // Necessary for creating a valid list of recipients
   nsresult                  BuildHeaders();
-  nsresult                  DeliverQueuedLine(char *line, PRInt32 length);
-  nsresult                  RebufferLeftovers(char *startBuf,  PRUint32 aLen);
-  nsresult                  BuildNewBuffer(const char* aBuf, PRUint32 aCount, PRUint32 *totalBufSize);
+  nsresult                  DeliverQueuedLine(char *line, int32_t length);
+  nsresult                  RebufferLeftovers(char *startBuf,  uint32_t aLen);
+  nsresult                  BuildNewBuffer(const char* aBuf, uint32_t aCount, uint32_t *totalBufSize);
 
   // methods for listener array processing...
-  void NotifyListenersOnStartSending(PRUint32 aTotalMessageCount);
-  void NotifyListenersOnMessageStartSending(PRUint32 aCurrentMessage,
-                                            PRUint32 aTotalMessage,
+  void NotifyListenersOnStartSending(uint32_t aTotalMessageCount);
+  void NotifyListenersOnMessageStartSending(uint32_t aCurrentMessage,
+                                            uint32_t aTotalMessage,
                                             nsIMsgIdentity *aIdentity);
-  void NotifyListenersOnProgress(PRUint32 aCurrentMessage,
-                                 PRUint32 aTotalMessage,
-                                 PRUint32 aSendPercent,
-                                 PRUint32 aCopyPercent);
-  void NotifyListenersOnMessageSendError(PRUint32 aCurrentMessage,
+  void NotifyListenersOnProgress(uint32_t aCurrentMessage,
+                                 uint32_t aTotalMessage,
+                                 uint32_t aSendPercent,
+                                 uint32_t aCopyPercent);
+  void NotifyListenersOnMessageSendError(uint32_t aCurrentMessage,
                                          nsresult aStatus,
                                          const PRUnichar *aMsg);
   void EndSendMessages(nsresult aStatus, const PRUnichar *aMsg, 
-                       PRUint32 aTotalTried, PRUint32 aSuccessful);
+                       uint32_t aTotalTried, uint32_t aSuccessful);
 
   bool OnSendStepFinished(nsresult aStatus);
   void OnCopyStepFinished(nsresult aStatus);
 
   // counters and things for enumeration 
-  PRUint32                  mTotalSentSuccessfully;
-  PRUint32                  mTotalSendCount;
+  uint32_t                  mTotalSentSuccessfully;
+  uint32_t                  mTotalSendCount;
   nsCOMArray<nsIMsgDBHdr> mMessagesToSend;
   nsCOMPtr<nsISimpleEnumerator> mEnumerator;
   nsCOMPtr<nsIMsgFolder>    mMessageFolder;
@@ -125,14 +125,14 @@ private:
   char                      *m_newsgroups;
   char                      *m_newshost;
   char                      *m_headers;
-  PRInt32                   m_flags;
-  PRInt32                   m_headersFP;
+  int32_t                   m_flags;
+  int32_t                   m_headersFP;
   bool                      m_inhead;
-  PRInt32                   m_headersPosition;
-  PRInt32                   m_bytesRead;
-  PRInt32                   m_position;
-  PRInt32                   m_flagsPosition;
-  PRInt32                   m_headersSize;
+  int32_t                   m_headersPosition;
+  int32_t                   m_bytesRead;
+  int32_t                   m_position;
+  int32_t                   m_flagsPosition;
+  int32_t                   m_headersSize;
   char                      *mLeftoverBuffer;
   char                      *mIdentityKey;
   char                      *mAccountKey;

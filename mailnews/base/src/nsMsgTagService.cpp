@@ -159,12 +159,12 @@ NS_IMETHODIMP nsMsgTagService::SetTagForKey(const nsACString &key, const nsAStri
 /* void getKeyForTag (in wstring tag); */
 NS_IMETHODIMP nsMsgTagService::GetKeyForTag(const nsAString &aTag, nsACString &aKey)
 {
-  PRUint32 count;
+  uint32_t count;
   char **prefList;
   nsresult rv = m_tagPrefBranch->GetChildList("", &count, &prefList);
   NS_ENSURE_SUCCESS(rv, rv);
   // traverse the list, and look for a pref with the desired tag value.
-  for (PRUint32 i = count; i--;)
+  for (uint32_t i = count; i--;)
   {
     // We are returned the tag prefs in the form "<key>.<tag_data_type>", but
     // since we only want the tags, just check that the string ends with "tag".
@@ -192,9 +192,9 @@ NS_IMETHODIMP nsMsgTagService::GetTopKey(const nsACString & keyList, nsACString 
   // find the most important key
   nsTArray<nsCString> keyArray;
   ParseString(keyList, ' ', keyArray);
-  PRUint32 keyCount = keyArray.Length();
+  uint32_t keyCount = keyArray.Length();
   nsCString *topKey = nullptr, *key, topOrdinal, ordinal;
-  for (PRUint32 i = 0; i < keyCount; ++i)
+  for (uint32_t i = 0; i < keyCount; ++i)
   {
     key = &keyArray[i];
     if (key->IsEmpty())
@@ -338,7 +338,7 @@ NS_IMETHODIMP nsMsgTagService::DeleteKey(const nsACString &key)
 }
 
 /* void getAllTags (out unsigned long count, [array, size_is (count), retval] out nsIMsgTag tagArray); */
-NS_IMETHODIMP nsMsgTagService::GetAllTags(PRUint32 *aCount, nsIMsgTag ***aTagArray)
+NS_IMETHODIMP nsMsgTagService::GetAllTags(uint32_t *aCount, nsIMsgTag ***aTagArray)
 {
   NS_ENSURE_ARG_POINTER(aCount);
   NS_ENSURE_ARG_POINTER(aTagArray);
@@ -349,7 +349,7 @@ NS_IMETHODIMP nsMsgTagService::GetAllTags(PRUint32 *aCount, nsIMsgTag ***aTagArr
 
   // get the actual tag definitions
   nsresult rv;
-  PRUint32 prefCount;
+  uint32_t prefCount;
   char **prefList;
   rv = m_tagPrefBranch->GetChildList("", &prefCount, &prefList);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -365,11 +365,11 @@ NS_IMETHODIMP nsMsgTagService::GetAllTags(PRUint32 *aCount, nsIMsgTag ***aTagArr
     NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(prefCount, prefList);
     return NS_ERROR_OUT_OF_MEMORY;
   }
-  PRUint32 currentTagIndex = 0;
+  uint32_t currentTagIndex = 0;
   nsMsgTag *newMsgTag;
   nsString tag;
   nsCString lastKey, color, ordinal;
-  for (PRUint32 i = prefCount; i--;)
+  for (uint32_t i = prefCount; i--;)
   {
     // extract just the key from <key>.<info=tag|color|ordinal>
     char *info = strrchr(prefList[i], '.');
@@ -467,7 +467,7 @@ nsresult nsMsgTagService::MigrateLabelsToTags()
 {
   nsCString prefString;
 
-  PRInt32 prefVersion = 0;
+  int32_t prefVersion = 0;
   nsresult rv = m_tagPrefBranch->GetIntPref(TAG_PREF_VERSION, &prefVersion);
   if (NS_SUCCEEDED(rv) && prefVersion > 1)
     return rv;
@@ -476,9 +476,9 @@ nsresult nsMsgTagService::MigrateLabelsToTags()
     gMigratingKeys = true;
   // need to convert the keys to lower case
     nsIMsgTag **tagArray;
-    PRUint32 numTags;
+    uint32_t numTags;
     GetAllTags(&numTags, &tagArray);
-    for (PRUint32 tagIndex = 0; tagIndex < numTags; tagIndex++)
+    for (uint32_t tagIndex = 0; tagIndex < numTags; tagIndex++)
     {
       nsCAutoString key, color, ordinal;
       nsAutoString tagStr;
@@ -500,7 +500,7 @@ nsresult nsMsgTagService::MigrateLabelsToTags()
     nsCOMPtr<nsIPrefLocalizedString> pls;
     nsString ucsval;
     nsCAutoString labelKey("$label1");
-    for(PRInt32 i = 0; i < PREF_LABELS_MAX; )
+    for(int32_t i = 0; i < PREF_LABELS_MAX; )
     {
       prefString.Assign(PREF_LABELS_DESCRIPTION);
       prefString.AppendInt(i + 1);
@@ -536,12 +536,12 @@ NS_IMETHODIMP nsMsgTagService::IsValidKey(const nsACString &aKey, bool *aResult)
 nsresult nsMsgTagService::RefreshKeyCache()
 {
   nsIMsgTag **tagArray;
-  PRUint32 numTags;
+  uint32_t numTags;
   nsresult rv = GetAllTags(&numTags, &tagArray);
   NS_ENSURE_SUCCESS(rv, rv);
   m_keys.Clear();
 
-  for (PRUint32 tagIndex = 0; tagIndex < numTags; tagIndex++)
+  for (uint32_t tagIndex = 0; tagIndex < numTags; tagIndex++)
   {
     nsIMsgTag *tag = tagArray[tagIndex];
     if (!tag) {

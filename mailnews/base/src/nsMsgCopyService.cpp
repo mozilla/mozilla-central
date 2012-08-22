@@ -63,7 +63,7 @@ nsCopyRequest::~nsCopyRequest()
 {
   MOZ_COUNT_DTOR(nsCopyRequest);
 
-  PRInt32 j = m_copySourceArray.Length();
+  int32_t j = m_copySourceArray.Length();
   while(j-- > 0)
     delete m_copySourceArray.ElementAt(j);
 }
@@ -71,7 +71,7 @@ nsCopyRequest::~nsCopyRequest()
 nsresult
 nsCopyRequest::Init(nsCopyRequestType type, nsISupports* aSupport,
                     nsIMsgFolder* dstFolder,
-                    bool bVal, PRUint32 newMsgFlags, 
+                    bool bVal, uint32_t newMsgFlags, 
                     const nsACString &newMsgKeywords,
                     nsIMsgCopyServiceListener* listener,
                     nsIMsgWindow* msgWindow, bool allowUndo)
@@ -133,7 +133,7 @@ nsMsgCopyService::nsMsgCopyService()
 
 nsMsgCopyService::~nsMsgCopyService()
 {
-  PRInt32 i = m_copyRequests.Length();
+  int32_t i = m_copyRequests.Length();
 
   while (i-- > 0)
     ClearRequest(m_copyRequests.ElementAt(i), NS_ERROR_FAILURE);
@@ -158,7 +158,7 @@ void nsMsgCopyService::LogCopyRequest(const char *logMsg, nsCopyRequest* aReques
   if (srcFolder)
     srcFolder->GetURI(srcFolderUri);
   aRequest->m_dstFolder->GetURI(destFolderUri);
-  PRUint32 numMsgs = 0;
+  uint32_t numMsgs = 0;
   if (aRequest->m_requestType == nsCopyMessagesType &&
       aRequest->m_copySourceArray.Length() > 0 &&
       aRequest->m_copySourceArray[0]->m_messageArray)
@@ -190,7 +190,7 @@ nsMsgCopyService::ClearRequest(nsCopyRequest* aRequest, nsresult rv)
         {
           // Iterate over the copy sources and append their message arrays to this mutable array
           // or in the case of folders, the source folder.
-          PRInt32 cnt, i;
+          int32_t cnt, i;
           cnt = aRequest->m_copySourceArray.Length();
           for (i = 0; i < cnt; i++)
           {
@@ -224,8 +224,8 @@ nsMsgCopyService::QueueRequest(nsCopyRequest* aRequest, bool *aCopyImmediately)
   *aCopyImmediately = true;
   nsCopyRequest* copyRequest;
 
-  PRUint32 cnt = m_copyRequests.Length();
-  for (PRUint32 i = 0; i < cnt; i++)
+  uint32_t cnt = m_copyRequests.Length();
+  for (uint32_t i = 0; i < cnt; i++)
   {
     copyRequest = m_copyRequests.ElementAt(i);
     if (aRequest->m_requestType == nsCopyFoldersType)
@@ -271,9 +271,9 @@ nsMsgCopyService::DoNextCopy()
   nsresult rv = NS_OK;
   nsCopyRequest* copyRequest = nullptr;
   nsCopySource* copySource = nullptr;
-  PRUint32 i, j, scnt;
+  uint32_t i, j, scnt;
 
-  PRUint32 cnt = m_copyRequests.Length();
+  uint32_t cnt = m_copyRequests.Length();
   if (cnt > 0)
   {
     nsCOMArray<nsIMsgFolder> activeTargets;
@@ -378,8 +378,8 @@ nsMsgCopyService::FindRequest(nsISupports* aSupport,
                               nsIMsgFolder* dstFolder)
 {
   nsCopyRequest* copyRequest = nullptr;
-  PRUint32 cnt = m_copyRequests.Length();
-  for (PRUint32 i = 0; i < cnt; i++)
+  uint32_t cnt = m_copyRequests.Length();
+  for (uint32_t i = 0; i < cnt; i++)
   {
     copyRequest = m_copyRequests.ElementAt(i);
     if (copyRequest->m_requestType == nsCopyFoldersType)
@@ -452,7 +452,7 @@ nsMsgCopyService::CopyMessages(nsIMsgFolder* srcFolder, /* UI src folder */
   nsCopyRequest* copyRequest;
   nsCopySource* copySource = nullptr;
   nsCOMArray<nsIMsgDBHdr> msgArray;
-  PRUint32 cnt;
+  uint32_t cnt;
   nsCOMPtr<nsIMsgDBHdr> msg;
   nsCOMPtr<nsIMsgFolder> curFolder;
   nsCOMPtr<nsISupports> aSupport;
@@ -482,7 +482,7 @@ nsMsgCopyService::CopyMessages(nsIMsgFolder* srcFolder, /* UI src folder */
 
   // duplicate the message array so we could sort the messages by it's
   // folder easily
-  for (PRUint32 i = 0; i < cnt; i++)
+  for (uint32_t i = 0; i < cnt; i++)
   {
     nsCOMPtr<nsIMsgDBHdr> currMsg = do_QueryElementAt(messages, i);
     msgArray.AppendObject(currMsg);
@@ -549,7 +549,7 @@ nsMsgCopyService::CopyFolders(nsIArray* folders,
   nsCopyRequest* copyRequest;
   nsCopySource* copySource = nullptr;
   nsresult rv;
-  PRUint32 cnt;
+  uint32_t cnt;
   nsCOMPtr<nsIMsgFolder> curFolder;
   nsCOMPtr<nsISupports> support;
 
@@ -589,7 +589,7 @@ nsMsgCopyService::CopyFileMessage(nsIFile* file,
                                   nsIMsgFolder* dstFolder,
                                   nsIMsgDBHdr* msgToReplace,
                                   bool isDraft,
-                                  PRUint32 aMsgFlags,
+                                  uint32_t aMsgFlags,
                                   const nsACString &aNewMsgKeywords,
                                   nsIMsgCopyServiceListener* listener,
                                   nsIMsgWindow* window)
@@ -649,7 +649,7 @@ nsMsgCopyService::NotifyCompletion(nsISupports* aSupport,
   if (PR_LOG_TEST(gCopyServiceLog, PR_LOG_ALWAYS))
     LogCopyCompletion(aSupport, dstFolder);
   nsCopyRequest* copyRequest = nullptr;
-  PRUint32 numOrigRequests = m_copyRequests.Length();
+  uint32_t numOrigRequests = m_copyRequests.Length();
   do
   {
     // loop for copy requests, because if we do a cross server folder copy,
@@ -669,7 +669,7 @@ nsMsgCopyService::NotifyCompletion(nsISupports* aSupport,
         break;
       // check if this copy request is done by making sure all the
       // sources have been processed.
-      PRInt32 sourceIndex, sourceCount;
+      int32_t sourceIndex, sourceCount;
       sourceCount = copyRequest->m_copySourceArray.Length();
       for (sourceIndex = 0; sourceIndex < sourceCount;)
       {

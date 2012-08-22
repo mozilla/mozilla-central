@@ -260,7 +260,7 @@ NS_IMPL_IDPREF_BOOL(Valid, "valid")
 
 nsresult
 nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval,
-                             const char *folderName, PRUint32 folderflag)
+                             const char *folderName, uint32_t folderflag)
 {
   if (!mPrefBranch)
     return NS_ERROR_NOT_INITIALIZED;
@@ -344,7 +344,7 @@ nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval,
 }
 
 nsresult
-nsMsgIdentity::setFolderPref(const char *prefname, const nsACString& value, PRUint32 folderflag)
+nsMsgIdentity::setFolderPref(const char *prefname, const nsACString& value, uint32_t folderflag)
 {
   if (!mPrefBranch)
     return NS_ERROR_NOT_INITIALIZED;
@@ -366,7 +366,7 @@ nsMsgIdentity::setFolderPref(const char *prefname, const nsACString& value, PRUi
     nsCOMPtr<nsISupportsArray> servers;
     rv = accountManager->GetServersForIdentity(this, getter_AddRefs(servers));
     NS_ENSURE_SUCCESS(rv,rv);
-    PRUint32 cnt = 0;
+    uint32_t cnt = 0;
     servers->Count(&cnt);
     if (cnt > 0)
     {
@@ -493,7 +493,7 @@ NS_IMETHODIMP nsMsgIdentity::GetBoolAttribute(const char *aName, bool *val)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgIdentity::SetIntAttribute(const char *aName, PRInt32 val)
+NS_IMETHODIMP nsMsgIdentity::SetIntAttribute(const char *aName, int32_t val)
 {
   if (!mPrefBranch)
     return NS_ERROR_NOT_INITIALIZED;
@@ -501,7 +501,7 @@ NS_IMETHODIMP nsMsgIdentity::SetIntAttribute(const char *aName, PRInt32 val)
   return mPrefBranch->SetIntPref(aName, val);
 }
 
-NS_IMETHODIMP nsMsgIdentity::GetIntAttribute(const char *aName, PRInt32 *val)
+NS_IMETHODIMP nsMsgIdentity::GetIntAttribute(const char *aName, int32_t *val)
 {
   NS_ENSURE_ARG_POINTER(val);
 
@@ -528,7 +528,7 @@ NS_IMETHODIMP nsMsgIdentity::GetIntAttribute(const char *aName, PRInt32 *val)
 #define COPY_IDENTITY_INT_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER)   \
   {  \
         nsresult macro_rv;  \
-          PRInt32 macro_oldInt;  \
+          int32_t macro_oldInt;  \
           macro_rv = SRC_ID->MACRO_GETTER(&macro_oldInt);  \
           if (NS_SUCCEEDED(macro_rv)) \
             this->MACRO_SETTER(macro_oldInt);     \
@@ -618,7 +618,7 @@ nsMsgIdentity::GetRequestReturnReceipt(bool *aVal)
 }
 
 NS_IMETHODIMP
-nsMsgIdentity::GetReceiptHeaderType(PRInt32 *aType)
+nsMsgIdentity::GetReceiptHeaderType(int32_t *aType)
 {
   NS_ENSURE_ARG_POINTER(aType);
 

@@ -20,7 +20,7 @@ nsMimeHeaders::~nsMimeHeaders()
 
 NS_IMPL_ISUPPORTS1(nsMimeHeaders, nsIMimeHeaders)
 
-nsresult nsMimeHeaders::Initialize(const char *aAllHeaders, PRInt32 allHeadersSize)
+nsresult nsMimeHeaders::Initialize(const char *aAllHeaders, int32_t allHeadersSize)
 {
   /* just in case we want to reuse the object, cleanup...*/
   if (mHeaders)

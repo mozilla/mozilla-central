@@ -33,10 +33,10 @@ public:
 	nsresult PerformPurge();
 
 protected:
-  PRInt32 FindServer(nsIMsgIncomingServer *server);
+  int32_t FindServer(nsIMsgIncomingServer *server);
   nsresult SetupNextPurge();
   nsresult PurgeSurver(nsIMsgIncomingServer *server);
-  nsresult SearchFolderToPurge(nsIMsgFolder *folder, PRInt32 purgeInterval);
+  nsresult SearchFolderToPurge(nsIMsgFolder *folder, int32_t purgeInterval);
 
 protected:
   nsCOMPtr<nsITimer> mPurgeTimer;
@@ -47,8 +47,8 @@ protected:
   bool mHaveShutdown;
 
 private:
-  PRInt32 mMinDelayBetweenPurges;  // in minutes, how long must pass between two consecutive purges on the same junk folder?
-  PRInt32 mPurgeTimerInterval;  // in minutes, how often to check if we need to purge one of the junk folders?
+  int32_t mMinDelayBetweenPurges;  // in minutes, how long must pass between two consecutive purges on the same junk folder?
+  int32_t mPurgeTimerInterval;  // in minutes, how often to check if we need to purge one of the junk folders?
 };
 
 

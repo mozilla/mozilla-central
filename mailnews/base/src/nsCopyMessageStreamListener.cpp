@@ -87,7 +87,7 @@ NS_IMETHODIMP nsCopyMessageStreamListener::EndMessage(nsMsgKey key)
 }
 
 
-NS_IMETHODIMP nsCopyMessageStreamListener::OnDataAvailable(nsIRequest * /* request */, nsISupports *ctxt, nsIInputStream *aIStream, PRUint32 sourceOffset, PRUint32 aLength)
+NS_IMETHODIMP nsCopyMessageStreamListener::OnDataAvailable(nsIRequest * /* request */, nsISupports *ctxt, nsIInputStream *aIStream, uint32_t sourceOffset, uint32_t aLength)
 {
 	nsresult rv;
 	rv = mDestination->CopyData(aIStream, aLength);

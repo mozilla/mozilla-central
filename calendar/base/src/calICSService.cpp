@@ -491,12 +491,12 @@ TimezoneHashToTimezoneArray(nsACString const& /*tzid*/, calITimezone * tz, void 
 }
 
 NS_IMETHODIMP
-calIcalComponent::GetReferencedTimezones(PRUint32 * aCount, calITimezone *** aTimezones)
+calIcalComponent::GetReferencedTimezones(uint32_t * aCount, calITimezone *** aTimezones)
 {
     NS_ENSURE_ARG_POINTER(aCount);
     NS_ENSURE_ARG_POINTER(aTimezones);
 
-    PRUint32 const count = mReferencedTimezones.Count();
+    uint32_t const count = mReferencedTimezones.Count();
     if (count == 0) {
         *aCount = 0;
         *aTimezones = nullptr;
@@ -547,7 +547,7 @@ calIcalComponent::SetProperty(icalproperty_kind kind, icalproperty *prop)
 NS_IMETHODIMP                                                           \
 calIcalComponent::Get##Attrname(nsACString &str)                        \
 {                                                                       \
-    PRInt32 val;                                                        \
+    int32_t val;                                                        \
     nsresult rv = GetIntProperty(ICAL_##ICALNAME##_PROPERTY, &val);     \
     if (NS_FAILED(rv))                                                  \
         return rv;                                                      \
@@ -604,26 +604,26 @@ calIcalComponent::Set##Attrname(const nsACString &str)          \
 
 #define COMP_GENERAL_INT_ATTRIBUTE(Attrname, ICALNAME)          \
 NS_IMETHODIMP                                                   \
-calIcalComponent::Get##Attrname(PRInt32 *valp)                  \
+calIcalComponent::Get##Attrname(int32_t *valp)                  \
 {                                                               \
     return GetIntProperty(ICAL_##ICALNAME##_PROPERTY, valp);    \
 }                                                               \
                                                                 \
 NS_IMETHODIMP                                                   \
-calIcalComponent::Set##Attrname(PRInt32 val)                    \
+calIcalComponent::Set##Attrname(int32_t val)                    \
 {                                                               \
     return SetIntProperty(ICAL_##ICALNAME##_PROPERTY, val);     \
 }
 
 #define COMP_ENUM_ATTRIBUTE(Attrname, ICALNAME, lcname)         \
 NS_IMETHODIMP                                                   \
-calIcalComponent::Get##Attrname(PRInt32 *valp)                  \
+calIcalComponent::Get##Attrname(int32_t *valp)                  \
 {                                                               \
     return GetIntProperty(ICAL_##ICALNAME##_PROPERTY, valp);    \
 }                                                               \
                                                                 \
 NS_IMETHODIMP                                                   \
-calIcalComponent::Set##Attrname(PRInt32 val)                    \
+calIcalComponent::Set##Attrname(int32_t val)                    \
 {                                                               \
     icalproperty *prop =                                        \
       icalproperty_new_##lcname((icalproperty_##lcname)val);    \
@@ -632,13 +632,13 @@ calIcalComponent::Set##Attrname(PRInt32 val)                    \
 
 #define COMP_INT_ATTRIBUTE(Attrname, ICALNAME, lcname)          \
 NS_IMETHODIMP                                                   \
-calIcalComponent::Get##Attrname(PRInt32 *valp)                  \
+calIcalComponent::Get##Attrname(int32_t *valp)                  \
 {                                                               \
     return GetIntProperty(ICAL_##ICALNAME##_PROPERTY, valp);    \
 }                                                               \
                                                                 \
 NS_IMETHODIMP                                                   \
-calIcalComponent::Set##Attrname(PRInt32 val)                    \
+calIcalComponent::Set##Attrname(int32_t val)                    \
 {                                                               \
     icalproperty *prop = icalproperty_new_##lcname(val);        \
     return SetProperty(ICAL_##ICALNAME##_PROPERTY, prop);       \
@@ -668,17 +668,17 @@ nsresult calIcalComponent::SetStringProperty(icalproperty_kind kind,
     return SetPropertyValue(kind, val);
 }
 
-nsresult calIcalComponent::GetIntProperty(icalproperty_kind kind, PRInt32 *valp)
+nsresult calIcalComponent::GetIntProperty(icalproperty_kind kind, int32_t *valp)
 {
     icalproperty *prop = icalcomponent_get_first_property(mComponent, kind);
     if (!prop)
         *valp = calIIcalComponent::INVALID_VALUE;
     else
-        *valp = (PRInt32)icalvalue_get_integer(icalproperty_get_value(prop));
+        *valp = (int32_t)icalvalue_get_integer(icalproperty_get_value(prop));
     return NS_OK;
 }
 
-nsresult calIcalComponent::SetIntProperty(icalproperty_kind kind, PRInt32 i)
+nsresult calIcalComponent::SetIntProperty(icalproperty_kind kind, int32_t i)
 {
     icalvalue *val = icalvalue_new_integer(i);
     if (!val)
@@ -1040,14 +1040,14 @@ calIcalComponent::AddSubcomponent(calIIcalComponent *comp)
      */
     calIcalComponent * const ical = toIcalComponent(comp);
 
-    PRUint32 tzCount = 0;
+    uint32_t tzCount = 0;
     calITimezone ** timezones = nullptr;
     nsresult rv = ical->GetReferencedTimezones(&tzCount, &timezones);
     NS_ENSURE_SUCCESS(rv, rv);
 
     calIcalComponent * const vcal = getParentVCalendarOrThis();
     bool failed = false;
-    for (PRUint32 i = 0; i < tzCount; i++) {
+    for (uint32_t i = 0; i < tzCount; i++) {
         if (!failed) {
             rv = vcal->AddTimezoneReference(timezones[i]);
             if (NS_FAILED(rv))

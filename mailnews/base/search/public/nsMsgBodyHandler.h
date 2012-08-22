@@ -18,7 +18,7 @@ class nsMsgBodyHandler
 {
 public:
   nsMsgBodyHandler (nsIMsgSearchScopeTerm *,
-    PRUint32 length,
+    uint32_t length,
     nsIMsgDBHdr * msg,
     nsIMsgDatabase * db);
 
@@ -27,14 +27,14 @@ public:
   // if we are doing filtering...if ForFilters is false, headers and
   // headersSize is ignored!!!
   nsMsgBodyHandler (nsIMsgSearchScopeTerm *,
-    PRUint32 length, nsIMsgDBHdr * msg, nsIMsgDatabase * db,
+    uint32_t length, nsIMsgDBHdr * msg, nsIMsgDatabase * db,
     const char * headers /* NULL terminated list of headers */,
-    PRUint32 headersSize, bool ForFilters);
+    uint32_t headersSize, bool ForFilters);
 
   virtual ~nsMsgBodyHandler();
 
   // returns next message line in buf
-  PRInt32 GetNextLine(nsCString &buf);
+  int32_t GetNextLine(nsCString &buf);
 
   // Transformations
   void SetStripHtml (bool strip) { m_stripHtml = strip; }
@@ -46,17 +46,17 @@ protected:
   // filter related methods. For filtering we always use the headers
   // list instead of the database...
   bool m_Filtering;
-  PRInt32 GetNextFilterLine(nsCString &buf);
+  int32_t GetNextFilterLine(nsCString &buf);
   // pointer into the headers list in the original message hdr db...
   const char * m_headers;
-  PRUint32 m_headersSize;
-  PRUint32 m_headerBytesRead;
+  uint32_t m_headersSize;
+  uint32_t m_headerBytesRead;
 
   // local / POP related methods
   void OpenLocalFolder();
 
   // goes through the mail folder
-  PRInt32 GetNextLocalLine(nsCString &buf);
+  int32_t GetNextLocalLine(nsCString &buf);
 
   nsIMsgSearchScopeTerm *m_scope;
   nsCOMPtr <nsILineInputStream> m_fileLineStream;
@@ -68,7 +68,7 @@ protected:
    * in the message.  This is important so we know when to stop reading the file
    * without accidentally reading part of the next message.
    */
-  PRUint32 m_numLocalLines;
+  uint32_t m_numLocalLines;
   /**
    * When true, |m_numLocalLines| is the number of body lines in the message,
    * when false it is the entire number of lines in the message.
@@ -99,7 +99,7 @@ protected:
   nsCString boundary;      // The boundary string to look for
 
   // See implementation for comments
-  PRInt32 ApplyTransformations (const nsCString &line, PRInt32 length,
+  int32_t ApplyTransformations (const nsCString &line, int32_t length,
                                 bool &returnThisLine, nsCString &buf);
   void SniffPossibleMIMEHeader (nsCString &line);
   static void StripHtml (nsCString &buf);

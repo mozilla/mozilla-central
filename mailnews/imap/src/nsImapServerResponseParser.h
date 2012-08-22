@@ -61,16 +61,16 @@ public:
   // these functions represent the state of the currently selected
   // folder
   bool       CurrentFolderReadOnly();
-  PRInt32    NumberOfMessages();
-  PRInt32    NumberOfRecentMessages();
-  PRInt32    NumberOfUnseenMessages();
-  PRInt32    FolderUID();
-  PRUint32   CurrentResponseUID();
-  PRUint32   HighestRecordedUID();
-  void       SetCurrentResponseUID(PRUint32 uid);
+  int32_t    NumberOfMessages();
+  int32_t    NumberOfRecentMessages();
+  int32_t    NumberOfUnseenMessages();
+  int32_t    FolderUID();
+  uint32_t   CurrentResponseUID();
+  uint32_t   HighestRecordedUID();
+  void       SetCurrentResponseUID(uint32_t uid);
   bool       IsNumericString(const char *string);
-  PRInt32    SizeOfMostRecentMessage();
-  void       SetTotalDownloadSize(PRInt32 newSize) { fTotalDownloadSize = newSize; }
+  int32_t    SizeOfMostRecentMessage();
+  void       SetTotalDownloadSize(int32_t newSize) { fTotalDownloadSize = newSize; }
 
   nsImapSearchResultIterator *CreateSearchResultIterator();
   void ResetSearchResultSequence() {fSearchResults->ResetSequence();}
@@ -112,8 +112,8 @@ public:
   // Interrupt a Fetch, without really Interrupting (through netlib)
   bool GetLastFetchChunkReceived();
   void ClearLastFetchChunkReceived();
-  virtual PRUint16	SupportsUserFlags() { return fSupportsUserDefinedFlags; }
-  virtual PRUint16  SettablePermanentFlags() { return fSettablePermanentFlags;}
+  virtual uint16_t	SupportsUserFlags() { return fSupportsUserDefinedFlags; }
+  virtual uint16_t  SettablePermanentFlags() { return fSettablePermanentFlags;}
   void SetFlagState(nsIImapFlagAndUidState *state);
   bool GetDownloadingHeaders();
   bool GetFillingInShell();
@@ -123,7 +123,7 @@ public:
                             //response to authenticate using CRAM-MD5 or NTLM
   bool            fCondStoreEnabled;  
   bool            fUseModSeq;  // can use mod seq for currently selected folder
-  PRUint64        fHighestModSeq;
+  uint64_t        fHighestModSeq;
 
 protected:
   virtual void    flags();
@@ -167,9 +167,9 @@ protected:
   virtual void    msg_fetch();
   virtual void    msg_obsolete();
   virtual void    msg_fetch_headers(const char *partNum);
-  virtual void    msg_fetch_content(bool chunk, PRInt32 origin, const char *content_type);
+  virtual void    msg_fetch_content(bool chunk, int32_t origin, const char *content_type);
   virtual bool    msg_fetch_quoted();
-  virtual bool    msg_fetch_literal(bool chunk, PRInt32 origin);
+  virtual bool    msg_fetch_literal(bool chunk, int32_t origin);
   virtual void    mailbox_list(bool discoveredFromLsub);
   virtual void    mailbox(nsImapMailboxSpec *boxSpec);
 
@@ -203,24 +203,24 @@ private:
   imapMessageFlagsType   fSavedFlagInfo;
   nsTArray<nsCString> fCustomFlags;
 
-  PRUint16  fSupportsUserDefinedFlags;
-  PRUint16  fSettablePermanentFlags;
+  uint16_t  fSupportsUserDefinedFlags;
+  uint16_t  fSettablePermanentFlags;
 
-  PRInt32           fFolderUIDValidity;
-  PRInt32           fNumberOfUnseenMessages;
-  PRInt32           fNumberOfExistingMessages;
-  PRInt32           fNumberOfRecentMessages;
-  PRUint32          fCurrentResponseUID;
-  PRUint32          fHighestRecordedUID;
+  int32_t           fFolderUIDValidity;
+  int32_t           fNumberOfUnseenMessages;
+  int32_t           fNumberOfExistingMessages;
+  int32_t           fNumberOfRecentMessages;
+  uint32_t          fCurrentResponseUID;
+  uint32_t          fHighestRecordedUID;
   // used to handle server that sends msg size after headers
-  PRUint32          fReceivedHeaderOrSizeForUID;
-  PRInt32           fSizeOfMostRecentMessage;
-  PRInt32           fTotalDownloadSize;
+  uint32_t          fReceivedHeaderOrSizeForUID;
+  int32_t           fSizeOfMostRecentMessage;
+  int32_t           fTotalDownloadSize;
 
-  PRInt32           fStatusUnseenMessages;
-  PRInt32           fStatusRecentMessages;
-  PRUint32          fStatusNextUID;
-  PRUint32          fStatusExistingMessages;
+  int32_t           fStatusUnseenMessages;
+  int32_t           fStatusRecentMessages;
+  uint32_t          fStatusNextUID;
+  uint32_t          fStatusExistingMessages;
 
   int               fNumberOfTaggedResponsesExpected;
 
@@ -246,11 +246,11 @@ private:
   char          *fFolderAdminUrl;
   nsCString    fServerIdResponse; // RFC 
 
-  PRInt32 fFetchResponseIndex;
+  int32_t fFetchResponseIndex;
 
   // used for aborting a fetch stream when we're pseudo-Interrupted
-  PRInt32 numberOfCharsInThisChunk;
-  PRInt32 charsReadSoFar;
+  int32_t numberOfCharsInThisChunk;
+  int32_t charsReadSoFar;
   bool fLastChunk;
 
   // points to the current body shell, if any

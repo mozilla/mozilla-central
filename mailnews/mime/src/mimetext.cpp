@@ -33,13 +33,13 @@ MimeDefClass(MimeInlineText, MimeInlineTextClass, mimeInlineTextClass,
 
 static int MimeInlineText_initialize (MimeObject *);
 static void MimeInlineText_finalize (MimeObject *);
-static int MimeInlineText_rot13_line (MimeObject *, char *line, PRInt32 length);
+static int MimeInlineText_rot13_line (MimeObject *, char *line, int32_t length);
 static int MimeInlineText_parse_eof (MimeObject *obj, bool abort_p);
 static int MimeInlineText_parse_end  (MimeObject *, bool);
-static int MimeInlineText_parse_decoded_buffer (const char *, PRInt32, MimeObject *);
-static int MimeInlineText_rotate_convert_and_parse_line(char *, PRInt32,
+static int MimeInlineText_parse_decoded_buffer (const char *, int32_t, MimeObject *);
+static int MimeInlineText_rotate_convert_and_parse_line(char *, int32_t,
                  MimeObject *);
-static int MimeInlineText_open_dam(char *line, PRInt32 length, MimeObject *obj);
+static int MimeInlineText_open_dam(char *line, int32_t length, MimeObject *obj);
 static int MimeInlineText_initializeCharset(MimeObject *obj);
 
 static int
@@ -282,7 +282,7 @@ static const unsigned char MimeInlineText_rot13_table[256] = {
   247, 248, 249, 250, 251, 252, 253, 254, 255 };
 
 static int
-MimeInlineText_rot13_line (MimeObject *obj, char *line, PRInt32 length)
+MimeInlineText_rot13_line (MimeObject *obj, char *line, int32_t length)
 {
   unsigned char *s, *end;
   PR_ASSERT(line);
@@ -299,7 +299,7 @@ MimeInlineText_rot13_line (MimeObject *obj, char *line, PRInt32 length)
 
 
 static int
-MimeInlineText_parse_decoded_buffer (const char *buf, PRInt32 size, MimeObject *obj)
+MimeInlineText_parse_decoded_buffer (const char *buf, int32_t size, MimeObject *obj)
 {
   PR_ASSERT(!obj->closed_p);
   if (obj->closed_p) return -1;
@@ -320,7 +320,7 @@ MimeInlineText_parse_decoded_buffer (const char *buf, PRInt32 size, MimeObject *
   return mime_LineBuffer (buf, size,
              &obj->ibuffer, &obj->ibuffer_size, &obj->ibuffer_fp,
              true,
-             ((int (*) (char *, PRInt32, void *))
+             ((int (*) (char *, int32_t, void *))
               /* This cast is to turn void into MimeObject */
               MimeInlineText_rotate_convert_and_parse_line),
              obj);
@@ -334,11 +334,11 @@ MimeInlineText_parse_decoded_buffer (const char *buf, PRInt32 size, MimeObject *
    : 0)
 
 static int 
-MimeInlineText_convert_and_parse_line(char *line, PRInt32 length, MimeObject *obj)
+MimeInlineText_convert_and_parse_line(char *line, int32_t length, MimeObject *obj)
 {
   int status;
   char *converted = 0;
-  PRInt32 converted_len = 0;
+  int32_t converted_len = 0;
   
   MimeInlineText *text = (MimeInlineText *) obj;
 
@@ -416,13 +416,13 @@ MimeInlineText_convert_and_parse_line(char *line, PRInt32 length, MimeObject *ob
 //In this function call, all buffered lines in lineDam will be sent to charset detector 
 // and a charset will be used to parse all those line and following lines in this mime obj.
 static int 
-MimeInlineText_open_dam(char *line, PRInt32 length, MimeObject *obj)
+MimeInlineText_open_dam(char *line, int32_t length, MimeObject *obj)
 {
   MimeInlineText *text = (MimeInlineText *) obj;
   const char* detectedCharset = nullptr;
   nsresult res = NS_OK;
   int status = 0;
-  PRInt32 i;
+  int32_t i;
 
   if (text->curDamOffset <= 0) {
     //there is nothing in dam, use current line for detection
@@ -473,7 +473,7 @@ MimeInlineText_open_dam(char *line, PRInt32 length, MimeObject *obj)
 
 
 static int
-MimeInlineText_rotate_convert_and_parse_line(char *line, PRInt32 length,
+MimeInlineText_rotate_convert_and_parse_line(char *line, int32_t length,
                        MimeObject *obj)
 {
   int status = 0;

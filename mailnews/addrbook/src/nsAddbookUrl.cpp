@@ -126,12 +126,12 @@ NS_IMETHODIMP nsAddbookUrl::SetHost(const nsACString &aHost)
 	return m_baseURL->SetHost(aHost);
 }
 
-NS_IMETHODIMP nsAddbookUrl::GetPort(PRInt32 *aPort)
+NS_IMETHODIMP nsAddbookUrl::GetPort(int32_t *aPort)
 {
 	return m_baseURL->GetPort(aPort);
 }
 
-NS_IMETHODIMP nsAddbookUrl::SetPort(PRInt32 aPort)
+NS_IMETHODIMP nsAddbookUrl::SetPort(int32_t aPort)
 {
 	return m_baseURL->SetPort(aPort);
 }
@@ -256,7 +256,7 @@ nsAddbookUrl::GetHasRef(bool *result)
 // Specific nsAddbookUrl operations
 //
 NS_IMETHODIMP 
-nsAddbookUrl::GetAddbookOperation(PRInt32 *_retval)
+nsAddbookUrl::GetAddbookOperation(int32_t *_retval)
 {
   *_retval = mOperationType;
   return NS_OK;

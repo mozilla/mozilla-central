@@ -29,8 +29,8 @@
 MimeDefClass(MimeEncryptedCMS, MimeEncryptedCMSClass,
        mimeEncryptedCMSClass, &MIME_SUPERCLASS);
 
-static void *MimeCMS_init(MimeObject *, int (*output_fn) (const char *, PRInt32, void *), void *);
-static int MimeCMS_write (const char *, PRInt32, void *);
+static void *MimeCMS_init(MimeObject *, int (*output_fn) (const char *, int32_t, void *), void *);
+static int MimeCMS_write (const char *, int32_t, void *);
 static int MimeCMS_eof (void *, bool);
 static char * MimeCMS_generate (void *);
 static void MimeCMS_free (void *);
@@ -57,14 +57,14 @@ static int MimeEncryptedCMSClassInitialize(MimeEncryptedCMSClass *clazz)
 
 typedef struct MimeCMSdata
 {
-  int (*output_fn) (const char *buf, PRInt32 buf_size, void *output_closure);
+  int (*output_fn) (const char *buf, int32_t buf_size, void *output_closure);
   void *output_closure;
   nsCOMPtr<nsICMSDecoder> decoder_context;
   nsCOMPtr<nsICMSMessage> content_info;
   bool ci_is_encrypted;
   char *sender_addr;
   bool decoding_failed;
-  PRUint32 decoded_bytes;
+  uint32_t decoded_bytes;
   MimeObject *self;
   bool parent_is_encrypted_p;
   bool parent_holds_stamp_p;
@@ -139,7 +139,7 @@ bool MimeEncryptedCMS_encrypted_p (MimeObject *obj)
 
 static void ParseRFC822Addresses (const char *line, nsCString &names, nsCString &addresses)
 {
-  PRUint32 numAddresses;
+  uint32_t numAddresses;
   nsresult res;
   nsCOMPtr<nsIMsgHeaderParser> pHeader = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &res);
 
@@ -225,7 +225,7 @@ public:
 
   nsSMimeVerificationListener(const char *aFromAddr, const char *aFromName,
                               const char *aSenderAddr, const char *aSenderName,
-                              nsIMsgSMIMEHeaderSink *aHeaderSink, PRInt32 aMimeNestingLevel);
+                              nsIMsgSMIMEHeaderSink *aHeaderSink, int32_t aMimeNestingLevel);
 
   virtual ~nsSMimeVerificationListener() {}
   
@@ -243,7 +243,7 @@ protected:
    * Race-protection for XPCOM reference counting is sufficient.
    */
   nsCOMPtr<nsIMsgSMIMEHeaderSink> mHeaderSink;
-  PRInt32 mMimeNestingLevel;
+  int32_t mMimeNestingLevel;
 
   nsCString mFromAddr;
   nsCString mFromName;
@@ -254,19 +254,19 @@ protected:
 class SignedStatusRunnable : public nsRunnable
 {
 public:
-  SignedStatusRunnable(nsIMsgSMIMEHeaderSink *aSink, PRInt32 aNestingLevel,
-                       PRInt32 aSignatureStatus, nsIX509Cert *aSignerCert);
+  SignedStatusRunnable(nsIMsgSMIMEHeaderSink *aSink, int32_t aNestingLevel,
+                       int32_t aSignatureStatus, nsIX509Cert *aSignerCert);
   NS_DECL_NSIRUNNABLE
 protected:
   nsCOMPtr<nsIMsgSMIMEHeaderSink> m_sink;
-  PRInt32 m_nestingLevel;
-  PRInt32 m_signatureStatus;
+  int32_t m_nestingLevel;
+  int32_t m_signatureStatus;
   nsCOMPtr<nsIX509Cert> m_signerCert;
 };
 
 SignedStatusRunnable::SignedStatusRunnable(nsIMsgSMIMEHeaderSink *aSink,
-                                           PRInt32 aNestingLevel,
-                                           PRInt32 aSignatureStatus,
+                                           int32_t aNestingLevel,
+                                           int32_t aSignatureStatus,
                                            nsIX509Cert *aSignerCert) :
   m_sink(aSink), m_nestingLevel(aNestingLevel),
   m_signatureStatus(aSignatureStatus), m_signerCert(aSignerCert)
@@ -280,8 +280,8 @@ NS_IMETHODIMP SignedStatusRunnable::Run()
 
 
 nsresult ProxySignedStatus(nsIMsgSMIMEHeaderSink *aSink,
-                           PRInt32 aNestingLevel,
-                           PRInt32 aSignatureStatus,
+                           int32_t aNestingLevel,
+                           int32_t aSignatureStatus,
                            nsIX509Cert *aSignerCert)
 {
   nsRefPtr<SignedStatusRunnable> signedStatus =
@@ -293,7 +293,7 @@ NS_IMPL_THREADSAFE_ISUPPORTS1(nsSMimeVerificationListener, nsISMimeVerificationL
 
 nsSMimeVerificationListener::nsSMimeVerificationListener(const char *aFromAddr, const char *aFromName,
                                                          const char *aSenderAddr, const char *aSenderName,
-                                                         nsIMsgSMIMEHeaderSink *aHeaderSink, PRInt32 aMimeNestingLevel)
+                                                         nsIMsgSMIMEHeaderSink *aHeaderSink, int32_t aMimeNestingLevel)
 {
   mHeaderSink = aHeaderSink;
   mMimeNestingLevel = aMimeNestingLevel;
@@ -318,7 +318,7 @@ NS_IMETHODIMP nsSMimeVerificationListener::Notify(nsICMSMessage2 *aVerifiedMessa
   nsCOMPtr<nsIX509Cert> signerCert;
   msg->GetSignerCert(getter_AddRefs(signerCert));
   
-  PRInt32 signature_status = nsICMSMessageErrors::GENERAL_ERROR;
+  int32_t signature_status = nsICMSMessageErrors::GENERAL_ERROR;
   
   if (NS_FAILED(aVerificationResultCode))
   {
@@ -420,7 +420,7 @@ int MIMEGetRelativeCryptoNestLevel(MimeObject *obj)
 }
 
 static void *MimeCMS_init(MimeObject *obj,
-                          int (*output_fn) (const char *buf, PRInt32 buf_size, void *output_closure), 
+                          int (*output_fn) (const char *buf, int32_t buf_size, void *output_closure), 
                           void *output_closure)
 {
   MimeCMSdata *data;
@@ -522,7 +522,7 @@ static void *MimeCMS_init(MimeObject *obj,
 }
 
 static int
-MimeCMS_write (const char *buf, PRInt32 buf_size, void *closure)
+MimeCMS_write (const char *buf, int32_t buf_size, void *closure)
 {
   MimeCMSdata *data = (MimeCMSdata *) closure;
   nsresult rv;
@@ -583,8 +583,8 @@ void MimeCMSGetFromSender(MimeObject *obj,
 void MimeCMSRequestAsyncSignatureVerification(nsICMSMessage *aCMSMsg,
                                               const char *aFromAddr, const char *aFromName,
                                               const char *aSenderAddr, const char *aSenderName,
-                                              nsIMsgSMIMEHeaderSink *aHeaderSink, PRInt32 aMimeNestingLevel,
-                                              unsigned char* item_data, PRUint32 item_len)
+                                              nsIMsgSMIMEHeaderSink *aHeaderSink, int32_t aMimeNestingLevel,
+                                              unsigned char* item_data, uint32_t item_len)
 {
   nsCOMPtr<nsICMSMessage2> msg2 = do_QueryInterface(aCMSMsg);
   if (!msg2)
@@ -607,7 +607,7 @@ MimeCMS_eof (void *crypto_closure, bool abort_p)
 {
   MimeCMSdata *data = (MimeCMSdata *) crypto_closure;
   nsresult rv;
-  PRInt32 status = nsICMSMessageErrors::SUCCESS;
+  int32_t status = nsICMSMessageErrors::SUCCESS;
 
   if (!data || !data->output_fn || !data->decoder_context) {
     return -1;
@@ -638,7 +638,7 @@ MimeCMS_eof (void *crypto_closure, bool abort_p)
   if (aRelativeNestLevel < 0)
     return 0;
 
-  PRInt32 maxNestLevel = 0;
+  int32_t maxNestLevel = 0;
   data->smimeHeaderSink->MaxWantedNesting(&maxNestLevel);
 
   if (aRelativeNestLevel > maxNestLevel)

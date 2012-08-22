@@ -123,7 +123,7 @@ calRecurrenceDate::GetNextOccurrence(calIDateTime *aStartTime,
     NS_ENSURE_ARG_POINTER(_retval);
 
     if (mDate) {
-        PRInt32 result;
+        int32_t result;
         if (NS_SUCCEEDED(mDate->Compare(aStartTime, &result)) && result > 0) {
             NS_ADDREF (*_retval = mDate);
             return NS_OK;
@@ -138,13 +138,13 @@ NS_IMETHODIMP
 calRecurrenceDate::GetOccurrences(calIDateTime *aStartTime,
                                   calIDateTime *aRangeStart,
                                   calIDateTime *aRangeEnd,
-                                  PRUint32 aMaxCount,
-                                  PRUint32 *aCount, calIDateTime ***aDates)
+                                  uint32_t aMaxCount,
+                                  uint32_t *aCount, calIDateTime ***aDates)
 {
     NS_ENSURE_ARG_POINTER(aStartTime);
     NS_ENSURE_ARG_POINTER(aRangeStart);
 
-    PRInt32 r1, r2;
+    int32_t r1, r2;
 
     if (mDate) {
         if (NS_SUCCEEDED(mDate->Compare(aRangeStart, &r1)) && r1 >= 0 &&

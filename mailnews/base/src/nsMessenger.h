@@ -34,14 +34,14 @@ public:
                           const nsACString& messageUri, const nsACString& contentType, 
                           void *closure, nsIUrlListener *aListener);
   nsresult PromptIfFileExists(nsIFile *file);
-  nsresult DetachAttachments(PRUint32 aCount,
+  nsresult DetachAttachments(uint32_t aCount,
                              const char ** aContentTypeArray,
                              const char ** aUrlArray,
                              const char ** aDisplayNameArray,
                              const char ** aMessageUriArray,
                              nsTArray<nsCString> *saveFileUris,
                              bool withoutWarning = false);
-  nsresult SaveAllAttachments(PRUint32 count,
+  nsresult SaveAllAttachments(uint32_t count,
                               const char **contentTypeArray,
                               const char **urlArray,
                               const char **displayNameArray,
@@ -56,14 +56,14 @@ public:
 protected:
   void GetString(const nsString& aStringName, nsString& stringValue);
   nsresult InitStringBundle();
-  nsresult PromptIfDeleteAttachments(bool saveFirst, PRUint32 count, const char **displayNameArray);
+  nsresult PromptIfDeleteAttachments(bool saveFirst, uint32_t count, const char **displayNameArray);
 
 private:
   nsresult GetLastSaveDirectory(nsIFile **aLastSaveAsDir);
   // if aLocalFile is a dir, we use it.  otherwise, we use the parent of aLocalFile.
   nsresult SetLastSaveDirectory(nsIFile *aLocalFile);
 
-  nsresult GetSaveAsFile(const nsAString& aMsgFilename, PRInt32 *aSaveAsFileType,
+  nsresult GetSaveAsFile(const nsAString& aMsgFilename, int32_t *aSaveAsFileType,
                          nsIFile **aSaveAsFile);
 
   nsresult GetSaveToDir(nsIFile **aSaveToDir);
@@ -86,7 +86,7 @@ private:
                                // uri so we can re-display it..
   nsCString mNavigatingToUri;
   nsTArray<nsCString> mLoadedMsgHistory;
-  PRInt32 mCurHistoryPos;
+  int32_t mCurHistoryPos;
 };
 
 #define NS_MESSENGER_CID \

@@ -46,7 +46,7 @@ extern "C" char *MIME_DecodeMimeHeader(const char *header,
  * @param encodedWordSize [IN] Byte length limit of the output, ususally 72 (use kMIME_ENCODED_WORD_SIZE).
  * @return            Encoded buffer (in C string) or NULL in case of error.
  */
-char *MIME_EncodeMimePartIIStr(const char *header, bool structured, const char* mailCharset, const PRInt32 fieldNameLen, const PRInt32 encodedWordSize);
+char *MIME_EncodeMimePartIIStr(const char *header, bool structured, const char* mailCharset, const int32_t fieldNameLen, const int32_t encodedWordSize);
 
 /**
  * Get a next character position in an UTF-8 string.
@@ -58,7 +58,7 @@ char *MIME_EncodeMimePartIIStr(const char *header, bool structured, const char* 
  */
 char * NextChar_UTF8(char *str);
 
-nsresult MIME_detect_charset(const char *aBuf, PRInt32 aLength, const char** aCharset);
+nsresult MIME_detect_charset(const char *aBuf, int32_t aLength, const char** aCharset);
 nsresult MIME_get_unicode_decoder(const char* aInputCharset, nsIUnicodeDecoder **aDecoder);
 nsresult MIME_get_unicode_encoder(const char* aOutputCharset, nsIUnicodeEncoder **aEncoder);
 

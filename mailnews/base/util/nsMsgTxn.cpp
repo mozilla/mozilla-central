@@ -148,10 +148,10 @@ nsMsgTxn::SetPropertyAs ## Name (const nsAString & prop, Type value) \
     return SetProperty(prop, var); \
 }
 
-IMPL_GETSETPROPERTY_AS(Int32, PRInt32)
-IMPL_GETSETPROPERTY_AS(Uint32, PRUint32)
-IMPL_GETSETPROPERTY_AS(Int64, PRInt64)
-IMPL_GETSETPROPERTY_AS(Uint64, PRUint64)
+IMPL_GETSETPROPERTY_AS(Int32, int32_t)
+IMPL_GETSETPROPERTY_AS(Uint32, uint32_t)
+IMPL_GETSETPROPERTY_AS(Int64, int64_t)
+IMPL_GETSETPROPERTY_AS(Uint64, uint64_t)
 IMPL_GETSETPROPERTY_AS(Double, double)
 IMPL_GETSETPROPERTY_AS(Bool, bool)
 
@@ -279,7 +279,7 @@ nsresult nsMsgTxn::SetMsgWindow(nsIMsgWindow *msgWindow)
 
 
 nsresult
-nsMsgTxn::SetTransactionType(PRUint32 txnType)
+nsMsgTxn::SetTransactionType(uint32_t txnType)
 {
   return SetPropertyAsUint32(NS_LITERAL_STRING("type"), txnType);
 }
@@ -300,7 +300,7 @@ nsMsgTxn::CheckForToggleDelete(nsIMsgFolder *aFolder, const nsMsgKey &aMsgKey, b
     if (NS_FAILED(rv) || !containsKey)   // the message has been deleted from db, so we cannot do toggle here
       return NS_OK;
     rv = db->GetMsgHdrForKey(aMsgKey, getter_AddRefs(message));
-    PRUint32 flags;
+    uint32_t flags;
     if (NS_SUCCEEDED(rv) && message)
     {
       message->GetFlags(&flags);

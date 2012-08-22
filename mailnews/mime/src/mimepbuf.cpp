@@ -52,8 +52,8 @@ nsMsgCreateTempFile(const char *tFileName, nsIFile **tFile);
 struct MimePartBufferData
 {
   char        *part_buffer;          /* Buffer used for part-lookahead. */
-  PRInt32     part_buffer_fp;        /* Active length. */
-  PRInt32     part_buffer_size;      /* How big it is. */
+  int32_t     part_buffer_fp;        /* Active length. */
+  int32_t     part_buffer_size;      /* How big it is. */
 
   nsCOMPtr <nsIFile> file_buffer;    /* The nsIFile of a temp file used when we
                                                           run out of room in the head_buffer. */
@@ -132,7 +132,7 @@ MimePartBufferDestroy (MimePartBufferData *data)
 
 int
 MimePartBufferWrite (MimePartBufferData *data,
-           const char *buf, PRInt32 size)
+           const char *buf, int32_t size)
 {
   NS_ASSERTION(data && buf && size > 0, "MimePartBufferWrite: Bad param");
   if (!data || !buf || size <= 0)
@@ -208,7 +208,7 @@ MimePartBufferWrite (MimePartBufferData *data,
 
       if (data->part_buffer && data->part_buffer_fp)
       {
-        PRUint32 bytesWritten;
+        uint32_t bytesWritten;
         nsresult rv = data->output_file_stream->Write(data->part_buffer,
                                                  data->part_buffer_fp, &bytesWritten);
         NS_ENSURE_SUCCESS(rv, rv);
@@ -220,9 +220,9 @@ MimePartBufferWrite (MimePartBufferData *data,
     }
 
     /* Dump this buf to the file. */
-    PRUint32 bytesWritten;
+    uint32_t bytesWritten;
     nsresult rv = data->output_file_stream->Write (buf, size, &bytesWritten);
-    if (NS_FAILED(rv) || (PRInt32) bytesWritten < size)
+    if (NS_FAILED(rv) || (int32_t) bytesWritten < size)
       return MIME_OUT_OF_MEMORY;
   }
 
@@ -249,7 +249,7 @@ MimePartBufferRead (MimePartBufferData *data,
     /* Read it off disk.
      */
     char *buf;
-    PRInt32 buf_size = DISK_BUFFER_SIZE;
+    int32_t buf_size = DISK_BUFFER_SIZE;
 
     NS_ASSERTION(data->part_buffer_size == 0 && data->part_buffer_fp == 0, "buffer size is not null");
     NS_ASSERTION(data->file_buffer, "no file buffer name");
@@ -272,7 +272,7 @@ MimePartBufferRead (MimePartBufferData *data,
     }
     while(1)
     {
-      PRUint32 bytesRead = 0;
+      uint32_t bytesRead = 0;
       rv = data->input_file_stream->Read(buf, buf_size - 1, &bytesRead);
       if (NS_FAILED(rv) || !bytesRead)
       {

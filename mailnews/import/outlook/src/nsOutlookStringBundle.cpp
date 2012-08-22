@@ -35,14 +35,14 @@ nsIStringBundle *nsOutlookStringBundle::GetStringBundle(void)
   return sBundle;
 }
 
-void nsOutlookStringBundle::GetStringByID(PRInt32 stringID, nsString& result)
+void nsOutlookStringBundle::GetStringByID(int32_t stringID, nsString& result)
 {
   PRUnichar *ptrv = GetStringByID(stringID);
   result = ptrv;
   FreeString(ptrv);
 }
 
-PRUnichar *nsOutlookStringBundle::GetStringByID(PRInt32 stringID)
+PRUnichar *nsOutlookStringBundle::GetStringByID(int32_t stringID)
 {
   if (m_pBundle)
     m_pBundle = GetStringBundle();

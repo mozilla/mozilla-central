@@ -67,11 +67,11 @@ nsresult nsMsgI18NConvertFromUnicode(const char* aCharset,
 
   const PRUnichar *originalSrcPtr = inString.get();
   const PRUnichar *currentSrcPtr = originalSrcPtr;
-  PRInt32 originalUnicharLength = inString.Length();
-  PRInt32 srcLength;
-  PRInt32 dstLength;
+  int32_t originalUnicharLength = inString.Length();
+  int32_t srcLength;
+  int32_t dstLength;
   char localbuf[512];
-  PRInt32 consumedLen = 0;
+  int32_t consumedLen = 0;
 
   outString.Truncate();
   // convert
@@ -135,11 +135,11 @@ nsresult nsMsgI18NConvertToUnicode(const char* aCharset,
 
   const char *originalSrcPtr = inString.get();
   const char *currentSrcPtr = originalSrcPtr;
-  PRInt32 originalLength = inString.Length();
-  PRInt32 srcLength;
-  PRInt32 dstLength;
+  int32_t originalLength = inString.Length();
+  int32_t srcLength;
+  int32_t dstLength;
   PRUnichar localbuf[512];
-  PRInt32 consumedLen = 0;
+  int32_t consumedLen = 0;
 
   outString.Truncate();
 
@@ -196,7 +196,7 @@ void nsMsgI18NTextFileCharset(nsACString& aCharset)
 
 // MIME encoder, output string should be freed by PR_FREE
 // XXX : fix callers later to avoid allocation and copy
-char * nsMsgI18NEncodeMimePartIIStr(const char *header, bool structured, const char *charset, PRInt32 fieldnamelen, bool usemime) 
+char * nsMsgI18NEncodeMimePartIIStr(const char *header, bool structured, const char *charset, int32_t fieldnamelen, bool usemime) 
 {
   // No MIME, convert to the outgoing mail charset.
   if (false == usemime) {
@@ -259,12 +259,12 @@ bool nsMsgI18Ncheck_data_in_charset_range(const char *charset, const PRUnichar* 
     res = ccm->GetUnicodeEncoderRaw(charset, getter_AddRefs(encoder));
     if(NS_SUCCEEDED(res)) {
       const PRUnichar *originalPtr = inString;
-      PRInt32 originalLen = NS_strlen(inString);
+      int32_t originalLen = NS_strlen(inString);
       const PRUnichar *currentSrcPtr = originalPtr;
       char localBuff[512];
-      PRInt32 consumedLen = 0;
-      PRInt32 srcLen;
-      PRInt32 dstLength;
+      int32_t consumedLen = 0;
+      int32_t srcLen;
+      int32_t dstLength;
 
       // convert from unicode
       while (consumedLen < originalLen) {
@@ -467,7 +467,7 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
 }
 
 nsresult nsMsgI18NShrinkUTF8Str(const nsCString &inString,
-                                PRUint32 aMaxLength,
+                                uint32_t aMaxLength,
                                 nsACString &outString)
 {
   if (inString.IsEmpty()) {
@@ -494,7 +494,7 @@ nsresult nsMsgI18NShrinkUTF8Str(const nsCString &inString,
     outString.Truncate();
     return NS_OK;
   }
-  PRUint32 len = prev - start;
+  uint32_t len = prev - start;
   outString.Assign(Substring(inString, 0, len));
   return NS_OK;
 }

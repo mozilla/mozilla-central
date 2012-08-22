@@ -59,7 +59,7 @@ nsNoIncomingServer::SetFlagsOnDefaultMailboxes()
 
   // None server may have an inbox if it's deferred to,
   // or if it's the smart mailboxes account.
-  PRUint32 mailboxFlags = nsMsgFolderFlags::SentMail |
+  uint32_t mailboxFlags = nsMsgFolderFlags::SentMail |
                           nsMsgFolderFlags::Archive |
                           nsMsgFolderFlags::Drafts |
                           nsMsgFolderFlags::Templates |
@@ -169,7 +169,7 @@ nsNoIncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlListener *aUrlLis
   nsCOMPtr <nsISupportsArray> deferredServers;
   nsresult rv = GetDeferredServers(this, getter_AddRefs(deferredServers));
   NS_ENSURE_SUCCESS(rv, rv);
-  PRUint32 count;
+  uint32_t count;
   deferredServers->Count(&count);
   if (count > 0)
   {

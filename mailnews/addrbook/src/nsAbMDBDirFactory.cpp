@@ -86,11 +86,11 @@ NS_IMETHODIMP nsAbMDBDirFactory::DeleteDirectory(nsIAbDirectory *directory)
     rv = directory->GetAddressLists(getter_AddRefs(pAddressLists));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRUint32 total;
+    uint32_t total;
     rv = pAddressLists->GetLength(&total);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    for (PRUint32 i = 0; i < total; i++)
+    for (uint32_t i = 0; i < total; i++)
     {
         nsCOMPtr<nsIAbDirectory> listDir(do_QueryElementAt(pAddressLists, i, &rv));
         if (NS_FAILED(rv))

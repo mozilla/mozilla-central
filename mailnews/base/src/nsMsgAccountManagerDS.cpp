@@ -424,7 +424,7 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
     rv = getServerForFolderNode(source, getter_AddRefs(server));
 
     if (NS_SUCCEEDED(rv) && server) {
-      PRInt32 accountNum;
+      int32_t accountNum;
       nsCOMPtr<nsIMsgAccountManager> am = do_QueryReferent(mAccountManager);
 
       if (isDefaultServer(server))
@@ -590,7 +590,7 @@ nsMsgAccountManagerDataSource::createRootResources(nsIRDFResource *property,
     serverCreationParams params = { aNodeArray, getRDFService() };
     servers->EnumerateForwards(createServerResources, (void*)&params);
 #ifdef DEBUG_amds
-    PRUint32 nodecount;
+    uint32_t nodecount;
     aNodeArray->GetLength(&nodecount);
     printf("GetTargets(): added %d servers on %s\n", nodecount,
            (const char*)property_arc);
@@ -713,7 +713,7 @@ nsMsgAccountManagerDataSource::createSettingsResources(nsIRDFResource *aSource,
 
     // Check the offline capability before adding
     // offline item
-    PRInt32 offlineSupportLevel = 0;
+    int32_t offlineSupportLevel = 0;
     rv = server->GetOfflineSupportLevel(&offlineSupportLevel);
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -754,7 +754,7 @@ nsMsgAccountManagerDataSource::serverHasIdentities(nsIMsgIncomingServer* aServer
   // no identities just means no arcs
   if (NS_FAILED(rv)) return NS_OK;
 
-  PRUint32 count;
+  uint32_t count;
   rv = identities->Count(&count);
   if (NS_FAILED(rv)) return NS_OK;
 
@@ -849,7 +849,7 @@ nsMsgAccountManagerDataSource::HasArcOut(nsIRDFResource *source, nsIRDFResource 
     rv = getServerForFolderNode(source, getter_AddRefs(server));
     if (server) {
       // Check the offline capability before adding arc
-      PRInt32 offlineSupportLevel = 0;
+      int32_t offlineSupportLevel = 0;
       (void) server->GetOfflineSupportLevel(&offlineSupportLevel);
       if (offlineSupportLevel >= OFFLINE_SUPPORT_LEVEL_REGULAR) {
         *result = true;
@@ -1190,7 +1190,7 @@ nsMsgAccountManagerDataSource::OnItemRemoved(nsIMsgFolder *, nsISupports *)
 }
 
 nsresult
-nsMsgAccountManagerDataSource::OnItemPropertyFlagChanged(nsIMsgDBHdr *, nsIAtom *, PRUint32, PRUint32)
+nsMsgAccountManagerDataSource::OnItemPropertyFlagChanged(nsIMsgDBHdr *, nsIAtom *, uint32_t, uint32_t)
 {
   return NS_OK;
 }
@@ -1222,7 +1222,7 @@ nsMsgAccountManagerDataSource::OnItemEvent(nsIMsgFolder *, nsIAtom *)
 }
 
 nsresult
-nsMsgAccountManagerDataSource::OnItemIntPropertyChanged(nsIMsgFolder *, nsIAtom *, PRInt32, PRInt32)
+nsMsgAccountManagerDataSource::OnItemIntPropertyChanged(nsIMsgFolder *, nsIAtom *, int32_t, int32_t)
 {
   return NS_OK;
 }

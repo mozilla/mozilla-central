@@ -40,7 +40,7 @@ STDMETHODIMP_(ULONG) CMapiFactory::AddRef()
 
 STDMETHODIMP_(ULONG) CMapiFactory::Release() 
 {
-    PRInt32 temp;
+    int32_t temp;
     temp = PR_ATOMIC_DECREMENT(&m_cRef);
     if (m_cRef == 0)
     {

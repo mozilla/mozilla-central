@@ -38,8 +38,8 @@ public:
 private:
   #define SEND_LAST_PROCESS  process_FCC
   nsCOMPtr<nsIMsgProcessReport> mProcessReport[SEND_LAST_PROCESS + 1];
-  PRInt32 mDeliveryMode;
-  PRInt32 mCurrentProcess;
+  int32_t mDeliveryMode;
+  int32_t mCurrentProcess;
   bool mAlreadyDisplayReport;
 };
 

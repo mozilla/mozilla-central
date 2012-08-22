@@ -20,7 +20,7 @@ protected :
     static LPWABOBJECT mRootSession ;
     static LPADRBOOK mRootBook ;
     // Class members to handle library loading/entry points
-    static PRInt32 mLibUsage ;
+    static int32_t mLibUsage ;
     static HMODULE mLibrary ;
     static LPWABOPEN mWABOpen ;
 

@@ -39,7 +39,7 @@ public:
   nsresult PerformBiff();
 
 protected:
-  PRInt32 FindServer(nsIMsgIncomingServer *server);
+  int32_t FindServer(nsIMsgIncomingServer *server);
   nsresult SetNextBiffTime(nsBiffEntry &biffEntry, PRTime currentTime);
   nsresult SetupNextBiff();
   nsresult AddBiffEntry(nsBiffEntry &biffEntry);

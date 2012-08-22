@@ -79,8 +79,8 @@ struct BaseToken : public PLDHashEntryHdr
 // token for a particular message
 // mCount, mAnalysisLink are initialized to zero by the hash code
 struct Token : public BaseToken {
-    PRUint32 mCount;
-    PRUint32 mAnalysisLink; // index in mAnalysisStore of the AnalysisPerToken
+    uint32_t mCount;
+    uint32_t mAnalysisLink; // index in mAnalysisStore of the AnalysisPerToken
                             // object for the first trait for this token
 };
 
@@ -88,23 +88,23 @@ struct Token : public BaseToken {
 // mTraitLink is initialized to 0 by the hash code
 struct CorpusToken : public BaseToken
 {
-    PRUint32 mTraitLink;    // index in mTraitStore of the TraitPerToken
+    uint32_t mTraitLink;    // index in mTraitStore of the TraitPerToken
                             // object for the first trait for this token
 };
 
 // set the value of a TraitPerToken object
-TraitPerToken::TraitPerToken(PRUint32 aTraitId, PRUint32 aCount)
+TraitPerToken::TraitPerToken(uint32_t aTraitId, uint32_t aCount)
   :  mId(aTraitId), mCount(aCount), mNextLink(0)
 {
 }
 
 // shorthand representations of trait ids for junk and good
-static const PRUint32 kJunkTrait = nsIJunkMailPlugin::JUNK_TRAIT;
-static const PRUint32 kGoodTrait = nsIJunkMailPlugin::GOOD_TRAIT;
+static const uint32_t kJunkTrait = nsIJunkMailPlugin::JUNK_TRAIT;
+static const uint32_t kGoodTrait = nsIJunkMailPlugin::GOOD_TRAIT;
 
 // set the value of an AnalysisPerToken object
 AnalysisPerToken::AnalysisPerToken(
-  PRUint32 aTraitIndex, double aDistance, double aProbability) :
+  uint32_t aTraitIndex, double aDistance, double aProbability) :
     mTraitIndex(aTraitIndex),
     mDistance(aDistance),
     mProbability(aProbability),
@@ -113,13 +113,13 @@ AnalysisPerToken::AnalysisPerToken(
 }
 
 // the initial size of the AnalysisPerToken linked list storage
-const PRUint32 kAnalysisStoreCapacity = 2048;
+const uint32_t kAnalysisStoreCapacity = 2048;
 
 // the initial size of the TraitPerToken linked list storage
-const PRUint32 kTraitStoreCapacity = 16384;
+const uint32_t kTraitStoreCapacity = 16384;
 
 // Size of Auto arrays representing per trait information
-const PRUint32 kTraitAutoCapacity = 10;
+const uint32_t kTraitAutoCapacity = 10;
 
 TokenEnumeration::TokenEnumeration(PLDHashTable* table)
     :   mEntrySize(table->entrySize),
@@ -127,7 +127,7 @@ TokenEnumeration::TokenEnumeration(PLDHashTable* table)
         mEntryOffset(0),
         mEntryAddr(table->entryStore)
 {
-    PRUint32 capacity = PL_DHASH_TABLE_SIZE(table);
+    uint32_t capacity = PL_DHASH_TABLE_SIZE(table);
     mEntryLimit = mEntryAddr + capacity * mEntrySize;
 }
 
@@ -139,7 +139,7 @@ inline bool TokenEnumeration::hasMoreTokens()
 inline BaseToken* TokenEnumeration::nextToken()
 {
     BaseToken* token = nullptr;
-    PRUint32 entrySize = mEntrySize;
+    uint32_t entrySize = mEntrySize;
     char *entryAddr = mEntryAddr, *entryLimit = mEntryLimit;
     while (entryAddr < entryLimit) {
         PLDHashEntryHdr* entry = (PLDHashEntryHdr*) entryAddr;
@@ -160,7 +160,7 @@ struct VisitClosure {
 };
 
 static PLDHashOperator VisitEntry(PLDHashTable* table, PLDHashEntryHdr* entry,
-                                  PRUint32 number, void* arg)
+                                  uint32_t number, void* arg)
 {
     VisitClosure* closure = reinterpret_cast<VisitClosure*>(arg);
     BaseToken* token = static_cast<BaseToken*>(entry);
@@ -178,7 +178,7 @@ static const PLDHashTableOps gTokenTableOps = {
     PL_DHashFinalizeStub
 };
 
-TokenHash::TokenHash(PRUint32 aEntrySize)
+TokenHash::TokenHash(uint32_t aEntrySize)
 {
     mEntrySize = aEntrySize;
     PL_INIT_ARENA_POOL(&mWordPool, "Words Arena", 16384);
@@ -214,10 +214,10 @@ nsresult TokenHash::clearTokens()
     return (ok) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
-char* TokenHash::copyWord(const char* word, PRUint32 len)
+char* TokenHash::copyWord(const char* word, uint32_t len)
 {
     void* result;
-    PRUint32 size = 1 + len;
+    uint32_t size = 1 + len;
     PL_ARENA_ALLOCATE(result, &mWordPool, size);
     if (result)
         memcpy(result, word, size);
@@ -246,7 +246,7 @@ BaseToken* TokenHash::add(const char* word)
     BaseToken* token = static_cast<BaseToken*>(entry);
     if (token) {
         if (token->mWord == NULL) {
-            PRUint32 len = strlen(word);
+            uint32_t len = strlen(word);
             NS_ASSERTION(len != 0, "adding zero length word to tokenizer");
             if (!len)
               PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG, ("adding zero length word to tokenizer"));
@@ -265,14 +265,14 @@ BaseToken* TokenHash::add(const char* word)
 void TokenHash::visit(bool (*f) (BaseToken*, void*), void* data)
 {
     VisitClosure closure = { f, data };
-    PRUint32 visitCount = PL_DHashTableEnumerate(&mTokenTable, VisitEntry, &closure);
+    uint32_t visitCount = PL_DHashTableEnumerate(&mTokenTable, VisitEntry, &closure);
     NS_ASSERTION(visitCount == mTokenTable.entryCount, "visitCount != entryCount!");
     if (visitCount != mTokenTable.entryCount) {
       PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("visitCount != entryCount!: %d vs %d", visitCount, mTokenTable.entryCount));
     }
 }
 
-inline PRUint32 TokenHash::countTokens()
+inline uint32_t TokenHash::countTokens()
 {
   return mTokenTable.entryCount;
 }
@@ -361,12 +361,12 @@ Tokenizer::Tokenizer() :
    */
 
   char** headers;
-  PRUint32 count;
+  uint32_t count;
 
   // get customized maximum token length
-  PRInt32 maxLengthForToken;
+  int32_t maxLengthForToken;
   rv = prefBranch->GetIntPref("maxlengthfortoken", &maxLengthForToken);
-  mMaxLengthForToken = NS_SUCCEEDED(rv) ? PRUint32(maxLengthForToken) : kMaxLengthForToken;
+  mMaxLengthForToken = NS_SUCCEEDED(rv) ? uint32_t(maxLengthForToken) : kMaxLengthForToken;
 
   rv = prefs->GetBranch("mailnews.bayesian_spam_filter.tokenizeheader.", getter_AddRefs(prefBranch));
   if (NS_SUCCEEDED(rv))
@@ -375,7 +375,7 @@ Tokenizer::Tokenizer() :
   if (NS_SUCCEEDED(rv))
   {
     mCustomHeaderTokenization = true;
-    for (PRUint32 i = 0; i < count; i++)
+    for (uint32_t i = 0; i < count; i++)
     {
       nsCString value;
       prefBranch->GetCharPref(headers[i], getter_Copies(value));
@@ -406,7 +406,7 @@ inline Token* Tokenizer::get(const char* word)
   return static_cast<Token*>(TokenHash::get(word));
 }
 
-Token* Tokenizer::add(const char* word, PRUint32 count)
+Token* Tokenizer::add(const char* word, uint32_t count)
 {
   PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG, ("add word: %s (count=%d)",
          word, count));
@@ -529,7 +529,7 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
     if (mCustomHeaderTokenization)
     {
       // Process any exceptions set from preferences
-      for (PRUint32 i = 0; i < mEnabledHeaders.Length(); i++)
+      for (uint32_t i = 0; i < mEnabledHeaders.Length(); i++)
         if (headerName.Equals(mEnabledHeaders[i]))
         {
           if (mEnabledHeadersDelimiters[i].IsVoid())
@@ -546,7 +546,7 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
           break; // we found the header, no need to look for more custom values
         }
 
-      for (PRUint32 i = 0; i < mDisabledHeaders.Length(); i++)
+      for (uint32_t i = 0; i < mDisabledHeaders.Length(); i++)
       {
         if (headerName.Equals(mDisabledHeaders[i]))
         {
@@ -623,7 +623,7 @@ void Tokenizer::tokenize_ascii_word(char * aWord)
 {
   // always deal with normalized lower case strings
   toLowerCase(aWord);
-  PRUint32 wordLength = strlen(aWord);
+  uint32_t wordLength = strlen(aWord);
 
   // if the wordLength is within our accepted token limit, then add it
   if (wordLength >= kMinLengthForToken && wordLength <= mMaxLengthForToken)
@@ -638,7 +638,7 @@ void Tokenizer::tokenize_ascii_word(char * aWord)
     const char *atSign = strchr(aWord, '@');
     if (wordLength < 40 && strchr(aWord, '.') && atSign && !strchr(atSign + 1, '@'))
     {
-      PRUint32 numBytesToSep = atSign - aWord;
+      uint32_t numBytesToSep = atSign - aWord;
       if (numBytesToSep < wordLength - 1) // if the @ sign is the last character, it must not be an email address
       {
         // split the john@foo.com into john and foo.com, treat them as separate tokens
@@ -666,7 +666,7 @@ void Tokenizer::tokenize_ascii_word(char * aWord)
 }
 
 // one substract and one conditional jump should be faster than two conditional jump on most recent system.
-#define IN_RANGE(x, low, high)  ((PRUint16)((x)-(low)) <= (high)-(low))
+#define IN_RANGE(x, low, high)  ((uint16_t)((x)-(low)) <= (high)-(low))
 
 #define IS_JA_HIRAGANA(x)   IN_RANGE(x, 0x3040, 0x309F)
 // swapping the range using xor operation to reduce conditional jump.
@@ -768,7 +768,7 @@ void Tokenizer::tokenize_japanese_word(char* chunk)
 
 nsresult Tokenizer::stripHTML(const nsAString& inString, nsAString& outString)
 {
-  PRUint32 flags = nsIDocumentEncoder::OutputLFLineBreak
+  uint32_t flags = nsIDocumentEncoder::OutputLFLineBreak
                  | nsIDocumentEncoder::OutputNoScriptContent
                  | nsIDocumentEncoder::OutputNoFramesContent
                  | nsIDocumentEncoder::OutputBodyOnly;
@@ -842,7 +842,7 @@ void Tokenizer::tokenize(const char* aText)
             NS_ConvertUTF8toUTF16 uword(word);
             ToLowerCase(uword);
             const PRUnichar* utext = uword.get();
-            PRInt32 len = uword.Length(), pos = 0, begin, end;
+            int32_t len = uword.Length(), pos = 0, begin, end;
             bool gotUnit;
             while (pos < len) {
                 rv = mScanner->Next(utext, len, pos, true, &begin, &end, &gotUnit);
@@ -914,7 +914,7 @@ void Tokenizer::UnescapeCString(nsCString& aCString)
 
 Token* Tokenizer::copyTokens()
 {
-    PRUint32 count = countTokens();
+    uint32_t count = countTokens();
     if (count > 0) {
         Token* tokens = new Token[count];
         if (tokens) {
@@ -963,13 +963,13 @@ public:
 protected:
     TokenAnalyzer* mAnalyzer;
     char* mBuffer;
-    PRUint32 mBufferSize;
-    PRUint32 mLeftOverCount;
+    uint32_t mBufferSize;
+    uint32_t mLeftOverCount;
     Tokenizer mTokenizer;
     bool mSetAttachmentFlag;
 };
 
-const PRUint32 kBufferSize = 16384;
+const uint32_t kBufferSize = 16384;
 
 TokenStreamListener::TokenStreamListener(TokenAnalyzer* analyzer)
     :   mAnalyzer(analyzer),
@@ -1077,12 +1077,12 @@ NS_IMETHODIMP TokenStreamListener::OnStartRequest(nsIRequest *aRequest, nsISuppo
 }
 
 /* void onDataAvailable (in nsIRequest aRequest, in nsISupports aContext, in nsIInputStream aInputStream, in unsigned long aOffset, in unsigned long aCount); */
-NS_IMETHODIMP TokenStreamListener::OnDataAvailable(nsIRequest *aRequest, nsISupports *aContext, nsIInputStream *aInputStream, PRUint32 aOffset, PRUint32 aCount)
+NS_IMETHODIMP TokenStreamListener::OnDataAvailable(nsIRequest *aRequest, nsISupports *aContext, nsIInputStream *aInputStream, uint32_t aOffset, uint32_t aCount)
 {
     nsresult rv = NS_OK;
 
     while (aCount > 0) {
-        PRUint32 readCount, totalCount = (aCount + mLeftOverCount);
+        uint32_t readCount, totalCount = (aCount + mLeftOverCount);
         if (totalCount >= mBufferSize) {
             readCount = mBufferSize - mLeftOverCount - 1;
         } else {
@@ -1127,7 +1127,7 @@ NS_IMETHODIMP TokenStreamListener::OnDataAvailable(nsIRequest *aRequest, nsISupp
             *lastDelimiter = '\0';
             mTokenizer.tokenize(buffer);
 
-            PRUint32 consumedCount = 1 + (lastDelimiter - buffer);
+            uint32_t consumedCount = 1 + (lastDelimiter - buffer);
             mLeftOverCount = totalCount - consumedCount;
             if (mLeftOverCount)
                 memmove(buffer, buffer + consumedCount, mLeftOverCount);
@@ -1135,7 +1135,7 @@ NS_IMETHODIMP TokenStreamListener::OnDataAvailable(nsIRequest *aRequest, nsISupp
             /* didn't find a delimiter, keep the whole buffer around. */
             mLeftOverCount = totalCount;
             if (totalCount >= (mBufferSize / 2)) {
-                PRUint32 newBufferSize = mBufferSize * 2;
+                uint32_t newBufferSize = mBufferSize * 2;
                 char* newBuffer = new char[newBufferSize];
                 NS_ENSURE_TRUE(newBuffer, NS_ERROR_OUT_OF_MEMORY);
                 memcpy(newBuffer, mBuffer, mLeftOverCount);
@@ -1178,7 +1178,7 @@ nsBayesianFilter::nsBayesianFilter()
     if (!BayesianFilterLogModule)
       BayesianFilterLogModule = PR_NewLogModule("BayesianFilter");
 
-    PRInt32 junkThreshold = 0;
+    int32_t junkThreshold = 0;
     nsresult rv;
     nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
     if (pPrefBranch)
@@ -1270,10 +1270,10 @@ public:
                       nsIJunkMailClassificationListener* aJunkListener,
                       nsIMsgTraitClassificationListener* aTraitListener,
                       nsIMsgTraitDetailListener* aDetailListener,
-                      nsTArray<PRUint32>& aProTraits,
-                      nsTArray<PRUint32>& aAntiTraits,
+                      nsTArray<uint32_t>& aProTraits,
+                      nsTArray<uint32_t>& aAntiTraits,
                       nsIMsgWindow *aMsgWindow,
-                      PRUint32 aNumMessagesToClassify,
+                      uint32_t aNumMessagesToClassify,
                       const char **aMessageURIs)
     :   mFilter(aFilter),
         mJunkMailPlugin(aFilter),
@@ -1287,7 +1287,7 @@ public:
       mCurMessageToClassify = 0;
       mNumMessagesToClassify = aNumMessagesToClassify;
       mMessageURIs = (char **) nsMemory::Alloc(sizeof(char *) * aNumMessagesToClassify);
-      for (PRUint32 i = 0; i < aNumMessagesToClassify; i++)
+      for (uint32_t i = 0; i < aNumMessagesToClassify; i++)
         mMessageURIs[i] = PL_strdup(aMessageURIs[i]);
 
     }
@@ -1296,7 +1296,7 @@ public:
     MessageClassifier(nsBayesianFilter* aFilter,
                       nsIJunkMailClassificationListener* aJunkListener,
                       nsIMsgWindow *aMsgWindow,
-                      PRUint32 aNumMessagesToClassify,
+                      uint32_t aNumMessagesToClassify,
                       const char **aMessageURIs)
     :   mFilter(aFilter),
         mJunkMailPlugin(aFilter),
@@ -1308,7 +1308,7 @@ public:
       mCurMessageToClassify = 0;
       mNumMessagesToClassify = aNumMessagesToClassify;
       mMessageURIs = (char **) nsMemory::Alloc(sizeof(char *) * aNumMessagesToClassify);
-      for (PRUint32 i = 0; i < aNumMessagesToClassify; i++)
+      for (uint32_t i = 0; i < aNumMessagesToClassify; i++)
         mMessageURIs[i] = PL_strdup(aMessageURIs[i]);
       mProTraits.AppendElement(kJunkTrait);
       mAntiTraits.AppendElement(kGoodTrait);
@@ -1360,11 +1360,11 @@ private:
     nsCOMPtr<nsIJunkMailClassificationListener> mJunkListener;
     nsCOMPtr<nsIMsgTraitClassificationListener> mTraitListener;
     nsCOMPtr<nsIMsgTraitDetailListener> mDetailListener;
-    nsTArray<PRUint32> mProTraits;
-    nsTArray<PRUint32> mAntiTraits;
+    nsTArray<uint32_t> mProTraits;
+    nsTArray<uint32_t> mAntiTraits;
     nsCOMPtr<nsIMsgWindow> mMsgWindow;
-    PRInt32 mNumMessagesToClassify;
-    PRInt32 mCurMessageToClassify; // 0-based index
+    int32_t mNumMessagesToClassify;
+    int32_t mCurMessageToClassify; // 0-based index
     char **mMessageURIs;
 };
 
@@ -1387,7 +1387,7 @@ nsresult nsBayesianFilter::tokenizeMessage(const char* aMessageURI, nsIMsgWindow
 // sorted by mDistance
 struct TraitAnalysis
 {
-  PRUint32 mTokenIndex;
+  uint32_t mTokenIndex;
   double mDistance;
   double mProbability;
 };
@@ -1421,7 +1421,7 @@ inline double dmin(double x, double y) { return (x < y ? x : y); }
 // Note that converting unsigned ints to floating point can be slow on
 // some platforms (like Intel) so use signed quantities for the numeric
 // routines.
-static inline double chi2P (double chi2, double nu, PRInt32 *error)
+static inline double chi2P (double chi2, double nu, int32_t *error)
 {
     // domain checks; set error and return a dummy value
     if (chi2 < 0.0 || nu <= 0.0)
@@ -1436,14 +1436,14 @@ static inline double chi2P (double chi2, double nu, PRInt32 *error)
 void nsBayesianFilter::classifyMessage(
   Tokenizer& tokenizer,
   const char* messageURI,
-  nsTArray<PRUint32>& aProTraits,
-  nsTArray<PRUint32>& aAntiTraits,
+  nsTArray<uint32_t>& aProTraits,
+  nsTArray<uint32_t>& aAntiTraits,
   nsIJunkMailClassificationListener* listener,
   nsIMsgTraitClassificationListener* aTraitListener,
   nsIMsgTraitDetailListener* aDetailListener)
 {
     Token* tokens = tokenizer.copyTokens();
-    PRUint32 tokenCount;
+    uint32_t tokenCount;
     if (!tokens)
     {
       // This can happen with problems with UTF conversion
@@ -1463,23 +1463,23 @@ void nsBayesianFilter::classifyMessage(
     }
 
     /* this part is similar to the Graham algorithm with some adjustments. */
-    PRUint32 traitCount = aProTraits.Length();
+    uint32_t traitCount = aProTraits.Length();
 
     // pro message counts per trait index
-    nsAutoTArray<PRUint32, kTraitAutoCapacity> numProMessages;
+    nsAutoTArray<uint32_t, kTraitAutoCapacity> numProMessages;
     // anti message counts per trait index
-    nsAutoTArray<PRUint32, kTraitAutoCapacity> numAntiMessages;
+    nsAutoTArray<uint32_t, kTraitAutoCapacity> numAntiMessages;
     // array of pro aliases per trait index
-    nsAutoTArray<PRUint32*, kTraitAutoCapacity > proAliasArrays;
+    nsAutoTArray<uint32_t*, kTraitAutoCapacity > proAliasArrays;
     // number of pro aliases per trait index
-    nsAutoTArray<PRUint32, kTraitAutoCapacity > proAliasesLengths;    
+    nsAutoTArray<uint32_t, kTraitAutoCapacity > proAliasesLengths;    
     // array of anti aliases per trait index
-    nsAutoTArray<PRUint32*, kTraitAutoCapacity> antiAliasArrays;
+    nsAutoTArray<uint32_t*, kTraitAutoCapacity> antiAliasArrays;
     // number of anti aliases per trait index
-    nsAutoTArray<PRUint32, kTraitAutoCapacity > antiAliasesLengths;    
+    nsAutoTArray<uint32_t, kTraitAutoCapacity > antiAliasesLengths;    
     // construct the outgoing listener arrays
-    nsAutoTArray<PRUint32, kTraitAutoCapacity> traits;
-    nsAutoTArray<PRUint32, kTraitAutoCapacity> percents;
+    nsAutoTArray<uint32_t, kTraitAutoCapacity> traits;
+    nsAutoTArray<uint32_t, kTraitAutoCapacity> percents;
     if (traitCount > kTraitAutoCapacity)
     {
       traits.SetCapacity(traitCount);
@@ -1501,14 +1501,14 @@ void nsBayesianFilter::classifyMessage(
     }
 
     // get aliases and message counts for the pro and anti traits
-    for (PRUint32 traitIndex = 0; traitIndex < traitCount; traitIndex++)
+    for (uint32_t traitIndex = 0; traitIndex < traitCount; traitIndex++)
     {
       nsresult rv;
 
       // pro trait
-      PRUint32 proAliasesLength = 0;
-      PRUint32* proAliases = nullptr;
-      PRUint32 proTrait = aProTraits[traitIndex];
+      uint32_t proAliasesLength = 0;
+      uint32_t* proAliases = nullptr;
+      uint32_t proTrait = aProTraits[traitIndex];
       if (traitService)
       {
         rv = traitService->GetAliases(proTrait, &proAliasesLength, &proAliases);
@@ -1520,15 +1520,15 @@ void nsBayesianFilter::classifyMessage(
       }
       proAliasesLengths.AppendElement(proAliasesLength);
       proAliasArrays.AppendElement(proAliases);
-      PRUint32 proMessageCount = mCorpus.getMessageCount(proTrait);
-      for (PRUint32 aliasIndex = 0; aliasIndex < proAliasesLength; aliasIndex++)
+      uint32_t proMessageCount = mCorpus.getMessageCount(proTrait);
+      for (uint32_t aliasIndex = 0; aliasIndex < proAliasesLength; aliasIndex++)
         proMessageCount += mCorpus.getMessageCount(proAliases[aliasIndex]);
       numProMessages.AppendElement(proMessageCount);
 
       // anti trait
-      PRUint32 antiAliasesLength = 0;
-      PRUint32* antiAliases = nullptr;
-      PRUint32 antiTrait = aAntiTraits[traitIndex];
+      uint32_t antiAliasesLength = 0;
+      uint32_t* antiAliases = nullptr;
+      uint32_t antiTrait = aAntiTraits[traitIndex];
       if (traitService)
       {
         rv = traitService->GetAliases(antiTrait, &antiAliasesLength, &antiAliases);
@@ -1540,29 +1540,29 @@ void nsBayesianFilter::classifyMessage(
       }
       antiAliasesLengths.AppendElement(antiAliasesLength);
       antiAliasArrays.AppendElement(antiAliases);
-      PRUint32 antiMessageCount = mCorpus.getMessageCount(antiTrait);
-      for (PRUint32 aliasIndex = 0; aliasIndex < antiAliasesLength; aliasIndex++)
+      uint32_t antiMessageCount = mCorpus.getMessageCount(antiTrait);
+      for (uint32_t aliasIndex = 0; aliasIndex < antiAliasesLength; aliasIndex++)
         antiMessageCount += mCorpus.getMessageCount(antiAliases[aliasIndex]);
       numAntiMessages.AppendElement(antiMessageCount);
     }
 
-    for (PRUint32 i = 0; i < tokenCount; ++i)
+    for (uint32_t i = 0; i < tokenCount; ++i)
     {
       Token& token = tokens[i];
       CorpusToken* t = mCorpus.get(token.mWord);
       if (!t)
         continue;
-      for (PRUint32 traitIndex = 0; traitIndex < traitCount; traitIndex++)
+      for (uint32_t traitIndex = 0; traitIndex < traitCount; traitIndex++)
       {
-        PRUint32 iProCount = mCorpus.getTraitCount(t, aProTraits[traitIndex]);
+        uint32_t iProCount = mCorpus.getTraitCount(t, aProTraits[traitIndex]);
         // add in any counts for aliases to proTrait
-        for (PRUint32 aliasIndex = 0; aliasIndex < proAliasesLengths[traitIndex]; aliasIndex++)
+        for (uint32_t aliasIndex = 0; aliasIndex < proAliasesLengths[traitIndex]; aliasIndex++)
           iProCount += mCorpus.getTraitCount(t, proAliasArrays[traitIndex][aliasIndex]);
         double proCount = static_cast<double>(iProCount);
 
-        PRUint32 iAntiCount = mCorpus.getTraitCount(t, aAntiTraits[traitIndex]);
+        uint32_t iAntiCount = mCorpus.getTraitCount(t, aAntiTraits[traitIndex]);
         // add in any counts for aliases to antiTrait
-        for (PRUint32 aliasIndex = 0; aliasIndex < antiAliasesLengths[traitIndex]; aliasIndex++)
+        for (uint32_t aliasIndex = 0; aliasIndex < antiAliasesLengths[traitIndex]; aliasIndex++)
           iAntiCount += mCorpus.getTraitCount(t, antiAliasArrays[traitIndex][aliasIndex]);
         double antiCount = static_cast<double>(iAntiCount);
 
@@ -1596,13 +1596,13 @@ void nsBayesianFilter::classifyMessage(
       }
     }
 
-    for (PRUint32 traitIndex = 0; traitIndex < traitCount; traitIndex++)
+    for (uint32_t traitIndex = 0; traitIndex < traitCount; traitIndex++)
     {
       nsAutoTArray<TraitAnalysis, 1024> traitAnalyses;
       // copy valid tokens into an array to sort
-      for (PRUint32 tokenIndex = 0; tokenIndex < tokenCount; tokenIndex++)
+      for (uint32_t tokenIndex = 0; tokenIndex < tokenCount; tokenIndex++)
       {
-        PRUint32 storeIndex = getAnalysisIndex(tokens[tokenIndex], traitIndex);
+        uint32_t storeIndex = getAnalysisIndex(tokens[tokenIndex], traitIndex);
         if (storeIndex)
         {
           TraitAnalysis ta =
@@ -1615,15 +1615,15 @@ void nsBayesianFilter::classifyMessage(
 
       // sort the array by the distances
       traitAnalyses.Sort(compareTraitAnalysis());
-      PRUint32 count = traitAnalyses.Length();
-      PRUint32 first, last = count;
-      const PRUint32 kMaxTokens = 150;
+      uint32_t count = traitAnalyses.Length();
+      uint32_t first, last = count;
+      const uint32_t kMaxTokens = 150;
       first = ( count > kMaxTokens) ? count - kMaxTokens : 0;
 
       // Setup the arrays to save details if needed
       nsTArray<double> sArray;
       nsTArray<double> hArray;
-      PRUint32 usedTokenCount = ( count > kMaxTokens) ? kMaxTokens : count;
+      uint32_t usedTokenCount = ( count > kMaxTokens) ? kMaxTokens : count;
       if (aDetailListener)
       {
         sArray.SetCapacity(usedTokenCount);
@@ -1631,12 +1631,12 @@ void nsBayesianFilter::classifyMessage(
       }
 
       double H = 1.0, S = 1.0;
-      PRInt32 Hexp = 0, Sexp = 0;
-      PRUint32 goodclues=0;
+      int32_t Hexp = 0, Sexp = 0;
+      uint32_t goodclues=0;
       int e;
 
       // index from end to analyze most significant first
-      for (PRUint32 ip1 = last; ip1 != first; --ip1)
+      for (uint32_t ip1 = last; ip1 != first; --ip1)
       {
         TraitAnalysis& ta = traitAnalyses[ip1 - 1];
         if (ta.mDistance > 0.0)
@@ -1672,7 +1672,7 @@ void nsBayesianFilter::classifyMessage(
       double prob;
       if (goodclues > 0)
       {
-          PRInt32 chi_error;
+          int32_t chi_error;
           S = chi2P(-2.0 * S, 2.0 * goodclues, &chi_error);
           if (!chi_error)
               H = chi2P(-2.0 * H, 2.0 * goodclues, &chi_error);
@@ -1688,16 +1688,16 @@ void nsBayesianFilter::classifyMessage(
       if (aDetailListener)
       {
         // Prepare output arrays
-        nsTArray<PRUint32> tokenPercents(usedTokenCount);
-        nsTArray<PRUint32> runningPercents(usedTokenCount);
+        nsTArray<uint32_t> tokenPercents(usedTokenCount);
+        nsTArray<uint32_t> runningPercents(usedTokenCount);
         nsTArray<PRUnichar*> tokenStrings(usedTokenCount);
 
         double clueCount = 1.0;
-        for (PRUint32 tokenIndex = 0; tokenIndex < usedTokenCount; tokenIndex++)
+        for (uint32_t tokenIndex = 0; tokenIndex < usedTokenCount; tokenIndex++)
         {
           TraitAnalysis& ta = traitAnalyses[last - 1 - tokenIndex];
           double S, H;
-          PRInt32 chi_error;
+          int32_t chi_error;
           S = chi2P(-2.0 * sArray[tokenIndex], 2.0 * clueCount, &chi_error);
           if (!chi_error)
             H = chi2P(-2.0 * hArray[tokenIndex], 2.0 * clueCount, &chi_error);
@@ -1707,9 +1707,9 @@ void nsBayesianFilter::classifyMessage(
             runningProb = (S - H + 1.0) / 2.0;
           else
             runningProb = 0.5;
-          runningPercents.AppendElement(static_cast<PRUint32>(runningProb *
+          runningPercents.AppendElement(static_cast<uint32_t>(runningProb *
               100. + .5));
-          tokenPercents.AppendElement(static_cast<PRUint32>(ta.mProbability *
+          tokenPercents.AppendElement(static_cast<uint32_t>(ta.mProbability *
               100. + .5));
           tokenStrings.AppendElement(ToNewUnicode(NS_ConvertUTF8toUTF16(
               tokens[ta.mTokenIndex].mWord)));
@@ -1718,11 +1718,11 @@ void nsBayesianFilter::classifyMessage(
         aDetailListener->OnMessageTraitDetails(messageURI, aProTraits[traitIndex],
             usedTokenCount, (const PRUnichar**)tokenStrings.Elements(),
             tokenPercents.Elements(), runningPercents.Elements());
-        for (PRUint32 tokenIndex = 0; tokenIndex < usedTokenCount; tokenIndex++)
+        for (uint32_t tokenIndex = 0; tokenIndex < usedTokenCount; tokenIndex++)
           NS_Free(tokenStrings[tokenIndex]);
       }
 
-      PRUint32 proPercent = static_cast<PRUint32>(prob*100. + .5);
+      uint32_t proPercent = static_cast<uint32_t>(prob*100. + .5);
 
       // directly classify junk to maintain backwards compatibility
       if (aProTraits[traitIndex] == kJunkTrait)
@@ -1786,8 +1786,8 @@ void nsBayesianFilter::classifyMessage(
   const char* messageURI,
   nsIJunkMailClassificationListener* aJunkListener)
 {
-  nsAutoTArray<PRUint32, 1> proTraits;
-  nsAutoTArray<PRUint32, 1> antiTraits;
+  nsAutoTArray<uint32_t, 1> proTraits;
+  nsAutoTArray<uint32_t, 1> antiTraits;
   proTraits.AppendElement(kJunkTrait);
   antiTraits.AppendElement(kGoodTrait);
   classifyMessage(tokens, messageURI, proTraits, antiTraits,
@@ -1833,7 +1833,7 @@ NS_IMETHODIMP nsBayesianFilter::ClassifyMessage(const char *aMessageURL, nsIMsgW
 }
 
 /* void classifyMessages (in unsigned long aCount, [array, size_is (aCount)] in string aMsgURLs, in nsIJunkMailClassificationListener aListener); */
-NS_IMETHODIMP nsBayesianFilter::ClassifyMessages(PRUint32 aCount, const char **aMsgURLs, nsIMsgWindow *aMsgWindow, nsIJunkMailClassificationListener *aListener)
+NS_IMETHODIMP nsBayesianFilter::ClassifyMessages(uint32_t aCount, const char **aMsgURLs, nsIMsgWindow *aMsgWindow, nsIJunkMailClassificationListener *aListener)
 {
     NS_ENSURE_ARG_POINTER(aMsgURLs);
 
@@ -1845,12 +1845,12 @@ NS_IMETHODIMP nsBayesianFilter::ClassifyMessages(PRUint32 aCount, const char **a
     return tokenizeMessage(aMsgURLs[0], aMsgWindow, analyzer);
 }
 
-nsresult nsBayesianFilter::setAnalysis(Token& token, PRUint32 aTraitIndex,
+nsresult nsBayesianFilter::setAnalysis(Token& token, uint32_t aTraitIndex,
   double aDistance, double aProbability)
 {
-  PRUint32 nextLink = token.mAnalysisLink;
-  PRUint32 lastLink = 0;
-  PRUint32 linkCount = 0, maxLinks = 100;
+  uint32_t nextLink = token.mAnalysisLink;
+  uint32_t lastLink = 0;
+  uint32_t linkCount = 0, maxLinks = 100;
 
   // try to find an existing element. Limit the search to maxLinks
   // as a precaution
@@ -1890,10 +1890,10 @@ nsresult nsBayesianFilter::setAnalysis(Token& token, PRUint32 aTraitIndex,
   return NS_OK;
 }
 
-PRUint32 nsBayesianFilter::getAnalysisIndex(Token& token, PRUint32 aTraitIndex)
+uint32_t nsBayesianFilter::getAnalysisIndex(Token& token, uint32_t aTraitIndex)
 {
-  PRUint32 nextLink;
-  PRUint32 linkCount = 0, maxLinks = 100;
+  uint32_t nextLink;
+  uint32_t linkCount = 0, maxLinks = 100;
   for (nextLink = token.mAnalysisLink; nextLink && linkCount < maxLinks; linkCount++)
   {
     AnalysisPerToken &rAnalysis = mAnalysisStore[nextLink];
@@ -1909,9 +1909,9 @@ PRUint32 nsBayesianFilter::getAnalysisIndex(Token& token, PRUint32 aTraitIndex)
 
 NS_IMETHODIMP nsBayesianFilter::ClassifyTraitsInMessage(
   const char *aMsgURI,
-  PRUint32 aTraitCount,
-  PRUint32 *aProTraits,
-  PRUint32 *aAntiTraits,
+  uint32_t aTraitCount,
+  uint32_t *aProTraits,
+  uint32_t *aAntiTraits,
   nsIMsgTraitClassificationListener *aTraitListener,
   nsIMsgWindow *aMsgWindow,
   nsIJunkMailClassificationListener *aJunkListener)
@@ -1921,17 +1921,17 @@ NS_IMETHODIMP nsBayesianFilter::ClassifyTraitsInMessage(
 }
 
 NS_IMETHODIMP nsBayesianFilter::ClassifyTraitsInMessages(
-  PRUint32 aCount,
+  uint32_t aCount,
   const char **aMsgURIs,
-  PRUint32 aTraitCount,
-  PRUint32 *aProTraits,
-  PRUint32 *aAntiTraits,
+  uint32_t aTraitCount,
+  uint32_t *aProTraits,
+  uint32_t *aAntiTraits,
   nsIMsgTraitClassificationListener *aTraitListener,
   nsIMsgWindow *aMsgWindow,
   nsIJunkMailClassificationListener *aJunkListener)
 {
-  nsAutoTArray<PRUint32, kTraitAutoCapacity> proTraits;
-  nsAutoTArray<PRUint32, kTraitAutoCapacity> antiTraits;
+  nsAutoTArray<uint32_t, kTraitAutoCapacity> proTraits;
+  nsAutoTArray<uint32_t, kTraitAutoCapacity> antiTraits;
   if (aTraitCount > kTraitAutoCapacity)
   {
     proTraits.SetCapacity(aTraitCount);
@@ -1954,8 +1954,8 @@ NS_IMETHODIMP nsBayesianFilter::ClassifyTraitsInMessages(
 class MessageObserver : public TokenAnalyzer {
 public:
   MessageObserver(nsBayesianFilter* filter,
-                  nsTArray<PRUint32>& aOldClassifications,
-                  nsTArray<PRUint32>& aNewClassifications,
+                  nsTArray<uint32_t>& aOldClassifications,
+                  nsTArray<uint32_t>& aNewClassifications,
                   nsIJunkMailClassificationListener* aJunkListener,
                   nsIMsgTraitClassificationListener* aTraitListener)
       :   mFilter(filter), mJunkMailPlugin(filter), mJunkListener(aJunkListener),
@@ -1978,22 +1978,22 @@ private:
   nsCOMPtr<nsIJunkMailPlugin> mJunkMailPlugin;
   nsCOMPtr<nsIJunkMailClassificationListener> mJunkListener;
   nsCOMPtr<nsIMsgTraitClassificationListener> mTraitListener;
-  nsTArray<PRUint32> mOldClassifications;
-  nsTArray<PRUint32> mNewClassifications;
+  nsTArray<uint32_t> mOldClassifications;
+  nsTArray<uint32_t> mNewClassifications;
 };
 
 NS_IMETHODIMP nsBayesianFilter::SetMsgTraitClassification(
     const char *aMsgURI,
-    PRUint32 aOldCount,
-    PRUint32 *aOldTraits,
-    PRUint32 aNewCount,
-    PRUint32 *aNewTraits,
+    uint32_t aOldCount,
+    uint32_t *aOldTraits,
+    uint32_t aNewCount,
+    uint32_t *aNewTraits,
     nsIMsgTraitClassificationListener *aTraitListener,
     nsIMsgWindow *aMsgWindow,
     nsIJunkMailClassificationListener *aJunkListener)
 {
-  nsAutoTArray<PRUint32, kTraitAutoCapacity> oldTraits;
-  nsAutoTArray<PRUint32, kTraitAutoCapacity> newTraits;
+  nsAutoTArray<uint32_t, kTraitAutoCapacity> oldTraits;
+  nsAutoTArray<uint32_t, kTraitAutoCapacity> newTraits;
   if (aOldCount > kTraitAutoCapacity)
     oldTraits.SetCapacity(aOldCount);
   if (aNewCount > kTraitAutoCapacity)
@@ -2016,8 +2016,8 @@ NS_IMETHODIMP nsBayesianFilter::SetMsgTraitClassification(
 void nsBayesianFilter::observeMessage(
     Tokenizer& tokenizer,
     const char* messageURL,
-    nsTArray<PRUint32>& oldClassifications,
-    nsTArray<PRUint32>& newClassifications,
+    nsTArray<uint32_t>& oldClassifications,
+    nsTArray<uint32_t>& newClassifications,
     nsIJunkMailClassificationListener* aJunkListener,
     nsIMsgTraitClassificationListener* aTraitListener)
 {
@@ -2031,15 +2031,15 @@ void nsBayesianFilter::observeMessage(
     // What can we do here? Well we can skip the token removal step if the classifications are the same and assume the user is
     // just re-training. But this then allows users to re-classify the same message on the same training set over and over again
     // leading to data skew. But that's all I can think to do right now to address this.....
-    PRUint32 oldLength = oldClassifications.Length();
-    for (PRUint32 index = 0; index < oldLength; index++)
+    uint32_t oldLength = oldClassifications.Length();
+    for (uint32_t index = 0; index < oldLength; index++)
     {
-      PRUint32 trait = oldClassifications.ElementAt(index);
+      uint32_t trait = oldClassifications.ElementAt(index);
       // skip removing if trait is also in the new set
       if (newClassifications.Contains(trait))
         continue;
       // remove the tokens from the token set it is currently in
-      PRUint32 messageCount;
+      uint32_t messageCount;
       messageCount = mCorpus.getMessageCount(trait);
       if (messageCount > 0)
       {
@@ -2050,11 +2050,11 @@ void nsBayesianFilter::observeMessage(
     }
 
     nsMsgJunkStatus newClassification = nsIJunkMailPlugin::UNCLASSIFIED;
-    PRUint32 junkPercent = 0; // 0 here is no possibility of meeting the classification
-    PRUint32 newLength = newClassifications.Length();
-    for (PRUint32 index = 0; index < newLength; index++)
+    uint32_t junkPercent = 0; // 0 here is no possibility of meeting the classification
+    uint32_t newLength = newClassifications.Length();
+    for (uint32_t index = 0; index < newLength; index++)
     {
-      PRUint32 trait = newClassifications.ElementAt(index);
+      uint32_t trait = newClassifications.ElementAt(index);
       mCorpus.setMessageCount(trait, mCorpus.getMessageCount(trait) + 1);
       mCorpus.rememberTokens(tokens, trait, 1);
       mTrainingDataDirty = true;
@@ -2080,16 +2080,16 @@ void nsBayesianFilter::observeMessage(
     if (aTraitListener)
     {
       // construct the outgoing listener arrays
-      nsAutoTArray<PRUint32, kTraitAutoCapacity> traits;
-      nsAutoTArray<PRUint32, kTraitAutoCapacity> percents;
-      PRUint32 newLength = newClassifications.Length();
+      nsAutoTArray<uint32_t, kTraitAutoCapacity> traits;
+      nsAutoTArray<uint32_t, kTraitAutoCapacity> percents;
+      uint32_t newLength = newClassifications.Length();
       if (newLength > kTraitAutoCapacity)
       {
         traits.SetCapacity(newLength);
         percents.SetCapacity(newLength);
       }
       traits.AppendElements(newClassifications);
-      for (PRUint32 index = 0; index < newLength; index++)
+      for (uint32_t index = 0; index < newLength; index++)
         percents.AppendElement(100); // This is 100 percent, or certainty
       aTraitListener->OnMessageTraitsClassified(messageURL,
           traits.Length(), traits.Elements(), percents.Elements());
@@ -2122,8 +2122,8 @@ NS_IMETHODIMP nsBayesianFilter::SetMessageClassification(
     nsIMsgWindow *aMsgWindow,
     nsIJunkMailClassificationListener *aListener)
 {
-  nsAutoTArray<PRUint32, 1> oldClassifications;
-  nsAutoTArray<PRUint32, 1> newClassifications;
+  nsAutoTArray<uint32_t, 1> oldClassifications;
+  nsAutoTArray<uint32_t, 1> newClassifications;
 
   // convert between classifications and trait
   if (aOldClassification == nsIJunkMailPlugin::JUNK)
@@ -2154,11 +2154,11 @@ NS_IMETHODIMP nsBayesianFilter::ResetTrainingData()
 }
 
 NS_IMETHODIMP nsBayesianFilter::DetailMessage(const char *aMsgURI,
-    PRUint32 aProTrait, PRUint32 aAntiTrait,
+    uint32_t aProTrait, uint32_t aAntiTrait,
     nsIMsgTraitDetailListener *aDetailListener, nsIMsgWindow *aMsgWindow)
 {
-  nsAutoTArray<PRUint32, 1> proTraits;
-  nsAutoTArray<PRUint32, 1> antiTraits;
+  nsAutoTArray<uint32_t, 1> proTraits;
+  nsAutoTArray<uint32_t, 1> antiTraits;
   proTraits.AppendElement(aProTrait);
   antiTraits.AppendElement(aAntiTrait);
 
@@ -2175,9 +2175,9 @@ NS_IMETHODIMP nsBayesianFilter::DetailMessage(const char *aMsgURI,
 
 // nsIMsgCorpus implementation
 
-NS_IMETHODIMP nsBayesianFilter::CorpusCounts(PRUint32 aTrait,
-                                             PRUint32 *aMessageCount,
-                                             PRUint32 *aTokenCount)
+NS_IMETHODIMP nsBayesianFilter::CorpusCounts(uint32_t aTrait,
+                                             uint32_t *aMessageCount,
+                                             uint32_t *aTokenCount)
 {
   NS_ENSURE_ARG_POINTER(aTokenCount);
   if (mCorpus)
@@ -2190,7 +2190,7 @@ NS_IMETHODIMP nsBayesianFilter::CorpusCounts(PRUint32 aTrait,
   return NS_ERROR_FAILURE;
 }
 
-NS_IMETHODIMP nsBayesianFilter::ClearTrait(PRUint32 aTrait)
+NS_IMETHODIMP nsBayesianFilter::ClearTrait(uint32_t aTrait)
 {
     return mCorpus.ClearTrait(aTrait);
 }
@@ -2198,21 +2198,21 @@ NS_IMETHODIMP nsBayesianFilter::ClearTrait(PRUint32 aTrait)
 NS_IMETHODIMP
 nsBayesianFilter::UpdateData(nsIFile *aFile,
                              bool aIsAdd,
-                             PRUint32 aRemapCount,
-                             PRUint32 *aFromTraits,
-                             PRUint32 *aToTraits)
+                             uint32_t aRemapCount,
+                             uint32_t *aFromTraits,
+                             uint32_t *aToTraits)
 {
   return mCorpus.UpdateData(aFile, aIsAdd, aRemapCount, aFromTraits, aToTraits);
 }
 
 NS_IMETHODIMP
 nsBayesianFilter::GetTokenCount(const nsACString &aWord,
-                                PRUint32 aTrait,
-                                PRUint32 *aCount)
+                                uint32_t aTrait,
+                                uint32_t *aCount)
 {
   NS_ENSURE_ARG_POINTER(aCount);
   CorpusToken* t = mCorpus.get(PromiseFlatCString(aWord).get());
-  PRUint32 count = mCorpus.getTraitCount(t, aTrait);
+  uint32_t count = mCorpus.getTraitCount(t, aTrait);
   *aCount = count;
   return NS_OK;
 }
@@ -2254,15 +2254,15 @@ CorpusStore::~CorpusStore()
 {
 }
 
-inline int writeUInt32(FILE* stream, PRUint32 value)
+inline int writeUInt32(FILE* stream, uint32_t value)
 {
     value = PR_htonl(value);
-    return fwrite(&value, sizeof(PRUint32), 1, stream);
+    return fwrite(&value, sizeof(uint32_t), 1, stream);
 }
 
-inline int readUInt32(FILE* stream, PRUint32* value)
+inline int readUInt32(FILE* stream, uint32_t* value)
 {
-    int n = fread(value, sizeof(PRUint32), 1, stream);
+    int n = fread(value, sizeof(uint32_t), 1, stream);
     if (n == 1) {
         *value = PR_ntohl(*value);
     }
@@ -2270,7 +2270,7 @@ inline int readUInt32(FILE* stream, PRUint32* value)
 }
 
 void CorpusStore::forgetTokens(TokenEnumeration tokens,
-                    PRUint32 aTraitId, PRUint32 aCount)
+                    uint32_t aTraitId, uint32_t aCount)
 {
   // if we are forgetting the tokens for a message, should only
   // subtract 1 from the occurrence count for that token in the training set
@@ -2284,7 +2284,7 @@ void CorpusStore::forgetTokens(TokenEnumeration tokens,
 }
 
 void CorpusStore::rememberTokens(TokenEnumeration tokens,
-                    PRUint32 aTraitId, PRUint32 aCount)
+                    uint32_t aTraitId, uint32_t aCount)
 {
   while (tokens.hasMoreTokens())
   {
@@ -2298,18 +2298,18 @@ void CorpusStore::rememberTokens(TokenEnumeration tokens,
   }
 }
 
-bool CorpusStore::writeTokens(FILE* stream, bool shrink, PRUint32 aTraitId)
+bool CorpusStore::writeTokens(FILE* stream, bool shrink, uint32_t aTraitId)
 {
-  PRUint32 tokenCount = countTokens();
-  PRUint32 newTokenCount = 0;
+  uint32_t tokenCount = countTokens();
+  uint32_t newTokenCount = 0;
 
   // calculate the tokens for this trait to write
 
   TokenEnumeration tokens = getTokens();
-  for (PRUint32 i = 0; i < tokenCount; ++i)
+  for (uint32_t i = 0; i < tokenCount; ++i)
   {
     CorpusToken* token = static_cast<CorpusToken*>(tokens.nextToken());
-    PRUint32 count = getTraitCount(token, aTraitId);
+    uint32_t count = getTraitCount(token, aTraitId);
     // Shrinking the token database is accomplished by dividing all token counts by 2.
     // If shrinking, we'll ignore counts < 2, otherwise only ignore counts of < 1
     if ((shrink && count > 1) || (!shrink && count))
@@ -2322,17 +2322,17 @@ bool CorpusStore::writeTokens(FILE* stream, bool shrink, PRUint32 aTraitId)
   if (newTokenCount > 0)
   {
     TokenEnumeration tokens = getTokens();
-    for (PRUint32 i = 0; i < tokenCount; ++i)
+    for (uint32_t i = 0; i < tokenCount; ++i)
     {
       CorpusToken* token = static_cast<CorpusToken*>(tokens.nextToken());
-      PRUint32 wordCount = getTraitCount(token, aTraitId);
+      uint32_t wordCount = getTraitCount(token, aTraitId);
       if (shrink)
         wordCount /= 2;
       if (!wordCount)
         continue; // Don't output zero count words
       if (writeUInt32(stream, wordCount) != 1)
         return false;
-      PRUint32 tokenLength = strlen(token->mWord);
+      uint32_t tokenLength = strlen(token->mWord);
       if (writeUInt32(stream, tokenLength) != 1)
         return false;
       if (fwrite(token->mWord, tokenLength, 1, stream) != 1)
@@ -2342,26 +2342,26 @@ bool CorpusStore::writeTokens(FILE* stream, bool shrink, PRUint32 aTraitId)
   return true;
 }
 
-bool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize,
-                               PRUint32 aTraitId, bool aIsAdd)
+bool CorpusStore::readTokens(FILE* stream, int64_t fileSize,
+                               uint32_t aTraitId, bool aIsAdd)
 {
-    PRUint32 tokenCount;
+    uint32_t tokenCount;
     if (readUInt32(stream, &tokenCount) != 1)
         return false;
 
-    PRInt64 fpos = ftell(stream);
+    int64_t fpos = ftell(stream);
     if (fpos < 0)
         return false;
 
-    PRUint32 bufferSize = 4096;
+    uint32_t bufferSize = 4096;
     char* buffer = new char[bufferSize];
     if (!buffer) return false;
 
-    for (PRUint32 i = 0; i < tokenCount; ++i) {
-        PRUint32 count;
+    for (uint32_t i = 0; i < tokenCount; ++i) {
+        uint32_t count;
         if (readUInt32(stream, &count) != 1)
             break;
-        PRUint32 size;
+        uint32_t size;
         if (readUInt32(stream, &size) != 1)
             break;
         fpos += 8;
@@ -2426,7 +2426,7 @@ static const char kMagicCookie[] = { '\xFE', '\xED', '\xFA', '\xCE' };
 // random string used to identify trait file and version (last byte is version)
 static const char kTraitCookie[] = { '\xFC', '\xA9', '\x36', '\x01' };
 
-void CorpusStore::writeTrainingData(PRUint32 aMaximumTokenCount)
+void CorpusStore::writeTrainingData(uint32_t aMaximumTokenCount)
 {
   PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG, ("writeTrainingData() entered"));
   if (!mTrainingFile)
@@ -2453,7 +2453,7 @@ void CorpusStore::writeTrainingData(PRUint32 aMaximumTokenCount)
   }
 
   // We implement shrink by dividing counts by two
-  PRUint32 shrinkFactor = shrink ? 2 : 1;
+  uint32_t shrinkFactor = shrink ? 2 : 1;
 
   if (!((fwrite(kMagicCookie, sizeof(kMagicCookie), 1, stream) == 1) &&
       (writeUInt32(stream, getMessageCount(kGoodTrait) / shrinkFactor)) &&
@@ -2487,16 +2487,16 @@ void CorpusStore::writeTrainingData(PRUint32 aMaximumTokenCount)
   if (NS_FAILED(rv))
     return;
 
-  PRUint32 numberOfTraits = mMessageCounts.Length();
+  uint32_t numberOfTraits = mMessageCounts.Length();
   bool error;
   while (1) // break on error or done
   {
     if ((error = (fwrite(kTraitCookie, sizeof(kTraitCookie), 1, stream) != 1)))
       break;
 
-    for (PRUint32 index = 0; index < numberOfTraits; index++)
+    for (uint32_t index = 0; index < numberOfTraits; index++)
     {
-      PRUint32 trait = mMessageCountsId[index];
+      uint32_t trait = mMessageCountsId[index];
       if (trait == 1 || trait == 2)
         continue; // junk traits are stored in training.dat
       if ((error = (writeUInt32(stream, trait) != 1)))
@@ -2527,7 +2527,7 @@ void CorpusStore::writeTrainingData(PRUint32 aMaximumTokenCount)
     if (countTokens())
     {
       clearTokens();
-      for (PRUint32 index = 0; index < numberOfTraits; index++)
+      for (uint32_t index = 0; index < numberOfTraits; index++)
         mMessageCounts[index] = 0;
     }
 
@@ -2555,14 +2555,14 @@ void CorpusStore::readTrainingData()
   if (NS_FAILED(rv))
     return;
 
-  PRInt64 fileSize;
+  int64_t fileSize;
   rv = mTrainingFile->GetFileSize(&fileSize);
   if (NS_FAILED(rv))
     return;
 
   // FIXME:  should make sure that the tokenizers are empty.
   char cookie[4];
-  PRUint32 goodMessageCount, junkMessageCount;
+  uint32_t goodMessageCount, junkMessageCount;
   if (!((fread(cookie, sizeof(cookie), 1, stream) == 1) &&
         (memcmp(cookie, kMagicCookie, sizeof(cookie)) == 0) &&
         (readUInt32(stream, &goodMessageCount) == 1) &&
@@ -2608,8 +2608,8 @@ nsresult CorpusStore::resetTrainingData()
   if (countTokens())
     clearTokens();
 
-  PRUint32 length = mMessageCounts.Length();
-  for (PRUint32 index = 0 ; index < length; index++)
+  uint32_t length = mMessageCounts.Length();
+  for (uint32_t index = 0 ; index < length; index++)
     mMessageCounts[index] = 0;
 
   if (mTrainingFile)
@@ -2624,21 +2624,21 @@ inline CorpusToken* CorpusStore::get(const char* word)
   return static_cast<CorpusToken*>(TokenHash::get(word));
 }
 
-nsresult CorpusStore::updateTrait(CorpusToken* token, PRUint32 aTraitId,
-                                  PRInt32 aCountChange)
+nsresult CorpusStore::updateTrait(CorpusToken* token, uint32_t aTraitId,
+                                  int32_t aCountChange)
 {
   NS_ENSURE_ARG_POINTER(token);
-  PRUint32 nextLink = token->mTraitLink;
-  PRUint32 lastLink = 0;
+  uint32_t nextLink = token->mTraitLink;
+  uint32_t lastLink = 0;
 
-  PRUint32 linkCount, maxLinks = 100; //sanity check
+  uint32_t linkCount, maxLinks = 100; //sanity check
   for (linkCount = 0; nextLink && linkCount < maxLinks; linkCount++)
   {
     TraitPerToken& traitPT = mTraitStore[nextLink];
     if (traitPT.mId == aTraitId)
     {
       // be careful with signed versus unsigned issues here
-      if (static_cast<PRInt32>(traitPT.mCount) + aCountChange > 0)
+      if (static_cast<int32_t>(traitPT.mCount) + aCountChange > 0)
         traitPT.mCount += aCountChange;
       else
         traitPT.mCount = 0;
@@ -2673,13 +2673,13 @@ nsresult CorpusStore::updateTrait(CorpusToken* token, PRUint32 aTraitId,
   return NS_OK;
 }
 
-PRUint32 CorpusStore::getTraitCount(CorpusToken* token, PRUint32 aTraitId)
+uint32_t CorpusStore::getTraitCount(CorpusToken* token, uint32_t aTraitId)
 {
-  PRUint32 nextLink;
+  uint32_t nextLink;
   if (!token || !(nextLink = token->mTraitLink))
     return 0;
 
-  PRUint32 linkCount, maxLinks = 100; //sanity check
+  uint32_t linkCount, maxLinks = 100; //sanity check
   for (linkCount = 0; nextLink && linkCount < maxLinks; linkCount++)
   {
     TraitPerToken& traitPT = mTraitStore[nextLink];
@@ -2693,7 +2693,7 @@ PRUint32 CorpusStore::getTraitCount(CorpusToken* token, PRUint32 aTraitId)
   return 0;
 }
 
-CorpusToken* CorpusStore::add(const char* word, PRUint32 aTraitId, PRUint32 aCount)
+CorpusToken* CorpusStore::add(const char* word, uint32_t aTraitId, uint32_t aCount)
 {
   CorpusToken* token = static_cast<CorpusToken*>(TokenHash::add(word));
   if (token) {
@@ -2705,29 +2705,29 @@ CorpusToken* CorpusStore::add(const char* word, PRUint32 aTraitId, PRUint32 aCou
   return token;
  }
 
-void CorpusStore::remove(const char* word, PRUint32 aTraitId, PRUint32 aCount)
+void CorpusStore::remove(const char* word, uint32_t aTraitId, uint32_t aCount)
 {
   PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG,
          ("remove word: %s (TraitId=%d) (Count=%d)",
          word, aTraitId, aCount));
   CorpusToken* token = get(word);
   if (token)
-    updateTrait(token, aTraitId, -static_cast<PRInt32>(aCount));
+    updateTrait(token, aTraitId, -static_cast<int32_t>(aCount));
 }
 
-PRUint32 CorpusStore::getMessageCount(PRUint32 aTraitId)
+uint32_t CorpusStore::getMessageCount(uint32_t aTraitId)
 {
-  const PRUint32 kNoIndex = PRUint32(-1);
-  PRUint32 index = mMessageCountsId.IndexOf(aTraitId);
+  const uint32_t kNoIndex = uint32_t(-1);
+  uint32_t index = mMessageCountsId.IndexOf(aTraitId);
   if (index == kNoIndex)
     return 0;
   return mMessageCounts.ElementAt(index);
 }
 
-void CorpusStore::setMessageCount(PRUint32 aTraitId, PRUint32 aCount)
+void CorpusStore::setMessageCount(uint32_t aTraitId, uint32_t aCount)
 {
-  const PRUint32 kNoIndex = PRUint32(-1);
-  PRUint32 index = mMessageCountsId.IndexOf(aTraitId);
+  const uint32_t kNoIndex = uint32_t(-1);
+  uint32_t index = mMessageCountsId.IndexOf(aTraitId);
   if (index == kNoIndex)
   {
     mMessageCounts.AppendElement(aCount);
@@ -2742,9 +2742,9 @@ void CorpusStore::setMessageCount(PRUint32 aTraitId, PRUint32 aCount)
 nsresult
 CorpusStore::UpdateData(nsIFile *aFile,
                         bool aIsAdd,
-                        PRUint32 aRemapCount,
-                        PRUint32 *aFromTraits,
-                        PRUint32 *aToTraits)
+                        uint32_t aRemapCount,
+                        uint32_t *aFromTraits,
+                        uint32_t *aToTraits)
 {
   NS_ENSURE_ARG_POINTER(aFile);
   if (aRemapCount)
@@ -2757,7 +2757,7 @@ CorpusStore::UpdateData(nsIFile *aFile,
   nsresult rv = aFile->OpenANSIFileDesc("rb", &stream);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRInt64 fileSize;
+  int64_t fileSize;
   rv = aFile->GetFileSize(&fileSize);
 
   bool error;
@@ -2770,22 +2770,22 @@ CorpusStore::UpdateData(nsIFile *aFile,
     if ((error = memcmp(cookie, kTraitCookie, sizeof(cookie))))
       break;
 
-    PRUint32 fileTrait;
+    uint32_t fileTrait;
     while ( !(error = (readUInt32(stream, &fileTrait) != 1)) && fileTrait)
     {
-      PRUint32 count;
+      uint32_t count;
       if ((error = (readUInt32(stream, &count) != 1)))
         break;
 
-      PRUint32 localTrait = fileTrait;
+      uint32_t localTrait = fileTrait;
       // remap the trait
-      for (PRUint32 i = 0; i < aRemapCount; i++)
+      for (uint32_t i = 0; i < aRemapCount; i++)
       {
         if (aFromTraits[i] == fileTrait)
           localTrait = aToTraits[i];
       }
 
-      PRUint32 messageCount = getMessageCount(localTrait);
+      uint32_t messageCount = getMessageCount(localTrait);
       if (aIsAdd)
         messageCount += count;
       else if (count > messageCount)
@@ -2806,7 +2806,7 @@ CorpusStore::UpdateData(nsIFile *aFile,
   return NS_OK;
 }
 
-nsresult CorpusStore::ClearTrait(PRUint32 aTrait)
+nsresult CorpusStore::ClearTrait(uint32_t aTrait)
 {
   // clear message counts
   setMessageCount(aTrait, 0);
@@ -2815,7 +2815,7 @@ nsresult CorpusStore::ClearTrait(PRUint32 aTrait)
   while (tokens.hasMoreTokens())
   {
     CorpusToken* token = static_cast<CorpusToken*>(tokens.nextToken());
-    PRInt32 wordCount = static_cast<PRInt32>(getTraitCount(token, aTrait));
+    int32_t wordCount = static_cast<int32_t>(getTraitCount(token, aTrait));
     updateTrait(token, aTrait, -wordCount);
   }
   return NS_OK;

@@ -50,16 +50,16 @@ interface calICalendarACLEntry : nsISupports
 
     /* Returns the list of user ids matching the user accessing the
        calendar. */
-    void getUserAddresses(out PRUint32 aCount,
+    void getUserAddresses(out uint32_t aCount,
                           [array, size_is(aCount), retval] out wstring aAddresses);
 
     /* Returns the list of instantiated identities for the user accessing the
        calendar. */
-    void getUserIdentities(out PRUint32 aCount,
+    void getUserIdentities(out uint32_t aCount,
                            [array, size_is(aCount), retval] out nsIMsgIdentity aIdentities);
     /* Returns the list of instantiated identities for the user representing
        the calendar owner. */
-    void getOwnerIdentities(out PRUint32 aCount,
+    void getOwnerIdentities(out uint32_t aCount,
                             [array, size_is(aCount), retval] out nsIMsgIdentity aIdentities);
 
     /* Helper method that forces a cleanup of any cache and a reload of the

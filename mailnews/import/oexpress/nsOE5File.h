@@ -21,28 +21,28 @@ public:
     /* pFile must NOT be open for reading   */
   static bool    IsLocalMailFile(nsIFile *pFile);
 
-  static bool    ReadIndex(nsIInputStream *pFile, PRUint32 **ppIndex, PRUint32 *pSize);
+  static bool    ReadIndex(nsIInputStream *pFile, uint32_t **ppIndex, uint32_t *pSize);
 
-  static nsresult ImportMailbox(PRUint32 *pBytesDone, bool *pAbort,
+  static nsresult ImportMailbox(uint32_t *pBytesDone, bool *pAbort,
                                 nsString& name, nsIFile *inFile,
-                                nsIMsgFolder *pDstFolder, PRUint32 *pCount);
+                                nsIMsgFolder *pDstFolder, uint32_t *pCount);
 
   static void FileTimeToPRTime(const FILETIME *filetime, PRTime *prtm);
 
 private:
   typedef struct {
-    PRUint32 *  pIndex;
-    PRUint32  count;
-    PRUint32  alloc;
+    uint32_t *  pIndex;
+    uint32_t  count;
+    uint32_t  alloc;
   } PRUint32Array;
 
   static const char *m_pFromLineSep;
 
-  static bool    ReadBytes(nsIInputStream *stream, void *pBuffer, PRUint32 offset, PRUint32 bytes);
-  static PRUint32 ReadMsgIndex(nsIInputStream *file, PRUint32 offset, PRUint32Array *pArray);
-  static void  ConvertIndex(nsIInputStream *pFile, char *pBuffer, PRUint32 *pIndex,
-                            PRUint32 size, PRUint32 *pFlags, PRUint64 *pTime);
-  static bool    IsFromLine(char *pLine, PRUint32 len);
+  static bool    ReadBytes(nsIInputStream *stream, void *pBuffer, uint32_t offset, uint32_t bytes);
+  static uint32_t ReadMsgIndex(nsIInputStream *file, uint32_t offset, PRUint32Array *pArray);
+  static void  ConvertIndex(nsIInputStream *pFile, char *pBuffer, uint32_t *pIndex,
+                            uint32_t size, uint32_t *pFlags, uint64_t *pTime);
+  static bool    IsFromLine(char *pLine, uint32_t len);
 
 
 };

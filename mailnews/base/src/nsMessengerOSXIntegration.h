@@ -45,15 +45,15 @@ private:
   nsresult OnAlertFinished();
   nsresult OnAlertClicked(const PRUnichar * aAlertCookie);
   nsresult GetStringBundle(nsIStringBundle **aBundle);
-  void FillToolTipInfo(nsIMsgFolder *aFolder, PRInt32 aNewCount);
+  void FillToolTipInfo(nsIMsgFolder *aFolder, int32_t aNewCount);
   nsresult GetFirstFolderWithNewMail(nsIMsgFolder* aFolder, nsCString& aFolderURI);
   nsresult BadgeDockIcon();
   nsresult RestoreDockIcon();
   nsresult BounceDockIcon();
-  nsresult GetNewMailAuthors(nsIMsgFolder* aFolder, nsString& aAuthors, PRInt32 aNewCount, PRInt32* aNotDisplayed);
+  nsresult GetNewMailAuthors(nsIMsgFolder* aFolder, nsString& aAuthors, int32_t aNewCount, int32_t* aNotDisplayed);
 
-  PRInt32 mUnreadTotal;
-  PRInt32 mUnreadChat;
+  int32_t mUnreadTotal;
+  int32_t mUnreadChat;
 };
 
 #endif // __nsMessengerOSXIntegration_h

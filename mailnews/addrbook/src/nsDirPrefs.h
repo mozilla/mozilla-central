@@ -48,7 +48,7 @@ typedef struct DIR_Server
 {
 	/* Housekeeping fields */
 	char   *prefName;			/* preference name, this server's subtree */
-	PRInt32  position;			/* relative position in server list       */
+	int32_t  position;			/* relative position in server list       */
 
 	/* General purpose fields */
 	char   *description;		/* human readable name                    */

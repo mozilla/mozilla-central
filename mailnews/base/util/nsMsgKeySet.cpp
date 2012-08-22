@@ -42,7 +42,7 @@
    CHUNK := [ RANGE | VALUE ]
    RANGE := -LENGTH START
    START := VALUE
-   LENGTH := PRInt32
+   LENGTH := int32_t
    VALUE := a literal positive integer, for now
    it could also be an offset from the previous value.
    LENGTH could also perhaps be a less-than-32-bit quantity,
@@ -71,7 +71,7 @@ nsMsgKeySet::nsMsgKeySet(/* MSG_NewsHost* host*/)
   m_cached_value_index = 0;
   m_length = 0;
   m_data_size = 10;
-  m_data = (PRInt32 *) PR_Malloc (sizeof (PRInt32) * m_data_size);
+  m_data = (int32_t *) PR_Malloc (sizeof (int32_t) * m_data_size);
 #ifdef NEWSRC_DOES_HOST_STUFF
   m_host = host;
 #endif
@@ -87,10 +87,10 @@ nsMsgKeySet::~nsMsgKeySet()
 
 bool nsMsgKeySet::Grow()
 {
-  PRInt32 new_size;
-  PRInt32 *new_data;
+  int32_t new_size;
+  int32_t *new_data;
   new_size = m_data_size * 2;
-  new_data = (PRInt32 *) PR_REALLOC (m_data, sizeof (PRInt32) * new_size);
+  new_data = (int32_t *) PR_REALLOC (m_data, sizeof (int32_t) * new_size);
   if (! new_data)
     return false;
   m_data_size = new_size;
@@ -101,7 +101,7 @@ bool nsMsgKeySet::Grow()
 
 nsMsgKeySet::nsMsgKeySet(const char* numbers /* , MSG_NewsHost* host */)
 {
-  PRInt32 *head, *tail, *end;
+  int32_t *head, *tail, *end;
     MOZ_COUNT_CTOR(nsMsgKeySet);
 
 #ifdef NEWSRC_DOES_HOST_STUFF
@@ -111,7 +111,7 @@ nsMsgKeySet::nsMsgKeySet(const char* numbers /* , MSG_NewsHost* host */)
   m_cached_value_index = 0;
   m_length = 0;
   m_data_size = 10;
-  m_data = (PRInt32 *) PR_Malloc (sizeof (PRInt32) * m_data_size);
+  m_data = (int32_t *) PR_Malloc (sizeof (int32_t) * m_data_size);
   if (!m_data) return;
 
   head = m_data;
@@ -124,12 +124,12 @@ nsMsgKeySet::nsMsgKeySet(const char* numbers /* , MSG_NewsHost* host */)
 
   while (isspace (*numbers)) numbers++;
   while (*numbers) {
-    PRInt32 from = 0;
-    PRInt32 to;
+    int32_t from = 0;
+    int32_t to;
 
     if (tail >= end - 4) {
       /* out of room! */
-      PRInt32 tailo = tail - head;
+      int32_t tailo = tail - head;
       if (!Grow()) {
         PR_FREEIF(m_data);
         return;
@@ -220,7 +220,7 @@ nsMsgKeySet::Create(const char* value /* , MSG_NewsHost* host */)
 
 /* Returns the lowest non-member of the set greater than 0.
  */
-PRInt32
+int32_t
 nsMsgKeySet::FirstNonMember ()
 {
   if (m_length <= 0) {
@@ -269,14 +269,14 @@ nsresult
 nsMsgKeySet::Output(char **outputStr)
 {
   NS_ENSURE_ARG(outputStr);
-  PRInt32 size;
-  PRInt32 *head;
-  PRInt32 *tail;
-  PRInt32 *end;
-  PRInt32 s_size;
+  int32_t size;
+  int32_t *head;
+  int32_t *tail;
+  int32_t *end;
+  int32_t s_size;
   char *s_head;
   char *s, *s_end;
-  PRInt32 last_art = -1;
+  int32_t last_art = -1;
 
   *outputStr = nullptr;
 
@@ -294,13 +294,13 @@ nsMsgKeySet::Output(char **outputStr)
   s_end = s + s_size;
 
   while (tail < end) {
-    PRInt32 from;
-    PRInt32 to;
+    int32_t from;
+    int32_t to;
 
     if (s > (s_end - (12 * 2 + 10))) { /* 12 bytes for each number (enough
                         for "2147483647" aka 2^31-1),
                         plus 10 bytes of slop. */
-      PRInt32 so = s - s_head;
+      int32_t so = s - s_head;
       s_size += 200;
       char* tmp = (char *) nsMemory::Alloc(s_size);
       if (tmp) PL_strcpy(tmp, s_head);
@@ -347,15 +347,15 @@ nsMsgKeySet::Output(char **outputStr)
   return NS_OK;
 }
 
-PRInt32 
+int32_t 
 nsMsgKeySet::GetLastMember()
 {
   if (m_length > 1)
   {
-    PRInt32 nextToLast = m_data[m_length - 2];
+    int32_t nextToLast = m_data[m_length - 2];
     if (nextToLast < 0)  // is range at end?
     {
-      PRInt32 last = m_data[m_length - 1];
+      int32_t last = m_data[m_length - 1];
       return (-nextToLast + last - 1);
     }
     else  // no, so last number must be last member
@@ -369,7 +369,7 @@ nsMsgKeySet::GetLastMember()
     return 0;
 }
 
-void nsMsgKeySet::SetLastMember(PRInt32 newHighWaterMark)
+void nsMsgKeySet::SetLastMember(int32_t newHighWaterMark)
 {
   if (newHighWaterMark < GetLastMember())
   {
@@ -377,12 +377,12 @@ void nsMsgKeySet::SetLastMember(PRInt32 newHighWaterMark)
     {
       if (m_length > 1)
       {
-        PRInt32 nextToLast = m_data[m_length - 2];
-        PRInt32 curHighWater;
+        int32_t nextToLast = m_data[m_length - 2];
+        int32_t curHighWater;
         if (nextToLast < 0)  // is range at end?
         {
-          PRInt32 rangeStart = m_data[m_length - 1];
-          PRInt32 rangeLength = -nextToLast;
+          int32_t rangeStart = m_data[m_length - 1];
+          int32_t rangeLength = -nextToLast;
           curHighWater = (rangeLength + rangeStart - 1);
           if (curHighWater > newHighWaterMark)
           {
@@ -428,15 +428,15 @@ void nsMsgKeySet::SetLastMember(PRInt32 newHighWaterMark)
   }
 }
 
-PRInt32 
+int32_t 
 nsMsgKeySet::GetFirstMember()
 {
   if (m_length > 1)
   {
-    PRInt32 first = m_data[0];
+    int32_t first = m_data[0];
     if (first < 0)  // is range at start?
     {
-      PRInt32 second = m_data[1];
+      int32_t second = m_data[1];
       return (second);
     }
     else  // no, so first number must be first member
@@ -469,18 +469,18 @@ nsMsgKeySet::GetFirstMember()
 bool
 nsMsgKeySet::Optimize()
 {
-  PRInt32 input_size;
-  PRInt32 output_size;
-  PRInt32 *input_tail;
-  PRInt32 *output_data;
-  PRInt32 *output_tail;
-  PRInt32 *input_end;
-  PRInt32 *output_end;
+  int32_t input_size;
+  int32_t output_size;
+  int32_t *input_tail;
+  int32_t *output_data;
+  int32_t *output_tail;
+  int32_t *input_end;
+  int32_t *output_end;
 
   input_size = m_length;
   output_size = input_size + 1;
   input_tail = m_data;
-  output_data = (PRInt32 *) PR_Malloc (sizeof (PRInt32) * output_size);
+  output_data = (int32_t *) PR_Malloc (sizeof (int32_t) * output_size);
   if (!output_data) return false;
 
   output_tail = output_data;
@@ -491,7 +491,7 @@ nsMsgKeySet::Optimize()
   m_cached_value = -1;
 
   while (input_tail < input_end) {
-    PRInt32 from, to;
+    int32_t from, to;
     bool range_p = (*input_tail < 0);
 
     if (range_p) {
@@ -537,7 +537,7 @@ nsMsgKeySet::Optimize()
         to++;
         input_tail++;
       } else {
-        PRInt32 L2 = (- *input_tail) + 1;
+        int32_t L2 = (- *input_tail) + 1;
         output_tail[-2] -= L2; /* increase length by N */
         to += L2;
         input_tail += 2;
@@ -576,13 +576,13 @@ nsMsgKeySet::Optimize()
 
 
 bool
-nsMsgKeySet::IsMember(PRInt32 number)
+nsMsgKeySet::IsMember(int32_t number)
 {
   bool value = false;
-  PRInt32 size;
-  PRInt32 *head;
-  PRInt32 *tail;
-  PRInt32 *end;
+  int32_t size;
+  int32_t *head;
+  int32_t *tail;
+  int32_t *end;
 
   size = m_length;
   head = m_data;
@@ -599,8 +599,8 @@ nsMsgKeySet::IsMember(PRInt32 number)
   while (tail < end) {
     if (*tail < 0) {
       /* it's a range */
-      PRInt32 from = tail[1];
-      PRInt32 to = from + (-(tail[0]));
+      int32_t from = tail[1];
+      int32_t to = from + (-(tail[0]));
       if (from > number) {
         /* This range begins after the number - we've passed it. */
         value = false;
@@ -639,12 +639,12 @@ DONE:
 
 
 int
-nsMsgKeySet::Add(PRInt32 number)
+nsMsgKeySet::Add(int32_t number)
 {
-  PRInt32 size;
-  PRInt32 *head;
-  PRInt32 *tail;
-  PRInt32 *end;
+  int32_t size;
+  int32_t *head;
+  int32_t *tail;
+  int32_t *end;
 
 #ifdef DEBUG_MSGKEYSET
     printf("add %d\n",number);
@@ -665,8 +665,8 @@ nsMsgKeySet::Add(PRInt32 number)
   while (tail < end) {
     if (*tail < 0) {
       /* it's a range */
-      PRInt32 from = tail[1];
-      PRInt32 to = from + (-(tail[0]));
+      int32_t from = tail[1];
+      int32_t to = from + (-(tail[0]));
 
       if (from <= number && to >= number) {
         /* This number is already present - we don't need to do
@@ -721,7 +721,7 @@ nsMsgKeySet::Add(PRInt32 number)
     m_data[m_length++] = number;
   } else {
     /* need to insert (or edit) in the middle */
-    PRInt32 i;
+    int32_t i;
     for (i = size; i > mid; i--) {
       m_data[i] = m_data[i-1];
     }
@@ -736,12 +736,12 @@ nsMsgKeySet::Add(PRInt32 number)
 
 
 int
-nsMsgKeySet::Remove(PRInt32 number)
+nsMsgKeySet::Remove(int32_t number)
 {
-  PRInt32 size;
-  PRInt32 *head;
-  PRInt32 *tail;
-  PRInt32 *end;
+  int32_t size;
+  int32_t *head;
+  int32_t *tail;
+  int32_t *end;
 #ifdef DEBUG_MSGKEYSET
     printf("remove %d\n",number);
 #endif
@@ -766,12 +766,12 @@ nsMsgKeySet::Remove(PRInt32 number)
   m_cached_value = -1;
 
   while (tail < end) {
-    PRInt32 mid = (tail - m_data);
+    int32_t mid = (tail - m_data);
 
     if (*tail < 0) {
       /* it's a range */
-      PRInt32 from = tail[1];
-      PRInt32 to = from + (-(tail[0]));
+      int32_t from = tail[1];
+      int32_t to = from + (-(tail[0]));
 
       if (number < from || number > to) {
         /* Not this range */
@@ -823,7 +823,7 @@ nsMsgKeySet::Remove(PRInt32 number)
         /* The number being deleted is in the middle of a range which
            must be split. This increases overall length by 2.
            */
-        PRInt32 i;
+        int32_t i;
         int endo = end - head;
         if (m_data_size - m_length <= 2) {
           if (!Grow()) return NS_ERROR_OUT_OF_MEMORY;
@@ -887,8 +887,8 @@ nsMsgKeySet::Remove(PRInt32 number)
 }
 
 
-static PRInt32*
-msg_emit_range(PRInt32* tmp, PRInt32 a, PRInt32 b)
+static int32_t*
+msg_emit_range(int32_t* tmp, int32_t a, int32_t b)
 {
   if (a == b) {
     *tmp++ = a;
@@ -902,15 +902,15 @@ msg_emit_range(PRInt32* tmp, PRInt32 a, PRInt32 b)
 
 
 int
-nsMsgKeySet::AddRange(PRInt32 start, PRInt32 end)
+nsMsgKeySet::AddRange(int32_t start, int32_t end)
 {
-  PRInt32 tmplength;
-  PRInt32* tmp;
-  PRInt32* in;
-  PRInt32* out;
-  PRInt32* tail;
-  PRInt32 a;
-  PRInt32 b;
+  int32_t tmplength;
+  int32_t* tmp;
+  int32_t* in;
+  int32_t* out;
+  int32_t* tail;
+  int32_t a;
+  int32_t b;
   bool didit = false;
 
   /* We're going to modify the set, so invalidate the cache. */
@@ -924,7 +924,7 @@ nsMsgKeySet::AddRange(PRInt32 start, PRInt32 end)
   }
 
   tmplength = m_length + 2;
-  tmp = (PRInt32*) PR_Malloc(sizeof(PRInt32) * tmplength);
+  tmp = (int32_t*) PR_Malloc(sizeof(int32_t) * tmplength);
 
   if (!tmp) return NS_ERROR_OUT_OF_MEMORY;
 
@@ -982,13 +982,13 @@ nsMsgKeySet::AddRange(PRInt32 start, PRInt32 end)
   return 1;
 }
 
-PRInt32
-nsMsgKeySet::CountMissingInRange(PRInt32 range_start, PRInt32 range_end)
+int32_t
+nsMsgKeySet::CountMissingInRange(int32_t range_start, int32_t range_end)
 {
-  PRInt32 count;
-  PRInt32 *head;
-  PRInt32 *tail;
-  PRInt32 *end;
+  int32_t count;
+  int32_t *head;
+  int32_t *tail;
+  int32_t *end;
 
   NS_ASSERTION (range_start >= 0 && range_end >= 0 && range_end >= range_start, "invalid range");
   if (range_start < 0 || range_end < 0 || range_end < range_start) return -1;
@@ -1002,8 +1002,8 @@ nsMsgKeySet::CountMissingInRange(PRInt32 range_start, PRInt32 range_end)
   while (tail < end) {
     if (*tail < 0) {
       /* it's a range */
-      PRInt32 from = tail[1];
-      PRInt32 to = from + (-(tail[0]));
+      int32_t from = tail[1];
+      int32_t to = from + (-(tail[0]));
       if (from < range_start) from = range_start;
       if (to > range_end) to = range_end;
 
@@ -1023,17 +1023,17 @@ nsMsgKeySet::CountMissingInRange(PRInt32 range_start, PRInt32 range_end)
 
 
 int 
-nsMsgKeySet::FirstMissingRange(PRInt32 min, PRInt32 max,
-                  PRInt32* first, PRInt32* last)
+nsMsgKeySet::FirstMissingRange(int32_t min, int32_t max,
+                  int32_t* first, int32_t* last)
 {
-  PRInt32 size;
-  PRInt32 *head;
-  PRInt32 *tail;
-  PRInt32 *end;
-  PRInt32 from = 0;
-  PRInt32 to = 0;
-  PRInt32 a;
-  PRInt32 b;
+  int32_t size;
+  int32_t *head;
+  int32_t *tail;
+  int32_t *end;
+  int32_t from = 0;
+  int32_t to = 0;
+  int32_t a;
+  int32_t b;
 
   NS_ASSERTION(first && last, "invalid parameter");
   if (!first || !last) return -1;
@@ -1083,17 +1083,17 @@ nsMsgKeySet::FirstMissingRange(PRInt32 min, PRInt32 max,
 // I'm guessing we didn't include this because we didn't think we're going
 // to need it. I'm not so sure. I'm putting it in for now.
 int 
-nsMsgKeySet::LastMissingRange(PRInt32 min, PRInt32 max,
-                  PRInt32* first, PRInt32* last)
+nsMsgKeySet::LastMissingRange(int32_t min, int32_t max,
+                  int32_t* first, int32_t* last)
 {
-  PRInt32 size;
-  PRInt32 *head;
-  PRInt32 *tail;
-  PRInt32 *end;
-  PRInt32 from = 0;
-  PRInt32 to = 0;
-  PRInt32 a;
-  PRInt32 b;
+  int32_t size;
+  int32_t *head;
+  int32_t *tail;
+  int32_t *end;
+  int32_t from = 0;
+  int32_t to = 0;
+  int32_t a;
+  int32_t b;
 
   NS_ASSERTION(first && last, "invalid null param");
   if (!first || !last) return -1;
@@ -1148,11 +1148,11 @@ nsMsgKeySet::LastMissingRange(PRInt32 min, PRInt32 max,
 nsresult
 nsMsgKeySet::ToMsgKeyArray(nsTArray<nsMsgKey> &aArray)
 {
-    PRInt32 size;
-    PRInt32 *head;
-    PRInt32 *tail;
-    PRInt32 *end;
-    PRInt32 last_art = -1;
+    int32_t size;
+    int32_t *head;
+    int32_t *tail;
+    int32_t *end;
+    int32_t last_art = -1;
 
     size = m_length;
     head = m_data;
@@ -1160,8 +1160,8 @@ nsMsgKeySet::ToMsgKeyArray(nsTArray<nsMsgKey> &aArray)
     end = head + size;
 
     while (tail < end) {
-        PRInt32 from;
-        PRInt32 to;
+        int32_t from;
+        int32_t to;
 
         if (*tail < 0) {
             /* it's a range */
@@ -1181,7 +1181,7 @@ nsMsgKeySet::ToMsgKeyArray(nsTArray<nsMsgKey> &aArray)
         if (from <= last_art) from = last_art + 1;
         if (from <= to) {
             if (from < to) {
-                for (PRInt32 i = from; i <= to ; ++i ) {
+                for (int32_t i = from; i <= to ; ++i ) {
                     aArray.AppendElement(i);
                 }
             } else {
@@ -1242,7 +1242,7 @@ nsMsgKeySet::test_adder (void)
   const char *string;
   nsMsgKeySet *set;
   char *s;
-  PRInt32 i;
+  int32_t i;
 
   START("0-70,72-99,105,107,110-111,117-200");
 
@@ -1355,8 +1355,8 @@ nsMsgKeySet::test_ranges(void)
   char *string;
   nsMsgKeySet *set;
   char *s;
-  PRInt32 i;
-  PRInt32 j;
+  int32_t i;
+  int32_t j;
 
   START("20-40,72-99,105,107,110-111,117-200");
 

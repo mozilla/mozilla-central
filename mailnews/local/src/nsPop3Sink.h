@@ -50,13 +50,13 @@ protected:
 
     bool m_authed;
     char* m_accountUrl;
-    PRUint32 m_biffState;
-    PRInt32 m_numNewMessages;
-    PRInt32 m_numNewMessagesInFolder;
-    PRInt32 m_numMsgsDownloaded;
+    uint32_t m_biffState;
+    int32_t m_numNewMessages;
+    int32_t m_numNewMessagesInFolder;
+    int32_t m_numMsgsDownloaded;
     bool m_senderAuthed;
     char* m_outputBuffer;
-    PRInt32 m_outputBufferSize;
+    int32_t m_outputBufferSize;
     nsIPop3IncomingServer *m_popServer;
     //Currently the folder we want to update about biff info
     nsCOMPtr<nsIMsgFolder> m_folder;

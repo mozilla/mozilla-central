@@ -14,8 +14,8 @@ class ImportOutFile;
 
 class UMimeEncode {
 public:
-  static PRUint32  GetBufferSize(PRUint32 inByes);
-  static PRUint32  ConvertBuffer(const PRUint8 * pIn, PRUint32 inLen, PRUint8 *pOut, PRUint32 maxLen = 72, PRUint32 firstLineLen = 72, const char * pEolStr = nullptr);
+  static uint32_t  GetBufferSize(uint32_t inByes);
+  static uint32_t  ConvertBuffer(const uint8_t * pIn, uint32_t inLen, uint8_t *pOut, uint32_t maxLen = 72, uint32_t firstLineLen = 72, const char * pEolStr = nullptr);
 };
 
 
@@ -23,9 +23,9 @@ class nsImportTranslator {
 public:
   virtual ~nsImportTranslator() {}
   virtual bool      Supports8bitEncoding(void) { return false;}
-  virtual PRUint32  GetMaxBufferSize(PRUint32 inLen) { return inLen + 1;}
-  virtual void    ConvertBuffer(const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut) { memcpy(pOut, pIn, inLen); pOut[inLen] = 0;}
-  virtual bool      ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nullptr);
+  virtual uint32_t  GetMaxBufferSize(uint32_t inLen) { return inLen + 1;}
+  virtual void    ConvertBuffer(const uint8_t * pIn, uint32_t inLen, uint8_t * pOut) { memcpy(pOut, pIn, inLen); pOut[inLen] = 0;}
+  virtual bool      ConvertToFile(const uint8_t * pIn, uint32_t inLen, ImportOutFile *pOutFile, uint32_t *pProcessed = nullptr);
   virtual bool      FinishConvertToFile(ImportOutFile * /* pOutFile */) { return true;}
 
   virtual void  GetCharset(nsCString& charSet) { charSet = "us-ascii";}
@@ -37,9 +37,9 @@ public:
 // rfc2231
 class CMHTranslator : public nsImportTranslator {
 public:
-  virtual PRUint32  GetMaxBufferSize(PRUint32 inLen) { return (inLen * 3) + 1;}
-  virtual void    ConvertBuffer(const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut);
-  virtual bool      ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nullptr);
+  virtual uint32_t  GetMaxBufferSize(uint32_t inLen) { return (inLen * 3) + 1;}
+  virtual void    ConvertBuffer(const uint8_t * pIn, uint32_t inLen, uint8_t * pOut);
+  virtual bool      ConvertToFile(const uint8_t * pIn, uint32_t inLen, ImportOutFile *pOutFile, uint32_t *pProcessed = nullptr);
 };
 
 // Specialized encoder, not a vaild language translator, used for mail headers
@@ -48,17 +48,17 @@ class C2047Translator : public nsImportTranslator {
 public:
   virtual ~C2047Translator() {}
 
-  C2047Translator(const char *pCharset, PRUint32 headerLen) { m_charset = pCharset; m_startLen = headerLen; m_useQuotedPrintable = false;}
+  C2047Translator(const char *pCharset, uint32_t headerLen) { m_charset = pCharset; m_startLen = headerLen; m_useQuotedPrintable = false;}
 
   void  SetUseQuotedPrintable(void) { m_useQuotedPrintable = true;}
 
-  virtual bool    ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nullptr);
-  bool    ConvertToFileQ(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed);
+  virtual bool    ConvertToFile(const uint8_t * pIn, uint32_t inLen, ImportOutFile *pOutFile, uint32_t *pProcessed = nullptr);
+  bool    ConvertToFileQ(const uint8_t * pIn, uint32_t inLen, ImportOutFile *pOutFile, uint32_t *pProcessed);
 
 protected:
   bool        m_useQuotedPrintable;
   nsCString    m_charset;
-  PRUint32    m_startLen;
+  uint32_t    m_startLen;
 };
 
 #endif /* nsImportTranslator_h__ */

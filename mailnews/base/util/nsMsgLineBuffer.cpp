@@ -25,12 +25,12 @@ nsByteArray::~nsByteArray()
   PR_FREEIF(m_buffer);
 }
 
-nsresult nsByteArray::GrowBuffer(PRUint32 desired_size, PRUint32 quantum)
+nsresult nsByteArray::GrowBuffer(uint32_t desired_size, uint32_t quantum)
 {
   if (m_bufferSize < desired_size)
   {
     char *new_buf;
-    PRUint32 increment = desired_size - m_bufferSize;
+    uint32_t increment = desired_size - m_bufferSize;
     if (increment < quantum) /* always grow by a minimum of N bytes */
       increment = quantum;
     
@@ -48,12 +48,12 @@ nsresult nsByteArray::GrowBuffer(PRUint32 desired_size, PRUint32 quantum)
 
 nsresult nsByteArray::AppendString(const char *string)
 {
-  PRUint32 strLength = (string) ? PL_strlen(string) : 0;
+  uint32_t strLength = (string) ? PL_strlen(string) : 0;
   return AppendBuffer(string, strLength);
   
 }
 
-nsresult nsByteArray::AppendBuffer(const char *buffer, PRUint32 length)
+nsresult nsByteArray::AppendBuffer(const char *buffer, uint32_t length)
 {
   nsresult ret = NS_OK;
   if (m_bufferPos + length > m_bufferSize)
@@ -85,7 +85,7 @@ nsMsgLineBuffer::SetLookingForCRLF(bool b)
   m_lookingForCRLF = b;
 }
 
-nsresult nsMsgLineBuffer::BufferInput(const char *net_buffer, PRInt32 net_buffer_size)
+nsresult nsMsgLineBuffer::BufferInput(const char *net_buffer, int32_t net_buffer_size)
 {
     nsresult status = NS_OK;
     if (m_bufferPos > 0 && m_buffer && m_buffer[m_bufferPos - 1] == '\r' &&
@@ -148,7 +148,7 @@ nsresult nsMsgLineBuffer::BufferInput(const char *net_buffer, PRInt32 net_buffer
            chunk of data to it. */
         {
             const char *end = (newline ? newline : net_buffer_end);
-            PRUint32 desired_size = (end - net_buffer) + m_bufferPos + 1;
+            uint32_t desired_size = (end - net_buffer) + m_bufferPos + 1;
             
             if (desired_size >= m_bufferSize)
             {
@@ -180,19 +180,19 @@ nsresult nsMsgLineBuffer::BufferInput(const char *net_buffer, PRInt32 net_buffer
     return NS_OK;
 }
 
-PRInt32 nsMsgLineBuffer::HandleLine(char *line, PRUint32 line_length)
+int32_t nsMsgLineBuffer::HandleLine(char *line, uint32_t line_length)
 {
   NS_ASSERTION(false, "must override this method if you don't provide a handler");
   return 0;
 }
 
-PRInt32 nsMsgLineBuffer::ConvertAndSendBuffer()
+int32_t nsMsgLineBuffer::ConvertAndSendBuffer()
 {
     /* Convert the line terminator to the native form.
      */
 
     char *buf = m_buffer;
-    PRInt32 length = m_bufferPos;
+    int32_t length = m_bufferPos;
 
     char* newline;
     
@@ -237,10 +237,10 @@ PRInt32 nsMsgLineBuffer::ConvertAndSendBuffer()
 }
 
 // If there's still some data (non CRLF terminated) flush it out
-PRInt32 nsMsgLineBuffer::FlushLastLine()
+int32_t nsMsgLineBuffer::FlushLastLine()
 {
   char *buf = m_buffer + m_bufferPos;
-  PRInt32 length = m_bufferPos - 1;
+  int32_t length = m_bufferPos - 1;
   if (length > 0)
     return (m_handler) ? m_handler->HandleLine(buf, length) : HandleLine(buf, length);
   else
@@ -252,7 +252,7 @@ PRInt32 nsMsgLineBuffer::FlushLastLine()
 // read but unprocessed stream data in a buffer. 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-nsMsgLineStreamBuffer::nsMsgLineStreamBuffer(PRUint32 aBufferSize, bool aAllocateNewLines, bool aEatCRLFs, char aLineToken) 
+nsMsgLineStreamBuffer::nsMsgLineStreamBuffer(uint32_t aBufferSize, bool aAllocateNewLines, bool aEatCRLFs, char aLineToken) 
            : m_eatCRLFs(aEatCRLFs), m_allocateNewLines(aAllocateNewLines), m_lineToken(aLineToken)
 {
   NS_PRECONDITION(aBufferSize > 0, "invalid buffer size!!!");
@@ -275,7 +275,7 @@ nsMsgLineStreamBuffer::~nsMsgLineStreamBuffer()
 }
 
 
-nsresult nsMsgLineStreamBuffer::GrowBuffer(PRInt32 desiredSize)
+nsresult nsMsgLineStreamBuffer::GrowBuffer(int32_t desiredSize)
 {
   m_dataBuffer = (char *) PR_REALLOC(m_dataBuffer, desiredSize);
   if (!m_dataBuffer)
@@ -296,7 +296,7 @@ void nsMsgLineStreamBuffer::ClearBuffer()
 // Note to people wishing to modify this function: Be *VERY CAREFUL* this is a critical function used by all of
 // our mail protocols including imap, nntp, and pop. If you screw it up, you could break a lot of stuff.....
 
-char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint32 &aNumBytesInLine, bool &aPauseForMoreData, nsresult *prv, bool addLineTerminator)
+char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, uint32_t &aNumBytesInLine, bool &aPauseForMoreData, nsresult *prv, bool addLineTerminator)
 {
   // try to extract a line from m_inputBuffer. If we don't have an entire line, 
   // then read more bytes out from the stream. If the stream is empty then wait
@@ -320,8 +320,8 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
   if (!endOfLine && aInputStream) // get some more data from the server
   {
     nsresult rv;
-    PRUint64 numBytesInStream = 0;
-    PRUint32 numBytesCopied = 0;
+    uint64_t numBytesInStream = 0;
+    uint32_t numBytesCopied = 0;
     bool nonBlockingStream;
     aInputStream->IsNonBlocking(&nonBlockingStream);
     rv = aInputStream->Available(&numBytesInStream);
@@ -338,7 +338,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
     // if the number of bytes we want to read from the stream, is greater than the number
     // of bytes left in our buffer, then we need to shift the start pos and its contents
     // down to the beginning of m_dataBuffer...
-    PRUint32 numFreeBytesInBuffer = m_dataBufferSize - m_startPos - m_numBytesInBuffer;
+    uint32_t numFreeBytesInBuffer = m_dataBufferSize - m_startPos - m_numBytesInBuffer;
     if (numBytesInStream >= numFreeBytesInBuffer)
     {
       if (m_startPos)
@@ -354,7 +354,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
       // If we didn't make enough space (or any), grow the buffer
       if (numBytesInStream >= numFreeBytesInBuffer)
       {
-        PRInt64 growBy = (numBytesInStream - numFreeBytesInBuffer) * 2 + 1;
+        int64_t growBy = (numBytesInStream - numFreeBytesInBuffer) * 2 + 1;
         // GrowBuffer cannot handles over 4GB size
         if (m_dataBufferSize + growBy > PR_UINT32_MAX)
           return nullptr;
@@ -369,7 +369,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
       NS_ASSERTION(m_startPos == 0, "m_startPos should be 0 .....\n");
     }
     
-    PRUint32 numBytesToCopy = NS_MIN(numFreeBytesInBuffer - 1 /* leave one for a null terminator */, numBytesInStream);
+    uint32_t numBytesToCopy = NS_MIN(numFreeBytesInBuffer - 1 /* leave one for a null terminator */, numBytesInStream);
     if (numBytesToCopy > 0)
     {
       // read the data into the end of our data buffer
@@ -377,7 +377,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
       rv = aInputStream->Read(startOfNewData, numBytesToCopy, &numBytesCopied);
       if (prv)
         *prv = rv;
-      PRUint32 i;
+      uint32_t i;
       for (i = 0; i < numBytesCopied; i++)  // replace nulls with spaces
       {
         if (!startOfNewData[i])

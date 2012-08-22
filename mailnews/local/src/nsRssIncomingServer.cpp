@@ -143,7 +143,7 @@ NS_IMETHODIMP nsRssIncomingServer::GetAccountManagerChrome(nsAString& aResult)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsRssIncomingServer::GetOfflineSupportLevel(PRInt32 *aSupportLevel)
+NS_IMETHODIMP nsRssIncomingServer::GetOfflineSupportLevel(int32_t *aSupportLevel)
 {
   NS_ENSURE_ARG_POINTER(aSupportLevel);
   *aSupportLevel = OFFLINE_SUPPORT_LEVEL_NONE;
@@ -255,12 +255,12 @@ nsresult nsRssIncomingServer::FolderChanged(nsIMsgFolder *aFolder, bool aUnsubsc
       rv = aFolder->ListDescendents(allDescendents);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      PRUint32 cnt = 0;
+      uint32_t cnt = 0;
       allDescendents->Count(&cnt);
 
       nsCOMPtr<nsIMsgFolder> rssFolder;
 
-      for (PRUint32 index = 0; index < cnt; index++)
+      for (uint32_t index = 0; index < cnt; index++)
       {
         rssFolder = do_QueryElementAt(allDescendents, index, &rv);
         if (rssFolder)

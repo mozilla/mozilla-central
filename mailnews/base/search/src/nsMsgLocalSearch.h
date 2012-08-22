@@ -39,7 +39,7 @@ public:
                                          nsIMsgSearchScopeTerm *scope,
                                          nsIMsgDatabase * db,
                                          const char * headers,
-                                         PRUint32 headerSize,
+                                         uint32_t headerSize,
                                          nsMsgSearchBoolExpression ** aExpressionTree,
                      bool *pResult);
 
@@ -59,7 +59,7 @@ public:
                                nsIMsgSearchScopeTerm * scope,
                                nsIMsgDatabase * db,
                                const char * headers,
-                               PRUint32 headerSize,
+                               uint32_t headerSize,
                                bool Filtering,
                  bool *pResult);
 protected:
@@ -69,14 +69,14 @@ protected:
                                 nsIMsgSearchScopeTerm *scope,
                                 nsIMsgDatabase * db,
                                 const char * headers,
-                                PRUint32 headerSize,
+                                uint32_t headerSize,
                                 bool ForFilters,
                                 nsMsgSearchBoolExpression ** aExpressionTree,
                 bool *pResult);
 
     static nsresult ConstructExpressionTree(nsISupportsArray * termList,
-                                      PRUint32 termCount,
-                                      PRUint32 &aStartPosInList,
+                                      uint32_t termCount,
+                                      uint32_t &aStartPosInList,
                                       nsMsgSearchBoolExpression ** aExpressionTree);
 
   nsCOMPtr <nsIMsgDatabase> m_db;

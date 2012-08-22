@@ -51,9 +51,9 @@ NS_IMPL_ISUPPORTS_INHERITED1(nsAbLDAPCard, nsAbCardProperty, nsIAbLDAPCard)
 */
 NS_IMETHODIMP nsAbLDAPCard::GetLDAPMessageInfo(
   nsIAbLDAPAttributeMap *aAttributeMap,
-  const PRUint32 aClassCount,
+  const uint32_t aClassCount,
   const char **aClasses,
-  PRInt32 aType,
+  int32_t aType,
   nsIArray **aLDAPAddMessageInfo)
 {
   NS_ENSURE_ARG_POINTER(aAttributeMap);
@@ -69,7 +69,7 @@ NS_IMETHODIMP nsAbLDAPCard::GetLDAPMessageInfo(
   // classes: if an entry has additional object classes, it's probably
   // for a good reason.
   nsCAutoString oclass;
-  for (PRUint32 i = 0; i < aClassCount; ++i)
+  for (uint32_t i = 0; i < aClassCount; ++i)
   {
     oclass.Assign(nsDependentCString(aClasses[i]));
     ToLowerCase(oclass);
@@ -89,7 +89,7 @@ NS_IMETHODIMP nsAbLDAPCard::GetLDAPMessageInfo(
     do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   
-  for (PRUint32 i = 0; i < m_objectClass.Length(); ++i)
+  for (uint32_t i = 0; i < m_objectClass.Length(); ++i)
   {
     nsCOMPtr<nsILDAPBERValue> value =
       do_CreateInstance("@mozilla.org/network/ldap-ber-value;1", &rv);
@@ -115,7 +115,7 @@ NS_IMETHODIMP nsAbLDAPCard::GetLDAPMessageInfo(
 
   nsCAutoString attr;
   nsCString propvalue;
-  for (PRUint32 i = 0; i < props.GetSize(); ++i)
+  for (uint32_t i = 0; i < props.GetSize(); ++i)
   {
     // Skip some attributes that don't map to LDAP.
     //
@@ -145,7 +145,7 @@ NS_IMETHODIMP nsAbLDAPCard::GetLDAPMessageInfo(
       do_CreateInstance("@mozilla.org/network/ldap-modification;1", &rv);
     NS_ENSURE_SUCCESS(rv, rv);
    
-    PRUint32 index = m_attributes.IndexOf(attr);
+    uint32_t index = m_attributes.IndexOf(attr);
 
     rv = GetPropertyAsAUTF8String(props[i], propvalue);
 
@@ -193,7 +193,7 @@ NS_IMETHODIMP nsAbLDAPCard::GetLDAPMessageInfo(
 }
 
 NS_IMETHODIMP nsAbLDAPCard::BuildRdn(nsIAbLDAPAttributeMap *aAttributeMap,
-                                     const PRUint32 aAttrCount,
+                                     const uint32_t aAttrCount,
                                      const char **aAttributes,
                                      nsACString &aRdn)
 {
@@ -206,7 +206,7 @@ NS_IMETHODIMP nsAbLDAPCard::BuildRdn(nsIAbLDAPAttributeMap *aAttributeMap,
   nsCString propvalue;
 
   aRdn.Truncate();
-  for (PRUint32 i = 0; i < aAttrCount; ++i)
+  for (uint32_t i = 0; i < aAttrCount; ++i)
   {
     attr.Assign(nsDependentCString(aAttributes[i]));
    
@@ -264,7 +264,7 @@ NS_IMETHODIMP nsAbLDAPCard::SetMetaProperties(nsILDAPMessage *aMessage)
  
   nsCAutoString attr;
   m_attributes.Clear();
-  for (PRUint32 i = 0; i < attrs.GetSize(); ++i)
+  for (uint32_t i = 0; i < attrs.GetSize(); ++i)
   {
     attr.Assign(nsDependentCString(attrs[i]));
     ToLowerCase(attr);
@@ -286,7 +286,7 @@ NS_IMETHODIMP nsAbLDAPCard::SetMetaProperties(nsILDAPMessage *aMessage)
   NS_ENSURE_SUCCESS(rv, rv);
   
   nsCAutoString oclass;
-  for (PRUint32 i = 0; i < vals.GetSize(); ++i)
+  for (uint32_t i = 0; i < vals.GetSize(); ++i)
   {
     oclass.Assign(NS_LossyConvertUTF16toASCII(nsDependentString(vals[i])));
     ToLowerCase(oclass);

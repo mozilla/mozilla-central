@@ -44,8 +44,8 @@ static char basis_64[] =
 
 static const char hexdigits[] = "0123456789ABCDEF";
 
-static PRInt32
-intlmime_encode_q(const unsigned char *src, PRInt32 srcsize, char *out)
+static int32_t
+intlmime_encode_q(const unsigned char *src, int32_t srcsize, char *out)
 {
   const unsigned char *in = (unsigned char *) src;
   const unsigned char *end = in + srcsize;
@@ -71,7 +71,7 @@ intlmime_encode_q(const unsigned char *src, PRInt32 srcsize, char *out)
 static void
 encodeChunk(const unsigned char* chunk, char* output)
 {
-  register PRInt32 offset;
+  register int32_t offset;
 
   offset = *chunk >> 2;
   *output++ = basis_64[offset];
@@ -94,11 +94,11 @@ encodeChunk(const unsigned char* chunk, char* output)
     *output++ = '=';
 }
 
-static PRInt32
-intlmime_encode_b(const unsigned char* input, PRInt32 inlen, char* output)
+static int32_t
+intlmime_encode_b(const unsigned char* input, int32_t inlen, char* output)
 {
   unsigned char  chunk[3];
-  PRInt32   i, len;
+  int32_t   i, len;
   char *head = output;
 
   for (len = 0; inlen >=3 ; inlen -= 3) {
@@ -160,7 +160,7 @@ static unsigned char * utf8_nextchar(unsigned char *str)
 /* -------------- */
 
 static
-PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, char *output, PRInt32 outlen, PRInt32 output_carryoverlen, PRInt32 foldlen, bool foldingonly)
+int32_t generate_encodedwords(char *pUTF8, const char *charset, char method, char *output, int32_t outlen, int32_t output_carryoverlen, int32_t foldlen, bool foldingonly)
 {
   nsCOMPtr <nsISaveAsCharset> conv;
   PRUnichar *_pUCS2 = nullptr, *pUCS2 = nullptr, *pUCS2Head = nullptr, cUCS2Tmp = 0;
@@ -168,8 +168,8 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
   char  encodedword_head[nsIMimeConverter::MAX_CHARSET_NAME_LENGTH+4+1];
   nsCAutoString _charset;
   char  *pUTF8Head = nullptr, cUTF8Tmp = 0;
-  PRInt32   olen = 0, obufsize = outlen, offset, linelen = output_carryoverlen, convlen = 0;
-  PRInt32   encodedword_headlen = 0, encodedword_taillen = foldingonly ? 0 : 2; // "?="
+  int32_t   olen = 0, obufsize = outlen, offset, linelen = output_carryoverlen, convlen = 0;
+  int32_t   encodedword_headlen = 0, encodedword_taillen = foldingonly ? 0 : 2; // "?="
   nsresult rv;
 
   encodedword_head[0] = 0;
@@ -247,7 +247,7 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
       else {
         /* 3 = Q encoding multiplier */
         offset = 0;
-        for (PRInt32 i = 0; *(ibuf+i); i++)
+        for (int32_t i = 0; *(ibuf+i); i++)
           offset += NO_Q_ENCODING_NEEDED(*(ibuf+i)) ? 1 : 3;
       }
     }
@@ -326,13 +326,13 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
         else {
           /* 3 = Q encoding multiplier */
           offset = 0;
-          for (PRInt32 i = 0; *(ibuf+i); i++)
+          for (int32_t i = 0; *(ibuf+i); i++)
             offset += NO_Q_ENCODING_NEEDED(*(ibuf+i)) ? 1 : 3;
         }
       }
       if (linelen + offset > foldlen) {
 process_lastline:
-        PRInt32 enclen;
+        int32_t enclen;
         if (foldingonly) {
           PL_strncpyz(o, pUTF8Head, obufsize);
           enclen = strlen(o);
@@ -411,7 +411,7 @@ static
 RFC822AddressList * construct_addresslist(char *s)
 {
   bool    quoted = false, angle_addr = false;
-  PRInt32  comment = 0;
+  int32_t  comment = 0;
   char *displayname = nullptr, *addrspec = nullptr;
   static RFC822AddressList  listinit;
   RFC822AddressList  *listhead = (RFC822AddressList *)PR_Malloc(sizeof(RFC822AddressList));
@@ -534,10 +534,10 @@ RFC822AddressList * construct_addresslist(char *s)
 }
 
 static
-char * apply_rfc2047_encoding(const char *_src, bool structured, const char *charset, PRInt32 cursor, PRInt32 foldlen)
+char * apply_rfc2047_encoding(const char *_src, bool structured, const char *charset, int32_t cursor, int32_t foldlen)
 {
   RFC822AddressList  *listhead, *list;
-  PRInt32   outputlen, usedlen;
+  int32_t   outputlen, usedlen;
   char  *src, *src_head, *output, *outputtail;
   char  method = nsMsgI18Nmultibyte_charset(charset) ? 'B' : 'Q';
 
@@ -545,7 +545,7 @@ char * apply_rfc2047_encoding(const char *_src, bool structured, const char *cha
     return nullptr;
 
   //<TAB>=?<charset>?<B/Q>?...?=<CRLF>
-  PRInt32 perLineOverhead = strlen(charset) + 10;
+  int32_t perLineOverhead = strlen(charset) + 10;
 
   if (perLineOverhead >= foldlen || (src = src_head = strdup(_src)) == nullptr)
     return nullptr;
@@ -553,8 +553,8 @@ char * apply_rfc2047_encoding(const char *_src, bool structured, const char *cha
   /* allocate enough buffer for conversion, this way it can avoid
      do another memory allocation which is expensive
    */
-  PRInt32 encodedCharsPerLine = foldlen - perLineOverhead;
-  PRInt32 maxNumLines = (strlen(src) * 4 / encodedCharsPerLine) + 1;
+  int32_t encodedCharsPerLine = foldlen - perLineOverhead;
+  int32_t maxNumLines = (strlen(src) * 4 / encodedCharsPerLine) + 1;
   outputlen = strlen(src) * 4 + (maxNumLines * perLineOverhead) + 20 /* fudge */;
   if ((outputtail = output = (char *)PR_Malloc(outputlen)) == nullptr) {
     PR_Free(src_head);
@@ -571,7 +571,7 @@ char * apply_rfc2047_encoding(const char *_src, bool structured, const char *cha
       for (; list && (outputlen > 0); list = list->next) {
         if (list->displayname) {
           if (list->asciionly && list->addrspec) {
-            PRInt32 len = cursor + strlen(list->displayname) + strlen(list->addrspec);
+            int32_t len = cursor + strlen(list->displayname) + strlen(list->addrspec);
             if (foldlen < len && len < 998) { /* see RFC 2822 for magic number 998 */
               if (!PR_snprintf(outputtail, outputlen - 1, 
                               (list == listhead || cursor == 1) ? "%s %s%s" : "\r\n %s %s%s", 
@@ -646,7 +646,7 @@ char * apply_rfc2047_encoding(const char *_src, bool structured, const char *cha
     }
     if (spacepos) {
       char head[nsIMimeConverter::MAX_CHARSET_NAME_LENGTH+4+1];
-      PRInt32  overhead, skiplen;
+      int32_t  overhead, skiplen;
       if (!PR_snprintf(head, sizeof(head) - 1, "=?%s?%c?", charset, method)) {
         PR_Free(output);
         return nullptr;
@@ -700,7 +700,7 @@ extern "C" char *MIME_DecodeMimeHeader(const char *header,
   return nullptr;
 }
 
-char *MIME_EncodeMimePartIIStr(const char* header, bool structured, const char* mailCharset, const PRInt32 fieldNameLen, const PRInt32 encodedWordSize)
+char *MIME_EncodeMimePartIIStr(const char* header, bool structured, const char* mailCharset, const int32_t fieldNameLen, const int32_t encodedWordSize)
 {
   return apply_rfc2047_encoding(header, structured, mailCharset, fieldNameLen, encodedWordSize);
 }
@@ -714,7 +714,7 @@ char * NextChar_UTF8(char *str)
 
 //detect charset soly based on aBuf. return in aCharset
 nsresult
-MIME_detect_charset(const char *aBuf, PRInt32 aLength, const char** aCharset)
+MIME_detect_charset(const char *aBuf, int32_t aLength, const char** aCharset)
 {
   nsresult res = NS_ERROR_UNEXPECTED;
   nsString detector_name;

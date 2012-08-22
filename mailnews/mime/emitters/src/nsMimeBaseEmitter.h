@@ -70,7 +70,7 @@ public:
 
   // For string bundle usage...
   char                *MimeGetStringByName(const char *aHeaderName);
-  char                *MimeGetStringByID(PRInt32 aID);
+  char                *MimeGetStringByID(int32_t aID);
   char                *LocalizeHeaderName(const char *aHeaderName, const char *aDefaultName);
 
   // For header processing...
@@ -91,7 +91,7 @@ protected:
   nsresult            DumpRestOfHeaders();
   nsresult            OutputGenericHeader(const char *aHeaderVal);
 
-  nsresult            WriteHelper(const char *buf, PRUint32 count, PRUint32 *countWritten);
+  nsresult            WriteHelper(const char *buf, uint32_t count, uint32_t *countWritten);
 
   // For string bundle usage...
   nsCOMPtr<nsIStringBundle>  m_stringBundle;        // for translated strings
@@ -110,17 +110,17 @@ protected:
   nsCOMPtr<nsIChannel> mChannel;
 
   // For gathering statistics on processing...
-  PRUint32            mTotalWritten;
-  PRUint32            mTotalRead;
+  uint32_t            mTotalWritten;
+  uint32_t            mTotalRead;
 
   // Output control and info...
   bool                mDocHeader;         // For header determination...
   nsIURI              *mURL;              // the url for the data being processed...
-  PRInt32             mHeaderDisplayType; // The setting for header output...
+  int32_t             mHeaderDisplayType; // The setting for header output...
   nsCString           mHTMLHeaders;       // HTML Header Data...
 
   // For attachment processing...
-  PRInt32             mAttachCount;
+  int32_t             mAttachCount;
   nsVoidArray         *mAttachArray;
   attachmentInfoType  *mCurrentAttachment;
 
@@ -135,7 +135,7 @@ protected:
   bool                mFirstHeaders;
 
   // For the format being used...
-  PRInt32             mFormat;
+  int32_t             mFormat;
 
   // For I18N Conversion...
   nsCOMPtr<nsIMimeConverter> mUnicodeConverter;

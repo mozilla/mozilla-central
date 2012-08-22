@@ -33,7 +33,7 @@ nsLDAPModification::Init()
 }
 
 NS_IMETHODIMP
-nsLDAPModification::GetOperation(PRInt32 *aOperation)
+nsLDAPModification::GetOperation(int32_t *aOperation)
 {
   NS_ENSURE_ARG_POINTER(aOperation);
 
@@ -41,7 +41,7 @@ nsLDAPModification::GetOperation(PRInt32 *aOperation)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsLDAPModification::SetOperation(PRInt32 aOperation)
+NS_IMETHODIMP nsLDAPModification::SetOperation(int32_t aOperation)
 {
   mOperation = aOperation;
   return NS_OK;
@@ -117,7 +117,7 @@ nsLDAPModification::SetValues(nsIArray* aValues)
 }
 
 NS_IMETHODIMP
-nsLDAPModification::SetUpModification(PRInt32 aOperation,
+nsLDAPModification::SetUpModification(int32_t aOperation,
                                       const nsACString &aType,
                                       nsIArray *aValues)
 {
@@ -134,7 +134,7 @@ nsLDAPModification::SetUpModification(PRInt32 aOperation,
 }
 
 NS_IMETHODIMP
-nsLDAPModification::SetUpModificationOneValue(PRInt32 aOperation,
+nsLDAPModification::SetUpModificationOneValue(int32_t aOperation,
                                               const nsACString &aType,
                                               nsILDAPBERValue *aValue)
 {

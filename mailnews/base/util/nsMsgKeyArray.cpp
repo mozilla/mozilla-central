@@ -22,21 +22,21 @@ NS_IMETHODIMP nsMsgKeyArray::Sort()
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgKeyArray::GetKeyAt(PRInt32 aIndex, nsMsgKey *aKey)
+NS_IMETHODIMP nsMsgKeyArray::GetKeyAt(int32_t aIndex, nsMsgKey *aKey)
 {
   NS_ENSURE_ARG_POINTER(aKey);
   *aKey = m_keys[aIndex];
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgKeyArray::GetLength(PRUint32 *aLength)
+NS_IMETHODIMP nsMsgKeyArray::GetLength(uint32_t *aLength)
 {
   NS_ENSURE_ARG_POINTER(aLength);
   *aLength = m_keys.Length();
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgKeyArray::SetCapacity(PRUint32 aCapacity)
+NS_IMETHODIMP nsMsgKeyArray::SetCapacity(uint32_t aCapacity)
 {
   m_keys.SetCapacity(aCapacity);
   return NS_OK;
@@ -54,7 +54,7 @@ NS_IMETHODIMP nsMsgKeyArray::InsertElementSorted(nsMsgKey aKey)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgKeyArray::GetArray(PRUint32 *aCount, nsMsgKey **aKeys)
+NS_IMETHODIMP nsMsgKeyArray::GetArray(uint32_t *aCount, nsMsgKey **aKeys)
 {
   NS_ENSURE_ARG_POINTER(aCount);
   NS_ENSURE_ARG_POINTER(aKeys);

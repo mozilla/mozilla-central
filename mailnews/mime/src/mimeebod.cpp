@@ -27,14 +27,14 @@ extern MimeObjectClass mimeMultipartAppleDoubleClass;
 
 static int MimeExternalBody_initialize (MimeObject *);
 static void MimeExternalBody_finalize (MimeObject *);
-static int MimeExternalBody_parse_line (const char *, PRInt32, MimeObject *);
+static int MimeExternalBody_parse_line (const char *, int32_t, MimeObject *);
 static int MimeExternalBody_parse_eof (MimeObject *, bool);
 static bool MimeExternalBody_displayable_inline_p (MimeObjectClass *clazz,
                             MimeHeaders *hdrs);
 
 #if 0
 #if defined(DEBUG) && defined(XP_UNIX)
-static int MimeExternalBody_debug_print (MimeObject *, PRFileDesc *, PRInt32);
+static int MimeExternalBody_debug_print (MimeObject *, PRFileDesc *, int32_t);
 #endif
 #endif /* 0 */
 
@@ -81,7 +81,7 @@ MimeExternalBody_finalize (MimeObject *object)
 }
 
 static int
-MimeExternalBody_parse_line (const char *line, PRInt32 length, MimeObject *obj)
+MimeExternalBody_parse_line (const char *line, int32_t length, MimeObject *obj)
 {
   MimeExternalBody *bod = (MimeExternalBody *) obj;
   int status = 0;
@@ -145,7 +145,7 @@ MimeExternalBody_make_url(const char *ct,
               const char *svr, const char *subj, const char *body)
 {
   char *s;
-  PRUint32 slen;
+  uint32_t slen;
   if (!at)
   {
     return 0;
@@ -292,7 +292,7 @@ MimeExternalBody_parse_eof (MimeObject *obj, bool abort_p)
     ct = MimeHeaders_get(bod->hdrs, HEADER_CONTENT_TYPE,
                          true, false);
 						 
-    PRUint32 hlen = ((at ? strlen(at) : 0) +
+    uint32_t hlen = ((at ? strlen(at) : 0) +
                     (lexp ? strlen(lexp) : 0) +
                     (size ? strlen(size) : 0) +
                     (perm ? strlen(perm) : 0) +
@@ -383,7 +383,7 @@ MimeExternalBody_parse_eof (MimeObject *obj, bool abort_p)
         char *s2;
         const char *pre = "<P><PRE>";
         const char *suf = "</PRE>";
-        PRInt32 i;
+        int32_t i;
         for(i = strlen(s)-1; i >= 0 && IS_SPACE(s[i]); i--)
           s[i] = 0;
         s2 = MsgEscapeHTML(s);
@@ -435,7 +435,7 @@ done:
 #if 0
 #if defined(DEBUG) && defined(XP_UNIX)
 static int
-MimeExternalBody_debug_print (MimeObject *obj, PRFileDesc *stream, PRInt32 depth)
+MimeExternalBody_debug_print (MimeObject *obj, PRFileDesc *stream, int32_t depth)
 {
   MimeExternalBody *bod = (MimeExternalBody *) obj;
   int i;
@@ -460,7 +460,7 @@ MimeExternalBody_debug_print (MimeObject *obj, PRFileDesc *stream, PRInt32 depth
       ct ? ct : "<none>",
       ct2 ? ct2 : "<none>",
       bod->body ? bod->body : "<none>",
-      (PRUint32) obj);
+      (uint32_t) obj);
 ***/
   PR_FREEIF(addr);
   PR_FREEIF(ct);

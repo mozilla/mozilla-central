@@ -9,14 +9,14 @@
 #include "ImportCharSet.h"
 
 
-bool nsImportTranslator::ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
+bool nsImportTranslator::ConvertToFile(const uint8_t * pIn, uint32_t inLen, ImportOutFile *pOutFile, uint32_t *pProcessed)
 {
   if (pProcessed)
     *pProcessed = inLen;
   return (pOutFile->WriteData(pIn, inLen));
 }
 
-void CMHTranslator::ConvertBuffer(const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut)
+void CMHTranslator::ConvertBuffer(const uint8_t * pIn, uint32_t inLen, uint8_t * pOut)
 {
   while (inLen) {
     if (!ImportCharSet::IsUSAscii(*pIn) || ImportCharSet::Is822SpecialChar(*pIn) || ImportCharSet::Is822CtlChar(*pIn) ||
@@ -36,9 +36,9 @@ void CMHTranslator::ConvertBuffer(const PRUint8 * pIn, PRUint32 inLen, PRUint8 *
   *pOut = 0;
 }
 
-bool CMHTranslator::ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
+bool CMHTranslator::ConvertToFile(const uint8_t * pIn, uint32_t inLen, ImportOutFile *pOutFile, uint32_t *pProcessed)
 {
-  PRUint8    hex[2];
+  uint8_t    hex[2];
   while (inLen) {
     if (!ImportCharSet::IsUSAscii(*pIn) || ImportCharSet::Is822SpecialChar(*pIn) || ImportCharSet::Is822CtlChar(*pIn) ||
       (*pIn == ImportCharSet::cSpaceChar) || (*pIn == '*') || (*pIn == '\'') ||
@@ -64,7 +64,7 @@ bool CMHTranslator::ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOut
 }
 
 
-bool C2047Translator::ConvertToFileQ(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
+bool C2047Translator::ConvertToFileQ(const uint8_t * pIn, uint32_t inLen, ImportOutFile *pOutFile, uint32_t *pProcessed)
 {
   if (!inLen)
     return true;
@@ -73,7 +73,7 @@ bool C2047Translator::ConvertToFileQ(const PRUint8 * pIn, PRUint32 inLen, Import
   int    curLineLen = m_startLen;
   bool    startLine = true;
 
-  PRUint8  hex[2];
+  uint8_t  hex[2];
   while (inLen) {
     if (startLine) {
       if (!pOutFile->WriteStr(" =?"))
@@ -127,7 +127,7 @@ bool C2047Translator::ConvertToFileQ(const PRUint8 * pIn, PRUint32 inLen, Import
   return true;
 }
 
-bool C2047Translator::ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
+bool C2047Translator::ConvertToFile(const uint8_t * pIn, uint32_t inLen, ImportOutFile *pOutFile, uint32_t *pProcessed)
 {
   if (m_useQuotedPrintable)
     return ConvertToFileQ(pIn, inLen, pOutFile, pProcessed);
@@ -139,7 +139,7 @@ bool C2047Translator::ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportO
   int      curLineLen = m_startLen;
   bool      startLine = true;
   int      encodeMax;
-  PRUint8 *  pEncoded = new PRUint8[maxLineLen * 2];
+  uint8_t *  pEncoded = new uint8_t[maxLineLen * 2];
 
   while (inLen) {
     if (startLine) {
@@ -161,7 +161,7 @@ bool C2047Translator::ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportO
     encodeMax = maxLineLen - curLineLen;
     encodeMax *= 3;
     encodeMax /= 4;
-    if ((PRUint32)encodeMax > inLen)
+    if ((uint32_t)encodeMax > inLen)
       encodeMax = (int)inLen;
 
     // encode the line, end the line
@@ -198,7 +198,7 @@ bool C2047Translator::ConvertToFile(const PRUint8 * pIn, PRUint32 inLen, ImportO
 }
 
 
-PRUint32  UMimeEncode::GetBufferSize(PRUint32 inBytes)
+uint32_t  UMimeEncode::GetBufferSize(uint32_t inBytes)
 {
   // it takes 4 base64 bytes to represent 3 regular bytes
   inBytes += 3;
@@ -213,15 +213,15 @@ PRUint32  UMimeEncode::GetBufferSize(PRUint32 inBytes)
   return inBytes;
 }
 
-static PRUint8 gBase64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static uint8_t gBase64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-PRUint32 UMimeEncode::ConvertBuffer(const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut, PRUint32 maxLen, PRUint32 firstLineLen, const char * pEolStr)
+uint32_t UMimeEncode::ConvertBuffer(const uint8_t * pIn, uint32_t inLen, uint8_t * pOut, uint32_t maxLen, uint32_t firstLineLen, const char * pEolStr)
 {
 
-  PRUint32  pos = 0;
-  PRUint32  len = 0;
-  PRUint32  lineLen = 0;
-  PRUint32  maxLine = firstLineLen;
+  uint32_t  pos = 0;
+  uint32_t  len = 0;
+  uint32_t  lineLen = 0;
+  uint32_t  maxLine = firstLineLen;
   int  eolLen = 0;
   if (pEolStr)
     eolLen = strlen(pEolStr);

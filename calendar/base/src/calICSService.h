@@ -150,8 +150,8 @@ protected:
     nsresult GetStringProperty(icalproperty_kind kind, nsACString &str);
     nsresult SetStringProperty(icalproperty_kind kind, const nsACString &str);
 
-    nsresult GetIntProperty(icalproperty_kind kind, PRInt32 *valp);
-    nsresult SetIntProperty(icalproperty_kind kind, PRInt32 i);
+    nsresult GetIntProperty(icalproperty_kind kind, int32_t *valp);
+    nsresult SetIntProperty(icalproperty_kind kind, int32_t i);
 
     void ClearAllProperties(icalproperty_kind kind);
 

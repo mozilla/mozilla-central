@@ -70,10 +70,10 @@ interface nsISmtpUrl : nsISupports {
   attribute boolean verifyLogon; // we're just verifying the ability to logon
 
   /// Constant for the default SMTP port number
-  const PRInt32 DEFAULT_SMTP_PORT = 25;
+  const int32_t DEFAULT_SMTP_PORT = 25;
 
   /// Constant for the default SMTP over ssl port number
-  const PRInt32 DEFAULT_SMTPS_PORT = 465;
+  const int32_t DEFAULT_SMTPS_PORT = 465;
 };
 
 [scriptable, uuid(87c36c23-4bc2-4992-b338-69f88f6ed0a1)]

@@ -270,7 +270,7 @@ NS_IMETHODIMP nsAbCardProperty::GetPropertyAsAUTF8String(const char *name, nsACS
     variant->GetAsAUTF8String(value) : NS_ERROR_NOT_AVAILABLE;
 }
 
-NS_IMETHODIMP nsAbCardProperty::GetPropertyAsUint32(const char *name, PRUint32 *value) 
+NS_IMETHODIMP nsAbCardProperty::GetPropertyAsUint32(const char *name, uint32_t *value) 
 {
   nsCOMPtr<nsIVariant> variant;
   return m_properties.Get(nsDependentCString(name), getter_AddRefs(variant)) ?
@@ -306,7 +306,7 @@ NS_IMETHODIMP nsAbCardProperty::SetPropertyAsAUTF8String(const char *name, const
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbCardProperty::SetPropertyAsUint32(const char *name, PRUint32 value) 
+NS_IMETHODIMP nsAbCardProperty::SetPropertyAsUint32(const char *name, uint32_t value) 
 {
   nsCOMPtr<nsIWritableVariant> variant = do_CreateInstance(NS_VARIANT_CONTRACTID);
   variant->SetAsUint32(value);
@@ -667,7 +667,7 @@ nsresult nsAbCardProperty::ConvertToEscapedVCard(nsACString &aResult)
         myAddPropValue(vObj, VCNoteProp, str.get(), &vCardHasData);
     }
 
-    PRUint32 format;
+    uint32_t format;
     rv = GetPropertyAsUint32(kPreferMailFormatProperty, &format);
     if (NS_SUCCEEDED(rv) && format == nsIAbPreferMailFormat::html) {
         myAddPropValue(vObj, VCUseHTML, NS_LITERAL_STRING("TRUE").get(), &vCardHasData);
@@ -745,7 +745,7 @@ nsresult nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
   nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  PRInt32 generatedNameFormat;
+  int32_t generatedNameFormat;
   rv = prefBranch->GetIntPref(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST, &generatedNameFormat);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -825,10 +825,10 @@ nsresult nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
     nsCOMPtr<nsIMutableArray> addresses;
     rv = mailList->GetAddressLists(getter_AddRefs(addresses));
     if (addresses) {
-      PRUint32 total = 0;
+      uint32_t total = 0;
       addresses->GetLength(&total);
       if (total) {
-        PRUint32 i;
+        uint32_t i;
         nsAutoString displayName;
         nsAutoString primaryEmail;
         for (i = 0; i < total; i++) {
@@ -876,7 +876,7 @@ nsresult nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
   return NS_OK;
 }
 
-nsresult nsAbCardProperty::AppendSection(const AppendItem *aArray, PRInt16 aCount, const nsString& aHeading,
+nsresult nsAbCardProperty::AppendSection(const AppendItem *aArray, int16_t aCount, const nsString& aHeading,
                                          nsIStringBundle *aBundle,
                                          mozITXTToHTMLConv *aConv,
                                          nsString &aResult)
@@ -888,7 +888,7 @@ nsresult nsAbCardProperty::AppendSection(const AppendItem *aArray, PRInt16 aCoun
   nsString attrValue;
   bool sectionIsEmpty = true;
 
-  PRInt16 i = 0;
+  int16_t i = 0;
   for (i=0;i<aCount;i++) {
     rv = GetPropertyAsAString(aArray[i].mColumn, attrValue);
     if (NS_SUCCEEDED(rv) && !attrValue.IsEmpty())
@@ -1059,7 +1059,7 @@ nsresult nsAbCardProperty::AppendCityStateZip(const AppendItem &aItem,
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbCardProperty::GenerateName(PRInt32 aGenerateFormat,
+NS_IMETHODIMP nsAbCardProperty::GenerateName(int32_t aGenerateFormat,
                                              nsIStringBundle* aBundle,
                                              nsAString &aResult)
 {
@@ -1128,7 +1128,7 @@ NS_IMETHODIMP nsAbCardProperty::GenerateName(PRInt32 aGenerateFormat,
     // use the userid from the email address
     // it is better than nothing.
     GetPrimaryEmail(aResult);
-    PRInt32 index = aResult.FindChar('@');
+    int32_t index = aResult.FindChar('@');
     if (index != -1)
       aResult.SetLength(index);
   }

@@ -127,7 +127,7 @@ GetACookieNoHttp(nsICookieService *aCookieService, const char *aSpec, char **aCo
 // takes one of the #defined rules above, and performs the appropriate test.
 // true means the test passed; false means the test failed.
 static inline bool
-CheckResult(const char *aLhs, PRUint32 aRule, const char *aRhs = nullptr)
+CheckResult(const char *aLhs, uint32_t aRule, const char *aRhs = nullptr)
 {
     switch (aRule) {
         case MUST_BE_NULL:
@@ -154,11 +154,11 @@ CheckResult(const char *aLhs, PRUint32 aRule, const char *aRhs = nullptr)
 // true (i.e. all tests succeeded). prints the result of the tests (if any
 // tests failed, it prints the zero-based index of each failed test).
 bool
-PrintResult(const bool aResult[], PRUint32 aSize)
+PrintResult(const bool aResult[], uint32_t aSize)
 {
     bool failed = false;
     sBuffer = PR_sprintf_append(sBuffer, "*** tests ");
-    for (PRUint32 i = 0; i < aSize; ++i) {
+    for (uint32_t i = 0; i < aSize; ++i) {
         if (!aResult[i]) {
             failed = true;
             sBuffer = PR_sprintf_append(sBuffer, "%d ", i);
@@ -201,7 +201,7 @@ public:
 };
 
 int
-main(PRInt32 argc, char *argv[])
+main(int32_t argc, char *argv[])
 {
     if (test_common_init(&argc, &argv) != 0)
         return -1;

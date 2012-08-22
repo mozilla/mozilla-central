@@ -36,7 +36,7 @@ public:
   NS_DECL_NSIIMAPURL
 
   // nsIMsgMailNewsUrl overrides
-  NS_IMETHOD IsUrlType(PRUint32 type, bool *isType);
+  NS_IMETHOD IsUrlType(uint32_t type, bool *isType);
   NS_IMETHOD GetFolder(nsIMsgFolder **aFolder);
   NS_IMETHOD SetFolder(nsIMsgFolder *aFolder);
   // nsIMsgMessageUrl
@@ -82,7 +82,7 @@ protected:
   nsCString     m_customCommandResult; // custom command response
   nsCString     m_customAddFlags;       // these two are for setting and clearing custom flags
   nsCString     m_customSubtractFlags;
-  PRInt32       m_numBytesToFetch; // when doing a msg body preview, how many bytes to read
+  int32_t       m_numBytesToFetch; // when doing a msg body preview, how many bytes to read
   bool m_validUrl;
   bool m_runningUrl;
   bool m_idsAreUids;
@@ -99,7 +99,7 @@ protected:
   bool m_moreHeadersToDownload;
   nsImapContentModifiedType  m_contentModified;
 
-  PRInt32    m_extraStatus;
+  int32_t    m_extraStatus;
 
   nsCString  m_userName;
   nsCString  m_serverKey;

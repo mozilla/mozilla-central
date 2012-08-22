@@ -30,8 +30,8 @@ public:
     NS_DECL_ISUPPORTS
     NS_DECL_NSIMSGSEARCHTERM
 
-  nsresult DeStream (char *, PRInt16 length);
-  nsresult DeStreamNew (char *, PRInt16 length);
+  nsresult DeStream (char *, int16_t length);
+  nsresult DeStreamNew (char *, int16_t length);
 
   nsresult GetLocalTimes (PRTime, PRTime, PRExplodedTime &, PRExplodedTime &);
 

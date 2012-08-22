@@ -78,20 +78,20 @@ protected:
                    nsIAbBooleanExpression* expression,
                    nsIAbDirSearchListener* listener,
                    bool doSubDirectories,
-                   PRInt32* resultLimit);
+                   int32_t* resultLimit);
     nsresult queryChildren(nsIAbDirectory* directory,
                            nsIAbBooleanExpression* expression,
                            nsIAbDirSearchListener* listener,
                            bool doSubDirectories,
-                           PRInt32* resultLimit);
+                           int32_t* resultLimit);
     nsresult queryCards(nsIAbDirectory* directory,
                         nsIAbBooleanExpression* expression,
                         nsIAbDirSearchListener* listener,
-                        PRInt32* resultLimit);
+                        int32_t* resultLimit);
     nsresult matchCard(nsIAbCard* card,
                        nsIAbBooleanExpression* expression,
                        nsIAbDirSearchListener* listener,
-                       PRInt32* resultLimit);
+                       int32_t* resultLimit);
     nsresult matchCardExpression(nsIAbCard* card,
                                  nsIAbBooleanExpression* expression,
                                  bool* result);

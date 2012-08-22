@@ -36,7 +36,7 @@ nsresult nsAbBoolExprToLDAPFilter::FilterExpression (
     nsresult rv = expression->GetExpressions(getter_AddRefs(childExpressions));
     NS_ENSURE_SUCCESS(rv, rv);
     
-    PRUint32 count;
+    uint32_t count;
     rv = childExpressions->GetLength(&count);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -104,13 +104,13 @@ nsresult nsAbBoolExprToLDAPFilter::FilterExpressions (
     nsCString& filter,
     int flags)
 {
-    PRUint32 count;
+    uint32_t count;
     nsresult rv = expressions->GetLength(&count);
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIAbBooleanConditionString> childCondition;
     nsCOMPtr<nsIAbBooleanExpression> childExpression;
-    for (PRUint32 i = 0; i < count; i++)
+    for (uint32_t i = 0; i < count; i++)
     {
         childCondition = do_QueryElementAt(expressions, i, &rv);
         if (NS_SUCCEEDED(rv))

@@ -25,8 +25,8 @@ typedef struct MimeInlineTextSMIMEStub      MimeInlineTextSMIMEStub;
 struct MimeInlineTextSMIMEStubClass {
     MimeInlineTextClass text;
     char* buffer;
-    PRInt32 bufferlen;
-    PRInt32 buffermax;
+    int32_t bufferlen;
+    int32_t buffermax;
 };
 
 extern MimeInlineTextSMIMEStubClass mimeInlineTextSMIMEStubClass;

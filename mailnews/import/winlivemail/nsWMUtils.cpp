@@ -57,7 +57,7 @@ nsWMUtils::GetRootFolder(nsIFile **aRootFolder)
     return rv;
   }
 
-  PRUint32 size = ::ExpandEnvironmentStringsW((LPCWSTR)storeRoot.get(), nullptr, 0);
+  uint32_t size = ::ExpandEnvironmentStringsW((LPCWSTR)storeRoot.get(), nullptr, 0);
   nsString expandedStoreRoot;
   expandedStoreRoot.SetLength(size - 1);
   if (expandedStoreRoot.Length() != size - 1)
@@ -135,9 +135,9 @@ nsWMUtils::MakeXMLdoc(nsIDOMDocument **aXmlDoc,
   nsCOMPtr<nsIDOMParser> parser = do_CreateInstance(NS_DOMPARSER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRInt64 filesize;
+  int64_t filesize;
   aFile->GetFileSize(&filesize);
-  return parser->ParseFromStream(stream, nullptr, PRInt32(filesize),
+  return parser->ParseFromStream(stream, nullptr, int32_t(filesize),
                                  "application/xml", aXmlDoc);
 }
 

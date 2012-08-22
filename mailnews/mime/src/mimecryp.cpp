@@ -22,15 +22,15 @@ MimeDefClass(MimeEncrypted, MimeEncryptedClass, mimeEncryptedClass,
 static int MimeEncrypted_initialize (MimeObject *);
 static void MimeEncrypted_finalize (MimeObject *);
 static int MimeEncrypted_parse_begin (MimeObject *);
-static int MimeEncrypted_parse_buffer (const char *, PRInt32, MimeObject *);
-static int MimeEncrypted_parse_line (const char *, PRInt32, MimeObject *);
-static int MimeEncrypted_parse_decoded_buffer (const char *, PRInt32, MimeObject *);
+static int MimeEncrypted_parse_buffer (const char *, int32_t, MimeObject *);
+static int MimeEncrypted_parse_line (const char *, int32_t, MimeObject *);
+static int MimeEncrypted_parse_decoded_buffer (const char *, int32_t, MimeObject *);
 static int MimeEncrypted_parse_eof (MimeObject *, bool);
 static int MimeEncrypted_parse_end (MimeObject *, bool);
 static int MimeEncrypted_add_child (MimeObject *, MimeObject *);
 
-static int MimeHandleDecryptedOutput (const char *, PRInt32, void *);
-static int MimeHandleDecryptedOutputLine (char *, PRInt32, MimeObject *);
+static int MimeHandleDecryptedOutput (const char *, int32_t, void *);
+static int MimeHandleDecryptedOutputLine (char *, int32_t, MimeObject *);
 static int MimeEncrypted_close_headers (MimeObject *);
 static int MimeEncrypted_emit_buffered_child(MimeObject *);
 
@@ -122,7 +122,7 @@ MimeEncrypted_parse_begin (MimeObject *obj)
 
 
 static int
-MimeEncrypted_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
+MimeEncrypted_parse_buffer (const char *buffer, int32_t size, MimeObject *obj)
 {
   /* (Duplicated from MimeLeaf, see comments in mimecryp.h.)
    */
@@ -145,14 +145,14 @@ MimeEncrypted_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
 
 
 static int
-MimeEncrypted_parse_line (const char *line, PRInt32 length, MimeObject *obj)
+MimeEncrypted_parse_line (const char *line, int32_t length, MimeObject *obj)
 {
   NS_ERROR("This method shouldn't ever be called.");
   return -1;
 }
 
 static int
-MimeEncrypted_parse_decoded_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
+MimeEncrypted_parse_decoded_buffer (const char *buffer, int32_t size, MimeObject *obj)
 {
   MimeEncrypted *enc = (MimeEncrypted *) obj;
   return
@@ -284,7 +284,7 @@ MimeEncrypted_finalize (MimeObject *obj)
 
 
 static int
-MimeHandleDecryptedOutput (const char *buf, PRInt32 buf_size,
+MimeHandleDecryptedOutput (const char *buf, int32_t buf_size,
                void *output_closure)
 {
   /* This method is invoked by the underlying decryption module.
@@ -306,14 +306,14 @@ MimeHandleDecryptedOutput (const char *buf, PRInt32 buf_size,
   return mime_LineBuffer (buf, buf_size,
              &obj->ibuffer, &obj->ibuffer_size, &obj->ibuffer_fp,
              true,
-             ((int (*) (char *, PRInt32, void *))
+             ((int (*) (char *, int32_t, void *))
               /* This cast is to turn void into MimeObject */
               MimeHandleDecryptedOutputLine),
              obj);
 }
 
 static int
-MimeHandleDecryptedOutputLine (char *line, PRInt32 length, MimeObject *obj)
+MimeHandleDecryptedOutputLine (char *line, int32_t length, MimeObject *obj)
 {
   /* Largely the same as MimeMessage_parse_line (the other MIME container
    type which contains exactly one child.)

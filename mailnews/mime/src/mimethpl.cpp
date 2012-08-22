@@ -27,7 +27,7 @@
 MimeDefClass(MimeInlineTextHTMLAsPlaintext, MimeInlineTextHTMLAsPlaintextClass,
        mimeInlineTextHTMLAsPlaintextClass, &MIME_SUPERCLASS);
 
-static int MimeInlineTextHTMLAsPlaintext_parse_line (const char *, PRInt32,
+static int MimeInlineTextHTMLAsPlaintext_parse_line (const char *, int32_t,
                                                      MimeObject *);
 static int MimeInlineTextHTMLAsPlaintext_parse_begin (MimeObject *obj);
 static int MimeInlineTextHTMLAsPlaintext_parse_eof (MimeObject *, bool);
@@ -81,7 +81,7 @@ MimeInlineTextHTMLAsPlaintext_parse_eof (MimeObject *obj, bool abort_p)
   if (cb.Length())
   {
     nsString asPlaintext;
-    PRUint32 flags = nsIDocumentEncoder::OutputFormatted
+    uint32_t flags = nsIDocumentEncoder::OutputFormatted
       | nsIDocumentEncoder::OutputWrap
       | nsIDocumentEncoder::OutputFormatFlowed
       | nsIDocumentEncoder::OutputLFLineBreak
@@ -132,7 +132,7 @@ MimeInlineTextHTMLAsPlaintext_finalize (MimeObject *obj)
 }
 
 static int
-MimeInlineTextHTMLAsPlaintext_parse_line (const char *line, PRInt32 length,
+MimeInlineTextHTMLAsPlaintext_parse_line (const char *line, int32_t length,
                                           MimeObject *obj)
 {
   MimeInlineTextHTMLAsPlaintext *textHTMLPlain =

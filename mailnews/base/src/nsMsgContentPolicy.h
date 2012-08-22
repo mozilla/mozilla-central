@@ -59,15 +59,15 @@ protected:
   bool ShouldBlockUnexposedProtocol(nsIURI *aContentLocation);
 
   bool ShouldAcceptRemoteContentForSender(nsIMsgDBHdr *aMsgHdr);
-  PRInt16 ShouldAcceptRemoteContentForMsgHdr(nsIMsgDBHdr *aMsgHdr,
+  int16_t ShouldAcceptRemoteContentForMsgHdr(nsIMsgDBHdr *aMsgHdr,
                                              nsIURI *aRequestingLocation,
                                              nsIURI *aContentLocation);
   void ShouldAcceptContentForPotentialMsg(nsIURI *aOriginatorLocation,
                                           nsIURI *aContentLocation,
-                                          PRInt16 *aDecision);
+                                          int16_t *aDecision);
   void ComposeShouldLoad(nsIMsgCompose *aMsgCompose,
                          nsISupports *aRequestingContext, 
-                         nsIURI *aContentLocation, PRInt16 *aDecision);
+                         nsIURI *aContentLocation, int16_t *aDecision);
   already_AddRefed<nsIMsgCompose> GetMsgComposeForContext(nsISupports *aRequestingContext);
 
   nsresult GetRootDocShellForContext(nsISupports *aRequestingContext,

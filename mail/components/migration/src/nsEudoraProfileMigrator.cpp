@@ -43,7 +43,7 @@ nsresult nsEudoraProfileMigrator::ContinueImport()
 NS_IMETHODIMP
 nsEudoraProfileMigrator::Notify(nsITimer *timer)
 {
-  PRInt32 progress;
+  int32_t progress;
   mGenericImporter->GetProgress(&progress);
 
   nsAutoString index;
@@ -71,7 +71,7 @@ nsEudoraProfileMigrator::Notify(nsITimer *timer)
 // nsIMailProfileMigrator
 
 NS_IMETHODIMP
-nsEudoraProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup, const PRUnichar* aProfile)
+nsEudoraProfileMigrator::Migrate(uint16_t aItems, nsIProfileStartup* aStartup, const PRUnichar* aProfile)
 {
   nsresult rv = NS_OK;
 
@@ -96,7 +96,7 @@ nsEudoraProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup, c
 NS_IMETHODIMP
 nsEudoraProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
                                            bool aReplace,
-                                           PRUint16* aResult)
+                                           uint16_t* aResult)
 {
   // There's no harm in assuming everything is available.
   *aResult = nsIMailProfileMigrator::ACCOUNT_SETTINGS | nsIMailProfileMigrator::ADDRESSBOOK_DATA |

@@ -16,7 +16,7 @@ public :
 protected :
     // Class members to handle the library/entry points
     static HMODULE mLibrary ;
-    static PRInt32 mLibUsage ;
+    static int32_t mLibUsage ;
     static LPMAPIINITIALIZE mMAPIInitialize ;
     static LPMAPIUNINITIALIZE mMAPIUninitialize ;
     static LPMAPIALLOCATEBUFFER mMAPIAllocateBuffer ;

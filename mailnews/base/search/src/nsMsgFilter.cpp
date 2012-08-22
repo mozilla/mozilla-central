@@ -100,7 +100,7 @@ nsMsgRuleAction::GetTargetFolderUri(nsACString &aResult)
 }
 
 NS_IMETHODIMP
-nsMsgRuleAction::SetJunkScore(PRInt32 aJunkScore)
+nsMsgRuleAction::SetJunkScore(int32_t aJunkScore)
 {
   NS_ENSURE_TRUE(m_type == nsMsgFilterAction::JunkScore && aJunkScore >= 0 && aJunkScore <= 100,
                  NS_ERROR_ILLEGAL_VALUE);
@@ -109,7 +109,7 @@ nsMsgRuleAction::SetJunkScore(PRInt32 aJunkScore)
 }
 
 NS_IMETHODIMP
-nsMsgRuleAction::GetJunkScore(PRInt32 *aResult)
+nsMsgRuleAction::GetJunkScore(int32_t *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   NS_ENSURE_TRUE(m_type == nsMsgFilterAction::JunkScore, NS_ERROR_ILLEGAL_VALUE);
@@ -292,13 +292,13 @@ NS_IMETHODIMP
 nsMsgFilter::GetSortedActionList(nsISupportsArray *actionList)
 {
   NS_ENSURE_ARG_POINTER(actionList);
-  PRUint32 numActions;
+  uint32_t numActions;
   nsresult rv = m_actionList->Count(&numActions);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // hold separate pointers into the action list
-  PRUint32 nextIndexForNormal = 0, nextIndexForCopy = 0, nextIndexForMove = 0;
-  for (PRUint32 index = 0; index < numActions; ++index)
+  uint32_t nextIndexForNormal = 0, nextIndexForCopy = 0, nextIndexForMove = 0;
+  for (uint32_t index = 0; index < numActions; ++index)
   {
     nsCOMPtr<nsIMsgRuleAction> action;
     rv = m_actionList->QueryElementAt(index, NS_GET_IID(nsIMsgRuleAction),
@@ -377,7 +377,7 @@ nsMsgFilter::AppendAction(nsIMsgRuleAction *aAction)
 }
 
 NS_IMETHODIMP
-nsMsgFilter::GetActionAt(PRInt32 aIndex, nsIMsgRuleAction **aAction)
+nsMsgFilter::GetActionAt(int32_t aIndex, nsIMsgRuleAction **aAction)
 {
   NS_ENSURE_ARG_POINTER(aAction);
   return m_actionList->QueryElementAt(aIndex, NS_GET_IID(nsIMsgRuleAction),
@@ -399,7 +399,7 @@ nsMsgFilter::ClearActionList()
   return m_actionList->Clear();
 }
 
-NS_IMETHODIMP nsMsgFilter::GetTerm(PRInt32 termIndex,
+NS_IMETHODIMP nsMsgFilter::GetTerm(int32_t termIndex,
                                    nsMsgSearchAttribValue *attrib,    /* attribute for this term          */
                                    nsMsgSearchOpValue *op,         /* operator e.g. opContains           */
                                    nsIMsgSearchValue **value,         /* value e.g. "Dogbert"               */
@@ -578,7 +578,7 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
     }
     buffer += "\n";
 
-    PRUint32 writeCount;
+    uint32_t writeCount;
 
     rv = logStream->Write(LOG_ENTRY_START_TAG, LOG_ENTRY_START_TAG_LEN, &writeCount);
     NS_ENSURE_SUCCESS(rv,rv);
@@ -591,7 +591,7 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
     if (!escapedBuffer)
       return NS_ERROR_OUT_OF_MEMORY;
 
-    PRUint32 escapedBufferLen = strlen(escapedBuffer);
+    uint32_t escapedBufferLen = strlen(escapedBuffer);
     rv = logStream->Write(escapedBuffer, escapedBufferLen, &writeCount);
     PR_Free(escapedBuffer);
     NS_ENSURE_SUCCESS(rv,rv);
@@ -606,7 +606,7 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
 NS_IMETHODIMP
 nsMsgFilter::MatchHdr(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder,
                       nsIMsgDatabase *db, const char *headers,
-                      PRUint32 headersSize, bool *pResult)
+                      uint32_t headersSize, bool *pResult)
 {
   NS_ENSURE_ARG_POINTER(folder);
   NS_ENSURE_ARG_POINTER(msgHdr);
@@ -642,7 +642,7 @@ void nsMsgFilter::SetFilterScript(nsCString *fileName)
 nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAction, nsCString &moveValue)
 {
   NS_ENSURE_ARG_POINTER(filterAction);
-  PRInt16 filterVersion = kFileVersion;
+  int16_t filterVersion = kFileVersion;
   if (m_filterList)
       m_filterList->GetVersion(&filterVersion);
   if (filterVersion <= k60Beta1Version)
@@ -654,7 +654,7 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
     // if relative path starts with kImap, this is a move to folder on the same server
     if (moveValue.Find(kImapPrefix) == 0)
     {
-      PRInt32 prefixLen = PL_strlen(kImapPrefix);
+      int32_t prefixLen = PL_strlen(kImapPrefix);
       nsCAutoString originalServerPath(Substring(moveValue, prefixLen));
       if (filterVersion == k45Version)
       {
@@ -710,7 +710,7 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
         nsCString destFolderUri;
         destFolderUri.Assign( localRootURI);
         // need to remove ".sbd" from moveValue, and perhaps escape it.
-        PRInt32 offset = moveValue.Find(".sbd/");
+        int32_t offset = moveValue.Find(".sbd/");
         if (offset != -1)
           moveValue.Cut(offset, 4);
 
@@ -753,7 +753,7 @@ nsMsgFilter::SaveToTextFile(nsIOutputStream *aStream)
   NS_ENSURE_ARG_POINTER(aStream);
   if (m_unparseable)
   {
-    PRUint32 bytesWritten;
+    uint32_t bytesWritten;
     //we need to trim leading whitespaces before filing out
     m_unparsedBuffer.Trim(kWhitespace, true /*leadingCharacters*/, false /*trailingCharacters*/);
     return aStream->Write(m_unparsedBuffer.get(), m_unparsedBuffer.Length(), &bytesWritten);
@@ -776,11 +776,11 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
   GetFilterList(getter_AddRefs(filterList));
   nsCAutoString  actionFilingStr;
 
-  PRUint32 numActions;
+  uint32_t numActions;
   err = m_actionList->Count(&numActions);
   NS_ENSURE_SUCCESS(err, err);
 
-  for (PRUint32 index =0; index < numActions; index++)
+  for (uint32_t index =0; index < numActions; index++)
   {
     nsCOMPtr<nsIMsgRuleAction> action;
     err = m_actionList->QueryElementAt(index, NS_GET_IID(nsIMsgRuleAction),
@@ -824,7 +824,7 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
       break;
       case nsMsgFilterAction::JunkScore:
       {
-        PRInt32 junkScore;
+        int32_t junkScore;
         action->GetJunkScore(&junkScore);
         err = filterList->WriteIntAttr(nsIMsgFilterList::attribActionValue, junkScore, aStream);
       }
@@ -931,11 +931,11 @@ nsMsgRuleActionType nsMsgFilter::GetActionForFilingStr(nsCString &actionStr)
   return nsMsgFilterAction::None;
 }
 
-PRInt16
+int16_t
 nsMsgFilter::GetVersion()
 {
     if (!m_filterList) return 0;
-    PRInt16 version;
+    int16_t version;
     m_filterList->GetVersion(&version);
     return version;
 }

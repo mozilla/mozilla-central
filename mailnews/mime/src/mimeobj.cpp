@@ -33,15 +33,15 @@ MimeDefClass (MimeObject, MimeObjectClass, mimeObjectClass, NULL);
 static int MimeObject_initialize (MimeObject *);
 static void MimeObject_finalize (MimeObject *);
 static int MimeObject_parse_begin (MimeObject *);
-static int MimeObject_parse_buffer (const char *, PRInt32, MimeObject *);
-static int MimeObject_parse_line (const char *, PRInt32, MimeObject *);
+static int MimeObject_parse_buffer (const char *, int32_t, MimeObject *);
+static int MimeObject_parse_line (const char *, int32_t, MimeObject *);
 static int MimeObject_parse_eof (MimeObject *, bool);
 static int MimeObject_parse_end (MimeObject *, bool);
 static bool MimeObject_displayable_inline_p (MimeObjectClass *clazz,
                         MimeHeaders *hdrs);
 
 #if defined(DEBUG) && defined(XP_UNIX)
-static int MimeObject_debug_print (MimeObject *, PRFileDesc *, PRInt32 depth);
+static int MimeObject_debug_print (MimeObject *, PRFileDesc *, int32_t depth);
 #endif
 
 static int
@@ -232,7 +232,7 @@ MimeObject_parse_begin (MimeObject *obj)
 }
 
 static int
-MimeObject_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
+MimeObject_parse_buffer (const char *buffer, int32_t size, MimeObject *obj)
 {
   NS_ASSERTION(!obj->closed_p, "object shouldn't be closed");
   if (obj->closed_p) return -1;
@@ -240,14 +240,14 @@ MimeObject_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
   return mime_LineBuffer (buffer, size,
              &obj->ibuffer, &obj->ibuffer_size, &obj->ibuffer_fp,
              true,
-             ((int (*) (char *, PRInt32, void *))
+             ((int (*) (char *, int32_t, void *))
               /* This cast is to turn void into MimeObject */
               obj->clazz->parse_line),
              obj);
 }
 
 static int
-MimeObject_parse_line (const char *line, PRInt32 length, MimeObject *obj)
+MimeObject_parse_line (const char *line, int32_t length, MimeObject *obj)
 {
   NS_ERROR("shouldn't call this method");
   return -1;
@@ -310,7 +310,7 @@ MimeObject_displayable_inline_p (MimeObjectClass *clazz, MimeHeaders *hdrs)
 
 #if defined(DEBUG) && defined(XP_UNIX)
 static int
-MimeObject_debug_print (MimeObject *obj, PRFileDesc *stream, PRInt32 depth)
+MimeObject_debug_print (MimeObject *obj, PRFileDesc *stream, int32_t depth)
 {
   int i;
   char *addr = mime_part_address(obj);
@@ -319,7 +319,7 @@ MimeObject_debug_print (MimeObject *obj, PRFileDesc *stream, PRInt32 depth)
 /*
   fprintf(stream, "<%s %s 0x%08X>\n", obj->clazz->class_name,
       addr ? addr : "???",
-      (PRUint32) obj);
+      (uint32_t) obj);
 */
   PR_FREEIF(addr);
   return 0;

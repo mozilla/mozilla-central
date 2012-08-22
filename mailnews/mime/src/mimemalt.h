@@ -29,8 +29,8 @@ struct MimeMultipartAlternative {
   MimeHeaders **buffered_hdrs;    /* The headers of pending parts */
   MimePartBufferData **part_buffers;  /* The data of pending parts
                                          (see mimepbuf.h) */
-  PRInt32 pending_parts;
-  PRInt32 max_parts;
+  int32_t pending_parts;
+  int32_t max_parts;
 };
 
 #endif /* _MIMEMALT_H_ */

@@ -16,9 +16,9 @@ public:
 
   NS_DECL_ISUPPORTS
 
-  NS_IMETHOD Available(PRUint64 *_retval); 
-  NS_IMETHOD Read(char * aBuf, PRUint32 aCount, PRUint32 *_retval); 
-  NS_IMETHOD ReadSegments(nsWriteSegmentFun aWriter, void * aClosure, PRUint32 aCount, PRUint32 *_retval);
+  NS_IMETHOD Available(uint64_t *_retval); 
+  NS_IMETHOD Read(char * aBuf, uint32_t aCount, uint32_t *_retval); 
+  NS_IMETHOD ReadSegments(nsWriteSegmentFun aWriter, void * aClosure, uint32_t aCount, uint32_t *_retval);
   NS_DECL_NSIOUTPUTSTREAM
   NS_DECL_NSISEEKABLESTREAM
 

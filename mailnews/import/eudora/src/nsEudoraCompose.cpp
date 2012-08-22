@@ -103,11 +103,11 @@ public:
   // nsISupports interface
   NS_DECL_ISUPPORTS
 
-  /* void OnStartSending (in string aMsgID, in PRUint32 aMsgSize); */
-  NS_IMETHOD OnStartSending(const char *aMsgID, PRUint32 aMsgSize) {return NS_OK;}
+  /* void OnStartSending (in string aMsgID, in uint32_t aMsgSize); */
+  NS_IMETHOD OnStartSending(const char *aMsgID, uint32_t aMsgSize) {return NS_OK;}
 
-  /* void OnProgress (in string aMsgID, in PRUint32 aProgress, in PRUint32 aProgressMax); */
-  NS_IMETHOD OnProgress(const char *aMsgID, PRUint32 aProgress, PRUint32 aProgressMax) {return NS_OK;}
+  /* void OnProgress (in string aMsgID, in uint32_t aProgress, in uint32_t aProgressMax); */
+  NS_IMETHOD OnProgress(const char *aMsgID, uint32_t aProgress, uint32_t aProgressMax) {return NS_OK;}
 
   /* void OnStatus (in string aMsgID, in wstring aMsg); */
   NS_IMETHOD OnStatus(const char *aMsgID, const PRUnichar *aMsg) {return NS_OK;}
@@ -250,8 +250,8 @@ nsresult nsEudoraCompose::CreateComponents(void)
 }
 
 void nsEudoraCompose::GetNthHeader(const char *pData,
-                                   PRInt32 dataLen,
-                                   PRInt32 n,
+                                   int32_t dataLen,
+                                   int32_t n,
                                    nsCString& header,
                                    nsCString& val,
                                    bool unwrap)
@@ -261,9 +261,9 @@ void nsEudoraCompose::GetNthHeader(const char *pData,
   if (!pData)
     return;
 
-  PRInt32 index = 0;
-  PRInt32 len;
-  PRInt32 start = 0;
+  int32_t index = 0;
+  int32_t len;
+  int32_t start = 0;
   const char *pChar = pData;
   const char *pStart;
   if (n == 0) {
@@ -318,8 +318,8 @@ void nsEudoraCompose::GetNthHeader(const char *pData,
   if (start >= dataLen)
     return;
 
-  PRInt32 lineEnd;
-  PRInt32 end = start;
+  int32_t lineEnd;
+  int32_t end = start;
   while (end < dataLen) {
     // Skip to next end of line.
     while ((end < dataLen) && (*pChar != nsCRT::CR) && (*pChar != nsCRT::LF)) {
@@ -366,7 +366,7 @@ void nsEudoraCompose::GetNthHeader(const char *pData,
 
 
 void nsEudoraCompose::GetHeaderValue(const char *pData,
-                                     PRInt32 dataLen,
+                                     int32_t dataLen,
                                      const char *pHeader,
                                      nsCString& val,
                                      bool unwrap)
@@ -375,8 +375,8 @@ void nsEudoraCompose::GetHeaderValue(const char *pData,
   if (!pData)
     return;
 
-  PRInt32  start = 0;
-  PRInt32 len = strlen(pHeader);
+  int32_t  start = 0;
+  int32_t len = strlen(pHeader);
   const char *pChar = pData;
   if (!PL_strncasecmp(pHeader, pData, len)) {
     start = len;
@@ -406,8 +406,8 @@ void nsEudoraCompose::GetHeaderValue(const char *pData,
   if (start >= dataLen)
     return;
 
-  PRInt32 end = start;
-  PRInt32 lineEnd;
+  int32_t end = start;
+  int32_t lineEnd;
   const char * pStart;
 
   pChar = pData + start;
@@ -458,7 +458,7 @@ void nsEudoraCompose::GetHeaderValue(const char *pData,
 
 void nsEudoraCompose::ExtractCharset(nsString& str)
 {
-  PRInt32 idx = MsgFind(str, "charset=", true, 0);
+  int32_t idx = MsgFind(str, "charset=", true, 0);
   if (idx != -1) {
     str.Cut(0, idx + 8);
     idx = str.FindChar(';');
@@ -478,7 +478,7 @@ void nsEudoraCompose::ExtractCharset(nsString& str)
 void nsEudoraCompose::ExtractType(nsString& str)
 {
   nsString tStr;
-  PRInt32 idx = str.FindChar(';');
+  int32_t idx = str.FindChar(';');
   if (idx != -1)
     str.SetLength(idx);
 
@@ -505,7 +505,7 @@ nsresult nsEudoraCompose::GetLocalAttachments(nsIArray **aArray)
   nsCOMPtr<nsIMutableArray> attachments (do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
   NS_IF_ADDREF(*aArray = attachments);
-  PRInt32 count = 0;
+  int32_t count = 0;
   if (m_pAttachments)
     count = m_pAttachments->Count();
   if (!count)
@@ -514,7 +514,7 @@ nsresult nsEudoraCompose::GetLocalAttachments(nsIArray **aArray)
   nsCString urlStr;
   ImportAttachment * pAttach;
 
-  for (PRInt32 i = 0; i < count; i++) {
+  for (int32_t i = 0; i < count; i++) {
     nsCOMPtr<nsIMsgAttachedFile> a(do_CreateInstance(NS_MSGATTACHEDFILE_CONTRACTID, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
     // nsMsgNewURL(&url, "file://C:/boxster.jpg");
@@ -673,9 +673,9 @@ nsresult nsEudoraCompose::SendTheMessage(nsIFile *pMailImportLocation, nsIFile *
   }
   else {
     // wait for the listener to get done!
-    PRInt32 abortCnt = 0;
-    PRInt32 cnt = 0;
-    PRInt32 sleepCnt = 1;
+    int32_t abortCnt = 0;
+    int32_t cnt = 0;
+    int32_t sleepCnt = 1;
     while (!pListen->m_done && (abortCnt < kHungAbortCount)) {
       PR_Sleep(sleepCnt);
       cnt++;
@@ -713,12 +713,12 @@ nsresult nsEudoraCompose::SendTheMessage(nsIFile *pMailImportLocation, nsIFile *
 }
 
 
-bool SimpleBufferTonyRCopiedOnce::SpecialMemCpy(PRInt32 offset, const char *pData, PRInt32 len, PRInt32 *pWritten)
+bool SimpleBufferTonyRCopiedOnce::SpecialMemCpy(int32_t offset, const char *pData, int32_t len, int32_t *pWritten)
 {
   // Arg!!!!!  Mozilla can't handle plain CRs in any mail messages.  Particularly a
   // problem with Eudora since it doesn't give a rats a**
   *pWritten = len;
-  PRInt32  sz = offset + len;
+  int32_t  sz = offset + len;
   if (offset) {
     if ((m_pBuffer[offset - 1] == nsCRT::CR) && (*pData != nsCRT::LF)) {
       sz++;
@@ -756,9 +756,9 @@ nsresult nsEudoraCompose::ReadHeaders(ReadFileState *pState, SimpleBufferTonyRCo
   header.m_writeOffset = 0;
 
   nsresult rv;
-  PRInt32 lineLen;
-  PRInt32 endLen = -1;
-  PRInt8 endBuffer = 0;
+  int32_t lineLen;
+  int32_t endLen = -1;
+  int8_t endBuffer = 0;
 
   while ((endLen = IsEndHeaders(copy)) == -1) {
     while ((lineLen = FindNextEndLine(copy)) == -1) {
@@ -803,13 +803,13 @@ nsresult nsEudoraCompose::ReadHeaders(ReadFileState *pState, SimpleBufferTonyRCo
   return NS_OK;
 }
 
-PRInt32 nsEudoraCompose::FindNextEndLine(SimpleBufferTonyRCopiedOnce& data)
+int32_t nsEudoraCompose::FindNextEndLine(SimpleBufferTonyRCopiedOnce& data)
 {
-  PRInt32 len = data.m_bytesInBuf - data.m_writeOffset;
+  int32_t len = data.m_bytesInBuf - data.m_writeOffset;
   if (!len)
     return -1;
 
-  PRInt32 count = 0;
+  int32_t count = 0;
   const char *pData = data.m_pBuffer + data.m_writeOffset;
   // Skip over end of line(s).
   while ((count < len) && ((*pData == nsCRT::CR) || (*pData == nsCRT::LF))) {
@@ -825,9 +825,9 @@ PRInt32 nsEudoraCompose::FindNextEndLine(SimpleBufferTonyRCopiedOnce& data)
   return (count < len) ? count : -1;
 }
 
-PRInt32 nsEudoraCompose::IsEndHeaders(SimpleBufferTonyRCopiedOnce& data)
+int32_t nsEudoraCompose::IsEndHeaders(SimpleBufferTonyRCopiedOnce& data)
 {
-  PRInt32 len = data.m_bytesInBuf - data.m_writeOffset;
+  int32_t len = data.m_bytesInBuf - data.m_writeOffset;
   if (len < 2)
     return -1;
 
@@ -873,7 +873,7 @@ nsresult nsEudoraCompose::CopyComposedMessage(nsCString& fromLine,
     return NS_ERROR_FAILURE;
   }
 
-  PRUint32 written;
+  uint32_t written;
   rv = pDst->Write(fromLine.get(), fromLine.Length(), &written);
 
   // well, isn't this a hoot!
@@ -933,11 +933,11 @@ nsresult nsEudoraCompose::FillMailBuffer(ReadFileState *pState, SimpleBufferTony
     read.m_writeOffset = 0;
   }
 
-  PRUint32 count = read.m_size - read.m_bytesInBuf;
+  uint32_t count = read.m_size - read.m_bytesInBuf;
   if ((count + pState->offset) > pState->size)
     count = pState->size - pState->offset;
   if (count) {
-    PRUint32 bytesRead = 0;
+    uint32_t bytesRead = 0;
     char * pBuffer = read.m_pBuffer + read.m_bytesInBuf;
     nsresult rv = pState->pInputStream->Read(pBuffer, count, &bytesRead);
     if (NS_FAILED(rv))
@@ -979,11 +979,11 @@ bool nsEudoraCompose::IsReplaceHeader(const char *pHeader)
   return false;
 }
 
-PRInt32 nsEudoraCompose::IsSpecialHeader(const char *pHeader)
+int32_t nsEudoraCompose::IsSpecialHeader(const char *pHeader)
 {
   for (int i = 0; i < kMaxSpecialHeaders; i++) {
     if (!PL_strcasecmp(pHeader, gSpecialHeaders[i]))
-      return (PRInt32) i;
+      return (int32_t) i;
   }
 
   return -1;
@@ -1000,13 +1000,13 @@ nsresult nsEudoraCompose::WriteHeaders(nsIOutputStream *pDst, SimpleBufferTonyRC
   // 2. Then if we haven't written the "important" new headers, write them out
   // 3. Terminate the headers with an extra eol.
 
-  PRInt32 n = 0;
+  int32_t n = 0;
   nsCString header;
   nsCString val;
   nsCString replaceVal;
-  PRUint32 written;
+  uint32_t written;
   nsresult rv = NS_OK; // it's ok if we don't have the first header on the predefined lists.
-  PRInt32 specialHeader;
+  int32_t specialHeader;
   bool specials[kMaxSpecialHeaders];
   bool      hasDateHeader = false;
   int i;

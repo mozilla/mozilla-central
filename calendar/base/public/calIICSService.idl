@@ -37,7 +37,7 @@ interface calIIcalComponent : nsISupports
      * This is the value that an integer-valued getter will provide if
      * there is no such property on the wrapped ical structure.
      */
-    const PRInt32 INVALID_VALUE = -1;
+    const int32_t INVALID_VALUE = -1;
 
     /**
      * @param kind ANY, XROOT, VCALENDAR, VEVENT, etc.
@@ -67,7 +67,7 @@ interface calIIcalComponent : nsISupports
     attribute AUTF8String categories;
     attribute AUTF8String URL;
 
-    attribute PRInt32 priority;
+    attribute int32_t priority;
 
     attribute calIDateTime startTime;
     attribute calIDateTime endTime;
@@ -133,7 +133,7 @@ interface calIIcalComponent : nsISupports
      * These are the timezones that are in use by this
      * component and its children.
      */
-    void getReferencedTimezones(out PRUint32 aCount,
+    void getReferencedTimezones(out uint32_t aCount,
                                 [array,size_is(aCount),retval] out calITimezone aTimezones);
 
     /**

@@ -22,7 +22,7 @@ public:
   nsAbLDAPListenerBase(nsILDAPURL* directoryUrl = nullptr,
                        nsILDAPConnection* connection = nullptr,
                        const nsACString &login = EmptyCString(),
-                       const PRInt32 timeOut = 0);
+                       const int32_t timeOut = 0);
   virtual ~nsAbLDAPListenerBase();
 
   NS_IMETHOD OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus);
@@ -43,7 +43,7 @@ protected:
   nsILDAPConnection* mConnection;
   nsCString mLogin;
   nsCString mSaslMechanism;
-  PRInt32 mTimeOut;
+  int32_t mTimeOut;
   bool mBound;
   bool mInitialized;
 

@@ -100,7 +100,7 @@ nsMsgSearchSession::CreateTerm(nsIMsgSearchTerm **aResult)
 }
 
 NS_IMETHODIMP nsMsgSearchSession::RegisterListener(nsIMsgSearchNotify *aListener,
-                                                   PRInt32 aNotifyFlags)
+                                                   int32_t aNotifyFlags)
 {
   NS_ENSURE_ARG_POINTER(aListener);
   m_listenerList.AppendElement(aListener);
@@ -111,7 +111,7 @@ NS_IMETHODIMP nsMsgSearchSession::RegisterListener(nsIMsgSearchNotify *aListener
 NS_IMETHODIMP nsMsgSearchSession::UnregisterListener(nsIMsgSearchNotify *aListener)
 {
   NS_ENSURE_ARG_POINTER(aListener);
-  PRInt32 listenerIndex = m_listenerList.IndexOf(aListener);
+  int32_t listenerIndex = m_listenerList.IndexOf(aListener);
   if (listenerIndex != -1)
   {
     m_listenerList.RemoveElementAt(listenerIndex);
@@ -128,14 +128,14 @@ NS_IMETHODIMP nsMsgSearchSession::UnregisterListener(nsIMsgSearchNotify *aListen
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgSearchSession::GetNumSearchTerms(PRUint32 *aNumSearchTerms)
+NS_IMETHODIMP nsMsgSearchSession::GetNumSearchTerms(uint32_t *aNumSearchTerms)
 {
   NS_ENSURE_ARG(aNumSearchTerms);
   return m_termList->Count(aNumSearchTerms);
 }
 
 NS_IMETHODIMP
-nsMsgSearchSession::GetNthSearchTerm(PRInt32 whichTerm,
+nsMsgSearchSession::GetNthSearchTerm(int32_t whichTerm,
                                      nsMsgSearchAttribValue attrib,
                                      nsMsgSearchOpValue op,
                                      nsIMsgSearchValue *value)
@@ -143,7 +143,7 @@ nsMsgSearchSession::GetNthSearchTerm(PRInt32 whichTerm,
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsMsgSearchSession::CountSearchScopes(PRInt32 *_retval)
+NS_IMETHODIMP nsMsgSearchSession::CountSearchScopes(int32_t *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
   *_retval = m_scopeList.Length();
@@ -151,7 +151,7 @@ NS_IMETHODIMP nsMsgSearchSession::CountSearchScopes(PRInt32 *_retval)
 }
 
 NS_IMETHODIMP
-nsMsgSearchSession::GetNthSearchScope(PRInt32 which,
+nsMsgSearchSession::GetNthSearchScope(int32_t which,
                                       nsMsgSearchScopeValue *scopeId,
                                       nsIMsgFolder **folder)
 {
@@ -235,7 +235,7 @@ NS_IMETHODIMP nsMsgSearchSession::Search(nsIMsgWindow *aWindow)
   while (m_iListener != -1 && m_iListener < (signed)m_listenerList.Length())
   {
     listener = m_listenerList[m_iListener];
-    PRInt32 listenerFlags = m_listenerFlagList[m_iListener++];
+    int32_t listenerFlags = m_listenerFlagList[m_iListener++];
     if (!listenerFlags || (listenerFlags & nsIMsgSearchSession::onNewSearch))
       listener->OnNewSearch();
   }
@@ -312,7 +312,7 @@ NS_IMETHODIMP nsMsgSearchSession::SetSearchParam(nsMsgSearchType *type,
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsMsgSearchSession::GetNumResults(PRInt32 *aNumResults)
+NS_IMETHODIMP nsMsgSearchSession::GetNumResults(int32_t *aNumResults)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -373,7 +373,7 @@ nsresult nsMsgSearchSession::Initialize()
   nsMsgSearchScopeTerm *scopeTerm = nullptr;
   nsresult rv = NS_OK;
 
-  PRUint32 numTerms;
+  uint32_t numTerms;
   m_termList->Count(&numTerms);
   // Ensure that the FE has added scopes and terms to this search
   NS_ASSERTION(numTerms > 0, "no terms to search!");
@@ -390,7 +390,7 @@ nsresult nsMsgSearchSession::Initialize()
 
   // If this term list (loosely specified here by the first term) should be
   // scheduled in parallel, build up a list of scopes to do the round-robin scheduling
-  for (PRUint32 i = 0; i < m_scopeList.Length() && NS_SUCCEEDED(rv); i++)
+  for (uint32_t i = 0; i < m_scopeList.Length() && NS_SUCCEEDED(rv); i++)
   {
     scopeTerm = m_scopeList.ElementAt(i);
     // NS_ASSERTION(scopeTerm->IsValid());
@@ -426,7 +426,7 @@ nsresult nsMsgSearchSession::DoNextSearch()
 
 nsresult nsMsgSearchSession::BuildUrlQueue()
 {
-  PRUint32 i;
+  uint32_t i;
   for (i = m_idxRunningScope; i < m_scopeList.Length(); i++)
   {
     nsMsgSearchScopeTerm *scope = m_scopeList.ElementAt(i);
@@ -544,7 +544,7 @@ NS_IMETHODIMP nsMsgSearchSession::AddSearchHit(nsIMsgDBHdr *aHeader,
   while (m_iListener != -1 && m_iListener < (signed)m_listenerList.Length())
   {
     listener = m_listenerList[m_iListener];
-    PRInt32 listenerFlags = m_listenerFlagList[m_iListener++];
+    int32_t listenerFlags = m_listenerFlagList[m_iListener++];
     if (!listenerFlags || (listenerFlags & nsIMsgSearchSession::onSearchHit))
       listener->OnSearchHit(aHeader, aFolder);
   }
@@ -563,7 +563,7 @@ nsresult nsMsgSearchSession::NotifyListenersDone(nsresult aStatus)
   while (m_iListener != -1 && m_iListener < (signed)m_listenerList.Length())
   {
     listener = m_listenerList[m_iListener];
-    PRInt32 listenerFlags = m_listenerFlagList[m_iListener++];
+    int32_t listenerFlags = m_listenerFlagList[m_iListener++];
     if (!listenerFlags || (listenerFlags & nsIMsgSearchSession::onSearchDone))
       listener->OnSearchDone(aStatus);
   }
@@ -575,7 +575,7 @@ void nsMsgSearchSession::DestroyScopeList()
 {
   nsMsgSearchScopeTerm *scope = nullptr;
 
-  for (PRInt32 i = m_scopeList.Length() - 1; i >= 0; i--)
+  for (int32_t i = m_scopeList.Length() - 1; i >= 0; i--)
   {
     scope = m_scopeList.ElementAt(i);
     //    NS_ASSERTION (scope->IsValid(), "invalid search scope");
@@ -610,7 +610,7 @@ void nsMsgSearchSession::ReleaseFolderDBRef()
     return;
 
   bool isOpen = false;
-  PRUint32 flags;
+  uint32_t flags;
   nsCOMPtr<nsIMsgFolder> folder;
   scope->GetFolder(getter_AddRefs(folder));
   nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID);

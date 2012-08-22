@@ -66,7 +66,7 @@ nsresult nsTextAddress::GetUnicharLineStreamForFile(nsIFile *aFile,
   return CallQueryInterface(converterStream, aStream);
 }
 
-nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsIImportFieldMap *fieldMap, nsString& errors, PRUint32 *pProgress)
+nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsIImportFieldMap *fieldMap, nsString& errors, uint32_t *pProgress)
 {
   // Open the source file for reading, read each line and process it!
   NS_IF_RELEASE(m_database);
@@ -86,7 +86,7 @@ nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, ns
   // Here we use this to work out the size of the file, so we can update
   // an integer as we go through the file which will update a progress
   // bar if required by the caller.
-  PRUint64 bytesLeft = 0;
+  uint64_t bytesLeft = 0;
   rv = inputStream->Available(&bytesLeft);
   if (NS_FAILED(rv)) {
     IMPORT_LOG0("*** Error checking address file for size\n");
@@ -94,7 +94,7 @@ nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, ns
     return rv;
   }
 
-  PRUint64 totalBytes = bytesLeft;
+  uint64_t totalBytes = bytesLeft;
   bool skipRecord = false;
 
   rv = m_fieldMap->GetSkipFirstRecord(&skipRecord);
@@ -152,7 +152,7 @@ nsresult nsTextAddress::ReadRecord(nsIUnicharLineInputStream *aLineStream,
                                    bool *aMore)
 {
   bool more = true;
-  PRUint32 numQuotes = 0;
+  uint32_t numQuotes = 0;
   nsresult rv;
   nsAutoString line;
 
@@ -182,7 +182,7 @@ nsresult nsTextAddress::ReadRecord(nsIUnicharLineInputStream *aLineStream,
   return rv;
 }
 
-nsresult nsTextAddress::ReadRecordNumber(nsIFile *aSrc, nsAString &aLine, PRInt32 rNum)
+nsresult nsTextAddress::ReadRecordNumber(nsIFile *aSrc, nsAString &aLine, int32_t rNum)
 {
   nsCOMPtr<nsIInputStream> inputStream;
   nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), aSrc);
@@ -191,8 +191,8 @@ nsresult nsTextAddress::ReadRecordNumber(nsIFile *aSrc, nsAString &aLine, PRInt3
     return rv;
   }
 
-  PRInt32 rIndex = 0;
-  PRUint64 bytesLeft = 0;
+  int32_t rIndex = 0;
+  uint64_t bytesLeft = 0;
 
   rv = inputStream->Available(&bytesLeft);
   if (NS_FAILED(rv)) {
@@ -227,11 +227,11 @@ nsresult nsTextAddress::ReadRecordNumber(nsIFile *aSrc, nsAString &aLine, PRInt3
   return NS_ERROR_FAILURE;
 }
 
-PRInt32 nsTextAddress::CountFields(const nsAString &aLine, PRUnichar delim)
+int32_t nsTextAddress::CountFields(const nsAString &aLine, PRUnichar delim)
 {
-    PRInt32 pos = 0;
-    PRInt32 maxLen = aLine.Length();
-    PRInt32 count = 0;
+    int32_t pos = 0;
+    int32_t maxLen = aLine.Length();
+    int32_t count = 0;
     PRUnichar tab = PRUnichar('\t');
     PRUnichar doubleQuote = PRUnichar('"');
 
@@ -267,13 +267,13 @@ PRInt32 nsTextAddress::CountFields(const nsAString &aLine, PRUnichar delim)
 }
 
 bool nsTextAddress::GetField(const nsAString &aLine,
-                             PRInt32 index,
+                             int32_t index,
                              nsString &field,
                              PRUnichar delim)
 {
     bool result = false;
-    PRInt32 pos = 0;
-    PRInt32 maxLen = aLine.Length();
+    int32_t pos = 0;
+    int32_t maxLen = aLine.Length();
     PRUnichar tab = PRUnichar('\t');
     PRUnichar doubleQuote = PRUnichar('"');
 
@@ -322,8 +322,8 @@ bool nsTextAddress::GetField(const nsAString &aLine,
     while ((pos < maxLen) && ((aLine[pos] == ' ') || (aLine[pos] == tab)))
         pos++;
 
-    PRInt32 fLen = 0;
-    PRInt32 startPos = pos;
+    int32_t fLen = 0;
+    int32_t startPos = pos;
     bool    quoted = false;
     if (aLine[pos] == '"') {
         fLen = -1;
@@ -354,7 +354,7 @@ bool nsTextAddress::GetField(const nsAString &aLine,
     field.Trim(kWhitespace);
 
     if (quoted) {
-      PRInt32 offset = field.Find("\"\"");
+      int32_t offset = field.Find("\"\"");
       while (offset != -1) {
         field.Cut(offset, 1);
         offset = MsgFind(field, "\"\"", false, offset + 1);
@@ -373,11 +373,11 @@ nsresult nsTextAddress::DetermineDelim(nsIFile *aSrc)
     return rv;
   }
 
-  PRInt32 lineCount = 0;
-  PRInt32 tabCount = 0;
-  PRInt32 commaCount = 0;
-  PRInt32 tabLines = 0;
-  PRInt32 commaLines = 0;
+  int32_t lineCount = 0;
+  int32_t tabCount = 0;
+  int32_t commaCount = 0;
+  int32_t tabLines = 0;
+  int32_t commaLines = 0;
   nsAutoString line;
   bool more = true;
 
@@ -430,11 +430,11 @@ nsresult nsTextAddress::ProcessLine(const nsAString &aLine, nsString& errors)
     // fill in the data, then add the row to the database.
     nsCOMPtr<nsIMdbRow> newRow;
     nsAutoString   fieldVal;
-    PRInt32        fieldNum;
-    PRInt32        numFields = 0;
+    int32_t        fieldNum;
+    int32_t        numFields = 0;
     bool           active;
     rv = m_fieldMap->GetMapSize(&numFields);
-    for (PRInt32 i = 0; (i < numFields) && NS_SUCCEEDED(rv); i++) {
+    for (int32_t i = 0; (i < numFields) && NS_SUCCEEDED(rv); i++) {
         active = false;
         rv = m_fieldMap->GetFieldMap(i, &fieldNum);
         if (NS_SUCCEEDED(rv))

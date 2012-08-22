@@ -21,9 +21,9 @@ MimeDefClass(MimeExternalObject, MimeExternalObjectClass,
 static int MimeExternalObject_initialize (MimeObject *);
 static void MimeExternalObject_finalize (MimeObject *);
 static int MimeExternalObject_parse_begin (MimeObject *);
-static int MimeExternalObject_parse_buffer (const char *, PRInt32, MimeObject *);
-static int MimeExternalObject_parse_line (const char *, PRInt32, MimeObject *);
-static int MimeExternalObject_parse_decoded_buffer (const char*, PRInt32, MimeObject*);
+static int MimeExternalObject_parse_buffer (const char *, int32_t, MimeObject *);
+static int MimeExternalObject_parse_line (const char *, int32_t, MimeObject *);
+static int MimeExternalObject_parse_decoded_buffer (const char*, int32_t, MimeObject*);
 static bool MimeExternalObject_displayable_inline_p (MimeObjectClass *clazz,
                             MimeHeaders *hdrs);
 
@@ -128,7 +128,7 @@ MimeExternalObject_parse_begin (MimeObject *obj)
     else
     {
       const char *p = "Part ";
-      PRUint32 slen = strlen(p) + strlen(id) + 1;
+      uint32_t slen = strlen(p) + strlen(id) + 1;
       char *s = (char *)PR_MALLOC(slen);
       if (!s)
       {
@@ -178,7 +178,7 @@ GOTTA STILL DO THIS FOR QUOTING!
 }
 
 static int
-MimeExternalObject_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
+MimeExternalObject_parse_buffer (const char *buffer, int32_t size, MimeObject *obj)
 {
   NS_ASSERTION(!obj->closed_p, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
   if (obj->closed_p) return -1;
@@ -193,7 +193,7 @@ MimeExternalObject_parse_buffer (const char *buffer, PRInt32 size, MimeObject *o
 
 
 static int
-MimeExternalObject_parse_decoded_buffer (const char *buf, PRInt32 size,
+MimeExternalObject_parse_decoded_buffer (const char *buf, int32_t size,
                      MimeObject *obj)
 {
   /* This is called (by MimeLeafClass->parse_buffer) with blocks of data
@@ -222,7 +222,7 @@ MimeExternalObject_parse_decoded_buffer (const char *buf, PRInt32 size,
 
 
 static int
-MimeExternalObject_parse_line (const char *line, PRInt32 length, MimeObject *obj)
+MimeExternalObject_parse_line (const char *line, int32_t length, MimeObject *obj)
 {
   NS_ERROR("This method should never be called (externals do no line buffering).");
   return -1;

@@ -60,9 +60,9 @@ private:
   nsCOMPtr<nsIStreamListener>     mConverter;               // the stream converter, if needed
   nsCString                  mConverterContentType;    // The content type of the converter
   bool                            mStillRunning;  // Are we still running?
-  PRInt32                         mTotalWritten;  // Size counter variable
+  int32_t                         mTotalWritten;  // Size counter variable
   char                            *mBuffer;                 // Buffer used for reading the data
-  PRUint32                        mBufferSize;              // Buffer size;
+  uint32_t                        mBufferSize;              // Buffer size;
   nsCString                  mContentType;             // The content type retrieved from the server
   nsCString                  mCharset;                 // The charset retrieved from the server
   void                            *mTagData;      // Tag data for callback...

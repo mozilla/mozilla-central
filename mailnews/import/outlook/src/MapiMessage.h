@@ -190,7 +190,7 @@ public:
   bool    HasMimeVersion(void) const {
     return m_headers.Value(CMapiMessageHeaders::hdrMimeVersion); }
   const char *GetMimeContent(void) const { return m_mimeContentType.get();}
-  PRInt32     GetMimeContentLen(void) const { return m_mimeContentType.Length();}
+  int32_t     GetMimeContentLen(void) const { return m_mimeContentType.Length();}
   const char *GetMimeBoundary(void) const { return m_mimeBoundary.get();}
 
    // The only required part of a message is its header
@@ -226,8 +226,8 @@ private:
   nsString     m_body; // to be converted from UTF-16 using m_mimeCharset
   bool         m_bodyIsHtml;
 
-  PRUint32 m_msgFlags;
-  PRUint32 m_msgLastVerb;
+  uint32_t m_msgFlags;
+  uint32_t m_msgLastVerb;
 
   nsCOMPtr<nsIIOService> m_pIOService;
 

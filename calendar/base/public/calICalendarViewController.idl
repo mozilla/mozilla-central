@@ -63,7 +63,7 @@ interface calICalendarViewController : nsISupports
    * @param aDoNotConfirm   If set, the events will be deleted without
    *                        confirmation.
    */
-  void deleteOccurrences (in PRUint32 aCount,
+  void deleteOccurrences (in uint32_t aCount,
                           [array, size_is(aCount)] in calIItemBase aOccurrences,
                           in boolean aUseParentItems,
                           in boolean aDoNotConfirm);

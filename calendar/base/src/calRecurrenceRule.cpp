@@ -135,7 +135,7 @@ calRecurrenceRule::SetType(const nsACString &aType)
 
 /* attribute long count; */
 NS_IMETHODIMP
-calRecurrenceRule::GetCount(PRInt32 *aRecurCount)
+calRecurrenceRule::GetCount(int32_t *aRecurCount)
 {
     NS_ENSURE_ARG_POINTER(aRecurCount);
 
@@ -155,7 +155,7 @@ calRecurrenceRule::GetCount(PRInt32 *aRecurCount)
 }
 
 NS_IMETHODIMP
-calRecurrenceRule::SetCount(PRInt32 aRecurCount)
+calRecurrenceRule::SetCount(int32_t aRecurCount)
 {
     if (aRecurCount != -1) {
         if (aRecurCount < 0 || aRecurCount > INT_MAX)
@@ -230,7 +230,7 @@ calRecurrenceRule::GetIsByCount (bool *aIsByCount)
 
 /* attribute long interval; */
 NS_IMETHODIMP
-calRecurrenceRule::GetInterval(PRInt32 *aInterval)
+calRecurrenceRule::GetInterval(int32_t *aInterval)
 {
     NS_ENSURE_ARG_POINTER(aInterval);
     *aInterval = mIcalRecur.interval;
@@ -238,7 +238,7 @@ calRecurrenceRule::GetInterval(PRInt32 *aInterval)
 }
 
 NS_IMETHODIMP
-calRecurrenceRule::SetInterval(PRInt32 aInterval)
+calRecurrenceRule::SetInterval(int32_t aInterval)
 {
     if (aInterval < 0 || aInterval > SHRT_MAX)
         return NS_ERROR_ILLEGAL_VALUE;
@@ -248,7 +248,7 @@ calRecurrenceRule::SetInterval(PRInt32 aInterval)
 
 /* void getComponent (in AUTF8String aComponentType, out unsigned long aCount, [array, size_is (aCount), retval] out long aValues); */
 NS_IMETHODIMP
-calRecurrenceRule::GetComponent(const nsACString &aComponentType, PRUint32 *aCount, PRInt16 **aValues)
+calRecurrenceRule::GetComponent(const nsACString &aComponentType, uint32_t *aCount, int16_t **aValues)
 {
     NS_ENSURE_ARG_POINTER(aCount);
     NS_ENSURE_ARG_POINTER(aValues);
@@ -263,8 +263,8 @@ calRecurrenceRule::GetComponent(const nsACString &aComponentType, PRUint32 *aCou
                 break;                                                  \
         }                                                               \
         if (count) {                                                    \
-            *aValues = (PRInt16*) nsMemory::Clone(mIcalRecur._icalvar,  \
-                                                  count * sizeof(PRInt16)); \
+            *aValues = (int16_t*) nsMemory::Clone(mIcalRecur._icalvar,  \
+                                                  count * sizeof(int16_t)); \
             if (!*aValues) return NS_ERROR_OUT_OF_MEMORY;               \
         } else {                                                        \
             *aValues = nullptr;                                          \
@@ -292,7 +292,7 @@ calRecurrenceRule::GetComponent(const nsACString &aComponentType, PRUint32 *aCou
 
 /* void setComponent (in AUTF8String aComponentType, in unsigned long aCount, [array, size_is (aCount)] in long aValues); */
 NS_IMETHODIMP
-calRecurrenceRule::SetComponent(const nsACString& aComponentType, PRUint32 aCount, PRInt16 *aValues)
+calRecurrenceRule::SetComponent(const nsACString& aComponentType, uint32_t aCount, int16_t *aValues)
 {
     NS_ENSURE_ARG_POINTER(aValues);
 
@@ -301,7 +301,7 @@ calRecurrenceRule::SetComponent(const nsACString& aComponentType, PRUint32 aCoun
     if (aComponentType.EqualsLiteral( #_comptype )) {                    \
         if (aCount > _icalmax)                                          \
             return NS_ERROR_FAILURE;                                    \
-        memcpy(mIcalRecur._icalvar, aValues, aCount * sizeof(PRInt16)); \
+        memcpy(mIcalRecur._icalvar, aValues, aCount * sizeof(int16_t)); \
         if (aCount < _icalmax)                                          \
             mIcalRecur._icalvar[aCount] = ICAL_RECURRENCE_ARRAY_MAX;    \
     }
@@ -385,8 +385,8 @@ NS_IMETHODIMP
 calRecurrenceRule::GetOccurrences(calIDateTime *aStartTime,
                                   calIDateTime *aRangeStart,
                                   calIDateTime *aRangeEnd,
-                                  PRUint32 aMaxCount,
-                                  PRUint32 *aCount, calIDateTime ***aDates)
+                                  uint32_t aMaxCount,
+                                  uint32_t *aCount, calIDateTime ***aDates)
 {
     NS_ENSURE_ARG_POINTER(aStartTime);
     NS_ENSURE_ARG_POINTER(aRangeStart);
@@ -435,7 +435,7 @@ calRecurrenceRule::GetOccurrences(calIDateTime *aStartTime,
     if (!recur_iter)
         return NS_ERROR_OUT_OF_MEMORY;
 
-    PRUint32 count = 0;
+    uint32_t count = 0;
 
     for (icaltimetype next = icalrecur_iterator_next(recur_iter);
          !icaltime_is_null_time(next);
@@ -476,7 +476,7 @@ calRecurrenceRule::GetOccurrences(calIDateTime *aStartTime,
         calIDateTime ** const dateArray =
             static_cast<calIDateTime **>(nsMemory::Alloc(sizeof(calIDateTime*) * count));
         CAL_ENSURE_MEMORY(dateArray);
-        for (PRUint32 i = 0; i < count; ++i) {
+        for (uint32_t i = 0; i < count; ++i) {
             NS_ADDREF(dateArray[i] = dates[i]);
         }
         *aDates = dateArray;

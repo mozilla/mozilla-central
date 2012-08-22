@@ -17,7 +17,7 @@
 typedef nsresult (*nsAttachSaveCompletionCallback) (nsresult aStatus,
                                                     const nsACString &aContentType,
                                                     const nsACString &aCharset,
-                                                    PRInt32 totalSize, const PRUnichar* aMsg, 
+                                                    int32_t totalSize, const PRUnichar* aMsg, 
                                                     void *tagData);
 
 %}

@@ -127,7 +127,7 @@ protected:
   nsresult createFolderSizeNode(nsIMsgFolder *folder, nsIRDFNode **target);
   nsresult createCharsetNode(nsIMsgFolder *folder, nsIRDFNode **target);
   nsresult createBiffStateNodeFromFolder(nsIMsgFolder *folder, nsIRDFNode **target);
-  nsresult createBiffStateNodeFromFlag(PRUint32 flag, nsIRDFNode **target);
+  nsresult createBiffStateNodeFromFlag(uint32_t flag, nsIRDFNode **target);
   nsresult createHasUnreadMessagesNode(nsIMsgFolder *folder, bool aIncludeSubfolders, nsIRDFNode **target);
   nsresult createNewMessagesNode(nsIMsgFolder *folder, nsIRDFNode **target);
   nsresult createFolderNoSelectNode(nsIMsgFolder *folder,
@@ -164,23 +164,23 @@ protected:
   nsresult DoFolderHasAssertion(nsIMsgFolder *folder, nsIRDFResource *property, nsIRDFNode *target,
                                 bool tv, bool *hasAssertion);
 
-  nsresult GetBiffStateString(PRUint32 biffState, nsCAutoString & biffStateStr);
+  nsresult GetBiffStateString(uint32_t biffState, nsCAutoString & biffStateStr);
 
-  nsresult CreateUnreadMessagesNameString(PRInt32 unreadMessages, nsAutoString &nameString);
+  nsresult CreateUnreadMessagesNameString(int32_t unreadMessages, nsAutoString &nameString);
   nsresult CreateArcsOutEnumerator();
 
   virtual nsresult OnItemAddedOrRemoved(nsIMsgFolder *parentItem, nsISupports *item, bool added);
 
-  nsresult OnUnreadMessagePropertyChanged(nsIRDFResource *folderResource, PRInt32 oldValue, PRInt32 newValue);
-  nsresult OnTotalMessagePropertyChanged(nsIRDFResource *folderResource, PRInt32 oldValue, PRInt32 newValue);
-  nsresult OnFolderSizePropertyChanged(nsIRDFResource *folderResource, PRInt32 oldValue, PRInt32 newValue);
-  nsresult OnFolderSortOrderPropertyChanged(nsIRDFResource *folderResource, PRInt32 oldValue, PRInt32 newValue);
-  nsresult NotifyFolderTreeNameChanged(nsIMsgFolder *folder, nsIRDFResource *folderResource, PRInt32 aUnreadMessages);
+  nsresult OnUnreadMessagePropertyChanged(nsIRDFResource *folderResource, int32_t oldValue, int32_t newValue);
+  nsresult OnTotalMessagePropertyChanged(nsIRDFResource *folderResource, int32_t oldValue, int32_t newValue);
+  nsresult OnFolderSizePropertyChanged(nsIRDFResource *folderResource, int32_t oldValue, int32_t newValue);
+  nsresult OnFolderSortOrderPropertyChanged(nsIRDFResource *folderResource, int32_t oldValue, int32_t newValue);
+  nsresult NotifyFolderTreeNameChanged(nsIMsgFolder *folder, nsIRDFResource *folderResource, int32_t aUnreadMessages);
   nsresult NotifyFolderTreeSimpleNameChanged(nsIMsgFolder *folder, nsIRDFResource *folderResource);
   nsresult NotifyFolderNameChanged(nsIMsgFolder *folder, nsIRDFResource *folderResource);
   nsresult NotifyAncestors(nsIMsgFolder *aFolder, nsIRDFResource *aPropertyResource, nsIRDFNode *aNode);
-  nsresult GetNumMessagesNode(PRInt32 numMessages, nsIRDFNode **node);
-  nsresult GetFolderSizeNode(PRInt32 folderSize, nsIRDFNode **node);
+  nsresult GetNumMessagesNode(int32_t numMessages, nsIRDFNode **node);
+  nsresult GetFolderSizeNode(int32_t folderSize, nsIRDFNode **node);
   nsresult CreateLiterals(nsIRDFService *rdf);
 
   virtual nsresult GetFolderDisplayName(nsIMsgFolder *folder, nsString& folderName);
@@ -338,6 +338,6 @@ public:
   virtual void Cleanup();
 protected:
   virtual void EnsureFolders();
-  PRUint32 m_cutOffDate;
-  PRUint32 m_maxNumFolders;
+  uint32_t m_cutOffDate;
+  uint32_t m_maxNumFolders;
 };

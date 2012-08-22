@@ -51,7 +51,7 @@ nsresult nsMsgFileStream::InitWithFile(nsIFile *file)
 }
 
 NS_IMETHODIMP
-nsMsgFileStream::Seek(PRInt32 whence, PRInt64 offset)
+nsMsgFileStream::Seek(int32_t whence, int64_t offset)
 {
   if (mFileDesc == nullptr)
     return NS_BASE_STREAM_CLOSED;
@@ -60,8 +60,8 @@ nsMsgFileStream::Seek(PRInt32 whence, PRInt64 offset)
   if (seekingToEnd && mSeekedToEnd)
     return NS_OK;
 
-  PRInt64 cnt = PR_Seek64(mFileDesc, offset, (PRSeekWhence)whence);
-  if (cnt == PRInt64(-1)) {
+  int64_t cnt = PR_Seek64(mFileDesc, offset, (PRSeekWhence)whence);
+  if (cnt == int64_t(-1)) {
     return ErrorAccordingToNSPR();
   }
 
@@ -70,13 +70,13 @@ nsMsgFileStream::Seek(PRInt32 whence, PRInt64 offset)
 }
 
 NS_IMETHODIMP
-nsMsgFileStream::Tell(PRInt64 *result)
+nsMsgFileStream::Tell(int64_t *result)
 {
   if (mFileDesc == nullptr)
     return NS_BASE_STREAM_CLOSED;
   
-  PRInt64 cnt = PR_Seek64(mFileDesc, 0, PR_SEEK_CUR);
-  if (cnt == PRInt64(-1)) {
+  int64_t cnt = PR_Seek64(mFileDesc, 0, PR_SEEK_CUR);
+  if (cnt == int64_t(-1)) {
     return ErrorAccordingToNSPR();
   }
   *result = cnt;
@@ -102,12 +102,12 @@ NS_IMETHODIMP nsMsgFileStream::Close()
 }
 
 /* unsigned long long available (); */
-NS_IMETHODIMP nsMsgFileStream::Available(PRUint64 *aResult)
+NS_IMETHODIMP nsMsgFileStream::Available(uint64_t *aResult)
 {
   if (!mFileDesc) 
     return NS_BASE_STREAM_CLOSED;
   
-  PRInt64 avail = PR_Available64(mFileDesc);
+  int64_t avail = PR_Available64(mFileDesc);
   if (avail == -1)
     return ErrorAccordingToNSPR();
 
@@ -116,7 +116,7 @@ NS_IMETHODIMP nsMsgFileStream::Available(PRUint64 *aResult)
 }
 
 /* [noscript] unsigned long read (in charPtr aBuf, in unsigned long aCount); */
-NS_IMETHODIMP nsMsgFileStream::Read(char * aBuf, PRUint32 aCount, PRUint32 *aResult)
+NS_IMETHODIMP nsMsgFileStream::Read(char * aBuf, uint32_t aCount, uint32_t *aResult)
 {
   if (!mFileDesc) 
   {
@@ -124,7 +124,7 @@ NS_IMETHODIMP nsMsgFileStream::Read(char * aBuf, PRUint32 aCount, PRUint32 *aRes
     return NS_OK;
   }
   
-  PRInt32 bytesRead = PR_Read(mFileDesc, aBuf, aCount);
+  int32_t bytesRead = PR_Read(mFileDesc, aBuf, aCount);
   if (bytesRead == -1)
     return ErrorAccordingToNSPR();
   
@@ -133,7 +133,7 @@ NS_IMETHODIMP nsMsgFileStream::Read(char * aBuf, PRUint32 aCount, PRUint32 *aRes
 }
 
 /* [noscript] unsigned long readSegments (in nsWriteSegmentFun aWriter, in voidPtr aClosure, in unsigned long aCount); */
-NS_IMETHODIMP nsMsgFileStream::ReadSegments(nsWriteSegmentFun aWriter, void * aClosure, PRUint32 aCount, PRUint32 *_retval)
+NS_IMETHODIMP nsMsgFileStream::ReadSegments(nsWriteSegmentFun aWriter, void * aClosure, uint32_t aCount, uint32_t *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -146,12 +146,12 @@ NS_IMETHODIMP nsMsgFileStream::IsNonBlocking(bool *aNonBlocking)
 }
 
 NS_IMETHODIMP
-nsMsgFileStream::Write(const char *buf, PRUint32 count, PRUint32 *result)
+nsMsgFileStream::Write(const char *buf, uint32_t count, uint32_t *result)
 {
   if (mFileDesc == nullptr)
     return NS_BASE_STREAM_CLOSED;
   
-  PRInt32 cnt = PR_Write(mFileDesc, buf, count);
+  int32_t cnt = PR_Write(mFileDesc, buf, count);
   if (cnt == -1) {
     return ErrorAccordingToNSPR();
   }
@@ -165,7 +165,7 @@ nsMsgFileStream::Flush(void)
   if (mFileDesc == nullptr)
     return NS_BASE_STREAM_CLOSED;
   
-  PRInt32 cnt = PR_Sync(mFileDesc);
+  int32_t cnt = PR_Sync(mFileDesc);
   if (cnt == -1) 
     return ErrorAccordingToNSPR();
 
@@ -173,7 +173,7 @@ nsMsgFileStream::Flush(void)
 }
 
 NS_IMETHODIMP
-nsMsgFileStream::WriteFrom(nsIInputStream *inStr, PRUint32 count, PRUint32 *_retval)
+nsMsgFileStream::WriteFrom(nsIInputStream *inStr, uint32_t count, uint32_t *_retval)
 {
   NS_NOTREACHED("WriteFrom (see source comment)");
   return NS_ERROR_NOT_IMPLEMENTED;
@@ -183,7 +183,7 @@ nsMsgFileStream::WriteFrom(nsIInputStream *inStr, PRUint32 count, PRUint32 *_ret
 }
 
 NS_IMETHODIMP
-nsMsgFileStream::WriteSegments(nsReadSegmentFun reader, void * closure, PRUint32 count, PRUint32 *_retval)
+nsMsgFileStream::WriteSegments(nsReadSegmentFun reader, void * closure, uint32_t count, uint32_t *_retval)
 {
   NS_NOTREACHED("WriteSegments (see source comment)");
   return NS_ERROR_NOT_IMPLEMENTED;

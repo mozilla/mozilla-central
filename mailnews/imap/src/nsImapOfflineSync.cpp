@@ -136,9 +136,9 @@ nsresult nsImapOfflineSync::AdvanceToNextServer()
     rv = accountManager->GetAllServers(getter_AddRefs(m_allServers));
     NS_ENSURE_SUCCESS(rv, rv);
   }
-  PRUint32 serverIndex = (m_currentServer) ? m_allServers->IndexOf(m_currentServer) + 1 : 0;
+  uint32_t serverIndex = (m_currentServer) ? m_allServers->IndexOf(m_currentServer) + 1 : 0;
   m_currentServer = nullptr;
-  PRUint32 numServers; 
+  uint32_t numServers; 
   m_allServers->Count(&numServers);
   nsCOMPtr <nsIMsgFolder> rootFolder;
 
@@ -221,7 +221,7 @@ void nsImapOfflineSync::ProcessFlagOperation(nsIMsgOfflineImapOperation *op)
 {
   nsCOMPtr <nsIMsgOfflineImapOperation> currentOp = op;
   nsTArray<nsMsgKey> matchingFlagKeys;
-  PRUint32 currentKeyIndex = m_KeyIndex;
+  uint32_t currentKeyIndex = m_KeyIndex;
 
   imapMessageFlagsType matchingFlags;
   currentOp->GetNewFlags(&matchingFlags);
@@ -255,7 +255,7 @@ void nsImapOfflineSync::ProcessFlagOperation(nsIMsgOfflineImapOperation *op)
   {
     nsCAutoString uids;
     nsImapMailFolder::AllocateUidStringFromKeys(matchingFlagKeys.Elements(), matchingFlagKeys.Length(), uids);
-    PRUint32 curFolderFlags;
+    uint32_t curFolderFlags;
     m_currentFolder->GetFlags(&curFolderFlags);
 
     if (uids.get() && (curFolderFlags & nsMsgFolderFlags::ImapBox)) 
@@ -283,7 +283,7 @@ void nsImapOfflineSync::ProcessKeywordOperation(nsIMsgOfflineImapOperation *op)
 {
   nsCOMPtr <nsIMsgOfflineImapOperation> currentOp = op;
   nsTArray<nsMsgKey> matchingKeywordKeys;
-  PRUint32 currentKeyIndex = m_KeyIndex;
+  uint32_t currentKeyIndex = m_KeyIndex;
 
   nsCAutoString keywords;
   if (mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kAddKeywords)
@@ -321,7 +321,7 @@ void nsImapOfflineSync::ProcessKeywordOperation(nsIMsgOfflineImapOperation *op)
 
   if (!matchingKeywordKeys.IsEmpty())
   {
-    PRUint32 curFolderFlags;
+    uint32_t curFolderFlags;
     m_currentFolder->GetFlags(&curFolderFlags);
 
     if (curFolderFlags & nsMsgFolderFlags::ImapBox)
@@ -350,7 +350,7 @@ void nsImapOfflineSync::ProcessKeywordOperation(nsIMsgOfflineImapOperation *op)
 }
 
 void
-nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *currentOp, PRInt32 opType)
+nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *currentOp, int32_t opType)
 {
   nsCOMPtr <nsIMsgDBHdr> mailHdr;
   nsMsgKey msgKey;
@@ -358,8 +358,8 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
   nsresult rv = m_currentDB->GetMsgHdrForKey(msgKey, getter_AddRefs(mailHdr)); 
   if (NS_SUCCEEDED(rv) && mailHdr)
   {
-    PRUint64 messageOffset;
-    PRUint32 messageSize;
+    uint64_t messageOffset;
+    uint32_t messageSize;
     mailHdr->GetMessageOffset(&messageOffset);
     mailHdr->GetOfflineMessageSize(&messageSize);
     nsCOMPtr<nsIFile> tmpFile;
@@ -399,7 +399,7 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
               if (NS_SUCCEEDED(rv))
               {
                 // now, copy the dest folder offline store msg to the temp file
-                PRInt32 inputBufferSize = 10240;
+                int32_t inputBufferSize = 10240;
                 char *inputBuffer = nullptr;
                 
                 while (!inputBuffer && (inputBufferSize >= 512))
@@ -408,13 +408,13 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
                   if (!inputBuffer)
                     inputBufferSize /= 2;
                 }
-                PRInt32 bytesLeft;
-                PRUint32 bytesRead, bytesWritten;
+                int32_t bytesLeft;
+                uint32_t bytesRead, bytesWritten;
                 bytesLeft = messageSize;
                 rv = NS_OK;
                 while (bytesLeft > 0 && NS_SUCCEEDED(rv))
                 {
-                  PRInt32 bytesToRead = NS_MIN(inputBufferSize, bytesLeft);
+                  int32_t bytesToRead = NS_MIN(inputBufferSize, bytesLeft);
                   rv = offlineStoreInputStream->Read(inputBuffer, bytesToRead, &bytesRead);
                   if (NS_SUCCEEDED(rv) && bytesRead > 0)
                   {
@@ -466,8 +466,8 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
 
 void nsImapOfflineSync::ClearCurrentOps()
 {
-  PRInt32 opCount = m_currentOpsToClear.Count();
-  for (PRInt32 i = opCount - 1; i >= 0; i--)
+  int32_t opCount = m_currentOpsToClear.Count();
+  for (int32_t i = opCount - 1; i >= 0; i--)
   {
     m_currentOpsToClear[i]->SetPlayingBack(false);
     m_currentOpsToClear[i]->ClearOperation(mCurrentPlaybackOpType);
@@ -478,7 +478,7 @@ void nsImapOfflineSync::ClearCurrentOps()
 void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
 {
   nsTArray<nsMsgKey> matchingFlagKeys;
-  PRUint32 currentKeyIndex = m_KeyIndex;
+  uint32_t currentKeyIndex = m_KeyIndex;
   nsCString moveDestination;
   op->GetDestinationFolderURI(getter_Copies(moveDestination));
   bool moveMatches = true;
@@ -537,13 +537,13 @@ void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
     nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv))
     {
-      for (PRUint32 keyIndex = 0; keyIndex < matchingFlagKeys.Length(); keyIndex++)
+      for (uint32_t keyIndex = 0; keyIndex < matchingFlagKeys.Length(); keyIndex++)
       {
         nsCOMPtr<nsIMsgDBHdr> mailHdr = nullptr;
         rv = m_currentFolder->GetMessageHeader(matchingFlagKeys.ElementAt(keyIndex), getter_AddRefs(mailHdr));
         if (NS_SUCCEEDED(rv) && mailHdr)
         {
-          PRUint32 msgSize;
+          uint32_t msgSize;
           // in case of a move, the header has already been deleted,
           // so we've really got a fake header. We need to get its flags and
           // size from the offline op to have any chance of doing the move.
@@ -551,7 +551,7 @@ void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
           if (!msgSize)
           {
             imapMessageFlagsType newImapFlags;
-            PRUint32 msgFlags = 0;
+            uint32_t msgFlags = 0;
             op->GetMsgSize(&msgSize);
             op->GetNewFlags(&newImapFlags);
             // first three bits are the same
@@ -591,7 +591,7 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *aCurren
   nsCOMPtr<nsIMsgOfflineImapOperation> currentOp = aCurrentOp;
 
   nsTArray<nsMsgKey> matchingFlagKeys;
-  PRUint32 currentKeyIndex = m_KeyIndex;
+  uint32_t currentKeyIndex = m_KeyIndex;
   nsCString copyDestination;
   currentOp->GetCopyDestination(0, getter_Copies(copyDestination));
   bool copyMatches = true;
@@ -651,7 +651,7 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *aCurren
     nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
     if (messages && NS_SUCCEEDED(rv))
     {
-      for (PRUint32 keyIndex = 0; keyIndex < matchingFlagKeys.Length(); keyIndex++)
+      for (uint32_t keyIndex = 0; keyIndex < matchingFlagKeys.Length(); keyIndex++)
       {
         nsCOMPtr<nsIMsgDBHdr> mailHdr = nullptr;
         rv = m_currentFolder->GetMessageHeader(matchingFlagKeys.ElementAt(keyIndex), getter_AddRefs(mailHdr));
@@ -676,7 +676,7 @@ bool nsImapOfflineSync::CreateOfflineFolders()
 {
   while (m_currentFolder)
   {
-    PRUint32 flags;
+    uint32_t flags;
     m_currentFolder->GetFlags(&flags);
     bool offlineCreate = (flags & nsMsgFolderFlags::CreatedOffline) != 0;
     if (offlineCreate)
@@ -710,7 +710,7 @@ bool nsImapOfflineSync::CreateOfflineFolder(nsIMsgFolder *folder)
   return NS_SUCCEEDED(rv) ? true : false;	// this is asynch, we have to return and be called again by the OfflineOpExitFunction
 }
 
-PRInt32 nsImapOfflineSync::GetCurrentUIDValidity()
+int32_t nsImapOfflineSync::GetCurrentUIDValidity()
 {
   if (m_currentFolder)
   {
@@ -757,7 +757,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
   if (m_singleFolderToUpdate)
     m_currentFolder = m_singleFolderToUpdate;
   
-  PRUint32 folderFlags;
+  uint32_t folderFlags;
   nsCOMPtr <nsIDBFolderInfo> folderInfo;
   while (m_currentFolder && !m_currentDB)
   {
@@ -786,7 +786,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
       {
         // trash any ghost msgs
         bool deletedGhostMsgs = false;
-        for (PRUint32 fakeIndex=0; fakeIndex < m_CurrentKeys.Length(); fakeIndex++)
+        for (uint32_t fakeIndex=0; fakeIndex < m_CurrentKeys.Length(); fakeIndex++)
         {
           nsCOMPtr <nsIMsgOfflineImapOperation> currentOp; 
           m_currentDB->GetOfflineOpForKey(m_CurrentKeys[fakeIndex], false, getter_AddRefs(currentOp));
@@ -877,7 +877,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
         (m_pseudoOffline || (GetCurrentUIDValidity() != 0) ||
         !(folderFlags & nsMsgFolderFlags::ImapBox)))
     {
-      PRInt32 curFolderUidValidity;
+      int32_t curFolderUidValidity;
       folderInfo->GetImapUidValidity(&curFolderUidValidity);
       bool uidvalidityChanged = (!m_pseudoOffline && folderFlags & nsMsgFolderFlags::ImapBox) && (GetCurrentUIDValidity() != curFolderUidValidity);
       nsCOMPtr <nsIMsgOfflineImapOperation> currentOp;
@@ -1158,7 +1158,7 @@ nsresult nsImapOfflineDownloader::ProcessNextOperation()
 
   while (m_currentFolder)
   {
-    PRUint32 folderFlags;
+    uint32_t folderFlags;
 
     ClearDB();
     nsCOMPtr <nsIMsgImapMailFolder> imapFolder;
@@ -1187,14 +1187,14 @@ NS_IMETHODIMP nsImapOfflineSync::OnStartCopy()
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* void OnProgress (in PRUint32 aProgress, in PRUint32 aProgressMax); */
-NS_IMETHODIMP nsImapOfflineSync::OnProgress(PRUint32 aProgress, PRUint32 aProgressMax)
+/* void OnProgress (in uint32_t aProgress, in uint32_t aProgressMax); */
+NS_IMETHODIMP nsImapOfflineSync::OnProgress(uint32_t aProgress, uint32_t aProgressMax)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* void SetMessageKey (in PRUint32 aKey); */
-NS_IMETHODIMP nsImapOfflineSync::SetMessageKey(PRUint32 aKey)
+/* void SetMessageKey (in uint32_t aKey); */
+NS_IMETHODIMP nsImapOfflineSync::SetMessageKey(uint32_t aKey)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1221,7 +1221,7 @@ void nsImapOfflineSync::ClearDB()
 
 NS_IMETHODIMP
 nsImapOfflineSync::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange,
-    bool aPreChange, PRUint32 *aStatus, nsIDBChangeListener * aInstigator)
+    bool aPreChange, uint32_t *aStatus, nsIDBChangeListener * aInstigator)
 {
   return NS_OK;
 }
@@ -1229,21 +1229,21 @@ nsImapOfflineSync::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange,
 
 NS_IMETHODIMP
 nsImapOfflineSync::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged,
-    PRUint32 aOldFlags, PRUint32 aNewFlags, nsIDBChangeListener *aInstigator)
+    uint32_t aOldFlags, uint32_t aNewFlags, nsIDBChangeListener *aInstigator)
 {
     return NS_OK;
 }
 
 NS_IMETHODIMP
 nsImapOfflineSync::OnHdrDeleted(nsIMsgDBHdr *aHdrChanged,
-    nsMsgKey aParentKey, PRInt32 aFlags, nsIDBChangeListener *aInstigator)
+    nsMsgKey aParentKey, int32_t aFlags, nsIDBChangeListener *aInstigator)
 {
     return NS_OK;
 }
 
 NS_IMETHODIMP
 nsImapOfflineSync::OnHdrAdded(nsIMsgDBHdr *aHdrAdded,
-    nsMsgKey aParentKey, PRInt32 aFlags, nsIDBChangeListener *aInstigator)
+    nsMsgKey aParentKey, int32_t aFlags, nsIDBChangeListener *aInstigator)
 {
     return NS_OK;
 }

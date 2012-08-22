@@ -58,20 +58,20 @@ public:
                                        bool hostnameChanged);
 
     // for nsMsgLineBuffer
-    virtual PRInt32 HandleLine(const char *line, PRUint32 line_size);
+    virtual int32_t HandleLine(const char *line, uint32_t line_size);
 
     // override to clear all passwords associated with server
     NS_IMETHODIMP ForgetPassword();
     NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages);
-    NS_IMETHOD GetOfflineSupportLevel(PRInt32 *aSupportLevel);
+    NS_IMETHOD GetOfflineSupportLevel(int32_t *aSupportLevel);
     NS_IMETHOD GetDefaultCopiesAndFoldersPrefsToServer(bool *aCopiesAndFoldersOnServer);
     NS_IMETHOD GetCanCreateFoldersOnServer(bool *aCanCreateFoldersOnServer);
     NS_IMETHOD GetCanFileMessagesOnServer(bool *aCanFileMessagesOnServer);
     NS_IMETHOD GetFilterScope(nsMsgSearchScopeValue *filterScope);
     NS_IMETHOD GetSearchScope(nsMsgSearchScopeValue *searchScope);
 
-    NS_IMETHOD GetSocketType(PRInt32 *aSocketType); // override nsMsgIncomingServer impl
-    NS_IMETHOD SetSocketType(PRInt32 aSocketType); // override nsMsgIncomingServer impl
+    NS_IMETHOD GetSocketType(int32_t *aSocketType); // override nsMsgIncomingServer impl
+    NS_IMETHOD SetSocketType(int32_t aSocketType); // override nsMsgIncomingServer impl
 
 protected:
    virtual nsresult CreateRootFolderFromUri(const nsCString &serverUri,
@@ -122,11 +122,11 @@ private:
     bool mHostInfoHasChanged;
     nsCOMPtr <nsIFile> mHostInfoFile;
     
-    PRUint32 mLastGroupDate;
+    uint32_t mLastGroupDate;
     PRTime mFirstNewDate;
-    PRInt32 mUniqueId;    
-    PRUint32 mLastUpdatedTime;
-    PRInt32 mVersion;
+    int32_t mUniqueId;    
+    uint32_t mLastUpdatedTime;
+    int32_t mVersion;
     bool mPostingAllowed;
 
     nsCOMPtr<nsITimer> mNewsrcSaveTimer;
@@ -135,7 +135,7 @@ private:
     nsCOMPtr <nsISubscribableServer> mInner;
     nsresult EnsureInner();
     nsresult ClearInner();
-    bool IsValidRow(PRInt32 row);
+    bool IsValidRow(int32_t row);
     nsCOMPtr<nsIFile> mNewsrcFilePath;
 };
 

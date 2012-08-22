@@ -81,7 +81,7 @@ nsLocalMoveCopyMsgTxn::AddSrcKey(nsMsgKey aKey)
 }
 
 nsresult
-nsLocalMoveCopyMsgTxn::AddSrcStatusOffset(PRUint32 aStatusOffset)
+nsLocalMoveCopyMsgTxn::AddSrcStatusOffset(uint32_t aStatusOffset)
 {
   m_srcStatusOffsetArray.AppendElement(aStatusOffset);
   return NS_OK;
@@ -96,7 +96,7 @@ nsLocalMoveCopyMsgTxn::AddDstKey(nsMsgKey aKey)
 }
 
 nsresult
-nsLocalMoveCopyMsgTxn::AddDstMsgSize(PRUint32 msgSize)
+nsLocalMoveCopyMsgTxn::AddDstMsgSize(uint32_t msgSize)
 {
     m_dstSizeArray.AppendElement(msgSize);
     return NS_OK;
@@ -114,13 +114,13 @@ nsLocalMoveCopyMsgTxn::UndoImapDeleteFlag(nsIMsgFolder* folder,
     NS_ENSURE_SUCCESS(rv, rv);
     nsCOMPtr<nsIUrlListener> urlListener;
     nsCString msgIds;
-    PRUint32 i, count = keyArray.Length();
+    uint32_t i, count = keyArray.Length();
     urlListener = do_QueryInterface(folder, &rv);
     for (i=0; i < count; i++)
     {
       if (!msgIds.IsEmpty())
           msgIds.Append(',');
-      msgIds.AppendInt((PRInt32) keyArray[i]);
+      msgIds.AppendInt((int32_t) keyArray[i]);
     }
     // This is to make sure that we are in the selected state
     // when executing the imap url; we don't want to load the
@@ -217,8 +217,8 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
   rv = dstFolder->GetMsgDatabase(getter_AddRefs(dstDB));
   if (NS_FAILED(rv)) return rv;
 
-  PRUint32 count = m_srcKeyArray.Length();
-  PRUint32 i;
+  uint32_t count = m_srcKeyArray.Length();
+  uint32_t i;
   nsCOMPtr<nsIMsgDBHdr> oldHdr;
   nsCOMPtr<nsIMsgDBHdr> newHdr;
 
@@ -334,8 +334,8 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
   rv = dstFolder->GetMsgDatabase(getter_AddRefs(dstDB));
   if (NS_FAILED(rv)) return rv;
 
-  PRUint32 count = m_srcKeyArray.Length();
-  PRUint32 i;
+  uint32_t count = m_srcKeyArray.Length();
+  uint32_t i;
   nsCOMPtr<nsIMsgDBHdr> oldHdr;
   nsCOMPtr<nsIMsgDBHdr> newHdr;
 
@@ -458,7 +458,7 @@ NS_IMETHODIMP nsLocalMoveCopyMsgTxn::OnItemPropertyChanged(nsIMsgFolder *item, n
   return NS_OK;
 }
 
-NS_IMETHODIMP nsLocalMoveCopyMsgTxn::OnItemIntPropertyChanged(nsIMsgFolder *item, nsIAtom *property, PRInt32 oldValue, PRInt32 newValue)
+NS_IMETHODIMP nsLocalMoveCopyMsgTxn::OnItemIntPropertyChanged(nsIMsgFolder *item, nsIAtom *property, int32_t oldValue, int32_t newValue)
 {
   return NS_OK;
 }
@@ -473,7 +473,7 @@ NS_IMETHODIMP nsLocalMoveCopyMsgTxn::OnItemUnicharPropertyChanged(nsIMsgFolder *
   return NS_OK;
 }
 
-NS_IMETHODIMP nsLocalMoveCopyMsgTxn::OnItemPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom *property, PRUint32 oldFlag, PRUint32 newFlag)
+NS_IMETHODIMP nsLocalMoveCopyMsgTxn::OnItemPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom *property, uint32_t oldFlag, uint32_t newFlag)
 {
   return NS_OK;
 }
@@ -510,7 +510,7 @@ NS_IMETHODIMP nsLocalUndoFolderListener::OnItemPropertyChanged(nsIMsgFolder *ite
     return NS_OK;
 }
 
-NS_IMETHODIMP nsLocalUndoFolderListener::OnItemIntPropertyChanged(nsIMsgFolder *item, nsIAtom *property, PRInt32 oldValue, PRInt32 newValue)
+NS_IMETHODIMP nsLocalUndoFolderListener::OnItemIntPropertyChanged(nsIMsgFolder *item, nsIAtom *property, int32_t oldValue, int32_t newValue)
 {
     return NS_OK;
 }
@@ -525,7 +525,7 @@ NS_IMETHODIMP nsLocalUndoFolderListener::OnItemUnicharPropertyChanged(nsIMsgFold
     return NS_OK;
 }
 
-NS_IMETHODIMP nsLocalUndoFolderListener::OnItemPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom *property, PRUint32 oldFlag, PRUint32 newFlag)
+NS_IMETHODIMP nsLocalUndoFolderListener::OnItemPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom *property, uint32_t oldFlag, uint32_t newFlag)
 {
     return NS_OK;
 }

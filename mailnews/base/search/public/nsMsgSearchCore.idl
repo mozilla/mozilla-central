@@ -190,14 +190,14 @@ typedef struct nsMsgSearchValue
     {
       nsMsgPriorityValue priority;
       PRTime date;
-      PRUint32 msgStatus; /* see MSG_FLAG in msgcom.h */
-      PRUint32 size;
+      uint32_t msgStatus; /* see MSG_FLAG in msgcom.h */
+      uint32_t size;
       nsMsgKey key;
-      PRInt32 age; /* in days */
+      int32_t age; /* in days */
       nsIMsgFolder *folder;
       nsMsgLabelValue label;
-      PRUint32 junkStatus;
-      PRUint32 junkPercent;
+      uint32_t junkStatus;
+      uint32_t junkPercent;
     } u;
     char *string;
 } nsMsgSearchValue;

@@ -254,7 +254,7 @@ nsWindowsShellService::nsWindowsShellService()
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool *aIsDefaultClient)
+nsWindowsShellService::IsDefaultClient(bool aStartupCheck, uint16_t aApps, bool *aIsDefaultClient)
 {
   // If this is the first mail window, maintain internal state that we've
   // checked this session (so that subsequent window opens don't show the
@@ -291,7 +291,7 @@ nsWindowsShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool 
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::SetDefaultClient(bool aForAllUsers, PRUint16 aApps)
+nsWindowsShellService::SetDefaultClient(bool aForAllUsers, uint16_t aApps)
 {
   nsAutoString appHelperPath;
   if (NS_FAILED(GetHelperPath(appHelperPath)))
@@ -337,7 +337,7 @@ nsWindowsShellService::SetShouldCheckDefaultClient(bool aShouldCheck)
 
 /* helper routine. Iterate over the passed in settings object. */
 bool
-nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
+nsWindowsShellService::TestForDefault(SETTING aSettings[], int32_t aSize)
 {
   bool isDefault = true;
   PRUnichar currValue[MAX_BUF];
@@ -349,7 +349,7 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
     NS_ConvertUTF8toUTF16 value(settings->valueName);
     if (settings->flags & APP_PATH_SUBSTITUTION)
     {
-      PRInt32 offset = dataLongPath.Find("%APPPATH%");
+      int32_t offset = dataLongPath.Find("%APPPATH%");
       dataLongPath.Replace(offset, 9, mAppLongPath);
     }
 
@@ -381,7 +381,7 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
 }
 
 bool
-nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, bool* aIsDefaultClient)
+nsWindowsShellService::IsDefaultClientVista(uint16_t aApps, bool* aIsDefaultClient)
 {
   IApplicationAssociationRegistration* pAAR;
 

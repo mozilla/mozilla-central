@@ -68,18 +68,18 @@ public:
                            bool *fatalError);
 
   /* unsigned long GetImportProgress (); */
-  NS_IMETHOD GetImportProgress(PRUint32 *_retval);
+  NS_IMETHOD GetImportProgress(uint32_t *_retval);
 
   NS_IMETHOD TranslateFolderName(const nsAString & aFolderName, nsAString & _retval);
 
 public:
-  static void ReportSuccess(nsString& name, PRInt32 count, nsString *pStream);
-  static void ReportError(PRInt32 errorNum, nsString& name, nsString *pStream);
+  static void ReportSuccess(nsString& name, int32_t count, nsString *pStream);
+  static void ReportError(int32_t errorNum, nsString& name, nsString *pStream);
   static void AddLinebreak(nsString *pStream);
   static void SetLogs(nsString& success, nsString& error, PRUnichar **pError, PRUnichar **pSuccess);
 
 private:
-  PRUint32 m_bytesDone;
+  uint32_t m_bytesDone;
 };
 
 nsWMImport::nsWMImport()
@@ -203,7 +203,7 @@ void ImportWMMailImpl::AddLinebreak(nsString *pStream)
     pStream->Append(PRUnichar('\n'));
 }
 
-void ImportWMMailImpl::ReportSuccess(nsString& name, PRInt32 count, nsString *pStream)
+void ImportWMMailImpl::ReportSuccess(nsString& name, int32_t count, nsString *pStream)
 {
   if (!pStream)
     return;
@@ -216,7 +216,7 @@ void ImportWMMailImpl::ReportSuccess(nsString& name, PRInt32 count, nsString *pS
   AddLinebreak(pStream);
 }
 
-void ImportWMMailImpl::ReportError(PRInt32 errorNum, nsString& name, nsString *pStream)
+void ImportWMMailImpl::ReportError(int32_t errorNum, nsString& name, nsString *pStream)
 {
   if (!pStream)
     return;
@@ -247,7 +247,7 @@ NS_IMETHODIMP ImportWMMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSourc
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP ImportWMMailImpl::GetImportProgress(PRUint32 *pDoneSoFar)
+NS_IMETHODIMP ImportWMMailImpl::GetImportProgress(uint32_t *pDoneSoFar)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

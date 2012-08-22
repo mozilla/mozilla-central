@@ -511,7 +511,7 @@ nsSubscribableServer::AddChildNode(SubscribeTreeNode *parent, const char *name, 
          * we can efficiently reverse the order when dumping to hostinfo.dat
          * or to GetTargets()
          */
-        PRInt32 compare = strcmp(current->name, name);
+        int32_t compare = strcmp(current->name, name);
 
         while (current && (compare != 0)) {
             if (compare < 0) {

@@ -253,7 +253,7 @@ bool nsEudoraFilters::RealImport()
         // Win Eudora's  priority values are 0 (highest) to 4 (lowest)
         // Mac Eudora's  priority values are 1 (highest) to 5 (lowest)
         // Thunderbird's priority values are 6 (highest) to 2 (lowest)
-        PRInt32 TBPriority = 6 - atoi(pLine + 9);
+        int32_t TBPriority = 6 - atoi(pLine + 9);
 #ifdef XP_MACOSX
         TBPriority++;
 #endif
@@ -271,7 +271,7 @@ bool nsEudoraFilters::RealImport()
       else if (!strncmp(pLine, "status ", 7))
       {
         // Win Eudora's read status is 1, whereas Mac Eudora's read status is 2
-        PRUint32 status = atoi(pLine + 7);
+        uint32_t status = atoi(pLine + 7);
 #ifdef XP_MACOSX
         status--;
 #endif
@@ -281,7 +281,7 @@ bool nsEudoraFilters::RealImport()
       else if (!strncmp(pLine, "serverOpt ", 10))
       {
         // Win and Mac Eudora have the two bits swapped in the file
-        PRUint32 bits = atoi(pLine + 10);
+        uint32_t bits = atoi(pLine + 10);
 #if defined(XP_WIN) || defined(XP_OS2)
         bool bFetch  = (bits & 1);
         bool bDelete = (bits & 2);
@@ -403,10 +403,10 @@ nsresult nsEudoraFilters::LoadServers()
   rv = accountMgr->GetAllServers(getter_AddRefs(allServers));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRUint32 numServers;
+  uint32_t numServers;
   rv = allServers->Count(&numServers);
   NS_ENSURE_SUCCESS(rv, rv);
-  for (PRUint32 serverIndex = 0; serverIndex < numServers; serverIndex++)
+  for (uint32_t serverIndex = 0; serverIndex < numServers; serverIndex++)
   {
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, serverIndex, &rv);
     if (server && NS_SUCCEEDED(rv))
@@ -443,10 +443,10 @@ nsresult nsEudoraFilters::SaveFilters()
 {
   nsresult rv;
 
-  PRUint32 numServers;
+  uint32_t numServers;
   rv = m_pServerArray->Count(&numServers);
   NS_ENSURE_SUCCESS(rv, rv);
-  for (PRUint32 serverIndex = 0; serverIndex < numServers; serverIndex++)
+  for (uint32_t serverIndex = 0; serverIndex < numServers; serverIndex++)
   {
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(m_pServerArray, serverIndex, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -471,10 +471,10 @@ nsresult nsEudoraFilters::CreateNewFilter(const char* pName)
 
   nsAutoString unicodeName;
   NS_CopyNativeToUnicode(nsCString(pName), unicodeName);
-  PRUint32 numServers;
+  uint32_t numServers;
   rv = m_pServerArray->Count(&numServers);
   NS_ENSURE_SUCCESS(rv, rv);
-  for (PRUint32 serverIndex = 0; serverIndex < numServers; serverIndex++)
+  for (uint32_t serverIndex = 0; serverIndex < numServers; serverIndex++)
   {
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(m_pServerArray, serverIndex, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -490,7 +490,7 @@ nsresult nsEudoraFilters::CreateNewFilter(const char* pName)
     rv = newFilter->SetEnabled(false);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRUint32 count;
+    uint32_t count;
     rv = filterList->GetFilterCount(&count);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -536,10 +536,10 @@ nsresult nsEudoraFilters::EnableFilter(bool enable)
 {
   nsresult rv;
 
-  PRUint32 numFilters;
+  uint32_t numFilters;
   rv = m_pFilterArray->Count(&numFilters);
   NS_ENSURE_SUCCESS(rv, rv);
-  for (PRUint32 filterIndex = 0; filterIndex < numFilters; filterIndex++)
+  for (uint32_t filterIndex = 0; filterIndex < numFilters; filterIndex++)
   {
     nsCOMPtr<nsIMsgFilter> filter = do_QueryElementAt(m_pFilterArray, filterIndex, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -575,9 +575,9 @@ static const char* gStandardHeaders[] =
     NULL
 };
 
-static PRInt32 FindHeader(const char* pHeader)
+static int32_t FindHeader(const char* pHeader)
 {
-  for (PRInt32 i = 0; gStandardHeaders[i]; i++)
+  for (int32_t i = 0; gStandardHeaders[i]; i++)
   {
     if (*gStandardHeaders[i] && !PL_strcasecmp(pHeader, gStandardHeaders[i]))
       return i;
@@ -611,9 +611,9 @@ static const char* gOperators[] =
     NULL
 };
 
-static PRInt32 FindOperator(const char* pOperator)
+static int32_t FindOperator(const char* pOperator)
 {
-  for (PRInt32 i = 0; gOperators[i]; i++)
+  for (int32_t i = 0; gOperators[i]; i++)
   {
     if (*gOperators[i] && !strcmp(pOperator, gOperators[i]))
       return i;
@@ -624,10 +624,10 @@ static PRInt32 FindOperator(const char* pOperator)
 
 #define MAILNEWS_CUSTOM_HEADERS "mailnews.customHeaders"
 
-static PRInt32 AddCustomHeader(const char* pHeader)
+static int32_t AddCustomHeader(const char* pHeader)
 {
   nsresult rv;
-  PRInt32 index = -1;
+  int32_t index = -1;
   nsCOMPtr<nsIPrefBranch> pref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, index);
 
@@ -731,20 +731,20 @@ nsresult nsEudoraFilters::AddTerm(const char* pHeader, const char* pVerb, const 
 
     // Arbitrary headers for filters don't like the colon at the end
     arbitraryHeader = pHeader;
-    PRInt32 index = arbitraryHeader.FindChar(':');
+    int32_t index = arbitraryHeader.FindChar(':');
     if (index >= 0)
       arbitraryHeader.SetLength(index);
 
-    PRInt32 headerIndex = AddCustomHeader(arbitraryHeader.get());
+    int32_t headerIndex = AddCustomHeader(arbitraryHeader.get());
     NS_ENSURE_TRUE(headerIndex >= 0, NS_ERROR_FAILURE);
 
     attrib = nsMsgSearchAttrib::OtherHeader + 1 + headerIndex;
   }
 
-  PRUint32 numFilters;
+  uint32_t numFilters;
   rv = m_pFilterArray->Count(&numFilters);
   NS_ENSURE_SUCCESS(rv, rv);
-  for (PRUint32 filterIndex = 0; filterIndex < numFilters; filterIndex++)
+  for (uint32_t filterIndex = 0; filterIndex < numFilters; filterIndex++)
   {
     nsCOMPtr<nsIMsgFilter> filter = do_QueryElementAt(m_pFilterArray, filterIndex, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -785,15 +785,15 @@ nsresult nsEudoraFilters::AddTerm(const char* pHeader, const char* pVerb, const 
   return NS_OK;
 }
 
-nsresult nsEudoraFilters::AddAction(nsMsgRuleActionType actionType, PRInt32 junkScore /*= 0*/, nsMsgLabelValue label/*= 0*/,
+nsresult nsEudoraFilters::AddAction(nsMsgRuleActionType actionType, int32_t junkScore /*= 0*/, nsMsgLabelValue label/*= 0*/,
                                     nsMsgPriorityValue priority/*= 0*/, const char* strValue/*= nullptr*/, const char* targetFolderUri/*= nullptr*/)
 {
   nsresult rv;
 
-  PRUint32 numFilters;
+  uint32_t numFilters;
   rv = m_pFilterArray->Count(&numFilters);
   NS_ENSURE_SUCCESS(rv, rv);
-  for (PRUint32 filterIndex = 0; filterIndex < numFilters; filterIndex++)
+  for (uint32_t filterIndex = 0; filterIndex < numFilters; filterIndex++)
   {
     nsCOMPtr<nsIMsgFilter> filter = do_QueryElementAt(m_pFilterArray, filterIndex, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -862,7 +862,7 @@ nsresult nsEudoraFilters::AddMailboxAction(const char* pMailboxPath, bool isTran
 #if defined(XP_WIN) || defined(XP_OS2)
   nsCString filePath;
   m_pLocation->GetNativePath(filePath);
-  PRInt32 index = filePath.RFindChar('\\');
+  int32_t index = filePath.RFindChar('\\');
   if (index >= 0)
     filePath.SetLength(index);
   if (!nsEudoraWin32::GetMailboxNameHierarchy(filePath, pMailboxPath,
@@ -901,7 +901,7 @@ nsresult nsEudoraFilters::GetMailboxFolder(const char* pNameHierarchy, nsIMsgFol
   *ppFolder = nullptr;
   
   nsCAutoString name(pNameHierarchy + 1);
-  PRInt32 sepIndex = name.FindChar(*pNameHierarchy);
+  int32_t sepIndex = name.FindChar(*pNameHierarchy);
   if (sepIndex >= 0)
     name.SetLength(sepIndex);
 

@@ -73,7 +73,7 @@ nsMsgLocalStoreUtils::nsShouldIgnoreFile(nsAString& name)
 
 void
 nsMsgLocalStoreUtils::ChangeKeywordsHelper(nsIMsgDBHdr *message,
-                                           PRUint64 desiredOffset,
+                                           uint64_t desiredOffset,
                                            nsLineBuffer<char> *lineBuffer,
                                            nsTArray<nsCString> &keywordArray,
                                            bool aAdd,
@@ -81,14 +81,14 @@ nsMsgLocalStoreUtils::ChangeKeywordsHelper(nsIMsgDBHdr *message,
                                            nsISeekableStream *seekableStream,
                                            nsIInputStream *inputStream)
 {
-  PRUint32 bytesWritten;
+  uint32_t bytesWritten;
 
-  for (PRUint32 i = 0; i < keywordArray.Length(); i++)
+  for (uint32_t i = 0; i < keywordArray.Length(); i++)
   {
     nsCAutoString header;
     nsCAutoString keywords;
     bool done = false;
-    PRUint32 len = 0;
+    uint32_t len = 0;
     nsCAutoString keywordToWrite(" ");
 
     keywordToWrite.Append(keywordArray[i]);
@@ -97,13 +97,13 @@ nsMsgLocalStoreUtils::ChangeKeywordsHelper(nsIMsgDBHdr *message,
     lineBuffer->start = lineBuffer->end = lineBuffer->buf;
     bool inKeywordHeader = false;
     bool foundKeyword = false;
-    PRInt64 offsetToAddKeyword = 0;
+    int64_t offsetToAddKeyword = 0;
     bool more;
     message->GetMessageSize(&len);
     // loop through
     while (!done)
     {
-      PRInt64 lineStartPos;
+      int64_t lineStartPos;
       seekableStream->Tell(&lineStartPos);
       // we need to adjust the linestart pos by how much extra the line
       // buffer has read from the stream.
@@ -125,8 +125,8 @@ nsMsgLocalStoreUtils::ChangeKeywordsHelper(nsIMsgDBHdr *message,
           break;
         else
           continue;
-        PRUint32 keywordHdrLength = keywordHeaders.Length();
-        PRInt32 startOffset, keywordLength;
+        uint32_t keywordHdrLength = keywordHeaders.Length();
+        int32_t startOffset, keywordLength;
         // check if we have the keyword
         if (MsgFindKeyword(keywordArray[i], keywordHeaders, &startOffset,
                            &keywordLength))
@@ -135,7 +135,7 @@ nsMsgLocalStoreUtils::ChangeKeywordsHelper(nsIMsgDBHdr *message,
           if (!aAdd) // if we're removing, remove it, and break;
           {
             keywordHeaders.Cut(startOffset, keywordLength);
-            for (PRInt32 j = keywordLength; j > 0; j--)
+            for (int32_t j = keywordLength; j > 0; j--)
               keywordHeaders.Append(' ');
             seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, lineStartPos);
             outputStream->Write(keywordHeaders.get(), keywordHeaders.Length(),
@@ -180,15 +180,15 @@ nsMsgLocalStoreUtils::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, bool bSet,
                                        nsMsgMessageFlagType flag,
                                        nsIOutputStream *fileStream)
 {
-  PRUint32 statusOffset;
-  PRUint64 msgOffset;
+  uint32_t statusOffset;
+  uint64_t msgOffset;
   (void) mailHdr->GetStatusOffset(&statusOffset);
   // This probably means there's no x-mozilla-status header, so
   // we just ignore this.
   if (statusOffset == 0)
     return NS_OK;
   (void)mailHdr->GetMessageOffset(&msgOffset);
-  PRUint64 statusPos = msgOffset + statusOffset;
+  uint64_t statusPos = msgOffset + statusOffset;
   nsresult rv;
   nsCOMPtr<nsISeekableStream> seekableStream(do_QueryInterface(fileStream, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -198,7 +198,7 @@ nsMsgLocalStoreUtils::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, bool bSet,
   buf[0] = '\0';
   nsCOMPtr<nsIInputStream> inputStream = do_QueryInterface(fileStream, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  PRUint32 bytesRead;
+  uint32_t bytesRead;
   if (NS_SUCCEEDED(inputStream->Read(buf, X_MOZILLA_STATUS_LEN + 6,
                                      &bytesRead)))
   {
@@ -207,8 +207,8 @@ nsMsgLocalStoreUtils::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, bool bSet,
       strncmp(buf + X_MOZILLA_STATUS_LEN, ": ", 2) == 0 &&
       strlen(buf) >= X_MOZILLA_STATUS_LEN + 6)
     {
-      PRUint32 flags;
-      PRUint32 bytesWritten;
+      uint32_t flags;
+      uint32_t bytesWritten;
       (void)mailHdr->GetFlags(&flags);
       if (!(flags & nsMsgMessageFlags::Expunged))
       {
@@ -217,7 +217,7 @@ nsMsgLocalStoreUtils::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, bool bSet,
         nsresult errorCode = NS_OK;
         flags = nsDependentCString(p).ToInteger(&errorCode, 16);
 
-        PRUint32 curFlags;
+        uint32_t curFlags;
         (void)mailHdr->GetFlags(&curFlags);
         flags = (flags & nsMsgMessageFlags::Queued) |
           (curFlags & ~nsMsgMessageFlags::RuntimeOnly);
@@ -234,8 +234,8 @@ nsMsgLocalStoreUtils::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, bool bSet,
       // We are filing out x-mozilla-status flags here
       PR_snprintf(buf, sizeof(buf), X_MOZILLA_STATUS_FORMAT,
         flags & 0x0000FFFF);
-      PRInt32 lineLen = PL_strlen(buf);
-      PRUint64 status2Pos = statusPos + lineLen;
+      int32_t lineLen = PL_strlen(buf);
+      uint64_t status2Pos = statusPos + lineLen;
       fileStream->Write(buf, lineLen, &bytesWritten);
 
       if (flag & 0xFFFF0000)
@@ -257,7 +257,7 @@ nsMsgLocalStoreUtils::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, bool bSet,
             strncmp(buf + X_MOZILLA_STATUS2_LEN, ": ", 2) == 0 &&
             strlen(buf) >= X_MOZILLA_STATUS2_LEN + 10)
           {
-            PRUint32 dbFlags;
+            uint32_t dbFlags;
             (void)mailHdr->GetFlags(&dbFlags);
             dbFlags &= 0xFFFF0000;
             seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, status2Pos);

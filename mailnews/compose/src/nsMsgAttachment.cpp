@@ -139,7 +139,7 @@ NS_IMETHODIMP nsMsgAttachment::SetContentType(const char * aContentType)
   /* a full content type could also contains parameters but we need to
      keep only the content type alone. Therefore we need to cleanup it.
   */
-  PRInt32 offset = mContentType.FindChar(';');
+  int32_t offset = mContentType.FindChar(';');
   if (offset >= 0)
     mContentType.SetLength(offset);
 
@@ -206,15 +206,15 @@ NS_IMETHODIMP nsMsgAttachment::SetMacCreator(const char * aMacCreator)
   return NS_OK;
 }
 
-/* attribute PRInt64 size; */
-NS_IMETHODIMP nsMsgAttachment::GetSize(PRInt64 *aSize)
+/* attribute int64_t size; */
+NS_IMETHODIMP nsMsgAttachment::GetSize(int64_t *aSize)
 {
   NS_ENSURE_ARG_POINTER(aSize);
 
   *aSize = mSize;
   return NS_OK;
 }
-NS_IMETHODIMP nsMsgAttachment::SetSize(PRInt64 aSize)
+NS_IMETHODIMP nsMsgAttachment::SetSize(int64_t aSize)
 {
   mSize = aSize;
   return NS_OK;

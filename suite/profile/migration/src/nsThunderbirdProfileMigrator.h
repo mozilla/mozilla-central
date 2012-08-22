@@ -30,11 +30,11 @@ public:
   virtual ~nsThunderbirdProfileMigrator();
 
   // nsISuiteProfileMigrator methods
-  NS_IMETHOD Migrate(PRUint16 aItems, nsIProfileStartup *aStartup,
+  NS_IMETHOD Migrate(uint16_t aItems, nsIProfileStartup *aStartup,
                      const PRUnichar *aProfile);
   NS_IMETHOD GetMigrateData(const PRUnichar *aProfile, bool aDoingStartup,
-                            PRUint16 *_retval);
-  NS_IMETHOD GetSupportedItems(PRUint16 *aSupportedItems);
+                            uint16_t *_retval);
+  NS_IMETHOD GetSupportedItems(uint16_t *aSupportedItems);
 
 protected:
   nsresult FillProfileDataFromRegistry();

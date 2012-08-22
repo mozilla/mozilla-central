@@ -33,7 +33,7 @@ protected:
     nsCOMPtr <nsIMsgNewsFolder> m_newsFolder;
     nsCOMPtr <nsIMsgDatabase> m_newsDB;
 
-    PRUint32  m_dbIndex;
+    uint32_t  m_dbIndex;
 };
 
 #endif /* nsNNTPArticleList_h___ */

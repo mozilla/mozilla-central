@@ -70,7 +70,7 @@ public :
 
 private :
   PRLock *m_Lock;
-  PRInt32 m_cRef;
+  int32_t m_cRef;
 };
 
 #endif // MSG_MAPI_IMP_H

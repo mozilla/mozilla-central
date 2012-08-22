@@ -31,7 +31,7 @@ class nsIMsgThread;
 class nsIDBFolderInfo;
 class nsIMsgHeaderParser;
 
-const PRInt32 kMsgDBVersion = 1;
+const int32_t kMsgDBVersion = 1;
 
 class nsMsgDBService : public nsIMsgDBService
 {
@@ -136,7 +136,7 @@ public:
   virtual nsresult CloseMDB(bool commit);
   virtual nsresult CreateMsgHdr(nsIMdbRow* hdrRow, nsMsgKey key, nsIMsgDBHdr **result);
   virtual nsresult GetThreadForMsgKey(nsMsgKey msgKey, nsIMsgThread **result);
-  virtual nsresult EnumerateMessagesWithFlag(nsISimpleEnumerator* *result, PRUint32 *pFlag);
+  virtual nsresult EnumerateMessagesWithFlag(nsISimpleEnumerator* *result, uint32_t *pFlag);
   nsresult         GetSearchResultsTable(const char *searchFolderUri, bool createIfMissing, nsIMdbTable **table);
 
   // this might just be for debugging - we'll see.
@@ -149,7 +149,7 @@ public:
   void GetMDBFactory(nsIMdbFactory ** aMdbFactory);
   nsIMdbEnv             *GetEnv() {return m_mdbEnv;}
   nsIMdbStore           *GetStore() {return m_mdbStore;}
-  virtual PRUint32      GetCurVersion();
+  virtual uint32_t      GetCurVersion();
   nsIMsgHeaderParser    *GetHeaderParser();
   nsresult              GetCollationKeyGenerator();
   nsIMimeConverter *    GetMimeConverter();
@@ -162,13 +162,13 @@ public:
 
   //helper function to fill in nsStrings from hdr row cell contents.
   nsresult RowCellColumnTonsString(nsIMdbRow *row, mdb_token columnToken, nsAString &resultStr);
-  nsresult RowCellColumnToUInt32(nsIMdbRow *row, mdb_token columnToken, PRUint32 *uint32Result, PRUint32 defaultValue = 0);
-  nsresult RowCellColumnToUInt32(nsIMdbRow *row, mdb_token columnToken, PRUint32 &uint32Result, PRUint32 defaultValue = 0);
-  nsresult RowCellColumnToUInt64(nsIMdbRow *row, mdb_token columnToken, PRUint64 *uint64Result, PRUint64 defaultValue = 0);
+  nsresult RowCellColumnToUInt32(nsIMdbRow *row, mdb_token columnToken, uint32_t *uint32Result, uint32_t defaultValue = 0);
+  nsresult RowCellColumnToUInt32(nsIMdbRow *row, mdb_token columnToken, uint32_t &uint32Result, uint32_t defaultValue = 0);
+  nsresult RowCellColumnToUInt64(nsIMdbRow *row, mdb_token columnToken, uint64_t *uint64Result, uint64_t defaultValue = 0);
   nsresult RowCellColumnToMime2DecodedString(nsIMdbRow *row, mdb_token columnToken, nsAString &resultStr);
-  nsresult RowCellColumnToCollationKey(nsIMdbRow *row, mdb_token columnToken, PRUint8 **result, PRUint32 *len);
+  nsresult RowCellColumnToCollationKey(nsIMdbRow *row, mdb_token columnToken, uint8_t **result, uint32_t *len);
   nsresult RowCellColumnToConstCharPtr(nsIMdbRow *row, mdb_token columnToken, const char **ptr);
-  nsresult RowCellColumnToAddressCollationKey(nsIMdbRow *row, mdb_token colToken, PRUint8 **result, PRUint32 *len);
+  nsresult RowCellColumnToAddressCollationKey(nsIMdbRow *row, mdb_token colToken, uint8_t **result, uint32_t *len);
 
   // these methods take the property name as a string, not a token.
   // they should be used when the properties aren't accessed a lot
@@ -176,9 +176,9 @@ public:
   nsresult        SetProperty(nsIMdbRow *row, const char *propertyName, const char *propertyVal);
   nsresult        GetPropertyAsNSString(nsIMdbRow *row, const char *propertyName, nsAString &result);
   nsresult        SetPropertyFromNSString(nsIMdbRow *row, const char *propertyName, const nsAString &propertyVal);
-  nsresult        GetUint32Property(nsIMdbRow *row, const char *propertyName, PRUint32 *result, PRUint32 defaultValue = 0);
-  nsresult        SetUint32Property(nsIMdbRow *row, const char *propertyName, PRUint32 propertyVal);
-  nsresult        SetUint64Property(nsIMdbRow *row, const char *propertyName, PRUint64 propertyVal);
+  nsresult        GetUint32Property(nsIMdbRow *row, const char *propertyName, uint32_t *result, uint32_t defaultValue = 0);
+  nsresult        SetUint32Property(nsIMdbRow *row, const char *propertyName, uint32_t propertyVal);
+  nsresult        SetUint64Property(nsIMdbRow *row, const char *propertyName, uint64_t propertyVal);
   nsresult        GetBooleanProperty(nsIMdbRow *row, const char *propertyName, 
                                      bool *result, bool defaultValue = false);
   nsresult        SetBooleanProperty(nsIMdbRow *row, const char *propertyName, 
@@ -187,19 +187,19 @@ public:
   nsresult        SetNSStringPropertyWithToken(nsIMdbRow *row, mdb_token aProperty, const nsAString &propertyStr);
   
   // helper functions to put values in cells for the passed-in row
-  nsresult        UInt32ToRowCellColumn(nsIMdbRow *row, mdb_token columnToken, PRUint32 value);
+  nsresult        UInt32ToRowCellColumn(nsIMdbRow *row, mdb_token columnToken, uint32_t value);
   nsresult        CharPtrToRowCellColumn(nsIMdbRow *row, mdb_token columnToken, const char *charPtr);
   nsresult        RowCellColumnToCharPtr(nsIMdbRow *row, mdb_token columnToken, char **result);
-  nsresult        UInt64ToRowCellColumn(nsIMdbRow *row, mdb_token columnToken, PRUint64 value);
+  nsresult        UInt64ToRowCellColumn(nsIMdbRow *row, mdb_token columnToken, uint64_t value);
 
   // helper functions to copy an nsString to a yarn, int32 to yarn, and vice versa.
   static struct mdbYarn *nsStringToYarn(struct mdbYarn *yarn, const nsAString &str);
-  static struct mdbYarn *UInt32ToYarn(struct mdbYarn *yarn, PRUint32 i);
-  static struct mdbYarn *UInt64ToYarn(struct mdbYarn *yarn, PRUint64 i);
+  static struct mdbYarn *UInt32ToYarn(struct mdbYarn *yarn, uint32_t i);
+  static struct mdbYarn *UInt64ToYarn(struct mdbYarn *yarn, uint64_t i);
   static void YarnTonsString(struct mdbYarn *yarn, nsAString &str);
   static void YarnTonsCString(struct mdbYarn *yarn, nsACString &str);
-  static void YarnToUInt32(struct mdbYarn *yarn, PRUint32 *i);
-  static void YarnToUInt64(struct mdbYarn *yarn, PRUint64 *i);
+  static void YarnToUInt32(struct mdbYarn *yarn, uint32_t *i);
+  static void YarnToUInt64(struct mdbYarn *yarn, uint64_t *i);
 
   static void   CleanupCache();
   static void   DumpCache();
@@ -216,7 +216,7 @@ public:
 protected:
   // prefs stuff - in future, we might want to cache the prefs interface
   nsresult        GetBoolPref(const char *prefName, bool *result);
-  nsresult        GetIntPref(const char *prefName, PRInt32 *result);
+  nsresult        GetIntPref(const char *prefName, int32_t *result);
   virtual void    GetGlobalPrefs();
     // retrieval methods
   nsIMsgThread *  GetThreadForReference(nsCString &msgID, nsIMsgDBHdr **pMsgHdr);
@@ -258,14 +258,14 @@ protected:
   bool    MatchDbName(nsIFile *dbName);  // returns TRUE if they match
 
   // Flag handling routines
-  virtual nsresult SetKeyFlag(nsMsgKey key, bool set, PRUint32 flag,
+  virtual nsresult SetKeyFlag(nsMsgKey key, bool set, uint32_t flag,
                               nsIDBChangeListener *instigator = NULL);
-  virtual nsresult SetMsgHdrFlag(nsIMsgDBHdr *msgHdr, bool set, PRUint32 flag, 
+  virtual nsresult SetMsgHdrFlag(nsIMsgDBHdr *msgHdr, bool set, uint32_t flag, 
                                  nsIDBChangeListener *instigator);
   
   virtual bool    SetHdrFlag(nsIMsgDBHdr *, bool bSet, nsMsgMessageFlagType flag);
   virtual bool    SetHdrReadFlag(nsIMsgDBHdr *, bool pRead);
-  virtual PRUint32 GetStatusFlags(nsIMsgDBHdr *msgHdr, PRUint32 origFlags);
+  virtual uint32_t GetStatusFlags(nsIMsgDBHdr *msgHdr, uint32_t origFlags);
   // helper function which doesn't involve thread object
   
   virtual nsresult RemoveHeaderFromDB(nsMsgHdr *msgHdr);
@@ -277,11 +277,11 @@ protected:
   nsCOMPtr <nsIMsgRetentionSettings> m_retentionSettings;
   nsCOMPtr <nsIMsgDownloadSettings> m_downloadSettings;
 
-  nsresult PurgeMessagesOlderThan(PRUint32 daysToKeepHdrs,
+  nsresult PurgeMessagesOlderThan(uint32_t daysToKeepHdrs,
                                   bool keepUnreadMessagesOnly,
                                   bool applyToFlaggedMessages,
                                   nsIMutableArray *hdrsToDelete);
-  nsresult PurgeExcessMessages(PRUint32 numHeadersToKeep,
+  nsresult PurgeExcessMessages(uint32_t numHeadersToKeep,
                                bool keepUnreadMessagesOnly,
                                bool applyToFlaggedMessages,
                                nsIMutableArray *hdrsToDelete);
@@ -374,9 +374,9 @@ protected:
   static void MoveEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aFrom, PLDHashEntryHdr* aTo);
   static void ClearEntry(PLDHashTable* aTable, PLDHashEntryHdr* aEntry);
   static PLDHashOperator HeaderEnumerator (PLDHashTable *table, PLDHashEntryHdr *hdr,
-                               PRUint32 number, void *arg);
+                               uint32_t number, void *arg);
   static PLDHashOperator ClearHeaderEnumerator (PLDHashTable *table, PLDHashEntryHdr *hdr,
-                               PRUint32 number, void *arg);
+                               uint32_t number, void *arg);
   static PLDHashTableOps gMsgDBHashTableOps;
   struct MsgHdrHashElement {
     PLDHashEntryHdr mHeader;
@@ -394,7 +394,7 @@ protected:
   struct RefHashElement : public PLDHashEntryHdr {
     const char     *mRef;       // Hash entry key, must come first
     nsMsgKey        mThreadId;
-    PRUint32        mCount;
+    uint32_t        mCount;
   };
   PLDHashTable *m_msgReferences;
   nsresult GetRefFromHash(nsCString &reference, nsMsgKey *threadId);
@@ -408,7 +408,7 @@ protected:
   // If a db goes away, it will clean up the outstanding enumerators.
   nsTArray<nsMsgDBEnumerator *> m_enumerators;
 private:
-  PRUint32 m_cacheSize;
+  uint32_t m_cacheSize;
 };
 
 class nsMsgRetentionSettings : public nsIMsgRetentionSettings
@@ -421,12 +421,12 @@ public:
   NS_DECL_NSIMSGRETENTIONSETTINGS
 protected:
   nsMsgRetainByPreference m_retainByPreference;
-  PRUint32                m_daysToKeepHdrs;
-  PRUint32                m_numHeadersToKeep;
+  uint32_t                m_daysToKeepHdrs;
+  uint32_t                m_numHeadersToKeep;
   bool                    m_keepUnreadMessagesOnly;
   bool                    m_useServerDefaults;
   bool                    m_cleanupBodiesByDays;
-  PRUint32                m_daysToKeepBodies;
+  uint32_t                m_daysToKeepBodies;
   bool                    m_applyToFlaggedMessages;
 };
 
@@ -442,7 +442,7 @@ protected:
   bool m_useServerDefaults;
   bool m_downloadUnreadOnly;
   bool m_downloadByDate;
-  PRInt32 m_ageLimitOfMsgsToDownload;
+  int32_t m_ageLimitOfMsgsToDownload;
 };
 
 #endif

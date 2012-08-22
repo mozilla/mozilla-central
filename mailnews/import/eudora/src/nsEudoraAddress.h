@@ -38,33 +38,33 @@ public:
 
   // Non-platform specific common stuff
     // import a mailbox
-  nsresult ImportAddresses(PRUint32 *pBytes, bool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsString& errors);
+  nsresult ImportAddresses(uint32_t *pBytes, bool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsString& errors);
 
 
 private:
   void       EmptyAliases(void);
-  void      ProcessLine(const char *pLine, PRInt32 len, nsString& errors);
-  PRInt32     CountWhiteSpace(const char *pLine, PRInt32 len);
-  CAliasEntry  *  ProcessAlias(const char *pLine, PRInt32 len, nsString& errors);
-  void      ProcessNote(const char *pLine, PRInt32 len, nsString& errors);
-  PRInt32      GetAliasName(const char *pLine, PRInt32 len, nsCString& name);
+  void      ProcessLine(const char *pLine, int32_t len, nsString& errors);
+  int32_t     CountWhiteSpace(const char *pLine, int32_t len);
+  CAliasEntry  *  ProcessAlias(const char *pLine, int32_t len, nsString& errors);
+  void      ProcessNote(const char *pLine, int32_t len, nsString& errors);
+  int32_t      GetAliasName(const char *pLine, int32_t len, nsCString& name);
   CAliasEntry *  ResolveAlias(nsCString& name);
-  void       ResolveEntries(nsCString& name, nsVoidArray& list, nsVoidArray& result, bool addResolvedEntries, bool wasResolved, PRInt32& numResolved);
-  void      BuildABCards(PRUint32 *pBytes, nsIAddrDatabase *pDb);
+  void       ResolveEntries(nsCString& name, nsVoidArray& list, nsVoidArray& result, bool addResolvedEntries, bool wasResolved, int32_t& numResolved);
+  void      BuildABCards(uint32_t *pBytes, nsIAddrDatabase *pDb);
   void      AddSingleCard(CAliasEntry *pEntry, nsVoidArray &emailList, nsIAddrDatabase *pDb);
   nsresult  AddSingleList(CAliasEntry *pEntry, nsVoidArray &emailList, nsIAddrDatabase *pDb);
   nsresult  AddGroupMembersAsCards(nsVoidArray &membersArray, nsIAddrDatabase *pDb);
   void      RememberGroupMembers(nsVoidArray &membersArray, nsVoidArray &emailList);
-  PRInt32      FindAlias(nsCString& name);
+  int32_t      FindAlias(nsCString& name);
   void      ExtractNoteField(nsCString& note, nsCString& field, const char *pFieldName);
-  void FormatExtraDataInNoteField(PRInt32 labelStringID, nsCString& extraData, nsString& noteUTF16);
+  void FormatExtraDataInNoteField(int32_t labelStringID, nsCString& extraData, nsString& noteUTF16);
   void      SanitizeValue(nsCString& val);
   void      SplitString(nsCString& val1, nsCString& val2);
 
 public:
-  static PRInt32     CountQuote(const char *pLine, PRInt32 len);
-  static PRInt32     CountComment(const char *pLine, PRInt32 len);
-  static PRInt32     CountAngle(const char *pLine, PRInt32 len);
+  static int32_t     CountQuote(const char *pLine, int32_t len);
+  static int32_t     CountComment(const char *pLine, int32_t len);
+  static int32_t     CountAngle(const char *pLine, int32_t len);
 
 private:
   nsVoidArray    m_alias;

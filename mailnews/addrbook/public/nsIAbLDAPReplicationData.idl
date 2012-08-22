@@ -20,7 +20,7 @@ interface nsIAbLDAPProcessReplicationData : nsISupports
    /**
      * readonly attribute giving the current replication state
      */
-    readonly attribute PRInt32 replicationState;
+    readonly attribute int32_t replicationState;
 
    /**
      * replication states
@@ -41,7 +41,7 @@ interface nsIAbLDAPProcessReplicationData : nsISupports
    /**
      * readonly attribute giving the current protocol used
      */
-    readonly attribute PRInt32 protocolUsed ;
+    readonly attribute int32_t protocolUsed ;
 
    /**
      * replication protocols

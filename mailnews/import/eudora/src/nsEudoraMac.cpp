@@ -185,7 +185,7 @@ bool nsEudoraMac::VerifyEudoraLocation(nsIFile **pFolder, bool findIni)
             {
               // Neither of the pref files was named .bkup
               // Pick the newest one?
-              PRInt64 modDate1, modDate2;
+              int64_t modDate1, modDate2;
 
               entry->GetLastModifiedTime(&modDate2);
               prefFile->GetLastModifiedTime(&modDate1);
@@ -333,7 +333,7 @@ nsresult nsEudoraMac::FoundMailbox(nsIFile *mailFile, const char *pName, nsISupp
   nsresult rv = pImport->CreateNewMailboxDescriptor(getter_AddRefs(desc));
   if (NS_SUCCEEDED(rv))
   {
-    PRInt64    sz = 0;
+    int64_t    sz = 0;
     mailFile->GetFileSize(&sz);
     desc->SetDisplayName(displayName.get());
     desc->SetDepth(m_depth);
@@ -373,7 +373,7 @@ nsresult nsEudoraMac::FoundMailFolder(nsIFile *mailFolder, const char *pName, ns
   nsresult rv = pImport->CreateNewMailboxDescriptor(getter_AddRefs(desc));
   if (NS_SUCCEEDED(rv))
   {
-    PRInt64    sz = 0;
+    int64_t    sz = 0;
     desc->SetDisplayName(displayName.get());
     desc->SetDepth(m_depth);
     desc->SetSize(sz);
@@ -413,7 +413,7 @@ bool nsEudoraMac::CreateTocFromResource(nsIFile *pMail, nsIFile **pToc)
   bool     result = false;
   if (resH)
   {
-    PRInt32 sz = (PRInt32) GetHandleSize(resH);
+    int32_t sz = (int32_t) GetHandleSize(resH);
     if (sz)
     {
       // Create the new TOC file
@@ -433,7 +433,7 @@ bool nsEudoraMac::CreateTocFromResource(nsIFile *pMail, nsIFile **pToc)
       if (NS_SUCCEEDED(rv))
       {
         HLock(resH);
-        PRUint32 written = 0;
+        uint32_t written = 0;
         rv = outputStream->Write(*resH, sz, &written);
         HUnlock(resH);
         outputStream->Close();
@@ -507,8 +507,8 @@ static StringPtr GetStringFromHandle(Handle aResource,
   if (!aResource)
     return nullptr;
 
-  PRUint8 *data = *(PRUint8**)aResource;
-  PRUint16 count = *(PRUint16*)data;
+  uint8_t *data = *(uint8_t**)aResource;
+  uint16_t count = *(uint16_t*)data;
 #if defined(IS_LITTLE_ENDIAN)
   count = count << 8 | count >> 8;
 #endif
@@ -522,7 +522,7 @@ static StringPtr GetStringFromHandle(Handle aResource,
 
   // looking for data.  data is in order
   while (--aId > 0)
-    data = data + (*(PRUint8*)data) + 1;
+    data = data + (*(uint8_t*)data) + 1;
 
   return data;
 }
@@ -604,7 +604,7 @@ bool nsEudoraMac::GetSettingsFromResource(nsIFile *pSettings, short resId, nsCSt
       }
       if (idx <= *theStr)
       {
-        PRUint8  save = *theStr;
+        uint8_t  save = *theStr;
         *theStr = idx - 1;
         if (*theStr)
           pStrs[1]->Append((const char *) (theStr + 1), *theStr);
@@ -922,7 +922,7 @@ nsresult nsEudoraMac::GetAttachmentInfo(const char *pFileName, nsIFile *pFile, n
 
   OSType    type = '????';
   OSType    creator = '????';
-  PRUint32  fNum = 0;
+  uint32_t  fNum = 0;
   int      i;
   PRUnichar  c;
 
@@ -957,12 +957,12 @@ nsresult nsEudoraMac::GetAttachmentInfo(const char *pFileName, nsIFile *pFile, n
         str.Right(types, 11);
         if ((types.CharAt(0) == '(') && (types.CharAt(5) == '/') && (types.CharAt(10) == ')'))
         {
-          type = ((PRUint32)types.CharAt(1)) << 24;
-          type |= ((PRUint32)types.CharAt(2)) << 16;
+          type = ((uint32_t)types.CharAt(1)) << 24;
+          type |= ((uint32_t)types.CharAt(2)) << 16;
           type |= types.CharAt(3) << 8;
           type |= types.CharAt(4);
-          creator = ((PRUint32)types.CharAt(6)) << 24;
-          creator |= ((PRUint32)types.CharAt(7)) << 16;
+          creator = ((uint32_t)types.CharAt(6)) << 24;
+          creator |= ((uint32_t)types.CharAt(7)) << 16;
           creator |= types.CharAt(8) << 8;
           creator |= types.CharAt(9);
           str.Left(types, str.Length() - 11);
@@ -1069,7 +1069,7 @@ bool nsEudoraMac::IsValidMailboxName(nsCString& fName)
 
 bool nsEudoraMac::IsValidMailboxFile(nsIFile *pFile)
 {
-  PRInt64  size = 0;
+  int64_t  size = 0;
   nsresult rv = pFile->GetFileSize(&size);
   if (size)
   {
@@ -1079,7 +1079,7 @@ bool nsEudoraMac::IsValidMailboxFile(nsIFile *pFile)
     rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), pFile);
     if (NS_FAILED(rv))
       return false;
-    PRUint32  read = 0;
+    uint32_t  read = 0;
     char  buffer[6];
     char *  pBuf = buffer;
     rv = inputStream->Read(pBuf, 5, &read);
@@ -1126,7 +1126,7 @@ nsresult nsEudoraMac::FindAddressBooks(nsIFile *pRoot, nsISupportsArray **ppArra
 
   nsString displayName;
   nsEudoraStringBundle::GetStringByID(EUDORAIMPORT_NICKNAMES_NAME, displayName);
-  PRInt64  sz = 0;
+  int64_t  sz = 0;
 
   // First find the Nicknames file itself
   rv = file->AppendNative(NS_LITERAL_CSTRING("Eudora Nicknames"));

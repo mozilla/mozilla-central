@@ -11,8 +11,8 @@
 
 typedef struct {
   nsCString     changeLogDN;
-  PRInt32       firstChangeNumber;
-  PRInt32       lastChangeNumber;
+  int32_t       firstChangeNumber;
+  int32_t       lastChangeNumber;
   nsCString     dataVersion;
 } RootDSEChangeLogEntry;
 
@@ -46,9 +46,9 @@ protected :
 
   RootDSEChangeLogEntry mRootDSEEntry;
   bool    mUseChangeLog;
-  PRInt32 mChangeLogEntriesCount;
+  int32_t mChangeLogEntriesCount;
 
-  PRInt32 mEntriesAddedQueryCount;
+  int32_t mEntriesAddedQueryCount;
   nsStringArray mEntriesToAdd;
 };
 

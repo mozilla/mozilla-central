@@ -69,7 +69,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::Init(const char* aURI)
   // Find the first ? (of the search params) if there is one.
   // We know we can start at the end of the moz-abldapdirectory:// because
   // that's the URI we should have been passed.
-  PRInt32 searchCharLocation = uri.FindChar('?', kLDAPDirectoryRootLen);
+  int32_t searchCharLocation = uri.FindChar('?', kLDAPDirectoryRootLen);
 
   if (searchCharLocation == -1)
     m_DirPrefId = Substring(uri, kLDAPDirectoryRootLen);
@@ -296,7 +296,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::StartSearch ()
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Get the max hits to return
-    PRInt32 maxHits;
+    int32_t maxHits;
     rv = GetMaxHits(&maxHits);
     if (NS_FAILED(rv))
       maxHits = kDefaultMaxHits;
@@ -357,7 +357,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::StopSearch ()
  * nsAbDirSearchListenerContext methods
  *
  */
-NS_IMETHODIMP nsAbLDAPDirectory::OnSearchFinished(PRInt32 aResult, const nsAString &aErrorMessage)
+NS_IMETHODIMP nsAbLDAPDirectory::OnSearchFinished(int32_t aResult, const nsAString &aErrorMessage)
 {
   nsresult rv = Initiate();
   NS_ENSURE_SUCCESS(rv, rv);
@@ -560,7 +560,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::SetSearchServerControls(nsIMutableArray *aContr
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::GetProtocolVersion(PRUint32 *aProtocolVersion)
+NS_IMETHODIMP nsAbLDAPDirectory::GetProtocolVersion(uint32_t *aProtocolVersion)
 {
   nsCAutoString versionString;
 
@@ -568,13 +568,13 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetProtocolVersion(PRUint32 *aProtocolVersion)
   NS_ENSURE_SUCCESS(rv, rv);
 
   *aProtocolVersion = versionString.EqualsLiteral("3") ?
-    (PRUint32)nsILDAPConnection::VERSION3 :
-    (PRUint32)nsILDAPConnection::VERSION2;
+    (uint32_t)nsILDAPConnection::VERSION3 :
+    (uint32_t)nsILDAPConnection::VERSION2;
 
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::SetProtocolVersion(PRUint32 aProtocolVersion)
+NS_IMETHODIMP nsAbLDAPDirectory::SetProtocolVersion(uint32_t aProtocolVersion)
 {
   // XXX We should cancel any existing LDAP connections here and
   // be ready to re-initialise them with the new auth details.
@@ -583,12 +583,12 @@ NS_IMETHODIMP nsAbLDAPDirectory::SetProtocolVersion(PRUint32 aProtocolVersion)
                         NS_LITERAL_CSTRING("3") : NS_LITERAL_CSTRING("2"));
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::GetMaxHits(PRInt32 *aMaxHits)
+NS_IMETHODIMP nsAbLDAPDirectory::GetMaxHits(int32_t *aMaxHits)
 {
   return GetIntValue("maxHits", kDefaultMaxHits, aMaxHits);
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::SetMaxHits(PRInt32 aMaxHits)
+NS_IMETHODIMP nsAbLDAPDirectory::SetMaxHits(int32_t aMaxHits)
 {
   return SetIntValue("maxHits", aMaxHits);
 }
@@ -625,12 +625,12 @@ NS_IMETHODIMP nsAbLDAPDirectory::SetSaslMechanism(const nsACString &aSaslMechani
   return SetStringValue("auth.saslmech", aSaslMechanism);
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::GetLastChangeNumber(PRInt32 *aLastChangeNumber)
+NS_IMETHODIMP nsAbLDAPDirectory::GetLastChangeNumber(int32_t *aLastChangeNumber)
 {
   return GetIntValue("lastChangeNumber", -1, aLastChangeNumber);
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::SetLastChangeNumber(PRInt32 aLastChangeNumber)
+NS_IMETHODIMP nsAbLDAPDirectory::SetLastChangeNumber(int32_t aLastChangeNumber)
 {
   return SetIntValue("lastChangeNumber", aLastChangeNumber);
 }
@@ -782,8 +782,8 @@ NS_IMETHODIMP nsAbLDAPDirectory::AddCard(nsIAbCard *aUpdatedCard,
 
 NS_IMETHODIMP nsAbLDAPDirectory::DeleteCards(nsIArray *aCards)
 {
-  PRUint32 cardCount;
-  PRUint32 i;
+  uint32_t cardCount;
+  uint32_t i;
   nsCAutoString cardDN;
 
   nsresult rv = aCards->GetLength(&cardCount);
@@ -919,7 +919,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::SetObjectClasses(const nsACString &aObjectClass
 
 nsresult nsAbLDAPDirectory::SplitStringList(
   const nsACString& aString,
-  PRUint32 *aCount,
+  uint32_t *aCount,
   char ***aValues)
 {
   NS_ENSURE_ARG_POINTER(aCount);
@@ -933,7 +933,7 @@ nsresult nsAbLDAPDirectory::SplitStringList(
       strarr.Length() * sizeof(char *)))))
     return NS_ERROR_OUT_OF_MEMORY;
 
-  for (PRUint32 i = 0; i < strarr.Length(); ++i)
+  for (uint32_t i = 0; i < strarr.Length(); ++i)
   {
     if (!(cArray[i] = ToNewCString(strarr[i])))
     {

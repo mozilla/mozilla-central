@@ -312,9 +312,9 @@ MapConditionString(nsIAbBooleanConditionString *aCondition, bool aNegate,
   rv = aCondition->GetValue(getter_Copies(value));
   NS_ENSURE_SUCCESS(rv, rv);
   
-  PRUint32 length = value.Length();
+  uint32_t length = value.Length();
   
-  PRUint32 i;
+  uint32_t i;
   for (i = 0; i < nsAbOSXUtils::kPropertyMapSize; ++i) {
     if (name.Equals(nsAbOSXUtils::kPropertyMap[i].mPropertyName)) {
       *aResult =
@@ -373,7 +373,7 @@ BuildSearchElements(nsIAbBooleanExpression *aExpression,
   rv = aExpression->GetOperation(&operation);
   NS_ENSURE_SUCCESS(rv, rv);
   
-  PRUint32 count;
+  uint32_t count;
   rv = expressions->GetLength(&count);
   NS_ENSURE_SUCCESS(rv, rv);
   
@@ -384,7 +384,7 @@ BuildSearchElements(nsIAbBooleanExpression *aExpression,
   if (count > 1)
     array = [[NSMutableArray alloc] init];
   
-  PRUint32 i;
+  uint32_t i;
   nsCOMPtr<nsIAbBooleanConditionString> condition;
   nsCOMPtr<nsIAbBooleanExpression> subExpression;
   for (i = 0; i < count; ++i) {
@@ -444,7 +444,7 @@ Search(nsIAbBooleanExpression *aExpression, NSArray **aResult)
   return canHandle;
 }
 
-static PRUint32 sObserverCount = 0;
+static uint32_t sObserverCount = 0;
 static ABChangedMonitor *sObserver = nullptr;
 
 nsAbOSXDirectory::nsAbOSXDirectory()
@@ -683,7 +683,7 @@ nsAbOSXDirectory::Update()
   }
   
   NSMutableArray *mutableArray = [NSMutableArray arrayWithArray:cards];
-  PRUint32 addressCount;
+  uint32_t addressCount;
   rv = cardList->GetLength(&addressCount);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -812,7 +812,7 @@ nsresult
 nsAbOSXDirectory::AssertDirectory(nsIAbManager *aManager,
                                   nsIAbDirectory *aDirectory)
 {
-  PRUint32 pos;
+  uint32_t pos;
   if (m_AddressList &&
       NS_SUCCEEDED(m_AddressList->IndexOf(0, aDirectory, &pos)))
     // We already have this directory, so no point in adding it again.
@@ -862,7 +862,7 @@ nsAbOSXDirectory::UnassertCard(nsIAbManager *aManager,
                                nsIMutableArray *aCardList)
 {
   nsresult rv;
-  PRUint32 pos;
+  uint32_t pos;
   
   if (NS_SUCCEEDED(aCardList->IndexOf(0, aCard, &pos)))
     rv = aCardList->RemoveElementAt(pos);
@@ -876,7 +876,7 @@ nsAbOSXDirectory::UnassertDirectory(nsIAbManager *aManager,
 {
   NS_ENSURE_TRUE(m_AddressList, NS_ERROR_NULL_POINTER);
 
-  PRUint32 pos;
+  uint32_t pos;
   if (NS_SUCCEEDED(m_AddressList->IndexOf(0, aDirectory, &pos)))
   {
     nsresult rv = m_AddressList->RemoveElementAt(pos);
@@ -1025,14 +1025,14 @@ nsAbOSXDirectory::GetCardFromProperty(const char *aProperty,
   if (!list)
     return NS_OK;
 
-  PRUint32 length;
+  uint32_t length;
   nsresult rv = list->GetLength(&length);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIAbCard> card;
   nsCAutoString cardValue;
 
-  for (PRUint32 i = 0; i < length && !*aResult; ++i)
+  for (uint32_t i = 0; i < length && !*aResult; ++i)
   {
     card = do_QueryElementAt(list, i, &rv);
     if (NS_SUCCEEDED(rv))
@@ -1073,7 +1073,7 @@ nsAbOSXDirectory::GetCardsFromProperty(const char *aProperty,
   if (!list)
     return NS_NewEmptyEnumerator(aResult);
 
-  PRUint32 length;
+  uint32_t length;
   nsresult rv = list->GetLength(&length);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1081,7 +1081,7 @@ nsAbOSXDirectory::GetCardsFromProperty(const char *aProperty,
   nsCOMPtr<nsIAbCard> card;
   nsCAutoString cardValue;
 
-  for (PRUint32 i = 0; i < length; ++i)
+  for (uint32_t i = 0; i < length; ++i)
   {
     card = do_QueryElementAt(list, i, &rv);
     if (NS_SUCCEEDED(rv))
@@ -1121,13 +1121,13 @@ nsAbOSXDirectory::CardForEmailAddress(const nsACString &aEmailAddress,
   if (!list)
     return NS_OK;
 
-  PRUint32 length;
+  uint32_t length;
   nsresult rv = list->GetLength(&length);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIAbCard> card;
 
-  for (PRUint32 i = 0; i < length && !*aResult; ++i)
+  for (uint32_t i = 0; i < length && !*aResult; ++i)
   {
     card = do_QueryElementAt(list, i, &rv);
     if (NS_SUCCEEDED(rv))
@@ -1149,7 +1149,7 @@ nsAbOSXDirectory::HasCard(nsIAbCard *aCard, bool *aHasCard)
   NS_ENSURE_ARG_POINTER(aHasCard);
 
   nsresult rv = NS_OK;
-  PRUint32 index;
+  uint32_t index;
   if (m_IsMailList)
   {
     if (m_AddressList)
@@ -1172,7 +1172,7 @@ nsAbOSXDirectory::HasDirectory(nsIAbDirectory *aDirectory,
   
   *aHasDirectory = false;
 
-  PRUint32 pos;
+  uint32_t pos;
   if (m_AddressList && NS_SUCCEEDED(m_AddressList->IndexOf(0, aDirectory, &pos)))
     *aHasDirectory = true;
 
@@ -1180,7 +1180,7 @@ nsAbOSXDirectory::HasDirectory(nsIAbDirectory *aDirectory,
 }
 
 NS_IMETHODIMP
-nsAbOSXDirectory::OnSearchFinished(PRInt32 aResult, const nsAString &aErrorMsg)
+nsAbOSXDirectory::OnSearchFinished(int32_t aResult, const nsAString &aErrorMsg)
 {
   return NS_OK;
 }
@@ -1263,7 +1263,7 @@ nsAbOSXDirectory::FallbackSearch(nsIAbBooleanExpression *aExpression,
   rv = queryProxy->Initiate();
   NS_ENSURE_SUCCESS(rv, rv);
   
-  PRInt32 context = 0;
+  int32_t context = 0;
   rv = queryProxy->DoQuery(directory, arguments, this, -1, 0, &context);
   NS_ENSURE_SUCCESS(rv, rv);
   
@@ -1287,7 +1287,7 @@ nsresult nsAbOSXDirectory::DeleteUid(const nsACString &aUid)
   // First, we'll see if its in the group list as it is likely to be shorter.
 
   // See if this item is in our address list
-  PRUint32 addressCount;
+  uint32_t addressCount;
   rv = m_AddressList->GetLength(&addressCount);
   NS_ENSURE_SUCCESS(rv, rv);
 

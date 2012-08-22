@@ -30,7 +30,7 @@ public :
 
 private :
 
-    PRInt32 m_cRef;
+    int32_t m_cRef;
 };
 
 #endif  // MSG_MAPI_FACTORY_H

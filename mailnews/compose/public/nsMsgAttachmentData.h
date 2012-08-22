@@ -52,7 +52,7 @@ public:
   nsCString m_xMacType;
   nsCString m_xMacCreator;
 
-  PRInt32 m_size;                  // The size of the attachment. May be 0.
+  int32_t m_size;                  // The size of the attachment. May be 0.
   bool    m_isExternalAttachment;  // Flag for determining if the attachment is external
   bool    m_isDownloaded;          // Flag for determining if the attachment has already been downloaded
   bool    m_hasFilename;           // Tells whether the name is provided by us or if it's a Part 1.2-like attachment
@@ -89,11 +89,11 @@ public:
   // it comes time to compose a MIME message, we can make an informed decision
   // about what Content-Transfer-Encoding would be best for this attachment.
   // (If it's encoded already, we ignore this information and ship it as-is.)
-  PRUint32    m_size;
-  PRUint32    m_unprintableCount;
-  PRUint32    m_highbitCount;
-  PRUint32    m_ctlCount;
-  PRUint32    m_nullCount;
-  PRUint32    m_maxLineLength;
+  uint32_t    m_size;
+  uint32_t    m_unprintableCount;
+  uint32_t    m_highbitCount;
+  uint32_t    m_ctlCount;
+  uint32_t    m_nullCount;
+  uint32_t    m_maxLineLength;
 };
 #endif

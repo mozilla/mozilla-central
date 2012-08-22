@@ -117,7 +117,7 @@ interface calIAlarm : nsISupports
      void addAttendee(in calIAttendee aAttendee);
      void deleteAttendee(in calIAttendee aAttendee);
      void clearAttendees();
-     void getAttendees(out PRUint32 count,
+     void getAttendees(out uint32_t count,
                        [array,size_is(count),retval] out calIAttendee attendees);
 
     /**
@@ -129,7 +129,7 @@ interface calIAlarm : nsISupports
      void addAttachment(in calIAttachment aAttachment);
      void deleteAttachment(in calIAttachment aAttachment);
      void clearAttachments();
-     void getAttachments(out PRUint32 count,
+     void getAttachments(out uint32_t count,
                          [array,size_is(count),retval] out calIAttachment attachments);
 
     /**

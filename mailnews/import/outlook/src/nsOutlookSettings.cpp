@@ -226,12 +226,12 @@ bool OutlookSettings::DoImport(nsIMsgAccount **aAccount)
   nsAutoString defMailName;
   rv = GetDefaultMailAccountName(defMailName);
 
-  PRUint32 childCount;
+  uint32_t childCount;
   key->GetChildCount(&childCount);
 
-  PRUint32 accounts = 0;
-  PRUint32 popCount = 0;
-  for (PRUint32 i = 0; i < childCount; i++) {
+  uint32_t accounts = 0;
+  uint32_t popCount = 0;
+  for (uint32_t i = 0; i < childCount; i++) {
     nsAutoString keyName;
     key->GetChildName(i, keyName);
     nsCOMPtr<nsIWindowsRegKey> subKey;
@@ -435,7 +435,7 @@ bool OutlookSettings::DoPOP3Server(nsIMsgAccountManager *aMgr,
 
   IMPORT_LOG0("Created a new account and set the incoming server to the POP3 server.\n");
 
-  PRUint32 leaveOnServer;
+  uint32_t leaveOnServer;
   rv = aKey->ReadIntValue(NS_LITERAL_STRING("Leave Mail On Server"), &leaveOnServer);
   if (NS_SUCCEEDED(rv))
     pop3Server->SetLeaveMessagesOnServer(leaveOnServer == 1 ? true : false);

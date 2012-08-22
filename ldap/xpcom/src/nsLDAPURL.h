@@ -46,9 +46,9 @@ protected:
   nsresult SetAttributeArray(char** aAttributes);
 
   nsCString mDN;                // Base Distinguished Name (Base DN)
-  PRInt32 mScope;               // Search scope (base, one or sub)
+  int32_t mScope;               // Search scope (base, one or sub)
   nsCString mFilter;            // LDAP search filter
-  PRUint32 mOptions;            // Options
+  uint32_t mOptions;            // Options
   nsCString mAttributes;
   nsCOMPtr<nsIURI> mBaseURL;
 };

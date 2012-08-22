@@ -87,9 +87,9 @@ nsresult nsMsgSearchOnlineMail::Encode (nsCString& pEncoding,
   
   if (true) // !(srcCharset & CODESET_MASK == STATEFUL || srcCharset & CODESET_MASK == WIDECHAR) )   //assume all single/multiple bytes charset has ascii as subset
   {
-    PRUint32 termCount;
+    uint32_t termCount;
     searchTerms->Count(&termCount);
-    PRUint32 i = 0;
+    uint32_t i = 0;
     
     for (i = 0; i < termCount && asciiOnly; i++)
     {

@@ -36,7 +36,7 @@ public:
     NS_IMETHOD    EndAllAttachments();
 
     // Body handling routines
-    NS_IMETHOD    WriteBody(const nsACString &buf, PRUint32 *amountWritten);
+    NS_IMETHOD    WriteBody(const nsACString &buf, uint32_t *amountWritten);
     NS_IMETHOD    EndBody();
     NS_IMETHOD    WriteHTMLHeaders(const nsACString &name);
 
@@ -55,7 +55,7 @@ protected:
     nsresult StartAttachmentInBody(const nsACString &name,
                                    const char *contentType, const char *url);
 
-    nsresult BroadcastHeaders(nsIMsgHeaderSink * aHeaderSink, PRInt32 aHeaderMode, bool aFromNewsgroup);
+    nsresult BroadcastHeaders(nsIMsgHeaderSink * aHeaderSink, int32_t aHeaderMode, bool aFromNewsgroup);
 };
 
 

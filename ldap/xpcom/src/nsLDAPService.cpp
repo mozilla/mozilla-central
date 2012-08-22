@@ -74,7 +74,7 @@ bool nsLDAPServiceEntry::DecrementLeases()
 
     return true;
 }
-PRUint32 nsLDAPServiceEntry::GetLeases()
+uint32_t nsLDAPServiceEntry::GetLeases()
 {
     return mLeases;
 }
@@ -134,7 +134,7 @@ void nsLDAPServiceEntry::SetMessage(nsILDAPMessage *aMessage)
 already_AddRefed<nsILDAPMessageListener> nsLDAPServiceEntry::PopListener()
 {
     nsILDAPMessageListener *listener;
-    PRInt32 count = mListeners.Count();
+    int32_t count = mListeners.Count();
     if (!count) {
         return 0;
     }
@@ -503,7 +503,7 @@ nsLDAPService::OnLDAPMessage(nsILDAPMessage *aMessage)
 {
     nsCOMPtr<nsILDAPOperation> operation;
     nsCOMPtr<nsILDAPConnection> connection;
-    PRInt32 messageType;
+    int32_t messageType;
 
     // XXXleif: NULL messages are supposedly allowed, but the semantics
     // are not definted (yet?). This is something to look out for...
@@ -618,7 +618,7 @@ nsLDAPService::EstablishConnection(nsLDAPServiceEntry *aEntry,
     nsCOMPtr<nsILDAPMessage> message;
     nsCAutoString binddn;
     nsCAutoString password;
-    PRUint32 protocolVersion;
+    uint32_t protocolVersion;
     nsresult rv;
 
     server = aEntry->GetServer();
@@ -752,7 +752,7 @@ nsLDAPService::EstablishConnection(nsLDAPServiceEntry *aEntry,
 }
 
 /* AString createFilter (in unsigned long aMaxSize, in AString aPattern, in AString aPrefix, in AString aSuffix, in AString aAttr, in AString aValue); */
-NS_IMETHODIMP nsLDAPService::CreateFilter(PRUint32 aMaxSize, 
+NS_IMETHODIMP nsLDAPService::CreateFilter(uint32_t aMaxSize, 
                                           const nsACString & aPattern,
                                           const nsACString & aPrefix,
                                           const nsACString & aSuffix,
@@ -769,7 +769,7 @@ NS_IMETHODIMP nsLDAPService::CreateFilter(PRUint32 aMaxSize,
     //
     const char *iter = aValue.BeginReading();
     const char *iterEnd = aValue.EndReading();
-    PRUint32 numTokens = CountTokens(iter, iterEnd); 
+    uint32_t numTokens = CountTokens(iter, iterEnd); 
     char **valueWords;
     valueWords = static_cast<char **>(nsMemory::Alloc((numTokens + 1) *
                                                 sizeof(char *)));
@@ -779,7 +779,7 @@ NS_IMETHODIMP nsLDAPService::CreateFilter(PRUint32 aMaxSize,
 
     // build the array of values
     //
-    PRUint32 curToken = 0;
+    uint32_t curToken = 0;
     while (iter != iterEnd && curToken < numTokens ) {
         valueWords[curToken] = NextToken(&iter, &iterEnd);
         if ( !valueWords[curToken] ) {
@@ -847,7 +847,7 @@ NS_IMETHODIMP nsLDAPService::CreateFilter(PRUint32 aMaxSize,
 NS_IMETHODIMP nsLDAPService::ParseDn(const char *aDn,
                                    nsACString &aRdn,
                                    nsACString &aBaseDn,
-                                   PRUint32 *aRdnCount,
+                                   uint32_t *aRdnCount,
                                    char ***aRdnAttrs)
 {
     NS_ENSURE_ARG_POINTER(aRdnCount);
@@ -883,7 +883,7 @@ NS_IMETHODIMP nsLDAPService::ParseDn(const char *aDn,
     }
 
     // count RDN attributes
-    PRUint32 rdnCount = 0;
+    uint32_t rdnCount = 0;
     for (char **component = rdnComponents; *component; ++component)
         ++rdnCount;
     if (rdnCount < 1) {
@@ -902,9 +902,9 @@ NS_IMETHODIMP nsLDAPService::ParseDn(const char *aDn,
         ldap_value_free(rdnComponents);
         return NS_ERROR_OUT_OF_MEMORY;
     }
-    PRUint32 index = 0;
+    uint32_t index = 0;
     for (char **component = rdnComponents; *component; ++component) {
-        PRUint32 len = 0;
+        uint32_t len = 0;
         char *p;
         for (p = *component; *p != '\0' && *p != '='; ++p)
             ++len;
@@ -938,11 +938,11 @@ NS_IMETHODIMP nsLDAPService::ParseDn(const char *aDn,
 
 // Count the number of space-separated tokens between aIter and aIterEnd
 //
-PRUint32
+uint32_t
 nsLDAPService::CountTokens(const char *aIter,
                            const char *aIterEnd)
 {
-    PRUint32 count(0);
+    uint32_t count(0);
 
     // keep iterating through the string until we hit the end
     //

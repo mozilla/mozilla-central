@@ -63,12 +63,12 @@ public:
                              nsIMsgAccount **ppAccount);
   static void SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
                             nsIDOMDocument *xmlDoc, nsAutoString &userName,
-                            PRInt32 authMethodIncoming, bool isNNTP);
+                            int32_t authMethodIncoming, bool isNNTP);
   static void SetSmtpServer(nsIDOMDocument *xmlDoc, nsIMsgIdentity *id,
-                            nsAutoString& inUserName, PRInt32 authMethodIncoming);
+                            nsAutoString& inUserName, int32_t authMethodIncoming);
 };
 
-static PRInt32 checkNewMailTime;// WM global setting, let's default to 30
+static int32_t checkNewMailTime;// WM global setting, let's default to 30
 static bool    checkNewMail;    // WM global setting, let's default to false
                                 // This won't cause unwanted autodownloads-
                                 // user can set prefs after import
@@ -158,7 +158,7 @@ bool WMSettings::DoImport(nsIMsgAccount **ppAccount)
   if (NS_SUCCEEDED(key->OpenChild(NS_LITERAL_STRING("mail"),
                                   nsIWindowsRegKey::ACCESS_QUERY_VALUE,
                                   getter_AddRefs(subKey)))) {
-    PRUint32 dwordResult = -1;
+    uint32_t dwordResult = -1;
     rv = subKey->ReadIntValue(NS_LITERAL_STRING("Poll For Mail"), &dwordResult); // reg_dword
     subKey->Close();
     if (NS_SUCCEEDED(rv) && dwordResult != -1){
@@ -190,7 +190,7 @@ bool WMSettings::DoImport(nsIMsgAccount **ppAccount)
   int accounts = 0;
   nsCOMPtr<nsIDOMDocument> xmlDoc;
 
-  for (PRInt32 i = fileArray.Count() - 1 ; i >= 0; i--){
+  for (int32_t i = fileArray.Count() - 1 ; i >= 0; i--){
     nsWMUtils::MakeXMLdoc(getter_AddRefs(xmlDoc), fileArray[i]);
 
     nsCAutoString name;
@@ -234,7 +234,7 @@ bool WMSettings::DoIMAPServer(nsIMsgAccountManager *pMgr,
                                 const nsString& serverName,
                                 nsIMsgAccount **ppAccount)
 {
-  PRInt32 authMethod;   // Secure Password Authentication (SPA)
+  int32_t authMethod;   // Secure Password Authentication (SPA)
   nsresult errorCode;
   if (ppAccount)
     *ppAccount = nullptr;
@@ -343,7 +343,7 @@ bool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
                                 const nsString& serverName,
                                 nsIMsgAccount **ppAccount)
 {
-  PRInt32 authMethod;   // Secure Password Authentication (SPA)
+  int32_t authMethod;   // Secure Password Authentication (SPA)
   nsresult errorCode;
   if (ppAccount)
     *ppAccount = nullptr;
@@ -504,7 +504,7 @@ bool WMSettings::DoNNTPServer(nsIMsgAccountManager *pMgr,
                                 const nsString& serverName,
                                 nsIMsgAccount **ppAccount)
 {
-  PRInt32 authMethod;
+  int32_t authMethod;
   nsresult errorCode;
   if (ppAccount)
     *ppAccount = nullptr;
@@ -604,7 +604,7 @@ bool WMSettings::DoNNTPServer(nsIMsgAccountManager *pMgr,
 
 void WMSettings::SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
                                nsIDOMDocument *xmlDoc, nsAutoString &inUserName,
-                               PRInt32 authMethodIncoming, bool isNNTP)
+                               int32_t authMethodIncoming, bool isNNTP)
 {
   // Get the relevant information for an identity
   // BUG 470587. Don't set this: id->SetIdentityName(fullName);
@@ -659,7 +659,7 @@ void WMSettings::SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
 }
 
 void WMSettings::SetSmtpServer(nsIDOMDocument *xmlDoc, nsIMsgIdentity *id,
-                               nsAutoString& inUserName, PRInt32 authMethodIncoming)
+                               nsAutoString& inUserName, int32_t authMethodIncoming)
 {
   nsresult errorCode;
 
@@ -673,11 +673,11 @@ void WMSettings::SetSmtpServer(nsIDOMDocument *xmlDoc, nsIMsgIdentity *id,
 
   // first we have to calculate the smtp user name which is based on sicily
   // smtp user name depends on sicily which may or not exist
-  PRInt32 useSicily = 0;
+  int32_t useSicily = 0;
   if (NS_SUCCEEDED(nsWMUtils::GetValueForTag(xmlDoc,
                                              "SMTP_Use_Sicily",
                                              value))) {
-    useSicily = (PRInt32)value.ToInteger(&errorCode,16);
+    useSicily = (int32_t)value.ToInteger(&errorCode,16);
   }
   switch (useSicily) {
     case 1 : case 3 :

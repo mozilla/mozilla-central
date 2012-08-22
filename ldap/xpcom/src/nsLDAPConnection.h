@@ -58,7 +58,7 @@ class nsLDAPConnection : public nsILDAPConnection,
     //
     nsresult InvokeMessageCallback(LDAPMessage *aMsgHandle,
                                    nsILDAPMessage *aMsg,
-                                   PRInt32 aOperation,
+                                   int32_t aOperation,
                                    bool aRemoveOpFromConnQ);
     /**
      * Add an nsILDAPOperation to the list of operations pending on
@@ -72,7 +72,7 @@ class nsLDAPConnection : public nsILDAPConnection,
      *                                      unique to this connection
      * @exception NS_ERROR_OUT_OF_MEMORY    out of memory
      */
-  nsresult AddPendingOperation(PRUint32 aOperationID, nsILDAPOperation *aOperation);
+  nsresult AddPendingOperation(uint32_t aOperationID, nsILDAPOperation *aOperation);
 
     /**
      * Remove an nsILDAPOperation from the list of operations pending on this
@@ -83,7 +83,7 @@ class nsLDAPConnection : public nsILDAPConnection,
      * @exception NS_ERROR_OUT_OF_MEMORY    out of memory
      * @exception NS_ERROR_FAILURE          could not delete the operation
      */
-    nsresult RemovePendingOperation(PRUint32 aOperationID);
+    nsresult RemovePendingOperation(uint32_t aOperationID);
 
     void Close();                       // close the connection
     LDAP *mConnectionHandle;            // the LDAP C SDK's connection object
@@ -92,9 +92,9 @@ class nsLDAPConnection : public nsILDAPConnection,
 
     nsInterfaceHashtableMT<nsUint32HashKey, nsILDAPOperation> mPendingOperations;
 
-    PRInt32 mPort;                      // The LDAP port we're binding to
+    int32_t mPort;                      // The LDAP port we're binding to
     bool mSSL;                        // the options
-    PRUint32 mVersion;                  // LDAP protocol version
+    uint32_t mVersion;                  // LDAP protocol version
 
     nsCString mResolvedIP;              // Preresolved list of host IPs
     nsCOMPtr<nsILDAPMessageListener> mInitListener; // Init callback
@@ -109,7 +109,7 @@ class nsLDAPConnectionRunnable : public nsIRunnable
   friend class nsLDAPMessage;
 
 public:
-  nsLDAPConnectionRunnable(PRInt32 aOperationID,
+  nsLDAPConnectionRunnable(int32_t aOperationID,
                            nsILDAPOperation *aOperation,
                            nsLDAPConnection *aConnection);
   virtual ~nsLDAPConnectionRunnable();
@@ -117,7 +117,7 @@ public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIRUNNABLE
 
-  PRInt32 mOperationID;
+  int32_t mOperationID;
   nsRefPtr<nsLDAPConnection> mConnection;
 };
 

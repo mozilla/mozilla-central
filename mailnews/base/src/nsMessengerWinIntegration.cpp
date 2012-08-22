@@ -299,11 +299,11 @@ NOTIFYICONDATAW sBiffIconData = { NOTIFYICONDATAW_V2_SIZE,
                                   L"",
                                   NIIF_USER | NIIF_NOSOUND };
 // allow for the null terminator
-static const PRUint32 kMaxTooltipSize = sizeof(sBiffIconData.szTip) /
+static const uint32_t kMaxTooltipSize = sizeof(sBiffIconData.szTip) /
                                         sizeof(sBiffIconData.szTip[0]) - 1;
-static const PRUint32 kMaxBalloonSize = sizeof(sBiffIconData.szInfo) /
+static const uint32_t kMaxBalloonSize = sizeof(sBiffIconData.szInfo) /
                                         sizeof(sBiffIconData.szInfo[0]) - 1;
-static const PRUint32 kMaxBalloonTitle = sizeof(sBiffIconData.szInfoTitle) /
+static const uint32_t kMaxBalloonTitle = sizeof(sBiffIconData.szInfoTitle) /
                                          sizeof(sBiffIconData.szInfoTitle[0]) - 1;
 
 void nsMessengerWinIntegration::InitializeBiffStatusIcon()
@@ -516,7 +516,7 @@ nsresult nsMessengerWinIntegration::ShowNewAlertNotification(bool aUserInitiated
     nsCOMPtr<nsISupportsPRUint8> scriptableOrigin (do_CreateInstance(NS_SUPPORTS_PRUINT8_CONTRACTID));
     NS_ENSURE_TRUE(scriptableOrigin, NS_ERROR_FAILURE);
     scriptableOrigin->SetData(0);
-    PRInt32 origin = LookAndFeel::GetInt(LookAndFeel::eIntID_AlertNotificationOrigin);
+    int32_t origin = LookAndFeel::GetInt(LookAndFeel::eIntID_AlertNotificationOrigin);
     if (origin && origin >= 0 && origin <= 7)
       scriptableOrigin->SetData(origin);
 
@@ -604,7 +604,7 @@ nsMessengerWinIntegration::Observe(nsISupports* aSubject, const char* aTopic, co
 static void EscapeAmpersands(nsString& aToolTip)
 {
   // First, check to see whether we have any ampersands.
-  PRInt32 pos = aToolTip.FindChar('&');
+  int32_t pos = aToolTip.FindChar('&');
   if (pos == kNotFound)
     return;
 
@@ -639,12 +639,12 @@ void nsMessengerWinIntegration::FillToolTipInfo()
   nsAutoString animatedAlertText;
   nsCOMPtr<nsIMsgFolder> folder;
   nsCOMPtr<nsIWeakReference> weakReference;
-  PRInt32 numNewMessages = 0;
+  int32_t numNewMessages = 0;
 
-  PRUint32 count = 0;
+  uint32_t count = 0;
   mFoldersWithNewMail->Count(&count);
 
-  for (PRUint32 index = 0; index < count; index++)
+  for (uint32_t index = 0; index < count; index++)
   {
     weakReference = do_QueryElementAt(mFoldersWithNewMail, index);
     folder = do_QueryReferent(weakReference);
@@ -715,9 +715,9 @@ nsresult nsMessengerWinIntegration::GetFirstFolderWithNewMail(nsACString& aFolde
 
   nsCOMPtr<nsIMsgFolder> folder;
   nsCOMPtr<nsIWeakReference> weakReference;
-  PRInt32 numNewMessages = 0;
+  int32_t numNewMessages = 0;
 
-  PRUint32 count = 0;
+  uint32_t count = 0;
   mFoldersWithNewMail->Count(&count);
 
   if (!count)  // kick out if we don't have any folders with new mail
@@ -778,7 +778,7 @@ void nsMessengerWinIntegration::GenericShellNotify(DWORD aMessage)
 }
 
 NS_IMETHODIMP
-nsMessengerWinIntegration::OnItemPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom *property, PRUint32 oldFlag, PRUint32 newFlag)
+nsMessengerWinIntegration::OnItemPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom *property, uint32_t oldFlag, uint32_t newFlag)
 {
   return NS_OK;
 }
@@ -826,13 +826,13 @@ nsMessengerWinIntegration::OnItemEvent(nsIMsgFolder *, nsIAtom *)
 }
 
 NS_IMETHODIMP
-nsMessengerWinIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty, PRInt32 aOldValue, PRInt32 aNewValue)
+nsMessengerWinIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty, int32_t aOldValue, int32_t aNewValue)
 {
   // if we got new mail show a icon in the system tray
   if (mBiffStateAtom == aProperty && mFoldersWithNewMail)
   {
     nsCOMPtr<nsIWeakReference> weakFolder = do_GetWeakReference(aItem);
-    PRInt32 indexInNewArray = mFoldersWithNewMail->IndexOf(weakFolder);
+    int32_t indexInNewArray = mFoldersWithNewMail->IndexOf(weakFolder);
 
     if (!mBiffIconInitialized)
       InitializeBiffStatusIcon();

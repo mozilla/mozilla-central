@@ -116,7 +116,7 @@ nsProfileMigrator::GetDefaultMailMigratorKey(nsACString& aKey, nsCOMPtr<nsIMailP
     "eudora",
     ""
   };
-  for (PRUint32 i = 0; sources[i][0]; ++i)
+  for (uint32_t i = 0; sources[i][0]; ++i)
   {
     migratorID = migratorPrefix;
     migratorID.Append(sources[i]);

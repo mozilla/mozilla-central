@@ -40,23 +40,23 @@ public:
     nsresult			AddToNewMDB();
   // accessor methods.
   
-  bool      TestFlag(PRInt32 flags);
-  PRInt16   GetIMAPHierarchySeparator() ;
-  void      SetIMAPHierarchySeparator(PRInt16 hierarchyDelimiter) ;
-  void      ChangeImapTotalPendingMessages(PRInt32 delta);
-  void      ChangeImapUnreadPendingMessages(PRInt32 delta) ;
+  bool      TestFlag(int32_t flags);
+  int16_t   GetIMAPHierarchySeparator() ;
+  void      SetIMAPHierarchySeparator(int16_t hierarchyDelimiter) ;
+  void      ChangeImapTotalPendingMessages(int32_t delta);
+  void      ChangeImapUnreadPendingMessages(int32_t delta) ;
   
   nsresult      InitFromExistingDB();
   // get and set arbitrary property, aka row cell value.
   nsresult SetPropertyWithToken(mdb_token aProperty, const nsAString &propertyStr);
-  nsresult SetUint32PropertyWithToken(mdb_token aProperty, PRUint32 propertyValue);
-  nsresult SetInt32PropertyWithToken(mdb_token aProperty, PRInt32 propertyValue);
+  nsresult SetUint32PropertyWithToken(mdb_token aProperty, uint32_t propertyValue);
+  nsresult SetInt32PropertyWithToken(mdb_token aProperty, int32_t propertyValue);
   nsresult GetPropertyWithToken(mdb_token aProperty, nsAString &resultProperty);
-  nsresult GetUint32PropertyWithToken(mdb_token aProperty, PRUint32 &propertyValue, PRUint32 defaultValue = 0);
-  nsresult GetInt32PropertyWithToken(mdb_token aProperty, PRInt32 &propertyValue, PRInt32 defaultValue = 0);
-  nsresult SetUint64Property(const char *aProperty, PRUint64 propertyValue);
+  nsresult GetUint32PropertyWithToken(mdb_token aProperty, uint32_t &propertyValue, uint32_t defaultValue = 0);
+  nsresult GetInt32PropertyWithToken(mdb_token aProperty, int32_t &propertyValue, int32_t defaultValue = 0);
+  nsresult SetUint64Property(const char *aProperty, uint64_t propertyValue);
   nsresult GetUint64PropertyWithToken(mdb_token columnToken,
-                                      PRUint64 *propertyValue);
+                                      uint64_t *propertyValue);
 
   nsTArray<nsMsgKey> m_lateredKeys; // list of latered messages
   
@@ -70,27 +70,27 @@ protected:
 
   void ReleaseExternalReferences(); // let go of any references to other objects.
 
-  PRUint64  m_folderSize;
-  PRInt32   m_expungedBytes; // sum of size of deleted messages in folder
-  PRUint32  m_folderDate;
+  uint64_t  m_folderSize;
+  int32_t   m_expungedBytes; // sum of size of deleted messages in folder
+  uint32_t  m_folderDate;
   nsMsgKey  m_highWaterMessageKey; // largest news article number or imap uid whose header we've seen
 
   //  m_numUnreadMessages and m_numMessages can never be negative. 0 means 'no msgs'.
-  PRInt32   m_numUnreadMessages;
-  PRInt32   m_numMessages;    // includes expunged and ignored messages
+  int32_t   m_numUnreadMessages;
+  int32_t   m_numMessages;    // includes expunged and ignored messages
 
-  PRInt32   m_flags;  // folder specific flags. This holds things like re-use thread pane,
+  int32_t   m_flags;  // folder specific flags. This holds things like re-use thread pane,
   // configured for off-line use, use default retrieval, purge article/header options
 
-  PRUint16    m_version;                // for upgrading...
-  PRInt16     m_IMAPHierarchySeparator;	// imap path separator
+  uint16_t    m_version;                // for upgrading...
+  int16_t     m_IMAPHierarchySeparator;	// imap path separator
   
   // mail only (for now)
   
   // IMAP only
-  PRInt32     m_ImapUidValidity;
-  PRInt32     m_totalPendingMessages;
-  PRInt32     m_unreadPendingMessages;
+  int32_t     m_ImapUidValidity;
+  int32_t     m_totalPendingMessages;
+  int32_t     m_unreadPendingMessages;
   
   // news only (for now)
   nsMsgKey    m_expiredMark;		// Highest invalid article number in group - for expiring

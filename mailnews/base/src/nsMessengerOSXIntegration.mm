@@ -318,12 +318,12 @@ nsMessengerOSXIntegration::GetStringBundle(nsIStringBundle **aBundle)
 }
 
 void
-nsMessengerOSXIntegration::FillToolTipInfo(nsIMsgFolder *aFolder, PRInt32 aNewCount)
+nsMessengerOSXIntegration::FillToolTipInfo(nsIMsgFolder *aFolder, int32_t aNewCount)
 {
   if (aFolder)
   {
     nsString authors;
-    PRInt32 numNotDisplayed;
+    int32_t numNotDisplayed;
     nsresult rv = GetNewMailAuthors(aFolder, authors, aNewCount, &numNotDisplayed);
 
     // If all senders are vetoed, the authors string will be empty.
@@ -375,8 +375,8 @@ nsMessengerOSXIntegration::FillToolTipInfo(nsIMsgFolder *aFolder, PRInt32 aNewCo
           rv = aFolder->GetMsgDatabase(getter_AddRefs(db));
           if (NS_SUCCEEDED(rv) && db)
           {
-            PRUint32 numNewKeys;
-            PRUint32 *newMessageKeys;
+            uint32_t numNewKeys;
+            uint32_t *newMessageKeys;
             rv = db->GetNewList(&numNewKeys, &newMessageKeys);
             if (NS_SUCCEEDED(rv))
             {
@@ -447,8 +447,8 @@ nsMessengerOSXIntegration::ShowAlertMessage(const nsAString& aAlertTitle,
 NS_IMETHODIMP
 nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
                                                     nsIAtom *aProperty,
-                                                    PRInt32 aOldValue,
-                                                    PRInt32 aNewValue)
+                                                    int32_t aOldValue,
+                                                    int32_t aNewValue)
 {
   // if we got new mail show an alert
   if (aNewValue == nsIMsgFolder::nsMsgBiffState_NewMail)
@@ -470,7 +470,7 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
     if (NS_FAILED(rv) || !childFolder)
       return NS_ERROR_FAILURE;
 
-    PRInt32 numNewMessages = 0;
+    int32_t numNewMessages = 0;
     childFolder->GetNumNewMessages(true, &numNewMessages);
     FillToolTipInfo(childFolder, numNewMessages);
   }
@@ -534,7 +534,7 @@ nsMessengerOSXIntegration::RestoreDockIcon()
 nsresult
 nsMessengerOSXIntegration::BadgeDockIcon()
 {
-  PRInt32 unreadCount = mUnreadTotal + mUnreadChat;
+  int32_t unreadCount = mUnreadTotal + mUnreadChat;
   // If count is less than one, we should restore the original dock icon.
   if (unreadCount < 1)
   {
@@ -582,7 +582,7 @@ nsMessengerOSXIntegration::BadgeDockIcon()
 }
 
 NS_IMETHODIMP
-nsMessengerOSXIntegration::OnItemPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom *property, PRUint32 oldFlag, PRUint32 newFlag)
+nsMessengerOSXIntegration::OnItemPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom *property, uint32_t oldFlag, uint32_t newFlag)
 {
   return NS_OK;
 }
@@ -611,8 +611,8 @@ nsMessengerOSXIntegration::OnItemEvent(nsIMsgFolder *, nsIAtom *)
 nsresult
 nsMessengerOSXIntegration::GetNewMailAuthors(nsIMsgFolder* aFolder,
                                              nsString& aAuthors,
-                                             PRInt32 aNewCount,
-                                             PRInt32* aNotDisplayed)
+                                             int32_t aNewCount,
+                                             int32_t* aNotDisplayed)
 {
   // Get a list of names or email addresses for the folder's authors
   // with new mail. Note that we only process the most recent "new"
@@ -625,7 +625,7 @@ nsMessengerOSXIntegration::GetNewMailAuthors(nsIMsgFolder* aFolder,
   // the resulting length of aAuthors will be 0.
   nsCOMPtr<nsIMsgDatabase> db;
   nsresult rv = aFolder->GetMsgDatabase(getter_AddRefs(db));
-  PRUint32 numNewKeys = 0;
+  uint32_t numNewKeys = 0;
   if (NS_SUCCEEDED(rv) && db)
   {
     nsCOMPtr<nsIMsgHeaderParser> parser =
@@ -642,15 +642,15 @@ nsMessengerOSXIntegration::GetNewMailAuthors(nsIMsgFolder* aFolder,
     if (!bundle)
       return NS_ERROR_FAILURE;
 
-    PRUint32 *newMessageKeys;
+    uint32_t *newMessageKeys;
     rv = db->GetNewList(&numNewKeys, &newMessageKeys);
     if (NS_SUCCEEDED(rv))
     {
       nsString listSeparator;
       bundle->GetStringFromName(NS_LITERAL_STRING("macBiffNotification_separator").get(), getter_Copies(listSeparator));
 
-      PRInt32 displayed = 0;
-      for (PRInt32 i = numNewKeys - 1; i >= 0; i--, aNewCount--)
+      int32_t displayed = 0;
+      for (int32_t i = numNewKeys - 1; i >= 0; i--, aNewCount--)
       {
         if (0 == aNewCount || displayed == kMaxDisplayCount)
           break;
@@ -718,7 +718,7 @@ nsMessengerOSXIntegration::GetFirstFolderWithNewMail(nsIMsgFolder* aFolder, nsCS
     if (enumerator)
     {
       nsCOMPtr<nsISupports> supports;
-      PRInt32 numNewMessages = 0;
+      int32_t numNewMessages = 0;
       nsresult more = enumerator->First();
       while (NS_SUCCEEDED(more))
       {
@@ -749,7 +749,7 @@ nsMessengerOSXIntegration::GetFirstFolderWithNewMail(nsIMsgFolder* aFolder, nsCS
  * Method implementations for mozINewMailListener
  */
 NS_IMETHODIMP
-nsMessengerOSXIntegration::OnCountChanged(PRUint32 count)
+nsMessengerOSXIntegration::OnCountChanged(uint32_t count)
 {
   mUnreadTotal = count;
   BadgeDockIcon();

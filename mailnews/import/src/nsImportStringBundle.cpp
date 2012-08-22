@@ -26,14 +26,14 @@ nsresult nsImportStringBundle::GetStringBundle(const char *aPropertyURL,
   return rv;
 }
 
-void nsImportStringBundle::GetStringByID(PRInt32 aStringID,
+void nsImportStringBundle::GetStringByID(int32_t aStringID,
                                          nsIStringBundle *aBundle,
                                          nsString &aResult)
 {
   aResult.Adopt(GetStringByID(aStringID, aBundle));
 }
 
-PRUnichar *nsImportStringBundle::GetStringByID(PRInt32 aStringID,
+PRUnichar *nsImportStringBundle::GetStringByID(int32_t aStringID,
                                                nsIStringBundle *aBundle)
 {
   if (aBundle)

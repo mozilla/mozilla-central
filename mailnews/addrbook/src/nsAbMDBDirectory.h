@@ -47,7 +47,7 @@ public:
   NS_IMETHOD ClearDatabase();
   NS_IMETHOD NotifyDirItemAdded(nsISupports *item) { return NotifyItemAdded(item);}
   NS_IMETHOD RemoveElementsFromAddressList();
-  NS_IMETHOD RemoveEmailAddressAt(PRUint32 aIndex);
+  NS_IMETHOD RemoveEmailAddressAt(uint32_t aIndex);
   NS_IMETHOD AddDirectory(const char *uriName, nsIAbDirectory **childDir);
   NS_IMETHOD GetDatabaseFile(nsIFile **aResult);
   NS_IMETHOD GetDatabase(nsIAddrDatabase **aResult);
@@ -93,7 +93,7 @@ protected:
 
   nsCOMArray<nsIAbDirectory> mSubDirectories;
 
-  PRInt32 mContext;
+  int32_t mContext;
   bool mPerformingQuery;
 
   nsInterfaceHashtable<nsISupportsHashKey, nsIAbCard> mSearchCache;

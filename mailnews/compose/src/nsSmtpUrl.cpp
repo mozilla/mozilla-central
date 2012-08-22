@@ -357,7 +357,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     {
       // References is set. Add the In-Reply-To as last header unless it's
       // set as last reference already.
-      PRInt32 lastRefStart = m_referencePart.RFindChar('<');
+      int32_t lastRefStart = m_referencePart.RFindChar('<');
       nsCAutoString lastReference;
       if (lastRefStart != -1)
         lastReference = StringTail(m_referencePart, lastRefStart);
@@ -405,7 +405,7 @@ nsresult nsMailtoUrl::ParseUrl()
   nsCString escapedPath;
   m_baseURL->GetPath(escapedPath);
 
-  PRInt32 startOfSearchPart = escapedPath.FindChar('?');
+  int32_t startOfSearchPart = escapedPath.FindChar('?');
   if (startOfSearchPart >= 0)
   {
     // now parse out the search field...
@@ -572,12 +572,12 @@ NS_IMETHODIMP nsMailtoUrl::SetHost(const nsACString &aHost)
 	return ParseUrl();
 }
 
-NS_IMETHODIMP nsMailtoUrl::GetPort(PRInt32 *aPort)
+NS_IMETHODIMP nsMailtoUrl::GetPort(int32_t *aPort)
 {
 	return m_baseURL->GetPort(aPort);
 }
 
-NS_IMETHODIMP nsMailtoUrl::SetPort(PRInt32 aPort)
+NS_IMETHODIMP nsMailtoUrl::SetPort(int32_t aPort)
 {
 	m_baseURL->SetPort(aPort);
 	return ParseUrl();

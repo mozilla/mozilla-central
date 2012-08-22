@@ -94,7 +94,7 @@ test_file_type (const char *filename, void *stream_closure)
 }
 
 static int
-test_output_fn(char *buf, PRInt32 size, void *closure)
+test_output_fn(char *buf, int32_t size, void *closure)
 {
   FILE *out = (FILE *) closure;
   if (out)
@@ -153,7 +153,7 @@ test_image_make_image_html(void *image_data)
             "an inlined image would have gone here for<BR>");
   const char *suffix = "</TD></TR></TABLE></CENTER><P>";
 #endif
-  PRUint32 buflen = strlen (prefix) + strlen (suffix) + strlen (url) + 20;
+  uint32_t buflen = strlen (prefix) + strlen (suffix) + strlen (url) + 20;
   char *buf = (char *) PR_MALLOC (buflen);
   if (!buf) return 0;
   *buf = 0;
@@ -163,7 +163,7 @@ test_image_make_image_html(void *image_data)
   return buf;
 }
 
-static int test_image_write_buffer(const char *buf, PRInt32 size, void *image_closure)
+static int test_image_write_buffer(const char *buf, int32_t size, void *image_closure)
 {
   return 0;
 }
@@ -312,7 +312,7 @@ extern void SEC_Init(void);
 int
 main (int argc, char **argv)
 {
-  PRInt32 i = 1;
+  int32_t i = 1;
   char *url = "";
   bool fancy_p = true;
   bool html_p = true;

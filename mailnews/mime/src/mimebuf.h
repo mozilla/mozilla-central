@@ -14,24 +14,24 @@
 #ifndef _MIMEBUF_H_
 #define _MIMEBUF_H_
 
-extern "C" int mime_GrowBuffer (PRUint32 desired_size,
-               PRUint32 element_size, PRUint32 quantum,
-               char **buffer, PRInt32 *size);
+extern "C" int mime_GrowBuffer (uint32_t desired_size,
+               uint32_t element_size, uint32_t quantum,
+               char **buffer, int32_t *size);
 
-extern "C" int mime_LineBuffer (const char *net_buffer, PRInt32 net_buffer_size,
-               char **bufferP, PRInt32 *buffer_sizeP,
-               PRInt32 *buffer_fpP,
+extern "C" int mime_LineBuffer (const char *net_buffer, int32_t net_buffer_size,
+               char **bufferP, int32_t *buffer_sizeP,
+               int32_t *buffer_fpP,
                bool convert_newlines_p,
-               PRInt32 (* per_line_fn) (char *line, PRInt32
+               int32_t (* per_line_fn) (char *line, int32_t
                          line_length, void *closure),
                void *closure);
 
-extern "C" int mime_ReBuffer (const char *net_buffer, PRInt32 net_buffer_size,
-             PRUint32 desired_buffer_size,
-             char **bufferP, PRUint32 *buffer_sizeP,
-             PRUint32 *buffer_fpP,
-             PRInt32 (*per_buffer_fn) (char *buffer,
-                         PRUint32 buffer_size,
+extern "C" int mime_ReBuffer (const char *net_buffer, int32_t net_buffer_size,
+             uint32_t desired_buffer_size,
+             char **bufferP, uint32_t *buffer_sizeP,
+             uint32_t *buffer_fpP,
+             int32_t (*per_buffer_fn) (char *buffer,
+                         uint32_t buffer_size,
                          void *closure),
              void *closure);
 

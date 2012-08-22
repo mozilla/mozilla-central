@@ -33,8 +33,8 @@ static NS_DEFINE_IID(kISupportsIID,      NS_ISUPPORTS_IID);
 
 /* ------------ Address book stuff ----------------- */
 typedef struct {
-  PRInt32    mozField;
-  PRInt32    multiLine;
+  int32_t    mozField;
+  int32_t    multiLine;
   ULONG    mapiTag;
 } MAPIFields;
 
@@ -202,7 +202,7 @@ void nsOutlookMail::MakeAddressBookNameUnique(nsString& name, nsString& list)
   while (!IsAddressBookNameUnique(newName, list)) {
     newName = name;
     newName.Append(PRUnichar(' '));
-    newName.AppendInt((PRInt32) idx);
+    newName.AppendInt((int32_t) idx);
     idx++;
   }
 
@@ -336,10 +336,10 @@ void nsOutlookMail::OpenMessageStore(CMapiFolder *pNextFolder)
 //   - Encapsulate the MAPI message interface
 //   - Gather the information required to (re)compose the message
 
-nsresult nsOutlookMail::ImportMailbox(PRUint32 *pDoneSoFar, bool *pAbort,
-                                      PRInt32 index, const PRUnichar *pName,
+nsresult nsOutlookMail::ImportMailbox(uint32_t *pDoneSoFar, bool *pAbort,
+                                      int32_t index, const PRUnichar *pName,
                                       nsIMsgFolder *dstFolder,
-                                      PRInt32 *pMsgCount)
+                                      int32_t *pMsgCount)
 {
   if ((index < 0) || (index >= m_folderList.GetSize())) {
     IMPORT_LOG0("*** Bad mailbox identifier, unable to import\n");
@@ -347,7 +347,7 @@ nsresult nsOutlookMail::ImportMailbox(PRUint32 *pDoneSoFar, bool *pAbort,
     return NS_ERROR_FAILURE;
   }
 
-  PRInt32    dummyMsgCount = 0;
+  int32_t    dummyMsgCount = 0;
   if (pMsgCount)
     *pMsgCount = 0;
   else
@@ -372,7 +372,7 @@ nsresult nsOutlookMail::ImportMailbox(PRUint32 *pDoneSoFar, bool *pAbort,
   ULONG    oType;
   LPMESSAGE  lpMsg = nullptr;
   ULONG    totalCount;
-  PRFloat64  doneCalc;
+  double  doneCalc;
 
   nsCOMPtr<nsIOutputStream> outputStream;
   nsCOMPtr<nsIMsgPluggableStore> msgStore;
@@ -395,7 +395,7 @@ nsresult nsOutlookMail::ImportMailbox(PRUint32 *pDoneSoFar, bool *pAbort,
     doneCalc /= totalCount;
     doneCalc *= 1000;
     if (pDoneSoFar) {
-      *pDoneSoFar = (PRUint32) doneCalc;
+      *pDoneSoFar = (uint32_t) doneCalc;
       if (*pDoneSoFar > 1000)
         *pDoneSoFar = 1000;
     }
@@ -463,21 +463,21 @@ nsresult nsOutlookMail::ImportMessage(LPMESSAGE lpMsg, nsIOutputStream *pDest, n
   return rv;
 }
 
-BOOL nsOutlookMail::WriteData(nsIOutputStream *pDest, const char *pData, PRInt32 len)
+BOOL nsOutlookMail::WriteData(nsIOutputStream *pDest, const char *pData, int32_t len)
 {
-  PRUint32    written;
+  uint32_t    written;
   nsresult rv = pDest->Write(pData, len, &written);
   return NS_SUCCEEDED(rv) && written == len;
 }
 
-nsresult nsOutlookMail::ImportAddresses(PRUint32 *pCount, PRUint32 *pTotal, const PRUnichar *pName, PRUint32 id, nsIAddrDatabase *pDb, nsString& errors)
+nsresult nsOutlookMail::ImportAddresses(uint32_t *pCount, uint32_t *pTotal, const PRUnichar *pName, uint32_t id, nsIAddrDatabase *pDb, nsString& errors)
 {
-  if (id >= (PRUint32)(m_addressList.GetSize())) {
+  if (id >= (uint32_t)(m_addressList.GetSize())) {
     IMPORT_LOG0("*** Bad address identifier, unable to import\n");
     return NS_ERROR_FAILURE;
   }
 
-  PRUint32  dummyCount = 0;
+  uint32_t  dummyCount = 0;
   if (pCount)
     *pCount = 0;
   else
@@ -485,7 +485,7 @@ nsresult nsOutlookMail::ImportAddresses(PRUint32 *pCount, PRUint32 *pTotal, cons
 
   CMapiFolder *pFolder;
   if (id > 0) {
-    PRInt32 idx = (PRInt32) id;
+    int32_t idx = (int32_t) id;
     idx--;
     while (idx >= 0) {
       pFolder = m_addressList.GetItem(idx);
@@ -633,12 +633,12 @@ nsresult nsOutlookMail::CreateList(const PRUnichar * pName,
 
   LPENTRYID    lpEid;
   ULONG        cbEid;
-  PRInt32        idx;
+  int32_t        idx;
   LPMESSAGE        lpMsg;
   nsCString        type;
   LPSPropValue    pVal;
   nsString        subject;
-  PRUint32 total;
+  uint32_t total;
 
   total=sa->cValues;
   for (idx = 0; idx < sa->cValues; idx++)
@@ -705,8 +705,8 @@ void nsOutlookMail::SanitizeValue(nsString& val)
 void nsOutlookMail::SplitString(nsString& val1, nsString& val2)
 {
   // Find the last line if there is more than one!
-  PRInt32 idx = val1.RFind("\x0D\x0A");
-  PRInt32  cnt = 2;
+  int32_t idx = val1.RFind("\x0D\x0A");
+  int32_t  cnt = 2;
   if (idx == -1) {
     cnt = 1;
     idx = val1.RFindChar(13);

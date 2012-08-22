@@ -67,8 +67,8 @@ public:
 private:
   nsCOMPtr<nsIMailboxUrl>  m_runningUrl; // the nsIMailboxURL that is currently running
   nsMailboxAction m_mailboxAction; // current mailbox action associated with this connnection...
-  PRInt32      m_originalContentLength; /* the content length at the time of calling graph progress */
-  PRUint64 m_msgOffset;
+  int32_t      m_originalContentLength; /* the content length at the time of calling graph progress */
+  uint64_t m_msgOffset;
   // Event sink handles
   nsCOMPtr<nsIStreamListener> m_mailboxParser;
 
@@ -80,8 +80,8 @@ private:
   MailboxStatesEnum  m_nextState;
   MailboxStatesEnum  m_initialState;
 
-  PRInt64   mCurrentProgress;
-  PRUint32  m_messageID;
+  int64_t   mCurrentProgress;
+  uint32_t  m_messageID;
 
         // can we just use the base class m_tempMsgFile?
   nsCOMPtr<nsIFile> m_tempMessageFile;
@@ -92,12 +92,12 @@ private:
   nsCOMPtr<nsIInputStream> m_multipleMsgMoveCopyStream;
 
   virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
-                        PRUint32 sourceOffset, PRUint32 length);
+                        uint32_t sourceOffset, uint32_t length);
   virtual nsresult CloseSocket();
 
   nsresult SetupMessageExtraction();
-  nsresult OpenMultipleMsgTransport(PRUint64 offset, PRInt32 size);
-  nsresult OpenFileSocketForReuse(nsIURI * aURL, PRUint64 aStartPosition, PRInt32 aReadCount);
+  nsresult OpenMultipleMsgTransport(uint64_t offset, int32_t size);
+  nsresult OpenFileSocketForReuse(nsIURI * aURL, uint64_t aStartPosition, int32_t aReadCount);
   bool RunningMultipleMsgUrl();
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -108,9 +108,9 @@ private:
 
   // When parsing a mailbox folder in chunks, this protocol state reads in the current chunk
   // and forwards it to the mailbox parser.
-  PRInt32 ReadFolderResponse(nsIInputStream * inputStream, PRUint32 sourceOffset, PRUint32 length);
-  PRInt32 ReadMessageResponse(nsIInputStream * inputStream, PRUint32 sourceOffset, PRUint32 length);
-  PRInt32 DoneReadingMessage();
+  int32_t ReadFolderResponse(nsIInputStream * inputStream, uint32_t sourceOffset, uint32_t length);
+  int32_t ReadMessageResponse(nsIInputStream * inputStream, uint32_t sourceOffset, uint32_t length);
+  int32_t DoneReadingMessage();
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // End of Protocol Methods

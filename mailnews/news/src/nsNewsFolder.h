@@ -46,11 +46,11 @@ public:
 
   NS_IMETHOD GetFolderURL(nsACString& url);
 
-  NS_IMETHOD GetExpungedBytesCount(PRUint32 *count);
+  NS_IMETHOD GetExpungedBytesCount(uint32_t *count);
   NS_IMETHOD GetDeletable (bool *deletable);
   NS_IMETHOD GetRequiresCleanup(bool *requiresCleanup);
 
-  NS_IMETHOD GetSizeOnDisk(PRUint32 *size);
+  NS_IMETHOD GetSizeOnDisk(uint32_t *size);
 
   NS_IMETHOD GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatabase **db);
 
@@ -70,8 +70,8 @@ public:
   NS_IMETHOD DownloadMessagesForOffline(nsIArray *messages, nsIMsgWindow *window);
   NS_IMETHOD Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow);
   NS_IMETHOD DownloadAllForOffline(nsIUrlListener *listener, nsIMsgWindow *msgWindow);
-  NS_IMETHOD GetSortOrder(PRInt32 *order);
-  NS_IMETHOD SetSortOrder(PRInt32 order);
+  NS_IMETHOD GetSortOrder(int32_t *order);
+  NS_IMETHOD SetSortOrder(int32_t order);
 
   NS_IMETHOD Shutdown(bool shutdownChildren);
 
@@ -83,7 +83,7 @@ public:
 
 protected:
   // helper routine to parse the URI and update member variables
-  nsresult AbbreviatePrettyName(nsAString& prettyName, PRInt32 fullwords);
+  nsresult AbbreviatePrettyName(nsAString& prettyName, int32_t fullwords);
   nsresult ParseFolder(nsIFile *path);
   nsresult CreateSubFolders(nsIFile *path);
   nsresult AddDirectorySeparator(nsIFile *path);
@@ -91,17 +91,17 @@ protected:
   virtual nsresult CreateChildFromURI(const nsCString &uri, nsIMsgFolder **folder);
 
   nsresult LoadNewsrcFileAndCreateNewsgroups();
-  PRInt32 RememberLine(const nsACString& line);
+  int32_t RememberLine(const nsACString& line);
   nsresult RememberUnsubscribedGroup(const nsACString& newsgroup, const nsACString& setStr);
   nsresult ForgetLine(void);
   nsresult GetNewsMessages(nsIMsgWindow *aMsgWindow, bool getOld, nsIUrlListener *aListener);
 
-  PRInt32 HandleNewsrcLine(const char * line, PRUint32 line_size);
+  int32_t HandleNewsrcLine(const char * line, uint32_t line_size);
   virtual void GetIncomingServerType(nsCString& serverType) { serverType.AssignLiteral("nntp");}
   virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
 
 protected:
-  PRUint32  mExpungedBytes;
+  uint32_t  mExpungedBytes;
   bool mGettingNews;
   bool mInitialized;
   bool m_downloadMessageForOfflineUse;
@@ -119,7 +119,7 @@ protected:
 
   // the name of the newsgroup.
   nsCString mRawName;
-  PRInt32 mSortOrder;
+  int32_t mSortOrder;
 
 private:
   /**

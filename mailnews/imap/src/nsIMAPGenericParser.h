@@ -70,7 +70,7 @@ private:
   enum nsIMAPGenericParserState { stateOK = 0,
                                   stateSyntaxErrorFlag = 0x1,
                                   stateDisconnectedFlag = 0x2 };
-  PRUint32 fParserState;
+  uint32_t fParserState;
 };
 
 #endif

@@ -25,7 +25,7 @@
      should be finalized as well (by calling mime_free(), not by calling
      their finalize() methods directly.)
 
-   int parse_buffer (const char *buf, PRInt32 size, MimeObject *obj)
+   int parse_buffer (const char *buf, int32_t size, MimeObject *obj)
 
      This is the method by which you feed arbitrary data into the parser
      for this object.  Most subclasses will probably inherit this method
@@ -40,7 +40,7 @@
      Called after `init' but before `parse_line' or `parse_buffer'.
    Can be used to initialize various parsing machinery.
 
-   int parse_line (const char *line, PRInt32 length, MimeObject *obj)
+   int parse_line (const char *line, int32_t length, MimeObject *obj)
 
      This method is called (by parse_buffer()) for each complete line of
      data handed to the parser, and is the method which most subclasses
@@ -112,15 +112,15 @@ struct MimeObjectClass {
   int (*initialize) (MimeObject *obj);
   void (*finalize) (MimeObject *obj);
   int (*parse_begin) (MimeObject *obj);
-  int (*parse_buffer) (const char *buf, PRInt32 size, MimeObject *obj);
-  int (*parse_line) (const char *line, PRInt32 length, MimeObject *obj);
+  int (*parse_buffer) (const char *buf, int32_t size, MimeObject *obj);
+  int (*parse_line) (const char *line, int32_t length, MimeObject *obj);
   int (*parse_eof) (MimeObject *obj, bool abort_p);
   int (*parse_end) (MimeObject *obj, bool abort_p);
 
   bool (*displayable_inline_p) (MimeObjectClass *clazz, MimeHeaders *hdrs);
 
 #if defined(DEBUG) && defined(XP_UNIX)
-  int (*debug_print) (MimeObject *obj, PRFileDesc *stream, PRInt32 depth);
+  int (*debug_print) (MimeObject *obj, PRFileDesc *stream, int32_t depth);
 #endif
 };
 
@@ -171,15 +171,15 @@ struct MimeObject {
    should generally be considered fair game.
    */
   char *ibuffer, *obuffer;
-  PRInt32 ibuffer_size, obuffer_size;
-  PRInt32 ibuffer_fp, obuffer_fp;
+  int32_t ibuffer_size, obuffer_size;
+  int32_t ibuffer_fp, obuffer_fp;
 };
 
 
 #define MimeObject_grow_obuffer(obj, desired_size) \
   (((desired_size) >= (obj)->obuffer_size) ? \
-   mime_GrowBuffer ((PRUint32)(desired_size), (PRUint32)sizeof(char), 1024, \
-           &(obj)->obuffer, (PRInt32*)&(obj)->obuffer_size) \
+   mime_GrowBuffer ((uint32_t)(desired_size), (uint32_t)sizeof(char), 1024, \
+           &(obj)->obuffer, (int32_t*)&(obj)->obuffer_size) \
    : 0)
 
 

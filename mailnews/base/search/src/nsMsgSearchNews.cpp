@@ -236,7 +236,7 @@ nsresult nsMsgSearchNews::Encode (nsCString *outEncoding)
 
   nsresult err = NS_OK;
 
-  PRUint32 numTerms;
+  uint32_t numTerms;
 
   m_searchTerms->Count(&numTerms);
   char **intermediateEncodings = new char * [numTerms];
@@ -244,7 +244,7 @@ nsresult nsMsgSearchNews::Encode (nsCString *outEncoding)
   {
     // Build an XPAT command for each term
     int encodingLength = 0;
-    PRUint32 i;
+    uint32_t i;
     for (i = 0; i < numTerms; i++)
     {
       nsCOMPtr<nsIMsgSearchTerm> pTerm;
@@ -297,7 +297,7 @@ NS_IMETHODIMP nsMsgSearchNews::AddHit(nsMsgKey key)
 }
 
 /* void CurrentUrlDone (in long exitCode); */
-NS_IMETHODIMP nsMsgSearchNews::CurrentUrlDone(PRInt32 exitCode)
+NS_IMETHODIMP nsMsgSearchNews::CurrentUrlDone(int32_t exitCode)
 {
   CollateHits();
   ReportHits();
@@ -333,7 +333,7 @@ void nsMsgSearchNews::CollateHits()
   // entire query is the intersection of results for each XPAT command if an AND search,
   // otherwise we want the union of all the search hits (minus the duplicates of course).
 
-  PRUint32 size = m_candidateHits.Length();
+  uint32_t size = m_candidateHits.Length();
   if (!size)
     return;
 
@@ -342,7 +342,7 @@ void nsMsgSearchNews::CollateHits()
   m_candidateHits.Sort();
 
   // For an OR search we only need to count the first occurrence of a candidate.
-  PRUint32 termCount = 1;
+  uint32_t termCount = 1;
   if (!m_ORSearch)
   {
     // We have a traditional AND search which must be collated. In order to
@@ -352,11 +352,11 @@ void nsMsgSearchNews::CollateHits()
     // fewer than 3 times, it matched some search terms, but not all.
     m_searchTerms->Count(&termCount);
   }
-  PRUint32 candidateCount = 0;
-  PRUint32 candidate = m_candidateHits[0];
-  for (PRUint32 index = 0; index < size; ++index)   
+  uint32_t candidateCount = 0;
+  uint32_t candidate = m_candidateHits[0];
+  for (uint32_t index = 0; index < size; ++index)   
   {
-    PRUint32 possibleCandidate = m_candidateHits[index];
+    uint32_t possibleCandidate = m_candidateHits[index];
     if (candidate == possibleCandidate)
     {
       ++candidateCount;
@@ -385,8 +385,8 @@ void nsMsgSearchNews::ReportHits ()
 
   if (db)
   {
-    PRUint32 size = m_hits.Length();
-    for (PRUint32 i = 0; i < size; ++i)
+    uint32_t size = m_hits.Length();
+    for (uint32_t i = 0; i < size; ++i)
     {
       nsCOMPtr <nsIMsgDBHdr> header;
 

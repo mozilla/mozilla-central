@@ -27,8 +27,8 @@ extern MimeInlineTextPlainFlowedClass mimeInlineTextPlainFlowedClass;
 struct MimeInlineTextPlainFlowed {
   MimeInlineText  text;
   bool            delSp;                // DelSp=yes (RFC 3676)
-  PRInt32         mQuotedSizeSetting;   // mail.quoted_size
-  PRInt32         mQuotedStyleSetting;  // mail.quoted_style
+  int32_t         mQuotedSizeSetting;   // mail.quoted_size
+  int32_t         mQuotedStyleSetting;  // mail.quoted_style
   char            *mCitationColor;      // mail.citation_color
 };
 
@@ -40,7 +40,7 @@ struct MimeInlineTextPlainFlowedExData {
   struct MimeObject *ownerobj; /* The owner of this struct */
   bool inflow; /* If we currently are in flow */
   bool fixedwidthfont; /* If we output text for fixed width font */
-  PRUint32 quotelevel; /* How deep is your love, uhr, quotelevel I meen. */
+  uint32_t quotelevel; /* How deep is your love, uhr, quotelevel I meen. */
   bool isSig;  // we're currently in a signature
   struct MimeInlineTextPlainFlowedExData *next;
 };

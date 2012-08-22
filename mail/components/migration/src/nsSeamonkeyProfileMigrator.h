@@ -22,10 +22,10 @@ public:
   virtual ~nsSeamonkeyProfileMigrator();
 
   // nsIMailProfileMigrator methods
-  NS_IMETHOD Migrate(PRUint16 aItems, nsIProfileStartup* aStartup,
+  NS_IMETHOD Migrate(uint16_t aItems, nsIProfileStartup* aStartup,
                         const PRUnichar* aProfile);
   NS_IMETHOD GetMigrateData(const PRUnichar* aProfile, bool aReplace,
-                            PRUint16* aResult);
+                            uint16_t* aResult);
   NS_IMETHOD GetSourceProfiles(nsIArray** aResult);
 
 protected:

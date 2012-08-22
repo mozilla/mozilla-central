@@ -43,7 +43,7 @@ using namespace mozilla;
 struct ExportAttributesTableStruct
 {
   const char* abPropertyName;
-  PRUint32 plainTextStringID;
+  uint32_t plainTextStringID;
 };
 
 // our schema is not fixed yet, but we still want some sort of objectclass
@@ -252,7 +252,7 @@ NS_IMETHODIMP nsAbManager::GetDirectory(const nsACString &aURI,
 
     nsCAutoString scheme;
 
-    PRInt32 colon = aURI.FindChar(':');
+    int32_t colon = aURI.FindChar(':');
     if (colon <= 0)
       return NS_ERROR_MALFORMED_URI;
     scheme = Substring(aURI, 0, colon);
@@ -284,7 +284,7 @@ NS_IMETHODIMP nsAbManager::GetDirectory(const nsACString &aURI,
 
 NS_IMETHODIMP nsAbManager::NewAddressBook(const nsAString &aDirName,
                                             const nsACString &aURI,
-                                            const PRUint32 aType,
+                                            const uint32_t aType,
                                             const nsACString &aPrefName,
                                             nsACString &aResult)
 {
@@ -348,7 +348,7 @@ NS_IMETHODIMP nsAbManager::DeleteAddressBook(const nsACString &aURI)
 
   nsCString parentUri;
   parentUri.Append(aURI);
-  PRInt32 pos = parentUri.RFindChar('/');
+  int32_t pos = parentUri.RFindChar('/');
 
   // If we didn't find a /, we're in trouble.
   if (pos == -1)
@@ -539,7 +539,7 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
   rv = filePicker->AppendFilter(filterString, NS_LITERAL_STRING("*.tab; *.txt"));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRInt16 dialogResult;
+  int16_t dialogResult;
   filePicker->Show(&dialogResult);
 
   if (dialogResult == nsIFilePicker::returnCancel)
@@ -561,7 +561,7 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
 
   // The type of export is determined by the drop-down in
   // the file picker dialog.
-  PRInt32 exportType;
+  int32_t exportType;
   rv = filePicker->GetFilterIndex(&exportType);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -612,7 +612,7 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
 }
 
 nsresult
-nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const char *aDelim, PRUint32 aDelimLen, nsIFile *aLocalFile)
+nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const char *aDelim, uint32_t aDelimLen, nsIFile *aLocalFile)
 {
   nsCOMPtr <nsISimpleEnumerator> cardsEnumerator;
   nsCOMPtr <nsIAbCard> card;
@@ -629,9 +629,9 @@ nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const ch
   if (NS_FAILED(rv))
     return rv;
 
-  PRUint32 i;
-  PRUint32 writeCount;
-  PRUint32 length;
+  uint32_t i;
+  uint32_t writeCount;
+  uint32_t length;
 
   nsCOMPtr<nsIStringBundleService> bundleService =
     mozilla::services::GetStringBundleService();
@@ -716,8 +716,8 @@ nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const ch
               {
                 needsQuotes = true;
                 
-                PRInt32 match = 0;
-                PRUint32 offset = 0;
+                int32_t match = 0;
+                uint32_t offset = 0;
                 nsString oldSubstr = NS_LITERAL_STRING("\"");
                 nsString newSubstr = NS_LITERAL_STRING("\"\""); 
                 while (offset < newValue.Length()) {
@@ -823,9 +823,9 @@ nsAbManager::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsIFile *aLocalFi
                                    getter_AddRefs(attrMap));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRUint32 i;
-  PRUint32 writeCount;
-  PRUint32 length;
+  uint32_t i;
+  uint32_t writeCount;
+  uint32_t length;
 
   rv = aDirectory->GetChildCards(getter_AddRefs(cardsEnumerator));
   if (NS_SUCCEEDED(rv) && cardsEnumerator) {
@@ -988,10 +988,10 @@ nsresult nsAbManager::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribute
   nsCOMPtr<nsIMutableArray> addresses;
   rv = mailList->GetAddressLists(getter_AddRefs(addresses));
   if (addresses) {
-    PRUint32 total = 0;
+    uint32_t total = 0;
     addresses->GetLength(&total);
     if (total) {
-      PRUint32 i;
+      uint32_t i;
       for (i = 0; i < total; i++) {
         nsCOMPtr <nsIAbCard> listCard = do_QueryElementAt(addresses, i, &rv);
         NS_ENSURE_SUCCESS(rv,rv);
@@ -1071,8 +1071,8 @@ bool nsAbManager::IsSafeLDIFString(const PRUnichar *aStr)
       aStr[0] == PRUnichar('<'))
     return false;
 
-  PRUint32 i;
-  PRUint32 len = NS_strlen(aStr);
+  uint32_t i;
+  uint32_t len = NS_strlen(aStr);
   for (i=0; i<len; i++) {
     // If string contains CR or LF, it is not safe for LDIF
     // and MUST be base64 encoded

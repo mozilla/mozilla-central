@@ -25,28 +25,28 @@ class nsMAPIConfiguration
 {
 private :
 
-  static PRUint32 session_generator;
-  static PRUint32 sessionCount;
+  static uint32_t session_generator;
+  static uint32_t sessionCount;
   static nsMAPIConfiguration *m_pSelfRef;
   PRLock *m_Lock;
-  PRUint32  m_nMaxSessions;
+  uint32_t  m_nMaxSessions;
 
-  nsDataHashtable<nsStringHashKey, PRUint32> m_ProfileMap;
+  nsDataHashtable<nsStringHashKey, uint32_t> m_ProfileMap;
   nsClassHashtable<nsUint32HashKey, nsMAPISession> m_SessionMap;
   nsMAPIConfiguration();
 
 public :
   static nsMAPIConfiguration *GetMAPIConfiguration();
   void OpenConfiguration();
-  PRInt16 RegisterSession(PRUint32 aHwnd, const PRUnichar *aUserName, \
+  int16_t RegisterSession(uint32_t aHwnd, const PRUnichar *aUserName, \
                           const PRUnichar *aPassword, bool aForceDownLoad, \
-                          bool aNewSession, PRUint32 *aSession, const char *aIdKey);
-  bool IsSessionValid(PRUint32 aSessionID);
-  bool UnRegisterSession(PRUint32 aSessionID);
-  PRUnichar *GetPassword(PRUint32 aSessionID);
-  void GetIdKey(PRUint32 aSessionID, nsCString& aKey);
-  void *GetMapiListContext(PRUint32 aSessionID);
-  void SetMapiListContext(PRUint32 aSessionID, void *mapiListContext);
+                          bool aNewSession, uint32_t *aSession, const char *aIdKey);
+  bool IsSessionValid(uint32_t aSessionID);
+  bool UnRegisterSession(uint32_t aSessionID);
+  PRUnichar *GetPassword(uint32_t aSessionID);
+  void GetIdKey(uint32_t aSessionID, nsCString& aKey);
+  void *GetMapiListContext(uint32_t aSessionID);
+  void SetMapiListContext(uint32_t aSessionID, void *mapiListContext);
   ~nsMAPIConfiguration();
 
   // a util func
@@ -60,21 +60,21 @@ class nsMAPISession
   private :
     bool     m_bIsForcedDownLoad;
     bool     m_bApp_or_Service;
-    PRUint32 m_hAppHandle;
-    PRUint32 m_nShared;
+    uint32_t m_hAppHandle;
+    uint32_t m_nShared;
     nsCString m_pIdKey;
     nsString m_pProfileName;
     nsString m_pPassword;
-    PRInt32 m_messageIndex;
+    int32_t m_messageIndex;
     void   *m_listContext; // used by findNext
 
   public :
-    nsMAPISession(PRUint32 aHwnd, const PRUnichar *aUserName, \
+    nsMAPISession(uint32_t aHwnd, const PRUnichar *aUserName, \
                   const PRUnichar *aPassword, \
                   bool aForceDownLoad, const char *aKey);
-    PRUint32 IncrementSession();
-    PRUint32 DecrementSession();
-    PRUint32 GetSessionCount();
+    uint32_t IncrementSession();
+    uint32_t DecrementSession();
+    uint32_t GetSessionCount();
     PRUnichar *nsMAPISession::GetPassword();
     void GetIdKey(nsCString& aKey);
     ~nsMAPISession();

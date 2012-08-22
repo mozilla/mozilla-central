@@ -31,7 +31,7 @@ interface nsISmtpServer : nsISupports {
   attribute ACString hostname;
 
   /// The server's port.
-  attribute PRInt32 port;
+  attribute int32_t port;
 
   /// The username to access the server with (if required)
   attribute ACString username;

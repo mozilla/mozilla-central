@@ -16,24 +16,24 @@ class NS_MSG_BASE nsByteArray
 public:
   nsByteArray();
   virtual ~nsByteArray();
-  PRUint32  GetSize() {return m_bufferSize;}
-  PRUint32  GetBufferPos() {return m_bufferPos;}
-  nsresult  GrowBuffer(PRUint32 desired_size, PRUint32 quantum = 1024);
+  uint32_t  GetSize() {return m_bufferSize;}
+  uint32_t  GetBufferPos() {return m_bufferPos;}
+  nsresult  GrowBuffer(uint32_t desired_size, uint32_t quantum = 1024);
   nsresult  AppendString(const char *string);
-  nsresult  AppendBuffer(const char *buffer, PRUint32 length);
+  nsresult  AppendBuffer(const char *buffer, uint32_t length);
   void    ResetWritePos() {m_bufferPos = 0;}
   char    *GetBuffer() {return m_buffer;}
 protected:
   char    *m_buffer;
-  PRUint32  m_bufferSize;
-  PRUint32  m_bufferPos;  // write Pos in m_buffer - where the next byte should go.
+  uint32_t  m_bufferSize;
+  uint32_t  m_bufferPos;  // write Pos in m_buffer - where the next byte should go.
 };
 
 
 class NS_MSG_BASE nsMsgLineBufferHandler : public nsByteArray
 {
 public:
-  virtual PRInt32 HandleLine(char *line, PRUint32 line_length) = 0;
+  virtual int32_t HandleLine(char *line, uint32_t line_length) = 0;
 };
 
 class NS_MSG_BASE nsMsgLineBuffer : public nsMsgLineBufferHandler
@@ -42,17 +42,17 @@ public:
   nsMsgLineBuffer(nsMsgLineBufferHandler *handler, bool convertNewlinesP);
   
   virtual    ~nsMsgLineBuffer();
-  nsresult    BufferInput(const char *net_buffer, PRInt32 net_buffer_size);
+  nsresult    BufferInput(const char *net_buffer, int32_t net_buffer_size);
   // Not sure why anyone cares, by NNTPHost seems to want to know the buf pos.
-  PRUint32    GetBufferPos() {return m_bufferPos;}
+  uint32_t    GetBufferPos() {return m_bufferPos;}
   
-  virtual PRInt32 HandleLine(char *line, PRUint32 line_length);
+  virtual int32_t HandleLine(char *line, uint32_t line_length);
   // flush last line, though it won't be CRLF terminated.
-  virtual PRInt32 FlushLastLine();
+  virtual int32_t FlushLastLine();
 protected:
   nsMsgLineBuffer(bool convertNewlinesP);
   
-  PRInt32 ConvertAndSendBuffer();
+  int32_t ConvertAndSendBuffer();
   void SetLookingForCRLF(bool b);
   
   nsMsgLineBufferHandler *m_handler;
@@ -81,7 +81,7 @@ public:
   //         false if you do want to see them.
   // aLineToken -- Specify the line token to look for, by default is LF ('\n') which cover as well CRLF. If
   //            lines are terminated with a CR only, you need to set aLineToken to CR ('\r')
-  nsMsgLineStreamBuffer(PRUint32 aBufferSize, bool aAllocateNewLines, 
+  nsMsgLineStreamBuffer(uint32_t aBufferSize, bool aAllocateNewLines, 
                         bool aEatCRLFs = true, char aLineToken = '\n'); // specify the size of the buffer you want the class to use....
   virtual ~nsMsgLineStreamBuffer();
   
@@ -89,17 +89,17 @@ public:
   // aEndOfLinetoken -- delimiter used to denote the end of a line.
   // aNumBytesInLine -- The number of bytes in the line returned
   // aPauseForMoreData -- There is not enough data in the stream to make a line at this time...
-  char * ReadNextLine(nsIInputStream * aInputStream, PRUint32 &anumBytesInLine, bool &aPauseForMoreData, nsresult *rv = nullptr, bool addLineTerminator = false);
-  nsresult GrowBuffer(PRInt32 desiredSize);
+  char * ReadNextLine(nsIInputStream * aInputStream, uint32_t &anumBytesInLine, bool &aPauseForMoreData, nsresult *rv = nullptr, bool addLineTerminator = false);
+  nsresult GrowBuffer(int32_t desiredSize);
   void ClearBuffer();
   bool NextLineAvailable();
 protected:
   bool m_eatCRLFs;
   bool m_allocateNewLines;
   char * m_dataBuffer;
-  PRUint32 m_dataBufferSize;
-  PRUint32 m_startPos;
-  PRUint32 m_numBytesInBuffer;
+  uint32_t m_dataBufferSize;
+  uint32_t m_startPos;
+  uint32_t m_numBytesInBuffer;
   char m_lineToken;
 };
 

@@ -71,13 +71,13 @@ NS_IMETHODIMP nsAbDirectoryQuerySimpleBooleanExpression::SetExpressions(nsIArray
 
   // Ensure all the items are of the right type.
   nsresult rv;
-  PRUint32 count;
+  uint32_t count;
   rv = aExpressions->GetLength(&count);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIAbBooleanConditionString> queryExpression;
 
-  for (PRUint32 i = 0; i < count; ++i)
+  for (uint32_t i = 0; i < count; ++i)
   {
     queryExpression = do_QueryElementAt(aExpressions, i, &rv);
     if (NS_FAILED(rv))
@@ -212,8 +212,8 @@ nsAbDirectoryQuery::~nsAbDirectoryQuery()
 NS_IMETHODIMP nsAbDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
                                           nsIAbDirectoryQueryArguments* arguments,
                                           nsIAbDirSearchListener* listener,
-                                          PRInt32 resultLimit, PRInt32 timeOut,
-                                          PRInt32* _retval)
+                                          int32_t resultLimit, int32_t timeOut,
+                                          int32_t* _retval)
 {
   NS_ENSURE_ARG_POINTER(aDirectory);
 
@@ -237,7 +237,7 @@ NS_IMETHODIMP nsAbDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
 }
 
 /* void stopQuery (in long contextID); */
-NS_IMETHODIMP nsAbDirectoryQuery::StopQuery(PRInt32 contextID)
+NS_IMETHODIMP nsAbDirectoryQuery::StopQuery(int32_t contextID)
 {
     return NS_OK;
 }
@@ -247,7 +247,7 @@ nsresult nsAbDirectoryQuery::query(nsIAbDirectory* directory,
                                    nsIAbBooleanExpression* expression,
                                    nsIAbDirSearchListener* listener,
                                    bool doSubDirectories,
-                                   PRInt32* resultLimit)
+                                   int32_t* resultLimit)
 {
   if (*resultLimit == 0)
     return NS_OK;
@@ -269,7 +269,7 @@ nsresult nsAbDirectoryQuery::queryChildren(nsIAbDirectory* directory,
                                            nsIAbBooleanExpression* expression,
                                            nsIAbDirSearchListener* listener,
                                            bool doSubDirectories,
-                                           PRInt32* resultLimit)
+                                           int32_t* resultLimit)
 {
     nsresult rv = NS_OK;
 
@@ -297,7 +297,7 @@ nsresult nsAbDirectoryQuery::queryChildren(nsIAbDirectory* directory,
 nsresult nsAbDirectoryQuery::queryCards(nsIAbDirectory* directory,
                                         nsIAbBooleanExpression* expression,
                                         nsIAbDirSearchListener* listener,
-                                        PRInt32* resultLimit)
+                                        int32_t* resultLimit)
 {
     nsresult rv = NS_OK;
 
@@ -337,7 +337,7 @@ nsresult nsAbDirectoryQuery::queryCards(nsIAbDirectory* directory,
 nsresult nsAbDirectoryQuery::matchCard(nsIAbCard* card,
                                        nsIAbBooleanExpression* expression,
                                        nsIAbDirSearchListener* listener,
-                                       PRInt32* resultLimit)
+                                       int32_t* resultLimit)
 {
     bool matchFound = false;
     nsresult rv = matchCardExpression(card, expression, &matchFound);
@@ -365,7 +365,7 @@ nsresult nsAbDirectoryQuery::matchCardExpression(nsIAbCard* card,
     rv = expression->GetExpressions (getter_AddRefs (childExpressions));
     NS_ENSURE_SUCCESS(rv, rv);
     
-    PRUint32 count;
+    uint32_t count;
     rv = childExpressions->GetLength(&count);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -377,7 +377,7 @@ nsresult nsAbDirectoryQuery::matchCardExpression(nsIAbCard* card,
     nsCOMPtr<nsIAbBooleanConditionString> childCondition;
     nsCOMPtr<nsIAbBooleanExpression> childExpression;
 
-    for (PRUint32 i = 0; i < count; i++)
+    for (uint32_t i = 0; i < count; i++)
     {
         childCondition = do_QueryElementAt(childExpressions, i, &rv);
         if (NS_SUCCEEDED(rv))

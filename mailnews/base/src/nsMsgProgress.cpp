@@ -139,7 +139,7 @@ NS_IMETHODIMP nsMsgProgress::UnregisterListener(nsIWebProgressListener *listener
 }
 
 /* void onStateChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in unsigned long aStateFlags, in nsresult aStatus); */
-NS_IMETHODIMP nsMsgProgress::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRUint32 aStateFlags, nsresult aStatus)
+NS_IMETHODIMP nsMsgProgress::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, uint32_t aStateFlags, nsresult aStatus)
 {
   m_pendingStateFlags = aStateFlags;
   m_pendingStateValue = aStatus;
@@ -151,22 +151,22 @@ NS_IMETHODIMP nsMsgProgress::OnStateChange(nsIWebProgress *aWebProgress, nsIRequ
     msgWindow->SetStatusFeedback(nullptr);
   }
 
-  for (PRInt32 i = m_listenerList.Count() - 1; i >= 0; i --)
+  for (int32_t i = m_listenerList.Count() - 1; i >= 0; i --)
     m_listenerList[i]->OnStateChange(aWebProgress, aRequest, aStateFlags, aStatus);
 
   return NS_OK;
 }
 
 /* void onProgressChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in long aCurSelfProgress, in long aMaxSelfProgress, in long aCurTotalProgress, in long aMaxTotalProgress); */
-NS_IMETHODIMP nsMsgProgress::OnProgressChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRInt32 aCurSelfProgress, PRInt32 aMaxSelfProgress, PRInt32 aCurTotalProgress, PRInt32 aMaxTotalProgress)
+NS_IMETHODIMP nsMsgProgress::OnProgressChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, int32_t aCurSelfProgress, int32_t aMaxSelfProgress, int32_t aCurTotalProgress, int32_t aMaxTotalProgress)
 {
-  for (PRInt32 i = m_listenerList.Count() - 1; i >= 0; i --)
+  for (int32_t i = m_listenerList.Count() - 1; i >= 0; i --)
     m_listenerList[i]->OnProgressChange(aWebProgress, aRequest, aCurSelfProgress, aMaxSelfProgress, aCurTotalProgress, aMaxTotalProgress);
   return NS_OK;
 }
 
 /* void onLocationChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsIURI location, in unsigned long aFlags); */
-NS_IMETHODIMP nsMsgProgress::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *location, PRUint32 aFlags)
+NS_IMETHODIMP nsMsgProgress::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *location, uint32_t aFlags)
 {
   return NS_OK;
 }
@@ -176,13 +176,13 @@ NS_IMETHODIMP nsMsgProgress::OnStatusChange(nsIWebProgress *aWebProgress, nsIReq
 {
   if (aMessage && *aMessage)
     m_pendingStatus = aMessage;
-  for (PRInt32 i = m_listenerList.Count() - 1; i >= 0; i --)
+  for (int32_t i = m_listenerList.Count() - 1; i >= 0; i --)
     m_listenerList[i]->OnStatusChange(aWebProgress, aRequest, aStatus, aMessage);
   return NS_OK;
 }
 
 /* void onSecurityChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in unsigned long state); */
-NS_IMETHODIMP nsMsgProgress::OnSecurityChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRUint32 state)
+NS_IMETHODIMP nsMsgProgress::OnSecurityChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, uint32_t state)
 {
   return NS_OK;
 }
@@ -216,7 +216,7 @@ NS_IMETHODIMP nsMsgProgress::StopMeteors()
 }
 
 /* void showProgress (in long percent); */
-NS_IMETHODIMP nsMsgProgress::ShowProgress(PRInt32 percent)
+NS_IMETHODIMP nsMsgProgress::ShowProgress(int32_t percent)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -245,12 +245,12 @@ NS_IMETHODIMP nsMsgProgress::GetMsgWindow(nsIMsgWindow **aMsgWindow)
 }
 
 NS_IMETHODIMP nsMsgProgress::OnProgress(nsIRequest *request, nsISupports* ctxt,
-                                        PRUint64 aProgress, PRUint64 aProgressMax)
+                                        uint64_t aProgress, uint64_t aProgressMax)
 {
   // XXX: What should the nsIWebProgress be?
   // XXX: This truncates 64-bit to 32-bit
-  return OnProgressChange(nullptr, request, PRInt32(aProgress), PRInt32(aProgressMax),
-                          PRInt32(aProgress) /* current total progress */, PRInt32(aProgressMax) /* max total progress */);
+  return OnProgressChange(nullptr, request, int32_t(aProgress), int32_t(aProgressMax),
+                          int32_t(aProgress) /* current total progress */, int32_t(aProgressMax) /* max total progress */);
 }
 
 NS_IMETHODIMP nsMsgProgress::OnStatus(nsIRequest *request, nsISupports* ctxt,

@@ -110,8 +110,8 @@ public:
   NS_IMETHOD GetDefaultNamespaceOfTypeForHost(const char *serverKey, EIMAPNamespaceType type, nsIMAPNamespace *&result);
   NS_IMETHOD SetNamespacesOverridableForHost(const char *serverKey, bool overridable);
   NS_IMETHOD GetNamespacesOverridableForHost(const char *serverKey,bool &result);
-  NS_IMETHOD GetNumberOfNamespacesForHost(const char *serverKey, PRUint32 &result);
-  NS_IMETHOD GetNamespaceNumberForHost(const char *serverKey, PRInt32 n, nsIMAPNamespace * &result);
+  NS_IMETHOD GetNumberOfNamespacesForHost(const char *serverKey, uint32_t &result);
+  NS_IMETHOD GetNamespaceNumberForHost(const char *serverKey, int32_t n, nsIMAPNamespace * &result);
   // ### dmb hoo boy, how are we going to do this?
   NS_IMETHOD CommitNamespacesForHost(nsIImapIncomingServer *host);
   NS_IMETHOD FlushUncommittedNamespacesForHost(const char *serverKey, bool &result);

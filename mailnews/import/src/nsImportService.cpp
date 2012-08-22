@@ -128,7 +128,7 @@ NS_IMETHODIMP nsImportService::CreateNewGenericAddressBooks(nsIImportGeneric **_
 }
 
 
-NS_IMETHODIMP nsImportService::GetModuleCount(const char *filter, PRInt32 *_retval)
+NS_IMETHODIMP nsImportService::GetModuleCount(const char *filter, int32_t *_retval)
 {
     NS_PRECONDITION(_retval != nullptr, "null ptr");
     if (! _retval)
@@ -138,8 +138,8 @@ NS_IMETHODIMP nsImportService::GetModuleCount(const char *filter, PRInt32 *_retv
 
   if (m_pModules != nullptr) {
     ImportModuleDesc *  pDesc;
-    PRInt32  count = 0;
-    for (PRInt32 i = 0; i < m_pModules->GetCount(); i++) {
+    int32_t  count = 0;
+    for (int32_t i = 0; i < m_pModules->GetCount(); i++) {
       pDesc = m_pModules->GetModuleDesc(i);
       if (pDesc->SupportsThings(filter))
         count++;
@@ -164,9 +164,9 @@ NS_IMETHODIMP nsImportService::GetModuleWithCID(const nsCID& cid, nsIImportModul
     return rv;
   if (m_pModules == nullptr)
     return NS_ERROR_FAILURE;
-  PRInt32  cnt = m_pModules->GetCount();
+  int32_t  cnt = m_pModules->GetCount();
   ImportModuleDesc *pDesc;
-  for (PRInt32 i = 0; i < cnt; i++) {
+  for (int32_t i = 0; i < cnt; i++) {
     pDesc = m_pModules->GetModuleDesc(i);
     if (!pDesc)
       return NS_ERROR_FAILURE;
@@ -186,7 +186,7 @@ NS_IMETHODIMP nsImportService::GetModuleWithCID(const nsCID& cid, nsIImportModul
   return NS_ERROR_NOT_AVAILABLE;
 }
 
-NS_IMETHODIMP nsImportService::GetModuleInfo(const char *filter, PRInt32 index, PRUnichar **name, PRUnichar **moduleDescription)
+NS_IMETHODIMP nsImportService::GetModuleInfo(const char *filter, int32_t index, PRUnichar **name, PRUnichar **moduleDescription)
 {
     NS_PRECONDITION(name != nullptr, "null ptr");
     NS_PRECONDITION(moduleDescription != nullptr, "null ptr");
@@ -204,8 +204,8 @@ NS_IMETHODIMP nsImportService::GetModuleInfo(const char *filter, PRInt32 index, 
     return NS_ERROR_FAILURE;
 
   ImportModuleDesc *  pDesc;
-  PRInt32  count = 0;
-  for (PRInt32 i = 0; i < m_pModules->GetCount(); i++) {
+  int32_t  count = 0;
+  for (int32_t i = 0; i < m_pModules->GetCount(); i++) {
     pDesc = m_pModules->GetModuleDesc(i);
     if (pDesc->SupportsThings(filter)) {
       if (count == index) {
@@ -221,7 +221,7 @@ NS_IMETHODIMP nsImportService::GetModuleInfo(const char *filter, PRInt32 index, 
   return NS_ERROR_FAILURE;
 }
 
-NS_IMETHODIMP nsImportService::GetModuleName(const char *filter, PRInt32 index, PRUnichar **_retval)
+NS_IMETHODIMP nsImportService::GetModuleName(const char *filter, int32_t index, PRUnichar **_retval)
 {
     NS_PRECONDITION(_retval != nullptr, "null ptr");
     if (!_retval)
@@ -237,8 +237,8 @@ NS_IMETHODIMP nsImportService::GetModuleName(const char *filter, PRInt32 index, 
     return NS_ERROR_FAILURE;
 
   ImportModuleDesc *  pDesc;
-  PRInt32  count = 0;
-  for (PRInt32 i = 0; i < m_pModules->GetCount(); i++) {
+  int32_t  count = 0;
+  for (int32_t i = 0; i < m_pModules->GetCount(); i++) {
     pDesc = m_pModules->GetModuleDesc(i);
     if (pDesc->SupportsThings(filter)) {
       if (count == index) {
@@ -254,7 +254,7 @@ NS_IMETHODIMP nsImportService::GetModuleName(const char *filter, PRInt32 index, 
 }
 
 
-NS_IMETHODIMP nsImportService::GetModuleDescription(const char *filter, PRInt32 index, PRUnichar **_retval)
+NS_IMETHODIMP nsImportService::GetModuleDescription(const char *filter, int32_t index, PRUnichar **_retval)
 {
     NS_PRECONDITION(_retval != nullptr, "null ptr");
     if (!_retval)
@@ -270,8 +270,8 @@ NS_IMETHODIMP nsImportService::GetModuleDescription(const char *filter, PRInt32 
     return NS_ERROR_FAILURE;
 
   ImportModuleDesc *  pDesc;
-  PRInt32  count = 0;
-  for (PRInt32 i = 0; i < m_pModules->GetCount(); i++) {
+  int32_t  count = 0;
+  for (int32_t i = 0; i < m_pModules->GetCount(); i++) {
     pDesc = m_pModules->GetModuleDesc(i);
     if (pDesc->SupportsThings(filter)) {
       if (count == index) {
@@ -293,7 +293,7 @@ public:
                        nsIMsgCompFields *aMsgFields,
                        const char *attachment1_type,
                        const char *attachment1_body,
-                       PRUint32 attachment1_body_length,
+                       uint32_t attachment1_body_length,
                        bool aIsDraft,
                        nsIArray *aLoadedAttachments,
                        nsISupportsArray *aEmbeddedAttachments,
@@ -305,7 +305,7 @@ private:
   bool m_isDraft;
   nsCString m_bodyType;
   nsCString m_body;
-  PRUint32 m_bodyLength;
+  uint32_t m_bodyLength;
   nsCOMPtr<nsIArray> m_loadedAttachments;
   nsCOMPtr<nsISupportsArray> m_embeddedAttachments;
   nsCOMPtr<nsIMsgSendListener> m_listener;
@@ -316,7 +316,7 @@ nsProxySendRunnable::nsProxySendRunnable(nsIMsgIdentity *aIdentity,
                                          nsIMsgCompFields *aMsgFields,
                                          const char *aBodyType,
                                          const char *aBody,
-                                         PRUint32 aBodyLength,
+                                         uint32_t aBodyLength,
                                          bool aIsDraft,
                                          nsIArray *aLoadedAttachments,
                                          nsISupportsArray *aEmbeddedAttachments,
@@ -348,7 +348,7 @@ nsImportService::CreateRFC822Message(nsIMsgIdentity *aIdentity,
                                      nsIMsgCompFields *aMsgFields,
                                      const char *aBodyType,
                                      const char *aBody,
-                                     PRUint32 aBodyLength,
+                                     uint32_t aBodyLength,
                                      bool aIsDraft,
                                      nsIArray *aLoadedAttachments,
                                      nsISupportsArray *aEmbeddedAttachments,
@@ -368,7 +368,7 @@ nsImportService::CreateRFC822Message(nsIMsgIdentity *aIdentity,
     return NS_DispatchToMainThread(runnable);
 }
 
-NS_IMETHODIMP nsImportService::GetModule(const char *filter, PRInt32 index, nsIImportModule **_retval)
+NS_IMETHODIMP nsImportService::GetModule(const char *filter, int32_t index, nsIImportModule **_retval)
 {
     NS_PRECONDITION(_retval != nullptr, "null ptr");
     if (!_retval)
@@ -383,8 +383,8 @@ NS_IMETHODIMP nsImportService::GetModule(const char *filter, PRInt32 index, nsII
     return NS_ERROR_FAILURE;
 
   ImportModuleDesc *  pDesc;
-  PRInt32  count = 0;
-  for (PRInt32 i = 0; i < m_pModules->GetCount(); i++) {
+  int32_t  count = 0;
+  for (int32_t i = 0; i < m_pModules->GetCount(); i++) {
     pDesc = m_pModules->GetModuleDesc(i);
     if (pDesc->SupportsThings(filter)) {
       if (count == index) {
@@ -518,7 +518,7 @@ bool ImportModuleDesc::SupportsThings(const char *pThings)
 
   nsCString thing(pThings);
   nsCString item;
-  PRInt32 idx;
+  int32_t idx;
 
   while ((idx = thing.FindChar(',')) != -1)
   {

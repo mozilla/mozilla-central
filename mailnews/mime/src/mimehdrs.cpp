@@ -27,7 +27,7 @@
 #include "nsMsgUtils.h"
 
 // Forward declares...
-PRInt32 MimeHeaders_build_heads_list(MimeHeaders *hdrs);
+int32_t MimeHeaders_build_heads_list(MimeHeaders *hdrs);
 
 void
 MimeHeaders_convert_header_value(MimeDisplayOptions *opt, nsCString &value,
@@ -92,9 +92,9 @@ MimeHeaders_free (MimeHeaders *hdrs)
 # ifdef DEBUG__
   {
   int i, size = sizeof(*hdrs);
-  PRUint32 *array = (PRUint32*) hdrs;
+  uint32_t *array = (uint32_t*) hdrs;
   for (i = 0; i < (size / sizeof(*array)); i++)
-    array[i] = (PRUint32) 0xDEADBEEF;
+    array[i] = (uint32_t) 0xDEADBEEF;
   }
 # endif /* DEBUG */
 
@@ -102,7 +102,7 @@ MimeHeaders_free (MimeHeaders *hdrs)
 }
 
 int
-MimeHeaders_parse_line (const char *buffer, PRInt32 size, MimeHeaders *hdrs)
+MimeHeaders_parse_line (const char *buffer, int32_t size, MimeHeaders *hdrs)
 {
   int status = 0;
   int desired_size;
@@ -427,7 +427,7 @@ MimeHeaders_get (MimeHeaders *hdrs, const char *header_name,
       }
     else
       {
-      PRInt32 L = strlen(result);
+      int32_t L = strlen(result);
       s = (char *) PR_Realloc(result, (L + (end - contents + 10)));
       if (!s)
         {
@@ -659,7 +659,7 @@ MIME_StripContinuations(char *original)
   return original;
 }
 
-extern PRInt16 INTL_DefaultMailToWinCharSetID(PRInt16 csid);
+extern int16_t INTL_DefaultMailToWinCharSetID(int16_t csid);
 
 /* Given text purporting to be a qtext header value, strip backslashes that
   may be escaping other chars in the string. */
@@ -831,7 +831,7 @@ MimeHeaders_write_raw_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt,
   }
   else if (hdrs)
   {
-    PRInt32 i;
+    int32_t i;
     for (i = 0; i < hdrs->heads_size; i++)
     {
       char *head = hdrs->heads[i];

@@ -61,7 +61,7 @@ NS_MSG_BASE nsresult NS_MsgGetUntranslatedPriorityName(
 NS_MSG_BASE nsresult NS_MsgHashIfNecessary(nsAutoString &name);
 NS_MSG_BASE nsresult NS_MsgHashIfNecessary(nsCAutoString &name);
 
-NS_MSG_BASE nsresult FormatFileSize(PRUint64 size, bool useKB, nsAString &formattedSize);
+NS_MSG_BASE nsresult FormatFileSize(uint64_t size, bool useKB, nsAString &formattedSize);
 
 
 /**
@@ -94,7 +94,7 @@ NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
  * 
  * @note This API is insane and should be fixed.
  */
-NS_MSG_BASE bool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubject=nullptr);
+NS_MSG_BASE bool NS_MsgStripRE(const char **stringP, uint32_t *lengthP, char **modifiedSubject=nullptr);
 
 NS_MSG_BASE char * NS_MsgSACopy(char **destination, const char *source);
 
@@ -151,13 +151,13 @@ NS_MSG_BASE nsresult IsRSSArticle(nsIURI * aMsgURI, bool *aIsRSSArticle);
 // digest needs to be a pointer to a 16 byte buffer
 #define DIGEST_LENGTH 16
 
-NS_MSG_BASE nsresult MSGCramMD5(const char *text, PRInt32 text_len, const char *key, PRInt32 key_len, unsigned char *digest);
-NS_MSG_BASE nsresult MSGApopMD5(const char *text, PRInt32 text_len, const char *password, PRInt32 password_len, unsigned char *digest);
+NS_MSG_BASE nsresult MSGCramMD5(const char *text, int32_t text_len, const char *key, int32_t key_len, unsigned char *digest);
+NS_MSG_BASE nsresult MSGApopMD5(const char *text, int32_t text_len, const char *password, int32_t password_len, unsigned char *digest);
 
 // helper functions to convert a 64bits PRTime into a 32bits value (compatible time_t) and vice versa.
-NS_MSG_BASE void PRTime2Seconds(PRTime prTime, PRUint32 *seconds);
-NS_MSG_BASE void PRTime2Seconds(PRTime prTime, PRInt32 *seconds);
-NS_MSG_BASE void Seconds2PRTime(PRUint32 seconds, PRTime *prTime);
+NS_MSG_BASE void PRTime2Seconds(PRTime prTime, uint32_t *seconds);
+NS_MSG_BASE void PRTime2Seconds(PRTime prTime, int32_t *seconds);
+NS_MSG_BASE void Seconds2PRTime(uint32_t seconds, PRTime *prTime);
 // helper function to generate current date+time as a string
 NS_MSG_BASE void MsgGenerateNowStr(nsACString &nowStr);
 
@@ -183,11 +183,11 @@ NS_MSG_BASE nsresult MsgGetFileStream(nsIFile *file, nsIOutputStream **fileStrea
 NS_MSG_BASE nsresult MsgReopenFileStream(nsIFile *file, nsIInputStream *fileStream);
 
 // Automatically creates an output stream with a 4K buffer
-NS_MSG_BASE nsresult MsgNewBufferedFileOutputStream(nsIOutputStream **aResult, nsIFile *aFile, PRInt32 aIOFlags = -1, PRInt32 aPerm = -1);
+NS_MSG_BASE nsresult MsgNewBufferedFileOutputStream(nsIOutputStream **aResult, nsIFile *aFile, int32_t aIOFlags = -1, int32_t aPerm = -1);
 
 // fills in the position of the passed in keyword in the passed in keyword list
 // and returns false if the keyword isn't present
-NS_MSG_BASE bool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aStartOfKeyword, PRInt32 *aLength);
+NS_MSG_BASE bool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, int32_t *aStartOfKeyword, int32_t *aLength);
 
 NS_MSG_BASE bool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains);
 
@@ -206,12 +206,12 @@ NS_MSG_BASE bool MsgIsUTF8(const nsACString& aString);
  */
 
 NS_MSG_BASE nsresult MsgEscapeString(const nsACString &aStr,
-                                     PRUint32 aType, nsACString &aResult);
+                                     uint32_t aType, nsACString &aResult);
 
 NS_MSG_BASE nsresult MsgUnescapeString(const nsACString &aStr, 
-                                       PRUint32 aFlags, nsACString &aResult);
+                                       uint32_t aFlags, nsACString &aResult);
 
-NS_MSG_BASE nsresult MsgEscapeURL(const nsACString &aStr, PRUint32 aFlags,
+NS_MSG_BASE nsresult MsgEscapeURL(const nsACString &aStr, uint32_t aFlags,
                                   nsACString &aResult);
 
 // Converts an array of nsMsgKeys plus a database, to an array of nsIMsgDBHdrs.
@@ -220,19 +220,19 @@ NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB,
                                            nsIMutableArray *aHeaders);
  
 NS_MSG_BASE nsresult MsgExamineForProxy(const char *scheme, const char *host,
-                                        PRInt32 port, nsIProxyInfo **proxyInfo);
+                                        int32_t port, nsIProxyInfo **proxyInfo);
 
-NS_MSG_BASE PRInt32 MsgFindCharInSet(const nsCString &aString,
-                                     const char* aChars, PRUint32 aOffset = 0);
-NS_MSG_BASE PRInt32 MsgFindCharInSet(const nsString &aString,
-                                     const char* aChars, PRUint32 aOffset = 0);
+NS_MSG_BASE int32_t MsgFindCharInSet(const nsCString &aString,
+                                     const char* aChars, uint32_t aOffset = 0);
+NS_MSG_BASE int32_t MsgFindCharInSet(const nsString &aString,
+                                     const char* aChars, uint32_t aOffset = 0);
 
 
 // advances bufferOffset to the beginning of the next line, if we don't
 // get to maxBufferOffset first. Returns false if we didn't get to the
 // next line.
-NS_MSG_BASE bool MsgAdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset,
-                                   PRUint32 maxBufferOffset);
+NS_MSG_BASE bool MsgAdvanceToNextLine(const char *buffer, uint32_t &bufferOffset,
+                                   uint32_t maxBufferOffset);
 
 /**
  * Alerts the user that the login to the server failed. Asks whether the
@@ -248,13 +248,13 @@ NS_MSG_BASE bool MsgAdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset
  */
 NS_MSG_BASE nsresult MsgPromptLoginFailed(nsIMsgWindow *aMsgWindow,
                                           const nsCString &aHostname,
-                                          PRInt32 *aResult);
+                                          int32_t *aResult);
 
 /**
  * Calculate a PRTime value used to determine if a date is XX
  * days ago. This is used by various retention setting algorithms.
  */
-NS_MSG_BASE PRTime MsgConvertAgeInDaysToCutoffDate(PRInt32 ageInDays);
+NS_MSG_BASE PRTime MsgConvertAgeInDaysToCutoffDate(int32_t ageInDays);
 
 /**
  * Converts the passed in term list to its string representation.
@@ -269,12 +269,12 @@ NS_MSG_BASE nsresult
 MsgStreamMsgHeaders(nsIInputStream *aInputStream, nsIStreamListener *aConsumer);
 
 /**
- * convert string to PRUint64
+ * convert string to uint64_t
  *
  * @param str conveted string
- * @returns   PRUint64 vaule for success, 0 for parse failure
+ * @returns   uint64_t vaule for success, 0 for parse failure
  */
-NS_MSG_BASE PRUint64 ParseUint64Str(const char *str);
+NS_MSG_BASE uint64_t ParseUint64Str(const char *str);
 
 /**
  * Detect charset of file
@@ -392,12 +392,12 @@ inline uint32_t NS_MIN(uint64_t a, uint32_t b)
  * The internal and external methods expect the parameters in a different order.
  * The internal API also always expects a flag rather than a comparator.
  */
-inline PRInt32 MsgFind(nsAString &str, const char *what, bool ignore_case, PRUint32 offset)
+inline int32_t MsgFind(nsAString &str, const char *what, bool ignore_case, uint32_t offset)
 {
   return str.Find(what, offset, ignore_case);
 }
 
-inline PRInt32 MsgFind(nsACString &str, const char *what, bool ignore_case, PRInt32 offset)
+inline int32_t MsgFind(nsACString &str, const char *what, bool ignore_case, int32_t offset)
 {
   /* See Find_ComputeSearchRange from nsStringObsolete.cpp */
   if (offset < 0) {
@@ -408,7 +408,7 @@ inline PRInt32 MsgFind(nsACString &str, const char *what, bool ignore_case, PRIn
   return str.Find(nsDependentCString(what), offset);
 }
 
-inline PRInt32 MsgFind(nsACString &str, const nsACString &what, bool ignore_case, PRInt32 offset)
+inline int32_t MsgFind(nsACString &str, const nsACString &what, bool ignore_case, int32_t offset)
 {
   /* See Find_ComputeSearchRange from nsStringObsolete.cpp */
   if (offset < 0) {
@@ -434,7 +434,7 @@ NS_MSG_BASE void MsgCompressWhitespace(nsCString& aString);
 /// Equivalent of nsEscapeHTML(aString)
 NS_MSG_BASE char *MsgEscapeHTML(const char *aString);
 /// Equivalent of nsEscapeHTML2(aBuffer, aLen)
-NS_MSG_BASE PRUnichar *MsgEscapeHTML2(const PRUnichar *aBuffer, PRInt32 aLen);
+NS_MSG_BASE PRUnichar *MsgEscapeHTML2(const PRUnichar *aBuffer, int32_t aLen);
 // Existing replacement for IsUTF8
 NS_MSG_BASE bool MsgIsUTF8(const nsACString& aString);
 /// Equivalent of NS_NewAtom(aUTF8String)
@@ -481,7 +481,7 @@ MsgNewNotificationCallbacksAggregation(nsIInterfaceRequestor  *callbacks,
 class NS_MSG_BASE MsgQueryElementAt : public nsCOMPtr_helper
   {
     public:
-      MsgQueryElementAt( nsISupportsArray* anArray, PRUint32 aIndex, nsresult* aErrorPtr )
+      MsgQueryElementAt( nsISupportsArray* anArray, uint32_t aIndex, nsresult* aErrorPtr )
           : mArray(anArray),
             mIndex(aIndex),
             mErrorPtr(aErrorPtr)
@@ -491,7 +491,7 @@ class NS_MSG_BASE MsgQueryElementAt : public nsCOMPtr_helper
       virtual nsresult NS_FASTCALL operator()( const nsIID& aIID, void** ) const;
     private:
       nsISupportsArray*  mArray;
-      PRUint32           mIndex;
+      uint32_t           mIndex;
       nsresult*          mErrorPtr;
   };
 
@@ -501,7 +501,7 @@ class NS_MSG_BASE MsgQueryElementAt : public nsCOMPtr_helper
  */
 inline
 const MsgQueryElementAt
-do_QueryElementAt( nsISupportsArray* array, PRUint32 aIndex, nsresult* aErrorPtr = 0 )
+do_QueryElementAt( nsISupportsArray* array, uint32_t aIndex, nsresult* aErrorPtr = 0 )
 {
     return MsgQueryElementAt(array, aIndex, aErrorPtr);
 }
@@ -510,9 +510,9 @@ do_QueryElementAt( nsISupportsArray* array, PRUint32 aIndex, nsresult* aErrorPtr
  *
  */
 inline
-PRUint32 MsgCountChar(nsACString &aString, PRUnichar aChar) {
+uint32_t MsgCountChar(nsACString &aString, PRUnichar aChar) {
   const char *begin, *end;
-  PRUint32 num_chars = 0;
+  uint32_t num_chars = 0;
   aString.BeginReading(&begin, &end);
   for (const char *current = begin; current < end; ++current) {
       if (*current == aChar)
@@ -522,9 +522,9 @@ PRUint32 MsgCountChar(nsACString &aString, PRUnichar aChar) {
 }
 
 inline
-PRUint32 MsgCountChar(nsAString &aString, PRUnichar aChar) {
+uint32_t MsgCountChar(nsAString &aString, PRUnichar aChar) {
   const PRUnichar *begin, *end;
-  PRUint32 num_chars = 0;
+  uint32_t num_chars = 0;
   aString.BeginReading(&begin, &end);
   for (const PRUnichar *current = begin; current < end; ++current) {
       if (*current == aChar)

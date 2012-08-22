@@ -50,7 +50,7 @@ interface calICalendarSearchService : calICalendarSearchProvider
     /**
      * Gets the currently registered set of search providers.
      */
-    void getProviders(out PRUint32 aCount,
+    void getProviders(out uint32_t aCount,
                       [array, size_is(aCount), retval] out calICalendarSearchProvider aProviders);
 
     /**

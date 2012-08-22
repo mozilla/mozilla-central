@@ -31,11 +31,11 @@ nsAbDirProperty::~nsAbDirProperty(void)
   // this code causes a regression #138647
   // don't turn it on until you figure it out
   if (m_AddressList) {
-    PRUint32 count;
+    uint32_t count;
     nsresult rv;
     rv = m_AddressList->GetLength(&count);
     NS_ASSERTION(NS_SUCCEEDED(rv), "Count failed");
-    PRInt32 i;
+    int32_t i;
     for (i = count - 1; i >= 0; i--)
       m_AddressList->RemoveElementAt(i);
   }
@@ -57,7 +57,7 @@ NS_IMETHODIMP nsAbDirProperty::GetUuid(nsACString &uuid)
   return rv;
 }
 
-NS_IMETHODIMP nsAbDirProperty::GenerateName(PRInt32 aGenerateFormat,
+NS_IMETHODIMP nsAbDirProperty::GenerateName(int32_t aGenerateFormat,
                                             nsIStringBundle *aBundle,
                                             nsAString &name)
 {
@@ -136,7 +136,7 @@ NS_IMETHODIMP nsAbDirProperty::SetDirName(const nsAString &aDirName)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirProperty::GetDirType(PRInt32 *aDirType)
+NS_IMETHODIMP nsAbDirProperty::GetDirType(int32_t *aDirType)
 {
   return GetIntValue("dirType", LDAPDirectory, aDirType);
 }
@@ -152,19 +152,19 @@ NS_IMETHODIMP nsAbDirProperty::GetURI(nsACString &aURI)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsAbDirProperty::GetPosition(PRInt32 *aPosition)
+NS_IMETHODIMP nsAbDirProperty::GetPosition(int32_t *aPosition)
 {
   return GetIntValue("position", kDefaultPosition, aPosition);
 }
 
-NS_IMETHODIMP nsAbDirProperty::GetLastModifiedDate(PRUint32 *aLastModifiedDate)
+NS_IMETHODIMP nsAbDirProperty::GetLastModifiedDate(uint32_t *aLastModifiedDate)
 {
   NS_ENSURE_ARG_POINTER(aLastModifiedDate);
   *aLastModifiedDate = m_LastModifiedDate;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirProperty::SetLastModifiedDate(PRUint32 aLastModifiedDate)
+NS_IMETHODIMP nsAbDirProperty::SetLastModifiedDate(uint32_t aLastModifiedDate)
 {
 	if (aLastModifiedDate)
 	{
@@ -263,7 +263,7 @@ nsAbDirProperty::Init(const char *aURI)
   mURI = aURI;
   mIsValidURI = true;
 
-  PRInt32 searchCharLocation = mURINoQuery.FindChar('?');
+  int32_t searchCharLocation = mURINoQuery.FindChar('?');
   if (searchCharLocation >= 0)
   {
     mQueryString = Substring(mURINoQuery, searchCharLocation + 1);
@@ -298,7 +298,7 @@ nsAbDirProperty::HasDirectory(nsIAbDirectory *dir, bool *hasDir)
 NS_IMETHODIMP
 nsAbDirProperty::CreateNewDirectory(const nsAString &aDirName,
                                     const nsACString &aURI,
-                                    PRUint32 aType,
+                                    uint32_t aType,
                                     const nsACString &aPrefName,
                                     nsACString &aResult)
 { return NS_ERROR_NOT_IMPLEMENTED; }
@@ -423,8 +423,8 @@ nsresult nsAbDirProperty::InitDirectoryPrefs()
 }
 
 NS_IMETHODIMP nsAbDirProperty::GetIntValue(const char *aName,
-                                          PRInt32 aDefaultValue,
-                                          PRInt32 *aResult)
+                                          int32_t aDefaultValue,
+                                          int32_t *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -505,7 +505,7 @@ NS_IMETHODIMP nsAbDirProperty::GetLocalizedStringValue(const char *aName,
 }
 
 NS_IMETHODIMP nsAbDirProperty::SetIntValue(const char *aName,
-                                          PRInt32 aValue)
+                                          int32_t aValue)
 {
   if (!m_DirectoryPrefs && NS_FAILED(InitDirectoryPrefs()))
     return NS_ERROR_NOT_INITIALIZED;

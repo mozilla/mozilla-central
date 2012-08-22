@@ -116,7 +116,7 @@ void nsImapServerResponseParser::SetFlagState(nsIImapFlagAndUidState *state)
   fFlagState = state;
 }
 
-PRInt32 nsImapServerResponseParser::SizeOfMostRecentMessage()
+int32_t nsImapServerResponseParser::SizeOfMostRecentMessage()
 {
   return fSizeOfMostRecentMessage;
 }
@@ -968,7 +968,7 @@ numeric_mailbox_data ::=  number SPACE "EXISTS" / number SPACE "RECENT"
 */
 void nsImapServerResponseParser::numeric_mailbox_data()
 {
-  PRInt32 tokenNumber = atoi(fNextToken);
+  int32_t tokenNumber = atoi(fNextToken);
   AdvanceToNextToken();
   
   if (ContinueParse())
@@ -993,7 +993,7 @@ void nsImapServerResponseParser::numeric_mailbox_data()
     else if (!PL_strcasecmp(fNextToken, "EXPUNGE"))
     {
       if (!fServerConnection.GetIgnoreExpunges())
-        fFlagState->ExpungeByIndex((PRUint32) tokenNumber);
+        fFlagState->ExpungeByIndex((uint32_t) tokenNumber);
       skip_to_CRLF();
     }
     else
@@ -1085,7 +1085,7 @@ void nsImapServerResponseParser::msg_fetch()
       if (ContinueParse())
       {
         fNextToken++; // eat '('
-        PRUint64 modSeq =  ParseUint64Str(fNextToken);
+        uint64_t modSeq =  ParseUint64Str(fNextToken);
         if (modSeq > fHighestModSeq)
           fHighestModSeq = modSeq;
 
@@ -1154,7 +1154,7 @@ void nsImapServerResponseParser::msg_fetch()
           const char *startPartNum = fNextToken + 5;
           if (whereHeader > startPartNum)
           {
-            PRInt32 partLength = whereHeader - startPartNum - 1; //-1 for the dot!
+            int32_t partLength = whereHeader - startPartNum - 1; //-1 for the dot!
             char *partNum = (char *)PR_CALLOC((partLength + 1) * sizeof (char));
             if (partNum)
             {
@@ -1184,7 +1184,7 @@ void nsImapServerResponseParser::msg_fetch()
           fDownloadingHeaders = false;
           
           bool chunk = false;
-          PRInt32 origin = 0;
+          int32_t origin = 0;
           if (!PL_strncasecmp(fNextToken, "BODY[]<", 7))
           {
             char *tokenCopy = 0;
@@ -1340,7 +1340,7 @@ void nsImapServerResponseParser::msg_fetch()
             && fCurrentLineContainedFlagInfo && fFlagState)
           {
             fFlagState->AddUidFlagPair(CurrentResponseUID(), fSavedFlagInfo, fFetchResponseIndex - 1);
-            for (PRInt32 i = 0; i < fCustomFlags.Length(); i++)
+            for (int32_t i = 0; i < fCustomFlags.Length(); i++)
               fFlagState->AddUidCustomFlagPair(CurrentResponseUID(), fCustomFlags[i].get());
             fCustomFlags.Clear();
           }
@@ -1490,7 +1490,7 @@ void nsImapServerResponseParser::xaolenvelope_data()
         if (ContinueParse())
         {
           AdvanceToNextToken();	// ge attachment size
-          PRInt32 attachmentSize = atoi(fNextToken);
+          int32_t attachmentSize = atoi(fNextToken);
           if (attachmentSize != 0)
           {
             nsCAutoString attachmentLine("X-attachment-size: ");
@@ -1501,7 +1501,7 @@ void nsImapServerResponseParser::xaolenvelope_data()
         if (ContinueParse())
         {
           AdvanceToNextToken();	// skip image size
-          PRInt32 imageSize = atoi(fNextToken);
+          int32_t imageSize = atoi(fNextToken);
           if (imageSize != 0)
           {
             nsCAutoString imageLine("X-image-size: ");
@@ -1686,7 +1686,7 @@ void nsImapServerResponseParser::flags()
     if (!knownFlag && fFlagState)
     {
       nsCAutoString flag(fNextToken);
-      PRInt32 parenIndex = flag.FindChar(')');
+      int32_t parenIndex = flag.FindChar(')');
       if (parenIndex > 0)
         flag.SetLength(parenIndex);
       messageFlags |= kImapMsgCustomKeywordFlag;
@@ -1774,7 +1774,7 @@ void nsImapServerResponseParser::text()
 
 void nsImapServerResponseParser::parse_folder_flags()
 {
-  PRUint16 labelFlags = 0;
+  uint16_t labelFlags = 0;
 
   do 
   {
@@ -1866,7 +1866,7 @@ void nsImapServerResponseParser::resp_text_code()
     }
     else if (!PL_strcasecmp(fNextToken,"PERMANENTFLAGS"))
     {
-      PRUint32 saveSettableFlags = fSettablePermanentFlags;
+      uint32_t saveSettableFlags = fSettablePermanentFlags;
       fSupportsUserDefinedFlags = 0;		// assume no unless told
       fSettablePermanentFlags = 0;            // assume none, unless told otherwise.
       parse_folder_flags();
@@ -2066,7 +2066,7 @@ string          ::= quoted / literal
 nil             ::= "NIL"
 
 */
-void nsImapServerResponseParser::msg_fetch_content(bool chunk, PRInt32 origin, const char *content_type)
+void nsImapServerResponseParser::msg_fetch_content(bool chunk, int32_t origin, const char *content_type)
 {
   // setup the stream for downloading this message.
   // Don't do it if we are filling in a shell or downloading a part.
@@ -2155,7 +2155,7 @@ void nsImapServerResponseParser::msg_obsolete()
 
 void nsImapServerResponseParser::capability_data()
 {
-  PRInt32 endToken = -1;
+  int32_t endToken = -1;
   fCapabilityFlag = kCapabilityDefined | kHasAuthOldLoginCapability;
   do {
     AdvanceToNextToken();
@@ -2590,7 +2590,7 @@ void nsImapServerResponseParser::mime_part_data()
   char *checkOriginToken = PL_strdup(fNextToken);
   if (checkOriginToken)
   {
-    PRUint32 origin = 0;
+    uint32_t origin = 0;
     bool originFound = false;
     char *whereStart = PL_strchr(checkOriginToken, '<');
     if (whereStart)
@@ -2670,7 +2670,7 @@ nsImapServerResponseParser::bodystructure_leaf(char *partNum, nsIMAPBodypart *pa
 {
   // historical note: this code was originally in nsIMAPBodypartLeaf::ParseIntoObjects()
   char *bodyType = nullptr, *bodySubType = nullptr, *bodyID = nullptr, *bodyDescription = nullptr, *bodyEncoding = nullptr;
-  PRInt32 partLength = 0;
+  int32_t partLength = 0;
   bool isValid = true;
   
   // body type  ("application", "text", "image", etc.)
@@ -2932,7 +2932,7 @@ void nsImapServerResponseParser::quota_data()
   }
   else if(!PL_strcasecmp(fNextToken, "QUOTA"))
   {
-    PRUint32 used, max;
+    uint32_t used, max;
     char *parengroup;
 
     AdvanceToNextToken();
@@ -3016,7 +3016,7 @@ void nsImapServerResponseParser::ResetCapabilityFlag()
                               ;; Number represents the number of CHAR8 octets
 */
 // returns true if this is the last chunk and we should close the stream
-bool nsImapServerResponseParser::msg_fetch_literal(bool chunk, PRInt32 origin)
+bool nsImapServerResponseParser::msg_fetch_literal(bool chunk, int32_t origin)
 {
   numberOfCharsInThisChunk = atoi(fNextToken + 1);
   // If we didn't request a specific size, or the server isn't returning exactly
@@ -3113,38 +3113,38 @@ bool nsImapServerResponseParser::CurrentFolderReadOnly()
   return fCurrentFolderReadOnly;
 }
 
-PRInt32	nsImapServerResponseParser::NumberOfMessages()
+int32_t	nsImapServerResponseParser::NumberOfMessages()
 {
   return fNumberOfExistingMessages;
 }
 
-PRInt32 nsImapServerResponseParser::NumberOfRecentMessages()
+int32_t nsImapServerResponseParser::NumberOfRecentMessages()
 {
   return fNumberOfRecentMessages;
 }
 
-PRInt32 nsImapServerResponseParser::NumberOfUnseenMessages()
+int32_t nsImapServerResponseParser::NumberOfUnseenMessages()
 {
   return fNumberOfUnseenMessages;
 }
 
-PRInt32 nsImapServerResponseParser::FolderUID()
+int32_t nsImapServerResponseParser::FolderUID()
 {
   return fFolderUIDValidity;
 }
 
-void nsImapServerResponseParser::SetCurrentResponseUID(PRUint32 uid)
+void nsImapServerResponseParser::SetCurrentResponseUID(uint32_t uid)
 {
   if (uid > 0)
     fCurrentResponseUID = uid;
 }
 
-PRUint32 nsImapServerResponseParser::CurrentResponseUID()
+uint32_t nsImapServerResponseParser::CurrentResponseUID()
 {
   return fCurrentResponseUID;
 }
 
-PRUint32 nsImapServerResponseParser::HighestRecordedUID()
+uint32_t nsImapServerResponseParser::HighestRecordedUID()
 {
   return fHighestRecordedUID;
 }

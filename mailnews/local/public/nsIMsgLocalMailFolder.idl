@@ -50,7 +50,7 @@ interface nsIMsgLocalMailFolder : nsISupports {
   void copyAllSubFolders(in nsIMsgFolder srcFolder, in nsIMsgWindow msgWindow, in nsIMsgCopyServiceListener listener );
   void onCopyCompleted(in nsISupports aSrcSupport, in boolean aMoveCopySucceeded);
   attribute boolean checkForNewMessagesAfterParsing;
-  void markMsgsOnPop3Server(in nsIArray aMessages, in PRInt32 aMark);
+  void markMsgsOnPop3Server(in nsIArray aMessages, in int32_t aMark);
 
   /**
    * File size on disk has possibly changed - update and notify.
@@ -84,7 +84,7 @@ interface nsIMsgLocalMailFolder : nsISupports {
    *                  bodies.
    * @return an array of nsIMsgDBHdr of the added messages
    */
-  nsIArray addMessageBatch(in PRUint32 aMessageCount,
+  nsIArray addMessageBatch(in uint32_t aMessageCount,
                            [array, size_is(aMessageCount)] in string aMessages);
 
   /**

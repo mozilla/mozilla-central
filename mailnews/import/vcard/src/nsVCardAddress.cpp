@@ -32,7 +32,7 @@ nsresult nsVCardAddress::ImportAddresses(
     nsIFile *pSrc,
     nsIAddrDatabase *pDb,
     nsString& errors,
-    PRUint32 *pProgress)
+    uint32_t *pProgress)
 {
   // Open the source file for reading, read each line and process it!
   nsCOMPtr<nsIInputStream> inputStream;
@@ -46,7 +46,7 @@ nsresult nsVCardAddress::ImportAddresses(
   // Here we use this to work out the size of the file, so we can update
   // an integer as we go through the file which will update a progress
   // bar if required by the caller.
-  PRUint64 bytesLeft = 0;
+  uint64_t bytesLeft = 0;
   rv = inputStream->Available(&bytesLeft);
   if (NS_FAILED(rv)) {
     IMPORT_LOG0("*** Error checking address file for size\n");
@@ -54,7 +54,7 @@ nsresult nsVCardAddress::ImportAddresses(
     return rv;
   }
 
-  PRUint64 totalBytes = bytesLeft;
+  uint64_t totalBytes = bytesLeft;
   nsCOMPtr<nsILineInputStream> lineStream(do_QueryInterface(inputStream, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 

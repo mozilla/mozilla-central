@@ -64,7 +64,7 @@ nsGNOMEShellService::Init()
 }
 
 NS_IMETHODIMP
-nsGNOMEShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps,
+nsGNOMEShellService::IsDefaultClient(bool aStartupCheck, uint16_t aApps,
                                      bool* aIsDefaultClient)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
@@ -72,7 +72,7 @@ nsGNOMEShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps,
 
 NS_IMETHODIMP
 nsGNOMEShellService::SetDefaultClient(bool aForAllUsers,
-                                      bool aClaimAllTypes, PRUint16 aApps)
+                                      bool aClaimAllTypes, uint16_t aApps)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -90,13 +90,13 @@ nsGNOMEShellService::SetShouldCheckDefaultClient(bool aShouldCheck)
 }
 
 NS_IMETHODIMP
-nsGNOMEShellService::GetShouldBeDefaultClientFor(PRUint16* aApps)
+nsGNOMEShellService::GetShouldBeDefaultClientFor(uint16_t* aApps)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsGNOMEShellService::SetShouldBeDefaultClientFor(PRUint16 aApps)
+nsGNOMEShellService::SetShouldBeDefaultClientFor(uint16_t aApps)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -111,7 +111,7 @@ nsGNOMEShellService::GetCanSetDesktopBackground(bool* aResult)
 
 NS_IMETHODIMP
 nsGNOMEShellService::SetDesktopBackground(nsIDOMElement* aElement, 
-                                          PRInt32 aPosition)
+                                          int32_t aPosition)
 {
   // get the product brand name from localized strings
   nsresult rv;
@@ -224,7 +224,7 @@ nsGNOMEShellService::SetDesktopBackground(nsIDOMElement* aElement,
 #define COLOR_16_TO_8_BIT(_c) ((_c) >> 8)
 
 NS_IMETHODIMP
-nsGNOMEShellService::GetDesktopBackgroundColor(PRUint32 *aColor)
+nsGNOMEShellService::GetDesktopBackgroundColor(uint32_t *aColor)
 {
   nsCOMPtr<nsIGSettingsService> gsettings(do_GetService(NS_GSETTINGSSERVICE_CONTRACTID));
   nsCOMPtr<nsIGSettingsCollection> background_settings;
@@ -258,13 +258,13 @@ nsGNOMEShellService::GetDesktopBackgroundColor(PRUint32 *aColor)
 #define COLOR_8_TO_16_BIT(_c) ((_c) << 8 | (_c))
 
 NS_IMETHODIMP
-nsGNOMEShellService::SetDesktopBackgroundColor(PRUint32 aColor)
+nsGNOMEShellService::SetDesktopBackgroundColor(uint32_t aColor)
 {
   NS_ENSURE_ARG_MAX(aColor, 0xFFFFFF);
 
-  PRUint8 red = aColor >> 16;
-  PRUint8 green = aColor >> 8;
-  PRUint8 blue = aColor;
+  uint8_t red = aColor >> 16;
+  uint8_t green = aColor >> 8;
+  uint8_t blue = aColor;
   char colorString[14];
   sprintf(colorString, "#%04x%04x%04x", COLOR_8_TO_16_BIT(red),
           COLOR_8_TO_16_BIT(green), COLOR_8_TO_16_BIT(blue));

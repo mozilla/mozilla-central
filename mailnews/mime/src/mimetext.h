@@ -45,8 +45,8 @@ typedef struct MimeInlineText      MimeInlineText;
 
 struct MimeInlineTextClass {
   MimeLeafClass   leaf;
-  int (*rot13_line) (MimeObject *obj, char *line, PRInt32 length);
-  int (*convert_line_charset) (MimeObject *obj, char *line, PRInt32 length);
+  int (*rot13_line) (MimeObject *obj, char *line, int32_t length);
+  int (*convert_line_charset) (MimeObject *obj, char *line, int32_t length);
   int (*initialize_charset) (MimeObject *obj);
 };
 
@@ -63,15 +63,15 @@ struct MimeInlineText {
   bool charsetOverridable;
   bool needUpdateMsgWinCharset;
   char *cbuffer;      /* Buffer used for charset conversion. */
-  PRInt32 cbuffer_size;
+  int32_t cbuffer_size;
 
   nsCOMPtr<nsIUnicodeDecoder> inputDecoder;
   nsCOMPtr<nsIUnicodeEncoder> utf8Encoder;
 
   bool    inputAutodetect;
   bool    initializeCharset;
-  PRInt32 lastLineInDam;
-  PRInt32 curDamOffset;
+  int32_t lastLineInDam;
+  int32_t curDamOffset;
   char *lineDamBuffer;
   char **lineDamPtrs;
 };

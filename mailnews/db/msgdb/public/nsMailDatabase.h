@@ -22,7 +22,7 @@ public:
   nsMailDatabase();
   virtual ~nsMailDatabase();
   NS_IMETHOD  ForceClosed();
-  NS_IMETHOD DeleteMessages(PRUint32 aNumKeys, nsMsgKey* nsMsgKeys, nsIDBChangeListener *instigator);
+  NS_IMETHOD DeleteMessages(uint32_t aNumKeys, nsMsgKey* nsMsgKeys, nsIDBChangeListener *instigator);
 
   NS_IMETHOD StartBatch();
   NS_IMETHOD EndBatch();
@@ -30,7 +30,7 @@ public:
   nsresult  Open(nsIFile *aSummaryFile, bool create, bool upgrading);
   virtual nsMailDatabase  *GetMailDB() {return this;}
 
-  virtual PRUint32  GetCurVersion() {return kMsgDBVersion;}
+  virtual uint32_t  GetCurVersion() {return kMsgDBVersion;}
   
   NS_IMETHOD  GetOfflineOpForKey(nsMsgKey opKey, bool create, nsIMsgOfflineImapOperation **op);
   NS_IMETHOD  RemoveOfflineOp(nsIMsgOfflineImapOperation *op);
@@ -48,7 +48,7 @@ protected:
   nsresult        GetAllOfflineOpsTable(); // get this on demand
 
   // get the time and date of the mailbox file
-  void            GetMailboxModProperties(PRInt64 *aSize, PRUint32 *aDate); 
+  void            GetMailboxModProperties(int64_t *aSize, uint32_t *aDate); 
 
   nsCOMPtr <nsIMdbTable>  m_mdbAllOfflineOpsTable;
   mdb_token       m_offlineOpsRowScopeToken;

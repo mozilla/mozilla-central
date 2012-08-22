@@ -67,9 +67,9 @@ protected:
   nsCOMPtr<nsIDocShell>       mDocShell;
   nsCOMPtr<nsIDOMWindow>      mWindow;
   nsCOMPtr<nsIDOMWindow>      mParentWindow;
-  PRInt32                     mURICount;
+  int32_t                     mURICount;
   nsTArray<nsString>          mURIArray;
-  PRInt32                     mCurrentlyPrintingURI;
+  int32_t                     mCurrentlyPrintingURI;
 
   nsCOMPtr<nsIContentViewer>  mContentViewer;
   nsCOMPtr<nsIStringBundle>   mStringBundle;    // String bundles...
@@ -79,7 +79,7 @@ protected:
   nsCOMPtr<nsIDOMWindow>       mMsgDOMWin;
   bool                         mIsDoingPrintPreview;
   nsCOMPtr<nsIObserver>        mStartupPPObs;
-  PRInt32                      mMsgInx;
+  int32_t                      mMsgInx;
 
   // Progress Dialog
   

@@ -100,7 +100,7 @@ interface calISyncWriteCalendar : calICalendar {
     /**
      * Gets all meta data. The returned arrays are of the same length.
      */
-    void getAllMetaData(out PRUint32 count,
+    void getAllMetaData(out uint32_t count,
                         [array, size_is(count)] out wstring ids,
                         [array, size_is(count)] out wstring values);
 };

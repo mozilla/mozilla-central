@@ -24,7 +24,7 @@
 
 static char *mime_mailto_stream_read_buffer = 0;
 
-PRInt32 nsMsgSendPart::M_counter = 0;
+int32_t nsMsgSendPart::M_counter = 0;
 
 nsMsgSendPart::nsMsgSendPart(nsIMsgSend* state, const char *part_charset)
 {
@@ -174,7 +174,7 @@ nsresult nsMsgSendPart::AddChild(nsMsgSendPart* child)
   return NS_OK;
 }
 
-nsMsgSendPart * nsMsgSendPart::DetachChild(PRInt32 whichOne)
+nsMsgSendPart * nsMsgSendPart::DetachChild(int32_t whichOne)
 {
   nsMsgSendPart *returnValue = nullptr;
   
@@ -215,7 +215,7 @@ nsMsgSendPart * nsMsgSendPart::DetachChild(PRInt32 whichOne)
   return returnValue;
 }
 
-nsMsgSendPart* nsMsgSendPart::GetChild(PRInt32 which)
+nsMsgSendPart* nsMsgSendPart::GetChild(int32_t which)
 {
   NS_ASSERTION(which >= 0 && which < m_numchildren, "parameter out of range");
   if (which >= 0 && which < m_numchildren) {
@@ -226,7 +226,7 @@ nsMsgSendPart* nsMsgSendPart::GetChild(PRInt32 which)
 
 
 
-nsresult nsMsgSendPart::PushBody(const char* buffer, PRInt32 length)
+nsresult nsMsgSendPart::PushBody(const char* buffer, int32_t length)
 {
   nsresult status = NS_OK;
   const char* encoded_data = buffer;
@@ -470,8 +470,8 @@ nsMsgSendPart::Write()
       // The "insert HTML links" code requires a memory buffer,
       // so read the file into memory.
       NS_ASSERTION(m_buffer == nullptr, "not-null buffer");
-      PRInt32           length = 0;
-      PRInt64 fileSize;
+      int32_t           length = 0;
+      int64_t fileSize;
       if (NS_SUCCEEDED(m_file->GetFileSize(&fileSize)))
           length = fileSize;
       
@@ -482,7 +482,7 @@ nsMsgSendPart::Write()
         nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputFile), m_file);
         if (NS_SUCCEEDED(rv)) 
         {
-          PRUint32 bytesRead;
+          uint32_t bytesRead;
           rv = inputFile->Read(m_buffer, length, &bytesRead);
           inputFile->Close();
           m_buffer[length] = '\0';
@@ -713,7 +713,7 @@ nsMsgSendPart::Write()
 
     while (NS_SUCCEEDED(status))
     {
-      PRUint32 bytesRead;
+      uint32_t bytesRead;
       nsresult rv = inputStream->Read(buffer, MIME_BUFFER_SIZE, &bytesRead);
       if (NS_FAILED(rv))
       {  

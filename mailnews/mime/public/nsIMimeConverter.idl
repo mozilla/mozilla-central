@@ -12,7 +12,7 @@ typedef struct MimeDecoderData MimeDecoderData;
 typedef struct MimeEncoderData MimeEncoderData;
 
 typedef int (*PR_CALLBACK MimeConverterOutputCallback)
-    (const char *buf, PRInt32 size, void *closure);
+    (const char *buf, int32_t size, void *closure);
 
 %}
 

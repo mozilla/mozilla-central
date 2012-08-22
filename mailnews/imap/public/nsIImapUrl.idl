@@ -201,8 +201,8 @@ interface nsIImapUrl : nsISupports
   const long nsImapMsgStoreCustomKeywords = 0x10000037;
 
   /// Constant for the default IMAP port number
-  const PRInt32 DEFAULT_IMAP_PORT = 143;
+  const int32_t DEFAULT_IMAP_PORT = 143;
 
   /// Constant for the default IMAP over ssl port number
-  const PRInt32 DEFAULT_IMAPS_PORT = 993;
+  const int32_t DEFAULT_IMAPS_PORT = 993;
 };

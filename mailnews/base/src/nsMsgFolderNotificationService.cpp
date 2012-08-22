@@ -48,7 +48,7 @@ NS_IMETHODIMP nsMsgFolderNotificationService::RemoveListener(nsIMsgFolderListene
 {
   NS_ENSURE_ARG_POINTER(aListener);
 
-  PRInt32 index = mListeners.IndexOf(aListener);
+  int32_t index = mListeners.IndexOf(aListener);
   NS_ASSERTION(index != -1, "removing non-existent listener");
   if (index != -1)
     mListeners.RemoveElementAt(index);
@@ -95,7 +95,7 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsMoveCopyCompleted(
   bool aMove, nsIArray *aSrcMsgs, nsIMsgFolder *aDestFolder,
   nsIArray *aDestMsgs)
 {
-  PRUint32 count = mListeners.Length();
+  uint32_t count = mListeners.Length();
   
   // IMAP delete model means that a "move" isn't really a move, it is a copy,
   // followed by storing the IMAP deleted flag on the message.

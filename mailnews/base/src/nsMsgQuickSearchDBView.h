@@ -25,12 +25,12 @@ public:
   virtual const char * GetViewName(void) {return "QuickSearchView"; }
   NS_IMETHOD Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sortType, 
                   nsMsgViewSortOrderValue sortOrder, 
-                  nsMsgViewFlagsTypeValue viewFlags, PRInt32 *pCount);
+                  nsMsgViewFlagsTypeValue viewFlags, int32_t *pCount);
   NS_IMETHOD OpenWithHdrs(nsISimpleEnumerator *aHeaders, 
                           nsMsgViewSortTypeValue aSortType, 
                           nsMsgViewSortOrderValue aSortOrder, 
                           nsMsgViewFlagsTypeValue aViewFlags, 
-                          PRInt32 *aCount);
+                          int32_t *aCount);
   NS_IMETHOD CloneDBView(nsIMessenger *aMessengerInstance,
                          nsIMsgWindow *aMsgWindow,
                          nsIMsgDBViewCommandUpdater *aCommandUpdater,
@@ -44,13 +44,13 @@ public:
   NS_IMETHOD SetViewFlags(nsMsgViewFlagsTypeValue aViewFlags);
   NS_IMETHOD SetSearchSession(nsIMsgSearchSession *aSearchSession);
   NS_IMETHOD GetSearchSession(nsIMsgSearchSession* *aSearchSession);
-  NS_IMETHOD OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, 
-                         PRUint32 aNewFlags, nsIDBChangeListener *aInstigator);
-  NS_IMETHOD OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, bool aPreChange, PRUint32 *aStatus, 
+  NS_IMETHOD OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, uint32_t aOldFlags, 
+                         uint32_t aNewFlags, nsIDBChangeListener *aInstigator);
+  NS_IMETHOD OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, bool aPreChange, uint32_t *aStatus, 
                                  nsIDBChangeListener * aInstigator);
   NS_IMETHOD OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey,
-                          PRInt32 aFlags, nsIDBChangeListener *aInstigator);
-  NS_IMETHOD GetNumMsgsInView(PRInt32 *aNumMsgs);
+                          int32_t aFlags, nsIDBChangeListener *aInstigator);
+  NS_IMETHOD GetNumMsgsInView(int32_t *aNumMsgs);
 
 protected:
   nsWeakPtr m_searchSession;
@@ -60,23 +60,23 @@ protected:
   nsCOMArray <nsIMsgDBHdr> m_hdrHits;
   virtual nsresult AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *resultIndex = nullptr);
   virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, bool ensureListed);
-  virtual nsresult DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, bool deleteStorage);
+  virtual nsresult DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, int32_t numIndices, bool deleteStorage);
   virtual nsresult SortThreads(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder);
   virtual nsresult GetFirstMessageHdrToDisplayInThread(nsIMsgThread *threadHdr, nsIMsgDBHdr **result);
-  virtual nsresult ExpansionDelta(nsMsgViewIndex index, PRInt32 *expansionDelta);
+  virtual nsresult ExpansionDelta(nsMsgViewIndex index, int32_t *expansionDelta);
   virtual nsresult ListCollapsedChildren(nsMsgViewIndex viewIndex,
                                          nsIMutableArray *messageArray);
-  virtual nsresult ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex startOfThreadViewIndex, PRUint32 *pNumListed);
+  virtual nsresult ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex startOfThreadViewIndex, uint32_t *pNumListed);
   virtual nsresult ListIdsInThreadOrder(nsIMsgThread *threadHdr,
-                                        nsMsgKey parentKey, PRUint32 level,
+                                        nsMsgKey parentKey, uint32_t level,
                                         nsMsgViewIndex *viewIndex,
-                                        PRUint32 *pNumListed);
+                                        uint32_t *pNumListed);
   virtual nsresult ListIdsInThreadOrder(nsIMsgThread *threadHdr,
-                                        nsMsgKey parentKey, PRUint32 level,
-                                        PRUint32 callLevel,
+                                        nsMsgKey parentKey, uint32_t level,
+                                        uint32_t callLevel,
                                         nsMsgKey keyToSkip,
                                         nsMsgViewIndex *viewIndex,
-                                        PRUint32 *pNumListed);
+                                        uint32_t *pNumListed);
   virtual nsresult GetMessageEnumerator(nsISimpleEnumerator **enumerator);
   void      SavePreSearchInfo();
   void      ClearPreSearchInfo();

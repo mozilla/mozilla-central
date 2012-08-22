@@ -15,8 +15,8 @@
 #define  kScanningRsrcFork    5
 #define  kDoneWithFile      6
 
-PRUint32  gAppleSingleHeader[6] = {0x00051600, 0x00020000, 0, 0, 0, 0};
-#define kAppleSingleHeaderSize  (6 * sizeof(PRUint32))
+uint32_t  gAppleSingleHeader[6] = {0x00051600, 0x00020000, 0, 0, 0, 0};
+#define kAppleSingleHeaderSize  (6 * sizeof(uint32_t))
 
 #ifdef _MAC_IMPORT_CODE
 #include "MoreFilesExtras.h"
@@ -68,7 +68,7 @@ nsImportEncodeScan::~nsImportEncodeScan()
 {
 }
 
-bool nsImportEncodeScan::InitEncodeScan(bool appleSingleEncode, nsIFile *fileLoc, const char *pName, PRUint8 * pBuf, PRUint32 sz)
+bool nsImportEncodeScan::InitEncodeScan(bool appleSingleEncode, nsIFile *fileLoc, const char *pName, uint8_t * pBuf, uint32_t sz)
 {
   CleanUpEncodeScan();
   m_isAppleSingle = appleSingleEncode;

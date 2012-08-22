@@ -29,7 +29,7 @@ public:
   // This is the write call for outputting processed stream data.
   NS_IMETHOD    MimeObjectWrite(void *mimeObject,
                                 char *data,
-                                PRInt32 length,
+                                int32_t length,
                                 bool user_visible_p) = 0;
 
   // The following group of calls expose the pointers for the object

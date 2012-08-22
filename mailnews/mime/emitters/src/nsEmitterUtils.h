@@ -8,7 +8,7 @@
 #include "prmem.h"
 #include "plstr.h"
 
-extern "C" bool     EmitThisHeaderForPrefSetting(PRInt32 dispType, const char *header);
+extern "C" bool     EmitThisHeaderForPrefSetting(int32_t dispType, const char *header);
 
 #endif // _nsEmitterUtils_h_
 

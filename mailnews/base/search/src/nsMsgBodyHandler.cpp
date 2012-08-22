@@ -18,12 +18,12 @@
 #include "nsMimeTypes.h"
 
 nsMsgBodyHandler::nsMsgBodyHandler (nsIMsgSearchScopeTerm * scope,
-                                    PRUint32 numLines,
+                                    uint32_t numLines,
                                     nsIMsgDBHdr* msg, nsIMsgDatabase * db)
 {
   m_scope = scope;
   m_numLocalLines = numLines;
-  PRUint32 flags;
+  uint32_t flags;
   m_lineCountInBodyLines = NS_SUCCEEDED(msg->GetFlags(&flags)) ?
     !(flags & nsMsgMessageFlags::Offline) : true;
   // account for added x-mozilla-status lines, and envelope line.
@@ -43,14 +43,14 @@ nsMsgBodyHandler::nsMsgBodyHandler (nsIMsgSearchScopeTerm * scope,
 }
 
 nsMsgBodyHandler::nsMsgBodyHandler(nsIMsgSearchScopeTerm * scope,
-                                   PRUint32 numLines,
+                                   uint32_t numLines,
                                    nsIMsgDBHdr* msg, nsIMsgDatabase* db,
-                                   const char * headers, PRUint32 headersSize,
+                                   const char * headers, uint32_t headersSize,
                                    bool Filtering)
 {
   m_scope = scope;
   m_numLocalLines = numLines;
-  PRUint32 flags;
+  uint32_t flags;
   m_lineCountInBodyLines = NS_SUCCEEDED(msg->GetFlags(&flags)) ?
     !(flags & nsMsgMessageFlags::Offline) : true;
   // account for added x-mozilla-status lines, and envelope line.
@@ -87,10 +87,10 @@ nsMsgBodyHandler::~nsMsgBodyHandler()
 {
 }
 
-PRInt32 nsMsgBodyHandler::GetNextLine (nsCString &buf)
+int32_t nsMsgBodyHandler::GetNextLine (nsCString &buf)
 {
-  PRInt32 length = -1;          // length of incoming line or -1 eof
-  PRInt32 outLength = -1;       // length of outgoing line or -1 eof
+  int32_t length = -1;          // length of incoming line or -1 eof
+  int32_t outLength = -1;       // length of outgoing line or -1 eof
   bool eatThisLine = true;
   nsCAutoString nextLine;
 
@@ -140,10 +140,10 @@ void nsMsgBodyHandler::OpenLocalFolder()
   m_fileLineStream = do_QueryInterface(inputStream);
 }
 
-PRInt32 nsMsgBodyHandler::GetNextFilterLine(nsCString &buf)
+int32_t nsMsgBodyHandler::GetNextFilterLine(nsCString &buf)
 {
   // m_nextHdr always points to the next header in the list....the list is NULL terminated...
-  PRUint32 numBytesCopied = 0;
+  uint32_t numBytesCopied = 0;
   if (m_headersSize > 0)
   {
     // #mscott. Ugly hack! filter headers list have CRs & LFs inside the NULL delimited list of header
@@ -167,7 +167,7 @@ PRInt32 nsMsgBodyHandler::GetNextFilterLine(nsCString &buf)
       else
         m_headersSize -= numBytesCopied;  // update # bytes we have read from the headers list
       
-      return (PRInt32) numBytesCopied;
+      return (int32_t) numBytesCopied;
     }
   }
   else if (m_headersSize == 0) {
@@ -178,7 +178,7 @@ PRInt32 nsMsgBodyHandler::GetNextFilterLine(nsCString &buf)
 
 // return -1 if no more local lines, length of next line otherwise.
 
-PRInt32 nsMsgBodyHandler::GetNextLocalLine(nsCString &buf)
+int32_t nsMsgBodyHandler::GetNextLocalLine(nsCString &buf)
 // returns number of bytes copied
 {
   if (m_numLocalLines)
@@ -223,10 +223,10 @@ PRInt32 nsMsgBodyHandler::GetNextLocalLine(nsCString &buf)
  *                            redundant version of line).
  * @return            the length of the line after applying transformations
  */
-PRInt32 nsMsgBodyHandler::ApplyTransformations (const nsCString &line, PRInt32 length,
+int32_t nsMsgBodyHandler::ApplyTransformations (const nsCString &line, int32_t length,
                                                 bool &eatThisLine, nsCString &buf)
 {
-  PRInt32 newLength = length;
+  int32_t newLength = length;
   eatThisLine = false;
   
   if (!m_pastHeaders)  // line is a line from the message headers
@@ -385,11 +385,11 @@ void nsMsgBodyHandler::SniffPossibleMIMEHeader(nsCString &line)
   if (m_isMultipart && boundary.IsEmpty() &&
       lowerCaseLine.Find("boundary=", CaseInsensitiveCompare) != -1)
   {
-    PRInt32 start = lowerCaseLine.Find("boundary=", CaseInsensitiveCompare);
+    int32_t start = lowerCaseLine.Find("boundary=", CaseInsensitiveCompare);
     start += 9;
     if (line[start] == '\"')
       start++;
-    PRInt32 end = line.RFindChar('\"');
+    int32_t end = line.RFindChar('\"');
     if (end == -1)
       end = line.Length();
 
@@ -416,7 +416,7 @@ void nsMsgBodyHandler::Base64Decode (nsCString &pBufInOut)
   if (decodedBody)
     pBufInOut.Adopt(decodedBody);
 
-  PRInt32 offset = pBufInOut.FindChar('\n');
+  int32_t offset = pBufInOut.FindChar('\n');
   while (offset != -1) {
     pBufInOut.Replace(offset, 1, ' ');
     offset = pBufInOut.FindChar('\n', offset);

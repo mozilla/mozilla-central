@@ -25,14 +25,14 @@ public:
   
   nsresult GetMailFolders(nsISupportsArray **pArray);
   nsresult GetAddressBooks(nsISupportsArray **pArray);
-  nsresult ImportMailbox(PRUint32 *pDoneSoFar, bool *pAbort, PRInt32 index,
+  nsresult ImportMailbox(uint32_t *pDoneSoFar, bool *pAbort, int32_t index,
                          const PRUnichar *pName, nsIMsgFolder *pDest,
-                         PRInt32 *pMsgCount);
+                         int32_t *pMsgCount);
   static nsresult ImportMessage(LPMESSAGE lpMsg, nsIOutputStream *destOutputStream, nsMsgDeliverMode mode);
-  nsresult ImportAddresses(PRUint32 *pCount, PRUint32 *pTotal, const PRUnichar *pName, PRUint32 id, nsIAddrDatabase *pDb, nsString& errors);
+  nsresult ImportAddresses(uint32_t *pCount, uint32_t *pTotal, const PRUnichar *pName, uint32_t id, nsIAddrDatabase *pDb, nsString& errors);
 private:
   void  OpenMessageStore(CMapiFolder *pNextFolder);
-  static BOOL  WriteData(nsIOutputStream *pDest, const char *pData, PRInt32 len);
+  static BOOL  WriteData(nsIOutputStream *pDest, const char *pData, int32_t len);
   
   bool      IsAddressBookNameUnique(nsString& name, nsString& list);
   void      MakeAddressBookNameUnique(nsString& name, nsString& list);

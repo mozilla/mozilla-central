@@ -74,7 +74,7 @@ NS_IMPL_ISUPPORTS4(nsMsgPrintEngine,
 NS_IMETHODIMP
 nsMsgPrintEngine::OnStateChange(nsIWebProgress* aWebProgress, 
                    nsIRequest *aRequest, 
-                   PRUint32 progressStateFlags, 
+                   uint32_t progressStateFlags, 
                    nsresult aStatus)
 {
   nsresult rv = NS_OK;
@@ -178,10 +178,10 @@ nsMsgPrintEngine::OnStateChange(nsIWebProgress* aWebProgress,
 NS_IMETHODIMP
 nsMsgPrintEngine::OnProgressChange(nsIWebProgress *aWebProgress,
                                      nsIRequest *aRequest,
-                                     PRInt32 aCurSelfProgress,
-                                     PRInt32 aMaxSelfProgress,
-                                     PRInt32 aCurTotalProgress,
-                                     PRInt32 aMaxTotalProgress)
+                                     int32_t aCurSelfProgress,
+                                     int32_t aMaxSelfProgress,
+                                     int32_t aCurTotalProgress,
+                                     int32_t aMaxTotalProgress)
 {
     return NS_OK;
 }
@@ -190,7 +190,7 @@ NS_IMETHODIMP
 nsMsgPrintEngine::OnLocationChange(nsIWebProgress* aWebProgress,
                       nsIRequest* aRequest,
                       nsIURI *location,
-                      PRUint32 aFlags)
+                      uint32_t aFlags)
 {
     NS_NOTREACHED("notification excluded in AddProgressListener(...)");
     return NS_OK;
@@ -210,7 +210,7 @@ nsMsgPrintEngine::OnStatusChange(nsIWebProgress* aWebProgress,
 NS_IMETHODIMP
 nsMsgPrintEngine::OnSecurityChange(nsIWebProgress *aWebProgress, 
                       nsIRequest *aRequest, 
-                      PRUint32 state)
+                      uint32_t state)
 {
     NS_NOTREACHED("notification excluded in AddProgressListener(...)");
     return NS_OK;
@@ -308,7 +308,7 @@ nsMsgPrintEngine::AddPrintURI(const PRUnichar *aMsgURI)
 }
 
 NS_IMETHODIMP
-nsMsgPrintEngine::SetPrintURICount(PRInt32 aCount)
+nsMsgPrintEngine::SetPrintURICount(int32_t aCount)
 {
   mURICount = aCount;
   return NS_OK;
@@ -413,7 +413,7 @@ nsMsgPrintEngine::StartNextPrintOperation()
   mCurrentlyPrintingURI++;
 
   // First, check if we are at the end of this stuff!
-  if (mCurrentlyPrintingURI >= (PRInt32)mURIArray.Length())
+  if (mCurrentlyPrintingURI >= (int32_t)mURIArray.Length())
   {
     // This is the end...dum, dum, dum....my only friend...the end
     mWindow->Close();
@@ -458,7 +458,7 @@ nsMsgPrintEngine::FireThatLoadOperationStartup(const nsString& uri)
   nsresult rv     = NS_ERROR_FAILURE;
   // Don't show dialog if we are out of URLs
   //if ( mCurrentlyPrintingURI < mURIArray.Length() && !mIsDoingPrintPreview)
-  if ( mCurrentlyPrintingURI < (PRInt32)mURIArray.Length())
+  if ( mCurrentlyPrintingURI < (int32_t)mURIArray.Length())
     rv = ShowProgressDialog(!mIsDoingPrintPreview, notify);
   if (NS_FAILED(rv) || !notify) 
     return FireThatLoadOperation(uri);
@@ -740,7 +740,7 @@ NS_IMETHODIMP nsMsgPrintEngine::SetDoPrintPreview(bool aDoPrintPreview)
 }
 
 /* void setMsgType (in long aMsgType); */
-NS_IMETHODIMP nsMsgPrintEngine::SetMsgType(PRInt32 aMsgType)
+NS_IMETHODIMP nsMsgPrintEngine::SetMsgType(int32_t aMsgType)
 {
   if (mMsgInx >= nsIMsgPrintEngine::MNAB_START && mMsgInx < nsIMsgPrintEngine::MNAB_END) 
   {

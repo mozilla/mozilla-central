@@ -16,12 +16,12 @@ public:
   virtual const char * GetViewName(void) {return "ThreadsWithUnreadView"; }
   NS_IMETHOD CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCommandUpdater, nsIMsgDBView **_retval);
   NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
-  NS_IMETHOD GetNumMsgsInView(PRInt32 *aNumMsgs);
+  NS_IMETHOD GetNumMsgsInView(int32_t *aNumMsgs);
 
 virtual bool WantsThisThread(nsIMsgThread *threadHdr);
 protected:
   virtual nsresult AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, bool ensureListed);
-  PRUint32 m_totalUnwantedMessagesInView;
+  uint32_t m_totalUnwantedMessagesInView;
 };
 
 class nsMsgWatchedThreadsWithUnreadDBView : public nsMsgThreadedDBView
@@ -30,12 +30,12 @@ public:
   nsMsgWatchedThreadsWithUnreadDBView ();
   NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
   NS_IMETHOD CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCommandUpdater, nsIMsgDBView **_retval);
-  NS_IMETHOD GetNumMsgsInView(PRInt32 *aNumMsgs);
+  NS_IMETHOD GetNumMsgsInView(int32_t *aNumMsgs);
   virtual const char * GetViewName(void) {return "WatchedThreadsWithUnreadView"; }
   virtual bool WantsThisThread(nsIMsgThread *threadHdr);
 protected:
   virtual nsresult AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, bool ensureListed);
-  PRUint32 m_totalUnwantedMessagesInView;
+  uint32_t m_totalUnwantedMessagesInView;
 
 };
 #ifdef DOING_CACHELESS_VIEW
@@ -47,14 +47,14 @@ public:
     NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
 	virtual 			~nsMsgCachelessView();
 	virtual const char * 		GetViewName(void) {return "nsMsgCachelessView"; }
-	NS_IMETHOD Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue viewType, PRInt32 *count);
-	nsresult				SetViewSize(PRInt32 setSize); // Override
+	NS_IMETHOD Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue viewType, int32_t *count);
+	nsresult				SetViewSize(int32_t setSize); // Override
 	virtual nsresult		AddNewMessages() ;
 	virtual nsresult		AddHdr(nsIMsgDBHdr *msgHdr);
 	// for news, xover line, potentially, for IMAP, imap line...
 	virtual nsresult		AddHdrFromServerLine(char *line, nsMsgKey *msgId) ;
 	virtual void		SetInitialSortState(void);
-	virtual	nsresult		Init(PRUint32 *pCount);
+	virtual	nsresult		Init(uint32_t *pCount);
 protected:
 	void				ClearPendingIds();
 

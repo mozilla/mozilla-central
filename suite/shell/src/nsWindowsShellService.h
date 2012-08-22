@@ -18,7 +18,7 @@ typedef struct {
   char* valueName;
   char* valueData;
 
-  PRInt32 flags;
+  int32_t flags;
 } SETTING;
 
 class nsWindowsShellService : public nsIWindowsShellService
@@ -33,8 +33,8 @@ public:
   NS_DECL_NSIWINDOWSSHELLSERVICE
 
 protected:
-  bool IsDefaultClientVista(PRUint16 aApps, bool* aIsDefaultClient);
-  bool TestForDefault(SETTING aSettings[], PRInt32 aSize);
+  bool IsDefaultClientVista(uint16_t aApps, bool* aIsDefaultClient);
+  bool TestForDefault(SETTING aSettings[], int32_t aSize);
 
 private:
   bool mCheckedThisSessionClient;

@@ -36,7 +36,7 @@ private:
   nsCOMArray<nsIAbDirSearchListener> mListeners;
   nsCString mCurrentLogin;
   nsCString mCurrentMechanism;
-  PRUint32 mCurrentProtocolVersion;
+  uint32_t mCurrentProtocolVersion;
 
   bool mInitialized;
 };

@@ -80,7 +80,7 @@ NS_IMPL_ISUPPORTS1(nsMsgSendReport, nsIMsgSendReport)
 
 nsMsgSendReport::nsMsgSendReport()
 {
-  PRUint32 i;
+  uint32_t i;
   for (i = 0; i <= SEND_LAST_PROCESS; i ++)
     mProcessReport[i] = new nsMsgProcessReport();
 
@@ -89,19 +89,19 @@ nsMsgSendReport::nsMsgSendReport()
 
 nsMsgSendReport::~nsMsgSendReport()
 {
-  PRUint32 i;
+  uint32_t i;
   for (i = 0; i <= SEND_LAST_PROCESS; i ++)
     mProcessReport[i] = nullptr;
 }
 
 /* attribute long currentProcess; */
-NS_IMETHODIMP nsMsgSendReport::GetCurrentProcess(PRInt32 *aCurrentProcess)
+NS_IMETHODIMP nsMsgSendReport::GetCurrentProcess(int32_t *aCurrentProcess)
 {
   NS_ENSURE_ARG_POINTER(aCurrentProcess);
   *aCurrentProcess = mCurrentProcess;
   return NS_OK;
 }
-NS_IMETHODIMP nsMsgSendReport::SetCurrentProcess(PRInt32 aCurrentProcess)
+NS_IMETHODIMP nsMsgSendReport::SetCurrentProcess(int32_t aCurrentProcess)
 {
   if (aCurrentProcess < 0 || aCurrentProcess > SEND_LAST_PROCESS)
     return NS_ERROR_ILLEGAL_VALUE;
@@ -114,13 +114,13 @@ NS_IMETHODIMP nsMsgSendReport::SetCurrentProcess(PRInt32 aCurrentProcess)
 }
 
 /* attribute long deliveryMode; */
-NS_IMETHODIMP nsMsgSendReport::GetDeliveryMode(PRInt32 *aDeliveryMode)
+NS_IMETHODIMP nsMsgSendReport::GetDeliveryMode(int32_t *aDeliveryMode)
 {
   NS_ENSURE_ARG_POINTER(aDeliveryMode);
   *aDeliveryMode = mDeliveryMode;
   return NS_OK;
 }
-NS_IMETHODIMP nsMsgSendReport::SetDeliveryMode(PRInt32 aDeliveryMode)
+NS_IMETHODIMP nsMsgSendReport::SetDeliveryMode(int32_t aDeliveryMode)
 {
   mDeliveryMode = aDeliveryMode;
   return NS_OK;
@@ -129,7 +129,7 @@ NS_IMETHODIMP nsMsgSendReport::SetDeliveryMode(PRInt32 aDeliveryMode)
 /* void Reset (); */
 NS_IMETHODIMP nsMsgSendReport::Reset()
 {
-  PRUint32 i;
+  uint32_t i;
   for (i = 0; i <= SEND_LAST_PROCESS; i ++)
     if (mProcessReport[i])
       mProcessReport[i]->Reset();
@@ -142,7 +142,7 @@ NS_IMETHODIMP nsMsgSendReport::Reset()
 }
 
 /* void setProceeded (in long process, in boolean proceeded); */
-NS_IMETHODIMP nsMsgSendReport::SetProceeded(PRInt32 process, bool proceeded)
+NS_IMETHODIMP nsMsgSendReport::SetProceeded(int32_t process, bool proceeded)
 {
   if (process < process_Current || process > SEND_LAST_PROCESS)
     return NS_ERROR_ILLEGAL_VALUE;
@@ -157,7 +157,7 @@ NS_IMETHODIMP nsMsgSendReport::SetProceeded(PRInt32 process, bool proceeded)
 }
 
 /* void setError (in long process, in nsresult error, in boolean overwriteError); */
-NS_IMETHODIMP nsMsgSendReport::SetError(PRInt32 process, nsresult newError, bool overwriteError)
+NS_IMETHODIMP nsMsgSendReport::SetError(int32_t process, nsresult newError, bool overwriteError)
 {
   if (process < process_Current || process > SEND_LAST_PROCESS)
     return NS_ERROR_ILLEGAL_VALUE;
@@ -177,7 +177,7 @@ NS_IMETHODIMP nsMsgSendReport::SetError(PRInt32 process, nsresult newError, bool
 }
 
 /* void setMessage (in long process, in wstring message, in boolean overwriteMessage); */
-NS_IMETHODIMP nsMsgSendReport::SetMessage(PRInt32 process, const PRUnichar *message, bool overwriteMessage)
+NS_IMETHODIMP nsMsgSendReport::SetMessage(int32_t process, const PRUnichar *message, bool overwriteMessage)
 {
   if (process < process_Current || process > SEND_LAST_PROCESS)
     return NS_ERROR_ILLEGAL_VALUE;
@@ -197,7 +197,7 @@ NS_IMETHODIMP nsMsgSendReport::SetMessage(PRInt32 process, const PRUnichar *mess
 }
 
 /* nsIMsgProcessReport getProcessReport (in long process); */
-NS_IMETHODIMP nsMsgSendReport::GetProcessReport(PRInt32 process, nsIMsgProcessReport **_retval)
+NS_IMETHODIMP nsMsgSendReport::GetProcessReport(int32_t process, nsIMsgProcessReport **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
   if (process < process_Current || process > SEND_LAST_PROCESS)
@@ -282,7 +282,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, bool showErrorOn
 
     bundle->GetStringFromID(NS_MSG_SEND_ERROR_TITLE, getter_Copies(dialogTitle));
 
-    PRInt32 preStrId = NS_ERROR_SEND_FAILED;
+    int32_t preStrId = NS_ERROR_SEND_FAILED;
     bool askToGoBackToCompose = false;
     switch (mCurrentProcess)
     {
@@ -349,8 +349,8 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, bool showErrorOn
   }
   else
   {
-    PRInt32 titleID;
-    PRInt32 preStrId;
+    int32_t titleID;
+    int32_t preStrId;
 
     switch (mDeliveryMode)
     {

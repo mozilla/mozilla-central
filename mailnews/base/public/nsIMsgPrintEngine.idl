@@ -29,7 +29,7 @@ interface nsIMsgPrintEngine : nsISupports {
     void setParentWindow(in nsIDOMWindow ptr);
     void showWindow(in boolean aShow);
     void setStatusFeedback(in nsIMsgStatusFeedback feedback);
-    void setPrintURICount(in PRInt32 aCount);
+    void setPrintURICount(in int32_t aCount);
     void addPrintURI(in wstring aURI);
     void startPrintOperation(in nsIPrintSettings aPS);
     void setStartupPPObserver(in nsIObserver startupPPObs);

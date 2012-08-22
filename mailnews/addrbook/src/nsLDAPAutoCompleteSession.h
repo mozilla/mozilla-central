@@ -51,17 +51,17 @@ protected:
         BOUND = nsILDAPAutoCompFormatter::STATE_BOUND, 
         SEARCHING = nsILDAPAutoCompFormatter::STATE_SEARCHING 
     } mState;
-    PRUint32 mEntriesReturned;                    // # of entries returned?
+    uint32_t mEntriesReturned;                    // # of entries returned?
     nsCOMPtr<nsIAutoCompleteListener> mListener;  // callback 
     nsCOMPtr<nsIAutoCompleteResults> mResults;    // being built up
     nsCOMPtr<nsISupportsArray> mResultsArray;     // cached, to avoid re-gets
     nsString mSearchString;                       // autocomplete this string
     nsCString mFilterTemplate;                    // search filter template
-    PRInt32 mMaxHits;                       // return at most this many entries
-    PRUint32 mMinStringLength;              // strings < this size are ignored
-    PRUint32 mCjkMinStringLength;           // ignore CJK strings < this size
+    int32_t mMaxHits;                       // return at most this many entries
+    uint32_t mMinStringLength;              // strings < this size are ignored
+    uint32_t mCjkMinStringLength;           // ignore CJK strings < this size
     nsCString mSearchAttrs;     // outputFormat search attrs for SearchExt call
-    PRUint32 mVersion;                      // version of LDAP to use
+    uint32_t mVersion;                      // version of LDAP to use
 
     // used to format the ldap message into an nsIAutoCompleteItem
     //

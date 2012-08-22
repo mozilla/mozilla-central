@@ -21,7 +21,7 @@ nsImportScanFile::~nsImportScanFile()
     CleanUpScan();
 }
 
-void nsImportScanFile::InitScan(nsIInputStream *pInputStream, PRUint8 * pBuf, PRUint32 sz)
+void nsImportScanFile::InitScan(nsIInputStream *pInputStream, uint8_t * pBuf, uint32_t sz)
 {
   m_pInputStream = pInputStream;
   m_pBuf = pBuf;
@@ -41,13 +41,13 @@ void nsImportScanFile::CleanUpScan(void)
 
 void nsImportScanFile::ShiftBuffer(void)
 {
-  PRUint8 *  pTop;
-  PRUint8 *  pCurrent;
+  uint8_t *  pTop;
+  uint8_t *  pCurrent;
 
   if (m_pos < m_bytesInBuf) {
     pTop = m_pBuf;
     pCurrent = pTop + m_pos;
-    PRUint32    cnt = m_bytesInBuf - m_pos;
+    uint32_t    cnt = m_bytesInBuf - m_pos;
     while (cnt) {
       *pTop = *pCurrent;
       pTop++; pCurrent++;
@@ -61,7 +61,7 @@ void nsImportScanFile::ShiftBuffer(void)
 
 bool nsImportScanFile::FillBufferFromFile(void)
 {
-  PRUint64 available;
+  uint64_t available;
   nsresult rv = m_pInputStream->Available(&available);
   if (NS_FAILED(rv))
     return false;
@@ -70,14 +70,14 @@ bool nsImportScanFile::FillBufferFromFile(void)
   ShiftBuffer();
 
   // Read in some more bytes
-  PRUint32  cnt = m_bufSz - m_bytesInBuf;
+  uint32_t  cnt = m_bufSz - m_bytesInBuf;
   // To distinguish from disk errors
   // Check first for end of file?
   // Set a done flag if true...
-  PRUint32 read;
+  uint32_t read;
   char *pBuf = (char *)m_pBuf;
   pBuf += m_bytesInBuf;
-  rv = m_pInputStream->Read(pBuf, (PRInt32) cnt, &read);
+  rv = m_pInputStream->Read(pBuf, (int32_t) cnt, &read);
 
   if (NS_FAILED(rv))
     return false;
@@ -91,7 +91,7 @@ bool nsImportScanFile::FillBufferFromFile(void)
 
 bool nsImportScanFile::Scan(bool *pDone)
 {
-  PRUint64 available;
+  uint64_t available;
   nsresult rv = m_pInputStream->Available(&available);
   if (NS_FAILED(rv))
         {
@@ -118,10 +118,10 @@ bool nsImportScanFileLines::ScanBuffer(bool *pDone)
 {
   // m_pos, m_bytesInBuf, m_eof, m_pBuf are relevant
 
-  PRUint32    pos = m_pos;
-  PRUint32    max = m_bytesInBuf;
-  PRUint8 *    pChar = m_pBuf + pos;
-  PRUint32    startPos;
+  uint32_t    pos = m_pos;
+  uint32_t    max = m_bytesInBuf;
+  uint8_t *    pChar = m_pBuf + pos;
+  uint32_t    startPos;
 
   while (pos < max) {
     if (m_needEol) {

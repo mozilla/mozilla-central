@@ -173,7 +173,7 @@ public:
   NS_IMETHOD  DeliverFileAsMail();
   NS_IMETHOD  DeliverFileAsNews();
   void        DoDeliveryExitProcessing(nsIURI * aUrl, nsresult aExitCode, bool aCheckForMail);
-  nsresult    FormatStringWithSMTPHostNameByID(PRInt32 aMsgId, PRUnichar **aString);
+  nsresult    FormatStringWithSMTPHostNameByID(int32_t aMsgId, PRUnichar **aString);
 
   nsresult    DoFcc();
   nsresult    StartMessageCopyOperation(nsIFile          *aFileSpec,
@@ -209,7 +209,7 @@ public:
                    nsIMsgDBHdr      *msgToReplace,
                    const char       *attachment1_type,
                    const char       *attachment1_body,
-                   PRUint32         attachment1_body_length,
+                   uint32_t         attachment1_body_length,
                    nsIArray   *attachments,
                    nsIArray     *preloaded_attachments,
                    const char       *password,
@@ -234,20 +234,20 @@ public:
                               nsIArray *preloaded_attachments);
   nsresult    CountCompFieldAttachments();
   nsresult    AddCompFieldLocalAttachments();
-  nsresult    AddCompFieldRemoteAttachments(PRUint32  aStartLocation, PRInt32 *aMailboxCount, PRInt32 *aNewsCount);
+  nsresult    AddCompFieldRemoteAttachments(uint32_t  aStartLocation, int32_t *aMailboxCount, int32_t *aNewsCount);
 
   // Deal with multipart related data
-  nsresult    ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aNewsCount);
+  nsresult    ProcessMultipartRelated(int32_t *aMailboxCount, int32_t *aNewsCount);
   nsresult    GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData *attachment, bool *acceptObject);
-  PRUint32    GetMultipartRelatedCount(bool forceToBeCalculated = false);
+  uint32_t    GetMultipartRelatedCount(bool forceToBeCalculated = false);
   nsCOMPtr<nsISupportsArray> mEmbeddedObjectList; // it's initialized when calling GetMultipartRelatedCount
 
   // Body processing
   nsresult    SnarfAndCopyBody(const char  *attachment1_body,
-                               PRUint32    attachment1_body_length,
+                               uint32_t    attachment1_body_length,
                                const char  *attachment1_type);
 
-  PRInt32     PreProcessPart(nsMsgAttachmentHandler  *ma,
+  int32_t     PreProcessPart(nsMsgAttachmentHandler  *ma,
                              nsMsgSendPart           *toppart); // The very top most container of the message
                                                                 // For part processing
 
@@ -264,7 +264,7 @@ public:
   nsCOMPtr<nsIFile>         mTempFile;           // our temporary file
 
   nsCOMPtr<nsIOutputStream> mOutputFile;         // the actual output file stream
-  PRUint32                  mMessageWarningSize; // Warn if a message is over this size!
+  uint32_t                  mMessageWarningSize; // Warn if a message is over this size!
 
   bool                      m_dont_deliver_p;    // If set, we just return the nsIFile of the file
                                                  // created, instead of actually delivering message.
@@ -309,7 +309,7 @@ public:
   char                    *m_attachment1_encoding;
   MimeEncoderData         *m_attachment1_encoder_data;
   char                    *m_attachment1_body;
-  PRUint32                m_attachment1_body_length;
+  uint32_t                m_attachment1_body_length;
   char                    *mOriginalHTMLBody;
 
   // The plaintext form of the first attachment, if needed.
@@ -322,17 +322,17 @@ public:
   //
   // Subsequent attachments, if any.
   //
-  PRUint32                m_attachment_count;
-  PRUint32                m_attachment_pending_count;
+  uint32_t                m_attachment_count;
+  uint32_t                m_attachment_pending_count;
   nsMsgAttachmentHandler  *m_attachments;
   nsresult                m_status; // in case some attachments fail but not all
 
-  PRUint32                mPreloadedAttachmentCount;
-  PRUint32                mRemoteAttachmentCount;
-  PRInt32                 mMultipartRelatedAttachmentCount; // the number of mpart related attachments, -1 means it has not been yet initialized
+  uint32_t                mPreloadedAttachmentCount;
+  uint32_t                mRemoteAttachmentCount;
+  int32_t                 mMultipartRelatedAttachmentCount; // the number of mpart related attachments, -1 means it has not been yet initialized
 
-  PRUint32                mCompFieldLocalAttachments;     // the number of file:// attachments in the comp fields
-  PRUint32                mCompFieldRemoteAttachments;    // the number of remote attachments in the comp fields
+  uint32_t                mCompFieldLocalAttachments;     // the number of file:// attachments in the comp fields
+  uint32_t                mCompFieldRemoteAttachments;    // the number of remote attachments in the comp fields
 
   //
   // attachment states and other info...
@@ -365,7 +365,7 @@ protected:
   nsresult GetNotificationCallbacks(nsIInterfaceRequestor** aCallbacks);
 private:
   // will set m_attachment1_body & m_attachment1_body_length;
-  nsresult EnsureLineBreaks(const char *body, PRUint32 body_len);
+  nsresult EnsureLineBreaks(const char *body, uint32_t body_len);
 
   // generates a message id for our message, if necessary
   void GenerateMessageId( );
@@ -385,9 +385,9 @@ private:
 //
 // These C routines should only be used by the nsMsgSendPart class.
 //
-extern nsresult mime_write_message_body(nsIMsgSend *state, const char *buf, PRInt32 size);
+extern nsresult mime_write_message_body(nsIMsgSend *state, const char *buf, int32_t size);
 extern char   *mime_get_stream_write_buffer(void);
-extern nsresult mime_encoder_output_fn (const char *buf, PRInt32 size, void *closure);
+extern nsresult mime_encoder_output_fn (const char *buf, int32_t size, void *closure);
 extern bool UseQuotedPrintable(void);
 
 #endif /*  __MSGSEND_H__ */

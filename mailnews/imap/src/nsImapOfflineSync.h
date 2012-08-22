@@ -32,8 +32,8 @@ public: // set to one folder to playback one folder only
   NS_DECL_NSIDBCHANGELISTENER
   virtual nsresult  ProcessNextOperation(); // this kicks off playback
 
-  PRInt32   GetCurrentUIDValidity();
-  void      SetCurrentUIDValidity(PRInt32 uidvalidity) { mCurrentUIDValidity = uidvalidity; }
+  int32_t   GetCurrentUIDValidity();
+  void      SetCurrentUIDValidity(int32_t uidvalidity) { mCurrentUIDValidity = uidvalidity; }
 
   void      SetPseudoOffline(bool pseudoOffline) {m_pseudoOffline = pseudoOffline;}
   bool      ProcessingStaleFolderUpdate() { return m_singleFolderToUpdate != nullptr; }
@@ -69,11 +69,11 @@ protected:
   
   nsTArray<nsMsgKey> m_CurrentKeys;
   nsCOMArray<nsIMsgOfflineImapOperation> m_currentOpsToClear;
-  PRUint32      m_KeyIndex;
+  uint32_t      m_KeyIndex;
   nsCOMPtr <nsIMsgDatabase> m_currentDB;
   nsCOMPtr <nsIUrlListener> m_listener;
-  PRInt32	mCurrentUIDValidity;
-  PRInt32	mCurrentPlaybackOpType;	// kFlagsChanged -> kMsgCopy -> kMsgMoved
+  int32_t	mCurrentUIDValidity;
+  int32_t	mCurrentPlaybackOpType;	// kFlagsChanged -> kMsgCopy -> kMsgMoved
   bool	m_mailboxupdatesStarted;
   bool          m_mailboxupdatesFinished;
   bool	m_pseudoOffline;		// for queueing online events in offline db

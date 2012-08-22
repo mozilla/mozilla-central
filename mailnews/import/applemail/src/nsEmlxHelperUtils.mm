@@ -22,7 +22,7 @@
 
 nsresult nsEmlxHelperUtils::ConvertToMozillaStatusFlags(const char *aXMLBufferStart, 
                                                         const char *aXMLBufferEnd, 
-                                                        PRUint32 *aMozillaStatusFlags)
+                                                        uint32_t *aMozillaStatusFlags)
 {
   // create a NSData wrapper around the buffer, so we can use the Cocoa call below
   NSData *metadata = 
@@ -39,7 +39,7 @@ nsresult nsEmlxHelperUtils::ConvertToMozillaStatusFlags(const char *aXMLBufferSt
     return NS_ERROR_FAILURE;
 
   // find the <flags>...</flags> value and convert to int
-  const PRUint32 emlxMessageFlags = [[(NSDictionary *)plist objectForKey:@"flags"] intValue];
+  const uint32_t emlxMessageFlags = [[(NSDictionary *)plist objectForKey:@"flags"] intValue];
 
   if (emlxMessageFlags == 0)
     return NS_ERROR_FAILURE;
@@ -125,7 +125,7 @@ nsresult nsEmlxHelperUtils::AddEmlxMessageToStream(nsIFile *aMessage, nsIOutputS
   }
 
   char *startOfMessageData = NULL;
-  PRUint32 actualBytesWritten = 0;
+  uint32_t actualBytesWritten = 0;
 
   // The anatomy of an EMLX file:
   //
@@ -137,7 +137,7 @@ nsresult nsEmlxHelperUtils::AddEmlxMessageToStream(nsIFile *aMessage, nsIOutputS
 
   // read the first line of the emlx file, which is a number of how many bytes ahead the actual
   // message data is. 
-  PRUint64 numberOfBytesToRead = strtol((char *)[data bytes], &startOfMessageData, 10);
+  uint64_t numberOfBytesToRead = strtol((char *)[data bytes], &startOfMessageData, 10);
   if (numberOfBytesToRead <= 0 || !startOfMessageData) {
     [pool release];
     return NS_ERROR_FAILURE;
@@ -164,11 +164,11 @@ nsresult nsEmlxHelperUtils::AddEmlxMessageToStream(nsIFile *aMessage, nsIOutputS
   const char *startOfXMLMetadata = startOfMessageData + numberOfBytesToRead;
   const char *endOfXMLMetadata = (char *)[data bytes] + [data length];
 
-  PRUint32 x_mozilla_flags = 0;
+  uint32_t x_mozilla_flags = 0;
   ConvertToMozillaStatusFlags(startOfXMLMetadata, endOfXMLMetadata, &x_mozilla_flags);
 
   // write the X-Mozilla-Status header according to which flags we've gathered above.
-  PRUint32 dummyRv;
+  uint32_t dummyRv;
   nsCAutoString buf(PR_smprintf(X_MOZILLA_STATUS_FORMAT MSG_LINEBREAK, x_mozilla_flags));
   NS_ASSERTION(!buf.IsEmpty(), "printf error with X-Mozilla-Status header");
   if (buf.IsEmpty()) {
@@ -214,7 +214,7 @@ nsresult nsEmlxHelperUtils::AddEmlxMessageToStream(nsIFile *aMessage, nsIOutputS
 
   // write the actual message data.
   if (convertedData.IsEmpty())
-    rv = aOut->Write(startOfMessageData, (PRUint32)numberOfBytesToRead, &actualBytesWritten);
+    rv = aOut->Write(startOfMessageData, (uint32_t)numberOfBytesToRead, &actualBytesWritten);
   else {
     IMPORT_LOG1("Escaped From-lines in %s!", path.get());
     rv = aOut->Write(convertedData.get(), convertedData.Length(), &actualBytesWritten);

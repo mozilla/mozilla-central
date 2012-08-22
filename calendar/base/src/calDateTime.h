@@ -26,14 +26,14 @@ protected:
     bool mIsValid;
     bool mIsDate;
 
-    PRInt16 mYear;
-    PRInt16 mMonth;
-    PRInt16 mDay;
-    PRInt16 mHour;
-    PRInt16 mMinute;
-    PRInt16 mSecond;
-    PRInt16 mWeekday;
-    PRInt16 mYearday;
+    int16_t mYear;
+    int16_t mMonth;
+    int16_t mDay;
+    int16_t mHour;
+    int16_t mMinute;
+    int16_t mSecond;
+    int16_t mWeekday;
+    int16_t mYearday;
 
     PRTime mNativeTime;
     nsCOMPtr<calITimezone> mTimezone;

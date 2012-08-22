@@ -40,18 +40,18 @@ protected:
                                                             nsIDBChangeAnnouncer *announcer);
 
   nsresult ReparentChildrenOf(nsMsgKey oldParent, nsMsgKey newParent, nsIDBChangeAnnouncer *announcer);
-  nsresult ChangeUnreadChildCount(PRInt32 delta);
-  nsresult GetChildHdrForKey(nsMsgKey desiredKey, nsIMsgDBHdr **result, PRInt32 *resultIndex);
-  PRUint32 NumRealChildren();
+  nsresult ChangeUnreadChildCount(int32_t delta);
+  nsresult GetChildHdrForKey(nsMsgKey desiredKey, nsIMsgDBHdr **result, int32_t *resultIndex);
+  uint32_t NumRealChildren();
   virtual void InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr);
   virtual void SetMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr);
   virtual nsMsgViewIndex FindMsgHdr(nsIMsgDBHdr *hdr);
 
   nsMsgKey        m_threadKey; 
-  PRUint32        m_numUnreadChildren;	
-  PRUint32        m_flags;
+  uint32_t        m_numUnreadChildren;	
+  uint32_t        m_flags;
   nsMsgKey        m_threadRootKey;
-  PRUint32        m_newestMsgDate;
+  uint32_t        m_newestMsgDate;
   nsTArray<nsMsgKey> m_keys;
   bool            m_dummy; // top level msg is a dummy, e.g., grouped by age.
   nsCOMPtr <nsIMsgDatabase> m_db; // should we make a weak ref or just a ptr?
@@ -63,10 +63,10 @@ public:
   nsMsgXFGroupThread();
   virtual ~nsMsgXFGroupThread();
 
-  NS_IMETHOD GetNumChildren(PRUint32 *aNumChildren);
-  NS_IMETHOD GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResult);
-  NS_IMETHOD GetChildHdrAt(PRInt32 aIndex, nsIMsgDBHdr **aResult);
-  NS_IMETHOD RemoveChildAt(PRInt32 aIndex);
+  NS_IMETHOD GetNumChildren(uint32_t *aNumChildren);
+  NS_IMETHOD GetChildKeyAt(int32_t aIndex, nsMsgKey *aResult);
+  NS_IMETHOD GetChildHdrAt(int32_t aIndex, nsIMsgDBHdr **aResult);
+  NS_IMETHOD RemoveChildAt(int32_t aIndex);
 protected:
   virtual void InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr);
   virtual void SetMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr);

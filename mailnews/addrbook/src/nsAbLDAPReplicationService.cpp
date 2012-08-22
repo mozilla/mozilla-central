@@ -122,7 +122,7 @@ NS_IMETHODIMP nsAbLDAPReplicationService::Done(bool aSuccess)
 
 // XXX: This method should query the RootDSE for the changeLog attribute,
 // if it exists ChangeLog protocol is supported.
-PRInt32 nsAbLDAPReplicationService::DecideProtocol()
+int32_t nsAbLDAPReplicationService::DecideProtocol()
 {
   // Do the changeLog, it will decide if there is a need to replicate all
   // entries or only update existing DB and will do the appropriate thing.

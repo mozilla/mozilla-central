@@ -158,14 +158,14 @@ bool nsMsgContentPolicy::IsTrustedDomain(nsIURI * aContentLocation)
 }
 
 NS_IMETHODIMP
-nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
+nsMsgContentPolicy::ShouldLoad(uint32_t          aContentType,
                                nsIURI           *aContentLocation,
                                nsIURI           *aRequestingLocation,
                                nsISupports      *aRequestingContext,
                                const nsACString &aMimeGuess,
                                nsISupports      *aExtra,
                                nsIPrincipal     *aRequestPrincipal,
-                               PRInt16          *aDecision)
+                               int16_t          *aDecision)
 {
   nsresult rv = NS_OK;
   // The default decision at the start of the function is to accept the load.
@@ -198,7 +198,7 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
                                  getter_AddRefs(rootDocShell));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRUint32 appType;
+  uint32_t appType;
   rv = rootDocShell->GetAppType(&appType);
   // We only want to deal with mailnews
   if (NS_FAILED(rv) || appType != nsIDocShell::APP_TYPE_MAIL)
@@ -422,17 +422,17 @@ nsMsgContentPolicy::ShouldBlockUnexposedProtocol(nsIURI *aContentLocation)
  * #3 Allow if the domain for the remote image in our white list.
  * #4 Allow if the author has been specifically white listed.
  */
-PRInt16
+int16_t
 nsMsgContentPolicy::ShouldAcceptRemoteContentForMsgHdr(nsIMsgDBHdr *aMsgHdr,
                                                        nsIURI *aRequestingLocation,
                                                        nsIURI *aContentLocation)
 {
   if (!aMsgHdr)
-    return static_cast<PRInt16>(nsIContentPolicy::REJECT_REQUEST);
+    return static_cast<int16_t>(nsIContentPolicy::REJECT_REQUEST);
 
   // Case #1, check the db hdr for the remote content policy on this particular
   // message.
-  PRUint32 remoteContentPolicy = kNoRemoteContentPolicy;
+  uint32_t remoteContentPolicy = kNoRemoteContentPolicy;
   aMsgHdr->GetUint32Property("remoteContentPolicy", &remoteContentPolicy);
 
   // Case #2, check if the message is in an RSS folder
@@ -450,9 +450,9 @@ nsMsgContentPolicy::ShouldAcceptRemoteContentForMsgHdr(nsIMsgDBHdr *aMsgHdr,
   // Case #4, author is in our white list..
   bool allowForSender = ShouldAcceptRemoteContentForSender(aMsgHdr);
 
-  PRInt16 result = allowForSender ?
-    static_cast<PRInt16>(nsIContentPolicy::ACCEPT) :
-    static_cast<PRInt16>(nsIContentPolicy::REJECT_REQUEST);
+  int16_t result = allowForSender ?
+    static_cast<int16_t>(nsIContentPolicy::ACCEPT) :
+    static_cast<int16_t>(nsIContentPolicy::REJECT_REQUEST);
 
   // kNoRemoteContentPolicy means we have never set a value on the message
   if (result == nsIContentPolicy::REJECT_REQUEST && !remoteContentPolicy)
@@ -496,7 +496,7 @@ private:
 void
 nsMsgContentPolicy::ShouldAcceptContentForPotentialMsg(nsIURI *aOriginatorLocation,
                                                        nsIURI *aContentLocation,
-                                                       PRInt16 *aDecision)
+                                                       int16_t *aDecision)
 {
   NS_PRECONDITION(*aDecision == nsIContentPolicy::REJECT_REQUEST,
                   "AllowContentForPotentialMessage expects default decision to be reject!");
@@ -555,7 +555,7 @@ nsMsgContentPolicy::ShouldAcceptContentForPotentialMsg(nsIURI *aOriginatorLocati
 void nsMsgContentPolicy::ComposeShouldLoad(nsIMsgCompose *aMsgCompose,
                                            nsISupports *aRequestingContext,
                                            nsIURI *aContentLocation,
-                                           PRInt16 *aDecision)
+                                           int16_t *aDecision)
 {
   NS_PRECONDITION(*aDecision == nsIContentPolicy::REJECT_REQUEST,
                   "ComposeShouldLoad expects default decision to be reject!");
@@ -673,7 +673,7 @@ nsresult nsMsgContentPolicy::SetDisableItemsOnMailNewsUrlDocshells(
   NS_ENSURE_SUCCESS(rv, rv);
 
   // what sort of docshell is this?
-  PRInt32 itemType;
+  int32_t itemType;
   rv = docshellTreeItem->GetItemType(&itemType);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -744,14 +744,14 @@ nsMsgContentPolicy::GetOriginatingURIForContext(nsISupports *aRequestingContext,
 }
 
 NS_IMETHODIMP
-nsMsgContentPolicy::ShouldProcess(PRUint32          aContentType,
+nsMsgContentPolicy::ShouldProcess(uint32_t          aContentType,
                                   nsIURI           *aContentLocation,
                                   nsIURI           *aRequestingLocation,
                                   nsISupports      *aRequestingContext,
                                   const nsACString &aMimeGuess,
                                   nsISupports      *aExtra,
                                   nsIPrincipal     *aRequestPrincipal,
-                                  PRInt16          *aDecision)
+                                  int16_t          *aDecision)
 {
   // XXX Returning ACCEPT is presumably only a reasonable thing to do if we
   // think that ShouldLoad is going to catch all possible cases (i.e. that
@@ -788,7 +788,7 @@ NS_IMETHODIMP nsMsgContentPolicy::Observe(nsISupports *aSubject, const char *aTo
  */
 NS_IMETHODIMP 
 nsMsgContentPolicy::OnStateChange(nsIWebProgress *aWebProgress,
-                                  nsIRequest *aRequest, PRUint32 aStateFlags,
+                                  nsIRequest *aRequest, uint32_t aStateFlags,
                                   nsresult aStatus)
 {
   return NS_OK;
@@ -797,10 +797,10 @@ nsMsgContentPolicy::OnStateChange(nsIWebProgress *aWebProgress,
 NS_IMETHODIMP
 nsMsgContentPolicy::OnProgressChange(nsIWebProgress *aWebProgress,
                                      nsIRequest *aRequest,
-                                     PRInt32 aCurSelfProgress,
-                                     PRInt32 aMaxSelfProgress,
-                                     PRInt32 aCurTotalProgress,
-                                     PRInt32 aMaxTotalProgress)
+                                     int32_t aCurSelfProgress,
+                                     int32_t aMaxSelfProgress,
+                                     int32_t aCurTotalProgress,
+                                     int32_t aMaxTotalProgress)
 {
   return NS_OK;
 }
@@ -808,7 +808,7 @@ nsMsgContentPolicy::OnProgressChange(nsIWebProgress *aWebProgress,
 NS_IMETHODIMP 
 nsMsgContentPolicy::OnLocationChange(nsIWebProgress *aWebProgress,
                                      nsIRequest *aRequest, nsIURI *aLocation,
-                                     PRUint32 aFlags)
+                                     uint32_t aFlags)
 {
   nsresult rv;
 
@@ -868,7 +868,7 @@ nsMsgContentPolicy::OnStatusChange(nsIWebProgress *aWebProgress,
 
 NS_IMETHODIMP
 nsMsgContentPolicy::OnSecurityChange(nsIWebProgress *aWebProgress,
-                                     nsIRequest *aRequest, PRUint32 aState)
+                                     nsIRequest *aRequest, uint32_t aState)
 {
   return NS_OK;
 }

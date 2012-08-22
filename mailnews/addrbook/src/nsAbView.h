@@ -26,10 +26,10 @@
 typedef struct AbCard
 {
   nsIAbCard *card;
-  PRUint32 primaryCollationKeyLen;
-  PRUint32 secondaryCollationKeyLen;
-  PRUint8 *primaryCollationKey;
-  PRUint8 *secondaryCollationKey;
+  uint32_t primaryCollationKeyLen;
+  uint32_t secondaryCollationKeyLen;
+  uint8_t *primaryCollationKey;
+  uint8_t *secondaryCollationKey;
 } AbCard;
 
 
@@ -45,16 +45,16 @@ public:
   NS_DECL_NSIABLISTENER
   NS_DECL_NSIOBSERVER
   
-  PRInt32 CompareCollationKeys(PRUint8 *key1, PRUint32 len1, PRUint8 *key2, PRUint32 len2);
+  int32_t CompareCollationKeys(uint8_t *key1, uint32_t len1, uint8_t *key2, uint32_t len2);
 
 private:
   nsresult Initialize();
-  PRInt32 FindIndexForInsert(AbCard *abcard);
-  PRInt32 FindIndexForCard(nsIAbCard *card);
+  int32_t FindIndexForInsert(AbCard *abcard);
+  int32_t FindIndexForCard(nsIAbCard *card);
   nsresult GenerateCollationKeysForCard(const PRUnichar *colID, AbCard *abcard);
-  nsresult InvalidateTree(PRInt32 row);
-  nsresult RemoveCardAt(PRInt32 row);
-  nsresult AddCard(AbCard *abcard, bool selectCardAfterAdding, PRInt32 *index);
+  nsresult InvalidateTree(int32_t row);
+  nsresult RemoveCardAt(int32_t row);
+  nsresult AddCard(AbCard *abcard, bool selectCardAfterAdding, int32_t *index);
   nsresult RemoveCardAndSelectNextCard(nsISupports *item);
   nsresult EnumerateCards();
   nsresult SetGeneratedNameFormatFromPrefs();
@@ -77,7 +77,7 @@ private:
   bool mInitialized;
   bool mSuppressSelectionChange;
   bool mSuppressCountChange;
-  PRInt32 mGeneratedNameFormat;
+  int32_t mGeneratedNameFormat;
 };
 
 #endif /* _nsAbView_H_ */

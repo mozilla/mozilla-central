@@ -21,14 +21,14 @@ MimeRebuffer::~MimeRebuffer(void)
   }
 }
 
-PRUint32
+uint32_t
 MimeRebuffer::GetSize()
 {
   return mSize;
 }
 
-PRUint32      
-MimeRebuffer::IncreaseBuffer(const char *addBuf, PRUint32 size)
+uint32_t      
+MimeRebuffer::IncreaseBuffer(const char *addBuf, uint32_t size)
 {
   if ( (!addBuf) || (size == 0) )
     return mSize;
@@ -45,8 +45,8 @@ MimeRebuffer::IncreaseBuffer(const char *addBuf, PRUint32 size)
   return mSize;
 }
 
-PRUint32      
-MimeRebuffer::ReduceBuffer(PRUint32 numBytes)
+uint32_t      
+MimeRebuffer::ReduceBuffer(uint32_t numBytes)
 {
   if (numBytes == 0)
     return mSize;

@@ -380,7 +380,7 @@ nsMsgRDFDataSource::GetTransactionManager(nsISupportsArray *aSources, nsITransac
 
   nsCOMPtr<nsITransactionManager> transactionManager;
 
-  PRUint32 cnt;
+  uint32_t cnt;
 
   rv = aSources->Count(&cnt);
   if (NS_FAILED(rv)) return rv;

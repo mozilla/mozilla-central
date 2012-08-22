@@ -14,10 +14,10 @@
 #include "nsIFile.h"
 #include "nsIOutputStream.h"
 
-const PRInt16 kFileVersion = 9;
-const PRInt16 kManualContextVersion = 9;
-const PRInt16 k60Beta1Version = 7;
-const PRInt16 k45Version = 6;
+const int16_t kFileVersion = 9;
+const int16_t kManualContextVersion = 9;
+const int16_t k60Beta1Version = 7;
+const int16_t k45Version = 6;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -54,7 +54,7 @@ protected:
   char LoadAttrib(nsMsgFilterFileAttribValue &attrib, nsIInputStream *aStream);
   const char *GetStringForAttrib(nsMsgFilterFileAttribValue attrib);
   nsresult LoadValue(nsCString &value, nsIInputStream *aStream);
-  PRInt16 m_fileVersion;
+  int16_t m_fileVersion;
   bool m_loggingEnabled;
   bool m_startWritingToBuffer; //tells us when to start writing one whole filter to m_unparsedBuffer
   nsCOMPtr<nsIMsgFolder> m_folder;

@@ -49,7 +49,7 @@ public:
 
     nsresult GetMsgWindow(nsIMsgWindow **msgWindow);
     nsresult SetMsgWindow(nsIMsgWindow *msgWindow);
-    nsresult SetTransactionType(PRUint32 txnType);
+    nsresult SetTransactionType(uint32_t txnType);
  
     NS_DECL_ISUPPORTS
     NS_DECL_NSIPROPERTYBAG
@@ -61,7 +61,7 @@ protected:
     // a hash table of string -> nsIVariant
     nsInterfaceHashtable<nsStringHashKey, nsIVariant> mPropertyHash;
     nsCOMPtr<nsIMsgWindow> m_msgWindow;
-    PRUint32 m_txnType;
+    uint32_t m_txnType;
     nsresult CheckForToggleDelete(nsIMsgFolder *aFolder, const nsMsgKey &aMsgKey, bool *aResult);
 };
 

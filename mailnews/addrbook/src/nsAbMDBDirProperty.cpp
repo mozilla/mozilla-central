@@ -36,13 +36,13 @@ NS_IMPL_ISUPPORTS_INHERITED3(nsAbMDBDirProperty, nsAbDirProperty,
 
 // nsIAbMDBDirectory attributes
 
-NS_IMETHODIMP nsAbMDBDirProperty::GetDbRowID(PRUint32 *aDbRowID)
+NS_IMETHODIMP nsAbMDBDirProperty::GetDbRowID(uint32_t *aDbRowID)
 {
 	*aDbRowID = m_dbRowID;
 	return NS_OK;
 }
 
-NS_IMETHODIMP nsAbMDBDirProperty::SetDbRowID(PRUint32 aDbRowID)
+NS_IMETHODIMP nsAbMDBDirProperty::SetDbRowID(uint32_t aDbRowID)
 {
 	m_dbRowID = aDbRowID;
 	return NS_OK;
@@ -61,7 +61,7 @@ NS_IMETHODIMP nsAbMDBDirProperty::AddMailListToDirectory(nsIAbDirectory *mailLis
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  PRUint32 position;
+  uint32_t position;
   if (NS_FAILED(m_AddressList->IndexOf(0, mailList, &position)))
     m_AddressList->AppendElement(mailList, false);
 
@@ -78,7 +78,7 @@ NS_IMETHODIMP nsAbMDBDirProperty::AddAddressToList(nsIAbCard *card)
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  PRUint32 position;
+  uint32_t position;
   if (NS_FAILED(m_AddressList->IndexOf(0, card, &position)))
     m_AddressList->AppendElement(card, false);
 
@@ -94,7 +94,7 @@ NS_IMETHODIMP nsAbMDBDirProperty::CopyDBMailList(nsIAbMDBDirectory* srcListDB)
 
 	CopyMailList (srcList);
 
-	PRUint32 rowID;
+	uint32_t rowID;
 	srcListDB->GetDbRowID(&rowID);
 	SetDbRowID(rowID);
 
@@ -117,7 +117,7 @@ NS_IMETHODIMP nsAbMDBDirProperty::RemoveElementsFromAddressList()
 }
 
 /* void removeEmailAddressAt (in unsigned long aIndex); */
-NS_IMETHODIMP nsAbMDBDirProperty::RemoveEmailAddressAt(PRUint32 aIndex)
+NS_IMETHODIMP nsAbMDBDirProperty::RemoveEmailAddressAt(uint32_t aIndex)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }

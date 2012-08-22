@@ -134,8 +134,8 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
 
     nsCString smtpHostName;
     nsCString smtpUserName;
-    PRInt32 smtpPort;
-    PRInt32 socketType;
+    int32_t smtpPort;
+    int32_t socketType;
 
     aSmtpServer->GetHostname(smtpHostName);
     aSmtpServer->GetUsername(smtpUserName);
@@ -256,7 +256,7 @@ NS_IMETHODIMP nsSmtpService::GetScheme(nsACString &aScheme)
     return NS_OK; 
 }
 
-NS_IMETHODIMP nsSmtpService::GetDefaultPort(PRInt32 *aDefaultPort)
+NS_IMETHODIMP nsSmtpService::GetDefaultPort(int32_t *aDefaultPort)
 {
     nsresult rv = NS_OK;
     if (aDefaultPort)
@@ -267,14 +267,14 @@ NS_IMETHODIMP nsSmtpService::GetDefaultPort(PRInt32 *aDefaultPort)
 }
 
 NS_IMETHODIMP 
-nsSmtpService::AllowPort(PRInt32 port, const char *scheme, bool *_retval)
+nsSmtpService::AllowPort(int32_t port, const char *scheme, bool *_retval)
 {
     // allow smtp to run on any port
     *_retval = true;
     return NS_OK;
 }
 
-NS_IMETHODIMP nsSmtpService::GetProtocolFlags(PRUint32 *result)
+NS_IMETHODIMP nsSmtpService::GetProtocolFlags(uint32_t *result)
 {
     *result = URI_NORELATIVE | ALLOWS_PROXY | URI_LOADABLE_BY_ANYONE |
       URI_NON_PERSISTABLE | URI_DOES_NOT_RETURN_DATA |
@@ -342,7 +342,7 @@ nsSmtpService::GetSmtpServers(nsISimpleEnumerator **aResult)
   NS_ENSURE_ARG_POINTER(aResult);
 
   // now read in the servers from prefs if necessary
-  PRUint32 serverCount = mSmtpServers.Count();
+  uint32_t serverCount = mSmtpServers.Count();
 
   if (serverCount <= 0)
     loadSmtpServers();
@@ -395,8 +395,8 @@ nsSmtpService::loadSmtpServers()
   rv = prefService->GetBranch(MAIL_ROOT_PREF, getter_AddRefs(prefBranch));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  PRInt32 appendSmtpServersCurrentVersion = 0;
-  PRInt32 appendSmtpServersDefaultVersion = 0;
+  int32_t appendSmtpServersCurrentVersion = 0;
+  int32_t appendSmtpServersDefaultVersion = 0;
   rv = prefBranch->GetIntPref(APPEND_SERVERS_VERSION_PREF_NAME, &appendSmtpServersCurrentVersion);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -418,7 +418,7 @@ nsSmtpService::loadSmtpServers()
   // use GetServerByKey to check if the key (pref) is already in
   // in the list. If not it calls createKeyedServer directly.
 
-  for (PRUint32 i = 0; i < servers.Length(); i++) {
+  for (uint32_t i = 0; i < servers.Length(); i++) {
     nsCOMPtr<nsISmtpServer> server;
     GetServerByKey(servers[i].get(), getter_AddRefs(server));
   }
@@ -582,7 +582,7 @@ nsSmtpService::CreateSmtpServer(nsISmtpServer **aResult)
 
     loadSmtpServers();
     nsresult rv;
-    PRInt32 i = 0;
+    int32_t i = 0;
     bool unique = false;
 
     findServerByKeyEntry entry;
@@ -634,7 +634,7 @@ nsSmtpService::DeleteSmtpServer(nsISmtpServer *aServer)
 {
     if (!aServer) return NS_OK;
 
-    PRInt32 idx = mSmtpServers.IndexOf(aServer);
+    int32_t idx = mSmtpServers.IndexOf(aServer);
     if (idx == -1)
       return NS_OK;
 

@@ -46,7 +46,7 @@ nsThunderbirdProfileMigrator::~nsThunderbirdProfileMigrator()
 // nsISuiteProfileMigrator
 
 NS_IMETHODIMP
-nsThunderbirdProfileMigrator::Migrate(PRUint16 aItems,
+nsThunderbirdProfileMigrator::Migrate(uint16_t aItems,
                                       nsIProfileStartup* aStartup,
                                       const PRUnichar* aProfile)
 {
@@ -109,7 +109,7 @@ nsThunderbirdProfileMigrator::Migrate(PRUint16 aItems,
 NS_IMETHODIMP
 nsThunderbirdProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
                                              bool aReplace,
-                                             PRUint16* aResult)
+                                             uint16_t* aResult)
 {
   *aResult = 0;
 
@@ -172,7 +172,7 @@ nsThunderbirdProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
 }
 
 NS_IMETHODIMP
-nsThunderbirdProfileMigrator::GetSupportedItems(PRUint16 *aSupportedItems)
+nsThunderbirdProfileMigrator::GetSupportedItems(uint16_t *aSupportedItems)
 {
   NS_ENSURE_ARG_POINTER(aSupportedItems);
 
@@ -539,7 +539,7 @@ nsThunderbirdProfileMigrator::TransformPreferences(
   };
 
   PBStructArray branches[NS_ARRAY_LENGTH(branchNames)];
-  PRUint32 i;
+  uint32_t i;
   for (i = 0; i < NS_ARRAY_LENGTH(branchNames); ++i)
     ReadBranch(branchNames[i], psvc, branches[i]);
 

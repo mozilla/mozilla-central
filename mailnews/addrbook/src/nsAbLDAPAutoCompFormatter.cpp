@@ -126,11 +126,11 @@ nsAbLDAPAutoCompFormatter::Format(nsILDAPMessage *aMsg,
 }
 
 NS_IMETHODIMP
-nsAbLDAPAutoCompFormatter::FormatException(PRInt32 aState, 
+nsAbLDAPAutoCompFormatter::FormatException(int32_t aState, 
                                            nsresult aErrorCode, 
                                            nsIAutoCompleteItem **aItem) 
 {
-    PRInt32 errorKey;
+    int32_t errorKey;
     nsresult rv;
 
     // create an nsIAutoCompleteItem to hold the returned value
@@ -223,8 +223,8 @@ nsAbLDAPAutoCompFormatter::FormatException(PRInt32 aState,
 
         // figure out the key to index into the string bundle
         //
-        const PRInt32 HOST_NOT_FOUND_ERROR=5000;
-        const PRInt32 GENERIC_ERROR=9999;
+        const int32_t HOST_NOT_FOUND_ERROR=5000;
+        const int32_t GENERIC_ERROR=9999;
         errorKey = ( (aErrorCode == NS_ERROR_UNKNOWN_HOST) ? 
                      HOST_NOT_FOUND_ERROR : GENERIC_ERROR );
 
@@ -242,8 +242,8 @@ nsAbLDAPAutoCompFormatter::FormatException(PRInt32 aState,
 
     // and try to find a hint about what the user should do next
     //
-    const PRInt32 HINT_BASE=10000;
-    const PRInt32 GENERIC_HINT_CODE = 9999;
+    const int32_t HINT_BASE=10000;
+    const int32_t GENERIC_HINT_CODE = 9999;
     rv = ldapACBundle->GetStringFromID(HINT_BASE + errorKey, 
                                        getter_Copies(ldapHint));
     if (NS_FAILED(rv)) {
@@ -546,7 +546,7 @@ nsAbLDAPAutoCompFormatter::AppendFirstAttrValue(
     // get the attribute values for the field which will be used 
     // to fill in nsIAutoCompleteItem::value
     //
-    PRUint32 numVals;
+    uint32_t numVals;
     PRUnichar **values;
 
     nsresult rv;

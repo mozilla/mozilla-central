@@ -19,7 +19,7 @@ MimeDefClass(MimeUntypedText, MimeUntypedTextClass,
 static int MimeUntypedText_initialize (MimeObject *);
 static void MimeUntypedText_finalize (MimeObject *);
 static int MimeUntypedText_parse_begin (MimeObject *);
-static int MimeUntypedText_parse_line (const char *, PRInt32, MimeObject *);
+static int MimeUntypedText_parse_line (const char *, int32_t, MimeObject *);
 
 static int MimeUntypedText_open_subpart (MimeObject *obj,
                      MimeUntypedTextSubpartType ttype,
@@ -29,23 +29,23 @@ static int MimeUntypedText_open_subpart (MimeObject *obj,
                      const char *desc);
 static int MimeUntypedText_close_subpart (MimeObject *obj);
 
-static bool MimeUntypedText_uu_begin_line_p(const char *line, PRInt32 length,
+static bool MimeUntypedText_uu_begin_line_p(const char *line, int32_t length,
                          MimeDisplayOptions *opt,
                          char **type_ret,
                          char **name_ret);
-static bool MimeUntypedText_uu_end_line_p(const char *line, PRInt32 length);
+static bool MimeUntypedText_uu_end_line_p(const char *line, int32_t length);
 
-static bool MimeUntypedText_yenc_begin_line_p(const char *line, PRInt32 length,
+static bool MimeUntypedText_yenc_begin_line_p(const char *line, int32_t length,
                          MimeDisplayOptions *opt,
                          char **type_ret,
                          char **name_ret);
-static bool MimeUntypedText_yenc_end_line_p(const char *line, PRInt32 length);
+static bool MimeUntypedText_yenc_end_line_p(const char *line, int32_t length);
 
 static bool MimeUntypedText_binhex_begin_line_p(const char *line,
-                           PRInt32 length,
+                           int32_t length,
                            MimeDisplayOptions *opt);
 static bool MimeUntypedText_binhex_end_line_p(const char *line,
-                         PRInt32 length);
+                         int32_t length);
 
 static int
 MimeUntypedTextClassInitialize(MimeUntypedTextClass *clazz)
@@ -92,7 +92,7 @@ MimeUntypedText_parse_begin (MimeObject *obj)
 }
 
 static int
-MimeUntypedText_parse_line (const char *line, PRInt32 length, MimeObject *obj)
+MimeUntypedText_parse_line (const char *line, int32_t length, MimeObject *obj)
 {
   MimeUntypedText *uty = (MimeUntypedText *) obj;
   int status = 0;
@@ -288,7 +288,7 @@ MimeUntypedText_open_subpart (MimeObject *obj,
   uty->open_hdrs = MimeHeaders_new();
   if (!uty->open_hdrs) return MIME_OUT_OF_MEMORY;
 
-  PRUint32 hlen = strlen(type) +
+  uint32_t hlen = strlen(type) +
                 (enc ? strlen(enc) : 0) +
                 (desc ? strlen(desc) : 0) +
                 (name ? strlen(name) : 0) +
@@ -387,7 +387,7 @@ MimeUntypedText_open_subpart (MimeObject *obj,
 }
 
 static bool
-MimeUntypedText_uu_begin_line_p(const char *line, PRInt32 length,
+MimeUntypedText_uu_begin_line_p(const char *line, int32_t length,
                 MimeDisplayOptions *opt,
                 char **type_ret, char **name_ret)
 {
@@ -449,7 +449,7 @@ MimeUntypedText_uu_begin_line_p(const char *line, PRInt32 length,
 }
 
 static bool
-MimeUntypedText_uu_end_line_p(const char *line, PRInt32 length)
+MimeUntypedText_uu_end_line_p(const char *line, int32_t length)
 {
 #if 0
   /* A strictly conforming uuencode end line. */
@@ -481,7 +481,7 @@ MimeUntypedText_uu_end_line_p(const char *line, PRInt32 length)
 }
 
 static bool
-MimeUntypedText_yenc_begin_line_p(const char *line, PRInt32 length,
+MimeUntypedText_yenc_begin_line_p(const char *line, int32_t length,
                 MimeDisplayOptions *opt,
                 char **type_ret, char **name_ret)
 {
@@ -545,7 +545,7 @@ MimeUntypedText_yenc_begin_line_p(const char *line, PRInt32 length,
 }
 
 static bool
-MimeUntypedText_yenc_end_line_p(const char *line, PRInt32 length)
+MimeUntypedText_yenc_end_line_p(const char *line, int32_t length)
 {
   if (length < 11 || strncmp (line, "=yend size=", 11)) return false;
 
@@ -557,7 +557,7 @@ MimeUntypedText_yenc_end_line_p(const char *line, PRInt32 length)
 #define BINHEX_MAGIC_LEN 45
 
 static bool
-MimeUntypedText_binhex_begin_line_p(const char *line, PRInt32 length,
+MimeUntypedText_binhex_begin_line_p(const char *line, int32_t length,
                   MimeDisplayOptions *opt)
 {
   if (length <= BINHEX_MAGIC_LEN)
@@ -576,7 +576,7 @@ MimeUntypedText_binhex_begin_line_p(const char *line, PRInt32 length,
 }
 
 static bool
-MimeUntypedText_binhex_end_line_p(const char *line, PRInt32 length)
+MimeUntypedText_binhex_end_line_p(const char *line, int32_t length)
 {
   if (length > 0 && line[length-1] == '\n') length--;
   if (length > 0 && line[length-1] == '\r') length--;

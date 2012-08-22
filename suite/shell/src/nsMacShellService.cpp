@@ -19,14 +19,14 @@
 NS_IMPL_ISUPPORTS1(nsMacShellService, nsIShellService)
 
 NS_IMETHODIMP
-nsMacShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool *aIsDefaultClient)
+nsMacShellService::IsDefaultClient(bool aStartupCheck, uint16_t aApps, bool *aIsDefaultClient)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 nsMacShellService::SetDefaultClient(bool aForAllUsers,
-                                    bool aClaimAllTypes, PRUint16 aApps)
+                                    bool aClaimAllTypes, uint16_t aApps)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -44,13 +44,13 @@ nsMacShellService::SetShouldCheckDefaultClient(bool aShouldCheck)
 }
 
 NS_IMETHODIMP
-nsMacShellService::GetShouldBeDefaultClientFor(PRUint16* aApps)
+nsMacShellService::GetShouldBeDefaultClientFor(uint16_t* aApps)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsMacShellService::SetShouldBeDefaultClientFor(PRUint16 aApps)
+nsMacShellService::SetShouldBeDefaultClientFor(uint16_t aApps)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -63,13 +63,13 @@ nsMacShellService::GetCanSetDesktopBackground(bool* aResult)
 
 NS_IMETHODIMP
 nsMacShellService::SetDesktopBackground(nsIDOMElement* aElement,
-                                            PRInt32 aPosition)
+                                            int32_t aPosition)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsMacShellService::GetDesktopBackgroundColor(PRUint32 *aColor)
+nsMacShellService::GetDesktopBackgroundColor(uint32_t *aColor)
 {
   // This method and |SetDesktopBackgroundColor| has no meaning on Mac OS X.
   // The mac desktop preferences UI uses pictures for the few solid colors it
@@ -78,7 +78,7 @@ nsMacShellService::GetDesktopBackgroundColor(PRUint32 *aColor)
 }
 
 NS_IMETHODIMP
-nsMacShellService::SetDesktopBackgroundColor(PRUint32 aColor)
+nsMacShellService::SetDesktopBackgroundColor(uint32_t aColor)
 {
   // This method and |GetDesktopBackgroundColor| has no meaning on Mac OS X.
   // The mac desktop preferences UI uses pictures for the few solid colors it

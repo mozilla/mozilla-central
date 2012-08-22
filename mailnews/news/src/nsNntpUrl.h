@@ -21,7 +21,7 @@ public:
   // nsIURI over-ride...
   NS_IMETHOD SetSpec(const nsACString &aSpec);
 
-  NS_IMETHOD IsUrlType(PRUint32 type, bool *isType);
+  NS_IMETHOD IsUrlType(uint32_t type, bool *isType);
 
   // nsIMsgMailNewsUrl overrides
   NS_IMETHOD GetServer(nsIMsgIncomingServer **server);
@@ -57,7 +57,7 @@ private:
 
   nsCString m_group;
   nsCString m_messageID;
-  PRUint32 m_key;
+  uint32_t m_key;
 };
 
 #endif // nsNntpUrl_h__

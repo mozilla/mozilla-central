@@ -20,7 +20,7 @@ interface nsIArray;
 
 // XXXdmose check to make sure ctl-related err codes documented
 
-typedef PRUint32 PRIntervalTime;
+typedef uint32_t PRIntervalTime;
 
 [scriptable, uuid(4dfb1b19-fc8f-4525-92e7-f97b78a9747a)]
 interface nsILDAPOperation : nsISupports
@@ -251,9 +251,9 @@ interface nsILDAPOperation : nsISupports
      * @exception NS_ERROR_LDAP_FILTER_ERROR
      * @exception NS_ERROR_UNEXPECTED
      */
-    void searchExt(in AUTF8String aBaseDn, in PRInt32 aScope,
+    void searchExt(in AUTF8String aBaseDn, in int32_t aScope,
                    in AUTF8String aFilter, in ACString aAttributes,
-                   in PRIntervalTime aTimeOut, in PRInt32 aSizeLimit);
+                   in PRIntervalTime aTimeOut, in int32_t aSizeLimit);
 
     /**  
      * Cancels an async operation that is in progress.

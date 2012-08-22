@@ -94,7 +94,7 @@ static void MimeMultipartAlternative_finalize (MimeObject *);
 static int MimeMultipartAlternative_parse_eof (MimeObject *, bool);
 static int MimeMultipartAlternative_create_child(MimeObject *);
 static int MimeMultipartAlternative_parse_child_line (MimeObject *, const char *,
-                            PRInt32, bool);
+                            int32_t, bool);
 static int MimeMultipartAlternative_close_child(MimeObject *);
 
 static int MimeMultipartAlternative_flush_children(MimeObject *, bool, bool);
@@ -140,7 +140,7 @@ static void
 MimeMultipartAlternative_cleanup(MimeObject *obj)
 {
   MimeMultipartAlternative *malt = (MimeMultipartAlternative *) obj;
-  PRInt32 i;
+  int32_t i;
 
   for (i = 0; i < malt->pending_parts; i++) {
     MimeHeaders_free(malt->buffered_hdrs[i]);
@@ -229,7 +229,7 @@ MimeMultipartAlternative_flush_children(MimeObject *obj,
   }
   
   if (do_flush) {
-    PRInt32 i;
+    int32_t i;
     for (i = 0; i < malt->pending_parts; i++) {
       MimeMultipartAlternative_display_cached_part(obj,
                                                    malt->buffered_hdrs[i],
@@ -276,7 +276,7 @@ MimeMultipartAlternative_create_child(MimeObject *obj)
   MimeMultipartAlternative_flush_children(obj, false, displayable);
   
   mult->state = MimeMultipartPartFirstLine;
-  PRInt32 i = malt->pending_parts++;
+  int32_t i = malt->pending_parts++;
   if (malt->pending_parts > malt->max_parts) {
     malt->max_parts = malt->pending_parts;
     malt->buffered_hdrs = (MimeHeaders **)
@@ -303,7 +303,7 @@ MimeMultipartAlternative_create_child(MimeObject *obj)
 
 static int
 MimeMultipartAlternative_parse_child_line (MimeObject *obj,
-                       const char *line, PRInt32 length,
+                       const char *line, int32_t length,
                        bool first_line_p)
 {
   MimeMultipartAlternative *malt = (MimeMultipartAlternative *) obj;
@@ -311,7 +311,7 @@ MimeMultipartAlternative_parse_child_line (MimeObject *obj,
   NS_ASSERTION(malt->pending_parts, "should be pending parts, but there aren't");
   if (!malt->pending_parts)
     return -1;
-  PRInt32 i = malt->pending_parts - 1;
+  int32_t i = malt->pending_parts - 1;
 
   /* Push this line into the buffer for later retrieval. */
   return MimePartBufferWrite (malt->part_buffers[i], line, length);

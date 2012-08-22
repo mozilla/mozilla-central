@@ -157,7 +157,7 @@ nsMessengerUnixIntegration::BuildNotificationTitle(nsIMsgFolder *aFolder, nsIStr
   nsString accountName;
   aFolder->GetPrettiestName(accountName);
 
-  PRInt32 numNewMessages = 0;
+  int32_t numNewMessages = 0;
   aFolder->GetNumNewMessages(true, &numNewMessages);
 
   if (!numNewMessages)
@@ -186,12 +186,12 @@ nsMsgDbHdrTimestampComparator(nsIMsgDBHdr *aElement1,
                               nsIMsgDBHdr *aElement2,
                               void *aData)
 {
-  PRUint32 aElement1Timestamp;
+  uint32_t aElement1Timestamp;
   nsresult rv = aElement1->GetDateInSeconds(&aElement1Timestamp);
   if (NS_FAILED(rv))
     return 0;
 
-  PRUint32 aElement2Timestamp;
+  uint32_t aElement2Timestamp;
   rv = aElement2->GetDateInSeconds(&aElement2Timestamp);
   if (NS_FAILED(rv))
     return 0;
@@ -210,7 +210,7 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
   bool showPreview = true;
   bool showSubject = true;
   bool showSender = true;
-  PRInt32 previewLength = SHOW_ALERT_PREVIEW_LENGTH_DEFAULT;
+  int32_t previewLength = SHOW_ALERT_PREVIEW_LENGTH_DEFAULT;
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
   if (!prefBranch)
@@ -236,7 +236,7 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
 
   bool localOnly;
 
-  PRUint32 msgURIIndex = mFetchingURIs.IndexOf(msgURI);
+  uint32_t msgURIIndex = mFetchingURIs.IndexOf(msgURI);
   if (msgURIIndex == -1)
   {
     localOnly = false;
@@ -245,7 +245,7 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
   else
     localOnly = true;
 
-  PRUint32 messageKey;
+  uint32_t messageKey;
   if (NS_FAILED(aHdr->GetMessageKey(&messageKey)))
     return false;
 
@@ -287,7 +287,7 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
     PRUnichar **emails;
     PRUnichar **names;
     PRUnichar **fullnames;
-    PRUint32 num;
+    uint32_t num;
     if (NS_FAILED(parser->ParseHeadersWithArray(author.get(),
                   &emails,
                   &names,
@@ -478,7 +478,7 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
   nsCString folderUri;
   GetFirstFolderWithNewMail(folderUri);
 
-  PRUint32 count = 0;
+  uint32_t count = 0;
   if (NS_FAILED(mFoldersWithNewMail->Count(&count)))
     return;
 
@@ -486,7 +486,7 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
   nsCOMPtr<nsIMsgFolder> folder = nullptr;
   nsCOMPtr<nsIMsgFolder> folderWithNewMail = nullptr;
 
-  PRUint32 i;
+  uint32_t i;
   for (i = 0; i < count && !folderWithNewMail; i++)
   {
     weakReference = do_QueryElementAt(mFoldersWithNewMail, i);
@@ -514,8 +514,8 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
     if (NS_FAILED(folderWithNewMail->GetMsgDatabase(getter_AddRefs(db))))
       return;
 
-    PRUint32 numNewKeys = 0;
-    PRUint32 *newMessageKeys;
+    uint32_t numNewKeys = 0;
+    uint32_t *newMessageKeys;
     db->GetNewList(&numNewKeys, &newMessageKeys);
 
     // If we had new messages, we *should* have new keys, but we'll
@@ -527,7 +527,7 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
 
     // Find the rootFolder that folder belongs to, and find out
     // what MRUTime it maps to.  Assign this to lastMRUTime.
-    PRUint32 lastMRUTime = 0;
+    uint32_t lastMRUTime = 0;
     if (NS_FAILED(GetMRUTimestampForFolder(folder, &lastMRUTime)))
       lastMRUTime = 0;
 
@@ -539,7 +539,7 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
       if (NS_FAILED(db->GetMsgHdrForKey(newMessageKeys[i], getter_AddRefs(hdr))))
         continue;
 
-      PRUint32 dateInSeconds = 0;
+      uint32_t dateInSeconds = 0;
       hdr->GetDateInSeconds(&dateInSeconds);
 
       if (dateInSeconds > lastMRUTime)
@@ -572,7 +572,7 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
     // in our nsCOMArray
     nsCOMPtr<nsIMsgDBHdr> lastMsgHdr = newMsgHdrs[newMsgHdrs.Count() - 1];
 
-    PRUint32 dateInSeconds = 0;
+    uint32_t dateInSeconds = 0;
     if (NS_FAILED(lastMsgHdr->GetDateInSeconds(&dateInSeconds)))
       return;
 
@@ -587,7 +587,7 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
     GetStringBundle(getter_AddRefs(bundle));
     if (bundle)
     {
-      PRInt32 numNewMessages = 0;
+      int32_t numNewMessages = 0;
       folder->GetNumNewMessages(true, &numNewMessages);
       nsAutoString numNewMsgsText;
       numNewMsgsText.AppendInt(numNewMessages);
@@ -619,13 +619,13 @@ nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(nsACString& aFold
   nsCOMPtr<nsIMsgFolder> folder;
   nsCOMPtr<nsIWeakReference> weakReference;
 
-  PRUint32 count = 0;
+  uint32_t count = 0;
   mFoldersWithNewMail->Count(&count);
 
   if (!count)  // kick out if we don't have any folders with new mail
     return NS_OK;
 
-  PRUint32 i;
+  uint32_t i;
   for(i = 0; i < count; i++)
   {
     weakReference = do_QueryElementAt(mFoldersWithNewMail, i);
@@ -634,7 +634,7 @@ nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(nsACString& aFold
     // We only want to find folders which haven't been notified
     // yet.  This is specific to Thunderbird.  In Seamonkey, we
     // just return 0, and we don't care about timestamps anymore.
-    PRUint32 lastMRUTime = 0;
+    uint32_t lastMRUTime = 0;
     rv = GetMRUTimestampForFolder(folder, &lastMRUTime);
     if (NS_FAILED(rv))
       lastMRUTime = 0;
@@ -648,9 +648,9 @@ nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(nsACString& aFold
     rv = folder->ListDescendents(allFolders);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRUint32 subfolderCount = 0;
+    uint32_t subfolderCount = 0;
     allFolders->Count(&subfolderCount);
-    PRUint32 j;
+    uint32_t j;
     for (j = 0; j < subfolderCount; j++)
     {
       nsCOMPtr<nsIMsgFolder> msgFolder = do_QueryElementAt(allFolders, j);
@@ -658,7 +658,7 @@ nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(nsACString& aFold
       if (!msgFolder)
         continue;
 
-      PRUint32 flags;
+      uint32_t flags;
       rv = msgFolder->GetFlags(&flags);
 
       if (NS_FAILED(rv))
@@ -686,7 +686,7 @@ nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(nsACString& aFold
       // Grab the MRUTime property from the folder
       nsCString dateStr;
       msgFolder->GetStringProperty(MRU_TIME_PROPERTY, dateStr);
-      PRUint32 MRUTime = (PRUint32) dateStr.ToInteger(&rv, 10);
+      uint32_t MRUTime = (uint32_t) dateStr.ToInteger(&rv, 10);
       if (NS_FAILED(rv))
         MRUTime = 0;
 
@@ -704,7 +704,7 @@ nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(nsACString& aFold
 }
 
 NS_IMETHODIMP
-nsMessengerUnixIntegration::OnItemPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom *property, PRUint32 oldFlag, PRUint32 newFlag)
+nsMessengerUnixIntegration::OnItemPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom *property, uint32_t oldFlag, uint32_t newFlag)
 {
   return NS_OK;
 }
@@ -731,14 +731,14 @@ nsMessengerUnixIntegration::OnItemEvent(nsIMsgFolder *, nsIAtom *)
 }
 
 NS_IMETHODIMP
-nsMessengerUnixIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty, PRInt32 aOldValue, PRInt32 aNewValue)
+nsMessengerUnixIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty, int32_t aOldValue, int32_t aNewValue)
 {
   nsCString atomName;
   // if we got new mail show an icon in the system tray
   if (mBiffStateAtom == aProperty && mFoldersWithNewMail)
   {
     nsCOMPtr<nsIWeakReference> weakFolder = do_GetWeakReference(aItem);
-    PRInt32 indexInNewArray = mFoldersWithNewMail->IndexOf(weakFolder);
+    int32_t indexInNewArray = mFoldersWithNewMail->IndexOf(weakFolder);
 
     if (aNewValue == nsIMsgFolder::nsMsgBiffState_NewMail)
     {
@@ -791,7 +791,7 @@ nsMessengerUnixIntegration::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
 
 nsresult
 nsMessengerUnixIntegration::GetMRUTimestampForFolder(nsIMsgFolder *aFolder,
-                                                     PRUint32 *aLastMRUTime)
+                                                     uint32_t *aLastMRUTime)
 {
   nsCOMPtr<nsIMsgFolder> rootFolder = nullptr;
   nsresult rv = aFolder->GetRootFolder(getter_AddRefs(rootFolder));
@@ -808,7 +808,7 @@ nsMessengerUnixIntegration::GetMRUTimestampForFolder(nsIMsgFolder *aFolder,
 #ifdef MOZ_THUNDERBIRD
 nsresult
 nsMessengerUnixIntegration::PutMRUTimestampForFolder(nsIMsgFolder *aFolder,
-                                                     PRUint32 aLastMRUTime)
+                                                     uint32_t aLastMRUTime)
 {
   nsresult rv;
   nsCOMPtr<nsIMsgFolder> rootFolder = nullptr;

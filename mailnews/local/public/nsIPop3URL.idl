@@ -12,8 +12,8 @@ interface nsIPop3URL : nsISupports {
   attribute string messageUri;
 
   /// Constant for the default POP3 port number
-  const PRInt32 DEFAULT_POP3_PORT = 110;
+  const int32_t DEFAULT_POP3_PORT = 110;
 
   /// Constant for the default POP3 over ssl port number
-  const PRInt32 DEFAULT_POP3S_PORT = 995;
+  const int32_t DEFAULT_POP3S_PORT = 995;
 };

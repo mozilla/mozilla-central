@@ -62,7 +62,7 @@ NS_IMETHODIMP nsAbMDBDirectory::Init(const char *aUri)
     // Find the first ? (of the search params) if there is one.
     // We know we can start at the end of the moz-abmdbdirectory:// because
     // that's the URI we should have been passed.
-    PRInt32 searchCharLocation = uri.FindChar('?', kMDBDirectoryRootLen);
+    int32_t searchCharLocation = uri.FindChar('?', kMDBDirectoryRootLen);
 
     nsCAutoString filename;
 
@@ -83,8 +83,8 @@ NS_IMETHODIMP nsAbMDBDirectory::Init(const char *aUri)
     NS_ENSURE_SUCCESS(rv, rv);
 
     char** childArray;
-    PRUint32 childCount, i;
-    PRInt32 dotOffset;
+    uint32_t childCount, i;
+    int32_t dotOffset;
     nsCString childValue;
     nsDependentCString child;
 
@@ -127,8 +127,8 @@ NS_IMETHODIMP nsAbMDBDirectory::Init(const char *aUri)
 nsresult nsAbMDBDirectory::RemoveCardFromAddressList(nsIAbCard* card)
 {
   nsresult rv = NS_OK;
-  PRUint32 listTotal;
-  PRInt32 i, j;
+  uint32_t listTotal;
+  int32_t i, j;
 
   // These checks ensure we don't run into null pointers
   // as we did when we caused bug 280463.
@@ -166,7 +166,7 @@ nsresult nsAbMDBDirectory::RemoveCardFromAddressList(nsIAbCard* card)
       listDir->GetAddressLists(getter_AddRefs(pAddressLists));
       if (pAddressLists)
       {  
-        PRUint32 total;
+        uint32_t total;
         rv = pAddressLists->GetLength(&total);
         for (j = total - 1; j >= 0; j--)
         {
@@ -195,7 +195,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteDirectory(nsIAbDirectory *directory)
   if (NS_SUCCEEDED(rv))
     database->Commit(nsAddrDBCommitType::kLargeCommit);
 
-  PRUint32 dirIndex;
+  uint32_t dirIndex;
   if (m_AddressList && NS_SUCCEEDED(m_AddressList->IndexOf(0, directory, &dirIndex)))
     m_AddressList->RemoveElementAt(dirIndex);
   // XXX Cast from bool to nsresult
@@ -271,11 +271,11 @@ NS_IMETHODIMP nsAbMDBDirectory::RemoveElementsFromAddressList()
 
   if (m_AddressList)
   {
-    PRUint32 count;
+    uint32_t count;
     nsresult rv;
     rv = m_AddressList->GetLength(&count);
     NS_ASSERTION(NS_SUCCEEDED(rv), "Count failed");
-    PRInt32 i;
+    int32_t i;
     for (i = count - 1; i >= 0; i--)
       m_AddressList->RemoveElementAt(i);
   }
@@ -283,7 +283,7 @@ NS_IMETHODIMP nsAbMDBDirectory::RemoveElementsFromAddressList()
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbMDBDirectory::RemoveEmailAddressAt(PRUint32 aIndex)
+NS_IMETHODIMP nsAbMDBDirectory::RemoveEmailAddressAt(uint32_t aIndex)
 {
   if (mIsQueryURI)
     return NS_ERROR_NOT_IMPLEMENTED;
@@ -461,8 +461,8 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
 
   if (NS_SUCCEEDED(rv) && mDatabase)
   {
-    PRUint32 cardCount;
-    PRUint32 i;
+    uint32_t cardCount;
+    uint32_t i;
     rv = aCards->GetLength(&cardCount);
     NS_ENSURE_SUCCESS(rv, rv);
     for (i = 0; i < cardCount; i++)
@@ -472,7 +472,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
 
       if (card)
       {
-        PRUint32 rowID;
+        uint32_t rowID;
         rv = card->GetPropertyAsUint32("DbRowID", &rowID);
         NS_ENSURE_SUCCESS(rv, rv);
 
@@ -480,8 +480,8 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
         {
           mDatabase->DeleteCardFromMailList(this, card, true);
 
-          PRUint32 cardTotal = 0;
-          PRInt32 i;
+          uint32_t cardTotal = 0;
+          int32_t i;
           if (m_AddressList)
             rv = m_AddressList->GetLength(&cardTotal);
           for (i = cardTotal - 1; i >= 0; i--)
@@ -490,7 +490,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
             if (arrayCard)
             {
               // No card can have a row ID of 0
-              PRUint32 arrayRowID = 0;
+              uint32_t arrayRowID = 0;
               arrayCard->GetPropertyAsUint32("DbRowID", &arrayRowID);
               if (rowID == arrayRowID)
                 m_AddressList->RemoveElementAt(i);
@@ -520,7 +520,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
               rv = abManager->GetDirectory(listUri, getter_AddRefs(listDir));
               NS_ENSURE_SUCCESS(rv, rv);
 
-              PRUint32 dirIndex;
+              uint32_t dirIndex;
               if (m_AddressList && NS_SUCCEEDED(m_AddressList->IndexOf(0, listDir, &dirIndex)))
                 m_AddressList->RemoveElementAt(dirIndex);
 
@@ -624,7 +624,7 @@ NS_IMETHODIMP nsAbMDBDirectory::AddMailList(nsIAbDirectory *list, nsIAbDirectory
 
   mDatabase->Commit(nsAddrDBCommitType::kLargeCommit);
 
-  PRUint32 dbRowID;
+  uint32_t dbRowID;
   dblist->GetDbRowID(&dbRowID);
 
   nsCAutoString listUri(mURI);
@@ -767,9 +767,9 @@ static bool ContainsDirectory(nsIAbDirectory *parent, nsIAbDirectory *directory)
   parent->GetAddressLists(getter_AddRefs(pAddressLists));
   if (pAddressLists)
   {
-    PRUint32 total;
+    uint32_t total;
     rv = pAddressLists->GetLength(&total);
-    for (PRUint32 i = 0; i < total; ++i)
+    for (uint32_t i = 0; i < total; ++i)
     {
       nsCOMPtr<nsIAbDirectory> pList(do_QueryElementAt(pAddressLists, i, &rv));
 
@@ -783,13 +783,13 @@ static bool ContainsDirectory(nsIAbDirectory *parent, nsIAbDirectory *directory)
 
 // nsIAddrDBListener methods
 
-NS_IMETHODIMP nsAbMDBDirectory::OnCardAttribChange(PRUint32 abCode)
+NS_IMETHODIMP nsAbMDBDirectory::OnCardAttribChange(uint32_t abCode)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP nsAbMDBDirectory::OnCardEntryChange
-(PRUint32 aAbCode, nsIAbCard *aCard, nsIAbDirectory *aParent)
+(uint32_t aAbCode, nsIAbCard *aCard, nsIAbDirectory *aParent)
 {
   // Don't notify AbManager unless we have the parent
   if (!aParent)
@@ -839,7 +839,7 @@ NS_IMETHODIMP nsAbMDBDirectory::OnCardEntryChange
 }
 
 NS_IMETHODIMP nsAbMDBDirectory::OnListEntryChange
-(PRUint32 abCode, nsIAbDirectory *list)
+(uint32_t abCode, nsIAbDirectory *list)
 {
   nsresult rv = NS_OK;
   
@@ -948,7 +948,7 @@ NS_IMETHODIMP nsAbMDBDirectory::StopSearch()
 
 // nsAbDirSearchListenerContext methods
 
-NS_IMETHODIMP nsAbMDBDirectory::OnSearchFinished(PRInt32 aResult,
+NS_IMETHODIMP nsAbMDBDirectory::OnSearchFinished(int32_t aResult,
                                                  const nsAString &aErrorMsg)
 {
   mPerformingQuery = false;
@@ -982,7 +982,7 @@ nsresult nsAbMDBDirectory::GetAbDatabase()
     // Get the database of the parent directory.
     nsCAutoString parentURI(mURINoQuery);
 
-    PRInt32 pos = parentURI.RFindChar('/');
+    int32_t pos = parentURI.RFindChar('/');
 
     // If we didn't find a / something really bad has happened
     if (pos == -1)

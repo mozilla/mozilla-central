@@ -69,19 +69,19 @@ public:
                            bool *fatalError);
 
   /* unsigned long GetImportProgress (); */
-  NS_IMETHOD GetImportProgress(PRUint32 *_retval);
+  NS_IMETHOD GetImportProgress(uint32_t *_retval);
 
   NS_IMETHOD TranslateFolderName(const nsAString & aFolderName, nsAString & _retval);
 
 public:
-  static void  ReportSuccess(nsString& name, PRInt32 count, nsString *pStream);
-  static void ReportError(PRInt32 errorNum, nsString& name, nsString *pStream);
+  static void  ReportSuccess(nsString& name, int32_t count, nsString *pStream);
+  static void ReportError(int32_t errorNum, nsString& name, nsString *pStream);
   static void  AddLinebreak(nsString *pStream);
   static void  SetLogs(nsString& success, nsString& error, PRUnichar **pError, PRUnichar **pSuccess);
 
 private:
   nsOutlookMail  m_mail;
-  PRUint32    m_bytesDone;
+  uint32_t    m_bytesDone;
 };
 
 
@@ -120,9 +120,9 @@ public:
                                PRUnichar **successLog,
                                bool *fatalError);
 
-  NS_IMETHOD GetImportProgress(PRUint32 *_retval);
+  NS_IMETHOD GetImportProgress(uint32_t *_retval);
 
-  NS_IMETHOD GetSampleData(PRInt32 index, bool *pFound, PRUnichar **pStr)
+  NS_IMETHOD GetSampleData(int32_t index, bool *pFound, PRUnichar **pStr)
     { return NS_ERROR_FAILURE;}
 
   NS_IMETHOD SetSampleLocation(nsIFile *) { return NS_OK; }
@@ -131,8 +131,8 @@ private:
   void  ReportSuccess(nsString& name, nsString *pStream);
 
 private:
-  PRUint32    m_msgCount;
-  PRUint32    m_msgTotal;
+  uint32_t    m_msgCount;
+  uint32_t    m_msgTotal;
   nsOutlookMail  m_address;
 };
 ////////////////////////////////////////////////////////////////////////
@@ -353,7 +353,7 @@ void ImportOutlookMailImpl::AddLinebreak(nsString *pStream)
     pStream->Append(PRUnichar('\n'));
 }
 
-void ImportOutlookMailImpl::ReportSuccess(nsString& name, PRInt32 count, nsString *pStream)
+void ImportOutlookMailImpl::ReportSuccess(nsString& name, int32_t count, nsString *pStream)
 {
   if (!pStream)
     return;
@@ -366,7 +366,7 @@ void ImportOutlookMailImpl::ReportSuccess(nsString& name, PRInt32 count, nsStrin
   AddLinebreak(pStream);
 }
 
-void ImportOutlookMailImpl::ReportError(PRInt32 errorNum, nsString& name, nsString *pStream)
+void ImportOutlookMailImpl::ReportError(int32_t errorNum, nsString& name, nsString *pStream)
 {
   if (!pStream)
     return;
@@ -409,7 +409,7 @@ ImportOutlookMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSource,
     NS_Free( pName);
  }
 
-  PRUint32 mailSize = 0;
+  uint32_t mailSize = 0;
   pSource->GetSize(&mailSize);
   if (mailSize == 0) {
     ReportSuccess(name, 0, &success);
@@ -417,14 +417,14 @@ ImportOutlookMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSource,
     return NS_OK;
   }
 
-  PRUint32 index = 0;
+  uint32_t index = 0;
   pSource->GetIdentifier(&index);
-  PRInt32  msgCount = 0;
+  int32_t  msgCount = 0;
   nsresult rv = NS_OK;
 
   m_bytesDone = 0;
 
-  rv = m_mail.ImportMailbox(&m_bytesDone, &abort, (PRInt32)index, name.get(),
+  rv = m_mail.ImportMailbox(&m_bytesDone, &abort, (int32_t)index, name.get(),
                             dstFolder, &msgCount);
 
   if (NS_SUCCEEDED(rv))
@@ -438,7 +438,7 @@ ImportOutlookMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSource,
 }
 
 
-NS_IMETHODIMP ImportOutlookMailImpl::GetImportProgress(PRUint32 *pDoneSoFar)
+NS_IMETHODIMP ImportOutlookMailImpl::GetImportProgress(uint32_t *pDoneSoFar)
 {
   NS_PRECONDITION(pDoneSoFar != nullptr, "null ptr");
   if (! pDoneSoFar)
@@ -538,7 +538,7 @@ NS_IMETHODIMP ImportOutlookAddressImpl::ImportAddressBook(nsIImportABDescriptor 
     nsString name;
     source->GetPreferredName(name);
 
-  PRUint32  id;
+  uint32_t  id;
   if (NS_FAILED(source->GetIdentifier(&id))) {
     ImportOutlookMailImpl::ReportError(OUTLOOKIMPORT_ADDRESS_BADSOURCEFILE, name, &error);
     ImportOutlookMailImpl::SetLogs(success, error, pErrorLog, pSuccessLog);
@@ -558,13 +558,13 @@ NS_IMETHODIMP ImportOutlookAddressImpl::ImportAddressBook(nsIImportABDescriptor 
 }
 
 
-NS_IMETHODIMP ImportOutlookAddressImpl::GetImportProgress(PRUint32 *_retval)
+NS_IMETHODIMP ImportOutlookAddressImpl::GetImportProgress(uint32_t *_retval)
 {
   NS_PRECONDITION(_retval != nullptr, "null ptr");
   if (!_retval)
     return NS_ERROR_NULL_POINTER;
 
-  PRUint32 result = m_msgCount;
+  uint32_t result = m_msgCount;
   if (m_msgTotal) {
     result *= 100;
     result /= m_msgTotal;

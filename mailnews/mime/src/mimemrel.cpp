@@ -173,9 +173,9 @@ MimeMultipartRelated_initialize(MimeObject* obj)
   return ((MimeObjectClass*)&MIME_SUPERCLASS)->initialize(obj);
 }
 
-static PRIntn
+static int
 mime_multipart_related_nukehash(PLHashEntry *table,
-                                       PRIntn indx, void *arg)
+                                       int indx, void *arg)
 {
   if (table->key)
     PR_Free((char*) table->key);
@@ -601,7 +601,7 @@ MimeMultipartRelated_output_child_p(MimeObject *obj, MimeObject* child)
 
 static int
 MimeMultipartRelated_parse_child_line (MimeObject *obj,
-                     const char *line, PRInt32 length,
+                     const char *line, int32_t length,
                      bool first_line_p)
 {
   MimeContainer *cont = (MimeContainer *) obj;
@@ -693,7 +693,7 @@ MimeMultipartRelated_parse_child_line (MimeObject *obj,
 
       if (relobj->head_buffer && relobj->head_buffer_fp)
       {
-        PRUint32 bytesWritten;
+        uint32_t bytesWritten;
         status = relobj->output_file_stream->Write(relobj->head_buffer,
                                                    relobj->head_buffer_fp,
                                                    &bytesWritten);
@@ -707,9 +707,9 @@ MimeMultipartRelated_parse_child_line (MimeObject *obj,
     }
 
     /* Dump this line to the file. */
-    PRUint32 bytesWritten;
+    uint32_t bytesWritten;
     rv = relobj->output_file_stream->Write(line, length, &bytesWritten);
-    if ((PRInt32) bytesWritten < length || NS_FAILED(rv))
+    if ((int32_t) bytesWritten < length || NS_FAILED(rv))
       return MIME_UNABLE_TO_OPEN_TMP_FILE;
   }
 
@@ -720,7 +720,7 @@ MimeMultipartRelated_parse_child_line (MimeObject *obj,
 
 
 static int
-real_write(MimeMultipartRelated* relobj, const char* buf, PRInt32 size)
+real_write(MimeMultipartRelated* relobj, const char* buf, int32_t size)
 {
   MimeObject* obj = (MimeObject*) relobj;
   void* closure = relobj->real_output_closure;
@@ -758,7 +758,7 @@ real_write(MimeMultipartRelated* relobj, const char* buf, PRInt32 size)
 
 
 static int
-push_tag(MimeMultipartRelated* relobj, const char* buf, PRInt32 size)
+push_tag(MimeMultipartRelated* relobj, const char* buf, int32_t size)
 {
   if (size + relobj->curtag_length > relobj->curtag_max) {
     relobj->curtag_max += 2 * size;
@@ -951,11 +951,11 @@ flush_tag(MimeMultipartRelated* relobj)
 
 
 static int
-mime_multipart_related_output_fn(const char* buf, PRInt32 size, void *stream_closure)
+mime_multipart_related_output_fn(const char* buf, int32_t size, void *stream_closure)
 {
   MimeMultipartRelated *relobj = (MimeMultipartRelated *) stream_closure;
   char* ptr;
-  PRInt32 delta;
+  int32_t delta;
   int status;
   while (size > 0) {
     if (relobj->curtag_length > 0) {
@@ -1093,7 +1093,7 @@ MimeMultipartRelated_parse_eof (MimeObject *obj, bool abort_p)
   {
     /* Read it off disk. */
     char *buf;
-    PRInt32 buf_size = 10 * 1024;  /* 10k; tune this? */
+    int32_t buf_size = 10 * 1024;  /* 10k; tune this? */
 
     PR_ASSERT(relobj->head_buffer_size == 0 &&
           relobj->head_buffer_fp == 0);
@@ -1125,7 +1125,7 @@ MimeMultipartRelated_parse_eof (MimeObject *obj, bool abort_p)
 
     while(1)
     {
-      PRUint32 bytesRead = 0;
+      uint32_t bytesRead = 0;
       rv = relobj->input_file_stream->Read(buf, buf_size - 1, &bytesRead);
       if (NS_FAILED(rv) || !bytesRead)
       {

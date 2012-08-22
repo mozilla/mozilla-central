@@ -108,7 +108,7 @@ nsresult nsMailboxUrl::GetMessageKey(nsMsgKey* aMessageKey)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMailboxUrl::GetMessageSize(PRUint32 * aMessageSize)
+NS_IMETHODIMP nsMailboxUrl::GetMessageSize(uint32_t * aMessageSize)
 {
   if (aMessageSize)
   {
@@ -119,7 +119,7 @@ NS_IMETHODIMP nsMailboxUrl::GetMessageSize(PRUint32 * aMessageSize)
     return NS_ERROR_NULL_POINTER;
 }
 
-nsresult nsMailboxUrl::SetMessageSize(PRUint32 aMessageSize)
+nsresult nsMailboxUrl::SetMessageSize(uint32_t aMessageSize)
 {
   m_messageSize = aMessageSize;
   return NS_OK;
@@ -212,7 +212,7 @@ nsresult nsMailboxUrl::GetMsgHdrForKey(nsMsgKey  msgKey, nsIMsgDBHdr ** aMsgHdr)
           rv = headerSink->GetDummyMsgHeader(aMsgHdr);
           if (NS_SUCCEEDED(rv))
           {
-            PRInt64 fileSize = 0;
+            int64_t fileSize = 0;
             m_filePath->GetFileSize(&fileSize);
             (*aMsgHdr)->SetMessageSize(fileSize);
           }
@@ -275,7 +275,7 @@ NS_IMETHODIMP nsMailboxUrl::GetMessageFile(nsIFile ** aFile)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMailboxUrl::IsUrlType(PRUint32 type, bool *isType)
+NS_IMETHODIMP nsMailboxUrl::IsUrlType(uint32_t type, bool *isType)
 {
   NS_ENSURE_ARG(isType);
 
@@ -323,7 +323,7 @@ nsresult nsMailboxUrl::ParseSearchPart()
     char * messageKey = extractAttributeValue(searchPart.get(), "number=");
     m_messageID = extractAttributeValue(searchPart.get(),"messageid=");
     if (messageKey)
-      m_messageKey = (nsMsgKey) ParseUint64Str(messageKey); // convert to a PRUint32...
+      m_messageKey = (nsMsgKey) ParseUint64Str(messageKey); // convert to a uint32_t...
 
     PR_Free(msgPart);
     PR_Free(messageKey);
@@ -397,7 +397,7 @@ char * extractAttributeValue(const char * searchString, const char * attributeNa
   if (searchString && attributeName)
   {
     // search the string for attributeName
-    PRUint32 attributeNameSize = PL_strlen(attributeName);
+    uint32_t attributeNameSize = PL_strlen(attributeName);
     char * startOfAttribute = PL_strcasestr(searchString, attributeName);
     if (startOfAttribute)
     {
@@ -482,7 +482,7 @@ NS_IMETHODIMP nsMailboxUrl::SetCharsetOverRide(const char * aCharacterSet)
 }
 
 /* void setMoveCopyMsgKeys (out nsMsgKey keysToFlag, in long numKeys); */
-NS_IMETHODIMP nsMailboxUrl::SetMoveCopyMsgKeys(nsMsgKey *keysToFlag, PRInt32 numKeys)
+NS_IMETHODIMP nsMailboxUrl::SetMoveCopyMsgKeys(nsMsgKey *keysToFlag, int32_t numKeys)
 {
   m_keys.ReplaceElementsAt(0, m_keys.Length(), keysToFlag, numKeys);
   if (!m_keys.IsEmpty() && m_messageKey == nsMsgKey_None)
@@ -490,7 +490,7 @@ NS_IMETHODIMP nsMailboxUrl::SetMoveCopyMsgKeys(nsMsgKey *keysToFlag, PRInt32 num
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMailboxUrl::GetMoveCopyMsgHdrForIndex(PRUint32 msgIndex, nsIMsgDBHdr **msgHdr)
+NS_IMETHODIMP nsMailboxUrl::GetMoveCopyMsgHdrForIndex(uint32_t msgIndex, nsIMsgDBHdr **msgHdr)
 {
   NS_ENSURE_ARG(msgHdr);
   if (msgIndex < m_keys.Length())
@@ -501,7 +501,7 @@ NS_IMETHODIMP nsMailboxUrl::GetMoveCopyMsgHdrForIndex(PRUint32 msgIndex, nsIMsgD
   return NS_MSG_MESSAGE_NOT_FOUND;
 }
 
-NS_IMETHODIMP nsMailboxUrl::GetNumMoveCopyMsgs(PRUint32 *numMsgs)
+NS_IMETHODIMP nsMailboxUrl::GetNumMoveCopyMsgs(uint32_t *numMsgs)
 {
   NS_ENSURE_ARG(numMsgs);
   *numMsgs = m_keys.Length();

@@ -32,8 +32,8 @@ public:
 
 protected:
   bool             m_meteorsSpinning;
-  PRInt32          m_lastPercent;
-  PRInt64          m_lastProgressTime;
+  int32_t          m_lastPercent;
+  int64_t          m_lastProgressTime;
 
   void BeginObserving();
   void EndObserving();

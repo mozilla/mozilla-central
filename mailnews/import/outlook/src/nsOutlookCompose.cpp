@@ -82,7 +82,7 @@ class CCompositionFile {
 public:
   // fifoBuffer is used for memory allocation optimization
   // convertCRs controls if we want to convert standalone CRs to CRLFs
-  CCompositionFile(nsIFile* aFile, void* fifoBuffer, PRUint32 fifoBufferSize, bool convertCRs=false);
+  CCompositionFile(nsIFile* aFile, void* fifoBuffer, uint32_t fifoBufferSize, bool convertCRs=false);
 
   operator bool() const { return m_fileSize && m_pInputStream; }
 
@@ -95,10 +95,10 @@ public:
 private:
   nsCOMPtr<nsIFile>  m_pFile;
   nsCOMPtr<nsIInputStream> m_pInputStream;
-  PRInt64 m_fileSize;
-  PRInt64 m_fileReadPos;
+  int64_t m_fileSize;
+  int64_t m_fileReadPos;
   char* m_fifoBuffer;
-  PRUint32 m_fifoBufferSize;
+  uint32_t m_fifoBufferSize;
   char* m_fifoBufferReadPos; // next character to read
   char* m_fifoBufferWrittenPos; // if we have read less than buffer size then this will show it
   bool m_convertCRs;
@@ -124,11 +124,11 @@ public:
   // nsISupports interface
   NS_DECL_ISUPPORTS
 
-  /* void OnStartSending (in string aMsgID, in PRUint32 aMsgSize); */
-  NS_IMETHOD OnStartSending(const char *aMsgID, PRUint32 aMsgSize) {return NS_OK;}
+  /* void OnStartSending (in string aMsgID, in uint32_t aMsgSize); */
+  NS_IMETHOD OnStartSending(const char *aMsgID, uint32_t aMsgSize) {return NS_OK;}
 
-  /* void OnProgress (in string aMsgID, in PRUint32 aProgress, in PRUint32 aProgressMax); */
-  NS_IMETHOD OnProgress(const char *aMsgID, PRUint32 aProgress, PRUint32 aProgressMax) {return NS_OK;}
+  /* void OnProgress (in string aMsgID, in uint32_t aProgress, in uint32_t aProgressMax); */
+  NS_IMETHOD OnProgress(const char *aMsgID, uint32_t aProgress, uint32_t aProgressMax) {return NS_OK;}
 
   /* void OnStatus (in string aMsgID, in wstring aMsg); */
   NS_IMETHOD OnStatus(const char *aMsgID, const PRUnichar *aMsg) {return NS_OK;}
@@ -337,9 +337,9 @@ nsresult nsOutlookCompose::ComposeTheMessage(nsMsgDeliverMode mode, CMapiMessage
   }
   else {
     // wait for the listener to get done!
-    PRInt32 abortCnt = 0;
-    PRInt32 cnt = 0;
-    PRInt32 sleepCnt = 1;
+    int32_t abortCnt = 0;
+    int32_t cnt = 0;
+    int32_t sleepCnt = 1;
     while (!pListen->m_done && (abortCnt < kHungAbortCount)) {
       PR_Sleep(sleepCnt);
       cnt++;
@@ -386,13 +386,13 @@ nsresult nsOutlookCompose::CopyComposedMessage(nsIFile *pSrc,
   // Thus, the lines that look like "From ..." in the message must be escaped (see EscapeFromSpaceLine())
   int fromLineLen;
   const char* fromLine = origMsg.GetFromLine(fromLineLen);
-  PRUint32 written;
+  uint32_t written;
   nsresult rv = pDst->Write(fromLine, fromLineLen, &written);
 
   // Bug 219269
   // Write out the x-mozilla-status headers.
   char statusLine[50];
-  PRUint32 msgFlags = 0;
+  uint32_t msgFlags = 0;
   if (origMsg.IsRead())
     msgFlags |= nsMsgMessageFlags::Read;
   if (!origMsg.FullMessageDownloaded())
@@ -588,14 +588,14 @@ void nsOutlookCompose::UnhackBody(nsCString& txt)
 
   nsCString hackedString(hackBeginA);
   hackedString.Append(hackedPostfixA);
-  PRInt32 begin = txt.Find(hackedString);
+  int32_t begin = txt.Find(hackedString);
   if (begin == kNotFound)
     return;
   txt.Cut(begin, hackedString.Length());
 
   hackedString.Assign(hackEndA);
   hackedString.Append(hackedPostfixA);
-  PRInt32 end = MsgFind(txt, hackedString, false, begin);
+  int32_t end = MsgFind(txt, hackedString, false, begin);
   if (end == kNotFound)
     return; // ?
   txt.Cut(end, hackedString.Length());
@@ -638,7 +638,7 @@ bool nsOutlookCompose::GenerateHackSequence(const wchar_t* body, size_t origLen)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CCompositionFile::CCompositionFile(nsIFile* aFile, void* fifoBuffer,
-                                   PRUint32 fifoBufferSize, bool convertCRs)
+                                   uint32_t fifoBufferSize, bool convertCRs)
   : m_pFile(aFile), m_fileSize(0), m_fileReadPos(0),
     m_fifoBuffer(static_cast<char*>(fifoBuffer)),
     m_fifoBufferSize(fifoBufferSize),
@@ -665,13 +665,13 @@ nsresult CCompositionFile::EnsureHasDataInBuffer()
   if (m_fifoBufferReadPos < m_fifoBufferWrittenPos)
     return NS_OK;
   // Populate the buffer with new data!
-  PRUint32 count = m_fifoBufferSize;
+  uint32_t count = m_fifoBufferSize;
   if ((m_fileReadPos + count) > m_fileSize)
     count = m_fileSize - m_fileReadPos;
   if (!count)
     return NS_ERROR_FAILURE; // Isn't there a "No more data" error?
 
-  PRUint32 bytesRead = 0;
+  uint32_t bytesRead = 0;
   nsresult rv = m_pInputStream->Read(m_fifoBuffer, count, &bytesRead);
   NS_ENSURE_SUCCESS(rv, rv);
   if (!bytesRead || (bytesRead > count))
@@ -780,9 +780,9 @@ class dest_nsCString {
 public:
   dest_nsCString(nsCString& str) : m_str(str) { m_str.Truncate(); }
 #ifdef MOZILLA_INTERNAL_API
-  void SetCapacity(PRInt32 sz) { m_str.SetCapacity(sz); }
+  void SetCapacity(int32_t sz) { m_str.SetCapacity(sz); }
 #endif
-  nsresult Append(const char* buf, PRUint32 count) {
+  nsresult Append(const char* buf, uint32_t count) {
     m_str.Append(buf, count); return NS_OK; }
 private:
   nsCString& m_str;
@@ -792,11 +792,11 @@ class dest_Stream {
 public:
   dest_Stream(nsIOutputStream *dest) : m_stream(dest) {}
 #ifdef MOZILLA_INTERNAL_API
-  void SetCapacity(PRInt32) { /*do nothing*/ }
+  void SetCapacity(int32_t) { /*do nothing*/ }
 #endif
   // const_cast here is due to the poor design of the EscapeFromSpaceLine()
   // that requires a non-constant pointer while doesn't modify its data
-  nsresult Append(const char* buf, PRUint32 count) {
+  nsresult Append(const char* buf, uint32_t count) {
     return EscapeFromSpaceLine(m_stream, const_cast<char*>(buf), buf+count); }
 private:
   nsIOutputStream *m_stream;

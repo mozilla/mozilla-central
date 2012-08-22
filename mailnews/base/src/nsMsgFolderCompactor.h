@@ -43,7 +43,7 @@ protected:
   nsresult Init(nsIMsgFolder *aFolder, const char* aBaseMsgUri, nsIMsgDatabase *aDb,
                             nsIFile *aPath, nsIMsgWindow *aMsgWindow);
   nsresult GetMessage(nsIMsgDBHdr **message);
-  nsresult BuildMessageURI(const char *baseURI, PRUint32 key, nsCString& uri);
+  nsresult BuildMessageURI(const char *baseURI, uint32_t key, nsCString& uri);
   nsresult ShowStatusMsg(const nsString& aMsg);
   nsresult ReleaseFolderLock();
   void     ShowCompactingStatusMsg();
@@ -59,20 +59,20 @@ protected:
   nsCOMPtr <nsIOutputStream> m_fileStream; // output file stream for writing
   // all message keys that need to be copied over
   nsRefPtr<nsMsgKeyArray> m_keyArray;
-  PRUint32 m_size;
+  uint32_t m_size;
 
    // sum of the sizes of the messages, accumulated as we visit each msg.
-  PRUint32 m_totalMsgSize;
+  uint32_t m_totalMsgSize;
 
-  PRUint32 m_curIndex; // index of the current copied message key in key array
-  PRUint64 m_startOfNewMsg; // offset in mailbox of new message
+  uint32_t m_curIndex; // index of the current copied message key in key array
+  uint64_t m_startOfNewMsg; // offset in mailbox of new message
   char m_dataBuffer[COMPACTOR_READ_BUFF_SIZE + 1]; // temp data buffer for copying message
   nsresult m_status; // the status of the copying operation
   nsCOMPtr <nsIMsgMessageService> m_messageService; // message service for copying 
   nsCOMPtr<nsIArray> m_folderArray; // folders we are compacting, if compacting multiple.
   nsCOMPtr <nsIMsgWindow> m_window;
   nsCOMPtr <nsIMsgDBHdr> m_curSrcHdr;
-  PRUint32 m_folderIndex; // tells which folder to compact in case of compact all
+  uint32_t m_folderIndex; // tells which folder to compact in case of compact all
   bool m_compactAll;  //flag for compact all
   bool m_compactOfflineAlso; //whether to compact offline also
   bool m_compactingOfflineFolders; // are we in the offline folder compact phase
@@ -80,8 +80,8 @@ protected:
   // these members are used to add missing status lines to compacted messages.
   bool m_needStatusLine;
   bool m_startOfMsg;
-  PRInt32 m_statusOffset;
-  PRUint32 m_addedHeaderSize;
+  int32_t m_statusOffset;
+  uint32_t m_addedHeaderSize;
   nsCOMPtr<nsIArray> m_offlineFolderArray;
   nsCOMPtr<nsIUrlListener> m_listener;
 };
@@ -96,7 +96,7 @@ public:
                                     nsresult status);
   NS_IMETHODIMP OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
                                 nsIInputStream *inStr,
-                                PRUint32 sourceOffset, PRUint32 count);
+                                uint32_t sourceOffset, uint32_t count);
 
 protected:
     nsresult         CopyNextMessage(bool &done);
@@ -104,7 +104,7 @@ protected:
     virtual nsresult StartCompacting();
     virtual nsresult FinishCompact();
 
-    PRUint32 m_offlineMsgSize;
+    uint32_t m_offlineMsgSize;
 };
 
 #endif

@@ -60,7 +60,7 @@ XPCOM_GetmimeEncryptedClass(void)
 extern "C" int
 XPCOM_MimeObject_write(void *mimeObject,
                        char *data,
-                       PRInt32 length,
+                       int32_t length,
                        bool user_visible_p)
 {
   return MIME_MimeObject_write((MimeObject *)mimeObject, data,

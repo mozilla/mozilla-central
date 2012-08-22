@@ -63,7 +63,7 @@ NS_IMETHODIMP nsMsgCompressOStream::Close()
 }
 
 NS_IMETHODIMP
-nsMsgCompressOStream::Write(const char *buf, PRUint32 count, PRUint32 *result)
+nsMsgCompressOStream::Write(const char *buf, uint32_t count, uint32_t *result)
 {
   if (!m_oStream)
     return NS_BASE_STREAM_CLOSED;
@@ -88,13 +88,13 @@ nsMsgCompressOStream::Write(const char *buf, PRUint32 count, PRUint32 *result)
     if (zr != Z_OK)
       return NS_ERROR_FAILURE;
 
-    PRUint32 out_size = BUFFER_SIZE - m_zstream.avail_out;
+    uint32_t out_size = BUFFER_SIZE - m_zstream.avail_out;
     const char *out_buf = m_zbuf;
 
     // push everything in the buffer before repeating
     while (out_size)
     {
-      PRUint32 out_result;
+      uint32_t out_result;
       nsresult rv = m_oStream->Write(out_buf, out_size, &out_result);
       NS_ENSURE_SUCCESS(rv, rv);
       if (!out_result)
@@ -125,13 +125,13 @@ nsMsgCompressOStream::Flush(void)
 }
 
 NS_IMETHODIMP
-nsMsgCompressOStream::WriteFrom(nsIInputStream *inStr, PRUint32 count, PRUint32 *_retval)
+nsMsgCompressOStream::WriteFrom(nsIInputStream *inStr, uint32_t count, uint32_t *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsMsgCompressOStream::WriteSegments(nsReadSegmentFun reader, void * closure, PRUint32 count, PRUint32 *_retval)
+nsMsgCompressOStream::WriteSegments(nsReadSegmentFun reader, void * closure, uint32_t count, uint32_t *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

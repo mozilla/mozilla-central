@@ -357,11 +357,11 @@ void nsNetscapeProfileMigratorBase::CopyNextFolder()
                                     fileTransaction.newName);
 
     // add to our current progress
-    PRInt64 fileSize;
+    int64_t fileSize;
     fileTransaction.srcFile->GetFileSize(&fileSize);
     mCurrentProgress += fileSize;
 
-    PRUint32 percentage = (PRUint32)(mCurrentProgress * 100 / mMaxProgress);
+    uint32_t percentage = (uint32_t)(mCurrentProgress * 100 / mMaxProgress);
 
     nsAutoString index;
     index.AppendInt(percentage);
@@ -399,7 +399,7 @@ nsNetscapeProfileMigratorBase::GetSourceHasMultipleProfiles(bool* aResult)
   GetSourceProfiles(getter_AddRefs(profiles));
 
   if (profiles) {
-    PRUint32 count;
+    uint32_t count;
     profiles->GetLength(&count);
     *aResult = count > 1;
   }
@@ -416,7 +416,7 @@ nsNetscapeProfileMigratorBase::GetSourceExists(bool* aResult)
   GetSourceProfiles(getter_AddRefs(profiles));
 
   if (profiles) {
-    PRUint32 count;
+    uint32_t count;
     profiles->GetLength(&count);
     *aResult = count > 0;
   }

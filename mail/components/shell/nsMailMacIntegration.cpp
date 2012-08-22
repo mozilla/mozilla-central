@@ -31,7 +31,7 @@ nsMailMacIntegration::nsMailMacIntegration(): mCheckedThisSession(false)
 {}
 
 NS_IMETHODIMP
-nsMailMacIntegration::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool * aIsDefaultClient)
+nsMailMacIntegration::IsDefaultClient(bool aStartupCheck, uint16_t aApps, bool * aIsDefaultClient)
 {
   *aIsDefaultClient = true;
   if (aApps & nsIShellService::MAIL)
@@ -51,7 +51,7 @@ nsMailMacIntegration::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool *
 }
 
 NS_IMETHODIMP
-nsMailMacIntegration::SetDefaultClient(bool aForAllUsers, PRUint16 aApps)
+nsMailMacIntegration::SetDefaultClient(bool aForAllUsers, uint16_t aApps)
 {
   nsresult rv = NS_OK;
   if (aApps & nsIShellService::MAIL)

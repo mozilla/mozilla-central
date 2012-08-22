@@ -37,7 +37,7 @@ nsLDAPSyncQuery::~nsLDAPSyncQuery()
 NS_IMETHODIMP 
 nsLDAPSyncQuery::OnLDAPMessage(nsILDAPMessage *aMessage)
 {
-    PRInt32 messageType;
+    int32_t messageType;
 
     // just in case.
     //
@@ -127,7 +127,7 @@ nsresult
 nsLDAPSyncQuery::OnLDAPBind(nsILDAPMessage *aMessage)
 {
 
-    PRInt32 errCode;
+    int32_t errCode;
 
     mOperation = 0;  // done with bind op; make nsCOMPtr release it
 
@@ -158,7 +158,7 @@ nsLDAPSyncQuery::OnLDAPBind(nsILDAPMessage *aMessage)
 nsresult
 nsLDAPSyncQuery::OnLDAPSearchEntry(nsILDAPMessage *aMessage)
 {
-  PRUint32 attrCount;
+  uint32_t attrCount;
   char** attributes;
   nsresult rv = aMessage->GetAttributes(&attrCount, &attributes);
   if (NS_FAILED(rv))
@@ -170,10 +170,10 @@ nsLDAPSyncQuery::OnLDAPSearchEntry(nsILDAPMessage *aMessage)
   }
 
   // Iterate through the attributes received in this message
-  for (PRUint32 i = 0; i < attrCount; i++)
+  for (uint32_t i = 0; i < attrCount; i++)
   {
     PRUnichar **vals;
-    PRUint32 valueCount;
+    uint32_t valueCount;
 
     // Get the values of this attribute.
     // XXX better failure handling
@@ -187,7 +187,7 @@ nsLDAPSyncQuery::OnLDAPSearchEntry(nsILDAPMessage *aMessage)
     }
 
     // Store all values of this attribute in the mResults.
-    for (PRUint32 j = 0; j < valueCount; j++) {
+    for (uint32_t j = 0; j < valueCount; j++) {
       mResults.Append(PRUnichar('\n'));
       mResults.AppendASCII(attributes[i]);
       mResults.Append(PRUnichar('='));
@@ -258,7 +258,7 @@ nsLDAPSyncQuery::StartLDAPSearch()
 
     // and the scope
     //
-    PRInt32 scope;
+    int32_t scope;
     rv = mServerURL->GetScope(&scope);
     if (NS_FAILED(rv)) {
         FinishLDAPQuery();
@@ -338,7 +338,7 @@ nsLDAPSyncQuery::FinishLDAPQuery()
 
 /* wstring getQueryResults (in nsILDAPURL aServerURL, in unsigned long aVersion); */
 NS_IMETHODIMP nsLDAPSyncQuery::GetQueryResults(nsILDAPURL *aServerURL,
-                                               PRUint32 aProtocolVersion,
+                                               uint32_t aProtocolVersion,
                                                PRUnichar **_retval)
 {
     nsresult rv;

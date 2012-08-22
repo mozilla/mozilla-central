@@ -18,10 +18,10 @@
 #include "nsStringGlue.h"
 #include "MailNewsTypes2.h"
 
-#define eNeverSendOp ((PRInt32) 0)
-#define eAutoSendOp ((PRInt32) 1)
-#define eAskMeOp ((PRInt32) 2)
-#define eDeniedOp ((PRInt32) 3)
+#define eNeverSendOp ((int32_t) 0)
+#define eAutoSendOp ((int32_t) 1)
+#define eAskMeOp ((int32_t) 2)
+#define eDeniedOp ((int32_t) 3)
 
 class nsMsgMdnGenerator : public nsIMsgMdnGenerator, public nsIUrlListener
 {
@@ -76,9 +76,9 @@ private:
   nsCOMPtr<nsIMsgIncomingServer> m_server;
   nsCOMPtr<nsIMimeHeaders> m_headers;
   nsCString m_dntRrt;
-  PRInt32 m_notInToCcOp;
-  PRInt32 m_outsideDomainOp;
-  PRInt32 m_otherOp;
+  int32_t m_notInToCcOp;
+  int32_t m_outsideDomainOp;
+  int32_t m_otherOp;
   bool m_reallySendMdn;
   bool m_autoSend;
   bool m_autoAction;

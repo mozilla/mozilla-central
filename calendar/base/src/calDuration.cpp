@@ -101,60 +101,60 @@ NS_IMETHODIMP calDuration::SetIsNegative(bool aValue)
     return NS_OK;
 }
 
-NS_IMETHODIMP calDuration::GetWeeks(PRInt16 *_retval)
+NS_IMETHODIMP calDuration::GetWeeks(int16_t *_retval)
 {
-    *_retval = (PRInt16)mDuration.weeks;
+    *_retval = (int16_t)mDuration.weeks;
     return NS_OK;
 }
-NS_IMETHODIMP calDuration::SetWeeks(PRInt16 aValue)
+NS_IMETHODIMP calDuration::SetWeeks(int16_t aValue)
 {
     if (mImmutable) return NS_ERROR_CALENDAR_IMMUTABLE;
     mDuration.weeks = aValue;
     return NS_OK;
 }
 
-NS_IMETHODIMP calDuration::GetDays(PRInt16 *_retval)
+NS_IMETHODIMP calDuration::GetDays(int16_t *_retval)
 {
-    *_retval = (PRInt16)mDuration.days;
+    *_retval = (int16_t)mDuration.days;
     return NS_OK;
 }
-NS_IMETHODIMP calDuration::SetDays(PRInt16 aValue)
+NS_IMETHODIMP calDuration::SetDays(int16_t aValue)
 {
     if (mImmutable) return NS_ERROR_CALENDAR_IMMUTABLE;
     mDuration.days = aValue;
     return NS_OK;
 }
 
-NS_IMETHODIMP calDuration::GetHours(PRInt16 *_retval)
+NS_IMETHODIMP calDuration::GetHours(int16_t *_retval)
 {
-    *_retval = (PRInt16)mDuration.hours;
+    *_retval = (int16_t)mDuration.hours;
     return NS_OK;
 }
-NS_IMETHODIMP calDuration::SetHours(PRInt16 aValue)
+NS_IMETHODIMP calDuration::SetHours(int16_t aValue)
 {
     if (mImmutable) return NS_ERROR_CALENDAR_IMMUTABLE;
     mDuration.hours = aValue;
     return NS_OK;
 }
 
-NS_IMETHODIMP calDuration::GetMinutes(PRInt16 *_retval)
+NS_IMETHODIMP calDuration::GetMinutes(int16_t *_retval)
 {
-    *_retval = (PRInt16)mDuration.minutes;
+    *_retval = (int16_t)mDuration.minutes;
     return NS_OK;
 }
-NS_IMETHODIMP calDuration::SetMinutes(PRInt16 aValue)
+NS_IMETHODIMP calDuration::SetMinutes(int16_t aValue)
 {
     if (mImmutable) return NS_ERROR_CALENDAR_IMMUTABLE;
     mDuration.minutes = aValue;
     return NS_OK;
 }
 
-NS_IMETHODIMP calDuration::GetSeconds(PRInt16 *_retval)
+NS_IMETHODIMP calDuration::GetSeconds(int16_t *_retval)
 {
-    *_retval = (PRInt16)mDuration.seconds;
+    *_retval = (int16_t)mDuration.seconds;
     return NS_OK;
 }
-NS_IMETHODIMP calDuration::SetSeconds(PRInt16 aValue)
+NS_IMETHODIMP calDuration::SetSeconds(int16_t aValue)
 {
     if (mImmutable) return NS_ERROR_CALENDAR_IMMUTABLE;
     mDuration.seconds = aValue;
@@ -162,21 +162,21 @@ NS_IMETHODIMP calDuration::SetSeconds(PRInt16 aValue)
 }
 
 
-NS_IMETHODIMP calDuration::GetInSeconds(PRInt32 *_retval)
+NS_IMETHODIMP calDuration::GetInSeconds(int32_t *_retval)
 {
-	PRInt32 retval =
-        (((PRInt32)((PRInt16)mDuration.weeks   * SECONDS_PER_WEEK)) + 
-         ((PRInt32)((PRInt16)mDuration.days    * SECONDS_PER_DAY)) +
-         ((PRInt32)((PRInt16)mDuration.hours   * SECONDS_PER_HOUR)) +
-         ((PRInt32)((PRInt16)mDuration.minutes * SECONDS_PER_MINUTE)) +
-         ((PRInt32)((PRInt16)mDuration.seconds)));
+	int32_t retval =
+        (((int32_t)((int16_t)mDuration.weeks   * SECONDS_PER_WEEK)) + 
+         ((int32_t)((int16_t)mDuration.days    * SECONDS_PER_DAY)) +
+         ((int32_t)((int16_t)mDuration.hours   * SECONDS_PER_HOUR)) +
+         ((int32_t)((int16_t)mDuration.minutes * SECONDS_PER_MINUTE)) +
+         ((int32_t)((int16_t)mDuration.seconds)));
     if (mDuration.is_neg)
 		retval=-retval;
     *_retval = retval;
 
     return NS_OK;
 }
-NS_IMETHODIMP calDuration::SetInSeconds(PRInt32 aValue)
+NS_IMETHODIMP calDuration::SetInSeconds(int32_t aValue)
 {
     if (mImmutable) return NS_ERROR_CALENDAR_IMMUTABLE;
 
@@ -239,7 +239,7 @@ calDuration::Normalize()
     if (mImmutable)
         return NS_ERROR_CALENDAR_IMMUTABLE;
 
-    PRInt32 totalInSeconds;
+    int32_t totalInSeconds;
     GetInSeconds(&totalInSeconds);
     SetInSeconds(totalInSeconds);
 
@@ -298,9 +298,9 @@ calDuration::SetIcalString(const nsACString& aIcalString)
 }
 
 NS_IMETHODIMP
-calDuration::Compare(calIDuration *aOther, PRInt32 *aResult)
+calDuration::Compare(calIDuration *aOther, int32_t *aResult)
 {
-    PRInt32 thisInSeconds, otherInSeconds;
+    int32_t thisInSeconds, otherInSeconds;
 
     // cast to void because these calls can't fail
     (void)GetInSeconds(&thisInSeconds);

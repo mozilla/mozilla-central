@@ -26,15 +26,15 @@ MimeDefClass(MimeMultipart, MimeMultipartClass,
 
 static int MimeMultipart_initialize (MimeObject *);
 static void MimeMultipart_finalize (MimeObject *);
-static int MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *);
+static int MimeMultipart_parse_line (const char *line, int32_t length, MimeObject *);
 static int MimeMultipart_parse_eof (MimeObject *object, bool abort_p);
 
 static MimeMultipartBoundaryType MimeMultipart_check_boundary(MimeObject *,
                                 const char *,
-                                PRInt32);
+                                int32_t);
 static int MimeMultipart_create_child(MimeObject *);
 static bool MimeMultipart_output_child_p(MimeObject *, MimeObject *);
-static int MimeMultipart_parse_child_line (MimeObject *, const char *, PRInt32,
+static int MimeMultipart_parse_child_line (MimeObject *, const char *, int32_t,
                        bool);
 static int MimeMultipart_close_child(MimeObject *);
 
@@ -45,7 +45,7 @@ extern "C" MimeObjectClass mimeInlineTextVCardClass;
 extern "C" MimeExternalObjectClass mimeExternalObjectClass;
 
 #if defined(DEBUG) && defined(XP_UNIX)
-static int MimeMultipart_debug_print (MimeObject *, PRFileDesc *, PRInt32);
+static int MimeMultipart_debug_print (MimeObject *, PRFileDesc *, int32_t);
 #endif
 
 static int
@@ -114,7 +114,7 @@ int MimeWriteAString(MimeObject *obj, const nsACString &string)
 }
 
 static int
-MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
+MimeMultipart_parse_line (const char *line, int32_t length, MimeObject *obj)
 {
   MimeMultipart *mult = (MimeMultipart *) obj;
   MimeContainer *container = (MimeContainer*) obj; 
@@ -174,7 +174,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
         newPart.AppendInt(container->nchildren + 1);
         obj->options->state->strippingPart = false;
         // check if this is a sub-part of a part we're stripping.
-        for (PRUint32 partIndex = 0; partIndex < obj->options->state->partsToStrip.Length(); partIndex++)
+        for (uint32_t partIndex = 0; partIndex < obj->options->state->partsToStrip.Length(); partIndex++)
         {
           nsCString &curPartToStrip = obj->options->state->partsToStrip[partIndex];
           if (newPart.Find(curPartToStrip) == 0 && (newPart.Length() == curPartToStrip.Length() || newPart.CharAt(curPartToStrip.Length()) == '.'))
@@ -277,7 +277,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
           MimeWriteAString(obj, NS_LITERAL_CSTRING(MSG_LINEBREAK "You deleted an attachment from this message. The original MIME headers for the attachment were:" MSG_LINEBREAK));
           MimeHeaders_write_raw_headers(mult->hdrs, obj->options, false);
         }
-        PRInt32 old_nchildren = container->nchildren;
+        int32_t old_nchildren = container->nchildren;
         status = ((MimeMultipartClass *) obj->clazz)->create_child(obj);
         if (status < 0) return status;
         NS_ASSERTION(mult->state != MimeMultipartHeaders,
@@ -362,10 +362,10 @@ void MimeMultipart_notify_emitter(MimeObject *obj)
 }
 
 static MimeMultipartBoundaryType
-MimeMultipart_check_boundary(MimeObject *obj, const char *line, PRInt32 length)
+MimeMultipart_check_boundary(MimeObject *obj, const char *line, int32_t length)
 {
   MimeMultipart *mult = (MimeMultipart *) obj;
-  PRInt32 blen;
+  int32_t blen;
   bool term_p;
 
   if (!mult->boundary ||
@@ -588,7 +588,7 @@ MimeMultipart_close_child(MimeObject *object)
 
 
 static int
-MimeMultipart_parse_child_line (MimeObject *obj, const char *line, PRInt32 length,
+MimeMultipart_parse_child_line (MimeObject *obj, const char *line, int32_t length,
                 bool first_line_p)
 {
   MimeContainer *cont = (MimeContainer *) obj;
@@ -705,7 +705,7 @@ MimeMultipart_parse_eof (MimeObject *obj, bool abort_p)
 
 #if defined(DEBUG) && defined(XP_UNIX)
 static int
-MimeMultipart_debug_print (MimeObject *obj, PRFileDesc *stream, PRInt32 depth)
+MimeMultipart_debug_print (MimeObject *obj, PRFileDesc *stream, int32_t depth)
 {
   /*  MimeMultipart *mult = (MimeMultipart *) obj; */
   MimeContainer *cont = (MimeContainer *) obj;
@@ -719,7 +719,7 @@ MimeMultipart_debug_print (MimeObject *obj, PRFileDesc *stream, PRInt32 depth)
       addr ? addr : "???",
       cont->nchildren, (cont->nchildren == 1 ? "" : "s"),
       (mult->boundary ? mult->boundary : "(none)"),
-      (PRUint32) mult);
+      (uint32_t) mult);
 **/
   PR_FREEIF(addr);
 

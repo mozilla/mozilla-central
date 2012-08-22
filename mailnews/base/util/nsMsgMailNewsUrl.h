@@ -59,7 +59,7 @@ protected:
   nsCOMPtr<nsISupportsArray> m_cachedMemCacheEntries;
   nsCOMPtr<nsIMsgHeaderSink> mMsgHeaderSink;
   char *m_errorMessage;
-  PRInt64 mMaxProgress;
+  int64_t mMaxProgress;
   bool m_runningUrl;
   bool m_updatingFolder;
   bool m_addContentToCache;

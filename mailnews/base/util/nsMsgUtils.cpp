@@ -87,7 +87,7 @@ nsresult GetMessageServiceContractIDForURI(const char *uri, nsCString &contractI
   nsresult rv = NS_OK;
   //Find protocol
   nsCAutoString uriStr(uri);
-  PRInt32 pos = uriStr.FindChar(':');
+  int32_t pos = uriStr.FindChar(':');
   if (pos == -1)
     return NS_ERROR_FAILURE;
 
@@ -281,10 +281,10 @@ nsresult NS_MsgGetUntranslatedPriorityName(
 
 /* this used to be XP_StringHash2 from xp_hash.c */
 /* phong's linear congruential hash  */
-static PRUint32 StringHash(const char *ubuf, PRInt32 len = -1)
+static uint32_t StringHash(const char *ubuf, int32_t len = -1)
 {
   unsigned char * buf = (unsigned char*) ubuf;
-  PRUint32 h=1;
+  uint32_t h=1;
   unsigned char *end = buf + (len == -1 ? strlen(ubuf) : len);
   while(buf < end) {
     h = 0x63c63cd9*h + 0x9c39c33d + (int32)*buf;
@@ -293,7 +293,7 @@ static PRUint32 StringHash(const char *ubuf, PRInt32 len = -1)
   return h;
 }
 
-inline PRUint32 StringHash(const nsAutoString& str)
+inline uint32_t StringHash(const nsAutoString& str)
 {
     return StringHash(reinterpret_cast<const char*>(str.get()),
                       str.Length() * 2);
@@ -302,7 +302,7 @@ inline PRUint32 StringHash(const nsAutoString& str)
 #ifndef MOZILLA_INTERNAL_API
 static int GetFindInSetFilter(const char* aChars)
 {
-  PRUint8 filter = 0;
+  uint8_t filter = 0;
   while (*aChars)
     filter |= *aChars++;
   return ~filter;
@@ -310,17 +310,17 @@ static int GetFindInSetFilter(const char* aChars)
 #endif
 
 /* Utility functions used in a few places in mailnews */
-PRInt32
+int32_t
 MsgFindCharInSet(const nsCString &aString,
-                 const char* aChars, PRUint32 aOffset)
+                 const char* aChars, uint32_t aOffset)
 {
 #ifdef MOZILLA_INTERNAL_API
   return aString.FindCharInSet(aChars, aOffset);
 #else
   const char *str;
-  PRUint32 len = aString.BeginReading(&str);
+  uint32_t len = aString.BeginReading(&str);
   int filter = GetFindInSetFilter(aChars);
-  for (PRUint32 index = aOffset; index < len; index++) {
+  for (uint32_t index = aOffset; index < len; index++) {
     if (!(str[index] & filter) && strchr(aChars, str[index]))
       return index;
   }
@@ -328,17 +328,17 @@ MsgFindCharInSet(const nsCString &aString,
 #endif
 }
 
-PRInt32
+int32_t
 MsgFindCharInSet(const nsString &aString,
-                 const char* aChars, PRUint32 aOffset)
+                 const char* aChars, uint32_t aOffset)
 {
 #ifdef MOZILLA_INTERNAL_API
   return aString.FindCharInSet(aChars, aOffset);
 #else
   const PRUnichar *str;
-  PRUint32 len = aString.BeginReading(&str);
+  uint32_t len = aString.BeginReading(&str);
   int filter = GetFindInSetFilter(aChars);
-  for (PRUint32 index = aOffset; index < len; index++) {
+  for (uint32_t index = aOffset; index < len; index++) {
     if (!(str[index] & filter) && strchr(aChars, str[index]))
       return index;
   }
@@ -361,11 +361,11 @@ static bool ConvertibleToNative(const nsAutoString& str)
 }
 
 #if defined(XP_UNIX) || defined(XP_BEOS)
-  const static PRUint32 MAX_LEN = 55;
+  const static uint32_t MAX_LEN = 55;
 #elif defined(XP_WIN32)
-  const static PRUint32 MAX_LEN = 55;
+  const static uint32_t MAX_LEN = 55;
 #elif defined(XP_OS2)
-  const static PRUint32 MAX_LEN = 55;
+  const static uint32_t MAX_LEN = 55;
 #else
   #error need_to_define_your_max_filename_length
 #endif
@@ -377,7 +377,7 @@ nsresult NS_MsgHashIfNecessary(nsCAutoString &name)
   // Given a filename, make it safe for filesystem
   // certain filenames require hashing because they
   // are too long or contain illegal characters
-  PRInt32 illegalCharacterIndex = MsgFindCharInSet(str,
+  int32_t illegalCharacterIndex = MsgFindCharInSet(str,
                                                    FILE_PATH_SEPARATOR
                                                    FILE_ILLEGAL_CHARACTERS
                                                    ILLEGAL_FOLDER_CHARS, 0);
@@ -385,7 +385,7 @@ nsresult NS_MsgHashIfNecessary(nsCAutoString &name)
   // Need to check the first ('.') and last ('.', '~' and ' ') char
   if (illegalCharacterIndex == -1)
   {
-    PRInt32 lastIndex = str.Length() - 1;
+    int32_t lastIndex = str.Length() - 1;
     if (NS_LITERAL_CSTRING(ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER).FindChar(str[0]) != -1)
       illegalCharacterIndex = 0;
     else if (NS_LITERAL_CSTRING(ILLEGAL_FOLDER_CHARS_AS_LAST_LETTER).FindChar(str[lastIndex]) != -1)
@@ -430,7 +430,7 @@ nsresult NS_MsgHashIfNecessary(nsCAutoString &name)
 // because MAX_LEN is defined rather conservatively in the first place.
 nsresult NS_MsgHashIfNecessary(nsAutoString &name)
 {
-  PRInt32 illegalCharacterIndex = MsgFindCharInSet(name,
+  int32_t illegalCharacterIndex = MsgFindCharInSet(name,
                                                    FILE_PATH_SEPARATOR
                                                    FILE_ILLEGAL_CHARACTERS
                                                    ILLEGAL_FOLDER_CHARS, 0);
@@ -438,7 +438,7 @@ nsresult NS_MsgHashIfNecessary(nsAutoString &name)
   // Need to check the first ('.') and last ('.', '~' and ' ') char
   if (illegalCharacterIndex == -1)
   {
-    PRInt32 lastIndex = name.Length() - 1;
+    int32_t lastIndex = name.Length() - 1;
     if (NS_LITERAL_STRING(ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER).FindChar(name[0]) != -1)
       illegalCharacterIndex = 0;
     else if (NS_LITERAL_STRING(ILLEGAL_FOLDER_CHARS_AS_LAST_LETTER).FindChar(name[lastIndex]) != -1)
@@ -448,7 +448,7 @@ nsresult NS_MsgHashIfNecessary(nsAutoString &name)
   }
 
   char hashedname[9];
-  PRInt32 keptLength = -1;
+  int32_t keptLength = -1;
   if (illegalCharacterIndex != -1)
     keptLength = illegalCharacterIndex;
   else if (!ConvertibleToNative(name))
@@ -469,7 +469,7 @@ nsresult NS_MsgHashIfNecessary(nsAutoString &name)
   return NS_OK;
 }
 
-nsresult FormatFileSize(PRUint64 size, bool useKB, nsAString &formattedSize)
+nsresult FormatFileSize(uint64_t size, bool useKB, nsAString &formattedSize)
 {
   NS_NAMED_LITERAL_STRING(byteAbbr, "byteAbbreviation2");
   NS_NAMED_LITERAL_STRING(kbAbbr,   "kiloByteAbbreviation2");
@@ -492,7 +492,7 @@ nsresult FormatFileSize(PRUint64 size, bool useKB, nsAString &formattedSize)
   NS_ENSURE_SUCCESS(rv, rv);
 
   float unitSize = size;
-  PRUint32 unitIndex = 0;
+  uint32_t unitIndex = 0;
 
   if (useKB) {
     // Start by formatting in kilobytes
@@ -538,8 +538,8 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
 
   nsAutoString pathPiece, path;
 
-  PRInt32 startSlashPos = oldPath.FindChar('/');
-  PRInt32 endSlashPos = (startSlashPos >= 0)
+  int32_t startSlashPos = oldPath.FindChar('/');
+  int32_t endSlashPos = (startSlashPos >= 0)
     ? oldPath.FindChar('/', startSlashPos + 1) - 1 : oldPath.Length() - 1;
   if (endSlashPos < 0)
     endSlashPos = oldPath.Length();
@@ -595,11 +595,11 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
 #endif
 }
 
-bool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubject)
+bool NS_MsgStripRE(const char **stringP, uint32_t *lengthP, char **modifiedSubject)
 {
   const char *s, *s_end;
   const char *last;
-  PRUint32 L;
+  uint32_t L;
   bool result = false;
   NS_ASSERTION(stringP, "bad null param");
   if (!stringP) return false;
@@ -647,7 +647,7 @@ bool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubje
   while (*tokPtr)
   {
     //tokenize the comma separated list
-    PRSize tokenLength = 0;
+    size_t tokenLength = 0;
     while (*tokPtr && *tokPtr != ',') {
       tokenLength++;
       tokPtr++;
@@ -846,7 +846,7 @@ nsresult EscapeFromSpaceLine(nsIOutputStream *outputStream, char *start, const c
 {
   nsresult rv;
   char *pChar;
-  PRUint32 written;
+  uint32_t written;
 
   pChar = start;
   while (start < end)
@@ -862,7 +862,7 @@ nsresult EscapeFromSpaceLine(nsIOutputStream *outputStream, char *start, const c
       // Found a line so check if it's a qualified "From " line.
       if (IsAFromSpaceLine(start, pChar))
         rv = outputStream->Write(">", 1, &written);
-      PRInt32 lineTerminatorCount = (*(pChar + 1) == '\n') ? 2 : 1;
+      int32_t lineTerminatorCount = (*(pChar + 1) == '\n') ? 2 : 1;
       rv = outputStream->Write(start, pChar - start + lineTerminatorCount, &written);
       NS_ENSURE_SUCCESS(rv,rv);
       pChar += lineTerminatorCount;
@@ -885,8 +885,8 @@ nsresult IsRFC822HeaderFieldName(const char *aHdr, bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aHdr);
   NS_ENSURE_ARG_POINTER(aResult);
-  PRUint32 length = strlen(aHdr);
-  for(PRUint32 i=0; i<length; i++)
+  uint32_t length = strlen(aHdr);
+  for(uint32_t i=0; i<length; i++)
   {
     char c = aHdr[i];
     if ( c < '!' || c == ':' || c > '~')
@@ -1041,7 +1041,7 @@ nsresult IsRSSArticle(nsIURI * aMsgURI, bool *aIsRSSArticle)
 
 
 // digest needs to be a pointer to a DIGEST_LENGTH (16) byte buffer
-nsresult MSGCramMD5(const char *text, PRInt32 text_len, const char *key, PRInt32 key_len, unsigned char *digest)
+nsresult MSGCramMD5(const char *text, int32_t text_len, const char *key, int32_t key_len, unsigned char *digest)
 {
   nsresult rv;
 
@@ -1062,7 +1062,7 @@ nsresult MSGCramMD5(const char *text, PRInt32 text_len, const char *key, PRInt32
     rv = hasher->Init(nsICryptoHash::MD5);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = hasher->Update((const PRUint8*) key, key_len);
+    rv = hasher->Update((const uint8_t*) key, key_len);
     NS_ENSURE_SUCCESS(rv, rv);
 
     rv = hasher->Finish(false, hash);
@@ -1100,16 +1100,16 @@ nsresult MSGCramMD5(const char *text, PRInt32 text_len, const char *key, PRInt32
    */
   nsCAutoString result;
   rv = hasher->Init(nsICryptoHash::MD5); /* init context for 1st pass */
-  rv = hasher->Update((const PRUint8*)innerPad, 64);       /* start with inner pad */
-  rv = hasher->Update((const PRUint8*)text, text_len);     /* then text of datagram */
+  rv = hasher->Update((const uint8_t*)innerPad, 64);       /* start with inner pad */
+  rv = hasher->Update((const uint8_t*)text, text_len);     /* then text of datagram */
   rv = hasher->Finish(false, result);   /* finish up 1st pass */
 
   /*
    * perform outer MD5
    */
   hasher->Init(nsICryptoHash::MD5);       /* init context for 2nd pass */
-  rv = hasher->Update((const PRUint8*)outerPad, 64);    /* start with outer pad */
-  rv = hasher->Update((const PRUint8*)result.get(), 16);/* then results of 1st hash */
+  rv = hasher->Update((const uint8_t*)outerPad, 64);    /* start with outer pad */
+  rv = hasher->Update((const uint8_t*)result.get(), 16);/* then results of 1st hash */
   rv = hasher->Finish(false, result);    /* finish up 2nd pass */
 
   if (result.Length() != DIGEST_LENGTH)
@@ -1123,7 +1123,7 @@ nsresult MSGCramMD5(const char *text, PRInt32 text_len, const char *key, PRInt32
 
 
 // digest needs to be a pointer to a DIGEST_LENGTH (16) byte buffer
-nsresult MSGApopMD5(const char *text, PRInt32 text_len, const char *password, PRInt32 password_len, unsigned char *digest)
+nsresult MSGApopMD5(const char *text, int32_t text_len, const char *password, int32_t password_len, unsigned char *digest)
 {
   nsresult rv;
   nsCAutoString result;
@@ -1134,10 +1134,10 @@ nsresult MSGApopMD5(const char *text, PRInt32 text_len, const char *password, PR
   rv = hasher->Init(nsICryptoHash::MD5);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = hasher->Update((const PRUint8*) text, text_len);
+  rv = hasher->Update((const uint8_t*) text, text_len);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = hasher->Update((const PRUint8*) password, password_len);
+  rv = hasher->Update((const uint8_t*) password, password_len);
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = hasher->Finish(false, result);
@@ -1291,17 +1291,17 @@ NS_MSG_BASE nsresult NS_GetLocalizedUnicharPreferenceWithDefault(nsIPrefBranch *
     return NS_OK;
 }
 
-void PRTime2Seconds(PRTime prTime, PRUint32 *seconds)
+void PRTime2Seconds(PRTime prTime, uint32_t *seconds)
 {
-  *seconds = (PRUint32)(prTime / PR_USEC_PER_SEC);
+  *seconds = (uint32_t)(prTime / PR_USEC_PER_SEC);
 }
 
-void PRTime2Seconds(PRTime prTime, PRInt32 *seconds)
+void PRTime2Seconds(PRTime prTime, int32_t *seconds)
 {
-  *seconds = (PRInt32)(prTime / PR_USEC_PER_SEC);
+  *seconds = (int32_t)(prTime / PR_USEC_PER_SEC);
 }
 
-void Seconds2PRTime(PRUint32 seconds, PRTime *prTime)
+void Seconds2PRTime(uint32_t seconds, PRTime *prTime)
 {
   *prTime = (PRTime)seconds * PR_USEC_PER_SEC;
 }
@@ -1403,8 +1403,8 @@ nsresult MsgReopenFileStream(nsIFile *file, nsIInputStream *fileStream)
 
 nsresult MsgNewBufferedFileOutputStream(nsIOutputStream **aResult,
                                         nsIFile* aFile,
-                                        PRInt32 aIOFlags,
-                                        PRInt32 aPerm)
+                                        int32_t aIOFlags,
+                                        int32_t aPerm)
 {
   nsCOMPtr<nsIOutputStream> stream;
   nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(stream), aFile, aIOFlags, aPerm);
@@ -1413,24 +1413,24 @@ nsresult MsgNewBufferedFileOutputStream(nsIOutputStream **aResult,
   return rv;
 }
 
-bool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aStartOfKeyword, PRInt32 *aLength)
+bool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, int32_t *aStartOfKeyword, int32_t *aLength)
 {
 #ifdef MOZILLA_INTERNAL_API
 // nsTString_CharT::Find(const nsCString& aString,
 //                       bool aIgnoreCase=false,
-//                       PRInt32 aOffset=0,
-//                       PRInt32 aCount=-1 ) const;
+//                       int32_t aOffset=0,
+//                       int32_t aCount=-1 ) const;
 #define FIND_KEYWORD(keywords,keyword,offset) ((keywords).Find((keyword), false, (offset)))
 #else
 // nsAString::Find(const self_type& aStr,
-//                 PRUint32 aOffset,
+//                 uint32_t aOffset,
 //                 ComparatorFunc c = DefaultComparator) const;
-#define FIND_KEYWORD(keywords,keyword,offset) ((keywords).Find((keyword), static_cast<PRUint32>(offset)))
+#define FIND_KEYWORD(keywords,keyword,offset) ((keywords).Find((keyword), static_cast<uint32_t>(offset)))
 #endif
   // 'keyword' is the single keyword we're looking for
   // 'keywords' is a space delimited list of keywords to be searched,
   // which may be just a single keyword or even be empty
-  const PRInt32 kKeywordLen = keyword.Length();
+  const int32_t kKeywordLen = keyword.Length();
   const char* start = keywords.BeginReading();
   const char* end = keywords.EndReading();
   *aStartOfKeyword = FIND_KEYWORD(keywords, keyword, 0);
@@ -1457,7 +1457,7 @@ bool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aSta
 bool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains)
 {
   const char *end;
-  PRUint32 hostLen, domainLen;
+  uint32_t hostLen, domainLen;
   bool domainIsTrusted = false;
 
   const char *domain = trustedMailDomains.BeginReading();
@@ -1521,17 +1521,17 @@ NS_MSG_BASE bool MsgIsUTF8(const nsACString& aString)
 {
   const char *done_reading = aString.EndReading();
 
-  PRInt32 state = 0;
+  int32_t state = 0;
   bool overlong = false;
   bool surrogate = false;
   bool nonchar = false;
-  PRUint16 olupper = 0; // overlong byte upper bound.
-  PRUint16 slower = 0;  // surrogate byte lower bound.
+  uint16_t olupper = 0; // overlong byte upper bound.
+  uint16_t slower = 0;  // surrogate byte lower bound.
 
   const char *ptr = aString.BeginReading();
 
   while (ptr < done_reading) {
-    PRUint8 c;
+    uint8_t c;
     
     if (0 == state) {
 
@@ -1665,7 +1665,7 @@ NS_MSG_BASE void MsgStripQuotedPrintable (unsigned char *src)
 }
 
 NS_MSG_BASE nsresult MsgEscapeString(const nsACString &aStr,
-                                     PRUint32 aType, nsACString &aResult)
+                                     uint32_t aType, nsACString &aResult)
 {
   nsresult rv;
   nsCOMPtr<nsINetUtil> nu = do_GetService(NS_NETUTIL_CONTRACTID, &rv);
@@ -1674,7 +1674,7 @@ NS_MSG_BASE nsresult MsgEscapeString(const nsACString &aStr,
   return nu->EscapeString(aStr, aType, aResult);
 }
 
-NS_MSG_BASE nsresult MsgUnescapeString(const nsACString &aStr, PRUint32 aFlags, 
+NS_MSG_BASE nsresult MsgUnescapeString(const nsACString &aStr, uint32_t aFlags, 
                                        nsACString &aResult)
 {
   nsresult rv;
@@ -1684,7 +1684,7 @@ NS_MSG_BASE nsresult MsgUnescapeString(const nsACString &aStr, PRUint32 aFlags,
   return nu->UnescapeString(aStr, aFlags, aResult);
 }
 
-NS_MSG_BASE nsresult MsgEscapeURL(const nsACString &aStr, PRUint32 aFlags,
+NS_MSG_BASE nsresult MsgEscapeURL(const nsACString &aStr, uint32_t aFlags,
                                   nsACString &aResult)
 {
   nsresult rv;
@@ -1700,7 +1700,7 @@ NS_MSG_BASE char *MsgEscapeHTML(const char *string)
 {
   char *rv = nullptr;
   /* XXX Hardcoded max entity len. The +1 is for the trailing null. */
-  PRUint32 len = PL_strlen(string);
+  uint32_t len = PL_strlen(string);
   if (len >= (PR_UINT32_MAX / 6))
     return nullptr;
 
@@ -1761,7 +1761,7 @@ NS_MSG_BASE char *MsgEscapeHTML(const char *string)
 }
 
 NS_MSG_BASE PRUnichar *MsgEscapeHTML2(const PRUnichar *aSourceBuffer,
-                                      PRInt32 aSourceBufferLen)
+                                      int32_t aSourceBufferLen)
 {
   // if the caller didn't calculate the length
   if (aSourceBufferLen == -1) {
@@ -1779,7 +1779,7 @@ NS_MSG_BASE PRUnichar *MsgEscapeHTML2(const PRUnichar *aSourceBuffer,
   PRUnichar *ptr = resultBuffer;
 
   if (resultBuffer) {
-    PRInt32 i;
+    int32_t i;
 
     for(i = 0; i < aSourceBufferLen; i++) {
       if(aSourceBuffer[i] == '<') {
@@ -1843,7 +1843,7 @@ NS_MSG_BASE void MsgCompressWhitespace(nsCString& aString)
     while (IS_SPACE(*wend)) 
       ++wend;
 
-    PRUint32 wlen = wend - cur - 1;
+    uint32_t wlen = wend - cur - 1;
 
     // fix "end"
     end -= wlen;
@@ -1862,7 +1862,7 @@ NS_MSG_BASE void MsgReplaceChar(nsString& str, const char *set, const PRUnichar 
 {
   PRUnichar *c_str = str.BeginWriting();
   while (*set) {
-    PRInt32 pos = 0;
+    int32_t pos = 0;
     while ((pos = str.FindChar(*set, pos)) != -1) {
       c_str[pos++] = replacement;
     }
@@ -1902,9 +1902,9 @@ NS_MSG_BASE nsIAtom* MsgNewPermanentAtom(const char* aString)
 NS_MSG_BASE void MsgReplaceSubstring(nsAString &str, const nsAString &what, const nsAString &replacement)
 {
   const PRUnichar* replacement_str;
-  PRUint32 replacementLength = replacement.BeginReading(&replacement_str);
-  PRUint32 whatLength = what.Length();
-  PRInt32 i = 0;
+  uint32_t replacementLength = replacement.BeginReading(&replacement_str);
+  uint32_t whatLength = what.Length();
+  int32_t i = 0;
 
   while ((i = str.Find(what, i)) != kNotFound)
   {
@@ -1915,9 +1915,9 @@ NS_MSG_BASE void MsgReplaceSubstring(nsAString &str, const nsAString &what, cons
 
 NS_MSG_BASE void MsgReplaceSubstring(nsACString &str, const char *what, const char *replacement)
 {
-  PRUint32 replacementLength = strlen(replacement);
-  PRUint32 whatLength = strlen(what);
-  PRInt32 i = 0;
+  uint32_t replacementLength = strlen(replacement);
+  uint32_t whatLength = strlen(what);
+  int32_t i = 0;
 
   /* We have to create nsDependentCString from 'what' because there's no
    * str.Find(char *what, int offset) but there is only
@@ -1990,10 +1990,10 @@ nsresult NS_FASTCALL MsgQueryElementAt::operator()( const nsIID& aIID, void** aR
 NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, const nsTArray<nsMsgKey> &aMsgKeys,
                                            nsIMutableArray *aHeaders)
 {
-  PRUint32 count = aMsgKeys.Length();
+  uint32_t count = aMsgKeys.Length();
   nsresult rv = NS_OK;
 
-  for (PRUint32 kindex = 0; kindex < count; kindex++)
+  for (uint32_t kindex = 0; kindex < count; kindex++)
   {
     nsMsgKey key = aMsgKeys.ElementAt(kindex);
     nsCOMPtr<nsIMsgDBHdr> msgHdr;
@@ -2014,7 +2014,7 @@ NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, const nsTArray<n
   return rv;
 }
 
-bool MsgAdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset, PRUint32 maxBufferOffset)
+bool MsgAdvanceToNextLine(const char *buffer, uint32_t &bufferOffset, uint32_t maxBufferOffset)
 {
   bool result = false;
   for (; bufferOffset < maxBufferOffset; bufferOffset++)
@@ -2033,7 +2033,7 @@ bool MsgAdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset, PRUint32 m
 
 NS_MSG_BASE nsresult
 MsgExamineForProxy(const char *scheme, const char *host,
-                   PRInt32 port, nsIProxyInfo **proxyInfo)
+                   int32_t port, nsIProxyInfo **proxyInfo)
 {
   nsresult rv;
   nsCOMPtr<nsIProtocolProxyService> pps =
@@ -2062,7 +2062,7 @@ MsgExamineForProxy(const char *scheme, const char *host,
 
 NS_MSG_BASE nsresult MsgPromptLoginFailed(nsIMsgWindow *aMsgWindow,
                                           const nsCString &aHostname,
-                                          PRInt32 *aResult)
+                                          int32_t *aResult)
 {
 
   nsCOMPtr<nsIPrompt> dialog;
@@ -2126,7 +2126,7 @@ NS_MSG_BASE nsresult MsgPromptLoginFailed(nsIMsgWindow *aMsgWindow,
     button0.get(), nullptr, button2.get(), nullptr, &dummyValue, aResult);
 }
 
-NS_MSG_BASE PRTime MsgConvertAgeInDaysToCutoffDate(PRInt32 ageInDays)
+NS_MSG_BASE PRTime MsgConvertAgeInDaysToCutoffDate(int32_t ageInDays)
 {
   PRTime now = PR_Now();
 
@@ -2135,11 +2135,11 @@ NS_MSG_BASE PRTime MsgConvertAgeInDaysToCutoffDate(PRInt32 ageInDays)
 
 NS_MSG_BASE nsresult MsgTermListToString(nsISupportsArray *aTermList, nsCString &aOutString)
 {
-  PRUint32 count;
+  uint32_t count;
   aTermList->Count(&count);
   nsresult rv = NS_OK;
 
-  for (PRUint32 searchIndex = 0; searchIndex < count;
+  for (uint32_t searchIndex = 0; searchIndex < count;
        searchIndex++)
   {
     nsCAutoString stream;
@@ -2176,7 +2176,7 @@ NS_MSG_BASE nsresult MsgTermListToString(nsISupportsArray *aTermList, nsCString 
   return rv;
 }
 
-NS_MSG_BASE PRUint64 ParseUint64Str(const char *str)
+NS_MSG_BASE uint64_t ParseUint64Str(const char *str)
 {
 #ifdef XP_WIN
   {
@@ -2296,7 +2296,7 @@ MsgDetectCharsetFromFile(nsIFile *aFile, nsACString &aCharset)
   } else {
     // no charset detector available, check the BOM
     char sniffBuf[3];
-    PRUint32 numRead;
+    uint32_t numRead;
     rv = inputStream->Read(sniffBuf, sizeof(sniffBuf), &numRead);
 
     if (numRead >= 2 &&
@@ -2345,7 +2345,7 @@ ConvertBufToPlainText(nsString &aConBuf, bool formatFlowed /* = false */, bool f
   if (aConBuf.IsEmpty())
     return NS_OK;
 
-  PRInt32 wrapWidth = 72;
+  int32_t wrapWidth = 72;
   nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
 
   if (pPrefBranch)
@@ -2358,7 +2358,7 @@ ConvertBufToPlainText(nsString &aConBuf, bool formatFlowed /* = false */, bool f
       wrapWidth = 10;
   }
 
-  PRUint32 converterFlags = 0;
+  uint32_t converterFlags = 0;
   if (formatOutput)
     converterFlags = nsIDocumentEncoder::OutputFormatted;
   if (formatFlowed)

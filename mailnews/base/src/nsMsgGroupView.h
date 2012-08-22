@@ -21,23 +21,23 @@ public:
   nsMsgGroupView();
   virtual ~nsMsgGroupView();
 
-  NS_IMETHOD Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder, nsMsgViewFlagsTypeValue viewFlags, PRInt32 *pCount);
+  NS_IMETHOD Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder, nsMsgViewFlagsTypeValue viewFlags, int32_t *pCount);
   NS_IMETHOD OpenWithHdrs(nsISimpleEnumerator *aHeaders, nsMsgViewSortTypeValue aSortType, 
                                         nsMsgViewSortOrderValue aSortOrder, nsMsgViewFlagsTypeValue aViewFlags, 
-                                        PRInt32 *aCount);
+                                        int32_t *aCount);
   NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
   NS_IMETHOD CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMessengerInstance,
                         nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCmdUpdater);
   NS_IMETHOD Close();
-  NS_IMETHOD OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey, PRInt32 aFlags, 
+  NS_IMETHOD OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey, int32_t aFlags, 
                             nsIDBChangeListener *aInstigator);
-  NS_IMETHOD OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, 
-                                      PRUint32 aNewFlags, nsIDBChangeListener *aInstigator);
+  NS_IMETHOD OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, uint32_t aOldFlags, 
+                                      uint32_t aNewFlags, nsIDBChangeListener *aInstigator);
 
   NS_IMETHOD LoadMessageByViewIndex(nsMsgViewIndex aViewIndex);
-  NS_IMETHOD GetCellProperties(PRInt32 aRow, nsITreeColumn *aCol, nsISupportsArray *aProperties);
-  NS_IMETHOD GetRowProperties(PRInt32 aRow, nsISupportsArray *aProperties);
-  NS_IMETHOD CellTextForColumn(PRInt32 aRow, const PRUnichar *aColumnName,
+  NS_IMETHOD GetCellProperties(int32_t aRow, nsITreeColumn *aCol, nsISupportsArray *aProperties);
+  NS_IMETHOD GetRowProperties(int32_t aRow, nsISupportsArray *aProperties);
+  NS_IMETHOD CellTextForColumn(int32_t aRow, const PRUnichar *aColumnName,
                                nsAString &aValue);
   NS_IMETHOD GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread);
 
@@ -45,13 +45,13 @@ protected:
   virtual void InternalClose();
   nsMsgGroupThread *AddHdrToThread(nsIMsgDBHdr *msgHdr, bool *pNewThread);
   virtual nsresult HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey);
-  nsresult GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, PRUint32 * aAgeBucket, bool rcvDate = false); // helper function to get the age bucket for a hdr, useful when grouped by date
+  nsresult GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, uint32_t * aAgeBucket, bool rcvDate = false); // helper function to get the age bucket for a hdr, useful when grouped by date
   nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, bool /*ensureListed*/);
-  virtual PRInt32 FindLevelInThread(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startOfThread, nsMsgViewIndex viewIndex);
+  virtual int32_t FindLevelInThread(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startOfThread, nsMsgViewIndex viewIndex);
   nsMsgViewIndex ThreadIndexOfMsg(nsMsgKey msgKey, 
                                             nsMsgViewIndex msgIndex = nsMsgViewIndex_None,
-                                            PRInt32 *pThreadCount = NULL,
-                                            PRUint32 *pFlags = NULL);
+                                            int32_t *pThreadCount = NULL,
+                                            uint32_t *pFlags = NULL);
 
   bool GroupViewUsesDummyRow(); // returns true if we are grouped by a sort attribute that uses a dummy row
   virtual nsresult RebuildView(nsMsgViewFlagsTypeValue newFlags);

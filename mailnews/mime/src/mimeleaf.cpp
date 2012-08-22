@@ -17,8 +17,8 @@ MimeDefClass(MimeLeaf, MimeLeafClass, mimeLeafClass, &MIME_SUPERCLASS);
 static int MimeLeaf_initialize (MimeObject *);
 static void MimeLeaf_finalize (MimeObject *);
 static int MimeLeaf_parse_begin (MimeObject *);
-static int MimeLeaf_parse_buffer (const char *, PRInt32, MimeObject *);
-static int MimeLeaf_parse_line (const char *, PRInt32, MimeObject *);
+static int MimeLeaf_parse_buffer (const char *, int32_t, MimeObject *);
+static int MimeLeaf_parse_line (const char *, int32_t, MimeObject *);
 static int MimeLeaf_close_decoder (MimeObject *);
 static int MimeLeaf_parse_eof (MimeObject *, bool);
 static bool MimeLeaf_displayable_inline_p (MimeObjectClass *clazz,
@@ -126,7 +126,7 @@ MimeLeaf_parse_begin (MimeObject *obj)
 
 
 static int
-MimeLeaf_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
+MimeLeaf_parse_buffer (const char *buffer, int32_t size, MimeObject *obj)
 {
   MimeLeaf *leaf = (MimeLeaf *) obj;
 
@@ -161,7 +161,7 @@ MimeLeaf_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
 }
 
 static int
-MimeLeaf_parse_line (const char *line, PRInt32 length, MimeObject *obj)
+MimeLeaf_parse_line (const char *line, int32_t length, MimeObject *obj)
 {
   NS_ERROR("MimeLeaf_parse_line shouldn't ever be called.");
   return -1;

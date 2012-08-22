@@ -68,7 +68,7 @@ nsresult nsNewsDatabase::Commit(nsMsgDBCommit commitType)
 }
 
 
-PRUint32 nsNewsDatabase::GetCurVersion()
+uint32_t nsNewsDatabase::GetCurVersion()
 {
   return kMsgDBVersion;
 }
@@ -217,7 +217,7 @@ bool nsNewsDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, bool bRead)
     return true;
 }
 
-NS_IMETHODIMP nsNewsDatabase::MarkAllRead(PRUint32 *aNumMarked,
+NS_IMETHODIMP nsNewsDatabase::MarkAllRead(uint32_t *aNumMarked,
                                           nsMsgKey **aThoseMarked)
 {
   nsMsgKey lowWater = nsMsgKey_None, highWater;
@@ -256,7 +256,7 @@ nsresult nsNewsDatabase::SyncWithReadSet()
 
   bool hasMore = false, readInNewsrc, isReadInDB, changed = false;
   nsCOMPtr <nsIMsgDBHdr> header;
-  PRInt32 numMessages = 0, numUnreadMessages = 0;
+  int32_t numMessages = 0, numUnreadMessages = 0;
   nsMsgKey messageKey;
   nsCOMPtr <nsIMsgThread> threadHdr;
 
@@ -285,7 +285,7 @@ nsresult nsNewsDatabase::SyncWithReadSet()
   }
 
   // Update FolderInfo Counters
-  PRInt32 oldMessages, oldUnreadMessages;
+  int32_t oldMessages, oldUnreadMessages;
   rv = m_dbFolderInfo->GetNumMessages(&oldMessages);
   if (NS_SUCCEEDED(rv) && oldMessages!=numMessages)
   {
@@ -307,11 +307,11 @@ nsresult nsNewsDatabase::SyncWithReadSet()
 
 nsresult nsNewsDatabase::AdjustExpungedBytesOnDelete(nsIMsgDBHdr *msgHdr)
 {
-  PRUint32 msgFlags;
+  uint32_t msgFlags;
   msgHdr->GetFlags(&msgFlags);
   if (msgFlags & nsMsgMessageFlags::Offline && m_dbFolderInfo)
   {
-    PRUint32 size = 0;
+    uint32_t size = 0;
     (void)msgHdr->GetOfflineMessageSize(&size);
     return m_dbFolderInfo->ChangeExpungedBytes (size);
   }

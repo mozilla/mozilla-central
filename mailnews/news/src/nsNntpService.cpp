@@ -255,14 +255,14 @@ nsNntpService::DisplayMessage(const char* aMessageURI, nsISupports * aDisplayCon
     rv = folder->GetServer(getter_AddRefs(server));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRInt32 port = 0;
+    int32_t port = 0;
     rv = url->GetPort(&port);
     if (NS_FAILED(rv) || (port <= 0))
     {
       rv = server->GetPort(&port);
       if (NS_FAILED(rv) || (port <= 0))
       {
-        PRInt32 socketType;
+        int32_t socketType;
         rv = server->GetSocketType(&socketType);
         NS_ENSURE_SUCCESS(rv, rv);
 
@@ -615,7 +615,7 @@ nsNntpService::CopyMessage(const char * aSrcMessageURI, nsIStreamListener * aMai
 }
 
 NS_IMETHODIMP
-nsNntpService::CopyMessages(PRUint32 aNumKeys, nsMsgKey *akeys,
+nsNntpService::CopyMessages(uint32_t aNumKeys, nsMsgKey *akeys,
                             nsIMsgFolder *srcFolder,
                             nsIStreamListener * aMailboxCopyHandler,
                             bool moveMessage,
@@ -709,7 +709,7 @@ nsNntpService::SetUpNntpUrlForPosting(const char *aAccountKey, char **newsUrlSpe
   nsresult rv = NS_OK;
 
   nsCString host;
-  PRInt32 port;
+  int32_t port;
 
   nsCOMPtr<nsIMsgIncomingServer> nntpServer;
   rv = GetNntpServerByAccount(aAccountKey, getter_AddRefs(nntpServer));
@@ -750,7 +750,7 @@ nsNntpService::GenerateNewsHeaderValsForPosting(const nsACString& newsgroupsList
 
   nsTArray<nsCString> list;
   ParseString(newsgroupsList, ',', list);
-  for (PRUint32 index = 0; index < list.Length(); index++)
+  for (uint32_t index = 0; index < list.Length(); index++)
   {
     list[index].StripWhitespace();
     if (!list[index].IsEmpty())
@@ -773,7 +773,7 @@ nsNntpService::GenerateNewsHeaderValsForPosting(const nsACString& newsgroupsList
         theRest = list[index];
 
       // theRest is "group" or "host/group"
-      PRInt32 slashpos = theRest.FindChar('/');
+      int32_t slashpos = theRest.FindChar('/');
       if (slashpos > 0 )
       {
         nsCAutoString currentGroup;
@@ -904,7 +904,7 @@ nsNntpService::PostMessage(nsIFile *aFileToPost, const char *newsgroupsNames, co
 }
 
 nsresult
-nsNntpService::ConstructNntpUrl(const char *urlString, nsIUrlListener *aUrlListener, nsIMsgWindow *aMsgWindow, const char *originalMessageUri, PRInt32 action, nsIURI ** aUrl)
+nsNntpService::ConstructNntpUrl(const char *urlString, nsIUrlListener *aUrlListener, nsIMsgWindow *aMsgWindow, const char *originalMessageUri, int32_t action, nsIURI ** aUrl)
 {
   nsresult rv = NS_OK;
 
@@ -936,7 +936,7 @@ nsNntpService::ConstructNntpUrl(const char *urlString, nsIUrlListener *aUrlListe
 
 nsresult
 nsNntpService::CreateNewsAccount(const char *aHostname, bool aUseSSL,
-                                 PRInt32 aPort, nsIMsgIncomingServer **aServer)
+                                 int32_t aPort, nsIMsgIncomingServer **aServer)
 {
   NS_ENSURE_ARG_POINTER(aHostname);
   NS_ENSURE_ARG_POINTER(aServer);
@@ -994,7 +994,7 @@ nsNntpService::GetServerForUri(nsIURI *aUri, nsINntpIncomingServer **aServer)
   nsCAutoString hostName;
   nsCAutoString scheme;
   nsCAutoString path;
-  PRInt32 port = 0;
+  int32_t port = 0;
   nsresult rv;
 
   rv = aUri->GetAsciiHost(hostName);
@@ -1192,21 +1192,21 @@ NS_IMETHODIMP nsNntpService::GetDefaultDoBiff(bool *aDoBiff)
     return NS_OK;
 }
 
-NS_IMETHODIMP nsNntpService::GetDefaultPort(PRInt32 *aDefaultPort)
+NS_IMETHODIMP nsNntpService::GetDefaultPort(int32_t *aDefaultPort)
 {
     NS_ENSURE_ARG_POINTER(aDefaultPort);
     *aDefaultPort = nsINntpUrl::DEFAULT_NNTP_PORT;
     return NS_OK;
 }
 
-NS_IMETHODIMP nsNntpService::AllowPort(PRInt32 port, const char *scheme, bool *_retval)
+NS_IMETHODIMP nsNntpService::AllowPort(int32_t port, const char *scheme, bool *_retval)
 {
     *_retval = true; // allow news on any port
     return NS_OK;
 }
 
 NS_IMETHODIMP
-nsNntpService::GetDefaultServerPort(bool aUseSSL, PRInt32 *aDefaultPort)
+nsNntpService::GetDefaultServerPort(bool aUseSSL, int32_t *aDefaultPort)
 {
     nsresult rv = NS_OK;
 
@@ -1219,7 +1219,7 @@ nsNntpService::GetDefaultServerPort(bool aUseSSL, PRInt32 *aDefaultPort)
     return rv;
 }
 
-NS_IMETHODIMP nsNntpService::GetProtocolFlags(PRUint32 *aUritype)
+NS_IMETHODIMP nsNntpService::GetProtocolFlags(uint32_t *aUritype)
 {
     NS_ENSURE_ARG_POINTER(aUritype);
     *aUritype = URI_NORELATIVE | URI_FORBIDS_AUTOMATIC_DOCUMENT_REPLACEMENT |
@@ -1443,7 +1443,7 @@ nsNntpService::StreamMessage(const char *aMessageURI, nsISupports *aConsumer,
         rv = folder->GetServer(getter_AddRefs(server));
         NS_ENSURE_SUCCESS(rv, rv);
 
-        PRInt32 socketType;
+        int32_t socketType;
         rv = server->GetSocketType(&socketType);
         NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1489,8 +1489,8 @@ NS_IMETHODIMP nsNntpService::StreamHeaders(const char *aMessageURI,
   folder->HasMsgOffline(key, &hasMsgOffline);
   if (hasMsgOffline)
   {
-    PRInt64 messageOffset;
-    PRUint32 messageSize;
+    int64_t messageOffset;
+    uint32_t messageSize;
     folder->GetOfflineFileStream(key, &messageOffset, &messageSize, getter_AddRefs(inputStream));
     if (inputStream)
       return MsgStreamMsgHeaders(inputStream, aConsumer);
@@ -1536,7 +1536,7 @@ NS_IMETHODIMP nsNntpService::IsMsgInMemCache(nsIURI *aUrl,
     nsCAutoString cacheKey;
     aUrl->GetAsciiSpec(cacheKey);
     // nntp urls are truncated at the query part when used as cache keys
-    PRInt32 pos = cacheKey.FindChar('?');
+    int32_t pos = cacheKey.FindChar('?');
     if (pos != -1)
       cacheKey.SetLength(pos);
 

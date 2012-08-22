@@ -165,7 +165,7 @@ nsMsgAttachmentHandler::CleanupTempFile()
 }
 
 void
-nsMsgAttachmentHandler::AnalyzeDataChunk(const char *chunk, PRInt32 length)
+nsMsgAttachmentHandler::AnalyzeDataChunk(const char *chunk, int32_t length)
 {
   unsigned char *s = (unsigned char *) chunk;
   unsigned char *end = s + length;
@@ -225,16 +225,16 @@ void
 nsMsgAttachmentHandler::AnalyzeSnarfedFile(void)
 {
   char chunk[1024];
-  PRUint32 numRead = 0;
+  uint32_t numRead = 0;
 
   if (m_file_analyzed)
     return;
 
   if (mTmpFile)
   {
-    PRInt64 fileSize;
+    int64_t fileSize;
     mTmpFile->GetFileSize(&fileSize);
-    m_size = (PRUint32) fileSize;
+    m_size = (uint32_t) fileSize;
     nsCOMPtr <nsIInputStream> inputFile;
     nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputFile), mTmpFile);
     if (NS_FAILED(rv))
@@ -443,7 +443,7 @@ static nsresult
 FetcherURLDoneCallback(nsresult aStatus,
                        const nsACString &aContentType,
                        const nsACString &aCharset,
-                       PRInt32 totalSize,
+                       int32_t totalSize,
                        const PRUnichar* aMsg, void *tagData)
 {
   nsMsgAttachmentHandler *ma = (nsMsgAttachmentHandler *) tagData;
@@ -812,7 +812,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
       return NS_ERROR_OUT_OF_MEMORY;
     }
 
-    PRInt32     bSize = AD_WORKING_BUFF_SIZE;
+    int32_t     bSize = AD_WORKING_BUFF_SIZE;
 
     char  *working_buff = nullptr;
     while (!working_buff && (bSize >= 512))
@@ -837,7 +837,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
     //
     ap_encode_init(&(obj->ap_encode_obj), aFilePath.get(), separator);
 
-    PRInt32 count;
+    int32_t count;
 
     nsresult status = noErr;
     m_size = 0;
@@ -849,9 +849,9 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
         //
         // we got the encode data, so call the next stream to write it to the disk.
         //
-        PRUint32 bytesWritten;
+        uint32_t bytesWritten;
         obj->fileStream->Write(obj->buff, count, &bytesWritten);
-        if (bytesWritten != (PRUint32) count)
+        if (bytesWritten != (uint32_t) count)
           status = NS_MSG_ERROR_WRITING_FILE;
       }
     }
@@ -923,7 +923,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
 nsresult
 nsMsgAttachmentHandler::LoadDataFromFile(nsIFile *file, nsString &sigData, bool charsetConversion)
 {
-  PRInt32       readSize;
+  int32_t       readSize;
   char          *readBuf;
 
   nsCOMPtr <nsIInputStream> inputFile;
@@ -931,16 +931,16 @@ nsMsgAttachmentHandler::LoadDataFromFile(nsIFile *file, nsString &sigData, bool 
   if (NS_FAILED(rv))
     return NS_MSG_ERROR_WRITING_FILE;
 
-  PRInt64 fileSize;
+  int64_t fileSize;
   file->GetFileSize(&fileSize);
-  readSize = (PRUint32) fileSize;
+  readSize = (uint32_t) fileSize;
 
   readBuf = (char *)PR_Malloc(readSize + 1);
   if (!readBuf)
     return NS_ERROR_OUT_OF_MEMORY;
   memset(readBuf, 0, readSize + 1);
 
-  PRUint32 bytesRead;
+  uint32_t bytesRead;
   inputFile->Read(readBuf, readSize, &bytesRead);
   inputFile->Close();
 
@@ -1118,7 +1118,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
             LossyCopyUTF16toASCII(conData, tData);
           if (!tData.IsEmpty())
           {
-            PRUint32 bytesWritten;
+            uint32_t bytesWritten;
             (void) outputStream->Write(tData.get(), tData.Length(), &bytesWritten);
           }
           outputStream->Close();
@@ -1141,7 +1141,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     m_encoding.Truncate();
   }
 
-  PRUint32 pendingAttachmentCount = 0;
+  uint32_t pendingAttachmentCount = 0;
   m_mime_delivery_state->GetPendingAttachmentCount(&pendingAttachmentCount);
   NS_ASSERTION (pendingAttachmentCount > 0, "no more pending attachment");
 
@@ -1154,10 +1154,10 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     /* Find the next attachment which has not yet been loaded,
      if any, and start it going.
      */
-    PRUint32 i;
+    uint32_t i;
     nsMsgAttachmentHandler *next = 0;
     nsMsgAttachmentHandler *attachments = nullptr;
-    PRUint32 attachmentCount = 0;
+    uint32_t attachmentCount = 0;
 
     m_mime_delivery_state->GetAttachmentCount(&attachmentCount);
     if (attachmentCount)

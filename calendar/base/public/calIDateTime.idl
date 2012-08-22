@@ -51,7 +51,7 @@ interface calIDateTime : nsISupports
    * nativeTime will be 00:00:00 in the timezone of that date, not 00:00:00 in
    * UTC.
    */
-  attribute PRInt64 nativeTime;
+  attribute int64_t nativeTime;
 
   /**
    * Full 4-digit year value (e.g. "1989", "2004")

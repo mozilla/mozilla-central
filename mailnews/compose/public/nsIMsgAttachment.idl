@@ -95,7 +95,7 @@ interface nsIMsgAttachment : nsISupports {
    *
    * @Specify the size of the attachment.
    */
-  attribute PRInt64   size;
+  attribute int64_t   size;
 
   /**
    * macType attribute

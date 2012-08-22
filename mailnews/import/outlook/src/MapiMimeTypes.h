@@ -13,8 +13,8 @@
 class CMimeTypes {
 public:
 
-static PRUint8 *  GetMimeType(const nsCString& theExt);
-static PRUint8 *  GetMimeType(const nsString& theExt);
+static uint8_t *  GetMimeType(const nsCString& theExt);
+static uint8_t *  GetMimeType(const nsString& theExt);
 
 protected:
   // Registry stuff
@@ -24,7 +24,7 @@ static void  ReleaseValueBytes(LPBYTE pBytes);
 static BOOL  GetMimeTypeFromReg(const nsCString& ext, LPBYTE *ppBytes);
 
 
-static PRUint8          m_mimeBuffer[kMaxMimeTypeSize];
+static uint8_t          m_mimeBuffer[kMaxMimeTypeSize];
 };
 
 #endif /* MapiMimeTypes_h__ */

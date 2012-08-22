@@ -35,9 +35,9 @@ class nsLDAPMessage : public nsILDAPMessage
     virtual ~nsLDAPMessage();
 
   protected:
-    nsresult IterateAttrErrHandler(PRInt32 aLderrno, PRUint32 *aAttrCount,
+    nsresult IterateAttrErrHandler(int32_t aLderrno, uint32_t *aAttrCount,
                             char** *aAttributes, BerElement *position);
-    nsresult IterateAttributes(PRUint32 *aAttrCount, char** *aAttributes,
+    nsresult IterateAttributes(uint32_t *aAttrCount, char** *aAttributes,
                               bool getP);
     nsresult Init(nsILDAPConnection *aConnection,
                   LDAPMessage *aMsgHandle);

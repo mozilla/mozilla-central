@@ -22,7 +22,7 @@ interface nsIPop3IncomingServer : nsISupports {
   attribute long numDaysToLeaveOnServer;
   attribute nsIPop3Protocol runningProtocol;
   // client adds uidls to mark one by one, then calls markMessages
-  void addUidlToMark(in string aUidl, in PRInt32 newStatus);
+  void addUidlToMark(in string aUidl, in int32_t newStatus);
   void markMessages();
   attribute boolean authenticated;
   /* account to which this server defers storage, for global inbox */

@@ -194,9 +194,9 @@ nsresult nsMsgOfflineManager::SendUnsentMessages()
     NS_ENSURE_SUCCESS(rv, rv);
   }
   nsCOMPtr <nsIMsgIdentity> identityToUse;
-  PRUint32 numIndentities;
+  uint32_t numIndentities;
   identities->Count(&numIndentities);
-  for (PRUint32 i = 0; i < numIndentities; i++)
+  for (uint32_t i = 0; i < numIndentities; i++)
   {
     // convert supports->Identity
     nsCOMPtr<nsISupports> thisSupports;
@@ -211,7 +211,7 @@ nsresult nsMsgOfflineManager::SendUnsentMessages()
       pMsgSendLater->GetUnsentMessagesFolder(thisIdentity, getter_AddRefs(outboxFolder));
       if (outboxFolder)
       {
-        PRInt32 numMessages;
+        int32_t numMessages;
         outboxFolder->GetTotalMessages(false, &numMessages);
         if (numMessages > 0)
         {
@@ -354,14 +354,14 @@ NS_IMETHODIMP nsMsgOfflineManager::Observe(nsISupports *aSubject, const char *aT
 
 // nsIMsgSendLaterListener implementation 
 NS_IMETHODIMP
-nsMsgOfflineManager::OnStartSending(PRUint32 aTotalMessageCount)
+nsMsgOfflineManager::OnStartSending(uint32_t aTotalMessageCount)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgOfflineManager::OnMessageStartSending(PRUint32 aCurrentMessage,
-                                           PRUint32 aTotalMessageCount,
+nsMsgOfflineManager::OnMessageStartSending(uint32_t aCurrentMessage,
+                                           uint32_t aTotalMessageCount,
                                            nsIMsgDBHdr *aMessageHeader,
                                            nsIMsgIdentity *aIdentity)
 {
@@ -369,10 +369,10 @@ nsMsgOfflineManager::OnMessageStartSending(PRUint32 aCurrentMessage,
 }
 
 NS_IMETHODIMP
-nsMsgOfflineManager::OnMessageSendProgress(PRUint32 aCurrentMessage,
-                                           PRUint32 aTotalMessageCount,
-                                           PRUint32 aMessageSendPercent,
-                                           PRUint32 aMessageCopyPercent)
+nsMsgOfflineManager::OnMessageSendProgress(uint32_t aCurrentMessage,
+                                           uint32_t aTotalMessageCount,
+                                           uint32_t aMessageSendPercent,
+                                           uint32_t aMessageCopyPercent)
 {
   if (m_statusFeedback && aTotalMessageCount)
     return m_statusFeedback->ShowProgress((100 * aCurrentMessage) /
@@ -382,7 +382,7 @@ nsMsgOfflineManager::OnMessageSendProgress(PRUint32 aCurrentMessage,
 }
 
 NS_IMETHODIMP
-nsMsgOfflineManager::OnMessageSendError(PRUint32 aCurrentMessage,
+nsMsgOfflineManager::OnMessageSendError(uint32_t aCurrentMessage,
                                         nsIMsgDBHdr *aMessageHeader,
                                         nsresult aStatus,
                                         const PRUnichar *aMsg)
@@ -392,8 +392,8 @@ nsMsgOfflineManager::OnMessageSendError(PRUint32 aCurrentMessage,
 
 NS_IMETHODIMP
 nsMsgOfflineManager::OnStopSending(nsresult aStatus,
-                                   const PRUnichar *aMsg, PRUint32 aTotalTried, 
-                                   PRUint32 aSuccessful)
+                                   const PRUnichar *aMsg, uint32_t aTotalTried, 
+                                   uint32_t aSuccessful)
 {
 #ifdef NS_DEBUG
   if (NS_SUCCEEDED(aStatus))

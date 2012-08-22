@@ -42,8 +42,8 @@ public:
                                nsIMutableArray* clientSearchControls,
                                const nsACString &login,
                                const nsACString &mechanism,
-                               const PRInt32 resultLimit = -1,
-                               const PRInt32 timeOut = 0);
+                               const int32_t resultLimit = -1,
+                               const int32_t timeOut = 0);
   virtual ~nsAbQueryLDAPMessageListener ();
 
   // nsILDAPMessageListener
@@ -61,9 +61,9 @@ protected:
 
   nsCOMPtr<nsILDAPURL> mSearchUrl;
   nsIAbDirectoryQueryResultListener *mResultListener;
-  PRInt32 mContextID;
+  int32_t mContextID;
   nsCOMPtr<nsIAbDirectoryQueryArguments> mQueryArguments;
-  PRInt32 mResultLimit;
+  int32_t mResultLimit;
 
   bool mFinished;
   bool mCanceled;
@@ -86,8 +86,8 @@ nsAbQueryLDAPMessageListener::nsAbQueryLDAPMessageListener(
         nsIMutableArray* clientSearchControls,
         const nsACString &login,
         const nsACString &mechanism,
-        const PRInt32 resultLimit,
-        const PRInt32 timeOut) :
+        const int32_t resultLimit,
+        const int32_t timeOut) :
   nsAbLDAPListenerBase(directoryUrl, connection, login, timeOut),
   mSearchUrl(searchUrl),
   mResultListener(resultListener),
@@ -128,7 +128,7 @@ NS_IMETHODIMP nsAbQueryLDAPMessageListener::OnLDAPMessage(nsILDAPMessage *aMessa
   nsresult rv = Initiate();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRInt32 messageType;
+  int32_t messageType;
   rv = aMessage->GetType(&messageType);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -211,7 +211,7 @@ nsresult nsAbQueryLDAPMessageListener::DoTask()
   rv = mSearchUrl->GetDn(dn);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRInt32 scope;
+  int32_t scope;
   rv = mSearchUrl->GetScope(&scope);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -277,7 +277,7 @@ nsresult nsAbQueryLDAPMessageListener::OnLDAPMessageSearchEntry(nsILDAPMessage *
 
 nsresult nsAbQueryLDAPMessageListener::OnLDAPMessageSearchResult(nsILDAPMessage *aMessage)
 {
-  PRInt32 errorCode;
+  int32_t errorCode;
   nsresult rv = aMessage->GetErrorCode(&errorCode);
   NS_ENSURE_SUCCESS(rv, rv);
     
@@ -306,9 +306,9 @@ nsAbLDAPDirectoryQuery::~nsAbLDAPDirectoryQuery()
 NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   nsIAbDirectoryQueryArguments* aArguments,
   nsIAbDirSearchListener* aListener,
-  PRInt32 aResultLimit,
-  PRInt32 aTimeOut,
-  PRInt32* _retval)
+  int32_t aResultLimit,
+  int32_t aTimeOut,
+  int32_t* _retval)
 {
   NS_ENSURE_ARG_POINTER(aListener);
   NS_ENSURE_ARG_POINTER(aArguments);
@@ -338,7 +338,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   rv = directory->GetSaslMechanism(saslMechanism);
   NS_ENSURE_SUCCESS(rv, rv);
   
-  PRUint32 protocolVersion;
+  uint32_t protocolVersion;
   rv = directory->GetProtocolVersion(&protocolVersion);
   NS_ENSURE_SUCCESS(rv, rv);
   
@@ -489,7 +489,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   // Now formulate the search string
   
   // Get the scope
-  PRInt32 scope;
+  int32_t scope;
   bool doSubDirectories;
   rv = aArguments->GetQuerySubDirectories (&doSubDirectories);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -559,7 +559,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
 }
 
 /* void stopQuery (in long contextID); */
-NS_IMETHODIMP nsAbLDAPDirectoryQuery::StopQuery(PRInt32 contextID)
+NS_IMETHODIMP nsAbLDAPDirectoryQuery::StopQuery(int32_t contextID)
 {
   mInitialized = true;
 
@@ -578,23 +578,23 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::OnQueryFoundCard(nsIAbCard *aCard)
 {
   aCard->SetDirectoryId(mDirectoryId);
 
-  for (PRInt32 i = 0; i < mListeners.Count(); ++i)
+  for (int32_t i = 0; i < mListeners.Count(); ++i)
     mListeners[i]->OnSearchFoundCard(aCard);
 
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbLDAPDirectoryQuery::OnQueryResult(PRInt32 aResult,
-                                                    PRInt32 aErrorCode)
+NS_IMETHODIMP nsAbLDAPDirectoryQuery::OnQueryResult(int32_t aResult,
+                                                    int32_t aErrorCode)
 {
-  PRUint32 count = mListeners.Count();
+  uint32_t count = mListeners.Count();
 
   // XXX: Temporary fix for crasher needs reviewing as part of bug 135231.
   // Temporarily add a reference to ourselves, in case the only thing
   // keeping us alive is the link with the listener.
   NS_ADDREF_THIS();
 
-  for (PRInt32 i = count - 1; i >= 0; --i)
+  for (int32_t i = count - 1; i >= 0; --i)
   {
     mListeners[i]->OnSearchFinished(aResult, EmptyString());
     mListeners.RemoveObjectAt(i);

@@ -263,7 +263,7 @@ mime_generate_headers (nsMsgCompFields *fields,
   }
 
   bool usemime = nsMsgMIMEGetConformToStandard();
-  PRInt32 size = 0;
+  int32_t size = 0;
   char *buffer = 0, *buffer_tail = 0;
   bool isDraft =
     deliver_mode == nsIMsgSend::nsMsgSaveAsDraft ||
@@ -346,7 +346,7 @@ mime_generate_headers (nsMsgCompFields *fields,
       (deliver_mode != nsIMsgSend::nsMsgSaveAsDraft &&
       deliver_mode != nsIMsgSend::nsMsgSaveAsTemplate))
     {
-        PRInt32 receipt_header_type = nsIMsgMdnGenerator::eDntType;
+        int32_t receipt_header_type = nsIMsgMdnGenerator::eDntType;
         fields->GetReceiptHeaderType(&receipt_header_type);
 
       // nsIMsgMdnGenerator::eDntType = MDN Disposition-Notification-To: ;
@@ -420,7 +420,7 @@ mime_generate_headers (nsMsgCompFields *fields,
       // whether the draft/template has request for either MDN or DNS or both
       // return receipt; since the DNS is out of the picture we now use the
       // header type + 1 to tell whether user has requested the return receipt
-      PRInt32 headerType = 0;
+      int32_t headerType = 0;
       fields->GetReceiptHeaderType(&headerType);
       char *type = PR_smprintf("%d", (int)headerType + 1);
       if (type)
@@ -701,7 +701,7 @@ mime_generate_headers (nsMsgCompFields *fields,
 }
 
 static void
-GenerateGlobalRandomBytes(unsigned char *buf, PRInt32 len)
+GenerateGlobalRandomBytes(unsigned char *buf, int32_t len)
 {
   static bool      firstTime = true;
 
@@ -713,7 +713,7 @@ GenerateGlobalRandomBytes(unsigned char *buf, PRInt32 len)
     firstTime = false;
   }
 
-  for( PRInt32 i = 0; i < len; i++ )
+  for( int32_t i = 0; i < len; i++ )
     buf[i] = rand() % 10;
 }
 
@@ -739,7 +739,7 @@ RFC2231ParmFolding(const char *parmName, const nsCString& charset,
 
 static char *
 LegacyParmFolding(const nsCString& aCharset,
-                  const nsCString& aFileName, PRInt32 aParmFolding);
+                  const nsCString& aFileName, int32_t aParmFolding);
 
 char *
 mime_generate_attachment_headers (const char *type,
@@ -760,7 +760,7 @@ mime_generate_attachment_headers (const char *type,
 {
   NS_ASSERTION (encoding, "null encoding");
 
-  PRInt32 parmFolding = 2; // RFC 2231-compliant
+  int32_t parmFolding = 2; // RFC 2231-compliant
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
   if (prefs)
     prefs->GetIntPref("mail.strictly_mime.parm_folding", &parmFolding);
@@ -929,7 +929,7 @@ mime_generate_attachment_headers (const char *type,
 
   if (encodedRealName && *encodedRealName) {
     char *period = PL_strrchr(encodedRealName, '.');
-    PRInt32 pref_content_disposition = 0;
+    int32_t pref_content_disposition = 0;
 
     if (prefs) {
       nsresult rv = prefs->GetIntPref("mail.content_disposition_type",
@@ -979,7 +979,7 @@ mime_generate_attachment_headers (const char *type,
       !PL_strcasecmp (type, TEXT_MDL)) &&
       base_url && *base_url)
   {
-    PRInt32 col = 0;
+    int32_t col = 0;
     const char *s = base_url;
     const char *colon = PL_strchr (s, ':');
     bool useContentLocation = false;   /* rhp - add this  */
@@ -1013,7 +1013,7 @@ CONTENT_LOC_HACK:
 
     while (*s != 0 && *s != '#')
     {
-      PRUint32 ot=buf.Length();
+      uint32_t ot=buf.Length();
       char tmp[]="\x00\x00";
       /* URLs must be wrapped at 40 characters or less. */
       if (col >= 38) {
@@ -1083,9 +1083,9 @@ static bool isValidHost( const char* host )
 char *
 msg_generate_message_id (nsIMsgIdentity *identity)
 {
-  PRUint32 now = (PRUint32)(PR_Now() / PR_USEC_PER_SEC);
+  uint32_t now = (uint32_t)(PR_Now() / PR_USEC_PER_SEC);
 
-  PRUint32 salt = 0;
+  uint32_t salt = 0;
   const char *host = 0;
 
   nsCString forcedFQDN;
@@ -1154,16 +1154,16 @@ RFC2231ParmFolding(const char *parmName, const nsCString& charset,
   if (dupParm.IsEmpty())
     return nullptr;
 
-  PRInt32 parmNameLen = PL_strlen(parmName);
-  PRInt32 parmValueLen = dupParm.Length();
+  int32_t parmNameLen = PL_strlen(parmName);
+  int32_t parmValueLen = dupParm.Length();
 
   if (needEscape)
     parmNameLen += 5;   // *=__'__'___ or *[0]*=__'__'__ or *[1]*=___
   else
     parmNameLen += 5;   // *[0]="___";
 
-  PRInt32 languageLen = language ?  PL_strlen(language) : 0;
-  PRInt32 charsetLen = charset.Length();
+  int32_t languageLen = language ?  PL_strlen(language) : 0;
+  int32_t charsetLen = charset.Length();
   char *foldedParm = nullptr;
 
   if ((parmValueLen + parmNameLen + charsetLen + languageLen) <
@@ -1277,7 +1277,7 @@ RFC2231ParmFolding(const char *parmName, const nsCString& charset,
 
 /*static */ char *
 LegacyParmFolding(const nsCString& aCharset,
-                  const nsCString& aFileName, PRInt32 aParmFolding)
+                  const nsCString& aFileName, int32_t aParmFolding)
 {
   bool usemime = nsMsgMIMEGetConformToStandard();
   char *encodedRealName =
@@ -1302,13 +1302,13 @@ LegacyParmFolding(const nsCString& aCharset,
 }
 
 bool
-mime_7bit_data_p (const char *string, PRUint32 size)
+mime_7bit_data_p (const char *string, uint32_t size)
 {
   if ((!string) || (!*string))
     return true;
 
   char *ptr = (char *)string;
-  for (PRUint32 i=0; i<size; i++)
+  for (uint32_t i=0; i<size; i++)
   {
     if ((unsigned char) ptr[i] > 0x7F)
       return false;
@@ -1327,7 +1327,7 @@ mime_fix_header_1 (const char *string, bool addr_p, bool news_p)
   char *new_string;
   const char *in;
   char *out;
-  PRInt32 i, old_size, new_size;
+  int32_t i, old_size, new_size;
 
   if (!string || !*string)
     return 0;
@@ -1592,15 +1592,15 @@ msg_pick_real_name (nsMsgAttachmentHandler *attachment, const PRUnichar *propose
     if (StringBeginsWith(url, NS_LITERAL_CSTRING("data:"),
                          nsCaseInsensitiveCStringComparator()))
     {
-      PRInt32 endNonData = url.FindChar(',');
+      int32_t endNonData = url.FindChar(',');
       if (endNonData == -1)
         return;
       nsCString nonDataPart(Substring(url, 5, endNonData - 5));
-      PRInt32 filenamePos = nonDataPart.Find("filename=");
+      int32_t filenamePos = nonDataPart.Find("filename=");
       if (filenamePos != -1)
       {
         filenamePos += 9;
-        PRInt32 endFilename = nonDataPart.FindChar(';', filenamePos);
+        int32_t endFilename = nonDataPart.FindChar(';', filenamePos);
         if (endFilename == -1)
           endFilename = endNonData;
         attachment->m_realName = Substring(nonDataPart, filenamePos,
@@ -1622,7 +1622,7 @@ msg_pick_real_name (nsMsgAttachmentHandler *attachment, const PRUnichar *propose
         mimeInfo->GetPrimaryExtension(extension);
         unsigned char filePrefix[10];
         GenerateGlobalRandomBytes(filePrefix, 8);
-        for (PRInt32 i = 0; i < 8; i++)
+        for (int32_t i = 0; i < 8; i++)
           filename.Append(filePrefix[i] + 'a');
         filename.Append('.');
         filename.Append(extension);
@@ -1639,7 +1639,7 @@ msg_pick_real_name (nsMsgAttachmentHandler *attachment, const PRUnichar *propose
       if (s2) s = s2+1;
       /* Copy it into the attachment struct. */
       attachment->m_realName = s;
-      PRInt32 charPos = attachment->m_realName.FindChar('?');
+      int32_t charPos = attachment->m_realName.FindChar('?');
       if (charPos != -1)
         attachment->m_realName.SetLength(charPos);
       /* Now trim off any named anchors or search data. */
@@ -1856,9 +1856,9 @@ GenerateFileNameFromURI(nsIURI *aURL)
 //      Content-ID: <part1.36DF1DCE.73B5A330@netscape.com>
 //
 char *
-mime_gen_content_id(PRUint32 aPartNum, const char *aEmailAddress)
+mime_gen_content_id(uint32_t aPartNum, const char *aEmailAddress)
 {
-  PRInt32           randLen = 5;
+  int32_t           randLen = 5;
   unsigned char     rand_buf1[5];
   unsigned char     rand_buf2[5];
   const char        *domain = nullptr;

@@ -167,7 +167,7 @@ NS_IMETHODIMP nsPop3IncomingServer::GetDeferredToAccount(nsACString& aRetVal)
                   rv = subFolderDB->ListAllKeys(keys);
                   nsCOMPtr<nsIMutableArray> hdrsToCopy(do_CreateInstance(NS_ARRAY_CONTRACTID));
                   MsgGetHeadersFromKeys(subFolderDB, keys->m_keys, hdrsToCopy);
-                  PRUint32 numHdrs = 0;
+                  uint32_t numHdrs = 0;
                   if (hdrsToCopy)
                     hdrsToCopy->GetLength(&numHdrs);
                   if (numHdrs)
@@ -288,14 +288,14 @@ NS_IMETHODIMP nsPop3IncomingServer::SetAuthenticated(bool aAuthenticated)
 }
 
 nsresult
-nsPop3IncomingServer::GetPop3CapabilityFlags(PRUint32 *flags)
+nsPop3IncomingServer::GetPop3CapabilityFlags(uint32_t *flags)
 {
   *flags = m_capabilityFlags;
   return NS_OK;
 }
 
 nsresult
-nsPop3IncomingServer::SetPop3CapabilityFlags(PRUint32 flags)
+nsPop3IncomingServer::SetPop3CapabilityFlags(uint32_t flags)
 {
   m_capabilityFlags = flags;
   return NS_OK;
@@ -534,7 +534,7 @@ nsPop3IncomingServer::GetNewMessages(nsIMsgFolder *aFolder, nsIMsgWindow *aMsgWi
     aFolder->GetServer(getter_AddRefs(server));
     GetDeferredServers(server, getter_AddRefs(deferredServers));
   }
-  PRUint32 numDeferredServers;
+  uint32_t numDeferredServers;
   if (deferredToAccount.IsEmpty() && deferredServers && NS_SUCCEEDED(deferredServers->Count(&numDeferredServers))
     && numDeferredServers > 0)
   {
@@ -587,7 +587,7 @@ nsPop3IncomingServer::CloseCachedConnections()
 }
 
 NS_IMETHODIMP
-nsPop3IncomingServer::GetOfflineSupportLevel(PRInt32 *aSupportLevel)
+nsPop3IncomingServer::GetOfflineSupportLevel(int32_t *aSupportLevel)
 {
   NS_ENSURE_ARG_POINTER(aSupportLevel);
 
@@ -615,7 +615,7 @@ NS_IMETHODIMP nsPop3IncomingServer::GetRunningProtocol(nsIPop3Protocol **aProtoc
   return NS_OK;
 }
 
-NS_IMETHODIMP nsPop3IncomingServer::AddUidlToMark(const char *aUidl, PRInt32 aMark)
+NS_IMETHODIMP nsPop3IncomingServer::AddUidlToMark(const char *aUidl, int32_t aMark)
 {
   NS_ENSURE_ARG_POINTER(aUidl);
 
@@ -652,8 +652,8 @@ NS_IMETHODIMP nsPop3IncomingServer::MarkMessages()
     // do it all in one fell swoop
     rv = nsPop3Protocol::MarkMsgForHost(hostName.get(), userName.get(), localPath, m_uidlsToMark);
   }
-  PRUint32 count = m_uidlsToMark.Count();
-  for (PRUint32 i = 0; i < count; i++)
+  uint32_t count = m_uidlsToMark.Count();
+  for (uint32_t i = 0; i < count; i++)
   {
     Pop3UidlEntry *ue = static_cast<Pop3UidlEntry*>(m_uidlsToMark[i]);
     PR_Free(ue->uidl);
@@ -711,7 +711,7 @@ nsPop3GetMailChainer::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
 nsresult nsPop3GetMailChainer::RunNextGetNewMail()
 {
   nsresult rv;
-  PRUint32 numServersLeft;
+  uint32_t numServersLeft;
   m_serversToGetNewMailFor->Count(&numServersLeft);
 
   for (; numServersLeft > 0;)

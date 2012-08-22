@@ -50,7 +50,7 @@ extern void MimePartBufferDestroy (MimePartBufferData *data);
 /* Push a chunk of a MIME object into the buffer.
  */
 extern int MimePartBufferWrite (MimePartBufferData *data,
-                const char *buf, PRInt32 size);
+                const char *buf, int32_t size);
 
 /* Read the contents of the buffer back out.  This will invoke the provided
    read_fn with successive chunks of data until the buffer has been drained.

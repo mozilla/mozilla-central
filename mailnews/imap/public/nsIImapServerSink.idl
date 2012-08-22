@@ -85,7 +85,7 @@ interface nsIImapServerSink : nsISupports {
    * @return           The button pressed. 0 for retry, 1 for cancel,
    *                   2 for enter a new password.
    */
-  PRInt32 promptLoginFailed(in nsIMsgWindow aMsgWindow);
+  int32_t promptLoginFailed(in nsIMsgWindow aMsgWindow);
 
   /**
    * Alerts the user with the given string (FE = 'Front End').

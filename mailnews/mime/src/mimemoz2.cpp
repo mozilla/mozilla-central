@@ -80,7 +80,7 @@ mime_stream_data::mime_stream_data() : url_name(nullptr), orig_url_name(nullptr)
 //
 MimeObject    *mime_get_main_object(MimeObject* obj);
 
-nsresult MimeGetSize(MimeObject *child, PRInt32 *size) {
+nsresult MimeGetSize(MimeObject *child, int32_t *size) {
   bool isLeaf = mime_subclass_p(child->clazz, (MimeObjectClass *) &mimeLeafClass);
   bool isContainer = mime_subclass_p(child->clazz, (MimeObjectClass *) &mimeContainerClass);
   bool isMsg = mime_subclass_p(child->clazz, (MimeObjectClass *) &mimeMessageClass);
@@ -103,7 +103,7 @@ nsresult
 ProcessBodyAsAttachment(MimeObject *obj, nsMsgAttachmentData **data)
 {
   nsMsgAttachmentData   *tmp;
-  PRInt32               n;
+  int32_t               n;
   char                  *disp = nullptr;
   char                  *charset = nullptr;
 
@@ -210,11 +210,11 @@ ProcessBodyAsAttachment(MimeObject *obj, nsMsgAttachmentData **data)
   return NS_OK;
 }
 
-PRInt32
+int32_t
 CountTotalMimeAttachments(MimeContainer *aObj)
 {
-  PRInt32     i;
-  PRInt32     rc = 0;
+  int32_t     i;
+  int32_t     rc = 0;
 
   if ( (!aObj) || (!aObj->children) || (aObj->nchildren <= 0) )
     return 0;
@@ -253,7 +253,7 @@ ValidateRealName(nsMsgAttachmentData *aAttach, MimeHeaders *aHdrs)
     aAttach->m_realName = "attachment";
     nsresult rv = NS_OK;
     nsCAutoString contentType (aAttach->m_realType);
-    PRInt32 pos = contentType.FindChar(';');
+    int32_t pos = contentType.FindChar(';');
     if (pos > 0)
       contentType.SetLength(pos);
 
@@ -272,11 +272,11 @@ ValidateRealName(nsMsgAttachmentData *aAttach, MimeHeaders *aHdrs)
   }
 }
 
-static  PRInt32     attIndex = 0;
+static  int32_t     attIndex = 0;
 
 nsresult
 GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayOptions *options,
-                       bool isAnAppleDoublePart, PRInt32 attSize, nsMsgAttachmentData *aAttachData)
+                       bool isAnAppleDoublePart, int32_t attSize, nsMsgAttachmentData *aAttachData)
 {
   nsCString imappart;
   nsCString part;
@@ -341,7 +341,7 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   tmp->m_isDownloaded = !part_addr;
   PR_FREEIF(part_addr);
 
-  PRInt32 i;
+  int32_t i;
   char *charset = nullptr;
   char *disp = MimeHeaders_get(object->headers, HEADER_CONTENT_DISPOSITION, false, false);
   if (disp)
@@ -487,7 +487,7 @@ nsresult
 BuildAttachmentList(MimeObject *anObject, nsMsgAttachmentData *aAttachData, const char *aMessageURL)
 {
   nsresult              rv;
-  PRInt32               i;
+  int32_t               i;
   MimeContainer         *cobj = (MimeContainer *) anObject;
   bool                  found_output = false;
   
@@ -550,7 +550,7 @@ BuildAttachmentList(MimeObject *anObject, nsMsgAttachmentData *aAttachData, cons
     // The function below does not necessarily set the size to something (I
     // don't think it will work for external objects, for instance, since they
     // are neither containers nor leafs).
-    PRInt32 attSize = 0;
+    int32_t attSize = 0;
     MimeGetSize(child, &attSize);
 
     if (isALeafObject || isAnInlineMessage || isAnAppleDoublePart)
@@ -576,7 +576,7 @@ MimeGetAttachmentList(MimeObject *tobj, const char *aMessageURL, nsMsgAttachment
 {
   MimeObject            *obj;
   MimeContainer         *cobj;
-  PRInt32               n;
+  int32_t               n;
   bool                  isAnInlineMessage;
 
   if (!data)
@@ -615,7 +615,7 @@ MimeGetAttachmentList(MimeObject *tobj, const char *aMessageURL, nsMsgAttachment
 
   if (isAnInlineMessage)
   {
-    PRInt32 size = 0;
+    int32_t size = 0;
     MimeGetSize(obj, &size);
     rv = GenerateAttachmentData(obj, aMessageURL, obj->options, false, size,
                                 *data);
@@ -634,7 +634,7 @@ extern "C" void
 NotifyEmittersOfAttachmentList(MimeDisplayOptions     *opt,
                                nsMsgAttachmentData    *data)
 {
-  PRInt32     i = 0;
+  int32_t     i = 0;
   nsMsgAttachmentData  *tmp = data;
 
   if (!tmp)
@@ -785,9 +785,9 @@ mime_file_type (const char *filename, void *stream_closure)
   return retType;
 }
 
-int ConvertUsingEncoderAndDecoder(const char *stringToUse, PRInt32 inLength,
+int ConvertUsingEncoderAndDecoder(const char *stringToUse, int32_t inLength,
                                   nsIUnicodeEncoder *encoder, nsIUnicodeDecoder *decoder,
-                                  char **pConvertedString, PRInt32 *outLength)
+                                  char **pConvertedString, int32_t *outLength)
 {
   // buffer size 144 =
   // 72 (default line len for compose)
@@ -795,9 +795,9 @@ int ConvertUsingEncoderAndDecoder(const char *stringToUse, PRInt32 inLength,
   const int klocalbufsize = 144;
   // do the conversion
   PRUnichar *unichars;
-  PRInt32 unicharLength;
-  PRInt32 srcLen = inLength;
-  PRInt32 dstLength = 0;
+  int32_t unicharLength;
+  int32_t srcLen = inLength;
+  int32_t dstLength = 0;
   char *dstPtr;
   nsresult rv;
 
@@ -824,14 +824,14 @@ int ConvertUsingEncoderAndDecoder(const char *stringToUse, PRInt32 inLength,
     // 'dataLen' is the number of character left to convert
     // 'outLen' is the number of characters still available in the output buffer as input of decoder->Convert
     // and the number of characters written in it as output.
-    PRInt32 totalChars = 0,
+    int32_t totalChars = 0,
             inBufferIndex = 0,
             outBufferIndex = 0;
-    PRInt32 dataLen = srcLen,
+    int32_t dataLen = srcLen,
             outLen = unicharLength;
 
     do {
-      PRInt32 inBufferLength = dataLen;
+      int32_t inBufferLength = dataLen;
       rv = decoder->Convert(&stringToUse[inBufferIndex],
                            &inBufferLength,
                            &unichars[outBufferIndex],
@@ -864,13 +864,13 @@ int ConvertUsingEncoderAndDecoder(const char *stringToUse, PRInt32 inLength,
       rv = NS_ERROR_OUT_OF_MEMORY;
     }
     else {
-      PRInt32 buffLength = dstLength;
+      int32_t buffLength = dstLength;
       // convert from unicode
       rv = encoder->SetOutputErrorBehavior(nsIUnicodeEncoder::kOnError_Replace, nullptr, '?');
       if (NS_SUCCEEDED(rv)) {
         rv = encoder->Convert(unichars, &totalChars, dstPtr, &dstLength);
         if (NS_SUCCEEDED(rv)) {
-          PRInt32 finLen = buffLength - dstLength;
+          int32_t finLen = buffLength - dstLength;
           rv = encoder->Finish((char *)(dstPtr+dstLength), &finLen);
           if (NS_SUCCEEDED(rv)) {
             dstLength += finLen;
@@ -890,14 +890,14 @@ int ConvertUsingEncoderAndDecoder(const char *stringToUse, PRInt32 inLength,
 
 
 static int
-mime_convert_charset (const char *input_line, PRInt32 input_length,
+mime_convert_charset (const char *input_line, int32_t input_length,
                       const char *input_charset, const char *output_charset,
-                      char **output_ret, PRInt32 *output_size_ret,
+                      char **output_ret, int32_t *output_size_ret,
                       void *stream_closure, nsIUnicodeDecoder *decoder, nsIUnicodeEncoder *encoder)
 {
-  PRInt32 res = -1;
+  int32_t res = -1;
   char  *convertedString = NULL;
-  PRInt32 convertedStringLen = 0;
+  int32_t convertedStringLen = 0;
   if (encoder && decoder)
   {
     res = ConvertUsingEncoderAndDecoder(input_line, input_length, encoder, decoder, &convertedString, &convertedStringLen);
@@ -917,9 +917,9 @@ mime_convert_charset (const char *input_line, PRInt32 input_length,
 }
 
 static int
-mime_output_fn(const char *buf, PRInt32 size, void *stream_closure)
+mime_output_fn(const char *buf, int32_t size, void *stream_closure)
 {
-  PRUint32  written = 0;
+  uint32_t  written = 0;
   mime_stream_data *msd = (mime_stream_data *) stream_closure;
   if ( (!msd->pluginObj2) && (!msd->output_emitter) )
     return -1;
@@ -951,7 +951,7 @@ mime_output_fn(const char *buf, PRInt32 size, void *stream_closure)
 extern "C" int
 mime_display_stream_write (nsMIMESession *stream,
                            const char* buf,
-                           PRInt32 size)
+                           int32_t size)
 {
   mime_stream_data *msd = (mime_stream_data *) ((nsMIMESession *)stream)->data_object;
 
@@ -1106,7 +1106,7 @@ static void   *mime_image_begin(const char *image_url, const char *content_type,
                               void *stream_closure);
 static void   mime_image_end(void *image_closure, int status);
 static char   *mime_image_make_image_html(void *image_data);
-static int    mime_image_write_buffer(const char *buf, PRInt32 size, void *image_closure);
+static int    mime_image_write_buffer(const char *buf, int32_t size, void *image_closure);
 
 /* Interface between libmime and inline display of images: the abomination
    that is known as "internal-external-reconnect".
@@ -1251,7 +1251,7 @@ mime_image_make_image_html(void *image_closure)
   else
     url = mid->url;
 
-  PRUint32 buflen = strlen(prefix) + strlen(suffix) + strlen(url) + 20;
+  uint32_t buflen = strlen(prefix) + strlen(suffix) + strlen(url) + 20;
   buf = (char *) PR_MALLOC (buflen);
   if (!buf)
     return 0;
@@ -1264,7 +1264,7 @@ mime_image_make_image_html(void *image_closure)
 }
 
 static int
-mime_image_write_buffer(const char *buf, PRInt32 size, void *image_closure)
+mime_image_write_buffer(const char *buf, int32_t size, void *image_closure)
 {
   mime_image_stream_data *mid =
                 (mime_image_stream_data *) image_closure;
@@ -1281,7 +1281,7 @@ mime_image_write_buffer(const char *buf, PRInt32 size, void *image_closure)
   //
   if (mid->memCacheOutputStream)
   {
-    PRUint32 bytesWritten;
+    uint32_t bytesWritten;
     mid->memCacheOutputStream->Write(buf, size, &bytesWritten);
   }
   return size;
@@ -1338,7 +1338,7 @@ bool MimeObjectIsMessageBodyNoClimb(MimeObject *parent,
                                       bool *stop)
 {
   MimeContainer *container = (MimeContainer *)parent;
-  PRInt32 i;
+  int32_t i;
   char *disp;
 
   NS_ASSERTION(stop, "NULL stop to MimeObjectIsMessageBodyNoClimb");
@@ -1504,7 +1504,7 @@ mime_bridge_create_display_stream(
                           nsStreamConverter   *newPluginObj2,
                           nsIURI              *uri,
                           nsMimeOutputType    format_out,
-                          PRUint32            whattodo,
+                          uint32_t            whattodo,
                           nsIChannel          *aChannel)
 {
   int                       status = 0;
@@ -1806,7 +1806,7 @@ mimeEmitterAddHeaderField(MimeDisplayOptions *opt, const char *field, const char
 }
 
 extern "C" nsresult
-mimeEmitterAddAllHeaders(MimeDisplayOptions *opt, const char *allheaders, const PRInt32 allheadersize)
+mimeEmitterAddAllHeaders(MimeDisplayOptions *opt, const char *allheaders, const int32_t allheadersize)
 {
   // Check for draft processing...
   if (NoEmitterProcessing(opt->format_out))
@@ -2038,7 +2038,7 @@ mimeSetNewURL(nsMIMESession *stream, char *url)
 
 extern "C"
 char *
-MimeGetStringByID(PRInt32 stringID)
+MimeGetStringByID(int32_t stringID)
 {
   nsCOMPtr<nsIStringBundleService> stringBundleService =
     mozilla::services::GetStringBundleService();
@@ -2128,8 +2128,8 @@ ResetChannelCharset(MimeObject *obj)
   ////////////////////////////////////////////////////////////
 
 
-nsresult GetMailNewsFont(MimeObject *obj, bool styleFixed,  PRInt32 *fontPixelSize,
-                         PRInt32 *fontSizePercentage, nsCString& fontLang)
+nsresult GetMailNewsFont(MimeObject *obj, bool styleFixed,  int32_t *fontPixelSize,
+                         int32_t *fontSizePercentage, nsCString& fontLang)
 {
   nsresult rv = NS_OK;
 
@@ -2181,14 +2181,14 @@ nsresult GetMailNewsFont(MimeObject *obj, bool styleFixed,  PRInt32 *fontPixelSi
       return rv;
 
     // get original font size
-    PRInt32 originalSize;
+    int32_t originalSize;
     rv = prefDefBranch->GetIntPref(prefStr.get(), &originalSize);
     if (NS_FAILED(rv))
       return rv;
 
     // calculate percentage
     *fontSizePercentage = originalSize ?
-                          (PRInt32)((float)*fontPixelSize / (float)originalSize * 100) : 0;
+                          (int32_t)((float)*fontPixelSize / (float)originalSize * 100) : 0;
 
   }
 
@@ -2202,7 +2202,7 @@ nsresult GetMailNewsFont(MimeObject *obj, bool styleFixed,  PRInt32 *fontPixelSi
 */
 nsresult
 HTML2Plaintext(const nsString& inString, nsString& outString,
-               PRUint32 flags, PRUint32 wrapCol)
+               uint32_t flags, uint32_t wrapCol)
 {
   nsCOMPtr<nsIParserUtils> utils =
     do_GetService(NS_PARSERUTILS_CONTRACTID);
@@ -2222,7 +2222,7 @@ HTMLSanitize(const nsString& inString, nsString& outString)
   // If you want to add alternative sanitization, you can insert a conditional
   // call to another sanitizer and an early return here.
 
-  PRUint32 flags = nsIParserUtils::SanitizerCidEmbedsOnly |
+  uint32_t flags = nsIParserUtils::SanitizerCidEmbedsOnly |
                    nsIParserUtils::SanitizerDropForms;
 
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));

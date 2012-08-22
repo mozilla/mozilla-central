@@ -84,18 +84,18 @@ public:
                            bool *fatalError);
 
   /* unsigned long GetImportProgress (); */
-  NS_IMETHOD GetImportProgress(PRUint32 *_retval);
+  NS_IMETHOD GetImportProgress(uint32_t *_retval);
 
   NS_IMETHOD TranslateFolderName(const nsAString & aFolderName, nsAString & _retval);
 
 public:
   static void  AddLinebreak(nsString *pStream);
   static void  SetLogs(nsString& success, nsString& error, PRUnichar **pError, PRUnichar **pSuccess);
-  static void ReportError(PRInt32 errorNum, nsString& name, nsString *pStream);
+  static void ReportError(int32_t errorNum, nsString& name, nsString *pStream);
 
 
 private:
-  static void  ReportSuccess(nsString& name, PRInt32 count, nsString *pStream);
+  static void  ReportSuccess(nsString& name, int32_t count, nsString *pStream);
 
 private:
 #if defined(XP_WIN) || defined(XP_OS2)
@@ -104,7 +104,7 @@ private:
 #ifdef XP_MACOSX
   nsEudoraMac    m_eudora;
 #endif
-  PRUint32    m_bytes;
+  uint32_t    m_bytes;
 };
 
 
@@ -142,9 +142,9 @@ public:
                                PRUnichar **successLog,
                                bool *fatalError);
 
-  NS_IMETHOD GetImportProgress(PRUint32 *_retval);
+  NS_IMETHOD GetImportProgress(uint32_t *_retval);
 
-  NS_IMETHOD GetSampleData(PRInt32 index, bool *pFound, PRUnichar **pStr)
+  NS_IMETHOD GetSampleData(int32_t index, bool *pFound, PRUnichar **pStr)
     { return NS_ERROR_FAILURE;}
 
   NS_IMETHOD SetSampleLocation(nsIFile *) { return NS_OK; }
@@ -159,7 +159,7 @@ private:
 #ifdef XP_MACOSX
   nsEudoraMac    m_eudora;
 #endif
-  PRUint32    m_bytes;
+  uint32_t    m_bytes;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -382,7 +382,7 @@ ImportEudoraMailImpl::ImportEudoraMailImpl()
     nsString      eudoraTag;
     nsCString      eudoraColor;
 
-    for (PRInt16 i = 0; i < kNumEudoraLabels; i++)
+    for (int16_t i = 0; i < kNumEudoraLabels; i++)
     {
       eudoraKey = defaultEudoraLabels[i].key;
       rv = pTagService->GetTagForKey(eudoraKey, eudoraTag);
@@ -448,7 +448,7 @@ void ImportEudoraMailImpl::AddLinebreak(nsString *pStream)
     pStream->Append(PRUnichar('\n'));
 }
 
-void ImportEudoraMailImpl::ReportSuccess(nsString& name, PRInt32 count, nsString *pStream)
+void ImportEudoraMailImpl::ReportSuccess(nsString& name, int32_t count, nsString *pStream)
 {
   if (!pStream)
     return;
@@ -461,7 +461,7 @@ void ImportEudoraMailImpl::ReportSuccess(nsString& name, PRInt32 count, nsString
   AddLinebreak(pStream);
 }
 
-void ImportEudoraMailImpl::ReportError(PRInt32 errorNum, nsString& name, nsString *pStream)
+void ImportEudoraMailImpl::ReportError(int32_t errorNum, nsString& name, nsString *pStream)
 {
   if (!pStream)
     return;
@@ -505,7 +505,7 @@ ImportEudoraMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSource,
     NS_Free(pName);
   }
 
-  PRUint32 mailSize = 0;
+  uint32_t mailSize = 0;
   pSource->GetSize(&mailSize);
   if (mailSize == 0)
   {
@@ -531,7 +531,7 @@ ImportEudoraMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSource,
 #endif
 
 
-  PRInt32  msgCount = 0;
+  int32_t  msgCount = 0;
   nsresult rv = NS_OK;
 
   m_bytes = 0;
@@ -549,7 +549,7 @@ ImportEudoraMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSource,
 }
 
 
-NS_IMETHODIMP ImportEudoraMailImpl::GetImportProgress(PRUint32 *pDoneSoFar)
+NS_IMETHODIMP ImportEudoraMailImpl::GetImportProgress(uint32_t *pDoneSoFar)
 {
   NS_PRECONDITION(pDoneSoFar != nullptr, "null ptr");
   if (! pDoneSoFar)
@@ -695,7 +695,7 @@ ImportEudoraAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSource,
   nsString name;
   pSource->GetPreferredName(name);
 
-  PRUint32 addressSize = 0;
+  uint32_t addressSize = 0;
   pSource->GetSize(&addressSize);
   if (addressSize == 0) {
     IMPORT_LOG0("Address book size is 0, skipping mailbox.\n");
@@ -738,7 +738,7 @@ ImportEudoraAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSource,
 }
 
 
-NS_IMETHODIMP ImportEudoraAddressImpl::GetImportProgress(PRUint32 *_retval)
+NS_IMETHODIMP ImportEudoraAddressImpl::GetImportProgress(uint32_t *_retval)
 {
   NS_PRECONDITION(_retval != nullptr, "null ptr");
   if (!_retval)

@@ -22,7 +22,7 @@ NS_IMPL_THREADSAFE_ISUPPORTS1(nsMsgCompFields, nsIMsgCompFields)
 
 nsMsgCompFields::nsMsgCompFields()
 {
-  PRInt16 i;
+  int16_t i;
   for (i = 0; i < MSG_MAX_HEADERS; i ++)
     m_headers[i] = nullptr;
 
@@ -49,7 +49,7 @@ nsMsgCompFields::nsMsgCompFields()
 
 nsMsgCompFields::~nsMsgCompFields()
 {
-  PRInt16 i;
+  int16_t i;
   for (i = 0; i < MSG_MAX_HEADERS; i ++)
     PR_FREEIF(m_headers[i]);
 }
@@ -363,13 +363,13 @@ NS_IMETHODIMP nsMsgCompFields::GetReturnReceipt(bool *_retval)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::SetReceiptHeaderType(PRInt32 value)
+NS_IMETHODIMP nsMsgCompFields::SetReceiptHeaderType(int32_t value)
 {
     m_receiptHeaderType = value;
     return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::GetReceiptHeaderType(PRInt32 *_retval)
+NS_IMETHODIMP nsMsgCompFields::GetReceiptHeaderType(int32_t *_retval)
 {
     *_retval = m_receiptHeaderType;
     return NS_OK;
@@ -486,12 +486,12 @@ NS_IMETHODIMP nsMsgCompFields::GetAttachments(nsISimpleEnumerator * *aAttachment
 /* void addAttachment (in nsIMsgAttachment attachment); */
 NS_IMETHODIMP nsMsgCompFields::AddAttachment(nsIMsgAttachment *attachment)
 {
-  PRInt32 attachmentCount = m_attachments.Count();
+  int32_t attachmentCount = m_attachments.Count();
 
   //Don't add twice the same attachment.
   nsCOMPtr<nsIMsgAttachment> element;
   bool sameUrl;
-  for (PRInt32 i = 0; i < attachmentCount; i ++)
+  for (int32_t i = 0; i < attachmentCount; i ++)
   {
     m_attachments[i]->EqualsUrl(attachment, &sameUrl);
     if (sameUrl)
@@ -505,11 +505,11 @@ NS_IMETHODIMP nsMsgCompFields::AddAttachment(nsIMsgAttachment *attachment)
 /* void removeAttachment (in nsIMsgAttachment attachment); */
 NS_IMETHODIMP nsMsgCompFields::RemoveAttachment(nsIMsgAttachment *attachment)
 {
-  PRInt32 attachmentCount = m_attachments.Count();
+  int32_t attachmentCount = m_attachments.Count();
 
   nsCOMPtr<nsIMsgAttachment> element;
   bool sameUrl;
-  for (PRInt32 i = 0; i < attachmentCount; i ++)
+  for (int32_t i = 0; i < attachmentCount; i ++)
   {
     m_attachments[i]->EqualsUrl(attachment, &sameUrl);
     if (sameUrl)
@@ -535,7 +535,7 @@ NS_IMETHODIMP nsMsgCompFields::RemoveAttachments()
 NS_IMETHODIMP
 nsMsgCompFields::SplitRecipients(const nsAString &aRecipients,
                                  bool aEmailAddressOnly,
-                                 PRUint32 *aLength,
+                                 uint32_t *aLength,
                                  PRUnichar*** aResult)
 {
   NS_ENSURE_ARG_POINTER(aLength);
@@ -555,13 +555,13 @@ nsMsgCompFields::SplitRecipients(const nsAString &aRecipients,
 
   char * names;
   char * addresses;
-  PRUint32 numAddresses;
+  uint32_t numAddresses;
 
   rv = parser->ParseHeaderAddresses(NS_ConvertUTF16toUTF8(aRecipients).get(),
                                     &names, &addresses, &numAddresses);
   if (NS_SUCCEEDED(rv))
   {
-    PRUint32 i = 0;
+    uint32_t i = 0;
     char * pNames = names;
     char * pAddresses = addresses;
     PRUnichar** result = (PRUnichar**) NS_Alloc(sizeof(PRUnichar*) * numAddresses);
@@ -634,7 +634,7 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const nsAString &recipients,
   nsCAutoString recipientsStr;
   char *names;
   char *addresses;
-  PRUint32 numAddresses;
+  uint32_t numAddresses;
       
   CopyUTF16toUTF8(recipients, recipientsStr);
   rv = parser->ParseHeaderAddresses(recipientsStr.get(), &names,
@@ -644,7 +644,7 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const nsAString &recipients,
     char *pNames = names;
     char *pAddresses = addresses;
 
-    for (PRUint32 i = 0; i < numAddresses; ++i)
+    for (uint32_t i = 0; i < numAddresses; ++i)
     {
       nsCString fullAddress;
       nsCString decodedName;
@@ -724,7 +724,7 @@ NS_IMETHODIMP nsMsgCompFields::CheckCharsetConversion(char **fallbackCharset, bo
   NS_ENSURE_ARG_POINTER(_retval);
 
   nsCAutoString headers;
-  for (PRInt16 i = 0; i < MSG_MAX_HEADERS; i++)
+  for (int16_t i = 0; i < MSG_MAX_HEADERS; i++)
     headers.Append(m_headers[i]);
 
   // charset conversion check

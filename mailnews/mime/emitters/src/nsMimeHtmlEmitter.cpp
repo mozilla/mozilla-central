@@ -49,7 +49,7 @@ public:
 
 protected:
   nsTArray<nsCString> mValues;
-  PRUint32 mCurrentIndex; // consumers expect first-in first-out enumeration
+  uint32_t mCurrentIndex; // consumers expect first-in first-out enumeration
 };
 
 NS_IMPL_ISUPPORTS1(nsMimeStringEnumerator, nsIUTF8StringEnumerator)
@@ -158,7 +158,7 @@ nsMimeHtmlDisplayEmitter::GetHeaderSink(nsIMsgHeaderSink ** aHeaderSink)
   return rv;
 }
 
-nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSink, PRInt32 aHeaderMode, bool aFromNewsgroup)
+nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSink, int32_t aHeaderMode, bool aFromNewsgroup)
 {
   // two string enumerators to pass out to the header sink
   nsRefPtr<nsMimeStringEnumerator> headerNameEnumerator = new nsMimeStringEnumerator();
@@ -183,7 +183,7 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
     }
   }
 
-  for (PRInt32 i=0; i<mHeaderArray->Count(); i++)
+  for (int32_t i=0; i<mHeaderArray->Count(); i++)
   {
     headerInfoType * headerInfo = (headerInfoType *) mHeaderArray->ElementAt(i);
     if ( (!headerInfo) || (!headerInfo->name) || (!(*headerInfo->name)) || (!headerInfo->value) || (!(*headerInfo->value)))
@@ -251,7 +251,7 @@ NS_IMETHODIMP nsMimeHtmlDisplayEmitter::WriteHTMLHeaders(const nsACString &name)
     mFirstHeaders = false;
 
   bool bFromNewsgroups = false;
-  for (PRInt32 j=0; j < mHeaderArray->Count(); j++)
+  for (int32_t j=0; j < mHeaderArray->Count(); j++)
   {
     headerInfoType *headerInfo = (headerInfoType *)mHeaderArray->ElementAt(j);
     if (!(headerInfo && headerInfo->name && *headerInfo->name))
@@ -270,7 +270,7 @@ NS_IMETHODIMP nsMimeHtmlDisplayEmitter::WriteHTMLHeaders(const nsACString &name)
 
   if (headerSink)
   {
-    PRInt32 viewMode = 0;
+    int32_t viewMode = 0;
     nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
     if (pPrefBranch)
       rv = pPrefBranch->GetIntPref("mail.show_headers", &viewMode);
@@ -295,7 +295,7 @@ nsMimeHtmlDisplayEmitter::EndHeader(const nsACString &name)
       char * subject = MsgEscapeHTML(val);
       if (subject)
       {
-        PRInt32 bufLen = strlen(subject) + 16;
+        int32_t bufLen = strlen(subject) + 16;
         char *buf = new char[bufLen];
         if (!buf)
           return NS_ERROR_OUT_OF_MEMORY;
@@ -462,7 +462,7 @@ nsMimeHtmlDisplayEmitter::AddAttachmentField(const char *field, const char *valu
     if (strcmp(field, HEADER_X_MOZILLA_PART_SIZE))
       return NS_OK;
 
-    PRUint64 size = atoi(value);
+    uint64_t size = atoi(value);
     nsAutoString sizeString;
     rv = FormatFileSize(size, false, sizeString);
     UtilityWrite("<td class=\"mimeAttachmentSize\">");
@@ -510,7 +510,7 @@ nsMimeHtmlDisplayEmitter::EndAllAttachments()
 
 nsresult
 nsMimeHtmlDisplayEmitter::WriteBody(const nsACString &buf,
-                                    PRUint32 *amountWritten)
+                                    uint32_t *amountWritten)
 {
   Write(buf, amountWritten);
   return NS_OK;

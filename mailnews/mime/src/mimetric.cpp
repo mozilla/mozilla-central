@@ -14,7 +14,7 @@
 MimeDefClass(MimeInlineTextRichtext, MimeInlineTextRichtextClass,
        mimeInlineTextRichtextClass, &MIME_SUPERCLASS);
 
-static int MimeInlineTextRichtext_parse_line (const char *, PRInt32, MimeObject *);
+static int MimeInlineTextRichtext_parse_line (const char *, int32_t, MimeObject *);
 static int MimeInlineTextRichtext_parse_begin (MimeObject *);
 static int MimeInlineTextRichtext_parse_eof (MimeObject *, bool);
 
@@ -33,10 +33,10 @@ MimeInlineTextRichtextClassInitialize(MimeInlineTextRichtextClass *clazz)
    from outside this module (no MimeObject, etc.)
  */
 int
-MimeRichtextConvert (const char *line, PRInt32 length,
+MimeRichtextConvert (const char *line, int32_t length,
            MimeObject *obj,
            char **obufferP,
-           PRInt32 *obuffer_sizeP,
+           int32_t *obuffer_sizeP,
            bool enriched_p)
 {
   /* RFC 1341 (the original MIME spec) defined text/richtext.
@@ -73,11 +73,11 @@ MimeRichtextConvert (const char *line, PRInt32 length,
   // The code below must never expand the input by more than 5x;
   // if it does, the desired_size multiplier (5) below must be changed too
 #define BGROWTH 5
-  if ( (PRUint32)length >= ( (PRUint32) 0xfffffffe)/BGROWTH )
+  if ( (uint32_t)length >= ( (uint32_t) 0xfffffffe)/BGROWTH )
       return -1;
   desired_size = (length * BGROWTH) + 1;
 #undef BGROWTH  
-  if (desired_size >= (PRUint32) *obuffer_sizeP)
+  if (desired_size >= (uint32_t) *obuffer_sizeP)
   status = mime_GrowBuffer (desired_size, sizeof(char), 1024,
                obufferP, obuffer_sizeP);
   if (status < 0) return status;
@@ -93,7 +93,7 @@ MimeRichtextConvert (const char *line, PRInt32 length,
     }
   }
 
-  PRUint32 outlen = (PRUint32) *obuffer_sizeP;
+  uint32_t outlen = (uint32_t) *obuffer_sizeP;
   out = *obufferP;
   *out = 0;
 
@@ -101,7 +101,7 @@ MimeRichtextConvert (const char *line, PRInt32 length,
   last_end = line;
   this_start = last_end;
   this_end = this_start;
-  PRUint32 addedlen = 0;
+  uint32_t addedlen = 0;
   while (this_end < data_end)
   {
     /* Skip forward to next special character. */
@@ -317,7 +317,7 @@ MimeRichtextConvert (const char *line, PRInt32 length,
 
 
 static int
-MimeInlineTextRichtext_parse_line (const char *line, PRInt32 length, MimeObject *obj)
+MimeInlineTextRichtext_parse_line (const char *line, int32_t length, MimeObject *obj)
 {
   bool enriched_p = (((MimeInlineTextRichtextClass *) obj->clazz)
             ->enriched_p);

@@ -20,7 +20,7 @@ int MainChecks(nsMsgImapHdrXferInfo* hdrInfo, nsIImapHeaderInfo **hdrArray,
                EHdrArrayCheck hdrArrayCheck)
 {
   nsCOMPtr<nsIImapHeaderInfo> hdr;
-  PRInt32 numHdrs = -1;
+  int32_t numHdrs = -1;
 
   // Check the number of headers initially is zero
   if (NS_FAILED(hdrInfo->GetNumHeaders(&numHdrs)))
@@ -33,7 +33,7 @@ int MainChecks(nsMsgImapHdrXferInfo* hdrInfo, nsIImapHeaderInfo **hdrArray,
   if (hdrInfo->GetHeader(1, getter_AddRefs(hdr)) != NS_ERROR_NULL_POINTER)
     return 3;
 
-  PRInt32 i;
+  int32_t i;
   for (i = 0; i < kNumHdrsToXfer; ++i)
   {
     // Now kick off a new one.

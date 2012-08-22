@@ -44,12 +44,12 @@ MIME_EncoderDestroy(MimeEncoderData *data, bool abort_p)
 }
 
 extern "C" nsresult
-MIME_EncoderWrite(MimeEncoderData *data, const char *buffer, PRInt32 size)
+MIME_EncoderWrite(MimeEncoderData *data, const char *buffer, int32_t size)
 {
   nsresult rv;
   nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRInt32 written = 0;
+  int32_t written = 0;
   return converter->EncoderWrite(data, buffer, size, &written);
 }

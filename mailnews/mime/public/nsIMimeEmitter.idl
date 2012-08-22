@@ -70,12 +70,12 @@ interface nsIMimeEmitter : nsISupports {
 
     // Body handling routines.
     void startBody(in boolean bodyOnly, [const] in string msgID, [const] in string outCharset);
-    void writeBody([const] in AUTF8String buf, out PRUint32 amountWritten);
+    void writeBody([const] in AUTF8String buf, out uint32_t amountWritten);
     void endBody();
 
     // Generic write routine. This is necessary for output that
     // libmime needs to pass through without any particular parsing
     // involved (i.e. decoded images, HTML Body Text, etc...
-    void write([const] in ACString buf, out PRUint32 amountWritten);
+    void write([const] in ACString buf, out uint32_t amountWritten);
     void utilityWrite([const] in string buf);
 };

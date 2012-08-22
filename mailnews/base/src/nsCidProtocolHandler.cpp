@@ -24,12 +24,12 @@ NS_IMETHODIMP nsCidProtocolHandler::GetScheme(nsACString & aScheme)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsCidProtocolHandler::GetDefaultPort(PRInt32 *aDefaultPort)
+NS_IMETHODIMP nsCidProtocolHandler::GetDefaultPort(int32_t *aDefaultPort)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsCidProtocolHandler::GetProtocolFlags(PRUint32 *aProtocolFlags)
+NS_IMETHODIMP nsCidProtocolHandler::GetProtocolFlags(uint32_t *aProtocolFlags)
 {
   // XXXbz so why does this protocol handler exist, exactly?
   return NS_ERROR_NOT_IMPLEMENTED;
@@ -59,7 +59,7 @@ NS_IMETHODIMP nsCidProtocolHandler::NewChannel(nsIURI *aURI, nsIChannel **_retva
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsCidProtocolHandler::AllowPort(PRInt32 port, const char *scheme, bool *_retval)
+NS_IMETHODIMP nsCidProtocolHandler::AllowPort(int32_t port, const char *scheme, bool *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

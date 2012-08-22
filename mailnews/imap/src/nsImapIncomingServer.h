@@ -50,7 +50,7 @@ public:
   NS_IMETHOD GetCanUndoDeleteOnServer(bool *canUndoDeleteOnServer);
   NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages);
   NS_IMETHOD GetCanEmptyTrashOnExit(bool *canEmptyTrashOnExit);
-  NS_IMETHOD GetOfflineSupportLevel(PRInt32 *aSupportLevel);
+  NS_IMETHOD GetOfflineSupportLevel(int32_t *aSupportLevel);
   NS_IMETHOD GeneratePrettyNameForMigration(nsAString& aPrettyName);
   NS_IMETHOD GetSupportsDiskSpace(bool *aSupportsDiskSpace);
   NS_IMETHOD GetCanCreateFoldersOnServer(bool *aCanCreateFoldersOnServer);
@@ -61,10 +61,10 @@ public:
   NS_IMETHOD OnUserOrHostNameChanged(const nsACString& oldName,
                                      const nsACString& newName,
                                      bool hostnameChanged);
-  NS_IMETHOD GetNumIdleConnections(PRInt32 *aNumIdleConnections);
+  NS_IMETHOD GetNumIdleConnections(int32_t *aNumIdleConnections);
   NS_IMETHOD ForgetSessionPassword();
   NS_IMETHOD GetMsgFolderFromURI(nsIMsgFolder *aFolderResource, const nsACString& aURI, nsIMsgFolder **aFolder);
-  NS_IMETHOD SetSocketType(PRInt32 aSocketType);
+  NS_IMETHOD SetSocketType(int32_t aSocketType);
   NS_IMETHOD VerifyLogon(nsIUrlListener *aUrlListener, nsIMsgWindow *aMsgWindow,
                          nsIURI **aURL);
 
@@ -93,10 +93,10 @@ private:
 
   nsresult DoomUrlIfChannelHasError(nsIImapUrl *aImapUrl, bool *urlDoomed);
   bool ConnectionTimeOut(nsIImapProtocol* aImapConnection);
-  nsresult GetFormattedStringFromID(const nsAString& aValue, PRInt32 aID, nsAString& aResult);
+  nsresult GetFormattedStringFromID(const nsAString& aValue, int32_t aID, nsAString& aResult);
   nsresult GetPrefForServerAttribute(const char *prefSuffix, bool *prefValue);
   bool CheckSpecialFolder(nsIRDFService *rdf, nsCString &folderUri,
-                            PRUint32 folderFlag, nsCString &existingUri);
+                            uint32_t folderFlag, nsCString &existingUri);
 
   nsCOMArray<nsIImapProtocol> m_connectionCache;
   nsCOMArray<nsIImapUrl> m_urlQueue;

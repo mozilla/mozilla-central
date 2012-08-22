@@ -23,7 +23,7 @@ void nsImapSearchResultSequence::Clear(void)
 {
   if (mImpl) 
   {
-    PRInt32 i = mImpl->mCount;
+    int32_t i = mImpl->mCount;
     while (0 <= --i) 
     {
       char* string = (char*)mImpl->mArray[i];
@@ -71,7 +71,7 @@ void  nsImapSearchResultIterator::ResetIterator()
   fPositionInCurrentLine = fCurrentLine;
 }
 
-PRInt32 nsImapSearchResultIterator::GetNextMessageNumber()
+int32_t nsImapSearchResultIterator::GetNextMessageNumber()
 {
   int32 returnValue = 0;
   if (fPositionInCurrentLine)

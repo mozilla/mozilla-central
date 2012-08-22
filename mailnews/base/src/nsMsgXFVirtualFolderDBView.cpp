@@ -35,7 +35,7 @@ NS_IMETHODIMP nsMsgXFVirtualFolderDBView::Open(nsIMsgFolder *folder,
                                                nsMsgViewSortTypeValue sortType, 
                                                nsMsgViewSortOrderValue sortOrder, 
                                                nsMsgViewFlagsTypeValue viewFlags, 
-                                               PRInt32 *pCount)
+                                               int32_t *pCount)
 {
   m_viewFolder = folder;
   return nsMsgSearchDBView::Open(folder, sortType, sortOrder, viewFlags, pCount);
@@ -84,7 +84,7 @@ nsMsgXFVirtualFolderDBView::CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger 
   newMsgDBView->m_viewFolder = m_viewFolder;
   newMsgDBView->m_searchSession = m_searchSession;
 
-  PRInt32 scopeCount;
+  int32_t scopeCount;
   nsresult rv;
   nsCOMPtr <nsIMsgSearchSession> searchSession =
     do_QueryReferent(m_searchSession, &rv);
@@ -94,7 +94,7 @@ nsMsgXFVirtualFolderDBView::CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger 
     do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   searchSession->CountSearchScopes(&scopeCount);
-  for (PRInt32 i = 0; i < scopeCount; i++)
+  for (int32_t i = 0; i < scopeCount; i++)
   {
     nsMsgSearchScopeValue scopeId;
     nsCOMPtr<nsIMsgFolder> searchFolder;
@@ -137,7 +137,7 @@ nsresult nsMsgXFVirtualFolderDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey a
 }
 
 NS_IMETHODIMP nsMsgXFVirtualFolderDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged,
-                bool aPreChange, PRUint32 *aStatus, nsIDBChangeListener *aInstigator)
+                bool aPreChange, uint32_t *aStatus, nsIDBChangeListener *aInstigator)
 {
   // If the junk mail plugin just activated on a message, then
   // we'll allow filters to remove from view.
@@ -181,7 +181,7 @@ NS_IMETHODIMP nsMsgXFVirtualFolderDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdr
   return NS_OK;
 }
 
-void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForFolder(nsIMsgFolder *folder, nsMsgKey *newHits, PRUint32 numNewHits)
+void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForFolder(nsIMsgFolder *folder, nsMsgKey *newHits, uint32_t numNewHits)
 {
   nsCOMPtr <nsIMsgDatabase> db;
   nsresult rv = folder->GetMsgDatabase(getter_AddRefs(db));
@@ -189,14 +189,14 @@ void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForFolder(nsIMsgFolder *folde
   {
     nsCString searchUri;
     m_viewFolder->GetURI(searchUri);
-    PRUint32 numBadHits;
+    uint32_t numBadHits;
     nsMsgKey *badHits;
     rv = db->RefreshCache(searchUri.get(), numNewHits, newHits,
                      &numBadHits, &badHits);
     if (NS_SUCCEEDED(rv))
     {
       nsCOMPtr<nsIMsgDBHdr> badHdr;
-      for (PRUint32 badHitIndex = 0; badHitIndex < numBadHits; badHitIndex++)
+      for (uint32_t badHitIndex = 0; badHitIndex < numBadHits; badHitIndex++)
       {
         // ### of course, this isn't quite right, since we should be 
         // using FindHdr, and we shouldn't be expanding the threads.
@@ -216,10 +216,10 @@ void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForPrevSearchedFolders(nsIMsg
   // Handle the most recent folder with hits, if any.
   if (m_curFolderGettingHits)
   {
-    PRUint32 count = m_hdrHits.Count();
+    uint32_t count = m_hdrHits.Count();
     nsTArray<nsMsgKey> newHits;
     newHits.SetLength(count);
-    for (PRUint32 i = 0; i < count; i++)
+    for (uint32_t i = 0; i < count; i++)
       m_hdrHits[i]->GetMessageKey(&newHits[i]);
 
     newHits.Sort();
@@ -313,15 +313,15 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
   // count up the number of unread and total messages from the view, and set those in the
   // folder - easier than trying to keep the count up to date in the face of
   // search hits coming in while the user is reading/deleting messages.
-  PRUint32 numUnread = 0;
-  for (PRUint32 i = 0; i < m_flags.Length(); i++)
+  uint32_t numUnread = 0;
+  for (uint32_t i = 0; i < m_flags.Length(); i++)
     if (m_flags[i] & nsMsgMessageFlags::Elided)
     {
       nsCOMPtr<nsIMsgThread> thread;
       GetThreadContainingIndex(i, getter_AddRefs(thread));
       if (thread)
       {
-        PRUint32 unreadInThread;
+        uint32_t unreadInThread;
         thread->GetNumUnreadChildren(&unreadInThread);
         numUnread += unreadInThread;
       }
@@ -350,7 +350,7 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
 NS_IMETHODIMP
 nsMsgXFVirtualFolderDBView::OnNewSearch()
 {
-  PRInt32 oldSize = GetSize();
+  int32_t oldSize = GetSize();
 
   RemovePendingDBListeners();
   m_doingSearch = true;
@@ -369,7 +369,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
   // and for each folder, then open the db and pull out the cached hits, add them to the view.
   // For each hit in a new folder, we'll then clean up the stale hits from the previous folder(s).
 
-  PRInt32 scopeCount;
+  int32_t scopeCount;
   nsCOMPtr<nsIMsgSearchSession> searchSession = do_QueryReferent(m_searchSession);
   NS_ENSURE_TRUE(searchSession, NS_OK); // just ignore
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID);
@@ -403,7 +403,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
   if (mTree && !m_doingQuickSearch)
     mTree->BeginUpdateBatch();
 
-  for (PRInt32 i = 0; i < scopeCount; i++)
+  for (int32_t i = 0; i < scopeCount; i++)
   {
     nsMsgSearchScopeValue scopeId;
     nsCOMPtr<nsIMsgFolder> searchFolder;

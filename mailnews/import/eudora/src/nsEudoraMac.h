@@ -112,7 +112,7 @@ private:
 
 
 private:
-  PRUint32 m_depth;
+  uint32_t m_depth;
   nsCOMPtr <nsIFile> m_mailImportLocation;
   bool HasResourceFork(FSRef *fsRef);
 };

@@ -259,7 +259,7 @@ NS_IMETHODIMP nsImapUrl::GetListOfMessageIds(nsACString &aResult)
   if (!m_listOfMessageIds)
     return  NS_ERROR_NULL_POINTER;
 
-  PRInt32 bytesToCopy = strlen(m_listOfMessageIds);
+  int32_t bytesToCopy = strlen(m_listOfMessageIds);
 
   // mime may have glommed a "&part=" for a part download
   // we return the entire message and let mime extract
@@ -275,7 +275,7 @@ NS_IMETHODIMP nsImapUrl::GetListOfMessageIds(nsACString &aResult)
   // since that can specify an IMAP MIME part
   char *wherePart = PL_strstr(m_listOfMessageIds, "/;section=");
   if (wherePart)
-    bytesToCopy = NS_MIN(bytesToCopy, PRInt32(wherePart - m_listOfMessageIds));
+    bytesToCopy = NS_MIN(bytesToCopy, int32_t(wherePart - m_listOfMessageIds));
 
   aResult.Assign(m_listOfMessageIds, bytesToCopy);
   return NS_OK;
@@ -377,7 +377,7 @@ NS_IMETHODIMP nsImapUrl::GetOnlineSubDirSeparator(char* separator)
   }
 }
 
-NS_IMETHODIMP nsImapUrl::GetNumBytesToFetch(PRInt32 *aNumBytesToFetch)
+NS_IMETHODIMP nsImapUrl::GetNumBytesToFetch(int32_t *aNumBytesToFetch)
 {
   NS_ENSURE_ARG_POINTER(aNumBytesToFetch);
   *aNumBytesToFetch = m_numBytesToFetch;
@@ -399,13 +399,13 @@ NS_IMETHODIMP nsImapUrl::MessageIdsAreUids(bool *result)
 }
 
 NS_IMETHODIMP
-nsImapUrl::SetExtraStatus(PRInt32 aExtraStatus)
+nsImapUrl::SetExtraStatus(int32_t aExtraStatus)
 {
   m_extraStatus = aExtraStatus;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapUrl::GetExtraStatus(PRInt32 *aResult)
+NS_IMETHODIMP nsImapUrl::GetExtraStatus(int32_t *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = m_extraStatus;
@@ -851,10 +851,10 @@ NS_IMETHODIMP nsImapUrl::AllocateServerPath(const char * canonicalPath, char onl
 {
   NS_ENSURE_ARG(sourcePath);
   NS_ENSURE_ARG(resultPath);
-  PRInt32 extra = 0;
-  PRInt32 len = strlen(sourcePath);
+  int32_t extra = 0;
+  int32_t len = strlen(sourcePath);
   const char *src = sourcePath;
-  PRInt32 i;
+  int32_t i;
   for ( i = 0; i < len; i++)
   {
     if (*src == '^')
@@ -1197,7 +1197,7 @@ NS_IMETHODIMP nsImapUrl::GetUri(char** aURI)
   else
   {
     *aURI = nullptr;
-    PRUint32 key = m_listOfMessageIds ? atoi(m_listOfMessageIds) : 0;
+    uint32_t key = m_listOfMessageIds ? atoi(m_listOfMessageIds) : 0;
     nsCString canonicalPath;
     AllocateCanonicalPath(m_sourceCanonicalFolderPathSubString, m_onlineSubDirSeparator, (getter_Copies(canonicalPath)));
     nsCString fullFolderPath("/");
@@ -1247,7 +1247,7 @@ NS_IMETHODIMP nsImapUrl::GetMessageFile(nsIFile ** aFile)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapUrl::IsUrlType(PRUint32 type, bool *isType)
+NS_IMETHODIMP nsImapUrl::IsUrlType(uint32_t type, bool *isType)
 {
   NS_ENSURE_ARG(isType);
 

@@ -29,25 +29,25 @@ public:
   bool      IsHdrParentOf(nsIMsgDBHdr *possibleParent,
                           nsIMsgDBHdr *possibleChild);
 
-  void      ChangeUnreadChildCount(PRInt32 delta);
-  void      ChangeChildCount(PRInt32 delta);
+  void      ChangeUnreadChildCount(int32_t delta);
+  void      ChangeChildCount(int32_t delta);
 
   nsresult  AddHdr(nsIMsgDBHdr *newHdr, bool reparentChildren, 
-                   PRUint32 &whereInserted, nsIMsgDBHdr **outParent);
-  PRInt32   HdrIndex(nsIMsgDBHdr *hdr);
-  PRUint32  ChildLevelAt(PRUint32 msgIndex) {return m_levels[msgIndex];}
-  PRUint32  MsgCount() {return m_numChildren;};
+                   uint32_t &whereInserted, nsIMsgDBHdr **outParent);
+  int32_t   HdrIndex(nsIMsgDBHdr *hdr);
+  uint32_t  ChildLevelAt(uint32_t msgIndex) {return m_levels[msgIndex];}
+  uint32_t  MsgCount() {return m_numChildren;};
 
 protected:
   nsMsgSearchDBView *m_view;
-  PRUint32        m_numUnreadChildren;
-  PRUint32        m_numChildren;
-  PRUint32        m_flags;
-  PRUint32        m_newestMsgDate;
+  uint32_t        m_numUnreadChildren;
+  uint32_t        m_numChildren;
+  uint32_t        m_flags;
+  uint32_t        m_newestMsgDate;
   nsMsgKey        m_threadId;
   nsTArray<nsMsgKey> m_keys;
   nsCOMArray<nsIMsgFolder> m_folders;
-  nsTArray<PRUint8> m_levels;
+  nsTArray<uint8_t> m_levels;
 };
 
 #endif

@@ -28,7 +28,7 @@ public:
 
 private:
   bool     mInitialized;
-  PRInt32  mCurrentBiffState;
+  int32_t  mCurrentBiffState;
   nsCOMPtr<nsISound> mSound;
   nsresult PlayBiffSound();
 

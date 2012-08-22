@@ -34,7 +34,7 @@ public:
 
 protected:
 
-	PRUint32 m_dbRowID;
+	uint32_t m_dbRowID;
 };
 
 #endif

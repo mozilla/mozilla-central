@@ -45,7 +45,7 @@ inline void LdapCompressWhitespace(nsCString& aString)
     while (IS_SPACE(*wend))
       ++wend;
 
-    PRUint32 wlen = wend - cur - 1;
+    uint32_t wlen = wend - cur - 1;
 
     // fix "end"
     end -= wlen;
@@ -69,17 +69,17 @@ bool IsUTF8(const nsACString& aString)
 {
   const char *done_reading = aString.EndReading();
 
-  PRInt32 state = 0;
+  int32_t state = 0;
   bool overlong = false;
   bool surrogate = false;
   bool nonchar = false;
-  PRUint16 olupper = 0; // overlong byte upper bound.
-  PRUint16 slower = 0;  // surrogate byte lower bound.
+  uint16_t olupper = 0; // overlong byte upper bound.
+  uint16_t slower = 0;  // surrogate byte lower bound.
 
   const char *ptr = aString.BeginReading();
 
   while (ptr < done_reading) {
-    PRUint8 c;
+    uint8_t c;
 
     if (0 == state) {
 

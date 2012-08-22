@@ -34,7 +34,7 @@ private:
   nsCString   mMacType;
   nsCString   mMacCreator;
   nsString    mHtmlAnnotation;
-  PRInt64     mSize;
+  int64_t     mSize;
 };
 
 

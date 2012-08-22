@@ -51,16 +51,16 @@ struct nsLocalMailCopyState
   // for displaying status;
   nsCOMPtr <nsIMsgStatusFeedback> m_statusFeedback;
   nsCOMPtr <nsIStringBundle> m_stringBundle;
-  PRInt64 m_lastProgressTime;
+  int64_t m_lastProgressTime;
 
   nsMsgKey m_curDstKey;
-  PRUint32 m_curCopyIndex;
+  uint32_t m_curCopyIndex;
   nsCOMPtr <nsIMsgMessageService> m_messageService;
   /// The number of messages in m_messages.
-  PRUint32 m_totalMsgCount;
+  uint32_t m_totalMsgCount;
   char *m_dataBuffer;
-  PRUint32 m_dataBufferSize;
-  PRUint32 m_leftOver;
+  uint32_t m_dataBufferSize;
+  uint32_t m_leftOver;
   bool m_isMove;
   bool m_isFolder;   // isFolder move/copy
   bool m_dummyEnvelopeNeeded;
@@ -135,7 +135,7 @@ public:
 
   NS_IMETHOD GetDeletable (bool *deletable); 
   NS_IMETHOD GetRequiresCleanup(bool *requiresCleanup);
-  NS_IMETHOD GetSizeOnDisk(PRUint32* size);
+  NS_IMETHOD GetSizeOnDisk(uint32_t* size);
 
   NS_IMETHOD  GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatabase **db);
 
@@ -150,7 +150,7 @@ public:
                           nsIMsgCopyServiceListener* listener);
   NS_IMETHOD CopyFileMessage(nsIFile* aFile, nsIMsgDBHdr* msgToReplace,
                              bool isDraftOrTemplate, 
-                             PRUint32 newMsgFlags,
+                             uint32_t newMsgFlags,
                              const nsACString &aNewMsgKeywords,
                              nsIMsgWindow *msgWindow,
                              nsIMsgCopyServiceListener* listener);
@@ -167,7 +167,7 @@ public:
 
   // Used when headers_only is TRUE
   NS_IMETHOD DownloadMessagesForOffline(nsIArray *aMessages, nsIMsgWindow *aWindow);
-  NS_IMETHOD FetchMsgPreviewText(nsMsgKey *aKeysToFetch, PRUint32 aNumKeys,
+  NS_IMETHOD FetchMsgPreviewText(nsMsgKey *aKeysToFetch, uint32_t aNumKeys,
                                                  bool aLocalOnly, nsIUrlListener *aUrlListener, 
                                                  bool *aAsyncResults);
   NS_IMETHOD AddKeywordsToMessages(nsIArray *aMessages, const nsACString& aKeywords);
@@ -212,7 +212,7 @@ protected:
                              nsIMsgFolder *srcFolder,
                              nsISupports *srcSupports,
                              bool isMove,
-                             PRInt64 totalMsgSize);
+                             int64_t totalMsgSize);
 
   // copy multiple messages at a time from this folder
   nsresult CopyMessagesTo(nsIArray *messages, nsTArray<nsMsgKey> &keyArray,
@@ -241,7 +241,7 @@ protected:
   bool m_parsingFolder;
   nsCOMPtr<nsIUrlListener> mReparseListener;
   nsTArray<nsMsgKey> mSpamKeysToMove;
-  nsresult setSubfolderFlag(const nsAString& aFolderName, PRUint32 flags);
+  nsresult setSubfolderFlag(const nsAString& aFolderName, uint32_t flags);
 
   // state variables for DownloadMessagesForOffline
 
@@ -257,7 +257,7 @@ protected:
   nsCOMPtr<nsISupportsArray> mDownloadMessages;
   nsCOMPtr<nsIMsgWindow> mDownloadWindow;
   nsMsgKey mDownloadSelectKey;
-  PRUint32 mDownloadState;
+  uint32_t mDownloadState;
 #define DOWNLOAD_STATE_NONE 0
 #define DOWNLOAD_STATE_INITED 1
 #define DOWNLOAD_STATE_GOTMSG 2
@@ -266,7 +266,7 @@ protected:
 #if DOWNLOAD_NOTIFY_STYLE == DOWNLOAD_NOTIFY_LAST
   nsMsgKey mDownloadOldKey;
   nsMsgKey mDownloadOldParent;
-  PRUint32 mDownloadOldFlags;
+  uint32_t mDownloadOldFlags;
 #endif
 };
 

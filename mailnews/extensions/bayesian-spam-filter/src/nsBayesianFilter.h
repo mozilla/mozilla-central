@@ -45,7 +45,7 @@ public:
     BaseToken* nextToken();
 
 private:
-    PRUint32 mEntrySize, mEntryCount, mEntryOffset;
+    uint32_t mEntrySize, mEntryCount, mEntryOffset;
     char *mEntryAddr, *mEntryLimit;
 };
 
@@ -58,11 +58,11 @@ private:
 //
 struct TraitPerToken
 {
-  PRUint32 mId;          // identifying number for a trait
-  PRUint32 mCount;       // count of messages with this token and trait
-  PRUint32 mNextLink;    // index in mTraitStore for the next trait, or 0
+  uint32_t mId;          // identifying number for a trait
+  uint32_t mCount;       // count of messages with this token and trait
+  uint32_t mNextLink;    // index in mTraitStore for the next trait, or 0
                          // for none
-  TraitPerToken(PRUint32 aId, PRUint32 aCount); // inititializer
+  TraitPerToken(uint32_t aId, uint32_t aCount); // inititializer
 };
 
 // An Analysis is the statistical results for a particular message, a
@@ -73,15 +73,15 @@ struct TraitPerToken
 //
 struct AnalysisPerToken
 {
-  PRUint32 mTraitIndex;    // index representing a protrait/antitrait pair.
+  uint32_t mTraitIndex;    // index representing a protrait/antitrait pair.
                            // So if we are analyzing 3 different traits, then
                            // the first trait is 0, the second 1, etc.
   double mDistance;        // absolute value of mProbability - 0.5
   double mProbability;     // relative indicator of match of trait to token
-  PRUint32 mNextLink;      // index in mAnalysisStore for the Analysis object
+  uint32_t mNextLink;      // index in mAnalysisStore for the Analysis object
                            // for the next trait index, or 0 for none.
   // initializer
-  AnalysisPerToken(PRUint32 aTraitIndex, double aDistance, double aProbability);
+  AnalysisPerToken(uint32_t aTraitIndex, double aDistance, double aProbability);
 };
 
 class TokenHash {
@@ -93,16 +93,16 @@ public:
      */
     nsresult clearTokens();
     operator int() { return mTokenTable.entryStore != NULL; }
-    PRUint32 countTokens();
+    uint32_t countTokens();
     TokenEnumeration getTokens();
     BaseToken* add(const char* word);
 
 protected:
-    TokenHash(PRUint32 entrySize);
+    TokenHash(uint32_t entrySize);
     PLArenaPool mWordPool;
-    PRUint32 mEntrySize;
+    uint32_t mEntrySize;
     PLDHashTable mTokenTable;
-    char* copyWord(const char* word, PRUint32 len);
+    char* copyWord(const char* word, uint32_t len);
     /**
      * Calls passed-in function for each token in the table.
      */
@@ -122,7 +122,7 @@ public:
     // is supposed to count the # of messsages it occurs in.
     // When add/remove is called while tokenizing a message and NOT the training set,
     //
-    Token* add(const char* word, PRUint32 count = 1);
+    Token* add(const char* word, uint32_t count = 1);
 
     Token* copyTokens();
 
@@ -145,7 +145,7 @@ public:
     // Parallel array to mEnabledHeaders
     nsTArray<nsCString> mEnabledHeadersDelimiters;
     bool mCustomHeaderTokenization; // Are there any preference-set tokenization customizations?
-    PRUint32 mMaxLengthForToken; // maximum length of a token
+    uint32_t mMaxLengthForToken; // maximum length of a token
     // should we convert iframe to div during tokenization?
     bool mIframeToDiv;
 
@@ -189,7 +189,7 @@ public:
      * @param aTraitId   id for the trait whose counts will be remembered
      * @param aCount     number of new messages represented by the token list
      */
-    void rememberTokens(TokenEnumeration tokens, PRUint32 aTraitId, PRUint32 aCount);
+    void rememberTokens(TokenEnumeration tokens, uint32_t aTraitId, uint32_t aCount);
 
     /**
      * decrement counts for tokens in the storage, removing if all counts
@@ -199,7 +199,7 @@ public:
      * @param aTraitId   id for the trait whose counts will be removed
      * @param aCount     number of messages represented by the token list
      */
-    void forgetTokens(TokenEnumeration tokens, PRUint32 aTraitId, PRUint32 aCount);
+    void forgetTokens(TokenEnumeration tokens, uint32_t aTraitId, uint32_t aCount);
 
     /**
      * write the corpus information to file storage
@@ -207,7 +207,7 @@ public:
      * @param aMaximumTokenCount  prune tokens if number of tokens exceeds
      *                            this value.  == 0  for no pruning
      */
-    void writeTrainingData(PRUint32 aMaximumTokenCount);
+    void writeTrainingData(uint32_t aMaximumTokenCount);
 
     /**
      * read the corpus information from file storage
@@ -226,7 +226,7 @@ public:
      * @param aTraitId  identifier for the trait
      * @return          number of messages for that trait
      */
-    PRUint32 getMessageCount(PRUint32 aTraitId);
+    uint32_t getMessageCount(uint32_t aTraitId);
 
     /**
      * set the count of messages whose tokens are stored that are associated
@@ -235,7 +235,7 @@ public:
      * @param aTraitId  identifier for the trait
      * @param aCount    number of messages for that trait
      */
-    void setMessageCount(PRUint32 aTraitId, PRUint32 aCount);
+    void setMessageCount(uint32_t aTraitId, uint32_t aCount);
 
     /**
      * get the count of messages associated with a particular token and trait
@@ -243,7 +243,7 @@ public:
      * @param  token     the token string and associated counts
      * @param  aTraitId  identifier for the trait
      */
-    PRUint32 getTraitCount(CorpusToken *token, PRUint32 aTraitId);
+    uint32_t getTraitCount(CorpusToken *token, uint32_t aTraitId);
 
     /**
      * Add (or remove) data from a particular file to the corpus data.
@@ -278,15 +278,15 @@ public:
      *
      */
     nsresult UpdateData(nsIFile *aFile, bool aIsAdd,
-                        PRUint32 aRemapCount, PRUint32 *aFromTraits,
-                        PRUint32 *aToTraits);
+                        uint32_t aRemapCount, uint32_t *aFromTraits,
+                        uint32_t *aToTraits);
 
     /**
      * remove all counts (message and tokens) for a trait id
      *
      * @param aTrait  trait id for the trait to remove
      */
-    nsresult ClearTrait(PRUint32 aTrait);
+    nsresult ClearTrait(uint32_t aTrait);
 
 protected:
 
@@ -310,38 +310,38 @@ protected:
      *
      * @return           true if successful, false if error
      */
-    bool readTokens(FILE* stream, PRInt64 fileSize, PRUint32 aTraitId,
+    bool readTokens(FILE* stream, int64_t fileSize, uint32_t aTraitId,
                       bool aIsAdd);
 
     /**
      * write token strings to the data file
      */
-    bool writeTokens(FILE* stream, bool shrink, PRUint32 aTraitId);
+    bool writeTokens(FILE* stream, bool shrink, uint32_t aTraitId);
 
     /**
      * remove counts for a token string
      */
-    void remove(const char* word, PRUint32 aTraitId, PRUint32 aCount);
+    void remove(const char* word, uint32_t aTraitId, uint32_t aCount);
 
     /**
      * add counts for a token string, adding the token string if new
      */
-    CorpusToken* add(const char* word, PRUint32 aTraitId, PRUint32 aCount);
+    CorpusToken* add(const char* word, uint32_t aTraitId, uint32_t aCount);
 
     /**
      * change counts in a trait in the traits array, adding the trait if needed
      */
-    nsresult updateTrait(CorpusToken* token, PRUint32 aTraitId,
-      PRInt32 aCountChange);
+    nsresult updateTrait(CorpusToken* token, uint32_t aTraitId,
+      int32_t aCountChange);
     nsCOMPtr<nsIFile> mTrainingFile;  // file used to store junk training data
     nsCOMPtr<nsIFile> mTraitFile;     // file used to store non-junk
                                            // training data
     nsTArray<TraitPerToken> mTraitStore;   // memory for linked-list of counts
-    PRUint32 mNextTraitIndex;              // index in mTraitStore to first empty
+    uint32_t mNextTraitIndex;              // index in mTraitStore to first empty
                                            // TraitPerToken
-    nsTArray<PRUint32> mMessageCounts;     // count of messages per trait
+    nsTArray<uint32_t> mMessageCounts;     // count of messages per trait
                                            // represented in the store
-    nsTArray<PRUint32> mMessageCountsId;   // Parallel array to mMessageCounts, with
+    nsTArray<uint32_t> mMessageCountsId;   // Parallel array to mMessageCounts, with
                                            // the corresponding trait ID
 };
 
@@ -366,15 +366,15 @@ public:
     void classifyMessage(
       Tokenizer& tokenizer,
       const char* messageURI,
-      nsTArray<PRUint32>& aProTraits,
-      nsTArray<PRUint32>& aAntiTraits,
+      nsTArray<uint32_t>& aProTraits,
+      nsTArray<uint32_t>& aAntiTraits,
       nsIJunkMailClassificationListener* listener,
       nsIMsgTraitClassificationListener* aTraitListener,
       nsIMsgTraitDetailListener* aDetailListener);
 
     void observeMessage(Tokenizer& tokens, const char* messageURI,
-                        nsTArray<PRUint32>& oldClassifications,
-                        nsTArray<PRUint32>& newClassifications,
+                        nsTArray<uint32_t>& oldClassifications,
+                        nsTArray<uint32_t>& newClassifications,
                         nsIJunkMailClassificationListener* listener,
                         nsIMsgTraitClassificationListener* aTraitListener);
 
@@ -385,26 +385,26 @@ protected:
 
     CorpusStore mCorpus;
     double   mJunkProbabilityThreshold;
-    PRInt32 mMaximumTokenCount;
+    int32_t mMaximumTokenCount;
     bool mTrainingDataDirty;
-    PRInt32 mMinFlushInterval; // in milliseconds, must be positive
+    int32_t mMinFlushInterval; // in milliseconds, must be positive
                                //and not too close to 0
     nsCOMPtr<nsITimer> mTimer;
 
     // index in mAnalysisStore for first empty AnalysisPerToken
-    PRUint32 mNextAnalysisIndex;
+    uint32_t mNextAnalysisIndex;
      // memory for linked list of AnalysisPerToken objects
     nsTArray<AnalysisPerToken> mAnalysisStore;
     /**
      * Determine the location in mAnalysisStore where the AnalysisPerToken
      * object for a particular token and trait is stored
      */
-    PRUint32 getAnalysisIndex(Token& token, PRUint32 aTraitIndex);
+    uint32_t getAnalysisIndex(Token& token, uint32_t aTraitIndex);
     /**
      * Set the value of the AnalysisPerToken object for a particular
      * token and trait
      */
-    nsresult setAnalysis(Token& token, PRUint32 aTraitIndex,
+    nsresult setAnalysis(Token& token, uint32_t aTraitIndex,
                          double aDistance, double aProbability);
 };
 

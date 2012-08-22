@@ -138,7 +138,7 @@ bool DownloadNewsArticlesToOfflineStore::GetNextHdrToRetrieve()
     rv = m_headerEnumerator->GetNext(getter_AddRefs(supports));
     m_newsHeader = do_QueryInterface(supports);
     NS_ENSURE_SUCCESS(rv, false);
-    PRUint32 hdrFlags;
+    uint32_t hdrFlags;
     m_newsHeader->GetFlags(&hdrFlags);
     if (hdrFlags & nsMsgMessageFlags::Marked)
     {
@@ -161,14 +161,14 @@ bool nsNewsDownloader::GetNextHdrToRetrieve()
   nsresult rv;
   if (m_downloadFromKeys)
   {
-    if (m_numwrote >= (PRInt32) m_keysToDownload.Length())
+    if (m_numwrote >= (int32_t) m_keysToDownload.Length())
       return false;
 
     m_keyToDownload = m_keysToDownload[m_numwrote++];
-    PRInt32 percent;
-    percent = (100 * m_numwrote) / (PRInt32) m_keysToDownload.Length();
+    int32_t percent;
+    percent = (100 * m_numwrote) / (int32_t) m_keysToDownload.Length();
 
-    PRInt64 nowMS = 0;
+    int64_t nowMS = 0;
     if (percent < 100)  // always need to do 100%
     {
       nowMS = PR_IntervalToMilliseconds(PR_IntervalNow());
@@ -205,7 +205,7 @@ bool nsNewsDownloader::GetNextHdrToRetrieve()
   return false;  // shouldn't get here if we're not downloading from keys.
 }
 
-nsresult nsNewsDownloader::ShowProgress(const PRUnichar *progressString, PRInt32 percent)
+nsresult nsNewsDownloader::ShowProgress(const PRUnichar *progressString, int32_t percent)
 {
   if (!m_statusFeedback)
   {
@@ -260,7 +260,7 @@ NS_IMETHODIMP nsNewsDownloader::OnSearchHit(nsIMsgDBHdr *header, nsIMsgFolder *f
   NS_ENSURE_ARG(header);
 
 
-  PRUint32 msgFlags;
+  uint32_t msgFlags;
   header->GetFlags(&msgFlags);
   // only need to download articles we don't already have...
   if (! (msgFlags & nsMsgMessageFlags::Offline))
@@ -398,9 +398,9 @@ nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextServer(bool *done)
     rv = accountManager->GetAllServers(getter_AddRefs(m_allServers));
     NS_ENSURE_SUCCESS(rv, rv);
   }
-  PRUint32 serverIndex = (m_currentServer) ? m_allServers->IndexOf(m_currentServer) + 1 : 0;
+  uint32_t serverIndex = (m_currentServer) ? m_allServers->IndexOf(m_currentServer) + 1 : 0;
   m_currentServer = nullptr;
-  PRUint32 numServers;
+  uint32_t numServers;
   m_allServers->Count(&numServers);
   nsCOMPtr <nsIMsgFolder> rootFolder;
 
@@ -454,7 +454,7 @@ nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextGroup(bool *done)
     if (NS_SUCCEEDED(rv) && session)
     {
       bool folderOpen;
-      PRUint32 folderFlags;
+      uint32_t folderFlags;
       m_currentFolder->GetFlags(&folderFlags);
       session->IsFolderOpenInWindow(m_currentFolder, &folderOpen);
       if (!folderOpen && ! (folderFlags & (nsMsgFolderFlags::Trash | nsMsgFolderFlags::Inbox)))
@@ -509,7 +509,7 @@ nsresult nsMsgDownloadAllNewsgroups::ProcessNextGroup()
     rv = AdvanceToNextGroup(&done);
     if (m_currentFolder)
     {
-      PRUint32 folderFlags;
+      uint32_t folderFlags;
       m_currentFolder->GetFlags(&folderFlags);
       if (folderFlags & nsMsgFolderFlags::Offline)
         break;
@@ -541,7 +541,7 @@ nsresult nsMsgDownloadAllNewsgroups::DownloadMsgsForCurrentGroup()
   NS_ENSURE_SUCCESS(rv, rv);
 
   bool downloadByDate, downloadUnreadOnly;
-  PRUint32 ageLimitOfMsgsToDownload;
+  uint32_t ageLimitOfMsgsToDownload;
 
   downloadSettings->GetDownloadByDate(&downloadByDate);
   downloadSettings->GetDownloadUnreadOnly(&downloadUnreadOnly);

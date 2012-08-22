@@ -118,9 +118,9 @@ protected:
   int m_numAvailAttribs;        // number of rows with at least one available operator
   typedef struct vtBits
   {
-    PRUint16 bitEnabled : 1;
-    PRUint16 bitAvailable : 1;
-    PRUint16 bitValidButNotShown : 1;
+    uint16_t bitEnabled : 1;
+    uint16_t bitAvailable : 1;
+    uint16_t bitValidButNotShown : 1;
   } vtBits;
   vtBits m_table [nsMsgSearchAttrib::kNumMsgSearchAttributes][nsMsgSearchOp::kNumMsgSearchOperators];
 private:

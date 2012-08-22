@@ -49,7 +49,7 @@ bool nsImportMimeEncode::SetUpEncode(void)
 {
   nsCString    errStr;
   if (!m_pInputBuf) {
-    m_pInputBuf = new PRUint8[kEncodeBufferSz];
+    m_pInputBuf = new uint8_t[kEncodeBufferSz];
   }
 
   m_appleSingle = false;
@@ -155,17 +155,17 @@ bool nsImportMimeEncode::DoWork(bool *pDone)
   return true;
 }
 
-static PRUint8 gBase64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static uint8_t gBase64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 bool nsImportMimeEncode::ScanBuffer(bool *pDone)
 {
 
-  PRUint32  pos = m_pos;
-  PRUint32  start = pos;
-  PRUint8 *  pChar = m_pBuf + pos;
-  PRUint32  max = m_bytesInBuf;
-  PRUint8    byte[4];
-  PRUint32  lineLen = m_lineLen;
+  uint32_t  pos = m_pos;
+  uint32_t  start = pos;
+  uint8_t *  pChar = m_pBuf + pos;
+  uint32_t  max = m_bytesInBuf;
+  uint8_t    byte[4];
+  uint32_t  lineLen = m_lineLen;
 
   while ((pos + 2) < max) {
     // Encode 3 bytes
@@ -236,7 +236,7 @@ bool nsImportMimeEncode::ScanBuffer(bool *pDone)
 
 bool nsImportMimeEncode::TranslateFileName(nsCString& inFile, nsCString& outFile)
 {
-  const PRUint8 * pIn = (const PRUint8 *) inFile.get();
+  const uint8_t * pIn = (const uint8_t *) inFile.get();
   int    len = inFile.Length();
 
   while (len) {
@@ -292,7 +292,7 @@ bool nsImportMimeEncode::WriteFileName(nsCString& fName, bool wasTrans, const ch
     else if (result)
       result = m_pOut->WriteStr("=\"");
     if (result)
-      result = m_pOut->WriteData(((const PRUint8 *)fName.get()) + idx, len);
+      result = m_pOut->WriteData(((const uint8_t *)fName.get()) + idx, len);
     if (wasTrans && result)
       result = m_pOut->WriteStr("\x0D\x0A");
     else if (result)
@@ -316,7 +316,7 @@ bool nsImportMimeEncode::WriteFileName(nsCString& fName, bool wasTrans, const ch
       else if (result)
         result = m_pOut->WriteStr("=\"");
       if (result)
-        result = m_pOut->WriteData(((const PRUint8 *)fName.get()) + idx, fName.Length() - idx);
+        result = m_pOut->WriteData(((const uint8_t *)fName.get()) + idx, fName.Length() - idx);
       if (wasTrans && result)
         result = m_pOut->WriteStr("\x0D\x0A");
       else if (result)
@@ -377,7 +377,7 @@ NS_METHOD nsIImportMimeEncodeImpl::DoWork(bool *done, bool *_retval)
   return NS_ERROR_FAILURE;
 }
 
-NS_METHOD nsIImportMimeEncodeImpl::NumBytesProcessed(PRInt32 *_retval)
+NS_METHOD nsIImportMimeEncodeImpl::NumBytesProcessed(int32_t *_retval)
 {
   if (m_pEncode && _retval)
     *_retval = m_pEncode->NumBytesProcessed();

@@ -66,7 +66,7 @@ CopyListener::OnStartCopy()
 }
 
 nsresult
-CopyListener::OnProgress(PRUint32 aProgress, PRUint32 aProgressMax)
+CopyListener::OnProgress(uint32_t aProgress, uint32_t aProgressMax)
 {
 #ifdef NS_DEBUG
   printf("CopyListener::OnProgress() %d of %d\n", aProgress, aProgressMax);
@@ -79,7 +79,7 @@ CopyListener::OnProgress(PRUint32 aProgress, PRUint32 aProgressMax)
 }
 
 nsresult
-CopyListener::SetMessageKey(PRUint32 aMessageKey)
+CopyListener::SetMessageKey(uint32_t aMessageKey)
 {
   if (mComposeAndSend)
       mComposeAndSend->SetMessageKey(aMessageKey);
@@ -439,8 +439,8 @@ LocateMessageFolder(nsIMsgIdentity   *userIdentity,
   }
   else
   {
-    PRUint32                  cnt = 0;
-    PRUint32                  i;
+    uint32_t                  cnt = 0;
+    uint32_t                  i;
 
     if (!userIdentity)
       return NS_ERROR_INVALID_ARG;

@@ -102,58 +102,58 @@ private:
 
     // the error state we want to set on the url
     nsresult m_urlErrorState;
-    PRUint32 m_LastTime;
+    uint32_t m_LastTime;
     nsCOMPtr<nsIMsgStatusFeedback> m_statusFeedback;
 
     // Generic state information -- What state are we in? What state do we want to go to
     // after the next response? What was the last response code? etc. 
     SmtpState m_nextState;
     SmtpState m_nextStateAfterResponse;
-    PRInt32 m_responseCode;    /* code returned from Smtp server */
-    PRInt32 m_previousResponseCode; 
-    PRInt32 m_continuationResponse;
+    int32_t m_responseCode;    /* code returned from Smtp server */
+    int32_t m_previousResponseCode; 
+    int32_t m_continuationResponse;
     nsCString m_responseText;   /* text returned from Smtp server */
     nsMsgLineStreamBuffer *m_lineStreamBuffer; // used to efficiently extract lines from the incoming data stream
 
     char           *m_addressCopy;
     char           *m_addresses;
-    PRUint32       m_addressesLeft;
+    uint32_t       m_addressesLeft;
     nsCString m_mailAddr;
     nsCString m_helloArgument;
-    PRInt32        m_sizelimit;
+    int32_t        m_sizelimit;
 
     // *** the following should move to the smtp server when we support
     // multiple smtp servers
     bool m_usernamePrompted;
-    PRInt32 m_prefSocketType;
+    int32_t m_prefSocketType;
     bool m_tlsEnabled;
 
     bool m_tlsInitiated;
 
     bool m_sendDone;
 
-    PRInt32 m_totalAmountRead;
+    int32_t m_totalAmountRead;
 #ifdef UNREADY_CODE 
     // message specific information
-    PRInt32 m_totalAmountWritten;
+    int32_t m_totalAmountWritten;
 #endif /* UNREADY_CODE */
-    PRInt64 m_totalMessageSize;
+    int64_t m_totalMessageSize;
 
     char *m_dataBuf;
-    PRUint32 m_dataBufSize;
+    uint32_t m_dataBufSize;
 
-    PRInt32   m_originalContentLength; /* the content length at the time of calling graph progress */
+    int32_t   m_originalContentLength; /* the content length at the time of calling graph progress */
 
     // initialization function given a new url and transport layer
     void Initialize(nsIURI * aURL);
     virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream, 
-                                          PRUint32 sourceOffset, PRUint32 length);
+                                          uint32_t sourceOffset, uint32_t length);
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // Communication methods --> Reading and writing protocol
     ////////////////////////////////////////////////////////////////////////////////////////
 
-    void UpdateStatus(PRInt32 aStatusID);
+    void UpdateStatus(int32_t aStatusID);
     void UpdateStatusWithString(const PRUnichar * aStatusString);
 
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -162,10 +162,10 @@ private:
     //						group them together based on functionality. 
     ////////////////////////////////////////////////////////////////////////////////////////
 
-    nsresult SmtpResponse(nsIInputStream * inputStream, PRUint32 length); 
-    nsresult ExtensionLoginResponse(nsIInputStream * inputStream, PRUint32 length);
-    nsresult SendHeloResponse(nsIInputStream * inputStream, PRUint32 length);
-    nsresult SendEhloResponse(nsIInputStream * inputStream, PRUint32 length);	
+    nsresult SmtpResponse(nsIInputStream * inputStream, uint32_t length); 
+    nsresult ExtensionLoginResponse(nsIInputStream * inputStream, uint32_t length);
+    nsresult SendHeloResponse(nsIInputStream * inputStream, uint32_t length);
+    nsresult SendEhloResponse(nsIInputStream * inputStream, uint32_t length);	
     nsresult SendQuit(SmtpState aNextStateAfterResponse = SMTP_DONE);
 
     nsresult AuthGSSAPIFirst();
@@ -174,7 +174,7 @@ private:
     void     AuthLoginStep0Response();
     nsresult AuthLoginStep1();
     nsresult AuthLoginStep2();
-    nsresult AuthLoginResponse(nsIInputStream * stream, PRUint32 length);
+    nsresult AuthLoginResponse(nsIInputStream * stream, uint32_t length);
 
     nsresult SendTLSResponse();
     nsresult SendMailResponse();
@@ -198,16 +198,16 @@ private:
                                const PRUnichar **formatStrings, 
                                nsACString &aPassword);
 
-    void    InitPrefAuthMethods(PRInt32 authMethodPrefValue);
+    void    InitPrefAuthMethods(int32_t authMethodPrefValue);
     nsresult ChooseAuthMethod();
-    void    MarkAuthMethodAsFailed(PRInt32 failedAuthMethod);
+    void    MarkAuthMethodAsFailed(int32_t failedAuthMethod);
     void    ResetAuthMethods();
 
     virtual const char* GetType() {return "smtp";}
 
-    PRInt32 m_prefAuthMethods; // set of capability flags for auth methods
-    PRInt32 m_failedAuthMethods; // ditto
-    PRInt32 m_currentAuthMethod; // exactly one capability flag, or 0
+    int32_t m_prefAuthMethods; // set of capability flags for auth methods
+    int32_t m_failedAuthMethods; // ditto
+    int32_t m_currentAuthMethod; // exactly one capability flag, or 0
 };
 
 #endif  // nsSmtpProtocol_h___

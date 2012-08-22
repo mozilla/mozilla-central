@@ -91,11 +91,11 @@ typedef struct _nsMsgRDFNotification {
 
 nsresult createNode(const PRUnichar *str, nsIRDFNode **, nsIRDFService *rdfService);
 
-//Given an PRInt32 creates an nsIRDFNode that is really an int literal.
-nsresult createIntNode(PRInt32 value, nsIRDFNode **node, nsIRDFService *rdfService);
+//Given an int32_t creates an nsIRDFNode that is really an int literal.
+nsresult createIntNode(int32_t value, nsIRDFNode **node, nsIRDFService *rdfService);
 
 //Given an nsIRDFBlob creates an nsIRDFNode that is really an blob literal.
-nsresult createBlobNode(PRUint8 *value, PRUint32 &length,  nsIRDFNode **node, nsIRDFService *rdfService);
+nsresult createBlobNode(uint8_t *value, uint32_t &length,  nsIRDFNode **node, nsIRDFService *rdfService);
 
 //s Assertion for a datasource that will just call GetTarget on property.  When all of our 
 //datasource derive from our datasource baseclass, this should be moved there and the first

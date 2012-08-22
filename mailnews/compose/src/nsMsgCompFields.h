@@ -31,8 +31,8 @@ struct nsMsgRecipient
 
   nsString mAddress;
   nsString mEmail;
-  PRUint32 mPreferFormat;
-  PRUint32 mProcessed;
+  uint32_t mPreferFormat;
+  uint32_t mProcessed;
 };
 
 /* Note that all the "Get" methods never return NULL (except in case of serious
@@ -187,7 +187,7 @@ protected:
   bool        m_DSN;
   bool        m_bodyIsAsciiOnly;
   bool        m_forceMsgEncoding;
-  PRInt32     m_receiptHeaderType;        /* receipt header type */
+  int32_t     m_receiptHeaderType;        /* receipt header type */
   nsCString   m_DefaultCharacterSet;
   bool        m_needToCheckCharset;
 

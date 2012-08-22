@@ -16,7 +16,7 @@ class nsImapProtocol;
 class nsImapFlagAndUidState;
 
 /* imap message flags */
-typedef PRUint16 imapMessageFlagsType;
+typedef uint16_t imapMessageFlagsType;
 
 /* used for communication between imap thread and event sinks */
 #define kNoFlags     0x00 /* RFC flags */
@@ -93,14 +93,14 @@ typedef enum {
  *
  * one of the cap flags below
  */
-typedef PRUint64 eIMAPCapabilityFlag;
+typedef uint64_t eIMAPCapabilityFlag;
 /**
  * IMAP server features, mostly CAPABILITY responses
  *
  * any set of the cap flags below, i.e.
  * i.e. 0, 1 or more |eIMAPCapabilityFlag|.
  */
-typedef PRUint64 eIMAPCapabilityFlags;
+typedef uint64_t eIMAPCapabilityFlags;
 
 const eIMAPCapabilityFlag kCapabilityUndefined = 0x00000000;
 const eIMAPCapabilityFlag kCapabilityDefined = 0x00000001;
@@ -135,7 +135,7 @@ const eIMAPCapabilityFlag kHasCompressDeflateCapability = 0x10000000;  /* RFC 49
 const eIMAPCapabilityFlag kHasAuthExternalCapability = 0x20000000;  /* RFC 2222 SASL AUTH EXTERNAL */
 const eIMAPCapabilityFlag kHasMoveCapability = 0x40000000;  /* Proposed MOVE RFC */
 const eIMAPCapabilityFlag kHasHighestModSeqCapability = 0x80000000;  /* Subset of RFC 3551 */
-// above are 32bit; below start the PRUint64 bits 33-64
+// above are 32bit; below start the uint64_t bits 33-64
 const eIMAPCapabilityFlag kHasExtendedListCapability = 0x100000000LL;  /* RFC 5258 */
 const eIMAPCapabilityFlag kHasSpecialUseCapability = 0x200000000LL;  /* RFC 6154: Sent, Draft etc. folders */
 
@@ -163,8 +163,8 @@ typedef struct _utf_name_struct {
 
 typedef struct _ProgressInfo {
   PRUnichar *message;
-  PRInt32 currentProgress;
-  PRInt32 maxProgress;
+  int32_t currentProgress;
+  int32_t maxProgress;
 } ProgressInfo;
 
 typedef enum {

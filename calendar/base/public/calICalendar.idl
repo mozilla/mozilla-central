@@ -505,7 +505,7 @@ interface calICompositeCalendar : calICalendar
   calICalendar getCalendarById(in AUTF8String aId);
 
   /* return a list of all calendars currently registered */
-  void getCalendars(out PRUint32 count,
+  void getCalendars(out uint32_t count,
                     [array, size_is(count), retval] out calICalendar aCalendars);
 
   /**
@@ -625,6 +625,6 @@ interface calIOperationListener : nsISupports
                     in nsresult aStatus,
                     in nsIIDRef aItemType, 
                     in nsIVariant aDetail,
-                    in PRUint32 aCount, 
+                    in uint32_t aCount, 
                     [array, size_is(aCount), iid_is(aItemType)]  in nsQIResult aItems );
 };

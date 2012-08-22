@@ -273,7 +273,7 @@ void nsSmtpProtocol::Initialize(nsIURI * aURL)
     m_lineStreamBuffer = new nsMsgLineStreamBuffer(OUTPUT_BUFFER_SIZE, true);
     // ** may want to consider caching the server capability to save lots of
     // round trip communication between the client and server
-    PRInt32 authMethod = 0;
+    int32_t authMethod = 0;
     nsCOMPtr<nsISmtpServer> smtpServer;
     m_runningURL->GetSmtpServer(getter_AddRefs(smtpServer));
     if (smtpServer) {
@@ -418,7 +418,7 @@ NS_IMETHODIMP nsSmtpProtocol::OnStopRequest(nsIRequest *request, nsISupports *ct
 // End of nsIStreamListenerSupport
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-void nsSmtpProtocol::UpdateStatus(PRInt32 aStatusID)
+void nsSmtpProtocol::UpdateStatus(int32_t aStatusID)
 {
   if (m_statusFeedback)
   {
@@ -448,11 +448,11 @@ void nsSmtpProtocol::UpdateStatusWithString(const PRUnichar * aStatusString)
  * gets the response code from the SMTP server and the
  * response line
  */
-nsresult nsSmtpProtocol::SmtpResponse(nsIInputStream * inputStream, PRUint32 length)
+nsresult nsSmtpProtocol::SmtpResponse(nsIInputStream * inputStream, uint32_t length)
 {
   char * line = nullptr;
   char cont_char;
-  PRUint32 ln = 0;
+  uint32_t ln = 0;
   bool pauseForMoreData = false;
 
   if (!m_lineStreamBuffer)
@@ -512,7 +512,7 @@ nsresult nsSmtpProtocol::SmtpResponse(nsIInputStream * inputStream, PRUint32 len
   return NS_OK;
 }
 
-nsresult nsSmtpProtocol::ExtensionLoginResponse(nsIInputStream * inputStream, PRUint32 length)
+nsresult nsSmtpProtocol::ExtensionLoginResponse(nsIInputStream * inputStream, uint32_t length)
 {
   nsresult status = NS_OK;
 
@@ -542,7 +542,7 @@ nsresult nsSmtpProtocol::ExtensionLoginResponse(nsIInputStream * inputStream, PR
   return(status);
 }
 
-nsresult nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 length)
+nsresult nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, uint32_t length)
 {
   nsresult status = NS_OK;
   nsCAutoString buffer;
@@ -652,7 +652,7 @@ nsresult nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32
   return(status);
 }
 
-nsresult nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 length)
+nsresult nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, uint32_t length)
 {
     nsresult status = NS_OK;
 
@@ -702,9 +702,9 @@ nsresult nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32
         }
     }
 
-    PRInt32 responseLength = m_responseText.Length();
-    PRInt32 startPos = 0;
-    PRInt32 endPos;
+    int32_t responseLength = m_responseText.Length();
+    int32_t startPos = 0;
+    int32_t endPos;
     do
     {
         endPos = m_responseText.FindChar('\n', startPos + 1);
@@ -763,7 +763,7 @@ nsresult nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32
     } while (endPos >= 0);
 
     if (TestFlag(SMTP_EHLO_SIZE_ENABLED) &&
-       m_sizelimit > 0 && (PRInt32)m_totalMessageSize > m_sizelimit)
+       m_sizelimit > 0 && (int32_t)m_totalMessageSize > m_sizelimit)
     {
 #ifdef DEBUG
         nsresult rv =
@@ -818,7 +818,7 @@ nsresult nsSmtpProtocol::SendTLSResponse()
   return rv;
 }
 
-void nsSmtpProtocol::InitPrefAuthMethods(PRInt32 authMethodPrefValue)
+void nsSmtpProtocol::InitPrefAuthMethods(int32_t authMethodPrefValue)
 {
   // for m_prefAuthMethods, using the same flags as server capablities.
   switch (authMethodPrefValue)
@@ -871,8 +871,8 @@ void nsSmtpProtocol::InitPrefAuthMethods(PRInt32 authMethodPrefValue)
  */
 nsresult nsSmtpProtocol::ChooseAuthMethod()
 {
-  PRInt32 serverCaps = m_flags; // from nsMsgProtocol::TestFlag()
-  PRInt32 availCaps = serverCaps & m_prefAuthMethods & ~m_failedAuthMethods;
+  int32_t serverCaps = m_flags; // from nsMsgProtocol::TestFlag()
+  int32_t availCaps = serverCaps & m_prefAuthMethods & ~m_failedAuthMethods;
 
   PR_LOG(SMTPLogModule, PR_LOG_DEBUG,
         ("SMTP auth: server caps 0x%X, pref 0x%X, failed 0x%X, avail caps 0x%X",
@@ -908,7 +908,7 @@ nsresult nsSmtpProtocol::ChooseAuthMethod()
   return NS_OK;
 }
 
-void nsSmtpProtocol::MarkAuthMethodAsFailed(PRInt32 failedAuthMethod)
+void nsSmtpProtocol::MarkAuthMethodAsFailed(int32_t failedAuthMethod)
 {
   PR_LOG(SMTPLogModule, PR_LOG_DEBUG,
       ("marking auth method 0x%X failed", failedAuthMethod));
@@ -1054,7 +1054,7 @@ nsresult nsSmtpProtocol::ProcessAuth()
 
 
 
-nsresult nsSmtpProtocol::AuthLoginResponse(nsIInputStream * stream, PRUint32 length)
+nsresult nsSmtpProtocol::AuthLoginResponse(nsIInputStream * stream, uint32_t length)
 {
   PR_LOG(SMTPLogModule, PR_LOG_DEBUG, ("SMTP Login response, code %d", m_responseCode));
   nsresult status = NS_OK;
@@ -1097,7 +1097,7 @@ nsresult nsSmtpProtocol::AuthLoginResponse(nsIInputStream * stream, PRUint32 len
           rv = smtpServer->GetHostname(hostname);
           NS_ENSURE_SUCCESS(rv, rv);
 
-          PRInt32 buttonPressed = 1;
+          int32_t buttonPressed = 1;
           if (NS_SUCCEEDED(MsgPromptLoginFailed(nullptr, hostname,
                                                 &buttonPressed)))
           {
@@ -1366,7 +1366,7 @@ nsresult nsSmtpProtocol::AuthLoginStep2()
         nsCAutoString encodedDigest;
         char hexVal[8];
 
-        for (PRUint32 j=0; j<16; j++)
+        for (uint32_t j=0; j<16; j++)
         {
           PR_snprintf (hexVal,8, "%.2x", 0x0ff & (unsigned short)digest[j]);
           encodedDigest.Append(hexVal);
@@ -1766,7 +1766,7 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
  * returns zero or more if the transfer needs to be continued.
  */
  nsresult nsSmtpProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
-   PRUint32 sourceOffset, PRUint32 length)
+   uint32_t sourceOffset, uint32_t length)
  {
    nsresult status = NS_OK;
    ClearFlag(SMTP_PAUSE_FOR_READ); /* already paused; reset */

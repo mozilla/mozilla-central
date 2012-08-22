@@ -14,7 +14,7 @@ NS_IMPL_THREADSAFE_ISUPPORTS1(nsImapFlagAndUidState, nsIImapFlagAndUidState)
 
 using namespace mozilla;
 
-NS_IMETHODIMP nsImapFlagAndUidState::GetNumberOfMessages(PRInt32 *result)
+NS_IMETHODIMP nsImapFlagAndUidState::GetNumberOfMessages(int32_t *result)
 {
   if (!result)
     return NS_ERROR_NULL_POINTER;
@@ -22,7 +22,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::GetNumberOfMessages(PRInt32 *result)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapFlagAndUidState::GetUidOfMessage(PRInt32 zeroBasedIndex, PRUint32 *aResult)
+NS_IMETHODIMP nsImapFlagAndUidState::GetUidOfMessage(int32_t zeroBasedIndex, uint32_t *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -32,28 +32,28 @@ NS_IMETHODIMP nsImapFlagAndUidState::GetUidOfMessage(PRInt32 zeroBasedIndex, PRU
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapFlagAndUidState::GetMessageFlags(PRInt32 zeroBasedIndex, PRUint16 *aResult)
+NS_IMETHODIMP nsImapFlagAndUidState::GetMessageFlags(int32_t zeroBasedIndex, uint16_t *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = fFlags.SafeElementAt(zeroBasedIndex, kNoImapMsgFlag);
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapFlagAndUidState::SetMessageFlags(PRInt32 zeroBasedIndex, unsigned short flags)
+NS_IMETHODIMP nsImapFlagAndUidState::SetMessageFlags(int32_t zeroBasedIndex, unsigned short flags)
 {
   if (zeroBasedIndex < fUids.Length())
     fFlags[zeroBasedIndex] = flags;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapFlagAndUidState::GetNumberOfRecentMessages(PRInt32 *result)
+NS_IMETHODIMP nsImapFlagAndUidState::GetNumberOfRecentMessages(int32_t *result)
 {
   if (!result)
     return NS_ERROR_NULL_POINTER;
   
   PR_CEnterMonitor(this);
-  PRUint32 counter = 0;
-  PRInt32 numUnseenMessages = 0;
+  uint32_t counter = 0;
+  int32_t numUnseenMessages = 0;
   
   for (counter = 0; counter < fUids.Length(); counter++)
   {
@@ -76,7 +76,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::GetPartialUIDFetch(bool *aPartialUIDFetch)
 
 /* amount to expand for imap entry flags when we need more */
 
-nsImapFlagAndUidState::nsImapFlagAndUidState(PRInt32 numberOfMessages)
+nsImapFlagAndUidState::nsImapFlagAndUidState(int32_t numberOfMessages)
   : fUids(numberOfMessages),
     fFlags(numberOfMessages),
     mLock("nsImapFlagAndUidState.mLock")
@@ -87,7 +87,7 @@ nsImapFlagAndUidState::nsImapFlagAndUidState(PRInt32 numberOfMessages)
   m_customFlagsHash.Init(10);
 }
 
-/* static */PLDHashOperator nsImapFlagAndUidState::FreeCustomFlags(const PRUint32 &aKey, char *aData,
+/* static */PLDHashOperator nsImapFlagAndUidState::FreeCustomFlags(const uint32_t &aKey, char *aData,
                                         void *closure)
 {
   PR_Free(aData);
@@ -135,13 +135,13 @@ NS_IMETHODIMP nsImapFlagAndUidState::Reset()
 
 // Remove (expunge) a message from our array, since now it is gone for good
 
-NS_IMETHODIMP nsImapFlagAndUidState::ExpungeByIndex(PRUint32 msgIndex)
+NS_IMETHODIMP nsImapFlagAndUidState::ExpungeByIndex(uint32_t msgIndex)
 {
   // protect ourselves in case the server gave us an index key of -1 or 0
-  if ((PRInt32) msgIndex <= 0)
+  if ((int32_t) msgIndex <= 0)
     return NS_ERROR_INVALID_ARG;
 
-  if ((PRUint32) fUids.Length() < msgIndex)
+  if ((uint32_t) fUids.Length() < msgIndex)
     return NS_ERROR_INVALID_ARG;
 
   PR_CEnterMonitor(this);
@@ -156,7 +156,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::ExpungeByIndex(PRUint32 msgIndex)
 
 
 // adds to sorted list, protects against duplicates and going past array bounds.
-NS_IMETHODIMP nsImapFlagAndUidState::AddUidFlagPair(PRUint32 uid, imapMessageFlagsType flags, PRUint32 zeroBasedIndex)
+NS_IMETHODIMP nsImapFlagAndUidState::AddUidFlagPair(uint32_t uid, imapMessageFlagsType flags, uint32_t zeroBasedIndex)
 {
   if (uid == nsMsgKey_None) // ignore uid of -1
     return NS_OK;
@@ -167,7 +167,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidFlagPair(PRUint32 uid, imapMessageFla
   // make sure there is room for this pair
   if (zeroBasedIndex >= fUids.Length())
   {
-    PRInt32 sizeToGrowBy = zeroBasedIndex - fUids.Length() + 1;
+    int32_t sizeToGrowBy = zeroBasedIndex - fUids.Length() + 1;
     fUids.InsertElementsAt(fUids.Length(), sizeToGrowBy, 0);
     fFlags.InsertElementsAt(fFlags.Length(), sizeToGrowBy, 0);
   }
@@ -181,23 +181,23 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidFlagPair(PRUint32 uid, imapMessageFla
 }
 
 
-NS_IMETHODIMP nsImapFlagAndUidState::GetNumberOfDeletedMessages(PRInt32 *numDeletedMessages)
+NS_IMETHODIMP nsImapFlagAndUidState::GetNumberOfDeletedMessages(int32_t *numDeletedMessages)
 {
   NS_ENSURE_ARG_POINTER(numDeletedMessages);
   *numDeletedMessages = NumberOfDeletedMessages();
   return NS_OK;
 }
 
-PRInt32 nsImapFlagAndUidState::NumberOfDeletedMessages()
+int32_t nsImapFlagAndUidState::NumberOfDeletedMessages()
 {
   return fNumberDeleted;
 }
 	
 // since the uids are sorted, start from the back (rb)
 
-PRUint32  nsImapFlagAndUidState::GetHighestNonDeletedUID()
+uint32_t  nsImapFlagAndUidState::GetHighestNonDeletedUID()
 {
-  PRUint32 msgIndex = fUids.Length();
+  uint32_t msgIndex = fUids.Length();
   do 
   {
     if (msgIndex <= 0)
@@ -216,7 +216,7 @@ PRUint32  nsImapFlagAndUidState::GetHighestNonDeletedUID()
 
 bool nsImapFlagAndUidState::IsLastMessageUnseen()
 {
-  PRUint32 msgIndex = fUids.Length();
+  uint32_t msgIndex = fUids.Length();
   
   if (msgIndex <= 0)
     return false;
@@ -231,18 +231,18 @@ bool nsImapFlagAndUidState::IsLastMessageUnseen()
 // may have thousand of messages, once we find the key set its index, or the index of
 // where the key should be inserted
 
-imapMessageFlagsType nsImapFlagAndUidState::GetMessageFlagsFromUID(PRUint32 uid, bool *foundIt, PRInt32 *ndx)
+imapMessageFlagsType nsImapFlagAndUidState::GetMessageFlagsFromUID(uint32_t uid, bool *foundIt, int32_t *ndx)
 {
   PR_CEnterMonitor(this);
   *foundIt = fUids.GreatestIndexLtEq(uid,
-                                     nsDefaultComparator<PRUint32, PRUint32>(),
-                                    (PRUint32 *) ndx);
+                                     nsDefaultComparator<uint32_t, uint32_t>(),
+                                    (uint32_t *) ndx);
   imapMessageFlagsType retFlags = (*foundIt) ? fFlags[*ndx] : kNoImapMsgFlag;
   PR_CExitMonitor(this);
   return retFlags;
 }
 
-NS_IMETHODIMP nsImapFlagAndUidState::AddUidCustomFlagPair(PRUint32 uid, const char *customFlag)
+NS_IMETHODIMP nsImapFlagAndUidState::AddUidCustomFlagPair(uint32_t uid, const char *customFlag)
 {
   MutexAutoLock mon(mLock);
   if (!m_customFlagsHash.IsInitialized())
@@ -256,7 +256,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidCustomFlagPair(PRUint32 uid, const ch
   // a valid character in a keyword. First, we need to look for the
     // customFlag in the existing flags;
     char *existingCustomFlagPtr = PL_strstr(oldValue, customFlag);
-    PRUint32 customFlagLen = strlen(customFlag);
+    uint32_t customFlagLen = strlen(customFlag);
     while (existingCustomFlagPtr)
     {
       // if existing flags ends with this exact flag, or flag + ' ', we have this flag already;
@@ -282,7 +282,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidCustomFlagPair(PRUint32 uid, const ch
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapFlagAndUidState::GetCustomFlags(PRUint32 uid, char **customFlags)
+NS_IMETHODIMP nsImapFlagAndUidState::GetCustomFlags(uint32_t uid, char **customFlags)
 {
   MutexAutoLock mon(mLock);
   if (m_customFlagsHash.IsInitialized())
@@ -299,7 +299,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::GetCustomFlags(PRUint32 uid, char **customF
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapFlagAndUidState::ClearCustomFlags(PRUint32 uid)
+NS_IMETHODIMP nsImapFlagAndUidState::ClearCustomFlags(uint32_t uid)
 {
   MutexAutoLock mon(mLock);
   m_customFlagsHash.Remove(uid);

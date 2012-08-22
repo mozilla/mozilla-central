@@ -23,11 +23,11 @@ extern MimeInlineTextPlainClass mimeInlineTextPlainClass;
 
 struct MimeInlineTextPlain {
   MimeInlineText text;
-  PRUint32 mCiteLevel;
+  uint32_t mCiteLevel;
   bool            mBlockquoting;
   //bool            mInsideQuote;
-  PRInt32         mQuotedSizeSetting;   // mail.quoted_size
-  PRInt32         mQuotedStyleSetting;  // mail.quoted_style
+  int32_t         mQuotedSizeSetting;   // mail.quoted_size
+  int32_t         mQuotedStyleSetting;  // mail.quoted_style
   char            *mCitationColor;      // mail.citation_color
   bool            mIsSig;
 };

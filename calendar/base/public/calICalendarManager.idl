@@ -17,17 +17,17 @@ interface calICalendarManager : nsISupports
   /**
    * Gives the number of registered calendars that require network access.
    */
-  readonly attribute PRUint32 networkCalendarCount;
+  readonly attribute uint32_t networkCalendarCount;
 
   /***
    * Gives the number of registered readonly calendars.
    */
-  readonly attribute PRUint32 readOnlyCalendarCount;
+  readonly attribute uint32_t readOnlyCalendarCount;
 
   /**
    * Gives the number of registered calendars
    */
-  readonly attribute PRUint32 calendarCount;
+  readonly attribute uint32_t calendarCount;
   /* 
    * create a new calendar
    * aType is the type ("caldav", "storage", etc)
@@ -47,7 +47,7 @@ interface calICalendarManager : nsISupports
   calICalendar getCalendarById(in AUTF8String aId);
 
   /* return a list of all calendars currently registered */
-  void getCalendars(out PRUint32 count,
+  void getCalendars(out uint32_t count,
                     [array, size_is(count), retval] out calICalendar aCalendars);
 
   /** Add an observer for the calendar manager, i.e when calendars are registered */

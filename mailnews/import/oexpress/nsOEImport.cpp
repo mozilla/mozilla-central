@@ -75,18 +75,18 @@ public:
                            bool *fatalError);
 
   /* unsigned long GetImportProgress (); */
-  NS_IMETHOD GetImportProgress(PRUint32 *_retval);
+  NS_IMETHOD GetImportProgress(uint32_t *_retval);
 
     NS_IMETHOD TranslateFolderName(const nsAString & aFolderName, nsAString & _retval);
 
 public:
-  static void ReportSuccess(nsString& name, PRInt32 count, nsString *pStream);
-  static void ReportError(PRInt32 errorNum, nsString& name, nsString *pStream);
+  static void ReportSuccess(nsString& name, int32_t count, nsString *pStream);
+  static void ReportError(int32_t errorNum, nsString& name, nsString *pStream);
   static void AddLinebreak(nsString *pStream);
   static void SetLogs(nsString& success, nsString& error, PRUnichar **pError, PRUnichar **pSuccess);
 
 private:
-  PRUint32 m_bytesDone;
+  uint32_t m_bytesDone;
 };
 
 
@@ -124,9 +124,9 @@ public:
                                PRUnichar **successLog,
                                bool *fatalError);
 
-  NS_IMETHOD GetImportProgress(PRUint32 *_retval);
+  NS_IMETHOD GetImportProgress(uint32_t *_retval);
 
-  NS_IMETHOD GetSampleData(PRInt32 index, bool *pFound, PRUnichar **pStr)
+  NS_IMETHOD GetSampleData(int32_t index, bool *pFound, PRUnichar **pStr)
     { return NS_ERROR_FAILURE;}
 
   NS_IMETHOD SetSampleLocation(nsIFile *) { return NS_OK; }
@@ -353,7 +353,7 @@ void ImportOEMailImpl::AddLinebreak(nsString *pStream)
     pStream->Append(PRUnichar('\n'));
 }
 
-void ImportOEMailImpl::ReportSuccess(nsString& name, PRInt32 count, nsString *pStream)
+void ImportOEMailImpl::ReportSuccess(nsString& name, int32_t count, nsString *pStream)
 {
   if (!pStream)
     return;
@@ -366,7 +366,7 @@ void ImportOEMailImpl::ReportSuccess(nsString& name, PRInt32 count, nsString *pS
   AddLinebreak(pStream);
 }
 
-void ImportOEMailImpl::ReportError(PRInt32 errorNum, nsString& name, nsString *pStream)
+void ImportOEMailImpl::ReportError(int32_t errorNum, nsString& name, nsString *pStream)
 {
   if (!pStream)
     return;
@@ -406,7 +406,7 @@ NS_IMETHODIMP ImportOEMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSourc
   if (NS_SUCCEEDED(pSource->GetDisplayName(getter_Copies(pName))))
     name = pName;
 
-  PRUint32 mailSize = 0;
+  uint32_t mailSize = 0;
   pSource->GetSize(&mailSize);
   if (mailSize == 0) {
     ReportSuccess(name, 0, &success);
@@ -426,7 +426,7 @@ NS_IMETHODIMP ImportOEMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSourc
   IMPORT_LOG1("Importing Outlook Express mailbox: %s\n", pPath.get());
 
   m_bytesDone = 0;
-  PRUint32 msgCount = 0;
+  uint32_t msgCount = 0;
   nsresult rv;
   if (nsOE5File::IsLocalMailFile(inFile)) {
     IMPORT_LOG1("Importing OE5 mailbox: %s!\n", NS_LossyConvertUTF16toASCII(name.get()));
@@ -449,7 +449,7 @@ NS_IMETHODIMP ImportOEMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSourc
   return rv;
 }
 
-NS_IMETHODIMP ImportOEMailImpl::GetImportProgress(PRUint32 *pDoneSoFar)
+NS_IMETHODIMP ImportOEMailImpl::GetImportProgress(uint32_t *pDoneSoFar)
 {
   NS_ENSURE_ARG_POINTER(pDoneSoFar);
   *pDoneSoFar = m_bytesDone;
@@ -635,13 +635,13 @@ NS_IMETHODIMP ImportOEAddressImpl::ImportAddressBook(nsIImportABDescriptor *sour
 }
 
 
-NS_IMETHODIMP ImportOEAddressImpl::GetImportProgress(PRUint32 *_retval)
+NS_IMETHODIMP ImportOEAddressImpl::GetImportProgress(uint32_t *_retval)
 {
   NS_PRECONDITION(_retval != nullptr, "null ptr");
   if (! _retval)
     return NS_ERROR_NULL_POINTER;
 
-  *_retval = (PRUint32) m_doneSoFar;
+  *_retval = (uint32_t) m_doneSoFar;
   return NS_OK;
 }
 

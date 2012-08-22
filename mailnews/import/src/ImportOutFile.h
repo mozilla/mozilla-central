@@ -16,15 +16,15 @@ class ImportOutFile;
 class ImportOutFile {
 public:
   ImportOutFile();
-  ImportOutFile(nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz);
+  ImportOutFile(nsIFile *pFile, uint8_t * pBuf, uint32_t sz);
   ~ImportOutFile();
 
-  bool    InitOutFile(nsIFile *pFile, PRUint32 bufSz = 4096);
-  void  InitOutFile(nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz);
-  inline bool    WriteData(const PRUint8 * pSrc, PRUint32 len);
-  inline bool    WriteByte(PRUint8 byte);
-  bool    WriteStr(const char *pStr) {return WriteU8NullTerm((const PRUint8 *) pStr, false); }
-  bool    WriteU8NullTerm(const PRUint8 * pSrc, bool includeNull);
+  bool    InitOutFile(nsIFile *pFile, uint32_t bufSz = 4096);
+  void  InitOutFile(nsIFile *pFile, uint8_t * pBuf, uint32_t sz);
+  inline bool    WriteData(const uint8_t * pSrc, uint32_t len);
+  inline bool    WriteByte(uint8_t byte);
+  bool    WriteStr(const char *pStr) {return WriteU8NullTerm((const uint8_t *) pStr, false); }
+  bool    WriteU8NullTerm(const uint8_t * pSrc, bool includeNull);
   bool    WriteEol(void) { return WriteStr("\x0D\x0A"); }
   bool    Done(void) {return Flush();}
 
@@ -43,23 +43,23 @@ protected:
 protected:
   nsCOMPtr <nsIFile>      m_pFile;
         nsCOMPtr <nsIOutputStream> m_outputStream;
-  PRUint8 *    m_pBuf;
-  PRUint32    m_bufSz;
-  PRUint32    m_pos;
+  uint8_t *    m_pBuf;
+  uint32_t    m_bufSz;
+  uint32_t    m_pos;
   bool        m_ownsFileAndBuffer;
 
   // markers
-  PRUint32    m_markers[kMaxMarkers];
+  uint32_t    m_markers[kMaxMarkers];
 
   // 8 bit to 7 bit translations
   nsImportTranslator  *  m_pTrans;
   bool            m_engaged;
   bool            m_supports8to7;
   ImportOutFile *      m_pTransOut;
-  PRUint8 *        m_pTransBuf;
+  uint8_t *        m_pTransBuf;
 };
 
-inline bool    ImportOutFile::WriteData(const PRUint8 * pSrc, PRUint32 len) {
+inline bool    ImportOutFile::WriteData(const uint8_t * pSrc, uint32_t len) {
   while ((len + m_pos) > m_bufSz) {
     if ((m_bufSz - m_pos)) {
       memcpy(m_pBuf + m_pos, pSrc, m_bufSz - m_pos);
@@ -79,7 +79,7 @@ inline bool    ImportOutFile::WriteData(const PRUint8 * pSrc, PRUint32 len) {
   return true;
 }
 
-inline bool    ImportOutFile::WriteByte(PRUint8 byte) {
+inline bool    ImportOutFile::WriteByte(uint8_t byte) {
   if (m_pos == m_bufSz) {
     if (!Flush())
       return false;

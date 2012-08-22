@@ -43,7 +43,7 @@ class nsEmlxHelperUtils {
   static nsresult ConvertToMboxRD(const char *aMessageBufferStart, const char *aMessageBufferEnd, nsCString &aOutBuffer);
 
   // returns an int representing the X-Mozilla-Status flags set (e.g. "read", "flagged") converted from EMLX flags.
-  static nsresult ConvertToMozillaStatusFlags(const char *aXMLBufferStart, const char *aXMLBufferEnd, PRUint32 *aMozillaStatusFlags);
+  static nsresult ConvertToMozillaStatusFlags(const char *aXMLBufferStart, const char *aXMLBufferEnd, uint32_t *aMozillaStatusFlags);
 
   public:
 

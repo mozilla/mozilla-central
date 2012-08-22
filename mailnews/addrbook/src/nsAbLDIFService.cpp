@@ -60,7 +60,7 @@ static unsigned char b642nib[0x80] = {
     0x31, 0x32, 0x33, 0xff, 0xff, 0xff, 0xff, 0xff
 };
 
-NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSrc, bool aStoreLocAsHome, PRUint32 *aProgress)
+NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSrc, bool aStoreLocAsHome, uint32_t *aProgress)
 {
   NS_ENSURE_ARG_POINTER(aSrc);
   NS_ENSURE_ARG_POINTER(aDb);
@@ -69,13 +69,13 @@ NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSr
 
   char buf[1024];
   char* pBuf = &buf[0];
-  PRInt32 startPos = 0;
-  PRUint32 len = 0;
+  int32_t startPos = 0;
+  uint32_t len = 0;
   nsVoidArray listPosArray;   // where each list/group starts in ldif file
   nsVoidArray listSizeArray;  // size of the list/group info
-  PRInt32 savedStartPos = 0;
-  PRInt32 filePos = 0;
-  PRUint64 bytesLeft = 0;
+  int32_t savedStartPos = 0;
+  int32_t filePos = 0;
+  uint64_t bytesLeft = 0;
 
   nsCOMPtr<nsIInputStream> inputStream;
   nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), aSrc);
@@ -105,7 +105,7 @@ NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSr
       }
       filePos += len;
       if (aProgress)
-        *aProgress = (PRUint32)filePos;
+        *aProgress = (uint32_t)filePos;
     }
   }
   //last row
@@ -113,9 +113,9 @@ NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSr
     AddLdifRowToDatabase(aDb, false); 
 
   // mail Lists
-  PRInt32 i, pos;
-  PRUint32 size;
-  PRInt32 listTotal = listPosArray.Count();
+  int32_t i, pos;
+  uint32_t size;
+  int32_t listTotal = listPosArray.Count();
   char *listBuf;
   ClearLdifRecordBuffer();  // make sure the buffer is clean
 
@@ -297,7 +297,7 @@ char* nsAbLDIFService::str_getline(char **next) const
   return( lineStr );
 }
 
-nsresult nsAbLDIFService::GetLdifStringRecord(char* buf, PRInt32 len, PRInt32& stopPos)
+nsresult nsAbLDIFService::GetLdifStringRecord(char* buf, int32_t len, int32_t& stopPos)
 {
   for (; stopPos < len; stopPos++) 
   {
@@ -504,7 +504,7 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIAddrDatabase *aDatabase,
     // This will remove the label and place the URI as the work URL
     else if (colType.EqualsLiteral("labeleduri"))
     {
-      PRInt32 index = column.FindChar(' ');
+      int32_t index = column.FindChar(' ');
       if (index != -1)
         column.SetLength(index);
 
@@ -778,14 +778,14 @@ NS_IMETHODIMP nsAbLDIFService::IsLDIFFile(nsIFile *pSrc, bool *_retval)
   nsCOMPtr<nsILineInputStream> lineInputStream(do_QueryInterface(fileStream, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRInt32 lineLen = 0;
-  PRInt32 lineCount = 0;
-  PRInt32 ldifFields = 0;  // total number of legal ldif fields.
+  int32_t lineLen = 0;
+  int32_t lineCount = 0;
+  int32_t ldifFields = 0;  // total number of legal ldif fields.
   char field[kMaxLDIFLen];
-  PRInt32 fLen = 0;
+  int32_t fLen = 0;
   const char *pChar;
-  PRInt32 recCount = 0;  // total number of records.
-  PRInt32 i;
+  int32_t recCount = 0;  // total number of records.
+  int32_t i;
   bool gotLDIF = false;
   bool more = true;
   nsCString line;
@@ -858,7 +858,7 @@ NS_IMETHODIMP nsAbLDIFService::IsLDIFFile(nsIFile *pSrc, bool *_retval)
 
 void nsAbLDIFService::SplitCRLFAddressField(nsCString &inputAddress, nsCString &outputLine1, nsCString &outputLine2) const
 {
-  PRInt32 crlfPos = inputAddress.Find("\r\n");
+  int32_t crlfPos = inputAddress.Find("\r\n");
   if (crlfPos != -1)
   {
     outputLine1 = Substring(inputAddress, 0, crlfPos);

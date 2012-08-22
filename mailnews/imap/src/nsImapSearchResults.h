@@ -29,10 +29,10 @@ public:
     virtual ~nsImapSearchResultIterator();
     
     void  ResetIterator();
-    PRInt32 GetNextMessageNumber();   // returns 0 at end of list
+    int32_t GetNextMessageNumber();   // returns 0 at end of list
 private:
     nsImapSearchResultSequence &fSequence;
-    PRInt32 fSequenceIndex;
+    int32_t fSequenceIndex;
     char  *fCurrentLine;
     char  *fPositionInCurrentLine;
 };

@@ -25,7 +25,7 @@ class AppleDoubleEncodeObject
 public:
   appledouble_encode_object   ap_encode_obj;
   char                        *buff;          // the working buff
-  PRInt32                     s_buff;         // the working buff size
+  int32_t                     s_buff;         // the working buff size
   nsCOMPtr <nsIOutputStream>  fileStream;    // file to hold the encoding
 };
 
@@ -81,7 +81,7 @@ private:
   // use when a message (e.g. original message in a reply) is attached as a rfc822 attachment.
   nsresult              SnarfMsgAttachment(nsMsgCompFields *compFields);
   bool                  UseUUEncode_p(void);
-  void                  AnalyzeDataChunk (const char *chunk, PRInt32 chunkSize);
+  void                  AnalyzeDataChunk (const char *chunk, int32_t chunkSize);
   nsresult              LoadDataFromFile(nsIFile *file, nsString &sigData, bool charsetConversion); //A similar function already exist in nsMsgCompose!
 #ifdef XP_MACOSX
   nsresult              ConvertToAppleEncoding(const nsCString &aFileSpecURI, 
@@ -149,22 +149,22 @@ public:
   nsString              mHtmlAnnotation;
   nsCString             mCloudProviderKey;
   nsCString             mCloudUrl;
-  PRInt32 mNodeIndex; //If this is an embedded image, this is the index of the
+  int32_t mNodeIndex; //If this is an embedded image, this is the index of the
                       // corresponding domNode in the editor's
                       //GetEmbeddedObjects. Otherwise, it will be -1.
   //
   // Vars for analyzing file data...
   //
-  PRUint32              m_size;         /* Some state used while filtering it */
-  PRUint32              m_unprintable_count;
-  PRUint32              m_highbit_count;
-  PRUint32              m_ctl_count;
-  PRUint32              m_null_count;
-  PRUint8               m_have_cr, m_have_lf, m_have_crlf; 
+  uint32_t              m_size;         /* Some state used while filtering it */
+  uint32_t              m_unprintable_count;
+  uint32_t              m_highbit_count;
+  uint32_t              m_ctl_count;
+  uint32_t              m_null_count;
+  uint8_t               m_have_cr, m_have_lf, m_have_crlf; 
   bool                  m_prev_char_was_cr;
-  PRUint32              m_current_column;
-  PRUint32              m_max_column;
-  PRUint32              m_lines;
+  uint32_t              m_current_column;
+  uint32_t              m_max_column;
+  uint32_t              m_lines;
   bool                  m_file_analyzed;
 
   MimeEncoderData       *m_encoder_data;  /* Opaque state for base64/qp encoder. */

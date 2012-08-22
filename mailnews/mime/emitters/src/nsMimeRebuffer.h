@@ -16,13 +16,13 @@ public:
     MimeRebuffer (void);
     virtual       ~MimeRebuffer (void);
 
-    PRUint32      GetSize();
-    PRUint32      IncreaseBuffer(const char *addBuf, PRUint32 size);
-    PRUint32      ReduceBuffer(PRUint32 numBytes);
+    uint32_t      GetSize();
+    uint32_t      IncreaseBuffer(const char *addBuf, uint32_t size);
+    uint32_t      ReduceBuffer(uint32_t numBytes);
     char          *GetBuffer();
 
 protected:
-    PRUint32      mSize;
+    uint32_t      mSize;
     char          *mBuf;
 };
 

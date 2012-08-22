@@ -196,7 +196,7 @@ nsURLFetcher::StillRunning(bool *running)
 // Methods for nsIStreamListener...
 nsresult
 nsURLFetcher::OnDataAvailable(nsIRequest *request, nsISupports * ctxt, nsIInputStream *aIStream, 
-                              PRUint32 sourceOffset, PRUint32 aLength)
+                              uint32_t sourceOffset, uint32_t aLength)
 {
   /* let our converter or consumer process the data */
   if (!mConverter)
@@ -354,15 +354,15 @@ nsURLFetcher::InsertConverter(const char * aContentType)
 
 NS_IMETHODIMP
 nsURLFetcher::OnProgressChange(nsIWebProgress *aProgress, nsIRequest *aRequest,
-                             PRInt32 aCurSelfProgress, PRInt32 aMaxSelfProgress,
-                             PRInt32 aCurTotalProgress, PRInt32 aMaxTotalProgress)
+                             int32_t aCurSelfProgress, int32_t aMaxSelfProgress,
+                             int32_t aCurTotalProgress, int32_t aMaxTotalProgress)
 {
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsURLFetcher::OnStateChange(nsIWebProgress *aProgress, nsIRequest *aRequest,
-                          PRUint32 aStateFlags, nsresult aStatus)
+                          uint32_t aStateFlags, nsresult aStatus)
 {
   // all we care about is the case where an error occurred (as in we were unable to locate the
   // the url....
@@ -377,7 +377,7 @@ NS_IMETHODIMP
 nsURLFetcher::OnLocationChange(nsIWebProgress* aWebProgress,
                                nsIRequest* aRequest,
                                nsIURI *aURI,
-                               PRUint32 aFlags)
+                               uint32_t aFlags)
 {
   NS_NOTREACHED("notification excluded in AddProgressListener(...)");
   return NS_OK;
@@ -396,7 +396,7 @@ nsURLFetcher::OnStatusChange(nsIWebProgress* aWebProgress,
 NS_IMETHODIMP 
 nsURLFetcher::OnSecurityChange(nsIWebProgress *aWebProgress, 
                                nsIRequest *aRequest, 
-                               PRUint32 state)
+                               uint32_t state)
 {
   NS_NOTREACHED("notification excluded in AddProgressListener(...)");
   return NS_OK;
@@ -475,10 +475,10 @@ NS_IMETHODIMP nsURLFetcherStreamConsumer::OnStopRequest(nsIRequest *aRequest, ns
 /** nsIStreamListener methods **/
 
 /* void onDataAvailable (in nsIRequest request, in nsISupports ctxt, in nsIInputStream inStr, in unsigned long sourceOffset, in unsigned long count); */
-NS_IMETHODIMP nsURLFetcherStreamConsumer::OnDataAvailable(nsIRequest *aRequest, nsISupports *ctxt, nsIInputStream *inStr, PRUint32 sourceOffset, PRUint32 count)
+NS_IMETHODIMP nsURLFetcherStreamConsumer::OnDataAvailable(nsIRequest *aRequest, nsISupports *ctxt, nsIInputStream *inStr, uint32_t sourceOffset, uint32_t count)
 {
-  PRUint32        readLen = count;
-  PRUint32        wroteIt;
+  uint32_t        readLen = count;
+  uint32_t        wroteIt;
 
   if (!mURLFetcher)
     return NS_ERROR_FAILURE;

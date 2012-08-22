@@ -41,7 +41,7 @@ class nsIMsgFolder;
 typedef struct message_header
 {
   const char *value; /* The contents of a header (after ": ") */
-  PRInt32 length;      /* The length of the data (it is not NULL-terminated.) */
+  int32_t length;      /* The length of the data (it is not NULL-terminated.) */
 } message_header;
 
 // This object maintains the parse state for a single mail message.
@@ -55,15 +55,15 @@ public:
   nsParseMailMessageState();
   virtual               ~nsParseMailMessageState();
 
-  void                  Init(PRUint32 fileposition);
-  virtual PRInt32       ParseFolderLine(const char *line, PRUint32 lineLength);
-  virtual int           StartNewEnvelope(const char *line, PRUint32 lineLength);
+  void                  Init(uint32_t fileposition);
+  virtual int32_t       ParseFolderLine(const char *line, uint32_t lineLength);
+  virtual int           StartNewEnvelope(const char *line, uint32_t lineLength);
   int                   ParseHeaders();
   int                   FinalizeHeaders();
-  int                   ParseEnvelope (const char *line, PRUint32 line_size);
+  int                   ParseEnvelope (const char *line, uint32_t line_size);
   int                   InternSubject (struct message_header *header);
 
-  static bool    IsEnvelopeLine(const char *buf, PRInt32 buf_size);
+  static bool    IsEnvelopeLine(const char *buf, int32_t buf_size);
   static int  msg_UnHex(char C);
 
   nsCOMPtr<nsIMsgHeaderParser> m_HeaderAddressParser;
@@ -73,9 +73,9 @@ public:
   nsCOMPtr<nsIMsgDatabase> m_backupMailDB;
 
   nsMailboxParseState   m_state;
-  PRInt64              m_position;
-  PRUint64              m_envelope_pos;
-  PRUint64              m_headerstartpos;
+  int64_t              m_position;
+  uint64_t              m_envelope_pos;
+  uint64_t              m_headerstartpos;
 
   nsByteArray           m_headers;
 
@@ -115,7 +115,7 @@ public:
   struct message_header m_mdn_dnt; /* MDN Disposition-Notification-To: header */
 
   PRTime m_receivedTime;
-  PRUint16              m_body_lines;
+  uint16_t              m_body_lines;
 
   bool                  m_IgnoreXMozillaStatus;
 
@@ -156,17 +156,17 @@ public:
   void    SetDB (nsIMsgDatabase *mailDB) {m_mailDB = mailDB; }
 
   // message socket libnet callbacks, which come through folder pane
-  nsresult ProcessMailboxInputStream(nsIURI* aURL, nsIInputStream *aIStream, PRUint32 aLength);
+  nsresult ProcessMailboxInputStream(nsIURI* aURL, nsIInputStream *aIStream, uint32_t aLength);
 
   virtual void  DoneParsingFolder(nsresult status);
   virtual void  AbortNewHeader();
 
   // for nsMsgLineBuffer
-  virtual PRInt32 HandleLine(char *line, PRUint32 line_length);
+  virtual int32_t HandleLine(char *line, uint32_t line_length);
 
   void  UpdateDBFolderInfo();
   void  UpdateDBFolderInfo(nsIMsgDatabase *mailDB);
-  void  UpdateStatusText (PRUint32 stringID);
+  void  UpdateStatusText (uint32_t stringID);
 
   // Update the progress bar based on what we know.
   virtual void    UpdateProgressPercent ();
@@ -175,17 +175,17 @@ public:
 protected:
   nsCOMPtr<nsIMsgStatusFeedback> m_statusFeedback;
 
-  virtual PRInt32     PublishMsgHeader(nsIMsgWindow *msgWindow);
+  virtual int32_t     PublishMsgHeader(nsIMsgWindow *msgWindow);
   void                FreeBuffers();
 
   // data
   nsString        m_folderName;
   nsCString       m_inboxUri;
   nsByteArray     m_inputStream;
-  PRInt32         m_obuffer_size;
+  int32_t         m_obuffer_size;
   char            *m_obuffer;
-  PRUint32        m_graph_progress_total;
-  PRUint32        m_graph_progress_received;
+  uint32_t        m_graph_progress_total;
+  uint32_t        m_graph_progress_received;
   bool            m_parsingDone;
   PRTime          m_startTime;
 private:
@@ -219,21 +219,21 @@ public:
   NS_DECL_NSIMSGFILTERHITNOTIFY
 
   nsOutputFileStream *GetLogFile();
-  virtual PRInt32 PublishMsgHeader(nsIMsgWindow *msgWindow);
+  virtual int32_t PublishMsgHeader(nsIMsgWindow *msgWindow);
   void            GetMsgWindow(nsIMsgWindow **aMsgWindow);
   nsresult EndMsgDownload();
 
   nsresult AppendMsgFromStream(nsIInputStream *fileStream, nsIMsgDBHdr *aHdr,
-                               PRUint32 length, nsIMsgFolder *destFolder);
+                               uint32_t length, nsIMsgFolder *destFolder);
 
   virtual void ApplyFilters(bool *pMoved, nsIMsgWindow *msgWindow,
-                             PRUint32 msgOffset);
+                             uint32_t msgOffset);
   nsresult    ApplyForwardAndReplyFilter(nsIMsgWindow *msgWindow);
   virtual void OnNewMessage(nsIMsgWindow *msgWindow);
 
   // this keeps track of how many messages we downloaded that
   // aren't new - e.g., marked read, or moved to an other server.
-  PRInt32     m_numNotNewMessages;
+  int32_t     m_numNotNewMessages;
 protected:
   virtual nsresult GetTrashFolder(nsIMsgFolder **pTrashFolder);
   virtual nsresult MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
@@ -258,12 +258,12 @@ protected:
   bool          m_msgMovedByFilter;
   bool          m_msgCopiedByFilter;
   bool          m_disableFilters;
-  PRUint32      m_ibuffer_fp;
+  uint32_t      m_ibuffer_fp;
   char          *m_ibuffer;
-  PRUint32      m_ibuffer_size;
+  uint32_t      m_ibuffer_size;
   // used for applying move filters, because in the case of using a temporary
   // download file, the offset/key in the msg hdr is not right.
-  PRUint64      m_curHdrOffset;
+  uint64_t      m_curHdrOffset;
 
   // we have to apply the reply/forward filters in a second pass, after
   // msg quarantining and moving to other local folders, so we remember the

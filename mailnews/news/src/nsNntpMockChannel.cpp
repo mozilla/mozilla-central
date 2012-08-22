@@ -203,7 +203,7 @@ NS_IMETHODIMP nsNntpMockChannel::SetContentCharset(const nsACString &aCharset)
 }
 
 NS_IMETHODIMP
-nsNntpMockChannel::GetContentDisposition(PRUint32 *aContentDisposition)
+nsNntpMockChannel::GetContentDisposition(uint32_t *aContentDisposition)
 {
   return NS_ERROR_NOT_AVAILABLE;
 }
@@ -220,7 +220,7 @@ nsNntpMockChannel::GetContentDispositionHeader(nsACString &aContentDispositionHe
   return NS_ERROR_NOT_AVAILABLE;
 }
 
-NS_IMETHODIMP nsNntpMockChannel::GetContentLength(PRInt32 *length)
+NS_IMETHODIMP nsNntpMockChannel::GetContentLength(int32_t *length)
 {
   FORWARD_CALL(GetContentLength, length)
   *length = m_contentLength;
@@ -228,7 +228,7 @@ NS_IMETHODIMP nsNntpMockChannel::GetContentLength(PRInt32 *length)
 }
 
 NS_IMETHODIMP
-nsNntpMockChannel::SetContentLength(PRInt32 aLength)
+nsNntpMockChannel::SetContentLength(int32_t aLength)
 {
   FORWARD_CALL(SetContentLength, aLength)
   m_contentLength = aLength;

@@ -129,7 +129,7 @@ nsMsgMailViewList::~nsMsgMailViewList()
 
 }
 
-NS_IMETHODIMP nsMsgMailViewList::GetMailViewCount(PRUint32 * aCount)
+NS_IMETHODIMP nsMsgMailViewList::GetMailViewCount(uint32_t * aCount)
 {
     NS_ENSURE_ARG_POINTER(aCount);
 
@@ -140,12 +140,12 @@ NS_IMETHODIMP nsMsgMailViewList::GetMailViewCount(PRUint32 * aCount)
     return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailViewList::GetMailViewAt(PRUint32 aMailViewIndex, nsIMsgMailView ** aMailView)
+NS_IMETHODIMP nsMsgMailViewList::GetMailViewAt(uint32_t aMailViewIndex, nsIMsgMailView ** aMailView)
 {
     NS_ENSURE_ARG_POINTER(aMailView);
     NS_ENSURE_TRUE(m_mailViews, NS_ERROR_FAILURE);
 
-    PRUint32 mailViewCount;
+    uint32_t mailViewCount;
     m_mailViews->Count(&mailViewCount);
     NS_ENSURE_TRUE(mailViewCount >= aMailViewIndex, NS_ERROR_FAILURE);
 
@@ -187,7 +187,7 @@ NS_IMETHODIMP nsMsgMailViewList::Save()
     // brute force...remove all the old filters in our filter list, then we'll re-add our current
     // list
     nsCOMPtr<nsIMsgFilter> msgFilter;
-    PRUint32 numFilters = 0;
+    uint32_t numFilters = 0;
     if (mFilterList)
       mFilterList->GetFilterCount(&numFilters);
     while (numFilters)
@@ -205,14 +205,14 @@ NS_IMETHODIMP nsMsgMailViewList::Save()
 
 nsresult nsMsgMailViewList::ConvertMailViewListToFilterList()
 {
-  PRUint32 mailViewCount = 0;
+  uint32_t mailViewCount = 0;
 
   if (m_mailViews)
     m_mailViews->Count(&mailViewCount);
   nsCOMPtr<nsIMsgMailView> mailView;
   nsCOMPtr<nsIMsgFilter> newMailFilter;
   nsString mailViewName;
-  for (PRUint32 index = 0; index < mailViewCount; index++)
+  for (uint32_t index = 0; index < mailViewCount; index++)
   {
       GetMailViewAt(index, getter_AddRefs(mailView));
       if (!mailView)
@@ -284,9 +284,9 @@ nsresult nsMsgMailViewList::ConvertFilterListToMailView(nsIMsgFilterList * aFilt
 
     // iterate over each filter in the list
     nsCOMPtr<nsIMsgFilter> msgFilter;
-    PRUint32 numFilters;
+    uint32_t numFilters;
     aFilterList->GetFilterCount(&numFilters);
-    for (PRUint32 index = 0; index < numFilters; index++)
+    for (uint32_t index = 0; index < numFilters; index++)
     {
         aFilterList->GetFilterAt(index, getter_AddRefs(msgFilter));
         if (!msgFilter)

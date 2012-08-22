@@ -255,7 +255,7 @@ nsMsgAccount::GetDefaultIdentity(nsIMsgIdentity **aDefaultIdentity)
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  PRUint32 count;
+  uint32_t count;
   rv = m_identities->Count(&count);
   NS_ENSURE_SUCCESS(rv, rv);
   if (count == 0)
@@ -363,7 +363,7 @@ nsMsgAccount::RemoveIdentity(nsIMsgIdentity *aIdentity)
   NS_ENSURE_ARG_POINTER(aIdentity);
   NS_ENSURE_TRUE(m_identities, NS_ERROR_FAILURE);
 
-  PRUint32 count = 0;
+  uint32_t count = 0;
   m_identities->Count(&count);
 
   NS_ENSURE_TRUE(count > 1, NS_ERROR_FAILURE); // you must have at least one identity
@@ -390,7 +390,7 @@ nsMsgAccount::RemoveIdentity(nsIMsgIdentity *aIdentity)
   nsCAutoString newIdentityList;
 
   // iterate over the remaining identities
-  for (PRUint32 index = 0; index < count; index++)
+  for (uint32_t index = 0; index < count; index++)
   {
     nsCOMPtr<nsIMsgIdentity> identity = do_QueryElementAt(m_identities, index, &rv);
     if (identity)
@@ -448,7 +448,7 @@ nsMsgAccount::ClearAllValues()
   nsresult rv = getPrefService();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRUint32 cntChild, i;
+  uint32_t cntChild, i;
   char **childArray;
 
   rv = m_prefs->GetChildList(rootPref.get(), &cntChild, &childArray);

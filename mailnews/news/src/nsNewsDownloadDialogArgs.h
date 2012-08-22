@@ -20,7 +20,7 @@ public:
 
 private:
   nsString mGroupName;
-  PRInt32 mArticleCount;
+  int32_t mArticleCount;
   nsCString mServerKey;
   bool mHitOK;
   bool mDownloadAll;

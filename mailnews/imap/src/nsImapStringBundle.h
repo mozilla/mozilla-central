@@ -9,7 +9,7 @@
 
 PR_BEGIN_EXTERN_C
 
-nsresult      IMAPGetStringByID(PRInt32 stringID, PRUnichar **aString);
+nsresult      IMAPGetStringByID(int32_t stringID, PRUnichar **aString);
 nsresult      IMAPGetStringBundle(nsIStringBundle **aBundle);
 
 PR_END_EXTERN_C

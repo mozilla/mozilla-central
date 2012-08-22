@@ -121,7 +121,7 @@ NS_IMETHODIMP nsMsgCompressIStream::CloseWithStatus(nsresult reason)
 }
 
 /* unsigned long long available (); */
-NS_IMETHODIMP nsMsgCompressIStream::Available(PRUint64 *aResult)
+NS_IMETHODIMP nsMsgCompressIStream::Available(uint64_t *aResult)
 {
   if (!m_iStream) 
     return NS_BASE_STREAM_CLOSED;
@@ -147,7 +147,7 @@ NS_IMETHODIMP nsMsgCompressIStream::Available(PRUint64 *aResult)
 }
 
 /* [noscript] unsigned long read (in charPtr aBuf, in unsigned long aCount); */
-NS_IMETHODIMP nsMsgCompressIStream::Read(char * aBuf, PRUint32 aCount, PRUint32 *aResult)
+NS_IMETHODIMP nsMsgCompressIStream::Read(char * aBuf, uint32_t aCount, uint32_t *aResult)
 {
   if (!m_iStream) 
   {
@@ -175,8 +175,8 @@ NS_IMETHODIMP nsMsgCompressIStream::Read(char * aBuf, PRUint32 aCount, PRUint32 
     // get some more data if we don't already have any
     if (!m_inflateAgain) 
     {
-      PRUint32 bytesRead;
-      nsresult rv = m_iStream->Read(m_zbuf, (PRUint32)BUFFER_SIZE, &bytesRead);
+      uint32_t bytesRead;
+      nsresult rv = m_iStream->Read(m_zbuf, (uint32_t)BUFFER_SIZE, &bytesRead);
       NS_ENSURE_SUCCESS(rv, rv);
       if (!bytesRead)
         return NS_BASE_STREAM_CLOSED;
@@ -201,12 +201,12 @@ NS_IMETHODIMP nsMsgCompressIStream::Read(char * aBuf, PRUint32 aCount, PRUint32 
 }
 
 /* [noscript] unsigned long readSegments (in nsWriteSegmentFun aWriter, in voidPtr aClosure, in unsigned long aCount); */
-NS_IMETHODIMP nsMsgCompressIStream::ReadSegments(nsWriteSegmentFun aWriter, void * aClosure, PRUint32 aCount, PRUint32 *_retval)
+NS_IMETHODIMP nsMsgCompressIStream::ReadSegments(nsWriteSegmentFun aWriter, void * aClosure, uint32_t aCount, uint32_t *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsMsgCompressIStream::AsyncWait(nsIInputStreamCallback *callback, PRUint32 flags, PRUint32 amount, nsIEventTarget *target)
+NS_IMETHODIMP nsMsgCompressIStream::AsyncWait(nsIInputStreamCallback *callback, uint32_t flags, uint32_t amount, nsIEventTarget *target)
 {
   if (!m_iStream)
     return NS_BASE_STREAM_CLOSED;

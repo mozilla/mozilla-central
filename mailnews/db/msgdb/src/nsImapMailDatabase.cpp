@@ -27,7 +27,7 @@ NS_IMETHODIMP	nsImapMailDatabase::GetSummaryValid(bool *aResult)
   NS_ENSURE_ARG_POINTER(aResult);
   if (m_dbFolderInfo)
   {
-    PRUint32 version;
+    uint32_t version;
     m_dbFolderInfo->GetVersion(&version);
     *aResult = (GetCurVersion() == version);
   }
@@ -55,7 +55,7 @@ void nsImapMailDatabase::UpdateFolderFlag(nsIMsgDBHdr * /* msgHdr */, bool /* bS
 
 // We override this to avoid our parent class (nsMailDatabase)'s 
 // grabbing of the folder semaphore, and bailing on failure.
-NS_IMETHODIMP nsImapMailDatabase::DeleteMessages(PRUint32 aNumKeys, nsMsgKey* nsMsgKeys, nsIDBChangeListener *instigator)
+NS_IMETHODIMP nsImapMailDatabase::DeleteMessages(uint32_t aNumKeys, nsMsgKey* nsMsgKeys, nsIDBChangeListener *instigator)
 {
   return nsMsgDatabase::DeleteMessages(aNumKeys, nsMsgKeys, instigator);
 }
@@ -73,11 +73,11 @@ NS_IMETHODIMP nsImapMailDatabase::EndBatch()
 
 nsresult nsImapMailDatabase::AdjustExpungedBytesOnDelete(nsIMsgDBHdr *msgHdr)
 {
-  PRUint32 msgFlags;
+  uint32_t msgFlags;
   msgHdr->GetFlags(&msgFlags);
   if (msgFlags & nsMsgMessageFlags::Offline && m_dbFolderInfo)
   {
-    PRUint32 size = 0;
+    uint32_t size = 0;
     (void)msgHdr->GetOfflineMessageSize(&size);
     return m_dbFolderInfo->ChangeExpungedBytes (size);
   }
@@ -133,7 +133,7 @@ NS_IMETHODIMP nsImapMailDatabase::UpdatePendingAttributes(nsIMsgDBHdr* aNewHdr)
       mdb_count numCells;
       mdbYarn cellYarn;
       mdb_column cellColumn;
-      PRUint32 existingFlags;
+      uint32_t existingFlags;
 
       pendingRow->GetCount(GetEnv(), &numCells);
       aNewHdr->GetFlags(&existingFlags);
@@ -156,7 +156,7 @@ NS_IMETHODIMP nsImapMailDatabase::UpdatePendingAttributes(nsIMsgDBHdr* aNewHdr)
       }
       // We might have changed some cached values, so force a refresh.
       msgHdr->ClearCachedValues();
-      PRUint32 resultFlags;
+      uint32_t resultFlags;
       msgHdr->OrFlags(existingFlags, &resultFlags);
       m_mdbAllPendingHdrsTable->CutRow(GetEnv(), pendingRow);
       pendingRow->CutAllColumns(GetEnv());
@@ -227,7 +227,7 @@ NS_IMETHODIMP nsImapMailDatabase::SetAttributeOnPendingHdr(nsIMsgDBHdr *pendingH
 NS_IMETHODIMP
 nsImapMailDatabase::SetUint32AttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr,
                                                    const char *property,
-                                                   PRUint32 propertyVal)
+                                                   uint32_t propertyVal)
 {
   NS_ENSURE_ARG_POINTER(pendingHdr);
   nsCOMPtr<nsIMdbRow> pendingRow;
@@ -239,7 +239,7 @@ nsImapMailDatabase::SetUint32AttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr,
 NS_IMETHODIMP
 nsImapMailDatabase::SetUint64AttributeOnPendingHdr(nsIMsgDBHdr *aPendingHdr,
                                                    const char *aProperty,
-                                                   PRUint64 aPropertyVal)
+                                                   uint64_t aPropertyVal)
 {
   NS_ENSURE_ARG_POINTER(aPendingHdr);
   nsCOMPtr<nsIMdbRow> pendingRow;

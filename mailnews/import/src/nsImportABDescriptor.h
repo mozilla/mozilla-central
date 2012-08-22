@@ -19,30 +19,30 @@ class nsImportABDescriptor : public nsIImportABDescriptor
 public:
   NS_DECL_ISUPPORTS
 
-  NS_IMETHOD GetIdentifier(PRUint32 *pIdentifier) {
+  NS_IMETHOD GetIdentifier(uint32_t *pIdentifier) {
     *pIdentifier = mId;
     return NS_OK;
   }
-  NS_IMETHOD SetIdentifier(PRUint32 ident) {
+  NS_IMETHOD SetIdentifier(uint32_t ident) {
     mId = ident;
     return NS_OK;
   }
 
-  NS_IMETHOD GetRef(PRUint32 *pRef) {
+  NS_IMETHOD GetRef(uint32_t *pRef) {
     *pRef = mRef;
     return NS_OK;
   }
-  NS_IMETHOD SetRef(PRUint32 ref) {
+  NS_IMETHOD SetRef(uint32_t ref) {
     mRef = ref;
     return NS_OK;
   }
 
   /* attribute unsigned long size; */
-  NS_IMETHOD GetSize(PRUint32 *pSize) {
+  NS_IMETHOD GetSize(uint32_t *pSize) {
     *pSize = mSize;
     return NS_OK;
   }
-  NS_IMETHOD SetSize(PRUint32 theSize) {
+  NS_IMETHOD SetSize(uint32_t theSize) {
     mSize = theSize;
     return NS_OK;
   }
@@ -90,11 +90,11 @@ public:
   static NS_METHOD Create(nsISupports *aOuter, REFNSIID aIID, void **aResult);
 
 private:
-  PRUint32 mId; // used by creator of the structure
-  PRUint32 mRef; // depth in the hierarchy
+  uint32_t mId; // used by creator of the structure
+  uint32_t mRef; // depth in the hierarchy
   nsString mDisplayName; // name of this mailbox
   nsCOMPtr<nsIFile> mFile; // source file (if applicable)
-  PRUint32 mSize; // size
+  uint32_t mSize; // size
   bool mImport; // import it or not?
 };
 

@@ -93,8 +93,8 @@ interface nsINntpUrl : nsISupports {
   const nsNewsAction ActionListNewGroups = 10;
 
   /// Constant for the default NNTP over ssl port number
-  const PRInt32 DEFAULT_NNTP_PORT = 119;
+  const int32_t DEFAULT_NNTP_PORT = 119;
 
   /// Constant for the default NNTP over ssl port number
-  const PRInt32 DEFAULT_NNTPS_PORT = 563;
+  const int32_t DEFAULT_NNTPS_PORT = 563;
 };

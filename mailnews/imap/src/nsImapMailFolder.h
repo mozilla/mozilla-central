@@ -67,18 +67,18 @@ public:
     bool m_isMove;             // is a move
     bool m_selectedState;      // needs to be in selected state; append msg
     bool m_isCrossServerOp; // are we copying between imap servers?
-    PRUint32 m_curIndex; // message index to the message array which we are
+    uint32_t m_curIndex; // message index to the message array which we are
                          // copying
-    PRUint32 m_totalCount;// total count of messages we have to do
-    PRUint32 m_unreadCount; // num unread messages we're moving
+    uint32_t m_totalCount;// total count of messages we have to do
+    uint32_t m_unreadCount; // num unread messages we're moving
     bool m_streamCopy;
     char *m_dataBuffer; // temporary buffer for this copy operation
     nsCOMPtr<nsIOutputStream> m_msgFileStream;         // temporary file (processed mail)
-    PRUint32 m_dataBufferSize;
-    PRUint32 m_leftOver;
+    uint32_t m_dataBufferSize;
+    uint32_t m_leftOver;
     bool m_allowUndo;
     bool m_eatLF;
-    PRUint32 m_newMsgFlags; // only used if there's no m_message
+    uint32_t m_newMsgFlags; // only used if there's no m_message
     nsCString m_newMsgKeywords; // ditto 
     // If the server supports UIDPLUS, this is the UID for the append,
     // if we're doing an append.
@@ -166,7 +166,7 @@ protected:
 protected:
   nsDataHashtable <nsCStringHashKey, nsCString> m_rightsHash; // Hash table, mapping username strings to rights strings.
   nsImapMailFolder *m_folder;
-  PRInt32        m_aclCount;
+  int32_t        m_aclCount;
 
 };
 
@@ -191,7 +191,7 @@ class nsImapMailFolder :  public nsMsgDBFolder,
                           public nsICopyMessageListener,
                           public nsIMsgFilterHitNotify
 {
- static const PRUint32 PLAYBACK_TIMER_INTERVAL_IN_MS = 500; 
+ static const uint32_t PLAYBACK_TIMER_INTERVAL_IN_MS = 500; 
 public:
   nsImapMailFolder();
   virtual ~nsImapMailFolder();
@@ -213,7 +213,7 @@ public:
                         bool aCompactOfflineAlso);
   NS_IMETHOD EmptyTrash(nsIMsgWindow *msgWindow, nsIUrlListener *aListener);
   NS_IMETHOD CopyDataToOutputStreamForAppend(nsIInputStream *aIStream,
-                     PRInt32 aLength, nsIOutputStream *outputStream);
+                     int32_t aLength, nsIOutputStream *outputStream);
   NS_IMETHOD CopyDataDone();
   NS_IMETHOD Delete ();
   NS_IMETHOD Rename (const nsAString& newName, nsIMsgWindow *msgWindow);
@@ -229,7 +229,7 @@ public:
   NS_IMETHOD GetDeletable (bool *deletable);
   NS_IMETHOD GetRequiresCleanup(bool *requiresCleanup);
 
-  NS_IMETHOD GetSizeOnDisk(PRUint32 * size);
+  NS_IMETHOD GetSizeOnDisk(uint32_t * size);
 
   NS_IMETHOD GetCanCreateSubfolders(bool *aResult);
   NS_IMETHOD GetCanSubscribe(bool *aResult);
@@ -263,7 +263,7 @@ public:
   NS_IMETHOD CopyFileMessage(nsIFile* file,
                               nsIMsgDBHdr* msgToReplace,
                               bool isDraftOrTemplate,
-                              PRUint32 aNewMsgFlags,
+                              uint32_t aNewMsgFlags,
                               const nsACString &aNewMsgKeywords,
                               nsIMsgWindow *msgWindow,
                               nsIMsgCopyServiceListener* listener);
@@ -279,7 +279,7 @@ public:
   NS_IMETHOD DownloadAllForOffline(nsIUrlListener *listener, nsIMsgWindow *msgWindow);
   NS_IMETHOD GetCanFileMessages(bool *aCanFileMessages);
   NS_IMETHOD GetCanDeleteMessages(bool *aCanDeleteMessages);
-  NS_IMETHOD FetchMsgPreviewText(nsMsgKey *aKeysToFetch, PRUint32 aNumKeys,
+  NS_IMETHOD FetchMsgPreviewText(nsMsgKey *aKeysToFetch, uint32_t aNumKeys,
                                                  bool aLocalOnly, nsIUrlListener *aUrlListener,
                                                  bool *aAsyncResults);
 
@@ -315,35 +315,35 @@ public:
   // send notification to copy service listener.
   nsresult OnCopyCompleted(nsISupports *srcSupport, nsresult exitCode);
 
-  static nsresult  AllocateUidStringFromKeys(nsMsgKey *keys, PRUint32 numKeys, nsCString &msgIds);
+  static nsresult  AllocateUidStringFromKeys(nsMsgKey *keys, uint32_t numKeys, nsCString &msgIds);
   static nsresult  BuildIdsAndKeyArray(nsIArray* messages, nsCString& msgIds, nsTArray<nsMsgKey>& keyArray);
 
   // these might end up as an nsIImapMailFolder attribute.
-  nsresult SetSupportedUserFlags(PRUint32 userFlags);
-  nsresult GetSupportedUserFlags(PRUint32 *userFlags);
+  nsresult SetSupportedUserFlags(uint32_t userFlags);
+  nsresult GetSupportedUserFlags(uint32_t *userFlags);
 
   // Find the start of a range of msgKeys that can hold srcCount headers.
-  nsresult FindOpenRange(nsMsgKey &fakeBase, PRUint32 srcCount);
+  nsresult FindOpenRange(nsMsgKey &fakeBase, uint32_t srcCount);
 
 protected:
   // Helper methods
 
   virtual nsresult CreateChildFromURI(const nsCString &uri, nsIMsgFolder **folder);
   void FindKeysToAdd(const nsTArray<nsMsgKey> &existingKeys, nsTArray<nsMsgKey>
-    &keysToFetch, PRUint32 &numNewUnread, nsIImapFlagAndUidState *flagState);
+    &keysToFetch, uint32_t &numNewUnread, nsIImapFlagAndUidState *flagState);
   void FindKeysToDelete(const nsTArray<nsMsgKey> &existingKeys, nsTArray<nsMsgKey>
-    &keysToFetch, nsIImapFlagAndUidState *flagState, PRUint32 boxFlags);
+    &keysToFetch, nsIImapFlagAndUidState *flagState, uint32_t boxFlags);
   void PrepareToAddHeadersToMailDB(nsIImapProtocol* aProtocol);
   void TweakHeaderFlags(nsIImapProtocol* aProtocol, nsIMsgDBHdr *tweakMe);
 
   nsresult SyncFlags(nsIImapFlagAndUidState *flagState);
   nsresult HandleCustomFlags(nsMsgKey uidOfMessage, nsIMsgDBHdr *dbHdr,
-                             PRUint16 userFlags, nsCString& keywords);
+                             uint16_t userFlags, nsCString& keywords);
   nsresult NotifyMessageFlagsFromHdr(nsIMsgDBHdr *dbHdr, nsMsgKey msgKey,
-                                     PRUint32 flags);
+                                     uint32_t flags);
 
-  nsresult SetupHeaderParseStream(PRUint32 size, const nsACString& content_type, nsIMailboxSpec *boxSpec);
-  nsresult  ParseAdoptedHeaderLine(const char *messageLine, PRUint32 msgKey);
+  nsresult SetupHeaderParseStream(uint32_t size, const nsACString& content_type, nsIMailboxSpec *boxSpec);
+  nsresult  ParseAdoptedHeaderLine(const char *messageLine, uint32_t msgKey);
   nsresult  NormalEndHeaderParseStream(nsIImapProtocol *aProtocol, nsIImapUrl *imapUrl);
 
   void EndOfflineDownload();
@@ -392,7 +392,7 @@ protected:
                           bool isMove,
                           bool selectedState,
                           bool acrossServers,
-                          PRUint32 newMsgFlags,
+                          uint32_t newMsgFlags,
                           const nsACString &newMsgKeywords,
                           nsIMsgCopyServiceListener* listener,
                           nsIMsgWindow *msgWindow,
@@ -439,18 +439,18 @@ protected:
   /// the junk destination folder
   nsCOMPtr<nsIMsgFolder> mSpamFolder;
   nsMsgKey m_curMsgUid;
-  PRUint32 m_uidValidity;
+  uint32_t m_uidValidity;
 
   // These three vars are used to store counts from STATUS or SELECT command
   // They include deleted messages, so they can differ from the generic
   // folder total and unread counts.
-  PRInt32 m_numServerRecentMessages;
-  PRInt32 m_numServerUnseenMessages;
-  PRInt32 m_numServerTotalMessages;
+  int32_t m_numServerRecentMessages;
+  int32_t m_numServerUnseenMessages;
+  int32_t m_numServerTotalMessages;
   // if server supports UIDNEXT, we store it here.
-  PRInt32 m_nextUID;
+  int32_t m_nextUID;
 
-  PRInt32  m_nextMessageByteLength;
+  int32_t  m_nextMessageByteLength;
   nsCOMPtr<nsIUrlListener> m_urlListener;
   bool m_urlRunning;
 
@@ -458,7 +458,7 @@ protected:
   nsRefPtr<nsMsgTxn> m_pendingUndoTxn;
   nsRefPtr<nsImapMailCopyState> m_copyState;
   char m_hierarchyDelimiter;
-  PRInt32 m_boxFlags;
+  int32_t m_boxFlags;
   nsCString m_onlineFolderName;
   nsCString m_ownerUserName;  // username of the "other user," as in
   // "Other Users' Mailboxes"
@@ -481,8 +481,8 @@ protected:
   bool m_expunging;
   bool m_applyIncomingFilters; // apply filters to this folder, even if not the inbox
   nsMsgIMAPFolderACL *m_folderACL;
-  PRUint32     m_aclFlags;
-  PRUint32     m_supportedUserFlags;
+  uint32_t     m_aclFlags;
+  uint32_t     m_supportedUserFlags;
 
   // offline imap support
   bool m_downloadingFolderForOfflineUse;
@@ -493,8 +493,8 @@ protected:
 
   // Quota support
   nsCString m_folderQuotaRoot;
-  PRUint32 m_folderQuotaUsedKB;
-  PRUint32 m_folderQuotaMaxKB;
+  uint32_t m_folderQuotaUsedKB;
+  uint32_t m_folderQuotaMaxKB;
 
   // Pseudo-Offline Playback support
   nsPlaybackRequest *m_pendingPlaybackReq;
@@ -505,7 +505,7 @@ protected:
   nsDataHashtable<nsCStringHashKey, nsMsgKey> m_pseudoHdrs;
 
   nsTArray<nsMsgKey> m_keysToFetch;
-  PRUint32 m_totalKeysToFetch;
+  uint32_t m_totalKeysToFetch;
 
 };
 #endif

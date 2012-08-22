@@ -32,12 +32,12 @@ public:
         return mArray[i];
     }
 
-    PRUint32* GetSizeAddr(void)
+    uint32_t* GetSizeAddr(void)
     {
         return &mSize;
     }
 
-    PRUint32 GetSize(void)
+    uint32_t GetSize(void)
     {
         return mSize;
     }
@@ -57,7 +57,7 @@ public:
 private:
     bool mFreeElements;
     char **mArray;
-    PRUint32 mSize;
+    uint32_t mSize;
 
     void Free ()
     {
@@ -97,12 +97,12 @@ public:
         return mArray[i];
     }
 
-    PRUint32* GetSizeAddr(void)
+    uint32_t* GetSizeAddr(void)
     {
         return &mSize;
     }
 
-    PRUint32 GetSize(void)
+    uint32_t GetSize(void)
     {
         return mSize;
     }
@@ -122,7 +122,7 @@ public:
 private:
     bool mFreeElements;
     PRUnichar **mArray;
-    PRUint32 mSize;
+    uint32_t mSize;
     void Free ()
     {
         if (!mArray)

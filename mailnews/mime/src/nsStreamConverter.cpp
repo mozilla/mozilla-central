@@ -57,7 +57,7 @@ bridge_create_stream(nsIMimeEmitter      *newEmitter,
                      nsStreamConverter   *newPluginObj2,
                      nsIURI              *uri,
                      nsMimeOutputType    format_out,
-                     PRUint32            whattodo,
+                     uint32_t            whattodo,
                      nsIChannel          *aChannel)
 {
   if  ( (format_out == nsMimeOutput::nsMimeMessageDraftOrTemplate) ||
@@ -93,7 +93,7 @@ bridge_set_output_type(void *bridgeStream, nsMimeOutputType aType)
 }
 
 nsresult
-bridge_new_new_uri(void *bridgeStream, nsIURI *aURI, PRInt32 aOutputType)
+bridge_new_new_uri(void *bridgeStream, nsIURI *aURI, int32_t aOutputType)
 {
   nsMIMESession *session = (nsMIMESession *)bridgeStream;
   const char    **fixup_pointer = nullptr;
@@ -446,7 +446,7 @@ nsStreamConverter::DetermineOutputFormat(const char *aUrl, nsMimeOutputType *aNe
     // find the requested header in table, ensure that we don't match on a prefix
     // by checking that the following character is either null or the next query element
     const char * remainder;
-    for (PRUint32 n = 0; n < NS_ARRAY_LENGTH(rgTypes); ++n)
+    for (uint32_t n = 0; n < NS_ARRAY_LENGTH(rgTypes); ++n)
     {
       remainder = SkipPrefix(header, rgTypes[n].headerType);
       if (remainder && (*remainder == '\0' || *remainder == '&'))
@@ -642,7 +642,7 @@ NS_IMETHODIMP nsStreamConverter::Init(nsIURI *aURI, nsIStreamListener * aOutList
     mEmitter->SetOutputListener(aOutListener);
   }
 
-  PRUint32 whattodo = mozITXTToHTMLConv::kURLs;
+  uint32_t whattodo = mozITXTToHTMLConv::kURLs;
   bool enable_emoticons = true;
   bool enable_structs = true;
 
@@ -867,12 +867,12 @@ nsresult
 nsStreamConverter::OnDataAvailable(nsIRequest     *request,
                                    nsISupports    *ctxt,
                                    nsIInputStream *aIStream,
-                                   PRUint32       sourceOffset,
-                                   PRUint32       aLength)
+                                   uint32_t       sourceOffset,
+                                   uint32_t       aLength)
 {
   nsresult        rc=NS_OK;     // should this be an error instead?
-  PRUint32        readLen = aLength;
-  PRUint32        written;
+  uint32_t        readLen = aLength;
+  uint32_t        written;
 
   // If this is the first time through and we are supposed to be
   // outputting the wrapper two pane URL, then do it now.

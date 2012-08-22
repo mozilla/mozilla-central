@@ -37,9 +37,9 @@ public:
 
   NS_IMETHOD OnStartCopy();
   
-  NS_IMETHOD OnProgress(PRUint32 aProgress, PRUint32 aProgressMax);
+  NS_IMETHOD OnProgress(uint32_t aProgress, uint32_t aProgressMax);
 
-  NS_IMETHOD SetMessageKey(PRUint32 aMessageKey);
+  NS_IMETHOD SetMessageKey(uint32_t aMessageKey);
   
   NS_IMETHOD GetMessageId(nsACString& aMessageId);
   

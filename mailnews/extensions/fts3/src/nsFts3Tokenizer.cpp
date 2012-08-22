@@ -50,7 +50,7 @@ nsFts3Tokenizer::RegisterTokenizer(mozIStorageConnection *connection)
          0, NS_LITERAL_CSTRING("mozporter"));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = selectStatement->BindBlobParameter(1,
-                                          (PRUint8*)&module,
+                                          (uint8_t*)&module,
                                           sizeof(module));
   NS_ENSURE_SUCCESS(rv, rv);
 

@@ -40,8 +40,8 @@ nsLDAPBERElement::Init(nsILDAPBERValue *aValue)
 
 /* void putString (in AUTF8String aString, in unsigned long aTag); */
 NS_IMETHODIMP
-nsLDAPBERElement::PutString(const nsACString & aString, PRUint32 aTag, 
-                            PRUint32 *aBytesWritten)
+nsLDAPBERElement::PutString(const nsACString & aString, uint32_t aTag, 
+                            uint32_t *aBytesWritten)
 {
   // XXX if the string translation feature of the C SDK is ever used,
   // this const_cast will break
@@ -58,7 +58,7 @@ nsLDAPBERElement::PutString(const nsACString & aString, PRUint32 aTag,
 }
 
 /* void startSet (); */
-NS_IMETHODIMP nsLDAPBERElement::StartSet(PRUint32 aTag)
+NS_IMETHODIMP nsLDAPBERElement::StartSet(uint32_t aTag)
 {
   int i = ber_start_set(mElement, aTag);
 
@@ -70,7 +70,7 @@ NS_IMETHODIMP nsLDAPBERElement::StartSet(PRUint32 aTag)
 }
 
 /* void putSet (); */
-NS_IMETHODIMP nsLDAPBERElement::PutSet(PRUint32 *aBytesWritten)
+NS_IMETHODIMP nsLDAPBERElement::PutSet(uint32_t *aBytesWritten)
 {
   int i = ber_put_set(mElement);
 
@@ -100,7 +100,7 @@ NS_IMETHODIMP nsLDAPBERElement::GetAsValue(nsILDAPBERValue **_retval)
   }
 
   nsresult rv = berValue->Set(bv->bv_len, 
-                              reinterpret_cast<PRUint8 *>(bv->bv_val));
+                              reinterpret_cast<uint8_t *>(bv->bv_val));
 
   // whether or not we've succeeded, we're done with the ldap c sdk struct
   ber_bvfree(bv);

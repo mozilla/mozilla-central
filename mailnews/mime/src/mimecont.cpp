@@ -22,7 +22,7 @@ static bool MimeContainer_displayable_inline_p (MimeObjectClass *clazz,
                            MimeHeaders *hdrs);
 
 #if defined(DEBUG) && defined(XP_UNIX)
-static int MimeContainer_debug_print (MimeObject *, PRFileDesc *, PRInt32 depth);
+static int MimeContainer_debug_print (MimeObject *, PRFileDesc *, int32_t depth);
 #endif
 
 static int
@@ -180,7 +180,7 @@ MimeContainer_displayable_inline_p (MimeObjectClass *clazz, MimeHeaders *hdrs)
 
 #if defined(DEBUG) && defined(XP_UNIX)
 static int
-MimeContainer_debug_print (MimeObject *obj, PRFileDesc *stream, PRInt32 depth)
+MimeContainer_debug_print (MimeObject *obj, PRFileDesc *stream, int32_t depth)
 {
   MimeContainer *cont = (MimeContainer *) obj;
   int i;
@@ -192,7 +192,7 @@ MimeContainer_debug_print (MimeObject *obj, PRFileDesc *stream, PRInt32 depth)
       obj->clazz->class_name,
       addr ? addr : "???",
       cont->nchildren, (cont->nchildren == 1 ? "" : "s"),
-      (PRUint32) cont);
+      (uint32_t) cont);
   */
   PR_FREEIF(addr);
 

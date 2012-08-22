@@ -21,7 +21,7 @@ public:
 
 protected:
   nsresult DoModify(nsIAbLDAPDirectory *directory,
-                    const PRInt32 &aUpdateType,
+                    const int32_t &aUpdateType,
                     const nsACString &aCardDN,
                     nsIArray* modArray,
                     const nsACString &aNewRDN,

@@ -31,9 +31,9 @@ private:
   nsCOMPtr <nsIOutputStream> mLogStream;
   nsCOMPtr<nsIFile> mLogFile;
 
-  PRInt32 mLevel; 
-  PRInt32 mPurgeInterval;
-  PRInt32 mMoveTargetMode;
+  int32_t mLevel; 
+  int32_t mPurgeInterval;
+  int32_t mMoveTargetMode;
 
   bool mPurge;
   bool mUseWhiteList;
@@ -47,7 +47,7 @@ private:
 
   nsCString mServerFilterName;
   nsCOMPtr<nsIFile> mServerFilterFile;
-  PRInt32  mServerFilterTrustFlags;
+  int32_t  mServerFilterTrustFlags;
 
   nsCOMPtr<nsIDateTimeFormat> mDateFormatter;
 

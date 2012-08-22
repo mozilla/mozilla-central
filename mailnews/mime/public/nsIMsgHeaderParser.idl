@@ -46,7 +46,7 @@ interface nsIMsgHeaderParser : nsISupports {
    */
   [noscript] void parseHeaderAddresses(in string aLine, out string aNames, 
                                        out string aAddresses,
-                                       out PRUint32 aNumAddresses);
+                                       out uint32_t aNumAddresses);
 
   /**
    * Given a string which contains a list of Header addresses, returns a

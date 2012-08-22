@@ -20,16 +20,16 @@ class nsImportMailboxDescriptor : public nsIImportMailboxDescriptor
 public:
   NS_DECL_ISUPPORTS
 
-  NS_IMETHOD  GetIdentifier(PRUint32 *pIdentifier) { *pIdentifier = m_id; return NS_OK;}
-  NS_IMETHOD  SetIdentifier(PRUint32 ident) { m_id = ident; return NS_OK;}
+  NS_IMETHOD  GetIdentifier(uint32_t *pIdentifier) { *pIdentifier = m_id; return NS_OK;}
+  NS_IMETHOD  SetIdentifier(uint32_t ident) { m_id = ident; return NS_OK;}
 
   /* attribute unsigned long depth; */
-  NS_IMETHOD  GetDepth(PRUint32 *pDepth) { *pDepth = m_depth; return NS_OK;}
-  NS_IMETHOD  SetDepth(PRUint32 theDepth) { m_depth = theDepth; return NS_OK;}
+  NS_IMETHOD  GetDepth(uint32_t *pDepth) { *pDepth = m_depth; return NS_OK;}
+  NS_IMETHOD  SetDepth(uint32_t theDepth) { m_depth = theDepth; return NS_OK;}
 
   /* attribute unsigned long size; */
-  NS_IMETHOD  GetSize(PRUint32 *pSize) { *pSize = m_size; return NS_OK;}
-  NS_IMETHOD  SetSize(PRUint32 theSize) { m_size = theSize; return NS_OK;}
+  NS_IMETHOD  GetSize(uint32_t *pSize) { *pSize = m_size; return NS_OK;}
+  NS_IMETHOD  SetSize(uint32_t theSize) { m_size = theSize; return NS_OK;}
 
   /* attribute wstring displayName; */
   NS_IMETHOD  GetDisplayName(PRUnichar **pName) { *pName = ToNewUnicode(m_displayName); return NS_OK;}
@@ -50,11 +50,11 @@ public:
    static NS_METHOD Create(nsISupports *aOuter, REFNSIID aIID, void **aResult);
 
 private:
-  PRUint32    m_id;      // used by creator of the structure
-  PRUint32    m_depth;    // depth in the hierarchy
+  uint32_t    m_id;      // used by creator of the structure
+  uint32_t    m_depth;    // depth in the hierarchy
   nsString    m_displayName;// name of this mailbox
   nsCOMPtr <nsIFile> m_pFile;  // source file (if applicable)
-  PRUint32    m_size;
+  uint32_t    m_size;
   bool        m_import;    // import it or not?
 };
 

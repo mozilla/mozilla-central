@@ -187,7 +187,7 @@ NS_IMETHODIMP nsMsgIncomingServer::SetPerformingBiff(bool aPerformingBiff)
   return NS_OK;
 }
 
-NS_IMPL_GETSET(nsMsgIncomingServer, BiffState, PRUint32, m_biffState)
+NS_IMPL_GETSET(nsMsgIncomingServer, BiffState, uint32_t, m_biffState)
 
 NS_IMETHODIMP nsMsgIncomingServer::WriteToFolderCache(nsIMsgFolderCache *folderCache)
 {
@@ -407,7 +407,7 @@ nsMsgIncomingServer::SetBoolValue(const char *prefname,
 
 NS_IMETHODIMP
 nsMsgIncomingServer::GetIntValue(const char *prefname,
-                                PRInt32 *val)
+                                int32_t *val)
 {
   if (!mPrefBranch)
     return NS_ERROR_NOT_INITIALIZED;
@@ -483,12 +483,12 @@ nsMsgIncomingServer::SetFileValue(const char* aRelPrefName,
 
 NS_IMETHODIMP
 nsMsgIncomingServer::SetIntValue(const char *prefname,
-                                 PRInt32 val)
+                                 int32_t val)
 {
   if (!mPrefBranch)
     return NS_ERROR_NOT_INITIALIZED;
 
-  PRInt32 defaultVal;
+  int32_t defaultVal;
   nsresult rv = mDefPrefBranch->GetIntPref(prefname, &defaultVal);
 
   if (NS_SUCCEEDED(rv) && defaultVal == val)
@@ -686,7 +686,7 @@ nsresult nsMsgIncomingServer::GetPasswordWithoutUI()
 
   NS_ConvertUTF8toUTF16 currServer(currServerUri);
 
-  PRUint32 numLogins = 0;
+  uint32_t numLogins = 0;
   nsILoginInfo** logins = nullptr;
   rv = loginMgr->FindLogins(&numLogins, currServer, EmptyString(),
                             currServer, &logins);
@@ -708,7 +708,7 @@ nsresult nsMsgIncomingServer::GetPasswordWithoutUI()
     NS_ConvertUTF8toUTF16 serverUsername(serverCUsername);
 
     nsString username;
-    for (PRUint32 i = 0; i < numLogins; ++i)
+    for (uint32_t i = 0; i < numLogins; ++i)
     {
       rv = logins[i]->GetUsername(username);
       NS_ENSURE_SUCCESS(rv, rv);
@@ -836,7 +836,7 @@ nsMsgIncomingServer::ForgetPassword()
 
   currServerUri.Append(temp);
 
-  PRUint32 count;
+  uint32_t count;
   nsILoginInfo** logins;
 
   NS_ConvertUTF8toUTF16 currServer(currServerUri);
@@ -854,7 +854,7 @@ nsMsgIncomingServer::ForgetPassword()
   // There should only be one-login stored for this url, however just in case
   // there isn't.
   nsString username;
-  for (PRUint32 i = 0; i < count; ++i)
+  for (uint32_t i = 0; i < count; ++i)
   {
     if (NS_SUCCEEDED(logins[i]->GetUsername(username)) &&
         username.Equals(serverUsername))
@@ -1171,11 +1171,11 @@ nsMsgIncomingServer::InternalSetHostName(const nsACString& aHostname, const char
   hostname = aHostname;
   if (MsgCountChar(hostname, ':') == 1)
   {
-    PRInt32 colonPos = hostname.FindChar(':');
+    int32_t colonPos = hostname.FindChar(':');
     nsCAutoString portString(Substring(hostname, colonPos));
     hostname.SetLength(colonPos);
     nsresult err;
-    PRInt32 port = portString.ToInteger(&err);
+    int32_t port = portString.ToInteger(&err);
     if (NS_SUCCEEDED(err))
       SetPort(port);
   }
@@ -1213,7 +1213,7 @@ nsMsgIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName,
   if (!hostnameChanged && (newName.FindChar('@') != kNotFound))
     return NS_OK;
 
-  PRInt32 atPos = acctName.FindChar('@');
+  int32_t atPos = acctName.FindChar('@');
 
   // get previous username and hostname
   nsCString userName, hostName;
@@ -1376,7 +1376,7 @@ nsMsgIncomingServer::SetDoBiff(bool aDoBiff)
 }
 
 NS_IMETHODIMP
-nsMsgIncomingServer::GetPort(PRInt32 *aPort)
+nsMsgIncomingServer::GetPort(int32_t *aPort)
 {
   NS_ENSURE_ARG_POINTER(aPort);
 
@@ -1392,7 +1392,7 @@ nsMsgIncomingServer::GetPort(PRInt32 *aPort)
   rv = getProtocolInfo(getter_AddRefs(protocolInfo));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRInt32 socketType;
+  int32_t socketType;
   rv = GetSocketType(&socketType);
   NS_ENSURE_SUCCESS(rv, rv);
   bool useSSLPort = (socketType == nsMsgSocketType::SSL);
@@ -1400,7 +1400,7 @@ nsMsgIncomingServer::GetPort(PRInt32 *aPort)
 }
 
 NS_IMETHODIMP
-nsMsgIncomingServer::SetPort(PRInt32 aPort)
+nsMsgIncomingServer::SetPort(int32_t aPort)
 {
   nsresult rv;
 
@@ -1408,12 +1408,12 @@ nsMsgIncomingServer::SetPort(PRInt32 aPort)
   rv = getProtocolInfo(getter_AddRefs(protocolInfo));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRInt32 socketType;
+  int32_t socketType;
   rv = GetSocketType(&socketType);
   NS_ENSURE_SUCCESS(rv, rv);
   bool useSSLPort = (socketType == nsMsgSocketType::SSL);
 
-  PRInt32 defaultPort;
+  int32_t defaultPort;
   protocolInfo->GetDefaultServerPort(useSSLPort, &defaultPort);
   return SetIntValue("port", aPort == defaultPort ? PORT_NOT_SET : aPort);
 }
@@ -1441,10 +1441,10 @@ NS_IMETHODIMP nsMsgIncomingServer::GetRetentionSettings(nsIMsgRetentionSettings 
 {
   NS_ENSURE_ARG_POINTER(settings);
   nsMsgRetainByPreference retainByPreference;
-  PRInt32 daysToKeepHdrs = 0;
-  PRInt32 numHeadersToKeep = 0;
+  int32_t daysToKeepHdrs = 0;
+  int32_t numHeadersToKeep = 0;
   bool keepUnreadMessagesOnly = false;
-  PRInt32 daysToKeepBodies = 0;
+  int32_t daysToKeepBodies = 0;
   bool cleanupBodiesByDays = false;
   bool applyToFlaggedMessages = false;
   nsresult rv = NS_OK;
@@ -1456,7 +1456,7 @@ NS_IMETHODIMP nsMsgIncomingServer::GetRetentionSettings(nsIMsgRetentionSettings 
   {
     rv = GetBoolValue("keepUnreadOnly", &keepUnreadMessagesOnly);
     NS_ENSURE_SUCCESS(rv, rv);
-    rv = GetIntValue("retainBy", (PRInt32*) &retainByPreference);
+    rv = GetIntValue("retainBy", (int32_t*) &retainByPreference);
     NS_ENSURE_SUCCESS(rv, rv);
     rv = GetIntValue("numHdrsToKeep", &numHeadersToKeep);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -1469,7 +1469,7 @@ NS_IMETHODIMP nsMsgIncomingServer::GetRetentionSettings(nsIMsgRetentionSettings 
     rv = GetBoolValue("applyToFlaggedMessages", &applyToFlaggedMessages);
     NS_ENSURE_SUCCESS(rv, rv);
     retentionSettings->SetRetainByPreference(retainByPreference);
-    retentionSettings->SetNumHeadersToKeep((PRUint32) numHeadersToKeep);
+    retentionSettings->SetNumHeadersToKeep((uint32_t) numHeadersToKeep);
     retentionSettings->SetKeepUnreadMessagesOnly(keepUnreadMessagesOnly);
     retentionSettings->SetDaysToKeepBodies(daysToKeepBodies);
     retentionSettings->SetDaysToKeepHdrs(daysToKeepHdrs);
@@ -1485,10 +1485,10 @@ NS_IMETHODIMP nsMsgIncomingServer::GetRetentionSettings(nsIMsgRetentionSettings 
 NS_IMETHODIMP nsMsgIncomingServer::SetRetentionSettings(nsIMsgRetentionSettings *settings)
 {
   nsMsgRetainByPreference retainByPreference;
-  PRUint32 daysToKeepHdrs = 0;
-  PRUint32 numHeadersToKeep = 0;
+  uint32_t daysToKeepHdrs = 0;
+  uint32_t numHeadersToKeep = 0;
   bool keepUnreadMessagesOnly = false;
-  PRUint32 daysToKeepBodies = 0;
+  uint32_t daysToKeepBodies = 0;
   bool cleanupBodiesByDays = false;
   bool applyToFlaggedMessages = false;
   settings->GetRetainByPreference(&retainByPreference);
@@ -1536,7 +1536,7 @@ NS_IMETHODIMP nsMsgIncomingServer::GetDownloadSettings(nsIMsgDownloadSettings **
   NS_ENSURE_ARG_POINTER(settings);
   bool downloadUnreadOnly = false;
   bool downloadByDate = false;
-  PRUint32 ageLimitOfMsgsToDownload = 0;
+  uint32_t ageLimitOfMsgsToDownload = 0;
   nsresult rv = NS_OK;
   if (!m_downloadSettings)
   {
@@ -1545,7 +1545,7 @@ NS_IMETHODIMP nsMsgIncomingServer::GetDownloadSettings(nsIMsgDownloadSettings **
     {
       rv = GetBoolValue("downloadUnreadOnly", &downloadUnreadOnly);
       rv = GetBoolValue("downloadByDate", &downloadByDate);
-      rv = GetIntValue("ageLimit", (PRInt32 *) &ageLimitOfMsgsToDownload);
+      rv = GetIntValue("ageLimit", (int32_t *) &ageLimitOfMsgsToDownload);
       m_downloadSettings->SetDownloadUnreadOnly(downloadUnreadOnly);
       m_downloadSettings->SetDownloadByDate(downloadByDate);
       m_downloadSettings->SetAgeLimitOfMsgsToDownload(ageLimitOfMsgsToDownload);
@@ -1564,7 +1564,7 @@ NS_IMETHODIMP nsMsgIncomingServer::SetDownloadSettings(nsIMsgDownloadSettings *s
   m_downloadSettings = settings;
   bool downloadUnreadOnly = false;
   bool downloadByDate = false;
-  PRUint32 ageLimitOfMsgsToDownload = 0;
+  uint32_t ageLimitOfMsgsToDownload = 0;
   m_downloadSettings->GetDownloadUnreadOnly(&downloadUnreadOnly);
   m_downloadSettings->GetDownloadByDate(&downloadByDate);
   m_downloadSettings->GetAgeLimitOfMsgsToDownload(&ageLimitOfMsgsToDownload);
@@ -1583,7 +1583,7 @@ nsMsgIncomingServer::GetSupportsDiskSpace(bool *aSupportsDiskSpace)
 }
 
 NS_IMETHODIMP
-nsMsgIncomingServer::GetOfflineSupportLevel(PRInt32 *aSupportLevel)
+nsMsgIncomingServer::GetOfflineSupportLevel(int32_t *aSupportLevel)
 {
   NS_ENSURE_ARG_POINTER(aSupportLevel);
   nsresult rv;
@@ -1595,7 +1595,7 @@ nsMsgIncomingServer::GetOfflineSupportLevel(PRInt32 *aSupportLevel)
 }
 
 NS_IMETHODIMP
-nsMsgIncomingServer::SetOfflineSupportLevel(PRInt32 aSupportLevel)
+nsMsgIncomingServer::SetOfflineSupportLevel(int32_t aSupportLevel)
 {
   SetIntValue("offline_support_level", aSupportLevel);
   return NS_OK;
@@ -1659,7 +1659,7 @@ NS_IMETHODIMP
 nsMsgIncomingServer::GetIsSecure(bool *aIsSecure)
 {
   NS_ENSURE_ARG_POINTER(aIsSecure);
-  PRInt32 socketType;
+  int32_t socketType;
   nsresult rv = GetSocketType(&socketType);
   NS_ENSURE_SUCCESS(rv,rv);
   *aIsSecure = (socketType == nsMsgSocketType::alwaysSTARTTLS ||
@@ -1700,7 +1700,7 @@ NS_IMPL_SERVERPREF_INT(nsMsgIncomingServer, IncomingDuplicateAction, "dup_action
 
 NS_IMPL_SERVERPREF_BOOL(nsMsgIncomingServer, Hidden, "hidden")
 
-NS_IMETHODIMP nsMsgIncomingServer::GetSocketType(PRInt32 *aSocketType)
+NS_IMETHODIMP nsMsgIncomingServer::GetSocketType(int32_t *aSocketType)
 {
   if (!mPrefBranch)
     return NS_ERROR_NOT_INITIALIZED;
@@ -1730,12 +1730,12 @@ NS_IMETHODIMP nsMsgIncomingServer::GetSocketType(PRInt32 *aSocketType)
   return rv;
 }
 
-NS_IMETHODIMP nsMsgIncomingServer::SetSocketType(PRInt32 aSocketType)
+NS_IMETHODIMP nsMsgIncomingServer::SetSocketType(int32_t aSocketType)
 {
   if (!mPrefBranch)
     return NS_ERROR_NOT_INITIALIZED;
 
-  PRInt32 socketType = nsMsgSocketType::plain;
+  int32_t socketType = nsMsgSocketType::plain;
   mPrefBranch->GetIntPref("socketType", &socketType);
 
   nsresult rv = mPrefBranch->SetIntPref("socketType", aSocketType);
@@ -1804,7 +1804,7 @@ nsMsgIncomingServer::ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filte
   spamSettings->GetServerFilterName(serverFilterName);
   if (serverFilterName.IsEmpty())
     return NS_OK;
-  PRInt32 serverFilterTrustFlags = 0;
+  int32_t serverFilterTrustFlags = 0;
   (void) spamSettings->GetServerFilterTrustFlags(&serverFilterTrustFlags);
   if (!serverFilterTrustFlags)
     return NS_OK;
@@ -1860,7 +1860,7 @@ nsMsgIncomingServer::ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filte
     nsCOMPtr<nsISupportsArray> searchTerms;
     rv = newFilter->GetSearchTerms(getter_AddRefs(searchTerms));
     NS_ENSURE_SUCCESS(rv, rv);
-    PRUint32 count = 0;
+    uint32_t count = 0;
     searchTerms->Count(&count);
     if (count > 1) // don't need to group a single term
     {
@@ -1952,7 +1952,7 @@ nsMsgIncomingServer::ConfigureTemporaryReturnReceiptsFilter(nsIMsgFilterList *fi
   // this can return success and a null identity...
 
   bool useCustomPrefs = false;
-  PRInt32 incorp = nsIMsgMdnGenerator::eIncorporateInbox;
+  int32_t incorp = nsIMsgMdnGenerator::eIncorporateInbox;
   NS_ENSURE_TRUE(identity, NS_ERROR_NULL_POINTER);
 
   identity->GetBoolAttribute("use_custom_prefs", &useCustomPrefs);
@@ -2137,9 +2137,9 @@ nsresult nsMsgIncomingServer::GetDeferredServers(nsIMsgIncomingServer *destServe
     accountManager->GetAllServers(getter_AddRefs(allServers));
     if (allServers)
     {
-      PRUint32 serverCount;
+      uint32_t serverCount;
       allServers->Count(&serverCount);
-      for (PRUint32 i = 0; i < serverCount; i++)
+      for (uint32_t i = 0; i < serverCount; i++)
       {
         nsCOMPtr <nsIMsgIncomingServer> server (do_QueryElementAt(allServers, i));
         if (server)
@@ -2173,9 +2173,9 @@ NS_IMETHODIMP nsMsgIncomingServer::GetIsDeferredTo(bool *aIsDeferredTo)
       accountManager->GetAllServers(getter_AddRefs(allServers));
       if (allServers)
       {
-        PRUint32 serverCount;
+        uint32_t serverCount;
         allServers->Count(&serverCount);
-        for (PRUint32 i = 0; i < serverCount; i++)
+        for (uint32_t i = 0; i < serverCount; i++)
         {
           nsCOMPtr <nsIMsgIncomingServer> server (do_QueryElementAt(allServers, i));
           if (server)
@@ -2200,7 +2200,7 @@ const long kMaxDownloadTableSize = 500;
 
 // aClosure is the server, from that we get the cutoff point, below which we evict
 // aData is the arrival index of the msg.
-/* static */PLDHashOperator nsMsgIncomingServer::evictOldEntries(nsCStringHashKey::KeyType aKey, PRInt32 &aData, void *aClosure)
+/* static */PLDHashOperator nsMsgIncomingServer::evictOldEntries(nsCStringHashKey::KeyType aKey, int32_t &aData, void *aClosure)
 {
   nsMsgIncomingServer *server = (nsMsgIncomingServer *) aClosure;
   if (aData < server->m_numMsgsDownloaded - kMaxDownloadTableSize/2)
@@ -2219,7 +2219,7 @@ NS_IMETHODIMP nsMsgIncomingServer::IsNewHdrDuplicate(nsIMsgDBHdr *aNewHdr, bool 
 
   // If the message has been partially downloaded, the message should not
   // be considered a duplicated message. See bug 714090.
-  PRUint32 flags;
+  uint32_t flags;
   aNewHdr->GetFlags(&flags);
   if (flags & nsMsgMessageFlags::Partial)
     return NS_OK;
@@ -2233,7 +2233,7 @@ NS_IMETHODIMP nsMsgIncomingServer::IsNewHdrDuplicate(nsIMsgDBHdr *aNewHdr, bool 
   if (subject.IsEmpty() || messageId.IsEmpty())
     return NS_OK;
   strHashKey.Append(subject);
-  PRInt32 hashValue = 0;
+  int32_t hashValue = 0;
   m_downloadedHdrs.Get(strHashKey, &hashValue);
   if (hashValue)
     *aResult = true;

@@ -131,14 +131,14 @@ nsProfileMigrator::GetSuiteMigratorKey(nsACString& aKey,
     if (NS_FAILED(regKey->ReadStringValue(EmptyString(), value)))
       return NS_ERROR_FAILURE;
 
-    PRInt32 len = value.Find(NS_LITERAL_STRING(".exe"), CaseInsensitiveCompare);
+    int32_t len = value.Find(NS_LITERAL_STRING(".exe"), CaseInsensitiveCompare);
     if (len == -1)
       return NS_ERROR_FAILURE;
 
     // Move past ".exe"
     len += 4;
 
-    PRUint32 start = 0;
+    uint32_t start = 0;
     // skip an opening quotation mark if present
     if (value.get()[1] != ':') {
       start = 1;
@@ -184,7 +184,7 @@ nsProfileMigrator::GetSuiteMigratorKey(nsACString& aKey,
       return NS_ERROR_FAILURE;
 
     if (!internalName.IsEmpty()) {
-      PRUint32 i;
+      uint32_t i;
       for (i = 0; i < NS_ARRAY_LENGTH(nameMap); ++i) {
         if (internalName.Equals(NS_ConvertUTF8toUTF16(nameMap[i].internalName),
                                 CaseInsensitiveCompare)) {
@@ -213,7 +213,7 @@ nsProfileMigrator::GetSuiteMigratorKey(nsACString& aKey,
   // We can't get the default migrator (wrong OS, we don't have a migrator for
   // the default browser, cannot find default browser), so fall back to finding
   // a valid profile to migrator manually - first try what we've been given.
-  for (PRUint32 j = 0; j < NS_ARRAY_LENGTH(migratorNames); ++j) {
+  for (uint32_t j = 0; j < NS_ARRAY_LENGTH(migratorNames); ++j) {
     migratorID.AssignLiteral(NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX);
     migratorID.Append(migratorNames[j]);
 

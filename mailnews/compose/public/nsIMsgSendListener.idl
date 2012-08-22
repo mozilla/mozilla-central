@@ -17,12 +17,12 @@ interface nsIMsgSendListener : nsISupports {
      * @return The return value is currently ignored.  In the future it may be
      * used to cancel the URL load..
      */
-    void onStartSending(in string aMsgID, in PRUint32 aMsgSize);
+    void onStartSending(in string aMsgID, in uint32_t aMsgSize);
 
     /**
      * Notify the observer that progress as occurred for the message send
      */
-    void onProgress(in string aMsgID, in PRUint32 aProgress, in PRUint32 aProgressMax);
+    void onProgress(in string aMsgID, in uint32_t aProgress, in uint32_t aProgressMax);
 
     /**
      * Notify the observer with a status message for the message send

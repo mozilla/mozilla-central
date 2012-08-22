@@ -35,7 +35,7 @@ nsIStringBundle *nsEudoraStringBundle::GetStringBundle(void)
   return sBundle;
 }
 
-void nsEudoraStringBundle::GetStringByID(PRInt32 stringID, nsString& result)
+void nsEudoraStringBundle::GetStringByID(int32_t stringID, nsString& result)
 {
 
   PRUnichar *ptrv = GetStringByID(stringID);
@@ -43,7 +43,7 @@ void nsEudoraStringBundle::GetStringByID(PRInt32 stringID, nsString& result)
   FreeString(ptrv);
 }
 
-PRUnichar *nsEudoraStringBundle::GetStringByID(PRInt32 stringID)
+PRUnichar *nsEudoraStringBundle::GetStringByID(int32_t stringID)
 {
   if (!m_pBundle)
     m_pBundle = GetStringBundle();
@@ -64,7 +64,7 @@ PRUnichar *nsEudoraStringBundle::GetStringByID(PRInt32 stringID)
   return ToNewUnicode(resultString);
 }
 
-nsString nsEudoraStringBundle::FormatString(PRInt32 stringID, ...)
+nsString nsEudoraStringBundle::FormatString(int32_t stringID, ...)
 {
   // Yeah, I know.  This causes an extra string buffer allocation, but there's no guarantee
   // that nsString's free and nsTextFormatter::smprintf_free deallocate memory the same way.

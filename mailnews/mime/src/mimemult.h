@@ -24,7 +24,7 @@
 
      Whether this child should be output.  Default method always says `yes'.
 
-   int parse_child_line (MimeObject *obj, const char *line, PRInt32 length,
+   int parse_child_line (MimeObject *obj, const char *line, int32_t length,
              bool first_line_p)
 
      When we have a line which should be handed off to the currently-active
@@ -40,7 +40,7 @@
    simply calls `parse_eof' on the most-recently-added child object.
 
    MimeMultipartBoundaryType check_boundary (MimeObject *obj,
-                      const char *line, PRInt32 length)
+                      const char *line, int32_t length)
 
      This method is used to examine a line and determine whether it is a
      part boundary, and if so, what kind.  It should return a member of
@@ -78,10 +78,10 @@ struct MimeMultipartClass {
   int (*create_child) (MimeObject *);
   bool (*output_child_p) (MimeObject *self, MimeObject *child);
   int (*close_child) (MimeObject *);
-  int (*parse_child_line) (MimeObject *, const char *line, PRInt32 length,
+  int (*parse_child_line) (MimeObject *, const char *line, int32_t length,
                bool first_line_p);
   MimeMultipartBoundaryType (*check_boundary) (MimeObject *, const char *line,
-                         PRInt32 length);
+                         int32_t length);
 };
 
 extern MimeMultipartClass mimeMultipartClass;

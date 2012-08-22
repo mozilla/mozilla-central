@@ -94,7 +94,7 @@ class nsLDAPOperation : public nsILDAPOperation
     nsCString mSavePassword;
     nsCString mMechanism;
     nsCOMPtr<nsIAuthModule> mAuthModule;
-    PRInt32 mMsgID;          // opaque handle to outbound message for this op
+    int32_t mMsgID;          // opaque handle to outbound message for this op
 
     nsCOMPtr<nsIMutableArray> mClientControls;
     nsCOMPtr<nsIMutableArray> mServerControls;

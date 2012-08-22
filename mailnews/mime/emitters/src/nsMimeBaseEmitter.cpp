@@ -98,7 +98,7 @@ nsMimeBaseEmitter::nsMimeBaseEmitter()
 
 nsMimeBaseEmitter::~nsMimeBaseEmitter(void)
 {
-  PRInt32 i;
+  int32_t i;
 
   // Delete the buffer manager...
   if (mBufferMgr)
@@ -145,7 +145,7 @@ nsMimeBaseEmitter::CleanupHeaderArray(nsVoidArray *aArray)
   if (!aArray)
     return;
 
-  for (PRInt32 i=0; i<aArray->Count(); i++)
+  for (int32_t i=0; i<aArray->Count(); i++)
   {
     headerInfoType *headerInfo = (headerInfoType *)aArray->ElementAt(i);
     if (!headerInfo)
@@ -159,7 +159,7 @@ nsMimeBaseEmitter::CleanupHeaderArray(nsVoidArray *aArray)
   delete aArray;
 }
 
-static PRInt32 MapHeaderNameToID(const char *header)
+static int32_t MapHeaderNameToID(const char *header)
 {
   // emitter passes UPPERCASE for header names
   if (!strcmp(header, "DATE"))
@@ -240,7 +240,7 @@ nsMimeBaseEmitter::MimeGetStringByName(const char *aHeaderName)
 }
 
 char *
-nsMimeBaseEmitter::MimeGetStringByID(PRInt32 aID)
+nsMimeBaseEmitter::MimeGetStringByID(int32_t aID)
 {
   nsresult res = NS_OK;
 
@@ -285,7 +285,7 @@ nsMimeBaseEmitter::LocalizeHeaderName(const char *aHeaderName, const char *aDefa
       mFormat != nsMimeOutput::nsMimeMessageBodyQuoting)
   {
     // map name to id and get the translated string
-    PRInt32 id = MapHeaderNameToID(aHeaderName);
+    int32_t id = MapHeaderNameToID(aHeaderName);
     if (id > 0)
       retVal = MimeGetStringByID(id);
   }
@@ -315,7 +315,7 @@ nsMimeBaseEmitter::SetPipe(nsIInputStream * aInputStream, nsIOutputStream *outSt
 // anything to the stream since these may be image data
 // output streams, etc...
 NS_IMETHODIMP
-nsMimeBaseEmitter::Initialize(nsIURI *url, nsIChannel * aChannel, PRInt32 aFormat)
+nsMimeBaseEmitter::Initialize(nsIURI *url, nsIChannel * aChannel, int32_t aFormat)
 {
   // set the url
   mURL = url;
@@ -402,7 +402,7 @@ nsMimeBaseEmitter::UtilityWrite(const char *buf)
 {
   NS_ENSURE_ARG_POINTER(buf);
 
-  PRUint32    written;
+  uint32_t    written;
   Write(nsDependentCString(buf), &written);
   return NS_OK;
 }
@@ -410,7 +410,7 @@ nsMimeBaseEmitter::UtilityWrite(const char *buf)
 NS_IMETHODIMP
 nsMimeBaseEmitter::UtilityWrite(const nsACString &buf)
 {
-  PRUint32    written;
+  uint32_t    written;
   Write(buf, &written);
   return NS_OK;
 }
@@ -420,18 +420,18 @@ nsMimeBaseEmitter::UtilityWriteCRLF(const char *buf)
 {
   NS_ENSURE_ARG_POINTER(buf);
 
-  PRUint32    written;
+  uint32_t    written;
   Write(nsDependentCString(buf), &written);
   Write(NS_LITERAL_CSTRING(CRLF), &written);
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMimeBaseEmitter::Write(const nsACString &buf, PRUint32 *amountWritten)
+nsMimeBaseEmitter::Write(const nsACString &buf, uint32_t *amountWritten)
 {
   unsigned int        written = 0;
   nsresult rv = NS_OK;
-  PRUint32            needToWrite;
+  uint32_t            needToWrite;
 
 #ifdef DEBUG_BenB
   // If you want to see libmime output...
@@ -481,14 +481,14 @@ nsMimeBaseEmitter::Write(const nsACString &buf, PRUint32 *amountWritten)
 }
 
 nsresult
-nsMimeBaseEmitter::WriteHelper(const char *buf, PRUint32 count, PRUint32 *countWritten)
+nsMimeBaseEmitter::WriteHelper(const char *buf, uint32_t count, uint32_t *countWritten)
 {
   NS_ENSURE_TRUE(mOutStream, NS_ERROR_NOT_INITIALIZED);
 
   nsresult rv = mOutStream->Write(buf, count, countWritten);
   if (rv == NS_BASE_STREAM_WOULD_BLOCK) {
     // pipe is full, push contents of pipe to listener...
-    PRUint64 avail;
+    uint64_t avail;
     rv = mInputStream->Available(&avail);
     if (NS_SUCCEEDED(rv) && avail) {
       mOutListener->OnDataAvailable(mChannel, mURL, mInputStream, 0, 
@@ -507,7 +507,7 @@ nsMimeBaseEmitter::WriteHelper(const char *buf, PRUint32 count, PRUint32 *countW
 const char *
 nsMimeBaseEmitter::GetHeaderValue(const char  *aHeaderName)
 {
-  PRInt32     i;
+  int32_t     i;
   char        *retVal = nullptr;
   nsVoidArray *array = mDocHeader? mHeaderArray : mEmbeddedHeaderArray;
 
@@ -746,7 +746,7 @@ nsMimeBaseEmitter::GenerateDateString(const char * dateString,
       if (displaySenderTimezone)
       {
         // offset of local time from UTC in minutes
-        PRInt32 senderoffset = (explodedMsgTime.tm_params.tp_gmt_offset +
+        int32_t senderoffset = (explodedMsgTime.tm_params.tp_gmt_offset +
                                 explodedMsgTime.tm_params.tp_dst_offset) / 60;
         // append offset to date string
         PRUnichar *tzstring =
@@ -990,7 +990,7 @@ nsMimeBaseEmitter::DumpToCC()
 nsresult
 nsMimeBaseEmitter::DumpRestOfHeaders()
 {
-  PRInt32     i;
+  int32_t     i;
   nsVoidArray *array = mDocHeader? mHeaderArray : mEmbeddedHeaderArray;
 
   mHTMLHeaders.Append("<table border=0 cellspacing=0 cellpadding=0 width=\"100%\" class=\"header-part3\">");
@@ -1045,7 +1045,7 @@ nsMimeBaseEmitter::Complete()
   // If we are here and still have data to write, we should try
   // to flush it...if we try and fail, we should probably return
   // an error!
-  PRUint32      written;
+  uint32_t      written;
 
   nsresult rv = NS_OK;
   while ( NS_SUCCEEDED(rv) && (mBufferMgr) && (mBufferMgr->GetSize() > 0))
@@ -1053,7 +1053,7 @@ nsMimeBaseEmitter::Complete()
 
   if (mOutListener)
   {
-    PRUint64 bytesInStream = 0;
+    uint64_t bytesInStream = 0;
     nsresult rv2 = mInputStream->Available(&bytesInStream);
     NS_ASSERTION(NS_SUCCEEDED(rv2), "Available failed");
     if (bytesInStream)
@@ -1085,7 +1085,7 @@ nsMimeBaseEmitter::StartBody(bool bodyOnly, const char *msgID, const char *outCh
 }
 
 NS_IMETHODIMP
-nsMimeBaseEmitter::WriteBody(const nsACString &buf, PRUint32 *amountWritten)
+nsMimeBaseEmitter::WriteBody(const nsACString &buf, uint32_t *amountWritten)
 {
   return NS_OK;
 }

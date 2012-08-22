@@ -77,11 +77,11 @@ protected:
   nsCOMPtr<nsIPrefBranch> mDefPrefBranch;
 
   // these allow us to handle duplicate incoming messages, e.g. delete them.
-  nsDataHashtable<nsCStringHashKey,PRInt32> m_downloadedHdrs;
-  PRInt32  m_numMsgsDownloaded;
-static PLDHashOperator evictOldEntries(nsCStringHashKey::KeyType aKey, PRInt32 &aData, void *aClosure);
+  nsDataHashtable<nsCStringHashKey,int32_t> m_downloadedHdrs;
+  int32_t  m_numMsgsDownloaded;
+static PLDHashOperator evictOldEntries(nsCStringHashKey::KeyType aKey, int32_t &aData, void *aClosure);
 private:
-  PRUint32 m_biffState;
+  uint32_t m_biffState;
   bool m_serverBusy;
   nsCOMPtr <nsISpamSettings> mSpamSettings;
   nsCOMPtr<nsIMsgFilterPlugin> mFilterPlugin;  // XXX should be a list

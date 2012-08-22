@@ -23,7 +23,7 @@ public:
     NS_DECL_NSILOCALMAILINCOMINGSERVER
     NS_DECL_NSIMSGFOLDERLISTENER
 
-    NS_IMETHOD GetOfflineSupportLevel(PRInt32 *aSupportLevel);
+    NS_IMETHOD GetOfflineSupportLevel(int32_t *aSupportLevel);
     NS_IMETHOD GetSupportsDiskSpace(bool *aSupportsDiskSpace);
     NS_IMETHOD GetAccountManagerChrome(nsAString& aResult);
     NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);

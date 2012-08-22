@@ -26,7 +26,7 @@ typedef struct _subscribeTreeNode {
   PRUnichar *description;
 #endif
 #ifdef HAVE_SUBSCRIBE_MESSAGES
-  PRUint32 messages;
+  uint32_t messages;
 #endif
   bool isSubscribable;
 } SubscribeTreeNode;

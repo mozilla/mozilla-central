@@ -47,9 +47,9 @@ public:
 protected:
   struct folderListener {
     nsCOMPtr<nsIFolderListener> mListener;
-    PRUint32 mNotifyFlags;
+    uint32_t mNotifyFlags;
 
-    folderListener(nsIFolderListener *aListener, PRUint32 aNotifyFlags)
+    folderListener(nsIFolderListener *aListener, uint32_t aNotifyFlags)
       : mListener(aListener), mNotifyFlags(aNotifyFlags) {}
     folderListener(const folderListener &aListener)
       : mListener(aListener.mListener), mNotifyFlags(aListener.mNotifyFlags) {}
@@ -94,8 +94,8 @@ protected:
 private:
   nsCOMArray<nsIMsgShutdownTask> mShutdownTasks;
   nsCOMPtr<nsIMsgProgress>       mMsgProgress;
-  PRInt32                        mTaskIndex;
-  PRUint32                       mQuitMode;
+  int32_t                        mTaskIndex;
+  uint32_t                       mQuitMode;
   bool mProcessedShutdown;
   bool mQuitForced;
   bool mReadyToQuit;

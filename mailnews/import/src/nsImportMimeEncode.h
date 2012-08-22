@@ -45,7 +45,7 @@ protected:
 
 	int				m_state;
 	long			m_bytesProcessed;
-	PRUint8 *		m_pInputBuf;
+	uint8_t *		m_pInputBuf;
 	bool			m_appleSingle;
 	
 	// Actual encoding variables
