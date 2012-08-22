@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://calendar/modules/calRecurrenceUtils.jsm");
 
 var taskDetailsView = {
 
@@ -113,9 +114,10 @@ var taskDetailsView = {
                 var kDefaultTimezone = calendarDefaultTimezone();
                 var startDate = recurStart.getInTimezone(kDefaultTimezone);
                 var endDate = item.dueDate ? item.dueDate.getInTimezone(kDefaultTimezone) : null;
-                var detailsString = recurrenceRule2String(recurrenceInfo,startDate,endDate,startDate.isDate);
+                var detailsString = recurrenceRule2String(recurrenceInfo, startDate, endDate, startDate.isDate);
                 if (detailsString) {
-                    document.getElementById("calendar-task-details-repeat").value = detailsString.split("\n").join(" ");
+                    let rpv = document.getElementById("calendar-task-details-repeat");
+                    rpv.value = detailsString.split("\n").join(" ");
                 }
             }
             var textbox = document.getElementById("calendar-task-details-description");

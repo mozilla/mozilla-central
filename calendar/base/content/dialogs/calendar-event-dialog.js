@@ -4,6 +4,7 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://calendar/modules/calRecurrenceUtils.jsm");
 
 // the following variables are constructed if the jsContext this file
 // belongs to gets constructed. all those variables are meant to be accessed
@@ -3001,27 +3002,29 @@ function updateRepeatDetails() {
         endDate = jsDateToDateTime(endDate, kDefaultTimezone);
 
         let allDay = getElementValue("event-all-day", "checked");
-        let detailsString = recurrenceRule2String(
-            recurrenceInfo, startDate, endDate, allDay);
+        let detailsString = recurrenceRule2String(recurrenceInfo, startDate,
+                                                  endDate, allDay);
+
+        if (!detailsString) {
+            detailsString = cal.calGetString("calendar-event-dialog", "ruleTooComplex");
+        }
 
         // Now display the string...
-        if (detailsString) {
-            let lines = detailsString.split("\n");
-            repeatDetails.removeAttribute("collapsed");
-            while (repeatDetails.childNodes.length > lines.length) {
-                repeatDetails.removeChild(repeatDetails.lastChild);
+        let lines = detailsString.split("\n");
+        repeatDetails.removeAttribute("collapsed");
+        while (repeatDetails.childNodes.length > lines.length) {
+            repeatDetails.removeChild(repeatDetails.lastChild);
+        }
+        let numChilds = repeatDetails.childNodes.length;
+        for (let i = 0; i < lines.length; i++) {
+            if (i >= numChilds) {
+                var newNode = repeatDetails.childNodes[0]
+                                           .cloneNode(true);
+                repeatDetails.appendChild(newNode);
             }
-            let numChilds = repeatDetails.childNodes.length;
-            for (let i = 0; i < lines.length; i++) {
-                if (i >= numChilds) {
-                    var newNode = repeatDetails.childNodes[0]
-                                               .cloneNode(true);
-                    repeatDetails.appendChild(newNode);
-                }
-                repeatDetails.childNodes[i].value = lines[i];
-                repeatDetails.childNodes[i].setAttribute("tooltiptext",
-                                                         detailsString);
-            }
+            repeatDetails.childNodes[i].value = lines[i];
+            repeatDetails.childNodes[i].setAttribute("tooltiptext",
+                                                     detailsString);
         }
     } else {
         let repeatDetails = document.getElementById("repeat-details");

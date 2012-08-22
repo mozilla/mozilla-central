@@ -6,6 +6,7 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calXMLUtils.jsm");
+Components.utils.import("resource://calendar/modules/calRecurrenceUtils.jsm");
 
 function ltnMimeConverter() {
 }
@@ -63,12 +64,65 @@ ltnMimeConverter.prototype = {
     },
 
     /**
+     * Returns a header title for an ITIP item depending on the response method
+     * @param       aItipItem  the event
+     * @return string the header title
+     */
+    getItipHeader: function getItipHeader(aItipItem) {
+        let header;
+
+        if (aItipItem) {
+            let item = aItipItem.getItemList({})[0];
+            let summary = item.getProperty("SUMMARY") || "";
+            let organizer = item.organizer;
+            let organizerString = organizer.toString();
+            if (organizer.commonName) {
+                organizerString = organizer.commonName;
+            }
+
+            switch (aItipItem.responseMethod) {
+                case "REQUEST":
+                    header = cal.calGetString("lightning",
+                                              "itipRequestBody",
+                                              [organizerString, summary],
+                                              "lightning");
+                    break;
+                case "CANCEL":
+                    header = cal.calGetString("lightning",
+                                              "itipCancelBody",
+                                              [organizerString, summary],
+                                              "lightning");
+                    break;
+                case "REPLY": {
+                    // Generate proper body from my participation status
+                    let sender = cal.getInvitedAttendee(item);
+                    let statusString = (sender.participationStatus == "DECLINED" ?
+                        "itipReplyBodyDecline": "itipReplyBodyAccept");
+
+                    header = cal.calGetString("lightning",
+                                              statusString,
+                                              [sender],
+                                              "lightning");
+                    break;
+                }
+            }
+        }
+
+        if (!header) {
+            header = cal.calGetString("lightning", "imipHtml.header", null, "lightning");
+        }
+
+        return header;
+    },
+
+    /**
      * Returns the html representation of the event as a DOM document.
      *
-     * @param event     The calIItemBase to parse into html.
-     * @return          The DOM document with values filled in.
+     * @param event         The calIItemBase to parse into html.
+     * @param aNewItipItem  The parsed itip item.
+     * @return              The DOM document with values filled in.
      */
-    createHtml: function createHtml(event) {
+    createHtml: function createHtml(event, aNewItipItem) {
         // Creates HTML using the Node strings in the properties file
         let doc = cal.xml.parseFile("chrome://lightning/content/lightning-invitation.xhtml");
         let self = this;
@@ -91,10 +145,30 @@ ltnMimeConverter.prototype = {
         }
 
         // Simple fields
-        field("header", null);
+        let headerDescr = doc.getElementById("imipHtml-header-descr");
+        if (headerDescr) {
+            headerDescr.textContent = this.getItipHeader(aNewItipItem);
+        }
+
         field("summary", event.title);
         field("location", event.getProperty("LOCATION"));
-        field("when", cal.getDateFormatter().formatItemInterval(event));
+
+        let dateString = cal.getDateFormatter().formatItemInterval(event);
+
+        if (event.recurrenceInfo) {
+            let kDefaultTimezone = cal.calendarDefaultTimezone();
+            let startDate =  event.startDate;
+            let endDate = event.endDate;
+            startDate = startDate ? startDate.getInTimezone(kDefaultTimezone) : null;
+            endDate = endDate ? endDate.getInTimezone(kDefaultTimezone) : null;
+            let repeatString = recurrenceRule2String(event.recurrenceInfo, startDate,
+                                                     endDate, startDate.isDate);
+            if (repeatString) {
+                dateString = repeatString;
+            }
+        }
+
+        field("when", dateString);
         field("comment", event.getProperty("COMMENT"), true);
 
         // DESCRIPTION field
@@ -159,13 +233,10 @@ ltnMimeConverter.prototype = {
             }
         }
         if (!event) {
-            return;
+            return '';
         }
 
-        // Create the HTML string for display
-        let serializer = Components.classes["@mozilla.org/xmlextras/xmlserializer;1"]
-                                   .createInstance(Components.interfaces.nsIDOMSerializer);
-        let html = serializer.serializeToString(this.createHtml(event));
+        let itipItem = null;
 
         try {
             // this.uri is the message URL that we are processing.
@@ -180,7 +251,7 @@ ltnMimeConverter.prototype = {
                 } catch (exc) {
                 }
                 if (msgWindow) {
-                    let itipItem = Components.classes["@mozilla.org/calendar/itip-item;1"]
+                    itipItem = Components.classes["@mozilla.org/calendar/itip-item;1"]
                                              .createInstance(Components.interfaces.calIItipItem);
                     itipItem.init(data);
 
@@ -197,7 +268,8 @@ ltnMimeConverter.prototype = {
             cal.ERROR("[ltnMimeConverter] convertToHTML: " + e);
         }
 
-        return html;
+        // Create the HTML string for display
+        return cal.xml.serializeDOM(this.createHtml(event, itipItem));
     }
 };
 

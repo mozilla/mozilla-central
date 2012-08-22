@@ -5,6 +5,7 @@
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calItipUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+Components.utils.import("resource://calendar/modules/calRecurrenceUtils.jsm");
 
 /**
  * Sets up the summary dialog, setting all needed fields on the dialog from the
@@ -262,27 +263,28 @@ function updateRepeatDetails() {
     var endDate = item.endDate || item.dueDate;
     startDate = startDate ? startDate.getInTimezone(kDefaultTimezone) : null;
     endDate = endDate ? endDate.getInTimezone(kDefaultTimezone) : null;
-    var detailsString = recurrenceRule2String(
-        recurrenceInfo, startDate, endDate, startDate.isDate);
+    var detailsString = recurrenceRule2String(recurrenceInfo, startDate,
+                                              endDate, startDate.isDate);
+
+    if (!detailsString) {
+        detailsString = cal.calGetString("calendar-event-dialog", "ruleTooComplexSummary");
+    }
 
     // Now display the string...
-    if (detailsString) {
-        var lines = detailsString.split("\n");
-        repeatDetails.removeAttribute("collapsed");
-        while (repeatDetails.childNodes.length > lines.length) {
-            repeatDetails.removeChild(repeatDetails.lastChild);
+    var lines = detailsString.split("\n");
+    repeatDetails.removeAttribute("collapsed");
+    while (repeatDetails.childNodes.length > lines.length) {
+        repeatDetails.removeChild(repeatDetails.lastChild);
+    }
+    var numChilds = repeatDetails.childNodes.length;
+    for (var i = 0; i < lines.length; i++) {
+        if (i >= numChilds) {
+            var newNode = repeatDetails.childNodes[0]
+                                       .cloneNode(true);
+            repeatDetails.appendChild(newNode);
         }
-        var numChilds = repeatDetails.childNodes.length;
-        for (var i = 0; i < lines.length; i++) {
-            if (i >= numChilds) {
-                var newNode = repeatDetails.childNodes[0]
-                                           .cloneNode(true);
-                repeatDetails.appendChild(newNode);
-            }
-            repeatDetails.childNodes[i].value = lines[i];
-            repeatDetails.childNodes[i].setAttribute("tooltiptext",
-                                                     detailsString);
-        }
+        repeatDetails.childNodes[i].value = lines[i];
+        repeatDetails.childNodes[i].setAttribute("tooltiptext", detailsString);
     }
 }
 
