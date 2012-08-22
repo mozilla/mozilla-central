@@ -5,7 +5,7 @@
 #ifndef _rebuffer_h_
 #define _rebuffer_h_
 
-#include "prtypes.h"
+#include "mozilla/StandardInteger.h"
 
 //////////////////////////////////////////////////////////////
 // A rebuffering class necessary for stream output buffering
