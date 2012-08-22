@@ -101,8 +101,13 @@ pref("app.update.auto", true);
 // See chart in nsUpdateService.js.in for more details
 //
 pref("app.update.mode", 1);
+
 // If set to true, the Update Service will present no UI for any event.
 pref("app.update.silent", false);
+
+// If set to true, the Update Service will apply updates in the background
+// when it finishes downloading them.
+pref("app.update.stage.enabled", false);
 
 // Update service URL:
 pref("app.update.url", "https://aus3.mozilla.org/update/3/%PRODUCT%/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/%OS_VERSION%/%DISTRIBUTION%/%DISTRIBUTION_VERSION%/update.xml");

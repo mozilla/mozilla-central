@@ -17,7 +17,7 @@ MOZ_COMPOSER=1
 if test "$OS_ARCH" = "WINNT"; then
   if ! test "$HAVE_64BIT_OS"; then
     MOZ_VERIFY_MAR_SIGNATURE=1
-#    MOZ_MAINTENANCE_SERVICE=1
+    MOZ_MAINTENANCE_SERVICE=1
   fi
 fi
 
