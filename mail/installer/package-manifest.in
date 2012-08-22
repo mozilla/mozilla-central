@@ -481,6 +481,8 @@
 @BINPATH@/components/nsSearchSuggestions.js
 @BINPATH@/components/nsTaggingService.js
 @BINPATH@/components/PlacesCategoriesStarter.js
+@BINPATH@/components/TCPSocket.js
+@BINPATH@/components/TCPSocket.manifest
 @BINPATH@/components/TelemetryPing.js
 @BINPATH@/components/TelemetryPing.manifest
 @BINPATH@/components/toolkitplaces.manifest
