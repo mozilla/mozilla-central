@@ -10,6 +10,7 @@
 #define _MIMECOM_H_
 
 #include "prtypes.h"
+#include "mozilla/StandardInteger.h"
 
 /*
  * These functions are exposed by libmime to be used by content type
