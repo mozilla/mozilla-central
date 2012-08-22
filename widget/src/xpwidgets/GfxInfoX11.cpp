@@ -295,6 +295,10 @@ GfxInfo::GetFeatureStatusImpl(PRInt32 aFeature,
     }
 
     if (mIsMesa) {
+        if (aFeature == nsIGfxInfo::FEATURE_WEBGL_OPENGL) {
+            *aStatus = nsIGfxInfo::FEATURE_BLOCKED_DRIVER_VERSION;
+            aSuggestedDriverVersion.AssignLiteral("Not Mesa");
+        }
         if (version(mMajorVersion, mMinorVersion, mRevisionVersion) < version(7,10,3)) {
             *aStatus = nsIGfxInfo::FEATURE_BLOCKED_DRIVER_VERSION;
             aSuggestedDriverVersion.AssignLiteral("Mesa 7.10.3");
