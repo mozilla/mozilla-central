@@ -688,11 +688,11 @@ multigetSyncHandler.prototype = {
         let queryXml =
           xmlHeader +
           '<C:calendar-multiget xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">' +
-            hrefString +
             '<D:prop>' +
               '<D:getetag/>' +
               '<C:calendar-data/>' +
             '</D:prop>' +
+            hrefString +
           '</C:calendar-multiget>';
 
         let requestUri = this.calendar.makeUri(null, this.baseUri);
