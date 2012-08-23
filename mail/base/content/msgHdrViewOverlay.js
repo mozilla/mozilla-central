@@ -1117,7 +1117,13 @@ function HideMessageHeaderPane()
 
   // disable the File/Attachments menuitem
   document.getElementById("fileAttachmentMenu").setAttribute("disabled", "true");
-  document.getElementById("appmenu_fileAttachmentMenu").setAttribute("disabled", "true");
+
+  // If the App Menu is being used, disable the attachment menu in there as
+  // well.
+  let appMenuNode = document.getElementById("appmenu_fileAttachmentMenu");
+  if (appMenuNode)
+    appMenuNode.setAttribute("disabled", "true");
+
   // disable the attachment box
   document.getElementById("attachmentView").collapsed = true;
   document.getElementById("attachment-splitter").collapsed = true;

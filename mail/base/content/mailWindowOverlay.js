@@ -177,11 +177,22 @@ function view_init()
 
   // Disable some menus if account manager is showing
   document.getElementById("viewSortMenu").disabled = accountCentralDisplayed;
-  document.getElementById("appmenu_viewSortMenu").disabled = accountCentralDisplayed;
+
+  let appmenuViewSort = document.getElementById("appmenu_viewSortMenu");
+  if (appmenuViewSort)
+    appmenuViewSort.disabled = accountCentralDisplayed;
+
   document.getElementById("viewMessageViewMenu").disabled = accountCentralDisplayed;
-  document.getElementById("appmenu_viewMessageViewMenu").disabled = accountCentralDisplayed;
+
+  let appmenuViewMessageView = document.getElementById("appmenu_viewMessageViewMenu");
+  if (appmenuViewMessageView)
+    appmenuViewMessageView.disabled = accountCentralDisplayed;
+
   document.getElementById("viewMessagesMenu").disabled = accountCentralDisplayed;
-  document.getElementById("appmenu_viewMessagesMenu").disabled = accountCentralDisplayed;
+
+  let appmenuViewMessagesMenu = document.getElementById("appmenu_viewMessagesMenu");
+  if (appmenuViewMessagesMenu)
+    appmenuViewMessagesMenu.disabled = accountCentralDisplayed;
 
   // Hide the views menu item if the user doesn't have the views toolbar button
   // visible.
@@ -190,7 +201,10 @@ function view_init()
 
   // Initialize the Message Body menuitem
   document.getElementById('viewBodyMenu').hidden = isFeed;
-  document.getElementById('appmenu_viewBodyMenu').hidden = isFeed;
+
+  let appmenuViewBodyMenu = document.getElementById('appmenu_viewBodyMenu');
+  if (appmenuViewBodyMenu)
+    appmenuViewBodyMenu.hidden = isFeed;
 
   // Initialize the Show Feed Summary menu
   var viewFeedSummary = document.getElementById('viewFeedSummary');
@@ -198,10 +212,14 @@ function view_init()
   var winType = document.documentElement.getAttribute('windowtype');
   if (winType != "mail:3pane") {
     viewFeedSummary.hidden = !gShowFeedSummary;
-    appmenuViewFeedSummary.hidden = !gShowFeedSummary;
+
+    if (appmenuViewFeedSummary)
+      appmenuViewFeedSummary.hidden = !gShowFeedSummary;
   } else {
     viewFeedSummary.hidden = !isFeed;
-    appmenuViewFeedSummary.hidden = !isFeed;
+
+    if (appmenuViewFeedSummary)
+      appmenuViewFeedSummary.hidden = !isFeed;
   }
 
   var viewRssMenuItemIds = ["bodyFeedGlobalWebPage",
