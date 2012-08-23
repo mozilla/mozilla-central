@@ -515,9 +515,17 @@ calStorageCalendar.prototype = {
             return reportError("ID for modifyItem item is null");
         }
 
+        let modifiedItem = aNewItem.parentItem.clone();
+        if (this.getProperty("capabilities.propagate-sequence")) {
+            // Ensure the exception, its parent and the other exceptions have the
+            // same sequence number, to make sure we can send our changes to the
+            // server if the event has been updated via the blue bar
+            let newSequence = aNewItem.getProperty("SEQUENCE");
+            this._propagateSequence(modifiedItem, newSequence);
+        }
+
         // Ensure that we're looking at the base item if we were given an
         // occurrence.  Later we can optimize this.
-        let modifiedItem = aNewItem.parentItem.clone();
         if (aNewItem.parentItem != aNewItem) {
             modifiedItem.recurrenceInfo.modifyException(aNewItem, false);
         }
@@ -2551,6 +2559,30 @@ calStorageCalendar.prototype = {
             logMessage += "\nException: " + exception;
         }
         cal.ERROR("[calStorageCalendar] " + logMessage + "\n" + cal.STACK(10));
+    },
+    /**
+     * propagate the given sequence in exceptions. It may be needed by some calendar implementations
+     */
+    _propagateSequence: function cSC__propagateSequence(aItem, newSequence) {
+        if (newSequence) {
+            aItem.setProperty("SEQUENCE", newSequence);
+        } else {
+            aItem.deleteProperty("SEQUENCE");
+        }
+        var rec = aItem.recurrenceInfo;
+        if (rec) {
+            var exceptions = rec.getExceptionIds ({});
+            if (exceptions.length > 0) {
+                for each (exid in exceptions) {
+                    let ex = rec.getExceptionFor(exid);
+                    if (newSequence) {
+                        ex.setProperty("SEQUENCE", newSequence);
+                    } else {
+                        ex.deleteProperty("SEQUENCE");
+                    }
+                }
+            }
+        }
     }
 };
 
