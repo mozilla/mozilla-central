@@ -51,7 +51,7 @@ var FullZoom = {
 
   init: function FullZoom_init() {
     // Listen for scrollwheel events so we can save scrollwheel-based changes.
-    window.addEventListener("DOMMouseScroll", this, false);
+    window.addEventListener("wheel", this, false);
 
     // Register ourselves with the service so we know when our pref changes.
     Services.contentPrefs.addObserver(this.name, this);
@@ -68,7 +68,7 @@ var FullZoom = {
   destroy: function FullZoom_destroy() {
     Services.prefs.removeObserver("browser.zoom.", this);
     Services.contentPrefs.removeObserver(this.name, this);
-    window.removeEventListener("DOMMouseScroll", this, false);
+    window.removeEventListener("wheel", this, false);
   },
 
 
@@ -79,7 +79,7 @@ var FullZoom = {
 
   handleEvent: function FullZoom_handleEvent(event) {
     switch (event.type) {
-      case "DOMMouseScroll":
+      case "wheel":
         this._handleMouseScrolled(event);
         break;
     }
@@ -87,23 +87,22 @@ var FullZoom = {
 
   _handleMouseScrolled: function FullZoom_handleMouseScrolled(event) {
     // Construct the "mousewheel action" pref key corresponding to this event.
-    // Based on nsEventStateManager::GetBasePrefKeyForMouseWheel.
-    var pref = "mousewheel";
-    if (event.axis == event.HORIZONTAL_AXIS)
-      pref += ".horizscroll";
-
-    if (event.shiftKey)
-      pref += ".withshiftkey";
-    else if (event.ctrlKey)
-      pref += ".withcontrolkey";
-    else if (event.altKey)
-      pref += ".withaltkey";
-    else if (event.metaKey)
-      pref += ".withmetakey";
-    else
-      pref += ".withnokey";
-
-    pref += ".action";
+    // Based on nsEventStateManager::WheelPrefs::GetIndexFor.
+    var modifiers = {
+      Alt: "mousewheel.with_alt.action",
+      Control: "mousewheel.with_control.action",
+      Meta: "mousewheel.with_meta.action",
+      Shift: "mousewheel.with_shift.action",
+      OS: "mousewheel.with_win.action"
+    };
+    var pref = [];
+    for (var key in modifiers)
+      if (event.getModifierState(key))
+        pref.push(modifiers[key]);
+    if (pref.length == 1)
+      pref = pref[0];
+    else // Multiple or no modifiers, use default action
+      pref = "mousewheel.default.action";
 
     // Don't do anything if this isn't a "zoom" scroll event.
     if (GetIntPref(pref, 0) != MOUSE_SCROLL_ZOOM)
