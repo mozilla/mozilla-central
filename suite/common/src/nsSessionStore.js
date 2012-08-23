@@ -1691,9 +1691,10 @@ SessionStoreService.prototype = {
     let hasContent = false;
 
     for (let i = 0; i < aHistory.count; i++) {
-      let uri;
+      let principal;
       try {
-        uri = aHistory.getEntryAtIndex(i, false).URI;
+        let uri = aHistory.getEntryAtIndex(i, false).URI;
+        principal = SecMan.getDocShellCodebasePrincipal(uri, aDocShell);
       }
       catch (ex) {
         // Chances are that this is getEntryAtIndex throwing, as seen in bug 669196.
@@ -1701,25 +1702,16 @@ SessionStoreService.prototype = {
         continue;
       }
       // sessionStorage is saved per origin (cf. nsDocShell::GetSessionStorageForURI)
-      let domain = uri.spec;
-      try {
-        if (uri.host)
-          domain = uri.prePath;
-      }
-      catch (ex) { /* this throws for host-less URIs (such as about: or jar:) */ }
-      if (storageData[domain] ||
-          !(aFullData || this._checkPrivacyLevel(uri.schemeIs("https"), aIsPinned)))
+      let origin = principal.extendedOrigin;
+      if (storageData[origin])
+        continue;
+
+      let isHTTPS = principal.uri && principal.url.schemeIs("https");
+      if (!(aFullData || this._checkPrivacyLevel(isHTTPS, aIsPinned)))
         continue;
 
       let storage, storageItemCount = 0;
       try {
-        var principal = SecMan.getCodebasePrincipal(uri);
-
-        // Using getSessionStorageForPrincipal instead of getSessionStorageForURI
-        // just to be able to pass aCreate = false, that avoids creation of the
-        // sessionStorage object for the page earlier than the page really
-        // requires it. It was causing problems while accessing a storage when
-        // a page later changed its domain.
         storage = aDocShell.getSessionStorageForPrincipal(principal, "", false);
         if (storage)
           storageItemCount = storage.length;
@@ -1728,7 +1720,7 @@ SessionStoreService.prototype = {
       if (storageItemCount == 0)
         continue;
 
-      let data = storageData[domain] = {};
+      let data = storageData[origin] = {};
       for (let j = 0; j < storageItemCount; j++) {
         try {
           let key = storage.key(j);
@@ -2918,7 +2910,8 @@ SessionStoreService.prototype = {
   _deserializeSessionStorage: function sss_deserializeSessionStorage(aStorageData, aDocShell) {
     for (let url in aStorageData) {
       let uri = this._getURIFromString(url);
-      let storage = aDocShell.getSessionStorageForURI(uri, "");
+      let principal = SecMan.getDocShellCodebasePrincipal(uri, aDocShell);
+      let storage = aDocShell.getSessionStorageForPrincipal(principal, "", true);
       for (let key in aStorageData[url]) {
         try {
           storage.setItem(key, aStorageData[url][key]);

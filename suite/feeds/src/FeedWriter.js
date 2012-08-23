@@ -1107,7 +1107,7 @@ FeedWriter.prototype = {
 
     var secman = Components.classes["@mozilla.org/scriptsecuritymanager;1"]
                            .getService(Components.interfaces.nsIScriptSecurityManager);
-    this._feedPrincipal = secman.getCodebasePrincipal(this._feedURI);
+    this._feedPrincipal = secman.getSimpleCodebasePrincipal(this._feedURI);
 
     LOG("Subscribe Preview: feed uri = " + this._window.location.href);
 
