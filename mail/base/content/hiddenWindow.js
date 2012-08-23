@@ -30,7 +30,7 @@ function hiddenWindowStartup()
       'menu_markAsJunk', 'menu_markAsNotJunk', 'createFilter', 'killThread',
       'killSubthread', 'watchThread', 'applyFilters', 'runJunkControls',
       'deleteJunk', 'menu_import', 'searchMailCmd', 'searchAddressesCmd',
-      'filtersCmd', 'cmd_close', 'minimizeWindow', 'appmenu_markMenu'
+      'filtersCmd', 'cmd_close', 'minimizeWindow', 'appmenu_markMenu',
       'zoomWindow', 'appmenu_replyMainMenu', 'appmenu_replyNewsgroupMainMenu',
       'appmenu_newFolder', 'appmenu_newMailAccountMenuItem', 'appmenu_close',
       'appmenu_newAccountMenuItem', 'appmenu_saveAs', 'appmenu_saveAsFile',
