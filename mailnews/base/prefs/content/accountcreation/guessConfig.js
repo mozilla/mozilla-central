@@ -867,16 +867,13 @@ function sslConvertToSocketType(ssl)
 // AccountConfig -> here
 function ConvertSocketTypeToSSL(socketType)
 {
-  switch (socketType) {
-    case 1:
-      return NONE;
-    case 2:
-      return SSL;
-    case 3:
-      return TLS;
-    default:
-      return UNKNOWN;
-  }
+  if (socketType == 1)
+    return NONE;
+  if (socketType == 2)
+    return SSL;
+  if (socketType == 3)
+    return TLS;
+  return UNKNOWN;
 }
 
 // here -> AccountConfig

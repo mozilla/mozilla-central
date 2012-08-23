@@ -901,8 +901,8 @@ EmailConfigWizard.prototype =
     }
     config.incoming.type = sanitize.translate(e("incoming_protocol").value,
         { 1: "imap", 2 : "pop3", 0 : null });
-    config.incoming.socketType = parseInt(e("incoming_ssl").value);
-    config.incoming.auth = parseInt(e("incoming_authMethod").value);
+    config.incoming.socketType = sanitize.integer(e("incoming_ssl").value);
+    config.incoming.auth = sanitize.integer(e("incoming_authMethod").value);
     config.incoming.username = e("incoming_username").value;
 
     // Outgoing server
@@ -932,8 +932,8 @@ EmailConfigWizard.prototype =
       } catch (e) {
         config.outgoing.port = undefined; // incl. default "Auto"
       }
-      config.outgoing.socketType = e("outgoing_ssl").value;
-      config.outgoing.auth = e("outgoing_authMethod").value;
+      config.outgoing.socketType = sanitize.integer(e("outgoing_ssl").value);
+      config.outgoing.auth = sanitize.integer(e("outgoing_authMethod").value);
       config.outgoing.username = config.incoming.username;
     }
 
