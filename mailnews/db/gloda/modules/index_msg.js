@@ -460,6 +460,7 @@ var GlodaMsgIndexer = {
       getService(Ci.nsIMsgMailSession);
     this._folderListener._init(this);
     mailSession.AddFolderListener(this._folderListener,
+                                  Ci.nsIFolderListener.intPropertyChanged |
                                   Ci.nsIFolderListener.propertyFlagChanged |
                                   Ci.nsIFolderListener.event);
 
@@ -472,6 +473,7 @@ var GlodaMsgIndexer = {
         Ci.nsIMsgFolderNotificationService.msgsDeleted |
         Ci.nsIMsgFolderNotificationService.msgsMoveCopyCompleted |
         Ci.nsIMsgFolderNotificationService.msgKeyChanged |
+        Ci.nsIMsgFolderNotificationService.folderAdded |
         Ci.nsIMsgFolderNotificationService.folderDeleted |
         Ci.nsIMsgFolderNotificationService.folderMoveCopyCompleted |
         Ci.nsIMsgFolderNotificationService.folderRenamed |
@@ -2561,6 +2563,19 @@ var GlodaMsgIndexer = {
                                 ex.stack + " \n\n");
       }
     },
+
+    /**
+     * Detect newly added folders before they get messages so we map them before
+     * they get any messages added to them.  If we only hear about them after
+     * they get their 1st message, then we will mark them filthy, but if we mark
+     * them before that, they get marked clean.
+     */
+    folderAdded: function gloda_indexer_folderAdded(aMsgFolder) {
+      // This is invoked for its side-effect of invoking _mapFolder and doing so
+      // only after filtering out folders we don't care about.
+      GlodaMsgIndexer.shouldIndexFolder(aMsgFolder);
+    },
+
     /**
      * Handles folder no-longer-exists-ence.  We mark all messages as deleted
      *  and remove the folder from our URI table.  Currently, if a folder that
@@ -2794,6 +2809,7 @@ var GlodaMsgIndexer = {
       this._kKeywordsAtom = atomService.getAtom("Keywords");
       this._kStatusAtom = atomService.getAtom("Status");
       this._kFlaggedAtom = atomService.getAtom("Flagged");
+      this._kFolderFlagAtom = atomService.getAtom("FolderFlag");
     },
 
     OnItemAdded: function gloda_indexer_OnItemAdded(aParentItem, aItem) {
@@ -2803,8 +2819,18 @@ var GlodaMsgIndexer = {
     OnItemPropertyChanged: function gloda_indexer_OnItemPropertyChanged(
                              aItem, aProperty, aOldValue, aNewValue) {
     },
+    /**
+     * Detect changes to folder flags and reset our indexing priority.  This
+     * is important because (all?) folders start out without any flags and
+     * then get their flags added to them.
+     */
     OnItemIntPropertyChanged: function gloda_indexer_OnItemIntPropertyChanged(
-                                aItem, aProperty, aOldValue, aNewValue) {
+                                aFolderItem, aProperty, aOldValue, aNewValue) {
+      if (aProperty !== this._kFolderFlagAtom)
+        return;
+      if (!GlodaMsgIndexer.shouldIndexFolder(aFolderItem))
+        return;
+      GlodaMsgIndexer.resetFolderIndexingPriority(aFolderItem);
     },
     OnItemBoolPropertyChanged: function gloda_indexer_OnItemBoolPropertyChanged(
                                 aItem, aProperty, aOldValue, aNewValue) {
