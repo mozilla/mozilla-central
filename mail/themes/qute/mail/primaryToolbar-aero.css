@@ -395,6 +395,10 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   }
 }
 
+#mail-bar3:-moz-lwtheme-brighttext .toolbarbutton-1 {
+   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-inverted.png");
+}
+
 #button-getmsg {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(1px, 17px, 17px, 1px);
