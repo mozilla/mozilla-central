@@ -37,6 +37,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#ifndef __FilteringWrapper_h__
+#define __FilteringWrapper_h__
+
 #include <jsapi.h>
 #include <jswrapper.h>
 
@@ -59,3 +62,5 @@ class FilteringWrapper : public Base {
 };
 
 }
+
+#endif /* __FilteringWrapper_h__ */

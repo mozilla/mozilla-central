@@ -37,6 +37,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#ifndef __AccessCheck_h__
+#define __AccessCheck_h__
+
 #include "jsapi.h"
 #include "jswrapper.h"
 
@@ -145,3 +148,5 @@ struct ExposedPropertiesOnly : public Policy {
 };
 
 }
+
+#endif /* __AccessCheck_h__ */
