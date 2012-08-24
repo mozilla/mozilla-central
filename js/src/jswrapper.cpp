@@ -89,7 +89,7 @@ js::UnwrapObject(JSObject *wrapped, bool stopAtOuter, uintN *flagsp)
     return wrapped;
 }
 
-bool
+JS_FRIEND_API(bool)
 js::IsCrossCompartmentWrapper(const JSObject *wrapper)
 {
     return wrapper->isWrapper() &&
