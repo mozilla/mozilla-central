@@ -296,6 +296,12 @@ DumpHeapVisitChild(JSTracer *trc, void *thing, JSGCTraceKind kind)
     DumpHeapPushIfNew(dtrc, thing, kind);
 }
 
+JS_FRIEND_API(bool)
+js::GetGeneric(JSContext *cx, JSObject *obj, JSObject *receiver, jsid id, Value *vp)
+{
+    return obj->getGeneric(cx, receiver, id, vp);
+}
+
 void
 js::DumpHeapComplete(JSContext *cx, FILE *fp)
 {
