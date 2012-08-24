@@ -3810,6 +3810,29 @@ struct JSObject::TradeGutsReserved {
     }
 };
 
+JSProtoKey
+js_IdentifyClassPrototype(JSObject *obj)
+{
+    // First, get the key off the JSClass. This tells us which prototype we
+    // _might_ be. But we still don't know for sure, since the prototype shares
+    // its JSClass with instances.
+    JSProtoKey key = JSCLASS_CACHED_PROTO_KEY(obj->getClass());
+    if (key == JSProto_Null)
+        return JSProto_Null;
+
+    // Now, see if the cached object matches |obj|.
+    //
+    // Note that standard class objects are cached in the range [0, JSProto_LIMIT),
+    // and the prototypes are cached in [JSProto_LIMIT, 2*JSProto_LIMIT).
+    JSObject *global = obj->getGlobal();
+    Value v = global->getReservedSlot(JSProto_LIMIT + key);
+    if (v.isObject() && obj == &v.toObject())
+        return key;
+
+    // False alarm - just an instance.
+    return JSProto_Null;
+}
+
 bool
 JSObject::ReserveForTradeGuts(JSContext *cx, JSObject *a, JSObject *b,
                               TradeGutsReserved &reserved)

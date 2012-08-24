@@ -3281,6 +3281,12 @@ JS_SetParent(JSContext *cx, JSObject *obj, JSObject *parent);
 extern JS_PUBLIC_API(JSObject *)
 JS_GetConstructor(JSContext *cx, JSObject *proto);
 
+extern JS_PUBLIC_API(JSBool)
+JS_GetClassPrototype(JSContext *cx, JSProtoKey key, JSObject **objp);
+
+extern JS_PUBLIC_API(JSProtoKey)
+JS_IdentifyClassPrototype(JSContext *cx, JSObject *obj);
+
 /*
  * Get a unique identifier for obj, good for the lifetime of obj (even if it
  * is moved by a copying GC).  Return false on failure (likely out of memory),
