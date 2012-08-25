@@ -18,13 +18,6 @@
 [scriptable, uuid(76048A12-303C-4cf8-B592-1F83BD196B14)]
 interface nsIMsgAccount : nsISupports {
 
-  /**
-   * Initialize an account.
-   *
-   * @throws NS_ERROR_ALREADY_OPENED if it is called more then once.
-   */
-  void init();
-
   /// Internal key identifying itself
   attribute ACString key;
 
