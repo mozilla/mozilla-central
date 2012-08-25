@@ -161,6 +161,16 @@ function getTimezone(aTimezone) {
  */
 function newDateTime(aNativeTime, aTimezone) {
     let t = cal.createDateTime();
+
+    // Bug 751821 - Dates before 1970 were incorrectly stored with an unsigned nativeTime value, we need to
+    // convert back to a negative value
+    if (aNativeTime > 0x7fffffffffffffff) {
+        cal.WARN("[calStorageCalendar] Converting invalid native time value: " + aNativeTime);
+        aNativeTime = -0x7fffffffffffffff + (aNativeTime - 0x7fffffffffffffff);
+        // Round to nearest second to fix microsecond rounding errors
+        aNativeTime = Math.round(aNativeTime / 1000000) * 1000000;
+    }
+
     t.nativeTime = aNativeTime;
     if (aTimezone) {
         let tz = getTimezone(aTimezone);
