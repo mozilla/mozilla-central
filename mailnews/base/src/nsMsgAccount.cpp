@@ -28,6 +28,7 @@
 NS_IMPL_ISUPPORTS1(nsMsgAccount, nsIMsgAccount)
 
 nsMsgAccount::nsMsgAccount()
+  : mTriedToGetServer(false)
 {
 }
 
@@ -59,8 +60,9 @@ nsMsgAccount::GetIncomingServer(nsIMsgIncomingServer **aIncomingServer)
   NS_ENSURE_ARG_POINTER(aIncomingServer);
 
   // create the incoming server lazily
-  if (!m_incomingServer) {
-    // ignore the error (and return null), but it's still bad so assert
+  if (!mTriedToGetServer && !m_incomingServer) {
+    mTriedToGetServer = true;
+    // ignore the error (and return null), but it's still bad so warn
     nsresult rv = createIncomingServer();
     NS_WARN_IF_FALSE(NS_SUCCEEDED(rv), "couldn't lazily create the server\n");
   }
@@ -68,6 +70,14 @@ nsMsgAccount::GetIncomingServer(nsIMsgIncomingServer **aIncomingServer)
   NS_IF_ADDREF(*aIncomingServer = m_incomingServer);
 
   return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgAccount::CreateServer()
+{
+  if (m_incomingServer)
+    return NS_ERROR_ALREADY_INITIALIZED;
+  return createIncomingServer();
 }
 
 nsresult

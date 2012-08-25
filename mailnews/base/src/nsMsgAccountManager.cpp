@@ -366,6 +366,57 @@ nsMsgAccountManager::getUniqueAccountKey(nsISupportsArray *accounts,
   }
 }
 
+void
+nsMsgAccountManager::GetUniqueServerKey(nsACString& aResult)
+{
+  nsCAutoString prefResult;
+  bool usePrefsScan = true;
+  nsresult rv;
+  nsCOMPtr<nsIPrefService> prefService(do_GetService(NS_PREFSERVICE_CONTRACTID,
+                                       &rv));
+  if (NS_FAILED(rv))
+    usePrefsScan = false;
+
+  // Loop over existing pref names mail.server.server(lastKey).type
+  nsCOMPtr<nsIPrefBranch> prefBranchServer;
+  if (prefService)
+  {
+    rv = prefService->GetBranch(PREF_MAIL_SERVER_PREFIX, getter_AddRefs(prefBranchServer));
+    if (NS_FAILED(rv))
+      usePrefsScan = false;
+  }
+
+  if (usePrefsScan)
+  {
+    nsCAutoString type;
+    nsCAutoString typeKey;
+    for (PRInt32 lastKey = 1; ; lastKey++)
+    {
+      aResult.AssignLiteral(SERVER_PREFIX);
+      aResult.AppendInt(lastKey);
+      typeKey.Assign(aResult);
+      typeKey.AppendLiteral(".type");
+      prefBranchServer->GetCharPref(typeKey.get(), getter_Copies(type));
+      if (type.IsEmpty()) // a server slot with no type is considered empty
+        return;
+    }
+  }
+  else
+  {
+    // If pref service fails, try to find a free serverX key
+    // by checking which keys exist.
+    nsCAutoString internalResult;
+    nsCOMPtr<nsIMsgIncomingServer> server;
+    PRInt32 i = 1;
+    do {
+      aResult.AssignLiteral(SERVER_PREFIX);
+      aResult.AppendInt(i++);
+      m_incomingServers.Get(aResult, getter_AddRefs(server));
+    } while (server);
+    return;
+  }
+}
+
 nsresult
 nsMsgAccountManager::CreateIdentity(nsIMsgIdentity **_retval)
 {
@@ -435,13 +486,7 @@ nsMsgAccountManager::CreateIncomingServer(const nsACString&  username,
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCAutoString key;
-  nsCOMPtr<nsIMsgIncomingServer> server;
-  int32_t i = 1;
-  do {
-    key.AssignLiteral(SERVER_PREFIX);
-    key.AppendInt(i++);
-    m_incomingServers.Get(key, getter_AddRefs(server));
-  } while (server);
+  GetUniqueServerKey(key);
   rv = createKeyedServer(key, username, hostname, type, _retval);
   if (*_retval)
   {
@@ -493,7 +538,6 @@ nsMsgAccountManager::GetIncomingServer(const nsACString& key,
   rv = m_prefs->GetCharPref(serverPref.get(), getter_Copies(hostname));
   NS_ENSURE_SUCCESS(rv, NS_ERROR_NOT_INITIALIZED);
 
-  // the server type doesn't exist. That's bad.
   return createKeyedServer(key, username, hostname, serverType, _retval);
 }
 
@@ -589,9 +633,10 @@ nsMsgAccountManager::createKeyedServer(const nsACString& key,
   serverContractID += type;
 
   // finally, create the server
+  // (This will fail if type is from an extension that has been removed)
   nsCOMPtr<nsIMsgIncomingServer> server =
            do_CreateInstance(serverContractID.get(), &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_SUCCESS(rv, NS_ERROR_NOT_AVAILABLE);
 
   int32_t port;
   nsCOMPtr <nsIMsgIncomingServer> existingServer;
@@ -683,6 +728,8 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
       bool identityStillUsed = false;
       // for each identity, see if any existing account still uses it,
       // and if not, clear it.
+      // Note that we are also searching here accounts with missing servers from
+      //  unloaded extension types.
       if (NS_SUCCEEDED(rv))
       {
         uint32_t numAccounts;
@@ -763,6 +810,7 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount **aDefaultAccount)
       GetAccount(defaultKey, getter_AddRefs(m_defaultAccount));
 
     if (!m_defaultAccount) {
+      nsCOMPtr<nsIMsgAccount> firstAccount;
       uint32_t index;
       bool foundValidDefaultAccount = false;
       for (index = 0; index < count; index++) {
@@ -770,12 +818,16 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount **aDefaultAccount)
         if (NS_SUCCEEDED(rv)) {
           // get incoming server
           nsCOMPtr <nsIMsgIncomingServer> server;
-          rv = account->GetIncomingServer(getter_AddRefs(server));
-          NS_ENSURE_SUCCESS(rv,rv);
+          // server could be null if created by an unloaded extension
+          (void) account->GetIncomingServer(getter_AddRefs(server));
 
           bool canBeDefaultServer = false;
           if (server)
+          {
             server->GetCanBeDefaultServer(&canBeDefaultServer);
+            if (!firstAccount)
+              firstAccount = account;
+          }
 
           // if this can serve as default server, set it as default and
           // break outof the loop.
@@ -791,7 +843,6 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount **aDefaultAccount)
         // get the first account and use it.
         // we need to fix this scenario.
         NS_WARNING("No valid default account found, just using first (FIXME)");
-        nsCOMPtr<nsIMsgAccount> firstAccount( do_QueryElementAt(m_accounts, 0));
         SetDefaultAccount(firstAccount);
       }
     }
@@ -881,6 +932,8 @@ nsMsgAccountManager::setDefaultAccountPref(nsIMsgAccount* aDefaultAccount)
 PLDHashOperator
 nsMsgAccountManager::hashUnloadServer(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
 {
+  if (!aServer)
+    return PL_DHASH_NEXT;
   nsresult rv;
   nsMsgAccountManager *accountManager = (nsMsgAccountManager*) aClosure;
   accountManager->NotifyServerUnloaded(aServer);
@@ -899,6 +952,8 @@ nsMsgAccountManager::hashUnloadServer(nsCStringHashKey::KeyType aKey, nsCOMPtr<n
 
 void nsMsgAccountManager::LogoutOfServer(nsIMsgIncomingServer *aServer)
 {
+  if (!aServer)
+    return;
   nsresult rv = aServer->Shutdown();
   NS_ASSERTION(NS_SUCCEEDED(rv), "Shutdown of server failed");
   rv = aServer->ForgetSessionPassword();
@@ -943,6 +998,9 @@ hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>
 
   if (WeAreOffline())
     return PL_DHASH_STOP;
+
+  if (!aServer)
+    return PL_DHASH_NEXT;
 
   aServer->GetEmptyTrashOnExit(&emptyTrashOnExit);
   nsCOMPtr <nsIImapIncomingServer> imapserver = do_QueryInterface(aServer);
@@ -1060,14 +1118,16 @@ hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>
 static PLDHashOperator
 hashCloseCachedConnections(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
 {
-  aServer->CloseCachedConnections();
+  if (aServer)
+    aServer->CloseCachedConnections();
   return PL_DHASH_NEXT;
 }
 
 static PLDHashOperator
 hashShutdown(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
 {
-  aServer->Shutdown();
+  if (aServer)
+    aServer->Shutdown();
   return PL_DHASH_NEXT;
 }
 
@@ -1089,6 +1149,8 @@ nsMsgAccountManager::GetAccounts(nsISupportsArray **_retval)
     NS_ENSURE_SUCCESS(rv, rv);
     nsCOMPtr<nsIMsgIncomingServer> server;
     existingAccount->GetIncomingServer(getter_AddRefs(server));
+    if (!server)
+      continue;
     if (server)
     {
       bool hidden = false;
@@ -1188,6 +1250,8 @@ hashGetNonHiddenServersToArray(nsCStringHashKey::KeyType aKey,
                                nsCOMPtr<nsIMsgIncomingServer>& aServer,
                                void* aClosure)
 {
+  if (!aServer)
+    return PL_DHASH_NEXT;
   bool hidden = false;
   aServer->GetHidden(&hidden);
   if (hidden)
@@ -1405,15 +1469,56 @@ nsMsgAccountManager::LoadAccounts()
       NS_WARNING("unexpected entry in account list; prefs corrupt?");
       continue;
     }
+
+    // See nsIMsgAccount.idl for a description of the secondsToLeaveUnavailable
+    //  and timeFoundUnavailable preferences
+    nsCAutoString toLeavePref(PREF_MAIL_SERVER_PREFIX);
+    toLeavePref.Append(serverKey);
+    nsCAutoString unavailablePref(toLeavePref); // this is the server-specific prefix
+    unavailablePref.AppendLiteral(".timeFoundUnavailable");
+    toLeavePref.AppendLiteral(".secondsToLeaveUnavailable");
+    PRInt32 secondsToLeave = 0;
+    PRInt32 timeUnavailable = 0;
+
+    m_prefs->GetIntPref(toLeavePref.get(), &secondsToLeave);
+
     // force load of accounts (need to find a better way to do this)
     nsCOMPtr<nsISupportsArray> identities;
     account->GetIdentities(getter_AddRefs(identities));
 
-    nsCOMPtr<nsIMsgIncomingServer> server;
-    account->GetIncomingServer(getter_AddRefs(server));
-    // If we couldn't create the server, the account is either horked
-    // or a duplicate. Add it to the list of accounts to be cleaned up.
-    if (!server)
+    rv = account->CreateServer();
+    bool deleteAccount = NS_FAILED(rv);
+
+    if (secondsToLeave)
+    { // we need to process timeUnavailable
+      if (NS_SUCCEEDED(rv)) // clear the time if server is available
+      {
+        m_prefs->ClearUserPref(unavailablePref.get());
+      }
+      // NS_ERROR_NOT_AVAILABLE signifies a server that could not be
+      // instantiated, presumably because of an invalid type.
+      else if (rv == NS_ERROR_NOT_AVAILABLE)
+      {
+        m_prefs->GetIntPref(unavailablePref.get(), &timeUnavailable);
+        if (!timeUnavailable)
+        { // we need to set it, this must be the first time unavailable
+          PRUint32 nowSeconds;
+          PRTime2Seconds(PR_Now(), &nowSeconds);
+          m_prefs->SetIntPref(unavailablePref.get(), nowSeconds);
+          deleteAccount = false;
+        }
+      }
+    }
+
+    if (rv == NS_ERROR_NOT_AVAILABLE && timeUnavailable != 0)
+    { // Our server is still unavailable. Have we timed out yet?
+      PRUint32 nowSeconds;
+      PRTime2Seconds(PR_Now(), &nowSeconds);
+      if ((PRInt32)nowSeconds < timeUnavailable + secondsToLeave)
+        deleteAccount = false;
+    }
+
+    if (deleteAccount)
     {
       dupAccounts.AppendObject(account);
       m_accounts->RemoveElement(account);
@@ -1593,9 +1698,18 @@ nsMsgAccountManager::UnloadAccounts()
   m_accounts->Clear();          // will release all elements
   m_identities.Clear();
   m_incomingServers.Clear();
-  m_accountsLoaded = false;
   mAccountKeyList.Truncate();
   SetLastServerFound(nullptr, EmptyCString(), EmptyCString(), 0, EmptyCString());
+
+  if (m_accountsLoaded)
+  {
+    nsCOMPtr<nsIMsgMailSession> mailSession =
+      do_GetService(NS_MSGMAILSESSION_CONTRACTID);
+    if (mailSession)
+      mailSession->RemoveFolderListener(this);
+    m_accountsLoaded = false;
+  }
+
   return NS_OK;
 }
 

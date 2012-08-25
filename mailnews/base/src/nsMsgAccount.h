@@ -30,5 +30,8 @@ private:
   nsresult createIncomingServer();
   nsresult createIdentities();
   nsresult addIdentityInternal(nsIMsgIdentity* identity);
+
+  // Have we tried to get the server yet?
+  bool mTriedToGetServer;
 };
 
