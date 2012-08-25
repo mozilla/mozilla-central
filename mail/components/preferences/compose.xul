@@ -55,7 +55,7 @@
 
     <tabbox id="composePrefs" flex="1" onselect="gComposePane.tabSelectionChanged();">
       <tabs>
-        <tab label="&itemGeneral.label;"/>
+        <tab id="generalTab" label="&itemGeneral.label;"/>
         <tab id="addressingTab" label="&itemAutoComplete.label;"/>
         <tab label="&itemSpellCheck.label;"/>
       </tabs>
@@ -94,7 +94,8 @@
                         accesskey="&attachmentReminder.accesskey;"
                         preference="mail.compose.attachment_reminder"
                         flex="1"/>
-              <button label="&attachmentReminderOptions.label;"
+              <button id="attachment_reminder_button"
+                      label="&attachmentReminderOptions.label;"
                       accesskey="&attachmentReminderOptions.accesskey;"
                       oncommand="gComposePane.attachmentReminderOptionsDialog();"/>
             </hbox>

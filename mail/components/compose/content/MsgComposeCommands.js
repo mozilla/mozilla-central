@@ -1901,7 +1901,8 @@ attachmentWorker.onmessage = function(event)
 
     msg.onclick = function(event)
     {
-      openOptionsDialog("paneCompose");
+      openOptionsDialog("paneCompose", "generalTab",
+                        {subdialog: "attachment_reminder_button"});
     };
 
     let msgText = document.createElement("label");
