@@ -216,8 +216,7 @@
 
       <field name="mTaskArray">[]</field>
       <field name="mHash2Index"><![CDATA[({})]]></field>
-      <field name="mRefreshQueue">[]</field>
-      <field name="mPendingRefresh">null</field>
+      <field name="mPendingRefreshJobs"><![CDATA[({})]]></field>
       <field name="mShowCompletedTasks">true</field>
       <field name="mFilter">null</field>
       <field name="mStartDate">null</field>
@@ -958,55 +957,67 @@
       <method name="refreshFromCalendar">
         <parameter name="aCalendar"/>
         <parameter name="aFilter"/>
-        <parameter name="aCompleteRefresh"/>
         <body><![CDATA[
-          // XXX: why do I need this ?
-          if (!this.mFilter) {
-              this.mFilter = new calFilter();
-          }
-          var savedThis = this;
-          var newArray = [];
-          if (!aCompleteRefresh) {
-              newArray = [ task for each (task in this.mTaskArray)
-                            if (task.calendar.id != aCalendar.id) ];
-          }
+          let refreshJob = {
+              binding: this,
+              calendar: null,
+              items: null,
+              operation: null,
 
-          var refreshListener = {
               onOperationComplete: function(aCalendar, aStatus, aOperationType, aId, aDateTime) {
-                  savedThis.mTaskArray = newArray;
-                  savedThis.onOperationComplete();
+                  if (aCalendar.id in this.binding.mPendingRefreshJobs) {
+                      delete this.binding.mPendingRefreshJobs[aCalendar.id];
+                  }
+
+                  let oldItems = this.binding.mTaskArray.filter(function(item) {
+                      return item.calendar.id == aCalendar.id;
+                  });
+
+                  this.binding.mTreeView.modifyItems(this.items, oldItems);
               },
 
               onGetResult: function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
-                  for (let i=0; i < aCount; i++) {
-                      if (savedThis.mFilter.isItemInFilters(aItems[i])) {
-                          newArray.push(aItems[i]);
-                      }
-                  }
-              }
-          };
+                  this.items = this.items.concat(aItems);
+              },
 
-          var refreshJob = {
-              execute: function() {
-                  var filter = aFilter || !savedThis.mShowCompletedTasks ?
-                      aCalendar.ITEM_FILTER_COMPLETED_NO :
-                      aCalendar.ITEM_FILTER_COMPLETED_ALL;
+              cancel: function() {
+                  if (this.operation && this.operation.isPending) {
+                      this.operation.cancel();
+                      this.operation = null;
+                      this.items = [];
+                  }
+              },
+
+              execute: function(aCalendar) {
+                  if (aCalendar.id in this.binding.mPendingRefreshJobs) {
+                      this.binding.mPendingRefreshJobs[aCalendar.id].cancel();
+                  }
+                  this.calendar = aCalendar;
+                  this.items = [];
+
+                  let filter = aFilter || !this.binding.mShowCompletedTasks ?
+                                          aCalendar.ITEM_FILTER_COMPLETED_NO :
+                                          aCalendar.ITEM_FILTER_COMPLETED_ALL;
                   filter |= aCalendar.ITEM_FILTER_TYPE_TODO;
 
-                  let startDate = savedThis.mFilter.startDate;
-                  if (savedThis.mFilter.endDate) {
+                  let startDate = this.binding.mFilter.startDate;
+                  if (this.binding.mFilter.endDate) {
                       filter |= aCalendar.ITEM_FILTER_CLASS_OCCURRENCES;
                       startDate = startDate || cal.createDateTime();
                   }
-                  aCalendar.getItems(filter,
-                                     0,
-                                     startDate,
-                                     savedThis.mFilter.endDate,
-                                     refreshListener);
+                  let op = aCalendar.getItems(filter,
+                                              0,
+                                              startDate,
+                                              this.binding.mFilter.endDate,
+                                              this);
+                  if (op && op.isPending) {
+                      this.operation = op;
+                      this.binding.mPendingRefreshJobs[aCalendar.id] = this;
+                  }
               }
           };
-          this.mRefreshQueue.push(refreshJob);
-          this.popRefreshQueue();
+
+          refreshJob.execute(aCalendar);
         ]]></body>
       </method>
 
@@ -1022,7 +1033,12 @@
       <method name="refresh">
         <parameter name="aFilter"/>
         <body><![CDATA[
-            this.refreshFromCalendar(getCompositeCalendar(), aFilter, true);
+          let cals = getCompositeCalendar().getCalendars({}) || [];
+          for each (let calendar in cals) {
+              if (!calendar.getProperty("disabled")) {
+                  this.refreshFromCalendar(calendar, aFilter);
+              }
+          }
         ]]></body>
       </method>
 
@@ -1031,7 +1047,7 @@
         <parameter name="aFilter"/>
         <body><![CDATA[
             if (!aCalendar.getProperty("disabled")) {
-                this.refreshFromCalendar(aCalendar, aFilter, false);
+                this.refreshFromCalendar(aCalendar, aFilter);
             }
         ]]></body>
       </method>
@@ -1043,61 +1059,6 @@
                 return task.calendar.id == aCalendar.id;
             });
             this.mTreeView.removeItems(tasks);
-        ]]></body>
-      </method>
-
-      <method name="popRefreshQueue">
-        <body><![CDATA[
-          var pendingRefresh = this.mPendingRefresh;
-          if (pendingRefresh) {
-              if (calInstanceOf(pendingRefresh, Components.interfaces.calIOperation)) {
-                  this.mPendingRefresh = null;
-                  pendingRefresh.cancel(null);
-              } else {
-                  return;
-              }
-          }
-
-          var refreshJob = this.mRefreshQueue.pop();
-          if (!refreshJob) {
-              return;
-          }
-
-          this.mPendingRefresh = true;
-          pendingRefresh = refreshJob.execute();
-          if (pendingRefresh && pendingRefresh.isPending) {
-              this.mPendingRefresh = pendingRefresh;
-          }
-        ]]></body>
-      </method>
-
-      <method name="onOperationComplete">
-        <body><![CDATA[
-          // signal that the current operation finished.
-          this.mPendingRefresh = null;
-
-          // immediately start the next job on the queue.
-          this.popRefreshQueue();
-
-          if (this.mTreeView.selectedColumn) {
-              this.sortItems();
-          } else {
-              this.recreateHashTable();
-          }
-
-          let tree = document.getAnonymousElementByAttribute(
-              this, "anonid", "calendar-task-tree");
-          tree.view = this.mTreeView;
-
-          // make sure the tree's current index is still valid
-          if (tree.currentIndex >= this.mTaskArray.length) {
-              tree.currentIndex = (this.mTaskArray.length - 1);
-          }
-
-          // we also need to notify potential listeners.
-          let event = document.createEvent('Events');
-          event.initEvent('select', true, false);
-          this.dispatchEvent(event);
         ]]></body>
       </method>
 

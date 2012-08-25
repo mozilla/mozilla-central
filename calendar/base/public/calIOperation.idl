@@ -28,7 +28,7 @@ interface calIOperation : nsISupports
      * @param aStatus operation status to be set;
      *                defaults to calIErrors.OPERATION_CANCELLED if null
      */
-    void cancel(in nsIVariant aStatus);
+    void cancel([optional] in nsIVariant aStatus);
 };
 
 [scriptable, uuid(1FA39726-63D2-440c-A464-296D2822B9DA)]
