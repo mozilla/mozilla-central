@@ -176,6 +176,8 @@
         <command id="cmd_attach_url"
                  disable-on-readonly="true"
                  oncommand="attachURL()"/>
+        <command id="cmd_attach_cloud"
+                 disable-on-readonly="true"/>
         <command id="cmd_openAttachment"
                  oncommand="openAttachment()"/>
         <command id="cmd_copyAttachment"
@@ -431,10 +433,16 @@
                             accesskey="&event.menu.options.attendees.accesskey;"
                             command="cmd_attendees"
                             disable-on-readonly="true"/>
-                  <menuitem id="options-attachments-menuitem"
-                            label="&event.menu.options.attachments.label;"
-                            accesskey="&event.menu.options.attachments.accesskey;"
-                            command="cmd_attach_url"/>
+                  <menu id="options-attachments-menu"
+                        label="&event.attachments.menubutton.label;"
+                        accesskey="&event.attachments.menubutton.accesskey;">
+                    <menupopup id="options-attachments-menupopup">
+                      <menuitem id="options-attachments-url-menuitem"
+                                label="&event.attachments.url.label;"
+                                accesskey="&event.attachments.url.accesskey;"
+                                command="cmd_attach_url"/>
+                    </menupopup>
+                  </menu>
                   <menuitem id="options-timezone-menuitem"
                             label="&event.menu.options.timezone2.label;"
                             accesskey="&event.menu.options.timezone2.accesskey;"
@@ -601,11 +609,18 @@
                 </menupopup>
             </toolbarbutton>
             <toolbarbutton id="button-url"
+                           type="menu-button"
                            mode="dialog"
                            class="cal-event-toolbarbutton toolbarbutton-1"
-                           label="&event.toolbar.attachments.label;"
+                           label="&event.attachments.menubutton.label;"
                            command="cmd_attach_url"
-                           disable-on-readonly="true"/>
+                           disable-on-readonly="true">
+              <menupopup id="button-attach-menupopup">
+                <menuitem id="button-attach-url"
+                          label="&event.attachments.url.label;"
+                          command="cmd_attach_url"/>
+              </menupopup>
+            </toolbarbutton>
             <toolbarbutton id="button-delete"
                            mode="dialog"
                            class="cal-event-toolbarbutton toolbarbutton-1"
