@@ -177,15 +177,6 @@ function ircChannel(aAccount, aName, aNick) {
   this._init(aAccount, aName, aNick);
   this._modes = [];
   this._observedNicks = [];
-
-  // Ensure chatRoomFields information is available for reconnection.
-  let nName = aAccount.normalize(this.name);
-  if (hasOwnProperty(aAccount._chatRoomFieldsList, nName))
-    this._chatRoomFields = aAccount._chatRoomFieldsList[nName];
-  else {
-    WARN("Opening a MUC without storing its prplIChatRoomFieldValues first.");
-    this._chatRoomFields = aAccount.getChatRoomDefaultFieldValues(this.name);
-  }
 }
 ircChannel.prototype = {
   __proto__: GenericConvChatPrototype,
@@ -973,13 +964,13 @@ ircAccount.prototype = {
       return;
     }
     let params = [channel];
-    let password = aComponents.getValue("password");
-    if (password)
-      params.push(password);
+    let key = aComponents.getValue("password");
+    if (key)
+      params.push(key);
     this._chatRoomFieldsList[this.normalize(channel)] = aComponents;
     // Send the join command, but don't log the channel key.
     this.sendMessage("JOIN", params,
-                     "JOIN " + channel + (password ? " <key not logged>" : ""));
+                     "JOIN" + channel + (key ? " <key not logged>" : ""));
   },
 
   chatRoomFields: {

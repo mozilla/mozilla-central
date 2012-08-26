@@ -194,12 +194,23 @@ var ircBase = {
         let conversation = this.getConversation(channelName);
         if (this.normalize(aMessage.nickname, this.userPrefixes) ==
             this.normalize(this._nickname)) {
-          // If you join, clear the participants list to avoid errors w/
+          // If you join, clear the participants list to avoid errors with
           // repeated participants.
           conversation.removeAllParticipants();
           conversation.left = false;
           conversation.notifyObservers(conversation, "update-conv-chatleft");
-          delete this._chatRoomFieldsList[this.normalize(conversation.name)];
+
+          // Ensure chatRoomFields information is available for reconnection.
+          let nName = this.normalize(channelName);
+          if (hasOwnProperty(this._chatRoomFieldsList, nName)) {
+            conversation._chatRoomFields = this._chatRoomFieldsList[nName];
+            delete this._chatRoomFieldsList[nName];
+          }
+          else {
+            WARN("Opening a MUC without storing its prplIChatRoomFieldValues first.");
+            conversation._chatRoomFields =
+              this.getChatRoomDefaultFieldValues(channelName);
+          }
         }
         else {
           // Don't worry about adding ourself, RPL_NAMES takes care of that
@@ -1249,9 +1260,18 @@ var ircBase = {
     },
     "475": function(aMessage) { // ERR_BADCHANNELKEY
       // <channel> :Cannot join channel (+k)
-      // TODO need to inform the user.
-      delete this._chatRoomFieldsList[this.normalize(aMessage.params[1])];
-      return false;
+      let channelName = aMessage.params[1];
+
+      // Display an error message to the user.
+      let msg = _("error.wrongKey", channelName);
+      let conversation = this.getConversation(channelName);
+      conversation.writeMessage(aMessage.servername, msg, {system: true});
+
+      // The stored information is out of date, remove it.
+      delete conversation._chatRoomFields;
+      delete this._chatRoomFieldsList[this.normalize(channelName)];
+
+      return true;
     },
     "476": function(aMessage) { // ERR_BADCHANMASK
       // <channel> :Bad Channel Mask
