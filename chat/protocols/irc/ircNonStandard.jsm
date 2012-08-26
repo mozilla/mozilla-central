@@ -53,6 +53,21 @@ var ircNonStandard = {
       return true;
     },
 
+    "330": function(aMessage) {
+      // TODO RPL_WHOWAS_TIME
+
+      // RPL_WHOISACCOUNT (Charybdis, ircu & Quakenet)
+      // <nick> <authname> :is logged in as
+      if (aMessage.params.length == 4) {
+        let [, nick, authname] = aMessage.params;
+        // If the authname differs from the nickname, add it to the WHOIS
+        // information; otherwise, ignore it.
+        if (this.normalize(nick) != this.normalize(authname))
+          this.setWhois(nick, {registeredAs: authname});
+      }
+      return true;
+    },
+
     "378": function(aMessage) { // RPL_WHOISHOST (Unreal & Charybdis)
       // <nick> :is connecting from <host> <ip>
       let [host, ip] = aMessage.params[2].split(" ").slice(-2);

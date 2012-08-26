@@ -676,6 +676,7 @@ ircAccount.prototype = {
       server: null,
       connectedFrom: null,
       registered: normalizeBool,
+      registeredAs: null,
       secure: normalizeBool,
       away: null,
       ircOp: normalizeBool,
