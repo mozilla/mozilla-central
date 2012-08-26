@@ -523,19 +523,9 @@ treechildren::-moz-tree-cell-text(subjectCol) {
 }
 
 /* Black on dark background doesn't look good */
-@media (-moz-windows-theme: luna-blue) {
-  #messengerWindow[tabsintitlebar] menubar:not(:-moz-lwtheme) > menu {
-    color: white;
-  }
-}
-
-@media (-moz-windows-theme: royale) {
-  #messengerWindow[tabsintitlebar] menubar:not(:-moz-lwtheme) > menu {
-    color: white;
-  }
-}
-
-@media (-moz-windows-theme: zune) {
+@media (-moz-windows-theme: luna-blue),
+       (-moz-windows-theme: royale),
+       (-moz-windows-theme: zune) {
   #messengerWindow[tabsintitlebar] menubar:not(:-moz-lwtheme) > menu {
     color: white;
   }
