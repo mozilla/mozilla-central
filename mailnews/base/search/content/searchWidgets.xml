@@ -93,12 +93,12 @@
       <method name="hideInvalidActions">
         <body>
           <![CDATA[
-            var menupopup = this.menulist.menupopup;
-            var scope = getScopeFromFilterList(gFilterList);
+            let menupopup = this.menulist.menupopup;
+            let scope = getScopeFromFilterList(gFilterList);
 
             // walk through the list of filter actions and hide any actions which aren't valid
             // for our given scope (news, imap, pop, etc) and context
-            var elements, i;
+            let elements, i;
 
             // disable / enable all elements in the "filteractionlist"
             // based on the scope and the "enablefornews" attribute
@@ -118,10 +118,17 @@
             elements = menupopup.getElementsByAttribute("isCustom", "true");
             // Note there might be an additional element here as a placeholder
             // for a missing action, so we iterate over the known actions
-            // instead of the elements
+            // instead of the elements.
             for (i = 0; i < gCustomActions.length; i++)
               elements[i].hidden = !gCustomActions[i]
                                      .isValidForType(gFilterType, scope);
+
+            // Disable "Reply with Template" if there are no templates.
+            if (!this.getTemplates(false)) {
+              elements = menupopup.getElementsByAttribute("value", "replytomessage");
+              if (elements.length == 1)
+                menupopup.getElementsByAttribute("value", "replytomessage")[0].hidden = true;
+            }
           ]]>
         </body>
       </method>
@@ -198,6 +205,73 @@
           ]]>
         </body>
       </method>
+
+      <!--
+        - Check if there exist any templates in this account.
+        -
+        - @param populateTemplateList  If true, create menuitems representing
+        -                              the found templates.
+        - @param templateMenuList      The menulist element to create items in.
+        -
+        - @return  True if at least one template was found, otherwise false.
+      -->
+      <method name="getTemplates">
+        <parameter name="populateTemplateList"/>
+        <parameter name="templateMenuList"/>
+        <body>
+          <![CDATA[
+            Components.utils.import("resource:///modules/iteratorUtils.jsm", this);
+            let identitiesRaw = MailServices.accounts
+              .GetIdentitiesForServer(gFilterList.folder.server);
+            let identities = [a for each (a in this.fixIterator(identitiesRaw,
+                              Components.interfaces.nsIMsgIdentity))];
+
+            if (!identities.length) // typically if this is Local Folders
+              identities.push(MailServices.accounts.defaultAccount.defaultIdentity);
+
+            let templateFound = false;
+            let foldersScanned = [];
+
+            for each (let identity in identities) {
+              let enumerator = null;
+              let msgFolder;
+              try {
+                msgFolder = Components.classes["@mozilla.org/rdf/rdf-service;1"]
+                                      .getService(Components.interfaces.nsIRDFService)
+                                      .GetResource(identity.stationeryFolder)
+                                      .QueryInterface(Components.interfaces.nsIMsgFolder);
+                // If we already processed this folder, do not set enumerator
+                // so that we skip this identity.
+                if (foldersScanned.indexOf(msgFolder) == -1) {
+                  foldersScanned.push(msgFolder);
+                  enumerator = msgFolder.msgDatabase.EnumerateMessages();
+                }
+              } catch (e) {
+                // The Templates folder may not exist, that is OK.
+              }
+
+              if (!enumerator)
+                continue;
+
+              while (enumerator.hasMoreElements()) {
+                let header = enumerator.getNext();
+                if (header instanceof Components.interfaces.nsIMsgDBHdr) {
+                  templateFound = true;
+                  if (!populateTemplateList)
+                    return true;
+                  let msgTemplateUri = msgFolder.URI + "?messageId=" +
+                    header.messageId + '&subject=' + header.mime2DecodedSubject;
+                  let newItem = templateMenuList.appendItem(header.mime2DecodedSubject,
+                                                            msgTemplateUri);
+                }
+              }
+            }
+
+            return templateFound;
+          ]]>
+        </body>
+      </method>
+
     </implementation>
 
     <handlers>
@@ -559,29 +633,9 @@
     <implementation>
       <constructor>
         <![CDATA[
-            Components.utils.import("resource:///modules/mailServices.js", this);
-            let identity = MailServices.accounts.getFirstIdentityForServer(gFilterList.folder.server);
-            if (!identity) // typically if this is Local Folders
-              identity = MailServices.accounts.defaultAccount.defaultIdentity;
-            var rdfService = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
-            var resource = rdfService.GetResource(identity.stationeryFolder);
-            var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
-            var msgWindow = GetFilterEditorMsgWindow();
-            var enumerator = msgFolder.msgDatabase.EnumerateMessages();
-            var templateListPopup = document.getAnonymousNodes(this)[0].menupopup;
-
-            if (enumerator)
-            {
-              while (enumerator.hasMoreElements())
-              {
-                var header = enumerator.getNext();
-                if (header instanceof Components.interfaces.nsIMsgDBHdr)
-                {
-                  var msgTemplateUri = msgFolder.URI + "?messageId=" + header.messageId + '&subject=' + header.mime2DecodedSubject;
-                  var newItem = document.getAnonymousNodes(this)[0].appendItem(header.mime2DecodedSubject, msgTemplateUri);
-                }
-              }
-            }
+          document.getAnonymousElementByAttribute(
+            this.parentNode, "class", "ruleactiontype")
+            .getTemplates(true, document.getAnonymousNodes(this)[0]);
         ]]>
       </constructor>
     </implementation>
