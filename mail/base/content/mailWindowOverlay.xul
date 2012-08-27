@@ -2232,7 +2232,11 @@
             <spacer flex="1"/>
             <menuitem id="appmenu-quit"
                       class="menuitem-iconic"
+#ifdef XP_WIN
                       label="&quitApplicationCmd.label;"
+#else
+                      label="&quitApplicationCmdUnix.label;"
+#endif
                       command="cmd_quit"/>
           </vbox>
           <vbox id="appmenuSecondaryPane">

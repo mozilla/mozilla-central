@@ -734,38 +734,24 @@ toolbar[mode="text"] #button-appmenu .toolbarbutton-icon {
   -moz-margin-start: 5px;
 }
 
-#appmenu_print,
-#appmenu_print_popup,
-.appmenu-edit-button,
-#appmenu-editmenu-cut,
-#appmenu-editmenu-copy,
-#appmenu-editmenu-paste,
-#appmenu-quit {
+#appmenu-popup .menu-iconic-left {
+  display:none;
+}
+
+.appmenu-edit-button {
   list-style-image: url("icons/appmenu-icons.png");
 }
 
-#appmenu-cut,
-#appmenu-editmenu-cut {
+#appmenu-cut {
   -moz-image-region: rect(0 16px 16px 0);
 }
 
-#appmenu-copy,
-#appmenu-editmenu-copy {
+#appmenu-copy {
   -moz-image-region: rect(0 32px 16px 16px);
 }
 
-#appmenu-paste,
-#appmenu-editmenu-paste {
+#appmenu-paste {
   -moz-image-region: rect(0 48px 16px 32px);
-}
-
-#appmenu_print,
-#appmenu_print_popup {
-  -moz-image-region: rect(0 64px 16px 48px);
-}
-
-#appmenu-quit {
-  -moz-image-region: rect(0 80px 16px 64px);
 }
 
 #appmenu-edit-label {
@@ -774,8 +760,4 @@ toolbar[mode="text"] #button-appmenu .toolbarbutton-icon {
   font-style: italic;
   -moz-padding-start: 10px;
   -moz-padding-end: 0;
-}
-
-#appmenu_addons {
-  list-style-image: url("chrome://mozapps/skin/extensions/extensionGeneric-16.png");
 }
