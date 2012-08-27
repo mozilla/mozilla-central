@@ -16,13 +16,6 @@ else
   . $topsrcdir/build/win32/mozconfig.vs2010
 fi
 
-# For known full-clobber builds on Windows (like nightlies/try), 
-# this speeds things up. IS_NIGHTLY is set by the build automation.
-if test "$IS_NIGHTLY" != ""; then 
-  ac_add_options --disable-auto-deps
-fi
-
 # Run client.py
 mk_add_options CLIENT_PY_ARGS="--hg-options='--time' --hgtool=../tools/buildfarm/utils/hgtool.py --skip-chatzilla --skip-comm --skip-inspector --skip-venkman --tinderbox-print"
 mk_add_options ALWAYS_RUN_CLIENT_PY=1
-
