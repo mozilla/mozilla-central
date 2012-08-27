@@ -188,11 +188,11 @@ Conversation.prototype = {
     // Handle retweets: retweeted_status contains the object for the original
     // tweet that is being retweeted.
     // If the retweet prefix ("RT @<username>: ") causes the tweet to be over
-    // 140 characters, ellipses will be added (and the truncated property is set
-    // to true). In this case, we want to get the FULL text from the original
-    // tweet and update the entities to match.
-    if ("retweeted_status" in aTweet && "truncated" in aTweet &&
-        aTweet["truncated"]) {
+    // 140 characters, ellipses will be added. In this case, we want to get
+    // the FULL text from the original tweet and update the entities to match.
+    // Note: the truncated flag is not always set correctly by twitter, so we
+    // always make use of the original tweet.
+    if ("retweeted_status" in aTweet) {
       let retweet = aTweet["retweeted_status"];
       // We're going to take portions of the retweeted status and replace parts
       // of the original tweet, the retweeted status prepends the original
