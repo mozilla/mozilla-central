@@ -5,7 +5,7 @@
 # We install db files with the necessary preloaded certs to run tests that
 # involve S/MIME.
 
-import os, shutil
+import os, shutil, sys
 
 def on_profile_created(profile):
   """
@@ -13,8 +13,15 @@ def on_profile_created(profile):
   such as S/MIME.
   """
 
-  data_path = "../../../../mailnews/test/data/db-tinderbox-invalid"
+  data_path = os.path.join(os.path.dirname(__file__),
+                           "../../../../mailnews/test/data/db-tinderbox-invalid")
+  if not os.path.exists(data_path):
+    data_path = os.path.join(os.path.dirname(__file__),
+                             "../../xpcshell/tests/mailnews/data/db-tinderbox-invalid")
+    if not os.path.exists(data_path):
+      sys.exit("TEST-UNEXPECTED-FAIL | crypto | Failed to find the appropraite data_path")
+
   db_files = ["cert8.db", "key3.db", "secmod.db"]
 
   for f in db_files:
-    shutil.copy(os.path.join(os.path.dirname(__file__), data_path, f), profile)
+    shutil.copy(os.path.join(data_path, f), profile)

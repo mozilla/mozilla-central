@@ -6,6 +6,7 @@ composition
 content-policy
 content-tabs
 cookies
+crypto
 folder-display
 folder-pane
 folder-tree-modes
@@ -18,6 +19,7 @@ message-window
 migration-to-rdf-ui-2
 migration-to-rdf-ui-3
 migration-to-rdf-ui-5
+multiple-identities
 newmailaccount
 notification
 pref-window
