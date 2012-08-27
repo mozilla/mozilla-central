@@ -284,7 +284,7 @@ toolbar[iconsize="large"]:not([mode="text"]) .badgeButton-badge {
   min-width: 35px;
 }
 
-#button-previousMsg[disabled] {
+#button-appmenu[disabled] {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(24px 432px 48px 408px);
 }
@@ -513,8 +513,8 @@ toolbar[iconsize="small"] #button-appmenu {
   -moz-image-region: rect(0px 288px 16px 272px);
 }
 
-toolbar[iconsize="small"] #button-previousMsg[disabled] {
-  -moz-image-region: rect(16px 288px 32px 272px) !important;
+toolbar[iconsize="small"] #button-appmenu[disabled] {
+  -moz-image-region: rect(16px 288px 32px 272px);
 }
 
 /* ::::: end small primary toolbar buttons ::::: */

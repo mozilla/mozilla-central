@@ -392,11 +392,11 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   min-width: 35px;
 }
 
-#button-previousMsg:hover {
+#button-appmenu:hover {
   -moz-image-region: rect(24px 600px 48px 576px);
 }
 
-#button-previousMsg[disabled] {
+#button-appmenu[disabled] {
   -moz-image-region: rect(48px 600px 72px 576px) !important;
 }
 
@@ -721,11 +721,11 @@ toolbar[iconsize="small"] #button-appmenu {
   -moz-image-region: rect(0px 400px 16px 384px);
 }
 
-toolbar[iconsize="small"] #button-previousMsg:hover {
+toolbar[iconsize="small"] #button-appmenu:hover {
   -moz-image-region: rect(16px 400px 32px 384px);
 }
 
-toolbar[iconsize="small"] #button-previousMsg[disabled] {
+toolbar[iconsize="small"] #button-appmenu[disabled] {
   -moz-image-region: rect(32px 400px 48px 384px) !important;
 }
 
