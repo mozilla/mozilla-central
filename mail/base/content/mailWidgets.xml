@@ -1408,7 +1408,7 @@
         <setter>
           <![CDATA[
             if (this.internalValue == val)
-              return;
+              return val;
             this.internalValue = val;
             var menulist = document.getAnonymousNodes(this)[0];
             menulist.selectedItem = this.validMenuitem;
@@ -1785,6 +1785,8 @@
                         class="search-value-menuitem"/>
         </xul:menupopup>
       </xul:menulist>
+      <xul:textbox flex="1" class="search-value-textbox" xbl:inherits="disabled"
+                   type="number"/>
       <xul:hbox flex="1" class="search-value-custom" xbl:inherits="disabled"/>
     </content>
     <implementation>
@@ -1799,7 +1801,8 @@
         <setter>
           <![CDATA[
             // noop if we're not changing it
-            if (this.internalOperator == val) return val;
+            if (this.internalOperator == val)
+              return val;
 
             // Keywords has the null field IsEmpty
             if (this.searchAttribute == Components.interfaces.nsMsgSearchAttrib.Keywords) {
@@ -1880,8 +1883,8 @@
             // to hide/show widgets
             if (isNaN(val)) // Is this a custom attribute?
             {
-              this.setAttribute("selectedIndex", "9");
-              let customHbox = document.getAnonymousNodes(this)[9];
+              this.setAttribute("selectedIndex", "10");
+              let customHbox = document.getAnonymousNodes(this)[10];
               if (this.internalValue)
                 customHbox.setAttribute("value", this.internalValue.str);
               // the searchAttribute attribute is intended as a selector in
@@ -1913,6 +1916,24 @@
             else if (val == Components.interfaces.nsMsgSearchAttrib.JunkScoreOrigin) {
               this.setAttribute("selectedIndex", "8");
             }
+            else if (val == Components.interfaces.nsMsgSearchAttrib.AgeInDays) {
+              let valueBox = document.getAnonymousNodes(this)[9];
+              valueBox.min = -40000; // ~-100 years
+              valueBox.max = 40000; // ~100 years
+              this.setAttribute("selectedIndex", "9");
+            }
+            else if (val == Components.interfaces.nsMsgSearchAttrib.Size) {
+              let valueBox = document.getAnonymousNodes(this)[9];
+              valueBox.min = 0;
+              valueBox.max = 1000000000;
+              this.setAttribute("selectedIndex", "9");
+            }
+            else if (val == Components.interfaces.nsMsgSearchAttrib.JunkPercent) {
+              let valueBox = document.getAnonymousNodes(this)[9];
+              valueBox.min = 0;
+              valueBox.max = 100;
+              this.setAttribute("selectedIndex", "9");
+            }
             else {
               // a normal text field
               this.setAttribute("selectedIndex", "0");
@@ -1932,7 +1953,7 @@
           this.searchAttribute = attrib;
           if (isNaN(attrib)) // a custom term
           {
-            let customHbox = document.getAnonymousNodes(this)[9];
+            let customHbox = document.getAnonymousNodes(this)[10];
             customHbox.setAttribute("value", val.str);
             return val;
           }
@@ -1949,10 +1970,10 @@
               children[2].selectedItem = matchingStatus[0];
           }
           else if (attrib == nsMsgSearchAttrib.AgeInDays)
-            children[0].value = val.age;
+            children[9].value = val.age;
           else if (attrib == nsMsgSearchAttrib.Date)
             children[3].value = convertPRTimeToString(val.date);
-          else if (attrib == nsMsgSearchAttrib.Sender || 
+          else if (attrib == nsMsgSearchAttrib.Sender ||
                    attrib == nsMsgSearchAttrib.To ||
                    attrib == nsMsgSearchAttrib.CC ||
                    attrib == nsMsgSearchAttrib.AllAddresses ||
@@ -1995,10 +2016,10 @@
               children[8].selectedItem = junkScoreOrigin[0];
           }
           else if (attrib == nsMsgSearchAttrib.JunkPercent) {
-            children[0].value = val.junkPercent;
+            children[9].value = val.junkPercent;
           }
           else if (attrib == nsMsgSearchAttrib.Size) {
-            children[0].value = val.size;
+            children[9].value = val.size;
           }
           else
             children[0].value = val.str;
@@ -2021,7 +2042,7 @@
             else if (searchAttribute == nsMsgSearchAttrib.MsgStatus)
                searchValue.status = children[2].value;
             else if (searchAttribute == nsMsgSearchAttrib.AgeInDays)
-               searchValue.age = children[0].value;
+               searchValue.age = children[9].value;
             else if (searchAttribute == nsMsgSearchAttrib.Date)
                searchValue.date = convertStringToPRTime(children[3].value);
             else if (searchAttribute == nsMsgSearchAttrib.Sender ||
@@ -2043,9 +2064,9 @@
             else if (searchAttribute == nsMsgSearchAttrib.JunkStatus)
                searchValue.junkStatus = children[6].value;
             else if (searchAttribute == nsMsgSearchAttrib.JunkPercent)
-               searchValue.junkPercent = children[0].value;
+               searchValue.junkPercent = children[9].value;
             else if (searchAttribute == nsMsgSearchAttrib.Size)
-               searchValue.size = children[0].value;
+               searchValue.size = children[9].value;
             else if (searchAttribute == nsMsgSearchAttrib.HasAttachmentStatus)
                searchValue.status = 0x10000000;  // 0x10000000 is MSG_FLAG_ATTACHMENT;
             else if (searchAttribute == nsMsgSearchAttrib.JunkScoreOrigin)
@@ -2053,7 +2074,7 @@
             else if (isNaN(searchAttribute)) //  a custom term
             {
               searchValue.attrib = nsMsgSearchAttrib.Custom;
-              searchValue.str = children[9].getAttribute("value");
+              searchValue.str = children[10].getAttribute("value");
             }
             else
               searchValue.str = children[0].value;
