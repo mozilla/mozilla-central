@@ -294,7 +294,24 @@
     </handlers>
   </binding>
 
-  <binding id="ruleaction">
+  <!-- This binding exists to disable the default binding of a listitem
+       in the search terms. -->
+  <binding id="listitem">
+    <implementation>
+      <method name="_fireEvent">
+        <parameter name="aName"/>
+        <body>
+          <![CDATA[
+            /* This provides a dummy _fireEvent function that
+               the listbox expects to be able to call.
+               See bug 202036. */
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+  <binding id="ruleaction" extends="#listitem">
     <content allowevents="true">
       <xul:listcell class="ruleactiontype"
                     orient="vertical" align="stretch" pack="center"/>

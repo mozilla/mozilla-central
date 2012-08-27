@@ -138,6 +138,10 @@ mail-tagfield[collapsed="true"] {
   display: none;
 }
 
+#searchTermList > listitem {
+  -moz-binding: url("chrome://messenger/content/searchWidgets.xml#listitem");
+}
+
 searchattribute {
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#searchattribute");
 }
