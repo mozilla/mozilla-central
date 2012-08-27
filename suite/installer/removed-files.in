@@ -309,6 +309,7 @@ modules/services-sync/type_records/history.js
 modules/services-sync/type_records/passwords.js
 modules/services-sync/type_records/prefs.js
 modules/services-sync/type_records/tabs.js
+modules/SpatialNavigation.js
 #ifdef MOZ_STATIC_JS
 @DLL_PREFIX@mozjs@DLL_SUFFIX@
 #endif
@@ -1028,7 +1029,6 @@ xpicleanup@BIN_SUFFIX@
   modules/PopupNotifications.jsm
   modules/Sanitizer.jsm
   modules/Services.jsm
-  modules/SpatialNavigation.js
   modules/StringBundle.js
   modules/services-common/async.js
   modules/services-common/log4moz.js
