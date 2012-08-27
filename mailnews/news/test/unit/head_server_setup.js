@@ -76,9 +76,7 @@ function makeServer(handler, daemon) {
 }
 
 // Enable strict threading
-var prefs = Cc["@mozilla.org/preferences-service;1"]
-              .getService(Ci.nsIPrefBranch);
-prefs.setBoolPref("mail.strict_threading", true);
+Services.prefs.setBoolPref("mail.strict_threading", true);
 
 
 // Make sure we don't try to use a protected port. I like adding 1024 to the

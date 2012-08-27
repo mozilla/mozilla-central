@@ -225,16 +225,14 @@ function run_test()
   imapAccount.incomingServer = gIMAPIncomingServer;
 
   // The server doesn't support more than one connection
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefBranch);
-  prefBranch.setIntPref("mail.server.server1.max_cached_connections", 1);
+  Services.prefs.setIntPref("mail.server.server1.max_cached_connections", 1);
   // Make sure no biff notifications happen
-  prefBranch.setBoolPref("mail.biff.play_sound", false);
-  prefBranch.setBoolPref("mail.biff.show_alert", false);
-  prefBranch.setBoolPref("mail.biff.show_tray_icon", false);
-  prefBranch.setBoolPref("mail.biff.animate_dock_icon", false);
+  Services.prefs.setBoolPref("mail.biff.play_sound", false);
+  Services.prefs.setBoolPref("mail.biff.show_alert", false);
+  Services.prefs.setBoolPref("mail.biff.show_tray_icon", false);
+  Services.prefs.setBoolPref("mail.biff.animate_dock_icon", false);
   // We aren't interested in downloading messages automatically
-  prefBranch.setBoolPref("mail.server.server1.download_on_biff", false);
+  Services.prefs.setBoolPref("mail.server.server1.download_on_biff", false);
 
   // Get the server list...
   gIMAPIncomingServer.performExpand(null);

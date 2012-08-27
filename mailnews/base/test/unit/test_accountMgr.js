@@ -11,48 +11,51 @@
 const am = Components.classes["@mozilla.org/messenger/account-manager;1"]
                      .getService(Components.interfaces.nsIMsgAccountManager);
 
-const prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                      .getService(Components.interfaces.nsIPrefBranch);
-
 function run_test()
 {
   // Create account prefs with both kinds of duplication.
 
-  prefs.setCharPref("mail.account.account1.identities", "id1");
-  prefs.setCharPref("mail.account.account1.server", "server1");
-  prefs.setCharPref("mail.account.account2.identities", "id2");
-  prefs.setCharPref("mail.account.account2.server", "server2");
-  prefs.setCharPref("mail.account.account4.identities", "id2");
-  prefs.setCharPref("mail.account.account4.server", "server4");
-  prefs.setCharPref("mail.account.account5.identities", "id3");
-  prefs.setCharPref("mail.account.account5.server", "server5");
-  prefs.setCharPref("mail.account.account6.identities", "id3");
-  prefs.setCharPref("mail.account.account6.server", "server5");
-  prefs.setCharPref("mail.server.server1.hostname", "Local Folders");
-  prefs.setCharPref("mail.server.server1.type", "none");
-  prefs.setCharPref("mail.server.server1.userName", "nobody");
-  prefs.setCharPref("mail.server.server1.directory-rel",
-                    "[ProfD]Mail/Local Folders");
-  prefs.setCharPref("mail.server.server2.hostname", "Local Folders");
-  prefs.setCharPref("mail.server.server2.type", "none");
-  prefs.setCharPref("mail.server.server2.userName", "nobody");
-  prefs.setCharPref("mail.server.server2.directory-rel",
-                    "[ProfD]Mail/Local Folders-1");
-  prefs.setCharPref("mail.server.server4.hostname", "mail.host4.org");
-  prefs.setCharPref("mail.server.server4.type", "pop3");
-  prefs.setCharPref("mail.server.server5.hostname", "pop3.host.org");
-  prefs.setCharPref("mail.server.server5.type", "pop3");
-  prefs.setCharPref("mail.server.server5.deferred_to_account", "account2");
+  Services.prefs.setCharPref("mail.account.account1.identities", "id1");
+  Services.prefs.setCharPref("mail.account.account1.server", "server1");
+  Services.prefs.setCharPref("mail.account.account2.identities", "id2");
+  Services.prefs.setCharPref("mail.account.account2.server", "server2");
+  Services.prefs.setCharPref("mail.account.account4.identities", "id2");
+  Services.prefs.setCharPref("mail.account.account4.server", "server4");
+  Services.prefs.setCharPref("mail.account.account5.identities", "id3");
+  Services.prefs.setCharPref("mail.account.account5.server", "server5");
+  Services.prefs.setCharPref("mail.account.account6.identities", "id3");
+  Services.prefs.setCharPref("mail.account.account6.server", "server5");
+  Services.prefs.setCharPref("mail.server.server1.hostname",
+                             "Local Folders");
+  Services.prefs.setCharPref("mail.server.server1.type", "none");
+  Services.prefs.setCharPref("mail.server.server1.userName", "nobody");
+  Services.prefs.setCharPref("mail.server.server1.directory-rel",
+                             "[ProfD]Mail/Local Folders");
+  Services.prefs.setCharPref("mail.server.server2.hostname",
+                             "Local Folders");
+  Services.prefs.setCharPref("mail.server.server2.type", "none");
+  Services.prefs.setCharPref("mail.server.server2.userName", "nobody");
+  Services.prefs.setCharPref("mail.server.server2.directory-rel",
+                             "[ProfD]Mail/Local Folders-1");
+  Services.prefs.setCharPref("mail.server.server4.hostname",
+                             "mail.host4.org");
+  Services.prefs.setCharPref("mail.server.server4.type", "pop3");
+  Services.prefs.setCharPref("mail.server.server5.hostname",
+                             "pop3.host.org");
+  Services.prefs.setCharPref("mail.server.server5.type", "pop3");
+  Services.prefs.setCharPref("mail.server.server5.deferred_to_account",
+                             "account2");
 
-  prefs.setCharPref("mail.accountmanager.accounts",
-                    "account1,account2,account4,account5,account5,account6");
+  Services.prefs.setCharPref("mail.accountmanager.accounts",
+                             "account1,account2,account4,account5,account5,account6");
   // Set the default account to one we're going to get rid of. The account
   //  manager should recover relatively gracefully.
-  prefs.setCharPref("mail.accountmanager.defaultaccount", "account6");
+  Services.prefs.setCharPref("mail.accountmanager.defaultaccount",
+                             "account6");
 
   // This will force the load of the accounts setup above.
   do_check_eq(am.accounts.Count(), 3);
-  do_check_eq(prefs.getCharPref("mail.accountmanager.accounts"),
+  do_check_eq(Services.prefs.getCharPref("mail.accountmanager.accounts"),
               "account1,account4,account5");
   let server5 = am.getIncomingServer("server5")
                   .QueryInterface(Ci.nsIPop3IncomingServer);
@@ -74,9 +77,11 @@ function run_test()
 
   am.removeAccount(am.FindAccountForServer(server));
   do_check_eq(am.accounts.Count(), 2);
-  do_check_eq(prefs.getCharPref("mail.accountmanager.accounts"),
+  do_check_eq(Services.prefs.getCharPref("mail.accountmanager.accounts"),
               "account1,account5");
   // make sure cleaning up duplicate accounts didn't hork accounts
-  do_check_eq(prefs.getCharPref("mail.account.account1.server"), "server1");
-  do_check_eq(prefs.getCharPref("mail.account.account5.server"), "server5");
+  do_check_eq(Services.prefs.getCharPref("mail.account.account1.server"),
+              "server1");
+  do_check_eq(Services.prefs.getCharPref("mail.account.account5.server"),
+              "server5");
 }

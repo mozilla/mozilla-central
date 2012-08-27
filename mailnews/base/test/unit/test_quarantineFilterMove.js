@@ -111,9 +111,7 @@ function run_test()
   /**/
 
   // quarantine messages
-  let prefs = Cc["@mozilla.org/preferences-service;1"]
-                .getService(Ci.nsIPrefBranch);
-  prefs.setBoolPref("mailnews.downloadToTempFile", true);
+  Services.prefs.setBoolPref("mailnews.downloadToTempFile", true);
   if (!gLocalInboxFolder)
     loadLocalMailAccount();
 

@@ -55,13 +55,11 @@ function run_test() {
   gImapServer.performExpand(null);
   gServer.performTest("SUBSCRIBE");
   // pref tuning: one connection only, turn off notifications
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefBranch);
   // Make sure no biff notifications happen
-  prefBranch.setBoolPref("mail.biff.play_sound", false);
-  prefBranch.setBoolPref("mail.biff.show_alert", false);
-  prefBranch.setBoolPref("mail.biff.show_tray_icon", false);
-  prefBranch.setBoolPref("mail.biff.animate_dock_icon", false);
+  Services.prefs.setBoolPref("mail.biff.play_sound", false);
+  Services.prefs.setBoolPref("mail.biff.show_alert", false);
+  Services.prefs.setBoolPref("mail.biff.show_tray_icon", false);
+  Services.prefs.setBoolPref("mail.biff.animate_dock_icon", false);
 
   let rootFolder = gImapServer.rootFolder;
   gIMAPInbox = rootFolder.getFolderWithFlags(Ci.nsMsgFolderFlags.Inbox);

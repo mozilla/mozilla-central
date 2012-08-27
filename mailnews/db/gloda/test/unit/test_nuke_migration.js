@@ -47,15 +47,14 @@ function make_out_of_date_database() {
 
 // some copied and pasted preference setup from glodaTestHelper that is
 // appropriate here.
-const gPrefs = Cc["@mozilla.org/preferences-service;1"]
-                 .getService(Ci.nsIPrefBranch);
 // yes to indexing
-gPrefs.setBoolPref("mailnews.database.global.indexer.enabled", true);
+Services.prefs.setBoolPref("mailnews.database.global.indexer.enabled",
+                           true);
 // no to a sweep we don't control
-gPrefs.setBoolPref("mailnews.database.global.indexer.perform_initial_sweep",
-    false);
+Services.prefs.setBoolPref("mailnews.database.global.indexer.perform_initial_sweep",
+                           false);
 // yes to debug output
-gPrefs.setBoolPref("mailnews.database.global.logging.dump", true);
+Services.prefs.setBoolPref("mailnews.database.global.logging.dump", true);
 
 function run_test() {
 

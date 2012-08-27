@@ -161,10 +161,10 @@ function run_test() {
   gLocalInboxFolder = configure_message_injection({mode: "local"});
 
   // Set option so that when messages are marked as junk, they move to the junk folder
-  let prefSvc = Cc["@mozilla.org/preferences-service;1"]
-                  .getService(Ci.nsIPrefBranch);
-  prefSvc.setBoolPref("mail.spam.manualMark", true);
-  prefSvc.setIntPref("mail.spam.manualMarkMode", 0); // 0 == "move to junk folder", 1 == "delete"
+  Services.prefs.setBoolPref("mail.spam.manualMark", true);
+
+  // 0 == "move to junk folder", 1 == "delete"
+  Services.prefs.setIntPref("mail.spam.manualMarkMode", 0);
 
   // Disable bayes filtering on the local account. That's the whole point of this test,
   //  to make sure that the junk move happens anyway.

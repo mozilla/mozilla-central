@@ -46,12 +46,10 @@ function run_test()
   imapAccount.incomingServer = gIMAPIncomingServer;
   
   // pref tuning: one connection only, turn off notifications
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefBranch);
-  prefBranch.setBoolPref("mail.biff.play_sound", false);
-  prefBranch.setBoolPref("mail.biff.show_alert", false);
-  prefBranch.setBoolPref("mail.biff.show_tray_icon", false);
-  prefBranch.setBoolPref("mail.biff.animate_dock_icon", false);
+  Services.prefs.setBoolPref("mail.biff.play_sound", false);
+  Services.prefs.setBoolPref("mail.biff.show_alert", false);
+  Services.prefs.setBoolPref("mail.biff.show_tray_icon", false);
+  Services.prefs.setBoolPref("mail.biff.animate_dock_icon", false);
 
   // add a single message to the imap inbox.
   let messages = [];

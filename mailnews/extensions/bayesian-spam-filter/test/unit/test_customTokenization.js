@@ -8,9 +8,6 @@ const nsIJunkMailPlugin =
   Cc["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
     .getService(Ci.nsIJunkMailPlugin);
 
-const prefs = Cc["@mozilla.org/preferences-service;1"]
-                .getService(Ci.nsIPrefBranch);
-
 // command functions for test data
 const kTrain = 0;  // train a file
 const kTest = 1;   // test headers returned from detail
@@ -45,10 +42,10 @@ var tests =
   {command: kSetup,
    operation: function()
      {
-       prefs.setCharPref("mailnews.bayesian_spam_filter.tokenizeheader.received", "standard");
-       prefs.setCharPref("mailnews.bayesian_spam_filter.tokenizeheader.message-id", "false");
-       prefs.setCharPref("mailnews.bayesian_spam_filter.body_delimiters", " \t\r\n\v");
-       prefs.setCharPref("mailnews.bayesian_spam_filter.tokenizeheader.sender", "full");
+       Services.prefs.setCharPref("mailnews.bayesian_spam_filter.tokenizeheader.received", "standard");
+       Services.prefs.setCharPref("mailnews.bayesian_spam_filter.tokenizeheader.message-id", "false");
+       Services.prefs.setCharPref("mailnews.bayesian_spam_filter.body_delimiters", " \t\r\n\v");
+       Services.prefs.setCharPref("mailnews.bayesian_spam_filter.tokenizeheader.sender", "full");
      }
   },
   {command: kTrain,
@@ -68,9 +65,9 @@ var tests =
   {command: kSetup,
    operation: function()
      {
-       prefs.setIntPref("mailnews.bayesian_spam_filter.maxlengthfortoken", 50);
-       prefs.setCharPref("mailnews.bayesian_spam_filter.header_delimiters", " ;<>\t\r\n\v");
-       prefs.setCharPref("mailnews.bayesian_spam_filter.tokenizeheader.sender", " \t\r\n\v");
+       Services.prefs.setIntPref("mailnews.bayesian_spam_filter.maxlengthfortoken", 50);
+       Services.prefs.setCharPref("mailnews.bayesian_spam_filter.header_delimiters", " ;<>\t\r\n\v");
+       Services.prefs.setCharPref("mailnews.bayesian_spam_filter.tokenizeheader.sender", " \t\r\n\v");
      }
   },
   {command: kTrain,

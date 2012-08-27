@@ -220,9 +220,8 @@ function run_test()
   };
 
   // set value of headers we want parsed into the db
-  let prefs = Cc["@mozilla.org/preferences-service;1"]
-                .getService(Ci.nsIPrefBranch);
-  prefs.setCharPref("mailnews.customDBHeaders", "oneLiner twoLiner threeLiner noSpace withSpace");
+  Services.prefs.setCharPref("mailnews.customDBHeaders",
+                             "oneLiner twoLiner threeLiner noSpace withSpace");
   // Get a message into the local filestore. function testSearch() continues
   // the testing after the copy.
   var bugmail12 = do_get_file("../../../data/bugmail12");

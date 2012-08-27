@@ -12,9 +12,6 @@ load("../../../resources/abSetup.js");
 // add fake POP3 server driver
 load("../../../resources/POP3pump.js");
 
-const prefs = Cc["@mozilla.org/preferences-service;1"]
-                .getService(Ci.nsIPrefBranch);
-
 /*
  * The address available in the test address book is "PrimaryEmail1@test.invalid"
  * Test emails may also include the address "invalid@example.com"
@@ -110,13 +107,13 @@ function doChecks(server)
 
   // Set an empty white list.
   // To really empty this, I have to change the default value as well
-  prefs.setCharPref("mail.server.default.whiteListAbURI", "");
+  Services.prefs.setCharPref("mail.server.default.whiteListAbURI", "");
   server.setCharValue("whiteListAbURI", "");
   spamSettings.initialize(server);
   do_check_false(spamSettings.checkWhiteList(hdrs[kDomainTest]));
 
   // add a trusted domain. This is a global preference
-  prefs.setCharPref("mail.trusteddomains", "example.com");
+  Services.prefs.setCharPref("mail.trusteddomains", "example.com");
   spamSettings.initialize(server);
 
   // check email with the address invalid@example.com, a trusted domain
@@ -126,7 +123,7 @@ function doChecks(server)
   do_check_false(spamSettings.checkWhiteList(hdrs[kDomainTest]));
 
   // disable the trusted domain
-  prefs.setCharPref("mail.trusteddomains", "");
+  Services.prefs.setCharPref("mail.trusteddomains", "");
   spamSettings.initialize(server);
   do_check_false(spamSettings.checkWhiteList(hdrs[kDomainExample]));
 

@@ -24,27 +24,31 @@ function run_test() {
   bugmail.copyTo(pop3dir, "bugmail:1");
   bugmailmsf.copyTo(pop3dir, "bugmail:1.msf");
 
-  const prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-                 .getService(Components.interfaces.nsIPrefBranch);
   // These preferences set up a local folders account so we'll use the
   // contents of the Local Folders dir we've already pre-populated.
-  prefSvc.setCharPref("mail.account.account1.server", "server1");
-  prefSvc.setCharPref("mail.account.account2.server", "server2");
-  prefSvc.setCharPref("mail.accountmanager.accounts", "account1,account2");
-  prefSvc.setCharPref("mail.accountmanager.localfoldersserver", "server1");
-  prefSvc.setCharPref("mail.accountmanager.defaultaccount", "account1");
-  prefSvc.setCharPref("mail.server.server1.directory-rel", "[ProfD]Mail/Local Folders");
-  prefSvc.setCharPref("mail.server.server1.hostname", "Local Folders");
-  prefSvc.setCharPref("mail.server.server1.name", "Local Folders");
-  prefSvc.setCharPref("mail.server.server1.type", "none");
-  prefSvc.setCharPref("mail.server.server1.userName", "nobody");
-  prefSvc.setCharPref("mail.server.server2.directory-rel", "[ProfD]Mail/poptest");
-  prefSvc.setCharPref("mail.server.server2.hostname", "poptest");
-  prefSvc.setCharPref("mail.server.server2.name", "poptest");
-  prefSvc.setCharPref("mail.server.server2.type", "pop3");
-  prefSvc.setCharPref("mail.server.server2.userName", "user");
+  Services.prefs.setCharPref("mail.account.account1.server", "server1");
+  Services.prefs.setCharPref("mail.account.account2.server", "server2");
+  Services.prefs.setCharPref("mail.accountmanager.accounts",
+                             "account1,account2");
+  Services.prefs.setCharPref("mail.accountmanager.localfoldersserver",
+                             "server1");
+  Services.prefs.setCharPref("mail.accountmanager.defaultaccount",
+                             "account1");
+  Services.prefs.setCharPref("mail.server.server1.directory-rel",
+                             "[ProfD]Mail/Local Folders");
+  Services.prefs.setCharPref("mail.server.server1.hostname",
+                             "Local Folders");
+  Services.prefs.setCharPref("mail.server.server1.name", "Local Folders");
+  Services.prefs.setCharPref("mail.server.server1.type", "none");
+  Services.prefs.setCharPref("mail.server.server1.userName", "nobody");
+  Services.prefs.setCharPref("mail.server.server2.directory-rel",
+                             "[ProfD]Mail/poptest");
+  Services.prefs.setCharPref("mail.server.server2.hostname", "poptest");
+  Services.prefs.setCharPref("mail.server.server2.name", "poptest");
+  Services.prefs.setCharPref("mail.server.server2.type", "pop3");
+  Services.prefs.setCharPref("mail.server.server2.userName", "user");
   // This basically says to ignore the time stamp in the .msf file
-  prefSvc.setIntPref("mail.db_timestamp_leeway", 0x7FFFFFFF);
+  Services.prefs.setIntPref("mail.db_timestamp_leeway", 0x7FFFFFFF);
   
   var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
   .getService(Ci.nsIMsgAccountManager);

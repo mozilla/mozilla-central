@@ -7,9 +7,6 @@
 const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                       .getService(Ci.nsIMsgCopyService);
 
-const gPrefs = Cc["@mozilla.org/preferences-service;1"]
-                 .getService(Ci.nsIPrefBranch);
-
 const nsMsgSearchScope = Ci.nsMsgSearchScope;
 const nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;
 const nsMsgSearchOp = Ci.nsMsgSearchOp;
@@ -71,7 +68,7 @@ function run_test()
     hdrs = gArrayHdrs;
   else
     hdrs = gArrayHdrs.join(": ");
-  gPrefs.setCharPref("mailnews.customHeaders", hdrs);
+  Services.prefs.setCharPref("mailnews.customHeaders", hdrs);
 
   // Get a message into the local filestore. function continue_test() continues the testing after the copy.
   do_test_pending();

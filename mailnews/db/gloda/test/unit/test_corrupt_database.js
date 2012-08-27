@@ -18,21 +18,20 @@ load("../../../../resources/logHelper.js");
 load("../../../../resources/asyncTestUtils.js");
 
 // -- Do configure the gloda prefs though...
-const gPrefs = Cc["@mozilla.org/preferences-service;1"]
-                 .getService(Ci.nsIPrefBranch);
 // yes to indexing
-gPrefs.setBoolPref("mailnews.database.global.indexer.enabled", true);
+Services.prefs.setBoolPref("mailnews.database.global.indexer.enabled",
+                           true);
 // no to a sweep we don't control
-gPrefs.setBoolPref("mailnews.database.global.indexer.perform_initial_sweep",
-    false);
+Services.prefs.setBoolPref("mailnews.database.global.indexer.perform_initial_sweep",
+                           false);
 // yes to debug output
-gPrefs.setBoolPref("mailnews.database.global.logging.dump", true);
+Services.prefs.setBoolPref("mailnews.database.global.logging.dump", true);
 
 // We'll start with this datastore ID, and make sure it gets overwritten
 // when the index is rebuilt.
 const kDatastoreIDPref = "mailnews.database.global.datastore.id";
 const kOriginalDatastoreID = "47e4bad6-fedc-4931-bf3f-d2f4146ac63e";
-gPrefs.setCharPref(kDatastoreIDPref, kOriginalDatastoreID);
+Services.prefs.setCharPref(kDatastoreIDPref, kOriginalDatastoreID);
 
 // -- Add a logger listener that throws when we give it a warning/error.
 Components.utils.import("resource:///modules/gloda/log4moz.js");
@@ -116,7 +115,7 @@ function test_corrupt_databases_get_reported_and_blown_away() {
   // Make sure that the datastoreID was overwritten
   do_check_neq(Gloda.datastoreID, kOriginalDatastoreID);
   // And for good measure, make sure that the pref was also overwritten
-  let currentDatastoreID = gPrefs.getCharPref(kDatastoreIDPref);
+  let currentDatastoreID = Services.prefs.getCharPref(kDatastoreIDPref);
   do_check_neq(currentDatastoreID, kOriginalDatastoreID);
   // We'll also ensure that the Gloda.datastoreID matches the one stashed
   // in prefs...

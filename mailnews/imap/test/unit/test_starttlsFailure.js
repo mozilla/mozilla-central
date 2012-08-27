@@ -43,12 +43,10 @@ function setup() {
   imapAccount.incomingServer = gIMAPIncomingServer;
   acctMgr.defaultAccount = imapAccount;
 
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefBranch);
   // The server doesn't support more than one connection
-  prefBranch.setIntPref("mail.server.server1.max_cached_connections", 1);
+  Services.prefs.setIntPref("mail.server.server1.max_cached_connections", 1);
   // We aren't interested in downloading messages automatically
-  prefBranch.setBoolPref("mail.server.server1.download_on_biff", false);
+  Services.prefs.setBoolPref("mail.server.server1.download_on_biff", false);
 
   gIMAPInbox = gIMAPIncomingServer.rootFolder.getChildNamed("Inbox")
                                   .QueryInterface(Ci.nsIMsgImapMailFolder);

@@ -110,13 +110,10 @@ function testNext() {
 
 function run_test() {
   // Disable new mail notifications
-  var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-    .getService(Components.interfaces.nsIPrefBranch);
-
-  prefSvc.setBoolPref("mail.biff.play_sound", false);
-  prefSvc.setBoolPref("mail.biff.show_alert", false);
-  prefSvc.setBoolPref("mail.biff.show_tray_icon", false);
-  prefSvc.setBoolPref("mail.biff.animate_dock_icon", false);
+  Services.prefs.setBoolPref("mail.biff.play_sound", false);
+  Services.prefs.setBoolPref("mail.biff.show_alert", false);
+  Services.prefs.setBoolPref("mail.biff.show_tray_icon", false);
+  Services.prefs.setBoolPref("mail.biff.animate_dock_icon", false);
 
   // Passwords File (generated from Mozilla 1.8 branch).
   var signons = do_get_file("../../../data/signons-mailnews1.8.txt");

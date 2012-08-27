@@ -4,9 +4,6 @@
 
 const ts = Cc["@mozilla.org/msg-trait-service;1"]
              .getService(Ci.nsIMsgTraitService);
-var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                      .getService(Components.interfaces.nsIPrefService);
-var traitsBranch = prefs.getBranch("mailnews.traits.");
 
 // junk-related traits set by default
 const kJunkId = "mailnews@mozilla.org#junk";
@@ -26,10 +23,13 @@ function run_test()
   do_check_eq(ts.lastIndex, 1000);
 
   // basic junk as traits should be setup automatically
-  do_check_eq(kGoodId, traitsBranch.getCharPref("id." + kGoodIndex));
-  do_check_eq(kJunkId, traitsBranch.getCharPref("id." + kJunkIndex));
-  do_check_eq(kGoodId, traitsBranch.getCharPref("antiId." + kJunkIndex));
-  do_check_true(traitsBranch.getBoolPref("enabled." + kJunkIndex));
+  do_check_eq(kGoodId,
+              Services.prefs.getCharPref("mailnews.traits.id." + kGoodIndex));
+  do_check_eq(kJunkId,
+              Services.prefs.getCharPref("mailnews.traits.id." + kJunkIndex));
+  do_check_eq(kGoodId,
+              Services.prefs.getCharPref("mailnews.traits.antiId." + kJunkIndex));
+  do_check_true(Services.prefs.getBoolPref("mailnews.traits.enabled." + kJunkIndex));
 
   // add the pro and anti test traits
   do_check_false(ts.isRegistered(proId));
@@ -83,10 +83,13 @@ function run_test()
   do_check_eq(aliases[1], 601);
 
   // now let's make sure this got saved in preferences
-  do_check_eq(proId, traitsBranch.getCharPref("id." + proIndex));
-  do_check_eq(proName, traitsBranch.getCharPref("name." + proIndex));
-  do_check_true(traitsBranch.getBoolPref("enabled." + proIndex));
-  do_check_eq(antiId, traitsBranch.getCharPref("antiId." + proIndex));
+  do_check_eq(proId,
+              Services.prefs.getCharPref("mailnews.traits.id." + proIndex));
+  do_check_eq(proName,
+              Services.prefs.getCharPref("mailnews.traits.name." + proIndex));
+  do_check_true(Services.prefs.getBoolPref("mailnews.traits.enabled." + proIndex));
+  do_check_eq(antiId,
+              Services.prefs.getCharPref("mailnews.traits.antiId." + proIndex));
 
   // remove the pro trait
   ts.unRegisterTrait(proId);
@@ -94,25 +97,25 @@ function run_test()
 
   // check that this is also removed from prefs. The get calls should fail
   try {
-    traitsBranch.getCharPref("id." + proIndex);
+    Services.prefs.getCharPref("mailnews.traits.id." + proIndex);
     do_check_true(false);
   }
   catch (e) {}
 
   try {
-    traitsBranch.getCharPref("name." + proIndex);
+    Services.prefs.getCharPref("mailnews.traits.name." + proIndex);
     do_check_true(false);
   }
   catch (e) {}
 
   try {
-    traitsBranch.getBoolPref("enabled." + proIndex);
+    Services.prefs.getBoolPref("mailnews.traits.enabled." + proIndex);
     do_check_true(false);
   }
   catch (e) {}
 
   try {
-    traitsBranch.getCharPref("antiId." + proIndex);
+    Services.prefs.getCharPref("mailnews.traits.antiId." + proIndex);
     do_check_true(false);
   }
   catch(e) {}

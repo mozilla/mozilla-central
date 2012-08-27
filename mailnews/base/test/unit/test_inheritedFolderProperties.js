@@ -27,9 +27,7 @@ function run_test()
   const folderValue = "iAmFolder";
   const folderValue2 = "iAmFolder2";
   const rootValue = "iAmRoot";
-  const prefs = Cc["@mozilla.org/preferences-service;1"]
-                  .getService(Ci.nsIPrefBranch);
-  prefs.setCharPref(globalPref, globalValue);
+  Services.prefs.setCharPref(globalPref, globalValue);
 
   // test that the global preference is honored
   do_check_eq(rootFolder.getInheritedStringProperty(propertyName), globalValue);
@@ -99,7 +97,7 @@ function run_test()
   do_check_eq(subFolder22.getInheritedStringProperty(propertyName), rootValue);
   
   // clear the global value and the root value
-  prefs.clearUserPref(globalPref);
+  Services.prefs.clearUserPref(globalPref);
   gLocalIncomingServer.setCharValue(propertyName, "");
   do_check_eq(rootFolder.getInheritedStringProperty(propertyName), null);
   do_check_eq(subFolder11.getInheritedStringProperty(propertyName), folderValue);

@@ -15,33 +15,39 @@ var type = null;
 var test = null;
 
 function run_test() {
-  var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-    .getService(Components.interfaces.nsIPrefBranch);
-
   // These preferences set up a local news server that has had its hostname
   // and username changed from the original settings. We can't do this by
   // function calls for this test as they would cause the password to be
   // forgotten when changing the hostname/username and this breaks the test.
-  prefSvc.setCharPref("mail.account.account1.server", "server1");
-  prefSvc.setCharPref("mail.account.account2.server", "server2");
-  prefSvc.setCharPref("mail.account.account2.identities", "id1");
-  prefSvc.setCharPref("mail.accountmanager.accounts", "account1,account2");
-  prefSvc.setCharPref("mail.accountmanager.localfoldersserver", "server1");
-  prefSvc.setCharPref("mail.accountmanager.defaultaccount", "account2");
-  prefSvc.setCharPref("mail.identity.id1.fullName", "testnntp");
-  prefSvc.setCharPref("mail.identity.id1.useremail", "testnntp@localhost");
-  prefSvc.setBoolPref("mail.identity.id1.valid", true);
-  prefSvc.setCharPref("mail.server.server1.directory-rel", "[ProfD]Mail/Local Folders");
-  prefSvc.setCharPref("mail.server.server1.hostname", "Local Folders");
-  prefSvc.setCharPref("mail.server.server1.name", "Local Folders");
-  prefSvc.setCharPref("mail.server.server1.type", "none");
-  prefSvc.setCharPref("mail.server.server1.userName", "nobody");
-  prefSvc.setCharPref("mail.server.server2.directory-rel", "[ProfD]Mail/invalid");
-  prefSvc.setCharPref("mail.server.server2.hostname", "invalid");
-  prefSvc.setCharPref("mail.server.server2.name", "testnntp on localhost");
-  prefSvc.setIntPref("mail.server.server2.port", NNTP_PORT);
-  prefSvc.setCharPref("mail.server.server2.realhostname", "localhost");
-  prefSvc.setCharPref("mail.server.server2.type", "nntp");
+  Services.prefs.setCharPref("mail.account.account1.server", "server1");
+  Services.prefs.setCharPref("mail.account.account2.server", "server2");
+  Services.prefs.setCharPref("mail.account.account2.identities", "id1");
+  Services.prefs.setCharPref("mail.accountmanager.accounts",
+                             "account1,account2");
+  Services.prefs.setCharPref("mail.accountmanager.localfoldersserver",
+                             "server1");
+  Services.prefs.setCharPref("mail.accountmanager.defaultaccount",
+                             "account2");
+  Services.prefs.setCharPref("mail.identity.id1.fullName", "testnntp");
+  Services.prefs.setCharPref("mail.identity.id1.useremail",
+                             "testnntp@localhost");
+  Services.prefs.setBoolPref("mail.identity.id1.valid", true);
+  Services.prefs.setCharPref("mail.server.server1.directory-rel",
+                             "[ProfD]Mail/Local Folders");
+  Services.prefs.setCharPref("mail.server.server1.hostname",
+                             "Local Folders");
+  Services.prefs.setCharPref("mail.server.server1.name", "Local Folders");
+  Services.prefs.setCharPref("mail.server.server1.type", "none");
+  Services.prefs.setCharPref("mail.server.server1.userName", "nobody");
+  Services.prefs.setCharPref("mail.server.server2.directory-rel",
+                             "[ProfD]Mail/invalid");
+  Services.prefs.setCharPref("mail.server.server2.hostname", "invalid");
+  Services.prefs.setCharPref("mail.server.server2.name",
+                             "testnntp on localhost");
+  Services.prefs.setIntPref("mail.server.server2.port", NNTP_PORT);
+  Services.prefs.setCharPref("mail.server.server2.realhostname",
+                             "localhost");
+  Services.prefs.setCharPref("mail.server.server2.type", "nntp");
 
   type = "RFC 4643";
 

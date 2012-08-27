@@ -79,11 +79,8 @@ msll.prototype = {
 
 
 function run_test() {
-  var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-    .getService(Components.interfaces.nsIPrefBranch);
-
   // The point of this test - send in background.
-  prefSvc.setBoolPref("mailnews.sendInBackground", true);
+  Services.prefs.setBoolPref("mailnews.sendInBackground", true);
 
   // Ensure we have a local mail account, an normal account and appropriate
   // servers and identities.

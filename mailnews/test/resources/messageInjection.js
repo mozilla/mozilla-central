@@ -26,13 +26,10 @@ function configure_message_injection(aInjectionConfig) {
   mis.injectionConfig = aInjectionConfig;
 
   // Disable new mail notifications
-  var prefSvc = Cc["@mozilla.org/preferences-service;1"]
-                  .getService(Ci.nsIPrefBranch);
-
-  prefSvc.setBoolPref("mail.biff.play_sound", false);
-  prefSvc.setBoolPref("mail.biff.show_alert", false);
-  prefSvc.setBoolPref("mail.biff.show_tray_icon", false);
-  prefSvc.setBoolPref("mail.biff.animate_dock_icon", false);
+  Services.prefs.setBoolPref("mail.biff.play_sound", false);
+  Services.prefs.setBoolPref("mail.biff.show_alert", false);
+  Services.prefs.setBoolPref("mail.biff.show_tray_icon", false);
+  Services.prefs.setBoolPref("mail.biff.animate_dock_icon", false);
 
 
   // we need to pull in the notification service so we get events?
@@ -99,18 +96,17 @@ function configure_message_injection(aInjectionConfig) {
     let unused = mis.inboxFolder.prettiestName;
   }
   else if (mis.injectionConfig.mode == "imap") {
-    const gPrefs = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefBranch);
     // Disable autosync in favor of our explicitly forcing downloads of all
     //  messages in a folder.  This is being done speculatively because when we
     //  didn't do this we got tripped up by the semaphore being in use and
     //  concern over inability to hang a listener off of the completion of the
     //  download.  (Although I'm sure there are various ways we could do it.)
-    gPrefs.setBoolPref("mail.server.default.autosync_offline_stores", false);
+    Services.prefs.setBoolPref("mail.server.default.autosync_offline_stores",
+                               false);
     // Set the offline property based on the configured setting.  This will
     //  affect newly created folders.
-    gPrefs.setBoolPref("mail.server.default.offline_download",
-                       mis.injectionConfig.offline);
+    Services.prefs.setBoolPref("mail.server.default.offline_download",
+                               mis.injectionConfig.offline);
 
     // Pull in the IMAP fake server code
     load(gDEPTH + "mailnews/imap/test/unit/head_server.js");
@@ -145,9 +141,9 @@ function configure_message_injection(aInjectionConfig) {
     imapAccount.incomingServer = mis.incomingServer;
 
     // The server doesn't support more than one connection
-    prefSvc.setIntPref("mail.server.server1.max_cached_connections", 1);
+    Services.prefs.setIntPref("mail.server.server1.max_cached_connections", 1);
     // We aren't interested in downloading messages automatically
-    prefSvc.setBoolPref("mail.server.server1.download_on_biff", false);
+    Services.prefs.setBoolPref("mail.server.server1.download_on_biff", false);
 
     mis.rootFolder = mis.incomingServer.rootMsgFolder;
 

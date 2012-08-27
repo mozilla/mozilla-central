@@ -111,41 +111,38 @@ function testNext() {
 }
 
 function run_test() {
-  var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-    .getService(Components.interfaces.nsIPrefBranch);
-
   // Disable new mail notifications
-  prefSvc.setBoolPref("mail.biff.play_sound", false);
-  prefSvc.setBoolPref("mail.biff.show_alert", false);
-  prefSvc.setBoolPref("mail.biff.show_tray_icon", false);
-  prefSvc.setBoolPref("mail.biff.animate_dock_icon", false);
+  Services.prefs.setBoolPref("mail.biff.play_sound", false);
+  Services.prefs.setBoolPref("mail.biff.show_alert", false);
+  Services.prefs.setBoolPref("mail.biff.show_tray_icon", false);
+  Services.prefs.setBoolPref("mail.biff.animate_dock_icon", false);
 
   // These preferences set up a local pop server that has had its hostname
   // and username changed from the original settings. We can't do this by
   // function calls for this test as they would cause the password to be
   // forgotten when changing the hostname/username and this breaks the test.
-  prefSvc.setCharPref("mail.account.account1.server", "server1");
-  prefSvc.setCharPref("mail.account.account2.server", "server2");
-  prefSvc.setCharPref("mail.account.account2.identities", "id1");
-  prefSvc.setCharPref("mail.accountmanager.accounts", "account1,account2");
-  prefSvc.setCharPref("mail.accountmanager.localfoldersserver", "server1");
-  prefSvc.setCharPref("mail.accountmanager.defaultaccount", "account2");
-  prefSvc.setCharPref("mail.identity.id1.fullName", "testpop3");
-  prefSvc.setCharPref("mail.identity.id1.useremail", "testpop3@localhost");
-  prefSvc.setBoolPref("mail.identity.id1.valid", true);
-  prefSvc.setCharPref("mail.server.server1.directory-rel", "[ProfD]Mail/Local Folders");
-  prefSvc.setCharPref("mail.server.server1.hostname", "Local Folders");
-  prefSvc.setCharPref("mail.server.server1.name", "Local Folders");
-  prefSvc.setCharPref("mail.server.server1.type", "none");
-  prefSvc.setCharPref("mail.server.server1.userName", "nobody");
-  prefSvc.setCharPref("mail.server.server2.directory-rel", "[ProfD]Mail/invalid");
-  prefSvc.setCharPref("mail.server.server2.hostname", "invalid");
-  prefSvc.setCharPref("mail.server.server2.name", "testpop3 on localhost");
-  prefSvc.setIntPref("mail.server.server2.port", 1134);
-  prefSvc.setCharPref("mail.server.server2.realhostname", "localhost");
-  prefSvc.setCharPref("mail.server.server2.realuserName", "testpop3");
-  prefSvc.setCharPref("mail.server.server2.type", "pop3");
-  prefSvc.setCharPref("mail.server.server2.userName", "othername");
+  Services.prefs.setCharPref("mail.account.account1.server", "server1");
+  Services.prefs.setCharPref("mail.account.account2.server", "server2");
+  Services.prefs.setCharPref("mail.account.account2.identities", "id1");
+  Services.prefs.setCharPref("mail.accountmanager.accounts", "account1,account2");
+  Services.prefs.setCharPref("mail.accountmanager.localfoldersserver", "server1");
+  Services.prefs.setCharPref("mail.accountmanager.defaultaccount", "account2");
+  Services.prefs.setCharPref("mail.identity.id1.fullName", "testpop3");
+  Services.prefs.setCharPref("mail.identity.id1.useremail", "testpop3@localhost");
+  Services.prefs.setBoolPref("mail.identity.id1.valid", true);
+  Services.prefs.setCharPref("mail.server.server1.directory-rel", "[ProfD]Mail/Local Folders");
+  Services.prefs.setCharPref("mail.server.server1.hostname", "Local Folders");
+  Services.prefs.setCharPref("mail.server.server1.name", "Local Folders");
+  Services.prefs.setCharPref("mail.server.server1.type", "none");
+  Services.prefs.setCharPref("mail.server.server1.userName", "nobody");
+  Services.prefs.setCharPref("mail.server.server2.directory-rel", "[ProfD]Mail/invalid");
+  Services.prefs.setCharPref("mail.server.server2.hostname", "invalid");
+  Services.prefs.setCharPref("mail.server.server2.name", "testpop3 on localhost");
+  Services.prefs.setIntPref("mail.server.server2.port", 1134);
+  Services.prefs.setCharPref("mail.server.server2.realhostname", "localhost");
+  Services.prefs.setCharPref("mail.server.server2.realuserName", "testpop3");
+  Services.prefs.setCharPref("mail.server.server2.type", "pop3");
+  Services.prefs.setCharPref("mail.server.server2.userName", "othername");
 
   // Passwords File (generated from Mozilla 1.8 branch).
   var signons = do_get_file("../../../data/signons-mailnews1.8-alt.txt");

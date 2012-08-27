@@ -89,13 +89,10 @@ function run_test() {
     do_test_pending();
 
     // Disable new mail notifications
-    var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-      .getService(Components.interfaces.nsIPrefBranch);
-
-    prefSvc.setBoolPref("mail.biff.play_sound", false);
-    prefSvc.setBoolPref("mail.biff.show_alert", false);
-    prefSvc.setBoolPref("mail.biff.show_tray_icon", false);
-    prefSvc.setBoolPref("mail.biff.animate_dock_icon", false);
+    Services.prefs.setBoolPref("mail.biff.play_sound", false);
+    Services.prefs.setBoolPref("mail.biff.show_alert", false);
+    Services.prefs.setBoolPref("mail.biff.show_tray_icon", false);
+    Services.prefs.setBoolPref("mail.biff.animate_dock_icon", false);
 
     daemon = new pop3Daemon();
     function createHandler(d) {
