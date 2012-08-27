@@ -137,13 +137,5 @@ var gGeneralPane = {
     soundTypeEl.disabled = soundsDisabled;
     document.getElementById('browseForSound').disabled = soundsDisabled || soundTypeEl.value != 1;
     document.getElementById('playSound').disabled = soundsDisabled || soundTypeEl.value != 1; 
-  },
-
-  /**
-   * Displays the Add-ons Manager.
-   */
-  showAddonsMgr: function ()
-  {
-    openContentTab("about:addons", "window", "addons.mozilla.org");
   }
 };
