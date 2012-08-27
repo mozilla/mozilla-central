@@ -12,6 +12,7 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE       = mailnews
 
+# If adding to these, consider if you need to add to XPCSHELL_TEST_DIRS below.
 PARALLEL_DIRS	+= \
 	addrbook \
 	base/search/src \
@@ -59,12 +60,18 @@ libs::
 # list is kept in the same order as the effective DIRS just so things turn up
 # in the same order as the build.
 
-TEST_DIRS = base $(PARALLEL_DIRS) extensions/bayesian-spam-filter extensions/mdn
+XPCSHELL_TEST_DIRS = addrbook base compose db/gloda db/msgdb extensions/bayesian-spam-filter extensions/mdn imap import local mime news
 
 xpcshell-tests::
-	for dir in $(TEST_DIRS); do \
-	  if test -d $$dir/test; then \
-	    $(MAKE) -C $$dir/test xpcshell-tests; \
-	  fi; \
-	done
+	$(PYTHON) -u $(MOZILLA_DIR)/config/pythonpath.py \
+	  -I$(MOZILLA_DIR)/build -I$(MOZDEPTH)/_tests/mozbase/mozinfo \
+	  $(MOZILLA_SRCDIR)/testing/xpcshell/runxpcshelltests.py \
+	  --symbols-path=$(DIST)/crashreporter-symbols \
+	  --build-info-json=$(MOZDEPTH)/mozinfo.json \
+	  --tests-root-dir=$(testxpcobjdir) \
+	  --xunit-file=$(testxpcobjdir)/mailnews/results.xml \
+	  --xunit-suite-name=xpcshell \
+	  $(EXTRA_TEST_ARGS) \
+	  $(LIBXUL_DIST)/bin/xpcshell \
+	  $(foreach dir,$(XPCSHELL_TEST_DIRS),$(testxpcobjdir)/mailnews/$(dir)/test/unit)
 endif
