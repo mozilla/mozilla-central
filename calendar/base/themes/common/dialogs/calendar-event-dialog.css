@@ -334,7 +334,7 @@ dialog[systemcolors] .freebusy-grid.last-in-day {
     color: inherit !important;
 
     /* we set the minimal height to the height of the
-     largest icon [the person-icon in this case] to
+     largest icon [the usertype-icon in this case] to
      ensure that the rows of the freebusy-grid and
      the attendee-list always have the same height,
      regardless of the font size. */
@@ -356,11 +356,6 @@ dialog[systemcolors] .addressingWidgetCell {
 
 .dummy-row-cell:first-child {
     border-top: none;
-}
-
-.person-icon {
-    margin: 0 3px;
-    list-style-image: url(chrome://calendar/skin/abcard.png);
 }
 
 .zoom-in-icon {

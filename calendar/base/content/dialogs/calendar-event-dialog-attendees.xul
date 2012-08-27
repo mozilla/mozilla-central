@@ -115,28 +115,42 @@
             <row align="center">
               <image class="role-icon" role="REQ-PARTICIPANT"/>
               <label value="&event.attendee.role.required;"/>
+              <image class="usertype-icon" cutype="INDIVIDUAL"/>
+              <label value="&event.attendee.usertype.individual;"/>
               <box class="legend" status="FREE"/>
               <label value="&event.freebusy.legend.free;"/>
-              <box class="legend" status="UNKNOWN"/>
-              <label value="&event.freebusy.legend.unknown;"/>
             </row>
             <row align="center">
               <image class="role-icon" role="OPT-PARTICIPANT"/>
               <label value="&event.attendee.role.optional;"/>
+              <image class="usertype-icon" cutype="GROUP"/>
+              <label value="&event.attendee.usertype.group;"/>
               <box class="legend" status="BUSY_TENTATIVE"/>
               <label value="&event.freebusy.legend.busy_tentative;"/>
             </row>
             <row align="center">
               <image class="role-icon" role="CHAIR"/>
               <label value="&event.attendee.role.chair;"/>
+              <image class="usertype-icon" cutype="RESOURCE"/>
+              <label value="&event.attendee.usertype.resource;"/>
               <box class="legend" status="BUSY"/>
               <label value="&event.freebusy.legend.busy;"/>
             </row>
             <row align="center">
               <image class="role-icon" role="NON-PARTICIPANT"/>
               <label value="&event.attendee.role.nonparticipant;"/>
+              <image class="usertype-icon" cutype="ROOM"/>
+              <label value="&event.attendee.usertype.room;"/>
               <box class="legend" status="BUSY_UNAVAILABLE"/>
               <label value="&event.freebusy.legend.busy_unavailable;"/>
+            </row>
+            <row align="center">
+              <spacer/>
+              <spacer/>
+              <spacer/>
+              <spacer/>
+              <box class="legend" status="UNKNOWN"/>
+              <label value="&event.freebusy.legend.unknown;"/>
             </row>
           </rows>
         </grid>

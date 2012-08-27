@@ -111,7 +111,7 @@ calendar.jar:
 % style chrome://global/content/customizeToolbar.xul chrome://calendar/skin/calendar-event-dialog.css
 % style chrome://calendar/content/calendar-event-dialog.xul chrome://calendar/skin/common/dialogs/calendar-event-dialog.css
 % style chrome://calendar/content/calendar-event-dialog-attendees.xul chrome://calendar/skin/common/dialogs/calendar-event-dialog.css
-    skin/calendar/abcard.png                               (themes/common/images/abcard.png)
+    skin/calendar/attendee-icons.png                       (themes/common/images/attendee-icons.png)
     skin/calendar/alarm-flashing.png                       (themes/common/images/alarm-flashing.png)
     skin/calendar/alarm-icons.png                          (themes/common/images/alarm-icons.png)
     skin/calendar/calendar-alarms.css                      (themes/common/calendar-alarms.css)

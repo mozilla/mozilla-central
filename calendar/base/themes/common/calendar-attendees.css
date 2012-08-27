@@ -2,7 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-.status-icon > .menu-iconic-left, .role-icon > .menu-iconic-left {
+.status-icon > .menu-iconic-left,
+.role-icon > .menu-iconic-left,
+.usertype-icon > .menu-iconic-left {
     visibility: inherit;
 }
 
@@ -80,4 +82,36 @@
 }
 .role-icon[role="NON-PARTICIPANT"][disabled="true"] {
     -moz-image-region: rect(0px 222px 16px 201px);
+}
+
+.usertype-icon,
+.usertype-icon[cutype="INDIVIDUAL"] {
+    margin: 0 3px;
+    list-style-image: url(chrome://calendar/skin/attendee-icons.png);
+    -moz-image-region: rect(0px 16px 16px 0px);
+}
+.usertype-icon[disabled="true"],
+.usertype-icon[cutype="INDIVIDUAL"][disabled="true"] {
+    -moz-image-region: rect(16px 16px 32px 0px);
+}
+
+.usertype-icon[cutype="GROUP"] {
+    -moz-image-region: rect(0px 32px 16px 16px);
+}
+.usertype-icon[cutype="GROUP"][disabled="true"] {
+    -moz-image-region: rect(16px 32px 32px 16px);
+}
+
+.usertype-icon[cutype="RESOURCE"] {
+    -moz-image-region: rect(0px 48px 16px 32px);
+}
+.usertype-icon[cutype="RESOURCE"][disabled="true"] {
+    -moz-image-region: rect(16px 48px 32px 32px);
+}
+
+.usertype-icon[cutype="ROOM"] {
+    -moz-image-region: rect(0px 64px 16px 48px);
+}
+.usertype-icon[cutype="ROOM"][disabled="true"] {
+    -moz-image-region: rect(16px 64px 32px 48px);
 }

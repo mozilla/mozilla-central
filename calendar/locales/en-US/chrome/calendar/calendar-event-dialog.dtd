@@ -329,6 +329,10 @@
 <!ENTITY event.attendee.role.optional           "Optional Attendee">
 <!ENTITY event.attendee.role.chair              "Chair">
 <!ENTITY event.attendee.role.nonparticipant     "Non Participant">
+<!ENTITY event.attendee.usertype.individual     "Individual">
+<!ENTITY event.attendee.usertype.group          "Group">
+<!ENTITY event.attendee.usertype.resource       "Resource">
+<!ENTITY event.attendee.usertype.room           "Room">
 
 <!-- Timezone dialog -->
 <!ENTITY timezone.title.label            "Please Specify the Timezone">
