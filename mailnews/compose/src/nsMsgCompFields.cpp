@@ -40,7 +40,7 @@ nsMsgCompFields::nsMsgCompFields()
 
   // Get the default charset from pref, use this as a mail charset.
   nsString charset;
-  NS_GetLocalizedUnicharPreferenceWithDefault(nullptr, "mailnews.send_default_charset", 
+  NS_GetLocalizedUnicharPreferenceWithDefault(nullptr, "mailnews.send_default_charset",
                                               NS_LITERAL_STRING("ISO-8859-1"), charset);
 
   LossyCopyUTF16toASCII(charset, m_DefaultCharacterSet); // Charsets better be ASCII
@@ -70,10 +70,10 @@ nsresult nsMsgCompFields::SetAsciiHeader(MsgHeaderID header, const char *value)
     if (value)
     {
         m_headers[header] = strdup(value);
-        if (!m_headers[header]) 
+        if (!m_headers[header])
            rv = NS_ERROR_OUT_OF_MEMORY;
     }
-    else 
+    else
       m_headers[header] = nullptr;
 
     PR_FREEIF(old);
@@ -624,7 +624,7 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const nsAString &recipients,
                                             nsTArray<nsMsgRecipient> &aResult)
 {
   nsresult rv;
-  
+
   nsCOMPtr<nsIMsgHeaderParser> parser =
     do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -635,7 +635,7 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const nsAString &recipients,
   char *names;
   char *addresses;
   uint32_t numAddresses;
-      
+
   CopyUTF16toUTF8(recipients, recipientsStr);
   rv = parser->ParseHeaderAddresses(recipientsStr.get(), &names,
                                     &addresses, &numAddresses);
@@ -648,11 +648,11 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const nsAString &recipients,
     {
       nsCString fullAddress;
       nsCString decodedName;
-      converter->DecodeMimeHeaderToCharPtr(pNames, GetCharacterSet(), false, true, 
+      converter->DecodeMimeHeaderToCharPtr(pNames, GetCharacterSet(), false, true,
                                            getter_Copies(decodedName));
-      rv = parser->MakeFullAddressString((!decodedName.IsEmpty() ? 
-                                          decodedName.get() : pNames), 
-                                         pAddresses, 
+      rv = parser->MakeFullAddressString((!decodedName.IsEmpty() ?
+                                          decodedName.get() : pNames),
+                                         pAddresses,
                                          getter_Copies(fullAddress));
 
       nsMsgRecipient msgRecipient;
@@ -676,14 +676,14 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const nsAString &recipients,
     PR_FREEIF(names);
     PR_FREEIF(addresses);
   }
- 
+
   return rv;
 }
 
 NS_IMETHODIMP nsMsgCompFields::ConvertBodyToPlainText()
 {
   nsresult rv = NS_OK;
-  
+
   if (!m_body.IsEmpty())
   {
     nsAutoString body;
@@ -716,7 +716,7 @@ NS_IMETHODIMP nsMsgCompFields::GetDefaultCharacterSet(char * *aDefaultCharacterS
 {
   NS_ENSURE_ARG_POINTER(aDefaultCharacterSet);
   *aDefaultCharacterSet = ToNewCString(m_DefaultCharacterSet);
-  return *aDefaultCharacterSet ? NS_OK : NS_ERROR_OUT_OF_MEMORY; 
+  return *aDefaultCharacterSet ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
 NS_IMETHODIMP nsMsgCompFields::CheckCharsetConversion(char **fallbackCharset, bool *_retval)

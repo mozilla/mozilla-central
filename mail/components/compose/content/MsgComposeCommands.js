@@ -2708,7 +2708,7 @@ function GenericSendMessage(msgType)
       action = result2.action;
     }
 
-    // We will remember the users "send format" decision in the address 
+    // We will remember the users "send format" decision in the address
     // collector code (see nsAbAddressCollector::CollectAddress())
     // by using msgCompFields.forcePlainText and msgCompFields.useMultipartAlternative
     // to determine the nsIAbPreferMailFormat (unknown, plaintext, or html).

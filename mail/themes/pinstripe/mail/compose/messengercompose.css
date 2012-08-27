@@ -454,7 +454,7 @@ treechildren::-moz-tree-image(remote-err) {
 
 .aw-menulist:-moz-locale-dir(ltr),
 .aw-menulist > .menulist-label-box:-moz-locale-dir(rtl) {
-  direction: rtl; 
+  direction: rtl;
 }
 
 .aw-menulist:-moz-locale-dir(rtl),

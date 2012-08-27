@@ -74,7 +74,7 @@ public:
     MSG_SENDERREPLY_HEADER_ID,
     MSG_ALLREPLY_HEADER_ID,
     MSG_LISTREPLY_HEADER_ID,
-    
+
     MSG_MAX_HEADERS   //Must be the last one.
   } MsgHeaderID;
 
@@ -82,10 +82,10 @@ public:
   const char* GetAsciiHeader(MsgHeaderID header); //just return the address of the internal header variable, don't dispose it
 
   nsresult SetUnicodeHeader(MsgHeaderID header, const nsAString &value);
-  nsresult GetUnicodeHeader(MsgHeaderID header, nsAString &_retval); 
+  nsresult GetUnicodeHeader(MsgHeaderID header, nsAString &_retval);
 
   /* Convenience routines to get and set header's value...
-  
+
     IMPORTANT:
     all routines const char* GetXxx(void) will return a pointer to the header, please don't free it.
   */
@@ -174,7 +174,7 @@ public:
   const char* GetBody();
 
   nsresult SplitRecipientsEx(const nsAString &recipients,
-                             nsTArray<nsMsgRecipient> &aResult); 
+                             nsTArray<nsMsgRecipient> &aResult);
 
 protected:
   char*       m_headers[MSG_MAX_HEADERS];

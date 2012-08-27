@@ -23,7 +23,7 @@
 }
 
 /* ::::: primary toolbar buttons ::::: */
- 
+
 .toolbarbutton-1 {
   -moz-box-orient: vertical;
   min-width: 0px;
@@ -52,7 +52,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 
 #button-send[disabled="true"] {
   -moz-image-region: rect(176px 22px 198px 0px) !important;
-} 
+}
 
 #button-contacts {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
@@ -61,7 +61,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 
 #button-contacts[disabled="true"] {
   -moz-image-region: rect(0px 22px 22px 0px) !important;
-} 
+}
 
 #spellingButton {
   list-style-image: url("moz-icon://stock/gtk-spell-check?size=toolbar");
@@ -78,7 +78,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 
 #button-attach[disabled="true"] {
   -moz-image-region: rect(44px 22px 66px 0px) !important;
-} 
+}
 
 #button-save {
   list-style-image: url("moz-icon://stock/gtk-save?size=toolbar");
@@ -130,7 +130,7 @@ toolbar[iconsize="small"] #button-send {
 
 toolbar[iconsize="small"] #button-send[disabled] {
   -moz-image-region: rect(128px 16px 144px 0px) !important;
-} 
+}
 
 toolbar[iconsize="small"] #button-contacts {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-small.png");
@@ -139,7 +139,7 @@ toolbar[iconsize="small"] #button-contacts {
 
 toolbar[iconsize="small"] #button-contacts[disabled] {
   -moz-image-region: rect(0px 16px 16px 0px) !important;
-} 
+}
 
 toolbar[iconsize="small"] #spellingButton {
   list-style-image: url("moz-icon://stock/gtk-spell-check?size=menu");
@@ -156,7 +156,7 @@ toolbar[iconsize="small"] #button-attach {
 
 toolbar[iconsize="small"] #button-attach[disabled] {
   -moz-image-region: rect(32px 16px 48px 0px) !important;
-} 
+}
 
 toolbar[iconsize="small"] #button-save {
   list-style-image: url("moz-icon://stock/gtk-save?size=menu");
@@ -272,7 +272,7 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 .autocomplete-treebody::-moz-tree-cell-text(comment) {
   color: #555566;
 }
-  
+
 #addressingWidget {
   -moz-user-focus: none;
   -moz-appearance: none;
@@ -322,7 +322,7 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 }
 
 .aw-menulist > dropmarker {
-  height: 11px; 
+  height: 11px;
 }
 
 #MsgHeadersToolbar {
@@ -489,7 +489,7 @@ toolbarbutton.formatting-button {
 }
 
 #smileyFrown > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-frown.png"); 
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-frown.png");
   -moz-image-region: auto; /* cut off inheritance */
 }
 
@@ -504,7 +504,7 @@ toolbarbutton.formatting-button {
 }
 
 #smileyLaughing > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-laughing.png"); 
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-laughing.png");
   -moz-image-region: auto; /* cut off inheritance */
 }
 
@@ -514,52 +514,52 @@ toolbarbutton.formatting-button {
 }
 
 #smileyUndecided > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-undecided.png"); 
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-undecided.png");
   -moz-image-region: auto; /* cut off inheritance */
 }
 
 #smileySurprise > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-surprised.png"); 
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-surprised.png");
   -moz-image-region: auto; /* cut off inheritance */
 }
 
 #smileyKiss > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-kiss.png"); 
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-kiss.png");
   -moz-image-region: auto; /* cut off inheritance */
 }
 
 #smileyYell > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-yell.png"); 
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-yell.png");
   -moz-image-region: auto; /* cut off inheritance */
 }
 
 #smileyCool > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-cool.png"); 
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-cool.png");
   -moz-image-region: auto; /* cut off inheritance */
 }
 
 #smileyMoney > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-money-mouth.png"); 
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-money-mouth.png");
   -moz-image-region: auto; /* cut off inheritance */
 }
 
 #smileyFoot > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-foot-in-mouth.png"); 
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-foot-in-mouth.png");
   -moz-image-region: auto; /* cut off inheritance */
 }
 
 #smileyInnocent > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-innocent.png"); 
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-innocent.png");
   -moz-image-region: auto; /* cut off inheritance */
 }
 
 #smileyCry > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-cry.png"); 
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-cry.png");
   -moz-image-region: auto; /* cut off inheritance */
 }
 
 #smileySealed > .menu-iconic-left {
-  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-sealed.png"); 
+  list-style-image: url("chrome://communicator/skin/icons/smileys/smiley-sealed.png");
   -moz-image-region: auto; /* cut off inheritance */
 }
 

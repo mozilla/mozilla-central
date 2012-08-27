@@ -1032,7 +1032,7 @@ NS_IMETHODIMP nsMsgCompose::RemoveMsgSendListener( nsIMsgSendListener *aMsgSendL
   return mExternalSendListeners.RemoveElement(aMsgSendListener) ? NS_OK : NS_ERROR_FAILURE;
 }
 
-nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *identity, 
+nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *identity,
                                 const char *accountKey, bool entityConversionDone)
 {
   nsresult rv = NS_OK;
@@ -1272,8 +1272,8 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
           params->SetSubject(msgSubject.get());
           params->SetDeliveryMode(deliverMode);
 
-          mProgress->OpenProgressDialog(m_window, aMsgWindow, 
-                                        "chrome://messenger/content/messengercompose/sendProgress.xul", 
+          mProgress->OpenProgressDialog(m_window, aMsgWindow,
+                                        "chrome://messenger/content/messengercompose/sendProgress.xul",
                                         false, params);
         }
       }
@@ -1758,7 +1758,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
     /* Setup bcc field */
     bool doBcc;
     m_identity->GetDoBcc(&doBcc);
-    if (doBcc) 
+    if (doBcc)
     {
       nsCString bccList;
       m_identity->GetDoBccList(bccList);
@@ -2454,7 +2454,7 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
           rv = parser->ExtractHeaderAddressName(author, authorName);
           // take care "%s wrote"
           PRUnichar *formattedString = nullptr;
-          if (NS_SUCCEEDED(rv) && !authorName.IsEmpty()) 
+          if (NS_SUCCEEDED(rv) && !authorName.IsEmpty())
           {
             nsCString decodedAuthor;
             // Decode header, the result string is null
@@ -2463,10 +2463,10 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
               mMimeConverter->DecodeMimeHeaderToCharPtr(authorName.get(),
                                                         charset,
                                                         charetOverride,
-                                                        true, 
+                                                        true,
                                                         getter_Copies(decodedAuthor));
-            formattedString = nsTextFormatter::smprintf(replyHeaderAuthorwrote.get(), 
-                                                        (!decodedAuthor.IsEmpty() ? 
+            formattedString = nsTextFormatter::smprintf(replyHeaderAuthorwrote.get(),
+                                                        (!decodedAuthor.IsEmpty() ?
                                                          decodedAuthor.get() : authorName.get()));
           }
           else
@@ -3333,7 +3333,7 @@ NS_IMETHODIMP nsMsgCompose::RememberQueuedDisposition()
     nsresult rv = GetMsgDBHdrFromURI(msgUri.get(), getter_AddRefs(msgHdr));
     NS_ENSURE_SUCCESS(rv, rv);
     // If we did't find the msg hdr, and it's an IMAP message,
-    // we must not have downloaded the header. So we're going to set some 
+    // we must not have downloaded the header. So we're going to set some
     // pending attributes on the header for the queued disposition, so that
     // we can associate them with the header, once we've downloaded it from
     // the imap server.
@@ -3442,7 +3442,7 @@ NS_IMETHODIMP nsMsgCompose::OnStartSending(const char *aMsgID, uint32_t aMsgSize
   nsTObserverArray<nsCOMPtr<nsIMsgSendListener> >::ForwardIterator iter(mExternalSendListeners);
   nsCOMPtr<nsIMsgSendListener> externalSendListener;
 
-  while (iter.HasMore()) 
+  while (iter.HasMore())
   {
     externalSendListener = iter.GetNext();
     externalSendListener->OnStartSending(aMsgID, aMsgSize);
@@ -3569,7 +3569,7 @@ nsMsgComposeSendListener::OnStartSending(const char *aMsgID, uint32_t aMsgSize)
   nsCOMPtr<nsIMsgSendListener> composeSendListener = do_QueryReferent(mWeakComposeObj, &rv);
   if (NS_SUCCEEDED(rv) && composeSendListener)
     composeSendListener->OnStartSending(aMsgID, aMsgSize);
-  
+
   return NS_OK;
 }
 
@@ -3611,7 +3611,7 @@ nsresult nsMsgComposeSendListener::OnSendNotPerformed(const char *aMsgID, nsresu
   return rv;
 }
 
-nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aStatus, 
+nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aStatus,
                                                  const PRUnichar *aMsg, nsIFile *returnFile)
 {
   nsresult rv = NS_OK;
@@ -3629,7 +3629,7 @@ nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aS
 
       // only process the reply flags if we successfully sent the message
       msgCompose->ProcessReplyFlags();
-      
+
       // See if there is a composer window
       bool hasDomWindow = true;
       nsCOMPtr<nsIDOMWindow> domWindow;
@@ -4274,7 +4274,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, bool aQuoted, nsString 
     {
       sigOutput.AppendLiteral(htmlBreak);
       sigOutput.AppendLiteral(htmlsigopen);
-      if ((mType == nsIMsgCompType::NewsPost || !suppressSigSep) && 
+      if ((mType == nsIMsgCompType::NewsPost || !suppressSigSep) &&
           (reply_on_top != 1 || sig_bottom || !aQuoted)) {
         sigOutput.AppendLiteral(dashes);
       }
@@ -4362,7 +4362,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, bool aQuoted, nsString 
     {
       nsDependentSubstring firstFourChars(sigData, 0, 4);
 
-      if ((mType == nsIMsgCompType::NewsPost || !suppressSigSep) && 
+      if ((mType == nsIMsgCompType::NewsPost || !suppressSigSep) &&
          !(firstFourChars.EqualsLiteral("-- \n") ||
            firstFourChars.EqualsLiteral("-- \r")))
       {
@@ -4834,7 +4834,7 @@ nsMsgCompose::CheckAndPopulateRecipients(bool aPopulateMailList,
                   uint32_t nbrAddresses = 0;
                   for (mailListAddresses->GetLength(&nbrAddresses); nbrAddresses > 0; nbrAddresses --)
                   {
-                    existingCard = do_QueryElementAt(mailListAddresses, 
+                    existingCard = do_QueryElementAt(mailListAddresses,
                                                      nbrAddresses - 1, &rv);
                     if (NS_FAILED(rv))
                       return rv;
@@ -4916,7 +4916,7 @@ nsMsgCompose::CheckAndPopulateRecipients(bool aPopulateMailList,
               continue;
             }
 
-            // find a card that contains this e-mail address 
+            // find a card that contains this e-mail address
             rv = abDirectory->CardForEmailAddress(NS_ConvertUTF16toUTF8(recipient.mEmail),
                                                   getter_AddRefs(existingCard));
 
@@ -4951,7 +4951,7 @@ nsMsgCompose::CheckAndPopulateRecipients(bool aPopulateMailList,
                     if (errorCode)
                       // We failed, just set it to zero.
                       popularityIndex = 0;
-                  }                   
+                  }
                   else
                     // We couldn't get it as a string either, so just reset to
                     // zero.
