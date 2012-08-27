@@ -26,8 +26,20 @@ const DEBUG_WARNING = 3;
 const DEBUG_ERROR = 4;
 
 function scriptError(aModule, aLevel, aMessage) {
+  // Figure out the log level, based on the module and the prefs set.
+  // The module name is split on periods, and if no pref is set the pref with
+  // the last section removed is attempted (until no sections are left, using
+  // the global default log level).
+  let logLevel = -1;
+  let logKeys = ["level"].concat(aModule.split("."));
+  for (; logKeys.length > 0; logKeys.pop()) {
+    let logKey = logKeys.join(".");
+    if (logKey in gLogLevels) {
+      logLevel = gLogLevels[logKey];
+      break;
+    }
+  }
   // Only continue if we want to see this level of logging.
-  let logLevel = Services.prefs.getIntPref("purple.debug.loglevel");
   if (logLevel > aLevel)
     return;
 
@@ -64,6 +76,47 @@ function initLogModule(aModule, aThis)
   aThis.WARN  = scriptError.bind(aThis, aModule, DEBUG_WARNING);
   aThis.ERROR = scriptError.bind(aThis, aModule, DEBUG_ERROR);
 }
+XPCOMUtils.defineLazyGetter(Cu.getGlobalForObject({}), "gLogLevels", function() {
+  // This object functions both as an obsever as well as a dict keeping the
+  // log levels with prefs; the log levels all start with "level" (i.e. "level"
+  // for the global level, "level.irc" for the IRC module).  The dual-purpose
+  // is necessary to make sure the observe is left alive while being a weak ref
+  // to avoid cycles with the pref service.
+  let logLevels = {
+    observe: function(aSubject, aTopic, aData) {
+      let module = "level" + aData.replace(/^purple.debug.loglevel/, "");
+      if (Services.prefs.getPrefType(aData) == Services.prefs.PREF_INT)
+        gLogLevels[module] = Services.prefs.getIntPref(aData);
+      else
+        delete gLogLevels[module];
+    },
+    QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver,
+                                           Ci.nsISupportsWeakReference]),
+  };
+
+  // Add weak pref observer to see log level pref changes.
+  Services.prefs.addObserver("purple.debug.loglevel", logLevels, true /* weak */);
+
+  // Initialize with existing log level prefs.
+  for each (let pref in Services.prefs.getChildList("purple.debug.loglevel")) {
+    if (Services.prefs.getPrefType(pref) == Services.prefs.PREF_INT)
+      logLevels["level" + pref.replace(/^purple.debug.loglevel/, "")] =
+        Services.prefs.getIntPref(pref);
+  }
+
+  // Let environment variables override prefs.
+  Cc["@mozilla.org/process/environment;1"]
+    .getService(Ci.nsIEnvironment)
+    .get("PRPL_LOG")
+    .split(/[;,]/)
+    .filter(function(n) n != "")
+    .forEach(function(env) {
+      let [, module, level] = env.match(/(?:(.*?)[:=])?(\d+)/);
+      logLevels["level" + (module ? "." + module : "")] = parseInt(level, 10);
+    });
+
+  return logLevels;
+});
 
 function setTimeout(aFunction, aDelay)
 {
