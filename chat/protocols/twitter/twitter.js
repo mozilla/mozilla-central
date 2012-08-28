@@ -957,6 +957,7 @@ Account.prototype = {
     // See https://dev.twitter.com/docs/api/1/get/users/show for the options.
     let normalizeBool = function(isFollowing) _(isFollowing ? "yes" : "no");
     const kFields = {
+      name: null,
       following: normalizeBool,
       description: null,
       url: null,
