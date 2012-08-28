@@ -1434,9 +1434,9 @@ createNewAttachmentInfo.prototype.detachAttachment = function detachAttachment()
 
 function CanDetachAttachments()
 {
-  var uri = GetLoadedMessage();
-  var canDetach = !IsNewsMessage(uri) &&
-                  (!IsImapMessage(uri) || !Services.io.offline);
+  var canDetach = !gFolderDisplay.selectedMessageIsNews &&
+                  (!gFolderDisplay.selectedMessageIsImap ||
+                   !Services.io.offline);
   if (canDetach && ("content-type" in currentHeaderData))
     canDetach = !ContentTypeIsSMIME(currentHeaderData["content-type"].headerValue);
   return canDetach;

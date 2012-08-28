@@ -208,7 +208,7 @@ var DefaultController =
       case "cmd_killThread":
       case "cmd_killSubthread":
       case "cmd_cancel":
-        return(isNewsURI(GetFirstSelectedMessage()));
+        return gFolderDisplay.selectedMessageIsNews;
 
 			default:
 				return false;

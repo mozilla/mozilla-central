@@ -107,18 +107,11 @@ function FillMailContextMenu(aTarget)
   var oneOrMore = (numSelected > 0);
   var single = (numSelected == 1);
 
-  var isNewsgroup = false;
-  var selectedMessage = null;
+  var isNewsgroup = gFolderDisplay.selectedMessageIsNews;
 
   // Clear the global var used to keep track if a 'Delete Message' or 'Move
   // To' command has been triggered via the thread pane context menu.
   gThreadPaneDeleteOrMoveOccurred = false;
-
-  if (numSelected >= 0)
-  {
-    selectedMessage = GetFirstSelectedMessage();
-    isNewsgroup = IsNewsMessage(selectedMessage);
-  }
 
   // Don't show mail items for links/images, just show related items.
   var showMailItems = inThreadPane ||

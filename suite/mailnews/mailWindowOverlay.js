@@ -489,16 +489,6 @@ function InitViewBodyMenu()
   }
 }
 
-function IsNewsMessage(messageUri)
-{
-  return (/^news-message:/.test(messageUri));
-}
-
-function IsImapMessage(messageUri)
-{
-  return (/^imap-message:/.test(messageUri));
-}
-
 function SetMenuItemLabel(menuItemId, customLabel)
 {
   var menuItem = document.getElementById(menuItemId);
@@ -2885,8 +2875,8 @@ function HandleMDNResponse(aUrl)
     return;
 
   var msgFolder = aUrl.folder;
-  var msgURI = GetLoadedMessage();
-  if (!msgFolder || !msgURI || IsNewsMessage(msgURI))
+  var msgHdr = gFolderDisplay.selectedMessage;
+  if (!msgFolder || !msgHdr || gFolderDisplay.selectedMessageIsNews)
     return;
 
   // if the message is marked as junk, do NOT attempt to process a return receipt
@@ -2894,7 +2884,6 @@ function HandleMDNResponse(aUrl)
   if (SelectedMessagesAreJunk())
     return;
 
-  var msgHdr = messenger.msgHdrFromURI(msgURI);
   var mimeHdr;
 
   try {
