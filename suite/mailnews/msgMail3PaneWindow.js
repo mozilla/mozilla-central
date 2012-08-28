@@ -1302,16 +1302,6 @@ function GetSelectedMsgFolders()
     return folderArray;
 }
 
-function GetFirstSelectedMessage()
-{
-    try {
-        return gDBView.URIForFirstSelectedMessage;
-    }
-    catch (ex) {
-        return null;
-    }
-}
-
 function GetSelectedIndices(dbView)
 {
   try {

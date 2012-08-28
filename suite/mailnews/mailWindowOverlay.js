@@ -283,7 +283,7 @@ function InitViewMessagesMenu()
 
 function InitMessageMenu()
 {
-  var aMessage = GetFirstSelectedMessage();
+  var aMessage = gFolderDisplay.selectedMessage;
   var isNews = gFolderDisplay.selectedMessageIsNews;
   var isFeed = gFolderDisplay.selectedMessageIsFeed;
 
@@ -581,10 +581,11 @@ function InitMessageForward(aPopup)
 
 function ToggleMessageTagKey(index)
 {
-  if (GetNumSelectedMessages() < 1)
-    return;
   // toggle the tag state based upon that of the first selected message
-  var msgHdr = gDBView.hdrForFirstSelectedMessage;
+  var msgHdr = gFolderDisplay.selectedMessage;
+  if (!msgHdr)
+    return;
+
   var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
                              .getService(Components.interfaces.nsIMsgTagService);
   var tagArray = tagService.getAllTags({});
@@ -685,7 +686,7 @@ function InitMessageTags(menuPopup)
   SetMessageTagLabel(menuPopup.firstChild, 0, tagRemoveLabel);
 
   // now rebuild the list
-  var msgHdr = gDBView.hdrForFirstSelectedMessage;
+  var msgHdr = gFolderDisplay.selectedMessage;
   var curKeys = msgHdr.getStringProperty("keywords");
   if (msgHdr.label)
     curKeys += " $label" + msgHdr.label;
@@ -819,7 +820,6 @@ function UpdateDeleteToolbarButton(aFolderPaneHasFocus)
 function UpdateDeleteCommand()
 {
   var value = "value";
-  var uri = GetFirstSelectedMessage();
   if (SelectedMessagesAreDeleted())
     value += "IMAPDeleted";
   if (GetNumSelectedMessages() < 2)
@@ -832,33 +832,20 @@ function UpdateDeleteCommand()
 
 function SelectedMessagesAreDeleted()
 {
-  if (!gDBView || !gDBView.numSelected)
-    return false;
-
-  try
-  {
-    return gDBView.hdrForFirstSelectedMessage.flags &
-           Components.interfaces.nsMsgMessageFlags.IMAPDeleted;
-  }
-  catch (ex)
-  {
-    // hdrForFirstSelectedMessage found an empty or invalid selection
-    // even though numSelected indicated otherwise
-    return false;
-  }
+  var firstSelectedMessage = gFolderDisplay.selectedMessage;
+  return firstSelectedMessage &&
+         (firstSelectedMessage.flags &
+          Components.interfaces.nsMsgMessageFlags.IMAPDeleted);
 }
 
 function SelectedMessagesAreJunk()
 {
-    var isJunk;
-    try {
-        var junkScore = gDBView.hdrForFirstSelectedMessage.getStringProperty("junkscore");
-        isJunk =  ((junkScore != "") && (junkScore != "0"));
-    }
-    catch (ex) {
-        isJunk = false;
-    }
-    return isJunk;
+  var firstSelectedMessage = gFolderDisplay.selectedMessage;
+  if (!firstSelectedMessage)
+    return false;
+
+  var junkScore = firstSelectedMessage.getStringProperty("junkscore");
+  return (junkScore != "") && (junkScore != "0");
 }
 
 function SelectedMessagesAreRead()
@@ -875,14 +862,8 @@ function SelectedMessagesAreRead()
 
 function SelectedMessagesAreFlagged()
 {
-    var isFlagged;
-    try {
-        isFlagged = gDBView.hdrForFirstSelectedMessage.isFlagged;
-    }
-    catch (ex) {
-        isFlagged = false;
-    }
-    return isFlagged;
+  var firstSelectedMessage = gFolderDisplay.selectedMessage;
+  return firstSelectedMessage && firstSelectedMessage.isFlagged;
 }
 
 function getMsgToolbarMenu_init()
@@ -1422,7 +1403,7 @@ function MsgComposeDraftMessage()
 function MsgCreateFilter()
 {
   // retrieve Sender direct from selected message's headers
-  var msgHdr = gDBView.hdrForFirstSelectedMessage;
+  var msgHdr = gFolderDisplay.selectedMessage;
   var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
   var emailAddress = headerParser.extractHeaderAddressMailboxes(msgHdr.author);
   var accountKey = msgHdr.accountKey;
@@ -1554,8 +1535,7 @@ function MsgSaveAsFile()
 
 function MsgSaveAsTemplate()
 {
-  if (GetNumSelectedMessages() == 1)
-    SaveAsTemplate(GetFirstSelectedMessage());
+  SaveAsTemplate(gFolderDisplay.selectedMessageUri);
 }
 
 const nsIFilePicker = Components.interfaces.nsIFilePicker;
@@ -1711,14 +1691,8 @@ function MsgOpenSearch(aSearchStr, aEvent)
 
 function MsgOpenNewWindowForMessage(messageUri, folderUri)
 {
-    if (!messageUri)
-        // use GetFirstSelectedMessage() to find out which message to open
-        // instead of gDBView.getURIForViewIndex(currentIndex).  This is
-        // required because on a right-click, the currentIndex value will be
-        // different from the actual row that is highlighted.
-        // GetFirstSelectedMessage() will return the message that is
-        // highlighted.
-        messageUri = GetFirstSelectedMessage();
+  if (!messageUri)
+    messageUri = gFolderDisplay.selectedMessageUri;
 
     if (!folderUri)
         // use GetSelectedFolderURI() to find out which message to open

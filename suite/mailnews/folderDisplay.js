@@ -18,6 +18,13 @@ var gFolderDisplay =
     return gDBView.hdrForFirstSelectedMessage;
   },
 
+  get selectedMessageUri()
+  {
+    if (!this.selectedCount)
+      return null;
+    return gDBView.URIForFirstSelectedMessage;
+  },
+
   get selectedMessageIsFeed()
   {
     var message = this.selectedMessage;

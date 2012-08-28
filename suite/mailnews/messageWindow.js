@@ -427,11 +427,6 @@ function GetSelectedMsgFolders()
 	return folderArray;
 }
 
-function GetFirstSelectedMessage()
-{
-	return GetLoadedMessage();
-}
-
 function GetNumSelectedMessages()
 {
   return (gCurrentMessageUri) ? 1 : 0;
