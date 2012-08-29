@@ -45,6 +45,7 @@ SuiteGlue.prototype = {
   _isPlacesLockedObserver: false,
   _isPlacesShutdownObserver: false,
   _isPlacesDatabaseLocked: false,
+  _migrationImportsDefaultBookmarks: false,
 
   _setPrefToSaveSession: function()
   {
@@ -156,7 +157,9 @@ SuiteGlue.prototype = {
         this._playDownloadSound();
         break;
       case "places-init-complete":
-        this._initPlaces();
+        if (!this._migrationImportsDefaultBookmarks)
+          this._initPlaces(false);
+
         Services.obs.removeObserver(this, "places-init-complete");
         this._isPlacesInitObserver = false;
         // No longer needed, since history was initialized completely.
@@ -624,7 +627,7 @@ SuiteGlue.prototype = {
    *   Set to true by safe-mode dialog to indicate we must restore default
    *   bookmarks.
    */
-  _initPlaces: function() {
+  _initPlaces: function(aInitialMigrationPerformed) {
     // We must instantiate the history service since it will tell us if we
     // need to import or restore bookmarks due to first-run, corruption or
     // forced migration (due to a major schema change).
@@ -634,7 +637,7 @@ SuiteGlue.prototype = {
     // import bookmarks. Same if we don't have any JSON backups, which
     // probably means that we never have used bookmarks in places yet.
     var dbStatus = PlacesUtils.history.databaseStatus;
-    var importBookmarks = !this._initialMigrationPerformed &&
+    var importBookmarks = !aInitialMigrationPerformed &&
                           (dbStatus == PlacesUtils.history.DATABASE_STATUS_CREATE ||
                            dbStatus == PlacesUtils.history.DATABASE_STATUS_CORRUPT ||
                            !bookmarksBackupFile);
@@ -668,6 +671,9 @@ SuiteGlue.prototype = {
       if (bookmarksBackupFile) {
         // Restore from JSON backup.
         PlacesUtils.restoreBookmarksFromJSONFile(bookmarksBackupFile);
+        importBookmarks = false;
+      }
+      else if (dbStatus == PlacesUtils.history.DATABASE_STATUS_OK) {
         importBookmarks = false;
       }
       else {
