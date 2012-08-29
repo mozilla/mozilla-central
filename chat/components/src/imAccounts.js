@@ -690,7 +690,6 @@ imAccount.prototype = {
   get noBackgroundColors() this._ensurePrplAccount.noBackgroundColors,
   get autoResponses() this._ensurePrplAccount.autoResponses,
   get singleFormatting() this._ensurePrplAccount.singleFormatting,
-  get noNewlines() this._ensurePrplAccount.noNewlines,
   get noFontSizes() this._ensurePrplAccount.noFontSizes,
   get noUrlDesc() this._ensurePrplAccount.noUrlDesc,
   get noImages() this._ensurePrplAccount.noImages,

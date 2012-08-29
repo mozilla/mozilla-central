@@ -125,7 +125,10 @@ const GenericIRCConversation = {
   _waitingForNick: false,
 
   sendMsg: function(aMessage) {
-    this._account.sendMessage("PRIVMSG", [this.name, aMessage]);
+    // Split the message by line breaks and send each one individually.
+    let messages = aMessage.split(/[\r\n]+/);
+    messages.forEach(function (aMessage)
+      this._account.sendMessage("PRIVMSG", [this.name, aMessage]), this);
 
     // Since the server doesn't send us a message back, just assume the message
     // was received and immediately show it.
@@ -468,6 +471,13 @@ ircSocket.prototype = {
       }
     }
 
+    // Low level dequote: replace quote character \020 followed by 0, n, r or
+    // \020 with a \0, \n, \r or \020, respectively. Any other character is
+    // replaced with itself.
+    const lowDequote = {"0": "\0", "n": "\n", "r": "\r", "\x10": "\x10"};
+    aRawMessage = aRawMessage.replace(/\x10./g,
+      function(aStr) lowDequote[aStr[1]] || aStr[1]);
+
     // If nothing handled the message, throw an error.
     if (!ircHandlers.handleMessage(this._account, new ircMessage(aRawMessage)))
       WARN("Unhandled IRC message: " + aRawMessage);
@@ -555,8 +565,6 @@ ircAccount.prototype = {
   _accountNickname: null,
   // The nickname that will be used when connecting.
   _requestedNickname: null,
-
-  get noNewlines() true,
 
   get normalizedName() this.normalize(this.name),
 
@@ -1052,8 +1060,11 @@ ircAccount.prototype = {
   // This sends a message over the socket and catches any errors. Use
   // aLoggedData to log something different than what is actually sent.
   sendRawMessage: function(aMessage, aLoggedData) {
-    // TODO This should escape any characters that can't be used in IRC (e.g.
-    // \001, \r\n).
+    // Low level quoting, replace \0, \n, \r or \020 with \0200, \020n, \020r or
+    // \020\020, respectively.
+    const lowQuote = {"\0": "0", "\n": "n", "\r": "r", "\x10": "\x10"};
+    const lowRegex = new RegExp("[" + Object.keys(lowQuote).join("") + "]", "g");
+    aMessage = aMessage.replace(lowRegex, function(aChar) "\x10" + lowQuote[aChar]);
 
     if (!this._socket || !this._socket.isConnected) {
       this.gotDisconnected(Ci.prplIAccount.ERROR_NETWORK_ERROR,
@@ -1085,13 +1096,21 @@ ircAccount.prototype = {
   // CTCP messages are \001<COMMAND> [<parameters>]*\001.
   sendCTCPMessage: function(aCommand, aParams, aTarget, aIsNotice) {
     // Combine the CTCP command and parameters into the single IRC param.
-    let ircParam = "\x01" + aCommand;
+    let ircParam = aCommand;
     // If aParams is empty, then use an empty array. If aParams is not an array,
     // consider it to be a single parameter and put it into an array.
     let params = !aParams ? [] : Array.isArray(aParams) ? aParams : [aParams];
     if (params.length)
       ircParam += " " + params.join(" ");
-    ircParam += "\x01";
+
+    // High/CTCP level quoting, replace \134 or \001 with \134\134 or \134a,
+    // respectively. This is only done inside the extended data message.
+    const highQuote = {"\x5C": "\x5C", "\x01": "a"};
+    const highRegex = new RegExp("[" + Object.keys(highQuote).join("") + "]", "g");
+    ircParam = ircParam.replace(highRegex, function(aChar) "\x5C" + highQuote[aChar]);
+
+    // Add the CTCP tagging.
+    ircParam = "\x01" + ircParam + "\x01";
 
     // Send the IRC message as a NOTICE or PRIVMSG.
     this.sendMessage(aIsNotice ? "NOTICE" : "PRIVMSG", [aTarget, ircParam]);

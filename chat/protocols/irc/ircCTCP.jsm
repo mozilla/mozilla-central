@@ -22,26 +22,6 @@ XPCOMUtils.defineLazyGetter(this, "PluralForm", function() {
   return PluralForm;
 });
 
-function lowLevelDequote(aString) {
-  // Dequote (low level) / Low Level Quoting
-  // Replace quote char \020 followed by 0, n, r or \020 with a null, line
-  // break, carriage return or \020, respectively. Any other character after
-  // \020 is replaced with itself.
-  const replacements = {"0": "\0", "n": "\n", "r": "\r"};
-  return aString.replace(/\x10./g, function(aStr) {
-    return replacements[aStr[1]] || aStr[1];
-  });
-}
-
-function highLevelDequote(aString) {
-  // Dequote (high level) / CTCP Level Quoting
-  // Replace quote char \134 followed by a or \134 with \001 or \134,
-  // respectively. Any other character after \134 is replaced with itself.
-  return aString.replace(/\x5C./g, function(aStr) {
-    return (aStr[1] == "a") ? "\x01" : aStr[1];
-  });
-}
-
 // Split into a CTCP message which is a single command and a single parameter:
 //   <command> " " <parameter>
 // The high level dequote is to unescape \001 in the message content.
@@ -50,7 +30,11 @@ function CTCPMessage(aMessage, aRawCTCPMessage) {
   message.ctcp = {};
   message.ctcp.rawMessage = aRawCTCPMessage;
 
-  let dequotedCTCPMessage = highLevelDequote(message.ctcp.rawMessage);
+  // High/CTCP level dequote: replace the quote char \134 followed by a or \134
+  // with \001 or \134, respectively. Any other character after \134 is replaced
+  // with itself.
+  let dequotedCTCPMessage = message.ctcp.rawMessage.replace(/\x5C./g,
+    function(aStr) (aStr[1] == "a") ? "\x01" : aStr[1]);
 
   let separator = dequotedCTCPMessage.indexOf(" ");
   // If there's no space, then only a command is given.
@@ -87,17 +71,17 @@ function ctcpHandleMessage(aMessage) {
     return false;
 
   // The raw CTCP message is in the last parameter of the IRC message.
-  let ctcpRawMessage = lowLevelDequote(aMessage.params.slice(-1)[0]);
+  let rawCTCPParam = aMessage.params.slice(-1)[0];
 
   // Split the raw message into the multiple CTCP messages and pull out the
   // command and parameters.
   let ctcpMessages = [];
-  let otherMessage = ctcpRawMessage.replace(/\x01([^\x01]*)\x01/g,
-                                            function(aMatch, aMsg) {
-    if (aMsg)
-      ctcpMessages.push(new CTCPMessage(aMessage, aMsg));
-    return "";
-  });
+  let otherMessage = rawCTCPParam.replace(/\x01([^\x01]*)\x01/g,
+    function(aMatch, aMsg) {
+      if (aMsg)
+        ctcpMessages.push(new CTCPMessage(aMessage, aMsg));
+      return "";
+    });
 
   // If no CTCP messages were found, return false.
   if (!ctcpMessages.length)

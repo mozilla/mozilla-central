@@ -150,10 +150,6 @@ interface prplIAccount: nsISupports {
   //    The text buffer must be formatted as a whole.
   readonly attribute boolean singleFormatting;
 
-  //   PURPLE_CONNECTION_NO_NEWLINES
-  //    No new lines are allowed in outgoing messages.
-  readonly attribute boolean noNewlines;
-
   //   PURPLE_CONNECTION_NO_FONTSIZE
   //    Connection does not send/receive font sizes.
   readonly attribute boolean noFontSizes;
