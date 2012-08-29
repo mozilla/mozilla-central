@@ -5144,6 +5144,8 @@ nsHTMLEditor::SetAttributeOrEquivalent(nsIDOMElement * aElement,
                                        const nsAString & aValue,
                                        bool aSuppressTransaction)
 {
+  nsAutoScriptBlocker scriptBlocker;
+
   bool useCSS;
   nsresult res = NS_OK;
   GetIsCSSEnabled(&useCSS);
