@@ -182,8 +182,8 @@ var ircBase = {
       // Auto-accept the invite.
       this.joinChat(this.getChatRoomDefaultFieldValues(aMessage.params[1]));
       this.getConversation(aMessage.params[1])
-          .writeMessage(aMessage.params[0],
-                        _("message.inviteReceived", aMessage.params[0],
+          .writeMessage(aMessage.nickname,
+                        _("message.inviteReceived", aMessage.nickname,
                           aMessage.params[1]), {system: true});
       return true;
     },
