@@ -321,7 +321,7 @@ MultiMessageSummary.prototype = {
           snippetNode.textContent = text;
           if (meta.author)
             authorNode.textContent = meta.author;
-        });
+        }, false, {saneBodySize: true});
       } catch (e if e.result == Components.results.NS_ERROR_FAILURE) {
         // Offline messages generate exceptions, which is unfortunate.  When
         // that's fixed, this code should adapt. XXX
@@ -592,7 +592,7 @@ ThreadSummary.prototype = {
           snippetNode.textContent = text;
           if (meta.author)
             senderNode.textContent = meta.author;
-        });
+        }, false, {saneBodySize: true});
       } catch (e if e.result == Components.results.NS_ERROR_FAILURE) {
         // Offline messages generate exceptions, which is unfortunate.  When
         // that's fixed, this code should adapt. XXX

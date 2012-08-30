@@ -103,7 +103,7 @@ function openComposeWindowForRSSArticle(aMsgComposeWindow, aMsgHdr, aMessageUri,
           MailServices.compose.OpenComposeWindow(aMsgComposeWindow, aMsgHdr, aMessageUri,
                                                  aType, aFormat, aIdentity, aMsgWindow);
 
-      });
+      }, false, {saneBodySize: true});
     }
     catch (ex)
     {
