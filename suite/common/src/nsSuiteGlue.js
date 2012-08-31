@@ -13,6 +13,9 @@ Components.utils.import("resource:///modules/mailnewsMigrator.js");
 XPCOMUtils.defineLazyModuleGetter(this, "NetUtil",
                                   "resource://gre/modules/NetUtil.jsm");
 
+XPCOMUtils.defineLazyModuleGetter(this, "UserAgentOverrides",
+                                  "resource://gre/modules/UserAgentOverrides.jsm");
+
 XPCOMUtils.defineLazyModuleGetter(this, "PlacesUtils",
                                   "resource://gre/modules/PlacesUtils.jsm");
 
@@ -278,6 +281,7 @@ SuiteGlue.prototype = {
       Services.obs.removeObserver(this, "places-database-locked");
     if (this._isPlacesShutdownObserver)
       Services.obs.removeObserver(this, "places-shutdown");
+    UserAgentOverrides.uninit();
   },
 
   // profile is available
@@ -306,7 +310,7 @@ SuiteGlue.prototype = {
       Services.prefs.savePrefFile(null);
     }
 
-    // once we support a safe mode popup, it should be called here
+    UserAgentOverrides.init();
   },
 
   // Browser startup complete. All initial windows have opened.

@@ -32,7 +32,12 @@ pref("general.autoScroll", true);
 
 pref("general.useragent.compatMode.firefox", true);
 
-// 0 = blank, 1 = home (browser.startup.homepage), 2 = last
+// Send aol.com the legacy build date instead of the version number in the UA's
+// Gecko token as a temporary measure against bug 778408 (mail.aol.com defaults
+// to basic web UI when accessed with a user agent without Gecko/20100101).
+pref("general.useragent.override.aol.com", "Gecko/[^ ]*#Gecko/20100101");
+
+// 0 = blank, 1 = home (browser.startup.homepage), 2 = last visited page, 3 = resume previous browser session
 pref("browser.startup.page",                1);
 pref("browser.startup.homepage",	   "chrome://navigator-region/locale/region.properties");
 pref("browser.startup.homepage.count", 1);
