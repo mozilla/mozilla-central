@@ -51,7 +51,7 @@
     <textbox id="searchBox"
              flex="1"
              type="search"
-             oncommand="onFindFilter(true);"
+             oncommand="rebuildFilterList();"
              emptytext="&searchBox.emptyText;"
              isempty="true"/>
   </hbox>

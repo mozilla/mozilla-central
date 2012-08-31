@@ -123,7 +123,6 @@ function onFilterFolderClick(aFolder)
     gCurrentFilterList.saveToDefaultFile();
 
     selectFolder(aFolder);
-    onFindFilter(false);
 }
 
 function CanRunFiltersAfterTheFact(aServer)
@@ -141,8 +140,8 @@ function setFolder(msgFolder)
    gCurrentFolder = msgFolder;
 
    //Calling getFilterList will detect any errors in rules.dat, backup the file, and alert the user
-   var filterList = msgFolder.getEditableFilterList(gFilterListMsgWindow);
-   rebuildFilterList(filterList);
+   gCurrentFilterList = msgFolder.getEditableFilterList(gFilterListMsgWindow);
+   rebuildFilterList();
 
    // Select the first item in the list, if there is one.
    var list = document.getElementById("filterList");
@@ -182,7 +181,6 @@ function setFolder(msgFolder)
    // Get the first folder for this server. INBOX for
    // imap and pop accts and 1st news group for news.
    updateButtons();
-   updateCountBox();
 }
 
 function toggleFilter(aFilter, aIndex)
@@ -228,7 +226,7 @@ function onEditFilter()
   if ("refresh" in args && args.refresh) {
     // reset search if edit was okay (name change might lead to hidden entry!)
     document.getElementById("searchBox").value = "";
-    rebuildFilterList(gCurrentFilterList);
+    rebuildFilterList();
   }
 }
 
@@ -237,43 +235,32 @@ function onNewFilter(emailAddress)
   let list = document.getElementById("filterList");
   let filterNodes = list.childNodes;
   let selectedFilter = currentFilter();
-  // if no filter is selected use the first position, starting at 1
-  let position = 1;
+  // If no filter is selected use the first position.
+  let position = 0;
   if (selectedFilter) {
     // Get the position in the unfiltered list.
     // - this is where the new filter should be inserted!
-    rebuildFilterList(gCurrentFilterList);
-
-    // The filterNodes[0] item is the list header, skip it.
-    for (let i = 1; i < filterNodes.length; i++) {
-      if (filterNodes[i]._filter == selectedFilter) {
+    let filterCount = gCurrentFilterList.filterCount;
+    for (let i = 0; i < filterCount; i++) {
+      if (gCurrentFilterList.getFilterAt(i) == selectedFilter) {
         position = i;
         break;
       }
     }
   }
-  // The returned position is offset by 1 (due to the list header)
-  // compared to filter indexes in gCurrentFilterList.
-  let args = {filterList: gCurrentFilterList, filterPosition: position - 1};
+
+  let args = {filterList: gCurrentFilterList, filterPosition: position};
 
   window.openDialog("chrome://messenger/content/FilterEditor.xul", "FilterEditor", "chrome,modal,titlebar,resizable,centerscreen", args);
 
   if ("refresh" in args && args.refresh) {
     // On success: reset the search box!
     document.getElementById("searchBox").value = "";
-    rebuildFilterList(gCurrentFilterList);
+    rebuildFilterList();
 
     // Select the new filter, it is at the position of previous selection.
-    list.clearSelection();
-    list.addItemToSelection(list.childNodes[position]);
-    updateViewPosition(position);
-    updateCountBox();
+    list.selectItem(list.getItemAtIndex(position));
   }
-  else {
-    // If no filter created, let's search again.
-    onFindFilter(false);
-  }
-
 }
 
 /**
@@ -317,6 +304,7 @@ function onDeleteFilter()
     gCurrentFilterList.removeFilter(item._filter);
     document.getElementById("filterList").removeChild(item);
   }
+  updateCountBox();
 
   // Select filter above previously selected if one existed, otherwise the first one.
   if (!newSelection && list.itemCount)
@@ -325,7 +313,6 @@ function onDeleteFilter()
     list.addItemToSelection(newSelection);
     updateViewPosition(-1);
   }
-  updateCountBox();
 }
 
 /**
@@ -386,8 +373,7 @@ function moveFilter(motion) {
       if (activeFilter) {
         gCurrentFilterList.removeFilter(activeFilter);
         gCurrentFilterList.insertFilterAt(0, activeFilter);
-        rebuildFilterList(gCurrentFilterList);
-        onFindFilter(false); // re-filter list
+        rebuildFilterList();
         document.getElementById("reorderTopButton").disabled = true;
       }
       return;
@@ -395,8 +381,7 @@ function moveFilter(motion) {
       if (activeFilter) {
         gCurrentFilterList.removeFilter(activeFilter);
         gCurrentFilterList.insertFilterAt(gCurrentFilterList.filterCount, activeFilter);
-        rebuildFilterList(gCurrentFilterList);
-        onFindFilter(false);
+        rebuildFilterList();
         document.getElementById("reorderBottomButton").disabled = true;
       }
       return;
@@ -410,42 +395,33 @@ function moveFilter(motion) {
       break;
   }
 
-  var searchBox = document.getElementById("searchBox");
-  if (searchBox.value) {
-    if (activeFilter) {
-      let nextIndex = list.selectedIndex + relativeStep;
-      let nextFilter = list.getItemAtIndex(nextIndex)._filter;
-      rebuildFilterList(gCurrentFilterList);
-
-      // assumption: item stays selected even after removing the search condition
-      let newIndex = list.selectedIndex + relativeStep;
-      gCurrentFilterList.removeFilter(activeFilter);
-
-      // insert after/before next visible item
-      switch(motion) {
-        case msgMoveMotion.Up:
-          // go up from selected index until finding the correct filter name
-          while (nextFilter.filterName != list.getItemAtIndex(newIndex)._filter.filterName && nextIndex < list.itemCount)
-            newIndex--;
-          break;
-        case msgMoveMotion.Down:
-          // go down from selected index until finding the correct filter name
-          while (nextFilter.filterName != list.getItemAtIndex(newIndex)._filter.filterName && nextIndex < list.itemCount)
-            newIndex++;
-          break;
-        case msgMoveMotion.Top: break; // obsolete, dealt with above
-        case msgMoveMotion.Bottom: break; // obsolete, dealt with above
-      }
-      gCurrentFilterList.insertFilterAt(newIndex, activeFilter);
-      rebuildFilterList(gCurrentFilterList);
-      list.selectedIndex = newIndex;
-    }
-    onFindFilter(false);
-  }
-  else {
+  if (!document.getElementById("searchBox").value) {
     // use legacy move filter code: up, down; only if searchBox is empty
     moveCurrentFilter(moveFilterNative);
+    return;
   }
+
+  let nextIndex = list.selectedIndex + relativeStep;
+  let nextFilter = list.getItemAtIndex(nextIndex)._filter;
+
+  gCurrentFilterList.removeFilter(activeFilter);
+
+  // Find the index of the filter we want to insert at.
+  let newIndex = -1;
+  let filterCount = gCurrentFilterList.filterCount;
+  for (let i = 0; i < filterCount; i++) {
+    if (gCurrentFilterList.getFilterAt(i) == nextFilter) {
+      newIndex = i;
+      break;
+    }
+  }
+
+  if (motion == msgMoveMotion.Down)
+    newIndex += relativeStep;
+
+  gCurrentFilterList.insertFilterAt(newIndex, activeFilter);
+
+  rebuildFilterList();
 }
 
 function viewLog()
@@ -520,32 +496,49 @@ function runSelectedFilters()
 
 function moveCurrentFilter(motion)
 {
-    var filter = currentFilter();
-    if (!filter)
-      return;
+  let filter = currentFilter();
+  if (!filter)
+    return;
 
-    gCurrentFilterList.moveFilter(filter, motion);
-    rebuildFilterList(gCurrentFilterList);
+  gCurrentFilterList.moveFilter(filter, motion);
+  rebuildFilterList();
 }
 
-function rebuildFilterList(aFilterList)
+function rebuildFilterList()
 {
-  gCurrentFilterList = aFilterList;
-  var list = document.getElementById("filterList");
+  // This function should perform very fast even in case of high number of filters.
+  // Therefore there are some optimisations (e.g. listelement.children[] instead of
+  // list.getItemAtIndex()), that favour speed vs. semantical perfection.
+  let aTempFilterList = onFindFilter();
 
+  let searchBox = document.getElementById("searchBox");
+  let searchBoxFocus = false;
+  let activeElement = document.activeElement;
+
+  // Find if the currently focused element is a child inside the searchBox
+  // (probably html:input). Traverse up the parents until the first element
+  // with an ID is found. If it is not searchBox, return false.
+  while (activeElement != null) {
+    if (activeElement == searchBox) {
+      searchBoxFocus = true;
+      break;
+    }
+    else if (activeElement.id) {
+      searchBoxFocus = false;
+      break;
+    }
+    activeElement = activeElement.parentNode;
+  }
+
+  let list = document.getElementById("filterList");
   // Make a note of which filters were previously selected
-  var selectedNames = [];
-  for (var i = 0; i < list.selectedItems.length; i++)
+  let selectedNames = [];
+  for (let i = 0; i < list.selectedItems.length; i++)
     selectedNames.push(list.selectedItems[i]._filter.filterName);
 
   // Save scroll position so we can try to restore it later.
   // Doesn't work when the list is rebuilt after search box condition changed.
   let firstVisibleRowIndex = list.getIndexOfFirstVisibleRow();
-
-  // Remove any existing child nodes, but not our headers
-  for (var i = list.childNodes.length - 1; i > 0; i--) {
-    list.removeChild(list.childNodes[i]);
-  }
 
   // listbox.xml seems to cache the value of the first selected item in a
   // range at _selectionStart. The old value though is now obsolete,
@@ -554,31 +547,66 @@ function rebuildFilterList(aFilterList)
   // ugly from an accessibility perspective, since it fires an onSelect event.
   list.clearSelection();
 
-  for (i = 0; i < aFilterList.filterCount; i++) {
-    var filter = aFilterList.getFilterAt(i);
-    var listitem = document.createElement("listitem");
-    var nameCell = document.createElement("listcell");
+  let listitem, nameCell, enabledCell, filter;
+  let filterCount = gCurrentFilterList.filterCount;
+  let listitemCount = list.getRowCount();
+  let listitemIndex = 0;
+  let tempFilterListLength = aTempFilterList ? aTempFilterList.length - 1 : 0;
+  for (let i = 0; i < filterCount; i++) {
+    if (aTempFilterList && listitemIndex > tempFilterListLength)
+      break;
+
+    filter = gCurrentFilterList.getFilterAt(i);
+    if (aTempFilterList && aTempFilterList[listitemIndex] != i)
+      continue;
+
+    if (listitemCount > listitemIndex) {
+      // If there is a free existing listitem, reuse it.
+      // Use .children[] instead of .getItemAtIndex() as it is much faster.
+      listitem = list.children[listitemIndex + 1];
+      nameCell = listitem.childNodes[0];
+      enabledCell = listitem.childNodes[1];
+    }
+    else
+    {
+      // If there are not enough listitems in the list, create a new one.
+      listitem = document.createElement("listitem");
+      nameCell = document.createElement("listcell");
+      enabledCell = document.createElement("listcell");
+      enabledCell.setAttribute("class", "listcell-iconic");
+      listitem.appendChild(nameCell);
+      listitem.appendChild(enabledCell);
+      list.appendChild(listitem);
+      // We have to attach this listener to the listitem, even though we only care
+      // about clicks on the enabledCell. However, attaching to that item doesn't
+      // result in any events actually getting received.
+      listitem.addEventListener("click", onFilterClick, true);
+      listitem.addEventListener("dblclick", onFilterDoubleClick, true);
+    }
+    // Set the listitem values to represent the current filter.
     nameCell.setAttribute("label", filter.filterName);
-    var enabledCell = document.createElement("listcell");
     enabledCell.setAttribute("enabled", filter.enabled);
-    enabledCell.setAttribute("class", "listcell-iconic");
-    listitem.appendChild(nameCell);
-    listitem.appendChild(enabledCell);
-
-    // We have to attach this listener to the listitem, even though we only care
-    // about clicks on the enabledCell.  However, attaching to that item doesn't
-    // result in any events actually getting received
-    listitem.addEventListener("click", onFilterClick, true);
-
-    listitem.addEventListener("dblclick", onFilterDoubleClick, true);
     listitem._filter = filter;
-    list.appendChild(listitem);
 
     if (selectedNames.indexOf(filter.filterName) != -1)
       list.addItemToSelection(listitem);
+
+    listitemIndex++;
   }
+  // Remove any superfluous listitems, if the number of filters shrunk.
+  for (let i = listitemCount - 1; i >= listitemIndex; i--) {
+    list.removeChild(list.lastChild);
+  }
+
   updateViewPosition(firstVisibleRowIndex);
   updateCountBox();
+
+  // If before rebuilding the list the searchbox was focused, focus it again.
+  // In any other case, focus the list.
+  if (searchBoxFocus)
+    searchBox.focus();
+  else
+    list.focus();
 }
 
 function updateViewPosition(firstVisibleRowIndex)
@@ -601,7 +629,6 @@ function updateViewPosition(firstVisibleRowIndex)
   }
 
   updateButtons();
-  list.focus();
 }
 
 /**
@@ -817,45 +844,31 @@ function getFirstFolder(msgFolder)
 
 /**
  * Called when the search button is clicked, this will narrow down the amount
- * of filters displayed in the list, using the search term to filter the names
- *
- * @param focusSearchBox  if called from the button click event, return to searchbox
+ * of filters displayed in the list, using the search term to filter the names.
  */
-function onFindFilter(focusSearchBox)
+function onFindFilter()
 {
   let searchBox = document.getElementById("searchBox");
-  let filterList = document.getElementById("filterList");
   let keyWord = searchBox.value.toLocaleLowerCase();
 
-  // simplest case: if filter was added or removed and searchbox is empty
-  if (!keyWord && !focusSearchBox) {
-    updateCountBox();
-    return;
-  }
-  rebuildFilterList(gCurrentFilterList); // creates the unfiltered list
-  if (!keyWord) {
-    if (focusSearchBox)
-      searchBox.focus();
-    updateCountBox();
-    return;
+  // If searchbox is empty, just return and let rebuildFilterList
+  // create an unfiltered list.
+  if (!keyWord)
+    return null;
+
+  // Rematch everything in the list, remove what doesn't match the search box.
+  let rows = gCurrentFilterList.filterCount;
+  let matchingFilterList = [];
+  let item;
+  // Use the full gCurrentFilterList, not the filterList listbox,
+  // which may already be filtered.
+  for (let i = 0; i < rows; i++) {
+    item = gCurrentFilterList.getFilterAt(i).filterName;
+    if (item.toLocaleLowerCase().indexOf(keyWord) != -1)
+      matchingFilterList.push(i);
   }
 
-  // rematch everything in the list, remove what doesn't match the search box
-  let rows = filterList.getRowCount();
-
-  for(let i = rows - 1; i >= 0; i--) {
-    let matched = true;
-    let item = filterList.getItemAtIndex(i);
-    let title = item.firstChild.getAttribute("label");
-    if (title.toLocaleLowerCase().indexOf(keyWord) == -1)
-    {
-      matched = false;
-      filterList.removeChild(item);
-    }
-  }
-  updateCountBox();
-  if (focusSearchBox)
-    searchBox.focus();
+  return matchingFilterList;
 }
 
 /**
@@ -876,4 +889,3 @@ function updateCountBox()
   else // "N of M"
     countBox.value = bundle.getFormattedString("filterCountVisibleOfTotal", [len, sum]);
 }
-
