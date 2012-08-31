@@ -289,6 +289,10 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   }
 }
 
+#composeToolbar2:-moz-lwtheme-brighttext .toolbarbutton-1 {
+  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-inverted.png");
+}
+
 #button-send {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png");
   -moz-image-region: rect(1px 17px 17px 1px);
@@ -311,6 +315,11 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 
 #button-security {
   list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar.png") !important;
+  -moz-image-region: rect(1px 89px 17px 73px) !important;
+}
+
+#button-security:-moz-lwtheme-brighttext {
+  list-style-image: url("chrome://messenger/skin/messengercompose/compose-toolbar-inverted.png") !important;
   -moz-image-region: rect(1px 89px 17px 73px) !important;
 }
 
