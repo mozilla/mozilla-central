@@ -133,7 +133,9 @@
                    disabled="true" control="runFiltersFolder"/>
             <menulist id="runFiltersFolder" disabled="true" flex="1"
                       oncommand="onTargetSelect(event);">
-              <menupopup id="runFiltersPopup" type="folder"
+              <menupopup id="runFiltersPopup"
+                         type="folder"
+                         mode="filing"
                          showFileHereLabel="true"
                          fileHereLabel="&filemessageschoosethis.label;"/>
             </menulist>
