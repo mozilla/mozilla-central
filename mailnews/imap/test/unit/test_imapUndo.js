@@ -39,14 +39,11 @@ const gMsgId5 = "bugmail6.m47LtAEf007542@mrapp51.mozilla.org";
 // Adds some messages directly to a mailbox (eg new mail)
 function addMessagesToServer(messages, mailbox, localFolder)
 {
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                    .getService(Ci.nsIIOService);
-
   // For every message we have, we need to convert it to a file:/// URI
   messages.forEach(function (message)
   {
-    message.spec = ioService.newFileURI(message.file)
-                     .QueryInterface(Ci.nsIFileURL).spec;
+    message.spec =
+      Services.io.newFileURI(message.file).QueryInterface(Ci.nsIFileURL).spec;
   });
 
   // Create the imapMessages and store them on the mailbox

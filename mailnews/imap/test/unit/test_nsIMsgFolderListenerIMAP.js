@@ -94,13 +94,11 @@ function doUpdateFolder(test)
 // Adds some messages directly to a mailbox (eg new mail)
 function addMessagesToServer(messages, mailbox, localFolder)
 {
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                    .getService(Ci.nsIIOService);
-
   // For every message we have, we need to convert it to a file:/// URI
   messages.forEach(function (message)
   {
-    let URI = ioService.newFileURI(message.file).QueryInterface(Ci.nsIFileURL);
+    let URI =
+      Services.io.newFileURI(message.file).QueryInterface(Ci.nsIFileURL);
     message.spec = URI.spec;
     // We can't get the headers again, so just pass on the message id
     gExpectedEvents.push([gMFNService.msgAdded, {expectedMessageId: message.messageId}]);

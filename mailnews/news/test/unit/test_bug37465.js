@@ -8,9 +8,8 @@ function run_test() {
   server.start(NNTP_PORT);
 
   // Correct URI?
-  let ioSvc = Cc['@mozilla.org/network/io-service;1']
-                    .getService(Ci.nsIIOService);
-  let uri = ioSvc.newURI("news://localhost:1143/1@regular.invalid", null, null);
+  let uri = Services.io.newURI("news://localhost:1143/1@regular.invalid",
+                               null, null);
   let newsUri = uri.QueryInterface(Ci.nsINntpUrl)
                    .QueryInterface(Ci.nsIMsgMailNewsUrl);
   do_check_eq(uri.port, NNTP_PORT);
@@ -19,7 +18,7 @@ function run_test() {
   do_check_eq(newsUri.folder, null);
 
   // Run the URI and make sure we get the message
-  let channel = ioSvc.newChannelFromURI(uri);
+  let channel = Services.io.newChannelFromURI(uri);
   channel.asyncOpen(articleTextListener, null);
 
   // Run the server

@@ -287,12 +287,10 @@ function addMessageToFolder(folder)
   let gMessageGenerator = new MessageGenerator();
   messages = messages.concat(gMessageGenerator.makeMessage());
 
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                  .getService(Ci.nsIIOService);
   let msgURI =
-    ioService.newURI("data:text/plain;base64," +
-                     btoa(messages[0].toMessageString()),
-                     null, null);
+    Services.io.newURI("data:text/plain;base64," +
+                       btoa(messages[0].toMessageString()),
+                       null, null);
   let imapMailbox =  gIMAPDaemon.getMailbox(folder.name);
   // We add messages with \Seen flag set so that we won't accidentally
   // trigger the code that updates imap folders that have unread messages moved

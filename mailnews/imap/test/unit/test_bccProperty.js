@@ -29,9 +29,8 @@ function setup() {
    * Ok, prelude done. Read the original message from disk
    * (through a file URI), and add it to the Inbox.
    */
-  let msgfileuri = Cc["@mozilla.org/network/io-service;1"]
-                     .getService(Ci.nsIIOService)
-                     .newFileURI(gMsgFile).QueryInterface(Ci.nsIFileURL);
+  let msgfileuri =
+    Services.io.newFileURI(gMsgFile).QueryInterface(Ci.nsIFileURL);
 
   gIMAPMailbox.addMessage(new imapMessage(msgfileuri.spec,
                                           gIMAPMailbox.uidnext++, []));

@@ -11,9 +11,6 @@ load("../../../resources/logHelper.js");
 load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 
-const nsIIOService = Cc["@mozilla.org/network/io-service;1"]
-                     .getService(Ci.nsIIOService);
-
 var tests = [
   checkStatSelect,
   checkStatNoSelect,
@@ -113,9 +110,9 @@ function addMessageToFolder(mbox) {
   messages = messages.concat(gMessageGenerator.makeMessage());
 
   let msgURI =
-    nsIIOService.newURI("data:text/plain;base64," +
-                     btoa(messages[0].toMessageString()),
-                     null, null);
+    Services.io.newURI("data:text/plain;base64," +
+                       btoa(messages[0].toMessageString()),
+                       null, null);
   let message = new imapMessage(msgURI.spec, mbox.uidnext++);
   mbox.addMessage(message);
 }

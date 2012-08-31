@@ -50,12 +50,10 @@ function loadImapMessage()
     ],
   });
 
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                  .getService(Ci.nsIIOService);
   let msgURI =
-    ioService.newURI("data:text/plain;base64," +
-                     btoa(smsg.toMessageString()),
-                     null, null);
+    Services.io.newURI("data:text/plain;base64," +
+                       btoa(smsg.toMessageString()),
+                       null, null);
   let imapInbox =  gIMAPDaemon.getMailbox("INBOX")
   let message = new imapMessage(msgURI.spec, imapInbox.uidnext++, []);
   gIMAPMailbox.addMessage(message);

@@ -7,9 +7,6 @@
 const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                       .getService(Ci.nsIMsgCopyService);
 
-const nsIIOService = Cc["@mozilla.org/network/io-service;1"]
-                     .getService(Ci.nsIIOService);
-
 load("../../../resources/logHelper.js");
 load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
@@ -41,7 +38,7 @@ var tests = [
   },
   function doOfflineOps() {
     gIMAPServer.stop();
-    nsIIOService.offline = true;
+    Services.io.offline = true;
 
     // Flag the two messages, and then copy them to different folders. Since
     // we're offline, these operations are synchronous.
@@ -68,7 +65,7 @@ var tests = [
     gOfflineManager = Cc["@mozilla.org/messenger/offline-manager;1"]
                            .getService(Ci.nsIMsgOfflineManager);
     gIMAPDaemon.closing = false;
-    nsIIOService.offline = false;
+    Services.io.offline = false;
 
     gIMAPServer.start(IMAP_PORT);
     gOfflineManager.goOnline(false, true, null);
@@ -121,16 +118,16 @@ function setup() {
   gSynthMessage2 = messages[1];
 
   let msgURI =
-    nsIIOService.newURI("data:text/plain;base64," +
-                     btoa(messages[0].toMessageString()),
-                     null, null);
+    Services.io.newURI("data:text/plain;base64," +
+                       btoa(messages[0].toMessageString()),
+                       null, null);
   let imapInbox =  gIMAPDaemon.getMailbox("INBOX")
   let message = new imapMessage(msgURI.spec, imapInbox.uidnext++, ["\\Seen"]);
   imapInbox.addMessage(message);
   msgURI =
-    nsIIOService.newURI("data:text/plain;base64," +
-                     btoa(messages[1].toMessageString()),
-                     null, null);
+    Services.io.newURI("data:text/plain;base64," +
+                       btoa(messages[1].toMessageString()),
+                       null, null);
   message = new imapMessage(msgURI.spec, imapInbox.uidnext++, ["\\Seen"]);
   imapInbox.addMessage(message);
 

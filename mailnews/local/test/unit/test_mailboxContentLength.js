@@ -33,18 +33,16 @@ function verifyContentLength(aMessageHeaderKeys, aStatus)
   messageService.GetUrlForUri(messageUri, neckoURL, null);
   // Don't use the necko URL directly. Instead, get the spec and create a new
   // URL using the IO service
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                    .getService(Ci.nsIIOService);
-  let urlToRun = ioService.newURI(neckoURL.value.spec, null, null);
+  let urlToRun = Services.io.newURI(neckoURL.value.spec, null, null);
 
   // Get a channel from this URI, and check its content length
-  let channel = ioService.newChannelFromURI(urlToRun);
+  let channel = Services.io.newChannelFromURI(urlToRun);
   do_check_eq(channel.contentLength, gFile.fileSize);
 
   // Now try an attachment. &part=1.2
-  let attachmentURL = ioService.newURI(neckoURL.value.spec + "&part=1.2",
-                                       null, null);
-  let attachmentChannel = ioService.newChannelFromURI(attachmentURL);
+  let attachmentURL = Services.io.newURI(neckoURL.value.spec + "&part=1.2",
+                                         null, null);
+  let attachmentChannel = Services.io.newChannelFromURI(attachmentURL);
   // Currently attachments have their content length set to the length of the
   // entire message
   do_check_eq(channel.contentLength, gFile.fileSize);

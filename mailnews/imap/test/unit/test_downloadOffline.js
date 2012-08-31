@@ -23,13 +23,12 @@ var tests = [
 function setup() {
   setupIMAPPump();
 
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                    .getService(Ci.nsIIOService);
  /*
    * Ok, prelude done. Read the original message from disk
    * (through a file URI), and add it to the Inbox.
    */
-  let msgfileuri = ioService.newFileURI(gMsgFile).QueryInterface(Ci.nsIFileURL);
+  let msgfileuri =
+    Services.io.newFileURI(gMsgFile).QueryInterface(Ci.nsIFileURL);
 
   gIMAPMailbox.addMessage(new imapMessage(msgfileuri.spec, gIMAPMailbox.uidnext++, []));
 
@@ -37,9 +36,9 @@ function setup() {
   let gMessageGenerator = new MessageGenerator();
   messages = messages.concat(gMessageGenerator.makeMessage());
   gSynthMessage = messages[0];
-  let dataUri = ioService.newURI("data:text/plain;base64," +
-                   btoa(messages[0].toMessageString()),
-                   null, null);
+  let dataUri = Services.io.newURI("data:text/plain;base64," +
+                                   btoa(messages[0].toMessageString()),
+                                   null, null);
   let imapMsg = new imapMessage(dataUri.spec, gIMAPMailbox.uidnext++, []);
   imapMsg.setSize(5000);
   gIMAPMailbox.addMessage(imapMsg);

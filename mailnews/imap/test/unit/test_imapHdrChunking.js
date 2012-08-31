@@ -66,7 +66,7 @@ function uploadImapMessages()
   messages.forEach(function (message)
   {
     let dataUri = Services.io.newURI("data:text/plain;base64," +
-                                      btoa(message.toMessageString()),
+                                     btoa(message.toMessageString()),
                                      null, null);
     imapInbox.addMessage(new imapMessage(dataUri.spec, imapInbox.uidnext++, []));
   });

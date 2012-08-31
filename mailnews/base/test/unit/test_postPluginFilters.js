@@ -253,9 +253,7 @@ function startCommand()
 function getSpec(aFileName)
 {
   var file = do_get_file(aFileName);
-  var uri = Cc["@mozilla.org/network/io-service;1"]
-               .getService(Ci.nsIIOService)
-               .newFileURI(file).QueryInterface(Ci.nsIURL);
+  var uri = Services.io.newFileURI(file).QueryInterface(Ci.nsIURL);
   uri.query = "type=application/x-message-display";
   return uri.spec;
 }

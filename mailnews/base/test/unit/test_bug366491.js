@@ -11,8 +11,6 @@
 
 const nsIJunkMailPlugin = Cc["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
                             .getService(Ci.nsIJunkMailPlugin);
-const nsIIOService = Cc["@mozilla.org/network/io-service;1"]
-                       .getService(Ci.nsIIOService);
 
 // local constants
 const kUnclassified = nsIJunkMailPlugin.UNCLASSIFIED;
@@ -95,7 +93,7 @@ var doTestingListener =
 function getSpec(aFileName)
 {
   var file = do_get_file("../../../extensions/bayesian-spam-filter/test/unit/resources/" + aFileName);
-  var uri = nsIIOService.newFileURI(file).QueryInterface(Ci.nsIURL);
+  var uri = Services.io.newFileURI(file).QueryInterface(Ci.nsIURL);
   uri.query = "type=application/x-message-display";
   return uri.spec;
 }

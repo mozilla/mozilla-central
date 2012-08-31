@@ -69,12 +69,10 @@ function loadImapMessage()
   let gMessageGenerator = new MessageGenerator();
   messages = messages.concat(gMessageGenerator.makeMessage());
 
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                  .getService(Ci.nsIIOService);
   let msgURI =
-    ioService.newURI("data:text/plain;base64," +
-                     btoa(messages[0].toMessageString()),
-                     null, null);
+    Services.io.newURI("data:text/plain;base64," +
+                       btoa(messages[0].toMessageString()),
+                       null, null);
   let imapInbox =  gIMAPDaemon.getMailbox("INBOX")
   gMessage = new imapMessage(msgURI.spec, imapInbox.uidnext++, []);
   gIMAPMailbox.addMessage(gMessage);

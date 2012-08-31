@@ -36,12 +36,11 @@ const gMsgId5 = "bugmail6.m47LtAEf007542@mrapp51.mozilla.org";
 // Adds some messages directly to a mailbox (eg new mail)
 function addMessagesToServer(messages, mailbox)
 {
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                    .getService(Ci.nsIIOService);
   // For every message we have, we need to convert it to a file:/// URI
   messages.forEach(function (message)
   {
-    let URI = ioService.newFileURI(message.file).QueryInterface(Ci.nsIFileURL);
+    let URI =
+      Services.io.newFileURI(message.file).QueryInterface(Ci.nsIFileURL);
     message.spec = URI.spec;
   });
 
@@ -54,14 +53,12 @@ function addMessagesToServer(messages, mailbox)
 
 function addGeneratedMessagesToServer(messages, mailbox)
 {
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                    .getService(Ci.nsIIOService);
   // Create the imapMessages and store them on the mailbox
   messages.forEach(function (message)
   {
-    let dataUri = ioService.newURI("data:text/plain;base64," +
-                                    btoa(message.toMessageString()),
-                                   null, null);
+    let dataUri = Services.io.newURI("data:text/plain;base64," +
+                                     btoa(message.toMessageString()),
+                                     null, null);
     mailbox.addMessage(new imapMessage(dataUri.spec, mailbox.uidnext++, []));
   });
 }

@@ -32,10 +32,7 @@ var tests = [
 
 // Adds some messages directly to a mailbox (eg new mail)
 function addMessageToServer() {
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                    .getService(Ci.nsIIOService);
-
-  let URI = ioService.newFileURI(gFile).QueryInterface(Ci.nsIFileURL);
+  let URI = Services.io.newFileURI(gFile).QueryInterface(Ci.nsIFileURL);
   gIMAPMailbox.addMessage(new imapMessage(URI.spec, gIMAPMailbox.uidnext++, []));
 
   gIMAPInbox.updateFolder(null);

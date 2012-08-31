@@ -4,9 +4,6 @@
  * with offline store locking correctly.
  */
 
-const nsIIOService = Cc["@mozilla.org/network/io-service;1"]
-                       .getService(Ci.nsIIOService);
-
 load("../../../resources/logHelper.js");
 load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
@@ -29,14 +26,12 @@ function alert(aDialogTitle, aText) {
 
 function addGeneratedMessagesToServer(messages, mailbox)
 {
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                    .getService(Ci.nsIIOService);
   // Create the imapMessages and store them on the mailbox
   messages.forEach(function (message)
   {
-    let dataUri = ioService.newURI("data:text/plain;base64," +
-                                    btoa(message.toMessageString()),
-                                   null, null);
+    let dataUri = Services.io.newURI("data:text/plain;base64," +
+                                     btoa(message.toMessageString()),
+                                     null, null);
     mailbox.addMessage(new imapMessage(dataUri.spec, mailbox.uidnext++, []));
   });
 }
@@ -136,7 +131,7 @@ var tests = [
     // Thunderbird itself does move/copies pseudo-offline, but that's too
     // hard to test because of the half-second delay.
     gIMAPServer.stop();
-    nsIIOService.offline = true;
+    Services.io.offline = true;
     let trashHdr;
     let enumerator = gIMAPTrashFolder.msgDatabase.EnumerateMessages();
     let msgHdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);

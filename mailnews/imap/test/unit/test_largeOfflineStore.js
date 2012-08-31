@@ -58,24 +58,21 @@ function run_test() {
 }
 
 function setup() {
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                    .getService(Ci.nsIIOService);
-
   // Create a couple test messages on the IMAP server.
   let messages = [];
   let messageGenerator = new MessageGenerator();
   let scenarioFactory = new MessageScenarioFactory(messageGenerator);
 
   messages = messages.concat(scenarioFactory.directReply(2));
-  let dataUri = ioService.newURI("data:text/plain;base64," +
+  let dataUri = Services.io.newURI("data:text/plain;base64," +
                                    btoa(messages[0].toMessageString()),
-                                 null, null);
+                                   null, null);
   let imapMsg = new imapMessage(dataUri.spec, gIMAPMailbox.uidnext++, []);
   gIMAPMailbox.addMessage(imapMsg);
 
-  dataUri = ioService.newURI("data:text/plain;base64," +
+  dataUri = Services.io.newURI("data:text/plain;base64," +
                                btoa(messages[1].toMessageString()),
-                             null, null);
+                               null, null);
   imapMsg = new imapMessage(dataUri.spec, gIMAPMailbox.uidnext++, []);
   gIMAPMailbox.addMessage(imapMsg);
 

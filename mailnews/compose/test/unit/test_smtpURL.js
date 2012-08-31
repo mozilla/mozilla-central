@@ -15,15 +15,11 @@ const smtpURLs =
     } ];
 
 function run_test() {
-  // Get the IO service;
-  var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                            .getService(Components.interfaces.nsIIOService);
-
   var url;
   for (var part = 0; part < smtpURLs.length; ++part) {
     print("url: " + smtpURLs[part].url);
 
-    url = ioService.newURI(smtpURLs[part].url, null, null);
+    url = Services.io.newURI(smtpURLs[part].url, null, null);
 
     do_check_eq(url.spec, smtpURLs[part].spec);
     do_check_eq(url.username, smtpURLs[part].username);

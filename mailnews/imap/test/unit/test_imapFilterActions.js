@@ -701,10 +701,7 @@ function listMessages(folder) {
 function specForFileName(aFileName)
 {
   let file = do_get_file("../../../data/" + aFileName);
-  let msgfileuri = Cc["@mozilla.org/network/io-service;1"]
-                     .getService(Ci.nsIIOService)
-                     .newFileURI(file)
-                     .QueryInterface(Ci.nsIFileURL);
+  let msgfileuri = Services.io.newFileURI(file).QueryInterface(Ci.nsIFileURL);
   return msgfileuri.spec;
 }
 

@@ -58,12 +58,10 @@ function setup() {
   messages = messages.concat(gMessageGenerator.makeMessage());
   gSynthMessage = messages[0];
 
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                  .getService(Ci.nsIIOService);
   let msgURI =
-    ioService.newURI("data:text/plain;base64," +
-                     btoa(gSynthMessage.toMessageString()),
-                     null, null);
+    Services.io.newURI("data:text/plain;base64," +
+                       btoa(gSynthMessage.toMessageString()),
+                       null, null);
   gMessage = new imapMessage(msgURI.spec, gIMAPMailbox.uidnext++, []);
   gIMAPMailbox.addMessage(gMessage);
 

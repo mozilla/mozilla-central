@@ -41,9 +41,8 @@ function run_test()
    * Ok, prelude done. Read the original message from disk
    * (through a file URI), and add it to the Inbox.
    */
-  let gIOService = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-
-  var msgfileuri = gIOService.newFileURI(gMsgFile).QueryInterface(Ci.nsIFileURL);
+  var msgfileuri =
+    Services.io.newFileURI(gMsgFile).QueryInterface(Ci.nsIFileURL);
 
   let message = new imapMessage(msgfileuri.spec, inbox.uidnext++, []);
   // report an artificially low size, like gmail and Exchange do

@@ -57,13 +57,11 @@ var streamListener =
 // Adds some messages directly to a mailbox (eg new mail)
 function addMessagesToServer(messages, mailbox)
 {
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                    .getService(Ci.nsIIOService);
-
   // For every message we have, we need to convert it to a file:/// URI
   messages.forEach(function (message)
   {
-    let URI = ioService.newFileURI(message.file).QueryInterface(Ci.nsIFileURL);
+    let URI =
+      Services.io.newFileURI(message.file).QueryInterface(Ci.nsIFileURL);
     message.spec = URI.spec;
   });
 
