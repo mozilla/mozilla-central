@@ -65,6 +65,10 @@ class PropertyProvider;
 // reflow
 #define TEXT_HAS_NONCOLLAPSED_CHARACTERS NS_FRAME_STATE_BIT(31)
 
+// This state bit is set on frames which are forced to trim their leading and
+// trailing whitespaces
+#define TEXT_FORCE_TRIM_WHITESPACE       NS_FRAME_STATE_BIT(32)
+
 class nsTextFrame : public nsFrame {
 public:
   NS_DECL_FRAMEARENA_HELPERS
