@@ -121,12 +121,7 @@ a {
   outline: none;
 }
 
-/* New style feed summary body. */
-body[selected="false"] {
-  display: none;
-}
-
-/* Old style feeds. */
+/* Old style feeds, pre Tb3.0 */
 #_mailrssiframe {
   position: fixed;
   top: 0;

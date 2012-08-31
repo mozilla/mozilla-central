@@ -32,12 +32,12 @@ function openSubscriptionsDialog(aFolder)
   }
 }
 
-// Special case attempts to reply/forward/edit as new RSS articles.  We are
-// here only if the message's account server is rss.  Feed messages moved to
-// other account types will have their summaries loaded, as viewing web pages
-// only happens in an rss account.  The user may choose whether to load a
-// summary or web page link by ensuring the current feed message is being
-// viewed as either a summary or web page.
+// Special case attempts to reply/forward/edit as new RSS articles.  For
+// messages stored prior to Tb15, we are here only if the message's folder's
+// account server is rss and feed messages moved to other types will have their
+// summaries loaded, as viewing web pages only happened in an rss account.
+// The user may choose whether to load a summary or web page link by ensuring
+// the current feed message is being viewed as either a summary or web page.
 function openComposeWindowForRSSArticle(aMsgComposeWindow, aMsgHdr, aMessageUri,
                                         aType, aFormat, aIdentity, aMsgWindow)
 {

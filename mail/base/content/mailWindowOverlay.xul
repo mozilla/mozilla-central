@@ -57,6 +57,7 @@
 <script type="application/javascript" src="chrome://messenger/content/plugins.js"/>
 <script type="application/javascript" src="chrome://global/content/viewZoomOverlay.js"/>
 <script type="application/javascript" src="chrome://messenger/content/newmailaccount/uriListener.js"/>
+<script type="application/javascript" src="chrome://messenger-newsblog/content/utils.js"/>
 
 <stringbundleset id="stringbundleset">
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
@@ -1337,19 +1338,19 @@
                         name="viewFeedSummaryGroup"
                         label="&viewFeedWebPage.label;" 
                         accesskey="&viewFeedWebPage.accesskey;"
-                        oncommand="ChangeFeedShowSummaryPref(0)"/>
+                        oncommand="FeedMessageHandler.onSelectPref = 0"/>
               <menuitem id="bodyFeedGlobalSummary" 
                         type="radio" 
                         name="viewFeedSummaryGroup"
                         label="&viewFeedSummary.label;" 
                         accesskey="&viewFeedSummary.accesskey;"
-                        oncommand="ChangeFeedShowSummaryPref(1)"/>
+                        oncommand="FeedMessageHandler.onSelectPref = 1"/>
               <menuitem id="bodyFeedPerFolderPref" 
                         type="radio" 
                         name="viewFeedSummaryGroup"
                         label="&viewFeedSummaryFeedPropsPref.label;" 
                         accesskey="&viewFeedSummaryFeedPropsPref.accesskey;"
-                        oncommand="ChangeFeedShowSummaryPref(2)"/>
+                        oncommand="FeedMessageHandler.onSelectPref = 2"/>
             </menupopup>
           </menu>
           <menuitem id="viewAttachmentsInlineMenuitem" label="&viewAttachmentsInlineCmd.label;" accesskey="&viewAttachmentsInlineCmd.accesskey;"
@@ -1516,19 +1517,19 @@
                           name="openFeedGroup" 
                           label="&openFeedWebPageInWindow.label;"
                           accesskey="&openFeedWebPageInWindow.accesskey;"
-                          oncommand="ChangeFeedOpenHandler(0);"/>
+                          oncommand="FeedMessageHandler.onOpenPref = 0"/>
                 <menuitem id="menu_openFeedSummaryInWindow" 
                           type="radio"
                           name="openFeedGroup" 
                           label="&openFeedSummaryInWindow.label;"
                           accesskey="&openFeedSummaryInWindow.accesskey;"
-                          oncommand="ChangeFeedOpenHandler(1);"/>
+                          oncommand="FeedMessageHandler.onOpenPref = 1"/>
                 <menuitem id="menu_openFeedWebPageInMessagePane" 
                           type="radio"
                           name="openFeedGroup" 
                           label="&openFeedWebPageInMP.label;"
                           accesskey="&openFeedWebPageInMP.accesskey;"
-                          oncommand="ChangeFeedOpenHandler(2);"/>
+                          oncommand="FeedMessageHandler.onOpenPref = 2"/>
               </menupopup>
             </menu>
             <menuseparator id="messageAfterOpenMsgSeparator"/>
