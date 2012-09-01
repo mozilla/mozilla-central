@@ -117,7 +117,12 @@ mailattachcount {
   outline: none;
 }
 
-/* Old style feeds, pre Tb3.0 */
+/* New style feed summary body. */
+body[selected="false"] {
+  display: none;
+}
+
+/* Old style feeds. */
 #_mailrssiframe {
   position: fixed;
   top: 0;

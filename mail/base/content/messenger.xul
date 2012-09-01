@@ -86,6 +86,7 @@
 <script type="application/javascript" src="chrome://communicator/content/contentAreaClick.js"/>
 <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 <script type="application/javascript" src="chrome://messenger/content/editContactOverlay.js"/>
+<script type="application/javascript" src="chrome://messenger-newsblog/content/utils.js"/>
 
 
 <!-- move needed functions into a single js file -->

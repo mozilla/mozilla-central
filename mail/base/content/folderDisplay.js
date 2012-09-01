@@ -1273,10 +1273,6 @@ FolderDisplayWidget.prototype = {
     let viewIndex = this.view.dbView.currentlyDisplayedMessage;
     let msgHdr = (viewIndex != nsMsgViewIndex_None) ?
                    this.view.dbView.getMsgHdrAt(viewIndex) : null;
-
-    if (!FeedMessageHandler.shouldShowSummary(msgHdr, false))
-      FeedMessageHandler.setContent(msgHdr, false);
-
     this.messageDisplay.onDisplayingMessage(msgHdr);
 
     // Although deletes should now be so fast that the user has no time to do
@@ -1905,12 +1901,12 @@ FolderDisplayWidget.prototype = {
   },
 
   /**
-   * @return true if there is a selected message and it's an RSS feed message;
-   *  a feed message does not have to be in an rss account folder if stored in
-   *  Tb15 and later.
+   * @return true if there is a selected message and it's an RSS feed message.
    */
   get selectedMessageIsFeed() {
-    return FeedMessageHandler.isFeedMessage(this.selectedMessage);
+    let message = this.selectedMessage;
+    return Boolean(message && message.folder &&
+                   message.folder.server.type == 'rss');
   },
 
   /**

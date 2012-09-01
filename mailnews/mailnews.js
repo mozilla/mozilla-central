@@ -525,25 +525,18 @@ pref("rss.display.prefer_plaintext", false);
 pref("rss.display.html_as", 0);
 pref("rss.display.disallow_mime_handlers", 0);
 
-// Feed message display (summary or web page), on select.
-// 0 - global override, load web page
-// 1 - global override, load summary
-// 2 - use default feed folder setting from Subscribe dialog; if no setting default to 1
+// RSS message body preferences
+//0 - global no, load web page
+//1 - global yes, load summary
+//2 - use individual folder setting; if no setting default to 1
 pref("rss.show.summary", 1);
 
-// Feed message display (summary or web page), on open.
-// Action on double click or enter in threadpane for a feed message.
+// Action on double click or enter in threadpane for message with 
+// header 'content-base' url (rss)
 // 0 - open content-base url in new window
 // 1 - open summary in new window
 // 2 - toggle load summary and content-base url in message pane
-// 3 - load content-base url in browser
 pref("rss.show.content-base", 0);
-
-// Feed message additional web page display.
-// 0 - no action
-// 1 - load web page in default browser, on select
-pref("rss.message.loadWebPageOnSelect", 0);
-
 // Feeds system logging, uses log4moz conventions.
 pref("Feeds.logging.console", "Info");
 
