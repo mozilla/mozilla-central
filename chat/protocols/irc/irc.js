@@ -186,6 +186,9 @@ ircChannel.prototype = {
   __proto__: GenericConvChatPrototype,
   _modes: [],
   _receivedInitialMode: false,
+  // For IRC you're not in a channel until the JOIN command is received, open
+  // all channels (initially) as left.
+  _left: true,
 
   // Overwrite the writeMessage function to apply CTCP formatting before
   // display.

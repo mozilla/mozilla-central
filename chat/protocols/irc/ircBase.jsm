@@ -179,8 +179,12 @@ var ircBase = {
     },
     "INVITE": function(aMessage) {
       // INVITE <nickname> <channel>
-      // Auto-accept the invite.
-      this.joinChat(this.getChatRoomDefaultFieldValues(aMessage.params[1]));
+      if (Services.prefs.getIntPref("messenger.conversations.autoAcceptChatInvitations") == 1) {
+        // Auto-accept the invite.
+        this.joinChat(this.getChatRoomDefaultFieldValues(aMessage.params[1]));
+        LOG("Received invite for " + aMessage.params[1] + ", auto-accepting.");
+      }
+      // Otherwise, just notify the user.
       this.getConversation(aMessage.params[1])
           .writeMessage(aMessage.nickname,
                         _("message.inviteReceived", aMessage.nickname,
