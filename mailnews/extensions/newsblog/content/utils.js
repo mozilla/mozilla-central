@@ -636,7 +636,7 @@ var FeedUtils = {
 
     // Leaf folder last.
     pathParts.push(aFolder.name);
-    return decodeURI(pathParts.join("/"));
+    return pathParts.join("/");
   },
 
   // Progress glue code.  Acts as a go between the RSS back end and the mail
