@@ -173,13 +173,18 @@ const gFormSubmitObserver = {
 
     this.panel.hidden = false;
 
-    var style = element.ownerDocument.defaultView.getComputedStyle(element, null);
+    var win = element.ownerDocument.defaultView;
+    var style = win.getComputedStyle(element, null);
+    var scale = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                   .getInterface(Components.interfaces.nsIDOMWindowUtils)
+                   .screenPixelsPerCSSPixel;
 
-    var offset = style.direction == 'rtl' ? parseInt(style.paddingRight) + 
+    var offset = style.direction == 'rtl' ? parseInt(style.paddingRight) +
                                             parseInt(style.borderRightWidth) :
                                             parseInt(style.paddingLeft) +
                                             parseInt(style.borderLeftWidth);
 
+    offset = Math.round(offset * scale);
     this.panel.openPopup(element, "after_start", offset, 0);
   }
 };
