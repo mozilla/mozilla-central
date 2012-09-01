@@ -17,6 +17,9 @@ NS_IMPL_ISUPPORTS_INHERITED0(nsAbMDBCard, nsAbCardProperty)
 
 NS_IMETHODIMP nsAbMDBCard::Equals(nsIAbCard *card, bool *result)
 {
+  NS_ENSURE_ARG_POINTER(card);
+  NS_ENSURE_ARG_POINTER(result);
+
   if (this == card) {
     *result = true;
     return NS_OK;
