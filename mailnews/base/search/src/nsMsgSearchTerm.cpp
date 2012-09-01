@@ -954,7 +954,10 @@ nsresult nsMsgSearchTerm::MatchBody (nsIMsgSearchScopeTerm *scope, uint64_t offs
         MsgStripQuotedPrintable ((unsigned char*)buf.get());
         // in case the string shrunk, reset the length. If soft line break,
         // chop off the last char as well.
-        buf.SetLength(strlen(buf.get()) - (softLineBreak ? 1 : 0));
+        size_t bufLength = strlen(buf.get());
+        if ((bufLength > 0) && softLineBreak)
+          --bufLength;
+        buf.SetLength(bufLength);
       }
       compare.Append(buf);
       // If this line ends with a soft line break, loop around
