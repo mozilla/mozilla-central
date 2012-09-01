@@ -127,12 +127,13 @@ const GenericIRCConversation = {
   sendMsg: function(aMessage) {
     // Split the message by line breaks and send each one individually.
     let messages = aMessage.split(/[\r\n]+/);
-    messages.forEach(function (aMessage)
-      this._account.sendMessage("PRIVMSG", [this.name, aMessage]), this);
+    messages.forEach(function (aMessage) {
+      this._account.sendMessage("PRIVMSG", [this.name, aMessage]);
 
-    // Since the server doesn't send us a message back, just assume the message
-    // was received and immediately show it.
-    this.writeMessage(this._account._nickname, aMessage, {outgoing: true});
+      // Since the server doesn't send us a message back, just assume the
+      // message was received and immediately show it.
+      this.writeMessage(this._account._nickname, aMessage, {outgoing: true});
+    }, this);
 
     this._pendingMessage = true;
   },
