@@ -427,6 +427,28 @@ treechildren::-moz-tree-cell-text(subjectCol) {
   }
 }
 
+/* Royale needs special colors. Default is grey */
+@media (-moz-windows-theme: royale) {
+  #messengerWindow[tabsintitlebar] {
+    background-color: #3472C5;
+  }
+
+  #messengerWindow[tabsintitlebar]:-moz-window-inactive {
+    background-color: #83B7E2;
+  }
+}
+
+/* Zune needs special colors. Default is grey */
+@media (-moz-windows-theme: zune) {
+  #messengerWindow[tabsintitlebar] {
+    background-color: #343434;
+  }
+
+  #messengerWindow[tabsintitlebar]:-moz-window-inactive {
+    background-color: #4B4B4B;
+  }
+}
+
 #messengerWindow[tabsintitlebar]:-moz-lwtheme {
   background-color: transparent;
 }
@@ -487,6 +509,10 @@ treechildren::-moz-tree-cell-text(subjectCol) {
   margin-left: 10px; /* additional space for Aero Snap */
 }
 
+#messengerWindow:not([tabsintitlebar]) .titlebar-placeholder {
+  visibility: collapse; 
+}
+
 /* Window titlebar drawn by TB. So needs border like system windows */
 #messengerWindow[sizemode="normal"] > #titlebar > #titlebar-content {
   border-top: 3px solid;
@@ -519,6 +545,14 @@ treechildren::-moz-tree-cell-text(subjectCol) {
   #messengerWindow[sizemode="normal"] > #titlebar > #titlebar-content {
     -moz-border-top-colors: rgba(0, 0, 0, .4) rgba(255, 255, 255, .3)
                             rgba(255, 255, 255, .2);
+  }
+}
+
+@media (-moz-windows-theme: zune),
+       (-moz-windows-theme: royale) {
+  #messengerWindow[sizemode="normal"] > #titlebar > #titlebar-content {
+    -moz-border-top-colors: rgba(0, 0, 0, .4) rgba(255, 255, 255, .3)
+                            rgba(255, 255, 255, .2) !important;
   }
 }
 
