@@ -298,7 +298,7 @@ nsresult nsOE5File::ImportMailbox(uint32_t *pBytesDone, bool *pAbort,
   uint32_t  didBytes = 0;
   uint32_t  next, size;
   char *pStart, *pEnd, *partialLineStart;
-  nsCAutoString partialLine, tempLine;
+  nsAutoCString partialLine, tempLine;
   nsCOMPtr<nsIOutputStream> outputStream;
   rv = NS_OK;
 

@@ -31,7 +31,7 @@ nsMessengerBootstrap::~nsMessengerBootstrap()
 NS_IMETHODIMP nsMessengerBootstrap::OpenMessengerWindowWithUri(const char *windowType, const char * aFolderURI, nsMsgKey aMessageKey)
 {
   bool standAloneMsgWindow = false;
-  nsCAutoString chromeUrl("chrome://messenger/content/");
+  nsAutoCString chromeUrl("chrome://messenger/content/");
   if (windowType && !strcmp(windowType, "mail:messageWindow"))
   {
     chromeUrl.Append("messageWindow.xul");
@@ -49,7 +49,7 @@ NS_IMETHODIMP nsMessengerBootstrap::OpenMessengerWindowWithUri(const char *windo
       nsCOMPtr <nsIMsgFolder> folder;
       rv = GetExistingFolder(nsDependentCString(aFolderURI), getter_AddRefs(folder));
       NS_ENSURE_SUCCESS(rv, rv);
-      nsCAutoString msgUri;
+      nsAutoCString msgUri;
       folder->GetBaseMessageURI(msgUri);
 
       nsCOMPtr<nsISupportsCString> scriptableMsgURI (do_CreateInstance(NS_SUPPORTS_CSTRING_CONTRACTID));

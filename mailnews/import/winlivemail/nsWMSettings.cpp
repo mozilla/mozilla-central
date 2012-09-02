@@ -193,7 +193,7 @@ bool WMSettings::DoImport(nsIMsgAccount **ppAccount)
   for (int32_t i = fileArray.Count() - 1 ; i >= 0; i--){
     nsWMUtils::MakeXMLdoc(getter_AddRefs(xmlDoc), fileArray[i]);
 
-    nsCAutoString name;
+    nsAutoCString name;
     fileArray[i]->GetNativeLeafName(name);
     nsAutoString value;
     nsCOMPtr<nsIMsgAccount> anAccount;

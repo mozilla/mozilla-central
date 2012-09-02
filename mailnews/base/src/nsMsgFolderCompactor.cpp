@@ -389,7 +389,7 @@ nsFolderCompactState::FinishCompact()
 
   nsCString leafName;
   summaryFile->GetNativeLeafName(leafName);
-  nsCAutoString dbName(leafName);
+  nsAutoCString dbName(leafName);
 
   path->GetNativeLeafName(leafName);
 
@@ -753,7 +753,7 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
         {
           if (msgHdrKeywords.Length() < sizeof(X_MOZILLA_KEYWORDS) - sizeof(HEADER_X_MOZILLA_KEYWORDS) + 10 /* allow some slop */)
           { // keywords fit in normal blank header, so replace blanks in keyword hdr with keywords
-            nsCAutoString keywordsHdr(X_MOZILLA_KEYWORDS);
+            nsAutoCString keywordsHdr(X_MOZILLA_KEYWORDS);
             keywordsHdr.Replace(sizeof(HEADER_X_MOZILLA_KEYWORDS) + 1, msgHdrKeywords.Length(), msgHdrKeywords);
             m_fileStream->Write(keywordsHdr.get(), keywordsHdr.Length(), &bytesWritten);
             m_addedHeaderSize += bytesWritten;
@@ -793,7 +793,7 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
         // let's just rewrite all the keywords on several lines and add a blank line,
         // instead of worrying about which are missing.
         bool done = false;
-        nsCAutoString keywordHdr(HEADER_X_MOZILLA_KEYWORDS ": ");
+        nsAutoCString keywordHdr(HEADER_X_MOZILLA_KEYWORDS ": ");
         int32_t nextBlankOffset = 0;
         int32_t curHdrLineStart = 0;
         int32_t newKeywordSize = 0;

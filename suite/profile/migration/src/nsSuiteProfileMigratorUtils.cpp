@@ -37,7 +37,7 @@ void SetProxyPref(const nsAString& aHostPort, const char* aPref,
                   const char* aPortPref, nsIPrefBranch* aPrefs)
 {
   nsCOMPtr<nsIURI> uri;
-  nsCAutoString host;
+  nsAutoCString host;
   int32_t portValue;
 
   // try parsing it as a URI first
@@ -146,8 +146,8 @@ AnnotatePersonalToolbarFolder(nsIFile* aSourceBookmarksFile,
     do_QueryInterface(fileInputStream, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString sourceBuffer;
-  nsCAutoString targetBuffer;
+  nsAutoCString sourceBuffer;
+  nsAutoCString targetBuffer;
   bool moreData = false;
   uint32_t bytesWritten = 0;
   do {

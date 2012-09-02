@@ -337,12 +337,12 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsIFile* aDataDir,
   rv = parser.Init(profileIni);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString buffer, filePath;
+  nsAutoCString buffer, filePath;
   bool isRelative;
 
   unsigned int c = 0;
   for (c = 0; true; ++c) {
-    nsCAutoString profileID("Profile");
+    nsAutoCString profileID("Profile");
     profileID.AppendInt(c);
 
     rv = parser.GetString(profileID.get(), "IsRelative", buffer);
@@ -714,7 +714,7 @@ nsNetscapeProfileMigratorBase::GetSignonFileName(bool aReplace,
   if (NS_FAILED(rv))
     return rv;
 
-  nsCAutoString fileName;
+  nsAutoCString fileName;
   while (1) {
     bool hasMore = false;
     rv = entries->HasMoreElements(&hasMore);
@@ -735,7 +735,7 @@ nsNetscapeProfileMigratorBase::GetSignonFileName(bool aReplace,
 
     nsCOMPtr<nsIURL> url(do_QueryInterface(uri));
 
-    nsCAutoString extn;
+    nsAutoCString extn;
     url->GetFileExtension(extn);
 
     if (extn.Equals("s", CaseInsensitiveCompare)) {
@@ -864,7 +864,7 @@ nsNetscapeProfileMigratorBase::CopySignatureFiles(PBStructArray &aIdentities,
         targetSigFile->Append(leafName);
 
         // now write out the new descriptor
-        nsCAutoString descriptorString;
+        nsAutoCString descriptorString;
         targetSigFile->GetPersistentDescriptor(descriptorString);
         NS_Free(pref->stringValue);
         pref->stringValue = ToNewCString(descriptorString);
@@ -951,7 +951,7 @@ nsNetscapeProfileMigratorBase::CopyMailFolderPrefs(PBStructArray &aMailServers,
         // now we want to make sure the actual directory pref that gets
         // transformed into the new profile's pref.js has the right file
         // location.
-        nsCAutoString descriptorString;
+        nsAutoCString descriptorString;
         targetMailFolder->GetPersistentDescriptor(descriptorString);
         NS_Free(pref->stringValue);
         pref->stringValue = ToNewCString(descriptorString);
@@ -982,7 +982,7 @@ nsNetscapeProfileMigratorBase::CopyMailFolderPrefs(PBStructArray &aMailServers,
         targetNewsRCFile->Append(leafName);
 
         // now write out the new descriptor
-        nsCAutoString descriptorString;
+        nsAutoCString descriptorString;
         targetNewsRCFile->GetPersistentDescriptor(descriptorString);
         NS_Free(pref->stringValue);
         pref->stringValue = ToNewCString(descriptorString);

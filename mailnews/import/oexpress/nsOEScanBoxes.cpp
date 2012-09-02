@@ -98,7 +98,7 @@ bool nsOEScanBoxes::Find50Mail(nsIFile *pWhere)
   nsCOMPtr<nsIFile> localWhere = do_QueryInterface(pWhere);
   localWhere->InitWithPath(storeRoot);
 
-  nsCAutoString nativeStoreRoot;
+  nsAutoCString nativeStoreRoot;
   NS_CopyUnicodeToNative(storeRoot, nativeStoreRoot);
   IMPORT_LOG1("Setting native path: %s\n", nativeStoreRoot.get());
 
@@ -609,7 +609,7 @@ void nsOEScanBoxes::ScanMailboxDir(nsIFile * srcDir)
 
   MailboxEntry *  pEntry;
   int32_t      index = 1;
-  nsCAutoString pLeaf;
+  nsAutoCString pLeaf;
   uint32_t    sLen;
 
   bool hasMore;

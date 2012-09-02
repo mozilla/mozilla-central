@@ -341,7 +341,7 @@ bool OESettings::DoImport(nsIMsgAccount **aAccount)
     if (NS_FAILED(rv))
       continue;
 
-    nsCAutoString nativeKeyName;
+    nsAutoCString nativeKeyName;
     NS_CopyUnicodeToNative(keyName, nativeKeyName);
     IMPORT_LOG1("Opened Outlook Express account: %s\n",
                 nativeKeyName.get());
@@ -402,9 +402,9 @@ bool OESettings::DoIMAPServer(nsIMsgAccountManager *aMgr,
   if (NS_FAILED(rv))
     return false;
 
-  nsCAutoString nativeUserName;
+  nsAutoCString nativeUserName;
   NS_CopyUnicodeToNative(userName, nativeUserName);
-  nsCAutoString nativeServerName;
+  nsAutoCString nativeServerName;
   NS_CopyUnicodeToNative(aServerName, nativeServerName);
   // I now have a user name/server name pair, find out if it already exists?
   nsCOMPtr<nsIMsgIncomingServer> in;
@@ -442,7 +442,7 @@ bool OESettings::DoIMAPServer(nsIMsgAccountManager *aMgr,
   rv = aKey->ReadStringValue(NS_LITERAL_STRING("IMAP Root Folder"), rootFolder);
   if (NS_SUCCEEDED(rv) && !rootFolder.IsEmpty()) {
     nsCOMPtr<nsIImapIncomingServer> imapServer = do_QueryInterface(in);
-    nsCAutoString nativeRootFolder;
+    nsAutoCString nativeRootFolder;
     NS_CopyUnicodeToNative(rootFolder, nativeRootFolder);
     imapServer->SetServerDirectory(nativeRootFolder);
   }
@@ -490,9 +490,9 @@ bool OESettings::DoPOP3Server(nsIMsgAccountManager *aMgr,
   if (NS_FAILED(rv))
     return false;
 
-  nsCAutoString nativeUserName;
+  nsAutoCString nativeUserName;
   NS_CopyUnicodeToNative(userName, nativeUserName);
-  nsCAutoString nativeServerName;
+  nsAutoCString nativeServerName;
   NS_CopyUnicodeToNative(aServerName, nativeServerName);
 
   // I now have a user name/server name pair, find out if it already exists?
@@ -623,7 +623,7 @@ bool OESettings::DoNNTPServer(nsIMsgAccountManager *aMgr,
 
   bool result = false;
 
-  nsCAutoString nativeServerName;
+  nsAutoCString nativeServerName;
   NS_CopyUnicodeToNative(aServerName, nativeServerName);
   // I now have a user name/server name pair, find out if it already exists?
   // NNTP can have empty user name.  This is wild card in findserver
@@ -645,7 +645,7 @@ bool OESettings::DoNNTPServer(nsIMsgAccountManager *aMgr,
       if (NS_SUCCEEDED(rv) && port && port != 119)
         in->SetPort(static_cast<int32_t>(port));
 
-      nsCAutoString nativeUserName;
+      nsAutoCString nativeUserName;
       NS_CopyUnicodeToNative(userName, nativeUserName);
       // do nntpincomingserver stuff
       nsCOMPtr<nsINntpIncomingServer> nntpServer = do_QueryInterface(in);
@@ -771,11 +771,11 @@ void OESettings::SetIdentities(nsIMsgAccountManager *aMgr,
 
   id->SetOrganization(orgName);
 
-  nsCAutoString nativeEmail;
+  nsAutoCString nativeEmail;
   NS_CopyUnicodeToNative(email, nativeEmail);
   id->SetEmail(nativeEmail);
   if (!reply.IsEmpty()) {
-    nsCAutoString nativeReply;
+    nsAutoCString nativeReply;
     NS_CopyUnicodeToNative(reply, nativeReply);
     id->SetReplyTo(nativeReply);
   }
@@ -784,7 +784,7 @@ void OESettings::SetIdentities(nsIMsgAccountManager *aMgr,
   id->SetReplyOnTop(isNNTP ? 0 : 1);
   pAcc->AddIdentity(id);
 
-  nsCAutoString nativeName;
+  nsAutoCString nativeName;
   NS_CopyUnicodeToNative(name, nativeName);
   IMPORT_LOG0("Created identity and added to the account\n");
   IMPORT_LOG1("\tname: %s\n", nativeName.get());
@@ -832,9 +832,9 @@ void OESettings::SetSmtpServer(const nsString &aSmtpServer,
     nsCOMPtr<nsISmtpServer> foundServer;
     // don't try to make another server
     // regardless if username doesn't match
-    nsCAutoString nativeUserName;
+    nsAutoCString nativeUserName;
     NS_CopyUnicodeToNative(userName, nativeUserName);
-    nsCAutoString nativeSmtpServer;
+    nsAutoCString nativeSmtpServer;
     NS_CopyUnicodeToNative(aSmtpServer, nativeSmtpServer);
     rv = smtpService->FindServer(nativeUserName.get(),
                                  nativeSmtpServer.get(),

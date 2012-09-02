@@ -64,8 +64,8 @@ nsAbOutlookDirFactory::GetDirectories(const nsAString &aDirName,
 
   nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCAutoString entryId;
-  nsCAutoString uri;
+  nsAutoCString entryId;
+  nsAutoCString uri;
 
   for (ULONG i = 0; i < folders.mNbEntries; ++i) {
     folders.mEntries[i].ToString(entryId);

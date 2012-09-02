@@ -250,7 +250,7 @@ NS_IMETHODIMP nsAbManager::GetDirectory(const nsACString &aURI,
     // The directory wasn't in our look-up table, so we need to instantiate
     // it. First, extract the scheme from the URI...
 
-    nsCAutoString scheme;
+    nsAutoCString scheme;
 
     int32_t colon = aURI.FindChar(':');
     if (colon <= 0)
@@ -258,7 +258,7 @@ NS_IMETHODIMP nsAbManager::GetDirectory(const nsACString &aURI,
     scheme = Substring(aURI, 0, colon);
 
     // Construct the appropriate nsIAbDirectory...
-    nsCAutoString contractID;
+    nsAutoCString contractID;
     contractID.AssignLiteral(NS_AB_DIRECTORY_TYPE_CONTRACTID_PREFIX);
     contractID.Append(scheme);
     directory = do_CreateInstance(contractID.get(), &rv);
@@ -430,7 +430,7 @@ NS_IMETHODIMP nsAbManager::GetUserProfileDirectory(nsIFile **userDir)
 
   nsresult rv;
   nsCOMPtr<nsIFile> profileDir;
-  nsCAutoString pathBuf;
+  nsAutoCString pathBuf;
 
   rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(profileDir));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -868,7 +868,7 @@ nsAbManager::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsIFile *aLocalFi
 
           valueCStr.Truncate();
 
-          nsCAutoString ldapAttribute;
+          nsAutoCString ldapAttribute;
 
           for (i = 0; i < ArrayLength(EXPORT_ATTRIBUTES_TABLE); i++) {
             if (NS_SUCCEEDED(attrMap->GetFirstAttribute(nsDependentCString(EXPORT_ATTRIBUTES_TABLE[i].abPropertyName),
@@ -945,7 +945,7 @@ nsresult nsAbManager::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribute
   rv = aCard->GetDisplayName(attrValue);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCAutoString ldapAttributeName;
+  nsAutoCString ldapAttributeName;
 
   rv = aAttrMap->GetFirstAttribute(NS_LITERAL_CSTRING(kDisplayNameProperty),
                                   ldapAttributeName);
@@ -1012,7 +1012,7 @@ nsresult nsAbManager::AppendDNForCard(const char *aProperty, nsIAbCard *aCard, n
 {
   nsString email;
   nsString displayName;
-  nsCAutoString ldapAttributeName;
+  nsAutoCString ldapAttributeName;
 
   nsresult rv = aCard->GetPrimaryEmail(email);
   NS_ENSURE_SUCCESS(rv,rv);

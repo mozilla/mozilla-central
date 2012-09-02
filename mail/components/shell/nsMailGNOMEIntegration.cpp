@@ -208,7 +208,7 @@ nsMailGNOMEIntegration::CheckHandlerMatchesAppName(const nsACString &handler) co
 {
   gint argc;
   gchar **argv;
-  nsCAutoString command(handler);
+  nsAutoCString command(handler);
 
   if (g_shell_parse_argv(command.get(), &argc, &argv, NULL)) {
     command.Assign(argv[0]);
@@ -227,7 +227,7 @@ nsMailGNOMEIntegration::checkDefault(const char* const *aProtocols, unsigned int
   nsCOMPtr<nsIGIOService> giovfs = do_GetService(NS_GIOSERVICE_CONTRACTID);
 
   bool enabled;
-  nsCAutoString handler;
+  nsAutoCString handler;
   nsresult rv;
 
   for (unsigned int i = 0; i < aLength; ++i) {
@@ -264,7 +264,7 @@ nsMailGNOMEIntegration::MakeDefault(const char* const *aProtocols,
                                     const char *aMimeType,
                                     const char *aExtensions)
 {
-  nsCAutoString appKeyValue;
+  nsAutoCString appKeyValue;
   nsCOMPtr<nsIGConfService> gconf = do_GetService(NS_GCONFSERVICE_CONTRACTID);
   nsCOMPtr<nsIGIOService> giovfs = do_GetService(NS_GIOSERVICE_CONTRACTID);
   if(mAppIsInPath) {

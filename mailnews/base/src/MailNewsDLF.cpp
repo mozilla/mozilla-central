@@ -47,7 +47,7 @@ MailNewsDLF::CreateInstance(const char* aCommand,
     do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString contractID;
+  nsAutoCString contractID;
   rv = catMan->GetCategoryEntry("Gecko-Content-Viewers", TEXT_HTML,
                                 getter_Copies(contractID));
   NS_ENSURE_SUCCESS(rv, rv);

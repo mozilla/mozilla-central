@@ -387,7 +387,7 @@ NS_IMETHODIMP nsAddrDatabase::Open
 
     // First append .bak - we have to do this the long way as
     // AppendNative is to the path, not the LeafName.
-    nsCAutoString dummyBackupMabFileName;
+    nsAutoCString dummyBackupMabFileName;
     rv = dummyBackupMabFile->GetNativeLeafName(dummyBackupMabFileName);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -401,7 +401,7 @@ NS_IMETHODIMP nsAddrDatabase::Open
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Now get the new name
-    nsCAutoString backupMabFileName;
+    nsAutoCString backupMabFileName;
     rv = dummyBackupMabFile->GetNativeLeafName(backupMabFileName);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -515,7 +515,7 @@ NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, bool create)
     if (NS_SUCCEEDED(ret))
     {
       nsIMdbThumb *thumb = nullptr;
-      nsCAutoString filePath;
+      nsAutoCString filePath;
 
       ret = dbName->GetNativePath(filePath);
       NS_ENSURE_SUCCESS(ret, ret);
@@ -1197,7 +1197,7 @@ nsresult nsAddrDatabase::AddAttributeColumnsToRow(nsIAbCard *card, nsIMdbRow *ca
       prop->GetValue(getter_AddRefs(variant));
       
       // We can't get as a char * because that messes up UTF8 stuff
-      nsCAutoString value;
+      nsAutoCString value;
       variant->GetAsAUTF8String(value);
 
       mdb_token token;
@@ -1232,7 +1232,7 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewCardAndAddToDB(nsIAbCard *aNewCard, bool 
   // doesn't matter otherwise.
   nsresult rv;
 
-  nsCAutoString id;
+  nsAutoCString id;
   aNewCard->GetLocalId(id);
 
   mdbOid rowId;
@@ -2129,8 +2129,8 @@ NS_IMETHODIMP nsAddrDatabase::AddLdifListMember(nsIMdbRow* listRow, const char* 
 
   uint32_t total = GetListAddressTotal(listRow);
   //add member
-  nsCAutoString valueString(value);
-  nsCAutoString email;
+  nsAutoCString valueString(value);
+  nsAutoCString email;
   int32_t emailPos = valueString.Find("mail=");
   emailPos += strlen("mail=");
   email = Substring(valueString, emailPos);
@@ -2925,7 +2925,7 @@ nsresult nsAddrDatabase::CreateCard(nsIMdbRow* cardRow, mdb_id listRowID, nsIAbC
         InitCardFromRow(personCard, cardRow);
         personCard->SetPropertyAsUint32(kRowIDProperty, rowID);
 
-        nsCAutoString id;
+        nsAutoCString id;
         id.AppendInt(rowID);
         personCard->SetLocalId(id);
 
@@ -2983,7 +2983,7 @@ nsresult nsAddrDatabase::CreateABListCard(nsIMdbRow* listRow, nsIAbCard **result
             personCard->SetIsMailList(true);
             personCard->SetMailListURI(listURI);
 
-            nsCAutoString id;
+            nsAutoCString id;
             id.AppendInt(rowID);
             personCard->SetLocalId(id);
 

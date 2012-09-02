@@ -317,7 +317,7 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
 {
     NS_ENSURE_ARG_POINTER(_retval);
 
-    nsCAutoString folderUri(aSpec);
+    nsAutoCString folderUri(aSpec);
     nsCOMPtr<nsIRDFResource> resource;
     int32_t offset = folderUri.FindChar('?');
     if (offset != kNotFound)
@@ -389,7 +389,7 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
     nsCString escapedUsername;
     MsgEscapeString(username, nsINetUtil::ESCAPE_XALPHAS, escapedUsername);
 
-    nsCAutoString popSpec("pop://");
+    nsAutoCString popSpec("pop://");
     popSpec += escapedUsername;
     popSpec += "@";
     popSpec += hostname;
@@ -415,7 +415,7 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
     nsCOMPtr<nsIPop3URL> popurl = do_QueryInterface(mailnewsurl, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCAutoString messageUri (aSpec);
+    nsAutoCString messageUri (aSpec);
     if (!strncmp(messageUri.get(), "mailbox:", 8))
       messageUri.Replace(0, 8, "mailbox-message:");
     offset = messageUri.Find("?number=");

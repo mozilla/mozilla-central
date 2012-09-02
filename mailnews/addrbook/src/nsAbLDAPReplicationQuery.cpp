@@ -26,7 +26,7 @@ nsAbLDAPReplicationQuery::nsAbLDAPReplicationQuery()
 
 nsresult nsAbLDAPReplicationQuery::InitLDAPData()
 {
-  nsCAutoString fileName;
+  nsAutoCString fileName;
   nsresult rv = mDirectory->GetReplicationFileName(fileName);
   NS_ENSURE_SUCCESS(rv, rv);
 

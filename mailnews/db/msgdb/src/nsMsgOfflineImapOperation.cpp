@@ -248,7 +248,7 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::AddKeywordToRemove(const char * aKeywor
 NS_IMETHODIMP nsMsgOfflineImapOperation::AddMessageCopyOperation(const char *destinationBox)
 {
   SetOperation(kMsgCopy);
-  nsCAutoString newDest(destinationBox);
+  nsAutoCString newDest(destinationBox);
   nsresult rv = GetCopiesFromDB();
   NS_ENSURE_SUCCESS(rv, rv);
   m_copyDestinations.AppendElement(newDest);
@@ -286,7 +286,7 @@ nsresult nsMsgOfflineImapOperation::GetCopiesFromDB()
 
 nsresult nsMsgOfflineImapOperation::SetCopiesToDB()
 {
-  nsCAutoString copyDests;
+  nsAutoCString copyDests;
 
   // use 0x1 as the delimiter between folders
   for (uint32_t i = 0; i < m_copyDestinations.Length(); i++)

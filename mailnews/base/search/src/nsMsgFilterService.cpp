@@ -622,7 +622,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
         break;
       case nsMsgFilterAction::JunkScore:
       {
-        nsCAutoString junkScoreStr;
+        nsAutoCString junkScoreStr;
         int32_t junkScore;
         filterAction->GetJunkScore(&junkScore);
         junkScoreStr.AppendInt(junkScore);
@@ -751,7 +751,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
         rv = filterAction->GetCustomAction(getter_AddRefs(customAction));
         NS_ENSURE_SUCCESS(rv, rv);
 
-        nsCAutoString value;
+        nsAutoCString value;
         filterAction->GetStrValue(value);
         customAction->Apply(m_searchHitHdrs, value, this,
                             filterType, m_msgWindow);
@@ -820,7 +820,7 @@ nsMsgFilterService::GetCustomAction(const nsACString & aId,
 
   for (int32_t i = 0; i < mCustomActions.Count(); i++)
   {
-    nsCAutoString id;
+    nsAutoCString id;
     nsresult rv = mCustomActions[i]->GetId(id);
     if (NS_SUCCEEDED(rv) && aId.Equals(id))
     {
@@ -853,7 +853,7 @@ nsMsgFilterService::GetCustomTerm(const nsACString& aId,
 
   for (int32_t i = 0; i < mCustomTerms.Count(); i++)
   {
-    nsCAutoString id;
+    nsAutoCString id;
     nsresult rv = mCustomTerms[i]->GetId(id);
     if (NS_SUCCEEDED(rv) && aId.Equals(id))
     {

@@ -558,7 +558,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
     m_plaintext->SetMimeDeliveryState(this);
     m_plaintext->m_bogus_attachment = true;
 
-    nsCAutoString tempURL;
+    nsAutoCString tempURL;
     rv = NS_GetURLSpecFromFile(mHTMLFile, tempURL);
     if (NS_FAILED(rv) || NS_FAILED(nsMsgNewURL(getter_AddRefs(m_plaintext->mURL), tempURL.get())))
     {
@@ -1317,7 +1317,7 @@ nsMsgComposeAndSend::GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData
     nsAutoString    tUrl;
     if (NS_SUCCEEDED(body->GetBackground(tUrl)))
     {
-      nsCAutoString turlC;
+      nsAutoCString turlC;
       CopyUTF16toUTF8(tUrl, turlC);
       if (NS_FAILED(nsMsgNewURL(getter_AddRefs(attachment->m_url), turlC.get())))
         return NS_OK;
@@ -1332,7 +1332,7 @@ nsMsgComposeAndSend::GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData
     // Create the URI
     if (NS_FAILED(image->GetSrc(tUrl)))
       return NS_ERROR_FAILURE;
-    nsCAutoString turlC;
+    nsAutoCString turlC;
     CopyUTF16toUTF8(tUrl, turlC);
     if (NS_FAILED(nsMsgNewURL(getter_AddRefs(attachment->m_url), turlC.get())))
     {
@@ -1347,7 +1347,7 @@ nsMsgComposeAndSend::GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData
         if (NS_FAILED(ownerDocument->QueryInterface(NS_GET_IID(nsIDocument),(void**)&doc)) || !doc)
           return NS_ERROR_OUT_OF_MEMORY;
 
-        nsCAutoString spec;
+        nsAutoCString spec;
         nsIURI *uri = doc->GetDocumentURI();
 
         if (!uri)
@@ -1385,7 +1385,7 @@ nsMsgComposeAndSend::GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData
     // Create the URI
     rv = link->GetHref(tUrl);
     NS_ENSURE_SUCCESS(rv, rv);
-    nsCAutoString turlC;
+    nsAutoCString turlC;
     CopyUTF16toUTF8(tUrl, turlC);
     rv = nsMsgNewURL(getter_AddRefs(attachment->m_url), turlC.get());
     NS_ENSURE_SUCCESS(rv, rv);
@@ -1398,7 +1398,7 @@ nsMsgComposeAndSend::GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData
     // Create the URI
     rv = anchor->GetHref(tUrl);
     NS_ENSURE_SUCCESS(rv, rv);
-    nsCAutoString turlC;
+    nsAutoCString turlC;
     CopyUTF16toUTF8(tUrl, turlC);
     // ignore errors here.
     (void) nsMsgNewURL(getter_AddRefs(attachment->m_url), turlC.get());
@@ -1440,7 +1440,7 @@ nsMsgComposeAndSend::GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData
           {
             // One more test, if the anchor points to a local network server, let's check what the pref
             // mail.compose.dont_attach_source_of_local_network_links tells us to do.
-            nsCAutoString urlSpec;
+            nsAutoCString urlSpec;
             rv = attachment->m_url->GetSpec(urlSpec);
             if (NS_SUCCEEDED(rv))
               if (StringBeginsWith(urlSpec, NS_LITERAL_CSTRING("file://///")))
@@ -2206,14 +2206,14 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
               nsCOMPtr<nsIURL> fileUrl(do_CreateInstance(NS_STANDARDURL_CONTRACTID));
               if (fileUrl)
               {
-                nsCAutoString fileExt;
+                nsAutoCString fileExt;
                 //First try using the real file name
                 rv = fileUrl->SetFileName(m_attachments[newLoc].m_realName);
                 if (NS_SUCCEEDED(rv))
                 {
                   rv = fileUrl->GetFileExtension(fileExt);
                   if (NS_SUCCEEDED(rv) && !fileExt.IsEmpty()) {
-                    nsCAutoString type;
+                    nsAutoCString type;
                     mimeFinder->GetTypeFromExtension(fileExt, type);
   #ifndef XP_MACOSX
                     if (!type.Equals("multipart/appledouble"))  // can't do apple double on non-macs
@@ -2230,7 +2230,7 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
                   {
                     rv = fileUrl->GetFileExtension(fileExt);
                     if (NS_SUCCEEDED(rv) && !fileExt.IsEmpty()) {
-                      nsCAutoString type;
+                      nsAutoCString type;
                       mimeFinder->GetTypeFromExtension(fileExt, type);
   #ifndef XP_MACOSX
                     if (!type.Equals("multipart/appledouble"))  // can't do apple double on non-macs
@@ -2974,7 +2974,7 @@ nsMsgComposeAndSend::AddDefaultCustomHeaders() {
     int32_t end = 0;
     int32_t len = 0;
     // preserve any custom headers that have been added through the UI
-    nsCAutoString newHeaderVal(mCompFields->GetOtherRandomHeaders());
+    nsAutoCString newHeaderVal(mCompFields->GetOtherRandomHeaders());
 
     while (end != -1) {
       end = headersList.FindChar(',', start);
@@ -2984,7 +2984,7 @@ nsMsgComposeAndSend::AddDefaultCustomHeaders() {
         len = end - start;
       }
       // grab the name of the current header pref
-      nsCAutoString headerName("header.");
+      nsAutoCString headerName("header.");
       headerName.Append(Substring(headersList, start, len));
       start = end + 1;
 
@@ -3030,7 +3030,7 @@ nsMsgComposeAndSend::AddMailFollowupToHeader() {
     return NS_OK;
 
   // Get list of subscribed mailing lists
-  nsCAutoString mailing_lists;
+  nsAutoCString mailing_lists;
   rv = mUserIdentity->GetCharAttribute("subscribed_mailing_lists", mailing_lists);
   // Stop here if this list is missing or empty
   if (NS_FAILED(rv) || mailing_lists.IsEmpty())
@@ -3039,7 +3039,7 @@ nsMsgComposeAndSend::AddMailFollowupToHeader() {
   // Get a list of all recipients excluding bcc
   nsDependentCString to(mCompFields->GetTo());
   nsDependentCString cc(mCompFields->GetCc());
-  nsCAutoString recipients;
+  nsAutoCString recipients;
 
   if (to.IsEmpty() && cc.IsEmpty())
     // We have bcc recipients only, so we don't add the Mail-Followup-To header
@@ -3102,14 +3102,14 @@ nsMsgComposeAndSend::AddMailReplyToHeader() {
   nsDependentCString customHeaders(mCompFields->GetOtherRandomHeaders());
   // ...and look for MRT-Header.  Stop here if MRT is already set.
   NS_NAMED_LITERAL_CSTRING(mrtHeaderLabel, "Mail-Reply-To: ");
-  nsCAutoString headers_match = nsCAutoString("\r\n");
+  nsAutoCString headers_match = nsAutoCString("\r\n");
   headers_match.Append(mrtHeaderLabel);
   if ((StringHead(customHeaders, mrtHeaderLabel.Length()) == mrtHeaderLabel) ||
       (customHeaders.Find(headers_match) != -1))
     return NS_OK;
 
   // Get list of reply-to mangling mailing lists
-  nsCAutoString mailing_lists;
+  nsAutoCString mailing_lists;
   rv = mUserIdentity->GetCharAttribute("replyto_mangling_mailing_lists", mailing_lists);
   // Stop here if this list is missing or empty
   if (NS_FAILED(rv) || mailing_lists.IsEmpty())
@@ -3125,7 +3125,7 @@ nsMsgComposeAndSend::AddMailReplyToHeader() {
     // Get a list of all recipients excluding bcc
     nsDependentCString to(mCompFields->GetTo());
     nsDependentCString cc(mCompFields->GetCc());
-    nsCAutoString recipients;
+    nsAutoCString recipients;
 
     if (to.IsEmpty() && cc.IsEmpty())
       // We have bcc recipients only, so we don't add the Mail-Reply-To header
@@ -3167,7 +3167,7 @@ nsMsgComposeAndSend::AddMailReplyToHeader() {
   }
 
   // Set Mail-Reply-To
-  nsCAutoString replyTo, mailReplyTo;
+  nsAutoCString replyTo, mailReplyTo;
   replyTo = mCompFields->GetReplyTo();
   if (replyTo.IsEmpty())
     mailReplyTo = mCompFields->GetFrom();
@@ -3188,7 +3188,7 @@ nsMsgComposeAndSend::AddMailReplyToHeader() {
 
 nsresult
 nsMsgComposeAndSend::AddXForwardedMessageIdHeader() {
-  nsCAutoString otherHeaders;
+  nsAutoCString otherHeaders;
   otherHeaders.Append(nsDependentCString(mCompFields->GetOtherRandomHeaders()));
   otherHeaders.Append(NS_LITERAL_CSTRING("X-Forwarded-Message-Id: "));
   otherHeaders.Append(nsDependentCString(mCompFields->GetReferences()));
@@ -4340,7 +4340,7 @@ BuildURLAttachmentData(nsIURI *url)
     return nullptr;
 
   // Now get a readable name...
-  nsCAutoString spec;
+  nsAutoCString spec;
   url->GetSpec(spec);
   if (!spec.IsEmpty())
   {

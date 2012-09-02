@@ -102,7 +102,7 @@ MimeObject_initialize (MimeObject *obj)
   else {
     // MIME-types are case-insenitive, but let's make it lower case internally
     // to avoid some hassle later down the road.
-    nsCAutoString lowerCaseContentType;
+    nsAutoCString lowerCaseContentType;
     ToLowerCase(nsDependentCString(obj->content_type), lowerCaseContentType);
     PR_Free(obj->content_type);
     obj->content_type = ToNewCString(lowerCaseContentType);

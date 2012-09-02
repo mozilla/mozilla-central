@@ -242,7 +242,7 @@ bool OutlookSettings::DoImport(nsIMsgAccount **aAccount)
       continue;
 
     // Get the values for this account.
-    nsCAutoString nativeKeyName;
+    nsAutoCString nativeKeyName;
     NS_CopyUnicodeToNative(keyName, nativeKeyName);
     IMPORT_LOG1("Opened Outlook account: %s\n", nativeKeyName.get());
 
@@ -306,9 +306,9 @@ bool OutlookSettings::DoIMAPServer(nsIMsgAccountManager *aMgr,
   bool result = false;
 
   // I now have a user name/server name pair, find out if it already exists?
-  nsCAutoString nativeUserName;
+  nsAutoCString nativeUserName;
   NS_CopyUnicodeToNative(userName, nativeUserName);
-  nsCAutoString nativeServerName;
+  nsAutoCString nativeServerName;
   NS_CopyUnicodeToNative(aServerName, nativeServerName);
   nsCOMPtr<nsIMsgIncomingServer> in;
   rv = aMgr->FindServer(nativeUserName,
@@ -365,9 +365,9 @@ bool OutlookSettings::DoPOP3Server(nsIMsgAccountManager *aMgr,
     return false;
 
   // I now have a user name/server name pair, find out if it already exists?
-  nsCAutoString nativeUserName;
+  nsAutoCString nativeUserName;
   NS_CopyUnicodeToNative(userName, nativeUserName);
-  nsCAutoString nativeServerName;
+  nsAutoCString nativeServerName;
   NS_CopyUnicodeToNative(aServerName, nativeServerName);
   nsCOMPtr<nsIMsgIncomingServer> in;
   rv = aMgr->FindServer(nativeUserName,
@@ -483,17 +483,17 @@ void OutlookSettings::SetIdentities(nsIMsgAccountManager *aMgr,
       id->SetIdentityName(name);
       id->SetOrganization(orgName);
 
-      nsCAutoString nativeEmail;
+      nsAutoCString nativeEmail;
       NS_CopyUnicodeToNative(email, nativeEmail);
       id->SetEmail(nativeEmail);
       if (!reply.IsEmpty()) {
-        nsCAutoString nativeReply;
+        nsAutoCString nativeReply;
         NS_CopyUnicodeToNative(reply, nativeReply);
         id->SetReplyTo(nativeReply);
       }
       aAcc->AddIdentity(id);
 
-      nsCAutoString nativeName;
+      nsAutoCString nativeName;
       NS_CopyUnicodeToNative(name, nativeName);
       IMPORT_LOG0("Created identity and added to the account\n");
       IMPORT_LOG1("\tname: %s\n", nativeName.get());
@@ -505,7 +505,7 @@ void OutlookSettings::SetIdentities(nsIMsgAccountManager *aMgr,
     nsCOMPtr<nsIMsgIncomingServer>  incomingServer;
     rv = aAcc->GetIncomingServer(getter_AddRefs(incomingServer));
     if (NS_SUCCEEDED(rv) && incomingServer) {
-      nsCAutoString nativeUserName;
+      nsAutoCString nativeUserName;
       rv = incomingServer->GetUsername(nativeUserName);
       NS_ASSERTION(NS_SUCCEEDED(rv), "Unable to get UserName from incomingServer");
       NS_CopyNativeToUnicode(nativeUserName, userName);
@@ -518,7 +518,7 @@ void OutlookSettings::SetIdentities(nsIMsgAccountManager *aMgr,
 nsresult OutlookSettings::SetSmtpServerKey(nsIMsgIdentity *aId,
                                            nsISmtpServer *aServer)
 {
-  nsCAutoString smtpServerKey;
+  nsAutoCString smtpServerKey;
   aServer->GetKey(getter_Copies(smtpServerKey));
   return aId->SetSmtpServerKey(smtpServerKey);
 }
@@ -533,9 +533,9 @@ nsresult OutlookSettings::SetSmtpServer(nsIMsgAccountManager *aMgr,
   nsCOMPtr<nsISmtpService> smtpService(do_GetService(NS_SMTPSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString nativeUserName;
+  nsAutoCString nativeUserName;
   NS_CopyUnicodeToNative(aUser, nativeUserName);
-  nsCAutoString nativeServerName;
+  nsAutoCString nativeServerName;
   NS_CopyUnicodeToNative(aServer, nativeServerName);
   nsCOMPtr<nsISmtpServer> foundServer;
   rv = smtpService->FindServer(nativeUserName.get(),

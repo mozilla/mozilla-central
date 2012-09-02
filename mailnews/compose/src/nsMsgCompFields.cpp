@@ -631,7 +631,7 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const nsAString &recipients,
   nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString recipientsStr;
+  nsAutoCString recipientsStr;
   char *names;
   char *addresses;
   uint32_t numAddresses;
@@ -723,7 +723,7 @@ NS_IMETHODIMP nsMsgCompFields::CheckCharsetConversion(char **fallbackCharset, bo
 {
   NS_ENSURE_ARG_POINTER(_retval);
 
-  nsCAutoString headers;
+  nsAutoCString headers;
   for (int16_t i = 0; i < MSG_MAX_HEADERS; i++)
     headers.Append(m_headers[i]);
 

@@ -119,7 +119,7 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder,
 
   nsCString localStoreType;
   incomingServer->GetLocalStoreType(localStoreType);
-  nsCAutoString dbContractID(NS_MSGDB_CONTRACTID);
+  nsAutoCString dbContractID(NS_MSGDB_CONTRACTID);
   dbContractID.Append(localStoreType.get());
   nsCOMPtr <nsIMsgDatabase> msgDB = do_CreateInstance(dbContractID.get(), &rv);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -184,7 +184,7 @@ NS_IMETHODIMP nsMsgDBService::AsyncOpenFolderDB(nsIMsgFolder *aFolder,
   NS_ENSURE_SUCCESS(rv, rv);
   nsCString localStoreType;
   incomingServer->GetLocalStoreType(localStoreType);
-  nsCAutoString dbContractID(NS_MSGDB_CONTRACTID);
+  nsAutoCString dbContractID(NS_MSGDB_CONTRACTID);
   dbContractID.Append(localStoreType.get());
   nsCOMPtr <nsIMsgDatabase> msgDB = do_CreateInstance(dbContractID.get(), &rv);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -361,7 +361,7 @@ NS_IMETHODIMP nsMsgDBService::CreateNewDB(nsIMsgFolder *aFolder,
 
   nsCString localStoreType;
   incomingServer->GetLocalStoreType(localStoreType);
-  nsCAutoString dbContractID(NS_MSGDB_CONTRACTID);
+  nsAutoCString dbContractID(NS_MSGDB_CONTRACTID);
   dbContractID.Append(localStoreType.get());
   
   nsCOMPtr <nsIMsgDatabase> msgDB = do_CreateInstance(dbContractID.get(), &rv);
@@ -1116,7 +1116,7 @@ nsresult nsMsgDatabase::Open(nsIFile *aFolderName, bool aCreate,
 nsresult nsMsgDatabase::OpenInternal(nsIFile *summaryFile, bool aCreate,
                                      bool aLeaveInvalidDB, bool sync)
 {
-  nsCAutoString summaryFilePath;
+  nsAutoCString summaryFilePath;
   summaryFile->GetNativePath(summaryFilePath);
 
   PR_LOG(DBLog, PR_LOG_ALWAYS, ("nsMsgDatabase::Open(%s, %s, %p, %s)\n",
@@ -1688,7 +1688,7 @@ nsresult nsMsgDatabase::InitExistingDB()
           if (msgHdr && NS_SUCCEEDED(err))
           {
             nsCString messageId;
-            nsCAutoString firstReference;
+            nsAutoCString firstReference;
             msgHdr->GetMessageId(getter_Copies(messageId));
             msgHdr->GetStringReference(0, firstReference);
             if (messageId.Equals(firstReference))
@@ -4153,7 +4153,7 @@ nsresult nsMsgDatabase::AddMsgRefsToHash(nsIMsgDBHdr *msgHdr)
 
   for (int32_t i = 0; i < numReferences; i++)
   {
-    nsCAutoString reference;
+    nsAutoCString reference;
     
     msgHdr->GetStringReference(i, reference);
     if (reference.IsEmpty())
@@ -4193,7 +4193,7 @@ nsresult nsMsgDatabase::RemoveMsgRefsFromHash(nsIMsgDBHdr *msgHdr)
 
   for (int32_t i = 0; i < numReferences; i++)
   {
-    nsCAutoString reference;
+    nsAutoCString reference;
     
     msgHdr->GetStringReference(i, reference);
     if (reference.IsEmpty())
@@ -4450,7 +4450,7 @@ nsresult nsMsgDatabase::ThreadNewHdr(nsMsgHdr* newHdr, bool &newThread)
   // try reference threading first
   for (int32_t i = numReferences - 1; i >= 0;  i--)
   {
-    nsCAutoString reference;
+    nsAutoCString reference;
 
     newHdr->GetStringReference(i, reference);
     // first reference we have hdr for is best top-level hdr.
@@ -4490,7 +4490,7 @@ nsresult nsMsgDatabase::ThreadNewHdr(nsMsgHdr* newHdr, bool &newThread)
     newHdr->GetSubject(getter_Copies(subject));
     if (ThreadBySubjectWithoutRe() || (newHdrFlags & nsMsgMessageFlags::HasRe))
     {
-      nsCAutoString cSubject(subject);
+      nsAutoCString cSubject(subject);
       thread = getter_AddRefs(GetThreadForSubject(cSubject));
       if(thread)
       {

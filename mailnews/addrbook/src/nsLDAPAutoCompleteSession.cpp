@@ -589,7 +589,7 @@ nsLDAPAutoCompleteSession::DoTask()
 
     // Get the search filter associated with the directory server url;
     // it will be ANDed with the rest of the search filter that we're using.
-    nsCAutoString urlFilter;
+    nsAutoCString urlFilter;
     rv = mDirectoryUrl->GetFilter(urlFilter);
     if ( NS_FAILED(rv) ){
         FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv,
@@ -610,7 +610,7 @@ nsLDAPAutoCompleteSession::DoTask()
 
     // If urlFilter is unset (or set to the default "objectclass=*"), there's
     // no need to AND in an empty search term, so leave prefix and suffix empty.
-    nsCAutoString prefix, suffix;
+    nsAutoCString prefix, suffix;
     if (urlFilter.Length() && !urlFilter.EqualsLiteral("(objectclass=*)")) {
 
         // If urlFilter isn't parenthesized, we need to add in parens so that
@@ -630,7 +630,7 @@ nsLDAPAutoCompleteSession::DoTask()
     // Generate an LDAP search filter from mFilterTemplate. If it's unset,
     // use the default.
 #define MAX_AUTOCOMPLETE_FILTER_SIZE 1024
-    nsCAutoString searchFilter;
+    nsAutoCString searchFilter;
     rv = ldapSvc->CreateFilter(MAX_AUTOCOMPLETE_FILTER_SIZE,
                                mFilterTemplate,
                                prefix, suffix, EmptyCString(), 
@@ -679,7 +679,7 @@ nsLDAPAutoCompleteSession::DoTask()
     mEntriesReturned = 0;
     
     // Get the base dn to search
-    nsCAutoString dn;
+    nsAutoCString dn;
     rv = mDirectoryUrl->GetDn(dn);
     if ( NS_FAILED(rv) ){
         FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv,

@@ -1258,7 +1258,7 @@ nsresult nsMsgSearchDBView::GetXFThreadFromMsgHdr(nsIMsgDBHdr *msgHdr,
 {
   NS_ENSURE_ARG_POINTER(pThread);
 
-  nsCAutoString messageId;
+  nsAutoCString messageId;
   msgHdr->GetMessageId(getter_Copies(messageId));
   *pThread = nullptr;
   m_threadsTable.Get(messageId, pThread);
@@ -1272,7 +1272,7 @@ nsresult nsMsgSearchDBView::GetXFThreadFromMsgHdr(nsIMsgDBHdr *msgHdr,
     msgHdr->GetNumReferences(&numReferences);
     for (int32_t i = numReferences - 1; i >= 0  && !*pThread; i--)
     {
-      nsCAutoString reference;
+      nsAutoCString reference;
       
       msgHdr->GetStringReference(i, reference);
       if (reference.IsEmpty())
@@ -1329,7 +1329,7 @@ nsresult nsMsgSearchDBView::AddMsgToHashTables(nsIMsgDBHdr *msgHdr,
   msgHdr->GetNumReferences(&numReferences);
   for (int32_t i = 0; i < numReferences; i++)
   {
-    nsCAutoString reference;
+    nsAutoCString reference;
 
     msgHdr->GetStringReference(i, reference);
     if (reference.IsEmpty())
@@ -1369,7 +1369,7 @@ nsresult nsMsgSearchDBView::RemoveMsgFromHashTables(nsIMsgDBHdr *msgHdr)
 
   for (int32_t i = 0; i < numReferences; i++)
   {
-    nsCAutoString reference;
+    nsAutoCString reference;
     msgHdr->GetStringReference(i, reference);
     if (reference.IsEmpty())
       break;

@@ -115,7 +115,7 @@ nsAddbookProtocolHandler::NewChannel(nsIURI *aURI, nsIChannel **_retval)
   if (mAddbookOperation == nsIAddbookUrlOperation::InvalidUrl) {
     nsAutoString errorString;
     errorString.AssignLiteral("Unsupported format/operation requested for ");
-    nsCAutoString spec;
+    nsAutoCString spec;
     rv = aURI->GetSpec(spec);
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -147,7 +147,7 @@ nsAddbookProtocolHandler::NewChannel(nsIURI *aURI, nsIChannel **_retval)
   rv = GeneratePrintOutput(addbookUrl, output);
   if (NS_FAILED(rv)) {
     output.AssignLiteral("failed to print. url=");
-    nsCAutoString spec;
+    nsAutoCString spec;
     rv = aURI->GetSpec(spec);
     NS_ENSURE_SUCCESS(rv,rv);
     output.Append(NS_ConvertUTF8toUTF16(spec));
@@ -164,7 +164,7 @@ nsAddbookProtocolHandler::GeneratePrintOutput(nsIAddbookUrl *addbookUrl,
 {
   NS_ENSURE_ARG_POINTER(addbookUrl);
 
-  nsCAutoString uri;
+  nsAutoCString uri;
   nsresult rv = addbookUrl->GetPath(uri);
   NS_ENSURE_SUCCESS(rv,rv);
 

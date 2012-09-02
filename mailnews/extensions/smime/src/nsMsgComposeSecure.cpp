@@ -627,7 +627,7 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (bool aOuter, nsIMsgSendR
   /* Compute the hash...
    */
 
-  nsCAutoString hashString;
+  nsAutoCString hashString;
   mDataHash->Finish(false, hashString);
 
   mDataHash = 0;

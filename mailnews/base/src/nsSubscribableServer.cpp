@@ -205,12 +205,12 @@ nsSubscribableServer::NotifyAssert(SubscribeTreeNode *subjectNode, nsIRDFResourc
         return NS_OK;
     }
 
-    nsCAutoString subjectUri;
+    nsAutoCString subjectUri;
     BuildURIFromNode(subjectNode, subjectUri);
 
     // we could optimize this, since we know that objectUri == subjectUri + mDelimiter + object->name
     // is it worth it?
-    nsCAutoString objectUri;
+    nsAutoCString objectUri;
     BuildURIFromNode(objectNode, objectUri);
 
     nsCOMPtr <nsIRDFResource> subject;
@@ -259,7 +259,7 @@ nsSubscribableServer::NotifyChange(SubscribeTreeNode *subjectNode, nsIRDFResourc
         return NS_OK;
     }
 
-    nsCAutoString subjectUri;
+    nsAutoCString subjectUri;
     BuildURIFromNode(subjectNode, subjectUri);
 
     rv = EnsureRDFService();
@@ -737,7 +737,7 @@ nsSubscribableServer::GetChildren(const nsACString &aPath,
     if (!node)
       return NS_ERROR_FAILURE;
 
-    nsCAutoString uriPrefix;
+    nsAutoCString uriPrefix;
     NS_ASSERTION(mTreeRoot, "no tree root!");
     if (!mTreeRoot)
       return NS_ERROR_UNEXPECTED;
@@ -760,7 +760,7 @@ nsSubscribableServer::GetChildren(const nsACString &aPath,
     nsCOMArray<nsIRDFResource> result;
 
     while (current) {
-        nsCAutoString uri;
+        nsAutoCString uri;
         uri = uriPrefix;
         NS_ASSERTION(current->name, "no name");
         if (!current->name)

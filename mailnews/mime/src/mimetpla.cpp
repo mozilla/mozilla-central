@@ -131,8 +131,8 @@ MimeInlineTextPlain_parse_begin (MimeObject *obj)
       {
         // Get font
         // only used for viewing (!plainHTML)
-        nsCAutoString fontstyle;
-        nsCAutoString fontLang;  // langgroup of the font
+        nsAutoCString fontstyle;
+        nsAutoCString fontLang;  // langgroup of the font
 
         // generic font-family name ( -moz-fixed for fixed font and NULL for
         // variable font ) is sufficient now that bug 105199 has been fixed.
@@ -160,7 +160,7 @@ MimeInlineTextPlain_parse_begin (MimeObject *obj)
         }
 
         // Opening <div>. We currently have to add formatting here. :-(
-        nsCAutoString openingDiv;
+        nsAutoCString openingDiv;
         if (!quoting)
              /* 4.x' editor can't break <div>s (e.g. to interleave comments).
                 We'll add the class to the <blockquote type=cite> later. */
@@ -325,7 +325,7 @@ MimeInlineTextPlain_parse_line (const char *line, int32_t length, MimeObject *ob
     else  // line is in UTF-8
       CopyUTF8toUTF16(inputStr, lineSourceStr);
 
-    nsCAutoString prefaceResultStr;  // Quoting stuff before the real text
+    nsAutoCString prefaceResultStr;  // Quoting stuff before the real text
 
     // Recognize quotes
     uint32_t oldCiteLevel = text->mCiteLevel;
@@ -355,7 +355,7 @@ MimeInlineTextPlain_parse_line (const char *line, int32_t length, MimeObject *ob
       prefaceResultStr += "</pre>";
       for (uint32_t i = 0; i < text->mCiteLevel - oldCiteLevel; i++)
       {
-        nsCAutoString style;
+        nsAutoCString style;
         MimeTextBuildPrefixCSS(text->mQuotedSizeSetting, text->mQuotedStyleSetting,
                                text->mCitationColor, style);
         if (!plainHTML && !style.IsEmpty())
@@ -421,7 +421,7 @@ MimeInlineTextPlain_parse_line (const char *line, int32_t length, MimeObject *ob
     {
       status = MimeObject_write(obj, prefaceResultStr.get(), prefaceResultStr.Length(), true);
       if (status < 0) return status;
-      nsCAutoString outString;
+      nsAutoCString outString;
       if (obj->options->format_out != nsMimeOutput::nsMimeMessageSaveAs ||
           !mailCharset || !*mailCharset)
         CopyUTF16toUTF8(lineResultUnichar, outString);

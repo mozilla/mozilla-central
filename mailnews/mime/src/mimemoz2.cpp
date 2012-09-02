@@ -252,7 +252,7 @@ ValidateRealName(nsMsgAttachmentData *aAttach, MimeHeaders *aHdrs)
   {
     aAttach->m_realName = "attachment";
     nsresult rv = NS_OK;
-    nsCAutoString contentType (aAttach->m_realType);
+    nsAutoCString contentType (aAttach->m_realType);
     int32_t pos = contentType.FindChar(';');
     if (pos > 0)
       contentType.SetLength(pos);
@@ -260,7 +260,7 @@ ValidateRealName(nsMsgAttachmentData *aAttach, MimeHeaders *aHdrs)
     nsCOMPtr<nsIMIMEService> mimeFinder (do_GetService(NS_MIMESERVICE_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv))
     {
-      nsCAutoString fileExtension;
+      nsAutoCString fileExtension;
       rv = mimeFinder->GetPrimaryExtension(contentType, EmptyCString(), fileExtension);
 
       if (NS_SUCCEEDED(rv) && !fileExtension.IsEmpty())
@@ -443,7 +443,7 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   if (!tmp->m_realName.IsEmpty() && !tmp->m_isExternalAttachment)
   {
     urlString.Append("&filename=");
-    nsCAutoString aResult;
+    nsAutoCString aResult;
     if (NS_SUCCEEDED(MsgEscapeString(tmp->m_realName,
                                      nsINetUtil::ESCAPE_XALPHAS, aResult)))
       urlString.Append(aResult);
@@ -661,13 +661,13 @@ NotifyEmittersOfAttachmentList(MimeDisplayOptions     *opt,
       continue;
     }
 
-    nsCAutoString spec;
+    nsAutoCString spec;
     if (tmp->m_url)
       tmp->m_url->GetSpec(spec);
 
-    nsCAutoString sizeStr;
+    nsAutoCString sizeStr;
     sizeStr.AppendInt(tmp->m_size);
-    nsCAutoString downloadedStr;
+    nsAutoCString downloadedStr;
     downloadedStr.AppendInt(tmp->m_isDownloaded);
 
     mimeEmitterStartAttachment(opt, tmp->m_realName.get(), tmp->m_realType.get(),
@@ -776,7 +776,7 @@ mime_file_type (const char *filename, void *stream_closure)
     ext++;
     nsCOMPtr<nsIMIMEService> mimeFinder (do_GetService(NS_MIMESERVICE_CONTRACTID, &rv));
     if (mimeFinder) {
-      nsCAutoString type;
+      nsAutoCString type;
       mimeFinder->GetTypeFromExtension(nsDependentCString(ext), type);
       retType = ToNewCString(type);
     }
@@ -1524,7 +1524,7 @@ mime_bridge_create_display_stream(
   msd->firstCheck = true;
 
   // Store the URL string for this decode operation
-  nsCAutoString urlString;
+  nsAutoCString urlString;
   nsresult rv;
 
   // Keep a hold of the channel...
@@ -2136,7 +2136,7 @@ nsresult GetMailNewsFont(MimeObject *obj, bool styleFixed,  int32_t *fontPixelSi
   nsIPrefBranch *prefBranch = GetPrefBranch(obj->options);
   if (prefBranch) {
     MimeInlineText  *text = (MimeInlineText *) obj;
-    nsCAutoString charset;
+    nsAutoCString charset;
 
     // get a charset
     if (!text->initializeCharset)
@@ -2149,7 +2149,7 @@ nsresult GetMailNewsFont(MimeObject *obj, bool styleFixed,  int32_t *fontPixelSi
 
     nsCOMPtr<nsICharsetConverterManager> charSetConverterManager2;
     nsCOMPtr<nsIAtom> langGroupAtom;
-    nsCAutoString prefStr;
+    nsAutoCString prefStr;
 
     ToLowerCase(charset);
 
@@ -2236,7 +2236,7 @@ HTMLSanitize(const nsString& inString, nsString& outString)
   if (NS_SUCCEEDED(rv) && !migrated) {
     prefs->SetBoolPref("mailnews.display.html_sanitizer.allowed_tags.migrated",
                        true);
-    nsCAutoString legacy;
+    nsAutoCString legacy;
     rv = prefs->GetCharPref("mailnews.display.html_sanitizer.allowed_tags",
                             getter_Copies(legacy));
     if (NS_SUCCEEDED(rv)) {

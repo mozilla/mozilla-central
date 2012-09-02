@@ -671,7 +671,7 @@ nsresult nsMsgMdnGenerator::CreateSecondPart()
         do_GetService(NS_NETWORK_PROTOCOL_CONTRACTID_PREFIX "http", &rv);
     if (NS_SUCCEEDED(rv) && pHTTPHandler)
     {
-      nsCAutoString userAgentString;
+      nsAutoCString userAgentString;
       pHTTPHandler->GetUserAgent(userAgentString);
 
       if (!userAgentString.IsEmpty())

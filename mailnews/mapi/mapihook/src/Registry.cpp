@@ -44,13 +44,13 @@ BOOL CLSIDtochar(const CLSID& clsid, char* szCLSID,
 
 // Create a key and set its value.
 
-BOOL setKeyAndValue(nsCAutoString keyName, const char* subKey,
+BOOL setKeyAndValue(nsAutoCString keyName, const char* subKey,
                     const char* theValue)
 {
     HKEY hKey;
     BOOL retValue = TRUE;
 
-    nsCAutoString theKey(keyName);
+    nsAutoCString theKey(keyName);
     if (subKey != NULL)
     {
         theKey += "\\";
@@ -135,7 +135,7 @@ void RegisterProxy()
         return;
 
     *pTemp = '\0';
-    nsCAutoString proxyPath(szModule);
+    nsAutoCString proxyPath(szModule);
 
     proxyPath += "\\";
     proxyPath += MAPI_PROXY_DLL_NAME;
@@ -170,7 +170,7 @@ void UnRegisterProxy()
         return;
 
     *pTemp = '\0';
-    nsCAutoString proxyPath(szModule);
+    nsAutoCString proxyPath(szModule);
 
     proxyPath += "\\";
     proxyPath += MAPI_PROXY_DLL_NAME;
@@ -197,8 +197,8 @@ HRESULT RegisterServer(const CLSID& clsid,         // Class ID
     char szModuleName[MAX_SIZE];
     char szCLSID[CLSID_STRING_SIZE];
 
-    nsCAutoString independentProgId(szVerIndProgID);
-    nsCAutoString progId(szProgID);
+    nsAutoCString independentProgId(szVerIndProgID);
+    nsAutoCString progId(szProgID);
 
     DWORD dwResult = ::GetModuleFileName(hModule, szModuleName,
                               sizeof(szModuleName)/sizeof(char));
@@ -206,8 +206,8 @@ HRESULT RegisterServer(const CLSID& clsid,         // Class ID
     if (dwResult == 0)
         return S_FALSE;
 
-    nsCAutoString moduleName(szModuleName);
-    nsCAutoString registryKey("CLSID\\");
+    nsAutoCString moduleName(szModuleName);
+    nsAutoCString registryKey("CLSID\\");
 
     moduleName += MAPI_STARTUP_ARG;
 
@@ -265,7 +265,7 @@ LONG UnregisterServer(const CLSID& clsid,         // Class ID
 
     UnRegisterProxy();
 
-    nsCAutoString registryKey("CLSID\\");
+    nsAutoCString registryKey("CLSID\\");
     registryKey += szCLSID;
 
     lResult = recursiveDeleteKey(HKEY_CLASSES_ROOT, registryKey.get());

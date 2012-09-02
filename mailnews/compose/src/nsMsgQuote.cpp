@@ -125,7 +125,7 @@ nsMsgQuote::QuoteMessage(const char *msgURI, bool quoteHeaders,
   mQuoteHeaders = quoteHeaders;
   mStreamListener = aQuoteMsgStreamListener;
 
-  nsCAutoString msgUri(msgURI);
+  nsAutoCString msgUri(msgURI);
   bool fileUrl = !strncmp(msgURI, "file:", 5);
   bool forwardedMessage = PL_strstr(msgURI, "&realtype=message/rfc822") != nullptr;
   nsCOMPtr<nsIURI> aURL;
@@ -152,7 +152,7 @@ nsMsgQuote::QuoteMessage(const char *msgURI, bool quoteHeaders,
   nsCOMPtr <nsIURL> mailNewsUrl = do_QueryInterface(aURL, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCAutoString queryPart;
+  nsAutoCString queryPart;
   rv = mailNewsUrl->GetQuery(queryPart);
   if (!queryPart.IsEmpty())
     queryPart.Append('&');

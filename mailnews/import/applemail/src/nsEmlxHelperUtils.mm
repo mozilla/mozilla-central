@@ -115,7 +115,7 @@ nsresult nsEmlxHelperUtils::AddEmlxMessageToStream(nsIFile *aMessage, nsIOutputS
 
   nsresult rv = NS_ERROR_FAILURE;
 
-  nsCAutoString path;
+  nsAutoCString path;
   aMessage->GetNativePath(path);
 
   NSData *data = [NSData dataWithContentsOfFile:[NSString stringWithUTF8String:path.get()]]; 
@@ -169,7 +169,7 @@ nsresult nsEmlxHelperUtils::AddEmlxMessageToStream(nsIFile *aMessage, nsIOutputS
 
   // write the X-Mozilla-Status header according to which flags we've gathered above.
   uint32_t dummyRv;
-  nsCAutoString buf(PR_smprintf(X_MOZILLA_STATUS_FORMAT MSG_LINEBREAK, x_mozilla_flags));
+  nsAutoCString buf(PR_smprintf(X_MOZILLA_STATUS_FORMAT MSG_LINEBREAK, x_mozilla_flags));
   NS_ASSERTION(!buf.IsEmpty(), "printf error with X-Mozilla-Status header");
   if (buf.IsEmpty()) {
     [pool release];

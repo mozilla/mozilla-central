@@ -820,7 +820,7 @@ MimeMessage_partial_message_html(const char *data, void *closure,
                                  MimeHeaders *headers)
 {
   MimeMessage *msg = (MimeMessage *)closure;
-  nsCAutoString orig_url(data);
+  nsAutoCString orig_url(data);
   char *uidl = MimeHeaders_get(headers, HEADER_X_UIDL, false, false);
   char *msgId = MimeHeaders_get(headers, HEADER_MESSAGE_ID, false,
                   false);

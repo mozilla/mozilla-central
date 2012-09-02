@@ -358,7 +358,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
       // References is set. Add the In-Reply-To as last header unless it's
       // set as last reference already.
       int32_t lastRefStart = m_referencePart.RFindChar('<');
-      nsCAutoString lastReference;
+      nsAutoCString lastReference;
       if (lastRefStart != -1)
         lastReference = StringTail(m_referencePart, lastRefStart);
       else
@@ -409,7 +409,7 @@ nsresult nsMailtoUrl::ParseUrl()
   if (startOfSearchPart >= 0)
   {
     // now parse out the search field...
-    nsCAutoString searchPart(Substring(escapedPath, startOfSearchPart));
+    nsAutoCString searchPart(Substring(escapedPath, startOfSearchPart));
 
     if (!searchPart.IsEmpty())
     {

@@ -64,7 +64,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetPropertiesChromeURI(nsACString &aResult)
 NS_IMETHODIMP nsAbLDAPDirectory::Init(const char* aURI)
 {
   // We need to ensure that the m_DirPrefId is initialized properly
-  nsCAutoString uri(aURI);
+  nsAutoCString uri(aURI);
 
   // Find the first ? (of the search params) if there is one.
   // We know we can start at the end of the moz-abldapdirectory:// because
@@ -126,7 +126,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetChildCards(nsISimpleEnumerator** result)
         return NS_OK;
 
       // perform the same query, but on the local directory
-      nsCAutoString localDirectoryURI(NS_LITERAL_CSTRING(kMDBDirectoryRoot));
+      nsAutoCString localDirectoryURI(NS_LITERAL_CSTRING(kMDBDirectoryRoot));
       localDirectoryURI.Append(fileName);
       if (mIsQueryURI) 
       {
@@ -186,7 +186,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetLDAPURL(nsILDAPURL** aResult)
   // Rather than using GetURI here we call GetStringValue directly so
   // we can handle the case where the URI isn't specified (see comments
   // below)
-  nsCAutoString URI;
+  nsAutoCString URI;
   nsresult rv = GetStringValue("uri", EmptyCString(), URI);
   if (NS_FAILED(rv) || URI.IsEmpty())
   {
@@ -228,7 +228,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::SetLDAPURL(nsILDAPURL *aUrl)
 {
   NS_ENSURE_ARG_POINTER(aUrl);
 
-  nsCAutoString oldUrl;
+  nsAutoCString oldUrl;
   // Note, it doesn't matter if GetStringValue fails - we'll just send an
   // update if its blank (i.e. old value not set).
   GetStringValue("uri", EmptyCString(), oldUrl);
@@ -435,7 +435,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetIsSecure(bool *aIsSecure)
 {
   NS_ENSURE_ARG_POINTER(aIsSecure);
 
-  nsCAutoString URI;
+  nsAutoCString URI;
   nsresult rv = GetStringValue("uri", EmptyCString(), URI);
   NS_ENSURE_SUCCESS(rv, rv);
   
@@ -562,7 +562,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::SetSearchServerControls(nsIMutableArray *aContr
 
 NS_IMETHODIMP nsAbLDAPDirectory::GetProtocolVersion(uint32_t *aProtocolVersion)
 {
-  nsCAutoString versionString;
+  nsAutoCString versionString;
 
   nsresult rv = GetStringValue("protocolVersion", NS_LITERAL_CSTRING("3"), versionString);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -724,7 +724,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::AddCard(nsIAbCard *aUpdatedCard,
   NS_ENSURE_SUCCESS(rv, rv);
   
   // Retrieve preferences
-  nsCAutoString prefString;
+  nsAutoCString prefString;
   rv = GetRdnAttributes(prefString);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -752,12 +752,12 @@ NS_IMETHODIMP nsAbLDAPDirectory::AddCard(nsIAbCard *aUpdatedCard,
   rv = GetLDAPURL(getter_AddRefs(currentUrl));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString baseDN;
+  nsAutoCString baseDN;
   rv = currentUrl->GetDn(baseDN);
   NS_ENSURE_SUCCESS(rv, rv);
  
   // Calculate DN
-  nsCAutoString cardDN;
+  nsAutoCString cardDN;
   rv = card->BuildRdn(attrMap, rdnAttrs.GetSize(), rdnAttrs.GetArray(),
     cardDN);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -767,7 +767,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::AddCard(nsIAbCard *aUpdatedCard,
   rv = card->SetDn(cardDN);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString ourUuid;
+  nsAutoCString ourUuid;
   GetUuid(ourUuid);
   copyToCard->SetDirectoryId(ourUuid);
 
@@ -784,7 +784,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::DeleteCards(nsIArray *aCards)
 {
   uint32_t cardCount;
   uint32_t i;
-  nsCAutoString cardDN;
+  nsAutoCString cardDN;
 
   nsresult rv = aCards->GetLength(&cardCount);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -833,7 +833,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::ModifyCard(nsIAbCard *aUpdatedCard)
   NS_ENSURE_SUCCESS(rv, rv);
   
   // Retrieve preferences
-  nsCAutoString prefString;
+  nsAutoCString prefString;
   rv = GetObjectClasses(prefString);
   NS_ENSURE_SUCCESS(rv, rv);
   
@@ -849,7 +849,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::ModifyCard(nsIAbCard *aUpdatedCard)
   NS_ENSURE_SUCCESS(rv, rv);
   
   // Get current DN
-  nsCAutoString oldDN;
+  nsAutoCString oldDN;
   rv = card->GetDn(oldDN);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -858,15 +858,15 @@ NS_IMETHODIMP nsAbLDAPDirectory::ModifyCard(nsIAbCard *aUpdatedCard)
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Retrieve base DN and RDN attributes
-  nsCAutoString baseDN;
-  nsCAutoString oldRDN;
+  nsAutoCString baseDN;
+  nsAutoCString oldRDN;
   CharPtrArrayGuard rdnAttrs;
   rv = ldapSvc->ParseDn(oldDN.get(), oldRDN, baseDN,
                         rdnAttrs.GetSizeAddr(), rdnAttrs.GetArrayAddr());
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Calculate new RDN and check whether it has changed
-  nsCAutoString newRDN;
+  nsAutoCString newRDN;
   rv = card->BuildRdn(attrMap, rdnAttrs.GetSize(), rdnAttrs.GetArray(),
     newRDN);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -880,7 +880,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::ModifyCard(nsIAbCard *aUpdatedCard)
   else
   {
     // Build and store the new DN
-    nsCAutoString newDN(newRDN);
+    nsAutoCString newDN(newRDN);
     newDN.AppendLiteral(",");
     newDN.Append(baseDN);
     

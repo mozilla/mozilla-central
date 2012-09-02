@@ -350,7 +350,7 @@ NS_IMETHODIMP nsLDAPURL::Equals(nsIURI *other, bool *_retval)
     nsCOMPtr<nsILDAPURL> otherURL(do_QueryInterface(other, &rv));
     if (NS_SUCCEEDED(rv))
     {
-      nsCAutoString thisSpec, otherSpec;
+      nsAutoCString thisSpec, otherSpec;
       uint32_t otherOptions;
 
       rv = GetSpec(thisSpec);
@@ -514,7 +514,7 @@ NS_IMETHODIMP nsLDAPURL::AddAttribute(const nsACString &aAttribute)
   else
   {
     // Wrap the attribute in commas, so that we can do an exact match.
-    nsCAutoString findAttribute(",");
+    nsAutoCString findAttribute(",");
     findAttribute.Append(aAttribute);
     findAttribute.Append(',');
 
@@ -544,7 +544,7 @@ NS_IMETHODIMP nsLDAPURL::RemoveAttribute(const nsACString &aAttribute)
   if (mAttributes.IsEmpty())
     return NS_OK;
 
-  nsCAutoString findAttribute(",");
+  nsAutoCString findAttribute(",");
   findAttribute.Append(aAttribute);
   findAttribute.Append(',');
 
@@ -572,7 +572,7 @@ NS_IMETHODIMP nsLDAPURL::HasAttribute(const nsACString &aAttribute,
 {
   NS_ENSURE_ARG_POINTER(_retval);
 
-  nsCAutoString findAttribute(",");
+  nsAutoCString findAttribute(",");
   findAttribute.Append(aAttribute);
   findAttribute.Append(',');
 

@@ -112,7 +112,7 @@ nsresult nsAbLDAPProcessChangeLogData::OnLDAPSearchEntry(nsILDAPMessage *aMessag
     {
     case kSearchingAuthDN :
         {
-            nsCAutoString authDN;
+            nsAutoCString authDN;
             rv = aMessage->GetDn(authDN);
             if(NS_SUCCEEDED(rv) && !authDN.IsEmpty())
                 mAuthDN = authDN.get();
@@ -165,7 +165,7 @@ nsresult nsAbLDAPProcessChangeLogData::OnLDAPSearchResult(nsILDAPMessage *aMessa
                 if (NS_FAILED(rv)) 
                     break;
 
-                nsCAutoString fileName;
+                nsAutoCString fileName;
                 rv = mDirectory->GetReplicationFileName(fileName);
                 if (NS_FAILED(rv))
                   break;
@@ -247,7 +247,7 @@ nsresult nsAbLDAPProcessChangeLogData::GetAuthData()
     if (NS_FAILED(rv))
         return rv;
 
-    nsCAutoString serverUri;
+    nsAutoCString serverUri;
     rv = url->GetSpec(serverUri);
     if (NS_FAILED(rv)) 
         return rv;

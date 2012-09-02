@@ -154,7 +154,7 @@ NS_IMETHODIMP nsMailboxUrl::GetUri(char ** aURI)
   {
     if (m_filePath)
     {
-      nsCAutoString baseUri;
+      nsAutoCString baseUri;
       nsresult rv;
       nsCOMPtr<nsIMsgAccountManager> accountManager =
         do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
@@ -167,7 +167,7 @@ NS_IMETHODIMP nsMailboxUrl::GetUri(char ** aURI)
         m_baseURL->GetSpec(baseUri);
       nsCString baseMessageURI;
       nsCreateLocalBaseMessageURI(baseUri, baseMessageURI);
-      nsCAutoString uriStr;
+      nsAutoCString uriStr;
       nsBuildLocalMessageURI(baseMessageURI.get(), m_messageKey, uriStr);
       *aURI = ToNewCString(uriStr);
     }
@@ -308,7 +308,7 @@ NS_IMETHODIMP nsMailboxUrl::IsUrlType(uint32_t type, bool *isType)
 
 nsresult nsMailboxUrl::ParseSearchPart()
 {
-  nsCAutoString searchPart;
+  nsAutoCString searchPart;
   nsresult rv = GetQuery(searchPart);
   // add code to this function to decompose everything past the '?'.....
   if (NS_SUCCEEDED(rv) && !searchPart.IsEmpty())

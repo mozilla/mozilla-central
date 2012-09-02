@@ -142,7 +142,7 @@ nsMsgPrintEngine::OnStateChange(nsIWebProgress* aWebProgress,
           nsCOMPtr<nsIURI> originalURI = nullptr;
           if (NS_SUCCEEDED(aChannel->GetOriginalURI(getter_AddRefs(originalURI))) && originalURI)
           {
-            nsCAutoString spec;
+            nsAutoCString spec;
 
             if (NS_SUCCEEDED(originalURI->GetSpec(spec)))
             {      

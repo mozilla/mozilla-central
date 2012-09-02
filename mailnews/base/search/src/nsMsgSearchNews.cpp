@@ -200,7 +200,7 @@ char *nsMsgSearchNews::EncodeTerm (nsIMsgSearchTerm *term)
   else
     pattern[0] = '\0';
 #else
-    nsCAutoString pattern;
+    nsAutoCString pattern;
 #endif
 
 

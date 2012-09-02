@@ -182,7 +182,7 @@ nsNntpService::CreateMessageIDURL(nsIMsgFolder *folder, nsMsgKey key, char **url
     rv = folder->GetName(groupName);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsCAutoString uri;
+    nsAutoCString uri;
     uri = rootFolderURI.get();
     uri += '/';
     uri += escapedMessageID;
@@ -210,7 +210,7 @@ nsNntpService::DisplayMessage(const char* aMessageURI, nsISupports * aDisplayCon
   rv = DecomposeNewsMessageURI(aMessageURI, getter_AddRefs(folder), &key);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCAutoString urlStr;
+  nsAutoCString urlStr;
   // if we are displaying (or printing), we want the news://host/message-id url
   // we keep the original uri around, for cancelling and so we can get to the
   // articles by doing GROUP and then ARTICLE <n>.
@@ -407,7 +407,7 @@ NS_IMETHODIMP nsNntpService::FetchMimePart(nsIURI *aURI, const char *aMessageURI
 // while offline working
 //    if (msgMessageUrl)
 //    {
-//      nsCAutoString spec;
+//      nsAutoCString spec;
 //      aURI->GetSpec(spec);
 //      msgMessageUrl->SetOriginalSpec(spec.get());
 //    }
@@ -427,7 +427,7 @@ NS_IMETHODIMP nsNntpService::OpenAttachment(const char *aContentType,
 
   nsCOMPtr<nsIURI> url;
   nsresult rv = NS_OK;
-  nsCAutoString newsUrl;
+  nsAutoCString newsUrl;
   newsUrl = aUrl;
   newsUrl += "&type=";
   newsUrl += aContentType;
@@ -533,7 +533,7 @@ nsNntpService::DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder **
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Get the group name and key from the url
-  nsCAutoString groupName;
+  nsAutoCString groupName;
   rv = nntpUrl->GetGroup(groupName);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -560,7 +560,7 @@ nsNntpService::GetFolderFromUri(const char *aUri, nsIMsgFolder **aFolder)
   nsresult rv = NS_NewURI(getter_AddRefs(uri), nsDependentCString(aUri));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCAutoString path;
+  nsAutoCString path;
   rv = uri->GetPath(path);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -744,9 +744,9 @@ nsNntpService::GenerateNewsHeaderValsForPosting(const nsACString& newsgroupsList
   // we are not going to allow the user to cross post to multiple hosts.
   // if we detect that, we stop and return error.
 
-  nsCAutoString host;
-  nsCAutoString str;
-  nsCAutoString newsgroups;
+  nsAutoCString host;
+  nsAutoCString str;
+  nsAutoCString newsgroups;
 
   nsTArray<nsCString> list;
   ParseString(newsgroupsList, ',', list);
@@ -755,8 +755,8 @@ nsNntpService::GenerateNewsHeaderValsForPosting(const nsACString& newsgroupsList
     list[index].StripWhitespace();
     if (!list[index].IsEmpty())
     {
-      nsCAutoString currentHost;
-      nsCAutoString theRest;
+      nsAutoCString currentHost;
+      nsAutoCString theRest;
       // does str start with "news:/"?
       if (StringBeginsWith(list[index], NS_LITERAL_CSTRING(kNewsRootURI)))
       {
@@ -776,7 +776,7 @@ nsNntpService::GenerateNewsHeaderValsForPosting(const nsACString& newsgroupsList
       int32_t slashpos = theRest.FindChar('/');
       if (slashpos > 0 )
       {
-        nsCAutoString currentGroup;
+        nsAutoCString currentGroup;
 
         // theRest is "host/group"
         currentHost = StringHead(theRest, slashpos);
@@ -991,9 +991,9 @@ nsNntpService::CreateNewsAccount(const char *aHostname, bool aUseSSL,
 nsresult
 nsNntpService::GetServerForUri(nsIURI *aUri, nsINntpIncomingServer **aServer)
 {
-  nsCAutoString hostName;
-  nsCAutoString scheme;
-  nsCAutoString path;
+  nsAutoCString hostName;
+  nsAutoCString scheme;
+  nsAutoCString path;
   int32_t port = 0;
   nsresult rv;
 
@@ -1052,7 +1052,7 @@ nsNntpService::GetServerForUri(nsIURI *aUri, nsINntpIncomingServer **aServer)
 
   NS_IF_ADDREF(*aServer = nntpServer);
 
-  nsCAutoString spec;
+  nsAutoCString spec;
   rv = aUri->GetSpec(spec);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1244,7 +1244,7 @@ NS_IMETHODIMP nsNntpService::NewURI(const nsACString &aSpec,
 
     if (aBaseURI)
     {
-      nsCAutoString newSpec;
+      nsAutoCString newSpec;
       aBaseURI->Resolve(aSpec, newSpec);
       rv = nntpUri->SetSpec(newSpec);
     }
@@ -1404,7 +1404,7 @@ nsNntpService::StreamMessage(const char *aMessageURI, nsISupports *aConsumer,
     // The nntp protocol object will look for "header=filter" to decide if it wants to convert
     // the data instead of using aConvertData. It turns out to be way too hard to pass aConvertData
     // all the way over to the nntp protocol object.
-    nsCAutoString aURIString(aMessageURI);
+    nsAutoCString aURIString(aMessageURI);
 
     if (!aAdditionalHeader.IsEmpty())
     {
@@ -1418,7 +1418,7 @@ nsNntpService::StreamMessage(const char *aMessageURI, nsISupports *aConsumer,
     nsresult rv = DecomposeNewsMessageURI(aMessageURI, getter_AddRefs(folder), &key);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCAutoString urlStr;
+    nsAutoCString urlStr;
     rv = CreateMessageIDURL(folder, key, getter_Copies(urlStr));
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1495,7 +1495,7 @@ NS_IMETHODIMP nsNntpService::StreamHeaders(const char *aMessageURI,
     if (inputStream)
       return MsgStreamMsgHeaders(inputStream, aConsumer);
   }
-  nsCAutoString urlStr;
+  nsAutoCString urlStr;
   rv = CreateMessageIDURL(folder, key, getter_Copies(urlStr));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1533,7 +1533,7 @@ NS_IMETHODIMP nsNntpService::IsMsgInMemCache(nsIURI *aUrl,
   if (mCacheSession)
   {
     // check if message is in memory cache
-    nsCAutoString cacheKey;
+    nsAutoCString cacheKey;
     aUrl->GetAsciiSpec(cacheKey);
     // nntp urls are truncated at the query part when used as cache keys
     int32_t pos = cacheKey.FindChar('?');

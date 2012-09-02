@@ -53,7 +53,7 @@ NS_IMETHODIMP nsAbMDBDirFactory::GetDirectories(const nsAString &aDirName,
   nsCOMPtr<nsIAddrDatabase> listDatabase;
   if (NS_SUCCEEDED(rv))
   {
-    nsCAutoString fileName;
+    nsAutoCString fileName;
       
     if (StringBeginsWith(aURI, NS_LITERAL_CSTRING(kMDBDirectoryRoot)))
       fileName = Substring(aURI, kMDBDirectoryRootLen, aURI.Length() - kMDBDirectoryRootLen);

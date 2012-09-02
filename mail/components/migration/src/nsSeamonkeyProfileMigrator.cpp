@@ -452,7 +452,7 @@ nsSeamonkeyProfileMigrator::CopySignatureFiles(PBStructArray &aIdentities,
         targetSigFile->Append(leafName);
 
         // now write out the new descriptor
-        nsCAutoString descriptorString;
+        nsAutoCString descriptorString;
         targetSigFile->GetPersistentDescriptor(descriptorString);
         NS_Free(pref->stringValue);
         pref->stringValue = ToNewCString(descriptorString);
@@ -546,7 +546,7 @@ nsSeamonkeyProfileMigrator::CopyMailFolders(PBStructArray &aMailServers,
         // now we want to make sure the actual directory pref that gets
         // transformed into the new profile's pref.js has the right file
         // location.
-        nsCAutoString descriptorString;
+        nsAutoCString descriptorString;
         targetMailFolder->GetPersistentDescriptor(descriptorString);
         NS_Free(pref->stringValue);
         pref->stringValue = ToNewCString(descriptorString);
@@ -576,7 +576,7 @@ nsSeamonkeyProfileMigrator::CopyMailFolders(PBStructArray &aMailServers,
         targetNewsRCFile->Append(leafName);
 
         // now write out the new descriptor
-        nsCAutoString descriptorString;
+        nsAutoCString descriptorString;
         targetNewsRCFile->GetPersistentDescriptor(descriptorString);
         NS_Free(pref->stringValue);
         pref->stringValue = ToNewCString(descriptorString);

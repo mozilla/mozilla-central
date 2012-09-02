@@ -1037,7 +1037,7 @@ nsresult nsEudoraAddress::AddGroupMembersAsCards(nsVoidArray &membersArray, nsIA
   nsresult rv = NS_OK;
   nsCOMPtr <nsIMdbRow> newRow;
   nsAutoString uniStr;
-  nsCAutoString  displayName;
+  nsAutoCString  displayName;
 
   for (int32_t i = 0; i < max; i++)
   {
@@ -1096,7 +1096,7 @@ nsresult nsEudoraAddress::AddSingleList(CAliasEntry *pEntry, nsVoidArray &emailL
   for (int32_t i = 0; i < max; i++)
   {
     CAliasData *pData = (CAliasData *)emailList.ElementAt(i);
-    nsCAutoString ldifValue("mail");
+    nsAutoCString ldifValue("mail");
     ldifValue.Append(pData->m_email);
     rv = pDb->AddLdifListMember(newRow, ldifValue.get());
   }

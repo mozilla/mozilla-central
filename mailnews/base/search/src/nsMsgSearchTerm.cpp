@@ -150,7 +150,7 @@ nsresult NS_MsgGetAttributeFromString(const char *string, int16_t *attrib, nsACS
 
     if (!headers.IsEmpty())
     {
-      nsCAutoString hdrStr(headers);
+      nsAutoCString hdrStr(headers);
       hdrStr.StripWhitespace();  //remove whitespace before parsing
 
       char *newStr= hdrStr.BeginWriting();
@@ -486,14 +486,14 @@ nsresult nsMsgSearchTerm::OutputValue(nsCString &outputStr)
       }
     case nsMsgSearchAttrib::MsgStatus:
       {
-        nsCAutoString status;
+        nsAutoCString status;
         NS_MsgGetUntranslatedStatusName (m_value.u.msgStatus, &status);
         outputStr += status;
         break;
       }
     case nsMsgSearchAttrib::Priority:
       {
-        nsCAutoString priority;
+        nsAutoCString priority;
         NS_MsgGetUntranslatedPriorityName(m_value.u.priority, priority);
         outputStr += priority;
         break;
@@ -524,7 +524,7 @@ nsresult nsMsgSearchTerm::OutputValue(nsCString &outputStr)
 NS_IMETHODIMP nsMsgSearchTerm::GetTermAsString (nsACString &outStream)
 {
   const char *operatorStr;
-  nsCAutoString  outputStr;
+  nsAutoCString  outputStr;
   nsresult  ret;
 
   if (m_matchAll)
@@ -678,7 +678,7 @@ nsMsgSearchTerm::ParseAttribute(char *inStream, nsMsgSearchAttribValue *attrib)
         *separator = '\0';
 
     int16_t attributeVal;
-    nsCAutoString customId;
+    nsAutoCString customId;
     nsresult rv = NS_MsgGetAttributeFromString(inStream, &attributeVal, m_customId);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -719,7 +719,7 @@ nsresult nsMsgSearchTerm::DeStreamNew (char *inStream, int16_t /*length*/)
     ParseValue(secondCommaSep + 1);
   if (m_attribute == nsMsgSearchAttrib::Label)
   {
-    nsCAutoString keyword("$label");
+    nsAutoCString keyword("$label");
     m_value.attribute = m_attribute = nsMsgSearchAttrib::Keywords;
     keyword.Append('0' + m_value.u.label);
     m_value.string = PL_strdup(keyword.get());
@@ -766,8 +766,8 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
   bodyHandler->SetStripHeaders (false);
 
   nsCString headerFullValue; // contains matched header value accumulated over multiple lines.
-  nsCAutoString buf;
-  nsCAutoString curMsgHeader;
+  nsAutoCString buf;
+  nsAutoCString curMsgHeader;
   bool searchingHeaders = true;
 
   // We will allow accumulation of received headers;
@@ -920,7 +920,7 @@ nsresult nsMsgSearchTerm::MatchBody (nsIMsgSearchScopeTerm *scope, uint64_t offs
   if (!bodyHan)
     return NS_ERROR_OUT_OF_MEMORY;
 
-  nsCAutoString buf;
+  nsAutoCString buf;
   bool endOfFile = false;  // if retValue == 0, we've hit the end of the file
   uint32 lines = 0;
 
@@ -1185,8 +1185,8 @@ NS_IMETHODIMP nsMsgSearchTerm::GetMatchAllBeforeDeciding (bool *aResult)
      if (!names || !addresses)
        return err;
 
-     nsCAutoString walkNames;
-     nsCAutoString walkAddresses;
+     nsAutoCString walkNames;
+     nsAutoCString walkAddresses;
      int32_t namePos = 0;
      int32_t addressPos = 0;
      for (uint32_t i = 0; i < count && result == boolContinueLoop; i++)

@@ -15,11 +15,11 @@
 void SetProxyPref(const nsACString& aHostPort, const char* aPref,
                   const char* aPortPref, nsIPrefBranch* aPrefs)
 {
-  nsCAutoString hostPort(aHostPort);
+  nsAutoCString hostPort(aHostPort);
   int32_t portDelimOffset = hostPort.RFindChar(':');
   if (portDelimOffset > 0) {
-    nsCAutoString host(Substring(hostPort, 0, portDelimOffset));
-    nsCAutoString port(Substring(hostPort, portDelimOffset + 1,
+    nsAutoCString host(Substring(hostPort, 0, portDelimOffset));
+    nsAutoCString port(Substring(hostPort, portDelimOffset + 1,
                                  hostPort.Length() - (portDelimOffset + 1)));
 
     aPrefs->SetCharPref(aPref, host.get());
@@ -37,7 +37,7 @@ void ParseOverrideServers(const char* aServers, nsIPrefBranch* aBranch)
   // server;server;server where server is a server name or ip address,
   // or "<local>". Mozilla's format is server,server,server, and <local>
   // must be translated to "localhost,127.0.0.1"
-  nsCAutoString override(aServers);
+  nsAutoCString override(aServers);
   int32_t left = 0, right = 0;
   for (;;) {
     right = override.FindChar(';', right);

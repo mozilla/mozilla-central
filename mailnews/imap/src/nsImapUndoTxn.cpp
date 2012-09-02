@@ -470,7 +470,7 @@ NS_IMETHODIMP nsImapMoveCopyMsgTxn::OnStopRunningUrl(nsIURI *aUrl, nsresult aExi
       }
       if (dstKeys.Length())
       {
-        nsCAutoString uids;
+        nsAutoCString uids;
         nsImapMailFolder::AllocateUidStringFromKeys(dstKeys.Elements(), dstKeys.Length(), uids);
         rv = imapService->OnlineMessageCopy(dstFolder, uids, srcFolder,
                                             true, true, nullptr,

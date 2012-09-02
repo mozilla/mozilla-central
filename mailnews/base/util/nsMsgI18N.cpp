@@ -162,7 +162,7 @@ nsresult nsMsgI18NConvertToUnicode(const char* aCharset,
 const char * nsMsgI18NFileSystemCharset()
 {
   /* Get a charset used for the file. */
-  static nsCAutoString fileSystemCharset;
+  static nsAutoCString fileSystemCharset;
 
   if (fileSystemCharset.IsEmpty()) 
   {
@@ -200,7 +200,7 @@ char * nsMsgI18NEncodeMimePartIIStr(const char *header, bool structured, const c
 {
   // No MIME, convert to the outgoing mail charset.
   if (false == usemime) {
-    nsCAutoString convertedStr;
+    nsAutoCString convertedStr;
     if (NS_SUCCEEDED(ConvertFromUnicode(charset, NS_ConvertUTF8toUTF16(header),
                                         convertedStr)))
       return PL_strdup(convertedStr.get());
@@ -396,7 +396,7 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
     do_GetService(NS_CHARSETCONVERTERMANAGER_CONTRACTID, &res);
   NS_ENSURE_SUCCESS(res, res);
 
-  nsCAutoString charsetName;
+  nsAutoCString charsetName;
   res = ccm->GetCharsetAlias(charset, charsetName);
   NS_ENSURE_SUCCESS(res, res);
 
@@ -432,7 +432,7 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
     nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &res));
     NS_ENSURE_SUCCESS(res, res);
 
-    nsCAutoString prefString("intl.fallbackCharsetList.");
+    nsAutoCString prefString("intl.fallbackCharsetList.");
     prefString.Append(charset);
     nsCString fallbackList;
     res = prefBranch->GetCharPref(prefString.get(), getter_Copies(fallbackList));

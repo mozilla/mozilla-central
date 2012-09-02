@@ -2114,7 +2114,7 @@ nsresult nsMsgFlatFolderDataSource::Init()
   nsIRDFService* rdf = getRDFService();
   NS_ENSURE_TRUE(rdf, NS_ERROR_FAILURE);
   nsCOMPtr<nsIRDFResource> source;
-  nsCAutoString dsUri(m_dsName);
+  nsAutoCString dsUri(m_dsName);
   dsUri.Append(":/");
   rdf->GetResource(dsUri, getter_AddRefs(m_rootResource));
 
@@ -2213,7 +2213,7 @@ void nsMsgFlatFolderDataSource::EnsureFolders()
 
 NS_IMETHODIMP nsMsgFlatFolderDataSource::GetURI(char* *aUri)
 {
-  nsCAutoString uri("rdf:");
+  nsAutoCString uri("rdf:");
   uri.Append(m_dsName);
   return (*aUri = ToNewCString(uri))
     ? NS_OK : NS_ERROR_OUT_OF_MEMORY;

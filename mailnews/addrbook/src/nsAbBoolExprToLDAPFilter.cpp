@@ -142,7 +142,7 @@ nsresult nsAbBoolExprToLDAPFilter::FilterCondition (
     nsresult rv = condition->GetName(getter_Copies (name));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCAutoString ldapAttr(name);
+    nsAutoCString ldapAttr(name);
     if (flags & TRANSLATE_CARD_PROPERTY)
     {
         rv = map->GetFirstAttribute (name, ldapAttr);

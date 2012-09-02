@@ -61,7 +61,7 @@ nsresult nsSmtpServer::getPrefs()
     if (NS_FAILED(rv))
         return rv;
 
-    nsCAutoString branchName;
+    nsAutoCString branchName;
     branchName.AssignLiteral("mail.smtpserver.");
     branchName += mKey;
     branchName.Append('.');
@@ -471,7 +471,7 @@ nsSmtpServer::ForgetPassword()
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Get the current server URI without the username
-  nsCAutoString serverUri(NS_LITERAL_CSTRING("smtp://"));
+  nsAutoCString serverUri(NS_LITERAL_CSTRING("smtp://"));
 
   nsCString hostname;
   rv = GetHostname(hostname);
@@ -521,7 +521,7 @@ nsSmtpServer::ForgetPassword()
 NS_IMETHODIMP
 nsSmtpServer::GetServerURI(nsACString &aResult)
 {
-    nsCAutoString uri(NS_LITERAL_CSTRING("smtp://"));
+    nsAutoCString uri(NS_LITERAL_CSTRING("smtp://"));
 
     nsCString username;
     nsresult rv = GetUsername(username);

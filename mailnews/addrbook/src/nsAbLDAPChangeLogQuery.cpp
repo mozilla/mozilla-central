@@ -89,14 +89,14 @@ NS_IMETHODIMP nsAbLDAPChangeLogQuery::QueryAuthDN(const nsACString & aValueUsedT
   nsresult rv = mDirectory->GetAttributeMap(getter_AddRefs(attrMap));
   NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCAutoString filter;
+    nsAutoCString filter;
     rv = attrMap->GetFirstAttribute(NS_LITERAL_CSTRING("PrimaryEmail"), filter);
     NS_ENSURE_SUCCESS(rv, rv);
 
     filter += '=';
     filter += aValueUsedToFindDn;
 
-    nsCAutoString dn;
+    nsAutoCString dn;
     rv = mURL->GetDn(dn);
     if(NS_FAILED(rv)) 
         return rv;
@@ -138,7 +138,7 @@ NS_IMETHODIMP nsAbLDAPChangeLogQuery::QueryChangeLog(const nsACString & aChangeL
   // make sure that the filter here just have one condition 
   // and should not be enclosed in enclosing brackets.
   // also condition '>' doesnot work, it should be '>='/
-  nsCAutoString filter (NS_LITERAL_CSTRING("changenumber>="));
+  nsAutoCString filter (NS_LITERAL_CSTRING("changenumber>="));
   filter.AppendInt(lastChangeNumber + 1);
 
   rv = CreateNewLDAPOperation();
@@ -156,7 +156,7 @@ NS_IMETHODIMP nsAbLDAPChangeLogQuery::QueryChangedEntries(const nsACString & aCh
     if(aChangedEntryDN.IsEmpty()) 
         return NS_ERROR_UNEXPECTED;
 
-    nsCAutoString urlFilter;
+    nsAutoCString urlFilter;
     nsresult rv = mURL->GetFilter(urlFilter);
     if(NS_FAILED(rv)) 
         return rv;

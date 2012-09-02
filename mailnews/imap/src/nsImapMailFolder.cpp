@@ -283,13 +283,13 @@ NS_IMETHODIMP nsImapMailFolder::AddSubfolder(const nsAString& aName, nsIMsgFolde
   nsCOMPtr<nsIRDFService> rdf = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCAutoString uri(mURI);
+  nsAutoCString uri(mURI);
   uri.Append('/');
 
   // If AddSubFolder starts getting called for folders other than virtual folders,
   // we'll have to do convert those names to modified utf-7. For now, the account manager code
   // that loads the virtual folders for each account, expects utf8 not modified utf-7.
-  nsCAutoString escapedName;
+  nsAutoCString escapedName;
   rv = NS_MsgEscapeEncodeURLPath(aName, escapedName);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -353,7 +353,7 @@ nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsIFile *dbPath
   NS_ENSURE_SUCCESS(rv, rv);
   int32_t flags = 0;
 
-  nsCAutoString uri(mURI);
+  nsAutoCString uri(mURI);
   uri.Append('/');
   AppendUTF16toUTF8(name, uri);
 
@@ -708,7 +708,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolderWithListener(nsIMsgWindow *aMsgWindo
             m_filterListRequiresBody = true;
           else if (attrib == nsMsgSearchAttrib::Custom)
           {
-            nsCAutoString customId;
+            nsAutoCString customId;
             rv = term->GetCustomId(customId);
             nsCOMPtr<nsIMsgSearchCustomTerm> customTerm;
             if (NS_SUCCEEDED(rv) && filterService)
@@ -904,7 +904,7 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
     NS_ENSURE_SUCCESS(rv, rv);
     nsCOMPtr<nsIRDFResource> res;
     nsCOMPtr<nsIMsgImapMailFolder> parentFolder;
-    nsCAutoString uri (mURI);
+    nsAutoCString uri (mURI);
     leafName.Assign(Substring(parentName, folderStart + 1));
     parentName.SetLength(folderStart);
 
@@ -918,7 +918,7 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
       return rv;
     parentFolder = do_QueryInterface(res, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    nsCAutoString leafnameC;
+    nsAutoCString leafnameC;
     LossyCopyUTF16toASCII(leafName, leafnameC);
     return parentFolder->CreateClientSubfolderInfo(leafnameC, hierarchyDelimiter,flags, suppressNotification);
   }
@@ -955,7 +955,7 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
     nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(child, &rv);
     if (NS_SUCCEEDED(rv))
     {
-      nsCAutoString onlineName(m_onlineFolderName);
+      nsAutoCString onlineName(m_onlineFolderName);
       if (!onlineName.IsEmpty())
         onlineName.Append(hierarchyDelimiter);
       onlineName.Append(NS_LossyConvertUTF16toASCII(folderNameStr));
@@ -1036,10 +1036,10 @@ NS_IMETHODIMP nsImapMailFolder::CreateStorageIfMissing(nsIUrlListener* urlListen
   // and not by folder discovery. So, we have to compute the parent.
   if (!msgParent)
   {
-    nsCAutoString folderName(mURI);
+    nsAutoCString folderName(mURI);
 
     int32_t leafPos = folderName.RFindChar('/');
-    nsCAutoString parentName(folderName);
+    nsAutoCString parentName(folderName);
 
     if (leafPos > 0)
     {
@@ -1702,8 +1702,8 @@ NS_IMETHODIMP nsImapMailFolder::RenameLocal(const nsACString& newName, nsIMsgFol
   // in modified UTF-7 (ASCII-only) as is stored remotely.  If we ever change
   // this, we have to work with nsString instead of nsCString
   // (ref. bug 264071)
-  nsCAutoString leafname(newName);
-  nsCAutoString parentName;
+  nsAutoCString leafname(newName);
+  nsAutoCString parentName;
   // newName always in the canonical form "greatparent/parentname/leafname"
   int32_t leafpos = leafname.RFindChar('/');
   if (leafpos >0)
@@ -1736,14 +1736,14 @@ NS_IMETHODIMP nsImapMailFolder::RenameLocal(const nsACString& newName, nsIMsgFol
   rv = GetSummaryFileLocation(oldPathFile, getter_AddRefs(oldSummaryFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString newNameStr;
+  nsAutoCString newNameStr;
   oldSummaryFile->Remove(false);
   if (count > 0)
   {
     newNameStr = leafname;
     NS_MsgHashIfNecessary(newNameStr);
     newNameStr += ".sbd";
-    nsCAutoString leafName;
+    nsAutoCString leafName;
     dirFile->GetNativeLeafName(leafName);
     if (!leafName.Equals(newNameStr))
       return dirFile->MoveToNative(nullptr, newNameStr);      // in case of rename operation leaf names will differ
@@ -1885,7 +1885,7 @@ nsImapMailFolder::MarkMessagesRead(nsIArray *messages, bool markRead)
   nsresult rv = nsMsgDBFolder::MarkMessagesRead(messages, markRead);
   if (NS_SUCCEEDED(rv))
   {
-    nsCAutoString messageIds;
+    nsAutoCString messageIds;
     nsTArray<nsMsgKey> keysToMarkRead;
     rv = BuildIdsAndKeyArray(messages, messageIds, keysToMarkRead);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -1906,7 +1906,7 @@ nsImapMailFolder::SetLabelForMessages(nsIArray *aMessages, nsMsgLabelValue aLabe
   nsresult rv = nsMsgDBFolder::SetLabelForMessages(aMessages, aLabel);
   if (NS_SUCCEEDED(rv))
   {
-    nsCAutoString messageIds;
+    nsAutoCString messageIds;
     nsTArray<nsMsgKey> keysToLabel;
     nsresult rv = BuildIdsAndKeyArray(aMessages, messageIds, keysToLabel);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -2027,7 +2027,7 @@ nsImapMailFolder::MarkMessagesFlagged(nsIArray *messages, bool markFlagged)
   rv = nsMsgDBFolder::MarkMessagesFlagged(messages, markFlagged);
   if (NS_SUCCEEDED(rv))
   {
-    nsCAutoString messageIds;
+    nsAutoCString messageIds;
     nsTArray<nsMsgKey> keysToMarkFlagged;
     rv = BuildIdsAndKeyArray(messages, messageIds, keysToMarkFlagged);
     if (NS_FAILED(rv)) return rv;
@@ -2214,9 +2214,9 @@ NS_IMETHODIMP nsImapMailFolder::DeleteMessages(nsIArray *messages,
 {
   // *** jt - assuming delete is move to the trash folder for now
   nsCOMPtr<nsIRDFResource> res;
-  nsCAutoString uri;
+  nsAutoCString uri;
   bool deleteImmediatelyNoTrash = false;
-  nsCAutoString messageIds;
+  nsAutoCString messageIds;
   nsTArray<nsMsgKey> srcKeyArray;
   bool deleteMsgs = true;  //used for toggling delete status - default is true
   nsMsgImapDeleteModel deleteModel = nsMsgImapDeleteModels::MoveToTrash;
@@ -3470,7 +3470,7 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
 
       uint32_t msgFlags;
       nsMsgKey    msgKey;
-      nsCAutoString trashNameVal;
+      nsAutoCString trashNameVal;
 
       msgHdr->GetFlags(&msgFlags);
       msgHdr->GetMessageKey(&msgKey);
@@ -3642,7 +3642,7 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
         }
         case nsMsgFilterAction::JunkScore:
         {
-          nsCAutoString junkScoreStr;
+          nsAutoCString junkScoreStr;
           int32_t junkScore;
           filterAction->GetJunkScore(&junkScore);
           junkScoreStr.AppendInt(junkScore);
@@ -3731,7 +3731,7 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
           rv = filterAction->GetCustomAction(getter_AddRefs(customAction));
           NS_ENSURE_SUCCESS(rv, rv);
 
-          nsCAutoString value;
+          nsAutoCString value;
           filterAction->GetStrValue(value);
 
           nsCOMPtr<nsIMutableArray> messageArray(
@@ -3781,7 +3781,7 @@ NS_IMETHODIMP nsImapMailFolder::SetImapFlags(const char *uids, int32_t flags, ns
   nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  return imapService->SetMessageFlags(this, this, url, nsCAutoString(uids), flags, true);
+  return imapService->SetMessageFlags(this, this, url, nsAutoCString(uids), flags, true);
 }
 
 // "this" is the parent folder
@@ -3859,7 +3859,7 @@ nsImapMailFolder::ReplayOfflineMoveCopy(nsMsgKey *aMsgKeys, uint32_t aNumKeys,
   nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr <nsIURI> resultUrl;
-  nsCAutoString uids;
+  nsAutoCString uids;
   AllocateUidStringFromKeys(aMsgKeys, aNumKeys, uids);
   rv = imapService->OnlineMessageCopy(this, uids, aDstFolder,
                                       true, isMove, aUrlListener,
@@ -3900,7 +3900,7 @@ NS_IMETHODIMP nsImapMailFolder::StoreImapFlags(int32_t flags, bool addFlags,
   {
     nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    nsCAutoString msgIds;
+    nsAutoCString msgIds;
     AllocateUidStringFromKeys(keys, numKeys, msgIds);
     if (addFlags)
       imapService->AddMessageFlags(this, aUrlListener ? aUrlListener : this,
@@ -4018,7 +4018,7 @@ NS_IMETHODIMP nsImapMailFolder::FolderPrivileges(nsIMsgWindow *window)
     nsCOMPtr<nsIExternalProtocolService> extProtService = do_GetService(NS_EXTERNALPROTOCOLSERVICE_CONTRACTID);
     if (extProtService) 
     {
-      nsCAutoString scheme;
+      nsAutoCString scheme;
       nsCOMPtr<nsIURI> uri;
       if (NS_FAILED(rv = NS_NewURI(getter_AddRefs(uri), m_adminUrl.get())))
         return rv;
@@ -4458,7 +4458,7 @@ nsImapMailFolder::SetupMsgWriteStream(nsIFile * aFile, bool addDummyEnvelope)
   rv = MsgNewBufferedFileOutputStream(getter_AddRefs(m_tempMessageStream), aFile, PR_WRONLY | PR_CREATE_FILE | PR_TRUNCATE, 00700);
   if (m_tempMessageStream && addDummyEnvelope)
   {
-    nsCAutoString result;
+    nsAutoCString result;
     char *ct;
     uint32_t writeCount;
     time_t now = time ((time_t*) 0);
@@ -4481,7 +4481,7 @@ nsImapMailFolder::SetupMsgWriteStream(nsIFile * aFile, bool addDummyEnvelope)
 
 NS_IMETHODIMP nsImapMailFolder::DownloadMessagesForOffline(nsIArray *messages, nsIMsgWindow *window)
 {
-  nsCAutoString messageIds;
+  nsAutoCString messageIds;
   nsTArray<nsMsgKey> srcKeyArray;
   nsresult rv = BuildIdsAndKeyArray(messages, messageIds, srcKeyArray);
   if (NS_FAILED(rv) || messageIds.IsEmpty()) return rv;
@@ -4507,7 +4507,7 @@ NS_IMETHODIMP nsImapMailFolder::DownloadAllForOffline(nsIUrlListener *listener, 
 
   if (!noSelect)
   {
-    nsCAutoString messageIdsToDownload;
+    nsAutoCString messageIdsToDownload;
     nsTArray<nsMsgKey> msgsToDownload;
 
     GetDatabase();
@@ -4764,7 +4764,7 @@ nsresult nsImapMailFolder::HandleCustomFlags(nsMsgKey uidOfMessage,
   if (keywords.Find("NonJunk", CaseInsensitiveCompare) != -1 ||
       keywords.Find("NotJunk", CaseInsensitiveCompare) != -1)
   {
-    nsCAutoString msgJunkScore;
+    nsAutoCString msgJunkScore;
     msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_HAM_SCORE);
     mDatabase->SetStringProperty(uidOfMessage, "junkscore", msgJunkScore.get());
   }
@@ -4773,7 +4773,7 @@ nsresult nsImapMailFolder::HandleCustomFlags(nsMsgKey uidOfMessage,
   {
     uint32_t newFlags;
     dbHdr->AndFlags(~nsMsgMessageFlags::New, &newFlags);
-    nsCAutoString msgJunkScore;
+    nsAutoCString msgJunkScore;
     msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_SPAM_SCORE);
     mDatabase->SetStringProperty(uidOfMessage, "junkscore", msgJunkScore.get());
   }
@@ -5252,7 +5252,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
                 }
                 else
                 {
-                  nsCAutoString messageIds;
+                  nsAutoCString messageIds;
                   rv = BuildIdsAndKeyArray(m_copyState->m_messages, messageIds, srcKeyArray);
                   NS_ENSURE_SUCCESS(rv,rv);
                 }
@@ -6167,7 +6167,7 @@ nsMsgIMAPFolderACL::~nsMsgIMAPFolderACL()
 // We cache most of our own rights in the MSG_FOLDER_PREF_* flags
 void nsMsgIMAPFolderACL::BuildInitialACLFromCache()
 {
-  nsCAutoString myrights;
+  nsAutoCString myrights;
 
   uint32_t startingFlags;
   m_folder->GetAclFlags(&startingFlags);
@@ -6259,7 +6259,7 @@ bool nsMsgIMAPFolderACL::SetFolderRightsForUser(const nsACString& userName, cons
   // in the acl response.
   server->GetRealUsername(myUserName);
 
-  nsCAutoString ourUserName;
+  nsAutoCString ourUserName;
   if (userName.IsEmpty())
     ourUserName.Assign(myUserName);
   else
@@ -6839,7 +6839,7 @@ nsImapMailFolder::CopyMessagesWithStream(nsIMsgFolder* srcFolder,
   // ** jt - needs to create server to server move/copy undo msg txn
   if (m_copyState->m_allowUndo)
   {
-    nsCAutoString messageIds;
+    nsAutoCString messageIds;
     nsTArray<nsMsgKey> srcKeyArray;
     rv = BuildIdsAndKeyArray(messages, messageIds, srcKeyArray);
 
@@ -7412,7 +7412,7 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages, bool aIsMove)
         msgDBHdr->GetLabel(&label);
         if (label != 0)
         {
-          nsCAutoString labelStr;
+          nsAutoCString labelStr;
           labelStr.AppendInt(label);
           mDatabase->SetAttributeOnPendingHdr(msgDBHdr, "label", labelStr.get());
         }
@@ -7427,13 +7427,13 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages, bool aIsMove)
       nsresult rv = msgDBHdr->GetPropertyEnumerator(getter_AddRefs(propertyEnumerator));
       NS_ENSURE_SUCCESS(rv, );
 
-      nsCAutoString property;
+      nsAutoCString property;
       nsCString sourceString;
       bool hasMore;
       while (NS_SUCCEEDED(propertyEnumerator->HasMore(&hasMore)) && hasMore)
       {
         propertyEnumerator->GetNext(property);
-        nsCAutoString propertyEx(NS_LITERAL_CSTRING(" "));
+        nsAutoCString propertyEx(NS_LITERAL_CSTRING(" "));
         propertyEx.Append(property);
         propertyEx.AppendLiteral(" ");
         if (dontPreserveEx.Find(propertyEx) != -1) // -1 is not found
@@ -7465,7 +7465,7 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages, bool aIsMove)
       msgDBHdr->GetPriority(&priority);
       if(priority != 0)
       {
-        nsCAutoString priorityStr;
+        nsAutoCString priorityStr;
         priorityStr.AppendInt(priority);
         mDatabase->SetAttributeOnPendingHdr(msgDBHdr, "priority", priorityStr.get());
       }
@@ -7548,7 +7548,7 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
   }
   else 
   {
-    nsCAutoString messageIds;
+    nsAutoCString messageIds;
     nsTArray<nsMsgKey> srcKeyArray;
     nsCOMPtr<nsIUrlListener> urlListener;
     nsCOMPtr<nsISupports> copySupport;
@@ -7984,7 +7984,7 @@ nsImapMailFolder::CopyFileMessage(nsIFile* file,
 {
     nsresult rv = NS_ERROR_NULL_POINTER;
     nsMsgKey key = 0xffffffff;
-    nsCAutoString messageId;
+    nsAutoCString messageId;
     nsCOMPtr<nsIUrlListener> urlListener;
     nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
     nsCOMPtr<nsISupports> srcSupport = do_QueryInterface(file, &rv);
@@ -8657,8 +8657,8 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
     imapFolder = do_QueryInterface(child);
     if (imapFolder)
     {
-      nsCAutoString onlineName(m_onlineFolderName);
-      nsCAutoString utf7LeafName;
+      nsAutoCString onlineName(m_onlineFolderName);
+      nsAutoCString utf7LeafName;
 
       if (!onlineName.IsEmpty())
         onlineName.Append(hierarchyDelimiter);
@@ -8744,7 +8744,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, nsIMsg
     if (NS_FAILED(rv)) return rv;
 
     rv = AddDirectorySeparator(newParentPathFile);
-    nsCAutoString oldLeafName;
+    nsAutoCString oldLeafName;
     oldPathFile->GetNativeLeafName(oldLeafName);
     newParentPathFile->AppendNative(oldLeafName);
 
@@ -8778,7 +8778,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, nsIMsg
     nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(child);
     nsCString onlineName;
     GetOnlineName(onlineName);
-    nsCAutoString onlineCName(onlineName);
+    nsAutoCString onlineCName(onlineName);
     onlineCName.Append(hierarchyDelimiter);
     onlineCName.Append(utf7LeafName);
     if (imapFolder)
@@ -8903,7 +8903,7 @@ nsImapMailFolder::StoreCustomKeywords(nsIMsgWindow *aMsgWindow, const nsACString
   }
   nsCOMPtr<nsIImapService> imapService(do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCAutoString msgIds;
+  nsAutoCString msgIds;
   AllocateUidStringFromKeys(aKeysToStore, aNumKeys, msgIds);
   return imapService->StoreCustomKeywords(this, aMsgWindow, aFlagsToAdd,
                                           aFlagsToSubtract, msgIds, _retval);
@@ -8949,7 +8949,7 @@ nsImapMailFolder::SetJunkScoreForMessages(nsIArray *aMessages, const nsACString&
   nsresult rv = nsMsgDBFolder::SetJunkScoreForMessages(aMessages, aJunkScore);
   if (NS_SUCCEEDED(rv))
   {
-    nsCAutoString messageIds;
+    nsAutoCString messageIds;
     nsTArray<nsMsgKey> keys;
     nsresult rv = BuildIdsAndKeyArray(aMessages, messageIds, keys);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -9234,7 +9234,7 @@ NS_IMETHODIMP nsImapMailFolder::FetchMsgPreviewText(nsMsgKey *aKeysToFetch, uint
   if (!keysToFetchFromServer.IsEmpty())
   {
     uint32_t msgCount = keysToFetchFromServer.Length();
-    nsCAutoString messageIds;
+    nsAutoCString messageIds;
     AllocateImapUidString(keysToFetchFromServer.Elements(), msgCount,
                          nullptr, messageIds);
     rv = imapService->GetBodyStart(this, aUrlListener,
@@ -9249,7 +9249,7 @@ NS_IMETHODIMP nsImapMailFolder::AddKeywordsToMessages(nsIArray *aMessages, const
   nsresult rv = nsMsgDBFolder::AddKeywordsToMessages(aMessages, aKeywords);
   if (NS_SUCCEEDED(rv))
   {
-    nsCAutoString messageIds;
+    nsAutoCString messageIds;
     nsTArray<nsMsgKey> keys;
     rv = BuildIdsAndKeyArray(aMessages, messageIds, keys);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -9265,7 +9265,7 @@ NS_IMETHODIMP nsImapMailFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, 
   nsresult rv = nsMsgDBFolder::RemoveKeywordsFromMessages(aMessages, aKeywords);
   if (NS_SUCCEEDED(rv))
   {
-    nsCAutoString messageIds;
+    nsAutoCString messageIds;
     nsTArray<nsMsgKey> keys;
     nsresult rv = BuildIdsAndKeyArray(aMessages, messageIds, keys);
     NS_ENSURE_SUCCESS(rv, rv);

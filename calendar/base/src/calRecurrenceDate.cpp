@@ -186,7 +186,7 @@ calRecurrenceDate::SetIcalProperty(calIIcalProperty *aProp)
 {
     NS_ENSURE_ARG_POINTER(aProp);
 
-    nsCAutoString name;
+    nsAutoCString name;
     nsresult rc = aProp->GetPropertyName(name);
     if (NS_FAILED(rc))
         return rc;

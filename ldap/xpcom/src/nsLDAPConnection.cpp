@@ -687,7 +687,7 @@ NS_IMETHODIMP nsLDAPConnectionRunnable::Run()
           if (errorCode == LDAP_PROTOCOL_ERROR &&
               mConnection->mVersion == nsILDAPConnection::VERSION3)
           {
-            nsCAutoString password;
+            nsAutoCString password;
             mConnection->mVersion = nsILDAPConnection::VERSION2;
             ldap_set_option(mConnection->mConnectionHandle,
                             LDAP_OPT_PROTOCOL_VERSION, &mConnection->mVersion);

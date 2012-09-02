@@ -467,7 +467,7 @@ nsresult nsMailboxProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
         nsCOMPtr<nsIMsgMailNewsUrl> msgUrl = do_QueryInterface(m_runningUrl, &rv);
         NS_ENSURE_SUCCESS(rv,rv);
 
-        nsCAutoString queryStr;
+        nsAutoCString queryStr;
         rv = msgUrl->GetQuery(queryStr);
         NS_ENSURE_SUCCESS(rv,rv);
 

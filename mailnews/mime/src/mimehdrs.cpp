@@ -40,7 +40,7 @@ MimeHeaders_convert_header_value(MimeDisplayOptions *opt, nsCString &value,
 
   if (convert_charset_only)
   {
-    nsCAutoString output;
+    nsAutoCString output;
     ConvertRawBytesToUTF8(value, opt->default_charset, output);
     value.Assign(output);
     return;
@@ -588,8 +588,8 @@ MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, bool 
     while (end > contents && IS_SPACE(end[-1]))
       end--;
 
-    nsCAutoString name(Substring(head, colon));
-    nsCAutoString hdr_value;
+    nsAutoCString name(Substring(head, colon));
+    nsAutoCString hdr_value;
 
     if ( (end - contents) > 0 )
     {
@@ -605,7 +605,7 @@ MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, bool 
     // if we're saving as html, we need to convert headers from utf8 to message charset, if any
     if (opt->format_out == nsMimeOutput::nsMimeMessageSaveAs && charset)
     {
-      nsCAutoString convertedStr;
+      nsAutoCString convertedStr;
       if (NS_SUCCEEDED(ConvertFromUnicode(charset, NS_ConvertUTF8toUTF16(hdr_value),
                        convertedStr)))
       {
@@ -673,7 +673,7 @@ mime_decode_filename(const char *name, const char *charset,
 
   if (NS_FAILED(rv))
     return nullptr;
-  nsCAutoString result;
+  nsAutoCString result;
   rv = mimehdrpar->DecodeParameter(nsDependentCString(name), charset,
                                    opt ? opt->default_charset : nullptr,
                                    opt ? opt->override_charset : false,

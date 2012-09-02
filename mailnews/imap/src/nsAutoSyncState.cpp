@@ -628,7 +628,7 @@ NS_IMETHODIMP nsAutoSyncState::DownloadMessagesForOffline(nsIArray *aMessagesLis
   nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
   
-  nsCAutoString messageIds;
+  nsAutoCString messageIds;
   nsTArray<nsMsgKey> msgKeys;
   
   rv = nsImapMailFolder::BuildIdsAndKeyArray(aMessagesList, messageIds, msgKeys);  

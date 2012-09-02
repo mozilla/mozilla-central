@@ -279,7 +279,7 @@ nsresult nsEudoraMailbox::ImportMailbox(uint32_t *pBytes, bool *pAbort,
     if (NS_SUCCEEDED(rv))
     {
       nsCString defaultDate;
-      nsCAutoString bodyType;
+      nsAutoCString bodyType;
 
       IMPORT_LOG0("Reading first message\n");
 
@@ -397,7 +397,7 @@ nsresult nsEudoraMailbox::ImportMailboxUsingTOC(
     // Quick and dirty way to read in and parse the message the way the rest
     // of the code expects.
     nsCString              defaultDate;
-    nsCAutoString            bodyType;
+    nsAutoCString            bodyType;
     ReadFileState            state;
 
     // Seek to the start of the email message.
@@ -544,7 +544,7 @@ nsresult nsEudoraMailbox::ImportMessage(
   SimpleBufferTonyRCopiedOnce &headers,
   SimpleBufferTonyRCopiedOnce &body,
   nsCString& defaultDate,
-  nsCAutoString& bodyType,
+  nsAutoCString& bodyType,
   nsIOutputStream *pDst,
   int32_t  *pMsgCount)
 {

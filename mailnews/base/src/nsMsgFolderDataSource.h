@@ -164,7 +164,7 @@ protected:
   nsresult DoFolderHasAssertion(nsIMsgFolder *folder, nsIRDFResource *property, nsIRDFNode *target,
                                 bool tv, bool *hasAssertion);
 
-  nsresult GetBiffStateString(uint32_t biffState, nsCAutoString & biffStateStr);
+  nsresult GetBiffStateString(uint32_t biffState, nsAutoCString & biffStateStr);
 
   nsresult CreateUnreadMessagesNameString(int32_t unreadMessages, nsAutoString &nameString);
   nsresult CreateArcsOutEnumerator();

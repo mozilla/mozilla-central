@@ -369,7 +369,7 @@ nsMsgAccountManager::getUniqueAccountKey(nsISupportsArray *accounts,
 void
 nsMsgAccountManager::GetUniqueServerKey(nsACString& aResult)
 {
-  nsCAutoString prefResult;
+  nsAutoCString prefResult;
   bool usePrefsScan = true;
   nsresult rv;
   nsCOMPtr<nsIPrefService> prefService(do_GetService(NS_PREFSERVICE_CONTRACTID,
@@ -388,8 +388,8 @@ nsMsgAccountManager::GetUniqueServerKey(nsACString& aResult)
 
   if (usePrefsScan)
   {
-    nsCAutoString type;
-    nsCAutoString typeKey;
+    nsAutoCString type;
+    nsAutoCString typeKey;
     for (PRInt32 lastKey = 1; ; lastKey++)
     {
       aResult.AssignLiteral(SERVER_PREFIX);
@@ -405,7 +405,7 @@ nsMsgAccountManager::GetUniqueServerKey(nsACString& aResult)
   {
     // If pref service fails, try to find a free serverX key
     // by checking which keys exist.
-    nsCAutoString internalResult;
+    nsAutoCString internalResult;
     nsCOMPtr<nsIMsgIncomingServer> server;
     PRInt32 i = 1;
     do {
@@ -422,7 +422,7 @@ nsMsgAccountManager::CreateIdentity(nsIMsgIdentity **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
   nsresult rv;
-  nsCAutoString key;
+  nsAutoCString key;
   nsCOMPtr<nsIMsgIdentity> identity;
   int32_t i = 1;
   do {
@@ -485,7 +485,7 @@ nsMsgAccountManager::CreateIncomingServer(const nsACString&  username,
   nsresult rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString key;
+  nsAutoCString key;
   GetUniqueServerKey(key);
   rv = createKeyedServer(key, username, hostname, type, _retval);
   if (*_retval)
@@ -515,11 +515,11 @@ nsMsgAccountManager::GetIncomingServer(const nsACString& key,
 
   // in order to create the right kind of server, we have to look
   // at the pref for this server to get the username, hostname, and type
-  nsCAutoString serverPrefPrefix(PREF_MAIL_SERVER_PREFIX);
+  nsAutoCString serverPrefPrefix(PREF_MAIL_SERVER_PREFIX);
   serverPrefPrefix.Append(key);
 
   nsCString serverType;
-  nsCAutoString serverPref (serverPrefPrefix);
+  nsAutoCString serverPref (serverPrefPrefix);
   serverPref.AppendLiteral(".type");
   rv = m_prefs->GetCharPref(serverPref.get(), getter_Copies(serverType));
   NS_ENSURE_SUCCESS(rv, NS_ERROR_NOT_INITIALIZED);
@@ -629,7 +629,7 @@ nsMsgAccountManager::createKeyedServer(const nsACString& key,
   *aServer = nullptr;
 
   //construct the contractid
-  nsCAutoString serverContractID(NS_MSGINCOMINGSERVER_CONTRACTID_PREFIX);
+  nsAutoCString serverContractID(NS_MSGINCOMINGSERVER_CONTRACTID_PREFIX);
   serverContractID += type;
 
   // finally, create the server
@@ -1440,7 +1440,7 @@ nsMsgAccountManager::LoadAccounts()
 
     // get the "server" pref to see if we already have an account with this
     // server. If we do, we ignore this account.
-    nsCAutoString serverKeyPref("mail.account.");
+    nsAutoCString serverKeyPref("mail.account.");
     serverKeyPref += accountsArray[i];
 
     nsCOMPtr<nsIPrefBranch> accountPrefBranch;
@@ -1472,9 +1472,9 @@ nsMsgAccountManager::LoadAccounts()
 
     // See nsIMsgAccount.idl for a description of the secondsToLeaveUnavailable
     //  and timeFoundUnavailable preferences
-    nsCAutoString toLeavePref(PREF_MAIL_SERVER_PREFIX);
+    nsAutoCString toLeavePref(PREF_MAIL_SERVER_PREFIX);
     toLeavePref.Append(serverKey);
-    nsCAutoString unavailablePref(toLeavePref); // this is the server-specific prefix
+    nsAutoCString unavailablePref(toLeavePref); // this is the server-specific prefix
     unavailablePref.AppendLiteral(".timeFoundUnavailable");
     toLeavePref.AppendLiteral(".secondsToLeaveUnavailable");
     PRInt32 secondsToLeave = 0;
@@ -1542,7 +1542,7 @@ nsMsgAccountManager::LoadAccounts()
   {
     dupAccount = dupAccounts[i];
     m_incomingServers.Enumerate(hashCleanupDeferral, (void *) dupAccount.get());
-    nsCAutoString accountKeyPref("mail.account.");
+    nsAutoCString accountKeyPref("mail.account.");
     nsCString dupAccountKey;
     dupAccount->GetKey(dupAccountKey);
     if (dupAccountKey.IsEmpty())
@@ -1781,7 +1781,7 @@ nsMsgAccountManager::CreateAccount(nsIMsgAccount **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
 
-  nsCAutoString key;
+  nsAutoCString key;
   getUniqueAccountKey(m_accounts, key);
 
   return createKeyedAccount(key, _retval);
@@ -1938,19 +1938,19 @@ nsMsgAccountManager::FindServerByURI(nsIURI *aURI, bool aRealFlag,
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Get username and hostname and port so we can get the server
-  nsCAutoString username;
-  nsCAutoString escapedUsername;
+  nsAutoCString username;
+  nsAutoCString escapedUsername;
   rv = aURI->GetUserPass(escapedUsername);
   if (NS_SUCCEEDED(rv) && !escapedUsername.IsEmpty())
     MsgUnescapeString(escapedUsername, 0,  username);
 
-  nsCAutoString hostname;
-  nsCAutoString escapedHostname;
+  nsAutoCString hostname;
+  nsAutoCString escapedHostname;
   rv = aURI->GetHost(escapedHostname);
   if (NS_SUCCEEDED(rv) && !escapedHostname.IsEmpty())
     MsgUnescapeString(escapedHostname, 0, hostname);
 
-  nsCAutoString type;
+  nsAutoCString type;
   rv = aURI->GetScheme(type);
   if (NS_SUCCEEDED(rv) && !type.IsEmpty())
   {
@@ -2687,7 +2687,7 @@ nsMsgAccountManager::GetChromePackageName(const nsACString& aExtensionName, nsAC
       if (NS_FAILED(rv) || !catEntry)
         break;
 
-      nsCAutoString entryString;
+      nsAutoCString entryString;
       rv = catEntry->GetData(entryString);
       if (NS_FAILED(rv))
          break;
@@ -3144,7 +3144,7 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
      nsCOMPtr <nsILineInputStream> lineInputStream(do_QueryInterface(fileStream));
 
     bool isMore = true;
-    nsCAutoString buffer;
+    nsAutoCString buffer;
     int32_t version = -1;
     nsCOMPtr <nsIMsgFolder> virtualFolder;
     nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
@@ -3197,7 +3197,7 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
               if (parentFolder)
               {
                 nsAutoString currentFolderNameStr;
-                nsCAutoString currentFolderNameCStr;
+                nsAutoCString currentFolderNameCStr;
                 MsgUnescapeString(nsCString(Substring(buffer, lastSlash + 1, buffer.Length())), 0, currentFolderNameCStr);
                 CopyUTF8toUTF16(currentFolderNameCStr, currentFolderNameStr);
                 nsCOMPtr <nsIMsgFolder> childFolder;

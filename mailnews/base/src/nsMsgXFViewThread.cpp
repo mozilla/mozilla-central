@@ -133,7 +133,7 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
 
   for (int32_t i = numReferences - 1; i >= 0;  i--)
   {
-    nsCAutoString reference;
+    nsAutoCString reference;
     newHdr->GetStringReference(i, reference);
     if (reference.IsEmpty())
       break;
@@ -375,7 +375,7 @@ bool nsMsgXFViewThread::IsHdrParentOf(nsIMsgDBHdr *possibleParent,
 {
   uint16_t referenceToCheck = 0;
   possibleChild->GetNumReferences(&referenceToCheck);
-  nsCAutoString reference;
+  nsAutoCString reference;
 
   nsCString messageId;
   possibleParent->GetMessageId(getter_Copies(messageId));

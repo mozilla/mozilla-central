@@ -433,7 +433,7 @@ nsresult nsEudoraWin32::FoundMailbox(nsIFile *mailFile, const char *pName, nsISu
   NS_CopyNativeToUnicode(nsDependentCString(pName), displayName);
 
 #ifdef IMPORT_DEBUG
-  nsCAutoString path;
+  nsAutoCString path;
   mailFile->GetNativePath(path);
   if (!path.IsEmpty())
     IMPORT_LOG2("Found eudora mailbox, %s: %s\n", path.get(), pName);
@@ -474,7 +474,7 @@ nsresult nsEudoraWin32::FoundMailFolder(nsIFile *mailFolder, const char *pName, 
   NS_CopyNativeToUnicode(nsDependentCString(pName), displayName);
 
 #ifdef IMPORT_DEBUG
-  nsCAutoString path;
+  nsAutoCString path;
   mailFolder->GetNativePath(path);
   if (!path.IsEmpty())
     IMPORT_LOG2("Found eudora folder, %s: %s\n", path.get(), pName);
@@ -508,7 +508,7 @@ nsresult nsEudoraWin32::FoundMailFolder(nsIFile *mailFolder, const char *pName, 
 nsresult nsEudoraWin32::FindTOCFile(nsIFile *pMailFile, nsIFile **ppTOCFile, bool *pDeleteToc)
 {
   nsresult    rv;
-  nsCAutoString  leaf;
+  nsAutoCString  leaf;
 
   *pDeleteToc = false;
   *ppTOCFile = nullptr;
@@ -688,7 +688,7 @@ bool nsEudoraWin32::GetMailboxNameHierarchy(const nsACString& pEudoraLocation, c
     pathLength = strlen(pEudoraFilePath);
 
   bool more = true;
-  nsCAutoString buf;
+  nsAutoCString buf;
   while (more)
   {
     rv = lineStream->ReadLine(buf, &more);
@@ -910,9 +910,9 @@ bool nsEudoraWin32::BuildIMAPAccount(nsIMsgAccountManager *accMgr, const char *p
 
 void nsEudoraWin32::SetIdentities(nsIMsgAccountManager *accMgr, nsIMsgAccount *acc, const char *pSection, const char *pIniFile, const char *userName, const char *serverName, char *pBuff)
 {
-  nsCAutoString realName;
-  nsCAutoString email;
-  nsCAutoString server;
+  nsAutoCString realName;
+  nsAutoCString email;
+  nsAutoCString server;
   DWORD valSize;
   nsresult rv;
 
@@ -1003,7 +1003,7 @@ nsresult nsEudoraWin32::GetAttachmentInfo(const char *pFileName, nsIFile *pFile,
     //
     // Check to see if we have any better luck looking for the attachment
     // in the current attachment directory.
-    nsCAutoString name;
+    nsAutoCString name;
     pFile->GetNativeLeafName(name);
     if (name.IsEmpty())
       return NS_ERROR_FAILURE;
@@ -1043,7 +1043,7 @@ nsresult nsEudoraWin32::GetAttachmentInfo(const char *pFileName, nsIFile *pFile,
 
   if (exists && isFile)
   {
-    nsCAutoString name;
+    nsAutoCString name;
     pFile->GetNativeLeafName(name);
     if (name.IsEmpty())
       return NS_ERROR_FAILURE;
@@ -1189,7 +1189,7 @@ void nsEudoraWin32::GetMimeTypeFromExtension(nsCString& ext, nsCString& mimeType
         return;
     }
 
-    nsCAutoString fileName;
+    nsAutoCString fileName;
     pFile->GetNativePath(fileName);
     if (fileName.IsEmpty())
       return;

@@ -47,7 +47,7 @@ nsresult nsTextAddress::GetUnicharLineStreamForFile(nsIFile *aFile,
                                                     nsIInputStream *aInputStream,
                                                     nsIUnicharLineInputStream **aStream)
 {
-  nsCAutoString charset;
+  nsAutoCString charset;
   nsresult rv = MsgDetectCharsetFromFile(aFile, charset);
   if (NS_FAILED(rv)) {
     IMPORT_LOG0( "*** Error checking address file for charset detection\n");

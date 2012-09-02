@@ -360,7 +360,7 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
     rv = accountManager->FindAccountForServer(aServer, getter_AddRefs(account));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCAutoString accountKey;
+    nsAutoCString accountKey;
     if (account) 
       account->GetKey(accountKey);
 
@@ -379,11 +379,11 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
       nsCOMPtr<nsIMsgAccount> loopAccount(do_QueryElementAt(accounts, i));
       if (!loopAccount)
         continue;
-      nsCAutoString loopAccountKey;
+      nsAutoCString loopAccountKey;
       loopAccount->GetKey(loopAccountKey);
       nsCOMPtr<nsIMsgIncomingServer> loopServer;
       loopAccount->GetIncomingServer(getter_AddRefs(loopServer));
-      nsCAutoString deferredToAccountKey;
+      nsAutoCString deferredToAccountKey;
       if (loopServer)
         loopServer->GetCharValue("deferred_to_account", deferredToAccountKey);
 
@@ -402,7 +402,7 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
           nsCOMPtr<nsIMsgIdentity> identity(do_QueryElementAt(identities, j));
           if (!identity)
             continue;
-          nsCAutoString email;
+          nsAutoCString email;
           identity->GetEmail(email);
           if (!email.IsEmpty())
             mEmails.AppendElement(email);
@@ -580,7 +580,7 @@ NS_IMETHODIMP nsSpamSettings::GetServerFilterFile(nsIFile ** aFile)
   if (!mServerFilterFile)
   {
     nsresult rv;
-    nsCAutoString serverFilterFileName;
+    nsAutoCString serverFilterFileName;
     GetServerFilterName(serverFilterFileName);
     serverFilterFileName.Append(".sfd");
 
@@ -800,7 +800,7 @@ NS_IMETHODIMP nsSpamSettings::CheckWhiteList(nsIMsgDBHdr *aMsgHdr, bool *aResult
     do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString authorEmailAddress;
+  nsAutoCString authorEmailAddress;
   rv = headerParser->ExtractHeaderAddressMailboxes(author, authorEmailAddress);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -819,7 +819,7 @@ NS_IMETHODIMP nsSpamSettings::CheckWhiteList(nsIMsgDBHdr *aMsgHdr, bool *aResult
 
   if (!mTrustedMailDomains.IsEmpty() || mInhibitWhiteListingIdentityDomain)
   {
-    nsCAutoString domain;
+    nsAutoCString domain;
     int32_t atPos = authorEmailAddress.FindChar('@');
     if (atPos >= 0)
       domain = Substring(authorEmailAddress, atPos + 1);
@@ -836,7 +836,7 @@ NS_IMETHODIMP nsSpamSettings::CheckWhiteList(nsIMsgDBHdr *aMsgHdr, bool *aResult
       {
         for (uint32_t i = 0; i < mEmails.Length(); ++i)
         {
-          nsCAutoString identityDomain;
+          nsAutoCString identityDomain;
           int32_t atPos = mEmails[i].FindChar('@');
           if (atPos >= 0)
           {

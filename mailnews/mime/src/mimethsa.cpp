@@ -78,7 +78,7 @@ printf(" B2\n");
     PR_Free(content_type);
     if (charset)
     {
-      nsCAutoString charsetline(
+      nsAutoCString charsetline(
         "\n<meta http-equiv=\"Context-Type\" content=\"text/html; charset=");
       charsetline += charset;
       charsetline += "\">\n";

@@ -655,7 +655,7 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
     if (moveValue.Find(kImapPrefix) == 0)
     {
       int32_t prefixLen = PL_strlen(kImapPrefix);
-      nsCAutoString originalServerPath(Substring(moveValue, prefixLen));
+      nsAutoCString originalServerPath(Substring(moveValue, prefixLen));
       if (filterVersion == k45Version)
       {
         nsAutoString unicodeStr;
@@ -774,7 +774,7 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
   nsresult err = NS_OK;
   nsCOMPtr<nsIMsgFilterList> filterList;
   GetFilterList(getter_AddRefs(filterList));
-  nsCAutoString  actionFilingStr;
+  nsAutoCString  actionFilingStr;
 
   uint32_t numActions;
   err = m_actionList->Count(&numActions);
@@ -809,7 +809,7 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
       {
         nsMsgPriorityValue priorityValue;
         action->GetPriority(&priorityValue);
-        nsCAutoString priority;
+        nsAutoCString priority;
         NS_MsgGetUntranslatedPriorityName(priorityValue, priority);
         err = filterList->WriteStrAttr(
                 nsIMsgFilterList::attribActionValue, priority.get(), aStream);
@@ -841,10 +841,10 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
       break;
       case nsMsgFilterAction::Custom:
       {
-        nsCAutoString id;
+        nsAutoCString id;
         action->GetCustomId(id);
         err = filterList->WriteStrAttr(nsIMsgFilterList::attribCustomId, id.get(), aStream);
-        nsCAutoString strValue;
+        nsAutoCString strValue;
         action->GetStrValue(strValue);
         if (strValue.Length())
           err = filterList->WriteWstrAttr(nsIMsgFilterList::attribActionValue,
@@ -858,7 +858,7 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
     }
   }
   // and here the fun begins - file out term list...
-  nsCAutoString  condition;
+  nsAutoCString  condition;
   err = MsgTermListToString(m_termList, condition);
   if (NS_SUCCEEDED(err))
     err = filterList->WriteStrAttr(nsIMsgFilterList::attribCondition, condition.get(), aStream);
@@ -943,7 +943,7 @@ nsMsgFilter::GetVersion()
 #ifdef DEBUG
 void nsMsgFilter::Dump()
 {
-  nsCAutoString s;
+  nsAutoCString s;
   LossyCopyUTF16toASCII(m_filterName, s);
   printf("filter %s type = %c desc = %s\n", s.get(), m_type + '0', m_description.get());
 }

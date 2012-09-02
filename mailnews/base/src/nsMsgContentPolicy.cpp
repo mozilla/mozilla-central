@@ -148,7 +148,7 @@ bool nsMsgContentPolicy::IsTrustedDomain(nsIURI * aContentLocation)
 {
   bool trustedDomain = false;
   // get the host name of the server hosting the remote image
-  nsCAutoString host;
+  nsAutoCString host;
   nsresult rv = aContentLocation->GetHost(host);
 
   if (NS_SUCCEEDED(rv) && !mTrustedMailDomains.IsEmpty()) 
@@ -362,7 +362,7 @@ nsMsgContentPolicy::IsSafeRequestingLocation(nsIURI *aRequestingLocation)
 bool
 nsMsgContentPolicy::IsExposedProtocol(nsIURI *aContentLocation)
 {
-  nsCAutoString contentScheme;
+  nsAutoCString contentScheme;
   nsresult rv = aContentLocation->GetScheme(contentScheme);
   NS_ENSURE_SUCCESS(rv, false);
 

@@ -513,7 +513,7 @@ BOOL nsAbWinHelper::SetPropertyUString(const nsMapiEntry& aObject, ULONG aProper
                                        const PRUnichar *aValue)
 {
     SPropValue value ;
-    nsCAutoString alternativeValue ;
+    nsAutoCString alternativeValue ;
 
     value.ulPropTag = aPropertyTag ;
     if (PROP_TYPE(aPropertyTag) == PT_UNICODE) {
@@ -539,7 +539,7 @@ BOOL nsAbWinHelper::SetPropertiesUString(const nsMapiEntry& aObject, const ULONG
 
     ULONG i = 0 ;
     ULONG currentValue = 0 ;
-    nsCAutoString alternativeValue ;
+    nsAutoCString alternativeValue ;
     BOOL retCode = TRUE ;
 
     for (i = 0 ; i < aNbProperties ; ++ i) {

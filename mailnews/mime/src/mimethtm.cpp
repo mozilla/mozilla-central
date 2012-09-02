@@ -50,7 +50,7 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
     char buf[256];            // local buffer for html tag
     int32_t fontSize;         // default font size
     int32_t fontSizePercentage;   // size percentage
-    nsCAutoString fontLang;       // langgroup of the font.
+    nsAutoCString fontLang;       // langgroup of the font.
     if (NS_SUCCEEDED(GetMailNewsFont(obj, false, &fontSize, &fontSizePercentage,fontLang)))
     {
       PR_snprintf(buf, 256, "<div class=\"moz-text-html\"  lang=\"%s\">",

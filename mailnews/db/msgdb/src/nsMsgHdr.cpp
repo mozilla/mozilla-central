@@ -314,7 +314,7 @@ NS_IMETHODIMP nsMsgHdr::GetNumReferences(uint16_t *result)
 nsresult nsMsgHdr::ParseReferences(const char *references)
 {
   const char *startNextRef = references;
-  nsCAutoString resultReference;
+  nsAutoCString resultReference;
   nsCString messageId;
   GetMessageId(getter_Copies(messageId));
 
@@ -361,7 +361,7 @@ NS_IMETHODIMP nsMsgHdr::SetMessageId(const char *messageId)
 {
   if (messageId && *messageId == '<')
   {
-    nsCAutoString tempMessageID(messageId + 1);
+    nsAutoCString tempMessageID(messageId + 1);
     if (tempMessageID.CharAt(tempMessageID.Length() - 1) == '>')
       tempMessageID.SetLength(tempMessageID.Length() - 1);
     return SetStringColumn(tempMessageID.get(), m_mdb->m_messageIdColumnToken);
@@ -396,7 +396,7 @@ NS_IMETHODIMP nsMsgHdr::SetRecipients(const char *recipients)
   return SetStringColumn(recipients, m_mdb->m_recipientsColumnToken);
 }
 
-nsresult nsMsgHdr::BuildRecipientsFromArray(const char *names, const char *addresses, uint32_t numAddresses, nsCAutoString& allRecipients)
+nsresult nsMsgHdr::BuildRecipientsFromArray(const char *names, const char *addresses, uint32_t numAddresses, nsAutoCString& allRecipients)
 {
   NS_ENSURE_ARG_POINTER(names);
   NS_ENSURE_ARG_POINTER(addresses);
@@ -443,7 +443,7 @@ nsresult nsMsgHdr::BuildRecipientsFromArray(const char *names, const char *addre
 NS_IMETHODIMP nsMsgHdr::SetRecipientsArray(const char *names, const char *addresses, uint32_t numAddresses)
 {
 	nsresult ret;
-	nsCAutoString	allRecipients;
+	nsAutoCString	allRecipients;
 
     ret = BuildRecipientsFromArray(names, addresses, numAddresses, allRecipients);
     if (NS_FAILED(ret))
@@ -462,7 +462,7 @@ NS_IMETHODIMP nsMsgHdr::SetCcList(const char *ccList)
 NS_IMETHODIMP nsMsgHdr::SetCCListArray(const char *names, const char *addresses, uint32_t numAddresses)
 {
 	nsresult ret;
-	nsCAutoString	allRecipients;
+	nsAutoCString	allRecipients;
 
     ret = BuildRecipientsFromArray(names, addresses, numAddresses, allRecipients);
     if (NS_FAILED(ret))
@@ -482,7 +482,7 @@ nsMsgHdr::SetBCCListArray(const char *names,
                           const char *addresses,
                           uint32_t numAddresses)
 {
-  nsCAutoString allRecipients;
+  nsAutoCString allRecipients;
 
   nsresult rv = BuildRecipientsFromArray(names, addresses, numAddresses,
                                          allRecipients);
@@ -875,7 +875,7 @@ bool nsMsgHdr::IsParentOf(nsIMsgDBHdr *possibleChild)
 {
   uint16_t referenceToCheck = 0;
   possibleChild->GetNumReferences(&referenceToCheck);
-  nsCAutoString reference;
+  nsAutoCString reference;
 
   nsCString messageId;
   GetMessageId(getter_Copies(messageId));

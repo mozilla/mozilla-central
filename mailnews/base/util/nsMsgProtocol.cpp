@@ -99,7 +99,7 @@ nsMsgProtocol::GetQoSBits(uint8_t *aQoSBits)
   if (!protocol)
     return NS_ERROR_NOT_IMPLEMENTED;
 
-  nsCAutoString prefName("mail.");
+  nsAutoCString prefName("mail.");
   prefName.Append(protocol);
   prefName.Append(".qos");
 
@@ -173,7 +173,7 @@ nsMsgProtocol::OpenNetworkSocket(nsIURI * aURL, const char *connectionType,
 {
   NS_ENSURE_ARG(aURL);
 
-  nsCAutoString hostName;
+  nsAutoCString hostName;
   int32_t port = 0;
 
   aURL->GetPort(&port);
@@ -202,7 +202,7 @@ nsMsgProtocol::OpenNetworkSocket(nsIURI * aURL, const char *connectionType,
       bool isSMTP = false;
       if (NS_SUCCEEDED(aURL->SchemeIs("smtp", &isSMTP)) && isSMTP)
       {
-          nsCAutoString spec;
+          nsAutoCString spec;
           rv = aURL->GetSpec(spec);
           if (NS_SUCCEEDED(rv))
               proxyUri = do_CreateInstance(NS_STANDARDURL_CONTRACTID, &rv);
@@ -232,7 +232,7 @@ nsresult nsMsgProtocol::GetFileFromURL(nsIURI * aURL, nsIFile **aResult)
   NS_ENSURE_ARG_POINTER(aURL);
   NS_ENSURE_ARG_POINTER(aResult);
   // extract the file path from the uri...
-  nsCAutoString urlSpec;
+  nsAutoCString urlSpec;
   aURL->GetPath(urlSpec);
   urlSpec.Insert(NS_LITERAL_CSTRING("file://"), 0);
   nsresult rv;
@@ -588,7 +588,7 @@ NS_IMETHODIMP nsMsgProtocol::AsyncOpen(nsIStreamListener *listener, nsISupports 
     if (NS_FAILED(rv))
         return rv;
 
-    nsCAutoString scheme;
+    nsAutoCString scheme;
     rv = m_url->GetScheme(scheme);
     if (NS_FAILED(rv))
         return rv;
@@ -632,7 +632,7 @@ NS_IMETHODIMP nsMsgProtocol::GetContentType(nsACString &aContentType)
 
 NS_IMETHODIMP nsMsgProtocol::SetContentType(const nsACString &aContentType)
 {
-    nsCAutoString charset;
+    nsAutoCString charset;
     return NS_ParseContentType(aContentType, m_ContentType, charset);
 }
 
@@ -746,7 +746,7 @@ nsMsgProtocol::OnTransportStatus(nsITransport *transport, nsresult status,
       return NS_OK;
   }
 
-  nsCAutoString host;
+  nsAutoCString host;
   m_url->GetHost(host);
 
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_url);

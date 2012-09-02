@@ -21,7 +21,7 @@ nsresult nsAbQueryStringToExpression::Convert (
 {
     nsresult rv;
 
-    nsCAutoString q(aQueryString);
+    nsAutoCString q(aQueryString);
     q.StripWhitespace();
     const char *queryChars = q.get();
 

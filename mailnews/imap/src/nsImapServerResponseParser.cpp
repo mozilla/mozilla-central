@@ -679,11 +679,11 @@ void nsImapServerResponseParser::response_data()
       else 
       {
         // check if custom command
-        nsCAutoString customCommand;
+        nsAutoCString customCommand;
         fServerConnection.GetCurrentUrl()->GetCommand(customCommand);
         if (customCommand.Equals(fNextToken))
         {
-          nsCAutoString customCommandResponse;
+          nsAutoCString customCommandResponse;
           while (Connected() && !fAtEndOfLine)
           {
             AdvanceToNextToken();
@@ -1306,7 +1306,7 @@ void nsImapServerResponseParser::msg_fetch()
         if (!fServerConnection.GetCurrentUrl())
           return;
         fServerConnection.GetCurrentUrl()->GetImapAction(&imapAction);
-        nsCAutoString userDefinedFetchAttribute;
+        nsAutoCString userDefinedFetchAttribute;
         fServerConnection.GetCurrentUrl()->GetCustomAttributeToFetch(userDefinedFetchAttribute);
         if ((imapAction == nsIImapUrl::nsImapUserDefinedFetchAttribute && !strcmp(userDefinedFetchAttribute.get(), fNextToken)) ||
             imapAction == nsIImapUrl::nsImapUserDefinedMsgCommand)
@@ -1419,12 +1419,12 @@ void nsImapServerResponseParser::envelope_data()
     }
     else
     {
-      nsCAutoString headerLine(EnvelopeTable[tableIndex].name);
+      nsAutoCString headerLine(EnvelopeTable[tableIndex].name);
       headerLine += ": ";
       bool headerNonNil = true;
       if (EnvelopeTable[tableIndex].type == envelopeString)
       {
-        nsCAutoString strValue;
+        nsAutoCString strValue;
         strValue.Adopt(CreateNilString());
         if (!strValue.IsEmpty())
           headerLine.Append(strValue);
@@ -1433,7 +1433,7 @@ void nsImapServerResponseParser::envelope_data()
       }
       else
       {
-        nsCAutoString address;
+        nsAutoCString address;
         parse_address(address);
         headerLine += address;
         if (address.IsEmpty())
@@ -1459,9 +1459,9 @@ void nsImapServerResponseParser::xaolenvelope_data()
   {
     AdvanceToNextToken();
     fNextToken++; // eat '('
-    nsCAutoString subject;
+    nsAutoCString subject;
     subject.Adopt(CreateNilString());
-    nsCAutoString subjectLine("Subject: ");
+    nsAutoCString subjectLine("Subject: ");
     subjectLine += subject;
     fServerConnection.HandleMessageDownLoadLine(subjectLine.get(), false);
     fNextToken++; // eat the next '('
@@ -1470,13 +1470,13 @@ void nsImapServerResponseParser::xaolenvelope_data()
       AdvanceToNextToken();
       if (ContinueParse())
       {
-        nsCAutoString fromLine;
+        nsAutoCString fromLine;
         if (!strcmp(GetSelectedMailboxName(), "Sent Items"))
         {
           // xaol envelope switches the From with the To, so we switch them back and
           // create a fake from line From: user@aol.com
           fromLine.Append("To: ");
-          nsCAutoString fakeFromLine(NS_LITERAL_CSTRING("From: "));
+          nsAutoCString fakeFromLine(NS_LITERAL_CSTRING("From: "));
           fakeFromLine.Append(fServerConnection.GetImapUserName());
           fakeFromLine.Append(NS_LITERAL_CSTRING("@aol.com"));
           fServerConnection.HandleMessageDownLoadLine(fakeFromLine.get(), false);
@@ -1493,7 +1493,7 @@ void nsImapServerResponseParser::xaolenvelope_data()
           int32_t attachmentSize = atoi(fNextToken);
           if (attachmentSize != 0)
           {
-            nsCAutoString attachmentLine("X-attachment-size: ");
+            nsAutoCString attachmentLine("X-attachment-size: ");
             attachmentLine.AppendInt(attachmentSize);
             fServerConnection.HandleMessageDownLoadLine(attachmentLine.get(), false);
           }
@@ -1504,7 +1504,7 @@ void nsImapServerResponseParser::xaolenvelope_data()
           int32_t imageSize = atoi(fNextToken);
           if (imageSize != 0)
           {
-            nsCAutoString imageLine("X-image-size: ");
+            nsAutoCString imageLine("X-image-size: ");
             imageLine.AppendInt(imageSize);
             fServerConnection.HandleMessageDownLoadLine(imageLine.get(), false);
           }
@@ -1516,7 +1516,7 @@ void nsImapServerResponseParser::xaolenvelope_data()
   }
 }
 
-void nsImapServerResponseParser::parse_address(nsCAutoString &addressLine)
+void nsImapServerResponseParser::parse_address(nsAutoCString &addressLine)
 {
   if (!strcmp(fNextToken, "NIL"))
     return;
@@ -1582,7 +1582,7 @@ void nsImapServerResponseParser::internal_date()
   AdvanceToNextToken();
   if (ContinueParse())
   {
-    nsCAutoString dateLine("Date: ");
+    nsAutoCString dateLine("Date: ");
     char *strValue = CreateNilString();
     if (strValue)
     {
@@ -1685,7 +1685,7 @@ void nsImapServerResponseParser::flags()
     }
     if (!knownFlag && fFlagState)
     {
-      nsCAutoString flag(fNextToken);
+      nsAutoCString flag(fNextToken);
       int32_t parenIndex = flag.FindChar(')');
       if (parenIndex > 0)
         flag.SetLength(parenIndex);

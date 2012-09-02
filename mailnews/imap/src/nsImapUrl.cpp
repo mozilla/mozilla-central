@@ -230,9 +230,9 @@ nsresult nsImapUrl::ParseUrl()
   // extract the user name
   GetUserPass(m_userName);
 
-  nsCAutoString imapPartOfUrl;
+  nsAutoCString imapPartOfUrl;
   rv = GetPath(imapPartOfUrl);
-  nsCAutoString unescapedImapPartOfUrl;
+  nsAutoCString unescapedImapPartOfUrl;
   MsgUnescapeString(imapPartOfUrl, 0, unescapedImapPartOfUrl);
   if (NS_SUCCEEDED(rv) && !unescapedImapPartOfUrl.IsEmpty())
   {
@@ -741,7 +741,7 @@ NS_IMETHODIMP nsImapUrl::AddOnlineDirectoryIfNecessary(const char *onlineMailbox
     do_GetService(kCImapHostSessionListCID, &rv);
   if (NS_FAILED(rv)) return rv;
   rv = hostSessionList->GetOnlineDirForHost(m_serverKey.get(), onlineDirString);
-  nsCAutoString onlineDir;
+  nsAutoCString onlineDir;
   LossyCopyUTF16toASCII(onlineDirString, onlineDir);
 
   nsIMAPNamespace *ns = nullptr;
@@ -760,7 +760,7 @@ NS_IMETHODIMP nsImapUrl::AddOnlineDirectoryIfNecessary(const char *onlineMailbox
     if (PL_strcasecmp(onlineMailboxName, "INBOX"))
     {
       NS_ASSERTION(ns, "couldn't find namespace for host");
-      nsCAutoString onlineDirWithDelimiter(onlineDir);
+      nsAutoCString onlineDirWithDelimiter(onlineDir);
       // make sure the onlineDir ends with the hierarchy delimiter
       if (ns)
       {
@@ -944,7 +944,7 @@ NS_IMETHODIMP nsImapUrl::AllocateCanonicalPath(const char *serverPath, char onli
   char *serverKey = nullptr;
   nsString aString;
   char *currentPath = (char *) serverPath;
-  nsCAutoString onlineDir;
+  nsAutoCString onlineDir;
   nsCOMPtr<nsIMsgIncomingServer> server;
 
   nsCOMPtr<nsIImapHostSessionList> hostSessionList =
@@ -1202,7 +1202,7 @@ NS_IMETHODIMP nsImapUrl::GetUri(char** aURI)
     AllocateCanonicalPath(m_sourceCanonicalFolderPathSubString, m_onlineSubDirSeparator, (getter_Copies(canonicalPath)));
     nsCString fullFolderPath("/");
     fullFolderPath.Append(m_userName);
-    nsCAutoString hostName;
+    nsAutoCString hostName;
     rv = GetHost(hostName);
     fullFolderPath.Append('@');
     fullFolderPath.Append(hostName);
@@ -1211,7 +1211,7 @@ NS_IMETHODIMP nsImapUrl::GetUri(char** aURI)
 
     nsCString baseMessageURI;
     nsCreateImapBaseMessageURI(fullFolderPath, baseMessageURI);
-    nsCAutoString uriStr;
+    nsAutoCString uriStr;
     rv = nsBuildImapMessageURI(baseMessageURI.get(), key, uriStr);
     *aURI = ToNewCString(uriStr);
   }

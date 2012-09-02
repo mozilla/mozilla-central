@@ -166,7 +166,7 @@ int32_t generate_encodedwords(char *pUTF8, const char *charset, char method, cha
   PRUnichar *_pUCS2 = nullptr, *pUCS2 = nullptr, *pUCS2Head = nullptr, cUCS2Tmp = 0;
   char  *ibuf, *o = output;
   char  encodedword_head[nsIMimeConverter::MAX_CHARSET_NAME_LENGTH+4+1];
-  nsCAutoString _charset;
+  nsAutoCString _charset;
   char  *pUTF8Head = nullptr, cUTF8Tmp = 0;
   int32_t   olen = 0, obufsize = outlen, offset, linelen = output_carryoverlen, convlen = 0;
   int32_t   encodedword_headlen = 0, encodedword_taillen = foldingonly ? 0 : 2; // "?="
@@ -692,7 +692,7 @@ extern "C" char *MIME_DecodeMimeHeader(const char *header,
   nsCOMPtr <nsIMIMEHeaderParam> mimehdrpar = do_GetService(NS_MIMEHEADERPARAM_CONTRACTID, &rv);
   if (NS_FAILED(rv))
     return nullptr;
-  nsCAutoString result;
+  nsAutoCString result;
   rv = mimehdrpar->DecodeRFC2047Header(header, default_charset, override_charset,
                                        eatContinuations, result);
   if (NS_SUCCEEDED(rv))
@@ -723,7 +723,7 @@ MIME_detect_charset(const char *aBuf, int32_t aLength, const char** aCharset)
   NS_GetLocalizedUnicharPreferenceWithDefault(nullptr, "intl.charset.detector", EmptyString(), detector_name);
 
   if (!detector_name.IsEmpty()) {
-    nsCAutoString detector_contractid;
+    nsAutoCString detector_contractid;
     detector_contractid.AssignLiteral(NS_STRCDETECTOR_CONTRACTID_BASE);
     detector_contractid.Append(NS_ConvertUTF16toUTF8(detector_name));
     nsCOMPtr<nsIStringCharsetDetector> detector = do_CreateInstance(detector_contractid.get(), &res);

@@ -107,7 +107,7 @@ NS_IMETHODIMP nsImapIncomingServer::SetKey(const nsACString& aKey)  // override 
   hostSession->SetDeleteIsMoveToTrashForHost(key.get(), deleteModel == nsMsgImapDeleteModels::MoveToTrash);
   hostSession->SetShowDeletedMessagesForHost(key.get(), deleteModel == nsMsgImapDeleteModels::IMAPDelete);
 
-  nsCAutoString onlineDir;
+  nsAutoCString onlineDir;
   rv = GetServerDirectory(onlineDir);
   NS_ENSURE_SUCCESS(rv, rv);
   if (!onlineDir.IsEmpty())
@@ -145,8 +145,8 @@ NS_IMETHODIMP nsImapIncomingServer::SetKey(const nsACString& aKey)  // override 
 NS_IMETHODIMP
 nsImapIncomingServer::GetConstructedPrettyName(nsAString& retval)
 {
-  nsCAutoString username;
-  nsCAutoString hostName;
+  nsAutoCString username;
+  nsAutoCString hostName;
   nsresult rv;
 
   nsCOMPtr<nsIMsgAccountManager> accountManager =
@@ -330,7 +330,7 @@ nsImapIncomingServer::SetDeleteModel(int32_t ivalue)
     nsresult rv = GetTrashFolderName(trashFolderName);
     if (NS_SUCCEEDED(rv))
     {
-      nsCAutoString trashFolderNameUtf7;
+      nsAutoCString trashFolderNameUtf7;
       rv = CopyUTF16toMUTF7(trashFolderName, trashFolderNameUtf7);
       if (NS_SUCCEEDED(rv))
       {
@@ -728,7 +728,7 @@ nsImapIncomingServer::GetImapConnection(nsIImapUrl * aImapUrl,
                                                            &canRunUrlImmediately,
                                                            &canRunButBusy));
 #ifdef DEBUG_bienvenu
-        nsCAutoString curSelectedFolderName;
+        nsAutoCString curSelectedFolderName;
         if (connection)
           connection->GetSelectedMailboxName(getter_Copies(curSelectedFolderName));
         // check that no other connection is in the same selected state.
@@ -741,7 +741,7 @@ nsImapIncomingServer::GetImapConnection(nsIImapUrl * aImapUrl,
               nsCOMPtr<nsIImapProtocol> otherConnection = do_QueryElementAt(m_connectionCache, j);
               if (otherConnection)
               {
-                nsCAutoString otherSelectedFolderName;
+                nsAutoCString otherSelectedFolderName;
                 otherConnection->GetSelectedMailboxName(getter_Copies(otherSelectedFolderName));
                 NS_ASSERTION(!curSelectedFolderName.Equals(otherSelectedFolderName), "two connections selected on same folder");
               }
@@ -772,7 +772,7 @@ nsImapIncomingServer::GetImapConnection(nsIImapUrl * aImapUrl,
             freeConnection = connection;
           else  // check which is the better free connection to use.
           {     // We prefer one not in the selected state.
-            nsCAutoString selectedFolderName;
+            nsAutoCString selectedFolderName;
             connection->GetSelectedMailboxName(getter_Copies(selectedFolderName));
             if (selectedFolderName.IsEmpty())
               freeConnection = connection;
@@ -1050,7 +1050,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
   if(NS_FAILED(rv))
     return rv;
 
-  nsCAutoString dupFolderPath(folderPath);
+  nsAutoCString dupFolderPath(folderPath);
   if (dupFolderPath.Last() == '/')
   {
     dupFolderPath.SetLength(dupFolderPath.Length()-1);
@@ -1090,8 +1090,8 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
   if (NS_FAILED(rv))
     return rv;
 
-  nsCAutoString tempFolderName(dupFolderPath);
-  nsCAutoString tokenStr, remStr, changedStr;
+  nsAutoCString tempFolderName(dupFolderPath);
+  nsAutoCString tokenStr, remStr, changedStr;
   int32_t slashPos = tempFolderName.FindChar('/');
   if (slashPos > 0)
   {
@@ -1110,15 +1110,15 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
     changedStr.Append(remStr);
 
   dupFolderPath.Assign(changedStr);
-  nsCAutoString folderName(dupFolderPath);
+  nsAutoCString folderName(dupFolderPath);
 
-  nsCAutoString uri;
+  nsAutoCString uri;
   nsCString serverUri;
   GetServerURI(serverUri);
   uri.Assign(serverUri);
   int32_t leafPos = folderName.RFindChar('/');
-  nsCAutoString parentName(folderName);
-  nsCAutoString parentUri(uri);
+  nsAutoCString parentName(folderName);
+  nsAutoCString parentUri(uri);
 
   if (leafPos > 0)
   {
@@ -1174,7 +1174,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
     nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(child);
     if (imapFolder)
     {
-      nsCAutoString onlineName;
+      nsAutoCString onlineName;
       nsAutoString unicodeName;
       imapFolder->SetVerifiedAsOnlineFolder(true);
       imapFolder->SetHierarchyDelimiter(hierarchyDelimiter);
@@ -1294,7 +1294,7 @@ nsresult nsImapIncomingServer::GetFolder(const nsACString& name, nsIMsgFolder** 
     rv = rootFolder->GetURI(uri);
     if (NS_SUCCEEDED(rv) && !uri.IsEmpty())
     {
-      nsCAutoString uriString(uri);
+      nsAutoCString uriString(uri);
       uriString.Append('/');
       uriString.Append(name);
       nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
@@ -1785,7 +1785,7 @@ NS_IMETHODIMP
 nsImapIncomingServer::PromptLoginFailed(nsIMsgWindow *aMsgWindow,
                                         int32_t *aResult)
 {
-  nsCAutoString hostName;
+  nsAutoCString hostName;
   GetRealHostName(hostName);
 
   return MsgPromptLoginFailed(aMsgWindow, hostName, aResult);
@@ -2447,7 +2447,7 @@ nsImapIncomingServer::AddTo(const nsACString &aName, bool addAsSubscribed,
     return NS_OK;
 
   if (!NS_IsAscii(aName.BeginReading(), aName.Length())) {
-    nsCAutoString name;
+    nsAutoCString name;
     CopyUTF16toMUTF7(NS_ConvertUTF8toUTF16(aName), name);
     return mInner->AddTo(name, addAsSubscribed, aSubscribable, changeIfExists);
   }
@@ -2705,7 +2705,7 @@ nsImapIncomingServer::GetCanEmptyTrashOnExit(bool *canEmptyTrashOnExit)
 }
 
 nsresult
-nsImapIncomingServer::CreateHostSpecificPrefName(const char *prefPrefix, nsCAutoString &prefName)
+nsImapIncomingServer::CreateHostSpecificPrefName(const char *prefPrefix, nsAutoCString &prefName)
 {
   NS_ENSURE_ARG_POINTER(prefPrefix);
 
@@ -2723,7 +2723,7 @@ NS_IMETHODIMP
 nsImapIncomingServer::GetSupportsDiskSpace(bool *aSupportsDiskSpace)
 {
   NS_ENSURE_ARG_POINTER(aSupportsDiskSpace);
-  nsCAutoString prefName;
+  nsAutoCString prefName;
   nsresult rv = CreateHostSpecificPrefName("default_supports_diskspace", prefName);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -2798,7 +2798,7 @@ nsImapIncomingServer::GetOfflineSupportLevel(int32_t *aSupportLevel)
   if (*aSupportLevel != OFFLINE_SUPPORT_LEVEL_UNDEFINED)
     return rv;
 
-  nsCAutoString prefName;
+  nsAutoCString prefName;
   rv = CreateHostSpecificPrefName("default_offline_support_level", prefName);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -3103,7 +3103,7 @@ nsImapIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName,
   //    reloaded (ie, DiscoverMailboxList() will be invoked in nsImapProtocol).
   nsCOMPtr<nsIImapHostSessionList> hostSessionList = do_GetService(kCImapHostSessionListCID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCAutoString serverKey;
+  nsAutoCString serverKey;
   rv = GetKey(serverKey);
   NS_ENSURE_SUCCESS(rv, rv);
   hostSessionList->SetHaveWeEverDiscoveredFoldersForHost(serverKey.get(), false);
@@ -3120,7 +3120,7 @@ nsImapIncomingServer::GetUriWithNamespacePrefixIfNecessary(int32_t namespaceType
                                                            nsACString& convertedUri)
 {
   nsresult rv = NS_OK;
-  nsCAutoString serverKey;
+  nsAutoCString serverKey;
   rv = GetKey(serverKey);
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsIImapHostSessionList> hostSessionList = do_GetService(kCImapHostSessionListCID, &rv);
@@ -3128,11 +3128,11 @@ nsImapIncomingServer::GetUriWithNamespacePrefixIfNecessary(int32_t namespaceType
   rv = hostSessionList->GetDefaultNamespaceOfTypeForHost(serverKey.get(), (EIMAPNamespaceType)namespaceType, ns);
   if (ns)
   {
-    nsCAutoString namespacePrefix(ns->GetPrefix());
+    nsAutoCString namespacePrefix(ns->GetPrefix());
     if (!namespacePrefix.IsEmpty())
     {
       // check if namespacePrefix is the same as the online directory; if so, ignore it.
-      nsCAutoString onlineDir;
+      nsAutoCString onlineDir;
       rv = GetServerDirectory(onlineDir);
       NS_ENSURE_SUCCESS(rv, rv);
       if (!onlineDir.IsEmpty())
@@ -3177,7 +3177,7 @@ NS_IMETHODIMP nsImapIncomingServer::SetTrashFolderName(const nsAString& chvalue)
   nsresult rv = GetTrashFolderName(oldTrashName);
   if (NS_SUCCEEDED(rv))
   {
-    nsCAutoString oldTrashNameUtf7;
+    nsAutoCString oldTrashNameUtf7;
     rv = CopyUTF16toMUTF7(oldTrashName, oldTrashNameUtf7);
     if (NS_SUCCEEDED(rv))
     {

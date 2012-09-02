@@ -300,7 +300,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::SetData(const char *dataId, nsISuppor
         if (m_pDestinationUri)
           NS_Free(m_pDestinationUri);
         m_pDestinationUri = nullptr;
-                nsCAutoString tempUri;
+                nsAutoCString tempUri;
                 abString->GetData(tempUri);
                 m_pDestinationUri = ToNewCString(tempUri);
       }
@@ -570,8 +570,8 @@ already_AddRefed<nsIAddrDatabase> GetAddressBook(const PRUnichar *name,
                             getter_AddRefs(parentDir));
     if (parentDir)
     {
-      nsCAutoString URI("moz-abmdbdirectory://");
-      nsCAutoString leafName;
+      nsAutoCString URI("moz-abmdbdirectory://");
+      nsAutoCString leafName;
       rv = dbPath->GetNativeLeafName(leafName);
       if (NS_FAILED(rv))
         IMPORT_LOG0("*** Error: Unable to get name of database file\n");

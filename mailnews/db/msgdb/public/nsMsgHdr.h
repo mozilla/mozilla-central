@@ -45,7 +45,7 @@ protected:
     nsresult GetUInt32Column(mdb_token token, uint32_t *pvalue, uint32_t defaultValue = 0);
     nsresult SetUInt64Column(uint64_t value, mdb_token token);
     nsresult GetUInt64Column(mdb_token token, uint64_t *pvalue, uint64_t defaultValue = 0);
-    nsresult BuildRecipientsFromArray(const char *names, const char *addresses, uint32_t numAddresses, nsCAutoString& allRecipients);
+    nsresult BuildRecipientsFromArray(const char *names, const char *addresses, uint32_t numAddresses, nsAutoCString& allRecipients);
 
     // reference and threading stuff.
     nsresult	ParseReferences(const char *references);

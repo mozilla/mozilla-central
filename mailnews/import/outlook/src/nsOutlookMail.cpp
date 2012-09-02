@@ -603,7 +603,7 @@ nsresult nsOutlookMail::CreateList(const PRUnichar * pName,
   nsCOMPtr <nsIMdbRow> newListRow;
   rv = pDb->GetNewListRow(getter_AddRefs(newListRow));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCAutoString column;
+  nsAutoCString column;
   LossyCopyUTF16toASCII(nsDependentString(pName), column);
   rv = pDb->AddListName(newListRow, column.get());
   NS_ENSURE_SUCCESS(rv, rv);

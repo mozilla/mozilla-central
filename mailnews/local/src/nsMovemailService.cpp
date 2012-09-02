@@ -191,9 +191,9 @@ bool ObtainSpoolLock(const char *aSpoolName,
   // (step 2a not yet implemented)
 
 
-  nsCAutoString mozlockstr(aSpoolName);
+  nsAutoCString mozlockstr(aSpoolName);
   mozlockstr.Append(".mozlock");
-  nsCAutoString lockstr(aSpoolName);
+  nsAutoCString lockstr(aSpoolName);
   lockstr.Append(".lock");
 
   // Create nsIFile for the spool.mozlock file
@@ -270,7 +270,7 @@ bool YieldSpoolLock(const char *aSpoolName, bool aUsingLockFile)
     return unlockSucceeded;
   }
 
-  nsCAutoString lockstr(aSpoolName);
+  nsAutoCString lockstr(aSpoolName);
   lockstr.Append(".lock");
 
   nsresult rv;
@@ -325,7 +325,7 @@ LocateSpoolFile(nsACString & spoolPath)
   else if (userEnv) {
     // Try to build the mailbox path from the username and a number
     // of guessed spool directory paths.
-    nsCAutoString tmpPath;
+    nsAutoCString tmpPath;
     uint32_t i;
     for (i = 0; i < NUM_DEFAULT_SPOOL_PATHS; i++) {
       tmpPath = gDefaultSpoolPaths[i];
@@ -360,7 +360,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
   mMsgWindow = aMsgWindow;
 
   // Attempt to locate the mail spool file
-  nsCAutoString spoolPath;
+  nsAutoCString spoolPath;
   rv = in_server->GetCharValue("spoolDir", spoolPath);
   if (spoolPath.IsEmpty())
     rv = LocateSpoolFile(spoolPath);
@@ -429,7 +429,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
 
   // MIDDLE of the FUN : consume the mailbox data.
   bool isMore = true;
-  nsCAutoString buffer;
+  nsAutoCString buffer;
   uint32_t bytesWritten;
 
   while (isMore &&

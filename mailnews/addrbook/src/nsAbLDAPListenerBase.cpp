@@ -112,7 +112,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
 
     // get the host name for the auth prompt
     //
-    nsCAutoString host;
+    nsAutoCString host;
     rv = mDirectoryUrl->GetAsciiHost(host);
     if (NS_FAILED(rv))
     {
@@ -242,7 +242,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
   // Try non-password mechanisms first
   if (mSaslMechanism.EqualsLiteral("GSSAPI"))
   {
-    nsCAutoString service;
+    nsAutoCString service;
     rv = mDirectoryUrl->GetAsciiHost(service);
     NS_ENSURE_SUCCESS(rv, rv);
 

@@ -154,7 +154,7 @@ void AsyncAuthMigrator::EnqueuePrompt()
 
   // Make up a fake unique key to prevent coalescing of prompts
   // The address of this object should be sufficient
-  nsCAutoString queueKey;
+  nsAutoCString queueKey;
   queueKey.AppendInt((int32_t)(uint64_t)this);
   prompter->QueueAsyncAuthPrompt(queueKey, false, this);
 }
@@ -239,7 +239,7 @@ nsMsgNewsFolder::AddNewsgroup(const nsACString &name, const nsACString& setStr,
   rv = GetNntpServer(getter_AddRefs(nntpServer));
   if (NS_FAILED(rv)) return rv;
 
-  nsCAutoString uri(mURI);
+  nsAutoCString uri(mURI);
   uri.Append('/');
   // URI should use UTF-8
   // (see RFC2396 Uniform Resource Identifiers (URI): Generic Syntax)
@@ -247,7 +247,7 @@ nsMsgNewsFolder::AddNewsgroup(const nsACString &name, const nsACString& setStr,
   // we are handling newsgroup names in UTF-8
   NS_ConvertUTF8toUTF16 nameUtf16(name);
 
-  nsCAutoString escapedName;
+  nsAutoCString escapedName;
   rv = NS_MsgEscapeEncodeURLPath(nameUtf16, escapedName);
   if (NS_FAILED(rv)) return rv;
 
@@ -583,7 +583,7 @@ NS_IMETHODIMP nsMsgNewsFolder::CreateSubfolder(const nsAString& newsgroupName,
     rv = GetNntpServer(getter_AddRefs(nntpServer));
     if (NS_FAILED(rv)) return rv;
 
-    nsCAutoString dataCharset;
+    nsAutoCString dataCharset;
     rv = nntpServer->GetCharset(dataCharset);
     if (NS_FAILED(rv)) return rv;
 
@@ -931,7 +931,7 @@ NS_IMETHODIMP nsMsgNewsFolder::CancelMessage(nsIMsgDBHdr *msgHdr,
   nsCString escapedMessageID;
   MsgEscapeString(messageID, nsINetUtil::ESCAPE_URL_PATH, escapedMessageID);
 
-  nsCAutoString cancelURL(serverURI.get());
+  nsAutoCString cancelURL(serverURI.get());
   cancelURL += '/';
   cancelURL += escapedMessageID;
   cancelURL += "?cancel";
@@ -1625,7 +1625,7 @@ nsMsgNewsFolder::GetRawName(nsACString & aRawName)
     rv = GetNntpServer(getter_AddRefs(nntpServer));
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsCAutoString dataCharset;
+    nsAutoCString dataCharset;
     rv = nntpServer->GetCharset(dataCharset);
     NS_ENSURE_SUCCESS(rv,rv);
     rv = nsMsgI18NConvertFromUnicode(dataCharset.get(), name, mRawName);

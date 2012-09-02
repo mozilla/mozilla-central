@@ -27,8 +27,8 @@ nsresult
 nsImapURI2FullName(const char* rootURI, const char* hostName, const char* uriStr,
                    char **name)
 {
-    nsCAutoString uri(uriStr);
-    nsCAutoString fullName;
+    nsAutoCString uri(uriStr);
+    nsAutoCString fullName;
     if (uri.Find(rootURI) != 0)
       return NS_ERROR_FAILURE;
     fullName = Substring(uri, strlen(rootURI));
@@ -54,7 +54,7 @@ nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, uint32_t *
   if(!key)
     return NS_ERROR_NULL_POINTER;
 
-  nsCAutoString uriStr(uri);
+  nsAutoCString uriStr(uri);
   int32_t folderEnd = -1;
   // imap-message uri's can have imap:// url strings tacked on the end,
   // e.g., when opening/saving attachments. We don't want to look for '#'
@@ -87,7 +87,7 @@ nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, uint32_t *
         folderURI.Replace(userNamePos, origUserNameLen, escapedName);
       }
     }
-    nsCAutoString keyStr;
+    nsAutoCString keyStr;
     if (keyEndSeparator != -1)
       keyStr = Substring(uriStr, keySeparator + 1, keyEndSeparator - (keySeparator + 1));
     else
@@ -117,7 +117,7 @@ nsresult nsBuildImapMessageURI(const char *baseURI, uint32_t key, nsCString& uri
 
 nsresult nsCreateImapBaseMessageURI(const nsACString& baseURI, nsCString &baseMessageURI)
 {
-  nsCAutoString tailURI(baseURI);
+  nsAutoCString tailURI(baseURI);
   // chop off imap:/
   if (tailURI.Find(kImapRootURI) == 0)
     tailURI.Cut(0, PL_strlen(kImapRootURI));

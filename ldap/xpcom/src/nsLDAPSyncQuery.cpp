@@ -240,7 +240,7 @@ nsLDAPSyncQuery::StartLDAPSearch()
 
     // get the search filter associated with the directory server url; 
     //
-    nsCAutoString urlFilter;
+    nsAutoCString urlFilter;
     rv = mServerURL->GetFilter(urlFilter);
     if (NS_FAILED(rv)) {
         FinishLDAPQuery();
@@ -249,7 +249,7 @@ nsLDAPSyncQuery::StartLDAPSearch()
 
     // get the base dn to search
     //
-    nsCAutoString dn;
+    nsAutoCString dn;
     rv = mServerURL->GetDn(dn);
     if (NS_FAILED(rv)) {
         FinishLDAPQuery();
@@ -265,7 +265,7 @@ nsLDAPSyncQuery::StartLDAPSearch()
         return NS_ERROR_UNEXPECTED;
     }
 
-    nsCAutoString attributes;
+    nsAutoCString attributes;
     rv = mServerURL->GetAttributes(attributes);
     if (NS_FAILED(rv)) {
         FinishLDAPQuery();

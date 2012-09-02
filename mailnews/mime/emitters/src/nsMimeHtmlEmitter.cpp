@@ -168,7 +168,7 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
 
   nsCString extraExpandedHeaders;
   nsTArray<nsCString> extraExpandedHeadersArray;
-  nsCAutoString convertedDateString;
+  nsAutoCString convertedDateString;
 
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));

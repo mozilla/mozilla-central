@@ -107,7 +107,7 @@ void nsMsgServiceProviderService::LoadISPFilesFromDir(nsIFile* aDir)
     if (!StringEndsWith(leafName, NS_LITERAL_STRING(".rdf")))
       continue;
 
-    nsCAutoString urlSpec;
+    nsAutoCString urlSpec;
     rv = NS_GetURLSpecFromFile(file, urlSpec);
     if (NS_SUCCEEDED(rv))
       LoadDataSource(urlSpec.get());

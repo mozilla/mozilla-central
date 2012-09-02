@@ -115,7 +115,7 @@ NS_IMETHODIMP nsMsgFolderCacheElement::SetInt32Property(const char *propertyName
 {
   NS_ENSURE_ARG_POINTER(propertyName);
   NS_ENSURE_TRUE(m_mdbRow, NS_ERROR_FAILURE);
-  nsCAutoString propertyStr;
+  nsAutoCString propertyStr;
   propertyStr.AppendInt(propertyValue, 16);
   return SetStringProperty(propertyName, propertyStr);
 }

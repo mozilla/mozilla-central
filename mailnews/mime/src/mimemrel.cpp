@@ -395,7 +395,7 @@ MakeAbsoluteURL(char *base_url, char *relative_url)
   if (err != NS_OK)
     return nullptr;
 
-  nsCAutoString spec;
+  nsAutoCString spec;
 
   nsIURI    *url = nullptr;
   err = nsMimeNewURI(&url, relative_url, base);
@@ -461,8 +461,8 @@ MimeMultipartRelated_output_child_p(MimeObject *obj, MimeObject* child)
       PR_FREEIF(base_url);
       PR_Free(location);
       if (absolute) {
-        nsCAutoString partnum;
-        nsCAutoString imappartnum;
+        nsAutoCString partnum;
+        nsAutoCString imappartnum;
         partnum.Adopt(mime_part_address(child));
         if (!partnum.IsEmpty()) {
           if (obj->options->missing_parts)

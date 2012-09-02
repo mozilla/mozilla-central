@@ -86,12 +86,12 @@ nsresult GetMessageServiceContractIDForURI(const char *uri, nsCString &contractI
 {
   nsresult rv = NS_OK;
   //Find protocol
-  nsCAutoString uriStr(uri);
+  nsAutoCString uriStr(uri);
   int32_t pos = uriStr.FindChar(':');
   if (pos == -1)
     return NS_ERROR_FAILURE;
 
-  nsCAutoString protocol(StringHead(uriStr, pos));
+  nsAutoCString protocol(StringHead(uriStr, pos));
 
   if (protocol.Equals("file") && uriStr.Find("application/x-message-display") != -1)
     protocol.Assign("mailbox");
@@ -106,7 +106,7 @@ nsresult GetMessageServiceFromURI(const nsACString& uri, nsIMsgMessageService **
 {
   nsresult rv;
 
-  nsCAutoString contractID;
+  nsAutoCString contractID;
   rv = GetMessageServiceContractIDForURI(PromiseFlatCString(uri).get(), contractID);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -348,7 +348,7 @@ MsgFindCharInSet(const nsString &aString,
 
 static bool ConvertibleToNative(const nsAutoString& str)
 {
-    nsCAutoString native;
+    nsAutoCString native;
     nsAutoString roundTripped;
 #ifdef MOZILLA_INTERNAL_API
     NS_CopyUnicodeToNative(str, native);
@@ -370,9 +370,9 @@ static bool ConvertibleToNative(const nsAutoString& str)
   #error need_to_define_your_max_filename_length
 #endif
 
-nsresult NS_MsgHashIfNecessary(nsCAutoString &name)
+nsresult NS_MsgHashIfNecessary(nsAutoCString &name)
 {
-  nsCAutoString str(name);
+  nsAutoCString str(name);
 
   // Given a filename, make it safe for filesystem
   // certain filenames require hashing because they
@@ -563,7 +563,7 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
 
       if (aIsNewsFolder)
       {
-          nsCAutoString tmp;
+          nsAutoCString tmp;
           CopyUTF16toMUTF7(pathPiece, tmp);
           CopyASCIItoUTF16(tmp, pathPiece);
       }
@@ -614,7 +614,7 @@ bool NS_MsgStripRE(const char **stringP, uint32_t *lengthP, char **modifiedSubje
   NS_ConvertUTF16toUTF8 localizedRe(utf16LocalizedRe);
 
   // hardcoded "Re" so that noone can configure Mozilla standards incompatible
-  nsCAutoString checkString("Re,RE,re,rE");
+  nsAutoCString checkString("Re,RE,re,rE");
   if (!localizedRe.IsEmpty()) {
     checkString.Append(',');
     checkString.Append(localizedRe);
@@ -777,7 +777,7 @@ nsresult NS_MsgEscapeEncodeURLPath(const nsAString& aStr, nsCString& aResult)
 nsresult NS_MsgDecodeUnescapeURLPath(const nsACString& aPath,
                                      nsAString& aResult)
 {
-  nsCAutoString unescapedName;
+  nsAutoCString unescapedName;
   MsgUnescapeString(aPath, nsINetUtil::ESCAPE_URL_FILE_BASENAME |
                  nsINetUtil::ESCAPE_URL_FORCED, unescapedName);
   CopyUTF8toUTF16(unescapedName, aResult);
@@ -1045,7 +1045,7 @@ nsresult MSGCramMD5(const char *text, int32_t text_len, const char *key, int32_t
 {
   nsresult rv;
 
-  nsCAutoString hash;
+  nsAutoCString hash;
   nsCOMPtr<nsICryptoHash> hasher = do_CreateInstance("@mozilla.org/security/hash;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1098,7 +1098,7 @@ nsresult MSGCramMD5(const char *text, int32_t text_len, const char *key, int32_t
   /*
    * perform inner MD5
    */
-  nsCAutoString result;
+  nsAutoCString result;
   rv = hasher->Init(nsICryptoHash::MD5); /* init context for 1st pass */
   rv = hasher->Update((const uint8_t*)innerPad, 64);       /* start with inner pad */
   rv = hasher->Update((const uint8_t*)text, text_len);     /* then text of datagram */
@@ -1126,7 +1126,7 @@ nsresult MSGCramMD5(const char *text, int32_t text_len, const char *key, int32_t
 nsresult MSGApopMD5(const char *text, int32_t text_len, const char *password, int32_t password_len, unsigned char *digest)
 {
   nsresult rv;
-  nsCAutoString result;
+  nsAutoCString result;
 
   nsCOMPtr<nsICryptoHash> hasher = do_CreateInstance("@mozilla.org/security/hash;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -2039,7 +2039,7 @@ MsgExamineForProxy(const char *scheme, const char *host,
   nsCOMPtr<nsIProtocolProxyService> pps =
           do_GetService(NS_PROTOCOLPROXYSERVICE_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv)) {
-    nsCAutoString spec(scheme);
+    nsAutoCString spec(scheme);
     spec.Append("://");
     spec.Append(host);
     spec.Append(':');
@@ -2142,7 +2142,7 @@ NS_MSG_BASE nsresult MsgTermListToString(nsISupportsArray *aTermList, nsCString 
   for (uint32_t searchIndex = 0; searchIndex < count;
        searchIndex++)
   {
-    nsCAutoString stream;
+    nsAutoCString stream;
 
     nsCOMPtr<nsIMsgSearchTerm> term;
     aTermList->QueryElementAt(searchIndex, NS_GET_IID(nsIMsgSearchTerm),
@@ -2195,8 +2195,8 @@ MsgStreamMsgHeaders(nsIInputStream *aInputStream, nsIStreamListener *aConsumer)
   nsresult rv = NS_InitLineBuffer(&lineBuffer);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString msgHeaders;
-  nsCAutoString curLine;
+  nsAutoCString msgHeaders;
+  nsAutoCString curLine;
 
   bool more = true;
 
@@ -2255,7 +2255,7 @@ MsgDetectCharsetFromFile(nsIFile *aFile, nsACString &aCharset)
     NS_GetLocalizedUnicharPreferenceWithDefault(nullptr, "intl.charset.detector",
                                                 EmptyString(), detectorName);
     if (!detectorName.IsEmpty()) {
-      nsCAutoString detectorContractID;
+      nsAutoCString detectorContractID;
       detectorContractID.AssignLiteral(NS_CHARSET_DETECTOR_CONTRACTID_BASE);
       AppendUTF16toUTF8(detectorName, detectorContractID);
       detector = do_CreateInstance(detectorContractID.get());
@@ -2268,7 +2268,7 @@ MsgDetectCharsetFromFile(nsIFile *aFile, nsACString &aCharset)
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (detector) {
-    nsCAutoString buffer;
+    nsAutoCString buffer;
 
     nsCOMPtr<CharsetDetectionObserver> observer = new CharsetDetectionObserver();
 

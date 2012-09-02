@@ -138,8 +138,8 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetServer(nsIMsgIncomingServer ** aIncomingServe
   // we can look at caching it later.
 
   nsresult rv;
-  nsCAutoString urlstr;
-  nsCAutoString scheme;
+  nsAutoCString urlstr;
+  nsAutoCString scheme;
 
   nsCOMPtr<nsIURL> url = do_CreateInstance(NS_STANDARDURL_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
@@ -352,7 +352,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetSpec(nsACString &aSpec)
 
 NS_IMETHODIMP nsMsgMailNewsUrl::SetSpec(const nsACString &aSpec)
 {
-  nsCAutoString spec(aSpec);
+  nsAutoCString spec(aSpec);
   // Parse out "filename" attribute if present.
   char *start, *end;
   start = PL_strcasestr(spec.BeginWriting(),"?filename=");
@@ -538,7 +538,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::SchemeIs(const char *aScheme, bool *_retval)
 NS_IMETHODIMP nsMsgMailNewsUrl::Clone(nsIURI **_retval)
 {
   nsresult rv;
-  nsCAutoString urlSpec;
+  nsAutoCString urlSpec;
   nsCOMPtr<nsIIOService> ioService =
     mozilla::services::GetIOService();
   NS_ENSURE_TRUE(ioService, NS_ERROR_UNEXPECTED);
@@ -573,7 +573,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::Resolve(const nsACString &relativePath, nsACStri
     nsCOMPtr<nsIIOService> ioService =
       mozilla::services::GetIOService();
     NS_ENSURE_TRUE(ioService, NS_ERROR_UNEXPECTED);
-    nsCAutoString scheme;
+    nsAutoCString scheme;
 
     rv = ioService->ExtractScheme(relativePath, scheme);
     // if we have a fully qualified scheme then pass the relative path back as the result
@@ -939,7 +939,7 @@ nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFile *aFile, bool addDummyE
 
   if (m_outputStream && addDummyEnvelope)
   {
-    nsCAutoString result;
+    nsAutoCString result;
     uint32_t writeCount;
 
     time_t now = time((time_t*) 0);
@@ -997,7 +997,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::SetMsgHeaderSink(nsIMsgHeaderSink * aMsgHdrSink)
 NS_IMETHODIMP nsMsgMailNewsUrl::GetIsMessageUri(bool *aIsMessageUri)
 {
   NS_ENSURE_ARG(aIsMessageUri);
-  nsCAutoString scheme;
+  nsAutoCString scheme;
   m_baseURL->GetScheme(scheme);
   *aIsMessageUri = StringEndsWith(scheme, NS_LITERAL_CSTRING("-message"));
   return NS_OK;

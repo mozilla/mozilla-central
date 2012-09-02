@@ -450,7 +450,7 @@ const char *nsMsgFilterList::GetStringForAttrib(nsMsgFilterFileAttribValue attri
 
 nsresult nsMsgFilterList::LoadValue(nsCString &value, nsIInputStream *aStream)
 {
-  nsCAutoString  valueStr;
+  nsAutoCString  valueStr;
   char  curChar;
   value = "";
   curChar = SkipWhitespace(aStream);
@@ -507,7 +507,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
   // We'd really like to move lot's of these into the objects that they refer to.
   do
   {
-    nsCAutoString value;
+    nsAutoCString value;
     nsresult intToStringResult;
 
     char curChar;
@@ -542,7 +542,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
         {
           int32_t nextFilterStartPos = m_unparsedFilterBuffer.RFind("name");
 
-          nsCAutoString nextFilterPart;
+          nsAutoCString nextFilterPart;
           nextFilterPart = Substring(m_unparsedFilterBuffer, nextFilterStartPos, m_unparsedFilterBuffer.Length());
           m_unparsedFilterBuffer.SetLength(nextFilterStartPos);
 
@@ -646,7 +646,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
           int32_t labelInt = value.ToInteger(&res);
           if (NS_SUCCEEDED(res))
           {
-            nsCAutoString keyword("$label");
+            nsAutoCString keyword("$label");
             keyword.Append('0' + labelInt);
             currentFilterAction->SetType(nsMsgFilterAction::AddTag);
             currentFilterAction->SetStrValue(keyword);
@@ -817,7 +817,7 @@ nsresult nsMsgFilterList::WriteIntAttr(nsMsgFilterFileAttribValue attrib, int va
   if (attribStr)
   {
     uint32_t bytesWritten;
-    nsCAutoString writeStr(attribStr);
+    nsAutoCString writeStr(attribStr);
     writeStr.AppendLiteral("=\"");
     writeStr.AppendInt(value);
     writeStr.AppendLiteral("\"" MSG_LINEBREAK);
@@ -841,7 +841,7 @@ nsMsgFilterList::WriteStrAttr(nsMsgFilterFileAttribValue attrib,
     if (attribStr)
     {
       uint32_t bytesWritten;
-      nsCAutoString writeStr(attribStr);
+      nsAutoCString writeStr(attribStr);
       writeStr.AppendLiteral("=\"");
       writeStr.Append((escapedStr) ? escapedStr : aStr);
       writeStr.AppendLiteral("\"" MSG_LINEBREAK);

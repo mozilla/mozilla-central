@@ -140,7 +140,7 @@ mime_dump_attachments ( nsMsgAttachmentData *attachData )
 
     if ( tmp->m_url )
     {
-      nsCAutoString spec;
+      nsAutoCString spec;
       tmp->m_url->GetSpec(spec);
       printf("URL               : %s\n", spec.get());
     }
@@ -175,7 +175,7 @@ nsresult CreateComposeParams(nsCOMPtr<nsIMsgComposeParams> &pMsgComposeParams,
   nsMsgAttachmentData *curAttachment = attachmentList;
   if (curAttachment)
   {
-    nsCAutoString spec;
+    nsAutoCString spec;
 
     while (curAttachment && curAttachment->m_url)
     {
@@ -419,7 +419,7 @@ CreateCompositionFields(const char        *from,
     nsMsgPriorityValue priorityValue;
     NS_MsgGetPriorityFromString(val ? val : priority, priorityValue);
     PR_FREEIF(val);
-    nsCAutoString priorityName;
+    nsAutoCString priorityName;
     NS_MsgGetUntranslatedPriorityName(priorityValue, priorityName);
     cFields->SetPriority(priorityName.get());
   }
@@ -518,7 +518,7 @@ mime_draft_process_attachments(mime_draft_data *mdd)
 
     if ( tmpFile->m_origUrl )
     {
-      nsCAutoString tmpSpec;
+      nsAutoCString tmpSpec;
       if (NS_FAILED(tmpFile->m_origUrl->GetSpec(tmpSpec)))
         goto FAIL;
 
@@ -1222,7 +1222,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
         nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
         if (NS_SUCCEEDED(rv))
         {
-          nsCAutoString fwdPrefix;
+          nsAutoCString fwdPrefix;
           prefBranch->GetCharPref("mail.forward_subject_prefix",
                                   getter_Copies(fwdPrefix));
           char *newSubj = PR_smprintf("%s: %s", !fwdPrefix.IsEmpty() ?
@@ -1794,7 +1794,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
   // There's no file in the message if it's a cloud part.
   if (!newAttachment->m_cloudPartInfo.IsEmpty())
   {
-    nsCAutoString fileURL;
+    nsAutoCString fileURL;
     fileURL.Adopt(
       MimeHeaders_get_parameter(newAttachment->m_cloudPartInfo.get(), "file",
                                 nullptr, nullptr));
@@ -1809,11 +1809,11 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
   {
     // Let's build a temp file with an extension based on the content-type: nsmail.<extension>
 
-    nsCAutoString  newAttachName ("nsmail");
+    nsAutoCString  newAttachName ("nsmail");
     bool extensionAdded = false;
     // the content type may contain a charset. i.e. text/html; ISO-2022-JP...we want to strip off the charset
     // before we ask the mime service for a mime info for this content type.
-    nsCAutoString contentType (newAttachment->m_type);
+    nsAutoCString contentType (newAttachment->m_type);
     int32_t pos = contentType.FindChar(';');
     if (pos > 0)
       contentType.SetLength(pos);
@@ -1821,7 +1821,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
     nsCOMPtr<nsIMIMEService> mimeFinder (do_GetService(NS_MIMESERVICE_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv) && mimeFinder)
     {
-      nsCAutoString fileExtension;
+      nsAutoCString fileExtension;
       rv = mimeFinder->GetPrimaryExtension(contentType, EmptyCString(), fileExtension);
 
       if (NS_SUCCEEDED(rv) && !fileExtension.IsEmpty())
@@ -1846,7 +1846,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
   // if ( (tmpFile) && (!bodyPart) )
   if (tmpFile)
   {
-      nsCAutoString fileURL;
+      nsAutoCString fileURL;
       rv = NS_GetURLSpecFromFile(tmpFile, fileURL);
       if (NS_SUCCEEDED(rv))
         nsMimeNewURI(getter_AddRefs(newAttachment->m_origUrl),
@@ -1989,10 +1989,10 @@ mime_bridge_create_draft_stream(
   if (!mdd)
     return nullptr;
 
-  nsCAutoString turl;
+  nsAutoCString turl;
   nsCOMPtr <nsIMsgMessageService> msgService;
   nsCOMPtr<nsIURI> aURL;
-  nsCAutoString urlString;
+  nsAutoCString urlString;
   nsresult rv;
 
   // first, convert the rdf msg uri into a url that represents the message...

@@ -230,7 +230,7 @@ MimeMultCMS_init (MimeObject *obj)
       channel->GetURI(getter_AddRefs(uri));
       if (uri)
       {
-        nsCAutoString urlSpec;
+        nsAutoCString urlSpec;
         rv = uri->GetSpec(urlSpec);
 
         // We only want to update the UI if the current mime transaction
@@ -290,7 +290,7 @@ MimeMultCMS_data_eof (void *crypto_closure, bool abort_p)
     return -1;
   }
 
-  nsCAutoString hashString;
+  nsAutoCString hashString;
   data->data_hash_context->Finish(false, hashString);
   PR_SetError(0, 0);
 

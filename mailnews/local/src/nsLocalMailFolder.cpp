@@ -493,10 +493,10 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CreateStorageIfMissing(nsIUrlListener* aUrlL
   // and not by folder discovery. So, we have to compute the parent.
   if (!msgParent)
   {
-    nsCAutoString folderName(mURI);
-    nsCAutoString uri;
+    nsAutoCString folderName(mURI);
+    nsAutoCString uri;
     int32_t leafPos = folderName.RFindChar('/');
-    nsCAutoString parentName(folderName);
+    nsAutoCString parentName(folderName);
     if (leafPos > 0)
     {
       // If there is a hierarchy, there is a parent.
@@ -1923,7 +1923,7 @@ nsresult nsMsgLocalMailFolder::WriteStartOfNewMessage()
   if (mCopyState->m_dummyEnvelopeNeeded)
   {
     nsCString result;
-    nsCAutoString nowStr;
+    nsAutoCString nowStr;
     MsgGenerateNowStr(nowStr);
     result.AppendLiteral("From - ");
     result.Append(nowStr);
@@ -2172,13 +2172,13 @@ nsMsgLocalMailFolder::CopyHdrPropertiesWithSkipList(nsIMsgDBHdr *destHdr,
   dontPreserveEx.Append(skipList);
   dontPreserveEx.AppendLiteral(" ");
 
-  nsCAutoString property;
+  nsAutoCString property;
   nsCString sourceString;
   bool hasMore;
   while (NS_SUCCEEDED(propertyEnumerator->HasMore(&hasMore)) && hasMore)
   {
     propertyEnumerator->GetNext(property);
-    nsCAutoString propertyEx(NS_LITERAL_CSTRING(" "));
+    nsAutoCString propertyEx(NS_LITERAL_CSTRING(" "));
     propertyEx.Append(property);
     propertyEx.AppendLiteral(" ");
     if (dontPreserveEx.Find(propertyEx) != -1) // -1 is not found
@@ -2908,7 +2908,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::SelectDownloadMsg()
 
   if (mDownloadState == DOWNLOAD_STATE_GOTMSG && mDownloadWindow)
   {
-    nsCAutoString newuri;
+    nsAutoCString newuri;
     nsBuildLocalMessageURI(mBaseMessageURI.get(), mDownloadSelectKey, newuri);
     nsCOMPtr<nsIMsgWindowCommands> windowCommands;
     mDownloadWindow->GetWindowCommands(getter_AddRefs(windowCommands));
@@ -3034,7 +3034,7 @@ nsMsgLocalMailFolder::OnStartRunningUrl(nsIURI * aUrl)
   nsCOMPtr<nsIPop3URL> popurl = do_QueryInterface(aUrl, &rv);
   if (NS_SUCCEEDED(rv))
   {
-    nsCAutoString aSpec;
+    nsAutoCString aSpec;
     aUrl->GetSpec(aSpec);
     if (strstr(aSpec.get(), "uidl="))
     {
@@ -3071,7 +3071,7 @@ nsMsgLocalMailFolder::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
     NS_ENSURE_SUCCESS(rv, rv);
     nsCOMPtr<nsIMsgWindow> msgWindow;
     rv = mailSession->GetTopmostMsgWindow(getter_AddRefs(msgWindow));
-    nsCAutoString aSpec;
+    nsAutoCString aSpec;
     if (aUrl)
     aUrl->GetSpec(aSpec);
 
@@ -3242,7 +3242,7 @@ nsMsgLocalMailFolder::setSubfolderFlag(const nsAString& aFolderName, uint32_t fl
 {
   // FindSubFolder() expects the folder name to be escaped
   // see bug #192043
-  nsCAutoString escapedFolderName;
+  nsAutoCString escapedFolderName;
   nsresult rv = NS_MsgEscapeEncodeURLPath(aFolderName, escapedFolderName);
   NS_ENSURE_SUCCESS(rv,rv);
   nsCOMPtr<nsIMsgFolder> msgFolder;
@@ -3417,7 +3417,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
         NS_ASSERTION(NS_SUCCEEDED(rv), "CopyMessages failed");
         if (NS_FAILED(rv))
         {
-          nsCAutoString logMsg("failed to copy junk messages to junk folder rv = ");
+          nsAutoCString logMsg("failed to copy junk messages to junk folder rv = ");
           logMsg.AppendInt(rv, 16);
           spamSettings->LogJunkString(logMsg.get());
         }

@@ -149,7 +149,7 @@ NS_IMETHODIMP nsAbLDAPProcessReplicationData::Abort()
     if (mReplicationFile) {
       rv = mReplicationFile->Remove(false);
       if (NS_SUCCEEDED(rv) && mDirectory) {
-        nsCAutoString fileName;
+        nsAutoCString fileName;
         rv = mDirectory->GetReplicationFileName(fileName);
         // now put back the backed up replicated file if aborted
         if (NS_SUCCEEDED(rv) && mBackupReplicationFile)
@@ -180,12 +180,12 @@ nsresult nsAbLDAPProcessReplicationData::DoTask()
   NS_ENSURE_SUCCESS(rv, rv);
 
   // get the relevant attributes associated with the directory server url
-  nsCAutoString urlFilter;
+  nsAutoCString urlFilter;
   rv = mDirectoryUrl->GetFilter(urlFilter);
   if (NS_FAILED(rv))
     return rv;
 
-  nsCAutoString dn;
+  nsAutoCString dn;
   rv = mDirectoryUrl->GetDn(dn);
   if (NS_FAILED(rv))
     return rv;
@@ -198,7 +198,7 @@ nsresult nsAbLDAPProcessReplicationData::DoTask()
   if (NS_FAILED(rv))
     return rv;
 
-  nsCAutoString attributes;
+  nsAutoCString attributes;
   rv = mDirectoryUrl->GetAttributes(attributes);
   if (NS_FAILED(rv))
     return rv;
@@ -258,7 +258,7 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchEntry(nsILDAPMessage *aMess
     }
 
     // now set the attribute for the DN of the entry in the card in the DB
-    nsCAutoString authDN;
+    nsAutoCString authDN;
     rv = aMessage->GetDn(authDN);
     if(NS_SUCCEEDED(rv) && !authDN.IsEmpty())
     {
@@ -333,7 +333,7 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchResult(nsILDAPMessage *aMes
                 // now put back the backed up replicated file
                 if(mBackupReplicationFile && mDirectory) 
                 {
-                  nsCAutoString fileName;
+                  nsAutoCString fileName;
                   rv = mDirectory->GetReplicationFileName(fileName);
                   if (NS_SUCCEEDED(rv) && !fileName.IsEmpty())
                   {

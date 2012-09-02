@@ -168,7 +168,7 @@ private:
                                  nsIMsgFolder *pDstFolder, int32_t *pMsgCount);
 
    nsresult  ReadTOCEntry(nsIInputStream *pToc, EudoraTOCEntry& tocEntry);
-   nsresult  ImportMessage(SimpleBufferTonyRCopiedOnce& headers, SimpleBufferTonyRCopiedOnce& body, nsCString& defaultDate, nsCAutoString& bodyType, nsIOutputStream *pDst, int32_t *pMsgCount);
+   nsresult  ImportMessage(SimpleBufferTonyRCopiedOnce& headers, SimpleBufferTonyRCopiedOnce& body, nsCString& defaultDate, nsAutoCString& bodyType, nsIOutputStream *pDst, int32_t *pMsgCount);
    nsresult  ReadNextMessage(ReadFileState *pState, SimpleBufferTonyRCopiedOnce& copy, SimpleBufferTonyRCopiedOnce& header,
                                         SimpleBufferTonyRCopiedOnce& body, nsCString& defaultDate,
                                         nsCString &defBodyType, EudoraTOCEntry *pTocEntry);

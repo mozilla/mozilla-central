@@ -445,8 +445,8 @@ NS_IMETHODIMP nsURLFetcherStreamConsumer::OnStopRequest(nsIRequest *aRequest, ns
     return NS_ERROR_FAILURE;
 
   // Check the content type!
-  nsCAutoString contentType;
-  nsCAutoString charset;
+  nsAutoCString contentType;
+  nsAutoCString charset;
 
   nsCOMPtr<nsIChannel> channel = do_QueryInterface(aRequest);
   if(!channel) return NS_ERROR_FAILURE;
@@ -454,7 +454,7 @@ NS_IMETHODIMP nsURLFetcherStreamConsumer::OnStopRequest(nsIRequest *aRequest, ns
   if (NS_SUCCEEDED(channel->GetContentType(contentType)) &&
       !contentType.EqualsLiteral(UNKNOWN_CONTENT_TYPE))
   {
-    nsCAutoString uriSpec;
+    nsAutoCString uriSpec;
     nsCOMPtr <nsIURI> channelURI;
     channel->GetURI(getter_AddRefs(channelURI));
     channelURI->GetSpec(uriSpec);

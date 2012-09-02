@@ -150,7 +150,7 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
   nsCOMPtr<nsISmtpUrl> smtpUrl(do_CreateInstance(kCSmtpUrlCID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString urlSpec("smtp://");
+  nsAutoCString urlSpec("smtp://");
 
   if (!smtpUserName.IsEmpty())
   {
@@ -294,7 +294,7 @@ NS_IMETHODIMP nsSmtpService::NewURI(const nsACString &aSpec,
   nsCOMPtr<nsIURI> mailtoUrl = do_CreateInstance(kCMailtoUrlCID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString utf8Spec;
+  nsAutoCString utf8Spec;
   if (aOriginCharset)
   {
     nsCOMPtr<nsIUTF8ConverterService>
@@ -586,7 +586,7 @@ nsSmtpService::CreateSmtpServer(nsISmtpServer **aResult)
     bool unique = false;
 
     findServerByKeyEntry entry;
-    nsCAutoString key;
+    nsAutoCString key;
 
     do {
         key = "smtp";
@@ -648,7 +648,7 @@ nsSmtpService::DeleteSmtpServer(nsISmtpServer *aServer)
     if (mSessionDefaultServer.get() == aServer)
         mSessionDefaultServer = nullptr;
     
-    nsCAutoString newServerList;
+    nsAutoCString newServerList;
     nsCString tmpStr = mServerKeyList;
     char *newStr = tmpStr.BeginWriting();
     char *token = NS_strtok(",", &newStr);

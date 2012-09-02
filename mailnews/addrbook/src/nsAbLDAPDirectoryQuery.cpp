@@ -207,7 +207,7 @@ nsresult nsAbQueryLDAPMessageListener::DoTask()
   rv = mOperation->Init(mConnection, this, nullptr);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString dn;
+  nsAutoCString dn;
   rv = mSearchUrl->GetDn(dn);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -215,11 +215,11 @@ nsresult nsAbQueryLDAPMessageListener::DoTask()
   rv = mSearchUrl->GetScope(&scope);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString filter;
+  nsAutoCString filter;
   rv = mSearchUrl->GetFilter(filter);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString attributes;
+  nsAutoCString attributes;
   rv = mSearchUrl->GetAttributes(attributes);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -330,11 +330,11 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   rv = directory->GetLDAPURL(getter_AddRefs(currentUrl));
   NS_ENSURE_SUCCESS(rv, rv);
   
-  nsCAutoString login;
+  nsAutoCString login;
   rv = directory->GetAuthDn(login);
   NS_ENSURE_SUCCESS(rv, rv);
   
-  nsCAutoString saslMechanism;
+  nsAutoCString saslMechanism;
   rv = directory->GetSaslMechanism(saslMechanism);
   NS_ENSURE_SUCCESS(rv, rv);
   
@@ -408,7 +408,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Require all attributes that are mapped to card properties
-  nsCAutoString returnAttributes;
+  nsAutoCString returnAttributes;
   rv = map->GetAllCardAttributes(returnAttributes);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -426,7 +426,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   NS_ENSURE_SUCCESS(rv, rv);
   
   nsCOMPtr<nsIAbBooleanExpression> expression (do_QueryInterface (supportsExpression, &rv));
-  nsCAutoString filter;
+  nsAutoCString filter;
   
   // figure out how we map attribute names to addressbook fields for this
   // query
@@ -453,13 +453,13 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
 
   // get the directoryFilter from the directory url and merge it with the user's
   // search filter
-  nsCAutoString urlFilter;
+  nsAutoCString urlFilter;
   rv = mDirectoryUrl->GetFilter(urlFilter);
   
   // if urlFilter is unset (or set to the default "objectclass=*"), there's
   // no need to AND in an empty search term, so leave prefix and suffix empty
   
-  nsCAutoString searchFilter;
+  nsAutoCString searchFilter;
   if (urlFilter.Length() && !urlFilter.EqualsLiteral("(objectclass=*)"))
   {
     // if urlFilter isn't parenthesized, we need to add in parens so that

@@ -51,7 +51,7 @@ nsMsgIdentity::SetKey(const nsACString& identityKey)
   if (NS_FAILED(rv))
     return rv;
 
-  nsCAutoString branchName;
+  nsAutoCString branchName;
   branchName.AssignLiteral("mail.identity.");
   branchName += mKey;
   branchName.Append('.');

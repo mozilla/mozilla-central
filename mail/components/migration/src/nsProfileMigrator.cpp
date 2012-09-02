@@ -34,7 +34,7 @@ NS_IMPL_ISUPPORTS1(nsProfileMigrator, nsIProfileMigrator)
 NS_IMETHODIMP
 nsProfileMigrator::Migrate(nsIProfileStartup* aStartup, const nsACString& aKey)
 {
-  nsCAutoString key;
+  nsAutoCString key;
   nsCOMPtr<nsIMailProfileMigrator> mailMigrator;
   nsresult rv = GetDefaultMailMigratorKey(key, mailMigrator);
   NS_ENSURE_SUCCESS(rv, rv); // abort migration if we failed to get a mailMigrator (if we were supposed to)
@@ -88,7 +88,7 @@ nsProfileMigrator::GetDefaultMailMigratorKey(nsACString& aKey, nsCOMPtr<nsIMailP
   // and return it.
   NS_NAMED_LITERAL_CSTRING(migratorPrefix,
                            NS_MAILPROFILEMIGRATOR_CONTRACTID_PREFIX);
-  nsCAutoString migratorID;
+  nsAutoCString migratorID;
   if (!forceMigrationType.IsEmpty())
   {
     bool exists = false;

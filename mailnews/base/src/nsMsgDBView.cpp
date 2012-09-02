@@ -838,7 +838,7 @@ nsresult nsMsgDBView::FetchKeywords(nsIMsgDBHdr *aHdr, nsACString &keywordString
   aHdr->GetStringProperty("keywords", getter_Copies(keywords));
   if (label > 0)
   {
-    nsCAutoString labelStr("$label");
+    nsAutoCString labelStr("$label");
     labelStr.Append((char) (label + '0'));
     if (keywords.Find(labelStr, CaseInsensitiveCompare) == -1)
     {
@@ -906,7 +906,7 @@ nsresult nsMsgDBView::FetchTags(nsIMsgDBHdr *aHdr, nsAString &aTagString)
   rv = aHdr->GetLabel(&label);
   if (label > 0)
   {
-    nsCAutoString labelStr("$label");
+    nsAutoCString labelStr("$label");
     labelStr.Append((char) (label + '0'));
     if (keywords.Find(labelStr, CaseInsensitiveCompare) == -1)
       FetchLabel(aHdr, tags);
@@ -1140,7 +1140,7 @@ NS_IMETHODIMP nsMsgDBView::ReloadMessageWithAllParts()
   if (m_currentlyDisplayedMsgUri.IsEmpty() || mSuppressMsgDisplay)
     return NS_OK;
 
-  nsCAutoString forceAllParts(m_currentlyDisplayedMsgUri);
+  nsAutoCString forceAllParts(m_currentlyDisplayedMsgUri);
   forceAllParts += (forceAllParts.FindChar('?') == kNotFound) ? '?' : '&';
   forceAllParts.AppendLiteral("fetchCompleteMessage=true");
   nsCOMPtr<nsIMessenger> messenger (do_QueryReferent(mMessengerWeak));
@@ -1503,8 +1503,8 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(int32_t aRow, nsITreeColumn *col, n
   msgHdr->GetStringProperty("keywords", getter_Copies(keywordProperty));
   if (!keywordProperty.IsEmpty())
   {
-    nsCAutoString keywords(keywordProperty);
-    nsCAutoString nextKeyword;
+    nsAutoCString keywords(keywordProperty);
+    nsAutoCString nextKeyword;
     int32_t spaceIndex = 0;
     do
     {
@@ -3379,7 +3379,7 @@ nsresult nsMsgDBView::SetMsgHdrJunkStatus(nsIJunkMailPlugin *aJunkPlugin,
 
     // set the junk score on the message itself
 
-    nsCAutoString msgJunkScore;
+    nsAutoCString msgJunkScore;
     msgJunkScore.AppendInt(aNewClassification == nsIJunkMailPlugin::JUNK ?
           nsIJunkMailPlugin::IS_SPAM_SCORE:
           nsIJunkMailPlugin::IS_HAM_SCORE);
@@ -7587,7 +7587,7 @@ void nsMsgDBView::SetMRUTimeForFolder(nsIMsgFolder *folder)
 {
   uint32_t seconds;
   PRTime2Seconds(PR_Now(), &seconds);
-  nsCAutoString nowStr;
+  nsAutoCString nowStr;
   nowStr.AppendInt(seconds);
   folder->SetStringProperty(MRU_TIME_PROPERTY, nowStr);
 }
@@ -7679,7 +7679,7 @@ bool nsMsgDBView::JunkControlsEnabled(nsMsgViewIndex aViewIndex)
     {
       nsCOMPtr <nsIMsgIncomingServer> server;
       folder->GetServer(getter_AddRefs(server));
-      nsCAutoString type;
+      nsAutoCString type;
       if (server)
         server->GetType(type);
       if (!(MsgLowerCaseEqualsLiteral(type, "nntp") || MsgLowerCaseEqualsLiteral(type, "rss")))
@@ -7687,7 +7687,7 @@ bool nsMsgDBView::JunkControlsEnabled(nsMsgViewIndex aViewIndex)
     }
 
     // For rss and news, check the inherited folder property.
-    nsCAutoString junkEnableOverride;
+    nsAutoCString junkEnableOverride;
     folder->GetInheritedStringProperty("dobayes.mailnews@mozilla.org#junk",
                                        junkEnableOverride);
     if (junkEnableOverride.EqualsLiteral("true"))

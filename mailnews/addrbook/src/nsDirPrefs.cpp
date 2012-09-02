@@ -769,7 +769,7 @@ static char *DIR_GetStringPref(const char *prefRoot, const char *prefLeaf, const
         return nullptr;
 
     nsCString value;
-    nsCAutoString prefLocation(prefRoot);
+    nsAutoCString prefLocation(prefRoot);
 
     prefLocation.Append('.');
     prefLocation.Append(prefLeaf);
@@ -812,7 +812,7 @@ static char *DIR_GetDescription(const char *prefRoot)
   if (NS_FAILED(rv))
     return nullptr;
 
-  nsCAutoString prefLocation(prefRoot);
+  nsAutoCString prefLocation(prefRoot);
   prefLocation.AppendLiteral(".description");
 
   nsString wvalue;
@@ -858,7 +858,7 @@ static int32_t DIR_GetIntPref(const char *prefRoot, const char *prefLeaf, int32_
     return defaultValue;
 
   int32_t value;
-  nsCAutoString prefLocation(prefRoot);
+  nsAutoCString prefLocation(prefRoot);
 
   prefLocation.Append('.');
   prefLocation.Append(prefLeaf);
@@ -1230,7 +1230,7 @@ static void DIR_SetStringPref(const char *prefRoot, const char *prefLeaf, const 
     return;
 
   nsCString defaultPref;
-  nsCAutoString prefLocation(prefRoot);
+  nsAutoCString prefLocation(prefRoot);
 
   prefLocation.Append('.');
   prefLocation.Append(prefLeaf);
@@ -1277,7 +1277,7 @@ static void DIR_SetLocalizedStringPref
   if (NS_FAILED(rv))
     return;
 
-  nsCAutoString prefLocation(prefRoot);
+  nsAutoCString prefLocation(prefRoot);
   prefLocation.Append('.');
 
   nsCOMPtr<nsIPrefBranch> prefBranch;
@@ -1361,7 +1361,7 @@ static void DIR_SetIntPref(const char *prefRoot, const char *prefLeaf, int32_t v
     return;
 
   int32_t defaultPref;
-  nsCAutoString prefLocation(prefRoot);
+  nsAutoCString prefLocation(prefRoot);
 
   prefLocation.Append('.');
   prefLocation.Append(prefLeaf);

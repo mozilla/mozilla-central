@@ -16,7 +16,7 @@ nsParseNewsMessageURI(const char* uri, nsCString& group, uint32_t *key)
   NS_ENSURE_ARG_POINTER(uri);
   NS_ENSURE_ARG_POINTER(key);
 
-  nsCAutoString uriStr(uri);
+  nsAutoCString uriStr(uri);
   int32_t keySeparator = uriStr.FindChar('#');
   if(keySeparator != -1)
   {
@@ -30,11 +30,11 @@ nsParseNewsMessageURI(const char* uri, nsCString& group, uint32_t *key)
 
     // Our string APIs don't let us unescape into the same buffer from earlier,
     // so escape into a temporary
-    nsCAutoString unescapedGroup;
+    nsAutoCString unescapedGroup;
     MsgUnescapeString(Substring(group, groupSeparator + 1), 0, unescapedGroup);
     group = unescapedGroup;
 
-    nsCAutoString keyStr;
+    nsAutoCString keyStr;
     if (keyEndSeparator != -1)
       keyStr = Substring(uriStr, keySeparator + 1, keyEndSeparator - (keySeparator + 1));
     else
@@ -49,7 +49,7 @@ nsParseNewsMessageURI(const char* uri, nsCString& group, uint32_t *key)
 
 nsresult nsCreateNewsBaseMessageURI(const char *baseURI, nsCString &baseMessageURI)
 {
-  nsCAutoString tailURI(baseURI);
+  nsAutoCString tailURI(baseURI);
 
   // chop off news:/
   if (tailURI.Find(kNewsRootURI) == 0)

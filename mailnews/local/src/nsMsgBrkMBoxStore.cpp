@@ -366,7 +366,7 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::RenameFolder(nsIMsgFolder *aFolder,
   nsAutoString safeName(aNewName);
   NS_MsgHashIfNecessary(safeName);
 
-  nsCAutoString oldLeafName;
+  nsAutoCString oldLeafName;
   oldPathFile->GetNativeLeafName(oldLeafName);
 
   nsCOMPtr<nsIFile> parentPathFile;

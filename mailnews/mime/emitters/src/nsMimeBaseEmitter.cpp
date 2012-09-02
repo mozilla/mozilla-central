@@ -577,7 +577,7 @@ nsMimeBaseEmitter::UpdateCharacterSet(const char *aCharset)
         (PL_strcasecmp(aCharset, "ISO-8859-1")) &&
         (PL_strcasecmp(aCharset, "UTF-8")) )
   {
-    nsCAutoString contentType;
+    nsAutoCString contentType;
 
     if (NS_SUCCEEDED(mChannel->GetContentType(contentType)) && !contentType.IsEmpty())
     {
@@ -778,7 +778,7 @@ nsMimeBaseEmitter::GetLocalizedDateString(const char * dateString)
 
   if (!displayOriginalDate)
   {
-    nsCAutoString convertedDateString;
+    nsAutoCString convertedDateString;
     nsresult rv = GenerateDateString(dateString, convertedDateString, true);
     if (NS_SUCCEEDED(rv))
       i18nValue = strdup(convertedDateString.get());

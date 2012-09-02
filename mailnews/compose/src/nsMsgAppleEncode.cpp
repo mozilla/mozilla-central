@@ -190,7 +190,7 @@ int ap_encode_file_infor(
 		return status;
 
 	/* write entry descriptors */
-    nsCAutoString leafname;
+    nsAutoCString leafname;
     macFile->GetNativeLeafName(leafname);
 	entries[0].offset = sizeof (head) + sizeof (ap_entry) * head.entries;
 	entries[0].id 	= ENT_NAME;
@@ -485,7 +485,7 @@ int ap_encode_data(
 		/*
 		**	the data portion header information.
 		*/
-        nsCAutoString leafName;
+        nsAutoCString leafName;
         resFile->GetNativeLeafName(leafName);
 		PR_snprintf(rd_buff, sizeof(rd_buff),
 			"Content-Type: %s; name=\"%s\"" CRLF "Content-Transfer-Encoding: base64" CRLF "Content-Disposition: inline; filename=\"%s\"" CRLF CRLF,

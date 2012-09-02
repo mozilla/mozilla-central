@@ -237,7 +237,7 @@ NS_IMETHODIMP nsMsgFolderCache::Init(nsIFile *aFile)
   bool exists;
   aFile->Exists(&exists);
 
-  nsCAutoString dbPath;
+  nsAutoCString dbPath;
   aFile->GetNativePath(dbPath);
   // ### evil cast until MDB supports file streams.
   nsresult rv = OpenMDB(dbPath, exists);

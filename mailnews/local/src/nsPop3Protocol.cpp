@@ -759,7 +759,7 @@ NS_IMETHODIMP nsPop3Protocol::OnPromptStart(bool *aResult)
   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_pop3Server, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString passwordResult;
+  nsAutoCString passwordResult;
 
   // pass the failed password into the password prompt so that
   // it will be pre-filled, in case it failed because of a
@@ -1017,7 +1017,7 @@ nsresult nsPop3Protocol::LoadUrl(nsIURI* aURL, nsISupports * /* aConsumer */)
   rv = NS_CheckPortSafety(port, "pop");
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString queryPart;
+  nsAutoCString queryPart;
   rv = url->GetQuery(queryPart);
   NS_ASSERTION(NS_SUCCEEDED(rv), "unable to get the url spect");
 
@@ -1346,7 +1346,7 @@ int32_t nsPop3Protocol::SendAuth()
   if(!m_pop3ConData->command_succeeded)
     return(Error(POP3_SERVER_ERROR));
 
-  nsCAutoString command("AUTH" CRLF);
+  nsAutoCString command("AUTH" CRLF);
 
   m_pop3ConData->next_state_after_response = POP3_AUTH_RESPONSE;
   return SendData(command.get());
@@ -1440,7 +1440,7 @@ int32_t nsPop3Protocol::SendCapa()
     if(!m_pop3ConData->command_succeeded)
         return(Error(POP3_SERVER_ERROR));
 
-    nsCAutoString command("CAPA" CRLF);
+    nsAutoCString command("CAPA" CRLF);
 
     m_pop3ConData->next_state_after_response = POP3_CAPA_RESPONSE;
     return SendData(command.get());
@@ -1519,7 +1519,7 @@ int32_t nsPop3Protocol::CapaResponse(nsIInputStream* inputStream,
     // see RFC 2449, chapter 6.3
     if (!PL_strncasecmp(line, "SASL", 4) && strlen(line) > 6)
     {
-        nsCAutoString responseLine;
+        nsAutoCString responseLine;
         responseLine.Assign(line + 5);
 
         if (responseLine.Find("PLAIN", CaseInsensitiveCompare) >= 0)
@@ -1732,7 +1732,7 @@ int32_t nsPop3Protocol::ProcessAuth()
         if (m_socketType == nsMsgSocketType::trySTARTTLS ||
             m_socketType == nsMsgSocketType::alwaysSTARTTLS)
         {
-            nsCAutoString command("STLS" CRLF);
+            nsAutoCString command("STLS" CRLF);
 
             m_pop3ConData->next_state_after_response = POP3_TLS_RESPONSE;
             return SendData(command.get());
@@ -1939,7 +1939,7 @@ int32_t nsPop3Protocol::NextAuthStep()
 // responds + to "AUTH LOGIN"
 int32_t nsPop3Protocol::AuthLogin()
 {
-    nsCAutoString command("AUTH LOGIN" CRLF);
+    nsAutoCString command("AUTH LOGIN" CRLF);
     m_pop3ConData->next_state_after_response = POP3_AUTH_LOGIN_RESPONSE;
     m_pop3ConData->pause_for_read = true;
 
@@ -1970,7 +1970,7 @@ int32_t nsPop3Protocol::AuthLoginResponse()
 // responds + to "AUTH NTLM"
 int32_t nsPop3Protocol::AuthNtlm()
 {
-    nsCAutoString command (m_currentAuthMethod == POP3_HAS_AUTH_MSN
+    nsAutoCString command (m_currentAuthMethod == POP3_HAS_AUTH_MSN
           ? "AUTH MSN" CRLF : "AUTH NTLM" CRLF);
     m_pop3ConData->next_state_after_response = POP3_AUTH_NTLM_RESPONSE;
     m_pop3ConData->pause_for_read = true;
@@ -2002,8 +2002,8 @@ int32_t nsPop3Protocol::AuthGSSAPI()
     PR_LOG(POP3LOGMODULE, PR_LOG_DEBUG, ("AuthGSSAPI()"));
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_pop3Server);
     if (server) {
-        nsCAutoString cmd;
-        nsCAutoString service("pop@");
+        nsAutoCString cmd;
+        nsAutoCString service("pop@");
         nsCString hostName;
         nsresult rv;
         server->GetRealHostName(hostName);
@@ -2046,7 +2046,7 @@ int32_t nsPop3Protocol::AuthGSSAPIResponse(bool first)
         m_GSSAPICache.Truncate();
     }
     else {
-        nsCAutoString cmd;
+        nsAutoCString cmd;
         PR_LOG(POP3LOGMODULE, PR_LOG_DEBUG, ("GSSAPI step 2"));
         rv = DoGSSAPIStep2(m_commandResponse, cmd);
         if (NS_FAILED(rv))
@@ -2081,7 +2081,7 @@ int32_t nsPop3Protocol::SendUsername()
     }
     // </copied>
 
-    nsCAutoString cmd;
+    nsAutoCString cmd;
 
     if (m_currentAuthMethod == POP3_HAS_AUTH_NTLM)
         (void) DoNtlmStep1(m_username.get(), m_passwordResult.get(), cmd);
@@ -2136,7 +2136,7 @@ int32_t nsPop3Protocol::SendPassword()
   }
   // </copied>
 
-  nsCAutoString cmd;
+  nsAutoCString cmd;
   nsresult rv;
 
   if (m_currentAuthMethod == POP3_HAS_AUTH_NTLM)
@@ -2144,7 +2144,7 @@ int32_t nsPop3Protocol::SendPassword()
   else if (m_currentAuthMethod == POP3_HAS_AUTH_CRAM_MD5)
   {
     PR_LOG(POP3LOGMODULE, PR_LOG_DEBUG, ("CRAM login"));
-    char buffer[512]; // TODO nsCAutoString
+    char buffer[512]; // TODO nsAutoCString
     unsigned char digest[DIGEST_LENGTH];
 
     char *decodedChallenge = PL_Base64Decode(m_commandResponse.get(),
@@ -2158,7 +2158,7 @@ int32_t nsPop3Protocol::SendPassword()
 
     if (NS_SUCCEEDED(rv))
     {
-      nsCAutoString encodedDigest;
+      nsAutoCString encodedDigest;
       char hexVal[8];
 
       for (uint32_t j = 0; j < 16; j++)
@@ -2188,7 +2188,7 @@ int32_t nsPop3Protocol::SendPassword()
 
     if (NS_SUCCEEDED(rv))
     {
-      nsCAutoString encodedDigest;
+      nsAutoCString encodedDigest;
       char hexVal[8];
 
       for (uint32_t j=0; j<16; j++)
@@ -2276,7 +2276,7 @@ int32_t nsPop3Protocol::SendPassword()
 
 int32_t nsPop3Protocol::SendStatOrGurl(bool sendStat)
 {
-  nsCAutoString cmd;
+  nsAutoCString cmd;
   if (sendStat)
   {
     cmd  = "STAT" CRLF;
@@ -3499,7 +3499,7 @@ nsPop3Protocol::TopResponse(nsIInputStream* inputStream, uint32_t length)
     mLocalBundle->GetStringFromID(POP3_SERVER_DOES_NOT_SUPPORT_THE_TOP_COMMAND, getter_Copies(statusTemplate));
     if (!statusTemplate.IsEmpty())
     {
-      nsCAutoString hostName;
+      nsAutoCString hostName;
       PRUnichar * statusString = nullptr;
       m_url->GetHost(hostName);
 

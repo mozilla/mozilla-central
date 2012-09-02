@@ -287,7 +287,7 @@ mime_generate_headers (nsMsgCompFields *fields,
 
   bool hasDisclosedRecipient = false;
 
-  nsCAutoString headerBuf;    // accumulate header strings to get length
+  nsAutoCString headerBuf;    // accumulate header strings to get length
   headerBuf.Truncate();
 
   NS_ASSERTION (fields, "null fields");
@@ -447,7 +447,7 @@ mime_generate_headers (nsMsgCompFields *fields,
   nsCOMPtr<nsIHttpProtocolHandler> pHTTPHandler = do_GetService(NS_NETWORK_PROTOCOL_CONTRACTID_PREFIX "http", &rv);
   if (NS_SUCCEEDED(rv) && pHTTPHandler)
   {
-    nsCAutoString userAgentString;
+    nsAutoCString userAgentString;
     pHTTPHandler->GetUserAgent(userAgentString);
 
     if (!userAgentString.IsEmpty())
@@ -632,8 +632,8 @@ mime_generate_headers (nsMsgCompFields *fields,
 
     // Skip default priority.
     if (priorityValue != nsMsgPriority::Default) {
-      nsCAutoString priorityName;
-      nsCAutoString priorityValueString;
+      nsAutoCString priorityName;
+      nsAutoCString priorityValueString;
 
       NS_MsgGetPriorityValueString(priorityValue, priorityValueString);
       NS_MsgGetUntranslatedPriorityName(priorityValue, priorityName);
@@ -1140,7 +1140,7 @@ RFC2231ParmFolding(const char *parmName, const nsCString& charset,
 
   if (!NS_IsAscii(parmValue.get()) || is7bitCharset(charset)) {
     needEscape = true;
-    nsCAutoString nativeParmValue;
+    nsAutoCString nativeParmValue;
     ConvertFromUnicode(charset.get(), parmValue, nativeParmValue);
     MsgEscapeString(nativeParmValue, nsINetUtil::ESCAPE_ALL, dupParm);
   }
@@ -1706,7 +1706,7 @@ nsMsgNewURL(nsIURI** aInstancePtrResult, const char * aSpec)
   if (PL_strstr(aSpec, "://") == nullptr && strncmp(aSpec, "data:", 5))
   {
     //XXXjag Temporary fix for bug 139362 until the real problem(bug 70083) get fixed
-    nsCAutoString uri(NS_LITERAL_CSTRING("http://"));
+    nsAutoCString uri(NS_LITERAL_CSTRING("http://"));
     uri.Append(aSpec);
     rv = pNetService->NewURI(uri, nullptr, nullptr, aInstancePtrResult);
   }
@@ -1757,7 +1757,7 @@ nsMsgParseURLHost(const char *url)
   if (NS_FAILED(rv) || !workURI)
     return nullptr;
 
-  nsCAutoString host;
+  nsAutoCString host;
   rv = workURI->GetHost(host);
   NS_IF_RELEASE(workURI);
   if (NS_FAILED(rv))

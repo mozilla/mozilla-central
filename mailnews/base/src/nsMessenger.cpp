@@ -606,7 +606,7 @@ nsMessenger::DetachAttachmentsWOPrompts(nsIFile* aDestFolder,
   nsresult rv = aDestFolder->Clone(getter_AddRefs(attachmentDestination));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString path;
+  nsAutoCString path;
   rv = attachmentDestination->GetNativePath(path);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -646,9 +646,9 @@ nsresult nsMessenger::SaveAttachment(nsIFile *aFile,
   nsCOMPtr<nsIMsgMessageService> messageService;
   nsSaveAllAttachmentsState *saveState= (nsSaveAllAttachmentsState*) closure;
   nsCOMPtr<nsIMsgMessageFetchPartService> fetchService;
-  nsCAutoString urlString;
+  nsAutoCString urlString;
   nsCOMPtr<nsIURI> URL;
-  nsCAutoString fullMessageUri(aMessageUri);
+  nsAutoCString fullMessageUri(aMessageUri);
 
   // This instance will be held onto by the listeners, and will be released once 
   // the transfer has been completed.
@@ -665,7 +665,7 @@ nsresult nsMessenger::SaveAttachment(nsIFile *aFile,
       nsCOMPtr<nsIURI> outputURI;
       nsresult rv = NS_NewFileURI(getter_AddRefs(outputURI), aFile);
       NS_ENSURE_SUCCESS(rv, rv);
-      nsCAutoString fileUriSpec;
+      nsAutoCString fileUriSpec;
       outputURI->GetSpec(fileUriSpec);
       saveState->m_savedFiles.AppendElement(fileUriSpec);
     }
@@ -1001,7 +1001,7 @@ nsMessenger::SaveAs(const nsACString& aURI, bool aAsFile,
     }
     else
     {
-      nsCAutoString urlString(aURI);
+      nsAutoCString urlString(aURI);
 
       // we can't go RFC822 to TXT until bug #1775 is fixed
       // so until then, do the HTML to TXT conversion in
@@ -2796,8 +2796,8 @@ nsDelAttachListener::StartProcessing(nsMessenger * aMessenger, nsIMsgWindow * aM
   // should be deleted.
   const char * partId;
   const char * nextField;
-  nsCAutoString sHeader("attach&del=");
-  nsCAutoString detachToHeader("&detachTo=");
+  nsAutoCString sHeader("attach&del=");
+  nsAutoCString detachToHeader("&detachTo=");
   for (uint32_t u = 0; u < mAttach->mCount; ++u)
   {
     if (u > 0)

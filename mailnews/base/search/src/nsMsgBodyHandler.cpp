@@ -92,7 +92,7 @@ int32_t nsMsgBodyHandler::GetNextLine (nsCString &buf)
   int32_t length = -1;          // length of incoming line or -1 eof
   int32_t outLength = -1;       // length of outgoing line or -1 eof
   bool eatThisLine = true;
-  nsCAutoString nextLine;
+  nsAutoCString nextLine;
 
   while (eatThisLine) {
     // first, handle the filtering case...this is easy....

@@ -419,7 +419,7 @@ nsMsgMailSession::ConvertMsgURIToMsgURL(const char *aURI, nsIMsgWindow *aMsgWind
   rv = msgService->GetUrlForUri(aURI, getter_AddRefs(tURI), aMsgWindow);
   NS_ENSURE_SUCCESS(rv, NS_ERROR_NULL_POINTER);
 
-  nsCAutoString urlString;
+  nsAutoCString urlString;
   if (NS_SUCCEEDED(tURI->GetSpec(urlString)))
   {
     *aURL = ToNewCString(urlString);
@@ -445,7 +445,7 @@ nsMsgMailSession::GetSelectedLocaleDataDir(nsIFile *defaultsDir)
     nsCOMPtr<nsIXULChromeRegistry> packageRegistry =
       mozilla::services::GetXULChromeRegistryService();
     if (packageRegistry) {
-      nsCAutoString localeName;
+      nsAutoCString localeName;
       rv = packageRegistry->GetSelectedLocale(NS_LITERAL_CSTRING("global-region"), localeName);
 
       if (NS_SUCCEEDED(rv) && !localeName.IsEmpty()) {

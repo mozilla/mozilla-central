@@ -50,7 +50,7 @@ NS_IMETHODIMP nsMessengerContentHandler::HandleContent(const char * aContentType
         nsCOMPtr<nsIURL> aUrl = do_QueryInterface(aUri);
         if (aUrl)
         {
-          nsCAutoString queryPart;
+          nsAutoCString queryPart;
           aUrl->GetQuery(queryPart);
           queryPart.Replace(queryPart.Find("type=message/rfc822"),
                             sizeof("type=message/rfc822") - 1,

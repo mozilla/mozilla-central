@@ -235,12 +235,12 @@ const char *const stateLabels[] = {
 // turn "\xx" (with xx being hex numbers) in string into chars
 char *MSG_UnEscapeSearchUrl (const char *commandSpecificData)
 {
-  nsCAutoString result(commandSpecificData);
+  nsAutoCString result(commandSpecificData);
   int32_t slashpos = 0;
   while (slashpos = result.FindChar('\\', slashpos),
          slashpos != kNotFound)
   {
-    nsCAutoString hex;
+    nsAutoCString hex;
     hex.Assign(Substring(result, slashpos + 1, 2));
     int32_t ch;
     nsresult err;
@@ -655,7 +655,7 @@ nsresult nsNNTPProtocol::SetupPartExtractorListener(nsIStreamListener * aConsume
     nsCOMPtr<nsIMsgMailNewsUrl> msgUrl = do_QueryInterface(m_runningURL, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsCAutoString queryStr;
+    nsAutoCString queryStr;
     rv = msgUrl->GetQuery(queryStr);
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -879,7 +879,7 @@ nsresult nsNNTPProtocol::OpenCacheEntry()
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Open a cache entry with key = url
-  nsCAutoString urlSpec;
+  nsAutoCString urlSpec;
   mailnewsUrl->GetAsciiSpec(urlSpec);
   // for now, truncate of the query part so we don't duplicate urls in the cache...
   int32_t pos = urlSpec.FindChar('?');
@@ -1520,7 +1520,7 @@ int32_t nsNNTPProtocol::SendListSearchesResponse(nsIInputStream * inputStream, u
 
   if ('.' != line[0])
   {
-        nsCAutoString charset;
+        nsAutoCString charset;
         nsAutoString lineUtf16;
         if (NS_FAILED(m_nntpServer->GetCharset(charset)) ||
             NS_FAILED(nsMsgI18NConvertToUnicode(charset.get(),
@@ -2263,7 +2263,7 @@ int32_t nsNNTPProtocol::ReadArticle(nsIInputStream * inputStream, uint32_t lengt
 
 void nsNNTPProtocol::ParseHeaderForCancel(char *buf)
 {
-    nsCAutoString header(buf);
+    nsAutoCString header(buf);
     int32_t colon = header.FindChar(':');
     if (!colon)
     return;
@@ -2597,7 +2597,7 @@ int32_t nsNNTPProtocol::ProcessNewsgroups(nsIInputStream * inputStream, uint32_t
     rv = m_nntpServer->QueryExtension("XACTIVE",&xactive);
     if (NS_SUCCEEDED(rv) && xactive)
     {
-      nsCAutoString groupName;
+      nsAutoCString groupName;
       rv = m_nntpServer->GetFirstGroupNeedingExtraInfo(groupName);
       if (NS_SUCCEEDED(rv)) {
         rv = m_nntpServer->FindGroup(groupName, getter_AddRefs(m_newsFolder));
@@ -2681,7 +2681,7 @@ int32_t nsNNTPProtocol::ProcessNewsgroups(nsIInputStream * inputStream, uint32_t
   rv = m_nntpServer->QueryExtension("XACTIVE",&xactive);
   if (NS_SUCCEEDED(rv) && xactive)
   {
-    nsCAutoString charset;
+    nsAutoCString charset;
     nsAutoString lineUtf16;
     if (NS_SUCCEEDED(m_nntpServer->GetCharset(charset)) &&
         NS_SUCCEEDED(nsMsgI18NConvertToUnicode(charset.get(),
@@ -3687,7 +3687,7 @@ int32_t nsNNTPProtocol::DoCancel()
   int32_t confirmCancelResult = 0;
 
   // A little early to declare, but the goto causes problems
-  nsCAutoString otherHeaders;
+  nsAutoCString otherHeaders;
 
   /* Make sure that this loser isn't cancelling someone else's posting.
      Yes, there are occasionally good reasons to do so.  Those people
@@ -3799,7 +3799,7 @@ reported here */
     status = SendData(data);
     PR_Free (data);
     if (status < 0) {
-      nsCAutoString errorText;
+      nsAutoCString errorText;
       errorText.AppendInt(status);
       AlertError(MK_TCP_WRITE_ERROR, errorText.get());
       failure = true;
@@ -4005,7 +4005,7 @@ int32_t nsNNTPProtocol::ListPrettyNamesResponse(nsIInputStream * inputStream, ui
 
       line[i] = 0; /* terminate group name */
       if (i > 0) {
-        nsCAutoString charset;
+        nsAutoCString charset;
         nsAutoString lineUtf16, prettyNameUtf16;
         if (NS_FAILED(m_nntpServer->GetCharset(charset) ||
             NS_FAILED(ConvertToUnicode(charset, line, lineUtf16)) ||

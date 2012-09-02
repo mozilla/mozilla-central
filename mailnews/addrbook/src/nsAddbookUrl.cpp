@@ -37,7 +37,7 @@ nsAddbookUrl::SetSpec(const nsACString &aSpec)
 
 nsresult nsAddbookUrl::ParseUrl()
 {
-  nsCAutoString pathStr;
+  nsAutoCString pathStr;
 
   nsresult rv = m_baseURL->GetPath(pathStr);
   NS_ENSURE_SUCCESS(rv,rv);

@@ -299,7 +299,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
   bool useNot = false;
   bool useQuotes = false;
   bool ignoreValue = false;
-  nsCAutoString arbitraryHeader;
+  nsAutoCString arbitraryHeader;
   const char *whichMnemonic = nullptr;
   const char *orHeaderMnemonic = nullptr;
 
@@ -503,7 +503,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
       else if (attrib == nsMsgSearchAttrib::Size)
       {
         uint32_t sizeValue;
-        nsCAutoString searchTermValue;
+        nsAutoCString searchTermValue;
         searchValue->GetSize(&sizeValue);
 
         // Multiply by 1024 to get into kb resolution
@@ -543,7 +543,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
                     (nsDependentString(convertedValue).FindChar(PRUnichar(' ')) != -1)) &&
            (attrib != nsMsgSearchAttrib::Keywords));
         // now convert to char* and escape quoted_specials
-        nsCAutoString valueStr;
+        nsAutoCString valueStr;
         nsresult rv = ConvertFromUnicode(NS_LossyConvertUTF16toASCII(destCharset).get(),
           nsDependentString(convertedValue), valueStr);
         if (NS_SUCCEEDED(rv))
@@ -638,7 +638,7 @@ nsresult nsMsgSearchAdapter::EncodeImapValue(char *encoding, const char *value, 
 
   if (!NS_IsAscii(value))
   {
-    nsCAutoString lengthStr;
+    nsAutoCString lengthStr;
     PL_strcat(encoding, "{");
     lengthStr.AppendInt((int32_t) strlen(value));
     PL_strcat(encoding, lengthStr.get());
@@ -694,7 +694,7 @@ nsresult nsMsgSearchAdapter::EncodeImap (char **ppOutEncoding, nsISupportsArray 
   if (NS_SUCCEEDED(err))
   {
     // Catenate the intermediate encodings together into a big string
-    nsCAutoString encodingBuff;
+    nsAutoCString encodingBuff;
 
     if (!reallyDredd)
       encodingBuff.Append(m_kImapUnDeleted);
@@ -1153,7 +1153,7 @@ nsMsgSearchValidityManager::SetOtherHeadersInTable (nsIMsgSearchValidityTable *a
   uint32_t numHeaders=0;
   if (customHeadersLength)
   {
-    nsCAutoString hdrStr(customHeaders);
+    nsAutoCString hdrStr(customHeaders);
     hdrStr.StripWhitespace();  //remove whitespace before parsing
     char *newStr = hdrStr.BeginWriting();
     char *token = NS_strtok(":", &newStr);

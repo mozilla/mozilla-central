@@ -285,16 +285,16 @@ bool nsMsgCompose::IsEmbeddedObjectSafe(const char * originalScheme,
     rv = NS_NewURI(getter_AddRefs(uri), objURL);
     if (NS_SUCCEEDED(rv) && uri)
     {
-      nsCAutoString scheme;
+      nsAutoCString scheme;
       rv = uri->GetScheme(scheme);
       if (NS_SUCCEEDED(rv) && scheme.Equals(originalScheme, nsCaseInsensitiveCStringComparator()))
       {
-        nsCAutoString host;
+        nsAutoCString host;
         rv = uri->GetAsciiHost(host);
         // mailbox url don't have a host therefore don't be too strict.
         if (NS_SUCCEEDED(rv) && (host.IsEmpty() || originalHost || host.Equals(originalHost, nsCaseInsensitiveCStringComparator())))
         {
-          nsCAutoString path;
+          nsAutoCString path;
           rv = uri->GetPath(path);
           if (NS_SUCCEEDED(rv))
           {
@@ -925,7 +925,7 @@ nsMsgCompose::Initialize(nsIMsgComposeParams *aParams,
 
   if (composeFields)
   {
-    nsCAutoString draftId; // will get set for drafts and templates
+    nsAutoCString draftId; // will get set for drafts and templates
     rv = composeFields->GetDraftId(getter_Copies(draftId));
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1673,7 +1673,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
   mDraftDisposition = nsIMsgFolder::nsMsgDispositionState_None;
 
   mDeleteDraft = (type == nsIMsgCompType::Draft);
-  nsCAutoString msgUri(originalMsgURI);
+  nsAutoCString msgUri(originalMsgURI);
   bool fileUrl = StringBeginsWith(msgUri, NS_LITERAL_CSTRING("file:"));
   int32_t typeIndex = msgUri.Find("type=application/x-message-display");
   if (typeIndex != kNotFound && typeIndex > 0)
@@ -1843,10 +1843,10 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
     rv = GetMsgDBHdrFromURI(originalMsgURI, getter_AddRefs(msgHdr));
     if (NS_SUCCEEDED(rv))
     {
-      nsCAutoString messageId;
+      nsAutoCString messageId;
       msgHdr->GetMessageId(getter_Copies(messageId));
 
-      nsCAutoString reference;
+      nsAutoCString reference;
       reference.Append(NS_LITERAL_CSTRING("<"));
       reference.Append(messageId);
       reference.Append(NS_LITERAL_CSTRING(">"));
@@ -1920,7 +1920,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
       // save the charset of a message being replied to because
       // we need to use it when decoding RFC-2047-encoded author name
       // with |charsetOverride|.
-      nsCAutoString originCharset(charset);
+      nsAutoCString originCharset(charset);
 
       bool replyInDefault = false;
       prefs->GetBoolPref("mailnews.reply_in_default_charset",
@@ -1969,7 +1969,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
             folder->GetMsgDatabase(getter_AddRefs(db));
 
             if (db) {
-              nsCAutoString reference;
+              nsAutoCString reference;
               msgHdr->GetStringReference(0, reference);
 
               nsCOMPtr<nsIMsgDBHdr> refHdr;
@@ -2143,11 +2143,11 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
         case nsIMsgCompType::ForwardAsAttachment:
           {
             // Add the forwarded message in the references, first
-            nsCAutoString messageId;
+            nsAutoCString messageId;
             msgHdr->GetMessageId(getter_Copies(messageId));
             if (isFirstPass)
             {
-              nsCAutoString reference;
+              nsAutoCString reference;
               reference.Append(NS_LITERAL_CSTRING("<"));
               reference.Append(messageId);
               reference.Append(NS_LITERAL_CSTRING(">"));
@@ -2155,7 +2155,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
             }
             else
             {
-              nsCAutoString references;
+              nsAutoCString references;
               m_compFields->GetReferences(getter_Copies(references));
               references.Append(NS_LITERAL_CSTRING(" <"));
               references.Append(messageId);
@@ -2231,7 +2231,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
         case nsIMsgCompType::Redirect:
           {
             // For a redirect, set the Reply-To: header to what was in the original From: header...
-            nsCAutoString author;
+            nsAutoCString author;
             msgHdr->GetAuthor(getter_Copies(author));
             m_compFields->SetReplyTo(author.get());
 
@@ -2343,7 +2343,7 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
       {
         if (!myGetter.IsEmpty())
         {
-          nsCAutoString buf;
+          nsAutoCString buf;
           mCiteReference.AssignLiteral("mid:");
           MsgEscapeURL(myGetter,
                        nsINetUtil::ESCAPE_URL_FILE_BASENAME | nsINetUtil::ESCAPE_URL_FORCED,
@@ -3320,7 +3320,7 @@ NS_IMETHODIMP nsMsgCompose::RememberQueuedDisposition()
   if (mMsgSend)
   {
     mMsgSend->GetMessageKey(&msgKey);
-    nsCAutoString msgUri(m_folderName);
+    nsAutoCString msgUri(m_folderName);
     nsCString identityKey;
 
     m_identity->GetKey(identityKey);
@@ -3886,7 +3886,7 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, bool
           NS_ASSERTION(str, "Failed to get current draft id url");
           if (str)
           {
-            nsCAutoString srcStr(str+1);
+            nsAutoCString srcStr(str+1);
             nsresult err;
             nsMsgKey messageID = srcStr.ToInteger(&err);
             if (messageID != nsMsgKey_None)
@@ -4098,7 +4098,7 @@ nsMsgCompose::LoadDataFromFile(nsIFile *file, nsString &sigData,
 
   readSize = (uint32_t) fileSize;
 
-  nsCAutoString sigEncoding(nsMsgI18NParseMetaCharset(file));
+  nsAutoCString sigEncoding(nsMsgI18NParseMetaCharset(file));
   bool removeSigCharset = !sigEncoding.IsEmpty() && m_composeHTML;
 
   if (sigEncoding.IsEmpty()) {
@@ -4113,13 +4113,13 @@ nsMsgCompose::LoadDataFromFile(nsIFile *file, nsString &sigData,
     }
     else {
       //default to platform encoding for plain text files w/o meta charset
-      nsCAutoString textFileCharset;
+      nsAutoCString textFileCharset;
       nsMsgI18NTextFileCharset(textFileCharset);
       sigEncoding.Assign(textFileCharset);
     }
   }
 
-  nsCAutoString readStr(readBuf, (int32_t) fileSize);
+  nsAutoCString readStr(readBuf, (int32_t) fileSize);
   PR_FREEIF(readBuf);
 
   if (NS_FAILED(ConvertToUnicode(sigEncoding.get(), readStr, sigData)))
@@ -4128,7 +4128,7 @@ nsMsgCompose::LoadDataFromFile(nsIFile *file, nsString &sigData,
   //remove sig meta charset to allow user charset override during composition
   if (removeSigCharset)
   {
-    nsCAutoString metaCharset("charset=");
+    nsAutoCString metaCharset("charset=");
     metaCharset.Append(sigEncoding);
     int32_t pos = sigData.Find(metaCharset.BeginReading(), true);
     if (pos != kNotFound)
@@ -4184,7 +4184,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, bool aQuoted, nsString 
   // thus if attach_signature is checked, htmlSigText is ignored (bug 324495).
   // Plain-text signatures may or may not have a trailing line break (bug 428040).
 
-  nsCAutoString sigNativePath;
+  nsAutoCString sigNativePath;
   bool          attachFile = false;
   bool          useSigFile = false;
   bool          htmlSig = false;
@@ -4219,7 +4219,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, bool aQuoted, nsString 
 
             // Now, most importantly, we need to figure out what the content type is for
             // this signature...if we can't, we assume text
-            nsCAutoString sigContentType;
+            nsAutoCString sigContentType;
             nsresult rv2; // don't want to clobber the other rv
             nsCOMPtr<nsIMIMEService> mimeFinder (do_GetService(NS_MIMESERVICE_CONTRACTID, &rv2));
             if (NS_SUCCEEDED(rv2)) {

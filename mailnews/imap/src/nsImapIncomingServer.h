@@ -89,7 +89,7 @@ private:
   nsresult GetImapConnection(nsIImapUrl* aImapUrl,
                              nsIImapProtocol** aImapConnection);
   nsresult CreateProtocolInstance(nsIImapProtocol ** aImapConnection);
-  nsresult CreateHostSpecificPrefName(const char *prefPrefix, nsCAutoString &prefName);
+  nsresult CreateHostSpecificPrefName(const char *prefPrefix, nsAutoCString &prefName);
 
   nsresult DoomUrlIfChannelHasError(nsIImapUrl *aImapUrl, bool *urlDoomed);
   bool ConnectionTimeOut(nsIImapProtocol* aImapConnection);

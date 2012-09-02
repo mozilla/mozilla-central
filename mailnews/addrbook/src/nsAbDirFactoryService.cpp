@@ -41,12 +41,12 @@ nsAbDirFactoryService::GetDirFactory(const nsACString &aURI,
   NS_ENSURE_TRUE(nsService, NS_ERROR_UNEXPECTED);
     
   // Extract the scheme
-  nsCAutoString scheme;
+  nsAutoCString scheme;
   rv = nsService->ExtractScheme(aURI, scheme);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Try to find a factory using the component manager.
-  nsCAutoString contractID;
+  nsAutoCString contractID;
   contractID.AssignLiteral(NS_AB_DIRECTORY_FACTORY_CONTRACTID_PREFIX);
   contractID.Append(scheme);
 

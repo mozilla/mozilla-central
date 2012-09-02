@@ -60,8 +60,8 @@ NS_IMETHODIMP nsAbOutlookDirectory::Init(const char *aUri)
   nsresult rv = nsAbDirProperty::Init(aUri);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString entry;
-  nsCAutoString stub;
+  nsAutoCString entry;
+  nsAutoCString stub;
 
   mAbWinType = getAbWinType(kOutlookDirectoryScheme, mURINoQuery.get(), stub, entry);
   if (mAbWinType == nsAbWinType_Unknown) {
@@ -256,7 +256,7 @@ static nsresult ExtractCardEntry(nsIAbCard *aCard, nsCString& aEntry)
   // If we don't have a URI, uri will be empty. getAbWinType doesn't set
   // aEntry to anything if uri is empty, so it will be truncated, allowing us
   // to accept cards not initialized by us.
-  nsCAutoString stub;
+  nsAutoCString stub;
   getAbWinType(kOutlookCardScheme, uri.get(), stub, aEntry);
   return NS_OK;
 }
@@ -268,7 +268,7 @@ static nsresult ExtractDirectoryEntry(nsIAbDirectory *aDirectory, nsCString& aEn
   nsresult rv = aDirectory->GetURI(uri);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString stub;
+  nsAutoCString stub;
   nsAbWinType objType = getAbWinType(kOutlookDirectoryScheme, uri.get(), stub, aEntry);
 
   return NS_OK;
@@ -287,7 +287,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::DeleteCards(nsIArray *aCardList)
     retCode = aCardList->GetLength(&nbCards);
     NS_ENSURE_SUCCESS(retCode, retCode) ;
     uint32_t i = 0 ;
-    nsCAutoString entryString ;
+    nsAutoCString entryString ;
     nsMapiEntry cardEntry ;
 
     for (i = 0 ; i < nbCards ; ++ i) {
@@ -327,7 +327,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::DeleteDirectory(nsIAbDirectory *aDirectory)
     if (!aDirectory) { return NS_ERROR_NULL_POINTER ; }
     nsresult retCode = NS_OK ;
     nsAbWinHelperGuard mapiAddBook (mAbWinType) ;
-    nsCAutoString entryString ;
+    nsAutoCString entryString ;
 
     if (!mapiAddBook->IsOK()) { return NS_ERROR_FAILURE ; }
     retCode = ExtractDirectoryEntry(aDirectory, entryString) ;
@@ -402,7 +402,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::AddMailList(nsIAbDirectory *aMailList, nsIAb
   if (m_IsMailList)
     return NS_OK;
   nsAbWinHelperGuard mapiAddBook (mAbWinType);
-  nsCAutoString entryString;
+  nsAutoCString entryString;
   nsMapiEntry newEntry;
   bool didCopy = false;
 
@@ -425,7 +425,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::AddMailList(nsIAbDirectory *aMailList, nsIAb
     didCopy = true;
   }
   newEntry.ToString(entryString);
-  nsCAutoString uri;
+  nsAutoCString uri;
 
   buildAbWinUri(kOutlookDirectoryScheme, mAbWinType, uri);
   uri.Append(entryString);
@@ -551,7 +551,7 @@ static nsresult BuildRestriction(nsIAbBooleanConditionString *aCondition,
     nsCString name;
     nsString value;
     ULONG propertyTag = 0 ;
-    nsCAutoString valueAscii ;
+    nsAutoCString valueAscii ;
     
     retCode = aCondition->GetCondition(&conditionType) ;
     NS_ENSURE_SUCCESS(retCode, retCode) ;
@@ -1026,11 +1026,11 @@ nsresult nsAbOutlookDirectory::GetChildCards(nsIMutableArray *aCards,
     return NS_ERROR_FAILURE;
   }
 
-  nsCAutoString ourUuid;
+  nsAutoCString ourUuid;
   GetUuid(ourUuid);
 
-  nsCAutoString entryId;
-  nsCAutoString uriName;
+  nsAutoCString entryId;
+  nsAutoCString uriName;
   nsCOMPtr<nsIAbCard> childCard;
   nsresult rv;
 
@@ -1066,8 +1066,8 @@ nsresult nsAbOutlookDirectory::GetChildNodes(nsIMutableArray* aNodes)
     return NS_ERROR_FAILURE;
   }
 
-  nsCAutoString entryId;
-  nsCAutoString uriName;
+  nsAutoCString entryId;
+  nsAutoCString uriName;
   nsresult rv = NS_OK;
 
   nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
@@ -1178,7 +1178,7 @@ nsresult nsAbOutlookDirectory::CreateCard(nsIAbCard *aData, nsIAbCard **aNewCard
     nsresult retCode = NS_OK ;
     nsAbWinHelperGuard mapiAddBook (mAbWinType) ;
     nsMapiEntry newEntry ;
-    nsCAutoString entryString ;
+    nsAutoCString entryString ;
     bool didCopy = false ;
 
     if (!mapiAddBook->IsOK()) { return NS_ERROR_FAILURE ; }
@@ -1232,7 +1232,7 @@ nsresult nsAbOutlookDirectory::CreateCard(nsIAbCard *aData, nsIAbCard **aNewCard
         }
     }
     newEntry.ToString(entryString) ;
-    nsCAutoString uri ;
+    nsAutoCString uri ;
 
     buildAbWinUri(kOutlookCardScheme, mAbWinType, uri) ;
     uri.Append(entryString) ;
@@ -1241,7 +1241,7 @@ nsresult nsAbOutlookDirectory::CreateCard(nsIAbCard *aData, nsIAbCard **aNewCard
     retCode = OutlookCardForURI(uri, getter_AddRefs(newCard));
     NS_ENSURE_SUCCESS(retCode, retCode);
 
-    nsCAutoString ourUuid;
+    nsAutoCString ourUuid;
     GetUuid(ourUuid);
     newCard->SetDirectoryId(ourUuid);
 
@@ -1442,8 +1442,8 @@ nsresult OutlookCardForURI(const nsACString &aUri, nsIAbCard **newCard)
 {
   NS_ENSURE_ARG_POINTER(newCard);
 
-  nsCAutoString entry;
-  nsCAutoString stub;
+  nsAutoCString entry;
+  nsAutoCString stub;
   uint32_t abWinType = getAbWinType(kOutlookCardScheme,
     PromiseFlatCString(aUri).get(), stub, entry);
   if (abWinType == nsAbWinType_Unknown)
@@ -1503,7 +1503,7 @@ nsresult OutlookCardForURI(const nsACString &aUri, nsIAbCard **newCard)
     card->SetIsMailList(cardType == MAPI_DISTLIST);
     if (cardType == MAPI_DISTLIST)
     {
-      nsCAutoString normalChars;
+      nsAutoCString normalChars;
       buildAbWinUri(kOutlookDirectoryScheme, abWinType, normalChars);
       normalChars.Append(entry);
       card->SetMailListURI(normalChars.get());

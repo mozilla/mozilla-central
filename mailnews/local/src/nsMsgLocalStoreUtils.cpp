@@ -85,11 +85,11 @@ nsMsgLocalStoreUtils::ChangeKeywordsHelper(nsIMsgDBHdr *message,
 
   for (uint32_t i = 0; i < keywordArray.Length(); i++)
   {
-    nsCAutoString header;
-    nsCAutoString keywords;
+    nsAutoCString header;
+    nsAutoCString keywords;
     bool done = false;
     uint32_t len = 0;
-    nsCAutoString keywordToWrite(" ");
+    nsAutoCString keywordToWrite(" ");
 
     keywordToWrite.Append(keywordArray[i]);
     seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, desiredOffset);
@@ -151,7 +151,7 @@ nsMsgLocalStoreUtils::ChangeKeywordsHelper(nsIMsgDBHdr *message,
         // position where we have room to add the keyword.
         if (aAdd)
         {
-          nsCAutoString curKeywordHdr(keywordHeaders);
+          nsAutoCString curKeywordHdr(keywordHeaders);
           // strip off line ending spaces.
           curKeywordHdr.Trim(" ", false, true);
           if (!offsetToAddKeyword && curKeywordHdr.Length() +

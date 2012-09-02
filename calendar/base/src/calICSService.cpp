@@ -473,7 +473,7 @@ NS_IMETHODIMP
 calIcalComponent::AddTimezoneReference(calITimezone *aTimezone)
 {
     NS_ENSURE_ARG_POINTER(aTimezone);
-    nsCAutoString tzid;
+    nsAutoCString tzid;
     nsresult rv = aTimezone->GetTzid(tzid);
     NS_ENSURE_SUCCESS(rv, rv);
     mReferencedTimezones.Put(tzid, aTimezone);
@@ -748,7 +748,7 @@ nsresult calIcalProperty::setDatetime_(calIcalComponent * parent,
                 bool b = false;
                 if (NS_FAILED(tz->GetIsFloating(&b)) || !b) {
                     // restore the same phantom TZID:
-                    nsCAutoString tzid;
+                    nsAutoCString tzid;
                     rv = tz->GetTzid(tzid);
                     NS_ENSURE_SUCCESS(rv, rv);
                     icalparameter * const param = icalparameter_new_from_value_string(ICAL_TZID_PARAMETER,

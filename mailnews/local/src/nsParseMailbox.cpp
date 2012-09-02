@@ -1123,11 +1123,11 @@ SEARCH_NEWLINE:
         // parse Received: header for date.
         // We trust the first header as that is closest to recipient,
         // and less likely to be spoofed.
-        nsCAutoString receivedHdr(header->value, header->length);
+        nsAutoCString receivedHdr(header->value, header->length);
         int32_t lastSemicolon = receivedHdr.RFindChar(';');
         if (lastSemicolon != -1)
         {
-          nsCAutoString receivedDate;
+          nsAutoCString receivedDate;
           receivedDate = Substring(receivedHdr, lastSemicolon + 1);
           receivedDate.Trim(" \t\b\r\n");
           PRTime resultTime;
@@ -1335,7 +1335,7 @@ int nsParseMailMessageState::FinalizeHeaders()
   if (!(flags & nsMsgMessageFlags::Expunged))  // message was deleted, don't bother creating a hdr.
   {
     // We'll need the message id first to recover data from the backup database
-    nsCAutoString rawMsgId;
+    nsAutoCString rawMsgId;
     /* Take off <> around message ID. */
     if (id)
     {
@@ -1423,7 +1423,7 @@ int nsParseMailMessageState::FinalizeHeaders()
         if (ch)
         {
           /* generate a new string that terminates before the , */
-          nsCAutoString firstGroup;
+          nsAutoCString firstGroup;
           firstGroup.Assign(recipient->value, ch - recipient->value);
           m_newMsgHdr->SetRecipients(firstGroup.get());
         }
@@ -1494,7 +1494,7 @@ int nsParseMailMessageState::FinalizeHeaders()
         if (! id)
         {
           // what to do about this? we used to do a hash of all the headers...
-          nsCAutoString hash;
+          nsAutoCString hash;
           const char *md5_b64 = "dummy.message.id";
           nsresult rv;
           nsCOMPtr<nsICryptoHash> hasher = do_CreateInstance("@mozilla.org/security/hash;1", &rv);
@@ -1601,7 +1601,7 @@ int nsParseMailMessageState::FinalizeHeaders()
         {
           // When there are many keywords, some may not have been written
           // to the message file, so add extra keywords from the backup
-          nsCAutoString oldKeywords;
+          nsAutoCString oldKeywords;
           m_newMsgHdr->GetStringProperty("keywords", getter_Copies(oldKeywords));
           nsTArray<nsCString> newKeywordArray, oldKeywordArray;
           ParseString(Substring(keywords->value, keywords->value + keywords->length), ' ', newKeywordArray);
@@ -1609,7 +1609,7 @@ int nsParseMailMessageState::FinalizeHeaders()
           for (uint32_t i = 0; i < oldKeywordArray.Length(); i++)
             if (!newKeywordArray.Contains(oldKeywordArray[i]))
               newKeywordArray.AppendElement(oldKeywordArray[i]);
-          nsCAutoString newKeywords;
+          nsAutoCString newKeywords;
           for (uint32_t i = 0; i < newKeywordArray.Length(); i++)
           {
             if (i)
@@ -1644,7 +1644,7 @@ int nsParseMailMessageState::FinalizeHeaders()
                 if (*end != '\0') {
                   // if we're not at the very end of the line, we need
                   // to generate a new string without the trailing crud
-                  nsCAutoString rawCharSet;
+                  nsAutoCString rawCharSet;
                   rawCharSet.Assign(charset, end - charset);
                   m_newMsgHdr->SetCharset(rawCharSet.get());
                 } else {
@@ -2143,7 +2143,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
         break;
       case nsMsgFilterAction::JunkScore:
       {
-        nsCAutoString junkScoreStr;
+        nsAutoCString junkScoreStr;
         int32_t junkScore;
         filterAction->GetJunkScore(&junkScore);
         junkScoreStr.AppendInt(junkScore);
@@ -2233,7 +2233,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
         rv = filterAction->GetCustomAction(getter_AddRefs(customAction));
         NS_ENSURE_SUCCESS(rv, rv);
 
-        nsCAutoString value;
+        nsAutoCString value;
         filterAction->GetStrValue(value);
 
         nsCOMPtr<nsIMutableArray> messageArray(

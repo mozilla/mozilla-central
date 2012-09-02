@@ -109,7 +109,7 @@ MimeInlineImage_parse_begin (MimeObject *obj)
     if (!ct) ct = IMAGE_GIF;  /* Can't happen?  Close enough. */
 
     // Fill in content type and attachment name here.
-    nsCAutoString url_with_filename(image_url);
+    nsAutoCString url_with_filename(image_url);
     url_with_filename += "&type=";
     url_with_filename += ct;
     char * filename = MimeHeaders_get_name ( obj->headers, obj->options );

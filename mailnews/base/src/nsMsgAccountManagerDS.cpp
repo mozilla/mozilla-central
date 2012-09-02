@@ -343,7 +343,7 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
         rv = am->GetChromePackageName(nsCString(sourceValue + strlen(NC_RDF_PAGETITLE_PREFIX)), chromePackageName);
         NS_ENSURE_SUCCESS(rv,rv);
 
-        nsCAutoString bundleURL;
+        nsAutoCString bundleURL;
         bundleURL = "chrome://";
         bundleURL += chromePackageName;
         bundleURL += "/locale/am-";
@@ -627,7 +627,7 @@ nsMsgAccountManagerDataSource::appendGenericSettingsResources(nsIMsgIncomingServ
       if (NS_FAILED(rv) || !catEntry)
         break;
 
-      nsCAutoString entryString;
+      nsAutoCString entryString;
       rv = catEntry->GetData(entryString);
       if (NS_FAILED(rv))
         break;
@@ -671,7 +671,7 @@ nsMsgAccountManagerDataSource::appendGenericSetting(const char *name,
 
   nsCOMPtr <nsIRDFResource> resource;
 
-  nsCAutoString resourceStr;
+  nsAutoCString resourceStr;
   resourceStr = NC_RDF_PAGETITLE_PREFIX;
   resourceStr += name;
 
@@ -1000,7 +1000,7 @@ nsMsgAccountManagerDataSource::canGetMessages(nsIMsgIncomingServer *aServer)
   nsresult rv = aServer->GetType(type);
   NS_ENSURE_SUCCESS(rv, false);
 
-  nsCAutoString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
+  nsAutoCString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
   contractid.Append(type);
 
   nsCOMPtr<nsIMsgProtocolInfo> protocolInfo = do_GetService(contractid.get(), &rv);
@@ -1019,7 +1019,7 @@ nsMsgAccountManagerDataSource::canGetIncomingMessages(nsIMsgIncomingServer *aSer
   nsresult rv = aServer->GetType(type);
   NS_ENSURE_SUCCESS(rv, false);
 
-  nsCAutoString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
+  nsAutoCString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
   contractid.Append(type);
 
   nsCOMPtr<nsIMsgProtocolInfo> protocolInfo = do_GetService(contractid.get(), &rv);

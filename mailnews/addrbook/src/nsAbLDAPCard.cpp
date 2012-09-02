@@ -68,7 +68,7 @@ NS_IMETHODIMP nsAbLDAPCard::GetLDAPMessageInfo(
   // Add any missing object classes. We never remove any object
   // classes: if an entry has additional object classes, it's probably
   // for a good reason.
-  nsCAutoString oclass;
+  nsAutoCString oclass;
   for (uint32_t i = 0; i < aClassCount; ++i)
   {
     oclass.Assign(nsDependentCString(aClasses[i]));
@@ -113,7 +113,7 @@ NS_IMETHODIMP nsAbLDAPCard::GetLDAPMessageInfo(
     props.GetArrayAddr());
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString attr;
+  nsAutoCString attr;
   nsCString propvalue;
   for (uint32_t i = 0; i < props.GetSize(); ++i)
   {
@@ -202,7 +202,7 @@ NS_IMETHODIMP nsAbLDAPCard::BuildRdn(nsIAbLDAPAttributeMap *aAttributeMap,
   
   nsresult rv;
   nsCString attr;
-  nsCAutoString prop;
+  nsAutoCString prop;
   nsCString propvalue;
 
   aRdn.Truncate();
@@ -251,7 +251,7 @@ NS_IMETHODIMP nsAbLDAPCard::SetMetaProperties(nsILDAPMessage *aMessage)
   NS_ENSURE_ARG_POINTER(aMessage);
   
   // Get DN
-  nsCAutoString dn;
+  nsAutoCString dn;
   nsresult rv = aMessage->GetDn(dn);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -262,7 +262,7 @@ NS_IMETHODIMP nsAbLDAPCard::SetMetaProperties(nsILDAPMessage *aMessage)
   rv = aMessage->GetAttributes(attrs.GetSizeAddr(), attrs.GetArrayAddr());
   NS_ENSURE_SUCCESS(rv, rv);
  
-  nsCAutoString attr;
+  nsAutoCString attr;
   m_attributes.Clear();
   for (uint32_t i = 0; i < attrs.GetSize(); ++i)
   {
@@ -285,7 +285,7 @@ NS_IMETHODIMP nsAbLDAPCard::SetMetaProperties(nsILDAPMessage *aMessage)
 
   NS_ENSURE_SUCCESS(rv, rv);
   
-  nsCAutoString oclass;
+  nsAutoCString oclass;
   for (uint32_t i = 0; i < vals.GetSize(); ++i)
   {
     oclass.Assign(NS_LossyConvertUTF16toASCII(nsDependentString(vals[i])));

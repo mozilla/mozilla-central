@@ -97,7 +97,7 @@ NS_IMETHODIMP nsNntpUrl::SetSpec(const nsACString &aSpec)
   nsresult rv = nsMsgMailNewsUrl::SetSpec(parseSpec);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCAutoString scheme;
+  nsAutoCString scheme;
   rv = GetScheme(scheme);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -107,7 +107,7 @@ NS_IMETHODIMP nsNntpUrl::SetSpec(const nsACString &aSpec)
     rv = ParseNntpURL();
   else if (scheme.EqualsLiteral("news-message"))
   {
-    nsCAutoString spec;
+    nsAutoCString spec;
     GetSpec(spec);
     rv = nsParseNewsMessageURI(spec.get(), m_group, &m_key);
     NS_ENSURE_SUCCESS(rv, NS_ERROR_MALFORMED_URI);
@@ -124,7 +124,7 @@ NS_IMETHODIMP nsNntpUrl::SetSpec(const nsACString &aSpec)
 nsresult nsNntpUrl::ParseNewsURL()
 {
   // The path here is the group/msgid portion
-  nsCAutoString path;
+  nsAutoCString path;
   nsresult rv = GetFilePath(path);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -138,7 +138,7 @@ nsresult nsNntpUrl::ParseNewsURL()
     MsgUnescapeString(path, 0, m_messageID);
 
     // Set group, key for ?group=foo&key=123 uris
-    nsCAutoString spec;
+    nsAutoCString spec;
     GetSpec(spec);
     int32_t groupPos = spec.Find(kNewsURIGroupQuery); // find ?group=
     int32_t keyPos   = spec.Find(kNewsURIKeyQuery);   // find &key=
@@ -160,7 +160,7 @@ nsresult nsNntpUrl::ParseNewsURL()
 
 nsresult nsNntpUrl::ParseNntpURL()
 {
-  nsCAutoString path;
+  nsAutoCString path;
   nsresult rv = GetFilePath(path);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -179,7 +179,7 @@ nsresult nsNntpUrl::ParseNntpURL()
   else
   {
     m_group = Substring(path, 0, slash);
-    nsCAutoString keyStr;
+    nsAutoCString keyStr;
     keyStr = Substring(path, slash + 1);
     m_key = keyStr.ToInteger(&rv, 10);
     NS_ENSURE_SUCCESS(rv, NS_ERROR_MALFORMED_URI);
@@ -194,11 +194,11 @@ nsresult nsNntpUrl::ParseNntpURL()
 
 nsresult nsNntpUrl::DetermineNewsAction()
 {
-  nsCAutoString path;
+  nsAutoCString path;
   nsresult rv = nsMsgMailNewsUrl::GetPath(path);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCAutoString query;
+  nsAutoCString query;
   rv = GetQuery(query);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -315,7 +315,7 @@ NS_IMETHODIMP nsNntpUrl::GetUri(char ** aURI)
   // if we have been given a uri to associate with this url, then use it
   // otherwise try to reconstruct a URI on the fly....
   if (mURI.IsEmpty()) {
-    nsCAutoString spec;
+    nsAutoCString spec;
     rv = GetSpec(spec);
     NS_ENSURE_SUCCESS(rv,rv);
     mURI = spec;
@@ -377,7 +377,7 @@ NS_IMETHODIMP nsNntpUrl::GetMessageHeader(nsIMsgDBHdr ** aMsgHdr)
   nsCOMPtr <nsIMsgMessageService> msgService = do_QueryInterface(nntpService, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCAutoString spec(mOriginalSpec);
+  nsAutoCString spec(mOriginalSpec);
   if (spec.IsEmpty())
     // Handle the case where necko directly runs an internal news:// URL,
     // one that looks like news://host/message-id?group=mozilla.announce&key=15
@@ -426,7 +426,7 @@ nsNntpUrl::GetServer(nsIMsgIncomingServer **aServer)
   NS_ENSURE_ARG_POINTER(aServer);
   
   nsresult rv;
-  nsCAutoString scheme, user, host;
+  nsAutoCString scheme, user, host;
 
   GetScheme(scheme);
   GetUsername(user);

@@ -53,7 +53,7 @@ nsAbLDAPAutoCompFormatter::Format(nsILDAPMessage *aMsg,
 
     // generate the appropriate string
     //
-    nsCAutoString name;
+    nsAutoCString name;
     rv = ProcessFormat(mNameFormat, aMsg, &name, 0);
     if (NS_FAILED(rv)) {
         // Something went wrong lower down the stack; a message should
@@ -63,7 +63,7 @@ nsAbLDAPAutoCompFormatter::Format(nsILDAPMessage *aMsg,
         return rv;
     }
 
-    nsCAutoString address;
+    nsAutoCString address;
     rv = ProcessFormat(mAddressFormat, aMsg, &address, 0);
     if (NS_FAILED(rv)) {
         // Something went wrong lower down the stack; a message should have 
@@ -104,7 +104,7 @@ nsAbLDAPAutoCompFormatter::Format(nsILDAPMessage *aMsg,
 
     // generate the appropriate string to appear as a comment off to the side
     //
-    nsCAutoString comment;
+    nsAutoCString comment;
     rv = ProcessFormat(mCommentFormat, aMsg, &comment, 0);
     if (NS_SUCCEEDED(rv)) {
         rv = item->SetComment(NS_ConvertUTF8toUTF16(comment).get());
@@ -327,7 +327,7 @@ nsAbLDAPAutoCompFormatter::FormatException(int32_t aState,
 NS_IMETHODIMP
 nsAbLDAPAutoCompFormatter::GetAttributes(nsACString &aResult)
 {
-    nsCAutoString searchAttrs;
+    nsAutoCString searchAttrs;
     nsresult rv = ProcessFormat(mNameFormat, 0, 0, &searchAttrs);
     if (NS_FAILED(rv)) {
         NS_WARNING("nsAbLDAPAutoCompFormatter::SetNameFormat(): "
@@ -381,7 +381,7 @@ nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
     }
 
     bool attrRequired = false;     // is this attr required or optional?
-    nsCAutoString attrName;             // current attr to get
+    nsAutoCString attrName;             // current attr to get
 
     // parse until we hit the end of the string
     //

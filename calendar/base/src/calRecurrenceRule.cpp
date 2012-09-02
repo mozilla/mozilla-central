@@ -403,7 +403,7 @@ calRecurrenceRule::GetOccurrences(calIDateTime *aStartTime,
 #ifdef DEBUG_dbo
     {
         char const * const ss = icalrecurrencetype_as_string(&mIcalRecur);
-        nsCAutoString tst, tend;
+        nsAutoCString tst, tend;
         aRangeStart->ToString(tst);
         aRangeEnd->ToString(tend);
         printf("RULE: [%s -> %s, %d]: %s\n", tst.get(), tend.get(), mIcalRecur.count, ss);
@@ -460,7 +460,7 @@ calRecurrenceRule::GetOccurrences(calIDateTime *aStartTime,
         dates.AppendObject(cdt);
 #ifdef DEBUG_dbo
         {
-            nsCAutoString str;
+            nsAutoCString str;
             cdt->ToString(str);
             printf("  occ: %s\n", str.get());
         }
@@ -515,7 +515,7 @@ calRecurrenceRule::SetIcalProperty(calIIcalProperty *aProp)
     if (mImmutable)
         return NS_ERROR_OBJECT_IS_IMMUTABLE;
 
-    nsCAutoString propname;
+    nsAutoCString propname;
     nsresult rv = aProp->GetPropertyName(propname);
     NS_ENSURE_SUCCESS(rv, rv);
     if (propname.EqualsLiteral("RRULE"))

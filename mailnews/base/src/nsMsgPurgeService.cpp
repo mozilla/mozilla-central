@@ -228,7 +228,7 @@ nsresult nsMsgPurgeService::PerformPurge()
         nsresult rv = server->GetType(type);
         NS_ENSURE_SUCCESS(rv, rv);
 
-        nsCAutoString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
+        nsAutoCString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
         contractid.Append(type);
 
         nsCOMPtr<nsIMsgProtocolInfo> protocolInfo =

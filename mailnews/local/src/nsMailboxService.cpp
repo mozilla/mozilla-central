@@ -52,13 +52,13 @@ nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsIFile *aMail
     nsCString mailboxPath;
 
     aMailboxPath->GetNativePath(mailboxPath);
-    nsCAutoString buf;
+    nsAutoCString buf;
     MsgEscapeURL(mailboxPath,
                  nsINetUtil::ESCAPE_URL_MINIMAL | nsINetUtil::ESCAPE_URL_FORCED, buf);
     nsEscapeNativePath(buf);
     url->SetUpdatingFolder(true);
     url->SetMsgWindow(aMsgWindow);
-    nsCAutoString uriSpec("mailbox://");
+    nsAutoCString uriSpec("mailbox://");
     uriSpec.Append(buf);
     rv = url->SetSpec(uriSpec);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -155,7 +155,7 @@ nsresult nsMailboxService::FetchMessage(const char* aMessageURI,
   nsMailboxAction actionToUse = mailboxAction;
   nsCOMPtr<nsIURI> url;
   nsCOMPtr<nsIMsgMailNewsUrl> msgUrl;
-  nsCAutoString uriString(aMessageURI);
+  nsAutoCString uriString(aMessageURI);
 
   if (!strncmp(aMessageURI, "file:", 5))
   {
@@ -288,7 +288,7 @@ nsMailboxService::StreamMessage(const char *aMessageURI,
     // "header=attach" to decide if it wants to convert the data instead of
     // using aConvertData. It turns out to be way too hard to pass aConvertData
     // all the way over to the mailbox protocol object.
-    nsCAutoString aURIString(aMessageURI);
+    nsAutoCString aURIString(aMessageURI);
     if (!aAdditionalHeader.IsEmpty())
     {
       aURIString.FindChar('?') == -1 ? aURIString += "?" : aURIString += "&";
@@ -308,7 +308,7 @@ NS_IMETHODIMP nsMailboxService::StreamHeaders(const char *aMessageURI,
 {
   NS_ENSURE_ARG_POINTER(aMessageURI);
   NS_ENSURE_ARG_POINTER(aConsumer);
-  nsCAutoString folderURI;
+  nsAutoCString folderURI;
   nsMsgKey msgKey;
   nsCOMPtr<nsIMsgFolder> folder;
   nsresult rv = DecomposeMailboxURI(aMessageURI, getter_AddRefs(folder), &msgKey);
@@ -341,7 +341,7 @@ NS_IMETHODIMP nsMailboxService::OpenAttachment(const char *aContentType,
                                                nsIUrlListener *aUrlListener)
 {
   nsCOMPtr <nsIURI> URL;
-  nsCAutoString urlString(aUrl);
+  nsAutoCString urlString(aUrl);
   urlString += "&type=";
   urlString += aContentType;
   urlString += "&filename=";
@@ -453,7 +453,7 @@ nsresult nsMailboxService::PrepareMessageUrl(const char * aSrcMsgMailboxURI, nsI
   {
     // okay now generate the url string
     char * urlSpec;
-    nsCAutoString folderURI;
+    nsAutoCString folderURI;
     nsMsgKey msgKey;
     nsCString folderPath;
     const char *part = PL_strstr(aSrcMsgMailboxURI, "part=");
@@ -465,7 +465,7 @@ nsresult nsMailboxService::PrepareMessageUrl(const char * aSrcMsgMailboxURI, nsI
     if (NS_SUCCEEDED(rv))
     {
       // set up the url spec and initialize the url with it.
-      nsCAutoString buf;
+      nsAutoCString buf;
       MsgEscapeURL(folderPath,
                    nsINetUtil::ESCAPE_URL_DIRECTORY | nsINetUtil::ESCAPE_URL_FORCED, buf);
       if (mPrintingOperation)
@@ -552,7 +552,7 @@ NS_IMETHODIMP nsMailboxService::NewURI(const nsACString &aSpec,
   // We know this, and the failure is harmless.
   if (aBaseURI)
   {
-    nsCAutoString newSpec;
+    nsAutoCString newSpec;
     rv = aBaseURI->Resolve(aSpec, newSpec);
     NS_ENSURE_SUCCESS(rv, rv);
     (void) aMsgUri->SetSpec(newSpec);
@@ -571,7 +571,7 @@ NS_IMETHODIMP nsMailboxService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
   NS_ENSURE_ARG_POINTER(aURI);
   NS_ENSURE_ARG_POINTER(_retval);
   nsresult rv = NS_OK;
-  nsCAutoString spec;
+  nsAutoCString spec;
   aURI->GetSpec(spec);
 
   if (spec.Find("?uidl=") >= 0 || spec.Find("&uidl=") >= 0)
@@ -630,7 +630,7 @@ nsMailboxService::DecomposeMailboxURI(const char * aMessageURI, nsIMsgFolder ** 
   NS_ENSURE_ARG_POINTER(aMsgKey);
 
   nsresult rv = NS_OK;
-  nsCAutoString folderURI;
+  nsAutoCString folderURI;
   rv = nsParseLocalMessageURI(aMessageURI, folderURI, aMsgKey);
   NS_ENSURE_SUCCESS(rv,rv);
 

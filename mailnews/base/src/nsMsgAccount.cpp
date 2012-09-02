@@ -47,7 +47,7 @@ nsMsgAccount::getPrefService()
   nsCOMPtr<nsIPrefService> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString accountRoot("mail.account.");
+  nsAutoCString accountRoot("mail.account.");
   accountRoot.Append(m_accountKey);
   accountRoot.Append('.');
   return prefs->GetBranch(accountRoot.get(), getter_AddRefs(m_prefs));
@@ -213,7 +213,7 @@ nsMsgAccount::createIdentities()
 
   // temporaries used inside the loop
   nsCOMPtr<nsIMsgIdentity> identity;
-  nsCAutoString key;
+  nsAutoCString key;
 
   // iterate through id1,id2, etc
   while (token) {
@@ -296,9 +296,9 @@ nsMsgAccount::AddIdentity(nsIMsgIdentity *identity)
     nsCString identityList;
     m_prefs->GetCharPref("identities", getter_Copies(identityList));
 
-    nsCAutoString newIdentityList(identityList);
+    nsAutoCString newIdentityList(identityList);
 
-    nsCAutoString testKey;      // temporary to strip whitespace
+    nsAutoCString testKey;      // temporary to strip whitespace
     bool foundIdentity = false; // if the input identity is found
 
     if (!identityList.IsEmpty()) {
@@ -366,7 +366,7 @@ nsMsgAccount::RemoveIdentity(nsIMsgIdentity *aIdentity)
     m_defaultIdentity = nullptr;
 
   // now rebuild the identity pref
-  nsCAutoString newIdentityList;
+  nsAutoCString newIdentityList;
 
   // iterate over the remaining identities
   for (uint32_t index = 0; index < count; index++)

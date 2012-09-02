@@ -525,7 +525,7 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
     rv = GetMessageServiceFromURI(m_uri, getter_AddRefs(messageService));
     if (NS_SUCCEEDED(rv) && messageService)
     {
-      nsCAutoString uri(m_uri);
+      nsAutoCString uri(m_uri);
       uri += (uri.FindChar('?') == kNotFound) ? '?' : '&';
       uri.Append("fetchCompleteMessage=true");
       nsCOMPtr<nsIStreamListener> strListener;
@@ -639,9 +639,9 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
   if (!m_bogus_attachment && StringBeginsWith(sourceURISpec, NS_LITERAL_CSTRING("file://")))
   {
     // Unescape the path (i.e. un-URLify it) before making a FSSpec
-    nsCAutoString filePath;
+    nsAutoCString filePath;
     filePath.Adopt(nsMsgGetLocalFileFromURL(sourceURISpec.get()));
-    nsCAutoString unescapedFilePath;
+    nsAutoCString unescapedFilePath;
     MsgUnescapeString(filePath, 0, unescapedFilePath);
 
     nsCOMPtr<nsIFile> sourceFile;
@@ -686,7 +686,7 @@ nsresult
 nsMsgAttachmentHandler::ConvertToZipFile(nsILocalFileMac *aSourceFile)
 {
   // append ".zip" to the real file name
-  nsCAutoString zippedName;
+  nsAutoCString zippedName;
   nsresult rv = aSourceFile->GetNativeLeafName(zippedName);
   NS_ENSURE_SUCCESS(rv, rv);
   zippedName.AppendLiteral(".zip");
@@ -749,7 +749,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
       rv = fileUrl->SetSpec(aFileURI);
       if (NS_SUCCEEDED(rv))
       {
-        nsCAutoString ext;
+        nsAutoCString ext;
         rv = fileUrl->GetFileExtension(ext);
         if (NS_SUCCEEDED(rv) && !ext.IsEmpty())
         {
@@ -1051,7 +1051,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
       printfString = nsTextFormatter::smprintf(msg.get(), m_realName.get());
     else if (NS_SUCCEEDED(mURL->GetSpec(turl)) && !turl.IsEmpty())
     {
-      nsCAutoString unescapedUrl;
+      nsAutoCString unescapedUrl;
       MsgUnescapeString(turl, 0, unescapedUrl);
       if (unescapedUrl.IsEmpty())
         printfString = nsTextFormatter::smprintf(msg.get(), turl.get());
@@ -1113,7 +1113,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
 
         if (NS_SUCCEEDED(rv))
         {
-          nsCAutoString tData;
+          nsAutoCString tData;
           if (NS_FAILED(ConvertFromUnicode(m_charset.get(), conData, tData)))
             LossyCopyUTF16toASCII(conData, tData);
           if (!tData.IsEmpty())

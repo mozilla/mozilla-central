@@ -226,7 +226,7 @@ NS_IMETHODIMP nsMsgAttachment::EqualsUrl(nsIMsgAttachment *attachment, bool *_re
   NS_ENSURE_ARG_POINTER(attachment);
   NS_ENSURE_ARG_POINTER(_retval);
 
-  nsCAutoString url;
+  nsAutoCString url;
   attachment->GetUrl(url);
 
   *_retval = mUrl.Equals(url);

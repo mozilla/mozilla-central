@@ -284,7 +284,7 @@ void nsSmtpProtocol::Initialize(nsIURI * aURL)
     InitPrefAuthMethods(authMethod);
 
 #if defined(PR_LOGGING)
-    nsCAutoString hostName;
+    nsAutoCString hostName;
     aURL->GetAsciiHost(hostName);
     PR_LOG(SMTPLogModule, PR_LOG_ALWAYS, ("SMTP Connecting to: %s", hostName.get()));
 #endif
@@ -529,7 +529,7 @@ nsresult nsSmtpProtocol::ExtensionLoginResponse(nsIInputStream * inputStream, ui
     return NS_ERROR_SMTP_AUTH_FAILURE;
   }
 
-  nsCAutoString buffer("EHLO ");
+  nsAutoCString buffer("EHLO ");
   AppendHelloArgument(buffer);
   buffer += CRLF;
 
@@ -545,7 +545,7 @@ nsresult nsSmtpProtocol::ExtensionLoginResponse(nsIInputStream * inputStream, ui
 nsresult nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, uint32_t length)
 {
   nsresult status = NS_OK;
-  nsCAutoString buffer;
+  nsAutoCString buffer;
   nsresult rv;
 
   if (m_responseCode != 250)
@@ -674,7 +674,7 @@ nsresult nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, uint32_t
                 return(NS_ERROR_STARTTLS_FAILED_EHLO_STARTTLS);
             }
 
-            nsCAutoString buffer("HELO ");
+            nsAutoCString buffer("HELO ");
             AppendHelloArgument(buffer);
             buffer += CRLF;
 
@@ -708,7 +708,7 @@ nsresult nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, uint32_t
     do
     {
         endPos = m_responseText.FindChar('\n', startPos + 1);
-        nsCAutoString responseLine;
+        nsAutoCString responseLine;
         responseLine.Assign(Substring(m_responseText, startPos,
             (endPos >= 0 ? endPos : responseLength) - startPos));
 
@@ -927,7 +927,7 @@ void nsSmtpProtocol::ResetAuthMethods()
 nsresult nsSmtpProtocol::ProcessAuth()
 {
     nsresult status = NS_OK;
-    nsCAutoString buffer;
+    nsAutoCString buffer;
 
     if (!m_tlsEnabled)
     {
@@ -1148,9 +1148,9 @@ nsresult nsSmtpProtocol::AuthLoginResponse(nsIInputStream * stream, uint32_t len
 nsresult nsSmtpProtocol::AuthGSSAPIFirst()
 {
   NS_ASSERTION(m_currentAuthMethod == SMTP_AUTH_GSSAPI_ENABLED, "called in invalid state");
-  nsCAutoString command("AUTH GSSAPI ");
-  nsCAutoString resp;
-  nsCAutoString service("smtp@");
+  nsAutoCString command("AUTH GSSAPI ");
+  nsAutoCString resp;
+  nsAutoCString service("smtp@");
   nsCString hostName;
   nsCString userName;
   nsresult rv;
@@ -1194,7 +1194,7 @@ nsresult nsSmtpProtocol::AuthGSSAPIStep()
   PR_LOG(SMTPLogModule, PR_LOG_DEBUG, ("SMTP: GSSAPI auth step 2"));
   NS_ASSERTION(m_currentAuthMethod == SMTP_AUTH_GSSAPI_ENABLED, "called in invalid state");
   nsresult rv;
-  nsCAutoString cmd;
+  nsAutoCString cmd;
 
   // Check to see what the server said
   if (m_responseCode / 100 != 3) {
@@ -1225,7 +1225,7 @@ nsresult nsSmtpProtocol::AuthLoginStep0()
         m_currentAuthMethod == SMTP_AUTH_LOGIN_ENABLED,
         "called in invalid state");
     PR_LOG(SMTPLogModule, PR_LOG_DEBUG, ("SMTP: MSN or LOGIN auth, step 0"));
-    nsCAutoString command(m_currentAuthMethod == SMTP_AUTH_MSN_ENABLED
+    nsAutoCString command(m_currentAuthMethod == SMTP_AUTH_MSN_ENABLED
         ? "AUTH MSN" CRLF : "AUTH LOGIN" CRLF);
     m_nextState = SMTP_RESPONSE;
     m_nextStateAfterResponse = SMTP_AUTH_LOGIN_STEP0_RESPONSE;
@@ -1247,12 +1247,12 @@ void nsSmtpProtocol::AuthLoginStep0Response()
 
 nsresult nsSmtpProtocol::AuthLoginStep1()
 {
-  char buffer[512]; // TODO nsCAutoString
+  char buffer[512]; // TODO nsAutoCString
   nsresult rv;
   nsresult status = NS_OK;
   nsCString username;
   char *base64Str = nullptr;
-  nsCAutoString password;
+  nsAutoCString password;
   nsCOMPtr<nsISmtpServer> smtpServer;
   rv = m_runningURL->GetSmtpServer(getter_AddRefs(smtpServer));
   if (NS_FAILED(rv)) return NS_ERROR_FAILURE;
@@ -1285,7 +1285,7 @@ nsresult nsSmtpProtocol::AuthLoginStep1()
            m_currentAuthMethod == SMTP_AUTH_MSN_ENABLED)
   {
     PR_LOG(SMTPLogModule, PR_LOG_DEBUG, ("NTLM/MSN auth, step 1"));
-    nsCAutoString response;
+    nsAutoCString response;
     rv = DoNtlmStep1(username.get(), password.get(), response);
     PR_snprintf(buffer, sizeof(buffer), TestFlag(SMTP_AUTH_NTLM_ENABLED) ?
                                         "AUTH NTLM %.256s" CRLF :
@@ -1335,7 +1335,7 @@ nsresult nsSmtpProtocol::AuthLoginStep2()
   */
   nsresult status = NS_OK;
   nsresult rv;
-  nsCAutoString password;
+  nsAutoCString password;
 
   GetPassword(password);
   if (password.IsEmpty())
@@ -1363,7 +1363,7 @@ nsresult nsSmtpProtocol::AuthLoginStep2()
       PR_Free(decodedChallenge);
       if (NS_SUCCEEDED(rv))
       {
-        nsCAutoString encodedDigest;
+        nsAutoCString encodedDigest;
         char hexVal[8];
 
         for (uint32_t j=0; j<16; j++)
@@ -1391,7 +1391,7 @@ nsresult nsSmtpProtocol::AuthLoginStep2()
              m_currentAuthMethod == SMTP_AUTH_MSN_ENABLED)
     {
       PR_LOG(SMTPLogModule, PR_LOG_DEBUG, ("NTLM/MSN auth, step 2"));
-      nsCAutoString response;
+      nsAutoCString response;
       rv = DoNtlmStep2(m_responseText, response);
       PR_snprintf(buffer, sizeof(buffer), "%.256s" CRLF, response.get());
     }
@@ -1421,7 +1421,7 @@ nsresult nsSmtpProtocol::AuthLoginStep2()
 nsresult nsSmtpProtocol::SendMailResponse()
 {
   nsresult status = NS_OK;
-  nsCAutoString buffer;
+  nsAutoCString buffer;
   nsresult rv;
 
   if (m_responseCode/10 != 25)
@@ -1467,7 +1467,7 @@ nsresult nsSmtpProtocol::SendMailResponse()
   if (TestFlag(SMTP_EHLO_DSN_ENABLED) && requestDSN && (requestOnSuccess || requestOnFailure || requestOnDelay || requestOnNever))
     {
       char *encodedAddress = esmtp_value_encode(m_addresses);
-      nsCAutoString dsnBuffer;
+      nsAutoCString dsnBuffer;
 
       if (encodedAddress)
       {
@@ -1520,7 +1520,7 @@ nsresult nsSmtpProtocol::SendMailResponse()
 nsresult nsSmtpProtocol::SendRecipientResponse()
 {
   nsresult status = NS_OK;
-  nsCAutoString buffer;
+  nsAutoCString buffer;
   nsresult rv;
 
   if (m_responseCode / 10 != 25)
@@ -1696,7 +1696,7 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
   // name was empty....so throw up an alert saying we don't have
   // a host name and inform the caller that we are not going to
   // run the url...
-  nsCAutoString hostName;
+  nsAutoCString hostName;
   aURL->GetHost(hostName);
   if (hostName.IsEmpty())
   {

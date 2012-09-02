@@ -34,7 +34,7 @@
 NS_IMETHODIMP
 nsProfileMigrator::Migrate(nsIProfileStartup* aStartup, const nsACString& aKey)
 {
-  nsCAutoString key;
+  nsAutoCString key;
   nsCOMPtr<nsISuiteProfileMigrator> spm;
 
   // Get the migration key/profile to use as default. If it returns failure,

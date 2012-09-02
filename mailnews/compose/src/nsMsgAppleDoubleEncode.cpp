@@ -65,7 +65,7 @@ MacGetFileType(nsIFile   *fs,
       nsCOMPtr<nsIMIMEService> mimeFinder (do_GetService(NS_MIMESERVICE_CONTRACTID, &rv));
       if (NS_SUCCEEDED(rv) && mimeFinder) 
       {
-        nsCAutoString mimeType;
+        nsAutoCString mimeType;
         rv = mimeFinder->GetTypeFromURI(tURI, mimeType);
         if (NS_SUCCEEDED(rv)) 
         {
@@ -100,7 +100,7 @@ int ap_encode_init( appledouble_encode_object *p_ap_encode_obj,
     return -1;
 
   nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(myFile);
-  nsCAutoString path;
+  nsAutoCString path;
   macFile->GetNativePath(path);
 
 	memset(p_ap_encode_obj, 0, sizeof(appledouble_encode_object));

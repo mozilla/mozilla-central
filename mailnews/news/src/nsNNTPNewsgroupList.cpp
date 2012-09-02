@@ -116,7 +116,7 @@ nsNNTPNewsgroupList::Initialize(nsINntpUrl *runningURL, nsIMsgNewsFolder *newsFo
 
   rv = server->GetFilterList(m_msgWindow, getter_AddRefs(m_serverFilterList));
   NS_ENSURE_SUCCESS(rv,rv);
-  nsCAutoString servHeaders;
+  nsAutoCString servHeaders;
   m_serverFilterList->GetArbitraryHeaders(servHeaders);
 
   nsTArray<nsCString> servArray;
@@ -720,7 +720,7 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
         rv = filterAction->GetCustomAction(getter_AddRefs(customAction));
         NS_ENSURE_SUCCESS(rv, rv);
 
-        nsCAutoString value;
+        nsAutoCString value;
         filterAction->GetStrValue(value);
 
         nsCOMPtr<nsIMutableArray> messageArray(

@@ -130,7 +130,7 @@ nsresult nsAbBSDirectory::EnsureInitialized()
       continue;
       
     // Set the uri property
-    nsCAutoString URI (server->uri);
+    nsAutoCString URI (server->uri);
     // This is in case the uri is never set
     // in the nsDirPref.cpp code.
     if (!server->uri) 

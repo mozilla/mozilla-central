@@ -55,7 +55,7 @@ CompareMsgTags(const void* aTagPref1, const void* aTagPref2, void* aData)
     return TAG_CMP_GREATER;
 
   // only use the key if the ordinal is not defined or empty
-  nsCAutoString value1, value2;
+  nsAutoCString value1, value2;
   element1->GetOrdinal(value1);
   if (value1.IsEmpty())
     element1->GetKey(value1);
@@ -140,7 +140,7 @@ nsMsgTagService::~nsMsgTagService()
 /* wstring getTagForKey (in string key); */
 NS_IMETHODIMP nsMsgTagService::GetTagForKey(const nsACString &key, nsAString &_retval)
 {
-  nsCAutoString prefName(key);
+  nsAutoCString prefName(key);
   if (!gMigratingKeys)
     ToLowerCase(prefName);
   prefName.AppendLiteral(TAG_PREF_SUFFIX_TAG);
@@ -150,7 +150,7 @@ NS_IMETHODIMP nsMsgTagService::GetTagForKey(const nsACString &key, nsAString &_r
 /* void setTagForKey (in string key); */
 NS_IMETHODIMP nsMsgTagService::SetTagForKey(const nsACString &key, const nsAString &tag )
 {
-  nsCAutoString prefName(key);
+  nsAutoCString prefName(key);
   ToLowerCase(prefName);
   prefName.AppendLiteral(TAG_PREF_SUFFIX_TAG);
   return SetUnicharPref(prefName.get(), tag);
@@ -228,7 +228,7 @@ NS_IMETHODIMP nsMsgTagService::AddTagForKey(const nsACString &key,
                                             const nsACString &color,
                                             const nsACString &ordinal)
 {
-  nsCAutoString prefName(key);
+  nsAutoCString prefName(key);
   ToLowerCase(prefName);
   prefName.AppendLiteral(TAG_PREF_SUFFIX_TAG);
   nsresult rv = SetUnicharPref(prefName.get(), tag);
@@ -252,12 +252,12 @@ NS_IMETHODIMP nsMsgTagService::AddTag(const nsAString  &tag,
   // Should we use an iterator?
   nsAutoString transformedTag(tag);
   MsgReplaceChar(transformedTag, " ()/{%*<>\\\"", '_');
-  nsCAutoString key;
+  nsAutoCString key;
   CopyUTF16toMUTF7(transformedTag, key);
   // We have an imap server that converts keys to upper case so we're going
   // to normalize all keys to lower case (upper case looks ugly in prefs.js)
   ToLowerCase(key);
-  nsCAutoString prefName(key);
+  nsAutoCString prefName(key);
   while (true)
   {
     nsAutoString tagValue;
@@ -273,7 +273,7 @@ NS_IMETHODIMP nsMsgTagService::AddTag(const nsAString  &tag,
 /* long getColorForKey (in string key); */
 NS_IMETHODIMP nsMsgTagService::GetColorForKey(const nsACString &key, nsACString  &_retval)
 {
-  nsCAutoString prefName(key);
+  nsAutoCString prefName(key);
   if (!gMigratingKeys)
     ToLowerCase(prefName);
   prefName.AppendLiteral(TAG_PREF_SUFFIX_COLOR);
@@ -287,7 +287,7 @@ NS_IMETHODIMP nsMsgTagService::GetColorForKey(const nsACString &key, nsACString 
 /* void setColorForKey (in ACString key, in ACString color); */
 NS_IMETHODIMP nsMsgTagService::SetColorForKey(const nsACString & key, const nsACString & color)
 {
-  nsCAutoString prefName(key);
+  nsAutoCString prefName(key);
   ToLowerCase(prefName);
   prefName.AppendLiteral(TAG_PREF_SUFFIX_COLOR);
   if (color.IsEmpty())
@@ -301,7 +301,7 @@ NS_IMETHODIMP nsMsgTagService::SetColorForKey(const nsACString & key, const nsAC
 /* ACString getOrdinalForKey (in ACString key); */
 NS_IMETHODIMP nsMsgTagService::GetOrdinalForKey(const nsACString & key, nsACString & _retval)
 {
-  nsCAutoString prefName(key);
+  nsAutoCString prefName(key);
   if (!gMigratingKeys)
     ToLowerCase(prefName);
   prefName.AppendLiteral(TAG_PREF_SUFFIX_ORDINAL);
@@ -314,7 +314,7 @@ NS_IMETHODIMP nsMsgTagService::GetOrdinalForKey(const nsACString & key, nsACStri
 /* void setOrdinalForKey (in ACString key, in ACString ordinal); */
 NS_IMETHODIMP nsMsgTagService::SetOrdinalForKey(const nsACString & key, const nsACString & ordinal)
 {
-  nsCAutoString prefName(key);
+  nsAutoCString prefName(key);
   ToLowerCase(prefName);
   prefName.AppendLiteral(TAG_PREF_SUFFIX_ORDINAL);
   if (ordinal.IsEmpty())
@@ -329,7 +329,7 @@ NS_IMETHODIMP nsMsgTagService::SetOrdinalForKey(const nsACString & key, const ns
 NS_IMETHODIMP nsMsgTagService::DeleteKey(const nsACString &key)
 {
   // clear the associated prefs
-  nsCAutoString prefName(key);
+  nsAutoCString prefName(key);
   if (!gMigratingKeys)
     ToLowerCase(prefName);
   nsresult rv = m_tagPrefBranch->DeleteBranch(prefName.get());
@@ -375,7 +375,7 @@ NS_IMETHODIMP nsMsgTagService::GetAllTags(uint32_t *aCount, nsIMsgTag ***aTagArr
     char *info = strrchr(prefList[i], '.');
     if (info)
     {
-      nsCAutoString key(Substring(prefList[i], info));
+      nsAutoCString key(Substring(prefList[i], info));
       if (key != lastKey)
       {
         if (!key.IsEmpty())
@@ -480,7 +480,7 @@ nsresult nsMsgTagService::MigrateLabelsToTags()
     GetAllTags(&numTags, &tagArray);
     for (uint32_t tagIndex = 0; tagIndex < numTags; tagIndex++)
     {
-      nsCAutoString key, color, ordinal;
+      nsAutoCString key, color, ordinal;
       nsAutoString tagStr;
       nsIMsgTag *tag = tagArray[tagIndex];
       tag->GetKey(key);
@@ -499,7 +499,7 @@ nsresult nsMsgTagService::MigrateLabelsToTags()
     nsCOMPtr<nsIPrefBranch> prefRoot(do_GetService(NS_PREFSERVICE_CONTRACTID));
     nsCOMPtr<nsIPrefLocalizedString> pls;
     nsString ucsval;
-    nsCAutoString labelKey("$label1");
+    nsAutoCString labelKey("$label1");
     for(int32_t i = 0; i < PREF_LABELS_MAX; )
     {
       prefString.Assign(PREF_LABELS_DESCRIPTION);
@@ -548,7 +548,7 @@ nsresult nsMsgTagService::RefreshKeyCache()
       rv = NS_ERROR_FAILURE;
       break;
     }
-    nsCAutoString key;
+    nsAutoCString key;
     tag->GetKey(key);
     if (!m_keys.InsertElementAt(tagIndex, key)) {
       rv = NS_ERROR_FAILURE;

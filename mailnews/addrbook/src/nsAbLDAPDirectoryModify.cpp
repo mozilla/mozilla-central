@@ -240,7 +240,7 @@ nsresult nsAbModifyLDAPMessageListener::OnLDAPMessageModifyResult(nsILDAPMessage
  
   if (errCode != nsILDAPErrors::SUCCESS)
   {
-    nsCAutoString errMessage;
+    nsAutoCString errMessage;
     rv = aMessage->GetErrorMessage(errMessage);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -264,7 +264,7 @@ nsresult nsAbModifyLDAPMessageListener::OnLDAPMessageRenameResult(nsILDAPMessage
 
   if (errCode != nsILDAPErrors::SUCCESS)
   {
-    nsCAutoString errMessage;
+    nsAutoCString errMessage;
     rv = aMessage->GetErrorMessage(errMessage);
     NS_ENSURE_SUCCESS(rv, rv);
 

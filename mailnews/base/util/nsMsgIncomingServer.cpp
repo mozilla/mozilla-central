@@ -104,7 +104,7 @@ nsMsgIncomingServer::SetKey(const nsACString& serverKey)
   nsCOMPtr<nsIPrefService> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString branchName;
+  nsAutoCString branchName;
   branchName.AssignLiteral("mail.server.");
   branchName.Append(m_serverKey);
   branchName.Append('.');
@@ -1060,7 +1060,7 @@ nsMsgIncomingServer::GetFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilterList **
 
       if (!filterType.IsEmpty() && !filterType.EqualsLiteral("default"))
       {
-        nsCAutoString contractID("@mozilla.org/filterlist;1?type=");
+        nsAutoCString contractID("@mozilla.org/filterlist;1?type=");
         contractID += filterType;
         ToLowerCase(contractID);
         mFilterList = do_CreateInstance(contractID.get(), &rv);
@@ -1138,7 +1138,7 @@ nsMsgIncomingServer::GetEditableFilterList(nsIMsgWindow *aMsgWindow, nsIMsgFilte
     rv = GetCharValue("filter.editable.type", filterType);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCAutoString contractID("@mozilla.org/filterlist;1?type=");
+    nsAutoCString contractID("@mozilla.org/filterlist;1?type=");
     contractID += filterType;
     ToLowerCase(contractID);
     mEditableFilterList = do_CreateInstance(contractID.get(), &rv);
@@ -1172,7 +1172,7 @@ nsMsgIncomingServer::InternalSetHostName(const nsACString& aHostname, const char
   if (MsgCountChar(hostname, ':') == 1)
   {
     int32_t colonPos = hostname.FindChar(':');
-    nsCAutoString portString(Substring(hostname, colonPos));
+    nsAutoCString portString(Substring(hostname, colonPos));
     hostname.SetLength(colonPos);
     nsresult err;
     int32_t port = portString.ToInteger(&err);
@@ -1428,7 +1428,7 @@ nsMsgIncomingServer::getProtocolInfo(nsIMsgProtocolInfo **aResult)
   rv = GetType(type);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
+  nsAutoCString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
   contractid.Append(type);
 
   nsCOMPtr<nsIMsgProtocolInfo> protocolInfo = do_GetService(contractid.get(), &rv);
@@ -1800,7 +1800,7 @@ nsMsgIncomingServer::ConfigureTemporaryServerSpamFilters(nsIMsgFilterList *filte
 
   // For performance reasons, we'll handle clearing of filters if the user turns
   // off the server-side filters from the junk mail controls, in the junk mail controls.
-  nsCAutoString serverFilterName;
+  nsAutoCString serverFilterName;
   spamSettings->GetServerFilterName(serverFilterName);
   if (serverFilterName.IsEmpty())
     return NS_OK;
@@ -2080,7 +2080,7 @@ nsMsgIncomingServer::GetSpamSettings(nsISpamSettings **aSpamSettings)
 {
   NS_ENSURE_ARG_POINTER(aSpamSettings);
 
-  nsCAutoString spamActionTargetAccount;
+  nsAutoCString spamActionTargetAccount;
   GetCharValue("spamActionTargetAccount", spamActionTargetAccount);
   if (spamActionTargetAccount.IsEmpty())
   {
@@ -2224,7 +2224,7 @@ NS_IMETHODIMP nsMsgIncomingServer::IsNewHdrDuplicate(nsIMsgDBHdr *aNewHdr, bool 
   if (flags & nsMsgMessageFlags::Partial)
     return NS_OK;
 
-  nsCAutoString strHashKey;
+  nsAutoCString strHashKey;
   nsCString messageId, subject;
   aNewHdr->GetMessageId(getter_Copies(messageId));
   strHashKey.Append(messageId);
@@ -2255,7 +2255,7 @@ NS_IMETHODIMP
 nsMsgIncomingServer::GetForcePropertyEmpty(const char *aPropertyName, bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
-  nsCAutoString nameEmpty(aPropertyName);
+  nsAutoCString nameEmpty(aPropertyName);
   nameEmpty.Append(NS_LITERAL_CSTRING(".empty"));
   nsCString value;
   GetCharValue(nameEmpty.get(), value);
@@ -2266,7 +2266,7 @@ nsMsgIncomingServer::GetForcePropertyEmpty(const char *aPropertyName, bool *_ret
 NS_IMETHODIMP
 nsMsgIncomingServer::SetForcePropertyEmpty(const char *aPropertyName, bool aValue)
 {
- nsCAutoString nameEmpty(aPropertyName);
+ nsAutoCString nameEmpty(aPropertyName);
  nameEmpty.Append(NS_LITERAL_CSTRING(".empty"));
  return SetCharValue(nameEmpty.get(),
    aValue ? NS_LITERAL_CSTRING("true") : NS_LITERAL_CSTRING(""));

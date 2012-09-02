@@ -202,7 +202,7 @@ calDateTime::SubtractDate(calIDateTime *aDate, calIDuration **aDuration)
 NS_IMETHODIMP
 calDateTime::ToString(nsACString & aResult)
 {
-    nsCAutoString tzid;
+    nsAutoCString tzid;
     char buffer[256];
 
     ensureTimezone();
@@ -481,13 +481,13 @@ void calDateTime::FromIcalTime(icaltimetype const* icalt, calITimezone * tz)
         if (t.is_utc) {
             NS_ASSERTION(SameCOMIdentity(mTimezone, cal::UTC()), "UTC mismatch!");
         } else if (!t.zone) {
-            nsCAutoString tzid;
+            nsAutoCString tzid;
             mTimezone->GetTzid(tzid);
             if (tzid.EqualsLiteral("floating")) {
                 NS_ASSERTION(SameCOMIdentity(mTimezone, cal::floating()), "floating mismatch!");
             }
         } else {
-            nsCAutoString tzid;
+            nsAutoCString tzid;
             mTimezone->GetTzid(tzid);
             NS_ASSERTION(tzid.Equals(icaltimezone_get_tzid(const_cast<icaltimezone *>(t.zone))),
                          "tzid mismatch!");

@@ -127,8 +127,8 @@ MimeInlineTextPlainFlowed_parse_begin (MimeObject *obj)
 
   // Get font
   // only used for viewing (!plainHTML)
-  nsCAutoString fontstyle;
-  nsCAutoString fontLang;     // langgroup of the font
+  nsAutoCString fontstyle;
+  nsAutoCString fontLang;     // langgroup of the font
 
 
   // generic font-family name ( -moz-fixed for fixed font and NULL for
@@ -160,7 +160,7 @@ MimeInlineTextPlainFlowed_parse_begin (MimeObject *obj)
        /* 4.x' editor can't break <div>s (e.g. to interleave comments).
           We'll add the class to the <blockquote type=cite> later. */
   {
-    nsCAutoString openingDiv("<div class=\"moz-text-flowed\"");
+    nsAutoCString openingDiv("<div class=\"moz-text-flowed\"");
     // We currently have to add formatting here. :-(
     if (!plainHTML && !fontstyle.IsEmpty())
     {
@@ -275,7 +275,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, int32_t length, MimeObj
   if (length <= 0) return 0;
 
   uint32 linequotelevel = 0;
-  nsCAutoString real_line(aLine, length);
+  nsAutoCString real_line(aLine, length);
   char *line = real_line.BeginWriting();
   const char *linep = real_line.BeginReading();
   // Space stuffed?
@@ -383,7 +383,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, int32_t length, MimeObj
     status = NS_OK;
   }
 
-  nsCAutoString preface;
+  nsAutoCString preface;
 
   /* Correct number of blockquotes */
   int32 quoteleveldiff=linequotelevel - exdata->quotelevel;
@@ -401,7 +401,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, int32_t length, MimeObj
     // This is to have us observe the user pref settings for citations
     MimeInlineTextPlainFlowed *tObj = (MimeInlineTextPlainFlowed *) obj;
 
-    nsCAutoString style;
+    nsAutoCString style;
     MimeTextBuildPrefixCSS(tObj->mQuotedSizeSetting, tObj->mQuotedStyleSetting,
                            tObj->mCitationColor, style);
     if (!plainHTML && !style.IsEmpty())
@@ -454,7 +454,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, int32_t length, MimeObj
   {
     status = MimeObject_write(obj, preface.get(), preface.Length(), true);
     if (status < 0) return status;
-    nsCAutoString outString;
+    nsAutoCString outString;
     if (obj->options->format_out != nsMimeOutput::nsMimeMessageSaveAs ||
         !mailCharset || !*mailCharset)
       CopyUTF16toUTF8(lineResult2, outString);

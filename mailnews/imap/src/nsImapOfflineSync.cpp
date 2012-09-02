@@ -253,7 +253,7 @@ void nsImapOfflineSync::ProcessFlagOperation(nsIMsgOfflineImapOperation *op)
 
   if (!matchingFlagKeys.IsEmpty())
   {
-    nsCAutoString uids;
+    nsAutoCString uids;
     nsImapMailFolder::AllocateUidStringFromKeys(matchingFlagKeys.Elements(), matchingFlagKeys.Length(), uids);
     uint32_t curFolderFlags;
     m_currentFolder->GetFlags(&curFolderFlags);
@@ -285,7 +285,7 @@ void nsImapOfflineSync::ProcessKeywordOperation(nsIMsgOfflineImapOperation *op)
   nsTArray<nsMsgKey> matchingKeywordKeys;
   uint32_t currentKeyIndex = m_KeyIndex;
 
-  nsCAutoString keywords;
+  nsAutoCString keywords;
   if (mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kAddKeywords)
     currentOp->GetKeywordsToAdd(getter_Copies(keywords));
   else
@@ -307,7 +307,7 @@ void nsImapOfflineSync::ProcessKeywordOperation(nsIMsgOfflineImapOperation *op)
         getter_AddRefs(currentOp));
     if (currentOp)
     {
-      nsCAutoString curOpKeywords;
+      nsAutoCString curOpKeywords;
       nsOfflineImapOperationType operation;
       currentOp->GetOperation(&operation);
       if (mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kAddKeywords)
@@ -628,7 +628,7 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *aCurren
   } 
   while (currentOp);
 
-  nsCAutoString uids;
+  nsAutoCString uids;
   nsCOMPtr<nsIMsgFolder> destFolder;
   GetExistingFolder(copyDestination, getter_AddRefs(destFolder));
   // if the dest folder doesn't really exist, these operations are

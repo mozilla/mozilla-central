@@ -64,7 +64,7 @@ NS_IMETHODIMP nsAbMDBDirectory::Init(const char *aUri)
     // that's the URI we should have been passed.
     int32_t searchCharLocation = uri.FindChar('?', kMDBDirectoryRootLen);
 
-    nsCAutoString filename;
+    nsAutoCString filename;
 
     // extract the filename from the uri.
     if (searchCharLocation == -1)
@@ -105,7 +105,7 @@ NS_IMETHODIMP nsAbMDBDirectory::Init(const char *aUri)
             dotOffset = child.RFindChar('.');
             if (dotOffset != -1)
             {
-              nsCAutoString prefName(StringHead(child, dotOffset));
+              nsAutoCString prefName(StringHead(child, dotOffset));
               m_DirPrefId.AssignLiteral(PREF_LDAP_SERVER_TREE_NAME ".");
               m_DirPrefId.Append(prefName);
             }
@@ -505,7 +505,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
           if (bIsMailList)
           {
             //to do, get mailing list dir side uri and notify nsIAbManager to remove it
-            nsCAutoString listUri(mURI);
+            nsAutoCString listUri(mURI);
             listUri.AppendLiteral("/MailList");
             listUri.AppendInt(rowID);
             if (!listUri.IsEmpty())
@@ -627,7 +627,7 @@ NS_IMETHODIMP nsAbMDBDirectory::AddMailList(nsIAbDirectory *list, nsIAbDirectory
   uint32_t dbRowID;
   dblist->GetDbRowID(&dbRowID);
 
-  nsCAutoString listUri(mURI);
+  nsAutoCString listUri(mURI);
   listUri.AppendLiteral("/MailList");
   listUri.AppendInt(dbRowID);
 
@@ -980,7 +980,7 @@ nsresult nsAbMDBDirectory::GetAbDatabase()
   if (m_IsMailList)
   {
     // Get the database of the parent directory.
-    nsCAutoString parentURI(mURINoQuery);
+    nsAutoCString parentURI(mURINoQuery);
 
     int32_t pos = parentURI.RFindChar('/');
 

@@ -53,7 +53,7 @@ nsAbContentHandler::HandleContent(const char *aContentType,
     rv = aChannel->GetURI(getter_AddRefs(uri));
     if (uri)
     {
-        nsCAutoString path;
+        nsAutoCString path;
         rv = uri->GetPath(path);
         NS_ENSURE_SUCCESS(rv,rv);
 

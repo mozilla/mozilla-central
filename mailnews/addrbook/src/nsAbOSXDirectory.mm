@@ -41,7 +41,7 @@ GetOrCreateGroup(NSString *aUid, nsIAbDirectory **aResult)
 {
   NS_ASSERTION(aUid, "No UID for group!.");
 
-  nsCAutoString uri(NS_ABOSXDIRECTORY_URI_PREFIX);
+  nsAutoCString uri(NS_ABOSXDIRECTORY_URI_PREFIX);
   AppendToCString(aUid, uri);
 
   nsresult rv;
@@ -64,7 +64,7 @@ GetCard(ABRecord *aRecord, nsIAbCard **aResult, nsIAbOSXDirectory *osxDirectory)
   if (!uid)
     return NS_ERROR_FAILURE;
 
-  nsCAutoString uri(NS_ABOSXCARD_URI_PREFIX);
+  nsAutoCString uri(NS_ABOSXCARD_URI_PREFIX);
   AppendToCString(uid, uri);
   nsCOMPtr<nsIAbOSXCard> osxCard;
   nsresult rv = osxDirectory->GetCardByUri(uri, getter_AddRefs(osxCard));
@@ -89,7 +89,7 @@ CreateCard(ABRecord *aRecord, nsIAbCard **aResult)
   nsCOMPtr<nsIAbOSXCard> osxCard = do_CreateInstance(NS_ABOSXCARD_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString uri(NS_ABOSXCARD_URI_PREFIX);
+  nsAutoCString uri(NS_ABOSXCARD_URI_PREFIX);
   AppendToCString(uid, uri);
 
   rv = osxCard->Init(uri.get());
@@ -219,7 +219,7 @@ Sync(NSString *aUid)
     for (i = 0; i < count; ++i) {
       NSString *deletedUid = [deleted objectAtIndex:i];
 
-      nsCAutoString uid;
+      nsAutoCString uid;
       AppendToCString(deletedUid, uid);
 
       rv = osxDirectory->DeleteUid(uid);
@@ -504,14 +504,14 @@ nsAbOSXDirectory::Init(const char *aUri)
   }
   else
   {
-    nsCAutoString uid(Substring(mURINoQuery, sizeof(NS_ABOSXDIRECTORY_URI_PREFIX) - 1));
+    nsAutoCString uid(Substring(mURINoQuery, sizeof(NS_ABOSXDIRECTORY_URI_PREFIX) - 1));
     ABRecord *card = [addressBook recordForUniqueId:[NSString stringWithUTF8String:uid.get()]];
     NS_ASSERTION([card isKindOfClass:[ABGroup class]], "Huh.");
 
     m_IsMailList = true;
     AppendToString([card valueForProperty:kABGroupNameProperty], m_ListDirName);
 
-    ABGroup *group = (ABGroup*)[addressBook recordForUniqueId:[NSString stringWithUTF8String:nsCAutoString(Substring(mURINoQuery, 21)).get()]];
+    ABGroup *group = (ABGroup*)[addressBook recordForUniqueId:[NSString stringWithUTF8String:nsAutoCString(Substring(mURINoQuery, 21)).get()]];
     cards = [[group members] arrayByAddingObjectsFromArray:[group subgroups]];
 
     if (!m_AddressList)
@@ -524,7 +524,7 @@ nsAbOSXDirectory::Init(const char *aUri)
   }
 
 
-  nsCAutoString ourUuid;
+  nsAutoCString ourUuid;
   GetUuid(ourUuid);
 
   unsigned int nbCards = [cards count];
@@ -593,7 +593,7 @@ CheckRedundantCards(nsIAbManager *aManager, nsIAbDirectory *aDirectory,
   nsCOMPtr<nsIAbOSXCard> osxCard = do_QueryInterface(aCard, &rv);
   NS_ENSURE_SUCCESS(rv, false);
 
-  nsCAutoString uri;
+  nsAutoCString uri;
   rv = osxCard->GetURI(uri);
   NS_ENSURE_SUCCESS(rv, false);
   NSString *uid = [NSString stringWithUTF8String:(uri.get() + 21)];
@@ -657,7 +657,7 @@ nsAbOSXDirectory::Update()
   nsIMutableArray* cardList;
   NSArray *groups, *cards;
   if (m_IsMailList) {
-    ABGroup *group = (ABGroup*)[addressBook recordForUniqueId:[NSString stringWithUTF8String:nsCAutoString(Substring(mURINoQuery, 21)).get()]];
+    ABGroup *group = (ABGroup*)[addressBook recordForUniqueId:[NSString stringWithUTF8String:nsAutoCString(Substring(mURINoQuery, 21)).get()]];
     groups = nil;
     cards = [[group members] arrayByAddingObjectsFromArray:[group subgroups]];
 
@@ -713,7 +713,7 @@ nsAbOSXDirectory::Update()
     AssertCard(abManager, abCard);
   }
   
-  card = (ABRecord*)[addressBook recordForUniqueId:[NSString stringWithUTF8String:nsCAutoString(Substring(mURINoQuery, 21)).get()]];
+  card = (ABRecord*)[addressBook recordForUniqueId:[NSString stringWithUTF8String:nsAutoCString(Substring(mURINoQuery, 21)).get()]];
   NSString * stringValue = [card valueForProperty:kABGroupNameProperty];
   if (![stringValue isEqualToString:WrapString(m_ListDirName)])
   {
@@ -742,7 +742,7 @@ nsAbOSXDirectory::Update()
         if (NS_FAILED(rv))
           continue;
 
-        nsCAutoString uri;
+        nsAutoCString uri;
         directory->GetURI(uri);
         uri.Cut(0, 21);
         NSString *uid = [NSString stringWithUTF8String:uri.get()];
@@ -834,7 +834,7 @@ nsresult
 nsAbOSXDirectory::AssertCard(nsIAbManager *aManager,
                              nsIAbCard *aCard)
 {
-  nsCAutoString ourUuid;
+  nsAutoCString ourUuid;
   GetUuid(ourUuid);
   aCard->SetDirectoryId(ourUuid);
 
@@ -923,7 +923,7 @@ nsAbOSXDirectory::GetChildCards(nsISimpleEnumerator **aCards)
     NS_ENSURE_SUCCESS(rv, rv);
   
     // The uuid for initializing cards
-    nsCAutoString ourUuid;
+    nsAutoCString ourUuid;
     GetUuid(ourUuid);
 
     // Fill the results array and update the card list
@@ -1030,7 +1030,7 @@ nsAbOSXDirectory::GetCardFromProperty(const char *aProperty,
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIAbCard> card;
-  nsCAutoString cardValue;
+  nsAutoCString cardValue;
 
   for (uint32_t i = 0; i < length && !*aResult; ++i)
   {
@@ -1079,7 +1079,7 @@ nsAbOSXDirectory::GetCardsFromProperty(const char *aProperty,
 
   nsCOMArray<nsIAbCard> resultArray;
   nsCOMPtr<nsIAbCard> card;
-  nsCAutoString cardValue;
+  nsAutoCString cardValue;
 
   for (uint32_t i = 0; i < length; ++i)
   {
@@ -1205,7 +1205,7 @@ nsAbOSXDirectory::OnSearchFoundCard(nsIAbCard *aCard)
   rv = mCardList->AppendElement(aCard, false);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString ourUuid;
+  nsAutoCString ourUuid;
   GetUuid(ourUuid);
   aCard->SetDirectoryId(ourUuid);
   
@@ -1291,7 +1291,7 @@ nsresult nsAbOSXDirectory::DeleteUid(const nsACString &aUid)
   rv = m_AddressList->GetLength(&addressCount);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString uri(NS_ABOSXDIRECTORY_URI_PREFIX);
+  nsAutoCString uri(NS_ABOSXDIRECTORY_URI_PREFIX);
   uri.Append(aUid);
 
   // Iterate backwards in case we remove something
@@ -1305,7 +1305,7 @@ nsresult nsAbOSXDirectory::DeleteUid(const nsACString &aUid)
     nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(abItem, &rv));
     if (NS_SUCCEEDED(rv))
     {
-      nsCAutoString dirUri;
+      nsAutoCString dirUri;
       directory->GetURI(dirUri);
       if (uri.Equals(dirUri))
         return UnassertDirectory(abManager, directory);
@@ -1313,7 +1313,7 @@ nsresult nsAbOSXDirectory::DeleteUid(const nsACString &aUid)
       nsCOMPtr<nsIAbOSXCard> osxCard(do_QueryInterface(abItem, &rv));
       if (NS_SUCCEEDED(rv))
       {
-        nsCAutoString cardUri;
+        nsAutoCString cardUri;
         osxCard->GetURI(cardUri);
         if (uri.Equals(cardUri))
         {
@@ -1341,7 +1341,7 @@ nsresult nsAbOSXDirectory::DeleteUid(const nsACString &aUid)
     if (NS_FAILED(rv))
       continue;
 
-    nsCAutoString cardUri;
+    nsAutoCString cardUri;
     osxCard->GetURI(cardUri);
 
     if (uri.Equals(cardUri)) {

@@ -575,7 +575,7 @@ nsPop3Sink::IncorporateBegin(const char* uidlString,
     // once it finds the UIDL line.
     if (!m_accountKey.IsEmpty())
     {
-      nsCAutoString outputString;
+      nsAutoCString outputString;
       outputString.AssignLiteral(HEADER_X_MOZILLA_ACCOUNT_KEY ": ");
       outputString.Append(m_accountKey);
       outputString.AppendLiteral(MSG_LINEBREAK);
@@ -583,7 +583,7 @@ nsPop3Sink::IncorporateBegin(const char* uidlString,
     }
     if (uidlString)
     {
-      nsCAutoString uidlCString("X-UIDL: ");
+      nsAutoCString uidlCString("X-UIDL: ");
       uidlCString += uidlString;
       uidlCString += MSG_LINEBREAK;
       rv = WriteLineToMailbox(const_cast<char*>(uidlCString.get()));

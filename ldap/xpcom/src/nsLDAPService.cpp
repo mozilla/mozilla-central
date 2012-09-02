@@ -616,8 +616,8 @@ nsLDAPService::EstablishConnection(nsLDAPServiceEntry *aEntry,
     nsCOMPtr<nsILDAPURL> url;
     nsCOMPtr<nsILDAPConnection> conn, conn2;
     nsCOMPtr<nsILDAPMessage> message;
-    nsCAutoString binddn;
-    nsCAutoString password;
+    nsAutoCString binddn;
+    nsAutoCString password;
     uint32_t protocolVersion;
     nsresult rv;
 
@@ -868,7 +868,7 @@ NS_IMETHODIMP nsLDAPService::ParseDn(const char *aDn,
     }
 
     // get the base DN
-    nsCAutoString baseDn(nsDependentCString(*(dnComponents + 1)));
+    nsAutoCString baseDn(nsDependentCString(*(dnComponents + 1)));
     for (char **component = dnComponents + 2; *component; ++component) {
         baseDn.AppendLiteral(",");
         baseDn.Append(nsDependentCString(*component));

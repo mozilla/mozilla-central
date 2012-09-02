@@ -129,7 +129,7 @@ protected:
   virtual void    flags();
   virtual void    envelope_data();
   virtual void    xaolenvelope_data();
-  virtual void    parse_address(nsCAutoString &addressLine);
+  virtual void    parse_address(nsAutoCString &addressLine);
   virtual void    internal_date();
   virtual nsresult BeginMessageDownload(const char *content_type);
 

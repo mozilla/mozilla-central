@@ -304,7 +304,7 @@ nsresult nsMapiHook::BlindSendMail (unsigned long aSession, nsIMsgCompFields * a
   if (!pMapiConfig) return NS_ERROR_FAILURE ;  // get the singelton obj
   PRUnichar * password = pMapiConfig->GetPassword(aSession) ;
   // password
-  nsCAutoString smtpPassword;
+  nsAutoCString smtpPassword;
   LossyCopyUTF16toASCII(password, smtpPassword);
 
   // Id key
@@ -453,8 +453,8 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, int32_t 
 {
     nsresult rv = NS_OK ;
 
-    nsCAutoString Attachments ;
-    nsCAutoString TempFiles ;
+    nsAutoCString Attachments ;
+    nsAutoCString TempFiles ;
 
     nsCOMPtr <nsIFile> pFile = do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv) ;
     if (NS_FAILED(rv) || (!pFile) ) return rv ;
@@ -541,7 +541,7 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, int32_t 
             attachment->SetTemporary(true); // this one is a temp file so set the flag for MsgCompose
 
             // now set the attachment object
-            nsCAutoString pURL ;
+            nsAutoCString pURL ;
             NS_GetURLSpecFromFile(pFile, pURL);
             attachment->SetUrl(pURL);
 
@@ -619,7 +619,7 @@ nsresult nsMapiHook::PopulateCompFieldsWithConversion(lpnsMapiMessage aMessage,
 
   PR_LOG(MAPI, PR_LOG_DEBUG, ("to: %s cc: %s bcc: %s \n", NS_ConvertUTF16toUTF8(To).get(), NS_ConvertUTF16toUTF8(Cc).get(), NS_ConvertUTF16toUTF8(Bcc).get()));
 
-  nsCAutoString platformCharSet;
+  nsAutoCString platformCharSet;
   // set subject
   if (aMessage->lpszSubject)
   {
@@ -780,7 +780,7 @@ nsresult nsMapiHook::PopulateCompFieldsForSendDocs(nsIMsgCompFields * aCompField
       attachment->SetTemporary(true);
 
       // now set the attachment object
-      nsCAutoString pURL;
+      nsAutoCString pURL;
       NS_GetURLSpecFromFile(pTempDir, pURL);
       attachment->SetUrl(pURL);
 

@@ -131,7 +131,7 @@ nsLocalURI2Path(const char* rootURI, const char* uriStr,
   }
 
   // verify that uristr starts with rooturi
-  nsCAutoString uri(uriStr);
+  nsAutoCString uri(uriStr);
   if (uri.Find(rootURI) != 0)
     return NS_ERROR_FAILURE;
 
@@ -159,7 +159,7 @@ nsLocalURI2Path(const char* rootURI, const char* uriStr,
     while ((*curPos)=='/') curPos++;
     while (*curPos && (*curPos)!='/') curPos++;
 
-    nsCAutoString newPath("");
+    nsAutoCString newPath("");
 
     // Unescape folder name
     if (curPos) {
@@ -190,7 +190,7 @@ nsresult nsParseLocalMessageURI(const char* uri,
   if(!key)
     return NS_ERROR_NULL_POINTER;
 
-  nsCAutoString uriStr(uri);
+  nsAutoCString uriStr(uri);
   int32_t keySeparator = uriStr.FindChar('#');
   if(keySeparator != -1)
   {
@@ -198,7 +198,7 @@ nsresult nsParseLocalMessageURI(const char* uri,
     folderURI = StringHead(uriStr, keySeparator);
     folderURI.Cut(7, 8);    // cut out the -message part of mailbox-message:
 
-    nsCAutoString keyStr;
+    nsAutoCString keyStr;
     if (keyEndSeparator != -1)
       keyStr = Substring(uriStr, keySeparator + 1,
                          keyEndSeparator - (keySeparator + 1));
@@ -225,7 +225,7 @@ nsresult nsBuildLocalMessageURI(const char *baseURI, uint32_t key, nsCString& ur
 
 nsresult nsCreateLocalBaseMessageURI(const nsACString& baseURI, nsCString &baseMessageURI)
 {
-  nsCAutoString tailURI(baseURI);
+  nsAutoCString tailURI(baseURI);
 
   // chop off mailbox:/
   if (tailURI.Find(kMailboxRootURI) == 0)

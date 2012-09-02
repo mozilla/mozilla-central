@@ -500,8 +500,8 @@ void Tokenizer::addTokenForHeader(const char * aTokenPrefix, nsACString& aValue,
 
 void Tokenizer::tokenizeAttachment(const char * aContentType, const char * aFileName)
 {
-  nsCAutoString contentType;
-  nsCAutoString fileName;
+  nsAutoCString contentType;
+  nsAutoCString fileName;
   fileName.Assign(aFileName);
   contentType.Assign(aContentType);
 
@@ -516,7 +516,7 @@ void Tokenizer::tokenizeAttachment(const char * aContentType, const char * aFile
 void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8StringEnumerator * aHeaderValues)
 {
   nsCString headerValue;
-  nsCAutoString headerName; // we'll be normalizing all header names to lower case
+  nsAutoCString headerName; // we'll be normalizing all header names to lower case
   bool hasMore;
  
   while (aHeaderNames->HasMore(&hasMore), hasMore)
@@ -863,7 +863,7 @@ void Tokenizer::tokenize(const char* aText)
 // helper function to escape \n, \t, etc from a CString
 void Tokenizer::UnescapeCString(nsCString& aCString)
 {
-  nsCAutoString result;
+  nsAutoCString result;
 
   const char* readEnd = aCString.EndReading();
   char* writeStart = result.BeginWriting();

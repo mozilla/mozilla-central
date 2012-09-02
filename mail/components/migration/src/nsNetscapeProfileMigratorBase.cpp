@@ -62,13 +62,13 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsIFile* aDataDir,
   rv = parser.Init(profileIni);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCAutoString buffer, filePath;
+  nsAutoCString buffer, filePath;
   bool isRelative;
 
   // This is an infinite loop that is broken when we no longer find profiles
   // for profileID with IsRelative option.
   for (unsigned int c = 0; true; ++c) {
-    nsCAutoString profileID("Profile");
+    nsAutoCString profileID("Profile");
     profileID.AppendInt(c);
 
     if (NS_FAILED(parser.GetString(profileID.get(), "IsRelative", buffer)))
@@ -226,7 +226,7 @@ nsNetscapeProfileMigratorBase::LocateSignonsFile(char** aResult)
   nsresult rv = mSourceProfile->GetDirectoryEntries(getter_AddRefs(entries));
   if (NS_FAILED(rv)) return rv;
 
-  nsCAutoString fileName;
+  nsAutoCString fileName;
   do {
     bool hasMore = false;
     rv = entries->HasMoreElements(&hasMore);
@@ -243,7 +243,7 @@ nsNetscapeProfileMigratorBase::LocateSignonsFile(char** aResult)
     if (NS_FAILED(rv)) break;
     nsCOMPtr<nsIURL> url(do_QueryInterface(uri));
 
-    nsCAutoString extn;
+    nsAutoCString extn;
     url->GetFileExtension(extn);
 
 #ifdef MOZILLA_INTERNAL_API

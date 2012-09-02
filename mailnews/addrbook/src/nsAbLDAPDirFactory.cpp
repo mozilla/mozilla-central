@@ -55,7 +55,7 @@ nsAbLDAPDirFactory::GetDirectories(const nsAString &aDirName,
      * we'll use the <prefName> to get the necessary prefs.
      * note, <prefName> does not change.
      */
-    nsCAutoString bridgeURI;
+    nsAutoCString bridgeURI;
     bridgeURI = NS_LITERAL_CSTRING(kLDAPDirectoryRoot);
     bridgeURI += aPrefName;
     rv = abManager->GetDirectory(bridgeURI, getter_AddRefs(directory));

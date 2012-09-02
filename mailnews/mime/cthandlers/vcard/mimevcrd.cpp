@@ -243,8 +243,8 @@ static int GenerateVCardData(MimeObject * aMimeObj, VObject* aVcard)
   if (!vCardService)
       return -1;
 
-  nsCAutoString vCard;
-  nsCAutoString vEscCard;
+  nsAutoCString vCard;
+  nsAutoCString vEscCard;
   int len = 0;
 
   vCard.Adopt(vCardService->WriteMemoryVObjects(0, &len, aVcard, false));
@@ -277,9 +277,9 @@ static int OutputBasicVcard(MimeObject *aMimeObj, VObject *aVcard, nsACString& v
   int status = 0;
 
   VObject *prop = NULL;
-  nsCAutoString urlstring;
-  nsCAutoString namestring;
-  nsCAutoString emailstring;
+  nsAutoCString urlstring;
+  nsAutoCString namestring;
+  nsAutoCString emailstring;
 
   nsCOMPtr<nsIMsgVCardService> vCardService =  do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)
@@ -353,7 +353,7 @@ static int OutputBasicVcard(MimeObject *aMimeObj, VObject *aVcard, nsACString& v
 static int OutputVcardAttribute(MimeObject *aMimeObj, VObject *aVcard, const char* id, nsACString& vCardOutput)
 {
   VObject *prop = NULL;
-  nsCAutoString string;
+  nsAutoCString string;
 
   nsCOMPtr<nsIMsgVCardService> vCardService = do_GetService(MSGVCARDSERVICE_CONTRACT_ID);
   if (!vCardService)

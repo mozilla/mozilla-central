@@ -169,7 +169,7 @@ MimeMultipart_parse_line (const char *line, int32_t length, MimeObject *obj)
       if (obj->options && obj->options->state &&
           obj->options->state->partsToStrip.Length() > 0)
       {
-        nsCAutoString newPart(mime_part_address(obj));
+        nsAutoCString newPart(mime_part_address(obj));
         newPart.Append('.');
         newPart.AppendInt(container->nchildren + 1);
         obj->options->state->strippingPart = false;
@@ -233,7 +233,7 @@ MimeMultipart_parse_line (const char *line, int32_t length, MimeObject *obj)
           stripping = true;
           bool detachingPart = obj->options->state->detachedFilePath.Length() > 0;
 
-          nsCAutoString fileName;
+          nsAutoCString fileName;
           fileName.Adopt(MimeHeaders_get_name(mult->hdrs, obj->options));
           if (detachingPart)
           {
@@ -255,7 +255,7 @@ MimeMultipart_parse_line (const char *line, int32_t length, MimeObject *obj)
           }
           else
           {
-            nsCAutoString header("Content-Type: text/x-moz-deleted; name=\"Deleted: ");
+            nsAutoCString header("Content-Type: text/x-moz-deleted; name=\"Deleted: ");
             header.Append(fileName);
             status = MimeWriteAString(obj, header);
             if (status < 0) 
