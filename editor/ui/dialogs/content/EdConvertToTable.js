@@ -253,7 +253,7 @@ function onAccept()
   var nodeBeforeTable = null;
   var nodeAfterTable = null;
   try {
-    editor.deleteSelection(0);
+    editor.deleteSelection(editor.eNone, editor.eStrip);
 
     var anchorNodeBeforeInsert = editor.selection.anchorNode;
     var offset = editor.selection.anchorOffset;

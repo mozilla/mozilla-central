@@ -206,7 +206,7 @@ function onReplace()
   // so make that a special case:
   var replStr = gReplaceDialog.replaceInput.value;
   if (replStr == "")
-    gEditor.deleteSelection(0);
+    gEditor.deleteSelection(gEditor.eNone, gEditor.eStrip);
   else
     gEditor.insertText(replStr);
 
@@ -290,7 +290,7 @@ function onReplaceAll()
       // nsPlaintextEditor::InsertText fails if the string is empty,
       // so make that a special case:
       if (repStr == "")
-        gEditor.deleteSelection(0);
+        gEditor.deleteSelection(gEditor.eNone, gEditor.eStrip);
       else
         gEditor.insertText(repStr);
 
@@ -347,7 +347,7 @@ function onReplaceAll()
       // nsPlaintextEditor::InsertText fails if the string is empty,
       // so make that a special case:
       if (repStr == "")
-        gEditor.deleteSelection(0);
+        gEditor.deleteSelection(gEditor.eNone, gEditor.eStrip);
       else
         gEditor.insertText(repStr);
 

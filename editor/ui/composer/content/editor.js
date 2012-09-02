@@ -1685,7 +1685,8 @@ function SetEditMode(mode)
     gSourceTextEditor.removeDocumentStateListener(gSourceTextListener);
     gSourceTextEditor.enableUndo(false);
     gSourceTextEditor.selectAll();
-    gSourceTextEditor.deleteSelection(gSourceTextEditor.eNone);
+    gSourceTextEditor.deleteSelection(gSourceTextEditor.eNone,
+                                      gSourceTextEditor.eStrip);
     gSourceTextEditor.resetModificationCount();
 
     gContentWindow.focus();
