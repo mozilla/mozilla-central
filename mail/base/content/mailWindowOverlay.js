@@ -2526,15 +2526,6 @@ function IsGetNextNMessagesEnabled()
   return false;
 }
 
-function SetUpToolbarButtons(uri)
-{
-  var deleteButton = document.getElementById("button-delete");
-  if (!deleteButton)
-    return;
-
-  deleteButton.removeAttribute('hidden');
-}
-
 function MsgSynchronizeOffline()
 {
   window.openDialog("chrome://messenger/content/msgSynchronize.xul", "",
