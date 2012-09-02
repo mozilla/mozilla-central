@@ -402,6 +402,9 @@
             var pluginInfo = this.getPluginInfo(plugin);
             this.missingPlugins[pluginInfo.mimetype] = pluginInfo;
 
+            // Force a style flush, so that we ensure our binding is attached.
+            plugin.clientTop;
+
             // Hide the in-content UI if it's too big. The crashed plugin handler already does this.
             var doc = plugin.ownerDocument;
             var overlay = doc.getAnonymousElementByAttribute(plugin, "class", "mainBox");
