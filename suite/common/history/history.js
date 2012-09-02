@@ -7,7 +7,6 @@ var gHistoryTree;
 var gLastHostname;
 var gLastDomain;
 var gSearchBox;
-var gPrefService;
 var gDeleteByHostname;
 var gDeleteByDomain;
 var gHistoryStatus;
@@ -21,12 +20,8 @@ function HistoryCommonInit()
   gHistoryStatus = document.getElementById("statusbar-display");
   gSearchBox = document.getElementById("search-box");
 
-  gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                           .getService(Components.interfaces.nsIPrefBranch);
-  PREF = gPrefService;    // need this for bookmarks.js
-
   try {
-    gHistoryGrouping = gPrefService.getCharPref("browser.history.grouping");
+    gHistoryGrouping = Services.prefs.getCharPref("browser.history.grouping");
   } catch (e) {}
 
   document.getElementById("GroupBy" + gHistoryGrouping[0].toUpperCase() +
@@ -138,7 +133,7 @@ function GroupBy(aMenuItem)
 {
   gSearchBox.value = "";
   gHistoryGrouping = aMenuItem.id.replace(/GroupBy/, "").toLowerCase();
-  gPrefService.setCharPref("browser.history.grouping", gHistoryGrouping);
+  Services.prefs.setCharPref("browser.history.grouping", gHistoryGrouping);
   searchHistory("");
 }
 
