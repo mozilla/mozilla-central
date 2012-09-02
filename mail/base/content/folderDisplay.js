@@ -1269,6 +1269,12 @@ FolderDisplayWidget.prototype = {
    */
   displayMessageChanged: function FolderDisplayWidget_displayMessageChanged(
       aFolder, aSubject, aKeywords) {
+    // Hide previous stale message to prevent brief threadpane selection and
+    // content displayed mismatch, on both folder and tab changes.
+    let browser = getBrowser();
+    if (browser && browser.contentDocument && browser.contentDocument.body)
+      browser.contentDocument.body.hidden = true;
+
     UpdateMailToolbar("FolderDisplayWidget displayed message changed");
     let viewIndex = this.view.dbView.currentlyDisplayedMessage;
     let msgHdr = (viewIndex != nsMsgViewIndex_None) ?
