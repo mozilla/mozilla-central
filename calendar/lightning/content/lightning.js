@@ -123,3 +123,7 @@ pref("calendar.network.multirealm", false);
 
 // Disable use of system colors in minimonth and calendar views
 pref("calendar.view.useSystemColors", false);
+
+// Maximum number of iterations allowed when searching for the next matching
+// occurrence of a repeating item in calFilter
+pref("calendar.filter.maxiterations", 50);

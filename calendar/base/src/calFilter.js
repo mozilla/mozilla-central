@@ -53,6 +53,15 @@
  *               - An array: The item will match the filter if any of it's categories match any
  *               of the categories contained in the Array specified by the property.
  *
+ *   occurrences:  Specifies the filter property for returning occurrences of repeating items.
+ *
+ *                 The property may be set to one of the folowing values:
+ *               - null, FILTER_OCCURRENCES_BOUND: The default occurrence handling. Occurrences
+ *               will be returned only for date ranges with a bound end date.
+ *               - FILTER_OCCURRENCES_NONE: Only the parent items will be returned.
+ *               - FILTER_OCCURRENCES_PAST_AND_NEXT: Returns past occurrences and the next future
+ *               matching occurrence if one is found.
+ *
  *   onfilter:     A callback function that may be used to apply additional custom filter 
  *               constraints. If specified, the callback function will be called after any other
  *               specified filter properties are tested.
@@ -97,11 +106,16 @@ calFilterProperties.prototype = {
     FILTER_DUE_NONE: 8,
     FILTER_DUE_ALL: 15,
 
+    FILTER_OCCURRENCES_BOUND: 0,
+    FILTER_OCCURRENCES_NONE: 1,
+    FILTER_OCCURRENCES_PAST_AND_NEXT: 2,
+
     start: null,
     end: null,
     due: null,
     status: null,
     category: null,
+    occurrences: null,
 
     onfilter: null,
     
@@ -109,7 +123,7 @@ calFilterProperties.prototype = {
         if (!(aFilterProps instanceof calFilterProperties)) {
             return false;
         }
-        let props = ["start", "end", "due", "status", "category", "onfilter"];
+        let props = ["start", "end", "due", "status", "category", "occurrences", "onfilter"];
         return props.every(function(prop) {
             return (this[prop] == aFilterProps[prop]);
         }, this);
@@ -117,7 +131,7 @@ calFilterProperties.prototype = {
 
     clone: function cFP_clone() {
         let cl = new calFilterProperties();
-        let props = ["start", "end", "due", "status", "category", "onfilter"];
+        let props = ["start", "end", "due", "status", "category", "occurrences", "onfilter"];
         props.forEach(function(prop) {
             cl[prop] = this[prop];
         }, this);
@@ -145,6 +159,7 @@ function calFilter() {
     this.wrappedJSObject = this;
     this.mFilterProperties = new calFilterProperties();
     this.initDefinedFilters();
+    this.mMaxIterations = cal.getPrefSafe("calendar.filter.maxiterations", 50);
 }
 
 calFilter.prototype = {
@@ -156,6 +171,7 @@ calFilter.prototype = {
     mFilterProperties: null,
     mToday: null,
     mTomorrow: null,
+    mMaxIterations: 50,
 
     /**
      * Initializes the predefined filters.
@@ -204,7 +220,8 @@ calFilter.prototype = {
                 props.status = props.FILTER_STATUS_INCOMPLETE | props.FILTER_STATUS_IN_PROGRESS;
                 props.due = props.FILTER_DUE_ALL;
                 props.start = props.FILTER_DATE_ALL;
-                props.end = props.FILTER_DATE_SELECTED_OR_NOW;
+                props.end = props.FILTER_DATE_ALL;
+                props.occurrences = props.FILTER_OCCURRENCES_PAST_AND_NEXT;
                 break;
             case "completed":
                 props.status = props.FILTER_STATUS_COMPLETED_TODAY | props.FILTER_STATUS_COMPLETED_BEFORE;
@@ -728,5 +745,164 @@ calFilter.prototype = {
      */     
     isItemInFilters: function cF_isItemInFilters(aItem) {
         return (this.propertyFilter(aItem) && this.textFilter(aItem));
+    },
+
+    /**
+     * Finds the next occurrence of a repeating item that matches the currently applied
+     * filter properties.
+     *
+     * @param aItem               The parent item to find the next occurrence of.
+     * @return                    Returns the next occurrence that matches the filters, 
+     *                            or null if no match is found.
+     */
+    getNextOccurrence: function cF_getNextOccurrence(aItem) {
+        if (!aItem.recurrenceInfo) {
+            return this.isItemInFilters(aItem) ? aItem : null;
+        }
+
+        let count = 0;
+        let start = cal.now();
+
+        // If the base item matches the filter, we need to check each future occurrence. 
+        // Otherwise, we only need to check the exceptions.
+        if (this.isItemInFilters(aItem)) {
+            while (count++ < this.mMaxIterations) {
+                let next = aItem.recurrenceInfo.getNextOccurrence(start);
+                if (!next) {
+                   // there are no more occurrences
+                    return null;
+                }
+                if (this.isItemInFilters(next)) {
+                    return next;
+                }
+                start = next.startDate || next.entryDate;
+            }
+
+            // we've hit the maximum number of iterations without finding a match
+            cal.WARN("[calFilter] getNextOccurrence: reached maximum iterations for " + aItem.title);
+            return null;
+        } else {
+            // the parent item doesn't match the filter, we can return the first future exception
+            // that matches the filter
+            let exMatch = null;
+            aItem.recurrenceInfo.getExceptionIds({}).forEach(function(rID) {
+                let ex = aItem.recurrenceInfo.getExceptionFor(rID);
+                if (ex && cal.now().compare((ex.startDate || ex.entryDate)) < 0 &&
+                    this.isItemInFilters(ex)) {
+                    exMatch = ex;
+                }
+            }, this);
+            return exMatch;
+        }
+
+        return null;
+    },
+
+    /**
+     * Gets the occurrences of a repeating item that match the currently applied
+     * filter properties and date range.
+     *
+     * @param aItem               The parent item to find occurrence of.
+     * @return                    Returns an array containing the occurrences that
+     *                            match the filters, an empty array if there are no 
+     *                            matches, or null if the filter is not initialized.
+     */
+    getOccurrences: function cF_getOccurrences(aItem) {
+        if (!this.mFilterProperties) {
+            return null;
+        }
+        let props = this.mFilterProperties;
+        let occs;
+
+        if (!aItem.recurrenceInfo || (!props.occurrences && !this.mEndDate) ||
+            props.occurrences == props.FILTER_OCCURRENCES_NONE) {
+            // either this isn't a repeating item, the occurrence filter specifies that
+            // we don't want occurrences, or we have a default occurrence filter with an
+            // unbound date range, so we return just the unexpanded item. 
+            occs = [aItem];
+        } else {
+            occs = aItem.getOccurrencesBetween(this.mStartDate || cal.createDateTime(),
+                                               this.mEndDate || cal.now(), {});
+            if ((props.occurrences == props.FILTER_OCCURRENCES_PAST_AND_NEXT) &&
+                !this.mEndDate) {
+                // we have an unbound date range and the occurrence filter specifies
+                // that we also want the next matching occurrence if available.
+                let next = this.getNextOccurrence(aItem);
+                if (next) {
+                    occs.push(next);
+                }
+            }
+        }
+
+        return this.filterItems(occs);
+    },
+
+    /**
+     * Gets the items matching the currently applied filter properties from a calendar.
+     * This function is asynchronous, and returns results to a calIOperationListener object.
+     *
+     * @param aCalendar           The calendar to get items from.
+     * @param aItemType           The type of items to get, as defined by the calICalendar
+     *                            interface ITEM_FILTER_TYPE_XXX constants.
+     * @param aListener           The calIOperationListener object to return results to.
+     * @return                    the calIOperation handle to track the operation.
+     */
+    getItems: function cF_getItems(aCalendar, aItemType, aListener) {
+        if (!this.mFilterProperties) {
+            return null;
+        }
+        let props = this.mFilterProperties;
+
+        // we use a local proxy listener for the calICalendar.getItems() call, and use it
+        // to handle occurrence expansion and filter the results before forwarding them to
+        // the listener passed in the aListener argument.
+        let self = this;
+        let listener = {
+            onOperationComplete: aListener.onOperationComplete.bind(aListener),
+
+            onGetResult: function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
+                let items;
+                if (props.occurrences == props.FILTER_OCCURRENCES_PAST_AND_NEXT) {
+                    // with the FILTER_OCCURRENCES_PAST_AND_NEXT occurrence filter we will
+                    // get parent items returned here, so we need to let the getOccurrences
+                    // function handle occurrence expansion.
+                    items = [];
+                    for each (let item in aItems) {
+                        items = items.concat(self.getOccurrences(item));
+                    }
+                } else {
+                    // with other occurrence filters the calICalendar.getItems() function will
+                    // return expanded occurrences appropriately, we only need to filter them.
+                    items = self.filterItems(aItems);
+                }
+
+                aListener.onGetResult(aCalendar, aStatus, aItemType, aDetail, items.length, items);
+            }
+        };
+
+        // build the filter argument for calICalendar.getItems() from the filter properties
+        let filter = aItemType || aCalendar.FILTER_TYPE_ALL;
+        if (!props.status || (props.status & (props.FILTER_STATUS_COMPLETED_TODAY |
+                                              props.FILTER_STATUS_COMPLETED_BEFORE))) {
+            filter |=  aCalendar.ITEM_FILTER_COMPLETED_YES;
+        }
+        if (!props.status || (props.status & (props.FILTER_STATUS_INCOMPLETE |
+                                              props.FILTER_STATUS_IN_PROGRESS))) {
+            filter |=  aCalendar.ITEM_FILTER_COMPLETED_NO;
+        }
+
+        let startDate = this.startDate;
+        let endDate = this.endDate;
+
+        // we only want occurrences returned from calICalendar.getItems() with a default
+        // occurence filter property and a bound date range, otherwise the local listener
+        // will handle occurrence expansion.
+        if (!props.occurrences && this.endDate) {
+            filter |= aCalendar.ITEM_FILTER_CLASS_OCCURRENCES;
+            startDate = startDate || cal.createDateTime();
+            endDate = endDate || cal.now();
+        }
+
+        return aCalendar.getItems(filter, 0, startDate, endDate, listener);
     }
 };
