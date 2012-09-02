@@ -26,8 +26,10 @@ public:
 
 private:
   ~nsGNOMEShellService() {}
+  bool HandlerMatchesAppName(const char* aHandler);
 
   nsCString mAppPath;
+  bool mAppIsInPath;
   bool mUseLocaleFilenames;
   bool mCheckedThisSessionClient;
 };

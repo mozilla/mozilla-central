@@ -106,15 +106,17 @@
       <!-- default browser settings are shown only if supported by the platform -->
       <groupbox id="defaultBrowserGroup" flex="1000" align="center" hidden="true">
         <caption label="&defaultBrowserGroup.label;"/>
-        <!-- We have three use cases, identified by their index:
+        <!-- We have four use cases, identified by their index:
              0: not already the default => button enabled
              1: already the default => button disabled
              2: user pushed button => button disabled with different text
+             3: user pushed button (instant apply) => different text
         -->
         <description id="defaultBrowserDesc"
                      desc0="&makeDefaultText;"
                      desc1="&alreadyDefaultText;"
-                     desc2="&defaultPendingText;"/>
+                     desc2="&defaultPendingText;"
+                     desc3="&wasMadeDefaultText;"/>
         <button id="defaultBrowserButton"
                 label="&defaultBrowserButton.label;"
                 accesskey="&defaultBrowserButton.accesskey;"
