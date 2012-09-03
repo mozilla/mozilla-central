@@ -54,11 +54,7 @@ else
   ELOG :=
 endif # ifndef .PYMAKE
 
-ifeq (,$(filter-out WINNT WINCE,$(OS_ARCH)))
 _VPATH_SRCS = $(abspath $<)
-else
-_VPATH_SRCS = $<
-endif
 
 # Add $(DIST)/lib to VPATH so that -lfoo dependencies are followed
 VPATH += $(DIST)/lib
@@ -202,7 +198,7 @@ ifdef LIB_IS_C_ONLY
 MKSHLIB			= $(MKCSHLIB)
 endif
 
-ifneq (,$(filter OS2 WINNT WINCE,$(OS_ARCH)))
+ifneq (,$(filter OS2 WINNT,$(OS_ARCH)))
 IMPORT_LIBRARY		:= $(LIB_PREFIX)$(SHARED_LIBRARY_NAME).$(IMPORT_LIB_SUFFIX)
 endif
 
@@ -242,7 +238,7 @@ LIBRARY := $(NULL)
 endif
 endif
 
-ifeq (,$(filter-out WINNT WINCE,$(OS_ARCH)))
+ifeq ($(OS_ARCH),WINNT)
 ifndef GNU_CC
 
 #
@@ -294,7 +290,7 @@ OS_LDFLAGS += -M $(MOZILLA_DIR)/config/solaris_ia32.map
 endif # x86
 endif # Solaris Sun Studio C++
 
-ifeq (,$(filter-out WINNT WINCE,$(HOST_OS_ARCH)))
+ifeq ($(HOST_OS_ARCH),WINNT)
 HOST_PDBFILE=$(basename $(@F)).pdb
 endif
 
@@ -608,21 +604,11 @@ OUTOPTION = -Fo# eol
 else
 OUTOPTION = -o # eol
 endif # WINNT && !GNU_CC
-ifneq (,$(filter WINCE,$(OS_ARCH)))
-OUTOPTION = -Fo# eol
-endif
-
-ifeq ($(OS_ARCH), WINCE)
-OUTOPTION = -Fo# eol
-HOST_OUTOPTION = -Fo# eol
-else
 
 ifeq (,$(CROSS_COMPILE))
 HOST_OUTOPTION = $(OUTOPTION)
 else
 HOST_OUTOPTION = -o # eol
-endif
-
 endif
 ################################################################################
 
@@ -798,7 +784,7 @@ ifdef BEOS_ADDON_WORKAROUND
 	( cd $(FINAL_TARGET)/components && $(CC) -nostart -o $(SHARED_LIBRARY).stub $(SHARED_LIBRARY) )
 endif
 else # ! IS_COMPONENT
-ifneq (,$(filter OS2 WINNT WINCE,$(OS_ARCH)))
+ifneq (,$(filter OS2 WINNT,$(OS_ARCH)))
 ifndef NO_INSTALL_IMPORT_LIBRARY
 	$(call install_cmd,$(IFLAGS2) $(IMPORT_LIBRARY) $(DIST)/lib)
 endif
@@ -896,9 +882,6 @@ alltags:
 #
 $(PROGRAM): $(PROGOBJS) $(EXTRA_DEPS) $(EXE_DEF_FILE) $(RESFILE) $(GLOBAL_DEPS)
 	@$(RM) $@.manifest
-ifeq (WINCE,$(OS_ARCH))
-	$(EXPAND_LD) -NOLOGO -OUT:$@ $(WIN32_EXE_LDFLAGS) $(LDFLAGS) $(MOZ_GLUE_PROGRAM_LDFLAGS) $(PROGOBJS) $(RESFILE) $(LIBS) $(EXTRA_LIBS) $(OS_LIBS)
-else
 ifeq (_WINNT,$(GNU_CC)_$(OS_ARCH))
 	$(EXPAND_LD) -NOLOGO -OUT:$@ -PDB:$(LINK_PDBFILE) $(WIN32_EXE_LDFLAGS) $(LDFLAGS) $(MOZ_GLUE_PROGRAM_LDFLAGS) $(PROGOBJS) $(RESFILE) $(LIBS) $(EXTRA_LIBS) $(OS_LIBS)
 ifdef MSMANIFEST_TOOL
@@ -923,7 +906,6 @@ endif
 else # !WINNT || GNU_CC
 	$(EXPAND_CCC) -o $@ $(CXXFLAGS) $(PROGOBJS) $(RESFILE) $(WIN32_EXE_LDFLAGS) $(LDFLAGS) $(WRAP_LDFLAGS) $(MOZ_GLUE_PROGRAM_LDFLAGS) $(LIBS_DIR) $(LIBS) $(OS_LIBS) $(EXTRA_LIBS) $(BIN_FLAGS) $(EXE_DEF_FILE)
 endif # WINNT && !GNU_CC
-endif # WINCE
 
 ifdef ENABLE_STRIP
 	$(STRIP) $@
@@ -939,9 +921,6 @@ endif
 endif # BeOS
 
 $(HOST_PROGRAM): $(HOST_PROGOBJS) $(HOST_LIBS_DEPS) $(HOST_EXTRA_DEPS) $(GLOBAL_DEPS)
-ifeq (WINCE,$(OS_ARCH))
-	$(HOST_LD) -NOLOGO -OUT:$@ $(HOST_OBJS) $(WIN32_EXE_LDFLAGS) $(HOST_LIBS) $(HOST_EXTRA_LIBS)
-else
 ifeq (_WINNT,$(GNU_CC)_$(HOST_OS_ARCH))
 	$(HOST_LD) -NOLOGO -OUT:$@ -PDB:$(HOST_PDBFILE) $(HOST_OBJS) $(WIN32_EXE_LDFLAGS) $(HOST_LIBS) $(HOST_EXTRA_LIBS)
 ifdef MSMANIFEST_TOOL
@@ -965,7 +944,6 @@ else
 	$(HOST_CC) -o $@ $(HOST_CFLAGS) $(HOST_LDFLAGS) $(HOST_PROGOBJS) $(HOST_LIBS) $(HOST_EXTRA_LIBS)
 endif # HOST_CPP_PROG_LINK
 endif
-endif
 
 #
 # This is an attempt to support generation of multiple binaries
@@ -976,9 +954,6 @@ endif
 # creates Foo.o Bar.o, links with LIBS to create Foo, Bar.
 #
 $(SIMPLE_PROGRAMS): %$(BIN_SUFFIX): %.$(OBJ_SUFFIX) $(EXTRA_DEPS) $(GLOBAL_DEPS)
-ifeq (WINCE,$(OS_ARCH))
-	$(EXPAND_LD) -nologo  -entry:mainACRTStartup -out:$@ $< $(WIN32_EXE_LDFLAGS) $(LDFLAGS) $(MOZ_GLUE_PROGRAM_LDFLAGS) $(LIBS) $(EXTRA_LIBS) $(OS_LIBS)
-else
 ifeq (_WINNT,$(GNU_CC)_$(OS_ARCH))
 	$(EXPAND_LD) -nologo -out:$@ -pdb:$(LINK_PDBFILE) $< $(WIN32_EXE_LDFLAGS) $(LDFLAGS) $(MOZ_GLUE_PROGRAM_LDFLAGS) $(LIBS) $(EXTRA_LIBS) $(OS_LIBS)
 ifdef MSMANIFEST_TOOL
@@ -990,7 +965,6 @@ endif	# MSVC with manifest tool
 else
 	$(EXPAND_CCC) $(CXXFLAGS) -o $@ $< $(WIN32_EXE_LDFLAGS) $(LDFLAGS) $(MOZ_GLUE_PROGRAM_LDFLAGS) $(WRAP_LDFLAGS) $(LIBS_DIR) $(LIBS) $(OS_LIBS) $(EXTRA_LIBS) $(BIN_FLAGS)
 endif # WINNT && !GNU_CC
-endif # WINCE
 
 ifdef ENABLE_STRIP
 	$(STRIP) $@
@@ -1000,9 +974,6 @@ ifdef MOZ_POST_PROGRAM_COMMAND
 endif
 
 $(HOST_SIMPLE_PROGRAMS): host_%$(HOST_BIN_SUFFIX): host_%.$(OBJ_SUFFIX) $(HOST_LIBS_DEPS) $(HOST_EXTRA_DEPS) $(GLOBAL_DEPS)
-ifeq (WINCE,$(OS_ARCH))
-	$(HOST_LD) -NOLOGO -OUT:$@ $(WIN32_EXE_LDFLAGS) $< $(HOST_LIBS) $(HOST_EXTRA_LIBS)
-else
 ifeq (WINNT_,$(HOST_OS_ARCH)_$(GNU_CC))
 	$(HOST_LD) -NOLOGO -OUT:$@ -PDB:$(HOST_PDBFILE) $< $(WIN32_EXE_LDFLAGS) $(HOST_LIBS) $(HOST_EXTRA_LIBS)
 else
@@ -1010,7 +981,6 @@ ifneq (,$(HOST_CPPSRCS)$(USE_HOST_CXX))
 	$(HOST_CXX) $(HOST_OUTOPTION)$@ $(HOST_CXXFLAGS) $(INCLUDES) $< $(HOST_LIBS) $(HOST_EXTRA_LIBS)
 else
 	$(HOST_CC) $(HOST_OUTOPTION)$@ $(HOST_CFLAGS) $(INCLUDES) $< $(HOST_LIBS) $(HOST_EXTRA_LIBS)
-endif
 endif
 endif
 
@@ -1028,7 +998,7 @@ $(filter-out %.$(LIB_SUFFIX),$(LIBRARY)): $(filter %.$(LIB_SUFFIX),$(LIBRARY)) $
 	$(if $(filter %.$(LIB_SUFFIX),$(LIBRARY)),,$(RM) $(REAL_LIBRARY) $(EXPORT_LIBRARY:%=%/$(REAL_LIBRARY)))
 	$(EXPAND_LIBS_GEN) -o $@ $(OBJS) $(LOBJS) $(SHARED_LIBRARY_LIBS)
 
-ifeq (,$(filter-out WINNT WINCE, $(OS_ARCH)))
+ifeq ($(OS_ARCH),WINNT)
 $(IMPORT_LIBRARY): $(SHARED_LIBRARY)
 endif
 
@@ -1289,13 +1259,10 @@ endif
 
 %: SCCS/s.%
 
-# Cygwin and MSYS have their own special path form, but javac expects the source
-# and class paths to be in the DOS form (i.e. e:/builds/...).  This function
-# does the appropriate conversion on Windows, but is a noop on other systems.
-ifeq (,$(filter-out WINNT WINCE, $(HOST_OS_ARCH)))
-ifdef CYGWIN_WRAPPER
-normalizepath = $(foreach p,$(1),$(shell cygpath -m $(p)))
-else
+# MSYS has its own special path form, but javac expects the source and class
+# paths to be in the DOS form (i.e. e:/builds/...).  This function does the
+# appropriate conversion on Windows, but is a noop on other systems.
+ifeq ($(HOST_OS_ARCH),WINNT)
 # assume MSYS
 #  We use 'pwd -W' to get DOS form of the path.  However, since the given path
 #  could be a file or a non-existent path, we cannot call 'pwd -W' directly
@@ -1304,7 +1271,6 @@ else
 root-path = $(shell echo $(1) | sed -e "s|\(/[^/]*\)/\?\(.*\)|\1|")
 non-root-path = $(shell echo $(1) | sed -e "s|\(/[^/]*\)/\?\(.*\)|\2|")
 normalizepath = $(foreach p,$(1),$(if $(filter /%,$(1)),$(patsubst %/,%,$(shell cd $(call root-path,$(1)) && pwd -W))/$(call non-root-path,$(1)),$(1)))
-endif
 else
 normalizepath = $(1)
 endif
@@ -1312,12 +1278,6 @@ endif
 ###############################################################################
 # Update Makefiles
 ###############################################################################
-
-# In GNU make 3.80, makefiles must use the /cygdrive syntax, even if we're
-# processing them with AS perl. See bug 232003
-ifdef AS_PERL
-CYGWIN_TOPSRCDIR = -nowrap -p $(topsrcdir) -wrap
-endif
 
 Makefile: Makefile.in
 	@$(PYTHON) $(DEPTH)/config.status -n --file=Makefile

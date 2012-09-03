@@ -442,11 +442,9 @@ endif
 # we link statically or dynamic?  Assuming dynamic for now.
 
 ifneq (WINNT_,$(OS_ARCH)_$(GNU_CC))
-ifneq (,$(filter-out WINCE,$(OS_ARCH)))
 LIBS_DIR	= -L$(DIST)/bin -L$(DIST)/lib
 ifdef LIBXUL_SDK
 LIBS_DIR	+= -L$(LIBXUL_SDK)/bin -L$(LIBXUL_SDK)/lib
-endif
 endif
 endif
 
@@ -520,10 +518,10 @@ endif # OS_ARCH=Darwin
 
 ifdef MOZ_NATIVE_MAKEDEPEND
 MKDEPEND_DIR	=
-MKDEPEND	= $(CYGWIN_WRAPPER) $(MOZ_NATIVE_MAKEDEPEND)
+MKDEPEND	= $(MOZ_NATIVE_MAKEDEPEND)
 else
 MKDEPEND_DIR	= $(CONFIG_TOOLS)/mkdepend
-MKDEPEND	= $(CYGWIN_WRAPPER) $(MKDEPEND_DIR)/mkdepend$(BIN_SUFFIX)
+MKDEPEND	= $(MKDEPEND_DIR)/mkdepend$(BIN_SUFFIX)
 endif
 
 # Set link flags according to whether we want a console.
@@ -634,12 +632,6 @@ sysinstall_cmd = install_cmd
 DIR_INSTALL = $(INSTALL)
 dir_install_cmd = install_cmd
 
-ifeq ($(OS_ARCH),WINNT)
-ifneq (,$(CYGDRIVE_MOUNT))
-export CYGDRIVE_MOUNT
-endif
-endif
-
 # png to ico converter. The function takes 5 arguments, in order: source png
 # file, left, top, size, output ico file.
 png2ico = $(PYTHON) $(MOZILLA_DIR)/config/pythonpath.py \
@@ -677,9 +669,6 @@ MAKE_JARS_FLAGS += -c $(topsrcdir)/$(relativesrcdir)/en-US
 endif
 endif
 
-ifdef WINCE
-RUN_TEST_PROGRAM = $(PYTHON) $(MOZILLA_SRCDIR)/build/mobile/devicemanager-run-test.py
-else
 ifeq (OS2,$(OS_ARCH))
 RUN_TEST_PROGRAM = $(MOZILLA_SRCDIR)/build/os2/test_os2.cmd "$(DIST)"
 else
@@ -687,7 +676,6 @@ ifneq (WINNT,$(OS_ARCH))
 RUN_TEST_PROGRAM = $(DIST)/bin/run-mozilla.sh
 endif # ! WINNT
 endif # ! OS2
-endif # ! WINCE
 
 ifdef TIERS
 DIRS += $(foreach tier,$(TIERS),$(tier_$(tier)_dirs))
