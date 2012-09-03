@@ -265,7 +265,8 @@ function check_no_attachment_size(index) {
     throw new Error('attachmentSize attribute of deleted attachment should ' +
                     'be null!');
 
-  if (node.getAttribute('size') != '')
+  // If there's no size, the size attribute is the zero-width space.
+  if (node.getAttribute('size') != '\u200b')
     throw new Error('Attachment size should not be displayed!');
 }
 

@@ -1,0 +1,107 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* styles for the attachment list */
+
+%include attachmentList.css
+
+@media (-moz-windows-default-theme) {
+
+  attachmentitem {
+    margin: 1px 0 0 0;
+    pointer-events: auto !important;
+
+    border: 2px solid transparent;
+    border-radius: 3px;
+    color: -moz-FieldText;
+
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+  }
+
+  .attachmentlist-wrapper {
+    margin: 0 1px 1px 0;
+  }
+
+  attachmentlist[orient="horizontal"] > attachmentitem {
+    margin: 1px 0 0 1px;
+  }
+
+  .attachmentcell-nameselection {
+    outline: none !important;
+    background-color: inherit !important;
+    color: inherit !important;
+  }
+
+  .attachmentcell-icon {
+    filter: none !important;
+    padding: 0 1px;
+  }
+
+  .attachmentcell-name, .attachmentcell-size {
+    margin: 0px 4px 0px 4px;
+  }
+
+  attachmentitem[selected="true"] {
+    -moz-border-top-colors: rgb(217, 217, 217) rgba(255,255,255,.4);
+    -moz-border-right-colors: rgb(217, 217, 217) rgba(255,255,255,.4);
+    -moz-border-left-colors: rgb(217, 217, 217) rgba(255,255,255,.4);
+    -moz-border-bottom-colors: rgb(217, 217, 217) rgba(255,255,255,.6);
+    background-image: -moz-linear-gradient(rgba(190, 190, 190, 0.1),
+                                           rgba(190, 190, 190, 0.4));
+  }
+
+  attachmentitem[selected="true"]:hover {
+    -moz-border-top-colors: rgb(125, 162, 206) rgba(255,255,255,.4);
+    -moz-border-right-colors: rgb(125, 162, 206) rgba(255,255,255,.4);
+    -moz-border-left-colors: rgb(125, 162, 206) rgba(255,255,255,.4);
+    -moz-border-bottom-colors: rgb(125, 162, 206) rgba(255,255,255,.6);
+    background-image: -moz-linear-gradient(rgba(131, 183, 249, 0.28),
+                                           rgba(131, 183, 249, 0.50));
+  }
+
+  attachmentlist:focus > attachmentitem[current="true"] {
+    -moz-border-top-colors: rgb(125, 162, 206) transparent;
+    -moz-border-right-colors: rgb(125, 162, 206) transparent;
+    -moz-border-left-colors: rgb(125, 162, 206) transparent;
+    -moz-border-bottom-colors: rgb(125, 162, 206) transparent;
+  }
+
+  attachmentlist:focus > attachmentitem[current="true"]:hover {
+    -moz-border-top-colors: rgb(125, 162, 206) rgba(255,255,255,.4);
+    -moz-border-right-colors: rgb(125, 162, 206) rgba(255,255,255,.4);
+    -moz-border-left-colors: rgb(125, 162, 206) rgba(255,255,255,.4);
+    -moz-border-bottom-colors: rgb(125, 162, 206) rgba(255,255,255,.6);
+    background-image: -moz-linear-gradient(rgba(131, 183, 249, 0.05),
+                                           rgba(131, 183, 249, 0.16));
+  }
+
+  attachmentlist:focus > attachmentitem[selected="true"] {
+    -moz-border-top-colors: rgb(132, 172, 221) rgba(255,255,255,.4);
+    -moz-border-right-colors: rgb(132, 172, 221) rgba(255,255,255,.4);
+    -moz-border-left-colors: rgb(132, 172, 221) rgba(255,255,255,.4);
+    -moz-border-bottom-colors: rgb(132, 172, 221) rgba(255,255,255,.6);
+    background-image: -moz-linear-gradient(rgba(131, 183, 249, 0.16),
+                                           rgba(131, 183, 249, 0.375));
+  }
+
+  attachmentlist:focus > attachmentitem[selected="true"][current="true"] {
+    -moz-border-top-colors: rgb(125, 162, 206) rgba(255,255,255,.4);
+    -moz-border-right-colors: rgb(125, 162, 206) rgba(255,255,255,.4);
+    -moz-border-left-colors: rgb(125, 162, 206) rgba(255,255,255,.4);
+    -moz-border-bottom-colors: rgb(125, 162, 206) rgba(255,255,255,.6);
+    background-image: -moz-linear-gradient(rgba(131, 183, 249, 0.28),
+                                           rgba(131, 183, 249, 0.50));
+  }
+
+  attachmentitem:hover {
+    -moz-border-top-colors: rgb(184, 214, 251) rgba(255,255,255,.4);
+    -moz-border-right-colors: rgb(184, 214, 251) rgba(255,255,255,.4);
+    -moz-border-left-colors: rgb(184, 214, 251) rgba(255,255,255,.4);
+    -moz-border-bottom-colors: rgb(184, 214, 251) rgba(255,255,255,.6);
+    background-image: -moz-linear-gradient(rgba(131, 183, 249, 0.05),
+                                           rgba(131, 183, 249, 0.16));
+  }
+}
