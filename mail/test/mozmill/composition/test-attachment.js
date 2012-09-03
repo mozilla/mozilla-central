@@ -124,7 +124,8 @@ function check_no_attachment_size(controller, index) {
   if (node.attachment.size != -1)
     throw new Error('attachment.size attribute should be -1!');
 
-  if (node.getAttribute('size') != '')
+  // If there's no size, the size attribute is the zero-width space.
+  if (node.getAttribute('size') != '\u200b')
     throw new Error('Attachment size should not be displayed!');
 }
 
