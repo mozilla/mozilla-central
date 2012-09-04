@@ -1067,6 +1067,7 @@ xpicleanup@BIN_SUFFIX@
   modules/services-sync/util.js
   modules/templateUtils.js
   modules/traceHelper.js
+  modules/UserAgentOverrides.jsm
   modules/utils.js
   modules/virtualFolderWrapper.js
   modules/Webapps.jsm
