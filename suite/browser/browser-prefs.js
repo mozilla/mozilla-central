@@ -8,6 +8,15 @@
  * modules/libpref/src/init/all.js
  */
 
+/* filter substitution
+ *
+ * SYNTAX HINTS:
+ *
+ *  - Dashes are delimiters; use underscores instead.
+ *  - The first character after a period must be alphabetic.
+ *  - Computed values (e.g. 50 * 1024) don't work.
+ */
+
 pref("startup.homepage_override_url","chrome://navigator-region/locale/region.properties");
 pref("general.skins.selectedSkin", "classic/1.0");
 
@@ -669,6 +678,8 @@ pref("dom.disable_window_move_resize", true);
 pref("dom.disable_window_flip",        true);
 // prevent JS from disabling or replacing context menus
 pref("dom.event.contextmenu.enabled",  true);
+
+pref("dom.identity.enabled", false);
 
 // The default for this pref reflects whether the build is capable of IPC.
 // (Turning it on in a no-IPC build will have no effect.)
