@@ -628,9 +628,17 @@ xpicleanup@BIN_SUFFIX@
   components/FeedConverter.js
   components/FeedProcessor.js
   components/FeedWriter.js
+  components/glautocomp.js
   components/GPSDGeolocationProvider.js
   components/jsconsole-clhandler.js
+  components/jsmimeemitter.js
+  components/mdn-service.js
+  components/msgAsyncPrompter.js
   components/NetworkGeolocationProvider.js
+  components/newsblog.js
+  components/nsAbAutoCompleteMyDomain.js
+  components/nsAbAutoCompleteSearch.js
+  components/nsAbLDAPAttributeMap.js
   components/nsAbout.js
   components/nsAboutCertError.js
   components/nsAboutData.js
@@ -657,10 +665,13 @@ xpicleanup@BIN_SUFFIX@
   components/nsIDService.js
   components/nsINIProcessor.js
   components/nsInputListAutoComplete.js
+  components/nsLDAPProtocolHandler.js
   components/nsLivemarkService.js
   components/nsLoginInfo.js
   components/nsLoginManager.js
   components/nsLoginManagerPrompter.js
+  components/nsMailNewsCommandLineHandler.js
+  components/nsMsgTraitService.js
   components/nsPlacesAutoComplete.js
   components/nsPlacesDBFlush.js
   components/nsPlacesExpiration.js
@@ -674,6 +685,7 @@ xpicleanup@BIN_SUFFIX@
     components/nsSetDefault.js
   #endif
   components/nsSidebar.js
+  components/nsSMTPProtocolHandler.js
   components/nsSuiteDownloadManagerUI.js
   components/nsSuiteGlue.js
   components/nsTaggingService.js
@@ -689,29 +701,18 @@ xpicleanup@BIN_SUFFIX@
   #endif
   components/nsURLFormatter.js
   components/nsWebHandlerApp.js
+  components/offlineStartup.js
   components/PlacesCategoriesStarter.js
   components/SettingsManager.js
   components/smileApplication.js
+  components/smime-service.js
   components/storage-Legacy.js
   components/storage-mozStorage.js
+  components/TCPSocket.js
   components/txEXSLTRegExFunctions.js
-  components/WebContentConverter.js
-  components/nsLDAPProtocolHandler.js
-  components/mdn-service.js
-  components/msgAsyncPrompter.js
-  components/newsblog.js
-  components/nsAbAutoCompleteMyDomain.js
-  components/nsAbAutoCompleteSearch.js
-  components/nsAbLDAPAttributeMap.js
-  components/nsMailNewsCommandLineHandler.js
-  components/nsMsgTraitService.js
-  components/nsSMTPProtocolHandler.js
-  components/offlineStartup.js
-  components/smime-service.js
-  components/glautocomp.js
-  components/jsmimeemitter.js
   components/Weave.js
   components/Webapps.js
+  components/WebContentConverter.js
   components/browser.xpt
   components/components.manifest
   components/interfaces.manifest

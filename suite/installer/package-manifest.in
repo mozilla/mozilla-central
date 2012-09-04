@@ -457,6 +457,8 @@
 #ifdef MOZ_SERVICES_SYNC
 @BINPATH@/components/SyncComponents.manifest
 #endif
+@BINPATH@/components/TCPSocket.js
+@BINPATH@/components/TCPSocket.manifest
 @BINPATH@/components/TelemetryPing.js
 @BINPATH@/components/TelemetryPing.manifest
 @BINPATH@/components/txEXSLTRegExFunctions.js
