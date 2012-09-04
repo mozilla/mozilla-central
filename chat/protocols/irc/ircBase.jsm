@@ -1176,8 +1176,9 @@ var ircBase = {
     },
     "442": function(aMessage) { // ERR_NOTONCHANNEL
       // <channel> :You're not on that channel
-      // TODO
-      return false;
+      ERROR("A command affecting " + aMessage.params[1] +
+            " failed because you aren't in that channel.");
+      return true;
     },
     "443": function(aMessage) { // ERR_USERONCHANNEL
       // <user> <channel> :is already on channel
