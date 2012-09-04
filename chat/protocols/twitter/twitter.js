@@ -167,7 +167,6 @@ Conversation.prototype = {
     if (tweet.user.screen_name != this._account.name)
       throw "Wrong screen_name... Uh?";
     this._account.displayMessages([tweet]);
-    this.setTopic(tweet.text, tweet.user.screen_name);
   },
   _parseError: function(aData) {
     let error = "";
@@ -317,16 +316,16 @@ Conversation.prototype = {
     this.notifyObservers(new nsSimpleEnumerator([chatBuddy]),
                          "chat-buddy-add");
   },
-  setTopic: function(aTopic, aTopicSetter) {
-    const kEntities = {amp: "&", gt: ">", lt: "<"};
-    let topic =
-      aTopic.replace(/&([gl]t|amp);/g, function(str, entity) kEntities[entity]);
-    GenericConvChatPrototype.setTopic.call(this, topic, aTopicSetter, true);
-  },
   get name() this.nick + " timeline",
   get title() _("timeline", this.nick),
-  get nick() "@" + this._account.name,
-  set nick(aNick) {}
+  get nick() this._account.name,
+  set nick(aNick) {},
+  get topicSettable() this.nick == this._account.name,
+  get topic() this._topic, // can't add a setter without redefining the getter
+  set topic(aTopic) {
+    if (this.topicSettable)
+      this._account.setUserDescription(aTopic);
+  }
 };
 
 function Account(aProtocol, aImAccount)
@@ -562,7 +561,7 @@ Account.prototype = {
         lastMsgId = id;
       this._knownMessageIds[id] = tweet;
       if ("description" in tweet.user)
-        this._userInfo[tweet.user.screen_name] = tweet.user;
+        this.setUserInfo(tweet.user);
       this.timeline.displayTweet(tweet);
     }
     if (lastMsgId != this._lastMsgId) {
@@ -671,14 +670,8 @@ Account.prototype = {
     this._timelineBuffer.sort(this.sortByDate);
     this.displayMessages(this._timelineBuffer);
 
-    // Use the users' newest tweet as the topic.
-    for (let i = this._timelineBuffer.length - 1; i >= 0; --i) {
-      let tweet = this._timelineBuffer[i];
-      if (tweet.user.screen_name == this.name) {
-        this.timeline.setTopic(tweet.text, tweet.user.screen_name);
-        break;
-      }
-    }
+    // Fetch userInfo for the user if we don't already have it.
+    this.requestBuddyInfo(this.name);
 
     // Reset in case we get disconnected
     delete this._timelineBuffer;
@@ -721,29 +714,32 @@ Account.prototype = {
         ERROR(e + " while parsing " + message);
         continue;
       }
-      if ("text" in msg) {
+      if ("text" in msg)
         this.displayMessages([msg]);
-        // If the message is from us, set it as the topic.
-        if (("user" in msg) && (msg.user.screen_name == this.name))
-          this.timeline.setTopic(msg.text, msg.user.screen_name);
-      }
       else if ("friends" in msg)
         this._friends = msg.friends;
-      else if (("event" in msg) && msg.event == "follow") {
+      else if ("event" in msg) {
         let user, event;
-        if (msg.source.screen_name == this.name) {
-          this._friends.push(msg.target.id);
-          user = msg.target;
-          event = "follow";
-        }
-        else if (msg.target.screen_name == this.name) {
-          user = msg.source;
-          event = "followed";
-        }
-        if (user) {
-          this._userInfo[user.screen_name] = user;
-          this.timeline.systemMessage(_("event." + event, user.screen_name),
-                                      false, new Date(msg.created_at) / 1000);
+        switch(msg.event) {
+          case "follow":
+            if (msg.source.screen_name == this.name) {
+              this._friends.push(msg.target.id);
+              user = msg.target;
+              event = "follow";
+            }
+            else if (msg.target.screen_name == this.name) {
+              user = msg.source;
+              event = "followed";
+            }
+            if (user) {
+              this.setUserInfo(user);
+              this.timeline.systemMessage(_("event." + event, user.screen_name),
+                                          false, new Date(msg.created_at) / 1000);
+            }
+            break;
+          case "user_update":
+            this.setUserInfo(msg.target);
+            break;
         }
       }
     }
@@ -938,9 +934,30 @@ Account.prototype = {
       this.gotDisconnected(Ci.prplIAccount.ERROR_OTHER_ERROR, aException.toString());
   },
 
+  setUserDescription: function(aDescription) {
+    const kMaxUserDescriptionLength = 160;
+    if (aDescription.length > kMaxUserDescriptionLength) {
+      aDescription = aDescription.substr(0, kMaxUserDescriptionLength);
+      WARN("Description too long (over " + kMaxUserDescriptionLength +
+           " characters):\n" + aDescription + ".");
+      this.timeline.systemMessage(_("error.descriptionTooLong", aDescription));
+    }
+    // Don't need to catch the reply since the stream receives user_update.
+    this.signAndSend("1/account/update_profile.json", null,
+                     [["description", aDescription]]);
+  },
+
+  setUserInfo: function(aUser) {
+    let nick = aUser.screen_name;
+    this._userInfo[nick] = aUser;
+
+    // If it's the user's userInfo, update the timeline topic.
+    if (nick == this.name && "description" in aUser)
+      this.timeline.setTopic(aUser.description, nick, true);
+  },
   onRequestedInfoReceived: function(aData) {
     let user = JSON.parse(aData);
-    this._userInfo[user.screen_name] = user;
+    this.setUserInfo(user);
     this.requestBuddyInfo(user.screen_name);
   },
   requestBuddyInfo: function(aBuddyName) {
