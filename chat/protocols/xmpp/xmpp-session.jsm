@@ -296,6 +296,13 @@ XMPPSession.prototype = {
         return;
       }
 
+      // OpenFire sometimes sends us a success stanza before the end
+      // of the DIGEST-MD5 exchange... See bug 787046.
+      if (aStanza && aStanza.localName == "success") {
+        this.stanzaListeners.authResult.call(this, aStanza);
+        return;
+      }
+
       let result;
       try {
         result = this._auth.next(aStanza);
