@@ -361,7 +361,7 @@
             if (me)
               msg = msg.replace(/^((<[^>]+>)*)/, "$1/me ");
 
-            aMsg.message = cleanupImMarkup(doc, msg.replace(/\r?\n/g, "<br/>"),
+            aMsg.message = cleanupImMarkup(msg.replace(/\r?\n/g, "<br/>"),
                                            null, this._textModifiers);
 
             let next = (aContext == this._lastMessageIsContext || aMsg.system) &&

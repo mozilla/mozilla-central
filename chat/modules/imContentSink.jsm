@@ -96,7 +96,7 @@ const kStandardMode = {
   styles: {
     'font-style': true,
     'font-weight': true,
-    'text-decoration': true
+    '-moz-text-decoration-line': true
   }
 };
 
@@ -144,7 +144,9 @@ const kPermissiveMode = {
     'font-size': true,
     'font-style': true,
     'font-weight': true,
-    'text-decoration': true
+    '-moz-text-decoration-color': true,
+    '-moz-text-decoration-style': true,
+    '-moz-text-decoration-line': true
   }
 };
 
@@ -190,14 +192,12 @@ function setBaseRuleset(aBase, aResult)
 
 function newRuleset(aBase)
 {
-  if (!aBase)
-    aBase = getModePref();
-
-  let result = {};
-  result.tags = {};
-  result.attrs = {};
-  result.styles = {};
-  setBaseRuleset(aBase, result);
+  let result = {
+    tags: {},
+    attrs: {},
+    styles: {}
+  };
+  setBaseRuleset(aBase || getModePref(), result);
   return result;
 }
 
@@ -265,15 +265,15 @@ function cleanupNode(aNode, aRules, aTextModifiers)
           let localName = aAttr.localName;
           let rule = localName in aAttrRules && aAttrRules[localName];
           return (rule === true ||
-                  (rule instanceof Function && rule(aAttr.value)));
+                  (typeof rule == "function" && rule(aAttr.value)));
       };
       for (let j = 0; j < attrs.length; ++j) {
         let attr = attrs[j];
         // we check both the list of accepted attributes for all tags
         // and the list of accepted attributes for this specific tag.
         if (!(acceptFunction(aRules.attrs, attr) ||
-              (aRules.tags[nodeName] instanceof Object) &&
-              acceptFunction(aRules.tags[nodeName], attr))) {
+              ((typeof aRules.tags[nodeName] ==  "object") &&
+               acceptFunction(aRules.tags[nodeName], attr)))) {
           node.removeAttribute(attr.name);
           --j;
         }
@@ -325,11 +325,8 @@ function cleanupNode(aNode, aRules, aTextModifiers)
   }
 }
 
-function cleanupImMarkup(aDocument, aText, aRuleset, aTextModifiers)
+function cleanupImMarkup(aText, aRuleset, aTextModifiers)
 {
-  if (!aDocument)
-    throw "providing an HTML document is required";
-
   if (!gGlobalRuleset)
     initGlobalRuleset();
 
