@@ -1678,92 +1678,18 @@ calStorageCalendar.prototype = {
 
         var i;
         if (flags & CAL_ITEM_FLAG.HAS_RECURRENCE) {
-            if (item.recurrenceId)
+            if (item.recurrenceId) {
                 throw Components.results.NS_ERROR_UNEXPECTED;
+            }
 
-            var rec = null;
+            item.recurrenceInfo = cal.createRecurrenceInfo(item);
 
             try {
                 this.prepareStatement(this.mSelectRecurrenceForItem);
                 this.mSelectRecurrenceForItem.params.item_id = item.id;
                 while (this.mSelectRecurrenceForItem.executeStep()) {
-                    row = this.mSelectRecurrenceForItem.row;
-
-                    var ritem = null;
-
-                    if (row.recur_type == null ||
-                        row.recur_type == "x-dateset")
-                    {
-                        ritem = Components.classes["@mozilla.org/calendar/recurrence-date-set;1"]
-                                          .createInstance(Components.interfaces.calIRecurrenceDateSet);
-
-                        var dates = row.dates.split(",");
-                        for (i = 0; i < dates.length; i++) {
-                            var date = textToDate(dates[i]);
-                            ritem.addDate(date);
-                        }
-                    } else if (row.recur_type == "x-date") {
-                        ritem = Components.classes["@mozilla.org/calendar/recurrence-date;1"]
-                                          .createInstance(Components.interfaces.calIRecurrenceDate);
-                        var d = row.dates;
-                        ritem.date = textToDate(d);
-                    } else {
-                        ritem = cal.createRecurrenceRule();
-
-                        ritem.type = row.recur_type;
-                        if (row.count) {
-                            try {
-                                ritem.count = row.count;
-                            } catch (exc) {
-                            }
-                        } else {
-                            if (row.end_date) {
-                                let dtstart = item.startDate || item.entryDate;
-                                let allday = dtstart.isDate && dtstart.timezone == "floating";
-                                let untilDate = newDateTime(row.end_date, allday ? "" : "UTC");
-                                if (allday) {
-                                    untilDate.isDate = true;
-                                }
-                                ritem.untilDate = untilDate;
-                            } else {
-                                ritem.untilDate = null;
-                            }
-                        }
-                        try {
-                            ritem.interval = row.interval;
-                        } catch (exc) {
-                        }
-
-                        var rtypes = ["second",
-                                      "minute",
-                                      "hour",
-                                      "day",
-                                      "monthday",
-                                      "yearday",
-                                      "weekno",
-                                      "month",
-                                      "setpos"];
-
-                        for (i = 0; i < rtypes.length; i++) {
-                            var comp = "BY" + rtypes[i].toUpperCase();
-                            if (row[rtypes[i]]) {
-                                var rstr = row[rtypes[i]].toString().split(",");
-                                var rarray = [];
-                                for (var j = 0; j < rstr.length; j++) {
-                                    rarray[j] = parseInt(rstr[j]);
-                                }
-
-                                ritem.setComponent (comp, rarray.length, rarray);
-                            }
-                        }
-                    }
-
-                    if (row.is_negative)
-                        ritem.isNegative = true;
-                    if (rec == null) {
-                        rec = cal.createRecurrenceInfo(item);
-                    }
-                    rec.appendRecurrenceItem(ritem);
+                    let row = this.mSelectRecurrenceForItem.row;
+                    this.addRecurrenceItemsFromRow(row, item);
                 }
             } catch (e) {
                 this.logError("Error getting recurrence for item '" +
@@ -1771,12 +1697,6 @@ calStorageCalendar.prototype = {
             } finally {
                 this.mSelectRecurrenceForItem.reset();
             }
-
-            if (rec == null) {
-                dump ("XXXX Expected to find recurrence, but got no items!\n");
-            }
-            item.recurrenceInfo = rec;
-
         }
 
         if (flags & CAL_ITEM_FLAG.HAS_EXCEPTIONS) {
@@ -1892,6 +1812,56 @@ calStorageCalendar.prototype = {
 
         // Restore the saved modification time
         item.setProperty("LAST-MODIFIED", savedLastModifiedTime);
+    },
+
+    addRecurrenceItemsFromRow: function cSC_getRecurrenceItemFromRow(row, item) {
+        let recInfo = item.recurrenceInfo;
+
+        if (row.recur_type == "x-date") {
+            let ritem = Components.classes["@mozilla.org/calendar/recurrence-date;1"]
+                                  .createInstance(Components.interfaces.calIRecurrenceDate);
+            ritem.date = textToDate(row.dates);
+            ritem.isNegative = !!row.is_negative;
+            recInfo.appendRecurrenceItem(ritem);
+        } else {
+            let ritem = cal.createRecurrenceRule();
+            ritem.type = row.recur_type;
+            ritem.isNegative = !!row.is_negative;
+            if (row.count) {
+                try {
+                    ritem.count = row.count;
+                } catch (exc) {
+                }
+            } else {
+                if (row.end_date) {
+                    let dtstart = item.startDate || item.entryDate;
+                    let allday = dtstart.isDate && dtstart.timezone == "floating";
+                    let untilDate = newDateTime(row.end_date, allday ? "" : "UTC");
+                    if (allday) {
+                        untilDate.isDate = true;
+                    }
+                    ritem.untilDate = untilDate;
+                } else {
+                    ritem.untilDate = null;
+                }
+            }
+            try {
+                ritem.interval = row.interval;
+            } catch (exc) {
+            }
+
+            let rtypes = ["second", "minute", "hour", "day", "monthday",
+                          "yearday", "weekno", "month", "setpos"];
+
+            for each (let rtype in rtypes) {
+                if (row[rtype]) {
+                    let comp = "BY" + rtype.toUpperCase();
+                    let rarray = row[rtype].toString().split(",").map(function(x) parseInt(x, 10));
+                    ritem.setComponent (comp, rarray.length, rarray);
+                }
+            }
+            recInfo.appendRecurrenceItem(ritem);
+        }
     },
 
     getAttendeeFromRow: function cSC_getAttendeeFromRow(row) {
@@ -2253,21 +2223,6 @@ calStorageCalendar.prototype = {
                     if (calInstanceOf(ritem, Components.interfaces.calIRecurrenceDate)) {
                         ap.recur_type = "x-date";
                         ap.dates = dateToText(getInUtcOrKeepFloating(ritem.date));
-
-                    } else if (calInstanceOf(ritem, Components.interfaces.calIRecurrenceDateSet)) {
-                        ap.recur_type = "x-dateset";
-
-                        var rdates = ritem.getDates({});
-                        var datestr = "";
-                        for (j in rdates) {
-                            if (j != 0)
-                                datestr += ",";
-
-                            datestr += dateToText(getInUtcOrKeepFloating(rdates[j]));
-                        }
-
-                        ap.dates = datestr;
-
                     } else if (calInstanceOf(ritem, Components.interfaces.calIRecurrenceRule)) {
                         ap.recur_type = ritem.type;
 

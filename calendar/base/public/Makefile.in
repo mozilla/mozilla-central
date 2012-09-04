@@ -44,7 +44,6 @@ XPIDLSRCS = calICalendarACLManager.idl \
             calIPrintFormatter.idl \
             calIRecurrenceInfo.idl \
             calIRecurrenceDate.idl \
-            calIRecurrenceDateSet.idl \
             calIRecurrenceItem.idl \
             calIRecurrenceRule.idl \
             calIRelation.idl \

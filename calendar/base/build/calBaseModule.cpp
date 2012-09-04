@@ -9,7 +9,6 @@
 #include "calICSService.h"
 #include "calRecurrenceRule.h"
 #include "calRecurrenceDate.h"
-#include "calRecurrenceDateSet.h"
 
 #include "calBaseCID.h"
 
@@ -28,9 +27,6 @@ NS_DEFINE_NAMED_CID(CAL_PERIOD_CID);
 NS_GENERIC_FACTORY_CONSTRUCTOR(calRecurrenceDate)
 NS_DEFINE_NAMED_CID(CAL_RECURRENCEDATE_CID);
 
-NS_GENERIC_FACTORY_CONSTRUCTOR(calRecurrenceDateSet)
-NS_DEFINE_NAMED_CID(CAL_RECURRENCEDATESET_CID);
-
 NS_GENERIC_FACTORY_CONSTRUCTOR(calRecurrenceRule)
 NS_DEFINE_NAMED_CID(CAL_RECURRENCERULE_CID);
 
@@ -42,7 +38,6 @@ const mozilla::Module::CIDEntry kCalBaseCIDs[] = {
     { &kCAL_PERIOD_CID, false, NULL, calPeriodConstructor },
     { &kCAL_RECURRENCERULE_CID, false, NULL, calRecurrenceRuleConstructor },
     { &kCAL_RECURRENCEDATE_CID, false, NULL, calRecurrenceDateConstructor },
-    { &kCAL_RECURRENCEDATESET_CID, false, NULL, calRecurrenceDateSetConstructor },
     { NULL }
 };
 
@@ -53,7 +48,6 @@ const mozilla::Module::ContractIDEntry kCalBaseContracts[] = {
     { CAL_PERIOD_CONTRACTID, &kCAL_PERIOD_CID },
     { CAL_RECURRENCERULE_CONTRACTID, &kCAL_RECURRENCERULE_CID },
     { CAL_RECURRENCEDATE_CONTRACTID, &kCAL_RECURRENCEDATE_CID },
-    { CAL_RECURRENCEDATESET_CONTRACTID, &kCAL_RECURRENCEDATESET_CID },
     { NULL }
 };
 

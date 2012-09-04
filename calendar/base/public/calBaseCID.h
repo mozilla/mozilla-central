@@ -42,11 +42,6 @@
 #define CAL_RECURRENCERULE_CONTRACTID \
     "@mozilla.org/calendar/recurrence-rule;1"
 
-#define CAL_RECURRENCEDATESET_CID \
-    { 0x46ea7a6b, 0x01bd, 0x4ea5, { 0xb0, 0x6c, 0x90, 0xd5, 0xec, 0xcb, 0xbe, 0x3a } }
-#define CAL_RECURRENCEDATESET_CONTRACTID \
-    "@mozilla.org/calendar/recurrence-date-set;1"
-
 #define CAL_RECURRENCEDATE_CID \
     { 0x99706e71, 0x3df5, 0x475e, { 0x84, 0xf8, 0x0f, 0xc5, 0x21, 0x1f, 0x92, 0x09 } }
 #define CAL_RECURRENCEDATE_CONTRACTID \

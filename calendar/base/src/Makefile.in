@@ -31,7 +31,6 @@ CPPSRCS = calDateTime.cpp \
 	  calTimezone.cpp \
 	  calRecurrenceRule.cpp \
 	  calRecurrenceDate.cpp \
-	  calRecurrenceDateSet.cpp \
 	  calUtils.cpp \
 	  $(NULL)
 

@@ -72,7 +72,7 @@ Components.utils.import("resource://calendar/modules/calStorageHelpers.jsm");
 
 // The current database version. Be sure to increment this when you create a new
 // updater.
-var DB_SCHEMA_VERSION = 20;
+var DB_SCHEMA_VERSION = 21;
 
 var EXPORTED_SYMBOLS = ["DB_SCHEMA_VERSION", "getSql", "getAllSql", "getSqlTable", "upgradeDB", "backupDB"];
 
@@ -1302,16 +1302,89 @@ upgrade.v19 = function upgrade_v19(db, version) {
  * Setting a offline_journal column in cal_events tables
  * r=philipp, p=redDragon
  */
-upgrade.v20 = function upgrade_v20(db,version){
-    let tbl = upgrade.v19(version<19 && db, version);
+upgrade.v20 = function upgrade_v20(db, version) {
+    let tbl = upgrade.v19(version < 19 && db, version);
     LOGdb(db, "Storage: Upgrading to v20");
     beginTransaction(db);
-    try{
+    try {
         //Adding a offline_journal column
         for each (let tblName in ["cal_events", "cal_todos"]) {
             addColumn(tbl, tblName, ["offline_journal"], "INTEGER", db);
         }
         setDbVersionAndCommit(db, 20);
+    } catch (e) {
+        throw reportErrorAndRollback(db,e);
+    }
+    return tbl;
+}
+
+/**
+ * Bug 785659 - Get rid of calIRecurrenceDateSet
+ * Migrate x-dateset to x-date in the storage database
+ * r=mmecca, p=philipp
+ */
+upgrade.v21 = function upgrade_v21(db, version) {
+    let tbl = upgrade.v20(version < 20 && db, version);
+    LOGdb(db, "Storage: Upgrading to v21");
+    beginTransaction(db);
+    try {
+
+        // The following operation is only important on a live DB, since we are
+        // changing only the values on the DB, not the schema itself.
+        if (db) {
+            // Oh boy, here we go :-)
+            // Insert a new row with the following columns...
+            let insertSQL = 'INSERT INTO cal_recurrence ' +
+                            '            (item_id, cal_id, recur_type, recur_index,' +
+                            '             is_negative, dates, end_date, count,' +
+                            '             interval, second, minute, hour, day,' +
+                            '             monthday, yearday, weekno,  month, setpos)' +
+                            // ... by selecting some columns from the existing table ...
+                            '     SELECT item_id, cal_id, "x-date" AS recur_type, ' +
+                            // ... like a new recur_index, we need it to be maximum for this item ...
+                            '            (SELECT MAX(recur_index)+1' +
+                            '               FROM cal_recurrence AS rinner ' +
+                            '              WHERE rinner.item_id = router.item_id' +
+                            '                AND rinner.cal_id = router.cal_id) AS recur_index,' +
+                            '            is_negative,' +
+                            // ... the string until the first comma in the current dates field
+                            '            SUBSTR(dates, 0, LENGTH(dates) - LENGTH(LTRIM(dates, REPLACE(dates, ",", ""))) + 1) AS dates,' +
+                            '            end_date, count, interval, second, minute,' +
+                            '            hour, day, monthday, yearday, weekno, month,' +
+                            '            setpos' +
+                            // ... from the recurrence table ...
+                            '       FROM cal_recurrence AS router ' +
+                            // ... but only on fields that are x-datesets ...
+                            '      WHERE recur_type = "x-dateset" ' +
+                            // ... and are not already empty.
+                            '        AND dates != ""';
+                            dump(insertSQL + "\n");
+
+            // Now we need to remove the first segment from the dates field
+            let updateSQL = 'UPDATE cal_recurrence' +
+                            '   SET dates = SUBSTR(dates, LENGTH(dates) - LENGTH(LTRIM(dates, REPLACE(dates, ",", ""))) + 2)' +
+                            ' WHERE recur_type = "x-dateset"' +
+                            '   AND dates != ""';
+
+            // Create the statements
+            let insertStmt = createStatement(db, insertSQL);
+            let updateStmt = createStatement(db, updateSQL);
+
+            // Repeat these two statements until the update affects 0 rows
+            // (because the dates field on all x-datesets is empty)
+            let insertedRows = 0;
+            do {
+                insertStmt.execute();
+                updateStmt.execute();
+            } while (db.affectedRows > 0);
+
+            // Finally we can delete the x-dateset rows. Note this will leave
+            // gaps in recur_index, but thats ok since its only used for
+            // ordering anyway and will be overwritten on the next item write.
+            executeSimpleSQL(db, 'DELETE FROM cal_recurrence WHERE recur_type = "x-dateset"');
+        }
+
+        setDbVersionAndCommit(db, 21);
     } catch (e) {
         throw reportErrorAndRollback(db,e);
     }

@@ -328,8 +328,6 @@ calRecurrenceInfo.prototype = {
                         nextOccurrences[i] = null;
                         invalidOccurrences++;
                     }
-                    // TODO What about calIRecurrenceDateSet? Multi-value date
-                    // sets are parsed into multiple calIRecurrenceDates, iirc.
                 } else if (calInstanceOf(this.mPositiveRules[i], Components.interfaces.calIRecurrenceRule)) {
                     // RRULEs must not start searching before |startDate|, since
                     // the pattern is only valid afterwards. If an occurrence
@@ -749,7 +747,6 @@ calRecurrenceInfo.prototype = {
 
         // take RDATE's and EXDATE's into account.
         const kCalIRecurrenceDate = Components.interfaces.calIRecurrenceDate;
-        const kCalIRecurrenceDateSet = Components.interfaces.calIRecurrenceDateSet;
         let ritems = this.getRecurrenceItems({});
         for each (let ritem in ritems) {
             if (cal.calInstanceOf(ritem, kCalIRecurrenceDate)) {
@@ -760,15 +757,6 @@ calRecurrenceInfo.prototype = {
                     rdates[getRidKey(date)] = date;
                 }
                 ritem.date = date;
-            } else if (cal.calInstanceOf(ritem, kCalIRecurrenceDateSet)) {
-                ritem = ritem.QueryInterface(kCalIRecurrenceDateSet);
-                for each (let date in ritem.getDates({})) {
-                    date.addDuration(timeDiff);
-                    if (!ritem.isNegative) {
-                        rdates[getRidKey(date)] = date;
-                    }
-                }
-                ritem.setDates(rdates.length,rdates);
             } else if (cal.calInstanceOf(ritem, Components.interfaces.calIRecurrenceRule)) {
                 ritem = ritem.QueryInterface(Components.interfaces.calIRecurrenceRule);
                 if (!ritem.isByCount) {

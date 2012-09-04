@@ -50,16 +50,6 @@ function calWcapCalendar_getRecurrenceParams(item, out_rrules, out_rdates, out_e
                 } else {
                     out_rrules.value.push(rule);
                 }
-            } else if (calInstanceOf(rItem, Components.interfaces.calIRecurrenceDateSet)) {
-                var d = rItem.getDates({});
-                for each (var d in rdates) {
-                    // cs does not accept DATEs here:
-                    if (isNeg) {
-                        out_exdates.value.push(getIcalUTC(ensureDateTime(d.date)));
-                    } else {
-                        out_rdates.value.push(getIcalUTC(ensureDateTime(d.date)));
-                    }
-                }
             } else if (calInstanceOf(rItem, Components.interfaces.calIRecurrenceDate)) {
                 // cs does not accept DATEs here:
                 if (isNeg) {
