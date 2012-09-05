@@ -565,6 +565,9 @@ MimeBody.prototype = {
   set size (whatever) {
     // nop
   },
+  appendBody: function MimeBody_append(aBuf) {
+    this.body += aBuf;
+  },
   coerceBodyToPlaintext:
       function MimeBody_coerceBodyToPlaintext(aMsgFolder) {
     if (this.contentType == "text/plain")

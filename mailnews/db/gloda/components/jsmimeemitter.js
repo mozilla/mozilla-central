@@ -455,8 +455,8 @@ MimeMessageEmitter.prototype = {
   writeBody: function mime_emitter_writeBody(aBuf, aSize, aOutAmountWritten) {
     if (this._writeBody &&
         (!this._saneBodySize ||
-         this._curPart.body.length < MAX_SANE_BODY_PART_SIZE))
-      this._curPart.body += aBuf;
+         this._curPart.size < MAX_SANE_BODY_PART_SIZE))
+      this._curPart.appendBody(aBuf);
   },
 
   endBody: function mime_emitter_endBody() {
