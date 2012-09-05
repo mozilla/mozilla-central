@@ -1518,6 +1518,18 @@
     </implementation>
 
     <handlers>
+      <handler event="DOMContentLoaded" phase="capturing">
+        <![CDATA[
+          if (/^about:neterror\?e=netOffline/.test(event.target.documentURI))
+            event.target.addEventListener("click", function tryAgain(event) {
+              if (event.target.id == "errorTryAgain")
+                Components.classes["@mozilla.org/network/io-service;1"]
+                          .getService(Components.interfaces.nsIIOService)
+                          .offline = false;
+            }, true);
+        ]]>
+      </handler>
+
       <handler event="DOMUpdatePageReport" phase="capturing">
         <![CDATA[
           var browser = this.activeBrowser;
