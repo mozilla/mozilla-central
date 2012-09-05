@@ -244,23 +244,16 @@ var ircBase = {
     "MODE": function(aMessage) {
       // MODE <nickname> *( ( "+" / "-") *( "i" / "w" / "o" / "O" / "r" ) )
       // MODE <channel> *( ( "-" / "+" ) *<modes> *<modeparams> )
-      if (aMessage.params.length >= 3) {
-        // If there are 3 parameters given, then the mode of a participant is
-        // being given: update the mode of the ConvChatBuddy.
-        let conversation = this.getConversation(aMessage.params[0]);
-        conversation.getParticipant(aMessage.params[2])
-                    .setMode(aMessage.params[1], aMessage.nickname);
-
-        return true;
-      }
       if (this.isMUCName(aMessage.params[0])) {
-        // Otherwise if the first parameter is a channel name, it's a channel
-        // mode.
+        // If the first parameter is a channel name, a channel/participant mode
+        // was updated.
         this.getConversation(aMessage.params[0])
-            .setMode(aMessage.params[1], aMessage);
+            .setMode(aMessage.params[1], aMessage.params.slice(2),
+                     aMessage.nickname || aMessage.servername);
 
         return true;
       }
+
       // Otherwise the user's own mode is being returned to them.
       // TODO
       return false;
@@ -764,8 +757,9 @@ var ircBase = {
      */
     "324": function(aMessage) { // RPL_CHANNELMODEIS
       // <channel> <mode> <mode params>
-      this.getConversation(aMessage.params[1]).setMode(aMessage.params[2],
-                                                       aMessage);
+      this.getConversation(aMessage.params[1])
+          .setMode(aMessage.params[2], aMessage.params.slice(3),
+                   aMessage.servername);
 
       return true;
     },

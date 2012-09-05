@@ -82,8 +82,8 @@ function generateNormalize(aStart, aEnd) {
     let str = aStr;
     if (aPrefixes && aPrefixes.indexOf(aStr[0]) != -1)
       str = str.slice(1);
-      return str.replace(exp,
-                         function(c) String.fromCharCode(c.charCodeAt(0) + 0x20));
+    return str.replace(exp,
+                       function(c) String.fromCharCode(c.charCodeAt(0) + 0x20));
   };
 }
 

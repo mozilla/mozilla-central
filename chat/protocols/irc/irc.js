@@ -85,25 +85,18 @@ function ircMessage(aData) {
 
 // This handles a mode change string for both channels and participants. A mode
 // change string is of the form:
-//   ("+" | "-")<mode key>[<mode key>]*
-// e.g. +iaw or -i
-function _setMode(aNewMode) {
-  // Are we going to add or remove the modes?
-  if (aNewMode[0] != "+" && aNewMode[0] != "-") {
-    WARN("Invalid mode string: " + aNewMode);
-    return;
-  }
-  let addNewMode = aNewMode[0] == "+";
-
-  // Check each mode being added and update the user
-  for (let i = 1; i < aNewMode.length; ++i) {
-    let index = this._modes.indexOf(aNewMode[i]);
+//   aAddNewMode is true if modes are being added, false otherwise.
+//   aNewModes is an array of mode characters.
+function _setMode(aAddNewMode, aNewModes) {
+  // Check each mode being added/removed.
+  for each (let newMode in aNewModes) {
+    let index = this._modes.indexOf(newMode);
     // If the mode is in the list of modes and we want to remove it.
-    if (index != -1 && !addNewMode)
+    if (index != -1 && !aAddNewMode)
       this._modes.splice(index, 1);
     // If the mode is not in the list of modes and we want to add it.
-    else if (index == -1 && addNewMode)
-      this._modes.push(aNewMode[i]);
+    else if (index == -1 && aAddNewMode)
+      this._modes.push(newMode);
   }
 }
 
@@ -307,14 +300,101 @@ ircChannel.prototype = {
     this._participants = {};
   },
 
-  setMode: function(aNewMode, aMessage) {
-    _setMode.call(this, aNewMode);
+  setMode: function(aNewMode, aModeParams, aSetter) {
+    const hostMaskExp = /^.+!.+@.+$/;
+    function getNextParam() {
+      // If there's no next parameter, throw a warning.
+      if (!aModeParams.length) {
+        WARN("Mode parameter expected!");
+        return undefined;
+      }
+      return aModeParams.pop();
+    }
+    function peekNextParam() {
+      // Non-destructively gets the next param.
+      if (!aModeParams.length)
+        return undefined;
+      return aModeParams.slice(-1)[0];
+    }
 
-    // Notify the UI of changes, this message can come from the server or
-    // from a user.
-    let source = aMessage.nickname || aMessage.servername;
-    let msg = _("message.mode", this.name, aNewMode, source);
-    this.writeMessage(source, msg, {system: true});
+    // Are modes being added or removed?
+    if (aNewMode[0] != "+" && aNewMode[0] != "-") {
+      WARN("Invalid mode string: " + aNewMode);
+      return;
+    }
+    let addNewMode = aNewMode[0] == "+";
+
+    // Check each mode being added and update the user.
+    let channelModes = [];
+    let userModes = {};
+    let msg;
+
+    for (let i = aNewMode.length - 1; i > 0; --i) {
+      // Since some modes are conflicted between different server
+      // implementations, check if a participant with that name exists. If this
+      // is true, then update the mode of the ConvChatBuddy.
+      if (this._account.memberStatuses.indexOf(aNewMode[i]) != -1 &&
+          aModeParams.length && this.hasParticipant(peekNextParam())) {
+        // Store the new modes for this nick (so each participant's mode is only
+        // updated once).
+        let nick = this._account.normalize(getNextParam());
+        if (!hasOwnProperty(userModes, nick))
+          userModes[nick] = [];
+        userModes[nick].push(aNewMode[i]);
+
+        // Don't use this mode as a channel mode.
+        continue;
+      }
+      else if (aNewMode[i] == "k") {
+        // Channel key.
+        let newFields = this.name;
+        if (addNewMode) {
+          let key = getNextParam();
+          // A new channel key was set.
+          msg = _("message.channelKeyAdded", aSetter, key);
+          newFields += " " + key;
+        } else
+          msg = _("message.channelKeyRemoved", aSetter);
+
+        this.writeMessage(aSetter, msg, {system: true});
+        // Store the new fields for reconnect.
+        this._chatRoomFields =
+          this._account.getChatRoomDefaultFieldValues(newFields);
+      }
+      else if (["b", "e", "I", "l"].indexOf(aNewMode[i]) != -1) {
+        // TODO The following have parameters that must be accounted for.
+        getNextParam();
+      }
+      else if (aNewMode[i] == "R" && aModeParams.length &&
+               peekNextParam().match(hostMaskExp)) {
+        // REOP_LIST takes a mask as a parameter, since R is a conflicted mode,
+        // try to match the parameter. Implemented by IRCNet.
+        // TODO The parameter must be acounted for.
+        getNextParam();
+      }
+      // TODO From RFC 2811: a, i, m, n, q, p, s, r, t, l, e, I.
+
+      // Keep track of the channel modes in the order they were received.
+      channelModes.unshift(aNewMode[i]);
+    }
+
+    if (aModeParams.length)
+      WARN("Unused mode parameters: " + aModeParams.join(", "));
+
+    // Update the mode of each participant.
+    for (let nick in userModes)
+      this.getParticipant(nick).setMode(addNewMode, userModes[nick], aSetter);
+
+    if (!channelModes.length)
+      return;
+
+    // Store the channel modes.
+    _setMode.call(this, addNewMode, channelModes);
+
+    // Notify the UI of changes.
+    msg = _("message.mode", this.name, aNewMode[0] + channelModes.join(""),
+            aSetter);
+    this.writeMessage(aSetter, msg, {system: true});
     this.checkTopicSettable();
 
     this._receivedInitialMode = true;
@@ -377,11 +457,12 @@ function ircParticipant(aName, aConv) {
 ircParticipant.prototype = {
   __proto__: GenericConvChatBuddyPrototype,
 
-  setMode: function(aNewMode, aSetter) {
-    _setMode.call(this, aNewMode);
+  setMode: function(aAddNewMode, aNewModes, aSetter) {
+    _setMode.call(this, aAddNewMode, aNewModes);
 
     // Notify the UI of changes.
-    let msg = _("message.mode", this.name, aNewMode, aSetter);
+    let msg = _("message.mode", this.name,
+                (aAddNewMode ? "+" : "-") + aNewModes.join(""), aSetter);
     this._conv.writeMessage(aSetter, msg, {system: true});
     this._conv.notifyObservers(this, "chat-buddy-update");
 
@@ -394,7 +475,8 @@ ircParticipant.prototype = {
   get voiced() this._modes.indexOf("v") != -1,
   get halfOp() this._modes.indexOf("h") != -1,
   get op() this._modes.indexOf("o") != -1,
-  get founder() this._modes.indexOf("n") != -1,
+  get founder()
+    this._modes.indexOf("O") != -1 || this._modes.indexOf("q") != -1,
   get typing() false
 };
 
@@ -583,6 +665,9 @@ ircAccount.prototype = {
   userPrefixes: ["@", "!", "%", "+"],
   // The default prefixes to modes.
   userPrefixToModeMap: {"@": "o", "!": "n", "%": "h", "+": "v"},
+  // Modes that have a nickname parameter and affect a participant. See 4.1
+  // Member Status of RFC 2811.
+  memberStatuses: ["a", "h", "o", "O", "q", "v", "!"],
   channelPrefixes: ["&", "#", "+", "!"], // 1.3 Channels
   channelRestrictionToModeMap: {"@": "s", "*": "p", "=": null}, // 353 RPL_NAMREPLY
 
