@@ -36,6 +36,7 @@ _BROWSER_FILES = \
                  browser_bug329212.js \
                  browser_bug413915.js \
                  browser_bug427559.js \
+                 browser_bug435325.js \
                  browser_bug519216.js \
                  browser_bug561636.js \
                  browser_bug562649.js \
