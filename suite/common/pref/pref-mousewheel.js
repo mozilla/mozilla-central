@@ -2,22 +2,29 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-function doEnabling(event)
+function doEnabling(aElement)
 {
-  var preference = event.target;
-  var textbox = preference.textbox;
-  textbox.disabled = preference.value || preference.locked;
+  var preference = document.getElementById(aElement.getAttribute("preference"));
+  var prefix = aElement.id.replace(/action$/, "");
+  var vertical = document.getElementById(prefix + "delta_multiplier_y");
+  EnableElement(vertical, preference.value);
+  updateCheckbox(vertical);
+  var horizontal = document.getElementById(prefix + "delta_multiplier_x");
+  EnableElement(horizontal, preference.value);
+  updateCheckbox(horizontal);
 }
 
-function Startup()
+function updateCheckbox(aTextbox)
 {
-  var textboxes = this.getElementsByAttribute("checkbox", "*");
-  for (var i = 0; i < textboxes.length; i++) {
-    var textbox = textboxes[i];
-    var preference = document.getElementById(textbox.getAttribute("checkbox"));
-    preference.textbox = textbox;
-    preference.addEventListener("change", doEnabling, false);
-    if (preference.value)
-      textbox.disabled = true;
-  }
+  var preference = document.getElementById(aTextbox.getAttribute("preference"));
+  var checkbox = aTextbox.parentNode.lastChild;
+  checkbox.checked = preference.value < 0;
+  checkbox.disabled = !preference.value || aTextbox.disabled
+}
+
+function updateTextbox(aCheckbox)
+{
+  var textbox = aCheckbox.previousSibling.previousSibling;
+  var preference = document.getElementById(textbox.getAttribute("preference"));
+  preference.value = -preference.value;
 }

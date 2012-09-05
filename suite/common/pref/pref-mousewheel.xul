@@ -16,78 +16,42 @@
             script="chrome://communicator/content/pref/pref-mousewheel.js">
 
     <preferences id="mousewheel_preferences">
-      <preference id="mousewheel.withnokey.action"
-                  name="mousewheel.withnokey.action"
+      <preference id="mousewheel.default.action"
+                  name="mousewheel.default.action"
                   type="int"/>
-      <preference id="mousewheel.withnokey.numlines"
-                  name="mousewheel.withnokey.numlines"
+      <preference id="mousewheel.default.delta_multiplier_y"
+                  name="mousewheel.default.delta_multiplier_y"
                   type="int"/>
-      <preference id="mousewheel.withnokey.sysnumlines"
-                  name="mousewheel.withnokey.sysnumlines"
-                  type="bool"/>
-      <preference id="mousewheel.horizscroll.withnokey.action"
-                  name="mousewheel.horizscroll.withnokey.action"
+      <preference id="mousewheel.default.delta_multiplier_x"
+                  name="mousewheel.default.delta_multiplier_x"
                   type="int"/>
-      <preference id="mousewheel.horizscroll.withnokey.numlines"
-                  name="mousewheel.horizscroll.withnokey.numlines"
+      <preference id="mousewheel.with_alt.action"
+                  name="mousewheel.with_alt.action"
                   type="int"/>
-      <preference id="mousewheel.horizscroll.withnokey.sysnumlines"
-                  name="mousewheel.horizscroll.withnokey.sysnumlines"
-                  type="bool"/>
-      <preference id="mousewheel.withaltkey.action"
-                  name="mousewheel.withaltkey.action"
+      <preference id="mousewheel.with_alt.delta_multiplier_y"
+                  name="mousewheel.with_alt.delta_multiplier_y"
                   type="int"/>
-      <preference id="mousewheel.withaltkey.numlines"
-                  name="mousewheel.withaltkey.numlines"
+      <preference id="mousewheel.with_alt.delta_multiplier_x"
+                  name="mousewheel.with_alt.delta_multiplier_x"
                   type="int"/>
-      <preference id="mousewheel.withaltkey.sysnumlines"
-                  name="mousewheel.withaltkey.sysnumlines"
-                  type="bool"/>
-      <preference id="mousewheel.horizscroll.withaltkey.action"
-                  name="mousewheel.horizscroll.withaltkey.action"
+      <preference id="mousewheel.with_control.action"
+                  name="mousewheel.with_control.action"
                   type="int"/>
-      <preference id="mousewheel.horizscroll.withaltkey.numlines"
-                  name="mousewheel.horizscroll.withaltkey.numlines"
+      <preference id="mousewheel.with_control.delta_multiplier_y"
+                  name="mousewheel.with_control.delta_multiplier_y"
                   type="int"/>
-      <preference id="mousewheel.horizscroll.withaltkey.sysnumlines"
-                  name="mousewheel.horizscroll.withaltkey.sysnumlines"
-                  type="bool"/>
-      <preference id="mousewheel.withcontrolkey.action"
-                  name="mousewheel.withcontrolkey.action"
+      <preference id="mousewheel.with_control.delta_multiplier_x"
+                  name="mousewheel.with_control.delta_multiplier_x"
                   type="int"/>
-      <preference id="mousewheel.withcontrolkey.numlines"
-                  name="mousewheel.withcontrolkey.numlines"
+      <preference id="mousewheel.with_shift.action"
+                  name="mousewheel.with_shift.action"
                   type="int"/>
-      <preference id="mousewheel.withcontrolkey.sysnumlines"
-                  name="mousewheel.withcontrolkey.sysnumlines"
-                  type="bool"/>
-      <preference id="mousewheel.horizscroll.withcontrolkey.action"
-                  name="mousewheel.horizscroll.withcontrolkey.action"
+      <preference id="mousewheel.with_shift.delta_multiplier_y"
+                  name="mousewheel.with_shift.delta_multiplier_y"
                   type="int"/>
-      <preference id="mousewheel.horizscroll.withcontrolkey.numlines"
-                  name="mousewheel.horizscroll.withcontrolkey.numlines"
+      <preference id="mousewheel.with_shift.delta_multiplier_x"
+                  name="mousewheel.with_shift.delta_multiplier_x"
                   type="int"/>
-      <preference id="mousewheel.horizscroll.withcontrolkey.sysnumlines"
-                  name="mousewheel.horizscroll.withcontrolkey.sysnumlines"
-                  type="bool"/>
-      <preference id="mousewheel.withshiftkey.action"
-                  name="mousewheel.withshiftkey.action"
-                  type="int"/>
-      <preference id="mousewheel.withshiftkey.numlines"
-                  name="mousewheel.withshiftkey.numlines"
-                  type="int"/>
-      <preference id="mousewheel.withshiftkey.sysnumlines"
-                  name="mousewheel.withshiftkey.sysnumlines"
-                  type="bool"/>
-      <preference id="mousewheel.horizscroll.withshiftkey.action"
-                  name="mousewheel.horizscroll.withshiftkey.action"
-                  type="int"/>
-      <preference id="mousewheel.horizscroll.withshiftkey.numlines"
-                  name="mousewheel.horizscroll.withshiftkey.numlines"
-                  type="int"/>
-      <preference id="mousewheel.horizscroll.withshiftkey.sysnumlines"
-                  name="mousewheel.horizscroll.withshiftkey.sysnumlines"
-                  type="bool"/>
     </preferences>
 
     <description>&mouseWheelPanel.label;</description>
@@ -105,204 +69,220 @@
         <!-- no key modifiers -->
         <vbox>
           <groupbox>
-            <caption label="&mousewheelGroup.label;"/>
-            <radiogroup id="mousewheelWithNoKeyAction"
-                        preference="mousewheel.withnokey.action">
-              <hbox align="start">
-                <radio value="0" label="&scroll.label;" accesskey="&scroll.accesskey;"/>
-                <vbox align="start">
-                  <hbox align="center">
-                    <textbox id="mousewheelWithNoKeyNumlines" size="3" 
-                             checkbox="mousewheel.withnokey.sysnumlines"
-                             preference="mousewheel.withnokey.numlines"/>
-                    <label value="&scrollLines.label;"/>
-                  </hbox>
-                  <checkbox id="mousewheelWithNoKeySysNumlines" label="&useSystemDefault.label;"
-                            accesskey="&useSystemDefault.accesskey;"
-                            preference="mousewheel.withnokey.sysnumlines"/>
-                </vbox>
-              </hbox>
-              <radio value="1" label="&scrollPgUpPgDn.label;" accesskey="&scrollPgUpPgDn.accesskey;"/>
+            <caption label="&mouseWheelAction.label;"/>
+            <radiogroup id="mousewheel_default_action"
+                        preference="mousewheel.default.action"
+                        onsyncfrompreference="document.getElementById('mousewheel_pane').doEnabling(this);">
+              <radio value="0" label="&doNothing.label;" accesskey="&doNothing.accesskey;"/>
+              <radio value="1" label="&scrollDocument.label;" accesskey="&scrollDocument.accesskey;"/>
               <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
               <radio value="3" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
             </radiogroup>
           </groupbox>
 
           <groupbox>
-            <caption label="&mousewheelHorizGroup.label;"/>
-            <radiogroup id="mousewheelHorizWithNoKeyAction"
-                        preference="mousewheel.horizscroll.withnokey.action">
-              <hbox align="start">
-                <radio value="0" label="&scroll.label;" accesskey="&scrollHoriz.accesskey;"/>
-                <vbox align="start">
-                  <hbox align="center">
-                    <textbox id="mousewheelWithNoKeyNumchars" size="3" 
-                             checkbox="mousewheel.horizscroll.withnokey.sysnumlines"
-                             preference="mousewheel.horizscroll.withnokey.numlines"/>
-                    <label value="&scrollChars.label;"/>
-                  </hbox>
-                  <checkbox id="mousewheelWithNoKeySysNumchars" label="&useSystemDefault.label;"
-                            accesskey="&useSystemDefaultHoriz.accesskey;"
-                            preference="mousewheel.horizscroll.withnokey.sysnumlines"/>
-                </vbox>
-              </hbox>
-              <radio value="1" label="&scrollPgLtPgRt.label;" accesskey="&scrollPgLtPgRt.accesskey;"/>
-              <radio value="2" label="&history.label;" accesskey="&historyHoriz.accesskey;"/>
-              <radio value="3" label="&zoom.label;" accesskey="&zoomHoriz.accesskey;"/>
-            </radiogroup>
+            <caption label="&mouseWheelSpeed.label;"/>
+            <grid>
+              <columns>
+                <column/>
+                <column/>
+                <column/>
+                <column/>
+              </columns>
+              <rows>
+                <row align="center">
+                  <label control="mousewheel_default_delta_multiplier_y"
+                         value="&verticalSpeed.label;"/>
+                  <textbox type="number" min="-999" max="999" size="5"
+                           id="mousewheel_default_delta_multiplier_y"
+                           accesskey="&verticalSpeed.accesskey;"
+                           preference="mousewheel.default.delta_multiplier_y"
+                           onsyncfrompreference="document.getElementById('mousewheel_pane').updateCheckbox(this);"/>
+                  <label value="%"/>
+                  <checkbox label="&verticalReverse.label;"
+                            accesskey="&verticalReverse.accesskey;"
+                            oncommand="updateTextbox(this);"/>
+                </row>
+                <row align="center">
+                  <label control="mousewheel_default_delta_multiplier_x"
+                         value="&horizontalSpeed.label;"/>
+                  <textbox type="number" min="-999" max="999" size="5"
+                           id="mousewheel_default_delta_multiplier_x"
+                           accesskey="&horizontalSpeed.accesskey;"
+                           preference="mousewheel.default.delta_multiplier_x"
+                           onsyncfrompreference="document.getElementById('mousewheel_pane').updateCheckbox(this);"/>
+                  <label value="%"/>
+                  <checkbox label="&horizontalReverse.label;"
+                            accesskey="&horizontalReverse.accesskey;"
+                            oncommand="updateTextbox(this);"/>
+                </row>
+              </rows>
+            </grid>
           </groupbox>
         </vbox>
             
         <!-- alt modifiers -->
         <vbox>
           <groupbox>
-            <caption label="&mousewheelGroup.label;"/>
-            <radiogroup id="mousewheelWithAltKeyAction"
-                        preference="mousewheel.withaltkey.action">
-              <hbox align="start">
-                <radio value="0" label="&scroll.label;" accesskey="&scroll.accesskey;"/>
-                <vbox align="start">
-                  <hbox align="center">
-                    <textbox id="mousewheelWithAltKeyNumlines" size="3" 
-                             checkbox="mousewheel.withaltkey.sysnumlines"
-                             preference="mousewheel.withaltkey.numlines"/>
-                    <label value="&scrollLines.label;"/>
-                  </hbox>
-                  <checkbox id="mousewheelWithAltKeySysNumlines" label="&useSystemDefault.label;"
-                            accesskey="&useSystemDefault.accesskey;"
-                            preference="mousewheel.withaltkey.sysnumlines"/>
-                </vbox>
-              </hbox>
-              <radio value="1" label="&scrollPgUpPgDn.label;" accesskey="&scrollPgUpPgDn.accesskey;"/>
+            <caption label="&mouseWheelAction.label;"/>
+            <radiogroup id="mousewheel_with_alt_action"
+                        preference="mousewheel.with_alt.action"
+                        onsyncfrompreference="document.getElementById('mousewheel_pane').doEnabling(this);">
+              <radio value="0" label="&doNothing.label;" accesskey="&doNothing.accesskey;"/>
+              <radio value="1" label="&scrollDocument.label;" accesskey="&scrollDocument.accesskey;"/>
               <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
               <radio value="3" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
             </radiogroup>
           </groupbox>
 
           <groupbox>
-            <caption label="&mousewheelHorizGroup.label;"/>
-            <radiogroup id="mousewheelHorizWithAltKeyAction"
-                        preference="mousewheel.horizscroll.withaltkey.action">
-              <hbox align="start">
-                <radio value="0" label="&scroll.label;" accesskey="&scrollHoriz.accesskey;"/>
-                <vbox align="start">
-                  <hbox align="center">
-                    <textbox id="mousewheelWithAltKeyNumchars" size="3" 
-                             checkbox="mousewheel.horizscroll.withaltkey.sysnumlines"
-                             preference="mousewheel.horizscroll.withaltkey.numlines"/>
-                    <label value="&scrollChars.label;"/>
-                  </hbox>
-                  <checkbox id="mousewheelWithAltKeySysNumchars" label="&useSystemDefault.label;"
-                            accesskey="&useSystemDefaultHoriz.accesskey;"
-                            preference="mousewheel.horizscroll.withaltkey.sysnumlines"/>
-                </vbox>
-              </hbox>
-              <radio value="1" label="&scrollPgLtPgRt.label;" accesskey="&scrollPgLtPgRt.accesskey;"/>
-              <radio value="2" label="&history.label;" accesskey="&historyHoriz.accesskey;"/>
-              <radio value="3" label="&zoom.label;" accesskey="&zoomHoriz.accesskey;"/>
-            </radiogroup>
+            <caption label="&mouseWheelSpeed.label;"/>
+            <grid>
+              <columns>
+                <column/>
+                <column/>
+                <column/>
+                <column/>
+              </columns>
+              <rows>
+                <row align="center">
+                  <label control="mousewheel_with_alt_delta_multiplier_y"
+                         value="&verticalSpeed.label;"/>
+                  <textbox type="number" min="-999" max="999" size="5"
+                           id="mousewheel_with_alt_delta_multiplier_y"
+                           accesskey="&verticalSpeed.accesskey;"
+                           preference="mousewheel.with_alt.delta_multiplier_y"
+                           onsyncfrompreference="document.getElementById('mousewheel_pane').updateCheckbox(this);"/>
+                  <label value="%"/>
+                  <checkbox label="&verticalReverse.label;"
+                            accesskey="&verticalReverse.accesskey;"
+                            oncommand="updateTextbox(this);"/>
+                </row>
+                <row align="center">
+                  <label control="mousewheel_with_alt_delta_multiplier_x"
+                         value="&horizontalSpeed.label;"/>
+                  <textbox type="number" min="-999" max="999" size="5"
+                           id="mousewheel_with_alt_delta_multiplier_x"
+                           accesskey="&horizontalSpeed.accesskey;"
+                           preference="mousewheel.with_alt.delta_multiplier_x"
+                           onsyncfrompreference="document.getElementById('mousewheel_pane').updateCheckbox(this);"/>
+                  <label value="%"/>
+                  <checkbox label="&horizontalReverse.label;"
+                            accesskey="&horizontalReverse.accesskey;"
+                            oncommand="updateTextbox(this);"/>
+                </row>
+              </rows>
+            </grid>
           </groupbox>
         </vbox>
     
         <!-- ctrl modifiers -->
         <vbox>
           <groupbox>
-            <caption label="&mousewheelGroup.label;"/>
-            <radiogroup id="mousewheelWithCtrlKeyAction"
-                        preference="mousewheel.withcontrolkey.action" >
-              <hbox align="start">
-                <radio value="0" label="&scroll.label;" accesskey="&scroll.accesskey;"/>
-                <vbox align="start">
-                  <hbox align="center">
-                    <textbox id="mousewheelWithCtrlKeyNumlines" size="3" 
-                             checkbox="mousewheel.withcontrolkey.sysnumlines"
-                             preference="mousewheel.withcontrolkey.numlines"/>
-                    <label value="&scrollLines.label;"/>
-                  </hbox>
-                  <checkbox id="mousewheelWithCtrlKeySysNumlines" label="&useSystemDefault.label;"
-                            accesskey="&useSystemDefault.accesskey;"
-                            preference="mousewheel.withcontrolkey.sysnumlines"/>
-                </vbox>
-              </hbox>
-              <radio value="1" label="&scrollPgUpPgDn.label;" accesskey="&scrollPgUpPgDn.accesskey;"/>
+            <caption label="&mouseWheelAction.label;"/>
+            <radiogroup id="mousewheel_with_control_action"
+                        preference="mousewheel.with_control.action"
+                        onsyncfrompreference="document.getElementById('mousewheel_pane').doEnabling(this);">
+              <radio value="0" label="&doNothing.label;" accesskey="&doNothing.accesskey;"/>
+              <radio value="1" label="&scrollDocument.label;" accesskey="&scrollDocument.accesskey;"/>
               <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
               <radio value="3" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
             </radiogroup>
           </groupbox>
 
           <groupbox>
-            <caption label="&mousewheelHorizGroup.label;"/>
-            <radiogroup id="mousewheelHorizWithCtrlKeyAction"
-                        preference="mousewheel.horizscroll.withcontrolkey.action" >
-              <hbox align="start">
-                <radio value="0" label="&scroll.label;" accesskey="&scrollHoriz.accesskey;"/>
-                <vbox align="start">
-                  <hbox align="center">
-                    <textbox id="mousewheelWithCtrlKeyNumchars" size="3" 
-                             checkbox="mousewheel.horizscroll.withcontrolkey.sysnumlines"
-                             preference="mousewheel.horizscroll.withcontrolkey.numlines"/>
-                    <label value="&scrollChars.label;"/>
-                  </hbox>
-                  <checkbox id="mousewheelWithCtrlKeySysNumchars" label="&useSystemDefault.label;"
-                            accesskey="&useSystemDefaultHoriz.accesskey;"
-                            preference="mousewheel.horizscroll.withcontrolkey.sysnumlines"/>
-                </vbox>
-              </hbox>
-              <radio value="1" label="&scrollPgLtPgRt.label;" accesskey="&scrollPgLtPgRt.accesskey;"/>
-              <radio value="2" label="&history.label;" accesskey="&historyHoriz.accesskey;"/>
-              <radio value="3" label="&zoom.label;" accesskey="&zoomHoriz.accesskey;"/>
-            </radiogroup>
+            <caption label="&mouseWheelSpeed.label;"/>
+            <grid>
+              <columns>
+                <column/>
+                <column/>
+                <column/>
+                <column/>
+              </columns>
+              <rows>
+                <row align="center">
+                  <label control="mousewheel_with_control_delta_multiplier_y"
+                         value="&verticalSpeed.label;"/>
+                  <textbox type="number" min="-999" max="999" size="5"
+                           id="mousewheel_with_control_delta_multiplier_y"
+                           accesskey="&verticalSpeed.accesskey;"
+                           preference="mousewheel.with_control.delta_multiplier_y"
+                           onsyncfrompreference="document.getElementById('mousewheel_pane').updateCheckbox(this);"/>
+                  <label value="%"/>
+                  <checkbox label="&verticalReverse.label;"
+                            accesskey="&verticalReverse.accesskey;"
+                            oncommand="updateTextbox(this);"/>
+                </row>
+                <row align="center">
+                  <label control="mousewheel_with_control_delta_multiplier_x"
+                         value="&horizontalSpeed.label;"/>
+                  <textbox type="number" min="-999" max="999" size="5"
+                           id="mousewheel_with_control_delta_multiplier_x"
+                           accesskey="&horizontalSpeed.accesskey;"
+                           preference="mousewheel.with_control.delta_multiplier_x"
+                           onsyncfrompreference="document.getElementById('mousewheel_pane').updateCheckbox(this);"/>
+                  <label value="%"/>
+                  <checkbox label="&horizontalReverse.label;"
+                            accesskey="&horizontalReverse.accesskey;"
+                            oncommand="updateTextbox(this);"/>
+                </row>
+              </rows>
+            </grid>
           </groupbox>
         </vbox>
     
         <!-- shift modifiers -->
         <vbox>
           <groupbox>
-            <caption label="&mousewheelGroup.label;"/>
-            <radiogroup id="mousewheelWithShiftKeyAction"
-                        preference="mousewheel.withshiftkey.action">
-              <hbox align="start">
-                <radio value="0" label="&scroll.label;" accesskey="&scroll.accesskey;"/>
-                <vbox align="start">
-                  <hbox align="center">
-                    <textbox id="mousewheelWithShiftKeyNumlines" size="3" 
-                             checkbox="mousewheel.withshiftkey.sysnumlines"
-                             preference="mousewheel.withshiftkey.numlines"/>
-                    <label value="&scrollLines.label;"/>
-                  </hbox>
-                  <checkbox id="mousewheelWithShiftKeySysNumlines" label="&useSystemDefault.label;"
-                            accesskey="&useSystemDefault.accesskey;"
-                            preference="mousewheel.withshiftkey.sysnumlines"/>
-                </vbox>
-              </hbox>
-              <radio value="1" label="&scrollPgUpPgDn.label;" accesskey="&scrollPgUpPgDn.accesskey;"/>
+            <caption label="&mouseWheelAction.label;"/>
+            <radiogroup id="mousewheel_with_shift_action"
+                        preference="mousewheel.with_shift.action"
+                        onsyncfrompreference="document.getElementById('mousewheel_pane').doEnabling(this);">
+              <radio value="0" label="&doNothing.label;" accesskey="&doNothing.accesskey;"/>
+              <radio value="1" label="&scrollDocument.label;" accesskey="&scrollDocument.accesskey;"/>
               <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
               <radio value="3" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
             </radiogroup>
           </groupbox>
 
           <groupbox>
-            <caption label="&mousewheelHorizGroup.label;"/>
-            <radiogroup id="mousewheelHorizWithShiftKeyAction"
-                        preference="mousewheel.horizscroll.withshiftkey.action">
-              <hbox align="start">
-                <radio value="0" label="&scroll.label;" accesskey="&scrollHoriz.accesskey;"/>
-                <vbox align="start">
-                  <hbox align="center">
-                    <textbox id="mousewheelWithShiftKeyNumchars" size="3" 
-                             checkbox="mousewheel.horizscroll.withshiftkey.sysnumlines"
-                             preference="mousewheel.horizscroll.withshiftkey.numlines"/>
-                    <label value="&scrollChars.label;"/>
-                  </hbox>
-                  <checkbox id="mousewheelWithShiftKeySysNumchars" label="&useSystemDefault.label;"
-                            accesskey="&useSystemDefaultHoriz.accesskey;"
-                            preference="mousewheel.horizscroll.withshiftkey.sysnumlines"/>
-                </vbox>
-              </hbox>
-              <radio value="1" label="&scrollPgLtPgRt.label;" accesskey="&scrollPgLtPgRt.accesskey;"/>
-              <radio value="2" label="&history.label;" accesskey="&historyHoriz.accesskey;"/>
-              <radio value="3" label="&zoom.label;" accesskey="&zoomHoriz.accesskey;"/>
-            </radiogroup>
+            <caption label="&mouseWheelSpeed.label;"/>
+            <grid>
+              <columns>
+                <column/>
+                <column/>
+                <column/>
+                <column/>
+              </columns>
+              <rows>
+                <row align="center">
+                  <label control="mousewheel_with_shift_delta_multiplier_y"
+                         value="&verticalSpeed.label;"/>
+                  <textbox type="number" min="-999" max="999" size="5"
+                           id="mousewheel_with_shift_delta_multiplier_y"
+                           accesskey="&verticalSpeed.accesskey;"
+                           preference="mousewheel.with_shift.delta_multiplier_y"
+                           onsyncfrompreference="document.getElementById('mousewheel_pane').updateCheckbox(this);"/>
+                  <label value="%"/>
+                  <checkbox label="&verticalReverse.label;"
+                            accesskey="&verticalReverse.accesskey;"
+                            oncommand="updateTextbox(this);"/>
+                </row>
+                <row align="center">
+                  <label control="mousewheel_with_shift_delta_multiplier_x"
+                         value="&horizontalSpeed.label;"/>
+                  <textbox type="number" min="-999" max="999" size="5"
+                           id="mousewheel_with_shift_delta_multiplier_x"
+                           accesskey="&horizontalSpeed.accesskey;"
+                           preference="mousewheel.with_shift.delta_multiplier_x"
+                           onsyncfrompreference="document.getElementById('mousewheel_pane').updateCheckbox(this);"/>
+                  <label value="%"/>
+                  <checkbox label="&horizontalReverse.label;"
+                            accesskey="&horizontalReverse.accesskey;"
+                            oncommand="updateTextbox(this);"/>
+                </row>
+              </rows>
+            </grid>
           </groupbox>
         </vbox>
       </tabpanels>     

@@ -10,23 +10,21 @@
 <!ENTITY usingWheelAndAlt.label          "&altKey.label;">
 <!ENTITY usingWheelAndCtrl.label         "&ctrlKey.label;">
 <!ENTITY usingWheelAndShft.label         "&shiftKey.label;">
-<!ENTITY mousewheelGroup.label           "Vertical scrolling">
-<!ENTITY mousewheelHorizGroup.label      "Horizontal scrolling">
-<!ENTITY scroll.label                    "Scroll the document by ">
-<!ENTITY scroll.accesskey                "S">
-<!ENTITY scrollHoriz.accesskey           "c">
-<!ENTITY scrollLines.label               "lines">
-<!ENTITY scrollChars.label               "characters">
-<!ENTITY useSystemDefault.label          "Use system default">
-<!ENTITY useSystemDefault.accesskey      "U">
-<!ENTITY useSystemDefaultHoriz.accesskey "d">
-<!ENTITY scrollPgUpPgDn.label            "Scroll a page up or a page down">
-<!ENTITY scrollPgUpPgDn.accesskey        "p">
-<!ENTITY scrollPgLtPgRt.label            "Scroll a page left or a page right">
-<!ENTITY scrollPgLtPgRt.accesskey        "r">
+<!ENTITY mouseWheelAction.label          "Mouse wheel action">
+<!ENTITY doNothing.label                 "Do nothing">
+<!ENTITY doNothing.accesskey             "D">
+<!ENTITY scrollDocument.label            "Scroll the document">
+<!ENTITY scrollDocument.accesskey        "S">
 <!ENTITY history.label                   "Move back and forward in the browsing history">
 <!ENTITY history.accesskey               "M">
-<!ENTITY historyHoriz.accesskey          "b">
 <!ENTITY zoom.label                      "Zoom the page in or out">
 <!ENTITY zoom.accesskey                  "Z">
-<!ENTITY zoomHoriz.accesskey             "e">
+<!ENTITY mouseWheelSpeed.label           "Mouse wheel speed">
+<!ENTITY verticalSpeed.label             "Vertical:">
+<!ENTITY verticalSpeed.accesskey         "V">
+<!ENTITY verticalReverse.label           "Reverse direction">
+<!ENTITY verticalReverse.accesskey       "R">
+<!ENTITY horizontalSpeed.label           "Horizontal:">
+<!ENTITY horizontalSpeed.accesskey       "o">
+<!ENTITY horizontalReverse.label         "Reverse direction">
+<!ENTITY horizontalReverse.accesskey     "e">
