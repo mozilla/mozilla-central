@@ -26,8 +26,6 @@
           src="chrome://communicator/content/history/controller.js"/>
   <script type="application/javascript"
           src="chrome://communicator/content/history/treeView.js"/>
-  <script type="application/javascript"
-          src="chrome://global/content/nsDragAndDrop.js"/>
 
   <commandset id="placesCommands"
               commandupdater="true"

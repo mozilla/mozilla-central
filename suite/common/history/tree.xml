@@ -216,58 +216,6 @@
         ]]></body>
       </method>
 
-      <!-- nsDragAndDrop -->
-      <method name="onDragStart">
-        <parameter name="aEvent"/>
-        <parameter name="aXferData"/>
-        <parameter name="aDragAction"/>
-        <body><![CDATA[
-          var nodes = this.getSelectionNodes();
-          for (var i = 0; i < nodes.length; ++i) {
-            var node = nodes[i];
-
-            // Disallow dragging the root node of a tree
-            var parent = node.parent;
-            if (!parent)
-              return;
-
-            // History nodes can always be dragged off
-          }
-
-          // Stuff the encoded selection into the transferable data object
-          this._controller.setDataTransfer(aEvent);
-        ]]></body>
-      </method>
-
-      <!-- nsDragAndDrop -->
-      <method name="canDrop">
-        <parameter name="aEvent"/>
-        <parameter name="aDragSession"/>
-        <body><![CDATA[
-          // compat to general places tree but you never can drop on history
-          return false
-        ]]></body>
-      </method>
-
-      <!-- nsDragAndDrop -->
-      <method name="onDragOver">
-        <parameter name="aEvent"/>
-        <parameter name="aFlavour"/>
-        <parameter name="aDragSession"/>
-        <body><![CDATA[
-          if (!this.canDrop(aEvent, aDragSession))
-            aEvent.dataTransfer.effectAllowed = "none";
-        ]]></body>
-      </method>
-
-      <!-- nsDragAndDrop -->
-      <method name="getSupportedFlavours">
-        <body><![CDATA[
-          // nothing can be dropped on history, actually.
-          return [];
-        ]]></body>
-      </method>
-
       <method name="buildContextMenu">
         <parameter name="aPopup"/>
         <body><![CDATA[
@@ -297,13 +245,25 @@
           win = win.parent;
         }
       ]]></handler>
-      <handler event="draggesture"><![CDATA[
-        if (event.target.localName == "treechildren")
-          nsDragAndDrop.startDrag(event, this);
-      ]]></handler>
-      <handler event="dragover"><![CDATA[
-        if (event.target.localName == "treechildren")
-          nsDragAndDrop.dragOver(event, this);
+      <handler event="dragstart"><![CDATA[
+        if (event.target.localName != "treechildren")
+          return;
+
+        var nodes = this.getSelectionNodes();
+        for (var i = 0; i < nodes.length; ++i) {
+          // Disallow dragging the root node of a tree.
+          if (!nodes[i].parent) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+          }
+
+          // History nodes can always be dragged off.
+        }
+
+        // Stuff the encoded selection into the transferable data object.
+        this._controller.setDataTransfer(event);
+        event.stopPropagation();
       ]]></handler>
     </handlers>
   </binding>
