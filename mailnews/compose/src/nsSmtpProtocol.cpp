@@ -1765,8 +1765,8 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
  *
  * returns zero or more if the transfer needs to be continued.
  */
- nsresult nsSmtpProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
-   uint32_t sourceOffset, uint32_t length)
+nsresult nsSmtpProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
+                                              uint64_t sourceOffset, uint32_t length)
  {
    nsresult status = NS_OK;
    ClearFlag(SMTP_PAUSE_FOR_READ); /* already paused; reset */

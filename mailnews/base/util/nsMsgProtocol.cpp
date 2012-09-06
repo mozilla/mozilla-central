@@ -350,7 +350,7 @@ nsresult nsMsgProtocol::SendData(const char * dataBuffer, bool aSuppressLogging)
 
 // Whenever data arrives from the connection, core netlib notifices the protocol by calling
 // OnDataAvailable. We then read and process the incoming data from the input stream.
-NS_IMETHODIMP nsMsgProtocol::OnDataAvailable(nsIRequest *request, nsISupports *ctxt, nsIInputStream *inStr, uint32_t sourceOffset, uint32_t count)
+NS_IMETHODIMP nsMsgProtocol::OnDataAvailable(nsIRequest *request, nsISupports *ctxt, nsIInputStream *inStr, uint64_t sourceOffset, uint32_t count)
 {
   // right now, this really just means turn around and churn through the state machine
   nsCOMPtr<nsIURI> uri = do_QueryInterface(ctxt);
@@ -1170,7 +1170,7 @@ NS_IMETHODIMP nsMsgFilePostHelper::OnStopRequest(nsIRequest * aChannel, nsISuppo
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgFilePostHelper::OnDataAvailable(nsIRequest * /* aChannel */, nsISupports *ctxt, nsIInputStream *inStr, uint32_t sourceOffset, uint32_t count)
+NS_IMETHODIMP nsMsgFilePostHelper::OnDataAvailable(nsIRequest * /* aChannel */, nsISupports *ctxt, nsIInputStream *inStr, uint64_t sourceOffset, uint32_t count)
 {
   nsMsgAsyncWriteProtocol *protInst = nullptr;
   nsCOMPtr<nsIStreamListener> callback = do_QueryReferent(mProtInstance);

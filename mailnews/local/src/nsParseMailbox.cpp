@@ -71,7 +71,7 @@ NS_IMPL_ISUPPORTS_INHERITED2(nsMsgMailboxParser,
 
 // Whenever data arrives from the connection, core netlib notifices the protocol by calling
 // OnDataAvailable. We then read and process the incoming data from the input stream.
-NS_IMETHODIMP nsMsgMailboxParser::OnDataAvailable(nsIRequest *request, nsISupports *ctxt, nsIInputStream *aIStream, uint32_t sourceOffset, uint32_t aLength)
+NS_IMETHODIMP nsMsgMailboxParser::OnDataAvailable(nsIRequest *request, nsISupports *ctxt, nsIInputStream *aIStream, uint64_t sourceOffset, uint32_t aLength)
 {
     // right now, this really just means turn around and process the url
     nsresult rv = NS_OK;

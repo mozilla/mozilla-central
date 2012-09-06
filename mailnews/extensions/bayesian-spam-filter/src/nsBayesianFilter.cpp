@@ -1076,8 +1076,8 @@ NS_IMETHODIMP TokenStreamListener::OnStartRequest(nsIRequest *aRequest, nsISuppo
     return NS_OK;
 }
 
-/* void onDataAvailable (in nsIRequest aRequest, in nsISupports aContext, in nsIInputStream aInputStream, in unsigned long aOffset, in unsigned long aCount); */
-NS_IMETHODIMP TokenStreamListener::OnDataAvailable(nsIRequest *aRequest, nsISupports *aContext, nsIInputStream *aInputStream, uint32_t aOffset, uint32_t aCount)
+/* void onDataAvailable (in nsIRequest aRequest, in nsISupports aContext, in nsIInputStream aInputStream, in unsigned long long aOffset, in unsigned long aCount); */
+NS_IMETHODIMP TokenStreamListener::OnDataAvailable(nsIRequest *aRequest, nsISupports *aContext, nsIInputStream *aInputStream, uint64_t aOffset, uint32_t aCount)
 {
     nsresult rv = NS_OK;
 

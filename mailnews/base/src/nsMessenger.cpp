@@ -1889,7 +1889,7 @@ NS_IMETHODIMP
 nsSaveMsgListener::OnDataAvailable(nsIRequest* request,
                                   nsISupports* aSupport,
                                   nsIInputStream* inStream,
-                                  uint32_t srcOffset,
+                                  uint64_t srcOffset,
                                   uint32_t count)
 {
   nsresult rv = NS_ERROR_FAILURE;
@@ -2573,7 +2573,7 @@ nsDelAttachListener::OnStopRequest(nsIRequest * aRequest, nsISupports * aContext
 
 NS_IMETHODIMP
 nsDelAttachListener::OnDataAvailable(nsIRequest * aRequest, nsISupports * aSupport,
-                                     nsIInputStream * aInStream, uint32_t aSrcOffset,
+                                     nsIInputStream * aInStream, uint64_t aSrcOffset,
                                      uint32_t aCount)
 {
   if (!mMsgFileStream)

@@ -551,7 +551,7 @@ nsresult nsMailboxProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
   return rv;
 }
 
-int32_t nsMailboxProtocol::ReadFolderResponse(nsIInputStream * inputStream, uint32_t sourceOffset, uint32_t length)
+int32_t nsMailboxProtocol::ReadFolderResponse(nsIInputStream * inputStream, uint64_t sourceOffset, uint32_t length)
 {
   // okay we are doing a folder read in 8K chunks of a mail folder....
   // this is almost too easy....we can just forward the data in this stream on to our
@@ -582,7 +582,7 @@ int32_t nsMailboxProtocol::ReadFolderResponse(nsIInputStream * inputStream, uint
   return 0; 
 }
 
-int32_t nsMailboxProtocol::ReadMessageResponse(nsIInputStream * inputStream, uint32_t sourceOffset, uint32_t length)
+int32_t nsMailboxProtocol::ReadMessageResponse(nsIInputStream * inputStream, uint64_t sourceOffset, uint32_t length)
 {
   char *line = nullptr;
   uint32_t status = 0;
@@ -665,7 +665,7 @@ int32_t nsMailboxProtocol::ReadMessageResponse(nsIInputStream * inputStream, uin
  *
  * returns zero or more if the transfer needs to be continued.
  */
-nsresult nsMailboxProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream, uint32_t offset, uint32_t length)
+nsresult nsMailboxProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream, uint64_t offset, uint32_t length)
 {
   nsresult rv = NS_OK;
   int32_t status = 0;

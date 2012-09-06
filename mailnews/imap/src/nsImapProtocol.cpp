@@ -1967,7 +1967,7 @@ nsresult nsImapProtocol::SendData(const char * dataBuffer, bool aSuppressLogging
   // ProcessProtocolState - we override this only so we'll link - it should never get called.
 
 nsresult nsImapProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
-                                              uint32_t sourceOffset, uint32_t length)
+                                              uint64_t sourceOffset, uint32_t length)
 {
   return NS_OK;
 }
@@ -8583,7 +8583,7 @@ nsImapCacheStreamListener::OnStopRequest(nsIRequest *request, nsISupports * aCtx
 }
 
 NS_IMETHODIMP
-nsImapCacheStreamListener::OnDataAvailable(nsIRequest *request, nsISupports * aCtxt, nsIInputStream * aInStream, uint32_t aSourceOffset, uint32_t aCount)
+nsImapCacheStreamListener::OnDataAvailable(nsIRequest *request, nsISupports * aCtxt, nsIInputStream * aInStream, uint64_t aSourceOffset, uint32_t aCount)
 {
   return mListener->OnDataAvailable(mChannelToUse, aCtxt, aInStream, aSourceOffset, aCount);
 }

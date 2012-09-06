@@ -1014,7 +1014,7 @@ NS_IMETHODIMP
 nsMsgTemplateReplyHelper::OnDataAvailable(nsIRequest* request,
                                   nsISupports* aSupport,
                                   nsIInputStream* inStream,
-                                  uint32_t srcOffset,
+                                  uint64_t srcOffset,
                                   uint32_t count)
 {
   nsresult rv = NS_OK;

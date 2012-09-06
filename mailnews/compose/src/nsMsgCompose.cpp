@@ -2935,7 +2935,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
 
 NS_IMETHODIMP QuotingOutputStreamListener::OnDataAvailable(nsIRequest *request,
                               nsISupports *ctxt, nsIInputStream *inStr,
-                              uint32_t sourceOffset, uint32_t count)
+                              uint64_t sourceOffset, uint32_t count)
 {
   nsresult rv = NS_OK;
   NS_ENSURE_ARG(inStr);

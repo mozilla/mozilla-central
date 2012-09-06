@@ -96,7 +96,7 @@ public:
                                     nsresult status);
   NS_IMETHODIMP OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
                                 nsIInputStream *inStr,
-                                uint32_t sourceOffset, uint32_t count);
+                                uint64_t sourceOffset, uint32_t count);
 
 protected:
     nsresult         CopyNextMessage(bool &done);

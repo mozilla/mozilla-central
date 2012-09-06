@@ -3717,7 +3717,7 @@ nsPop3Protocol::CommitState(bool remove_last_entry)
  * returns zero or more if the transfer needs to be continued.
  */
 nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aInputStream,
-                                              uint32_t sourceOffset, uint32_t aLength)
+                                              uint64_t sourceOffset, uint32_t aLength)
 {
   int32_t status = 0;
   bool urlStatusSet = false;

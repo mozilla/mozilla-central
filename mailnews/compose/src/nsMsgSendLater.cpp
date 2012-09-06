@@ -319,7 +319,7 @@ nsMsgSendLater::BuildNewBuffer(const char* aBuf, uint32_t aCount, uint32_t *tota
 
 // Got data?
 NS_IMETHODIMP
-nsMsgSendLater::OnDataAvailable(nsIRequest *request, nsISupports *ctxt, nsIInputStream *inStr, uint32_t sourceOffset, uint32_t count)
+nsMsgSendLater::OnDataAvailable(nsIRequest *request, nsISupports *ctxt, nsIInputStream *inStr, uint64_t sourceOffset, uint32_t count)
 {
   NS_ENSURE_ARG_POINTER(inStr);
 

@@ -139,7 +139,7 @@ public:
   virtual ~nsImapProtocol();
 
   virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
-                  uint32_t sourceOffset, uint32_t length);
+                                        uint64_t sourceOffset, uint32_t length);
 
   // nsIRunnable method
   NS_IMETHOD Run();

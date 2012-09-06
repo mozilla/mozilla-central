@@ -172,7 +172,7 @@ private:
    * advised to suspend the request before using this state.
    */
   virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
-    uint32_t sourceOffset, uint32_t length);
+                                        uint64_t sourceOffset, uint32_t length);
   virtual nsresult CloseSocket();
 
   // we have our own implementation of SendData which writes to the nntp log

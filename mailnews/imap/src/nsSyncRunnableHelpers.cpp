@@ -357,7 +357,7 @@ NS_IMETHODIMP iface##Proxy::Set##attribute(type a1) {                     \
   { NS_RUNTIMEABORT("Not implemented"); return NS_ERROR_UNEXPECTED; }
 
 NS_SYNCRUNNABLEMETHOD5(StreamListener, OnDataAvailable,
-                       nsIRequest *, nsISupports *, nsIInputStream *, uint32_t, uint32_t)
+                       nsIRequest *, nsISupports *, nsIInputStream *, uint64_t, uint32_t)
 
 NS_SYNCRUNNABLEMETHOD2(StreamListener, OnStartRequest,
                        nsIRequest *, nsISupports *)

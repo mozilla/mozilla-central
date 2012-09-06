@@ -867,7 +867,7 @@ nsresult
 nsStreamConverter::OnDataAvailable(nsIRequest     *request,
                                    nsISupports    *ctxt,
                                    nsIInputStream *aIStream,
-                                   uint32_t       sourceOffset,
+                                   uint64_t       sourceOffset,
                                    uint32_t       aLength)
 {
   nsresult        rc=NS_OK;     // should this be an error instead?

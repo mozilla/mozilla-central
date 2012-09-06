@@ -147,7 +147,7 @@ private:
     // initialization function given a new url and transport layer
     void Initialize(nsIURI * aURL);
     virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream, 
-                                          uint32_t sourceOffset, uint32_t length);
+                                          uint64_t sourceOffset, uint32_t length);
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // Communication methods --> Reading and writing protocol

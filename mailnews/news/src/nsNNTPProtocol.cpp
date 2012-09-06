@@ -623,7 +623,7 @@ nsNntpCacheStreamListener::OnStopRequest(nsIRequest *request, nsISupports * aCtx
 }
 
 NS_IMETHODIMP
-nsNntpCacheStreamListener::OnDataAvailable(nsIRequest *request, nsISupports * aCtxt, nsIInputStream * aInStream, uint32_t aSourceOffset, uint32_t aCount)
+nsNntpCacheStreamListener::OnDataAvailable(nsIRequest *request, nsISupports * aCtxt, nsIInputStream * aInStream, uint64_t aSourceOffset, uint32_t aCount)
 {
     NS_ENSURE_STATE(mListener);
     nsCOMPtr <nsIRequest> ourRequest = do_QueryInterface(mChannelToUse);
@@ -4347,7 +4347,7 @@ int32_t nsNNTPProtocol::SetupForTransfer()
 // with the netlib folks?) when we are done processing.
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
-                                              uint32_t sourceOffset, uint32_t length)
+                                              uint64_t sourceOffset, uint32_t length)
 {
   int32_t status = 0;
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);

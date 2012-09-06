@@ -92,7 +92,7 @@ private:
   nsCOMPtr<nsIInputStream> m_multipleMsgMoveCopyStream;
 
   virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
-                        uint32_t sourceOffset, uint32_t length);
+                                        uint64_t sourceOffset, uint32_t length);
   virtual nsresult CloseSocket();
 
   nsresult SetupMessageExtraction();
@@ -108,8 +108,8 @@ private:
 
   // When parsing a mailbox folder in chunks, this protocol state reads in the current chunk
   // and forwards it to the mailbox parser.
-  int32_t ReadFolderResponse(nsIInputStream * inputStream, uint32_t sourceOffset, uint32_t length);
-  int32_t ReadMessageResponse(nsIInputStream * inputStream, uint32_t sourceOffset, uint32_t length);
+  int32_t ReadFolderResponse(nsIInputStream * inputStream, uint64_t sourceOffset, uint32_t length);
+  int32_t ReadMessageResponse(nsIInputStream * inputStream, uint64_t sourceOffset, uint32_t length);
   int32_t DoneReadingMessage();
 
   ////////////////////////////////////////////////////////////////////////////////////////

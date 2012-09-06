@@ -618,7 +618,7 @@ nsFolderCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt,
 NS_IMETHODIMP
 nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
                                       nsIInputStream *inStr,
-                                      uint32_t sourceOffset, uint32_t count)
+                                      uint64_t sourceOffset, uint32_t count)
 {
   if (!m_fileStream || !inStr) 
     return NS_ERROR_FAILURE;
@@ -1149,7 +1149,7 @@ nsresult nsOfflineStoreCompactState::StartCompacting()
 NS_IMETHODIMP
 nsOfflineStoreCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
                                             nsIInputStream *inStr,
-                                            uint32_t sourceOffset, uint32_t count)
+                                            uint64_t sourceOffset, uint32_t count)
 {
   if (!m_fileStream || !inStr) 
     return NS_ERROR_FAILURE;

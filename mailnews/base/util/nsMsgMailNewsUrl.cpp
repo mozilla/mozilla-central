@@ -820,7 +820,7 @@ nsMsgSaveAsListener::OnStopRequest(nsIRequest *request, nsISupports * aCtxt, nsr
 NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request, 
                                   nsISupports* aSupport,
                                   nsIInputStream* inStream, 
-                                  uint32_t srcOffset,
+                                  uint64_t srcOffset,
                                   uint32_t count)
 {
   nsresult rv;

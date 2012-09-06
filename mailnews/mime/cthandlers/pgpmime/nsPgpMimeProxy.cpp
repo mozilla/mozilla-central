@@ -536,7 +536,7 @@ nsPgpMimeProxy::OnStopRequest(nsIRequest* aRequest, nsISupports* aContext,
 NS_IMETHODIMP
 nsPgpMimeProxy::OnDataAvailable(nsIRequest* aRequest, nsISupports* aContext,
                               nsIInputStream *aInputStream,
-                              uint32_t aSourceOffset,
+                              uint64_t aSourceOffset,
                               uint32_t aLength)
 {
   NS_ENSURE_TRUE(mInitialized, NS_ERROR_NOT_INITIALIZED);
