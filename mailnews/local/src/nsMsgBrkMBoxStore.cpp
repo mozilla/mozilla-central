@@ -173,7 +173,7 @@ void nsMsgBrkMBoxStore::GetMailboxModProperties(nsIMsgFolder *aFolder,
   if (NS_FAILED(rv))
     return;
 
-  int64_t lastModTime;
+  PRTime lastModTime;
   rv = pathFile->GetLastModifiedTime(&lastModTime);
   if (NS_FAILED(rv))
     return;

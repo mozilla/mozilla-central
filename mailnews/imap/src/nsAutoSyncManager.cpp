@@ -104,7 +104,7 @@ NS_IMETHODIMP nsDefaultAutoSyncMsgStrategy::IsExcluded(nsIMsgFolder *aFolder,
   int32_t offlineMsgAgeLimit = -1;
   imapServer->GetAutoSyncMaxAgeDays(&offlineMsgAgeLimit);
   NS_ENSURE_SUCCESS(rv, rv);
-  int64_t msgDate;
+  PRTime msgDate;
   aMsgHdr->GetDate(&msgDate);
   *aDecision = offlineMsgAgeLimit > 0 &&
     msgDate < MsgConvertAgeInDaysToCutoffDate(offlineMsgAgeLimit);

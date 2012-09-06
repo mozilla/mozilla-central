@@ -610,7 +610,7 @@ nsMsgMaildirStore::GetNewMsgOutputStream(nsIMsgFolder *aFolder,
 
   // generate new file name
   nsAutoCString newName;
-  newName.AppendInt(PR_Now());
+  newName.AppendInt(static_cast<int64_t>(PR_Now()));
   newFile->AppendNative(newName);
   // CreateUnique, in case we get more than one message per millisecond :-)
   newFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 0600);

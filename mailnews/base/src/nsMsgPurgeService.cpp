@@ -195,7 +195,7 @@ nsresult nsMsgPurgeService::PerformPurge()
 
               if (!curFolderLastPurgeTimeString.IsEmpty())
               {
-                int64_t theTime;
+                PRTime theTime;
                 PR_ParseTimeString(curFolderLastPurgeTimeString.get(), false, &theTime);
                 curFolderLastPurgeTime = theTime;
               }
@@ -286,7 +286,7 @@ nsresult nsMsgPurgeService::PerformPurge()
 
         if (!curJunkFolderLastPurgeTimeString.IsEmpty())
         {
-          int64_t theTime;
+          PRTime theTime;
           PR_ParseTimeString(curJunkFolderLastPurgeTimeString.get(), false, &theTime);
           curJunkFolderLastPurgeTime = theTime;
         }
