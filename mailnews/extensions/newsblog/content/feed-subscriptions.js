@@ -1597,7 +1597,7 @@ var FeedSubscriptions = {
       if (tabmail)
       {
         let feedLocation = document.getElementById("locationValue").value;
-        let url = validationQuery + feedLocation;
+        let url = validationQuery + encodeURIComponent(feedLocation);
 
         win.focus();
         win.openContentTab(url, "tab", "^" + validationSite);
