@@ -1120,7 +1120,7 @@ ircAccount.prototype = {
       username = this.getString("username");
     // But fallback to brandShortName if no username is provided (or is empty).
     if (!username)
-      username = l10nHelper("chrome://branding/locale/brand.properties")("brandShortName");
+      username = Services.appinfo.name;
     this.sendMessage("USER", [username, this._mode.toString(), "*",
                               this._realname || this._requestedNickname]);
   },

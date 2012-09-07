@@ -12,6 +12,7 @@ const EXPORTED_SYMBOLS = ["ircCTCP", "ctcpBase"];
 
 const Cu = Components.utils;
 
+Cu.import("resource:///modules/imServices.jsm");
 Cu.import("resource:///modules/imXPCOMUtils.jsm");
 Cu.import("resource:///modules/ircHandlers.jsm");
 Cu.import("resource:///modules/ircUtils.jsm");
@@ -224,9 +225,7 @@ var ctcpBase = {
       if (aMessage.command == "PRIVMSG") {
         // VERSION
         // Received VERSION request, send VERSION response.
-        // Use brandShortName as the client version.
-        let version =
-          l10nHelper("chrome://branding/locale/brand.properties")("brandShortName");
+        let version = Services.appinfo.name + " " + Services.appinfo.version;
         LOG("Received VERSION request from " + aMessage.nickname +
             ". Sending VERSION response: \"" + version + "\".");
         this.sendCTCPMessage("VERSION", version, aMessage.nickname, true);
