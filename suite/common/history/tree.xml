@@ -49,11 +49,11 @@
 
       <property name="sortingMode" readonly="true">
         <getter><![CDATA[
-          try {
+          var result = this.getResult();
+          if (result)
             // If we have a result then simply return its sorting mode.
-            return this.view.QueryInterface(Components.interfaces.nsINavHistoryResultViewer).result.sortingMode;
-          }
-          catch (e) {
+            return result.sortingMode;
+          else {
             // Find the sorted column from the persisted attributes.
             const NHQO = Components.interfaces.nsINavHistoryQueryOptions;
             var sortedColumn = this.columns.getSortedColumn();
