@@ -36,9 +36,8 @@
               insertbefore="viewMenuBeforeCustomizeMailToolbarsSeparator"
               label="&quickFilterBar.toggleBarVisibility.menu.label;"
               accesskey="&quickFilterBar.toggleBarVisibility.menu.accesskey;"
-              command="cmd_toggleQuickFilterBar">
-      <observes element="qfb-show-filter-bar" attribute="checked"/>
-    </menuitem>
+              command="cmd_toggleQuickFilterBar"
+              />
   </menupopup>
 
   <toolbarpalette id="MailToolbarPalette">
@@ -49,7 +48,10 @@
                    label="&quickFilterBar.qfbShowFilterBar.label;"
                    command="cmd_toggleQuickFilterBar"
                    tooltiptext="&quickFilterBar.toggleBarVisibility.button.tooltip;"
-                   />
+                   >
+      <observes element="view_toolbars_popup_quickFilterBar"
+                attribute="checked"/>
+    </toolbarbutton>
   </toolbarpalette>
 
   <popupset id="mainPopupSet">
