@@ -299,9 +299,25 @@
           <menupopup id="view_toolbars_popup"
                      onpopupshowing="updateToolbarStates(event);"
                      oncommand="onViewToolbarCommand(event);">
-            <menuitem id="menuitem_showhide_tabbar" label="&tabbarCmd.label;" accesskey="&tabbarCmd.accesskey;" class="menuitem-iconic" type="checkbox" oncommand="showHideTabbar();" checked="true"/>
-            <menuitem label="&taskbarCmd.label;" accesskey="&taskbarCmd.accesskey;" class="menuitem-iconic" type="checkbox" observes="cmd_viewtaskbar" />
-            <menuitem label="&componentbarCmd.label;" accesskey="&componentbarCmd.accesskey;" class="menuitem-iconic" type="checkbox" observes="cmd_viewcomponentbar"/>
+            <menuitem id="menuitem_showhide_tabbar"
+                      label="&tabbarCmd.label;"
+                      accesskey="&tabbarCmd.accesskey;"
+                      class="menuitem-iconic"
+                      type="checkbox"
+                      oncommand="showHideTabbar();"
+                      checked="true"/>
+            <menuitem id="menuitem_taskbarCmd"
+                      label="&taskbarCmd.label;"
+                      accesskey="&taskbarCmd.accesskey;"
+                      class="menuitem-iconic"
+                      type="checkbox"
+                      observes="cmd_viewtaskbar"/>
+            <menuitem id="menuitem_componentbarCmd"
+                      label="&componentbarCmd.label;"
+                      accesskey="&componentbarCmd.accesskey;"
+                      class="menuitem-iconic"
+                      type="checkbox"
+                      observes="cmd_viewcomponentbar"/>
           </menupopup>
         </menu>   
         <menuitem id="menuitem_fullScreen"
@@ -310,7 +326,12 @@
                   key="key_fullScreen"
                   command="View:FullScreen"/>
         <menuseparator />
-        <menuitem label="&stopCmd.label;" accesskey="&stopCmd.accesskey;" id="menuitem-stop" disabled="true" oncommand="BrowserStop();" key="key_stop"/>
+        <menuitem id="menuitem-stop"
+                  label="&stopCmd.label;"
+                  accesskey="&stopCmd.accesskey;"
+                  disabled="true"
+                  oncommand="BrowserStop();"
+                  key="key_stop"/>
         <menuitem id="menuitem_reload"
                   label="&reloadCmd.label;"
                   accesskey="&reloadCmd.accesskey;"
@@ -322,8 +343,12 @@
         <!-- overlayed from viewZoomOverlay.xul -->
         <menu id="menu_zoom"/>
 
-        <menu id="menu_UseStyleSheet" label="&useStyleSheetMenu.label;" accesskey="&useStyleSheetMenu.accesskey;" disabled="false" observes="isImage">
-          <menupopup onpopupshowing="stylesheetFillPopup(this);"
+        <menu id="menu_UseStyleSheet"
+              label="&useStyleSheetMenu.label;"
+              accesskey="&useStyleSheetMenu.accesskey;"
+              disabled="false"
+              observes="isImage">
+          <menupopup id="menupopup_stylesheetFill" onpopupshowing="stylesheetFillPopup(this);"
                      oncommand="stylesheetSwitchAll(window.content, event.target.getAttribute('data')); setStyleDisabled(false);" type="radio">
             <menuitem id="menu_pageStyleNoStyle"
                       label="&useStyleSheetNone.label;"
@@ -342,8 +367,16 @@
                   accesskey="&bidiSwitchPageDirectionItem.accesskey;"
                   command="cmd_SwitchDocumentDirection"/>
         <menuseparator />
-        <menuitem accesskey="&pageSourceCmd.accesskey;" label="&pageSourceCmd.label;" key="key_viewSource" command="View:PageSource"/>
-        <menuitem accesskey="&pageInfoCmd.accesskey;"   label="&pageInfoCmd.label;"   key="key_viewInfo"   command="View:PageInfo"/>
+        <menuitem id="menuitem_pageSourceCmd"
+                  label="&pageSourceCmd.label;"
+                  accesskey="&pageSourceCmd.accesskey;"
+                  key="key_viewSource"
+                  command="View:PageSource"/>
+        <menuitem id="menuitem_pageInfoCmd"
+                  label="&pageInfoCmd.label;"
+                  accesskey="&pageInfoCmd.accesskey;"
+                  key="key_viewInfo"
+                  command="View:PageInfo"/>
         <menuseparator />
         <!-- overlayed from viewApplyThemeOverlay.xul -->
         <menu id="menu_viewApplyTheme"/>
@@ -444,8 +477,11 @@
                   command="Browser:ManageBookmark"
                   key="manBookmarkKb"/>
         <menuseparator id="organizeBookmarksSeparator"/>
-        <menu class="menu-iconic feedsMenu" command="feedsMenu"
-              label="&feedsMenu.label;" accesskey="&feedsMenu.accesskey;">
+        <menu id="menu_iconic_feedsMenu"
+              label="&feedsMenu.label;"
+              accesskey="&feedsMenu.accesskey;"
+              class="menu-iconic feedsMenu"
+              command="feedsMenu">
           <menupopup onpopupshowing="window.XULBrowserWindow.populateFeeds(this);"
                      oncommand="subscribeToFeed(event.target.statusText, event);"
                      onclick="checkForMiddleClick(this, event);"/>
@@ -490,7 +526,8 @@
               accesskey="&cookieCookieManager.accesskey;"
               oncommand="if (event.target.id) CookieImageAction(event.target);
                          else toDataManager('|cookies');">
-          <menupopup onpopupshowing="CheckPermissionsMenu('cookie', this);">
+          <menupopup id="menupopup_checkPermissions_cookie"
+                     onpopupshowing="CheckPermissionsMenu('cookie', this);">
             <menuitem id="cookie_deny"
                       label="&cookieBlockCookiesCmd.label;"
                       accesskey="&cookieBlockCookiesCmd.accesskey;"
@@ -529,7 +566,8 @@
               accesskey="&cookieImageManager.accesskey;"
               oncommand="if (event.target.id) CookieImageAction(event.target);
                          else toDataManager('|permissions');">
-          <menupopup onpopupshowing="CheckPermissionsMenu('image', this);">
+          <menupopup id="menupopup_checkPermissions_image"
+                     onpopupshowing="CheckPermissionsMenu('image', this);">
             <menuitem id="image_deny"
                       label="&cookieBlockImagesCmd.label;"
                       accesskey="&cookieBlockImagesCmd.accesskey;"
@@ -552,7 +590,8 @@
                       type="radio"
                       name="image"/>
             <menuseparator/>
-            <menuitem label="&cookieDisplayImagesCmd.label;"
+            <menuitem id="menuitem_cookieDisplay"
+                      label="&cookieDisplayImagesCmd.label;"
                       accesskey="&cookieDisplayImagesCmd.accesskey;"/>
           </menupopup>
         </menu>
@@ -560,7 +599,8 @@
               label="&cookiePopupManager.label;"
               accesskey="&cookiePopupManager.accesskey;"
               oncommand="popupBlockerMenuCommand(event.target);">
-          <menupopup onpopupshowing="CheckForVisibility(event);"
+          <menupopup id="menupopup_checkForVisibility"
+                     onpopupshowing="CheckForVisibility(event);"
                      onpopuphiding="RemovePopupsItems(this);">
             <menuitem id="AllowPopups"
                       label="&cookieAllowPopupsCmd.label;"
@@ -578,8 +618,8 @@
         </menu>
         <menuseparator id="navBeginGlobalItems"/>
         <menuitem id="sanitizeItem"
-                  accesskey="&clearPrivateDataCmd.accesskey;"
                   label="&clearPrivateDataCmd.label;"
+                  accesskey="&clearPrivateDataCmd.accesskey;"
                   key="key_sanitize" command="Tools:Sanitize"/>
       </menupopup>
     </menu>
