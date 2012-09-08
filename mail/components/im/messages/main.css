@@ -18,7 +18,7 @@
 .pseudo {
   font-weight: bold;
   float: left;
-  width: 147px;
+  width: calc(15% - 3px);
   text-align: right;
   padding-bottom: 5px;
   display: block;
@@ -47,7 +47,7 @@
 .message > .ib-msg-txt,
 .event {
   display: block;
-  margin-left: 150px;
+  margin-left: 15%;
   padding-bottom: 5px;
 }
 
