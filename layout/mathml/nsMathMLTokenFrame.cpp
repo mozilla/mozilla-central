@@ -45,7 +45,6 @@
 #include "nsContentUtils.h"
 #include "nsCSSFrameConstructor.h"
 #include "nsMathMLTokenFrame.h"
-#include "nsTextFrame.h"
 
 nsIFrame*
 NS_NewMathMLTokenFrame(nsIPresShell* aPresShell, nsStyleContext* aContext)
@@ -98,7 +97,6 @@ nsMathMLTokenFrame::GetMathMLFrameType()
   else if(style.EqualsLiteral("invariant")) {
     nsAutoString data;
     nsContentUtils::GetNodeTextContent(mContent, false, data);
-    data.CompressWhitespace();
     eMATHVARIANT variant = nsMathMLOperators::LookupInvariantChar(data);
 
     switch (variant) {
@@ -116,17 +114,33 @@ nsMathMLTokenFrame::GetMathMLFrameType()
   return eMathMLFrameType_UprightIdentifier;
 }
 
-void
-nsMathMLTokenFrame::ForceTrimChildTextFrames()
+static void
+CompressWhitespace(nsIContent* aContent)
 {
-  // Set flags on child text frames to force them to trim their leading and
-  // trailing whitespaces.
-  for (nsIFrame* childFrame = GetFirstPrincipalChild(); childFrame;
-       childFrame = childFrame->GetNextSibling()) {
-    if (childFrame->GetType() == nsGkAtoms::textFrame) {
-      childFrame->AddStateBits(TEXT_FORCE_TRIM_WHITESPACE);
+  PRUint32 numKids = aContent->GetChildCount();
+  for (PRUint32 kid = 0; kid < numKids; kid++) {
+    nsIContent* cont = aContent->GetChildAt(kid);
+    if (cont && cont->IsNodeOfType(nsINode::eTEXT)) {
+      nsAutoString text;
+      cont->AppendTextTo(text);
+      text.CompressWhitespace();
+      cont->SetText(text, false); // not meant to be used if notify is needed
     }
   }
+}
+
+NS_IMETHODIMP
+nsMathMLTokenFrame::Init(nsIContent*      aContent,
+                         nsIFrame*        aParent,
+                         nsIFrame*        aPrevInFlow)
+{
+  // leading and trailing whitespace doesn't count -- bug 15402
+  // brute force removal for people who do <mi> a </mi> instead of <mi>a</mi>
+  // XXX the best fix is to skip these in nsTextFrame
+  CompressWhitespace(aContent);
+
+  // let the base class do its Init()
+  return nsMathMLContainerFrame::Init(aContent, aParent, aPrevInFlow);
 }
 
 NS_IMETHODIMP
@@ -138,38 +152,8 @@ nsMathMLTokenFrame::SetInitialChildList(ChildListID     aListID,
   if (NS_FAILED(rv))
     return rv;
 
-  ForceTrimChildTextFrames();
-
   SetQuotes(false);
   ProcessTextData();
-  return rv;
-}
-
-NS_IMETHODIMP
-nsMathMLTokenFrame::AppendFrames(ChildListID aListID,
-                                 nsFrameList& aChildList)
-{
-  nsresult rv = nsMathMLContainerFrame::AppendFrames(aListID, aChildList);
-  if (NS_FAILED(rv))
-    return rv;
-
-  ForceTrimChildTextFrames();
-
-  return rv;
-}
-
-NS_IMETHODIMP
-nsMathMLTokenFrame::InsertFrames(ChildListID aListID,
-                                 nsIFrame* aPrevFrame,
-                                 nsFrameList& aChildList)
-{
-  nsresult rv = nsMathMLContainerFrame::InsertFrames(aListID, aPrevFrame,
-                                                     aChildList);
-  if (NS_FAILED(rv))
-    return rv;
-
-  ForceTrimChildTextFrames();
-
   return rv;
 }
 
@@ -342,7 +326,6 @@ nsMathMLTokenFrame::SetTextStyle()
   // Get the text content that we enclose and its length
   nsAutoString data;
   nsContentUtils::GetNodeTextContent(mContent, false, data);
-  data.CompressWhitespace();
   PRInt32 length = data.Length();
   if (!length)
     return false;

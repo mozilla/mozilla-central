@@ -232,9 +232,6 @@ NS_DECLARE_FRAME_PROPERTY(OffsetToFrameProperty, nsnull)
 // nsTextFrame.h has
 // #define TEXT_HAS_NONCOLLAPSED_CHARACTERS NS_FRAME_STATE_BIT(31)
 
-// nsTextFrame.h has
-// #define TEXT_FORCE_TRIM_WHITESPACE       NS_FRAME_STATE_BIT(32)
-
 // If true, then this frame is being removed due to a SetLength() on a
 // previous continuation and the style context of that previous
 // continuation is the same as this frame's
@@ -7020,8 +7017,7 @@ nsTextFrame::ReflowText(nsLineLayout& aLineLayout, nscoord aAvailableWidth,
       length = newLineOffset + 1 - offset;
     }
   }
-  if ((atstartofline && !textstyle->whitespaceissignificant()) ||
-      (getstatebits() & text_force_trim_whitespace)) {
+  if (atStartOfLine && !textStyle->WhiteSpaceIsSignificant()) {
     // Skip leading whitespace. Make sure we don't skip a 'pre-line'
     // newline if there is one.
     PRInt32 skipLength = newLineOffset >= 0 ? length - 1 : length;
@@ -7163,8 +7159,7 @@ nsTextFrame::ReflowText(nsLineLayout& aLineLayout, nscoord aAvailableWidth,
   bool usedHyphenation;
   gfxFloat trimmedWidth = 0;
   gfxFloat availWidth = aAvailableWidth;
-  bool canTrimTrailingWhitespace = !textStyle->WhiteSpaceIsSignificant() ||
-                                   (GetStateBits() & TEXT_FORCE_TRIM_WHITESPACE);
+  bool canTrimTrailingWhitespace = !textStyle->WhiteSpaceIsSignificant();
   PRInt32 unusedOffset;  
   gfxBreakPriority breakPriority;
   aLineLayout.GetLastOptionalBreakPosition(&unusedOffset, &breakPriority);
@@ -7233,12 +7228,11 @@ nsTextFrame::ReflowText(nsLineLayout& aLineLayout, nscoord aAvailableWidth,
     // the line. (If we actually do end up at the end of the line, we'll have
     // to trim it off again in TrimTrailingWhiteSpace, and we'd like to avoid
     // having to re-do it.)
-    if (brokeText ||
-        (GetStateBits() & TEXT_FORCE_TRIM_WHITESPACE)) {
+    if (brokeText) {
       // We're definitely going to break so our trailing whitespace should
-      // definitely be trimmed. Record that we've already done it.
+      // definitely be timmed. Record that we've already done it.
       AddStateBits(TEXT_TRIMMED_TRAILING_WHITESPACE);
-    } else if (!(GetStateBits() & TEXT_FORCE_TRIM_WHITESPACE)) {
+    } else {
       // We might not be at the end of the line. (Note that even if this frame
       // ends in breakable whitespace, it might not be at the end of the line
       // because it might be followed by breakable, but preformatted, whitespace.)
