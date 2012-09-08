@@ -276,8 +276,8 @@ else
     AC_PROG_CC
     case "$target" in
     *-mingw*)
-      # Work around the conftest.exe access problem on Windows (bug 545015)
-      sleep 1
+      # Work around the conftest.exe access problem on Windows
+      sleep 2
     esac
     AC_PROG_CXX
     AC_PROG_RANLIB
