@@ -8255,7 +8255,7 @@ nsImapMailFolder::CopyFileToOfflineStore(nsIFile *srcFile, nsMsgKey msgKey)
 
       if (NS_SUCCEEDED(rv) && offlineStore)
       {
-        PRInt64 curOfflineStorePos = 0;
+        int64_t curOfflineStorePos = 0;
         nsCOMPtr<nsISeekableStream> seekable = do_QueryInterface(offlineStore);
         if (seekable)
           seekable->Tell(&curOfflineStorePos);
