@@ -359,6 +359,9 @@ GetGeneric(JSContext *cx, JSObject *obj, JSObject *receiver, jsid id, Value *vp)
 JS_FRIEND_API(bool)
 StringIsArrayIndex(JSLinearString *str, jsuint *indexp);
 
+JS_FRIEND_API(bool)
+IsObjectInContextCompartment(JSObject *obj, const JSContext *cx);
+
 /*
  * NB: these flag bits are encoded into the bytecode stream in the immediate
  * operand of JSOP_ITER, so don't change them without advancing jsxdrapi.h's

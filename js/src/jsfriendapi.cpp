@@ -200,6 +200,12 @@ js::CheckSlot(const JSObject *obj, size_t slot)
 }
 #endif
 
+JS_FRIEND_API(bool)
+js::IsObjectInContextCompartment(JSObject *obj, const JSContext *cx)
+{
+    return obj->compartment() == cx->compartment;
+}
+
 /*
  * The below code is for temporary telemetry use. It can be removed when
  * sufficient data has been harvested.
