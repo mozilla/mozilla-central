@@ -11,7 +11,7 @@ function postShutdownNotifications()
 {
   var observerService = Cc["@mozilla.org/observer-service;1"]
                           .getService(Components.interfaces.nsIObserverService);
-                          
+
   // first give everyone a heads up about us shutting down. if someone wants
   // to cancel this, our test should fail.
   var cancelQuit = Cc["@mozilla.org/supports-PRBool;1"]
@@ -20,9 +20,12 @@ function postShutdownNotifications()
   if (cancelQuit.data) {
     do_throw("Cannot shutdown: Someone cancelled the quit request!");
   }
-  
+
   // post all notifications in the right order. none of these are cancellable
-  var notifications = ["quit-application", "profile-change-net-teardown", "profie-change-teardown", "profile-before-change"];
+  var notifications = ["quit-application",
+                       "profile-change-net-teardown",
+                       "profile-change-teardown",
+                       "profile-before-change"];
   notifications.forEach(function(notification) {
                           observerService.notifyObservers(null, notification, null)
                         });
