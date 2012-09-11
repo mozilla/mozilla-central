@@ -1165,6 +1165,11 @@ const XMPPAccountPrototype = {
       let time = Math.floor(Date.now() / 1000) - this._idleSince;
       children.push(Stanza.node("query", Stanza.NS.last, {seconds: time}));
     }
+    if (this.prefs.prefHasUserValue("priority")) {
+      let priority = Math.max(-128, Math.min(127, this.getInt("priority")));
+      if (priority)
+        children.push(Stanza.node("priority", null, null, priority.toString()));
+    }
     this._connection.sendStanza(Stanza.presence({"xml:lang": "en"}, children));
   },
 

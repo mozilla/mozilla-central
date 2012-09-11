@@ -29,6 +29,7 @@ XMPPProtocol.prototype = {
   options: {
     resource: {get label() _("options.resource"),
                get default() XMPPDefaultResource},
+    priority: {get label() _("options.priority"), default: 0},
     connection_security: {
       get label() _("options.connectionSecurity"),
       listValues: {
