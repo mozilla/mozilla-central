@@ -3509,7 +3509,7 @@ function FeedSetContentView(val)
   }
 }
 
-function initAppMenuPopup()
+function initAppMenuPopup(aMenuPopup, aEvent)
 {
   file_init();
   view_init();
@@ -3518,4 +3518,11 @@ function initAppMenuPopup()
   CommandUpdate_UndoRedo();
   InitAppEditMessagesMenu();
   document.commandDispatcher.updateCommands('create-menu-tasks');
+
+  // If the onpopupshowing event's target is on one of the splitmenu
+  // menuitem popups, stash that popup in aMenuPopup (the menupopup one
+  // level up) so that splitmenu knows which popup to close when it opens
+  // up it's popupmenu.
+  if (aEvent.target.parentNode.parentNode.parentNode.parentNode == aMenuPopup)
+    aMenuPopup._currentPopup = aEvent.target;
 }

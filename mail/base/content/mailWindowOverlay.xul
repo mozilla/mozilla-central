@@ -2030,7 +2030,7 @@
                    label="&appmenuButton.label;"
                    tooltiptext="&appmenuButton.tooltip;">
       <menupopup id="appmenu-popup"
-                 onpopupshowing="initAppMenuPopup();">
+                 onpopupshowing="initAppMenuPopup(this, event);">
         <hbox>
           <vbox id="appmenuPrimaryPane">
             <splitmenu id="appmenu_newMessage"
