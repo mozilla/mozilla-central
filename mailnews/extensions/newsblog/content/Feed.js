@@ -146,9 +146,9 @@ Feed.prototype =
     let lastModified = this.lastModified;
     // Some servers, if sent If-Modified-Since, will send 304 if subsequently
     // not sent If-Modified-Since, as in the case of an unsubscribe and new
-    // subscribe.  Send 1 to force a download.
+    // subscribe.  Send start of epoch date to force a download.
     this.request.setRequestHeader("If-Modified-Since",
-                                  lastModified ? lastModified : 1);
+                                  lastModified ? lastModified : FeedUtils.EPOCHDATE);
 
     // Only order what you're going to eat...
     this.request.responseType = "document";

@@ -72,6 +72,8 @@ var FeedUtils = {
   // The delay is currently one day.
   INVALID_ITEM_PURGE_DELAY: 24 * 60 * 60 * 1000,
 
+  EPOCHDATE: "Thu, 01 Jan 1970 00:00:00 GMT",
+
   // The delimiter used to delimit feed urls in the folder's "feedUrl" property.
   kFeedUrlDelimiter: "|",
   kBiffMinutesDefault: 100,
