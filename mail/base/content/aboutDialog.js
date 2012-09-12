@@ -232,7 +232,7 @@ appUpdater.prototype =
   // true when updating in background is enabled.
   get backgroundUpdateEnabled() {
     return this.updateEnabled &&
-           Services.prefs.getBoolPref("app.update.stage.enabled");
+           Services.prefs.getBoolPref("app.update.staging.enabled");
   },
 
   // true when updating is automatic.
