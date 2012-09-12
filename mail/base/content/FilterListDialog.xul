@@ -135,7 +135,6 @@
                       oncommand="onTargetSelect(event);">
               <menupopup id="runFiltersPopup"
                          type="folder"
-                         mode="filing"
                          showFileHereLabel="true"
                          fileHereLabel="&filemessageschoosethis.label;"/>
             </menulist>
