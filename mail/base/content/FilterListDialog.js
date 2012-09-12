@@ -145,7 +145,7 @@ function setFolder(msgFolder)
 
    // Select the first item in the list, if there is one.
    var list = document.getElementById("filterList");
-   if (list.getRowCount())
+   if (list.itemCount > 0)
      list.selectItem(list.getItemAtIndex(0));
 
    // This will get the deferred to account root folder, if server is deferred.
@@ -196,7 +196,7 @@ function toggleFilter(aFilter, aIndex)
     aFilter.enabled = !aFilter.enabled;
 
     // Now update the appropriate row
-    var row = document.getElementById("filterList").childNodes[aIndex + 1];
+    let row = document.getElementById("filterList").getItemAtIndex(aIndex);
     row.childNodes[1].setAttribute("enabled", aFilter.enabled);
 }
 
@@ -210,16 +210,23 @@ function selectFolder(aFolder)
     setFolder(aFolder);
 }
 
+/**
+ * Returns the currently selected filter. If multiple filters are selected,
+ * returns the first one. If none are selected, returns null.
+ */
 function currentFilter()
 {
-    var currentItem = document.getElementById("filterList").selectedItem;
+    let currentItem = document.getElementById("filterList").selectedItem;
     return currentItem ? currentItem._filter : null;
 }
 
 function onEditFilter()
 {
-  var selectedFilter = currentFilter();
-  var args = {filter: selectedFilter, filterList: gCurrentFilterList};
+  let selectedFilter = currentFilter();
+  if (!selectedFilter)
+    return;
+
+  let args = {filter: selectedFilter, filterList: gCurrentFilterList};
 
   window.openDialog("chrome://messenger/content/FilterEditor.xul", "FilterEditor", "chrome,modal,titlebar,resizable,centerscreen", args);
 
@@ -233,7 +240,6 @@ function onEditFilter()
 function onNewFilter(emailAddress)
 {
   let list = document.getElementById("filterList");
-  let filterNodes = list.childNodes;
   let selectedFilter = currentFilter();
   // If no filter is selected use the first position.
   let position = 0;
@@ -294,9 +300,7 @@ function onDeleteFilter()
      prefBranch.setBoolPref("mailnews.filters.confirm_delete", false);
 
   // Save filter position before the first selected one.
-  let newSelection = items[0].previousElementSibling;
-  if (newSelection == list.childNodes[0])
-    newSelection = null;
+  let newSelectionIndex = list.selectedIndex - 1;
 
   // Must reverse the loop, as the items list shrinks when we delete.
   for (let index = items.length - 1; index >= 0; --index) {
@@ -307,10 +311,10 @@ function onDeleteFilter()
   updateCountBox();
 
   // Select filter above previously selected if one existed, otherwise the first one.
-  if (!newSelection && list.itemCount)
-    newSelection = list.childNodes[1];
-  if (newSelection) {
-    list.addItemToSelection(newSelection);
+  if (newSelectionIndex == -1 && list.itemCount > 0)
+    newSelectionIndex = 0;
+  if (newSelectionIndex > -1) {
+    list.selectedIndex = newSelectionIndex;
     updateViewPosition(-1);
   }
 }
@@ -549,7 +553,7 @@ function rebuildFilterList()
 
   let listitem, nameCell, enabledCell, filter;
   let filterCount = gCurrentFilterList.filterCount;
-  let listitemCount = list.getRowCount();
+  let listitemCount = list.itemCount;
   let listitemIndex = 0;
   let tempFilterListLength = aTempFilterList ? aTempFilterList.length - 1 : 0;
   for (let i = 0; i < filterCount; i++) {
@@ -662,10 +666,10 @@ function updateButtons()
     // don't use list.currentIndex here, it's buggy when we've just changed the
     // children in the list (via rebuildFilterList)
     var upDisabled = !(oneFilterSelected &&
-                       list.selectedItems[0] != list.childNodes[1]);
+                       list.getSelectedItem(0) != list.getItemAtIndex(0));
     document.getElementById("reorderUpButton").disabled = upDisabled
     // "down" enabled only if one filter selected, and it's not the last
-    var downDisabled = !(oneFilterSelected && list.currentIndex < list.getRowCount()-1);
+    var downDisabled = !(oneFilterSelected && list.selectedIndex < list.itemCount - 1);
     document.getElementById("reorderDownButton").disabled = downDisabled;
 
     // special buttons
@@ -879,7 +883,7 @@ function updateCountBox()
   let countBox = document.getElementById("countBox");
   let sum = gCurrentFilterList.filterCount;
   let filterList = document.getElementById("filterList");
-  let len = filterList.getRowCount();
+  let len = filterList.itemCount;
 
   let bundle = document.getElementById("bundle_filter");
 
