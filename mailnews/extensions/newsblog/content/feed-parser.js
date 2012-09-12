@@ -503,7 +503,7 @@ FeedParser.prototype =
       item.author = author || item.author || aFeed.title;
 
       tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_IETF_NS, "updated");
-      if (!tags)
+      if (!tags && source)
         tags = this.childrenByTagNameNS(source, FeedUtils.ATOM_IETF_NS, "published");
       item.date = this.getNodeValue(tags ? tags[0] : null) || item.date;
 
@@ -631,6 +631,9 @@ FeedParser.prototype =
 
   findAtomLink: function(linkRel, linkElements)
   {
+    if (!linkElements)
+      return null;
+
     // XXX Need to check for MIME type and hreflang.
     for (let j = 0; j < linkElements.length; j++) {
       let alink = linkElements[j];
