@@ -66,23 +66,23 @@ inline nsCOMPtr<calITimezoneService> getTimezoneService() {
 /**
  * Logs an error.
  */
-nsresult logError(PRUnichar const* msg);
+nsresult logError(const nsAString& msg);
 inline nsresult logError(char const* msg) {
-    return logError(NS_ConvertASCIItoUTF16(msg).get());
+    return logError(NS_ConvertASCIItoUTF16(msg));
 }
 inline nsresult logError(nsACString const& msg) {
-    return logError(NS_ConvertASCIItoUTF16(msg).get());
+    return logError(NS_ConvertASCIItoUTF16(msg));
 }
 
 /**
  * Logs a warning.
  */
-nsresult logWarning(PRUnichar const* msg);
+nsresult logWarning(const nsAString& msg);
 inline nsresult logWarning(char const* msg) {
-    return logWarning(NS_ConvertASCIItoUTF16(msg).get());
+    return logWarning(NS_ConvertASCIItoUTF16(msg));
 }
 inline nsresult logWarning(nsACString const& msg) {
-    return logWarning(NS_ConvertASCIItoUTF16(msg).get());
+    return logWarning(NS_ConvertASCIItoUTF16(msg));
 }
 
 /**

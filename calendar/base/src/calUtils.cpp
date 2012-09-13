@@ -12,19 +12,19 @@ extern "C" {
 
 namespace cal {
 
-nsresult logError(PRUnichar const* msg) {
+nsresult logError(const nsAString& msg) {
     nsresult rc;
     nsCOMPtr<nsIScriptError> const scriptError(do_CreateInstance("@mozilla.org/scripterror;1", &rc));
     NS_ENSURE_SUCCESS(rc, rc);
-    rc = scriptError->Init(msg, nullptr, nullptr, 0, 0, nsIScriptError::errorFlag, "calendar");
+    rc = scriptError->Init(msg, EmptyString(), EmptyString(), 0, 0, nsIScriptError::errorFlag, "calendar");
     return getConsoleService()->LogMessage(scriptError);
 }
 
-nsresult logWarning(PRUnichar const* msg) {
+nsresult logWarning(const nsAString& msg) {
     nsresult rc;
     nsCOMPtr<nsIScriptError> const scriptError(do_CreateInstance("@mozilla.org/scripterror;1", &rc));
     NS_ENSURE_SUCCESS(rc, rc);
-    rc = scriptError->Init(msg, nullptr, nullptr, 0, 0, nsIScriptError::warningFlag, "calendar");
+    rc = scriptError->Init(msg, EmptyString(), EmptyString(), 0, 0, nsIScriptError::warningFlag, "calendar");
     return getConsoleService()->LogMessage(scriptError);
 }
 
@@ -62,7 +62,7 @@ void logMissingTimezone(char const* tzid) {
     nsString msg(NS_LITERAL_STRING("Timezone \""));
     msg += NS_ConvertUTF8toUTF16(tzid);
     msg += NS_LITERAL_STRING("\" not found, falling back to floating!");
-    logError(msg.get());
+    logError(msg);
 }
 
 icaltimezone * getIcalTimezone(calITimezone * tz) {
