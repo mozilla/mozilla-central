@@ -2,9 +2,6 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-/* Prerequisites:
-   gServer - server.incomingServer defined in the calling page
- */
 
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
@@ -34,22 +31,10 @@ function BrowseForLocalFolders()
   // Retrieve the selected folder.
   let selectedFolder = fp.file;
 
-  // check that no other account/server has this same local directory
-  let allServers = MailServices.accounts.allServers;
-  for (let i = allServers.Count(); --i >= 0;) {
-    let currentServer = allServers
-      .QueryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
-    if (currentServer.key == gServer.key)
-      continue;
+  // Check if the folder can be used for mail storage.
+  if (!top.checkDirectoryIsUsable(selectedFolder))
+    return;
 
-    if (currentServer.localPath.equals(selectedFolder)) {
-      let dirAlreadyUsed = top.document.getElementById("bundle_prefs")
-                              .getFormattedString("directoryUsedByOtherAccount",
-                                                  [currentServer.prettyName]);
-      Services.prompt.alert(window, null, dirAlreadyUsed);
-      return;
-    }
-  }
   currentFolderTextBox.value = selectedFolder.path;
 }
 

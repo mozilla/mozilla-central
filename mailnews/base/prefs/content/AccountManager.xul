@@ -16,7 +16,7 @@
         buttons="accept,cancel"
         onload="onLoad(event);"
         onunload="onUnload();"
-        ondialogaccept="return onAccept();">
+        ondialogaccept="return onAccept(true);">
 <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
 <stringbundle id="bundle_prefs" src="chrome://messenger/locale/prefs.properties"/>
 <script type="application/javascript" src="chrome://messenger/content/amUtils.js"/>

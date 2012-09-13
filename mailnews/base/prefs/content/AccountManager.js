@@ -120,7 +120,7 @@ function onUnload() {
   gAccountTree.unload();
 }
 
-function selectServer(server, selectPage)
+function selectServer(server, selectPageId)
 {
   let childrenNode = document.getElementById("account-tree-children");
 
@@ -129,7 +129,7 @@ function selectServer(server, selectPage)
 
   // Find the tree-node for the account we want to select
   if (server) {
-    for (var i = 0; i < childrenNode.childNodes.length; i++) {
+    for (let i = 0; i < childrenNode.childNodes.length; i++) {
       let account = childrenNode.childNodes[i]._account;
       if (account && server == account.incomingServer) {
         accountNode = childrenNode.childNodes[i];
@@ -138,19 +138,25 @@ function selectServer(server, selectPage)
     }
   }
 
-  var pageToSelect = accountNode;
-  if (selectPage) {
-    // Find the page that also corresponds to this server
-    var pages = accountNode.getElementsByAttribute("PageTag", selectPage);
-    pageToSelect = pages[0];
+  let pageToSelect = accountNode;
+
+  if (selectPageId) {
+    // Find the page that also corresponds to this server.
+    // It either is the accountNode itself...
+    let pageId = accountNode.getAttribute("PageTag");
+    if (pageId != selectPageId) {
+      // ... or one of its children.
+      let pages = accountNode.getElementsByAttribute("PageTag", selectPageId);
+      pageToSelect = pages[0];
+    }
   }
 
-  var accountTree = document.getElementById("accounttree");
-  var index = accountTree.contentView.getIndexOfItem(pageToSelect);
+  let accountTree = document.getElementById("accounttree");
+  let index = accountTree.contentView.getIndexOfItem(pageToSelect);
   accountTree.view.selection.select(index);
   accountTree.treeBoxObject.ensureRowIsVisible(index);
 
-  var lastItem = accountNode.lastChild.lastChild;
+  let lastItem = accountNode.lastChild.lastChild;
   if (lastItem.localName == "treeitem")
     index = accountTree.contentView.getIndexOfItem(lastItem);
 
@@ -187,14 +193,23 @@ function replaceWithDefaultSmtpServer(deletedSmtpServerKey)
   }
 }
 
-function onAccept() {
-  // Check if user/host have been modified correctly.
-  if (!checkUserServerChanges(true))
-    return false;
+/**
+ * Called when OK is clicked on the dialog.
+ *
+ * @param aDoChecks  If true, execute checks on data, otherwise hope they
+ *                   were already done elsewhere and proceed directly to saving
+ *                   the data.
+ */
+function onAccept(aDoChecks) {
+  if (aDoChecks) {
+    // Check if user/host have been modified correctly.
+    if (!checkUserServerChanges(true))
+      return false;
 
-  if (gSmtpHostNameIsIllegal) {
-    gSmtpHostNameIsIllegal = false;
-    return false;
+    if (gSmtpHostNameIsIllegal) {
+      gSmtpHostNameIsIllegal = false;
+      return false;
+    }
   }
 
   if (!onSave())
@@ -207,6 +222,100 @@ function onAccept() {
     gRestartNeeded = !Application.restart();
     // returns false so that Account manager is not exited when restart failed
     return !gRestartNeeded;
+  }
+
+  return true;
+}
+
+/**
+ * See if the given path to a directory is usable on the current OS.
+ *
+ * aLocalPath  the nsIFile of a directory to check.
+ */
+function checkDirectoryIsValid(aLocalPath) {
+  // Any directory selected in the file picker already exists.
+  // Any directory specified in prefs.js will be created at start if it does
+  // not exist yet.
+  // If at the time of entering Account Manager the directory does not exist,
+  // it must be invalid in the current OS or not creatable due to permissions.
+  // Even then, the backend sometimes tries to create a new one
+  // under the current profile.
+  if (!aLocalPath.exists() || !aLocalPath.isDirectory())
+    return false;
+
+  if (Services.appinfo.OS == "WINNT") {
+    // Do not allow some special filenames on Windows.
+    // Taken from mozilla/widget/windows/nsDataObj.cpp::MangleTextToValidFilename()
+    let dirLeafName = aLocalPath.leafName;
+    const kForbiddenNames = [
+      "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+      "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+      "CON", "PRN", "AUX", "NUL", "CLOCK$" ];
+    if (kForbiddenNames.indexOf(dirLeafName) != -1)
+      return false;
+  }
+
+  // The directory must be readable and writable to work as a mail store.
+  if (!(aLocalPath.isReadable() && aLocalPath.isWritable()))
+    return false;
+
+  return true;
+}
+
+/**
+ * Check if the specified directory does meet all the requirements
+ * for safe mail storage.
+ *
+ * aLocalPath  the nsIFile of a directory to check.
+ */
+function checkDirectoryIsUsable(aLocalPath) {
+  const kAlertTitle = document.getElementById("bundle_prefs")
+                              .getString("prefPanel-server");
+  let invalidPath = false;
+  try{
+    aLocalPath.normalize();
+  } catch (e) { invalidPath = true; }
+
+  if (invalidPath || !checkDirectoryIsValid(aLocalPath)) {
+    let alertString = document.getElementById("bundle_prefs")
+                              .getString("localDirectoryInvalid");
+    Services.prompt.alert(window, kAlertTitle, alertString);
+    return false;
+  }
+
+  // Check that no other account has this same or dependent local directory.
+  let allServers = MailServices.accounts.allServers;
+
+  for each (let server in fixIterator(allServers,
+                                      Components.interfaces.nsIMsgIncomingServer))
+  {
+    if (server.key == currentAccount.incomingServer.key)
+      continue;
+
+    let serverPath = server.localPath;
+    try {
+      serverPath.normalize();
+      let alertStringID = null;
+      if (serverPath.equals(aLocalPath))
+        alertStringID = "directoryAlreadyUsedByOtherAccount";
+      else if (serverPath.contains(aLocalPath, true))
+        alertStringID = "directoryParentUsedByOtherAccount";
+      else if (aLocalPath.contains(serverPath, true))
+        alertStringID = "directoryChildUsedByOtherAccount";
+
+      if (alertStringID) {
+        let alertString = document.getElementById("bundle_prefs")
+                                  .getFormattedString(alertStringID,
+                                                      [server.prettyName]);
+
+        Services.prompt.alert(window, kAlertTitle, alertString);
+        return false;
+      }
+    } catch (e) {
+      // The other account's path is seriously broken, so we can't compare it.
+      Components.utils.reportError("The Local Directory path of the account " +
+        server.prettyName + " seems invalid.");
+    }
   }
 
   return true;
@@ -297,7 +406,9 @@ function checkUserServerChanges(showAlert) {
       if (checkUser)
         setFormElementValue(pageElements[uIndx], oldUser);
       setFormElementValue(pageElements[hIndx], oldHost);
-      return false;
+      // If no message is shown to the user, silently revert the values
+      // and consider the check a success.
+      return !showAlert;
     }
 
     // If username is changed remind users to change Your Name and Email Address.
@@ -319,6 +430,17 @@ function checkUserServerChanges(showAlert) {
 
       if (changeText != "")
         Services.prompt.alert(window, alertTitle, changeText.trim());
+    }
+  }
+
+  // Check the new value of the server.localPath field for validity.
+  for (let i = 0; i < pageElements.length; i++) {
+    if (pageElements[i].id) {
+      if (pageElements[i].id == "server.localPath") {
+        if (!checkDirectoryIsUsable(getFormElementValue(pageElements[i])))
+          return false;
+        break;
+      }
     }
   }
 
@@ -725,15 +847,23 @@ function onAccountTreeSelect(pageId, account)
   if (pageId == currentPageId && account == currentAccount)
     return true;
 
-  // check if user/host names have been changed
-  checkUserServerChanges(false);
+  if (document.getElementById("contentFrame").contentDocument.getElementById("server.localPath")) {
+    // Check if user/host names have been changed or the Local Directory is invalid.
+    if (!checkUserServerChanges(false)) {
+      changeView = true;
+      account = currentAccount;
+      pageId = currentPageId;
+    }
 
-  if (gSmtpHostNameIsIllegal) {
-    gSmtpHostNameIsIllegal = false;
-    selectServer(currentAccount.incomingServer, currentPageId);
-    return true;
+    if (gSmtpHostNameIsIllegal) {
+      gSmtpHostNameIsIllegal = false;
+      selectServer(currentAccount.incomingServer, currentPageId);
+      return true;
+    }
+
+    if (gRestartNeeded)
+      onAccept(false);
   }
-
   // save the previous page
   savePage(currentAccount);
 
