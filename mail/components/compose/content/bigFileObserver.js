@@ -263,11 +263,17 @@ var gBigFileObserver = {
 
     let message = this.formatString("cloudFileUploadingNotification");
     message = PluralForm.get(aAttachments.length, message);
-
+    let showUploadButton = {
+      accessKey: this.formatString("stopShowingUploadingNotification.accesskey"),
+      label: this.formatString("stopShowingUploadingNotification.label"),
+      callback: function (aNotificationBar, aButton)
+      {
+        Services.prefs.setBoolPref("mail.compose.big_attachments.insert_notification", false);
+      }
+    };
     notification = nb.appendNotification(message, kUploadNotificationValue,
                                          "null", nb.PRIORITY_WARNING_MEDIUM,
-                                         null);
-
+                                         [showUploadButton]);
     notification.timeout = Date.now() + kThreshold;
   },
 
