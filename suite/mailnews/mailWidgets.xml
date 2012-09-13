@@ -1595,7 +1595,8 @@
       </constructor>
     </implementation>
     <handlers>
-      <handler event="keypress" keycode="VK_RETURN" action="onEnterInSearchTerm();"/>
+      <handler event="keypress" keycode="VK_RETURN" modifiers="accel any"
+               action="onEnterInSearchTerm(event);" preventdefault="true"/>
     </handlers>
   </binding>
 

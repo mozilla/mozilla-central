@@ -135,9 +135,15 @@ function filterEditorOnUnload()
     MailServices.mailSession.RemoveFolderListener(gFolderListener);
 }
 
-function onEnterInSearchTerm()
+function onEnterInSearchTerm(event)
 {
-  // do nothing.  onOk() will get called since this is a dialog
+  if (event.ctrlKey || (Services.appinfo.OS == "Darwin" && event.metaKey)) {
+    // If accel key (Ctrl on Win/Linux, Cmd on Mac) was held too, accept the dialog.
+    document.getElementById("FilterEditor").acceptDialog();
+  } else {
+    // If only plain Enter was pressed, add a new rule line.
+    onMore(event);
+  }
 }
 
 function onAccept()
