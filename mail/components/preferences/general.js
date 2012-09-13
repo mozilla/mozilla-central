@@ -111,13 +111,14 @@ var gGeneralPane = {
 
     // XXX todo, persist the last sound directory and pass it in
     fp.init(window, document.getElementById("bundlePreferences").getString("soundFilePickerTitle"), nsIFilePicker.modeOpen);
-    fp.appendFilter("*.wav", "*.wav");
     
-    // On Mac, allow AIFF files too
-    if (Application.platformIsMac) {
-      fp.appendFilter("*.aif", "*.aif");
-      fp.appendFilter("*.aiff", "*.aiff");
-    }
+    // On Mac, allow AIFF and CAF files too
+    var bundlePrefs = document.getElementById("bundlePreferences");
+    var soundFilesText = bundlePrefs.getString("soundFilesDescription");
+    if (Application.platformIsMac)
+      fp.appendFilter(soundFilesText, "*.wav; *.aif; *.aiff; *.caf");
+    else
+      fp.appendFilter(soundFilesText, "*.wav");
 
     var ret = fp.show();
     if (ret == nsIFilePicker.returnOK) 
