@@ -30,7 +30,6 @@ Cu.import("resource:///modules/socket.jsm");
  *              address (e.g. 3ffe:1900:4545:3:200:f8ff:fe21:67cf).
  */
 function ircMessage(aData) {
-  LOG(aData);
   let message = {rawMessage: aData};
   let temp, prefix;
 
