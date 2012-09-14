@@ -56,6 +56,8 @@
 #include "prmem.h"
 #include "nsIContent.h"
 #include "nsIPluginInstanceOwner.h"
+#include "nsContentUtils.h"
+#include "nsIScriptSecurityManager.h"
 
 #define NPRUNTIME_JSCLASS_NAME "NPObject JS wrapper class"
 
@@ -616,6 +618,27 @@ GetProperty(JSContext *cx, JSObject *obj, NPIdentifier id, jsval *rval)
   return ::JS_GetPropertyById(cx, obj, NPIdentifierToJSId(id), rval);
 }
 
+class AutoPushContextPrincipal
+{
+  public:
+    AutoPushContextPrincipal(JSContext *cx) : mCx(cx)
+    {
+        mSSM = nsContentUtils::GetSecurityManager();
+        if (!mSSM)
+            return;
+        mSSM->PushContextPrincipal(cx, NULL, mSSM->GetCxSubjectPrincipal(mCx));
+    }
+    ~AutoPushContextPrincipal()
+    {
+        if (mSSM)
+            mSSM->PopContextPrincipal(mCx);
+    }
+
+  private:
+    JSContext *mCx;
+    nsIScriptSecurityManager *mSSM;
+};
+
 // static
 bool
 nsJSObjWrapper::NP_HasMethod(NPObject *npobj, NPIdentifier id)
@@ -642,6 +665,7 @@ nsJSObjWrapper::NP_HasMethod(NPObject *npobj, NPIdentifier id)
 
   if (!ac.enter(cx, npjsobj->mJSObj))
     return false;
+  AutoPushContextPrincipal prinPush(cx);
 
   AutoJSExceptionReporter reporter(cx);
 
@@ -681,6 +705,7 @@ doInvoke(NPObject *npobj, NPIdentifier method, const NPVariant *args,
 
   if (!ac.enter(cx, npjsobj->mJSObj))
     return false;
+  AutoPushContextPrincipal prinPush(cx);
 
   AutoJSExceptionReporter reporter(cx);
 
@@ -796,6 +821,7 @@ nsJSObjWrapper::NP_HasProperty(NPObject *npobj, NPIdentifier id)
 
   if (!ac.enter(cx, npjsobj->mJSObj))
     return false;
+  AutoPushContextPrincipal prinPush(cx);
 
   NS_ASSERTION(NPIdentifierIsInt(id) || NPIdentifierIsString(id),
                "id must be either string or int!\n");
@@ -831,6 +857,7 @@ nsJSObjWrapper::NP_GetProperty(NPObject *npobj, NPIdentifier id,
 
   if (!ac.enter(cx, npjsobj->mJSObj))
     return false;
+  AutoPushContextPrincipal prinPush(cx);
 
   jsval v;
   return (GetProperty(cx, npjsobj->mJSObj, id, &v) &&
@@ -866,6 +893,7 @@ nsJSObjWrapper::NP_SetProperty(NPObject *npobj, NPIdentifier id,
 
   if (!ac.enter(cx, npjsobj->mJSObj))
     return false;
+  AutoPushContextPrincipal prinPush(cx);
 
   jsval v = NPVariantToJSVal(npp, cx, value);
   js::AutoValueRooter tvr(cx, v);
@@ -908,6 +936,7 @@ nsJSObjWrapper::NP_RemoveProperty(NPObject *npobj, NPIdentifier id)
 
   if (!ac.enter(cx, npjsobj->mJSObj))
     return false;
+  AutoPushContextPrincipal prinPush(cx);
 
   NS_ASSERTION(NPIdentifierIsInt(id) || NPIdentifierIsString(id),
                "id must be either string or int!\n");
@@ -963,6 +992,7 @@ nsJSObjWrapper::NP_Enumerate(NPObject *npobj, NPIdentifier **idarray,
 
   if (!ac.enter(cx, npjsobj->mJSObj))
     return false;
+  AutoPushContextPrincipal prinPush(cx);
 
   JSIdArray *ida = ::JS_Enumerate(cx, npjsobj->mJSObj);
   if (!ida) {
