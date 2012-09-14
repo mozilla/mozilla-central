@@ -42,7 +42,9 @@ function setupModule(module) {
 function subtest_check_archive_options_enabled(amc, index, isEnabled) {
   // XXX: This is pretty brittle, and assumes 1) that there are 8 items in each
   // account's tree, and 2) that the order of the accounts is as we expect.
-  click_account_tree_row(amc, index*8 + 2);
+  // The + 1 when index != 0 is for the line used by the IRC account,
+  // which is at the second position.
+  click_account_tree_row(amc, index * 8 + 2 + (index ? 1 : 0));
 
   let iframe = amc.window.document.getElementById("contentFrame");
   let button = iframe.contentDocument.getElementById("archiveHierarchyButton");
