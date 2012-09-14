@@ -234,10 +234,6 @@
                   this.addonInstallStarted(installInfo);
                 break;
 
-              case "dom-storage-warn-quota-exceeded":
-                this.checkUsage(aSubject.document.documentURIObject);
-                break;
-
               case "offline-cache-update-completed":
                 var doc = browser.contentDocument;
                 if (!doc.documentElement)
@@ -809,9 +805,7 @@
               return;
 
             var host = aURI.asciiHost;
-            var usage = Components.classes["@mozilla.org/dom/storagemanager;1"]
-                                  .getService(Components.interfaces.nsIDOMStorageManager)
-                                  .getUsage(host);
+            var usage = 0;
 
             var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                                       .getService(Components.interfaces.nsIIOService);
@@ -1421,7 +1415,6 @@
           os.addObserver(this, "addon-install-disabled", false);
           os.addObserver(this, "addon-install-failed", false);
           os.addObserver(this, "addon-install-started", false);
-          os.addObserver(this, "dom-storage-warn-quota-exceeded", false);
           os.addObserver(this, "offline-cache-update-completed", false);
           os.addObserver(this, "perm-changed", false);
 
@@ -1486,9 +1479,6 @@
             } catch (ex) {}
             try {
               os.removeObserver(this, "addon-install-started");
-            } catch (ex) {}
-            try {
-              os.removeObserver(this, "dom-storage-warn-quota-exceeded");
             } catch (ex) {}
             try {
               os.removeObserver(this, "offline-cache-update-completed");

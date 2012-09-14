@@ -71,8 +71,6 @@ function ClearOfflineAppCache()
     Services.cache.evictEntries(Components.interfaces.nsICache.STORE_OFFLINE);
   } catch(ex) {}
 
-  Services.domStorageManager.clearOfflineApps();
-
   UpdateActualCacheSize();
   UpdateOfflineApps();
 }
@@ -88,7 +86,7 @@ function _getOfflineAppUsage(aHost)
                            .getService(Components.interfaces.nsIApplicationCacheService);
   var groups = appCache.getGroups();
 
-  var usage = Services.domStorageManager.getUsage(aHost);
+  var usage = 0;
   for (let i = 0; i < groups.length; i++) {
     let uri = Services.io.newURI(groups[i], null, null);
     if (uri.asciiHost == aHost)
@@ -159,10 +157,6 @@ function RemoveOfflineApp()
       if (uri.asciiHost == host)
           appCache.getActiveCache(groups[i]).discard();
   }
-
-  // send out an offline-app-removed signal. The nsDOMStorage
-  // service will clear DOM storage for this host.
-  Services.obs.notifyObservers(null, "offline-app-removed", host);
 
   // remove the permission
   // Services.perms.remove(host, "offline-app");

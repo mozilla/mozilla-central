@@ -138,10 +138,6 @@ var Sanitizer = {
                                        .getService(Components.interfaces.nsICacheService);
           cacheService.evictEntries(Components.interfaces.nsICache.STORE_OFFLINE);
         } catch(ex) {}
-
-        var storageMgr = Components.classes["@mozilla.org/dom/storagemanager;1"]
-                                   .getService(Components.interfaces.nsIDOMStorageManager);
-        storageMgr.clearOfflineApps();
       },
 
       canClear: true
