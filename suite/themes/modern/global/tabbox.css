@@ -51,10 +51,6 @@ tab {
   font: menu;
 }
 
-tab[selected="true"] {
-  -moz-user-focus: normal;
-}
-
 .tab-text {
   margin: 0px !important;
 }
