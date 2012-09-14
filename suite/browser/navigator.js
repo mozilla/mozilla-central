@@ -240,10 +240,7 @@ function removeFormSubmitObserver(observer)
 
 function pageShowEventHandlers(event)
 {
-  // Filter out events that are not about the document load we are interested in
-  if (event.originalTarget == content.document) {
-    checkForDirectoryListing();
-  }
+  checkForDirectoryListing();
 }
 
 /**
@@ -503,7 +500,11 @@ function Startup()
   // (rjc note: not the entire window, otherwise we'll get sidebar pane loads too!)
   //  so we'll be notified when onloads complete.
   var contentArea = document.getElementById("appcontent");
-  contentArea.addEventListener("pageshow", pageShowEventHandlers, true);
+  contentArea.addEventListener("pageshow", function callPageShowHandlers(aEvent) {
+    // Filter out events that are not about the document load we are interested in.
+    if (aEvent.originalTarget == content.document)
+      setTimeout(pageShowEventHandlers, 0, aEvent);
+  }, true);
 
   // set default character set if provided
   if ("arguments" in window && window.arguments.length > 1 && window.arguments[1]) {
