@@ -129,6 +129,8 @@ components/nsPlacesDBFlush.js
 components/nsPostUpdateWin.js
 #endif
 components/nsProgressDialog.js
+components/nsProxyAutoConfig.js
+components/nsProxyAutoConfig.manifest
 components/nsResetPref.js
 components/nsScriptableIO.js
 components/nsSetDefaultBrowser.js
@@ -676,7 +678,6 @@ xpicleanup@BIN_SUFFIX@
   components/nsPlacesDBFlush.js
   components/nsPlacesExpiration.js
   components/nsPrompter.js
-  components/nsProxyAutoConfig.js
   components/nsSearchService.js
   components/nsSearchSuggestions.js
   components/nsSessionStartup.js

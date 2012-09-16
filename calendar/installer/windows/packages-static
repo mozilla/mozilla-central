@@ -216,7 +216,6 @@ bin\components\nsLoginInfo.js
 bin\components\nsLoginManager.js
 bin\components\nsLoginManagerPrompter.js
 bin\components\nsProgressDialog.js
-bin\components\nsProxyAutoConfig.js
 bin\components\nsTryToClose.js
 #ifdef MOZ_UPDATER
 bin\components\nsUpdateService.js

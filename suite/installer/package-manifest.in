@@ -413,8 +413,6 @@
 @BINPATH@/components/nsPlacesExpiration.js
 @BINPATH@/components/nsPrompter.js
 @BINPATH@/components/nsPrompter.manifest
-@BINPATH@/components/nsProxyAutoConfig.js
-@BINPATH@/components/nsProxyAutoConfig.manifest
 @BINPATH@/components/nsSearchService.js
 @BINPATH@/components/nsSearchSuggestions.js
 @BINPATH@/components/nsSessionStartup.js
