@@ -68,6 +68,8 @@ components/nsLDAPPrefsService.js
   components/nsPostUpdateWin.js
 #endif
 components/nsProgressDialog.js
+components/nsProxyAutoConfig.js
+components/nsProxyAutoConfig.manifest
 components/nsScriptableIO.js
 #ifdef XP_MACOSX
   components/nsSpotlightIntegration.js
@@ -467,7 +469,6 @@ regxpcom.exe
   components/nsPlacesDBFlush.js
   components/nsPlacesExpiration.js
   components/nsPrompter.js
-  components/nsProxyAutoConfig.js
   components/nsSMTPProtocolHandler.js
   components/nsSetDefaultMail.js
   components/nsTaggingService.js

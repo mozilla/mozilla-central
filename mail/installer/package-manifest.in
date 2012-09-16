@@ -574,8 +574,6 @@
 @BINPATH@/components/necko_websocket.xpt
 @BINPATH@/components/necko_wifi.xpt
 @BINPATH@/components/necko_wyciwyg.xpt
-@BINPATH@/components/nsProxyAutoConfig.js
-@BINPATH@/components/nsProxyAutoConfig.manifest
 
 ; extensions
 @BINPATH@/components/addonManager.js

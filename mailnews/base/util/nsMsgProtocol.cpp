@@ -24,7 +24,7 @@
 #include "prprf.h"
 #include "plbase64.h"
 #include "nsIStringBundle.h"
-#include "nsIProtocolProxyService.h"
+#include "nsIProtocolProxyService2.h"
 #include "nsIProxyInfo.h"
 #include "nsThreadUtils.h"
 #include "nsIPrefBranch.h"
@@ -181,7 +181,7 @@ nsMsgProtocol::OpenNetworkSocket(nsIURI * aURL, const char *connectionType,
 
   nsCOMPtr<nsIProxyInfo> proxyInfo;
 
-  nsCOMPtr<nsIProtocolProxyService> pps =
+  nsCOMPtr<nsIProtocolProxyService2> pps =
       do_GetService("@mozilla.org/network/protocol-proxy-service;1");
 
   NS_ASSERTION(pps, "Couldn't get the protocol proxy service!");
@@ -218,7 +218,7 @@ nsMsgProtocol::OpenNetworkSocket(nsIURI * aURL, const char *connectionType,
       //             our DNS resolver.
       //
       if (NS_SUCCEEDED(rv))
-          rv = pps->Resolve(proxyUri, 0, getter_AddRefs(proxyInfo));
+          rv = pps->DeprecatedBlockingResolve(proxyUri, 0, getter_AddRefs(proxyInfo));
       NS_ASSERTION(NS_SUCCEEDED(rv), "Couldn't successfully resolve a proxy");
       if (NS_FAILED(rv)) proxyInfo = nullptr;
   }

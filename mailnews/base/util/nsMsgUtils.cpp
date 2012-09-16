@@ -47,6 +47,7 @@
 #include "nsMsgFileStream.h"
 #include "nsIFileURL.h"
 #include "nsNetUtil.h"
+#include "nsIProtocolProxyService2.h"
 #include "nsIMsgDatabase.h"
 #include "nsIMutableArray.h"
 #include "nsIMsgMailNewsUrl.h"
@@ -2036,7 +2037,7 @@ MsgExamineForProxy(const char *scheme, const char *host,
                    int32_t port, nsIProxyInfo **proxyInfo)
 {
   nsresult rv;
-  nsCOMPtr<nsIProtocolProxyService> pps =
+  nsCOMPtr<nsIProtocolProxyService2> pps =
           do_GetService(NS_PROTOCOLPROXYSERVICE_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv)) {
     nsAutoCString spec(scheme);
@@ -2054,7 +2055,7 @@ MsgExamineForProxy(const char *scheme, const char *host,
     if (NS_SUCCEEDED(rv)) {
       rv = uri->SetSpec(spec);
       if (NS_SUCCEEDED(rv))
-        rv = pps->Resolve(uri, 0, proxyInfo);
+        rv = pps->DeprecatedBlockingResolve(uri, 0, proxyInfo);
     }
   }
   return rv;
