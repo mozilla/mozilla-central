@@ -106,7 +106,7 @@ treechildren::-moz-tree-cell-text(container, closed, hasUnread, read) {
 /* ::::: message column icons ::::: */
 
 .treecol-image image {
-  -moz-padding-end: 5px;
+  -moz-padding-end: 4px;
   padding-bottom: 3px;
 }
 
@@ -169,6 +169,7 @@ treechildren::-moz-tree-image(unreadButtonColHeader, unread) {
 
 treechildren::-moz-tree-image(attachmentCol, attach) {
   list-style-image: url("chrome://messenger/skin/icons/attachment-col.png");
+  -moz-margin-start: 3px;
 }
 
 /* ..... flag column ..... */

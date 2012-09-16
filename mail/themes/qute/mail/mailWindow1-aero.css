@@ -209,6 +209,10 @@ treechildren::-moz-tree-image(unreadButtonColHeader) {
   -moz-margin-start: -3px;
 }
 
+treechildren::-moz-tree-image(attachmentCol, attach) {
+  -moz-margin-start: 0px;
+}
+
 treechildren::-moz-tree-image(junkStatusCol) {
   -moz-margin-start: -3px;
 }
