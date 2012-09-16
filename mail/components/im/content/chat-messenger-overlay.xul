@@ -104,6 +104,7 @@
                  fullscreentoolbar="true"
                  customizable="true"
                  context="chat-toolbar-context-menu"
+                 mode="full"
 #ifdef XP_MACOSX
                  iconsize="small"
 #endif
