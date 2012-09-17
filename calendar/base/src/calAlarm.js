@@ -403,7 +403,7 @@ calAlarm.prototype = {
         if (this.related == ALARM_RELATED_ABSOLUTE && this.mAbsoluteDate) {
             // Set the trigger to a specific datetime
             triggerProp.setParameter("VALUE", "DATE-TIME");
-            triggerProp.valueAsDatetime = this.mAbsoluteDate.getInTimezone(UTC());
+            triggerProp.valueAsDatetime = this.mAbsoluteDate.getInTimezone(cal.UTC());
         } else if (this.related != ALARM_RELATED_ABSOLUTE && this.mOffset) {
             triggerProp.valueAsIcalString = this.mOffset.icalString;
             if (this.related == ALARM_RELATED_END) {

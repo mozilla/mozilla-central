@@ -207,3 +207,40 @@ calRecurrenceDate::SetIcalProperty(calIIcalProperty *aProp)
 
     return aProp->GetValueAsDatetime(getter_AddRefs(mDate));
 }
+
+NS_IMETHODIMP
+calRecurrenceDate::SetIcalString(const nsACString &str)
+{
+    nsresult rv = NS_OK;
+    nsCAutoString name;
+    nsCOMPtr<calIICSService> icsSvc = cal::getICSService();
+    nsCOMPtr<calIIcalProperty> prop;
+
+    rv = icsSvc->CreateIcalPropertyFromString(str, getter_AddRefs(prop));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = prop->GetPropertyName(name);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (!name.EqualsLiteral("RDATE") && !name.EqualsLiteral("EXDATE")) {
+        return NS_ERROR_ILLEGAL_VALUE;
+    }
+
+    return SetIcalProperty(prop);
+}
+
+NS_IMETHODIMP
+calRecurrenceDate::GetIcalString(nsACString &str)
+{
+    nsresult rv = NS_OK;
+
+    nsCOMPtr<calIIcalProperty> prop;
+
+    rv = this->GetIcalProperty(getter_AddRefs(prop));
+
+    if (NS_SUCCEEDED(rv)) {
+        rv = prop->GetIcalString(str);
+    }
+
+    return rv;
+}

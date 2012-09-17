@@ -7,7 +7,7 @@
 interface calIIcalProperty;
 interface calIItemBase;
 
-[scriptable,uuid(44a4eda2-539e-11de-a9ee-cc1556d89593)]
+[scriptable,uuid(77f0820a-2b49-4c8e-86bf-2b6bda46e391)]
 interface calIRelation : nsISupports
 {
     /**
@@ -28,8 +28,8 @@ interface calIRelation : nsISupports
      * The calIIcalProperty corresponding to this object.  Can be used for
      * serializing/unserializing from ics files.
      */
-
     attribute calIIcalProperty icalProperty;
+    attribute AUTF8String icalString;
 
     /**
      * For accessing additional parameters, such as x-params.

@@ -83,6 +83,7 @@ calAttendee.prototype = {
     set icalProperty (icalatt) {
         this.modify();
         this.id = icalatt.valueAsIcalString;
+        this.mIsOrganizer = (icalatt.propertyName == "ORGANIZER");
 
         let promotedProps = { };
         for each (let prop in this.icalAttendeePropMap) {
@@ -137,6 +138,19 @@ calAttendee.prototype = {
             }
         }
         return icalatt;
+    },
+
+    get icalString() {
+        let comp = this.icalProperty;
+        return (comp ? comp.icalString : "");
+    },
+    set icalString(val) {
+        let prop = cal.getIcsService().createIcalPropertyFromString(val);
+        if (prop.propertyName != "ORGANIZER" && prop.propertyName != "ATTENDEE") {
+            throw Components.results.NS_ERROR_ILLEGAL_VALUE;
+        }
+        this.icalProperty = prop;
+        return val;
     },
 
     get propertyEnumerator() { return this.mProperties.enumerator; },

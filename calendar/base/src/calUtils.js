@@ -9,95 +9,43 @@
 
 Components.utils.import("resource:///modules/Services.jsm");
 
-/**
- * Returns a clean new calIEvent
- *
- * @param aIcalString       (optional) The icalString to read event details from.
- */
-function createEvent(aIcalString) {
-    let event = Components.classes["@mozilla.org/calendar/event;1"]
-                          .createInstance(Components.interfaces.calIEvent);
-    if (aIcalString) {
-        event.icalString = aIcalString;
-    }
-    return event;
+function _calIcalCreator(cid, iid) {
+    return function(icalString) {
+        let thing = Components.classes[cid].createInstance(iid);
+        if (icalString) {
+            thing.icalString = icalString;
+        }
+        return thing;
+    };
 }
 
-/**
- * Returns a clean new calITodo
- *
- * @param aIcalString       (optional) The icalString to read task details from.
- */
-function createTodo(aIcalString) {
-    let todo = Components.classes["@mozilla.org/calendar/todo;1"]
-                         .createInstance(Components.interfaces.calITodo);
-    if (aIcalString) {
-        todo.icalString = aIcalString;
-    }
-    return todo;
-}
+let createEvent = _calIcalCreator("@mozilla.org/calendar/event;1",
+                                  Components.interfaces.calIEvent);
+let createTodo = _calIcalCreator("@mozilla.org/calendar/todo;1",
+                                 Components.interfaces.calITodo);
+let createDateTime  = _calIcalCreator("@mozilla.org/calendar/datetime;1",
+                                      Components.interfaces.calIDateTime);
+let createDuration = _calIcalCreator("@mozilla.org/calendar/duration;1",
+                                     Components.interfaces.calIDuration);
+let createAttendee = _calIcalCreator("@mozilla.org/calendar/attendee;1",
+                                     Components.interfaces.calIAttendee);
+let createAttachment = _calIcalCreator("@mozilla.org/calendar/attachment;1",
+                                       Components.interfaces.calIAttachment);
+let createAlarm = _calIcalCreator("@mozilla.org/calendar/alarm;1",
+                                  Components.interfaces.calIAlarm);
+let createRelation = _calIcalCreator("@mozilla.org/calendar/relation;1",
+                                     Components.interfaces.calIRelation);
+let createRecurrenceDate = _calIcalCreator("@mozilla.org/calendar/recurrence-date;1",
+                                           Components.interfaces.calIRecurrenceDate);
+let createRecurrenceRule = _calIcalCreator("@mozilla.org/calendar/recurrence-rule;1",
+                                           Components.interfaces.calIRecurrenceRule);
 
-/* Returns a clean new calIDateTime */
-function createDateTime(aIcalString) {
-    var dt = Components.classes["@mozilla.org/calendar/datetime;1"]
-                       .createInstance(Components.interfaces.calIDateTime);
-    if (aIcalString) {
-        dt.icalString = aIcalString;
-    }
-    return dt;
-}
-
-/* Returns a clean new calIDuration */
-function createDuration(aIcalString) {
-    var dur = Components.classes["@mozilla.org/calendar/duration;1"]
-                        .createInstance(Components.interfaces.calIDuration);
-    if (aIcalString) {
-        dur.icalString = aIcalString;
-    }
-    return dur;
-}
 /* Returns a clean new calIRecurrenceInfo */
 function createRecurrenceInfo(aItem) {
     var recInfo = Components.classes["@mozilla.org/calendar/recurrence-info;1"].
            createInstance(Components.interfaces.calIRecurrenceInfo);
     recInfo.item = aItem;
     return recInfo;
-}
-
-/* Returns a clean new calIRecurrenceRule */
-function createRecurrenceRule() {
-    return Components.classes["@mozilla.org/calendar/recurrence-rule;1"].
-           createInstance(Components.interfaces.calIRecurrenceRule);
-}
-
-/* Returns a clean new calIRecurrenceRule */
-function createRecurrenceDate() {
-    return Components.classes["@mozilla.org/calendar/recurrence-date;1"].
-           createInstance(Components.interfaces.calIRecurrenceDate);
-}
-
-/* Returns a clean new calIAttendee */
-function createAttendee() {
-    return Components.classes["@mozilla.org/calendar/attendee;1"].
-           createInstance(Components.interfaces.calIAttendee);
-}
-
-/* Returns a clean new calIAttachment */
-function createAttachment() {
-    return Components.classes["@mozilla.org/calendar/attachment;1"].
-           createInstance(Components.interfaces.calIAttachment);
-}
-
-/* Returns a clean new calIAlarm*/
-function createAlarm() {
-    return Components.classes["@mozilla.org/calendar/alarm;1"].
-           createInstance(Components.interfaces.calIAlarm);
-}
-
-/* Returns a clean new calIRelation */
-function createRelation() {
-    return Components.classes["@mozilla.org/calendar/relation;1"].
-           createInstance(Components.interfaces.calIRelation);
 }
 
 /* Shortcut to the console service */

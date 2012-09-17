@@ -216,7 +216,7 @@ interface calIIcsComponentParsingListener : nsISupports
     void onParsingComplete(in nsresult rc, in calIIcalComponent rootComp);
 };
 
-[scriptable,uuid(ae4ca6c3-981b-4f66-a0ce-2f2c218ad9e3)]
+[scriptable,uuid(ff407e5b-9780-4644-b594-b49f6612a9bf)]
 interface calIICSService : nsISupports
 {
     /**
@@ -248,6 +248,7 @@ interface calIICSService : nsISupports
 
     calIIcalComponent createIcalComponent(in AUTF8String kind);
     calIIcalProperty createIcalProperty(in AUTF8String kind);
+    calIIcalProperty createIcalPropertyFromString(in AUTF8String str);
     /* I wish I could write this function atop libical!
     boolean isLegalParameterValue(in AUTF8String paramKind,
                                   in AUTF8String paramValue);

@@ -119,8 +119,7 @@ calAttachment.prototype = {
     },
 
     get icalProperty() {
-        var icssvc = getIcsService();
-        var icalatt = icssvc.createIcalProperty("ATTACH");
+        let icalatt = cal.getIcsService().createIcalProperty("ATTACH");
 
         for each (let [key, value] in this.mProperties) {
             try {
@@ -149,12 +148,29 @@ calAttachment.prototype = {
         }
     },
 
+    get icalString() {
+        let comp = this.icalProperty;
+        return (comp ? comp.icalString : "");
+    },
+    set icalString(val) {
+        let prop = cal.getIcsService().createIcalPropertyFromString(val);
+        if (prop.propertyName != "ATTACH") {
+            throw Components.results.NS_ERROR_ILLEGAL_VALUE;
+        }
+        this.icalProperty = prop;
+        return val;
+    },
+
     getParameter: function (aName) {
         return this.mProperties.getProperty(aName);
     },
 
     setParameter: function (aName, aValue) {
-        return this.mProperties.setProperty(aName, aValue);
+        if (aValue || aValue === 0) {
+            return this.mProperties.setProperty(aName, aValue);
+        } else {
+            return this.mProperties.deleteProperty(aName);
+        }
     },
 
     deleteParameter: function (aName) {

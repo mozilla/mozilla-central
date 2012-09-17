@@ -72,7 +72,7 @@ Components.utils.import("resource://calendar/modules/calStorageHelpers.jsm");
 
 // The current database version. Be sure to increment this when you create a new
 // updater.
-var DB_SCHEMA_VERSION = 21;
+var DB_SCHEMA_VERSION = 22;
 
 var EXPORTED_SYMBOLS = ["DB_SCHEMA_VERSION", "getSql", "getAllSql", "getSqlTable", "upgradeDB", "backupDB"];
 
@@ -300,7 +300,6 @@ var removeFunction = createDBDelegate("removeFunction");
 var createFunction = createDBDelegate("createFunction");
 
 var lastErrorString = createDBDelegateGetter("lastErrorString");
-
 
 /**
  * Helper function to create an index on the database if it doesn't already
@@ -582,6 +581,59 @@ function addTable(tblData, tblName, def, db) {
     tblData[tblName] = def;
 
     executeSimpleSQL(db, getSql(tblName, tblData));
+}
+
+/**
+ * Migrates the given columns to a single icalString, using the (previously
+ * created) user function for processing.
+ *
+ * @param tblData       The table data object to apply the operation on.
+ * @param tblName       The table name to migrate.
+ * @param userFuncName  The name of the user function to call for migration
+ * @param oldColumns    An array of columns to migrate to the new icalString
+ *                        column
+ * @param db            (optional) The database to apply the operation on.
+ */
+function migrateToIcalString(tblData, tblName, userFuncName, oldColumns, db) {
+    addColumn(tblData, tblName, ["icalString"], "TEXT", db);
+    let updateSql =
+        "UPDATE " + tblName + " " +
+           "SET icalString = " + userFuncName + "(" + oldColumns.join(",") + ")";
+    executeSimpleSQL(db, updateSql);
+    deleteColumns(tblData, tblName, oldColumns, db);
+
+    // If null was returned, its an invalid attendee. Make sure to remove them,
+    // they might break things later on.
+    let cleanupSql = "DELETE FROM " + tblName + " WHERE icalString IS NULL";
+    executeSimpleSQL(db, cleanupSql);
+}
+
+/**
+ * Maps a mozIStorageValueArray to a JS array, converting types correctly.
+ *
+ * @param storArgs      The storage value array to convert
+ * @return              An array with the arguments as js values.
+ */
+function mapStorageArgs(storArgs) {
+    const mISVA = Components.interfaces.mozIStorageValueArray;
+    let mappedArgs = [];
+    for (let i = 0; i < storArgs.numEntries; i++) {
+        switch(storArgs.getTypeOfIndex(i)) {
+            case mISVA.VALUE_TYPE_NULL: mappedArgs.push(null); break;
+            case mISVA.VALUE_TYPE_INTEGER:
+                mappedArgs.push(storArgs.getInt64(i));
+                break;
+            case mISVA.VALUE_TYPE_FLOAT:
+                mappedArgs.push(storArgs.getDouble(i));
+                break;
+            case mISVA.VALUE_TYPE_TEXT:
+            case mISVA.VALUE_TYPE_BLOB:
+                mappedArgs.push(storArgs.getUTF8String(i));
+                break;
+        }
+    }
+
+    return mappedArgs;
 }
 
 /** Object holding upgraders */
@@ -1059,7 +1111,7 @@ upgrade.v16 = function upgrade_v16(db, version) {
             onFunctionCall: function translateAlarm(storArgs) {
                 try {
                     let [aOffset, aRelated, aAlarmTime, aTzId] =
-                        [0,1,2,3].map(function(i) storArgs.getUTF8String(i));
+                        mapStorageArgs(storArgs);
 
                     let alarm = cal.createAlarm();
                     if (aOffset) {
@@ -1390,3 +1442,194 @@ upgrade.v21 = function upgrade_v21(db, version) {
     }
     return tbl;
 }
+
+/**
+ * Bug 785733 - Move some properties to use icalString in database.
+ * Use the full icalString in attendees, attachments, relations and recurrence
+ * tables.
+ * r=mmecca, p=philipp
+ */
+upgrade.v22 = function upgrade_v22(db, version) {
+    let tbl = upgrade.v21(version < 21 && db, version);
+    LOGdb(db, "Storage: Upgrading to v22");
+    beginTransaction(db);
+    try {
+        // Update attachments to using icalString directly
+        createFunction(db, "translateAttachment", 3, {
+            onFunctionCall: function translateAttachment(storArgs) {
+                try {
+                    let [aData, aFmtType, aEncoding] = mapStorageArgs(storArgs);
+
+                    let attach = cal.createAttachment();
+                    attach.uri = cal.makeURL(aData);
+                    attach.formatType = aFmtType;
+                    attach.encoding = aEncoding;
+                    return attach.icalString;
+                } catch (e) {
+                    cal.ERROR("Error converting attachment: " + e);
+                    throw e;
+                }
+            }
+        });
+        migrateToIcalString(tbl, "cal_attachments", "translateAttachment",
+                           ["data", "format_type", "encoding"], db);
+
+        // Update relations to using icalString directly
+        createFunction(db, "translateRelation", 2, {
+            onFunctionCall: function translateAttachment(storArgs) {
+                try {
+                    let [aRelType, aRelId] = mapStorageArgs(storArgs);
+                    let relation = cal.createRelation();
+                    relation.relType = aRelType;
+                    relation.relId = aRelId;
+                    return relation.icalString;
+                } catch (e) {
+                    cal.ERROR("Error converting relation: " + e);
+                    throw e;
+                }
+            }
+        });
+        migrateToIcalString(tbl, "cal_relations", "translateRelation",
+                           ["rel_type", "rel_id"], db);
+
+        // Update attendees table to using icalString directly
+        createFunction(db, "translateAttendee", 8, {
+            onFunctionCall: function translateAttachment(storArgs) {
+                try {
+                    let [aAttendeeId, aCommonName, aRsvp, aRole,
+                         aStatus, aType, aIsOrganizer, aProperties] =
+                         mapStorageArgs(storArgs);
+
+                    let attendee = cal.createAttendee();
+
+                    attendee.id = aAttendeeId;
+                    attendee.commonName = aCommonName;
+
+                    if (aRsvp === 0) attendee.rsvp = "FALSE";
+                    if (aRsvp === 1) attendee.rsvp = "TRUE";
+                    // default: keep undefined
+
+                    attendee.role = aRole;
+                    attendee.participationStatus = aStatus;
+                    attendee.userType = aType;
+                    attendee.isOrganizer = !!aIsOrganizer;
+                    if (aProperties) {
+                        for each (let pair in aProperties.split(",")) {
+                            let [key, value] = pair.split(":");
+                            attendee.setProperty(decodeURIComponent(key),
+                                                 decodeURIComponent(value));
+                        }
+                    }
+
+                    return attendee.icalString;
+                } catch (e) {
+                    // There are some attendees with a null ID. We are taking
+                    // the opportunity to remove them here.
+                    cal.ERROR("Error converting attendee, removing: " + e);
+                    return null;
+                }
+            }
+        });
+        migrateToIcalString(tbl, "cal_attendees", "translateAttendee",
+                            ["attendee_id", "common_name", "rsvp", "role",
+                             "status", "type", "is_organizer", "properties"], db);
+
+        // Update recurrence table to using icalString directly
+        createFunction(db, "translateRecurrence", 17, {
+            onFunctionCall: function translateRecurrence(storArgs) {
+                try {
+                    let [aIndex, aType, aIsNegative, aDates, aCount,
+                         aEndDate, aInterval, aSecond, aMinute, aHour,
+                         aDay, aMonthday, aYearday, aWeekno, aMonth,
+                         aSetPos, aTmpFlags] = mapStorageArgs(storArgs);
+
+                    let ritem;
+                    if (aType == "x-date") {
+                        ritem = Components.classes["@mozilla.org/calendar/recurrence-date;1"]
+                                          .createInstance(Components.interfaces.calIRecurrenceDate);
+                        ritem.date = textToDate(aDates);
+                        ritem.isNegative = !!aIsNegative;
+                    } else {
+                        ritem = cal.createRecurrenceRule();
+                        ritem.type = aType;
+                        ritem.isNegative = !!aIsNegative;
+                        if (aCount) {
+                            try {
+                                ritem.count = aCount;
+                            } catch (exc) {
+                            }
+                        } else {
+                            if (aEndDate) {
+                                let allday = ((aTmpFlags & CAL_ITEM_FLAG.EVENT_ALLDAY) != 0);
+                                let untilDate = newDateTime(aEndDate, allday ? "" : "UTC");
+                                if (allday) {
+                                    untilDate.isDate = true;
+                                }
+                                ritem.untilDate = untilDate;
+                            } else {
+                                ritem.untilDate = null;
+                            }
+                        }
+                        try {
+                            ritem.interval = aInterval;
+                        } catch (exc) {
+                        }
+
+                        let rtypes = {
+                            SECOND: aSecond,
+                            MINUTE: aMinute,
+                            HOUR: aHour,
+                            DAY: aDay,
+                            MONTHDAY: aMonthday,
+                            YEARDAY: aYearday,
+                            WEEKNO: aWeekno,
+                            MONTH: aMonth,
+                            SETPOS: aSetPos
+                        };
+
+                        function parseInt10(x) parseInt(x, 10);
+                        for (let rtype in rtypes) {
+                            if (rtypes[rtype]) {
+                                let comp = "BY" + rtype;
+                                let rstr = rtypes[rtype].toString()
+                                let rarray = rstr.split(",").map(parseInt10);
+                                ritem.setComponent(comp, rarray.length, rarray);
+                            }
+                        }
+                    }
+
+                    return ritem.icalString;
+                } catch (e) {
+                    cal.ERROR("Error converting recurrence: " + e);
+                    throw e;
+                }
+            }
+        });
+
+        // The old code relies on the item allday state, we need to temporarily
+        // copy this into the rec table so the above function can update easier.
+        // This column will be deleted during the migrateToIcalString call.
+        addColumn(tbl, "cal_recurrence", ["tmp_date_tz"], "", db);
+        executeSimpleSQL(db, "UPDATE cal_recurrence SET tmp_date_tz = " +
+                               "(SELECT e.flags " +
+                                  "FROM cal_events AS e " +
+                                 "WHERE e.id = cal_recurrence.item_id " +
+                                   "AND e.cal_id = cal_recurrence.cal_id " +
+                                 "UNION " +
+                                "SELECT t.flags " +
+                                  "FROM cal_todos AS t " +
+                                 "WHERE t.id = cal_recurrence.item_id " +
+                                   "AND t.cal_id = cal_recurrence.cal_id)");
+
+        migrateToIcalString(tbl, "cal_recurrence", "translateRecurrence",
+                            ["recur_index", "recur_type", "is_negative",
+                             "dates", "count", "end_date", "interval", "second",
+                             "minute", "hour", "day", "monthday", "yearday",
+                             "weekno", "month", "setpos", "tmp_date_tz"], db);
+
+        setDbVersionAndCommit(db, 22);
+    } catch (e) {
+        throw reportErrorAndRollback(db, e);
+    }
+    return tbl;
+};

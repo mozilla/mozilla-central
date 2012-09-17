@@ -113,6 +113,19 @@ calRelation.prototype = {
         }
     },
 
+    get icalString() {
+        let comp = this.icalProperty;
+        return (comp ? comp.icalString : "");
+    },
+    set icalString(val) {
+        let prop = cal.getIcsService().createIcalPropertyFromString(val);
+        if (prop.propertyName != "RELATED-TO") {
+            throw Components.results.NS_ERROR_ILLEGAL_VALUE;
+        }
+        this.icalProperty = prop;
+        return val;
+    },
+
     getParameter: function (aName) {
         return this.mProperties.getProperty(aName);
     },

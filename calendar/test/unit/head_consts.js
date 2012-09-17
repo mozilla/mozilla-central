@@ -185,3 +185,46 @@ function compareItemsSpecific(aLeftItem, aRightItem, aPropArray) {
                     aPropArray[i]));
     }
 }
+
+/**
+ * Test whether specified function throws exception with expected
+ * result.
+ *
+ * @param func
+ *        Function to be tested.
+ * @param result
+ *        Expected result. <code>null</code> for no throws.
+ * @param stack
+ *        Optional stack object to be printed. <code>null</code> for
+ *        Components#stack#caller.
+ */
+function do_check_throws(func, result, stack)
+{
+  if (!stack)
+    stack = Components.stack.caller;
+
+  try {
+    func();
+  } catch (exc) {
+    if (exc.result == result)
+      return;
+    do_throw("expected result " + result + ", caught " + exc, stack);
+  }
+
+  if (result) {
+    do_throw("expected result " + result + ", none thrown", stack);
+  }
+}
+
+function ics_foldline(aLine) {
+  const NEWLINE_CHAR = "\r\n";
+  const FOLD_LENGTH = 74;
+  let result = "";
+  let line = aLine || "";
+
+  while (line.length) {
+    result += NEWLINE_CHAR + " " + line.substr(0, FOLD_LENGTH);
+    line = line.substr(FOLD_LENGTH);
+  }
+  return result.substr(NEWLINE_CHAR.length + 1);
+}

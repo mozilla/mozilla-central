@@ -518,12 +518,11 @@ calRecurrenceRule::SetIcalProperty(calIIcalProperty *aProp)
     nsAutoCString propname;
     nsresult rv = aProp->GetPropertyName(propname);
     NS_ENSURE_SUCCESS(rv, rv);
-    if (propname.EqualsLiteral("RRULE"))
+    if (propname.EqualsLiteral("RRULE")) {
         mIsNegative = false;
-    else if (propname.EqualsLiteral("EXRULE"))
-        mIsNegative = true;
-    else
+    } else {
         return NS_ERROR_INVALID_ARG;
+    }
 
     icalproperty *prop;
     struct icalrecurrencetype icalrecur;
@@ -550,4 +549,41 @@ calRecurrenceRule::SetIcalProperty(calIIcalProperty *aProp)
     mIcalRecur = icalrecur;
 
     return NS_OK;
+}
+
+NS_IMETHODIMP
+calRecurrenceRule::SetIcalString(const nsACString &str)
+{
+    nsresult rv = NS_OK;
+    nsCAutoString name;
+    nsCOMPtr<calIICSService> icsSvc = cal::getICSService();
+    nsCOMPtr<calIIcalProperty> prop;
+
+    rv = icsSvc->CreateIcalPropertyFromString(str, getter_AddRefs(prop));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = prop->GetPropertyName(name);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (!name.EqualsLiteral("RRULE")) {
+        return NS_ERROR_ILLEGAL_VALUE;
+    }
+
+    return SetIcalProperty(prop);
+}
+
+NS_IMETHODIMP
+calRecurrenceRule::GetIcalString(nsACString &str)
+{
+    nsresult rv = NS_OK;
+
+    nsCOMPtr<calIIcalProperty> prop;
+
+    rv = this->GetIcalProperty(getter_AddRefs(prop));
+
+    if (NS_SUCCEEDED(rv)) {
+        rv = prop->GetIcalString(str);
+    }
+
+    return rv;
 }

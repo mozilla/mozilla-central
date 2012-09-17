@@ -22,6 +22,8 @@ public:
 
     NS_DECL_CALIRECURRENCEDATE
 protected:
+    virtual ~calRecurrenceDate() {};
+
     bool mImmutable;
     bool mIsNegative;
 

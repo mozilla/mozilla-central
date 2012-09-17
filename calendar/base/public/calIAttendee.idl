@@ -8,7 +8,7 @@
 interface calIIcalProperty;
 interface nsISimpleEnumerator;
 
-[scriptable,uuid(5d1f2c7c-29bb-4090-94c2-cabe278fe567)]
+[scriptable,uuid(73a074ad-8812-4055-af75-14b509b8c5fe)]
 interface calIAttendee : nsISupports
 {
   readonly attribute boolean isMutable;
@@ -69,6 +69,7 @@ interface calIAttendee : nsISupports
   void deleteProperty(in AString name);
 
   attribute calIIcalProperty icalProperty;
+  attribute AUTF8String icalString;
 
   /**
    * The display name of the attendee. If the attendee has a common name, this

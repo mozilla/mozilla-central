@@ -8,7 +8,7 @@ interface nsIURI;
 interface calIIcalProperty;
 interface calIItemBase;
 
-[scriptable,uuid(327a73e3-ba20-4dfc-92b9-80446b7d0d1b)]
+[scriptable,uuid(7a17d45d-1c0e-4877-baa3-0eb67e770498)]
 interface calIAttachment : nsISupports
 {
     /**
@@ -41,6 +41,7 @@ interface calIAttachment : nsISupports
      * serializing/unserializing from ics files.
      */
     attribute calIIcalProperty icalProperty;
+    attribute AUTF8String icalString;
 
     /**
      * For accessing additional parameters, such as x-params.

@@ -9,7 +9,7 @@ interface calIDateTime;
 
 interface calIIcalProperty;
 
-[scriptable, uuid(943be334-4995-477e-b325-f0c2319183e8)]
+[scriptable, uuid(918a243b-d887-41b0-8b4b-9cd56a9dd55f)]
 interface calIRecurrenceItem : nsISupports
 {
   // returns true if this thing is able to be modified;
@@ -52,4 +52,5 @@ interface calIRecurrenceItem : nsISupports
                        out unsigned long aCount, [array,size_is(aCount),retval] out calIDateTime aDates);
 
   attribute calIIcalProperty icalProperty;
+  attribute AUTF8String icalString;
 };

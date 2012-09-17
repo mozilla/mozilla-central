@@ -1327,3 +1327,16 @@ calICSService::CreateIcalProperty(const nsACString &kind, calIIcalProperty **pro
     NS_ADDREF(*prop);
     return NS_OK;
 }
+
+NS_IMETHODIMP
+calICSService::CreateIcalPropertyFromString(const nsACString &str, calIIcalProperty **prop)
+{
+    NS_ENSURE_ARG_POINTER(prop);
+
+    icalproperty *icalprop = icalproperty_new_from_string(PromiseFlatCString(str).get());
+
+    *prop = new calIcalProperty(icalprop, nullptr);
+    CAL_ENSURE_MEMORY(*prop);
+    NS_ADDREF(*prop);
+    return NS_OK;
+}
