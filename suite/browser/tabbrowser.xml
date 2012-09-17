@@ -28,10 +28,10 @@
         </xul:hbox>
         <xul:hbox class="tabbrowser-strip" collapsed="true" tooltip="_child" context="_child"
                   anonid="strip"
-                  ondraggesture="nsDragAndDrop.startDrag(event, this.parentNode.parentNode); event.stopPropagation();"
-                  ondragover="nsDragAndDrop.dragOver(event, this.parentNode.parentNode); event.stopPropagation();"
-                  ondragdrop="nsDragAndDrop.drop(event, this.parentNode.parentNode); event.stopPropagation();"
-                  ondragexit="nsDragAndDrop.dragExit(event, this.parentNode.parentNode); event.stopPropagation();">
+                  ondragstart="this.parentNode.parentNode._onDragStart(event);"
+                  ondragover="this.parentNode.parentNode._onDragOver(event);"
+                  ondrop="this.parentNode.parentNode._onDrop(event);"
+                  ondragleave="this.parentNode.parentNode._onDragLeave(event);">
           <xul:tooltip onpopupshowing="event.stopPropagation(); return this.parentNode.parentNode.parentNode.doPreview(this);"
                        onpopuphiding="this.parentNode.parentNode.parentNode.resetPreview(this);" orient="vertical">
             <xul:label class="tooltip-label" crop="right"/>
@@ -1976,48 +1976,33 @@
       </property>
 
       <!-- Drag and drop observer API -->
-      <method name="onDragStart">
+      <method name="_onDragStart">
         <parameter name="aEvent"/>
-        <parameter name="aXferData"/>
-        <parameter name="aDragAction"/>
         <body>
           <![CDATA[
-            if (aEvent.target.localName == "tab") {
-              aXferData.data = new TransferData();
-
-              var URI = aEvent.target.linkedBrowser.currentURI;
-              var title = aEvent.target.linkedBrowser.contentTitle || URI.spec;
-              aXferData.data.addDataForFlavour("text/unicode", URI.spec);
-              aXferData.data.addDataForFlavour("text/x-moz-url", URI.spec + "\n" + title);
-              aXferData.data.addDataForFlavour("text/html", '<a href="' + URI.spec + '">' + title + '</a>');
+            var target = aEvent.target;
+            if (target.localName == "tab") {
+              var URI = target.linkedBrowser.currentURI;
+              var spec = URI.spec;
+              var title = target.linkedBrowser.contentTitle || spec;
+              var dt = aEvent.dataTransfer;
+              dt.mozSetDataAt("text/x-moz-url", spec + "\n" + title, 0);
+              dt.mozSetDataAt("text/uri-list", spec, 0);
+              dt.mozSetDataAt("text/plain", spec, 0);
+              dt.mozSetDataAt("text/html", '<a href="' + spec + '">' + title + '</a>', 0);
             }
+            aEvent.stopPropagation();
           ]]>
         </body>
       </method>
 
-      <method name="canDrop">
+      <method name="_onDragOver">
         <parameter name="aEvent"/>
-        <parameter name="aDragSession"/>
         <body>
           <![CDATA[
-            if (aDragSession.sourceNode &&
-                aDragSession.sourceNode.parentNode == this.tabContainer) {
-              var newIndex = this.getDropIndex(aEvent);
-              var tabIndex = this.getTabIndex(aDragSession.sourceNode);
-              if (newIndex == tabIndex || newIndex == tabIndex + 1)
-                return false;
-            }
-            return true;
-          ]]>
-        </body>
-      </method>
+            aEvent.preventDefault();
+            aEvent.stopPropagation();
 
-      <method name="onDragOver">
-        <parameter name="aEvent"/>
-        <parameter name="aFlavour"/>
-        <parameter name="aDragSession"/>
-        <body>
-          <![CDATA[
             var ib = document.getAnonymousElementByAttribute(this, "class", "tab-drop-indicator-bar");
 
             // autoscroll the tab strip if we drag over the scroll buttons,
@@ -2039,16 +2024,13 @@
               if (pixelsToScroll)
                 tabStrip.scrollByPixels((ltr ? 1 : -1) * pixelsToScroll);
             }
-            if (!aDragSession.canDrop) {
-              ib.collapsed = true;
-              return;
-            }
 
             var ind = document.getAnonymousElementByAttribute(this, "class", "tab-drop-indicator");
 
-            var newIndexOn = aDragSession.sourceNode &&
-                             aDragSession.sourceNode.parentNode == this.tabContainer ?
-                             -1 : this.getDropOnIndex(aEvent);
+            var draggedTab = aEvent.dataTransfer.mozSourceNode;
+            var within = draggedTab &&
+                         draggedTab.parentNode == this.tabContainer;
+            var newIndexOn = within ? -1 : this.getDropOnIndex(aEvent);
 
             var ltr = window.getComputedStyle(this, null).direction == "ltr";
             var arrowX, tabBoxObject;
@@ -2058,6 +2040,15 @@
             }
             else {
               var newIndexBetween = this.getDropIndex(aEvent);
+              if (within) {
+                var tabIndex = this.getTabIndex(draggedTab);
+                if (newIndexBetween == tabIndex ||
+                    newIndexBetween == tabIndex + 1) {
+                  ib.collapsed = true;
+                  return;
+                }
+              }
+
               if (newIndexBetween == this.tabs.length) {
                 tabBoxObject = this.tabs[this.tabs.length - 1].boxObject;
                 arrowX = tabBoxObject.x;
@@ -2090,34 +2081,37 @@
         </body>
       </method>
 
-      <method name="onDrop">
+      <method name="_onDrop">
         <parameter name="aEvent"/>
-        <parameter name="aXferData"/>
-        <parameter name="aDragSession"/>
         <body>
           <![CDATA[
             document.getAnonymousElementByAttribute(this, "class",
                                                     "tab-drop-indicator-bar")
                     .collapsed = true;
+            aEvent.stopPropagation();
+
             var newIndex = this.getDropIndex(aEvent);
             var tabIndex;
-            if (aDragSession.sourceNode &&
-                aDragSession.sourceNode.parentNode == this.tabContainer) {
-              tabIndex = this.getTabIndex(aDragSession.sourceNode);
+            var dt = aEvent.dataTransfer;
+            var draggedTab = dt.mozSourceNode;
+            if (draggedTab && draggedTab.parentNode == this.tabContainer) {
+              tabIndex = this.getTabIndex(draggedTab);
               if (newIndex > tabIndex)
                 newIndex--;
               this.moveTabTo(tabIndex, newIndex);
             } else {
-              var url = transferUtils.retrieveURLFromData(aXferData.data, aXferData.flavour.contentType);
+              var url;
+              var linkHandler = Components.classes["@mozilla.org/content/dropped-link-handler;1"]
+                                          .getService(Components.interfaces.nsIDroppedLinkHandler);
+              try {
+                // Pass true to disallow dropping javascript: or data: urls.
+                url = linkHandler.dropLink(aEvent, {}, true);
+              } catch (ex) {}
 
-              // valid urls don't contain spaces ' '; if we have a space it isn't a valid url.
-              // Also disallow dropping javascript: or data: urls--bail out
-              if (!url || !url.length || url.indexOf(" ", 0) != -1 ||
-                  /^\s*(javascript|data):/.test(url))
+              // Valid urls don't contain spaces ' '; if we have a space
+              // it isn't a valid url.
+              if (!url || url.indexOf(" ") != -1)
                 return;
-
-              // Perform a security check before loading the URI
-              nsDragAndDrop.dragDropSecurityCheck(aEvent, aDragSession, url);
 
               var bgLoad = this.mPrefs.getBoolPref("browser.tabs.loadInBackground");
               if (aEvent.shiftKey)
@@ -2126,21 +2120,21 @@
               var tab = null;
               tabIndex = this.getDropOnIndex(aEvent);
               if (tabIndex != -1) {
-                // Load in an existing tab
+                // Load in an existing tab.
                 tab = this.tabs[tabIndex];
                 tab.linkedBrowser.loadURI(getShortcutOrURI(url));
                 if (this.mCurrentTab != tab && !bgLoad)
                   this.selectedTab = tab;
               }
-              else if (aDragSession.sourceDocument &&
-                       aDragSession.sourceDocument.defaultView.top == content) {
-                // We're adding a new tab, and we may want parent-tab tracking
+              else if (dt.mozSourceDocument &&
+                       dt.mozSourceDocument.defaultView.top == content) {
+                // We're adding a new tab, and we may want parent-tab tracking.
                 tab = this.loadOneTab(getShortcutOrURI(url), {inBackground: bgLoad});
                 if (newIndex != this.tabs.length - 1)
                   this.moveTabTo(this.tabs.length - 1, newIndex);
               }
               else {
-                // We're adding a new tab, but do not want parent-tab tracking
+                // We're adding a new tab, but do not want parent-tab tracking.
                 tab = this.addTab(getShortcutOrURI(url));
                 if (newIndex != this.tabs.length - 1)
                   this.moveTabTo(this.tabs.length - 1, newIndex);
@@ -2152,9 +2146,8 @@
         </body>
       </method>
 
-      <method name="onDragExit">
+      <method name="_onDragLeave">
         <parameter name="aEvent"/>
-        <parameter name="aDragSession"/>
         <body>
           <![CDATA[
             var target = aEvent.relatedTarget;
@@ -2167,18 +2160,7 @@
             document.getAnonymousElementByAttribute(this, "class",
                                                     "tab-drop-indicator-bar")
                     .collapsed = true;
-          ]]>
-        </body>
-      </method>
-
-      <method name="getSupportedFlavours">
-        <body>
-          <![CDATA[
-            var flavourSet = new FlavourSet();
-            flavourSet.appendFlavour("text/x-moz-url");
-            flavourSet.appendFlavour("text/unicode");
-            flavourSet.appendFlavour("application/x-moz-file", "nsIFile");
-            return flavourSet;
+            aEvent.stopPropagation();
           ]]>
         </body>
       </method>
