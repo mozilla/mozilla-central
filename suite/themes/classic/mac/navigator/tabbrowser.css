@@ -106,7 +106,6 @@ tabpanels {
   -moz-border-left-colors: rgba(0, 0, 0, 0.08) #888;
   -moz-border-right-colors: rgba(0, 0, 0, 0.08) #888;
   margin-top: 1px;
-  -moz-user-focus: normal;
 }
 
 .tabbrowser-tab:focus {
