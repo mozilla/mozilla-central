@@ -32,7 +32,8 @@ function teardownTest(module) {
  * data as being from about:support.
  */
 const ABOUT_SUPPORT_STRINGS = ["Application Basics", "Mail and News Accounts",
-                               "Extensions", "Modified Preferences", "Graphics"];
+                               "Extensions", "Modified Preferences", "Graphics",
+                               "JavaScript", "Accessibility", "Library Versions"];
 
 /**
  * Strings that if found in the about:support text or HTML usually indicate an

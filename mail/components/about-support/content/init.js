@@ -65,6 +65,9 @@ window.onload = function () {
   populatePreferencesSection();
   populateExtensionsSection();
   populateGraphicsSection();
+  populateJavaScriptSection();
+  populateAccessibilitySection();
+  populateLibVersionsSection();  
 }
 
 function userDataHandler(aOp, aKey, aData, aSrc, aDest) {

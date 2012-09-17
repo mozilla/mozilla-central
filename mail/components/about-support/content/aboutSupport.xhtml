@@ -36,6 +36,12 @@
     <script type="application/javascript;version=1.7"
             src="chrome://messenger/content/about-support/gfx.js"/>
     <script type="application/javascript;version=1.7"
+            src="chrome://messenger/content/about-support/js.js"/>
+    <script type="application/javascript;version=1.7"
+            src="chrome://messenger/content/about-support/a11y.js"/>
+    <script type="application/javascript;version=1.7"
+            src="chrome://messenger/content/about-support/libversions.js"/>
+    <script type="application/javascript;version=1.7"
             src="chrome://messenger/content/about-support/export.js"/>
   </head>
 
@@ -295,7 +301,6 @@
       </table>
 
       <!-- - - - - - - - - - - - - - - - - - - - - -->
-
       <h2 class="major-section">
         &aboutSupport.graphicsTitle;
       </h2>
@@ -303,10 +308,65 @@
       <table>
         <tbody id="graphics-tbody">
         </tbody>
+
+        <tbody id="graphics-info-properties">
+        </tbody>
+
+        <tbody id="graphics-failures-tbody">
+        </tbody>
       </table>
 
+      <!-- - - - - - - - - - - - - - - - - - - - - -->
+      <h2 class="major-section">
+        &aboutSupport.jsTitle;
+      </h2>
+
       <table>
-        <tbody id="graphics-failures-tbody">
+        <tbody>
+          <tr>
+            <th class="column">
+              &aboutSupport.jsIncrementalGC;
+            </th>
+
+            <td id="javascript-incremental-gc">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - -->
+      <h2 class="major-section">
+        &aboutSupport.a11yTitle;
+      </h2>
+
+      <table>
+        <tbody>
+          <tr>
+            <th class="column">
+              &aboutSupport.a11yActivated;
+            </th>
+
+            <td id="a11y-activated">
+            </td>
+          </tr>
+          <tr>
+            <th class="column">
+              &aboutSupport.a11yForceDisabled;
+            </th>
+
+            <td id="a11y-force-disabled">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - -->
+      <h2 class="major-section">
+        &aboutSupport.libraryVersionsTitle;
+      </h2>
+
+      <table>
+        <tbody id="libversions-tbody">
         </tbody>
       </table>
 
