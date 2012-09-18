@@ -38,6 +38,7 @@
 #include "nsMsgMessageFlags.h"
 #include "nsIMsgWindow.h"
 #include "nsIMsgSearchCustomTerm.h"
+#include "nsAutoPtr.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgFilterService, nsIMsgFilterService)
 
@@ -49,44 +50,42 @@ nsMsgFilterService::~nsMsgFilterService()
 {
 }
 
-NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsIFile *aFilterFile, nsIMsgFolder *rootFolder, nsIMsgWindow *aMsgWindow, nsIMsgFilterList **resultFilterList)
+NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsIFile *aFilterFile,
+                                                 nsIMsgFolder *rootFolder,
+                                                 nsIMsgWindow *aMsgWindow,
+                                                 nsIMsgFilterList **resultFilterList)
 {
   NS_ENSURE_ARG_POINTER(aFilterFile);
+  NS_ENSURE_ARG_POINTER(resultFilterList);
 
-  nsresult rv;
-  bool exists;
-  aFilterFile->Exists(&exists);
-  if (!exists)
+  bool exists = false;
+  nsresult rv = aFilterFile->Exists(&exists);
+  if (NS_FAILED(rv) || !exists)
   {
     rv = aFilterFile->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  nsCOMPtr <nsIInputStream> fileStream;
+  nsCOMPtr<nsIInputStream> fileStream;
   rv = NS_NewLocalFileInputStream(getter_AddRefs(fileStream), aFilterFile);
   NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_TRUE(fileStream, NS_ERROR_OUT_OF_MEMORY);
 
-  if (!fileStream)
-    return NS_ERROR_OUT_OF_MEMORY;
-
-  nsMsgFilterList *filterList = new nsMsgFilterList();
-  if (!filterList)
-    return NS_ERROR_OUT_OF_MEMORY;
-  NS_ADDREF(filterList);
+  nsRefPtr<nsMsgFilterList> filterList = new nsMsgFilterList();
+  NS_ENSURE_TRUE(filterList, NS_ERROR_OUT_OF_MEMORY);
   filterList->SetFolder(rootFolder);
 
   // temporarily tell the filter where its file path is
   filterList->SetDefaultFile(aFilterFile);
 
-  int64_t size;
+  int64_t size = 0;
   rv = aFilterFile->GetFileSize(&size);
   if (NS_SUCCEEDED(rv) && size > 0)
     rv = filterList->LoadTextFilters(fileStream);
   fileStream->Close();
-  fileStream =nullptr;
+  fileStream = nullptr;
   if (NS_SUCCEEDED(rv))
   {
-    *resultFilterList = filterList;
     int16_t version;
     filterList->GetVersion(&version);
     if (version != kFileVersion)
@@ -94,7 +93,6 @@ NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsIFile *aFilterFile, nsIMsgFol
   }
   else
   {
-    NS_RELEASE(filterList);
     if (rv == NS_MSG_FILTER_PARSE_ERROR && aMsgWindow)
     {
       rv = BackUpFilterFile(aFilterFile, aMsgWindow);
@@ -105,9 +103,11 @@ NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsIFile *aFilterFile, nsIMsgFol
     }
     else if (rv == NS_MSG_CUSTOM_HEADERS_OVERFLOW && aMsgWindow)
       ThrowAlertMsg("filterCustomHeaderOverflow", aMsgWindow);
-    else if(rv == NS_MSG_INVALID_CUSTOM_HEADER && aMsgWindow)
+    else if (rv == NS_MSG_INVALID_CUSTOM_HEADER && aMsgWindow)
       ThrowAlertMsg("invalidCustomHeader", aMsgWindow);
   }
+
+  NS_ADDREF(*resultFilterList = filterList);
   return rv;
 }
 
