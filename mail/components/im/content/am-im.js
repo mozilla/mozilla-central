@@ -79,8 +79,7 @@ var account = {
   },
 
   createMenulist: function account_createMenulist(aList, aLabel, aName) {
-    var box = document.createElement("hbox");
-    box.setAttribute("align", "baseline");
+    var box = document.createElement("vbox");
 
     var label = document.createElement("label");
     label.setAttribute("value", aLabel);

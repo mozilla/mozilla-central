@@ -84,7 +84,13 @@
               onkeypress="accountWizard.onGroupboxKeypress(event)">
       <caption id="protoSpecificCaption"
                onclick="accountWizard.toggleGroupbox('protoSpecificGroupbox')"/>
-      <vbox id="protoSpecific" flex="1"/>
+      <grid flex="1">
+        <columns>
+          <column id="label-column" flex="1"/>
+          <column id="value-column" flex="1"/>
+        </columns>
+        <rows id="protoSpecific"/>
+      </grid>
     </groupbox>
   </wizardpage>
 
