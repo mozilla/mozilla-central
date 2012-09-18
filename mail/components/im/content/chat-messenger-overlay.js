@@ -548,7 +548,7 @@ var chatHandler = {
     if (item.getAttribute("id") == "searchResultConv") {
       let path = "logs/" + item.log.path;
       let file = FileUtils.getFile("ProfD", path.split("/"));
-      let log = imServices.logs.getLogFromFile(file);
+      let log = imServices.logs.getLogFromFile(file, true);
       document.getElementById("goToConversation").hidden = true;
       document.getElementById("contextPane").removeAttribute("chat");
       let conv = log.getConversation();
@@ -563,8 +563,7 @@ var chatHandler = {
       cti.removeAttribute("statusTooltiptext");
       cti.removeAttribute("topicEditable");
       cti.removeAttribute("noTopic");
-
-      this._showLogList(imServices.logs.getSimilarLogs(log), log);
+      this._showLogList(imServices.logs.getSimilarLogs(log, true), log);
       this.observedContact = null;
     }
     else if (item.localName == "imconv") {
@@ -587,11 +586,11 @@ var chatHandler = {
       item.convView.updateConvStatus();
       item.update();
 
-      this._showLogList(imServices.logs.getLogsForConversation(item.conv));
+      this._showLogList(imServices.logs.getLogsForConversation(item.conv, true));
       let contextPane = document.getElementById("contextPane");
       if (item.conv.isChat) {
         contextPane.setAttribute("chat", "true");
-        item.convView.showParticipants();        
+        item.convView.showParticipants();
       }
       else
         contextPane.removeAttribute("chat");
@@ -1053,15 +1052,16 @@ chatLogTreeGroupItem.prototype = {
   getProperties: function(aProps) {}
 };
 
-function chatLogTreeLogItem(aLog, aText) {
+function chatLogTreeLogItem(aLog, aText, aLevel) {
   this.log = aLog;
   this._text = aText;
+  this._level = aLevel;
 }
 chatLogTreeLogItem.prototype = {
   getText: function() this._text,
   get id() this.log.title,
   get open() false,
-  get level() 1,
+  get level() this._level,
   get children() [],
   getProperties: function(aProps) {}
 };
@@ -1076,6 +1076,11 @@ chatLogTreeView.prototype = {
   __proto__: new PROTO_TREE_VIEW(),
 
   _rebuild: function cLTV__rebuild() {
+    // Some date helpers...
+    const kDayInMsecs = 24 * 60 * 60 * 1000;
+    const kWeekInMsecs = 7 * kDayInMsecs;
+    const kTwoWeeksInMsecs = 2 * kWeekInMsecs;
+
     // Drop the old rowMap.
     if (this._tree)
       this._tree.rowCountChanged(0, -this._rowMap.length);
@@ -1084,17 +1089,15 @@ chatLogTreeView.prototype = {
     // The keys used in the 'groups' object should match string ids in
     // messenger.properties, except 'other' that has a special handling.
     let groups = {
-      today: [],
-      yesterday: [],
       lastWeek: [],
       twoWeeksAgo: [],
       other: []
     };
 
-    // Some date helpers...
-    const kDayInMsecs = 24 * 60 * 60 * 1000;
-    const kWeekInMsecs = 7 * kDayInMsecs;
-    const kTwoWeeksInMsecs = 2 * kWeekInMsecs;
+    // today and yesterday are treated differently, because they represent
+    // individual logs, and are not "groups".
+    let today = null, yesterday = null;
+
     let dts = Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
                         .getService(Ci.nsIScriptableDateFormat);
     let formatDate = function(aDate) {
@@ -1106,38 +1109,46 @@ chatLogTreeView.prototype = {
                              nowDate.getDate());
 
     // Build a chatLogTreeLogItem for each log, and put it in the right group.
-    let chatBundle = document.getElementById("chatBundle");
+    let msgBundle = document.getElementById("bundle_messenger");
+
     for each (let log in fixIterator(this._logs)) {
       let logDate = new Date(log.time * 1000);
       let timeFromToday = todayDate - logDate;
-      let title = dts.FormatTime("", dts.timeFormatNoSeconds,
-                                 logDate.getHours(), logDate.getMinutes(), 0);
-      if (timeFromToday > kDayInMsecs) {
-        title = chatBundle.getFormattedString("dateTime",
-                                              [formatDate(logDate), title]);
-      }
+      let title = formatDate(logDate);
       let group;
-      if (timeFromToday <= 0)
-        group = groups.today;
-      else if (timeFromToday <= kDayInMsecs)
-        group = groups.yesterday;
+      if (timeFromToday <= 0) {
+        today = new chatLogTreeLogItem(log, msgBundle.getString("today"), 0);
+        continue;
+      }
+      else if (timeFromToday <= kDayInMsecs) {
+        yesterday = new chatLogTreeLogItem(log, msgBundle.getString("yesterday"), 0);
+        continue;
+      }
       else if (timeFromToday <= kWeekInMsecs)
         group = groups.lastWeek;
       else if (timeFromToday <= kTwoWeeksInMsecs)
         group = groups.twoWeeksAgo;
       else
         group = groups.other;
-      group.push(new chatLogTreeLogItem(log, title));
+      group.push(new chatLogTreeLogItem(log, title, 1));
     }
 
-    // Create a chatLogTreeGroupItem for each group.
-    let msgBundle = document.getElementById("bundle_messenger");
+    if (today)
+      this._rowMap.push(today);
+    if (yesterday)
+      this._rowMap.push(yesterday);
+
     for each (let [groupId, group] in Iterator(groups)) {
       if (!group.length)
         continue;
+
       group.sort(function(l1, l2) l2.log.time - l1.log.time);
+
       let groupName;
       if (groupId == "other") {
+        // If we're in the "other" group, the title will be the end and
+        // beginning dates for that group.
+        // Example: 28/08/2012 - 04/01/2012
         groupName = formatDate(new Date(group[0].log.time * 1000));
         if (group.length > 1) {
           let fromDate = new Date(group[group.length - 1].log.time * 1000);
@@ -1145,6 +1156,7 @@ chatLogTreeView.prototype = {
         }
       }
       else {
+        // Otherwise, get the appropriate string for this group.
         groupName = msgBundle.getString(groupId);
       }
       this._rowMap.push(new chatLogTreeGroupItem(groupName, group));

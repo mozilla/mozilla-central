@@ -42,14 +42,16 @@ interface imILog: nsISupports {
   imILogConversation getConversation();
 };
 
-[scriptable, uuid(ab38c01c-2245-4279-9437-1d6bcc69d556)]
+[scriptable, uuid(327ba58c-ee9c-4d1c-9216-fd505c45a3e0)]
 interface imILogger: nsISupports {
-  imILog getLogFromFile(in nsIFile aFile);
+  imILog getLogFromFile(in nsIFile aFile, [optional] in boolean aGroupByDay);
   nsIFile getLogFileForOngoingConversation(in prplIConversation aConversation);
   nsISimpleEnumerator getLogsForAccountBuddy(in imIAccountBuddy aAccountBuddy);
   nsISimpleEnumerator getLogsForBuddy(in imIBuddy aBuddy);
   nsISimpleEnumerator getLogsForContact(in imIContact aContact);
-  nsISimpleEnumerator getLogsForConversation(in prplIConversation aConversation);
+  nsISimpleEnumerator getLogsForConversation(in prplIConversation aConversation,
+                                             [optional] in boolean aGroupByDay);
   nsISimpleEnumerator getSystemLogsForAccount(in imIAccount aAccount);
-  nsISimpleEnumerator getSimilarLogs(in imILog aLog);
+  nsISimpleEnumerator getSimilarLogs(in imILog aLog,
+                                     [optional] in boolean aGroupByDay);
 };

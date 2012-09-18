@@ -74,7 +74,7 @@ ConversationLog.prototype = {
   _init: function cl_init() {
     let file = getLogFolderForAccount(this._conv.account, true);
     let name = this._conv.normalizedName;
-    if (this._conv.isChat && this._conv.account.protocol.id != "prpl-twitter")
+    if (convIsRealMUC(this._conv))
       name += ".chat";
     file.append(name);
     if (!file.exists())
@@ -299,31 +299,46 @@ function LogMessage(aData, aConversation)
 }
 LogMessage.prototype = GenericMessagePrototype;
 
-function LogConversation(aLineInputStream)
+function LogConversation(aLineInputStreams)
 {
-  let line = {value: ""};
-  let more = aLineInputStream.readLine(line);
-
-  if (!line.value)
-    throw "bad log file";
-
-  let data = JSON.parse(line.value);
-  this.name = data.name;
-  this.title = data.title;
-  this._accountName = data.account;
-  this._protocolName = data.protocol;
+  // If aLineInputStreams isn't an Array, we'll assume that it's a lone
+  // InputStream, and wrap it in an Array.
+  if (!Array.isArray(aLineInputStreams))
+    aLineInputStreams = [aLineInputStreams];
 
   this._messages = [];
-  while (more) {
-    more = aLineInputStream.readLine(line);
+
+  // We'll read the name, title, account, and protocol data from the first
+  // stream, and skip the others.
+  let firstFile = true;
+
+  for each (let inputStream in aLineInputStreams) {
+    let line = {value: ""};
+    let more = inputStream.readLine(line);
+
     if (!line.value)
-      break;
-    try {
+      throw "bad log file";
+
+    if (firstFile) {
       let data = JSON.parse(line.value);
-      this._messages.push(new LogMessage(data, this));
-    } catch (e) {
-      // if a message line contains junk, just ignore the error and
-      // continue reading the conversation.
+      this.name = data.name;
+      this.title = data.title;
+      this._accountName = data.account;
+      this._protocolName = data.protocol;
+      firstFile = false;
+    }
+
+    while (more) {
+      more = inputStream.readLine(line);
+      if (!line.value)
+        break;
+      try {
+        let data = JSON.parse(line.value);
+        this._messages.push(new LogMessage(data, this));
+      } catch (e) {
+        // if a message line contains junk, just ignore the error and
+        // continue reading the conversation.
+      }
     }
   }
 }
@@ -350,19 +365,15 @@ function Log(aFile)
 {
   this.file = aFile;
   this.path = aFile.path;
-  const regexp = /([0-9]{4})-([0-9]{2})-([0-9]{2}).([0-9]{2})([0-9]{2})([0-9]{2})([+-])([0-9]{2})([0-9]{2}).*\.([a-z]+)$/;
-  let r = aFile.leafName.match(regexp);
-  if (!r) {
+
+  let [date, format] = getDateFromFilename(aFile.leafName);
+  if (!date || !format) {
     this.format = "invalid";
     this.time = 0;
     return;
   }
-  let date = new Date(r[1], r[2] - 1, r[3], r[4], r[5], r[6]);
-  let offset = r[7] * 60 + r[8];
-  if (r[6] == -1)
-    offset *= -1;
-  this.time = date.valueOf() / 1000; // ignore the timezone offset for now (FIXME)
-  this.format = r[10];
+  this.time = date.valueOf() / 1000;
+  this.format = format;
 }
 Log.prototype = {
   __proto__: ClassInfo("imILog", "Log object"),
@@ -388,6 +399,38 @@ Log.prototype = {
   }
 };
 
+/**
+ * Takes a properly formatted log file name and extracts the date information
+ * and filetype, returning the results as an Array.
+ *
+ * Filenames are expected to be formatted as:
+ *
+ * YYYY-MM-DD.HHmmSS+ZZzz.format
+ *
+ * @param aFilename the name of the file
+ * @returns an Array, where the first element is a Date object for the date
+ *          that the log file represents, and the file type as a string.
+ */
+function getDateFromFilename(aFilename) {
+  const kRegExp = /([\d]{4})-([\d]{2})-([\d]{2}).([\d]{2})([\d]{2})([\d]{2})([+-])([\d]{2})([\d]{2}).*\.([A-Za-z]+)$/;
+
+  let r = aFilename.match(kRegExp);
+  if (!r)
+    return [];
+
+  // We ignore the timezone offset for now (FIXME)
+  return [new Date(r[1], r[2] - 1, r[3], r[4], r[5], r[6]), r[10]];
+}
+
+/**
+ * Returns true if a Conversation is both a chat conversation, and not
+ * a Twitter conversation.
+ */
+function convIsRealMUC(aConversation) {
+  return (aConversation.isChat &&
+          aConversation.account.protocol.id != "prpl-twitter");
+}
+
 function LogEnumerator(aEntries)
 {
   this._entries = aEntries;
@@ -404,17 +447,158 @@ LogEnumerator.prototype = {
   QueryInterface: XPCOMUtils.generateQI([Ci.nsISimpleEnumerator])
 };
 
+function DailyLogEnumerator(aEntries) {
+  this._entries = {};
+
+  for each (entry in aEntries) {
+    while (entry.hasMoreElements()) {
+      let file = entry.getNext();
+      if (!(file instanceof Ci.nsIFile))
+        continue;
+
+      let [logDate] = getDateFromFilename(file.leafName);
+      if (!logDate) {
+        // We'll skip this one, since it's got a busted filename.
+        continue;
+      }
+
+      // We want to cluster all of the logs that occur on the same day
+      // into the same Arrays. We clone the date for the log, reset it to
+      // the 0th hour/minute/second, and use that to construct an ID for the
+      // Array we'll put the log in.
+      let dateForID = new Date(logDate);
+      dateForID.setHours(0);
+      dateForID.setMinutes(0);
+      dateForID.setSeconds(0);
+      let dayID = dateForID.toISOString();
+
+      if (!(dayID in this._entries))
+        this._entries[dayID] = [];
+
+      this._entries[dayID].push({
+        file: file,
+        time: logDate
+      });
+    }
+  }
+
+  this._days = Object.keys(this._entries).sort();
+  this._index = 0;
+}
+DailyLogEnumerator.prototype = {
+  _entries: {},
+  _days: [],
+  _index: 0,
+  hasMoreElements: function() this._index < this._days.length,
+  getNext: function() new LogCluster(this._entries[this._days[this._index++]]),
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsISimpleEnumerator])
+};
+
+/**
+ * A LogCluster is a Log representing several log files all at once. The
+ * constructor expects aEntries, which is an array of objects that each
+ * have two properties: file and time. The file is the nsIFile for the
+ * log file, and the time is the Date object extracted from the filename for
+ * the log file.
+ */
+function LogCluster(aEntries) {
+  if (!aEntries.length)
+    throw new Error("LogCluster was passed an empty Array");
+
+  // Sort our list of entries for this day in increasing order.
+  aEntries.sort(function(aLeft, aRight) aLeft.time - aRight.time);
+
+  this._entries = aEntries;
+  // Calculate the timestamp for the first entry down to the day.
+  let timestamp = new Date(aEntries[0].time);
+  timestamp.setHours(0);
+  timestamp.setMinutes(0);
+  timestamp.setSeconds(0);
+  this.time = timestamp.valueOf() / 1000;
+  // Path is used to uniquely identify a Log, and sometimes used to
+  // quickly determine which directory a log file is from.  We'll use
+  // the first file's path.
+  this.path = aEntries[0].file.path;
+}
+LogCluster.prototype = {
+  __proto__: ClassInfo("imILog", "LogCluster object"),
+  format: "json",
+
+  getConversation: function() {
+    const PR_RDONLY = 0x01;
+    let streams = [];
+    for each (let entry in this._entries) {
+      let fis = new FileInputStream(entry.file, PR_RDONLY, 0444,
+                                    Ci.nsIFileInputStream.CLOSE_ON_EOF);
+      // Pass in 0x0 so that we throw exceptions on unknown bytes.
+      let lis = new ConverterInputStream(fis, "UTF-8", 1024, 0x0);
+      lis.QueryInterface(Ci.nsIUnicharLineInputStream);
+      streams.push(lis);
+    }
+
+    try {
+      return new LogConversation(streams);
+    } catch (e) {
+      // If the file contains some junk (invalid JSON), the
+      // LogConversation code will still read the messages it can parse.
+      // If the first line of meta data is corrupt, there's really no
+      // useful data we can extract from the file so the
+      // LogConversation constructor will throw.
+      return null;
+    }
+  }
+};
+
 function Logger() { }
 Logger.prototype = {
-  _enumerateLogs: function logger__enumerateLogs(aAccount, aNormalizedName) {
+  _enumerateLogs: function logger__enumerateLogs(aAccount, aNormalizedName,
+                                                 aGroupByDay) {
     let file = getLogFolderForAccount(aAccount);
     file.append(aNormalizedName);
     if (!file.exists())
       return EmptyEnumerator;
 
-    return new LogEnumerator([file.directoryEntries]);
+    let enumerator = aGroupByDay ? DailyLogEnumerator : LogEnumerator;
+
+    return new enumerator([file.directoryEntries]);
   },
-  getLogFromFile: function logger_getLogFromFile(aFile) new Log(aFile),
+  getLogFromFile: function logger_getLogFromFile(aFile, aGroupByDay) {
+    if (aGroupByDay)
+      return this._getDailyLogFromFile(aFile);
+
+    return new Log(aFile);
+  },
+  _getDailyLogFromFile: function logger_getDailyLogsForFile(aFile) {
+    let [targetDate] = getDateFromFilename(aFile.leafName);
+    if (!targetDate)
+      return null;
+
+    let targetDay = Math.floor(targetDate / (86400 * 1000));
+
+    // Get the path for the log file - we'll assume that the files relevant
+    // to our interests are in the same folder.
+    let path = aFile.path;
+    let folder = aFile.parent.directoryEntries;
+    let relevantEntries = [];
+    // Pick out the files that start within our date range.
+    while (folder.hasMoreElements()) {
+      let file = folder.getNext();
+      if (!(file instanceof Ci.nsIFile))
+        continue;
+
+      let [logTime] = getDateFromFilename(file.leafName);
+
+      let day = Math.floor(logTime / (86400 * 1000));
+      if (targetDay == day) {
+        relevantEntries.push({
+          file: file,
+          time: logTime
+        });
+      }
+    }
+
+    return new LogCluster(relevantEntries);
+  },
   getLogFileForOngoingConversation: function logger_getLogFileForOngoingConversation(aConversation)
     getLogForConversation(aConversation).file,
   getLogsForContact: function logger_getLogsForContact(aContact) {
@@ -441,17 +625,20 @@ Logger.prototype = {
   },
   getLogsForAccountBuddy: function logger_getLogsForAccountBuddy(aAccountBuddy)
     this._enumerateLogs(aAccountBuddy.account, aAccountBuddy.normalizedName),
-  getLogsForConversation: function logger_getLogsForConversation(aConversation) {
+  getLogsForConversation: function logger_getLogsForConversation(aConversation,
+                                                                 aGroupByDay) {
     let name = aConversation.normalizedName;
-    if (aConversation.isChat &&
-        aConversation.account.protocol.id != "prpl-twitter")
+    if (convIsRealMUC(aConversation))
       name += ".chat";
-    return this._enumerateLogs(aConversation.account, name);
+
+    return this._enumerateLogs(aConversation.account, name, aGroupByDay);
   },
   getSystemLogsForAccount: function logger_getSystemLogsForAccount(aAccount)
     this._enumerateLogs(aAccount, ".system"),
-  getSimilarLogs: function(aLog)
-    new LogEnumerator([new LocalFile(aLog.path).parent.directoryEntries]),
+  getSimilarLogs: function(aLog, aGroupByDay) {
+    let enumerator = aGroupByDay ? DailyLogEnumerator : LogEnumerator;
+    return new enumerator([new LocalFile(aLog.path).parent.directoryEntries]);
+  },
 
   observe: function logger_observe(aSubject, aTopic, aData) {
     switch (aTopic) {
