@@ -297,7 +297,9 @@ function switchToView(aViewType) {
     ["calendar-view-context-menu-next",
      "calendar-view-context-menu-previous",
      "calendar-go-menu-next",
-     "calendar-go-menu-previous"].forEach(function(x) {
+     "calendar-go-menu-previous",
+     "appmenu_calendar-go-menu-next",
+     "appmenu_calendar-go-menu-previous"].forEach(function(x) {
             setupViewNode(x, "label");
             setupViewNode(x, "accesskey")
      });

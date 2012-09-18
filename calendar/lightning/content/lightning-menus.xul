@@ -431,4 +431,309 @@
       </menupopup>
     </menu>
   </menupopup>
+
+<!-- AppMenu integration -->
+  <menupopup id="appmenu_newMenupopup">
+    <menuitem id="appmenu_ltnNewEvent"
+              label="&lightning.menupopup.new.event.label;"
+              insertbefore="appmenu_newFolder"
+              command="calendar_new_event_command"
+              observes="calendar_new_event_command"/>
+    <menuitem id="appmenu_ltnNewTask"
+              label="&lightning.menupopup.new.task.label;"
+              insertbefore="appmenu_newFolder"
+              command="calendar_new_todo_command"
+              observes="calendar_new_todo_command"/>
+    <menuseparator id="appmenu_afterltnNewTask"
+                   insertbefore="appmenu_newFolder"
+                   observes="appmenu_newFolder"/>
+    <menuitem id="appmenu_ltnNewCalendar" label="&lightning.menupopup.new.calendar.label;"
+               command="calendar_new_calendar_command"
+               observes="calendar_new_calendar_command"
+               insertafter="appmenu_newAccountMenuItem"/>
+  </menupopup>
+
+  <menupopup id="appmenu_View_Popup">
+    <menuseparator id="appmenu_ltnViewMenuSeparator"/>
+    <menu id="appmenu_ltnTodayPaneMenu"
+          label="&calendar.context.button.label;">
+      <menupopup id="appmenu_ltnTodayPaneMenuPopup">
+        <menuitem id="appmenu_ltnShowTodayPane-2"
+                  label="&todaypane.showTodayPane.label;"
+                  type="checkbox"
+                  command="calendar_toggle_todaypane_command"/>
+        <menuseparator id="appmenu_ltnSeparatorBeforeDisplayMiniday"/>
+        <menuitem id="appmenu_ltnTodayPaneDisplayMiniday"
+                  name="minidisplay"
+                  value="miniday"
+                  type="radio"
+                  oncommand="TodayPane.displayMiniSection('miniday')"
+                  observes="ltnTodayPaneDisplayMiniday"
+                  label="&todaypane.showMiniday.label;"/>
+        <menuitem id="appmenu_ltnTodayPaneDisplayMinimonth"
+                  name="minidisplay"
+                  value="minimonth"
+                  type="radio"
+                  oncommand="TodayPane.displayMiniSection('minimonth')"
+                  observes="ltnTodayPaneDisplayMinimonth"
+                  label="&todaypane.showMinimonth.label;"/>
+        <menuitem id="appmenu_ltnTodayPaneDisplayNone"
+                  name="minidisplay"
+                  value="none"
+                  type="radio"
+                  oncommand="TodayPane.displayMiniSection('none')"
+                  observes="ltnTodayPaneDisplayNone"
+                  label="&todaypane.showNone.label;"/>
+      </menupopup>
+    </menu>
+    <menu id="appmenu_ltnCalendarMenu"
+          observes="calendar_in_foreground"
+          insertbefore="viewSortMenuSeparator"
+          label="&lightning.menu.view.calendar.label;">
+      <menupopup id="appmenu_ltnCalendarMenuPopup">
+        <menuitem id="appmenu_ltnChangeViewDay"
+                  label="&lightning.toolbar.day.label;"
+                  type="radio"
+                  name="calendarMenuViews"
+                  command="calendar_day-view_command"/>
+        <menuitem id="appmenu_ltnChangeViewWeek"
+                  label="&lightning.toolbar.week.label;"
+                  type="radio"
+                  name="calendarMenuViews"
+                  command="calendar_week-view_command"/>
+        <menuitem id="appmenu_ltnChangeViewMultiweek"
+                  label="&lightning.toolbar.multiweek.label;"
+                  type="radio"
+                  name="calendarMenuViews"
+                  command="calendar_multiweek-view_command"/>
+        <menuitem id="appmenu_ltnChangeViewMonth"
+                  label="&lightning.toolbar.month.label;"
+                  type="radio"
+                  name="calendarMenuViews"
+                  command="calendar_month-view_command"/>
+        <menuseparator id="appmenu_ltnBeforeCalendarViewSection"/>
+        <menuitem id="appmenu_ltnTasksViewMinimonth"
+                  type="checkbox"
+                  label="&calendar.tasks.view.minimonth.label;"
+                  command="calendar_toggle_minimonthpane_command"/>
+        <menuitem id="appmenu_ltnTasksViewCalendarlist"
+                  type="checkbox"
+                  label="&calendar.tasks.view.calendarlist.label;"
+                  command="calendar_toggle_calendarlist_command"/>
+        <menuseparator id="appmenu_ltnBeforeCurrentViewMenu"/>
+        <menu id="appmenu_ltnCalendarCurrentViewMenu"
+              observes="calendar_mode_calendar"
+              label="&showCurrentView.label;">
+          <menupopup id="appmenu_ltnCalendarCurrentViewMenuPopup">
+            <menuitem type="checkbox"
+                      id="appmenu_ltnWorkdaysOnlyMenuitem"
+                      label="&calendar.onlyworkday.checkbox.label;"
+                      observes="calendar_toggle_workdays_only_command"/>
+            <menuitem type="checkbox"
+                      id="appmenu_ltnTasksInViewMenuitem"
+                      label="&calendar.displaytodos.checkbox.label;"
+                      observes="calendar_toggle_tasks_in_view_command"/>
+            <menuitem type="checkbox"
+                      id="appmenu_ltnShowCompletedInViewMenuItem"
+                      label="&calendar.completedtasks.checkbox.label;"
+                      observes="calendar_toggle_show_completed_in_view_command"/>
+            <menuitem type="checkbox"
+                      id="appmenu_ltnViewRotated"
+                      label="&calendar.orientation.label;"
+                      command="calendar_toggle_orientation_command"
+                      observes="calendar_toggle_orientation_command"/>
+          </menupopup>
+        </menu>
+      </menupopup>
+    </menu>
+    <menu id="appmenu_ltnTasksMenu"
+          observes="calendar_mode_task"
+          insertbefore="viewSortMenuSeparator"
+          label="&lightning.menu.view.tasks.label;">
+      <menupopup id="appmenu_ltnTasksMenuPopup">
+        <observes element="filterBroadcaster"
+                  attribute="value"
+                  onbroadcast="checkRadioControl(this.parentNode, document.getElementById(this.getAttribute('element')).getAttribute('value'));"/>
+        <menuitem id="appmenu_ltnTasksViewFilterTasks"
+                  type="checkbox"
+                  label="&calendar.tasks.view.filtertasks.label;"
+                  command="calendar_toggle_filter_command"/>
+        <menuseparator id="appmenu_ltnTasksViewSeparator"/>
+        <menuitem id="appmenu_ltnTasksViewFilterCurrent"
+                  name="filtergroup"
+                  value="throughcurrent"
+                  type="radio"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.current.label;"/>
+        <menuitem id="appmenu_ltnTasksViewFilterToday"
+                  name="filtergroup"
+                  value="throughtoday"
+                  type="radio"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.today.label;"/>
+        <menuitem id="appmenu_ltnTasksViewFilterNext7days"
+                  name="filtergroup"
+                  value="throughsevendays"
+                  type="radio"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.next7days.label;"/>
+        <menuitem id="appmenu_ltnTasksViewFilterNotstartedtasks"
+                  name="filtergroup"
+                  value="notstarted"
+                  type="radio"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.notstarted.label;"/>
+        <menuitem id="appmenu_ltnTasksViewFilterOverdue"
+                  name="filtergroup"
+                  value="overdue"
+                  type="radio"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.overdue.label;"/>
+        <menuitem id="appmenu_ltnTasksViewFilterCompleted"
+                  name="filtergroup"
+                  type="radio"
+                  value="completed"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.completed.label;"/>
+        <menuitem id="appmenu_ltnTasksViewFilterOpen"
+                  name="filtergroup"
+                  type="radio"
+                  value="open"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.open.label;"/>
+        <menuitem id="appmenu_ltnTasksViewFilterAll"
+                  name="filtergroup"
+                  value="all"
+                  type="radio"
+                  command="calendar_task_filter_command"
+                  label="&calendar.task.filter.all.label;"/>
+      </menupopup>
+    </menu>
+  </menupopup>
+
+  <menupopup id="appmenu_GoPopup">
+    <menuitem id="appmenu_ltnGoToToday"
+              insertafter="appmenu_goNextSeparator"
+              label="&goTodayCmd.label;"
+              observes="calendar_go_to_today_command"/>
+  </menupopup>
+
+  <menupopup id="appmenu_GoNextPopup">
+    <menuseparator id="appmenu_ltnGoNextSeparator"/>
+    <!-- Label is set up automatically using the view id. When writing a
+         view extension, overlay this menuitem and add a label-<myviewtype>
+         attribute with the correct label -->
+    <menuitem id="appmenu_calendar-go-menu-next"
+              label=""
+              label-day="&lightning.toolbar.day.label;"
+              label-week="&lightning.toolbar.week.label;"
+              label-multiweek="&lightning.toolbar.week.label;"
+              label-month="&lightning.toolbar.month.label;"
+              observes="calendar_view_next_command"/>
+  </menupopup>
+  <menupopup id="appmenu_GoPreviousPopup">
+    <menuseparator id="appmenu_ltnGoPreviousSeparator"/>
+    <!-- Label is set up automatically using the view id. When writing a
+         view extension, overlay this menuitem and add a label-<myviewtype>
+         attribute with the correct label -->
+    <menuitem id="appmenu_calendar-go-menu-previous"
+              label=""
+              label-day="&lightning.toolbar.day.label;"
+              label-week="&lightning.toolbar.week.label;"
+              label-multiweek="&lightning.toolbar.week.label;"
+              label-month="&lightning.toolbar.month.label;"
+              observes="calendar_view_prev_command"/>
+  </menupopup>
+
+  <vbox id="appmenuSecondaryPane">
+    <menu id="appmenu_Event_Task"
+          label="&lightning.menu.eventtask.label;"
+          insertafter="appmenu_messageMenu">
+      <menupopup id="appmenu_Event_Task_Popup" onpopupshowing="changeMenuForTask(event)">
+        <menuitem id="appmenu_ltnMenuSwitchToCalendar"
+                  type="checkbox"
+                  label="&lightning.toolbar.calendar.label;"
+                  command="switch2calendar"
+                  autocheck="false">
+          <observes element="modeBroadcaster"
+                    attribute="mode"
+                    onbroadcast="this.parentNode.setAttribute('checked', '' + document.getElementById('modeBroadcaster').getAttribute('mode') == 'calendar')"/>
+        </menuitem>
+        <menuitem id="appmenu_ltnMenuSwitchToTask"
+                  type="checkbox"
+                  label="&lightning.toolbar.task.label;"
+                  command="switch2task"
+                  autocheck="false">
+          <observes element="modeBroadcaster"
+                    attribute="mode"
+                    onbroadcast="this.parentNode.setAttribute('checked', '' + document.getElementById('modeBroadcaster').getAttribute('mode') == 'task')"/>
+        </menuitem>
+        <menuseparator id="appmenu_ltnBeforeCalendarSection"/>
+        <!-- Menuitems have different schema just to match sunbird -->
+        <menuitem id="appmenu_calendar-export-menu"
+                  label="&calendar.export.label;"
+                  command="calendar_export_command"
+                  observes="calendar_export_command"/>
+        <menuitem id="appmenu_calendar-import-menu"
+                  label="&calendar.import.label;"
+                  command="calendar_import_command"
+                  observes="calendar_import_command"/>
+        <menuitem id="appmenu_ltnPublishCalendar"
+                  label="&calendar.publish.label;"
+                  commmand="calendar_publish_calendar_command"
+                  observes="calendar_publish_calendar_command"/>
+        <menuitem id="appmenu_ltnDeleteSelectedCalendar"
+                  label="&calendar.deletecalendar.label;"
+                  command="calendar_delete_calendar_command"
+                  observes="calendar_delete_calendar_command"/>
+        <menuseparator id="ltnBeforeTaskActions"/>
+        <menuitem id="appmenu_ltnTaskActionsMarkCompletedMenuitem"
+                  type="checkbox"
+                  label="&calendar.context.markcompleted.label;"
+                  command="calendar_toggle_completed_command"
+                  observes="calendar_toggle_completed_command"/>
+        <menu id="appmenu_ltnTaskActionsPriorityMenuitem"
+              label="&calendar.context.priority.label;"
+              command="calendar_general-priority_command"
+              observes="calendar_general-priority_command">
+          <menupopup type="task-priority"/>
+        </menu>
+        <menu id="appmenu_ltnTaskActionsProgressMenuitem"
+              label="&calendar.context.progress.label;"
+              command="calendar_general-progress_command"
+              observes="calendar_general-progress_command">
+          <menupopup type="task-progress"/>
+        </menu>
+        <menu id="appmenu_ltnTaskActionsPostponeMenuitem"
+              label="&calendar.context.postpone.label;"
+              observes="calendar_general-postpone_command">
+          <menupopup id="appmenu_ltnTaskActionsPostponeMenuPopup">
+            <menuitem id="ltnTaskActionsPostponeMenu-1hour"
+                      label="&calendar.context.postpone.1hour.label;"
+                      observes="calendar_postpone-1hour_command"/>
+            <menuitem id="appmenu_ltnTaskActionsPostponeMenu-1day"
+                      label="&calendar.context.postpone.1day.label;"
+                      observes="calendar_postpone-1day_command"/>
+            <menuitem id="appmenu_ltnTaskActionsPostponeMenu-1week"
+                      label="&calendar.context.postpone.1week.label;"
+                      observes="calendar_postpone-1week_command"/>
+          </menupopup>
+        </menu>
+        <menuseparator id="appmenu_ltnBeforeUnifinderSection" />
+        <!-- menuitem has different schema just to match sunbird -->
+        <menuitem id="appmenu_calendar-show-unifinder-menu"
+                  type="checkbox"
+                  checked="true"
+                  label="&showUnifinderCmd.label;"
+                  observes="calendar_show_unifinder_command"
+                  command="calendar_show_unifinder_command"/>
+        <menuseparator id="appmenu_ltnBeforeCalendarProperties" />
+        <menuitem id="appmenu_ltnCalendarProperties"
+                  insertafter="menu_properties"
+                  label="&calendar.properties.label;"
+                  command="calendar_edit_calendar_command"
+                  observes="calendar_edit_calendar_command"/>
+      </menupopup>
+    </menu>
+  </vbox>
 </overlay>
