@@ -943,6 +943,1137 @@
               accesskey="&customizeToolbar.accesskey;"/>
   </menupopup>
 
+<popupset id="mainPopupSet">
+  <menupopup id="appmenu-popup"
+             onpopupshowing="initAppMenuPopup(this, event);">
+    <hbox>
+      <vbox id="appmenuPrimaryPane">
+        <splitmenu id="appmenu_newMessage"
+                   label="&appmenuNewMsgCmd.label;"
+                   oncommand="MsgNewMessage(null);">
+            <menupopup id="appmenu_newMenupopup">
+              <menuitem id="newNewMsgCmd"
+                        label="&newNewMsgCmd.label;"
+                        oncommand="MsgNewMessage(null);"/>
+              <menuitem id="appmenu_newFolder"
+                        label="&newFolderCmd.label;"
+                        oncommand="gFolderTreeController.newFolder();"/>
+              <menuitem id="appmenu_newVirtualFolder"
+                        label="&newVirtualFolderCmd.label;"
+                        oncommand="gFolderTreeController.newVirtualFolder();"/>
+              <menuseparator id="appmenu_newAccountPopupMenuSeparator"/>
+              <menuitem id="appmenu_newCreateEmailAccountMenuItem"
+                        label="&newCreateEmailAccountCmd.label;"
+                        oncommand="NewMailAccountProvisioner(msgWindow);"/>
+              <menuitem id="appmenu_newMailAccountMenuItem"
+                        label="&newExistingEmailAccountCmd.label;"
+                        oncommand="NewMailAccount(msgWindow);"/>
+              <menuitem id="appmenu_newIMAccountMenuItem"
+                        label="&newIMAccountCmd.label;"
+                        oncommand="openIMAccountWizard();"/>
+              <menuitem id="appmenu_newAccountMenuItem"
+                        label="&newOtherAccountsCmd.label;"
+                        oncommand="MsgAccountWizard();"/>
+              <menuseparator id="appmenu_newPopupMenuSeparator"/>
+              <menuitem id="appmenu_newCard"
+                        label="&appmenuNewContactCmd.label;"
+                        command="cmd_newCard"/>
+              <menuitem id="appmenu_newIMContactMenuItem"
+                        label="&newIMContactCmd.label;"
+                        oncommand="chatHandler.addBuddy();"/>
+            </menupopup>
+        </splitmenu>
+        <menu id="appmenu_fileAttachmentMenu"
+              label="&openAttachmentCmd.label;"
+              disabled="true"
+              persist="hidden">
+          <menupopup id="appmenu_attachmentMenuList"
+                     onpopupshowing="FillAttachmentListPopup(this);"/>
+        </menu>
+        <menuseparator class="appmenu-menuseparator"/>
+        <hbox>
+          <menuitem id="appmenu-edit-label"
+                    label="&appmenuEditMenu.label;"
+                    disabled="true"/>
+          <toolbarbutton id="appmenu-cut"
+                         class="appmenu-edit-button"
+                         command="cmd_cut"
+                         onclick="if (!this.disabled) hidePopup();"
+                         tooltiptext="&cutCmd.label;"/>
+          <toolbarbutton id="appmenu-copy"
+                         class="appmenu-edit-button"
+                         command="cmd_copy"
+                         onclick="if (!this.disabled) hidePopup();"
+                         tooltiptext="&copyCmd.label;"/>
+          <toolbarbutton id="appmenu-paste"
+                         class="appmenu-edit-button"
+                         command="cmd_paste"
+                         onclick="if (!this.disabled) hidePopup();"
+                         tooltiptext="&pasteCmd.label;"/>
+          <spacer flex="1"/>
+          <menu id="appmenu-editmenu">
+            <menupopup id="appmenu-editmenu-menupopup">
+              <menuitem id="appmenu-editmenu-cut"
+                        class="menuitem-iconic"
+                        label="&cutCmd.label;"
+                        key="key_cut"
+                        command="cmd_cut"/>
+              <menuitem id="appmenu-editmenu-copy"
+                        class="menuitem-iconic"
+                        label="&copyCmd.label;"
+                        key="key_copy"
+                        command="cmd_copy"/>
+              <menuitem id="appmenu-editmenu-paste"
+                        class="menuitem-iconic"
+                        label="&pasteCmd.label;"
+                        key="key_paste"
+                        command="cmd_paste"/>
+              <menuseparator/>
+              <menuitem id="appmenu-editmenu-undo"
+                        label="&undoCmd.label;"
+                        key="key_undo"
+                        command="cmd_undo"/>
+              <menuitem id="appmenu-editmenu-redo"
+                        label="&redoCmd.label;"
+                        key="key_redo"
+                        command="cmd_redo"/>
+              <menuseparator/>
+              <menuitem id="appmenu-editmenu-selectAll"
+                        label="&selectAllCmd.label;"
+                        key="key_selectAll"
+                        command="cmd_selectAll"/>
+            </menupopup>
+          </menu>
+        </hbox>
+        <splitmenu id="appmenu_find"
+                   label="&findMenu.label;"
+                   command="cmd_find">
+          <menupopup id="appmenu_FindPopup">
+            <menuitem id="appmenu_findCmd"
+                      label="&findCmd.label;"
+                      command="cmd_find"/>
+            <menuitem id="appmenu_findAgainCmd"
+                      label="&findAgainCmd.label;"
+                      command="cmd_findAgain"/>
+            <menuseparator id="appMenuAfterFindSeparator"/>
+            <menuitem id="appmenu_searchMailCmd"
+                      label="&searchMailCmd.label;"
+                      command="cmd_search"/>
+            <menuitem id="appmenu_searchAddressesCmd"
+                      label="&searchAddressesCmd.label;"
+                      oncommand="MsgSearchAddresses()"/>
+          </menupopup>
+        </splitmenu>
+        <splitmenu id="appmenu_print"
+                   iconic="true"
+                   label="&printCmd.label;"
+                   key="printKb"
+                   command="cmd_print">
+            <menupopup>
+              <menuitem id="appmenu_print_popup"
+                        class="menuitem-iconic"
+                        label="&printCmd.label;"
+                        command="cmd_print"
+                        key="printKb"/>
+              <menuitem id="appmenu_printPreview"
+                        label="&printPreviewCmd.label;"
+                        command="cmd_printpreview"/>
+              <menuitem id="appmenu_printSetup"
+                        label="&printSetupCmd.label;"
+                        command="cmd_printSetup"/>
+            </menupopup>
+        </splitmenu>
+        <menuseparator class="appmenu-menuseparator"/>
+        <menu id="appmenu_saveAs"
+              label="&saveAsMenu.label;">
+          <menupopup id="menu_SavePopup">
+            <menuitem id="appmenu_saveAsFile"
+                      label="&saveAsFileCmd.label;"
+                      key="key_saveAsFile"
+                      command="cmd_saveAsFile"/>
+            <menuitem id="appmenu_saveAsTemplate"
+                      label="&saveAsTemplateCmd.label;"
+                      command="cmd_saveAsTemplate"/>
+          </menupopup>
+        </menu>
+        <menu id="appmenu_FolderViews"
+              label="&folderView.label;">
+          <menupopup id="appmenu_FolderViewsPopup"
+                     onpopupshowing="InitViewFolderViewsMenu(event)">
+            <menuitem id="appmenu_allFolders"
+                      value="all"
+                      label="&allFolders.label;"
+                      type="radio"
+                      name="viewmessages"
+                      oncommand="gFolderTreeView.mode = this.value;"/>
+            <menuitem id="appmenu_smartFolders"
+                      value="smart"
+                      label="&unifiedFolders.label;"
+                      type="radio"
+                      name="viewmessages"
+                      oncommand="gFolderTreeView.mode = this.value;"/>
+            <menuitem id="appmenu_unreadFolders"
+                      label="&unreadFolders.label;"
+                      value="unread"
+                      type="radio"
+                      name="viewmessages"
+                      oncommand="gFolderTreeView.mode = this.value;"/>
+            <menuitem id="appmenu_favoriteFolders"
+                      value="favorite"
+                      label="&favoriteFolders.label;"
+                      type="radio"
+                      name="viewmessages"
+                      oncommand="gFolderTreeView.mode = this.value;"/>
+            <menuitem id="appmenu_recentFolders"
+                      value="recent"
+                      label="&recentFolders.label;"
+                      type="radio"
+                      name="viewmessages"
+                      oncommand="gFolderTreeView.mode = this.value;"/>
+            <menuseparator id="appmenu_favoritePropertiesSeparator"/>
+            <menuitem id="appmenu_favoriteFolder"
+                      type="checkbox"
+                      label="&menuFavoriteFolder.label;"
+                      check="false"
+                      oncommand="ToggleFavoriteFolderFlag();"/>
+            <menuitem id="appmenu_properties"
+                      label="&folderPropsCmd.label;"
+                      command="cmd_properties"/>
+          </menupopup>
+        </menu>
+        <menuitem id="appmenu_emptyTrash"
+                  label="&emptyTrashCmd.label;"
+                  command="cmd_emptyTrash"/>
+        <spacer flex="1"/>
+        <menuitem id="appmenu-quit"
+                  class="menuitem-iconic"
+#ifdef XP_WIN
+                  label="&quitApplicationCmd.label;"
+#else
+                  label="&quitApplicationCmdUnix.label;"
+#endif
+                  command="cmd_quit"/>
+      </vbox>
+      <vbox id="appmenuSecondaryPane">
+        <menuitem id="appmenu_activityManager"
+                  label="&activitymanager.label;"
+                  oncommand="openActivityMgr();"/>
+        <splitmenu id="appmenu_filters"
+                  label="&filtersCmd.label;"
+                  command="cmd_displayMsgFilters">
+          <menupopup id="appmenu_FilterMenu">
+            <menuitem id="appmenu_filtersCmd"
+                      label="&filtersCmd.label;"
+                      command="cmd_displayMsgFilters"/>
+            <menuitem id="applyFilters"
+                      label="&filtersApply.label;"
+                      command="cmd_applyFilters"/>
+            <menuitem id="applyFiltersToSelection"
+                      label="&filtersApplyToMessage.label;"
+                      command="cmd_applyFiltersToSelection"/>
+          </menupopup>
+        </splitmenu>
+        <spacer class="appmenuPane-spacer"/>
+        <menuitem id="appmenu_addons"
+                  class="menuitem-iconic"
+                  label="&addons.label;"
+                  oncommand="openAddonsMgr();"/>
+        <splitmenu id="appmenu_customize"
+#ifdef XP_WIN
+                   label="&preferencesCmd.label;"
+#else
+                   label="&preferencesCmdUnix.label;"
+#endif
+                   oncommand="openOptionsDialog();">
+          <menupopup id="appmenu_customizeMenu"
+                     onpopupshowing="onViewToolbarsPopupShowing(event, 'mail-toolbox', document.getElementById('appmenu_quickFilterBar'));">
+            <menuitem id="appmenu_preferences"
+#ifdef XP_WIN
+                      label="&preferencesCmd.label;"
+#else
+                      label="&preferencesCmdUnix.label;"
+#endif
+                      oncommand="openOptionsDialog();"/>
+            <menuitem id="appmenu_accountmgr"
+                      label="&accountManagerCmd.label;"
+                      oncommand="MsgAccountManager(null);"/>
+            <menuseparator/>
+            <menuitem id="appmenu_quickFilterBar"
+                      type="checkbox"
+                      label="&appmenuQFBMenu.label;"
+                      command="cmd_toggleQuickFilterBar">
+              <observes element="qfb-show-filter-bar" attribute="checked"/>
+            </menuitem>
+            <menuitem id="appmenu_showStatusbar"
+                      type="checkbox"
+                      label="&showTaskbarCmd.label;"
+                      oncommand="goToggleToolbar('status-bar', 'menu_showTaskbar')"
+                      checked="true"/>
+            <menuseparator id="appmenu_toggleToolbarsSeparator"/>
+            <menuitem id="appmenu_toolbarLayout"
+                      label="&appmenuToolbarLayout.label;"
+                      command="cmd_CustomizeMailToolbar"/>
+            <menuseparator id="appmenu_paneViewSeparator"/>
+            <menu id="appmenu_MessagePaneLayout"
+                  label="&messagePaneLayoutStyle.label;">
+              <menupopup id="appmenu_view_layout_popup"
+                         onpopupshowing="InitViewLayoutStyleMenu(event)">
+                <menuitem id="appmenu_messagePaneClassic"
+                          type="radio"
+                          label="&messagePaneClassic.label;"
+                          name="viewlayoutgroup"
+                          command="cmd_viewClassicMailLayout"/>
+                <menuitem id="appmenu_messagePaneWide"
+                          type="radio"
+                          label="&messagePaneWide.label;"
+                          name="viewlayoutgroup"
+                          command="cmd_viewWideMailLayout"/>
+                <menuitem id="appmenu_messagePaneVertical"
+                          type="radio"
+                          label="&messagePaneVertical.label;"
+                          name="viewlayoutgroup"
+                          command="cmd_viewVerticalMailLayout"/>
+                <menuseparator id="appmenu_viewMenuAfterPaneVerticalSeparator"/>
+                <menuitem id="appmenu_showFolderPane"
+                          type="checkbox"
+                          label="&showFolderPaneCmd.label;"
+                          command="cmd_toggleFolderPane"/>
+                <menuitem id="appmenu_showMessage"
+                          type="checkbox"
+                          label="&showMessageCmd.label;"
+                          command="cmd_toggleMessagePane"/>
+              </menupopup>
+            </menu>
+          </menupopup>
+        </splitmenu>
+        <spacer class="appmenuPane-spacer"/>
+        <!-- File menu -->
+        <menu id="appmenu_File"
+              label="&fileMenu.label;">
+          <menupopup id="appmenu_FilePopup">
+            <menuitem id="appmenu_openMessageFileMenuitem"
+                      label="&openMessageFileCmd.label;"
+                      oncommand="MsgOpenFromFile();"/>
+            <menuitem id="appmenu_close"
+                      label="&closeCmd.label;"
+                      command="cmd_close"/>
+            <menuseparator id="appmenu_fileMenuAfterCloseSeparator"/>
+            <menu id="appmenu_getNewMsgFor"
+                  label="&getNewMsgForCmd.label;"
+                  oncommand="MsgGetMessagesForAccount(event.target._folder)">
+              <menupopup type="folder"
+                         mode="getMail"
+                         id="appmenu_getAllNewMsgPopup"
+                         expandFolders="false">
+                <menuitem id="appmenu_getnewmsgs_all_accounts"
+                          label="&getAllNewMsgCmdPopupMenu.label;"
+                          command="cmd_getMsgsForAuthAccounts"/>
+                <menuitem id="appmenu_getnewmsgs_current_account"
+                          label="&getNewMsgCurrentAccountCmdPopupMenu.label;"
+                          command="cmd_getNewMessages"/>
+                <menuseparator/>
+              </menupopup>
+            </menu>
+            <menuitem id="appmenu_getNextNMsgs"
+                      label="&getNextNMsgCmd.label;"
+                      command="cmd_getNextNMessages"/>
+            <menuitem id="appmenu_sendUnsentMsgs"
+                      label="&sendUnsentCmd.label;"
+                      command="cmd_sendUnsentMsgs"/>
+            <menuitem id="appmenu_subscribe"
+                      label="&subscribeCmd.label;"
+                      oncommand="MsgSubscribe();"/>
+            <menuseparator id="appmenu_fileMenuAfterSubscribeSeparator"/>
+            <menuitem id="appmenu_deleteFolder"
+                      label="&deleteFolder.label;"
+                      command="cmd_deleteFolder"/>
+            <menuitem id="appmenu_renameFolder"
+                      label="&renameFolder.label;"
+                      command="cmd_renameFolder"/>
+            <menuseparator id="appmenu_fileMenuAfterRenameSeparator"/>
+            <menuitem id="appmenu_compactFolder"
+                      label="&compactFolders.label;"
+                      command="cmd_compactFolder"/>
+            <menuseparator id="appmenu_fileMenuAfterCompactSeparator"/>
+            <menu id="appmenu_offline"
+                  label="&offlineMenu.label;">
+              <menupopup id="appmenu_OfflinePopup">
+                <menuitem id="appmenu_goOffline"
+                          type="checkbox"
+                          label="&offlineGoOfflineCmd.label;"
+                          oncommand="MailOfflineMgr.toggleOfflineStatus();"/>
+                <menuseparator id="appmenu_offlineMenuAfterGoSeparator"/>
+                <menuitem id="appmenu_synchronizeOffline"
+                          label="&synchronizeOfflineCmd.label;"
+                          command="cmd_synchronizeOffline"/>
+                <menuitem id="appmenu_settingsOffline"
+                          label="&settingsOfflineCmd.label;"
+                          command="cmd_settingsOffline"/>
+                <menuseparator id="app_offlineMenuAfterSettingsSeparator"/>
+                <menuitem id="appmenu_downloadFlagged"
+                          label="&downloadStarredCmd.label;"
+                          command="cmd_downloadFlagged"/>
+                <menuitem id="appmenu_downloadSelected"
+                          label="&downloadSelectedCmd.label;"
+                          command="cmd_downloadSelected"/>
+              </menupopup>
+            </menu>
+          </menupopup>
+        </menu>
+        <!-- View menu -->
+        <menu id="appmenu_View"
+              label="&viewMenu.label;">
+          <menupopup id="appmenu_View_Popup">
+            <menu id="appmenu_viewSortMenu"
+                  label="&sortMenu.label;">
+              <menupopup id="appmenu_viewSortPopup" onpopupshowing="InitAppViewSortByMenu()">
+                <menuitem id="appmenu_sortByDateMenuitem"
+                          type="radio"
+                          name="sortby"
+                          label="&sortByDateCmd.label;"
+                          oncommand="MsgSortThreadPane('byDate')"/>
+                <menuitem id="appmenu_sortByReceivedMenuitem"
+                          type="radio"
+                          name="sortby"
+                          label="&sortByReceivedCmd.label;"
+                          oncommand="MsgSortThreadPane('byReceived')"/>
+                <menuitem id="appmenu_sortByFlagMenuitem"
+                          type="radio"
+                          name="sortby"
+                          label="&sortByStarCmd.label;"
+                          oncommand="MsgSortThreadPane('byFlagged')"/>
+                <menuitem id="appmenu_sortByOrderReceivedMenuitem"
+                          type="radio"
+                          name="sortby"
+                          label="&sortByOrderReceivedCmd.label;"
+                          oncommand="MsgSortThreadPane('byId')"/>
+                <menuitem id="appmenu_sortByPriorityMenuitem"
+                          type="radio"
+                          name="sortby"
+                          label="&sortByPriorityCmd.label;"
+                          oncommand="MsgSortThreadPane('byPriority')"/>
+                <menuitem id="appmenu_sortByFromMenuitem"
+                          type="radio"
+                          name="sortby"
+                          label="&sortByFromCmd.label;"
+                          oncommand="MsgSortThreadPane('byAuthor')"/>
+                <menuitem id="appmenu_sortByRecipientMenuitem"
+                          type="radio"
+                          name="sortby"
+                          label="&sortByRecipientCmd.label;"
+                          oncommand="MsgSortThreadPane('byRecipient')"/>
+                <menuitem id="appmenu_sortBySizeMenuitem"
+                          type="radio"
+                          name="sortby"
+                          label="&sortBySizeCmd.label;"
+                          oncommand="MsgSortThreadPane('bySize')"/>
+                <menuitem id="appmenu_sortByStatusMenuitem"
+                          type="radio"
+                          name="sortby"
+                          label="&sortByStatusCmd.label;"
+                          oncommand="MsgSortThreadPane('byStatus')"/>
+                <menuitem id="appmenu_sortBySubjectMenuitem"
+                          type="radio"
+                          name="sortby"
+                          label="&sortBySubjectCmd.label;"
+                          oncommand="MsgSortThreadPane('bySubject')"/>
+                <menuitem id="appmenu_sortByUnreadMenuitem"
+                          type="radio"
+                          name="sortby"
+                          label="&sortByUnreadCmd.label;"
+                          oncommand="MsgSortThreadPane('byUnread')"/>
+                <menuitem id="appmenu_sortByTagsMenuitem"
+                          type="radio"
+                          name="sortby"
+                          label="&sortByTagsCmd.label;"
+                          oncommand="MsgSortThreadPane('byTags')"/>
+                <menuitem id="appmenu_sortByJunkStatusMenuitem"
+                          type="radio"
+                          name="sortby"
+                          label="&sortByJunkStatusCmd.label;"
+                          oncommand="MsgSortThreadPane('byJunkStatus')"/>
+                <menuitem id="appmenu_sortByAttachmentsMenuitem"
+                          type="radio"
+                          name="sortby"
+                          label="&sortByAttachmentsCmd.label;"
+                          oncommand="MsgSortThreadPane('byAttachments')"/>
+                <menuseparator id="appmenu_sortAfterAttachmentSeparator"/>
+                <menuitem id="appmenu_sortAscending"
+                          type="radio"
+                          name="sortdirection"
+                          label="&sortAscending.label;"
+                          oncommand="MsgSortAscending()"/>
+                <menuitem id="appmenu_sortDescending"
+                          type="radio"
+                          name="sortdirection"
+                          label="&sortDescending.label;"
+                          oncommand="MsgSortDescending()"/>
+                <menuseparator id="appmenu_sortAfterDescendingSeparator"/>
+                <menuitem id="appmenu_sortThreaded"
+                          type="radio"
+                          name="threaded"
+                          label="&sortThreaded.label;"
+                          oncommand="MsgSortThreaded();"/>
+                <menuitem id="appmenu_sortUnthreaded"
+                          type="radio"
+                          name="threaded"
+                          label="&sortUnthreaded.label;"
+                          oncommand="MsgSortUnthreaded();"/>
+                <menuitem id="appmenu_groupBySort"
+                          type="radio"
+                          name="group"
+                          label="&groupBySort.label;"
+                          oncommand="MsgGroupBySort();"/>
+              </menupopup>
+            </menu>
+            <menu id="appmenu_viewMessageViewMenu"
+                  label="&msgsMenu.label;"
+                  command="mailHideMenus"
+                  oncommand="ViewChangeByMenuitem(event.target);">
+              <menupopup id="appmenu_viewMessagePopup"
+                         onpopupshowing="RefreshViewPopup(this, false);">
+                <menuitem id="appmenu_viewMessageAll"
+                          value="0"
+                          type="radio"
+                          label="&viewAll.label;"/>
+                <menuitem id="appmenu_viewMessageUnread"
+                          value="1"
+                          type="radio"
+                          label="&viewUnread.label;"/>
+                <menuitem id="appmenu_viewMessageNotDeleted"
+                          value="3"
+                          type="radio"
+                          label="&viewNotDeleted.label;"/>
+                <menuseparator id="appmenu_messageViewAfterUnreadSeparator"/>
+                <menu id="viewMessageTags"
+                      label="&viewTags.label;">
+                  <menupopup id="appmenu_viewMessageTagsPopup"
+                             onpopupshowing="RefreshTagsPopup(this, false);"/>
+                </menu>
+                <menu id="appmenu_viewMessageCustomViews"
+                      label="&viewCustomViews.label;">
+                  <menupopup id="appmenu_viewMessageCustomViewsPopup"
+                             onpopupshowing="RefreshCustomViewsPopup(this, false);"/>
+                </menu>
+                <menuseparator id="appmenu_messageViewAfterCustomSeparator"/>
+                <menuitem id="appmenu_viewMessageVirtualFolder"
+                          value="7"
+                          label="&viewVirtualFolder.label;"/>
+                <menuitem id="appmenu_viewMessageCustomize"
+                          value="8"
+                          label="&viewCustomizeView.label;"/>
+              </menupopup>
+            </menu>
+            <menu label="&threads.label;"
+                  id="appmenu_viewMessagesMenu">
+              <menupopup id="appmenu_ThreadsPopup"
+                         onpopupshowing="InitAppmenuViewMessagesMenu()">
+                <menuitem id="appmenu_viewAllMessagesMenuItem"
+                          type="radio"
+                          name="viewmessages"
+                          label="&allMsgsCmd.label;"
+                          disabled="true"
+                          command="cmd_viewAllMsgs"/>
+                <menuitem id="appmenu_viewUnreadMessagesMenuItem"
+                          type="radio"
+                          name="viewmessages"
+                          label="&unreadMsgsCmd.label;"
+                          disabled="true"
+                          command="cmd_viewUnreadMsgs"/>
+                <menuitem id="appmenu_viewThreadsWithUnreadMenuItem"
+                          type="radio"
+                          name="viewmessages"
+                          label="&threadsWithUnreadCmd.label;"
+                          disabled="true"
+                          command="cmd_viewThreadsWithUnread"/>
+                <menuitem id="appmenu_viewWatchedThreadsWithUnreadMenuItem"
+                          type="radio"
+                          name="viewmessages"
+                          label="&watchedThreadsWithUnreadCmd.label;"
+                          disabled="true"
+                          command="cmd_viewWatchedThreadsWithUnread"/>
+                <menuseparator id="appmenu_threadsAfterWatchedSeparator"/>
+                <menuitem id="appmenu_viewIgnoredThreadsMenuItem"
+                          type="checkbox"
+                          label="&ignoredThreadsCmd.label;"
+                          disabled="true"
+                          command="cmd_viewIgnoredThreads"/>
+                <menuseparator id="appmenu_threadsAfterIgnoredSeparator"/>
+                <menuitem id="appmenu_expandAllThreads"
+                          label="&expandAllThreadsCmd.label;"
+                          disabled="true"
+                          command="cmd_expandAllThreads"/>
+                <menuitem id="appmenu_collapseAllThreads"
+                          label="&collapseAllThreadsCmd.label;"
+                          disabled="true"
+                          command="cmd_collapseAllThreads"/>
+              </menupopup>
+            </menu>
+            <menuseparator id="appmenu_viewAfterThreadsSeparator"/>
+            <menu id="appmenu_viewHeadersMenu"
+                  label="&headersMenu.label;">
+              <menupopup id="appmenu_HeadersPopup" onpopupshowing="InitViewHeadersMenu();">
+                <menuitem id="appmenu_viewallheaders"
+                          type="radio"
+                          name="viewheadergroup"
+                          label="&headersAllCmd.label;"
+                          command="cmd_viewAllHeader"/>
+                <menuitem id="appmenu_viewnormalheaders"
+                          type="radio"
+                          name="viewheadergroup"
+                          label="&headersNormalCmd.label;"
+                          command="cmd_viewNormalHeader"/>
+              </menupopup>
+            </menu>
+            <menu id="appmenu_viewBodyMenu"
+                  label="&bodyMenu.label;">
+              <menupopup id="appmenu_viewBodyPopMenu"
+                         onpopupshowing="InitAppmenuViewBodyMenu()">
+                <menuitem id="appmenu_bodyAllowHTML"
+                          type="radio"
+                          name="bodyPlaintextVsHTMLPref"
+                          label="&bodyAllowHTML.label;"
+                          oncommand="MsgBodyAllowHTML()"/>
+                <menuitem id="appmenu_bodySanitized"
+                          type="radio"
+                          name="bodyPlaintextVsHTMLPref"
+                          label="&bodySanitized.label;"
+                          oncommand="MsgBodySanitized()"/>
+                <menuitem id="appmenu_bodyAsPlaintext"
+                          type="radio"
+                          name="bodyPlaintextVsHTMLPref"
+                          label="&bodyAsPlaintext.label;"
+                          oncommand="MsgBodyAsPlaintext()"/>
+                <menuitem id="appmenu_bodyAllParts"
+                          type="radio"
+                          name="bodyPlaintextVsHTMLPref"
+                          label="&bodyAllParts.label;"
+                          oncommand="MsgBodyAllParts()"/>
+              </menupopup>
+            </menu>
+            <menu id="appmenu_viewFeedSummary"
+                  label="&bodyMenuFeed.label;">
+              <menupopup id="appmenu_viewFeedSummaryPopupMenu"
+                         onpopupshowing="InitAppmenuViewBodyMenu()">
+                <menuitem id="appmenu_bodyFeedSummaryAllowHTML"
+                          type="radio"
+                          name="viewFeedBodyHTMLGroup"
+                          label="&bodyAllowHTML.label;"
+                          oncommand="MsgFeedBodyRenderPrefs(false, 0, 0)"/>
+                <menuitem id="appmenu_bodyFeedSummarySanitized"
+                          type="radio"
+                          name="viewFeedBodyHTMLGroup"
+                          label="&bodySanitized.label;"
+                          oncommand="MsgFeedBodyRenderPrefs(false, 3, gDisallow_classes_no_html)"/>
+                <menuitem id="appmenu_bodyFeedSummaryAsPlaintext"
+                          type="radio"
+                          name="viewFeedBodyHTMLGroup"
+                          label="&bodyAsPlaintext.label;"
+                          oncommand="MsgFeedBodyRenderPrefs(true, 1, gDisallow_classes_no_html)"/>
+                <menuseparator id="appmenu_viewFeedSummarySeparator"/>
+                <menuitem id="appmenu_bodyFeedGlobalWebPage"
+                          type="radio"
+                          name="viewFeedSummaryGroup"
+                          label="&viewFeedWebPage.label;"
+                          oncommand="ChangeFeedShowSummaryPref(0)"/>
+                <menuitem id="appmenu_bodyFeedGlobalSummary"
+                          type="radio"
+                          name="viewFeedSummaryGroup"
+                          label="&viewFeedSummary.label;"
+                          oncommand="ChangeFeedShowSummaryPref(1)"/>
+                <menuitem id="appmenu_bodyFeedPerFolderPref"
+                          type="radio"
+                          name="viewFeedSummaryGroup"
+                          label="&viewFeedSummaryFeedPropsPref.label;"
+                          oncommand="ChangeFeedShowSummaryPref(2)"/>
+              </menupopup>
+            </menu>
+            <menuitem id="appmenu_viewAttachmentsInlineMenuitem"
+                      label="&viewAttachmentsInlineCmd.label;"
+                      oncommand="ToggleInlineAttachment(event.target)"
+                      type="checkbox"
+                      checked="true"/>
+            <menuseparator id="appmenu_viewAfterAttachmentsSeparator"/>
+            <menu id="appmenu_viewFullZoomMenu"
+                  label="&fullZoom.label;"
+                  onpopupshowing="UpdateFullZoomMenu()">
+              <menupopup id="appmenu_viewFullZoomPopupMenu">
+                <menuitem id="appmenu_fullZoomEnlarge"
+                          label="&fullZoomEnlargeCmd.label;"
+                          command="cmd_fullZoomEnlarge"/>
+                <menuitem id="appmenu_fullZoomReduce"
+                          label="&fullZoomReduceCmd.label;"
+                          command="cmd_fullZoomReduce"/>
+                <menuseparator id="appmenu_fullZoomAfterReduceSeparator"/>
+                <menuitem id="appmenu_fullZoomReset"
+                          label="&fullZoomResetCmd.label;"
+                          command="cmd_fullZoomReset"/>
+                <menuseparator id="appmenu_fullZoomAfterResetSeparator"/>
+                <menuitem id="appmenu_fullZoomToggle"
+                          label="&fullZoomToggleCmd.label;"
+                          type="checkbox"
+                          command="cmd_fullZoomToggle"
+                          checked="false"/>
+              </menupopup>
+            </menu>
+            <menu id="appmenu_charsetMenu"
+                  label="&charsetMenu.label;"
+                  datasources="rdf:charset-menu"
+                  ref="NC:BrowserCharsetMenuRoot"
+                  oncommand="MultiplexHandler(event)"
+                  onpopupshowing="CreateMenu('browser'); CreateMenu('more-menu');"
+                  onpopupshown="UpdateMenus(event);"
+                  observes="isImage">
+                <template>
+                  <rule rdf:type="http://home.netscape.com/NC-rdf#BookmarkSeparator">
+                    <menupopup>
+                      <menuseparator uri="..." />
+                    </menupopup>
+                  </rule>
+                  <rule>
+                    <menupopup>
+                      <menuitem type="radio" name="charsetGroup" checked="rdf:http://home.netscape.com/NC-rdf#Checked" uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+                    </menupopup>
+                  </rule>
+                </template>
+                <menupopup>
+                <menu label="&charsetMenuAutodet.label;"
+                      datasources="rdf:charset-menu" ref="NC:BrowserAutodetMenuRoot">
+                  <template>
+                    <rule rdf:type="http://home.netscape.com/NC-rdf#CharsetDetector">
+                      <menupopup>
+                        <menuitem type="radio" name="detectorGroup" checked="rdf:http://home.netscape.com/NC-rdf#Checked" uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+                      </menupopup>
+                    </rule>
+                  </template>
+                  <menupopup>
+                  </menupopup>
+                </menu>
+                <menu label="&charsetMenuMore.label;"
+                      datasources="rdf:charset-menu" ref="NC:BrowserMoreCharsetMenuRoot">
+                  <template>
+                    <rule>
+                      <menupopup>
+                        <menuitem uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+                      </menupopup>
+                    </rule>
+                  </template>
+                  <menupopup>
+                    <menu label="&charsetMenuMore1.label;"
+                          datasources="rdf:charset-menu" ref="NC:BrowserMore1CharsetMenuRoot">
+                      <template>
+                        <rule>
+                          <menupopup>
+                            <menuitem uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+                          </menupopup>
+                        </rule>
+                      </template>
+                      <menupopup>
+                      </menupopup>
+                    </menu>
+                    <menu label="&charsetMenuMore2.label;"
+                          datasources="rdf:charset-menu" ref="NC:BrowserMore2CharsetMenuRoot">
+                      <template>
+                        <rule>
+                          <menupopup>
+                            <menuitem uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+                          </menupopup>
+                        </rule>
+                      </template>
+                      <menupopup>
+                      </menupopup>
+                    </menu>
+                    <menu label="&charsetMenuMore3.label;"
+                          datasources="rdf:charset-menu" ref="NC:BrowserMore3CharsetMenuRoot">
+                      <template>
+                        <rule>
+                          <menupopup>
+                            <menuitem uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+                          </menupopup>
+                        </rule>
+                      </template>
+                      <menupopup>
+                      </menupopup>
+                    </menu>
+                    <menu label="&charsetMenuMore4.label;"
+                          datasources="rdf:charset-menu" ref="NC:BrowserMore4CharsetMenuRoot">
+                      <template>
+                        <rule>
+                          <menupopup>
+                            <menuitem uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+                          </menupopup>
+                        </rule>
+                      </template>
+                      <menupopup>
+                      </menupopup>
+                    </menu>
+                    <menu label="&charsetMenuMore5.label;"
+                          datasources="rdf:charset-menu" ref="NC:BrowserMore5CharsetMenuRoot">
+                      <template>
+                        <rule>
+                          <menupopup>
+                            <menuitem uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+                          </menupopup>
+                        </rule>
+                      </template>
+                      <menupopup>
+                      </menupopup>
+                    </menu>
+                    <menu label="&charsetMenuUnicode.label;"
+                          datasources="rdf:charset-menu" ref="NC:BrowserUnicodeCharsetMenuRoot">
+                      <template>
+                        <rule>
+                          <menupopup>
+                            <menuitem uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+                          </menupopup>
+                        </rule>
+                      </template>
+                      <menupopup>
+                      </menupopup>
+                    </menu>
+                    <menuseparator />
+                  </menupopup>
+                </menu>
+                <menuitem name="charsetCustomize"
+                          label="&charsetCustomize.label;"
+                          oncommand="window.openDialog('chrome://global/content/customizeCharset.xul', 'PrefWindow', 'chrome,modal=yes,resizable=yes', 'browser');"/>
+              </menupopup>
+            </menu>
+            <menuseparator id="appmenu_viewAfterCharsetSeparator"/>
+            <menuitem id="appmenu_pageSourceMenuItem"
+                      label="&pageSourceCmd.label;"
+                      command="cmd_viewPageSource"/>
+          </menupopup>
+        </menu>
+        <!-- Go menu -->
+        <menu id="appmenu_Go"
+              label="&goMenu.label;">
+          <menupopup id="appmenu_GoPopup">
+            <menu id="appmenu_goNextMenu"
+                  label="&nextMenu.label;">
+              <menupopup id="appmenu_GoNextPopup">
+                <menuitem id="appmenu_nextMsg"
+                          label="&nextMsgCmd.label;"
+                          command="cmd_nextMsg"/>
+                <menuitem id="appmenu_nextUnreadMsg"
+                          label="&nextUnreadMsgCmd.label;"
+                          command="cmd_nextUnreadMsg"/>
+                <menuitem id="appmenu_nextFlaggedMsg"
+                          label="&nextStarredMsgCmd.label;"
+                          command="cmd_nextFlaggedMsg"/>
+                <menuseparator id="appmenu_goNextAfterFlaggedSeparator"/>
+                <menuitem id="appmenu_nextUnreadThread"
+                          label="&nextUnreadThread.label;"
+                          command="cmd_nextUnreadThread"/>
+              </menupopup>
+            </menu>
+            <menu id="appmenu_goPreviousMenu"
+                  label="&prevMenu.label;">
+              <menupopup id="appmenu_GoPreviousPopup">
+                <menuitem id="appmenu_prevMsg"
+                          label="&prevMsgCmd.label;"
+                          command="cmd_previousMsg"/>
+                <menuitem id="appmenu_prevUnreadMsg"
+                          label="&prevUnreadMsgCmd.label;"
+                          command="cmd_previousUnreadMsg"/>
+                <menuitem id="appmenu_prevFlaggedMsg"
+                          label="&prevStarredMsgCmd.label;"
+                          command="cmd_previousFlaggedMsg"/>
+              </menupopup>
+            </menu>
+            <menuitem id="appmenu_goForward"
+                      label="&goForwardCmd.label;"
+                      command="cmd_goForward"/>
+            <menuitem id="appmenu_goBack"
+                      label="&goBackCmd.label;"
+                      command="cmd_goBack"/>
+            <menuseparator id="appmenu_goNextSeparator"/>
+            <menuitem id="appmenu_goChat"
+                      label="&goChatCmd.label;"
+                      oncommand="showChatTab();"/>
+            <menuseparator id="appmenu_goChatSeparator"/>
+            <menu id="appmenu_goFolderMenu"
+                  label="&folderMenu.label;"
+                  oncommand="gFolderTreeView.selectFolder(event.target._folder, true)">
+              <menupopup id="appmenu_GoFolderPopup"
+                         type="folder"
+                         showFileHereLabel="true"
+                         fileHereLabel="&thisFolder.label;"
+                         showRecent="true"
+                         recentLabel="&contextMoveCopyMsgRecentMenu.label;"/>
+            </menu>
+            <menuseparator id="appmenu_goFolderSeparator"/>
+            <menu id="appmenu_goRecentlyClosedTabs"
+                  label="&goRecentlyClosedTabs.label;">
+              <menupopup id="appmenu_GoRecentlyClosedTabsPopup"
+                         onpopupshowing="return InitRecentlyClosedTabsPopup(this)" />
+            </menu>
+            <menuseparator id="appmenu_goRecentlyClosedTabsSeparator"/>
+            <menuitem id="appmenu_goStartPage"
+                      label="&startPageCmd.label;"
+                      command="cmd_goStartPage"/>
+          </menupopup>
+        </menu>
+        <!-- Message menu -->
+        <menu id="appmenu_messageMenu"
+              label="&msgMenu.label;">
+          <menupopup id="appmenu_messageMenuPopup"
+                     onpopupshowing="InitAppMessageMenu();">
+            <menuitem id="appmenu_newMsgCmd"
+                      label="&newMsgCmd.label;"
+                      oncommand="MsgNewMessage(null);"/>
+            <menuitem id="appmenu_replyMainMenu"
+                      label="&replyMsgCmd.label;"
+                      command="cmd_reply"/>
+            <menuitem id="appmenu_replyNewsgroupMainMenu"
+                      label="&replyNewsgroupCmd2.label;"
+                      command="cmd_replyGroup"/>
+            <menuitem id="appmenu_replySenderMainMenu"
+                      label="&replySenderCmd.label;"
+                      command="cmd_replySender"/>
+            <menuitem id="appmenu_replyToAll"
+                      label="&replyToAllMsgCmd.label;"
+                      command="cmd_replyall"/>
+            <menuitem id="appmenu_replyToList"
+                      label="&replyToListMsgCmd.label;"
+                      command="cmd_replylist"/>
+            <menuitem id="appmenu_forwardMsg"
+                      label="&forwardMsgCmd.label;"
+                      command="cmd_forward"/>
+            <menu id="appmenu_forwardAsMenu"
+                  label="&forwardAsMenu.label;">
+              <menupopup id="appmenu_forwardAsPopup">
+                <menuitem id="appmenu_forwardAsInline"
+                          label="&forwardAsInline.label;"
+                          command="cmd_forwardInline"/>
+                <menuitem id="appmenu_forwardAsAttachment"
+                          label="&forwardAsAttachmentCmd.label;"
+                          command="cmd_forwardAttachment"/>
+              </menupopup>
+            </menu>
+            <menuitem id="appmenu_editMsgAsNew"
+                      label="&editMsgAsNewCmd.label;"
+                      command="cmd_editAsNew"/>
+            <menuseparator id="appmenu_messageMenuAfterCompositionCommandsSeparator"/>
+            <menuitem id="appmenu_openMessageWindowMenuitem"
+                      label="&openMessageWindowCmd.label;"
+                      command="cmd_openMessage"/>
+            <menuitem id="appmenu_openConversationMenuitem"
+                      label="&openConversationCmd.label;"
+                      command="cmd_openConversation"/>
+            <menu id="appmenu_openFeedMessage"
+                  label="&openFeedMessage.label;">
+              <menupopup id="appmenu_openFeedMessage">
+                <menuitem id="appmenu_openFeedWebPageInWindow"
+                          type="radio"
+                          name="openFeedGroup"
+                          label="&openFeedWebPageInWindow.label;"
+                          oncommand="ChangeFeedOpenHandler(0);"/>
+                <menuitem id="appmenu_openFeedSummaryInWindow"
+                          type="radio"
+                          name="openFeedGroup"
+                          label="&openFeedSummaryInWindow.label;"
+                          oncommand="ChangeFeedOpenHandler(1);"/>
+                <menuitem id="appmenu_openFeedWebPageInMessagePane"
+                          type="radio"
+                          name="openFeedGroup"
+                          label="&openFeedWebPageInMP.label;"
+                          oncommand="ChangeFeedOpenHandler(2);"/>
+              </menupopup>
+            </menu>
+            <menuseparator id="appmenu_messageAfterOpenMsgSeparator"/>
+            <menu id="appmenu_tagMenu"
+                  label="&tagMenu.label;"
+                  command="cmd_tag">
+              <menupopup id="appmenu_tagMenu-tagpopup"
+                         onpopupshowing="InitMessageTags(this);">
+                <menuitem id="appmenu_addNewTag"
+                          label="&addNewTag.label;"
+                          command="cmd_addTag"/>
+                <menuitem id="appmenu_manageTags"
+                          label="&manageTags.label;"
+                          command="cmd_manageTags"/>
+                <menuseparator id="appmenu_tagMenu-sep-afterTagAddNew"/>
+                <menuitem id="appmenu_tagMenu-tagRemoveAll"
+                          command="cmd_removeTags"/>
+                <menuseparator id="appmenu_tagMenuAfterRemoveSeparator"/>
+              </menupopup>
+            </menu>
+            <menu id="appmenu_markMenu"
+                  label="&markMenu.label;">
+              <menupopup id="appmenu_MarkPopup"
+                         onpopupshowing="InitMessageMark()">
+                <menuitem id="appmenu_markReadMenuItem"
+                          label="&markAsReadCmd.label;"
+                          command="cmd_markAsRead"/>
+                <menuitem id="appmenu_markUnreadMenuItem"
+                          label="&markAsUnreadCmd.label;"
+                          command="cmd_markAsUnread"/>
+                <menuitem id="appmenu_markThreadAsRead"
+                          label="&markThreadAsReadCmd.label;"
+                          command="cmd_markThreadAsRead"/>
+                <menuitem id="appmenu_markReadByDate"
+                          label="&markReadByDateCmd.label;"
+                          command="cmd_markReadByDate"/>
+                <menuitem id="appmenu_markAllRead"
+                          label="&markAllReadCmd.label;"
+                          command="cmd_markAllRead"/>
+                <menuseparator id="markMenuAfterAllReadSeparator"/>
+                <menuitem id="appmenu_markFlaggedMenuItem"
+                          type="checkbox"
+                          label="&markStarredCmd.label;"
+                          command="cmd_markAsFlagged"/>
+                <menuseparator id="markMenuAfterFlaggedSeparator"/>
+                <menuitem id="appmenu_markAsJunk"
+                          label="&markAsJunkCmd.label;"
+                          command="cmd_markAsJunk"/>
+                <menuitem id="appmenu_markAsNotJunk"
+                          label="&markAsNotJunkCmd.label;"
+                          command="cmd_markAsNotJunk"/>
+                <menuitem id="appmenu_recalculateJunkScore"
+                          label="&recalculateJunkScoreCmd.label;"
+                          command="cmd_recalculateJunkScore"/>
+              </menupopup>
+            </menu>
+            <menuseparator id="appmenu_messageMenuAfterMarkSeparator"/>
+            <menuitem id="appmenu_archiveMainMenu"
+                      label="&archiveMsgCmd.label;"
+                      command="cmd_archive"/>
+            <menuitem id="appmenu_cancel"
+                      command="cmd_cancel"
+                      label="&cancelNewsMsgCmd.label;"/>
+            <menu id="appmenu_moveMenu"
+                  label="&moveMsgToMenu.label;"
+                  oncommand="MsgMoveMessage(event.target._folder)">
+              <menupopup type="folder"
+                         mode="filing"
+                         showFileHereLabel="true"
+                         showRecent="true"
+                         fileHereLabel="&fileHereMenu.label;"
+                         recentLabel="&moveCopyMsgRecentMenu.label;"/>
+            </menu>
+            <menu id="appmenu_copyMenu"
+                  label="&copyMsgToMenu.label;"
+                  oncommand="MsgCopyMessage(event.target._folder)">
+              <menupopup type="folder"
+                         mode="filing"
+                         showFileHereLabel="true"
+                         showRecent="true"
+                         fileHereLabel="&copyHereMenu.label;"
+                         recentLabel="&moveCopyMsgRecentMenu.label;"/>
+            </menu>
+            <menuitem id="appmenu_moveToFolderAgain"
+                      command="cmd_moveToFolderAgain"
+                      label="&moveToFolderAgain.label;"/>
+            <menuseparator id="appmenu_messageMenuAfterMoveCommandsSeparator"/>
+            <menuitem id="appmenu_createFilter"
+                      label="&createFilter.label;"
+                      command="cmd_createFilterFromMenu"/>
+            <menuseparator id="appmenu_threadItemsSeparator"/>
+            <menuitem label="&killThreadMenu.label;"
+                      id="appmenu_killThread"
+                      command="cmd_killThread"/>
+            <menuitem label="&killSubthreadMenu.label;"
+                      id="appmenu_killSubthread"
+                      command="cmd_killSubthread"/>
+            <menuitem label="&watchThreadMenu.label;"
+                      id="appmenu_watchThread"
+                      command="cmd_watchThread"/>
+          </menupopup>
+        </menu>
+        <!-- Tools menu -->
+        <menu id="appmenu_tasksMenu"
+              label="&tasksMenu.label;">
+          <menupopup id="appmenu_taskPopup">
+            <menuitem hidden="true"
+                      id="appmenu_tasksMenuMail"
+                      class="menuitem-iconic menu-iconic"
+                      label="&messengerCmd.label;"
+                      oncommand="toMessengerWindow();"/>
+            <menuitem id="appmenu_addressBook"
+                      label="&addressBookCmd.label;"
+                      oncommand="toOpenWindowByType('mail:addressbook', 'chrome://messenger/content/addressbook/addressbook.xul');"/>
+            <menuseparator id="devToolsSeparator"/>
+            <menuitem id="appmenu_openSavedFilesWnd"
+                      label="&savedFiles.label;"
+                      oncommand="openSavedFilesWnd();"/>
+            <menu id="appmenu_imAccountsStatus"
+                  label="&imAccountsStatus.label;"
+                  oncommand="chatHandler.setStatusMenupopupCommand(event);">
+              <menupopup id="appmenu_imStatusMenupopup">
+                <menuitem id="appmenu_imStatusAvailable"
+                          status="available"
+                          label="&imStatus.available;"
+                          class="menuitem-iconic"/>
+                <menuitem id="appmenu_imStatusUnavailable"
+                          status="unavailable"
+                          label="&imStatus.unavailable;"
+                          class="menuitem-iconic"/>
+                <menuseparator id="appmenu_imStatusOfflineSeparator"/>
+                <menuitem id="appmenu_imStatusOffline"
+                          status="offline"
+                          label="&imStatus.offline;"
+                          class="menuitem-iconic"/>
+                <menuseparator id="appmenu_imStatusShowAccountsSeparator"/>
+                <menuitem id="appmenu_imStatusShowAccounts"
+                          label="&imStatus.showAccounts;"/>
+              </menupopup>
+            </menu>
+            <menuitem id="appmenu_joinChatMenuItem"
+                      label="&joinChatCmd.label;"
+                      oncommand="chatHandler.joinChat();"/>
+            <menuseparator id="appmenu_afterChatSeparator"/>
+            <menuitem id="appmenu_runJunkControls"
+                      label="&runJunkControls.label;"
+                      command="cmd_runJunkControls"/>
+            <menuitem id="appmenu_deleteJunk"
+                      label="&deleteJunk.label;"
+                      command="cmd_deleteJunk"/>
+            <menuseparator id="tasksMenuAfterDeleteSeparator"/>
+            <menuitem id="appmenu_import"
+                      label="&importCmd.label;"
+                      oncommand="toImport();"/>
+            <menuitem id="appmenu_javascriptConsole"
+                      label="&errorConsoleCmd.label;"
+                      oncommand="toJavaScriptConsole();"/>
+            <menuitem id="appmenu_sanitizeHistory"
+                      label="&clearRecentHistory.label;"
+                      oncommand="toSanitize();"/>
+          </menupopup>
+        </menu>
+        <!-- Help menu -->
+        <splitmenu id="appmenu_help"
+                   label="&helpMenuWin.label;"
+                   oncommand="openSupportURL();">
+            <menupopup id="appmenu_helpMenupopup">
+              <menuitem id="appmenu_openHelp"
+                  label="&openHelp.label;"
+                  oncommand="openSupportURL();"/>
+              <menuitem id="appmenu_whatsNew"
+                        label="&whatsNewCmd.label;"
+                        oncommand="openWhatsNew();"/>
+              <menuitem id="appmenu_releaseNotes"
+                        label="&releaseCmd2.label;"
+                        oncommand="openFormattedURL('app.releaseNotesURL');"/>
+              <menuseparator/>
+              <menuitem id="appmenu_troubleshootingInfo"
+                        label="&helpTroubleshootingInfo.label;"
+                        oncommand="AboutSupportOverlay.openInNewTab();"/>
+              <menuseparator/>
+              <menuitem id="appmenu_safeMode"
+                  label="&helpSafeMode.label;"
+                  oncommand="safeModeRestart();"/>
+              <menuseparator/>
+              <menuitem id="appmenu_about"
+                  label="&aboutMenuCmd.label;"
+                  oncommand="openAboutDialog();"/>
+            </menupopup>
+        </splitmenu>
+      </vbox>
+    </hbox>
+  </menupopup>
+</popupset>
+
 <!-- The reason we put the menubar inside a toolbox is due to the labelalign and
      defaultlabelalign attributes that the toolbars might expect from their
      parent toolboxes.  This lets us control how toolbar buttons appear in the
@@ -2026,1139 +3157,9 @@
                    tooltiptext="&stopButton.tooltip;"
                    command="cmd_stop"/>
     <toolbarbutton id="button-appmenu"
-                   type="menu"
-                   class="toolbarbutton-1"
+                   class="toolbarbutton-1 button-appmenu"
                    label="&appmenuButton.label;"
-                   tooltiptext="&appmenuButton.tooltip;">
-      <menupopup id="appmenu-popup"
-                 onpopupshowing="initAppMenuPopup(this, event);">
-        <hbox>
-          <vbox id="appmenuPrimaryPane">
-            <splitmenu id="appmenu_newMessage"
-                       label="&appmenuNewMsgCmd.label;"
-                       oncommand="MsgNewMessage(null);">
-                <menupopup id="appmenu_newMenupopup">
-                  <menuitem id="newNewMsgCmd"
-                            label="&newNewMsgCmd.label;"
-                            oncommand="MsgNewMessage(null);"/>
-                  <menuitem id="appmenu_newFolder"
-                            label="&newFolderCmd.label;"
-                            oncommand="gFolderTreeController.newFolder();"/>
-                  <menuitem id="appmenu_newVirtualFolder"
-                            label="&newVirtualFolderCmd.label;"
-                            oncommand="gFolderTreeController.newVirtualFolder();"/>
-                  <menuseparator id="appmenu_newAccountPopupMenuSeparator"/>
-                  <menuitem id="appmenu_newCreateEmailAccountMenuItem"
-                            label="&newCreateEmailAccountCmd.label;"
-                            oncommand="NewMailAccountProvisioner(msgWindow);"/>
-                  <menuitem id="appmenu_newMailAccountMenuItem"
-                            label="&newExistingEmailAccountCmd.label;"
-                            oncommand="NewMailAccount(msgWindow);"/>
-                  <menuitem id="appmenu_newIMAccountMenuItem"
-                            label="&newIMAccountCmd.label;"
-                            oncommand="openIMAccountWizard();"/>
-                  <menuitem id="appmenu_newAccountMenuItem"
-                            label="&newOtherAccountsCmd.label;"
-                            oncommand="MsgAccountWizard();"/>
-                  <menuseparator id="appmenu_newPopupMenuSeparator"/>
-                  <menuitem id="appmenu_newCard"
-                            label="&appmenuNewContactCmd.label;"
-                            command="cmd_newCard"/>
-                  <menuitem id="appmenu_newIMContactMenuItem"
-                            label="&newIMContactCmd.label;"
-                            oncommand="chatHandler.addBuddy();"/>
-                </menupopup>
-            </splitmenu>
-            <menu id="appmenu_fileAttachmentMenu"
-                  label="&openAttachmentCmd.label;"
-                  disabled="true"
-                  persist="hidden">
-              <menupopup id="appmenu_attachmentMenuList"
-                         onpopupshowing="FillAttachmentListPopup(this);"/>
-            </menu>
-            <menuseparator class="appmenu-menuseparator"/>
-            <hbox>
-              <menuitem id="appmenu-edit-label"
-                        label="&appmenuEditMenu.label;"
-                        disabled="true"/>
-              <toolbarbutton id="appmenu-cut"
-                             class="appmenu-edit-button"
-                             command="cmd_cut"
-                             onclick="if (!this.disabled) hidePopup();"
-                             tooltiptext="&cutCmd.label;"/>
-              <toolbarbutton id="appmenu-copy"
-                             class="appmenu-edit-button"
-                             command="cmd_copy"
-                             onclick="if (!this.disabled) hidePopup();"
-                             tooltiptext="&copyCmd.label;"/>
-              <toolbarbutton id="appmenu-paste"
-                             class="appmenu-edit-button"
-                             command="cmd_paste"
-                             onclick="if (!this.disabled) hidePopup();"
-                             tooltiptext="&pasteCmd.label;"/>
-              <spacer flex="1"/>
-              <menu id="appmenu-editmenu">
-                <menupopup id="appmenu-editmenu-menupopup">
-                  <menuitem id="appmenu-editmenu-cut"
-                            class="menuitem-iconic"
-                            label="&cutCmd.label;"
-                            key="key_cut"
-                            command="cmd_cut"/>
-                  <menuitem id="appmenu-editmenu-copy"
-                            class="menuitem-iconic"
-                            label="&copyCmd.label;"
-                            key="key_copy"
-                            command="cmd_copy"/>
-                  <menuitem id="appmenu-editmenu-paste"
-                            class="menuitem-iconic"
-                            label="&pasteCmd.label;"
-                            key="key_paste"
-                            command="cmd_paste"/>
-                  <menuseparator/>
-                  <menuitem id="appmenu-editmenu-undo"
-                            label="&undoCmd.label;"
-                            key="key_undo"
-                            command="cmd_undo"/>
-                  <menuitem id="appmenu-editmenu-redo"
-                            label="&redoCmd.label;"
-                            key="key_redo"
-                            command="cmd_redo"/>
-                  <menuseparator/>
-                  <menuitem id="appmenu-editmenu-selectAll"
-                            label="&selectAllCmd.label;"
-                            key="key_selectAll"
-                            command="cmd_selectAll"/>
-                </menupopup>
-              </menu>
-            </hbox>
-            <splitmenu id="appmenu_find"
-                       label="&findMenu.label;"
-                       command="cmd_find">
-              <menupopup id="appmenu_FindPopup">
-                <menuitem id="appmenu_findCmd"
-                          label="&findCmd.label;"
-                          command="cmd_find"/>
-                <menuitem id="appmenu_findAgainCmd"
-                          label="&findAgainCmd.label;"
-                          command="cmd_findAgain"/>
-                <menuseparator id="appMenuAfterFindSeparator"/>
-                <menuitem id="appmenu_searchMailCmd"
-                          label="&searchMailCmd.label;"
-                          command="cmd_search"/>
-                <menuitem id="appmenu_searchAddressesCmd"
-                          label="&searchAddressesCmd.label;"
-                          oncommand="MsgSearchAddresses()"/>
-              </menupopup>
-            </splitmenu>
-            <splitmenu id="appmenu_print"
-                       iconic="true"
-                       label="&printCmd.label;"
-                       key="printKb"
-                       command="cmd_print">
-                <menupopup>
-                  <menuitem id="appmenu_print_popup"
-                            class="menuitem-iconic"
-                            label="&printCmd.label;"
-                            command="cmd_print"
-                            key="printKb"/>
-                  <menuitem id="appmenu_printPreview"
-                            label="&printPreviewCmd.label;"
-                            command="cmd_printpreview"/>
-                  <menuitem id="appmenu_printSetup"
-                            label="&printSetupCmd.label;"
-                            command="cmd_printSetup"/>
-                </menupopup>
-            </splitmenu>
-            <menuseparator class="appmenu-menuseparator"/>
-            <menu id="appmenu_saveAs"
-                  label="&saveAsMenu.label;">
-              <menupopup id="menu_SavePopup">
-                <menuitem id="appmenu_saveAsFile"
-                          label="&saveAsFileCmd.label;"
-                          key="key_saveAsFile"
-                          command="cmd_saveAsFile"/>
-                <menuitem id="appmenu_saveAsTemplate"
-                          label="&saveAsTemplateCmd.label;"
-                          command="cmd_saveAsTemplate"/>
-              </menupopup>
-            </menu>
-            <menu id="appmenu_FolderViews"
-                  label="&folderView.label;">
-              <menupopup id="appmenu_FolderViewsPopup"
-                         onpopupshowing="InitViewFolderViewsMenu(event)">
-                <menuitem id="appmenu_allFolders"
-                          value="all"
-                          label="&allFolders.label;"
-                          type="radio"
-                          name="viewmessages"
-                          oncommand="gFolderTreeView.mode = this.value;"/>
-                <menuitem id="appmenu_smartFolders"
-                          value="smart"
-                          label="&unifiedFolders.label;"
-                          type="radio"
-                          name="viewmessages"
-                          oncommand="gFolderTreeView.mode = this.value;"/>
-                <menuitem id="appmenu_unreadFolders"
-                          label="&unreadFolders.label;"
-                          value="unread"
-                          type="radio"
-                          name="viewmessages"
-                          oncommand="gFolderTreeView.mode = this.value;"/>
-                <menuitem id="appmenu_favoriteFolders"
-                          value="favorite"
-                          label="&favoriteFolders.label;"
-                          type="radio"
-                          name="viewmessages"
-                          oncommand="gFolderTreeView.mode = this.value;"/>
-                <menuitem id="appmenu_recentFolders"
-                          value="recent"
-                          label="&recentFolders.label;"
-                          type="radio"
-                          name="viewmessages"
-                          oncommand="gFolderTreeView.mode = this.value;"/>
-                <menuseparator id="appmenu_favoritePropertiesSeparator"/>
-                <menuitem id="appmenu_favoriteFolder"
-                          type="checkbox"
-                          label="&menuFavoriteFolder.label;"
-                          check="false"
-                          oncommand="ToggleFavoriteFolderFlag();"/>
-                <menuitem id="appmenu_properties"
-                          label="&folderPropsCmd.label;"
-                          command="cmd_properties"/>
-              </menupopup>
-            </menu>
-            <menuitem id="appmenu_emptyTrash"
-                      label="&emptyTrashCmd.label;"
-                      command="cmd_emptyTrash"/>
-            <spacer flex="1"/>
-            <menuitem id="appmenu-quit"
-                      class="menuitem-iconic"
-#ifdef XP_WIN
-                      label="&quitApplicationCmd.label;"
-#else
-                      label="&quitApplicationCmdUnix.label;"
-#endif
-                      command="cmd_quit"/>
-          </vbox>
-          <vbox id="appmenuSecondaryPane">
-            <menuitem id="appmenu_activityManager"
-                      label="&activitymanager.label;"
-                      oncommand="openActivityMgr();"/>
-            <splitmenu id="appmenu_filters"
-                      label="&filtersCmd.label;"
-                      command="cmd_displayMsgFilters">
-              <menupopup id="appmenu_FilterMenu">
-                <menuitem id="appmenu_filtersCmd"
-                          label="&filtersCmd.label;"
-                          command="cmd_displayMsgFilters"/>
-                <menuitem id="applyFilters"
-                          label="&filtersApply.label;"
-                          command="cmd_applyFilters"/>
-                <menuitem id="applyFiltersToSelection"
-                          label="&filtersApplyToMessage.label;"
-                          command="cmd_applyFiltersToSelection"/>
-              </menupopup>
-            </splitmenu>
-            <spacer class="appmenuPane-spacer"/>
-            <menuitem id="appmenu_addons"
-                      class="menuitem-iconic"
-                      label="&addons.label;"
-                      oncommand="openAddonsMgr();"/>
-            <splitmenu id="appmenu_customize"
-#ifdef XP_WIN
-                       label="&preferencesCmd.label;"
-#else
-                       label="&preferencesCmdUnix.label;"
-#endif
-                       oncommand="openOptionsDialog();">
-              <menupopup id="appmenu_customizeMenu"
-                         onpopupshowing="onViewToolbarsPopupShowing(event, 'mail-toolbox', document.getElementById('appmenu_quickFilterBar'));">
-                <menuitem id="appmenu_preferences"
-#ifdef XP_WIN
-                          label="&preferencesCmd.label;"
-#else
-                          label="&preferencesCmdUnix.label;"
-#endif
-                          oncommand="openOptionsDialog();"/>
-                <menuitem id="appmenu_accountmgr"
-                          label="&accountManagerCmd.label;"
-                          oncommand="MsgAccountManager(null);"/>
-                <menuseparator/>
-                <menuitem id="appmenu_quickFilterBar"
-                          type="checkbox"
-                          label="&appmenuQFBMenu.label;"
-                          command="cmd_toggleQuickFilterBar">
-                  <observes element="qfb-show-filter-bar" attribute="checked"/>
-                </menuitem>
-                <menuitem id="appmenu_showStatusbar"
-                          type="checkbox"
-                          label="&showTaskbarCmd.label;"
-                          oncommand="goToggleToolbar('status-bar', 'menu_showTaskbar')"
-                          checked="true"/>
-                <menuseparator id="appmenu_toggleToolbarsSeparator"/>
-                <menuitem id="appmenu_toolbarLayout"
-                          label="&appmenuToolbarLayout.label;"
-                          command="cmd_CustomizeMailToolbar"/>
-                <menuseparator id="appmenu_paneViewSeparator"/>
-                <menu id="appmenu_MessagePaneLayout"
-                      label="&messagePaneLayoutStyle.label;">
-                  <menupopup id="appmenu_view_layout_popup"
-                             onpopupshowing="InitViewLayoutStyleMenu(event)">
-                    <menuitem id="appmenu_messagePaneClassic"
-                              type="radio"
-                              label="&messagePaneClassic.label;"
-                              name="viewlayoutgroup"
-                              command="cmd_viewClassicMailLayout"/>
-                    <menuitem id="appmenu_messagePaneWide"
-                              type="radio"
-                              label="&messagePaneWide.label;"
-                              name="viewlayoutgroup"
-                              command="cmd_viewWideMailLayout"/>
-                    <menuitem id="appmenu_messagePaneVertical"
-                              type="radio"
-                              label="&messagePaneVertical.label;"
-                              name="viewlayoutgroup"
-                              command="cmd_viewVerticalMailLayout"/>
-                    <menuseparator id="appmenu_viewMenuAfterPaneVerticalSeparator"/>
-                    <menuitem id="appmenu_showFolderPane"
-                              type="checkbox"
-                              label="&showFolderPaneCmd.label;"
-                              command="cmd_toggleFolderPane"/>
-                    <menuitem id="appmenu_showMessage"
-                              type="checkbox"
-                              label="&showMessageCmd.label;"
-                              command="cmd_toggleMessagePane"/>
-                  </menupopup>
-                </menu>
-              </menupopup>
-            </splitmenu>
-            <spacer class="appmenuPane-spacer"/>
-            <!-- File menu -->
-            <menu id="appmenu_File"
-                  label="&fileMenu.label;">
-              <menupopup id="appmenu_FilePopup">
-                <menuitem id="appmenu_openMessageFileMenuitem"
-                          label="&openMessageFileCmd.label;"
-                          oncommand="MsgOpenFromFile();"/>
-                <menuitem id="appmenu_close"
-                          label="&closeCmd.label;"
-                          command="cmd_close"/>
-                <menuseparator id="appmenu_fileMenuAfterCloseSeparator"/>
-                <menu id="appmenu_getNewMsgFor"
-                      label="&getNewMsgForCmd.label;"
-                      oncommand="MsgGetMessagesForAccount(event.target._folder)">
-                  <menupopup type="folder"
-                             mode="getMail"
-                             id="appmenu_getAllNewMsgPopup"
-                             expandFolders="false">
-                    <menuitem id="appmenu_getnewmsgs_all_accounts"
-                              label="&getAllNewMsgCmdPopupMenu.label;"
-                              command="cmd_getMsgsForAuthAccounts"/>
-                    <menuitem id="appmenu_getnewmsgs_current_account"
-                              label="&getNewMsgCurrentAccountCmdPopupMenu.label;"
-                              command="cmd_getNewMessages"/>
-                    <menuseparator/>
-                  </menupopup>
-                </menu>
-                <menuitem id="appmenu_getNextNMsgs"
-                          label="&getNextNMsgCmd.label;"
-                          command="cmd_getNextNMessages"/>
-                <menuitem id="appmenu_sendUnsentMsgs"
-                          label="&sendUnsentCmd.label;"
-                          command="cmd_sendUnsentMsgs"/>
-                <menuitem id="appmenu_subscribe"
-                          label="&subscribeCmd.label;"
-                          oncommand="MsgSubscribe();"/>
-                <menuseparator id="appmenu_fileMenuAfterSubscribeSeparator"/>
-                <menuitem id="appmenu_deleteFolder"
-                          label="&deleteFolder.label;"
-                          command="cmd_deleteFolder"/>
-                <menuitem id="appmenu_renameFolder"
-                          label="&renameFolder.label;"
-                          command="cmd_renameFolder"/>
-                <menuseparator id="appmenu_fileMenuAfterRenameSeparator"/>
-                <menuitem id="appmenu_compactFolder"
-                          label="&compactFolders.label;"
-                          command="cmd_compactFolder"/>
-                <menuseparator id="appmenu_fileMenuAfterCompactSeparator"/>
-                <menu id="appmenu_offline"
-                      label="&offlineMenu.label;">
-                  <menupopup id="appmenu_OfflinePopup">
-                    <menuitem id="appmenu_goOffline"
-                              type="checkbox"
-                              label="&offlineGoOfflineCmd.label;"
-                              oncommand="MailOfflineMgr.toggleOfflineStatus();"/>
-                    <menuseparator id="appmenu_offlineMenuAfterGoSeparator"/>
-                    <menuitem id="appmenu_synchronizeOffline"
-                              label="&synchronizeOfflineCmd.label;"
-                              command="cmd_synchronizeOffline"/>
-                    <menuitem id="appmenu_settingsOffline"
-                              label="&settingsOfflineCmd.label;"
-                              command="cmd_settingsOffline"/>
-                    <menuseparator id="app_offlineMenuAfterSettingsSeparator"/>
-                    <menuitem id="appmenu_downloadFlagged"
-                              label="&downloadStarredCmd.label;"
-                              command="cmd_downloadFlagged"/>
-                    <menuitem id="appmenu_downloadSelected"
-                              label="&downloadSelectedCmd.label;"
-                              command="cmd_downloadSelected"/>
-                  </menupopup>
-                </menu>
-              </menupopup>
-            </menu>
-            <!-- View menu -->
-            <menu id="appmenu_View"
-                  label="&viewMenu.label;">
-              <menupopup id="appmenu_View_Popup">
-                <menu id="appmenu_viewSortMenu"
-                      label="&sortMenu.label;">
-                  <menupopup id="appmenu_viewSortPopup" onpopupshowing="InitAppViewSortByMenu()">
-                    <menuitem id="appmenu_sortByDateMenuitem"
-                              type="radio"
-                              name="sortby"
-                              label="&sortByDateCmd.label;"
-                              oncommand="MsgSortThreadPane('byDate')"/>
-                    <menuitem id="appmenu_sortByReceivedMenuitem"
-                              type="radio"
-                              name="sortby"
-                              label="&sortByReceivedCmd.label;"
-                              oncommand="MsgSortThreadPane('byReceived')"/>
-                    <menuitem id="appmenu_sortByFlagMenuitem"
-                              type="radio"
-                              name="sortby"
-                              label="&sortByStarCmd.label;"
-                              oncommand="MsgSortThreadPane('byFlagged')"/>
-                    <menuitem id="appmenu_sortByOrderReceivedMenuitem"
-                              type="radio"
-                              name="sortby"
-                              label="&sortByOrderReceivedCmd.label;"
-                              oncommand="MsgSortThreadPane('byId')"/>
-                    <menuitem id="appmenu_sortByPriorityMenuitem"
-                              type="radio"
-                              name="sortby"
-                              label="&sortByPriorityCmd.label;"
-                              oncommand="MsgSortThreadPane('byPriority')"/>
-                    <menuitem id="appmenu_sortByFromMenuitem"
-                              type="radio"
-                              name="sortby"
-                              label="&sortByFromCmd.label;"
-                              oncommand="MsgSortThreadPane('byAuthor')"/>
-                    <menuitem id="appmenu_sortByRecipientMenuitem"
-                              type="radio"
-                              name="sortby"
-                              label="&sortByRecipientCmd.label;"
-                              oncommand="MsgSortThreadPane('byRecipient')"/>
-                    <menuitem id="appmenu_sortBySizeMenuitem"
-                              type="radio"
-                              name="sortby"
-                              label="&sortBySizeCmd.label;"
-                              oncommand="MsgSortThreadPane('bySize')"/>
-                    <menuitem id="appmenu_sortByStatusMenuitem"
-                              type="radio"
-                              name="sortby"
-                              label="&sortByStatusCmd.label;"
-                              oncommand="MsgSortThreadPane('byStatus')"/>
-                    <menuitem id="appmenu_sortBySubjectMenuitem"
-                              type="radio"
-                              name="sortby"
-                              label="&sortBySubjectCmd.label;"
-                              oncommand="MsgSortThreadPane('bySubject')"/>
-                    <menuitem id="appmenu_sortByUnreadMenuitem"
-                              type="radio"
-                              name="sortby"
-                              label="&sortByUnreadCmd.label;"
-                              oncommand="MsgSortThreadPane('byUnread')"/>
-                    <menuitem id="appmenu_sortByTagsMenuitem"
-                              type="radio"
-                              name="sortby"
-                              label="&sortByTagsCmd.label;"
-                              oncommand="MsgSortThreadPane('byTags')"/>
-                    <menuitem id="appmenu_sortByJunkStatusMenuitem"
-                              type="radio"
-                              name="sortby"
-                              label="&sortByJunkStatusCmd.label;"
-                              oncommand="MsgSortThreadPane('byJunkStatus')"/>
-                    <menuitem id="appmenu_sortByAttachmentsMenuitem"
-                              type="radio"
-                              name="sortby"
-                              label="&sortByAttachmentsCmd.label;"
-                              oncommand="MsgSortThreadPane('byAttachments')"/>
-                    <menuseparator id="appmenu_sortAfterAttachmentSeparator"/>
-                    <menuitem id="appmenu_sortAscending"
-                              type="radio"
-                              name="sortdirection"
-                              label="&sortAscending.label;"
-                              oncommand="MsgSortAscending()"/>
-                    <menuitem id="appmenu_sortDescending"
-                              type="radio"
-                              name="sortdirection"
-                              label="&sortDescending.label;"
-                              oncommand="MsgSortDescending()"/>
-                    <menuseparator id="appmenu_sortAfterDescendingSeparator"/>
-                    <menuitem id="appmenu_sortThreaded"
-                              type="radio"
-                              name="threaded"
-                              label="&sortThreaded.label;"
-                              oncommand="MsgSortThreaded();"/>
-                    <menuitem id="appmenu_sortUnthreaded"
-                              type="radio"
-                              name="threaded"
-                              label="&sortUnthreaded.label;"
-                              oncommand="MsgSortUnthreaded();"/>
-                    <menuitem id="appmenu_groupBySort"
-                              type="radio"
-                              name="group"
-                              label="&groupBySort.label;"
-                              oncommand="MsgGroupBySort();"/>
-                  </menupopup>
-                </menu>
-                <menu id="appmenu_viewMessageViewMenu"
-                      label="&msgsMenu.label;"
-                      command="mailHideMenus"
-                      oncommand="ViewChangeByMenuitem(event.target);">
-                  <menupopup id="appmenu_viewMessagePopup"
-                             onpopupshowing="RefreshViewPopup(this, false);">
-                    <menuitem id="appmenu_viewMessageAll"
-                              value="0"
-                              type="radio"
-                              label="&viewAll.label;"/>
-                    <menuitem id="appmenu_viewMessageUnread"
-                              value="1"
-                              type="radio"
-                              label="&viewUnread.label;"/>
-                    <menuitem id="appmenu_viewMessageNotDeleted"
-                              value="3"
-                              type="radio"
-                              label="&viewNotDeleted.label;"/>
-                    <menuseparator id="appmenu_messageViewAfterUnreadSeparator"/>
-                    <menu id="viewMessageTags"
-                          label="&viewTags.label;">
-                      <menupopup id="appmenu_viewMessageTagsPopup"
-                                 onpopupshowing="RefreshTagsPopup(this, false);"/>
-                    </menu>
-                    <menu id="appmenu_viewMessageCustomViews"
-                          label="&viewCustomViews.label;">
-                      <menupopup id="appmenu_viewMessageCustomViewsPopup"
-                                 onpopupshowing="RefreshCustomViewsPopup(this, false);"/>
-                    </menu>
-                    <menuseparator id="appmenu_messageViewAfterCustomSeparator"/>
-                    <menuitem id="appmenu_viewMessageVirtualFolder"
-                              value="7"
-                              label="&viewVirtualFolder.label;"/>
-                    <menuitem id="appmenu_viewMessageCustomize"
-                              value="8"
-                              label="&viewCustomizeView.label;"/>
-                  </menupopup>
-                </menu>
-                <menu label="&threads.label;"
-                      id="appmenu_viewMessagesMenu">
-                  <menupopup id="appmenu_ThreadsPopup"
-                             onpopupshowing="InitAppmenuViewMessagesMenu()">
-                    <menuitem id="appmenu_viewAllMessagesMenuItem"
-                              type="radio"
-                              name="viewmessages"
-                              label="&allMsgsCmd.label;"
-                              disabled="true"
-                              command="cmd_viewAllMsgs"/>
-                    <menuitem id="appmenu_viewUnreadMessagesMenuItem"
-                              type="radio"
-                              name="viewmessages"
-                              label="&unreadMsgsCmd.label;"
-                              disabled="true"
-                              command="cmd_viewUnreadMsgs"/>
-                    <menuitem id="appmenu_viewThreadsWithUnreadMenuItem"
-                              type="radio"
-                              name="viewmessages"
-                              label="&threadsWithUnreadCmd.label;"
-                              disabled="true"
-                              command="cmd_viewThreadsWithUnread"/>
-                    <menuitem id="appmenu_viewWatchedThreadsWithUnreadMenuItem"
-                              type="radio"
-                              name="viewmessages"
-                              label="&watchedThreadsWithUnreadCmd.label;"
-                              disabled="true"
-                              command="cmd_viewWatchedThreadsWithUnread"/>
-                    <menuseparator id="appmenu_threadsAfterWatchedSeparator"/>
-                    <menuitem id="appmenu_viewIgnoredThreadsMenuItem"
-                              type="checkbox"
-                              label="&ignoredThreadsCmd.label;"
-                              disabled="true"
-                              command="cmd_viewIgnoredThreads"/>
-                    <menuseparator id="appmenu_threadsAfterIgnoredSeparator"/>
-                    <menuitem id="appmenu_expandAllThreads"
-                              label="&expandAllThreadsCmd.label;"
-                              disabled="true"
-                              command="cmd_expandAllThreads"/>
-                    <menuitem id="appmenu_collapseAllThreads"
-                              label="&collapseAllThreadsCmd.label;"
-                              disabled="true"
-                              command="cmd_collapseAllThreads"/>
-                  </menupopup>
-                </menu>
-                <menuseparator id="appmenu_viewAfterThreadsSeparator"/>
-                <menu id="appmenu_viewHeadersMenu"
-                      label="&headersMenu.label;">
-                  <menupopup id="appmenu_HeadersPopup" onpopupshowing="InitViewHeadersMenu();">
-                    <menuitem id="appmenu_viewallheaders"
-                              type="radio"
-                              name="viewheadergroup"
-                              label="&headersAllCmd.label;"
-                              command="cmd_viewAllHeader"/>
-                    <menuitem id="appmenu_viewnormalheaders"
-                              type="radio"
-                              name="viewheadergroup"
-                              label="&headersNormalCmd.label;"
-                              command="cmd_viewNormalHeader"/>
-                  </menupopup>
-                </menu>
-                <menu id="appmenu_viewBodyMenu"
-                      label="&bodyMenu.label;">
-                  <menupopup id="appmenu_viewBodyPopMenu"
-                             onpopupshowing="InitAppmenuViewBodyMenu()">
-                    <menuitem id="appmenu_bodyAllowHTML"
-                              type="radio"
-                              name="bodyPlaintextVsHTMLPref"
-                              label="&bodyAllowHTML.label;"
-                              oncommand="MsgBodyAllowHTML()"/>
-                    <menuitem id="appmenu_bodySanitized"
-                              type="radio"
-                              name="bodyPlaintextVsHTMLPref"
-                              label="&bodySanitized.label;"
-                              oncommand="MsgBodySanitized()"/>
-                    <menuitem id="appmenu_bodyAsPlaintext"
-                              type="radio"
-                              name="bodyPlaintextVsHTMLPref"
-                              label="&bodyAsPlaintext.label;"
-                              oncommand="MsgBodyAsPlaintext()"/>
-                    <menuitem id="appmenu_bodyAllParts"
-                              type="radio"
-                              name="bodyPlaintextVsHTMLPref"
-                              label="&bodyAllParts.label;"
-                              oncommand="MsgBodyAllParts()"/>
-                  </menupopup>
-                </menu>
-                <menu id="appmenu_viewFeedSummary"
-                      label="&bodyMenuFeed.label;">
-                  <menupopup id="appmenu_viewFeedSummaryPopupMenu"
-                             onpopupshowing="InitAppmenuViewBodyMenu()">
-                    <menuitem id="appmenu_bodyFeedSummaryAllowHTML"
-                              type="radio"
-                              name="viewFeedBodyHTMLGroup"
-                              label="&bodyAllowHTML.label;"
-                              oncommand="MsgFeedBodyRenderPrefs(false, 0, 0)"/>
-                    <menuitem id="appmenu_bodyFeedSummarySanitized"
-                              type="radio"
-                              name="viewFeedBodyHTMLGroup"
-                              label="&bodySanitized.label;"
-                              oncommand="MsgFeedBodyRenderPrefs(false, 3, gDisallow_classes_no_html)"/>
-                    <menuitem id="appmenu_bodyFeedSummaryAsPlaintext"
-                              type="radio"
-                              name="viewFeedBodyHTMLGroup"
-                              label="&bodyAsPlaintext.label;"
-                              oncommand="MsgFeedBodyRenderPrefs(true, 1, gDisallow_classes_no_html)"/>
-                    <menuseparator id="appmenu_viewFeedSummarySeparator"/>
-                    <menuitem id="appmenu_bodyFeedGlobalWebPage"
-                              type="radio"
-                              name="viewFeedSummaryGroup"
-                              label="&viewFeedWebPage.label;"
-                              oncommand="ChangeFeedShowSummaryPref(0)"/>
-                    <menuitem id="appmenu_bodyFeedGlobalSummary"
-                              type="radio"
-                              name="viewFeedSummaryGroup"
-                              label="&viewFeedSummary.label;"
-                              oncommand="ChangeFeedShowSummaryPref(1)"/>
-                    <menuitem id="appmenu_bodyFeedPerFolderPref"
-                              type="radio"
-                              name="viewFeedSummaryGroup"
-                              label="&viewFeedSummaryFeedPropsPref.label;"
-                              oncommand="ChangeFeedShowSummaryPref(2)"/>
-                  </menupopup>
-                </menu>
-                <menuitem id="appmenu_viewAttachmentsInlineMenuitem"
-                          label="&viewAttachmentsInlineCmd.label;"
-                          oncommand="ToggleInlineAttachment(event.target)"
-                          type="checkbox"
-                          checked="true"/>
-                <menuseparator id="appmenu_viewAfterAttachmentsSeparator"/>
-                <menu id="appmenu_viewFullZoomMenu"
-                      label="&fullZoom.label;"
-                      onpopupshowing="UpdateFullZoomMenu()">
-                  <menupopup id="appmenu_viewFullZoomPopupMenu">
-                    <menuitem id="appmenu_fullZoomEnlarge"
-                              label="&fullZoomEnlargeCmd.label;"
-                              command="cmd_fullZoomEnlarge"/>
-                    <menuitem id="appmenu_fullZoomReduce"
-                              label="&fullZoomReduceCmd.label;"
-                              command="cmd_fullZoomReduce"/>
-                    <menuseparator id="appmenu_fullZoomAfterReduceSeparator"/>
-                    <menuitem id="appmenu_fullZoomReset"
-                              label="&fullZoomResetCmd.label;"
-                              command="cmd_fullZoomReset"/>
-                    <menuseparator id="appmenu_fullZoomAfterResetSeparator"/>
-                    <menuitem id="appmenu_fullZoomToggle"
-                              label="&fullZoomToggleCmd.label;"
-                              type="checkbox"
-                              command="cmd_fullZoomToggle"
-                              checked="false"/>
-                  </menupopup>
-                </menu>
-                <menu id="appmenu_charsetMenu"
-                      label="&charsetMenu.label;"
-                      datasources="rdf:charset-menu"
-                      ref="NC:BrowserCharsetMenuRoot"
-                      oncommand="MultiplexHandler(event)"
-                      onpopupshowing="CreateMenu('browser'); CreateMenu('more-menu');"
-                      onpopupshown="UpdateMenus(event);"
-                      observes="isImage">
-                    <template>
-                      <rule rdf:type="http://home.netscape.com/NC-rdf#BookmarkSeparator">
-                        <menupopup>
-                          <menuseparator uri="..." />
-                        </menupopup>
-                      </rule>
-                      <rule>
-                        <menupopup>
-                          <menuitem type="radio" name="charsetGroup" checked="rdf:http://home.netscape.com/NC-rdf#Checked" uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
-                        </menupopup>
-                      </rule>
-                    </template>
-                    <menupopup>
-                    <menu label="&charsetMenuAutodet.label;"
-                          datasources="rdf:charset-menu" ref="NC:BrowserAutodetMenuRoot">
-                      <template>
-                        <rule rdf:type="http://home.netscape.com/NC-rdf#CharsetDetector">
-                          <menupopup>
-                            <menuitem type="radio" name="detectorGroup" checked="rdf:http://home.netscape.com/NC-rdf#Checked" uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
-                          </menupopup>
-                        </rule>
-                      </template>
-                      <menupopup>
-                      </menupopup>
-                    </menu>
-                    <menu label="&charsetMenuMore.label;"
-                          datasources="rdf:charset-menu" ref="NC:BrowserMoreCharsetMenuRoot">
-                      <template>
-                        <rule>
-                          <menupopup>
-                            <menuitem uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
-                          </menupopup>
-                        </rule>
-                      </template>
-                      <menupopup>
-                        <menu label="&charsetMenuMore1.label;"
-                              datasources="rdf:charset-menu" ref="NC:BrowserMore1CharsetMenuRoot">
-                          <template>
-                            <rule>
-                              <menupopup>
-                                <menuitem uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
-                              </menupopup>
-                            </rule>
-                          </template>
-                          <menupopup>
-                          </menupopup>
-                        </menu>
-                        <menu label="&charsetMenuMore2.label;"
-                              datasources="rdf:charset-menu" ref="NC:BrowserMore2CharsetMenuRoot">
-                          <template>
-                            <rule>
-                              <menupopup>
-                                <menuitem uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
-                              </menupopup>
-                            </rule>
-                          </template>
-                          <menupopup>
-                          </menupopup>
-                        </menu>
-                        <menu label="&charsetMenuMore3.label;"
-                              datasources="rdf:charset-menu" ref="NC:BrowserMore3CharsetMenuRoot">
-                          <template>
-                            <rule>
-                              <menupopup>
-                                <menuitem uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
-                              </menupopup>
-                            </rule>
-                          </template>
-                          <menupopup>
-                          </menupopup>
-                        </menu>
-                        <menu label="&charsetMenuMore4.label;"
-                              datasources="rdf:charset-menu" ref="NC:BrowserMore4CharsetMenuRoot">
-                          <template>
-                            <rule>
-                              <menupopup>
-                                <menuitem uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
-                              </menupopup>
-                            </rule>
-                          </template>
-                          <menupopup>
-                          </menupopup>
-                        </menu>
-                        <menu label="&charsetMenuMore5.label;"
-                              datasources="rdf:charset-menu" ref="NC:BrowserMore5CharsetMenuRoot">
-                          <template>
-                            <rule>
-                              <menupopup>
-                                <menuitem uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
-                              </menupopup>
-                            </rule>
-                          </template>
-                          <menupopup>
-                          </menupopup>
-                        </menu>
-                        <menu label="&charsetMenuUnicode.label;"
-                              datasources="rdf:charset-menu" ref="NC:BrowserUnicodeCharsetMenuRoot">
-                          <template>
-                            <rule>
-                              <menupopup>
-                                <menuitem uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name"/>
-                              </menupopup>
-                            </rule>
-                          </template>
-                          <menupopup>
-                          </menupopup>
-                        </menu>
-                        <menuseparator />
-                      </menupopup>
-                    </menu>
-                    <menuitem name="charsetCustomize"
-                              label="&charsetCustomize.label;"
-                              oncommand="window.openDialog('chrome://global/content/customizeCharset.xul', 'PrefWindow', 'chrome,modal=yes,resizable=yes', 'browser');"/>
-                  </menupopup>
-                </menu>
-                <menuseparator id="appmenu_viewAfterCharsetSeparator"/>
-                <menuitem id="appmenu_pageSourceMenuItem"
-                          label="&pageSourceCmd.label;"
-                          command="cmd_viewPageSource"/>
-              </menupopup>
-            </menu>
-            <!-- Go menu -->
-            <menu id="appmenu_Go"
-                  label="&goMenu.label;">
-              <menupopup id="appmenu_GoPopup">
-                <menu id="appmenu_goNextMenu"
-                      label="&nextMenu.label;">
-                  <menupopup id="appmenu_GoNextPopup">
-                    <menuitem id="appmenu_nextMsg"
-                              label="&nextMsgCmd.label;"
-                              command="cmd_nextMsg"/>
-                    <menuitem id="appmenu_nextUnreadMsg"
-                              label="&nextUnreadMsgCmd.label;"
-                              command="cmd_nextUnreadMsg"/>
-                    <menuitem id="appmenu_nextFlaggedMsg"
-                              label="&nextStarredMsgCmd.label;"
-                              command="cmd_nextFlaggedMsg"/>
-                    <menuseparator id="appmenu_goNextAfterFlaggedSeparator"/>
-                    <menuitem id="appmenu_nextUnreadThread"
-                              label="&nextUnreadThread.label;"
-                              command="cmd_nextUnreadThread"/>
-                  </menupopup>
-                </menu>
-                <menu id="appmenu_goPreviousMenu"
-                      label="&prevMenu.label;">
-                  <menupopup id="appmenu_GoPreviousPopup">
-                    <menuitem id="appmenu_prevMsg"
-                              label="&prevMsgCmd.label;"
-                              command="cmd_previousMsg"/>
-                    <menuitem id="appmenu_prevUnreadMsg"
-                              label="&prevUnreadMsgCmd.label;"
-                              command="cmd_previousUnreadMsg"/>
-                    <menuitem id="appmenu_prevFlaggedMsg"
-                              label="&prevStarredMsgCmd.label;"
-                              command="cmd_previousFlaggedMsg"/>
-                  </menupopup>
-                </menu>
-                <menuitem id="appmenu_goForward"
-                          label="&goForwardCmd.label;"
-                          command="cmd_goForward"/>
-                <menuitem id="appmenu_goBack"
-                          label="&goBackCmd.label;"
-                          command="cmd_goBack"/>
-                <menuseparator id="appmenu_goNextSeparator"/>
-                <menuitem id="appmenu_goChat"
-                          label="&goChatCmd.label;"
-                          oncommand="showChatTab();"/>
-                <menuseparator id="appmenu_goChatSeparator"/>
-                <menu id="appmenu_goFolderMenu"
-                      label="&folderMenu.label;"
-                      oncommand="gFolderTreeView.selectFolder(event.target._folder, true)">
-                  <menupopup id="appmenu_GoFolderPopup"
-                             type="folder"
-                             showFileHereLabel="true"
-                             fileHereLabel="&thisFolder.label;"
-                             showRecent="true"
-                             recentLabel="&contextMoveCopyMsgRecentMenu.label;"/>
-                </menu>
-                <menuseparator id="appmenu_goFolderSeparator"/>
-                <menu id="appmenu_goRecentlyClosedTabs"
-                      label="&goRecentlyClosedTabs.label;">
-                  <menupopup id="appmenu_GoRecentlyClosedTabsPopup"
-                             onpopupshowing="return InitRecentlyClosedTabsPopup(this)" />
-                </menu>
-                <menuseparator id="appmenu_goRecentlyClosedTabsSeparator"/>
-                <menuitem id="appmenu_goStartPage"
-                          label="&startPageCmd.label;"
-                          command="cmd_goStartPage"/>
-              </menupopup>
-            </menu>
-            <!-- Message menu -->
-            <menu id="appmenu_messageMenu"
-                  label="&msgMenu.label;">
-              <menupopup id="appmenu_messageMenuPopup"
-                         onpopupshowing="InitAppMessageMenu();">
-                <menuitem id="appmenu_newMsgCmd"
-                          label="&newMsgCmd.label;"
-                          oncommand="MsgNewMessage(null);"/>
-                <menuitem id="appmenu_replyMainMenu"
-                          label="&replyMsgCmd.label;"
-                          command="cmd_reply"/>
-                <menuitem id="appmenu_replyNewsgroupMainMenu"
-                          label="&replyNewsgroupCmd2.label;"
-                          command="cmd_replyGroup"/>
-                <menuitem id="appmenu_replySenderMainMenu"
-                          label="&replySenderCmd.label;"
-                          command="cmd_replySender"/>
-                <menuitem id="appmenu_replyToAll"
-                          label="&replyToAllMsgCmd.label;"
-                          command="cmd_replyall"/>
-                <menuitem id="appmenu_replyToList"
-                          label="&replyToListMsgCmd.label;"
-                          command="cmd_replylist"/>
-                <menuitem id="appmenu_forwardMsg"
-                          label="&forwardMsgCmd.label;"
-                          command="cmd_forward"/>
-                <menu id="appmenu_forwardAsMenu"
-                      label="&forwardAsMenu.label;">
-                  <menupopup id="appmenu_forwardAsPopup">
-                    <menuitem id="appmenu_forwardAsInline"
-                              label="&forwardAsInline.label;"
-                              command="cmd_forwardInline"/>
-                    <menuitem id="appmenu_forwardAsAttachment"
-                              label="&forwardAsAttachmentCmd.label;"
-                              command="cmd_forwardAttachment"/>
-                  </menupopup>
-                </menu>
-                <menuitem id="appmenu_editMsgAsNew"
-                          label="&editMsgAsNewCmd.label;"
-                          command="cmd_editAsNew"/>
-                <menuseparator id="appmenu_messageMenuAfterCompositionCommandsSeparator"/>
-                <menuitem id="appmenu_openMessageWindowMenuitem"
-                          label="&openMessageWindowCmd.label;"
-                          command="cmd_openMessage"/>
-                <menuitem id="appmenu_openConversationMenuitem"
-                          label="&openConversationCmd.label;"
-                          command="cmd_openConversation"/>
-                <menu id="appmenu_openFeedMessage"
-                      label="&openFeedMessage.label;">
-                  <menupopup id="appmenu_openFeedMessage">
-                    <menuitem id="appmenu_openFeedWebPageInWindow"
-                              type="radio"
-                              name="openFeedGroup"
-                              label="&openFeedWebPageInWindow.label;"
-                              oncommand="ChangeFeedOpenHandler(0);"/>
-                    <menuitem id="appmenu_openFeedSummaryInWindow"
-                              type="radio"
-                              name="openFeedGroup"
-                              label="&openFeedSummaryInWindow.label;"
-                              oncommand="ChangeFeedOpenHandler(1);"/>
-                    <menuitem id="appmenu_openFeedWebPageInMessagePane"
-                              type="radio"
-                              name="openFeedGroup"
-                              label="&openFeedWebPageInMP.label;"
-                              oncommand="ChangeFeedOpenHandler(2);"/>
-                  </menupopup>
-                </menu>
-                <menuseparator id="appmenu_messageAfterOpenMsgSeparator"/>
-                <menu id="appmenu_tagMenu"
-                      label="&tagMenu.label;"
-                      command="cmd_tag">
-                  <menupopup id="appmenu_tagMenu-tagpopup"
-                             onpopupshowing="InitMessageTags(this);">
-                    <menuitem id="appmenu_addNewTag"
-                              label="&addNewTag.label;"
-                              command="cmd_addTag"/>
-                    <menuitem id="appmenu_manageTags"
-                              label="&manageTags.label;"
-                              command="cmd_manageTags"/>
-                    <menuseparator id="appmenu_tagMenu-sep-afterTagAddNew"/>
-                    <menuitem id="appmenu_tagMenu-tagRemoveAll"
-                              command="cmd_removeTags"/>
-                    <menuseparator id="appmenu_tagMenuAfterRemoveSeparator"/>
-                  </menupopup>
-                </menu>
-                <menu id="appmenu_markMenu"
-                      label="&markMenu.label;">
-                  <menupopup id="appmenu_MarkPopup"
-                             onpopupshowing="InitMessageMark()">
-                    <menuitem id="appmenu_markReadMenuItem"
-                              label="&markAsReadCmd.label;"
-                              command="cmd_markAsRead"/>
-                    <menuitem id="appmenu_markUnreadMenuItem"
-                              label="&markAsUnreadCmd.label;"
-                              command="cmd_markAsUnread"/>
-                    <menuitem id="appmenu_markThreadAsRead"
-                              label="&markThreadAsReadCmd.label;"
-                              command="cmd_markThreadAsRead"/>
-                    <menuitem id="appmenu_markReadByDate"
-                              label="&markReadByDateCmd.label;"
-                              command="cmd_markReadByDate"/>
-                    <menuitem id="appmenu_markAllRead"
-                              label="&markAllReadCmd.label;"
-                              command="cmd_markAllRead"/>
-                    <menuseparator id="markMenuAfterAllReadSeparator"/>
-                    <menuitem id="appmenu_markFlaggedMenuItem"
-                              type="checkbox"
-                              label="&markStarredCmd.label;"
-                              command="cmd_markAsFlagged"/>
-                    <menuseparator id="markMenuAfterFlaggedSeparator"/>
-                    <menuitem id="appmenu_markAsJunk"
-                              label="&markAsJunkCmd.label;"
-                              command="cmd_markAsJunk"/>
-                    <menuitem id="appmenu_markAsNotJunk"
-                              label="&markAsNotJunkCmd.label;"
-                              command="cmd_markAsNotJunk"/>
-                    <menuitem id="appmenu_recalculateJunkScore"
-                              label="&recalculateJunkScoreCmd.label;"
-                              command="cmd_recalculateJunkScore"/>
-                  </menupopup>
-                </menu>
-                <menuseparator id="appmenu_messageMenuAfterMarkSeparator"/>
-                <menuitem id="appmenu_archiveMainMenu"
-                          label="&archiveMsgCmd.label;"
-                          command="cmd_archive"/>
-                <menuitem id="appmenu_cancel"
-                          command="cmd_cancel"
-                          label="&cancelNewsMsgCmd.label;"/>
-                <menu id="appmenu_moveMenu"
-                      label="&moveMsgToMenu.label;"
-                      oncommand="MsgMoveMessage(event.target._folder)">
-                  <menupopup type="folder"
-                             mode="filing"
-                             showFileHereLabel="true"
-                             showRecent="true"
-                             fileHereLabel="&fileHereMenu.label;"
-                             recentLabel="&moveCopyMsgRecentMenu.label;"/>
-                </menu>
-                <menu id="appmenu_copyMenu"
-                      label="&copyMsgToMenu.label;"
-                      oncommand="MsgCopyMessage(event.target._folder)">
-                  <menupopup type="folder"
-                             mode="filing"
-                             showFileHereLabel="true"
-                             showRecent="true"
-                             fileHereLabel="&copyHereMenu.label;"
-                             recentLabel="&moveCopyMsgRecentMenu.label;"/>
-                </menu>
-                <menuitem id="appmenu_moveToFolderAgain"
-                          command="cmd_moveToFolderAgain"
-                          label="&moveToFolderAgain.label;"/>
-                <menuseparator id="appmenu_messageMenuAfterMoveCommandsSeparator"/>
-                <menuitem id="appmenu_createFilter"
-                          label="&createFilter.label;"
-                          command="cmd_createFilterFromMenu"/>
-                <menuseparator id="appmenu_threadItemsSeparator"/>
-                <menuitem label="&killThreadMenu.label;"
-                          id="appmenu_killThread"
-                          command="cmd_killThread"/>
-                <menuitem label="&killSubthreadMenu.label;"
-                          id="appmenu_killSubthread"
-                          command="cmd_killSubthread"/>
-                <menuitem label="&watchThreadMenu.label;"
-                          id="appmenu_watchThread"
-                          command="cmd_watchThread"/>
-              </menupopup>
-            </menu>
-            <!-- Tools menu -->
-            <menu id="appmenu_tasksMenu"
-                  label="&tasksMenu.label;">
-              <menupopup id="appmenu_taskPopup">
-                <menuitem hidden="true"
-                          id="appmenu_tasksMenuMail"
-                          class="menuitem-iconic menu-iconic"
-                          label="&messengerCmd.label;"
-                          oncommand="toMessengerWindow();"/>
-                <menuitem id="appmenu_addressBook"
-                          label="&addressBookCmd.label;"
-                          oncommand="toOpenWindowByType('mail:addressbook', 'chrome://messenger/content/addressbook/addressbook.xul');"/>
-                <menuseparator id="devToolsSeparator"/>
-                <menuitem id="appmenu_openSavedFilesWnd"
-                          label="&savedFiles.label;"
-                          oncommand="openSavedFilesWnd();"/>
-                <menu id="appmenu_imAccountsStatus"
-                      label="&imAccountsStatus.label;"
-                      oncommand="chatHandler.setStatusMenupopupCommand(event);">
-                  <menupopup id="appmenu_imStatusMenupopup">
-                    <menuitem id="appmenu_imStatusAvailable"
-                              status="available"
-                              label="&imStatus.available;"
-                              class="menuitem-iconic"/>
-                    <menuitem id="appmenu_imStatusUnavailable"
-                              status="unavailable"
-                              label="&imStatus.unavailable;"
-                              class="menuitem-iconic"/>
-                    <menuseparator id="appmenu_imStatusOfflineSeparator"/>
-                    <menuitem id="appmenu_imStatusOffline"
-                              status="offline"
-                              label="&imStatus.offline;"
-                              class="menuitem-iconic"/>
-                    <menuseparator id="appmenu_imStatusShowAccountsSeparator"/>
-                    <menuitem id="appmenu_imStatusShowAccounts"
-                              label="&imStatus.showAccounts;"/>
-                  </menupopup>
-                </menu>
-                <menuitem id="appmenu_joinChatMenuItem"
-                          label="&joinChatCmd.label;"
-                          oncommand="chatHandler.joinChat();"/>
-                <menuseparator id="appmenu_afterChatSeparator"/>
-                <menuitem id="appmenu_runJunkControls"
-                          label="&runJunkControls.label;"
-                          command="cmd_runJunkControls"/>
-                <menuitem id="appmenu_deleteJunk"
-                          label="&deleteJunk.label;"
-                          command="cmd_deleteJunk"/>
-                <menuseparator id="tasksMenuAfterDeleteSeparator"/>
-                <menuitem id="appmenu_import"
-                          label="&importCmd.label;"
-                          oncommand="toImport();"/>
-                <menuitem id="appmenu_javascriptConsole"
-                          label="&errorConsoleCmd.label;"
-                          oncommand="toJavaScriptConsole();"/>
-                <menuitem id="appmenu_sanitizeHistory"
-                          label="&clearRecentHistory.label;"
-                          oncommand="toSanitize();"/>
-              </menupopup>
-            </menu>
-            <!-- Help menu -->
-            <splitmenu id="appmenu_help"
-                       label="&helpMenuWin.label;"
-                       oncommand="openSupportURL();">
-                <menupopup id="appmenu_helpMenupopup">
-                  <menuitem id="appmenu_openHelp"
-                      label="&openHelp.label;"
-                      oncommand="openSupportURL();"/>
-                  <menuitem id="appmenu_whatsNew"
-                            label="&whatsNewCmd.label;"
-                            oncommand="openWhatsNew();"/>
-                  <menuitem id="appmenu_releaseNotes"
-                            label="&releaseCmd2.label;"
-                            oncommand="openFormattedURL('app.releaseNotesURL');"/>
-                  <menuseparator/>
-                  <menuitem id="appmenu_troubleshootingInfo"
-                            label="&helpTroubleshootingInfo.label;"
-                            oncommand="AboutSupportOverlay.openInNewTab();"/>
-                  <menuseparator/>
-                  <menuitem id="appmenu_safeMode"
-                      label="&helpSafeMode.label;"
-                      oncommand="safeModeRestart();"/>
-                  <menuseparator/>
-                  <menuitem id="appmenu_about"
-                      label="&aboutMenuCmd.label;"
-                      oncommand="openAboutDialog();"/>
-                </menupopup>
-            </splitmenu>
-          </vbox>
-        </hbox>
-      </menupopup>
-    </toolbarbutton>
+                   tooltiptext="&appmenuButton.tooltip;"/>
   </toolbarpalette>
 
   <!-- If changes are made to the default set of toolbar buttons, you may need to rev the id

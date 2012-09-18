@@ -386,26 +386,26 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-image-region: rect(48px 576px 72px 552px) !important;
 }
 
-#button-appmenu {
+.button-appmenu {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 600px 24px 576px);
-  min-width: 35px;
+  min-width: 35px !important;
 }
 
-#button-appmenu:hover {
+.button-appmenu:hover {
   -moz-image-region: rect(24px 600px 48px 576px);
 }
 
-#button-appmenu[disabled] {
+.button-appmenu[disabled] {
   -moz-image-region: rect(48px 600px 72px 576px) !important;
 }
 
-#button-appmenu .toolbarbutton-text,
-#button-appmenu .toolbarbutton-menu-dropmarker {
+.button-appmenu .toolbarbutton-text,
+.button-appmenu .toolbarbutton-menu-dropmarker {
   display: none;
 }
 
-toolbar[mode="text"] #button-appmenu .toolbarbutton-icon {
+toolbar[mode="text"] .button-appmenu .toolbarbutton-icon {
   display: -moz-box;
 }
 
@@ -716,16 +716,16 @@ toolbar[iconsize="small"] #button-previousMsg[disabled] {
   -moz-image-region: rect(32px 384px 48px 368px) !important;
 }
 
-toolbar[iconsize="small"] #button-appmenu {
+toolbar[iconsize="small"] .button-appmenu {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 400px 16px 384px);
 }
 
-toolbar[iconsize="small"] #button-appmenu:hover {
+toolbar[iconsize="small"] .button-appmenu:hover {
   -moz-image-region: rect(16px 400px 32px 384px);
 }
 
-toolbar[iconsize="small"] #button-appmenu[disabled] {
+toolbar[iconsize="small"] .button-appmenu[disabled] {
   -moz-image-region: rect(32px 400px 48px 384px) !important;
 }
 

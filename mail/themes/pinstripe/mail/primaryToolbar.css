@@ -467,28 +467,28 @@ toolbar[mode="icons"] .toolbarbutton-1 > menupopup {
   -moz-image-region: rect(18px, 432px, 36px, 414px);
 }
 
-#button-appmenu {
+.button-appmenu {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px, 450px, 18px, 432px);
-  min-width: 35px;
+  min-width: 35px !important;
 }
 
-#button-appmenu:not([disabled="true"]):active {
+.button-appmenu:not([disabled="true"]):active {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(18px, 450px, 36px, 432px);
 }
 
-#button-appmenu[open="true"] {
+.button-appmenu[open="true"] {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(36px, 450px, 54px, 432px);
 }
 
-#button-appmenu .toolbarbutton-text,
-#button-appmenu .toolbarbutton-menu-dropmarker {
+.button-appmenu .toolbarbutton-text,
+.button-appmenu .toolbarbutton-menu-dropmarker {
   display: none;
 }
 
-toolbar[mode="text"] #button-appmenu .toolbarbutton-icon {
+toolbar[mode="text"] .button-appmenu .toolbarbutton-icon {
   display: -moz-box;
 }
 

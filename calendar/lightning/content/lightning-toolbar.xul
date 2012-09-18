@@ -4,6 +4,7 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 
 <!DOCTYPE overlay [
+  <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd"> %messengerDTD;
   <!ENTITY % mailOverlayDTD SYSTEM "chrome://messenger/locale/mailOverlay.dtd"> %mailOverlayDTD;
   <!ENTITY % menuOverlayDTD SYSTEM "chrome://calendar/locale/menuOverlay.dtd" > %menuOverlayDTD;
   <!ENTITY % lightningDTD SYSTEM "chrome://lightning/locale/lightning.dtd"> %lightningDTD;
@@ -108,6 +109,10 @@
                      class="toolbarbutton-1 calbar-toolbarbutton-1"
                      label="&showUnifinderCmd.label;"
                      observes="calendar_show_unifinder_command"/>
+      <toolbarbutton id="calendar-appmenu-button"
+                     class="toolbarbutton-1 button-appmenu"
+                     label="&appmenuButton.label;"
+                     tooltiptext="&appmenuButton.tooltip;"/>
     </toolbarpalette>
 
     <toolbar id="calendar-toolbar2" class="inline-toolbar chromeclass-toolbar"
@@ -119,7 +124,7 @@
 #ifdef XP_MACOSX
              iconsize="small"
 #endif
-             defaultset="calendar-synchronize-button,calendar-newevent-button,calendar-newtask-button,calendar-edit-button,calendar-delete-button,spring"/>
+             defaultset="calendar-synchronize-button,calendar-newevent-button,calendar-newtask-button,calendar-edit-button,calendar-delete-button,spring,calendar-appmenu-button"/>
     <toolbarset id="calendarToolbars" context="calendar-toolbar-context"/>
   </toolbox>
 
@@ -158,6 +163,10 @@
                      class="toolbarbutton-1 calbar-toolbarbutton-1"
                      label="&lightning.toolbar.print.label;"
                      observes="cmd_print"/>
+      <toolbarbutton id="task-appmenu-button"
+                     class="toolbarbutton-1 button-appmenu"
+                     label="&appmenuButton.label;"
+                     tooltiptext="&appmenuButton.tooltip;"/>
     </toolbarpalette>
 
     <toolbar id="task-toolbar2" class="inline-toolbar chromeclass-toolbar"
@@ -169,7 +178,7 @@
 #ifdef XP_MACOSX
              iconsize="small"
 #endif
-             defaultset="task-synchronize-button,task-newevent-button,task-newtask-button,task-edit-button,task-delete-button,spring"/>
+             defaultset="task-synchronize-button,task-newevent-button,task-newtask-button,task-edit-button,task-delete-button,spring,task-appmenu-button"/>
     <toolbarset id="taskToolbars" context="task-toolbar-context"/>
   </toolbox>
 </overlay>

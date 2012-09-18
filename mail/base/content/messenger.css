@@ -336,3 +336,7 @@ splitmenu {
 #appmenu-editmenu > .menu-accel-container {
   display: none;
 }
+
+.button-appmenu {
+  -moz-binding: url("chrome://messenger/content/mailWidgets.xml#appmenu-vertical") !important;
+}

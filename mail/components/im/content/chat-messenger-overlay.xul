@@ -108,7 +108,7 @@
 #ifdef XP_MACOSX
                  iconsize="small"
 #endif
-                 defaultset="button-add-buddy,button-join-chat,spacer,chat-status-selector,button-chat-accounts,spacer,gloda-im-search"/>
+                 defaultset="button-add-buddy,button-join-chat,spacer,chat-status-selector,button-chat-accounts,spacer,gloda-im-search,button-chat-appmenu"/>
 
         <toolbarpalette id="ChatToolbarPalette">
           <toolbarbutton id="button-add-buddy"
@@ -179,6 +179,10 @@
               </hbox>
             </textbox>
           </toolbaritem>
+          <toolbarbutton id="button-chat-appmenu"
+                         class="toolbarbutton-1 button-appmenu"
+                         label="&appmenuButton.label;"
+                         tooltiptext="&appmenuButton.tooltip;"/>
         </toolbarpalette>
         <toolbarset id="customChatToolbars" context="chat-toolbar-context-menu"/>
       </toolbox>

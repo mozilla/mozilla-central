@@ -524,18 +524,18 @@ toolbar[iconsize="large"]:not([mode="text"]) .badgeButton-badge {
   -moz-image-region: rect(1px, 431px, 17px, 415px);
 }
 
-#button-appmenu {
+.button-appmenu {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(1px, 449px, 17px, 433px);
-  min-width: 35px;
+  min-width: 35px !important;
 }
 
-#button-appmenu .toolbarbutton-text,
-#button-appmenu .toolbarbutton-menu-dropmarker {
+.button-appmenu .toolbarbutton-text,
+.button-appmenu .toolbarbutton-menu-dropmarker {
   display: none;
 }
 
-toolbar[mode="text"] #button-appmenu .toolbarbutton-icon {
+toolbar[mode="text"] .button-appmenu .toolbarbutton-icon {
   display: -moz-box;
 }
 

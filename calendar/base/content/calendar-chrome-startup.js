@@ -9,6 +9,8 @@ Components.utils.import("resource://gre/modules/Services.jsm");
  * Common initialization steps for calendar chrome windows.
  */
 function commonInitCalendar() {
+    // Move around toolbarbuttons and whatever is needed in the UI.
+    migrateCalendarUI();
 
     // Load the Calendar Manager
     loadCalendarManager();
@@ -137,5 +139,32 @@ var calendarWindowPrefs = {
                 setElementValue(win.document.documentElement, attributeValue , "systemcolors");
             }, false);
         }
+    }
+}
+
+/**
+ * Migrate calendar UI. This function is called at each startup and can be used
+ * to change UI items that require js code intervention
+ */
+function migrateCalendarUI() {
+    const UI_VERSION = 1;
+    let currentUIVersion = cal.getPrefSafe("calendar.ui.version");
+
+    if (currentUIVersion >= UI_VERSION) {
+        return;
+    }
+
+    try {
+        if (currentUIVersion < 1) {
+            let calbar = document.getElementById("calendar-toolbar2");
+            calbar.insertItem("calendar-appmenu-button");
+            let taskbar = document.getElementById("task-toolbar2");
+            taskbar.insertItem("task-appmenu-button");
+        }
+
+        cal.setPref("calendar.ui.version", UI_VERSION);
+    } catch (e) {
+        cal.ERROR("Error upgrading UI from " + currentUIVersion + " to " +
+                  UI_VERSION + ": " + e);
     }
 }

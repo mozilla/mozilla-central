@@ -2832,4 +2832,27 @@
       ]]></handler>
     </handlers>
   </binding>
+
+  <binding id="appmenu-vertical" extends="chrome://global/content/bindings/toolbarbutton.xml#menu-vertical">
+    <implementation>
+      <method name="_setupAppmenu">
+        <parameter name="event"/>
+        <body><![CDATA[
+          let appmenuPopup = document.getElementById("appmenu-popup");
+          if (this.lastChild != appmenuPopup) {
+            this.appendChild(appmenuPopup);
+          }
+          this.open = true;
+        ]]></body>
+      </method>
+    </implementation>
+    <handlers>
+      <!-- While it would seem we could do this by handling oncommand, we can't
+           because any external oncommand handlers might get called before ours,
+           and then they would see the incorrect value of checked. Additionally
+           a command attribute would redirect the command events anyway.-->
+      <handler event="click" button="0" action="this._setupAppmenu();"/>
+      <handler event="keypress" key=" " action="this._setupAppmenu();"/>
+    </handlers>
+  </binding>
 </bindings>
