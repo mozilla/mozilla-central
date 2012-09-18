@@ -232,7 +232,7 @@ function onEditFilter()
 
   if ("refresh" in args && args.refresh) {
     // reset search if edit was okay (name change might lead to hidden entry!)
-    document.getElementById("searchBox").value = "";
+    resetSearchBox(selectedFilter);
     rebuildFilterList();
   }
 }
@@ -260,8 +260,8 @@ function onNewFilter(emailAddress)
   window.openDialog("chrome://messenger/content/FilterEditor.xul", "FilterEditor", "chrome,modal,titlebar,resizable,centerscreen", args);
 
   if ("refresh" in args && args.refresh) {
-    // On success: reset the search box!
-    document.getElementById("searchBox").value = "";
+    // On success: reset the search box if necessary!
+    resetSearchBox(gCurrentFilterList.getFilterAt(position));
     rebuildFilterList();
 
     // Select the new filter, it is at the position of previous selection.
@@ -508,18 +508,23 @@ function moveCurrentFilter(motion)
   rebuildFilterList();
 }
 
+/**
+ * Redraws the list of filters. Takes the search box value into account.
+ *
+ * This function should perform very fast even in case of high number of filters.
+ * Therefore there are some optimizations (e.g. listelement.children[] instead of
+ * list.getItemAtIndex()), that favour speed vs. semantical perfection.
+ */
 function rebuildFilterList()
 {
-  // This function should perform very fast even in case of high number of filters.
-  // Therefore there are some optimisations (e.g. listelement.children[] instead of
-  // list.getItemAtIndex()), that favour speed vs. semantical perfection.
+  // Get filters that match the search box.
   let aTempFilterList = onFindFilter();
 
   let searchBox = document.getElementById("searchBox");
   let searchBoxFocus = false;
   let activeElement = document.activeElement;
 
-  // Find if the currently focused element is a child inside the searchBox
+  // Find if the currently focused element is a child inside the search box
   // (probably html:input). Traverse up the parents until the first element
   // with an ID is found. If it is not searchBox, return false.
   while (activeElement != null) {
@@ -844,11 +849,25 @@ function getFirstFolder(msgFolder)
   return msgFolder;
 }
 
-
+/**
+ * Decides if the given filter matches the given keyword.
+ *
+ * @param  aFilter   nsIMsgFilter to check
+ * @param  aKeyword  the string to find in the filter name
+ *
+ * @return  True if the filter name contains the searched keyword.
+            Otherwise false. In the future this may be extended to match
+            other filter attributes.
+ */
+function filterSearchMatch(aFilter, aKeyword)
+{
+  return (aFilter.filterName.toLocaleLowerCase().indexOf(aKeyword) != -1)
+}
 
 /**
- * Called when the search button is clicked, this will narrow down the amount
- * of filters displayed in the list, using the search term to filter the names.
+ * Called from rebuildFilterList when the list needs to be redrawn.
+ * @return  Uses the search term in search box, to produce an array of
+ *          row (filter) numbers (indexes) that match the search term.
  */
 function onFindFilter()
 {
@@ -863,16 +882,29 @@ function onFindFilter()
   // Rematch everything in the list, remove what doesn't match the search box.
   let rows = gCurrentFilterList.filterCount;
   let matchingFilterList = [];
-  let item;
   // Use the full gCurrentFilterList, not the filterList listbox,
   // which may already be filtered.
   for (let i = 0; i < rows; i++) {
-    item = gCurrentFilterList.getFilterAt(i).filterName;
-    if (item.toLocaleLowerCase().indexOf(keyWord) != -1)
+    if (filterSearchMatch(gCurrentFilterList.getFilterAt(i), keyWord))
       matchingFilterList.push(i);
   }
 
   return matchingFilterList;
+}
+
+/**
+ * Clear the search term in the search box if needed.
+ *
+ * @param aFilter  If this nsIMsgFilter matches the search term,
+ *                 do not reset the box. If this is null,
+ *                 reset unconditionally.
+ */
+function resetSearchBox(aFilter)
+{
+  let searchBox = document.getElementById("searchBox");
+  let keyword = searchBox.value.toLocaleLowerCase();
+  if (keyword && (!aFilter || !filterSearchMatch(aFilter, keyword)))
+    searchBox.reset();
 }
 
 /**
