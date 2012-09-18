@@ -527,7 +527,7 @@ nsresult nsEudoraCompose::GetLocalAttachments(nsIArray **aArray)
 
     nsCOMPtr <nsIURI> uri;
     nsresult rv = NS_NewFileURI(getter_AddRefs(uri), pAttach->pAttachment);
-    NS_ENSURE_SUCCESS(rv, nullptr);
+    NS_ENSURE_SUCCESS(rv, rv);
     uri->GetSpec(urlStr);
     if (urlStr.IsEmpty())
       return NS_ERROR_FAILURE;

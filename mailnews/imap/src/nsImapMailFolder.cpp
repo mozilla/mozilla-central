@@ -4646,7 +4646,7 @@ nsImapMailFolder::NormalEndMsgWriteStream(nsMsgKey uidOfMessage,
           msgUrl->GetMsgWindow(getter_AddRefs(msgWindow));
       }
       m_filterList->ApplyFiltersToHdr(nsMsgFilterType::InboxRule, newMsgHdr,
-                                      this, mDatabase, nullptr, nullptr, this,
+                                      this, mDatabase, nullptr, 0, this,
                                       msgWindow);
       NotifyFolderEvent(mFiltersAppliedAtom);
     }
@@ -9080,7 +9080,7 @@ nsImapMailFolder::OnMessageClassified(const char * aMsgURI,
   else // end of batch
   {
     // Parent will apply post bayes filters.
-    nsMsgDBFolder::OnMessageClassified(nullptr, nullptr, nullptr);
+    nsMsgDBFolder::OnMessageClassified(nullptr, nsIJunkMailPlugin::UNCLASSIFIED, 0);
 
     if (m_junkMessagesToMarkAsRead)
     {

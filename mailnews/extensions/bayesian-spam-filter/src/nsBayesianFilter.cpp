@@ -1346,9 +1346,9 @@ public:
       {
         // call all listeners with null parameters to signify end of batch
         if (mJunkListener)
-          mJunkListener->OnMessageClassified(nullptr, nullptr, nullptr);
+          mJunkListener->OnMessageClassified(nullptr, nsIJunkMailPlugin::UNCLASSIFIED, 0);
         if (mTraitListener)
-          mTraitListener->OnMessageTraitsClassified(nullptr, nullptr, nullptr, nullptr);
+          mTraitListener->OnMessageTraitsClassified(nullptr, 0, nullptr, nullptr);
         mTokenListener = nullptr; // this breaks the circular ref that keeps this object alive
                                  // so we will be destroyed as a result.
       }

@@ -3380,7 +3380,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
   else // end of batch
   {
     // Parent will apply post bayes filters.
-    nsMsgDBFolder::OnMessageClassified(nullptr, nullptr, nullptr);
+    nsMsgDBFolder::OnMessageClassified(nullptr, nsIJunkMailPlugin::UNCLASSIFIED, 0);
     nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
     if (!mSpamKeysToMove.IsEmpty())
     {

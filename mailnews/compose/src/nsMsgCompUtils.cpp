@@ -1241,25 +1241,25 @@ RFC2231ParmFolding(const char *parmName, const nsCString& charset,
         // check to see if we are in the middle of escaped char
         if (*end == '%')
         {
-          tmp = '%'; *end = nullptr;
+          tmp = '%'; *end = 0;
         }
         else if (end-1 > start && *(end-1) == '%')
         {
-          end -= 1; tmp = '%'; *end = nullptr;
+          end -= 1; tmp = '%'; *end = 0;
         }
         else if (end-2 > start && *(end-2) == '%')
         {
-          end -= 2; tmp = '%'; *end = nullptr;
+          end -= 2; tmp = '%'; *end = 0;
         }
         else
         {
-          tmp = *end; *end = nullptr;
+          tmp = *end; *end = 0;
         }
       }
       else
       {
         // XXX should check if we are in the middle of escaped char (RFC 822)
-        tmp = *end; *end = nullptr;
+        tmp = *end; *end = 0;
       }
       NS_MsgSACat(&foldedParm, start);
       if (!needEscape)

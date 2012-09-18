@@ -223,7 +223,7 @@ MsgDeliveryListener::~MsgDeliveryListener()
 NS_IMETHODIMP MsgDeliveryListener::OnStartRunningUrl(nsIURI *url)
 {
   if (mMsgSend)
-    mMsgSend->NotifyListenerOnStartSending(nullptr, nullptr);
+    mMsgSend->NotifyListenerOnStartSending(nullptr, 0);
   
   return NS_OK;
 }
@@ -4260,7 +4260,7 @@ nsMsgComposeAndSend::CreateRFC822Message(
             aMsgType, aMsgBody,
             aMsgBodyLength,
             nullptr, aAttachments,
-            nullptr, EmptyCString(), nullptr);
+            nullptr, EmptyCString(), nsIMsgCompType::New);
 
   if (NS_FAILED(rv) && mSendReport)
     mSendReport->SetError(nsIMsgSendReport::process_Current, rv, false);
@@ -4312,9 +4312,9 @@ nsMsgComposeAndSend::SendMessageFile(
 
   rv = Init(aUserIndentity, aAccountKey, (nsMsgCompFields *)fields, sendIFile,
             digest_p, false, mode, msgToReplace,
-            nullptr, nullptr, nullptr,
+            nullptr, nullptr, 0,
             nullptr, nullptr,
-            password, EmptyCString(), nullptr);
+            password, EmptyCString(), nsIMsgCompType::New);
 
   if (NS_SUCCEEDED(rv))
     rv = DeliverMessage();

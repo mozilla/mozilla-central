@@ -240,7 +240,7 @@ void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForPrevSearchedFolders(nsIMsg
     {
       // this must be a folder that had no hits with the current search.
       // So all cached hits, if any, need to be removed.
-      UpdateCacheAndViewForFolder(m_foldersSearchingOver[0], 0, nullptr);
+      UpdateCacheAndViewForFolder(m_foldersSearchingOver[0], nullptr, 0);
       m_foldersSearchingOver.RemoveObjectAt(0);
     }
   }

@@ -2754,7 +2754,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, bool *aFiltersRun)
     // post analysis filters will run consistently on a folder, even if
     // disabled junk processing, which could be dynamic through whitelisting,
     // makes the bayes analysis unnecessary.
-    OnMessageClassified(nullptr, nullptr, nullptr);
+    OnMessageClassified(nullptr, nsIJunkMailPlugin::UNCLASSIFIED, 0);
   }
 
   return rv;
