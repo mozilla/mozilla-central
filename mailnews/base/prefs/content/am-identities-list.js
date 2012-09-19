@@ -3,21 +3,24 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 var gIdentityListBox;                 // the root <listbox> node
 var gAddButton;
 var gEditButton;
+var gSetDefaultButton;
 var gDeleteButton;
 
 var gAccount = null;  // the account we are showing the identities for
 
 function onLoad()
 {
-  gIdentityListBox = document.getElementById("identitiesList");
-  gAddButton       = document.getElementById("addButton");
-  gEditButton      = document.getElementById("editButton");
-  gDeleteButton    = document.getElementById("deleteButton");
+  gIdentityListBox  = document.getElementById("identitiesList");
+  gAddButton        = document.getElementById("addButton");
+  gEditButton       = document.getElementById("editButton");
+  gSetDefaultButton = document.getElementById("setDefaultButton");
+  gDeleteButton     = document.getElementById("deleteButton");
 
   // extract the account
   gAccount = window.arguments[0].account;
@@ -26,61 +29,73 @@ function onLoad()
   document.title = document.getElementById("bundle_prefs")
                            .getFormattedString("identity-list-title", [accountName]);
 
-  // extract the account from
-  refreshIdentityList();
-
-  // try selecting the first identity
-  gIdentityListBox.selectedIndex = 0;
+  refreshIdentityList(0);
 }
 
-function refreshIdentityList()
+/**
+ * Rebuilds the listbox holding the list of identities.
+ *
+ * @param aSelectIndex  Attempt to select the identity with this index.
+ */
+function refreshIdentityList(aSelectIndex)
 {
-  // remove all children
+  // Remove all children.
   while (gIdentityListBox.hasChildNodes())
     gIdentityListBox.removeChild(gIdentityListBox.lastChild);
 
-  var identities = gAccount.identities;
-  var identitiesCount = identities.Count();
-  for (var j = 0; j < identitiesCount; j++) 
+  // Build the list from the identities array.
+  let identities = gAccount.identities;
+  for each (let identity in fixIterator(identities,
+                                        Components.interfaces.nsIMsgIdentity))
   {
-    var identity = identities.QueryElementAt(j, Components.interfaces.nsIMsgIdentity);
     if (identity.valid)
     {
-      var listitem = document.createElement("listitem");
+      let listitem = document.createElement("listitem");
       listitem.setAttribute("label", identity.identityName);
       listitem.setAttribute("key", identity.key);
       gIdentityListBox.appendChild(listitem);
     }
   }
+
+  // Ensure one identity is always selected.
+  if (!aSelectIndex || aSelectIndex < 0)
+    aSelectIndex = 0;
+  else if (aSelectIndex >= gIdentityListBox.itemCount)
+    aSelectIndex = gIdentityListBox.itemCount - 1;
+
+  // This also fires the onselect event, which in turn calls updateButtons().
+  gIdentityListBox.selectedIndex = aSelectIndex;
 }
 
-// opens the identity editor dialog
-// identity: pass in the identity (if any) to load in the dialog
+/**
+ * Opens the identity editor dialog.
+ *
+ * @param identity  the identity (if any) to load in the dialog
+ */
 function openIdentityEditor(identity)
 {
-  var result = false;
-  var args = { identity: identity, account: gAccount, result: result };
+  let args = { identity: identity, account: gAccount, result: false };
+
+  let indexToSelect = identity ? gIdentityListBox.selectedIndex :
+                                 gIdentityListBox.itemCount;
 
   window.openDialog("am-identity-edit.xul", "",
                     "chrome,modal,resizable=no,centerscreen", args);
 
-  var selectedItemIndex = gIdentityListBox.selectedIndex;
-
   if (args.result)
-  {
-    refreshIdentityList();
-    gIdentityListBox.selectedIndex = selectedItemIndex;
-  }
+    refreshIdentityList(indexToSelect);
 }
 
 function getSelectedIdentity()
 {
+  if (gIdentityListBox.selectedItems.length != 1)
+    return null;
+
   var identityKey = gIdentityListBox.selectedItems[0].getAttribute("key");
-  var identities = gAccount.identities;
-  var identitiesCount = identities.Count();
-  for (var j = 0; j < identitiesCount; j++)
+  let identities = gAccount.identities;
+  for each (let identity in fixIterator(identities,
+                                        Components.interfaces.nsIMsgIdentity))
   {
-    var identity = identities.QueryElementAt(j, Components.interfaces.nsIMsgIdentity);
     if (identity.valid && identity.key == identityKey)
       return identity;
   }
@@ -94,24 +109,44 @@ function onEdit(event)
   openIdentityEditor(id);
 }
 
+/**
+ * Enable/disable buttons depending on number of identities and current selection.
+ */
 function updateButtons()
 {
-  if (gIdentityListBox.selectedItems.length <= 0)
-  {
-    gEditButton.setAttribute("disabled", "true");
-    gDeleteButton.setAttribute("disabled", "true");
+  // In this listbox there should always be one item selected.
+  if (gIdentityListBox.selectedItems.length != 1 || gIdentityListBox.itemCount == 0) {
+    // But in case this is not met (e.g. there is no identity for some reason,
+    // or the list is being rebuilt), disable all buttons.
+    gEditButton.disabled = true;
+    gDeleteButton.disabled = true;
+    gSetDefaultButton.disabled = true;
+    return;
   }
-  else
-  {
-    gEditButton.removeAttribute("disabled");
-    if (gIdentityListBox.getRowCount() > 1)
-      gDeleteButton.removeAttribute("disabled");
-  }
+
+  gEditButton.disabled = false;
+  gDeleteButton.disabled = gIdentityListBox.itemCount <= 1;
+  gSetDefaultButton.disabled = gIdentityListBox.selectedIndex == 0;
+}
+
+function onSetDefault(event)
+{
+  let identity = getSelectedIdentity();
+  if (!identity)
+    return;
+
+  // If the first identity is selected, there is nothing to do.
+  if (gIdentityListBox.selectedIndex == 0)
+    return;
+
+  gAccount.defaultIdentity = identity;
+  // Rebuilt the identity list and select the moved identity again.
+  refreshIdentityList(0);
 }
 
 function onDelete(event)
 {
-  if (gIdentityListBox.getRowCount() <= 1)  // don't support deleting the last identity
+  if (gIdentityListBox.itemCount <= 1)  // don't support deleting the last identity
     return;
 
   // get delete confirmation
@@ -130,18 +165,15 @@ function onDelete(event)
                                 confirmButton, null, null, null, {}))
     return;
 
+  let selectedItemIndex = gIdentityListBox.selectedIndex;
+
   gAccount.removeIdentity(selectedIdentity);
-  // rebuild the list
-  refreshIdentityList();
+
+  refreshIdentityList(selectedItemIndex);
 }
 
 function onOk()
 {
   window.arguments[0].result = true;
   return true;
-}
-
-function onSetDefault(event)
-{
-  // not implemented yet
 }

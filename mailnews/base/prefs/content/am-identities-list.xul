@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 
 <?xml-stylesheet href="chrome://messenger/skin/messenger.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/accountManage.css" type="text/css"?>
 
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,12 +24,17 @@
 <script type="application/javascript"
         src="chrome://messenger/content/am-identities-list.js"/>
 
-<label control="identitiesList">&identitiesListDesc.label;</label>
+<label control="identitiesList">&identitiesListManageDesc.label;</label>
 
 <separator class="thin"/>
 
 <hbox flex="1">
-  <listbox id="identitiesList" ondblclick="onEdit(event);" onselect="updateButtons();" flex="1" style="height: 0px;"/>
+  <listbox id="identitiesList"
+           ondblclick="onEdit(event);"
+           onselect="updateButtons();"
+           seltype="single"
+           flex="1"
+           style="height: 0px;"/>
 
   <vbox>
     <button id="addButton"
@@ -37,6 +43,9 @@
     <button id="editButton" disabled="true"
             oncommand="onEdit(event);" label="&identitiesListEdit.label;"
             accesskey="&identitiesListEdit.accesskey;"/>
+    <button id="setDefaultButton" disabled="true"
+            oncommand="onSetDefault(event);" label="&identitiesListDefault.label;"
+            accesskey="&identitiesListDefault.accesskey;"/>
     <button id="deleteButton" disabled="true"
             oncommand="onDelete(event);" label="&identitiesListDelete.label;"
             accesskey="&identitiesListDelete.accesskey;"/>

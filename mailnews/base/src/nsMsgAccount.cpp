@@ -250,23 +250,24 @@ nsMsgAccount::GetDefaultIdentity(nsIMsgIdentity **aDefaultIdentity)
   if (count == 0)
     return NS_OK;
 
-  nsCOMPtr<nsIMsgIdentity> identity( do_QueryElementAt(m_identities, 0, &rv));
+  nsCOMPtr<nsIMsgIdentity> identity = do_QueryElementAt(m_identities, 0, &rv);
   identity.swap(*aDefaultIdentity);
   return rv;
 }
 
-// todo - make sure this is in the identity array!
 NS_IMETHODIMP
 nsMsgAccount::SetDefaultIdentity(nsIMsgIdentity *aDefaultIdentity)
 {
   NS_ENSURE_TRUE(m_identities, NS_ERROR_FAILURE);
 
-  NS_ASSERTION(m_identities->IndexOf(aDefaultIdentity) != -1, "Where did that identity come from?!");
-  if (m_identities->IndexOf(aDefaultIdentity) == -1)
-    return NS_ERROR_UNEXPECTED;
+  PRInt32 position = m_identities->IndexOf(aDefaultIdentity);
+  NS_ASSERTION(position != -1, "Where did that identity come from?!");
+  NS_ENSURE_TRUE(position != -1, NS_ERROR_UNEXPECTED);
 
-  m_defaultIdentity = aDefaultIdentity;
-  return NS_OK;
+  // The passed in identity is in the list, so we have at least one element.
+  m_identities->MoveElement(position, 0);
+
+  return saveIdentitiesPref();
 }
 
 // add the identity to m_identities, but don't fiddle with the
@@ -331,12 +332,7 @@ nsMsgAccount::AddIdentity(nsIMsgIdentity *identity)
   }
 
   // now add it to the in-memory list
-  rv = addIdentityInternal(identity);
-
-  if (!m_defaultIdentity)
-    SetDefaultIdentity(identity);
-
-  return rv;
+  return addIdentityInternal(identity);
 }
 
 /* void removeIdentity (in nsIMsgIdentity identity); */
@@ -348,27 +344,30 @@ nsMsgAccount::RemoveIdentity(nsIMsgIdentity *aIdentity)
 
   uint32_t count = 0;
   m_identities->Count(&count);
-
-  NS_ENSURE_TRUE(count > 1, NS_ERROR_FAILURE); // you must have at least one identity
-
-  nsCString key;
-  nsresult rv = aIdentity->GetKey(key);
+  // At least one identity must stay after the delete.
+  NS_ENSURE_TRUE(count > 1, NS_ERROR_FAILURE);
 
   // remove our identity
   m_identities->RemoveElement(aIdentity);
-  count--;
 
   // clear out the actual pref values associated with the identity
   aIdentity->ClearAllValues();
 
-  // if we just deleted the default identity, clear it out so we pick a new one
-  if (m_defaultIdentity == aIdentity)
-    m_defaultIdentity = nullptr;
+  return saveIdentitiesPref();
+}
 
-  // now rebuild the identity pref
+nsresult
+nsMsgAccount::saveIdentitiesPref()
+{
   nsAutoCString newIdentityList;
 
-  // iterate over the remaining identities
+  // Iterate over the existing identities and build the pref value,
+  // a string of identity keys: id1, id2, idX...
+  uint32_t count;
+  nsresult rv = m_identities->Count(&count);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCString key;
   for (uint32_t index = 0; index < count; index++)
   {
     nsCOMPtr<nsIMsgIdentity> identity = do_QueryElementAt(m_identities, index, &rv);
@@ -376,8 +375,9 @@ nsMsgAccount::RemoveIdentity(nsIMsgIdentity *aIdentity)
     {
       identity->GetKey(key);
 
-      if (!index)
+      if (!index) {
         newIdentityList = key;
+      }
       else
       {
         newIdentityList.Append(',');
@@ -386,9 +386,10 @@ nsMsgAccount::RemoveIdentity(nsIMsgIdentity *aIdentity)
     }
   }
 
+  // Save the pref.
   m_prefs->SetCharPref("identities", newIdentityList.get());
 
-  return rv;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgAccount::GetKey(nsACString& accountKey)

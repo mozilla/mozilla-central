@@ -33,6 +33,7 @@
   font-family: -moz-fixed;
 }
 
+#identitiesList > listitem:first-child,
 treechildren::-moz-tree-cell-text(isDefaultServer-true) {
   font-weight: bold;
 }
