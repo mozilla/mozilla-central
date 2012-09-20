@@ -301,6 +301,11 @@ var tests = [
 
   ["attachment; filename=\"", 
    "attachment", ""], 
+
+  // Bug 783502 - xpcshell test netwerk/test/unit/test_MIME_params.js fails on AddressSanitizer
+
+  ['attachment; filename="\\b\\a\\',
+   'attachment', 'ba\\'],
 ];
 
 function do_tests(whichRFC)
