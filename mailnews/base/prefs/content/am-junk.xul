@@ -223,5 +223,14 @@
 
     </groupbox>
 
+    <separator class="thin"/>
+
+    <hbox pack="start">
+      <button id="globalJunkPrefsLink"
+              label="&globalJunkPrefs.label;"
+              accesskey="&globalJunkPrefs.accesskey;"
+              oncommand="showGlobalJunkPrefs();"/>
+    </hbox>
+
   </vbox>
 </page>

@@ -71,7 +71,7 @@
 
     <tabbox id="securityPrefs" flex="1" onselect="gSecurityPane.tabSelectionChanged();">
       <tabs>
-        <tab label="&itemJunk.label;"/>
+        <tab id="junkTab" label="&itemJunk.label;"/>
         <tab label="&itemPhishing.label;"/>
         <tab label="&itemAntiVirus.label;"/>
         <tab label="&itemPasswords.label;"/>
