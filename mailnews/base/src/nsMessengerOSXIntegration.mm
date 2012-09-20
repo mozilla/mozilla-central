@@ -37,7 +37,6 @@
 #include "nsIAlertsService.h"
 #include "nsIStringBundle.h"
 #include "nsToolkitCompsCID.h"
-#include "nsINotificationsList.h"
 #include "nsIMsgDatabase.h"
 #include "nsIMsgHdr.h"
 #include "nsIMsgHeaderParser.h"
@@ -190,11 +189,9 @@ NS_INTERFACE_MAP_END
 nsresult
 nsMessengerOSXIntegration::Init()
 {
-  // need to register a named Growl notification
   nsresult rv;
   nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  observerService->AddObserver(this, "before-growl-registration", false);
   return observerService->AddObserver(this, "mail-startup-done", false);
 }
 
@@ -258,28 +255,6 @@ nsMessengerOSXIntegration::Observe(nsISupports* aSubject, const char* aTopic, co
     NS_ENSURE_SUCCESS(rv, rv);
 
     return mailSession->AddFolderListener(this, nsIFolderListener::boolPropertyChanged | nsIFolderListener::intPropertyChanged);
-  }
-
-  // register named Growl notification for new mail alerts.
-  if (!strcmp(aTopic, "before-growl-registration"))
-  {
-    nsresult rv;
-    nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
-    if (NS_SUCCEEDED(rv))
-      observerService->RemoveObserver(this, "before-growl-registration");
-
-    nsCOMPtr<nsINotificationsList> notifications = do_QueryInterface(aSubject, &rv);
-    if (NS_SUCCEEDED(rv))
-    {
-      nsCOMPtr<nsIStringBundle> bundle;
-      GetStringBundle(getter_AddRefs(bundle));
-      if (bundle)
-      {
-        nsString growlNotification;
-        bundle->GetStringFromName(NS_LITERAL_STRING("growlNotification").get(), getter_Copies(growlNotification));
-        notifications->AddNotification(growlNotification, true);
-      }
-    }
   }
 
   if (!strcmp(aTopic, kNewChatMessageTopic)) {
@@ -414,25 +389,14 @@ nsMessengerOSXIntegration::ShowAlertMessage(const nsAString& aAlertTitle,
 
   if (showAlert)
   {
-    // Use growl if installed
     nsCOMPtr<nsIAlertsService> alertsService (do_GetService(NS_ALERTSERVICE_CONTRACTID, &rv));
+    // If we have an nsIAlertsService implementation, use it:
     if (NS_SUCCEEDED(rv))
     {
-      nsCOMPtr<nsIStringBundle> bundle;
-      GetStringBundle(getter_AddRefs(bundle));
-      if (bundle)
-      {
-        nsString growlNotification;
-        bundle->GetStringFromName(NS_LITERAL_STRING("growlNotification").get(),
-                                  getter_Copies(growlNotification));
-        rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(kNewMailAlertIcon),
-                                                  aAlertTitle,
-                                                  aAlertText,
-                                                  true,
-                                                  NS_ConvertASCIItoUTF16(aFolderURI),
-                                                  this,
-                                                  growlNotification);
-      }
+      alertsService->ShowAlertNotification(NS_LITERAL_STRING(kNewMailAlertIcon),
+                                           aAlertTitle, aAlertText, true,
+                                           NS_ConvertASCIItoUTF16(aFolderURI),
+                                           this, EmptyString());
     }
 
     BounceDockIcon();
