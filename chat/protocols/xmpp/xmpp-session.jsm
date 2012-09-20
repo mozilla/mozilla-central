@@ -170,6 +170,9 @@ XMPPSession.prototype = {
   onConnectionClosed: function() {
     this._networkError(_("connection.error.serverClosedConnection"));
   },
+  onBadCertificate: function(aNSSErrorMessage) {
+    this.onError(Ci.prplIAccount.ERROR_CERT_OTHER_ERROR, aNSSErrorMessage);
+  },
   onConnectionReset: function() {
     this._networkError(_("connection.error.resetByPeer"));
   },

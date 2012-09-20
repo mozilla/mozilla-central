@@ -29,6 +29,7 @@
  *   onConnectionHeard()
  *   onConnectionTimedOut()
  *   onConnectionReset()
+ *   onBadCertificate(AString aNSSErrorMessage)
  *   onConnectionClosed()
  *   onDataReceived(data)
  *   onBinaryDataReceived(ArrayBuffer data, int length)
@@ -347,8 +348,16 @@ const Socket = {
       this.onConnectionReset();
     else if (aStatus == NS_ERROR_NET_TIMEOUT)
       this.onConnectionTimedOut();
-    else
-      this.onConnectionClosed();
+    else if (aStatus) {
+      let nssErrorsService =
+        Cc["@mozilla.org/nss_errors_service;1"].getService(Ci.nsINSSErrorsService);
+      if (aStatus <= nssErrorsService.getXPCOMFromNSSError(nssErrorsService.NSS_SEC_ERROR_BASE) &&
+          aStatus >= nssErrorsService.getXPCOMFromNSSError(nssErrorsService.NSS_SEC_ERROR_LIMIT - 1)) {
+        this.onBadCertificate(nssErrorsService.getErrorMessage(aStatus));
+        return;
+      }
+    }
+    this.onConnectionClosed();
   },
 
   /*
@@ -477,6 +486,8 @@ const Socket = {
   onConnectionTimedOut: function() { },
   // Called when a socket request's network is reset.
   onConnectionReset: function() { },
+  // Called when the certificate provided by the server didn't satisfy NSS.
+  onBadCertificate: function(aNSSErrorMessage) { },
   // Called when the other end has closed the connection.
   onConnectionClosed: function() { },
 
