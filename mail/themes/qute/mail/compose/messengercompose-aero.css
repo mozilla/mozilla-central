@@ -418,6 +418,26 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   margin-bottom: 4px;
 }
 
+/* ::::: autocomplete icons ::::: */
+
+treechildren::-moz-tree-image(local-abook) {
+  -moz-margin-start: 2px;
+  -moz-margin-end: 5px;
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addrbook.png");
+}
+
+treechildren::-moz-tree-image(remote-abook) {
+  -moz-margin-start: 2px;
+  -moz-margin-end: 5px;
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/remote-addrbook.png");
+}
+
+treechildren::-moz-tree-image(remote-err) {
+  -moz-margin-start: 2px;
+  -moz-margin-end: 5px;
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/remote-addrbook-error.png");
+}
+
 /* ::::: addressing widget ::::: */
 
 .autocomplete-treebody::-moz-tree-cell-text(comment) {
