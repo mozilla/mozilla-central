@@ -69,39 +69,43 @@ function run_test() {
 
   try {
     // Add an empty message to the cache
-    var cache = Cc["@mozilla.org/messenger/nntpservice;1"]
-                  .getService(Ci.nsINntpService)
-                  .cacheSession;
-    var cacheEntry = cache.openCacheEntry(kCacheKey, Ci.nsICache.ACCESS_WRITE,
-                                          true);
-    cacheEntry.markValid();
-    var firstAccess = cacheEntry.fetchCount;
-    cacheEntry.close();
+    MailServices.nntp
+                .cacheSession
+                .asyncOpenCacheEntry(kCacheKey, Ci.nsICache.ACCESS_WRITE, {
+      onCacheEntryAvailable: function(cacheEntry, access, status) {
+        do_check_eq(status, Components.results.NS_OK);
 
-    // Get the folder and new mail
-    var folder = localserver.rootFolder.getChildNamed("test.subscribe.simple");
-    folder.clearFlag(Ci.nsMsgFolderFlags.Offline);
-    folder.getNewMessages(null, {
-      OnStopRunningUrl: function () { localserver.closeCachedConnections(); }});
-    server.performTest();
+        cacheEntry.markValid();
+        var firstAccess = cacheEntry.fetchCount;
+        cacheEntry.close();
 
-    do_check_eq(folder.getTotalMessages(false), 1);
-    do_check_true(folder.hasNewMessages);
+        // Get the folder and new mail
+        var folder = localserver.rootFolder.getChildNamed("test.subscribe.simple");
+        folder.clearFlag(Ci.nsMsgFolderFlags.Offline);
+        folder.getNewMessages(null, {
+          OnStopRunningUrl: function () { localserver.closeCachedConnections(); }});
+        server.performTest();
 
-    server.resetTest();
+        do_check_eq(folder.getTotalMessages(false), 1);
+        do_check_true(folder.hasNewMessages);
 
-    var message = folder.firstNewMessage;
+        server.resetTest();
 
-    var messageUri = folder.getUriForMsg(message);
+        var message = folder.firstNewMessage;
 
-    var nntpService = Cc["@mozilla.org/messenger/nntpservice;1"]
-      .getService(Ci.nsIMsgMessageService);
+        var messageUri = folder.getUriForMsg(message);
+
+        MailServices.nntp
+                    .QueryInterface(Ci.nsIMsgMessageService)
+                    .DisplayMessage(messageUri, streamListener, null, null, null, {});
+
+        // Get the server to run
+        server.performTest();
+      }
+    });
 
     do_test_pending();
 
-    nntpService.DisplayMessage(messageUri, streamListener, null, null, null, {});
-    // Get the server to run
-    server.performTest();
   } catch (e) {
     server.stop();
     do_throw(e);
