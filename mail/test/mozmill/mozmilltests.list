@@ -22,9 +22,11 @@ migration-to-rdf-ui-5
 multiple-identities
 newmailaccount
 notification
+override-main-menu-collapse
 pref-window
 quick-filter-bar
 search-window
 session-store
+startup-firstrun
 tabmail
 utils

@@ -17,7 +17,8 @@ function setupModule(module) {
 
 /**
  * Test that the App Menu button was added to the mail toolbar, and the main
- * menu is collapsed by default.
+ * menu is not collapsed (since this Mozmill test starts with a pre-existing
+ * account).
  */
 function test_appmenu_button_added() {
   const kAppMenuButton = "button-appmenu";
@@ -32,11 +33,12 @@ function test_appmenu_button_added() {
   assert_equals(lastChars, kAppMenuButton,
                 "We didn't find the App Menu button at the end of the menu bar");
 
-  // Skip the next test for OSX, since it never exposed the menubar.
+  // Skip the next test for OSX, since it never exposes the main menu.
   if (!mc.mozmillModule.isMac) {
-    // Now also make sure that the menubar is collapsed.
-    let menuBar = mc.e("mail-toolbar-menubar2");
-    assert_equals(menuBar.getAttribute("autohide"), "true",
-                  "The main menu should have autohide set to true.");
+    // Since we started with a pre-existing account, the main menu should
+    // NOT be collapsed.
+    let mainMenu = mc.e("mail-toolbar-menubar2");
+    assert_false(mainMenu.hasAttribute("autohide"),
+                 "The main menu should not have the autohide attribute set.");
   }
 }

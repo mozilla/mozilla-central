@@ -17,6 +17,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource:///modules/mailServices.js");
 
 var MailMigrator = {
   /**
@@ -228,7 +229,11 @@ var MailMigrator = {
       }
 
       // In UI version 5, we add the AppMenu button to the mail toolbar and
-      // collapse the main menu by default.
+      // collapse the main menu by default if the user has no accounts
+      // set up (and the override pref "mail.main_menu.collapse_by_default"
+      // is set to true). Checking for 0 accounts is a hack, because we can't
+      // think of any better way of determining whether this profile is new
+      // or not.
       if (currentUIVersion < 5) {
 
         // First, we'll add the button to the mail toolbar...
@@ -247,13 +252,15 @@ var MailMigrator = {
           }
         }
 
-        // ... and now we'll collapse the main menu.
-        let menuResource = this._rdf.GetResource(MESSENGER_DOCURL +
-                                                 "mail-toolbar-menubar2");
-        if (menuResource !== null) {
-          let autohideResource = this._rdf.GetResource("autohide");
-          dirty = true;
-          this._setPersist(menuResource, autohideResource, "true");
+        if (Services.prefs.getBoolPref("mail.main_menu.collapse_by_default")
+            && MailServices.accounts.accounts.Count() == 0) {
+          let menuResource = this._rdf.GetResource(MESSENGER_DOCURL +
+                                                   "mail-toolbar-menubar2");
+          if (menuResource !== null) {
+            let autohideResource = this._rdf.GetResource("autohide");
+            dirty = true;
+            this._setPersist(menuResource, autohideResource, "true");
+          }
         }
       }
 
