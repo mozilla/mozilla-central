@@ -75,16 +75,24 @@ calMonthPrinter.prototype = {
         }
 
         for each (let item in aItems) {
-            let boxDate = item[cal.calGetStartDateProp(item)] || item[cal.calGetEndDateProp(item)];
+            let itemStartDate = item[cal.calGetStartDateProp(item)] || item[cal.calGetEndDateProp(item)];
+            let itemEndDate = item[cal.calGetEndDateProp(item)] || item[cal.calGetStartDateProp(item)];
 
-            // Ignore items outside of the range, i.e tasks without start date
-            // where the end date is somewhere else.
-            if (aStart && aEnd && boxDate &&
-                (boxDate.compare(aStart) < 0 || boxDate.compare(aEnd) >= 0)) {
+            if (!itemStartDate && !itemEndDate) {
+                cal.print.addItemToDayboxNodate(document, item);
                 continue;
             }
 
-            if (boxDate) {
+            let boxDate = itemStartDate.clone();
+            boxDate.isDate = true;
+            for (boxDate; boxDate.compare(itemEndDate) < (itemEndDate.isDate ? 0 : 1); boxDate.day++) {
+                // Ignore items outside of the range, i.e tasks without start date
+                // where the end date is somewhere else.
+                if (aStart && aEnd && boxDate &&
+                    (boxDate.compare(aStart) < 0 || boxDate.compare(aEnd) >= 0)) {
+                    continue;
+                }
+
                 let boxDateKey = cal.print.getDateKey(boxDate);
 
                 if (!(boxDateKey in dayTable)) {
@@ -101,8 +109,6 @@ calMonthPrinter.prototype = {
                 } else {
                     addSingleItem(dayBoxes);
                 }
-            } else {
-                cal.print.addItemToDayboxNodate(document, item);
             }
         }
 
