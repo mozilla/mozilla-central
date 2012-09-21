@@ -987,12 +987,10 @@ const XMPPAccountPrototype = {
     buddy._vCardReceived = true;
   },
 
-  _normalizeJID: function(aJID) {
-    let slashIndex = aJID.indexOf("/");
-    if (slashIndex != -1)
-      aJID = aJID.substr(0, slashIndex);
-    return aJID.toLowerCase();
-  },
+  _normalizeJID: function(aJID)
+    aJID.trim()
+        .split("/", 1)[0] // up to first slash
+        .toLowerCase(),
 
   _parseJID: function(aJid) {
     let match =
