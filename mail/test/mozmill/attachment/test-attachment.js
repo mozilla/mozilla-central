@@ -279,6 +279,8 @@ function test_attachment_right_click_single() {
   subtest_attachment_right_click("attachmentBar",
                                  "attachment-toolbar-context-menu");
 }
+// Re-enable this test once Bug 617311 is fixed.
+test_attachment_right_click_single.EXCLUDED_PLATFORMS = ['linux'];
 
 function test_attachment_right_click_multiple() {
   be_in_folder(folder);
@@ -297,6 +299,8 @@ function test_attachment_right_click_multiple() {
   subtest_attachment_right_click("attachmentBar",
                                  "attachment-toolbar-context-menu");
 }
+// Re-enable this test once Bug 617311 is fixed.
+test_attachment_right_click_multiple.EXCLUDED_PLATFORMS = ['linux'];
 
 /**
  * Test that clicking on various elements in the attachment bar toggles the
