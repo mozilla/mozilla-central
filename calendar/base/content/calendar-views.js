@@ -286,10 +286,12 @@ function switchToView(aViewType) {
      */
     function setupViewNode(id, attr) {
         let node = document.getElementById(id);
-        if (node.hasAttribute(attr + "-" + aViewType)) {
-            node.setAttribute(attr, node.getAttribute(attr + "-" + aViewType));
-        } else {
-            node.setAttribute(attr, node.getAttribute(attr + "-all"));
+        if (node) {
+            if (node.hasAttribute(attr + "-" + aViewType)) {
+                node.setAttribute(attr, node.getAttribute(attr + "-" + aViewType));
+            } else {
+                node.setAttribute(attr, node.getAttribute(attr + "-all"));
+            }
         }
     }
 
