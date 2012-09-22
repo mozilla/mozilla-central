@@ -41,7 +41,7 @@ var MigrationWizard = {
       }
       else if (window.arguments.length > 1) {
         this._source = window.arguments[0];
-        this._migrator = window.arguments[1] instance of nsISuiteProfileMigrator ?
+        this._migrator = window.arguments[1] instanceof nsISuiteProfileMigrator ?
                          window.arguments[1] : null;
         this._autoMigrate = window.arguments[2]
                                   .QueryInterface(nsIProfileStartup);
