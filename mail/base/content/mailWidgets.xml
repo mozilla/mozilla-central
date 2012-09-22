@@ -926,14 +926,10 @@
 
             // Re-render the node, this time with all the addresses.
             this.fillAddressesNode(this.emailAddresses, true);
-
-            // Scroll slightly to make it clear to the user how to reach
-            // the remaining addresses
-            let eHV = document.getElementById("expandedHeaderView");
-            let style = getComputedStyle(eHV, null);
-
-            // assume that the last two chars are "px" and discard them
-            eHV.scrollTop = style.getPropertyValue("font-size").slice(0, -2);
+            // Compute height of 'expandedHeaderView' from 'expandedHeadersBox'.
+            let expandedHeaderView = document.getElementById("expandedHeaderView");
+            expandedHeaderView.setAttribute("height", document.getElementById("expandedHeadersBox").clientHeight);
+            // This attribute will be reinit in the 'UpdateExpandedMessageHeaders()' method.
           ]]>
         </body>
       </method>
