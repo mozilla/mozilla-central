@@ -347,8 +347,22 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   #tabs-toolbar:not(:-moz-lwtheme) {
     margin-left: 1px;
     margin-right: 1px;
-    background-image: -moz-linear-gradient(hsla(210, 23%, 74%, .05),
-                      hsla(210, 23%, 74%, .8)) !important;
+    background-image: -moz-image-rect(url(icons/tabbar-background.png), 0, 15, 30, 0),
+                      -moz-image-rect(url(icons/tabbar-background.png), 0, 15, 30, 14),
+                      -moz-image-rect(url(icons/tabbar-background.png), 0, 29, 30, 14) !important;
+    background-position: left 0,
+                         15px 0,
+                         right 0 !important;
+    background-size: 15px 100%,
+                     calc(100% - 30px) 100%,
+                     15px 100% !important;
+    background-repeat: no-repeat !important;
+  }
+
+  #messengerWindow[sizemode="maximized"] #tabs-toolbar:not(:-moz-lwtheme) {
+    background-image: -moz-image-rect(url(icons/tabbar-background.png), 0, 15, 30, 14) !important;
+    background-position: left 0 !important;
+    background-size: 100% 100% !important;
   }
 
   #mail-toolbox:not(:-moz-lwtheme),
