@@ -851,7 +851,8 @@ bool CMapiMessage::CopyMsgAttachToFile(LPATTACH lpAttach, /*out*/ nsIFile **tmp_
   LPMESSAGE  lpMsg;
   HRESULT hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, 0,
                                       reinterpret_cast<LPUNKNOWN *>(&lpMsg));
-  NS_ENSURE_SUCCESS(hr, false);
+  if (HR_FAILED(hr))
+    return false;
 
   if (!GetTmpFile(tmp_file))
     return false;

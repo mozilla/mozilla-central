@@ -328,7 +328,7 @@ HRESULT CWAB::IterateWABContents(CWabIterator *pIter, int *pDone)
 
   // Read all the rows of the table one by one
   //
-  keepGoing = TRUE;
+  keepGoing = NS_OK;
   do {
 
     hr = lpAB->QueryRows(1,  0, &lpRowAB);

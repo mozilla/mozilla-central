@@ -61,7 +61,7 @@ nsWMUtils::GetRootFolder(nsIFile **aRootFolder)
   nsString expandedStoreRoot;
   expandedStoreRoot.SetLength(size - 1);
   if (expandedStoreRoot.Length() != size - 1)
-    return false;
+    return NS_ERROR_FAILURE;
   ::ExpandEnvironmentStringsW((LPCWSTR)storeRoot.get(),
                               (LPWSTR)expandedStoreRoot.BeginWriting(),
                               size);
