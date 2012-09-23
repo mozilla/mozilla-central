@@ -88,7 +88,7 @@ cal.print = {
         itemNode.item = item;
 
         // Fill in details of the item
-        let itemInterval = cal.getDateFormatter().formatItemTimeInterval(item);
+        let itemInterval = cal.print.getItemIntervalString(item);
         itemNode.querySelector(".item-interval").textContent = itemInterval;
         itemNode.querySelector(".item-title").textContent = item.title;
 
@@ -148,6 +148,24 @@ cal.print = {
 
         let collator = cal.createLocaleCollator();
         cal.binaryInsertNode(taskContainer, taskNode, item, function(a, b) collator.compareString(0, a, b), function(node) node.item.title);
+    },
+
+    /**
+     * Get time interval string for the given item. Returns an empty string for all-day items.
+     *
+     * @param aItem     The item providing the interval
+     * @return          The string describing the interval
+     */
+    getItemIntervalString: function getItemIntervalString(aItem) {
+        // omit time label for all-day items
+        let startDate = aItem[cal.calGetStartDateProp(aItem)]
+        let endDate = aItem[cal.calGetEndDateProp(aItem)];
+        if ((startDate && startDate.isDate) || (endDate && endDate.isDate)) {
+            return "";
+        }
+
+        // Bug 359007: will result in wrong time label for events that span two or more days
+        return cal.getDateFormatter().formatItemTimeInterval(aItem);
     }
 }
 
