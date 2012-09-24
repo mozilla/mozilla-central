@@ -16,7 +16,7 @@
 }
 
 .tabmail-tab {
-  list-style-image: url("chrome://global/skin/tree/item.png");
+  list-style-image: url("chrome://messenger/skin/icons/item.png");
 }
 
 .tab-throbber {
@@ -353,7 +353,7 @@ tabmail > tabbox > tabpanels {
  */
 
 .alltabs-item {
-  list-style-image: url("chrome://global/skin/tree/item.png");
+  list-style-image: url("chrome://messenger/skin/icons/item.png");
 }
 
 .alltabs-item[selected="true"] {

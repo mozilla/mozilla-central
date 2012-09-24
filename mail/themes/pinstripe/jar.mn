@@ -181,6 +181,7 @@ classic.jar:
   skin/classic/messenger/icons/update.png                        (mail/icons/update.png)
   skin/classic/messenger/icons/insecure.png                      (mail/icons/insecure.png)
   skin/classic/messenger/icons/identity.png                      (mail/icons/identity.png)
+  skin/classic/messenger/icons/item.png                          (mail/icons/item.png)
   skin/classic/messenger/icons/error.png                         (mail/icons/error.png)
   skin/classic/messenger/icons/saved-search-folder.png           (mail/icons/saved-search-folder.png)
   skin/classic/messenger/icons/server-local.png                  (mail/icons/server-local.png)
