@@ -69,7 +69,8 @@ else
 	$(MAKE) -C $(DEPTH)/mozilla/testing/mochitest stage-chromejar PKG_STAGE=$(DIST)/universal
 endif
 	cd $(PKG_STAGE) && \
-	  zip -r9D "$(call core_abspath,$(DIST)/$(PKG_PATH)$(TEST_PACKAGE))" *
+	  zip -r9D "$(call core_abspath,$(DIST)/$(PKG_PATH)$(TEST_PACKAGE))" \
+	  * -x \*/.mkdir.done
 
 make-stage-dir:
 	rm -rf $(PKG_STAGE) && $(NSINSTALL) -D $(PKG_STAGE) && $(NSINSTALL) -D $(PKG_STAGE)/bin && $(NSINSTALL) -D $(PKG_STAGE)/bin/components && $(NSINSTALL) -D $(PKG_STAGE)/certs
