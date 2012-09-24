@@ -1575,17 +1575,20 @@
                           type="radio"
                           name="viewFeedSummaryGroup"
                           label="&viewFeedWebPage.label;"
-                          oncommand="ChangeFeedShowSummaryPref(0)"/>
+                          observes="bodyFeedGlobalWebPage"
+                          oncommand="FeedMessageHandler.onSelectPref = 0"/>
                 <menuitem id="appmenu_bodyFeedGlobalSummary"
                           type="radio"
                           name="viewFeedSummaryGroup"
                           label="&viewFeedSummary.label;"
-                          oncommand="ChangeFeedShowSummaryPref(1)"/>
+                          observes="bodyFeedGlobalSummary"
+                          oncommand="FeedMessageHandler.onSelectPref = 1"/>
                 <menuitem id="appmenu_bodyFeedPerFolderPref"
                           type="radio"
                           name="viewFeedSummaryGroup"
                           label="&viewFeedSummaryFeedPropsPref.label;"
-                          oncommand="ChangeFeedShowSummaryPref(2)"/>
+                          observes="bodyFeedPerFolderPref"
+                          oncommand="FeedMessageHandler.onSelectPref = 2"/>
               </menupopup>
             </menu>
             <menuitem id="appmenu_viewAttachmentsInlineMenuitem"

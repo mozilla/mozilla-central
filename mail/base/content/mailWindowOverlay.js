@@ -220,8 +220,10 @@ function view_init()
                             "bodyFeedGlobalSummary",
                             "bodyFeedPerFolderPref"];
   let checked = FeedMessageHandler.onSelectPref;
-  document.getElementById(viewRssMenuItemIds[checked])
-          .setAttribute("checked", true);
+  for each (let [index, id] in Iterator(viewRssMenuItemIds)) {
+    document.getElementById(id)
+            .setAttribute("checked", index == checked);
+  }
 
   // Initialize the View Attachment Inline menu
   var viewAttachmentInline = pref.getBoolPref("mail.inline_attachments");
