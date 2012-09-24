@@ -46,7 +46,7 @@ calIcalProperty::GetIcalString(nsACString &str)
         fprintf(stderr, "Error getting ical string: %d (%s)\n",
                 icalerrno, icalerror_strerror(icalerrno));
 #endif
-        return calIErrors::ICS_ERROR_BASE + icalerrno;
+        return static_cast<nsresult>(calIErrors::ICS_ERROR_BASE + icalerrno);
     }
     str.Assign(icalstr);
     return NS_OK;
@@ -1002,7 +1002,7 @@ calIcalComponent::Serialize(char **icalstr)
 #endif
         // The return values in calIError match with libical errnos,
         // so no need for a conversion table or anything.
-        return calIErrors::ICS_ERROR_BASE + icalerrno;
+        return static_cast<nsresult>(calIErrors::ICS_ERROR_BASE + icalerrno);
     }
 
     return NS_OK;
@@ -1218,7 +1218,7 @@ calICSService::ParseICS(const nsACString& serialized,
 #endif
         // The return values is calIError match with ical errors,
         // so no need for a conversion table or anything.
-        return calIErrors::ICS_ERROR_BASE + icalerrno;
+        return static_cast<nsresult>(calIErrors::ICS_ERROR_BASE + icalerrno);
     }
     calIcalComponent *comp = new calIcalComponent(ical, nullptr, tzProvider);
     if (!comp) {
@@ -1244,7 +1244,7 @@ calICSService::ParserWorker::Run()
             status = NS_ERROR_OUT_OF_MEMORY;
         }
     } else {
-        status = calIErrors::ICS_ERROR_BASE + icalerrno;
+        status = static_cast<nsresult>(calIErrors::ICS_ERROR_BASE + icalerrno);
     }
 
     nsCOMPtr<nsIRunnable> completer = new ParserWorkerCompleter(status, comp, mListener);

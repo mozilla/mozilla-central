@@ -394,7 +394,7 @@ calDateTime::SetIcalString(nsACString const& aIcalString)
     icaltimetype icalt;
     icalt = icaltime_from_string(PromiseFlatCString(aIcalString).get());
     if (icaltime_is_null_time(icalt)) {
-        return calIErrors::ICS_ERROR_BASE + icalerrno;
+        return static_cast<nsresult>(calIErrors::ICS_ERROR_BASE + icalerrno);
     }
     FromIcalTime(&icalt, nullptr);
     return NS_OK;
