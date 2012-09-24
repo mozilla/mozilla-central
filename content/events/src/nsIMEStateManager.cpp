@@ -91,7 +91,7 @@ nsIMEStateManager::OnDestroyPresContext(nsPresContext* aPresContext)
     PRUint32 newState = GetNewIMEState(sPresContext, nsnull);
     SetIMEState(newState, nsnull, widget, IMEContext::FOCUS_REMOVED);
   }
-  sContent = nsnull;
+  NS_IF_RELEASE(sContent);
   sPresContext = nsnull;
   OnTextStateBlur(nsnull, nsnull);
   return NS_OK;
@@ -117,7 +117,7 @@ nsIMEStateManager::OnRemoveContent(nsPresContext* aPresContext,
     SetIMEState(newState, nsnull, widget, IMEContext::FOCUS_REMOVED);
   }
 
-  sContent = nsnull;
+  NS_IF_RELEASE(sContent);
   sPresContext = nsnull;
 
   return NS_OK;
@@ -196,7 +196,10 @@ nsIMEStateManager::OnChangeFocus(nsPresContext* aPresContext,
   }
 
   sPresContext = aPresContext;
-  sContent = aContent;
+  if (sContent != aContent) {
+    NS_IF_RELEASE(sContent);
+    NS_IF_ADDREF(sContent = aContent);
+  }
 
   return NS_OK;
 }
