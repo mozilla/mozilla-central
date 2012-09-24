@@ -232,8 +232,7 @@ var gAdvancedPane = {
     // If it is don't show the preference at all.
     var installed;
     try {
-      Components.utils.reportError("0");
-      var wrk = Components.classes["@mozilla.org/windows-registry-key;1"]
+      let wrk = Components.classes["@mozilla.org/windows-registry-key;1"]
                 .createInstance(Components.interfaces.nsIWindowsRegKey);
       wrk.open(wrk.ROOT_KEY_LOCAL_MACHINE,
                "SOFTWARE\\Mozilla\\MaintenanceService",
