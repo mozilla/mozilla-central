@@ -91,12 +91,9 @@ var gAdvancedPane = {
       var preferencesBundle = document.getElementById("bundlePreferences");
       var brandShortName = brandBundle.getString("brandShortName");
       var promptTitle = preferencesBundle.getString("alreadyDefaultClientTitle");
-      var psvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                           .getService(Components.interfaces.nsIPromptService);
-
       var promptMessage = preferencesBundle.getFormattedString("alreadyDefault",
                                                                [brandShortName]);
-      psvc.alert(window, promptTitle, promptMessage);
+      Services.prompt.alert(window, promptTitle, promptMessage);
     }
     else
     {
@@ -150,10 +147,8 @@ var gAdvancedPane = {
    */
   clearCache: function ()
   {
-    var cacheService = Components.classes["@mozilla.org/network/cache-service;1"]
-                                 .getService(Components.interfaces.nsICacheService);
     try {
-      cacheService.evictEntries(Components.interfaces.nsICache.STORE_ANYWHERE);
+      Services.cache.evictEntries(Components.interfaces.nsICache.STORE_ANYWHERE);
     } catch(ex) {}
   },
 

@@ -3,11 +3,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const nsICookie = Components.interfaces.nsICookie;
 
 var gCookiesWindow = {
-  _cm               : Components.classes["@mozilla.org/cookiemanager;1"]
-                                .getService(Components.interfaces.nsICookieManager),
   _ds               : Components.classes["@mozilla.org/intl/scriptabledateformat;1"]
                                 .getService(Components.interfaces.nsIScriptableDateFormat),
   _hosts            : {},
@@ -17,10 +17,8 @@ var gCookiesWindow = {
 
   init: function ()
   {
-    var os = Components.classes["@mozilla.org/observer-service;1"]
-                       .getService(Components.interfaces.nsIObserverService);
-    os.addObserver(this, "cookie-changed", false);
-    os.addObserver(this, "perm-changed", false);
+    Services.obs.addObserver(this, "cookie-changed", false);
+    Services.obs.addObserver(this, "perm-changed", false);
 
     this._bundle = document.getElementById("bundlePreferences");
     this._tree = document.getElementById("cookiesList");
@@ -32,10 +30,8 @@ var gCookiesWindow = {
 
   uninit: function ()
   {
-    var os = Components.classes["@mozilla.org/observer-service;1"]
-                       .getService(Components.interfaces.nsIObserverService);
-    os.removeObserver(this, "cookie-changed");
-    os.removeObserver(this, "perm-changed");
+    Services.obs.removeObserver(this, "cookie-changed");
+    Services.obs.removeObserver(this, "perm-changed");
   },
 
   _populateList: function (aInitialLoad)
@@ -303,13 +299,13 @@ var gCookiesWindow = {
         if (aColumn.id == "domainCol")
           return item.rawHost;
         else if (aColumn.id == "nameCol")
-          return item.name;
+          return ("name" in item) ? item.name : "";
       }
       else {
         if (aColumn.id == "domainCol")
           return this._filterSet[aIndex].rawHost;
         else if (aColumn.id == "nameCol")
-          return this._filterSet[aIndex].name;
+          return ("name" in this._filterSet[aIndex]) ? this._filterSet[aIndex].name : "";
       }
       return "";
     },
@@ -489,7 +485,7 @@ var gCookiesWindow = {
 
   _loadCookies: function ()
   {
-    var e = this._cm.enumerator;
+    var e = Services.cookies.enumerator;
     var hostCount = { value: 0 };
     this._hosts = {};
     this._hostOrder = [];
@@ -699,14 +695,13 @@ var gCookiesWindow = {
       }
     }
 
-    var psvc = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefBranch);
     var blockFutureCookies = false;
-    if (psvc.prefHasUserValue("network.cookie.blockFutureCookies"))
-      blockFutureCookies = psvc.getBoolPref("network.cookie.blockFutureCookies");
+    if (Services.prefs.prefHasUserValue("network.cookie.blockFutureCookies"))
+      blockFutureCookies = Services.prefs
+        .getBoolPref("network.cookie.blockFutureCookies");
     for (i = 0; i < deleteItems.length; ++i) {
       var item = deleteItems[i];
-      this._cm.remove(item.host, item.name, item.path, blockFutureCookies);
+      Services.cookies.remove(item.host, item.name, item.path, blockFutureCookies);
     }
 
     if (nextSelected < 0)
@@ -719,7 +714,7 @@ var gCookiesWindow = {
 
   deleteAllCookies: function ()
   {
-    this._cm.removeAll();
+    Services.cookies.removeAll();
     this._tree.focus();
   },
 
@@ -734,12 +729,14 @@ var gCookiesWindow = {
   sort: function (aProperty)
   {
     var ascending = (aProperty == this._lastSortProperty) ? !this._lastSortAscending : true;
+
+    function sortByHost(a, b)
+    {
+      return a.toLowerCase().localeCompare(b.toLowerCase());
+    }
+
     // Sort the Non-Filtered Host Collections
     if (aProperty == "rawHost") {
-      function sortByHost(a, b)
-      {
-        return a.toLowerCase().localeCompare(b.toLowerCase());
-      }
       this._hostOrder.sort(sortByHost);
       if (!ascending)
         this._hostOrder.reverse();

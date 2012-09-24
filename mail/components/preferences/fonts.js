@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const kDefaultFontType          = "font.default.%LANG%";
 const kFontNameFmtSerif         = "font.name.serif.%LANG%";
 const kFontNameFmtSansSerif     = "font.name.sans-serif.%LANG%";
@@ -172,9 +174,7 @@ var gFontsDialog = {
   {
     if (!this.mCharsetMenuInitialized)
     {
-      Components.classes["@mozilla.org/observer-service;1"]
-                .getService(Components.interfaces.nsIObserverService)
-                .notifyObservers(null, "charsetmenu-selected", "mailedit");
+      Services.obs.notifyObservers(null, "charsetmenu-selected", "mailedit");
       // build the charset menu list. We do this by hand instead of using the xul template
       // builder because of Bug #285076,
       this.createCharsetMenus(document.getElementById("sendDefaultCharset-menupopup"), "NC:MaileditCharsetMenuRoot",

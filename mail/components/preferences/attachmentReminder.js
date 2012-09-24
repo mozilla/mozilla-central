@@ -3,18 +3,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gAttachmentReminderOptionsDialog = {
-  prefs: null,
-  promptService: null,
   keywordListBox: null,
   bundle: null,
 
   init: function()
   {
-    this.prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                           .getService(Components.interfaces.nsIPrefBranch);
-    this.promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                   .getService(Components.interfaces.nsIPromptService);
     this.keywordListBox = document.getElementById("keywordList");
     this.bundle = document.getElementById("bundlePreferences");
     this.buildKeywordList();
@@ -22,8 +18,9 @@ var gAttachmentReminderOptionsDialog = {
 
   buildKeywordList: function()
   {
-    var keywordsInCsv = this.prefs.getComplexValue("mail.compose.attachment_reminder_keywords",
-                                                   Components.interfaces.nsIPrefLocalizedString);
+    var keywordsInCsv = Services.prefs
+      .getComplexValue("mail.compose.attachment_reminder_keywords",
+                       Components.interfaces.nsIPrefLocalizedString);
     if (!keywordsInCsv)
       return;
     var keywordsInCsv = keywordsInCsv.data;
@@ -40,10 +37,10 @@ var gAttachmentReminderOptionsDialog = {
   addKeyword: function()
   {
     var input = {value: ""}; // Default to empty.
-    var ok = this.promptService.prompt(window,
-                                       this.bundle.getString("attachmentReminderAddDialogTitle"),
-                                       this.bundle.getString("attachmentReminderAddText"),
-                                       input, null, {value:0});
+    var ok = Services.prompt.prompt(window,
+                                    this.bundle.getString("attachmentReminderAddDialogTitle"),
+                                    this.bundle.getString("attachmentReminderAddText"),
+                                    input, null, {value:0});
     if (ok && input.value)
       this.keywordListBox.appendItem(input.value, input.value);
   },
@@ -54,10 +51,10 @@ var gAttachmentReminderOptionsDialog = {
       return;
     var keywordToEdit = this.keywordListBox.getItemAtIndex(this.keywordListBox.selectedIndex);
     var input = {value: keywordToEdit.getAttribute("value")};
-    var ok = this.promptService.prompt(window,
-                                       this.bundle.getString("attachmentReminderEditDialogTitle"),
-                                       this.bundle.getString("attachmentReminderEditText"),
-                                       input, null, {value:0});
+    var ok = Services.prompt.prompt(window,
+                                    this.bundle.getString("attachmentReminderEditDialogTitle"),
+                                    this.bundle.getString("attachmentReminderEditText"),
+                                    input, null, {value:0});
     if (ok && input.value) {
       this.keywordListBox.removeItemAt(this.keywordListBox.selectedIndex);
       this.keywordListBox.appendItem(input.value, input.value);
@@ -83,7 +80,7 @@ var gAttachmentReminderOptionsDialog = {
     var str = Components.classes["@mozilla.org/supports-string;1"]
                         .createInstance(Components.interfaces.nsISupportsString);
     str.data = keywordList;
-    this.prefs.setComplexValue("mail.compose.attachment_reminder_keywords",
-                               Components.interfaces.nsISupportsString, str);
+    Services.prefs.setComplexValue("mail.compose.attachment_reminder_keywords",
+                                   Components.interfaces.nsISupportsString, str);
   }
 };

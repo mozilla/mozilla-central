@@ -143,9 +143,6 @@ HandlerInfoWrapper.prototype = {
   _handlerSvc: Components.classes["@mozilla.org/uriloader/handler-service;1"]
                          .getService(Components.interfaces.nsIHandlerService),
 
-  _prefSvc: Components.classes["@mozilla.org/preferences-service;1"]
-                      .getService(Components.interfaces.nsIPrefBranch),
-
   _categoryMgr: Components.classes["@mozilla.org/categorymanager;1"]
                           .getService(Components.interfaces.nsICategoryManager),
 
@@ -328,8 +325,8 @@ HandlerInfoWrapper.prototype = {
   _getDisabledPluginTypes: function() {
     var types = "";
 
-    if (this._prefSvc.prefHasUserValue(PREF_DISABLED_PLUGIN_TYPES))
-      types = this._prefSvc.getCharPref(PREF_DISABLED_PLUGIN_TYPES);
+    if (Services.prefs.prefHasUserValue(PREF_DISABLED_PLUGIN_TYPES))
+      types = Services.prefs.getCharPref(PREF_DISABLED_PLUGIN_TYPES);
 
     // Only split if the string isn't empty so we don't end up with an array
     // containing a single empty string.
@@ -342,8 +339,8 @@ HandlerInfoWrapper.prototype = {
     if (disabledPluginTypes.indexOf(this.type) == -1)
       disabledPluginTypes.push(this.type);
 
-    this._prefSvc.setCharPref(PREF_DISABLED_PLUGIN_TYPES,
-                              disabledPluginTypes.join(","));
+    Services.prefs.setCharPref(PREF_DISABLED_PLUGIN_TYPES,
+                               disabledPluginTypes.join(","));
 
     // Update the category manager so existing browser windows update.
     this._categoryMgr.deleteCategoryEntry("Gecko-Content-Viewers",
@@ -357,8 +354,8 @@ HandlerInfoWrapper.prototype = {
     var type = this.type;
     disabledPluginTypes = disabledPluginTypes.filter(function(v) v != type);
 
-    this._prefSvc.setCharPref(PREF_DISABLED_PLUGIN_TYPES,
-                              disabledPluginTypes.join(","));
+    Services.prefs.setCharPref(PREF_DISABLED_PLUGIN_TYPES,
+                               disabledPluginTypes.join(","));
 
     // Update the category manager so existing browser windows update.
     this._categoryMgr.
@@ -872,9 +869,6 @@ var gApplicationsPane = {
   _list           : null,
   _filter         : null,
 
-  _prefSvc      : Components.classes["@mozilla.org/preferences-service;1"]
-                            .getService(Components.interfaces.nsIPrefBranch),
-
   _mimeSvc      : Components.classes["@mozilla.org/mime;1"]
                             .getService(Components.interfaces.nsIMIMEService),
 
@@ -883,10 +877,6 @@ var gApplicationsPane = {
 
   _handlerSvc   : Components.classes["@mozilla.org/uriloader/handler-service;1"]
                             .getService(Components.interfaces.nsIHandlerService),
-
-  _ioSvc        : Components.classes["@mozilla.org/network/io-service;1"]
-                            .getService(Components.interfaces.nsIIOService),
-
 
   //**************************************************************************//
   // Initialization & Destruction
@@ -901,8 +891,8 @@ var gApplicationsPane = {
 
     // Observe preferences that influence what we display so we can rebuild
     // the view when they change.
-    this._prefSvc.addObserver(PREF_SHOW_PLUGINS_IN_LIST, this, false);
-    this._prefSvc.addObserver(PREF_HIDE_PLUGINS_WITHOUT_EXTENSIONS, this, false);
+    Services.prefs.addObserver(PREF_SHOW_PLUGINS_IN_LIST, this, false);
+    Services.prefs.addObserver(PREF_HIDE_PLUGINS_WITHOUT_EXTENSIONS, this, false);
 
     // Listen for window unload so we can remove our preference observers.
     window.addEventListener("unload", this, false);
@@ -933,17 +923,15 @@ var gApplicationsPane = {
       self.rebuildView();
 
       // Notify observers that the UI is now ready
-      Components.classes["@mozilla.org/observer-service;1"]
-                .getService(Components.interfaces.nsIObserverService)
-                .notifyObservers(window, "app-handler-pane-loaded", null);
+      Services.obs.notifyObservers(window, "app-handler-pane-loaded", null);
     }
     setTimeout(_delayedPaneLoad, 0, this);
   },
 
   destroy: function() {
     window.removeEventListener("unload", this, false);
-    this._prefSvc.removeObserver(PREF_SHOW_PLUGINS_IN_LIST, this);
-    this._prefSvc.removeObserver(PREF_HIDE_PLUGINS_WITHOUT_EXTENSIONS, this);
+    Services.prefs.removeObserver(PREF_SHOW_PLUGINS_IN_LIST, this);
+    Services.prefs.removeObserver(PREF_HIDE_PLUGINS_WITHOUT_EXTENSIONS, this);
   },
 
 
@@ -1073,9 +1061,9 @@ var gApplicationsPane = {
     this._visibleTypeDescriptionCount = [];
 
     // Get the preferences that help determine what types to show.
-    var showPlugins = this._prefSvc.getBoolPref(PREF_SHOW_PLUGINS_IN_LIST);
+    var showPlugins = Services.prefs.getBoolPref(PREF_SHOW_PLUGINS_IN_LIST);
     var hidePluginsWithoutExtensions =
-      this._prefSvc.getBoolPref(PREF_HIDE_PLUGINS_WITHOUT_EXTENSIONS);
+      Services.prefs.getBoolPref(PREF_HIDE_PLUGINS_WITHOUT_EXTENSIONS);
 
     for (let type in this._handledTypes) {
       let handlerInfo = this._handledTypes[type];
@@ -1250,6 +1238,10 @@ var gApplicationsPane = {
         return this._prefsBundle.getFormattedString("usePluginIn",
                                                     [aHandlerInfo.plugin.name,
                                                      this._brandShortName]);
+      default:
+        // Hopefully this never happens.
+        Components.utils.reportError("No description for action " + aHandlerInfo.preferredAction + " found!");
+        return "";
     }
   },
 
@@ -1718,11 +1710,9 @@ var gApplicationsPane = {
 
   confirmDelete: function(aEvent) {
     aEvent.stopPropagation();
-    let promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                              .getService(Components.interfaces.nsIPromptService);
-    if (promptSvc.confirm(null,
-                          this._prefsBundle.getString("confirmDeleteTitle"),
-                          this._prefsBundle.getString("confirmDeleteText")))
+    if (Services.prompt.confirm(null,
+                                this._prefsBundle.getString("confirmDeleteTitle"),
+                                this._prefsBundle.getString("confirmDeleteText")))
       this.onDelete(aEvent);
     else {
       // They hit cancel, so return them to the previously selected item.
@@ -1787,13 +1777,10 @@ var gApplicationsPane = {
           if (this.isValidHandlerApp(preferredApp))
             return this._getIconURLForHandlerApp(preferredApp);
         }
-        break;
-
-      // This should never happen, but if preferredAction is set to some weird
-      // value, then fall back to the generic application icon.
-      default:
-        return ICON_URL_APP;
     }
+    // This should never happen, but if preferredAction is set to some weird
+    // value, then fall back to the generic application icon.
+    return ICON_URL_APP;
   },
 
   _getIconURLForHandlerApp: function(aHandlerApp) {
@@ -1811,15 +1798,15 @@ var gApplicationsPane = {
   },
 
   _getIconURLForFile: function(aFile) {
-    var fph = this._ioSvc.getProtocolHandler("file")
-                  .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
-    var urlSpec = fph.getURLSpecFromFile(aFile);
+    let urlSpec = Services.io.getProtocolHandler("file")
+      .QueryInterface(Components.interfaces.nsIFileProtocolHandler)
+      .getURLSpecFromFile(aFile);
 
     return "moz-icon://" + urlSpec + "?size=16";
   },
 
   _getIconURLForWebApp: function(aWebAppURITemplate) {
-    var uri = this._ioSvc.newURI(aWebAppURITemplate, null, null);
+    var uri = Services.io.newURI(aWebAppURITemplate, null, null);
 
     // Unfortunately we can't use the favicon service to get the favicon,
     // because the service looks in the annotations table for a record with

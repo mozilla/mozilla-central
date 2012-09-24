@@ -55,22 +55,16 @@ var gSecurityPane = {
   resetTrainingData: function()
   {
     // make sure the user really wants to do this
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                          .getService(Components.interfaces.nsIPromptService);
     var bundle = document.getElementById("bundlePreferences");
     var title = bundle.getString("confirmResetJunkTrainingTitle");
     var text = bundle.getString("confirmResetJunkTrainingText");
 
     // if the user says no, then just fall out
-    if (!promptService.confirm(window, title, text))
+    if (!Services.prompt.confirm(window, title, text))
       return;
 
     // otherwise go ahead and remove the training data
-    var junkmailPlugin = Components.classes["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
-                        .getService(Components.interfaces.nsIJunkMailPlugin);
-
-    if (junkmailPlugin)
-      junkmailPlugin.resetTrainingData();
+    MailServices.junk.resetTrainingData();
   },
 
 
@@ -146,12 +140,10 @@ var gSecurityPane = {
     var secmodDB = Cc["@mozilla.org/security/pkcs11moduledb;1"].
                    getService(Ci.nsIPKCS11ModuleDB);
     if (secmodDB.isFIPSEnabled) {
-      var promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"].
-                          getService(Ci.nsIPromptService);
-      var bundle = document.getElementById("bundlePreferences");
-      promptService.alert(window,
-                          bundle.getString("pw_change_failed_title"),
-                          bundle.getString("pw_change2empty_in_fips_mode"));
+      let bundle = document.getElementById("bundlePreferences");
+      Services.prompt.alert(window,
+                            bundle.getString("pw_change_failed_title"),
+                            bundle.getString("pw_change2empty_in_fips_mode"));
     }
     else {
       document.documentElement.openSubDialog("chrome://mozapps/content/preferences/removemp.xul",

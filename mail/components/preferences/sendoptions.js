@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gSendOptionsDialog = {
   mPrefsBundle: null,
   mHTMLListBox: null,
@@ -72,18 +74,12 @@ var gSendOptionsDialog = {
   addDomain: function (aHTML)
   {
     var listbox = aHTML ? this.mHTMLListBox : this.mPlainTextListBox;
-      
-    var domainName;
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService();
-    promptService = promptService.QueryInterface(Components.interfaces.nsIPromptService);
 
-    if (promptService)
-    {
-      var result = {value:null};
-      if (promptService.prompt(window, this.mPrefsBundle.getString(listbox.id + 'AddDomainTitle'),
+    var domainName;
+    var result = {value:null};
+    if (Services.prompt.prompt(window, this.mPrefsBundle.getString(listbox.id + 'AddDomainTitle'),
                                this.mPrefsBundle.getString(listbox.id + 'AddDomain'), result, null, {value:0}))
-        domainName = result.value.replace(/ /g,"");
-    }
+      domainName = result.value.replace(/ /g,"");
 
     if (domainName && !this.domainAlreadyPresent(domainName))
     {
@@ -96,16 +92,14 @@ var gSendOptionsDialog = {
   domainAlreadyPresent: function(aDomainName)
   {
     var matchingDomains = this.mHTMLListBox.getElementsByAttribute('label', aDomainName);
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService();
-    promptService = promptService.QueryInterface(Components.interfaces.nsIPromptService);
 
     if (!matchingDomains.length)
       matchingDomains = this.mPlainTextListBox.getElementsByAttribute('label', aDomainName);
 
     if (matchingDomains.length)
     {
-      promptService.alert(window, this.mPrefsBundle.getString('domainNameErrorTitle'), 
-                         this.mPrefsBundle.getFormattedString("domainDuplicationError", [aDomainName]));
+      Services.prompt.alert(window, this.mPrefsBundle.getString('domainNameErrorTitle'),
+                            this.mPrefsBundle.getFormattedString("domainDuplicationError", [aDomainName]));
     }
 
     return matchingDomains.length;

@@ -79,10 +79,8 @@ var gDownloadDirSection = {
 
   _getDownloadsFolder: function (aFolder)
   {
-    var fileLocator = Components.classes["@mozilla.org/file/directory_service;1"]
-                                .getService(Components.interfaces.nsIProperties);
-    var dir = fileLocator.get(this._getSpecialFolderKey(aFolder),
-                              Components.interfaces.nsILocalFile);
+    let dir = Services.dirsvc.get(this._getSpecialFolderKey(aFolder),
+                                  Components.interfaces.nsILocalFile);
     if (aFolder != "Desktop")
       dir.append("My Downloads");
 
@@ -104,14 +102,13 @@ var gDownloadDirSection = {
     else
       downloadFolder.label = customDirPref.value ? customDirPref.value.path : "";
 
-    var ios = Components.classes["@mozilla.org/network/io-service;1"]
-                        .getService(Components.interfaces.nsIIOService);
-    var fph = ios.getProtocolHandler("file")
-                 .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
     var currentDirPref = document.getElementById("browser.download.downloadDir");
     var downloadDir = currentDirPref.value || this._indexToFile(folderListPref.value);
-    var urlspec = fph.getURLSpecFromFile(downloadDir);
-    downloadFolder.image = "moz-icon://" + urlspec + "?size=16";
+    let urlSpec = Services.io.getProtocolHandler("file")
+      .QueryInterface(Components.interfaces.nsIFileProtocolHandler)
+      .getURLSpecFromFile(downloadDir);
+
+    downloadFolder.image = "moz-icon://" + urlSpec + "?size=16";
 
     return undefined;
   },
