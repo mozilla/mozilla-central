@@ -17,7 +17,9 @@ Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource:///modules/gloda/log4moz.js");
 
-function OAuth(aDisplayName, aBaseUri, aAuthUri, aAuthToken, aAuthTokenSecret, aAppKey, aAppSecret)
+function OAuth(aDisplayName, aBaseUri, aAuthUri, aAuthToken, aAuthTokenSecret,
+               aAppKey, aAppSecret, aSignatureMethod, aTempCredentialsMethod,
+               aAuthorizeMethod, aRequestCredentialsMethod)
 {
   this._userInfo = {};
   this.displayName = aDisplayName;
@@ -28,6 +30,11 @@ function OAuth(aDisplayName, aBaseUri, aAuthUri, aAuthToken, aAuthTokenSecret, a
   this.consumerKey = aAppKey;
   this.consumerSecret = aAppSecret;
   this.log = Log4Moz.getConfiguredLogger("TBOAuth");
+
+  this.signatureMethod = aSignatureMethod || "HMAC-SHA1";
+  this.tempCredentialsMethod = aTempCredentialsMethod || "oauth/request_token";
+  this.authorizeMethod = aAuthorizeMethod || "oauth/authorize";
+  this.requestCredentialsMethod = aRequestCredentialsMethod || "oauth/access_token";
 }
 
 OAuth.prototype = {
@@ -92,7 +99,7 @@ OAuth.prototype = {
     let params = (aOAuthParams || []).concat([
       ["oauth_consumer_key", this.consumerKey],
       ["oauth_nonce", nonce],
-      ["oauth_signature_method", "HMAC-SHA1"],
+      ["oauth_signature_method", this.signatureMethod],
       ["oauth_token", this.token],
       ["oauth_timestamp", Math.floor(((new Date()).getTime()) / 1000)],
       ["oauth_version", "1.0"]
@@ -114,27 +121,38 @@ OAuth.prototype = {
     }
     this.log.info("in sign and send url = " + url + "\nurlSpec = " + urlSpec);
     this.log.info("dataParams = " + dataParams);
-    let signatureKey = this.consumerSecret + "&" + this.tokenSecret;
-    let signatureBase =
-      aMethod + "&" + encodeURIComponent(urlSpec) + "&" +
-      params.concat(dataParams)
-            .sort(function(a,b) (a[0] < b[0]) ? -1 : (a[0] > b[0]) ? 1 : 0)
-            .map(function(p) p.map(percentEncode).join("%3D"))
-            .join("%26");
 
-    this.log.info("sig base = " + signatureBase);
-    let keyFactory = Cc["@mozilla.org/security/keyobjectfactory;1"]
-                     .getService(Ci.nsIKeyObjectFactory);
-    let hmac =
-      Cc["@mozilla.org/security/hmac;1"].createInstance(Ci.nsICryptoHMAC);
-    hmac.init(hmac.SHA1,
-              keyFactory.keyFromString(Ci.nsIKeyObject.HMAC, signatureKey));
-    // No UTF-8 encoding, special chars are already escaped.
-    let bytes = [b.charCodeAt() for each (b in signatureBase)];
-    hmac.update(bytes, bytes.length);
-    let signature = hmac.finish(true);
+    let signature;
+    if (this.signatureMethod === "HMAC-SHA1") {
+      let signatureKey = this.consumerSecret + "&" + this.tokenSecret;
+      let signatureBase =
+        aMethod + "&" + encodeURIComponent(urlSpec) + "&" +
+        params.concat(dataParams)
+              .sort(function(a,b) (a[0] < b[0]) ? -1 : (a[0] > b[0]) ? 1 : 0)
+              .map(function(p) p.map(percentEncode).join("%3D"))
+              .join("%26");
 
-    params.push(["oauth_signature", encodeURIComponent(signature)]);
+      this.log.info("sig base = " + signatureBase);
+      let keyFactory = Cc["@mozilla.org/security/keyobjectfactory;1"]
+                       .getService(Ci.nsIKeyObjectFactory);
+      let hmac =
+        Cc["@mozilla.org/security/hmac;1"].createInstance(Ci.nsICryptoHMAC);
+      hmac.init(hmac.SHA1,
+                keyFactory.keyFromString(Ci.nsIKeyObject.HMAC, signatureKey));
+      // No UTF-8 encoding, special chars are already escaped.
+      let bytes = [b.charCodeAt() for each (b in signatureBase)];
+      hmac.update(bytes, bytes.length);
+      signature = encodeURIComponent(hmac.finish(true));
+    }
+    else if (this.signatureMethod == "PLAINTEXT") {
+      signature = percentEncode(percentEncode(this.consumerSecret) + "&" +
+                                percentEncode(this.tokenSecret));
+    }
+    else {
+      throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+    }
+
+    params.push(["oauth_signature", signature]);
 
     let authorization =
       "OAuth " + params.map(function (p) p[0] + "=\"" + p[1] + "\"").join(", ");
@@ -163,7 +181,7 @@ OAuth.prototype = {
   requestToken: function() {
     let oauthParams =
       [["oauth_callback", encodeURIComponent(this.completionURI)]];
-    this.signAndSend("oauth/request_token",
+    this.signAndSend(this.tempCredentialsMethod,
                      null, "POST", null,
                      this.onRequestTokenReceived,
                      this.connectFailureCallback, this,
@@ -184,7 +202,7 @@ OAuth.prototype = {
   },
   requestAuthorization: function() {
     this.log.info("requesting oauth");
-    const url = this.authURI + "oauth/authorize?oauth_token=";
+    const url = this.authURI + this.authorizeMethod + "?oauth_token=";
     this._browserRequest =
       { promptText : "auth prompt",
         account: this,
@@ -255,12 +273,14 @@ OAuth.prototype = {
   },
   onAuthorizationReceived: function(aData) {
     this.log.info("authorization received");
-    this.requestAccessToken();
+    let data = this._parseURLData(aData);
+
+    this.requestAccessToken([["oauth_verifier", data.oauth_verifier]]);
   },
-  requestAccessToken: function() {
-    this.signAndSend("oauth/access_token", null, "POST", null,
+  requestAccessToken: function(aVerifier) {
+    this.signAndSend(this.requestCredentialsMethod, null, "POST", null,
                      this.onAccessTokenReceived, this.connectFailureCallback, this,
-                     null);
+                     aVerifier);
   },
   onAccessTokenReceived: function(aData) {
     this.log.info("Received access token. urlData = " + aData);
