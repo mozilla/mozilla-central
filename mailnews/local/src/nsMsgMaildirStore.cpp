@@ -1098,7 +1098,7 @@ void MaildirStoreParser::TimerCallback(nsITimer *aTimer, void *aClosure)
   parser->m_directoryEnumerator->GetNext(getter_AddRefs(aSupport));
   nsresult rv;
   nsCOMPtr<nsIFile> currentFile(do_QueryInterface(aSupport, &rv));
-  NS_ENSURE_SUCCESS(rv,);
+  NS_ENSURE_SUCCESS_VOID(rv);
   parser->ParseNextMessage(currentFile);
   // ### TODO - what if this fails?
 }

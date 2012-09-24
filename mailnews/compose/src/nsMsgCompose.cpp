@@ -525,14 +525,14 @@ nsMsgCompose::InsertDivWrappedTextAtSelection(const nsAString &aText,
   nsresult rv = htmlEditor->CreateElementWithDefaults(NS_LITERAL_STRING("div"),
                                                       getter_AddRefs(divElem));
 
-  NS_ENSURE_SUCCESS(rv,);
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   nsCOMPtr<nsIDOMNode> divNode (do_QueryInterface(divElem));
 
   // We need the document
   nsCOMPtr<nsIDOMDocument> doc;
   rv = m_editor->GetDocument(getter_AddRefs(doc));
-  NS_ENSURE_SUCCESS(rv,);
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   // Break up the text by newlines, and then insert text nodes followed
   // by <br> nodes.
@@ -547,19 +547,19 @@ nsMsgCompose::InsertDivWrappedTextAtSelection(const nsAString &aText,
 
     nsCOMPtr<nsIDOMText> textNode;
     rv = doc->CreateTextNode(Substring(aText, start, delimiter - start), getter_AddRefs(textNode));
-    NS_ENSURE_SUCCESS(rv,);
+    NS_ENSURE_SUCCESS_VOID(rv);
 
     nsCOMPtr<nsIDOMNode> newTextNode = do_QueryInterface(textNode);
     nsCOMPtr<nsIDOMNode> resultNode;
     rv = divElem->AppendChild(newTextNode, getter_AddRefs(resultNode));
-    NS_ENSURE_SUCCESS(rv,);
+    NS_ENSURE_SUCCESS_VOID(rv);
 
     // Now create and insert a BR
     nsCOMPtr<nsIDOMElement> brElem;
     rv = htmlEditor->CreateElementWithDefaults(NS_LITERAL_STRING("br"),
                                                getter_AddRefs(brElem));
     rv = divElem->AppendChild(brElem, getter_AddRefs(resultNode));
-    NS_ENSURE_SUCCESS(rv,);
+    NS_ENSURE_SUCCESS_VOID(rv);
 
     if (delimiter == end)
       break;

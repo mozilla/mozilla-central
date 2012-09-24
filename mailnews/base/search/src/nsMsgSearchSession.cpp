@@ -483,7 +483,7 @@ nsresult nsMsgSearchSession::GetNextUrl()
 /* static */
 void nsMsgSearchSession::TimerCallback(nsITimer *aTimer, void *aClosure)
 {
-  NS_ENSURE_TRUE(aClosure, );
+  NS_ENSURE_TRUE_VOID(aClosure);
   nsMsgSearchSession *searchSession = (nsMsgSearchSession *) aClosure;
   bool done;
   bool stopped = false;

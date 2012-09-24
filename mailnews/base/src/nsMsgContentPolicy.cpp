@@ -515,14 +515,14 @@ nsMsgContentPolicy::ShouldAcceptContentForPotentialMsg(nsIURI *aOriginatorLocati
 
   nsCString resourceURI;
   rv = msgUrl->GetUri(getter_Copies(resourceURI));
-  NS_ENSURE_SUCCESS(rv, );
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   nsCOMPtr<nsIMsgDBHdr> msgHdr;
   rv = GetMsgDBHdrFromURI(resourceURI.get(), getter_AddRefs(msgHdr));
-  NS_ENSURE_SUCCESS(rv, );
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl(do_QueryInterface(aOriginatorLocation, &rv));
-  NS_ENSURE_SUCCESS(rv, );
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   // Get a decision on whether or not to allow remote content for this message
   // header.
@@ -560,14 +560,13 @@ void nsMsgContentPolicy::ComposeShouldLoad(nsIMsgCompose *aMsgCompose,
   NS_PRECONDITION(*aDecision == nsIContentPolicy::REJECT_REQUEST,
                   "ComposeShouldLoad expects default decision to be reject!");
 
-  nsresult rv;
   nsCString originalMsgURI;
-  rv = aMsgCompose->GetOriginalMsgURI(getter_Copies(originalMsgURI));
-  NS_ENSURE_SUCCESS(rv, );
+  nsresult rv = aMsgCompose->GetOriginalMsgURI(getter_Copies(originalMsgURI));
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   MSG_ComposeType composeType;
   rv = aMsgCompose->GetType(&composeType);
-  NS_ENSURE_SUCCESS(rv, );
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   // Only allow remote content for new mail compositions or mailto
   // Block remote content for all other types (drafts, templates, forwards, replies, etc)
@@ -580,7 +579,7 @@ void nsMsgContentPolicy::ComposeShouldLoad(nsIMsgCompose *aMsgCompose,
   {
     nsCOMPtr<nsIMsgDBHdr> msgHdr;
     rv = GetMsgDBHdrFromURI(originalMsgURI.get(), getter_AddRefs(msgHdr));
-    NS_ENSURE_SUCCESS(rv, );
+    NS_ENSURE_SUCCESS_VOID(rv);
     *aDecision = ShouldAcceptRemoteContentForMsgHdr(msgHdr, nullptr,
                                                     aContentLocation);
 

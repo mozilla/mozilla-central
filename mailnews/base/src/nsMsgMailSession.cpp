@@ -590,8 +590,8 @@ void nsMsgShutdownService::AttemptShutdown()
   {
     nsCOMPtr<nsIAppStartup> appStartup =
       do_GetService(NS_APPSTARTUP_CONTRACTID);
-    NS_ENSURE_TRUE(appStartup, );
-    NS_ENSURE_SUCCESS(appStartup->Quit(mQuitMode), );
+    NS_ENSURE_TRUE_VOID(appStartup);
+    NS_ENSURE_SUCCESS_VOID(appStartup->Quit(mQuitMode));
   }
 }
 

@@ -4209,13 +4209,13 @@ void nsImapMailFolder::FindKeysToDelete(const nsTArray<nsMsgKey> &existingKeys,
       // tell from the expunge response which messages were deleted.
       nsCOMPtr <nsISimpleEnumerator> hdrs;
       nsresult rv = GetMessages(getter_AddRefs(hdrs));
-      NS_ENSURE_SUCCESS(rv,);
+      NS_ENSURE_SUCCESS_VOID(rv);
       bool hasMore = false;
       nsCOMPtr <nsIMsgDBHdr> pHeader;
       while (NS_SUCCEEDED(rv = hdrs->HasMoreElements(&hasMore)) && hasMore)
       {
         rv = hdrs->GetNext(getter_AddRefs(pHeader));
-        NS_ENSURE_SUCCESS(rv,);
+        NS_ENSURE_SUCCESS_VOID(rv);
         uint32_t msgFlags;
         pHeader->GetFlags(&msgFlags);
         if (msgFlags & nsMsgMessageFlags::IMAPDeleted)
@@ -7366,7 +7366,7 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages, bool aIsMove)
 
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, );
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   nsCString dontPreserve;
 
@@ -7396,8 +7396,7 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages, bool aIsMove)
   uint32_t i, count;
 
   rv = messages->GetLength(&count);
-  if (NS_FAILED(rv)) 
-    return;
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   // check if any msg hdr has special flags or properties set
   // that we need to set on the dest hdr
@@ -7425,7 +7424,7 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages, bool aIsMove)
       // do this even if the server supports user-defined flags.
       nsCOMPtr<nsIUTF8StringEnumerator> propertyEnumerator;
       nsresult rv = msgDBHdr->GetPropertyEnumerator(getter_AddRefs(propertyEnumerator));
-      NS_ENSURE_SUCCESS(rv, );
+      NS_ENSURE_SUCCESS_VOID(rv);
 
       nsAutoCString property;
       nsCString sourceString;

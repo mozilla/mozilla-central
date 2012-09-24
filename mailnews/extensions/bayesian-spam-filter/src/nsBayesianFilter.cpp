@@ -291,12 +291,11 @@ Tokenizer::Tokenizer() :
 {
   nsresult rv;
   nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, );
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   nsCOMPtr<nsIPrefBranch> prefBranch;
   rv = prefs->GetBranch("mailnews.bayesian_spam_filter.", getter_AddRefs(prefBranch));
-  if (NS_FAILED(rv)) // no branch defined, just use defaults
-    return;
+  NS_ENSURE_SUCCESS_VOID(rv); // no branch defined, just use defaults
 
   /*
    * RSS feeds store their summary as alternate content of an iframe. But due

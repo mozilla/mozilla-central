@@ -348,14 +348,14 @@ nsAbAddressCollector::SetUpAbFromPrefs(nsIPrefBranch *aPrefBranch)
 
   nsresult rv;
   nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, );
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   rv = abManager->GetDirectory(mABURI, getter_AddRefs(mDirectory));
-  NS_ENSURE_SUCCESS(rv, );
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   bool readOnly;
   rv = mDirectory->GetReadOnly(&readOnly);
-  NS_ENSURE_SUCCESS(rv, );
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   // If the directory is read-only, we can't write to it, so just blank it out
   // here, and warn because we shouldn't hit this (UI is wrong).

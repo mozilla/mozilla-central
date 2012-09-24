@@ -278,7 +278,7 @@ void nsAutoSyncManager::TimerCallback(nsITimer *aTimer, void *aClosure)
 {
   if (!aClosure)
     return;
-  
+
   nsAutoSyncManager *autoSyncMgr = static_cast<nsAutoSyncManager*>(aClosure);
   if (autoSyncMgr->GetIdleState() == notIdle ||
     (autoSyncMgr->mDiscoveryQ.Count() <= 0 && autoSyncMgr->mUpdateQ.Count() <= 0))
@@ -327,7 +327,7 @@ void nsAutoSyncManager::TimerCallback(nsITimer *aTimer, void *aClosure)
           if (folder)
           {
             nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(folder, &rv);
-            NS_ENSURE_SUCCESS(rv,);
+            NS_ENSURE_SUCCESS_VOID(rv);
             rv = imapFolder->InitiateAutoSync(autoSyncMgr);
             if (NS_SUCCEEDED(rv))
             {

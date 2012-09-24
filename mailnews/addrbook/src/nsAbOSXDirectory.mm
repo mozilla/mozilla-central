@@ -155,16 +155,16 @@ Sync(NSString *aUid)
 
   if (inserted) {
     nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, );
+    NS_ENSURE_SUCCESS_VOID(rv);
 
     nsCOMPtr<nsIAbDirectory> directory;
     rv = abManager->GetDirectory(NS_LITERAL_CSTRING(NS_ABOSXDIRECTORY_URI_PREFIX"/"),
                                  getter_AddRefs(directory));
-    NS_ENSURE_SUCCESS(rv, );
+    NS_ENSURE_SUCCESS_VOID(rv);
 
     nsCOMPtr<nsIAbOSXDirectory> osxDirectory =
       do_QueryInterface(directory, &rv);
-    NS_ENSURE_SUCCESS(rv, );
+    NS_ENSURE_SUCCESS_VOID(rv);
 
     unsigned int i, count = [inserted count];
     for (i = 0; i < count; ++i) {
@@ -176,17 +176,17 @@ Sync(NSString *aUid)
         nsCOMPtr<nsIAbDirectory> directory;
         GetOrCreateGroup([inserted objectAtIndex:i],
                          getter_AddRefs(directory));
-        
+
         rv = osxDirectory->AssertDirectory(abManager, directory);
-        NS_ENSURE_SUCCESS(rv, );
+        NS_ENSURE_SUCCESS_VOID(rv);
       }
       else {
         nsCOMPtr<nsIAbCard> abCard;
         // Construct a card
         nsresult rv = CreateCard(card, getter_AddRefs(abCard));
-        NS_ENSURE_SUCCESS(rv, );
+        NS_ENSURE_SUCCESS_VOID(rv);
         rv = osxDirectory->AssertCard(abManager, abCard);
-        NS_ENSURE_SUCCESS(rv, );
+        NS_ENSURE_SUCCESS_VOID(rv);
       }
     }
   }
@@ -204,16 +204,16 @@ Sync(NSString *aUid)
   if (deleted) {
 
     nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, );
+    NS_ENSURE_SUCCESS_VOID(rv);
 
     nsCOMPtr<nsIAbDirectory> directory;
     rv = abManager->GetDirectory(NS_LITERAL_CSTRING(NS_ABOSXDIRECTORY_URI_PREFIX"/"),
                                  getter_AddRefs(directory));
-    NS_ENSURE_SUCCESS(rv, );
+    NS_ENSURE_SUCCESS_VOID(rv);
 
     nsCOMPtr<nsIAbOSXDirectory> osxDirectory =
       do_QueryInterface(directory, &rv);
-    NS_ENSURE_SUCCESS(rv, );
+    NS_ENSURE_SUCCESS_VOID(rv);
 
     unsigned int i, count = [deleted count];
     for (i = 0; i < count; ++i) {
@@ -223,7 +223,7 @@ Sync(NSString *aUid)
       AppendToCString(deletedUid, uid);
 
       rv = osxDirectory->DeleteUid(uid);
-      NS_ENSURE_SUCCESS(rv, );
+      NS_ENSURE_SUCCESS_VOID(rv);
     }
   }
   

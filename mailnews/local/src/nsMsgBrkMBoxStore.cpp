@@ -167,16 +167,14 @@ void nsMsgBrkMBoxStore::GetMailboxModProperties(nsIMsgFolder *aFolder,
   *aSize = 0;
   nsCOMPtr<nsIFile> pathFile;
   nsresult rv = aFolder->GetFilePath(getter_AddRefs(pathFile));
-  NS_ENSURE_SUCCESS(rv, );
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   rv = pathFile->GetFileSize(aSize);
-  if (NS_FAILED(rv))
-    return;
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   PRTime lastModTime;
   rv = pathFile->GetLastModifiedTime(&lastModTime);
-  if (NS_FAILED(rv))
-    return;
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   *aDate = (uint32_t) (lastModTime / PR_MSEC_PER_SEC);
 }

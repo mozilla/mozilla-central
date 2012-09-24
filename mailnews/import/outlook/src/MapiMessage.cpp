@@ -1450,10 +1450,10 @@ void CMapiMessageHeaders::write_to_stream::operator () (const CHeaderField* f)
 
   uint32_t written;
   m_rv = m_pDst->Write(f->fname(), strlen(f->fname()), &written);
-  NS_ENSURE_SUCCESS(m_rv,);
+  NS_ENSURE_SUCCESS_VOID(m_rv);
   if (f->fbody()) {
     m_rv = m_pDst->Write(f->fbody(), strlen(f->fbody()), &written);
-    NS_ENSURE_SUCCESS(m_rv,);
+    NS_ENSURE_SUCCESS_VOID(m_rv);
   }
   m_rv = m_pDst->Write("\x0D\x0A", 2, &written);
 }
