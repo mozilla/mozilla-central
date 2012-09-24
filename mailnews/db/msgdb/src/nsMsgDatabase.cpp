@@ -4045,6 +4045,14 @@ uint32_t nsMsgDatabase::GetCurVersion()
 
 NS_IMETHODIMP nsMsgDatabase::SetSummaryValid(bool valid /* = true */)
 {
+  // If the file was invalid when opened (for example in folder compact), then it may
+  //  not have been added to the cache. Add it now if missing.
+  if (valid)
+  {
+    nsTArray<nsMsgDatabase*>* dbCache = GetDBCache();
+    if (dbCache && !dbCache->Contains(this))
+      dbCache->AppendElement(this);
+  }
   // setting the version to 0 ought to make it pretty invalid.
   if (m_dbFolderInfo)
     m_dbFolderInfo->SetVersion(valid ? GetCurVersion() : 0);
