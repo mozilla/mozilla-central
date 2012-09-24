@@ -768,6 +768,8 @@ nsNetscapeProfileMigratorBase::CopyOtherData(bool aReplace)
     return NS_OK;
 
   nsresult rv = CopyFile(FILE_NAME_SEARCH, FILE_NAME_SEARCH);
+  if (NS_FAILED(rv))
+    return rv;
 
   nsCOMPtr<nsIFile> sourceSearchDir;
   mSourceProfile->Clone(getter_AddRefs(sourceSearchDir));
@@ -777,9 +779,11 @@ nsNetscapeProfileMigratorBase::CopyOtherData(bool aReplace)
   mTargetProfile->Clone(getter_AddRefs(targetSearchDir));
   targetSearchDir->AppendNative(nsDependentCString(DIR_NAME_SEARCH));
 
-  rv = rv | RecursiveCopy(sourceSearchDir, targetSearchDir);
+  rv = RecursiveCopy(sourceSearchDir, targetSearchDir);
+  if (NS_FAILED(rv))
+    return rv;
 
-  return rv | CopyFile(FILE_NAME_DOWNLOADS, FILE_NAME_DOWNLOADS);
+  return CopyFile(FILE_NAME_DOWNLOADS, FILE_NAME_DOWNLOADS);
 }
 
 nsresult
