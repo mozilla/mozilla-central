@@ -255,8 +255,7 @@ function onCommandCancel() {
         return true;
     }
 
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                        .getService(Components.interfaces.nsIPromptService);
+    var promptService = Components.interfaces.nsIPromptService;
 
     var promptTitle = calGetString("calendar",
                                    isEvent(window.calendarItem) ?
@@ -274,15 +273,15 @@ function onCommandCancel() {
                 promptService.BUTTON_TITLE_DONT_SAVE *
                 promptService.BUTTON_POS_2;
 
-    var choice = promptService.confirmEx(null,
-                                         promptTitle,
-                                         promptMessage,
-                                         flags,
-                                         null,
-                                         null,
-                                         null,
-                                         null,
-                                         {});
+    var choice = Services.prompt.confirmEx(null,
+                                           promptTitle,
+                                           promptMessage,
+                                           flags,
+                                           null,
+                                           null,
+                                           null,
+                                           null,
+                                           {});
     switch (choice) {
         case 0: // Save
             onCommandSave(true);
@@ -634,9 +633,7 @@ function dateTimeControls2State(aStartDatepicker) {
     if (warning) {
         gWarning = true;
         var callback = function func() {
-            var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                .getService(Components.interfaces.nsIPromptService);
-            promptService.alert(
+            Services.prompt.alert(
                 null,
                 document.title,
                 calGetString("calendar", "warningEndBeforeStart"));
@@ -1664,19 +1661,17 @@ function loadCloudProviders() {
  * Prompts the user to attach an url to this item.
  */
 function attachURL() {
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                       .getService(Components.interfaces.nsIPromptService);
-    if (promptService) {
+    if (Services.prompt) {
         // ghost in an example...
         var result = { value: "http://" };
-        if (promptService.prompt(window,
-                                 calGetString("calendar-event-dialog",
-                                              "specifyLinkLocation"),
-                                 calGetString("calendar-event-dialog",
-                                              "enterLinkLocation"),
-                                 result,
-                                 null,
-                                 { value: 0 })) {
+        if (Services.prompt.prompt(window,
+                                   calGetString("calendar-event-dialog",
+                                                "specifyLinkLocation"),
+                                   calGetString("calendar-event-dialog",
+                                                "enterLinkLocation"),
+                                   result,
+                                   null,
+                                   { value: 0 })) {
 
             try {
                 // If something bogus was entered, makeURL may fail.
@@ -1953,15 +1948,13 @@ function deleteAllAttachments() {
     var ok = (itemCount < 2);
 
     if (itemCount > 1) {
-        var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                      .getService(Components.interfaces.nsIPromptService);
-        ok = promptService.confirm(window,
-                                       calGetString("calendar-event-dialog",
-                                                    "removeCalendarsTitle"),
-                                       calGetString("calendar-event-dialog",
-                                                    "removeCalendarsText",
-                                                    [itemCount]),
-                                       {});
+        ok = Services.prompt.confirm(window,
+                                     calGetString("calendar-event-dialog",
+                                                  "removeCalendarsTitle"),
+                                     calGetString("calendar-event-dialog",
+                                                  "removeCalendarsText",
+                                                  [itemCount]),
+                                     {});
     }
 
     if (ok) {
@@ -2522,8 +2515,6 @@ function onCommandSave(aIsClosing) {
 function onCommandDeleteItem() {
     // only ask for confirmation, if the User changed anything on a new item or we modify an existing item
     if (isItemChanged() || window.mode != "new") {
-        let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                    .getService(Components.interfaces.nsIPromptService);
         let promptTitle = "";
         let promptMessage = "";
 
@@ -2535,7 +2526,7 @@ function onCommandDeleteItem() {
             promptMessage = calGetString("calendar", "deleteTaskMessage");
         }
 
-        let answerDelete = promptService.confirm(
+        let answerDelete = Services.prompt.confirm(
                                     null,
                                     promptTitle,
                                     promptMessage);

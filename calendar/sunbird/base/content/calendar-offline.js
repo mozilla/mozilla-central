@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 if (!calendarOfflineManager) {
     Components.utils.reportError("calendar-management.js not included!");
 }
@@ -20,7 +22,7 @@ calendarOfflineManager.updateOfflineUI = function sunbird_updateOfflineUI(aIsOff
 };
 
 calendarOfflineManager.toggleOfflineStatus = function sunbird_toggleOfflineStatus() {
-    var ioService = getIOService();
+    var ioService = Services.io;
     if (ioService.offline) {
         // Going online
         ioService.offline = false;

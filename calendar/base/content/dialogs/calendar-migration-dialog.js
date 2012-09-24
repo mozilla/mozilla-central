@@ -6,7 +6,7 @@ const SUNBIRD_UID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
 const FIREFOX_UID = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
-Components.utils.import("resource:///modules/Services.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 //
 // The front-end wizard bits.
@@ -21,10 +21,7 @@ var gMigrateWizard = {
         var listbox = document.getElementById("datasource-list");
 
         //XXX Once we have branding for lightning, this hack can go away
-        var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                  .getService(Components.interfaces.nsIStringBundleService);
-
-        var props = sbs.createBundle("chrome://calendar/locale/migration.properties");
+        var props = Services.strings.createBundle("chrome://calendar/locale/migration.properties");
 
         if (!cal.isSunbird()) {
             var wizard = document.getElementById("migration-wizard");
@@ -78,9 +75,7 @@ var gMigrateWizard = {
         wizard.canRewind = false;
 
         // We're going to need this for the progress meter's description
-        var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                  .getService(Components.interfaces.nsIStringBundleService);
-        var props = sbs.createBundle("chrome://calendar/locale/migration.properties");
+        var props = Services.strings.createBundle("chrome://calendar/locale/migration.properties");
         var label = document.getElementById("progress-label");
         var meter = document.getElementById("migrate-progressmeter");
 
@@ -158,8 +153,7 @@ var gDataMigrator = {
      */
     get dirService() {
         if (!this.mDirService) {
-            this.mDirService = Components.classes["@mozilla.org/file/directory_service;1"]
-                               .getService(Components.interfaces.nsIProperties);
+            this.mDirService = Service.dirsvc;
         }
         return this.mDirService;
     },
@@ -172,18 +166,14 @@ var gDataMigrator = {
      * wizard, otherwise, we'll return silently.
      */
     checkAndMigrate: function gdm_migrate() {
-        var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                      .getService(Components.interfaces.nsIXULAppInfo);
-        if (appInfo.ID == FIREFOX_UID) {
+        if (Services.appinfo.ID == FIREFOX_UID) {
             this.mIsInFirefox = true;
             // We can't handle Firefox Lightning yet
             migLOG("Holy cow, you're Firefox-Lightning! sorry, can't help.");
             return;
         }
 
-        var xulRuntime = Components.classes["@mozilla.org/xre/app-info;1"]
-                         .getService(Components.interfaces.nsIXULRuntime);
-        this.mPlatform = xulRuntime.OS.toLowerCase();
+        this.mPlatform = Services.appinfo.OS.toLowerCase();
 
         migLOG("mPlatform is: " + this.mPlatform);
 
@@ -208,9 +198,7 @@ var gDataMigrator = {
 
         var url = "chrome://calendar/content/calendar-migration-dialog.xul";
 #ifdef XP_MACOSX
-        var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                           .getService(Components.interfaces.nsIWindowMediator);
-        var win = wm.getMostRecentWindow("Calendar:MigrationWizard");
+        var win = Services.wm.getMostRecentWindow("Calendar:MigrationWizard");
         if (win) {
             win.focus();
         } else {
@@ -409,7 +397,7 @@ var gDataMigrator = {
                 tempFile.append("icalTemp.ics");
                 tempFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE,
                                       parseInt("0600", 8));
-                var tempUri = cal.getIOService().newFileURI(tempFile);
+                var tempUri = Services.io.newFileURI(tempFile);
 
                 var stream = Components.classes["@mozilla.org/network/file-output-stream;1"]
                              .createInstance(Components.interfaces.nsIFileOutputStream);
@@ -726,8 +714,6 @@ function migLOG(aString) {
     if (!getPrefSafe("calendar.migration.log", false)) {
         return;
     }
-    var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
-                         .getService(Components.interfaces.nsIConsoleService);
-    consoleService.logStringMessage(aString);
+    Services.console.logStringMessage(aString);
     dump(aString+"\n");
 }

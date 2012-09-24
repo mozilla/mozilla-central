@@ -7,6 +7,7 @@
 var gCalThreadingEnabled;
 
 Components.utils.import("resource:///modules/XPCOMUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 EXPORTED_SYMBOLS = ["cal"];
 let cal = {
@@ -14,12 +15,8 @@ let cal = {
     // and more code should be moved from calUtils.js into this object to avoid
     // clashes with other extensions
 
-    getThreadManager: generateServiceAccessor("@mozilla.org/thread-manager;1",
-                                              Components.interfaces.nsIThreadManager),
     getIOService: generateServiceAccessor("@mozilla.org/network/io-service;1",
                                           Components.interfaces.nsIIOService2),
-    getObserverService: generateServiceAccessor("@mozilla.org/observer-service;1",
-                                                Components.interfaces.nsIObserverService),
     getDragService: generateServiceAccessor("@mozilla.org/widget/dragservice;1",
                                                 Components.interfaces.nsIDragService),
 
@@ -31,8 +28,6 @@ let cal = {
      * @param baseDir     base dir; defaults to calendar-js/
      */
     loadScripts: function cal_loadScripts(scriptNames, scope, baseDir) {
-        let scriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
-                                     .createInstance(Components.interfaces.mozIJSSubScriptLoader);
         let ioService = cal.getIOService();
 
         if (!baseDir) {
@@ -49,7 +44,7 @@ let cal = {
             scriptFile.append(script);
             let scriptUrlSpec = ioService.newFileURI(scriptFile).spec;
             try {
-                scriptLoader.loadSubScript(scriptUrlSpec, scope);
+                Services.scriptLoader.loadSubScript(scriptUrlSpec, scope);
             } catch (exc) {
                 Components.utils.reportError(exc + " (" + scriptUrlSpec + ")");
             }
@@ -61,8 +56,8 @@ let cal = {
      */
     postPone: function cal_postPone(func) {
         if (this.threadingEnabled) {
-            cal.getThreadManager().currentThread.dispatch({ run: func },
-                                                          Components.interfaces.nsIEventTarget.DISPATCH_NORMAL);
+            Services.tm.currentThread.dispatch({ run: func },
+                                               Components.interfaces.nsIEventTarget.DISPATCH_NORMAL);
         } else {
             func();
         }
@@ -429,11 +424,9 @@ let cal = {
     },
 
     createLocaleCollator: function cal_createLocaleCollator() {
-        let localeService = Components.classes["@mozilla.org/intl/nslocaleservice;1"]
-                                      .getService(Components.interfaces.nsILocaleService);
         return Components.classes["@mozilla.org/intl/collation-factory;1"]
                          .getService(Components.interfaces.nsICollationFactory)
-                         .CreateCollation(localeService.getApplicationLocale());
+                         .CreateCollation(Services.locale.getApplicationLocale());
      },
 
     /**
@@ -575,10 +568,8 @@ let cal = {
      * Returns the most recent calendar window in an application independent way
      */
     getCalendarWindow: function cal_getCalendarWindow() {
-        let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                           .getService(Components.interfaces.nsIWindowMediator);
-        return wm.getMostRecentWindow("calendarMainWindow") ||
-               wm.getMostRecentWindow("mail:3pane");
+        return Services.wm.getMostRecentWindow("calendarMainWindow") ||
+               Services.wm.getMostRecentWindow("mail:3pane");
     },
 
     /**
@@ -593,17 +584,13 @@ let cal = {
             observe: function cal_addObserver_observe(subject, topic_, data) {
                 if (topic == topic_) {
                     if (oneTime) {
-                        Components.classes["@mozilla.org/observer-service;1"]
-                                  .getService(Components.interfaces.nsIObserverService)
-                                  .removeObserver(this, topic);
+                        Services.obs.removeObserver(this, topic);
                     }
                     func(subject, topic, data);
                 }
             }
         };
-        Components.classes["@mozilla.org/observer-service;1"]
-                  .getService(Components.interfaces.nsIObserverService)
-                  .addObserver(observer, topic, false /* don't hold weakly */);
+        Services.obs.addObserver(observer, topic, false /* don't hold weakly */);
     },
 
     /**

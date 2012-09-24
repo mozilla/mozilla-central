@@ -371,9 +371,7 @@ function ensureUpdatedTimezones(db) {
 
     let versionComp = 1;
     if (version) {
-        versionComp = Components.classes["@mozilla.org/xpcom/version-comparator;1"]
-                                .getService(Components.interfaces.nsIVersionComparator)
-                                .compare(tzServiceVersion, version);
+        versionComp = Services.vc.compare(tzServiceVersion, version);
     }
 
     if (versionComp != 0) {

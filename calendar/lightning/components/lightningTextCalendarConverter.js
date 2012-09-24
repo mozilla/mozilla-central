@@ -259,9 +259,7 @@ ltnMimeConverter.prototype = {
                     sinkProps.setPropertyAsInterface("itipItem", itipItem);
 
                     // Notify the observer that the itipItem is available
-                    let observer = Components.classes["@mozilla.org/observer-service;1"]
-                                             .getService(Components.interfaces.nsIObserverService);
-                    observer.notifyObservers(null, "onItipItemCreation", 0);
+                    Services.obs.notifyObservers(null, "onItipItemCreation", 0);
                 }
             }
         } catch (e) {

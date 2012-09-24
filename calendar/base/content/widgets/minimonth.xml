@@ -409,6 +409,8 @@
       <field name="mIsReadOnly">false</field>
       <field name="mObservesComposite">false</field>
       <constructor><![CDATA[
+          Components.utils.import("resource://gre/modules/Services.jsm");
+
           this.mToday = false;
           this.mSelected = false;
           this.mValue = new Date() // Default to "today"
@@ -422,21 +424,19 @@
           }
 
           // Add pref observer for calendar.week.start
-          let prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                      .getService(Components.interfaces.nsIPrefService);
-          let branch = prefService.getBranch("");
+          let branch = Services.prefs.getBranch("");
           branch.addObserver("calendar.week.start", this, false);
       ]]></constructor>
       <destructor><![CDATA[
+          Components.utils.import("resource://gre/modules/Services.jsm");
+
           var composite = getCompositeCalendar();
           if (composite && this.mObservesComposite == true) {
               getCompositeCalendar().removeObserver(this);
           }
 
           // Remove pref observer for calendar.week.start
-          let prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                      .getService(Components.interfaces.nsIPrefService);
-          let branch = prefService.getBranch("");
+          let branch = Services.prefs.getBranch("");
           branch.removeObserver("calendar.week.start", this, false);
       ]]></destructor>
 

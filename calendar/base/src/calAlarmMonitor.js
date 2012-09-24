@@ -3,11 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 function peekAlarmWindow() {
-    let windowMediator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                                   .getService(Components.interfaces.nsIWindowMediator);
-    return windowMediator.getMostRecentWindow("Calendar:AlarmWindow");
+    return Services.wm.getMostRecentWindow("Calendar:AlarmWindow");
 }
 
 /**
@@ -131,9 +130,7 @@ calAlarmMonitor.prototype = {
 
         let calAlarmWindow = peekAlarmWindow();
         if (!calAlarmWindow  && !this.mWindowOpening) {
-            let windowWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                                          .getService(Components.interfaces.nsIWindowWatcher);
-            this.mWindowOpening = windowWatcher.openWindow(
+            this.mWindowOpening = Services.ww.openWindow(
                 null,
                 "chrome://calendar/content/calendar-alarm-dialog.xul",
                 "_blank",

@@ -4,6 +4,7 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAuthUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 /*
  * Provider helper code
@@ -26,7 +27,7 @@ EXPORTED_SYMBOLS = ["cal"]; // even though it's defined in calUtils.jsm, import 
  * @param aExisting                  An existing channel to modify (optional)
  */
 cal.prepHttpChannel = function calPrepHttpChannel(aUri, aUploadData, aContentType, aNotificationCallbacks, aExisting) {
-    let channel = aExisting || cal.getIOService().newChannelFromURI(aUri);
+    let channel = aExisting || Services.io.newChannelFromURI(aUri);
     let httpchannel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
 
     httpchannel.setRequestHeader("Accept", "text/xml", false);
@@ -118,9 +119,7 @@ cal.InterfaceRequestor_getInterface = function calInterfaceRequestor_getInterfac
             return this.calAuthPrompt;
         } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider) ||
                    aIID.equals(Components.interfaces.nsIPrompt)) {
-            return Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                             .getService(Components.interfaces.nsIWindowWatcher)
-                             .getNewPrompter(null);
+            return Services.ww.getNewPrompter(null);
         } else if (aIID.equals(Components.interfaces.nsIBadCertListener2)) {
             if (!this.badCertHandler) {
                 this.badCertHandler = new cal.BadCertHandler(this);

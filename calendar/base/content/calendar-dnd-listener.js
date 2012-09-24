@@ -4,6 +4,7 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var itemConversion = {
 
@@ -272,10 +273,10 @@ calDNDBaseObserver.prototype = {
                 break;
             case "application/x-moz-file-promise":
             case "text/x-moz-url":
-                var uri = cal.getIOService().newURI(data.toString(), null, null);
+                var uri = Services.io.newURI(data.toString(), null, null);
                 var loader = Components.classes["@mozilla.org/network/unichar-stream-loader;1"]
                              .createInstance(Components.interfaces.nsIUnicharStreamLoader);
-                var channel = cal.getIOService().newChannelFromURI(uri);
+                var channel = Services.io.newChannelFromURI(uri);
                 channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
 
                 var self = this;

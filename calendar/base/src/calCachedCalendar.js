@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 const calICalendar = Components.interfaces.calICalendar;
 const cICL = Components.interfaces.calIChangeLog;
@@ -666,7 +667,7 @@ calCachedCalendar.prototype = {
     },
 
     get offline() {
-        return getIOService().offline;
+        return Services.io.offline;
     },
     get supportsChangeLog() {
         return calInstanceOf(this.mUncachedCalendar, Components.interfaces.calIChangeLog);

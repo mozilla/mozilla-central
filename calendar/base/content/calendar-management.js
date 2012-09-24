@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 /**
@@ -28,13 +29,11 @@ function promptDeleteCalendar(aCalendar) {
         return;
     }
 
-    let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                  .getService(Components.interfaces.nsIPromptService);
-    let ok = promptService.confirm(window,
-                                   calGetString("calendar", "unsubscribeCalendarTitle"),
-                                   calGetString("calendar", "unsubscribeCalendarMessage",
-                                                [aCalendar.name]),
-                                   {});
+    let ok = Services.prompt.confirm(window,
+                                     calGetString("calendar", "unsubscribeCalendarTitle"),
+                                     calGetString("calendar", "unsubscribeCalendarMessage",
+                                                  [aCalendar.name]),
+                                     {});
 
     if (ok) {
         let calMgr = cal.getCalendarManager();
@@ -260,9 +259,7 @@ var calendarOfflineManager = {
         if (this.initialized) {
             throw Components.results.NS_ERROR_ALREADY_INITIALIZED;
         }
-        let os = Components.classes["@mozilla.org/observer-service;1"]
-                           .getService(Components.interfaces.nsIObserverService);
-        os.addObserver(this, "network:offline-status-changed", false);
+        Services.obs.addObserver(this, "network:offline-status-changed", false);
 
         this.updateOfflineUI(!this.isOnline());
         this.initialized = true;
@@ -272,14 +269,12 @@ var calendarOfflineManager = {
         if (!this.initialized) {
             throw Components.results.NS_ERROR_NOT_INITIALIZED;
         }
-        let os = Components.classes["@mozilla.org/observer-service;1"]
-                           .getService(Components.interfaces.nsIObserverService);
-        os.removeObserver(this, "network:offline-status-changed", false);
+        Services.obs.removeObserver(this, "network:offline-status-changed", false);
         this.initialized = false;
     },
 
     isOnline: function cOM_isOnline() {
-        return (!getIOService().offline);
+        return (!Services.io.offline);
 
     },
 

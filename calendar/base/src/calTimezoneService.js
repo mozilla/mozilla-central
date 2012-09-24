@@ -161,9 +161,7 @@ calTimezoneService.prototype = {
     _initDB: function _initDB(sqlTzFile) {
         try {
             cal.LOG("[calTimezoneService] using " + sqlTzFile.path);
-            let dbService = Components.classes["@mozilla.org/storage/service;1"]
-                                      .getService(Components.interfaces.mozIStorageService);
-            this.mDb = dbService.openDatabase(sqlTzFile);
+            this.mDb = Services.storage.openDatabase(sqlTzFile);
             if (this.mDb) {
                 this.mSelectByTzid = this.mDb.createStatement("SELECT * FROM tz_data WHERE tzid = :tzid LIMIT 1");
 
@@ -190,12 +188,12 @@ calTimezoneService.prototype = {
             let uri = cal.makeURL(uriSpec);
 
             if (uri.schemeIs("file")) {
-                let handler = cal.getIOService().getProtocolHandler("file")
-                                 .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+                let handler = Services.io.getProtocolHandler("file")
+                                      .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
                 return handler.getFileFromURLSpec(uri.spec);
             } else if (uri.schemeIs("resource")) {
-                let handler = cal.getIOService().getProtocolHandler("resource")
-                                 .QueryInterface(Components.interfaces.nsIResProtocolHandler);
+                let handler = Services.io.getProtocolHandler("resource")
+                                      .QueryInterface(Components.interfaces.nsIResProtocolHandler);
                 let newUriSpec;
                 try {
                     newUriSpec = handler.resolveURI(uri);
@@ -236,7 +234,7 @@ calTimezoneService.prototype = {
 
         if (canInit) {
             // Seems like a success, make the bundle url global
-            g_stringBundle = cal.calGetStringBundle(bundleURL);
+            g_stringBundle = Services.strings.createBundle(bundleURL);
         } else {
             // Otherwise, we have to give up. Show an error and fail hard!
             let msg = cal.calGetString("calendar", "missingCalendarTimezonesError");
@@ -579,7 +577,7 @@ function guessSystemTimezone() {
     var probableTZScore = 0;
     var probableTZSource = null;
 
-    const calProperties = cal.calGetStringBundle("chrome://calendar/locale/calendar.properties");
+    const calProperties = Services.strings.createBundle("chrome://calendar/locale/calendar.properties");
 
     // First, try to detect operating system timezone.
     try {
@@ -638,8 +636,8 @@ function guessSystemTimezone() {
             if (osUserTimeZone != null) {
                 // Lookup timezone registry key in table of known tz keys
                 // to convert to ZoneInfo timezone id.
-                const regKeyToZoneInfoBundle = cal.calGetStringBundle("chrome://calendar/content/"+
-                                                                      fileOSName + "ToZoneInfoTZId.properties");
+                const regKeyToZoneInfoBundle = Services.strings.createBundle("chrome://calendar/content/"+
+                                                                             fileOSName + "ToZoneInfoTZId.properties");
                 zoneInfoIdFromOSUserTimeZone =
                     regKeyToZoneInfoBundle.GetStringFromName(osUserTimeZone);
             }

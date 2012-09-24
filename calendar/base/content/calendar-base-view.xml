@@ -249,6 +249,8 @@
       ]]></field>
 
       <constructor><![CDATA[
+        Components.utils.import("resource://gre/modules/Services.jsm");
+
         const kWorkdaysCommand = "calendar_toggle_workdays_only_command";
         const kTasksInViewCommand = "calendar_toggle_tasks_in_view_command";
         const kShowCompleted = "calendar_toggle_show_completed_in_view_command";
@@ -273,15 +275,14 @@
             self.onResize(self); };
         this.viewBroadcaster.addEventListener(this.getAttribute("type") + "viewresized", this.mResizeHandler, true);
         // add a preference observer to monitor changes
-        let pb2 = Components.classes["@mozilla.org/preferences-service;1"].
-                  getService(Components.interfaces.nsIPrefBranch);
-
-        pb2.addObserver("calendar.", this.mPrefObserver, false);
+        Services.prefs.addObserver("calendar.", this.mPrefObserver, false);
         this.weekStartOffset = getPrefSafe("calendar.week.start", 0);
         this.updateDaysOffPrefs();
       ]]></constructor>
 
       <destructor><![CDATA[
+        Components.utils.import("resource://gre/modules/Services.jsm");
+
         if (this.mCalendar) {
             this.mCalendar.removeObserver(this.mObserver);
         }
@@ -289,9 +290,7 @@
                            .getService(Components.interfaces.calIAlarmService);
         alarmService.removeObserver(this.mObserver);
         this.viewBroadcaster.removeEventListener(this.getAttribute("type") + "viewresized", this.mResizeHandler, true);
-        let pb2 = Components.classes["@mozilla.org/preferences-service;1"].
-                  getService(Components.interfaces.nsIPrefBranch);
-        pb2.removeObserver("calendar.", this.mPrefObserver);
+        Services.prefs.removeObserver("calendar.", this.mPrefObserver);
       ]]></destructor>
 
       <property name="type" readonly="true">

@@ -15,6 +15,8 @@
  * args: <path-to-zones.tab-file> <moz-root> <version>
  */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 function createFile(path) {
     var file = Components.classes["@mozilla.org/file/local;1"]
                          .createInstance(Components.interfaces.nsILocalFile);
@@ -126,11 +128,7 @@ try {
     if (!bundleFile.exists()) {
         throw "No " + bundleFile.path;
     }
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService2);
-    var bundleService = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                  .getService(Components.interfaces.nsIStringBundleService);
-    var bundle = bundleService.createBundle(ioService.newFileURI(bundleFile).spec);
+    var bundle = Services.strings.createBundle(Services.io.newFileURI(bundleFile).spec);
     var enumerator = bundle.getSimpleEnumeration();
     while (enumerator.hasMoreElements()) {
         var prop = enumerator.getNext().QueryInterface(Components.interfaces.nsIPropertyElement);
@@ -176,9 +174,7 @@ try {
     // then read old set:
     var oldSet = {};
 
-    var dbService = Components.classes["@mozilla.org/storage/service;1"]
-                              .getService(Components.interfaces.mozIStorageService);
-    var db = dbService.openDatabase(sqlTzFile);
+    var db = Services.storage.openDatabase(sqlTzFile);
 
     let statement;
     try {

@@ -125,7 +125,7 @@ calICSCalendar.prototype = {
 
         // Use the ioservice, to create a channel, which makes finding the
         // right hooks to use easier.
-        var channel = cal.getIOService().newChannelFromURI(this.mUri);
+        var channel = Services.io.newChannelFromURI(this.mUri);
 
         if (calInstanceOf(channel, Components.interfaces.nsIHttpChannel)) {
             this.mHooks = new httpHooks(this);
@@ -180,7 +180,7 @@ calICSCalendar.prototype = {
                                  .createInstance(Components.interfaces.nsISupportsPRBool);
         prbForce.data = aForce;
 
-        var channel = cal.getIOService().newChannelFromURI(this.mUri);
+        var channel = Services.io.newChannelFromURI(this.mUri);
         this.prepareChannel(channel, aForce);
 
         var streamLoader = Components.classes["@mozilla.org/network/stream-loader;1"]
@@ -314,8 +314,6 @@ calICSCalendar.prototype = {
     doWriteICS: function () {
         cal.LOG("[calICSCalendar] Writing ICS File " + this.uri.spec);
         var savedthis = this;
-        var appStartup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
-                                   .getService(Components.interfaces.nsIAppStartup);
         var listener =
         {
             serializer: null,
@@ -326,7 +324,7 @@ calICSCalendar.prototype = {
                     // All events are returned. Now set up a channel and a
                     // streamloader to upload.  onStopRequest will be called
                     // once the write has finished
-                    var channel = cal.getIOService().newChannelFromURI(savedthis.mUri);
+                    var channel = Services.io.newChannelFromURI(savedthis.mUri);
 
                     // Allow the hook to add things to the channel, like a
                     // header that checks etags
@@ -343,12 +341,12 @@ calICSCalendar.prototype = {
                         uploadChannel.setUploadStream(icsStream,
                                                     "text/calendar", -1);
 
-                        appStartup.enterLastWindowClosingSurvivalArea();
+                        Services.startup.enterLastWindowClosingSurvivalArea();
                         inLastWindowClosingSurvivalArea = true;
                         channel.asyncOpen(savedthis, savedthis);
                     } else {
                         if (inLastWindowClosingSurvivalArea) {
-                            appStartup.exitLastWindowClosingSurvivalArea();
+                            Services.startup.exitLastWindowClosingSurvivalArea();
                         }
                         savedthis.mObserver.onError(savedthis.superCalendar,
                                                     calIErrors.MODIFICATION_FAILED,
@@ -357,7 +355,7 @@ calICSCalendar.prototype = {
                     }
                 } catch (ex) {
                     if (inLastWindowClosingSurvivalArea) {
-                        appStartup.exitLastWindowClosingSurvivalArea();
+                        Services.startup.exitLastWindowClosingSurvivalArea();
                     }
                     savedthis.mObserver.onError(savedthis.superCalendar,
                                                 ex.result, "The calendar could not be saved; there " +
@@ -422,9 +420,6 @@ calICSCalendar.prototype = {
         } catch(e) {
         }
 
-        let appStartup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
-                                   .getService(Components.interfaces.nsIAppStartup);
-
         if ((httpChannel && !httpChannel.requestSucceeded) ||
             (!httpChannel && !Components.isSuccessCode(request.status))) {
             ctxt.mObserver.onError(this.superCalendar,
@@ -438,7 +433,7 @@ calICSCalendar.prototype = {
             // the PUT has failed, refresh, and signal error to all modifying operations:
             this.forceRefresh();
             ctxt.unlock(calIErrors.MODIFICATION_FAILED);
-            appStartup.exitLastWindowClosingSurvivalArea();
+            Services.startup.exitLastWindowClosingSurvivalArea();
             return;
         }
 
@@ -447,7 +442,7 @@ calICSCalendar.prototype = {
         ctxt.mHooks.onAfterPut(request,
                                function() {
                                    ctxt.unlock();
-                                   appStartup.exitLastWindowClosingSurvivalArea();
+                                   Services.startup.exitLastWindowClosingSurvivalArea();
                                });
     },
 
@@ -774,7 +769,7 @@ calICSCalendar.prototype = {
         purgeOldBackups();
 
         // Now go download the remote file, and store it somewhere local.
-        var channel = cal.getIOService().newChannelFromURI(this.mUri);
+        var channel = Services.io.newChannelFromURI(this.mUri);
         channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
         channel.notificationCallbacks = this;
 

@@ -4,6 +4,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 /**
  * Global Object to hold methods for the advanced pref pane
  */
@@ -142,11 +144,9 @@ var gAdvancedPane = {
     _removeMasterPassword: function advRemoveMasterPassword() {
         if (this._secModDb.isFIPSEnabled) {
             var bundle = document.getElementById("bundleCalendarPreferences");
-            var promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                      .getService(Components.interfaces.nsIPromptService);
-            promptSvc.alert(window,
-                            bundle.getString("pw_change_failed_title"),
-                            bundle.getString("pw_change2empty_in_fips_mode"));
+            Services.prompt.alert(window,
+                                  bundle.getString("pw_change_failed_title"),
+                                  bundle.getString("pw_change2empty_in_fips_mode"));
         } else {
             var url = "chrome://mozapps/content/preferences/removemp.xul";
             document.documentElement.openSubDialog(url, "", null);

@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 function Synthetic(aOpen, aDuration) {
     this.open = aOpen;
     this.duration = aDuration;
@@ -1077,14 +1079,12 @@ function scheduleNextCurrentEventUpdate(aRefreshCallback, aMsUntil) {
            }
         };
         // Add observer
-        var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                        .getService(Components.interfaces.nsIObserverService);
-        observerService.addObserver(wakeObserver, "wake_notification", false);
+        Services.obs.addObserver(wakeObserver, "wake_notification", false);
 
         // Remove observer on unload
         window.addEventListener("unload",
                                 function() {
-                                    observerService.removeObserver(wakeObserver, "wake_notification");
+                                    Services.obs.removeObserver(wakeObserver, "wake_notification");
                                 }, false);
 
         gEventTimer = Components.classes["@mozilla.org/timer;1"]

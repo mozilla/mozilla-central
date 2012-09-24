@@ -9,7 +9,7 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource:///modules/PluralForm.jsm");
-Components.utils.import("resource:///modules/Services.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var MODULE_NAME = "testAlarmDefaultValue";
 var RELATIVE_ROOT = "./shared-modules";

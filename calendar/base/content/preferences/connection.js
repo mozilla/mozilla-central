@@ -5,6 +5,9 @@
 /**
  * Global Object to hold methods for the connections dialog.
  */
+
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gConnectionsDialog = {
   /**
    * Handler function to be called before the pref window is closed (i.e
@@ -85,11 +88,8 @@ var gConnectionsDialog = {
     var typedURL = document.getElementById("networkProxyAutoconfigURL").value;
     var proxyTypeCur = document.getElementById("network.proxy.type").value;
 
-    var prefs =
-        Components.classes["@mozilla.org/preferences-service;1"].
-        getService(Components.interfaces.nsIPrefBranch);
-    var pacURL = prefs.getCharPref("network.proxy.autoconfig_url");
-    var proxyType = prefs.getIntPref("network.proxy.type");
+    var pacURL = Services.prefs.getCharPref("network.proxy.autoconfig_url");
+    var proxyType = Services.prefs.getIntPref("network.proxy.type");
 
     var disableReloadPref =
         document.getElementById("pref.advanced.proxies.disable_button.reload");

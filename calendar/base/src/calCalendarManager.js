@@ -448,8 +448,7 @@ calCalendarManager.prototype = {
             errorBoxButtonLabel = calGetString("calendar", "tooNewSchemaButtonRestart", [hostAppName]);
         }
 
-        var promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                  .getService(Components.interfaces.nsIPromptService);
+        var promptSvc = Services.prompt;
 
         var errorBoxButtonFlags = (promptSvc.BUTTON_POS_0 *
                                    promptSvc.BUTTON_TITLE_IS_STRING +
@@ -465,15 +464,13 @@ calCalendarManager.prototype = {
                                          null, // No checkbox
                                          { value: false }); // Unnecessary checkbox state
 
-        var startup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
-                                .getService(Components.interfaces.nsIAppStartup);
         if (isSunbird()) {
-            startup.quit(Components.interfaces.nsIAppStartup.eForceQuit);
+            Services.startup.quit(Components.interfaces.nsIAppStartup.eForceQuit);
         } else {
             // Disable Lightning
             AddonManager.getAddonByID("{e2fda1a4-762b-4020-b5ad-a41df1933103}", function getLightningExt(aAddon) {
                 aAddon.userDisabled = true;
-                startup.quit(Components.interfaces.nsIAppStartup.eRestart |
+                Services.startup.quit(Components.interfaces.nsIAppStartup.eRestart |
                     Components.interfaces.nsIAppStartup.eForceQuit);
             });
         }
@@ -522,13 +519,11 @@ calCalendarManager.prototype = {
             paramBlock.SetString(0, uiMessage);
             paramBlock.SetString(1, "0x" + rc.toString(0x10));
             paramBlock.SetString(2, ex);
-            let wWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                                     .getService(Components.interfaces.nsIWindowWatcher);
-            wWatcher.openWindow(null,
-                                "chrome://calendar/content/calendar-error-prompt.xul",
-                                "_blank",
-                                "chrome,dialog=yes,alwaysRaised=yes",
-                                paramBlock);
+            Services.ww.openWindow(null,
+                                   "chrome://calendar/content/calendar-error-prompt.xul",
+                                   "_blank",
+                                   "chrome,dialog=yes,alwaysRaised=yes",
+                                   paramBlock);
             return null;
         }
     },
@@ -919,9 +914,7 @@ calMgrCalendarObserver.prototype = {
 
         var paramBlock = Components.classes["@mozilla.org/embedcomp/dialogparam;1"]
                                    .createInstance(Components.interfaces.nsIDialogParamBlock);
-        var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                            .getService(Components.interfaces.nsIStringBundleService);
-        var props = sbs.createBundle("chrome://calendar/locale/calendar.properties");
+        var props = Services.strings.createBundle("chrome://calendar/locale/calendar.properties");
         var errMsg;
         paramBlock.SetNumberStrings(3);
         if (!this.storedReadOnly && this.calendar.readOnly) {
@@ -995,10 +988,8 @@ calMgrCalendarObserver.prototype = {
             this.announcedMessages.push(paramBlock);
 
             // Display in prompt window.
-            var wWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                                  .getService(Components.interfaces.nsIWindowWatcher);
             var promptWindow =
-                wWatcher.openWindow
+                Services.ww.openWindow
                     (null, "chrome://calendar/content/calendar-error-prompt.xul",
                      "_blank", "chrome,dialog=yes,alwaysRaised=yes",
                      paramBlock);
@@ -1063,9 +1054,7 @@ function getPrefBranchFor(id) {
  * won't show up. Writing the prefs helps counteract.
  */
 function flushPrefs() {
-    Components.classes["@mozilla.org/preferences-service;1"]
-              .getService(Components.interfaces.nsIPrefService)
-              .savePrefFile(null);
+    Services.prefs.savePrefFile(null);
 }
 
 /**

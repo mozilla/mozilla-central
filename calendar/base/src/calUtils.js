@@ -7,7 +7,7 @@
  * that loading this file twice in the same scope will throw errors.
  */
 
-Components.utils.import("resource:///modules/Services.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 function _calIcalCreator(cid, iid) {
     return function(icalString) {
@@ -48,22 +48,10 @@ function createRecurrenceInfo(aItem) {
     return recInfo;
 }
 
-/* Shortcut to the console service */
-function getConsoleService() {
-    return Components.classes["@mozilla.org/consoleservice;1"]
-                     .getService(Components.interfaces.nsIConsoleService);
-}
-
 /* Shortcut to the account manager service */
 function getAccountManager() {
     return Components.classes["@mozilla.org/messenger/account-manager;1"]
                      .getService(Components.interfaces.nsIMsgAccountManager);
-}
-
-/* Shortcut to the IO service */
-function getIOService() {
-    return Components.classes["@mozilla.org/network/io-service;1"]
-                     .getService(Components.interfaces.nsIIOService);
 }
 
 /* Shortcut to the calendar-manager service */
@@ -232,9 +220,7 @@ function formatStringForCSSRule(aString) {
  */
 function getCalendarDirectory() {
     if (getCalendarDirectory.mDir === undefined) {
-        var dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
-                               .getService(Components.interfaces.nsIProperties);
-        var dir = dirSvc.get("ProfD", Components.interfaces.nsILocalFile);
+        var dir = Services.dirsvc.get("ProfD", Components.interfaces.nsILocalFile);
         dir.append("calendar-data");
         if (!dir.exists()) {
             try {
@@ -261,7 +247,7 @@ function getCalendarDirectory() {
 function isCalendarWritable(aCalendar) {
     return (!aCalendar.getProperty("disabled") &&
             !aCalendar.readOnly &&
-            (!getIOService().offline ||
+            (!Services.io.offline ||
              aCalendar.getProperty("cache.enabled") ||
              aCalendar.getProperty("cache.always") ||
              aCalendar.getProperty("requiresNetwork") === false));
@@ -376,7 +362,7 @@ function calPrint() {
  * @returns  an nsIURI whose spec is aUriString
  */
 function makeURL(aUriString) {
-    return getIOService().newURI(aUriString, null, null);
+    return Services.io.newURI(aUriString, null, null);
 }
 
 /**
@@ -502,8 +488,7 @@ function isToDo(aObject) {
  */
 function getPrefSafe(aPrefName, aDefault) {
     const nsIPrefBranch = Components.interfaces.nsIPrefBranch;
-    const prefB = Components.classes["@mozilla.org/preferences-service;1"]
-                            .getService(nsIPrefBranch);
+    const prefB = Services.prefs;
     // Since bug 193332 does not fix the current branch, calling get*Pref will
     // throw NS_ERROR_UNEXPECTED if clearUserPref() was called and there is no
     // default value. To work around that, catch the exception.
@@ -545,17 +530,15 @@ function setPref(aPrefName, aPrefValue, aPrefType) {
                 break;
         }
     }
-    let prefB = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefBranch);
     switch (aPrefType) {
         case "BOOL":
-            prefB.setBoolPref(aPrefName, aPrefValue);
+            Services.prefs.setBoolPref(aPrefName, aPrefValue);
             break;
         case "INT":
-            prefB.setIntPref(aPrefName, aPrefValue);
+            Services.prefs.setIntPref(aPrefName, aPrefValue);
             break;
         case "CHAR":
-            prefB.setCharPref(aPrefName, aPrefValue);
+            Services.prefs.setCharPref(aPrefName, aPrefValue);
             break;
     }
 }
@@ -567,12 +550,10 @@ function setPref(aPrefName, aPrefValue, aPrefType) {
  * @param aString     the string to which the preference value should be set
  */
 function setLocalizedPref(aPrefName, aString) {
-    const prefB = Components.classes["@mozilla.org/preferences-service;1"].
-                  getService(Components.interfaces.nsIPrefBranch);
     var str = Components.classes["@mozilla.org/supports-string;1"].
               createInstance(Components.interfaces.nsISupportsString);
     str.data = aString;
-    prefB.setComplexValue(aPrefName, Components.interfaces.nsISupportsString, str);
+    Services.prefs.setComplexValue(aPrefName, Components.interfaces.nsISupportsString, str);
 }
 
 /**
@@ -582,11 +563,9 @@ function setLocalizedPref(aPrefName, aString) {
  * @param aDefault    (optional) the value to return if the pref is undefined
  */
 function getLocalizedPref(aPrefName, aDefault) {
-    const pb2 = Components.classes["@mozilla.org/preferences-service;1"].
-                getService(Components.interfaces.nsIPrefBranch);
     var result;
     try {
-        result = pb2.getComplexValue(aPrefName, Components.interfaces.nsISupportsString).data;
+        result = Services.prefs.getComplexValue(aPrefName, Components.interfaces.nsISupportsString).data;
     } catch(ex) {
         return aDefault;
     }
@@ -704,18 +683,6 @@ function categoriesArrayToString(aSortedCategoriesArray) {
 }
 
 /**
- * Creates a string bundle.
- *
- * @param bundleURL The bundle URL
- * @return string bundle
- */
-function calGetStringBundle(bundleURL) {
-    let service = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                            .getService(Components.interfaces.nsIStringBundleService);
-    return service.createBundle(bundleURL);
-}
-
-/**
  * Gets the value of a string in a .properties file from the calendar bundle
  *
  * @param aBundleName  the name of the properties file.  It is assumed that the
@@ -730,7 +697,7 @@ function calGetString(aBundleName, aStringName, aParams, aComponent) {
             aComponent = "calendar";
         }
         var propName = "chrome://" + aComponent + "/locale/" + aBundleName + ".properties";
-        var props = calGetStringBundle(propName);
+        var props = Services.strings.createBundle(propName);
 
         if (aParams && aParams.length) {
             return props.formatStringFromName(aStringName, aParams, aParams.length);
@@ -969,11 +936,9 @@ function setDefaultStartEndHour(aItem, aReferenceDate) {
  *              properties should be logged.
  */
 function LOG(aArg) {
-    var prefB = Components.classes["@mozilla.org/preferences-service;1"].
-                getService(Components.interfaces.nsIPrefBranch);
     var shouldLog = false;
     try {
-        shouldLog = prefB.getBoolPref("calendar.debug.log");
+        shouldLog = Services.prefs.getBoolPref("calendar.debug.log");
     } catch(ex) {}
 
     if (!shouldLog) {
@@ -994,7 +959,7 @@ function LOG(aArg) {
 
     // xxx todo consider using function debug()
     dump(string + '\n');
-    getConsoleService().logStringMessage(string);
+    Services.console.logStringMessage(string);
 }
 
 /**
@@ -1009,7 +974,7 @@ function WARN(aMessage) {
     scriptError.init(aMessage, null, null, 0, 0,
                      Components.interfaces.nsIScriptError.warningFlag,
                      "component javascript");
-    getConsoleService().logMessage(scriptError);
+    Services.console.logMessage(scriptError);
 }
 
 /**
@@ -1024,7 +989,7 @@ function ERROR(aMessage) {
     scriptError.init(aMessage, null, null, 0, 0,
                      Components.interfaces.nsIScriptError.errorFlag,
                      "component javascript");
-    getConsoleService().logMessage(scriptError);
+    Services.console.logMessage(scriptError);
 }
 
 /**
@@ -1081,9 +1046,7 @@ function ASSERT(aCondition, aMessage, aCritical) {
 function showError(aMsg) {
     let window = window || null;
     if (window) {
-        let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                      .getService(Components.interfaces.nsIPromptService);
-        promptService.alert(window, calGetString("calendar", "genericErrorTitle"), aMsg);
+        Services.prompt.alert(window, calGetString("calendar", "genericErrorTitle"), aMsg);
     }
 }
 

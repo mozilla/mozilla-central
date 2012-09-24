@@ -3,12 +3,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 const nsIWindowMediator = Components.interfaces.nsIWindowMediator;
 
 function toOpenWindowByType(inType, uri)
 {
-    var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService();
+    var windowManager = Services.wm.getService();
     var windowManagerInterface = windowManager.QueryInterface(nsIWindowMediator);
     var topWindow = windowManagerInterface.getMostRecentWindow(inType);
 
@@ -42,9 +43,7 @@ function goToggleToolbar(id, elementID)
 function goOpenAddons()
 {
     const EMTYPE = "Extension:Manager";
-    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                       .getService(Components.interfaces.nsIWindowMediator);
-    var theEM = wm.getMostRecentWindow(EMTYPE);
+    var theEM = Services.wm.getMostRecentWindow(EMTYPE);
     if (theEM) {
         theEM.focus();
         return;

@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function convertFromUnicode(aCharset, aSrc) {
@@ -209,15 +210,13 @@ calItipEmailTransport.prototype = {
                         "This will disable OL (up to 2003) to consume the mail as an iTIP invitation showing\n" +
                         "the usual calendar buttons.");
                 // To somehow have a last resort before sending spam, the user can choose to send the mail.
-                let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                              .getService(Components.interfaces.nsIPromptService);
                 let prefCompatMode = cal.getPrefSafe("calendar.itip.compatSendMode", 0);
                 let inoutCheck = { value: (prefCompatMode == 1) };
-                if (!promptService.confirmCheck(null,
-                                                cal.calGetString("lightning", "imipSendMail.title", null, "lightning"),
-                                                cal.calGetString("lightning", "imipSendMail.text", null, "lightning"),
-                                                cal.calGetString("lightning", "imipSendMail.Outlook2000CompatMode.text", null, "lightning"),
-                                                inoutCheck)) {
+                if (!Services.prompt.confirmCheck(null,
+                                                  cal.calGetString("lightning", "imipSendMail.title", null, "lightning"),
+                                                  cal.calGetString("lightning", "imipSendMail.text", null, "lightning"),
+                                                  cal.calGetString("lightning", "imipSendMail.Outlook2000CompatMode.text", null, "lightning"),
+                                                  inoutCheck)) {
                     break;
                 } // else go on with auto sending for now
                 compatMode = (inoutCheck.value ? 1 : 0);
@@ -260,8 +259,8 @@ calItipEmailTransport.prototype = {
                                             mailFile,
                                             true  /* deleteSendFileOnCompletion */,
                                             false /* digest_p */,
-                                            (cal.getIOService().offline ? Components.interfaces.nsIMsgSend.nsMsgQueueForLater
-                                                                    : Components.interfaces.nsIMsgSend.nsMsgDeliverNow),
+                                            (Services.io.offline ? Components.interfaces.nsIMsgSend.nsMsgQueueForLater
+                                                                 : Components.interfaces.nsIMsgSend.nsMsgDeliverNow),
                                             null  /* nsIMsgDBHdr msgToReplace */,
                                             null  /* nsIMsgSendListener aListener */,
                                             null  /* nsIMsgStatusFeedback aStatusFeedback */,
@@ -360,9 +359,7 @@ calItipEmailTransport.prototype = {
             }
             cal.LOG("mail text:\n" + mailText);
 
-            let dirUtils = Components.classes["@mozilla.org/file/directory_service;1"]
-                                     .createInstance(Components.interfaces.nsIProperties);
-            let tempFile = dirUtils.get("TmpD", Components.interfaces.nsIFile);
+            let tempFile = Services.dirsvc.get("TmpD", Components.interfaces.nsIFile);
             tempFile.append("itipTemp");
             tempFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE,
                                   parseInt("0600", 8));

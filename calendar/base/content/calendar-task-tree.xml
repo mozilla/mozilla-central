@@ -115,6 +115,7 @@
     <implementation implements="nsIObserver">
       <constructor><![CDATA[
         Components.utils.import("resource://gre/modules/PluralForm.jsm");
+        Components.utils.import("resource://gre/modules/Services.jsm");
         Components.utils.import("resource://calendar/modules/calItemUtils.jsm");
         let self = this;
 
@@ -131,9 +132,7 @@
         composite.addObserver(this.mTaskTreeObserver);
 
         // set up the preference observer
-        let prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                    .getService(Components.interfaces.nsIPrefService);
-        let branch = prefService.getBranch("");
+        let branch = Services.prefs.getBranch("");
         branch.addObserver("calendar.", this, false);
 
 
@@ -174,14 +173,14 @@
         }
       ]]></constructor>
       <destructor><![CDATA[
+          Components.utils.import("resource://gre/modules/Services.jsm");
+
           // remove composite calendar observer
           let composite = getCompositeCalendar();
           composite.removeObserver(this.mTaskTreeObserver);
 
           // remove the preference observer
-          let prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                      .getService(Components.interfaces.nsIPrefService);
-          let branch = prefService.getBranch("");
+          let branch = Services.prefs.getBranch("");
           branch.removeObserver("calendar.", this, false);
 
           let widths = "";

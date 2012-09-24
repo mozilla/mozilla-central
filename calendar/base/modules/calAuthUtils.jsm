@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 /*
  * Authentication helper code
@@ -42,9 +43,7 @@ cal.auth = {
             throw new Components.Exception("", Components.results.NS_ERROR_XPC_NEED_OUT_OBJECT);
         }
 
-        let watcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                                .getService(Components.interfaces.nsIWindowWatcher);
-        let prompter = watcher.getNewPrompter(null);
+        let prompter = Services.ww.getNewPrompter(null);
 
         // Only show the save password box if we are supposed to.
         let savepassword = null;
@@ -84,17 +83,15 @@ cal.auth = {
         cal.ASSERT(aPassword);
 
         try {
-            let loginManager = Components.classes["@mozilla.org/login-manager;1"]
-                                         .getService(Components.interfaces.nsILoginManager);
-            let logins = loginManager.findLogins({}, aHostName, null, aRealm);
+            let logins = Services.logins.findLogins({}, aHostName, null, aRealm);
 
             let newLoginInfo = Components.classes["@mozilla.org/login-manager/loginInfo;1"]
                                          .createInstance(Components.interfaces.nsILoginInfo);
             newLoginInfo.init(aHostName, null, aRealm, aUsername, aPassword, "", "");
             if (logins.length > 0) {
-                loginManager.modifyLogin(logins[0], newLoginInfo);
+                Services.logins.modifyLogin(logins[0], newLoginInfo);
             } else {
-                loginManager.addLogin(newLoginInfo);
+                Services.logins.addLogin(newLoginInfo);
             }
         } catch (exc) {
             cal.ASSERT(false, exc);
@@ -118,13 +115,11 @@ cal.auth = {
         }
 
         try {
-            let loginManager = Components.classes["@mozilla.org/login-manager;1"]
-                                         .getService(Components.interfaces.nsILoginManager);
-            if (!loginManager.getLoginSavingEnabled(aUsername)) {
+            if (!Services.logins.getLoginSavingEnabled(aUsername)) {
                 return false;
             }
 
-            let logins = loginManager.findLogins({}, aHostName, null, aRealm);
+            let logins = Services.logins.findLogins({}, aHostName, null, aRealm);
             for each (let loginInfo in logins) {
                 if (loginInfo.username == aUsername) {
                     aPassword.value = loginInfo.password;
@@ -149,12 +144,10 @@ cal.auth = {
         cal.ASSERT(aUsername);
 
         try {
-            let loginManager = Components.classes["@mozilla.org/login-manager;1"]
-                                         .getService(Components.interfaces.nsILoginManager);
-            let logins = loginManager.findLogins({}, aHostName, null, aRealm);
+            let logins = Services.logins.findLogins({}, aHostName, null, aRealm);
             for each (let loginInfo in logins) {
                 if (loginInfo.username == aUsername) {
-                    loginManager.removeLogin(loginInfo);
+                    Services.logins.removeLogin(loginInfo);
                     return true;
                 }
             }
@@ -180,9 +173,7 @@ cal.auth.Prompt.prototype = {
         let password;
         let found = false;
 
-        let loginManager = Components.classes["@mozilla.org/login-manager;1"]
-                                     .getService(Components.interfaces.nsILoginManager);
-        let logins = loginManager.findLogins({}, aPasswordRealm.prePath, null, aPasswordRealm.realm);
+        let logins = Services.logins.findLogins({}, aPasswordRealm.prePath, null, aPasswordRealm.realm);
         if (logins.length) {
             username = logins[0].username;
             password = logins[0].password;
@@ -242,8 +233,8 @@ cal.auth.Prompt.prototype = {
         hostRealm.realm = aAuthInfo.realm;
         let port = aChannel.URI.port;
         if (port == -1) {
-            let handler = cal.getIOService().getProtocolHandler(aChannel.URI.scheme)
-                                            .QueryInterface(Components.interfaces.nsIProtocolHandler);
+            let handler = Services.io.getProtocolHandler(aChannel.URI.scheme)
+                                     .QueryInterface(Components.interfaces.nsIProtocolHandler);
             port = handler.defaultPort;
         }
         hostRealm.passwordRealm = aChannel.URI.host + ":" + port + " (" + aAuthInfo.realm + ")";

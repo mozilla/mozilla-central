@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 /** Constructor for webcal: protocol handler */
 function calProtocolHandlerWebcal() {
@@ -20,7 +21,7 @@ function calProtocolHandlerWebcals() {
  */
 function calProtocolHandler(scheme) {
     this.scheme = scheme;
-    this.mHttpProtocol = cal.getIOService().getProtocolHandler(this.scheme == "webcal" ? "http" : "https");
+    this.mHttpProtocol = Services.io.getProtocolHandler(this.scheme == "webcal" ? "http" : "https");
 }
 
 calProtocolHandler.prototype = {
@@ -66,7 +67,7 @@ calProtocolHandler.prototype = {
         var uri = aUri.clone();
         uri.scheme = this.mHttpProtocol.scheme;
 
-        var channel = getIOService().newChannelFromURI(uri, null);
+        var channel = Services.io.newChannelFromURI(uri, null);
         channel.originalURI = aUri;
         return channel;
     },

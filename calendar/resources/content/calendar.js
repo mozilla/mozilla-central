@@ -5,6 +5,9 @@
 /**
  * Called from calendar.xul window onload.
  */
+
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 function calendarInit() {
     // Take care of common initialization
     commonInitCalendar();
@@ -130,10 +133,7 @@ function closeCalendar() {
 
 function openPreferences() {
     // Check to see if the prefwindow is already open
-    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                       .getService(Components.interfaces.nsIWindowMediator);
-
-    var win = wm.getMostRecentWindow("Calendar:Preferences");
+    var win = Services.wm.getMostRecentWindow("Calendar:Preferences");
 
     if (win) {
         win.focus();

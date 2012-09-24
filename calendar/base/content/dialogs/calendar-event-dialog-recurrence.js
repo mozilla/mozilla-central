@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://calendar/modules/calRecurrenceUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var gIsReadOnly = false;
 var gStartTime = null;
@@ -604,10 +605,8 @@ function checkUntilDate() {
             if (!checkUntilDate.warning) {
                 return;
             }
-            let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                          .getService(Components.interfaces.nsIPromptService);
-            promptService.alert(null, document.title,
-                                calGetString("calendar", "warningUntilBeforeStart"));
+            Services.prompt.alert(null, document.title,
+                                  calGetString("calendar", "warningUntilBeforeStart"));
             checkUntilDate.warning = false;
         }
         setTimeout(callback, 1);

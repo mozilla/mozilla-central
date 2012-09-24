@@ -3,12 +3,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 function openAboutDialog()
 {
   const SUNBIRD_ID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
-  var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                          .getService(Components.interfaces.nsIXULAppInfo);
-  var url = (appInfo.ID == SUNBIRD_ID) ?
+  var url = (Services.appinfo.ID == SUNBIRD_ID) ?
     "chrome://sunbird/content/aboutDialog.xul" :
     "chrome://messenger/content/aboutDialog.xul" ;
 #ifdef XP_WIN
@@ -27,15 +27,9 @@ function openAboutDialog()
 function openReleaseNotes()
 {
   const SUNBIRD_ID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
-  var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                          .getService(Components.interfaces.nsIXULAppInfo);
-  if (appInfo.ID == SUNBIRD_ID) {
-    var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                            .getService(Components.interfaces.nsIXULAppInfo);
-    var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                        .getService(Components.interfaces.nsIStringBundleService);
-    var bundle = sbs.createBundle("chrome://branding/locale/brand.properties");
-    var relNotesURL = bundle.formatStringFromName("releaseNotesURL",[appInfo.version],1)
+  if (Services.appinfo.ID == SUNBIRD_ID) {
+    var bundle = Services.strings.createBundle("chrome://branding/locale/brand.properties");
+    var relNotesURL = bundle.formatStringFromName("releaseNotesURL",[Services.appinfo.version],1)
     launchBrowser(relNotesURL);
   } else {
     openFormattedRegionURL('app.releaseNotesURL');
@@ -48,21 +42,18 @@ function openReleaseNotes()
  */
 function openRegionURL(aResourceName)
 {
-  var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                          .getService(Components.interfaces.nsIXULAppInfo);
   try {
-    var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].getService(Components.interfaces.nsIStringBundleService);
-    var regionBundle = strBundleService.createBundle("chrome://messenger-region/locale/region.properties");
+    var regionBundle = Services.strings.createBundle("chrome://messenger-region/locale/region.properties");
     // the release notes are special and need to be formatted with the app version
     var urlToOpen;
     if (aResourceName == "releaseNotesURL")
-      urlToOpen = regionBundle.formatStringFromName(aResourceName, [appInfo.version], 1);
+      urlToOpen = regionBundle.formatStringFromName(aResourceName, [Services.appinfo.version], 1);
     else
       urlToOpen = regionBundle.GetStringFromName(aResourceName);
       
     var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
                       .getService(Components.interfaces.nsIExternalProtocolService);
-    protocolSvc.loadUrl(cal.getIOService().newURI(urlToOpen, null, null));
+    protocolSvc.loadUrl(Services.io.newURI(urlToOpen, null, null));
   } catch (ex) {}
 }
 
@@ -78,7 +69,7 @@ function openFormattedRegionURL(aPrefName)
   
   var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"].
                                getService(Components.interfaces.nsIExternalProtocolService);
-  protocolSvc.loadUrl(cal.getIOService().newURI(formattedUrl, null, null));
+  protocolSvc.loadUrl(Services.io.newURI(formattedUrl, null, null));
 }
 
 /**
@@ -90,9 +81,7 @@ function openFormattedRegionURL(aPrefName)
  */
 function getFormattedRegionURL(aPrefName)
 {
-  var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"].
-                             getService(Components.interfaces.nsIURLFormatter);
-  return formatter.formatURLPref(aPrefName);
+  return Services.urlFormatter.formatURLPref(aPrefName);
 }
 
 /**
@@ -122,7 +111,7 @@ function launchBrowser(url, event)
 
   Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
             .getService(Components.interfaces.nsIExternalProtocolService)
-            .loadUrl(cal.getIOService().newURI(url, null, null));
+            .loadUrl(Services.io.newURI(url, null, null));
 
   // Make sure that any default click handlers don't do anything, we have taken
   // care of all processing

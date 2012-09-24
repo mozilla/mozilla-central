@@ -67,6 +67,7 @@
 
       <constructor><![CDATA[
         Components.utils.import("resource://calendar/modules/calUtils.jsm");
+        Components.utils.import("resource://gre/modules/Services.jsm");
 
         this.mMaxAttendees = 0;
 
@@ -103,9 +104,7 @@
 
         // First get the preferences service
         try {
-            this.mPrefs = Components.classes["@mozilla.org/preferences-service;1"]
-                                    .getService(Components.interfaces.nsIPrefService)
-                                    .getBranch(null);
+            this.mPrefs = Services.prefs.getBranch(null);
         } catch (ex) {
         }
 
@@ -1219,6 +1218,8 @@
 
       <method name="setupAutocomplete">
         <body><![CDATA[
+          Components.utils.import("resource://gre/modules/Services.jsm");
+
           var setupObserver = false;
           var autocompleteLdap = false;
           var autocompleteDirectory = null;
@@ -1256,7 +1257,7 @@
                       Components.interfaces.nsILDAPAutoCompleteSession);
           }
 
-          if (LDAPSession && autocompleteDirectory && !cal.getIOService().offline) {
+          if (LDAPSession && autocompleteDirectory && !Services.io.offline) {
               // Add observer on the directory server we are autocompleting against
               // only if current server is different from previous.
               // Remove observer if current server is different from previous

@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://calendar/modules/calRecurrenceUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var taskDetailsView = {
 
@@ -264,10 +265,7 @@ function taskViewOnLoad() {
     var toolbarset = document.getElementById("customToolbars");
     toolbox.toolbarset = toolbarset;
 
-    Components.classes["@mozilla.org/observer-service;1"]
-              .getService(Components.interfaces.nsIObserverService)
-              .notifyObservers(window, "calendar-taskview-startup-done",
-                               false);
+    Services.obs.notifyObservers(window, "calendar-taskview-startup-done", false);
 }
 
 /**

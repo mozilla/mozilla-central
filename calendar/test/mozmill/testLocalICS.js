@@ -9,6 +9,7 @@ const MODULE_REQUIRES = ["calendar-utils", "window-helpers"];
 var calUtils = require("./shared-modules/calendar-utils");
 var modalDialog; // Initialized in setupModule
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 const sleep = 500;
 const TIMEOUT_MODAL_DIALOG = 30000;
@@ -32,7 +33,7 @@ var setupModule = function(module) {
                    .getService(Components.interfaces.nsIProperties)
                    .get("TmpD", Components.interfaces.nsIFile);
   file.append(calendar + ".ics");
-  let fileURI = cal.getIOService().newFileURI(file);
+  let fileURI = Services.io.newFileURI(file);
   uri = fileURI.prePath + fileURI.path;
 }
 

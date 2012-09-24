@@ -2112,7 +2112,7 @@ calDavCalendar.prototype = {
             return "";
         }
 
-        var props = calGetStringBundle("chrome://calendar/locale/calendar.properties");
+        var props = Services.strings.createBundle("chrome://calendar/locale/calendar.properties");
         let statusString;
         try {
             statusString = props.GetStringFromName("caldavRequestStatusCodeString" + status);

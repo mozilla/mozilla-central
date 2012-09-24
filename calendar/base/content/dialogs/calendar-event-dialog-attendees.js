@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gStartDate = null;
 var gEndDate = null;
 var gStartTimezone = null;
@@ -103,12 +105,10 @@ function onLoad() {
             }
         }
     }
-    var pb2 = Components.classes["@mozilla.org/preferences-service;1"].
-              getService(Components.interfaces.nsIPrefBranch);
-    pb2.addObserver("calendar.", prefObserver, false);
+    Services.prefs.addObserver("calendar.", prefObserver, false);
     window.addEventListener("unload",
         function() {
-            pb2.removeObserver("calendar.", prefObserver);
+            Services.prefs.removeObserver("calendar.", prefObserver);
         },
         false);
 
@@ -408,12 +408,7 @@ function updateEndTime() {
 
     if (warning) {
         var callback = function() {
-            var promptService =
-                Components.classes[
-                    "@mozilla.org/embedcomp/prompt-service;1"]
-                    .getService(
-                        Components.interfaces.nsIPromptService);
-            promptService.alert(
+            Services.prompt.alert(
                 null,
                 document.title,
                 calGetString("calendar", "warningEndBeforeStart"));

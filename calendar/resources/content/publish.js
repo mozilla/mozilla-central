@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 /**
  * publishCalendarData
@@ -125,7 +126,7 @@ function publishItemArray(aItemArray, aPath, aProgressDialog) {
 
     var icsURL = makeURL(aPath);
 
-    var channel = cal.getIOService().newChannelFromURI(icsURL);
+    var channel = Services.io.newChannelFromURI(icsURL);
     if (icsURL.schemeIs('webcal'))
         icsURL.scheme = 'http';
     if (icsURL.schemeIs('webcals'))
@@ -172,13 +173,9 @@ function publishItemArray(aItemArray, aPath, aProgressDialog) {
     try {
         channel.asyncOpen(publishingListener, aProgressDialog);
     } catch (e) {
-        var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                        .getService(Components.interfaces.nsIStringBundleService);
-        var props = sbs.createBundle("chrome://calendar/locale/calendar.properties");
-        var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                      .getService(Components.interfaces.nsIPromptService);
-        promptService.alert(null, calGetString("calendar", "genericErrorTitle"),
-                            props.formatStringFromName('otherPutError',[e.message],1));
+        var props = Services.strings.createBundle("chrome://calendar/locale/calendar.properties");
+        Services.prompt.alert(null, calGetString("calendar", "genericErrorTitle"),
+                              props.formatStringFromName('otherPutError',[e.message],1));
     }
 }
 
@@ -189,9 +186,7 @@ var notificationCallbacks =
     getInterface: function(iid, instance) {
         if (iid.equals(Components.interfaces.nsIAuthPrompt)) {
             // use the window watcher service to get a nsIAuthPrompt impl
-            var ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                               .getService(Components.interfaces.nsIWindowWatcher);
-            return ww.getNewAuthPrompter(null);
+            return Services.ww.getNewAuthPrompter(null);
         }
 
         throw Components.results.NS_ERROR_NO_INTERFACE;
@@ -219,11 +214,7 @@ var publishingListener =
         ctxt.wrappedJSObject.onStopUpload();
 
         let channel;
-        let sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                        .getService(Components.interfaces.nsIStringBundleService);
-        let props = sbs.createBundle("chrome://calendar/locale/calendar.properties");
-        let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                      .getService(Components.interfaces.nsIPromptService);
+        let props = Services.strings.createBundle("chrome://calendar/locale/calendar.properties");
         let requestSucceeded;
         try {
             channel = request.QueryInterface(Components.interfaces.nsIHttpChannel);
@@ -231,12 +222,12 @@ var publishingListener =
         } catch(e) {
         }
         if (channel && !requestSucceeded) {
-            promptService.alert(null, calGetString("calendar", "genericErrorTitle"),
-                                props.formatStringFromName('httpPutError',[channel.responseStatus, channel.responseStatusText],2));
+            Services.prompt.alert(null, calGetString("calendar", "genericErrorTitle"),
+                                  props.formatStringFromName('httpPutError',[channel.responseStatus, channel.responseStatusText],2));
         } else if (!channel && !Components.isSuccessCode(request.status)) {
             // XXX this should be made human-readable.
-            promptService.alert(null, calGetString("calendar", "genericErrorTitle"),
-                                props.formatStringFromName('otherPutError',[request.status.toString(16)],1));
+            Services.prompt.alert(null, calGetString("calendar", "genericErrorTitle"),
+                                  props.formatStringFromName('otherPutError',[request.status.toString(16)],1));
         }
     },
 

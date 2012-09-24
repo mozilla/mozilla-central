@@ -13,6 +13,7 @@
  */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // Set this to true when the calendar event tree is clicked to allow for
@@ -188,9 +189,7 @@ function prepareCalendarUnifinder() {
     let unifinderTree = document.getElementById("unifinder-search-results-tree");
 
     // Add pref observer
-    let prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                .getService(Components.interfaces.nsIPrefService);
-    let branch = prefService.getBranch("");
+    let branch = Services.prefs.getBranch("");
     branch.addObserver("calendar.", unifinderObserver, false);
 
     // Check if this is not the hidden window, which has no UI elements
@@ -246,9 +245,7 @@ function finishCalendarUnifinder() {
     ccalendar.removeObserver(unifinderObserver);
 
     // Remove pref observer
-    let prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                .getService(Components.interfaces.nsIPrefService);
-    let branch = prefService.getBranch("");
+    let branch = Services.prefs.getBranch("");
     branch.removeObserver("calendar.", unifinderObserver, false);
 
     let viewDeck = getViewDeck();

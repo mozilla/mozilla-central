@@ -121,22 +121,16 @@
       </property>
 
       <constructor><![CDATA[
-        var pb = Components.classes[
-            "@mozilla.org/preferences-service;1"]
-                .getService(
-                    Components.interfaces.nsIPrefBranch);
+        Components.utils.import("resource://gre/modules/Services.jsm");
+
         this.weekStartOffset = 0;
         try {
             this.weekStartOffset =
-                pb.getIntPref("calendar.week.start");
+                Services.prefs.getIntPref("calendar.week.start");
         } catch (ex) {
         }
-        var sbs = Components.classes[
-            "@mozilla.org/intl/stringbundle;1"]
-                .getService(
-                    Components.interfaces.nsIStringBundleService);
         var props =
-            sbs.createBundle(
+            Services.strings.createBundle(
                 "chrome://calendar/locale/dateFormat.properties");
         var mainbox =
             document.getAnonymousElementByAttribute(

@@ -4,6 +4,7 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const kHoursBetweenUpdates = 6;
@@ -220,13 +221,9 @@ calAlarmService.prototype = {
             return;
         }
 
-        let observerSvc = Components.classes["@mozilla.org/observer-service;1"]
-                          .getService
-                          (Components.interfaces.nsIObserverService);
-
-        observerSvc.addObserver(this, "profile-after-change", false);
-        observerSvc.addObserver(this, "xpcom-shutdown", false);
-        observerSvc.addObserver(this, "wake_notification", false);
+        Services.obs.addObserver(this, "profile-after-change", false);
+        Services.obs.addObserver(this, "xpcom-shutdown", false);
+        Services.obs.addObserver(this, "wake_notification", false);
 
         /* Tell people that we're alive so they can start monitoring alarms.
          */
@@ -302,12 +299,9 @@ calAlarmService.prototype = {
 
         this.mRangeEnd = null;
 
-        let observerSvc = Components.classes["@mozilla.org/observer-service;1"]
-                          .getService(Components.interfaces.nsIObserverService);
-
-        observerSvc.removeObserver(this, "profile-after-change");
-        observerSvc.removeObserver(this, "xpcom-shutdown");
-        observerSvc.removeObserver(this, "wake_notification");
+        Services.obs.removeObserver(this, "profile-after-change");
+        Services.obs.removeObserver(this, "xpcom-shutdown");
+        Services.obs.removeObserver(this, "wake_notification");
 
         this.mStarted = false;
     },

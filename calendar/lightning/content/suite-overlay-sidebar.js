@@ -2,13 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var ltnSuiteUtils = {
 
   addStartupObserver: function lSU_addStartupObserver() {
-    let obs = Components.classes["@mozilla.org/observer-service;1"]
-                        .getService(Components.interfaces.nsIObserverService);
-    obs.addObserver(this.startupObserver, "lightning-startup-done", false);
-    obs.addObserver(this.startupObserver, "calendar-taskview-startup-done",
+    Services.obs.addObserver(this.startupObserver, "lightning-startup-done", false);
+    Services.obs.addObserver(this.startupObserver, "calendar-taskview-startup-done",
                     false);
 
   },

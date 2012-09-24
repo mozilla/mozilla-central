@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var g_bShutdown = false;
 
@@ -63,22 +64,18 @@ function initLogging() {
                 }
             }
         };
-        var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                                   .getService(Components.interfaces.nsIPrefBranch);
-        prefBranch.addObserver("calendar.wcap.log_level", initLogging.mLogPrefObserver, false);
-        prefBranch.addObserver("calendar.wcap.log_file", initLogging.mLogPrefObserver, false);
-        prefBranch.addObserver("calendar.debug.log", initLogging.mLogPrefObserver, false);
+        Services.prefs.addObserver("calendar.wcap.log_level", initLogging.mLogPrefObserver, false);
+        Services.prefs.addObserver("calendar.wcap.log_file", initLogging.mLogPrefObserver, false);
+        Services.prefs.addObserver("calendar.debug.log", initLogging.mLogPrefObserver, false);
 
-        var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                        .getService(Components.interfaces.nsIObserverService);
         var appObserver = { // nsIObserver:
             observe: function app_observe(subject, topic, data) {
                 if (topic == "quit-application") {
-                    prefBranch.removeObserver("calendar.", initLogging.mLogPrefObserver);
+                    Services.prefs.removeObserver("calendar.", initLogging.mLogPrefObserver);
                 }
             }
         };
-        observerService.addObserver(appObserver, "quit-application", false);
+        Services.obs.addObserver(appObserver, "quit-application", false);
     }
 }
 
@@ -97,7 +94,7 @@ function log(msg, context, bForce) {
             now = now.getInTimezone(initLogging.mLogTimezone);
         }
         var str = ("### WCAP log entry: " + now + "\n" + ret);
-        getConsoleService().logStringMessage(str);
+        Services.console.logStringMessage(str);
         str = ("\n" + str + "\n");
         dump(str);
         if (initLogging.mLogFilestream) {
@@ -108,7 +105,7 @@ function log(msg, context, bForce) {
             } catch (exc) { // catching any io errors here:
                 var err = ("error writing log file: " + errorToString(exc));
                 Components.utils.reportError(exc);
-                getConsoleService().logStringMessage(err);
+                Services.console.logStringMessage(err);
                 dump(err  + "\n\n");
             }
         }
@@ -126,7 +123,7 @@ function logWarning(err, context) {
                      null, null, 0, 0,
                      Components.interfaces.nsIScriptError.warningFlag,
                      "component javascript");
-    getConsoleService().logMessage(scriptError);
+    Services.console.logMessage(scriptError);
     return msg;
 }
 
@@ -138,14 +135,6 @@ function logError(err, context) {
 }
 
 // late-inited service accessors:
-
-function getWindowWatcher() {
-    if (!getWindowWatcher.m_obj) {
-        getWindowWatcher.m_obj = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                                           .getService(Components.interfaces.nsIWindowWatcher);
-    }
-    return getWindowWatcher.m_obj;
-}
 
 function getCalendarSearchService() {
     if (!getCalendarSearchService.m_obj) {

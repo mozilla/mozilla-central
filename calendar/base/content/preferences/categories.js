@@ -4,11 +4,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var gCategoryList;
-var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                    .getService(Components.interfaces.nsIPrefService);
-var categoryPrefBranch = prefService.getBranch("calendar.category.color.");
+var categoryPrefBranch = Services.prefs.getBranch("calendar.category.color.");
 
 /**
  * Global Object to hold methods for the categories pref pane
@@ -178,14 +177,11 @@ var gCategoriesPane = {
         var list = document.getElementById("categorieslist");
         // Check to make sure another category doesn't have the same name
         var toBeDeleted = -1;
-        var promptService = 
-             Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                       .getService(Components.interfaces.nsIPromptService);
         for (var i=0; i < gCategoryList.length; i++) {
             if (i == list.selectedIndex)
                 continue;
             if (categoryName.toLowerCase() == gCategoryList[i].toLowerCase()) {
-                if (promptService.confirm(null, overwriteTitle, overwrite)) {
+                if (Services.prompt.confirm(null, overwriteTitle, overwrite)) {
                     if (list.selectedIndex != -1)
                         // Don't delete the old category yet. It will mess up indices.
                         toBeDeleted = list.selectedIndex;
@@ -197,7 +193,7 @@ var gCategoriesPane = {
         }
 
         if (categoryName.length == 0) {
-            promptService.alert(null, null, noBlankCategories);
+            Services.prompt.alert(null, null, noBlankCategories);
             return;
         }
 

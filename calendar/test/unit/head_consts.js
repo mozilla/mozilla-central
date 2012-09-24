@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
@@ -79,7 +81,7 @@ function getStorageCal() {
     db.append("test_storage.sqlite");
 
     // create URI
-    var uri = cal.getIOService().newFileURI(db);
+    var uri = Services.io.newFileURI(db);
 
     // Make sure timezone service is initialized
     Components.classes["@mozilla.org/calendar/timezone-service;1"]

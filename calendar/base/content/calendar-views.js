@@ -4,6 +4,7 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 /**
  * Controller for the views
@@ -416,14 +417,12 @@ function scheduleMidnightUpdate(aRefreshCallback) {
         };
 
         // Add observer
-        var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                        .getService(Components.interfaces.nsIObserverService);
-        observerService.addObserver(wakeObserver, "wake_notification", false);
+        Services.obs.addObserver(wakeObserver, "wake_notification", false);
 
         // Remove observer on unload
         window.addEventListener("unload",
                                 function() {
-                                    observerService.removeObserver(wakeObserver, "wake_notification");
+                                    Services.obs.removeObserver(wakeObserver, "wake_notification");
                                 }, false);
         gMidnightTimer = Components.classes["@mozilla.org/timer;1"]
                                    .createInstance(Components.interfaces.nsITimer);
@@ -496,9 +495,7 @@ var categoryManagement = {
     },
 
     initCategories: function cM_initCategories() {
-      let prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                  .getService(Components.interfaces.nsIPrefService);
-      categoryPrefBranch = prefService.getBranch("calendar.category.color.");
+      categoryPrefBranch = Services.prefs.getBranch("calendar.category.color.");
       let categories = categoryPrefBranch.getChildList("");
 
       // Fix illegally formatted category prefs.
@@ -524,9 +521,7 @@ var categoryManagement = {
     },
 
     cleanupCategories: function cM_cleanupCategories() {
-      let prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                  .getService(Components.interfaces.nsIPrefService);
-      categoryPrefBranch = prefService.getBranch("calendar.category.color.");
+      categoryPrefBranch = Services.prefs.getBranch("calendar.category.color.");
       categoryPrefBranch.removeObserver("", categoryManagement);
     },
 

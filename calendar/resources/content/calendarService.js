@@ -14,6 +14,7 @@
  *    that webcal:// links have the content type text/calendar (BogusChannel)
  */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
@@ -51,10 +52,8 @@ CLineService.prototype = {
     handle : function service_handle(cmdLine) {
         if (!cmdLine.preventDefault) {
             // just pass all arguments on to the Sunbird window
-            let wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                                   .getService(Components.interfaces.nsIWindowWatcher);
-            wwatch.openWindow(null, "chrome://sunbird/content/calendar.xul",
-                                  "_blank", "chrome,dialog=no,all", cmdLine);
+            Services.ww.openWindow(null, "chrome://sunbird/content/calendar.xul",
+                                   "_blank", "chrome,dialog=no,all", cmdLine);
             cmdLine.preventDefault = true;
         }
     },
@@ -117,9 +116,7 @@ ICALContentHandler.prototype = {
         if (w) {
             w.focus();
         } else {
-            let ass = Components.classes["@mozilla.org/appshell/appShellService;1"]
-                                .getService(Components.interfaces.nsIAppShellService);
-            w = ass.hiddenDOMWindow;
+            w = Services.appshell.hiddenDOMWindow;
 
             let args = {};
             args.channel = channel;

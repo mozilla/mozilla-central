@@ -17,6 +17,8 @@
      indicating that there is no further continuation
 */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 function generateRequestId() {
     if (!generateRequestId.mRequestPrefix) {
         generateRequestId.mRequestPrefix = (cal.getUUID() + "-");
@@ -410,8 +412,8 @@ function issueNetworkRequest(parentRequest, respFunc, url, bLogging) {
         parentRequest.attachSubRequest(netRequest);
     }
     try {
-        var uri = getIOService().newURI(url, null, null);
-        var channel = getIOService().newChannelFromURI(uri);
+        var uri = Services.io.newURI(url, null, null);
+        var channel = Services.io.newChannelFromURI(uri);
         netRequest.prepareChannel(channel);
         channel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
         channel.redirectionLimit = 3;

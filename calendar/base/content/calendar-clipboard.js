@@ -2,17 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
-
-/**
- * Gets the clipboard service.
- * @see nsIClipboard
- * @return          The clipboard service.
- */
-function getClipboard() {
-    return Components.classes["@mozilla.org/widget/clipboard;1"]
-                     .getService(Components.interfaces.nsIClipboard);
-}
 
 /**
  * Test if a writable calendar is selected, and if the clipboard has items that
@@ -28,9 +19,9 @@ function canPaste() {
     }
 
     const flavors = ["text/calendar", "text/unicode"];
-    return getClipboard().hasDataMatchingFlavors(flavors,
-                                                 flavors.length,
-                                                 Components.interfaces.nsIClipboard.kGlobalClipboard);
+    return Services.clipboard.hasDataMatchingFlavors(flavors,
+                                                     flavors.length,
+                                                     Components.interfaces.nsIClipboard.kGlobalClipboard);
 }
 
 /**
@@ -67,7 +58,7 @@ function copyToClipboard(calendarItemArray) {
     icsSerializer.addItems(calendarItemArray, calendarItemArray.length);
     let icsString = icsSerializer.serializeToString();
 
-    let clipboard = getClipboard();
+    let clipboard = Services.clipboard;
     let trans = Components.classes["@mozilla.org/widget/transferable;1"]
                           .createInstance(Components.interfaces.nsITransferable);
 
@@ -109,7 +100,7 @@ function pasteFromClipboard() {
         return;
     }
 
-    let clipboard = getClipboard();
+    let clipboard = Services.clipboard;
     let trans = Components.classes["@mozilla.org/widget/transferable;1"]
                           .createInstance(Components.interfaces.nsITransferable);
 
