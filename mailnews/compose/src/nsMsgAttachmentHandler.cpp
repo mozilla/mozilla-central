@@ -726,13 +726,13 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
 
   nsresult rv = aSourceFile->GetFileType(&type);
   if (NS_FAILED(rv))
-    return false;
+    return rv;
   PR_snprintf(fileInfo, sizeof(fileInfo), "%X", type);
   m_xMacType = fileInfo;
 
   rv = aSourceFile->GetFileCreator(&creator);
   if (NS_FAILED(rv))
-    return false;
+    return rv;
   PR_snprintf(fileInfo, sizeof(fileInfo), "%X", creator);
   m_xMacCreator = fileInfo;
 
@@ -839,7 +839,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
 
     int32_t count;
 
-    nsresult status = noErr;
+    OSErr status = noErr;
     m_size = 0;
     while (status == noErr)
     {
@@ -852,7 +852,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
         uint32_t bytesWritten;
         obj->fileStream->Write(obj->buff, count, &bytesWritten);
         if (bytesWritten != (uint32_t) count)
-          status = NS_MSG_ERROR_WRITING_FILE;
+          status = errFileWrite;
       }
     }
 

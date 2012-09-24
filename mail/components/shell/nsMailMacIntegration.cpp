@@ -55,12 +55,12 @@ nsMailMacIntegration::SetDefaultClient(bool aForAllUsers, uint16_t aApps)
 {
   nsresult rv = NS_OK;
   if (aApps & nsIShellService::MAIL)
-    rv |= setAsDefaultHandlerForProtocol(CFSTR("mailto"));
-  if (aApps & nsIShellService::NEWS)
-    rv |= setAsDefaultHandlerForProtocol(CFSTR("news"));
-  if (aApps & nsIShellService::RSS)
-    rv |= setAsDefaultHandlerForProtocol(CFSTR("feed"));
-  
+    rv = setAsDefaultHandlerForProtocol(CFSTR("mailto"));    
+  if (NS_SUCCEEDED(rv) && aApps & nsIShellService::NEWS)
+    rv = setAsDefaultHandlerForProtocol(CFSTR("news"));
+  if (NS_SUCCEEDED(rv) && aApps & nsIShellService::RSS)
+    rv = setAsDefaultHandlerForProtocol(CFSTR("feed"));
+
   return rv;	
 }
 
