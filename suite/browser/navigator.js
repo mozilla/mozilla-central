@@ -517,8 +517,6 @@ function Startup()
     }
   }
 
-  //initConsoleListener();
-
   // Set a sane starting width/height for all resolutions on new profiles.
   if (!document.documentElement.hasAttribute("width")) {
     var defaultHeight = screen.availHeight;
@@ -1888,68 +1886,6 @@ function hiddenWindowStartup()
   gNavigatorBundle = document.getElementById("bundle_navigator");
   gNavigatorRegionBundle = document.getElementById("bundle_navigator_region");
   gBrandBundle = document.getElementById("bundle_brand");
-}
-
-var consoleListener = {
-  observe: function (aMsgObject)
-  {
-    const nsIScriptError = Components.interfaces.nsIScriptError;
-    var scriptError = aMsgObject.QueryInterface(nsIScriptError);
-    var isWarning = scriptError.flags & nsIScriptError.warningFlag != 0;
-    if (!isWarning) {
-      var statusbarDisplay = document.getElementById("statusbar-display");
-      statusbarDisplay.setAttribute("error", "true");
-      statusbarDisplay.addEventListener("click", loadErrorConsole, true);
-      statusbarDisplay.label = gNavigatorBundle.getString("jserror");
-      this.isShowingError = true;
-    }
-  },
-
-  // whether or not an error alert is being displayed
-  isShowingError: false
-};
-
-function initConsoleListener()
-{
-  /**
-   * XXX - console launch hookup requires some work that I'm not sure
-   * how to do.
-   *
-   *       1) ideally, the notification would disappear when the
-   *       document that had the error was flushed. how do I know when
-   *       this happens? All the nsIScriptError object I get tells me
-   *       is the URL. Where is it located in the content area?
-   *       2) the notification service should not display chrome
-   *       script errors.  web developers and users are not interested
-   *       in the failings of our shitty, exception unsafe js. One
-   *       could argue that this should also extend to the console by
-   *       default (although toggle-able via setting for chrome
-   *       authors) At any rate, no status indication should be given
-   *       for chrome script errors.
-   *
-   *       As a result I am commenting out this for the moment.
-   *
-
-  var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
-                                 .getService(Components.interfaces.nsIConsoleService);
-
-  if (consoleService)
-    consoleService.registerListener(consoleListener);
-  */
-}
-
-function loadErrorConsole(aEvent)
-{
-  if (aEvent.detail == 2)
-    toJavaScriptConsole();
-}
-
-function clearErrorNotification()
-{
-  var statusbarDisplay = document.getElementById("statusbar-display");
-  statusbarDisplay.removeAttribute("error");
-  statusbarDisplay.removeEventListener("click", loadErrorConsole, true);
-  consoleListener.isShowingError = false;
 }
 
 function checkForDirectoryListing()
