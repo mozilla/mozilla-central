@@ -12,8 +12,6 @@
 #ifndef nsIMimeObjectClassAccess_h_
 #define nsIMimeObjectClassAccess_h_
 
-#include "prtypes.h"
-
 // {C09EDB23-B7AF-11d2-B35E-525400E2D63A}
 #define NS_IMIME_OBJECT_CLASS_ACCESS_IID \
       { 0xc09edb23, 0xb7af, 0x11d2,   \

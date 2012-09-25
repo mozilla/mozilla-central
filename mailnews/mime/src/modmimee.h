@@ -11,7 +11,6 @@
 #ifndef _MIMEENC_H_
 #define _MIMEENC_H_
 
-#include "prtypes.h"
 #include "nsError.h"
 #include "nscore.h" // for nullptr
 #include "nsIMimeConverter.h" // for MimeConverterOutputCallback

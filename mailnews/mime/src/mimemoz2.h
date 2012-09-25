@@ -6,7 +6,6 @@
 #ifndef _MIMEMOZ_H_
 #define _MIMEMOZ_H_
 
-#include "prtypes.h"
 #include "nsStreamConverter.h"
 #include "nsIMimeEmitter.h"
 #include "nsIURI.h"

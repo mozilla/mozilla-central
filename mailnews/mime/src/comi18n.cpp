@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "prtypes.h"
 #include "prmem.h"
 #include "prlog.h"
 #include "prprf.h"

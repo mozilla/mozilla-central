@@ -22,7 +22,6 @@ typedef struct {
   bool        force_inline_display;
 } contentTypeHandlerInitStruct;
 
-#include "prtypes.h"
 #include "nsISupports.h"
 #include "mimecth.h"
 

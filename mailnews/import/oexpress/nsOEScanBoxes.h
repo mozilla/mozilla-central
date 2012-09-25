@@ -6,7 +6,6 @@
 #ifndef nsOEScanBoxes_h___
 #define nsOEScanBoxes_h___
 
-#include "prtypes.h"
 #include "nsStringGlue.h"
 #include "nsIImportModule.h"
 #include "nsVoidArray.h"

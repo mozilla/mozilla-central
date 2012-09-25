@@ -10,7 +10,6 @@
 #undef Bool
 #endif
 
-#include "prtypes.h"
 #include "nsStringGlue.h"
 #include "nsMailHeaders.h"
 #include "nsIMimeStreamConverter.h"

@@ -18,7 +18,6 @@
 #ifndef nsMimeContentTypeHandler_h_
 #define nsMimeContentTypeHandler_h_
 
-#include "prtypes.h"
 #include "nsIMimeContentTypeHandler.h"
 
 typedef MimeObjectClass  *

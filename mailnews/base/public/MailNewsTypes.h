@@ -7,7 +7,6 @@
 #define MailNewsTypes_h__
 
 #include "msgCore.h"
-#include "prtypes.h"
 #include "MailNewsTypes2.h"
 
 /* nsMsgKey is a unique ID for a particular message in a folder.  If you want

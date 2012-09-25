@@ -21,7 +21,6 @@
 #define nsMimeConverter_h_
 
 #include "nsISupports.h"
-#include "prtypes.h"
 #include "nsIMimeConverter.h"
 #include "nsICharsetConverterManager.h"
 #include "nsCOMPtr.h"

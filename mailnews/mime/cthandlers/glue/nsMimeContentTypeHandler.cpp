@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include "nscore.h"
 #include "plstr.h"
-#include "prtypes.h"
 //#include "mimecth.h"
 #include "nsMimeContentTypeHandler.h"
 

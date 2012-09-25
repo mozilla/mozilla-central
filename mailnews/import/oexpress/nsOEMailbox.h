@@ -7,7 +7,6 @@
 #define nsOEMailbox_h___
 
 #include "nscore.h"
-#include "prtypes.h"
 #include "nsStringGlue.h"
 #include "nsIFile.h"
 

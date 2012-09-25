@@ -9,7 +9,6 @@
 #ifndef _MIMECOM_H_
 #define _MIMECOM_H_
 
-#include "prtypes.h"
 #include "mozilla/StandardInteger.h"
 
 /*

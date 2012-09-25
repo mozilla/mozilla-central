@@ -13,7 +13,6 @@
 #define nsMimeObjectClassAccess_h_
 
 #include "nsISupports.h"
-#include "prtypes.h"
 #include "nsIMimeObjectClassAccess.h"
 
 class nsMimeObjectClassAccess : public nsIMimeObjectClassAccess {

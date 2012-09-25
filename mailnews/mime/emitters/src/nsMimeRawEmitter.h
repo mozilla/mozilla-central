@@ -5,7 +5,6 @@
 #ifndef _nsMimeRawEmitter_h_
 #define _nsMimeRawEmitter_h_
 
-#include "prtypes.h"
 #include "prio.h"
 #include "nsMimeBaseEmitter.h"
 #include "nsMimeRebuffer.h"

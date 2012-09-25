@@ -5,7 +5,6 @@
 #ifndef _nsMimeHtmlEmitter_h_
 #define _nsMimeHtmlEmitter_h_
 
-#include "prtypes.h"
 #include "prio.h"
 #include "nsMimeBaseEmitter.h"
 #include "nsMimeRebuffer.h"

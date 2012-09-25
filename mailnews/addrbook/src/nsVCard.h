@@ -45,10 +45,11 @@ DFARS 252.227-7013 or 48 CFR 52.227-19, as applicable.
 #ifndef __VCC_H__
 #define __VCC_H__ 1
 
-#include "prtypes.h"
 #include "nsVCardObj.h"
 
-PR_BEGIN_EXTERN_C
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 VObject* parse_MIME(const char *input, unsigned long len);
 
@@ -56,6 +57,8 @@ typedef void (*MimeErrorHandler)(char *);
 
 void registerMimeErrorHandler(MimeErrorHandler);
 
-PR_END_EXTERN_C
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __VCC_H__ */

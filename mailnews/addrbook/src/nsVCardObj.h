@@ -94,9 +94,9 @@ they will use an appropriately defined local type |vwchar_t|.
 
 typedef wchar_t vwchar_t;
 
-#include "prtypes.h"
-
-PR_BEGIN_EXTERN_C
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define VC7bitProp        "7bit"
 #define VC8bitProp        "8bit"
@@ -387,7 +387,9 @@ char* fakeCString(const vwchar_t *u);
 #define MAXPROPNAMESIZE 256
 #define MAXMOZPROPNAMESIZE 16
 
-PR_END_EXTERN_C
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __VOBJECT_H__ */
 
