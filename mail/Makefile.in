@@ -25,6 +25,12 @@ endif
 
 ifdef ENABLE_TESTS
 DIRS += test/mozmill
+
+check-sync-dirs::
+	@$(PYTHON) $(topsrcdir)/mozilla/js/src/config/check-sync-dirs.py \
+	   $(srcdir)/config/tooltool-manifests $(MOZILLA_SRCDIR)/browser/config/tooltool-manifests
+
+check:: check-sync-dirs
 endif
 
 include $(topsrcdir)/config/rules.mk
