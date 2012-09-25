@@ -11,10 +11,7 @@
   function done() { window.opener.done.apply(window.opener, arguments); }
   let e = {};
 
-  // Enable privileges so we can use nsIDOMWindowUtils interface
-  netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-  let dwu = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-                  .getInterface(Components.interfaces.nsIDOMWindowUtils);
+  let dwu = SpecialPowers.DOMWindowUtils;
 
   /*
     nsIDOMNodeList nodesFromRect(in float aX,
