@@ -93,7 +93,9 @@ function onLoadIFrame()
     QueryInterface(Components.interfaces.nsIInterfaceRequestor).
     getInterface(Components.interfaces.nsISelectionDisplay).
     QueryInterface(Components.interfaces.nsISelectionController);
-  var utils = SpecialPowers.getDOMWindowUtils(window);
+  var utils = window.
+    QueryInterface(Components.interfaces.nsIInterfaceRequestor).
+    getInterface(Components.interfaces.nsIDOMWindowUtils);
   const nsIDOMNode = Components.interfaces.nsIDOMNode;
 
   // move focus to the HTML editor

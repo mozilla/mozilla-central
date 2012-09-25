@@ -30,7 +30,8 @@ SimpleTest.waitForExplicitFinish();
 
 var testNum = 0;
 var dialogNum = 0;
-var utils = SpecialPowers.getDOMWindowUtils(window);
+var utils = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor).
+              getInterface(Components.interfaces.nsIDOMWindowUtils);
 
 function hasTabModalPrompts() {
   var prefName = "prompts.tab_modal.enabled";

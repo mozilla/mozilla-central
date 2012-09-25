@@ -19,11 +19,13 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=534149
 
 /** Test for Bug 534149 **/
 function getIDs(iframe) {
+  netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
   var win = iframe.contentWindow;
   // Force inner creation
   win.document;
 
-  var util = SpecialPowers.getDOMWindowUtils(win);
+  var util = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                .getInterface(Components.interfaces.nsIDOMWindowUtils);
   return [util.outerWindowID, util.currentInnerWindowID];
 }
 
@@ -44,16 +46,19 @@ var innerWindowDestroyID;
 var outerWindowDestroyID;
 
 function outerObserver(id) {
+  netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
   outerWindowDestroyID =
-    SpecialPowers.wrap(id).QueryInterface(Components.interfaces.nsISupportsPRUint64).data;
+    id.QueryInterface(Components.interfaces.nsISupportsPRUint64).data;
 }
 function innerObserver(id) {
+  netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
   innerWindowDestroyID =
-   SpecialPowers.wrap(id).QueryInterface(Components.interfaces.nsISupportsPRUint64).data;
+   id.QueryInterface(Components.interfaces.nsISupportsPRUint64).data;
 }
 
 function removeFrame(iframe) {
-  var obsSvc = SpecialPowers.wrap(Components).classes["@mozilla.org/observer-service;1"]
+  netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+  var obsSvc = Components.classes["@mozilla.org/observer-service;1"]
                          .getService(Components.interfaces.nsIObserverService);
   obsSvc.addObserver(outerObserver, "outer-window-destroyed", false);
   obsSvc.addObserver(innerObserver, "inner-window-destroyed", false);
@@ -66,7 +71,8 @@ SimpleTest.waitForExplicitFinish();
 SimpleTest.executeSoon(function() {
   is(innerWindowDestroyID, i1inner, "inner window of frame 1 should be destroyed");
   is(outerWindowDestroyID, i1outer, "outer window of frame 1 should be destroyed");
-  var obsSvc = SpecialPowers.wrap(Components).classes["@mozilla.org/observer-service;1"]
+  netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+  var obsSvc = Components.classes["@mozilla.org/observer-service;1"]
                          .getService(Components.interfaces.nsIObserverService);
   obsSvc.removeObserver(outerObserver, "outer-window-destroyed");
   obsSvc.removeObserver(innerObserver, "inner-window-destroyed");

@@ -159,10 +159,6 @@ nsDOMWindowUtils::GetPresContext()
 NS_IMETHODIMP
 nsDOMWindowUtils::GetImageAnimationMode(PRUint16 *aMode)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   NS_ENSURE_ARG_POINTER(aMode);
   *aMode = 0;
   nsPresContext* presContext = GetPresContext();
@@ -176,10 +172,6 @@ nsDOMWindowUtils::GetImageAnimationMode(PRUint16 *aMode)
 NS_IMETHODIMP
 nsDOMWindowUtils::SetImageAnimationMode(PRUint16 aMode)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   nsPresContext* presContext = GetPresContext();
   if (presContext) {
     presContext->SetImageAnimationMode(aMode);
@@ -229,10 +221,6 @@ nsDOMWindowUtils::GetDocumentMetadata(const nsAString& aName,
 NS_IMETHODIMP
 nsDOMWindowUtils::Redraw(PRUint32 aCount, PRUint32 *aDurationOut)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   if (aCount == 0)
     aCount = 1;
 
@@ -774,10 +762,6 @@ nsDOMWindowUtils::CycleCollect(nsICycleCollectorListener *aListener)
 NS_IMETHODIMP
 nsDOMWindowUtils::ProcessUpdates()
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   nsPresContext* presContext = GetPresContext();
   if (!presContext)
     return NS_ERROR_UNEXPECTED;
@@ -865,10 +849,6 @@ nsDOMWindowUtils::ElementFromPoint(float aX, float aY,
                                    bool aFlushLayout,
                                    nsIDOMElement** aReturn)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   nsCOMPtr<nsIDocument> doc(do_QueryInterface(mWindow->GetExtantDocument()));
   NS_ENSURE_STATE(doc);
 
@@ -884,10 +864,6 @@ nsDOMWindowUtils::NodesFromRect(float aX, float aY,
                                 bool aFlushLayout,
                                 nsIDOMNodeList** aReturn)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   nsCOMPtr<nsIDocument> doc(do_QueryInterface(mWindow->GetExtantDocument()));
   NS_ENSURE_STATE(doc);
 
@@ -978,11 +954,6 @@ nsDOMWindowUtils::CompareCanvases(nsIDOMHTMLCanvasElement *aCanvas1,
 NS_IMETHODIMP
 nsDOMWindowUtils::GetIsMozAfterPaintPending(bool *aResult)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
-  NS_ENSURE_ARG_POINTER(aResult);
   *aResult = false;
   nsPresContext* presContext = GetPresContext();
   if (!presContext)
@@ -994,10 +965,6 @@ nsDOMWindowUtils::GetIsMozAfterPaintPending(bool *aResult)
 NS_IMETHODIMP
 nsDOMWindowUtils::ClearMozAfterPaintEvents()
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   nsPresContext* presContext = GetPresContext();
   if (!presContext)
     return NS_OK;
@@ -1044,10 +1011,6 @@ nsDOMWindowUtils::SuppressEventHandling(bool aSuppress)
 NS_IMETHODIMP
 nsDOMWindowUtils::GetScrollXY(bool aFlushLayout, PRInt32* aScrollX, PRInt32* aScrollY)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   nsCOMPtr<nsIDocument> doc(do_QueryInterface(mWindow->GetExtantDocument()));
   NS_ENSURE_STATE(doc);
 
@@ -1073,10 +1036,6 @@ nsDOMWindowUtils::GetScrollXY(bool aFlushLayout, PRInt32* aScrollX, PRInt32* aSc
 NS_IMETHODIMP
 nsDOMWindowUtils::GetIMEIsOpen(bool *aState)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   NS_ENSURE_ARG_POINTER(aState);
 
   nsCOMPtr<nsIWidget> widget = GetWidget();
@@ -1096,10 +1055,6 @@ nsDOMWindowUtils::GetIMEIsOpen(bool *aState)
 NS_IMETHODIMP
 nsDOMWindowUtils::GetIMEStatus(PRUint32 *aState)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   NS_ENSURE_ARG_POINTER(aState);
 
   nsCOMPtr<nsIWidget> widget = GetWidget();
@@ -1117,10 +1072,6 @@ nsDOMWindowUtils::GetIMEStatus(PRUint32 *aState)
 NS_IMETHODIMP
 nsDOMWindowUtils::GetFocusedInputType(char** aType)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   NS_ENSURE_ARG_POINTER(aType);
 
   nsCOMPtr<nsIWidget> widget = GetWidget();
@@ -1140,10 +1091,6 @@ NS_IMETHODIMP
 nsDOMWindowUtils::FindElementWithViewId(nsViewID aID,
                                         nsIDOMElement** aResult)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   if (aID == FrameMetrics::ROOT_SCROLL_ID) {
     nsPresContext* presContext = GetPresContext();
     if (!presContext) {
@@ -1566,10 +1513,6 @@ nsDOMWindowUtils::GetVisitedDependentComputedStyle(
 NS_IMETHODIMP
 nsDOMWindowUtils::EnterModalState()
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   mWindow->EnterModalState();
   return NS_OK;
 }
@@ -1577,10 +1520,6 @@ nsDOMWindowUtils::EnterModalState()
 NS_IMETHODIMP
 nsDOMWindowUtils::LeaveModalState()
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   mWindow->LeaveModalState(nsnull);
   return NS_OK;
 }
@@ -1588,10 +1527,6 @@ nsDOMWindowUtils::LeaveModalState()
 NS_IMETHODIMP
 nsDOMWindowUtils::EnterModalStateWithWindow(nsIDOMWindow **aWindow)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   *aWindow = mWindow->EnterModalState();
   NS_IF_ADDREF(*aWindow);
   return NS_OK;
@@ -1600,10 +1535,6 @@ nsDOMWindowUtils::EnterModalStateWithWindow(nsIDOMWindow **aWindow)
 NS_IMETHODIMP
 nsDOMWindowUtils::LeaveModalStateWithWindow(nsIDOMWindow *aWindow)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   NS_ENSURE_ARG_POINTER(aWindow);
   mWindow->LeaveModalState(aWindow);
   return NS_OK;
@@ -1612,10 +1543,6 @@ nsDOMWindowUtils::LeaveModalStateWithWindow(nsIDOMWindow *aWindow)
 NS_IMETHODIMP
 nsDOMWindowUtils::IsInModalState(bool *retval)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   *retval = mWindow->IsInModalState();
   return NS_OK;
 }
@@ -1623,6 +1550,7 @@ nsDOMWindowUtils::IsInModalState(bool *retval)
 NS_IMETHODIMP
 nsDOMWindowUtils::GetParent()
 {
+  // This wasn't privileged in the past, but better to expose less than more.
   if (!IsUniversalXPConnectCapable()) {
     return NS_ERROR_DOM_SECURITY_ERR;
   }
@@ -1681,10 +1609,6 @@ nsDOMWindowUtils::GetParent()
 NS_IMETHODIMP
 nsDOMWindowUtils::GetOuterWindowID(PRUint64 *aWindowID)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   NS_ASSERTION(mWindow->IsOuterWindow(), "How did that happen?");
   *aWindowID = mWindow->WindowID();
   return NS_OK;
@@ -1693,10 +1617,6 @@ nsDOMWindowUtils::GetOuterWindowID(PRUint64 *aWindowID)
 NS_IMETHODIMP
 nsDOMWindowUtils::GetCurrentInnerWindowID(PRUint64 *aWindowID)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   NS_ASSERTION(mWindow->IsOuterWindow(), "How did that happen?");
   nsGlobalWindow* inner = mWindow->GetCurrentInnerWindowInternal();
   if (!inner) {
@@ -1733,10 +1653,6 @@ nsDOMWindowUtils::ResumeTimeouts()
 NS_IMETHODIMP
 nsDOMWindowUtils::GetLayerManagerType(nsAString& aType)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   nsCOMPtr<nsIWidget> widget = GetWidget();
   if (!widget)
     return NS_ERROR_FAILURE;
@@ -1849,10 +1765,6 @@ nsDOMWindowUtils::RenderDocument(const nsRect& aRect,
                                  nscolor aBackgroundColor,
                                  gfxContext* aThebesContext)
 {
-    if (!IsUniversalXPConnectCapable()) {
-      return NS_ERROR_DOM_SECURITY_ERR;
-    }
-
     // Get DOM Document
     nsresult rv;
     nsCOMPtr<nsIDOMDocument> ddoc;
@@ -1874,10 +1786,6 @@ nsDOMWindowUtils::RenderDocument(const nsRect& aRect,
 NS_IMETHODIMP 
 nsDOMWindowUtils::GetCursorType(PRInt16 *aCursor)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   NS_ENSURE_ARG_POINTER(aCursor);
 
   bool isSameDoc = false;
@@ -1934,10 +1842,6 @@ nsDOMWindowUtils::GoOnline()
 NS_IMETHODIMP
 nsDOMWindowUtils::GetDisplayDPI(float *aDPI)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   nsCOMPtr<nsIWidget> widget = GetWidget();
   if (!widget)
     return NS_ERROR_FAILURE;
@@ -1963,12 +1867,7 @@ nsDOMWindowUtils::GetOuterWindowWithId(PRUint64 aWindowID,
 
 NS_IMETHODIMP
 nsDOMWindowUtils::WrapDOMFile(nsIFile *aFile,
-                              nsIDOMFile **aDOMFile)
-{
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
+                              nsIDOMFile **aDOMFile) {
   NS_ADDREF(*aDOMFile = new nsDOMFileFile(aFile));
   return NS_OK;
 }
@@ -2054,10 +1953,6 @@ nsDOMWindowUtils::GetMayHaveTouchEventListeners(bool* aResult)
 NS_IMETHODIMP
 nsDOMWindowUtils::CheckAndClearPaintedState(nsIDOMElement* aElement, bool* aResult)
 {
-  if (!IsUniversalXPConnectCapable()) {
-    return NS_ERROR_DOM_SECURITY_ERR;
-  }
-
   if (!aElement) {
     return NS_ERROR_INVALID_ARG;
   }

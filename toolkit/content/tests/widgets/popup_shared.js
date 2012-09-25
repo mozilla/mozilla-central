@@ -52,7 +52,8 @@ function startPopupTests(tests)
   document.addEventListener("DOMMenuBarInactive", eventOccurred, false);
 
   gPopupTests = tests;
-  gWindowUtils = SpecialPowers.getDOMWindowUtils(window);
+  gWindowUtils = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                       .getInterface(Components.interfaces.nsIDOMWindowUtils);
 
   goNext();
 }
@@ -83,11 +84,15 @@ function is(left, right, message) {
 }
 
 function disableNonTestMouse(aDisable) {
+  netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+
   gWindowUtils.disableNonTestMouseEvents(aDisable);
 }
 
 function eventOccurred(event)
 {
+   netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+
   if (gPopupTests.length <= gTestIndex) {
     ok(false, "Extra " + event.type + " event fired");
     return;
