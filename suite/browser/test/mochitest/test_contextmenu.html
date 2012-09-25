@@ -19,8 +19,6 @@ Browser context menu tests.
 
 /** Test for Login Manager: multiple login autocomplete. **/
 
-netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
-
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
@@ -53,13 +51,13 @@ function executeCopyCommand(command, expectedValue)
 {
   // Just execute the command directly rather than simulating a context menu
   // press to avoid having to deal with its asynchronous nature
-  subwindow.controllers.getControllerForCommand(command).doCommand(command);
+  SpecialPowers.wrap(subwindow).controllers.getControllerForCommand(command).doCommand(command);
 
   // The easiest way to check the clipboard is to paste the contents into a
   // textbox
   input.focus();
   input.value = "";
-  input.controllers.getControllerForCommand("cmd_paste").doCommand("cmd_paste");
+  SpecialPowers.wrap(input).controllers.getControllerForCommand("cmd_paste").doCommand("cmd_paste");
   is(input.value, expectedValue, "paste for command " + command);
 }
 
@@ -788,8 +786,7 @@ var text, link, mailto, input, img, canvas, video_ok, video_bad, video_bad2,
 var img_link, img_mailto;
 
 function startTest() {
-    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
-    chromeWin = subwindow
+    chromeWin = SpecialPowers.wrap(subwindow)
                     .QueryInterface(Ci.nsIInterfaceRequestor)
                     .getInterface(Ci.nsIWebNavigation)
                     .QueryInterface(Ci.nsIDocShellTreeItem)
