@@ -153,7 +153,7 @@ var gDataMigrator = {
      */
     get dirService() {
         if (!this.mDirService) {
-            this.mDirService = Service.dirsvc;
+            this.mDirService = Services.dirsvc;
         }
         return this.mDirService;
     },
