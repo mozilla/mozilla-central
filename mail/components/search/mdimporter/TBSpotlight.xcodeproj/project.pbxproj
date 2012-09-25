@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 42;
+	objectVersion = 45;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -21,7 +21,7 @@
 		08FB77B6FE84183AC02AAC07 /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		0AA1909FFE8422F4C02AAC07 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 		2C05A19B06CAA52B00D84F6F /* GetMetadataForFile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GetMetadataForFile.c; sourceTree = "<group>"; };
-		8D576316048677EA00EA77CD /* Thunderbird.mdimporter */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Thunderbird.mdimporter; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D576316048677EA00EA77CD /* thunderbird.mdimporter */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = thunderbird.mdimporter; sourceTree = BUILT_PRODUCTS_DIR; };
 		8D576317048677EA00EA77CD /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C86B05260671AA6E00DD9006 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		C88FB7D7067446EC006EBB30 /* schema.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = schema.xml; sourceTree = "<group>"; };
@@ -84,7 +84,7 @@
 		19C28FB6FE9D52B211CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D576316048677EA00EA77CD /* Thunderbird.mdimporter */,
+				8D576316048677EA00EA77CD /* thunderbird.mdimporter */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -102,9 +102,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		8D57630D048677EA00EA77CD /* Thunderbird */ = {
+		8D57630D048677EA00EA77CD /* thunderbird */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 70138C840896BE9A00968C2F /* Build configuration list for PBXNativeTarget "Thunderbird" */;
+			buildConfigurationList = 70138C840896BE9A00968C2F /* Build configuration list for PBXNativeTarget "thunderbird" */;
 			buildPhases = (
 				8D57630E048677EA00EA77CD /* Headers */,
 				8D57630F048677EA00EA77CD /* Resources */,
@@ -119,7 +119,7 @@
 			name = thunderbird;
 			productInstallPath = /Library/Spotlight;
 			productName = TBSpotlight;
-			productReference = 8D576316048677EA00EA77CD /* Thunderbird.mdimporter */;
+			productReference = 8D576316048677EA00EA77CD /* thunderbird.mdimporter */;
 			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
@@ -127,12 +127,20 @@
 /* Begin PBXProject section */
 		089C1669FE841209C02AAC07 /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+			};
 			buildConfigurationList = 70138C880896BE9A00968C2F /* Build configuration list for PBXProject "TBSpotlight" */;
+			compatibilityVersion = "Xcode 3.1";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				en,
+			);
 			mainGroup = 089C166AFE841209C02AAC07 /* TBSpotlight */;
 			projectDirPath = "";
+			projectRoot = "";
 			targets = (
-				8D57630D048677EA00EA77CD /* Thunderbird */,
+				8D57630D048677EA00EA77CD /* thunderbird */,
 			);
 		};
 /* End PBXProject section */
@@ -195,9 +203,9 @@
 		70138C850896BE9A00968C2F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
@@ -213,10 +221,8 @@
 		70138C860896BE9A00968C2F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
@@ -231,13 +237,9 @@
 		70138C890896BE9A00968C2F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				PREBINDING = NO;
 				SDKROOT = "";
 			};
 			name = Debug;
@@ -245,13 +247,9 @@
 		70138C8A0896BE9A00968C2F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				PREBINDING = NO;
 				SDKROOT = "";
 			};
 			name = Release;
@@ -259,7 +257,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		70138C840896BE9A00968C2F /* Build configuration list for PBXNativeTarget "Thunderbird" */ = {
+		70138C840896BE9A00968C2F /* Build configuration list for PBXNativeTarget "thunderbird" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				70138C850896BE9A00968C2F /* Debug */,

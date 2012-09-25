@@ -21,15 +21,10 @@
 #include "nsISimpleEnumerator.h"
 
 #include <AddressBook/AddressBook.h>
-#if (MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_3)
-#define kABDeletedRecords @"ABDeletedRecords"
-#define kABUpdatedRecords @"ABUpdatedRecords"
-#define kABInsertedRecords @"ABInsertedRecords"
-#elif (MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_3)
+
 #define kABDeletedRecords (kABDeletedRecords? kABDeletedRecords : @"ABDeletedRecords")
 #define kABUpdatedRecords (kABUpdatedRecords ? kABUpdatedRecords : @"ABUpdatedRecords")
 #define kABInsertedRecords (kABInsertedRecords ? kABInsertedRecords : @"ABInsertedRecords")
-#endif
 
 /* Each nsAbOSXDirectory contains a lookup table for their respective
  * nsAbOSXCard's.  We set the initial size of that lookup table here.

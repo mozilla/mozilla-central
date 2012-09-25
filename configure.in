@@ -234,36 +234,12 @@ if test -n "$CROSS_COMPILE" && test "$target" != "$host"; then
     CFLAGS=$_SAVE_CFLAGS
     LDFLAGS=$_SAVE_LDFLAGS
 
-    case "$build:$target" in
-      powerpc-apple-darwin8*:i?86-apple-darwin*)
-        dnl The Darwin cross compiler doesn't necessarily point itself at a
-        dnl root that has libraries for the proper architecture, it defaults
-        dnl to the system root.  The libraries in the system root on current
-        dnl versions of PPC OS X 10.4 aren't fat, so these target compiler
-        dnl checks will fail.  Fake a working SDK in that case.
-        _SAVE_CFLAGS=$CFLAGS
-        _SAVE_CXXFLAGS=$CXXLAGS
-        CFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk $CFLAGS"
-        CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk $CXXFLAGS"
-        ;;
-    esac
-
     AC_CHECK_PROGS(CC, $CC "${target_alias}-gcc" "${target}-gcc", :)
     unset ac_cv_prog_CC
     AC_PROG_CC
     AC_CHECK_PROGS(CXX, $CXX "${target_alias}-g++" "${target}-g++", :)
     unset ac_cv_prog_CXX
     AC_PROG_CXX
-
-    case "$build:$target" in
-      powerpc-apple-darwin8*:i?86-apple-darwin*)
-        dnl Revert the changes made above.  From this point on, the target
-        dnl compiler will never be used without applying the SDK to CFLAGS
-        dnl (see --with-macos-sdk below).
-        CFLAGS=$_SAVE_CFLAGS
-        CXXFLAGS=$_SAVE_CXXFLAGS
-        ;;
-    esac
 
     AC_CHECK_PROGS(RANLIB, $RANLIB "${target_alias}-ranlib" "${target}-ranlib", :)
     AC_CHECK_PROGS(AR, $AR "${target_alias}-ar" "${target}-ar", :)
@@ -781,7 +757,7 @@ dnl Check for MacOS deployment target version
 dnl ========================================================
 
 MOZ_ARG_ENABLE_STRING(macos-target,
-                      [  --enable-macos-target=VER (default=10.5)
+                      [  --enable-macos-target=VER (default=10.6)
                           Set the minimum MacOS version needed at runtime],
                       [_MACOSX_DEPLOYMENT_TARGET=$enableval])
 
@@ -793,17 +769,7 @@ case "$target" in
     else
         dnl No value specified on the command line or in the environment,
         dnl use architecture minimum.
-        case "${target_cpu}" in
-          ppc*)
-            export MACOSX_DEPLOYMENT_TARGET=10.5
-            ;;
-          i*86)
-            export MACOSX_DEPLOYMENT_TARGET=10.5
-            ;;
-          x86_64)
-            export MACOSX_DEPLOYMENT_TARGET=10.6
-            ;;
-        esac
+        export MACOSX_DEPLOYMENT_TARGET=10.6
     fi
     ;;
 esac
@@ -1154,9 +1120,6 @@ UnixWare)
     ;;
 Darwin)
     case "${target_cpu}" in
-    powerpc*)
-        OS_TEST=ppc
-        ;;
     i*86*)
         OS_TEST=i386 
         ;;
@@ -4977,7 +4940,7 @@ case $target in
 i?86-*-mingw*|x86_64-*-mingw*)
   MOZ_CRASHREPORTER=1
   ;;
-i?86-apple-darwin*|powerpc-apple-darwin*|x86_64-apple-darwin*)
+i?86-apple-darwin*|x86_64-apple-darwin*)
   MOZ_CRASHREPORTER=1
   ;;
 i?86-*-linux*|x86_64-*-linux*|arm-*-linux*)
@@ -6853,7 +6816,7 @@ if test -n "$L10NBASEDIR"; then
     ac_configure_args="$ac_configure_args --with-l10n-base=$L10NBASEDIR"
 fi
 
-# for Mac universal builds, we need to call the Mozilla configure with MOZ_BUILD_APP=[ppc|i386]
+# for Mac universal builds, we need to call the Mozilla configure with MOZ_BUILD_APP=[i386|x86_64]
 MOZ_BUILD_APP_CACHED="$MOZ_BUILD_APP"
 if test -n "$MOZ_CURRENT_PROJECT"; then
     export MOZ_BUILD_APP="$MOZ_CURRENT_PROJECT"

@@ -11,15 +11,6 @@
 #include "nsServiceManagerUtils.h"
 
 #include <AddressBook/AddressBook.h>
-#if (MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_3)    
-#define kABPersonFlags nil
-#define kABShowAsCompany (0)
-#define kABNameOrderingMask (0)
-#define kABDefaultNameOrdering (-1)
-#define kABFirstNameFirst (-1)
-#define kABOtherDatesProperty nil
-#define kABAnniversaryLabel nil
-#endif
 
 NS_IMPL_ISUPPORTS_INHERITED1(nsAbOSXCard,
                              nsAbCardProperty,

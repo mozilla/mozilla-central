@@ -11,11 +11,7 @@
 using namespace mozilla;
 
 #include <AddressBook/AddressBook.h>
-#if (MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_3)
-#define kABDepartmentProperty @"ABDepartment"
-#elif (MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_3)
 #define kABDepartmentProperty (kABDepartmentProperty ? kABDepartmentProperty : @"ABDepartment")
-#endif
 
 NSString*
 WrapString(const nsString &aString)
