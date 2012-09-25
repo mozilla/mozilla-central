@@ -19,10 +19,11 @@ function PopulateFonts() {
                                .getService(Components.interfaces.nsIFontEnumerator);
     var localFontCount = { value: 0 }
     var localFonts = enumerator.EnumerateAllFonts(localFontCount);
-    for (var i = 0; i < localFonts.length; ++i) {
-      if (localFonts[i] != "") {
-        fontsList.appendItem(localFonts[i], localFonts[i]);
-      }
-    }
+    for (let font of localFonts)
+      fontsList.appendItem(font, font);
   } catch (ex) { }
+
+  // Select the item after the list is completely generated.
+  document.getElementById(fontsList.getAttribute("preference"))
+          .setElementValue(fontsList);
 }
