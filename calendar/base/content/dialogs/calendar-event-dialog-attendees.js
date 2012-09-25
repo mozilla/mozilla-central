@@ -27,10 +27,14 @@ function onLoad() {
     window.addEventListener("resize", onResize, true);
     window.addEventListener("modify", onModify, true);
     window.addEventListener("rowchange", onRowChange, true);
-    window.addEventListener("DOMMouseScroll", onMouseScroll, true);
     window.addEventListener("DOMAttrModified", onAttrModified, true);
     window.addEventListener("timebar", onTimebar, true);
     window.addEventListener("timechange", onTimeChange, true);
+
+    // As long as DOMMouseScroll is still implemented, we need to keep it
+    // around to make sure scrolling is blocked.
+    window.addEventListener("wheel", onMouseScroll, true);
+    window.addEventListener("DOMMouseScroll", onMouseScroll, true);
 
     var args = window.arguments[0];
     var startTime = args.startTime;
@@ -852,7 +856,7 @@ function onRowChange(event) {
 /**
  * Handler function to take care of mouse scrolling on the window
  *
- * @param event     The DOMMouseScroll event caused by scrolling.
+ * @param event     The wheel event caused by scrolling.
  */
 function onMouseScroll(event) {
     // ignore mouse scrolling for now...

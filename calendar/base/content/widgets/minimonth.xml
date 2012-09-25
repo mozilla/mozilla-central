@@ -135,26 +135,24 @@
      <implementation>
        <field name="kMinimonth">null</field>
        <field name="mPopup">null</field>
-       <field name="mScrollYearsHandler">{}</field>
+       <field name="mScrollYearsHandler">null</field>
+       <field name="mPixelScrollDelta">0</field>
        <constructor><![CDATA[
          this.kMinimonth = getParentNodeOrThis(this, "minimonth");
          document.getAnonymousElementByAttribute(this, "anonid", "back-button").kMinimonth = this.kMinimonth;
          document.getAnonymousElementByAttribute(this, "anonid", "today-button").kMinimonth = this.kMinimonth;
          document.getAnonymousElementByAttribute(this, "anonid", "forward-button").kMinimonth = this.kMinimonth;
-         this.mScrollYearsHandler =  {
-             binding: this,
-             handleEvent: function scrollYears_handleEvent(event) {
-                 this.binding.scrollYears(event);
-             }
-         };
+
+         this.mScrollYearsHandler = this.scrollYears.bind(this);
          document.getAnonymousElementByAttribute(this, "anonid", "years-popup")
-                 .addEventListener("DOMMouseScroll", this.mScrollYearsHandler, true);
+                 .addEventListener("wheel", this.mScrollYearsHandler, true);
        ]]></constructor>
        <destructor><![CDATA[
          document.getAnonymousElementByAttribute(this, "anonid", "years-popup")
-                 .removeEventListener("DOMMouseScroll", this.mScrollYearsHandler, true);
-         this.mScrollYearsHandler.binding = null;
+                 .removeEventListener("wheel", this.mScrollYearsHandler, true);
+         this.mScrollYearsHandler = null;
        ]]></destructor>
+
        <method name="showPopupList">
          <parameter name="aEvent"/>
          <parameter name="aPopupAnonId"/>
@@ -214,18 +212,27 @@
          <parameter name="event"/>
          <body><![CDATA[
            let yearPopup = getParentNodeOrThis(event.target, "menupopup");
+           const pixelThreshold = 75;
            if (yearPopup) {
                let monthList = yearPopup.getElementsByAttribute("class", "minimonth-list");
                if (monthList && monthList.length > 0) {
-                   if (event.detail == UIEvent.SCROLL_PAGE_UP) {
-                     this.moveYears('up', monthList.length);
-                   } else if (event.detail == UIEvent.SCROLL_PAGE_DOWN) {
-                     this.moveYears('down', monthList.length);
-                   } else if (event.detail < 0) {
-                     this.moveYears('up', 1);
-                   } else if (event.detail > 0) {
-                     this.moveYears('down', 1);
+                   if (event.deltaMode == event.DOM_DELTA_PAGE) {
+                     let dir = (event.deltaY > 0 ? "up" : "down");
+                     this.moveYears(dir, Math.abs(event.deltaY) * monthList.length);
+                   } else if (event.deltaMode == event.DOM_DELTA_LINE) {
+                     let dir = (event.deltaY > 0 ? "up" : "down");
+                     this.moveYears(dir, 1);
+                   } else if (event.deltaMode == event.DOM_DELTA_PIXEL) {
+                     this.mPixelScrollDelta += event.deltaY;
+                     if (this.mPixelScrollDelta > pixelThreshold) {
+                        this.moveYears("down", 1);
+                        this.mPixelScrollDelta = 0;
+                     } else if (this.mPixelScrollDelta < -pixelThreshold) {
+                        this.moveYears("up", 1);
+                        this.mPixelScrollDelta = 0;
+                     }
                    }
+
                    event.stopPropagation();
                    event.preventDefault();
                }
@@ -406,6 +413,7 @@
       <field name="mDaymap">null</field>
       <field name="mValue">null</field>
       <field name="mEditorDate">null</field>
+      <field name="mPixelScrollDelta">0</field>
       <field name="mIsReadOnly">false</field>
       <field name="mObservesComposite">false</field>
       <constructor><![CDATA[
@@ -1108,23 +1116,36 @@
       </method>
     </implementation>
      <handlers>
-      <handler event="DOMMouseScroll">
+      <handler event="wheel">
         <![CDATA[
+          const pixelThreshold = 150;
+          let deltaView = 0;
           if (this.mIsReadOnly) {
             // No scrolling on readonly months
             return;
           }
-          var rows = event.detail;
-          if (rows == UIEvent.SCROLL_PAGE_UP) {
-            rows = -1;
-          } else if (rows == UIEvent.SCROLL_PAGE_DOWN) {
-            rows = 1;
-          } else {
-            // In this case event.detail contains the default number of lines
-            // to scroll.  We always want to only scroll 1 month though
-            rows = (rows > 0) ? 1 : -1;
+          if (event.deltaMode == event.DOM_DELTA_LINE ||
+              event.deltaMode == event.DOM_DELTA_PAGE) {
+              if (event.deltaY != 0) {
+                  deltaView = event.deltaY > 0 ? 1 : -1;
+              }
+          } else if (event.deltaMode == event.DOM_DELTA_PIXEL) {
+              this.mPixelScrollDelta += event.deltaY;
+              if (this.mPixelScrollDelta > pixelThreshold) {
+                  deltaView = 1;
+                  this.mPixelScrollDelta = 0;
+              } else if (this.mPixelScrollDelta < -pixelThreshold) {
+                  deltaView = -1;
+                  this.mPixelScrollDelta = 0;
+              }
           }
-          this.advanceMonth(rows);
+
+          if (deltaView != 0){
+              this.advanceMonth(deltaView);
+          }
+
+          event.stopPropagation();
+          event.preventDefault();
         ]]>
       </handler>
     </handlers>

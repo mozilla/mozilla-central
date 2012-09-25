@@ -2134,7 +2134,7 @@
         this.calendarView.selectedDateTime = newStart;
         event.stopPropagation();
       ]]></handler>
-      <handler event="DOMMouseScroll"><![CDATA[
+      <handler event="wheel"><![CDATA[
         if (this.getAttribute("orient") == "vertical") {
             // In vertical view (normal), don't let the parent multiday view
             // handle the scrolling in its bubbling phase. The default action
@@ -3732,14 +3732,26 @@
       <handler event="click" button="2"><![CDATA[
         this.selectedDateTime = null;
       ]]></handler>
-      <handler event="DOMMouseScroll" phase="bubbling"><![CDATA[
-        if (!event.ctrlKey &&
-            !event.shiftKey &&
-            !event.altKey &&
-            !event.metaKey) {
+      <handler event="wheel" phase="bubbling"><![CDATA[
+        if (!event.ctrlKey && !event.shiftKey &&
+            !event.altKey && !event.metaKey) {
             // Only shift hours if no modifier is pressed.
-            this.scrollToMinute(this.mFirstVisibleMinute +
-                                (event.detail < 0 ? -60 : 60));
+
+            let minute = this.mFirstVisibleMinute;
+            if (event.deltaMode == event.DOM_DELTA_LINE) {
+                if (this.rotated && event.deltaX != 0) {
+                    minute += event.deltaX < 0 ? -60 : 60;
+                } else if (!this.rotated && event.deltaY != 0) {
+                    minute += event.deltaY < 0 ? -60 : 60;
+                }
+            } else if (event.deltaMode == event.DOM_DELTA_PIXEL) {
+                if (this.rotated && event.deltaX != 0) {
+                   minute += Math.ceil(event.deltaX / this.mPixPerMin);
+                } else if (!this.rotated && event.deltaY != 0) {
+                   minute += Math.ceil(event.deltaY / this.mPixPerMin);
+                }
+            }
+            this.scrollToMinute(minute);
         }
 
         // We are taking care of scrolling, so prevent the default
