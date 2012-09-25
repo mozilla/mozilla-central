@@ -44,7 +44,7 @@ let cal = {
             scriptFile.append(script);
             let scriptUrlSpec = ioService.newFileURI(scriptFile).spec;
             try {
-                Services.scriptLoader.loadSubScript(scriptUrlSpec, scope);
+                Services.scriptloader.loadSubScript(scriptUrlSpec, scope);
             } catch (exc) {
                 Components.utils.reportError(exc + " (" + scriptUrlSpec + ")");
             }
