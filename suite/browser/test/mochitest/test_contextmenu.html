@@ -19,6 +19,8 @@ Browser context menu tests.
 
 /** Test for Login Manager: multiple login autocomplete. **/
 
+Components.utils.import("resource://gre/modules/InlineSpellChecker.jsm");
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
@@ -246,7 +248,7 @@ function runTest(testNum) {
 
     case 2:
         // Context menu for plain text
-        checkContextMenu(["popupwindow-reject",   true,
+        plainTextItems = ["popupwindow-reject",   true,
                           "---",                  null,
                           "context-back",         false,
                           "context-forward",      false,
@@ -261,7 +263,8 @@ function runTest(testNum) {
                           "context-selectall",    true,
                           "---",                  null,
                           "context-viewsource",   true,
-                          "context-viewinfo",     true]);
+                          "context-viewinfo",     true];
+        checkContextMenu(plainTextItems);
         closeContextMenu();
         openContextMenuFor(link); // Invoke context menu for next test.
         break;
@@ -538,10 +541,17 @@ function runTest(testNum) {
                                "context-viewframesource",   true,
                                "context-viewframeinfo",     true], null]));
         closeContextMenu();
-        openContextMenuFor(textarea, false, true); // Invoke context menu for next test, but wait for the spellcheck.
+        openContextMenuFor(text); // Invoke context menu for next test.
         break;
 
     case 15:
+        // Re-check context menu for plain text to make sure it hasn't changed
+        checkContextMenu(plainTextItems);
+        closeContextMenu();        
+        openContextMenuFor(textarea, false, true); // Invoke context menu for next test, but wait for the spellcheck.
+        break;
+
+    case 16:
         // Context menu for textarea
         checkContextMenu(["popupwindow-reject",  true,
                           "---",                 null,
@@ -566,11 +576,41 @@ function runTest(testNum) {
                                "---",                          null,
                                "spell-add-dictionaries",       true], null]);
 
+        contextMenu.ownerDocument.getElementById("spell-add-to-dictionary").doCommand(); // Add to dictionary
         closeContextMenu();
-        openContextMenuFor(contenteditable); // Invoke context menu for next test.
+        openContextMenuFor(textarea, false, true); // Invoke context menu for next test.
         break;
 
-    case 16:
+    case 17:
+        // Context menu for textarea after a word has been added
+        // to the dictionary
+        checkContextMenu(["popupwindow-reject",  true,
+                          "---",                 null,
+                          "spell-undo-add-to-dictionary", true,
+                          "---",                 null,
+                          "context-undo",        false,
+                          "context-redo",        false,
+                          "---",                 null,
+                          "context-cut",         false,
+                          "context-copy",        false,
+                          "context-paste",       null, // ignore clipboard state
+                          "context-delete",      false,
+                          "---",                 null,
+                          "context-selectall",   true,
+                          "---",                 null,
+                          "spell-check-enabled", true,
+                          "spell-dictionaries",  true,
+                              ["spell-check-dictionary-en-US", true,
+                               "---",                          null,
+                               "spell-add-dictionaries",       true], null,
+                         ]);
+
+        contextMenu.ownerDocument.getElementById("spell-undo-add-to-dictionary").doCommand(); // Undo add to dictionary
+        closeContextMenu();
+        openContextMenuFor(contenteditable);
+        break;
+
+    case 18:
         // Context menu for contenteditable
         checkContextMenu(["popupwindow-reject",  true,
                           "---",                 null,
@@ -599,7 +639,7 @@ function runTest(testNum) {
         openContextMenuFor(inputspell); // Invoke context menu for next test.
         break;
 
-    case 17:
+    case 19:
         // Context menu for spell-check input
         checkContextMenu(["popupwindow-reject",  true,
                           "---",                 null,
@@ -628,13 +668,13 @@ function runTest(testNum) {
         openContextMenuFor(link); // Invoke context menu for next test.
         break;
 
-    case 18:
+    case 20:
         executeCopyCommand("cmd_copyLink", "http://mozilla.com/");
         closeContextMenu();
         openContextMenuFor(pagemenu); // Invoke context menu for next test.
         break;
 
-    case 19:
+    case 21:
         // Context menu for element with assigned content context menu
         checkContextMenu(["+Plain item",          {type: "", icon: "", checked: false, disabled: false},
                           "+Disabled item",       {type: "", icon: "", checked: false, disabled: true},
@@ -678,7 +718,7 @@ function runTest(testNum) {
         openContextMenuFor(pagemenu, true); // Invoke context menu for next test.
         break;
 
-    case 20:
+    case 22:
         // Context menu for element with assigned content context menu
         // The shift key should bypass content context menu processing
         checkContextMenu(["popupwindow-reject",   true,
@@ -703,7 +743,7 @@ function runTest(testNum) {
         openContextMenuFor(img_link); // Invoke context menu for next test.
         break;
 
-    case 21:
+    case 23:
         // Context menu for an image with a link
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
@@ -732,7 +772,7 @@ function runTest(testNum) {
         openContextMenuFor(img_mailto); // Invoke context menu for next test.
         break;
 
-    case 22:
+    case 24:
         // Context menu for an image with a mailto: link
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
