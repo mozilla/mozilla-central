@@ -16,7 +16,7 @@
   <binding id="daypicker" display="xul:button"
            extends="chrome://global/content/bindings/button.xml#button-base">
     <resources>
-      <stylesheet src="chrome://calendar/content/calendar-daypicker.css"/>
+      <stylesheet src="chrome://calendar/skin/calendar-daypicker.css"/>
     </resources>
     <content>
       <xul:stack anonid="stackid" class="daystack" xbl:inherits="bottom,right">
