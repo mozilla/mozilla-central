@@ -376,7 +376,13 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
 
 .inline-toolbar toolbarpaletteitem toolbarseparator,
 .inline-toolbar toolbarseparator {
+  height: 24px;
+  margin-top: 1px;
   -moz-margin-start: 1px; /* make it symetrical */
+}
+
+.inline-toolbar toolbarspacer {
+  height: 20px;
 }
 
 .inline-toolbar {

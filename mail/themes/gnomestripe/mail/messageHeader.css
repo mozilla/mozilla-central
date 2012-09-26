@@ -72,6 +72,14 @@
   padding: 0;
 }
 
+.inline-toolbar toolbarseparator {
+  height: 28px;
+}
+
+.inline-toolbar toolbarspacer {
+  height: 23px;
+}
+
 #expandedsubjectBox > .headerValue {
   font-weight: bold;
 }

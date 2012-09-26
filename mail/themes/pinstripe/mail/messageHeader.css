@@ -435,6 +435,14 @@ toolbarpaletteitem #hdrDummyReplyButton {
   min-height: 14px !important;
 }
 
+.inline-toolbar toolbarseparator {
+  height: 20px;
+  margin-top: 2px;
+}
+
+.inline-toolbar toolbarspacer {
+  height: 22px;
+}
 
 .msgHeaderView-flat-button:hover {
   background-color: rgb(230,231,227);
