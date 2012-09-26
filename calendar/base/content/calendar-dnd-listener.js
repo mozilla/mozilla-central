@@ -204,6 +204,7 @@ calDNDBaseObserver.prototype = {
     onDrop: function calDNDDrop(aEvent, aTransferData, aDragSession) {
         var transferable = Components.classes["@mozilla.org/widget/transferable;1"]
                            .createInstance(Components.interfaces.nsITransferable);
+        transferable.init(null);
         transferable.addDataFlavor("text/calendar");
         transferable.addDataFlavor("text/x-moz-url");
         transferable.addDataFlavor("text/x-moz-message");
@@ -549,6 +550,7 @@ calTaskButtonDNDObserver.prototype = {
 function invokeEventDragSession(aItem, aXULBox) {
     let transfer = Components.classes["@mozilla.org/widget/transferable;1"]
                    .createInstance(Components.interfaces.nsITransferable);
+    transfer.init(null);
     transfer.addDataFlavor("text/calendar");
 
     let flavourProvider = {

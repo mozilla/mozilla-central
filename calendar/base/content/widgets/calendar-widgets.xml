@@ -480,6 +480,7 @@
          this.setAttribute("dropbox", "false");
          let transfer = Components.classes["@mozilla.org/widget/transferable;1"].
                         createInstance(Components.interfaces.nsITransferable);
+         transfer.init(null);
 
          if (isEvent(item)) {
              transfer.addDataFlavor("application/x-moz-cal-event");

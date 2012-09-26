@@ -64,6 +64,7 @@ function copyToClipboard(calendarItemArray) {
 
     if (trans && clipboard) {
         // Register supported data flavors
+        trans.init(null);
         trans.addDataFlavor("text/calendar");
         trans.addDataFlavor("text/unicode");
 
@@ -109,6 +110,7 @@ function pasteFromClipboard() {
     }
 
     // Register the wanted data flavors (highest fidelity first!)
+    trans.init(null);
     trans.addDataFlavor("text/calendar");
     trans.addDataFlavor("text/unicode");
 
