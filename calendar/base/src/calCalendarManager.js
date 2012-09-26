@@ -48,6 +48,7 @@ calCalendarManager.prototype = {
         return this.mCalendarCount;
     },
 
+    // calIStartupService:
     startup: function ccm_startup(aCompleteListener) {
         AddonManager.addAddonListener(gCalendarManagerAddonListener);
         this.checkAndMigrateDB();
@@ -80,8 +81,6 @@ calCalendarManager.prototype = {
 
         this.cleanupOfflineObservers();
 
-        Services.obs.removeObserver(this, "profile-after-change");
-        Services.obs.removeObserver(this, "profile-before-change");
         Services.obs.removeObserver(this, "http-on-modify-request");
 
         AddonManager.removeAddonListener(gCalendarManagerAddonListener);
@@ -125,12 +124,6 @@ calCalendarManager.prototype = {
 
     observe: function ccm_observe(aSubject, aTopic, aData) {
         switch (aTopic) {
-            case "profile-after-change":
-                this.startup();
-                break;
-            case "profile-before-change":
-                this.shutdown();
-                break;
             case "timer-callback":
                 // Refresh all the calendars that can be refreshed.
                 var cals = this.getCalendars({});
@@ -350,7 +343,7 @@ calCalendarManager.prototype = {
     checkAndMigrateDB: function calmgr_checkAndMigrateDB() {
         let storageSdb = Services.dirsvc.get("ProfD", Components.interfaces.nsILocalFile);
         storageSdb.append("storage.sdb");
-        db = Services.storage.openDatabase(storageSdb);
+        let db = Services.storage.openDatabase(storageSdb);
 
         db.beginTransactionAs(Components.interfaces.mozIStorageConnection.TRANSACTION_EXCLUSIVE);
         try {

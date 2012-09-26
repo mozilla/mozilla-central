@@ -113,7 +113,7 @@ calTimezoneService.prototype = {
         return cal.doQueryInterface(this, calTimezoneService.prototype, aIID, null, this);
     },
 
-    // nsIStartupService
+    // calIStartupService:
     startup: function startup(aCompleteListener) {
         this.ensureInitialized(aCompleteListener);
     },
@@ -122,8 +122,8 @@ calTimezoneService.prototype = {
         Services.prefs.removeObserver("calendar.timezone.local", this);
 
         try {
-            this.mDb.close();
-            this.mDb = null;
+            if (this.mSelectByTzid) { this.mSelectByTzid.finalize(); }
+            if (this.mDb) { this.mDb.close(); this.mDb = null; }
         } catch (e) {
             cal.ERROR("Error closing timezone database: " + e);
         }
