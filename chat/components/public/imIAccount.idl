@@ -17,14 +17,10 @@ interface purpleIProxyInfo;
  * Used to join chat rooms.
  */
 
-[ptr] native GHashTablePtr(GHashTable);
-
-[scriptable, uuid(ea7ab156-d25e-46cc-93ef-29f77b3c0795)]
+[scriptable, uuid(7e91accd-f04c-4787-9954-c7db4fb235fb)]
 interface prplIChatRoomFieldValues: nsISupports {
   AUTF8String getValue(in AUTF8String aIdentifier);
   void setValue(in AUTF8String aIdentifier, in AUTF8String aValue);
-
-  [noscript] readonly attribute GHashTablePtr hashTable;
 };
 
 [scriptable, uuid(19dff981-b125-4a70-bc1a-efc783d07137)]
