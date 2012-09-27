@@ -290,19 +290,22 @@ function delete_attachment(aComposeWindow, aIndex) {
  * @param aValue the value of the notification to look for.
  * @param aDisplayed true if the notification should be displayed, false
  *                   otherwise.
+ * @returns the notification if we're asserting that the notification is
+ *          displayed, and it actually shows up. Returns null otherwise.
  */
 function assert_notification_displayed(aController, aValue, aDisplayed) {
   let nb = aController.window
                       .document
                       .getElementById("attachmentNotificationBox");
   let hasNotification = false;
-
-  if (nb.getNotificationWithValue(aValue))
-    hasNotification = true;
+  let notification = nb.getNotificationWithValue(aValue);
+  let hasNotification = (notification != null)
 
   if (hasNotification != aDisplayed)
     throw new Error("Expected the notification with value " + aValue +
                     " to be " + (aDisplayed ? "shown" : "not shown"));
+
+  return notification;
 }
 
 /**
@@ -354,7 +357,7 @@ function wait_for_notification_to_show(aController, aValue) {
                       .document
                       .getElementById("attachmentNotificationBox");
 
-  aController.waitFor(function() nb.getNotificationWithValue(aValue),
+  aController.waitFor(function() nb.getNotificationWithValue(aValue) != null,
                       "Timed out waiting for notification with value " +
                       aValue + " to show.");
 }

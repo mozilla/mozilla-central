@@ -6,173 +6,179 @@
  * Tests that the attachment reminder works properly.
  */
 
-// make SOLO_TEST=composition/test-attachment-reminder.js mozmill-one
-
 const MODULE_NAME = "test-attachment-reminder";
 
 const RELATIVE_ROOT = "../shared-modules";
-const MODULE_REQUIRES = ["folder-display-helpers", "compose-helpers", "window-helpers"];
-var jumlib = {};
-Components.utils.import("resource://mozmill/modules/jum.js", jumlib);
-var elib = {};
-Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
+const MODULE_REQUIRES = ["folder-display-helpers",
+                         "compose-helpers",
+                         "window-helpers"];
 
-var composeHelper = null;
-var cwc = null; // compose window controller
+Cu.import("resource://gre/modules/Services.jsm");
 
-var setupModule = function (module) {
-  let fdh = collector.getModule("folder-display-helpers");
-  fdh.installInto(module);
-  composeHelper = collector.getModule("compose-helpers");
-  composeHelper.installInto(module);
+// I'm not sure why this is the ID. But it is. :/
+const kNotificationID = "1";
 
-  let wh = collector.getModule("window-helpers");
-  wh.installInto(module);
+function setupModule(module) {
+  collector.getModule("folder-display-helpers").installInto(module);
+  collector.getModule("compose-helpers").installInto(module);
+  collector.getModule("window-helpers").installInto(module);
 };
 
-function setupComposeWin(toAddr, subj, body) {
-  cwc.type(cwc.a("addressingWidget", {class: "addressingWidgetCell", crazyDeck: 1}), toAddr);
-  cwc.type(cwc.eid("msgSubject"), subj)
-  cwc.type(cwc.eid("content-frame"), body);
+function setupComposeWin(aCwc, toAddr, subj, body) {
+  aCwc.type(aCwc.a("addressingWidget",
+           {class: "addressingWidgetCell", crazyDeck: 1}), toAddr);
+  aCwc.type(aCwc.eid("msgSubject"), subj)
+  aCwc.type(aCwc.eid("content-frame"), body);
 }
 
-/** Test that the attachment works, in general. */
-function testAttachmentReminderPopsUpWhenItShould() {
-  // Disabled due to random timeouts, see bug 550843
-  return;
+/**
+ * Test that the attachment works, in general.
+ */
+function test_attachment_reminder_appears_properly() {
+  let cwc = open_compose_new_mail();
+  let notificationBox = cwc.e("attachmentNotificationBox");
 
-  cwc = composeHelper.open_compose_new_mail();
+  // There should be no notification yet.
+  assert_notification_displayed(cwc, kNotificationID, false);
 
-  setupComposeWin("test@example.org",
-                  "testing attachment reminder!",
+  setupComposeWin(cwc, "test@example.org", "testing attachment reminder!",
                   "Hjello! ");
 
   // Give the notification time to appear. It shouldn't.
   cwc.sleep(1100);
-  if (cwc.e("attachmentNotificationBox").currentNotification)
+  if (notificationBox.getNotificationWithValue(kNotificationID))
     throw new Error("Attachment notification shown when it shouldn't.");
 
   cwc.type(cwc.eid("content-frame"), "Seen this cool attachment?");
 
-  // Give the notification time to appear. It should now.
-  cwc.sleep(1100);
+    // Give the notification time to appear. It should now.
+  wait_for_notification_to_show(cwc, kNotificationID);
 
   // Click ok to be notified on send if no attachments are attached.
   cwc.click(cwc.eid("attachmentNotificationBox",
             {tagName: "button", label: "Remind Me Later"}));
 
   // Now try to send, make sure we get the alert.
-  plan_for_modal_dialog("commonDialog", clickOhIDid);
+  plan_for_modal_dialog("commonDialog", click_oh_i_did);
   cwc.click(cwc.eid("button-send"));
   wait_for_modal_dialog("commonDialog");
 
-  composeHelper.close_compose_window(cwc);
+  close_compose_window(cwc);
 }
 
-/** Test that the alert appears normally, but now after closing the notification. */
-function testAttachmentReminderDismissal() {
-  // Disabled due to random timeouts, see bug 550843
-  return;
+/**
+ * Test that the alert appears normally, but not after closing the
+ * notification.
+ */
+function test_attachment_reminder_dismissal() {
+  let cwc = open_compose_new_mail();
 
-  cwc = composeHelper.open_compose_new_mail();
+  // There should be no notification yet.
+  assert_notification_displayed(cwc, kNotificationID, false);
 
-  setupComposeWin("test@example.org",
-                  "popping up, eh?",
+  setupComposeWin(cwc, "test@example.org", "popping up, eh?",
                   "Hi there, remember the attachment!");
 
   // Give the notification time to appear.
-  cwc.sleep(1100);
-  if (!cwc.e("attachmentNotificationBox").currentNotification)
-    throw new Error("Attachment reminder now shown yet.");
+  wait_for_notification_to_show(cwc, kNotificationID);
 
-  // We didn't click the "Remind Me Later" - the alert should pop up on send anyway.
-  plan_for_modal_dialog("commonDialog", clickOhIDid);
+  // We didn't click the "Remind Me Later" - the alert should pop up
+  // on send anyway.
+  plan_for_modal_dialog("commonDialog", click_oh_i_did);
   cwc.click(cwc.eid("button-send"));
   wait_for_modal_dialog("commonDialog");
 
-  if (!cwc.e("attachmentNotificationBox").currentNotification)
-    throw new Error("No attachment notification shown going back to compose.");
-
-  // Close the notification - after this the alert shouldn't appear on send
-  // anymore.
-  cwc.e("attachmentNotificationBox").currentNotification.close();
-
-  clickSendAndHandleSendError(cwc);
+  let notification = assert_notification_displayed(cwc, kNotificationID,
+                                                   true);
+  notification.close();
+  click_send_and_handle_send_error(cwc);
 }
+// Disabling this test on Windows due to random timeouts on our Mozmill
+// testers.
+test_attachment_reminder_dismissal.EXCLUDED_PLATFORMS = ['winnt'];
 
-/** Test that the mail.compose.attachment_reminder_aggressive pref works. */
-function testAttachmentReminderAggressivePref() {
-  // Disabled due to random timeouts, see bug 550843
-  return;
+/**
+ * Test that the mail.compose.attachment_reminder_aggressive pref works.
+ */
+function test_attachment_reminder_aggressive_pref() {
+  const kPref = "mail.compose.attachment_reminder_aggressive";
+  Services.prefs.setBoolPref(kPref, false);
 
-  const PREF = "mail.compose.attachment_reminder_aggressive";
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                      .getService(Ci.nsIPrefService).getBranch(null);
-  prefBranch.setBoolPref(PREF, false);
+  let cwc = open_compose_new_mail();
 
-  cwc = composeHelper.open_compose_new_mail();
+  // There should be no notification yet.
+  assert_notification_displayed(cwc, kNotificationID, false);
 
-  setupComposeWin("test@example.org",
-                  "aggressive?",
+  setupComposeWin(cwc, "test@example.org", "aggressive?",
                   "Check this attachment!");
 
-  // Give the notification time to appear.
-  cwc.sleep(1100);
-  if (!cwc.e("attachmentNotificationBox").currentNotification)
-    throw new Error("No attachment notification shown with aggressive pref.");
-
-  clickSendAndHandleSendError(cwc);
+  wait_for_notification_to_show(cwc, kNotificationID);
+  click_send_and_handle_send_error(cwc);
 
   // Now reset the pref back to original value.
-  if (prefBranch.prefHasUserValue(PREF))
-    prefBranch.clearUserPref(PREF);
+  if (Services.prefs.prefHasUserValue(kPref))
+    Services.prefs.clearUserPref(kPref);
 }
+// Disabling this test on Windows due to random timeouts on our Mozmill
+// testers.
+test_attachment_reminder_aggressive_pref.EXCLUDED_PLATFORMS = ['winnt'];
 
-/** Test that clicking "No, Send Now" in the attachment reminder alert works. */
-function testNoSendNowSends() {
-  // Disabled due to random timeouts, see bug 550843
-  return;
+/**
+ * Test that clicking "No, Send Now" in the attachment reminder alert
+ * works.
+ */
+function test_no_send_now_sends() {
+  let cwc = open_compose_new_mail();
 
-  cwc = composeHelper.open_compose_new_mail();
-
-  setupComposeWin("test@example.org",
+  setupComposeWin(cwc, "test@example.org",
                   "will the 'No, Send Now' button work?",
                   "Hello, i got your attachment!");
 
-  // Give the notification time to appear.
-  cwc.sleep(1100);
+  wait_for_notification_to_show(cwc, kNotificationID);
 
   // Click the send button again, this time choose "No, Send Now".
-  plan_for_modal_dialog("commonDialog", clickNoSendNow);
+  plan_for_modal_dialog("commonDialog", click_no_send_now);
   cwc.click(cwc.eid("button-send"));
   wait_for_modal_dialog("commonDialog");
 
-  clickSendAndHandleSendError(cwc);
+  click_send_and_handle_send_error(cwc);
 }
+// Disabling this test on Windows due to random timeouts on our Mozmill
+// testers.
+test_no_send_now_sends.EXCLUDED_PLATFORMS = ['winnt'];
 
-/** Click the send button and handle the send error dialog popping up. */
-function clickSendAndHandleSendError(controller) {
+/**
+ * Click the send button and handle the send error dialog popping up.
+ */
+function click_send_and_handle_send_error(controller) {
   // XXX - we'll get a send error dialog:(
   // Close it, the compose window will close too.
-  plan_for_modal_dialog("commonDialog", clickOkOnSendError);
+  plan_for_modal_dialog("commonDialog", click_ok_on_send_error);
   controller.click(controller.eid("button-send"));
   wait_for_modal_dialog("commonDialog");
 }
 
-/** Click the "Oh, I Did!" button. */
-function clickOhIDid(controller) {
+/**
+ * Click the "Oh, I Did!" button in the attachment reminder dialog.
+ */
+function click_oh_i_did(controller) {
   controller.window.document.documentElement.getButton('extra1').doCommand();
 }
 
-/** Click the "No, Send Now" button */
-function clickNoSendNow(controller) {
+/**
+ * Click the "No, Send Now" button in the attachment reminder dialog.
+ */
+function click_no_send_now(controller) {
   controller.window.document.documentElement.getButton('accept').doCommand();
 }
 
-/** Click Ok in the Send Message Error dialog. */
-function clickOkOnSendError(controller) {
+/**
+ * Click Ok in the Send Message Error dialog.
+ */
+function click_ok_on_send_error(controller) {
   if (controller.window.document.title != "Send Message Error")
-    throw new Error("Not a send error dialog; title=" + controller.window.document.title);
+    throw new Error("Not a send error dialog; title=" +
+                    controller.window.document.title);
   controller.window.document.documentElement.getButton('accept').doCommand();
 }
 
