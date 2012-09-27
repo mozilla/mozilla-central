@@ -906,6 +906,9 @@ class CallCompiler : public BaseCompiler
         /* Snapshot the frameDepth before SplatApplyArgs modifies it. */
         uintN initialFrameDepth = f.regs.sp - f.fp()->slots();
 
+        /* Protect against accessing the IC if it may have been purged. */
+        RecompilationMonitor monitor(cx);
+
         /*
          * SplatApplyArgs has not been called, so we call it here before
          * potentially touching f.u.call.dynamicArgc.
@@ -917,7 +920,8 @@ class CallCompiler : public BaseCompiler
         } else {
             JS_ASSERT(!f.regs.inlined());
             JS_ASSERT(*f.regs.pc == JSOP_FUNAPPLY && GET_ARGC(f.regs.pc) == 2);
-            if (!ic::SplatApplyArgs(f))       /* updates regs.sp */
+            /* Updates regs.sp -- may cause GC. */
+            if (!ic::SplatApplyArgs(f))
                 THROWV(true);
             args = CallArgsFromSp(f.u.call.dynamicArgc, f.regs.sp);
         }
@@ -932,8 +936,6 @@ class CallCompiler : public BaseCompiler
 
         if (callingNew)
             args.thisv().setMagicWithObjectOrNullPayload(NULL);
-
-        RecompilationMonitor monitor(cx);
 
         if (!CallJSNative(cx, fun->u.n.native, args))
             THROWV(true);
