@@ -102,7 +102,7 @@ define CR
 
 endef
 
-$(eval $(subst ||,$(CR),$(shell $(TOPSRCDIR)/$(MOZCONFIG_LOADER) $(TOPSRCDIR) 2> $(TOPSRCDIR)/.mozconfig.out | sed 's/$$/||/')))
+$(eval $(subst ||,$(CR),$(shell _PYMAKE=$(.PYMAKE) $(TOPSRCDIR)/$(MOZCONFIG_LOADER) $(TOPSRCDIR) 2> $(TOPSRCDIR)/.mozconfig.out | sed 's/$$/||/')))
 
 ifndef MOZ_OBJDIR
   MOZ_OBJDIR = obj-$(CONFIG_GUESS)
