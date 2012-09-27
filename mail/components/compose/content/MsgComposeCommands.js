@@ -2450,6 +2450,7 @@ function ComposeUnload()
 
   RemoveMessageComposeOfflineQuitObserver();
   RemoveDirectoryServerObserver(null);
+  gAttachmentNotifier.shutdown();
 
   if (gCurrentIdentity)
     RemoveDirectoryServerObserver("mail.identity." + gCurrentIdentity.key);
@@ -4586,6 +4587,28 @@ function AutoSave()
 
 const gAttachmentNotifier =
 {
+  _obs: null,
+
+  init: function gAN_init(aDocument) {
+    if (this._obs)
+      this.shutdown();
+
+    this._obs = new MutationObserver(this);
+    this._obs.observe(aDocument, {
+      attributes: true,
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+  },
+
+  shutdown: function gAN_shutdown() {
+    if (this._obs)
+      this._obs.disconnect();
+
+    this._obs = null;
+  },
+
   event: {
     notify: function(timer)
     {
@@ -4596,8 +4619,7 @@ const gAttachmentNotifier =
   timer: Components.classes["@mozilla.org/timer;1"]
                    .createInstance(Components.interfaces.nsITimer),
 
-  EditAction: function EditAction()
-  {
+  handleMutations: function gAN_handleMutations(aMutations) {
     this.timer.cancel();
     this.timer.initWithCallback(this.event, 500,
                                 Components.interfaces.nsITimer.TYPE_ONE_SHOT);
@@ -4607,6 +4629,7 @@ const gAttachmentNotifier =
 function InitEditor()
 {
   var editor = GetCurrentEditor();
+
   editor.QueryInterface(nsIEditorStyleSheets);
   // We use addOverrideStyleSheet rather than addStyleSheet so that we get
   // a synchronous load, rather than having a late-finishing async load
@@ -4634,7 +4657,7 @@ function InitEditor()
   let dictSep = document.getElementById("spellCheckLanguageSeparator");
   gSpellChecker.addDictionaryListToMenu(dictMenu, dictSep);
 
-  editor.addEditorObserver(gAttachmentNotifier);
+  gAttachmentNotifier.init(editor.document);
 }
 
 // This function modifies gSpellChecker and updates the UI accordingly. It's
