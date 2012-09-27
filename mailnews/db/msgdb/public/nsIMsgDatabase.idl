@@ -45,7 +45,7 @@ interface nsIArray;
 typedef unsigned long nsMsgRetainByPreference;
 
 
-[scriptable, uuid(b01d6b3b-78c2-4958-b836-2259c76dbc24)]
+[scriptable, uuid(0bbe00df-17f8-4e36-8917-40172c3a95fc)]
 
 interface nsIMsgRetentionSettings : nsISupports
 {
@@ -269,6 +269,11 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
 
   nsIMsgDBHdr GetMsgHdrForKey(in nsMsgKey key);
   nsIMsgDBHdr getMsgHdrForMessageID(in string messageID);
+
+  /**
+   * get a message header for a Gmail message with the given X-GM-MSGID.
+   */
+  nsIMsgDBHdr GetMsgHdrForGMMsgID(in string aGmailMessageID);
   //Returns whether or not this database contains the given key
   boolean ContainsKey(in nsMsgKey key);
 

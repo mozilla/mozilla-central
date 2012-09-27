@@ -575,6 +575,7 @@ private:
   uint32_t mFolderHighestUID;
   uint32_t mFolderNumDeleted;
 
+  bool m_isGmailServer;
   nsTArray<nsCString> mCustomDBHeaders;
   bool    m_trackingTime;
   PRTime  m_startTime;

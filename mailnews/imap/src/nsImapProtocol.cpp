@@ -373,6 +373,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nullptr),
   m_hostSessionList = nullptr;
   m_flagState = nullptr;
   m_fetchBodyIdList = nullptr;
+  m_isGmailServer = false;
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
   NS_ASSERTION(prefBranch, "FAILED to create the preference service");
@@ -663,6 +664,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
     nsCOMPtr<nsIImapIncomingServer> imapServer = do_QueryInterface(server);
     nsCOMPtr<nsIStreamListener> aRealStreamListener = do_QueryInterface(aConsumer);
     m_runningUrl->GetMockChannel(getter_AddRefs(m_mockChannel));
+    imapServer->GetIsGMailServer(&m_isGmailServer);
     if (!m_mockChannel)
     {
       // there are several imap operations that aren't initiated via a nsIChannel::AsyncOpen call on the mock channel.
@@ -3411,6 +3413,8 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
         if (what)
         {
           commandString.Append(" %s (UID ");
+           if (m_isGmailServer)
+            commandString.Append("X-GM-MSGID X-GM-THRID X-GM-LABELS ");
           if (aolImapServer)
             commandString.Append(" XAOL.SIZE") ;
           else
@@ -4221,6 +4225,13 @@ NS_IMETHODIMP nsImapProtocol::GetFlagsForUID(uint32_t uid, bool *foundIt, imapMe
   return NS_OK;
 }
 
+NS_IMETHODIMP nsImapProtocol::GetFlagAndUidState(nsIImapFlagAndUidState **aFlagState)
+{
+  NS_ENSURE_ARG_POINTER(aFlagState);
+  NS_IF_ADDREF(*aFlagState = m_flagState);
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsImapProtocol::GetSupportedUserFlags(uint16_t *supportedFlags)
 {
   if (!supportedFlags)
@@ -4807,6 +4818,7 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
         m_runningUrl->SetOnlineSubDirSeparator(adoptedBoxSpec->mHierarchySeparator);
 
     }
+    NS_IF_RELEASE(adoptedBoxSpec);
     break;
   case kListingForCreate:
   case kNoOperationInProgress:

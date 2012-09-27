@@ -1258,6 +1258,62 @@ void nsImapServerResponseParser::msg_fetch()
           AdvanceToNextToken();
         }
       }
+      else if (!PL_strcasecmp(fNextToken, "X-GM-MSGID"))
+      {
+        AdvanceToNextToken();
+        if (!fNextToken)
+          SetSyntaxError(true);
+        else
+        {
+          fMsgID = CreateAtom();
+          AdvanceToNextToken();
+          nsCString msgIDValue;
+          msgIDValue.Assign(fMsgID);
+          if (fCurrentResponseUID == 0)
+            fFlagState->GetUidOfMessage(fFetchResponseIndex - 1, &fCurrentResponseUID);
+          fFlagState->SetCustomAttribute(fCurrentResponseUID,
+                                         NS_LITERAL_CSTRING("X-GM-MSGID"), msgIDValue);
+          PR_FREEIF(fMsgID);
+        }
+      }
+      else if (!PL_strcasecmp(fNextToken, "X-GM-THRID"))
+      {
+        AdvanceToNextToken();
+        if (!fNextToken)
+          SetSyntaxError(true);
+        else
+        {
+          fThreadID = CreateAtom();
+          AdvanceToNextToken();
+          nsCString threadIDValue;
+          threadIDValue.Assign(fThreadID);
+          if (fCurrentResponseUID == 0)
+            fFlagState->GetUidOfMessage(fFetchResponseIndex - 1, &fCurrentResponseUID);
+          fFlagState->SetCustomAttribute(fCurrentResponseUID,
+                                         NS_LITERAL_CSTRING("X-GM-THRID"), threadIDValue);
+          PR_FREEIF(fThreadID);
+        }
+      }
+      else if (!PL_strcasecmp(fNextToken, "X-GM-LABELS"))
+      {
+        AdvanceToNextToken();
+        if (!fNextToken)
+          SetSyntaxError(true);
+        else
+        {
+          fLabels = CreateParenGroup();
+          nsCString labelsValue;
+          labelsValue.Assign(fLabels);
+          labelsValue.Cut(0, 1);
+          labelsValue.Cut(labelsValue.Length()-1, 1);
+          if (fCurrentResponseUID == 0)
+            fFlagState->GetUidOfMessage(fFetchResponseIndex - 1, &fCurrentResponseUID);
+          fFlagState->SetCustomAttribute(fCurrentResponseUID,
+                                         NS_LITERAL_CSTRING("X-GM-LABELS"), labelsValue);
+          PR_FREEIF(fLabels);
+        }
+      }
+
       // I only fetch RFC822 so I should never see these BODY responses
       else if (!PL_strcasecmp(fNextToken, "BODY"))
         skip_to_CRLF(); // I never ask for this
@@ -1313,7 +1369,7 @@ void nsImapServerResponseParser::msg_fetch()
         {
           AdvanceToNextToken();
           char *fetchResult;
-          if (fNextToken[0] == '(') 
+          if (fNextToken[0] == '(')
             // look through the tokens until we find the closing ')'
             // we can have a result like the following:
             // ((A B) (C D) (E F))

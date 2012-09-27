@@ -4,11 +4,9 @@
 
 /*
  * Test to ensure that imap fetchCustomMsgAttribute function works properly
- * Bug 750012 
- * uses Gmail extensions as test case - also useful for bug 721316
  */
 
-// async support 
+// async support
 load("../../../resources/logHelper.js");
 load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
@@ -23,21 +21,19 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 // Messages to load must have CRLF line endings, that is Windows style
 const gMessage = "bugmail10"; // message file used as the test message
 
-const gXGmMsgid = "1278455344230334865";
-const gXGmThrid = "1266894439832287888";
-const gXGmLabels = '(\\Inbox \\Sent Important "Muy Importante" foo)';
+const gCustomValue = "Custom";
+const gCustomList = ["Custom1", "Custom2", "Custom3"];
 
 var gMsgWindow = Cc["@mozilla.org/messenger/msgwindow;1"]
   .createInstance(Ci.nsIMsgWindow);
 
-setupIMAPPump();
+setupIMAPPump("CUSTOM1");
 
 // Definition of tests
 var tests = [
   loadImapMessage,
-  testFetchXGmMsgid,
-  testFetchXGmThrid,
-  testFetchXGmLabels,
+  testFetchCustomValue,
+  testFetchCustomList,
   endTest
 ]
 
@@ -46,70 +42,52 @@ function loadImapMessage()
 {
   let message = new imapMessage(specForFileName(gMessage),
                           gIMAPMailbox.uidnext++, []);
-  message.xGmMsgid = gXGmMsgid;
-  message.xGmThrid = gXGmThrid;
-  message.xGmLabels = gXGmLabels;
+  message.xCustomValue = gCustomValue;
+  message.xCustomList = gCustomList;
   gIMAPMailbox.addMessage(message);
   gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 
-function testFetchXGmMsgid()
+// Used to verify that nsIServerResponseParser.msg_fetch() can handle
+// not in a parenthesis group - Bug 750012
+function testFetchCustomValue()
 {
   let msgHdr = firstMsgHdr(gIMAPInbox);
-  let uri = gIMAPInbox.fetchCustomMsgAttribute("X-GM-MSGID", msgHdr.messageKey, gMsgWindow);
+  let uri = gIMAPInbox.fetchCustomMsgAttribute("X-CUSTOM-VALUE", msgHdr.messageKey, gMsgWindow);
   uri.QueryInterface(Ci.nsIMsgMailNewsUrl);
-  uri.RegisterListener(xGmMsgidListener);
+  uri.RegisterListener(fetchCustomValueListener);
   yield false;
 }
 
-// listens for respone from fetchCustomMsgAttribute request for X-GM-MSGID
-var xGmMsgidListener = {
+// listens for resposne from fetchCustomMsgAttribute request for X-CUSTOM-VALUE
+var fetchCustomValueListener = {
   OnStartRunningUrl: function (aUrl) {},
 
   OnStopRunningUrl: function (aUrl, aExitCode) {
     aUrl.QueryInterface(Ci.nsIImapUrl);
-    do_check_eq(aUrl.customAttributeResult, gXGmMsgid);
+    do_check_eq(aUrl.customAttributeResult, gCustomValue);
     async_driver();
   }
 };
 
-function testFetchXGmThrid()
+// Used to verify that nsIServerResponseParser.msg_fetch() can handle a parenthesis group - Bug 735542
+function testFetchCustomList()
 {
   let msgHdr = firstMsgHdr(gIMAPInbox);
-  let uri = gIMAPInbox.fetchCustomMsgAttribute("X-GM-THRID", msgHdr.messageKey, gMsgWindow);
+  let uri = gIMAPInbox.fetchCustomMsgAttribute("X-CUSTOM-LIST", msgHdr.messageKey, gMsgWindow);
   uri.QueryInterface(Ci.nsIMsgMailNewsUrl);
-  uri.RegisterListener(xGmThridListener);
+  uri.RegisterListener(fetchCustomListListener);
   yield false;
 }
 
-// listens for respone from fetchCustomMsgAttribute request for X-GM-THRID
-var xGmThridListener = {
+// listens for response from fetchCustomMsgAttribute request for X-CUSTOM-LIST
+var fetchCustomListListener = {
   OnStartRunningUrl: function (aUrl) {},
 
   OnStopRunningUrl: function (aUrl, aExitCode) {
     aUrl.QueryInterface(Ci.nsIImapUrl);
-    do_check_eq(aUrl.customAttributeResult, gXGmThrid);
-    async_driver();
-  }
-};
-
-function testFetchXGmLabels()
-{
-  let msgHdr = firstMsgHdr(gIMAPInbox);
-  let uri = gIMAPInbox.fetchCustomMsgAttribute("X-GM-LABELS", msgHdr.messageKey, gMsgWindow);
-  uri.QueryInterface(Ci.nsIMsgMailNewsUrl);
-  uri.RegisterListener(xGmLabelsListener);
-  yield false;
-}
-
-// listens for respone from fetchCustomMsgAttribute request for X-GM-LABELS
-var xGmLabelsListener = {
-  OnStartRunningUrl: function (aUrl) {},
-
-  OnStopRunningUrl: function (aUrl, aExitCode) {
-    aUrl.QueryInterface(Ci.nsIImapUrl);
-    do_check_eq(aUrl.customAttributeResult, gXGmLabels);
+    do_check_eq(aUrl.customAttributeResult, "(" + gCustomList.join(" ") + ")");
     async_driver();
   }
 };

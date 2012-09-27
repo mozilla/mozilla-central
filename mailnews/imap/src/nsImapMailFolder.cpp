@@ -3060,6 +3060,11 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
   nsCOMPtr<nsIMsgIncomingServer> server;
   rv = GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIImapIncomingServer> imapServer = do_QueryInterface(server);
+  rv = imapServer->GetIsGMailServer(&m_isGmailServer);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
   newMsgHdr->SetMessageKey(m_curMsgUid);
   TweakHeaderFlags(aProtocol, newMsgHdr);
   uint32_t messageSize;
@@ -3180,6 +3185,21 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
       dbFolderInfo->SetUint32Property(kHighestRecordedUIDPropertyName, m_curMsgUid);
 
   }
+  if (m_isGmailServer)
+  {
+    nsCOMPtr<nsIImapFlagAndUidState> flagState;
+    aProtocol->GetFlagAndUidState(getter_AddRefs(flagState));
+    nsCString msgIDValue;
+    nsCString threadIDValue;
+    nsCString labelsValue;
+    flagState->GetCustomAttribute(m_curMsgUid, NS_LITERAL_CSTRING("X-GM-MSGID"), msgIDValue);
+    flagState->GetCustomAttribute(m_curMsgUid, NS_LITERAL_CSTRING("X-GM-THRID"), threadIDValue);
+    flagState->GetCustomAttribute(m_curMsgUid, NS_LITERAL_CSTRING("X-GM-LABELS"), labelsValue);
+    newMsgHdr->SetStringProperty("X-GM-MSGID", msgIDValue.get());
+    newMsgHdr->SetStringProperty("X-GM-THRID", threadIDValue.get());
+    newMsgHdr->SetStringProperty("X-GM-LABELS", labelsValue.get());
+  }
+
   m_msgParser->Clear(); // clear out parser, because it holds onto a msg hdr.
   m_msgParser->SetMailDB(nullptr); // tell it to let go of the db too.
   // I don't think we want to do this - it does bad things like set the size incorrectly.
@@ -9521,4 +9541,166 @@ void nsImapMailFolder::InitAutoSyncState()
 {
   if (!m_autoSyncStateObj)
     m_autoSyncStateObj = new nsAutoSyncState(this);
+}
+
+NS_IMETHODIMP nsImapMailFolder::HasMsgOffline(nsMsgKey msgKey, bool *_retval)
+{
+  NS_ENSURE_ARG_POINTER(_retval);
+  *_retval = false;
+  nsCOMPtr<nsIMsgFolder> msgFolder;
+  nsresult rv = GetOfflineMsgFolder(msgKey, getter_AddRefs(msgFolder));
+  if (NS_SUCCEEDED(rv) && msgFolder)
+    *_retval = true;
+  return NS_OK;
+
+}
+
+nsresult nsImapMailFolder::GetOfflineMsgFolder(nsMsgKey msgKey, nsIMsgFolder **aMsgFolder)
+{
+  // Check if we have the message in the current folder.
+  NS_ENSURE_ARG_POINTER(aMsgFolder);
+  nsCOMPtr<nsIMsgFolder> subMsgFolder;
+  GetDatabase();
+  if (!mDatabase)
+    return NS_ERROR_FAILURE;
+
+  nsCOMPtr<nsIMsgDBHdr> hdr;
+  nsresult rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(hdr));
+  if (NS_FAILED(rv))
+    return rv;
+
+  if (hdr)
+  {
+    uint32_t msgFlags = 0;
+    hdr->GetFlags(&msgFlags);
+    // Check if we already have this message body offline
+    if ((msgFlags & nsMsgMessageFlags::Offline))
+    {
+      NS_IF_ADDREF(*aMsgFolder = this);
+      return NS_OK;
+    }
+  }
+
+  if (!*aMsgFolder)
+  {
+    // Checking the existence of message in other folders in case of GMail Server
+    bool isGMail;
+    nsCOMPtr<nsIImapIncomingServer> imapServer;
+    rv = GetImapIncomingServer(getter_AddRefs(imapServer));
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = imapServer->GetIsGMailServer(&isGMail);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (isGMail)
+    {
+      nsCString labels;
+      nsTArray<nsCString> labelNames;
+      hdr->GetStringProperty("X-GM-LABELS", getter_Copies(labels));
+      ParseString(labels, ' ', labelNames);
+      nsCOMPtr<nsIMsgFolder> rootFolder;
+      nsCOMPtr<nsIMsgImapMailFolder> subFolder;
+      for (uint32_t i = 0; i < labelNames.Length(); i++)
+      {
+        rv = GetRootFolder(getter_AddRefs(rootFolder));
+        if (NS_SUCCEEDED(rv) && (rootFolder))
+        {
+          nsCOMPtr<nsIMsgImapMailFolder> imapRootFolder = do_QueryInterface(rootFolder);
+          if (labelNames[i].Equals("\"\\\\Draft\""))
+             rv = rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Drafts,
+                                                 getter_AddRefs(subMsgFolder));
+          if (labelNames[i].Equals("\"\\\\Inbox\""))
+             rv = rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox,
+                                                 getter_AddRefs(subMsgFolder));
+          if (labelNames[i].Equals("\"\\\\All Mail\""))
+             rv = rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Archive,
+                                                 getter_AddRefs(subMsgFolder));
+          if (labelNames[i].Equals("\"\\\\Trash\""))
+             rv = rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Trash,
+                                                 getter_AddRefs(subMsgFolder));
+          if (labelNames[i].Equals("\"\\\\Spam\""))
+             rv = rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Junk,
+                                                 getter_AddRefs(subMsgFolder));
+          if (labelNames[i].Equals("\"\\\\Sent\""))
+             rv = rootFolder->GetFolderWithFlags(nsMsgFolderFlags::SentMail,
+                                                 getter_AddRefs(subMsgFolder));
+          if ((labelNames[i].Find(NS_LITERAL_CSTRING("[Imap]/"), true, 0, -1) != -1))
+          {
+            labelNames[i].ReplaceSubstring("[Imap]/", "");
+            imapRootFolder->FindOnlineSubFolder(labelNames[i], getter_AddRefs(subFolder));
+            subMsgFolder = do_QueryInterface(subFolder);
+          }
+          if (!subMsgFolder)
+          {
+            imapRootFolder->FindOnlineSubFolder(labelNames[i], getter_AddRefs(subFolder));
+            subMsgFolder = do_QueryInterface(subFolder);
+          }
+          if (subMsgFolder)
+          {
+            nsCOMPtr<nsIMsgDatabase> db;
+            subMsgFolder->GetMsgDatabase(getter_AddRefs(db));
+            if (db)
+            {
+              nsCOMPtr<nsIMsgDBHdr> retHdr;
+              nsCString gmMsgID;
+              hdr->GetStringProperty("X-GM-MSGID", getter_Copies(gmMsgID));
+              rv = db->GetMsgHdrForGMMsgID(gmMsgID.get(), getter_AddRefs(retHdr));
+              if (NS_FAILED(rv))
+                return rv;
+              if (retHdr)
+              {
+                uint32_t gmFlags = 0;
+                retHdr->GetFlags(&gmFlags);
+                if ((gmFlags & nsMsgMessageFlags::Offline))
+                {
+                  subMsgFolder.forget(aMsgFolder);
+                  // Focus on first positive result.
+                  return NS_OK;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsImapMailFolder::GetOfflineFileStream(nsMsgKey msgKey, int64_t *offset, uint32_t *size, nsIInputStream **aFileStream)
+{
+  NS_ENSURE_ARG(aFileStream);
+  nsCOMPtr<nsIMsgFolder> offlineFolder;
+  nsresult rv = GetOfflineMsgFolder(msgKey, getter_AddRefs(offlineFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+  if(!offlineFolder)
+    return NS_ERROR_FAILURE;
+
+  GetDatabase();
+  if (!mDatabase)
+    return NS_ERROR_FAILURE;
+
+  if (offlineFolder == this)
+    return nsMsgDBFolder::GetOfflineFileStream(msgKey, offset, size, aFileStream);
+  else
+  {
+    nsresult rv;
+    nsCOMPtr<nsIMsgDBHdr> hdr;
+    rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(hdr));
+    if (NS_FAILED(rv))
+      return rv;
+    if (hdr)
+    {
+      nsCString gmMsgID;
+      hdr->GetStringProperty("X-GM-MSGID", getter_Copies(gmMsgID));
+      nsCOMPtr<nsIMsgDatabase> db;
+      offlineFolder->GetMsgDatabase(getter_AddRefs(db));
+      rv = db->GetMsgHdrForGMMsgID(gmMsgID.get(), getter_AddRefs(hdr));
+      if (NS_FAILED(rv))
+        return rv;
+      nsMsgKey newMsgKey;
+      hdr->GetMessageKey(&newMsgKey);
+      return offlineFolder->GetOfflineFileStream(newMsgKey, offset, size, aFileStream);
+    }
+  }
+  return NS_OK;
 }

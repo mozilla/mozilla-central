@@ -4,11 +4,10 @@
 
 /*
  * Test to ensure that imap customCommandResult function works properly
- * Bug ?????? 
- * uses Gmail extensions as test case - also useful for bug 721316
+ * Bug 778246
  */
 
-// async support 
+// async support
 load("../../../resources/logHelper.js");
 load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
@@ -24,19 +23,19 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 const gMessageFileName = "bugmail10"; // message file used as the test message
 var gMessage, gExpectedLength;
 
-var gXGmLabels = ['\\\\Inbox', '\\\\Sent', 'Important', '"Muy Importante"', 'foo'];
+var gCustomList = ['Custom1', 'Custom2', 'Custom3'];
 
 var gMsgWindow = Cc["@mozilla.org/messenger/msgwindow;1"]
   .createInstance(Ci.nsIMsgWindow);
 
-setupIMAPPump("GMail");
+setupIMAPPump("CUSTOM1");
 
 // Definition of tests
 var tests = [
   loadImapMessage,
-  testStoreXGMLabel,
-  testStoreMinusXGmLabel,
-  testStorePlusXGmLabel,
+  testStoreCustomList,
+  testStoreMinusCustomList,
+  testStorePlusCustomList,
   endTest
 ]
 
@@ -45,80 +44,80 @@ function loadImapMessage()
 {
   gMessage = new imapMessage(specForFileName(gMessageFileName),
     gIMAPMailbox.uidnext++, []);
-  gMessage.xGmLabels = [];
+  gMessage.xCustomList = [];
   gIMAPMailbox.addMessage(gMessage);
   gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 
-function testStoreXGMLabel()
+function testStoreCustomList()
 {
   let msgHdr = firstMsgHdr(gIMAPInbox);
-  gExpectedLength = gXGmLabels.length;
+  gExpectedLength = gCustomList.length;
   let uri = gIMAPInbox.issueCommandOnMsgs("STORE", msgHdr.messageKey +
-    " X-GM-LABELS (" + gXGmLabels.join(" ") + ")", gMsgWindow);
+    " X-CUSTOM-LIST (" + gCustomList.join(" ") + ")", gMsgWindow);
   uri.QueryInterface(Ci.nsIMsgMailNewsUrl);
-  uri.RegisterListener(xGmLabelsSetListener);
+  uri.RegisterListener(storeCustomListSetListener);
   yield false;
 }
 
-// listens for response from customCommandResult request for X-GM-MSGID
-var xGmLabelsSetListener = {
+// listens for response from customCommandResult request for X-CUSTOM-LIST
+var storeCustomListSetListener = {
   OnStartRunningUrl: function (aUrl) {},
 
   OnStopRunningUrl: function (aUrl, aExitCode) {
     aUrl.QueryInterface(Ci.nsIImapUrl);
     do_check_eq(aUrl.customCommandResult,
-      "(" + gMessage.xGmLabels.join(" ") + ")");
-    do_check_eq(gMessage.xGmLabels.length, gExpectedLength);
+      "(" + gMessage.xCustomList.join(" ") + ")");
+    do_check_eq(gMessage.xCustomList.length, gExpectedLength);
     async_driver();
   }
 };
 
-function testStoreMinusXGmLabel()
+function testStoreMinusCustomList()
 {
   let msgHdr = firstMsgHdr(gIMAPInbox);
   gExpectedLength--;
   let uri = gIMAPInbox.issueCommandOnMsgs("STORE", msgHdr.messageKey +
-    " -X-GM-LABELS (" + gXGmLabels[0] + ")", gMsgWindow);
+    " -X-CUSTOM-LIST (" + gCustomList[0] + ")", gMsgWindow);
   uri.QueryInterface(Ci.nsIMsgMailNewsUrl);
-  uri.RegisterListener(xGmLabelRemovedListener);
+  uri.RegisterListener(storeCustomListRemovedListener);
   yield false;
 }
 
-// listens for response from customCommandResult request for X-GM-MSGID
-var xGmLabelRemovedListener = {
+// listens for response from customCommandResult request for X-CUSTOM-LIST
+var storeCustomListRemovedListener = {
   OnStartRunningUrl: function (aUrl) {},
 
   OnStopRunningUrl: function (aUrl, aExitCode) {
     aUrl.QueryInterface(Ci.nsIImapUrl);
     do_check_eq(aUrl.customCommandResult,
-      "(" + gMessage.xGmLabels.join(" ") + ")");      
-    do_check_eq(gMessage.xGmLabels.length, gExpectedLength);
+      "(" + gMessage.xCustomList.join(" ") + ")");
+    do_check_eq(gMessage.xCustomList.length, gExpectedLength);
     async_driver();
   }
 };
 
-function testStorePlusXGmLabel()
+function testStorePlusCustomList()
 {
   let msgHdr = firstMsgHdr(gIMAPInbox);
   gExpectedLength++;
   let uri = gIMAPInbox.issueCommandOnMsgs("STORE", msgHdr.messageKey +
-    ' +X-GM-LABELS ("New Label")', gMsgWindow);
+    ' +X-CUSTOM-LIST ("Custom4")', gMsgWindow);
   uri.QueryInterface(Ci.nsIMsgMailNewsUrl);
-  uri.RegisterListener(xGmLabelAddedListener);
+  uri.RegisterListener(storeCustomListAddedListener);
   yield false;
 }
 
-// listens for response from customCommandResult request for X-GM-THRID
-var xGmLabelAddedListener = {
+// listens for response from customCommandResult request for X-CUSTOM-LIST
+var storeCustomListAddedListener = {
   OnStartRunningUrl: function (aUrl) {},
 
   OnStopRunningUrl: function (aUrl, aExitCode) {
     aUrl.QueryInterface(Ci.nsIImapUrl);
     do_check_eq(aUrl.customCommandResult,
-      "(" + gMessage.xGmLabels.join(" ") + ")");
-    do_check_eq(gMessage.xGmLabels.length, gExpectedLength);
+      "(" + gMessage.xCustomList.join(" ") + ")");
+    do_check_eq(gMessage.xCustomList.length, gExpectedLength);
     async_driver();
   }
 };

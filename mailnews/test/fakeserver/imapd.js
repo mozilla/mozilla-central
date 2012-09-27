@@ -1215,8 +1215,8 @@ IMAP_RFC3501_handler.prototype = {
         // so we go for the initial alphanumeric substring, passing in the
         // actual string as an optional second part.
         var front = item.split(/[^A-Z0-9-]/, 1)[0];
-        var functionName = "_FETCH_" + front.replace(/-/g, "_"); // '-' is not allowed in js identifiers;     
-       
+        var functionName = "_FETCH_" + front.replace(/-/g, "_"); // '-' is not allowed in js identifiers;
+
         if (!(functionName in this))
           return "BAD can't fetch " + front;
         try {
@@ -1598,7 +1598,7 @@ IMAP_RFC3501_handler.prototype = {
     } else {
         return "BAD can't fetch X-GM-LABELS";
     }
-  }
+   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1625,8 +1625,8 @@ var configurations = {
   Zimbra: ["RFC2342", "RFC2195"],
   Exchange: ["RFC2342", "RFC2195"],
   LEMONADE: ["RFC2342", "RFC2195"],
-  CUSTOM1: ["RFCMOVE", "RFC4315"],
-  GMail: ["RFCGMAIL", "RFC2197", "RFC4315"]
+  CUSTOM1: ["RFCMOVE", "RFC4315", "RFCCUSTOM"],
+  GMail: ["XLIST", "RFCGMAIL", "RFC2197", "RFC4315"]
 };
 
 function mixinExtension(handler, extension) {
@@ -1686,7 +1686,47 @@ var IMAP_RFC2342_extension = {
   _enabledCommands : { 1 : ["NAMESPACE"], 2 : ["NAMESPACE"] }
 };
 
-// Proposed MOVE extension (imapPump requires the string "RFC").
+var IMAP_XLIST_extension = {
+  XLIST : function(args) {
+    var base = this._daemon.getMailbox(args[0]);
+    if (!base)
+      return "NO no such mailbox";
+    if(!this._daemon.getMailbox("[Gmail]/All Mail", {subscribed : true})) {
+      // No special mailbox exist, so we will create them.
+      // Creating parent first
+      this._daemon.createMailbox("[Gmail]");
+      // now other folders inside the parent
+      this._daemon.createMailbox("[Gmail]/All Mail", {subscribed : true});
+      this._daemon.createMailbox("[Gmail]/Sent Mail", {subscribed : true});
+      this._daemon.createMailbox("[Gmail]/Drafts", {subscribed : true});
+      this._daemon.createMailbox("[Gmail]/Starred", {subscribed : true});
+      this._daemon.createMailbox("[Gmail]/Spam", {subscribed : true});
+    }
+    var people = base.matchKids(args[1]);
+    var response = "";
+    var specialFolderFlagsLookupTable = {
+      "[Gmail]/All Mail": "AllMail",
+      "[Gmail]/Drafts": "Drafts",
+      "[Gmail]/Sent Mail": "Sent",
+      "[Gmail]/Starred": "Starred",
+      "[Gmail]/Spam": "Spam",
+      "INBOX": "Inbox"
+
+    };
+    for each (var box in people) {
+      let specialFlag = box.displayName in specialFolderFlagsLookupTable ?
+        ' \\' +specialFolderFlagsLookupTable[box.displayName] : ' ';
+      response += '* XLIST (' + box.flags.join(" ") + specialFlag + ') "' +
+              box.delimiter + '" "' + box.displayName + '"\0';
+    }
+    return response + "OK XLIST completed";
+  },
+  kCapabilities : ["XLIST"],
+  _argFormat : { XLIST : ["mailbox", "mailbox"]},
+  // Enabled in AUTHED and SELECTED states
+  _enabledCommands : {1 : ["XLIST"], 2 : ["XLIST"]}
+};
+
 var IMAP_RFCMOVE_extension = {
   MOVE: function (args, uid) {
     let messages = this._parseSequenceSet(args[0], uid);
@@ -1722,11 +1762,11 @@ var IMAP_RFCMOVE_extension = {
   _enabledCommands: { 2: ["MOVE"] }
 };
 
-// Support for Gmail extensions (imapPump requires the string "RFC").
-var IMAP_RFCGMAIL_extension = {  
+// Support for Gmail extensions.
+var IMAP_RFCGMAIL_extension = {
   preload: function (toBeThis) {
     toBeThis._preRFCGMAIL_STORE = toBeThis.STORE;
-    toBeThis._preRFCGMAIL_STORE_argFormat = toBeThis._argFormat.STORE;  
+    toBeThis._preRFCGMAIL_STORE_argFormat = toBeThis._argFormat.STORE;
     toBeThis._argFormat.STORE = ["number", "atom", "..."];
   },
   STORE : function (args, uid) {
@@ -1744,7 +1784,7 @@ var IMAP_RFCGMAIL_extension = {
     for (let i = 0; i < args[2].length; i++) {
       if (args[2][i].indexOf(' ') > -1) {
         args[2][i] = '"' + args[2][i] + '"';
-      }      
+      }
     }
     let response = "";
     for (let i = 0; i < messages.length; i++) {
@@ -1752,32 +1792,26 @@ var IMAP_RFCGMAIL_extension = {
       switch (args[1]) {
       case "X-GM-LABELS":
         if (message.xGmLabels) {
-          do_print("replacing [" + message.xGmLabels + "] with [" + args[2] + "]");
           message.xGmLabels = args[2];
-          do_print(message.xGmLabels);
         } else {
           return "BAD can't store X-GM-LABELS";
         }
         break;
       case "+X-GM-LABELS":
         if (message.xGmLabels) {
-          do_print("adding [" + args[2] + "] to [" + message.xGmLabels + "]");
           message.xGmLabels = message.xGmLabels.concat(args[2]);
-          do_print(message.xGmLabels);
         } else {
           return "BAD can't store X-GM-LABELS";
         }
         break;
-      case "-X-GM-LABELS":      
+      case "-X-GM-LABELS":
         if (message.xGmLabels) {
-          do_print("removing [" + args[2] + "] from [" + message.xGmLabels + "]");
           for (let i = 0; i < args[2].length; i++) {
             let idx = message.xGmLabels.indexOf(args[2][i]);
             if (idx != -1) {
               message.xGmLabels.splice(idx,1);
             }
           }
-          do_print(message.xGmLabels);
         } else {
           return "BAD can't store X-GM-LABELS";
         }
@@ -1794,7 +1828,92 @@ var IMAP_RFCGMAIL_extension = {
   kCapabilities: ["XLIST", "X-GM-EXT-1"]
 };
 
-
+// Provides methods for testing fetchCustomAttribute and issueCustomCommand
+var IMAP_RFCCUSTOM_extension = {
+  preload: function (toBeThis) {
+    toBeThis._preRFCCUSTOM_STORE = toBeThis.STORE;
+    toBeThis._preRFCCUSTOM_STORE_argFormat = toBeThis._argFormat.STORE;
+    toBeThis._argFormat.STORE = ["number", "atom", "..."];
+  },
+  STORE : function (args, uid) {
+    let regex = /[+-]?FLAGS.*/;
+    if (regex.test(args[1])) {
+      // if we are storing flags, use the method that was overridden
+      this._argFormat = this._preRFCCUSTOM_STORE_argFormat;
+      args = this._treatArgs(args, "STORE");
+      return this._preRFCCUSTOM_STORE(args, uid);
+    }
+    // otherwise, handle custom attribute
+    let ids = [];
+    let messages = this._parseSequenceSet(args[0], uid, ids);
+    args[2] = formatArg(args[2], "string|(string)");
+    for (let i = 0; i < args[2].length; i++) {
+      if (args[2][i].indexOf(' ') > -1) {
+        args[2][i] = '"' + args[2][i] + '"';
+      }
+    }
+    let response = "";
+    for (let i = 0; i < messages.length; i++) {
+      let message = messages[i];
+      switch (args[1]) {
+      case "X-CUSTOM-VALUE":
+        if (message.xCustomValue && args[2].length == 1) {
+          message.xCustomValue = args[2][0];
+        } else {
+          return "BAD can't store X-CUSTOM-VALUE";
+        }
+        break;
+      case "X-CUSTOM-LIST":
+        if (message.xCustomList) {
+          message.xCustomList = args[2];
+        } else {
+          return "BAD can't store X-CUSTOM-LIST";
+        }
+        break;
+      case "+X-CUSTOM-LIST":
+        if (message.xCustomList) {
+          message.xCustomList = message.xCustomList.concat(args[2]);
+        } else {
+          return "BAD can't store X-CUSTOM-LIST";
+        }
+        break;
+      case "-X-CUSTOM-LIST":
+        if (message.xCustomList) {
+          for (let i = 0; i < args[2].length; i++) {
+            let idx = message.xCustomList.indexOf(args[2][i]);
+            if (idx != -1) {
+              message.xCustomList.splice(idx,1);
+            }
+          }
+        } else {
+          return "BAD can't store X-CUSTOM-LIST";
+        }
+        break;
+      default:
+        return "BAD change what now?";
+      }
+      response += "* " + ids[i] + " FETCH (X-CUSTOM-LIST (";
+      response += message.xCustomList.join(' ');
+      response += '))\0';
+    }
+    return response + 'OK STORE completed';
+  },
+  _FETCH_X_CUSTOM_VALUE : function (message) {
+    if (message.xCustomValue) {
+        return "X-CUSTOM-VALUE " + message.xCustomValue;
+    } else {
+        return "BAD can't fetch X-CUSTOM-VALUE";
+    }
+  },
+  _FETCH_X_CUSTOM_LIST : function (message) {
+    if (message.xCustomList) {
+        return "X-CUSTOM-LIST (" + message.xCustomList.join(' ') + ")";
+    } else {
+        return "BAD can't fetch X-CUSTOM-LIST";
+    }
+  },
+  kCapabilities: ["X-CUSTOM1"]
+};
 // RFC 2197: ID
 var IMAP_RFC2197_extension = {
   ID: function (args) {

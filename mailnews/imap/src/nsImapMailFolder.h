@@ -288,6 +288,11 @@ public:
 
   NS_IMETHOD NotifyCompactCompleted();
 
+  // overrides nsMsgDBFolder::HasMsgOffline()
+  NS_IMETHOD HasMsgOffline(nsMsgKey msgKey, bool *_retval);
+  // overrides nsMsgDBFolder::GetOfflineFileStream()
+  NS_IMETHOD GetOfflineFileStream(nsMsgKey msgKey, int64_t *offset, uint32_t *size, nsIInputStream **aFileStream);
+
   NS_DECL_NSIMSGIMAPMAILFOLDER
   NS_DECL_NSIIMAPMAILFOLDERSINK
   NS_DECL_NSIIMAPMESSAGESINK
@@ -304,6 +309,15 @@ public:
   NS_IMETHOD IsCommandEnabled(const nsACString& command, bool *result);
   NS_IMETHOD SetFilterList(nsIMsgFilterList *aMsgFilterList);
   NS_IMETHOD GetCustomIdentity(nsIMsgIdentity **aIdentity);
+
+ /**
+  * This method is used to locate a folder where a msg could be present, not just
+  * the folder where the message first arrives, this method searches for the existence
+  * of msg in all the folders/labels that we retrieve from X-GM-LABELS also.
+  *  @param msgKey key  of the msg for which we are trying to get the folder;
+  *  @param aMsgFolder  required folder;
+  */
+  nsresult GetOfflineMsgFolder(nsMsgKey msgKey, nsIMsgFolder **aMsgFolder);
 
   nsresult AddSubfolderWithPath(nsAString& name, nsIFile *dbPath, nsIMsgFolder **child, bool brandNew = false);
   nsresult MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
@@ -484,6 +498,8 @@ protected:
   uint32_t     m_aclFlags;
   uint32_t     m_supportedUserFlags;
 
+  // determines if we are on GMail server
+  bool m_isGmailServer;
   // offline imap support
   bool m_downloadingFolderForOfflineUse;
   bool m_filterListRequiresBody;

@@ -5,8 +5,8 @@
 
 #include "nsISupports.idl"
 
-[scriptable, uuid(444e0d79-874d-4174-b7f3-189db317473c)]
-interface nsIImapFlagAndUidState : nsISupports 
+[scriptable, uuid(290412eb-5824-4087-8984-05450c9397be)]
+interface nsIImapFlagAndUidState : nsISupports
 {
   readonly attribute long numberOfMessages;
   readonly attribute long numberOfRecentMessages;
@@ -50,5 +50,25 @@ interface nsIImapFlagAndUidState : nsISupports
   string getCustomFlags(in unsigned long uid); // returns space-separated keywords
   void reset();
   void clearCustomFlags(in unsigned long uid);
+  /**
+   * Adds custom attributes to a hash table for the purpose of storing them
+   * them.
+   * @param aUid   UID of the associated msg
+   * @param aCustomAttributeName   Name of the custom attribute value
+   * @param aCustomAttributeValue   Value of the attribute,
+   */
+  void setCustomAttribute(in unsigned long aUid,
+                          in ACString aCustomAttributeName,
+                          in ACString aCustomAttributeValue);
+
+  /**
+   * Gets the custom attributes from the hash table where they were stored earlier
+   * them.
+   * @param aUid   UID of the associated msg
+   * @param aCustomAttributeName   Name of the custom attribute value
+   * @param aCustomAttributeValue   Value of the attribute,
+   */
+  ACString getCustomAttribute(in unsigned long aUid,
+                              in ACString aCustomAttributeName);
 };
 

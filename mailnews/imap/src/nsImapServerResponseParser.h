@@ -241,6 +241,9 @@ private:
   char          *fNetscapeServerVersionString;
   char          *fXSenderInfo; /* changed per message download */
   char          *fLastAlert; /* used to avoid displaying the same alert over and over */
+  char          *fMsgID; /* MessageID for Gmail only (X-GM-MSGID) */
+  char          *fThreadID; /* ThreadID for Gmail only (X-GM-THRID) */
+  char          *fLabels; /* Labels for Gmail only (X-GM-LABELS) [will include parens, removed while passing to hashTable ]*/
   nsCString     fManageListsUrl;
   nsCString    fManageFiltersUrl;
   char          *fFolderAdminUrl;

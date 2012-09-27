@@ -4593,6 +4593,45 @@ NS_IMETHODIMP nsMsgDatabase::GetMsgHdrForMessageID(const char *aMsgID, nsIMsgDBH
   return NS_OK; // it's not an error not to find a msg hdr.
 }
 
+NS_IMETHODIMP nsMsgDatabase::GetMsgHdrForGMMsgID(const char *aGMMsgId, nsIMsgDBHdr **aHdr)
+{
+  NS_ENSURE_ARG_POINTER(aGMMsgId);
+  NS_ENSURE_ARG_POINTER(aHdr);
+  nsIMsgDBHdr *msgHdr = nullptr;
+  nsresult rv = NS_OK;
+  mdbYarn gMailMessageIdYarn;
+  gMailMessageIdYarn.mYarn_Buf = (void *) aGMMsgId;
+  gMailMessageIdYarn.mYarn_Fill = strlen(aGMMsgId);
+  gMailMessageIdYarn.mYarn_Form = 0;
+  gMailMessageIdYarn.mYarn_Size = gMailMessageIdYarn.mYarn_Fill;
+
+  nsIMdbRow *hdrRow;
+  mdbOid outRowId;
+  mdb_err result;
+  mdb_token property_token;
+  NS_ENSURE_TRUE(m_mdbStore, NS_ERROR_NULL_POINTER);
+  result = m_mdbStore->StringToToken(GetEnv(), "X-GM-MSGID",
+    &property_token);
+  NS_ENSURE_SUCCESS(result, result);
+  result = m_mdbStore->FindRow(GetEnv(), m_hdrRowScopeToken,
+    property_token, &gMailMessageIdYarn, &outRowId, &hdrRow);
+  if (NS_SUCCEEDED(result) && hdrRow)
+  {
+    // Get key from row
+    mdbOid outOid;
+    rv = hdrRow->GetOid(GetEnv(), &outOid);
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsMsgKey key = outOid.mOid_Id;
+    rv = GetHdrFromUseCache(key, &msgHdr);
+    if ((NS_SUCCEEDED(rv) && msgHdr))
+      hdrRow->Release();
+    else
+      rv = CreateMsgHdr(hdrRow, key, &msgHdr);
+  }
+  *aHdr = msgHdr;
+  return NS_OK; // it's not an error not to find a msg hdr.
+}
+
 nsIMsgDBHdr *nsMsgDatabase::GetMsgHdrForSubject(nsCString &subject)
 {
   nsIMsgDBHdr *msgHdr = nullptr;

@@ -14,8 +14,9 @@ interface nsIImapIncomingServer;
 interface nsIMsgFolder;
 interface nsIImapHostSessionList;
 interface nsIMsgWindow;
+interface nsIImapFlagAndUidState;
 
-[scriptable, uuid(177f4140-37ad-4828-880c-42d4ee5d2015)]
+[scriptable, uuid(290412eb-5824-4087-8984-05450c9397be)]
 interface nsIImapProtocol : nsISupports {
   void LoadImapUrl(in nsIURI aUrl, in nsISupports aConsumer);
 
@@ -51,6 +52,7 @@ interface nsIImapProtocol : nsISupports {
 
   void GetRunningUrl(out nsIURI aUrl);
 
+  readonly attribute nsIImapFlagAndUidState flagAndUidState;
   /**
    * Tell thread to die - only call from the UI thread
    *
