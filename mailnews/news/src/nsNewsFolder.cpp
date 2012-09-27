@@ -811,7 +811,7 @@ nsMsgNewsFolder::UpdateSummaryFromNNTPInfo(int32_t oldest, int32_t youngest, int
     /* This can happen when the newsrc file shows more unread than exist in the group (total is not necessarily `end - start'.) */
     unread = total;
     int32_t deltaInDB = mNumTotalMessages - mNumUnreadMessages;
-    //PRint32 deltaInDB = m_totalInDB - m_unreadInDB;
+    //int32_t deltaInDB = m_totalInDB - m_unreadInDB;
     /* if we know there are read messages in the db, subtract that from the unread total */
     if (deltaInDB > 0)
       unread -= deltaInDB;

@@ -260,7 +260,7 @@ nsMsgAccount::SetDefaultIdentity(nsIMsgIdentity *aDefaultIdentity)
 {
   NS_ENSURE_TRUE(m_identities, NS_ERROR_FAILURE);
 
-  PRInt32 position = m_identities->IndexOf(aDefaultIdentity);
+  int32_t position = m_identities->IndexOf(aDefaultIdentity);
   NS_ASSERTION(position != -1, "Where did that identity come from?!");
   NS_ENSURE_TRUE(position != -1, NS_ERROR_UNEXPECTED);
 

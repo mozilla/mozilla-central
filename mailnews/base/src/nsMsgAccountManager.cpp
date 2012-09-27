@@ -390,7 +390,7 @@ nsMsgAccountManager::GetUniqueServerKey(nsACString& aResult)
   {
     nsAutoCString type;
     nsAutoCString typeKey;
-    for (PRInt32 lastKey = 1; ; lastKey++)
+    for (uint32_t lastKey = 1; ; lastKey++)
     {
       aResult.AssignLiteral(SERVER_PREFIX);
       aResult.AppendInt(lastKey);
@@ -407,7 +407,7 @@ nsMsgAccountManager::GetUniqueServerKey(nsACString& aResult)
     // by checking which keys exist.
     nsAutoCString internalResult;
     nsCOMPtr<nsIMsgIncomingServer> server;
-    PRInt32 i = 1;
+    uint32_t i = 1;
     do {
       aResult.AssignLiteral(SERVER_PREFIX);
       aResult.AppendInt(i++);
@@ -1477,8 +1477,8 @@ nsMsgAccountManager::LoadAccounts()
     nsAutoCString unavailablePref(toLeavePref); // this is the server-specific prefix
     unavailablePref.AppendLiteral(".timeFoundUnavailable");
     toLeavePref.AppendLiteral(".secondsToLeaveUnavailable");
-    PRInt32 secondsToLeave = 0;
-    PRInt32 timeUnavailable = 0;
+    int32_t secondsToLeave = 0;
+    int32_t timeUnavailable = 0;
 
     m_prefs->GetIntPref(toLeavePref.get(), &secondsToLeave);
 
@@ -1502,7 +1502,7 @@ nsMsgAccountManager::LoadAccounts()
         m_prefs->GetIntPref(unavailablePref.get(), &timeUnavailable);
         if (!timeUnavailable)
         { // we need to set it, this must be the first time unavailable
-          PRUint32 nowSeconds;
+          uint32_t nowSeconds;
           PRTime2Seconds(PR_Now(), &nowSeconds);
           m_prefs->SetIntPref(unavailablePref.get(), nowSeconds);
           deleteAccount = false;
@@ -1512,9 +1512,9 @@ nsMsgAccountManager::LoadAccounts()
 
     if (rv == NS_ERROR_NOT_AVAILABLE && timeUnavailable != 0)
     { // Our server is still unavailable. Have we timed out yet?
-      PRUint32 nowSeconds;
+      uint32_t nowSeconds;
       PRTime2Seconds(PR_Now(), &nowSeconds);
-      if ((PRInt32)nowSeconds < timeUnavailable + secondsToLeave)
+      if ((int32_t)nowSeconds < timeUnavailable + secondsToLeave)
         deleteAccount = false;
     }
 
