@@ -123,10 +123,14 @@
           if (domain[0] != "[") {
             try {
               var baseDomain = Services.eTLD.getBaseDomainFromHost(domain);
+              if (!domain.endsWith(baseDomain)) {
+                // getBaseDomainFromHost converts its resultant to ACE.
+                let IDNService = Components.classes["@mozilla.org/network/idn-service;1"]
+                                           .getService(Component.interfaces.nsIIDNService);
+                baseDomain = IDNService.convertACEtoUTF8(baseDomain);
+              }
               if (baseDomain != domain) {
-                function dots(s) { return s.replace(/[^.]*/g, "").length; }
-                var subSegments = dots(domain) - dots(baseDomain);
-                subDomain = domain.match(new RegExp("(?:[^.]*\.){" + subSegments + "}"))[0];
+                subDomain = domain.slice(0, -baseDomain.length);
               }
             } catch (e) {}
           }
