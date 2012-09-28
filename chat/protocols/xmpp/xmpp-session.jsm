@@ -4,7 +4,7 @@
 
 const EXPORTED_SYMBOLS = ["XMPPSession", "XMPPDefaultResource"];
 
-const {interfaces: Ci, utils: Cu} = Components;
+const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
 Cu.import("resource:///modules/imXPCOMUtils.jsm");
 Cu.import("resource:///modules/socket.jsm");
@@ -74,11 +74,6 @@ XMPPSession.prototype = {
     if (this._parser) {
       this._parser.destroy();
       delete this._parser;
-      if (this._oldParsers) {
-        for each (let parser in this._oldParsers)
-          parser.destroy();
-        delete this._oldParsers;
-      }
     }
   },
 
@@ -123,18 +118,8 @@ XMPPSession.prototype = {
 
   /* Start the XMPP stream */
   startStream: function() {
-    if (this._parser) {
-      // nsSAXXMLReader (inside XMPPParser) leaks if we don't clean up.
-      // Unfortunately, calling onStopRequest on nsSAXXMLReader damages
-      // something that causes a crash the next time we call onDataAvailable
-      // on another parser instance for the same input stream buffer.
-      // Workaround: keep references to all previous parsers used
-      // for this socket, and call destroy on each of them when we are
-      // done reading from that socket.
-      if (!this._oldParsers)
-        this._oldParsers = [];
-      this._oldParsers.push(this._parser);
-    }
+    if (this._parser)
+      this._parser.destroy();
     this._parser = new XMPPParser(this);
     this.send('<?xml version="1.0"?><stream:stream to="' + this._domain +
               '" xmlns="jabber:client" xmlns:stream="http://etherx.jabber.org/streams" version="1.0">');
@@ -156,14 +141,19 @@ XMPPSession.prototype = {
     this.startStream();
   },
 
-  /* When incoming data is available to be read */
-  onDataAvailable: function(aRequest, aContext, aInputStream, aOffset, aCount) {
+  /* When incoming data is available to be parsed */
+  onDataReceived: function(aData) {
+    let istream = Cc["@mozilla.org/io/string-input-stream;1"]
+                    .createInstance(Ci.nsIStringInputStream);
+    istream.setData(aData, aData.length);
+    this._lastReceivedData = aData;
     try {
-      this._parser.onDataAvailable(aInputStream, aOffset, aCount);
+      this._parser.onDataAvailable(istream, 0, aData.length);
     } catch(e) {
       Cu.reportError(e);
       this.onXMLError("parser-exception", e);
     }
+    delete this._lastReceivedData;
   },
 
   /* The connection got disconnected without us closing it. */
@@ -187,9 +177,9 @@ XMPPSession.prototype = {
   /* Methods called by the XMPPParser instance */
   onXMLError: function(aError, aException) {
     if (aError == "parsing-characters")
-      WARN(aError + ": " + aException);
+      WARN(aError + ": " + aException + "\n" + this._lastReceivedData);
     else
-      ERROR(aError + ": " + aException);
+      ERROR(aError + ": " + aException + "\n" + this._lastReceivedData);
     if (aError != "parse-warning" && aError != "parsing-characters")
       this._networkError(_("connection.error.receivedUnexpectedData"));
   },
