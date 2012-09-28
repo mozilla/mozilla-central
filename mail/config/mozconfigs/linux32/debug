@@ -3,6 +3,10 @@ ac_add_options --enable-debug
 ac_add_options --enable-trace-malloc
 ac_add_options --enable-signmar
 
+# Temporary options until bug 794378 is fixed
+ac_add_options --enable-gnomevfs
+ac_add_options --disable-gio
+
 . $topsrcdir/build/unix/mozconfig.linux
 
 # Avoid dependency on libstdc++ 4.5
