@@ -5,7 +5,13 @@
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://calendar/modules/calRecurrenceUtils.jsm");
-Components.utils.import("resource:///modules/cloudFileAccounts.js");
+
+try {
+    Components.utils.import("resource:///modules/cloudFileAccounts.js");
+} catch (e) {
+    // This will fail on Seamonkey, but thats ok since the pref for cloudfiles
+    // is false, which means the UI will not be shown
+}
 
 // the following variables are constructed if the jsContext this file
 // belongs to gets constructed. all those variables are meant to be accessed
@@ -1627,10 +1633,16 @@ function updateShowTimeAs() {
 }
 
 function loadCloudProviders() {
+    let cloudFileEnabled = cal.getPrefSafe("mail.cloud_files.enabled", false)
     let cmd = document.getElementById("cmd_attach_cloud");
-    cmd.hidden = !cal.getPrefSafe("mail.cloud_files.enabled", false) ||
-                 (cloudFileAccounts.accounts.length == 0);
 
+    if (!cloudFileEnabled) {
+        // If cloud file support is disabled, just hide the attach item
+        cmd.hidden = true;
+        return;
+    }
+
+    cmd.hidden = (cloudFileAccounts.accounts.length == 0);
     let toolbarPopup = document.getElementById("button-attach-menupopup");
     let optionsPopup = document.getElementById("options-attachments-menupopup");
     let attachmentPopup = document.getElementById("attachment-popup");
@@ -1878,11 +1890,13 @@ function addAttachment(attachment, cloudProvider) {
             } else {
                 let leafName = attachment.getParameter("FILENAME");
                 let providerType = attachment.getParameter("PROVIDER");
+                let cloudFileEnabled = cal.getPrefSafe("mail.cloud_files.enabled", false);
+
                 if (leafName) {
                     // TODO security issues?
                     listItem.setAttribute("label", leafName);
                 }
-                if (providerType) {
+                if (providerType && cloudFileEnabled) {
                     let cloudProvider = cloudFileAccounts.getProviderForType(providerType);
                     listItem.setAttribute("image", cloudProvider.iconClass);
                 } else {
