@@ -457,6 +457,7 @@
 #endif
 @BINPATH@/components/TCPSocket.js
 @BINPATH@/components/TCPSocket.manifest
+@BINPATH@/components/TCPSocketParentIntermediary.js
 @BINPATH@/components/TelemetryPing.js
 @BINPATH@/components/TelemetryPing.manifest
 @BINPATH@/components/txEXSLTRegExFunctions.js
