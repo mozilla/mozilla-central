@@ -399,7 +399,7 @@ NS_IMETHODIMP nsMsgFolderDataSource::GetTargets(nsIRDFResource* source,
   nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(source, &rv));
   if (NS_SUCCEEDED(rv))
   {
-    if ((kNC_Child == property))
+    if (kNC_Child == property)
     {
       rv = folder->GetSubFolders(targets);
     }
@@ -699,58 +699,58 @@ nsMsgFolderDataSource::DoCommand(nsISupportsArray/*<nsIRDFResource>*/* aSources,
     nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(aSources, i, &rv);
     if (NS_SUCCEEDED(rv))
     {
-      if ((aCommand == kNC_Delete))
+      if (aCommand == kNC_Delete)
       {
         rv = DoDeleteFromFolder(folder, aArguments, window, false);
       }
-      if ((aCommand == kNC_ReallyDelete))
+      if (aCommand == kNC_ReallyDelete)
       {
         rv = DoDeleteFromFolder(folder, aArguments, window, true);
       }
-      else if((aCommand == kNC_NewFolder))
+      else if (aCommand == kNC_NewFolder)
       {
         rv = DoNewFolder(folder, aArguments, window);
       }
-      else if((aCommand == kNC_GetNewMessages))
+      else if (aCommand == kNC_GetNewMessages)
       {
         nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(aArguments, i, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
         rv = server->GetNewMessages(folder, window, nullptr);
       }
-      else if((aCommand == kNC_Copy))
+      else if (aCommand == kNC_Copy)
       {
         rv = DoCopyToFolder(folder, aArguments, window, false);
       }
-      else if((aCommand == kNC_Move))
+      else if (aCommand == kNC_Move)
       {
         rv = DoCopyToFolder(folder, aArguments, window, true);
       }
-      else if((aCommand == kNC_CopyFolder))
+      else if (aCommand == kNC_CopyFolder)
       {
         rv = DoFolderCopyToFolder(folder, aArguments, window, false);
       }
-      else if((aCommand == kNC_MoveFolder))
+      else if (aCommand == kNC_MoveFolder)
       {
         rv = DoFolderCopyToFolder(folder, aArguments, window, true);
       }
-      else if((aCommand == kNC_MarkAllMessagesRead))
+      else if (aCommand == kNC_MarkAllMessagesRead)
       {
         rv = folder->MarkAllMessagesRead(window);
       }
-      else if ((aCommand == kNC_Compact))
+      else if (aCommand == kNC_Compact)
       {
         rv = folder->Compact(nullptr, window);
       }
-      else if ((aCommand == kNC_CompactAll))
+      else if (aCommand == kNC_CompactAll)
       {
         // this will also compact offline stores for IMAP
         rv = folder->CompactAll(nullptr, window, true);
       }
-      else if ((aCommand == kNC_EmptyTrash))
+      else if (aCommand == kNC_EmptyTrash)
       {
           rv = folder->EmptyTrash(window, nullptr);
       }
-      else if ((aCommand == kNC_Rename))
+      else if (aCommand == kNC_Rename)
       {
         nsCOMPtr<nsIRDFLiteral> literal = do_QueryElementAt(aArguments, 0, &rv);
         if(NS_SUCCEEDED(rv))
@@ -912,63 +912,63 @@ nsresult nsMsgFolderDataSource::createFolderNode(nsIMsgFolder* folder,
     rv = createFolderTreeNameNode(folder, target);
   else if (kNC_FolderTreeSimpleName == property)
     rv = createFolderTreeSimpleNameNode(folder, target);
-  else if ((kNC_SpecialFolder == property))
+  else if (kNC_SpecialFolder == property)
     rv = createFolderSpecialNode(folder,target);
-  else if ((kNC_ServerType == property))
+  else if (kNC_ServerType == property)
     rv = createFolderServerTypeNode(folder, target);
-  else if ((kNC_IsDeferred == property))
+  else if (kNC_IsDeferred == property)
     rv = createServerIsDeferredNode(folder, target);
-  else if ((kNC_CanCreateFoldersOnServer == property))
+  else if (kNC_CanCreateFoldersOnServer == property)
     rv = createFolderCanCreateFoldersOnServerNode(folder, target);
-  else if ((kNC_CanFileMessagesOnServer == property))
+  else if (kNC_CanFileMessagesOnServer == property)
     rv = createFolderCanFileMessagesOnServerNode(folder, target);
-  else if ((kNC_IsServer == property))
+  else if (kNC_IsServer == property)
     rv = createFolderIsServerNode(folder, target);
-  else if ((kNC_IsSecure == property))
+  else if (kNC_IsSecure == property)
     rv = createFolderIsSecureNode(folder, target);
-  else if ((kNC_CanSubscribe == property))
+  else if (kNC_CanSubscribe == property)
     rv = createFolderCanSubscribeNode(folder, target);
-  else if ((kNC_SupportsOffline == property))
+  else if (kNC_SupportsOffline == property)
     rv = createFolderSupportsOfflineNode(folder, target);
-  else if ((kNC_CanFileMessages == property))
+  else if (kNC_CanFileMessages == property)
     rv = createFolderCanFileMessagesNode(folder, target);
-  else if ((kNC_CanCreateSubfolders == property))
+  else if (kNC_CanCreateSubfolders == property)
     rv = createFolderCanCreateSubfoldersNode(folder, target);
-  else if ((kNC_CanRename == property))
+  else if (kNC_CanRename == property)
     rv = createFolderCanRenameNode(folder, target);
-  else if ((kNC_CanCompact == property))
+  else if (kNC_CanCompact == property)
     rv = createFolderCanCompactNode(folder, target);
-  else if ((kNC_TotalMessages == property))
+  else if (kNC_TotalMessages == property)
     rv = createTotalMessagesNode(folder, target);
-  else if ((kNC_TotalUnreadMessages == property))
+  else if (kNC_TotalUnreadMessages == property)
     rv = createUnreadMessagesNode(folder, target);
-  else if ((kNC_FolderSize == property))
+  else if (kNC_FolderSize == property)
     rv = createFolderSizeNode(folder, target);
-  else if ((kNC_Charset == property))
+  else if (kNC_Charset == property)
     rv = createCharsetNode(folder, target);
-  else if ((kNC_BiffState == property))
+  else if (kNC_BiffState == property)
     rv = createBiffStateNodeFromFolder(folder, target);
-  else if ((kNC_HasUnreadMessages == property))
+  else if (kNC_HasUnreadMessages == property)
     rv = createHasUnreadMessagesNode(folder, false, target);
-  else if ((kNC_NewMessages == property))
+  else if (kNC_NewMessages == property)
     rv = createNewMessagesNode(folder, target);
-  else if ((kNC_SubfoldersHaveUnreadMessages == property))
+  else if (kNC_SubfoldersHaveUnreadMessages == property)
     rv = createHasUnreadMessagesNode(folder, true, target);
-  else if ((kNC_Child == property))
+  else if (kNC_Child == property)
     rv = createFolderChildNode(folder, target);
-  else if ((kNC_NoSelect == property))
+  else if (kNC_NoSelect == property)
     rv = createFolderNoSelectNode(folder, target);
-  else if ((kNC_VirtualFolder == property))
+  else if (kNC_VirtualFolder == property)
     rv = createFolderVirtualNode(folder, target);
   else if (kNC_InVFEditSearchScope == property)
     rv = createInVFEditSearchScopeNode(folder, target);
-  else if ((kNC_ImapShared == property))
+  else if (kNC_ImapShared == property)
     rv = createFolderImapSharedNode(folder, target);
-  else if ((kNC_Synchronize == property))
+  else if (kNC_Synchronize == property)
     rv = createFolderSynchronizeNode(folder, target);
-  else if ((kNC_SyncDisabled == property))
+  else if (kNC_SyncDisabled == property)
     rv = createFolderSyncDisabledNode(folder, target);
-  else if ((kNC_CanSearchMessages == property))
+  else if (kNC_CanSearchMessages == property)
     rv = createCanSearchMessages(folder, target);
   return NS_FAILED(rv) ? NS_RDF_NO_VALUE : rv;
 }
@@ -2002,7 +2002,7 @@ nsresult nsMsgFolderDataSource::DoFolderAssert(nsIMsgFolder *folder, nsIRDFResou
 {
   nsresult rv = NS_ERROR_FAILURE;
 
-  if((kNC_Charset == property))
+  if (kNC_Charset == property)
   {
     nsCOMPtr<nsIRDFLiteral> literal(do_QueryInterface(target));
     if(literal)
@@ -2048,7 +2048,7 @@ nsresult nsMsgFolderDataSource::DoFolderHasAssertion(nsIMsgFolder *folder,
     return NS_OK;
   }
 
-  if((kNC_Child == property))
+  if (kNC_Child == property)
   {
     nsCOMPtr<nsIMsgFolder> childFolder(do_QueryInterface(target, &rv));
     if(NS_SUCCEEDED(rv))
