@@ -189,7 +189,7 @@ nsPop3Sink::FindPartialMessages()
     }
     messages->HasMoreElements(&hasMore);
   }
-  if (isOpen)
+  if (isOpen && folderScanState.m_inputStream)
     folderScanState.m_inputStream->Close();
   return rv;
 }
