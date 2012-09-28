@@ -3,10 +3,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#ifdef MOZ_LOGGING
-#define FORCE_PR_LOG /* Allow logging in the release build */
-#endif
-
 #include "nscore.h"
 #include "nsMsgUtils.h"
 #include "nsMessengerOSXIntegration.h"
@@ -33,7 +29,6 @@
 #include "nsIPrefBranch.h"
 #include "nsIMessengerWindowService.h"
 #include "prprf.h"
-#include "prlog.h"
 #include "nsIAlertsService.h"
 #include "nsIStringBundle.h"
 #include "nsToolkitCompsCID.h"
@@ -62,8 +57,6 @@
 #define kMaxDisplayCount 10
 #define kNewChatMessageTopic "new-directed-incoming-message"
 #define kUnreadImCountChangedTopic "unread-im-count-changed"
-
-static PRLogModuleInfo *MsgDockCountsLogModule = nullptr;
 
 // HACK: Limitations in Focus/SetFocus on Mac (see bug 465446)
 nsresult FocusAppNative()

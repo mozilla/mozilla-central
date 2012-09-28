@@ -29,8 +29,6 @@ nsMsgStatusFeedback::nsMsgStatusFeedback() :
   m_lastPercent(0),
   m_lastProgressTime(0)
 {
-
-  nsresult rv;
   nsCOMPtr<nsIStringBundleService> bundleService =
     mozilla::services::GetStringBundleService();
 
