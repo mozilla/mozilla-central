@@ -6,11 +6,11 @@
  * Object that contains a set of filter properties that may be used by a calFilter object
  * to filter a set of items.
  * Supported filter properties:
- *   start, end:   Specifies the relative date range to use when calculating the filter date 
+ *   start, end:   Specifies the relative date range to use when calculating the filter date
  *               range. The relative date range may relative to the current date and time, the
- *               currently selected date, or the dates range of the current view. The actual 
- *               date range used to filter items will be calculated by the calFilter object 
- *               by using the updateFilterDates function, which may be called multiple times 
+ *               currently selected date, or the dates range of the current view. The actual
+ *               date range used to filter items will be calculated by the calFilter object
+ *               by using the updateFilterDates function, which may be called multiple times
  *               to reflect changes in the current date and time, and changes to the view.
  *
  *
@@ -20,25 +20,25 @@
  *               - A string that may be converted to a calIDuration object that will be used
  *                 as an offset to the current date and time.
  *
- *                 The start and end properties may have values representing different relative 
+ *                 The start and end properties may have values representing different relative
  *               date ranges, in which case the filter start date will be calculated as the start
  *               of the relative range specified by the start property, while the filter end date
- *               will be calculated as the end of the relative range specified by the end 
+ *               will be calculated as the end of the relative range specified by the end
  *               property.
  *
  *   due:          Specifies the filter property for the due date of tasks. This filter has no
- *               effect when filtering events. 
+ *               effect when filtering events.
  *
- *                 The property has a bit field value, with the FILTER_DUE_XXX bit flags set 
+ *                 The property has a bit field value, with the FILTER_DUE_XXX bit flags set
  *               to indicate that tasks with the corresponding due property value should match
  *               the filter.
  *
  *                 If the value is set to null the due date will not be considered when filtering.
  *
- *   status:       Specifies the filter property for the status of tasks. This filter has no 
+ *   status:       Specifies the filter property for the status of tasks. This filter has no
  *               effect when filtering events.
  *
- *                 The property has a bit field value, with the FILTER_STATUS_XXX bit flags set 
+ *                 The property has a bit field value, with the FILTER_STATUS_XXX bit flags set
  *               to indicate that tasks with the corresponding status property value should match
  *               the filter.
  *
@@ -48,7 +48,7 @@
  *
  *                 The property may be set to one of the folowing values:
  *               - null: The item category will not be considered when filtering.
- *               - A string: The item will match the filter if any of it's categories match the 
+ *               - A string: The item will match the filter if any of it's categories match the
  *               category specified by the property.
  *               - An array: The item will match the filter if any of it's categories match any
  *               of the categories contained in the Array specified by the property.
@@ -62,7 +62,7 @@
  *               - FILTER_OCCURRENCES_PAST_AND_NEXT: Returns past occurrences and the next future
  *               matching occurrence if one is found.
  *
- *   onfilter:     A callback function that may be used to apply additional custom filter 
+ *   onfilter:     A callback function that may be used to apply additional custom filter
  *               constraints. If specified, the callback function will be called after any other
  *               specified filter properties are tested.
  *
@@ -75,7 +75,7 @@
  *                   @param aFilter             The calFilter object performing the filter test.
  *
  *                 If specified, the callback function is responsible for returning a value that
- *               can be converted to true if the item should match the filter, or a value that 
+ *               can be converted to true if the item should match the filter, or a value that
  *               can be converted to false otherwise. The return value will override the results
  *               of the testing of any other specified filter properties.
  */
@@ -118,7 +118,7 @@ calFilterProperties.prototype = {
     occurrences: null,
 
     onfilter: null,
-    
+
     equals: function cFP_equals(aFilterProps) {
         if (!(aFilterProps instanceof calFilterProperties)) {
             return false;
@@ -142,17 +142,17 @@ calFilterProperties.prototype = {
     LOG: function cFP_LOG(aString) {
         cal.LOG("[calFilterProperties] " +
                 (aString || "") +
-                "\n  start: " + this.start +
-                "\n  end: " + this.end +
-                "\n  status: " + this.status +
-                "\n  due: " + this.due +
-                "\n  category: " + this.category);
+                " start=" + this.start +
+                " end=" + this.end +
+                " status=" + this.status +
+                " due=" + this.due +
+                " category=" + this.category);
     }
 };
 
 /**
  * Object that allows filtering of a set of items using a set of filter properties. A set
- * of property filters may be defined by a filter name, which may then be used to apply 
+ * of property filters may be defined by a filter name, which may then be used to apply
  * the defined filter properties. A set of commonly used property filters are predefined.
  */
 function calFilter() {
@@ -177,8 +177,8 @@ calFilter.prototype = {
      * Initializes the predefined filters.
      */
     initDefinedFilters: function cF_initDefinedFilters() {
-        let filters = ["all", "notstarted", "overdue", "open", "completed", "throughcurrent", 
-                       "throughtoday", "throughsevendays", "today", "thisCalendarMonth", 
+        let filters = ["all", "notstarted", "overdue", "open", "completed", "throughcurrent",
+                       "throughtoday", "throughsevendays", "today", "thisCalendarMonth",
                        "future", "current", "currentview"];
         filters.forEach(function(filter) {
             if (!(filter in this.mDefinedFilters)) {
@@ -191,7 +191,7 @@ calFilter.prototype = {
      * Gets the filter properties for a predefined filter.
      *
      * @param aFilter   The name of the filter to retrieve the filter properties for.
-     * @result          The filter properties for the specified filter, or null if the filter 
+     * @result          The filter properties for the specified filter, or null if the filter
      *                  not predefined.
      */
     getPreDefinedFilterProperties: function cF_getPreDefinedFilterProperties(aFilter) {
@@ -230,21 +230,21 @@ calFilter.prototype = {
                 props.end = props.FILTER_DATE_SELECTED_OR_NOW;
                 break;
             case "throughcurrent":
-                props.status = props.FILTER_STATUS_INCOMPLETE | props.FILTER_STATUS_IN_PROGRESS | 
+                props.status = props.FILTER_STATUS_INCOMPLETE | props.FILTER_STATUS_IN_PROGRESS |
                                props.FILTER_STATUS_COMPLETED_TODAY;
                 props.due = props.FILTER_DUE_ALL;
                 props.start = props.FILTER_DATE_ALL;
                 props.end = props.FILTER_DATE_SELECTED_OR_NOW;
                 break;
             case "throughtoday":
-                props.status = props.FILTER_STATUS_INCOMPLETE | props.FILTER_STATUS_IN_PROGRESS | 
+                props.status = props.FILTER_STATUS_INCOMPLETE | props.FILTER_STATUS_IN_PROGRESS |
                                props.FILTER_STATUS_COMPLETED_TODAY;
                 props.due = props.FILTER_DUE_ALL;
                 props.start = props.FILTER_DATE_ALL;
                 props.end = props.FILTER_DATE_TODAY;
                 break;
             case "throughsevendays":
-                props.status = props.FILTER_STATUS_INCOMPLETE | props.FILTER_STATUS_IN_PROGRESS | 
+                props.status = props.FILTER_STATUS_INCOMPLETE | props.FILTER_STATUS_IN_PROGRESS |
                                props.FILTER_STATUS_COMPLETED_TODAY;
                 props.due = props.FILTER_DUE_ALL;
                 props.start = props.FILTER_DATE_ALL;
@@ -286,7 +286,7 @@ calFilter.prototype = {
 
     /**
      * Defines a set of filter properties so that they may be applied by the filter name. If
-     * the specified filter name is already defined, it's associated filter properties will be 
+     * the specified filter name is already defined, it's associated filter properties will be
      * replaced.
      *
      * @param aFilterName         The name to define the filter properties as.
@@ -319,7 +319,7 @@ calFilter.prototype = {
      * Returns the filter name that a set of filter properties were previously defined as.
      *
      * @param aFilterProperties   The filter properties previously defined.
-     * @return                    The name of the first filter name that the properties 
+     * @return                    The name of the first filter name that the properties
      *                            were defined as, or null if the filter properties were
      *                            not previously defined.
      */
@@ -452,7 +452,7 @@ calFilter.prototype = {
                       !(due == null));
         }
 
-        // Call the filter properties onfilter callback if set. The return value of the 
+        // Call the filter properties onfilter callback if set. The return value of the
         // callback function will override the result of this function.
         if (props.onfilter && (typeof(props.onfilter) == "function")) {
             return props.onfilter(aItem, result, props, this);
@@ -467,7 +467,7 @@ calFilter.prototype = {
      * @param prop                The value of the date filter property to calculate for. May
      *                            be a constant specifying a relative date range, or a string
      *                            representing a duration offset from the current date time.
-     * @param start               If true, the function will return the date value for the 
+     * @param start               If true, the function will return the date value for the
      *                            start of the relative date range, otherwise it will return the
      *                            date value for the end of the date range.
      * @return                    The calculated date for the property.
@@ -565,7 +565,7 @@ calFilter.prototype = {
         return this.mStartDate;
     },
 
-    /** 
+    /**
      * Sets the start date for the current filter date range. This will override the date range
      * calculated from the filter properties by the getDatesForFilter function.
      */
@@ -583,7 +583,7 @@ calFilter.prototype = {
         return this.mEndDate;
     },
 
-    /** 
+    /**
      * Sets the end date for the current filter date range. This will override the date range
      * calculated from the filter properties by the getDatesForFilter function.
      */
@@ -683,7 +683,7 @@ calFilter.prototype = {
             cal.WARN("[calFilter] Unable to apply filter " + aFilter);
         } else {
             this.updateFilterDates();
-            this.mFilterProperties.LOG("Applying filter:");
+            // this.mFilterProperties.LOG("Applying filter:");
         }
     },
 
@@ -715,11 +715,11 @@ calFilter.prototype = {
      * the currently applied filter properties and text filter.
      *
      * @param aItems              The array of items to check.
-     * @param aCallback           An optional callback function to be called with each item and 
+     * @param aCallback           An optional callback function to be called with each item and
      *                            the result of it's filter test.
-     * @return                    A new array containing the items that match the filters, or 
+     * @return                    A new array containing the items that match the filters, or
      *                            null if no filter has been applied.
-     */  
+     */
     filterItems: function cF_filterItems(aItems, aCallback) {
         if (!this.mFilterProperties) {
             return null;
@@ -740,9 +740,9 @@ calFilter.prototype = {
      * Checks if the item matches the currently applied filter properties and text filter.
      *
      * @param aItem               The item to check.
-     * @return                    Returns true if the item matches the filters, 
+     * @return                    Returns true if the item matches the filters,
      *                            false otherwise.
-     */     
+     */
     isItemInFilters: function cF_isItemInFilters(aItem) {
         return (this.propertyFilter(aItem) && this.textFilter(aItem));
     },
@@ -752,7 +752,7 @@ calFilter.prototype = {
      * filter properties.
      *
      * @param aItem               The parent item to find the next occurrence of.
-     * @return                    Returns the next occurrence that matches the filters, 
+     * @return                    Returns the next occurrence that matches the filters,
      *                            or null if no match is found.
      */
     getNextOccurrence: function cF_getNextOccurrence(aItem) {
@@ -763,7 +763,7 @@ calFilter.prototype = {
         let count = 0;
         let start = cal.now();
 
-        // If the base item matches the filter, we need to check each future occurrence. 
+        // If the base item matches the filter, we need to check each future occurrence.
         // Otherwise, we only need to check the exceptions.
         if (this.isItemInFilters(aItem)) {
             while (count++ < this.mMaxIterations) {
@@ -804,7 +804,7 @@ calFilter.prototype = {
      *
      * @param aItem               The parent item to find occurrence of.
      * @return                    Returns an array containing the occurrences that
-     *                            match the filters, an empty array if there are no 
+     *                            match the filters, an empty array if there are no
      *                            matches, or null if the filter is not initialized.
      */
     getOccurrences: function cF_getOccurrences(aItem) {
@@ -818,7 +818,7 @@ calFilter.prototype = {
             props.occurrences == props.FILTER_OCCURRENCES_NONE) {
             // either this isn't a repeating item, the occurrence filter specifies that
             // we don't want occurrences, or we have a default occurrence filter with an
-            // unbound date range, so we return just the unexpanded item. 
+            // unbound date range, so we return just the unexpanded item.
             occs = [aItem];
         } else {
             occs = aItem.getOccurrencesBetween(this.mStartDate || cal.createDateTime(),
