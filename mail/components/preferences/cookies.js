@@ -631,7 +631,7 @@ var gCookiesWindow = {
     //
     //    Before SelectedIndex: 1   Before RowCount: 4
     //    After  SelectedIndex: 1   After  RowCount: 3
-
+    var seln = this._view.selection;
     var tbo = this._tree.treeBoxObject;
 
     if (seln.count < 1) return;
