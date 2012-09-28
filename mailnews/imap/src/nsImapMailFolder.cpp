@@ -7645,7 +7645,7 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
 done:
   if (NS_FAILED(rv))
   {
-    (void) OnCopyCompleted(srcSupport, NS_OK);
+    (void) OnCopyCompleted(srcSupport, rv);
     if (isMove)
     {
       srcFolder->EnableNotifications(allMessageCountNotifications, true, true/* dbBatching*/);  //enable message count notification

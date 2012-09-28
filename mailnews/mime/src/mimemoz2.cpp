@@ -580,7 +580,7 @@ MimeGetAttachmentList(MimeObject *tobj, const char *aMessageURL, nsMsgAttachment
   bool                  isAnInlineMessage;
 
   if (!data)
-    return NS_OK;
+    return NS_ERROR_INVALID_ARG;
   *data = nullptr;
 
   obj = mime_get_main_object(tobj);

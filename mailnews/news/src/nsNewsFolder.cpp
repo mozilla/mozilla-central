@@ -1001,17 +1001,17 @@ nsMsgNewsFolder::LoadNewsrcFileAndCreateNewsgroups()
 
   nsCOMPtr<nsIInputStream> fileStream;
   rv = NS_NewLocalFileInputStream(getter_AddRefs(fileStream), mNewsrcFilePath);
-  NS_ENSURE_SUCCESS(rv, NS_OK);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsILineInputStream> lineInputStream(do_QueryInterface(fileStream, &rv));
-  NS_ENSURE_SUCCESS(rv, NS_OK);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   bool more = true;
   nsCString line;
 
   while (more && NS_SUCCEEDED(rv))
   {
-    lineInputStream->ReadLine(line, &more);
+    rv = lineInputStream->ReadLine(line, &more);
     if (line.IsEmpty())
       continue;
     HandleNewsrcLine(line.get(), line.Length());

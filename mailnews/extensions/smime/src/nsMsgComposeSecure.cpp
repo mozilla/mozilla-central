@@ -61,8 +61,9 @@ MIME_QPEncoderInit(MimeConverterOutputCallback output_fn, void *closure)
 nsresult
 MIME_EncoderDestroy(MimeEncoderData *data, bool abort_p) 
 {
-  nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
-  NS_ENSURE_TRUE(converter, NS_OK);
+  nsresult rv = NS_OK;
+  nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   return converter->EncoderDestroy(data, abort_p);
 }
@@ -454,7 +455,7 @@ nsresult nsMsgComposeSecure::MimeInitMultipartSigned(bool aOuter, nsIMsgSendRepo
 
   rv = make_multipart_signed_header_string(aOuter, &header,
                     &mMultipartSignedBoundary);
-  if (NS_FAILED(rv)) goto FAIL;
+  NS_ENSURE_SUCCESS(rv, rv);
 
   L = strlen(header);
 
@@ -472,7 +473,7 @@ nsresult nsMsgComposeSecure::MimeInitMultipartSigned(bool aOuter, nsIMsgSendRepo
   }
 
   PR_Free(header);
-  if (NS_FAILED(rv)) goto FAIL;
+  NS_ENSURE_SUCCESS(rv, rv);
 
   /* Now initialize the crypto library, so that we can compute a hash
    on the object which we are signing.
@@ -482,15 +483,12 @@ nsresult nsMsgComposeSecure::MimeInitMultipartSigned(bool aOuter, nsIMsgSendRepo
 
   PR_SetError(0,0);
   mDataHash = do_CreateInstance("@mozilla.org/security/hash;1", &rv);
-  if (NS_FAILED(rv)) return NS_OK;
+  NS_ENSURE_SUCCESS(rv, rv);
 
   rv = mDataHash->Init(mHashType);
-  if (NS_FAILED(rv)) {
-    goto FAIL;
-  }
+  NS_ENSURE_SUCCESS(rv, rv);
 
   PR_SetError(0,0);
- FAIL:
   return rv;
 }
 

@@ -233,10 +233,7 @@ nsresult nsMsgSendPart::PushBody(const char* buffer, int32_t length)
 
   if (m_encoder_data)
   {
-    nsresult rv = MIME_EncoderWrite(m_encoder_data, encoded_data, length);
-    if (NS_FAILED(rv))
-      // XXX -1 is not a valid nsresult
-      status = static_cast<nsresult>(-1);
+    status = MIME_EncoderWrite(m_encoder_data, encoded_data, length);
   }
   else
   {

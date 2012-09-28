@@ -233,7 +233,7 @@ nsresult nsMsgPurgeService::PerformPurge()
 
         nsCOMPtr<nsIMsgProtocolInfo> protocolInfo =
           do_GetService(contractid.get(), &rv);
-        NS_ENSURE_SUCCESS(rv, NS_OK);
+        NS_ENSURE_SUCCESS(rv, rv);
 
         nsCString realHostName;
         server->GetRealHostName(realHostName);

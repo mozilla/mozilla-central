@@ -655,25 +655,22 @@ NS_IMETHODIMP nsIMAPHostSessionList::SetNamespaceHierarchyDelimiterFromMailboxFo
 
 NS_IMETHODIMP nsIMAPHostSessionList::AddShellToCacheForHost(const char *serverKey, nsIMAPBodyShell *shell)
 {
+        nsresult rv = NS_OK;
 	PR_EnterMonitor(gCachedHostInfoMonitor);
 	nsIMAPHostInfo *host = FindHost(serverKey);
 	if (host)
 	{
 		if (host->fShellCache)
 		{
-			bool rv = host->fShellCache->AddShellToCache(shell);
-			PR_ExitMonitor(gCachedHostInfoMonitor);
-			// XXX Cast of bool to nsresult
-			return static_cast<nsresult>(rv);
-		}
-		else
-		{
-			PR_ExitMonitor(gCachedHostInfoMonitor);
-			return NS_OK;
+			if (!host->fShellCache->AddShellToCache(shell))
+                                rv = NS_ERROR_UNEXPECTED;
 		}
 	}
+        else
+                rv = NS_ERROR_ILLEGAL_VALUE;
+
 	PR_ExitMonitor(gCachedHostInfoMonitor);
-	return (host == NULL) ? NS_ERROR_ILLEGAL_VALUE : NS_OK;
+	return rv;
 }
 
 NS_IMETHODIMP nsIMAPHostSessionList::FindShellInCacheForHost(const char *serverKey, const char *mailboxName, const char *UID,

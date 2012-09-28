@@ -93,12 +93,10 @@ nsresult nsMsgLineBuffer::BufferInput(const char *net_buffer, int32_t net_buffer
         /* The last buffer ended with a CR.  The new buffer does not start
            with a LF.  This old buffer should be shipped out and discarded. */
         PR_ASSERT(m_bufferSize > m_bufferPos);
-        // XXX -1 is not a valid nsresult
-        if (m_bufferSize <= m_bufferPos) return static_cast<nsresult>(-1);
-        // XXX This returns -1 on error, not an nsresult
-        status = static_cast<nsresult>(ConvertAndSendBuffer());
-        if (NS_FAILED(status))
-           return status;
+        if (m_bufferSize <= m_bufferPos)
+          return NS_ERROR_UNEXPECTED;
+        if (ConvertAndSendBuffer() == -1)
+           return NS_ERROR_FAILURE;
         m_bufferPos = 0;
     }
     while (net_buffer_size > 0)
@@ -169,9 +167,8 @@ nsresult nsMsgLineBuffer::BufferInput(const char *net_buffer, int32_t net_buffer
         if (!newline)
             return NS_OK;
 
-        // XXX This returns -1 on error, not an nsresult
-        status = static_cast<nsresult>(ConvertAndSendBuffer());
-        if (NS_FAILED(status)) return status;
+        if (ConvertAndSendBuffer() == -1)
+          return NS_ERROR_FAILURE;
         
         net_buffer_size -= (newline - net_buffer);
         net_buffer = newline;
