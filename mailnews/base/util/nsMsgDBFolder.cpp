@@ -826,9 +826,12 @@ NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, int64_t *offs
             rv = NS_ERROR_FAILURE;
           }
         }
-    if (NS_FAILED(rv) && mDatabase)
+    if (NS_SUCCEEDED(rv))
+      seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, *offset);
+    else if (mDatabase)
       mDatabase->MarkOffline(msgKey, false, nullptr);
   }
+
   return rv;
 }
 

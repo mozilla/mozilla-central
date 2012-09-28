@@ -2597,6 +2597,11 @@ NS_IMETHODIMP nsImapMailFolder::Shutdown(bool shutdownChildren)
   mPath = nullptr;
   NS_IF_RELEASE(m_moveCoalescer);
   m_msgParser = nullptr;
+  if (m_playbackTimer)
+  {
+    m_playbackTimer->Cancel();
+    m_playbackTimer = nullptr;
+  }
   m_pendingOfflineMoves.Clear();
   return nsMsgDBFolder::Shutdown(shutdownChildren);
 }
@@ -6974,6 +6979,17 @@ nsresult nsImapMailFolder::CopyOfflineMsgBody(nsIMsgFolder *srcFolder,
   uint64_t messageOffset;
   uint32_t messageSize;
   origHdr->GetMessageOffset(&messageOffset);
+  if (!messageOffset)
+  {
+    // Some offline stores may contain a bug where the storeToken is set but
+    // the messageOffset is zero. Detect cases like this, and use storeToken
+    // to set the missing messageOffset. Note that offline stores at least for
+    // now do not fully support pluggable stores, so this assumes mbox.
+    nsCString storeToken;
+    origHdr->GetStringProperty("storeToken", getter_Copies(storeToken));
+    if (!storeToken.IsEmpty())
+      messageOffset = ParseUint64Str(storeToken.get());
+  }
   origHdr->GetOfflineMessageSize(&messageSize);
   if (!messageSize)
   {
@@ -8288,6 +8304,14 @@ nsImapMailFolder::CopyFileToOfflineStore(nsIFile *srcFile, nsMsgKey msgKey)
         nsCOMPtr<nsIMsgParseMailMsgState> msgParser =
           do_CreateInstance(NS_PARSEMAILMSGSTATE_CONTRACTID, &rv);
         msgParser->SetMailDB(mDatabase);
+
+        // Tell the parser to use the offset that will be in the dest stream, not the
+        //  temp file.
+        nsCString storeToken;
+        uint64_t offset;
+        fakeHdr->GetMessageOffset(&offset);
+        // This will fail for > 4GB mbox folders, see bug 793865
+        msgParser->SetEnvelopePos((uint32_t) offset);
 
         rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), srcFile);
         if (NS_SUCCEEDED(rv) && inputStream)
