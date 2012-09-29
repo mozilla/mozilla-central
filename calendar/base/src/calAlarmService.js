@@ -10,7 +10,7 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 const kHoursBetweenUpdates = 6;
 
 function nowUTC() {
-    return jsDateToDateTime(new Date()).getInTimezone(UTC());
+    return cal.jsDateToDateTime(new Date()).getInTimezone(cal.UTC());
 }
 
 function newTimerWithCallback(aCallback, aDelay, aRepeating) {

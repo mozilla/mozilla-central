@@ -46,7 +46,7 @@ calItemBase.prototype = {
         this.wrappedJSObject = this;
         this.mProperties = new calPropertyBag();
         this.mPropertyParams = {};
-        this.mProperties.setProperty("CREATED", jsDateToDateTime(new Date()));
+        this.mProperties.setProperty("CREATED", cal.jsDateToDateTime(new Date()));
     },
 
     /**
@@ -176,7 +176,7 @@ calItemBase.prototype = {
      */
     ensureNotDirty: function cIB_ensureNotDirty() {
         if (this.mDirty) {
-            let now = jsDateToDateTime(new Date());
+            let now = cal.jsDateToDateTime(new Date());
             this.setProperty("LAST-MODIFIED", now);
             this.setProperty("DTSTAMP", now);
             this.mDirty = false;

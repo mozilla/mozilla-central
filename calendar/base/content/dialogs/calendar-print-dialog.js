@@ -113,10 +113,10 @@ function getPrintSettings(receiverFunc) {
         // We return the time from the timepickers using the selected
         // timezone, as not doing so in timezones with a positive offset
         // from UTC may cause the printout to include the wrong days.
-        var currentTimezone = calendarDefaultTimezone();
-        settings.start = jsDateToDateTime(document.getElementById("start-date-picker").value);
+        let currentTimezone = cal.calendarDefaultTimezone();
+        settings.start = cal.jsDateToDateTime(document.getElementById("start-date-picker").value);
         settings.start = settings.start.getInTimezone(currentTimezone);
-        settings.end = jsDateToDateTime(document.getElementById("end-date-picker").value);
+        settings.end = cal.jsDateToDateTime(document.getElementById("end-date-picker").value);
         settings.end = settings.end.getInTimezone(currentTimezone);
         settings.end = settings.end.clone();
         settings.end.day += 1;

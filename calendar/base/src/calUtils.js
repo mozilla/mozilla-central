@@ -376,34 +376,6 @@ function now() {
 }
 
 /**
- * Returns a calIDateTime corresponding to a javascript Date.
- *
- * @param aDate     a javascript date
- * @param aTimezone (optional) a timezone that should be enforced
- * @returns         a calIDateTime
- *
- * @warning  Use of this function is strongly discouraged.  calIDateTime should
- *           be used directly whenever possible.
- *           If you pass a timezone, then the passed jsDate's timezone will be ignored,
- *           but only its local time portions are be taken.
- */
-function jsDateToDateTime(aDate, aTimezone) {
-    var newDate = createDateTime();
-    if (aTimezone) {
-        newDate.resetTo(aDate.getFullYear(),
-                        aDate.getMonth(),
-                        aDate.getDate(),
-                        aDate.getHours(),
-                        aDate.getMinutes(),
-                        aDate.getSeconds(),
-                        aTimezone);
-    } else {
-        newDate.jsDate = aDate;
-    }
-    return newDate;
-}
-
-/**
  * Selects an item with id aItemId in the radio group with id aRadioGroupId
  *
  * @param aRadioGroupId  the id of the radio group which contains the item

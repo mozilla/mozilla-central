@@ -48,7 +48,7 @@ function handleCommandLine(aComLine) {
 
         switch (flag) {
             case "showdate":
-                currentView().goToDay(jsDateToDateTime(new Date(param)));
+                currentView().goToDay(cal.jsDateToDateTime(new Date(param)));
                 break;
             case "subscribe":
             case "url":
@@ -184,7 +184,7 @@ function changeNumberOfWeeks(menuitem) {
 function pickAndGoToDate() {
   var initialDate = currentView().selectedDay.getInTimezone(floating()).jsDate;
   var callback = function receiveAndGoToDate(pickedDate) {
-    currentView().goToDay(jsDateToDateTime(pickedDate));
+    currentView().goToDay(cal.jsDateToDateTime(pickedDate));
     getMinimonth().value = pickedDate;
   };
   openDialog("chrome://sunbird/content/calendar-gotodate-dialog.xul",

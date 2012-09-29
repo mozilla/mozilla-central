@@ -83,4 +83,10 @@ function run_test() {
     do_check_eq(utc.timezone.tzid, "UTC");
     do_check_eq(utc.clone().timezone.tzid, "UTC");
     do_check_eq(utc.timezoneOffset, 0);
+
+    // Bug 794477 - setting jsdate across compartments needs to work
+    let someDate = new Date();
+    let createdDate = cal.jsDateToDateTime(someDate).getInTimezone(cal.calendarDefaultTimezone());
+    do_check_eq(Math.floor(someDate.getTime() / 1000),
+                Math.floor(createdDate.jsDate.getTime() / 1000));
 }

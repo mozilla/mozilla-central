@@ -340,8 +340,8 @@ function updateStartTime() {
     // jsDate is always in OS timezone, thus we create a calIDateTime
     // object from the jsDate representation and simply set the new
     // timezone instead of converting.
-    var start = jsDateToDateTime(startWidget.value,
-                                 gDisplayTimezone ? gStartTimezone : calendarDefaultTimezone());
+    var start = cal.jsDateToDateTime(startWidget.value,
+                                     gDisplayTimezone ? gStartTimezone : calendarDefaultTimezone());
     gStartDate = start.clone();
     start.addDuration(gDuration);
     gEndDate = start.getInTimezone(gEndTimezone);
@@ -374,7 +374,7 @@ function updateEndTime() {
     var saveEndTime = gEndDate;
     var kDefaultTimezone = calendarDefaultTimezone();
 
-    gStartDate = jsDateToDateTime(startWidget.value,
+    gStartDate = cal.jsDateToDateTime(startWidget.value,
                                   gDisplayTimezone ? gStartTimezone : calendarDefaultTimezone());
 
     var timezone = gEndTimezone;
@@ -383,8 +383,8 @@ function updateEndTime() {
         !compareObjects(gStartTimezone, gEndTimezone)) {
         timezone = gStartTimezone;
     }
-    gEndDate = jsDateToDateTime(endWidget.value,
-                                gDisplayTimezone ? timezone : kDefaultTimezone);
+    gEndDate = cal.jsDateToDateTime(endWidget.value,
+                                    gDisplayTimezone ? timezone : kDefaultTimezone);
 
     var allDayElement = document.getElementById("all-day");
     var allDay = allDayElement.getAttribute("checked") == "true";

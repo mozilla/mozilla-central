@@ -693,7 +693,7 @@
               "@mozilla.org/calendar/datetime-formatter;1"]
                   .getService(
                       Components.interfaces.calIDateTimeFormatter);
-          let date = jsDateToDateTime(new Date());
+          let date = cal.jsDateToDateTime(new Date());
           date.hour = this.mStartHour;
           date.minute = 0;
           let height = this.parentNode.parentNode.boxObject.height - 1;

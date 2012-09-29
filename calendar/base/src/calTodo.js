@@ -88,7 +88,7 @@ calTodo.prototype = {
     set isCompleted(v) {
         if (v) {
             if (!this.completedDate)
-                this.completedDate = jsDateToDateTime(new Date());
+                this.completedDate = cal.jsDateToDateTime(new Date());
             this.status = "COMPLETED";
             this.percentComplete = 100;
         } else {

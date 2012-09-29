@@ -328,8 +328,8 @@ function updateReminder(event) {
         reminder.related = Components.interfaces.calIAlarm.ALARM_RELATED_ABSOLUTE;
 
         if (absDate.value) {
-            reminder.alarmDate = jsDateToDateTime(absDate.value,
-                                                  window.arguments[0].timezone);
+            reminder.alarmDate = cal.jsDateToDateTime(absDate.value,
+                                                      window.arguments[0].timezone);
         } else {
             reminder.alarmDate = null;
         }

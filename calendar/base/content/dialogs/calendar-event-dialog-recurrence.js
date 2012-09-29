@@ -336,7 +336,7 @@ function onSave(item) {
             recRule.count = Math.max(1, getElementValue("repeat-ntimes-count"));
             break;
         case "until":
-            let untilDate = jsDateToDateTime(getElementValue("repeat-until-date"), gStartTime.timezone);
+            let untilDate = cal.jsDateToDateTime(getElementValue("repeat-until-date"), gStartTime.timezone);
             untilDate.isDate = gStartTime.isDate; // enforce same value type as DTSTART
             if (!gStartTime.isDate) {
                 // correct UNTIL to exactly match start date's hour, minute, second:
@@ -594,7 +594,7 @@ function updatePreview() {
  * dialog when the user enters a wrong until date.
  */
 function checkUntilDate() {
-    let untilDate = jsDateToDateTime(getElementValue("repeat-until-date"), gStartTime.timezone);
+    let untilDate = cal.jsDateToDateTime(getElementValue("repeat-until-date"), gStartTime.timezone);
     let startDate = gStartTime.clone();
     startDate.isDate = true;
     if (untilDate.compare(startDate) < 0) {

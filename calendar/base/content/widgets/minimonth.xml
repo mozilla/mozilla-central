@@ -388,8 +388,8 @@
       <property name="firstDate" readonly="true">
         <getter><![CDATA[
             let calbox = document.getAnonymousElementByAttribute(this, "anonid", "minimonth-calendar");
-            let date = calbox.childNodes[1].firstChild.date;
-            return jsDateToDateTime(date);
+            let dt = calbox.childNodes[1].firstChild.date;
+            return cal.jsDateToDateTime(dt);
         ]]></getter>
       </property>
 
@@ -398,7 +398,7 @@
         <getter><![CDATA[
             var calbox = document.getAnonymousElementByAttribute(this, "anonid", "minimonth-calendar");
             var date = calbox.lastChild.lastChild.date;
-            var lastDateTime = jsDateToDateTime(date);
+            var lastDateTime = cal.jsDateToDateTime(date);
             lastDateTime.day = lastDateTime.day + 1;
             return lastDateTime;
         ]]></getter>
