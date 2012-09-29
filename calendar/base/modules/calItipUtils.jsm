@@ -1141,7 +1141,7 @@ ItipItemFinder.prototype = {
                                                "invalid number of attendees in PUBLISH!");
                                     if (item.calendar.getProperty("itip.disableRevisionChecks") ||
                                         cal.itip.compare(itipItemItem, item) > 0) {
-                                        let newItem = updateItem(newItem, itipItemItem);
+                                        let newItem = updateItem(item, itipItemItem);
                                         let action = function(opListener) {
                                             return newItem.calendar.modifyItem(newItem, item, opListener);
                                         };
