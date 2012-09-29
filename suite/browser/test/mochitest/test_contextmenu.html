@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>Tests for browser context menu</title>
-  <script type="text/javascript" src="/tests/SimpleTest/SimpleTest.js"></script>  
+  <script type="text/javascript" src="/tests/SimpleTest/SimpleTest.js"></script>
   <script type="text/javascript" src="/tests/SimpleTest/EventUtils.js"></script>
   <link rel="stylesheet" type="text/css" href="/tests/SimpleTest/test.css" />
 </head>
@@ -20,12 +20,12 @@ Browser context menu tests.
 
 SpecialPowers.Cu.import("resource://gre/modules/InlineSpellChecker.jsm", window);
 
-const Cc = SpecialPowers.Components.classes;
+const Cc = SpecialPowers.Cc;
 const Ci = SpecialPowers.Ci;
 
 function openContextMenuFor(element, shiftkey, shouldWaitForFocus) {
     // Context menu should be closed before we open it again.
-    is(contextMenu.state, "closed", "checking if popup is closed");
+    is(SpecialPowers.wrap(contextMenu).state, "closed", "checking if popup is closed");
 
     if (lastElement)
       lastElement.blur();
@@ -169,7 +169,7 @@ function checkContextMenu(expectedItems) {
  *                   ["sub1", true,         // submenu contents
  *                    "sub2", false], null, // submenu contents
  *               "lol", false]              // item disabled
- * 
+ *
  */
 function checkMenu(menu, expectedItems, data) {
     var actualItems = getVisibleMenuItems(menu, data);
@@ -333,7 +333,7 @@ function runTest(testNum) {
                           "---",                  null,
                           "context-saveimage",    true,
                           "context-sendimage",    true].concat(
-                         ("@mozilla.org/suite/shell-service;1" in SpecialPowers.Components.classes) ?
+                         ("@mozilla.org/suite/shell-service;1" in Cc) ?
                          ["context-setDesktopBackground", true] : []).concat(
                          ["---",                  null,
                           "context-bookmarkpage", true,
@@ -516,7 +516,7 @@ function runTest(testNum) {
                           "context-saveimage",    true,
                           "context-sendimage",    true,
                          ].concat(
-                         ("@mozilla.org/suite/shell-service;1" in SpecialPowers.Components.classes) ?
+                         ("@mozilla.org/suite/shell-service;1" in Cc) ?
                          ["context-setDesktopBackground", true] : [])
                           .concat(
                          ["---",                  null,
@@ -759,7 +759,7 @@ function runTest(testNum) {
                           "---",                  null,
                           "context-saveimage",    true,
                           "context-sendimage",    true].concat(
-                         ("@mozilla.org/suite/shell-service;1" in SpecialPowers.Components.classes) ?
+                         ("@mozilla.org/suite/shell-service;1" in Cc) ?
                          ["context-setDesktopBackground", true] : []).concat(
                          ["---",                  null,
                           "context-bookmarkpage", true,
@@ -783,7 +783,7 @@ function runTest(testNum) {
                           "---",                  null,
                           "context-saveimage",    true,
                           "context-sendimage",    true].concat(
-                         ("@mozilla.org/suite/shell-service;1" in SpecialPowers.Components.classes) ?
+                         ("@mozilla.org/suite/shell-service;1" in Cc) ?
                          ["context-setDesktopBackground", true] : []).concat(
                          ["---",                  null,
                           "context-bookmarkpage", true,
