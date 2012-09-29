@@ -106,6 +106,20 @@ function onLoad()
 }
 
 /**
+ * This is called from OpenOrFocusWindow() if the dialog is already open.
+ * New filters could have been created by operations outside the dialog.
+ */
+function refresh()
+{
+  // As we really don't know what has changed, clear the search box
+  // undonditionally so that the changed/added filters are surely visible.
+  resetSearchBox();
+
+  // And just redraw the list.
+  rebuildFilterList();
+}
+
+/**
  * Called when a user selects a folder in the list, so we can update the 
  * filters that are displayed
  * note the function name 'onFilterFolderClick' is misleading, it would be
