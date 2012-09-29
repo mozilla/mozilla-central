@@ -331,23 +331,24 @@ function updateStartTime() {
         return;
     }
 
-    var startWidgetId = "event-starttime";
-    var endWidgetId = "event-endtime";
+    let startWidgetId = "event-starttime";
+    let endWidgetId = "event-endtime";
 
-    var startWidget = document.getElementById(startWidgetId);
-    var endWidget = document.getElementById(endWidgetId);
+    let startWidget = document.getElementById(startWidgetId);
+    let endWidget = document.getElementById(endWidgetId);
 
     // jsDate is always in OS timezone, thus we create a calIDateTime
     // object from the jsDate representation and simply set the new
     // timezone instead of converting.
-    var start = cal.jsDateToDateTime(startWidget.value,
-                                     gDisplayTimezone ? gStartTimezone : calendarDefaultTimezone());
+    let timezone = gDisplayTimezone ? gStartTimezone : calendarDefaultTimezone();
+    let start = cal.jsDateToDateTime(startWidget.value, timezone);
+                                    
     gStartDate = start.clone();
     start.addDuration(gDuration);
     gEndDate = start.getInTimezone(gEndTimezone);
 
-    var allDayElement = document.getElementById("all-day");
-    var allDay = allDayElement.getAttribute("checked") == "true";
+    let allDayElement = document.getElementById("all-day");
+    let allDay = allDayElement.getAttribute("checked") == "true";
     if (allDay) {
         gStartDate.isDate = true;
         gEndDate.isDate = true;
