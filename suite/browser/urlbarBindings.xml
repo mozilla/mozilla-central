@@ -126,7 +126,7 @@
               if (!domain.endsWith(baseDomain)) {
                 // getBaseDomainFromHost converts its resultant to ACE.
                 let IDNService = Components.classes["@mozilla.org/network/idn-service;1"]
-                                           .getService(Component.interfaces.nsIIDNService);
+                                           .getService(Components.interfaces.nsIIDNService);
                 baseDomain = IDNService.convertACEtoUTF8(baseDomain);
               }
               if (baseDomain != domain) {
