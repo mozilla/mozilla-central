@@ -116,8 +116,6 @@ private:
   nsCOMPtr<nsIFile>         mTempFile;
   nsCOMPtr<nsIOutputStream> mOutFile;
 
-  void                      *mTagData;
-
   // For building headers and stream parsing...
   char                      *m_to;
   char                      *m_bcc;

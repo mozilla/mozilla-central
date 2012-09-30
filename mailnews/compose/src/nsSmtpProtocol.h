@@ -102,7 +102,6 @@ private:
 
     // the error state we want to set on the url
     nsresult m_urlErrorState;
-    uint32_t m_LastTime;
     nsCOMPtr<nsIMsgStatusFeedback> m_statusFeedback;
 
     // Generic state information -- What state are we in? What state do we want to go to

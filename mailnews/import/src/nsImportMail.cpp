@@ -1008,7 +1008,6 @@ public:
 private:
   nsCOMPtr<nsIMsgFolder> m_folder;
   nsISimpleEnumerator **m_enumerator;
-  nsresult m_status;
 };
 
 GetSubFoldersRunnable::GetSubFoldersRunnable(nsIMsgFolder *aFolder,

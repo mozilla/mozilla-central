@@ -67,7 +67,6 @@ public:
 private:
   nsCOMPtr<nsIMailboxUrl>  m_runningUrl; // the nsIMailboxURL that is currently running
   nsMailboxAction m_mailboxAction; // current mailbox action associated with this connnection...
-  int32_t      m_originalContentLength; /* the content length at the time of calling graph progress */
   uint64_t m_msgOffset;
   // Event sink handles
   nsCOMPtr<nsIStreamListener> m_mailboxParser;
@@ -81,7 +80,6 @@ private:
   MailboxStatesEnum  m_initialState;
 
   int64_t   mCurrentProgress;
-  uint32_t  m_messageID;
 
         // can we just use the base class m_tempMsgFile?
   nsCOMPtr<nsIFile> m_tempMessageFile;
