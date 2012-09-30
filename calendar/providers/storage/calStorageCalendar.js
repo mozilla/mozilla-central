@@ -1435,58 +1435,62 @@ calStorageCalendar.prototype = {
     },
 
     shutdownDB: function cSC_shutdownDB() {
-        if (this.mDeleteAlarms) { this.mDeleteAlarms.finalize(); }
-        if (this.mDeleteAllEvents) { this.mDeleteAllEvents.finalize(); }
-        if (this.mDeleteAllMetaData) { this.mDeleteAllMetaData.finalize(); }
-        if (this.mDeleteAllTodos) { this.mDeleteAllTodos.finalize(); }
-        if (this.mDeleteAttachments) { this.mDeleteAttachments.finalize(); }
-        if (this.mDeleteAttendees) { this.mDeleteAttendees.finalize(); }
-        if (this.mDeleteEvent) { this.mDeleteEvent.finalize(); }
-        if (this.mDeleteMetaData) { this.mDeleteMetaData.finalize(); }
-        if (this.mDeleteProperties) { this.mDeleteProperties.finalize(); }
-        if (this.mDeleteRecurrence) { this.mDeleteRecurrence.finalize(); }
-        if (this.mDeleteRelations) { this.mDeleteRelations.finalize(); }
-        if (this.mDeleteTodo) { this.mDeleteTodo.finalize(); }
-        if (this.mEditEventOfflineFlag) { this.mEditEventOfflineFlag.finalize(); }
-        if (this.mEditTodoOfflineFlag) { this.mEditTodoOfflineFlag.finalize(); }
-        if (this.mInsertAlarm) { this.mInsertAlarm.finalize(); }
-        if (this.mInsertAttachment) { this.mInsertAttachment.finalize(); }
-        if (this.mInsertAttendee) { this.mInsertAttendee.finalize(); }
-        if (this.mInsertEvent) { this.mInsertEvent.finalize(); }
-        if (this.mInsertMetaData) { this.mInsertMetaData.finalize(); }
-        if (this.mInsertProperty) { this.mInsertProperty.finalize(); }
-        if (this.mInsertRecurrence) { this.mInsertRecurrence.finalize(); }
-        if (this.mInsertRelation) { this.mInsertRelation.finalize(); }
-        if (this.mInsertTodo) { this.mInsertTodo.finalize(); }
-        if (this.mSelectAlarmsForItem) { this.mSelectAlarmsForItem.finalize(); }
-        if (this.mSelectAlarmsForItemWithRecurrenceId) { this.mSelectAlarmsForItemWithRecurrenceId.finalize(); }
-        if (this.mSelectAllMetaData) { this.mSelectAllMetaData.finalize(); }
-        if (this.mSelectAttachmentsForItem) { this.mSelectAttachmentsForItem.finalize(); }
-        if (this.mSelectAttachmentsForItemWithRecurrenceId) { this.mSelectAttachmentsForItemWithRecurrenceId.finalize(); }
-        if (this.mSelectAttendeesForItem) { this.mSelectAttendeesForItem.finalize(); }
-        if (this.mSelectAttendeesForItemWithRecurrenceId) { this.mSelectAttendeesForItemWithRecurrenceId.finalize(); }
-        if (this.mSelectEvent) { this.mSelectEvent.finalize(); }
-        if (this.mSelectEventExceptions) { this.mSelectEventExceptions.finalize(); }
-        if (this.mSelectEventsWithRecurrence) { this.mSelectEventsWithRecurrence.finalize(); }
-        if (this.mSelectMetaData) { this.mSelectMetaData.finalize(); }
-        if (this.mSelectNonRecurringEventsByRange) { this.mSelectNonRecurringEventsByRange.finalize(); }
-        if (this.mSelectNonRecurringTodosByRange) { this.mSelectNonRecurringTodosByRange.finalize(); }
-        if (this.mSelectPropertiesForItem) { this.mSelectPropertiesForItem.finalize(); }
-        if (this.mSelectPropertiesForItemWithRecurrenceId) { this.mSelectPropertiesForItemWithRecurrenceId.finalize(); }
-        if (this.mSelectRecurrenceForItem) { this.mSelectRecurrenceForItem.finalize(); }
-        if (this.mSelectRelationsForItem) { this.mSelectRelationsForItem.finalize(); }
-        if (this.mSelectRelationsForItemWithRecurrenceId) { this.mSelectRelationsForItemWithRecurrenceId.finalize(); }
-        if (this.mSelectTodo) { this.mSelectTodo.finalize(); }
-        if (this.mSelectTodoExceptions) { this.mSelectTodoExceptions.finalize(); }
-        if (this.mSelectTodosWithRecurrence) { this.mSelectTodosWithRecurrence.finalize(); }
-        if (this.mDeleteEventExtras) {
-            for each (let stmt in this.mDeleteEventExtras) { stmt.finalize(); }
-        }
-        if (this.mDeleteTodoExtras) {
-            for each (let stmt in this.mDeleteTodoExtras) { stmt.finalize(); }
-        }
+        try {
+            if (this.mDeleteAlarms) { this.mDeleteAlarms.finalize(); }
+            if (this.mDeleteAllEvents) { this.mDeleteAllEvents.finalize(); }
+            if (this.mDeleteAllMetaData) { this.mDeleteAllMetaData.finalize(); }
+            if (this.mDeleteAllTodos) { this.mDeleteAllTodos.finalize(); }
+            if (this.mDeleteAttachments) { this.mDeleteAttachments.finalize(); }
+            if (this.mDeleteAttendees) { this.mDeleteAttendees.finalize(); }
+            if (this.mDeleteEvent) { this.mDeleteEvent.finalize(); }
+            if (this.mDeleteMetaData) { this.mDeleteMetaData.finalize(); }
+            if (this.mDeleteProperties) { this.mDeleteProperties.finalize(); }
+            if (this.mDeleteRecurrence) { this.mDeleteRecurrence.finalize(); }
+            if (this.mDeleteRelations) { this.mDeleteRelations.finalize(); }
+            if (this.mDeleteTodo) { this.mDeleteTodo.finalize(); }
+            if (this.mEditEventOfflineFlag) { this.mEditEventOfflineFlag.finalize(); }
+            if (this.mEditTodoOfflineFlag) { this.mEditTodoOfflineFlag.finalize(); }
+            if (this.mInsertAlarm) { this.mInsertAlarm.finalize(); }
+            if (this.mInsertAttachment) { this.mInsertAttachment.finalize(); }
+            if (this.mInsertAttendee) { this.mInsertAttendee.finalize(); }
+            if (this.mInsertEvent) { this.mInsertEvent.finalize(); }
+            if (this.mInsertMetaData) { this.mInsertMetaData.finalize(); }
+            if (this.mInsertProperty) { this.mInsertProperty.finalize(); }
+            if (this.mInsertRecurrence) { this.mInsertRecurrence.finalize(); }
+            if (this.mInsertRelation) { this.mInsertRelation.finalize(); }
+            if (this.mInsertTodo) { this.mInsertTodo.finalize(); }
+            if (this.mSelectAlarmsForItem) { this.mSelectAlarmsForItem.finalize(); }
+            if (this.mSelectAlarmsForItemWithRecurrenceId) { this.mSelectAlarmsForItemWithRecurrenceId.finalize(); }
+            if (this.mSelectAllMetaData) { this.mSelectAllMetaData.finalize(); }
+            if (this.mSelectAttachmentsForItem) { this.mSelectAttachmentsForItem.finalize(); }
+            if (this.mSelectAttachmentsForItemWithRecurrenceId) { this.mSelectAttachmentsForItemWithRecurrenceId.finalize(); }
+            if (this.mSelectAttendeesForItem) { this.mSelectAttendeesForItem.finalize(); }
+            if (this.mSelectAttendeesForItemWithRecurrenceId) { this.mSelectAttendeesForItemWithRecurrenceId.finalize(); }
+            if (this.mSelectEvent) { this.mSelectEvent.finalize(); }
+            if (this.mSelectEventExceptions) { this.mSelectEventExceptions.finalize(); }
+            if (this.mSelectEventsWithRecurrence) { this.mSelectEventsWithRecurrence.finalize(); }
+            if (this.mSelectMetaData) { this.mSelectMetaData.finalize(); }
+            if (this.mSelectNonRecurringEventsByRange) { this.mSelectNonRecurringEventsByRange.finalize(); }
+            if (this.mSelectNonRecurringTodosByRange) { this.mSelectNonRecurringTodosByRange.finalize(); }
+            if (this.mSelectPropertiesForItem) { this.mSelectPropertiesForItem.finalize(); }
+            if (this.mSelectPropertiesForItemWithRecurrenceId) { this.mSelectPropertiesForItemWithRecurrenceId.finalize(); }
+            if (this.mSelectRecurrenceForItem) { this.mSelectRecurrenceForItem.finalize(); }
+            if (this.mSelectRelationsForItem) { this.mSelectRelationsForItem.finalize(); }
+            if (this.mSelectRelationsForItemWithRecurrenceId) { this.mSelectRelationsForItemWithRecurrenceId.finalize(); }
+            if (this.mSelectTodo) { this.mSelectTodo.finalize(); }
+            if (this.mSelectTodoExceptions) { this.mSelectTodoExceptions.finalize(); }
+            if (this.mSelectTodosWithRecurrence) { this.mSelectTodosWithRecurrence.finalize(); }
+            if (this.mDeleteEventExtras) {
+                for each (let stmt in this.mDeleteEventExtras) { stmt.finalize(); }
+            }
+            if (this.mDeleteTodoExtras) {
+                for each (let stmt in this.mDeleteTodoExtras) { stmt.finalize(); }
+            }
 
-        if (this.mDB) { this.mDB.close(); this.mDB = null; }
+            if (this.mDB) { this.mDB.asyncClose(); this.mDB = null; }
+        } catch (e) {
+            cal.ERROR("Error closing storage database: " + e);
+        }
     },
 
     //

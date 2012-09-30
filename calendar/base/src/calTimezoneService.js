@@ -123,7 +123,7 @@ calTimezoneService.prototype = {
 
         try {
             if (this.mSelectByTzid) { this.mSelectByTzid.finalize(); }
-            if (this.mDb) { this.mDb.close(); this.mDb = null; }
+            if (this.mDb) { this.mDb.asyncClose(); this.mDb = null; }
         } catch (e) {
             cal.ERROR("Error closing timezone database: " + e);
         }

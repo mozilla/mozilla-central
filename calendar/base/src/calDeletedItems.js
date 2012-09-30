@@ -131,25 +131,29 @@ calDeletedItems.prototype = {
             this.stmtGetWithCal = this.mDB.createStatement(stmt);
         }
         if (!this.stmtGet) {
-            stmt = "SELECT time_deleted FROM cal_deleted_items WHERE id = :id";
+            let stmt = "SELECT time_deleted FROM cal_deleted_items WHERE id = :id";
             this.stmtGet = this.mDB.createStatement(stmt);
         }
         if (!this.stmtFlush) {
-            stmt = "DELETE FROM cal_deleted_items WHERE time_deleted < :stale_time";
+            let stmt = "DELETE FROM cal_deleted_items WHERE time_deleted < :stale_time";
             this.stmtFlush = this.mDB.createStatement(stmt);
         }
     },
 
     shutdown: function shutdown() {
-        if (this.stmtMarkDelete) this.stmtMarkDelete.finalize();
-        if (this.stmtUnmarkDelete) this.stmtUnmarkDelete.finalize();
-        if (this.stmtGet) this.stmtGet.finalize();
-        if (this.stmtGetWithCal) this.stmtGetWithCal.finalize();
-        if (this.stmtFlush) this.stmtFlush.finalize();
+        try {
+            if (this.stmtMarkDelete) this.stmtMarkDelete.finalize();
+            if (this.stmtUnmarkDelete) this.stmtUnmarkDelete.finalize();
+            if (this.stmtGet) this.stmtGet.finalize();
+            if (this.stmtGetWithCal) this.stmtGetWithCal.finalize();
+            if (this.stmtFlush) this.stmtFlush.finalize();
 
-        if (this.mDB) { this.mDB.close(); this.mDB = null; }
+            if (this.mDB) { this.mDB.asyncClose(); this.mDB = null; }
+        } catch (e) {
+            cal.ERROR("Error closing deleted items database: " + e);
+        }
 
-        cal.getCalendarManager.removeCalendarObserver(this);
+        cal.getCalendarManager().removeCalendarObserver(this);
     },
 
     // calIObserver
