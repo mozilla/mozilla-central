@@ -514,11 +514,11 @@ calMemoryCalendar.prototype = {
             this.mOfflineFlags[aItem.id] = cICL.OFFLINE_FLAG_MODIFIED_RECORD;
         }
 
-        this_.notifyOperationComplete(aListener,
-                                      Components.results.NS_OK,
-                                      Components.interfaces.calIOperationListener.MODIFY,
-                                      aItem.id,
-                                      aItem);
+        this.notifyOperationComplete(aListener,
+                                     Components.results.NS_OK,
+                                     Components.interfaces.calIOperationListener.MODIFY,
+                                     aItem.id,
+                                     aItem);
     },
 
     deleteOfflineItem: function deleteOfflineItem(aItem, aListener) {
@@ -536,7 +536,7 @@ calMemoryCalendar.prototype = {
                                      aItem.id,
                                      aItem);
         // notify observers
-        this_.observers.notify("onDeleteItem", [aItem]);
+        this.observers.notify("onDeleteItem", [aItem]);
     },
 
     getItemOfflineFlag: function getItemOfflineFlag(aItem, aListener) {
