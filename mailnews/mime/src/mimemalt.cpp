@@ -189,7 +189,7 @@ MimeMultipartAlternative_flush_children(MimeObject *obj,
        create it with output off.
   */
   MimeMultipartAlternative *malt = (MimeMultipartAlternative *) obj;
-  bool have_displayable, do_flush, do_display, in_attach;
+  bool have_displayable, do_flush, do_display;
 
   /* Case 1 */
   if (! malt->pending_parts)

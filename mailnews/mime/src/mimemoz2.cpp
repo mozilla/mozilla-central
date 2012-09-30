@@ -697,8 +697,6 @@ NotifyEmittersOfAttachmentList(MimeDisplayOptions     *opt,
 extern "C" nsresult
 nsMimeNewURI(nsIURI** aInstancePtrResult, const char *aSpec, nsIURI *aBase)
 {
-  nsresult  res;
-
   if (nullptr == aInstancePtrResult)
     return NS_ERROR_NULL_POINTER;
 

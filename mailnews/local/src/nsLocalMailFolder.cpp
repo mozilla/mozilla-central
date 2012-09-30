@@ -1015,7 +1015,6 @@ nsresult nsMsgLocalMailFolder::OpenDatabase()
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  bool folderEmpty = false;
   nsCOMPtr <nsIFile> file;
   rv = GetFilePath(getter_AddRefs(file));
 

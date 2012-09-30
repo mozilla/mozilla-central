@@ -8482,7 +8482,6 @@ bool nsImapProtocol::CheckNeeded()
   if (m_flagChangeCount >= kFlagChangesBeforeCheck)
     return true;
 
-  PRTime deltaTime;
   int32_t deltaInSeconds;
 
   PRTime2Seconds(PR_Now() - m_lastCheckTime, &deltaInSeconds);

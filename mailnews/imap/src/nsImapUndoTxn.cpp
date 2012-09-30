@@ -629,7 +629,6 @@ NS_IMETHODIMP nsImapOfflineTxn::RedoTransaction(void)
   nsCOMPtr <nsIMsgDatabase> destDB;
   rv = srcFolder->GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(srcDB));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsMsgKey hdrKey = nsMsgKey_None;
 
   switch (m_opType)
   {

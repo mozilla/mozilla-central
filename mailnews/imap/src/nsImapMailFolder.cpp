@@ -1287,7 +1287,7 @@ NS_IMETHODIMP nsImapMailFolder::ApplyRetentionSettings()
  */
 NS_IMETHODIMP nsImapMailFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow)
 {
-  nsresult rv = GetDatabase();
+  GetDatabase();
   // now's a good time to apply the retention settings. If we do delete any
   // messages, the expunge is going to have to wait until the delete to
   // finish before it can run, but the multiple-connection protection code
@@ -2752,7 +2752,6 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
 
     // Create a new summary file, update the folder message counts, and
     // Close the summary file db.
-    bool created;
     rv = msgDBService->CreateNewDB(this, getter_AddRefs(mDatabase));
 
     if (NS_FAILED(rv) && mDatabase)
@@ -3442,7 +3441,6 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
 
   nsMsgRuleActionType actionType;
   nsCString actionTargetFolderUri;
-  uint32_t  newFlags;
   nsresult rv = NS_OK;
 
   // look at action - currently handle move
