@@ -117,8 +117,7 @@ function EditorStartup(aUrl, aCharset)
   // Get url for editor content and load it. The editor gets instantiated by
   // the editingSession when the URL has finished loading.
   try {
-    var contentViewer = GetCurrentEditorElement().docShell.contentViewer;
-    contentViewer.QueryInterface(Components.interfaces.nsIMarkupDocumentViewer);
+    var contentViewer = GetCurrentEditorElement().markupDocumentViewer;
     contentViewer.defaultCharacterSet = aCharset;
     contentViewer.forceCharacterSet = aCharset;
   } catch (e) {}
