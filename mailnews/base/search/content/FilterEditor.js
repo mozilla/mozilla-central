@@ -284,11 +284,7 @@ function ensureActionRow()
 // move to overlay
 function saveFilter()
 {
-  var isNewFilter;
-  var filterAction;
-
-  var filterName= gFilterNameElement.value;
-
+  let filterName = gFilterNameElement.value;
   // If we think have a duplicate, then we need to check that if we
   // have an original filter name (i.e. we are editing a filter), then
   // we must check that the original is not the current as that is what
@@ -302,8 +298,12 @@ function saveFilter()
   }
 
   // Check that all of the search attributes and operators are valid.
-  let allValid = true;
-  for (var index = 0; index < gSearchTerms.length && allValid; index++)
+  function rule_desc(index, obj) {
+    return (index + 1) + " (" + obj.searchattribute.label + ", " + obj.searchoperator.label + ")";
+  }
+
+  let invalidRule = false;
+  for (let index = 0; index < gSearchTerms.length; index++)
   {
     let obj = gSearchTerms[index].obj;
     // We don't need to check validity of matchAll terms
@@ -319,19 +319,23 @@ function saveFilter()
     {
       let customTerm = MailServices.filters.getCustomTerm(obj.searchattribute.value);
       if (!customTerm)
-      { 
-        allValid = false;
-        Components.utils.reportError("filter not saved because custom term not found");
+      {
+        invalidRule = true;
+        Components.utils.reportError("Filter not saved because custom search term '" +
+                                     obj.searchattribute.value + "' in rule " + rule_desc(index, obj) + " not found");
       }
       else
       {
-        allValid = customTerm.getAvailable(obj.searchScope, obj.searchattribute.value);
-        if (!allValid)
-          Components.utils.reportError("filter not saved because custom search term not available");
+        if (!customTerm.getAvailable(obj.searchScope, obj.searchattribute.value))
+        {
+          invalidRule = true;
+          Components.utils.reportError("Filter not saved because custom search term '" +
+                                       customTerm.name + "' in rule " + rule_desc(index, obj) + " not available");
+        }
       }
     }
-
-    else {
+    else
+    {
       let otherHeader = Components.interfaces.nsMsgSearchAttrib.OtherHeader;
       let attribValue = (obj.searchattribute.value > otherHeader) ?
         otherHeader : obj.searchattribute.value;
@@ -339,23 +343,26 @@ function saveFilter()
             .validityTable
             .getAvailable(attribValue, obj.searchoperator.value))
       {
-        allValid = false;
-        Components.utils.reportError("filter not saved because standard search term not available");
+        invalidRule = true;
+        Components.utils.reportError("Filter not saved because standard search term '" +
+                                     attribValue + "' in rule " + rule_desc(index, obj) + " not available in this context");
       }
     }
-  }
 
-  if (!allValid)
-  {
-    Services.prompt.alert(window,
-                          gFilterBundle.getString("searchTermsInvalidTitle"),
-                          gFilterBundle.getString("searchTermsInvalidMessage"));
-    return false;
+    if (invalidRule) {
+      Services.prompt.alert(window,
+                            gFilterBundle.getString("searchTermsInvalidTitle"),
+                            gFilterBundle.getFormattedString("searchTermsInvalidRule",
+                                                             [obj.searchattribute.label,
+                                                              obj.searchoperator.label]));
+      return false;
+    }
+
   }
 
   // before we go any further, validate each specified filter action, abort the save
   // if any of the actions is invalid...
-  for (var index = 0; index < gFilterActionList.getRowCount(); index++)
+  for (let index = 0; index < gFilterActionList.itemCount; index++)
   {
     var listItem = gFilterActionList.getItemAtIndex(index);
     if (!listItem.validateAction())
@@ -363,13 +370,13 @@ function saveFilter()
   }
 
   // if we made it here, all of the actions are valid, so go ahead and save the filter
-
+  let isNewFilter;
   if (!gFilter)
   {
     // This is a new filter
     gFilter = gFilterList.createFilter(filterName);
     isNewFilter = true;
-    gFilter.enabled=true;
+    gFilter.enabled = true;
   }
   else
   {
@@ -380,7 +387,7 @@ function saveFilter()
     if (gPreFillName)
     {
       isNewFilter = true;
-      gFilter.enabled=true;
+      gFilter.enabled = true;
     }
     else
       isNewFilter = false;
@@ -389,7 +396,7 @@ function saveFilter()
   }
 
   // add each filteraction to the filter
-  for (index = 0; index < gFilterActionList.getRowCount(); index++)
+  for (let index = 0; index < gFilterActionList.itemCount; index++)
     gFilterActionList.getItemAtIndex(index).saveToFilter(gFilter);
 
   // If we do not have a filter name at this point, generate one.
