@@ -28,12 +28,15 @@
     <key id="decreaseindentkb"  key="&decreaseIndent.key;"  observes="cmd_outdent"  modifiers="accel"/>
 
     <key id="removestyleskb"       key="&formatRemoveStyles.key;"   observes="cmd_removeStyles"  modifiers="accel, shift"/>
-    <key id="removestyleskb2"       key=" "   observes="cmd_removeStyles"  modifiers="accel"/>
+    <key id="removestyleskb2"      key=" "   observes="cmd_removeStyles"  modifiers="accel"/>
     <key id="removelinkskb"        key="&formatRemoveLinks.key;"    observes="cmd_removeLinks"  modifiers="accel, shift"/>
     <key id="removenamedanchorskb" key="&formatRemoveNamedAnchors2.key;"    observes="cmd_removeNamedAnchors"  modifiers="accel, shift"/>
     <key id="decreasefontsizekb"   key="&decreaseFontSize.key;"     observes="cmd_decreaseFont"  modifiers="accel"/>
+    <key                           key="&decreaseFontSize.key;"     observes="cmd_decreaseFont"  modifiers="accel, shift"/>
+    <key                           key="&decreaseFontSize.key2;"    observes="cmd_decreaseFont"  modifiers="accel"/>
+
     <key id="increasefontsizekb"   key="&increaseFontSize.key;"     observes="cmd_increaseFont"  modifiers="accel"/>
-    <key                           key="&increaseFontSize.key;"     observes="cmd_increaseFont"  modifiers="accel,shift"/>
+    <key                           key="&increaseFontSize.key;"     observes="cmd_increaseFont"  modifiers="accel, shift"/>
     <key                           key="&increaseFontSize.key2;"    observes="cmd_increaseFont"  modifiers="accel"/>
 
     <key id="insertlinkkb"         key="&insertLinkCmd.key;"           observes="cmd_link"          modifiers="accel"/>

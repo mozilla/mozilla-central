@@ -39,6 +39,8 @@
   %utilityDTD;
   <!ENTITY % charsetDTD SYSTEM "chrome://global/locale/charsetOverlay.dtd">
   %charsetDTD;
+  <!ENTITY % viewZoomOverlayDTD SYSTEM "chrome://messenger/locale/viewZoomOverlay.dtd">
+  %viewZoomOverlayDTD;
 ]>
 
 <overlay  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"

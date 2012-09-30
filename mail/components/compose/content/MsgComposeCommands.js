@@ -574,6 +574,42 @@ var defaultController = {
         QuoteSelectedMessage();
       }
     },
+
+    cmd_fullZoomReduce: {
+      isEnabled: function () {
+        return true;
+      },
+      doCommand: function() {
+        ZoomManager.reduce();
+      }
+    },
+
+    cmd_fullZoomEnlarge: {
+      isEnabled: function () {
+        return true;
+      },
+      doCommand: function() {
+        ZoomManager.enlarge();
+      }
+    },
+
+    cmd_fullZoomReset: {
+      isEnabled: function () {
+        return true;
+      },
+      doCommand: function() {
+        ZoomManager.reset();
+      }
+    },
+
+    cmd_fullZoomToggle: {
+      isEnabled: function () {
+        return true;
+      },
+      doCommand: function() {
+        ZoomManager.toggleZoom();
+      }
+    },
   },
 
   supportsCommand: function(aCommand) {
@@ -4711,4 +4747,28 @@ function dispatchAttachmentBucketEvent(aEventType, aData) {
   let event = document.createEvent("CustomEvent");
   event.initCustomEvent(aEventType, true, true, aData);
   bucket.dispatchEvent(event);
+}
+
+/** Update state of zoom type (text vs. full) menu item. */
+function UpdateFullZoomMenu() {
+  let menuItem = document.getElementById("menu_fullZoomToggle");
+  menuItem.setAttribute("checked", !ZoomManager.useFullZoom);
+}
+
+// The zoom manager, view source and possibly some other functions still rely
+// on the getBrowser function.
+function getBrowser()
+{
+  // return our <editor> element
+  return document.getElementById("content-frame");
+}
+
+function goUpdateMailMenuItems(commandset)
+{
+  for (let i = 0; i < commandset.childNodes.length; i++)
+  {
+    let commandID = commandset.childNodes[i].getAttribute("id");
+    if (commandID)
+      goUpdateCommand(commandID);
+  }
 }

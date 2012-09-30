@@ -23,6 +23,8 @@
   %customizeToolbarDTD;
   <!ENTITY % textcontextDTD SYSTEM "chrome://global/locale/textcontext.dtd">
   %textcontextDTD;
+  <!ENTITY % viewZoomOverlayDTD SYSTEM "chrome://messenger/locale/viewZoomOverlay.dtd">
+  %viewZoomOverlayDTD;
 ]>
 
 <window id="msgcomposeWindow"
@@ -67,6 +69,7 @@
 <script type="application/javascript" src="chrome://global/content/charsetOverlay.js"/>
 <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
 <script type="application/javascript" src="chrome://global/content/contentAreaUtils.js"/>
+<script type="application/javascript" src="chrome://global/content/viewZoomOverlay.js"/>
 <script type="application/javascript" src="chrome://communicator/content/utilityOverlay.js"/>
 
 <commandset id="composeCommands">
@@ -133,6 +136,20 @@
 
   <!-- View Menu -->
   <command id="cmd_showFormatToolbar" oncommand="goDoCommand('cmd_showFormatToolbar')"/>
+
+  <commandset id="viewZoomCommands"
+              commandupdater="false"
+              events="create-menu-view"
+              oncommandupdate="goUpdateMailMenuItems(this);">
+    <command id="cmd_fullZoomReduce"
+             oncommand="goDoCommand('cmd_fullZoomReduce');"/>
+    <command id="cmd_fullZoomEnlarge"
+             oncommand="goDoCommand('cmd_fullZoomEnlarge');"/>
+    <command id="cmd_fullZoomReset"
+             oncommand="goDoCommand('cmd_fullZoomReset');"/>
+    <command id="cmd_fullZoomToggle"
+             oncommand="goDoCommand('cmd_fullZoomToggle');"/>
+  </commandset>
 
   <!-- Options Menu -->
   <command id="cmd_quoteMessage" oncommand="goDoCommand('cmd_quoteMessage')"/>
@@ -210,6 +227,23 @@
 
   <!-- View Menu -->
   <key id="key_addressSidebar" keycode="VK_F9" oncommand="toggleAddressPicker();"/>
+
+  <keyset id="viewZoomKeys">
+    <key id="key_fullZoomReduce"  key="&fullZoomReduceCmd.commandkey;"
+         command="cmd_fullZoomReduce"  modifiers="accel"/>
+    <key                          key="&fullZoomReduceCmd.commandkey2;"
+         command="cmd_fullZoomReduce"  modifiers="accel"/>
+    <key id="key_fullZoomEnlarge" key="&fullZoomEnlargeCmd.commandkey;"
+         command="cmd_fullZoomEnlarge" modifiers="accel"/>
+    <key                          key="&fullZoomEnlargeCmd.commandkey2;"
+         command="cmd_fullZoomEnlarge" modifiers="accel"/>
+    <key                          key="&fullZoomEnlargeCmd.commandkey3;"
+         command="cmd_fullZoomEnlarge" modifiers="accel"/>
+    <key id="key_fullZoomReset"   key="&fullZoomResetCmd.commandkey;"
+         command="cmd_fullZoomReset"   modifiers="accel"/>
+    <key                          key="&fullZoomResetCmd.commandkey2;"
+         command="cmd_fullZoomReset"   modifiers="accel"/>
+  </keyset>
 
   <!-- Options Menu -->
   <key id="key_checkspelling" key="&checkSpellingCmd2.key;" command="cmd_spelling" modifiers="accel,shift"/>
@@ -492,6 +526,28 @@
                         label="&customizeToolbar.label;"
                         accesskey="&customizeToolbar.accesskey;"
                         command="cmd_CustomizeComposeToolbar"/>
+            </menupopup>
+          </menu>
+          <menu id="viewFullZoomMenu" label="&fullZoom.label;" accesskey="&fullZoom.accesskey;"
+                onpopupshowing="UpdateFullZoomMenu()">
+            <menupopup id="viewFullZoomPopupMenu">
+              <menuitem id="menu_fullZoomEnlarge" key="key_fullZoomEnlarge"
+                        label="&fullZoomEnlargeCmd.label;"
+                        accesskey="&fullZoomEnlargeCmd.accesskey;"
+                        command="cmd_fullZoomEnlarge"/>
+              <menuitem id="menu_fullZoomReduce" key="key_fullZoomReduce"
+                        label="&fullZoomReduceCmd.label;"
+                        accesskey="&fullZoomReduceCmd.accesskey;"
+                        command="cmd_fullZoomReduce"/>
+              <menuseparator id="fullZoomAfterReduceSeparator"/>
+              <menuitem id="menu_fullZoomReset" key="key_fullZoomReset"
+                        label="&fullZoomResetCmd.label;"
+                        accesskey="&fullZoomResetCmd.accesskey;"
+                        command="cmd_fullZoomReset"/>
+              <menuseparator id="fullZoomAfterResetSeparator"/>
+              <menuitem id="menu_fullZoomToggle" label="&fullZoomToggleCmd.label;"
+                        accesskey="&fullZoomToggleCmd.accesskey;"
+                        type="checkbox" command="cmd_fullZoomToggle" checked="false"/>
             </menupopup>
           </menu>
           <menuitem id="menu_AddressSidebar"
