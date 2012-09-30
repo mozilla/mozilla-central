@@ -402,7 +402,7 @@
   WriteRegStr HKLM "$0\InstallInfo" "ShowIconsCommand" "$\"$7$\" /ShowShortcuts"
   WriteRegStr HKLM "$0\InstallInfo" "ReinstallCommand" "$\"$7$\" /SetAsDefaultAppGlobal"
 
-  WriteRegStr HKLM "$0\shell\open\command" "" "$8"
+  WriteRegStr HKLM "$0\shell\open\command" "" "$\"$8$\""
 
   WriteRegStr HKLM "$0\shell\properties" "" "$(CONTEXT_OPTIONS)"
   WriteRegStr HKLM "$0\shell\properties\command" "" "$\"$8$\" -preferences"
