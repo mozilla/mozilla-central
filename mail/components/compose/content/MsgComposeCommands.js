@@ -3230,15 +3230,6 @@ function ToggleAttachVCard(target)
   }
 }
 
-function queryISupportsArray(supportsArray, iid) {
-    var result = new Array;
-    let count = supportsArray.Count();
-    for (let i = 0; i < count; i++)
-      result[i] = supportsArray.QueryElementAt(i, iid);
-
-    return result;
-}
-
 function ClearIdentityListPopup(popup)
 {
   if (popup)
@@ -3250,8 +3241,8 @@ function FillIdentityList(menulist)
 {
   var mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
                       .getService(Components.interfaces.nsIMsgAccountManager);
-  var accounts = queryISupportsArray(mgr.accounts,
-                                     Components.interfaces.nsIMsgAccount);
+  var accounts = toArray(fixIterator(mgr.accounts,
+                                     Components.interfaces.nsIMsgAccount));
 
   // Ugly hack to work around bug 41133. :-(
   accounts = accounts.filter(function isNonSuckyAccount(a) { return !!a.incomingServer; });
@@ -3277,13 +3268,39 @@ function FillIdentityList(menulist)
   }
   accounts.sort(sortAccounts);
 
-  for each (var account in accounts) {
-    var identites = queryISupportsArray(account.identities,
-                                        Components.interfaces.nsIMsgIdentity);
-    for each (var identity in identites) {
-      var item = menulist.appendItem(identity.identityName, identity.key,
+  let accountHadSeparator = false;
+  let firstAccountWithIdentities = true;
+  for (let acc = 0; acc < accounts.length; acc++) {
+    let account = accounts[acc];
+    let identities = toArray(fixIterator(account.identities,
+                                         Components.interfaces.nsIMsgIdentity));
+
+    if (identities.length == 0)
+      continue;
+
+    let needSeparator = (identities.length > 1);
+    if (needSeparator || accountHadSeparator) {
+      // Separate identities from this account from the previous
+      // account's identities if there is more than 1 in the current
+      // or previous account.
+      if (!firstAccountWithIdentities) {
+        // only if this is not the first account shown
+        let separator = document.createElement("menuseparator");
+        menulist.menupopup.appendChild(separator);
+      }
+      accountHadSeparator = needSeparator;
+    }
+    firstAccountWithIdentities = false;
+
+    for (let i = 0; i < identities.length; i++) {
+      let identity = identities[i];
+      let item = menulist.appendItem(identity.identityName, identity.key,
                                      account.incomingServer.prettyName);
       item.setAttribute("accountkey", account.key);
+      if (i == 0) {
+        // Mark the first identity as default.
+        item.setAttribute("default", "true");
+      }
     }
   }
 }
