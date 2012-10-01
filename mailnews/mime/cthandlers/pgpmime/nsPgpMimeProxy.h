@@ -12,14 +12,14 @@
 #include "nsIInputStream.h"
 #include "nsILoadGroup.h"
 
+#define PGPMIME_JS_DECRYPTOR_CONTRACTID "@mozilla.org/mime/pgp-mime-js-decrypt;1"
+
 typedef struct MimeEncryptedPgpClass MimeEncryptedPgpClass;
 typedef struct MimeEncryptedPgp      MimeEncryptedPgp;
 
 struct MimeEncryptedPgpClass {
   MimeEncryptedClass encrypted;
 };
-
-//extern MimeEncryptedPgpClass mimeEncryptedPgpClass;
 
 struct MimeEncryptedPgp {
   MimeEncrypted encrypted;

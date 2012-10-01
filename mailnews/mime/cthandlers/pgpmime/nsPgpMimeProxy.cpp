@@ -149,7 +149,7 @@ MimePgpe_init(MimeObject *obj,
   data->mimeDecrypt = nullptr;
 
   nsresult rv;
-  data->mimeDecrypt = do_GetService(NS_PGPMIMEPROXY_CONTRACTID, &rv);
+  data->mimeDecrypt = do_CreateInstance(NS_PGPMIMEPROXY_CONTRACTID, &rv);
   if (NS_FAILED(rv))
     return data;
 
@@ -276,6 +276,10 @@ nsPgpMimeProxy::Init()
   nsCOMPtr<nsIPrefBranch> pbi(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   if (NS_FAILED(rv))
     return rv;
+
+  mDecryptor = do_CreateInstance(PGPMIME_JS_DECRYPTOR_CONTRACTID, &rv);
+  if (NS_FAILED(rv))
+    mDecryptor = nullptr;
 
   return NS_OK;
 }
