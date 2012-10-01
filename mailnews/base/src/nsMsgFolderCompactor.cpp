@@ -369,8 +369,8 @@ nsresult nsFolderCompactState::StartCompacting()
 nsresult
 nsFolderCompactState::FinishCompact()
 {
-  if (!m_folder)
-    return NS_ERROR_NOT_INITIALIZED;
+  NS_ENSURE_TRUE(m_folder, NS_ERROR_NOT_INITIALIZED);
+  NS_ENSURE_TRUE(m_file, NS_ERROR_NOT_INITIALIZED);
 
   // All okay time to finish up the compact process
   nsCOMPtr<nsIFile> path;
@@ -380,24 +380,28 @@ nsFolderCompactState::FinishCompact()
   nsresult rv = m_folder->GetFilePath(getter_AddRefs(path));
   nsCOMPtr <nsIFile> folderPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr <nsIFile> summaryFile;
-  folderPath->InitWithFile(path);
+  rv = folderPath->InitWithFile(path);
+  NS_ENSURE_SUCCESS(rv, rv);
   // need to make sure we put the .msf file in the same directory
   // as the original mailbox, so resolve symlinks.
   folderPath->SetFollowLinks(true);
-  GetSummaryFileLocation(folderPath, getter_AddRefs(summaryFile));
 
-  nsCString leafName;
-  summaryFile->GetNativeLeafName(leafName);
-  nsAutoCString dbName(leafName);
+  nsCOMPtr <nsIFile> oldSummaryFile;
+  rv = GetSummaryFileLocation(folderPath, getter_AddRefs(oldSummaryFile));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsAutoCString dbName;
+  oldSummaryFile->GetNativeLeafName(dbName);
+  nsAutoCString folderName;
+  path->GetNativeLeafName(folderName);
 
-  path->GetNativeLeafName(leafName);
-
-    // close down the temp file stream; preparing for deleting the old folder
-    // and its database; then rename the temp folder and database
-  m_fileStream->Flush();
-  m_fileStream->Close();
-  m_fileStream = nullptr;
+  // close down the temp file stream; preparing for deleting the old folder
+  // and its database; then rename the temp folder and database
+  if (m_fileStream)
+  {
+    m_fileStream->Flush();
+    m_fileStream->Close();
+    m_fileStream = nullptr;
+  }
 
   // make sure the new database is valid.
   // Close it so we can rename the .msf file.
@@ -408,7 +412,8 @@ nsFolderCompactState::FinishCompact()
   }
 
   nsCOMPtr <nsIFile> newSummaryFile;
-  GetSummaryFileLocation(m_file, getter_AddRefs(newSummaryFile));
+  rv = GetSummaryFileLocation(m_file, getter_AddRefs(newSummaryFile));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr <nsIDBFolderInfo> transferInfo;
   m_folder->GetDBTransferInfo(getter_AddRefs(transferInfo));
@@ -418,62 +423,96 @@ nsFolderCompactState::FinishCompact()
 
   nsCOMPtr<nsIFile> cloneFile;
   int64_t fileSize;
-  m_file->Clone(getter_AddRefs(cloneFile));
-  cloneFile->GetFileSize(&fileSize);
+  rv = m_file->Clone(getter_AddRefs(cloneFile));
+  if (NS_SUCCEEDED(rv))
+    rv = cloneFile->GetFileSize(&fileSize);
   bool tempFileRightSize = (fileSize == m_totalMsgSize);
-  NS_ASSERTION(tempFileRightSize, "temp file not of expected size in compact");
-  
+  NS_WARN_IF_FALSE(tempFileRightSize, "temp file not of expected size in compact");
+
   bool folderRenameSucceeded = false;
   bool msfRenameSucceeded = false;
-  if (tempFileRightSize)
+  if (NS_SUCCEEDED(rv) && tempFileRightSize)
   {
-    bool summaryFileExists;
-    // remove the old folder and database
-    rv = summaryFile->Remove(false);
-    summaryFile->Exists(&summaryFileExists);
-    if (NS_SUCCEEDED(rv) && !summaryFileExists)
+    // First we're going to try and move the old summary file out the way.
+    // We don't delete it yet, as we want to keep the files in sync.
+    nsCOMPtr<nsIFile> tempSummaryFile;
+    rv = oldSummaryFile->Clone(getter_AddRefs(tempSummaryFile));
+    if (NS_SUCCEEDED(rv))
+      rv = tempSummaryFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 0600);
+
+    nsAutoCString tempSummaryFileName;
+    if (NS_SUCCEEDED(rv))
+      rv = tempSummaryFile->GetNativeLeafName(tempSummaryFileName);
+
+    if (NS_SUCCEEDED(rv))
+      rv = oldSummaryFile->MoveToNative((nsIFile*) nullptr, tempSummaryFileName);
+
+    NS_WARN_IF_FALSE(NS_SUCCEEDED(rv), "error moving compacted folder's db out of the way");
+    if (NS_SUCCEEDED(rv))
     {
-      bool folderPathExists;
-      rv = folderPath->Remove(false);
-      folderPath->Exists(&folderPathExists);
-      if (NS_SUCCEEDED(rv) && !folderPathExists)
+      // Now we've successfully moved the summary file out the way, try moving
+      // the newly compacted message file over the old one.
+      rv = m_file->MoveToNative((nsIFile *) nullptr, folderName);
+      folderRenameSucceeded = NS_SUCCEEDED(rv);
+      NS_WARN_IF_FALSE(folderRenameSucceeded, "error renaming compacted folder");
+      if (folderRenameSucceeded)
       {
-        // rename the copied folder and database to be the original folder and
-        // database 
-        rv = m_file->MoveToNative((nsIFile *) nullptr, leafName);
-        NS_ASSERTION(NS_SUCCEEDED(rv), "error renaming compacted folder");
-        if (NS_SUCCEEDED(rv))
+        // That worked, so land the new summary file in the right place.
+        nsCOMPtr<nsIFile> renamedCompactedSummaryFile;
+        newSummaryFile->Clone(getter_AddRefs(renamedCompactedSummaryFile));
+        if (renamedCompactedSummaryFile)
         {
-          folderRenameSucceeded = true;
-          rv = newSummaryFile->MoveToNative((nsIFile *) nullptr, dbName);
-          NS_ASSERTION(NS_SUCCEEDED(rv), "error renaming compacted folder's db");
+          rv = renamedCompactedSummaryFile->MoveToNative((nsIFile *) nullptr, dbName);
           msfRenameSucceeded = NS_SUCCEEDED(rv);
         }
+        NS_WARN_IF_FALSE(msfRenameSucceeded, "error renaming compacted folder's db");
+      }
+
+      if (!msfRenameSucceeded)
+      {
+        // Do our best to put the summary file back to where it was
+        rv = tempSummaryFile->MoveToNative((nsIFile*) nullptr, dbName);
+        if (NS_SUCCEEDED(rv))
+          tempSummaryFile = nullptr; // flagging that a renamed db no longer exists
+        else
+          NS_WARNING("error restoring uncompacted folder's db");
       }
     }
-    NS_ASSERTION(msfRenameSucceeded && folderRenameSucceeded, "rename failed in compact");
+    // We don't want any temporarily renamed summary file to lie around
+    if (tempSummaryFile)
+      tempSummaryFile->Remove(false);
   }
-  if (!folderRenameSucceeded)
-    m_file->Remove(false);
-  if (!msfRenameSucceeded)
-    newSummaryFile->Remove(false);
+
+  NS_WARN_IF_FALSE(msfRenameSucceeded, "compact failed");
   rv = ReleaseFolderLock();
-  NS_ASSERTION(NS_SUCCEEDED(rv),"folder lock not released successfully");
-  if (msfRenameSucceeded && folderRenameSucceeded)
+  NS_WARN_IF_FALSE(NS_SUCCEEDED(rv),"folder lock not released successfully");
+
+  // Cleanup of nstmp-named compacted files if failure
+  if (!folderRenameSucceeded)
   {
+    // remove the abandoned compacted version with the wrong name
+    m_file->Remove(false);
+  }
+  if (!msfRenameSucceeded)
+  {
+    // remove the abandoned compacted summary file
+    newSummaryFile->Remove(false);
+  }
+
+  if (msfRenameSucceeded)
+  {
+    // Transfer local db information from transferInfo
     nsCOMPtr<nsIMsgDBService> msgDBService =
       do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     rv = msgDBService->OpenFolderDB(m_folder, true, getter_AddRefs(m_db));
+    NS_ENSURE_TRUE(m_db, NS_FAILED(rv) ? rv : NS_ERROR_FAILURE);
     m_db->SetSummaryValid(true);
     m_folder->SetDBTransferInfo(transferInfo);
 
+    // since we're transferring info from the old db, we need to reset the expunged bytes
     nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
-
     m_db->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
-
-    // since we're transferring info from the old db, we need to reset the expunged bytes,
-    // and set the summary valid again.
     if(dbFolderInfo)
       dbFolderInfo->SetExpungedBytes(0);
   }
