@@ -1675,7 +1675,7 @@ int
 mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
 {
   mime_draft_data *mdd = (mime_draft_data *) stream_closure;
-  nsMsgAttachedFile *attachments = 0, *newAttachment = 0;
+  nsMsgAttachedFile *newAttachment = 0;
   int nAttachments = 0;
   //char *hdr_value = NULL;
   char *parm_value = NULL;

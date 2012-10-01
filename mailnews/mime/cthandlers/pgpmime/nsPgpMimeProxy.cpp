@@ -191,8 +191,6 @@ MimePgpe_eof(void* output_closure, bool abort_p)
   if (!data || !data->output_fn)
     return -1;
 
-  mime_stream_data *msd = (mime_stream_data *) (data->self->options->stream_closure);
-
   if (NS_FAILED(data->mimeDecrypt->Finish()))
     return -1;
 

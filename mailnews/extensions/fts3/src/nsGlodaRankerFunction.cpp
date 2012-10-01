@@ -103,7 +103,6 @@ nsGlodaRankerFunction::OnFunctionCall(mozIStorageValueArray *aArguments,
     // in SQ
     for (uint32_t iCol = 0; iCol < nCol; iCol++) {
       int32_t nHitCount = aMatchinfo[2 + (iPhrase+1)*nCol + iCol];
-      int32_t nGlobalHitCount = aMatchinfo[2 + iCol];
       double weight = aArguments->AsDouble(iCol+1);
       if (nHitCount > 0) {
         score += (nHitCount > COLUMN_SATURATION[iCol]) ?
@@ -129,7 +128,6 @@ nsGlodaRankerFunction::OnFunctionCall(mozIStorageValueArray *aArguments,
     int32_t *aPhraseinfo = &aMatchinfo[2 + iPhrase*nCol*3];
     for (uint32_t iCol = 0; iCol < nCol; iCol++) {
       int32_t nHitCount = aPhraseinfo[3 * iCol];
-      int32_t nGlobalHitCount = aPhraseinfo[3 * iCol + 1];
       double weight = aArguments->AsDouble(iCol+1);
       if (nHitCount > 0) {
         score += (nHitCount > COLUMN_SATURATION[iCol]) ?

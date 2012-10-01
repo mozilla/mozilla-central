@@ -186,7 +186,6 @@ protected:
   virtual void    SetSyntaxError(bool error, const char *msg = nullptr);
 
 private:
-  bool            fProcessingTaggedResponse;
   bool            fCurrentCommandFailed;
   bool            fReportingErrors;
 
