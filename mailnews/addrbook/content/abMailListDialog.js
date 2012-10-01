@@ -20,6 +20,13 @@ catch (e)
 {
 }
 
+// Returns the load context for the current window
+function getLoadContext() {
+  return window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+               .getInterface(Components.interfaces.nsIWebNavigation)
+               .QueryInterface(Components.interfaces.nsILoadContext);
+}
+
 function handleKeyPress(element, event)
 {
   // allow dialog to close on enter if focused textbox has no value
@@ -502,6 +509,7 @@ function DropOnAddressListTree(event)
 
   try {
    trans = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
+   trans.init(getLoadContext());
    trans.addDataFlavor("text/x-moz-address");
   }
   catch (ex) {

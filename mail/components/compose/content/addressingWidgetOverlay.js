@@ -733,6 +733,7 @@ function DropOnAddressingWidget(event)
   var dragSession = gDragService.getCurrentSession();
 
   var trans = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
+  trans.init(getLoadContext());
   trans.addDataFlavor("text/x-moz-address");
 
   for ( var i = 0; i < dragSession.numDropItems; ++i )
@@ -1204,4 +1205,11 @@ AutomatedAutoCompleteHandler.prototype =
         return this;
       throw Components.results.NS_NOINTERFACE;
   }
+}
+
+// Returns the load context for the current window
+function getLoadContext() {
+  return window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+               .getInterface(Components.interfaces.nsIWebNavigation)
+               .QueryInterface(Components.interfaces.nsILoadContext);
 }

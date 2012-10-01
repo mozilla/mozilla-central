@@ -5,6 +5,13 @@
 
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 
+// Returns the load context for the current window
+function getLoadContext() {
+  return window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+               .getInterface(Components.interfaces.nsIWebNavigation)
+               .QueryInterface(Components.interfaces.nsILoadContext);
+}
+
 var abResultsPaneObserver = {
   onDragStart: function (aEvent, aXferData, aDragAction)
     {
@@ -137,7 +144,7 @@ var abDirTreeObserver = {
     var draggingMailList = false;
     var trans = Components.classes["@mozilla.org/widget/transferable;1"].
                 createInstance(Components.interfaces.nsITransferable);
-
+    trans.init(getLoadContext());
     trans.addDataFlavor("moz/abcard");
 
     for (var i = 0; i < dragSession.numDropItems && !draggingMailList; i++)
@@ -196,6 +203,7 @@ var abDirTreeObserver = {
       return;
 
     var trans = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
+    trans.init(getLoadContext());
     trans.addDataFlavor("moz/abcard");
 
     var targetURI = gDirectoryTreeView.getDirectoryAtIndex(index).URI;
@@ -322,6 +330,7 @@ function DragAddressOverTargetControl(event)
 
   var trans = Components.classes["@mozilla.org/widget/transferable;1"]
                         .createInstance(Components.interfaces.nsITransferable);
+  trans.init(getLoadContext());
   trans.addDataFlavor("text/x-moz-address");
 
   var canDrop = true;
