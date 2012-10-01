@@ -6,6 +6,7 @@
 #include "nsIContentSniffer.h"
 #include "nsIStreamListener.h"
 #include "nsStringAPI.h"
+#include "mozilla/Attributes.h"
 
 #define NS_FEEDSNIFFER_CONTRACTID \
   "@mozilla.org/browser/feeds/sniffer;1"
@@ -15,7 +16,7 @@
   { 0xe5eeef51, 0x5ce, 0x4885, { 0x94, 0x34, 0x72, 0x87, 0x61, 0x6d, 0x95, 0x47 } }
 
 
-class nsFeedSniffer : public nsIContentSniffer, nsIStreamListener
+class nsFeedSniffer MOZ_FINAL : public nsIContentSniffer, nsIStreamListener
 {
 public:
   NS_DECL_ISUPPORTS

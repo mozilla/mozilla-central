@@ -34,7 +34,7 @@
 #define NS_RDF "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 #define NS_RSS "http://purl.org/rss/1.0/"
 
-#define MAX_BYTES 512
+#define MAX_BYTES 512u
 
 NS_IMPL_ISUPPORTS3(nsFeedSniffer,
                    nsIContentSniffer,
@@ -275,18 +275,21 @@ nsFeedSniffer::GetMIMETypeFromContent(nsIRequest* request,
   if (NS_FAILED(rv))
     return rv;
 
-  const char* testData =
-    mDecodedData.IsEmpty() ? (const char*)data : mDecodedData.get();
+  // We cap the number of bytes to scan at MAX_BYTES to prevent picking up
+  // false positives by accidentally reading document content, e.g. a "how to
+  // make a feed" page.
+  const char* testData;
+  if (mDecodedData.IsEmpty()) {
+    testData = (const char*)data;
+    length = NS_MIN(length, MAX_BYTES);
+  } else {
+    testData = mDecodedData.get();
+    length = NS_MIN(mDecodedData.Length(), MAX_BYTES);
+  }
 
   // The strategy here is based on that described in:
   // http://blogs.msdn.com/rssteam/articles/PublishersGuide.aspx
   // for interoperarbility purposes.
-
-  // We cap the number of bytes to scan at MAX_BYTES to prevent picking up
-  // false positives by accidentally reading document content, e.g. a "how to
-  // make a feed" page.
-  if (length > MAX_BYTES)
-    length = MAX_BYTES;
 
   // Thus begins the actual sniffing.
   nsDependentCSubstring dataString((const char*)testData, length);

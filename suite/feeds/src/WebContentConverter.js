@@ -4,7 +4,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-Components.utils.import("resource://gre/modules/debug.js");
 
 const WCCR_CONTRACTID = "@mozilla.org/embeddor.implemented/web-content-handler-registrar;1";
 const WCCR_CLASSID = Components.ID("{792a7e82-06a0-437c-af63-b2d12e808acc}");
