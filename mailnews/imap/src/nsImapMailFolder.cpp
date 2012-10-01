@@ -7104,13 +7104,14 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
       msgWindow->GetTransactionManager(getter_AddRefs(txnMgr));
     if (txnMgr)
       txnMgr->BeginBatch();
-    GetDatabase();
-    if (mDatabase)
+    nsCOMPtr<nsIMsgDatabase> database;
+    GetMsgDatabase(getter_AddRefs(database));
+    if (database)
     {
       // get the highest key in the dest db, so we can make up our fake keys
       nsMsgKey fakeBase = 1;
       nsCOMPtr <nsIDBFolderInfo> folderInfo;
-      rv = mDatabase->GetDBFolderInfo(getter_AddRefs(folderInfo));
+      rv = database->GetDBFolderInfo(getter_AddRefs(folderInfo));
       NS_ENSURE_SUCCESS(rv, rv);
       nsMsgKey highWaterMark = nsMsgKey_None;
       folderInfo->GetHighWater(&highWaterMark);
@@ -7233,7 +7234,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
           srcDbFolderInfo->GetHighWater(&srcDBhighWaterMark);
 
           nsCOMPtr <nsIMsgDBHdr> newMailHdr;
-          rv = mDatabase->CopyHdrFromExistingHdr(fakeBase + sourceKeyIndex, mailHdr,
+          rv = database->CopyHdrFromExistingHdr(fakeBase + sourceKeyIndex, mailHdr,
             true, getter_AddRefs(newMailHdr));
           if (!newMailHdr || NS_FAILED(rv))
           {
@@ -7263,16 +7264,16 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
                 offlineStore->FinishNewMessage(outputStream, newMailHdr);
             }
             else
-              mDatabase->MarkOffline(fakeBase + sourceKeyIndex, false, nullptr);
+              database->MarkOffline(fakeBase + sourceKeyIndex, false, nullptr);
 
             nsCOMPtr <nsIMsgOfflineImapOperation> destOp;
-            mDatabase->GetOfflineOpForKey(fakeBase + sourceKeyIndex, true, getter_AddRefs(destOp));
+            database->GetOfflineOpForKey(fakeBase + sourceKeyIndex, true, getter_AddRefs(destOp));
             if (destOp)
             {
               // check if this is a move back to the original mailbox, in which case
               // we just delete the offline operation.
               if (messageReturningHome)
-                mDatabase->RemoveOfflineOp(destOp);
+                database->RemoveOfflineOp(destOp);
               else
               {
                 SetFlag(nsMsgFolderFlags::OfflineEvents);
@@ -7352,7 +7353,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
 
       if (isMove)
         sourceMailDB->Commit(nsMsgDBCommitType::kLargeCommit);
-      mDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
+      database->Commit(nsMsgDBCommitType::kLargeCommit);
       SummaryChanged();
       srcFolder->SummaryChanged();
     }
