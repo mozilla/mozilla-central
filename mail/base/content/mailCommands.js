@@ -124,9 +124,43 @@ function GetNextNMessages(folder)
   }
 }
 
+/**
+ * Figure out the message key from the message uri.
+ * @param uri string defining internal storage
+ */
+function GetMsgKeyFromURI(uri) {
+  // Format of 'uri' : protocol://email/folder#key?params
+  //                   '?params' are optional
+  //   ex : mailbox-message://john%2Edoe@pop.isp.com/Drafts#123456?fetchCompleteMessage=true
+  //   ex : mailbox-message://john%2Edoe@pop.isp.com/Drafts#12345
+  // We keep only the part after '#' and before an optional '?'.
+  // The regexp expects 'key' to be an integer (a serie of digits) : '\d+'.
+  let match = /.+#(\d+)/.exec(uri);
+  return (match) ? match[1] : null;
+}
+
 // type is a nsIMsgCompType and format is a nsIMsgCompFormat
 function ComposeMessage(type, format, folder, messageArray)
 {
+  // Check if the draft is already open in another window. If it is, just focus the window.
+  if (type == Components.interfaces.nsIMsgCompType.Draft && messageArray.length == 1) {
+    // We'll search this uri in the opened windows.
+    let messageKey = GetMsgKeyFromURI(messageArray[0]);
+    let wenum = Services.wm.getEnumerator("");
+    while (wenum.hasMoreElements()) {
+      let w = wenum.getNext();
+      // Check if it is a compose window.
+      if (w.document.defaultView.gMsgCompose && w.document.defaultView.gMsgCompose.compFields.draftId) {
+        let wKey = GetMsgKeyFromURI(w.document.defaultView.gMsgCompose.compFields.draftId);
+        if (wKey == messageKey) {
+          // Found ! just focus it...
+          w.focus();
+          // ...and nothing to do anymore.
+          return;
+        }
+      }
+    }
+  }
   var msgComposeType = Components.interfaces.nsIMsgCompType;
   var identity = null;
   var newsgroup = null;
