@@ -12,6 +12,7 @@
   -moz-image-region: rect(0px 16px 16px 0px);
 }
 
+.icon-holder[type="calendar"],
 .tabmail-tab[type="calendar"] {
   list-style-image: url(chrome://lightning/skin/mode-switch-icons-aero.png);
   -moz-image-region: rect(16px 16px 32px 0px);
@@ -22,6 +23,7 @@
   -moz-image-region: rect(0px 32px 16px 16px);
 }
 
+.icon-holder[type="tasks"],
 .tabmail-tab[type="tasks"] {
   list-style-image: url(chrome://lightning/skin/mode-switch-icons-aero.png);
   -moz-image-region: rect(16px 32px 32px 16px);

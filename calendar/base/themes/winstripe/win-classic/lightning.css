@@ -24,11 +24,13 @@
 }
 
 /* ::: tab icons ::: */
+.icon-holder[type="calendar"],
 .tabmail-tab[type="calendar"] {
   list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
   -moz-image-region: rect(0px 64px 16px 48px);
 }
 
+.icon-holder[type="tasks"],
 .tabmail-tab[type="tasks"] {
   list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
   -moz-image-region: rect(0px 80px 16px 64px);
