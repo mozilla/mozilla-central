@@ -74,7 +74,8 @@ function onLoad() {
 
     loadDateTime(startTime, endTime);
     propagateDateTime();
-
+    // Set the scroll bar at where the event is
+    scrollToCurrentTime();
     updateButtons();
 
     // we need to enforce several layout constraints which can't be modelled
@@ -719,7 +720,7 @@ function onPreviousSlot() {
  */
 function scrollToCurrentTime() {
     var timebar = document.getElementById("timebar");
-    var ratio = (gStartDate.hour - gStartHour) * timebar.step;
+    var ratio = (gStartDate.hour - gStartHour - 1) * timebar.step;
     if (ratio <= 0.0) {
         ratio = 0.0;
     }
