@@ -34,9 +34,10 @@
     <grid>
       <columns>
         <column/>
+        <column flex="1"/>
         <column/>
       </columns>
-      <rows>      
+      <rows>
         <row align="center">
           <label value="&serverType.label;"/>
           <label id="servertype.verbose"/>
@@ -48,8 +49,14 @@
           </hbox>
           <hbox align="center">
               <label id="fixedServerName" collapsed="true" use="server.realHostName"/>
-              <textbox wsm_persist="true" size="20" id="server.realHostName"
-                       prefstring="mail.server.%serverkey%.realhostname" class="uri-element"/>
+              <textbox wsm_persist="true"
+                       size="20"
+                       flex="1"
+                       id="server.realHostName"
+                       prefstring="mail.server.%serverkey%.realhostname"
+                       class="uri-element"/>
+          </hbox>
+          <hbox align="center">
               <label hidefor="movemail" value="&port.label;"
                      accesskey="&port.accesskey;" control="server.port"/>
               <label id="fixedServerPort" hidefor="movemail"
@@ -70,7 +77,10 @@
           </hbox>
           <hbox align="center" hidefor="nntp">
               <label id="fixedUserName" collapsed="true" use="server.realUsername"/>
-              <textbox wsm_persist="true" size="20" id="server.realUsername"
+              <textbox wsm_persist="true"
+                       size="20"
+                       flex="1"
+                       id="server.realUsername"
                        prefstring="mail.server.%serverkey%.realusername"/>
           </hbox>
         </row>
