@@ -274,17 +274,18 @@ nsNntpIncomingServer::SetCharset(const nsACString & aCharset)
 NS_IMETHODIMP
 nsNntpIncomingServer::GetCharset(nsACString & aCharset)
 {
-  nsresult rv;
   //first we get the per-server settings mail.server.<serverkey>.charset
-  rv = GetCharValue("charset", aCharset);
+  nsresult rv = GetCharValue("charset", aCharset);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   //if the per-server setting is empty,we get the default charset from
   //mailnews.view_default_charset setting and set it as per-server preference.
-  if(aCharset.IsEmpty()){
+  if (aCharset.IsEmpty()) {
     nsString defaultCharset;
     rv = NS_GetLocalizedUnicharPreferenceWithDefault(nullptr,
          PREF_MAILNEWS_VIEW_DEFAULT_CHARSET,
          NS_LITERAL_STRING("ISO-8859-1"), defaultCharset);
+    NS_ENSURE_SUCCESS(rv, rv);
     LossyCopyUTF16toASCII(defaultCharset, aCharset);
     SetCharset(aCharset);
   }
@@ -449,11 +450,12 @@ bool
 nsNntpIncomingServer::ConnectionTimeOut(nsINNTPProtocol* aConnection)
 {
     bool retVal = false;
-    if (!aConnection) return retVal;
-    nsresult rv;
+    if (!aConnection)
+      return retVal;
 
     PRTime lastActiveTimeStamp;
-    rv = aConnection->GetLastActiveTimeStamp(&lastActiveTimeStamp);
+    if (NS_FAILED(aConnection->GetLastActiveTimeStamp(&lastActiveTimeStamp)))
+      return retVal;
 
     if (PR_Now() - lastActiveTimeStamp >= PRTime(170) * PR_USEC_PER_SEC)
     {

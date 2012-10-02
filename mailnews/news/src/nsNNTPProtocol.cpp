@@ -1755,6 +1755,7 @@ int32_t nsNNTPProtocol::SendFirstNNTPCommand(nsIURI * url)
         return -1;
       }
       rv = m_nntpServer->GetLastUpdatedTime(&last_update);
+      if (NS_FAILED(rv)) return -1;
 
       if (!last_update)
     {
@@ -4757,17 +4758,16 @@ nsresult nsNNTPProtocol::CleanupAfterRunningUrl()
   something.  So, tell libmsg there was an abnormal
   exit so that it can free its data. */
 
-  nsresult rv = NS_OK;
   PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) CleanupAfterRunningUrl()", this));
 
   // send StopRequest notification after we've cleaned up the protocol
   // because it can synchronously causes a new url to get run in the
   // protocol - truly evil, but we're stuck at the moment.
   if (m_channelListener)
-    rv = m_channelListener->OnStopRequest(this, m_channelContext, NS_OK);
+    (void) m_channelListener->OnStopRequest(this, m_channelContext, NS_OK);
 
   if (m_loadGroup)
-    m_loadGroup->RemoveRequest(static_cast<nsIRequest *>(this), nullptr, NS_OK);
+    (void) m_loadGroup->RemoveRequest(static_cast<nsIRequest *>(this), nullptr, NS_OK);
   CleanupNewsgroupList();
 
   // clear out mem cache entry so we're not holding onto it.

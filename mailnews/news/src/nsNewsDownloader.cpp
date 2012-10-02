@@ -489,13 +489,15 @@ nsresult DownloadMatchingNewsArticlesToNewsDB::RunSearch(nsIMsgFolder *folder, n
   m_searchSession = searchSession;
 
   m_keysToDownload.Clear();
-  nsresult rv;
+
   NS_ENSURE_ARG(searchSession);
   NS_ENSURE_ARG(folder);
 
   searchSession->RegisterListener(this,
                                   nsIMsgSearchSession::allNotifications);
-  rv = searchSession->AddScopeTerm(nsMsgSearchScope::localNews, folder);
+  nsresult rv = searchSession->AddScopeTerm(nsMsgSearchScope::localNews, folder);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   return searchSession->Search(m_window);
 }
 
