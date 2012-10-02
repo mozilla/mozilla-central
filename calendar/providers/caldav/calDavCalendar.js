@@ -1502,6 +1502,7 @@ calDavCalendar.prototype = {
               '<D:prop>' +
                 '<D:resourcetype/>' +
                 '<D:owner/>' +
+                '<D:current-user-principal/>' +
                 '<D:supported-report-set/>' +
                 '<C:supported-calendar-component-set/>' +
                 '<CS:getctag/>' +
@@ -1626,9 +1627,13 @@ calDavCalendar.prototype = {
 
             // check if owner is specified; might save some work
             let owner = caldavXPathFirst(multistatus, "/D:multistatus/D:response/D:propstat/D:prop/D:owner/D:href/text()");
-            if (owner) {
+            let cuprincipal = caldavXPathFirst(multistatus, "/D:multistatus/D:response/D:propstat/D:prop/D:current-user-principal/D:href/text()");
+            if (cuprincipal) {
+                thisCalendar.mPrincipalUrl = cuprincipal;
+                cal.LOG("CalDAV: Found principal url from DAV:current-user-principal " + thisCalendar.mPrincipalUrl);
+            } else if (owner) {
                 thisCalendar.mPrincipalUrl = owner;
-                cal.LOG("CalDAV: Found principal url " + thisCalendar.mPrincipalUrl);
+                cal.LOG("CalDAV: Found principal url from DAV:owner " + thisCalendar.mPrincipalUrl);
             }
 
             let resourceTypeXml = caldavXPath(multistatus, "/D:multistatus/D:response/D:propstat/D:prop/D:resourcetype");
