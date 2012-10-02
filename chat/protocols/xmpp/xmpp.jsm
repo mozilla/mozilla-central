@@ -949,13 +949,15 @@ const XMPPAccountPrototype = {
       return null;
 
     let result = {
-      node: match[1].toLowerCase(),
+      node: match[1],
       domain: match[2].toLowerCase(),
       resource: match[3]
     };
     let jid = result.domain;
-    if (result.node)
+    if (result.node) {
+      result.node = result.node.toLowerCase();
       jid = result.node + "@" + jid;
+    }
     if (result.resource)
       jid += "/" + result.resource;
     result.jid = jid;

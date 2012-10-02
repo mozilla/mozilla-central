@@ -33,6 +33,12 @@ function XMPPSession(aHost, aPort, aSecurity, aJID, aPassword, aAccount) {
   else if (this._connectionSecurity != "none")
     this._security = [(aPort == 5223 || aPort == 443) ? "ssl" : "starttls"];
 
+  if (!aJID.node) {
+    aAccount.reportDisconnecting(Ci.prplIAccount.ERROR_INVALID_USERNAME,
+                                 _("connection.error.invalidUsername"));
+    aAccount.reportDisconnected();
+    return;
+  }
   this._jid = aJID;
   this._domain = aJID.domain;
   this._password = aPassword;
