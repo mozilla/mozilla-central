@@ -450,7 +450,7 @@ LogEnumerator.prototype = {
 function DailyLogEnumerator(aEntries) {
   this._entries = {};
 
-  for each (entry in aEntries) {
+  for each (let entry in aEntries) {
     while (entry.hasMoreElements()) {
       let file = entry.getNext();
       if (!(file instanceof Ci.nsIFile))
