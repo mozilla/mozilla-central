@@ -111,8 +111,8 @@
                      observes="calendar_show_unifinder_command"/>
       <toolbarbutton id="calendar-appmenu-button"
                      class="toolbarbutton-1 button-appmenu"
-                     label="&appmenuButton.label;"
-                     tooltiptext="&appmenuButton.tooltip;"/>
+                     label="&lightning.toolbar.appmenuButton.label;"
+                     tooltiptext="&lightning.toolbar.appmenuButton.tooltip;"/>
     </toolbarpalette>
 
     <toolbar id="calendar-toolbar2" class="inline-toolbar chromeclass-toolbar"
@@ -165,8 +165,8 @@
                      observes="cmd_print"/>
       <toolbarbutton id="task-appmenu-button"
                      class="toolbarbutton-1 button-appmenu"
-                     label="&appmenuButton.label;"
-                     tooltiptext="&appmenuButton.tooltip;"/>
+                     label="&lightning.toolbar.appmenuButton.label;"
+                     tooltiptext="&lightning.toolbar.appmenuButton.tooltip;"/>
     </toolbarpalette>
 
     <toolbar id="task-toolbar2" class="inline-toolbar chromeclass-toolbar"
