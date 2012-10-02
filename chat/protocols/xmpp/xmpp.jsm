@@ -944,7 +944,7 @@ const XMPPAccountPrototype = {
 
   _parseJID: function(aJid) {
     let match =
-      /^(?:([^@/<>'\"]+)@)?([^@/<>'\"]+)(?:\/([^<>'\"]*))?$/.exec(aJid);
+      /^(?:([^"&'/:<>@]+)@)?([^@/<>'\"]+)(?:\/(.*))?$/.exec(aJid);
     if (!match)
       return null;
 
