@@ -153,8 +153,9 @@ Wrapper::getOwnPropertyDescriptor(JSContext *cx, JSObject *wrapper, jsid id, boo
 bool
 Wrapper::defineProperty(JSContext *cx, JSObject *wrapper, jsid id, PropertyDescriptor *desc)
 {
-    SET(JS_DefinePropertyById(cx, wrappedObject(wrapper), id, desc->value,
-                              desc->getter, desc->setter, desc->attrs));
+    JSObject *wobj = wrappedObject(wrapper);
+    SET(CheckDefineProperty(cx, wobj, id, desc->value, desc->getter, desc->setter, desc->attrs) &&
+        JS_DefinePropertyById(cx, wobj, id, desc->value, desc->getter, desc->setter, desc->attrs));
 }
 
 bool
