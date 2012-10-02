@@ -297,7 +297,17 @@ function userCanModifyItem(aItem) {
  * @return              True if there is a match
  */
 function attendeeMatchesAddresses(anAttendee, addresses) {
-    let attId = anAttendee.id.toLowerCase().replace(/^mailto:/, "");
+    let attId = anAttendee.id;
+    if (!attId.match(/^mailto:/i)) {
+        // Looks like its not a normal attendee, possibly urn:uuid:...
+        // Try getting the email through the EMAIL property.
+        let emailProp = anAttendee.getProperty("EMAIL");
+        if (emailProp) {
+            attId = emailProp;
+        }
+    }
+
+    attId = attId.toLowerCase().replace(/^mailto:/, "");
     for each (let address in addresses) {
         if (attId == address.toLowerCase().replace(/^mailto:/, "")) {
             return true;
