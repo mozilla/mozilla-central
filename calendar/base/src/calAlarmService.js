@@ -497,6 +497,9 @@ calAlarmService.prototype = {
                                                                      aDetail) {
                 // calendar has been loaded, so until now, onLoad events can be ignored:
                 this.alarmService.mLoadedCalendars[aCalendar.id] = true;
+
+                // notify observers that the alarms for the calendar have been loaded
+                this.alarmService.mObservers.notify("onAlarmsLoaded", [aCalendar]);
             },
             onGetResult: function cAS_fA_onGetResult(aCalendar,
                                                      aStatus,

@@ -179,5 +179,7 @@ calAlarmMonitor.prototype = {
             }
             return ret;
         });
-    }
+    },
+
+    onAlarmsLoaded: function cAM_onAlarmsLoaded(aCalendar) {}
 };

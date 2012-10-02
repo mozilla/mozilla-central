@@ -11,7 +11,7 @@ interface calITimezone;
 interface calIAlarm;
 interface calIOperation;
 
-[scriptable,uuid(c9c97643-db45-4790-9441-05384ae5c272)]
+[scriptable,uuid(dc96dd04-d2dd-448e-b307-8c8ff39c72af)]
 interface calIAlarmServiceObserver : nsISupports
 {
   /**
@@ -34,6 +34,11 @@ interface calIAlarmServiceObserver : nsISupports
    * Called if all alarms of a specific calendar are to be removed.
    */
   void onRemoveAlarmsByCalendar(in calICalendar calendar);
+
+  /**
+   * Called when all alarms of a specific calendar are loaded.
+   */
+  void onAlarmsLoaded(in calICalendar calendar);
 };
 
 [scriptable,uuid(03669cf3-bf4f-4692-97a1-cca891964a1d)]

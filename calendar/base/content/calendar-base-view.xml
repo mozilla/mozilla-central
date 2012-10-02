@@ -225,6 +225,8 @@
                 }
             },
 
+            onAlarmsLoaded: function _onAlarmsLoaded(aCalendar) {},
+
             //
             // calICompositeObserver stuff
             // XXXvv we can be smarter about how we handle this stuff
