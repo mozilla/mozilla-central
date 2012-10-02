@@ -864,9 +864,21 @@ function sendMessage(aItem, aMethod, aRecipientsList, autoResponse) {
     if (aRecipientsList.length == 0) {
         return;
     }
-    if (cal.calInstanceOf(aItem.calendar, Components.interfaces.calISchedulingSupport) &&
-        aItem.calendar.canNotify(aMethod, aItem)) {
-        return; // provider will handle that
+    if (cal.calInstanceOf(aItem.calendar, Components.interfaces.calISchedulingSupport)) {
+        // HACK: Usage of QueryInterface kind of hackish, need to remove all
+        // calls of calInstanceOf since casting happens per-compartment.
+        //
+        // Works:
+        //   let foo = aItem.calendar;
+        //   (foo instanceof Ci.calISchedulingSupport);
+        //   cal.calInstanceOf(aItem.calendar, Ci.calISchedulingSupport) && aItem.calendar.canNotify();
+        // Fails:
+        //   let foo = aItem.calendar;
+        //   cal.calInstanceOf(aItem.calendar, Ci.calISchedulingSupport) && aItem.calendar.canNotify();
+        if (aItem.calendar.QueryInterface(Components.interfaces.calISchedulingSupport)
+                          .canNotify(aMethod, aItem)) {
+            return; //provider will handle that
+        }
     }
 
     let aTransport = aItem.calendar.getProperty("itip.transport");
