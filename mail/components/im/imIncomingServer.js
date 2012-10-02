@@ -54,11 +54,12 @@ imIncomingServer.prototype = {
     return protocol + " - " + this.imAccount.name;
   },
 
-  //XXX Flo: I don't think these 2 names are visible in the UI:
+  //XXX Flo: I don't think constructedPrettyName is visible in the UI
   get constructedPrettyName() "constructedPrettyName FIXME",
-  realHostName: "realHostName FIXME",
+  get realHostName() this.hostName,
+  set realHostName(aValue) {},
 
-  port: 0,
+  port: -1,
   accountManagerChrome: "am-im.xul",
 
 
