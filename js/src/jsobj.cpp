@@ -2112,50 +2112,6 @@ Reject(JSContext *cx, JSObject *obj, uintN errorNumber, bool throwError, bool *r
     return JS_TRUE;
 }
 
-// See comments on CheckDefineProperty in jsobj.h.
-//
-// DefinePropertyOnObject has its own implementation of these checks.
-//
-bool
-js::CheckDefineProperty(JSContext *cx, JSObject *obj, jsid id, const Value &value,
-                        PropertyOp getter, StrictPropertyOp setter, unsigned attrs)
-{
-    if (!obj->isNative())
-        return true;
-
-    // ES5 8.12.9 Step 1. Even though we know obj is native, we use generic
-    // APIs for shorter, more readable code.
-    AutoPropertyDescriptorRooter desc(cx);
-    if (!GetOwnPropertyDescriptor(cx, obj, id, &desc))
-        return false;
-
-    // This does not have to check obj->isExtensible() when !desc.obj (steps
-    // 2-3) because the low-level methods JSObject::{add,put}Property check
-    // for that.
-    if (desc.obj && (desc.attrs & JSPROP_PERMANENT)) {
-        // Steps 6-11, skipping step 10.a.ii. Prohibit redefining a permanent
-        // property with different metadata, except to make a writable property
-        // non-writable.
-        if (getter != desc.getter ||
-            setter != desc.setter ||
-            (attrs != desc.attrs && attrs != (desc.attrs | JSPROP_READONLY)))
-        {
-            return Reject(cx, JSMSG_CANT_REDEFINE_PROP, true, id, NULL);
-        }
-
-        // Step 10.a.ii. Prohibit changing the value of a non-configurable,
-        // non-writable data property.
-        if ((desc.attrs & (JSPROP_GETTER | JSPROP_SETTER | JSPROP_READONLY)) == JSPROP_READONLY) {
-            JSBool same;
-            if (!SameValue(cx, value, desc.value, &same))
-                return false;
-            if (!same)
-                return JSObject::reportReadOnly(cx, id);
-        }
-    }
-    return true;
-}
-
 static JSBool
 DefinePropertyOnObject(JSContext *cx, JSObject *obj, const jsid &id, const PropDesc &desc,
                        bool throwError, bool *rval)
