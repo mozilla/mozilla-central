@@ -568,6 +568,7 @@ const XMPPAccountPrototype = {
 
   _jid: null, // parsed Jabber ID: node, domain, resource
   _connection: null, // XMPP Connection
+  authMechanisms: null, // hook to let prpls tweak the list of auth mechanisms
 
   _init: function(aProtoInstance, aImAccount) {
     GenericAccountPrototype._init.call(this, aProtoInstance, aImAccount);

@@ -251,6 +251,7 @@ XMPPSession.prototype = {
       // a bit differently as we want to avoid it over an unencrypted
       // connection, except if the user has explicly allowed that
       // behavior.
+      let authMechanisms = this._account.authMechanisms || XMPPAuthMechanisms;
       let selectedMech = "";
       let canUsePlain = false;
       mechs = mechs.getChildren("mechanism");
@@ -258,7 +259,7 @@ XMPPSession.prototype = {
         let mech = m.innerText;
         if (mech == "PLAIN" && !this._encrypted)
           canUsePlain = true;
-        else if (XMPPAuthMechanisms.hasOwnProperty(mech)) {
+        else if (authMechanisms.hasOwnProperty(mech)) {
           selectedMech = mech;
           break;
         }
@@ -277,9 +278,9 @@ XMPPSession.prototype = {
                      _("connection.error.noCompatibleAuthMec"));
         return;
       }
-      this._auth = new XMPPAuthMechanisms[selectedMech](this._jid.node,
-                                                        this._password,
-                                                        this._domain);
+      this._auth = new authMechanisms[selectedMech](this._jid.node,
+                                                    this._password,
+                                                    this._domain);
 
       this._account.reportConnecting(_("connection.authenticating"));
       this.onXmppStanza = this.stanzaListeners.authDialog;
