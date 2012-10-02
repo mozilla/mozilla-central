@@ -1,9 +1,9 @@
-<?xml version="1.0"?> 
+<?xml version="1.0"?>
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 
-<?xml-stylesheet href="chrome://messenger/skin/dialogs.css" type="text/css"?> 
+<?xml-stylesheet href="chrome://messenger/skin/dialogs.css" type="text/css"?>
 
 <!DOCTYPE dialog SYSTEM "chrome://messenger/locale/downloadheaders.dtd">
 
@@ -17,7 +17,7 @@
   <stringbundle id="bundle_news" src="chrome://messenger/locale/news.properties"/>
   <script type="application/javascript" src="chrome://messenger/content/downloadheaders.js"/>
 
-  <label class="header" style="width: 25em; max-width: 25em;" id="newsgroupLabel" control="downloadGroup"/> 
+  <label class="header" style="width: 25em; max-width: 25em;" id="newsgroupLabel" control="downloadGroup"/>
   <description style="width: 25em; max-width: 25em;" id="info" control="downloadGroup"/>
   <separator class="thin"/>
   <vbox class="indent">
@@ -30,7 +30,12 @@
                accesskey="&download.accesskey;"
                oncommand="setupDownloadUI(true);"
                aria-labelledby="some number headers"/>
-        <textbox id="number" size="7" aria-labelledby="some number headers"/>
+        <textbox id="number"
+                 size="7"
+                 type="number"
+                 min="0"
+                 increment="10"
+                 aria-labelledby="some number headers"/>
         <label value="&headers.label;" accesskey="&headers.accesskey;"
                id="headers" control="number"/>
       </hbox>
@@ -40,5 +45,5 @@
       <checkbox id="markread" label="&mark.label;" accesskey="&mark.accesskey;"/>
     </hbox>
   </vbox>
-  
+
 </dialog>
