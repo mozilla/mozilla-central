@@ -196,12 +196,12 @@ NS_IMETHODIMP nsMsgComposeSecure::RequiresCryptoEncapsulation(nsIMsgIdentity * a
 {
   NS_ENSURE_ARG_POINTER(aRequiresEncryptionWork);
 
-  nsresult rv = NS_OK;
   *aRequiresEncryptionWork = false;
 
   bool alwaysEncryptMessages = false;
   bool signMessage = false;
-  rv = ExtractEncryptionState(aIdentity, aCompFields, &signMessage, &alwaysEncryptMessages);
+  nsresult rv = ExtractEncryptionState(aIdentity, aCompFields, &signMessage, &alwaysEncryptMessages);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   if (alwaysEncryptMessages || signMessage)
     *aRequiresEncryptionWork = true;
@@ -217,11 +217,9 @@ nsresult nsMsgComposeSecure::GetSMIMEBundleString(const PRUnichar *name,
 
   NS_ENSURE_ARG_POINTER(name);
 
-  if (!InitializeSMIMEBundle())
-    return NS_ERROR_FAILURE;
+  NS_ENSURE_TRUE(InitializeSMIMEBundle(), NS_ERROR_FAILURE);
 
-  // XXX Cast of bool to nsresult
-  return static_cast<nsresult>(NS_SUCCEEDED(mSMIMEBundle->GetStringFromName(name, outString)));
+  return mSMIMEBundle->GetStringFromName(name, outString);
 }
 
 nsresult
