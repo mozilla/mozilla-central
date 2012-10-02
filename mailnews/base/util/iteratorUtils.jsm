@@ -28,14 +28,14 @@ function toArray(aObj, aUseKeys) {
   //   which we don't actually care about.
   // - Not all iterators are instances of Iterator, so additionally use a
   //   duck-typing test.
-  if ((aObj.constructor.toString().indexOf("Iterator") != -1) 
-      || ("__iterator__" in aObj)) {
+  let constructor = aObj.constructor.toString();
+  if (constructor.contains("Iterator") || ("__iterator__" in aObj)) {
     if (aUseKeys) {
       return [ a for (a in aObj) ];
     } else {
       return [ a for each (a in aObj) ];
     }
-  } else if (aObj.constructor.toString() == "[object NodeList]") {
+  } else if (constructor.contains("NodeList")) {
     // aUseKeys doesn't make sense in this case, always return the values.
     return Array.slice(aObj);
   }
