@@ -3,16 +3,17 @@
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
-   
+
 <?xml-stylesheet href="chrome://messenger/content/messenger.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/accountManage.css" type="text/css"?>
 
 <!DOCTYPE overlay SYSTEM "chrome://messenger/locale/am-addressing.dtd">
 
 <overlay xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">                                                       
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <script type="application/javascript" src="chrome://messenger/content/am-addressing.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/amUtils.js"/>
 
   <vbox flex="1" id="compositionAndAddressing">
     <stringbundle id="bundle_addressBook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>
@@ -70,6 +71,14 @@
                 preftype="bool" genericattr="true"
                 prefstring="mail.identity.%identitykey%.sig_on_fwd"/>
 
+      <separator class="thin"/>
+
+      <hbox pack="start">
+        <button id="globalComposingPrefsLink"
+                label="&globalComposingPrefs.label;"
+                accesskey="&globalComposingPrefs.accesskey;"
+                oncommand="showGlobalComposingPrefs();"/>
+      </hbox>
     </groupbox>
 
     <separator class="thin"/>
@@ -110,7 +119,16 @@
                   accesskey="&editDirectories.accesskey;"
                   oncommand="onEditDirectories();"/>
         </hbox>
-      </radiogroup>      
+      </radiogroup>
+
+      <separator class="thin"/>
+
+      <hbox pack="start">
+        <button id="globalAddressingPrefsLink"
+                label="&globalAddressingPrefs.label;"
+                accesskey="&globalAddressingPrefs.accesskey;"
+                oncommand="showGlobalAddressingPrefs();"/>
+      </hbox>
     </groupbox>
   </vbox>
 </overlay>
