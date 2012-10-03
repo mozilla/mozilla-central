@@ -371,6 +371,8 @@ function onUpdateProgress()
 function handlePaste() {
   let trans = Components.classes["@mozilla.org/widget/transferable;1"]
                         .createInstance(Components.interfaces.nsITransferable);
+  trans.init(null);
+
   let flavors = ["text/x-moz-url", "text/unicode"];
   flavors.forEach(trans.addDataFlavor);
 
