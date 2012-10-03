@@ -1,0 +1,34 @@
+# Big Hack that unsets CC / CXX so that mozconfig.common doesn't get
+# mixed up with host/target CPUs when trying to work out how to do the
+# universal build. When we redo the build system (bug 648979) this will
+# go away.
+if test -e "$topsrcdir/mail/config/version.txt"; then
+  unset CC
+  unset CXX
+fi
+
+. $topsrcdir/build/macosx/universal/mozconfig
+
+# Universal builds override the default of mail (bug 575283 comment 29)
+ac_add_options --enable-application=mail
+ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
+ac_add_options --enable-update-packaging
+ac_add_options --enable-codesighs
+ac_add_options --disable-install-strip
+ac_add_options --enable-profiling
+
+# For NSS symbols
+export MOZ_DEBUG_SYMBOLS=1
+
+# Needed to enable breakpad in application.ini
+export MOZILLA_OFFICIAL=1
+
+# Enable parallel compiling
+CONCURRENCY=$(( `sysctl hw.logicalcpu | awk {'print $2'}`  + 2 ))
+mk_add_options MOZ_MAKE_FLAGS="-j$CONCURRENCY"
+
+ac_add_options --with-ccache
+
+# Run client.py
+mk_add_options CLIENT_PY_ARGS="$(cat $topsrcdir/build/client.py-args)"
+mk_add_options ALWAYS_RUN_CLIENT_PY=1

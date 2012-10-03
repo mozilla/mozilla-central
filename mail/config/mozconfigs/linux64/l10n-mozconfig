@@ -1,0 +1,31 @@
+ac_add_options --enable-application=mail
+ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
+ac_add_options --enable-update-packaging
+ac_add_options --enable-codesighs
+ac_add_options --enable-profiling
+
+# Temporary options until bug 794378 is fixed
+ac_add_options --enable-gnomevfs
+ac_add_options --disable-gio
+
+. $topsrcdir/build/unix/mozconfig.linux
+
+# Avoid dependency on libstdc++ 4.5
+ac_add_options --enable-stdcxx-compat
+
+# Needed to enable breakpad in application.ini
+export MOZILLA_OFFICIAL=1
+
+# For NSS symbols
+export MOZ_DEBUG_SYMBOLS=1
+
+# Enable parallel compiling
+CONCURRENCY=$(( `grep processor /proc/cpuinfo | wc -l` + 2 ))
+mk_add_options MOZ_MAKE_FLAGS="-j$CONCURRENCY"
+
+# Use ccache
+ac_add_options --with-ccache=/usr/bin/ccache
+
+# Run client.py
+mk_add_options CLIENT_PY_ARGS="$(cat $topsrcdir/build/client.py-args)"
+mk_add_options ALWAYS_RUN_CLIENT_PY=1
