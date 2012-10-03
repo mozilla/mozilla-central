@@ -1671,7 +1671,9 @@ function GenericSendMessage( msgType )
       msgCompFields.subject = subject;
       Attachments2CompFields(msgCompFields);
 
-      if (msgType == nsIMsgCompDeliverMode.Now || msgType == nsIMsgCompDeliverMode.Later)
+      if (msgType == nsIMsgCompDeliverMode.Now ||
+          msgType == nsIMsgCompDeliverMode.Later ||
+          msgType == nsIMsgCompDeliverMode.Background)
       {
         //Do we need to check the spelling?
         if (DoSpellCheckBeforeSend())
@@ -1796,6 +1798,7 @@ function GenericSendMessage( msgType )
       // Check if the headers of composing mail can be converted to a mail charset.
       if (msgType == nsIMsgCompDeliverMode.Now ||
         msgType == nsIMsgCompDeliverMode.Later ||
+        msgType == nsIMsgCompDeliverMode.Background ||
         msgType == nsIMsgCompDeliverMode.Save ||
         msgType == nsIMsgCompDeliverMode.SaveAsDraft ||
         msgType == nsIMsgCompDeliverMode.AutoSaveAsDraft ||
@@ -1895,7 +1898,9 @@ function CheckValidEmailAddress(aTo, aCC, aBCC)
 
 function SendMessage()
 {
-  GenericSendMessage(nsIMsgCompDeliverMode.Now);
+  let sendInBackground = Services.prefs.getBoolPref("mailnews.sendInBackground");
+  GenericSendMessage(sendInBackground ? nsIMsgCompDeliverMode.Background
+                                      : nsIMsgCompDeliverMode.Now);
 }
 
 function SendMessageWithCheck()
@@ -1921,8 +1926,10 @@ function SendMessageWithCheck()
         }
     }
 
-  GenericSendMessage(Services.io.offline ? nsIMsgCompDeliverMode.Later
-                                         : nsIMsgCompDeliverMode.Now);
+    if (Services.io.offline)
+      SendMessageLater();
+    else
+      SendMessage();
 }
 
 function SendMessageLater()
