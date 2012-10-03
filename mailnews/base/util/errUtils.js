@@ -22,13 +22,18 @@ function logObject(aObj, aName) {
 
 /**
  * Log an exception to stdout. This function should not be called in
- * expected circumstances
- * @param aException the exception to log
- * @param [aRethrow] set to true to rethrow the exception after logging
- * @param [aMsg]     optional message to log
+ * expected circumstances.
+ * @param aException  the exception to log
+ * @param [aRethrow]  set to true to rethrow the exception after logging
+ * @param [aMsg]      optional message to log
  */
 function logException(aException, aRethrow, aMsg) {
   stringifier.dumpException(aException, aMsg);
+
+  if (aMsg)
+    Components.utils.reportError(aMsg);
+  Components.utils.reportError(aException);
+
   if (aRethrow)
     throw aException;
 }
