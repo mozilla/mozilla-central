@@ -5,12 +5,16 @@ ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
 ac_add_options --enable-update-packaging
 ac_add_options --enable-jemalloc
 ac_add_options --enable-official-branding
+ac_add_options --enable-calendar
 
 # For NSS symbols
 export MOZ_DEBUG_SYMBOLS=1
 
 # Needed to enable breakpad in application.ini
 export MOZILLA_OFFICIAL=1
+
+# Don't install Lightning into Thunderbird
+export DISABLE_LIGHTNING_INSTALL=1
 
 if test -n "${_PYMAKE}"; then
   mk_add_options MOZ_MAKE_FLAGS=-j4

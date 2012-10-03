@@ -2,6 +2,7 @@ ac_add_options --enable-application=mail
 ac_add_options --enable-debug
 ac_add_options --enable-trace-malloc
 ac_add_options --enable-signmar
+ac_add_options --enable-calendar
 
 . $topsrcdir/build/unix/mozconfig.linux
 
@@ -13,6 +14,9 @@ export MOZILLA_OFFICIAL=1
 
 # For NSS symbols
 export MOZ_DEBUG_SYMBOLS=1
+
+# Don't install Lightning into Thunderbird
+export DISABLE_LIGHTNING_INSTALL=1
 
 # Enable parallel compiling
 CONCURRENCY=$(( `grep processor /proc/cpuinfo | wc -l` + 2 ))
