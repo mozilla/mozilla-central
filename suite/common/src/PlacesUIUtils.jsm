@@ -55,68 +55,46 @@ var PlacesUIUtils = {
   },
 
   /**
-   * Get a transaction for copying a uri item from one container to another
-   * as a bookmark.
+   * Get a transaction for copying a uri item (either a bookmark or a
+   * history entry) from one container to another.
+   *
    * @param   aData
    *          JSON object of dropped or pasted item properties
    * @param   aContainer
    *          The container being copied into
    * @param   aIndex
    *          The index within the container the item is copied to
-   * @returns A nsITransaction object that performs the copy.
+   * @return  A nsITransaction object that performs the copy.
+   *
+   * @note Since a copy creates a completely new item, only some internal
+   *       annotations are synced from the old one.
+   * @see this._copyableAnnotations for the list of copyable annotations.
    */
-  _getURIItemCopyTransaction: function (aData, aContainer, aIndex) {
-    return this.ptm.createItem(PlacesUtils._uri(aData.uri), aContainer, aIndex,
-                               aData.title, "");
-  },
+   _getURIItemCopyTransaction:
+   function PUIU__getURIItemCopyTransaction(aData, aContainer, aIndex)
+   {
+     let transactions = [];
+     if (aData.dateAdded)
+       transactions.push(
+         new PlacesEditItemDateAddedTransaction(null, aData.dateAdded)
+       );
 
-  /**
-   * Get a transaction for copying a bookmark item from one container to
-   * another.
-   * @param   aData
-   *          JSON object of dropped or pasted item properties
-   * @param   aContainer
-   *          The container being copied into
-   * @param   aIndex
-   *          The index within the container the item is copied to
-   * @param   [optional] aExcludeAnnotations
-   *          Optional, array of annotations (listed by their names) to exclude
-   *          when copying the item.
-   * @returns A nsITransaction object that performs the copy.
-   */
-  _getBookmarkItemCopyTransaction:
-  function PUIU__getBookmarkItemCopyTransaction(aData, aContainer, aIndex,
-                                                aExcludeAnnotations) {
-    var itemURL = PlacesUtils._uri(aData.uri);
-    var itemTitle = aData.title;
-    var keyword = aData.keyword || null;
-    var annos = aData.annos || [];
-    // always exclude GUID when copying any item
-    var excludeAnnos = [PlacesUtils.GUID_ANNO];
-    if (aExcludeAnnotations)
-      excludeAnnos = excludeAnnos.concat(aExcludeAnnotations);
-    annos = annos.filter(function(aValue, aIndex, aArray) {
-      return excludeAnnos.indexOf(aValue.name) == -1;
-    });
-    var childTxns = [];
-    if (aData.dateAdded)
-      childTxns.push(this.ptm.editItemDateAdded(null, aData.dateAdded));
-    if (aData.lastModified)
-      childTxns.push(this.ptm.editItemLastModified(null, aData.lastModified));
-    if (aData.tags) {
-      var tags = aData.tags.split(", ");
-      // filter out tags already present, so that undo doesn't remove them
-      // from pre-existing bookmarks
-      var storedTags = PlacesUtils.tagging.getTagsForURI(itemURL);
-      tags = tags.filter(function (aTag) {
-        return (storedTags.indexOf(aTag) == -1);
-      }, this);
-      if (tags.length)
-        childTxns.push(this.ptm.tagURI(itemURL, tags));
-    }
+     if (aData.lastModified)
+       transactions.push(
+         new PlacesEditItemLastModifiedTransaction(null, aData.lastModified)
+       );
 
-    return this.ptm.createItem(itemURL, aContainer, aIndex, itemTitle, keyword,
-                               annos, childTxns);
+     let keyword = aData.keyword || null;
+     let annos = [];
+     if (aData.annos) {
+       annos = aData.annos.filter(function (aAnno) {
+         return this._copyableAnnotations.indexOf(aAnno.name) != -1;
+       }, this);
+     }
+
+     return new PlacesCreateBookmarkTransaction(PlacesUtils._uri(aData.uri),
+                                                aContainer, aIndex, aData.title,
+                                                keyword, annos, transactions);
   },
 
   /**
@@ -129,98 +107,115 @@ var PlacesUIUtils = {
    *          The container we are copying into
    * @param   aIndex
    *          The index in the destination container to insert the new items
-   * @returns A nsITransaction object that will perform the copy.
+   * @return  A nsITransaction object that will perform the copy.
+   *
+   * @note Since a copy creates a completely new item, only some internal
+   *       annotations are synced from the old one.
+   * @see this._copyableAnnotations for the list of copyable annotations.
    */
   _getFolderCopyTransaction:
   function PUIU__getFolderCopyTransaction(aData, aContainer, aIndex) {
     function getChildItemsTransactions(aChildren) {
-      var childItemsTransactions = [];
-      var cc = aChildren.length;
-      var index = aIndex;
-      for (var i = 0; i < cc; ++i) {
-        var txn = null;
-        var node = aChildren[i];
-
+      let transactions = [];
+      let index = aIndex;
+      aChildren.forEach(function (node, i) {
         // Make sure that items are given the correct index, this will be
         // passed by the transaction manager to the backend for the insertion.
-        // Insertion behaves differently if index == DEFAULT_INDEX (append)
+        // Insertion behaves differently for DEFAULT_INDEX (append).
         if (aIndex != PlacesUtils.bookmarks.DEFAULT_INDEX)
           index = i;
 
-        if (node.type == PlacesUtils.TYPE_X_MOZ_PLACE_CONTAINER) {
-          if (node.livemark && node.annos) // node is a livemark
-            txn = PlacesUIUtils._getLivemarkCopyTransaction(node, aContainer, index);
-          else
-            txn = PlacesUIUtils._getFolderCopyTransaction(node, aContainer, index);
-        }
+        if (node.type == PlacesUtils.TYPE_X_MOZ_PLACE_CONTAINER)
+          transactions.push(
+            PlacesUIUtils._getFolderCopyTransaction(node, aContainer, index)
+          );
         else if (node.type == PlacesUtils.TYPE_X_MOZ_PLACE_SEPARATOR)
-          txn = new PlacesCreateSeparatorTransaction(-1, index);
+          transactions.push(new PlacesCreateSeparatorTransaction(-1, index));
         else if (node.type == PlacesUtils.TYPE_X_MOZ_PLACE)
-          txn = PlacesUIUtils._getBookmarkItemCopyTransaction(node, -1, index);
-
-        if (txn)
-          childItemsTransactions.push(txn);
+          transactions.push(
+            PlacesUIUtils._getURIItemCopyTransaction(node, -1, index)
+          );
         else
-          throw("Unexpected item under a bookmarks folder");
-      }
-      return childItemsTransactions;
+          throw new Error("Unexpected item under a bookmarks folder");
+      });
+      return transactions;
     }
 
-    // tag folders use tag transactions
-    if (aContainer == PlacesUtils.tagsFolderId) {
-      var txns = [];
+    if (aContainer == PlacesUtils.tagsFolderId) { // Copying a tag folder.
+      let transactions = [];
       if (aData.children) {
         aData.children.forEach(function(aChild) {
-          txns.push(
+          transactions.push(
             new PlacesTagURITransaction(PlacesUtils._uri(aChild.uri),
                                         [aData.title])          
           );
-        }, this);
+        });
       }
-      return this.ptm.aggregateTransactions("addTags", txns);
+      return new PlacesAggregatedTransactions("addTags", transactions);
     }
-    else if (aData.livemark && aData.annos) {
-      // Place is a Livemark Container
-      return this._getLivemarkCopyTransaction(aData, aContainer, aIndex);
-    }
-    else {
-      var childItems = getChildItemsTransactions(aData.children);
-      if (aData.dateAdded)
-        childItems.push(new PlacesEditItemDateAddedTransaction(null, aData.dateAdded));
-      if (aData.lastModified)
-        childItems.push(new PlacesEditItemLastModifiedTransaction(null, aData.lastModified));
 
-      var annos = aData.annos || [];
-      annos = annos.filter(function(aAnno) {
-        // always exclude GUID when copying any item
-        return aAnno.name != PlacesUtils.GUID_ANNO;
-      });
-      return new PlacesCreateFolderTransaction(aData.title, aContainer, aIndex,
-                                               annos, childItems);
+    if (aData.livemark && aData.annos) // Copying a livemark.
+      return this._getLivemarkCopyTransaction(aData, aContainer, aIndex);
+
+    let transactions = getChildItemsTransactions(aData.children);
+    if (aData.dateAdded)
+      transactions.push(
+        new PlacesEditItemDateAddedTransaction(null, aData.dateAdded)
+      );
+    if (aData.lastModified)
+      transactions.push(
+        new PlacesEditItemLastModifiedTransaction(null, aData.lastModified)
+    );
+
+    let annos = [];
+    if (aData.annos) {
+      annos = aData.annos.filter(function (aAnno) {
+        return this._copyableAnnotations.indexOf(aAnno.name) != -1;
+      }, this);
     }
+
+    return new PlacesCreateFolderTransaction(aData.title, aContainer,
+                                             aIndex, annos,
+                                             transactions);
   },
 
+   /**
+   * Gets a transaction for copying a live bookmark item from one container to
+   * another.
+   *
+   * @param   aData
+   *          Unwrapped live bookmarkmark data
+   * @param   aContainer
+   *          The container we are copying into
+   * @param   aIndex
+   *          The index in the destination container to insert the new items
+   * @return A nsITransaction object that will perform the copy.
+   *
+   * @note Since a copy creates a completely new item, only some internal
+   *       annotations are synced from the old one.
+   * @see this._copyableAnnotations for the list of copyable annotations.
+   */
   _getLivemarkCopyTransaction:
   function PUIU__getLivemarkCopyTransaction(aData, aContainer, aIndex) {
     if (!aData.livemark || !aData.annos)
       throw("node is not a livemark");
-    // Place is a Livemark Container
-    var feedURI = null;
-    var siteURI = null;
-    aData.annos = aData.annos.filter(function(aAnno) {
-      if (aAnno.name == PlacesUtils.LMANNO_FEEDURI) {
-        feedURI = PlacesUtils._uri(aAnno.value);
-        return false;
-      }
-      else if (aAnno.name == PlacesUtils.LMANNO_SITEURI) {
-        siteURI = PlacesUtils._uri(aAnno.value);
-        return false;
-      }
-      // always exclude GUID when copying any item
-      return aAnno.name != PlacesUtils.GUID_ANNO;
-    });
+
+    let feedURI = null;
+    let siteURI = null;
+    if (aData.annos) {
+      annos = aData.annos.filter(function(aAnno) {
+        if (aAnno.name == PlacesUtils.LMANNO_FEEDURI) {
+          feedURI = PlacesUtils._uri(aAnno.value);
+        }
+        else if (aAnno.name == PlacesUtils.LMANNO_SITEURI) {
+          siteURI = PlacesUtils._uri(aAnno.value);
+        }
+        return this._copyableAnnotations.indexOf(aAnno.name) != -1
+      }, this);
+    }
+
     return new PlacesCreateLivemarkTransaction(feedURI, siteURI, aData.title,
-                                               aContainer, aIndex, aData.annos);
+                                               aContainer, aIndex, annos);
   },
 
   /**
@@ -249,27 +244,26 @@ var PlacesUIUtils = {
         return new PlacesMoveItemTransaction(data.id, container, index);
         break;
       case PlacesUtils.TYPE_X_MOZ_PLACE:
-        if (data.id == -1) // Not bookmarked.
+        if (copy || data.id == -1) // id is -1 if the place is not bookmarked
           return this._getURIItemCopyTransaction(data, container, index);
 
-        if (copy)
-          return this._getBookmarkItemCopyTransaction(data, container, index);
         // Otherwise move the item.
         return new PlacesMoveItemTransaction(data.id, container, index);
         break;
       case PlacesUtils.TYPE_X_MOZ_PLACE_SEPARATOR:
-        // There is no data in a separator, so copying it just amounts to
-        // inserting a new separator.
-        if (copy)
+        if (copy) {
+          // There is no data in a separator, so copying it just amounts to
+          // inserting a new separator.
           return new PlacesCreateSeparatorTransaction(container, index);
-        // Otherwise move the item.
+        }
+
         return new PlacesMoveItemTransaction(data.id, container, index);
         break;
       default:
         if (type == PlacesUtils.TYPE_X_MOZ_URL ||
             type == PlacesUtils.TYPE_UNICODE ||
             type == this.TYPE_TAB_DROP) {
-          var title = (type != PlacesUtils.TYPE_UNICODE) ? data.title :
+          let title = (type != PlacesUtils.TYPE_UNICODE) ? data.title :
                                                              data.uri;
           return new PlacesCreateBookmarkTransaction(PlacesUtils._uri(data.uri),
                                                      container, index, title);
@@ -1389,3 +1383,11 @@ XPCOMUtils.defineLazyGetter(PlacesUIUtils, "ptm", function() {
       PlacesUtils.transactionManager.RemoveListener(aListener)
   }
 });
+
+XPCOMUtils.defineLazyGetter(PlacesUIUtils, "_copyableAnnotations", function() {
+  return [this.DESCRIPTION_ANNO,
+          this.LOAD_IN_SIDEBAR_ANNO,
+          PlacesUtils.POST_DATA_ANNO,
+          PlacesUtils.READ_ONLY_ANNO]
+}); 
+
