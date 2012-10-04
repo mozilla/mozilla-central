@@ -89,6 +89,7 @@ ifdef ENABLE_TESTS
                $(DIST_ARCH_2)/test-package-stage/mozmill/;              \
            fi; \
 	  $(TOPSRCDIR)/mozilla/build/macosx/universal/unify \
+	      --unify-with-sort "\.manifest$$" \
 	      --unify-with-sort "all-test-dirs\.list$$" \
 	      $(DIST_ARCH_1)/test-package-stage                         \
 	      $(DIST_ARCH_2)/test-package-stage                         \
