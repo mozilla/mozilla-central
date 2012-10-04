@@ -9646,9 +9646,9 @@ nsresult nsImapMailFolder::GetOfflineMsgFolder(nsMsgKey msgKey, nsIMsgFolder **a
           if (labelNames[i].Equals("\"\\\\Sent\""))
              rv = rootFolder->GetFolderWithFlags(nsMsgFolderFlags::SentMail,
                                                  getter_AddRefs(subMsgFolder));
-          if ((labelNames[i].Find(NS_LITERAL_CSTRING("[Imap]/"), true, 0, -1) != -1))
+          if (labelNames[i].Find("[Imap]/", CaseInsensitiveCompare) != kNotFound)
           {
-            labelNames[i].ReplaceSubstring("[Imap]/", "");
+            MsgReplaceSubstring(labelNames[i], "[Imap]/", "");
             imapRootFolder->FindOnlineSubFolder(labelNames[i], getter_AddRefs(subFolder));
             subMsgFolder = do_QueryInterface(subFolder);
           }
