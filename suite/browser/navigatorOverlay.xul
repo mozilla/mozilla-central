@@ -564,8 +564,10 @@
         <menu id="menu_imageManager"
               label="&cookieImageManager.label;"
               accesskey="&cookieImageManager.accesskey;"
-              oncommand="if (event.target.id) CookieImageAction(event.target);
-                         else toDataManager('|permissions');">
+              oncommand="if (event.target.id == 'menuitem_cookieDisplay')
+                           toDataManager('|permissions');
+                         else
+                           CookieImageAction(event.target);">
           <menupopup id="menupopup_checkPermissions_image"
                      onpopupshowing="CheckPermissionsMenu('image', this);">
             <menuitem id="image_deny"
