@@ -68,7 +68,7 @@
 #include "nsMimeTypes.h"
 #include "nsMsgUtils.h"
 #include "nsIPrefBranch.h"
-#include "imgILoader.h"
+#include "imgLoader.h"
 
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIMsgHdr.h"
@@ -721,10 +721,7 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
     /* The magic image types which we are able to display internally...
     */
     else if (!PL_strncasecmp(content_type,    "image/", 6)) {
-        nsCOMPtr<imgILoader> loader(do_GetService("@mozilla.org/image/loader;1"));
-        bool isReg = false;
-        loader->SupportImageWithMimeType(content_type, &isReg);
-        if (isReg)
+        if (imgLoader::SupportImageWithMimeType(content_type))
           clazz = (MimeObjectClass *)&mimeInlineImageClass;
         else
           clazz = (MimeObjectClass *)&mimeExternalObjectClass;
