@@ -131,6 +131,29 @@ XMPPSession.prototype = {
               '" xmlns="jabber:client" xmlns:stream="http://etherx.jabber.org/streams" version="1.0">');
   },
 
+  startSession: function() {
+    this.sendStanza(Stanza.iq("set", null, null,
+                              Stanza.node("session", Stanza.NS.session)));
+    this.onXmppStanza = this.stanzaListeners.sessionStarted;
+  },
+
+  /* XEP-0078: Non-SASL Authentication */
+  startLegacyAuth: function(aStreamId) {
+    if (!this._encrypted && this._connectionSecurity == "require_tls") {
+      this.onError(Ci.prplIAccount.ERROR_ENCRYPTION_ERROR,
+                   _("connection.error.startTLSNotSupported"));
+      return;
+    }
+
+    this._streamId = aStreamId;
+    this.onXmppStanza = this.stanzaListeners.legacyAuth;
+    let s = Stanza.iq("get", null, this._domain,
+                      Stanza.node("query", Stanza.NS.auth, null,
+                                  Stanza.node("username", null, null,
+                                              this._jid.node)));
+    this.sendStanza(s);
+  },
+
   /* Log a message (called by the socket code) */
   log: LOG,
 
@@ -265,7 +288,7 @@ XMPPSession.prototype = {
         }
       }
       if (!selectedMech && canUsePlain) {
-        if (this._security == "allow_unencrypted_plain_auth")
+        if (this._connectionSecurity == "allow_unencrypted_plain_auth")
           selectedMech = "PLAIN";
         else {
           this.onError(Ci.prplIAccount.ERROR_AUTHENTICATION_IMPOSSIBLE,
@@ -351,9 +374,102 @@ XMPPSession.prototype = {
       jid = jid.innerText;
       DEBUG("jid = " + jid);
       this._jid = this._account._parseJID(jid);
-      this.sendStanza(Stanza.iq("set", null, null,
-                                Stanza.node("session", Stanza.NS.session)));
-      this.onXmppStanza = this.stanzaListeners.sessionStarted;
+      this.startSession();
+    },
+    legacyAuth: function(aStanza) {
+      if (aStanza.attributes["type"] == "error") {
+        let error = aStanza.getElement(["error"]);
+        if (!error) {
+          this._networkError(_("connection.error.incorrectResponse"));
+          return;
+        }
+
+        let code = parseInt(error.attributes["code"], 10);
+        if (code == 401) {
+          // Failed Authentication (Incorrect Credentials)
+          this.onError(Ci.prplIAccount.ERROR_AUTHENTICATION_FAILED,
+                       _("connection.error.notAuthorized"));
+          return;
+        }
+        else if (code == 406) {
+          // Failed Authentication (Required Information Not Provided)
+          this.onError(Ci.prplIAccount.ERROR_AUTHENTICATION_FAILED,
+                       _("connection.error.authenticationFailure"));
+          return;
+        }
+        // else if (code == 409) {
+          // Failed Authentication (Resource Conflict)
+          // XXX Flo The spec in XEP-0078 defines this error code, but
+          // I've yet to find a server sending it. The server I tested
+          // with just closed the first connection when a second
+          // connection was attempted with the same resource.
+          // libpurple's jabber prpl doesn't support this code either.
+        // }
+      }
+
+      if (aStanza.attributes["type"] != "result") {
+        this._networkError(_("connection.error.incorrectResponse"));
+        return;
+      }
+
+      if (aStanza.children.length == 0) {
+        // Success!
+        this.startSession();
+        return;
+      }
+
+      let query = aStanza.getElement(["query"]);
+      let values = {};
+      for each (let c in query.children)
+        values[c.qName] = c.innerText;
+
+      if (!("username" in values) || !("resource" in values)) {
+        this._networkError(_("connection.error.incorrectResponse"));
+        return;
+      }
+
+      let children = [
+        Stanza.node("username", null, null, this._jid.node),
+        Stanza.node("resource", null, null, this._resource)
+      ];
+
+      if (("digest" in values) && this._streamId) {
+        let hashBase = this._streamId + this._password;
+
+        let ch =
+          Cc["@mozilla.org/security/hash;1"].createInstance(Ci.nsICryptoHash);
+        ch.init(ch.SHA1);
+        // Non-US-ASCII characters MUST be encoded as UTF-8 since the
+        // SHA-1 hashing algorithm operates on byte arrays.
+        let converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
+                          .createInstance(Ci.nsIScriptableUnicodeConverter);
+        converter.charset = "UTF-8";
+        let data = converter.convertToByteArray(hashBase);
+        ch.update(data, data.length);
+        let hash = ch.finish(false);
+        let toHexString =
+          function(charCode) ("0" + charCode.toString(16)).slice(-2);
+        let digest = [toHexString(hash.charCodeAt(i)) for (i in hash)].join("");
+
+        children.push(Stanza.node("digest", null, null, digest));
+      }
+      else if ("password" in values) {
+        if (this._connectionSecurity != "allow_unencrypted_plain_auth") {
+          this.onError(Ci.prplIAccount.ERROR_AUTHENTICATION_IMPOSSIBLE,
+                       _("connection.error.notSendingPasswordInClear"));
+          return;
+        }
+        children.push(Stanza.node("password", null, null, this._password));
+      }
+      else {
+        this.onError(Ci.prplIAccount.ERROR_AUTHENTICATION_IMPOSSIBLE,
+                     _("connection.error.noCompatibleAuthMec"));
+        return;
+      }
+
+      let s = Stanza.iq("set", null, this._domain,
+                        Stanza.node("query", Stanza.NS.auth, null, children));
+      this.sendStanza(s);
     },
     sessionStarted: function(aStanza) {
       this._account.onConnection();
