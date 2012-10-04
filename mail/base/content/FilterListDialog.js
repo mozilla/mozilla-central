@@ -3,8 +3,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var gFilterListMsgWindow = null;
 var gCurrentFilterList;
@@ -80,7 +82,8 @@ var filterEditorQuitObserver = {
 
 function onLoad()
 {
-    gFilterListMsgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"].createInstance(Components.interfaces.nsIMsgWindow);
+    gFilterListMsgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
+                                     .createInstance(Components.interfaces.nsIMsgWindow);
     gFilterListMsgWindow.domWindow = window;
     gFilterListMsgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
     gFilterListMsgWindow.statusFeedback = gStatusFeedback;
@@ -202,9 +205,7 @@ function toggleFilter(aFilter, aIndex)
     if (aFilter.unparseable)
     {
       var bundle = document.getElementById("bundle_filter");
-      var promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                .getService(Components.interfaces.nsIPromptService);
-      promptSvc.alert(window, null, bundle.getString("cannotEnableFilter"));
+      Services.prompt.alert(window, null, bundle.getString("cannotEnableFilter"));
       return;
     }
     aFilter.enabled = !aFilter.enabled;
@@ -295,23 +296,18 @@ function onDeleteFilter()
     return;
 
   let checkValue = {value:false};
-  let prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefService)
-                             .getBranch(null);
   let bundle = document.getElementById("bundle_filter");
-  let promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                            .getService(Components.interfaces.nsIPromptService);
-  if ((prefBranch.getBoolPref("mailnews.filters.confirm_delete")) &&
-      (promptSvc.confirmEx(window, null,
-                           bundle.getString("deleteFilterConfirmation"),
-                           promptSvc.STD_YES_NO_BUTTONS,
-                           '', '', '',
-                           bundle.getString('dontWarnAboutDeleteCheckbox'),
-                           checkValue)))
+  if ((Services.prefs.getBoolPref("mailnews.filters.confirm_delete")) &&
+      (Services.prompt.confirmEx(window, null,
+                                 bundle.getString("deleteFilterConfirmation"),
+                                 Services.prompt.STD_YES_NO_BUTTONS,
+                                 '', '', '',
+                                 bundle.getString('dontWarnAboutDeleteCheckbox'),
+                                 checkValue)))
     return;
 
   if (checkValue.value)
-     prefBranch.setBoolPref("mailnews.filters.confirm_delete", false);
+     Services.prefs.setBoolPref("mailnews.filters.confirm_delete", false);
 
   // Save filter position before the first selected one.
   let newSelectionIndex = list.selectedIndex - 1;
@@ -466,11 +462,9 @@ function onFilterClose()
     var stopButtonLabel = bundle.getString("stopButtonLabel");
     var continueButtonLabel = bundle.getString("continueButtonLabel");
 
-    var promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                              .getService(Components.interfaces.nsIPromptService);
-    var result = promptSvc.confirmEx(window, promptTitle, promptMsg,
-               (promptSvc.BUTTON_TITLE_IS_STRING * promptSvc.BUTTON_POS_0) +
-               (promptSvc.BUTTON_TITLE_IS_STRING * promptSvc.BUTTON_POS_1),
+    let result = Services.prompt.confirmEx(window, promptTitle, promptMsg,
+               (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_0) +
+               (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_1),
                continueButtonLabel, stopButtonLabel, null, null, {value:0});
 
     if (result)
@@ -494,9 +488,9 @@ function runSelectedFilters()
   var menu = document.getElementById("runFiltersFolder");
   var folder = menu._folder || menu.selectedItem._folder;
 
-  var filterService = Components.classes["@mozilla.org/messenger/services/filters;1"].getService(Components.interfaces.nsIMsgFilterService);
-  var filterList = filterService.getTempFilterList(folder);
-  var folders = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
+  let filterList = MailServices.filters.getTempFilterList(folder);
+  let folders = Components.classes["@mozilla.org/supports-array;1"]
+                          .createInstance(Components.interfaces.nsISupportsArray);
   folders.AppendElement(folder);
 
   // make sure the tmp filter list uses the real filter list log stream
@@ -509,7 +503,7 @@ function runSelectedFilters()
     filterList.insertFilterAt(index++, item._filter);
   }
 
-  filterService.applyFiltersToFolders(filterList, folders, gFilterListMsgWindow);
+  MailServices.filters.applyFiltersToFolders(filterList, folders, gFilterListMsgWindow);
 }
 
 function moveCurrentFilter(motion)
@@ -741,40 +735,22 @@ function getFilterFolderForSelection()
  */
 function getServerThatCanHaveFilters()
 {
-    var firstItem = null;
+    let defaultIncomingServer = MailServices.accounts.defaultAccount.incomingServer;
+    // Check to see if default server can have filters.
+    if (defaultIncomingServer.canHaveFilters)
+      return defaultIncomingServer;
 
-    var accountManager
-        = Components.classes["@mozilla.org/messenger/account-manager;1"].
-            getService(Components.interfaces.nsIMsgAccountManager);
-
-    var defaultAccount = accountManager.defaultAccount;
-    var defaultIncomingServer = defaultAccount.incomingServer;
-
-    // check to see if default server can have filters
-    if (defaultIncomingServer.canHaveFilters) {
-        firstItem = defaultIncomingServer;
-    }
-    // if it cannot, check all accounts to find a server
-    // that can have filters
-    else
+    // If it cannot, check all accounts to find a server
+    // that can have filters.
+    let allServers = MailServices.accounts.allServers;
+    for each (currentServer in fixIterator(allServers,
+                                           Components.interfaces.nsIMsgIncomingServer))
     {
-        var allServers = accountManager.allServers;
-        var numServers = allServers.Count();
-        var index = 0;
-        for (index = 0; index < numServers; index++)
-        {
-            var currentServer
-            = allServers.GetElementAt(index).QueryInterface(Components.interfaces.nsIMsgIncomingServer);
-
-            if (currentServer.canHaveFilters)
-            {
-                firstItem = currentServer;
-                break;
-            }
-        }
+      if (currentServer.canHaveFilters)
+        return currentServer;
     }
 
-    return firstItem;
+    return null;
 }
 
 function onFilterClick(event)

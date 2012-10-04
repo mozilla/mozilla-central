@@ -4,6 +4,7 @@
 
 Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var gCurrentFolder;
 
@@ -324,9 +325,7 @@ function updateSearchFolderPicker(folderURI)
 
   // Any offlineSupportLevel > 0 is an online server like IMAP or news.
   if (gCurrentFolder.server.offlineSupportLevel &&
-      !Components.classes["@mozilla.org/network/io-service;1"]
-                         .getService(Components.interfaces.nsIIOService)
-                         .offline)
+      !Services.io.offline)
   {
     searchOnline.hidden = false;
     searchOnline.disabled = false;
@@ -631,4 +630,3 @@ function saveAsVirtualFolder()
                                   searchFolderURIs: searchFolderURIs,
                                   searchOnline: doOnlineSearch});
 }
-
