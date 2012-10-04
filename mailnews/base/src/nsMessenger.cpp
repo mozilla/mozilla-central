@@ -1723,7 +1723,7 @@ nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, uint32_t a
         nsCOMPtr<nsIURI> url;
         channel->GetURI(getter_AddRefs(url));
         rv = tr->Init(url, outputURI, EmptyString(), mimeinfo,
-                      timeDownloadStarted, nullptr, this);
+                      timeDownloadStarted, nullptr, this, false);
         
           // now store the web progresslistener
         mTransfer = tr;
