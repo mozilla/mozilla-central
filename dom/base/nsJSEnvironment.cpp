@@ -3024,7 +3024,15 @@ nsJSContext::ClearScope(void *aGlobalObj, bool aClearFromProtoChain)
     // scope. This is what keeps the outer window alive in cases where
     // nothing else does.
     jsval window;
-    if (!JS_GetProperty(mContext, obj, "window", &window)) {
+    uintN windowAttrs;
+    JSPropertyOp windowGetter;
+    JSStrictPropertyOp windowSetter;
+    JSBool windowFound;
+    if (!JS_GetProperty(mContext, obj, "window", &window) ||
+        !JS_GetPropertyAttrsGetterAndSetter(mContext, obj, "window",
+                                            &windowAttrs, &windowFound,
+                                            &windowGetter, &windowSetter) ||
+        !windowFound) {
       window = JSVAL_VOID;
 
       JS_ClearPendingException(mContext);
@@ -3036,9 +3044,7 @@ nsJSContext::ClearScope(void *aGlobalObj, bool aClearFromProtoChain)
 
     if (window != JSVAL_VOID) {
       if (!JS_DefineProperty(mContext, obj, "window", window,
-                             JS_PropertyStub, JS_StrictPropertyStub,
-                             JSPROP_ENUMERATE | JSPROP_READONLY |
-                             JSPROP_PERMANENT)) {
+                             windowGetter, windowSetter, windowAttrs)) {
         JS_ClearPendingException(mContext);
       }
     }
