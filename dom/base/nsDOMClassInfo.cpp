@@ -1612,7 +1612,6 @@ jsid nsDOMClassInfo::sItem_id            = JSID_VOID;
 jsid nsDOMClassInfo::sNamedItem_id       = JSID_VOID;
 jsid nsDOMClassInfo::sEnumerate_id       = JSID_VOID;
 jsid nsDOMClassInfo::sNavigator_id       = JSID_VOID;
-jsid nsDOMClassInfo::sTop_id             = JSID_VOID;
 jsid nsDOMClassInfo::sDocument_id        = JSID_VOID;
 jsid nsDOMClassInfo::sFrames_id          = JSID_VOID;
 jsid nsDOMClassInfo::sSelf_id            = JSID_VOID;
@@ -1876,7 +1875,6 @@ nsDOMClassInfo::DefineStaticJSVals(JSContext *cx)
   SET_JSID_TO_STRING(sNamedItem_id,       cx, "namedItem");
   SET_JSID_TO_STRING(sEnumerate_id,       cx, "enumerateProperties");
   SET_JSID_TO_STRING(sNavigator_id,       cx, "navigator");
-  SET_JSID_TO_STRING(sTop_id,             cx, "top");
   SET_JSID_TO_STRING(sDocument_id,        cx, "document");
   SET_JSID_TO_STRING(sFrames_id,          cx, "frames");
   SET_JSID_TO_STRING(sSelf_id,            cx, "self");
@@ -4862,7 +4860,6 @@ nsDOMClassInfo::ShutDown()
   sItem_id            = JSID_VOID;
   sEnumerate_id       = JSID_VOID;
   sNavigator_id       = JSID_VOID;
-  sTop_id             = JSID_VOID;
   sDocument_id        = JSID_VOID;
   sFrames_id          = JSID_VOID;
   sSelf_id            = JSID_VOID;
@@ -6799,29 +6796,6 @@ nsWindowSH::NewResolve(nsIXPConnectWrappedNative *wrapper, JSContext *cx,
                       &v, getter_AddRefs(holder));
       NS_ENSURE_SUCCESS(rv, rv);
 
-      if (!::JS_DefinePropertyById(cx, obj, id, v, nsnull, nsnull,
-                                   JSPROP_READONLY | JSPROP_PERMANENT |
-                                   JSPROP_ENUMERATE)) {
-        return NS_ERROR_FAILURE;
-      }
-      *objp = obj;
-
-      return NS_OK;
-    }
-
-    if (id == sTop_id) {
-      nsCOMPtr<nsIDOMWindow> top;
-      rv = win->GetTop(getter_AddRefs(top));
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      jsval v;
-      nsCOMPtr<nsIXPConnectJSObjectHolder> holder;
-      rv = WrapNative(cx, obj, top, &NS_GET_IID(nsIDOMWindow), true,
-                      &v, getter_AddRefs(holder));
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      // Hold on to the top window object as a global property so we
-      // don't need to worry about losing expando properties etc.
       if (!::JS_DefinePropertyById(cx, obj, id, v, nsnull, nsnull,
                                    JSPROP_READONLY | JSPROP_PERMANENT |
                                    JSPROP_ENUMERATE)) {
