@@ -176,6 +176,7 @@ function ircChannel(aAccount, aName, aNick) {
   this._init(aAccount, aName, aNick);
   this._modes = [];
   this._observedNicks = [];
+  this.banMasks = [];
 }
 ircChannel.prototype = {
   __proto__: GenericConvChatPrototype,
@@ -184,6 +185,7 @@ ircChannel.prototype = {
   // For IRC you're not in a channel until the JOIN command is received, open
   // all channels (initially) as left.
   _left: true,
+  banMasks: [],
 
   // Overwrite the writeMessage function to apply CTCP formatting before
   // display.
@@ -363,7 +365,22 @@ ircChannel.prototype = {
         this._chatRoomFields =
           this._account.getChatRoomDefaultFieldValues(newFields);
       }
-      else if (["b", "e", "I", "l"].indexOf(aNewMode[i]) != -1) {
+      else if (aNewMode[i] == "b") {
+        // A banmask was added or removed.
+        let banMask = getNextParam();
+        let msgKey = "message.banMask";
+        if (addNewMode) {
+          this.banMasks.push(banMask);
+          msgKey += "Added";
+        }
+        else {
+          this.banMasks =
+            this.banMasks.filter(function (aBanMask) banMask != aBanMask);
+          msgKey += "Removed";
+        }
+        this.writeMessage(aSetter, _(msgKey, banMask, aSetter), {system: true});
+      }
+      else if (["e", "I", "l"].indexOf(aNewMode[i]) != -1) {
         // TODO The following have parameters that must be accounted for.
         getNextParam();
       }

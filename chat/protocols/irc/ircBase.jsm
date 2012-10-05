@@ -913,13 +913,23 @@ var ircBase = {
      */
     "367": function(aMessage) { // RPL_BANLIST
       // <channel> <banmask>
-      // TODO
-      return false;
+      let conv = this.getConversation(aMessage.params[1]);
+      if (conv.banMasks.indexOf(aMessage.params[2]) == -1)
+        conv.banMasks.push(aMessage.params[2]);
+      return true;
     },
     "368": function(aMessage) { // RPL_ENDOFBANLIST
       // <channel> :End of channel ban list
-      // TODO
-      return false;
+      let conv = this.getConversation(aMessage.params[1]);
+      let msg;
+      if (conv.banMasks.length) {
+        msg = [_("message.banMasks", aMessage.params[1])]
+               .concat(conv.banMasks).join("\n");
+      }
+      else
+        msg = _("message.noBanMasks", aMessage.params[1]);
+      conv.writeMessage(aMessage.servername, msg, {system: true});
+      return true;
     },
     "369": function(aMessage) { // RPL_ENDOFWHOWAS
       // <nick> :End of WHOWAS
