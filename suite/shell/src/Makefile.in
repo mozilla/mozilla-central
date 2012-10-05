@@ -17,10 +17,10 @@ ifeq ($(OS_ARCH),WINNT)
 CPPSRCS = nsWindowsShellService.cpp
 OS_LIBS         += $(call EXPAND_LIBNAME,ole32 version uuid shell32)
 
-EXTRA_COMPONENTS = nsSetDefault.manifest nsSetDefault.js
 else
 ifeq ($(MOZ_WIDGET_TOOLKIT), cocoa)
 CPPSRCS = nsMacShellService.cpp
+
 else
 ifeq ($(MOZ_WIDGET_TOOLKIT), gtk2)
 CPPSRCS = nsGNOMEShellService.cpp
@@ -28,8 +28,8 @@ endif
 endif
 endif
 
-# We need to link the windows shell service into seamonkey.exe.
 ifdef CPPSRCS
+EXTRA_COMPONENTS = nsSetDefault.manifest nsSetDefault.js
 LIBRARY_NAME = shellservice_s
 endif
 

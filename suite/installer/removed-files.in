@@ -682,9 +682,7 @@ xpicleanup@BIN_SUFFIX@
   components/nsSearchSuggestions.js
   components/nsSessionStartup.js
   components/nsSessionStore.js
-  #ifdef XP_WIN
-    components/nsSetDefault.js
-  #endif
+  components/nsSetDefault.js
   components/nsSidebar.js
   components/nsSMTPProtocolHandler.js
   components/nsSuiteDownloadManagerUI.js

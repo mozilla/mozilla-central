@@ -23,7 +23,7 @@
   <script type="text/javascript"
           src="chrome://communicator/content/setDesktopBackground.js"/>
 
-  <hbox align="center">
+  <hbox id="itemsBox" align="center">
     <label value="&position.label;" accesskey="&position.accesskey;"/>
     <menulist id="position"
               value="BACKGROUND_STRETCH"

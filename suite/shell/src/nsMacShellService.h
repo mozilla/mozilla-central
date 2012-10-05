@@ -7,11 +7,17 @@
 #define nsmacshellservice_h____
 
 #include "nsShellService.h"
+#include "nsIWebProgressListener.h"
+#include "nsIFile.h"
+#include "nsCOMPtr.h"
+
+#include <CoreFoundation/CoreFoundation.h>
 
 #define NS_SUITEMACINTEGRATION_CID \
 {0xac17e6f0, 0x50c9, 0x4901, {0xab, 0x08, 0xf8, 0x70, 0xbf, 0xcd, 0x12, 0xce}}
 
-class nsMacShellService : public nsIShellService
+class nsMacShellService : public nsIShellService,
+                          public nsIWebProgressListener
 {
 public:
   nsMacShellService() : mCheckedThisSessionClient(false) {};
@@ -19,8 +25,13 @@ public:
 
   NS_DECL_ISUPPORTS
   NS_DECL_NSISHELLSERVICE
+  NS_DECL_NSIWEBPROGRESSLISTENER
+
+protected:
+  bool isDefaultHandlerForProtocol(CFStringRef aScheme);
 
 private:
+  nsCOMPtr<nsIFile> mBackgroundFile;
   bool mCheckedThisSessionClient;
 };
 

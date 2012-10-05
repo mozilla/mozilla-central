@@ -12,6 +12,7 @@ var gImage, gPosition, gPicker, gDesktop;
 
 function onLoad()
 {
+  document.getElementById("itemsBox").hidden = /Mac/.test(navigator.platform);
   gImage = window.arguments[0];
   gPosition = document.getElementById("position");
   gPicker = document.getElementById("picker");

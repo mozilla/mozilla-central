@@ -420,10 +420,8 @@
 @BINPATH@/components/nsSidebar.js
 @BINPATH@/components/nsSuiteDownloadManagerUI.js
 @BINPATH@/components/nsSuiteGlue.js
-#ifdef XP_WIN32
 @BINPATH@/components/nsSetDefault.js
 @BINPATH@/components/nsSetDefault.manifest
-#endif
 @BINPATH@/components/nsTaggingService.js
 @BINPATH@/components/nsTypeAheadFind.js
 #ifdef MOZ_UPDATER
