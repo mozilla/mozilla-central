@@ -80,6 +80,7 @@
 #include "jsdbgapi.h"           // for JS_ClearWatchPointsForObject
 #include "jswrapper.h"
 #include "jsxdrapi.h"
+#include "jsproxy.h"
 #include "nsIArray.h"
 #include "nsIObjectInputStream.h"
 #include "nsIObjectOutputStream.h"
@@ -3023,10 +3024,14 @@ nsJSContext::ClearScope(void *aGlobalObj, bool aClearFromProtoChain)
     // window, so that we can re-define it once we've cleared
     // scope. This is what keeps the outer window alive in cases where
     // nothing else does.
-    jsval window;
-    if (!JS_GetProperty(mContext, obj, "window", &window)) {
-      window = JSVAL_VOID;
-
+    // Note: We only want to do the above for the inner window. Doing it on
+    // the outer window doesn't make sense. Also, calling ClearScope on the
+    // outer window doesn't do anything, meaning that when we try to replace
+    // the window property, we actually try to redefine it on the inner window
+    // (where it already exists) and get an exception.
+    jsval window = JSVAL_VOID;
+    if (!js::IsProxy(obj) &&
+        !JS_GetProperty(mContext, obj, "window", &window)) {
       JS_ClearPendingException(mContext);
     }
 
