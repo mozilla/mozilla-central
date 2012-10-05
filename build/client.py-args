@@ -1,0 +1,1 @@
+--hg-options='--time' --hgtool=../tools/buildfarm/utils/hgtool.py --skip-chatzilla --skip-comm --skip-inspector --skip-venkman --tinderbox-print

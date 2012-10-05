@@ -1,6 +1,7 @@
 merge-installrdf.py
 pymake
 png2ico.py
+client.py-args
 
 # Ignore detritus left lying around by editing tools.
 *~
