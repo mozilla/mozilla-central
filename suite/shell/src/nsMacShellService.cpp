@@ -234,7 +234,7 @@ nsMacShellService::SetDesktopBackground(nsIDOMElement* aElement, int32_t aPositi
   wbp->SetProgressListener(this);
 
   return wbp->SaveURI(imageURI, nullptr, docURI, nullptr, nullptr,
-                      mBackgroundFile);
+                      mBackgroundFile, content->OwnerDoc()->GetLoadContext());
 }
 
 NS_IMETHODIMP
