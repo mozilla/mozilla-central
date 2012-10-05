@@ -5,10 +5,6 @@ ac_add_options --enable-codesighs
 ac_add_options --enable-signmar
 ac_add_options --enable-profiling
 
-# Temporary options until bug 794378 is fixed
-ac_add_options --enable-gnomevfs
-ac_add_options --disable-gio
-
 . $topsrcdir/build/unix/mozconfig.linux
 
 # Avoid dependency on libstdc++ 4.5
