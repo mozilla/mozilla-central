@@ -555,7 +555,7 @@ NS_IMETHODIMP
 calRecurrenceRule::SetIcalString(const nsACString &str)
 {
     nsresult rv = NS_OK;
-    nsCAutoString name;
+    nsAutoCString name;
     nsCOMPtr<calIICSService> icsSvc = cal::getICSService();
     nsCOMPtr<calIIcalProperty> prop;
 
