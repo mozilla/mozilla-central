@@ -539,6 +539,6 @@ classic.jar:
   skin/classic/aero/messenger/newmailaccount/search.png                      (mail/newmailaccount/search.png)
   skin/classic/aero/messenger/icons/ubuntuone.png                    (mail/icons/ubuntuone.png)
   skin/classic/aero/messenger/icons/yousendit.png                  (mail/icons/yousendit.png)
-  skin/classic/aero/messenger/sanitizeDialog.css						 (sanitizeDialog.css)
+  skin/classic/aero/messenger/sanitizeDialog.css                   (mail/sanitizeDialog.css)
   skin/classic/aero/messenger/icons/box-logo.png                   (mail/icons/box-logo.png)
 #endif
