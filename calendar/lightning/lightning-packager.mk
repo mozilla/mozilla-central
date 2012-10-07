@@ -127,19 +127,16 @@ $(LIBXUL_DIST)/bin/platform.ini:
 
 recreate-platformini: $(LIBXUL_DIST)/bin/platform.ini
 
-UPLOAD_FILES = \
-  lightning.xpi \
-  gdata-provider.xpi \
-  $(NULL)
-
-hack_l10n_upload:
-	[ -f $(DIST)/$(UNIVERSAL_PATH)xpi-stage/lightning-all.xpi ] && \
-	  cp -RL $(DIST)/$(UNIVERSAL_PATH)xpi-stage/lightning-all.xpi $(DIST)/$(MOZ_PKG_PLATFORM)/lightning.xpi || true
-
 stage_upload:
 	$(NSINSTALL) -D $(DIST)/$(MOZ_PKG_PLATFORM)
-	$(INSTALL) $(IFLAGS1) $(addprefix $(DIST)/xpi-stage/,$(UPLOAD_FILES)) $(DIST)/$(MOZ_PKG_PLATFORM)
+	$(INSTALL) $(IFLAGS1) $(DIST)/xpi-stage/$(XPI_PKGNAME).xpi $(DIST)/$(MOZ_PKG_PLATFORM)
+	$(INSTALL) $(IFLAGS1) $(DIST)/xpi-stage/$(GDATA_XPI_PKGNAME).xpi $(DIST)/$(MOZ_PKG_PLATFORM)
 
-upload: stage_upload hack_l10n_upload
-	$(PYTHON) $(MOZILLA_DIR)/build/upload.py --base-path $(DIST) \
-	  $(addprefix $(DIST)/$(MOZ_PKG_PLATFORM)/,$(UPLOAD_FILES))
+# Lightning uses Thunderbird's build machinery, so we need to hack the post
+# upload command to use Lightning's directories.
+upload: POST_UPLOAD_CMD := $(subst thunderbird,calendar/lightning,$(POST_UPLOAD_CMD))
+upload: stage_upload
+	POST_UPLOAD_CMD="$(POST_UPLOAD_CMD)" \
+	  $(PYTHON) $(MOZILLA_DIR)/build/upload.py --base-path $(DIST) \
+	  $(DIST)/$(MOZ_PKG_PLATFORM)/$(XPI_PKGNAME).xpi \
+	  $(DIST)/$(MOZ_PKG_PLATFORM)/$(GDATA_XPI_PKGNAME).xpi

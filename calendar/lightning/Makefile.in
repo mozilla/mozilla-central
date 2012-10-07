@@ -16,7 +16,8 @@ MODULE		= lightning
 
 export XPI_NAME = lightning
 export USE_EXTENSION_MANIFEST = 1
-XPI_PKGNAME = lightning
+XPI_PKGNAME = lightning-$(LIGHTNING_VERSION).$(AB_CD).$(MOZ_PKG_PLATFORM)
+GDATA_XPI_PKGNAME = gdata-provider-$(GDATA_VERSION).$(AB_CD).$(MOZ_PKG_PLATFORM)
 
 XPI_EM_ID = {e2fda1a4-762b-4020-b5ad-a41df1933103}
 
@@ -27,6 +28,7 @@ PREF_JS_EXPORTS = $(srcdir)/content/lightning.js
 LIGHTNING_VERSION := $(shell cat $(srcdir)/../sunbird/config/version.txt)
 THUNDERBIRD_VERSION := $(shell cat $(topsrcdir)/mail/config/version.txt)
 SEAMONKEY_VERSION := $(shell cat $(topsrcdir)/suite/config/version.txt)
+GDATA_VERSION := $(shell $(PYTHON) $(topsrcdir)/calendar/providers/gdata/makeversion.py $(LIGHTNING_VERSION))
 
 # For extensions we require a max version that is compatible across security releases.
 # THUNDERBIRD_MAXVERSION and SEAMONKEY_MAXVERSION is our method for doing that.
