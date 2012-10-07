@@ -62,7 +62,7 @@ function wrapNodeByIdAndParent(aItemId, aParentId)
 {
   let wrappedNode;
   let root = PlacesUtils.getFolderContents(aParentId, false, false).root;
-  for (let i = 0; i < root.childCount; i) {
+  for (let i = 0; i < root.childCount; ++i) {
     let node = root.getChild(i);
     if (node.itemId == aItemId) {
       let type;
