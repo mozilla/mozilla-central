@@ -357,7 +357,6 @@
         <parameter name="aFilterAction"/>
         <body>
           <![CDATA[
-            Components.utils.import("resource://gre/modules/Services.jsm", this);
             var filterActionStr;
             var actionTarget = document.getAnonymousNodes(this)[1];
             var actionItem = document.getAnonymousNodes(actionTarget);
@@ -592,7 +591,6 @@
     <implementation>
       <constructor>
         <![CDATA[
-            Components.utils.import("resource:///modules/mailServices.js", this);
             let menuPopup = document.getAnonymousNodes(this)[0].menupopup;
             let tagArray = MailServices.tags.getAllTags({});
             for (let i = 0; i < tagArray.length; ++i)
