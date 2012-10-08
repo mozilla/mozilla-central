@@ -45,7 +45,7 @@ function onLoad()
   document.getElementById("source").value =
       gBundle.getFormattedString("fromSource", [gSource.file.leafName]);
   gPersist.progressListener = gProgressListener;
-  gPersist.saveURI(gSource, null, null, null, null, gTarget);
+  gPersist.saveURI(gSource, null, null, null, null, gTarget, null);
   document.documentElement.getButton("cancel").focus();
 }
 

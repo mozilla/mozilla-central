@@ -172,7 +172,7 @@ function test()
                             Math.round(Date.now() * 1000), null, persist);
 
     persist.progressListener = dl.QueryInterface(Components.interfaces.nsIWebProgressListener);
-    persist.saveURI(dl.source, null, null, null, null, dl.targetFile);
+    persist.saveURI(dl.source, null, null, null, null, dl.targetFile, null);
 
     return dl;
   }
