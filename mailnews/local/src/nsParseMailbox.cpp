@@ -438,10 +438,8 @@ void nsMsgMailboxParser::OnNewMessage(nsIMsgWindow *msgWindow)
   Clear();
 }
 
-int32_t nsMsgMailboxParser::HandleLine(char *line, uint32_t lineLength)
+nsresult nsMsgMailboxParser::HandleLine(char *line, uint32_t lineLength)
 {
-  int status = 0;
-
   /* If this is the very first line of a non-empty folder, make sure it's an envelope */
   if (m_graph_progress_received == 0)
   {
@@ -478,21 +476,18 @@ int32_t nsMsgMailboxParser::HandleLine(char *line, uint32_t lineLength)
     NS_ASSERTION (m_state == nsIMsgParseMailMsgState::ParseBodyState ||
            m_state == nsIMsgParseMailMsgState::ParseHeadersState, "invalid parse state"); /* else folder corrupted */
     OnNewMessage(nullptr);
-    status = StartNewEnvelope(line, lineLength);
-    NS_ASSERTION(status >= 0, " error starting envelope parsing mailbox");
+    nsresult rv = StartNewEnvelope(line, lineLength);
+    NS_ASSERTION(NS_SUCCEEDED(rv), " error starting envelope parsing mailbox");
     // at the start of each new message, update the progress bar
     UpdateProgressPercent();
-    if (status < 0)
-      return status;
+    return rv;
   }
+
   // otherwise, the message parser can handle it completely.
-  else if (m_mailDB != nullptr)  // if no DB, do we need to parse at all?
+  if (m_mailDB != nullptr)  // if no DB, do we need to parse at all?
     return ParseFolderLine(line, lineLength);
-        else
-          return NS_ERROR_NULL_POINTER; // need to error out if we don't have a db.
 
-  return 0;
-
+  return NS_ERROR_NULL_POINTER; // need to error out if we don't have a db.
 }
 
 void
@@ -658,24 +653,23 @@ NS_IMETHODIMP nsParseMailMessageState::ParseAFolderLine(const char *line, uint32
   return NS_OK;
 }
 
-int32_t nsParseMailMessageState::ParseFolderLine(const char *line, uint32_t lineLength)
+nsresult nsParseMailMessageState::ParseFolderLine(const char *line, uint32_t lineLength)
 {
-  int status = 0;
+  nsresult rv;
 
   if (m_state == nsIMsgParseMailMsgState::ParseHeadersState)
   {
     if (EMPTY_MESSAGE_LINE(line))
     {
       /* End of headers.  Now parse them. */
-      status = ParseHeaders();
-      NS_ASSERTION(status >= 0, "error parsing headers parsing mailbox");
-      if (status < 0)
-        return status;
+      rv = ParseHeaders();
+      NS_ASSERTION(NS_SUCCEEDED(rv), "error parsing headers parsing mailbox");
+      NS_ENSURE_SUCCESS(rv, rv);
 
-      status = FinalizeHeaders();
-      NS_ASSERTION(status >= 0, "error finalizing headers parsing mailbox");
-      if (status < 0)
-        return status;
+      rv = FinalizeHeaders();
+      NS_ASSERTION(NS_SUCCEEDED(rv), "error finalizing headers parsing mailbox");
+      NS_ENSURE_SUCCESS(rv, rv);
+
       m_state = nsIMsgParseMailMsgState::ParseBodyState;
     }
     else
@@ -693,7 +687,7 @@ int32_t nsParseMailMessageState::ParseFolderLine(const char *line, uint32_t line
 
   m_position += lineLength;
 
-  return 0;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsParseMailMessageState::SetMailDB(nsIMsgDatabase *mailDB)
@@ -912,7 +906,7 @@ void nsParseMailMessageState::ClearAggregateHeader (nsVoidArray &list)
 }
 
 // We've found a new envelope to parse.
-int nsParseMailMessageState::StartNewEnvelope(const char *line, uint32_t lineLength)
+nsresult nsParseMailMessageState::StartNewEnvelope(const char *line, uint32_t lineLength)
 {
   m_envelope_pos = m_position;
   m_state = nsIMsgParseMailMsgState::ParseHeadersState;
@@ -923,7 +917,7 @@ int nsParseMailMessageState::StartNewEnvelope(const char *line, uint32_t lineLen
 
 /* largely lifted from mimehtml.c, which does similar parsing, sigh...
 */
-int nsParseMailMessageState::ParseHeaders ()
+nsresult nsParseMailMessageState::ParseHeaders ()
 {
   char *buf = m_headers.GetBuffer();
   char *buf_end = buf + m_headers.GetBufferPos();
@@ -1137,10 +1131,10 @@ SEARCH_NEWLINE:
       }
     }
   }
-  return 0;
+  return NS_OK;
 }
 
-int nsParseMailMessageState::ParseEnvelope (const char *line, uint32_t line_size)
+nsresult nsParseMailMessageState::ParseEnvelope (const char *line, uint32_t line_size)
 {
   const char *end;
   char *s;
@@ -1167,7 +1161,7 @@ int nsParseMailMessageState::ParseEnvelope (const char *line, uint32_t line_size
   ((char *) m_envelope_from.value) [m_envelope_from.length] = 0;
   ((char *) m_envelope_date.value) [m_envelope_date.length] = 0;
 
-  return 0;
+  return NS_OK;
 }
 
 #ifdef WE_CONDENSE_MIME_STRINGS
@@ -1184,7 +1178,7 @@ msg_condense_mime2_string(char *sourceStr)
 }
 #endif // WE_CONDENSE_MIME_STRINGS
 
-int nsParseMailMessageState::InternSubject (struct message_header *header)
+nsresult nsParseMailMessageState::InternSubject (struct message_header *header)
 {
   char *key;
   uint32_t L;
@@ -1192,7 +1186,7 @@ int nsParseMailMessageState::InternSubject (struct message_header *header)
   if (!header || header->length == 0)
   {
     m_newMsgHdr->SetSubject("");
-    return 0;
+    return NS_OK;
   }
 
   NS_ASSERTION (header->length == (short) strlen(header->value), "subject corrupt while parsing message");
@@ -1231,14 +1225,14 @@ int nsParseMailMessageState::InternSubject (struct message_header *header)
   (modifiedSubject.IsEmpty() ? key : modifiedSubject.get()));
   PR_FREEIF(condensedKey);
 
-  return 0;
+  return NS_OK;
 }
 
 // we've reached the end of the envelope, and need to turn all our accumulated message_headers
 // into a single nsIMsgDBHdr to store in a database.
-int nsParseMailMessageState::FinalizeHeaders()
+nsresult nsParseMailMessageState::FinalizeHeaders()
 {
-  int status = 0;
+  nsresult rv;
   struct message_header *sender;
   struct message_header *recipient;
   struct message_header *subject;
@@ -1268,7 +1262,7 @@ int nsParseMailMessageState::FinalizeHeaders()
   uint32_t labelFlags = 0;
 
   if (!m_mailDB)    // if we don't have a valid db, skip the header.
-    return 0;
+    return NS_OK;
 
   struct message_header to;
   GetAggregateHeader (m_toList, &to);
@@ -1488,8 +1482,8 @@ int nsParseMailMessageState::FinalizeHeaders()
           m_newMsgHdr->SetBccList(bccList->value);
       }
 
-      status = InternSubject (subject);
-      if (status >= 0)
+      rv = InternSubject (subject);
+      if (NS_SUCCEEDED(rv))
       {
         if (! id)
         {
@@ -1665,11 +1659,11 @@ int nsParseMailMessageState::FinalizeHeaders()
     else
     {
       NS_ASSERTION(false, "error creating message header");
-      status = NS_ERROR_OUT_OF_MEMORY;
+      rv = NS_ERROR_OUT_OF_MEMORY;
     }
   }
   else
-    status = 0;
+    rv = NS_OK;
 
   //### why is this stuff const?
   char *tmp = (char*) to.value;
@@ -1677,7 +1671,7 @@ int nsParseMailMessageState::FinalizeHeaders()
   tmp = (char*) cc.value;
   PR_Free(tmp);
 
-  return status;
+  return rv;
 }
 
 nsParseNewMailState::nsParseNewMailState()

@@ -177,10 +177,10 @@ nsresult nsMsgLineBuffer::BufferInput(const char *net_buffer, int32_t net_buffer
     return NS_OK;
 }
 
-int32_t nsMsgLineBuffer::HandleLine(char *line, uint32_t line_length)
+nsresult nsMsgLineBuffer::HandleLine(char *line, uint32_t line_length)
 {
   NS_ASSERTION(false, "must override this method if you don't provide a handler");
-  return 0;
+  return NS_OK;
 }
 
 int32_t nsMsgLineBuffer::ConvertAndSendBuffer()
