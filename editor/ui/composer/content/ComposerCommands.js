@@ -1349,6 +1349,16 @@ var gEditorOutputProgressListener =
                         btn0Title, btn1Title, btn2Title,
                         checkBoxLabel, checkVal);
   },
+
+  /*************************************************************************
+   * gEditorOutputProgressListener needs to implement both nsIPrompt       *
+   * (providing alert) and nsIAuthPrompt (providing password saving).      *
+   * Unfortunately, both interfaces specify prompt/promptPassword/         *
+   * promptUsernameAndPassword, albeit with conflicting method signatures. *
+   * Luckily, though, we only make use of their nsIAuthPrompt variants,    *
+   * hence we can comment out the nsIPrompt ones here to avoid JavaScript  *
+   * strict mode clutter. See bug 371174 for more information.             *
+   *************************************************************************
   prompt : function(dlgTitle, text, inoutText, checkBoxLabel, checkObj)
   {
     var promptServ = GetPromptService();
@@ -1392,6 +1402,8 @@ var gEditorOutputProgressListener =
 
     return ret;
   },
+   *************************************************************************/
+
   select : function(dlgTitle, text, count, selectList, outSelection)
   {
     var promptServ = GetPromptService();
