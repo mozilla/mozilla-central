@@ -633,12 +633,12 @@ calDateTime::SetJsDate(JSContext* aCx, const JS::Value& aDate)
     JSObject* dobj = js::UnwrapObjectChecked(aCx, JSVAL_TO_OBJECT(aDate));
     JSAutoCompartment ac(aCx, dobj);
 
-    if (!JS_ObjectIsDate(aCx, dobj) || !js_DateIsValid(aCx, dobj)) {
+    if (!JS_ObjectIsDate(aCx, dobj) || !js_DateIsValid(dobj)) {
         mIsValid = false;
         return NS_OK;
     }
 
-    PRTime utcTime = PRTime(js_DateGetMsecSinceEpoch(aCx, dobj)) * 1000;
+    PRTime utcTime = PRTime(js_DateGetMsecSinceEpoch(dobj)) * 1000;
     mIsValid = NS_SUCCEEDED(SetNativeTime(utcTime));
     return NS_OK;
 }
