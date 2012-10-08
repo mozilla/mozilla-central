@@ -28,7 +28,6 @@ calWeekPrinter.prototype = {
     get name() cal.calGetString("calendar", "weekPrinterName"),
 
     formatToHtml: function weekPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
-        let dateFormatter = cal.getDateFormatter();
         let document = cal.xml.parseFile("chrome://calendar/skin/printing/calWeekPrinter.html");
 
         // Set page title
@@ -36,13 +35,11 @@ calWeekPrinter.prototype = {
 
         // Table that maps YYYY-MM-DD to the DOM node container where items are to be added
         let dayTable = {};
+        let weekInfoService = cal.getWeekInfoService();
 
         // Make sure to create tables from start to end, if passed
         if (aStart && aEnd) {
-            let startDate = aStart.clone();
-            startDate.isDate = true;
-
-            for (let current = cal.userWeekStart(startDate); current.compare(aEnd) < 0; current.day += 7) {
+            for (let current = weekInfoService.getStartOfWeek(aStart); current.compare(aEnd) < 0; current.day += 7) {
                 this.setupWeek(document, current, dayTable);
             }
         }
@@ -71,7 +68,7 @@ calWeekPrinter.prototype = {
 
                 if (!(boxDateKey in dayTable)) {
                     // Doesn't exist, we need to create a new table for it
-                    let startOfWeek = boxDate.startOfWeek;
+                    let startOfWeek = weekInfoService.getStartOfWeek(boxDate);
                     this.setupWeek(document, startOfWeek, dayTable);
                 }
 
@@ -91,7 +88,7 @@ calWeekPrinter.prototype = {
         convStream.writeString(html);
     },
 
-    setupWeek: function setupWeek(document, startOfWeek, dayTable) {
+    setupWeek: function weekPrint_setupWeek(document, startOfWeek, dayTable) {
         const weekdayMap = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
         let weekTemplate = document.getElementById("week-template");
@@ -100,7 +97,6 @@ calWeekPrinter.prototype = {
 
         // Clone the template week and make sure it doesn't have an id
         let currentPage = weekTemplate.cloneNode(true);
-        let startOfWeekKey = cal.print.getDateKey(startOfWeek);
         currentPage.removeAttribute("id");
         currentPage.item = startOfWeek.clone();
 
@@ -111,10 +107,9 @@ calWeekPrinter.prototype = {
         let weekTitle = cal.calGetString("calendar", 'WeekTitle', [weekno]);
         currentPage.querySelector(".week-number").textContent = weekTitle;
 
-
         // Set up the day boxes
-        let endOfWeek = cal.userWeekEnd(startOfWeek);
-        for (let currentDate = startOfWeek; currentDate.compare(endOfWeek) <= 0; currentDate.day++) {
+        let endOfWeek = weekInfo.getEndOfWeek(startOfWeek);
+        for (let currentDate = startOfWeek.clone(); currentDate.compare(endOfWeek) <= 0; currentDate.day++) {
             let weekday = currentDate.weekday;
             let weekdayName = weekdayMap[weekday];
             let dayOffPrefName = "calendar.week.d" +  weekday + weekdayName + "soff";

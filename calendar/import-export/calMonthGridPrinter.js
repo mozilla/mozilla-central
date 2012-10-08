@@ -38,38 +38,15 @@ calMonthPrinter.prototype = {
 
         // Make sure to create tables from start to end, if passed
         if (aStart && aEnd) {
-            // Make sure the start date is really a date.
-            let startDate = aStart.clone();
-            startDate.isDate = true;
-
-            // Copy end date, which is exclusive. For our calculations, we will
-            // only be handling dates and the below code is much cleaner with
-            // the range being inclusive.
-            let endDate = aEnd.clone();
-            endDate.isDate = true;
-
-            // Find out if the start date is also shown in the first week of the
-            // following month. This means we can spare a month printout.
-            let probeDate = startDate.clone();
-            probeDate.month++;
-            probeDate.day = 1;
-            if (cal.userWeekStart(probeDate).compare(startDate) <= 0) {
-                startDate = probeDate;
-            } else {
-                startDate = startDate.startOfMonth;
-            }
-
-            // Find out if the end date is also shown in the last week of the
-            // previous month. This also means we can spare a month printout.
-            probeDate = endDate.clone();
-            probeDate.month--;
-            probeDate = probeDate.endOfMonth;
-            if (cal.userWeekEnd(probeDate).compare(endDate) >= 0) {
-                endDate = probeDate;
-            }
+            let startDate = this.normalizeStartDate(aStart);
+            let endDate = this.normalizeEndDate(aEnd);
+            let weekInfoService = cal.getWeekInfoService();
 
             // Now set up all the months we need to
-            for (let current = startDate.clone(); cal.userWeekEnd(current).compare(endDate) <= 0; current.month += 1) {
+            for (let current = startDate.clone();
+                 weekInfoService.getEndOfWeek(current.endOfMonth).compare(endDate) < 0;
+                 current.month += 1)
+            {
                 this.setupMonth(document, current, dayTable);
             }
         }
@@ -124,7 +101,44 @@ calMonthPrinter.prototype = {
         convStream.writeString(html);
     },
 
-    setupMonth: function setupMonth(document, startOfMonth, dayTable) {
+    normalizeStartDate: function monthPrint_normalizeStartDate(aStart) {
+        // Make sure the start date is really a date.
+        let startDate = aStart.clone();
+        startDate.isDate = true;
+
+        // Find out if the start date is also shown in the first week of the
+        // following month. This means we can spare a month printout.
+        let firstDayOfNextMonth = startDate.clone();
+        firstDayOfNextMonth.day = 1;
+        firstDayOfNextMonth.month++;
+        if (cal.getWeekInfoService().getStartOfWeek(firstDayOfNextMonth).compare(startDate) <= 0) {
+            startDate = firstDayOfNextMonth;
+        } else {
+            startDate = startDate.startOfMonth;
+        }
+        return startDate;
+    },
+
+    normalizeEndDate: function monthPrint_normalizeEndDate(aEnd) {
+        // Copy end date, which is exclusive. For our calculations, we will
+        // only be handling dates and the formatToHtml() code is much cleaner with
+        // the range being inclusive.
+        let endDate = aEnd.clone();
+        endDate.isDate = true;
+
+        // Find out if the end date is also shown in the last week of the
+        // previous month. This also means we can spare a month printout.
+        lastDayOfPreviousMonth = endDate.clone();
+        lastDayOfPreviousMonth.month--;
+        lastDayOfPreviousMonth = lastDayOfPreviousMonth.endOfMonth;
+        if (cal.getWeekInfoService().getEndOfWeek(lastDayOfPreviousMonth).compare(endDate) >= 0) {
+            endDate = lastDayOfPreviousMonth;
+        }
+
+        return endDate;
+    },
+
+    setupMonth: function monthPrint_setupMonth(document, startOfMonth, dayTable) {
         let monthTemplate = document.getElementById("month-template");
         let monthContainer = document.getElementById("month-container");
 
@@ -147,8 +161,9 @@ calMonthPrinter.prototype = {
         }
 
         // Set up each week
-        let endOfMonthView = cal.userWeekEnd(startOfMonth.endOfMonth);
-        let startOfMonthView = cal.userWeekStart(startOfMonth);
+        let weekInfoService = cal.getWeekInfoService();
+        let endOfMonthView = weekInfoService.getEndOfWeek(startOfMonth.endOfMonth);
+        let startOfMonthView = weekInfoService.getStartOfWeek(startOfMonth);
         let mainMonth = startOfMonth.month;
         let weekContainer = currentMonth.querySelector(".week-container");
 
@@ -166,7 +181,7 @@ calMonthPrinter.prototype = {
         cal.binaryInsertNode(monthContainer, currentMonth, currentMonth.item, compareDates);
     },
 
-    setupWeek: function setupWeek(document, weekContainer, startOfWeek, mainMonth, dayTable) {
+    setupWeek: function monthPrint_setupWeek(document, weekContainer, startOfWeek, mainMonth, dayTable) {
         const weekdayMap = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
         let weekTemplate = document.getElementById("week-template");
 
