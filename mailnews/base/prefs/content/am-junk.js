@@ -135,7 +135,7 @@ function onInit(aPageId, aServerId)
   // enable or disable the useServerFilter checkbox
   onCheckItem("useServerFilterList", ["server.useServerFilter"]);
 
-  updateMoveTargetMode(document.getElementById('server.moveOnSpam').checked);
+  updateJunkTargetsAndRetention();
 }
 
 function onPreInit(account, accountValues)
@@ -153,30 +153,11 @@ function onPreInit(account, accountValues)
   buildServerFilterMenuList();
 }
 
-function updateMoveTargetMode(aEnable)
-{
-  if (aEnable)
-    document.getElementById("broadcaster_moveMode").removeAttribute("disabled");
-  else
-    document.getElementById("broadcaster_moveMode").setAttribute("disabled", "true");
-
-  updatePurgeSpam(aEnable, "purgeSpam");
-  updatePurgeSpam(aEnable, "purgeSpamInterval");
-}
-
-function updatePurgeSpam(aEnable, aPref)
-{
-  if (!aEnable || gPrefBranch.prefIsLocked(aPref))
-    document.getElementById("server." + aPref).setAttribute("disabled", "true");
-  else
-    document.getElementById("server." + aPref).removeAttribute("disabled");
-}
-
 /**
  * Called when someone checks or unchecks the adaptive junk mail checkbox.
  * set the value of the hidden element accordingly
  *
- * @param  the boolean value of the checkbox
+ * @param aValue  the boolean value of the checkbox
  */
 function updateSpamLevel(aValue)
 {
@@ -196,9 +177,7 @@ function onServerFilterListChange()
 
 /**
  * Called when someone checks or unchecks the adaptive junk mail checkbox.
- * We need to enable or disable the whitelist accordingly
- *
- * @param aValue  the boolean value of the checkbox
+ * We need to enable or disable the whitelist accordingly.
  */
 function onAdaptiveJunkToggle()
 {
@@ -212,6 +191,35 @@ function onAdaptiveJunkToggle()
 
   for (let i = 0; i < wList.getRowCount(); i++)
     wList.getItemAtIndex(i).disabled = wListDisabled;
+}
+
+/**
+ * Called when someone checks or unchecks the "move new junk messages to"
+ * Enable/disable the radio group accordingly.
+ */
+function updateJunkTargetsAndRetention() {
+  onCheckItem("server.moveTargetMode", ["server.moveOnSpam"]);
+  updateJunkTargets();
+  onCheckItem("server.purgeSpam", ["server.moveOnSpam"]);
+  updateJunkRetention();
+}
+
+/**
+ * Enable/disable the folder pickers depending on which radio item is selected.
+ */
+function updateJunkTargets() {
+  onCheckItem("actionTargetAccount", ["server.moveOnSpam", "moveTargetMode0"]);
+  onCheckItem("actionTargetFolder",  ["server.moveOnSpam", "moveTargetMode1"]);
+}
+
+/**
+ * Enable/disable the junk deletion interval depending on the state
+ * of the controlling checkbox.
+ */
+function updateJunkRetention() {
+  onCheckItem("server.purgeSpamInterval", ["server.purgeSpam", "server.moveOnSpam"]);
+  document.getElementById("purgeLabel").disabled =
+    document.getElementById("server.purgeSpamInterval").disabled;
 }
 
 function onSave()

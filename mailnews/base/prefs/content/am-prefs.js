@@ -90,18 +90,21 @@ function getAccountValueIsLocked(aElement)
 function onCheckItem(aChangeElementId, aCheckElementIds)
 {
   let elementToControl = document.getElementById(aChangeElementId);
-  let enabled = true;
+  let disabled = false;
 
   for each (let notifyId in aCheckElementIds) {
     let notifyElement = document.getElementById(notifyId);
-    if (!notifyElement.checked || getAccountValueIsLocked(notifyElement)) {
-      enabled = false;
+    let notifyElementState = null;
+    if ("checked" in notifyElement)
+      notifyElementState = notifyElement.checked;
+    else if ("selected" in notifyElement)
+      notifyElementState = notifyElement.selected;
+
+    if (!notifyElementState || getAccountValueIsLocked(notifyElement)) {
+      disabled = true;
       break;
     }
   }
 
-  if (enabled)
-    elementToControl.removeAttribute("disabled");
-  else
-    elementToControl.setAttribute("disabled", "true");
+  elementToControl.disabled = disabled;
 }
