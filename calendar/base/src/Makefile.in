@@ -30,7 +30,6 @@ CPPSRCS = calDateTime.cpp \
 	  calICSService.cpp \
 	  calTimezone.cpp \
 	  calRecurrenceRule.cpp \
-	  calRecurrenceDate.cpp \
 	  calUtils.cpp \
 	  $(NULL)
 
@@ -60,6 +59,7 @@ EXTRA_SCRIPTS = \
     calItemBase.js \
     calItipItem.js \
     calProtocolHandler.js \
+    calRecurrenceDate.js \
     calRecurrenceInfo.js \
     calRelation.js \
     calStartupService.js \

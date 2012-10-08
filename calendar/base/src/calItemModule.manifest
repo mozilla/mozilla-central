@@ -49,6 +49,9 @@ contract @mozilla.org/network/protocol;1?name=webcal {1153c73a-39be-46aa-9ba9-65
 component {bdf71224-365d-4493-856a-a7e74026f766} calItemModule.js
 contract @mozilla.org/network/protocol;1?name=webcals {bdf71224-365d-4493-856a-a7e74026f766}
 
+component {806b6423-3aaa-4b26-afa3-de60563e9cec} calItemModule.js
+contract @mozilla.org/calendar/recurrence-date;1 {806b6423-3aaa-4b26-afa3-de60563e9cec}
+
 component {04027036-5884-4a30-b4af-f2cad79f6edf} calItemModule.js
 contract @mozilla.org/calendar/recurrence-info;1 {04027036-5884-4a30-b4af-f2cad79f6edf}
 

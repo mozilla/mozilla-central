@@ -58,6 +58,12 @@ function test_icalstring() {
                           { isNegative: false });
     do_check_eq(rdate.date.compare(cal.createDateTime("20120101T000000")), 0);
 
+    /* TODO consider removing period support, ics throws badarg
+    let rdateperiod = checkComp(cal.createRecurrenceDate.bind(cal),
+                                "RDATE;VALUE=PERIOD;20120101T000000Z/20120102T000000Z");
+    do_check_eq(rdate.date.compare(cal.createDateTime("20120101T000000Z")), 0);
+    */
+
     let exdate = checkComp(cal.createRecurrenceDate.bind(cal),
                            "EXDATE:20120101T000000",
                            { isNegative: true });
