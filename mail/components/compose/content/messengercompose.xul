@@ -303,9 +303,9 @@
   <!-- Spellchecking general menu items (enable, add dictionaries...) -->
   <menuseparator id="spellCheckSeparator"/>
   <menuitem id="spellCheckEnable"
-            label="&spellCheckEnable.label;"
+            label="&spellCheckToggle.label;"
             type="checkbox"
-            accesskey="&spellCheckEnable.accesskey;"
+            accesskey="&spellCheckToggle.accesskey;"
             oncommand="enableInlineSpellCheck(!gSpellChecker.enabled);"/>
   <menuitem id="spellCheckAddDictionariesMain"
             label="&spellAddDictionaries.label;"

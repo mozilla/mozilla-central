@@ -612,9 +612,9 @@
     <!-- Spellchecking general menu items (enable, add dictionaries...) -->
     <menuseparator id="mailContext-spell-separator"/>
     <menuitem id="mailContext-spell-check-enabled"
-              label="&spellCheckEnable.label;"
+              label="&spellCheckToggle.label;"
               type="checkbox"
-              accesskey="&spellCheckEnable.accesskey;"
+              accesskey="&spellCheckToggle.accesskey;"
               oncommand="gSpellChecker.toggleEnabled();"/>
     <menuitem id="mailContext-spell-add-dictionaries-main"
               label="&spellAddDictionaries.label;"
