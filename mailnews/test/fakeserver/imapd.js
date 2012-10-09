@@ -18,7 +18,7 @@
 // + Namespaces: parentless mailboxes whose names are the namespace name. The //
 //     type of the namespace is specified by the type attribute.              //
 // + Mailboxes: imapMailbox objects with several properties. If a mailbox     //
-// | |   property begins with a '_', then it should not be seralized  because //
+// | |   property begins with a '_', then it should not be serialized because //
 // | |   it can be discovered from other means; in particular, a '_' does not //
 // | |   necessarily mean that it is a private property that should not be    //
 // | |   accessed. The parent of a top-level mailbox is null, not "".         //
@@ -105,7 +105,7 @@ imapDaemon.prototype = {
       names.splice(0, 1);
       for each (var part in names) {
         mailbox = mailbox.getChild(part);
-        if (!mailbox)
+        if (!mailbox || mailbox.nonExistent)
           return null;
       }
       return mailbox;
@@ -116,7 +116,7 @@ imapDaemon.prototype = {
 
       for each (var part in names) {
         mailbox = mailbox.getChild(part);
-        if (!mailbox)
+        if (!mailbox || mailbox.nonExistent)
           return null;
       }
       return mailbox;
@@ -135,7 +135,7 @@ imapDaemon.prototype = {
     for each (var component in prefixes) {
       box = box.getChild(component);
       // Yes, we won't autocreate intermediary boxes
-      if (box == null || box.flags.indexOf('\\Noinferiors') != -1)
+      if (box == null || box.flags.indexOf('\\NoInferiors') != -1)
         return false;
     }
     // If this is an imapMailbox...
@@ -168,7 +168,7 @@ imapDaemon.prototype = {
                       name[name.length - 1] == namespace.delimiter :
                       true;
       var childBox = new imapMailbox(subName, box == this.root ? null : box,
-        { flags : creatable ? [] : ['\\Noinferiors'],
+        { flags : creatable ? [] : ['\\NoInferiors'],
           uidvalidity : this.uidvalidity++ });
       box.addMailbox(childBox);
     }
@@ -207,8 +207,10 @@ function imapMailbox(name, parent, state) {
     this[prop] = state[prop];
 
   this.setDefault("subscribed", false);
+  this.setDefault("nonExistent", false);
   this.setDefault("delimiter", "/");
   this.setDefault("flags", []);
+  this.setDefault("specialUseFlag", "");
   this.setDefault("uidnext", 1);
   this.setDefault("msgflags", ["\\Seen", "\\Answered", "\\Flagged",
                                "\\Deleted", "\\Draft"]);
@@ -609,6 +611,43 @@ function formatArg(argument, spec) {
   return argument;
 }
 
+// used by RFC 5258 and GMail (labels)
+function parseMailboxList(aList) {
+
+  // strip enclosing parentheses
+  if (aList[0] == '(') {
+    aList = aList.substring(1, aList.length - 1);
+  }
+  let mailboxList = [];
+  for (let i = 0; i < aList.length; i++) {
+    // first, check for literals
+    if (aList[i] == '{') {
+      let endBracketPos = aList.indexOf('}', i);
+      let literalLen = parseInt(aList.substring(i + 1, endBracketPos));
+      // skip CRLF after '}'
+      mailboxList.push(aList.substr(endBracketPos + 3, literalLen));
+      i = endBracketPos + 3 + literalLen;
+    }
+    if (aList[i] == '"') {
+      let endQuotePos = i + aList.substring(i).search(/[^\\]"/);
+      mailboxList.push(aList.substring(i + 1, endQuotePos + 1)
+                       .replace(/\\"/g, '"').replace(/\\\\/g, '\\'));
+      i = endQuotePos + 2;
+    }
+    if (aList[i] != ' ') {
+      let nextSpace = aList.indexOf(' ', i);
+      if (nextSpace == -1) {
+        mailboxList.push(aList.substring(i));
+        i = aList.length;
+      } else {
+        mailboxList.push(aList.substring(i, nextSpace));
+        i = nextSpace;
+      }
+    }
+  }
+  return mailboxList;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //                              IMAP TEST SERVERS                             //
 ////////////////////////////////////////////////////////////////////////////////
@@ -625,13 +664,14 @@ function formatArg(argument, spec) {
 // * Exchange                                                                 //
 // * Dovecot                                                                  //
 // * Zimbra                                                                   //
+// * GMail                                                                    //
 // KNOWN DEVIATIONS FROM RFC 3501:                                            //
 // + The autologout timer is 3 minutes, not 30 minutes. A test with a logout  //
 //   of 30 minutes would take a very long time if it failed.                  //
 // + SEARCH (except for UNDELETED) and STARTTLS are not supported,            //
 //   nor is all of FETCH.                                                     //
 // + Concurrent mailbox access is probably compliant with a rather liberal    //
-//   implentation of RFC 3501, although probably not what one would expect,   //
+//   implementation of RFC 3501, although probably not what one would expect, //
 //   and certainly not what the Dovecot IMAP server tests expect.             //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -813,7 +853,10 @@ IMAP_RFC3501_handler.prototype = {
       }
 
       if (args.length == 0)
-        throw "BAD not enough arguments";
+        if (spec[0] == '[') // == optional arg
+          continue;
+        else
+          throw "BAD not enough arguments";
 
       if (spec[0] == '[') {
         // We have an optional argument. See if the format matches and move on
@@ -1044,15 +1087,69 @@ IMAP_RFC3501_handler.prototype = {
     return "OK UNSUBSCRIBE completed";
   },
   LIST : function (args) {
-    var base = this._daemon.getMailbox(args[0]);
+
+    // even though this is the LIST function for RFC 3501, code for
+    // LIST-EXTENDED (RFC 5258) is included here to keep things simple and
+    // avoid duplication. We can get away with this because the _treatArgs
+    // function filters out invalid args for servers that don't support
+    // LIST-EXTENDED before they even get here.
+
+    let listFunctionName = "_LIST";
+    // check for optional list selection options argument used by LIST-EXTENDED
+    // and other related RFCs
+    if (args.length == 3 || (args.length > 3 && args[3] == "RETURN")) {
+      let selectionOptions = args.shift();
+      selectionOptions = selectionOptions.toString().split(' ');
+      selectionOptions.sort();
+      for each (let option in selectionOptions) {
+        listFunctionName += "_" + option.replace(/-/g, "_");
+      }
+    }
+    // check for optional list return options argument used by LIST-EXTENDED
+    // and other related RFCs
+    if ((args[2] == "RETURN") ||
+        this.kCapabilities.indexOf("CHILDREN") >= 0) {
+      listFunctionName += "_RETURN";
+      let returnOptions = args[3] ? args[3].toString().split(' ') : [];
+      if ((this.kCapabilities.indexOf("CHILDREN") >= 0) &&
+          (returnOptions.indexOf("CHILDREN") == -1)) {
+        returnOptions.push("CHILDREN");
+      }
+      returnOptions.sort();
+      for each (let option in returnOptions) {
+        listFunctionName += "_" + option.replace(/-/g, "_");
+      }
+    }
+    if (!this[listFunctionName])
+      return 'BAD unknown LIST request options';
+
+    let base = this._daemon.getMailbox(args[0]);
     if (!base)
       return "NO no such mailbox";
-    var people = base.matchKids(args[1]);
-    var response = "";
-    for each (var box in people)
-      response += '* LIST (' + box.flags.join(" ") + ') "' + box.delimiter +
-                  '" "' + box.displayName + '"\0';
+    let requestedBoxes;
+    // check for multiple mailbox patterns used by LIST-EXTENDED
+    // and other related RFCs
+    if (args[1][0] == "(") {
+      requestedBoxes = parseMailboxList(args[1]);
+    } else {
+      requestedBoxes = [ args[1] ];
+    }
+    let response = "";
+    for each (let requestedBox in requestedBoxes) {
+      let people = base.matchKids(requestedBox);
+      for each (let box in people) {
+        response += this[listFunctionName](box);
+      }
+    }
     return response + "OK LIST completed";
+  },
+  // _LIST is the standard LIST command response
+  _LIST : function (aBox) {
+    if (aBox.nonExistent) {
+      return "";
+    }
+    return '* LIST (' + aBox.flags.join(" ") + ') "' + aBox.delimiter +
+           '" "' + aBox.displayName + '"\0';
   },
   LSUB : function (args) {
     var base = this._daemon.getMailbox(args[0]);
@@ -1215,7 +1312,7 @@ IMAP_RFC3501_handler.prototype = {
         // so we go for the initial alphanumeric substring, passing in the
         // actual string as an optional second part.
         var front = item.split(/[^A-Z0-9-]/, 1)[0];
-        var functionName = "_FETCH_" + front.replace(/-/g, "_"); // '-' is not allowed in js identifiers;
+        var functionName = "_FETCH_" + front.replace(/-/g, "_");
 
         if (!(functionName in this))
           return "BAD can't fetch " + front;
@@ -1577,35 +1674,14 @@ IMAP_RFC3501_handler.prototype = {
   },
   _FETCH_UID : function (message) {
     return "UID " + message.uid;
-  },
-  _FETCH_X_GM_MSGID : function (message) {
-    if (message.xGmMsgid) {
-        return "X-GM-MSGID " + message.xGmMsgid;
-    } else {
-        return "BAD can't fetch X-GM-MSGID";
-    }
-  },
-  _FETCH_X_GM_THRID : function (message) {
-    if (message.xGmThrid) {
-        return "X-GM-THRID " + message.xGmThrid;
-    } else {
-        return "BAD can't fetch X-GM-THRID";
-    }
-  },
-  _FETCH_X_GM_LABELS : function (message) {
-    if (message.xGmLabels) {
-        return "X-GM-LABELS " + message.xGmLabels;
-    } else {
-        return "BAD can't fetch X-GM-LABELS";
-    }
-   }
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //                            IMAP4 RFC extensions                            //
 ////////////////////////////////////////////////////////////////////////////////
 // Since there are so many extensions to IMAP, and since these extensions are //
-// not strictly hierarchial (e.g., an RFC 2342-compliant server can also be   //
+// not strictly hierarchical (e.g., an RFC 2342-compliant server can also be  //
 // RFC 3516-compliant, but a server might only implement one of them), they   //
 // must be handled differently from other fakeserver implementations.         //
 // An extension is defined as follows: it is an object (not a function and    //
@@ -1619,14 +1695,14 @@ IMAP_RFC3501_handler.prototype = {
 // Note that UIDPLUS (RFC4315) should be mixed in last (or at least after the
 // MOVE extension) because it changes behavior of that extension.
 var configurations = {
-  Cyrus: ["RFC2342", "RFC2195"],
+  Cyrus: ["RFC2342", "RFC2195", "RFC5258"],
   UW: ["RFC2342", "RFC2195"],
-  Dovecot: ["RFC2195"],
-  Zimbra: ["RFC2342", "RFC2195"],
+  Dovecot: ["RFC2195", "RFC5258"],
+  Zimbra: ["RFC2342", "RFC2195", "RFC5258"],
   Exchange: ["RFC2342", "RFC2195"],
   LEMONADE: ["RFC2342", "RFC2195"],
-  CUSTOM1: ["RFCMOVE", "RFC4315", "RFCCUSTOM"],
-  GMail: ["XLIST", "RFCGMAIL", "RFC2197", "RFC4315"]
+  CUSTOM1: ["MOVE", "RFC4315", "CUSTOM"],
+  GMail: ["GMAIL", "RFC2197", "RFC2342", "RFC3348", "RFC4315"]
 };
 
 function mixinExtension(handler, extension) {
@@ -1655,127 +1731,44 @@ function mixinExtension(handler, extension) {
   }
 }
 
-// RFC 2342: IMAP4 Namespace
-var IMAP_RFC2342_extension = {
-  NAMESPACE : function (args) {
-    var namespaces = [[], [], []];
-    for each (var namespace in this._daemon.namespaces)
-      namespaces[namespace.type].push(namespace);
-
-    var response = "* NAMESPACE";
-    for each (var type in namespaces) {
-      if (type.length == 0) {
-        response += " NIL";
-        continue;
-      }
-      response += " (";
-      for each (var namespace in type) {
-        response += "(\"";
-        response += namespace.displayName;
-        response += "\" \"";
-        response += namespace.delimiter;
-        response += "\")";
-      }
-      response += ")";
-    }
-    return response;
-  },
-  kCapabilities : ["NAMESPACE"],
-  _argFormat : { NAMESPACE : [] },
-  // Enabled in AUTHED and SELECTED states
-  _enabledCommands : { 1 : ["NAMESPACE"], 2 : ["NAMESPACE"] }
-};
-
-var IMAP_XLIST_extension = {
-  XLIST : function(args) {
-    var base = this._daemon.getMailbox(args[0]);
-    if (!base)
-      return "NO no such mailbox";
-    if(!this._daemon.getMailbox("[Gmail]/All Mail", {subscribed : true})) {
-      // No special mailbox exist, so we will create them.
-      // Creating parent first
-      this._daemon.createMailbox("[Gmail]");
-      // now other folders inside the parent
-      this._daemon.createMailbox("[Gmail]/All Mail", {subscribed : true});
-      this._daemon.createMailbox("[Gmail]/Sent Mail", {subscribed : true});
-      this._daemon.createMailbox("[Gmail]/Drafts", {subscribed : true});
-      this._daemon.createMailbox("[Gmail]/Starred", {subscribed : true});
-      this._daemon.createMailbox("[Gmail]/Spam", {subscribed : true});
-    }
-    var people = base.matchKids(args[1]);
-    var response = "";
-    var specialFolderFlagsLookupTable = {
-      "[Gmail]/All Mail": "AllMail",
-      "[Gmail]/Drafts": "Drafts",
-      "[Gmail]/Sent Mail": "Sent",
-      "[Gmail]/Starred": "Starred",
-      "[Gmail]/Spam": "Spam",
-      "INBOX": "Inbox"
-
-    };
-    for each (var box in people) {
-      let specialFlag = box.displayName in specialFolderFlagsLookupTable ?
-        ' \\' +specialFolderFlagsLookupTable[box.displayName] : ' ';
-      response += '* XLIST (' + box.flags.join(" ") + specialFlag + ') "' +
-              box.delimiter + '" "' + box.displayName + '"\0';
-    }
-    return response + "OK XLIST completed";
-  },
-  kCapabilities : ["XLIST"],
-  _argFormat : { XLIST : ["mailbox", "mailbox"]},
-  // Enabled in AUTHED and SELECTED states
-  _enabledCommands : {1 : ["XLIST"], 2 : ["XLIST"]}
-};
-
-var IMAP_RFCMOVE_extension = {
-  MOVE: function (args, uid) {
-    let messages = this._parseSequenceSet(args[0], uid);
-
-    let dest = this._daemon.getMailbox(args[1]);
-    if (!dest)
-      return "NO [TRYCREATE] what mailbox?";
-
-    for each (var message in messages) {
-      let newMessage = new imapMessage(message._URI, dest.uidnext++,
-                                       message.flags);
-      newMessage.recent = false;
-      dest.addMessage(newMessage);
-    }
-    let mailbox = this._selectedMailbox;
-    let response = "";
-    for (let i = messages.length - 1; i >= 0; i--) {
-      let msgIndex = mailbox._messages.indexOf(messages[i]);
-      if (msgIndex != -1) {
-        response += "* " + (msgIndex + 1) + " EXPUNGE\0";
-        mailbox._messages.splice(msgIndex, 1);
-      }
-    }
-    if (response.length > 0)
-      delete mailbox.__highestuid;
-
-    return response + "OK MOVE completed";
-  },
-  kCapabilities: ["MOVE"],
-  kUidCommands: ["MOVE"],
-  _argFormat: { MOVE: ["number", "mailbox"] },
-  // Enabled in SELECTED state
-  _enabledCommands: { 2: ["MOVE"] }
-};
-
-// Support for Gmail extensions.
-var IMAP_RFCGMAIL_extension = {
+// Support for Gmail extensions: XLIST and X-GM-EXT-1
+var IMAP_GMAIL_extension = {
   preload: function (toBeThis) {
-    toBeThis._preRFCGMAIL_STORE = toBeThis.STORE;
-    toBeThis._preRFCGMAIL_STORE_argFormat = toBeThis._argFormat.STORE;
+    toBeThis._preGMAIL_STORE = toBeThis.STORE;
+    toBeThis._preGMAIL_STORE_argFormat = toBeThis._argFormat.STORE;
     toBeThis._argFormat.STORE = ["number", "atom", "..."];
+  },
+  XLIST : function (args) {
+    // XLIST is really just SPECIAL-USE that does not conform to RFC 6154
+    args.push("RETURN");
+    args.push("SPECIAL-USE");
+    return this.LIST(args);
+  },
+  _LIST_RETURN_CHILDREN : function (aBox) {
+    return IMAP_RFC5258_extension._LIST_RETURN_CHILDREN(aBox);
+  },
+  _LIST_RETURN_CHILDREN_SPECIAL_USE : function (aBox) {
+    if (aBox.nonExistent) {
+      return "";
+    }
+    return '* LIST (' + aBox.flags.join(" ") +
+           ((aBox._children.length > 0) ?
+            (((aBox.flags.length > 0) ? ' ' : '') + '\\HasChildren') :
+            ((aBox.flags.indexOf('\\NoInferiors') == -1) ?
+             (((aBox.flags.length > 0) ? ' ' : '') + '\\HasNoChildren') :
+             '')) +
+           ((aBox.specialUseFlag && aBox.specialUseFlag.length > 0) ?
+            (' ' + aBox.specialUseFlag) : '') +
+           ') "' + aBox.delimiter +
+           '" "' + aBox.displayName + '"\0';
   },
   STORE : function (args, uid) {
     let regex = /[+-]?FLAGS.*/;
     if (regex.test(args[1])) {
       // if we are storing flags, use the method that was overridden
-      this._argFormat = this._preRFCGMAIL_STORE_argFormat;
+      this._argFormat = this._preGMAIL_STORE_argFormat;
       args = this._treatArgs(args, "STORE");
-      return this._preRFCGMAIL_STORE(args, uid);
+      return this._preGMAIL_STORE(args, uid);
     }
     // otherwise, handle gmail specific cases
     let ids = [];
@@ -1825,23 +1818,82 @@ var IMAP_RFCGMAIL_extension = {
     }
     return response + 'OK STORE completed';
   },
-  kCapabilities: ["XLIST", "X-GM-EXT-1"]
+  _FETCH_X_GM_MSGID : function (message) {
+    if (message.xGmMsgid) {
+        return "X-GM-MSGID " + message.xGmMsgid;
+    } else {
+        return "BAD can't fetch X-GM-MSGID";
+    }
+  },
+  _FETCH_X_GM_THRID : function (message) {
+    if (message.xGmThrid) {
+        return "X-GM-THRID " + message.xGmThrid;
+    } else {
+        return "BAD can't fetch X-GM-THRID";
+    }
+  },
+  _FETCH_X_GM_LABELS : function (message) {
+    if (message.xGmLabels) {
+        return "X-GM-LABELS " + message.xGmLabels;
+    } else {
+        return "BAD can't fetch X-GM-LABELS";
+    }
+  },
+  kCapabilities: ["XLIST", "X-GM-EXT-1"],
+  _argFormat : { XLIST : ["mailbox", "mailbox"] },
+  // Enabled in AUTHED and SELECTED states
+  _enabledCommands : { 1 : ["XLIST"], 2 : ["XLIST"] }
+};
+
+var IMAP_MOVE_extension = {
+  MOVE: function (args, uid) {
+    let messages = this._parseSequenceSet(args[0], uid);
+
+    let dest = this._daemon.getMailbox(args[1]);
+    if (!dest)
+      return "NO [TRYCREATE] what mailbox?";
+
+    for each (var message in messages) {
+      let newMessage = new imapMessage(message._URI, dest.uidnext++,
+                                       message.flags);
+      newMessage.recent = false;
+      dest.addMessage(newMessage);
+    }
+    let mailbox = this._selectedMailbox;
+    let response = "";
+    for (let i = messages.length - 1; i >= 0; i--) {
+      let msgIndex = mailbox._messages.indexOf(messages[i]);
+      if (msgIndex != -1) {
+        response += "* " + (msgIndex + 1) + " EXPUNGE\0";
+        mailbox._messages.splice(msgIndex, 1);
+      }
+    }
+    if (response.length > 0)
+      delete mailbox.__highestuid;
+
+    return response + "OK MOVE completed";
+  },
+  kCapabilities: ["MOVE"],
+  kUidCommands: ["MOVE"],
+  _argFormat: { MOVE: ["number", "mailbox"] },
+  // Enabled in SELECTED state
+  _enabledCommands: { 2: ["MOVE"] }
 };
 
 // Provides methods for testing fetchCustomAttribute and issueCustomCommand
-var IMAP_RFCCUSTOM_extension = {
+var IMAP_CUSTOM_extension = {
   preload: function (toBeThis) {
-    toBeThis._preRFCCUSTOM_STORE = toBeThis.STORE;
-    toBeThis._preRFCCUSTOM_STORE_argFormat = toBeThis._argFormat.STORE;
+    toBeThis._preCUSTOM_STORE = toBeThis.STORE;
+    toBeThis._preCUSTOM_STORE_argFormat = toBeThis._argFormat.STORE;
     toBeThis._argFormat.STORE = ["number", "atom", "..."];
   },
   STORE : function (args, uid) {
     let regex = /[+-]?FLAGS.*/;
     if (regex.test(args[1])) {
       // if we are storing flags, use the method that was overridden
-      this._argFormat = this._preRFCCUSTOM_STORE_argFormat;
+      this._argFormat = this._preCUSTOM_STORE_argFormat;
       args = this._treatArgs(args, "STORE");
-      return this._preRFCCUSTOM_STORE(args, uid);
+      return this._preCUSTOM_STORE(args, uid);
     }
     // otherwise, handle custom attribute
     let ids = [];
@@ -1914,6 +1966,7 @@ var IMAP_RFCCUSTOM_extension = {
   },
   kCapabilities: ["X-CUSTOM1"]
 };
+
 // RFC 2197: ID
 var IMAP_RFC2197_extension = {
   ID: function (args) {
@@ -1935,6 +1988,43 @@ var IMAP_RFC2197_extension = {
   _argFormat: { ID: ["(string)"] },
   _enabledCommands : { 1 : ["ID"], 2 : ["ID"] }
 };
+
+// RFC 2342: IMAP4 Namespace (NAMESPACE)
+var IMAP_RFC2342_extension = {
+  NAMESPACE : function (args) {
+    var namespaces = [[], [], []];
+    for each (var namespace in this._daemon.namespaces)
+      namespaces[namespace.type].push(namespace);
+
+    var response = "* NAMESPACE";
+    for each (var type in namespaces) {
+      if (type.length == 0) {
+        response += " NIL";
+        continue;
+      }
+      response += " (";
+      for each (var namespace in type) {
+        response += "(\"";
+        response += namespace.displayName;
+        response += "\" \"";
+        response += namespace.delimiter;
+        response += "\")";
+      }
+      response += ")";
+    }
+    response += "\0OK NAMESPACE command completed";
+    return response;
+  },
+  kCapabilities : ["NAMESPACE"],
+  _argFormat : { NAMESPACE : [] },
+  // Enabled in AUTHED and SELECTED states
+  _enabledCommands : { 1 : ["NAMESPACE"], 2 : ["NAMESPACE"] }
+};
+
+// RFC 3348 Child Mailbox (CHILDREN)
+var IMAP_RFC3348_extension = {
+  kCapabilities: ["CHILDREN"]
+}
 
 // RFC 4315: UIDPLUS
 var IMAP_RFC4315_extension = {
@@ -1989,6 +2079,47 @@ var IMAP_RFC4315_extension = {
   kCapabilities: ["UIDPLUS"]
 };
 
+// RFC 5258: LIST-EXTENDED
+var IMAP_RFC5258_extension = {
+  preload: function (toBeThis) {
+    toBeThis._argFormat.LIST = ["[(atom)]", "mailbox", "mailbox|(mailbox)",
+                                "[atom]", "[(atom)]"];
+  },
+  _LIST_SUBSCRIBED : function (aBox) {
+    if (!aBox.subscribed) {
+      return "";
+    }
+    return '* LIST (' + aBox.flags.join(" ") +
+           ((aBox.flags.length > 0) ? ' ' : '') + '\\Subscribed' +
+           (aBox.nonExistent ? ' \\NonExistent' : '') + ') "' +
+           aBox.delimiter + '" "' + aBox.displayName + '"\0';
+  },
+  _LIST_RETURN_CHILDREN : function (aBox) {
+    if (aBox.nonExistent) {
+      return "";
+    }
+    return '* LIST (' + aBox.flags.join(" ") +
+           ((aBox._children.length > 0) ?
+            (((aBox.flags.length > 0) ? ' ' : '') + '\\HasChildren') :
+            ((aBox.flags.indexOf('\\NoInferiors') == -1) ?
+             (((aBox.flags.length > 0) ? ' ' : '') + '\\HasNoChildren') :
+             '')) + ') "' + aBox.delimiter + '" "' + aBox.displayName + '"\0';
+  },
+  _LIST_RETURN_SUBSCRIBED : function (aBox) {
+    if (aBox.nonExistent) {
+      return "";
+    }
+    return '* LIST (' + aBox.flags.join(" ") +
+           (aBox.subscribed ? (((aBox.flags.length > 0) ? ' ' : '') +
+                               '\\Subscribed') : '') +
+           ') "' + aBox.delimiter + '" "' + aBox.displayName + '"\0';
+  },
+  // TODO implement _LIST_REMOTE, _LIST_RECURSIVEMATCH, _LIST_RETURN_SUBSCRIBED
+  // and all valid combinations thereof. Currently, nsImapServerResponseParser
+  // does not support any of these responses anyway.
+
+  kCapabilities: ["LIST-EXTENDED"]
+};
 
 /**
  * This implements AUTH schemes. Could be moved into RFC3501 actually.
