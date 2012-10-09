@@ -597,14 +597,14 @@ nsContextMenu.prototype = {
    * Save URL of clicked-on link.
    */
   saveLink : function CM_saveLink() {
-    saveURL(this.linkURL, this.linkText(), null, true);
+    saveURL(this.linkURL, this.linkText(), null, true, null, null, document);
   },
 
   /**
    * Save a clicked-on image.
    */
   saveImage : function CM_saveImage() {
-    saveURL(this.imageURL, null, "SaveImageTitle", false);
+    saveURL(this.imageURL, null, "SaveImageTitle", false, null, null, document);
   },
 
   /**
