@@ -58,7 +58,7 @@ interface nsMsgFolderFlags {
   const nsMsgFolderFlagType Trash           = 0x00000100;
   /// Whether this is a folder that sent mail gets delivered to.
   const nsMsgFolderFlagType SentMail        = 0x00000200;
-  /// Whether this is the folder in which unfinised, unsent messages are saved for later editing.
+  /// Whether this is the folder in which unfinished, unsent messages are saved for later editing.
   const nsMsgFolderFlagType Drafts          = 0x00000400;
   /// Whether this is the folder in which messages are queued for later delivery.
   const nsMsgFolderFlagType Queue           = 0x00000800;
