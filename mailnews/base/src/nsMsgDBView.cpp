@@ -6803,11 +6803,13 @@ nsresult nsMsgDBView::ToggleIgnored(nsMsgViewIndex * indices, int32_t numIndices
 
 nsresult nsMsgDBView::ToggleMessageKilled(nsMsgViewIndex * indices, int32_t numIndices, nsMsgViewIndex *resultIndex, bool *resultToggleState)
 {
-  nsCOMPtr <nsIMsgDBHdr> header;
-  nsresult rv;
+  NS_ENSURE_ARG_POINTER(resultToggleState);
 
+  nsCOMPtr <nsIMsgDBHdr> header;
   // Ignored state is toggled based on the first selected message
-  rv = GetMsgHdrForViewIndex(indices[0], getter_AddRefs(header));
+  nsresult rv = GetMsgHdrForViewIndex(indices[0], getter_AddRefs(header));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   uint32_t msgFlags;
   header->GetFlags(&msgFlags);
   uint32_t ignored = msgFlags & nsMsgMessageFlags::Ignored;
@@ -6822,6 +6824,7 @@ nsresult nsMsgDBView::ToggleMessageKilled(nsMsgViewIndex * indices, int32_t numI
     {
       msgIndex = indices[numIndices];
       rv = GetMsgHdrForViewIndex(msgIndex, getter_AddRefs(header));
+      NS_ENSURE_SUCCESS(rv, rv);
       header->GetFlags(&msgFlags);
       if ((msgFlags & nsMsgMessageFlags::Ignored) == ignored)
         SetSubthreadKilled(header, msgIndex, !ignored);
@@ -7053,9 +7056,11 @@ nsMsgDBView::GetMsgToSelectAfterDelete(nsMsgViewIndex *msgToSelectAfterDelete)
     int32_t startRange;
     int32_t endRange;
     nsresult rv = mTreeSelection->GetRangeCount(&selectionCount);
+    NS_ENSURE_SUCCESS(rv, rv);
     for (int32_t i = 0; i < selectionCount; i++)
     {
       rv = mTreeSelection->GetRangeAt(i, &startRange, &endRange);
+      NS_ENSURE_SUCCESS(rv, rv);
 
       // save off the first range in case we need it later 
       if (i == 0) {

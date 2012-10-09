@@ -1023,7 +1023,6 @@ NS_IMETHODIMP nsMsgDBFolder::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, uint32_
 
 nsresult nsMsgDBFolder::CheckWithNewMessagesStatus(bool messageAdded)
 {
-  nsresult rv;
   bool hasNewMessages;
   if (messageAdded)
     SetHasNewMessages(true);
@@ -1031,7 +1030,8 @@ nsresult nsMsgDBFolder::CheckWithNewMessagesStatus(bool messageAdded)
   {
     if(mDatabase)
     {
-      rv = mDatabase->HasNew(&hasNewMessages);
+      nsresult rv = mDatabase->HasNew(&hasNewMessages);
+      NS_ENSURE_SUCCESS(rv, rv);
       SetHasNewMessages(hasNewMessages);
     }
   }

@@ -1586,9 +1586,10 @@ NS_IMETHODIMP
 nsMsgIncomingServer::GetOfflineSupportLevel(int32_t *aSupportLevel)
 {
   NS_ENSURE_ARG_POINTER(aSupportLevel);
-  nsresult rv;
 
-  rv = GetIntValue("offline_support_level", aSupportLevel);
+  nsresult rv = GetIntValue("offline_support_level", aSupportLevel);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   if (*aSupportLevel == OFFLINE_SUPPORT_LEVEL_UNDEFINED)
     *aSupportLevel = OFFLINE_SUPPORT_LEVEL_NONE;
   return NS_OK;

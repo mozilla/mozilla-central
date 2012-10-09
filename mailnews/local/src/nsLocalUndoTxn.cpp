@@ -37,7 +37,9 @@ nsLocalMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsIMsgFolder* dstFolder,
 {
     nsresult rv;
     rv = SetSrcFolder(srcFolder);
+    NS_ENSURE_SUCCESS(rv, rv);
     rv = SetDstFolder(dstFolder);
+    NS_ENSURE_SUCCESS(rv, rv);
     m_isMove = isMove;
 
     mUndoFolderListener = nullptr;

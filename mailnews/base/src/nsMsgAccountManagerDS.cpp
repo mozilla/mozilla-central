@@ -841,13 +841,12 @@ nsMsgAccountManagerDataSource::getAccountRootArcs(nsIMutableArray **aResult)
 NS_IMETHODIMP
 nsMsgAccountManagerDataSource::HasArcOut(nsIRDFResource *source, nsIRDFResource *aArc, bool *result)
 {
-  nsresult rv = NS_OK;
   if (aArc == kNC_Settings) {
     // based on createSettingsResources()
     // we only have settings for local folders and servers with identities
     nsCOMPtr<nsIMsgIncomingServer> server;
-    rv = getServerForFolderNode(source, getter_AddRefs(server));
-    if (server) {
+    nsresult rv = getServerForFolderNode(source, getter_AddRefs(server));
+    if (NS_SUCCEEDED(rv) && server) {
       // Check the offline capability before adding arc
       int32_t offlineSupportLevel = 0;
       (void) server->GetOfflineSupportLevel(&offlineSupportLevel);

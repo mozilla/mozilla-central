@@ -471,7 +471,6 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder 
 
 NS_IMETHODIMP nsMsgPurgeService::OnSearchDone(nsresult status)
 {
-  nsresult rv = NS_OK;
   if (NS_SUCCEEDED(status))
   {
     uint32_t count;
@@ -482,7 +481,7 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchDone(nsresult status)
     if (count > 0) {
       PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("delete messages"));
       if (mSearchFolder)
-        rv = mSearchFolder->DeleteMessages(mHdrsToDelete, nullptr, false /*delete storage*/, false /*isMove*/, nullptr, false /*allowUndo*/);
+        mSearchFolder->DeleteMessages(mHdrsToDelete, nullptr, false /*delete storage*/, false /*isMove*/, nullptr, false /*allowUndo*/);
     }
   }
   if (mHdrsToDelete)

@@ -474,7 +474,6 @@ nsMessengerUnixIntegration::Observe(nsISupports* aSubject, const char* aTopic, c
 
 void nsMessengerUnixIntegration::FillToolTipInfo()
 {
-  nsresult rv;
   nsCString folderUri;
   GetFirstFolderWithNewMail(folderUri);
 
