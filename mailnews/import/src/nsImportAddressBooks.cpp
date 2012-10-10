@@ -430,31 +430,30 @@ void nsImportGenericAddressBooks::GetDefaultFieldMap(void)
 NS_IMETHODIMP nsImportGenericAddressBooks::WantsProgress(bool *_retval)
 {
   NS_PRECONDITION(_retval != nullptr, "null ptr");
-    if (!_retval)
-        return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(_retval);
 
   GetDefaultLocation();
   GetDefaultBooks();
 
-  uint32_t    totalSize = 0;
-  bool        result = false;
+  bool result = false;
 
   if (m_pBooks) {
     uint32_t    count = 0;
-    nsresult     rv = m_pBooks->Count(&count);
     uint32_t    i;
     bool        import;
     uint32_t    size;
+    uint32_t    totalSize = 0;
+
+    (void) m_pBooks->Count(&count);
 
     for (i = 0; i < count; i++) {
-      nsCOMPtr<nsIImportABDescriptor> book =
-        do_QueryElementAt(m_pBooks, i);
+      nsCOMPtr<nsIImportABDescriptor> book = do_QueryElementAt(m_pBooks, i);
       if (book) {
         import = false;
         size = 0;
-        rv = book->GetImport(&import);
-        if (import) {
-          rv = book->GetSize(&size);
+        nsresult rv = book->GetImport(&import);
+        if (NS_SUCCEEDED(rv) && import) {
+          (void) book->GetSize(&size);
           result = true;
         }
         totalSize += size;
@@ -804,14 +803,15 @@ static void ImportAddressThread(void *stuff)
   IMPORT_LOG0("In Begin ImportAddressThread\n");
 
   AddressThreadData *pData = (AddressThreadData *)stuff;
-  uint32_t  count = 0;
-  nsresult   rv = pData->books->Count(&count);
+  uint32_t          count = 0;
   uint32_t          i;
   bool              import;
   uint32_t          size;
 
   nsString          success;
   nsString          error;
+
+  (void) pData->books->Count(&count);
 
   for (i = 0; (i < count) && !(pData->abort); i++) {
     nsCOMPtr<nsIImportABDescriptor> book =
@@ -820,10 +820,10 @@ static void ImportAddressThread(void *stuff)
       import = false;
       size = 0;
       rv = book->GetImport(&import);
-      if (import)
+      if (NS_SUCCEEDED(rv) && import)
         rv = book->GetSize(&size);
 
-      if (size && import) {
+      if (NS_SUCCEEDED(rv) && size && import) {
         nsString name;
         book->GetPreferredName(name);
 
@@ -857,7 +857,7 @@ static void ImportAddressThread(void *stuff)
                                                        &pError,
                                                        &pSuccess,
                                                        &fatalError);
-          if (pSuccess) {
+          if (NS_SUCCEEDED(rv) && pSuccess) {
             success.Append(pSuccess);
             NS_Free(pSuccess);
           }
