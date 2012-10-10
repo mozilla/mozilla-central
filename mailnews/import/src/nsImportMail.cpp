@@ -390,7 +390,8 @@ void nsImportGenericMail::GetDefaultDestination(void)
 NS_IMETHODIMP nsImportGenericMail::WantsProgress(bool *_retval)
 {
   NS_PRECONDITION(_retval != nullptr, "null ptr");
-  NS_ENSURE_ARG_POINTER(_retval);
+    if (!_retval)
+        return NS_ERROR_NULL_POINTER;
 
   if (m_pThreadData) {
     m_pThreadData->DriverAbort();
@@ -406,25 +407,27 @@ NS_IMETHODIMP nsImportGenericMail::WantsProgress(bool *_retval)
     GetDefaultDestination();
   }
 
-  bool result = false;
+  uint32_t    totalSize = 0;
+  bool        result = false;
 
   if (m_pMailboxes) {
     uint32_t    i;
     bool        import;
     uint32_t    count = 0;
+    nsresult    rv;
     uint32_t    size;
-    uint32_t    totalSize = 0;
 
-    (void) m_pMailboxes->Count(&count);
+    rv = m_pMailboxes->Count(&count);
+
     for (i = 0; i < count; i++) {
       nsCOMPtr<nsIImportMailboxDescriptor> box =
         do_QueryElementAt(m_pMailboxes, i);
       if (box) {
         import = false;
         size = 0;
-        nsresult rv = box->GetImport(&import);
-        if (NS_SUCCEEDED(rv) && import) {
-          (void) box->GetSize(&size);
+        rv = box->GetImport(&import);
+        if (import) {
+          rv = box->GetSize(&size);
           result = true;
         }
         totalSize += size;
