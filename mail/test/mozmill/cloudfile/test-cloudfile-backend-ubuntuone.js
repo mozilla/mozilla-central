@@ -153,7 +153,7 @@ function test_chained_uploads() {
 
   mc.waitFor(function() {
     return observers.every(function(aListener) aListener.success);
-  }, "Timed out waiting for chained uploads to complete.");
+  }, "Timed out waiting for chained uploads to complete.", 10000);
 
   assert_equals(kFilenames.length, obs.numSightings(kUploadFile));
 
