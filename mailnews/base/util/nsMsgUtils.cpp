@@ -71,6 +71,7 @@
 #include "nsIDocumentEncoder.h"
 #include "mozilla/Services.h"
 #include "mozilla/Util.h"
+#include "locale.h"
 using namespace mozilla;
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
@@ -522,6 +523,26 @@ nsresult FormatFileSize(uint64_t size, bool useKB, nsAString &formattedSize)
   nsTextFormatter::ssprintf(
     formattedSize, sizeAbbr.get(),
     (unitIndex != 0) && (unitSize < 99.95 && unitSize != 0) ? 1 : 0, unitSize);
+
+  PRInt32 separatorPos = formattedSize.FindChar('.');
+  if (separatorPos != kNotFound) {
+    // The ssprintf returned a decimal number using a dot (.) as the decimal
+    // separator. Now we try to localize the separator.
+    // Try to get the decimal separator from the system's locale.
+    char *decimalPoint;
+#ifdef HAVE_LOCALECONV
+    struct lconv *locale = localeconv();
+    decimalPoint = locale->decimal_point;
+#else
+    decimalPoint = getenv("LOCALE_DECIMAL_POINT");
+#endif
+    NS_ConvertUTF8toUTF16 decimalSeparator(decimalPoint);
+    if (decimalSeparator.IsEmpty())
+      decimalSeparator.AssignLiteral(".");
+
+    formattedSize.Replace(separatorPos, 1, decimalSeparator);
+  }
+
   return NS_OK;
 }
 
