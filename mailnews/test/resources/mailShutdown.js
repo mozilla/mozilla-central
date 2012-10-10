@@ -9,14 +9,11 @@
 // See also http://developer.mozilla.org/en/Observer_Notifications
 function postShutdownNotifications()
 {
-  var observerService = Cc["@mozilla.org/observer-service;1"]
-                          .getService(Components.interfaces.nsIObserverService);
-
   // first give everyone a heads up about us shutting down. if someone wants
   // to cancel this, our test should fail.
   var cancelQuit = Cc["@mozilla.org/supports-PRBool;1"]
                      .createInstance(Components.interfaces.nsISupportsPRBool);
-  observerService.notifyObservers(cancelQuit, "quit-application-requested", null);
+  Services.obs.notifyObservers(cancelQuit, "quit-application-requested", null);
   if (cancelQuit.data) {
     do_throw("Cannot shutdown: Someone cancelled the quit request!");
   }
@@ -27,7 +24,7 @@ function postShutdownNotifications()
                        "profile-change-teardown",
                        "profile-before-change"];
   notifications.forEach(function(notification) {
-                          observerService.notifyObservers(null, notification, null)
+                          Services.obs.notifyObservers(null, notification, null)
                         });
 
   // finally, the xpcom-shutdown notification is handled by XPCOM itself.
@@ -41,7 +38,6 @@ postShutdownNotifications();
 
 gProfileDir = null;
 if (gProfileDirProvider) {
-  var dirSvc = Cc["@mozilla.org/file/directory_service;1"]
-    .getService(Ci.nsIProperties);
-  dirSvc.unregisterProvider(gProfileDirProvider);
+  Services.dirsvc.QueryInterface(Ci.nsIDirectoryService)
+                 .unregisterProvider(gProfileDirProvider);
  }
