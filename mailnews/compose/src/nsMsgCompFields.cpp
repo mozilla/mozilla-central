@@ -182,17 +182,6 @@ NS_IMETHODIMP nsMsgCompFields::GetNewsgroups(nsAString &aGroup)
   return GetUnicodeHeader(MSG_NEWSGROUPS_HEADER_ID, aGroup);
 }
 
-NS_IMETHODIMP nsMsgCompFields::SetNewshost(const char *value)
-{
-  return SetAsciiHeader(MSG_NEWSPOSTURL_HEADER_ID, value);
-}
-
-NS_IMETHODIMP nsMsgCompFields::GetNewshost(char **_retval)
-{
-  *_retval = strdup(GetAsciiHeader(MSG_NEWSPOSTURL_HEADER_ID));
-  return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
-}
-
 NS_IMETHODIMP nsMsgCompFields::SetFollowupTo(const nsAString &aValue)
 {
   return SetUnicodeHeader(MSG_FOLLOWUP_TO_HEADER_ID, aValue);

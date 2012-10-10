@@ -574,9 +574,9 @@ nsMsgSendLater::CompleteMailFileSend()
     fields->SetNewsgroups(m_newsgroups);
 
 #if 0
-  // needs cleanup.  SetNewspostUrl()?
+  // needs cleanup. Is this needed?
   if (m_newshost)
-    fields->SetNewshost(m_newshost);
+    fields->SetNewspostUrl(m_newshost);
 #endif
 
   // Create the listener for the send operation...

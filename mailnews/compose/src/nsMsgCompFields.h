@@ -114,8 +114,6 @@ public:
   nsresult SetNewsgroups(const char *aValue) {return SetAsciiHeader(MSG_NEWSGROUPS_HEADER_ID, aValue);}
   const char* GetNewsgroups() {return GetAsciiHeader(MSG_NEWSGROUPS_HEADER_ID);}
 
-  const char* GetNewshost() {return GetAsciiHeader(MSG_NEWSPOSTURL_HEADER_ID);}
-
   nsresult SetFollowupTo(const char *aValue) {return SetAsciiHeader(MSG_FOLLOWUP_TO_HEADER_ID, aValue);}
   const char* GetFollowupTo() {return GetAsciiHeader(MSG_FOLLOWUP_TO_HEADER_ID);}
 

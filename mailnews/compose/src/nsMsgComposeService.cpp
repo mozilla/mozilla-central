@@ -574,7 +574,7 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, nsIMsgDB
                             nsINetUtil::ESCAPE_URL_FILE_BASENAME | nsINetUtil::ESCAPE_URL_FORCED,
                             unescapedName);
           pMsgCompFields->SetNewsgroups(NS_ConvertUTF8toUTF16(unescapedName));
-          pMsgCompFields->SetNewshost(host.get());
+          pMsgCompFields->SetNewspostUrl(host.get());
         }
         else
         {

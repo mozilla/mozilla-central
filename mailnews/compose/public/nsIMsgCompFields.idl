@@ -20,7 +20,6 @@ interface nsIMsgCompFields : nsISupports {
   attribute AString fcc2;
 
   attribute AString newsgroups;
-  attribute string  newshost;
   attribute string  newspostUrl;
   attribute AString followupTo;
 
