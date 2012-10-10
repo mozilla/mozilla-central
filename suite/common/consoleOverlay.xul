@@ -90,4 +90,6 @@
     </toolbar>
   </toolbox>
 
+  <textbox id="Filter" accesskey="&filter.accesskey;"/>
+
 </overlay>
