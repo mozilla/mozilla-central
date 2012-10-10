@@ -334,7 +334,6 @@ nsresult nsMsgCompose::ResetUrisForEmbeddedObjects()
   nsCString curDraftIdURL;
 
   rv = m_compFields->GetDraftId(getter_Copies(curDraftIdURL));
-  NS_ASSERTION((NS_SUCCEEDED(rv) && (!curDraftIdURL.IsEmpty())), "RemoveCurrentDraftMessage can't get draft id");
 
   // Skip if no draft id (probably a new draft msg).
   if (NS_SUCCEEDED(rv) && mMsgSend && !curDraftIdURL.IsEmpty())
