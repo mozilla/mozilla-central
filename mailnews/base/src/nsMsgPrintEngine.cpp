@@ -2,8 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-// nsMsgPrintEngine.cpp: provides a DocShell container for use 
-// in printing
+/**
+ * nsMsgPrintEngine.cpp provides a DocShell container for use in printing.
+ */
 
 #include "nscore.h"
 #include "nsCOMPtr.h"
@@ -13,21 +14,16 @@
 #include "nsISupports.h"
 
 #include "nsIURI.h"
-#include "nsIDocShell.h"
+
 #include "nsPIDOMWindow.h"
 #include "nsIContentViewer.h"
-#include "nsIPresShell.h"
-#include "nsIDocument.h"
 #include "nsIMsgMessageService.h"
 #include "nsMsgUtils.h"
 #include "nsIWebProgress.h"
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsIMarkupDocumentViewer.h"
 #include "nsMsgPrintEngine.h"
-#include "nsMsgBaseCID.h"
 #include "nsIDocumentLoader.h"
-#include "nsIWidget.h"
-#include "nsIXULWindow.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsThreadUtils.h"
@@ -42,7 +38,6 @@
 #include "nsIWebNavigation.h"
 #include "nsIChannel.h"
 #include "nsIContentViewerFile.h"
-#include "nsIPrintingPromptService.h"
 #include "nsServiceManagerUtils.h"
 
 static const char* kPrintingPromptService = "@mozilla.org/embedcomp/printingprompt-service;1";
