@@ -337,7 +337,23 @@ Wrapper::fun_toString(JSContext *cx, JSObject *wrapper, uintN indent)
 bool
 Wrapper::defaultValue(JSContext *cx, JSObject *wrapper, JSType hint, Value *vp)
 {
-    *vp = ObjectValue(*wrappedObject(wrapper));
+    // If the wrapper doesn't subsume the wrapped object, run the default value
+    // algorithm on the wrapper itself. If it does, unwrap and process the
+    // underlying object.
+    JSObject *wrapped = wrappedObject(wrapper);
+    JSPrincipals *wrapperPrincipals = wrapper->compartment()->principals;
+    JSPrincipals *wrappedPrincipals = wrapped->compartment()->principals;
+    if (!wrapperPrincipals || !wrappedPrincipals ||
+        !wrapperPrincipals->subsume(wrapperPrincipals, wrappedPrincipals))
+    {
+        return DefaultValue(cx, wrapper, hint, vp);
+    }
+
+    AutoCompartment call(cx, wrapped);
+    if (!call.enter())
+        return false;
+
+    *vp = ObjectValue(*wrapped);
     if (hint == JSTYPE_VOID)
         return ToPrimitive(cx, vp);
     return ToPrimitive(cx, hint, vp);
@@ -830,15 +846,12 @@ CrossCompartmentWrapper::fun_toString(JSContext *cx, JSObject *wrapper, uintN in
 bool
 CrossCompartmentWrapper::defaultValue(JSContext *cx, JSObject *wrapper, JSType hint, Value *vp)
 {
-    AutoCompartment call(cx, wrappedObject(wrapper));
-    if (!call.enter())
-        return false;
-
+    // We don't want to enter the compartment yet. Wrapper::defaultValue will
+    // decide whether to do that or not.
     if (!Wrapper::defaultValue(cx, wrapper, hint, vp))
         return false;
 
-    call.leave();
-    return call.origin->wrap(cx, vp);
+    return cx->compartment->wrap(cx, vp);
 }
 
 void

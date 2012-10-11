@@ -68,6 +68,7 @@ _CHROME_FILES = \
 		test_bug654370.xul \
 		test_bug658560.xul \
 		test_bug679861.xul \
+		test_bug720619.xul \
 		test_bug760109.xul \
 		test_APIExposer.xul \
 		test_bug664689.xul \
