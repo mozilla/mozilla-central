@@ -353,10 +353,26 @@ Wrapper::defaultValue(JSContext *cx, JSObject *wrapper, JSType hint, Value *vp)
     if (!call.enter())
         return false;
 
+    // Given the subsumes check above, we should definitely be able to enter
+    // the compartment at this point. However, we still want to call the
+    // enter() policy enforcement trap on the wrapper, because that might have
+    // *ahem* important side effects. It really shouldn't fail, but given that
+    // this is a late-breaking esr10 fix, let's just handle the failure if it
+    // happens.
+    //
+    // NB: Passing JSID_VOID as the 'property being accessed' here mimics what
+    // we do for things like enumerate. Given that we're not actually expecting
+    // to be vetoed here, that should be fine.
+    bool status;
+    if (!enter(cx, wrapper, JSID_VOID, GET, &status))
+        return status; // Totally unexpected, but roll with it. This is safe.
     *vp = ObjectValue(*wrapped);
     if (hint == JSTYPE_VOID)
-        return ToPrimitive(cx, vp);
-    return ToPrimitive(cx, hint, vp);
+        status = ToPrimitive(cx, vp);
+    else
+        status = ToPrimitive(cx, hint, vp);
+    leave(cx, wrapper);
+    return status;
 }
 
 void
