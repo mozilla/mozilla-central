@@ -83,7 +83,8 @@ nsresult
 nsMsgDisplayMessageByString(nsIPrompt * aPrompt, const PRUnichar * msg, const PRUnichar * windowTitle)
 {
   NS_ENSURE_ARG_POINTER(msg);
-  nsresult rv;
+
+  nsresult rv = NS_OK;
   nsCOMPtr<nsIPrompt> prompt = aPrompt;
 
   if (!prompt)
@@ -95,17 +96,17 @@ nsMsgDisplayMessageByString(nsIPrompt * aPrompt, const PRUnichar * msg, const PR
 
   if (prompt)
     rv = prompt->Alert(windowTitle, msg);
-  return NS_OK;
+
+  return rv;
 }
 
 nsresult
 nsMsgAskBooleanQuestionByString(nsIPrompt * aPrompt, const PRUnichar * msg, bool *answer, const PRUnichar * windowTitle)
 {
-  nsresult rv;
-  nsCOMPtr<nsIPrompt> dialog = aPrompt;
+  NS_ENSURE_TRUE(msg && *msg, NS_ERROR_INVALID_ARG);
 
-  if ((!msg) || (!*msg))
-    return NS_ERROR_INVALID_ARG;
+  nsresult rv = NS_OK;
+  nsCOMPtr<nsIPrompt> dialog = aPrompt;
 
   if (!dialog)
   {
@@ -114,10 +115,9 @@ nsMsgAskBooleanQuestionByString(nsIPrompt * aPrompt, const PRUnichar * msg, bool
       wwatch->GetNewPrompter(0, getter_AddRefs(dialog));
   }
 
-  if (dialog)
-  {
+  if (dialog) {
     rv = dialog->Confirm(windowTitle, msg, answer);
   }
 
-  return NS_OK;
+  return rv;
 }

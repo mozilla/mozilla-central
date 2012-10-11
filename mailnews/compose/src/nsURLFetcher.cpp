@@ -241,20 +241,18 @@ nsURLFetcher::OnStartRequest(nsIRequest *request, nsISupports *ctxt)
 NS_IMETHODIMP
 nsURLFetcher::OnStopRequest(nsIRequest *request, nsISupports * ctxt, nsresult aStatus)
 {
-
-  nsresult rv = NS_OK;
-
   // it's possible we could get in here from the channel calling us with an OnStopRequest and from our
   // onStatusChange method (in the case of an error). So we should protect against this to make sure we
   // don't process the on stop request twice...
 
   if (mOnStopRequestProcessed)
     return NS_OK;
+
   mOnStopRequestProcessed = true;
-  
+
   /* first, call our converter or consumer */
   if (mConverter)
-    rv = mConverter->OnStopRequest(request, ctxt, aStatus);
+    (void) mConverter->OnStopRequest(request, ctxt, aStatus);
 
   nsMsgAttachmentHandler *attachmentHdl = (nsMsgAttachmentHandler *)mTagData;
   if (attachmentHdl)

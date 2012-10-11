@@ -1279,10 +1279,12 @@ nsMsgComposeAndSend::GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData
   NS_ENSURE_ARG_POINTER(attachment);
   NS_ENSURE_ARG_POINTER(acceptObject);
 
-// GetEmbeddedObjectInfo will determine if we need to attach the source of the embedded object with the message
-// The decision is made automatically unless the attribute moz-do-not-send has been set to true or false
-// The default rule is that all image and anchor objects are attached as well link to a local file
-  nsresult rv;
+  // GetEmbeddedObjectInfo will determine if we need to attach the source of the
+  // embedded object with the message. The decision is made automatically unless
+  // the attribute moz-do-not-send has been set to true or false.
+  // The default rule is that all image and anchor objects are attached as well
+  // link to a local file
+  nsresult rv = NS_OK;
 
   // Reset this structure to null!
   *acceptObject = false;
@@ -1415,7 +1417,7 @@ nsMsgComposeAndSend::GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData
 
   //
   // Before going further, check if we are dealing with a local file and
-  // if it's the case be sure the file exist!
+  // if it's the case be sure the file exists!
   bool schemeIsFile = false;
   if (attachment->m_url)
     rv = attachment->m_url->SchemeIs("file", &schemeIsFile);
