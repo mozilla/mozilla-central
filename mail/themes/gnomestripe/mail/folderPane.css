@@ -122,7 +122,7 @@ treechildren::-moz-tree-image(folderNameCol, serverType-rss) {
 .tabmail-tab[type="folder"][IsServer="true"][ServerType="imap"][IsSecure="true"],
 .tabmail-tab[type="folder"][IsServer="true"][ServerType="pop3"][IsSecure="true"] {
   list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
-  -moz-image-region: rect(16px 16px 32px 0px);
+  -moz-image-region: rect(16px 32px 32px 16px);
 }
 
 /* ..... Local folders ..... */
@@ -160,7 +160,7 @@ treechildren::-moz-tree-image(folderNameCol, isServer-true) {
 treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-pop3, isSecure-true),
 treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-imap, isSecure-true) {
   list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
-  -moz-image-region: rect(16px 16px 32px 0px);
+  -moz-image-region: rect(16px 32px 32px 16px);
 }
 
 /* ..... Local folders ..... */
