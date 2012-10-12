@@ -816,6 +816,11 @@ ircAccount.prototype = {
     if (!hasOwnProperty(this.whoisInformation, nick))
       this.whoisInformation[nick] = {"nick": aNick};
   },
+  // Copies the fields of aFields into the whois table. If the field already
+  // exists, that field is ignored (it is assumed that the first server response
+  // is the most up to date information, as is the case for 312/314). Note that
+  // the whois info for a nick is reset whenever whois information is requested,
+  // so the first response from each whois is recorded.
   setWhois: function(aNick, aFields) {
     let nick = this.normalize(aNick, this.userPrefixes);
     // If the nickname isn't in the list yet, add it.
@@ -825,9 +830,11 @@ ircAccount.prototype = {
     // Set non-normalized nickname field.
     this.whoisInformation[nick]["nick"] = aNick;
 
-    // Set the WHOIS fields.
-    for (let field in aFields)
-      this.whoisInformation[nick][field] = aFields[field];
+    // Set the WHOIS fields, but only the first time a field is set.
+    for (let field in aFields) {
+      if (!this.whoisInformation[nick].hasOwnProperty(field))
+        this.whoisInformation[nick][field] = aFields[field];
+    }
 
     return true;
   },
