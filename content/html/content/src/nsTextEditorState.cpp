@@ -1011,31 +1011,29 @@ public:
   PrepareEditorEvent(nsTextEditorState &aState,
                      nsIContent *aOwnerContent,
                      const nsAString &aCurrentValue)
-    : mState(aState.asWeakPtr())
+    : mState(aState)
     , mOwnerContent(aOwnerContent)
     , mCurrentValue(aCurrentValue)
   {
-    aState.mValueTransferInProgress = true;
+    mState.mValueTransferInProgress = true;
   }
 
   NS_IMETHOD Run() {
-    NS_ENSURE_TRUE(mState, NS_ERROR_NULL_POINTER);
-
     // Transfer the saved value to the editor if we have one
     const nsAString *value = nsnull;
     if (!mCurrentValue.IsEmpty()) {
       value = &mCurrentValue;
     }
 
-    mState->PrepareEditor(value);
+    mState.PrepareEditor(value);
 
-    mState->mValueTransferInProgress = false;
+    mState.mValueTransferInProgress = false;
 
     return NS_OK;
   }
 
 private:
-  WeakPtr<nsTextEditorState> mState;
+  nsTextEditorState &mState;
   nsCOMPtr<nsIContent> mOwnerContent; // strong reference
   nsAutoString mCurrentValue;
 };
