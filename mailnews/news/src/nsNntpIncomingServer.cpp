@@ -723,10 +723,12 @@ nsNntpIncomingServer::OnStopRunningUrl(nsIURI *url, nsresult exitCode)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::ContainsNewsgroup(const nsACString &name,
+nsNntpIncomingServer::ContainsNewsgroup(const nsACString &aName,
                                         bool *containsGroup)
 {
-    if (name.IsEmpty()) return NS_ERROR_FAILURE;
+    NS_ENSURE_ARG_POINTER(containsGroup);
+    NS_ENSURE_FALSE(aName.IsEmpty(), NS_ERROR_FAILURE);
+
     if (mSubscribedNewsgroups.Length() == 0)
     {
       // If this is empty, we may need to discover folders
@@ -739,8 +741,8 @@ nsNntpIncomingServer::ContainsNewsgroup(const nsACString &name,
       }
     }
     nsAutoCString unescapedName;
-    MsgUnescapeString(name, 0, unescapedName);
-    *containsGroup = mSubscribedNewsgroups.Contains(name);
+    MsgUnescapeString(aName, 0, unescapedName);
+    *containsGroup = mSubscribedNewsgroups.Contains(aName);
     return NS_OK;
 }
 
@@ -748,17 +750,21 @@ NS_IMETHODIMP
 nsNntpIncomingServer::SubscribeToNewsgroup(const nsACString &aName)
 {
     NS_ASSERTION(!aName.IsEmpty(), "no name");
-    if (aName.IsEmpty()) return NS_ERROR_FAILURE;
+    NS_ENSURE_FALSE(aName.IsEmpty(), NS_ERROR_FAILURE);
+
+    // If we already have this newsgroup, do nothing and report success.
+    bool containsGroup = false;
+    nsresult rv = ContainsNewsgroup(aName, &containsGroup);
+    NS_ENSURE_SUCCESS(rv, rv);
+    if (containsGroup)
+      return NS_OK;
 
     nsCOMPtr<nsIMsgFolder> msgfolder;
-    nsresult rv = GetRootMsgFolder(getter_AddRefs(msgfolder));
-    if (NS_FAILED(rv)) return rv;
-    if (!msgfolder) return NS_ERROR_FAILURE;
+    rv = GetRootMsgFolder(getter_AddRefs(msgfolder));
+    NS_ENSURE_SUCCESS(rv, rv);
+    NS_ENSURE_TRUE(msgfolder, NS_ERROR_FAILURE);
 
-    rv = msgfolder->CreateSubfolder(NS_ConvertUTF8toUTF16(aName), nullptr);
-    if (NS_FAILED(rv)) return rv;
-
-    return NS_OK;
+    return msgfolder->CreateSubfolder(NS_ConvertUTF8toUTF16(aName), nullptr);
 }
 
 bool
