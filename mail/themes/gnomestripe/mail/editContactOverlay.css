@@ -19,6 +19,7 @@
   list-style-image: url("chrome://messenger/skin/starred48.png");
   width: 48px;
   height: 48px;
+  min-height: 48px;
 }
 
 #editContactPanelTitle {

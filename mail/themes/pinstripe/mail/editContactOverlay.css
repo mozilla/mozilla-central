@@ -11,13 +11,16 @@
 
 #editContactPanel {
   -moz-appearance: none;
-  background-color: rgba(68,68,68,0.9);
+  background-color: #EDEDED;
   border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 8px;
-  border-top-left-radius: 0px ;
+  border-radius: 5px;
+  border-top-left-radius: 0px;
   padding: 10px 8px 6px;
   margin-top: 4px;
-  color: #ffffff;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .5) inset,
+              0 1px 0 rgba(255, 255, 255, .05) inset,
+              0 0 0 1px rgba(0, 0, 0, .25);
+  color: #333;
 }
 
 #editContactPanel > #editContactContent {
@@ -28,6 +31,7 @@
   list-style-image: url("chrome://messenger/skin/starred48.png");
   width: 48px;
   height: 48px;
+  min-height: 48px;
 }
 
 #editContactPanelTitle {
@@ -49,25 +53,25 @@
 #editContactPanel > hbox > vbox > hbox > button,
 #editContactPanel > #editContactPanelBottomButtons > button {
   -moz-appearance: none;
-  background: url("chrome://messenger/skin/hud-style-button-middle-background.png") repeat-x #464646 center center;
-  border-width: 3px;
-  border-style: solid;
-  border-radius: 20px;
-  -moz-border-top-colors: rgba(0,0,0,0.35) rgba(26,26,26,0.5) rgba(255,255,255,0.4);
-  -moz-border-right-colors: rgba(0,0,0,0.35) rgba(26,26,26,0.5) rgba(255,255,255,0.4);
-  -moz-border-bottom-colors: rgba(128,128,128,0.35) rgba(0,0,0,0.5) rgba(255,255,255,0.15);
-  -moz-border-left-colors: rgba(0,0,0,0.35) rgba(26,26,26,0.5) rgba(255,255,255,0.4);
-  padding: 0 9px;
+  color: #434343;
+  border-radius: 4px;
+  border: 1px solid #B5B5B5;
+  background: linear-gradient(#FFFFFF, #F2F2F2);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.8),
+              inset 0 0 1px rgba(255, 255, 255, 0.25),
+              0 1px rgba(255, 255, 255, 0.3);
+  background-clip: padding-box;
+  background-origin: padding-box;
+  padding: 2px 6px;
   margin: 6px;
   min-width: 79px;
   min-height: 22px;
-  color: #ffffff;
 }
 
 #editContactPanel > hbox > button:hover:active,
 #editContactPanel > hbox > vbox > hbox > button:hover:active,
 #editContactPanel > #editContactPanelBottomButtons > button:hover:active {
-  background-color: #86888B;
+  box-shadow: inset 0 1px 4px -3px #000, 0 1px rgba(255, 255, 255, 0.3);
 }
 
 #editContactPanel > hbox > button:focus,
@@ -78,62 +82,51 @@
   -moz-outline-radius: 100%;
 }
 
-#editContactPanel > #editContactPanelBottomButtons > button[default="true"] {
-  background-color: #666;
-}
-
 .editContactTextbox {
   -moz-appearance: none !important;
   cursor: text;
-  margin: 2px 4px;
-  border: 2px solid;
-  -moz-border-top-colors: #1c1c1c #545454;
-  -moz-border-right-colors: #1c1c1c #636363;
-  -moz-border-bottom-colors: #1c1c1c #797979;
-  -moz-border-left-colors: #1c1c1c #636363;
-  border-radius: 1px;
-  padding: 0;
-  background-color: #666666;
-  color: #ffffff;
+  margin: 2px 6px;
+  background: linear-gradient(#FAFAFA, #FFFFFF);
+  background-clip: padding-box;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 1px 1px 1px rgba(0, 0, 0, 0.05),
+              0 1px rgba(255, 255, 255, 0.3);
+  padding: 3px 6px;
 }
 
 .editContactTextbox[readonly="true"] {
   -moz-appearance: none;
-  margin: 2px 4px;
-  padding: 2px;
-  border: none;
-  background-color: inherit;
-  color: #ffffff;
+  border-color: transparent;
+  background: #EDEDED;
+  box-shadow: none;
 }
 
 .editContactTextbox[focused="true"] {
-  outline: 2px solid -moz-mac-focusring;
-  padding: 1px;
-  outline-offset: -1px;
-  -moz-outline-radius: 1px;
-  background-color: #eeeeee;
-  color: #000000;
+  border-color: -moz-mac-focusring !important;
+  box-shadow: 0 0 1px -moz-mac-focusring inset,
+              0 0 4px 1px -moz-mac-focusring,
+              0 0 1.5px 1px -moz-mac-focusring;
 }
 
 .editContactTextbox[focused="true"][readonly="true"] {
-  outline: none;
-  background-color: inherit;
-  color: #ffffff;
+  border-color: transparent !important;
+  box-shadow: none;
 }
 
 #editContactAddressBookList {
   -moz-appearance: none;
-  background: url("chrome://messenger/skin/hud-style-button-middle-background.png") repeat-x #464646 center center;
-  border: 3px solid;
-  border-radius: 5px;
-  -moz-border-top-colors: rgba(0,0,0,0.35) rgba(26,26,26,0.5) rgba(255,255,255,0.4);
-  -moz-border-right-colors: rgba(53,53,53,1) rgba(53,53,53,1) rgba(162,162,162,1);
-  -moz-border-bottom-colors: rgba(128,128,128,0.35) rgba(0,0,0,0.5) rgba(255,255,255,0.15);
-  -moz-border-left-colors: rgba(0,0,0,0.35) rgba(26,26,26,0.5) rgba(255,255,255,0.4);
-  margin: 0 3px !important;
-  min-height: 22px;
-  -moz-padding-start: 2px;
-  color: #ffffff !important;
+  color: #434343;
+  border-radius: 4px;
+  border: 1px solid #B5B5B5;
+  background: linear-gradient(#FFFFFF, #F2F2F2);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.8),
+              inset 0 0 1px rgba(255, 255, 255, 0.25),
+              0 1px rgba(255, 255, 255, 0.3);
+  background-clip: padding-box;
+  background-origin: padding-box;
+  padding: 2px 6px;
+  margin: 0 6px;
 }
 
 #editContactAddressBookList:focus {
@@ -153,10 +146,12 @@
   border: 0;
   margin: 0;
   padding: 0;
+  -moz-padding-end: 4px;
+  width: 7px;
 }
 
 #editContactAddressBookList > .menulist-dropmarker > .dropmarker-icon {
-  list-style-image: url("chrome://messenger/skin/hud-style-dropmarker-double-arrows.png");
+  list-style-image: url("chrome://global/skin/icons/panel-dropmarker.png");
 }
 
 #contactMoveDisabledText {

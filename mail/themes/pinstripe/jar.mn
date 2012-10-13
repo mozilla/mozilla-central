@@ -65,8 +65,6 @@ classic.jar:
   skin/classic/messenger/activity/deleteMailIcon.png             (mail/activity/deleteMailIcon.png)
   skin/classic/messenger/activity/compactMailIcon.png            (mail/activity/compactMailIcon.png)
   skin/classic/messenger/activity/indexMailIcon.png              (mail/activity/indexMailIcon.png)
-  skin/classic/messenger/hud-style-button-middle-background.png  (mail/hud-style-button-middle-background.png)
-  skin/classic/messenger/hud-style-dropmarker-double-arrows.png  (mail/hud-style-dropmarker-double-arrows.png)
   skin/classic/messenger/addressbook/addressbook.css             (mail/addrbook/addressbook.css)
   skin/classic/messenger/addressbook/abContactsPanel.css         (mail/addrbook/abContactsPanel.css)
   skin/classic/messenger/addressbook/cardDialog.css              (mail/addrbook/cardDialog.css)
