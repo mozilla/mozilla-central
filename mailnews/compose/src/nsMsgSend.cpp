@@ -254,7 +254,6 @@ nsMsgComposeAndSend::nsMsgComposeAndSend() :
 {
   mGUINotificationEnabled = true;
   mAbortInProcess = false;
-  mLastErrorReported = NS_OK;
   mMultipartRelatedAttachmentCount = -1;
   mSendMailAlso = false;
 
@@ -2667,10 +2666,10 @@ nsMsgComposeAndSend::HackAttachments(nsIArray *attachments,
   return NS_OK;
 }
 
-int nsMsgComposeAndSend::SetMimeHeader(nsMsgCompFields::MsgHeaderID header, const char *value)
+nsresult nsMsgComposeAndSend::SetMimeHeader(nsMsgCompFields::MsgHeaderID header, const char *value)
 {
   char * dupHeader = nullptr;
-  int32_t ret = NS_ERROR_OUT_OF_MEMORY;
+  nsresult ret = NS_ERROR_OUT_OF_MEMORY;
 
   switch (header)
   {
@@ -3252,9 +3251,6 @@ nsMsgComposeAndSend::Init(
               MSG_ComposeType aType)
 {
   nsresult      rv = NS_OK;
-
-  //Reset last error
-  mLastErrorReported = NS_OK;
 
   //Let make sure we retreive the correct number of related parts. It may have changed since last time
   GetMultipartRelatedCount(true);

@@ -260,7 +260,7 @@ nsMsgAttachmentHandler::AnalyzeSnarfedFile(void)
 // Given a content-type and some info about the contents of the document,
 // decide what encoding it should have.
 //
-int
+nsresult
 nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_delivery_state)
 {
   nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
@@ -271,7 +271,7 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
   if (mSendViaCloud)
   {
     m_encoding = ENCODING_7BIT;
-    return 0;
+    return NS_OK;
   }
   if (m_already_encoded_p)
     goto DONE;
@@ -422,7 +422,7 @@ DONE:
     else
       m_type = TEXT_PLAIN;
   }
-  return 0;
+  return NS_OK;
 }
 
 nsresult

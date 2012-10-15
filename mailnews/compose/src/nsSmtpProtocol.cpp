@@ -1921,7 +1921,7 @@ nsresult nsSmtpProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
     */
     if (NS_FAILED(status) && m_nextState != SMTP_FREE) {
       // send a quit command to close the connection with the server.
-      if (SendQuit(SMTP_ERROR_DONE) < 0)
+      if (NS_FAILED(SendQuit(SMTP_ERROR_DONE)))
       {
         m_nextState = SMTP_ERROR_DONE;
         // Don't exit - loop around again and do the free case

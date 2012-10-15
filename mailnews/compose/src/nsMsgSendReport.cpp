@@ -282,7 +282,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, bool showErrorOn
 
     bundle->GetStringFromID(NS_MSG_SEND_ERROR_TITLE, getter_Copies(dialogTitle));
 
-    int32_t preStrId = NS_ERROR_SEND_FAILED;
+    nsresult preStrId = NS_ERROR_SEND_FAILED;
     bool askToGoBackToCompose = false;
     switch (mCurrentProcess)
     {
@@ -312,7 +312,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, bool showErrorOn
         askToGoBackToCompose = (mDeliveryMode == nsIMsgCompDeliverMode::Now);
         break;
     }
-    bundle->GetStringFromID(preStrId, getter_Copies(dialogMessage));
+    bundle->GetStringFromID(NS_ERROR_GET_CODE(preStrId), getter_Copies(dialogMessage));
 
     //Do we already have an error message?
     if (!askToGoBackToCompose && currMessage.IsEmpty())
@@ -350,7 +350,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, bool showErrorOn
   else
   {
     int32_t titleID;
-    int32_t preStrId;
+    nsresult preStrId;
 
     switch (mDeliveryMode)
     {
@@ -378,8 +378,8 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, bool showErrorOn
     }
 
     bundle->GetStringFromID(titleID, getter_Copies(dialogTitle));
-    // preStrId could be a string ID or it could be an error code...yuck.
-    bundle->GetStringFromID(NS_IS_MSG_ERROR(preStrId) ? NS_ERROR_GET_CODE(preStrId) : preStrId, getter_Copies(dialogMessage));
+    bundle->GetStringFromID(NS_ERROR_GET_CODE(preStrId),
+                            getter_Copies(dialogMessage));
 
     //Do we have an error message...
     if (currMessage.IsEmpty())

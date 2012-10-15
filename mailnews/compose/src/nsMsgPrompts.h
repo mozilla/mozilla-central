@@ -12,10 +12,12 @@
 
 class nsIPrompt;
 
-nsresult      nsMsgGetMessageByID(int32_t aMsgID, nsString& aResult);
+nsresult      nsMsgGetMessageByID(nsresult aMsgID, nsString& aResult);
+nsresult      nsMsgGetMessageByName(const nsString &aName, nsString& aResult);
 nsresult      nsMsgBuildMessageWithFile(nsIFile * aFile, nsString& aResult);
 nsresult      nsMsgBuildMessageWithTmpFile(nsIFile * aFile, nsString& aResult);
-nsresult      nsMsgDisplayMessageByID(nsIPrompt * aPrompt, int32_t msgID, const PRUnichar * windowTitle = nullptr);
+nsresult      nsMsgDisplayMessageByID(nsIPrompt * aPrompt, nsresult msgID, const PRUnichar * windowTitle = nullptr);
+nsresult      nsMsgDisplayMessageByName(nsIPrompt *aPrompt, const nsString &aName, const PRUnichar *windowTitle = nullptr);
 nsresult      nsMsgDisplayMessageByString(nsIPrompt * aPrompt, const PRUnichar * msg, const PRUnichar * windowTitle = nullptr);
 nsresult      nsMsgAskBooleanQuestionByString(nsIPrompt * aPrompt, const PRUnichar * msg, bool *answer, const PRUnichar * windowTitle = nullptr);
 

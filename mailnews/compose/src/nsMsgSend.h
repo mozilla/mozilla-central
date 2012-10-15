@@ -223,7 +223,7 @@ public:
                                     const nsACString &aOriginalMsgURI,
                                     MSG_ComposeType aType);
 
-  int         SetMimeHeader(nsMsgCompFields::MsgHeaderID header, const char *value);
+  nsresult    SetMimeHeader(nsMsgCompFields::MsgHeaderID header, const char *value);
   NS_IMETHOD  GetBodyFromEditor();
 
 
@@ -355,7 +355,6 @@ public:
                                                         // server to be opened, or would cause much seek()ing.
 
   bool                    mGUINotificationEnabled;      // Should we throw up the GUI alerts on errors?
-  bool                    mLastErrorReported;           // Last error reported to the user.
   bool                    mAbortInProcess;              // Used by Abort to avoid reentrance.
 
   nsCOMPtr<nsIMsgComposeSecure> m_crypto_closure;

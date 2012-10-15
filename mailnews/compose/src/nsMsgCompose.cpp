@@ -2757,7 +2757,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
             compose->GetDomWindow(getter_AddRefs(composeWindow));
             if (composeWindow)
               composeWindow->GetPrompter(getter_AddRefs(prompt));
-            nsMsgDisplayMessageByID(prompt, NS_MSG_FOLLOWUPTO_ALERT);
+            nsMsgDisplayMessageByName(prompt, NS_LITERAL_STRING("followupToSenderMessage"));
 
             // If reply-to is empty, use the from header to fetch
             // the original sender's email
@@ -4947,7 +4947,7 @@ nsMsgCompose::CheckAndPopulateRecipients(bool aPopulateMailList,
                   {
                     nsresult errorCode = NS_OK;
                     popularityIndex = hexPopularity.ToInteger(&errorCode, 16);
-                    if (errorCode)
+                    if (NS_FAILED(errorCode))
                       // We failed, just set it to zero.
                       popularityIndex = 0;
                   }

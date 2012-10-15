@@ -34,7 +34,7 @@
 								/* 	End of a Part.				*/
 
 					
-#define errFileOpen		NS_MSG_UNABLE_TO_OPEN_TMP_FILE
+#define errFileOpen		static_cast<uint32_t>(NS_MSG_UNABLE_TO_OPEN_TMP_FILE)
 #define errFileWrite	-202 /*Error writing temporary file.*/
 #define errUsrCancel	-2  /*MK_INTERRUPTED */
 #define errDecoding		-1
