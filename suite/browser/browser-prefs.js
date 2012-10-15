@@ -689,6 +689,7 @@ pref("dom.ipc.plugins.enabled.i386", false);
 pref("dom.ipc.plugins.enabled.i386.flash player.plugin", true);
 pref("dom.ipc.plugins.enabled.i386.javaplugin2_npapi.plugin", true);
 pref("dom.ipc.plugins.enabled.i386.javaappletplugin.plugin", true);
+pref("dom.ipc.plugins.enabled.i386.silverlight.plugin", true);
 // x86_64 ipc preferences
 pref("dom.ipc.plugins.enabled.x86_64", true);
 
@@ -713,10 +714,6 @@ pref("plugins.hide_infobar_for_carbon_failure_plugin", false);
 pref("plugins.hide_infobar_for_missing_plugin", false);
 pref("plugins.click_to_play", false);
 pref("plugin.disable", false);
-
-#ifdef XP_MACOSX
-pref("plugins.use_layers", true);
-#endif
 
 #ifndef XP_MACOSX
 // Restore the spinner that was removed in bug 481359
