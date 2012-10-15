@@ -289,15 +289,6 @@ morkFactory::MakeHeap(nsIMdbEnv* mev, nsIMdbHeap** acqHeap)
 }
 // } ----- end heap methods -----
 
-// { ----- begin compare methods -----
-NS_IMETHODIMP
-morkFactory::MakeCompare(nsIMdbEnv* mev, nsIMdbCompare** acqCompare)
-{
-  NS_ASSERTION(false, "not implemented");
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-// } ----- end compare methods -----
-
 // { ----- begin row methods -----
 NS_IMETHODIMP
 morkFactory::MakeRow(nsIMdbEnv* mev, nsIMdbHeap* ioHeap,

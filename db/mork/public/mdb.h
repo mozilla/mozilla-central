@@ -330,7 +330,6 @@ struct mdbYarn { // buffer with caller space allocation semantics
 class nsIMdbEnv;
 class nsIMdbObject;
 class nsIMdbErrorHook;
-class nsIMdbCompare;
 class nsIMdbThumb;
 class nsIMdbFactory;
 class nsIMdbFile;
@@ -436,28 +435,6 @@ public:
   NS_IMETHOD OnAbortHintString(nsIMdbEnv* ev, const char* inAscii) = 0;
   NS_IMETHOD OnAbortHintYarn(nsIMdbEnv* ev, const mdbYarn* inYarn) = 0;
 // } ===== end abort hint methods =====
-};
-
-/*| nsIMdbCompare: a caller-supplied yarn comparison interface.  When two yarns
-**| are compared to each other with Order(), this method should return a signed
-**| long integer denoting relation R between the 1st and 2nd yarn instances
-**| such that (First R Second), where negative is less than, zero is equal to,
-**| and positive is greater than.  Note that both yarns are readonly, and the
-**| Order() method should make no attempt to modify the yarn content.
-|*/
-class nsIMdbCompare { // caller-supplied yarn comparison
-public:
-
-// { ===== begin nsIMdbCompare methods =====
-  NS_IMETHOD Order(nsIMdbEnv* ev,      // compare first to second yarn
-    const mdbYarn* inFirst,   // first yarn in comparison
-    const mdbYarn* inSecond,  // second yarn in comparison
-    mdb_order* outOrder) = 0; // negative="<", zero="=", positive=">"
-    
-  NS_IMETHOD AddStrongRef(nsIMdbEnv* ev) = 0; // does nothing
-  NS_IMETHOD CutStrongRef(nsIMdbEnv* ev) = 0; // does nothing
-// } ===== end nsIMdbCompare methods =====
-  
 };
 
 /*| nsIMdbHeap: abstract memory allocation interface. 
@@ -706,10 +683,6 @@ public:
   // { ----- begin heap methods -----
   NS_IMETHOD MakeHeap(nsIMdbEnv* ev, nsIMdbHeap** acqHeap) = 0; // acquire new heap
   // } ----- end heap methods -----
-
-  // { ----- begin compare methods -----
-  NS_IMETHOD MakeCompare(nsIMdbEnv* ev, nsIMdbCompare** acqCompare) = 0; // ASCII
-  // } ----- end compare methods -----
 
   // { ----- begin row methods -----
   NS_IMETHOD MakeRow(nsIMdbEnv* ev, nsIMdbHeap* ioHeap, nsIMdbRow** acqRow) = 0; // new row
@@ -2040,24 +2013,6 @@ public:
     nsIMdbEnv* ev, // context
     mdb_column* outColumn) = 0; // col the table uses for sorting (or zero)
 
-  NS_IMETHOD SetNewCompare(nsIMdbEnv* ev,
-    nsIMdbCompare* ioNewCompare) = 0;
-    // Setting the sorting's compare object will typically cause the rows
-    // to be resorted, presumably in a lazy fashion when the sorting is
-    // next required to be in a valid row ordering state, such as when a
-    // call to PosToOid() happens.  ioNewCompare can be nil, in which case
-    // implementations should revert to the default sort order, which must
-    // be equivalent to whatever is used by nsIMdbFactory::MakeCompare().
-
-  NS_IMETHOD GetOldCompare(nsIMdbEnv* ev,
-    nsIMdbCompare** acqOldCompare) = 0;
-    // Get this sorting instance's compare object, which handles the
-    // ordering of rows in the sorting, by comparing yarns from the cells
-    // in the column being sorted.  Since nsIMdbCompare has no interface
-    // to query the state of the compare object, it is not clear what you
-    // would do with this object when returned, except maybe compare it
-    // as a pointer address to some other instance, to check identities.
-  
   // } ----- end attribute methods -----
 
   // { ----- begin cursor methods -----

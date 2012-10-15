@@ -92,10 +92,6 @@ public: // morkFactory virtual methods
   NS_IMETHOD MakeHeap(nsIMdbEnv* ev, nsIMdbHeap** acqHeap); // new heap
   // } ----- end heap methods -----
 
-  // { ----- begin compare methods -----
-  NS_IMETHOD MakeCompare(nsIMdbEnv* ev, nsIMdbCompare** acqCompare); // ASCII
-  // } ----- end compare methods -----
-
   // { ----- begin row methods -----
   NS_IMETHOD MakeRow(nsIMdbEnv* ev, nsIMdbHeap* ioHeap, nsIMdbRow** acqRow); // new row
   // ioHeap can be nil, causing the heap associated with ev to be used
