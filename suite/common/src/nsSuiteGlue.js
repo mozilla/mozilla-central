@@ -310,7 +310,27 @@ SuiteGlue.prototype = {
       Services.prefs.savePrefFile(null);
     }
 
+    this._setUpUserAgentOverrides();
+  },
+
+  _setUpUserAgentOverrides: function ()
+  {
     UserAgentOverrides.init();
+
+    function addMoodleOverride(aHttpChannel, aOriginalUA)
+    {
+      var cookies;
+      try {
+        cookies = aHttpChannel.getRequestHeader("Cookie");
+      } catch (e) { /* no cookie sent */ }
+
+      if (cookies && cookies.contains("MoodleSession"))
+        return aOriginalUA.replace(/Gecko\/[^ ]*/, "Gecko/20100101");
+      return null;
+    }
+
+    if (Services.prefs.getBoolPref("general.useragent.complexOverride.moodle"))
+      UserAgentOverrides.addComplexOverride(addMoodleOverride);
   },
 
   // Browser startup complete. All initial windows have opened.
