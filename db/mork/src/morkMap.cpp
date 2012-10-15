@@ -331,7 +331,7 @@ morkMap::clear_alloc(morkEnv* ev, mork_size inSize)
   nsIMdbHeap* heap = mMap_Heap;
   if ( heap )
   {
-    if ( heap->Alloc(ev->AsMdbEnv(), inSize, (void**) &p) == 0 && p )
+    if (NS_SUCCEEDED(heap->Alloc(ev->AsMdbEnv(), inSize, (void**) &p)) && p )
     {
       MORK_MEMSET(p, 0, inSize);
       return p;
@@ -350,7 +350,7 @@ morkMap::alloc(morkEnv* ev, mork_size inSize)
   nsIMdbHeap* heap = mMap_Heap;
   if ( heap )
   {
-    if ( heap->Alloc(ev->AsMdbEnv(), inSize, (void**) &p) == 0 && p )
+    if (NS_SUCCEEDED(heap->Alloc(ev->AsMdbEnv(), inSize, (void**) &p)) && p )
       return p;
   }
   else

@@ -1313,11 +1313,10 @@ morkStore::AddWeakRef(nsIMdbEnv* mev)
   // XXX Casting mork_refs to nsresult
   return static_cast<nsresult>(morkNode::AddWeakRef(ev));
 }
-NS_IMETHODIMP
+NS_IMETHODIMP_(mork_uses)
 morkStore::AddStrongRef(nsIMdbEnv* mev)
 {
-  // XXX Casting nsrefcnt to nsresult
-  return static_cast<nsresult>(AddRef());
+  return AddRef();
 }
 
 NS_IMETHODIMP

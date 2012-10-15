@@ -529,19 +529,5 @@ morkZone::Free(nsIMdbEnv* mev, // free block allocated earlier by Alloc()
   return outErr;
 }
 
-/*virtual*/ mdb_err
-morkZone::HeapAddStrongRef(nsIMdbEnv* mev) // does nothing
-{
-  MORK_USED_1(mev);
-  return NS_OK;
-}
-
-/*virtual*/ mdb_err
-morkZone::HeapCutStrongRef(nsIMdbEnv* mev) // does nothing
-{
-  MORK_USED_1(mev);
-  return NS_OK;
-}
-
 // } ===== end nsIMdbHeap methods =====
 

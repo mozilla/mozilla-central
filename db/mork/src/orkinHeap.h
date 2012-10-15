@@ -59,9 +59,6 @@ public:
     
   NS_IMETHOD Free(nsIMdbEnv* ev, // free block allocated earlier by Alloc()
     void* inBlock);
-    
-  NS_IMETHOD HeapAddStrongRef(nsIMdbEnv* ev); // does nothing
-  NS_IMETHOD HeapCutStrongRef(nsIMdbEnv* ev); // does nothing
 // } ===== end nsIMdbHeap methods =====
 
 };

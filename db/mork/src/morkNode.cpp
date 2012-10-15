@@ -398,11 +398,9 @@ nsIMdbHeap_SlotStrongHeap(nsIMdbHeap* self, morkEnv* ev, nsIMdbHeap** ioSlot)
   if ( self != heap )
   {
     if ( heap )
-    {
       *ioSlot = 0;
-      heap->HeapCutStrongRef(menv);
-    }
-    if ( self && ev->Good() && (self->HeapAddStrongRef(menv)==0) && ev->Good() )
+
+    if (self && ev->Good())
       *ioSlot = self;
   }
 }

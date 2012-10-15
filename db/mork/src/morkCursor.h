@@ -49,7 +49,7 @@ public: // state is public because the entire Mork system is private
     mdb_count* outCount);
 
   NS_IMETHOD AddWeakRef(nsIMdbEnv* ev);
-  NS_IMETHOD AddStrongRef(nsIMdbEnv* ev);
+    NS_IMETHOD_(mork_uses) AddStrongRef(nsIMdbEnv* ev);
 
   NS_IMETHOD CutWeakRef(nsIMdbEnv* ev);
   NS_IMETHOD CutStrongRef(nsIMdbEnv* ev);

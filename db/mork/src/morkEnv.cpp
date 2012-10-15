@@ -355,24 +355,12 @@ morkEnv::FreeString(nsIMdbHeap* ioHeap, char* ioString)
 }
 
 void
-morkEnv::NewErrorAndCode(const char* inString, mork_u2 inCode)
-{
-  MORK_ASSERT(morkBool_kFalse); // get developer's attention
-
-  ++mEnv_ErrorCount;
-  mEnv_ErrorCode = (mork_u4) ((inCode)? inCode: morkEnv_kGenericError);
-  
-  if ( mEnv_ErrorHook )
-    mEnv_ErrorHook->OnErrorString(this->AsMdbEnv(), inString);
-}
-
-void
 morkEnv::NewError(const char* inString)
 {
   MORK_ASSERT(morkBool_kFalse); // get developer's attention
 
   ++mEnv_ErrorCount;
-  mEnv_ErrorCode = morkEnv_kGenericError;
+  mEnv_ErrorCode = (mork_u4)morkEnv_kGenericError;
   
   if ( mEnv_ErrorHook )
     mEnv_ErrorHook->OnErrorString(this->AsMdbEnv(), inString);
@@ -587,10 +575,7 @@ NS_IMETHODIMP
 morkEnv::GetHeap(nsIMdbHeap** acqHeap)
 {
   NS_ENSURE_ARG_POINTER(acqHeap);
-  nsIMdbHeap* outHeap = 0;
-  nsIMdbHeap* heap = mEnv_Heap;
-  if ( heap && heap->HeapAddStrongRef(this) == 0 )
-    outHeap = heap;
+  nsIMdbHeap* outHeap = mEnv_Heap;
 
   if ( acqHeap )
     *acqHeap = outHeap;

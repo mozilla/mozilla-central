@@ -138,20 +138,6 @@ orkinHeap::Free(nsIMdbEnv* mev, // free block allocated earlier by Alloc()
   return NS_OK;
 }
 
-/*virtual*/ mdb_err
-orkinHeap::HeapAddStrongRef(nsIMdbEnv* ev) // does nothing
-{
-  MORK_USED_1(ev);
-  return NS_OK;
-}
-
-/*virtual*/ mdb_err
-orkinHeap::HeapCutStrongRef(nsIMdbEnv* ev) // does nothing
-{
-  MORK_USED_1(ev);
-  return NS_OK;
-}
-
 // } ===== end nsIMdbHeap methods =====
 
 //3456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789

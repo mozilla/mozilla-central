@@ -167,7 +167,6 @@ public: // other env methods
   mork_bool DoAutoClear() const
   { return mEnv_AutoClear == morkAble_kEnabled; }
 
-  void NewErrorAndCode(const char* inString, mork_u2 inCode);
   void NewError(const char* inString);
   void NewWarning(const char* inString);
 

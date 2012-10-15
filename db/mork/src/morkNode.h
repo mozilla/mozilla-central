@@ -220,8 +220,8 @@ public: // other morkNode methods
   mork_refs  WeakRefsOnly() const { return (mork_refs) ( mNode_Refs - mNode_Uses ); }
 
   // (this refcounting derives from public domain IronDoc node refcounts)
-  virtual mork_refs    AddStrongRef(morkEnv* ev);
-  virtual mork_refs    CutStrongRef(morkEnv* ev);
+  virtual mork_uses    AddStrongRef(morkEnv* ev);
+  virtual mork_uses    CutStrongRef(morkEnv* ev);
   mork_refs    AddWeakRef(morkEnv* ev);
   mork_refs    CutWeakRef(morkEnv* ev);
 

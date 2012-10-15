@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-  */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-  */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -70,6 +70,9 @@ typedef mdb_u4 mdb_count; // unsigned collection member count
 typedef mdb_u4 mdb_size;  // unsigned physical media size
 typedef mdb_u4 mdb_fill;  // unsigned logical content size
 typedef mdb_u4 mdb_more;  // more available bytes for larger buffer
+
+typedef mdb_u2 mork_uses;    // 2-byte strong uses count
+typedef mdb_u2 mork_refs;    // 2-byte actual reference count
 
 #define mdbId_kNone ((mdb_id) -1) /* never a valid Mork object ID */
 
@@ -392,7 +395,7 @@ public:
     mdb_count* outCount) = 0;
 
   NS_IMETHOD AddWeakRef(nsIMdbEnv* ev) = 0;
-  NS_IMETHOD AddStrongRef(nsIMdbEnv* ev) = 0;
+  NS_IMETHOD_(mork_uses) AddStrongRef(nsIMdbEnv* ev) = 0;
 
   NS_IMETHOD CutWeakRef(nsIMdbEnv* ev) = 0;
   NS_IMETHOD CutStrongRef(nsIMdbEnv* ev) = 0;
@@ -457,9 +460,6 @@ public:
     
   NS_IMETHOD Free(nsIMdbEnv* ev, // free block from Alloc or Resize()
     void* ioBlock) = 0;     // block to be destroyed/deallocated
-    
-  NS_IMETHOD HeapAddStrongRef(nsIMdbEnv* ev) = 0;
-  NS_IMETHOD HeapCutStrongRef(nsIMdbEnv* ev) = 0;
     
 // } ===== end nsIMdbHeap methods =====
 };

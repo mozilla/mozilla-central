@@ -90,8 +90,6 @@ typedef mork_u1 mork_flags;  // one byte's worth of predicate bit flags
 
 typedef mork_u2 mork_base;    // 2-byte magic class signature slot in object
 typedef mork_u2 mork_derived; // 2-byte magic class signature slot in object
-typedef mork_u2 mork_uses;    // 2-byte strong uses count
-typedef mork_u2 mork_refs;    // 2-byte actual reference count
 
 typedef mork_u4 mork_token;      // unsigned token for atomized string
 typedef mork_token mork_scope;   // token used to id scope for rows

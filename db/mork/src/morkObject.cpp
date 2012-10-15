@@ -146,11 +146,10 @@ morkObject::AddWeakRef(nsIMdbEnv* mev)
   // XXX Casting mork_refs to nsresult
   return static_cast<nsresult>(morkNode::AddWeakRef((morkEnv *) mev));
 }
-NS_IMETHODIMP
+NS_IMETHODIMP_(mork_uses)
 morkObject::AddStrongRef(nsIMdbEnv* mev)
 {
-  // XXX Casting mork_uses to nsresult
-  return static_cast<nsresult>(morkNode::AddStrongRef((morkEnv *) mev));
+  return morkNode::AddStrongRef((morkEnv *) mev);
 }
 
 NS_IMETHODIMP
@@ -162,7 +161,7 @@ morkObject::CutWeakRef(nsIMdbEnv* mev)
 NS_IMETHODIMP
 morkObject::CutStrongRef(nsIMdbEnv* mev)
 {
-  // XXX Casting mork_uses to nsresult
+  // XXX Casting mork_refs to nsresult
   return static_cast<nsresult>(morkNode::CutStrongRef((morkEnv *) mev));
 }
 
