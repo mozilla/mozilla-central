@@ -1627,7 +1627,7 @@ function handleURLBarCommand(aUserAction, aTriggeringEvent)
                                 .getService(nsIURIFixup);
         url = gURIFixup.createFixupURI(url, nsIURIFixup.FIXUP_FLAGS_MAKE_ALTERNATE_URI).spec;
         // Open filepicker to save the url
-        saveURL(url, null, null, false, true);
+        saveURL(url, null, null, false, true, null, document);
       }
       catch(ex) {
         // XXX Do nothing for now.

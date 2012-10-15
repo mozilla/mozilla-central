@@ -390,7 +390,7 @@ function handlePaste() {
 
     let uri = Services.io.newURI(url, null, null);
 
-    saveURL(uri.spec, name || uri.spec, null, true, true);
+    saveURL(uri.spec, name || uri.spec, null, true, true, null, document);
   } catch (ex) {}
 }
 
@@ -711,6 +711,6 @@ var gDownloadDNDObserver = {
       [url, name] = url.split("\n");
     }
     if (url)
-      saveURL(url, name, null, true, true);
+      saveURL(url, name, null, true, true, null, document);
   }
 };

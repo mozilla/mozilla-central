@@ -333,7 +333,7 @@ function SaveAsFile(aUris)
 {
   if (/type=application\/x-message-display/.test(aUris[0]))
   {
-    saveURL(aUris[0], null, "", true, false, null);
+    saveURL(aUris[0], null, "", true, false, null, document);
     return;
   }
 

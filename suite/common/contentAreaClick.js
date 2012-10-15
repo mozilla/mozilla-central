@@ -117,25 +117,26 @@
     // Checking to make sure we are allowed to open this URL
     // (call to urlSecurityCheck) is now done within openNew... functions
 
-    switch (event.button) {                                   
+    var doc = linkNode.ownerDocument;
+    switch (event.button) {
       case 0:                                                         // if left button clicked
         if (event.metaKey || event.ctrlKey) {                         // and meta or ctrl are down
-          if (openNewTabOrWindow(event, href, linkNode.ownerDocument))
+          if (openNewTabOrWindow(event, href, doc))
             return true;
-        } 
+        }
         var saveModifier = GetBoolPref("ui.key.saveLink.shift", true);
         saveModifier = saveModifier ? event.shiftKey : event.altKey;
-          
+
         if (saveModifier) {                                           // if saveModifier is down
           saveURL(href, gatherTextUnder(linkNode), "SaveLinkTitle",
-                  false, true, linkNode.ownerDocument.documentURIObject);
+                  false, true, doc.documentURIObject, doc);
           return true;
         }
         if (event.altKey)                                             // if alt is down
           return true;                                                // do nothing
         return false;
       case 1:                                                         // if middle button clicked
-        if (openNewTabOrWindow(event, href, linkNode.ownerDocument))
+        if (openNewTabOrWindow(event, href, doc))
           return true;
         break;
     }

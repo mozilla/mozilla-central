@@ -1290,11 +1290,38 @@ function togglePaneSplitter(aSplitterId)
     splitter.setAttribute("state", "collapsed");
 }
 
-// openUILink handles clicks on UI elements that cause URLs to load.
-function openUILink(url, e, ignoreButton, ignoreSave, allowKeywordFixup, postData, referrerUrl)
+/* openUILink handles clicks on UI elements that cause URLs to load.
+ *
+ * As the third argument, you may pass an object with the same properties as
+ * accepted by openUILinkIn, plus "ignoreButton" and "ignoreSave".
+ *
+ * Note: Firefox uses aIgnoreAlt while SeaMonkey uses aIgnoreSave because in
+ * SeaMonkey, Save can be Alt or Shift depending on ui.key.saveLink.shift.
+ *
+ * For API compatibility with Firefox the object version uses params.ignoreAlt
+ * although for SeaMonkey it is effectively ignoreSave.
+ */
+function openUILink(url, aEvent, aIgnoreButton, aIgnoreSave, aAllowThirdPartyFixup, aPostData, aReferrerURI)
 {
-  var where = whereToOpenLink(e, ignoreButton, ignoreSave);
-  return openUILinkIn(url, where, allowKeywordFixup, postData, referrerUrl);
+  var params;
+  if (aIgnoreButton && typeof aIgnoreButton == "object") {
+    params = aIgnoreButton;
+
+    // don't forward "ignoreButton" and "ignoreSave" to openUILinkIn.
+    aIgnoreButton = params.ignoreButton;
+    aIgnoreSave = params.ignoreAlt;
+    delete params.ignoreButton;
+    delete params.ignoreAlt;
+  }
+  else {
+    params = {allowThirdPartyFixup: aAllowThirdPartyFixup,
+              postData: aPostData,
+              referrerURI: aReferrerURI,
+              initiatingDoc: aEvent ? aEvent.target.ownerDocument : document}
+  }
+
+  var where = whereToOpenLink(aEvent, aIgnoreButton, aIgnoreSave);
+  return openUILinkIn(url, where, params);
 }
 
 /* whereToOpenLink() looks at an event to decide where to open a link.
@@ -1362,6 +1389,7 @@ function whereToOpenLink(e, ignoreButton, ignoreSave, ignoreBackground)
  *   postData             (nsIInputStream)
  *   referrerURI          (nsIURI)
  *   relatedToCurrent     (boolean)
+ *   initiatingDoc        (document)
  */
 function openUILinkIn(url, where, aAllowThirdPartyFixup, aPostData, aReferrerURI)
 {
@@ -1369,6 +1397,7 @@ function openUILinkIn(url, where, aAllowThirdPartyFixup, aPostData, aReferrerURI
     return null;
 
   var aRelatedToCurrent;
+  var aInitiatingDoc;
   if (arguments.length == 3 &&
       arguments[2] != null &&
       typeof arguments[2] == "object") {
@@ -1377,10 +1406,11 @@ function openUILinkIn(url, where, aAllowThirdPartyFixup, aPostData, aReferrerURI
     aPostData             = params.postData;
     aReferrerURI          = params.referrerURI;
     aRelatedToCurrent     = params.relatedToCurrent;
+    aInitiatingDoc        = params.initiatingDoc ? params.initiatingDoc : document;
   }
 
   if (where == "save") {
-    saveURL(url, null, null, true, true, aReferrerURI);
+    saveURL(url, null, null, true, true, aReferrerURI, aInitiatingDoc);
     return null;
   }
 
@@ -1436,7 +1466,7 @@ function openUILinkArrayIn(urlArray, where, allowThirdPartyFixup)
 
   if (where == "save") {
     for (var i = 0; i < urlArray.length; i++)
-      saveURL(urlArray[i], null, null, true, true);
+      saveURL(urlArray[i], null, null, true, true, null, document);
     return null;
   }
 

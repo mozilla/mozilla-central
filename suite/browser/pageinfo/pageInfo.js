@@ -872,8 +872,17 @@ function saveMedia()
     var item = getSelectedImage(tree);
     var url = gImageView.data[tree.currentIndex][COL_IMAGE_ADDRESS];
 
-    if (url)
-      saveURL(url, null, "SaveImageTitle", false, true, makeURI(item.baseURI));
+    if (url) {
+      let titleKey = "SaveImageTitle";
+
+      if (item instanceof HTMLVideoElement)
+        titleKey = "SaveVideoTitle";
+      else if (item instanceof HTMLAudioElement)
+        titleKey = "SaveAudioTitle";
+
+      saveURL(url, null, titleKey, false, true, makeURI(item.baseURI),
+              gDocument);
+    }
   }
   else {
     var odir  = selectSaveFolder();
@@ -890,7 +899,7 @@ function saveMedia()
 
     var saveAnImage = function(aURIString, aChosenData, aBaseURI) {
       internalSave(aURIString, null, null, null, null, false, "SaveImageTitle",
-                   aChosenData, aBaseURI);
+                   aChosenData, aBaseURI, gDocument);
     }
 
     for (var i = 0; i < rowArray.length; i++) {

@@ -1355,11 +1355,11 @@ createNewAttachmentInfo.prototype.saveAttachment = function saveAttachment()
     internalSave(this.url, null,
                  this.displayName, null,
                  this.contentType, false,
-                 null, null, null);
+                 null, null, null, document);
   else
-    messenger.saveAttachment(this.contentType, 
-                             this.url, 
-                             encodeURIComponent(this.displayName), 
+    messenger.saveAttachment(this.contentType,
+                             this.url,
+                             encodeURIComponent(this.displayName),
                              this.uri,
                              false);
 }
@@ -1407,9 +1407,9 @@ createNewAttachmentInfo.prototype.openAttachment = function openAttachment()
 createNewAttachmentInfo.prototype.printAttachment = function printAttachment()
 {
   /* we haven't implemented the ability to print attachments yet...
-  messenger.printAttachment(this.contentType, 
-                            this.url, 
-                            encodeURIComponent(this.displayName), 
+  messenger.printAttachment(this.contentType,
+                            this.url,
+                            encodeURIComponent(this.displayName),
                             this.uri);
   */
 }
