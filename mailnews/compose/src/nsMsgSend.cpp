@@ -3757,7 +3757,7 @@ nsMsgComposeAndSend::Fail(nsresult failure_code, const PRUnichar * error_msg, ns
 }
 
 nsresult
-nsMsgComposeAndSend::FormatStringWithSMTPHostNameByID(int32_t aMsgId, PRUnichar **aString)
+nsMsgComposeAndSend::FormatStringWithSMTPHostNameByID(nsresult aMsgId, PRUnichar **aString)
 {
   NS_ENSURE_ARG(aString);
 
