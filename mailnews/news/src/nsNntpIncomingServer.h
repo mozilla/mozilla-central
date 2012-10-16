@@ -58,7 +58,7 @@ public:
                                        bool hostnameChanged);
 
     // for nsMsgLineBuffer
-    virtual int32_t HandleLine(const char *line, uint32_t line_size);
+    virtual nsresult HandleLine(const char *line, uint32_t line_size);
 
     // override to clear all passwords associated with server
     NS_IMETHODIMP ForgetPassword();

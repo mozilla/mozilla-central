@@ -550,7 +550,7 @@ NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, bool create)
         {
           ret = mdbFactory->CanOpenFilePort(m_mdbEnv, oldFile, // the file to investigate
                                             &canOpen, &outFormatVersion);
-          if (ret == 0 && canOpen)
+          if (NS_SUCCEEDED(ret) && canOpen)
           {
             inOpenPolicy.mOpenPolicy_ScopePlan.mScopeStringSet_Count = 0;
             inOpenPolicy.mOpenPolicy_MinMemory = 0;
@@ -577,7 +577,7 @@ NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, bool create)
       do
       {
         ret = thumb->DoMore(m_mdbEnv, &outTotal, &outCurrent, &outDone, &outBroken);
-        if (ret != 0)
+        if (NS_FAILED(ret))
         {
           outDone = true;
           break;
@@ -619,9 +619,6 @@ NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, bool create)
     }
     NS_IF_RELEASE(thumb);
   }
-  //Convert the DB error to a valid nsresult error.
-  if (ret == 1)
-    ret = NS_ERROR_FAILURE;
   return ret;
 }
 

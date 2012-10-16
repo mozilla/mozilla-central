@@ -694,7 +694,7 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
   nsresult rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  bool accountRemoved = m_accounts->RemoveElement(aAccount);
+  bool accountRemoved = NS_SUCCEEDED(m_accounts->RemoveElement(aAccount));
 
   rv  = OutputAccountsPref();
   // If we couldn't write out the pref, restore the account.

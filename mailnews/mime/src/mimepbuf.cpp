@@ -171,7 +171,7 @@ MimePartBufferWrite (MimePartBufferData *data,
     data->file_buffer = do_QueryInterface(tmpFile);
 
     rv = MsgNewBufferedFileOutputStream(getter_AddRefs(data->output_file_stream), data->file_buffer, PR_WRONLY | PR_CREATE_FILE, 00600);
-    NS_ENSURE_SUCCESS(rv, rv);
+    NS_ENSURE_SUCCESS(rv, MIME_UNABLE_TO_OPEN_TMP_FILE);
   }
 
   NS_ASSERTION(data->part_buffer || data->output_file_stream, "no part_buffer or file_stream");
@@ -211,7 +211,7 @@ MimePartBufferWrite (MimePartBufferData *data,
         uint32_t bytesWritten;
         nsresult rv = data->output_file_stream->Write(data->part_buffer,
                                                  data->part_buffer_fp, &bytesWritten);
-        NS_ENSURE_SUCCESS(rv, rv);
+        NS_ENSURE_SUCCESS(rv, MIME_ERROR_WRITING_FILE);
       }
 
       PR_FREEIF(data->part_buffer);

@@ -95,7 +95,7 @@ nsresult nsMsgLineBuffer::BufferInput(const char *net_buffer, int32_t net_buffer
         PR_ASSERT(m_bufferSize > m_bufferPos);
         if (m_bufferSize <= m_bufferPos)
           return NS_ERROR_UNEXPECTED;
-        if (ConvertAndSendBuffer() == -1)
+        if (NS_FAILED(ConvertAndSendBuffer()))
            return NS_ERROR_FAILURE;
         m_bufferPos = 0;
     }
@@ -167,7 +167,7 @@ nsresult nsMsgLineBuffer::BufferInput(const char *net_buffer, int32_t net_buffer
         if (!newline)
             return NS_OK;
 
-        if (ConvertAndSendBuffer() == -1)
+        if (NS_FAILED(ConvertAndSendBuffer()))
           return NS_ERROR_FAILURE;
         
         net_buffer_size -= (newline - net_buffer);
@@ -183,7 +183,7 @@ nsresult nsMsgLineBuffer::HandleLine(char *line, uint32_t line_length)
   return NS_OK;
 }
 
-int32_t nsMsgLineBuffer::ConvertAndSendBuffer()
+nsresult nsMsgLineBuffer::ConvertAndSendBuffer()
 {
     /* Convert the line terminator to the native form.
      */
@@ -195,12 +195,12 @@ int32_t nsMsgLineBuffer::ConvertAndSendBuffer()
     
     PR_ASSERT(buf && length > 0);
     if (!buf || length <= 0) 
-        return -1;
+        return NS_ERROR_FAILURE;
     newline = buf + length;
     
     PR_ASSERT(newline[-1] == '\r' || newline[-1] == '\n');
     if (newline[-1] != '\r' && newline[-1] != '\n')
-        return -1;
+        return NS_ERROR_FAILURE;
     
     if (m_convertNewlinesP)
     {
@@ -234,14 +234,14 @@ int32_t nsMsgLineBuffer::ConvertAndSendBuffer()
 }
 
 // If there's still some data (non CRLF terminated) flush it out
-int32_t nsMsgLineBuffer::FlushLastLine()
+nsresult nsMsgLineBuffer::FlushLastLine()
 {
   char *buf = m_buffer + m_bufferPos;
   int32_t length = m_bufferPos - 1;
   if (length > 0)
     return (m_handler) ? m_handler->HandleLine(buf, length) : HandleLine(buf, length);
   else
-    return 0;
+    return NS_OK;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

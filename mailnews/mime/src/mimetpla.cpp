@@ -436,7 +436,7 @@ MimeInlineTextPlain_parse_line (const char *line, int32_t length, MimeObject *ob
     }
     else
     {
-      status = NS_OK;
+      status = 0;
     }
   }
   else

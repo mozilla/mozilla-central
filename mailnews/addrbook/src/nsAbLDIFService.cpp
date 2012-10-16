@@ -370,7 +370,7 @@ void nsAbLDIFService::AddLdifRowToDatabase(nsIAddrDatabase *aDatabase,
   int length = 0;  // the length  of an ldif attribute
   while ( (line = str_getline(&cursor)) != nullptr)
   {
-    if ( str_parse_line(line, &typeSlot, &valueSlot, &length) == 0) {
+    if (NS_SUCCEEDED(str_parse_line(line, &typeSlot, &valueSlot, &length))) {
       AddLdifColToDatabase(aDatabase, newRow, typeSlot, valueSlot, bIsList);
     }
     else

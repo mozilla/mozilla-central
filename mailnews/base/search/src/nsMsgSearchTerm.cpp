@@ -1640,7 +1640,7 @@ nsMsgSearchTerm::MatchPriority (nsMsgPriorityValue priorityToMatch,
   NS_ENSURE_ARG_POINTER(pResult);
 
   nsresult err = NS_OK;
-  bool result=NS_OK;
+  bool result = false;
 
   // Use this ugly little hack to get around the fact that enums don't have
   // integer compare operators

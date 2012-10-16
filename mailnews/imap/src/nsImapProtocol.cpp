@@ -1645,7 +1645,7 @@ bool nsImapProtocol::ProcessCurrentURL()
             if (NS_FAILED(rv))
             {
               nsAutoCString logLine("STARTTLS negotiation failed. Error 0x");
-              logLine.AppendInt(rv, 16);
+              logLine.AppendInt(static_cast<uint32_t>(rv), 16);
               Log("ProcessCurrentURL", nullptr, logLine.get());
               if (m_socketType == nsMsgSocketType::alwaysSTARTTLS)
               {
@@ -2287,11 +2287,10 @@ NS_IMETHODIMP nsImapProtocol::CanHandleUrl(nsIImapUrl * aImapUrl,
               }
             }
           }
-#ifdef DEBUG_bienvenu1
-          printf("proposed url = %s folder for connection %s has To Wait = %s can run = %s\n",
-            folderNameForProposedUrl, curUrlFolderName.get(),
-            (*hasToWait) ? "TRUE" : "FALSE", (*aCanRunUrl) ? "TRUE" : "FALSE");
-#endif
+          PR_LOG(IMAP, PR_LOG_DEBUG,
+                 ("proposed url = %s folder for connection %s has To Wait = %s can run = %s",
+                  folderNameForProposedUrl, curSelectedUrlFolderName.get(),
+                  (*hasToWait) ? "TRUE" : "FALSE", (*aCanRunUrl) ? "TRUE" : "FALSE"));
           PR_FREEIF(folderNameForProposedUrl);
         }
       }
@@ -4520,23 +4519,23 @@ uint32_t nsImapProtocol::CountMessagesInIdString(const char *idString)
 // in 4.5 - we need to think about this some. Some of it may just go away in the new world order
 bool nsImapProtocol::DeathSignalReceived()
 {
-  nsresult returnValue = NS_OK;
   // ignore mock channel status if we've been pseudo interrupted
   // ### need to make sure we clear pseudo interrupted status appropriately.
   if (!GetPseudoInterrupted() && m_mockChannel)
   {
     nsCOMPtr<nsIRequest> request = do_QueryInterface(m_mockChannel);
     if (request)
+    {
+      nsresult returnValue;
       request->GetStatus(&returnValue);
+      if (NS_FAILED(returnValue))
+        return false;
+    }
   }
-  if (NS_SUCCEEDED(returnValue)) // check the other way of cancelling.
-  {
-    ReentrantMonitorAutoEnter threadDeathMon(m_threadDeathMonitor);
-    // XXX Casting bool to nsresult
-    returnValue = static_cast<nsresult>(m_threadShouldDie);
-  }
-  // XXX Casting nsresult to bool
-  return static_cast<bool>(returnValue);
+
+  // Check the other way of cancelling.
+  ReentrantMonitorAutoEnter threadDeathMon(m_threadDeathMonitor);
+  return m_threadShouldDie;
 }
 
 NS_IMETHODIMP nsImapProtocol::ResetToAuthenticatedState()
@@ -4717,7 +4716,7 @@ char* nsImapProtocol::CreateNewLineFromSocket()
     }
 
     nsAutoCString logMsg("clearing IMAP_CONNECTION_IS_OPEN - rv = ");
-    logMsg.AppendInt(rv, 16);
+    logMsg.AppendInt(static_cast<uint32_t>(rv), 16);
     Log("CreateNewLineFromSocket", nullptr, logMsg.get());
     ClearFlag(IMAP_CONNECTION_IS_OPEN);
     TellThreadToDie();
@@ -9488,8 +9487,8 @@ nsImapMockChannel::OnTransportStatus(nsITransport *transport, nsresult status,
     return NS_OK;
 
   // these transport events should not generate any status messages
-  if (status == nsISocketTransport::STATUS_RECEIVING_FROM ||
-      status == nsISocketTransport::STATUS_SENDING_TO)
+  if (status == NS_NET_STATUS_RECEIVING_FROM ||
+      status == NS_NET_STATUS_SENDING_TO)
     return NS_OK;
 
   if (!mProgressEventSink)

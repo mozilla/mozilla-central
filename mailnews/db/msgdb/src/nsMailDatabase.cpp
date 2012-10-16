@@ -174,7 +174,7 @@ NS_IMETHODIMP nsMailDatabase::GetOfflineOpForKey(nsMsgKey msgKey, bool create, n
         m_mdbAllOfflineOpsTable->AddRow(GetEnv(), offlineOpRow);
     }
     
-    if (err == NS_OK && offlineOpRow)
+    if (NS_SUCCEEDED(err) && offlineOpRow)
     {
       *offlineOp = new nsMsgOfflineImapOperation(this, offlineOpRow);
       if (*offlineOp)
@@ -197,8 +197,7 @@ NS_IMETHODIMP nsMailDatabase::GetOfflineOpForKey(nsMsgKey msgKey, bool create, n
     }
   }
   
-  return (err == 0) ? NS_OK : NS_ERROR_FAILURE;
-
+  return err;
 }
 
 NS_IMETHODIMP nsMailDatabase::EnumerateOfflineOps(nsISimpleEnumerator **enumerator)

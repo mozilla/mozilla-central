@@ -380,7 +380,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, int32_t length, MimeObj
   else
   {
     CopyUTF8toUTF16(nsDependentCString(line, length), lineResult);
-    status = NS_OK;
+    status = 0;
   }
 
   nsAutoCString preface;
@@ -467,7 +467,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, int32_t length, MimeObj
     return status;
   }
   else
-    return NS_OK;
+    return 0;
 }
 
 

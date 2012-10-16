@@ -4632,7 +4632,7 @@ nsMsgViewIndex nsMsgDBView::ThreadIndexOfMsg(nsMsgKey msgKey,
 nsMsgViewIndex nsMsgDBView::GetThreadIndex(nsMsgViewIndex msgIndex)
 {
   if (!IsValidIndex(msgIndex))
-    return NS_MSG_INVALID_DBVIEW_INDEX;
+    return nsMsgViewIndex_None;
 
   // scan up looking for level 0 message.
   while (m_levels[msgIndex] && msgIndex)
@@ -6845,7 +6845,9 @@ nsMsgViewIndex  nsMsgDBView::GetThreadFromMsgIndex(nsMsgViewIndex index,
   nsMsgKey        msgKey = GetAt(index);
   nsMsgViewIndex  threadIndex;
 
-  NS_ENSURE_ARG(threadHdr);
+  if (threadHdr == nullptr)
+    return nsMsgViewIndex_None;
+
   nsresult rv = GetThreadContainingIndex(index, threadHdr);
   NS_ENSURE_SUCCESS(rv,nsMsgViewIndex_None);
 

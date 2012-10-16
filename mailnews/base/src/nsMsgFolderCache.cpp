@@ -182,8 +182,8 @@ nsresult nsMsgFolderCache::OpenMDB(const nsACString& dbName, bool exists)
         do
         {
           ret = thumb->DoMore(m_mdbEnv, &outTotal, &outCurrent, &outDone, &outBroken);
-          if (ret != 0)
-          {// mork isn't really doing NS errors yet.
+          if (NS_FAILED(ret))
+          {
             outDone = true;
             break;
           }

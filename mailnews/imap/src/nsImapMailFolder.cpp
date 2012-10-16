@@ -5023,7 +5023,7 @@ void nsImapMailFolder::SetIMAPDeletedFlag(nsIMsgDatabase *mailDB, const nsTArray
   nsresult markStatus = NS_OK;
   uint32_t total = msgids.Length();
 
-  for (uint32_t msgIndex=0; !markStatus && (msgIndex < total); msgIndex++)
+  for (uint32_t msgIndex=0; NS_SUCCEEDED(markStatus) && (msgIndex < total); msgIndex++)
     markStatus = mailDB->MarkImapDeleted(msgids[msgIndex], markDeleted, nullptr);
 }
 
@@ -7145,7 +7145,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
       rv = BuildIdsAndKeyArray(messages, messageIds, srcKeyArray);
       // put fake message in destination db, delete source if move
       EnableNotifications(nsIMsgFolder::allMessageCountNotifications, false, false);
-      for (uint32_t sourceKeyIndex = 0; !stopit && (sourceKeyIndex < srcCount); sourceKeyIndex++)
+      for (uint32_t sourceKeyIndex = 0; NS_SUCCEEDED(stopit) && (sourceKeyIndex < srcCount); sourceKeyIndex++)
       {
         bool messageReturningHome = false;
         nsCString originalSrcFolderURI;
@@ -8771,7 +8771,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, nsIMsg
   while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
   {
     nsCOMPtr<nsISupports> item;
-    if (enumerator->GetNext(getter_AddRefs(item)))
+    if (NS_FAILED(enumerator->GetNext(getter_AddRefs(item))))
       continue;
 
     nsCOMPtr<nsIMsgFolder> msgFolder(do_QueryInterface(item, &rv));

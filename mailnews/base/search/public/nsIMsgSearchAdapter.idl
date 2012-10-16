@@ -14,12 +14,12 @@
 class nsMsgResultElement;
 %}
 
-[scriptable, uuid(B9F49D4C-A494-41f6-9D70-AB6CB5670485)]
+[scriptable, uuid(0b09078b-e0cd-440a-afee-01f45808ee74)]
 interface nsIMsgSearchAdapter : nsISupports {
     void ValidateTerms();
     void Search(out boolean done);
     void SendUrl();
-    void CurrentUrlDone(in long exitCode);
+    void CurrentUrlDone(in nsresult exitCode);
 
     void AddHit(in nsMsgKey key);
     void AddResultElement(in nsIMsgDBHdr aHdr);

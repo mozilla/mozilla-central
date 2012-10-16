@@ -709,7 +709,8 @@ nsMsgKeySet::Add(int32_t number)
   if (m_data_size <= m_length + 1) {
     int endo = end - head;
     if (!Grow()) {
-      return NS_ERROR_OUT_OF_MEMORY;
+      // out of memory
+      return -1;
     }
     head = m_data;
     end = head + endo;
@@ -826,7 +827,9 @@ nsMsgKeySet::Remove(int32_t number)
         int32_t i;
         int endo = end - head;
         if (m_data_size - m_length <= 2) {
-          if (!Grow()) return NS_ERROR_OUT_OF_MEMORY;
+          if (!Grow())
+            // out of memory
+            return -1;
         }
         head = m_data;
         end = head + endo;
@@ -926,7 +929,9 @@ nsMsgKeySet::AddRange(int32_t start, int32_t end)
   tmplength = m_length + 2;
   tmp = (int32_t*) PR_Malloc(sizeof(int32_t) * tmplength);
 
-  if (!tmp) return NS_ERROR_OUT_OF_MEMORY;
+  if (!tmp)
+    // out of memory
+    return -1;
 
   in = m_data;
   out = tmp;
@@ -1352,7 +1357,7 @@ nsMsgKeySet::test_adder (void)
 void
 nsMsgKeySet::test_ranges(void)
 {
-  char *string;
+  const char *string;
   nsMsgKeySet *set;
   char *s;
   int32_t i;

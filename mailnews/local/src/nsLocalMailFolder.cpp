@@ -1410,7 +1410,7 @@ bool nsMsgLocalMailFolder::CheckIfSpaceForCopy(nsIMsgWindow *msgWindow,
 {
   nsCOMPtr<nsIMsgPluggableStore> msgStore;
   nsresult rv = GetMsgStore(getter_AddRefs(msgStore));
-  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_SUCCESS(rv, false);
   bool spaceAvailable;
   rv = msgStore->HasSpaceAvailable(this, totalMsgSize, &spaceAvailable);
   if (!spaceAvailable)
@@ -3417,7 +3417,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
         if (NS_FAILED(rv))
         {
           nsAutoCString logMsg("failed to copy junk messages to junk folder rv = ");
-          logMsg.AppendInt(rv, 16);
+          logMsg.AppendInt(static_cast<uint32_t>(rv), 16);
           spamSettings->LogJunkString(logMsg.get());
         }
       }

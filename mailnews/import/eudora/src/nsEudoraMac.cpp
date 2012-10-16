@@ -132,7 +132,7 @@ bool nsEudoraMac::VerifyEudoraLocation(nsIFile **pFolder, bool findIni)
   bool hasMore;
   nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
   nsresult rv = (*pFolder)->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
-  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_SUCCESS(rv, false);
 
   directoryEnumerator->HasMoreElements(&hasMore);
   nsCOMPtr <nsIFile> prefFile;
@@ -785,7 +785,7 @@ bool nsEudoraMac::BuildPOPAccount(nsIMsgAccountManager *accMgr, nsCString **pStr
         IMPORT_LOG0("Created a new account and set the incoming server to the POP3 server.\n");
 
         nsCOMPtr<nsIPop3IncomingServer> pop3Server = do_QueryInterface(in, &rv);
-        NS_ENSURE_SUCCESS(rv,rv);
+        NS_ENSURE_SUCCESS(rv, false);
         pop3Server->SetLeaveMessagesOnServer(pStrs[kLeaveOnServerStr]->First() == 'Y' ? true : false);
 
         // Fiddle with the identities
@@ -920,8 +920,8 @@ nsresult nsEudoraMac::GetAttachmentInfo(const char *pFileName, nsIFile *pFile, n
   // Sample attachment line
   // Internet:sandh.jpg (JPEG/JVWR) (0003C2E8)
 
-  OSType    type = '????';
-  OSType    creator = '????';
+  OSType    type = '?\??\?';
+  OSType    creator = '?\??\?';
   uint32_t  fNum = 0;
   int      i;
   PRUnichar  c;

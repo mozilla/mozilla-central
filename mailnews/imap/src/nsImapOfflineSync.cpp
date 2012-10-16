@@ -776,7 +776,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
     {
       m_CurrentKeys.Clear();
       m_KeyIndex = 0;
-      if ((m_currentDB->ListAllOfflineOpIds(&m_CurrentKeys) != 0) || m_CurrentKeys.IsEmpty())
+      if (NS_FAILED(m_currentDB->ListAllOfflineOpIds(&m_CurrentKeys)) || m_CurrentKeys.IsEmpty())
       {
         ClearDB();
         folderInfo = nullptr; // can't hold onto folderInfo longer than db
@@ -829,7 +829,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
           m_currentFolder->SummaryChanged();
         
         m_CurrentKeys.Clear();
-        if ( (m_currentDB->ListAllOfflineOpIds(&m_CurrentKeys) != 0) || m_CurrentKeys.IsEmpty() )
+        if (NS_FAILED(m_currentDB->ListAllOfflineOpIds(&m_CurrentKeys)) || m_CurrentKeys.IsEmpty())
         {
           ClearDB();
           if (deletedGhostMsgs)

@@ -613,10 +613,14 @@ MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, bool 
       }
     }
 
-    if (attachment)
-      status = mimeEmitterAddAttachmentField(opt, name.get(), hdr_value.get());
-    else
-      status = mimeEmitterAddHeaderField(opt, name.get(), hdr_value.get());
+    if (attachment) {
+      if (NS_FAILED(mimeEmitterAddAttachmentField(opt, name.get(), hdr_value.get())))
+        status = -1;
+    }
+    else {
+      if (NS_FAILED(mimeEmitterAddHeaderField(opt, name.get(), hdr_value.get())))
+        status = -1;
+    }
 
     if (status < 0) return status;
     if (!wrote_any_p)

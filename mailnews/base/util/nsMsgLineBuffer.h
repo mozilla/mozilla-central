@@ -48,11 +48,11 @@ public:
   
   virtual nsresult HandleLine(char *line, uint32_t line_length);
   // flush last line, though it won't be CRLF terminated.
-  virtual int32_t FlushLastLine();
+  virtual nsresult FlushLastLine();
 protected:
   nsMsgLineBuffer(bool convertNewlinesP);
   
-  int32_t ConvertAndSendBuffer();
+  nsresult ConvertAndSendBuffer();
   void SetLookingForCRLF(bool b);
   
   nsMsgLineBufferHandler *m_handler;

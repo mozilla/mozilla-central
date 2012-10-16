@@ -160,7 +160,7 @@ bool nsEudoraFilters::RealImport()
   }
 
   nsCOMPtr<nsILineInputStream> lineStream(do_QueryInterface(inputStream, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_SUCCESS(rv, false);
 
   nsCString     line;
   bool          more = true;

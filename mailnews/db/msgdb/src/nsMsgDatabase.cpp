@@ -1262,7 +1262,7 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, bool create, bool sync)
           {
             ret = mdbFactory->CanOpenFilePort(m_mdbEnv, oldFile, // the file to investigate
               &canOpen, &outFormatVersion);
-            if (ret == 0 && canOpen)
+            if (NS_SUCCEEDED(ret) && canOpen)
             {
               inOpenPolicy.mOpenPolicy_ScopePlan.mScopeStringSet_Count = 0;
               inOpenPolicy.mOpenPolicy_MinMemory = 0;
@@ -1286,7 +1286,7 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, bool create, bool sync)
         do
         {
           ret = m_thumb->DoMore(m_mdbEnv, &outTotal, &outCurrent, &outDone, &outBroken);
-          if (ret != 0)
+          if (NS_FAILED(ret))
           {// mork isn't really doing NS errors yet.
             outDone = true;
             break;
@@ -1295,10 +1295,10 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, bool create, bool sync)
         while (NS_SUCCEEDED(ret) && !outBroken && !outDone);
         //        m_mdbEnv->ClearErrors(); // ### temporary...
         // only 0 is a non-error return.
-        if (ret == 0 && outDone)
+        if (NS_SUCCEEDED(ret) && outDone)
         {
           ret = mdbFactory->ThumbToOpenStore(m_mdbEnv, m_thumb, &m_mdbStore);
-          if (ret == NS_OK)
+          if (NS_SUCCEEDED(ret))
             ret = (m_mdbStore) ? InitExistingDB() : NS_ERROR_FAILURE;
         }
 #ifdef DEBUG_bienvenu1

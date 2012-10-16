@@ -392,18 +392,18 @@ MakeAbsoluteURL(char *base_url, char *relative_url)
   }
 
   nsresult err = nsMimeNewURI(&base, base_url, nullptr);
-  if (err != NS_OK)
+  if (NS_FAILED(err))
     return nullptr;
 
   nsAutoCString spec;
 
   nsIURI    *url = nullptr;
   err = nsMimeNewURI(&url, relative_url, base);
-  if (err != NS_OK)
+  if (NS_FAILED(err))
     goto done;
 
   err = url->GetSpec(spec);
-  if (err)
+  if (NS_FAILED(err))
   {
     retString = nullptr;
     goto done;
@@ -657,11 +657,11 @@ MimeMultipartRelated_parse_child_line (MimeObject *obj,
   {
     nsCOMPtr <nsIFile> file;
     rv = nsMsgCreateTempFile("nsma", getter_AddRefs(file));
-    NS_ENSURE_SUCCESS(rv, rv);
+    NS_ENSURE_SUCCESS(rv, -1);
     relobj->file_buffer = do_QueryInterface(file);
 
     rv = MsgNewBufferedFileOutputStream(getter_AddRefs(relobj->output_file_stream), relobj->file_buffer, PR_WRONLY | PR_CREATE_FILE, 00600);
-    NS_ENSURE_SUCCESS(rv, rv);
+    NS_ENSURE_SUCCESS(rv, -1);
   }
 
   PR_ASSERT(relobj->head_buffer || relobj->output_file_stream);
@@ -684,20 +684,18 @@ MimeMultipartRelated_parse_child_line (MimeObject *obj,
       {
         nsCOMPtr <nsIFile> file;
         rv = nsMsgCreateTempFile("nsma", getter_AddRefs(file));
-        NS_ENSURE_SUCCESS(rv, rv);
+        NS_ENSURE_SUCCESS(rv, -1);
         relobj->file_buffer = do_QueryInterface(file);
       }
 
       nsresult rv = MsgNewBufferedFileOutputStream(getter_AddRefs(relobj->output_file_stream), relobj->file_buffer, PR_WRONLY | PR_CREATE_FILE, 00600);
-      NS_ENSURE_SUCCESS(rv, rv);
+      NS_ENSURE_SUCCESS(rv, -1);
 
       if (relobj->head_buffer && relobj->head_buffer_fp)
       {
         uint32_t bytesWritten;
-        status = relobj->output_file_stream->Write(relobj->head_buffer,
-                                                   relobj->head_buffer_fp,
-                                                   &bytesWritten);
-        if (bytesWritten < relobj->head_buffer_fp)
+        rv = relobj->output_file_stream->Write(relobj->head_buffer, relobj->head_buffer_fp, &bytesWritten);
+        if (NS_FAILED(rv) || (bytesWritten < relobj->head_buffer_fp))
           return MIME_UNABLE_TO_OPEN_TMP_FILE;
       }
 

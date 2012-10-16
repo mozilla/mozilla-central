@@ -936,10 +936,10 @@ NS_IMETHODIMP nsDBFolderInfo::GetTransferInfo(nsIDBFolderInfo **transferInfo)
   for (mdb_count cellIndex = 0; cellIndex < numCells; cellIndex++)
   {
     mdb_err err = m_mdbRow->SeekCellYarn(m_mdb->GetEnv(), cellIndex, &cellColumn, nullptr);
-    if (!err)
+    if (NS_SUCCEEDED(err))
     {
       err = m_mdbRow->AliasCellYarn(m_mdb->GetEnv(), cellColumn, &cellYarn);
-      if (!err)
+      if (NS_SUCCEEDED(err))
       {
         m_mdb->GetStore()->TokenToString(m_mdb->GetEnv(), cellColumn, &cellName);
         newInfo->m_values.AppendElement(Substring((const char *)cellYarn.mYarn_Buf,

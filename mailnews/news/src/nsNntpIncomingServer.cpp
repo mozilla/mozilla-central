@@ -1204,14 +1204,16 @@ nsNntpIncomingServer::Unsubscribe(const PRUnichar *aUnicharName)
   return NS_OK;
 }
 
-int32_t
+nsresult
 nsNntpIncomingServer::HandleLine(const char* line, uint32_t line_size)
 {
   NS_ASSERTION(line, "line is null");
-  if (!line) return 0;
+  if (!line)
+    return NS_OK;
 
   // skip blank lines and comments
-  if (line[0] == '#' || line[0] == '\0') return 0;
+  if (line[0] == '#' || line[0] == '\0')
+    return NS_OK;
   // ###TODO - make this truly const, maybe pass in an nsCString &
 
   if (mHasSeenBeginGroups) {
@@ -1251,7 +1253,7 @@ nsNntpIncomingServer::HandleLine(const char* line, uint32_t line_size)
     }
   }
 
-  return 0;
+  return NS_OK;
 }
 
 nsresult

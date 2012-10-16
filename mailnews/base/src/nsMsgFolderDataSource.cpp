@@ -2401,7 +2401,7 @@ void nsMsgRecentFoldersDataSource::EnsureFolders()
               nsresult err;
               curFolder->GetStringProperty(MRU_TIME_PROPERTY, dateStr);
               uint32_t curFolderDate = (uint32_t) dateStr.ToInteger(&err);
-              if (err)
+              if (NS_FAILED(err))
                 curFolderDate = 0;
               if (curFolderDate > m_cutOffDate)
               {

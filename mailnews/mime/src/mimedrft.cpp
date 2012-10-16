@@ -440,7 +440,7 @@ static int
 dummy_file_write( char *buf, int32_t size, void *fileHandle )
 {
   if (!fileHandle)
-    return NS_ERROR_FAILURE;
+    return -1;
 
   nsIOutputStream  *tStream = (nsIOutputStream *) fileHandle;
   uint32_t bytesWritten;

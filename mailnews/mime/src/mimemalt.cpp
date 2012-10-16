@@ -193,7 +193,7 @@ MimeMultipartAlternative_flush_children(MimeObject *obj,
 
   /* Case 1 */
   if (! malt->pending_parts)
-    return NS_OK;
+    return 0;
 
   have_displayable =
     MimeMultipartAlternative_display_part_p(obj, malt->buffered_hdrs[0]);
@@ -225,7 +225,7 @@ MimeMultipartAlternative_flush_children(MimeObject *obj,
   }
   else {
     NS_ERROR("mimemalt.cpp: logic error in flush_children");
-    return NS_ERROR_FAILURE;
+    return -1;
   }
   
   if (do_flush) {
@@ -240,7 +240,7 @@ MimeMultipartAlternative_flush_children(MimeObject *obj,
     }
     malt->pending_parts = 0;
   }
-  return NS_OK;
+  return 0;
 }
 
 static int

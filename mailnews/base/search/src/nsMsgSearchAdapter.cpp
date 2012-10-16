@@ -121,8 +121,8 @@ NS_IMETHODIMP nsMsgSearchAdapter::SendUrl ()
   return NS_OK;
 }
 
-/* void CurrentUrlDone (in long exitCode); */
-NS_IMETHODIMP nsMsgSearchAdapter::CurrentUrlDone(int32_t exitCode)
+/* void CurrentUrlDone (in nsresult exitCode); */
+NS_IMETHODIMP nsMsgSearchAdapter::CurrentUrlDone(nsresult exitCode)
 {
   // base implementation doesn't need to do anything.
   return NS_OK;

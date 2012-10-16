@@ -1078,7 +1078,7 @@ mime_crypto_write_base64 (void *closure, const char *buf, unsigned long size)
 {
   MimeEncoderData *data = (MimeEncoderData *) closure;
   nsresult rv = MIME_EncoderWrite (data, buf, size);
-  PR_SetError(NS_FAILED(rv) ? rv : 0, 0);
+  PR_SetError(NS_FAILED(rv) ? static_cast<uint32_t>(rv) : 0, 0);
 }
 
 

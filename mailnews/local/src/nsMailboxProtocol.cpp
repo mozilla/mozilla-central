@@ -397,7 +397,7 @@ NS_IMETHODIMP nsMailboxProtocol::OnStopRequest(nsIRequest *request, nsISupports 
 // End of nsIStreamListenerSupport
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-int32_t nsMailboxProtocol::DoneReadingMessage()
+nsresult nsMailboxProtocol::DoneReadingMessage()
 {
   nsresult rv = NS_OK;
   // and close the article file if it was open....

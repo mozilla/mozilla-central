@@ -403,13 +403,13 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
 
   name_buf = (char *)PR_Malloc(line_length * 2 + 10);
   if (!name_buf)
-    return NS_ERROR_OUT_OF_MEMORY;
+    return -1;
 
   addr_buf = (char *)PR_Malloc(line_length * 2 + 10);
   if (!addr_buf)
   {
     FREEIF(name_buf);
-    return NS_ERROR_OUT_OF_MEMORY;
+    return -1;
   }
 
   line_end = line;

@@ -108,7 +108,7 @@ private:
   // and forwards it to the mailbox parser.
   int32_t ReadFolderResponse(nsIInputStream * inputStream, uint64_t sourceOffset, uint32_t length);
   int32_t ReadMessageResponse(nsIInputStream * inputStream, uint64_t sourceOffset, uint32_t length);
-  int32_t DoneReadingMessage();
+  nsresult DoneReadingMessage();
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // End of Protocol Methods

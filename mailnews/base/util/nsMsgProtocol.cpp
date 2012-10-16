@@ -747,8 +747,8 @@ nsMsgProtocol::OnTransportStatus(nsITransport *transport, nsresult status,
     return NS_OK;
 
   // these transport events should not generate any status messages
-  if (status == nsISocketTransport::STATUS_RECEIVING_FROM ||
-      status == nsISocketTransport::STATUS_SENDING_TO)
+  if (status == NS_NET_STATUS_RECEIVING_FROM ||
+      status == NS_NET_STATUS_SENDING_TO)
     return NS_OK;
 
   if (!mProgressEventSink)
