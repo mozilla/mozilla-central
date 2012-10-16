@@ -1343,11 +1343,6 @@ nsresult nsNNTPProtocol::NewsResponse(nsIInputStream *inputStream, uint32_t leng
   {
     m_nextState = NNTP_BEGIN_AUTHORIZE;
   }
-  else if (MK_NNTP_RESPONSE_PERMISSION_DENIED == m_responseCode)
-  {
-    PR_FREEIF(line);
-    return NS_OK;
-  }
   else {
     m_nextState = m_nextStateAfterResponse;
   }
