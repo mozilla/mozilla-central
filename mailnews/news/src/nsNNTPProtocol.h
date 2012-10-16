@@ -254,7 +254,7 @@ private:
   nsresult GetNewsStringByName(const char *aName, PRUnichar **aString);
   nsresult GetNewsStringByID(int32_t stringID, PRUnichar **aString);
 
-  int32_t PostMessageInFile(nsIFile * filePath);
+  nsresult PostMessageInFile(nsIFile * filePath);
 
   //////////////////////////////////////////////////////////////////////////////
   // Communication methods --> Reading and writing protocol
@@ -270,46 +270,46 @@ private:
 
   // gets the response code from the nntp server and the response line. Returns the TCP return code
   // from the read.
-  int32_t NewsResponse(nsIInputStream * inputStream, uint32_t length);
+  nsresult NewsResponse(nsIInputStream *inputStream, uint32_t length);
 
   // Interpret the server response after the connect.
   // Returns negative if the server responds unexpectedly
-  int32_t LoginResponse();
-  int32_t SendModeReader();
-  int32_t SendModeReaderResponse();
+  nsresult LoginResponse();
+  nsresult SendModeReader();
+  nsresult SendModeReaderResponse();
 
-  int32_t SendListExtensions();
-  int32_t SendListExtensionsResponse(nsIInputStream * inputStream, uint32_t length);
+  nsresult SendListExtensions();
+  nsresult SendListExtensionsResponse(nsIInputStream *inputStream, uint32_t length);
 
-  int32_t SendListSearches();
-  int32_t SendListSearchesResponse(nsIInputStream * inputStream, uint32_t length);
+  nsresult SendListSearches();
+  nsresult SendListSearchesResponse(nsIInputStream *inputStream, uint32_t length);
 
-  int32_t SendListSearchHeaders();
-  int32_t SendListSearchHeadersResponse(nsIInputStream * inputStream, uint32_t length);
+  nsresult SendListSearchHeaders();
+  nsresult SendListSearchHeadersResponse(nsIInputStream *inputStream, uint32_t length);
 
-  int32_t GetProperties();
-  int32_t GetPropertiesResponse(nsIInputStream * inputStream, uint32_t length);
+  nsresult GetProperties();
+  nsresult GetPropertiesResponse(nsIInputStream *inputStream, uint32_t length);
 
-  int32_t SendListSubscriptions();
-  int32_t SendListSubscriptionsResponse(nsIInputStream * inputStream, uint32_t length);
+  nsresult SendListSubscriptions();
+  nsresult SendListSubscriptionsResponse(nsIInputStream *inputStream, uint32_t length);
 
   // Figure out what the first command is and send it.
   // Returns the status from the NETWrite.
-  int32_t SendFirstNNTPCommand(nsIURI * url);
+  nsresult SendFirstNNTPCommand(nsIURI *url);
 
   // Interprets the server response from the first command sent.
   // returns negative if the server responds unexpectedly.
-  int32_t SendFirstNNTPCommandResponse();
+  nsresult SendFirstNNTPCommandResponse();
 
-  int32_t SetupForTransfer();
+  nsresult SetupForTransfer();
 
-  int32_t SendGroupForArticle();
-  int32_t SendGroupForArticleResponse();
+  nsresult SendGroupForArticle();
+  nsresult SendGroupForArticleResponse();
 
-  int32_t SendArticleNumber();
-  int32_t BeginArticle();
-  int32_t ReadArticle(nsIInputStream * inputStream, uint32_t length);
-  int32_t DisplayArticle(nsIInputStream * inputStream, uint32_t length);
+  nsresult SendArticleNumber();
+  nsresult BeginArticle();
+  nsresult ReadArticle(nsIInputStream *inputStream, uint32_t length);
+  nsresult DisplayArticle(nsIInputStream *inputStream, uint32_t length);
 
   //////////////////////////////////////////////////////////////////////////////
   // News authentication code
@@ -323,7 +323,7 @@ private:
    * Followed by: NNTP_AUTHORIZE_RESPONSE if the username was sent
    *              NNTP_SUSPENDED          if we need to wait for the password
    */
-  int32_t BeginAuthorization();
+  nsresult BeginAuthorization();
   /**
    * Sends the password if necessary, the state NNTP_AUTHORIZE_RESPONSE.
    * This also reads the result of the username.
@@ -332,28 +332,28 @@ private:
    *              SEND_FIRST_NNTP_COMMAND if any other command needed auth
    *              NNTP_ERROR              if the username was rejected
    */
-  int32_t AuthorizationResponse();
+  nsresult AuthorizationResponse();
   /**
    * This state, NNTP_PASSWORD_RESPONSE, reads the password.
    * Followed by: NNTP_SEND_MODE_READER   if MODE READER needed auth
    *              SEND_FIRST_NNTP_COMMAND if any other command needed auth
    *              NNTP_ERROR              if the password was rejected
    */
-  int32_t PasswordResponse();
+  nsresult PasswordResponse();
 
-  int32_t BeginReadNewsList();
-  int32_t ReadNewsList(nsIInputStream * inputStream, uint32_t length);
+  nsresult BeginReadNewsList();
+  nsresult ReadNewsList(nsIInputStream *inputStream, uint32_t length);
 
   // Newsgroup specific protocol handlers
-  int32_t DisplayNewsgroups();
-  int32_t BeginNewsgroups();
-  int32_t ProcessNewsgroups(nsIInputStream * inputStream, uint32_t length);
+  nsresult DisplayNewsgroups();
+  nsresult BeginNewsgroups();
+  nsresult ProcessNewsgroups(nsIInputStream *inputStream, uint32_t length);
 
   // Protocol handlers used for posting data
-  int32_t PostData();
-  int32_t PostDataResponse();
+  nsresult PostData();
+  nsresult PostDataResponse();
 
-  int32_t CheckForArticle();
+  nsresult CheckForArticle();
 
   /////////////////////////////////////////////////////////////////////////////
   // XHDR, XOVER, HEAD filtering process handlers
@@ -365,7 +365,7 @@ private:
    * This method sets up m_newsgroupList.
    * Followed by: NNTP_FIGURE_NEXT_CHUNK
    */
-  int32_t BeginReadXover();
+  nsresult BeginReadXover();
   /**
    * The loop control for filtering, the state NNTP_FIGURE_NEXT_CHUNK.
    * This method contacts the newsgroupList to figure out which articles to
@@ -374,26 +374,26 @@ private:
    *              NNTP_READ_GROUP          if XOVER doesn't work
    *              NNTP_XOVER_SEND          if XOVER does work
    */
-  int32_t FigureNextChunk();
+  nsresult FigureNextChunk();
 
   // The XOVER process core
   /**
    * The state NNTP_XOVER_SEND, which actually sends the message.
    * Followed by: NNTP_XOVER_RESPONSE
    */
-  int32_t XoverSend();
+  nsresult XoverSend();
   /**
    * This state, NNTP_XOVER_RESPONSE, actually checks the XOVER capabiliity.
    * Followed by: NNTP_XOVER               if XOVER is supported
    *              NNTP_READ_GROUP          if it isn't
    */
-  int32_t ReadXoverResponse();
+  nsresult ReadXoverResponse();
   /**
    * This state, NNTP_XOVER, processes the results from the XOVER command.
    * It asks nsNNTPNewsgroupList to process the line using ProcessXOVERLINE.
    * Followed by: NNTP_XHDR_SEND
    */
-  int32_t ReadXover(nsIInputStream * inputStream, uint32_t length);
+  nsresult ReadXover(nsIInputStream *inputStream, uint32_t length);
 
   // The XHDR process core
   /**
@@ -403,7 +403,7 @@ private:
    * Followed by: NNTP_XHDR_RESPONSE       if there is a header to be sent
    *              NNTP_FIGURE_NEXT_CHUNK   if all headers have been sent
    */
-  int32_t XhdrSend();
+  nsresult XhdrSend();
   /**
    * This state, NNTP_XHDR_RESPONSE, processes the XHDR response.
    * It mostly passes the information off to nsNNTPNewsgroupList, and only does
@@ -413,7 +413,7 @@ private:
    * Followed by: NNTP_READ_GROUP          if XHDR doesn't work properly
    *              NNTP_XHDR_SEND           when finished processing XHR.
    */
-  int32_t XhdrResponse(nsIInputStream *inputStream);
+  nsresult XhdrResponse(nsIInputStream *inputStream);
 
   // HEAD processing core
   /**
@@ -423,7 +423,7 @@ private:
    * Followed by: NNTP_FIGURE_NEXT_CHUNK   when it is finished 
    *              NNTP_READ_GROUP_RESPONSE when it is not
    */
-  int32_t ReadHeaders();
+  nsresult ReadHeaders();
   /**
    * This state, NNTP_READ_GROUP_RESPONSE, checks if the article exists.
    * Because it is required by NNTP, if it doesn't work, the only problem would
@@ -432,13 +432,13 @@ private:
    * Followed by: NNTP_READ_GROUP_BODY     if the article exists
    *              NNTP_READ_GROUP          if it doesn't.
    */
-  int32_t ReadNewsgroupResponse();
+  nsresult ReadNewsgroupResponse();
   /**
    * This state, NNTP_READ_GROUP_BODY, reads the body of the HEAD command.
    * Once again, it passes information off to nsNNTPNewsgroupList.
    * Followed by: NNTP_READ_GROUP
    */
-  int32_t ReadNewsgroupBody(nsIInputStream * inputStream, uint32_t length);
+  nsresult ReadNewsgroupBody(nsIInputStream *inputStream, uint32_t length);
 
   /**
    * This state, NNTP_PROCESS_XOVER, is the final step of the filter-processing
@@ -446,31 +446,31 @@ private:
    * filters, both via nsNNTPNewsgroupList.
    * Followed by: NEWS_DONE
    */
-  int32_t ProcessXover();
+  nsresult ProcessXover();
 
 
 
   // Canceling
-  int32_t StartCancel();
-  int32_t DoCancel();
+  nsresult StartCancel();
+  nsresult DoCancel();
 
   // XPAT
-  int32_t XPATSend();
-  int32_t XPATResponse(nsIInputStream * inputStream, uint32_t length);
-  int32_t ListPrettyNames();
-  int32_t ListPrettyNamesResponse(nsIInputStream * inputStream, uint32_t length);
+  nsresult XPATSend();
+  nsresult XPATResponse(nsIInputStream *inputStream, uint32_t length);
+  nsresult ListPrettyNames();
+  nsresult ListPrettyNamesResponse(nsIInputStream *inputStream, uint32_t length);
 
-  int32_t ListXActive();
-  int32_t ListXActiveResponse(nsIInputStream * inputStream, uint32_t length);
+  nsresult ListXActive();
+  nsresult ListXActiveResponse(nsIInputStream *inputStream, uint32_t length);
 
   // for "?list-ids"
-  int32_t SendListGroup();
-  int32_t SendListGroupResponse(nsIInputStream * inputStream, uint32_t length);
+  nsresult SendListGroup();
+  nsresult SendListGroupResponse(nsIInputStream *inputStream, uint32_t length);
 
   // Searching Protocol....
-  int32_t Search();
-  int32_t SearchResponse();
-  int32_t SearchResults(nsIInputStream *inputStream, uint32_t length);
+  nsresult Search();
+  nsresult SearchResponse();
+  nsresult SearchResults(nsIInputStream *inputStream, uint32_t length);
 
   //////////////////////////////////////////////////////////////////////////////
   // End of Protocol Methods
