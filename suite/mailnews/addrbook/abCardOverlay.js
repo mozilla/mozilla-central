@@ -183,12 +183,12 @@ function EditCardOKButton()
       // See if any card in this list is the one we edited.
       // Must compare card contents using .equals() instead of .indexOf()
       // because gEditCard is not really a member of the .addressLists array.
-      let listCardsCount = subdir.addressLists.length;
+      let listCardsCount = subdirectory.addressLists.length;
       for (let index = 0; index < listCardsCount; index++)
       {
         let card = subdirectory.addressLists.queryElementAt(index, Components.interfaces.nsIAbCard);
         if (card.equals(gEditCard.card))
-          foundDirectories.push({directory:subdir, cardIndex:index});
+          foundDirectories.push({directory:subdirectory, cardIndex:index});
       }
     }
   }
