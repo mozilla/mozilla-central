@@ -16,13 +16,13 @@ class nsMsgSearchNews : public nsMsgSearchAdapter
 {
 public:
   nsMsgSearchNews (nsMsgSearchScopeTerm *scope, nsISupportsArray *termList);
-  virtual ~nsMsgSearchNews ();
+  virtual ~nsMsgSearchNews () MOZ_OVERRIDE;
 
-  NS_IMETHOD ValidateTerms ();
-  NS_IMETHOD Search (bool *aDone);
-  NS_IMETHOD GetEncoding (char **result);
-  NS_IMETHOD AddHit(nsMsgKey key);
-  NS_IMETHOD CurrentUrlDone(int32_t exitCode);
+  NS_IMETHOD ValidateTerms () MOZ_OVERRIDE;
+  NS_IMETHOD Search (bool *aDone) MOZ_OVERRIDE;
+  NS_IMETHOD GetEncoding (char **result) MOZ_OVERRIDE;
+  NS_IMETHOD AddHit(nsMsgKey key) MOZ_OVERRIDE;
+  NS_IMETHOD CurrentUrlDone(nsresult exitCode) MOZ_OVERRIDE;
 
   virtual nsresult Encode (nsCString *outEncoding);
   virtual char *EncodeTerm (nsIMsgSearchTerm *);
