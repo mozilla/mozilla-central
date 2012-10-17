@@ -16,7 +16,7 @@ class nsMsgSearchNews : public nsMsgSearchAdapter
 {
 public:
   nsMsgSearchNews (nsMsgSearchScopeTerm *scope, nsISupportsArray *termList);
-  virtual ~nsMsgSearchNews () MOZ_OVERRIDE;
+  virtual ~nsMsgSearchNews ();
 
   NS_IMETHOD ValidateTerms () MOZ_OVERRIDE;
   NS_IMETHOD Search (bool *aDone) MOZ_OVERRIDE;
