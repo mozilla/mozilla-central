@@ -30,6 +30,8 @@ private:
     nsresult getPrefs();
     void getIntPrefWithDefault(const char *prefName, int32_t *val,
                                int32_t defval);
+    nsresult GetPasswordWithoutUI(const nsString &serverUri);
+
     nsCString m_password;
     bool m_logonFailed;
 };

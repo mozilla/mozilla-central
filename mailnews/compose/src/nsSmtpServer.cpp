@@ -364,6 +364,53 @@ nsSmtpServer::SetPassword(const nsACString& aPassword)
   return NS_OK;
 }
 
+nsresult
+nsSmtpServer::GetPasswordWithoutUI(const nsString &serverUri)
+{
+  nsresult rv;
+  nsCOMPtr<nsILoginManager> loginMgr(do_GetService(NS_LOGINMANAGER_CONTRACTID,
+                                                   &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  uint32_t numLogins = 0;
+  nsILoginInfo** logins = nullptr;
+  rv = loginMgr->FindLogins(&numLogins, serverUri, EmptyString(),
+                            serverUri, &logins);
+  // Login manager can produce valid fails, e.g. NS_ERROR_ABORT when a user
+  // cancels the master password dialog. Therefore handle that here, but don't
+  // warn about it.
+  if (NS_FAILED(rv))
+    return rv;
+
+  // Don't abort here, if we didn't find any or failed, then we'll just have
+  // to prompt.
+  if (numLogins > 0)
+  {
+    nsCString serverCUsername;
+    rv = GetUsername(serverCUsername);
+    NS_ConvertASCIItoUTF16 serverUsername(serverCUsername);
+
+    nsString username;
+    for (uint32_t i = 0; i < numLogins; ++i)
+    {
+      rv = logins[i]->GetUsername(username);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      if (username.Equals(serverUsername))
+      {
+        nsString password;
+        rv = logins[i]->GetPassword(password);
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        LossyCopyUTF16toASCII(password, m_password);
+        break;
+      }
+    }
+  }
+  NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(numLogins, logins);
+  return NS_OK;
+}
+
 NS_IMETHODIMP
 nsSmtpServer::GetPasswordWithUI(const PRUnichar *aPromptMessage,
                                 const PRUnichar *aPromptTitle,
@@ -373,11 +420,25 @@ nsSmtpServer::GetPasswordWithUI(const PRUnichar *aPromptMessage,
   if (!m_password.IsEmpty())
     return GetPassword(aPassword);
 
-  NS_ENSURE_ARG_POINTER(aDialog);
-
   nsCString serverUri;
   nsresult rv = GetServerURI(serverUri);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  // We need to get a password, but see if we can get it from the password
+  // manager without requiring a prompt.
+  rv = GetPasswordWithoutUI(NS_ConvertUTF8toUTF16(serverUri));
+  if (rv == NS_ERROR_ABORT)
+    return NS_MSG_PASSWORD_PROMPT_CANCELLED;
+
+  // Now re-check if we've got a password or not, if we have, then we
+  // don't need to prompt the user.
+  if (!m_password.IsEmpty())
+  {
+    aPassword = m_password;
+    return NS_OK;
+  }
+
+  NS_ENSURE_ARG_POINTER(aDialog);
 
   bool okayValue = true;
   nsString uniPassword;
