@@ -365,12 +365,14 @@ nsSmtpServer::SetPassword(const nsACString& aPassword)
 }
 
 nsresult
-nsSmtpServer::GetPasswordWithoutUI(const nsString &serverUri)
+nsSmtpServer::GetPasswordWithoutUI()
 {
   nsresult rv;
   nsCOMPtr<nsILoginManager> loginMgr(do_GetService(NS_LOGINMANAGER_CONTRACTID,
                                                    &rv));
   NS_ENSURE_SUCCESS(rv, rv);
+
+  NS_ConvertASCIItoUTF16 serverUri(GetServerURIInternal(false));
 
   uint32_t numLogins = 0;
   nsILoginInfo** logins = nullptr;
@@ -420,13 +422,9 @@ nsSmtpServer::GetPasswordWithUI(const PRUnichar *aPromptMessage,
   if (!m_password.IsEmpty())
     return GetPassword(aPassword);
 
-  nsCString serverUri;
-  nsresult rv = GetServerURI(serverUri);
-  NS_ENSURE_SUCCESS(rv, rv);
-
   // We need to get a password, but see if we can get it from the password
   // manager without requiring a prompt.
-  rv = GetPasswordWithoutUI(NS_ConvertUTF8toUTF16(serverUri));
+  nsresult rv = GetPasswordWithoutUI();
   if (rv == NS_ERROR_ABORT)
     return NS_MSG_PASSWORD_PROMPT_CANCELLED;
 
@@ -439,6 +437,9 @@ nsSmtpServer::GetPasswordWithUI(const PRUnichar *aPromptMessage,
   }
 
   NS_ENSURE_ARG_POINTER(aDialog);
+
+  // PromptPassword needs the username as well.
+  nsCString serverUri(GetServerURIInternal(true));
 
   bool okayValue = true;
   nsString uniPassword;
@@ -582,31 +583,41 @@ nsSmtpServer::ForgetPassword()
 NS_IMETHODIMP
 nsSmtpServer::GetServerURI(nsACString &aResult)
 {
-    nsAutoCString uri(NS_LITERAL_CSTRING("smtp://"));
+  aResult = GetServerURIInternal(true);
+  return NS_OK;
+}
 
+nsCString
+nsSmtpServer::GetServerURIInternal(const bool aIncludeUsername)
+{
+  nsCString uri(NS_LITERAL_CSTRING("smtp://"));
+  nsresult rv;
+
+  if (aIncludeUsername)
+  {
     nsCString username;
-    nsresult rv = GetUsername(username);
+    rv = GetUsername(username);
 
     if (NS_SUCCEEDED(rv) && !username.IsEmpty()) {
-        nsCString escapedUsername;
-        MsgEscapeString(username, nsINetUtil::ESCAPE_XALPHAS, escapedUsername);
-        // not all servers have a username
-        uri.Append(escapedUsername);
-        uri.AppendLiteral("@");
+      nsCString escapedUsername;
+      MsgEscapeString(username, nsINetUtil::ESCAPE_XALPHAS, escapedUsername);
+      // not all servers have a username
+      uri.Append(escapedUsername);
+      uri.AppendLiteral("@");
     }
+  }
 
-    nsCString hostname;
-    rv = GetHostname(hostname);
+  nsCString hostname;
+  rv = GetHostname(hostname);
 
-    if (NS_SUCCEEDED(rv) && !hostname.IsEmpty()) {
-        nsCString escapedHostname;
-        MsgEscapeString(hostname, nsINetUtil::ESCAPE_URL_PATH, escapedHostname);
-        // not all servers have a hostname
-        uri.Append(escapedHostname);
-    }
+  if (NS_SUCCEEDED(rv) && !hostname.IsEmpty()) {
+    nsCString escapedHostname;
+    MsgEscapeString(hostname, nsINetUtil::ESCAPE_URL_PATH, escapedHostname);
+    // not all servers have a hostname
+    uri.Append(escapedHostname);
+  }
 
-    aResult = uri;
-    return NS_OK;
+  return uri;
 }
 
 NS_IMETHODIMP
