@@ -232,6 +232,7 @@ var DefaultController =
       case "cmd_viewAllHeader":
       case "cmd_viewNormalHeader":
       case "cmd_stop":
+      case "cmd_chat":
         return true;
       case "cmd_downloadFlagged":
       case "cmd_downloadSelected":
@@ -367,7 +368,7 @@ var DefaultController =
         return true;
       case "cmd_markAsFlagged":
       case "button_file":
-	return GetNumSelectedMessages() > 0;
+        return GetNumSelectedMessages() > 0;
       case "cmd_archive":
       case "button_archive":
         return gFolderDisplay.canArchiveSelectedMessages;
@@ -560,8 +561,9 @@ var DefaultController =
         // always allow zooming in the message
         if (document.getElementById("tabmail").selectedTab.mode.name == "message")
           return true;
-
         return IsFolderSelected() && !IsMessagePaneCollapsed();
+      case "cmd_chat":
+        return true;
       default:
         return false;
     }
@@ -933,6 +935,9 @@ var DefaultController =
         break;
       case "cmd_fullZoomToggle":
         ZoomManager.toggleZoom();
+        break;
+      case "cmd_chat":
+        showChatTab();
         break;
     }
   },

@@ -308,7 +308,7 @@
 <!ENTITY goBackCmd.commandKey "[">
 <!ENTITY goChatCmd.label "Chat">
 <!ENTITY goChatCmd.accesskey "c">
-<!ENTITY goChatCmd.commandKey "C">
+<!ENTITY goChatCmd.key "I">
 <!ENTITY prevStarredMsgCmd.label "Starred Message">
 <!ENTITY prevStarredMsgCmd.accesskey "S">
 <!ENTITY folderMenu.label "Folder">

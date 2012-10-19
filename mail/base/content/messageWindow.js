@@ -736,7 +736,7 @@ function ReloadMessage()
 // MessageWindowController object (handles commands when one of the trees does not have focus)
 var MessageWindowController =
 {
-   supportsCommand: function(command)
+  supportsCommand: function(command)
   {
     switch ( command )
     {
@@ -801,7 +801,6 @@ var MessageWindowController =
       case "button_goForward":
       case "button_goBack":
         return gFolderDisplay.selectedMessage != null;
-
       case "cmd_reply":
       case "button_reply":
       case "cmd_replySender":
@@ -841,6 +840,7 @@ var MessageWindowController =
       case "cmd_viewAllHeader":
       case "cmd_viewNormalHeader":
       case "cmd_stop":
+      case "cmd_chat":
         return true;
       case "cmd_synchronizeOffline":
       case "cmd_downloadFlagged":
@@ -1000,6 +1000,8 @@ var MessageWindowController =
       case "cmd_runJunkControls":
       case "cmd_deleteJunk":
         return false;
+      case "cmd_chat":
+        return true;
       default:
         return false;
     }
@@ -1239,6 +1241,18 @@ var MessageWindowController =
         break;
       case "cmd_stop":
         msgWindow.StopUrls();
+        break;
+      case "cmd_chat":
+        let win = Services.wm.getMostRecentWindow("mail:3pane");
+        if (win) {
+          win.focus();
+          win.showChatTab();
+        }
+        else {
+          window.openDialog("chrome://messenger/content/", "_blank",
+                            "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar",
+                            null, {tabType: "chat", tabParams: {}});
+        }
         break;
       }
   },

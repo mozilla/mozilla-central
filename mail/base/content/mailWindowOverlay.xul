@@ -225,6 +225,7 @@
   <command id="cmd_undoCloseTab" oncommand="goDoCommand('cmd_undoCloseTab');"/> 
   <command id="cmd_goForward" oncommand="goDoCommand('cmd_goForward')" disabled="true"/>
   <command id="cmd_goBack" oncommand="goDoCommand('cmd_goBack')" disabled="true"/>
+  <command id="cmd_chat" oncommand="goDoCommand('cmd_chat')" disabled="true"/>
 </commandset>
 
 <commandset id="mailMessageMenuItems"
@@ -254,7 +255,6 @@
             commandupdater="true"
             events="mail-toolbar"
             oncommandupdate="goUpdateMailMenuItems(this)">
-
   <command id="button_reply"/>
   <command id="button_replyall"/>
   <command id="button_replylist"/>
@@ -276,6 +276,7 @@
   <command id="cmd_delete"/>
   <command id="button_junk"/>
   <command id="button_compact"/>
+  <command id="cmd_chat"/>
 </commandset>
 
 <commandset id="mailGetMsgMenuItems"
@@ -404,7 +405,7 @@
   <key id="key_archive" key="&archiveMsgCmd.key;"                    oncommand="goDoCommand('cmd_archive')"/>
   <key id="key_goForward" key="&goForwardCmd.commandKey;"            oncommand="goDoCommand('cmd_goForward')"/>
   <key id="key_goBack" key="&goBackCmd.commandKey;"                  oncommand="goDoCommand('cmd_goBack')"/>
-  <key id="key_goChat" key="&goChatCmd.commandKey;"                  modifiers="accel,shift"/>
+  <key id="key_goChat" key="&goChatCmd.key;"                         oncommand="goDoCommand('cmd_chat')" modifiers="accel,shift"/>
   <key id="key_goStartPage" keycode="VK_HOME"                        oncommand="goDoCommand('cmd_goStartPage')" modifiers="alt"/>
   <key id="key_undoCloseTab" key="&undoCloseTabCmd.commandkey;"      oncommand="goDoCommand('cmd_undoCloseTab')" modifiers="accel, shift"/> 
   <key id="key_reply" key="&replyMsgCmd.key;"                        oncommand="goDoCommand('cmd_reply')" modifiers="accel"/>
@@ -1795,7 +1796,7 @@
             <menuseparator id="appmenu_goNextSeparator"/>
             <menuitem id="appmenu_goChat"
                       label="&goChatCmd.label;"
-                      oncommand="showChatTab();"/>
+                      command="cmd_chat"/>
             <menuseparator id="appmenu_goChatSeparator"/>
             <menu id="appmenu_goFolderMenu"
                   label="&folderMenu.label;"
@@ -2555,7 +2556,8 @@
                     key="key_goBack"/>
           <menuseparator id="goNextSeparator"/>
           <menuitem id="menu_goChat" label="&goChatCmd.label;"
-                    accesskey="&goChatCmd.accesskey;" oncommand="showChatTab();"
+                    accesskey="&goChatCmd.accesskey;"
+                    command="cmd_chat"
                     key="key_goChat"/>
           <menuseparator id="goChatSeparator"/>
           <menu id="goFolderMenu"
@@ -3150,7 +3152,8 @@
     <toolbarbutton id="button-chat"
                    class="toolbarbutton-1"
                    label="&chatButton.label;"
-                   oncommand="showChatTab();"
+                   command="cmd_chat"
+                   observes="cmd_chat"
                    tooltiptext="&chatButton.tooltip;"/>
     <toolbaritem id="throbber-box" title="&throbberItem.title;" align="center" pack="center"
                  mousethrough="always">
