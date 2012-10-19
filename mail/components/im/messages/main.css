@@ -23,6 +23,7 @@
   padding-bottom: 5px;
   display: block;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .outgoing > .pseudo {
