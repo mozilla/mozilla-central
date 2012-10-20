@@ -14,7 +14,7 @@ var Sanitizer = {
   },
 
   /**
-   * Deletes privacy sensitive data in a batch, optionally showing the 
+   * Deletes privacy sensitive data in a batch, optionally showing the
    * sanitize UI, according to user preferences
    *
    * @returns  null if everything's fine
@@ -122,9 +122,17 @@ var Sanitizer = {
   items: {
     cache: {
       clear: function() {
+        // use try/catch for everything but the last task so we clear as much as possible
         var cacheService = Components.classes["@mozilla.org/network/cache-service;1"]
                                      .getService(Components.interfaces.nsICacheService);
-        cacheService.evictEntries(Components.interfaces.nsICache.STORE_ANYWHERE);
+        try {
+          cacheService.evictEntries(Components.interfaces.nsICache.STORE_ANYWHERE);
+        } catch(ex) {}
+
+        Components.classes["@mozilla.org/image/tools;1"]
+                  .getService(Components.interfaces.imgITools)
+                  .getImgCacheForDocument(null)
+                  .clearCache(false); // true=chrome, false=content
       },
 
       canClear: true
