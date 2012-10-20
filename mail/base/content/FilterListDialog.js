@@ -792,8 +792,9 @@ function onFilterListKeyPress(event)
 {
   if (event.charCode == KeyEvent.DOM_VK_SPACE)
   {
-    for each (let item in gFilterListbox.selectedItems)
+    for each (let item in gFilterListbox.selectedItems) {
       toggleFilter(item);
+    }
   }
   else switch (event.keyCode)
   {
