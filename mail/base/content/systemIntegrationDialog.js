@@ -3,95 +3,118 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-// this dialog can only be opened if we have a shell service
+// This dialog can only be opened if we have a shell service.
 
-var gSystemIntegrationDialog = {
-  /// Whether the search integration checkbox is disabled or hidden
-  _searchCheckboxInactive: false,
-  
-  onLoad: function () 
+let gSystemIntegrationDialog = {
+  _shellSvc: Components.classes["@mozilla.org/mail/shell-service;1"]
+                       .getService(Components.interfaces.nsIShellService),
+
+  _mailCheckbox: null,
+
+  _newsCheckbox: null,
+
+  _rssCheckbox: null,
+
+  _startupCheckbox: null,
+
+  _searchCheckbox: null,
+
+  onLoad: function()
   {
-    var nsIShellService = Components.interfaces.nsIShellService;
-    var shellSvc = Components.classes["@mozilla.org/mail/shell-service;1"]
-                             .getService(nsIShellService);
-                               
-    // initialize the check boxes based on the default app states.
-    var mailCheckbox = document.getElementById('checkMail');
-    var newsCheckbox = document.getElementById('checkNews');
-    var rssCheckbox = document.getElementById('checkRSS');
-    
-    mailCheckbox.disabled = shellSvc.isDefaultClient(false, nsIShellService.MAIL);
-    // as an optimization, if we aren't already the default mail client, then pre-check that option
-    // for the user. We'll leave news and RSS alone.
-    mailCheckbox.checked = true;
-    newsCheckbox.checked = newsCheckbox.disabled = shellSvc.isDefaultClient(false, nsIShellService.NEWS);
-    rssCheckbox.checked  = rssCheckbox.disabled  = shellSvc.isDefaultClient(false, nsIShellService.RSS);       
-    
+    // Makes Services and SearchIntegration accessible via this.Services
+    // and this.SearchIntegration.
+    Components.utils.import("resource://gre/modules/Services.jsm", this);
+    Components.utils.import("resource:///modules/SearchIntegration.js", this);
+
+    // initialize elements
+    this._mailCheckbox    = document.getElementById("checkMail");
+    this._newsCheckbox    = document.getElementById("checkNews");
+    this._rssCheckbox     = document.getElementById("checkRSS");
+    this._startupCheckbox = document.getElementById("checkOnStartup");
+    this._searchCheckbox  = document.getElementById("searchIntegration");
+
+    // Initialize the check boxes based on the default app states.
+    this._mailCheckbox.disabled =
+      this._shellSvc.isDefaultClient(false, this._shellSvc.MAIL);
+
+    if (!("arguments" in window) || (window.arguments[0] != "calledFromPrefs")) {
+      // As an optimization, if we aren't already the default mail client,
+      // then pre-check that option for the user. We'll leave News and RSS alone.
+      // Do this only if we are not called from the Preferences (Options) dialog.
+      // In that case, the user may want just to check what the current state is.
+      this._mailCheckbox.checked = true;
+    } else {
+      this._newsCheckbox.checked = this._newsCheckbox.disabled;
+    }
+
+    this._newsCheckbox.checked = this._newsCheckbox.disabled =
+      this._shellSvc.isDefaultClient(false, this._shellSvc.NEWS);
+
+    this._rssCheckbox.checked  = this._rssCheckbox.disabled  =
+      this._shellSvc.isDefaultClient(false, this._shellSvc.RSS);
+
     // read the raw pref value and not shellSvc.shouldCheckDefaultMail
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                .getService(Components.interfaces.nsIPrefBranch);
-    document.getElementById('checkOnStartup').checked = prefs.getBoolPref("mail.shell.checkDefaultClient");
+    this._startupCheckbox.checked =
+      this.Services.prefs.getBoolPref("mail.shell.checkDefaultClient");
 
-    // Search integration -- check whether we should hide or disable integration
-    let hideSearchUI = false;
-    let disableSearchUI = false;
-    Components.utils.import("resource:///modules/SearchIntegration.js");
-    if (SearchIntegration)
+    // Search integration - check whether we should show/disable integration options
+    if (this.SearchIntegration)
     {
-      if (SearchIntegration.osVersionTooLow)
-        hideSearchUI = true;
-      else if (SearchIntegration.osComponentsNotRunning)
-        disableSearchUI = true;
-    }
-    else
-    {
-      hideSearchUI = true;
-    }
-
-    let searchCheckbox = document.getElementById("searchIntegration");
-
-    if (hideSearchUI)
-    {
-      this._searchCheckboxInactive = true;
-      document.getElementById("searchIntegrationContainer").hidden = true;
-    }
-    else if (disableSearchUI)
-    {
-      this._searchCheckboxInactive = true;
-      searchCheckbox.checked = false;
-      searchCheckbox.disabled = true;
-    }
-    else
-    {
-      searchCheckbox.checked = SearchIntegration.prefEnabled;
+      this._searchCheckbox.checked = this.SearchIntegration.prefEnabled;
+      if (!this.SearchIntegration.osVersionTooLow) {
+        this._searchCheckbox.hidden = false;
+        if (this.SearchIntegration.osComponentsNotRunning)
+        {
+          this._searchCheckbox.checked = false;
+          this._searchCheckbox.disabled = true;
+        }
+      }
     }
   },
-  
-  onAccept: function()
-  {
-    // for each checked item, if we aren't already the default, make us the default.
-    var nsIShellService = Components.interfaces.nsIShellService;    
-    var shellSvc = Components.classes["@mozilla.org/mail/shell-service;1"]
-                             .getService(nsIShellService);
-    var appTypes = 0;                            
-    if (document.getElementById('checkMail').checked && !shellSvc.isDefaultClient(false, nsIShellService.MAIL))
-      appTypes |= nsIShellService.MAIL;
-    if (document.getElementById('checkNews').checked && !shellSvc.isDefaultClient(false, nsIShellService.NEWS))
-      appTypes |= nsIShellService.NEWS;
-    if (document.getElementById('checkRSS').checked &&  !shellSvc.isDefaultClient(false, nsIShellService.RSS))
-      appTypes |= nsIShellService.RSS;
-    
-    if (appTypes)
-      shellSvc.setDefaultClient(false, appTypes);
 
-    shellSvc.shouldCheckDefaultClient = document.getElementById('checkOnStartup').checked;
-    
-    // Set the search integration pref if it's changed
-    // The integration will handle the rest
-    if (!this._searchCheckboxInactive)
+  /**
+   * Called when the dialog is closed by any button.
+   *
+   * @param aSetAsDefault  If true, set TB as the default application for the
+   *                       checked actions (mail/news/rss). Otherwise do nothing.
+   */
+  onDialogClose: function(aSetAsDefault)
+  {
+    // In all cases, save the user's decision for "always check at startup".
+    this._shellSvc.shouldCheckDefaultClient = this._startupCheckbox.checked;
+
+    // If the "skip integration" button was used do not set any defaults
+    // and close the dialog.
+    if (!aSetAsDefault)
+      return true;
+
+    // For each checked item, if we aren't already the default client,
+    // make us the default.
+    let appTypes = 0;
+
+    if (this._mailCheckbox.checked &&
+        !this._shellSvc.isDefaultClient(false, this._shellSvc.MAIL))
+      appTypes |= this._shellSvc.MAIL;
+
+    if (this._newsCheckbox.checked &&
+        !this._shellSvc.isDefaultClient(false, this._shellSvc.NEWS))
+      appTypes |= this._shellSvc.NEWS;
+
+    if (this._rssCheckbox.checked &&
+        !this._shellSvc.isDefaultClient(false, this._shellSvc.RSS))
+      appTypes |= this._shellSvc.RSS;
+
+    if (appTypes)
+      this._shellSvc.setDefaultClient(false, appTypes);
+
+    // Set the search integration pref if it is changed.
+    // The integration will handle the rest.
+    if (!this._searchCheckbox.hidden)
     {
-      SearchIntegration.prefEnabled = document.getElementById("searchIntegration").checked;
-      SearchIntegration.firstRunDone = true;
+      this.SearchIntegration.prefEnabled = this._searchCheckbox.checked;
+      this.SearchIntegration.firstRunDone = true;
     }
+
+    return true;
   }
 };

@@ -85,7 +85,7 @@ var gAdvancedPane = {
     // otherwise, bring up the default client dialog
     window.openDialog("chrome://messenger/content/systemIntegrationDialog.xul",
                       "SystemIntegration",
-                      "modal,centerscreen,chrome,resizable=no");
+                      "modal,centerscreen,chrome,resizable=no", "calledFromPrefs");
   },
 #endif
 

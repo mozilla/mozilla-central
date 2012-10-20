@@ -3,6 +3,8 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 
 <!ENTITY systemIntegration.title  "System Integration">
+<!ENTITY acceptIntegration.label  "Set as Default">
+<!ENTITY cancelIntegration.label  "Skip Integration">
 <!ENTITY defaultClient.intro  "Use &brandShortName; as the default client for:">
 
 <!ENTITY email.label "E-Mail">
