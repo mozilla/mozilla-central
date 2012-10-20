@@ -1,13 +1,11 @@
-/*
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-*/
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
-const KEY_ISP_DIRECTORY_LIST = "ISPDL";
-var gPrefBranch = null;
 let gDeferredToAccount = "";
 
 function onInit(aPageId, aServerId)
@@ -140,11 +138,6 @@ function onInit(aPageId, aServerId)
 
 function onPreInit(account, accountValues)
 {
-  gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefService)
-                          .getBranch("mail.server." +
-                                      account.incomingServer.key + ".");
-
   if (getAccountValue(account, accountValues, "server", "type", null, false) == "pop3")
     gDeferredToAccount = getAccountValue(account, accountValues,
                                          "pop3", "deferredToAccount",
@@ -201,6 +194,8 @@ function updateJunkTargetsAndRetention() {
   onCheckItem("server.moveTargetMode", ["server.moveOnSpam"]);
   updateJunkTargets();
   onCheckItem("server.purgeSpam", ["server.moveOnSpam"]);
+  document.getElementById("purgeLabel").disabled =
+    document.getElementById("server.purgeSpam").disabled;
   updateJunkRetention();
 }
 
@@ -218,8 +213,6 @@ function updateJunkTargets() {
  */
 function updateJunkRetention() {
   onCheckItem("server.purgeSpamInterval", ["server.purgeSpam", "server.moveOnSpam"]);
-  document.getElementById("purgeLabel").disabled =
-    document.getElementById("server.purgeSpamInterval").disabled;
 }
 
 function onSave()
@@ -249,50 +242,63 @@ function onSaveWhiteList()
   document.getElementById("server.useWhiteList").checked = (wlValue != "");
 }
 
+/**
+ * Called when a new value is chosen in one of the junk target folder pickers.
+ * Sets the menu label according to the folder name.
+ */
 function onActionTargetChange(aEvent, aWSMElementId)
 {
-  var folder = aEvent.target._folder;
+  let folder = aEvent.target._folder;
   document.getElementById(aWSMElementId).value = folder.URI;
   aEvent.currentTarget.setAttribute("label", prettyFolderName(folder));
 }
 
+/**
+ * Enumerates over the "ISPDL" directories, calling buildServerFilterListFromDir
+ * for each one.
+ *
+ * @param aDir  directory to look for .sfd files
+ */
 function buildServerFilterMenuList()
 {
-  var fileLocator = Components.classes["@mozilla.org/file/directory_service;1"]
-                              .getService(Components.interfaces.nsIProperties);
+  const KEY_ISP_DIRECTORY_LIST = "ISPDL";
+  let ispHeaderList = document.getElementById('useServerFilterList');
   // Now walk through the isp directories looking for sfd files
-  var ispDirectories = fileLocator.get(KEY_ISP_DIRECTORY_LIST, Components.interfaces.nsISimpleEnumerator);
-  while (ispDirectories.hasMoreElements()) 
+  let ispDirectories = Services.dirsvc.get(KEY_ISP_DIRECTORY_LIST,
+                                           Components.interfaces.nsISimpleEnumerator);
+  while (ispDirectories.hasMoreElements())
   {
-    var ispDirectory = ispDirectories.getNext().QueryInterface(Components.interfaces.nsIFile);
+    let ispDirectory = ispDirectories.getNext()
+                                     .QueryInterface(Components.interfaces.nsIFile);
     if (ispDirectory)
-      buildServerFilterListFromDir(ispDirectory);
+      buildServerFilterListFromDir(ispDirectory, ispHeaderList);
   }
 }
 
-// helper function called by buildServerFilterMenuList. Enumerates over the passed in
-// directory looking for .sfd files. For each entry found, it gets appended to the menu list
-function buildServerFilterListFromDir(aDir)
+/**
+ * Helper function called by buildServerFilterMenuList. Enumerates over the
+ * passed in directory looking for .sfd files. For each entry found, it gets
+ * appended to the menu list.
+ *
+ * @param aDir           directory to look for .sfd files
+ * @param aISPHeadeList  the menulist element to append found items into
+ */
+function buildServerFilterListFromDir(aDir, aISPHeaderList)
 {
-  var ispHeaderList = document.getElementById('useServerFilterList');
-
   // now iterate over each file in the directory looking for .sfd files
-  var entries = aDir.directoryEntries.QueryInterface(Components.interfaces.nsIDirectoryEnumerator);
+  let entries = aDir.directoryEntries
+                    .QueryInterface(Components.interfaces.nsIDirectoryEnumerator);
 
   while (entries.hasMoreElements())
   {
-    var entry = entries.nextFile;
-    if (entry.isFile())
+    let entry = entries.nextFile;
+    // we only care about files that end in .sfd
+    if (entry.isFile() && /\.sfd$/.test(entry.leafName))
     {
-      // we only care about files that end in .sfd
-      if (entry.isFile() && /\.sfd$/.test(entry.leafName))
-      {
-        var fileName = RegExp.leftContext;
-        // if we've already added an item with this name, then don't add it again.
-        if (ispHeaderList.getElementsByAttribute("value", fileName).item(0))
-          continue;
-        ispHeaderList.appendItem(fileName, fileName);
-      }
+      let fileName = RegExp.leftContext;
+      // if we've already added an item with this name, then don't add it again.
+      if (!aISPHeaderList.getElementsByAttribute("value", fileName).item(0))
+        aISPHeaderList.appendItem(fileName, fileName);
     }
   }
 }
