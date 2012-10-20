@@ -52,10 +52,6 @@ textbox {
   margin: 0px 1px;
 }
 
-listbox {
-  padding-top: 2px;
-}
-
 .filler {
   -moz-padding-end: 22px;
 }
@@ -417,7 +413,6 @@ treechildren::-moz-tree-cell-text(lc-663333) {
 treechildren::-moz-tree-row(lc-663333, selected) {
   background-color: #663333;
 }
-
 
 treechildren::-moz-tree-cell-text(lc-FFFFCC) {
   color: #FFFFCC

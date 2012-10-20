@@ -26,10 +26,6 @@ treechildren::-moz-tree-image(activeColumn, Enabled-true) {
   margin: 0px 1px;
 }
 
-listbox {
-  padding-top: 2px;
-}
-
 .search-menulist, .search-value-menulist {
   width: 12em;
 }
@@ -52,6 +48,10 @@ textbox {
 
 .filler {
   -moz-padding-end: 22px;
+}
+
+.ruleaction {
+  border: 1px solid transparent;
 }
 
 .ruleactionitem {

@@ -214,7 +214,7 @@ function updateRemoveRowButton()
 {
   var firstListItem = gSearchTermList.getItemAtIndex(0);
   if (firstListItem)
-    firstListItem.lastChild.lastChild.lastChild.setAttribute("disabled", gTotalSearchTerms == 1);
+    firstListItem.lastChild.lastChild.setAttribute("disabled", gTotalSearchTerms == 1);
 }
  
 // Returns the actual list item row index in the list of search rows
@@ -309,10 +309,7 @@ function createSearchRow(index, scope, searchTerm)
     var searchAttr = document.createElement("searchattribute");
     var searchOp = document.createElement("searchoperator");
     var searchVal = document.createElement("searchvalue");
-    var enclosingBox = document.createElement('vbox');
 
-    var buttonBox = document.createElement("hbox");
-    buttonBox.setAttribute("align", "start");
     var moreButton = document.createElement("button");
     var lessButton = document.createElement("button");
     moreButton.setAttribute("class", "small-button");
@@ -324,23 +321,16 @@ function createSearchRow(index, scope, searchTerm)
     lessButton.setAttribute('label', '\u2212');
     lessButton.setAttribute('tooltiptext', gLessButtonTooltipText);
 
-    enclosingBox.setAttribute('align', 'right');
-
     // now set up ids:
     searchAttr.id = "searchAttr" + gUniqueSearchTermCounter;
     searchOp.id  = "searchOp" + gUniqueSearchTermCounter;
     searchVal.id = "searchVal" + gUniqueSearchTermCounter;
 
-    buttonBox.appendChild(moreButton);
-    buttonBox.appendChild(lessButton);
-
     searchAttr.setAttribute("for", searchOp.id + "," + searchVal.id);
     searchOp.setAttribute("opfor", searchVal.id);
 
-    var rowdata = new Array(enclosingBox, searchAttr,
-                            null, searchOp,
-                            null, searchVal,
-                            null, buttonBox);
+    var rowdata = [searchAttr, searchOp, searchVal,
+                   [moreButton, lessButton] ];
     var searchrow = constructRow(rowdata);
     searchrow.id = "searchRow" + gUniqueSearchTermCounter;
 
@@ -351,22 +341,6 @@ function createSearchRow(index, scope, searchTerm)
 
     // now insert the new search term into our list of terms
     gSearchTerms.splice(index, 0, {obj:searchTermObj, scope:scope, searchTerm:searchTerm, initialized:false});
-
-    // and/or string handling:
-    // this is scary - basically we want to take every other
-    // listcell, (note the i+=2) which will be a text label,
-    // and set the searchTermObj's
-    // booleanNodes to that
-    var stringNodes = new Array;
-    var listcells = searchrow.childNodes;
-    var j=0;
-    for (var i=0; i<listcells.length; i+=2) {
-      stringNodes[j++] = listcells[i];
-
-      // see bug #183994 for why these cells are hidden
-      listcells[i].hidden = true;
-    }
-    searchTermObj.booleanNodes = stringNodes;
 
     var editFilter = null;
     try { editFilter = gFilter; } catch(e) { }
@@ -425,19 +399,28 @@ function initializeTermFromIndex(index)
     gSearchTerms[index].initialized = true;
 }
 
-// creates a <listitem> using the array children as
-// the children of each listcell
-function constructRow(children)
+/**
+ * Creates a <listitem> using the array children as the children
+ * of each listcell.
+ * @param aChildren  An array of XUL elements to put into the listitem.
+ *                   Each array member is put into a separate listcell.
+ *                   If the member itself is an array of elements,
+ *                   all of them are put into the same listcell.
+ */
+function constructRow(aChildren)
 {
-    var listitem = document.createElement("listitem");
+    let listitem = document.createElement("listitem");
     listitem.setAttribute("allowevents", "true");
-    for (var i = 0; i < children.length; i++) {
-      var listcell = document.createElement("listcell");
+    for (let i = 0; i < aChildren.length; i++) {
+      let listcell = document.createElement("listcell");
+      let child = aChildren[i];
 
-      // it's ok to have empty cells
-      if (children[i]) {
-          children[i].setAttribute("flex", "1");
-          listcell.appendChild(children[i]);
+      if (child instanceof Array) {
+        for (let j = 0; j < child.length; j++)
+          listcell.appendChild(child[j]);
+      } else {
+        child.setAttribute("flex", "1");
+        listcell.appendChild(child);
       }
       listitem.appendChild(listcell);
     }

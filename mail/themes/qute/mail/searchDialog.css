@@ -56,10 +56,6 @@ textbox {
   margin: 0px 1px;
 }
 
-listbox {
-  padding-top: 2px;
-}
-
 /* ::::: thread decoration ::::: */
 
 treechildren::-moz-tree-cell-text(read) {

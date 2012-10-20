@@ -53,10 +53,6 @@ menulist > menupopup > menuitem {
   margin: 0px 1px;
 }
 
-listbox {
-  padding-top: 2px;
-}
-
 textbox {
   margin: 1px 4px;
 }

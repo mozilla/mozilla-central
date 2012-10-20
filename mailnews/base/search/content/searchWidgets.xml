@@ -318,17 +318,15 @@
       <xul:listcell class="ruleactiontarget" xbl:inherits="type=value"
                     orient="vertical" align="stretch" pack="center"/>
       <xul:listcell>
-        <xul:hbox align="start">
-          <xul:button class="small-button"
-                      label="+"
-                      tooltiptext="&addAction.tooltip;"
-                      oncommand="this.parentNode.parentNode.parentNode.addRow();"/>
-          <xul:button class="small-button"
-                      label="&#x2212;"
-                      tooltiptext="&removeAction.tooltip;"
-                      oncommand="this.parentNode.parentNode.parentNode.removeRow();"
-                      anonid="removeButton"/>
-        </xul:hbox>
+        <xul:button class="small-button"
+                    label="+"
+                    tooltiptext="&addAction.tooltip;"
+                    oncommand="this.parentNode.parentNode.addRow();"/>
+        <xul:button class="small-button"
+                    label="&#x2212;"
+                    tooltiptext="&removeAction.tooltip;"
+                    oncommand="this.parentNode.parentNode.removeRow();"
+                    anonid="removeButton"/>
       </xul:listcell>
     </content>
 
@@ -658,7 +656,7 @@
 
   <binding id="ruleactiontarget-forwardto" extends="chrome://messenger/content/searchWidgets.xml#ruleactiontarget-base">
     <content>
-      <xul:textbox class="ruleactionitem"/>
+      <xul:textbox class="ruleactionitem" flex="1"/>
     </content>
   </binding>
 

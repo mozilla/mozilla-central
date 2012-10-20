@@ -37,24 +37,25 @@
 
         <!-- this is what the listitems will look like:
           <listitem id="searchListItem">
-            <listcell id="preSearchAttr"/>
             <listcell allowevents="true">
               <searchattribute id="searchAttr1" for="searchOp1,searchValue1" flex="1"/>
             </listcell>
-            <listcell id="preSearchOp"/>
             <listcell allowevents="true">
               <searchoperator id="searchOp1" opfor="searchValue1" flex="1"/>
             </listcell>
-            <listcell id="preSearchValue"/>
             <listcell allowevents="true" >
               <searchvalue id="searchValue1" flex="1"/>
             </listcell>
-            <listcell id="postSearchValue"/>
+            <listcell>
+              <button label="add"/>
+              <button label="remove"/>
+            </listcell>
           </listitem>
           <listitem>
             <listcell label="the.."/>
             <listcell label="contains.."/>
             <listcell label="text here"/>
+            <listcell label="+/-"/>
           </listitem>
         -->
       </listbox>

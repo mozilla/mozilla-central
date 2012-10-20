@@ -32,6 +32,10 @@ treechildren::-moz-tree-image(activeColumn, Enabled-true) {
   margin: 0;
 }
 
+.small-button:first-child {
+  margin-left: 1px;
+}
+
 .small-button:not([disabled="true"]):hover:active {
   background: -moz-linear-gradient(bottom, #B0B0B0, #B4B4B4 50%, #BFBFBF 0%, #BABABA);
   border: 1px solid #9C9C9C;
@@ -56,10 +60,6 @@ treechildren::-moz-tree-image(activeColumn, Enabled-true) {
 
 .small-button:focus + .small-button {
   box-shadow: inset 1px 0 -moz-mac-focusring;
-}
-
-listbox {
-  padding-top: 2px;
 }
 
 listcell > hbox {
@@ -89,6 +89,10 @@ hbox > .small-button + .small-button {
 
 .filler {
   -moz-padding-end: 22px;
+}
+
+.ruleaction {
+  border: 1px solid transparent;
 }
 
 .ruleactionitem {
