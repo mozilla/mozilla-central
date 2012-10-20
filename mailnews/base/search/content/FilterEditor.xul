@@ -36,6 +36,11 @@
   <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
   <script type="application/javascript" src="chrome://messenger/content/msgFolderPickerOverlay.js"/>
 
+  <commandset>
+    <command id="cmd_updateFilterType" oncommand="updateFilterType();"/>
+    <command id="cmd_updateClassificationMenu" oncommand="gFilterTypeSelector.updateClassificationMenu();"/>
+  </commandset>
+
   <vbox>
     <hbox align="center">
       <label value="&filterName.label;" accesskey="&filterName.accesskey;" control="filterName"/>
@@ -44,34 +49,43 @@
     </hbox>
   </vbox>
 
-  <separator/>
+  <separator class="thin"/>
 
   <vbox flex="1">
-    <hbox align="center">
-      <label value="&contextDesc.label;"
-             accesskey="&contextDesc.accesskey;"
-             control="contextMenuList"/>
-      <menulist id="contextMenuList"
-                value="both" oncommand="updateFilterType();">
-        <menupopup>
-          <menuitem label="&contextIncoming.label;"
-                    value="incoming"/>
-          <menuitem label="&contextManual.label;"
-                    value="manual"/>
-          <menuitem label="&contextBoth.label;"
-                    value="both"/>
-          <menuitem label="&contextPostPlugin.label;"
-                    value="postPlugin"
-                    id="contextMenuListPostPlugin"/>
-          <menuitem label="&contextPostPluginBoth.label;"
-                    value="postPluginBoth"
-                    id="contextMenuListPostPluginBoth"/>
-        </menupopup>
-      </menulist>
-    </hbox>
+    <groupbox>
+      <caption label="&contextDesc.label;"/>
+      <grid>
+        <columns>
+          <column/>
+          <column/>
+        </columns>
+        <rows>
+          <row>
+            <checkbox id="runManual"
+                      label="&contextManual.label;"
+                      accesskey="&contextManual.accesskey;"
+                      command="cmd_updateFilterType"/>
+          </row>
+          <row>
+            <checkbox id="runIncoming"
+                      label="&contextIncomingMail.label;"
+                      accesskey="&contextIncomingMail.accesskey;"
+                      command="cmd_updateClassificationMenu"/>
+            <menulist id="pluginsRunOrder"
+                      command="cmd_updateFilterType">
+              <menupopup>
+                <menuitem id="runBeforePlugins"
+                          label="&contextBeforeCls.label;"/>
+                <menuitem id="runAfterPlugins"
+                          label="&contextAfterCls.label;"/>
+              </menupopup>
+            </menulist>
+          </row>
+        </rows>
+      </grid>
+    </groupbox>
 
     <vbox id="searchTermListBox" flex="1"/>
-
   </vbox>
 
   <splitter id="gray_horizontal_splitter" persist="state"/>
