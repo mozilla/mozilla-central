@@ -140,8 +140,7 @@ toolbar:not([mode="icons"]) .toolbarbutton-1 > .toolbarbutton-menubutton-button 
   min-width: 0;
 }
 
-.toolbarbutton-1 > .toolbarbutton-icon,
-.toolbarbutton-1 > .toolbarbutton-menubutton-button > .toolbarbutton-icon {
+.toolbarbutton-1 .toolbarbutton-icon {
   width: 18px;
   height: 18px;
   margin: 2px;
