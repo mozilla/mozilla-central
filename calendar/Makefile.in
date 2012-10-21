@@ -9,8 +9,14 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
+ifdef MOZ_SUNBIRD
 MODULE = calendar
 DIRS = libical resources base providers import-export locales
+else
+ifdef MOZ_CALENDAR
+DIRS = lightning
+endif
+endif
 
 ifdef ENABLE_TESTS
 DIRS += test
