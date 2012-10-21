@@ -133,6 +133,10 @@ var FeedUtils = {
     let account = MailServices.accounts.createAccount();
     account.incomingServer = server;
 
+    // Ensure the Trash folder db (.msf) is created otherwise folder/message
+    // deletes will throw until restart creates it.
+    server.msgStore.discoverSubFolders(server.rootMsgFolder, false);
+
     // Create "Local Folders" if none exist yet as it's guaranteed that
     // those exist when any account exists.
     let localFolders;

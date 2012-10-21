@@ -1649,7 +1649,7 @@ var FeedSubscriptions = {
 
       if (aFolder.isServer)
       {
-        if (indexInView)
+        if (indexInView != null)
           // Existing account root folder in the view.
           open = feedWindow.mView.getItemAtIndex(indexInView).open;
         else

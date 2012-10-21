@@ -26,8 +26,12 @@ var nsNewsBlogFeedDownloader =
 
     let allFolders = Cc["@mozilla.org/supports-array;1"].
                      createInstance(Ci.nsISupportsArray);
-    // Add the base folder; it does not get added by ListDescendents.
-    allFolders.AppendElement(aFolder);
+    if (!aFolder.isServer)
+      // Add the base folder; it does not get added by ListDescendents.  Do not
+      // add the account folder as it doesn't have the feedUrl property or even
+      // a msgDatabase necessarily.
+      allFolders.AppendElement(aFolder);
+
     aFolder.ListDescendents(allFolders);
     let numFolders = allFolders.Count();
     let trashFolder =
