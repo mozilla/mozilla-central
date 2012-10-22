@@ -610,9 +610,6 @@ function Startup()
   else
     setTimeout(WindowFocusTimerCallback, 0, content);
 
-  // Perform default browser checking (after window opens).
-  setTimeout(checkForDefaultBrowser, 0);
-
   // hook up browser access support
   window.browserDOMWindow = new nsBrowserAccess();
 
@@ -2099,34 +2096,6 @@ function URLBarClickHandler(aEvent)
   if (!gIgnoreClick && gClickSelectsAll && gURLBar.selectionStart == gURLBar.selectionEnd)
     if (gClickAtEndSelects || gURLBar.selectionStart < gURLBar.value.length)
       gURLBar.select();
-}
-
-// This function gets the shell service and has it check its setting
-// This will do nothing on platforms without a shell service.
-function checkForDefaultBrowser()
-{
-  const NS_SHELLSERVICE_CID = "@mozilla.org/suite/shell-service;1";
-
-  if (NS_SHELLSERVICE_CID in Components.classes) try {
-    const nsIShellService = Components.interfaces.nsIShellService;
-    var shellService = Components.classes["@mozilla.org/suite/shell-service;1"]
-                                 .getService(nsIShellService);
-    var appTypes = shellService.shouldBeDefaultClientFor;
-
-    // show the default client dialog only if we should check for the default
-    // client and we aren't already the default for the stored app types in
-    // shell.checkDefaultApps
-    if (appTypes && shellService.shouldCheckDefaultClient &&
-        !shellService.isDefaultClient(true, appTypes)) {
-      window.openDialog("chrome://communicator/content/defaultClientDialog.xul",
-                        "DefaultClient",
-                        "modal,centerscreen,chrome,resizable=no"); 
-      // Force the sidebar to build since the windows
-      // integration dialog has come up.
-      SidebarRebuild();
-    }
-  } catch (e) {
-  }
 }
 
 function ShowAndSelectContentsOfURLBar()

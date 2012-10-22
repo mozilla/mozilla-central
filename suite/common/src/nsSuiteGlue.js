@@ -375,6 +375,8 @@ SuiteGlue.prototype = {
     // Detect if updates are off and warn for outdated builds.
     if (this._shouldShowUpdateWarning())
       notifyBox.showUpdateWarning();
+
+    this._checkForDefaultClient(aWindow);
   },
 
   // profile shutdown handler (contains profile cleanup routines)
@@ -629,6 +631,30 @@ SuiteGlue.prototype = {
     var buildTime = Math.round(buildDate / 1000);
     // We should warn if the build is older than the max age.
     return (buildTime + maxAge <= now);
+  },
+
+  // This method gets the shell service and has it check its settings.
+  // This will do nothing on platforms without a shell service.
+  _checkForDefaultClient: function checkForDefaultClient(aWindow)
+  {
+    const NS_SHELLSERVICE_CID = "@mozilla.org/suite/shell-service;1";
+    if (NS_SHELLSERVICE_CID in Components.classes) try {
+      const nsIShellService = Components.interfaces.nsIShellService;
+
+      var shellService = Components.classes[NS_SHELLSERVICE_CID]
+                                   .getService(nsIShellService);
+      var appTypes = shellService.shouldBeDefaultClientFor;
+
+      // Show the default client dialog only if we should check for the default
+      // client and we aren't already the default for the stored app types in
+      // shell.checkDefaultApps.
+      if (appTypes && shellService.shouldCheckDefaultClient &&
+          !shellService.isDefaultClient(true, appTypes)) {
+        aWindow.openDialog("chrome://communicator/content/defaultClientDialog.xul",
+                           "DefaultClient",
+                           "modal,centerscreen,chrome,resizable=no");
+      }
+    } catch (e) {}
   },
 
   /**
