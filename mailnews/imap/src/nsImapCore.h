@@ -68,6 +68,8 @@ typedef uint16_t imapMessageFlagsType;
 
 #define IMAP_URL_TOKEN_SEPARATOR ">"
 #define kUidUnknown -1
+// Special initial value meaning ACLs need to be loaded from DB.
+#define kAclInvalid ((uint32_t) -1)
 
 // this has to do with Mime Parts on Demand. It used to live in net.h
 // I'm not sure where this will live, but here is OK temporarily

@@ -1627,7 +1627,7 @@ NS_IMETHODIMP nsImapMailFolder::Rename (const nsAString& newName, nsIMsgWindow *
     return nsMsgDBFolder::Rename(newName, msgWindow);
   nsresult rv;
   nsAutoString newNameStr(newName);
-  if (newNameStr.FindChar(m_hierarchyDelimiter, 0) != -1)
+  if (newNameStr.FindChar(m_hierarchyDelimiter, 0) != kNotFound)
   {
     nsCOMPtr<nsIDocShell> docShell;
     if (msgWindow)
@@ -1640,7 +1640,7 @@ NS_IMETHODIMP nsImapMailFolder::Rename (const nsAString& newName, nsIMsgWindow *
       {
         const PRUnichar *formatStrings[] =
         {
-           (const PRUnichar*) m_hierarchyDelimiter
+          (const PRUnichar*)(intptr_t)m_hierarchyDelimiter
         };
         nsString alertString;
         rv = bundle->FormatStringFromID(IMAP_SPECIAL_CHAR,
@@ -1977,7 +1977,7 @@ NS_IMETHODIMP nsImapMailFolder::ReadFromFolderCacheElem(nsIMsgFolderCacheElement
   if (NS_SUCCEEDED(rv) && !onlineName.IsEmpty())
     m_onlineFolderName.Assign(onlineName);
 
-  m_aclFlags = -1; // init to invalid value.
+  m_aclFlags = kAclInvalid; // init to invalid value.
   element->GetInt32Property("aclFlags", (int32_t *) &m_aclFlags);
   element->GetInt32Property("serverTotal", &m_numServerTotalMessages);
   element->GetInt32Property("serverUnseen", &m_numServerUnseenMessages);
@@ -2004,7 +2004,7 @@ NS_IMETHODIMP nsImapMailFolder::WriteToFolderCacheElem(nsIMsgFolderCacheElement 
   element->SetInt32Property("serverTotal", m_numServerTotalMessages);
   element->SetInt32Property("serverUnseen", m_numServerUnseenMessages);
   element->SetInt32Property("serverRecent", m_numServerRecentMessages);
-  if (m_nextUID != nsMsgKey_None)
+  if (m_nextUID != (int32_t) nsMsgKey_None)
     element->SetInt32Property("nextUID", m_nextUID);
 
   // store folder's last sync time
@@ -2490,7 +2490,7 @@ nsImapMailFolder::DeleteSubFolders(nsIArray* folders, nsIMsgWindow *msgWindow)
 
   if (confirmed)
   {
-    for (i = 0; i < folderCount; i++)
+    for (i = 0; i < (int32_t) folderCount; i++)
     {
       curFolder = do_QueryElementAt(foldersRemaining, i, &rv);
       if (NS_SUCCEEDED(rv))
@@ -2846,7 +2846,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
      SetNumNewMessages(numNewUnread);
   }
   SyncFlags(flagState);
-  if (mDatabase && mNumUnreadMessages + m_keysToFetch.Length() > numUnreadFromServer)
+  if (mDatabase && (int32_t) (mNumUnreadMessages + m_keysToFetch.Length()) > numUnreadFromServer)
     mDatabase->SyncCounts();
 
   if (!m_keysToFetch.IsEmpty() && aProtocol)
@@ -2867,7 +2867,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
   // existing values in that case.
   int32_t nextUID;
   aSpec->GetNextUID(&nextUID);
-  if (nextUID != nsMsgKey_None)
+  if (nextUID != (int32_t) nsMsgKey_None)
     m_nextUID = nextUID;
 
   return rv;
@@ -2940,7 +2940,7 @@ NS_IMETHODIMP nsImapMailFolder::ParseMsgHdrs(nsIImapProtocol *aProtocol, nsIImap
     if (aImapUrl)
       aImapUrl->GetImapAction(&imapAction);
   }
-  for (uint32_t i = 0; NS_SUCCEEDED(rv) && i < numHdrs; i++)
+  for (uint32_t i = 0; NS_SUCCEEDED(rv) && (int32_t)i < numHdrs; i++)
   {
     rv = aHdrXferInfo->GetHeader(i, getter_AddRefs(headerInfo));
     NS_ENSURE_SUCCESS(rv, rv);
@@ -4213,7 +4213,7 @@ void nsImapMailFolder::FindKeysToDelete(const nsTArray<nsMsgKey> &existingKeys,
   {
     if (!showDeletedMessages)
     {
-      for (uint32_t i = 0; i < numMessageInFlagState; i++)
+      for (uint32_t i = 0; (int32_t) i < numMessageInFlagState; i++)
       {
         flagState->GetUidOfMessage(i, &uidOfMessage);
         // flag state will be zero filled up to first real uid, so ignore those.
@@ -4373,7 +4373,7 @@ NS_IMETHODIMP nsImapMailFolder::GetMsgHdrsToDownload(bool *aMoreToDownload,
   }
   int32_t numKeysToFetch = m_keysToFetch.Length();
   int32_t startIndex = 0;
-  if (folderOpen && hdrChunkSize > 0 && m_keysToFetch.Length() > hdrChunkSize)
+  if (folderOpen && hdrChunkSize > 0 && (int32_t) m_keysToFetch.Length() > hdrChunkSize)
   {
     numKeysToFetch = hdrChunkSize;
     *aMoreToDownload = true;
@@ -4784,15 +4784,15 @@ nsresult nsImapMailFolder::HandleCustomFlags(nsMsgKey uidOfMessage,
   ToLowerCase(keywords);
   bool messageClassified = true;
   // Mac Mail uses "NotJunk"
-  if (keywords.Find("NonJunk", CaseInsensitiveCompare) != -1 ||
-      keywords.Find("NotJunk", CaseInsensitiveCompare) != -1)
+  if (keywords.Find("NonJunk", CaseInsensitiveCompare) != kNotFound ||
+      keywords.Find("NotJunk", CaseInsensitiveCompare) != kNotFound)
   {
     nsAutoCString msgJunkScore;
     msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_HAM_SCORE);
     mDatabase->SetStringProperty(uidOfMessage, "junkscore", msgJunkScore.get());
   }
   // ### TODO: we really should parse the keywords into space delimited keywords before checking
-  else if (keywords.Find("Junk", CaseInsensitiveCompare) != -1)
+  else if (keywords.Find("Junk", CaseInsensitiveCompare) != kNotFound)
   {
     uint32_t newFlags;
     dbHdr->AndFlags(~nsMsgMessageFlags::New, &newFlags);
@@ -5893,7 +5893,7 @@ NS_IMETHODIMP
 nsImapMailFolder::GetUidValidity(int32_t *uidValidity)
 {
   NS_ENSURE_ARG(uidValidity);
-  if (m_uidValidity == kUidUnknown)
+  if ((int32_t)m_uidValidity == kUidUnknown)
   {
     nsCOMPtr<nsIMsgDatabase> db;
     nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
@@ -6089,7 +6089,7 @@ NS_IMETHODIMP nsImapMailFolder::GetAclFlags(uint32_t *aclFlags)
   NS_ENSURE_ARG_POINTER(aclFlags);
   nsresult rv;
   ReadDBFolderInfo(false); // update cache first.
-  if (m_aclFlags == -1) // -1 means invalid value, so get it from db.
+  if (m_aclFlags == kAclInvalid) // -1 means invalid value, so get it from db.
   {
     nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
     bool dbWasOpen = (mDatabase != nullptr);
@@ -7470,7 +7470,7 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages, bool aIsMove)
         nsAutoCString propertyEx(NS_LITERAL_CSTRING(" "));
         propertyEx.Append(property);
         propertyEx.AppendLiteral(" ");
-        if (dontPreserveEx.Find(propertyEx) != -1) // -1 is not found
+        if (dontPreserveEx.Find(propertyEx) != kNotFound)
           continue;
 
         nsCString sourceString;
@@ -7723,7 +7723,7 @@ nsresult nsImapFolderCopyState::AdvanceToNextFolder(nsresult aStatus)
   uint32_t childCount = 0;
   if (m_srcChildFolders)
     m_srcChildFolders->Count(&childCount);
-  if (m_childIndex >= childCount)
+  if (m_childIndex >= (int32_t) childCount)
   {
     if (m_newDestFolder)
       m_newDestFolder->OnCopyCompleted(m_origSrcFolder, aStatus);
@@ -9364,7 +9364,7 @@ NS_IMETHODIMP nsImapMailFolder::GetCustomIdentity(nsIMsgIdentity **aIdentity)
       NS_ENSURE_SUCCESS(rv, rv);
       ourIdentity->GetEmail(ourEmailAddress);
       int32_t atPos = ourEmailAddress.FindChar('@');
-      if (atPos != -1)
+      if (atPos != kNotFound)
       {
         nsCString otherUsersEmailAddress;
         GetFolderOwnerUserName(otherUsersEmailAddress);
