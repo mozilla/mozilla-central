@@ -17,8 +17,9 @@ const kDefaultDescending = "descending";
 const kLdapUrlPrefix = "moz-abldapdirectory://";
 const kPersonalAddressbookURI = "moz-abmdbdirectory://abook.mab";
 const kCollectedAddressbookURI = "moz-abmdbdirectory://history.mab";
-// The default image for contacts
-var defaultPhotoURI = "chrome://messenger/skin/addressbook/icons/contact-generic.png";
+// The default, generic contact image is displayed via CSS when the photoURI is
+// blank.
+let defaultPhotoURI = "";
 
 const PERMS_FILE = parseInt("0644", 8);
 const PERMS_DIRECTORY = parseInt("0755", 8);

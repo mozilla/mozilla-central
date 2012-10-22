@@ -276,6 +276,10 @@ treechildren::-moz-tree-cell-text(GeneratedName) {
   min-width: 30px;
 }
 
+#cvPhoto {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/contact-generic.png");
+}
+
 #cvBuddyIcon {
   -moz-padding-start: 20px;
   padding-top: 2px;

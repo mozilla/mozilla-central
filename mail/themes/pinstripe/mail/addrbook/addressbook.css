@@ -413,6 +413,9 @@ treechildren::-moz-tree-cell-text(GeneratedName) {
   color: #505050;
 }
 
+#cvPhoto {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/contact-generic.png");
+}
 
 #cvbPhone, #cvbWork {
     border-left: 1px solid #D1D1D1;

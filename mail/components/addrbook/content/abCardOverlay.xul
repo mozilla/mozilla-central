@@ -453,8 +453,7 @@
                           oncommand="onSwitchPhotoType('generic');">
                   <menupopup>
                     <menuitem label="&DefaultPhoto.label;" selected="true"
-                              value="chrome://messenger/skin/addressbook/icons/contact-generic.png"
-                              image="chrome://messenger/skin/addressbook/icons/contact-generic-tiny.png"/>
+                              value="default"/>
                   </menupopup>
                 </menulist>
               </vbox>

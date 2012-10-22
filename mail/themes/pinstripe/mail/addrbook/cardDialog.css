@@ -72,3 +72,11 @@
   margin: 0 3px;
   list-style-image: url("chrome://messenger/skin/addressbook/icons/abcard.png");
 }
+
+#photo {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/contact-generic.png");
+}
+
+#GenericPhotoList[value="default"] {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/contact-generic-tiny.png");
+}
