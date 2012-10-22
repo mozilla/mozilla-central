@@ -788,23 +788,36 @@ function onFilterDoubleClick(event)
     onEditFilter();
 }
 
-function onFilterListKeyPress(event)
+function onFilterListKeyPress(aEvent)
 {
-  if (event.charCode == KeyEvent.DOM_VK_SPACE)
-  {
-    for each (let item in gFilterListbox.selectedItems) {
-      toggleFilter(item);
+  if (aEvent.keyCode) {
+    switch (aEvent.keyCode) {
+      case KeyEvent.DOM_VK_INSERT:
+        if (!document.getElementById("newButton").disabled)
+          onNewFilter();
+        break;
+      case KeyEvent.DOM_VK_DELETE:
+        if (!document.getElementById("deleteButton").disabled)
+          onDeleteFilter();
+        break;
+      case KeyEvent.DOM_VK_ENTER:
+      case KeyEvent.DOM_VK_RETURN:
+        if (!document.getElementById("editButton").disabled)
+          onEditFilter();
+        break;
     }
   }
-  else switch (event.keyCode)
-  {
-    case KeyEvent.DOM_VK_DELETE:
-      onDeleteFilter();
-      break;
-    case KeyEvent.DOM_VK_ENTER:
-    case KeyEvent.DOM_VK_RETURN:
-      onEditFilter();
-      break;
+  else if (!aEvent.ctrlKey && !aEvent.altKey && !aEvent.metaKey) {
+    switch (aEvent.charCode) {
+      case KeyEvent.DOM_VK_SPACE:
+        for each (let item in gFilterListbox.selectedItems) {
+          toggleFilter(item);
+        }
+        break;
+      default:
+        gSearchBox.focus();
+        gSearchBox.value = String.fromCharCode(aEvent.charCode);
+    }
   }
 }
 
