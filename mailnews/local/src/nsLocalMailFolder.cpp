@@ -426,8 +426,12 @@ nsMsgLocalMailFolder::UpdateFolder(nsIMsgWindow *aWindow)
   //If we don't currently have a database, get it.  Otherwise, the folder has been updated (presumably this
   //changes when we download headers when opening inbox).  If it's updated, send NotifyFolderLoaded.
   if (!mDatabase)
+  {
     // return of NS_ERROR_NOT_INITIALIZED means running parsing URL
     rv = GetDatabaseWithReparse(this, aWindow, getter_AddRefs(mDatabase));
+    if (NS_SUCCEEDED(rv))
+      NotifyFolderEvent(mFolderLoadedAtom);
+  }
   else
   {
     bool valid;
@@ -435,10 +439,7 @@ nsMsgLocalMailFolder::UpdateFolder(nsIMsgWindow *aWindow)
     // don't notify folder loaded or try compaction if db isn't valid
     // (we're probably reparsing or copying msgs to it)
     if (NS_SUCCEEDED(rv) && valid)
-    {
       NotifyFolderEvent(mFolderLoadedAtom);
-      NS_ENSURE_SUCCESS(rv,rv);
-    }
     else if (mCopyState)
       mCopyState->m_notifyFolderLoaded = true; //defer folder loaded notification
     else if (!m_parsingFolder)// if the db was already open, it's probably OK to load it if not parsing
