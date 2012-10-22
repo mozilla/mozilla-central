@@ -230,7 +230,7 @@ NS_IMETHODIMP nsMsgDBService::OpenMore(nsIMsgDatabase *aDB,
     *_retval = true;
     return NS_OK;
   }
-  nsresult ret;
+  nsresult rv;
   *_retval = false;
   PRIntervalTime startTime = PR_IntervalNow();
   do
@@ -239,27 +239,27 @@ NS_IMETHODIMP nsMsgDBService::OpenMore(nsIMsgDatabase *aDB,
     mdb_count outCurrent;  // subportion of total completed so far
     mdb_bool outDone = false;      // is operation finished?
     mdb_bool outBroken;     // is operation irreparably dead and broken?
-    ret = msgDatabase->m_thumb->DoMore(msgDatabase->m_mdbEnv,
+    rv = msgDatabase->m_thumb->DoMore(msgDatabase->m_mdbEnv,
                                        &outTotal, &outCurrent, &outDone,
                                        &outBroken);
-    if (NS_FAILED(ret))
+    if (NS_FAILED(rv))
       break;
     if (outDone)
     {
       nsCOMPtr<nsIMdbFactory> mdbFactory;
       msgDatabase->GetMDBFactory(getter_AddRefs(mdbFactory));
       NS_ENSURE_TRUE(mdbFactory, NS_ERROR_FAILURE);
-      ret = mdbFactory->ThumbToOpenStore(msgDatabase->m_mdbEnv, msgDatabase->m_thumb, &msgDatabase->m_mdbStore);
+      rv = mdbFactory->ThumbToOpenStore(msgDatabase->m_mdbEnv, msgDatabase->m_thumb, &msgDatabase->m_mdbStore);
       msgDatabase->m_thumb = nullptr;
       nsCOMPtr<nsIFile> folderPath;
-      nsresult rv = msgDatabase->m_folder->GetFilePath(getter_AddRefs(folderPath));
+      (void) msgDatabase->m_folder->GetFilePath(getter_AddRefs(folderPath));
       nsCOMPtr <nsIFile> summaryFile;
-      rv = GetSummaryFileLocation(folderPath, getter_AddRefs(summaryFile));
+      (void) GetSummaryFileLocation(folderPath, getter_AddRefs(summaryFile));
 
-      if (NS_SUCCEEDED(ret))
-        ret = (msgDatabase->m_mdbStore) ? msgDatabase->InitExistingDB() : NS_ERROR_FAILURE;
-      if (NS_SUCCEEDED(ret))
-        ret = msgDatabase->CheckForErrors(ret, false, summaryFile);
+      if (NS_SUCCEEDED(rv))
+        rv = (msgDatabase->m_mdbStore) ? msgDatabase->InitExistingDB() : NS_ERROR_FAILURE;
+      if (NS_SUCCEEDED(rv))
+        rv = msgDatabase->CheckForErrors(rv, false, summaryFile);
 
       FinishDBOpen(msgDatabase->m_folder, msgDatabase);
       break;
@@ -267,7 +267,7 @@ NS_IMETHODIMP nsMsgDBService::OpenMore(nsIMsgDatabase *aDB,
   }
   while (PR_IntervalToMilliseconds(PR_IntervalNow() - startTime) <= aTimeHint);
   *_retval = !msgDatabase->m_thumb;
-  return ret;
+  return rv;
 }
 
 /**
@@ -1576,11 +1576,12 @@ nsresult nsMsgDatabase::InitNewDB()
       allThreadsTableOID.mOid_Scope = m_threadRowScopeToken;
       allThreadsTableOID.mOid_Id = kAllThreadsTableKey;
 
+      // TODO: check this error value?
       mdberr  = store->NewTableWithOid(GetEnv(), &allMsgHdrsTableOID, m_hdrTableKindToken,
         false, nullptr, &m_mdbAllMsgHeadersTable);
 
       // error here is not fatal.
-      store->NewTableWithOid(GetEnv(), &allThreadsTableOID, m_allThreadsTableKindToken,
+      (void) store->NewTableWithOid(GetEnv(), &allThreadsTableOID, m_allThreadsTableKindToken,
         false, nullptr, &m_mdbAllThreadsTable);
 
       m_dbFolderInfo = dbFolderInfo;
@@ -5093,8 +5094,6 @@ NS_IMETHODIMP nsMsgDatabase::GetMsgRetentionSettings(nsIMsgRetentionSettings **r
     m_retentionSettings = new nsMsgRetentionSettings;
     if (m_retentionSettings && m_dbFolderInfo)
     {
-      nsresult rv;
-
       nsMsgRetainByPreference retainByPreference;
       uint32_t daysToKeepHdrs = 0;
       uint32_t numHeadersToKeep = 0;
@@ -5105,7 +5104,7 @@ NS_IMETHODIMP nsMsgDatabase::GetMsgRetentionSettings(nsIMsgRetentionSettings **r
       bool cleanupBodiesByDays = false;
       bool applyToFlaggedMessages;
 
-      rv = m_dbFolderInfo->GetUint32Property("retainBy", nsIMsgRetentionSettings::nsMsgRetainAll, &retainByPreference);
+      m_dbFolderInfo->GetUint32Property("retainBy", nsIMsgRetentionSettings::nsMsgRetainAll, &retainByPreference);
       m_dbFolderInfo->GetUint32Property("daysToKeepHdrs", 0, &daysToKeepHdrs);
       m_dbFolderInfo->GetUint32Property("numHdrsToKeep", 0, &numHeadersToKeep);
       m_dbFolderInfo->GetUint32Property("daysToKeepBodies", 0, &daysToKeepBodies);
