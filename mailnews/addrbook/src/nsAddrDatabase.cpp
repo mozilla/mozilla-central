@@ -520,8 +520,7 @@ NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, bool create)
     ret = dbName->GetNativePath(filePath);
     NS_ENSURE_SUCCESS(ret, ret);
 
-    nsIMdbHeap* dbHeap = 0;
-    mdb_bool dbFrozen = mdbBool_kFalse; // not readonly, we want modifiable
+    nsIMdbHeap* dbHeap = nullptr;
 
     if (m_mdbEnv)
       m_mdbEnv->SetAutoClear(true);
@@ -537,13 +536,14 @@ NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, bool create)
       mdbOpenPolicy inOpenPolicy;
       mdb_bool    canOpen;
       mdbYarn        outFormatVersion;
-      nsIMdbFile* oldFile = 0;
+      nsIMdbFile* oldFile = nullptr;
       int64_t fileSize;
       ret = dbName->GetFileSize(&fileSize);
       NS_ENSURE_SUCCESS(ret, ret);
 
       ret = mdbFactory->OpenOldFile(m_mdbEnv, dbHeap, filePath.get(),
-                                    dbFrozen, &oldFile);
+                                    mdbBool_kFalse, // not readonly, we want modifiable
+                                    &oldFile);
       if ( oldFile )
       {
         if ( ret == NS_OK )

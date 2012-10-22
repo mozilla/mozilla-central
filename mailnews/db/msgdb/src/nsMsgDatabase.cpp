@@ -1236,8 +1236,7 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, bool create, bool sync)
     if (NS_SUCCEEDED(ret))
     {
       struct stat st;
-      nsIMdbHeap* dbHeap = 0;
-      mdb_bool dbFrozen = mdbBool_kFalse; // not readonly, we want modifiable
+      nsIMdbHeap* dbHeap = nullptr;
 
       if (m_mdbEnv)
         m_mdbEnv->SetAutoClear(true);
@@ -1253,9 +1252,10 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, bool create, bool sync)
         mdb_bool  canOpen;
         mdbYarn    outFormatVersion;
 
-        nsIMdbFile* oldFile = 0;
+        nsIMdbFile* oldFile = nullptr;
         ret = mdbFactory->OpenOldFile(m_mdbEnv, dbHeap, dbName,
-          dbFrozen, &oldFile);
+                                      mdbBool_kFalse, // not readonly, we want modifiable
+                                      &oldFile);
         if ( oldFile )
         {
           if ( ret == NS_OK )

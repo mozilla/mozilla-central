@@ -138,8 +138,7 @@ nsresult nsMsgFolderCache::OpenMDB(const nsACString& dbName, bool exists)
     if (NS_SUCCEEDED(ret))
     {
       nsIMdbThumb *thumb = nullptr;
-      nsIMdbHeap* dbHeap = 0;
-      mdb_bool dbFrozen = mdbBool_kFalse; // not readonly, we want modifiable
+      nsIMdbHeap* dbHeap = nullptr;
 
       if (m_mdbEnv)
         m_mdbEnv->SetAutoClear(true);
@@ -149,9 +148,10 @@ nsresult nsMsgFolderCache::OpenMDB(const nsACString& dbName, bool exists)
         mdb_bool canOpen;
         mdbYarn outFormatVersion;
 
-        nsIMdbFile* oldFile = 0;
+        nsIMdbFile* oldFile = nullptr;
         ret = mdbFactory->OpenOldFile(m_mdbEnv, dbHeap, nsCString(dbName).get(),
-          dbFrozen, &oldFile);
+                                      mdbBool_kFalse, // not readonly, we want modifiable
+                                      &oldFile);
         if ( oldFile )
         {
           if (NS_SUCCEEDED(ret))
