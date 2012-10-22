@@ -397,6 +397,12 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nullptr),
 
     ParseString(customDBHeaders, ' ', mCustomDBHeaders);
     prefBranch->GetBoolPref("mailnews.display.prefer_plaintext", &m_preferPlainText);
+
+    nsAutoCString customHeaders;;
+    prefBranch->GetCharPref("mailnews.customHeaders",
+                            getter_Copies(customHeaders));
+    customHeaders.StripWhitespace();
+    ParseString(customHeaders, ':', mCustomHeaders);
   }
 
     // ***** Thread support *****
@@ -3397,6 +3403,15 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
             if (!arbitraryHeaders.IsEmpty())
               arbitraryHeaders.Append(' ');
             arbitraryHeaders.Append(mCustomDBHeaders[i]);
+          }
+        }
+        for (uint32_t i = 0; i < mCustomHeaders.Length(); i++)
+        {
+           if (arbitraryHeaders.Find(mCustomHeaders[i], CaseInsensitiveCompare) == kNotFound)
+          {
+            if (!arbitraryHeaders.IsEmpty())
+              arbitraryHeaders.Append(' ');
+            arbitraryHeaders.Append(mCustomHeaders[i]);
           }
         }
         if (arbitraryHeaders.IsEmpty())

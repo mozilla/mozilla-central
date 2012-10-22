@@ -124,6 +124,7 @@ public:
   // pref, mailnews.customDBHeaders
   nsTArray<nsCString>   m_customDBHeaders;
   struct message_header *m_customDBHeaderValues;
+  nsCString m_receivedValue; // accumulated received header
 protected:
 };
 

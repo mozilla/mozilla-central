@@ -529,7 +529,7 @@ nsParseMailMessageState::nsParseMailMessageState()
   // a mail message with the X-Spam-Score header, we'll set the
   // "x-spam-score" property of nsMsgHdr to the value of the header.
   m_customDBHeaderValues = nullptr;
-  nsCString customDBHeaders;
+  nsCString customDBHeaders; // not shown in search UI
   nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
   if (pPrefBranch)
   {
@@ -538,6 +538,20 @@ nsParseMailMessageState::nsParseMailMessageState()
      if (customDBHeaders.Find("content-base") == -1)
       customDBHeaders.Insert(NS_LITERAL_CSTRING("content-base "), 0);
      ParseString(customDBHeaders, ' ', m_customDBHeaders);
+
+     // now add customHeaders
+     nsCString customHeadersString; // shown in search UI
+     nsTArray<nsCString> customHeadersArray;
+     pPrefBranch->GetCharPref("mailnews.customHeaders", getter_Copies(customHeadersString));
+     ToLowerCase(customHeadersString);
+     customHeadersString.StripWhitespace();
+     ParseString(customHeadersString, ':', customHeadersArray);
+     for (uint32_t i = 0; i < customHeadersArray.Length(); i++)
+     {
+       if (!m_customDBHeaders.Contains(customHeadersArray[i]))
+         m_customDBHeaders.AppendElement(customHeadersArray[i]);
+     }
+
      if (m_customDBHeaders.Length())
      {
        m_customDBHeaderValues = new struct message_header [m_customDBHeaders.Length()];
@@ -1112,21 +1126,35 @@ SEARCH_NEWLINE:
       while (header->length > 0 &&
         IS_SPACE (header->value [header->length - 1]))
         ((char *) header->value) [--header->length] = 0;
-      if (header == &receivedBy && m_receivedTime == 0)
+      if (header == &receivedBy)
       {
-        // parse Received: header for date.
-        // We trust the first header as that is closest to recipient,
-        // and less likely to be spoofed.
-        nsAutoCString receivedHdr(header->value, header->length);
-        int32_t lastSemicolon = receivedHdr.RFindChar(';');
-        if (lastSemicolon != -1)
+        if (m_receivedTime == 0)
         {
-          nsAutoCString receivedDate;
-          receivedDate = Substring(receivedHdr, lastSemicolon + 1);
-          receivedDate.Trim(" \t\b\r\n");
-          PRTime resultTime;
-          if (PR_ParseTimeString (receivedDate.get(), false, &resultTime) == PR_SUCCESS)
-            m_receivedTime = resultTime;
+          // parse Received: header for date.
+          // We trust the first header as that is closest to recipient,
+          // and less likely to be spoofed.
+          nsAutoCString receivedHdr(header->value, header->length);
+          int32_t lastSemicolon = receivedHdr.RFindChar(';');
+          if (lastSemicolon != -1)
+          {
+            nsAutoCString receivedDate;
+            receivedDate = Substring(receivedHdr, lastSemicolon + 1);
+            receivedDate.Trim(" \t\b\r\n");
+            PRTime resultTime;
+            if (PR_ParseTimeString (receivedDate.get(), false, &resultTime) == PR_SUCCESS)
+              m_receivedTime = resultTime;
+          }
+        }
+        // Someone might want the received header saved.
+        if (m_customDBHeaders.Length())
+        {
+          uint32_t customHeaderIndex = m_customDBHeaders.IndexOf(NS_LITERAL_CSTRING("received"));
+          if (customHeaderIndex != -1)
+          {
+            if (!m_receivedValue.IsEmpty())
+              m_receivedValue.Append(' ');
+            m_receivedValue.Append(header->value, header->length);
+          }
         }
       }
     }
@@ -1616,6 +1644,9 @@ nsresult nsParseMailMessageState::FinalizeHeaders()
         {
           if (m_customDBHeaderValues[i].length)
             m_newMsgHdr->SetStringProperty(m_customDBHeaders[i].get(), m_customDBHeaderValues[i].value);
+          // The received header is accumulated separately
+          if (m_customDBHeaders[i].EqualsLiteral("received") && !m_receivedValue.IsEmpty())
+            m_newMsgHdr->SetStringProperty("received", m_receivedValue.get());
         }
         if (content_type)
         {

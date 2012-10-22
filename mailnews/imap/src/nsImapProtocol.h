@@ -577,6 +577,7 @@ private:
 
   bool m_isGmailServer;
   nsTArray<nsCString> mCustomDBHeaders;
+  nsTArray<nsCString> mCustomHeaders;
   bool    m_trackingTime;
   PRTime  m_startTime;
   PRTime  m_endTime;
