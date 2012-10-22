@@ -11,8 +11,31 @@ let MODULE_NAME = "test-migrate-to-rdf-ui-5";
 let RELATIVE_ROOT = "../shared-modules";
 let MODULE_REQUIRES = ["folder-display-helpers"];
 
+const kAppMenuButton = "button-appmenu";
+
 function setupModule(module) {
   collector.getModule("folder-display-helpers").installInto(module);
+}
+
+/**
+ * Ensures that the button with ID aButtonID exists at the end of a
+ * toolbar with ID aToolbarID.
+ *
+ * @param aToolbarID the ID of the toolbar to check.
+ * @param aButtonID the ID of the button to look for.
+ */
+function assert_button_at_end_of_toolbar(aToolbarID, aButtonID) {
+  let currentSet = mc.e(aToolbarID).currentSet;
+  assert_not_equals(-1, currentSet.indexOf(aButtonID),
+                   "We didn't find the button with ID " + aButtonID +
+                   "where we should have for the toolbar with ID " +
+                   aToolbarID);
+
+  let lastChars = currentSet.substring(currentSet.length -
+                                       aButtonID.length);
+  assert_equals(lastChars, aButtonID,
+                "We didn't find the button with ID " + aButtonID + " at the " +
+                "end of the toolbar with ID " + aToolbarID);
 }
 
 /**
@@ -21,18 +44,8 @@ function setupModule(module) {
  * account).
  */
 function test_appmenu_button_added() {
-  const kAppMenuButton = "button-appmenu";
-
-  // Make sure that the App Menu button is in the mail toolbar.
-  let currentSet = mc.e("mail-bar3").currentSet;
-  assert_not_equals(-1, currentSet.indexOf(kAppMenuButton),
-                   "We didn't find the App Menu button where we should have.");
-
-  // We also expect App Menu button at the end of the currentSet.
-  let lastChars = currentSet.substring(currentSet.length - kAppMenuButton.length);
-  assert_equals(lastChars, kAppMenuButton,
-                "We didn't find the App Menu button at the end of the menu bar");
-
+  assert_button_at_end_of_toolbar("mail-bar3", "button-appmenu");
+  assert_button_at_end_of_toolbar("chat-toobar", "button-chat-appmenu");
   // Skip the next test for OSX, since it never exposes the main menu.
   if (!mc.mozmillModule.isMac) {
     // Since we started with a pre-existing account, the main menu should
