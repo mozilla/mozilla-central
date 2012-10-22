@@ -5031,7 +5031,8 @@ NS_IMETHODIMP
 nsImapMailFolder::GetMessageSizeFromDB(const char * id, uint32_t *size)
 {
   NS_ENSURE_ARG_POINTER(size);
-  nsresult rv;
+
+  nsresult rv = NS_OK;
   *size = 0;
   (void) GetDatabase();
   if (id && mDatabase)

@@ -28,23 +28,23 @@ bool MsgStrategyComparatorAdaptor::Equals(const nsMsgKey& a, const nsMsgKey& b) 
 {
   nsCOMPtr<nsIMsgDBHdr> hdrA;
   nsCOMPtr<nsIMsgDBHdr> hdrB;
-  
+
   mDatabase->GetMsgHdrForKey(a, getter_AddRefs(hdrA));
   mDatabase->GetMsgHdrForKey(b, getter_AddRefs(hdrB));
-  
+
   if (hdrA && hdrB)
   {
-    nsresult rv;
+    nsresult rv = NS_OK;
     nsAutoSyncStrategyDecisionType decision = nsAutoSyncStrategyDecisions::Same;
-    
+
     nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(mFolder);
     if (mStrategy)
       rv = mStrategy->Sort(folder, hdrA, hdrB, &decision);
-    
+
     if (NS_SUCCEEDED(rv))
       return (decision == nsAutoSyncStrategyDecisions::Same);
   }
-  
+
   return false;
 }
 
@@ -53,13 +53,13 @@ bool MsgStrategyComparatorAdaptor::LessThan(const nsMsgKey& a, const nsMsgKey& b
 {
   nsCOMPtr<nsIMsgDBHdr> hdrA;
   nsCOMPtr<nsIMsgDBHdr> hdrB;
-  
+
   mDatabase->GetMsgHdrForKey(a, getter_AddRefs(hdrA));
   mDatabase->GetMsgHdrForKey(b, getter_AddRefs(hdrB));
 
   if (hdrA && hdrB)
   {
-    nsresult rv;
+    nsresult rv = NS_OK;
     nsAutoSyncStrategyDecisionType decision = nsAutoSyncStrategyDecisions::Same;
 
     nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(mFolder);
@@ -69,7 +69,7 @@ bool MsgStrategyComparatorAdaptor::LessThan(const nsMsgKey& a, const nsMsgKey& b
     if (NS_SUCCEEDED(rv))
       return (decision == nsAutoSyncStrategyDecisions::Lower);
   }
-  
+
   return false;
 }
 
