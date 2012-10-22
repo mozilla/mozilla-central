@@ -235,31 +235,22 @@ var MailMigrator = {
       // think of any better way of determining whether this profile is new
       // or not.
       if (currentUIVersion < 5) {
-        /**
-         * Helper function that attempts to add the AppMenu button to the
-         * end of a toolbar with ID aToolbarID. Fails silently if this is
-         * not possible, as is typical within our UI migration code.
-         *
-         * @param aToolbarID the ID of the toolbar to add the AppMenu to.
-         */
-        let addButtonToEnd = function(aToolbarID, aButtonID) {
-          let barResource = this._rdf.GetResource(MESSENGER_DOCURL +
-                                                  aToolbarID);
-          if (barResource) {
-            let currentSetResource = this._rdf.GetResource("currentset");
-            let currentSet = this._getPersist(barResource, currentSetResource);
 
-            if (currentSet && currentSet.indexOf(aButtonID) == -1) {
-              // Put the AppMenu button at the end.
-              dirty = true;
-              currentSet = currentSet + "," + aButtonID;
-              this._setPersist(barResource, currentSetResource, currentSet);
-            }
+        // First, we'll add the button to the mail toolbar...
+        let barResource = this._rdf.GetResource(MESSENGER_DOCURL + "mail-bar3");
+        if (barResource !== null) {
+          let currentSetResource = this._rdf.GetResource("currentset");
+          let currentSet = this._getPersist(barResource, currentSetResource);
+
+          if (currentSet
+              && currentSet.indexOf("button-appmenu") == -1) {
+
+            dirty = true;
+            // Put the AppMenu button at the end.
+            currentSet = currentSet + ",button-appmenu";
+            this._setPersist(barResource, currentSetResource, currentSet);
           }
-        }.bind(this);
-
-        addButtonToEnd("mail-bar3", "button-appmenu");
-        addButtonToEnd("chat-toobar", "button-chat-appmenu");
+        }
 
         if (Services.prefs.getBoolPref("mail.main_menu.collapse_by_default")
             && MailServices.accounts.accounts.Count() == 0) {

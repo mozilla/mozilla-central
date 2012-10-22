@@ -28,8 +28,6 @@
                    currentset="qfb-show-filter-bar" />
   <RDF:Description RDF:about="chrome://messenger/content/messenger.xul#mail-bar3"
                    currentset="button-getmsg,button-newmsg,button-chat,button-address,separator,button-tag,spring,separator,spring,spacer,gloda-search" />
-  <RDF:Description RDF:about="chrome://messenger/content/messenger.xul#chat-toobar"
-                   currentset="button-add-buddy,button-chat-accounts,spacer,gloda-im-search" />
 
   <RDF:Description RDF:about="chrome://messenger/content/messenger.xul">
     <NC:persist RDF:resource="chrome://messenger/content/messenger.xul#messengerWindow"/>
@@ -41,7 +39,6 @@
     <NC:persist RDF:resource="chrome://messenger/content/messenger.xul#abp-hooks"/>
     <NC:persist RDF:resource="chrome://messenger/content/messenger.xul#folderPaneBox"/>
     <NC:persist RDF:resource="chrome://messenger/content/messenger.xul#mail-bar3"/>
-    <NC:persist RDF:resource="chrome://messenger/content/messenger.xul#chat-toobar"/>
   </RDF:Description>
   <RDF:Description RDF:about="chrome://messenger/content/messenger.xul#folderPaneBox"
                    width="500"
