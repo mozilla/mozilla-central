@@ -2427,6 +2427,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
                                                       nsIMsgFilter *filter,
                                                       nsIMsgWindow *msgWindow)
 {
+  NS_ENSURE_ARG_POINTER(destIFolder);
   nsresult rv = NS_OK;
 
   // check if the destination is a real folder (by checking for null parent)
@@ -2462,8 +2463,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
     do_QueryInterface(static_cast<nsIMsgParseMailMsgState*>(this));
 
   // Make sure no one else is writing into this folder
-  if (destIFolder &&
-      NS_FAILED(rv = destIFolder->AcquireSemaphore (myISupports)))
+  if (NS_FAILED(rv = destIFolder->AcquireSemaphore (myISupports)))
   {
     destIFolder->ThrowAlertMsg("filterFolderDeniedLocked", msgWindow);
     return rv;
@@ -2474,9 +2474,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
   if (!inputStream)
   {
     NS_ERROR("couldn't get source msg input stream in move filter");
-    if (destIFolder)
-      destIFolder->ReleaseSemaphore (myISupports);
-
+    destIFolder->ReleaseSemaphore (myISupports);
     return NS_MSG_FOLDER_UNREADABLE;  // ### dmb
   }
 
@@ -2494,12 +2492,17 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
   nsCOMPtr<nsIMsgDBHdr> newHdr;
 
   if (destMailDB)
-    destMailDB->CopyHdrFromExistingHdr(nsMsgKey_None, mailHdr, true,
-                                       getter_AddRefs(newHdr));
-  uint32_t messageLength;
-  mailHdr->GetMessageSize(&messageLength);
-  rv = AppendMsgFromStream(inputStream, newHdr, messageLength,
-                           destIFolder);
+    rv = destMailDB->CopyHdrFromExistingHdr(nsMsgKey_None, mailHdr, true,
+                                            getter_AddRefs(newHdr));
+  if (NS_SUCCEEDED(rv) && !newHdr)
+    rv = NS_ERROR_UNEXPECTED;
+  if (NS_SUCCEEDED(rv))
+  {
+    uint32_t messageLength;
+    mailHdr->GetMessageSize(&messageLength);
+    rv = AppendMsgFromStream(inputStream, newHdr, messageLength,
+                             destIFolder);
+  }
 
   if (NS_FAILED(rv))
   {
@@ -2517,43 +2520,39 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
   bool movedMsgIsNew = false;
   // if we have made it this far then the message has successfully been written to the new folder
   // now add the header to the destMailDB.
-  if (NS_SUCCEEDED(rv) && destMailDB)
+
+  uint32_t newFlags;
+  newHdr->GetFlags(&newFlags);
+  nsMsgKey msgKey;
+  newHdr->GetMessageKey(&msgKey);
+  if (!(newFlags & nsMsgMessageFlags::Read))
   {
-    uint32_t newFlags;
-    newHdr->GetFlags(&newFlags);
-    nsMsgKey msgKey;
-    newHdr->GetMessageKey(&msgKey);
-    if (! (newFlags & nsMsgMessageFlags::Read))
+    nsCString junkScoreStr;
+    (void) newHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
+    if (atoi(junkScoreStr.get()) == nsIJunkMailPlugin::IS_HAM_SCORE)
     {
-      nsCString junkScoreStr;
-      (void) newHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
-      if (atoi(junkScoreStr.get()) == nsIJunkMailPlugin::IS_HAM_SCORE)
-      {
-        newHdr->OrFlags(nsMsgMessageFlags::New, &newFlags);
-        destMailDB->AddToNewList(msgKey);
-        movedMsgIsNew = true;
-      }
+      newHdr->OrFlags(nsMsgMessageFlags::New, &newFlags);
+      destMailDB->AddToNewList(msgKey);
+      movedMsgIsNew = true;
     }
-    nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
-    if (notifier)
-      notifier->NotifyMsgAdded(newHdr);
-    // mark the header as not yet reported classified
-    destIFolder->OrProcessingFlags(
-    msgKey, nsMsgProcessingFlags::NotReportedClassified);
-    m_msgToForwardOrReply = newHdr;
   }
+  nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+  if (notifier)
+    notifier->NotifyMsgAdded(newHdr);
+  // mark the header as not yet reported classified
+  destIFolder->OrProcessingFlags(
+    msgKey, nsMsgProcessingFlags::NotReportedClassified);
+  m_msgToForwardOrReply = newHdr;
+
   if (movedMsgIsNew)
     destIFolder->SetHasNewMessages(true);
   if (m_filterTargetFolders.IndexOf(destIFolder) == -1)
     m_filterTargetFolders.AppendObject(destIFolder);
 
-  if (destIFolder)
-    destIFolder->ReleaseSemaphore (myISupports);
-
+  destIFolder->ReleaseSemaphore (myISupports);
 
   (void) localFolder->RefreshSizeOnDisk();
-  if (destIFolder)
-    destIFolder->SetFlag(nsMsgFolderFlags::GotNew);
+  destIFolder->SetFlag(nsMsgFolderFlags::GotNew);
 
   nsCOMPtr<nsIMsgPluggableStore> store;
   rv = m_downloadFolder->GetMsgStore(getter_AddRefs(store));
@@ -2561,15 +2560,12 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
     store->DiscardNewMessage(m_outputStream, mailHdr);
   if (sourceDB)
     sourceDB->RemoveHeaderMdbRow(mailHdr);
-  if (destMailDB)
-  {
-    // update the folder size so we won't reparse.
-    UpdateDBFolderInfo(destMailDB);
-    if (destIFolder != nullptr)
-      destIFolder->UpdateSummaryTotals(true);
 
-    destMailDB->Commit(nsMsgDBCommitType::kLargeCommit);
-  }
+  // update the folder size so we won't reparse.
+  UpdateDBFolderInfo(destMailDB);
+  destIFolder->UpdateSummaryTotals(true);
+
+  destMailDB->Commit(nsMsgDBCommitType::kLargeCommit);
   return rv;
 }
 
