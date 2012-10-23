@@ -12,6 +12,7 @@
 <!ENTITY image-width.label     "Width:">
 <!ENTITY image-height.label    "Height:">
 <!ENTITY image-filesize.label  "Size of File:">
+<!ENTITY image-filesize.value  "Unknown">
 <!ENTITY insdel-sec.label      "Insert/Delete Properties">
 <!ENTITY insdel-cite.label     "Info:">
 <!ENTITY insdel-date.label     "Date:">

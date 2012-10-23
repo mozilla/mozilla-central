@@ -105,7 +105,7 @@
 	<row id="image-filesize">
           <separator orient="vertical"/>
           <label value="&image-filesize.label; " control="image-filesize-text"/>
-          <textbox readonly="true" id="image-filesize-text"/>
+          <textbox readonly="true" id="image-filesize-text" value="&image-filesize.value;"/>
 	</row>
         <row id="image-alt">
           <separator orient="vertical"/>

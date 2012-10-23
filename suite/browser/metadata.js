@@ -24,14 +24,8 @@ var onTable  = false;
 var onTitle  = false;
 var onLang   = false;
 
+const nsICache = Components.interfaces.nsICache;
 const nsICacheService = Components.interfaces.nsICacheService;
-const cacheService = Components.classes["@mozilla.org/network/cache-service;1"]
-                     .getService(nsICacheService);
-var httpCacheSession = cacheService.createSession("HTTP", 0, true);
-httpCacheSession.doomEntriesIfExpired = false;
-var ftpCacheSession = cacheService.createSession("FTP", 0, true);
-ftpCacheSession.doomEntriesIfExpired = false;
-
 
 function onLoad()
 {
@@ -108,6 +102,19 @@ function showMetadataFor(elem)
         hideNode("no-properties")
 }
 
+var cacheListener = {
+    onCacheEntryAvailable: function onCacheEntryAvailable(descriptor) {
+        if (descriptor) {
+            var kbSize = descriptor.dataSize / 1024;
+            kbSize = Math.round(kbSize * 100) / 100;
+            setInfo("image-filesize", gMetadataBundle.getFormattedString("imageSize",
+                                                                         [formatNumber(kbSize),
+                                                                          formatNumber(descriptor.dataSize)]));
+        } else {
+            setInfo("image-filesize", gMetadataBundle.getString("imageSizeUnknown"));
+        }
+    }
+};
 
 function checkForImage(elem, htmllocalname)
 {
@@ -157,17 +164,13 @@ function checkForImage(elem, htmllocalname)
 
         var imgURL = imgType == "object" ? img.data : img.src;
         setInfo("image-url", imgURL);
-        var size = getSize(imgURL);
 
-        if (size != -1) {
-            var kbSize = size / 1024;
-            kbSize = Math.round(kbSize*100)/100;
-            setInfo("image-filesize", gMetadataBundle.getFormattedString("imageSize",
-                                                                         [formatNumber(kbSize),
-                                                                          formatNumber(size)]));
-        } else {
-            setInfo("image-filesize", gMetadataBundle.getString("imageSizeUnknown"));
-        }
+        const cacheService = Components.classes["@mozilla.org/network/cache-service;1"]
+                                       .getService(nsICacheService);
+        var httpCacheSession = cacheService.createSession("HTTP", nsICache.STORE_ANYWHERE, true);
+        httpCacheSession.doomEntriesIfExpired = false;
+        httpCacheSession.asyncOpenCacheEntry(imgURL, nsICache.ACCESS_READ, cacheListener);
+
         if ("width" in img && img.width != "") {
             setInfo("image-width", gMetadataBundle.getFormattedString("imageWidth", [formatNumber(img.width)]));
             setInfo("image-height", gMetadataBundle.getFormattedString("imageHeight", [formatNumber(img.height)]));
@@ -484,25 +487,6 @@ function convertLanguageCode(abbr)
         result = language;
     }
     return result;
-}
-
-// Returns the size of the URL in bytes; must be cached and therefore an HTTP or FTP URL
-function getSize(url) {
-    try
-    {
-        var cacheEntryDescriptor = httpCacheSession.openCacheEntry(url, Components.interfaces.nsICache.ACCESS_READ, false);
-        if(cacheEntryDescriptor)
-          return cacheEntryDescriptor.dataSize;
-    }
-    catch(ex) {}
-    try
-    {
-        cacheEntryDescriptor = ftpCacheSession.openCacheEntry(url, Components.interfaces.nsICache.ACCESS_READ, false);
-        if (cacheEntryDescriptor)
-            return cacheEntryDescriptor.dataSize;
-    }
-    catch(ex) {}
-    return -1;
 }
 
 function setAlt(elem) {

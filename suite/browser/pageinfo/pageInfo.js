@@ -157,6 +157,8 @@ const COL_IMAGE_COUNT   = 4;
 const COL_IMAGE_NODE    = 5;
 const COL_IMAGE_BG      = 6;
 const COL_IMAGE_SIZENUM = 7;
+const COL_IMAGE_DEVICE  = 8;
+const COL_IMAGE_MIME    = 9;
 
 // column number to copy from, second argument to pageInfoTreeView's constructor
 const COPYCOL_NONE = -1;
@@ -454,6 +456,19 @@ function onClickMore()
   showTab("securityTab");
 }
 
+var cacheListener = {
+  onCacheEntryAvailable: function onCacheEntryAvailable(descriptor) {
+    if (descriptor) {
+      var pageSize = descriptor.dataSize;
+      var kbSize = Math.round(pageSize / 1024 * 100) / 100;
+      var sizeText = gBundle.getFormattedString("generalSize",
+                                                [formatNumber(kbSize),
+                                                 formatNumber(pageSize)]);
+      setItemValue("sizetext", sizeText);
+    }
+  }
+};
+
 function makeGeneralTab()
 {
   var title = (gDocument.title) ? gBundle.getFormattedString("pageTitle", [gDocument.title]) : gBundle.getString("noPageTitle");
@@ -496,26 +511,16 @@ function makeGeneralTab()
   document.getElementById("modifiedtext").value = modifiedText;
 
   // get cache info
+  setItemValue("sizetext", null);
   var cacheKey = url.replace(/#.*$/, "");
   try {
-    var cacheEntryDescriptor = httpCacheSession.openCacheEntry(cacheKey, ACCESS_READ, false);
+    httpCacheSession.asyncOpenCacheEntry(cacheKey, ACCESS_READ, cacheListener);
   }
-  catch(ex) {
-    try {
-      cacheEntryDescriptor = ftpCacheSession.openCacheEntry(cacheKey, ACCESS_READ, false);
-    }
-    catch(ex2) { }
+  catch(ex) { }
+  try {
+    ftpCacheSession.asyncOpenCacheEntry(cacheKey, ACCESS_READ, cacheListener);
   }
-
-  var sizeText;
-  if (cacheEntryDescriptor) {
-    var pageSize = cacheEntryDescriptor.dataSize;
-    var kbSize = Math.round(pageSize / 1024 * 100) / 100;
-    sizeText = gBundle.getFormattedString("generalSize",
-                                          [formatNumber(kbSize),
-                                           formatNumber(pageSize)]);
-  }
-  setItemValue("sizetext", sizeText);
+  catch(ex) { }
 
   securityOnLoad();
 }
@@ -576,10 +581,22 @@ function ensureSelection(view)
     view.selection.select(0);
 }
 
-function addImage(url, type, alt, elem, isBg)
+function imgCacheListener(url, type, alt, elem, isBg)
 {
-  if (!url)
-    return;
+  this.url = url;
+  this.type = type;
+  this.alt = alt;
+  this.elem = elem;
+  this.isBg = isBg;
+}
+
+imgCacheListener.prototype.onCacheEntryAvailable =
+function onCacheEntryAvailable(cacheEntryDescriptor) {
+  var url = this.url;
+  var type = this.type;
+  var alt = this.alt;
+  var elem = this.elem;
+  var isBg = this.isBg;
 
   if (!gImageHash.hasOwnProperty(url))
     gImageHash[url] = { };
@@ -587,28 +604,21 @@ function addImage(url, type, alt, elem, isBg)
     gImageHash[url][type] = { };
   if (!gImageHash[url][type].hasOwnProperty(alt)) {
     gImageHash[url][type][alt] = gImageView.data.length;
-    try {
-      // open for READ, in non-blocking mode
-      var cacheEntryDescriptor = httpCacheSession.openCacheEntry(url, ACCESS_READ, false);
-    }
-    catch(ex) {
-      try {
-        // open for READ, in non-blocking mode
-        cacheEntryDescriptor = ftpCacheSession.openCacheEntry(url, ACCESS_READ, false);
-      }
-      catch(ex2) { }
-    }
 
     var sizeText;
     var pageSize;
+    var deviceID;
+    var mimeType;
     if (cacheEntryDescriptor) {
+      mimeType = getContentTypeFromHeaders(cacheEntryDescriptor);
+      deviceID = cacheEntryDescriptor.deviceID;
       pageSize = cacheEntryDescriptor.dataSize;
       var kbSize = Math.round(pageSize / 1024 * 100) / 100;
       sizeText = gBundle.getFormattedString("mediaFileSize", [formatNumber(kbSize)]);
     }
     else
       sizeText = gStrings.unknown;
-    gImageView.addRow([url, type, sizeText, alt, 1, elem, isBg, pageSize]);
+    gImageView.addRow([url, type, sizeText, alt, 1, elem, isBg, pageSize, deviceID, mimeType]);
 
     // Add the observer, only once.
     if (gImageView.data.length == 1) {
@@ -619,6 +629,15 @@ function addImage(url, type, alt, elem, isBg)
     var i = gImageHash[url][type][alt];
     gImageView.data[i][COL_IMAGE_COUNT]++;
   }
+}
+
+function addImage(url, type, alt, elem, isBg)
+{
+  if (url) try {
+    var listener = new imgCacheListener(url, type, alt, elem, isBg);
+    httpCacheSession.asyncOpenCacheEntry(url, ACCESS_READ, listener);
+  }
+  catch (ex) { }
 }
 
 function grabAll(elem)
@@ -974,12 +993,7 @@ function onImageSelect()
 
 function makePreview(row)
 {
-  var imageTree = document.getElementById("imagetree");
-  var item = getSelectedImage(imageTree);
-  var col = imageTree.columns["image-address"];
-  var url = gImageView.getCellText(row, col);
-  // image-bg
-  var isBG = gImageView.data[row][COL_IMAGE_BG];
+  var [url, type, sizeText, alt, count, item, isBG, pageSize, deviceID, cachedType] = gImageView.data[row];
   var isAudio = false;
 
   setItemValue("imageurltext", url);
@@ -1007,48 +1021,23 @@ function makePreview(row)
 
   // get cache info
   var sourceText = gBundle.getString("generalNotCached");
-  var cacheKey = url.replace(/#.*$/, "");
-  try {
-    // open for READ, in non-blocking mode
-    var cacheEntryDescriptor = httpCacheSession.openCacheEntry(cacheKey, ACCESS_READ, false);
-    if (cacheEntryDescriptor)
-      switch (cacheEntryDescriptor.deviceID) {
-        case "disk":
-          sourceText = gBundle.getString("generalDiskCache");
-          break;
-        case "memory":
-          sourceText = gBundle.getString("generalMemoryCache");
-          break;
-        default:
-          sourceText = cacheEntryDescriptor.deviceID;
-          break;
-      }
-  }
-  catch(ex) {
-    try {
-      // open for READ, in non-blocking mode
-      cacheEntryDescriptor = ftpCacheSession.openCacheEntry(cacheKey, ACCESS_READ, false);
-      if (cacheEntryDescriptor)
-        switch (cacheEntryDescriptor.deviceID) {
-          case "disk":
-            sourceText = gBundle.getString("generalDiskCache");
-            break;
-          case "memory":
-            sourceText = gBundle.getString("generalMemoryCache");
-            break;
-          default:
-            sourceText = cacheEntryDescriptor.deviceID;
-            break;
-        }
+  if (deviceID) {
+    switch (deviceID) {
+      case "disk":
+        sourceText = gBundle.getString("generalDiskCache");
+        break;
+      case "memory":
+        sourceText = gBundle.getString("generalMemoryCache");
+        break;
+      default:
+        sourceText = cacheEntryDescriptor.deviceID;
+        break;
     }
-    catch(ex2) { }
   }
   setItemValue("imagesourcetext", sourceText);
 
   // find out the file size
-  var sizeText;
-  if (cacheEntryDescriptor) {
-    var pageSize = cacheEntryDescriptor.dataSize;
+  if (pageSize) {
     var kbSize = Math.round(pageSize / 1024 * 100) / 100;
     sizeText = gBundle.getFormattedString("generalSize",
                                           [formatNumber(kbSize),
@@ -1065,7 +1054,7 @@ function makePreview(row)
   if (!mimeType && item instanceof nsIImageLoadingContent)
     [mimeType, numFrames] = getContentTypeFromImgRequest(item);
   if (!mimeType)
-    mimeType = getContentTypeFromHeaders(cacheEntryDescriptor);
+    mimeType = cachedType;
 
   // if we have a data url, get the MIME type from the url
   if (!mimeType) {
