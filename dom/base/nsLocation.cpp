@@ -281,7 +281,7 @@ nsLocation::CheckURL(nsIURI* aURI, nsIDocShellLoadInfo** aLoadInfo)
       sourceURI = principalURI;
     }
 
-    owner = do_QueryInterface(principal);
+    owner = do_QueryInterface(nsContentUtils::GetSubjectPrincipal());
   }
 
   // Create load info
