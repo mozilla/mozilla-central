@@ -110,7 +110,7 @@ let gSyncUI = {
     // Should we show the menu item?
     //XXXphilikon We should remove the check for isLoggedIn here and have
     //            about:sync-tabs auto-login (bug 583344)
-    if (!Weave.Service.isLoggedIn || !Weave.Engines.get("tabs").enabled)
+    if (!Weave.Service.isLoggedIn || !Weave.Service.engineManager.get("tabs").enabled)
       return;
 
     let label = this._stringBundle.GetStringFromName("tabs.fromOtherComputers.label");
@@ -234,7 +234,7 @@ let gSyncUI = {
 
   // Commands
   doSync: function SUI_doSync() {
-    setTimeout(function() Weave.ErrorHandler.syncAndReportErrors(), 0);
+    setTimeout(function() Weave.Service.errorHandler.syncAndReportErrors(), 0);
   },
 
   handleToolbarButton: function SUI_handleToolbarButton() {
