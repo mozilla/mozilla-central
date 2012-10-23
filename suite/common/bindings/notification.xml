@@ -557,6 +557,7 @@
                                         if (!aEvent.isTrusted)
                                           return;
                                         aEvent.preventDefault();
+                                        aEvent.stopPropagation();
                                         if (callbackArgs.length == 0)
                                           callbackArgs = [ aEvent ];
                                         callback.apply(this, callbackArgs);
@@ -570,6 +571,7 @@
                                         if (aEvent.keyCode == aEvent.DOM_VK_RETURN)
                                           return;
                                         aEvent.preventDefault();
+                                        aEvent.stopPropagation();
                                         if (callbackArgs.length == 0)
                                           callbackArgs = [ aEvent ];
                                         callback.apply(this, callbackArgs);
