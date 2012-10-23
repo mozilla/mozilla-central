@@ -9378,14 +9378,14 @@ nsImapMockChannel::GetContentDispositionHeader(nsACString &aContentDispositionHe
   return NS_ERROR_NOT_AVAILABLE;
 }
 
-NS_IMETHODIMP nsImapMockChannel::GetContentLength(int32_t * aContentLength)
+NS_IMETHODIMP nsImapMockChannel::GetContentLength(int64_t * aContentLength)
 {
   *aContentLength = mContentLength;
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsImapMockChannel::SetContentLength(int32_t aContentLength)
+nsImapMockChannel::SetContentLength(int64_t aContentLength)
 {
     mContentLength = aContentLength;
     return NS_OK;

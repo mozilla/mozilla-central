@@ -678,13 +678,13 @@ nsMsgProtocol::GetContentDispositionHeader(nsACString &aContentDispositionHeader
   return NS_ERROR_NOT_AVAILABLE;
 }
 
-NS_IMETHODIMP nsMsgProtocol::GetContentLength(int32_t *aContentLength)
+NS_IMETHODIMP nsMsgProtocol::GetContentLength(int64_t *aContentLength)
 {
   *aContentLength = mContentLength;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgProtocol::SetContentLength(int32_t aContentLength)
+NS_IMETHODIMP nsMsgProtocol::SetContentLength(int64_t aContentLength)
 {
   mContentLength = aContentLength;
   return NS_OK;

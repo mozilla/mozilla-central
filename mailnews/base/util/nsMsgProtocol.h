@@ -158,7 +158,7 @@ protected:
   nsCOMPtr<nsIInterfaceRequestor> mCallbacks;
   nsCOMPtr<nsISupports>       mOwner;
   nsCString                   m_ContentType;
-  int32_t                     mContentLength;
+  int64_t                     mContentLength;
 
   nsCString m_lastPasswordSent; // used to prefill the password prompt
 
