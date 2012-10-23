@@ -227,8 +227,10 @@ var sanTests = {
                              nsIWBP.PERSIST_FLAGS_BYPASS_CACHE |
                              nsIWBP.PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION;
 
-      this.dl = this.dm.addDownload(Components.interfaces.nsIDownloadManager.DOWNLOAD_CANCELED, uri,
-                                    dest, "Sanitizer!", null, Math.round(Date.now() * 1000), null, persist);
+      this.dl = this.dm.addDownload(this.dm.DOWNLOAD_CANCELED, uri, dest,
+                                    "Sanitizer!", null,
+                                    Math.round(Date.now() * 1000), null,
+                                    persist, false);
 
       // Stupid DM...
       this.dm.cancelDownload(this.dl.id);

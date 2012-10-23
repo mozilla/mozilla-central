@@ -147,7 +147,7 @@ function test()
     var dl = dm.addDownload(Components.interfaces.nsIDownloadManager.DOWNLOAD_TYPE_DOWNLOAD,
                             createURI("http://example.com/httpd.js"),
                             createURI(destFile), null, null,
-                            Math.round(Date.now() * 1000), null, persist);
+                            Math.round(Date.now() * 1000), null, persist, false);
 
     persist.progressListener = dl.QueryInterface(Components.interfaces.nsIWebProgressListener);
     persist.saveURI(dl.source, null, null, null, null, dl.targetFile, null);
