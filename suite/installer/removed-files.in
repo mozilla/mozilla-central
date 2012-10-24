@@ -703,6 +703,7 @@ xpicleanup@BIN_SUFFIX@
   components/offlineStartup.js
   components/PlacesCategoriesStarter.js
   components/SettingsManager.js
+  components/SiteSpecificUserAgent.js
   components/smileApplication.js
   components/smime-service.js
   components/storage-Legacy.js

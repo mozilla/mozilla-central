@@ -446,6 +446,8 @@
 @BINPATH@/components/pluginGlue.manifest
 @BINPATH@/components/SettingsManager.js
 @BINPATH@/components/SettingsManager.manifest
+@BINPATH@/components/SiteSpecificUserAgent.js
+@BINPATH@/components/SiteSpecificUserAgent.manifest
 @BINPATH@/components/smileApplication.js
 @BINPATH@/components/smileApplication.manifest
 @BINPATH@/components/storage-Legacy.js
