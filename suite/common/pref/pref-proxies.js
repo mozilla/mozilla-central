@@ -184,5 +184,7 @@ function DoProxyPortCopy(aValue)
 function UpdateProxies()
 {
   var noProxiesPref = document.getElementById("network.proxy.no_proxies_on");
-  noProxiesPref.value = noProxiesPref.value.replace(/;/g,",");
+
+  noProxiesPref.value = noProxiesPref.value.replace(/[;, \n]+/g, ", ")
+                                           .replace(/^, |, $/g, "");
 }
