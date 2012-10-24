@@ -662,7 +662,7 @@ Function LaunchAppFromElevatedProcess
   ; Set our current working directory to the application's install directory
   ; otherwise the 7-Zip temp directory will be in use and won't be deleted.
   SetOutPath "$1"
-  Exec "$0"
+  Exec "$\"$0$\""
 FunctionEnd
 
 ################################################################################
