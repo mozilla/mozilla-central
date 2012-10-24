@@ -117,7 +117,7 @@
       ; We call ExecShell (which is ShellExecute) with the verb "runas"
       ; to ask for elevation if the user isn't already elevated.  If the user 
       ; is already elevated it will just launch the program.
-      ExecShell "runas" "$INSTDIR\maintenanceservice_installer.exe"
+      ExecShell "runas" "$\"$INSTDIR\maintenanceservice_installer.exe$\""
     ${EndIf}
   ${EndIf}
 !endif
