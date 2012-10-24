@@ -160,7 +160,7 @@ PRInt32 gfxQuartzSurface::GetDefaultContextFlags() const
 already_AddRefed<gfxImageSurface> gfxQuartzSurface::GetAsImageSurface()
 {
     cairo_surface_t *surface = cairo_quartz_surface_get_image(mSurface);
-    if (!surface)
+    if (!surface || cairo_surface_status(surface))
         return nsnull;
 
     nsRefPtr<gfxASurface> img = Wrap(surface);
