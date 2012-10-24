@@ -225,13 +225,11 @@ nsBrowserStatusHandler.prototype =
         if (aRequest instanceof nsIChannel) {
           var location = aRequest.URI.spec;
           if (location != "about:blank") {
-            const kErrorBindingAborted = 0x804B0002;
-            const kErrorNetTimeout = 0x804B000E;
             switch (aStatus) {
-              case kErrorBindingAborted:
+              case Components.results.NS_BINDING_ABORTED:
                 msg = gNavigatorBundle.getString("nv_stopped");
                 break;
-              case kErrorNetTimeout:
+              case Components.results.NS_ERROR_NET_TIMEOUT:
                 msg = gNavigatorBundle.getString("nv_timeout");
                 break;
             }

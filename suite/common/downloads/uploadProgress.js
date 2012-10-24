@@ -51,9 +51,8 @@ function onLoad()
 
 function onUnload()
 {
-  const NS_BINDING_ABORTED = 0x804b0002;
   if (gPersist)
-    gPersist.cancel(NS_BINDING_ABORTED);
+    gPersist.cancel(Components.results.NS_BINDING_ABORTED);
   gPersist = null;
 }
 

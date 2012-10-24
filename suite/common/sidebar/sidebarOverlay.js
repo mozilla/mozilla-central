@@ -818,8 +818,6 @@ function SidebarRebuild() {
   sidebar_open_default_panel(100, 0);
 }
 
-const NS_ERROR_FILE_NOT_FOUND = 0x80520012;
-
 function check_for_missing_panels() {
   var tabs = sidebarObj.panels.node.childNodes;
   var currHeader;
@@ -834,7 +832,7 @@ function check_for_missing_panels() {
         try {
           channel.open();
         }
-        catch(ex if (ex.result == NS_ERROR_FILE_NOT_FOUND)) {
+        catch(ex if (ex.result == Components.results.NS_ERROR_FILE_NOT_FOUND)) {
           sidebarObj.datasource.Assert(RDF.GetResource(currHeader.getAttribute("id")),
                                        RDF.GetResource(NC + "exclude"),
                                        RDF.GetLiteral(sidebarObj.component),

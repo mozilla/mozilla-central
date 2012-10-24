@@ -27,7 +27,6 @@ const nsIWindowMediator       = Components.interfaces.nsIWindowMediator;
 const nsIWindowWatcher        = Components.interfaces.nsIWindowWatcher;
 const nsIWebNavigationInfo    = Components.interfaces.nsIWebNavigationInfo;
 
-const NS_BINDING_ABORTED = 0x804b0002;
 const NS_ERROR_WONT_HANDLE_CONTENT = 0x805d0001;
 
 const URI_INHERITS_SECURITY_CONTEXT = nsIHttpProtocolHandler
@@ -612,7 +611,7 @@ var nsBrowserContentHandler = {
     request.QueryInterface(nsIChannel);
     handURIToExistingBrowser(request.URI,
       nsIBrowserDOMWindow.OPEN_DEFAULTWINDOW, "chrome,all,dialog=no");
-    request.cancel(NS_BINDING_ABORTED);
+    request.cancel(Components.results.NS_BINDING_ABORTED);
   },
 
   /* nsIFactory */
