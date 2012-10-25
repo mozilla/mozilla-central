@@ -117,10 +117,10 @@ function getRegexp()
   for (let emoticon in gTheme.iconsHash)
     emoticonList.push(emoticon);
 
-  let exp = /([\][)(\\|?^$*+])/g;
+  let exp = /[[\]{}()*+?.\\^$|]/g;
   emoticonList = emoticonList.sort()
                              .reverse()
-                             .map(function(x) x.replace(exp, "\\$1"));
+                             .map(function(x) x.replace(exp, "\\$&"));
 
   if (!emoticonList.length) {
     // the theme contains no valid emoticon, make sure we will return
@@ -129,14 +129,14 @@ function getRegexp()
     return null;
   }
 
-  gTheme.regExp = new RegExp('(' + emoticonList.join('|') + ')', 'g');
+  gTheme.regExp = new RegExp(emoticonList.join('|'), 'g');
   return gTheme.regExp;
 }
 
 // unused. May be useful later to process a string instead of an HTML node
 function smileString(aString)
 {
-  const kSmileFormat = '<img class="ib-img-smile" src="smile://$1" alt="$1" title="$1"/>';
+  const kSmileFormat = '<img class="ib-img-smile" src="smile://$&" alt="$&" title="$&"/>';
 
   let exp = getRegexp();
   return exp ? aString.replace(exp, kSmileFormat) : aString;
