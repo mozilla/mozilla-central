@@ -2136,11 +2136,3 @@ nsNntpIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName,
   // Force updating the rc file.
   return CommitSubscribeChanges();
 }
-
-NS_IMETHODIMP
-nsNntpIncomingServer::GetSortOrder(int32_t* aSortOrder)
-{
-  NS_ENSURE_ARG_POINTER(aSortOrder);
-  *aSortOrder = 500000000;
-  return NS_OK;
-}

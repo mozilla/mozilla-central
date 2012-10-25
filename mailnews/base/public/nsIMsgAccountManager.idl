@@ -14,7 +14,7 @@ interface nsISupportsArray;
 interface nsIMsgFolderCache;
 interface nsIFolderListener;
 
-[scriptable, uuid(ae2fc99f-0d94-4e68-bc0e-7feb645b110f)]
+[scriptable, uuid(5cd9a7cc-3bd1-4553-95d8-b1b48f19ed1e)]
 interface nsIMsgAccountManager : nsISupports {
 
   nsIMsgAccount createAccount();
@@ -213,9 +213,6 @@ interface nsIMsgAccountManager : nsISupports {
    * @return the URI of the folder that corresponds to aLocalPath
    */
   ACString folderUriForPath(in nsIFile aLocalPath);
-
-  // Used to sort servers (accounts) for e.g. the folder pane
-  long getSortOrder(in nsIMsgIncomingServer server);
 };
 
 %{C++

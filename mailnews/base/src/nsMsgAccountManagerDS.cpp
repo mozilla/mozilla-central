@@ -428,10 +428,22 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
       nsCOMPtr<nsIMsgAccountManager> am = do_QueryReferent(mAccountManager);
 
       if (isDefaultServer(server))
-        str.AssignLiteral("000000000");
+        str.AssignLiteral("0000");
       else {
-        rv = am->GetSortOrder(server, &accountNum);
-        NS_ENSURE_SUCCESS(rv, rv);
+        rv = am->FindServerIndex(server, &accountNum);
+        if (NS_FAILED(rv)) return rv;
+
+        // this is a hack for now - hardcode server order by type
+        nsCString serverType;
+        server->GetType(serverType);
+
+        if (MsgLowerCaseEqualsLiteral(serverType, "none"))
+          accountNum += 2000;
+        else if (MsgLowerCaseEqualsLiteral(serverType, "nntp"))
+          accountNum += 3000;
+        else
+          accountNum += 1000;     // default is to appear at the top
+
         str.AppendInt(accountNum);
       }
     }
@@ -449,7 +461,7 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
       // so that the folder data source will take care of it.
       if (sourceValue && (strncmp(sourceValue, NC_RDF_PAGETITLE_PREFIX, strlen(NC_RDF_PAGETITLE_PREFIX)) == 0)) {
         if (source == kNC_PageTitleSMTP)
-          str.AssignLiteral("900000000");
+          str.AssignLiteral("4000");
         else if (source == kNC_PageTitleServer)
           str.AssignLiteral("1");
         else if (source == kNC_PageTitleCopies)

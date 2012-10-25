@@ -72,7 +72,6 @@ public:
 
     NS_IMETHOD GetSocketType(int32_t *aSocketType); // override nsMsgIncomingServer impl
     NS_IMETHOD SetSocketType(int32_t aSocketType); // override nsMsgIncomingServer impl
-    NS_IMETHOD GetSortOrder(int32_t* aSortOrder);
 
 protected:
    virtual nsresult CreateRootFolderFromUri(const nsCString &serverUri,
